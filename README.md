@@ -36,6 +36,10 @@ python3 scripts/check_site.py
 - Media shows three Poly Haven CC0 material textures. It does not show gameplay stills. Do not add private portraits or unfinished source plates.
 - Keep the game package's own credits and third-party notices inside the ZIP. Do not strip them.
 
+## Gameplay media
+
+`assets/gameplay/` holds silent clips and stills made from the published 1.4.3 source. A scratch harness called the game's own movement and fire controls and saved the 320×200 canvas. Stills are a 3× nearest-neighbor scale. Clips are H.264 MP4 and VP9 WebM at 640×400, also nearest-neighbor, with no audio. They are not recordings of the Windows EXE and not a person playing. Do not replace them with generated pictures.
+
 ## Textures
 
 The three WebP files in `assets/textures/` are the supplied Poly Haven scans. Their SHA-256 values are pinned in `scripts/check_site.py`. Website credit: Poly Haven, CC0, https://polyhaven.com/license

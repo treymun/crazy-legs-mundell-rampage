@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#14110f">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="Crazy Legs Mundell Rampage is a standalone retro first-person shooter. Download the public v1.4.3 Windows x64 development build.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Crazy Legs Mundell Rampage</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/site.css">
@@ -33,22 +33,17 @@
   </header>
   <main id="content" tabindex="-1">
     <section class="hero" aria-labelledby="title">
-      <div class="wrap hero-grid">
-        <div class="sign">
-          <div class="sign-face">
+      <div class="wrap hero-layout">
+        <figure class="shot-frame">
+          <img class="shot" src="assets/gameplay/hickston-stankys.webp" width="960" height="600" alt="Scripted v1.4.3 gameplay frame outside Stanky's. The brick storefront, a revolver, and the health bar. Nearest-neighbor scale of the 320 by 200 picture.">
+          <figcaption class="fine">v1.4.3 scripted gameplay capture at Stanky's. Linux source build, not a Windows recording.</figcaption>
+        </figure>
+        <div class="hero-copy plate">
+          <div class="plate-face">
             <p class="eyebrow">The Hickston Incident</p>
-            <h1 class="title" id="title">
-              <span>Crazy Legs</span>
-              <span>Mundell</span>
-              <span>Rampage</span>
-            </h1>
+            <h1 id="title">Crazy Legs Mundell Rampage</h1>
             <p class="headline">Trouble's loose in Hickston County.</p>
             <p class="intro">A standalone retro first-person shooter through backroad businesses, a crooked county fair, wet timber yards and an illicit quarry operation. Bring twelve weapons, keep an eye on your supplies, and get Bessie home.</p>
-          </div>
-        </div>
-        <aside class="plate" aria-labelledby="status-heading">
-          <div class="plate-face">
-            <h2 id="status-heading">Availability</h2>
             <p class="badge">v1.4.3 prerelease · Windows x64 development build</p>
             <div data-download-slot="index">
               <!-- DOWNLOAD:START -->
@@ -60,20 +55,42 @@
 <p><a href="https://github.com/treymun/crazy-legs-mundell-rampage">View project on GitHub</a></p>
 <!-- DOWNLOAD:END -->
             </div>
-            <p class="fine">The ZIP linked here is the public v1.4.3 prerelease. It is a Windows x64 development build, not a later release.</p>
           </div>
-        </aside>
+        </div>
       </div>
     </section>
-    <div class="road" aria-hidden="true"></div>
     <div class="wrap">
-      <nav class="routes" aria-label="Chapters">
-        <a href="county.html#hickston"><span>01</span><strong>Hickston</strong></a>
-        <a href="county.html#possum-county-fair"><span>02</span><strong>Possum County Fair</strong></a>
-        <a href="county.html#blackwater-timber"><span>03</span><strong>Blackwater Timber</strong></a>
-        <a href="county.html#stillwater-cut"><span>04</span><strong>Stillwater Cut</strong></a>
-      </nav>
-      <p class="fine">No gameplay screenshots are posted. <a href="media.html">See the media page</a>.</p>
+      <section class="block" id="maps" aria-labelledby="maps-title">
+        <h2 id="maps-title">Four stops from the same capture</h2>
+        <p>Each picture is one frame from the v1.4.3 source renderer. The harness moved and, at Hickston, fired. These are not Windows recordings and not a person playing.</p>
+        <div class="map-grid">
+          <a href="county.html#hickston"><img class="shot" src="assets/gameplay/hickston-crossroads.webp" width="960" height="600" alt="Scripted Hickston frame at the county crossroads sign, with the revolver in view."><strong>Hickston</strong></a>
+          <a href="county.html#possum-county-fair"><img class="shot" src="assets/gameplay/fair-ticket-shack.webp" width="960" height="600" alt="Scripted Possum County Fair frame inside the ticket shack."><strong>Possum County Fair</strong></a>
+          <a href="county.html#blackwater-timber"><img class="shot" src="assets/gameplay/blackwater-yard.webp" width="960" height="600" alt="Scripted Blackwater Timber frame in the yard, with a sawed-off and a figure by the timber sign."><strong>Blackwater Timber</strong></a>
+          <a href="county.html#stillwater-cut"><img class="shot" src="assets/gameplay/stillwater-scales.webp" width="960" height="600" alt="Scripted Stillwater Cut frame at the county weigh station."><strong>Stillwater Cut</strong></a>
+        </div>
+      </section>
+      <section class="block footage" id="footage">
+        <h2>Moving pictures</h2>
+        <p>Silent clips. v1.4.3 scripted gameplay capture from the Linux source build. The harness called the game's walk, turn, and fire controls. No sound is included.</p>
+        <div class="clip-grid">
+          <figure class="shot-frame">
+            <video class="shot" controls preload="metadata" poster="assets/gameplay/hickston-poster.webp" width="640" height="400">
+              <source src="assets/gameplay/hickston.webm" type="video/webm">
+              <source src="assets/gameplay/hickston.mp4" type="video/mp4">
+            </video>
+            <figcaption>Hickston, 6 seconds, 12 frames a second. H.264 MP4 and VP9 WebM. Nearest-neighbor scale from 320×200.</figcaption>
+          </figure>
+          <figure class="shot-frame">
+            <video class="shot" controls preload="none" poster="assets/gameplay/blackwater-yard.webp" width="640" height="400">
+              <source src="assets/gameplay/sawmill.webm" type="video/webm">
+              <source src="assets/gameplay/sawmill.mp4" type="video/mp4">
+            </video>
+            <figcaption>Blackwater Timber, 3 seconds, 8 frames a second. Same capture method.</figcaption>
+          </figure>
+        </div>
+        <p><a href="media.html#gameplay">All stills and the title screen</a></p>
+      </section>
 
       <section class="block" id="features">
         <div class="section-head">

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#14110f">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="No gameplay screenshots are published. The pictures here are three CC0 Poly Haven material textures used in production.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Media — Crazy Legs Mundell Rampage</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/site.css">
@@ -36,12 +36,54 @@
       <header class="page-intro">
         <p class="eyebrow">What is actually shown</p>
         <h1>Media</h1>
-        <p class="lede">This page does not include gameplay stills, video, or finished scene art. The textures below are material scans used while making game assets.</p>
+        <p class="lede">The moving pictures and stills are scripted captures from the published 1.4.3 source. The textures lower down are production materials, not scenes from play.</p>
       </header>
 
-      <section class="block" id="gameplay">
+      <section class="block footage" id="gameplay">
         <h2>Gameplay</h2>
-        <p class="empty-frame">No gameplay screenshots or video are on this site.</p>
+        <p>Silent clips and stills. A harness on Linux called the game's walk, turn, and fire controls and saved the 320×200 canvas. Nearest-neighbor scale only. This is not a Windows EXE recording and not a person playing.</p>
+        <div class="clip-grid">
+          <figure class="shot-frame">
+            <video class="shot" controls preload="metadata" poster="assets/gameplay/hickston-poster.webp" width="640" height="400">
+              <source src="assets/gameplay/hickston.webm" type="video/webm">
+              <source src="assets/gameplay/hickston.mp4" type="video/mp4">
+            </video>
+            <figcaption>Hickston. 6 seconds. 12 frames a second. H.264 in the MP4, VP9 in the WebM.</figcaption>
+          </figure>
+          <figure class="shot-frame">
+            <video class="shot" controls preload="none" poster="assets/gameplay/blackwater-yard.webp" width="640" height="400">
+              <source src="assets/gameplay/sawmill.webm" type="video/webm">
+              <source src="assets/gameplay/sawmill.mp4" type="video/mp4">
+            </video>
+            <figcaption>Blackwater Timber. 3 seconds. 8 frames a second. Same method.</figcaption>
+          </figure>
+        </div>
+        <div class="map-grid">
+          <figure class="shot-frame">
+            <img class="shot" src="assets/gameplay/hickston-stankys.webp" width="960" height="600" alt="Scripted frame outside Stanky's with the revolver and health bar.">
+            <figcaption>Hickston, outside Stanky's.</figcaption>
+          </figure>
+          <figure class="shot-frame">
+            <img class="shot" src="assets/gameplay/hickston-combat.webp" width="960" height="600" alt="Scripted Hickston frame aimed at a door, with bullet marks on the brick.">
+            <figcaption>Hickston, after the harness fired.</figcaption>
+          </figure>
+          <figure class="shot-frame">
+            <img class="shot" src="assets/gameplay/fair-ticket-shack.webp" width="960" height="600" alt="Scripted Possum County Fair frame inside the ticket shack.">
+            <figcaption>Possum County Fair, ticket shack.</figcaption>
+          </figure>
+          <figure class="shot-frame">
+            <img class="shot" src="assets/gameplay/blackwater-yard.webp" width="960" height="600" alt="Scripted Blackwater Timber frame in the yard.">
+            <figcaption>Blackwater Timber yard.</figcaption>
+          </figure>
+          <figure class="shot-frame">
+            <img class="shot" src="assets/gameplay/stillwater-scales.webp" width="960" height="600" alt="Scripted Stillwater Cut frame at the county weigh station.">
+            <figcaption>Stillwater Cut, county weigh station.</figcaption>
+          </figure>
+          <figure class="shot-frame">
+            <img class="shot" src="assets/gameplay/title-screen.webp" width="960" height="600" alt="The v1.4.3 title screen, with the menu and the character by the gas pump. Not a gameplay frame.">
+            <figcaption>Title screen from the same source run. This one is the menu, not gameplay.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="block" id="materials">
