@@ -1,14 +1,14 @@
 {
-  "notesVersion": "1.4.3",
+  "notesVersion": "1.5.0-dev.7",
   "platform": "Windows x64",
   "repository": "https://github.com/treymun/crazy-legs-mundell-rampage",
-  "packageExe": "CrazyLegsMundellRampage-1.4.3.exe",
-  "releasePage": "https://github.com/treymun/crazy-legs-mundell-rampage/releases/tag/v1.4.3",
-  "releaseTarget": "148d9557d57100f17320cc961ed3957a00ff9533",
+  "packageExe": "CrazyLegsMundellRampage-1.5.0-dev.7.exe",
+  "releasePage": "https://github.com/treymun/crazy-legs-mundell-rampage/releases/tag/v1.5.0-dev.7",
+  "releaseTarget": "014d4b4618090635111f020483b95d8df6b45c90",
   "prerelease": true,
   "download": {
-    "url": "https://github.com/treymun/crazy-legs-mundell-rampage/releases/download/v1.4.3/Crazy_Legs_Mundell_Rampage_1.4.3.zip",
-    "expectedBytes": 115895791,
-    "sha256": "13613b4a2eadf69df4eed0ac1978031255b4bc727f90cd639156d03de09dcc1e"
+    "url": "https://github.com/treymun/crazy-legs-mundell-rampage/releases/download/v1.5.0-dev.7/Crazy_Legs_Mundell_Rampage_1.5.0-dev.7.zip",
+    "expectedBytes": 121066825,
+    "sha256": "3ac70972cfb59c43efde5f0d2f18b2454aee847479f98e555d25dcc0e8687adb"
   }
 }

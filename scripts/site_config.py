@@ -75,8 +75,10 @@ def render_download(cfg: dict, page: str) -> str:
         lines.append(f'<p class="cta"><a href="{url}">Download the Windows x64 ZIP</a></p>')
         lines.append('<details class="file-note"><summary>Release file</summary>')
         lines.append(f"<p>{detail}</p>")
-        lines.append("<p>Windows x64 development build. Public v1.4.3 prerelease.</p>")
-        lines.append(f'<p><a href="{cfg["releasePage"]}">View the v1.4.3 release</a></p>')
+        release_page = cfg["releasePage"]
+        tag = release_page.rsplit("/", 1)[-1]
+        lines.append(f"<p>Windows x64 development build. Public {tag} prerelease.</p>")
+        lines.append(f'<p><a href="{release_page}">View the {tag} release</a></p>')
     if page == "index":
         lines.append('<p><a href="play.html#download">Read the download notes</a></p>')
     lines.append(f'<p><a href="{REPO}">View project on GitHub</a></p>')
