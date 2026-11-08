@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14110f">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Download the public v1.4.3 Windows x64 development build of Crazy Legs Mundell Rampage, then use the documented controls.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Play — Crazy Legs Mundell Rampage</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap header-bar">
+      <a class="brand" href="index.html">Crazy Legs Mundell Rampage</a>
+      <details class="nav">
+        <summary>Menu</summary>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="county.html">County</a></li>
+            <li><a href="arsenal.html">Arsenal</a></li>
+            <li><a href="play.html" aria-current="page">Play</a></li>
+            <li><a href="media.html">Media</a></li>
+            <li><a href="notes.html">Notes</a></li>
+          </ul>
+        </nav>
+      </details>
+    </div>
+  </header>
+  <main id="content" tabindex="-1">
+    <div class="wrap copy">
+      <header class="page-intro">
+        <p class="eyebrow">Windows x64 development build</p>
+        <h1>Play</h1>
+        <p class="lede">Only Windows x64 is documented. This site does not promise macOS, Linux, mobile, or browser play, and it does not name a specific Windows version.</p>
+        <ul class="on-page">
+          <li><a href="#download">Download</a></li>
+          <li><a href="#getting-started">Getting started</a></li>
+          <li><a href="#controls">Controls</a></li>
+          <li><a href="#saves">Saves</a></li>
+          <li><a href="#readability">Picture and options</a></li>
+          <li><a href="#developers">Source builds</a></li>
+        </ul>
+      </header>
+
+      <section class="block" id="download">
+        <h2>Download</h2>
+        <div data-download-slot="play">
+          <!-- DOWNLOAD:START -->
+<p class="cta"><a href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/download/v1.4.3/Crazy_Legs_Mundell_Rampage_1.4.3.zip">Download the Windows x64 ZIP</a></p>
+<p>Crazy_Legs_Mundell_Rampage_1.4.3.zip. 110.5 MiB (115,895,791 bytes).</p>
+<p>Windows x64 development build. Public v1.4.3 prerelease.</p>
+<p><a href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/tag/v1.4.3">View the v1.4.3 release</a></p>
+<p><a href="https://github.com/treymun/crazy-legs-mundell-rampage">View project on GitHub</a></p>
+<!-- DOWNLOAD:END -->
+        </div>
+      </section>
+
+      <section class="block" id="getting-started">
+        <h2>Install</h2>
+        <p>These are the documented steps for the public v1.4.3 Windows x64 prerelease. The ZIP is the release file linked above. This website does not host a second copy.</p>
+        <ol class="steps">
+          <li>Download the Windows release ZIP from the verified release link and extract it completely.</li>
+          <li>Open <code>CrazyLegsMundellRampage-1.4.3.exe</code> for this version.</li>
+          <li>Press Enter at the title screen to start. The documented first launch is a resizable 4:3 window.</li>
+          <li>Open Setup to change display, input, or audio. The picture section below has the documented fullscreen controls.</li>
+        </ol>
+        <p>The packaged EXE is documented as standalone. Players do not need a Python environment to run it. This site does not promise a signed executable, and it does not ask anyone to bypass a Windows security warning.</p>
+      </section>
+
+      <section class="block" id="controls">
+        <h2>Default controls</h2>
+        <p id="controls-hint">On a narrow screen, scroll this table sideways.</p>
+        <div class="table-scroll" tabindex="0" aria-describedby="controls-hint">
+          <table>
+            <caption>Default controls from the 1.4.3 notes</caption>
+            <thead>
+              <tr>
+                <th scope="col">Action</th>
+                <th scope="col">Default input</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Move / strafe</th><td>WASD</td></tr>
+              <tr><th scope="row">Aim / turn</th><td>Mouse</td></tr>
+              <tr><th scope="row">Fire</th><td>Left mouse</td></tr>
+              <tr><th scope="row">Alternate attack where supported</th><td>Right mouse</td></tr>
+              <tr><th scope="row">Run / toggle always-run</th><td>Shift / Caps Lock</td></tr>
+              <tr><th scope="row">Jump / crouch</th><td>J / Z</td></tr>
+              <tr><th scope="row">Use door, gate, prop; rescue Bessie</th><td>E, Space or middle mouse</td></tr>
+              <tr><th scope="row">Reload</th><td>R</td></tr>
+              <tr><th scope="row">Cycle owned weapons</th><td>Mouse wheel</td></tr>
+              <tr><th scope="row">Select weapons</th><td>1–8; 9 Sling Blade; 0 Bottle Rocket Launcher; - Mill Riveter; = Copperhead</td></tr>
+              <tr><th scope="row">Select inventory / use selected item</th><td>Q or [ / ]; F or Enter</td></tr>
+              <tr><th scope="row">Pork rinds / beer / moonshine</th><td>C / B / M</td></tr>
+              <tr><th scope="row">Automap and objective</th><td>Tab</td></tr>
+              <tr><th scope="row">Holler</th><td>Y</td></tr>
+              <tr><th scope="row">Named saves</th><td>F5</td></tr>
+              <tr><th scope="row">Quicksave / quickload</th><td>F6 / F9</td></tr>
+              <tr><th scope="row">Music toggle</th><td>F4</td></tr>
+              <tr><th scope="row">Screenshot</th><td>F12</td></tr>
+              <tr><th scope="row">Pause / title</th><td>Esc</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="block" id="saves">
+        <h2>Saves</h2>
+        <p>Named saves use F5. Quicksave and quickload use F6 and F9.</p>
+        <p>Default saves, settings, and screenshots go to <code>%LOCALAPPDATA%\HickstonIncident</code>.</p>
+        <p>The notes document four named campaign slots, four slots per replay chapter, and a separate quicksave. Existing supported V1–V3 saves are backed up before conversion to V4.</p>
+        <p>The notes say to throw a lit dynamite stick before saving. This page does not promise a save while a fuse is still burning.</p>
+      </section>
+
+      <section class="block" id="readability">
+        <h2>Picture and options</h2>
+        <p>The scene is documented as a 320×200 software-rendered view with native pixel lettering.</p>
+        <p>Display, input, and audio have separate settings. The first launch is a resizable 4:3 window. Fullscreen (Fill) fills the monitor. Fullscreen (Aspect) keeps the selected proportions. F11 toggles window and fullscreen.</p>
+        <p>No hardware requirements are listed here.</p>
+      </section>
+
+      <section class="block" id="developers">
+        <h2>Source builds</h2>
+        <p>A source build is documented for Python 3.12 x64, with pinned dependencies and <code>Build_CrazyLegsMundellRampage.bat</code>. That path is for development. This site does not host the script or the source tree.</p>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Crazy Legs Mundell Rampage by Treymun.</p>
+      <p>An independent, unofficial game project. Not affiliated with or endorsed by the creators or publishers of Redneck Rampage.</p>
+      <ul class="footer-links">
+        <li><a href="notes.html#credits">Credits</a></li>
+        <li><a href="play.html#download">Download</a></li>
+        <li><a href="https://github.com/treymun/crazy-legs-mundell-rampage">View project on GitHub</a></li>
+      </ul>
+      <p class="fine">Website material textures: <a href="https://polyhaven.com/">Poly Haven</a>, <a href="https://polyhaven.com/license">CC0</a>. Not every asset in the game is wholly original.</p>
+    </div>
+  </footer>
+  <script src="js/download.js"></script>
+</body>
+</html>
