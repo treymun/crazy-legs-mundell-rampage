@@ -1,22 +1,12 @@
 # crazy-legs-mundell-rampage
 
-Promotional site for Crazy Legs Mundell Rampage. The game download is the public v1.4.3 prerelease ZIP. This repository's website is not that game version, and the site does not host a second copy of the ZIP.
+Promotional site for Crazy Legs Mundell Rampage. The game download is the Windows x64 development prerelease ZIP hosted in GitHub Releases.
 
 ## Download configuration
 
 `site.json` is the only place the download address is authored. `scripts/apply_download.py` copies it into the Home and Play download slots. `js/download.js` reads the same file in the browser.
 
-Current public asset, checked against the GitHub release:
-
-- Tag: `v1.4.3` (prerelease, not a later full release)
-- Tag target: `148d9557d57100f17320cc961ed3957a00ff9533` on `main`
-- Release page: https://github.com/treymun/crazy-legs-mundell-rampage/releases/tag/v1.4.3
-- ZIP: https://github.com/treymun/crazy-legs-mundell-rampage/releases/download/v1.4.3/Crazy_Legs_Mundell_Rampage_1.4.3.zip
-- File name: `Crazy_Legs_Mundell_Rampage_1.4.3.zip`
-- Size: 115,895,791 bytes (110.5 MiB)
-- SHA-256: `13613b4a2eadf69df4eed0ac1978031255b4bc727f90cd639156d03de09dcc1e`
-
-Do not point the button at GitHub's latest-release alias. That alias skips prereleases. Use the tagged asset URL above.
+The verified release page, tag target, asset URL, byte size and SHA-256 are in [site.json](site.json). Use the tagged asset URL for prereleases because GitHub's latest-release alias skips them.
 
 After a real future asset is published, update `site.json` from the release record and restamp:
 
@@ -30,9 +20,9 @@ python3 scripts/check_site.py
 ## What the pages say
 
 - Home, County, Arsenal, Play, Media, and Notes are the site.
-- Copy follows the reviewed 1.4.3 project notes. It is not a performance test.
+- The Notes page describes the current release and its remaining manual checks.
 - The public build is a Windows x64 development build. The site does not promise macOS, Linux, mobile, browser play, or a specific Windows version.
-- Only weapons named in those notes are listed. The count is twelve.
+- The game has twelve weapons.
 - Media shows scripted 1.4.3 gameplay stills, plus the three Poly Haven CC0 material textures. Moving footage is not on the site. Do not add private portraits or unfinished source plates.
 - Keep the game package's own credits and third-party notices inside the ZIP. Do not strip them.
 

@@ -205,7 +205,7 @@ def check_pages(cfg: dict, errors: list[str]) -> dict[str, Document]:
                 or format_mib(cfg["download"]["expectedBytes"]) not in found.group(1)
                 or cfg["releasePage"] not in found.group(1)
             ):
-                fail(errors, f"{name} download slot does not show the v1.4.3 ZIP")
+                fail(errors, f"{name} download slot does not show the configured release ZIP")
     play = (ROOT / "play.html").read_text(encoding="utf-8")
     if cfg["packageExe"] not in play:
         fail(errors, "play.html is missing the documented exe name")

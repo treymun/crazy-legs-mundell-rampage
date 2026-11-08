@@ -45,9 +45,10 @@
       html.push('<p class="cta"><a href="' + url + '">Download the Windows x64 ZIP</a></p>');
       html.push('<details class="file-note"><summary>Release file</summary>');
       html.push("<p>" + line + "</p>");
-      html.push("<p>Windows x64 development build. Public v1.4.3 prerelease.</p>");
       if (typeof cfg.releasePage === "string" && TAG_PAGE_RE.test(cfg.releasePage)) {
-        html.push('<p><a href="' + cfg.releasePage + '">View the v1.4.3 release</a></p>');
+        var tag = cfg.releasePage.split("/").pop();
+        html.push("<p>Windows x64 development build. Public " + tag + " prerelease.</p>");
+        html.push('<p><a href="' + cfg.releasePage + '">View the ' + tag + ' release</a></p>');
       }
     }
     if (page === "index") {
