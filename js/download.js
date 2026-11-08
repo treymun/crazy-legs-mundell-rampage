@@ -37,7 +37,7 @@
       html.push('<p class="soon">Download coming soon</p>');
       html.push("<p>No public Windows ZIP is published in this repository.</p>");
     } else {
-      var name = esc(decodeURIComponent(url.split("/").pop()));
+      var name = esc(decodeURIComponent(url.split("/").pop())).replace(/_/g, "_<wbr>");
       var line = name + ".";
       if (Number.isInteger(download.expectedBytes) && download.expectedBytes > 0) {
         line = name + ". " + formatMib(download.expectedBytes) + " (" + formatBytes(download.expectedBytes) + " bytes).";

@@ -239,10 +239,14 @@ a:visited {
   background-image: url("../assets/textures/corrugated_iron.webp");
   background-size: 220px;
   padding: 10px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .plate-face {
   background: var(--plate);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .eyebrow {
@@ -284,10 +288,12 @@ a:visited {
 
 .badge {
   display: inline-block;
+  max-width: 100%;
   margin: 0;
   padding: 0.15rem 0.45rem;
   border: 1px solid var(--amber);
   font-weight: 750;
+  overflow-wrap: anywhere;
 }
 
 .soon,
@@ -302,7 +308,18 @@ a:visited {
 .cta a {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
   min-height: 44px;
+  overflow-wrap: anywhere;
+}
+
+[data-download-slot],
+[data-download-slot] p,
+[data-download-slot] a {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .fine {

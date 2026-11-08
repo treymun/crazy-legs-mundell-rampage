@@ -69,7 +69,7 @@ def render_download(cfg: dict, page: str) -> str:
         lines.append('<p class="soon">Download coming soon</p>')
         lines.append("<p>No public Windows ZIP is published in this repository.</p>")
     else:
-        name = url.rstrip("/").split("/")[-1]
+        name = url.rstrip("/").split("/")[-1].replace("_", "_<wbr>")
         size = download["expectedBytes"]
         detail = f"{name}. {format_mib(size)} ({size:,} bytes)."
         lines.append(f'<p class="cta"><a href="{url}">Download the Windows x64 ZIP</a></p>')
