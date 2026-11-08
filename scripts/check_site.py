@@ -79,7 +79,14 @@ class Document(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr = {key: value for key, value in attrs}
-        if tag in {"script", "iframe", "audio", "video", "form", "object", "embed", "base"}:
+        if tag == "video":
+            if "autoplay" in attr:
+                self.bad.append("autoplay")
+            if "controls" not in attr:
+                self.bad.append("video-without-controls")
+        elif tag == "source" and attr.get("src"):
+            self.hrefs.append(attr["src"])
+        elif tag in {"script", "iframe", "audio", "form", "object", "embed", "base"}:
             if tag == "script" and attr.get("src") == "js/download.js":
                 self.srcs.append(attr["src"])
             else:
@@ -253,12 +260,14 @@ def check_css(errors: list[str]) -> None:
 
 
 def check_files(errors: list[str]) -> None:
-    blocked_suffix = {".zip", ".exe", ".png", ".jpg", ".jpeg", ".mp3", ".wav", ".ogg", ".mp4"}
+    blocked_suffix = {".zip", ".exe", ".png", ".jpg", ".jpeg", ".mp3", ".wav", ".ogg"}
     for path in ROOT.rglob("*"):
         if not path.is_file() or ".git" in path.parts:
             continue
         if path.suffix.lower() in blocked_suffix:
             fail(errors, f"repo should not contain {path.relative_to(ROOT)}")
+        if path.suffix.lower() in {".mp4", ".webm"} and "assets/gameplay" not in path.as_posix():
+            fail(errors, f"video outside the gameplay folder: {path.relative_to(ROOT)}")
         if path.name in {"RELEASE_THIRD_PARTY_NOTICES.md", "ATTRIBUTION.md"}:
             fail(errors, f"do not publish {path.name}")
     for rel, digest in TEXTURES.items():

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#14110f">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="Four chapters in Hickston County: Hickston, Possum County Fair, Blackwater Timber, and Stillwater Cut, linked by County Crossroads.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>The county — Crazy Legs Mundell Rampage</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/site.css">
@@ -18,7 +18,8 @@
       <a class="brand" href="index.html">Crazy Legs Mundell Rampage</a>
       <details class="nav">
         <summary>Menu</summary>
-        <nav aria-label="Primary">
+      </details>
+      <nav class="primary" aria-label="Primary">
           <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="county.html" aria-current="page">County</a></li>
@@ -28,7 +29,6 @@
             <li><a href="notes.html">Notes</a></li>
           </ul>
         </nav>
-      </details>
     </div>
   </header>
   <main id="content" tabindex="-1">
@@ -40,6 +40,9 @@
       </header>
 
       <article class="chapter chapter-hickston" id="hickston">
+        <figure class="shot-frame">
+          <img class="shot" src="assets/gameplay/hickston-crossroads.webp" width="960" height="600" alt="Scripted Hickston frame at the county crossroads sign.">
+        </figure>
         <div>
           <p class="chapter-kicker">Chapter 01 · The Hickston Incident</p>
           <h2>Hickston</h2>
@@ -48,6 +51,9 @@
       </article>
 
       <article class="chapter chapter-fair" id="possum-county-fair">
+        <figure class="shot-frame">
+          <img class="shot" src="assets/gameplay/fair-ticket-shack.webp" width="960" height="600" alt="Scripted Possum County Fair frame inside the ticket shack.">
+        </figure>
         <div>
           <p class="chapter-kicker">Chapter 02</p>
           <h2>Possum County Fair</h2>
@@ -56,6 +62,9 @@
       </article>
 
       <article class="chapter chapter-timber" id="blackwater-timber">
+        <figure class="shot-frame">
+          <img class="shot" src="assets/gameplay/blackwater-yard.webp" width="960" height="600" alt="Scripted Blackwater Timber frame in the yard with a sawed-off.">
+        </figure>
         <div>
           <p class="chapter-kicker">Chapter 03</p>
           <h2>Blackwater Timber</h2>
@@ -64,6 +73,9 @@
       </article>
 
       <article class="chapter chapter-cut" id="stillwater-cut">
+        <figure class="shot-frame">
+          <img class="shot" src="assets/gameplay/stillwater-scales.webp" width="960" height="600" alt="Scripted Stillwater Cut frame at the county weigh station.">
+        </figure>
         <div>
           <p class="chapter-kicker">Chapter 04 · The Bootleg Works</p>
           <h2>Stillwater Cut</h2>

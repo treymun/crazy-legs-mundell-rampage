@@ -33,8 +33,12 @@ python3 scripts/check_site.py
 - Copy follows the reviewed 1.4.3 project notes. It is not a performance test.
 - The public build is a Windows x64 development build. The site does not promise macOS, Linux, mobile, browser play, or a specific Windows version.
 - Only weapons named in those notes are listed. The count is twelve.
-- Media shows three Poly Haven CC0 material textures. It does not show gameplay stills. Do not add private portraits or unfinished source plates.
+- Media shows scripted 1.4.3 gameplay stills, plus the three Poly Haven CC0 material textures. Moving footage is not on the site. Do not add private portraits or unfinished source plates.
 - Keep the game package's own credits and third-party notices inside the ZIP. Do not strip them.
+
+## Gameplay media
+
+`assets/gameplay/` holds stills from the published 1.4.3 source. A scratch harness saved the 320×200 canvas, and the stills are a 3× nearest-neighbor scale. They are not recordings of the Windows EXE and not a person playing. Moving footage is not on the site. Do not replace the stills with generated pictures. Headings use Hickston Pixel, built from the game's own hand-cut lettering.
 
 ## Textures
 
