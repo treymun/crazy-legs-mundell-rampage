@@ -33,18 +33,13 @@
   </header>
   <main id="content" tabindex="-1">
     <section class="hero" aria-labelledby="title">
-      <div class="wrap hero-layout">
-        <figure class="shot-frame">
-          <img class="shot" src="assets/gameplay/hickston-stankys.webp" width="960" height="600" alt="Scripted v1.4.3 gameplay frame outside Stanky's. The brick storefront, a revolver, and the health bar. Nearest-neighbor scale of the 320 by 200 picture.">
-          <figcaption class="fine">v1.4.3 scripted gameplay capture at Stanky's. Linux source build, not a Windows recording.</figcaption>
-        </figure>
-        <div class="hero-copy plate">
-          <div class="plate-face">
+      <div class="wrap hero-poster">
+        <div class="hero-copy">
             <p class="eyebrow">The Hickston Incident</p>
-            <h1 id="title">Crazy Legs Mundell Rampage</h1>
+            <h1 id="title"><span>Crazy Legs</span><span>Mundell</span><span>Rampage</span></h1>
             <p class="headline">Trouble's loose in Hickston County.</p>
             <p class="intro">A standalone retro first-person shooter through backroad businesses, a crooked county fair, wet timber yards and an illicit quarry operation. Bring twelve weapons, keep an eye on your supplies, and get Bessie home.</p>
-            <p class="badge">v1.4.3 prerelease · Windows x64 development build</p>
+            <p class="badge">v1.4.3 development build</p>
             <div data-download-slot="index">
               <!-- DOWNLOAD:START -->
 <p class="cta"><a href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/download/v1.4.3/Crazy_Legs_Mundell_Rampage_1.4.3.zip">Download the Windows x64 ZIP</a></p>
@@ -55,14 +50,17 @@
 <p><a href="https://github.com/treymun/crazy-legs-mundell-rampage">View project on GitHub</a></p>
 <!-- DOWNLOAD:END -->
             </div>
-          </div>
         </div>
+        <figure class="shot-frame hero-frame">
+          <img class="shot" src="assets/gameplay/hickston-stankys.webp" width="960" height="600" alt="Scripted v1.4.3 gameplay frame outside Stanky's. The brick storefront, a revolver, and the health bar.">
+          <figcaption>Stanky's. Scripted source-build capture.</figcaption>
+        </figure>
       </div>
     </section>
     <div class="wrap">
       <section class="block" id="maps" aria-labelledby="maps-title">
-        <h2 id="maps-title">Four stops from the same capture</h2>
-        <p>Each picture is one frame from the v1.4.3 source renderer. The harness moved and, at Hickston, fired. These are not Windows recordings and not a person playing.</p>
+        <h2 id="maps-title">Four stops in the county</h2>
+        <p>Hickston, the fair, the timber yard, and Stillwater Cut.</p>
         <div class="map-grid">
           <a href="county.html#hickston"><img class="shot" src="assets/gameplay/hickston-crossroads.webp" width="960" height="600" alt="Scripted Hickston frame at the county crossroads sign, with the revolver in view."><strong>Hickston</strong></a>
           <a href="county.html#possum-county-fair"><img class="shot" src="assets/gameplay/fair-ticket-shack.webp" width="960" height="600" alt="Scripted Possum County Fair frame inside the ticket shack."><strong>Possum County Fair</strong></a>
@@ -71,89 +69,39 @@
         </div>
       </section>
       <section class="block footage" id="footage">
-        <h2>Moving pictures</h2>
-        <p>Silent clips. v1.4.3 scripted gameplay capture from the Linux source build. The harness called the game's walk, turn, and fire controls. No sound is included.</p>
+        <h2>Out on the road</h2>
+        <p>Silent clips. Scripted source-build capture.</p>
         <div class="clip-grid">
           <figure class="shot-frame">
             <video class="shot" controls preload="metadata" poster="assets/gameplay/hickston-poster.webp" width="640" height="400">
               <source src="assets/gameplay/hickston.webm" type="video/webm">
               <source src="assets/gameplay/hickston.mp4" type="video/mp4">
             </video>
-            <figcaption>Hickston, 6 seconds, 12 frames a second. H.264 MP4 and VP9 WebM. Nearest-neighbor scale from 320×200.</figcaption>
+            <figcaption>Hickston. Scripted source-build capture. 16 seconds, silent.</figcaption>
           </figure>
           <figure class="shot-frame">
             <video class="shot" controls preload="none" poster="assets/gameplay/blackwater-yard.webp" width="640" height="400">
               <source src="assets/gameplay/sawmill.webm" type="video/webm">
               <source src="assets/gameplay/sawmill.mp4" type="video/mp4">
             </video>
-            <figcaption>Blackwater Timber, 3 seconds, 8 frames a second. Same capture method.</figcaption>
+            <figcaption>Blackwater Timber. Scripted source-build capture. 12 seconds, silent.</figcaption>
           </figure>
         </div>
         <p><a href="media.html#gameplay">All stills and the title screen</a></p>
       </section>
 
       <section class="block" id="features">
-        <div class="section-head">
-          <h2>From the 1.4.3 notes</h2>
-          <p>This copy follows the reviewed project notes. It is not a performance test or a compatibility certificate.</p>
-        </div>
-        <ul class="cards">
-          <li>
-            <h3>Four chapters, one county.</h3>
-            <p>Travel through Hickston, Possum County Fair, Blackwater Timber and Stillwater Cut, connected by County Crossroads.</p>
-            <a href="county.html">See the county</a>
-          </li>
-          <li>
-            <h3>An eccentric twelve-weapon arsenal.</h3>
-            <p>From crowbar and sawed-off to a Bottle Rocket Launcher, Mill Riveter and Copperhead Pressure Gun, choose the right tool for the trouble ahead.</p>
-            <a href="arsenal.html">See the named weapons</a>
-          </li>
-          <li>
-            <h3>Explore, return, replay.</h3>
-            <p>Find secrets and optional approaches, suspend a chapter at its return gate, or revisit a completed world. Replay chapters with fixed starting kits.</p>
-            <a href="county.html#county-crossroads">How return works</a>
-          </li>
-          <li>
-            <h3>A soundtrack for each stop.</h3>
-            <p>Twelve original chapter arrangements, three per location, with shuffled playlists. Title, jukebox and finale music are separate.</p>
-            <a href="notes.html#music">Music notes</a>
-          </li>
-          <li>
-            <h3>Old-school presentation, practical options.</h3>
-            <p>A 320×200 software-rendered scene, native pixel lettering, named saves and separate display, input and audio settings.</p>
-            <a href="play.html#readability">Picture and options</a>
-          </li>
+        <h2>What you carry</h2>
+        <ul class="board">
+          <li><a href="arsenal.html">Twelve weapons</a>, from the crowbar and sawed-off to the Bottle Rocket Launcher, Mill Riveter, and Copperhead.</li>
+          <li><a href="county.html#county-crossroads">County Crossroads</a> ties the four chapters. Leave, come back, or replay with a fixed kit.</li>
+          <li><a href="notes.html#music">Twelve chapter tunes</a>, three a stop, plus title, jukebox, and finale.</li>
+          <li><a href="play.html#readability">320×200</a>, pixel lettering, named saves, and separate display, input, and audio settings.</li>
         </ul>
-      </section>
-
-      <section class="block" id="chapters">
-        <h2>The four chapters</h2>
-        <ul class="cards">
-          <li class="chapter-hickston">
-            <p class="chapter-kicker">01 · The Hickston Incident</p>
-            <h3>Hickston</h3>
-            <p>Start at Stanky's, search dispatch and service roads for the way into the barn and pasture, and rescue Bessie.</p>
-            <a href="county.html#hickston">Full chapter</a>
-          </li>
-          <li class="chapter-fair">
-            <p class="chapter-kicker">02</p>
-            <h3>Possum County Fair</h3>
-            <p>An abandoned midway still has a broadcast to silence.</p>
-            <a href="county.html#possum-county-fair">Full chapter</a>
-          </li>
-          <li class="chapter-timber">
-            <p class="chapter-kicker">03</p>
-            <h3>Blackwater Timber</h3>
-            <p>Work through wet timber yards, feed controls and the dry kiln to shut down the pump-house relay.</p>
-            <a href="county.html#blackwater-timber">Full chapter</a>
-          </li>
-          <li class="chapter-cut">
-            <p class="chapter-kicker">04 · The Bootleg Works</p>
-            <h3>Stillwater Cut</h3>
-            <p>Limestone processing meets copper condensers and a contaminated bottling operation.</p>
-            <a href="county.html#stillwater-cut">Full chapter</a>
-          </li>
-        </ul>
+        <details class="provenance">
+          <summary>About these pictures</summary>
+          <p>Scripted source-build capture from the published v1.4.3 Linux source. A harness called the game's walk, turn, and fire controls and saved the 320×200 canvas. Stills are a 3× nearest-neighbor scale. Clips are silent. This is not a recording of the Windows EXE and not a person playing.</p>
+        </details>
       </section>
 
       <section class="block" id="crossroads">

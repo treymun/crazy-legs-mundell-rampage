@@ -33,12 +33,12 @@ python3 scripts/check_site.py
 - Copy follows the reviewed 1.4.3 project notes. It is not a performance test.
 - The public build is a Windows x64 development build. The site does not promise macOS, Linux, mobile, browser play, or a specific Windows version.
 - Only weapons named in those notes are listed. The count is twelve.
-- Media shows three Poly Haven CC0 material textures. It does not show gameplay stills. Do not add private portraits or unfinished source plates.
+- Media shows scripted 1.4.3 gameplay stills and silent clips, plus the three Poly Haven CC0 material textures. Do not add private portraits or unfinished source plates.
 - Keep the game package's own credits and third-party notices inside the ZIP. Do not strip them.
 
 ## Gameplay media
 
-`assets/gameplay/` holds silent clips and stills made from the published 1.4.3 source. A scratch harness called the game's own movement and fire controls and saved the 320×200 canvas. Stills are a 3× nearest-neighbor scale. Clips are H.264 MP4 and VP9 WebM at 640×400, also nearest-neighbor, with no audio. They are not recordings of the Windows EXE and not a person playing. Do not replace them with generated pictures.
+`assets/gameplay/` holds silent clips and stills made from the published 1.4.3 source. A scratch harness called the game's own movement and fire controls and saved the 320×200 canvas. Stills are a 3× nearest-neighbor scale. Hickston is 16 seconds at 20 frames a second. Blackwater Timber is 12 seconds at 15 frames a second. Clips are H.264 MP4 and VP9 WebM at 640×400, also nearest-neighbor, with no audio. They are not recordings of the Windows EXE and not a person playing. Do not replace them with generated pictures. Headings use Hickston Pixel, built from the game's own hand-cut lettering.
 
 ## Textures
 

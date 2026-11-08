@@ -860,3 +860,318 @@ figcaption p {
     color: #16120f;
   }
 }
+
+@font-face {
+  font-family: "Hickston Pixel";
+  src: url("../assets/fonts/hickston-pixel.woff2") format("woff2");
+  font-display: swap;
+}
+
+body {
+  background:
+    radial-gradient(1200px 420px at 50% -10%, rgba(120, 48, 24, 0.28), transparent 60%),
+    #16110d;
+  color: #f3e2c4;
+}
+
+.site-header {
+  background:
+    linear-gradient(180deg, rgba(22, 14, 10, 0.55), rgba(22, 14, 10, 0.78)),
+    url("../assets/textures/weathered_plank_siding.webp");
+  background-size: auto, 320px;
+  border-bottom: 4px solid #c4a06a;
+}
+
+.brand,
+.nav a,
+.nav summary,
+h1,
+h2,
+h3,
+.eyebrow,
+.badge,
+.cta a,
+.chapter-kicker {
+  font-family: "Hickston Pixel", "Arial Black", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+p,
+li,
+td,
+figcaption,
+.lede,
+.headline,
+.intro,
+.fine {
+  font-family: Georgia, "Palatino Linotype", Palatino, serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.nav ul {
+  gap: 0.35rem;
+}
+
+.nav a {
+  border: 2px solid #c4a06a;
+  background: #2a1c14;
+  color: #f3e2c4;
+  text-decoration: none;
+  padding: 0.45rem 0.6rem;
+  font-size: 1.15rem;
+}
+
+.brand {
+  font-size: 1.2rem;
+  text-decoration: none;
+}
+
+.nav a[aria-current="page"] {
+  background: #ef5a22;
+  color: #1a100c;
+  border-color: #f3e2c4;
+  text-decoration: none;
+}
+
+.nav summary {
+  background: #2a1c14;
+  color: #f3e2c4;
+  border: 2px solid #c4a06a;
+}
+
+.hero {
+  background:
+    linear-gradient(180deg, rgba(90, 36, 18, 0.35), transparent 70%),
+    #16110d;
+}
+
+.hero-layout {
+  grid-template-columns: minmax(17rem, 0.92fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem 2rem;
+}
+
+.hero-layout > .shot-frame {
+  max-width: 640px;
+  justify-self: end;
+}
+
+.hero-copy h1 {
+  font-size: clamp(2.4rem, 4.6vw, 4.4rem);
+  line-height: 0.92;
+}
+
+.hero-copy h1 span {
+  display: block;
+}
+
+.headline {
+  color: #f0b56a;
+  font-size: 1.45rem;
+  font-weight: 700;
+  max-width: 22ch;
+}
+
+.shot-frame {
+  border: 4px solid #c4a06a;
+  background: #100c09;
+  box-shadow: 6px 6px 0 #070504;
+}
+
+figure.shot-frame img,
+img.shot,
+video.shot {
+  aspect-ratio: 320 / 200;
+  object-fit: contain;
+  width: 100%;
+  height: auto;
+  background: #07080c;
+}
+
+.cta a {
+  background: #3a160e;
+  color: #ffd0b0;
+  border: 3px solid #ef5a22;
+  font-size: 1.35rem;
+  min-height: 52px;
+  padding: 0.45rem 0.8rem;
+  text-decoration: none;
+}
+
+.cta a:hover,
+.cta a:focus-visible {
+  background: #ef5a22;
+  color: #1a100c;
+}
+
+.plate {
+  background-color: #8a6240;
+  background-image: url("../assets/textures/weathered_plank_siding.webp");
+}
+
+.plate-face,
+.cards li,
+.named-list li,
+.panel {
+  background: #24180f;
+  border: 3px solid #8d6844;
+  box-shadow: none;
+}
+
+.page-intro h1 {
+  box-shadow: inset 0 -4px 0 #c4a06a;
+}
+
+.board {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0.4rem 0 0;
+  border-top: 3px solid #8d6844;
+}
+
+.board li {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid rgba(196, 160, 106, 0.35);
+  max-width: 68ch;
+}
+
+.weapon-row {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.7rem;
+  padding: 0;
+  margin: 0.8rem 0 0;
+}
+
+.weapon-row li {
+  background: #120e0c;
+  border: 3px solid #8d6844;
+  padding: 0.5rem;
+  min-height: 8rem;
+}
+
+.weapon-row img {
+  display: block;
+  width: 100%;
+  height: 5.5rem;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.provenance {
+  margin-top: 1rem;
+  border: 2px solid #8d6844;
+  background: #1a120e;
+  padding: 0.4rem 0.8rem;
+}
+
+.provenance summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: "Hickston Pixel", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 800px) {
+  .hero-layout > .shot-frame {
+    max-width: none;
+    justify-self: stretch;
+    order: -1;
+  }
+}
+
+.hero-poster {
+  display: grid;
+  gap: 1.15rem;
+}
+
+[data-download-slot] > p:not(.cta) {
+  margin: 0.2rem 0;
+  max-width: 40rem;
+}
+
+.hero-frame {
+  width: min(100%, 820px);
+}
+
+@media (max-width: 800px) {
+  .hero-frame {
+    order: -1;
+    width: 100%;
+  }
+
+  .hero-copy h1 {
+    font-size: 2.15rem;
+  }
+}
+
+@media (min-width: 1000px) {
+  .hero-poster {
+    grid-template-columns: minmax(0, 1.15fr) minmax(17rem, 0.85fr);
+    align-items: center;
+    gap: 1.5rem 2rem;
+  }
+
+  .hero-frame {
+    order: -1;
+    width: 100%;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2.1rem, 3vw, 3.15rem);
+  }
+}
+
+.header-bar {
+  align-items: center;
+}
+
+.weapon-row strong,
+.weapon-row span {
+  display: block;
+}
+
+.weapon-row strong,
+.weapon-row span,
+.map-grid strong {
+  font-family: Georgia, "Palatino Linotype", Palatino, serif;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.weapon-row strong {
+  margin-top: 0.45rem;
+}
+
+@media (min-width: 960px) {
+  .header-bar {
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .brand {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+
+  .nav {
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+
+  .nav ul {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+  }
+}
