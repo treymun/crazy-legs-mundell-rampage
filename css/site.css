@@ -887,7 +887,6 @@ body {
 .nav summary,
 h1,
 h2,
-h3,
 .eyebrow,
 .badge,
 .cta a,
@@ -898,6 +897,7 @@ h3,
   text-transform: uppercase;
 }
 
+h3,
 p,
 li,
 td,
@@ -905,10 +905,12 @@ figcaption,
 .lede,
 .headline,
 .intro,
-.fine {
-  font-family: Georgia, "Palatino Linotype", Palatino, serif;
+.fine,
+.file-note {
+  font-family: "Segoe UI", "Liberation Sans", "Noto Sans", sans-serif;
   letter-spacing: 0;
   text-transform: none;
+  line-height: 1.5;
 }
 
 .nav ul {
@@ -917,12 +919,12 @@ figcaption,
 
 .nav a,
 .primary a {
-  border: 2px solid #c4a06a;
-  background: #2a1c14;
+  border: 0;
+  background: transparent;
   color: #f3e2c4;
   text-decoration: none;
-  padding: 0.45rem 0.6rem;
-  font-size: 1.15rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 1.05rem;
   font-family: "Hickston Pixel", "Arial Black", sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -985,10 +987,11 @@ figcaption,
     flex-direction: row;
     flex-wrap: wrap;
     width: auto;
-    margin: 0 0 0.65rem;
-    padding: 0.45rem;
-    background: #120e0c;
-    border: 3px solid #c4a06a;
+    margin: 0.15rem 0 0.35rem;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    gap: 0.2rem;
   }
 }
 
@@ -1025,16 +1028,40 @@ figcaption,
 }
 
 .headline {
-  color: #f0b56a;
-  font-size: 1.45rem;
-  font-weight: 700;
-  max-width: 22ch;
+  color: #f6d7a2;
+  font-size: 1.28rem;
+  font-weight: 650;
+  max-width: 28ch;
+  line-height: 1.35;
 }
 
 .shot-frame {
-  border: 4px solid #c4a06a;
+  border: 1px solid rgba(196, 160, 106, 0.72);
   background: #100c09;
-  box-shadow: 6px 6px 0 #070504;
+  box-shadow: none;
+}
+
+.file-note {
+  margin: 0.75rem 0 0;
+  max-width: 36rem;
+}
+
+.file-note summary {
+  cursor: pointer;
+  color: #f0b56a;
+}
+
+main a {
+  text-decoration: none;
+  border-bottom: 1px solid rgba(240, 181, 106, 0.4);
+}
+
+.cta a,
+.map-grid a,
+.primary a,
+.nav a,
+.routes a {
+  border-bottom: 0;
 }
 
 figure.shot-frame img,
@@ -1196,11 +1223,16 @@ video.shot {
 }
 
 .weapon-row strong,
-.weapon-row span,
-.map-grid strong {
-  font-family: Georgia, "Palatino Linotype", Palatino, serif;
+.weapon-row span {
+  font-family: "Segoe UI", "Liberation Sans", "Noto Sans", sans-serif;
   text-transform: none;
   letter-spacing: 0;
+}
+
+.map-grid strong {
+  font-family: "Hickston Pixel", "Arial Black", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .weapon-row strong {

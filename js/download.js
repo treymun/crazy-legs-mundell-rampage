@@ -43,6 +43,7 @@
         line = name + ". " + formatMib(download.expectedBytes) + " (" + formatBytes(download.expectedBytes) + " bytes).";
       }
       html.push('<p class="cta"><a href="' + url + '">Download the Windows x64 ZIP</a></p>');
+      html.push('<details class="file-note"><summary>Release file</summary>');
       html.push("<p>" + line + "</p>");
       html.push("<p>Windows x64 development build. Public v1.4.3 prerelease.</p>");
       if (typeof cfg.releasePage === "string" && TAG_PAGE_RE.test(cfg.releasePage)) {
@@ -53,6 +54,7 @@
       html.push('<p><a href="play.html#download">Read the download notes</a></p>');
     }
     html.push('<p><a href="' + REPO + '">View project on GitHub</a></p>');
+    if (url) html.push("</details>");
     return html.join("\n");
   }
 

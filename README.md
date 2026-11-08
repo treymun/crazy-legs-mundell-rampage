@@ -38,7 +38,7 @@ python3 scripts/check_site.py
 
 ## Gameplay media
 
-`assets/gameplay/` holds silent clips and stills made from the published 1.4.3 source. A scratch harness called the game's own movement and fire controls and saved the 320×200 canvas. Stills are a 3× nearest-neighbor scale. Hickston is 16 seconds at 20 frames a second. Blackwater Timber is 12 seconds at 15 frames a second. Clips are H.264 MP4 and VP9 WebM at 640×400, also nearest-neighbor, with no audio. They are not recordings of the Windows EXE and not a person playing. Do not replace them with generated pictures. Headings use Hickston Pixel, built from the game's own hand-cut lettering.
+`assets/gameplay/` holds silent clips and stills made from the published 1.4.3 source. A scratch harness called the game's own movement and fire controls and saved the 320×200 canvas. Stills are a 3× nearest-neighbor scale. Hickston is 14 seconds at 20 frames a second. Blackwater Timber is 12 seconds at 20 frames a second. The Hickston route aims at the man by Stanky's, then at the man under the county sign. The timber route walks to the Blackwater Timber sign and fires. Clips are H.264 MP4 and VP9 WebM at 640×400, also nearest-neighbor, with no audio. They are not recordings of the Windows EXE and not a person playing. Do not replace them with generated pictures. Headings use Hickston Pixel, built from the game's own hand-cut lettering.
 
 ## Textures
 
