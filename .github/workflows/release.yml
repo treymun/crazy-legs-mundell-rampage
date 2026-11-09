@@ -1,0 +1,179 @@
+name: Build, release and publish
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SDL_VIDEODRIVER: dummy
+  SDL_AUDIODRIVER: dummy
+
+jobs:
+  windows:
+    name: Windows EXE and installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Build single-file EXE
+        run: python -m PyInstaller --noconfirm CrazyLegsMundellRampage.spec
+      - name: Smoke test the packaged EXE
+        shell: pwsh
+        run: |
+          $env:SDL_VIDEODRIVER = "dummy"
+          $env:SDL_AUDIODRIVER = "dummy"
+          $marker = Join-Path $PWD "packaged-smoke.txt"
+          $proc = Start-Process -FilePath "dist/CrazyLegsMundellRampage.exe" `
+            -ArgumentList "--smoke-frames", "180", "--smoke-marker", $marker -Wait -PassThru
+          if ($proc.ExitCode -ne 0) { throw "Packaged EXE exited $($proc.ExitCode)" }
+          if (!(Test-Path $marker)) { throw "Packaged EXE did not write its smoke marker" }
+          Get-Content $marker
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = python -c "from game_version import VERSION; print(VERSION)"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppFullVersion=$version" installer.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          if-no-files-found: error
+          path: |
+            dist/CrazyLegsMundellRampage.exe
+            dist/CrazyLegsMundellRampage_Setup.exe
+
+  android:
+    name: Android APK
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ffmpeg openjdk-17-jdk autoconf automake libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev \
+            libssl-dev zip unzip
+      - name: Install Buildozer
+        run: pip install buildozer cython
+      - name: Build OGG soundtrack for Android
+        run: python scripts/make_ogg.py
+      - name: Cache Buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.cache/pip
+          key: buildozer-${{ hashFiles('buildozer.spec', 'p4a-recipes/**', 'requirements.txt') }}
+          restore-keys: buildozer-
+      - name: Build debug APK
+        run: buildozer -v android debug
+      - name: Stage APK
+        run: |
+          mkdir -p dist
+          apk=$(find bin -maxdepth 1 -name '*.apk' | head -n 1)
+          test -n "$apk"
+          cp "$apk" dist/CrazyLegsMundellRampage.apk
+          ls -lh dist/CrazyLegsMundellRampage.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          if-no-files-found: error
+          path: dist/CrazyLegsMundellRampage.apk
+
+  web:
+    name: Browser build and landing page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ffmpeg and pygbag
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          pip install pygbag
+      - name: Build OGG soundtrack for the browser
+        run: python scripts/make_ogg.py
+      - name: Stage the browser payload
+        run: |
+          mkdir -p web_game
+          rsync -a \
+            --exclude='.git' --exclude='.github' --exclude='.venv' \
+            --exclude='.build' --exclude='build' --exclude='dist' \
+            --exclude='site' --exclude='web_game' --exclude='_site' \
+            --exclude='bot_shots' --exclude='_backup' --exclude='source_art' \
+            --exclude='__pycache__' --exclude='scripts' --exclude='p4a-recipes' \
+            --exclude='assets/music/*.opus' \
+            --exclude='assets/wav/music.wav' --exclude='assets/wav/county_line.wav' \
+            --exclude='assets/wav/porchlight_stomp.wav' --exclude='assets/wav/fair_score.wav' \
+            --exclude='assets/wav/tickets_after_dark.wav' \
+            --exclude='assets/wav/closing_time_shuffle.wav' \
+            --exclude='assets/wav/mill_score.wav' --exclude='assets/wav/green_chain.wav' \
+            --exclude='assets/wav/apron_run.wav' --exclude='assets/wav/quarry_score.wav' \
+            --exclude='assets/wav/copper_and_steam.wav' --exclude='assets/wav/last_load.wav' \
+            ./ web_game/
+      - name: Build WebAssembly game
+        run: |
+          cd web_game
+          python -m pygbag --build --width 960 --height 720 .
+      - name: Assemble Pages site
+        run: |
+          mkdir -p _site
+          cp site/index.html _site/index.html
+          cp -r site/img _site/img
+          cp -r web_game/build/web _site/play
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: release
+      - name: Create or update the release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release/*
+          fail_on_unmatched_files: true
+
+  pages:
+    name: Deploy GitHub Pages
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    needs: [web]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

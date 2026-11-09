@@ -1,0 +1,2414 @@
+{
+ "actor_cloth_down": {
+  "rms_db": -14.7,
+  "peak_db": -4.0,
+  "centroid": 950,
+  "low": 0.06,
+  "mid": 0.89,
+  "high": 0.05,
+  "dur": 0.54
+ },
+ "actor_cloth_pain": {
+  "rms_db": -17.5,
+  "peak_db": -6.4,
+  "centroid": 1300,
+  "low": 0.04,
+  "mid": 0.81,
+  "high": 0.15,
+  "dur": 0.28
+ },
+ "actor_shell_down": {
+  "rms_db": -16.1,
+  "peak_db": -4.0,
+  "centroid": 932,
+  "low": 0.1,
+  "mid": 0.85,
+  "high": 0.05,
+  "dur": 0.55
+ },
+ "actor_shell_pain": {
+  "rms_db": -17.8,
+  "peak_db": -6.4,
+  "centroid": 971,
+  "low": 0.12,
+  "mid": 0.81,
+  "high": 0.07,
+  "dur": 0.29
+ },
+ "actor_tool_down": {
+  "rms_db": -16.2,
+  "peak_db": -4.0,
+  "centroid": 888,
+  "low": 0.14,
+  "mid": 0.81,
+  "high": 0.05,
+  "dur": 0.58
+ },
+ "actor_tool_pain": {
+  "rms_db": -21.2,
+  "peak_db": -6.4,
+  "centroid": 1184,
+  "low": 0.14,
+  "mid": 0.74,
+  "high": 0.12,
+  "dur": 0.32
+ },
+ "alien_alert": {
+  "rms_db": -16.1,
+  "peak_db": -4.7,
+  "centroid": 2050,
+  "low": 0.3,
+  "mid": 0.42,
+  "high": 0.28,
+  "dur": 0.38
+ },
+ "amb_barn": {
+  "rms_db": -39.1,
+  "peak_db": -22.5,
+  "centroid": 1132,
+  "low": 0.34,
+  "mid": 0.42,
+  "high": 0.24,
+  "dur": 12.0
+ },
+ "amb_creek": {
+  "rms_db": -32.4,
+  "peak_db": -18.5,
+  "centroid": 2881,
+  "low": 0.04,
+  "mid": 0.47,
+  "high": 0.49,
+  "dur": 12.0
+ },
+ "amb_fair": {
+  "rms_db": -27.3,
+  "peak_db": -14.0,
+  "centroid": 2302,
+  "low": 0.31,
+  "mid": 0.38,
+  "high": 0.3,
+  "dur": 14.0
+ },
+ "amb_fair_after": {
+  "rms_db": -35.0,
+  "peak_db": -19.8,
+  "centroid": 1730,
+  "low": 0.46,
+  "mid": 0.31,
+  "high": 0.23,
+  "dur": 11.6
+ },
+ "amb_mill": {
+  "rms_db": -26.4,
+  "peak_db": -12.0,
+  "centroid": 2573,
+  "low": 0.15,
+  "mid": 0.5,
+  "high": 0.35,
+  "dur": 14.0
+ },
+ "amb_mill_bank": {
+  "rms_db": -26.4,
+  "peak_db": -12.0,
+  "centroid": 2580,
+  "low": 0.14,
+  "mid": 0.5,
+  "high": 0.36,
+  "dur": 14.0
+ },
+ "amb_quarry": {
+  "rms_db": -26.4,
+  "peak_db": -14.0,
+  "centroid": 379,
+  "low": 0.5,
+  "mid": 0.49,
+  "high": 0.01,
+  "dur": 12.0
+ },
+ "amb_quarry_after": {
+  "rms_db": -34.1,
+  "peak_db": -19.1,
+  "centroid": 1735,
+  "low": 0.46,
+  "mid": 0.31,
+  "high": 0.23,
+  "dur": 11.6
+ },
+ "amb_quarry_line": {
+  "rms_db": -28.4,
+  "peak_db": -15.4,
+  "centroid": 401,
+  "low": 0.5,
+  "mid": 0.48,
+  "high": 0.02,
+  "dur": 12.0
+ },
+ "amb_room": {
+  "rms_db": -43.9,
+  "peak_db": -33.2,
+  "centroid": 428,
+  "low": 0.48,
+  "mid": 0.51,
+  "high": 0.02,
+  "dur": 12.0
+ },
+ "amb_yard": {
+  "rms_db": -36.1,
+  "peak_db": -17.4,
+  "centroid": 1607,
+  "low": 0.27,
+  "mid": 0.34,
+  "high": 0.39,
+  "dur": 12.0
+ },
+ "armgun": {
+  "rms_db": -14.9,
+  "peak_db": -3.7,
+  "centroid": 2207,
+  "low": 0.02,
+  "mid": 0.66,
+  "high": 0.32,
+  "dur": 0.44
+ },
+ "arm_cell": {
+  "rms_db": -27.3,
+  "peak_db": -7.3,
+  "centroid": 1564,
+  "low": 0.11,
+  "mid": 0.71,
+  "high": 0.17,
+  "dur": 0.33
+ },
+ "arm_charge": {
+  "rms_db": -14.4,
+  "peak_db": -4.2,
+  "centroid": 1885,
+  "low": 0.11,
+  "mid": 0.66,
+  "high": 0.23,
+  "dur": 0.32
+ },
+ "arm_impact": {
+  "rms_db": -18.3,
+  "peak_db": -1.7,
+  "centroid": 2683,
+  "low": 0.19,
+  "mid": 0.43,
+  "high": 0.37,
+  "dur": 0.47
+ },
+ "arm_ready": {
+  "rms_db": -17.9,
+  "peak_db": -5.7,
+  "centroid": 2367,
+  "low": 0.03,
+  "mid": 0.72,
+  "high": 0.25,
+  "dur": 0.19
+ },
+ "arm_vent": {
+  "rms_db": -18.1,
+  "peak_db": -3.6,
+  "centroid": 2658,
+  "low": 0.19,
+  "mid": 0.45,
+  "high": 0.36,
+  "dur": 0.3
+ },
+ "barker_blast": {
+  "rms_db": -18.3,
+  "peak_db": -3.9,
+  "centroid": 2259,
+  "low": 0.43,
+  "mid": 0.28,
+  "high": 0.29,
+  "dur": 0.68
+ },
+ "barker_wind": {
+  "rms_db": -19.5,
+  "peak_db": -3.9,
+  "centroid": 2426,
+  "low": 0.03,
+  "mid": 0.67,
+  "high": 0.3,
+  "dur": 0.68
+ },
+ "baron_end": {
+  "rms_db": -12.7,
+  "peak_db": -3.9,
+  "centroid": 663,
+  "low": 0.41,
+  "mid": 0.56,
+  "high": 0.03,
+  "dur": 1.62
+ },
+ "baron_intro": {
+  "rms_db": -12.6,
+  "peak_db": -3.9,
+  "centroid": 682,
+  "low": 0.41,
+  "mid": 0.56,
+  "high": 0.04,
+  "dur": 1.62
+ },
+ "baron_warn": {
+  "rms_db": -14.3,
+  "peak_db": -2.7,
+  "centroid": 1140,
+  "low": 0.04,
+  "mid": 0.86,
+  "high": 0.09,
+  "dur": 0.94
+ },
+ "belch": {
+  "rms_db": -21.7,
+  "peak_db": -4.7,
+  "centroid": 1119,
+  "low": 0.19,
+  "mid": 0.65,
+  "high": 0.15,
+  "dur": 0.67
+ },
+ "billy_alert": {
+  "rms_db": -16.8,
+  "peak_db": -6.9,
+  "centroid": 667,
+  "low": 0.02,
+  "mid": 0.96,
+  "high": 0.02,
+  "dur": 0.39
+ },
+ "boiler_priming": {
+  "rms_db": -21.2,
+  "peak_db": -3.5,
+  "centroid": 1498,
+  "low": 0.05,
+  "mid": 0.81,
+  "high": 0.14,
+  "dur": 0.75
+ },
+ "boiler_release": {
+  "rms_db": -13.0,
+  "peak_db": -2.4,
+  "centroid": 1900,
+  "low": 0.09,
+  "mid": 0.64,
+  "high": 0.26,
+  "dur": 0.51
+ },
+ "bolt_rack": {
+  "rms_db": -20.7,
+  "peak_db": -4.9,
+  "centroid": 2027,
+  "low": 0.02,
+  "mid": 0.7,
+  "high": 0.28,
+  "dur": 0.25
+ },
+ "bottle_launcher": {
+  "rms_db": -19.1,
+  "peak_db": -2.9,
+  "centroid": 3317,
+  "low": 0.11,
+  "mid": 0.35,
+  "high": 0.54,
+  "dur": 0.31
+ },
+ "bow_hook": {
+  "rms_db": -25.0,
+  "peak_db": -7.3,
+  "centroid": 1653,
+  "low": 0.03,
+  "mid": 0.79,
+  "high": 0.19,
+  "dur": 0.22
+ },
+ "bow_latch": {
+  "rms_db": -20.2,
+  "peak_db": -4.1,
+  "centroid": 4986,
+  "low": 0.02,
+  "mid": 0.29,
+  "high": 0.69,
+  "dur": 0.17
+ },
+ "bow_pull": {
+  "rms_db": -26.7,
+  "peak_db": -10.4,
+  "centroid": 4802,
+  "low": 0.04,
+  "mid": 0.28,
+  "high": 0.68,
+  "dur": 0.26
+ },
+ "bow_seat": {
+  "rms_db": -23.4,
+  "peak_db": -7.3,
+  "centroid": 1689,
+  "low": 0.01,
+  "mid": 0.79,
+  "high": 0.2,
+  "dur": 0.25
+ },
+ "brake_ratchet": {
+  "rms_db": -21.9,
+  "peak_db": -4.3,
+  "centroid": 2392,
+  "low": 0.05,
+  "mid": 0.58,
+  "high": 0.37,
+  "dur": 0.64
+ },
+ "breaker_thunk": {
+  "rms_db": -18.0,
+  "peak_db": -3.9,
+  "centroid": 2285,
+  "low": 0.38,
+  "mid": 0.32,
+  "high": 0.3,
+  "dur": 0.68
+ },
+ "broadcast_cut": {
+  "rms_db": -18.7,
+  "peak_db": -3.9,
+  "centroid": 2221,
+  "low": 0.58,
+  "mid": 0.13,
+  "high": 0.3,
+  "dur": 0.68
+ },
+ "chain_crack": {
+  "rms_db": -22.5,
+  "peak_db": -5.7,
+  "centroid": 3029,
+  "low": 0.05,
+  "mid": 0.51,
+  "high": 0.43,
+  "dur": 0.46
+ },
+ "chain_raise": {
+  "rms_db": -27.9,
+  "peak_db": -9.4,
+  "centroid": 1856,
+  "low": 0.04,
+  "mid": 0.76,
+  "high": 0.2,
+  "dur": 0.7
+ },
+ "chalk_cough": {
+  "rms_db": -14.8,
+  "peak_db": -3.9,
+  "centroid": 1093,
+  "low": 0.05,
+  "mid": 0.86,
+  "high": 0.09,
+  "dur": 0.5
+ },
+ "chalk_pop": {
+  "rms_db": -22.0,
+  "peak_db": -5.7,
+  "centroid": 1960,
+  "low": 0.13,
+  "mid": 0.6,
+  "high": 0.28,
+  "dur": 0.26
+ },
+ "chalk_spit": {
+  "rms_db": -15.8,
+  "peak_db": -4.3,
+  "centroid": 2105,
+  "low": 0.17,
+  "mid": 0.51,
+  "high": 0.32,
+  "dur": 0.24
+ },
+ "chicken": {
+  "rms_db": -20.3,
+  "peak_db": -6.1,
+  "centroid": 1898,
+  "low": 0.16,
+  "mid": 0.62,
+  "high": 0.22,
+  "dur": 0.39
+ },
+ "clone_alert": {
+  "rms_db": -22.5,
+  "peak_db": -8.6,
+  "centroid": 1655,
+  "low": 0.1,
+  "mid": 0.68,
+  "high": 0.22,
+  "dur": 0.48
+ },
+ "clone_bolt": {
+  "rms_db": -27.1,
+  "peak_db": -8.9,
+  "centroid": 2127,
+  "low": 0.02,
+  "mid": 0.65,
+  "high": 0.33,
+  "dur": 0.22
+ },
+ "close": {
+  "rms_db": -20.5,
+  "peak_db": -4.9,
+  "centroid": 2057,
+  "low": 0.02,
+  "mid": 0.7,
+  "high": 0.29,
+  "dur": 0.23
+ },
+ "coot_alert": {
+  "rms_db": -16.7,
+  "peak_db": -6.4,
+  "centroid": 1462,
+  "low": 0.01,
+  "mid": 0.84,
+  "high": 0.15,
+  "dur": 0.29
+ },
+ "coot_cock": {
+  "rms_db": -33.3,
+  "peak_db": -10.2,
+  "centroid": 3149,
+  "low": 0.0,
+  "mid": 0.36,
+  "high": 0.64,
+  "dur": 0.17
+ },
+ "county_dispatch_0": {
+  "rms_db": -14.9,
+  "peak_db": -3.1,
+  "centroid": 2240,
+  "low": 0.01,
+  "mid": 0.71,
+  "high": 0.28,
+  "dur": 1.12
+ },
+ "county_dispatch_1": {
+  "rms_db": -15.3,
+  "peak_db": -3.1,
+  "centroid": 2820,
+  "low": 0.01,
+  "mid": 0.59,
+  "high": 0.39,
+  "dur": 1.03
+ },
+ "county_dispatch_2": {
+  "rms_db": -14.9,
+  "peak_db": -3.1,
+  "centroid": 2115,
+  "low": 0.02,
+  "mid": 0.72,
+  "high": 0.26,
+  "dur": 1.25
+ },
+ "county_dispatch_3": {
+  "rms_db": -14.8,
+  "peak_db": -3.2,
+  "centroid": 2700,
+  "low": 0.01,
+  "mid": 0.62,
+  "high": 0.37,
+  "dur": 1.15
+ },
+ "county_dispatch_4": {
+  "rms_db": -15.2,
+  "peak_db": -3.1,
+  "centroid": 2890,
+  "low": 0.01,
+  "mid": 0.59,
+  "high": 0.4,
+  "dur": 1.02
+ },
+ "county_fall_back": {
+  "rms_db": -15.3,
+  "peak_db": -3.9,
+  "centroid": 1141,
+  "low": 0.14,
+  "mid": 0.72,
+  "high": 0.14,
+  "dur": 0.46
+ },
+ "crawler_click": {
+  "rms_db": -19.3,
+  "peak_db": -3.9,
+  "centroid": 2515,
+  "low": 0.01,
+  "mid": 0.7,
+  "high": 0.29,
+  "dur": 0.68
+ },
+ "crossbow": {
+  "rms_db": -19.6,
+  "peak_db": -4.2,
+  "centroid": 3454,
+  "low": 0.06,
+  "mid": 0.38,
+  "high": 0.56,
+  "dur": 0.41
+ },
+ "crowbar": {
+  "rms_db": -16.5,
+  "peak_db": -6.7,
+  "centroid": 3831,
+  "low": 0.06,
+  "mid": 0.31,
+  "high": 0.64,
+  "dur": 0.24
+ },
+ "crowbar_hit": {
+  "rms_db": -18.3,
+  "peak_db": -2.5,
+  "centroid": 2215,
+  "low": 0.01,
+  "mid": 0.6,
+  "high": 0.38,
+  "dur": 0.24
+ },
+ "crunch": {
+  "rms_db": -20.6,
+  "peak_db": -3.7,
+  "centroid": 3306,
+  "low": 0.02,
+  "mid": 0.42,
+  "high": 0.56,
+  "dur": 0.38
+ },
+ "deputy_shot": {
+  "rms_db": -22.7,
+  "peak_db": -6.8,
+  "centroid": 2089,
+  "low": 0.31,
+  "mid": 0.44,
+  "high": 0.25,
+  "dur": 0.31
+ },
+ "deputy_work": {
+  "rms_db": -25.3,
+  "peak_db": -8.0,
+  "centroid": 2387,
+  "low": 0.04,
+  "mid": 0.68,
+  "high": 0.28,
+  "dur": 0.47
+ },
+ "distant_crow": {
+  "rms_db": -24.4,
+  "peak_db": -8.7,
+  "centroid": 601,
+  "low": 0.0,
+  "mid": 1.0,
+  "high": 0.0,
+  "dur": 0.68
+ },
+ "distant_dog": {
+  "rms_db": -26.6,
+  "peak_db": -8.2,
+  "centroid": 1854,
+  "low": 0.4,
+  "mid": 0.37,
+  "high": 0.24,
+  "dur": 0.68
+ },
+ "distant_fair_generator": {
+  "rms_db": -17.7,
+  "peak_db": -6.7,
+  "centroid": 2107,
+  "low": 0.32,
+  "mid": 0.4,
+  "high": 0.28,
+  "dur": 2.4
+ },
+ "distant_fair_motif": {
+  "rms_db": -14.8,
+  "peak_db": -6.4,
+  "centroid": 860,
+  "low": 0.01,
+  "mid": 0.92,
+  "high": 0.07,
+  "dur": 2.4
+ },
+ "distant_fair_pa": {
+  "rms_db": -17.8,
+  "peak_db": -4.4,
+  "centroid": 1291,
+  "low": 0.06,
+  "mid": 0.83,
+  "high": 0.11,
+  "dur": 1.3
+ },
+ "distant_fair_rattle": {
+  "rms_db": -25.0,
+  "peak_db": -7.3,
+  "centroid": 974,
+  "low": 0.43,
+  "mid": 0.48,
+  "high": 0.09,
+  "dur": 0.63
+ },
+ "distant_mill_pump": {
+  "rms_db": -20.4,
+  "peak_db": -5.7,
+  "centroid": 2538,
+  "low": 0.53,
+  "mid": 0.12,
+  "high": 0.34,
+  "dur": 1.9
+ },
+ "distant_mill_timber": {
+  "rms_db": -17.6,
+  "peak_db": -7.1,
+  "centroid": 1390,
+  "low": 0.55,
+  "mid": 0.26,
+  "high": 0.19,
+  "dur": 1.75
+ },
+ "distant_quarry_bottler": {
+  "rms_db": -24.2,
+  "peak_db": -6.6,
+  "centroid": 2459,
+  "low": 0.03,
+  "mid": 0.58,
+  "high": 0.38,
+  "dur": 1.14
+ },
+ "distant_quarry_pipe": {
+  "rms_db": -29.6,
+  "peak_db": -7.3,
+  "centroid": 1954,
+  "low": 0.05,
+  "mid": 0.69,
+  "high": 0.25,
+  "dur": 1.3
+ },
+ "door": {
+  "rms_db": -25.6,
+  "peak_db": -11.0,
+  "centroid": 3163,
+  "low": 0.09,
+  "mid": 0.5,
+  "high": 0.41,
+  "dur": 0.43
+ },
+ "dry_armgun": {
+  "rms_db": -24.0,
+  "peak_db": -10.3,
+  "centroid": 1581,
+  "low": 0.11,
+  "mid": 0.71,
+  "high": 0.18,
+  "dur": 0.17
+ },
+ "dry_bottle_launcher": {
+  "rms_db": -23.3,
+  "peak_db": -10.2,
+  "centroid": 1508,
+  "low": 0.06,
+  "mid": 0.78,
+  "high": 0.16,
+  "dur": 0.17
+ },
+ "dry_crossbow": {
+  "rms_db": -23.7,
+  "peak_db": -10.2,
+  "centroid": 1571,
+  "low": 0.01,
+  "mid": 0.83,
+  "high": 0.16,
+  "dur": 0.17
+ },
+ "dry_crowbar": {
+  "rms_db": -23.2,
+  "peak_db": -10.2,
+  "centroid": 1419,
+  "low": 0.21,
+  "mid": 0.64,
+  "high": 0.16,
+  "dur": 0.17
+ },
+ "dry_pressure_gun": {
+  "rms_db": -23.6,
+  "peak_db": -10.2,
+  "centroid": 1463,
+  "low": 0.09,
+  "mid": 0.74,
+  "high": 0.16,
+  "dur": 0.17
+ },
+ "dry_revolver": {
+  "rms_db": -23.8,
+  "peak_db": -10.2,
+  "centroid": 1695,
+  "low": 0.01,
+  "mid": 0.8,
+  "high": 0.19,
+  "dur": 0.17
+ },
+ "dry_rifle": {
+  "rms_db": -24.1,
+  "peak_db": -11.7,
+  "centroid": 1587,
+  "low": 0.01,
+  "mid": 0.81,
+  "high": 0.17,
+  "dur": 0.17
+ },
+ "dry_ripsaw": {
+  "rms_db": -23.8,
+  "peak_db": -10.2,
+  "centroid": 1627,
+  "low": 0.01,
+  "mid": 0.82,
+  "high": 0.17,
+  "dur": 0.17
+ },
+ "dry_riveter": {
+  "rms_db": -24.8,
+  "peak_db": -10.2,
+  "centroid": 1681,
+  "low": 0.01,
+  "mid": 0.81,
+  "high": 0.19,
+  "dur": 0.17
+ },
+ "dry_shotgun": {
+  "rms_db": -24.0,
+  "peak_db": -10.2,
+  "centroid": 1642,
+  "low": 0.01,
+  "mid": 0.81,
+  "high": 0.18,
+  "dur": 0.17
+ },
+ "dry_slingblade": {
+  "rms_db": -22.3,
+  "peak_db": -10.2,
+  "centroid": 1413,
+  "low": 0.13,
+  "mid": 0.71,
+  "high": 0.16,
+  "dur": 0.17
+ },
+ "dry_tnt": {
+  "rms_db": -22.8,
+  "peak_db": -10.2,
+  "centroid": 1407,
+  "low": 0.18,
+  "mid": 0.66,
+  "high": 0.16,
+  "dur": 0.17
+ },
+ "eject": {
+  "rms_db": -22.2,
+  "peak_db": -5.7,
+  "centroid": 2636,
+  "low": 0.01,
+  "mid": 0.55,
+  "high": 0.44,
+  "dur": 0.16
+ },
+ "empty": {
+  "rms_db": -22.6,
+  "peak_db": -9.9,
+  "centroid": 2390,
+  "low": 0.02,
+  "mid": 0.62,
+  "high": 0.35,
+  "dur": 0.13
+ },
+ "enemy": {
+  "rms_db": -16.1,
+  "peak_db": -5.0,
+  "centroid": 1467,
+  "low": 0.07,
+  "mid": 0.75,
+  "high": 0.19,
+  "dur": 0.25
+ },
+ "enemy_pistol": {
+  "rms_db": -14.3,
+  "peak_db": -5.0,
+  "centroid": 1399,
+  "low": 0.03,
+  "mid": 0.81,
+  "high": 0.16,
+  "dur": 0.26
+ },
+ "enemy_pump": {
+  "rms_db": -25.9,
+  "peak_db": -8.4,
+  "centroid": 1635,
+  "low": 0.03,
+  "mid": 0.81,
+  "high": 0.16,
+  "dur": 0.25
+ },
+ "enemy_scatter": {
+  "rms_db": -13.3,
+  "peak_db": -3.7,
+  "centroid": 1030,
+  "low": 0.12,
+  "mid": 0.81,
+  "high": 0.07,
+  "dur": 0.39
+ },
+ "equip_armgun": {
+  "rms_db": -27.9,
+  "peak_db": -13.0,
+  "centroid": 935,
+  "low": 0.29,
+  "mid": 0.58,
+  "high": 0.12,
+  "dur": 0.27
+ },
+ "equip_bottle_launcher": {
+  "rms_db": -27.5,
+  "peak_db": -11.4,
+  "centroid": 1143,
+  "low": 0.09,
+  "mid": 0.77,
+  "high": 0.14,
+  "dur": 0.27
+ },
+ "equip_crossbow": {
+  "rms_db": -27.6,
+  "peak_db": -11.4,
+  "centroid": 1249,
+  "low": 0.01,
+  "mid": 0.86,
+  "high": 0.13,
+  "dur": 0.27
+ },
+ "equip_crowbar": {
+  "rms_db": -27.3,
+  "peak_db": -11.4,
+  "centroid": 1041,
+  "low": 0.51,
+  "mid": 0.34,
+  "high": 0.15,
+  "dur": 0.27
+ },
+ "equip_pressure_gun": {
+  "rms_db": -27.6,
+  "peak_db": -11.4,
+  "centroid": 1022,
+  "low": 0.26,
+  "mid": 0.61,
+  "high": 0.14,
+  "dur": 0.27
+ },
+ "equip_revolver": {
+  "rms_db": -27.6,
+  "peak_db": -11.9,
+  "centroid": 1196,
+  "low": 0.01,
+  "mid": 0.89,
+  "high": 0.1,
+  "dur": 0.27
+ },
+ "equip_rifle": {
+  "rms_db": -28.0,
+  "peak_db": -12.8,
+  "centroid": 1024,
+  "low": 0.03,
+  "mid": 0.86,
+  "high": 0.12,
+  "dur": 0.27
+ },
+ "equip_ripsaw": {
+  "rms_db": -27.7,
+  "peak_db": -11.4,
+  "centroid": 1325,
+  "low": 0.0,
+  "mid": 0.87,
+  "high": 0.13,
+  "dur": 0.27
+ },
+ "equip_riveter": {
+  "rms_db": -28.1,
+  "peak_db": -13.0,
+  "centroid": 1152,
+  "low": 0.01,
+  "mid": 0.88,
+  "high": 0.11,
+  "dur": 0.27
+ },
+ "equip_shotgun": {
+  "rms_db": -27.8,
+  "peak_db": -11.4,
+  "centroid": 1246,
+  "low": 0.01,
+  "mid": 0.87,
+  "high": 0.13,
+  "dur": 0.27
+ },
+ "equip_slingblade": {
+  "rms_db": -26.4,
+  "peak_db": -11.4,
+  "centroid": 1107,
+  "low": 0.29,
+  "mid": 0.57,
+  "high": 0.14,
+  "dur": 0.27
+ },
+ "equip_tnt": {
+  "rms_db": -27.0,
+  "peak_db": -11.4,
+  "centroid": 1089,
+  "low": 0.43,
+  "mid": 0.42,
+  "high": 0.15,
+  "dur": 0.27
+ },
+ "explosion": {
+  "rms_db": -16.7,
+  "peak_db": -0.7,
+  "centroid": 1535,
+  "low": 0.34,
+  "mid": 0.43,
+  "high": 0.23,
+  "dur": 0.93
+ },
+ "fair_bell": {
+  "rms_db": -25.2,
+  "peak_db": -4.0,
+  "centroid": 2880,
+  "low": 0.01,
+  "mid": 0.5,
+  "high": 0.49,
+  "dur": 0.89
+ },
+ "football_bounce": {
+  "rms_db": -22.4,
+  "peak_db": -5.5,
+  "centroid": 4968,
+  "low": 0.09,
+  "mid": 0.22,
+  "high": 0.7,
+  "dur": 0.22
+ },
+ "football_throw": {
+  "rms_db": -20.9,
+  "peak_db": -4.3,
+  "centroid": 2170,
+  "low": 0.29,
+  "mid": 0.41,
+  "high": 0.3,
+  "dur": 0.34
+ },
+ "foreman_cut": {
+  "rms_db": -13.9,
+  "peak_db": -2.9,
+  "centroid": 1451,
+  "low": 0.11,
+  "mid": 0.75,
+  "high": 0.14,
+  "dur": 0.44
+ },
+ "foreman_end": {
+  "rms_db": -12.7,
+  "peak_db": -3.9,
+  "centroid": 695,
+  "low": 0.4,
+  "mid": 0.55,
+  "high": 0.05,
+  "dur": 1.62
+ },
+ "foreman_intro": {
+  "rms_db": -12.7,
+  "peak_db": -3.9,
+  "centroid": 618,
+  "low": 0.47,
+  "mid": 0.49,
+  "high": 0.04,
+  "dur": 1.62
+ },
+ "foreman_warn": {
+  "rms_db": -21.8,
+  "peak_db": -3.2,
+  "centroid": 2362,
+  "low": 0.06,
+  "mid": 0.58,
+  "high": 0.36,
+  "dur": 0.87
+ },
+ "fuse_hiss": {
+  "rms_db": -24.0,
+  "peak_db": -13.8,
+  "centroid": 6161,
+  "low": 0.0,
+  "mid": 0.1,
+  "high": 0.9,
+  "dur": 0.72
+ },
+ "gate": {
+  "rms_db": -22.8,
+  "peak_db": -3.2,
+  "centroid": 4859,
+  "low": 0.1,
+  "mid": 0.22,
+  "high": 0.68,
+  "dur": 0.63
+ },
+ "glass_break": {
+  "rms_db": -23.0,
+  "peak_db": -7.4,
+  "centroid": 5081,
+  "low": 0.0,
+  "mid": 0.32,
+  "high": 0.68,
+  "dur": 0.55
+ },
+ "got_bessie": {
+  "rms_db": -13.7,
+  "peak_db": -2.7,
+  "centroid": 1234,
+  "low": 0.04,
+  "mid": 0.86,
+  "high": 0.11,
+  "dur": 1.13
+ },
+ "guard_charge": {
+  "rms_db": -17.0,
+  "peak_db": -7.1,
+  "centroid": 1250,
+  "low": 0.06,
+  "mid": 0.84,
+  "high": 0.11,
+  "dur": 0.35
+ },
+ "gulp": {
+  "rms_db": -22.2,
+  "peak_db": -3.9,
+  "centroid": 788,
+  "low": 0.15,
+  "mid": 0.79,
+  "high": 0.05,
+  "dur": 0.64
+ },
+ "hurt": {
+  "rms_db": -12.2,
+  "peak_db": -4.0,
+  "centroid": 835,
+  "low": 0.03,
+  "mid": 0.93,
+  "high": 0.04,
+  "dur": 0.39
+ },
+ "hurt_alt": {
+  "rms_db": -12.5,
+  "peak_db": -3.9,
+  "centroid": 1398,
+  "low": 0.01,
+  "mid": 0.82,
+  "high": 0.16,
+  "dur": 0.41
+ },
+ "hurt_alt2": {
+  "rms_db": -14.1,
+  "peak_db": -4.0,
+  "centroid": 1071,
+  "low": 0.1,
+  "mid": 0.79,
+  "high": 0.11,
+  "dur": 0.45
+ },
+ "impact_dirt": {
+  "rms_db": -25.2,
+  "peak_db": -7.1,
+  "centroid": 1372,
+  "low": 0.09,
+  "mid": 0.78,
+  "high": 0.13,
+  "dur": 0.13
+ },
+ "impact_plaster": {
+  "rms_db": -20.8,
+  "peak_db": -7.1,
+  "centroid": 3241,
+  "low": 0.01,
+  "mid": 0.4,
+  "high": 0.59,
+  "dur": 0.14
+ },
+ "impact_pressure": {
+  "rms_db": -23.7,
+  "peak_db": -5.8,
+  "centroid": 2221,
+  "low": 0.18,
+  "mid": 0.46,
+  "high": 0.36,
+  "dur": 0.31
+ },
+ "impact_rivet": {
+  "rms_db": -20.7,
+  "peak_db": -5.4,
+  "centroid": 1155,
+  "low": 0.0,
+  "mid": 1.0,
+  "high": 0.0,
+  "dur": 0.22
+ },
+ "impact_stone": {
+  "rms_db": -24.7,
+  "peak_db": -4.0,
+  "centroid": 3814,
+  "low": 0.01,
+  "mid": 0.36,
+  "high": 0.63,
+  "dur": 0.19
+ },
+ "impact_wood": {
+  "rms_db": -25.0,
+  "peak_db": -4.4,
+  "centroid": 3059,
+  "low": 0.02,
+  "mid": 0.45,
+  "high": 0.52,
+  "dur": 0.19
+ },
+ "jerry_intro": {
+  "rms_db": -23.1,
+  "peak_db": -7.3,
+  "centroid": 2154,
+  "low": 0.05,
+  "mid": 0.7,
+  "high": 0.25,
+  "dur": 1.0
+ },
+ "jukebox": {
+  "rms_db": -15.5,
+  "peak_db": -2.3,
+  "centroid": 1631,
+  "low": 0.08,
+  "mid": 0.71,
+  "high": 0.2,
+  "dur": 24.62
+ },
+ "key_pickup": {
+  "rms_db": -20.9,
+  "peak_db": -5.2,
+  "centroid": 5025,
+  "low": 0.03,
+  "mid": 0.28,
+  "high": 0.69,
+  "dur": 0.27
+ },
+ "lantern_charge": {
+  "rms_db": -18.8,
+  "peak_db": -3.9,
+  "centroid": 2440,
+  "low": 0.01,
+  "mid": 0.7,
+  "high": 0.29,
+  "dur": 0.68
+ },
+ "lantern_spit": {
+  "rms_db": -18.9,
+  "peak_db": -3.9,
+  "centroid": 2333,
+  "low": 0.12,
+  "mid": 0.58,
+  "high": 0.29,
+  "dur": 0.68
+ },
+ "load": {
+  "rms_db": -29.7,
+  "peak_db": -6.2,
+  "centroid": 3517,
+  "low": 0.0,
+  "mid": 0.36,
+  "high": 0.64,
+  "dur": 0.2
+ },
+ "mag_in": {
+  "rms_db": -21.5,
+  "peak_db": -4.6,
+  "centroid": 2452,
+  "low": 0.01,
+  "mid": 0.63,
+  "high": 0.35,
+  "dur": 0.21
+ },
+ "mag_out": {
+  "rms_db": -30.0,
+  "peak_db": -5.5,
+  "centroid": 3364,
+  "low": 0.0,
+  "mid": 0.41,
+  "high": 0.59,
+  "dur": 0.22
+ },
+ "match_strike": {
+  "rms_db": -23.5,
+  "peak_db": -7.3,
+  "centroid": 3067,
+  "low": 0.02,
+  "mid": 0.51,
+  "high": 0.47,
+  "dur": 0.44
+ },
+ "menu_accept": {
+  "rms_db": -22.5,
+  "peak_db": -7.1,
+  "centroid": 5043,
+  "low": 0.03,
+  "mid": 0.28,
+  "high": 0.7,
+  "dur": 0.16
+ },
+ "menu_move": {
+  "rms_db": -27.2,
+  "peak_db": -12.9,
+  "centroid": 5104,
+  "low": 0.02,
+  "mid": 0.28,
+  "high": 0.7,
+  "dur": 0.08
+ },
+ "metal_down": {
+  "rms_db": -22.3,
+  "peak_db": -5.1,
+  "centroid": 4803,
+  "low": 0.08,
+  "mid": 0.25,
+  "high": 0.67,
+  "dur": 0.46
+ },
+ "millhand_hit": {
+  "rms_db": -18.5,
+  "peak_db": -3.9,
+  "centroid": 2211,
+  "low": 0.49,
+  "mid": 0.21,
+  "high": 0.3,
+  "dur": 0.68
+ },
+ "millhand_rev": {
+  "rms_db": -18.0,
+  "peak_db": -3.9,
+  "centroid": 2323,
+  "low": 0.46,
+  "mid": 0.23,
+  "high": 0.3,
+  "dur": 0.68
+ },
+ "mill_isolate": {
+  "rms_db": -17.6,
+  "peak_db": -3.9,
+  "centroid": 2251,
+  "low": 0.5,
+  "mid": 0.2,
+  "high": 0.3,
+  "dur": 0.68
+ },
+ "mill_trip": {
+  "rms_db": -17.6,
+  "peak_db": -3.9,
+  "centroid": 2264,
+  "low": 0.54,
+  "mid": 0.16,
+  "high": 0.3,
+  "dur": 0.68
+ },
+ "moonshine": {
+  "rms_db": -23.3,
+  "peak_db": -3.7,
+  "centroid": 2079,
+  "low": 0.2,
+  "mid": 0.48,
+  "high": 0.33,
+  "dur": 0.79
+ },
+ "pickup": {
+  "rms_db": -20.5,
+  "peak_db": -8.6,
+  "centroid": 493,
+  "low": 0.0,
+  "mid": 1.0,
+  "high": 0.0,
+  "dur": 0.32
+ },
+ "pig": {
+  "rms_db": -14.3,
+  "peak_db": -3.1,
+  "centroid": 3835,
+  "low": 0.17,
+  "mid": 0.32,
+  "high": 0.52,
+  "dur": 0.34
+ },
+ "plasma": {
+  "rms_db": -19.8,
+  "peak_db": -8.4,
+  "centroid": 233,
+  "low": 0.67,
+  "mid": 0.33,
+  "high": 0.0,
+  "dur": 0.39
+ },
+ "player_down": {
+  "rms_db": -15.2,
+  "peak_db": -3.5,
+  "centroid": 1031,
+  "low": 0.02,
+  "mid": 0.91,
+  "high": 0.07,
+  "dur": 1.38
+ },
+ "pressure_charge": {
+  "rms_db": -23.3,
+  "peak_db": -7.3,
+  "centroid": 1605,
+  "low": 0.02,
+  "mid": 0.8,
+  "high": 0.18,
+  "dur": 0.29
+ },
+ "pressure_gun": {
+  "rms_db": -20.4,
+  "peak_db": -3.6,
+  "centroid": 3264,
+  "low": 0.04,
+  "mid": 0.46,
+  "high": 0.51,
+  "dur": 0.53
+ },
+ "pressure_interrupt": {
+  "rms_db": -18.8,
+  "peak_db": -5.5,
+  "centroid": 2895,
+  "low": 0.01,
+  "mid": 0.49,
+  "high": 0.5,
+  "dur": 0.27
+ },
+ "pressure_pump": {
+  "rms_db": -20.0,
+  "peak_db": -4.9,
+  "centroid": 2690,
+  "low": 0.08,
+  "mid": 0.47,
+  "high": 0.46,
+  "dur": 0.32
+ },
+ "pressure_seal": {
+  "rms_db": -27.1,
+  "peak_db": -7.3,
+  "centroid": 1563,
+  "low": 0.12,
+  "mid": 0.7,
+  "high": 0.17,
+  "dur": 0.32
+ },
+ "pressure_vent": {
+  "rms_db": -21.1,
+  "peak_db": -4.3,
+  "centroid": 2074,
+  "low": 0.03,
+  "mid": 0.68,
+  "high": 0.28,
+  "dur": 0.79
+ },
+ "rat_blow": {
+  "rms_db": -23.9,
+  "peak_db": -7.3,
+  "centroid": 2016,
+  "low": 0.18,
+  "mid": 0.58,
+  "high": 0.23,
+  "dur": 0.36
+ },
+ "rat_hiss": {
+  "rms_db": -24.5,
+  "peak_db": -10.0,
+  "centroid": 2549,
+  "low": 0.02,
+  "mid": 0.69,
+  "high": 0.3,
+  "dur": 0.66
+ },
+ "reload": {
+  "rms_db": -30.7,
+  "peak_db": -6.4,
+  "centroid": 3417,
+  "low": 0.0,
+  "mid": 0.4,
+  "high": 0.59,
+  "dur": 0.24
+ },
+ "report_room": {
+  "rms_db": -28.3,
+  "peak_db": -14.0,
+  "centroid": 1873,
+  "low": 0.38,
+  "mid": 0.37,
+  "high": 0.25,
+  "dur": 0.34
+ },
+ "revolver": {
+  "rms_db": -12.5,
+  "peak_db": -1.8,
+  "centroid": 2069,
+  "low": 0.03,
+  "mid": 0.66,
+  "high": 0.31,
+  "dur": 0.34
+ },
+ "revolver_alt": {
+  "rms_db": -12.6,
+  "peak_db": -1.9,
+  "centroid": 1840,
+  "low": 0.03,
+  "mid": 0.71,
+  "high": 0.26,
+  "dur": 0.34
+ },
+ "rev_cylinder": {
+  "rms_db": -22.8,
+  "peak_db": -7.3,
+  "centroid": 1669,
+  "low": 0.01,
+  "mid": 0.79,
+  "high": 0.2,
+  "dur": 0.26
+ },
+ "rev_extract": {
+  "rms_db": -25.6,
+  "peak_db": -7.3,
+  "centroid": 1636,
+  "low": 0.03,
+  "mid": 0.79,
+  "high": 0.18,
+  "dur": 0.22
+ },
+ "rev_lock": {
+  "rms_db": -22.5,
+  "peak_db": -7.3,
+  "centroid": 1824,
+  "low": 0.01,
+  "mid": 0.72,
+  "high": 0.27,
+  "dur": 0.19
+ },
+ "ricochet": {
+  "rms_db": -29.5,
+  "peak_db": -12.4,
+  "centroid": 1706,
+  "low": 0.0,
+  "mid": 0.99,
+  "high": 0.01,
+  "dur": 0.26
+ },
+ "rifle": {
+  "rms_db": -13.5,
+  "peak_db": -1.9,
+  "centroid": 2200,
+  "low": 0.04,
+  "mid": 0.58,
+  "high": 0.38,
+  "dur": 0.28
+ },
+ "rifle_alt": {
+  "rms_db": -13.6,
+  "peak_db": -1.9,
+  "centroid": 2029,
+  "low": 0.05,
+  "mid": 0.62,
+  "high": 0.33,
+  "dur": 0.28
+ },
+ "rifle_alt2": {
+  "rms_db": -13.0,
+  "peak_db": -1.9,
+  "centroid": 2044,
+  "low": 0.05,
+  "mid": 0.61,
+  "high": 0.34,
+  "dur": 0.28
+ },
+ "ripsaw": {
+  "rms_db": -15.7,
+  "peak_db": -4.0,
+  "centroid": 3559,
+  "low": 0.06,
+  "mid": 0.36,
+  "high": 0.58,
+  "dur": 0.36
+ },
+ "riveter": {
+  "rms_db": -17.6,
+  "peak_db": -3.5,
+  "centroid": 2400,
+  "low": 0.04,
+  "mid": 0.62,
+  "high": 0.33,
+  "dur": 0.3
+ },
+ "riveter_pair": {
+  "rms_db": -16.4,
+  "peak_db": -2.6,
+  "centroid": 2465,
+  "low": 0.04,
+  "mid": 0.61,
+  "high": 0.35,
+  "dur": 0.37
+ },
+ "rivet_lock": {
+  "rms_db": -22.8,
+  "peak_db": -7.3,
+  "centroid": 1650,
+  "low": 0.02,
+  "mid": 0.79,
+  "high": 0.19,
+  "dur": 0.26
+ },
+ "rivet_mag": {
+  "rms_db": -22.3,
+  "peak_db": -7.3,
+  "centroid": 1781,
+  "low": 0.01,
+  "mid": 0.73,
+  "high": 0.26,
+  "dur": 0.22
+ },
+ "rivet_strip": {
+  "rms_db": -21.9,
+  "peak_db": -7.3,
+  "centroid": 1731,
+  "low": 0.02,
+  "mid": 0.79,
+  "high": 0.2,
+  "dur": 0.19
+ },
+ "rocket_breech": {
+  "rms_db": -25.4,
+  "peak_db": -7.3,
+  "centroid": 1547,
+  "low": 0.11,
+  "mid": 0.72,
+  "high": 0.17,
+  "dur": 0.31
+ },
+ "rocket_case": {
+  "rms_db": -23.4,
+  "peak_db": -7.3,
+  "centroid": 1610,
+  "low": 0.04,
+  "mid": 0.78,
+  "high": 0.18,
+  "dur": 0.22
+ },
+ "rocket_lock": {
+  "rms_db": -24.2,
+  "peak_db": -7.3,
+  "centroid": 1655,
+  "low": 0.02,
+  "mid": 0.79,
+  "high": 0.19,
+  "dur": 0.26
+ },
+ "rocket_pop": {
+  "rms_db": -18.4,
+  "peak_db": -1.5,
+  "centroid": 3377,
+  "low": 0.1,
+  "mid": 0.35,
+  "high": 0.56,
+  "dur": 0.34
+ },
+ "rocket_seat": {
+  "rms_db": -23.1,
+  "peak_db": -7.3,
+  "centroid": 1647,
+  "low": 0.02,
+  "mid": 0.8,
+  "high": 0.18,
+  "dur": 0.28
+ },
+ "rocket_whistle": {
+  "rms_db": -22.2,
+  "peak_db": -7.5,
+  "centroid": 3488,
+  "low": 0.0,
+  "mid": 0.38,
+  "high": 0.62,
+  "dur": 0.3
+ },
+ "room_bottle_launcher": {
+  "rms_db": -27.3,
+  "peak_db": -11.1,
+  "centroid": 1175,
+  "low": 0.21,
+  "mid": 0.66,
+  "high": 0.14,
+  "dur": 0.45
+ },
+ "room_pressure_gun": {
+  "rms_db": -28.6,
+  "peak_db": -11.1,
+  "centroid": 1426,
+  "low": 0.11,
+  "mid": 0.75,
+  "high": 0.13,
+  "dur": 0.67
+ },
+ "room_revolver": {
+  "rms_db": -24.5,
+  "peak_db": -11.1,
+  "centroid": 1250,
+  "low": 0.05,
+  "mid": 0.85,
+  "high": 0.1,
+  "dur": 0.48
+ },
+ "room_rifle": {
+  "rms_db": -24.1,
+  "peak_db": -11.1,
+  "centroid": 1364,
+  "low": 0.07,
+  "mid": 0.79,
+  "high": 0.14,
+  "dur": 0.42
+ },
+ "room_riveter": {
+  "rms_db": -27.4,
+  "peak_db": -11.1,
+  "centroid": 1314,
+  "low": 0.05,
+  "mid": 0.85,
+  "high": 0.1,
+  "dur": 0.44
+ },
+ "room_riveter_pair": {
+  "rms_db": -26.2,
+  "peak_db": -11.1,
+  "centroid": 1310,
+  "low": 0.06,
+  "mid": 0.85,
+  "high": 0.1,
+  "dur": 0.51
+ },
+ "room_shotgun": {
+  "rms_db": -24.6,
+  "peak_db": -11.1,
+  "centroid": 1037,
+  "low": 0.13,
+  "mid": 0.8,
+  "high": 0.06,
+  "dur": 0.65
+ },
+ "room_shotgun_both": {
+  "rms_db": -25.0,
+  "peak_db": -11.1,
+  "centroid": 1020,
+  "low": 0.14,
+  "mid": 0.8,
+  "high": 0.06,
+  "dur": 0.72
+ },
+ "rudy_end": {
+  "rms_db": -13.3,
+  "peak_db": -3.9,
+  "centroid": 1353,
+  "low": 0.17,
+  "mid": 0.68,
+  "high": 0.15,
+  "dur": 1.62
+ },
+ "rudy_horn": {
+  "rms_db": -20.9,
+  "peak_db": -3.7,
+  "centroid": 1749,
+  "low": 0.04,
+  "mid": 0.74,
+  "high": 0.23,
+  "dur": 0.6
+ },
+ "rudy_intro": {
+  "rms_db": -12.5,
+  "peak_db": -3.9,
+  "centroid": 1387,
+  "low": 0.17,
+  "mid": 0.67,
+  "high": 0.16,
+  "dur": 1.62
+ },
+ "rudy_warn": {
+  "rms_db": -14.7,
+  "peak_db": -3.2,
+  "centroid": 1699,
+  "low": 0.16,
+  "mid": 0.63,
+  "high": 0.21,
+  "dur": 0.83
+ },
+ "saucer_charge": {
+  "rms_db": -17.4,
+  "peak_db": -5.7,
+  "centroid": 1496,
+  "low": 0.02,
+  "mid": 0.85,
+  "high": 0.13,
+  "dur": 0.56
+ },
+ "saucer_shot": {
+  "rms_db": -19.8,
+  "peak_db": -7.5,
+  "centroid": 1452,
+  "low": 0.11,
+  "mid": 0.75,
+  "high": 0.15,
+  "dur": 0.31
+ },
+ "saucer_spot": {
+  "rms_db": -19.0,
+  "peak_db": -6.1,
+  "centroid": 1516,
+  "low": 0.33,
+  "mid": 0.5,
+  "high": 0.17,
+  "dur": 0.37
+ },
+ "saw_bounce": {
+  "rms_db": -19.9,
+  "peak_db": -5.9,
+  "centroid": 1104,
+  "low": 0.0,
+  "mid": 1.0,
+  "high": 0.0,
+  "dur": 0.24
+ },
+ "saw_grind": {
+  "rms_db": -11.3,
+  "peak_db": -2.0,
+  "centroid": 2589,
+  "low": 0.12,
+  "mid": 0.45,
+  "high": 0.43,
+  "dur": 0.23
+ },
+ "saw_hit": {
+  "rms_db": -23.6,
+  "peak_db": -6.7,
+  "centroid": 2450,
+  "low": 0.21,
+  "mid": 0.46,
+  "high": 0.33,
+  "dur": 0.24
+ },
+ "saw_latch": {
+  "rms_db": -20.0,
+  "peak_db": -6.6,
+  "centroid": 4897,
+  "low": 0.02,
+  "mid": 0.29,
+  "high": 0.69,
+  "dur": 0.17
+ },
+ "saw_load": {
+  "rms_db": -21.5,
+  "peak_db": -8.0,
+  "centroid": 4981,
+  "low": 0.02,
+  "mid": 0.3,
+  "high": 0.68,
+  "dur": 0.22
+ },
+ "saw_motor": {
+  "rms_db": -12.1,
+  "peak_db": -6.4,
+  "centroid": 2921,
+  "low": 0.1,
+  "mid": 0.4,
+  "high": 0.5,
+  "dur": 0.74
+ },
+ "saw_seat": {
+  "rms_db": -23.6,
+  "peak_db": -7.3,
+  "centroid": 1646,
+  "low": 0.02,
+  "mid": 0.8,
+  "high": 0.19,
+  "dur": 0.28
+ },
+ "scenery_belt": {
+  "rms_db": -21.0,
+  "peak_db": -5.5,
+  "centroid": 1637,
+  "low": 0.18,
+  "mid": 0.6,
+  "high": 0.22,
+  "dur": 0.5
+ },
+ "scenery_cans": {
+  "rms_db": -23.1,
+  "peak_db": -7.3,
+  "centroid": 2958,
+  "low": 0.02,
+  "mid": 0.49,
+  "high": 0.49,
+  "dur": 0.56
+ },
+ "scenery_pipe": {
+  "rms_db": -23.8,
+  "peak_db": -6.7,
+  "centroid": 2038,
+  "low": 0.03,
+  "mid": 0.69,
+  "high": 0.29,
+  "dur": 0.71
+ },
+ "scenery_prize": {
+  "rms_db": -20.7,
+  "peak_db": -5.7,
+  "centroid": 1723,
+  "low": 0.11,
+  "mid": 0.65,
+  "high": 0.24,
+  "dur": 0.34
+ },
+ "scenery_scrap": {
+  "rms_db": -20.7,
+  "peak_db": -5.2,
+  "centroid": 2236,
+  "low": 0.15,
+  "mid": 0.49,
+  "high": 0.36,
+  "dur": 0.46
+ },
+ "secret_slide": {
+  "rms_db": -23.0,
+  "peak_db": -5.3,
+  "centroid": 4934,
+  "low": 0.1,
+  "mid": 0.21,
+  "high": 0.7,
+  "dur": 0.55
+ },
+ "shakedown_end": {
+  "rms_db": -12.6,
+  "peak_db": -3.9,
+  "centroid": 736,
+  "low": 0.33,
+  "mid": 0.62,
+  "high": 0.05,
+  "dur": 1.62
+ },
+ "shakedown_intro": {
+  "rms_db": -12.7,
+  "peak_db": -3.9,
+  "centroid": 699,
+  "low": 0.36,
+  "mid": 0.6,
+  "high": 0.04,
+  "dur": 1.62
+ },
+ "sheriff_shot": {
+  "rms_db": -19.9,
+  "peak_db": -7.0,
+  "centroid": 1721,
+  "low": 0.34,
+  "mid": 0.46,
+  "high": 0.21,
+  "dur": 0.44
+ },
+ "sheriff_siren": {
+  "rms_db": -16.9,
+  "peak_db": -5.7,
+  "centroid": 1912,
+  "low": 0.03,
+  "mid": 0.79,
+  "high": 0.18,
+  "dur": 0.49
+ },
+ "sheriff_spot": {
+  "rms_db": -18.6,
+  "peak_db": -5.9,
+  "centroid": 1929,
+  "low": 0.3,
+  "mid": 0.45,
+  "high": 0.24,
+  "dur": 0.44
+ },
+ "shotgun": {
+  "rms_db": -11.2,
+  "peak_db": -1.1,
+  "centroid": 1771,
+  "low": 0.12,
+  "mid": 0.65,
+  "high": 0.23,
+  "dur": 0.51
+ },
+ "shotgun_both": {
+  "rms_db": -10.6,
+  "peak_db": -0.9,
+  "centroid": 1723,
+  "low": 0.12,
+  "mid": 0.66,
+  "high": 0.22,
+  "dur": 0.58
+ },
+ "shot_extract": {
+  "rms_db": -24.0,
+  "peak_db": -7.3,
+  "centroid": 1639,
+  "low": 0.02,
+  "mid": 0.8,
+  "high": 0.19,
+  "dur": 0.27
+ },
+ "shot_hinge": {
+  "rms_db": -25.4,
+  "peak_db": -7.3,
+  "centroid": 1587,
+  "low": 0.11,
+  "mid": 0.71,
+  "high": 0.18,
+  "dur": 0.25
+ },
+ "shot_lock": {
+  "rms_db": -23.2,
+  "peak_db": -7.3,
+  "centroid": 1610,
+  "low": 0.05,
+  "mid": 0.78,
+  "high": 0.18,
+  "dur": 0.23
+ },
+ "shot_shell": {
+  "rms_db": -23.5,
+  "peak_db": -7.3,
+  "centroid": 1700,
+  "low": 0.01,
+  "mid": 0.79,
+  "high": 0.19,
+  "dur": 0.21
+ },
+ "sink_flush": {
+  "rms_db": -16.1,
+  "peak_db": -3.8,
+  "centroid": 2484,
+  "low": 0.17,
+  "mid": 0.49,
+  "high": 0.34,
+  "dur": 1.18
+ },
+ "skeeter": {
+  "rms_db": -18.6,
+  "peak_db": -7.1,
+  "centroid": 338,
+  "low": 0.28,
+  "mid": 0.72,
+  "high": 0.0,
+  "dur": 0.26
+ },
+ "skeeter_bite": {
+  "rms_db": -20.7,
+  "peak_db": -4.2,
+  "centroid": 5162,
+  "low": 0.07,
+  "mid": 0.2,
+  "high": 0.73,
+  "dur": 0.26
+ },
+ "skeeter_dive": {
+  "rms_db": -18.0,
+  "peak_db": -7.7,
+  "centroid": 1571,
+  "low": 0.28,
+  "mid": 0.55,
+  "high": 0.18,
+  "dur": 0.36
+ },
+ "skeeter_pop": {
+  "rms_db": -16.4,
+  "peak_db": -1.6,
+  "centroid": 4648,
+  "low": 0.16,
+  "mid": 0.18,
+  "high": 0.66,
+  "dur": 0.26
+ },
+ "slingblade": {
+  "rms_db": -17.4,
+  "peak_db": -6.2,
+  "centroid": 3941,
+  "low": 0.05,
+  "mid": 0.3,
+  "high": 0.64,
+  "dur": 0.29
+ },
+ "sling_hit": {
+  "rms_db": -18.3,
+  "peak_db": -3.9,
+  "centroid": 2346,
+  "low": 0.4,
+  "mid": 0.3,
+  "high": 0.3,
+  "dur": 0.68
+ },
+ "step_grass_0": {
+  "rms_db": -20.1,
+  "peak_db": -8.4,
+  "centroid": 2198,
+  "low": 0.55,
+  "mid": 0.15,
+  "high": 0.3,
+  "dur": 0.25
+ },
+ "step_grass_1": {
+  "rms_db": -20.9,
+  "peak_db": -8.4,
+  "centroid": 1809,
+  "low": 0.58,
+  "mid": 0.17,
+  "high": 0.25,
+  "dur": 0.25
+ },
+ "step_gravel_0": {
+  "rms_db": -22.7,
+  "peak_db": -6.2,
+  "centroid": 3530,
+  "low": 0.02,
+  "mid": 0.59,
+  "high": 0.39,
+  "dur": 0.25
+ },
+ "step_gravel_1": {
+  "rms_db": -24.8,
+  "peak_db": -6.2,
+  "centroid": 2423,
+  "low": 0.02,
+  "mid": 0.73,
+  "high": 0.25,
+  "dur": 0.25
+ },
+ "step_mud_0": {
+  "rms_db": -28.5,
+  "peak_db": -6.2,
+  "centroid": 3466,
+  "low": 0.08,
+  "mid": 0.4,
+  "high": 0.52,
+  "dur": 0.25
+ },
+ "step_mud_1": {
+  "rms_db": -28.7,
+  "peak_db": -6.2,
+  "centroid": 2709,
+  "low": 0.1,
+  "mid": 0.48,
+  "high": 0.42,
+  "dur": 0.25
+ },
+ "step_tile_0": {
+  "rms_db": -26.3,
+  "peak_db": -6.2,
+  "centroid": 2195,
+  "low": 0.3,
+  "mid": 0.38,
+  "high": 0.33,
+  "dur": 0.25
+ },
+ "step_tile_1": {
+  "rms_db": -26.2,
+  "peak_db": -6.2,
+  "centroid": 1872,
+  "low": 0.33,
+  "mid": 0.38,
+  "high": 0.28,
+  "dur": 0.25
+ },
+ "step_water_0": {
+  "rms_db": -25.8,
+  "peak_db": -6.2,
+  "centroid": 3069,
+  "low": 0.08,
+  "mid": 0.44,
+  "high": 0.48,
+  "dur": 0.25
+ },
+ "step_water_1": {
+  "rms_db": -25.7,
+  "peak_db": -6.2,
+  "centroid": 3175,
+  "low": 0.1,
+  "mid": 0.32,
+  "high": 0.59,
+  "dur": 0.25
+ },
+ "step_wood_0": {
+  "rms_db": -17.7,
+  "peak_db": -6.2,
+  "centroid": 500,
+  "low": 0.86,
+  "mid": 0.08,
+  "high": 0.07,
+  "dur": 0.25
+ },
+ "step_wood_1": {
+  "rms_db": -17.6,
+  "peak_db": -6.2,
+  "centroid": 372,
+  "low": 0.88,
+  "mid": 0.07,
+  "high": 0.05,
+  "dur": 0.25
+ },
+ "talk_freight-pa_0": {
+  "rms_db": -15.2,
+  "peak_db": -3.1,
+  "centroid": 2492,
+  "low": 0.01,
+  "mid": 0.66,
+  "high": 0.32,
+  "dur": 0.94
+ },
+ "talk_freight-pa_1": {
+  "rms_db": -14.3,
+  "peak_db": -3.2,
+  "centroid": 2445,
+  "low": 0.01,
+  "mid": 0.68,
+  "high": 0.31,
+  "dur": 0.8
+ },
+ "talk_kiln-radio_0": {
+  "rms_db": -14.7,
+  "peak_db": -3.1,
+  "centroid": 2237,
+  "low": 0.01,
+  "mid": 0.71,
+  "high": 0.28,
+  "dur": 0.98
+ },
+ "talk_kiln-radio_1": {
+  "rms_db": -14.5,
+  "peak_db": -3.2,
+  "centroid": 2607,
+  "low": 0.02,
+  "mid": 0.64,
+  "high": 0.34,
+  "dur": 0.78
+ },
+ "talk_line-speaker_0": {
+  "rms_db": -15.1,
+  "peak_db": -3.2,
+  "centroid": 2965,
+  "low": 0.01,
+  "mid": 0.58,
+  "high": 0.41,
+  "dur": 0.88
+ },
+ "talk_line-speaker_1": {
+  "rms_db": -13.5,
+  "peak_db": -3.2,
+  "centroid": 2266,
+  "low": 0.03,
+  "mid": 0.69,
+  "high": 0.28,
+  "dur": 1.03
+ },
+ "talk_pit-speaker_0": {
+  "rms_db": -15.5,
+  "peak_db": -3.1,
+  "centroid": 2839,
+  "low": 0.02,
+  "mid": 0.59,
+  "high": 0.39,
+  "dur": 0.97
+ },
+ "talk_pit-speaker_1": {
+  "rms_db": -14.0,
+  "peak_db": -3.2,
+  "centroid": 2684,
+  "low": 0.02,
+  "mid": 0.61,
+  "high": 0.36,
+  "dur": 1.14
+ },
+ "talk_registry-radio_0": {
+  "rms_db": -15.3,
+  "peak_db": -3.1,
+  "centroid": 2404,
+  "low": 0.03,
+  "mid": 0.65,
+  "high": 0.32,
+  "dur": 1.03
+ },
+ "talk_registry-radio_1": {
+  "rms_db": -14.5,
+  "peak_db": -3.2,
+  "centroid": 3051,
+  "low": 0.02,
+  "mid": 0.55,
+  "high": 0.43,
+  "dur": 1.18
+ },
+ "talk_show-pa_0": {
+  "rms_db": -15.1,
+  "peak_db": -3.1,
+  "centroid": 2772,
+  "low": 0.02,
+  "mid": 0.6,
+  "high": 0.38,
+  "dur": 1.04
+ },
+ "talk_show-pa_1": {
+  "rms_db": -14.2,
+  "peak_db": -3.2,
+  "centroid": 2358,
+  "low": 0.01,
+  "mid": 0.69,
+  "high": 0.3,
+  "dur": 0.82
+ },
+ "talk_sort-radio_0": {
+  "rms_db": -15.1,
+  "peak_db": -3.1,
+  "centroid": 2442,
+  "low": 0.02,
+  "mid": 0.67,
+  "high": 0.31,
+  "dur": 0.98
+ },
+ "talk_sort-radio_1": {
+  "rms_db": -14.2,
+  "peak_db": -3.2,
+  "centroid": 2651,
+  "low": 0.03,
+  "mid": 0.61,
+  "high": 0.36,
+  "dur": 1.15
+ },
+ "talk_tow-radio_0": {
+  "rms_db": -15.4,
+  "peak_db": -3.1,
+  "centroid": 2365,
+  "low": 0.02,
+  "mid": 0.68,
+  "high": 0.3,
+  "dur": 1.05
+ },
+ "talk_tow-radio_1": {
+  "rms_db": -14.3,
+  "peak_db": -3.3,
+  "centroid": 2956,
+  "low": 0.01,
+  "mid": 0.58,
+  "high": 0.41,
+  "dur": 0.78
+ },
+ "title": {
+  "rms_db": -12.6,
+  "peak_db": -1.4,
+  "centroid": 1904,
+  "low": 0.2,
+  "mid": 0.52,
+  "high": 0.28,
+  "dur": 26.48
+ },
+ "tnt_bounce": {
+  "rms_db": -25.5,
+  "peak_db": -10.5,
+  "centroid": 4868,
+  "low": 0.08,
+  "mid": 0.23,
+  "high": 0.69,
+  "dur": 0.18
+ },
+ "tnt_throw": {
+  "rms_db": -18.2,
+  "peak_db": -6.9,
+  "centroid": 3871,
+  "low": 0.05,
+  "mid": 0.32,
+  "high": 0.63,
+  "dur": 0.32
+ },
+ "tosser_glass": {
+  "rms_db": -22.0,
+  "peak_db": -6.5,
+  "centroid": 3598,
+  "low": 0.01,
+  "mid": 0.38,
+  "high": 0.61,
+  "dur": 0.34
+ },
+ "tosser_rattle": {
+  "rms_db": -27.7,
+  "peak_db": -9.8,
+  "centroid": 2820,
+  "low": 0.01,
+  "mid": 0.67,
+  "high": 0.33,
+  "dur": 0.52
+ },
+ "tosser_throw": {
+  "rms_db": -28.4,
+  "peak_db": -11.7,
+  "centroid": 3507,
+  "low": 0.02,
+  "mid": 0.4,
+  "high": 0.58,
+  "dur": 0.29
+ },
+ "varmint_down": {
+  "rms_db": -14.2,
+  "peak_db": -2.5,
+  "centroid": 3970,
+  "low": 0.14,
+  "mid": 0.33,
+  "high": 0.53,
+  "dur": 0.41
+ },
+ "victory": {
+  "rms_db": -12.5,
+  "peak_db": -1.4,
+  "centroid": 1907,
+  "low": 0.2,
+  "mid": 0.5,
+  "high": 0.29,
+  "dur": 7.22
+ },
+ "weapon_pickup": {
+  "rms_db": -21.8,
+  "peak_db": -5.9,
+  "centroid": 4858,
+  "low": 0.03,
+  "mid": 0.29,
+  "high": 0.68,
+  "dur": 0.23
+ },
+ "whistle": {
+  "rms_db": -15.6,
+  "peak_db": -10.5,
+  "centroid": 2220,
+  "low": 0.0,
+  "mid": 0.65,
+  "high": 0.35,
+  "dur": 0.45
+ },
+ "yee_haw": {
+  "rms_db": -14.4,
+  "peak_db": -2.4,
+  "centroid": 1747,
+  "low": 0.04,
+  "mid": 0.65,
+  "high": 0.31,
+  "dur": 1.3
+ },
+ "yee_haw_alt": {
+  "rms_db": -16.8,
+  "peak_db": -2.7,
+  "centroid": 1314,
+  "low": 0.05,
+  "mid": 0.79,
+  "high": 0.15,
+  "dur": 1.45
+ }
+}

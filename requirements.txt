@@ -1,0 +1,5 @@
+pygame-ce==2.5.8
+numpy==2.3.5
+Pillow==13.0.0
+pyinstaller==6.22.3
+

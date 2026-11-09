@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crazy Legs Mundell Rampage — The Hickston Incident</title>
+<meta name="description" content="A hand-built 320x200 retro FPS. Download for Windows or Android, or play in your browser.">
+<style>
+  :root {
+    --ink: #f6e7c6;
+    --dim: #c9ab7c;
+    --gold: #f0b64e;
+    --rust: #b8472e;
+    --coal: #0d0b09;
+    --panel: #17120e;
+    --edge: #5a3c22;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--coal);
+    color: var(--ink);
+    font-family: "Courier New", Courier, monospace;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    background: repeating-linear-gradient(
+      0deg, rgba(0,0,0,.28) 0px, rgba(0,0,0,.28) 2px,
+      transparent 2px, transparent 4px);
+    mix-blend-mode: multiply;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.62) 100%);
+  }
+  a { color: var(--gold); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 64px; position: relative; z-index: 2; }
+  header {
+    padding: 54px 0 26px;
+    text-align: center;
+    background:
+      linear-gradient(rgba(13,11,9,.55), rgba(13,11,9,.92)),
+      url("img/backdrop.png") center top / cover no-repeat;
+    border-bottom: 4px solid var(--edge);
+    image-rendering: pixelated;
+  }
+  .logo { width: min(560px, 88vw); image-rendering: pixelated; filter: drop-shadow(0 6px 0 rgba(0,0,0,.55)); }
+  .kicker {
+    display: inline-block;
+    margin: 18px 0 4px;
+    padding: 4px 12px;
+    border: 2px solid var(--edge);
+    background: rgba(0,0,0,.5);
+    color: var(--gold);
+    font-weight: bold;
+    letter-spacing: .22em;
+    font-size: 12px;
+  }
+  h1 { margin: 8px 0 0; font-size: clamp(22px, 4vw, 38px); letter-spacing: .08em; }
+  .sub { color: var(--dim); margin: 6px 0 0; font-size: 14px; letter-spacing: .12em; }
+  .rail {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    margin: 26px 0 0;
+  }
+  .btn {
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+    min-width: 210px; padding: 12px 20px;
+    color: #140f0a; text-decoration: none;
+    background: linear-gradient(#ffd98a, var(--gold) 45%, #c98724);
+    border: 3px solid #3a230f;
+    box-shadow: 0 4px 0 #3a230f, inset 0 2px 0 rgba(255,255,255,.45);
+    font-weight: bold; letter-spacing: .1em; text-transform: uppercase;
+    transition: transform .08s steps(2), filter .15s;
+  }
+  .btn small { font-weight: normal; letter-spacing: .04em; text-transform: none; color: #46301a; }
+  .btn:hover { filter: brightness(1.08); transform: translateY(-2px); }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #3a230f; }
+  .btn.alt {
+    background: linear-gradient(#3a2a1c, #241a12);
+    color: var(--ink);
+    border-color: #6b4a2b;
+    box-shadow: 0 4px 0 #120c08, inset 0 2px 0 rgba(255,255,255,.08);
+  }
+  .btn.alt small { color: var(--dim); }
+  .btn.play { background: linear-gradient(#b9f08a, #64b53b 45%, #2f6f1f); }
+  section { margin-top: 44px; }
+  h2 {
+    font-size: 15px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold); border-bottom: 2px solid var(--edge); padding-bottom: 8px;
+  }
+  .grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .shot {
+    width: 100%; display: block; border: 4px solid var(--edge);
+    image-rendering: pixelated; box-shadow: 0 0 0 4px #0a0806, 0 10px 30px rgba(0,0,0,.55);
+  }
+  .panel {
+    background: var(--panel); border: 2px solid var(--edge); padding: 18px 20px;
+    box-shadow: inset 0 0 0 2px #0a0806;
+  }
+  .panel p { margin: 0 0 12px; font-size: 14px; }
+  .panel p:last-child { margin-bottom: 0; }
+  ul.checks { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  ul.checks li { padding: 4px 0 4px 22px; position: relative; color: var(--dim); }
+  ul.checks li::before { content: "▸"; color: var(--rust); position: absolute; left: 2px; }
+  .reqs { font-size: 13px; color: var(--dim); }
+  .reqs strong { color: var(--ink); }
+  footer {
+    margin-top: 54px; padding-top: 18px; border-top: 2px solid var(--edge);
+    color: #8d7255; font-size: 12px; letter-spacing: .06em; text-align: center;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <img class="logo" src="img/logo.png" alt="Crazy Legs Mundell Rampage">
+    <div><span class="kicker">THE HICKSTON INCIDENT</span></div>
+    <h1>CRAZY LEGS MUNDELL RAMPAGE</h1>
+    <p class="sub">VERSION 2.0 &nbsp;·&nbsp; 320×200 &nbsp;·&nbsp; 16 WEAPONS &nbsp;·&nbsp; 4 COUNTIES</p>
+    <nav class="rail" aria-label="Downloads">
+      <a class="btn play" href="play/" id="play">Play in browser<small>No install · WebAssembly</small></a>
+      <a class="btn" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage.exe" id="exe">Download for Windows<small>Single-file EXE · 64-bit</small></a>
+      <a class="btn alt" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage_Setup.exe" id="setup">Windows installer<small>Start-menu shortcuts</small></a>
+      <a class="btn alt" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage.apk" id="apk">Android APK<small>arm64 · allow unknown sources</small></a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section>
+    <div class="grid">
+      <div>
+        <h2>The last delivery route</h2>
+        <img class="shot" src="img/gameplay.png" alt="Gameplay in Hickston County">
+      </div>
+      <div class="panel">
+        <p><strong>The Hickston Incident</strong> is a hand-built retro FPS in the
+        spirit of the 1995 shareware shooters: big guns, ugly locals, and a county
+        that wants you dead.</p>
+        <ul class="checks">
+          <li>Four linked counties and a hub map</li>
+          <li>16 weapons with distinct cadence and recoil</li>
+          <li>24 enemy kinds, bosses, and wave encounters</li>
+          <li>Original soundtrack and synthesized effects</li>
+          <li>Keyboard + mouse, gamepad, or touch controls</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>System requirements</h2>
+    <div class="grid">
+      <div class="panel">
+        <p class="reqs"><strong>Windows:</strong> Windows 10/11 64-bit, 4 GB RAM,
+        200 MB free disk. The single-file EXE needs no installer.</p>
+        <p class="reqs"><strong>Android:</strong> Android 7.0+, arm64 device,
+        landscape screen. Enable installs from your browser/file manager.</p>
+        <p class="reqs"><strong>Browser:</strong> A current Chrome, Edge, Firefox,
+        or Safari release with WebAssembly and WebGL enabled. Keyboard and mouse
+        are recommended; touch controls appear on phones and tablets.</p>
+      </div>
+      <div class="panel">
+        <p class="reqs"><strong>Controls:</strong> WASD moves, mouse aims, LMB fires,
+        RMB alt-fires, E uses, F cycles weapons, Space jumps, Shift sprints,
+        Esc pauses. Gamepads are detected automatically on desktop.</p>
+        <p class="reqs">Every download is built from this repository by GitHub Actions.
+        Saves live in <strong>%APPDATA%\CrazyLegsMundellRampage</strong> on Windows and in
+        app-private storage on Android.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Source &amp; notes</h2>
+    <div class="panel">
+      <p>Read the <a href="https://github.com/treymun/crazy-legs-mundell-rampage">source repository</a>
+      or the <a href="https://github.com/treymun/crazy-legs-mundell-rampage/blob/main/CHANGES_2.0.md">2.0 change log</a>.
+      Builds are unsigned; Windows SmartScreen may ask you to confirm the first launch.</p>
+      <p class="reqs">Pygame-ce · Python 3.12 · PyInstaller · python-for-android · pygbag</p>
+    </div>
+  </section>
+
+  <footer>
+    HICKSTON INC. · 2.0.0 · Fan-made tribute, not affiliated with any original publisher.
+  </footer>
+</div>
+</body>
+</html>
