@@ -117,9 +117,16 @@ class Desktop:
         return entries
 
     def grab(self, value):
-        pg.event.set_grab(value and not self.smoke)
-        pg.mouse.set_visible(not value or self.smoke)
-        pg.mouse.get_rel()
+        try:
+            pg.event.set_grab(value and not self.smoke)
+            pg.mouse.set_visible(not value or self.smoke)
+        except pg.error:
+            # Browsers can refuse pointer lock; keep the loop alive regardless.
+            pass
+        try:
+            pg.mouse.get_rel()
+        except pg.error:
+            pass
         self.accumulator = self.pending_turn = self.pending_look = 0.
 
     def start(self, level_id="hickston", *, kit=None, history=(), replay=False, supply_rule=None):

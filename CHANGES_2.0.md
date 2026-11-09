@@ -1,4 +1,12 @@
-﻿# 2.0.0-dev.6 changes
+﻿# 2.0.0-dev.7 changes
+
+## Browser build
+- pygbag converts the WAV masters to OGG for the web archive, so the game now loads effects and one-shot music streams from `.ogg`/`.opus` as well as `.wav`. This fixes the missing `title.wav` crash at boot and restores all sound effects in browsers.
+- `main.py` imports numpy before pygame so pygbag sees the dependency during its boot scan instead of pausing mid-import.
+- A browser that refuses pointer lock (for example an embedded or unfocused view) no longer interrupts the event loop.
+- Raised the darkest ambient shade slightly so unlit corners stay readable on dim displays.
+
+# 2.0.0-dev.6 changes
 
 ## Distribution
 - Windows builds now go through `CrazyLegsMundellRampage.spec` (`build_windows.bat`) and can produce an Inno Setup installer (`installer.iss`).

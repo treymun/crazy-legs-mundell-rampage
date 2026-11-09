@@ -1,4 +1,4 @@
-"""320x200 indexed-look software renderer with planar scene reflections."""
+﻿"""320x200 indexed-look software renderer with planar scene reflections."""
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -137,7 +137,7 @@ class Renderer:
     @staticmethod
     def light_at(distance, light):
         # Stepped shades mimic an 8-bit shade lookup table.
-        shade = np.maximum(.16, light / (1. + .102 * distance))
+        shade = np.maximum(.19, light / (1. + .102 * distance))
         return np.floor(shade * 32 + .5) / 32
 
     def cast(self, x, y, dx, dy, walls, minimum):
