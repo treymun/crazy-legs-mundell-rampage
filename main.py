@@ -1,4 +1,5 @@
 """Entry point for desktop, Android and Pygbag builds of Hickston."""
+import numpy  # noqa: F401 - pygbag must see this before pygame starts
 import argparse
 import asyncio
 import math

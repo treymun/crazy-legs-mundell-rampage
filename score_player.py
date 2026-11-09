@@ -28,11 +28,20 @@ class ShuffleBank:
         self.offset=0.
 
 
+@lru_cache(maxsize=8)
+def manifest(folder):
+    marker = folder/"durations.json"
+    return json.loads(marker.read_text(encoding="utf-8")) if marker.is_file() else {}
+
+
 @lru_cache(maxsize=20)
 def duration(path):
     if path.suffix in (".opus", ".ogg"):
-        manifest = json.loads((path.parent/"durations.json").read_text(encoding="utf-8"))
-        return manifest[path.stem]
+        for folder in (path.parent, path.parent.parent/"music"):
+            lengths = manifest(folder)
+            if path.stem in lengths:
+                return lengths[path.stem]
+        return 0.
     import wave
     with wave.open(str(path),"rb") as stream:
         return stream.getnframes()/stream.getframerate()
@@ -120,7 +129,14 @@ class ScorePlayer:
                     self.files[track] = encoded
                     break
             else:
-                self.files[track] = self.directory/f"{track}.wav"
+                order = (".ogg", ".opus", ".wav") if IS_ANDROID or IS_WEB else (".wav", ".ogg", ".opus")
+                for suffix in order:
+                    direct = self.directory/f"{track}{suffix}"
+                    if direct.is_file():
+                        self.files[track] = direct
+                        break
+                else:
+                    self.files[track] = self.directory/f"{track}.wav"
         return self.files[track]
 
     def play_end(self,track):

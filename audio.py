@@ -400,13 +400,20 @@ class Sound:
         self.pan_width = .70
         if pg.mixer.get_init():
             self.score_player=ScorePlayer(pg.mixer.music,AUDIO)
-            for path in AUDIO.glob("*.wav"):
-                if path.stem not in self.STREAMS:
-                    sample = pg.mixer.Sound(path)
-                    if path.stem.startswith("step_"):
-                        # Keep headroom when a footfall overlaps the saw and a hit cue.
-                        sample.set_volume(.83)
-                    self.samples[path.stem] = sample
+            files = {}
+            for path in sorted(AUDIO.iterdir()):
+                if path.suffix.lower() not in (".wav", ".ogg", ".opus"):
+                    continue
+                if path.stem in self.STREAMS:
+                    continue
+                if path.suffix.lower() == ".wav" or path.stem not in files:
+                    files[path.stem] = path
+            for stem, path in files.items():
+                sample = pg.mixer.Sound(path)
+                if stem.startswith("step_"):
+                    # Keep headroom when a footfall overlaps the saw and a hit cue.
+                    sample.set_volume(.83)
+                self.samples[stem] = sample
             pg.mixer.music.set_volume(.50)
             pg.mixer.set_num_channels(24)
             pg.mixer.set_reserved(10)
