@@ -6,8 +6,10 @@ their headers into pygame-ce's Setup.Android.SDL2 template.
 """
 from os.path import join
 
+import sh
+
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
-from pythonforandroid.toolchain import current_directory
+from pythonforandroid.toolchain import current_directory, shprint
 
 
 class PygameCeRecipe(CompiledComponentsPythonRecipe):
@@ -18,7 +20,8 @@ class PygameCeRecipe(CompiledComponentsPythonRecipe):
     name = "pygame-ce"
 
     depends = ["sdl2", "sdl2_image", "sdl2_mixer", "sdl2_ttf",
-               "cython", "setuptools", "jpeg", "png"]
+               "setuptools", "jpeg", "png"]
+    hostpython_prerequisites = ["Cython==3.2.9", "setuptools"]
     call_hostpython_via_targetpython = False
     install_in_hostpython = False
 
@@ -55,6 +58,27 @@ class PygameCeRecipe(CompiledComponentsPythonRecipe):
                 freetype_includes="",
             )
             open("Setup", "w").write(setup_file)
+
+    def install_python_package(self, arch, name=None, env=None, is_dir=True):
+        """Install with setup.py.
+
+        pygame-ce 2.5.x ships a pyproject.toml whose meson backend refuses to
+        build for Android, so pip install would take the wrong path. The
+        extensions are already built by build_compiled_components, so install
+        them straight into the target site-packages.
+        """
+        if env is None:
+            env = self.get_recipe_env(arch)
+        with current_directory(self.get_build_dir(arch.arch)):
+            shprint(
+                sh.Command(self.hostpython_location),
+                "setup.py",
+                "install",
+                "-O2",
+                "--root={}".format(self.ctx.get_python_install_dir(arch.arch)),
+                "--install-lib=.",
+                _env=env,
+            )
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
