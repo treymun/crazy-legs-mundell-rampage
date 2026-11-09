@@ -39,19 +39,30 @@ class PygameCeRecipe(CompiledComponentsPythonRecipe):
             jpeg = self.get_recipe("jpeg", self.ctx)
             jpeg_inc_dir = jpeg_lib_dir = jpeg.get_build_dir(arch.arch)
 
+            jni_dir = join(self.ctx.bootstrap.build_dir, "jni")
+
             sdl_mixer_includes = ""
             sdl2_mixer_recipe = self.get_recipe("sdl2_mixer", self.ctx)
             for include_dir in sdl2_mixer_recipe.get_include_dirs(arch):
                 sdl_mixer_includes += f"-I{include_dir} "
 
+            sdl_ttf_includes = (
+                f"-I{join(jni_dir, 'SDL2_ttf', 'include')} "
+                f"-I{join(jni_dir, 'SDL2_ttf')}"
+            )
+            sdl_image_includes = (
+                f"-I{join(jni_dir, 'SDL2_image', 'include')} "
+                f"-I{join(jni_dir, 'SDL2_image')}"
+            )
+
             setup_file = setup_template.format(
                 sdl_includes=(
-                    " -I" + join(self.ctx.bootstrap.build_dir, "jni", "SDL", "include")
+                    " -I" + join(jni_dir, "SDL", "include")
                     + " -L" + join(self.ctx.bootstrap.build_dir, "libs", str(arch))
                     + " -L" + png_lib_dir + " -L" + jpeg_lib_dir
                     + " -L" + arch.ndk_lib_dir_versioned),
-                sdl_ttf_includes="-I" + join(self.ctx.bootstrap.build_dir, "jni", "SDL2_ttf"),
-                sdl_image_includes="-I" + join(self.ctx.bootstrap.build_dir, "jni", "SDL2_image"),
+                sdl_ttf_includes=sdl_ttf_includes,
+                sdl_image_includes=sdl_image_includes,
                 sdl_mixer_includes=sdl_mixer_includes,
                 jpeg_includes="-I" + jpeg_inc_dir,
                 png_includes="-I" + png_inc_dir,
