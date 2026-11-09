@@ -1,7 +1,6 @@
 """Produce 16-bit PCM game audio and play it through SDL."""
 from pathlib import Path
 import math
-import wave
 
 import numpy as np
 
@@ -40,6 +39,7 @@ def osc(t, pitch):
 
 
 def write(name, samples):
+    import wave
     AUDIO.mkdir(parents=True, exist_ok=True)
     data = (np.clip(samples, -1, 1) * 32767).astype("<i2")
     with wave.open(str(AUDIO / f"{name}.wav"), "wb") as file:
@@ -71,6 +71,7 @@ def mechanical(name, length, events):
 
 
 def synthesize():
+    import wave
     for name, length, volume, speed, pitch in (
             ("revolver", .28, .72, 20, 120), ("shotgun", .43, .95, 12, 77),
             ("explosion", .82, .96, 6, 55), ("enemy", .22, .44, 18, 92),

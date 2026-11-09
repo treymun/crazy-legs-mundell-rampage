@@ -3,7 +3,6 @@ from functools import lru_cache
 from io import BytesIO
 import json
 import random
-import wave
 
 from campaign_score import SCORES
 from resource_path import IS_ANDROID, IS_WEB
@@ -34,6 +33,7 @@ def duration(path):
     if path.suffix in (".opus", ".ogg"):
         manifest = json.loads((path.parent/"durations.json").read_text(encoding="utf-8"))
         return manifest[path.stem]
+    import wave
     with wave.open(str(path),"rb") as stream:
         return stream.getnframes()/stream.getframerate()
 
@@ -46,6 +46,7 @@ def playback_ends(folder):
 
 def tail_from(path,offset):
     """SDL's WAV decoder starts at the first frame. Present the remaining PCM."""
+    import wave
     pcm=BytesIO()
     with wave.open(str(path),"rb") as source:
         start=min(source.getnframes()-1,round(offset*source.getframerate()))
