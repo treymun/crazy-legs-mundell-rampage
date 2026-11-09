@@ -341,6 +341,8 @@ class Enemy:
             self.see_time = .079 + (self.radius-.2)*.051
             self.player_seen = distance < 14. and game.world.visible(self.x,self.y,p.x,p.y,eye,p.eye)
         can_see = self.player_seen and distance < 14.
+        if not self.alerted and (game.spawn_grace > 0. or game.player_sheltered()):
+            can_see = self.player_seen = False
         aggro_range = (5.5 if p.crouched else 8.4) + 2.2 * (p.gut >= 66)
         if self.kind in ("skeeter","saucer"):
             aggro_range += .9

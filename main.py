@@ -17,7 +17,7 @@ from game_version import VERSION
 from hud import AMBER, HUD, INK, TITLE_FIRST, title_row_height
 from period_palette import VGAPalette
 from pixel_type import wrap
-from resource_path import IS_ANDROID
+from resource_path import IS_ANDROID, IS_WEB
 import session_store
 from touch_controls import TouchControls
 from weapons import BOWLING, CAPACITY, COW, KEG, RIFLE, ROCKET, SHOTGUN, TEAT
@@ -46,7 +46,9 @@ CONTROL_ROWS = (
 class Desktop:
     def __init__(self, smoke=False, profile=None):
         self.focused = True
-        pg.mixer.pre_init(22050, -16, 2, 512)
+        # The browser's ScriptProcessorNode runs on the render thread, so give
+        # SDL a larger ring buffer there to survive long frames.
+        pg.mixer.pre_init(22050, -16, 2, 1024 if IS_WEB else 512)
         pg.init()
         pg.display.set_caption(TITLE)
         self.fullscreen = False

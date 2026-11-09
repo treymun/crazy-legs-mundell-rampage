@@ -1,4 +1,12 @@
-﻿# 2.0.0-dev.7 changes
+﻿# 2.0.0-dev.8 changes
+
+## Browser build
+- The opening street is now a safe start: nobody opens fire while the player is still standing at the level entrance with no enemy roused. Stepping out (or firing) starts the ambush as before, so a new browser player can read the controls instead of dying to the road sentry within the first half minute.
+- A short spawn grace keeps enemies from spotting the player during the first seconds of any level.
+- Browser sound effects now decode on first use instead of all at boot, cutting the long load stall and memory peak on the web build.
+- The browser mixer uses a bigger buffer so heavy frames are less likely to crackle or drop out the soundtrack.
+
+# 2.0.0-dev.7 changes
 
 ## Browser build
 - pygbag converts the WAV masters to OGG for the web archive, so the game now loads effects and one-shot music streams from `.ogg`/`.opus` as well as `.wav`. This fixes the missing `title.wav` crash at boot and restores all sound effects in browsers.

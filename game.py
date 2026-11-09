@@ -209,6 +209,7 @@ class Game:
         self.cheats = Cheats()
         self.last_low_bark = 0.
         self.clock = 0.
+        self.spawn_grace = 3.2
         self.face_until = self.message_until = 0.
         self.face = self.notice = ""
         self.hurt_flash = self.blast_flash = self.sprint = 0.
@@ -348,6 +349,14 @@ class Game:
         roof = self.world.roof[int(p.y), int(p.x)]
         if roof:
             self.sound.play("room_"+name, .78)
+
+    def player_sheltered(self):
+        """True only while the player idles at the level start with nobody roused."""
+        if any(enemy.alerted and enemy.hostile for enemy in self.enemies):
+            return False
+        p = self.player
+        sx, sy = self.level.spawn[:2]
+        return math.hypot(p.x - sx, p.y - sy) < 9.
 
     def wake_nearby(self, radius, x, y):
         for enemy in self.enemies:
@@ -1315,6 +1324,7 @@ class Game:
             self.sound.stop_voice()
             return
         self.clock += dt
+        self.spawn_grace = max(0., self.spawn_grace - dt)
         self.duck = max(0., self.duck - dt)
         sp = getattr(self.sound, "score_player", None)
         if sp is not None:

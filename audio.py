@@ -5,11 +5,51 @@ import math
 import numpy as np
 
 from campaign_score import SCORES
-from resource_path import get_resource_path
+from resource_path import IS_WEB, get_resource_path
 from score_player import ScorePlayer
 
 AUDIO = Path(get_resource_path("assets/wav"))
 RATE = 22050
+
+
+class LazySamples(dict):
+    """Decode a browser sound only when a cue first asks for it."""
+
+    def __init__(self, files):
+        super().__init__()
+        self.files = files
+
+    def _load(self, name):
+        path = self.files.get(name)
+        if path is None:
+            return None
+        import pygame as pg
+        try:
+            sample = pg.mixer.Sound(path)
+        except (pg.error, OSError):
+            self.files.pop(name, None)
+            return None
+        if name.startswith("step_"):
+            sample.set_volume(.83)
+        self[name] = sample
+        return sample
+
+    def __contains__(self, name):
+        return dict.__contains__(self, name) or name in self.files
+
+    def __getitem__(self, name):
+        if dict.__contains__(self, name):
+            return dict.__getitem__(self, name)
+        sample = self._load(name)
+        if sample is None:
+            raise KeyError(name)
+        return sample
+
+    def get(self, name, default=None):
+        if dict.__contains__(self, name):
+            return dict.__getitem__(self, name)
+        sample = self._load(name)
+        return default if sample is None else sample
 RNG = np.random.default_rng(1997)
 
 
@@ -408,12 +448,17 @@ class Sound:
                     continue
                 if path.suffix.lower() == ".wav" or path.stem not in files:
                     files[path.stem] = path
-            for stem, path in files.items():
-                sample = pg.mixer.Sound(path)
-                if stem.startswith("step_"):
-                    # Keep headroom when a footfall overlaps the saw and a hit cue.
-                    sample.set_volume(.83)
-                self.samples[stem] = sample
+            if IS_WEB:
+                # Browsers choke when every one of the ~320 effects is decoded up
+                # front, so the web build resolves files the first time they play.
+                self.samples = LazySamples(files)
+            else:
+                for stem, path in files.items():
+                    sample = pg.mixer.Sound(path)
+                    if stem.startswith("step_"):
+                        # Keep headroom when a footfall overlaps the saw and a hit cue.
+                        sample.set_volume(.83)
+                    self.samples[stem] = sample
             pg.mixer.music.set_volume(.50)
             pg.mixer.set_num_channels(24)
             pg.mixer.set_reserved(10)
