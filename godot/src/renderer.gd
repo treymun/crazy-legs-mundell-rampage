@@ -93,6 +93,11 @@ var time := 0.0
 var world_motion := 0
 var flash := 0.0
 var use_threads := true
+## Milliseconds the last render() took; read by tools/bench.gd.
+var last_render_ms := 0.0
+## With profile on (single thread), time per pass: sky, walls, planes, marks, ground marks, sprites.
+var profile := false
+var pass_ms: Array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 var threads := 8
 var plane_cull := true
 
@@ -124,6 +129,16 @@ var walls := PackedFloat32Array()
 var seg_n := 0
 var seg_c0 := PackedInt32Array()
 var seg_c1 := PackedInt32Array()
+## Wall segments on screen, nearest first, and per column the rows already
+## filled by opaque wall (with the farthest depth among them): a later, farther
+## span that falls wholly inside is skipped before its pixel loop.
+var seg_order := PackedInt64Array()
+var _spr_c0 := PackedInt32Array()
+var _spr_c1 := PackedInt32Array()
+var cov_top := PackedInt32Array()
+var cov_bot := PackedInt32Array()
+var cov_t := PackedFloat32Array()
+var glass_cols := PackedByteArray()
 var dir_x := PackedFloat32Array()
 var dir_y := PackedFloat32Array()
 
@@ -192,7 +207,7 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 	sky = assets.sky(level.sky)
 	# Measured on a 16c/32t CPU: 8 bands is the sweet spot. Fewer leaves the
 	# machine idle; more just contends (16 bands was ~50% slower than 8).
-	threads = maxi(1, mini(8, OS.get_processor_count()))
+	threads = maxi(1, mini(8, OS.get_processor_count() - 1))
 	# A browser build without SharedArrayBuffer cannot start a Thread at all:
 	# render the bands one after another on the main thread instead.
 	if not OS.has_feature("threads"):
@@ -287,6 +302,7 @@ func render(
 	marks: Array,
 	ground_marks: Array
 ) -> PackedByteArray:
+	var started := Time.get_ticks_usec()
 	var px: float = player["x"]
 	var py: float = player["y"]
 	var pz: float = player["eye"]
@@ -330,6 +346,7 @@ func render(
 		glass
 	)
 	_mirror_pass(px, py, pz, angle, hz, active, sprites, reflection_sprite, marks, ground_marks)
+	last_render_ms = (Time.get_ticks_usec() - started) / 1000.0
 	return frame
 
 
@@ -402,10 +419,26 @@ func _scene(
 ## the same Dictionary at once can corrupt its table (an access violation), and
 ## the first frame of a level is exactly when every sprite misses the cache.
 func _warm_art() -> void:
-	for s: Sprite in _sprite_list:
+	# Also note which columns each sprite can touch, so a band skips the rest
+	# without a call. Signs and anything behind the eye keep the whole view.
+	var count := _sprite_list.size()
+	_spr_c0.resize(count)
+	_spr_c1.resize(count)
+	for i in count:
+		var s: Sprite = _sprite_list[i]
 		var art := sprite_art(s.image)
 		if s.body and not pivots.has(s.image):
 			body_offset(s.image, art["data"], int(art["w"]), int(art["h"]), 1)
+		_spr_c0[i] = 0
+		_spr_c1[i] = WIDTH
+		var dist := (s.x - cx) * fx + (s.y - cy) * fy
+		if is_nan(s.plane) and dist > .13:
+			var mid := WIDTH / 2.0 + ((s.x - cx) * rx + (s.y - cy) * ry) / dist * FOCAL
+			var half := s.height / dist * FOCAL * float(art["w"]) / float(art["h"]) * .5 + 3.0
+			_spr_c0[i] = int(mid - half)
+			_spr_c1[i] = int(mid + half) + 1
+		elif is_nan(s.plane):
+			_spr_c1[i] = 0
 	for m: WallMark in _mark_list:
 		sprite_art(m.image)
 	for m: GroundMark in _ground_list:
@@ -414,6 +447,9 @@ func _warm_art() -> void:
 
 var _band_per := 0
 var _band_count := 0
+var _band_next := 0
+var _band_lock := Mutex.new()
+const BAND_COLUMNS := 40
 var _workers: Array[Thread] = []
 
 
@@ -422,33 +458,49 @@ var _workers: Array[Thread] = []
 ## observe a half-swapped set of pass buffers. Each band is a fixed column
 ## range and bands never share pixels, so ordering does not matter.
 func _run_bands(c0: int, c1: int) -> void:
-	var per := int(ceil(float(c1 - c0) / threads))
-	var bands := int(ceil(float(c1 - c0) / per))
-	_band_per = per
-	_band_count = bands
-	while _workers.size() < bands:
+	# Narrow bands handed out on demand: a worker that draws cheap columns comes
+	# back for more, so one crowded stretch of the view does not hold the frame.
+	_band_per = BAND_COLUMNS
+	_band_count = int(ceil(float(c1 - c0) / _band_per))
+	_band_next = 0
+	var crew := mini(threads, _band_count)
+	while _workers.size() < crew:
 		_workers.append(Thread.new())
-	for i in bands:
+	for i in crew:
 		var t: Thread = _workers[i]
 		if t.is_started():
 			t.wait_to_finish()
-		t.start(_band_worker.bind(i, bands))
-	for i in bands:
+		t.start(_band_worker)
+	for i in crew:
 		_workers[i].wait_to_finish()
 
 
-func _band_worker(slot: int, stride: int) -> void:
-	var i := slot
-	while i < _band_count:
+func _band_worker() -> void:
+	while true:
+		_band_lock.lock()
+		var i := _band_next
+		_band_next += 1
+		_band_lock.unlock()
+		if i >= _band_count:
+			return
 		var a := col0 + i * _band_per
 		var b := mini(col1, a + _band_per)
 		if a < b:
 			_band(a, b)
-		i += stride
 
 
 ## One band: sky, wall spans, planes, then marks and sprites for its columns.
 func _band(a: int, b: int) -> void:
+	if profile:
+		var t := Time.get_ticks_usec()
+		for k in 6:
+			[_sky_band, _wall_band, _plane_band, _mark_band, _ground_band, _sprite_band][k].call(
+				a, b
+			)
+			var now := Time.get_ticks_usec()
+			pass_ms[k] += (now - t) / 1000.0
+			t = now
+		return
 	_sky_band(a, b)
 	_wall_band(a, b)
 	_plane_band(a, b)
@@ -462,6 +514,15 @@ func _prepare(segments: PackedFloat32Array) -> void:
 	seg_n = segments.size() / WALL_STRIDE
 	seg_c0.resize(seg_n)
 	seg_c1.resize(seg_n)
+	seg_order.clear()
+	cov_top.resize(WIDTH)
+	cov_bot.resize(WIDTH)
+	cov_t.resize(WIDTH)
+	cov_top.fill(VIEW)
+	cov_bot.fill(-1)
+	cov_t.fill(0.0)
+	glass_cols.resize(WIDTH)
+	glass_cols.fill(0)
 	for i in seg_n:
 		var o := i * WALL_STRIDE
 		var r0x := segments[o] - cx
@@ -488,6 +549,9 @@ func _prepare(segments: PackedFloat32Array) -> void:
 		var m1 := WIDTH / 2.0 + s1 / a1 * FOCAL - .5
 		seg_c0[i] = maxi(col0, int(floor(minf(m0, m1))) - 1)
 		seg_c1[i] = mini(col1, int(ceil(maxf(m0, m1))) + 2)
+		if seg_c0[i] < seg_c1[i]:
+			seg_order.append(int(minf(a0, a1) * 4096.0) * 65536 + i)
+	seg_order.sort()
 
 
 # -------------------------------------------------------------------- sky
@@ -518,13 +582,12 @@ func _sky_band(a: int, b: int) -> void:
 
 # -------------------------------------------------------------- wall spans
 func _wall_band(a: int, b: int) -> void:
-	var i := 0
-	while i < seg_n:
+	for key in seg_order:
+		var i := key & 65535
 		var s0 := maxi(a, seg_c0[i])
 		var s1 := mini(b, seg_c1[i])
 		if s0 < s1:
 			_wall_segment(i, s0, s1)
-		i += 1
 
 
 func _wall_segment(i: int, a: int, b: int) -> void:
@@ -557,6 +620,8 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 	var glazing := material == tile_glazing
 	var hub_wall := hub_fx and material == tile_hub_wall
 	var hub_screen := hub_fx and material == tile_hub_screen
+	var opaque := not glazing and not hub_screen
+	var plain := not (glow or mirror or glazing or hub_wall or hub_screen)
 	var phase := time - floorf(time / 6.1) * 6.1
 	var flicker := phase > .87 and phase < 1.02
 	var w := out_w
@@ -583,9 +648,13 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 		# rectangles are held back and composited after the scene (the reference
 		# drops them from the opaque layer's pixel list).
 		var pane_ok := glazing and uu > 5 and uu < 122 and (uu < 62 or uu > 67)
-		var light := light_at(t, base_light)
+		# light_at() and shade_step() written out: a script call costs several
+		# times more when the band threads all make it at once.
+		var lit := base_light / (1.0 + .102 * t)
+		if lit < .19:
+			lit = .19
 		var sample_off := tile_off + uu * 3
-		var step := shade_step(light)
+		var step := clampi(int(floorf(lit * 32.0 + .5) / 32.0 * 32.0 + .5), 0, SHADE_STEPS - 1)
 		var profile := (ti / 3) * PROFILE_COUNT
 		var row_base := (profile + step) * SHADE_ROW
 		var glow_base := (profile + PROFILE_GLOW) * SHADE_ROW
@@ -601,6 +670,10 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 		var r1 := mini(VIEW - 1, int(floor(sy_hi + horizon - .5)))
 		if r0 > r1:
 			continue
+		var cover_top := cov_top[c]
+		var cover_bot := cov_bot[c]
+		if r0 >= cover_top and r1 <= cover_bot and t >= cov_t[c]:
+			continue
 		var sy := float(r0) + .5 - horizon
 		var t_inv := t / FOCAL
 		var row := r0
@@ -609,6 +682,27 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 		var oi := gi * 3
 		var depth_here := dep
 		var glass_here := gls
+		if plain:
+			# Most walls: no glow, glass, mesh or hub shadow to test per pixel.
+			for _row in range(r0, r1 + 1):
+				if t < depth_here[gi]:
+					var wz := cz - sy * t_inv
+					if wz >= bottom and wz <= top:
+						var pv := int((top - wz) / vspan * 128.0)
+						if pv > 127:
+							pv = 127
+						elif pv < 0:
+							pv = 0
+						var pi := sample_off + pv * TILE_W * 3
+						out[oi] = shade[row_base + tiles[pi] * 3]
+						out[oi + 1] = shade[row_base + tiles[pi + 1] * 3 + 1]
+						out[oi + 2] = shade[row_base + tiles[pi + 2] * 3 + 2]
+						depth_here[gi] = t
+						glass_here[gi] = 0
+				sy += 1.0
+				gi += w
+				oi += w * 3
+			row = r1 + 1
 		var hit_x := cx + t * dir_x[c]
 		var hit_y := cy + t * dir_y[c]
 		while row <= r1:
@@ -656,6 +750,8 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 						out[oi + 1] = cg
 						out[oi + 2] = cb
 						depth_here[gi] = t
+						if mirror:
+							glass_cols[c] = 1
 						glass_here[gi] = (
 							1
 							if (
@@ -672,6 +768,19 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 			row += 1
 			gi += w
 			oi += w * 3
+		if opaque and r1 - r0 > 2:
+			# Every row strictly inside the span now holds this wall or a nearer one.
+			if cover_top > cover_bot:
+				cov_top[c] = r0 + 1
+				cov_bot[c] = r1 - 1
+				cov_t[c] = t
+			elif r0 <= cover_bot and r1 >= cover_top:
+				if r0 + 1 < cover_top:
+					cov_top[c] = r0 + 1
+				if r1 - 1 > cover_bot:
+					cov_bot[c] = r1 - 1
+				if t > cov_t[c]:
+					cov_t[c] = t
 
 
 # ------------------------------------------------------- crossroads surfaces
@@ -782,11 +891,11 @@ func running_water(rgb: PackedInt32Array, x: float, y: float) -> void:
 
 # ----------------------------------------------------------------- planes
 func _plane_band(a: int, b: int) -> void:
-	_plane_layer(level.roof_bounds, true, 0, split, a, b)
-	_plane_layer(level.floor_bounds, false, split, VIEW, a, b)
+	_plane_layer(level.roof_boxes, true, 0, split, a, b)
+	_plane_layer(level.floor_boxes, false, split, VIEW, a, b)
 
 
-func _plane_layer(bounds: Dictionary, overhead: bool, row0: int, row1: int, a: int, b: int) -> void:
+func _plane_layer(boxes: Array, overhead: bool, row0: int, row1: int, a: int, b: int) -> void:
 	if row1 <= row0:
 		return
 	var w := out_w
@@ -796,14 +905,14 @@ func _plane_layer(bounds: Dictionary, overhead: bool, row0: int, row1: int, a: i
 	begin.resize(n)
 	end.resize(n)
 	var lit_scale := .77 if overhead else .94
-	for key in bounds:
-		var h: float = key
+	for entry: Array in boxes:
+		var h: float = entry[0]
 		if overhead:
 			if h <= cz:
 				continue
 		elif h >= cz:
 			continue
-		var box: Vector4i = bounds[key]
+		var box: Vector4i = entry[1]
 		var bx0 := float(box.x)
 		var by0 := float(box.y)
 		var bx1 := float(box.z)
@@ -895,6 +1004,7 @@ func _plane_layer(bounds: Dictionary, overhead: bool, row0: int, row1: int, a: i
 		var lw := level.width
 		var lh := level.height
 		var has_caps := not caps_here.is_empty()
+		var has_flows := not flows.is_empty()
 		var hub_floor := hub_fx and not overhead
 		var t_patch := tile_hub_patch
 		var t_wall := tile_hub_wall
@@ -909,6 +1019,12 @@ func _plane_layer(bounds: Dictionary, overhead: bool, row0: int, row1: int, a: i
 				continue
 			var falloff := 1.0 / (1.0 + .102 * t)
 			var drow := r * w + lx0
+			var last_ci := -1
+			var tile := -1
+			var step := 0
+			var ti := 0
+			var sbase := 0
+			var tile_base := 0
 			for i in range(left, right):
 				if t < begin[i] or t > end[i]:
 					continue
@@ -922,40 +1038,47 @@ func _plane_layer(bounds: Dictionary, overhead: bool, row0: int, row1: int, a: i
 				if ix < 0 or iy < 0 or ix >= lw or iy >= lh:
 					continue
 				var ci := iy * lw + ix
-				var tile := -1
-				if overhead:
-					if roof_[ci] == h:
-						tile = ceil_tile_[ci]
-				else:
-					if ground_[ci] == h:
-						tile = floor_tile_[ci]
-					if has_caps:
-						for cap in caps_here:
-							if wx >= cap[0] and wx <= cap[2] and wy >= cap[1] and wy <= cap[3]:
-								tile = int(cap[4])
-								break
+				# Neighbouring pixels of a row mostly land in the same map cell:
+				# its tile, light step and tint are worked out once per run.
+				if ci != last_ci or has_caps:
+					last_ci = ci
+					tile = -1
+					if overhead:
+						if roof_[ci] == h:
+							tile = ceil_tile_[ci]
+					else:
+						if ground_[ci] == h:
+							tile = floor_tile_[ci]
+						if has_caps:
+							for cap in caps_here:
+								if wx >= cap[0] and wx <= cap[2] and wy >= cap[1] and wy <= cap[3]:
+									tile = int(cap[4])
+									break
+					if tile >= 0:
+						# light_at() and shade_step() inlined: the reference clamps the
+						# quotient first, so distant surfaces stop at .19.
+						var raw := (light_[ci] * lit_scale + flash) * falloff
+						var shade := raw if raw > .19 else .19
+						step = int(shade * 32.0 + .5)
+						if step > SHADE_STEPS - 1:
+							step = SHADE_STEPS - 1
+						ti = area_[ci]
+						if ti < 0:
+							ti = 0
+						elif ti > tint_max:
+							ti = tint_max
+						sbase = (ti * PROFILE_COUNT + step) * SHADE_ROW
+						tile_base = tile * TILE_BYTES
 				if tile < 0:
 					continue
 				var pu := int(wx * 128.0) & 127
 				var pv := int(wy * 128.0) & 127
-				for f in flows:
-					if tile == f[0]:
-						pv = (pv + f[1]) & 127
-				# light_at() and shade_step() inlined: the reference clamps the
-				# quotient first, so distant surfaces stop at .19.
-				var raw := (light_[ci] * lit_scale + flash) * falloff
-				var shade := raw if raw > .19 else .19
-				var step := int(shade * 32.0 + .5)
-				if step > SHADE_STEPS - 1:
-					step = SHADE_STEPS - 1
-				var ti := area_[ci]
-				if ti < 0:
-					ti = 0
-				elif ti > tint_max:
-					ti = tint_max
-				var si := tile * TILE_BYTES + pv * TILE_W * 3 + pu * 3
+				if has_flows:
+					for f in flows:
+						if tile == f[0]:
+							pv = (pv + f[1]) & 127
+				var si := tile_base + pv * TILE_W * 3 + pu * 3
 				var oi := gi * 3
-				var sbase := (ti * PROFILE_COUNT + step) * SHADE_ROW
 				var pr := tiles_[si]
 				var pg := tiles_[si + 1]
 				var pb := tiles_[si + 2]
@@ -1020,11 +1143,14 @@ func _mirror_pass(
 	var a := -1
 	var b := -1
 	for c in WIDTH:
-		var hit := false
-		for r in VIEW:
-			if glass[r * WIDTH + c] != 0:
-				hit = true
-				break
+		var hit := glass_cols[c] != 0
+		if hit:
+			# The column drew mirror glass at some point; check some of it survived.
+			hit = false
+			for r in VIEW:
+				if glass[r * WIDTH + c] != 0:
+					hit = true
+					break
 		if hit:
 			if a < 0:
 				a = c
@@ -1120,8 +1246,10 @@ func body_offset(name: String, data: PackedByteArray, w: int, h: int, height: in
 
 
 func _sprite_band(a: int, b: int) -> void:
-	for s: Sprite in _sprite_list:
-		_draw_sprite(s, a, b)
+	var n := _sprite_list.size()
+	for i in n:
+		if _spr_c1[i] > a and _spr_c0[i] < b:
+			_draw_sprite(_sprite_list[i], a, b)
 
 
 func _draw_sprite(s: Sprite, a: int, b: int) -> void:

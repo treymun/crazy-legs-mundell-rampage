@@ -702,6 +702,14 @@ var incoming := 1.0
 var bob_scale := 1.0
 ## 0 = automatic (one band per core, capped at 16). Set by the options screen.
 var look_bands := 0
+## With gpu_look the grain, vignette, wash and brightness table are applied by
+## palette.gdshader instead of in draw(); main.gd turns it on when there is a
+## window. look_live / tone_live say which of them this frame wants.
+var gpu_look := false
+## The red hurt wash (0-255) the display shader lays over the view this frame.
+var hurt_alpha := 0
+var look_live := false
+var tone_live := false
 var flash_scale := 1.0
 var gore := true
 var aim_assist := 0
@@ -3211,6 +3219,9 @@ func feedback(c: Canvas) -> void:
 
 func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 	var p := player
+	look_live = false
+	tone_live = false
+	hurt_alpha = 0
 	if showing_tally:
 		hud.intermission(c, self)
 		return
@@ -3218,11 +3229,15 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 	var weapon = gallery.pistol if practice else armory
 	var flash: float = (weapon.flash * 4.0 + blast_flash * .85) * flash_scale
 	renderer.time = clock
+	var t0 := Time.get_ticks_usec()
 	var marks: Array = ground_marks()
 	var marks_list: Array = wall_marks if bullet_marks else []
+	var listed: Array = sprites()
+	var t1 := Time.get_ticks_usec()
 	var view_frame: PackedByteArray = renderer.render(
-		p.as_render_player(), sprites(), reflection(), flash, marks_list, marks
+		p.as_render_player(), listed, reflection(), flash, marks_list, marks
 	)
+	var t2 := Time.get_ticks_usec()
 	# render() hands back a private copy so the HUD, weapon and grade passes can
 	# composite into it while the renderer keeps its own band buffers untouched.
 	c.pixels = view_frame
@@ -3236,6 +3251,7 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 			flash_scale,
 			12 if weapon_view == 1 else 0
 		)
+	var t3 := Time.get_ticks_usec()
 	if hurt_flash > 0.0 and flash_scale > 0.0:
 		_apply_hurt_flash(c)
 	if p.drunk >= 38.0 and flash_scale > 0.0:
@@ -3243,12 +3259,21 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 	# The look pass and the brightness grade touch the same view rectangle; the
 	# lookup table is folded into the look pass when both are active.
 	var graded := false
-	if retro_look and flash_scale > 0.0:
-		var table = tone if grade else null
-		_look_pass(c, table)
-		graded = grade and tone != null
-	if grade and tone != null and not graded:
-		_grade_view(c)
+	look_live = retro_look and flash_scale > 0.0
+	tone_live = grade and tone != null
+	if gpu_look:
+		# The display shader grades the view; only its numbers are worked out here.
+		if look_live:
+			_look_params()
+	else:
+		if look_live:
+			var table = tone if grade else null
+			_look_pass(c, table)
+			graded = tone_live
+		if tone_live and not graded:
+			_grade_view(c)
+	var t4 := Time.get_ticks_usec()
+	stage_ms = [(t1 - t0) / 1000.0, (t2 - t1) / 1000.0, (t3 - t2) / 1000.0, (t4 - t3) / 1000.0, 0.0]
 	if p.health > 0:
 		if crosshair == 2:
 			c.circle(160, VIEW / 2, 4, Canvas.rgb(188, 168, 132), false)
@@ -3342,6 +3367,7 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 	if map and p.health > 0:
 		automap(c)
 	hud.draw(c, self, weapon)
+	stage_ms[4] = (Time.get_ticks_usec() - t4) / 1000.0
 
 
 func _boss_title(kind: String) -> String:
@@ -3399,7 +3425,8 @@ func _build_grit() -> void:
 
 func _apply_hurt_flash(c: Canvas) -> void:
 	var alpha := clampi(int(round(hurt_flash * 310.0 * flash_scale)), 0, 255)
-	if alpha == 0:
+	hurt_alpha = alpha if gpu_look else 0
+	if alpha == 0 or gpu_look:
 		return
 	var pix := c.pixels
 	var inv := 255 - alpha
@@ -3454,7 +3481,8 @@ func _drunk_warp(c: Canvas) -> void:
 			pix[dp + 2] = clampi(int(b * (1.0 - .10 * strength)), 0, 255)
 
 
-func _look_pass(c: Canvas, grade_tone = null) -> void:
+## This frame's lamp buzz, grain frame and blast lift, for either look path.
+func _look_params() -> void:
 	var indoors: bool = world.roof[world.cell(player.x, player.y)] != 0.0
 	var gain := 1.0
 	# SCREEN FLASH below FULL also stills the lamp buzz, as in the reference.
@@ -3466,6 +3494,10 @@ func _look_pass(c: Canvas, grade_tone = null) -> void:
 	_look_gain = gain
 	_look_frame = int(clock * 17.0) % GRAIN_FRAMES
 	_look_blast = blast_flash * 60.0
+
+
+func _look_pass(c: Canvas, grade_tone = null) -> void:
+	_look_params()
 	_look_tone = grade_tone
 	# Row-banded across explicit threads. This pass is ~10 ms of per-pixel float
 	# work at 50k pixels, so it is worth splitting. Each worker owns a private
@@ -3799,8 +3831,12 @@ func _blit_region(c: Canvas, dx: int, dy: int) -> void:
 
 # ------------------------------------------------------------------ controls
 
-
 ## game.Controls: one sim step's input.
+## Milliseconds the last draw spent listing sprites, rendering the scene, drawing
+## the weapon, grading the view and drawing the HUD; read by tools/bench.gd.
+var stage_ms: Array = [0.0, 0.0, 0.0, 0.0, 0.0]
+
+
 class Controls:
 	var forward := 0.0
 	var strafe := 0.0

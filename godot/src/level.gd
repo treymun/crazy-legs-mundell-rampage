@@ -201,6 +201,8 @@ var roof_heights := PackedFloat32Array()
 ## height -> Vector4i(x0, y0, x1, y1)
 var floor_bounds := {}
 var roof_bounds := {}
+var floor_boxes: Array = []
+var roof_boxes: Array = []
 ## height -> Array of [x0, y0, x1, y1, tile_index]
 var caps := {}
 ## height -> Array of [tile_index, rate]
@@ -600,6 +602,42 @@ func _build_plane_bounds() -> void:
 		var b = roof_buckets.get(height)
 		if b != null:
 			roof_bounds[height] = Vector4i(b[0], b[1], b[2], b[3])
+	floor_boxes = _tight_boxes(floor_bounds, ground, caps)
+	roof_boxes = _tight_boxes(roof_bounds, roof, {})
+
+
+## The planes the renderer walks: [height, box] in the bounds' order. A height
+## whose cells are scattered across a big box (a creek, a few porch roofs) is
+## cut into tight boxes, so the pixels between them are not tested for it.
+func _tight_boxes(bounds: Dictionary, grid: PackedFloat32Array, capped: Dictionary) -> Array:
+	var out: Array = []
+	for h in bounds:
+		var box: Vector4i = bounds[h]
+		var area := (box.z - box.x) * (box.w - box.y)
+		var count := 0
+		for y in range(maxi(0, box.y), mini(height, box.w)):
+			for x in range(maxi(0, box.x), mini(width, box.z)):
+				if grid[y * width + x] == h:
+					count += 1
+		if capped.has(h) or area <= 64 or count * 2 >= area:
+			out.append([h, box])
+			continue
+		for ty in range(box.y, box.w, 8):
+			for tx in range(box.x, box.z, 8):
+				var x0 := 1 << 30
+				var y0 := 1 << 30
+				var x1 := -1
+				var y1 := -1
+				for y in range(ty, mini(box.w, ty + 8)):
+					for x in range(tx, mini(box.z, tx + 8)):
+						if grid[y * width + x] == h:
+							x0 = mini(x0, x)
+							y0 = mini(y0, y)
+							x1 = maxi(x1, x + 1)
+							y1 = maxi(y1, y + 1)
+				if x1 >= 0:
+					out.append([h, Vector4i(x0, y0, x1, y1)])
+	return out
 
 
 ## Mirrors Renderer.__init__'s wall split when the level has hub gates.

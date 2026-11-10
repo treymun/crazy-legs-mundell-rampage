@@ -116,6 +116,15 @@ var mouse_rel := Vector2.ZERO
 var pending_dt := 0.0
 
 var tone_table = null
+var tone_sent = null
+## True when the display shader does the view's look pass (a real window).
+var gpu_look := false
+var gpu_ready := false
+## --view-shot=<png> saves the window as shown (shader included) at the end of a smoke run;
+## --cpu-look keeps the look pass in software for comparison.
+var view_shot := ""
+var cpu_look := false
+const MENU_STATES := ["title", "setup", "slots", "replays", "controls", "credits"]
 
 var pad_down := {}
 
@@ -208,6 +217,10 @@ func _ready() -> void:
 	var lut_image := Image.create_empty(256, 128, false, Image.FORMAT_RGB8)
 	lut_image.set_data(256, 128, false, Image.FORMAT_RGB8, art.palette)
 	palette_material.set_shader_parameter("lut", ImageTexture.create_from_image(lut_image))
+	if art.grain.size() == 936 * WIDTH:
+		var grain_image := Image.create_from_data(936, WIDTH, false, Image.FORMAT_R8, art.grain)
+		palette_material.set_shader_parameter("grain", ImageTexture.create_from_image(grain_image))
+		gpu_ready = DisplayServer.get_name() != "headless"
 	view.material = palette_material
 
 	# A plain black sheet over the picture: a tenth of a second of dip between
@@ -263,6 +276,10 @@ func _parse_smoke() -> void:
 			smoke_level = text.substr(14)
 		elif text.begins_with("--smoke-shot="):
 			smoke_shot = text.substr(13)
+		elif text.begins_with("--view-shot="):
+			view_shot = text.substr(12)
+		elif text == "--cpu-look":
+			cpu_look = true
 		elif text == "--demo":
 			demo = true
 		elif text == "--showcase":
@@ -1712,6 +1729,10 @@ func _process(delta: float) -> void:
 				shot.set_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, canvas.pixels)
 				shot.save_png(smoke_shot)
 			_write_marker()
+			if view_shot != "":
+				smoke_frames = 0
+				_save_view()
+				return
 			get_tree().quit()
 
 
@@ -1990,15 +2011,52 @@ func render() -> void:
 	elif state == "credits":
 		render_credits()
 	elif game != null:
+		gpu_look = gpu_ready and not cpu_look and (not smoke or view_shot != "")
+		game.gpu_look = gpu_look
 		game.draw(canvas, int(options["crosshair"]), true)
 	else:
 		canvas.clear(0, 0, 0)
+	_look_uniforms()
 
 	if canvas.pixels.size() != WIDTH * HEIGHT * 3:
 		canvas.resize(WIDTH, HEIGHT)
 	frame_image.set_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, canvas.pixels)
 	frame_texture.update(frame_image)
 	_apply_view()
+
+
+func _save_view() -> void:
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(view_shot)
+	get_tree().quit()
+
+
+## Hand this frame's look to the display shader (see palette.gdshader).
+func _look_uniforms() -> void:
+	var playing := gpu_look and game != null and state not in MENU_STATES
+	var look_on := playing and game.look_live
+	var tone_on := playing and game.tone_live
+	palette_material.set_shader_parameter("hurt", game.hurt_alpha if playing else 0)
+	palette_material.set_shader_parameter("look", look_on)
+	palette_material.set_shader_parameter("tone_on", tone_on)
+	if look_on:
+		var w: Array = Game.WASH.get(game.level.id, [255, 255, 255, 0])
+		var amount := float(w[3])
+		palette_material.set_shader_parameter(
+			"wash",
+			Vector3(
+				1.0 - amount + float(w[0]) / 255.0 * amount,
+				1.0 - amount + float(w[1]) / 255.0 * amount,
+				1.0 - amount + float(w[2]) / 255.0 * amount
+			)
+		)
+		palette_material.set_shader_parameter("gain", game._look_gain)
+		palette_material.set_shader_parameter("blast", game._look_blast)
+		palette_material.set_shader_parameter("grain_frame", game._look_frame)
+	if tone_on and tone_table != tone_sent:
+		tone_sent = tone_table
+		var strip := Image.create_from_data(256, 1, false, Image.FORMAT_R8, tone_table)
+		palette_material.set_shader_parameter("tone", ImageTexture.create_from_image(strip))
 
 
 func menu_panel(title: String) -> void:

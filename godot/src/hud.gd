@@ -477,10 +477,43 @@ func objective_pin(c: Canvas, game: Game) -> void:
 
 # ---------------------------------------------------------------- main draw
 
+## The status bar only changes when something it shows changes, so it is drawn
+## once and pasted back as a block until then; the objective pin sits in the
+## view and is drawn every frame.
+var _bar := PackedByteArray()
+var _bar_key := 0
+
 
 func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
-	_blit_rgb(c, plate, plate_w, plate_h, 0, Renderer.VIEW)
-	ammo_rail(c, armory)
+	var health := maxi(0, game.player.health)
+	var item: String = ITEMS[game.inventory_slot]
+	var key := hash(
+		[
+			armory.active,
+			armory.owned,
+			armory.loaded,
+			armory.reserve,
+			health,
+			health <= 25 and int(game.clock * 3) % 2 == 0,
+			game.keys.has("key_brass"),
+			game.keys.has("key_steel"),
+			game.face_name(),
+			game.hud_style,
+			snappedf(game.player.gut, .25),
+			snappedf(game.player.drunk, .25),
+			game.inventory_slot,
+			game.inventory.get(item, 0)
+		]
+	)
+	var head := Renderer.VIEW * Canvas.WIDTH * 3
+	if key == _bar_key and _bar.size() == c.pixels.size() - head:
+		var joined := c.pixels.slice(0, head)
+		joined.append_array(_bar)
+		c.pixels = joined
+	else:
+		_draw_bar(c, game, armory)
+		_bar = c.pixels.slice(head)
+		_bar_key = key
 	if (
 		game.hints
 		and not game.map
@@ -488,6 +521,11 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		and game.clock > game.district_until
 	):
 		objective_pin(c, game)
+
+
+func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
+	_blit_rgb(c, plate, plate_w, plate_h, 0, Renderer.VIEW)
+	ammo_rail(c, armory)
 	var slot := armory.active
 	var amount := "-"
 	if slot == Weapons.DYNAMITE:
