@@ -129,25 +129,13 @@ const MUZZLES := {
 }
 const GUN_W := 320
 const GUN_H := 120
-const VIEW_SCALE := 1.12
-const VIEW_SCALES := {
-	CROWBAR: 1.36,
-	REVOLVER: 1.22,
-	SHOTGUN: 1.20,
-	RIFLE: 1.40,
-	CROSSBOW: 1.44,
-	RIPSAW: 1.44,
-	ARMGUN: 1.42,
-	DYNAMITE: 1.42,
-	SLING: 1.42,
-	ROCKET: 1.44,
-	RIVETER: 1.52,
-	PRESSURE: 1.46,
-	BOWLING: 1.10,
-	KEG: 1.12,
-	COW: 1.36,
-	TEAT: 1.36
-}
+const VIEW_SCALE := 1.22
+## The crowbar, revolver and shotgun are photographed plates; every other
+## weapon is cut to sit in the same hands at the revolver's scale.
+const VIEW_SCALES := {CROWBAR: 1.36, REVOLVER: 1.22, SHOTGUN: 1.20}
+## Pixels to slide a viewmodel right and down so its muzzle sits under the
+## crosshair instead of on it.
+const VIEW_SHIFT := {REVOLVER: Vector2(13, 9), SHOTGUN: Vector2(15, 11)}
 const VIEW_PIVOT := Vector2(160.0, 120.0)
 const VIEW_SINK := 4.0
 const HOLD_FLOOR := 3.0
@@ -712,6 +700,9 @@ class Armory:
 			)
 		)
 		y = maxf(y, float(Renderer.VIEW - Weapons.GUN_H - Weapons.HOLD_FLOOR))
+		var nudge: Vector2 = Weapons.VIEW_SHIFT.get(i, Vector2.ZERO)
+		x += nudge.x
+		y += nudge.y
 		var bx := int(round(x + Weapons.VIEW_PIVOT.x * (1.0 - s)))
 		var by := int(round(y + Weapons.VIEW_PIVOT.y * (1.0 - s) + Weapons.VIEW_SINK))
 		var source: String = Weapons.NAMES[i]
