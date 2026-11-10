@@ -275,6 +275,23 @@ add("death",
     skeeter_pop=G("A giant bug bursts: quick wet pop.", .5, None, "creature"),
     chicken=G("A chicken squawks in alarm, short.", .6, None, "creature"),
     pig=G("A pig squeals, short and indignant.", .6, None, "creature"),
+    # Voices by character (enemies.gd VOICES); the material cues above stay as the fallback.
+    hick_pain_1=G("A burly backwoods man is hit: sharp startled 'ow!' yelp.", .6, .5, "vox"),
+    hick_pain_2=G("A backwoods man takes a hit: gruff winded 'hrrgh' grunt.", .6, .5, "vox"),
+    hick_pain_3=G("A backwoods man is stung: angry yowl, short.", .6, .5, "vox"),
+    hick_down_1=G("A backwoods man is shot dead: hollering scream that trails off as he falls over.", 1.4, 1.2, "vox"),
+    hick_down_2=G("A backwoods man dies: choked gurgling 'aaugh' and a heavy thud of a body on dirt.", 1.4, 1.2, "vox"),
+    hick_down_3=G("A backwoods man dies: long wavering comic yell, then a thud.", 1.5, 1.3, "vox"),
+    coot_pain=G("A wheezy old man is hit: cracked high 'yeowch'.", .6, .5, "vox"),
+    coot_down=G("A wheezy old man dies: thin cracking wail fading out, then a light thud.", 1.4, 1.2, "vox"),
+    grey_pain=G("A thin grey alien is hit: short warbling electronic-throated shriek.", .6, .5, "alien"),
+    grey_down=G("A thin grey alien dies: descending warbling shriek ending in a wet gurgle.", 1.4, 1.2, "alien"),
+    jerry_pain=G("A proud older Texas businessman is hit: indignant grunt 'hngh'.", .6, .5, "vox"),
+    jerry_down=G("A proud older Texas businessman dies: long outraged bellow, then a heavy fall.", 1.6, 1.4, "vox"),
+    rudy_down=G("A booming carnival barker dies: theatrical drawn-out howl, then a crash.", 1.6, 1.4, "vox"),
+    foreman_down=G("A huge gruff sawmill boss dies: deep roar, then a heavy crash of gear and sawblades.", 1.6, 1.4, "vox"),
+    baron_down=G("A big man sealed in a copper boiler suit dies: muffled roar inside metal, hiss of steam, clanging collapse.", 1.8, 1.6, "tool"),
+    spitter_down=G("A dusty choking creature dies: dry rasping cough and a wet collapse.", 1.2, 1.0, "creature"),
     )
 
 # ------------------------------------------------------------------- player

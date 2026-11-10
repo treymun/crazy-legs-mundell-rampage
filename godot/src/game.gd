@@ -2909,7 +2909,7 @@ func sprites() -> Array:
 	var observer := [player.x, player.y]
 	var relieved := not world.pressure_ports.is_empty() and relief_open()
 	for enemy: Enemy in enemies:
-		var sprite = enemy.sprite(observer, relieved)
+		var sprite = enemy.sprite(observer, relieved, clock)
 		if sprite != null:
 			sprite.z += world.elevation(sprite.x, sprite.y)
 			sprites.append(sprite)

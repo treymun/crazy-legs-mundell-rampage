@@ -67,9 +67,37 @@ const TURN_CELS := [
 	"valve_rat",
 	"rudy",
 	"foreman",
-	"baron"
+	"baron",
+	"jerry"
 ]
 const FIDGET_CELS := ["clone", "billy", "coot"]
+## Every kind in TURN_CELS also has a four-beat walk (w0..w3) and falling cels (die_0..die_2).
+const DEATH_TIME := .50
+## Creatures that tumble for two cels before they lie still.
+const CREATURE_FALLS := ["crawler", "lantern"]
+## Whose voice a kind has when it is hurt or killed; the rest use the material cues.
+const VOICES := {
+	"billy": "hick",
+	"clone": "hick",
+	"barker": "hick",
+	"millhand": "hick",
+	"boilerback": "hick",
+	"yard_deputy": "hick",
+	"bottle_tosser": "hick",
+	"chain_hand": "hick",
+	"valve_rat": "hick",
+	"coot": "coot",
+	"alien": "grey",
+	"boss": "grey",
+	"jerry": "jerry",
+	"rudy": "rudy",
+	"foreman": "foreman",
+	"baron": "baron",
+	"chalk_spitter": "spitter"
+}
+const VOICE_TAKES := {"hick": 3}
+## Voices that only have a death cry.
+const DEATH_ONLY := ["rudy", "foreman", "baron", "spitter"]
 
 const RECOVERY_TIMES := {
 	"boilerback": .64,
@@ -246,6 +274,7 @@ var responded := false
 var hit_flash := 0.0
 var fled := false
 var variant := 1.0
+var died_at := -1.0
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -368,9 +397,10 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 	)
 	if alive:
 		if hostile and amount >= 14.0 and not was_stunned and not interrupt:
-			game.sound_at("actor_%s_pain" % material, x, y, .47)
+			game.sound_at(voice_cue("pain", material), x, y, .47)
 		return
 	explosive = explosive_hit
+	died_at = game.clock
 	game.burst(
 		x,
 		y,
@@ -380,7 +410,7 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 		2.6 if explosive_hit else 1.5
 	)
 	if hostile:
-		var cue := "skeeter_pop" if kind == "skeeter" else "actor_%s_down" % material
+		var cue := "skeeter_pop" if kind == "skeeter" else voice_cue("down", material)
 		game.sound_at(cue, x, y, .83)
 		game.enemy_down(self)
 	else:
@@ -902,6 +932,18 @@ func fire_projectiles(game, direction: float, distance: float, eye: float, aim_z
 	game.sound_at(cue, x, y)
 
 
+## The cue for this kind being hurt ("pain") or killed ("down").
+func voice_cue(moment: String, material: String) -> String:
+	var voice := String(VOICES.get(kind, ""))
+	if voice == "" or (moment == "pain" and DEATH_ONLY.has(voice)):
+		return "actor_%s_%s" % [material, moment]
+	var takes := int(VOICE_TAKES.get(voice, 1))
+	if takes == 1:
+		return "%s_%s" % [voice, moment]
+	# No dice roll here: the take follows the fight so replays sound the same.
+	return "%s_%s_%d" % [voice, moment, 1 + posmod(attacks + int(x * 3.0) + int(y * 5.0), takes)]
+
+
 func recovery_time(relieved := false) -> float:
 	if kind == "baron" and relieved:
 		return 1.23
@@ -910,12 +952,20 @@ func recovery_time(relieved := false) -> float:
 	return float(RECOVERY_TIMES.get(kind, .095))
 
 
-func sprite(observer = null, relieved := false):
+func sprite(observer = null, relieved := false, now := -1.0):
 	if dormant:
 		return null
 	if not alive:
 		if explosive or kind == "saucer" or kind == "skeeter":
 			return null
+		var fallen := now - died_at
+		var cels := 5 if TURN_CELS.has(kind) else 2 if CREATURE_FALLS.has(kind) else 0
+		var span := DEATH_TIME if cels == 5 else DEATH_TIME * .5
+		if cels > 0 and died_at >= 0.0 and now >= died_at and fallen < span:
+			var cel := "%s_die_%d" % [kind, mini(cels - 1, int(fallen / span * cels))]
+			var falling := Renderer.Sprite.new(x, y, cel, height * variant, z)
+			falling.flip = face_left
+			return falling
 		var down := Renderer.Sprite.new(x, y, "%s_down" % kind, height * .25, -.07)
 		down.flip = face_left
 		return down
@@ -934,11 +984,16 @@ func sprite(observer = null, relieved := false):
 		frame = int(pose * (16 if kind == "skeeter" else 5)) % 3 - 1
 	elif stun > 0.0 or kind == "bessie" or pose - last_stride > .18:
 		frame = 0
+	elif TURN_CELS.has(kind):
+		# Four-beat walk: contact, passing, contact, passing.
+		frame = "w%d" % posmod(int(floor(gait / (PI * .5))), 4)
 	else:
 		frame = int(round(sin(gait)))
 	var stem := kind
 	var flip := face_left
-	if observer != null and frame is int and frame >= -1 and frame <= 1 and TURN_CELS.has(kind):
+	var walking: bool = frame is String and String(frame).begins_with("w")
+	var plain: bool = frame is int and frame >= -1 and frame <= 1
+	if observer != null and (plain or walking) and TURN_CELS.has(kind):
 		var bearing := atan2(float(observer[1]) - y, float(observer[0]) - x)
 		var relative := angle_delta(bearing, angle)
 		var direction := mini(4, int(absf(relative) / (PI / 4.0) + .5))

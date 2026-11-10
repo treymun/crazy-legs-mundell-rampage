@@ -6734,6 +6734,614 @@
    },
    "validation": "ok"
   },
+  "hick_pain_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hick_pain_1.mp3",
+   "prompt": "A burly backwoods man is hit: sharp startled 'ow!' yelp.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/hick_pain_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.535,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.535
+   },
+   "measured": {
+    "seconds": 0.535,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0034,
+    "onset_ms": 0.0,
+    "centroid_hz": 1761,
+    "end_db": -129.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hick_pain_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hick_pain_2.mp3",
+   "prompt": "A backwoods man takes a hit: gruff winded 'hrrgh' grunt.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/hick_pain_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.455,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.455
+   },
+   "measured": {
+    "seconds": 0.455,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0023,
+    "onset_ms": 0.0,
+    "centroid_hz": 1230,
+    "end_db": -142.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hick_pain_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hick_pain_3.mp3",
+   "prompt": "A backwoods man is stung: angry yowl, short.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/hick_pain_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.448,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.448
+   },
+   "measured": {
+    "seconds": 0.448,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0029,
+    "onset_ms": 0.0,
+    "centroid_hz": 1683,
+    "end_db": -118.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hick_down_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hick_down_1.mp3",
+   "prompt": "A backwoods man is shot dead: hollering scream that trails off as he falls over.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/hick_down_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.222,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.222
+   },
+   "measured": {
+    "seconds": 1.222,
+    "peak_db": -0.8,
+    "loud_db": -6.8,
+    "dc": 0.0039,
+    "onset_ms": 1.0,
+    "centroid_hz": 2306,
+    "end_db": -145.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hick_down_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hick_down_2.mp3",
+   "prompt": "A backwoods man dies: choked gurgling 'aaugh' and a heavy thud of a body on dirt.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/hick_down_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.175,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.175
+   },
+   "measured": {
+    "seconds": 1.175,
+    "peak_db": -0.8,
+    "loud_db": -4.4,
+    "dc": 0.005,
+    "onset_ms": 44.0,
+    "centroid_hz": 1322,
+    "end_db": -144.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hick_down_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hick_down_3.mp3",
+   "prompt": "A backwoods man dies: long wavering comic yell, then a thud.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/hick_down_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.448,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.448
+   },
+   "measured": {
+    "seconds": 1.448,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0171,
+    "onset_ms": 0.0,
+    "centroid_hz": 2020,
+    "end_db": -159.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "coot_pain": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/coot_pain.mp3",
+   "prompt": "A wheezy old man is hit: cracked high 'yeowch'.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/coot_pain.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.563,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.563
+   },
+   "measured": {
+    "seconds": 0.563,
+    "peak_db": -0.8,
+    "loud_db": -6.6,
+    "dc": 0.0125,
+    "onset_ms": 0.0,
+    "centroid_hz": 1899,
+    "end_db": -137.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "coot_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/coot_down.mp3",
+   "prompt": "A wheezy old man dies: thin cracking wail fading out, then a light thud.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/coot_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.034,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.034
+   },
+   "measured": {
+    "seconds": 1.034,
+    "peak_db": -0.8,
+    "loud_db": -10.2,
+    "dc": 0.0,
+    "onset_ms": 12.3,
+    "centroid_hz": 1145,
+    "end_db": -138.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "grey_pain": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/grey_pain.mp3",
+   "prompt": "A thin grey alien is hit: short warbling electronic-throated shriek.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/grey_pain.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.54,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.54
+   },
+   "measured": {
+    "seconds": 0.54,
+    "peak_db": -0.8,
+    "loud_db": -11.4,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1680,
+    "end_db": -124.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "grey_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/grey_down.mp3",
+   "prompt": "A thin grey alien dies: descending warbling shriek ending in a wet gurgle.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/grey_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.296,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.296
+   },
+   "measured": {
+    "seconds": 1.296,
+    "peak_db": -0.8,
+    "loud_db": -7.0,
+    "dc": 0.0025,
+    "onset_ms": 0.0,
+    "centroid_hz": 1752,
+    "end_db": -150.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "jerry_pain": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/jerry_pain.mp3",
+   "prompt": "A proud older Texas businessman is hit: indignant grunt 'hngh'.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/jerry_pain.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.491,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.491
+   },
+   "measured": {
+    "seconds": 0.491,
+    "peak_db": -0.8,
+    "loud_db": -11.4,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1831,
+    "end_db": -155.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "jerry_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/jerry_down.mp3",
+   "prompt": "A proud older Texas businessman dies: long outraged bellow, then a heavy fall.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/jerry_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.456,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.456
+   },
+   "measured": {
+    "seconds": 1.456,
+    "peak_db": -0.8,
+    "loud_db": -12.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 2487,
+    "end_db": -141.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "rudy_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/rudy_down.mp3",
+   "prompt": "A booming carnival barker dies: theatrical drawn-out howl, then a crash.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/rudy_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.525,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.525
+   },
+   "measured": {
+    "seconds": 1.525,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0002,
+    "onset_ms": 5.2,
+    "centroid_hz": 1974,
+    "end_db": -159.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "foreman_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/foreman_down.mp3",
+   "prompt": "A huge gruff sawmill boss dies: deep roar, then a heavy crash of gear and sawblades.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/foreman_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.277,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.277
+   },
+   "measured": {
+    "seconds": 1.277,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0003,
+    "onset_ms": 0.0,
+    "centroid_hz": 789,
+    "end_db": -134.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "baron_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/baron_down.mp3",
+   "prompt": "A big man sealed in a copper boiler suit dies: muffled roar inside metal, hiss of steam, clanging collapse.",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/baron_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.433,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.433
+   },
+   "measured": {
+    "seconds": 1.433,
+    "peak_db": -0.8,
+    "loud_db": -3.5,
+    "dc": 0.002,
+    "onset_ms": 1.9,
+    "centroid_hz": 335,
+    "end_db": -129.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "spitter_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/spitter_down.mp3",
+   "prompt": "A dusty choking creature dies: dry rasping cough and a wet collapse.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/spitter_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.036,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.036
+   },
+   "measured": {
+    "seconds": 1.036,
+    "peak_db": -0.8,
+    "loud_db": -10.5,
+    "dc": 0.0006,
+    "onset_ms": 0.0,
+    "centroid_hz": 1570,
+    "end_db": -149.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "hurt": {
    "purpose": "player takes damage and survives (cycles hurt/hurt_alt/hurt_alt2)",
    "refs": [
@@ -12680,6 +13288,22 @@
  "added": [
   "room_cow_launcher",
   "room_teat_gun",
+  "hick_pain_1",
+  "hick_pain_2",
+  "hick_pain_3",
+  "hick_down_1",
+  "hick_down_2",
+  "hick_down_3",
+  "coot_pain",
+  "coot_down",
+  "grey_pain",
+  "grey_down",
+  "jerry_pain",
+  "jerry_down",
+  "rudy_down",
+  "foreman_down",
+  "baron_down",
+  "spitter_down",
   "menu_back"
  ]
 }

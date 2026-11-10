@@ -7088,14 +7088,350 @@
    "bytes": 37032
   },
   {
-   "id": "reconcile@2026-11-10T11:50:54",
+   "id": "sfx/hick_down_1#1",
+   "kind": "sfx",
+   "name": "hick_down_1",
+   "params": {
+    "text": "A backwoods man is shot dead: hollering scream that trails off as he falls over. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7a16a774a8bd",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-10T14:44:31",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hick_down_1.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/hick_pain_1#1",
+   "kind": "sfx",
+   "name": "hick_pain_1",
+   "params": {
+    "text": "A burly backwoods man is hit: sharp startled 'ow!' yelp. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8f673678407b",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-10T14:44:31",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hick_pain_1.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/hick_pain_2#1",
+   "kind": "sfx",
+   "name": "hick_pain_2",
+   "params": {
+    "text": "A backwoods man takes a hit: gruff winded 'hrrgh' grunt. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "bfe702bcf829",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-10T14:44:31",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hick_pain_2.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/hick_pain_3#1",
+   "kind": "sfx",
+   "name": "hick_pain_3",
+   "params": {
+    "text": "A backwoods man is stung: angry yowl, short. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "dc5138c69cb4",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-10T14:44:31",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hick_pain_3.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/hick_down_2#1",
+   "kind": "sfx",
+   "name": "hick_down_2",
+   "params": {
+    "text": "A backwoods man dies: choked gurgling 'aaugh' and a heavy thud of a body on dirt. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c59e3926a023",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-10T14:44:33",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hick_down_2.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/hick_down_3#1",
+   "kind": "sfx",
+   "name": "hick_down_3",
+   "params": {
+    "text": "A backwoods man dies: long wavering comic yell, then a thud. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2926777b1e6c",
+   "reserved": 65,
+   "status": "settled",
+   "started": "2026-11-10T14:44:33",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hick_down_3.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "sfx/coot_pain#1",
+   "kind": "sfx",
+   "name": "coot_pain",
+   "params": {
+    "text": "A wheezy old man is hit: cracked high 'yeowch'. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e1d4e186aa2f",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-10T14:44:33",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/coot_pain.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/coot_down#1",
+   "kind": "sfx",
+   "name": "coot_down",
+   "params": {
+    "text": "A wheezy old man dies: thin cracking wail fading out, then a light thud. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "561d283e07ce",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-10T14:44:33",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/coot_down.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/grey_pain#1",
+   "kind": "sfx",
+   "name": "grey_pain",
+   "params": {
+    "text": "A thin grey alien is hit: short warbling electronic-throated shriek. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "382dda57c0a3",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-10T14:44:35",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/grey_pain.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/grey_down#1",
+   "kind": "sfx",
+   "name": "grey_down",
+   "params": {
+    "text": "A thin grey alien dies: descending warbling shriek ending in a wet gurgle. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0ab8c563e7c4",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-10T14:44:35",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/grey_down.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/jerry_pain#1",
+   "kind": "sfx",
+   "name": "jerry_pain",
+   "params": {
+    "text": "A proud older Texas businessman is hit: indignant grunt 'hngh'. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0a0b4abe39dd",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-10T14:44:36",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/jerry_pain.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/jerry_down#1",
+   "kind": "sfx",
+   "name": "jerry_down",
+   "params": {
+    "text": "A proud older Texas businessman dies: long outraged bellow, then a heavy fall. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "bbdca3bd2951",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-10T14:44:36",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/jerry_down.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/rudy_down#1",
+   "kind": "sfx",
+   "name": "rudy_down",
+   "params": {
+    "text": "A booming carnival barker dies: theatrical drawn-out howl, then a crash. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "39b0bd4ef620",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-10T14:44:37",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rudy_down.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/foreman_down#1",
+   "kind": "sfx",
+   "name": "foreman_down",
+   "params": {
+    "text": "A huge gruff sawmill boss dies: deep roar, then a heavy crash of gear and sawblades. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6214ba492799",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-10T14:44:38",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/foreman_down.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/baron_down#1",
+   "kind": "sfx",
+   "name": "baron_down",
+   "params": {
+    "text": "A big man sealed in a copper boiler suit dies: muffled roar inside metal, hiss of steam, clanging collapse. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 1.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c8f66fbe7ad1",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-10T14:44:39",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/baron_down.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "sfx/spitter_down#1",
+   "kind": "sfx",
+   "name": "spitter_down",
+   "params": {
+    "text": "A dusty choking creature dies: dry rasping cough and a wet collapse. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b3e58419a40b",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-10T14:44:39",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/spitter_down.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "reconcile@2026-11-10T14:45:43",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -2351,
+   "actual": -2366,
    "basis": "account",
-   "balance_after": 34792
+   "balance_after": 34998
   }
  ],
  "anchor": {
@@ -7103,7 +7439,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-10T11:50:54",
-  "account_drop": 30069
+  "when": "2026-11-10T14:45:43",
+  "account_drop": 30275
  }
 }
