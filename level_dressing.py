@@ -19,7 +19,7 @@ LOW = {
     "hickston": (("prop_tire", .40), ("prop_barrel", 1.04), ("prop_crate", .75), ("prop_hay", .91),
                  ("prop_reeds", .58), ("split_feed_sacks", None)),
     "fair": (("prop_crate", .75), ("prop_barrel", 1.04), ("prop_hay", .91), ("prop_tire", .40),
-             ("fair_prize_pile", None)),
+             ("fair_prize_pile", None), ("fair_spill", .16), ("fair_spill", .16)),
     "sawmill": (("prop_crate", .75), ("prop_barrel", 1.04), ("prop_tire", .40), ("prop_reeds", .58),
                 ("mill_log_ends", None), ("mill_timber", None)),
     "quarry": (("prop_crate", .75), ("prop_barrel", 1.04), ("prop_tire", .40),
@@ -27,9 +27,9 @@ LOW = {
 }
 TALL = {
     "hickston": (("prop_tree", 3.65), ("prop_tree_b", 3.65), ("prop_utilitypole", 3.85)),
-    "fair": (("fair_pylon", None), ("hub_lamp", None), ("prop_utilitypole", 3.85)),
+    "fair": (("fair_pylon", None), ("fair_pylon", None), ("prop_utilitypole", 3.85)),
     "sawmill": (("mill_pylon", None), ("mill_pilings", None), ("prop_utilitypole", 3.85)),
-    "quarry": (("mill_pylon", None), ("prop_utilitypole", 3.85)),
+    "quarry": (("quarry_tower", None), ("quarry_tower", None), ("mill_pylon", None)),
 }
 WEAR = {
     "hickston": ("oil", "grain", "silt"),
@@ -44,7 +44,36 @@ COVER = {
     "sawmill": ("crate", "barrel", "crate"),
     "quarry": ("crate", "barrel", "crate"),
 }
+# Where a piece belongs, so each chapter keeps its own look:
+#   reeds grow at the water's edge and nowhere else;
+#   prize shelves and bottling racks stay on a boardwalk or under a roof;
+#   nothing but reeds stands in the water itself.
+WATER = ("creek", "mill_water")
+SHELTERED = ("fair_prize_pile", "quarry_bottles")
+BOARDS = ("porch", "floor_tile", "quarry_shed")
 SIDES = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+
+def _floor(world, x, y):
+    from level_hickston import TILE
+    names = getattr(_floor, "names", None)
+    if names is None:
+        names = _floor.names = {index: name for name, index in TILE.items()}
+    h, w = world.solid.shape
+    return names.get(int(world.floor[y, x]), "") if 0 <= x < w and 0 <= y < h else ""
+
+
+def belongs(world, image, cx, cy):
+    floor = _floor(world, cx, cy)
+    if image == "prop_reeds":
+        return any(_floor(world, cx + i, cy + j) in WATER for i in range(-2, 3) for j in range(-2, 3))
+    if floor in WATER:
+        return False
+    if image in SHELTERED:
+        return bool(world.roof[cy, cx] > 0) or floor in BOARDS
+    if image == "prop_hay":
+        return floor not in ("asphalt", "road", "porch", "floor_tile", "concrete")
+    return True
 
 
 def _open(world, x, y):
@@ -107,16 +136,17 @@ def dress(world, level, cells, taken):
     def clear(x, y, gap):
         return all(math.hypot(x - tx, y - ty) >= gap for tx, ty in taken)
 
-    def pick(table):
+    def pick(table, cx, cy):
         usable = [(image, height if height else known.get(image, (None,))[0])
                   for image, height in table]
-        usable = [(image, height) for image, height in usable if height]
+        usable = [(image, height) for image, height in usable
+                  if height and belongs(world, image, cx, cy)]
         return usable[int(rng.integers(len(usable)))] if usable else None
 
     order = [cells[i] for i in rng.permutation(len(cells))]
     boards = []
     low_budget = max(8, len(cells) // 38)
-    tall_budget = max(3, len(cells) // 170)
+    tall_budget = max(5, len(cells) // 200)
     for cx, cy in order:
         if low_budget <= 0 and tall_budget <= 0:
             break
@@ -129,8 +159,8 @@ def dress(world, level, cells, taken):
         for dx, dy in sides:
             x += dx * .30
             y += dy * .30
-        if tall_budget > 0 and corner and not roofed and clear(x, y, 6.0):
-            choice = pick(TALL[chapter])
+        if tall_budget > 0 and not roofed and clear(x, y, 3.6):
+            choice = pick(TALL[chapter], cx, cy)
             if choice:
                 boards.append(Billboard(x, y, choice[0], choice[1]))
                 taken.append((x, y))
@@ -140,7 +170,7 @@ def dress(world, level, cells, taken):
             table = LOW[chapter]
             if roofed:
                 table = tuple(row for row in table if row[0] not in ("prop_reeds", "prop_hay"))
-            choice = pick(table)
+            choice = pick(table, cx, cy)
             if choice:
                 boards.append(Billboard(x, y, choice[0], choice[1] * float(rng.uniform(.9, 1.06))))
                 taken.append((x, y))
@@ -157,7 +187,8 @@ def dress(world, level, cells, taken):
         if not all(_open(world, cx + i, cy + j) for i in range(-2, 3) for j in range(-2, 3)):
             continue
         x, y = cx + .5, cy + .5
-        if not clear(x, y, 3.6):
+        if not clear(x, y, 3.6) or any(_floor(world, cx + i, cy + j) in WATER
+                                       for i in (-1, 0, 1) for j in (-1, 0, 1)):
             continue
         kinds = COVER[chapter]
         first = kinds[int(rng.integers(len(kinds)))]
@@ -176,6 +207,8 @@ def dress(world, level, cells, taken):
         if wear_budget <= 0:
             break
         if world.roof[cy, cx] > 0 or len(wall_sides(world, cx, cy)) > 1:
+            continue
+        if _floor(world, cx, cy) in WATER:
             continue
         x = cx + float(rng.uniform(.25, .75))
         y = cy + float(rng.uniform(.25, .75))
