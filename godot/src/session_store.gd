@@ -438,10 +438,16 @@ static func _build_pages() -> Array:
 				),
 				toggle("BULLET MARKS", "bullet_marks", 1, "DRAW IMPACT MARKS ON WALLS"),
 				toggle(
-					"DOS DITHER + COLOR WASH",
-					"retro_look",
+					"FILM GRAIN + COLOR WASH",
+					"film_look",
+					0,
+					"OFF IS THE PLAIN 256-COLOR PICTURE. ON ADDS GRAIN, DITHER AND A TINT."
+				),
+				toggle(
+					"TILED WALLS",
+					"wall_tiling",
 					1,
-					"ORDERED DITHER AND PER-CHAPTER COLOR GRADE"
+					"REPEAT WALL TEXTURES AT ONE SIZE INSTEAD OF STRETCHING THEM"
 				),
 				toggle(
 					"LAMP FLICKER",

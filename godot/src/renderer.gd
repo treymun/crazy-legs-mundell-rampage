@@ -93,6 +93,33 @@ var time := 0.0
 var world_motion := 0
 var flash := 0.0
 var use_threads := true
+## Plain wall materials repeat up and along a wall at a fixed size instead of
+## being stretched over whatever height the wall has (as Build tiles them).
+## Tiles composed for a whole wall (signs, doors, fences, banded sheds) are not
+## in this list and still stretch. A window tile in one of these materials is
+## the window laid over the repeating wall at a fixed height.
+const TILED := [
+	"wood",
+	"barn",
+	"tin",
+	"brick",
+	"plaster",
+	"cinder",
+	"office_wall",
+	"quarry_face",
+	"hedgerow",
+	"tile",
+	"quarry_shed",
+	"mill_log",
+	"fascia"
+]
+const TILE_ROWS_PER_UNIT := 100.0
+const TILE_ANCHOR := 1.96
+const WINDOW_SILL := 1.0
+const WINDOW_HEAD := 1.68
+var wall_tiling := true
+var tile_mode := PackedByteArray()
+var tile_base := PackedInt32Array()
 ## Milliseconds the last render() took; read by tools/bench.gd.
 var last_render_ms := 0.0
 ## With profile on (single thread), time per pass: sky, walls, planes, marks, ground marks, sprites.
@@ -221,6 +248,19 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 	tile_hub_screen = level.tile_id("hub_screen")
 	tile_hub_patch = level.tile_id("hub_patch")
 	tile_hub_runoff = level.tile_id("hub_runoff")
+	var names := level.tile_names
+	tile_mode.resize(names.size())
+	tile_base.resize(names.size())
+	for i in names.size():
+		var tile_name := String(names[i])
+		tile_base[i] = -1
+		if TILED.has(tile_name):
+			tile_mode[i] = 1
+		elif tile_name.ends_with("_win") or tile_name.ends_with("_lit"):
+			var plain_name := tile_name.substr(0, tile_name.length() - 4)
+			if TILED.has(plain_name) and level.tile_id(plain_name) >= 0:
+				tile_mode[i] = 2
+				tile_base[i] = level.tile_id(plain_name)
 	_build_shade_rows()
 
 
@@ -622,6 +662,9 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 	var hub_screen := hub_fx and material == tile_hub_screen
 	var opaque := not glazing and not hub_screen
 	var plain := not (glow or mirror or glazing or hub_wall or hub_screen)
+	var mode := int(tile_mode[material]) if (wall_tiling and plain) else 0
+	var along := sqrt(ex * ex + ey * ey) * 128.0
+	var base_off := tile_base[material] * TILE_BYTES if mode == 2 else 0
 	var phase := time - floorf(time / 6.1) * 6.1
 	var flicker := phase > .87 and phase < 1.02
 	var w := out_w
@@ -644,6 +687,8 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 				continue
 		var tex_u := 1.0 - u if den < 0.0 else u
 		var uu := clampi(int(tex_u * 128.0), 0, 127)
+		if mode == 1:
+			uu = int(tex_u * along) & 127
 		# A glazing tile keeps its frame and mullions opaque; only the pane
 		# rectangles are held back and composited after the scene (the reference
 		# drops them from the opaque layer's pixel list).
@@ -688,12 +733,19 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 				if t < depth_here[gi]:
 					var wz := cz - sy * t_inv
 					if wz >= bottom and wz <= top:
-						var pv := int((top - wz) / vspan * 128.0)
-						if pv > 127:
-							pv = 127
-						elif pv < 0:
-							pv = 0
-						var pi := sample_off + pv * TILE_W * 3
+						var pv := 0
+						var pi := sample_off
+						if mode == 0:
+							pv = int((top - wz) / vspan * 128.0)
+							if pv > 127:
+								pv = 127
+							elif pv < 0:
+								pv = 0
+						else:
+							pv = int((TILE_ANCHOR - wz) * TILE_ROWS_PER_UNIT) & 127
+							if mode == 2 and (wz < WINDOW_SILL or wz > WINDOW_HEAD):
+								pi = base_off + uu * 3
+						pi += pv * TILE_W * 3
 						out[oi] = shade[row_base + tiles[pi] * 3]
 						out[oi + 1] = shade[row_base + tiles[pi + 1] * 3 + 1]
 						out[oi + 2] = shade[row_base + tiles[pi + 2] * 3 + 2]
@@ -1294,6 +1346,8 @@ func _draw_sprite(s: Sprite, a: int, b: int) -> void:
 	var light := 1.1 if s.glow else light_at(dist, level.light[ci])
 	if s.body:
 		light = maxf(light, .58 - .021 * dist)
+	if not s.glow:
+		light = floorf(light * 32.0 + .5) / 32.0
 	var area := 1 if s.glow else level.area[ci]
 	var ti := tint_index(area, tints)
 	var tr := tints[ti]

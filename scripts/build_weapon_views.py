@@ -201,6 +201,9 @@ def main() -> None:
                         str(RAW), args.only or "all"], check=True, stdout=subprocess.DEVNULL)
     from weapon_art import digitized_pose
 
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from digitize import digitize
+
     views = json.loads((RAW / "views.json").read_text())
     out_dir = ROOT / "_preview" / "weapon_cels" if args.preview else ART
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -212,7 +215,7 @@ def main() -> None:
             continue
         made, fronts = cels(name, view)
         for pose, cel in made.items():
-            digitized_pose(cel, None, pose).save(out_dir / f"gun_{name}_{pose}.png")
+            digitize(digitized_pose(cel, None, pose)).save(out_dir / f"gun_{name}_{pose}.png")
             count += 1
         if view["rig"] in ("pistol", "long"):
             anchors[name] = {pose: fronts[pose] for pose in ("idle", "kick", "recover") if pose in fronts}

@@ -17,12 +17,16 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from digitize import digitize  # noqa: E402
+
 RAW = ROOT / "_preview" / "enemies" / "raw"
 ART = ROOT / "assets" / "art"
 BLENDER = os.environ.get("BLENDER_PATH") or str(
@@ -81,7 +85,7 @@ def main() -> None:
                 target = (max(1, round(image.width / SUPERSAMPLE)), max(1, round(image.height / SUPERSAMPLE)))
             else:
                 target = size
-            cel = shrink(image, target, sum(map(ord, path.stem)))
+            cel = digitize(shrink(image, target, sum(map(ord, path.stem))))
             cel.save(ART / path.name)
             count += 1
             # The first build of the game still asks for the old three-cel walk by name.
