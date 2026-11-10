@@ -27,7 +27,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -8.0)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.46
    },
    "measured": {
@@ -67,7 +67,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -9.0)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -91,8 +91,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/shotgun.mp3",
-   "prompt": "One barrel of a sawed-off 12-gauge shotgun fired outdoors: thunderous sub-bass thump under a sharp powder crack, wide heavy report with weight in the chest.",
-   "credits": 44,
+   "prompt": "A single 12 gauge shotgun gunshot, close microphone, outdoors, very loud and heavy with a deep boom and a sharp crack, dry, no echo.",
+   "credits": 60,
    "destination": "audio_src/final/sfx/shotgun.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.51,
@@ -108,17 +108,27 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -8.1)",
-    "keep_seconds": 0.9
+    "punch": {
+     "thump": [
+      120,
+      46,
+      0.13
+     ],
+     "body": 0.11,
+     "crack": 0.9,
+     "tail": 0.34
+    },
+    "level": "-1.5 dB (set for this cue)",
+    "keep_seconds": 0.95
    },
    "measured": {
-    "seconds": 0.9,
-    "peak_db": -4.6,
-    "loud_db": -7.0,
-    "dc": 0.0016,
+    "seconds": 0.95,
+    "peak_db": -0.8,
+    "loud_db": -3.0,
+    "dc": 0.0009,
     "onset_ms": 0.0,
-    "centroid_hz": 35,
-    "end_db": -138.5,
+    "centroid_hz": 632,
+    "end_db": -127.2,
     "problems": []
    },
    "validation": "ok"
@@ -132,8 +142,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/shotgun_both.mp3",
-   "prompt": "A massive, deafening simultaneous double-barrel 12-gauge sawed-off shotgun blast: thunderous sub-bass thump, sharp high powder crack, wide report, then two empty shells clattering on gravel.",
-   "credits": 41,
+   "prompt": "Two 12 gauge shotgun barrels fired at the same instant, close microphone, enormous deep boom and tearing crack, then two empty shells clattering on gravel.",
+   "credits": 68,
    "destination": "audio_src/final/sfx/shotgun_both.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.58,
@@ -149,17 +159,28 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -7.4)",
-    "keep_seconds": 1.5
+    "punch": {
+     "thump": [
+      110,
+      38,
+      0.2
+     ],
+     "body": 0.15,
+     "crack": 1.0,
+     "tail": 0.6,
+     "double": 0.022
+    },
+    "level": "-1.0 dB (set for this cue)",
+    "keep_seconds": 1.7
    },
    "measured": {
-    "seconds": 1.5,
+    "seconds": 1.7,
     "peak_db": -0.8,
-    "loud_db": -5.2,
-    "dc": 0.0026,
+    "loud_db": -3.2,
+    "dc": 0.0011,
     "onset_ms": 0.0,
-    "centroid_hz": 45,
-    "end_db": -149.0,
+    "centroid_hz": 439,
+    "end_db": -146.1,
     "problems": []
    },
    "validation": "ok"
@@ -173,8 +194,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/rifle.mp3",
-   "prompt": "One shot from a semi-automatic hunting rifle firing a high-calibre round: punchy chest-thumping report with a crisp metallic bolt clack.",
-   "credits": 21,
+   "prompt": "A single AK-47 assault rifle gunshot, close microphone, outdoors, loud punchy crack with a heavy thud and metallic action, dry, no echo.",
+   "credits": 33,
    "destination": "audio_src/final/sfx/rifle.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.28,
@@ -190,17 +211,28 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -8.4)",
-    "keep_seconds": 0.34
+    "punch": {
+     "thump": [
+      150,
+      70,
+      0.055
+     ],
+     "body": 0.045,
+     "crack": 0.9,
+     "tail": 0.09,
+     "clack": 0.3
+    },
+    "level": "-4.0 dB (set for this cue)",
+    "keep_seconds": 0.36
    },
    "measured": {
-    "seconds": 0.34,
-    "peak_db": -2.3,
-    "loud_db": -7.0,
-    "dc": 0.0003,
+    "seconds": 0.36,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.007,
     "onset_ms": 0.0,
-    "centroid_hz": 6001,
-    "end_db": -119.4,
+    "centroid_hz": 1074,
+    "end_db": -115.8,
     "problems": []
    },
    "validation": "ok"
@@ -213,8 +245,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/rifle_alt.mp3",
-   "prompt": "One shot from a semi-automatic ranch rifle: heavy cracking report with body and a short metallic ring, slightly lower.",
-   "credits": 21,
+   "prompt": "One AK-47 rifle gunshot, close and loud, deep punchy bark with a hard crack and a short metallic rattle, dry.",
+   "credits": 33,
    "destination": "audio_src/final/sfx/rifle_alt.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.28,
@@ -230,17 +262,29 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -8.9)",
-    "keep_seconds": 0.34
+    "punch": {
+     "thump": [
+      142,
+      66,
+      0.06
+     ],
+     "body": 0.05,
+     "crack": 0.8,
+     "tail": 0.1,
+     "clack": 0.26,
+     "seed": 11
+    },
+    "level": "-4.0 dB (set for this cue)",
+    "keep_seconds": 0.36
    },
    "measured": {
-    "seconds": 0.34,
-    "peak_db": -0.9,
-    "loud_db": -7.0,
-    "dc": 0.0,
-    "onset_ms": 6.6,
-    "centroid_hz": 3530,
-    "end_db": -144.7,
+    "seconds": 0.36,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.001,
+    "onset_ms": 0.0,
+    "centroid_hz": 994,
+    "end_db": -109.6,
     "problems": []
    },
    "validation": "ok"
@@ -253,8 +297,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/rifle_alt2.mp3",
-   "prompt": "One shot from a ranch carbine: aggressive punchy crack with low thump and a quick bolt-carrier clack.",
-   "credits": 21,
+   "prompt": "A single Kalashnikov rifle shot fired outdoors, close microphone, aggressive heavy crack and thump with bolt clatter, dry.",
+   "credits": 33,
    "destination": "audio_src/final/sfx/rifle_alt2.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.28,
@@ -270,17 +314,29 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -9.2)",
-    "keep_seconds": 0.34
+    "punch": {
+     "thump": [
+      158,
+      74,
+      0.05
+     ],
+     "body": 0.042,
+     "crack": 1.0,
+     "tail": 0.085,
+     "clack": 0.34,
+     "seed": 19
+    },
+    "level": "-4.0 dB (set for this cue)",
+    "keep_seconds": 0.36
    },
    "measured": {
-    "seconds": 0.34,
+    "seconds": 0.36,
     "peak_db": -0.8,
-    "loud_db": -5.7,
-    "dc": 0.0004,
+    "loud_db": -4.5,
+    "dc": 0.0026,
     "onset_ms": 0.0,
-    "centroid_hz": 946,
-    "end_db": -122.7,
+    "centroid_hz": 907,
+    "end_db": -107.2,
     "problems": []
    },
    "validation": "ok"
@@ -311,7 +367,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -8.7)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.55
    },
    "measured": {
@@ -352,7 +408,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -10.6)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.6
    },
    "measured": {
@@ -393,7 +449,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -9.8)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.95
    },
    "measured": {
@@ -434,7 +490,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-6.6 dB (replaced cue was -6.6)",
+    "level": "-6.6 dB (new cue)",
     "keep_seconds": 0.95
    },
    "measured": {
@@ -475,7 +531,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -8.1)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -517,7 +573,7 @@
      "drive": 1.6
     },
     "lead_trimmed_ms": 10,
-    "level": "-6.8 dB (replaced cue was -6.8)",
+    "level": "-6.8 dB (new cue)",
     "keep_seconds": 0.72
    },
    "measured": {
@@ -558,7 +614,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -11.3)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.6
    },
    "measured": {
@@ -599,7 +655,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -9.3)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -640,7 +696,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -11.1)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.36
    },
    "measured": {
@@ -681,7 +737,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -9.9)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.44
    },
    "measured": {
@@ -722,7 +778,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -12.3)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -762,7 +818,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -12.9)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.34
    },
    "measured": {
@@ -802,7 +858,7 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "level": "-7.0 dB (replaced cue was -16.1)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.46
    },
    "measured": {
@@ -843,7 +899,7 @@
      "level": -8.0,
      "loop": 0.09
     },
-    "level": "-14.0 dB (replaced cue was -23.5)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 1.4
    },
    "measured": {
@@ -886,7 +942,7 @@
      "level": -8.0,
      "loop": 0.09
     },
-    "level": "-11.8 dB (replaced cue was -11.8)",
+    "level": "-11.8 dB (new cue)",
     "keep_seconds": 1.4
    },
    "measured": {
@@ -927,7 +983,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -20.8)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -966,7 +1022,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -20.9)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1006,7 +1062,7 @@
      "level": -9.0
     },
     "lead_trimmed_ms": 34,
-    "level": "-15.0 dB (replaced cue was -21.2)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1045,7 +1101,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -20.8)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1084,7 +1140,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -20.9)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1123,7 +1179,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -21.1)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1162,7 +1218,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -20.0)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1201,7 +1257,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -20.4)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1240,7 +1296,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -21.8)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1279,7 +1335,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -20.8)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -1319,7 +1375,7 @@
      "level": -9.0
     },
     "derived": "dry_tnt retuned -300 cents",
-    "level": "-14.2 dB (replaced cue was -14.2)",
+    "level": "-14.2 dB (new cue)",
     "keep_seconds": 0.16
    },
    "measured": {
@@ -1359,7 +1415,7 @@
      "level": -9.0
     },
     "derived": "dry_tnt retuned -500 cents",
-    "level": "-14.2 dB (replaced cue was -14.2)",
+    "level": "-14.2 dB (new cue)",
     "keep_seconds": 0.16
    },
    "measured": {
@@ -1399,7 +1455,7 @@
      "level": -9.0
     },
     "derived": "dry_bottle_launcher retuned -400 cents",
-    "level": "-14.2 dB (replaced cue was -14.2)",
+    "level": "-14.2 dB (new cue)",
     "keep_seconds": 0.16
    },
    "measured": {
@@ -1438,7 +1494,7 @@
      "fade": 0.3,
      "level": -9.0
     },
-    "level": "-14.2 dB (replaced cue was -14.2)",
+    "level": "-14.2 dB (new cue)",
     "keep_seconds": 0.16
    },
    "measured": {
@@ -1477,7 +1533,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -21.6)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1517,7 +1573,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 116,
-    "level": "-14.0 dB (replaced cue was -21.9)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1556,7 +1612,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -22.0)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1595,7 +1651,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -21.9)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1634,7 +1690,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -22.3)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1673,7 +1729,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -22.0)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1713,7 +1769,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 2,
-    "level": "-14.0 dB (replaced cue was -22.2)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1753,7 +1809,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 92,
-    "level": "-14.0 dB (replaced cue was -21.3)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1793,7 +1849,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 30,
-    "level": "-14.0 dB (replaced cue was -20.8)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1832,7 +1888,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -21.7)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1871,7 +1927,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -22.5)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1910,7 +1966,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -22.0)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -1949,7 +2005,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-12.9 dB (replaced cue was -12.9)",
+    "level": "-12.9 dB (new cue)",
     "keep_seconds": 0.28
    },
    "measured": {
@@ -1988,7 +2044,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-13.0 dB (replaced cue was -13.0)",
+    "level": "-13.0 dB (new cue)",
     "keep_seconds": 0.28
    },
    "measured": {
@@ -2027,7 +2083,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-12.9 dB (replaced cue was -12.9)",
+    "level": "-12.9 dB (new cue)",
     "keep_seconds": 0.28
    },
    "measured": {
@@ -2066,7 +2122,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-12.6 dB (replaced cue was -12.6)",
+    "level": "-12.6 dB (new cue)",
     "keep_seconds": 0.28
    },
    "measured": {
@@ -2108,7 +2164,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -17.2)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.26
    },
    "measured": {
@@ -2149,7 +2205,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 51,
-    "level": "-14.0 dB (replaced cue was -20.6)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -2189,7 +2245,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -18.4)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.19
    },
    "measured": {
@@ -2232,7 +2288,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -19.7)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -2273,7 +2329,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 2,
-    "level": "-14.0 dB (replaced cue was -18.1)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -2314,7 +2370,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 156,
-    "level": "-14.0 dB (replaced cue was -18.7)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.21
    },
    "measured": {
@@ -2354,7 +2410,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -18.0)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.23
    },
    "measured": {
@@ -2395,7 +2451,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -24.0)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.24
    },
    "measured": {
@@ -2436,7 +2492,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -23.7)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -2476,7 +2532,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -15.5)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.21
    },
    "measured": {
@@ -2517,7 +2573,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -14.0)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -2557,7 +2613,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -20.0)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -2597,7 +2653,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -21.6)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.26
    },
    "measured": {
@@ -2637,7 +2693,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -18.0)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -2677,7 +2733,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -15.8)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -2719,7 +2775,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -17.6)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -2759,7 +2815,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -17.6)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.28
    },
    "measured": {
@@ -2801,7 +2857,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-11.4 dB (replaced cue was -11.4)",
+    "level": "-11.4 dB (new cue)",
     "keep_seconds": 0.3
    },
    "measured": {
@@ -2841,7 +2897,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -20.5)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.33
    },
    "measured": {
@@ -2881,7 +2937,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-12.6 dB (replaced cue was -12.6)",
+    "level": "-12.6 dB (new cue)",
     "keep_seconds": 0.19
    },
    "measured": {
@@ -2922,7 +2978,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -18.8)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.31
    },
    "measured": {
@@ -2963,7 +3019,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -18.4)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -3004,7 +3060,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -17.1)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.28
    },
    "measured": {
@@ -3046,7 +3102,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 14,
-    "level": "-14.0 dB (replaced cue was -18.5)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.26
    },
    "measured": {
@@ -3089,7 +3145,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 123,
-    "level": "-14.0 dB (replaced cue was -17.7)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -3129,7 +3185,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -17.7)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.19
    },
    "measured": {
@@ -3169,7 +3225,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -17.1)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.26
    },
    "measured": {
@@ -3209,7 +3265,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -20.4)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.32
    },
    "measured": {
@@ -3253,7 +3309,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-13.2 dB (replaced cue was -13.2)",
+    "level": "-13.2 dB (new cue)",
     "keep_seconds": 0.79
    },
    "measured": {
@@ -3293,7 +3349,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -17.1)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.29
    },
    "measured": {
@@ -3333,7 +3389,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -16.2)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.32
    },
    "measured": {
@@ -3373,7 +3429,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -17.2)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.16
    },
    "measured": {
@@ -3416,7 +3472,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -23.8)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.2
    },
    "measured": {
@@ -3457,7 +3513,7 @@
      "fade": 0.25,
      "level": -8.0
     },
-    "level": "-14.0 dB (replaced cue was -14.1)",
+    "level": "-14.0 dB (new cue)",
     "keep_seconds": 0.23
    },
    "measured": {
@@ -3499,7 +3555,7 @@
      "level": -8.0
     },
     "lead_trimmed_ms": 19,
-    "level": "-12.1 dB (replaced cue was -12.1)",
+    "level": "-12.1 dB (new cue)",
     "keep_seconds": 0.64
    },
    "measured": {
@@ -3539,7 +3595,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -12.2)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.24
    },
    "measured": {
@@ -3578,7 +3634,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -12.6)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.24
    },
    "measured": {
@@ -3618,7 +3674,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -13.2)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.29
    },
    "measured": {
@@ -3657,7 +3713,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -10.6)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -3697,7 +3753,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -22.1)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.13
    },
    "measured": {
@@ -3737,7 +3793,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -18.5)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.14
    },
    "measured": {
@@ -3777,7 +3833,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -19.4)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.19
    },
    "measured": {
@@ -3817,7 +3873,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -14.7)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -3857,7 +3913,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -16.8)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.31
    },
    "measured": {
@@ -3898,7 +3954,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -22.5)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.3
    },
    "measured": {
@@ -3937,7 +3993,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -15.1)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -3977,7 +4033,7 @@
      "level": -5.0
     },
     "lead_trimmed_ms": 15,
-    "level": "-11.0 dB (replaced cue was -17.3)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.24
    },
    "measured": {
@@ -4091,7 +4147,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -14.0)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.24
    },
    "measured": {
@@ -4130,7 +4186,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -11.6)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.55
    },
    "measured": {
@@ -4169,7 +4225,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -20.4)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.18
    },
    "measured": {
@@ -4208,7 +4264,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -16.6)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -4247,7 +4303,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -18.4)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.26
    },
    "measured": {
@@ -4286,7 +4342,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -15.9)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.34
    },
    "measured": {
@@ -4325,7 +4381,7 @@
      "fade": 0.3,
      "level": -5.0
     },
-    "level": "-11.0 dB (replaced cue was -17.5)",
+    "level": "-11.0 dB (new cue)",
     "keep_seconds": 0.3
    },
    "measured": {
@@ -4366,7 +4422,7 @@
      "level": -1.0,
      "drive": 1.8
     },
-    "level": "-7.0 dB (replaced cue was -7.7)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 1.4
    },
    "measured": {
@@ -4407,7 +4463,7 @@
      "level": -1.0,
      "drive": 1.8
     },
-    "level": "-7.0 dB (replaced cue was -10.4)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.42
    },
    "measured": {
@@ -4448,7 +4504,7 @@
      "level": -1.0,
      "drive": 1.8
     },
-    "level": "-7.0 dB (replaced cue was -8.1)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 0.55
    },
    "measured": {
@@ -4489,7 +4545,7 @@
      "drive": 1.8
     },
     "lead_trimmed_ms": 216,
-    "level": "-7.0 dB (replaced cue was -10.4)",
+    "level": "-7.0 dB (new cue)",
     "keep_seconds": 1.0
    },
    "measured": {
@@ -4530,7 +4586,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.528,
-    "level": "-10.0 dB (replaced cue was -10.0)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.528
    },
    "measured": {
@@ -4571,7 +4627,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.456,
-    "level": "-10.0 dB (replaced cue was -13.2)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.456
    },
    "measured": {
@@ -4612,7 +4668,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.561,
-    "level": "-10.0 dB (replaced cue was -19.2)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.561
    },
    "measured": {
@@ -4653,7 +4709,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.427,
-    "level": "-10.0 dB (replaced cue was -13.8)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.427
    },
    "measured": {
@@ -4694,7 +4750,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.67,
-    "level": "-10.0 dB (replaced cue was -13.4)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.592
    },
    "measured": {
@@ -4735,7 +4791,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.653,
-    "level": "-10.0 dB (replaced cue was -13.3)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.653
    },
    "measured": {
@@ -4776,7 +4832,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.376,
-    "level": "-10.0 dB (replaced cue was -14.9)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.376
    },
    "measured": {
@@ -4819,7 +4875,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -20.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.7
    },
    "measured": {
@@ -4862,7 +4918,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -19.2)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.47
    },
    "measured": {
@@ -4905,7 +4961,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -19.4)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.66
    },
    "measured": {
@@ -4948,7 +5004,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -20.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.52
    },
    "measured": {
@@ -4989,7 +5045,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -11.7)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -5030,7 +5086,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -9.1)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.94
    },
    "measured": {
@@ -5071,7 +5127,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -12.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.75
    },
    "measured": {
@@ -5112,7 +5168,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -10.1)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -5153,7 +5209,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -18.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -5194,7 +5250,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -28.1)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.17
    },
    "measured": {
@@ -5237,7 +5293,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -11.5)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -5278,7 +5334,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -17.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -5319,7 +5375,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -14.2)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.87
    },
    "measured": {
@@ -5360,7 +5416,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -13.2)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.35
    },
    "measured": {
@@ -5401,7 +5457,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -11.1)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -5442,7 +5498,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -10.2)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -5483,7 +5539,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -11.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.83
    },
    "measured": {
@@ -5524,7 +5580,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -12.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.56
    },
    "measured": {
@@ -5565,7 +5621,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -12.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.49
    },
    "measured": {
@@ -5606,7 +5662,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -13.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.36
    },
    "measured": {
@@ -5647,7 +5703,7 @@
      "level": -3.0,
      "drive": 1.2
     },
-    "level": "-9.0 dB (replaced cue was -14.9)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.45
    },
    "measured": {
@@ -5688,7 +5744,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-8.8 dB (replaced cue was -8.8)",
+    "level": "-8.8 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -5729,7 +5785,7 @@
      "drive": 1.3
     },
     "lead_trimmed_ms": 61,
-    "level": "-9.0 dB (replaced cue was -9.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.51
    },
    "measured": {
@@ -5771,7 +5827,7 @@
      "drive": 1.3
     },
     "lead_trimmed_ms": 90,
-    "level": "-9.0 dB (replaced cue was -16.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.46
    },
    "measured": {
@@ -5811,7 +5867,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -13.4)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.24
    },
    "measured": {
@@ -5853,7 +5909,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -14.3)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.36
    },
    "measured": {
@@ -5894,7 +5950,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -12.9)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.28
    },
    "measured": {
@@ -5935,7 +5991,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -10.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.28
    },
    "measured": {
@@ -5976,7 +6032,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -9.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.42
    },
    "measured": {
@@ -6018,7 +6074,7 @@
      "drive": 1.3
     },
     "lead_trimmed_ms": 30,
-    "level": "-9.0 dB (replaced cue was -11.1)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -6059,7 +6115,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -10.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -6100,7 +6156,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -14.3)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.42
    },
    "measured": {
@@ -6142,7 +6198,7 @@
      "drive": 1.3
     },
     "lead_trimmed_ms": 106,
-    "level": "-9.0 dB (replaced cue was -17.1)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.36
    },
    "measured": {
@@ -6183,7 +6239,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -13.2)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.34
    },
    "measured": {
@@ -6224,7 +6280,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -13.9)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.26
    },
    "measured": {
@@ -6266,7 +6322,7 @@
      "drive": 1.3
     },
     "lead_trimmed_ms": 11,
-    "level": "-9.0 dB (replaced cue was -23.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.29
    },
    "measured": {
@@ -6307,7 +6363,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -12.7)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -6348,7 +6404,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -14.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.34
    },
    "measured": {
@@ -6388,7 +6444,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -10.7)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -6428,7 +6484,7 @@
      "level": -3.0,
      "drive": 1.3
     },
-    "level": "-9.0 dB (replaced cue was -11.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.66
    },
    "measured": {
@@ -6468,7 +6524,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.503,
-    "level": "-10.0 dB (replaced cue was -14.1)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.503
    },
    "measured": {
@@ -6509,7 +6565,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.789,
-    "level": "-10.0 dB (replaced cue was -10.6)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.789
    },
    "measured": {
@@ -6549,7 +6605,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.614,
-    "level": "-10.0 dB (replaced cue was -13.4)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.522
    },
    "measured": {
@@ -6590,7 +6646,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.684,
-    "level": "-10.0 dB (replaced cue was -10.4)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.684
    },
    "measured": {
@@ -6630,7 +6686,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.35,
-    "level": "-10.0 dB (replaced cue was -17.4)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.35
    },
    "measured": {
@@ -6671,7 +6727,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.848,
-    "level": "-10.0 dB (replaced cue was -11.1)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.848
    },
    "measured": {
@@ -6712,7 +6768,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.288,
-    "level": "-10.0 dB (replaced cue was -10.1)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.288
    },
    "measured": {
@@ -6753,7 +6809,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.566,
-    "level": "-10.0 dB (replaced cue was -13.0)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.566
    },
    "measured": {
@@ -6794,7 +6850,7 @@
      "level": -4.0
     },
     "natural_seconds": 0.508,
-    "level": "-10.0 dB (replaced cue was -12.6)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.508
    },
    "measured": {
@@ -7443,7 +7499,7 @@
      "level": -3.0
     },
     "natural_seconds": 0.371,
-    "level": "-9.0 dB (replaced cue was -9.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.371
    },
    "measured": {
@@ -7483,7 +7539,7 @@
      "level": -3.0
     },
     "natural_seconds": 0.593,
-    "level": "-9.0 dB (replaced cue was -9.5)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.593
    },
    "measured": {
@@ -7523,7 +7579,7 @@
      "level": -3.0
     },
     "natural_seconds": 0.507,
-    "level": "-8.9 dB (replaced cue was -8.9)",
+    "level": "-8.9 dB (new cue)",
     "keep_seconds": 0.507
    },
    "measured": {
@@ -7563,7 +7619,7 @@
      "level": -3.0
     },
     "natural_seconds": 1.687,
-    "level": "-8.6 dB (replaced cue was -8.6)",
+    "level": "-8.6 dB (new cue)",
     "keep_seconds": 1.687
    },
    "measured": {
@@ -7603,7 +7659,7 @@
      "level": -3.0
     },
     "natural_seconds": 0.485,
-    "level": "-9.0 dB (replaced cue was -12.3)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.485
    },
    "measured": {
@@ -7647,7 +7703,7 @@
      "level": -3.0
     },
     "natural_seconds": 1.432,
-    "level": "-9.0 dB (replaced cue was -10.9)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.432
    },
    "measured": {
@@ -7688,7 +7744,7 @@
      "level": -3.0
     },
     "natural_seconds": 1.547,
-    "level": "-9.0 dB (replaced cue was -10.4)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.547
    },
    "measured": {
@@ -7728,7 +7784,7 @@
      "level": -3.0
     },
     "natural_seconds": 0.661,
-    "level": "-9.0 dB (replaced cue was -11.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.661
    },
    "measured": {
@@ -7768,7 +7824,7 @@
      "level": -7.0
     },
     "natural_seconds": 0.677,
-    "level": "-13.0 dB (replaced cue was -15.2)",
+    "level": "-13.0 dB (new cue)",
     "keep_seconds": 0.608
    },
    "measured": {
@@ -7808,7 +7864,7 @@
      "level": -7.0
     },
     "natural_seconds": 0.925,
-    "level": "-13.0 dB (replaced cue was -17.9)",
+    "level": "-13.0 dB (new cue)",
     "keep_seconds": 0.925
    },
    "measured": {
@@ -7848,7 +7904,7 @@
      "level": -7.0
     },
     "natural_seconds": 0.58,
-    "level": "-9.3 dB (replaced cue was -9.3)",
+    "level": "-9.3 dB (new cue)",
     "keep_seconds": 0.58
    },
    "measured": {
@@ -7888,7 +7944,7 @@
      "level": -7.0
     },
     "natural_seconds": 0.532,
-    "level": "-13.0 dB (replaced cue was -19.9)",
+    "level": "-13.0 dB (new cue)",
     "keep_seconds": 0.532
    },
    "measured": {
@@ -7927,7 +7983,7 @@
      "fade": 0.25,
      "level": -7.0
     },
-    "level": "-13.0 dB (replaced cue was -15.1)",
+    "level": "-13.0 dB (new cue)",
     "keep_seconds": 0.32
    },
    "measured": {
@@ -7966,7 +8022,7 @@
      "fade": 0.25,
      "level": -7.0
     },
-    "level": "-13.0 dB (replaced cue was -17.3)",
+    "level": "-13.0 dB (new cue)",
     "keep_seconds": 0.23
    },
    "measured": {
@@ -8005,7 +8061,7 @@
      "fade": 0.25,
      "level": -7.0
     },
-    "level": "-13.0 dB (replaced cue was -16.1)",
+    "level": "-13.0 dB (new cue)",
     "keep_seconds": 0.27
    },
    "measured": {
@@ -8046,7 +8102,7 @@
      "level": -12.0
     },
     "event": "hit 1 of 2",
-    "level": "-14.5 dB (replaced cue was -14.5)",
+    "level": "-14.5 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8088,7 +8144,7 @@
     },
     "event": "hit 1 of 2",
     "derived": "another step from step_grass_0's recording",
-    "level": "-14.9 dB (replaced cue was -14.9)",
+    "level": "-14.9 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8130,7 +8186,7 @@
     },
     "event": "hit 1 of 5",
     "lead_trimmed_ms": 42,
-    "level": "-16.6 dB (replaced cue was -16.6)",
+    "level": "-16.6 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8172,7 +8228,7 @@
     },
     "event": "hit 3 of 5",
     "derived": "another step from step_gravel_0's recording",
-    "level": "-18.0 dB (replaced cue was -20.1)",
+    "level": "-18.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8213,7 +8269,7 @@
      "level": -12.0
     },
     "event": "hit 1 of 6",
-    "level": "-18.0 dB (replaced cue was -22.3)",
+    "level": "-18.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8255,7 +8311,7 @@
     },
     "event": "hit 3 of 6",
     "derived": "another step from step_mud_0's recording",
-    "level": "-18.0 dB (replaced cue was -22.6)",
+    "level": "-18.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8297,7 +8353,7 @@
     },
     "event": "hit 1 of 4",
     "lead_trimmed_ms": 7,
-    "level": "-18.0 dB (replaced cue was -19.3)",
+    "level": "-18.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8340,7 +8396,7 @@
     "event": "hit 3 of 4",
     "lead_trimmed_ms": 2,
     "derived": "another step from step_tile_0's recording",
-    "level": "-18.0 dB (replaced cue was -19.3)",
+    "level": "-18.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8382,7 +8438,7 @@
     },
     "event": "hit 1 of 2",
     "lead_trimmed_ms": 24,
-    "level": "-18.0 dB (replaced cue was -19.0)",
+    "level": "-18.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8425,7 +8481,7 @@
     "event": "hit 1 of 2",
     "lead_trimmed_ms": 24,
     "derived": "another step from step_water_0's recording",
-    "level": "-18.0 dB (replaced cue was -18.8)",
+    "level": "-18.0 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8466,7 +8522,7 @@
      "level": -12.0
     },
     "event": "hit 1 of 5",
-    "level": "-11.5 dB (replaced cue was -11.5)",
+    "level": "-11.5 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8508,7 +8564,7 @@
     },
     "event": "hit 3 of 5",
     "derived": "another step from step_wood_0's recording",
-    "level": "-11.3 dB (replaced cue was -11.3)",
+    "level": "-11.3 dB (new cue)",
     "keep_seconds": 0.25
    },
    "measured": {
@@ -8547,7 +8603,7 @@
      "fade": 0.25,
      "level": -6.0
     },
-    "level": "-12.0 dB (replaced cue was -20.5)",
+    "level": "-12.0 dB (new cue)",
     "keep_seconds": 0.43
    },
    "measured": {
@@ -8589,7 +8645,7 @@
      "fade": 0.25,
      "level": -6.0
     },
-    "level": "-12.0 dB (replaced cue was -14.4)",
+    "level": "-12.0 dB (new cue)",
     "keep_seconds": 0.63
    },
    "measured": {
@@ -8630,7 +8686,7 @@
      "fade": 0.25,
      "level": -6.0
     },
-    "level": "-12.0 dB (replaced cue was -16.0)",
+    "level": "-12.0 dB (new cue)",
     "keep_seconds": 0.55
    },
    "measured": {
@@ -8671,7 +8727,7 @@
      "level": -4.0
     },
     "lead_trimmed_ms": 105,
-    "level": "-10.0 dB (replaced cue was -10.5)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -8712,7 +8768,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -15.9)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.55
    },
    "measured": {
@@ -8752,7 +8808,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -13.2)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 1.2
    },
    "measured": {
@@ -8792,7 +8848,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -14.4)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -8832,7 +8888,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -16.7)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.56
    },
    "measured": {
@@ -8875,7 +8931,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -16.5)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.71
    },
    "measured": {
@@ -8915,7 +8971,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -16.3)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.34
    },
    "measured": {
@@ -8957,7 +9013,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -14.0)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.46
    },
    "measured": {
@@ -8996,7 +9052,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -13.5)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 1.18
    },
    "measured": {
@@ -9036,7 +9092,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -11.1)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 1.1
    },
    "measured": {
@@ -9077,7 +9133,7 @@
      "level": -4.0
     },
     "lead_trimmed_ms": 9,
-    "level": "-10.0 dB (replaced cue was -11.3)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.6
    },
    "measured": {
@@ -9117,7 +9173,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-8.1 dB (replaced cue was -8.1)",
+    "level": "-8.1 dB (new cue)",
     "keep_seconds": 0.85
    },
    "measured": {
@@ -9157,7 +9213,7 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -10.0)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.55
    },
    "measured": {
@@ -9197,7 +9253,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -12.8)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.64
    },
    "measured": {
@@ -9237,7 +9293,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -10.2)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -9277,7 +9333,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -11.0)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -9317,7 +9373,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-10.0 dB (replaced cue was -17.8)",
+    "level": "-10.0 dB (new cue)",
     "keep_seconds": 0.89
    },
    "measured": {
@@ -9358,7 +9414,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-9.8 dB (replaced cue was -9.8)",
+    "level": "-9.8 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -9399,7 +9455,7 @@
      "fade": 0.25,
      "level": -4.0
     },
-    "level": "-9.8 dB (replaced cue was -9.8)",
+    "level": "-9.8 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -9440,7 +9496,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-20.2 dB (replaced cue was -20.2)",
+    "level": "-20.2 dB (new cue)",
     "keep_seconds": 12.0
    },
    "measured": {
@@ -9483,7 +9539,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-27.0 dB (replaced cue was -27.0)",
+    "level": "-27.0 dB (new cue)",
     "keep_seconds": 12.0
    },
    "measured": {
@@ -9526,7 +9582,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-18.6 dB (replaced cue was -18.6)",
+    "level": "-18.6 dB (new cue)",
     "keep_seconds": 12.0
    },
    "measured": {
@@ -9569,7 +9625,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-18.5 dB (replaced cue was -18.5)",
+    "level": "-18.5 dB (new cue)",
     "keep_seconds": 12.0
    },
    "measured": {
@@ -9612,7 +9668,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-17.2 dB (replaced cue was -17.2)",
+    "level": "-17.2 dB (new cue)",
     "keep_seconds": 14.0
    },
    "measured": {
@@ -9655,7 +9711,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-16.0 dB (replaced cue was -15.9)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 11.6
    },
    "measured": {
@@ -9698,7 +9754,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-17.8 dB (replaced cue was -17.8)",
+    "level": "-17.8 dB (new cue)",
     "keep_seconds": 14.0
    },
    "measured": {
@@ -9741,7 +9797,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-17.8 dB (replaced cue was -17.8)",
+    "level": "-17.8 dB (new cue)",
     "keep_seconds": 14.0
    },
    "measured": {
@@ -9784,7 +9840,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-17.5 dB (replaced cue was -17.5)",
+    "level": "-17.5 dB (new cue)",
     "keep_seconds": 12.0
    },
    "measured": {
@@ -9827,7 +9883,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-17.4 dB (replaced cue was -17.4)",
+    "level": "-17.4 dB (new cue)",
     "keep_seconds": 12.0
    },
    "measured": {
@@ -9870,7 +9926,7 @@
      "level": -22.0,
      "loop": 0.6
     },
-    "level": "-16.0 dB (replaced cue was -15.7)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 11.6
    },
    "measured": {
@@ -9913,7 +9969,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-17.2 dB (replaced cue was -17.2)",
+    "level": "-17.2 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -9954,7 +10010,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-17.8 dB (replaced cue was -17.8)",
+    "level": "-17.8 dB (new cue)",
     "keep_seconds": 0.68
    },
    "measured": {
@@ -9995,7 +10051,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-14.1 dB (replaced cue was -14.1)",
+    "level": "-14.1 dB (new cue)",
     "keep_seconds": 2.4
    },
    "measured": {
@@ -10036,7 +10092,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-10.4 dB (replaced cue was -10.4)",
+    "level": "-10.4 dB (new cue)",
     "keep_seconds": 2.4
    },
    "measured": {
@@ -10077,7 +10133,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-15.4 dB (replaced cue was -15.4)",
+    "level": "-15.4 dB (new cue)",
     "keep_seconds": 1.3
    },
    "measured": {
@@ -10118,7 +10174,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-15.7 dB (replaced cue was -15.7)",
+    "level": "-15.7 dB (new cue)",
     "keep_seconds": 0.63
    },
    "measured": {
@@ -10159,7 +10215,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-12.2 dB (replaced cue was -12.2)",
+    "level": "-12.2 dB (new cue)",
     "keep_seconds": 1.9
    },
    "measured": {
@@ -10200,7 +10256,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-12.8 dB (replaced cue was -12.8)",
+    "level": "-12.8 dB (new cue)",
     "keep_seconds": 1.75
    },
    "measured": {
@@ -10241,7 +10297,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-15.3 dB (replaced cue was -15.3)",
+    "level": "-15.3 dB (new cue)",
     "keep_seconds": 1.14
    },
    "measured": {
@@ -10282,7 +10338,7 @@
      "level": -14.0,
      "fade_in": 0.04
     },
-    "level": "-20.0 dB (replaced cue was -20.1)",
+    "level": "-20.0 dB (new cue)",
     "keep_seconds": 1.3
    },
    "measured": {
@@ -10328,7 +10384,7 @@
      "fade": 0.4,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -25.1)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.09
    },
    "measured": {
@@ -10377,7 +10433,7 @@
      "fade": 0.4,
      "level": -9.0
     },
-    "level": "-15.0 dB (replaced cue was -19.0)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.22
    },
    "measured": {
@@ -10458,7 +10514,7 @@
      "level": -9.0
     },
     "lead_trimmed_ms": 4,
-    "level": "-15.0 dB (replaced cue was -19.2)",
+    "level": "-15.0 dB (new cue)",
     "keep_seconds": 0.15
    },
    "measured": {
@@ -10497,7 +10553,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -9.3)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.2
    },
    "measured": {
@@ -10536,7 +10592,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -9.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.2
    },
    "measured": {
@@ -10575,7 +10631,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -10.5)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.2
    },
    "measured": {
@@ -10614,7 +10670,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -9.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.2
    },
    "measured": {
@@ -10653,7 +10709,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -9.3)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.2
    },
    "measured": {
@@ -10692,7 +10748,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-8.7 dB (replaced cue was -8.7)",
+    "level": "-8.7 dB (new cue)",
     "keep_seconds": 2.2
    },
    "measured": {
@@ -10731,7 +10787,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -9.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.2
    },
    "measured": {
@@ -10770,7 +10826,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -9.2)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.2
    },
    "measured": {
@@ -10810,7 +10866,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -9.2)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.2
    },
    "measured": {
@@ -10849,7 +10905,7 @@
      "fade": 0.12,
      "level": -3.0
     },
-    "level": "-9.0 dB (replaced cue was -14.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.1
    },
    "measured": {
@@ -10891,7 +10947,7 @@
      "loop": 0.4,
      "drive": 1.4
     },
-    "level": "-9.7 dB (replaced cue was -9.7)",
+    "level": "-9.7 dB (new cue)",
     "keep_seconds": 24.0
    },
    "measured": {
@@ -10938,7 +10994,7 @@
     ],
     "natural_seconds": 1.236,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -11.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.236
    },
    "measured": {
@@ -10983,7 +11039,7 @@
     ],
     "natural_seconds": 2.063,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -11.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.063
    },
    "measured": {
@@ -11028,7 +11084,7 @@
     ],
     "natural_seconds": 1.714,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -10.5)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.714
    },
    "measured": {
@@ -11073,7 +11129,7 @@
     ],
     "natural_seconds": 1.145,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -10.4)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.145
    },
    "measured": {
@@ -11118,7 +11174,7 @@
     ],
     "natural_seconds": 1.617,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -10.5)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.617
    },
    "measured": {
@@ -11164,7 +11220,7 @@
     ],
     "natural_seconds": 2.16,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -10.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 2.16
    },
    "measured": {
@@ -11209,7 +11265,7 @@
      1.06
     ],
     "natural_seconds": 1.16,
-    "level": "-9.0 dB (replaced cue was -9.2)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.16
    },
    "measured": {
@@ -11255,7 +11311,7 @@
     ],
     "natural_seconds": 1.767,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -10.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.767
    },
    "measured": {
@@ -11300,7 +11356,7 @@
      1.64
     ],
     "natural_seconds": 1.587,
-    "level": "-9.0 dB (replaced cue was -10.1)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.587
    },
    "measured": {
@@ -11346,7 +11402,7 @@
     ],
     "natural_seconds": 1.776,
     "speaker": "pa",
-    "level": "-9.0 dB (replaced cue was -10.5)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.776
    },
    "measured": {
@@ -11391,7 +11447,7 @@
      1.42
     ],
     "natural_seconds": 1.11,
-    "level": "-9.0 dB (replaced cue was -9.9)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.11
    },
    "measured": {
@@ -11437,7 +11493,7 @@
     ],
     "natural_seconds": 1.158,
     "speaker": "pa",
-    "level": "-9.0 dB (replaced cue was -10.9)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.158
    },
    "measured": {
@@ -11482,7 +11538,7 @@
      1.24
     ],
     "natural_seconds": 1.166,
-    "level": "-9.0 dB (replaced cue was -9.9)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.166
    },
    "measured": {
@@ -11528,7 +11584,7 @@
     ],
     "natural_seconds": 1.953,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -10.8)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.953
    },
    "measured": {
@@ -11573,7 +11629,7 @@
      1.82
     ],
     "natural_seconds": 1.568,
-    "level": "-9.0 dB (replaced cue was -9.7)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.568
    },
    "measured": {
@@ -11619,7 +11675,7 @@
     ],
     "natural_seconds": 1.412,
     "speaker": "radio",
-    "level": "-9.0 dB (replaced cue was -10.7)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.412
    },
    "measured": {
@@ -11664,7 +11720,7 @@
      0.96
     ],
     "natural_seconds": 0.784,
-    "level": "-9.0 dB (replaced cue was -10.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 0.784
    },
    "measured": {
@@ -11710,7 +11766,7 @@
     ],
     "natural_seconds": 1.281,
     "speaker": "horn",
-    "level": "-9.0 dB (replaced cue was -10.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.281
    },
    "measured": {
@@ -11755,7 +11811,7 @@
      1.6
     ],
     "natural_seconds": 1.503,
-    "level": "-9.0 dB (replaced cue was -10.0)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.503
    },
    "measured": {
@@ -11801,7 +11857,7 @@
     ],
     "natural_seconds": 1.722,
     "speaker": "horn",
-    "level": "-9.0 dB (replaced cue was -10.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.722
    },
    "measured": {
@@ -11846,7 +11902,7 @@
      1.4
     ],
     "natural_seconds": 1.313,
-    "level": "-9.0 dB (replaced cue was -9.6)",
+    "level": "-9.0 dB (new cue)",
     "keep_seconds": 1.313
    },
    "measured": {
@@ -11886,7 +11942,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of revolver (0.60 s)",
-    "level": "-16.0 dB (replaced cue was -19.5)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.48
    },
    "measured": {
@@ -11926,17 +11982,17 @@
      "level": -10.0
     },
     "derived": "reverb tail of shotgun (0.81 s)",
-    "level": "-16.0 dB (replaced cue was -19.2)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.65
    },
    "measured": {
     "seconds": 0.812,
-    "peak_db": -8.5,
+    "peak_db": -6.4,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 10.0,
-    "centroid_hz": 64,
-    "end_db": -154.0,
+    "onset_ms": 16.6,
+    "centroid_hz": 1268,
+    "end_db": -146.2,
     "problems": []
    },
    "validation": "ok"
@@ -11966,17 +12022,17 @@
      "level": -10.0
     },
     "derived": "reverb tail of shotgun_both (0.90 s)",
-    "level": "-16.0 dB (replaced cue was -20.0)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.72
    },
    "measured": {
     "seconds": 0.9,
-    "peak_db": -8.3,
+    "peak_db": -6.9,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 15.4,
-    "centroid_hz": 122,
-    "end_db": -161.7,
+    "onset_ms": 16.6,
+    "centroid_hz": 1312,
+    "end_db": -140.0,
     "problems": []
    },
    "validation": "ok"
@@ -12006,17 +12062,17 @@
      "level": -10.0
     },
     "derived": "reverb tail of rifle (0.53 s)",
-    "level": "-16.0 dB (replaced cue was -19.3)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.42
    },
    "measured": {
     "seconds": 0.525,
-    "peak_db": -8.7,
+    "peak_db": -6.6,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 13.8,
-    "centroid_hz": 5766,
-    "end_db": -149.3,
+    "onset_ms": 14.1,
+    "centroid_hz": 1498,
+    "end_db": -140.0,
     "problems": []
    },
    "validation": "ok"
@@ -12046,7 +12102,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of riveter (0.55 s)",
-    "level": "-16.0 dB (replaced cue was -20.5)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.44
    },
    "measured": {
@@ -12086,7 +12142,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of riveter_pair (0.64 s)",
-    "level": "-16.0 dB (replaced cue was -19.7)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.51
    },
    "measured": {
@@ -12126,7 +12182,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of pressure_gun (0.84 s)",
-    "level": "-16.0 dB (replaced cue was -21.8)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.67
    },
    "measured": {
@@ -12166,7 +12222,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of bottle_launcher (0.56 s)",
-    "level": "-16.0 dB (replaced cue was -20.1)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.45
    },
    "measured": {
@@ -12282,7 +12338,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of explosion (1.36 s)",
-    "level": "-16.0 dB (replaced cue was -18.2)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 1.09
    },
    "measured": {
@@ -12322,7 +12378,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of arm_impact (0.79 s)",
-    "level": "-16.0 dB (replaced cue was -18.6)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.63
    },
    "measured": {
@@ -12362,7 +12418,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of rocket_pop (0.62 s)",
-    "level": "-16.0 dB (replaced cue was -20.0)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.5
    },
    "measured": {
@@ -12402,7 +12458,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of foreman_cut (0.75 s)",
-    "level": "-16.0 dB (replaced cue was -21.1)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.6
    },
    "measured": {
@@ -12442,7 +12498,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of rudy_horn (0.95 s)",
-    "level": "-16.0 dB (replaced cue was -20.2)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.76
    },
    "measured": {
@@ -12482,7 +12538,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of boiler_release (0.84 s)",
-    "level": "-16.0 dB (replaced cue was -20.7)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.67
    },
    "measured": {
@@ -12522,7 +12578,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of chain_crack (0.78 s)",
-    "level": "-16.0 dB (replaced cue was -22.8)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.62
    },
    "measured": {
@@ -12562,7 +12618,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of deputy_shot (0.59 s)",
-    "level": "-16.0 dB (replaced cue was -20.1)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.47
    },
    "measured": {
@@ -12602,7 +12658,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of tosser_throw (0.56 s)",
-    "level": "-16.0 dB (replaced cue was -22.0)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.45
    },
    "measured": {
@@ -12642,7 +12698,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of bowling_hit (0.89 s)",
-    "level": "-16.0 dB (replaced cue was -21.7)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.71
    },
    "measured": {
@@ -12682,7 +12738,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of saw_hit (0.50 s)",
-    "level": "-16.0 dB (replaced cue was -21.7)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.4
    },
    "measured": {
@@ -12722,7 +12778,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of tnt_bounce (0.43 s)",
-    "level": "-16.0 dB (replaced cue was -21.5)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.34
    },
    "measured": {
@@ -12762,7 +12818,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of door (0.74 s)",
-    "level": "-16.0 dB (replaced cue was -21.1)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.59
    },
    "measured": {
@@ -12802,7 +12858,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of gate (0.99 s)",
-    "level": "-16.0 dB (replaced cue was -22.6)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.79
    },
    "measured": {
@@ -12842,7 +12898,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of secret_slide (0.89 s)",
-    "level": "-16.0 dB (replaced cue was -21.7)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.71
    },
    "measured": {
@@ -12882,7 +12938,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of can_kick (0.83 s)",
-    "level": "-16.0 dB (replaced cue was -20.7)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.66
    },
    "measured": {
@@ -12922,7 +12978,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of glass_break (0.89 s)",
-    "level": "-16.0 dB (replaced cue was -22.1)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.71
    },
    "measured": {
@@ -12962,7 +13018,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of sink_flush (1.68 s)",
-    "level": "-16.0 dB (replaced cue was -21.1)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 1.34
    },
    "measured": {
@@ -13002,7 +13058,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of toilet_burst (1.57 s)",
-    "level": "-16.0 dB (replaced cue was -22.2)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 1.26
    },
    "measured": {
@@ -13042,7 +13098,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of tv_pop (0.95 s)",
-    "level": "-16.0 dB (replaced cue was -21.4)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.76
    },
    "measured": {
@@ -13082,7 +13138,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of vending_clunk (1.26 s)",
-    "level": "-16.0 dB (replaced cue was -19.6)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 1.01
    },
    "measured": {
@@ -13122,7 +13178,7 @@
      "level": -10.0
     },
     "derived": "reverb tail of window_smash (0.89 s)",
-    "level": "-16.0 dB (replaced cue was -19.9)",
+    "level": "-16.0 dB (new cue)",
     "keep_seconds": 0.71
    },
    "measured": {

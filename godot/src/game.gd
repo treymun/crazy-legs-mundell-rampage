@@ -1939,6 +1939,7 @@ func hitscan(
 						3,
 						float(pspeed)
 					)
+					gore_fx.impact(x, y, maxf(.04, minf(1.8, p.eye + hit_d * slope)), surface)
 				if (
 					(
 						armory.active == Weapons.REVOLVER
@@ -2970,6 +2971,15 @@ func sprites() -> Array:
 		var speck_sprite := Renderer.Sprite.new(fx.x, fx.y, "fx_" + fx.kind, .095, fx.z)
 		speck_sprite.glow = fx.kind == "spark"
 		sprites.append(speck_sprite)
+	for puff: Gore.Puff in gore_fx.puffs:
+		var hot := puff.kind == "sparks"
+		var step := mini(2 if hot else 3, int(puff.age * (14.0 if hot else 11.0)))
+		var cloud := Renderer.Sprite.new(
+			puff.x, puff.y, "fx_%s_%d" % [puff.kind, step], .20 + puff.age * .85, puff.z - .08
+		)
+		cloud.glow = hot
+		cloud.translucent = true
+		sprites.append(cloud)
 	for g: Gore.Gib in gore_fx.gibs:
 		var chunk := Renderer.Sprite.new(g.x, g.y, g.image, g.size, g.z)
 		chunk.flip = g.flip
@@ -2995,8 +3005,13 @@ func sprites() -> Array:
 		var frame := mini(3, int(age * (11.0 if smoke else 16.0)))
 		var size := .55 + blast.age * 1.3
 		var z := maxf(.03, blast.z - size * .43 + blast.age * .63)
+		var ball := (
+			"blast"
+			if blast.kind == "fire"
+			else "blast_energy" if blast.kind == "energy" else blast.kind
+		)
 		var blast_sprite := Renderer.Sprite.new(
-			blast.x, blast.y, "fx_%s_%d" % ["smoke" if smoke else blast.kind, frame], size, z
+			blast.x, blast.y, "fx_%s_%d" % ["smoke" if smoke else ball, frame], size, z
 		)
 		blast_sprite.glow = not smoke
 		blast_sprite.translucent = true
@@ -3382,6 +3397,7 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 		)
 	if map and p.health > 0:
 		automap(c)
+	gore_fx.draw_lens(c)
 	hud.draw(c, self, weapon)
 	stage_ms[4] = (Time.get_ticks_usec() - t4) / 1000.0
 

@@ -7802,14 +7802,119 @@
    "bytes": 15716
   },
   {
-   "id": "reconcile@2026-11-10T15:41:41",
+   "id": "sfx/shotgun#4",
+   "kind": "sfx",
+   "name": "shotgun",
+   "params": {
+    "text": "A single 12 gauge shotgun gunshot, close microphone, outdoors, very loud and heavy with a deep boom and a sharp crack, dry, no echo. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7027277e8206",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-10T16:49:42",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/shotgun.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/rifle_alt#3",
+   "kind": "sfx",
+   "name": "rifle_alt",
+   "params": {
+    "text": "One AK-47 rifle gunshot, close and loud, deep punchy bark with a hard crack and a short metallic rattle, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "296c7a1a27c2",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-10T16:49:42",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rifle_alt.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/rifle#3",
+   "kind": "sfx",
+   "name": "rifle",
+   "params": {
+    "text": "A single AK-47 assault rifle gunshot, close microphone, outdoors, loud punchy crack with a heavy thud and metallic action, dry, no echo. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "5b0a535a8535",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-10T16:49:42",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rifle.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/shotgun_both#3",
+   "kind": "sfx",
+   "name": "shotgun_both",
+   "params": {
+    "text": "Two 12 gauge shotgun barrels fired at the same instant, close microphone, enormous deep boom and tearing crack, then two empty shells clattering on gravel. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 2.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ae2e3b26a6a8",
+   "reserved": 101,
+   "status": "settled",
+   "started": "2026-11-10T16:49:42",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/shotgun_both.mp3",
+   "bytes": 58975
+  },
+  {
+   "id": "sfx/rifle_alt2#3",
+   "kind": "sfx",
+   "name": "rifle_alt2",
+   "params": {
+    "text": "A single Kalashnikov rifle shot fired outdoors, close microphone, aggressive heavy crack and thump with bolt clatter, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "219535e3b8b1",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-10T16:49:44",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rifle_alt2.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "reconcile@2026-11-10T16:50:48",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -2384,
+   "actual": -2389,
    "basis": "account",
-   "balance_after": 35206
+   "balance_after": 35280
   }
  ],
  "anchor": {
@@ -7817,7 +7922,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-10T15:41:41",
-  "account_drop": 30483
+  "when": "2026-11-10T16:50:48",
+  "account_drop": 30557
  }
 }

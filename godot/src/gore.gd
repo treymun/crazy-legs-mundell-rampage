@@ -21,18 +21,58 @@ class Gib:
 	var rest := false
 	var age := 0.0
 	var green := false
+	var drip := 0.0
+
+
+## Dust or sparks where a bullet struck.
+class Puff:
+	var x := 0.0
+	var y := 0.0
+	var z := 0.0
+	var age := 0.0
+	var kind := "puff"
 
 
 ## Gore keeps fixed-size rings: the oldest chunk, pool or splat is reused, so a
 ## long fight never grows these lists or stalls on freeing them.
-const GIB_CAP := 40
+const GIB_CAP := 64
+const PUFF_CAP := 20
 const BLOOD_CAP := 96
 const SPLAT_CAP := 32
-const GIB_PARTS := ["arm", "arm", "boot", "boot", "rib", "eye", "meat", "meat", "chunk", "organ"]
+const GIB_PARTS := [
+	"head",
+	"arm",
+	"arm",
+	"hand",
+	"boot",
+	"boot",
+	"rib",
+	"gut",
+	"eye",
+	"eye",
+	"meat",
+	"meat",
+	"meat",
+	"chunk",
+	"chunk",
+	"organ"
+]
 const GIB_SIZES := {
-	"eye": .09, "meat": .15, "chunk": .19, "organ": .18, "rib": .30, "arm": .34, "boot": .30
+	"eye": .09,
+	"meat": .15,
+	"chunk": .19,
+	"organ": .18,
+	"rib": .30,
+	"arm": .34,
+	"boot": .30,
+	"head": .26,
+	"hand": .13,
+	"gut": .24
 }
 var gibs: Array = []
+var puffs: Array = []
+## Blood thrown onto the lens by a close overkill: [x, y, radius, age, green].
+var lens: Array = []
 var blood_marks: Array = []
 var walls: Array = []
 var dice := RandomNumberGenerator.new()
@@ -131,14 +171,92 @@ func burst(enemy: Enemy) -> void:
 		var a := away + (k - 1.5) * .8
 		spray(enemy.x, enemy.y, floor_z + enemy.height * .55, cos(a), sin(a), 40.0, green)
 	game.sound_at("gib_burst", enemy.x, enemy.y, .95)
+	# Close enough and some of it reaches the lens.
+	var near := sqrt(
+		(
+			(enemy.x - game.player.x) * (enemy.x - game.player.x)
+			+ (enemy.y - game.player.y) * (enemy.y - game.player.y)
+		)
+	)
+	if near < 2.4:
+		for _i in 5 + dice.randi() % 5:
+			var lx := dice.randf_range(14.0, 306.0)
+			var ly := dice.randf_range(10.0, 132.0)
+			if absf(lx - 160.0) < 34.0 and absf(ly - 78.0) < 26.0:
+				continue
+			lens.append([lx, ly, dice.randf_range(1.5, 4.5), 0.0, green])
+		while lens.size() > 18:
+			lens.pop_front()
+
+
+## A body that fell whole still bleeds where it lies.
+func bleed_out(enemy: Enemy, green: bool) -> void:
+	if not game.gore:
+		return
+	_stain(enemy.x, enemy.y, dice.randf_range(.26, .36), green)
+	for _i in 2:
+		var a := dice.randf() * TAU
+		_stain(enemy.x + cos(a) * .3, enemy.y + sin(a) * .3, dice.randf_range(.10, .18), green)
+
+
+## Dust or sparks where a bullet lands.
+func impact(x: float, y: float, z: float, surface: String) -> void:
+	var puff := Puff.new()
+	puff.x = x
+	puff.y = y
+	puff.z = z
+	puff.kind = "sparks" if surface == "metal" else "puff"
+	puffs.append(puff)
+	if puffs.size() > PUFF_CAP:
+		puffs.pop_front()
+
+
+## Blood on the lens runs down and thins out.
+func draw_lens(c: Canvas) -> void:
+	for drop: Array in lens:
+		var age: float = drop[3]
+		var radius := int(float(drop[2]) * (1.0 - age / 2.8))
+		if radius < 1:
+			continue
+		var color := Canvas.rgb(70, 150, 50) if drop[4] else Canvas.rgb(132, 16, 16)
+		var x := int(drop[0])
+		var y := int(float(drop[1]) + age * age * 9.0)
+		if y < Renderer.VIEW - radius - 1:
+			c.circle(x, y, radius, color, true)
+			if radius > 2:
+				c.fill_rect(x - 1, y - radius - int(age * 8.0), 2, int(age * 8.0), color)
 
 
 func tick(dt: float) -> void:
+	for puff: Puff in puffs:
+		puff.age += dt
+	while not puffs.is_empty() and puffs[0].age > .34:
+		puffs.pop_front()
+	for drop: Array in lens:
+		drop[3] = float(drop[3]) + dt
+	while not lens.is_empty() and float(lens[0][3]) > 2.8:
+		lens.pop_front()
 	for g: Gib in gibs:
 		if g.rest:
 			g.age += dt
 			continue
 		g.vz -= 9.4 * dt
+		# A chunk in the air leaves a line of drops behind it.
+		g.drip -= dt
+		if g.drip <= 0.0 and game.specks.size() < 170:
+			g.drip = .09
+			game.specks.append(
+				Game.Speck.new(
+					g.x,
+					g.y,
+					g.z,
+					0.0,
+					0.0,
+					-.2,
+					dice.randf_range(.18, .34),
+					"plasma" if g.green else "gore"
+				)
+			)
 		var nx := g.x + g.vx * dt
 		var ny := g.y + g.vy * dt
 		if game.world.blocked(nx, ny, .06):

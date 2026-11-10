@@ -424,6 +424,8 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 	):
 		explosive = true
 		game.gore_fx.burst(self)
+	elif hostile and not explosive and kind != "skeeter" and kind != "saucer":
+		game.gore_fx.bleed_out(self, burst_kind == "plasma")
 	game.burst(
 		x,
 		y,

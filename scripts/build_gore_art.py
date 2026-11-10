@@ -62,7 +62,8 @@ def shade(image: Image.Image, light, dark) -> Image.Image:
 
 def gib(part: str, alien: bool) -> Image.Image:
     meat, deep, bone = (SLIME, SLIME_DARK, CHITIN) if alien else (FLESH, FLESH_DARK, BONE)
-    size = {"eye": 14, "meat": 22, "chunk": 28, "organ": 26, "rib": 34, "arm": 36, "boot": 34}[part]
+    size = {"eye": 14, "meat": 22, "chunk": 28, "organ": 26, "rib": 34, "arm": 36, "boot": 34,
+            "head": 30, "hand": 18, "gut": 30}[part]
     im = Image.new("RGBA", (size * U, size * U))
     d = ImageDraw.Draw(im)
     s = size * U
@@ -98,6 +99,31 @@ def gib(part: str, alien: bool) -> Image.Image:
             d.line((s * .86, s * .16, s * (.99 - k * .05), s * (.02 + k * .09)), fill=skin, width=U * 2)
         blob(d, s * .16, s * .8, s * .13, deep, 5, .3)
         d.ellipse((s * .11, s * .75, s * .21, s * .85), fill=bone)
+    elif part == "head":
+        skin = (112, 128, 92) if alien else (186, 122, 92)
+        blob(d, s * .5, s * .46, s * .30, skin, 6, .08)
+        if alien:
+            for sx in (.36, .64):
+                d.ellipse((s * (sx - .1), s * .36, s * (sx + .1), s * .56), fill=(8, 10, 12))
+        else:
+            d.pieslice((s * .18, s * .1, s * .82, s * .6), 180, 360, fill=(70, 50, 34))
+            for sx in (.38, .62):
+                d.ellipse((s * (sx - .05), s * .42, s * (sx + .05), s * .52), fill=(236, 230, 210))
+                d.ellipse((s * (sx - .02), s * .45, s * (sx + .02), s * .5), fill=(10, 10, 10))
+            d.ellipse((s * .4, s * .6, s * .6, s * .7), fill=(60, 14, 14))
+        blob(d, s * .5, s * .82, s * .17, deep, 6, .4)
+        d.ellipse((s * .44, s * .76, s * .56, s * .88), fill=bone)
+    elif part == "hand":
+        skin = (112, 128, 92) if alien else (186, 122, 92)
+        blob(d, s * .45, s * .55, s * .24, skin, 5, .1)
+        for k in range(4 if not alien else 3):
+            d.line((s * (.3 + k * .12), s * .42, s * (.26 + k * .15), s * .12), fill=skin, width=U * 3)
+        blob(d, s * .5, s * .82, s * .14, deep, 5, .4)
+    elif part == "gut":
+        pink = (150, 210, 120) if alien else (196, 96, 96)
+        pts = [(s * (.12 + .76 * t), s * (.5 + .26 * math.sin(t * 9.0))) for t in [k / 14 for k in range(15)]]
+        d.line(pts, fill=deep, width=U * 8, joint="curve")
+        d.line(pts, fill=pink, width=U * 5, joint="curve")
     elif part == "boot":
         leather = (44, 40, 36) if alien else (70, 48, 32)
         cloth = (52, 56, 50) if alien else (66, 78, 108)
@@ -150,7 +176,7 @@ def splat(alien: bool, pool: bool, seed: int) -> Image.Image:
 def main() -> None:
     count = 0
     for alien, prefix in ((False, "gib_"), (True, "gib_a_")):
-        for part in ("arm", "boot", "rib", "eye", "meat", "chunk", "organ"):
+        for part in ("arm", "boot", "rib", "eye", "meat", "chunk", "organ", "head", "hand", "gut"):
             gib(part, alien).save(ART / f"{prefix}{part}.png")
             count += 1
     for alien, word in ((False, "blood"), (True, "acid")):

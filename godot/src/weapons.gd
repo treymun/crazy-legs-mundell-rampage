@@ -732,7 +732,7 @@ class Armory:
 		var by := int(round(y + Weapons.VIEW_PIVOT.y * (1.0 - s) + Weapons.VIEW_SINK))
 		var source: String = Weapons.NAMES[i]
 
-		if i in Weapons.MUZZLE_GUNS and shot_age < .31 and lower < .2 and reload == 0.0:
+		if i in Weapons.MUZZLE_GUNS and shot_age < .62 and lower < .2 and reload == 0.0:
 			var anchor := Vector3i(Weapons.MUZZLES[i])
 			var table: Dictionary = Weapons.muzzle_anchors().get(source, {})
 			if table.has(pose_name):
@@ -744,13 +744,16 @@ class Armory:
 			var smoke_scale := float(style[2])
 			if flash > 0.0 and flashes > 0.0:
 				var index := mini(3, int(shot_age * 48))
-				var size := int(round((float(anchor.z) + (8.0 if last_spent == 2 else 0.0)) * s))
+				var size := int(
+					round((float(anchor.z) * 1.4 + (10.0 if last_spent == 2 else 0.0)) * s)
+				)
 				var flash_art := assets.art("fx_%s_%d" % [prefix, index])
 				var fw := size
 				var fh := int(round(size * aspect))
 				var front := Weapons.view_point(x, y, float(anchor.x), float(anchor.y), s)
 				var fc := Vector2(roundf(front.x - 3.0 * s), roundf(front.y - 2.0 * s))
-				_blit_scaled(
+				# The flash adds its light to the picture instead of covering it.
+				_blit_glow(
 					frame,
 					flash_art,
 					fw,
@@ -759,10 +762,24 @@ class Armory:
 					int(fc.y) - fh / 2,
 					int(255.0 * minf(1.0, flashes))
 				)
+				if prefix != "energy" and prefix != "steam" and shot_age < .075:
+					# Burning powder thrown ahead of the muzzle.
+					var reach := (5.0 + shot_age * 170.0) * s
+					for k in 7:
+						var ang := -3.2 + k * .33 + float((last_spent * 3 + k * 5) % 7) * .06
+						var far := reach * (.62 + .1 * float(k % 4))
+						_line(
+							frame,
+							int(fc.x + cos(ang) * far * .55),
+							int(fc.y + sin(ang) * far * .55),
+							int(fc.x + cos(ang) * far),
+							int(fc.y + sin(ang) * far),
+							Color8(255, 220, 130) if k % 2 else Color8(255, 150, 60)
+						)
 				if i == Weapons.SHOTGUN and last_spent == 2:
 					var twin_size := int(round(size * .76))
 					var twin := assets.art("fx_%s_%d" % [prefix, mini(3, index + 1)])
-					_blit_scaled(
+					_blit_glow(
 						frame,
 						twin,
 						twin_size,
@@ -772,14 +789,18 @@ class Armory:
 						int(255.0 * minf(1.0, flashes))
 					)
 			elif smoke_scale > 0.0 and shot_age >= .048:
-				var index2 := clampi(int((shot_age - .055) * 16.0), 0, 3)
-				var size2 := int(round((21.0 + index2 * 6.0) * smoke_scale))
-				var cloud := assets.art("fx_smoke_%d" % index2)
+				# Smoke leaves the muzzle, rises, spreads and thins over half a second.
+				var drift := shot_age - .048
+				var index2 := clampi(int(drift * 9.0), 0, 3)
+				var size2 := int(round((20.0 + drift * 60.0) * smoke_scale))
+				var cloud := assets.art(
+					"fx_%s_%d" % ["steam" if prefix == "steam" else "smoke", index2]
+				)
 				var spot := Weapons.view_point(
 					x,
 					y,
-					float(anchor.x) - 4.0 - index2 * 2.0,
-					float(anchor.y) - 9.0 - index2 * 4.0,
+					float(anchor.x) - 3.0 - drift * 16.0,
+					float(anchor.y) - 7.0 - drift * 44.0,
 					s
 				)
 				_blit_scaled(
@@ -789,7 +810,7 @@ class Armory:
 					size2,
 					int(roundf(spot.x)) - size2 / 2,
 					int(roundf(spot.y)) - size2 / 2,
-					255
+					int(clampf(1.15 - drift * 2.0, 0.0, 1.0) * 235.0)
 				)
 
 		# Rim first, one pixel high, then the cel.
@@ -1075,6 +1096,33 @@ class Armory:
 				sp += 4
 
 	## Nearest-neighbour scale blit (pygame.transform.scale), alpha scaled.
+	## _blit_scaled, but adding light: a flash brightens what is behind it.
+	static func _blit_glow(
+		frame: PackedByteArray, art: Dictionary, tw: int, th: int, x: int, y: int, alpha: int
+	) -> void:
+		var w: int = art["w"]
+		var h: int = art["h"]
+		var data: PackedByteArray = art["data"]
+		if tw <= 0 or th <= 0:
+			return
+		for ty in th:
+			var gy := y + ty
+			if gy < 0 or gy >= Renderer.VIEW:
+				continue
+			var sy := clampi(ty * h / th, 0, h - 1)
+			for tx in tw:
+				var gx := x + tx
+				if gx < 0 or gx >= Renderer.WIDTH:
+					continue
+				var sp := (sy * w + clampi(tx * w / tw, 0, w - 1)) * 4
+				var a := data[sp + 3] * alpha / 255
+				if a == 0:
+					continue
+				var o := (gy * Renderer.WIDTH + gx) * 3
+				frame[o] = mini(255, frame[o] + data[sp] * a / 255)
+				frame[o + 1] = mini(255, frame[o + 1] + data[sp + 1] * a / 255)
+				frame[o + 2] = mini(255, frame[o + 2] + data[sp + 2] * a / 255)
+
 	static func _blit_scaled(
 		frame: PackedByteArray, art: Dictionary, tw: int, th: int, x: int, y: int, alpha: int
 	) -> void:

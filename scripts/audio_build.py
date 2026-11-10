@@ -187,6 +187,66 @@ def drive(x: np.ndarray, amount: float) -> np.ndarray:
     return np.tanh(x / peak * amount) / np.tanh(amount) * peak
 
 
+def punch(x: np.ndarray, thump: tuple[float, float, float] | None = None, body: float = 0.0,
+          crack: float = 0.0, tail: float = 0.0, clack: float = 0.0, double: float = 0.0,
+          seed: int = 7) -> np.ndarray:
+    """Put weight under a gunshot that came out thin.
+
+    A generated report at this bank's sample rate is mostly crack. This lays
+    designed layers under it, all locked to the onset and scaled to its peak:
+      thump   (start Hz, end Hz, seconds)  a falling sine: the push in the chest
+      body    seconds of mid-band noise decaying: the bark of the powder
+      crack   level of a 3 ms bright burst right on the onset
+      tail    seconds of low-passed noise decaying: the report rolling off
+      clack   level of a short metallic ring 35 ms in: the action cycling
+      double  seconds between two barrels (repeats thump, body and crack)
+    """
+    rng = np.random.default_rng(seed)
+    peak = float(np.abs(x).max()) or 1.0
+    env = envelope(x)
+    onset = int(np.argmax(env >= env.max() * .33))
+    n = len(x)
+    t = np.arange(n) / RATE
+    layer = np.zeros(n)
+
+    def at(delay: float, sound: np.ndarray) -> None:
+        start = onset + int(delay * RATE)
+        if start < n:
+            m = min(len(sound), n - start)
+            layer[start:start + m] += sound[:m]
+
+    shots = (0.0, double) if double else (0.0,)
+    for when in shots:
+        if thump:
+            f0, f1, seconds = thump
+            tt = np.arange(int(seconds * 3.2 * RATE)) / RATE
+            freq = f1 + (f0 - f1) * np.exp(-tt / (seconds * .45))
+            phase = 2 * np.pi * np.cumsum(freq) / RATE
+            at(when, np.sin(phase) * np.exp(-tt / seconds) * peak * .95)
+        if body:
+            tt = np.arange(int(body * 4 * RATE)) / RATE
+            noise = band(rng.standard_normal(len(tt)), 260, 2600)
+            noise /= np.abs(noise).max() or 1.0
+            at(when, noise * np.exp(-tt / body) * peak * .55)
+        if crack:
+            tt = np.arange(int(.012 * RATE)) / RATE
+            noise = band(rng.standard_normal(len(tt)), 2800, 10000)
+            noise /= np.abs(noise).max() or 1.0
+            at(when, noise * np.exp(-tt / .003) * peak * crack)
+    if tail:
+        tt = np.arange(int(tail * 3.5 * RATE)) / RATE
+        noise = band(rng.standard_normal(len(tt)), 90, 1300)
+        noise /= np.abs(noise).max() or 1.0
+        at(.012, noise * np.exp(-tt / tail) * (1 - np.exp(-tt / .01)) * peak * .42)
+    if clack:
+        tt = np.arange(int(.09 * RATE)) / RATE
+        ring = (np.sin(2 * np.pi * 2350 * tt) + .6 * np.sin(2 * np.pi * 3900 * tt + .7)
+                + .4 * np.sin(2 * np.pi * 5600 * tt + 1.9)) * np.exp(-tt / .012)
+        at(.035, ring / 2.0 * peak * clack)
+    mixed = x * .8 + layer
+    return mixed / (np.abs(mixed).max() or 1.0) * peak
+
+
 def fades(x: np.ndarray, out: float, into: float = .0015) -> np.ndarray:
     x = x.copy()
     n = min(len(x) // 2, max(2, int(into * RATE)))
@@ -341,6 +401,9 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
         elif how == "event":
             recipe["derived"] = f"another step from {entry['base']}'s recording"
     x = x - x.mean()
+    if entry.get("punch"):
+        x = punch(x, **entry["punch"])
+        recipe["punch"] = {key: value for key, value in entry["punch"].items()}
     x = tone(x, chain["hp"], chain["lp"], chain["low"], chain["pres"], bool(chain.get("loop")))
     if entry.get("fx"):
         x = speaker(x, entry["fx"])
@@ -357,6 +420,9 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
         # Stay within 6 dB of the cue this replaces: the mix was balanced on it.
         target = float(np.clip(heard, chain["level"] - 6, chain["level"] + 6))
         recipe["level"] = f"{target:.1f} dB (replaced cue was {heard:.1f})"
+    if "level" in entry:
+        target = float(entry["level"])
+        recipe["level"] = f"{target:.1f} dB (set for this cue)"
     else:
         recipe["level"] = f"{target:.1f} dB (new cue)"
     x = level_to(x, target)
