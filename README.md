@@ -18,9 +18,43 @@ This development pass adds the optional Tin Rooster gallery, a dry boardwalk aro
 | Windows portable | `CrazyLegsMundellRampage.exe` | Single-file EXE, no install |
 | Windows installer | `CrazyLegsMundellRampage_Setup.exe` | Start-menu shortcuts and uninstaller |
 | Android | `CrazyLegsMundellRampage.apk` | Android 7.0+, arm64 |
-| Browser | <https://treymun.github.io/crazy-legs-mundell-rampage/> | Pygbag WebAssembly build |
+| Browser | <https://treymun.github.io/crazy-legs-mundell-rampage/> | Godot WebAssembly build, playable on the landing page |
 
-The landing page's download buttons always point at the newest GitHub release. Rebuild locally with `build_windows.bat` (PyInstaller + Inno Setup), `buildozer -v android debug` after `python scripts/make_ogg.py`, or `python -m pygbag --build .`. Pushing a `v*` tag runs `.github/workflows/release.yml`, which builds all three packages, publishes the release, and deploys Pages.
+The landing page's download buttons always point at the newest GitHub release. From 2.0.0-dev.9 the release is built from the Godot project in `godot/`; the Python game in this folder is the original it was ported from and still runs with `python main.py`.
+
+### The Godot build
+
+`godot/` is a Godot 4.7 project that plays the same campaign. It keeps no content of its own: the maps are exported from the Python level modules and the art, sound and palette are packed from `assets/`, so the two versions cannot drift apart. Its renderer is checked against the Python one frame by frame (`godot/tools/compare_frames.py`, `compare_full.py`).
+
+Build it from a clone:
+
+```
+pip install numpy Pillow
+python scripts/build_godot_data.py
+godot --headless --path godot --import
+godot --headless --path godot --export-release "Windows Desktop" build/windows/CrazyLegsMundellRampage.exe
+godot --headless --path godot --export-release "Web" build/web/index.html
+godot --headless --path godot --export-release "Android" build/android/CrazyLegsMundellRampage.apk
+ISCC installer.iss
+```
+
+`build_godot_data.py` writes the asset packs (`godot/assets_gen/*.bin`, about 170 MB, not committed); add `--levels` after changing a level module. The exports need Godot 4.7.2 with its export templates, and the Android one also needs a JDK 17, the Android SDK and a keystore. The Windows export is a single EXE with its data inside; `installer.iss` wraps that one file.
+
+Checks, all headless:
+
+```
+godot --headless --path godot --script res://tools/check_fixes.gd    # porting regressions
+godot --headless --path godot --script res://tools/bot_campaign.gd   # the whole campaign
+gdformat --check godot/src godot/tools && (cd godot && gdlint src tools)
+```
+
+Both scripts save into the game's own profile. Point `APPDATA` at a scratch folder first if yours matters.
+
+`.github/workflows/release.yml` runs those checks and the three exports on every push to `main`, and deploys the landing page with the browser build under `play/`. A `v*` tag stamps its version into the build and also publishes the EXE, the installer and the APK as a release. Set the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_USER` and `ANDROID_KEYSTORE_PASSWORD` repository secrets to sign the APK with a lasting key; without them each run signs with a throwaway one, and a phone has to uninstall the old copy before it takes a new one.
+
+The landing page lives in `site/` (plain HTML, CSS and JavaScript). `python scripts/build_site_assets.py --audio` rebuilds its pictures and sound previews from the game's assets.
+
+The Python build still packages as before: `build_windows.bat` (PyInstaller), `buildozer -v android debug` after `python scripts/make_ogg.py`, or `python -m pygbag --build .`.
 
 ### Play
 
