@@ -5,6 +5,7 @@ import numpy as np
 from scenery import Reactive
 from level_dressing import dress, furniture_spot
 from level_layout import rework
+from level_buildings import finish as finish_buildings
 
 KINDS=(("tv",.75,.0),("cancan",.40,.0),("vending",1.5,.0),("toilet",.82,.0),("window",1.2,.0),("jukebox",1.4,.0),("cancan",.40,.0))
 LEVEL_WEAPON={"hickston":"teat_gun","fair":"powder_keg"}
@@ -26,6 +27,7 @@ def populate(game):
     world=game.world; level=game.level
     # Layout first: structures in the open yards, before anything is placed around them.
     rework(world,level)
+    finish_buildings(world,level)
     dist=reachable(world,level.spawn)
     rng=np.random.default_rng(zlib.crc32(level.id.encode()))
     taken=[(e.x,e.y) for e in game.enemies]+[(x,y) for _,x,y in game.pickups]+[(p.x,p.y) for p in game.props]

@@ -6,6 +6,7 @@ import numpy as np
 
 from crossroads import TOWER_X, TOWER_Y, service_road, tank_faces
 from county_detail import DETAIL_TILES
+from level_buildings import BUILDING_TILES
 
 TILES = ("wood", "barn", "tin", "brick", "plaster", "tile", "mirror", "floor_tile", "concrete",
          "dirt", "tracks", "grass", "asphalt", "road", "door", "gate", "liquor", "eat",
@@ -20,7 +21,7 @@ TILES = ("wood", "barn", "tin", "brick", "plaster", "tile", "mirror", "floor_til
          "route_hickston", "route_fair", "route_sawmill", "route_quarry", "route_hub", "route_closed",
          "quarry_face", "quarry_dust", "quarry_iron", "quarry_copper", "quarry_shed",
          "feed_wash", "fair_marquee", "route_threshold", "hub_patch", "hub_service_wall",
-         "hub_runoff", "hub_screen", "hub_tank_shell") + DETAIL_TILES
+         "hub_runoff", "hub_screen", "hub_tank_shell") + DETAIL_TILES + BUILDING_TILES
 TILE = {name: i for i, name in enumerate(TILES)}
 WALL_HEIGHT = 1.85
 INDEX_RADIUS = .65
