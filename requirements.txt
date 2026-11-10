@@ -2,4 +2,6 @@ pygame-ce==2.5.8
 numpy==2.3.5
 Pillow==13.0.0
 pyinstaller==6.22.3
-
+# Audio tooling only (scripts/audio_generator.py); the game never imports these.
+elevenlabs==2.77.0
+python-dotenv==1.2.4

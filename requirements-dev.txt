@@ -1,0 +1,4 @@
+# Development tooling on top of requirements.txt.
+-r requirements.txt
+pydub==0.25.1           # batch audio conversion (needs ffmpeg on PATH)
+gdtoolkit==4.5.0        # gdformat / gdlint for godot/src and godot/tools
