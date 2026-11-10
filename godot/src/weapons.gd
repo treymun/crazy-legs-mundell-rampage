@@ -130,12 +130,36 @@ const MUZZLES := {
 const GUN_W := 320
 const GUN_H := 120
 const VIEW_SCALE := 1.22
-## The crowbar, revolver and shotgun are photographed plates; every other
-## weapon is cut to sit in the same hands at the revolver's scale.
-const VIEW_SCALES := {CROWBAR: 1.36, REVOLVER: 1.22, SHOTGUN: 1.20}
+## The crowbar, revolver and shotgun are photographed plates. Every other
+## weapon is rendered through one of those plates' cameras and held by that
+## plate's hand, so it draws at that plate's scale and with its nudge.
+const VIEW_SCALES := {
+	CROWBAR: 1.36,
+	SLING: 1.36,
+	DYNAMITE: 1.36,
+	SHOTGUN: 1.20,
+	RIFLE: 1.20,
+	CROSSBOW: 1.20,
+	ROCKET: 1.20,
+	COW: 1.20
+}
 ## Pixels to slide a viewmodel right and down so its muzzle sits under the
 ## crosshair instead of on it.
-const VIEW_SHIFT := {REVOLVER: Vector2(13, 9), SHOTGUN: Vector2(15, 11)}
+const HIP_PISTOL := Vector2(13, 9)
+const HIP_LONG := Vector2(15, 11)
+const VIEW_SHIFT := {
+	REVOLVER: HIP_PISTOL,
+	ARMGUN: HIP_PISTOL,
+	RIVETER: HIP_PISTOL,
+	PRESSURE: HIP_PISTOL,
+	TEAT: HIP_PISTOL,
+	RIPSAW: HIP_PISTOL,
+	SHOTGUN: HIP_LONG,
+	RIFLE: HIP_LONG,
+	CROSSBOW: HIP_LONG,
+	ROCKET: HIP_LONG,
+	COW: HIP_LONG
+}
 const VIEW_PIVOT := Vector2(160.0, 120.0)
 const VIEW_SINK := 4.0
 const HOLD_FLOOR := 3.0
@@ -245,6 +269,7 @@ class Armory:
 	var auto_reload := true
 	var graded := {}
 	var rim_cache := {}
+	var boxes := {}
 
 	func _init(start_slot := 1) -> void:
 		for i in Weapons.COUNT:
@@ -835,48 +860,105 @@ class Armory:
 	# ------------------------------------------------------------ helpers
 
 	## Multiply the cel by the graded light, add the warm floor, then smoothscale.
+	## Where a cel has anything in it (one pixel of margin), found once per cel.
+	func _opaque_box(name: String, data: PackedByteArray, w: int, h: int) -> Rect2i:
+		if boxes.has(name):
+			return boxes[name]
+		var x0 := w
+		var y0 := h
+		var x1 := -1
+		var y1 := -1
+		for y in h:
+			var row := y * w * 4 + 3
+			for x in w:
+				if data[row + x * 4] != 0:
+					if x < x0:
+						x0 = x
+					if x > x1:
+						x1 = x
+					if y < y0:
+						y0 = y
+					y1 = y
+		var box := Rect2i(0, 0, 0, 0)
+		if x1 >= x0:
+			x0 = maxi(0, x0 - 1)
+			y0 = maxi(0, y0 - 1)
+			box = Rect2i(x0, y0, mini(w - 1, x1 + 1) - x0 + 1, mini(h - 1, y1 + 1) - y0 + 1)
+		boxes[name] = box
+		return box
+
+	## Light and scale one cel. A cel is mostly empty air, so only the box that
+	## holds the weapon is graded and scaled, then seated in the full frame:
+	## doing the whole 320x120 was a visible hitch the first time a pose showed.
 	func _grade(assets: Assets, name: String, s: float, level: int) -> Dictionary:
 		var art := assets.art(name)
 		var w: int = art["w"]
 		var h: int = art["h"]
 		var data: PackedByteArray = art["data"]
+		var tw := int(round(Weapons.GUN_W * s))
+		var th := int(round(Weapons.GUN_H * s))
+		var spans := PackedInt32Array()
+		spans.resize(th * 2)
+		spans.fill(-1)
+		var box := _opaque_box(name, data, w, h)
+		var out := PackedByteArray()
+		if box.size.x <= 0:
+			out.resize(tw * th * 4)
+			return {"w": tw, "h": th, "data": out, "spans": spans}
+		var cw := box.size.x
+		var ch := box.size.y
 		var mul_r := mini(255, level * 15 + 11)
 		var mul_g := mini(255, level * 15 + 8)
 		var mul_b := mini(255, level * 16 + 3)
-		var graded_rgba := PackedByteArray()
-		graded_rgba.resize(w * h * 4)
-		for i in w * h:
-			var dr := data[i * 4]
-			var dg := data[i * 4 + 1]
-			var db := data[i * 4 + 2]
-			var da := data[i * 4 + 3]
-			# pygame BLEND_RGBA_MULT: ((d * s) + 255) >> 8, or 0 when either is 0.
-			graded_rgba[i * 4] = ((dr * mul_r) + 255) >> 8 if (dr and mul_r) else 0
-			graded_rgba[i * 4 + 1] = ((dg * mul_g) + 255) >> 8 if (dg and mul_g) else 0
-			graded_rgba[i * 4 + 2] = ((db * mul_b) + 255) >> 8 if (db and mul_b) else 0
-			graded_rgba[i * 4 + 3] = ((da * 255) + 255) >> 8 if da else 0
-			# pygame BLEND_RGB_ADD: saturating add, alpha untouched.
-			graded_rgba[i * 4] = mini(255, graded_rgba[i * 4] + 11)
-			graded_rgba[i * 4 + 1] = mini(255, graded_rgba[i * 4 + 1] + 8)
-			graded_rgba[i * 4 + 2] = mini(255, graded_rgba[i * 4 + 2] + 4)
-		var tw := int(round(Weapons.GUN_W * s))
-		var th := int(round(Weapons.GUN_H * s))
-		var out := SmoothScale.rgba(graded_rgba, w, h, tw, th)
-		# Per-row opaque span. A graded cel is mostly empty air (1-3% opaque),
-		# so the blitter walks only the pixels that can draw something.
-		var spans := PackedInt32Array()
-		spans.resize(th * 2)
-		for ty in th:
+		var crop := PackedByteArray()
+		crop.resize(cw * ch * 4)
+		for y in ch:
+			var i := ((box.position.y + y) * w + box.position.x) * 4
+			var o := y * cw * 4
+			for _x in cw:
+				var da := data[i + 3]
+				if da != 0:
+					var dr := data[i]
+					var dg := data[i + 1]
+					var db := data[i + 2]
+					# pygame BLEND_RGBA_MULT: ((d * s) + 255) >> 8, or 0 when either is 0;
+					# then BLEND_RGB_ADD: a saturating add that leaves alpha alone.
+					crop[o] = mini(255, (((dr * mul_r) + 255) >> 8 if dr else 0) + 11)
+					crop[o + 1] = mini(255, (((dg * mul_g) + 255) >> 8 if dg else 0) + 8)
+					crop[o + 2] = mini(255, (((db * mul_b) + 255) >> 8 if db else 0) + 4)
+					crop[o + 3] = ((da * 255) + 255) >> 8
+				else:
+					crop[o] = 11
+					crop[o + 1] = 8
+					crop[o + 2] = 4
+				i += 4
+				o += 4
+		var sw := clampi(int(round(cw * s)), 1, tw)
+		var sh := clampi(int(round(ch * s)), 1, th)
+		var small := SmoothScale.rgba(crop, cw, ch, sw, sh)
+		var ox := clampi(int(round(box.position.x * s)), 0, tw - sw)
+		var oy := clampi(int(round(box.position.y * s)), 0, th - sh)
+		var left := PackedByteArray()
+		left.resize(ox * 4)
+		var right := PackedByteArray()
+		right.resize((tw - ox - sw) * 4)
+		out.resize(oy * tw * 4)
+		for y in sh:
+			out.append_array(left)
+			out.append_array(small.slice(y * sw * 4, (y + 1) * sw * 4))
+			out.append_array(right)
 			var first := -1
 			var last := -1
-			var row := ty * tw * 4
-			for tx in tw:
-				if out[row + tx * 4 + 3] != 0:
+			var row := y * sw * 4 + 3
+			for x in sw:
+				if small[row + x * 4] != 0:
 					if first < 0:
-						first = tx
-					last = tx
-			spans[ty * 2] = first
-			spans[ty * 2 + 1] = last
+						first = x
+					last = x
+			if first >= 0:
+				spans[(oy + y) * 2] = ox + first
+				spans[(oy + y) * 2 + 1] = ox + last
+		out.resize(tw * th * 4)
 		return {"w": tw, "h": th, "data": out, "spans": spans}
 
 	## mask.from_surface(image).to_surface((205,168,116,42)) over the scaled cel.
@@ -884,15 +966,21 @@ class Armory:
 		var w: int = image["w"]
 		var h: int = image["h"]
 		var data: PackedByteArray = image["data"]
+		var spans: PackedInt32Array = image["spans"]
 		var out := PackedByteArray()
 		out.resize(w * h * 4)
-		for i in w * h:
-			if data[i * 4 + 3] >= 128:
-				out[i * 4] = 205
-				out[i * 4 + 1] = 168
-				out[i * 4 + 2] = 116
-				out[i * 4 + 3] = 42
-		return {"w": w, "h": h, "data": out, "spans": image["spans"]}
+		for y in h:
+			var first := spans[y * 2]
+			if first < 0:
+				continue
+			for x in range(first, spans[y * 2 + 1] + 1):
+				var i := (y * w + x) * 4
+				if data[i + 3] >= 128:
+					out[i] = 205
+					out[i + 1] = 168
+					out[i + 2] = 116
+					out[i + 3] = 42
+		return {"w": w, "h": h, "data": out, "spans": spans}
 
 	## Clip-blit an RGBA image into the view rows of `frame`. Uses the cached
 	## per-row opaque span when the image has one.
