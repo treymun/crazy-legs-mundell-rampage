@@ -418,8 +418,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/cow_launcher.mp3",
-   "prompt": "A big spring-loaded farm catapult launches something heavy: deep twanging thunk with a startled moo cut short.",
-   "credits": 17,
+   "prompt": "A homemade stovepipe cannon fires a cow: deep hollow black-powder whoomp inside a wide steel pipe, a metallic ring, then a startled moo flying away fast.",
+   "credits": 34,
    "destination": "audio_src/final/sfx/cow_launcher.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.9,
@@ -441,11 +441,11 @@
    "measured": {
     "seconds": 0.95,
     "peak_db": -0.8,
-    "loud_db": -5.5,
-    "dc": 0.0019,
+    "loud_db": -4.7,
+    "dc": 0.0005,
     "onset_ms": 0.0,
-    "centroid_hz": 124,
-    "end_db": -128.6,
+    "centroid_hz": 175,
+    "end_db": -133.0,
     "problems": []
    },
    "validation": "ok"
@@ -11527,10 +11527,10 @@
    "measured": {
     "seconds": 1.387,
     "peak_db": -0.8,
-    "loud_db": -8.6,
-    "dc": 0.0016,
-    "onset_ms": 14.0,
-    "centroid_hz": 311,
+    "loud_db": -7.2,
+    "dc": 0.0004,
+    "onset_ms": 12.9,
+    "centroid_hz": 386,
     "end_db": -180.0,
     "problems": []
    },

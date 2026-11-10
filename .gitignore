@@ -33,3 +33,4 @@ web_game/
 # Audio production scratch
 audio_src/*.log
 audio_src/ledger.tmp
+_preview/

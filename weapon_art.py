@@ -18,11 +18,22 @@ RESAMPLE = Image.Resampling.BICUBIC
 SEED = np.random.default_rng(1917)
 
 
-def canvas():
-    return Image.new("RGBA", SIZE)
+# The two photographed guns are laid out in the original 320x174 coordinates,
+# built U times larger so the plate keeps its detail, then framed: FRAMING is
+# (zoom, left, top) of the window of that layout the finished cel shows.
+U = 3
+FRAMING = {"shotgun": (1.75, 84.9, 67.5), "revolver": (1.70, 72.4, 57.4)}
 
 
-def plate(name, position, size, flip=False):
+def canvas(u=1):
+    return Image.new("RGBA", (SIZE[0] * u, SIZE[1] * u))
+
+
+def up(points, u=U):
+    return [(x * u, y * u) for x, y in points]
+
+
+def plate(name, position, size, flip=False, u=1):
     src = Image.open(SOURCE / f"{name}_plate.png").convert("RGBA")
     rgb = np.array(src)
     colors = rgb[..., :3].astype(np.float32)
@@ -36,38 +47,46 @@ def plate(name, position, size, flip=False):
     src = Image.fromarray(rgb)
     if flip:
         src = ImageOps.mirror(src)
-    src = src.resize(size, Image.Resampling.LANCZOS)
-    im = canvas()
-    im.alpha_composite(src, position)
+    src = src.resize((size[0] * u, size[1] * u), Image.Resampling.LANCZOS)
+    im = canvas(u)
+    im.alpha_composite(src, (position[0] * u, position[1] * u))
     return im
 
 
 def move(image, x, y):
-    out = canvas()
+    out = Image.new("RGBA", image.size)
     out.alpha_composite(image, (x, y))
     return out
 
 
+def shifted(image, x, y, u=U):
+    """move() for the enlarged layout; clips instead of failing off the edge."""
+    out = Image.new("RGBA", image.size)
+    out.paste(image, (x * u, y * u), image)
+    return out
+
+
 def layer_pair(image, polygon):
-    mask = Image.new("L", SIZE)
+    mask = Image.new("L", image.size)
     ImageDraw.Draw(mask).polygon(polygon, fill=255)
-    front, back = canvas(), canvas()
+    front, back = Image.new("RGBA", image.size), Image.new("RGBA", image.size)
     front.paste(image, (0, 0), mask)
     back.paste(image, (0, 0), mask.point(lambda x: 255 - x))
     return front, back
 
 
-def shell(image, x, y, tilt=0):
+def shell(image, x, y, tilt=0, u=1):
     """Copper and red paper with an off-axis highlight and visible crimp."""
-    im = Image.new("RGBA", (17, 27))
+    im = Image.new("RGBA", (17 * u, 27 * u))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((4, 3, 12, 22), 2, fill="#713b32", outline="#261d1a")
-    d.line((6, 5, 6, 18), fill="#bb6751", width=2)
-    d.line((9, 4, 9, 18), fill="#8e493b")
-    d.ellipse((5, 3, 11, 6), fill="#95533f")
-    d.rectangle((5, 18, 11, 22), fill="#a98649")
-    d.line((6, 19, 6, 22), fill="#d0b26b")
-    image.alpha_composite(im.rotate(tilt, RESAMPLE), (x - 8, y - 13))
+    d.rounded_rectangle((4 * u, 3 * u, 12 * u, 22 * u), 2 * u, fill="#713b32", outline="#261d1a",
+                        width=u)
+    d.line((6 * u, 5 * u, 6 * u, 18 * u), fill="#bb6751", width=2 * u)
+    d.line((9 * u, 4 * u, 9 * u, 18 * u), fill="#8e493b", width=u)
+    d.ellipse((5 * u, 3 * u, 11 * u, 6 * u), fill="#95533f")
+    d.rectangle((5 * u, 18 * u, 11 * u, 22 * u), fill="#a98649")
+    d.line((6 * u, 19 * u, 6 * u, 22 * u), fill="#d0b26b", width=u)
+    image.alpha_composite(im.rotate(tilt, RESAMPLE), ((x - 8) * u, (y - 13) * u))
 
 
 def plate_detail(points, size, tilt=0, flip=False):
@@ -81,74 +100,92 @@ def plate_detail(points, size, tilt=0, flip=False):
     return source.rotate(tilt, RESAMPLE, expand=True)
 
 
-def loading_hand(tilt):
+def loading_hand(tilt, u=1):
     return plate_detail(((228, 308), (250, 266), (287, 243), (342, 244), (365, 204),
                          (400, 187), (437, 201), (469, 239), (532, 300), (611, 361),
                          (599, 397), (550, 447), (402, 447), (350, 409), (333, 353),
-                         (306, 323), (261, 337), (240, 341)), (34, 24), tilt, True)
+                         (306, 323), (261, 337), (240, 341)), (34 * u, 24 * u), tilt, True)
+
+
+def framed(name, frames):
+    """Cut each enlarged layout down to the window FRAMING names."""
+    zoom, left, top = FRAMING[name]
+    box = (round(left * U), round(top * U), round((left + SIZE[0] / zoom) * U),
+           round((top + SIZE[1] / zoom) * U))
+    return {pose: image.crop(box).resize(SIZE, Image.Resampling.LANCZOS)
+            for pose, image in frames.items()}
 
 
 def shotgun():
-    closed = plate("shotgun", (155, 106), (101, 74)).rotate(-12, RESAMPLE, center=(235, 161))
-    hinge = (223, 139)
-    barrels, stock = layer_pair(closed, [(0, 0), (238, 0), (237, 127), (221, 146),
-                                          (207, 157), (0, 173)])
-    frames = {"idle": closed, "kick": move(closed.rotate(-8, RESAMPLE, center=(248, 158)), -4, -9),
-              "recover": move(closed.rotate(-3, RESAMPLE, center=(248, 158)), -1, -2)}
+    u = U
+    closed = plate("shotgun", (155, 106), (101, 74), u=u).rotate(-12, RESAMPLE,
+                                                                 center=(235 * u, 161 * u))
+    hinge = (223 * u, 139 * u)
+    barrels, stock = layer_pair(closed, up([(0, 0), (238, 0), (237, 127), (221, 146),
+                                            (207, 157), (0, 173)]))
+    pivot = (248 * u, 158 * u)
+    frames = {"idle": closed,
+              "kick": shifted(closed.rotate(-8, RESAMPLE, center=pivot), -4, -9),
+              "recover": shifted(closed.rotate(-3, RESAMPLE, center=pivot), -1, -2)}
     for name, angle, count in (("open", 24, 0), ("eject", 36, 2), ("load", 39, 2),
                                ("eject_one", 36, 1), ("load_one", 39, 1), ("close", 14, 0)):
         rise = -18 if name == "open" else -15 if name == "close" else -29
-        pose = move(stock, 10, rise)
-        forward = move(barrels.rotate(angle, RESAMPLE, center=hinge), 10, rise)
+        pose = shifted(stock, 10, rise)
+        forward = shifted(barrels.rotate(angle, RESAMPLE, center=hinge), 10, rise)
         pose.alpha_composite(forward)
         d = ImageDraw.Draw(pose)
         offset = 29 + rise
-        d.polygon([(224, 109 + offset), (232, 102 + offset), (243, 106 + offset),
-                   (238, 116 + offset), (227, 118 + offset)],
-                  fill="#4e463b", outline="#292927")
-        d.ellipse((227, 106 + offset, 232, 110 + offset), fill="#221e1c", outline="#8f836d")
-        d.ellipse((234, 108 + offset, 240, 112 + offset), fill="#b39455" if count == 1 else "#221e1c",
-                  outline="#8f836d")
+        d.polygon(up([(224, 109 + offset), (232, 102 + offset), (243, 106 + offset),
+                      (238, 116 + offset), (227, 118 + offset)]),
+                  fill="#4e463b", outline="#292927", width=u)
+        d.ellipse((227 * u, (106 + offset) * u, 232 * u, (110 + offset) * u), fill="#221e1c",
+                  outline="#8f836d", width=u)
+        d.ellipse((234 * u, (108 + offset) * u, 240 * u, (112 + offset) * u),
+                  fill="#b39455" if count == 1 else "#221e1c", outline="#8f836d", width=u)
         if name.startswith("eject"):
-            shell(pose, 215, 81, 40)
+            shell(pose, 215, 81, 40, u)
             if count == 2:
-                shell(pose, 234, 89, -27)
+                shell(pose, 234, 89, -27, u)
         elif name.startswith("load"):
-            pose.alpha_composite(loading_hand(-20), (232, 103))
-            shell(pose, 227, 102, -44)
+            pose.alpha_composite(loading_hand(-20, u), (232 * u, 103 * u))
+            shell(pose, 227, 102, -44, u)
             if count == 2:
-                shell(pose, 234, 106, -40)
+                shell(pose, 234, 106, -40, u)
         frames[name] = pose
-    return frames
+    return framed("shotgun", frames)
 
 
 def revolver():
-    idle = plate("revolver", (144, 101), (80, 65)).rotate(-25, RESAMPLE, center=(201, 147))
-    barrel, grip = layer_pair(idle, [(0, 0), (320, 0), (320, 125), (190, 117), (0, 117)])
-    kick = move(idle.rotate(-12, RESAMPLE, center=(219, 145)), -2, -6)
+    u = U
+    idle = plate("revolver", (144, 101), (80, 65), u=u).rotate(-25, RESAMPLE,
+                                                               center=(201 * u, 147 * u))
+    barrel, grip = layer_pair(idle, up([(0, 0), (320, 0), (320, 125), (190, 117), (0, 117)]))
+    pivot = (219 * u, 145 * u)
+    kick = shifted(idle.rotate(-12, RESAMPLE, center=pivot), -2, -6)
     frames = {"idle": idle, "kick": kick,
-              "recover": move(idle.rotate(-5, RESAMPLE, center=(219, 145)), -1, -2)}
+              "recover": shifted(idle.rotate(-5, RESAMPLE, center=pivot), -1, -2)}
     cylinder = plate_detail(((161, 96), (175, 77), (216, 79), (243, 96), (267, 128),
                              (271, 159), (257, 182), (229, 189), (187, 177), (163, 154)),
-                            (17, 15), -24)
+                            (17 * u, 15 * u), -24)
     for name, angle in (("open", 15), ("eject", 20), ("load", 20), ("close", 8)):
-        pose = move(grip, 9, -14)
-        pose.alpha_composite(move(barrel.rotate(angle, RESAMPLE, center=(206, 115)), 9, -14))
+        pose = shifted(grip, 9, -14)
+        pose.alpha_composite(shifted(barrel.rotate(angle, RESAMPLE, center=(206 * u, 115 * u)),
+                                     9, -14))
         d = ImageDraw.Draw(pose)
-        pose.alpha_composite(cylinder, (209, 84))
-        d.ellipse((210, 88, 220, 99), fill="#5d5c55", outline="#302d2b")
+        pose.alpha_composite(cylinder, (209 * u, 84 * u))
+        d.ellipse((210 * u, 88 * u, 220 * u, 99 * u), fill="#5d5c55", outline="#302d2b", width=u)
         for x, y in ((214, 91), (217, 93), (214, 96)):
-            d.point((x, y), fill="#1d1a17")
+            d.ellipse((x * u, y * u, (x + 1) * u, (y + 1) * u), fill="#1d1a17")
         if name == "eject":
-            d.line((206, 79, 210, 84), fill="#ab8950", width=2)
-            d.line((200, 76, 199, 81), fill="#906d44", width=2)
-            d.point((202, 77), fill="#c7ac6c")
+            d.line((206 * u, 79 * u, 210 * u, 84 * u), fill="#ab8950", width=2 * u)
+            d.line((200 * u, 76 * u, 199 * u, 81 * u), fill="#906d44", width=2 * u)
+            d.ellipse((202 * u, 77 * u, 203 * u, 78 * u), fill="#c7ac6c")
         elif name == "load":
-            pose.alpha_composite(loading_hand(28), (179, 95))
-            d.line((205, 101, 211, 96), fill="#ab8950", width=2)
-            d.line((209, 104, 214, 98), fill="#9b7746", width=2)
+            pose.alpha_composite(loading_hand(28, u), (179 * u, 95 * u))
+            d.line((205 * u, 101 * u, 211 * u, 96 * u), fill="#ab8950", width=2 * u)
+            d.line((209 * u, 104 * u, 214 * u, 98 * u), fill="#9b7746", width=2 * u)
         frames[name] = pose
-    return frames
+    return framed("revolver", frames)
 
 
 def crowbar():

@@ -938,7 +938,7 @@ func sprite(observer = null, relieved := false):
 		frame = int(round(sin(gait)))
 	var stem := kind
 	var flip := face_left
-	if observer != null and (frame == -1 or frame == 0 or frame == 1) and TURN_CELS.has(kind):
+	if observer != null and frame is int and frame >= -1 and frame <= 1 and TURN_CELS.has(kind):
 		var bearing := atan2(float(observer[1]) - y, float(observer[0]) - x)
 		var relative := angle_delta(bearing, angle)
 		var direction := mini(4, int(absf(relative) / (PI / 4.0) + .5))
@@ -946,7 +946,8 @@ func sprite(observer = null, relieved := false):
 			stem += ["", "_quarter", "_side", "_away", "_back"][direction]
 		flip = relative < 0.0 and direction < 4
 	if (
-		frame == 0
+		frame is int
+		and frame == 0
 		and stem == kind
 		and FIDGET_CELS.has(kind)
 		and not alerted

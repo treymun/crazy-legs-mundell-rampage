@@ -7067,14 +7067,35 @@
    "bytes": 791
   },
   {
-   "id": "reconcile@2026-11-10T10:54:21",
+   "id": "sfx/cow_launcher#2",
+   "kind": "sfx",
+   "name": "cow_launcher",
+   "params": {
+    "text": "A homemade stovepipe cannon fires a cow: deep hollow black-powder whoomp inside a wide steel pipe, a metallic ring, then a startled moo flying away fast. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2985f0784892",
+   "reserved": 65,
+   "status": "settled",
+   "started": "2026-11-10T11:49:51",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/cow_launcher.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "reconcile@2026-11-10T11:50:54",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
    "actual": -2351,
    "basis": "account",
-   "balance_after": 34775
+   "balance_after": 34792
   }
  ],
  "anchor": {
@@ -7082,7 +7103,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-10T10:54:21",
-  "account_drop": 30052
+  "when": "2026-11-10T11:50:54",
+  "account_drop": 30069
  }
 }

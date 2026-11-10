@@ -48,7 +48,7 @@ MUZZLES = {REVOLVER: (182, 73, 32), SHOTGUN: (181, 75, 48),
 # county's night interiors without touching the source cels or their anchors.
 GUN_W, GUN_H = 320, 120
 VIEW_SCALE = 1.12
-VIEW_SCALES = {CROWBAR: 1.22, REVOLVER: 1.56, SHOTGUN: 1.42, RIFLE: 1.20,
+VIEW_SCALES = {CROWBAR: 1.22, REVOLVER: 1.22, SHOTGUN: 1.20, RIFLE: 1.20,
                CROSSBOW: 1.30, RIPSAW: 1.30, ARMGUN: 1.26, DYNAMITE: 1.24,
                SLING: 1.32, ROCKET: 1.32, BOWLING: 1.40, KEG: 1.36,
                COW: 1.34, TEAT: 1.34}

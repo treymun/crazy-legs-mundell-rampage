@@ -60,17 +60,26 @@ const LABELS := [
 	"COPPERHEAD",
 	"BOWLING BALL [-]",
 	"POWDER KEG [=]",
-	"COW LAUNCHER [\\]",
-	"TEAT GUN [`]"
+	"COW LAUNCHER",
+	"TEAT GUN"
 ]
-const CAPACITY := [0, 6, 2, 1, 18, 1, 6, 0, 0, 1, 8, 3, 1, 1, 1, 30]
+## Only the .38 and the sawed-off have a magazine and a reload. Every other
+## gun fires straight from its ammo pool (`reserve`).
+const CAPACITY := [0, 6, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+## Magazine sizes before the pool change: a save written then may still hold
+## rounds in `loaded`, which `Armory.tick` folds back into the pool.
+const SAVED_CAPACITY := [0, 6, 2, 1, 18, 1, 6, 0, 0, 1, 8, 3, 1, 1, 1, 30]
 const RELOAD_TIME := [
 	0.0, .88, 1.10, .68, 1.30, .58, .88, 0.0, 0.0, .79, .94, 1.18, .72, .95, 1.10, 1.25
 ]
+## Seconds between shots. For the CYCLE_GUNS this is the whole hand-loaded
+## cycle: the shot, then the open / eject / load / close poses.
 const FIRE_TIME := [
-	.33, .34, .55, .62, .125, .32, .34, .46, .49, .65, .24, .68, .70, .80, .95, .095
+	.33, .30, .55, 1.05, .11, .78, .21, .46, .49, 1.15, .22, .60, 1.10, 1.35, 1.55, .09
 ]
-const MAX_RESERVE := [0, 90, 48, 30, 108, 22, 32, 0, 0, 16, 52, 24, 9, 6, 6, 120]
+const MAX_RESERVE := [0, 90, 48, 30, 200, 22, 60, 0, 0, 16, 60, 24, 9, 6, 6, 150]
+## One shot, then a visible reload inside the fire delay.
+const CYCLE_GUNS := [CROSSBOW, RIPSAW, ROCKET, BOWLING, KEG, COW]
 const PICKUP_RESERVE := [0, 12, 15, 8, 20, 5, 8, 0, 0, 6, 16, 6, 3, 2, 2, 30]
 const RECOIL := [.60, .70, 1.03, .8, .44, .55, .42, .25, .87, .74, .65, .82, .55, .75, 1.1, .30]
 const SHOT_NOISE := [
@@ -122,20 +131,22 @@ const GUN_W := 320
 const GUN_H := 120
 const VIEW_SCALE := 1.12
 const VIEW_SCALES := {
-	CROWBAR: 1.22,
-	REVOLVER: 1.56,
-	SHOTGUN: 1.42,
-	RIFLE: 1.20,
-	CROSSBOW: 1.30,
-	RIPSAW: 1.30,
-	ARMGUN: 1.26,
-	DYNAMITE: 1.24,
-	SLING: 1.32,
-	ROCKET: 1.32,
-	BOWLING: 1.40,
-	KEG: 1.36,
-	COW: 1.34,
-	TEAT: 1.34
+	CROWBAR: 1.36,
+	REVOLVER: 1.22,
+	SHOTGUN: 1.20,
+	RIFLE: 1.40,
+	CROSSBOW: 1.44,
+	RIPSAW: 1.44,
+	ARMGUN: 1.42,
+	DYNAMITE: 1.42,
+	SLING: 1.42,
+	ROCKET: 1.44,
+	RIVETER: 1.52,
+	PRESSURE: 1.46,
+	BOWLING: 1.10,
+	KEG: 1.12,
+	COW: 1.36,
+	TEAT: 1.36
 }
 const VIEW_PIVOT := Vector2(160.0, 120.0)
 const VIEW_SINK := 4.0
@@ -201,6 +212,11 @@ const OPEN_AUDIO := {
 static var _anchors: Dictionary = {}
 
 
+## True for a gun that fires from its ammo pool with no magazine.
+static func pool_fed(slot: int) -> bool:
+	return CAPACITY[slot] == 0 and slot not in [CROWBAR, SLING, DYNAMITE]
+
+
 ## Cached weapon_anchors.json (muzzle/case positions per pose).
 static func muzzle_anchors() -> Dictionary:
 	if _anchors.is_empty():
@@ -250,12 +266,31 @@ class Armory:
 		active = start_slot
 
 	func tick(dt: float, game) -> void:
+		for slot in Weapons.COUNT:
+			if loaded[slot] > Weapons.CAPACITY[slot]:
+				# An older save's magazine: put the rounds back in the pool.
+				var extra: int = loaded[slot] - Weapons.CAPACITY[slot]
+				loaded[slot] = Weapons.CAPACITY[slot]
+				reserve[slot] = mini(Weapons.MAX_RESERVE[slot], reserve[slot] + extra)
 		cooldown = maxf(0.0, cooldown - dt)
 		recoil = maxf(0.0, recoil - 5.2 * dt)
 		flash = maxf(0.0, flash - dt)
 		switch = maxf(0.0, switch - dt)
 		empty = maxf(0.0, empty - dt)
+		var age_before := shot_age
 		shot_age += dt
+		if active in Weapons.CYCLE_GUNS and reserve[active] > 0 and reload <= 0.0:
+			# The hand-loaded cycle after a shot: its three sounds on the beats.
+			var span: float = Weapons.FIRE_TIME[active]
+			var hold: float = Weapons.KICK_HOLD[active]
+			if age_before < span and span > hold:
+				var was: float = (age_before - hold) / (span - hold)
+				var now: float = (shot_age - hold) / (span - hold)
+				var cycle_cues: Array = Weapons.RELOAD_AUDIO[active]
+				var cycle_beats: Array = Weapons.RELOAD_BEATS[active]
+				for k in 3:
+					if was < float(cycle_beats[k]) and now >= float(cycle_beats[k]):
+						game.sound.play(String(cycle_cues[k]), .78)
 		if fuse > 0.0:
 			fuse -= dt
 			if fuse <= 0.0:
@@ -373,8 +408,9 @@ class Armory:
 					game.message("OUT OF STICKS.", .72)
 			return
 		var grind := i == Weapons.RIPSAW and both
-		if Weapons.CAPACITY[i] and not loaded[i] and not grind:
-			var started: bool = auto_reload and start_reload(game)
+		var pool := Weapons.pool_fed(i)
+		if ((Weapons.CAPACITY[i] and not loaded[i]) or (pool and not reserve[i])) and not grind:
+			var started: bool = not pool and auto_reload and start_reload(game)
 			if not started and empty == 0.0:
 				empty = .34
 				game.sound.play("dry_" + String(Weapons.NAMES[i]))
@@ -385,7 +421,7 @@ class Armory:
 			both
 			and (
 				(i == Weapons.SHOTGUN and loaded[i] == 2)
-				or (i == Weapons.RIVETER and loaded[i] >= 2)
+				or (i == Weapons.RIVETER and reserve[i] >= 2)
 			)
 		)
 		var spent := 0 if (grind or i in [Weapons.CROWBAR, Weapons.SLING]) else (2 if pair else 1)
@@ -396,11 +432,14 @@ class Armory:
 		else:
 			cooldown = Weapons.FIRE_TIME[i] + (.18 if spent == 2 else 0.0)
 		recoil = Weapons.RECOIL[i] + (.19 if spent == 2 else 0.0)
-		flash = (.078 if spent == 2 else .052) if i in Weapons.MUZZLE_GUNS else 0.0
+		flash = (.10 if spent == 2 else .072) if i in Weapons.MUZZLE_GUNS else 0.0
 		grinding = grind
 		last_spent = spent
 		shot_age = 0.0
-		loaded[i] -= spent
+		if pool:
+			reserve[i] -= spent
+		else:
+			loaded[i] -= spent
 		game.set_face("yell_fire" if i >= Weapons.SHOTGUN else "grin_rampage", .29)
 		var cue := ""
 		if i == Weapons.SHOTGUN and spent == 2:
@@ -594,9 +633,20 @@ class Armory:
 			return "grind_hot" if int(shot_age * 40) % 2 else "grind"
 		elif (
 			shot_age < float(Weapons.KICK_HOLD[active])
-			or (active in [Weapons.CROSSBOW, Weapons.RIPSAW] and not loaded[active])
+			or (active in [Weapons.CROSSBOW, Weapons.RIPSAW] and not reserve[active])
 		):
 			return "kick"
+		elif active in Weapons.CYCLE_GUNS and shot_age < float(Weapons.FIRE_TIME[active]):
+			if not reserve[active]:
+				return "open"
+			var hold := float(Weapons.KICK_HOLD[active])
+			var span := float(Weapons.FIRE_TIME[active]) - hold
+			var cycle := (shot_age - hold) / span
+			var stage := 0
+			for beat in Weapons.RELOAD_BEATS[active]:
+				if cycle >= float(beat):
+					stage += 1
+			return Weapons.RELOAD_POSES[stage]
 		elif (
 			active in Weapons.RECOVERY_GUNS
 			and shot_age < (.103 if active == Weapons.RIFLE else .16)
@@ -636,9 +686,13 @@ class Armory:
 		var lift_amt := minf(1.0, switch / .23)
 		lift_amt = lift_amt * lift_amt * (3.0 - 2.0 * lift_amt) * float(Weapons.RAISE_DEPTH[i])
 		var reload_sway := sin(PI * reload / Weapons.RELOAD_TIME[i]) if reload else 0.0
+		if i in Weapons.CYCLE_GUNS and reserve[i] > 0:
+			var cycle_span: float = Weapons.FIRE_TIME[i]
+			if shot_age < cycle_span:
+				reload_sway = sin(PI * shot_age / cycle_span)
 		var x := roundf(
 			(
-				sin(player.walk_phase) * gait * 5.0
+				sin(player.walk_phase) * gait * 6.5
 				+ player.sway * .7
 				+ settling * float(Weapons.RETREAT[i])
 				+ reload_sway * (2.0 if i == Weapons.CROSSBOW else 4.0)
@@ -648,7 +702,7 @@ class Armory:
 			float(Renderer.VIEW - Weapons.GUN_H + offset)
 			+ roundf(
 				(
-					(absf(cos(player.walk_phase)) * 4.0 - 1.7) * gait
+					(absf(cos(player.walk_phase)) * 5.2 - 2.2) * gait
 					+ player.air * 5.0
 					- float(Weapons.VIEW_RISE[i]) * settling
 					+ lift_amt

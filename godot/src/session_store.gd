@@ -990,7 +990,7 @@ static func _validate_kit(kit) -> bool:
 	if not owned[int(kit["active"])]:
 		return false
 	for i in Weapons.COUNT:
-		if int(loaded[i]) < 0 or int(loaded[i]) > Weapons.CAPACITY[i]:
+		if int(loaded[i]) < 0 or int(loaded[i]) > Weapons.SAVED_CAPACITY[i]:
 			return false
 		if int(reserve[i]) < 0 or int(reserve[i]) > Weapons.MAX_RESERVE[i]:
 			return false
@@ -1100,7 +1100,7 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 	if not game.armory.owned[game.armory.active]:
 		return _fail_at(726)
 	for i in Weapons.COUNT:
-		if game.armory.loaded[i] < 0 or game.armory.loaded[i] > Weapons.CAPACITY[i]:
+		if game.armory.loaded[i] < 0 or game.armory.loaded[i] > Weapons.SAVED_CAPACITY[i]:
 			return _fail_at(729)
 		if game.armory.reserve[i] < 0 or game.armory.reserve[i] > Weapons.MAX_RESERVE[i]:
 			return _fail_at(731)

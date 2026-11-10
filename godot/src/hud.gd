@@ -492,6 +492,8 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	var amount := "-"
 	if slot == Weapons.DYNAMITE:
 		amount = str(armory.reserve[Weapons.CROSSBOW])
+	elif Weapons.pool_fed(slot):
+		amount = str(armory.reserve[slot])
 	elif slot not in [Weapons.CROWBAR, Weapons.SLING]:
 		amount = str(armory.loaded[slot])
 	var health := maxi(0, game.player.health)
@@ -506,11 +508,7 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			2
 		)
 	number(c, amount, 77, Renderer.VIEW + 23, amount == "0")
-	if (
-		slot not in [Weapons.DYNAMITE, Weapons.SLING, Weapons.CROWBAR]
-		and armory.loaded[slot] == 0
-		and armory.reserve[slot] > 0
-	):
+	if Weapons.CAPACITY[slot] > 0 and armory.loaded[slot] == 0 and armory.reserve[slot] > 0:
 		text(c, "RELOAD", 77, Renderer.VIEW + 36, "mini", AMBER, true, false)
 	for i in 2:
 		var name := "key_brass" if i == 0 else "key_steel"

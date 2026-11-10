@@ -156,6 +156,11 @@ var smoke_screen := ""
 ## --demo: a scripted tour of the menus and a stretch of play, for recording
 ## with Godot's --write-movie. Never set in normal play.
 var demo := false
+## --showcase: every weapon in turn (draw, fire, alternate fire, reload) on the
+## first level, for recording with --write-movie. Never set in normal play.
+var showcase := false
+var showcase_slot := -1
+var showcase_only := -1
 var demo_clock := 0.0
 var demo_step := 0
 var smoke_level := "hickston"
@@ -260,6 +265,11 @@ func _parse_smoke() -> void:
 			smoke_shot = text.substr(13)
 		elif text == "--demo":
 			demo = true
+		elif text == "--showcase":
+			showcase = true
+		elif text.begins_with("--showcase="):
+			showcase = true
+			showcase_only = int(text.substr(11))
 		elif text.begins_with("--smoke-screen="):
 			# A front-end screen instead of a level: title, setup, controls,
 			# credits, replays or slots; "setup:3" opens the fourth settings page.
@@ -1649,6 +1659,8 @@ func _process(delta: float) -> void:
 	touch.tick(dt)
 	if demo:
 		_demo(dt)
+	if showcase:
+		_showcase(dt)
 	menu_clock += dt
 	if state != shown_state:
 		shown_state = state
@@ -1679,7 +1691,10 @@ func _process(delta: float) -> void:
 			neutral.fire = game.armory.fuse > 0.0
 			advance(dt, neutral)
 		else:
-			advance(dt, _demo_controls(dt) if demo else _controls(dt, pad, fingers))
+			if showcase:
+				advance(dt, _showcase_controls())
+			else:
+				advance(dt, _demo_controls(dt) if demo else _controls(dt, pad, fingers))
 			if game.player.health <= 0:
 				sound.pause_score(true)
 			if game.showing_tally or game.player.health <= 0:
@@ -1748,6 +1763,49 @@ func _demo(dt: float) -> void:
 		demo_step += 1
 	if demo_clock > 45.0:
 		get_tree().quit()
+
+
+const SHOWCASE_SECONDS := 6.0
+
+
+## One weapon every SHOWCASE_SECONDS: draw it, fire, alternate fire, reload.
+func _showcase(dt: float) -> void:
+	if state != "play" or game == null:
+		if demo_clock == 0.0 and state == "title":
+			start("hickston")
+		return
+	if showcase_slot < 0:
+		game.cheats.god = true
+		game.cheats.apply("hickguns", game)
+		for i in Weapons.COUNT:
+			game.armory.loaded[i] = Weapons.CAPACITY[i]
+	demo_clock += dt
+	var slot := int(demo_clock / SHOWCASE_SECONDS)
+	if showcase_only >= 0:
+		if slot > 0:
+			get_tree().quit()
+			return
+		slot = showcase_only
+	if slot >= Weapons.COUNT:
+		get_tree().quit()
+		return
+	if slot != showcase_slot:
+		showcase_slot = slot
+		game.player.health = 100
+		if game.armory.active == slot:
+			game.armory.select(Weapons.CROWBAR if slot else Weapons.REVOLVER, game)
+		game.armory.select(slot, game)
+	var t := fmod(demo_clock, SHOWCASE_SECONDS)
+	if t >= 4.3 and t - dt < 4.3:
+		game.armory.start_reload(game)
+
+
+func _showcase_controls() -> Game.Controls:
+	var controls := Game.Controls.new()
+	var t := fmod(demo_clock, SHOWCASE_SECONDS)
+	controls.fire = t > 1.0 and t < 2.9
+	controls.alt_fire = t > 3.3 and t < 3.9
+	return controls
 
 
 ## Walk up the county road, sweep the view and keep shooting.

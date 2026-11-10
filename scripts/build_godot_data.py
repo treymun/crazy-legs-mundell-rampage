@@ -43,6 +43,9 @@ def main() -> None:
     run("pack_assets.py")
     run("pack_skies.py")
     out = ROOT / "godot" / "assets_gen"
+    # Muzzle positions are baked with the weapon cels; the game reads this copy.
+    anchors = ROOT / "assets" / "art" / "weapon_anchors.json"
+    (out / anchors.name).write_bytes(anchors.read_bytes())
     missing = [name for name in PACKS if not (out / name).is_file()]
     if missing:
         raise SystemExit(f"Packs were not written: {', '.join(missing)}")
