@@ -103,9 +103,10 @@ python scripts/audio_build.py --check
   `talk_tow-radio_1` is recorded as a longer sentence (`say=` in the spec) and
   cut to "Ask the pig", because the voice kept misreading the short line.
 * **Menu theme**: `audio_src/supplied/menu_theme.mp3` is
-  `Crazy_Legs_Mundell_Redneck_Rampage_Edition.mp3` from the author's Downloads
-  folder. This is an assumption; two other candidates were there. Swap the
-  file and run `python scripts/audio_build.py --music` to change it.
+  `Crazy_Legs_Mundell_2026-11-09T172930.mp3`, which the author sent in chat on
+  2026-11-10 (it replaced an earlier guess). It is mastered to -15 LUFS as
+  `godot/assets/music/title.ogg` (140 s). To change it, swap the file and run
+  `python scripts/audio_build.py --music`.
 * **Menu music** plays on every menu, including pause, and keeps its place.
   (The Python original was silent while paused.)
 
@@ -134,8 +135,6 @@ python scripts/audio_build.py --check
 * `closing_time_shuffle` (118 s) and `quarry_score` (128 s) came back shorter
   than the 137 s the others run. Inside the 2 to 2.5 minute brief only for the
   second; regenerate the first if it matters (about 1,930 credits).
-* The menu theme has much less low-mid energy (120-400 Hz) than the generated
-  tracks, so the step from menu to level may sound like a change of record.
 * Not tested on a real phone, a real gamepad, or in a browser; touch and pad
   paths were exercised by simulated input only. No local Windows/Web/Android
   export was rebuilt on this branch; CI does that.
@@ -145,7 +144,6 @@ python scripts/audio_build.py --check
 ## Suggested follow-ups
 
 1. Listening pass; list cues to redo; `audio_produce.py --redo` them.
-2. Confirm the menu theme file with the author.
-3. Regenerate `closing_time_shuffle` to full length.
-4. Bring the new audio to the Python build, or retire its audio.
-5. Open a pull request to `main` once the listening pass is done.
+2. Regenerate `closing_time_shuffle` to full length.
+3. Bring the new audio to the Python build, or retire its audio.
+4. Open a pull request to `main` once the listening pass is done.
