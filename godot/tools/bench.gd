@@ -97,35 +97,23 @@ func _run() -> void:
 			var a := _stats(tick)
 			var b := _stats(draw)
 			var c := _stats(scene_only)
-			print(
-				(
-					"%-9s %-5s tick %5.2f / %5.2f ms   draw %5.2f / %5.2f ms"
-					+ (
-						"   scene %5.2f / %5.2f ms   -> %3.0f fps (worst %3.0f)"
-						% [
-							level,
-							scene,
-							a[0],
-							a[1],
-							b[0],
-							b[1],
-							c[0],
-							c[1],
-							1000.0 / (a[0] + b[0]),
-							1000.0 / (a[1] + b[1])
-						]
-					)
-				)
+			var row := (
+				"%-9s %-5s tick %5.2f / %5.2f ms   draw %5.2f / %5.2f ms"
+				% [level, scene, a[0], a[1], b[0], b[1]]
 			)
+			row += (
+				"   scene %5.2f / %5.2f ms   -> %3.0f fps (worst %3.0f)"
+				% [c[0], c[1], 1000.0 / (a[0] + b[0]), 1000.0 / (a[1] + b[1])]
+			)
+			print(row)
 	var a := _stats(all_tick)
 	var b := _stats(all_draw)
-	print(
-		(
-			"OVERALL   tick %5.2f / %5.2f ms   draw %5.2f / %5.2f ms"
-			+ (
-				"   -> %3.0f fps mean, %3.0f fps at the worst 1%%"
-				% [a[0], a[1], b[0], b[1], 1000.0 / (a[0] + b[0]), 1000.0 / (a[1] + b[1])]
-			)
-		)
+	var total := (
+		"OVERALL   tick %5.2f / %5.2f ms   draw %5.2f / %5.2f ms" % [a[0], a[1], b[0], b[1]]
 	)
+	total += (
+		"   -> %3.0f fps mean, %3.0f fps at the worst 1%%"
+		% [1000.0 / (a[0] + b[0]), 1000.0 / (a[1] + b[1])]
+	)
+	print(total)
 	quit()
