@@ -1,8 +1,9 @@
-﻿"""Reachable, seeded placement of interactables and new pickups on every level."""
+"""Reachable, seeded placement of interactables and new pickups on every level."""
 import math, zlib
 from collections import deque
 import numpy as np
 from scenery import Reactive
+from level_dressing import dress, furniture_spot
 
 KINDS=(("tv",.75,.0),("cancan",.40,.0),("vending",1.5,.0),("toilet",.82,.0),("window",1.2,.0),("jukebox",1.4,.0),("cancan",.40,.0))
 LEVEL_WEAPON={"hickston":"teat_gun","fair":"powder_keg"}
@@ -36,17 +37,17 @@ def populate(game):
     # interactables
     existing=tuple(world.scenery)
     extra=[]
-    indoor_kinds={"tv","toilet","vending","jukebox","window"}
-    for pass_indoor in (True,False):
+    # Each piece stands with its back to a wall, furniture under a roof where the
+    # level has one to offer; a piece with nowhere sensible to go is left out.
+    for slot in range(want):
+        kind,height,z=KINDS[slot%len(KINDS)]
         for i in order:
-            if len(extra)>=want: break
-            (cx,cy),d=cells[i]; x,y=cx+.5,cy+.5
-            kind,height,z=KINDS[len(extra)%len(KINDS)]
-            roofed=world.roof[cy,cx]>0
-            if pass_indoor and (kind in indoor_kinds)!=bool(roofed) : continue
-            if not free(x,y,3.2): continue
-            extra.append(Reactive(f"x2-{level.id}-{len(extra)}",kind,x,y,height,z,.30))
-            taken.append((x,y))
+            (cx,cy),d=cells[i]
+            spot=furniture_spot(world,kind,cx,cy)
+            if spot is None or not free(spot[0],spot[1],2.4): continue
+            extra.append(Reactive(f"x2-{level.id}-{slot}",kind,spot[0],spot[1],height,z,.30))
+            taken.append(spot)
+            break
     world.scenery=existing+tuple(extra)
     # new weapon / ammo pickups at spread-out distances
     far=sorted(cells,key=lambda c:c[1])
@@ -68,4 +69,8 @@ def populate(game):
             for ox,oy in ((.8,0),(-.8,0),(0,.8),(0,-.8)):
                 if not world.blocked(x+ox,y+oy,.3):
                     game.pickups.append((pick,x+ox,y+oy)); break
-
+    # Dress every open cell, not only those reached from the spawn: the county
+    # hub shares the first chapter's map and is entered through a gate.
+    h,w=world.solid.shape
+    everywhere=[(x,y) for y in range(h) for x in range(w) if world.solid[y,x]<0]
+    dress(world,level,everywhere,taken+[(x,y) for _,x,y in game.pickups])
