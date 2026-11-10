@@ -7,12 +7,15 @@ and a raw blob works unchanged inside an exported PCK.
 Outputs (in ``godot/assets_gen``):
   tiles.bin    TILES-order 128x128x3 RGB
   art.bin      concatenated RGBA images + art_index.json
-  sfx.bin      concatenated mono 16-bit PCM + sfx_index.json
-  music.bin    concatenated Ogg Vorbis + music_index.json
+  sfx.bin      the audio manifest's cues, mono 16-bit PCM + sfx_index.json
+  music.bin    concatenated Ogg Vorbis (chapter tracks, menu theme, tally tune)
+               + music_index.json and music_ends.json
   palette.bin  32768x3 RGB555 grade
   grain.bin    6 frames of 320x156 signed grain, stored +2 biased
-  streams.bin  stereo 16-bit PCM for the title/victory jingles
-  music_ends.json  per-track cut-off points from the reference
+
+Art, tiles and the palette come from the Python project's assets/. Sound comes
+from audio_src/final/sfx and godot/assets/music, which scripts/audio_build.py
+finishes from the stored source recordings.
 """
 from __future__ import annotations
 
@@ -49,9 +52,16 @@ PROJECT = HERE.parent
 # and Godot's Ogg loader rejects Opus), so those transcodes stay in the project.
 SRC_TILES = REF / "assets" / "tiles"
 SRC_ART = REF / "assets" / "art"
-SRC_WAV = REF / "assets" / "wav"
+SRC_SFX = REF / "audio_src" / "final" / "sfx"
+MANIFEST = REF / "audio_src" / "manifest.json"
+SFX_RATE = 22050
 SRC_MUSIC = PROJECT / "assets" / "music"
 OUT = PROJECT / "assets_gen"
+REQUIRED_MUSIC = {
+    "title", "victory", "music", "county_line", "porchlight_stomp", "fair_score",
+    "tickets_after_dark", "closing_time_shuffle", "mill_score", "green_chain", "apron_run",
+    "quarry_score", "copper_and_steam", "last_load",
+}
 
 
 def tiles():
@@ -90,63 +100,59 @@ def art():
 
 
 def sfx():
+    """The effect bank: every cue in the audio manifest, nothing else.
+
+    The cues are the finished files scripts/audio_build.py writes. A cue that
+    is missing or is not mono 16-bit at the bank rate stops the build: the
+    runtime drops unknown cues silently, so a skipped file would only be found
+    by ear.
+    """
+    names = sorted(json.loads(MANIFEST.read_text(encoding="utf-8"))["cues"])
     index = {}
     blob = bytearray()
-    rate = None
-    odd = []
-    for path in sorted(SRC_WAV.glob("*.wav")):
-        with wave.open(str(path), "rb") as pcm:
-            channels, width, framerate, frames = (pcm.getnchannels(), pcm.getsampwidth(),
-                                                  pcm.getframerate(), pcm.getnframes())
-            raw = pcm.readframes(frames)
-        if rate is None:
-            rate = framerate
-        if framerate != rate or width != 2 or channels != 1:
-            odd.append((path.name, channels, width, framerate))
+    wrong = []
+    for name in names:
+        path = SRC_SFX / f"{name}.wav"
+        if not path.is_file():
+            wrong.append(f"{name}: no file")
             continue
-        index[path.stem] = {"offset": len(blob), "frames": frames}
+        with wave.open(str(path), "rb") as pcm:
+            shape = (pcm.getnchannels(), pcm.getsampwidth(), pcm.getframerate())
+            frames = pcm.getnframes()
+            raw = pcm.readframes(frames)
+        if shape != (1, 2, SFX_RATE) or frames == 0:
+            wrong.append(f"{name}: {shape[0]} ch, {shape[1] * 8}-bit, {shape[2]} Hz, {frames} frames")
+            continue
+        index[name] = {"offset": len(blob), "frames": frames}
         blob += raw
+    if wrong:
+        raise SystemExit("Effect bank not written, fix these cues first: " + "; ".join(wrong))
     (OUT / "sfx.bin").write_bytes(blob)
-    (OUT / "sfx_index.json").write_text(json.dumps({"rate": rate, "cues": index},
+    (OUT / "sfx_index.json").write_text(json.dumps({"rate": SFX_RATE, "cues": index},
                                                    separators=(",", ":")))
-    print(f"sfx.bin {len(blob)/1e6:.2f} MB, {len(index)} cues at {rate} Hz, odd={odd[:4]}")
+    print(f"sfx.bin {len(blob)/1e6:.2f} MB, {len(index)} cues at {SFX_RATE} Hz")
 
 
 def music():
+    """Chapter tracks plus the menu theme ("title") and the tally tune ("victory")."""
     index = {}
     blob = bytearray()
     for path in sorted(SRC_MUSIC.glob("*.ogg")):
         data = path.read_bytes()
+        if data[:4] != b"OggS" or b"vorbis" not in data[:64]:
+            raise SystemExit(f"{path.name} is not Ogg Vorbis (Godot cannot stream Opus).")
         index[path.stem] = {"offset": len(blob), "length": len(data)}
         blob += data
+    missing = sorted(REQUIRED_MUSIC - set(index))
+    if missing:
+        raise SystemExit(f"Music missing from {SRC_MUSIC}: {', '.join(missing)}")
     (OUT / "music.bin").write_bytes(blob)
     (OUT / "music_index.json").write_text(json.dumps(index, separators=(",", ":")))
+    ends = json.loads((SRC_MUSIC / "playback_ends.json").read_text(encoding="utf-8"))
+    (OUT / "music_ends.json").write_text(json.dumps(ends, separators=(",", ":")))
+    for stale in ("streams.bin", "streams_index.json"):      # the old PCM jingle bank
+        (OUT / stale).unlink(missing_ok=True)
     print(f"music.bin {len(blob)/1e6:.2f} MB, {len(index)} tracks")
-
-
-def streams():
-    """title/victory are stereo jingles in the reference's wav folder: they are
-    played through the music device, not the effect sample bank."""
-    index = {}
-    blob = bytearray()
-    rate = None
-    for name in ("title", "victory"):
-        path = REF / "assets" / "wav" / f"{name}.wav"
-        with wave.open(str(path), "rb") as pcm:
-            channels, width, framerate, frames = (pcm.getnchannels(), pcm.getsampwidth(),
-                                                  pcm.getframerate(), pcm.getnframes())
-            raw = pcm.readframes(frames)
-        assert width == 2 and channels == 2, (name, channels, width)
-        rate = framerate
-        index[name] = {"offset": len(blob), "frames": frames}
-        blob += raw
-    (OUT / "streams.bin").write_bytes(blob)
-    (OUT / "streams_index.json").write_text(json.dumps({"rate": rate, "streams": index},
-                                                       separators=(",", ":")))
-    print(f"streams.bin {len(blob)/1e6:.2f} MB, {len(index)} jingles at {rate} Hz")
-
-    ends = (REF / "assets" / "music" / "playback_ends.json").read_text(encoding="utf-8")
-    (OUT / "music_ends.json").write_text(ends)
 
 
 def luts():
@@ -166,5 +172,4 @@ if __name__ == "__main__":
     art()
     sfx()
     music()
-    streams()
     luts()

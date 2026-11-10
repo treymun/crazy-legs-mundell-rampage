@@ -29,3 +29,7 @@ web_game/
 
 # Local tooling
 .claude/
+
+# Audio production scratch
+audio_src/*.log
+audio_src/ledger.tmp

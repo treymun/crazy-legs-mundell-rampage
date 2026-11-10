@@ -146,6 +146,8 @@ class ScorePlayer:
 	var assets: Assets
 	var player: AudioStreamPlayer
 	var banks := {}
+	## Where each looping non-chapter song (the menu theme) was left.
+	var resume := {}
 	var requested := "title"
 	var active = null
 	var track = null
@@ -217,6 +219,8 @@ class ScorePlayer:
 	func start(context: String, store := true) -> void:
 		if not ready:
 			return
+		if store and active != null and not banks.has(active) and player.playing:
+			resume[active] = position()
 		if store and banks.has(active):
 			var previous: ShuffleBank = banks[active]
 			if player.playing and not player.stream_paused:
@@ -237,11 +241,13 @@ class ScorePlayer:
 		else:
 			track_name = context
 			loop = context != "victory"
-		var stream: AudioStream = null
-		if track_name == "title" or track_name == "victory":
-			stream = assets.jingle(track_name)
-		else:
-			stream = assets.track(track_name)
+			# The menu theme picks up where it left off, so pausing and
+			# resuming a game does not restart it from its first bar.
+			if loop:
+				start_at = float(resume.get(context, 0.0))
+				if start_at > assets.track_length(track_name) - 1.0:
+					start_at = 0.0
+		var stream: AudioStream = assets.track(track_name)
 		if stream == null:
 			active = context
 			return
@@ -338,6 +344,9 @@ var _warning_alt: Voice
 var _sting: Voice
 var _tool: Voice
 var _voice: Voice
+var _preview: Voice
+var _preview_left := 0.0
+var _preview_side := 1.0
 var _music: AudioStreamPlayer
 
 var _amb_target := [0.0, 0.0]
@@ -368,6 +377,8 @@ func _init(p_art: Assets) -> void:
 	_tool = _make_voice(slot)
 	slot += 1
 	_voice = _make_voice(slot)
+	slot += 1
+	_preview = _make_voice(slot)
 
 	_music = AudioStreamPlayer.new()
 	_music.name = "Music"
@@ -689,6 +700,58 @@ func pause_score(paused: bool) -> void:
 func tick_score(dt: float) -> void:
 	if score_player != null:
 		score_player.update(dt)
+	if _preview_left > 0.0:
+		_preview_left -= dt
+		if _preview_left <= 0.0:
+			_preview.player.stop()
+
+
+## A short sample at the level a settings change just set. There is one preview
+## voice, so a new preview always cuts the last one off: holding a slider down
+## never stacks sounds. "music" needs no sample: the menu theme is playing.
+func preview(kind: String) -> void:
+	_preview.player.stop()
+	_preview_left = 0.0
+	var cue := ""
+	var gain := 0.0
+	var pan := 0.0
+	var seconds := 0.0
+	if kind == "effects":
+		cue = "shotgun"
+		gain = effects_gain * .82 * mix_headroom
+	elif kind == "footsteps":
+		cue = "step_gravel_0"
+		gain = effects_gain * footstep_gain * STEP_GAIN * .82 * mix_headroom
+	elif kind == "voice":
+		cue = "talk_tow-radio_1"
+		gain = voice_gain * .88 * mix_headroom
+	elif kind == "ambience":
+		cue = "amb_yard"
+		gain = .78 * ambient_gain * mix_headroom
+		seconds = 1.6
+	elif kind == "stereo":
+		# Alternate sides so the width can be heard.
+		cue = "ricochet"
+		gain = effects_gain * .82 * mix_headroom
+		_preview_side = -_preview_side
+		pan = _preview_side
+	var stream := assets.cue(cue) if cue != "" else null
+	if stream == null or gain <= 0.0:
+		return
+	_preview.cue = cue
+	_preview.player.stream = stream
+	_preview.player.play()
+	_preview_left = seconds
+	_balance(
+		_preview,
+		gain * (1.0 - maxf(0.0, pan) * pan_width),
+		gain * (1.0 + minf(0.0, pan) * pan_width)
+	)
+
+
+func stop_preview() -> void:
+	_preview.player.stop()
+	_preview_left = 0.0
 
 
 func bookmark_score(context: String):

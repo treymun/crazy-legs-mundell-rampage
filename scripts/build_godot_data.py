@@ -21,8 +21,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOLS = ROOT / "godot" / "tools"
-PACKS = ("tiles.bin", "art.bin", "sfx.bin", "music.bin", "streams.bin",
-         "palette.bin", "grain.bin", "sky.bin")
+PACKS = ("tiles.bin", "art.bin", "sfx.bin", "music.bin", "palette.bin", "grain.bin",
+         "sky.bin")
 
 
 def run(script: str) -> None:

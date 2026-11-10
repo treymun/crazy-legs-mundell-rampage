@@ -31,6 +31,39 @@ const CONTROL_ROWS := [
 	["TAB / F4 / F11", "MAP / MUSIC / FULLSCREEN"],
 	["F5 / F6 / F9", "SLOTS / QUICKSAVE / QUICKLOAD"],
 ]
+const PAD_ROWS := [
+	["LEFT / RIGHT STICK", "MOVE / AIM"],
+	["RIGHT TRIGGER", "FIRE"],
+	["LEFT TRIGGER", "WEAPON ALT FIRE"],
+	["A / B", "JUMP / CROUCH"],
+	["X / Y", "RELOAD / USE"],
+	["BUMPERS", "PREVIOUS / NEXT WEAPON"],
+	["STICK CLICK", "RUN"],
+	["D-PAD UP LEFT RIGHT", "RINDS / BEER / MOONSHINE"],
+	["D-PAD DOWN", "USE THE PICKED ITEM"],
+	["START / BACK", "PAUSE / MAP"],
+]
+const TOUCH_ROWS := [
+	["LEFT THUMB STICK", "MOVE"],
+	["DRAG RIGHT HALF", "AIM"],
+	["FIRE / ALT", "FIRE / WEAPON ALT FIRE"],
+	["USE", "OPEN / RESCUE"],
+	["NEXT", "NEXT WEAPON"],
+	["JUMP / DUCK", "JUMP / CROUCH"],
+	["RIND BEER SHINE", "EAT OR DRINK"],
+	["MENU", "PAUSE"],
+	["TAP A MENU ROW", "SELECT IT"],
+]
+const CONTROL_PAGES := [["KEYBOARD", CONTROL_ROWS], ["GAMEPAD", PAD_ROWS], ["TOUCH", TOUCH_ROWS]]
+## Which sound answers a change to each audio setting.
+const AUDIO_PREVIEW := {
+	"effects": "effects",
+	"ambience": "ambience",
+	"footsteps": "footsteps",
+	"voice_volume": "voice",
+	"stereo": "stereo",
+	"music": "music",
+}
 
 var art: Assets
 var hud: HUD
@@ -86,6 +119,23 @@ var tone_table = null
 
 var pad_down := {}
 
+var menu: Menu
+## Seconds the front end has been open: drives the title screen's slow motion.
+var menu_clock := 0.0
+## Seconds since the screen last changed, for the short dip between screens.
+var screen_age := 1.0
+var shown_state := "title"
+var fade: ColorRect
+## First visible row of the settings list.
+var option_scroll := 0
+## "keys", "pad" or "touch": whatever was used last, so hints name the right buttons.
+var input_device := "keys"
+## Time left to press reset a second time.
+var reset_armed := 0.0
+## A display change waiting to be kept: {key, previous, left}.
+var display_trial := {}
+var controls_page := 0
+
 var touch: TouchControls
 var duck_held := false
 ## The reference fires on the left Ctrl key only (pygame's K_LCTRL).
@@ -102,6 +152,7 @@ var smoke := false
 var smoke_frames := 0
 var smoke_marker := ""
 var smoke_shot := ""
+var smoke_screen := ""
 var smoke_level := "hickston"
 var frame_count := 0
 
@@ -119,6 +170,7 @@ func _ready() -> void:
 
 	art = Assets.new()
 	hud = HUD.new(art)
+	menu = Menu.new(art)
 	sound = Sound.new(art)
 	add_child(sound)
 
@@ -148,6 +200,14 @@ func _ready() -> void:
 	palette_material.set_shader_parameter("lut", ImageTexture.create_from_image(lut_image))
 	view.material = palette_material
 
+	# A plain black sheet over the picture: a tenth of a second of dip between
+	# menu screens instead of a hard cut.
+	fade = ColorRect.new()
+	fade.color = Color(0, 0, 0, 0)
+	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(fade)
+
 	# Drawn at window resolution over the scaled canvas, like the reference.
 	touch = TouchControls.new()
 	add_child(touch)
@@ -167,7 +227,17 @@ func _ready() -> void:
 		change_window_mode(int(options["window_mode"]))
 	_apply_view()
 
-	if smoke_frames > 0:
+	if smoke_frames > 0 and smoke_screen != "":
+		var parts := smoke_screen.split(":")
+		state = parts[0]
+		if parts.size() > 1:
+			option_page = clampi(int(parts[1]), 0, SessionStore.setup_pages().size() - 1)
+			controls_page = clampi(int(parts[1]), 0, CONTROL_PAGES.size() - 1)
+		if parts.size() > 2:
+			option_slot = clampi(int(parts[2]), 0, option_items().size() - 1)
+		if state == "slots":
+			show_slots("load")
+	elif smoke_frames > 0:
 		render()
 		start(smoke_level)
 
@@ -183,6 +253,10 @@ func _parse_smoke() -> void:
 			smoke_level = text.substr(14)
 		elif text.begins_with("--smoke-shot="):
 			smoke_shot = text.substr(13)
+		elif text.begins_with("--smoke-screen="):
+			# A front-end screen instead of a level: title, setup, controls,
+			# credits, replays or slots; "setup:3" opens the fourth settings page.
+			smoke_screen = text.substr(15)
 	smoke = smoke_frames > 0
 	focused = true
 
@@ -276,6 +350,7 @@ func _on_focus_lost() -> void:
 			state = "title"
 			selection = 0
 			sound.pause_world()
+			menu_music()
 			sound.pause_score(true)
 	grab(false)
 
@@ -285,6 +360,8 @@ func _on_focus_gained() -> void:
 		return
 	focused = true
 	block_fire = true
+	if state != "play":
+		sound.pause_score(false)
 	if state == "play" and game != null:
 		grab(not game.showing_tally and game.player.health > 0)
 
@@ -422,10 +499,7 @@ func play(target: Game) -> void:
 	target.tone = tone_table
 	crouch_latched = target.player.crouched and int(options["crouch"]) != 0
 	sound.pause_world()
-	sound.set_score(
-		"victory" if target.showing_tally else ("title" if target.in_hub else target.level.score)
-	)
-	sound.pause_score(false)
+	play_music()
 	state = "play"
 	block_fire = true
 	grab(not target.showing_tally and target.player.health > 0)
@@ -596,12 +670,29 @@ func continue_campaign() -> void:
 func return_to_title(discard := false) -> void:
 	if discard:
 		game = null
-		sound.set_score("title")
-	sound.pause_score(not discard)
+	menu_music()
 	state = "title"
 	selection = 0
 	sound.pause_world()
 	grab(false)
+
+
+## The menu theme, for every screen that is not the game itself. It keeps its
+## place while play is paused, and the chapter's own track keeps its bookmark.
+func menu_music() -> void:
+	sound.set_score("title")
+	sound.pause_score(false)
+
+
+## Back to whatever the game in progress should be playing.
+func play_music() -> void:
+	var target := game
+	if target == null:
+		return
+	sound.set_score(
+		"victory" if target.showing_tally else ("title" if target.in_hub else target.level.score)
+	)
+	sound.pause_score(target.player.health <= 0)
 
 
 func menu_action() -> void:
@@ -610,7 +701,7 @@ func menu_action() -> void:
 	menu_note = ""
 	if entry == "RESUME":
 		state = "play"
-		sound.pause_score(false)
+		play_music()
 		grab(not game.showing_tally and game.player.health > 0)
 	elif entry == "NEW GAME":
 		start()
@@ -712,7 +803,7 @@ func show_slots(mode: String) -> void:
 	menu_note = ""
 	state = "slots"
 	sound.pause_world()
-	sound.pause_score(true)
+	menu_music()
 	grab(false)
 	refresh_slots()
 
@@ -783,8 +874,9 @@ func key_slots(code: int) -> void:
 	if code == KEY_ESCAPE:
 		state = slots_return
 		menu_note = ""
-		sound.pause_score(state == "title" and game != null)
+		sound.play("menu_back")
 		if state == "play":
+			play_music()
 			block_fire = true
 			grab(game.player.health > 0 and not game.showing_tally)
 	elif code == KEY_TAB or code == KEY_LEFT or code == KEY_RIGHT:
@@ -874,14 +966,102 @@ func persist_options() -> void:
 func adjust_setting(direction: int) -> void:
 	var items := option_items()
 	var item: SessionStore.Setting = items[option_slot]
-	options[item.key] = item.adjust(int(options[item.key]), direction)
+	var before := int(options[item.key])
+	options[item.key] = item.adjust(before, direction)
+	if int(options[item.key]) == before:
+		sound.play("empty")  # already at the end of its range
+		return
+	reset_armed = 0.0
+	menu_note = ""
 	if item.key == "crouch":
 		crouch_latched = false
 	if item.key == "window_mode":
 		change_window_mode(int(options["window_mode"]))
+	if (item.key == "window_mode" or item.key == "aspect") and not smoke:
+		# A display change is on trial until it is confirmed, so a mode that
+		# cannot be read is never the one that gets saved.
+		if display_trial.is_empty() or String(display_trial["key"]) != item.key:
+			display_trial = {"key": item.key, "previous": before, "left": 10.0}
+		else:
+			display_trial["left"] = 10.0
+		apply_options()
+		sound.play("menu_move")
+		return
 	apply_options()
-	sound.play("menu_move")
+	if AUDIO_PREVIEW.has(item.key):
+		sound.preview(String(AUDIO_PREVIEW[item.key]))
+	else:
+		sound.play("menu_move")
 	persist_options()
+
+
+## Keep (true) or undo (false) the display change that is on trial.
+func settle_display(keep: bool) -> void:
+	if display_trial.is_empty():
+		return
+	var key := String(display_trial["key"])
+	if not keep:
+		options[key] = int(display_trial["previous"])
+		if key == "window_mode":
+			change_window_mode(int(options[key]))
+		apply_options()
+		menu_note = "DISPLAY CHANGE UNDONE."
+	display_trial = {}
+	persist_options()
+	sound.play("menu_accept" if keep else "menu_back")
+
+
+## Reset only the page on screen, and only on the second press.
+func reset_page() -> void:
+	var page_name := String(SessionStore.setup_pages()[option_page][0])
+	if reset_armed <= 0.0:
+		reset_armed = 3.0
+		menu_note = "RESET THE %s PAGE TO DEFAULTS? PRESS AGAIN." % page_name
+		sound.play("menu_move")
+		return
+	reset_armed = 0.0
+	for raw in option_items():
+		var item: SessionStore.Setting = raw
+		options[item.key] = item.default_value
+		if item.key == "window_mode" and fullscreen and not mobile:
+			change_window_mode(0)
+	crouch_latched = false
+	display_trial = {}
+	apply_options()
+	persist_options()
+	menu_note = "%s PAGE RESET." % page_name
+	sound.play("menu_accept")
+
+
+func setup_page(step: int) -> void:
+	settle_display(false)
+	option_page = posmod(option_page + step, SessionStore.setup_pages().size())
+	option_slot = 0
+	option_scroll = 0
+	menu_note = ""
+	reset_armed = 0.0
+	sound.play("menu_move")
+
+
+func setup_select(slot: int) -> void:
+	var count := option_items().size()
+	slot = posmod(slot, count)
+	if slot != option_slot:
+		option_slot = slot
+		menu_note = ""
+		reset_armed = 0.0
+		sound.play("menu_move")
+	option_scroll = Menu.scroll_for(option_slot, option_scroll, count)
+
+
+## Leave a sub-screen for the title, with the cursor where it was.
+func back_to_title() -> void:
+	settle_display(false)
+	sound.stop_preview()
+	menu_note = ""
+	reset_armed = 0.0
+	state = "title"
+	sound.play("menu_back")
 
 
 func toggle_fullscreen() -> void:
@@ -925,8 +1105,13 @@ func key(code: int, shift := false) -> void:
 		_key_setup(code, shift)
 		return
 	if state == "controls" or state == "credits":
-		if code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_ESCAPE or code == KEY_SPACE:
-			state = "title"
+		if state == "controls" and (code == KEY_LEFT or code == KEY_RIGHT or code == KEY_TAB):
+			controls_page = posmod(
+				controls_page + (-1 if code == KEY_LEFT else 1), CONTROL_PAGES.size()
+			)
+			sound.play("menu_move")
+		elif code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_ESCAPE or code == KEY_SPACE:
+			back_to_title()
 		return
 	if state == "replays":
 		_key_replays(code)
@@ -989,35 +1174,28 @@ func palettised(source: PackedByteArray) -> PackedByteArray:
 
 
 func _key_setup(code: int, shift: bool) -> void:
+	if not display_trial.is_empty():
+		if code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
+			settle_display(true)
+			return
+		if code == KEY_ESCAPE:
+			settle_display(false)
+			return
 	if code == KEY_UP or code == KEY_DOWN:
-		var items := option_items()
-		option_slot = posmod(option_slot + (1 if code == KEY_DOWN else -1), items.size())
-		sound.play("menu_move")
+		setup_select(option_slot + (1 if code == KEY_DOWN else -1))
 	elif code == KEY_TAB or code == KEY_PAGEUP or code == KEY_PAGEDOWN:
-		var step := -1 if code == KEY_PAGEUP or (code == KEY_TAB and shift) else 1
-		option_page = posmod(option_page + step, SessionStore.setup_pages().size())
-		option_slot = 0
-		menu_note = ""
-		sound.play("menu_move")
+		setup_page(-1 if code == KEY_PAGEUP or (code == KEY_TAB and shift) else 1)
 	elif code == KEY_LEFT or code == KEY_RIGHT or code == KEY_ENTER or code == KEY_KP_ENTER:
 		adjust_setting(-1 if code == KEY_LEFT else 1)
 	elif code == KEY_R:
-		for raw in option_items():
-			var item: SessionStore.Setting = raw
-			options[item.key] = item.default_value
-			if item.key == "window_mode" and fullscreen:
-				change_window_mode(0)
-		crouch_latched = false
-		apply_options()
-		persist_options()
-		sound.play("menu_accept")
+		reset_page()
 	elif code == KEY_ESCAPE:
-		state = "title"
+		back_to_title()
 
 
 func _key_replays(code: int) -> void:
 	if code == KEY_ESCAPE:
-		state = "title"
+		back_to_title()
 	elif code == KEY_UP or code == KEY_DOWN or code == KEY_W or code == KEY_S:
 		var step := -1 if code == KEY_UP or code == KEY_W else 1
 		replay_selection = posmod(replay_selection + step, Campaign.ORDER.size())
@@ -1033,18 +1211,28 @@ func _key_replays(code: int) -> void:
 
 func _key_title(code: int) -> void:
 	var rows := entries()
+	var step := Vector2i.ZERO
 	if code == KEY_UP or code == KEY_W:
-		selection = posmod(selection - 1, rows.size())
-		sound.play("menu_move")
+		step.y = -1
 	elif code == KEY_DOWN or code == KEY_S:
-		selection = posmod(selection + 1, rows.size())
-		sound.play("menu_move")
+		step.y = 1
+	elif code == KEY_LEFT or code == KEY_A:
+		step.x = -1
+	elif code == KEY_RIGHT or code == KEY_D:
+		step.x = 1
+	if step != Vector2i.ZERO:
+		var next := Menu.title_move(rows, selection, step.x, step.y)
+		if next != posmod(selection, rows.size()):
+			selection = next
+			menu_note = ""
+			sound.play("menu_move")
 	elif code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
 		sound.play("menu_accept")
 		menu_action()
 	elif code == KEY_ESCAPE and game != null:
 		state = "play"
-		sound.pause_score(false)
+		sound.play("menu_back")
+		play_music()
 		grab(not game.showing_tally and game.player.health > 0)
 
 
@@ -1154,6 +1342,7 @@ func _input(event: InputEvent) -> void:
 		):
 			left_ctrl = key_event.pressed
 		if key_event.pressed and not key_event.echo:
+			input_device = "keys"
 			if (
 				state == "slots"
 				and slot_stage == "edit"
@@ -1165,6 +1354,7 @@ func _input(event: InputEvent) -> void:
 			key(key_event.keycode, key_event.shift_pressed)
 	elif event is InputEventScreenTouch:
 		var finger := event as InputEventScreenTouch
+		input_device = "touch"
 		if state != "play":
 			touch.active = true
 			if finger.pressed:
@@ -1177,6 +1367,8 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion:
 		if state == "play" and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			mouse_rel += (event as InputEventMouseMotion).relative
+		elif state == "title" or state == "setup":
+			hover((event as InputEventMouseMotion).position)
 	elif event is InputEventMouseButton:
 		var button := event as InputEventMouseButton
 		if not button.pressed:
@@ -1193,7 +1385,16 @@ func _input(event: InputEvent) -> void:
 				and not game.in_hub
 			):
 				game.armory.cycle(1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1, game)
+			elif state == "setup" and display_trial.is_empty():
+				setup_select(
+					clampi(
+						option_slot + (-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1),
+						0,
+						option_items().size() - 1
+					)
+				)
 			return
+		input_device = "keys"
 		if (
 			web
 			and state == "play"
@@ -1203,7 +1404,7 @@ func _input(event: InputEvent) -> void:
 			# The browser refused or dropped pointer lock; a click may take it back.
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 			block_fire = true
-		if state == "title" or state == "setup" or state == "replays" or state == "slots":
+		if state != "play":
 			click(button.position, button.button_index)
 		elif (
 			state == "play"
@@ -1219,34 +1420,58 @@ func _input(event: InputEvent) -> void:
 ## Fingers are left clicks on every menu. The reference stops there, which left
 ## CONTROLS and CREDITS with no way back on a phone, so a tap closes those.
 func _touch_menu(position: Vector2) -> void:
-	if state == "controls" or state == "credits":
-		state = "title"
-	else:
-		click(position, MOUSE_BUTTON_LEFT)
+	click(position, MOUSE_BUTTON_LEFT)
+
+
+## A point of the window as a pixel of the 320x200 picture, or (-1, -1).
+func picture_point(position: Vector2) -> Vector2i:
+	var rect := viewport_rect()
+	if not rect.has_point(position):
+		return Vector2i(-1, -1)
+	return Vector2i(
+		int((position.x - rect.position.x) * WIDTH / rect.size.x),
+		int((position.y - rect.position.y) * HEIGHT / rect.size.y)
+	)
+
+
+## The pointer lights the row it is over, without a sound per pixel.
+func hover(position: Vector2) -> void:
+	var at := picture_point(position)
+	if at.x < 0:
+		return
+	if state == "title":
+		var index := Menu.title_hit(entries(), at.x, at.y)
+		if index >= 0 and index != selection:
+			selection = index
+			sound.play("menu_move")
+	elif state == "setup" and display_trial.is_empty():
+		var hit := Menu.setup_hit(
+			at.x, at.y, SessionStore.setup_pages().size(), option_items().size(), option_scroll
+		)
+		if String(hit["kind"]) == "row" and int(hit["index"]) != option_slot:
+			setup_select(int(hit["index"]))
 
 
 func click(position: Vector2, button: int) -> void:
-	var rect := viewport_rect()
-	if not rect.has_point(position):
+	var at := picture_point(position)
+	if at.x < 0:
 		return
-	var x := int((position.x - rect.position.x) * WIDTH / rect.size.x)
-	var y := int((position.y - rect.position.y) * HEIGHT / rect.size.y)
-	if (
-		state == "title"
-		and button == MOUSE_BUTTON_LEFT
-		and x >= 16
-		and x < 190
-		and y >= HUD.TITLE_FIRST
-	):
-		var rows := entries()
-		var row := HUD.TITLE_ROW - (1 if rows.size() > 9 else 0)
-		var index := (y - HUD.TITLE_FIRST) / row
-		if index < rows.size():
+	var x := at.x
+	var y := at.y
+	if state == "title" and button == MOUSE_BUTTON_LEFT:
+		var index := Menu.title_hit(entries(), x, y)
+		if index >= 0:
 			selection = index
 			sound.play("menu_accept")
 			menu_action()
 			if state == "play":
 				block_fire = true
+	elif state == "controls" or state == "credits":
+		if state == "controls" and y >= 32 and y < 46:
+			controls_page = clampi((x - 20) / 92, 0, CONTROL_PAGES.size() - 1)
+			sound.play("menu_move")
+		elif button == MOUSE_BUTTON_LEFT and (Menu.BACK.has_point(at) or input_device == "touch"):
+			back_to_title()
 	elif state == "slots" and button == MOUSE_BUTTON_LEFT:
 		if slot_stage != "choose":
 			if y >= 171 and y < 190:
@@ -1269,30 +1494,35 @@ func click(position: Vector2, button: int) -> void:
 	):
 		replay_selection = (y - REPLAY_TOP) / REPLAY_ROW
 		key(KEY_ENTER)
+	elif state == "replays" and button == MOUSE_BUTTON_LEFT and Menu.BACK.has_point(at):
+		back_to_title()
 	elif state == "setup" and (button == MOUSE_BUTTON_LEFT or button == MOUSE_BUTTON_RIGHT):
-		var pages := SessionStore.setup_pages().size()
-		if (
-			button == MOUSE_BUTTON_LEFT
-			and x >= SETUP_X
-			and x < SETUP_X + SETUP_TAB * pages
-			and y >= 39
-			and y < 54
-		):
-			option_page = (x - SETUP_X) / SETUP_TAB
-			option_slot = 0
-			menu_note = ""
+		if not display_trial.is_empty():
+			# The question box: left half keeps, right half goes back.
+			if y >= 78 and y < 122:
+				settle_display(x < 160)
+			return
+		var hit := Menu.setup_hit(
+			x, y, SessionStore.setup_pages().size(), option_items().size(), option_scroll
+		)
+		var kind := String(hit["kind"])
+		if kind == "tab" and int(hit["index"]) != option_page:
+			setup_page(int(hit["index"]) - option_page)
+		elif kind == "row":
+			setup_select(int(hit["index"]))
+			if int(hit["direction"]) != 0:
+				adjust_setting(-1 if button == MOUSE_BUTTON_RIGHT else int(hit["direction"]))
+		elif kind == "up" or kind == "down":
+			var count := option_items().size()
+			option_scroll = clampi(
+				option_scroll + (-1 if kind == "up" else 1), 0, maxi(0, count - Menu.VISIBLE_ROWS)
+			)
+			option_slot = clampi(option_slot, option_scroll, option_scroll + Menu.VISIBLE_ROWS - 1)
 			sound.play("menu_move")
-		elif (
-			x >= SETUP_X
-			and x < 298
-			and y >= SETUP_Y
-			and y < SETUP_Y + SETUP_ROW * option_items().size()
-		):
-			option_slot = (y - SETUP_Y) / SETUP_ROW
-			if x >= 171:
-				adjust_setting(-1 if button == MOUSE_BUTTON_RIGHT or x < 183 else 1)
-		elif button == MOUSE_BUTTON_LEFT and y >= 175 and y < 190 and x >= 246 and x <= 299:
-			state = "title"
+		elif kind == "reset":
+			reset_page()
+		elif kind == "back":
+			back_to_title()
 
 
 func read_pad(dt: float) -> Dictionary:
@@ -1319,6 +1549,7 @@ func read_pad(dt: float) -> Dictionary:
 		var down := Input.is_joy_button_pressed(device, index)
 		if down and not bool(pad_down.get(index, false)):
 			pressed[index] = true
+			input_device = "pad"
 		pad_down[index] = down
 	var before := state
 	for pair: Array in _pad_bindings():
@@ -1409,6 +1640,24 @@ func _process(delta: float) -> void:
 	pending_dt = 0.0
 
 	touch.tick(dt)
+	menu_clock += dt
+	if state != shown_state:
+		shown_state = state
+		screen_age = 0.0
+	screen_age += dt
+	# A short dip to black between screens; none with SCENERY MOTION on STATIC.
+	var dip := 0.0
+	if int(options.get("world_motion", 0)) != 2 and state != "play":
+		dip = clampf(1.0 - screen_age / .14, 0.0, 1.0) * .6
+	fade.color.a = dip
+	if reset_armed > 0.0:
+		reset_armed -= dt
+		if reset_armed <= 0.0 and state == "setup":
+			menu_note = ""
+	if not display_trial.is_empty():
+		display_trial["left"] = float(display_trial["left"]) - dt
+		if float(display_trial["left"]) <= 0.0 or state != "setup":
+			settle_display(false)
 	var pad := read_pad(dt)
 	var fingers := touch.state()
 	if state == "play" and game != null:
@@ -1590,7 +1839,17 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 
 func render() -> void:
 	if state == "title":
-		hud.title(canvas, selection % entries().size(), entries(), menu_note)
+		var steady := int(options.get("flashes", 0)) != 0 or int(options.get("flicker", 1)) == 0
+		menu.draw_title(
+			canvas,
+			entries(),
+			selection,
+			menu_note,
+			title_hint(),
+			menu_clock,
+			int(options.get("world_motion", 0)),
+			steady
+		)
 	elif state == "setup":
 		render_setup()
 	elif state == "slots":
@@ -1614,9 +1873,23 @@ func render() -> void:
 
 
 func menu_panel(title: String) -> void:
-	_blit_art("title_backdrop", 0, 0)
-	HUD.panel(canvas, 12, 9, 296, 182)
-	HUD.text(canvas, title, 160, 18, "heading", HUD.AMBER, true)
+	menu.draw_sheet(canvas, title)
+
+
+func title_hint() -> String:
+	if input_device == "touch":
+		return "TAP A SIGN TO PICK IT"
+	if input_device == "pad":
+		return "D-PAD MOVE / A SELECT / B BACK"
+	return "ARROWS MOVE / ENTER SELECT"
+
+
+func setup_guide() -> String:
+	if input_device == "touch":
+		return "TAP A ROW  THEN ITS LEFT OR RIGHT"
+	if input_device == "pad":
+		return "LB RB PAGE / D-PAD CHANGE / B BACK"
+	return "TAB PAGE / ARROWS CHANGE / R RESET"
 
 
 func render_replays() -> void:
@@ -1634,26 +1907,39 @@ func render_replays() -> void:
 	HUD.text(
 		canvas,
 		menu_note if menu_note != "" else "ENTER START  /  ESC BACK",
-		160,
-		172,
+		140,
+		180,
 		"body",
 		HUD.INK,
 		true
 	)
+	Menu.plate_button(canvas, Menu.BACK, "BACK")
 
 
 func render_controls() -> void:
 	menu_panel("HOW TO RAISE HELL")
-	HUD.text(canvas, "KEYS", 24, 40, "body", HUD.AMBER)
-	HUD.text(canvas, "ACTION", 132, 40, "body", HUD.AMBER)
-	for i in CONTROL_ROWS.size():
-		var row: Array = CONTROL_ROWS[i]
+	for j in CONTROL_PAGES.size():
+		var on := j == controls_page
+		canvas.fill_rect(20 + j * 92, 32, 90, 13, Menu.RUST if on else Canvas.rgb(48, 34, 26))
+		HUD.text(
+			canvas,
+			String(CONTROL_PAGES[j][0]),
+			65 + j * 92,
+			35,
+			"body",
+			HUD.INK if on else Menu.FADED,
+			true
+		)
+	var rows: Array = CONTROL_PAGES[controls_page][1]
+	for i in rows.size():
+		var row: Array = rows[i]
 		var y := 51 + i * 12
 		if i % 2 == 0:
 			canvas.fill_rect(19, y - 2, 282, 12, Canvas.rgb(33, 23, 19))
 		HUD.text(canvas, String(row[0]), 24, y, "menu", HUD.INK)
-		HUD.text(canvas, String(row[1]), 132, y, "menu", Canvas.rgb(232, 213, 178))
-	HUD.text(canvas, "ESC BACK", 160, 178, "body", HUD.INK, true)
+		HUD.text(canvas, String(row[1]), 146, y, "menu", Canvas.rgb(232, 213, 178))
+	HUD.text(canvas, "LEFT / RIGHT  OTHER CONTROLLERS", 24, 181, "mini", Menu.PAINT, false, false)
+	Menu.plate_button(canvas, Menu.BACK, "BACK")
 
 
 func render_credits() -> void:
@@ -1669,7 +1955,10 @@ func render_credits() -> void:
 		],
 		[
 			"MATERIALS AND AUDIO",
-			["PHOTO MATERIALS / POLY HAVEN", "FULL CREDITS IN THIRD_PARTY_NOTICES.MD"]
+			[
+				"SCORE AND EFFECTS / ELEVENLABS, FINISHED BY HAND",
+				"FULL CREDITS IN THIRD_PARTY_NOTICES.MD"
+			]
 		],
 	]
 	for i in blocks.size():
@@ -1679,70 +1968,32 @@ func render_credits() -> void:
 		var lines: Array = block[1]
 		for j in lines.size():
 			HUD.text(canvas, String(lines[j]), 25, y + 13 + j * 10, "body", HUD.INK)
-	HUD.text(canvas, "ESC BACK", 160, 178, "body", HUD.INK, true)
+	Menu.plate_button(canvas, Menu.BACK, "BACK")
 
 
 func render_setup() -> void:
 	var pages := SessionStore.setup_pages()
-	menu_panel("HICKSTON SETUP")
-	for j in pages.size():
-		var x := SETUP_X + SETUP_TAB * j
-		var active := j == option_page
-		canvas.fill_rect(
-			x, 39, SETUP_TAB - 2, 14, Canvas.rgb(100, 61, 33) if active else Canvas.rgb(54, 39, 32)
-		)
-		canvas.line(
-			x,
-			39,
-			x + SETUP_TAB - 3,
-			39,
-			Canvas.rgb(181, 131, 76) if active else Canvas.rgb(93, 69, 53)
-		)
-		HUD.text(
-			canvas,
-			String(pages[j][0]),
-			x + (SETUP_TAB - 2) / 2,
-			43,
-			"body",
-			HUD.AMBER if active else HUD.INK,
-			true
-		)
-	var items: Array = pages[option_page][1]
-	for j in items.size():
-		var y := SETUP_Y + j * SETUP_ROW
-		var active := j == option_slot
-		var face := (
-			Canvas.rgb(83, 52, 33)
-			if active
-			else (Canvas.rgb(34, 24, 20) if j % 2 == 0 else Canvas.rgb(40, 29, 23))
-		)
-		canvas.fill_rect(SETUP_X, y, 274, SETUP_ROW, face)
-		var item: SessionStore.Setting = items[j]
-		HUD.text(canvas, item.label, 35, y + 2, "menu", HUD.AMBER if active else HUD.INK)
-		HUD.text(
-			canvas,
-			item.format_value(int(options[item.key])),
-			234,
-			y + 2,
-			"menu",
-			HUD.AMBER if active else HUD.INK,
-			true
-		)
-		if active:
-			HUD.text(canvas, ">", 26, y + 3, "body", HUD.AMBER)
-			HUD.text(canvas, "<", 173, y + 3, "body", HUD.AMBER)
-			HUD.text(canvas, ">", 291, y + 3, "body", HUD.AMBER)
-	var hint_text := menu_note
-	if hint_text == "":
-		var current: SessionStore.Setting = items[option_slot]
-		hint_text = current.hint
-	var lines := PixelType.wrap(hint_text, 272)
-	for i in lines.size():
-		HUD.text(canvas, lines[i], 160, 155 + i * 9, "body", Canvas.rgb(227, 201, 161), true)
-	canvas.line(23, 174, 296, 174, Canvas.rgb(113, 80, 54))
-	var guides := [[23, "TAB PAGES"], [99, "ARROWS CHANGE"], [192, "R RESET"], [249, "ESC BACK"]]
-	for guide: Array in guides:
-		HUD.text(canvas, String(guide[1]), int(guide[0]), 179, "body", HUD.INK)
+	option_scroll = Menu.scroll_for(option_slot, option_scroll, option_items().size())
+	var confirm := ""
+	if not display_trial.is_empty():
+		var left := int(ceilf(float(display_trial["left"])))
+		if input_device == "touch":
+			confirm = "TAP LEFT TO KEEP / RIGHT TO UNDO  (%d)" % left
+		elif input_device == "pad":
+			confirm = "A KEEP / B UNDO  (%d)" % left
+		else:
+			confirm = "ENTER KEEP / ESC UNDO  (%d)" % left
+	menu.draw_setup(
+		canvas,
+		pages,
+		option_page,
+		option_slot,
+		option_scroll,
+		options,
+		menu_note,
+		setup_guide(),
+		confirm
+	)
 
 
 func render_slots() -> void:

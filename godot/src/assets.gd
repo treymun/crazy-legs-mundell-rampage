@@ -31,11 +31,6 @@ var music_ends: Dictionary = {}
 var _music_file: FileAccess
 var _music_cache: Dictionary = {}
 
-var stream_index: Dictionary = {}
-var stream_rate: int = 22050
-var _stream_file: FileAccess
-var _stream_cache: Dictionary = {}
-
 
 func _init() -> void:
 	var idx := _json("res://data/index.json")
@@ -64,11 +59,6 @@ func _init() -> void:
 	music_index = _json("res://assets_gen/music_index.json")
 	music_ends = _json("res://assets_gen/music_ends.json")
 	_music_file = FileAccess.open("res://assets_gen/music.bin", FileAccess.READ)
-
-	var jingles := _json("res://assets_gen/streams_index.json")
-	stream_rate = int(jingles.get("rate", 22050))
-	stream_index = jingles.get("streams", {})
-	_stream_file = FileAccess.open("res://assets_gen/streams.bin", FileAccess.READ)
 
 
 static func _json(path: String) -> Dictionary:
@@ -164,24 +154,11 @@ func track_length(name: String) -> float:
 	return stream.get_length() if stream != null else 0.0
 
 
-## title/victory: stereo jingles played through the music device in the reference.
-func jingle(name: String) -> AudioStreamWAV:
-	var cached = _stream_cache.get(name)
-	if cached != null:
-		return cached
-	var info = stream_index.get(name)
-	if info == null:
-		return null
-	_stream_file.seek(int(info["offset"]))
-	var frames := int(info["frames"])
-	var raw := _stream_file.get_buffer(frames * 4)
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.mix_rate = stream_rate
-	stream.stereo = true
-	stream.data = raw
-	_stream_cache[name] = stream
-	return stream
+## The menu theme and the tally tune. They were short PCM jingles in a bank of
+## their own; they are ordinary Ogg tracks now, so a full-length menu song costs
+## megabytes rather than tens of megabytes.
+func jingle(name: String) -> AudioStreamOggVorbis:
+	return track(name)
 
 
 func has_cue(name: String) -> bool:

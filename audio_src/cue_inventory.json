@@ -1,0 +1,5120 @@
+{
+ "cues": {
+  "actor_cloth_down": {
+   "active": true,
+   "family": "pain_death",
+   "trigger": "hostile killed: all other hostiles (clone, billy, coot, jerry, barker, rudy, ...)",
+   "refs": [
+    "enemies.gd:383",
+    "enemies.gd:384"
+   ],
+   "dynamic": "\"actor_%s_down\" % material",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 11907,
+   "seconds": 0.54
+  },
+  "actor_cloth_pain": {
+   "active": true,
+   "family": "pain_death",
+   "trigger": "hostile hit for >=14 damage and survives: all other hostiles (clone, billy, coot, jerry, barker, rudy, ...)",
+   "refs": [
+    "enemies.gd:371"
+   ],
+   "dynamic": "\"actor_%s_pain\" % material",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "actor_shell_down": {
+   "active": true,
+   "family": "pain_death",
+   "trigger": "hostile killed: alien, saucer, boss, crawler, lantern, skeeter(pain only), valve_rat",
+   "refs": [
+    "enemies.gd:383",
+    "enemies.gd:384"
+   ],
+   "dynamic": "\"actor_%s_down\" % material",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 12128,
+   "seconds": 0.55
+  },
+  "actor_shell_pain": {
+   "active": true,
+   "family": "pain_death",
+   "trigger": "hostile hit for >=14 damage and survives: alien, saucer, boss, crawler, lantern, skeeter(pain only), valve_rat",
+   "refs": [
+    "enemies.gd:371"
+   ],
+   "dynamic": "\"actor_%s_pain\" % material",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 6394,
+   "seconds": 0.29
+  },
+  "actor_tool_down": {
+   "active": true,
+   "family": "pain_death",
+   "trigger": "hostile killed: boilerback, foreman, baron, chain_hand, millhand",
+   "refs": [
+    "enemies.gd:383",
+    "enemies.gd:384"
+   ],
+   "dynamic": "\"actor_%s_down\" % material",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 12789,
+   "seconds": 0.58
+  },
+  "actor_tool_pain": {
+   "active": true,
+   "family": "pain_death",
+   "trigger": "hostile hit for >=14 damage and survives: boilerback, foreman, baron, chain_hand, millhand",
+   "refs": [
+    "enemies.gd:371"
+   ],
+   "dynamic": "\"actor_%s_pain\" % material",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7056,
+   "seconds": 0.32
+  },
+  "alien_alert": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "alien first alerted (wake)",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:106"
+   ],
+   "dynamic": "AWAKE[kind]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 8379,
+   "seconds": 0.38
+  },
+  "amb_barn": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: Hickston area 4 (barn)",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 264600,
+   "seconds": 12.0
+  },
+  "amb_creek": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: Hickston area 9 (creek)",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 264600,
+   "seconds": 12.0
+  },
+  "amb_fair": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: fair before broadcast shutdown",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 308700,
+   "seconds": 14.0
+  },
+  "amb_fair_after": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: fair after 'broadcast' station",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 255780,
+   "seconds": 11.6
+  },
+  "amb_mill": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: sawmill near machinery before relay",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 308700,
+   "seconds": 14.0
+  },
+  "amb_mill_bank": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: sawmill after 'relay', outdoors >13 tiles from pump, or recovery room",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 308700,
+   "seconds": 14.0
+  },
+  "amb_quarry": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: quarry outdoors before bottling shutdown",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 264600,
+   "seconds": 12.0
+  },
+  "amb_quarry_after": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: quarry after 'bottling' station",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 255780,
+   "seconds": 11.6
+  },
+  "amb_quarry_line": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: quarry indoors before bottling shutdown",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 264600,
+   "seconds": 12.0
+  },
+  "amb_room": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: Hickston indoors; fair/quarry recovery room",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 264600,
+   "seconds": 12.0
+  },
+  "amb_yard": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "room ambience bed: Hickston outdoors default",
+   "refs": [
+    "game.gd:2635",
+    "sound.gd:518"
+   ],
+   "dynamic": "\"amb_\" + room",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; .33s crossfade between two ambience voices",
+   "frames": 264600,
+   "seconds": 12.0
+  },
+  "apron_run": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3168000,
+   "seconds": 143.67
+  },
+  "arm_cell": {
+   "active": true,
+   "family": "reload",
+   "trigger": "armgun reload beat 2/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:176"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "armgun: at 0.46s of 0.88s reload, 0.29s until next beat/end.",
+   "frames": 7276,
+   "seconds": 0.33
+  },
+  "arm_charge": {
+   "active": false,
+   "family": "weapon_report",
+   "trigger": "no runtime reference (arm gun charge; not used by Godot or by any Python play call)",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7056,
+   "seconds": 0.32
+  },
+  "arm_impact": {
+   "active": true,
+   "family": "explosion",
+   "trigger": "alien arm-gun bolt detonates",
+   "refs": [
+    "game.gd:2056",
+    "game.gd:2058"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 10364,
+   "seconds": 0.47
+  },
+  "arm_ready": {
+   "active": true,
+   "family": "reload",
+   "trigger": "armgun reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:176"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "armgun: at 0.75s of 0.88s reload, 0.13s until next beat/end.",
+   "frames": 4190,
+   "seconds": 0.19
+  },
+  "arm_vent": {
+   "active": true,
+   "family": "reload",
+   "trigger": "armgun reload beat 1/3; armgun reload start (open)",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:176",
+    "weapons.gd:350",
+    "weapons.gd:191"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k] | Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "armgun: at 0.26s of 0.88s reload, 0.20s until next beat/end. armgun: at 0.00s, 0.26s until first reload beat.",
+   "frames": 6615,
+   "seconds": 0.3
+  },
+  "armgun": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires armgun (sound.play, centred)",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:416"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.340s (FIRE_TIME)",
+   "frames": 9702,
+   "seconds": 0.44
+  },
+  "barker_blast": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "barker fires projectile(s)",
+   "refs": [
+    "enemies.gd:892",
+    "enemies.gd:902"
+   ],
+   "dynamic": "dict by kind, default 'plasma'",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "barker_wind": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "barker attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:149"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "barker attack releases 0.63s after cue start (WINDUP).",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "baron_end": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "finale boss baron defeated (sting channel)",
+   "refs": [
+    "game.gd:1234"
+   ],
+   "dynamic": "enemy.kind + \"_end\"",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 35721,
+   "seconds": 1.62
+  },
+  "baron_intro": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "shutdown station used, finale wave with baron wakes (sting channel)",
+   "refs": [
+    "game.gd:1584"
+   ],
+   "dynamic": "finale.kind + \"_intro\"",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "boss first attack held 2.05s after sting starts",
+   "frames": 35721,
+   "seconds": 1.62
+  },
+  "baron_warn": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "baron attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:157"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "baron attack releases 0.95s after cue start (WINDUP).",
+   "frames": 20727,
+   "seconds": 0.94
+  },
+  "belch": {
+   "active": true,
+   "family": "player",
+   "trigger": "automatic belch while gut >= 66 (wakes nearby enemies)",
+   "refs": [
+    "game.gd:2544"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "repeats every 5.6s",
+   "frames": 14774,
+   "seconds": 0.67
+  },
+  "billy_alert": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "billy first alerted (wake)",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:103"
+   ],
+   "dynamic": "AWAKE[kind]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 8600,
+   "seconds": 0.39
+  },
+  "boiler_priming": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "boilerback attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:153"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "boilerback attack releases 0.78s after cue start (WINDUP).",
+   "frames": 16538,
+   "seconds": 0.75
+  },
+  "boiler_release": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "boilerback steam blast; Copper Baron's alternate (even) attack",
+   "refs": [
+    "enemies.gd:827"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cooldown 1.60s",
+   "frames": 11246,
+   "seconds": 0.51
+  },
+  "bolt_rack": {
+   "active": true,
+   "family": "reload",
+   "trigger": "rifle reload beat 3/3; teat_gun reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:174",
+    "weapons.gd:183"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rifle: at 1.10s of 1.30s reload, 0.20s until next beat/end. teat_gun: at 1.05s of 1.25s reload, 0.20s until next beat/end.",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "bottle_launcher": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires bottle_launcher (Game.report (adds room_ twin indoors))",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:414"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.650s (FIRE_TIME)",
+   "frames": 6836,
+   "seconds": 0.31
+  },
+  "bow_hook": {
+   "active": true,
+   "family": "reload",
+   "trigger": "crossbow reload start (open)",
+   "refs": [
+    "weapons.gd:350",
+    "weapons.gd:188"
+   ],
+   "dynamic": "Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "crossbow: at 0.00s, 0.18s until first reload beat.",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "bow_latch": {
+   "active": true,
+   "family": "reload",
+   "trigger": "crossbow reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:173"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "crossbow: at 0.56s of 0.68s reload, 0.12s until next beat/end.",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "bow_pull": {
+   "active": true,
+   "family": "reload",
+   "trigger": "crossbow reload beat 1/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:173"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "crossbow: at 0.18s of 0.68s reload, 0.17s until next beat/end.",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "bow_seat": {
+   "active": true,
+   "family": "reload",
+   "trigger": "crossbow reload beat 2/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:173"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "crossbow: at 0.35s of 0.68s reload, 0.21s until next beat/end.",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "bowling_ball": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires bowling_ball (sound.play, centred)",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:416"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.700s (FIRE_TIME)",
+   "frames": 19845,
+   "seconds": 0.9
+  },
+  "bowling_hit": {
+   "active": true,
+   "family": "impact",
+   "trigger": "bowling ball hits an enemy",
+   "refs": [
+    "game.gd:2275"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 12127,
+   "seconds": 0.55
+  },
+  "brake_ratchet": {
+   "active": true,
+   "family": "station",
+   "trigger": "sawmill station 'east' activated (strike); sawmill station 'brake' activated (use)",
+   "refs": [
+    "game.gd:1585",
+    "data/sawmill.json:stations"
+   ],
+   "dynamic": "station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 14112,
+   "seconds": 0.64
+  },
+  "breaker_thunk": {
+   "active": true,
+   "family": "station",
+   "trigger": "fair station 'concession' activated (use)",
+   "refs": [
+    "game.gd:1585",
+    "data/fair.json:stations"
+   ],
+   "dynamic": "station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "broadcast_cut": {
+   "active": true,
+   "family": "station",
+   "trigger": "fair station 'games' activated (use); fair station 'broadcast' activated (use)",
+   "refs": [
+    "game.gd:1585",
+    "data/fair.json:stations"
+   ],
+   "dynamic": "station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "can_kick": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'cancan' scenery prop shot or caught in a blast (fair, hickston, quarry, sawmill)",
+   "refs": [
+    "game.gd:127",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 11025,
+   "seconds": 0.5
+  },
+  "chain_crack": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "chain_hand signature attack release",
+   "refs": [
+    "enemies.gd:720",
+    "enemies.gd:48"
+   ],
+   "dynamic": "SIGNATURES[kind][6]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 10143,
+   "seconds": 0.46
+  },
+  "chain_raise": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "chain_hand first alerted (wake); chain_hand attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:111",
+    "enemies.gd:620",
+    "enemies.gd:160"
+   ],
+   "dynamic": "AWAKE[kind] | WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "chain_hand attack releases 0.82s after cue start (WINDUP).",
+   "frames": 15435,
+   "seconds": 0.7
+  },
+  "chalk_cough": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "chalk_spitter attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:154"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "chalk_spitter attack releases 0.64s after cue start (WINDUP).",
+   "frames": 11025,
+   "seconds": 0.5
+  },
+  "chalk_pop": {
+   "active": true,
+   "family": "projectile",
+   "trigger": "chalk spitter lob lands, leaves chalk cloud",
+   "refs": [
+    "game.gd:2147"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cloud hazard lasts 2.75s",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "chalk_spit": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "chalk_spitter lobs chalk",
+   "refs": [
+    "enemies.gd:778"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "lob flight .51-1.25s then chalk_pop",
+   "frames": 5292,
+   "seconds": 0.24
+  },
+  "chicken": {
+   "active": true,
+   "family": "creature",
+   "trigger": "chicken startled by noise, or chicken killed",
+   "refs": [
+    "game.gd:981",
+    "enemies.gd:387"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 8600,
+   "seconds": 0.39
+  },
+  "clone_alert": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "clone first alerted (wake)",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:102"
+   ],
+   "dynamic": "AWAKE[kind]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 10584,
+   "seconds": 0.48
+  },
+  "clone_bolt": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "clone attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:141"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "clone attack releases 0.25s after cue start (WINDUP).",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "close": {
+   "active": true,
+   "family": "reload",
+   "trigger": "bowling_ball reload beat 3/3; powder_keg reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:180",
+    "weapons.gd:181"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "bowling_ball: at 0.59s of 0.72s reload, 0.13s until next beat/end. powder_keg: at 0.78s of 0.95s reload, 0.17s until next beat/end.",
+   "frames": 5072,
+   "seconds": 0.23
+  },
+  "closing_time_shuffle": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3399241,
+   "seconds": 154.16
+  },
+  "coot_alert": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "coot first alerted (wake)",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:104"
+   ],
+   "dynamic": "AWAKE[kind]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 6394,
+   "seconds": 0.29
+  },
+  "coot_cock": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "coot attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:143"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "coot attack releases 0.32s after cue start (WINDUP).",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "copper_and_steam": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3600742,
+   "seconds": 163.3
+  },
+  "county_dispatch_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hub dispatch board read at campaign milestone 0 (voice channel)",
+   "refs": [
+    "game.gd:1454"
+   ],
+   "dynamic": "\"county_dispatch_%d\" % hub_milestone",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout 6.0s; caption shown 2.4s",
+   "frames": 24606,
+   "seconds": 1.12
+  },
+  "county_dispatch_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hub dispatch board read at campaign milestone 1 (voice channel)",
+   "refs": [
+    "game.gd:1454"
+   ],
+   "dynamic": "\"county_dispatch_%d\" % hub_milestone",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout 6.0s; caption shown 2.4s",
+   "frames": 22798,
+   "seconds": 1.03
+  },
+  "county_dispatch_2": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hub dispatch board read at campaign milestone 2 (voice channel)",
+   "refs": [
+    "game.gd:1454"
+   ],
+   "dynamic": "\"county_dispatch_%d\" % hub_milestone",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout 6.0s; caption shown 2.4s",
+   "frames": 27472,
+   "seconds": 1.25
+  },
+  "county_dispatch_3": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hub dispatch board read at campaign milestone 3 (voice channel)",
+   "refs": [
+    "game.gd:1454"
+   ],
+   "dynamic": "\"county_dispatch_%d\" % hub_milestone",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout 6.0s; caption shown 2.4s",
+   "frames": 25311,
+   "seconds": 1.15
+  },
+  "county_dispatch_4": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hub dispatch board read at campaign milestone 4 (voice channel)",
+   "refs": [
+    "game.gd:1454"
+   ],
+   "dynamic": "\"county_dispatch_%d\" % hub_milestone",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout 6.0s; caption shown 2.4s",
+   "frames": 22445,
+   "seconds": 1.02
+  },
+  "county_fall_back": {
+   "active": true,
+   "family": "voice",
+   "trigger": "coot/yard_deputy/bottle_tosser shouts and retreats when a nearby ally dies",
+   "refs": [
+    "game.gd:1201"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 10143,
+   "seconds": 0.46
+  },
+  "county_line": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 4032000,
+   "seconds": 182.86
+  },
+  "cow_launcher": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires cow_launcher (Game.report (adds room_ twin indoors))",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:414"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.950s (FIRE_TIME)",
+   "frames": 19845,
+   "seconds": 0.9
+  },
+  "cow_moo": {
+   "active": true,
+   "family": "explosion",
+   "trigger": "cow launcher projectile detonates (layered with explosion)",
+   "refs": [
+    "game.gd:2051"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 19845,
+   "seconds": 0.9
+  },
+  "cowpie_pick": {
+   "active": true,
+   "family": "consumable",
+   "trigger": "player uses inventory item: cow pie",
+   "refs": [
+    "game.gd:1121"
+   ],
+   "dynamic": "list index by inventory slot",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 11025,
+   "seconds": 0.5
+  },
+  "crawler_click": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "crawler attack wind-up telegraph; crawler lunge connects with player",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:150",
+    "enemies.gd:679",
+    "enemies.gd:97"
+   ],
+   "dynamic": "WINDUP[kind][1] | LUNGES[kind][4]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "crawler attack releases 0.36s after cue start (WINDUP).",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "crossbow": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires crossbow (sound.play, centred)",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:416"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.620s (FIRE_TIME)",
+   "frames": 9040,
+   "seconds": 0.41
+  },
+  "crowbar": {
+   "active": true,
+   "family": "melee",
+   "trigger": "player fires crowbar (sound.play, centred)",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:416"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.330s (FIRE_TIME); swing whoosh, hit check lands 0.061s later",
+   "frames": 5292,
+   "seconds": 0.24
+  },
+  "crowbar_hit": {
+   "active": true,
+   "family": "melee",
+   "trigger": "crowbar swing connects (hitscan reached)",
+   "refs": [
+    "weapons.gd:281"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "fires .061s after swing start",
+   "frames": 5292,
+   "seconds": 0.24
+  },
+  "crunch": {
+   "active": true,
+   "family": "consumable",
+   "trigger": "player uses inventory item: pork rinds",
+   "refs": [
+    "game.gd:1121"
+   ],
+   "dynamic": "list index by inventory slot",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 8379,
+   "seconds": 0.38
+  },
+  "deputy_shot": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "yard_deputy signature attack release; yard_deputy follow-up volley slug",
+   "refs": [
+    "enemies.gd:720",
+    "enemies.gd:46",
+    "enemies.gd:522"
+   ],
+   "dynamic": "SIGNATURES[kind][6]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "second shot .23s after the first: two plays overlap",
+   "frames": 6836,
+   "seconds": 0.31
+  },
+  "deputy_work": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "yard_deputy first alerted (wake); yard_deputy attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:109",
+    "enemies.gd:620",
+    "enemies.gd:158"
+   ],
+   "dynamic": "AWAKE[kind] | WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "yard_deputy attack releases 0.61s after cue start (WINDUP).",
+   "frames": 10364,
+   "seconds": 0.47
+  },
+  "distant_crow": {
+   "active": true,
+   "family": "distant",
+   "trigger": "Hickston outdoors in areas 5/9/10, one-shot",
+   "refs": [
+    "game.gd:2682",
+    "game.gd:2683"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "every 5.9s",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "distant_dog": {
+   "active": true,
+   "family": "distant",
+   "trigger": "Hickston outdoors in areas 0/8, random-side one-shot",
+   "refs": [
+    "game.gd:2682",
+    "game.gd:2683"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "every 5.9s",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "distant_fair_generator": {
+   "active": true,
+   "family": "distant",
+   "trigger": "fair positional one-shot when player within 10 tiles of (39.3, 17.4) (muted after 'broadcast')",
+   "refs": [
+    "game.gd:2680",
+    "data/fair.json:distant_cues"
+   ],
+   "dynamic": "level JSON distant_cues[*][2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-evaluated every 5.9s",
+   "frames": 52920,
+   "seconds": 2.4
+  },
+  "distant_fair_motif": {
+   "active": true,
+   "family": "distant",
+   "trigger": "fair positional one-shot when player within 10 tiles of (25.6, 30.1) (muted after 'broadcast')",
+   "refs": [
+    "game.gd:2680",
+    "data/fair.json:distant_cues"
+   ],
+   "dynamic": "level JSON distant_cues[*][2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-evaluated every 5.9s",
+   "frames": 52920,
+   "seconds": 2.4
+  },
+  "distant_fair_pa": {
+   "active": true,
+   "family": "distant",
+   "trigger": "fair positional one-shot when player within 10 tiles of (22.65, 10.55) (only within 5 tiles + line of sight, before 'broadcast'; shows PA caption 3.5s)",
+   "refs": [
+    "game.gd:2680",
+    "data/fair.json:distant_cues"
+   ],
+   "dynamic": "level JSON distant_cues[*][2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-evaluated every 5.9s",
+   "frames": 28667,
+   "seconds": 1.3
+  },
+  "distant_fair_rattle": {
+   "active": true,
+   "family": "distant",
+   "trigger": "fair positional one-shot when player within 10 tiles of (17.2, 24.0)",
+   "refs": [
+    "game.gd:2680",
+    "data/fair.json:distant_cues"
+   ],
+   "dynamic": "level JSON distant_cues[*][2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-evaluated every 5.9s",
+   "frames": 13892,
+   "seconds": 0.63
+  },
+  "distant_mill_pump": {
+   "active": true,
+   "family": "distant",
+   "trigger": "sawmill positional one-shot when player within 10 tiles of (25.2, 8.3) (muted after 'relay')",
+   "refs": [
+    "game.gd:2680",
+    "data/sawmill.json:distant_cues"
+   ],
+   "dynamic": "level JSON distant_cues[*][2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-evaluated every 5.9s",
+   "frames": 41895,
+   "seconds": 1.9
+  },
+  "distant_mill_timber": {
+   "active": true,
+   "family": "distant",
+   "trigger": "sawmill positional one-shot when player within 10 tiles of (13.4, 23.5)",
+   "refs": [
+    "game.gd:2680",
+    "data/sawmill.json:distant_cues"
+   ],
+   "dynamic": "level JSON distant_cues[*][2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-evaluated every 5.9s",
+   "frames": 38588,
+   "seconds": 1.75
+  },
+  "distant_quarry_bottler": {
+   "active": true,
+   "family": "distant",
+   "trigger": "quarry positional one-shot when player within 10 tiles of (27.7, 11.02) (muted after 'bottling')",
+   "refs": [
+    "game.gd:2680",
+    "data/quarry.json:distant_cues"
+   ],
+   "dynamic": "level JSON distant_cues[*][2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-evaluated every 5.9s",
+   "frames": 25137,
+   "seconds": 1.14
+  },
+  "distant_quarry_pipe": {
+   "active": true,
+   "family": "distant",
+   "trigger": "quarry positional one-shot when player within 10 tiles of (35.1, 23.1) (muted after 'bottling')",
+   "refs": [
+    "game.gd:2680",
+    "data/quarry.json:distant_cues"
+   ],
+   "dynamic": "level JSON distant_cues[*][2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-evaluated every 5.9s",
+   "frames": 28665,
+   "seconds": 1.3
+  },
+  "door": {
+   "active": true,
+   "family": "door_gate",
+   "trigger": "plain door opened/closed",
+   "refs": [
+    "game.gd:1696"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 9482,
+   "seconds": 0.43
+  },
+  "dry_armgun": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty armgun and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_bottle_launcher": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty bottle_launcher and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_bowling_ball": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty bowling_ball and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3528,
+   "seconds": 0.16
+  },
+  "dry_cow_launcher": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty cow_launcher and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3528,
+   "seconds": 0.16
+  },
+  "dry_crossbow": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty crossbow and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_crowbar": {
+   "active": false,
+   "family": "dry_fire",
+   "trigger": "unreachable: crowbar has CAPACITY 0 so the dry branch never runs",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_powder_keg": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty powder_keg and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3528,
+   "seconds": 0.16
+  },
+  "dry_pressure_gun": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty pressure_gun and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_revolver": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty revolver and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_rifle": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty rifle and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_ripsaw": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty ripsaw and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_riveter": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty riveter and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_shotgun": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty shotgun and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_slingblade": {
+   "active": false,
+   "family": "dry_fire",
+   "trigger": "unreachable: sling blade has CAPACITY 0 so the dry branch never runs",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "dry_teat_gun": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "fire with empty teat_gun and no reload possible",
+   "refs": [
+    "weapons.gd:380"
+   ],
+   "dynamic": "\"dry_\" + Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .34s (empty timer)",
+   "frames": 3528,
+   "seconds": 0.16
+  },
+  "dry_tnt": {
+   "active": true,
+   "family": "dry_fire",
+   "trigger": "try to light dynamite with no sticks",
+   "refs": [
+    "weapons.gd:372"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-trigger lockout .32s",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "eject": {
+   "active": true,
+   "family": "reload",
+   "trigger": "bowling_ball reload beat 1/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:180"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "bowling_ball: at 0.18s of 0.72s reload, 0.18s until next beat/end.",
+   "frames": 3528,
+   "seconds": 0.16
+  },
+  "empty": {
+   "active": true,
+   "family": "ui",
+   "trigger": "denied action: locked gate/door, blast-only panel, station prerequisites missing, locked replay level",
+   "refs": [
+    "game.gd:1440",
+    "game.gd:1522",
+    "game.gd:1526",
+    "game.gd:1560",
+    "main.gd:1030"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 2866,
+   "seconds": 0.13
+  },
+  "enemy": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "clone fires (hitscan)",
+   "refs": [
+    "enemies.gd:703",
+    "enemies.gd:706"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cooldown 1.36/1.77s+",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "enemy_pistol": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "coot fires pistol (hitscan)",
+   "refs": [
+    "enemies.gd:698",
+    "enemies.gd:706"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cooldown 1.58s+",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "enemy_pump": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "billy attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:142"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "billy attack releases 0.34s after cue start (WINDUP).",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "enemy_scatter": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "billy fires shotgun (hitscan)",
+   "refs": [
+    "enemies.gd:693",
+    "enemies.gd:706"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cooldown 1.45s+",
+   "frames": 8600,
+   "seconds": 0.39
+  },
+  "equip_armgun": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to armgun",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_bottle_launcher": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to bottle_launcher",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_bowling_ball": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to bowling_ball",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "equip_cow_launcher": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to cow_launcher",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "equip_crossbow": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to crossbow",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_crowbar": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to crowbar",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_powder_keg": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to powder_keg",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "equip_pressure_gun": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to pressure_gun",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_revolver": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to revolver",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_rifle": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to rifle",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_ripsaw": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to ripsaw",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_riveter": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to riveter",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_shotgun": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to shotgun",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_slingblade": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to slingblade",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "equip_teat_gun": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to teat_gun",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "equip_tnt": {
+   "active": true,
+   "family": "equip",
+   "trigger": "player selects/auto-switches to tnt",
+   "refs": [
+    "weapons.gd:316"
+   ],
+   "dynamic": "\"equip_\" + Weapons.NAMES[slot]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "weapon raise (switch) lasts .23s; firing blocked during it",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "explosion": {
+   "active": true,
+   "family": "explosion",
+   "trigger": "dynamite/crossbow bolt/powder keg/cow/fuel drum explodes",
+   "refs": [
+    "game.gd:2056",
+    "game.gd:2058"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "PRIORITY cue; music ducked for 1.1s",
+   "frames": 20506,
+   "seconds": 0.93
+  },
+  "fair_bell": {
+   "active": true,
+   "family": "station",
+   "trigger": "fair station 'bell' activated (use)",
+   "refs": [
+    "game.gd:1585",
+    "data/fair.json:stations"
+   ],
+   "dynamic": "station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 19624,
+   "seconds": 0.89
+  },
+  "fair_score": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3090903,
+   "seconds": 140.18
+  },
+  "football_bounce": {
+   "active": true,
+   "family": "projectile",
+   "trigger": "Jerry's football lands/expires",
+   "refs": [
+    "game.gd:2144"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "football_throw": {
+   "active": true,
+   "family": "boss",
+   "trigger": "jerry fires projectile(s)",
+   "refs": [
+    "enemies.gd:892",
+    "enemies.gd:902"
+   ],
+   "dynamic": "dict by kind, default 'plasma'",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "foreman_cut": {
+   "active": true,
+   "family": "boss",
+   "trigger": "Splinter Foreman launches saw lanes",
+   "refs": [
+    "enemies.gd:803"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cooldown 1.69s; blades live 1.38s",
+   "frames": 9702,
+   "seconds": 0.44
+  },
+  "foreman_end": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "finale boss foreman defeated (sting channel)",
+   "refs": [
+    "game.gd:1234"
+   ],
+   "dynamic": "enemy.kind + \"_end\"",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 35721,
+   "seconds": 1.62
+  },
+  "foreman_intro": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "shutdown station used, finale wave with foreman wakes (sting channel)",
+   "refs": [
+    "game.gd:1584"
+   ],
+   "dynamic": "finale.kind + \"_intro\"",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "boss first attack held 2.05s after sting starts",
+   "frames": 35721,
+   "seconds": 1.62
+  },
+  "foreman_warn": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "foreman attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:156"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "foreman attack releases 0.95s after cue start (WINDUP).",
+   "frames": 19184,
+   "seconds": 0.87
+  },
+  "fuse_hiss": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "dynamite fuse burning in hand (fuse channel)",
+   "refs": [
+    "game.gd:2724",
+    "sound.gd:611"
+   ],
+   "dynamic": "",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped up to 2.65s (DYNAMITE_FUSE), stopped on throw",
+   "frames": 15876,
+   "seconds": 0.72
+  },
+  "gate": {
+   "active": true,
+   "family": "door_gate",
+   "trigger": "exit cleared after last wave enemy dies; level finished through extraction (non-rescue levels); keyed door/gate toggled (positional)",
+   "refs": [
+    "game.gd:1260",
+    "game.gd:1504",
+    "game.gd:1627",
+    "game.gd:1696"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 13892,
+   "seconds": 0.63
+  },
+  "glass_break": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "window pane shattered; 'bottles' scenery shot",
+   "refs": [
+    "game.gd:117",
+    "game.gd:1995",
+    "game.gd:2118"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "PRIORITY cue",
+   "frames": 12128,
+   "seconds": 0.55
+  },
+  "got_bessie": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "Bessie freed: Hickston level won (plays as effect with victory jingle)",
+   "refs": [
+    "game.gd:1475",
+    "game.gd:1627"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "plays over the 'victory' stream (7.22s) on the tally screen",
+   "frames": 24916,
+   "seconds": 1.13
+  },
+  "green_chain": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3557647,
+   "seconds": 161.34
+  },
+  "guard_charge": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "alien attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:145"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "alien attack releases 0.35s after cue start (WINDUP).",
+   "frames": 7717,
+   "seconds": 0.35
+  },
+  "gulp": {
+   "active": true,
+   "family": "reload",
+   "trigger": "teat_gun reload beat 2/3; player uses inventory item: beer",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:183",
+    "game.gd:1121"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k] | list index by inventory slot",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "teat_gun: at 0.65s of 1.25s reload, 0.40s until next beat/end.",
+   "frames": 14112,
+   "seconds": 0.64
+  },
+  "honk": {
+   "active": false,
+   "family": "misc",
+   "trigger": "no runtime reference (content2.py horn)",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 11025,
+   "seconds": 0.5
+  },
+  "hurt": {
+   "active": true,
+   "family": "player",
+   "trigger": "player takes damage and survives (cycles hurt/hurt_alt/hurt_alt2)",
+   "refs": [
+    "game.gd:1018",
+    "sound.gd:85"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "PRIORITY cue; hurt flash .27s",
+   "frames": 8600,
+   "seconds": 0.39
+  },
+  "hurt_alt": {
+   "active": true,
+   "family": "player",
+   "trigger": "2nd of 3 in 'hurt' rotation",
+   "refs": [
+    "sound.gd:85"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "hurt",
+   "timing_note": "",
+   "frames": 9040,
+   "seconds": 0.41
+  },
+  "hurt_alt2": {
+   "active": true,
+   "family": "player",
+   "trigger": "3rd of 3 in 'hurt' rotation",
+   "refs": [
+    "sound.gd:85"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "hurt",
+   "timing_note": "",
+   "frames": 9922,
+   "seconds": 0.45
+  },
+  "impact_dirt": {
+   "active": true,
+   "family": "impact",
+   "trigger": "revolver/rifle/shotgun hitscan hits dirt surface",
+   "refs": [
+    "game.gd:1939",
+    "game.gd:1954"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rate-limited to one per .08s",
+   "frames": 2866,
+   "seconds": 0.13
+  },
+  "impact_plaster": {
+   "active": true,
+   "family": "impact",
+   "trigger": "revolver/rifle/shotgun hitscan hits plaster surface",
+   "refs": [
+    "game.gd:1939",
+    "game.gd:1954"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rate-limited to one per .08s",
+   "frames": 3087,
+   "seconds": 0.14
+  },
+  "impact_pressure": {
+   "active": true,
+   "family": "impact",
+   "trigger": "pressure gun (Copperhead) hitscan hits any wall",
+   "refs": [
+    "game.gd:1953",
+    "game.gd:1954"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rate-limited to one per .08s",
+   "frames": 6836,
+   "seconds": 0.31
+  },
+  "impact_rivet": {
+   "active": true,
+   "family": "impact",
+   "trigger": "riveter hitscan hits any wall",
+   "refs": [
+    "game.gd:1951",
+    "game.gd:1954"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rate-limited to one per .08s",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "impact_stone": {
+   "active": false,
+   "family": "impact",
+   "trigger": "no runtime reference: plaster/dirt map to impact_plaster/impact_dirt, 'stone' is only a decal kind",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 4190,
+   "seconds": 0.19
+  },
+  "impact_wood": {
+   "active": true,
+   "family": "impact",
+   "trigger": "revolver/rifle/shotgun hitscan hits wood (default) surface",
+   "refs": [
+    "game.gd:1939",
+    "game.gd:1954"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rate-limited to one per .08s",
+   "frames": 4190,
+   "seconds": 0.19
+  },
+  "jerry_intro": {
+   "active": true,
+   "family": "boss",
+   "trigger": "Alien Sheriff dies and Jerry Jones wakes (played as effect, not sting)",
+   "refs": [
+    "game.gd:1209"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "Jerry's first attack held 1.25s",
+   "frames": 22050,
+   "seconds": 1.0
+  },
+  "jukebox": {
+   "active": true,
+   "family": "ambience_loop",
+   "trigger": "Hickston jukebox on and player within 11 tiles (radio channel, ducks music)",
+   "refs": [
+    "game.gd:2644",
+    "sound.gd:566"
+   ],
+   "dynamic": "",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped; position/volume refreshed every .045s; 12.0s loop body",
+   "frames": 542769,
+   "seconds": 24.62
+  },
+  "jukebox_hit": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'jukebox' scenery prop shot or caught in a blast (fair, hickston, quarry, sawmill)",
+   "refs": [
+    "game.gd:128",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 26460,
+   "seconds": 1.2
+  },
+  "key_pickup": {
+   "active": true,
+   "family": "pickup",
+   "trigger": "brass/steel key collected",
+   "refs": [
+    "game.gd:1069"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "lantern_charge": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "lantern attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:152"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "lantern attack releases 0.48s after cue start (WINDUP).",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "lantern_spit": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "lantern fires projectile(s)",
+   "refs": [
+    "enemies.gd:892",
+    "enemies.gd:902"
+   ],
+   "dynamic": "dict by kind, default 'plasma'",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "last_load": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3298909,
+   "seconds": 149.61
+  },
+  "load": {
+   "active": true,
+   "family": "reload",
+   "trigger": "bowling_ball reload beat 2/3; powder_keg reload beat 2/3; bowling_ball reload start (open)",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:180",
+    "weapons.gd:181",
+    "weapons.gd:350",
+    "weapons.gd:195"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k] | Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "bowling_ball: at 0.36s of 0.72s reload, 0.23s until next beat/end. powder_keg: at 0.47s of 0.95s reload, 0.30s until next beat/end. bowling_ball: at 0.00s, 0.18s until first reload beat.",
+   "frames": 4410,
+   "seconds": 0.2
+  },
+  "mag_in": {
+   "active": true,
+   "family": "reload",
+   "trigger": "rifle reload beat 2/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:174"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rifle: at 0.64s of 1.30s reload, 0.47s until next beat/end.",
+   "frames": 4630,
+   "seconds": 0.21
+  },
+  "mag_out": {
+   "active": true,
+   "family": "reload",
+   "trigger": "rifle reload beat 1/3; teat_gun reload beat 1/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:174",
+    "weapons.gd:183"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rifle: at 0.35s of 1.30s reload, 0.29s until next beat/end. teat_gun: at 0.35s of 1.25s reload, 0.30s until next beat/end.",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "match_strike": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player lights a dynamite stick (hold fire); fuse_hiss loop starts",
+   "refs": [
+    "weapons.gd:368"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "precedes 2.65s fuse (DYNAMITE_FUSE)",
+   "frames": 9702,
+   "seconds": 0.44
+  },
+  "menu_accept": {
+   "active": true,
+   "family": "ui",
+   "trigger": "menu accept/save/load/unlock notices; gallery start and win; hub clue read; default station cue; jukebox toggled (positional)",
+   "refs": [
+    "game.gd:518",
+    "game.gd:597",
+    "game.gd:1460",
+    "main.gd:676",
+    "main.gd:702",
+    "main.gd:759",
+    "main.gd:1013",
+    "main.gd:1043",
+    "main.gd:1246",
+    "level.gd:401",
+    "game.gd:1480"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3528,
+   "seconds": 0.16
+  },
+  "menu_move": {
+   "active": true,
+   "family": "ui",
+   "trigger": "menu cursor/page/option change; reading a wall note",
+   "refs": [
+    "game.gd:1495",
+    "main.gd:883",
+    "main.gd:995",
+    "main.gd:1001",
+    "main.gd:1024",
+    "main.gd:1038",
+    "main.gd:1041",
+    "main.gd:1284"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 1874,
+   "seconds": 0.08
+  },
+  "metal_down": {
+   "active": false,
+   "family": "pain_death",
+   "trigger": "no runtime reference (superseded by actor_*_down)",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 10143,
+   "seconds": 0.46
+  },
+  "mill_isolate": {
+   "active": true,
+   "family": "station",
+   "trigger": "sawmill station 'west' activated (use); quarry station 'stone' activated (use)",
+   "refs": [
+    "game.gd:1585",
+    "data/sawmill.json:stations",
+    "data/quarry.json:stations"
+   ],
+   "dynamic": "station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "mill_score": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3805483,
+   "seconds": 172.58
+  },
+  "mill_trip": {
+   "active": true,
+   "family": "station",
+   "trigger": "sawmill station 'relay' activated (use); quarry station 'bottling' activated (use)",
+   "refs": [
+    "game.gd:1585",
+    "data/sawmill.json:stations",
+    "data/quarry.json:stations"
+   ],
+   "dynamic": "station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "millhand_hit": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "millhand lunge connects with player",
+   "refs": [
+    "enemies.gd:679",
+    "enemies.gd:98"
+   ],
+   "dynamic": "LUNGES[kind][4]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "millhand_rev": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "millhand attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:151"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "millhand attack releases 0.60s after cue start (WINDUP).",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "moonshine": {
+   "active": true,
+   "family": "consumable",
+   "trigger": "player uses inventory item: moonshine",
+   "refs": [
+    "game.gd:1121"
+   ],
+   "dynamic": "list index by inventory slot",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 17420,
+   "seconds": 0.79
+  },
+  "pickup": {
+   "active": true,
+   "family": "pickup",
+   "trigger": "ammo, food/drink item or task item collected",
+   "refs": [
+    "game.gd:1071"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7056,
+   "seconds": 0.32
+  },
+  "pig": {
+   "active": true,
+   "family": "creature",
+   "trigger": "pig startled by noise, or pig killed",
+   "refs": [
+    "game.gd:981",
+    "enemies.gd:387"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "plasma": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "alien guard fires plasma bolt (default ranged cue)",
+   "refs": [
+    "enemies.gd:900",
+    "enemies.gd:902"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 8600,
+   "seconds": 0.39
+  },
+  "player_down": {
+   "active": true,
+   "family": "player",
+   "trigger": "player health reaches 0",
+   "refs": [
+    "game.gd:1018"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "PRIORITY cue; death message shown 8s",
+   "frames": 30429,
+   "seconds": 1.38
+  },
+  "porchlight_stomp": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3215392,
+   "seconds": 145.82
+  },
+  "powder_keg": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires powder_keg (sound.play, centred)",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:416"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.800s (FIRE_TIME)",
+   "frames": 15434,
+   "seconds": 0.7
+  },
+  "pressure_charge": {
+   "active": true,
+   "family": "reload",
+   "trigger": "pressure_gun reload beat 2/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:179"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "pressure_gun: at 0.61s of 1.18s reload, 0.38s until next beat/end.",
+   "frames": 6394,
+   "seconds": 0.29
+  },
+  "pressure_gun": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires pressure_gun (Game.report (adds room_ twin indoors))",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:414"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.680s (FIRE_TIME)",
+   "frames": 11686,
+   "seconds": 0.53
+  },
+  "pressure_interrupt": {
+   "active": true,
+   "family": "impact",
+   "trigger": "pressure gun interrupts an enemy wind-up (stun)",
+   "refs": [
+    "enemies.gd:345"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "stun .36s",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "pressure_pump": {
+   "active": true,
+   "family": "reload",
+   "trigger": "pressure_gun reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:179"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "pressure_gun: at 0.99s of 1.18s reload, 0.19s until next beat/end.",
+   "frames": 7056,
+   "seconds": 0.32
+  },
+  "pressure_seal": {
+   "active": true,
+   "family": "reload",
+   "trigger": "pressure_gun reload start (open)",
+   "refs": [
+    "weapons.gd:350",
+    "weapons.gd:194"
+   ],
+   "dynamic": "Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "pressure_gun: at 0.00s, 0.35s until first reload beat.",
+   "frames": 7056,
+   "seconds": 0.32
+  },
+  "pressure_vent": {
+   "active": true,
+   "family": "reload",
+   "trigger": "pressure_gun reload beat 1/3; ruptured pipe scenery vents steam; quarry station 'stills' activated (crank); quarry station 'relief-west' activated (use); quarry station 'relief-east' activated (use); Copper Baron opens steam ports (one play per port, deduped as a WARN)",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:179",
+    "game.gd:2124",
+    "game.gd:1585",
+    "data/quarry.json:stations",
+    "enemies.gd:810"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k] | station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "pressure_gun: at 0.35s of 1.18s reload, 0.26s until next beat/end. steam hazard warning .69s then active to 1.08-1.35s",
+   "frames": 17420,
+   "seconds": 0.79
+  },
+  "quarry_score": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3470164,
+   "seconds": 157.38
+  },
+  "rat_blow": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "valve_rat signature attack release",
+   "refs": [
+    "enemies.gd:720",
+    "enemies.gd:49"
+   ],
+   "dynamic": "SIGNATURES[kind][6]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7938,
+   "seconds": 0.36
+  },
+  "rat_hiss": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "valve_rat first alerted (wake); valve_rat attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:112",
+    "enemies.gd:620",
+    "enemies.gd:161"
+   ],
+   "dynamic": "AWAKE[kind] | WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "valve_rat attack releases 0.67s after cue start (WINDUP).",
+   "frames": 14553,
+   "seconds": 0.66
+  },
+  "reload": {
+   "active": true,
+   "family": "reload",
+   "trigger": "rifle reload start (open); teat_gun reload start (open)",
+   "refs": [
+    "weapons.gd:350",
+    "weapons.gd:189",
+    "weapons.gd:198"
+   ],
+   "dynamic": "Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rifle: at 0.00s, 0.35s until first reload beat. teat_gun: at 0.00s, 0.35s until first reload beat.",
+   "frames": 5292,
+   "seconds": 0.24
+  },
+  "report_room": {
+   "active": false,
+   "family": "weapon_report",
+   "trigger": "generic room echo template, never requested by name",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "rev_cylinder": {
+   "active": true,
+   "family": "reload",
+   "trigger": "revolver reload beat 2/3; revolver reload start (open)",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:171",
+    "weapons.gd:350",
+    "weapons.gd:186"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k] | Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "revolver: at 0.42s of 0.88s reload, 0.31s until next beat/end. revolver: at 0.00s, 0.19s until first reload beat.",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "rev_extract": {
+   "active": true,
+   "family": "reload",
+   "trigger": "revolver reload beat 1/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:171"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "revolver: at 0.19s of 0.88s reload, 0.23s until next beat/end.",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "rev_lock": {
+   "active": true,
+   "family": "reload",
+   "trigger": "revolver reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:171"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "revolver: at 0.73s of 0.88s reload, 0.15s until next beat/end.",
+   "frames": 4190,
+   "seconds": 0.19
+  },
+  "revolver": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires revolver (Game.report (adds room_ twin indoors)); tin-rooster gallery borrowed pistol shot (sound.play .56, no room twin)",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:414",
+    "game.gd:571"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.340s (FIRE_TIME) gallery cooldown .18s",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "revolver_alt": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "every 2nd 'revolver' request (player or gallery)",
+   "refs": [
+    "sound.gd:84"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "revolver",
+   "timing_note": "",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "ricochet": {
+   "active": true,
+   "family": "impact",
+   "trigger": "bullet hits metal wall; gallery target hit; fuel drum hit but not destroyed",
+   "refs": [
+    "game.gd:587",
+    "game.gd:1943",
+    "game.gd:2031"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "wall impacts rate-limited to one per .08s",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "rifle": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires rifle (Game.report (adds room_ twin indoors))",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:414"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.125s (FIRE_TIME)",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "rifle_alt": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "2nd of 3 in 'rifle' rotation",
+   "refs": [
+    "sound.gd:83"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "rifle",
+   "timing_note": "",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "rifle_alt2": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "3rd of 3 in 'rifle' rotation",
+   "refs": [
+    "sound.gd:83"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "rifle",
+   "timing_note": "",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "ripsaw": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires ripsaw (sound.play, centred)",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:416"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.320s (FIRE_TIME); not played for alt-fire grind (saw_motor loop instead)",
+   "frames": 7938,
+   "seconds": 0.36
+  },
+  "rivet_lock": {
+   "active": true,
+   "family": "reload",
+   "trigger": "riveter reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:178"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "riveter: at 0.77s of 0.94s reload, 0.17s until next beat/end.",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "rivet_mag": {
+   "active": true,
+   "family": "reload",
+   "trigger": "riveter reload beat 1/3; riveter reload start (open)",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:178",
+    "weapons.gd:350",
+    "weapons.gd:193"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k] | Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "riveter: at 0.22s of 0.94s reload, 0.23s until next beat/end. riveter: at 0.00s, 0.22s until first reload beat.",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "rivet_strip": {
+   "active": true,
+   "family": "reload",
+   "trigger": "riveter reload beat 2/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:178"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "riveter: at 0.45s of 0.94s reload, 0.32s until next beat/end.",
+   "frames": 4190,
+   "seconds": 0.19
+  },
+  "riveter": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires riveter (Game.report (adds room_ twin indoors))",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:414"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.240s (FIRE_TIME)",
+   "frames": 6615,
+   "seconds": 0.3
+  },
+  "riveter_pair": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player alt-fires riveter with >=2 loaded (Game.report)",
+   "refs": [
+    "weapons.gd:409",
+    "weapons.gd:414"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cooldown .24+.18=.42s",
+   "frames": 8159,
+   "seconds": 0.37
+  },
+  "rocket_breech": {
+   "active": true,
+   "family": "reload",
+   "trigger": "bottle_launcher reload start (open); cow_launcher reload start (open)",
+   "refs": [
+    "weapons.gd:350",
+    "weapons.gd:192",
+    "weapons.gd:197"
+   ],
+   "dynamic": "Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "bottle_launcher: at 0.00s, 0.21s until first reload beat. cow_launcher: at 0.00s, 0.29s until first reload beat.",
+   "frames": 6836,
+   "seconds": 0.31
+  },
+  "rocket_case": {
+   "active": true,
+   "family": "reload",
+   "trigger": "bottle_launcher reload beat 1/3; cow_launcher reload beat 1/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:177",
+    "weapons.gd:182"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "bottle_launcher: at 0.21s of 0.79s reload, 0.18s until next beat/end. cow_launcher: at 0.29s of 1.10s reload, 0.26s until next beat/end.",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "rocket_lock": {
+   "active": true,
+   "family": "reload",
+   "trigger": "bottle_launcher reload beat 3/3; cow_launcher reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:177",
+    "weapons.gd:182"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "bottle_launcher: at 0.66s of 0.79s reload, 0.13s until next beat/end. cow_launcher: at 0.91s of 1.10s reload, 0.19s until next beat/end.",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "rocket_pop": {
+   "active": true,
+   "family": "explosion",
+   "trigger": "bottle rocket detonates",
+   "refs": [
+    "game.gd:2056",
+    "game.gd:2058"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "PRIORITY cue",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "rocket_seat": {
+   "active": true,
+   "family": "reload",
+   "trigger": "bottle_launcher reload beat 2/3; cow_launcher reload beat 2/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:177",
+    "weapons.gd:182"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "bottle_launcher: at 0.39s of 0.79s reload, 0.27s until next beat/end. cow_launcher: at 0.55s of 1.10s reload, 0.36s until next beat/end.",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "rocket_whistle": {
+   "active": true,
+   "family": "projectile",
+   "trigger": "bottle rocket passes .78 tiles of flight",
+   "refs": [
+    "game.gd:2219"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "~.08s after launch (9.6 tiles/s)",
+   "frames": 6615,
+   "seconds": 0.3
+  },
+  "room_arm_impact": {
+   "active": true,
+   "family": "explosion",
+   "trigger": "indoor tail layered under 'arm_impact' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "arm_impact",
+   "timing_note": "",
+   "frames": 13892,
+   "seconds": 0.63
+  },
+  "room_boiler_release": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "indoor tail layered under 'boiler_release' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "boiler_release",
+   "timing_note": "",
+   "frames": 14774,
+   "seconds": 0.67
+  },
+  "room_bottle_launcher": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "indoor tail layered under 'bottle_launcher' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "dynamic": "\"room_\" + name",
+   "loop": false,
+   "variant_of": "bottle_launcher",
+   "timing_note": "",
+   "frames": 9923,
+   "seconds": 0.45
+  },
+  "room_bowling_hit": {
+   "active": true,
+   "family": "impact",
+   "trigger": "indoor tail layered under 'bowling_hit' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "bowling_hit",
+   "timing_note": "",
+   "frames": 15655,
+   "seconds": 0.71
+  },
+  "room_can_kick": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "indoor tail layered under 'can_kick' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "can_kick",
+   "timing_note": "",
+   "frames": 14553,
+   "seconds": 0.66
+  },
+  "room_chain_crack": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "indoor tail layered under 'chain_crack' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "chain_crack",
+   "timing_note": "",
+   "frames": 13671,
+   "seconds": 0.62
+  },
+  "room_deputy_shot": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "indoor tail layered under 'deputy_shot' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "deputy_shot",
+   "timing_note": "",
+   "frames": 10364,
+   "seconds": 0.47
+  },
+  "room_door": {
+   "active": true,
+   "family": "door_gate",
+   "trigger": "indoor tail layered under 'door' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "door",
+   "timing_note": "",
+   "frames": 13010,
+   "seconds": 0.59
+  },
+  "room_explosion": {
+   "active": true,
+   "family": "explosion",
+   "trigger": "indoor tail layered under 'explosion' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "explosion",
+   "timing_note": "",
+   "frames": 24034,
+   "seconds": 1.09
+  },
+  "room_foreman_cut": {
+   "active": true,
+   "family": "boss",
+   "trigger": "indoor tail layered under 'foreman_cut' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "foreman_cut",
+   "timing_note": "",
+   "frames": 13230,
+   "seconds": 0.6
+  },
+  "room_gate": {
+   "active": true,
+   "family": "door_gate",
+   "trigger": "indoor tail layered under 'gate' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "gate",
+   "timing_note": "",
+   "frames": 17420,
+   "seconds": 0.79
+  },
+  "room_glass_break": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "indoor tail layered under 'glass_break' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "glass_break",
+   "timing_note": "",
+   "frames": 15656,
+   "seconds": 0.71
+  },
+  "room_pressure_gun": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "indoor tail layered under 'pressure_gun' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "dynamic": "\"room_\" + name",
+   "loop": false,
+   "variant_of": "pressure_gun",
+   "timing_note": "",
+   "frames": 14773,
+   "seconds": 0.67
+  },
+  "room_revolver": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "indoor tail layered under 'revolver' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "dynamic": "\"room_\" + name",
+   "loop": false,
+   "variant_of": "revolver",
+   "timing_note": "",
+   "frames": 10584,
+   "seconds": 0.48
+  },
+  "room_rifle": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "indoor tail layered under 'rifle' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "dynamic": "\"room_\" + name",
+   "loop": false,
+   "variant_of": "rifle",
+   "timing_note": "",
+   "frames": 9261,
+   "seconds": 0.42
+  },
+  "room_riveter": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "indoor tail layered under 'riveter' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "dynamic": "\"room_\" + name",
+   "loop": false,
+   "variant_of": "riveter",
+   "timing_note": "",
+   "frames": 9702,
+   "seconds": 0.44
+  },
+  "room_riveter_pair": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "indoor tail layered under 'riveter_pair' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "dynamic": "\"room_\" + name",
+   "loop": false,
+   "variant_of": "riveter_pair",
+   "timing_note": "",
+   "frames": 11246,
+   "seconds": 0.51
+  },
+  "room_rocket_pop": {
+   "active": true,
+   "family": "explosion",
+   "trigger": "indoor tail layered under 'rocket_pop' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "rocket_pop",
+   "timing_note": "",
+   "frames": 11025,
+   "seconds": 0.5
+  },
+  "room_rudy_horn": {
+   "active": true,
+   "family": "boss",
+   "trigger": "indoor tail layered under 'rudy_horn' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "rudy_horn",
+   "timing_note": "",
+   "frames": 16758,
+   "seconds": 0.76
+  },
+  "room_saw_hit": {
+   "active": true,
+   "family": "impact",
+   "trigger": "indoor tail layered under 'saw_hit' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "saw_hit",
+   "timing_note": "",
+   "frames": 8820,
+   "seconds": 0.4
+  },
+  "room_secret_slide": {
+   "active": true,
+   "family": "door_gate",
+   "trigger": "indoor tail layered under 'secret_slide' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "secret_slide",
+   "timing_note": "",
+   "frames": 15656,
+   "seconds": 0.71
+  },
+  "room_shotgun": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "indoor tail layered under 'shotgun' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "dynamic": "\"room_\" + name",
+   "loop": false,
+   "variant_of": "shotgun",
+   "timing_note": "",
+   "frames": 14333,
+   "seconds": 0.65
+  },
+  "room_shotgun_both": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "indoor tail layered under 'shotgun_both' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "dynamic": "\"room_\" + name",
+   "loop": false,
+   "variant_of": "shotgun_both",
+   "timing_note": "",
+   "frames": 15877,
+   "seconds": 0.72
+  },
+  "room_sink_flush": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "indoor tail layered under 'sink_flush' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "sink_flush",
+   "timing_note": "",
+   "frames": 29547,
+   "seconds": 1.34
+  },
+  "room_splat": {
+   "active": false,
+   "family": "impact",
+   "trigger": "room twin of unused 'splat'",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "splat",
+   "timing_note": "",
+   "frames": 14553,
+   "seconds": 0.66
+  },
+  "room_tnt_bounce": {
+   "active": true,
+   "family": "projectile",
+   "trigger": "indoor tail layered under 'tnt_bounce' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "tnt_bounce",
+   "timing_note": "",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "room_toilet_burst": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "indoor tail layered under 'toilet_burst' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "toilet_burst",
+   "timing_note": "",
+   "frames": 27783,
+   "seconds": 1.26
+  },
+  "room_tosser_throw": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "indoor tail layered under 'tosser_throw' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "tosser_throw",
+   "timing_note": "",
+   "frames": 9922,
+   "seconds": 0.45
+  },
+  "room_tv_pop": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "indoor tail layered under 'tv_pop' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "tv_pop",
+   "timing_note": "",
+   "frames": 16758,
+   "seconds": 0.76
+  },
+  "room_vending_clunk": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "indoor tail layered under 'vending_clunk' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "vending_clunk",
+   "timing_note": "",
+   "frames": 22270,
+   "seconds": 1.01
+  },
+  "room_window_smash": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "indoor tail layered under 'window_smash' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "dynamic": "\"room_\" + name (only if sound.has)",
+   "loop": false,
+   "variant_of": "window_smash",
+   "timing_note": "",
+   "frames": 15655,
+   "seconds": 0.71
+  },
+  "rudy_end": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "finale boss rudy defeated (sting channel)",
+   "refs": [
+    "game.gd:1234"
+   ],
+   "dynamic": "enemy.kind + \"_end\"",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 35721,
+   "seconds": 1.62
+  },
+  "rudy_horn": {
+   "active": true,
+   "family": "boss",
+   "trigger": "Rudy Racket horn sweep volley (5 shots over ~.33s)",
+   "refs": [
+    "enemies.gd:786"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "covers 5-shot volley, .078s spacing",
+   "frames": 13230,
+   "seconds": 0.6
+  },
+  "rudy_intro": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "shutdown station used, finale wave with rudy wakes (sting channel)",
+   "refs": [
+    "game.gd:1584"
+   ],
+   "dynamic": "finale.kind + \"_intro\"",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "boss first attack held 2.05s after sting starts",
+   "frames": 35721,
+   "seconds": 1.62
+  },
+  "rudy_warn": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "rudy attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:155"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "rudy attack releases 0.86s after cue start (WINDUP).",
+   "frames": 18302,
+   "seconds": 0.83
+  },
+  "saucer_charge": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "saucer attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:146"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "saucer attack releases 0.56s after cue start (WINDUP).",
+   "frames": 12348,
+   "seconds": 0.56
+  },
+  "saucer_shot": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "saucer fires projectile(s)",
+   "refs": [
+    "enemies.gd:892",
+    "enemies.gd:902"
+   ],
+   "dynamic": "dict by kind, default 'plasma'",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 6836,
+   "seconds": 0.31
+  },
+  "saucer_spot": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "saucer first alerted (wake)",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:107"
+   ],
+   "dynamic": "AWAKE[kind]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 8158,
+   "seconds": 0.37
+  },
+  "saw_bounce": {
+   "active": true,
+   "family": "projectile",
+   "trigger": "rip saw blade / bowling ball / other bouncing shot ricochets",
+   "refs": [
+    "game.gd:2213"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 5292,
+   "seconds": 0.24
+  },
+  "saw_grind": {
+   "active": false,
+   "family": "weapon_report",
+   "trigger": "no runtime reference (grind uses the saw_motor loop)",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 5072,
+   "seconds": 0.23
+  },
+  "saw_hit": {
+   "active": true,
+   "family": "impact",
+   "trigger": "rip saw blade hits an enemy",
+   "refs": [
+    "game.gd:2265"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 5292,
+   "seconds": 0.24
+  },
+  "saw_latch": {
+   "active": true,
+   "family": "reload",
+   "trigger": "ripsaw reload beat 1/3; ripsaw reload beat 3/3; ripsaw reload start (open)",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:175",
+    "weapons.gd:350",
+    "weapons.gd:190"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k] | Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "ripsaw: at 0.13s of 0.58s reload, 0.14s until next beat/end. ripsaw: at 0.46s of 0.58s reload, 0.12s until next beat/end. ripsaw: at 0.00s, 0.13s until first reload beat.",
+   "frames": 3749,
+   "seconds": 0.17
+  },
+  "saw_load": {
+   "active": false,
+   "family": "reload",
+   "trigger": "no runtime reference (ripsaw reload uses saw_latch/saw_seat)",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "saw_motor": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "rip saw alt-fire grind held (tool channel, gain .26)",
+   "refs": [
+    "game.gd:2725",
+    "sound.gd:626"
+   ],
+   "dynamic": "",
+   "loop": true,
+   "variant_of": "",
+   "timing_note": "looped while grinding; grind ticks every .135s",
+   "frames": 16317,
+   "seconds": 0.74
+  },
+  "saw_seat": {
+   "active": true,
+   "family": "reload",
+   "trigger": "ripsaw reload beat 2/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:175"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "ripsaw: at 0.27s of 0.58s reload, 0.19s until next beat/end.",
+   "frames": 6174,
+   "seconds": 0.28
+  },
+  "scenery_belt": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'belt' scenery prop shot or caught in a blast (sawmill)",
+   "refs": [
+    "game.gd:122",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 11025,
+   "seconds": 0.5
+  },
+  "scenery_cans": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'cans' scenery prop shot or caught in a blast (fair, hickston)",
+   "refs": [
+    "game.gd:118",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 12348,
+   "seconds": 0.56
+  },
+  "scenery_pipe": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "pipe scenery shot; condenser valve crank turn 1-2 of 3; quarry station 'wash-latch' activated (use)",
+   "refs": [
+    "game.gd:121",
+    "game.gd:1605",
+    "game.gd:2118",
+    "game.gd:1585",
+    "data/quarry.json:stations"
+   ],
+   "dynamic": "station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "crank turns at most every .20s",
+   "frames": 15656,
+   "seconds": 0.71
+  },
+  "scenery_prize": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'prize' scenery prop shot or caught in a blast (fair)",
+   "refs": [
+    "game.gd:119",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "scenery_scrap": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'scrap' scenery prop shot or caught in a blast (hickston, sawmill); hickston station 'feed-hatch' activated (use)",
+   "refs": [
+    "game.gd:120",
+    "game.gd:2118",
+    "game.gd:1585",
+    "data/hickston.json:stations"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0] | station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 10143,
+   "seconds": 0.46
+  },
+  "secret_slide": {
+   "active": true,
+   "family": "door_gate",
+   "trigger": "secret door slides (use, discovery room entry, or blast); quarry station 'scale-drawer' activated (use)",
+   "refs": [
+    "game.gd:1696",
+    "game.gd:1585",
+    "data/quarry.json:stations"
+   ],
+   "dynamic": "station.cue from level JSON",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 12128,
+   "seconds": 0.55
+  },
+  "shakedown_end": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "Jerry Jones defeated (sting channel)",
+   "refs": [
+    "game.gd:1213"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 35721,
+   "seconds": 1.62
+  },
+  "shakedown_intro": {
+   "active": true,
+   "family": "music_sting",
+   "trigger": "Alien Sheriff (boss) first alerted (sting channel)",
+   "refs": [
+    "enemies.gd:310"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "title message 3.5s",
+   "frames": 35721,
+   "seconds": 1.62
+  },
+  "sheriff_shot": {
+   "active": true,
+   "family": "boss",
+   "trigger": "boss fires projectile(s)",
+   "refs": [
+    "enemies.gd:892",
+    "enemies.gd:902"
+   ],
+   "dynamic": "dict by kind, default 'plasma'",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 9702,
+   "seconds": 0.44
+  },
+  "sheriff_siren": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "boss attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:147"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "boss attack releases 0.53s after cue start (WINDUP); .44s when boss below half health.",
+   "frames": 10804,
+   "seconds": 0.49
+  },
+  "sheriff_spot": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "boss first alerted (wake)",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:108"
+   ],
+   "dynamic": "AWAKE[kind]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 9702,
+   "seconds": 0.44
+  },
+  "shot_extract": {
+   "active": true,
+   "family": "reload",
+   "trigger": "shotgun reload beat 1/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:172"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "shotgun: at 0.25s of 1.10s reload, 0.25s until next beat/end.",
+   "frames": 5954,
+   "seconds": 0.27
+  },
+  "shot_hinge": {
+   "active": true,
+   "family": "reload",
+   "trigger": "powder_keg reload beat 1/3; shotgun reload start (open); powder_keg reload start (open)",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:181",
+    "weapons.gd:350",
+    "weapons.gd:187",
+    "weapons.gd:196"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k] | Weapons.OPEN_AUDIO[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "powder_keg: at 0.24s of 0.95s reload, 0.24s until next beat/end. shotgun: at 0.00s, 0.25s until first reload beat. powder_keg: at 0.00s, 0.24s until first reload beat.",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "shot_lock": {
+   "active": true,
+   "family": "reload",
+   "trigger": "shotgun reload beat 3/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:172"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "shotgun: at 0.88s of 1.10s reload, 0.22s until next beat/end.",
+   "frames": 5072,
+   "seconds": 0.23
+  },
+  "shot_shell": {
+   "active": true,
+   "family": "reload",
+   "trigger": "shotgun reload beat 2/3",
+   "refs": [
+    "weapons.gd:292",
+    "weapons.gd:172"
+   ],
+   "dynamic": "Weapons.RELOAD_AUDIO[active][k]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "shotgun: at 0.51s of 1.10s reload, 0.37s until next beat/end.",
+   "frames": 4630,
+   "seconds": 0.21
+  },
+  "shotgun": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires shotgun (Game.report (adds room_ twin indoors))",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:414"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.550s (FIRE_TIME); single barrel with 2 loaded allows next shot after .26s",
+   "frames": 11246,
+   "seconds": 0.51
+  },
+  "shotgun_both": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player alt-fires shotgun with both barrels loaded (Game.report)",
+   "refs": [
+    "weapons.gd:407",
+    "weapons.gd:414"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cooldown .55+.18=.73s",
+   "frames": 12790,
+   "seconds": 0.58
+  },
+  "sink_flush": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "player uses a sink",
+   "refs": [
+    "game.gd:1486"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "re-use lockout 1.35s",
+   "frames": 26019,
+   "seconds": 1.18
+  },
+  "skeeter": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "skeeter first alerted (wake)",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:105"
+   ],
+   "dynamic": "AWAKE[kind]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "skeeter_bite": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "skeeter lunge connects with player",
+   "refs": [
+    "enemies.gd:679",
+    "enemies.gd:96"
+   ],
+   "dynamic": "LUNGES[kind][4]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "skeeter_dive": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "skeeter attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:144"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "skeeter attack releases 0.37s after cue start (WINDUP).",
+   "frames": 7938,
+   "seconds": 0.36
+  },
+  "skeeter_pop": {
+   "active": true,
+   "family": "pain_death",
+   "trigger": "skeeter killed",
+   "refs": [
+    "enemies.gd:383",
+    "enemies.gd:384"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 5733,
+   "seconds": 0.26
+  },
+  "sling_hit": {
+   "active": true,
+   "family": "melee",
+   "trigger": "sling blade swing connects",
+   "refs": [
+    "weapons.gd:281"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "fires .118s after swing start",
+   "frames": 14994,
+   "seconds": 0.68
+  },
+  "slingblade": {
+   "active": true,
+   "family": "melee",
+   "trigger": "player fires slingblade (sound.play, centred)",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:416"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.490s (FIRE_TIME); swing whoosh, hit check lands 0.118s later",
+   "frames": 6394,
+   "seconds": 0.29
+  },
+  "splat": {
+   "active": false,
+   "family": "impact",
+   "trigger": "no runtime reference",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 11025,
+   "seconds": 0.5
+  },
+  "step_grass_0": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on grass (left foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_grass_1": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on grass (right foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_gravel_0": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on gravel (left foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_gravel_1": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on gravel (right foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_mud_0": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on mud (left foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_mud_1": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on mud (right foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_tile_0": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on tile (left foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_tile_1": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on tile (right foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_water_0": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on water (left foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_water_1": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on water (right foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_wood_0": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on wood (left foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "step_wood_1": {
+   "active": true,
+   "family": "footstep",
+   "trigger": "player footstep/landing on wood (right foot alternation)",
+   "refs": [
+    "game.gd:2688",
+    "level.gd:697"
+   ],
+   "dynamic": "\"step_%s_%d\" % [surface, step % 2]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cadence ~.29s walking, ~.23s running, ~.36s crouched at full speed; also on landing",
+   "frames": 5512,
+   "seconds": 0.25
+  },
+  "talk_freight-pa_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "fair overheard exchange 'freight-pa' line 1/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/fair.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 20769,
+   "seconds": 0.94
+  },
+  "talk_freight-pa_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "fair overheard exchange 'freight-pa' line 2/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/fair.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 17639,
+   "seconds": 0.8
+  },
+  "talk_kiln-radio_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "sawmill overheard exchange 'kiln-radio' line 1/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/sawmill.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 21519,
+   "seconds": 0.98
+  },
+  "talk_kiln-radio_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "sawmill overheard exchange 'kiln-radio' line 2/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/sawmill.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 17110,
+   "seconds": 0.78
+  },
+  "talk_line-speaker_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "quarry overheard exchange 'line-speaker' line 1/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/quarry.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 19402,
+   "seconds": 0.88
+  },
+  "talk_line-speaker_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "quarry overheard exchange 'line-speaker' line 2/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/quarry.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 22711,
+   "seconds": 1.03
+  },
+  "talk_pit-speaker_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "quarry overheard exchange 'pit-speaker' line 1/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/quarry.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 21474,
+   "seconds": 0.97
+  },
+  "talk_pit-speaker_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "quarry overheard exchange 'pit-speaker' line 2/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/quarry.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 25180,
+   "seconds": 1.14
+  },
+  "talk_registry-radio_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hickston overheard exchange 'registry-radio' line 1/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/hickston.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 22753,
+   "seconds": 1.03
+  },
+  "talk_registry-radio_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hickston overheard exchange 'registry-radio' line 2/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/hickston.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 26017,
+   "seconds": 1.18
+  },
+  "talk_show-pa_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "fair overheard exchange 'show-pa' line 1/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/fair.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 22930,
+   "seconds": 1.04
+  },
+  "talk_show-pa_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "fair overheard exchange 'show-pa' line 2/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/fair.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 17991,
+   "seconds": 0.82
+  },
+  "talk_sort-radio_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "sawmill overheard exchange 'sort-radio' line 1/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/sawmill.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 21563,
+   "seconds": 0.98
+  },
+  "talk_sort-radio_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "sawmill overheard exchange 'sort-radio' line 2/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/sawmill.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 25355,
+   "seconds": 1.15
+  },
+  "talk_tow-radio_0": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hickston overheard exchange 'tow-radio' line 1/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/hickston.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 23150,
+   "seconds": 1.05
+  },
+  "talk_tow-radio_1": {
+   "active": true,
+   "family": "voice",
+   "trigger": "hickston overheard exchange 'tow-radio' line 2/2 within 4.25 tiles + line of sight, out of combat (voice channel)",
+   "refs": [
+    "game.gd:2505",
+    "data/hickston.json:exchanges"
+   ],
+   "dynamic": "\"talk_%s_%d\" % [exchange.id, index]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "caption held max(1.35, length+.15)s; reply (_1) starts .18s after line _0 caption ends; cut off by combat",
+   "frames": 17241,
+   "seconds": 0.78
+  },
+  "teat_gun": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player fires teat_gun (Game.report (adds room_ twin indoors))",
+   "refs": [
+    "weapons.gd:411",
+    "weapons.gd:414"
+   ],
+   "dynamic": "Weapons.NAMES[active]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "refire interval 0.095s (FIRE_TIME)",
+   "frames": 4851,
+   "seconds": 0.22
+  },
+  "tickets_after_dark": {
+   "active": false,
+   "family": "misc",
+   "trigger": "mono WAV copy of a music track swept into the effect bank; runtime plays the Ogg in music.bin instead",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 4150588,
+   "seconds": 188.24
+  },
+  "tnt_bounce": {
+   "active": true,
+   "family": "projectile",
+   "trigger": "thrown dynamite bounces off wall/floor",
+   "refs": [
+    "game.gd:2213"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 3969,
+   "seconds": 0.18
+  },
+  "tnt_throw": {
+   "active": true,
+   "family": "weapon_report",
+   "trigger": "player releases/throws lit dynamite",
+   "refs": [
+    "weapons.gd:546"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "cooldown .46s",
+   "frames": 7056,
+   "seconds": 0.32
+  },
+  "toilet_burst": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'toilet' scenery prop shot or caught in a blast (fair, hickston, quarry, sawmill)",
+   "refs": [
+    "game.gd:124",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 24255,
+   "seconds": 1.1
+  },
+  "tosser_glass": {
+   "active": true,
+   "family": "projectile",
+   "trigger": "bottle tosser's bottle shatters",
+   "refs": [
+    "game.gd:2150"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 7497,
+   "seconds": 0.34
+  },
+  "tosser_rattle": {
+   "active": true,
+   "family": "enemy_alert",
+   "trigger": "bottle_tosser first alerted (wake); bottle_tosser attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:307",
+    "enemies.gd:110",
+    "enemies.gd:620",
+    "enemies.gd:159"
+   ],
+   "dynamic": "AWAKE[kind] | WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "bottle_tosser attack releases 0.73s after cue start (WINDUP).",
+   "frames": 11466,
+   "seconds": 0.52
+  },
+  "tosser_throw": {
+   "active": true,
+   "family": "enemy_attack",
+   "trigger": "bottle_tosser signature attack release",
+   "refs": [
+    "enemies.gd:720",
+    "enemies.gd:47"
+   ],
+   "dynamic": "SIGNATURES[kind][6]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 6394,
+   "seconds": 0.29
+  },
+  "tv_pop": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'tv' scenery prop shot or caught in a blast (fair, hickston, quarry, sawmill)",
+   "refs": [
+    "game.gd:123",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 13230,
+   "seconds": 0.6
+  },
+  "varmint_down": {
+   "active": false,
+   "family": "pain_death",
+   "trigger": "no runtime reference (superseded by actor_*_down)",
+   "refs": [],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 9040,
+   "seconds": 0.41
+  },
+  "vending_clunk": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'vending' scenery prop shot or caught in a blast (fair, hickston, quarry, sawmill)",
+   "refs": [
+    "game.gd:125",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 18742,
+   "seconds": 0.85
+  },
+  "weapon_pickup": {
+   "active": true,
+   "family": "pickup",
+   "trigger": "weapon collected (equip_ cue also fires on auto-switch)",
+   "refs": [
+    "game.gd:1071"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 5072,
+   "seconds": 0.23
+  },
+  "whiskey_glug": {
+   "active": true,
+   "family": "consumable",
+   "trigger": "player uses inventory item: whiskey",
+   "refs": [
+    "game.gd:1121"
+   ],
+   "dynamic": "list index by inventory slot",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 11025,
+   "seconds": 0.5
+  },
+  "whistle": {
+   "active": true,
+   "family": "enemy_windup",
+   "trigger": "jerry attack wind-up telegraph",
+   "refs": [
+    "enemies.gd:620",
+    "enemies.gd:148"
+   ],
+   "dynamic": "WINDUP[kind][1]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "jerry attack releases 0.54s after cue start (WINDUP).",
+   "frames": 9922,
+   "seconds": 0.45
+  },
+  "window_smash": {
+   "active": true,
+   "family": "scenery",
+   "trigger": "'window' scenery prop shot or caught in a blast (fair, hickston, quarry, sawmill)",
+   "refs": [
+    "game.gd:126",
+    "game.gd:2118"
+   ],
+   "dynamic": "REACTIONS[prop.kind][0]",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 12127,
+   "seconds": 0.55
+  },
+  "yee_haw": {
+   "active": true,
+   "family": "voice",
+   "trigger": "35% chance after a kill/streak bark; Jerry down; secret found; cheat code accepted; Y key taunt",
+   "refs": [
+    "game.gd:409",
+    "game.gd:1212",
+    "game.gd:1705",
+    "main.gd:923",
+    "main.gd:1141"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "",
+   "timing_note": "",
+   "frames": 28665,
+   "seconds": 1.3
+  },
+  "yee_haw_alt": {
+   "active": true,
+   "family": "voice",
+   "trigger": "50/50 alternative on kill/streak bark; also every 2nd 'yee_haw' request via VARIANTS",
+   "refs": [
+    "game.gd:409",
+    "sound.gd:86"
+   ],
+   "dynamic": "",
+   "loop": false,
+   "variant_of": "yee_haw",
+   "timing_note": "",
+   "frames": 31972,
+   "seconds": 1.45
+  }
+ },
+ "unused": [
+  "apron_run",
+  "arm_charge",
+  "closing_time_shuffle",
+  "copper_and_steam",
+  "county_line",
+  "dry_crowbar",
+  "dry_slingblade",
+  "fair_score",
+  "green_chain",
+  "honk",
+  "impact_stone",
+  "last_load",
+  "metal_down",
+  "mill_score",
+  "porchlight_stomp",
+  "quarry_score",
+  "report_room",
+  "room_splat",
+  "saw_grind",
+  "saw_load",
+  "splat",
+  "tickets_after_dark",
+  "varmint_down"
+ ],
+ "missing": [
+  "room_cow_launcher",
+  "room_teat_gun"
+ ],
+ "music": {
+  "music": {
+   "context": "shuffle bank 'music' for level hickston (rescue chapter): one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 149.559s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (music)",
+    "godot/assets/music/music.ogg"
+   ]
+  },
+  "county_line": {
+   "context": "shuffle bank 'music' for level hickston (rescue chapter): one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 182.104s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (music)",
+    "godot/assets/music/county_line.ogg"
+   ]
+  },
+  "porchlight_stomp": {
+   "context": "shuffle bank 'music' for level hickston (rescue chapter): one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 145.745s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (music)",
+    "godot/assets/music/porchlight_stomp.ogg"
+   ]
+  },
+  "fair_score": {
+   "context": "shuffle bank 'fair_score' for level fair: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 140.099s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (fair_score)",
+    "godot/assets/music/fair_score.ogg"
+   ]
+  },
+  "tickets_after_dark": {
+   "context": "shuffle bank 'fair_score' for level fair: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 186.958s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (fair_score)",
+    "godot/assets/music/tickets_after_dark.ogg"
+   ]
+  },
+  "closing_time_shuffle": {
+   "context": "shuffle bank 'fair_score' for level fair: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 153.882s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (fair_score)",
+    "godot/assets/music/closing_time_shuffle.ogg"
+   ]
+  },
+  "mill_score": {
+   "context": "shuffle bank 'mill_score' for level sawmill: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 172.181s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (mill_score)",
+    "godot/assets/music/mill_score.ogg"
+   ]
+  },
+  "green_chain": {
+   "context": "shuffle bank 'mill_score' for level sawmill: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 160.842s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (mill_score)",
+    "godot/assets/music/green_chain.ogg"
+   ]
+  },
+  "apron_run": {
+   "context": "shuffle bank 'mill_score' for level sawmill: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 143.52s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (mill_score)",
+    "godot/assets/music/apron_run.ogg"
+   ]
+  },
+  "quarry_score": {
+   "context": "shuffle bank 'quarry_score' for level quarry: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 156.899s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (quarry_score)",
+    "godot/assets/music/quarry_score.ogg"
+   ]
+  },
+  "copper_and_steam": {
+   "context": "shuffle bank 'quarry_score' for level quarry: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 162.971s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (quarry_score)",
+    "godot/assets/music/copper_and_steam.ogg"
+   ]
+  },
+  "last_load": {
+   "context": "shuffle bank 'quarry_score' for level quarry: one of 3 tracks, shuffled bag with no immediate repeat, not looped; cut at 149.507s (music_ends.json) with .12s coda fade then next track; .24s fades; position bookmarked per chapter; ducked by explosions (-50%), barks (-20%) and the jukebox",
+   "refs": [
+    "sound.gd:12",
+    "sound.gd:217",
+    "main.gd:425",
+    "campaign.gd (quarry_score)",
+    "godot/assets/music/last_load.ogg"
+   ]
+  }
+ },
+ "streams": {
+  "title": {
+   "context": "stereo jingle looped on the title/menu screens and while in the county hub (in_hub); 583945 frames = 26.48s",
+   "refs": [
+    "sound.gd:239",
+    "sound.gd:241",
+    "main.gd:425",
+    "main.gd:599",
+    "assets.gd:168"
+   ],
+   "loop": true,
+   "frames": 583945,
+   "seconds": 26.48
+  },
+  "victory": {
+   "context": "stereo jingle played once (not looped) when a level is won / tally screen shown; 159130 frames = 7.22s",
+   "refs": [
+    "sound.gd:239",
+    "game.gd:1626",
+    "main.gd:425",
+    "assets.gd:168"
+   ],
+   "loop": false,
+   "frames": 159130,
+   "seconds": 7.22
+  }
+ },
+ "voice_lines": [
+  {
+   "cue": "county_dispatch_0",
+   "text": "RADIO: LOOK FOR THE HOG.",
+   "refs": [
+    "game.gd:1454",
+    "game.gd:91"
+   ]
+  },
+  {
+   "cue": "county_dispatch_1",
+   "text": "RADIO: THE HOG IS HOME.",
+   "refs": [
+    "game.gd:1454",
+    "game.gd:91"
+   ]
+  },
+  {
+   "cue": "county_dispatch_2",
+   "text": "RADIO: CHECK THE BLUE TRUNK.",
+   "refs": [
+    "game.gd:1454",
+    "game.gd:91"
+   ]
+  },
+  {
+   "cue": "county_dispatch_3",
+   "text": "RADIO: KEEP THE LAST LOAD.",
+   "refs": [
+    "game.gd:1454",
+    "game.gd:91"
+   ]
+  },
+  {
+   "cue": "county_dispatch_4",
+   "text": "RADIO: THE TAG IS HOME.",
+   "refs": [
+    "game.gd:1454",
+    "game.gd:91"
+   ]
+  },
+  {
+   "cue": "talk_tow-radio_0",
+   "text": "RADIO: WHO TOOK THE TRUCK?",
+   "refs": [
+    "game.gd:2505",
+    "data/hickston.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_tow-radio_1",
+   "text": "VOICE: ASK THE PIG.",
+   "refs": [
+    "game.gd:2505",
+    "data/hickston.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_registry-radio_0",
+   "text": "RADIO: KEEP THE KEY DRY.",
+   "refs": [
+    "game.gd:2505",
+    "data/hickston.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_registry-radio_1",
+   "text": "VOICE: THEN FIX THE ROOF.",
+   "refs": [
+    "game.gd:2505",
+    "data/hickston.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_freight-pa_0",
+   "text": "PA: SAVE THAT ROPE.",
+   "refs": [
+    "game.gd:2505",
+    "data/fair.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_freight-pa_1",
+   "text": "VOICE: FOR THE SHOW?",
+   "refs": [
+    "game.gd:2505",
+    "data/fair.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_show-pa_0",
+   "text": "PA: CLEAR THE STAGE.",
+   "refs": [
+    "game.gd:2505",
+    "data/fair.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_show-pa_1",
+   "text": "VOICE: TELL THE GOAT.",
+   "refs": [
+    "game.gd:2505",
+    "data/fair.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_sort-radio_0",
+   "text": "RADIO: HEAR THAT BELT?",
+   "refs": [
+    "game.gd:2505",
+    "data/sawmill.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_sort-radio_1",
+   "text": "VOICE: SOUNDS LIKE TEETH.",
+   "refs": [
+    "game.gd:2505",
+    "data/sawmill.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_kiln-radio_0",
+   "text": "RADIO: KILL THE DRIVE.",
+   "refs": [
+    "game.gd:2505",
+    "data/sawmill.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_kiln-radio_1",
+   "text": "VOICE: YOU FIRST.",
+   "refs": [
+    "game.gd:2505",
+    "data/sawmill.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_pit-speaker_0",
+   "text": "HORN: TASTE THAT MUD?",
+   "refs": [
+    "game.gd:2505",
+    "data/quarry.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_pit-speaker_1",
+   "text": "VOICE: NEEDS MORE SALT.",
+   "refs": [
+    "game.gd:2505",
+    "data/quarry.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_line-speaker_0",
+   "text": "HORN: CLOSE THE TAP.",
+   "refs": [
+    "game.gd:2505",
+    "data/quarry.json:exchanges"
+   ]
+  },
+  {
+   "cue": "talk_line-speaker_1",
+   "text": "VOICE: WHICH RED ONE?",
+   "refs": [
+    "game.gd:2505",
+    "data/quarry.json:exchanges"
+   ]
+  }
+ ],
+ "notes": [
+  "Bank = 324 mono cues. 301 are reachable at runtime, 23 are not: 12 dead effect cues and 11 mono WAV copies of music tracks (the stereo 'music.wav', 'title.wav', 'victory.wav' are skipped by the packer; title/victory go to streams.bin).",
+  "room_ variants: Game.sound_at plays the dry cue positionally and, if the PLAYER's own cell has a roof (not the source's), also plays 'room_'+name when it exists in the bank at 55% of the positional volume (sound.gd scales room_* by a further .72). Game.report (player muzzle guns except the arm gun) does the same centred at .78 but without a has() check.",
+  "Missing: Game.report requests room_cow_launcher and room_teat_gun, which are not in the bank; Sound.play drops them silently, so those two guns have no indoor tail.",
+  "Plain sound.play() calls never get a room twin: gallery revolver, sound.play('gate') on exit-clear/level-finish, crowbar/slingblade/crossbow/ripsaw/armgun/bowling_ball/powder_keg reports, hits, reloads, equips, pickups, footsteps.",
+  "VARIANTS in sound.gd is strict round-robin, not random: each request for rifle/revolver/hurt/yee_haw advances a per-name counter (rifle -> rifle, rifle_alt, rifle_alt2; revolver -> revolver, revolver_alt; hurt x3; yee_haw x2). Gain/priority/room lookup still use the base name, so room_rifle and room_revolver are shared by all variants. Bark code also requests yee_haw_alt directly.",
+  "Looping cues (Assets.set_loop LOOP_FORWARD over the whole sample, so they must loop seamlessly end-to-start): all 11 amb_* beds, jukebox, fuse_hiss, saw_motor; plus the 'title' stream. Everything else is one-shot.",
+  "Voices: 14 general effect voices (new requests are dropped when all are busy unless the name is in PRIORITY, which gets a dedicated overflow voice), 2 ambience voices (crossfade .33s), radio, fuse, tool, sting, voice, and 2 warning voices.",
+  "WARNS cues (enemy wind-ups, sheriff_siren, whistle, pressure_vent, ...) are not retriggered while the same cue is still playing, so their length gates how often the telegraph can repeat; pressure_vent is a WARN even when used as a reload beat, station cue or scenery rupture. pause_world() cuts WARNS and the priority voice.",
+  "Dual-use cues: deputy_work, tosser_rattle, chain_raise and rat_hiss are both the alert cue and the wind-up cue; crawler_click is both wind-up and bite; gulp is beer and the teat gun reload; rocket_* and mag_out/bolt_rack/reload are shared by cow launcher / teat gun; shot_hinge, load, close, eject are shared by powder keg / bowling ball.",
+  "REPORT_GAIN trims loud cues (e.g. shotgun_both .64, saw_bounce .56, ripsaw .62); distant_* scale with the ambience slider, step_* with the footstep slider x.83; everything is multiplied by .82 x mix headroom.",
+  "Stings (shakedown_intro/_end, rudy/foreman/baron _intro/_end) play on a dedicated voice at music volume and are stopped when the score context changes; jerry_intro and got_bessie are ordinary effects. Stings are silent when music is toggled off.",
+  "Voice lines: only county_dispatch_0-4 and the 16 talk_<id>_<0|1> exchange lines have audio; the Barks one-liners (kill/streak/hurt/...) are caption text only, with a 35% chance of a yee_haw/yee_haw_alt on kill and streak barks.",
+  "Station cues come from level JSON: breaker_thunk, broadcast_cut (x2), fair_bell (fair); mill_isolate, brake_ratchet (x2), mill_trip (sawmill); mill_isolate, pressure_vent (x3), mill_trip, secret_slide, scenery_pipe (quarry); scenery_scrap (hickston feed-hatch).",
+  "Game.ALIAS rewrites weapon pickups 'riveter' -> bowling_ball and 'pressure_gun' -> cow_launcher, so in the Godot build the Mill Riveter and Copperhead (and riveter/riveter_pair/pressure_gun reports, their room_ twins, equip_/dry_/rivet_*/pressure_* reload cues, impact_rivet, impact_pressure, pressure_interrupt) are only reachable through the 'hickguns' cheat; they are still counted active. 'tnt' has no fire cue of its own (match_strike, fuse_hiss, tnt_throw, tnt_bounce, explosion).",
+  "Music is not looped per track: each chapter has a 3-track shuffled bag cut at music_ends.json; 'music' is the stem name of the first Hickston track."
+ ]
+}
