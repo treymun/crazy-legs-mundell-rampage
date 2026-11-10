@@ -55,10 +55,19 @@
     ? navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).catch(() => null)
     : Promise.resolve(null);
 
-  function mountGame() {
+  // Phones and tablets from Apple run every browser on one engine that will
+  // not reliably give a page shared memory, and so will any browser that
+  // refuses to isolate this page. Those get the lighter build: one thread,
+  // the view drawn at half size and doubled, and no isolation needed.
+  const apple = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const wantsLite = apple || new URLSearchParams(window.location.search).has('lite');
+  if (wantsLite) $('#own-tab').setAttribute('href', 'play/lite/');
+
+  function mountGame(lite) {
     if ($('iframe', screen)) return;
     const frame = el('iframe', {
-      src: 'play/index.html',
+      src: lite ? 'play/lite/index.html' : 'play/index.html',
       title: 'Crazy Legs Mundell Rampage, browser build',
       allow: 'cross-origin-isolated; fullscreen; gamepad; autoplay',
     });
@@ -70,14 +79,18 @@
   }
 
   function cannotPlayHere() {
-    playNote.textContent = 'This browser would not hand over the shared memory the game needs '
-      + 'on this page. Try "Open in its own tab", or take one of the downloads.';
+    playNote.textContent = 'This browser would not hand over shared memory, so this is the lighter '
+      + 'build: same game, a chunkier picture.';
+    mountGame(true);
   }
 
   function startGame() {
-    if (window.crossOriginIsolated) {
+    if (wantsLite) {
+      playNote.textContent = 'Lighter build for this device: same game, a chunkier picture.';
+      mountGame(true);
+    } else if (window.crossOriginIsolated) {
       visit.drop('clm-isolating');
-      mountGame();
+      mountGame(false);
     } else if (canIsolate && visit.get('clm-isolating') !== 'tried') {
       playButton.disabled = true;
       playNote.textContent = 'Warming up the tubes…';
@@ -127,37 +140,42 @@
     }).catch(() => {});
 
   // -------------------------------------------------------------- armory
-  // Numbers are the game's own (godot/src/weapons.gd): damage per shot, the
-  // delay between shots, reload time and magazine size.
+  // Numbers are the game's own (godot/src/weapons.gd): damage per shot and the
+  // delay between shots. Only the .38 and the sawed-off reload; the rest feed
+  // straight from what you are carrying.
   const WEAPONS = [
     { id: 'crowbar', name: 'Rusted Crowbar', key: '1', damage: 44, hit: '44', fire: .33, reload: 0, mag: 0,
       text: 'Came with the truck. Opens crates, doors and negotiations. Hits harder on a moonshine sprint.' },
-    { id: 'revolver', name: '.38 Special', key: '2', damage: 34, hit: '34', fire: .34, reload: .88, mag: 6,
+    { id: 'revolver', name: '.38 Special', key: '2', damage: 34, hit: '34', fire: .30, reload: .88, mag: 6,
       text: 'Six polite suggestions. Daddy called it the tie-breaker; it has never lost a vote.' },
     { id: 'shotgun', name: 'Sawed-Off', key: '3', damage: 120, hit: '10 × 12', fire: .55, reload: 1.10, mag: 2,
-      text: 'Shortened for indoor use. Alt fire empties both barrels and most of the room.' },
-    { id: 'crossbow', name: 'Dynamite Crossbow', key: '4', damage: 160, hit: '160 blast', fire: .62, reload: .68, mag: 1,
-      text: 'A deer bow with a stick of dynamite where the sense should be. Opens the doors keys will not.' },
-    { id: 'rifle', name: 'Ranch Rifle', key: '5', damage: 21, hit: '21', fire: .125, reload: 1.30, mag: 18,
-      text: 'Eight rounds a second until it runs hot and starts aiming for itself. Feather it.' },
-    { id: 'ripsaw', name: 'Rip Saw', key: '6', damage: 54, hit: '54 blade', fire: .32, reload: .58, mag: 1,
-      text: 'Throws a saw blade that bounces three times and remembers who threw it. Alt fire grinds up close for free.' },
-    { id: 'armgun', name: 'Alien Arm Gun', key: '7', damage: 50, hit: '50', fire: .34, reload: .88, mag: 6,
-      text: 'Not yours. Still warm. The former owner is not asking for it back.' },
+      text: 'Shortened for indoor use. Alt fire empties both barrels and most of the room. Up close it does not leave a body.' },
+    { id: 'crossbow', name: 'Dynamite Crossbow', key: '4', damage: 160, hit: '160 blast', fire: 1.05, reload: 0, mag: 0,
+      text: 'A truck leaf spring, a rail and a stick of dynamite where the sense should be. Opens the doors keys will not.' },
+    { id: 'rifle', name: 'Ranch Rifle', key: '5', damage: 21, hit: '21', fire: .11, reload: 0, mag: 0,
+      text: 'Somebody\'s uncle brought a Kalashnikov home and called it a ranch rifle. Nine rounds a second until it runs hot. Feather it.' },
+    { id: 'ripsaw', name: 'Rip Saw', key: '6', damage: 54, hit: '54 blade', fire: .78, reload: 0, mag: 0,
+      text: 'A two-stroke motor with a stack of blades on the arbor. Throws one that bounces three times; alt fire grinds up close for free.' },
+    { id: 'armgun', name: 'Alien Arm Gun', key: '7', damage: 50, hit: '50', fire: .21, reload: 0, mag: 0,
+      text: 'Not yours. Still warm, and the eye on top is still looking. The former owner is not asking for it back.' },
     { id: 'tnt', name: 'Dynamite', key: '8', damage: 160, hit: '160 blast', fire: .46, reload: 0, mag: 0,
       text: 'Hold fire to light it, let go to throw it. The fuse is 2.65 seconds whether or not you are counting.' },
     { id: 'slingblade', name: 'Sling Blade', key: '9', damage: 58, hit: '58', fire: .49, reload: 0, mag: 0,
       text: 'Some folks call it a kaiser blade. Longer reach than the crowbar and a worse attitude.' },
-    { id: 'bottle_launcher', name: 'Bottle Rocket Launcher', key: '0', damage: 120, hit: '120 blast', fire: .65, reload: .79, mag: 1,
-      text: 'Fourth of July, shoulder-fired. Whistles on the way so they know it is coming.' },
-    { id: 'bowling_ball', name: 'Bowling Ball', key: '−', damage: 108, hit: '108', fire: .70, reload: .72, mag: 1,
+    { id: 'bottle_launcher', name: 'Bottle Rocket Launcher', key: '0', damage: 120, hit: '120 blast', fire: 1.15, reload: 0, mag: 0,
+      text: 'A length of drain pipe hose-clamped to a two-by-four. Fourth of July, shoulder-fired; whistles so they know it is coming.' },
+    { id: 'riveter', name: 'Mill Riveter', key: 'wheel', damage: 32, hit: '32', fire: .22, reload: 0, mag: 0,
+      text: 'Blackwater Timber\'s pneumatic rivet gun, drum and all. Drives a hot stud through whatever is holding the wall up.' },
+    { id: 'pressure_gun', name: 'Copperhead', key: 'wheel', damage: 24, hit: '24', fire: .60, reload: 0, mag: 0,
+      text: 'A riveted copper boiler with a snake\'s head for a nozzle. Scalds a whole doorway and knocks the fight out of anyone in it.' },
+    { id: 'bowling_ball', name: 'Bowling Ball', key: '−', damage: 108, hit: '108', fire: 1.10, reload: 0, mag: 0,
       text: 'League night at the county lanes ended early. Rolls flat, stops for nobody twice.' },
-    { id: 'powder_keg', name: 'Powder Keg', key: '=', damage: 240, hit: '240 blast', fire: .80, reload: .95, mag: 1,
+    { id: 'powder_keg', name: 'Powder Keg', key: '=', damage: 240, hit: '240 blast', fire: 1.35, reload: 0, mag: 0,
       text: 'The biggest bang in the county, lobbed underhand. Stand somewhere else.' },
-    { id: 'cow_launcher', name: 'Cow Launcher', key: '\\', damage: 150, hit: '150 blast', fire: .95, reload: 1.10, mag: 1,
-      text: 'She moos on the way out. Nobody has asked the cow.' },
-    { id: 'teat_gun', name: 'Teat Gun', key: '`', damage: 10, hit: '10', fire: .095, reload: 1.25, mag: 30,
-      text: 'Thirty rounds of fresh whole milk at ten and a half a second. Does a body bad.' },
+    { id: 'cow_launcher', name: 'Cow Launcher', key: '\\', damage: 150, hit: '150 blast', fire: 1.55, reload: 0, mag: 0,
+      text: 'A riveted stovepipe with a hide wrap and a cowbell. She moos on the way out. Nobody has asked the cow.' },
+    { id: 'teat_gun', name: 'Teat Gun', key: '`', damage: 10, hit: '10', fire: .09, reload: 0, mag: 0,
+      text: 'A milking machine with ideas. Fresh whole milk at eleven squirts a second, straight from the pail. Does a body bad.' },
   ];
   const frames = window.CLM_FRAMES || {};
   const pegboard = $('#pegboard');
@@ -193,7 +211,7 @@
     const view = $('#bench-sprite');
     dress(view, weapon.id, Math.min(300, $('.bench-view').clientWidth - 30), 150);
     view.setAttribute('aria-label', `${weapon.name}, animated`);
-    $('#bench-key').textContent = `Key ${weapon.key}`;
+    $('#bench-key').textContent = weapon.key === 'wheel' ? 'Mouse wheel' : `Key ${weapon.key}`;
     $('#bench-name').textContent = weapon.name;
     $('#bench-text').textContent = weapon.text;
     const list = $('#bench-stats');
@@ -203,7 +221,8 @@
     stat(list, 'Rate', rate / TOP.rate, `${rate.toFixed(1)} / sec`);
     stat(list, 'Reload', weapon.reload ? 1 - weapon.reload / TOP.reload : 1,
       weapon.reload ? `${weapon.reload.toFixed(2)} s` : 'never');
-    stat(list, 'Magazine', weapon.mag / TOP.mag, weapon.mag ? String(weapon.mag) : weapon.id === 'tnt' ? 'by the stick' : 'none');
+    stat(list, 'Magazine', weapon.mag / TOP.mag, weapon.mag ? String(weapon.mag) : weapon.id === 'tnt' ? 'by the stick'
+        : ['crowbar', 'slingblade'].includes(weapon.id) ? 'none' : 'straight from the pouch');
   }
 
   WEAPONS.forEach((weapon) => {

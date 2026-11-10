@@ -90,6 +90,13 @@ static func panel(
 ## Port of HUD.banner: word-wrapped message panel across the top of the view.
 ## Returns the y coordinate below the panel.
 static func banner(c: Canvas, value: String, top: int, limit := 288, color := INK) -> int:
+	# A banner is an opaque plate that says the same thing for seconds on end:
+	# it is drawn once, kept as a block of pixels and pasted back each frame.
+	var key := [value, top, limit, color]
+	var kept = _banners.get(key)
+	if kept != null:
+		_paste(c, kept)
+		return int(kept["bottom"])
 	var lines := PixelType.wrap(value, limit - 14)
 	if lines.is_empty():
 		return top
@@ -110,7 +117,38 @@ static func banner(c: Canvas, value: String, top: int, limit := 288, color := IN
 	)
 	for i in lines.size():
 		text(c, lines[i], middle, top + 4 + i * 10, "body", color, true, false)
+	var x := middle - width / 2
+	if x >= 0 and top >= 0 and x + width <= Canvas.WIDTH and top + height <= Canvas.HEIGHT:
+		var block := PackedByteArray()
+		for row in height:
+			var from := ((top + row) * Canvas.WIDTH + x) * 3
+			block.append_array(c.pixels.slice(from, from + width * 3))
+		if _banners.size() > 24:
+			_banners.clear()
+		_banners[key] = {
+			"x": x, "y": top, "w": width, "h": height, "data": block, "bottom": top + height
+		}
 	return top + height
+
+
+static var _banners := {}
+
+
+## Lay a kept block of pixels back into the frame with whole-row copies.
+static func _paste(c: Canvas, kept: Dictionary) -> void:
+	var x: int = kept["x"]
+	var y: int = kept["y"]
+	var w: int = kept["w"]
+	var h: int = kept["h"]
+	var block: PackedByteArray = kept["data"]
+	var pix := c.pixels
+	var out := pix.slice(0, (y * Canvas.WIDTH + x) * 3)
+	for row in h:
+		out.append_array(block.slice(row * w * 3, (row + 1) * w * 3))
+		var after := ((y + row) * Canvas.WIDTH + x + w) * 3
+		var until := ((y + row + 1) * Canvas.WIDTH + x) * 3 if row < h - 1 else pix.size()
+		out.append_array(pix.slice(after, until))
+	c.pixels = out
 
 
 ## Port of HUD.number: the big rust-orange plate numerals.

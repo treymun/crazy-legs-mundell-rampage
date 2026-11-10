@@ -88,7 +88,9 @@ func art(name: String) -> Dictionary:
 	_art_file.seek(int(info["offset"]))
 	var w := int(info["w"])
 	var h := int(info["h"])
-	var data := _art_file.get_buffer(w * h * 4)
+	# Each image is stored deflated (tools/pack_assets.py) and inflated on first use.
+	var packed := _art_file.get_buffer(int(info["size"]))
+	var data := packed.decompress(w * h * 4, FileAccess.COMPRESSION_DEFLATE)
 	var result := {"w": w, "h": h, "data": data}
 	_art_cache[name] = result
 	return result

@@ -50,6 +50,8 @@ WEAPONS = {
     "powder_keg": ("powder_keg", FIRE),
     "cow_launcher": ("cow_launcher", FIRE),
     "teat_gun": ("teat_gun", FIRE),
+    "riveter": ("riveter", FIRE),
+    "pressure_gun": ("pressure_gun", FIRE),
 }
 FACES = ("idle_center", "idle_blink", "look_left", "look_right", "grin_rampage", "yell_fire",
          "ouch_shock", "hurt_75", "hurt_50", "hurt_25", "drunk_dizzy", "dead")
@@ -108,7 +110,9 @@ def images() -> None:
     for source, target in COPIES.items():
         Image.open(ART / f"{source}.png").save(SITE / "img" / f"{target}.png", optimize=True)
     for source, target in SHOTS.items():
-        Image.open(FRAMES / f"{source}.png").convert("RGB").save(
+        # A capture from the Godot build (docs/media/site_shots) beats the old Python frame.
+        fresh = ROOT / "docs" / "media" / "site_shots" / f"{target}.png"
+        Image.open(fresh if fresh.is_file() else FRAMES / f"{source}.png").convert("RGB").save(
             SITE / "img" / f"{target}.png", optimize=True)
     (SITE / "js" / "frames.js").write_text(
         "// Written by scripts/build_site_assets.py: sprite strip sizes.\n"

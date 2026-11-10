@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import sys
 import wave
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -91,9 +92,12 @@ def art():
     for path in sorted(SRC_ART.glob("*.png")):
         image = Image.open(path).convert("RGBA")
         w, h = image.size
-        data = np.asarray(image, dtype=np.uint8)
-        index[path.stem] = {"offset": len(blob), "w": w, "h": h}
-        blob += data.tobytes()
+        # Sprites are mostly empty air, so each one is deflated on its own and
+        # inflated the first time the game asks for it: a tenth of the download
+        # and of the memory a browser tab has to hold.
+        packed = zlib.compress(np.asarray(image, dtype=np.uint8).tobytes(), 9)
+        index[path.stem] = {"offset": len(blob), "size": len(packed), "w": w, "h": h}
+        blob += packed
     (OUT / "art.bin").write_bytes(blob)
     (OUT / "art_index.json").write_text(json.dumps(index, separators=(",", ":")))
     print(f"art.bin {len(blob)/1e6:.2f} MB, {len(index)} images")

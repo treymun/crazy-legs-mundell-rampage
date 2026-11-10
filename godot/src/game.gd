@@ -900,6 +900,9 @@ func configure(options: Dictionary) -> void:
 	bullet_marks = bool(options.get("bullet_marks", 1))
 	retro_look = bool(options.get("film_look", 0))
 	renderer.wall_tiling = bool(options.get("wall_tiling", 1))
+	# A browser without threads draws every band on one core: it gets LOW whatever the setting.
+	var unthreaded := OS.has_feature("web") and not OS.has_feature("threads")
+	renderer.set_detail(1 if (unthreaded or int(options.get("detail", 0)) == 1) else 0)
 	flicker = bool(options.get("flicker", 1))
 	armory.auto_switch = bool(options.get("auto_switch", 1))
 	armory.auto_reload = bool(options.get("auto_reload", 1))

@@ -443,6 +443,13 @@ static func _build_pages() -> Array:
 					0,
 					"OFF IS THE PLAIN 256-COLOR PICTURE. ON ADDS GRAIN, DITHER AND A TINT."
 				),
+				choices(
+					"VIEW DETAIL",
+					"detail",
+					0,
+					["HIGH", "LOW"],
+					"LOW DRAWS THE VIEW AT HALF SIZE AND DOUBLES IT. FOR SLOW MACHINES."
+				),
 				toggle(
 					"TILED WALLS",
 					"wall_tiling",

@@ -191,17 +191,24 @@ jobs:
       - uses: ./.github/actions/godot
       - name: Export the WebAssembly build
         run: |
-          mkdir -p godot/build/web
+          mkdir -p godot/build/web godot/build/web-lite
           godot --headless --path godot --export-release "Web" build/web/index.html 2>&1 | tee export.log
+          # The lighter build has no threads: it is what iPhones, iPads and any
+          # browser that will not isolate the page are sent to (play/lite/).
+          godot --headless --path godot --export-release "Web Lite" build/web-lite/index.html 2>&1 | tee -a export.log
           if grep -iE "export .*failed|SCRIPT ERROR" export.log; then exit 1; fi
-          test -s godot/build/web/index.wasm
-          test -s godot/build/web/index.pck
-          ls -lh godot/build/web
+          for build in web web-lite; do
+            test -s godot/build/$build/index.wasm
+            test -s godot/build/$build/index.pck
+            ls -lh godot/build/$build
+          done
       - name: Assemble the Pages site
         run: |
           mkdir -p _site/play
           cp -r site/. _site/
           cp -r godot/build/web/. _site/play/
+          mkdir -p _site/play/lite
+          cp -r godot/build/web-lite/. _site/play/lite/
           python scripts/godot_version.py > _site/version.txt
           du -sh _site
       - uses: actions/configure-pages@v5

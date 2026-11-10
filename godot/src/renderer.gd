@@ -16,6 +16,14 @@ const VIEW := 156
 const HEIGHT := 200
 const FOCAL := 230.0
 const SKY_W := 512
+## The size the view is actually drawn at. HIGH is the full 320x156; LOW draws
+## half of that each way and doubles it up, for machines (and browsers without
+## threads) that cannot keep up. Everything downstream still sees 320x200.
+var vw := WIDTH
+var vh := VIEW
+var focal := FOCAL
+var detail := 0
+var res_up := 1.0
 const SKY_H := 116
 const TILE_W := 128
 const TILE_BYTES := TILE_W * TILE_W * 3
@@ -264,6 +272,17 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 	_build_shade_rows()
 
 
+## Choose HIGH (0) or LOW (1) view detail.
+func set_detail(level_of_detail: int) -> void:
+	detail = clampi(level_of_detail, 0, 1)
+	vw = WIDTH >> detail
+	vh = VIEW >> detail
+	focal = FOCAL / (1 << detail)
+	res_up = float(VIEW) / vh
+	for i in vw:
+		rays[i] = (i + .5 - vw / 2.0) / focal
+
+
 ## Round a double to the nearest float32, matching numpy's float32 arithmetic.
 static func _round32(value: float) -> float:
 	var one := PackedFloat32Array()
@@ -347,7 +366,10 @@ func render(
 	var py: float = player["y"]
 	var pz: float = player["eye"]
 	var angle: float = player["view_angle"]
-	var hz := VIEW / 2.0 + float(player["pitch"]) + float(player["bob"]) + float(player["sway"])
+	var hz := (
+		(VIEW / 2.0 + float(player["pitch"]) + float(player["bob"]) + float(player["sway"]))
+		/ res_up
+	)
 	flash = flash_value
 	var at_hub := not level.road_and_hub.is_empty() and py > 33.0
 	var active := level.active_walls(at_hub)
@@ -360,13 +382,13 @@ func render(
 	# and returning this one directly is then safe because the next frame
 	# allocates a different array instead of rewriting it.
 	frame = PackedByteArray()
-	frame.resize(WIDTH * HEIGHT * 3)
+	frame.resize(vw * (HEIGHT if detail == 0 else vh) * 3)
 	depth = PackedFloat32Array()
-	depth.resize(WIDTH * VIEW)
+	depth.resize(vw * vh)
 	glass = PackedByteArray()
-	glass.resize(WIDTH * VIEW)
+	glass.resize(vw * vh)
 	pane_dist = PackedFloat32Array()
-	pane_dist.resize(WIDTH * VIEW)
+	pane_dist.resize(vw * vh)
 	_scene(
 		px,
 		py,
@@ -379,13 +401,18 @@ func render(
 		marks,
 		ground_marks,
 		frame,
-		WIDTH,
+		vw,
 		0,
-		WIDTH,
+		vw,
 		depth,
 		glass
 	)
 	_mirror_pass(px, py, pz, angle, hz, active, sprites, reflection_sprite, marks, ground_marks)
+	if detail != 0:
+		var small := Image.create_from_data(vw, vh, false, Image.FORMAT_RGB8, frame)
+		small.resize(WIDTH, VIEW, Image.INTERPOLATE_NEAREST)
+		frame = small.get_data()
+		frame.resize(WIDTH * HEIGHT * 3)
 	last_render_ms = (Time.get_ticks_usec() - started) / 1000.0
 	return frame
 
@@ -431,13 +458,13 @@ func _scene(
 	depth_buf.fill(160.0)
 	glass_buf.fill(0)
 	pane_dist.fill(160.0)
-	split = clampi(int(floor(hz - .5)) + 1, 0, VIEW)
-	for r in VIEW:
+	split = clampi(int(floor(hz - .5)) + 1, 0, vh)
+	for r in vh:
 		sy_rows[r] = row_sy[r] - hz
-	for i in WIDTH:
+	for i in vw:
 		dir_x[i] = fx + rx * rays[i]
 		dir_y[i] = fy + ry * rays[i]
-	for i in WIDTH:
+	for i in vw:
 		pane_cols[i] = 0
 
 	_sprite_list = sprites
@@ -470,11 +497,11 @@ func _warm_art() -> void:
 		if s.body and not pivots.has(s.image):
 			body_offset(s.image, art["data"], int(art["w"]), int(art["h"]), 1)
 		_spr_c0[i] = 0
-		_spr_c1[i] = WIDTH
+		_spr_c1[i] = vw
 		var dist := (s.x - cx) * fx + (s.y - cy) * fy
 		if is_nan(s.plane) and dist > .13:
-			var mid := WIDTH / 2.0 + ((s.x - cx) * rx + (s.y - cy) * ry) / dist * FOCAL
-			var half := s.height / dist * FOCAL * float(art["w"]) / float(art["h"]) * .5 + 3.0
+			var mid := vw / 2.0 + ((s.x - cx) * rx + (s.y - cy) * ry) / dist * focal
+			var half := s.height / dist * focal * float(art["w"]) / float(art["h"]) * .5 + 3.0
 			_spr_c0[i] = int(mid - half)
 			_spr_c1[i] = int(mid + half) + 1
 		elif is_nan(s.plane):
@@ -491,6 +518,32 @@ var _band_next := 0
 var _band_lock := Mutex.new()
 const BAND_COLUMNS := 40
 var _workers: Array[Thread] = []
+## Band threads shared by every renderer; they sleep on a semaphore between frames.
+static var _crew: Array[Thread] = []
+static var _crew_go := Semaphore.new()
+static var _crew_done := Semaphore.new()
+static var _crew_job: Callable
+static var _crew_quit := false
+
+
+static func _crew_loop() -> void:
+	while true:
+		_crew_go.wait()
+		if _crew_quit:
+			return
+		_crew_job.call()
+		_crew_done.post()
+
+
+## Let the band threads go; call once when the program is closing.
+static func stop_crew() -> void:
+	_crew_quit = true
+	for _i in _crew.size():
+		_crew_go.post()
+	for t in _crew:
+		t.wait_to_finish()
+	_crew.clear()
+	_crew_quit = false
 
 
 ## Explicit Thread workers instead of WorkerThreadPool: the pool reuses engine
@@ -500,19 +553,22 @@ var _workers: Array[Thread] = []
 func _run_bands(c0: int, c1: int) -> void:
 	# Narrow bands handed out on demand: a worker that draws cheap columns comes
 	# back for more, so one crowded stretch of the view does not hold the frame.
-	_band_per = BAND_COLUMNS
+	_band_per = maxi(8, BAND_COLUMNS * vw / WIDTH)
 	_band_count = int(ceil(float(c1 - c0) / _band_per))
 	_band_next = 0
 	var crew := mini(threads, _band_count)
-	while _workers.size() < crew:
-		_workers.append(Thread.new())
+	# The crew is started once and kept: starting a thread per band per frame
+	# cost more than some bands took to draw, and far more in a browser.
+	while _crew.size() < crew:
+		var t := Thread.new()
+		t.start(Renderer._crew_loop)
+		_crew.append(t)
+	Renderer._crew_job = _band_worker
 	for i in crew:
-		var t: Thread = _workers[i]
-		if t.is_started():
-			t.wait_to_finish()
-		t.start(_band_worker)
+		_crew_go.post()
 	for i in crew:
-		_workers[i].wait_to_finish()
+		_crew_done.wait()
+	Renderer._crew_job = Callable()
 
 
 func _band_worker() -> void:
@@ -555,13 +611,13 @@ func _prepare(segments: PackedFloat32Array) -> void:
 	seg_c0.resize(seg_n)
 	seg_c1.resize(seg_n)
 	seg_order.clear()
-	cov_top.resize(WIDTH)
-	cov_bot.resize(WIDTH)
-	cov_t.resize(WIDTH)
-	cov_top.fill(VIEW)
+	cov_top.resize(vw)
+	cov_bot.resize(vw)
+	cov_t.resize(vw)
+	cov_top.fill(vh)
 	cov_bot.fill(-1)
 	cov_t.fill(0.0)
-	glass_cols.resize(WIDTH)
+	glass_cols.resize(vw)
 	glass_cols.fill(0)
 	for i in seg_n:
 		var o := i * WALL_STRIDE
@@ -585,8 +641,8 @@ func _prepare(segments: PackedFloat32Array) -> void:
 			var f := (a1 - .02) / (a1 - a0)
 			a1 = .02
 			s1 += (s0 - s1) * f
-		var m0 := WIDTH / 2.0 + s0 / a0 * FOCAL - .5
-		var m1 := WIDTH / 2.0 + s1 / a1 * FOCAL - .5
+		var m0 := vw / 2.0 + s0 / a0 * focal - .5
+		var m1 := vw / 2.0 + s1 / a1 * focal - .5
 		seg_c0[i] = maxi(col0, int(floor(minf(m0, m1))) - 1)
 		seg_c1[i] = mini(col1, int(ceil(maxf(m0, m1))) + 2)
 		if seg_c0[i] < seg_c1[i]:
@@ -605,11 +661,11 @@ func _sky_band(a: int, b: int) -> void:
 		var ang := view_angle + parity * atan(rays[a + i])
 		col_off[i] = (int(ang * scale) & 511) * 3
 	var row_off := PackedInt32Array()
-	row_off.resize(VIEW)
-	for r in VIEW:
-		row_off[r] = clampi(int(93.0 + sy_rows[r] * .95), 0, 115) * SKY_W * 3
+	row_off.resize(vh)
+	for r in vh:
+		row_off[r] = clampi(int(93.0 + sy_rows[r] * res_up * .95), 0, 115) * SKY_W * 3
 	var w := out_w
-	for r in VIEW:
+	for r in vh:
 		var s := row_off[r]
 		var d := r * w * 3 + (a - col0) * 3
 		for i in n:
@@ -705,14 +761,14 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 		var glow_base := (profile + PROFILE_GLOW) * SHADE_ROW
 		var flick_base := (profile + PROFILE_FLICK) * SHADE_ROW
 		var shade := shade_rows
-		var sy_lo := (cz - top) * FOCAL / t
-		var sy_hi := (cz - bottom) * FOCAL / t
+		var sy_lo := (cz - top) * focal / t
+		var sy_hi := (cz - bottom) * focal / t
 		if sy_lo > sy_hi:
 			var swap := sy_lo
 			sy_lo = sy_hi
 			sy_hi = swap
 		var r0 := maxi(0, int(ceil(sy_lo + horizon - .5)))
-		var r1 := mini(VIEW - 1, int(floor(sy_hi + horizon - .5)))
+		var r1 := mini(vh - 1, int(floor(sy_hi + horizon - .5)))
 		if r0 > r1:
 			continue
 		var cover_top := cov_top[c]
@@ -720,7 +776,7 @@ func _wall_segment(i: int, a: int, b: int) -> void:
 		if r0 >= cover_top and r1 <= cover_bot and t >= cov_t[c]:
 			continue
 		var sy := float(r0) + .5 - horizon
-		var t_inv := t / FOCAL
+		var t_inv := t / focal
 		var row := r0
 		var lx := c - col0
 		var gi := row * w + lx
@@ -944,7 +1000,7 @@ func running_water(rgb: PackedInt32Array, x: float, y: float) -> void:
 # ----------------------------------------------------------------- planes
 func _plane_band(a: int, b: int) -> void:
 	_plane_layer(level.roof_boxes, true, 0, split, a, b)
-	_plane_layer(level.floor_boxes, false, split, VIEW, a, b)
+	_plane_layer(level.floor_boxes, false, split, vh, a, b)
 
 
 func _plane_layer(boxes: Array, overhead: bool, row0: int, row1: int, a: int, b: int) -> void:
@@ -969,7 +1025,7 @@ func _plane_layer(boxes: Array, overhead: bool, row0: int, row1: int, a: int, b:
 		var by0 := float(box.y)
 		var bx1 := float(box.z)
 		var by1 := float(box.w)
-		var tscale := absf(h - cz) * FOCAL
+		var tscale := absf(h - cz) * focal
 		# Conservative column cull: project the bbox corners and skip heights
 		# whose whole box lands outside this band. The per-column test below
 		# still decides the exact span, so a padded bound is always safe.
@@ -986,7 +1042,7 @@ func _plane_layer(boxes: Array, overhead: bool, row0: int, row1: int, a: int, b:
 				if d2 <= .02:
 					cull = false
 					break
-				var col2 := WIDTH / 2.0 + (ddx * rx + ddy * ry) / d2 * FOCAL
+				var col2 := vw / 2.0 + (ddx * rx + ddy * ry) / d2 * focal
 				if col2 < cmin:
 					cmin = col2
 				if col2 > cmax:
@@ -1166,7 +1222,7 @@ func _pane_wash() -> void:
 	for c in range(col0, col1):
 		if pane_cols[c] == 0:
 			continue
-		for r in VIEW:
+		for r in vh:
 			var gi := r * out_w + (c - col0)
 			var pd := pane_dist[gi]
 			if pd >= 160.0 or pd >= dep[gi]:
@@ -1194,13 +1250,13 @@ func _mirror_pass(
 		return
 	var a := -1
 	var b := -1
-	for c in WIDTH:
+	for c in vw:
 		var hit := glass_cols[c] != 0
 		if hit:
 			# The column drew mirror glass at some point; check some of it survived.
 			hit = false
-			for r in VIEW:
-				if glass[r * WIDTH + c] != 0:
+			for r in vh:
+				if glass[r * vw + c] != 0:
 					hit = true
 					break
 		if hit:
@@ -1213,9 +1269,9 @@ func _mirror_pass(
 	var rframe := PackedByteArray()
 	var rdepth := PackedFloat32Array()
 	var rglass := PackedByteArray()
-	rframe.resize(w * VIEW * 3)
-	rdepth.resize(w * VIEW)
-	rglass.resize(w * VIEW)
+	rframe.resize(w * vh * 3)
+	rdepth.resize(w * vh)
+	rglass.resize(w * vh)
 	var ghost := sprites.duplicate()
 	if reflection_sprite != null:
 		ghost.append(reflection_sprite)
@@ -1246,8 +1302,8 @@ func _mirror_pass(
 	out = keep_out
 	dep = keep_dep
 	gls = keep_gls
-	for r in VIEW:
-		var drow := r * WIDTH
+	for r in vh:
+		var drow := r * vw
 		var srow := r * w
 		for c in range(a, b):
 			var gi := drow + c
@@ -1314,14 +1370,14 @@ func _draw_sprite(s: Sprite, a: int, b: int) -> void:
 	if dist <= .13 or dist >= limit:
 		return
 	var lateral := dx * rx + dy * ry
-	var screen_x := WIDTH / 2.0 + lateral / dist * FOCAL - a
-	var height := int(s.height / dist * FOCAL)
+	var screen_x := vw / 2.0 + lateral / dist * focal - a
+	var height := int(s.height / dist * focal)
 	if height < 2:
 		return
 	var top := 0
 	if is_nan(s.plane):
-		top = int(round(horizon - (s.z + s.height - cz) / dist * FOCAL))
-		if top >= VIEW or (top + height <= 0 and not s.body):
+		top = int(round(horizon - (s.z + s.height - cz) / dist * focal))
+		if top >= vh or (top + height <= 0 and not s.body):
 			return
 	var art := sprite_art(s.image)
 	var sw: int = art["w"]
@@ -1339,7 +1395,7 @@ func _draw_sprite(s: Sprite, a: int, b: int) -> void:
 	var x0 := maxi(0, left)
 	var x1 := mini(b - a, left + width)
 	var y0 := maxi(0, top)
-	var y1 := mini(VIEW, top + height)
+	var y1 := mini(vh, top + height)
 	if x0 >= x1 or y0 >= y1:
 		return
 	var ci := level.cell(s.x, s.y)
@@ -1444,8 +1500,8 @@ func _draw_sign(s: Sprite, a: int, b: int, data: PackedByteArray, sw: int, sh: i
 		var u := clampi(int(along * sw), 0, sw - 1)
 		var light := light_at(d, level.light[ci])
 		var lx := c - col0
-		for r in VIEW:
-			var v := (s.z + s.height - cz + sy_rows[r] * d / FOCAL) / s.height
+		for r in vh:
+			var v := (s.z + s.height - cz + sy_rows[r] * d / focal) / s.height
 			if v < 0.0 or v >= 1.0:
 				continue
 			var gi := r * w + lx
@@ -1542,17 +1598,17 @@ func _draw_mark(m: WallMark, a: int, b: int) -> void:
 	if absf(axis * d - lateral * fall) < .08:
 		return
 	var extent: float = m.radius
-	var half_w := WIDTH * .5 - a
-	var left := half_w + (lateral - axis * extent) * FOCAL / (d - fall * extent)
-	var right := half_w + (lateral + axis * extent) * FOCAL / (d + fall * extent)
+	var half_w := vw * .5 - a
+	var left := half_w + (lateral - axis * extent) * focal / (d - fall * extent)
+	var right := half_w + (lateral + axis * extent) * focal / (d + fall * extent)
 	if absf(right - left) < .15:
 		return
 	var x0 := maxi(0, int(floor(minf(left, right))))
 	var x1 := mini(b - a, int(ceil(maxf(left, right))))
-	var half := FOCAL * extent / d
-	var cy_screen := horizon - (m.z - cz) * FOCAL / d
+	var half := focal * extent / d
+	var cy_screen := horizon - (m.z - cz) * focal / d
 	var y0 := maxi(0, int(cy_screen - half - 1.0))
-	var y1 := mini(VIEW, int(cy_screen + half + 2.0))
+	var y1 := mini(vh, int(cy_screen + half + 2.0))
 	if x0 >= x1 or y0 >= y1:
 		return
 	var art := sprite_art(m.image)
@@ -1563,13 +1619,13 @@ func _draw_mark(m: WallMark, a: int, b: int) -> void:
 	var w := out_w
 	var lx0 := a - col0
 	for y in range(y0, y1):
-		var vv := (horizon - (y + .5)) * d / FOCAL + cz - m.z
+		var vv := (horizon - (y + .5)) * d / focal + cz - m.z
 		if absf(vv) > extent:
 			continue
 		var v := clampi(int((1.0 - vv / extent) * .5 * sh), 0, sh - 1)
 		var drow := y * w
 		for x in range(x0, x1):
-			var proj := (x + .5 - half_w) / FOCAL
+			var proj := (x + .5 - half_w) / focal
 			var den := axis - proj * fall
 			if absf(den) < 1e-12:
 				continue
@@ -1626,11 +1682,11 @@ func _draw_ground_mark(m: GroundMark, a: int, b: int) -> void:
 	var sn := sin(m.angle)
 	var w := out_w
 	var lx0 := a - col0
-	for r in VIEW:
+	for r in vh:
 		var sy := sy_rows[r]
 		if sy <= 0.0:
 			continue
-		var distance := (cz - m.z) * FOCAL / maxf(sy, .015)
+		var distance := (cz - m.z) * focal / maxf(sy, .015)
 		if distance >= radial + bounds + 1.0:
 			continue
 		if distance <= maxf(0.0, (radial - bounds) * .76):

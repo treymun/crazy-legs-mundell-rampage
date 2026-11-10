@@ -236,7 +236,7 @@ func _run() -> void:
 	check(
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
-	check(seen.size() == 37, "all 37 settings are on a page")
+	check(seen.size() == 38, "all 38 settings are on a page")
 	var stored := SessionStore.settings("")
 	var kept := true
 	for key in seen:

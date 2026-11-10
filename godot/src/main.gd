@@ -2025,6 +2025,10 @@ func render() -> void:
 	_apply_view()
 
 
+func _exit_tree() -> void:
+	Renderer.stop_crew()
+
+
 func _save_view() -> void:
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(view_shot)
