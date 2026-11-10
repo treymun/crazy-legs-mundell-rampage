@@ -1,0 +1,25 @@
+{
+ "text": "The tug is home",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.18,
+   "end": 0.26
+  },
+  {
+   "text": "tug",
+   "start": 0.38,
+   "end": 0.88
+  },
+  {
+   "text": "is",
+   "start": 1.18,
+   "end": 1.42
+  },
+  {
+   "text": "home",
+   "start": 1.5,
+   "end": 2.06
+  }
+ ]
+}

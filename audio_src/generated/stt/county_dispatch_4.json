@@ -1,0 +1,25 @@
+{
+ "text": "The tag is home",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.2,
+   "end": 0.26
+  },
+  {
+   "text": "tag",
+   "start": 0.4,
+   "end": 0.84
+  },
+  {
+   "text": "is",
+   "start": 0.9,
+   "end": 1.06
+  },
+  {
+   "text": "home",
+   "start": 1.12,
+   "end": 1.7
+  }
+ ]
+}

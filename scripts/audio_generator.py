@@ -32,6 +32,7 @@ import argparse
 import hashlib
 import json
 import os
+import threading
 import sys
 import time
 from pathlib import Path
@@ -53,6 +54,7 @@ SFX_PER_SECOND = 11
 SFX_AUTO_SECONDS = 30       # the longest an automatic-length effect can be
 MUSIC_PER_SECOND = 13.8
 TTS_PER_CHAR = 1
+TIMEOUT = 420               # seconds; a song can take a few minutes
 
 
 def _client():
@@ -62,7 +64,7 @@ def _client():
     key = os.environ.get("ELEVENLABS_API_KEY")
     if not key:
         raise SystemExit("ELEVENLABS_API_KEY is not set (expected in .env at the repo root).")
-    return ElevenLabs(api_key=key, timeout=600)
+    return ElevenLabs(api_key=key, timeout=TIMEOUT)
 
 
 def balance(client) -> int:
@@ -107,56 +109,66 @@ def target(kind: str, name: str, ext: str) -> Path:
     return OUT / kind / f"{name}.{ext}"
 
 
+_LOCK = threading.Lock()          # one writer to the ledger at a time
+
+
 def run(kind: str, name: str, params: dict, reserve: int, expect: int, ext: str, call, *,
         redo=False) -> Path | None:
-    """Reserve, send one request, settle. Returns the file, or None if refused."""
+    """Reserve, send one request, book it. Returns the file, or None if refused.
+
+    Safe to call from several threads: the ledger is re-read and rewritten
+    under a lock at both ends, so parallel requests each hold their own
+    reservation and none can slip past the ceiling.
+    """
     path = target(kind, name, ext)
-    ledger = load()
     if path.is_file() and not redo:
         print(f"cached   {kind}/{name}")
         return path
-    stale = [e for e in ledger["entries"] if e["status"] == "pending"]
-    if stale:
-        raise SystemExit(f"{len(stale)} request(s) are still pending in the ledger "
-                         f"({stale[0]['id']}): run `status --reconcile` first.")
-    if committed(ledger) + reserve > CEILING:
-        print(f"REFUSED  {kind}/{name}: needs up to {reserve}, "
-              f"only {CEILING - committed(ledger)} left under the ceiling")
-        return None
     client = _client()
-    before = balance(client)
-    ledger.setdefault("anchor", {"balance": before, "when": time.strftime("%Y-%m-%dT%H:%M:%S")})
-    digest = hashlib.sha256(json.dumps(params, sort_keys=True).encode()).hexdigest()[:12]
-    take = sum(1 for e in ledger["entries"] if e["kind"] == kind and e["name"] == name) + 1
-    entry = {"id": f"{kind}/{name}#{take}", "kind": kind, "name": name, "params": params,
-             "hash": digest, "reserved": reserve, "status": "pending",
-             "balance_before": before, "started": time.strftime("%Y-%m-%dT%H:%M:%S")}
-    ledger["entries"].append(entry)
-    save(ledger)
+    with _LOCK:
+        ledger = load()
+        if committed(ledger) + reserve > CEILING:
+            print(f"REFUSED  {kind}/{name}: needs up to {reserve}, "
+                  f"only {CEILING - committed(ledger)} left under the ceiling")
+            return None
+        if "anchor" not in ledger:
+            ledger["anchor"] = {"balance": balance(client), "when": time.strftime("%Y-%m-%dT%H:%M:%S")}
+        digest = hashlib.sha256(json.dumps(params, sort_keys=True).encode()).hexdigest()[:12]
+        take = sum(1 for e in ledger["entries"] if e["kind"] == kind and e["name"] == name) + 1
+        ident = f"{kind}/{name}#{take}"
+        ledger["entries"].append({"id": ident, "kind": kind, "name": name, "params": params,
+                                  "hash": digest, "reserved": reserve, "status": "pending",
+                                  "started": time.strftime("%Y-%m-%dT%H:%M:%S")})
+        save(ledger)
     error = ""
     data = b""
     try:
         data = b"".join(call(client))
     except Exception as problem:  # the request may still have been billed
-        error = f"{type(problem).__name__}: {str(problem)[:300]}"
-    entry["actual"] = expect
-    entry["basis"] = "expected"
-    if error or not data:
-        entry["status"] = "failed"
-        entry["error"] = error or "empty response"
-    else:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if path.is_file():                      # keep the earlier take for comparison
-            path.replace(path.with_name(f"{path.stem}.take{take - 1}{path.suffix}"))
-        path.write_bytes(data)
-        entry["status"] = "settled"
-        entry["file"] = path.relative_to(ROOT).as_posix()
-        entry["bytes"] = len(data)
-    save(ledger)
-    state = summary(ledger)
-    print(f"{entry['status']:8s} {entry['id']}: {entry['actual']} credits "
+        detail = getattr(problem, "body", None)
+        code = getattr(problem, "status_code", "")
+        error = f"{type(problem).__name__} {code}: {str(detail if detail is not None else problem)[:400]}"
+    with _LOCK:
+        ledger = load()
+        entry = next(e for e in ledger["entries"] if e["id"] == ident)
+        entry["actual"] = expect
+        entry["basis"] = "expected"
+        if error or not data:
+            entry["status"] = "failed"
+            entry["error"] = error or "empty response"
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if path.is_file():                  # keep the earlier take for comparison
+                path.replace(path.with_name(f"{path.stem}.take{take - 1}{path.suffix}"))
+            path.write_bytes(data)
+            entry["status"] = "settled"
+            entry["file"] = path.relative_to(ROOT).as_posix()
+            entry["bytes"] = len(data)
+        save(ledger)
+        state = summary(ledger)
+    print(f"{entry['status']:8s} {ident}: {entry['actual']} credits "
           f"(reserved {reserve}); spent {state['spent']} / {CEILING}"
-          + (f"  ERROR {error}" if error else ""))
+          + (f"  ERROR {error}" if error else ""), flush=True)
     return path if entry["status"] == "settled" else None
 
 
@@ -226,6 +238,7 @@ def reconcile(wait: float = 50.0) -> dict:
             break
         seen = again
     real = seen - ledger["anchor"]["balance"]
+    ledger["entries"] = [e for e in ledger["entries"] if e["kind"] != "reconcile"]
     booked = sum(e.get("actual", 0) for e in ledger["entries"])
     if real != booked:
         ledger["entries"].append({"id": f"reconcile@{time.strftime('%Y-%m-%dT%H:%M:%S')}",

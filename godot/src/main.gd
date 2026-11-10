@@ -153,6 +153,11 @@ var smoke_frames := 0
 var smoke_marker := ""
 var smoke_shot := ""
 var smoke_screen := ""
+## --demo: a scripted tour of the menus and a stretch of play, for recording
+## with Godot's --write-movie. Never set in normal play.
+var demo := false
+var demo_clock := 0.0
+var demo_step := 0
 var smoke_level := "hickston"
 var frame_count := 0
 
@@ -253,6 +258,8 @@ func _parse_smoke() -> void:
 			smoke_level = text.substr(14)
 		elif text.begins_with("--smoke-shot="):
 			smoke_shot = text.substr(13)
+		elif text == "--demo":
+			demo = true
 		elif text.begins_with("--smoke-screen="):
 			# A front-end screen instead of a level: title, setup, controls,
 			# credits, replays or slots; "setup:3" opens the fourth settings page.
@@ -1640,6 +1647,8 @@ func _process(delta: float) -> void:
 	pending_dt = 0.0
 
 	touch.tick(dt)
+	if demo:
+		_demo(dt)
 	menu_clock += dt
 	if state != shown_state:
 		shown_state = state
@@ -1670,7 +1679,7 @@ func _process(delta: float) -> void:
 			neutral.fire = game.armory.fuse > 0.0
 			advance(dt, neutral)
 		else:
-			advance(dt, _controls(dt, pad, fingers))
+			advance(dt, _demo_controls(dt) if demo else _controls(dt, pad, fingers))
 			if game.player.health <= 0:
 				sound.pause_score(true)
 			if game.showing_tally or game.player.health <= 0:
@@ -1689,6 +1698,68 @@ func _process(delta: float) -> void:
 				shot.save_png(smoke_shot)
 			_write_marker()
 			get_tree().quit()
+
+
+## The recorded tour: [seconds, key] pairs fired in order. Keys go through the
+## same key() the keyboard uses, so the recording shows the real front end.
+const DEMO_KEYS := [
+	[2.5, KEY_DOWN],
+	[3.0, KEY_DOWN],
+	[3.5, KEY_RIGHT],
+	[4.0, KEY_DOWN],  # to SETTINGS
+	[4.8, KEY_ENTER],
+	[5.8, KEY_TAB],
+	[6.6, KEY_TAB],  # DISPLAY, AUDIO
+	[7.2, KEY_DOWN],
+	[7.8, KEY_LEFT],
+	[8.6, KEY_RIGHT],  # effects volume
+	[9.4, KEY_DOWN],
+	[9.9, KEY_DOWN],
+	[10.4, KEY_DOWN],
+	[11.0, KEY_LEFT],  # voice volume
+	[12.0, KEY_RIGHT],
+	[13.0, KEY_TAB],
+	[14.0, KEY_DOWN],
+	[14.3, KEY_DOWN],
+	[14.6, KEY_DOWN],
+	[14.9, KEY_DOWN],
+	[15.2, KEY_DOWN],
+	[15.5, KEY_DOWN],
+	[15.8, KEY_DOWN],
+	[16.1, KEY_DOWN],
+	[16.4, KEY_DOWN],  # scroll PLAY
+	[17.4, KEY_ESCAPE],
+	[18.2, KEY_LEFT],
+	[18.6, KEY_UP],
+	[18.9, KEY_UP],
+	[19.2, KEY_UP],
+	[20.0, KEY_ENTER],  # NEW GAME
+	[27.0, KEY_3],
+	[36.0, KEY_ESCAPE],
+	[39.5, KEY_ESCAPE],
+	[44.0, KEY_F12],
+]
+
+
+func _demo(dt: float) -> void:
+	demo_clock += dt
+	while demo_step < DEMO_KEYS.size() and demo_clock >= float(DEMO_KEYS[demo_step][0]):
+		key(int(DEMO_KEYS[demo_step][1]))
+		demo_step += 1
+	if demo_clock > 45.0:
+		get_tree().quit()
+
+
+## Walk up the county road, sweep the view and keep shooting.
+func _demo_controls(dt: float) -> Game.Controls:
+	var controls := Game.Controls.new()
+	var t := demo_clock
+	controls.forward = 1.0 if fmod(t, 6.0) < 4.2 else 0.0
+	controls.turn = sin(t * .9) * dt * .9
+	controls.fire = fmod(t, 1.1) < .25 and t > 22.0
+	controls.alt_fire = t > 30.0 and fmod(t, 2.6) < .12
+	controls.running = t > 28.0
+	return controls
 
 
 ## The overlay's one-shot buttons, in the reference's order: menu first, then

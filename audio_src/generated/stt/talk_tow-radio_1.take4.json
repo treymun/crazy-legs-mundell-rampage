@@ -1,0 +1,20 @@
+{
+ "text": "Yes, the pig",
+ "words": [
+  {
+   "text": "Yes,",
+   "start": 0.16,
+   "end": 0.46
+  },
+  {
+   "text": "the",
+   "start": 0.56,
+   "end": 0.6
+  },
+  {
+   "text": "pig",
+   "start": 0.76,
+   "end": 1.22
+  }
+ ]
+}

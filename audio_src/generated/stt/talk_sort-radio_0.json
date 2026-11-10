@@ -1,0 +1,20 @@
+{
+ "text": "Hear that belt?",
+ "words": [
+  {
+   "text": "Hear",
+   "start": 0.24,
+   "end": 0.64
+  },
+  {
+   "text": "that",
+   "start": 0.84,
+   "end": 1.28
+  },
+  {
+   "text": "belt?",
+   "start": 1.46,
+   "end": 2.0
+  }
+ ]
+}

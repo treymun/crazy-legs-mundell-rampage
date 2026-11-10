@@ -1,0 +1,25 @@
+{
+ "text": "Check the blue trunk",
+ "words": [
+  {
+   "text": "Check",
+   "start": 0.2,
+   "end": 0.44
+  },
+  {
+   "text": "the",
+   "start": 0.48,
+   "end": 0.54
+  },
+  {
+   "text": "blue",
+   "start": 0.62,
+   "end": 0.88
+  },
+  {
+   "text": "trunk",
+   "start": 1.0,
+   "end": 1.76
+  }
+ ]
+}

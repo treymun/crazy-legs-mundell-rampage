@@ -1,0 +1,25 @@
+{
+ "text": "The hog is home",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.24,
+   "end": 0.34
+  },
+  {
+   "text": "hog",
+   "start": 0.44,
+   "end": 1.02
+  },
+  {
+   "text": "is",
+   "start": 1.24,
+   "end": 1.42
+  },
+  {
+   "text": "home",
+   "start": 1.5,
+   "end": 2.1
+  }
+ ]
+}

@@ -180,6 +180,102 @@ func _run() -> void:
 	main._input(finger)
 	check(not main.touch.fire, "lifting the finger releases fire")
 
+	print("\nFRONT END (title and settings share one layout for drawing and pointing)")
+	main.return_to_title(true)
+	var rows: PackedStringArray = main.entries()
+	var items := Menu.title_items(rows)
+	check(items.size() == rows.size(), "every title entry has a place")
+	var clear := true
+	for i in items.size():
+		var rect: Rect2i = items[i]["rect"]
+		if Menu.title_hit(rows, rect.position.x + 2, rect.position.y + 2) != i:
+			clear = false
+		for j in i:
+			if rect.intersects(items[j]["rect"]):
+				clear = false
+		if not Menu.BOARD.encloses(rect) or rect.size.y < 11:
+			clear = false
+	check(clear, "title rows do not overlap, sit on the board and are 11+ px tall")
+	# CONTINUE CAMPAIGN once a campaign exists, NEW GAME on a fresh profile.
+	check(bool(items[0]["primary"]), "the first entry takes the big plate")
+	main.start("hickston")
+	main.return_to_title()
+	check(String(main.entries()[0]) == "RESUME", "RESUME leads while a game is paused")
+	check(bool(Menu.title_items(main.entries())[0]["primary"]), "and takes the big plate")
+	check(main.sound.score == "title", "the menu theme plays on the pause menu")
+	main.key(KEY_ESCAPE)
+	check(
+		main.state == "play" and main.sound.score == main.game.level.score,
+		"resume returns to the chapter score"
+	)
+	main.return_to_title()
+	var pages := SessionStore.setup_pages()
+	var seen := {}
+	var bounded := true
+	main.state = "setup"
+	for page_index in pages.size():
+		main.option_page = page_index
+		main.option_slot = 0
+		main.option_scroll = 0
+		var settings: Array = pages[page_index][1]
+		for slot in settings.size():
+			main.setup_select(slot)
+			var row := Menu.row_rect(main.option_slot, main.option_scroll)
+			if row.size.y == 0 or row.end.y > Menu.FOOTER_Y - 2 or not Menu.LIST.encloses(row):
+				bounded = false
+			var hit := Menu.setup_hit(
+				row.position.x + 4,
+				row.position.y + 4,
+				pages.size(),
+				settings.size(),
+				main.option_scroll
+			)
+			if String(hit["kind"]) != "row" or int(hit["index"]) != slot:
+				bounded = false
+			seen[(settings[slot] as SessionStore.Setting).key] = true
+	check(
+		bounded, "every setting can be selected, stays inside the list and clear of the help text"
+	)
+	check(seen.size() == 36, "all 36 settings are on a page")
+	var stored := SessionStore.settings("")
+	var kept := true
+	for key in seen:
+		if not stored.has(key):
+			kept = false
+	check(kept, "every setting still has its stored key")
+	main.option_page = 2
+	main.option_slot = 1
+	var was := int(main.options["effects"])
+	main.adjust_setting(-1)
+	check(int(main.options["effects"]) == was - 10, "a volume step changes the option")
+	check(main.sound._preview.player.playing, "and plays a preview")
+	main.adjust_setting(1)
+	check(main.sound._preview.cue == "shotgun", "a second change restarts the one preview voice")
+	main.option_page = 1
+	main.option_slot = 1
+	var aspect := int(main.options["aspect"])
+	main.smoke = false
+	main.adjust_setting(1)
+	check(not main.display_trial.is_empty(), "a scaling change goes on trial")
+	main.key(KEY_ESCAPE)
+	check(
+		int(main.options["aspect"]) == aspect and main.state == "setup",
+		"Esc undoes it and stays on the page"
+	)
+	main.adjust_setting(1)
+	main.key(KEY_ENTER)
+	check(int(main.options["aspect"]) != aspect and main.display_trial.is_empty(), "Enter keeps it")
+	main.options["aspect"] = aspect
+	main.persist_options()
+	main.reset_page()
+	check(main.reset_armed > 0.0, "reset asks before it acts")
+	main.selection = 5
+	main.key(KEY_ESCAPE)
+	check(
+		main.state == "title" and main.selection == 5,
+		"back returns to the title with the cursor where it was"
+	)
+
 	print("")
 	if failures.is_empty():
 		print("PARITY FIXES OK")

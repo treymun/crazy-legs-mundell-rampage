@@ -1,0 +1,40 @@
+{
+ "text": "Well, go on and ask that pig",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.1,
+   "end": 0.4
+  },
+  {
+   "text": "go",
+   "start": 0.56,
+   "end": 0.74
+  },
+  {
+   "text": "on",
+   "start": 0.82,
+   "end": 1.16
+  },
+  {
+   "text": "and",
+   "start": 1.22,
+   "end": 1.32
+  },
+  {
+   "text": "ask",
+   "start": 1.44,
+   "end": 1.66
+  },
+  {
+   "text": "that",
+   "start": 1.7,
+   "end": 1.9
+  },
+  {
+   "text": "pig",
+   "start": 1.94,
+   "end": 2.26
+  }
+ ]
+}

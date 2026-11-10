@@ -1,0 +1,35 @@
+{
+ "text": "A wrap for the, the show",
+ "words": [
+  {
+   "text": "A",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "wrap",
+   "start": 0.18,
+   "end": 0.56
+  },
+  {
+   "text": "for",
+   "start": 0.76,
+   "end": 1.14
+  },
+  {
+   "text": "the,",
+   "start": 1.2,
+   "end": 1.42
+  },
+  {
+   "text": "the",
+   "start": 1.84,
+   "end": 2.0
+  },
+  {
+   "text": "show",
+   "start": 2.12,
+   "end": 2.38
+  }
+ ]
+}

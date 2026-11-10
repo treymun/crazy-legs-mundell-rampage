@@ -1,0 +1,20 @@
+{
+ "text": "Whereas the pig",
+ "words": [
+  {
+   "text": "Whereas",
+   "start": 0.0,
+   "end": 0.5
+  },
+  {
+   "text": "the",
+   "start": 0.62,
+   "end": 0.72
+  },
+  {
+   "text": "pig",
+   "start": 0.88,
+   "end": 1.32
+  }
+ ]
+}

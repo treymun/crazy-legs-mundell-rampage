@@ -24,3 +24,18 @@ Run `python audio.py` to regenerate the soundtrack, stings, dialogue and effects
 The chapter mixes stream through SDL_mixer as mono Ogg Opus, encoded at 24 kHz and a nominal 48 kbps with the libopus included with pygame-ce. A chapter bookmark stores its track, remaining shuffle bag and seek position. The 22,050 Hz 16-bit WAV masters generated alongside the streams measure approximately 0.72 full-scale peak and have matching first and last PCM frames. County Road Shuffle retains its stereo master. The distribution ships the Opus streams for chapter music and 16-bit WAVs for the other audio.
 
 The listed lengths are the encoded file lengths. Chapter playback fades at the end of each coda and skips the remaining quiet mastering tail. The included `assets/music/playback_ends.json` records those points. Regenerate it from the WAV masters with `python soundtrack_production.py --ends-only`. Existing bookmarks in an outgoing quiet tail advance within the same chapter playlist.
+
+## Godot build
+
+The Godot build keeps the same four playlists, the same twelve stems and titles,
+the same shuffle and the same bookmarks, with new recordings: twelve band
+arrangements composed with Eleven Music (prompts in `scripts/audio_spec.py`),
+mastered to -15 LUFS by `scripts/audio_build.py` and stored as stereo Ogg
+Vorbis in `godot/assets/music`. Their cut-off points are in
+`godot/assets/music/playback_ends.json` (this file's table and
+`assets/music/playback_ends.json` describe the Python build).
+
+Two more tracks live in the same bank: `title`, the main-menu theme supplied by
+the author, which loops on every menu and in the County Crossroads and resumes
+where it left off; and `victory`, the tally tune, which plays once. The boss
+stings and the jukebox loop are effect-bank cues (`audio_src/manifest.json`).

@@ -30,3 +30,15 @@ The Windows build bundles CPython, pygame-ce, SDL and related SDL libraries, Num
 
 The ZIP includes the license texts supplied with the installed Python, NumPy, Pillow, and PyInstaller distributions under third_party.
 
+## Godot build audio
+
+The Godot build's sound effects, spoken lines and chapter music were generated
+with ElevenLabs (Sound Effects, Text to Speech with voices designed for this
+game, and Eleven Music) from original prompts written for this project, under
+the author's paid subscription, and then edited, levelled and mastered locally.
+The prompts, the raw generations and the processing recipes are in
+`audio_src/` and `scripts/audio_spec.py`. The main-menu theme was supplied by
+the author. No audio from Redneck Rampage or any other game is included;
+recordings of that game were used only to measure loudness, tempo and spectral
+balance (`audio_src/DIRECTION.md`). The Python build keeps the sound described
+above.

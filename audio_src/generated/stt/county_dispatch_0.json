@@ -1,0 +1,25 @@
+{
+ "text": "Look for the hog",
+ "words": [
+  {
+   "text": "Look",
+   "start": 0.2,
+   "end": 0.32
+  },
+  {
+   "text": "for",
+   "start": 0.34,
+   "end": 0.44
+  },
+  {
+   "text": "the",
+   "start": 0.48,
+   "end": 0.58
+  },
+  {
+   "text": "hog",
+   "start": 0.64,
+   "end": 1.26
+  }
+ ]
+}

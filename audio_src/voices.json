@@ -1,0 +1,17 @@
+{
+ "local": {
+  "id": "090590avdhCUxpEMwsqh",
+  "description": "A middle-aged man from the rural American South with a thick, slow Arkansas drawl. Gravelly, nasal, a little slow on the uptake, comic and deadpan. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/local.mp3"
+ },
+ "dispatch": {
+  "id": "8T4hWWdNdbND6KXX7qa6",
+  "description": "An older woman, a tired small-town Southern police dispatcher with a dry smoker's rasp and a flat Arkansas accent. Bored, clipped, deadpan. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/dispatch.mp3"
+ },
+ "barker": {
+  "id": "yA6oSRbzEUnWgzyaiiht",
+  "description": "A fast-talking Southern carnival barker, a man in his fifties with a brassy, theatrical, wheedling voice and a strong country accent. Loud and showy. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/barker.mp3"
+ }
+}

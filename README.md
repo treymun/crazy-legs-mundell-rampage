@@ -52,6 +52,8 @@ Both scripts save into the game's own profile. Point `APPDATA` at a scratch fold
 
 `.github/workflows/release.yml` runs those checks and the three exports on every push to `main`, and deploys the landing page with the browser build under `play/`. A `v*` tag stamps its version into the build and also publishes the EXE, the installer and the APK as a release. Set the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_USER` and `ANDROID_KEYSTORE_PASSWORD` repository secrets to sign the APK with a lasting key; without them each run signs with a throwaway one, and a phone has to uninstall the old copy before it takes a new one.
 
+The Godot build's sound is produced from `audio_src/`: stored ElevenLabs recordings, the supplied menu theme, and `scripts/audio_build.py`, which finishes them into the effect bank's cues and the Ogg music. `audio_src/README.md` explains the layout, how to change a sound, and the credit ledger; nothing in a normal build contacts ElevenLabs.
+
 The landing page lives in `site/` (plain HTML, CSS and JavaScript). `python scripts/build_site_assets.py --audio` rebuilds its pictures and sound previews from the game's assets.
 
 The Python build still packages as before: `build_windows.bat` (PyInstaller), `buildozer -v android debug` after `python scripts/make_ogg.py`, or `python -m pygbag --build .`.

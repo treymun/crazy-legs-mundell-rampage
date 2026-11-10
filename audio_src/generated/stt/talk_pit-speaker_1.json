@@ -1,0 +1,20 @@
+{
+ "text": "Needs more salt",
+ "words": [
+  {
+   "text": "Needs",
+   "start": 0.24,
+   "end": 0.66
+  },
+  {
+   "text": "more",
+   "start": 0.76,
+   "end": 1.1
+  },
+  {
+   "text": "salt",
+   "start": 1.24,
+   "end": 1.6
+  }
+ ]
+}

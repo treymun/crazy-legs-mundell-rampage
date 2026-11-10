@@ -1,0 +1,30 @@
+{
+ "text": "Uh, keep the last load",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.0,
+   "end": 0.1
+  },
+  {
+   "text": "keep",
+   "start": 0.18,
+   "end": 0.32
+  },
+  {
+   "text": "the",
+   "start": 0.36,
+   "end": 0.44
+  },
+  {
+   "text": "last",
+   "start": 0.48,
+   "end": 0.78
+  },
+  {
+   "text": "load",
+   "start": 0.84,
+   "end": 1.18
+  }
+ ]
+}

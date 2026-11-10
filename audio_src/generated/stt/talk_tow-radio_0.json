@@ -1,0 +1,25 @@
+{
+ "text": "Who took the truck?",
+ "words": [
+  {
+   "text": "Who",
+   "start": 0.22,
+   "end": 0.48
+  },
+  {
+   "text": "took",
+   "start": 0.66,
+   "end": 0.98
+  },
+  {
+   "text": "the",
+   "start": 1.14,
+   "end": 1.26
+  },
+  {
+   "text": "truck?",
+   "start": 1.44,
+   "end": 2.18
+  }
+ ]
+}

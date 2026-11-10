@@ -71,6 +71,15 @@ CHAIN = {
     "voice":    dict(hp=110, lp=9000, low=0.0, pres=2.0, fade=.06, level=-3.0),
     "room":     dict(hp=160, lp=5200, low=0.0, pres=0.0, fade=.6, level=-10.0),
 }
+# Families whose main hit has to land when the game event does: any lead-in
+# longer than this is cut. Voices, creatures and rising warnings keep theirs.
+SYNC = {"report", "boom", "attack", "melee", "impact", "reload", "equip", "dry", "pickup",
+        "foot", "ui", "scene", "station"}
+LEAD = .03
+# Performances: a word or a groan is kept to its own end rather than to a
+# stopwatch, up to this many times the length of the cue it replaces.
+NATURAL = {"voice": 6.0, "player": 1.8, "death": 1.8, "alert": 1.6, "consume": 1.6}
+
 SPEAKER = {   # the box a spoken line comes out of: band, grit, noise floor
     "radio": dict(lo=380, hi=2900, drive=3.0, hiss=.012),
     "pa":    dict(lo=260, hi=3600, drive=2.0, hiss=.004, slap=.085),
@@ -148,11 +157,15 @@ def events(x: np.ndarray, gap: float = .09, floor: float = -30.0) -> list[tuple[
     return [(int(a), int(b)) for a, b in zip(starts, ends) if b - a > .012 * RATE]
 
 
-def tone(x: np.ndarray, hp: float, lp: float, low: float = 0.0, pres: float = 0.0) -> np.ndarray:
-    """High-pass, low-pass, a low shelf and a presence lift, as one smooth curve."""
+def tone(x: np.ndarray, hp: float, lp: float, low: float = 0.0, pres: float = 0.0,
+         circular: bool = False) -> np.ndarray:
+    """High-pass, low-pass, a low shelf and a presence lift, as one smooth curve.
+
+    `circular` filters a loop as the ring it is, so the join stays closed.
+    """
     if len(x) < 16:
         return x
-    size = len(x) + 2048
+    size = len(x) if circular else len(x) + 2048
     spectrum = np.fft.rfft(x, size)
     f = np.fft.rfftfreq(size, 1 / RATE)
     f[0] = 1e-6
@@ -231,6 +244,27 @@ def speaker(x: np.ndarray, kind: str) -> np.ndarray:
     return band(x, box["lo"], box["hi"])
 
 
+def spoken(name: str, caption: str) -> tuple[float, float] | str:
+    """Where the caption's words sit in the recording, from its transcript.
+
+    Returns (start, end) in seconds, or a sentence saying what was heard
+    instead. Voice models like to add an "uh" before a three-word line or keep
+    talking after it; the transcript's word times let the cue hold exactly the
+    caption and nothing else.
+    """
+    path = GEN / "stt" / f"{name}.json"
+    if not path.is_file():
+        return "no transcript (run audio_produce.py --transcribe)"
+    heard = json.loads(path.read_text(encoding="utf-8"))
+    plain = lambda text: "".join(ch for ch in text.lower() if ch.isalpha() or ch == "'")
+    want = [plain(word) for word in caption.split()]
+    words = [(plain(w["text"]), w["start"], w["end"]) for w in heard["words"]]
+    for i in range(len(words) - len(want) + 1):
+        if [w[0] for w in words[i: i + len(want)]] == want:
+            return words[i][1], words[i + len(want) - 1][2]
+    return f"says {heard['text']!r}, caption is {caption!r}"
+
+
 def old_seconds(name: str, inventory: dict) -> float | None:
     cue = inventory["cues"].get(name)
     return float(cue["seconds"]) if cue else None
@@ -266,15 +300,38 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
         recipe["derived"] = f"reverb tail of {entry['base']} ({seconds:.2f} s)"
     else:
         x = decode(path, cents=entry.get("cents", 0.0))
+        if entry["make"] == "voice":
+            found = spoken(name, entry["text"])
+            if isinstance(found, str):
+                return None, {"status": found, **recipe}
+            a = max(0, int((found[0] - .05) * RATE))
+            b = min(len(x), int((found[1] + .14) * RATE))
+            x = x[a:b]
+            recipe["words_at"] = [round(found[0], 2), round(found[1], 2)]
         hits = events(x)
         if not hits:
             return None, {"status": "source is silent", **recipe}
+        stop = len(x)
         if "event" in entry:
-            start = hits[entry["event"] % len(hits)][0]
+            start, stop = hits[entry["event"] % len(hits)]
+            stop = min(len(x), stop + int(.25 * RATE))
             recipe["event"] = f"hit {entry['event'] % len(hits) + 1} of {len(hits)}"
         else:
             start = hits[0][0]
         start = max(0, start - int(.003 * RATE))
+        if family in NATURAL:
+            # To the end of the performance (the last sound before real silence).
+            last = hits[-1][1] + int(.07 * RATE)
+            natural = (last - start) / RATE
+            keep = min(natural, keep * NATURAL[family]) if natural > keep else max(natural, keep * .6)
+            recipe["natural_seconds"] = round(natural, 3)
+        if family in SYNC:
+            # Where the sound first reaches a third of its peak, less the lead.
+            env = envelope(x[start:stop])
+            strong = int(np.argmax(env >= env.max() * .33))
+            if strong > LEAD * RATE:
+                start += strong - int(LEAD * RATE)
+                recipe["lead_trimmed_ms"] = round((strong / RATE - LEAD) * 1000)
         if chain.get("loop"):
             x = seamless(x[start:], int(keep * RATE), chain["loop"])
         else:
@@ -284,7 +341,7 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
         elif how == "event":
             recipe["derived"] = f"another step from {entry['base']}'s recording"
     x = x - x.mean()
-    x = tone(x, chain["hp"], chain["lp"], chain["low"], chain["pres"])
+    x = tone(x, chain["hp"], chain["lp"], chain["low"], chain["pres"], bool(chain.get("loop")))
     if entry.get("fx"):
         x = speaker(x, entry["fx"])
         recipe["speaker"] = entry["fx"]
@@ -317,7 +374,7 @@ def measure(name: str, x: np.ndarray, loop: bool) -> dict:
         "seconds": round(len(x) / RATE, 3),
         "peak_db": round(db(peak), 1),
         "loud_db": round(loudness(x), 1),
-        "dc": round(float(abs(x.mean())), 5),
+        "dc": round(float(abs(x.mean()) / max(np.sqrt((x * x).mean()), 1e-9)), 4),
         "onset_ms": round(first / RATE * 1000, 1),
         "centroid_hz": int((f * spectrum).sum() / max(spectrum.sum(), 1e-12)),
         "end_db": round(db(float(np.abs(x[-32:]).max())), 1),
@@ -325,18 +382,20 @@ def measure(name: str, x: np.ndarray, loop: bool) -> dict:
     problems = []
     if peak >= .999:
         problems.append("clips")
-    if facts["dc"] > .006:
+    if facts["dc"] > .08:                        # mean as a share of RMS
         problems.append("dc offset")
     if facts["loud_db"] < -50:
         problems.append("silent")
     if loop:
+        # The step across the join against the steps inside the loop.
         jump = abs(x[0] - x[-1])
-        step = float(np.abs(np.diff(x)).max())
+        steps = np.abs(np.diff(x))
         facts["seam_jump"] = round(float(jump), 4)
-        if jump > max(.02, step * 1.5):
+        facts["seam_vs_p999"] = round(float(jump / max(np.percentile(steps, 99.9), 1e-9)), 2)
+        if jump > steps.max():
             problems.append("loop seam")
     else:
-        if facts["onset_ms"] > 25 and spec.FAMILY[name] not in ("distant", "warn", "door", "sting"):
+        if facts["onset_ms"] > 45 and spec.FAMILY[name] in SYNC:
             problems.append("late onset")
         if facts["end_db"] > -40:
             problems.append("ends abruptly")
@@ -460,7 +519,7 @@ def manifest(sfx: dict, music: dict, inventory: dict) -> dict:
             "replaced_seconds": known.get("seconds"),
             **record,
         }
-        problems = record.get("measured", {}).get("problems", ["not built"])
+        problems = record.get("measured", {}).get("problems", [record["recipe"].get("status", "not built")])
         cues[name]["validation"] = "ok" if not problems else ", ".join(problems)
     songs = {}
     for stem, record in music.items():

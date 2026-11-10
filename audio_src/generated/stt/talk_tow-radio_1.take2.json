@@ -1,0 +1,20 @@
+{
+ "text": "Ask the pig",
+ "words": [
+  {
+   "text": "Ask",
+   "start": 0.24,
+   "end": 0.5
+  },
+  {
+   "text": "the",
+   "start": 0.54,
+   "end": 0.7
+  },
+  {
+   "text": "pig",
+   "start": 0.76,
+   "end": 1.22
+  }
+ ]
+}

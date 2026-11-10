@@ -1,0 +1,25 @@
+{
+ "text": "Hooray for the show",
+ "words": [
+  {
+   "text": "Hooray",
+   "start": 0.0,
+   "end": 0.36
+  },
+  {
+   "text": "for",
+   "start": 0.48,
+   "end": 0.62
+  },
+  {
+   "text": "the",
+   "start": 0.7,
+   "end": 0.78
+  },
+  {
+   "text": "show",
+   "start": 0.86,
+   "end": 1.42
+  }
+ ]
+}
