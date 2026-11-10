@@ -7424,14 +7424,392 @@
    "bytes": 30136
   },
   {
-   "id": "reconcile@2026-11-10T14:45:43",
+   "id": "sfx/shotgun_both#2",
+   "kind": "sfx",
+   "name": "shotgun_both",
+   "params": {
+    "text": "A massive, deafening simultaneous double-barrel 12-gauge sawed-off shotgun blast: thunderous sub-bass thump, sharp high powder crack, wide report, then two empty shells clattering on gravel. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4a0b2235f920",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-10T15:36:32",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/shotgun_both.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/shotgun#3",
+   "kind": "sfx",
+   "name": "shotgun",
+   "params": {
+    "text": "One barrel of a sawed-off 12-gauge shotgun fired outdoors: thunderous sub-bass thump under a sharp powder crack, wide heavy report with weight in the chest. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "fa05784cb0c6",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-10T15:36:32",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/shotgun.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/rifle#2",
+   "kind": "sfx",
+   "name": "rifle",
+   "params": {
+    "text": "One shot from a semi-automatic hunting rifle firing a high-calibre round: punchy chest-thumping report with a crisp metallic bolt clack. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "aebc49e29887",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-10T15:36:32",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rifle.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/revolver_alt#2",
+   "kind": "sfx",
+   "name": "revolver_alt",
+   "params": {
+    "text": "A sharp, concussive .38 Special revolver gunshot: loud metallic bark, high-pressure muzzle crack with a solid low thump and tight slapback echo. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2c941a369707",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-10T15:36:33",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/revolver_alt.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/rifle_alt#2",
+   "kind": "sfx",
+   "name": "rifle_alt",
+   "params": {
+    "text": "One shot from a semi-automatic ranch rifle: heavy cracking report with body and a short metallic ring, slightly lower. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6842ac1e9539",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-10T15:36:35",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rifle_alt.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/rifle_alt2#2",
+   "kind": "sfx",
+   "name": "rifle_alt2",
+   "params": {
+    "text": "One shot from a ranch carbine: aggressive punchy crack with low thump and a quick bolt-carrier clack. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7434cdbf30bb",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-10T15:36:35",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rifle_alt2.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/armgun#2",
+   "kind": "sfx",
+   "name": "armgun",
+   "params": {
+    "text": "A bio-mechanical alien weapon fires: deep organic carapace thrum, high-voltage plasma discharge crackle and a sizzling energy burst. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.1,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "01252d449e9a",
+   "reserved": 49,
+   "status": "settled",
+   "started": "2026-11-10T15:36:35",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/armgun.mp3",
+   "bytes": 27628
+  },
+  {
+   "id": "sfx/bottle_launcher#2",
+   "kind": "sfx",
+   "name": "bottle_launcher",
+   "params": {
+    "text": "A bottle rocket fired from a metal pipe: violent gunpowder fizzle and a heavy hollow thoonk, then a loud whistling whoosh screaming away. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ecdc3cd63229",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-10T15:36:35",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/bottle_launcher.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/crossbow#2",
+   "kind": "sfx",
+   "name": "crossbow",
+   "params": {
+    "text": "A heavy wooden crossbow fires under high tension: violent cable snap twang, solid wooden clack and a whooshing bolt. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "051c12cdd1c8",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-10T15:36:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/crossbow.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/pressure_gun#2",
+   "kind": "sfx",
+   "name": "pressure_gun",
+   "params": {
+    "text": "A steam-powered copper pressure gun discharges: violent steam valve hiss over a heavy clanking copper piston thump with metallic echo. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 1.1,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "705423e8aa9c",
+   "reserved": 49,
+   "status": "settled",
+   "started": "2026-11-10T15:36:37",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/pressure_gun.mp3",
+   "bytes": 27628
+  },
+  {
+   "id": "sfx/ripsaw#2",
+   "kind": "sfx",
+   "name": "ripsaw",
+   "params": {
+    "text": "A circular saw blade launched from a two-stroke saw gun: engine bark, aggressive metal blade launch with a resonant buzz spinning away. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 1.1,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f9e3eec9e1b5",
+   "reserved": 49,
+   "status": "settled",
+   "started": "2026-11-10T15:36:37",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/ripsaw.mp3",
+   "bytes": 27628
+  },
+  {
+   "id": "sfx/riveter#2",
+   "kind": "sfx",
+   "name": "riveter",
+   "params": {
+    "text": "A heavy pneumatic industrial rivet gun fires one steel stud: high-pressure air burst and an authoritative heavy metallic slam. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "285db1358e0e",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-10T15:36:38",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/riveter.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/riveter_pair#2",
+   "kind": "sfx",
+   "name": "riveter_pair",
+   "params": {
+    "text": "A heavy pneumatic industrial rivet gun fires two steel studs fast: two air bursts and two heavy metallic slams. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9f9e7b405777",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-10T15:36:39",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/riveter_pair.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/crowbar_hit#2",
+   "kind": "sfx",
+   "name": "crowbar_hit",
+   "params": {
+    "text": "A steel crowbar smashes into a body: heavy meaty thwack with a bone crack and a low metal ring. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e020159be300",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-10T15:36:39",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/crowbar_hit.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/sling_hit#2",
+   "kind": "sfx",
+   "name": "sling_hit",
+   "params": {
+    "text": "A big blade chops deep into flesh: loud wet chopping thunk with a heavy thud. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "24f18f775990",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-10T15:36:39",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sling_hit.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/saw_hit#2",
+   "kind": "sfx",
+   "name": "saw_hit",
+   "params": {
+    "text": "A saw blade slicing through wet bone and flesh: violent buzzing rip, squelch and splatter. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "18d54e2e055f",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-10T15:40:38",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/saw_hit.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/gib_burst#1",
+   "kind": "sfx",
+   "name": "gib_burst",
+   "params": {
+    "text": "A wet, gruesome, over-the-top fleshy explosion of meat and snapping bone with a squelching blood burst, 1990s PC shooter sound effect. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e5c1f1243311",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-10T15:40:38",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/gib_burst.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/gib_splat#1",
+   "kind": "sfx",
+   "name": "gib_splat",
+   "params": {
+    "text": "A wet chunk of meat slaps onto hard concrete and slides: short wet squelch. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a1b6251213a7",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-10T15:40:38",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/gib_splat.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "reconcile@2026-11-10T15:41:41",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -2366,
+   "actual": -2384,
    "basis": "account",
-   "balance_after": 34998
+   "balance_after": 35206
   }
  ],
  "anchor": {
@@ -7439,7 +7817,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-10T14:45:43",
-  "account_drop": 30275
+  "when": "2026-11-10T15:41:41",
+  "account_drop": 30483
  }
 }

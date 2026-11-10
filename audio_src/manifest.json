@@ -50,8 +50,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/revolver_alt.mp3",
-   "prompt": "A .38 revolver gunshot, sharp bark and solid thump, a touch brighter and tighter.",
-   "credits": 12,
+   "prompt": "A sharp, concussive .38 Special revolver gunshot: loud metallic bark, high-pressure muzzle crack with a solid low thump and tight slapback echo.",
+   "credits": 24,
    "destination": "audio_src/final/sfx/revolver_alt.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.34,
@@ -68,16 +68,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -9.0)",
-    "keep_seconds": 0.46
+    "keep_seconds": 0.5
    },
    "measured": {
-    "seconds": 0.46,
+    "seconds": 0.5,
     "peak_db": -0.8,
-    "loud_db": -7.7,
-    "dc": 0.0056,
+    "loud_db": -5.6,
+    "dc": 0.002,
     "onset_ms": 0.0,
-    "centroid_hz": 1574,
-    "end_db": -101.6,
+    "centroid_hz": 1708,
+    "end_db": -143.5,
     "problems": []
    },
    "validation": "ok"
@@ -91,8 +91,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/shotgun.mp3",
-   "prompt": "A sawed-off 12-gauge shotgun fired once outdoors: bright ripping crack on top of a fat punchy boom, lots of midrange bark.",
-   "credits": 28,
+   "prompt": "One barrel of a sawed-off 12-gauge shotgun fired outdoors: thunderous sub-bass thump under a sharp powder crack, wide heavy report with weight in the chest.",
+   "credits": 44,
    "destination": "audio_src/final/sfx/shotgun.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.51,
@@ -109,16 +109,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -8.1)",
-    "keep_seconds": 0.66
+    "keep_seconds": 0.9
    },
    "measured": {
-    "seconds": 0.66,
-    "peak_db": -0.8,
-    "loud_db": -5.0,
-    "dc": 0.0022,
-    "onset_ms": 16.0,
-    "centroid_hz": 2987,
-    "end_db": -150.1,
+    "seconds": 0.9,
+    "peak_db": -4.6,
+    "loud_db": -7.0,
+    "dc": 0.0016,
+    "onset_ms": 0.0,
+    "centroid_hz": 35,
+    "end_db": -138.5,
     "problems": []
    },
    "validation": "ok"
@@ -132,8 +132,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/shotgun_both.mp3",
-   "prompt": "Both barrels of a sawed-off double-barrel shotgun fired at once: enormous tearing crack and roar, bright and distorted, with heavy punch.",
-   "credits": 16,
+   "prompt": "A massive, deafening simultaneous double-barrel 12-gauge sawed-off shotgun blast: thunderous sub-bass thump, sharp high powder crack, wide report, then two empty shells clattering on gravel.",
+   "credits": 41,
    "destination": "audio_src/final/sfx/shotgun_both.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.58,
@@ -150,16 +150,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -7.4)",
-    "keep_seconds": 0.8
+    "keep_seconds": 1.5
    },
    "measured": {
-    "seconds": 0.8,
-    "peak_db": -1.2,
-    "loud_db": -7.0,
-    "dc": 0.001,
+    "seconds": 1.5,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.0026,
     "onset_ms": 0.0,
-    "centroid_hz": 563,
-    "end_db": -140.4,
+    "centroid_hz": 45,
+    "end_db": -149.0,
     "problems": []
    },
    "validation": "ok"
@@ -173,8 +173,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/rifle.mp3",
-   "prompt": "One shot from a semi-automatic ranch rifle: fast snappy crack with a short metallic ring.",
-   "credits": 10,
+   "prompt": "One shot from a semi-automatic hunting rifle firing a high-calibre round: punchy chest-thumping report with a crisp metallic bolt clack.",
+   "credits": 21,
    "destination": "audio_src/final/sfx/rifle.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.28,
@@ -191,16 +191,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -8.4)",
-    "keep_seconds": 0.3
+    "keep_seconds": 0.34
    },
    "measured": {
-    "seconds": 0.3,
-    "peak_db": -0.8,
-    "loud_db": -14.5,
-    "dc": 0.0004,
-    "onset_ms": 5.2,
-    "centroid_hz": 4176,
-    "end_db": -143.9,
+    "seconds": 0.34,
+    "peak_db": -2.3,
+    "loud_db": -7.0,
+    "dc": 0.0003,
+    "onset_ms": 0.0,
+    "centroid_hz": 6001,
+    "end_db": -119.4,
     "problems": []
    },
    "validation": "ok"
@@ -213,8 +213,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/rifle_alt.mp3",
-   "prompt": "One shot from a small-calibre ranch rifle: tight dry crack, slightly lower.",
-   "credits": 10,
+   "prompt": "One shot from a semi-automatic ranch rifle: heavy cracking report with body and a short metallic ring, slightly lower.",
+   "credits": 21,
    "destination": "audio_src/final/sfx/rifle_alt.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.28,
@@ -230,18 +230,17 @@
      "level": -1.0,
      "drive": 1.6
     },
-    "lead_trimmed_ms": 25,
     "level": "-7.0 dB (replaced cue was -8.9)",
-    "keep_seconds": 0.3
+    "keep_seconds": 0.34
    },
    "measured": {
-    "seconds": 0.3,
-    "peak_db": -0.8,
-    "loud_db": -17.2,
-    "dc": 0.0005,
-    "onset_ms": 7.9,
-    "centroid_hz": 3985,
-    "end_db": -156.4,
+    "seconds": 0.34,
+    "peak_db": -0.9,
+    "loud_db": -7.0,
+    "dc": 0.0,
+    "onset_ms": 6.6,
+    "centroid_hz": 3530,
+    "end_db": -144.7,
     "problems": []
    },
    "validation": "ok"
@@ -254,8 +253,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/rifle_alt2.mp3",
-   "prompt": "One shot from a ranch carbine: bright snapping crack with a quick bolt clack.",
-   "credits": 10,
+   "prompt": "One shot from a ranch carbine: aggressive punchy crack with low thump and a quick bolt-carrier clack.",
+   "credits": 21,
    "destination": "audio_src/final/sfx/rifle_alt2.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.28,
@@ -272,16 +271,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -9.2)",
-    "keep_seconds": 0.3
+    "keep_seconds": 0.34
    },
    "measured": {
-    "seconds": 0.3,
+    "seconds": 0.34,
     "peak_db": -0.8,
-    "loud_db": -17.3,
-    "dc": 0.0001,
-    "onset_ms": 7.6,
-    "centroid_hz": 2703,
-    "end_db": -157.4,
+    "loud_db": -5.7,
+    "dc": 0.0004,
+    "onset_ms": 0.0,
+    "centroid_hz": 946,
+    "end_db": -122.7,
     "problems": []
    },
    "validation": "ok"
@@ -295,8 +294,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/armgun.mp3",
-   "prompt": "A fleshy alien bio-weapon fires a plasma glob: wet squelching zap with a rubbery thwop and electric fizz.",
-   "credits": 12,
+   "prompt": "A bio-mechanical alien weapon fires: deep organic carapace thrum, high-voltage plasma discharge crackle and a sizzling energy burst.",
+   "credits": 25,
    "destination": "audio_src/final/sfx/armgun.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.44,
@@ -313,16 +312,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -8.7)",
-    "keep_seconds": 0.5
+    "keep_seconds": 0.55
    },
    "measured": {
-    "seconds": 0.5,
-    "peak_db": -0.8,
-    "loud_db": -5.9,
-    "dc": 0.001,
+    "seconds": 0.55,
+    "peak_db": -0.9,
+    "loud_db": -7.0,
+    "dc": 0.0011,
     "onset_ms": 0.0,
-    "centroid_hz": 3255,
-    "end_db": -102.4,
+    "centroid_hz": 182,
+    "end_db": -112.8,
     "problems": []
    },
    "validation": "ok"
@@ -336,8 +335,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/bottle_launcher.mp3",
-   "prompt": "A bottle rocket launched from a steel pipe: hollow thoonk then a fast fizzing whoosh.",
-   "credits": 12,
+   "prompt": "A bottle rocket fired from a metal pipe: violent gunpowder fizzle and a heavy hollow thoonk, then a loud whistling whoosh screaming away.",
+   "credits": 26,
    "destination": "audio_src/final/sfx/bottle_launcher.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.31,
@@ -354,16 +353,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -10.6)",
-    "keep_seconds": 0.42
+    "keep_seconds": 0.6
    },
    "measured": {
-    "seconds": 0.42,
+    "seconds": 0.6,
     "peak_db": -0.8,
-    "loud_db": -5.8,
-    "dc": 0.0008,
+    "loud_db": -6.9,
+    "dc": 0.0002,
     "onset_ms": 0.0,
-    "centroid_hz": 2861,
-    "end_db": -119.9,
+    "centroid_hz": 2924,
+    "end_db": -135.6,
     "problems": []
    },
    "validation": "ok"
@@ -459,8 +458,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/crossbow.mp3",
-   "prompt": "A crossbow fires: taut string snap, wooden clack and a short bolt whoosh.",
-   "credits": 12,
+   "prompt": "A heavy wooden crossbow fires under high tension: violent cable snap twang, solid wooden clack and a whooshing bolt.",
+   "credits": 24,
    "destination": "audio_src/final/sfx/crossbow.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.41,
@@ -477,16 +476,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -8.1)",
-    "keep_seconds": 0.44
+    "keep_seconds": 0.5
    },
    "measured": {
-    "seconds": 0.44,
-    "peak_db": -0.8,
-    "loud_db": -14.4,
-    "dc": 0.0,
-    "onset_ms": 6.1,
-    "centroid_hz": 2542,
-    "end_db": -168.5,
+    "seconds": 0.5,
+    "peak_db": -2.3,
+    "loud_db": -7.0,
+    "dc": 0.0016,
+    "onset_ms": 0.0,
+    "centroid_hz": 189,
+    "end_db": -127.8,
     "problems": []
    },
    "validation": "ok"
@@ -542,8 +541,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/pressure_gun.mp3",
-   "prompt": "A copper steam pressure gun fires: violent burst of compressed steam with a metallic thunk.",
-   "credits": 12,
+   "prompt": "A steam-powered copper pressure gun discharges: violent steam valve hiss over a heavy clanking copper piston thump with metallic echo.",
+   "credits": 25,
    "destination": "audio_src/final/sfx/pressure_gun.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.53,
@@ -560,16 +559,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -11.3)",
-    "keep_seconds": 0.56
+    "keep_seconds": 0.6
    },
    "measured": {
-    "seconds": 0.56,
+    "seconds": 0.6,
     "peak_db": -0.8,
-    "loud_db": -5.3,
-    "dc": 0.0001,
+    "loud_db": -5.6,
+    "dc": 0.0003,
     "onset_ms": 0.0,
-    "centroid_hz": 4471,
-    "end_db": -101.3,
+    "centroid_hz": 4504,
+    "end_db": -129.4,
     "problems": []
    },
    "validation": "ok"
@@ -583,8 +582,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/ripsaw.mp3",
-   "prompt": "A circular saw blade fired from a launcher: metallic shing and a whirring blade spinning away.",
-   "credits": 12,
+   "prompt": "A circular saw blade launched from a two-stroke saw gun: engine bark, aggressive metal blade launch with a resonant buzz spinning away.",
+   "credits": 25,
    "destination": "audio_src/final/sfx/ripsaw.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.36,
@@ -601,16 +600,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -9.3)",
-    "keep_seconds": 0.4
+    "keep_seconds": 0.5
    },
    "measured": {
-    "seconds": 0.4,
+    "seconds": 0.5,
     "peak_db": -0.8,
-    "loud_db": -5.9,
-    "dc": 0.0001,
+    "loud_db": -5.2,
+    "dc": 0.0011,
     "onset_ms": 0.0,
-    "centroid_hz": 4465,
-    "end_db": -96.1,
+    "centroid_hz": 3334,
+    "end_db": -121.5,
     "problems": []
    },
    "validation": "ok"
@@ -624,8 +623,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/riveter.mp3",
-   "prompt": "A pneumatic rivet gun fires one rivet: hard metallic bang with an air puff.",
-   "credits": 10,
+   "prompt": "A heavy pneumatic industrial rivet gun fires one steel stud: high-pressure air burst and an authoritative heavy metallic slam.",
+   "credits": 21,
    "destination": "audio_src/final/sfx/riveter.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.3,
@@ -642,16 +641,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -11.1)",
-    "keep_seconds": 0.32
+    "keep_seconds": 0.36
    },
    "measured": {
-    "seconds": 0.32,
-    "peak_db": -1.6,
-    "loud_db": -7.0,
-    "dc": 0.0007,
+    "seconds": 0.36,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0022,
     "onset_ms": 0.0,
-    "centroid_hz": 2380,
-    "end_db": -98.0,
+    "centroid_hz": 4633,
+    "end_db": -105.8,
     "problems": []
    },
    "validation": "ok"
@@ -665,8 +664,8 @@
    "family": "report",
    "origin": "generated",
    "source": "audio_src/generated/sfx/riveter_pair.mp3",
-   "prompt": "A pneumatic rivet gun fires two rivets in a quick double bang with air hiss.",
-   "credits": 11,
+   "prompt": "A heavy pneumatic industrial rivet gun fires two steel studs fast: two air bursts and two heavy metallic slams.",
+   "credits": 23,
    "destination": "audio_src/final/sfx/riveter_pair.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.37,
@@ -683,16 +682,16 @@
      "drive": 1.6
     },
     "level": "-7.0 dB (replaced cue was -9.9)",
-    "keep_seconds": 0.4
+    "keep_seconds": 0.44
    },
    "measured": {
-    "seconds": 0.4,
-    "peak_db": -1.2,
-    "loud_db": -7.0,
-    "dc": 0.0001,
+    "seconds": 0.44,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0047,
     "onset_ms": 0.0,
-    "centroid_hz": 2318,
-    "end_db": -84.2,
+    "centroid_hz": 2308,
+    "end_db": -112.0,
     "problems": []
    },
    "validation": "ok"
@@ -3563,8 +3562,8 @@
    "family": "melee",
    "origin": "generated",
    "source": "audio_src/generated/sfx/crowbar_hit.mp3",
-   "prompt": "A steel crowbar smacks a body: dull meaty thwack with a metal ring.",
-   "credits": 8,
+   "prompt": "A steel crowbar smashes into a body: heavy meaty thwack with a bone crack and a low metal ring.",
+   "credits": 17,
    "destination": "audio_src/final/sfx/crowbar_hit.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.24,
@@ -3585,11 +3584,11 @@
    "measured": {
     "seconds": 0.24,
     "peak_db": -0.8,
-    "loud_db": -7.5,
-    "dc": 0.0026,
+    "loud_db": -7.7,
+    "dc": 0.0018,
     "onset_ms": 0.0,
-    "centroid_hz": 1751,
-    "end_db": -87.5,
+    "centroid_hz": 3140,
+    "end_db": -97.5,
     "problems": []
    },
    "validation": "ok"
@@ -3642,8 +3641,8 @@
    "family": "melee",
    "origin": "generated",
    "source": "audio_src/generated/sfx/sling_hit.mp3",
-   "prompt": "A big blade chops into something fleshy: wet chopping thunk.",
-   "credits": 12,
+   "prompt": "A big blade chops deep into flesh: loud wet chopping thunk with a heavy thud.",
+   "credits": 24,
    "destination": "audio_src/final/sfx/sling_hit.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.68,
@@ -3663,12 +3662,12 @@
    },
    "measured": {
     "seconds": 0.68,
-    "peak_db": -0.8,
-    "loud_db": -12.0,
-    "dc": 0.0051,
+    "peak_db": -1.2,
+    "loud_db": -10.0,
+    "dc": 0.0038,
     "onset_ms": 0.0,
-    "centroid_hz": 100,
-    "end_db": -140.8,
+    "centroid_hz": 227,
+    "end_db": -132.7,
     "problems": []
    },
    "validation": "ok"
@@ -3961,8 +3960,8 @@
    "family": "impact",
    "origin": "generated",
    "source": "audio_src/generated/sfx/saw_hit.mp3",
-   "prompt": "A spinning saw blade bites into flesh: short wet buzzing rip.",
-   "credits": 8,
+   "prompt": "A saw blade slicing through wet bone and flesh: violent buzzing rip, squelch and splatter.",
+   "credits": 17,
    "destination": "audio_src/final/sfx/saw_hit.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": 0.24,
@@ -3977,17 +3976,93 @@
      "fade": 0.3,
      "level": -5.0
     },
+    "lead_trimmed_ms": 15,
     "level": "-11.0 dB (replaced cue was -17.3)",
     "keep_seconds": 0.24
    },
    "measured": {
     "seconds": 0.24,
-    "peak_db": -1.6,
-    "loud_db": -11.0,
-    "dc": 0.0,
+    "peak_db": -0.8,
+    "loud_db": -9.5,
+    "dc": 0.0012,
     "onset_ms": 0.0,
-    "centroid_hz": 4464,
-    "end_db": -78.9,
+    "centroid_hz": 5427,
+    "end_db": -89.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "gib_burst": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/gib_burst.mp3",
+   "prompt": "A wet, gruesome, over-the-top fleshy explosion of meat and snapping bone with a squelching blood burst, 1990s PC shooter sound effect.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/gib_burst.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 0.9
+   },
+   "measured": {
+    "seconds": 0.9,
+    "peak_db": -0.8,
+    "loud_db": -18.3,
+    "dc": 0.0008,
+    "onset_ms": 0.2,
+    "centroid_hz": 6210,
+    "end_db": -152.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "gib_splat": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/gib_splat.mp3",
+   "prompt": "A wet chunk of meat slaps onto hard concrete and slides: short wet squelch.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/gib_splat.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "lead_trimmed_ms": 65,
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 0.4
+   },
+   "measured": {
+    "seconds": 0.4,
+    "peak_db": -0.8,
+    "loud_db": -21.6,
+    "dc": 0.0,
+    "onset_ms": 29.6,
+    "centroid_hz": 2149,
+    "end_db": -145.0,
     "problems": []
    },
    "validation": "ok"
@@ -11856,12 +11931,12 @@
    },
    "measured": {
     "seconds": 0.812,
-    "peak_db": -3.7,
+    "peak_db": -8.5,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 33.4,
-    "centroid_hz": 2538,
-    "end_db": -180.0,
+    "onset_ms": 10.0,
+    "centroid_hz": 64,
+    "end_db": -154.0,
     "problems": []
    },
    "validation": "ok"
@@ -11896,12 +11971,12 @@
    },
    "measured": {
     "seconds": 0.9,
-    "peak_db": -5.7,
+    "peak_db": -8.3,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 16.0,
-    "centroid_hz": 765,
-    "end_db": -180.0,
+    "onset_ms": 15.4,
+    "centroid_hz": 122,
+    "end_db": -161.7,
     "problems": []
    },
    "validation": "ok"
@@ -11936,12 +12011,12 @@
    },
    "measured": {
     "seconds": 0.525,
-    "peak_db": -5.5,
+    "peak_db": -8.7,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 19.0,
-    "centroid_hz": 3141,
-    "end_db": -155.8,
+    "onset_ms": 13.8,
+    "centroid_hz": 5766,
+    "end_db": -149.3,
     "problems": []
    },
    "validation": "ok"
@@ -11976,12 +12051,12 @@
    },
    "measured": {
     "seconds": 0.55,
-    "peak_db": -6.9,
+    "peak_db": -3.9,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 13.6,
-    "centroid_hz": 2046,
-    "end_db": -140.9,
+    "onset_ms": 14.4,
+    "centroid_hz": 3249,
+    "end_db": -136.3,
     "problems": []
    },
    "validation": "ok"
@@ -12016,12 +12091,12 @@
    },
    "measured": {
     "seconds": 0.637,
-    "peak_db": -5.3,
+    "peak_db": -4.6,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 14.4,
-    "centroid_hz": 2036,
-    "end_db": -144.2,
+    "onset_ms": 13.9,
+    "centroid_hz": 2171,
+    "end_db": -150.4,
     "problems": []
    },
    "validation": "ok"
@@ -12056,12 +12131,12 @@
    },
    "measured": {
     "seconds": 0.837,
-    "peak_db": -4.9,
+    "peak_db": -2.8,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 14.0,
-    "centroid_hz": 3431,
-    "end_db": -158.3,
+    "onset_ms": 14.1,
+    "centroid_hz": 3987,
+    "end_db": -163.8,
     "problems": []
    },
    "validation": "ok"
@@ -12096,12 +12171,12 @@
    },
    "measured": {
     "seconds": 0.562,
-    "peak_db": -5.9,
+    "peak_db": -6.0,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 14.2,
-    "centroid_hz": 2821,
-    "end_db": -158.0,
+    "onset_ms": 13.2,
+    "centroid_hz": 3090,
+    "end_db": -136.8,
     "problems": []
    },
    "validation": "ok"
@@ -12612,12 +12687,12 @@
    },
    "measured": {
     "seconds": 0.5,
-    "peak_db": -5.3,
+    "peak_db": -7.5,
     "loud_db": -16.0,
     "dc": 0.0,
-    "onset_ms": 13.7,
-    "centroid_hz": 3671,
-    "end_db": -140.4,
+    "onset_ms": 15.9,
+    "centroid_hz": 5062,
+    "end_db": -139.6,
     "problems": []
    },
    "validation": "ok"
@@ -13288,6 +13363,8 @@
  "added": [
   "room_cow_launcher",
   "room_teat_gun",
+  "gib_burst",
+  "gib_splat",
   "hick_pain_1",
   "hick_pain_2",
   "hick_pain_3",

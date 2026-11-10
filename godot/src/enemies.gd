@@ -275,6 +275,8 @@ var hit_flash := 0.0
 var fled := false
 var variant := 1.0
 var died_at := -1.0
+var struck_at := -1.0
+var struck_sum := 0.0
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -344,6 +346,11 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 		return
 	var was_stunned := stun > 0.0
 	hp = maxf(0.0, hp - amount)
+	# Pellets and blast fragments land as separate hits in the same instant.
+	if game.clock - struck_at > .06:
+		struck_sum = 0.0
+	struck_at = game.clock
+	struck_sum += amount
 	hit_flash = minf(.18, hit_flash + .075 + minf(.06, amount * .0016))
 	var champion := BOSS_TITLES.has(kind)
 	if hp > 0.0 and hostile and not champion and amount >= 20.0:
@@ -392,6 +399,11 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 		"plasma" if kind in ["alien", "saucer", "boss", "crawler", "lantern"] else "gore"
 	)
 	game.burst(x, y, floor_z + z + .56 * height, burst_kind, 4, .9)
+	if hostile:
+		var from := atan2(y - game.player.y, x - game.player.x)
+		game.gore_fx.spray(
+			x, y, floor_z + z + .56 * height, cos(from), sin(from), amount, burst_kind == "plasma"
+		)
 	var material := (
 		"shell" if SHELL_ACTORS.has(kind) else "tool" if TOOL_ACTORS.has(kind) else "cloth"
 	)
@@ -401,6 +413,17 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 		return
 	explosive = explosive_hit
 	died_at = game.clock
+	# Overkill: far more than the body had left, all at once, takes it apart.
+	if (
+		game.gore
+		and hostile
+		and not BOSS_TITLES.has(kind)
+		and kind != "skeeter"
+		and kind != "saucer"
+		and (explosive_hit or struck_sum >= maxf(48.0, max_hp * .7))
+	):
+		explosive = true
+		game.gore_fx.burst(self)
 	game.burst(
 		x,
 		y,

@@ -384,6 +384,13 @@ func _init(p_art: Assets) -> void:
 	_music.name = "Music"
 	add_child(_music)
 	_music.bus = "Master"
+	# Everything leaves through one limiter, so a double-barrel blast over an
+	# explosion presses against the ceiling instead of clipping or ducking speech.
+	if AudioServer.get_bus_effect_count(0) == 0:
+		var limiter := AudioEffectHardLimiter.new()
+		limiter.ceiling_db = -.8
+		limiter.pre_gain_db = 1.5
+		AudioServer.add_bus_effect(0, limiter)
 	# Unseeded in the reference: a different track order on every launch.
 	score_player = ScorePlayer.new(
 		assets,

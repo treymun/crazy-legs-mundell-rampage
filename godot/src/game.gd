@@ -668,6 +668,8 @@ var next_belch := 0.0
 
 var shots: Array = []
 var specks: Array = []
+## Gibs, blood pools and wall splats (gore.gd).
+var gore_fx: Gore = Gore.new(self)
 var blasts: Array = []
 var hazards: Array = []
 var wall_marks: Array = []
@@ -2316,6 +2318,7 @@ func update_shots(dt: float) -> void:
 		if speck.life > 0.0 and speck.z >= -.05:
 			alive_specks.append(speck)
 	specks = alive_specks
+	gore_fx.tick(dt)
 	for blast in blasts:
 		blast.age += dt
 	var alive_blasts: Array = []
@@ -2395,6 +2398,9 @@ func ground_marks() -> Array:
 				x, y, float(row[2]), float(row[3]), float(row[4]), float(row[5]), image
 			)
 		)
+	for stain: Renderer.GroundMark in gore_fx.blood_marks:
+		if (stain.x - p.x) * (stain.x - p.x) + (stain.y - p.y) * (stain.y - p.y) < 81.0:
+			marks.append(stain)
 	if in_hub:
 		return marks
 	for hazard: Hazard in hazards:
@@ -2960,6 +2966,10 @@ func sprites() -> Array:
 		var speck_sprite := Renderer.Sprite.new(fx.x, fx.y, "fx_" + fx.kind, .095, fx.z)
 		speck_sprite.glow = fx.kind == "spark"
 		sprites.append(speck_sprite)
+	for g: Gore.Gib in gore_fx.gibs:
+		var chunk := Renderer.Sprite.new(g.x, g.y, g.image, g.size, g.z)
+		chunk.flip = g.flip
+		sprites.append(chunk)
 	var blast_order: Array = []
 	for blast: Blast in blasts:
 		blast_order.append(
@@ -3232,6 +3242,8 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 	var t0 := Time.get_ticks_usec()
 	var marks: Array = ground_marks()
 	var marks_list: Array = wall_marks if bullet_marks else []
+	if not gore_fx.walls.is_empty():
+		marks_list = marks_list + gore_fx.walls
 	var listed: Array = sprites()
 	var t1 := Time.get_ticks_usec()
 	var view_frame: PackedByteArray = renderer.render(
