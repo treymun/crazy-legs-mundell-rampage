@@ -1,7 +1,7 @@
 name: Set up Godot and the game data
 description: >
   Rebuilds the asset packs the Godot project reads from assets/, installs the
-  Godot editor and the three export templates the release uses, stamps the tag
+  Godot editor and the four export templates the release uses, stamps the tag
   version on release builds, and imports the project. Linux runners only.
 
 inputs:
@@ -34,7 +34,7 @@ runs:
         path: |
           ~/godot
           ~/.local/share/godot/export_templates
-        key: godot-${{ inputs.godot-version }}-linux-windows-web-android
+        key: godot-${{ inputs.godot-version }}-linux-windows-web-weblite-android
 
     - name: Download Godot
       if: steps.cache.outputs.cache-hit != 'true'
@@ -54,11 +54,13 @@ runs:
         unzip -q -j "$editor" -d ~/godot
         mv ~/godot/Godot_v${VERSION}-stable_linux.x86_64 ~/godot/godot
         chmod +x ~/godot/godot
-        # The archive holds every platform (1.3 GB); the release needs three files.
+        # The archive holds every platform (1.3 GB); the release needs four files
+        # (the browser build ships with and without threads).
         unzip -q -j "$templates" \
           templates/version.txt \
           templates/windows_release_x86_64.exe \
           templates/web_release.zip \
+          templates/web_nothreads_release.zip \
           templates/android_release.apk \
           -d ~/.local/share/godot/export_templates/${VERSION}.stable
         rm -rf "$work"
