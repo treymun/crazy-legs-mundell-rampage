@@ -55,7 +55,7 @@ godot --path godot
 
 # Screens and demo
 godot --headless --path godot -- --smoke-frames=40 --smoke-screen=setup:3:9 --smoke-shot=out.png
-godot --path godot --fixed-fps 30 --write-movie demo.avi -- --demo
+godot --path godot --fixed-fps 30 --write-movie demo.avi -- --demo   # needs a saved campaign: run bot_campaign.gd first
 
 # Audio production (only these spend credits: audio_produce.py)
 python scripts/audio_generator.py status --reconcile --account
@@ -119,7 +119,7 @@ python scripts/audio_build.py --check
 * `check_fixes.gd` (includes front-end tests: focus, scrolling, hit targets,
   reset, stored keys): PARITY FIXES OK. `bot_campaign.gd`: CAMPAIGN
   WALKTHROUGH OK. gdformat and gdlint clean. All on a clean test profile.
-* Demo recording (`docs/media/demo.mp4`, menus then play): mix peak -1.8 dB,
+* Demo recording (`docs/media/demo.mp4`, menus then play): mix peak -0.9 dB,
   no clipped samples.
 * Layout captures at 1024x768, 1280x720 and 860x400 in `docs/media/layout_*`.
 * Song measurements in `audio_src/music_measurements.json`. Band balance is
