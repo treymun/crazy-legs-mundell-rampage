@@ -4,197 +4,249 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Crazy Legs Mundell Rampage — The Hickston Incident</title>
-<meta name="description" content="A hand-built 320x200 retro FPS. Download for Windows or Android, or play in your browser.">
-<style>
-  :root {
-    --ink: #f6e7c6;
-    --dim: #c9ab7c;
-    --gold: #f0b64e;
-    --rust: #b8472e;
-    --coal: #0d0b09;
-    --panel: #17120e;
-    --edge: #5a3c22;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; }
-  body {
-    background: var(--coal);
-    color: var(--ink);
-    font-family: "Courier New", Courier, monospace;
-    line-height: 1.55;
-    overflow-x: hidden;
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 5;
-    background: repeating-linear-gradient(
-      0deg, rgba(0,0,0,.28) 0px, rgba(0,0,0,.28) 2px,
-      transparent 2px, transparent 4px);
-    mix-blend-mode: multiply;
-  }
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 6;
-    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.62) 100%);
-  }
-  a { color: var(--gold); }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 64px; position: relative; z-index: 2; }
-  header {
-    padding: 54px 0 26px;
-    text-align: center;
-    background:
-      linear-gradient(rgba(13,11,9,.55), rgba(13,11,9,.92)),
-      url("img/backdrop.png") center top / cover no-repeat;
-    border-bottom: 4px solid var(--edge);
-    image-rendering: pixelated;
-  }
-  .logo { width: min(560px, 88vw); image-rendering: pixelated; filter: drop-shadow(0 6px 0 rgba(0,0,0,.55)); }
-  .kicker {
-    display: inline-block;
-    margin: 18px 0 4px;
-    padding: 4px 12px;
-    border: 2px solid var(--edge);
-    background: rgba(0,0,0,.5);
-    color: var(--gold);
-    font-weight: bold;
-    letter-spacing: .22em;
-    font-size: 12px;
-  }
-  h1 { margin: 8px 0 0; font-size: clamp(22px, 4vw, 38px); letter-spacing: .08em; }
-  .sub { color: var(--dim); margin: 6px 0 0; font-size: 14px; letter-spacing: .12em; }
-  .rail {
-    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
-    margin: 26px 0 0;
-  }
-  .btn {
-    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
-    min-width: 210px; padding: 12px 20px;
-    color: #140f0a; text-decoration: none;
-    background: linear-gradient(#ffd98a, var(--gold) 45%, #c98724);
-    border: 3px solid #3a230f;
-    box-shadow: 0 4px 0 #3a230f, inset 0 2px 0 rgba(255,255,255,.45);
-    font-weight: bold; letter-spacing: .1em; text-transform: uppercase;
-    transition: transform .08s steps(2), filter .15s;
-  }
-  .btn small { font-weight: normal; letter-spacing: .04em; text-transform: none; color: #46301a; }
-  .btn:hover { filter: brightness(1.08); transform: translateY(-2px); }
-  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #3a230f; }
-  .btn.alt {
-    background: linear-gradient(#3a2a1c, #241a12);
-    color: var(--ink);
-    border-color: #6b4a2b;
-    box-shadow: 0 4px 0 #120c08, inset 0 2px 0 rgba(255,255,255,.08);
-  }
-  .btn.alt small { color: var(--dim); }
-  .btn.play { background: linear-gradient(#b9f08a, #64b53b 45%, #2f6f1f); }
-  section { margin-top: 44px; }
-  h2 {
-    font-size: 15px; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--gold); border-bottom: 2px solid var(--edge); padding-bottom: 8px;
-  }
-  .grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 24px; align-items: start; }
-  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
-  .shot {
-    width: 100%; display: block; border: 4px solid var(--edge);
-    image-rendering: pixelated; box-shadow: 0 0 0 4px #0a0806, 0 10px 30px rgba(0,0,0,.55);
-  }
-  .panel {
-    background: var(--panel); border: 2px solid var(--edge); padding: 18px 20px;
-    box-shadow: inset 0 0 0 2px #0a0806;
-  }
-  .panel p { margin: 0 0 12px; font-size: 14px; }
-  .panel p:last-child { margin-bottom: 0; }
-  ul.checks { list-style: none; margin: 0; padding: 0; font-size: 14px; }
-  ul.checks li { padding: 4px 0 4px 22px; position: relative; color: var(--dim); }
-  ul.checks li::before { content: "▸"; color: var(--rust); position: absolute; left: 2px; }
-  .reqs { font-size: 13px; color: var(--dim); }
-  .reqs strong { color: var(--ink); }
-  footer {
-    margin-top: 54px; padding-top: 18px; border-top: 2px solid var(--edge);
-    color: #8d7255; font-size: 12px; letter-spacing: .06em; text-align: center;
-  }
-</style>
+<meta name="description" content="A 320x200 backwoods shooter in the spirit of 1997. Play it in your browser, or download it for Windows and Android.">
+<meta name="theme-color" content="#0f0b08">
+<link rel="icon" type="image/png" href="img/icon.png">
+<link rel="stylesheet" href="css/site.css">
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <img class="logo" src="img/logo.png" alt="Crazy Legs Mundell Rampage">
-    <div><span class="kicker">THE HICKSTON INCIDENT</span></div>
-    <h1>CRAZY LEGS MUNDELL RAMPAGE</h1>
-    <p class="sub">VERSION 2.0 &nbsp;·&nbsp; 320×200 &nbsp;·&nbsp; 16 WEAPONS &nbsp;·&nbsp; 4 COUNTIES</p>
-    <nav class="rail" aria-label="Downloads">
-      <a class="btn play" href="play/" id="play">Play in browser<small>No install · WebAssembly</small></a>
-      <a class="btn" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage.exe" id="exe">Download for Windows<small>Single-file EXE · 64-bit</small></a>
-      <a class="btn alt" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage_Setup.exe" id="setup">Windows installer<small>Start-menu shortcuts</small></a>
-      <a class="btn alt" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage.apk" id="apk">Android APK<small>arm64 · allow unknown sources</small></a>
-    </nav>
+<a class="skip" href="#play">Skip to the game</a>
+
+<button class="crt-toggle" id="crt-toggle" type="button" aria-pressed="true">[CRT: ON]</button>
+<div class="crt" id="crt" aria-hidden="true"></div>
+
+<header class="hero">
+  <nav class="roadsigns" aria-label="Sections">
+    <a href="#play">Play</a>
+    <a href="#downloads">Downloads</a>
+    <a href="#armory">Armory</a>
+    <a href="#chapters">Chapters</a>
+    <a href="#jukebox">Jukebox</a>
+    <a href="#manual">Manual</a>
+  </nav>
+
+  <div class="hero-grid">
+    <figure class="pinned poster">
+      <img src="img/poster.png" width="128" height="160" alt="Wanted poster: Crazy Legs Mundell, Hickston County">
+      <figcaption>Armed, thirsty, and on foot.<br>Last seen leaving Stanky's.</figcaption>
+    </figure>
+
+    <div class="marquee">
+      <img class="logo" src="img/logo.png" width="212" height="80" alt="Crazy Legs Mundell Rampage">
+      <p class="kicker">The Hickston Incident</p>
+      <h1>Bessie's comin' home.</h1>
+      <p class="pitch">Something from out of county took the prize animal of Hickston, Arkansas.
+        One delivery man with a .38 and a bag of pork rinds is going to take her back &mdash;
+        through the bar, the fair, the sawmill and the quarry.</p>
+      <div class="cta">
+        <a class="neon" href="#play" data-play>Play in browser</a>
+        <a class="plate-link" href="#downloads">Get the downloads</a>
+      </div>
+      <p class="specs">320&times;200 &middot; 256 colours &middot; 14 weapons &middot; 4 chapters &middot; 1 hub</p>
+    </div>
+
+    <figure class="pinned flyer">
+      <span class="ribbon" aria-hidden="true">1st<br>Prize</span>
+      <img src="img/bessie.png" width="135" height="87" alt="Bessie, Hickston County's prize-winner">
+      <figcaption><strong>Missing: Bessie</strong>Answers to her name and to slop.<br>Taken upward. Return to the north pasture.</figcaption>
+    </figure>
   </div>
 </header>
 
-<div class="wrap">
-  <section>
-    <div class="grid">
-      <div>
-        <h2>The last delivery route</h2>
-        <img class="shot" src="img/gameplay.png" alt="Gameplay in Hickston County">
-      </div>
-      <div class="panel">
-        <p><strong>The Hickston Incident</strong> is a hand-built retro FPS in the
-        spirit of the 1995 shareware shooters: big guns, ugly locals, and a county
-        that wants you dead.</p>
-        <ul class="checks">
-          <li>Four linked counties and a hub map</li>
-          <li>16 weapons with distinct cadence and recoil</li>
-          <li>24 enemy kinds, bosses, and wave encounters</li>
-          <li>Original soundtrack and synthesized effects</li>
-          <li>Keyboard + mouse, gamepad, or touch controls</li>
-        </ul>
+<div class="tape" aria-hidden="true"><span>County line &middot; do not cross &middot; Hickston County Sheriff's Dept (under new management) &middot; County line &middot; do not cross &middot; Hickston County Sheriff's Dept (under new management) &middot;</span></div>
+
+<main>
+
+<section id="play" class="board" aria-labelledby="play-title">
+  <h2 class="tin" id="play-title"><span>Stanky's Bar &amp; Grill</span> Play it right here</h2>
+  <div class="cabinet">
+    <div class="screen" id="screen">
+      <img class="screen-still" src="img/shot_hickston.png" width="320" height="200" alt="The county road outside Stanky's, seen down the barrel of a revolver">
+      <div class="screen-card" id="screen-card">
+        <button class="neon neon-button" id="play-button" type="button">Play in browser</button>
+        <p id="play-note">The first visit pulls about 220&nbsp;MB, then your browser keeps it.</p>
       </div>
     </div>
-  </section>
+    <div class="cabinet-rail">
+      <button class="knob" id="fullscreen-button" type="button" disabled>Fullscreen</button>
+      <a class="knob" href="play/" id="own-tab">Open in its own tab</a>
+      <span class="rail-note">Click the screen to grab the mouse. Esc gives it back.</span>
+    </div>
+  </div>
+  <aside class="note note-tilt-left">
+    <h3>Dispatch, re: browsers</h3>
+    <p>The browser build is the whole game: same maps, same saves between visits, same guns.
+      It wants a desktop Chrome, Edge or Firefox with a keyboard and mouse. A gamepad works.
+      On a phone it will load and put thumb controls on the glass, but it is a lot of game
+      for a phone browser &mdash; the Android build below is the better ride.</p>
+  </aside>
+</section>
 
-  <section>
-    <h2>System requirements</h2>
-    <div class="grid">
-      <div class="panel">
-        <p class="reqs"><strong>Windows:</strong> Windows 10/11 64-bit, 4 GB RAM,
-        200 MB free disk. The single-file EXE needs no installer.</p>
-        <p class="reqs"><strong>Android:</strong> Android 7.0+, arm64 device,
-        landscape screen. Enable installs from your browser/file manager.</p>
-        <p class="reqs"><strong>Browser:</strong> A current Chrome, Edge, Firefox,
-        or Safari release with WebAssembly and WebGL enabled. Keyboard and mouse
-        are recommended; touch controls appear on phones and tablets.</p>
-      </div>
-      <div class="panel">
-        <p class="reqs"><strong>Controls:</strong> WASD moves, mouse aims, LMB fires,
-        RMB alt-fires, E uses, F cycles weapons, Space jumps, Shift sprints,
-        Esc pauses. Gamepads are detected automatically on desktop.</p>
-        <p class="reqs">Every download is built from this repository by GitHub Actions.
-        Saves live in <strong>%APPDATA%\CrazyLegsMundellRampage</strong> on Windows and in
-        app-private storage on Android.</p>
+<section id="downloads" class="board" aria-labelledby="downloads-title">
+  <h2 class="tin" id="downloads-title"><span>Fill 'er up</span> Download station</h2>
+  <p class="release-line" id="release-line">Builds are made from the source by GitHub Actions.</p>
+  <div class="pumps">
+    <a class="pump" data-asset="CrazyLegsMundellRampage.exe" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage.exe">
+      <span class="badge">WIN</span>
+      <strong>Windows, standalone</strong>
+      <span class="pump-sub">One EXE. No install. Runs from anywhere.</span>
+      <span class="pump-meta"><b data-size>single file</b> &middot; Windows 10/11, 64-bit</span>
+    </a>
+    <a class="pump" data-asset="CrazyLegsMundellRampage_Setup.exe" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage_Setup.exe">
+      <span class="badge">SETUP</span>
+      <strong>Windows, installer</strong>
+      <span class="pump-sub">Start-menu shortcuts and an uninstaller.</span>
+      <span class="pump-meta"><b data-size>installer</b> &middot; Windows 10/11, 64-bit</span>
+    </a>
+    <a class="pump pump-play" href="#play" data-play>
+      <span class="badge">WEB</span>
+      <strong>Play in browser</strong>
+      <span class="pump-sub">Nothing to install. Runs on this page.</span>
+      <span class="pump-meta"><b>about 220 MB</b> &middot; WebAssembly, WebGL 2</span>
+    </a>
+    <a class="pump" data-asset="CrazyLegsMundellRampage.apk" href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest/download/CrazyLegsMundellRampage.apk">
+      <span class="badge">APK</span>
+      <strong>Android</strong>
+      <span class="pump-sub">Thumb stick, fire, jump, duck, and a rind button.</span>
+      <span class="pump-meta"><b data-size>APK</b> &middot; Android 7.0+, arm64</span>
+    </a>
+  </div>
+  <p class="fineprint">The builds are unsigned. Windows SmartScreen will ask once; Android needs
+    &ldquo;install unknown apps&rdquo; allowed for your browser or file manager.
+    <a href="https://github.com/treymun/crazy-legs-mundell-rampage/releases">Every release</a> &middot;
+    <a href="https://github.com/treymun/crazy-legs-mundell-rampage">Source</a></p>
+</section>
+
+<section id="armory" class="board" aria-labelledby="armory-title">
+  <h2 class="tin" id="armory-title"><span>Hickston County</span> Armory</h2>
+  <div class="armory">
+    <div class="pegboard" id="pegboard" role="listbox" aria-label="Weapons" aria-orientation="horizontal"></div>
+    <article class="bench" id="bench" aria-live="polite">
+      <div class="bench-view"><div class="sprite" id="bench-sprite" role="img" aria-label=""></div></div>
+      <header>
+        <p class="bench-key" id="bench-key"></p>
+        <h3 id="bench-name"></h3>
+      </header>
+      <p class="bench-text" id="bench-text"></p>
+      <dl class="stats" id="bench-stats"></dl>
+    </article>
+  </div>
+</section>
+
+<section id="chapters" class="board" aria-labelledby="chapters-title">
+  <h2 class="tin" id="chapters-title"><span>Route sheet</span> Chapter dossier</h2>
+  <div class="dossier">
+    <div class="tabs" role="tablist" aria-label="Chapters" id="chapter-tabs"></div>
+    <div class="folder" id="chapter-panel" role="tabpanel" tabindex="0"></div>
+  </div>
+</section>
+
+<section id="jukebox" class="board" aria-labelledby="jukebox-title">
+  <h2 class="tin" id="jukebox-title"><span>Two bits a song</span> Jukebox</h2>
+  <div class="juke">
+    <div class="juke-face">
+      <p class="juke-now"><span>Now playing</span><b id="juke-title">Pick a record.</b></p>
+      <div class="juke-bar" aria-hidden="true"><i id="juke-progress"></i></div>
+      <div class="juke-keys">
+        <button class="knob" id="juke-stop" type="button" disabled>Stop</button>
+        <span class="rail-note">Forty-second cuts from the game's own soundtrack.</span>
       </div>
     </div>
-  </section>
-
-  <section>
-    <h2>Source &amp; notes</h2>
-    <div class="panel">
-      <p>Read the <a href="https://github.com/treymun/crazy-legs-mundell-rampage">source repository</a>
-      or the <a href="https://github.com/treymun/crazy-legs-mundell-rampage/blob/main/CHANGES_2.0.md">2.0 change log</a>.
-      Builds are unsigned; Windows SmartScreen may ask you to confirm the first launch.</p>
-      <p class="reqs">Pygame-ce · Python 3.12 · PyInstaller · python-for-android · pygbag</p>
+    <div class="juke-lists">
+      <div class="records" id="records"></div>
+      <div class="hollers">
+        <h3>Holler board</h3>
+        <div class="holler-keys" id="hollers"></div>
+      </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <footer>
-    HICKSTON INC. · 2.0.0 · Fan-made tribute, not affiliated with any original publisher.
-  </footer>
-</div>
+<section id="manual" class="board" aria-labelledby="manual-title">
+  <h2 class="tin" id="manual-title"><span>Read before operating</span> Field manual</h2>
+  <div class="manual">
+    <article class="sheet">
+      <h3>Keyboard &amp; mouse</h3>
+      <table>
+        <tbody>
+          <tr><th scope="row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + mouse</th><td>Move and aim</td></tr>
+          <tr><th scope="row"><kbd>Shift</kbd> <kbd>J</kbd> <kbd>Z</kbd></th><td>Run, jump, crouch</td></tr>
+          <tr><th scope="row">Mouse 1 / Mouse 2</th><td>Fire / alt fire</td></tr>
+          <tr><th scope="row"><kbd>E</kbd> <kbd>Space</kbd> middle click</th><td>Use, open, rescue</td></tr>
+          <tr><th scope="row"><kbd>1</kbd>&ndash;<kbd>9</kbd> <kbd>0</kbd> <kbd>-</kbd> <kbd>=</kbd> wheel</th><td>Weapons</td></tr>
+          <tr><th scope="row"><kbd>R</kbd></th><td>Reload</td></tr>
+          <tr><th scope="row"><kbd>8</kbd>, hold fire</th><td>Light the stick; let go to throw</td></tr>
+          <tr><th scope="row"><kbd>C</kbd> <kbd>B</kbd> <kbd>M</kbd></th><td>Pork rinds, beer, moonshine</td></tr>
+          <tr><th scope="row"><kbd>Q</kbd> / <kbd>F</kbd></th><td>Pick an item / use it</td></tr>
+          <tr><th scope="row"><kbd>Tab</kbd></th><td>County map</td></tr>
+          <tr><th scope="row"><kbd>F6</kbd> / <kbd>F9</kbd> / <kbd>F5</kbd></th><td>Quicksave, quickload, save slots</td></tr>
+          <tr><th scope="row"><kbd>F11</kbd> <kbd>F4</kbd> <kbd>F12</kbd></th><td>Fullscreen, music, screenshot</td></tr>
+        </tbody>
+      </table>
+    </article>
+    <article class="sheet">
+      <h3>Gamepad</h3>
+      <table>
+        <tbody>
+          <tr><th scope="row">Left stick / right stick</th><td>Move / look</td></tr>
+          <tr><th scope="row">Right trigger / left trigger</th><td>Fire / alt fire</td></tr>
+          <tr><th scope="row"><kbd>A</kbd> / <kbd>B</kbd></th><td>Jump / crouch</td></tr>
+          <tr><th scope="row"><kbd>X</kbd> / <kbd>Y</kbd></th><td>Reload / use</td></tr>
+          <tr><th scope="row">Bumpers</th><td>Previous / next weapon</td></tr>
+          <tr><th scope="row">Stick click</th><td>Run</td></tr>
+          <tr><th scope="row">D-pad up, left, right</th><td>Rinds, beer, moonshine</td></tr>
+          <tr><th scope="row">D-pad down</th><td>Use the picked item</td></tr>
+          <tr><th scope="row">Start / Back</th><td>Pause / county map</td></tr>
+          <tr><th scope="row">In menus</th><td>D-pad moves, <kbd>A</kbd> picks, <kbd>B</kbd> backs out</td></tr>
+        </tbody>
+      </table>
+    </article>
+    <article class="sheet">
+      <h3>Touch</h3>
+      <div class="phone" role="img" aria-label="Touch layout: a thumb stick at lower left; at right, a large FIRE button with USE, ALT, NEXT, JUMP and DUCK around it; RIND, BEER, SHINE and MENU along the top.">
+        <i class="t-stick"><b></b></i>
+        <i class="t t-fire">Fire</i><i class="t t-use">Use</i><i class="t t-alt">Alt</i>
+        <i class="t t-next">Next</i><i class="t t-jump">Jump</i><i class="t t-duck">Duck</i>
+        <i class="t t-s t-rind">Rind</i><i class="t t-s t-beer">Beer</i><i class="t t-s t-shine">Shine</i><i class="t t-s t-menu">Menu</i>
+      </div>
+      <p>Left thumb walks. Drag anywhere on the right half to aim. The buttons show up the
+        first time a finger lands on the screen, and stay out of the way on a keyboard.</p>
+    </article>
+  </div>
+
+  <div class="notes">
+    <aside class="note note-tilt-right">
+      <h3>Gut &amp; drunk</h3>
+      <p>Rinds fill the gut and mend you. Beer mends you and makes the county sway.
+        Moonshine sobers you up, empties you out and buys seven seconds of running like you
+        stole it. Let the gut meter get too full and you will announce yourself to every
+        local within earshot.</p>
+    </aside>
+    <aside class="note note-tilt-left">
+      <h3>What it needs</h3>
+      <p><strong>Windows:</strong> 10 or 11, 64-bit, any graphics card that does OpenGL 3.3.<br>
+        <strong>Android:</strong> 7.0 or newer on an arm64 phone, held sideways.<br>
+        <strong>Browser:</strong> a current desktop Chrome, Edge or Firefox.<br>
+        Saves stay on your machine: in your Godot app-data folder on Windows, in app storage on
+        Android, in the browser's own storage on the web.</p>
+    </aside>
+  </div>
+</section>
+
+</main>
+
+<div class="tape" aria-hidden="true"><span>Caution &middot; wet floor &middot; lit dynamite &middot; loose hogs &middot; Caution &middot; wet floor &middot; lit dynamite &middot; loose hogs &middot; Caution &middot; wet floor &middot; lit dynamite &middot; loose hogs &middot;</span></div>
+
+<footer class="footer">
+  <p>Hickston Inc. <span id="version"></span></p>
+  <p>A fan-made tribute to the backwoods shooters of 1997. Not affiliated with, or endorsed by,
+    any original publisher. Built in Godot from a Python original, both in the
+    <a href="https://github.com/treymun/crazy-legs-mundell-rampage">source repository</a>.
+    <a href="https://github.com/treymun/crazy-legs-mundell-rampage/blob/main/THIRD_PARTY_NOTICES.md">Credits and notices</a>.</p>
+</footer>
+
+<audio id="player" preload="none"></audio>
+<script src="js/frames.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
