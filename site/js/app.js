@@ -325,6 +325,7 @@
 
   // ------------------------------------------------------------- jukebox
   const SIDES = [
+    ['Main menu', [['title', 'Crazy Legs Mundell']]],
     ['Hickston', [['music', 'County Road Shuffle'], ['county_line', 'County Line at Sundown'], ['porchlight_stomp', 'Porchlight Stomp']]],
     ['The fair', [['fair_score', 'The Wheel Turns Crooked'], ['tickets_after_dark', 'Tickets After Dark'], ['closing_time_shuffle', 'Last Call at the Midway']]],
     ['Blackwater', [['mill_score', 'Rain on the Green Chain'], ['green_chain', 'Green Chain Blues'], ['apron_run', 'Across the Loading Apron']]],

@@ -25,7 +25,9 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 ART = ROOT / "assets" / "art"
-WAV = ROOT / "assets" / "wav"
+# The Godot build's finished audio: mastered songs and the effect bank.
+MUSIC = ROOT / "godot" / "assets" / "music"
+SFX = ROOT / "audio_src" / "final" / "sfx"
 FRAMES = ROOT / "godot" / "tools" / "frames"
 SITE = ROOT / "site"
 
@@ -63,7 +65,7 @@ SHOTS = {
     "py_full_stankys_bar": "shot_bar", "py_full_stankys_enemy": "shot_fight",
     "py_hub_tower": "shot_hub",
 }
-TRACKS = ("music", "county_line", "porchlight_stomp", "fair_score", "tickets_after_dark",
+TRACKS = ("title", "music", "county_line", "porchlight_stomp", "fair_score", "tickets_after_dark",
           "closing_time_shuffle", "mill_score", "green_chain", "apron_run", "quarry_score",
           "copper_and_steam", "last_load")
 CUES = ("yee_haw", "yee_haw_alt", "belch", "gulp", "moonshine", "shotgun_both", "cow_moo",
@@ -73,7 +75,8 @@ CUES = ("yee_haw", "yee_haw_alt", "belch", "gulp", "moonshine", "shotgun_both", 
 def strip(name: str, stem: str, poses: tuple[str, ...]) -> dict:
     """Frames trimmed to the box their pixels share, laid side by side."""
     frames = [Image.open(ART / f"gun_{stem}_{pose}.png").convert("RGBA") for pose in poses]
-    boxes = [frame.getbbox() for frame in frames]
+    # A cel can be empty (a hand swung out of view); it does not shape the box.
+    boxes = [box for box in (frame.getbbox() for frame in frames) if box]
     left = min(box[0] for box in boxes)
     top = min(box[1] for box in boxes)
     right = max(box[2] for box in boxes)
@@ -123,12 +126,12 @@ def audio() -> None:
     for stem in TRACKS:
         # Forty seconds from a little way in, faded at both ends.
         subprocess.run([tool, "-y", "-loglevel", "error", "-ss", "12", "-t", "40",
-                        "-i", str(WAV / f"{stem}.wav"), "-ac", "1", "-ar", "22050",
+                        "-i", str(MUSIC / f"{stem}.ogg"), "-ar", "44100",
                         "-af", "afade=t=in:d=1.2,afade=t=out:st=37:d=3",
-                        "-c:a", "libmp3lame", "-b:a", "64k", str(out / f"{stem}.mp3")],
+                        "-c:a", "libmp3lame", "-b:a", "112k", str(out / f"{stem}.mp3")],
                        check=True)
     for stem in CUES:
-        subprocess.run([tool, "-y", "-loglevel", "error", "-i", str(WAV / f"{stem}.wav"),
+        subprocess.run([tool, "-y", "-loglevel", "error", "-i", str(SFX / f"{stem}.wav"),
                         "-ac", "1", "-ar", "22050", "-c:a", "libmp3lame", "-b:a", "64k",
                         str(out / f"{stem}.mp3")], check=True)
     size = sum(path.stat().st_size for path in out.glob("*.mp3"))
