@@ -27,6 +27,7 @@ def populate(game):
     world=game.world; level=game.level
     # Layout first: structures in the open yards, before anything is placed around them.
     rework(world,level)
+    game.pickups.extend(getattr(world,"layout_rewards",()))
     finish_buildings(world,level)
     dist=reachable(world,level.spawn)
     rng=np.random.default_rng(zlib.crc32(level.id.encode()))

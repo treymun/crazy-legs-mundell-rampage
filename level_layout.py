@@ -83,7 +83,7 @@ def _points(world, level):
     return pts
 
 
-def _clearance(world, names):
+def _clearance(world, names, roads=None):
     """For each open cell: how many cells of open, flat, dry, unroofed ground
     surround it (Chebyshev distance to the nearest cell that is not)."""
     h, w = world.solid.shape
@@ -94,7 +94,7 @@ def _clearance(world, names):
             floor = names.get(int(world.floor[y, x]), "")
             if good[y, x] and floor in WATER:
                 good[y, x] = False
-            if good[y, x] and (floor in ROADS or floor.startswith("route")):
+            if good[y, x] and (floor in (roads or ROADS) or floor.startswith("route")):
                 road[y, x] = True
     out = np.zeros((h, w), dtype=np.int16)
     for y in range(h):
@@ -125,8 +125,17 @@ def rework(world, level):
     h, w = world.solid.shape
     built = 0
     budget = max(4, int((world.solid < 0).sum()) // 120)
+    # The first chapter is the one every player sees: it gets a denser pass,
+    # and something worth finding behind each of its tall blocks.
+    deep = level.id == "hickston"
+    spacing = 2.5 if deep else 3.2
+    if deep:
+        budget = int(budget * 2.4)
+    rewards = []
+    stash = ("shells", "bullets", "rinds", "beer", "rifle_ammo", "dynamite")
     while built < budget:
-        clear, road = _clearance(world, names)
+        # In the first chapter only the paved street stays clear; verges and dirt tracks can be built on.
+        clear, road = _clearance(world, names, ("road", "asphalt", "oil_asphalt") if deep else None)
         best = None
         # Alternate cover and view-blockers so a yard gets both.
         order = sorted(SHAPES, key=lambda shape: (shape[2] != ("tall", "low")[built % 2], -shape[0]))
@@ -158,8 +167,16 @@ def rework(world, level):
         for cx, cy in spots:
             world.solid[cy, cx] = TILE[texture]
             world.wall_height[cy, cx] = height
-            points.append((cx + .5, cy + .5, 3.2))      # keep the next one off this one
+            points.append((cx + .5, cy + .5, spacing))  # keep the next one off this one
+        if deep and kind == "tall" and chapter != "hub":
+            # A stash on the side of the block away from where the player starts.
+            away = max(((cx + dx, cy + dy) for cx, cy in spots for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                        if world.solid[cy + dy, cx + dx] < 0),
+                       key=lambda c: math.hypot(c[0] - level.spawn[0], c[1] - level.spawn[1]))
+            rewards.append((stash[len(rewards) % len(stash)], away[0] + .5, away[1] + .5))
+            points.append((away[0] + .5, away[1] + .5, 1.6))
         built += 1
+    world.layout_rewards = tuple(rewards)
     if built:
         after_list = world.wall_segments(facades)
         after = {tuple(np.round(np.asarray(seg, dtype=np.float64), 3)): seg for seg in after_list}
