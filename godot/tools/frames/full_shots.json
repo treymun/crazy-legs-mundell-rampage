@@ -1,0 +1,82 @@
+{
+ "stankys_road": {
+  "level": "hickston",
+  "x": 12.0,
+  "y": 28.0,
+  "angle": -0.15,
+  "clock": 1.0,
+  "health": 100,
+  "weapon": 1,
+  "shots": 0
+ },
+ "stankys_bar": {
+  "level": "hickston",
+  "x": 11.2,
+  "y": 19.0,
+  "angle": -1.2,
+  "clock": 2.5,
+  "health": 100,
+  "weapon": 1,
+  "shots": 0
+ },
+ "stankys_shotgun": {
+  "level": "hickston",
+  "x": 16.0,
+  "y": 24.0,
+  "angle": -0.6,
+  "clock": 3.0,
+  "health": 100,
+  "weapon": 2,
+  "shots": 1
+ },
+ "stankys_enemy": {
+  "level": "hickston",
+  "x": 53.0,
+  "y": 22.0,
+  "angle": 0.0,
+  "clock": 4.0,
+  "health": 72,
+  "weapon": 2,
+  "shots": 1
+ },
+ "stankys_hub": {
+  "level": "hickston",
+  "x": 24.5,
+  "y": 47.0,
+  "angle": -1.6,
+  "clock": 5.0,
+  "health": 100,
+  "weapon": 1,
+  "shots": 0
+ },
+ "fair_gate_full": {
+  "level": "fair",
+  "x": 21.5,
+  "y": 34.0,
+  "angle": -1.57,
+  "clock": 6.0,
+  "health": 100,
+  "weapon": 1,
+  "shots": 0
+ },
+ "mill_yard_full": {
+  "level": "sawmill",
+  "x": 21.45,
+  "y": 32.0,
+  "angle": -1.57,
+  "clock": 7.0,
+  "health": 100,
+  "weapon": 1,
+  "shots": 0
+ },
+ "quarry_yard_full": {
+  "level": "quarry",
+  "x": 27.45,
+  "y": 35.0,
+  "angle": -1.57,
+  "clock": 8.0,
+  "health": 100,
+  "weapon": 1,
+  "shots": 0
+ }
+}

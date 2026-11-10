@@ -1,0 +1,23 @@
+# gdlint settings for the port. Run from this folder:  gdlint src tools
+#
+# The port mirrors the Python modules it was translated from one for one
+# (game.py -> game.gd and so on), so the checks that would force that layout
+# apart are off: file length, method counts, early returns and declaration
+# order all follow the reference on purpose.
+disable:
+- class-definitions-order
+- max-returns
+- max-public-methods
+- function-arguments-number
+max-file-lines: 4000
+max-line-length: 100
+# A trailing underscore marks a local copy of a member taken for a hot loop
+# (out_, dep_) or a name that would shadow a built-in (TAU_, scale_).
+constant-name: _?[A-Z][A-Z0-9]*(_[A-Z0-9]+)*_?
+function-variable-name: '[a-z][a-z0-9]*(_[a-z0-9]+)*_?'
+# Enemies_TELLS() / Enemies_BOSS_TITLES() stand in for the Python module tables.
+function-name: (_on_([A-Z][a-z0-9]*)+(_[a-z0-9]+)*|_?[a-z][a-z0-9]*(_[a-z0-9]+)*|Enemies_[A-Z]+(_[A-Z]+)*)
+excluded_directories: !!set
+  .git: null
+  .godot: null
+  build: null

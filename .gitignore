@@ -8,3 +8,24 @@ build/
 bot_shots/
 _backup/
 *.log
+
+# Secrets: the ElevenLabs CLI writes ELEVENLABS_API_KEY here.
+.env
+.env.*
+
+# Godot port: editor cache, exported builds, and the asset packs that
+# godot/tools/pack_assets.py and pack_skies.py rebuild from assets/.
+godot/.godot/
+godot/build/
+godot/assets_gen/*.bin
+# Comparison frames: keep the Python reference renders and shot lists,
+# not what each Godot run writes next to them.
+godot/tools/frames/*
+!godot/tools/frames/py_*.png
+!godot/tools/frames/*.json
+!godot/tools/frames/.gdignore
+_site/
+web_game/
+
+# Local tooling
+.claude/

@@ -1,0 +1,6 @@
+# Source art/wav/ogg mirror, kept only so tools/pack_assets.py and
+# tools/pack_skies.py can rebuild assets_gen/ from it.
+#
+# Nothing at runtime reads res://assets/...; the game loads the packed blobs in
+# assets_gen/ instead. .gdignore keeps Godot from importing ~1300 PNGs (a ~53 MB
+# .godot/imported cache) and from bundling them into the exported PCK.

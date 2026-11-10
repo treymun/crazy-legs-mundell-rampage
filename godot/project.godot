@@ -1,0 +1,53 @@
+; Crazy Legs Mundell Rampage - Godot 4 port
+; Base canvas is 320x200 like the original; the window is scaled by main.gd.
+config_version=5
+
+[application]
+
+config/name="Crazy Legs Mundell Rampage"
+config/description="Port of the 320x200 software-rendered FPS."
+config/version="2.0.0-dev.8"
+run/main_scene="res://src/Main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://icons/icon.png"
+config/quit_on_go_back=false
+boot_splash/bg_color=Color(0.047058824, 0.03529412, 0.03137255, 1)
+boot_splash/show_image=false
+
+[audio]
+
+; The mix pans every voice with a bus effect (pygame's set_volume(L, R)).
+; Browsers default to sample playback, which skips bus effects, so the web
+; build streams through the mixer like the desktop one.
+general/default_playback_type.web=0
+
+[display]
+
+window/size/viewport_width=960
+window/size/viewport_height=720
+window/size/resizable=true
+window/stretch/mode="disabled"
+window/stretch/aspect="ignore"
+window/handheld/orientation=4
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.047058824, 0.03529412, 0.03137255, 1)
+anti_aliasing/quality/msaa_2d=0
+
+[input_devices]
+
+; Fingers and the mouse are read separately (src/touch_controls.gd): a touch
+; that also arrived as a left click would fire the weapon on every tap.
+pointing/emulate_touch_from_mouse=false
+pointing/emulate_mouse_from_touch=false
+
+[debug]
+
+gdscript/warnings/untyped_declaration=0
+gdscript/warnings/unsafe_property_access=0
+gdscript/warnings/unsafe_method_access=0
