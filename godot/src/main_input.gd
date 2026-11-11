@@ -56,6 +56,9 @@ func _on_focus_gained() -> void:
 
 
 func key(code: int, shift := false) -> void:
+	if binding_action != "":
+		_bind_key(code)
+		return
 	if state == "slots":
 		key_slots(code)
 		return
@@ -109,6 +112,25 @@ func key(code: int, shift := false) -> void:
 	_key_play(code)
 
 
+## The key pressed while a KEYS page row waits for one.
+func _bind_key(code: int) -> void:
+	var action := binding_action
+	binding_action = ""
+	if code == KEY_ESCAPE:
+		menu_note = ""
+		sound.play("menu_back")
+		return
+	if code >= KEY_F1 and code <= KEY_F12:
+		menu_note = "THE F KEYS ARE TAKEN. TRY ANOTHER."
+		sound.play("empty")
+		return
+	KeyBindings.bind(options, action, code)
+	apply_options()
+	persist_options()
+	menu_note = "%s SET." % KeyBindings.key_name(code)
+	sound.play("menu_accept")
+
+
 func _screenshot() -> void:
 	var directory := "user://screenshots"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
@@ -160,6 +182,12 @@ func _key_setup(code: int, shift: bool) -> void:
 		if code == KEY_ESCAPE:
 			settle_display(false)
 			return
+	var item: SessionStore.Setting = option_items()[option_slot]
+	if item is SessionStore.KeySetting and (code == KEY_ENTER or code == KEY_KP_ENTER):
+		binding_action = (item as SessionStore.KeySetting).action
+		menu_note = "PRESS A KEY FOR %s. ESC KEEPS THE OLD ONE." % item.label
+		sound.play("menu_accept")
+		return
 	if code == KEY_UP or code == KEY_DOWN:
 		setup_select(option_slot + (1 if code == KEY_DOWN else -1))
 	elif code == KEY_TAB or code == KEY_PAGEUP or code == KEY_PAGEDOWN:
@@ -330,7 +358,13 @@ func _input(event: InputEvent) -> void:
 			):
 				slot_name = SessionStore.slot_label(slot_name + String.chr(key_event.unicode))
 				return
-			key(key_event.keycode, key_event.shift_pressed)
+			var code := key_event.keycode
+			if state == "play" and binding_action == "":
+				# Play's key handler speaks in default keys (key_bindings.gd).
+				code = KeyBindings.translate(code)
+				if code == KEY_NONE:
+					return
+			key(code, key_event.shift_pressed)
 	elif event is InputEventScreenTouch:
 		var finger := event as InputEventScreenTouch
 		input_device = "touch"
@@ -478,7 +512,9 @@ func click(position: Vector2, button: int) -> void:
 			setup_page(int(hit["index"]) - option_page)
 		elif kind == "row":
 			setup_select(int(hit["index"]))
-			if int(hit["direction"]) != 0:
+			if option_items()[option_slot] is SessionStore.KeySetting:
+				_key_setup(KEY_ENTER, false)
+			elif int(hit["direction"]) != 0:
 				adjust_setting(-1 if button == MOUSE_BUTTON_RIGHT else int(hit["direction"]))
 		elif kind == "up" or kind == "down":
 			var count := option_items().size()
@@ -602,35 +638,35 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		and not (
 			Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 			or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
-			or left_ctrl
+			or KeyBindings.held("fire_key")
 		)
 	):
 		block_fire = false
 	var sensitivity := float(options["sensitivity"]) / 100.0
 	var arrows := (
-		(1.0 if Input.is_key_pressed(KEY_RIGHT) else 0.0)
-		- (1.0 if Input.is_key_pressed(KEY_LEFT) else 0.0)
+		(1.0 if KeyBindings.held("turn_right") else 0.0)
+		- (1.0 if KeyBindings.held("turn_left") else 0.0)
 	)
-	var strafe_mode := Input.is_key_pressed(KEY_ALT)
+	var strafe_mode := KeyBindings.held("strafe_mode")
 	var turn := 0.0 if strafe_mode else arrows * dt * 2.1
 	var strafe := (
-		(1.0 if Input.is_key_pressed(KEY_D) else 0.0)
-		- (1.0 if Input.is_key_pressed(KEY_A) else 0.0)
+		(1.0 if KeyBindings.held("strafe_right") else 0.0)
+		- (1.0 if KeyBindings.held("strafe_left") else 0.0)
 		+ (arrows if strafe_mode else 0.0)
 	)
 	var look := (
 		(
-			(1.0 if Input.is_key_pressed(KEY_PAGEUP) else 0.0)
-			- (1.0 if Input.is_key_pressed(KEY_PAGEDOWN) else 0.0)
+			(1.0 if KeyBindings.held("look_up") else 0.0)
+			- (1.0 if KeyBindings.held("look_down") else 0.0)
 		)
 		* dt
 		* 55.0
 	)
-	var sprint := (int(options["autorun"]) != 0) != Input.is_key_pressed(KEY_SHIFT)
+	var sprint := (int(options["autorun"]) != 0) != KeyBindings.held("run")
 	controls.forward = clampf(
 		(
-			(1.0 if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP) else 0.0)
-			- (1.0 if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN) else 0.0)
+			(1.0 if KeyBindings.held("forward") else 0.0)
+			- (1.0 if KeyBindings.held("back") else 0.0)
 			+ float(pad["forward"])
 			+ float(fingers["forward"])
 		),
@@ -653,7 +689,7 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 	controls.fire = (
 		(
 			Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-			or left_ctrl
+			or KeyBindings.held("fire_key")
 			or bool(pad["fire"])
 			or bool(fingers["fire"])
 		)
@@ -667,13 +703,13 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		)
 		and not block_fire
 	)
-	controls.jump = Input.is_key_pressed(KEY_J) or bool(pad["jump"]) or bool(fingers["jump"])
+	controls.jump = KeyBindings.held("jump") or bool(pad["jump"]) or bool(fingers["jump"])
 	# As the reference: a toggle setting reads only the latch, a hold setting
 	# only what is held (keyboard, pad B, or the overlay's DUCK button).
 	if int(options["crouch"]) != 0:
 		controls.crouch = crouch_latched
 	else:
 		controls.crouch = (
-			Input.is_key_pressed(KEY_Z) or bool(pad["crouch"]) or bool(fingers["crouch"])
+			KeyBindings.held("crouch") or bool(pad["crouch"]) or bool(fingers["crouch"])
 		)
 	return controls

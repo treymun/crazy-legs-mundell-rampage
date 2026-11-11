@@ -179,6 +179,33 @@ class Setting:
 		return clampi(value + direction * step, low, high)
 
 
+## A control's key (the KEYS page): shown by name, changed by pressing a new
+## key (main_input.gd), never stepped.
+class KeySetting:
+	extends Setting
+
+	var action := ""
+
+	func _init(p_action: String, p_label: String, p_default: int) -> void:
+		super(
+			p_label,
+			KeyBindings.option_key(p_action),
+			p_default,
+			0,
+			0x7FFFFFFF,
+			1,
+			[],
+			"ENTER, THEN PRESS A KEY. R TWICE PUTS THEM ALL BACK."
+		)
+		action = p_action
+
+	func format_value(value: int) -> String:
+		return KeyBindings.key_name(value)
+
+	func adjust(value: int, _direction: int) -> int:
+		return value
+
+
 static var _pages: Array = []
 static var _options: Array = []
 static var _defaults := {}
@@ -470,7 +497,15 @@ static func _build_pages() -> Array:
 				),
 			]
 		],
+		["KEYS", _key_settings()],
 	]
+
+
+static func _key_settings() -> Array:
+	var rows: Array = []
+	for entry: Array in KeyBindings.ACTIONS:
+		rows.append(KeySetting.new(entry[0], entry[1], entry[2]))
+	return rows
 
 
 static func setup_pages() -> Array:

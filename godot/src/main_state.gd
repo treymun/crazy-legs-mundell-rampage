@@ -190,6 +190,8 @@ var touch: TouchControls
 var duck_held := false
 ## The reference fires on the left Ctrl key only (pygame's K_LCTRL).
 var left_ctrl := false
+## The KEYS page action waiting for its new key ("" when none is).
+var binding_action := ""
 ## Phones and tablets (the APK, or a phone browser): no window, no pointer.
 var mobile := false
 var web := false
@@ -493,6 +495,7 @@ func option_items() -> Array:
 
 
 func apply_options() -> void:
+	KeyBindings.register(options)
 	sound.set_levels(
 		float(options["effects"]) / 100.0,
 		float(options["music"]) / 100.0,

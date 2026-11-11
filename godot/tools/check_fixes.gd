@@ -236,7 +236,10 @@ func _run() -> void:
 	check(
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
-	check(seen.size() == 39, "all 39 settings are on a page")
+	check(
+		seen.size() == 39 + KeyBindings.ACTIONS.size(),
+		"all 39 settings and every control's key are on a page"
+	)
 	var stored := SessionStore.settings("")
 	var kept := true
 	for key in seen:
@@ -300,6 +303,41 @@ func _run() -> void:
 		Weapons.LABELS[Weapons.SHOTGUN] == "SAWED-OFF" and Weapons.CYCLE_GUNS.has(Weapons.COW),
 		"gun definitions load from weapons.cfg"
 	)
+
+	# Rebinding a control on the KEYS page: Enter, then the new key.
+	var kept_options: Dictionary = main.options.duplicate()
+	var key_pages := SessionStore.setup_pages()
+	main.state = "setup"
+	main.option_page = key_pages.size() - 1
+	main.option_scroll = 0
+	main.setup_select(0)
+	main.key(KEY_ENTER)
+	var armed: bool = main.binding_action == "forward"
+	main.key(KEY_I)
+	check(
+		armed and int(main.options["key_forward"]) == KEY_I,
+		"a KEYS page row waits for a key and takes it"
+	)
+	KeyBindings.bind(main.options, "forward", KEY_E)
+	main.apply_options()
+	check(
+		int(main.options["key_use"]) == KEY_I and KeyBindings.translate(KEY_I) == KEY_E,
+		"a key given to another control swaps with it, and play hears the default key"
+	)
+	var press := InputEventKey.new()
+	press.keycode = KEY_E
+	press.pressed = true
+	Input.parse_input_event(press)
+	Input.flush_buffered_events()
+	var moving := KeyBindings.held("forward")
+	press.pressed = false
+	Input.parse_input_event(press)
+	Input.flush_buffered_events()
+	check(moving and not KeyBindings.held("forward"), "a rebound key moves through the InputMap")
+	main.options = kept_options
+	main.apply_options()
+	main.persist_options()
+	main.state = "title"
 
 	print("")
 	if failures.is_empty():

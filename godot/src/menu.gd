@@ -416,7 +416,10 @@ func draw_setup(
 func _control(c: Canvas, item: SessionStore.Setting, value: int, row: Rect2i, on: bool) -> void:
 	var ink := HUD.INK if on else PAINT
 	var y := row.position.y
-	if item.choices.is_empty():
+	if item is SessionStore.KeySetting:
+		var middle_key := (CONTROL_X + row.end.x) / 2
+		HUD.text(c, item.format_value(value), middle_key, y + 3, "body", ink, true)
+	elif item.choices.is_empty():
 		var x := CONTROL_X + 6
 		var width := 78
 		c.fill_rect(x, y + 3, width, 6, DARK)
