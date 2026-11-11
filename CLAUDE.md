@@ -198,11 +198,16 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `player_hurt`, `pickup_taken`, `station_done`, `shot_fired`, `hit_landed`,
   `level_won`, `ticked`, `exploded`, `gun_reloading` and `traced` (where each
   hitscan shot, pellet, swing or squirt ended and what it struck).
-  `weapon_fx` draws every gun's shot from those: tracers, rivets, the
-  Copperhead's steam, the teat gun's milk (with `weapons.gd _milk_stream` on
-  screen), fuse sparks, rocket and cow trails, blast dirt and cinders. A
+  `weapon_fx` draws every gun's shot from those: fuse sparks, rocket and cow
+  trails, blast dirt and cinders as sprites; tracers, rivets, the teat gun's
+  milk, the Copperhead's steam and sparks over the view with `draw_view(c)`
+  (a feature hook run after the world and before the gun), from the gun's
+  muzzle on screen (`Armory.place_muzzle`, `Weapons.muzzle_at`) to where the
+  shot struck (`Game.to_canvas` projects a world point onto the canvas).
+  Draw lots of pixels there as cached pictures (`blit_rgba` with a key), not
+  pixel by pixel: in the shader view each `set_pixel` is a draw command. A
   viewpoint in a window tour may name a `gun` (its index) and `fire` with
-  `ticks` to show one gun firing. A new piece of play goes in `src/features/` as a
+  `ticks` to show one gun firing; viewpoints after it keep firing it. A new piece of play goes in `src/features/` as a
   `GameFeature` (see `game_feature.gd`), listed in `features.gd`: it connects
   to those, saves its own state in the save's `features` block (restore gets
   {} from older saves, so no new save version), and may add a tally row.

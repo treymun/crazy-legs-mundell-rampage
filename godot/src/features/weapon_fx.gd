@@ -6,11 +6,26 @@
 ## bottle rockets, the arm gun's green motes, dust off a bowling ball, a cow
 ## leaking milk on its way; and the dirt, cinders and dust ring of a blast.
 ## All of it looks only: its own dice, never saved, never in the way.
+##
+## Tracers, the milk and sparks are drawn on the canvas over the view
+## (draw_view), not as sprites: a line from the gun's muzzle on screen to where
+## the shot struck, in true perspective, so they are sharp at any distance and
+## leave the barrel or the teat where the picture shows it.
 extends GameFeature
 
 const MAX_BITS := 240
 const MAX_PUDDLES := 22
 const PUDDLE_LIFE := 45.0
+## How far ahead of the eye the muzzle on screen stands, for the perspective
+## of a shot leaving it.
+const MUZZLE_AHEAD := .5
+const MILK_SPEED := 17.0
+const JET_SPEED := 34.0
+const JET_LIFE := .32
+## The milk's drops, their size in the world (cells across).
+const MILK_DROP := .021
+## The two teat tips, from the muzzle point (between them), on the canvas.
+const TEATS := [Vector2(-14.6, -2.4), Vector2(3.7, -18.3)]
 
 
 ## One speck of it in the air.
@@ -40,6 +55,15 @@ var puddles: Array = []
 var _following := {}
 var _pellets := 0
 var _puddle_next := 0.0
+## [fired at, speed, end, tail length, rivet, distance]
+var streaks: Array = []
+## [squirted at, end, distance, teat]
+var squirts: Array = []
+## The Copperhead's jets: [fired at, end, distance]
+var jets: Array = []
+var _teat := 0
+## The gun these were drawn from: a switch clears what is drawn from a muzzle.
+var _drawn_gun := -1
 
 
 func id() -> String:
@@ -114,15 +138,15 @@ func _traced(end: Vector3, struck: String) -> void:
 	var gun: int = game.armory.active
 	match gun:
 		Weapons.REVOLVER:
-			_streak("tracer", end, 66.0, .04)
+			_streak(end, 70.0, 1.8, false)
 		Weapons.RIFLE:
-			_streak("tracer", end, 72.0, .032)
+			_streak(end, 78.0, 1.5, false)
 		Weapons.SHOTGUN:
 			_pellets += 1
-			if _pellets <= 6:
-				_streak("tracer", end, 58.0, .022)
+			if _pellets <= 7:
+				_streak(end, 60.0 + _pellets * 2.0, 1.1, false)
 		Weapons.RIVETER:
-			_streak("rivet", end, 44.0, .05)
+			_streak(end, 40.0, .55, true)
 			if struck.begins_with("wall:"):
 				_sparks(end, 7, 2.2)
 		Weapons.PRESSURE:
@@ -137,16 +161,21 @@ func _traced(end: Vector3, struck: String) -> void:
 				_strike(end, struck.substr(5), .6)
 
 
-## A fast hot speck from the muzzle to the mark, drawn with a short tail. It
-## starts a cell out: any nearer, a sprite fills the lens.
-func _streak(kind: String, end: Vector3, speed: float, size: float) -> void:
-	var from := _muzzle()
-	var way := end - from
-	var far := way.length()
-	if far < 1.6:
+## A hot streak from the muzzle to the mark (draw_view draws it).
+func _streak(end: Vector3, speed: float, tail: float, rivet: bool) -> void:
+	var far := _ahead_of_eye(end)
+	if far < MUZZLE_AHEAD + .3:
 		return
-	var start := from + way / far * 1.1
-	_bit(kind, start, way / far * speed, (far - 1.1) / speed, size)
+	streaks.append([game.clock, speed, end, tail, rivet, far])
+	if streaks.size() > 48:
+		streaks.pop_front()
+
+
+## How far ahead of the eye a point is, along the view.
+func _ahead_of_eye(at: Vector3) -> float:
+	var p = game.player
+	var a: float = p.view_angle()
+	return (at.x - p.x) * cos(a) + (at.y - p.y) * sin(a)
 
 
 func _sparks(at: Vector3, count: int, speed: float) -> void:
@@ -168,12 +197,15 @@ func _strike(at: Vector3, surface: String, amount: float) -> void:
 		_:
 			for _k in int(4 * amount):
 				_bit("clod", back, _scatter(1.4, 1.2), dice.randf_range(.4, .7), .035, 8.0)
-			var dust := _bit("dust", back, Vector3(0, 0, .2), .45, .14)
-			dust.grow = .6
+			var dust := _bit("dust", back, Vector3(0, 0, .2), .4, .07)
+			dust.grow = .25
 
 
 ## The Copperhead: a jet of steam all the way to the mark, a cloud where it hits.
 func _jet(end: Vector3, struck: String) -> void:
+	jets.append([game.clock, end, _ahead_of_eye(end)])
+	if jets.size() > 6:
+		jets.pop_front()
 	var from := _muzzle()
 	var way := end - from
 	var far := way.length()
@@ -200,32 +232,19 @@ func _jet(end: Vector3, struck: String) -> void:
 			_sparks(end, 4, 1.8)
 
 
-## The teat gun: a stream of drops arcing to the mark, a splash, a puddle.
+## The teat gun: a rope of milk to the mark (draw_view), a splash, a puddle.
 func _milk(end: Vector3, struck: String) -> void:
 	var from := _muzzle()
-	var arrive := 0.0
-	var out := (end - from).normalized() * minf(.9, (end - from).length() * .5)
-	for k in 8:
-		var to := end + Vector3(dice.randf_range(-.05, .05), dice.randf_range(-.05, .05), 0)
-		var start := (
-			from + out + Vector3(dice.randf_range(-.03, .03), dice.randf_range(-.03, .03), 0)
-		)
-		var way := to - start
-		var far := way.length()
-		if far < .2:
-			continue
-		var speed := dice.randf_range(15.0, 19.0)
-		var t := far / speed
-		var v := way / t
-		# Thrown a little high so the drop's fall brings it down on the mark.
-		v.z += .5 * 2.6 * t
-		var drop := _bit("milk", start, v, t, dice.randf_range(.045, .065), 2.6)
-		drop.age = -k * .011
-		arrive = maxf(arrive, t + k * .011)
+	var far := _ahead_of_eye(end)
+	_teat = 1 - _teat
+	squirts.append([game.clock, end, far, _teat])
+	if squirts.size() > 24:
+		squirts.pop_front()
+	var arrive := maxf(0.0, far - MUZZLE_AHEAD) / MILK_SPEED
 	if struck == "air":
 		return
 	var back := end - (end - from).normalized() * .06
-	var splash := _bit("splash", back, Vector3.ZERO, .26, .28)
+	var splash := _bit("splash", back, Vector3.ZERO, .3, .3)
 	splash.age = -arrive
 	for _k in 2:
 		var spatter := _bit("drip", back, _scatter(1.1, 1.8) + Vector3(0, 0, .6), .55, .03, 9.0)
@@ -321,16 +340,13 @@ func _tick(dt: float) -> void:
 					kept.append(wisp)
 		var nx := bit.x + bit.vx * dt
 		var ny := bit.y + bit.vy * dt
-		var flying := bit.kind == "tracer" or bit.kind == "rivet" or bit.kind == "milk"
-		if not flying and game.world.blocked(nx, ny, .02):
+		if game.world.blocked(nx, ny, .02):
 			bit.vx *= -.3
 			bit.vy *= -.3
 		else:
 			bit.x = nx
 			bit.y = ny
 		bit.z += bit.vz * dt
-		if flying:
-			continue
 		var floor_z: float = game.world.elevation(bit.x, bit.y)
 		if bit.z <= floor_z:
 			bit.z = floor_z
@@ -349,6 +365,21 @@ func _tick(dt: float) -> void:
 	bits = kept
 	if bits.size() > MAX_BITS:
 		bits = bits.slice(bits.size() - MAX_BITS)
+	while (
+		not streaks.is_empty()
+		and (
+			(game.clock - float(streaks[0][0])) * float(streaks[0][1]) - float(streaks[0][3])
+			> float(streaks[0][5])
+		)
+	):
+		streaks.pop_front()
+	while not jets.is_empty() and game.clock - float(jets[0][0]) > JET_LIFE:
+		jets.pop_front()
+	while (
+		not squirts.is_empty()
+		and (game.clock - float(squirts[0][0]) - .15) * MILK_SPEED > float(squirts[0][2])
+	):
+		squirts.pop_front()
 	while not puddles.is_empty() and game.clock - float(puddles[0][6]) > PUDDLE_LIFE:
 		puddles.pop_front()
 
@@ -404,7 +435,7 @@ func _shed(shot) -> float:
 			var floor_z: float = game.world.elevation(shot.x, shot.y)
 			if shot.z - floor_z < .4 and Vector2(shot.vx, shot.vy).length() > 1.0:
 				var dust := _bit(
-					"dust", Vector3(shot.x, shot.y, floor_z + .05), Vector3(0, 0, .12), .5, .1
+					"dust", Vector3(shot.x, shot.y, floor_z + .05), Vector3(0, 0, .15), .55, .16
 				)
 				dust.grow = .55
 			return .07
@@ -433,25 +464,12 @@ func sprites() -> Array:
 		var glow := false
 		var translucent := false
 		match bit.kind:
-			"tracer", "rivet":
-				name = "fx_tracer" if bit.kind == "tracer" else "fx_ember_0"
-				glow = true
-				# Two fading copies behind the head make the streak.
-				for k: int in [2, 1]:
-					var back := .009 * k
-					var tail := Renderer.Sprite.new(
-						bit.x - bit.vx * back,
-						bit.y - bit.vy * back,
-						name,
-						bit.size * (1.0 - .25 * k),
-						bit.z - bit.vz * back
-					)
-					tail.glow = true
-					out.append(tail)
-			"milk", "drip":
+			"drip":
 				name = "fx_milkdrop"
+				glow = true
 			"splash":
 				name = "fx_milksplash_%d" % mini(2, int(step * 3.0))
+				glow = true
 			"steam":
 				name = "fx_steam_%d" % mini(3, int(step * 4.0))
 				translucent = true
@@ -462,8 +480,7 @@ func sprites() -> Array:
 				name = "fx_puff_%d" % mini(3, int(step * 4.0))
 				translucent = true
 			"spark":
-				name = "fx_spark"
-				glow = true
+				continue
 			"ember", "cinder":
 				name = "fx_ember_%d" % (int(bit.age * 9.0) % 2)
 				glow = true
@@ -479,6 +496,277 @@ func sprites() -> Array:
 		s.translucent = translucent
 		out.append(s)
 	return out
+
+
+## Where a point `u` of the way (0 the muzzle, 1 the mark) along a shot from the
+## muzzle on screen to `mark` (the mark on screen) shows: the muzzle's offset
+## from the line of sight shrinks as the shot goes away, in perspective.
+func _along(muzzle: Vector2, mark: Vector2, far: float, u: float) -> Vector2:
+	var d := MUZZLE_AHEAD + u * (far - MUZZLE_AHEAD)
+	return mark + (muzzle - mark) * (1.0 - u) * MUZZLE_AHEAD / d
+
+
+func _inside(at: Vector2) -> bool:
+	return at.x >= 0.0 and at.y >= 0.0 and at.x < Renderer.WIDTH and at.y < Renderer.VIEW
+
+
+func _segment(c: Canvas, a: Vector2, b: Vector2, colour: Color, width := 1) -> void:
+	if not _inside(a) and not _inside(b):
+		return
+	# Cut it at the bottom of the view (the status bar is below).
+	var floor_y := Renderer.VIEW - 1.0
+	if a.y > floor_y:
+		a = b.lerp(a, (floor_y - b.y) / maxf(.001, a.y - b.y))
+	elif b.y > floor_y:
+		b = a.lerp(b, (floor_y - a.y) / maxf(.001, b.y - a.y))
+	c.line(int(a.x), int(a.y), int(b.x), int(b.y), colour, width)
+
+
+func draw_view(c: Canvas) -> void:
+	if game.armory.active != _drawn_gun:
+		# Streaks, milk and steam start at the muzzle in hand: never another gun's.
+		_drawn_gun = game.armory.active
+		streaks.clear()
+		squirts.clear()
+		jets.clear()
+	var muzzle: Vector2 = Weapons.muzzle_at
+	if muzzle.x < 0.0:
+		muzzle = Vector2(Renderer.WIDTH * .62, Renderer.VIEW * .8)
+	_draw_streaks(c, muzzle)
+	_draw_milk(c, muzzle)
+	_draw_jets(c, muzzle)
+	_draw_sparks(c)
+
+
+## Each shot's streak: a white-hot head with an orange skin and a tail that
+## thins out behind it.
+func _draw_streaks(c: Canvas, muzzle: Vector2) -> void:
+	for s: Array in streaks:
+		var far: float = s[5]
+		var run: float = (game.clock - float(s[0])) * float(s[1])
+		var span := maxf(.01, far - MUZZLE_AHEAD)
+		var head := clampf(run / span, 0.0, 1.0)
+		var tail := clampf((run - float(s[3])) / span, 0.0, 1.0)
+		if head <= tail:
+			continue
+		var end: Vector3 = s[2]
+		var seen: Vector3 = game.to_canvas(end.x, end.y, end.z)
+		if seen.z < 0.0:
+			continue
+		var mark := Vector2(seen.x, seen.y)
+		var a := _along(muzzle, mark, far, tail)
+		var mid := _along(muzzle, mark, far, lerpf(tail, head, .55))
+		var b := _along(muzzle, mark, far, head)
+		var rivet: bool = s[4]
+		var skin := Color8(230, 96, 22) if rivet else Color8(214, 120, 40)
+		var core := Color8(255, 200, 110) if rivet else Color8(255, 246, 196)
+		# Thicker near the gun, a thread far off.
+		var thick := 2 if head < .5 else 1
+		_segment(c, a, b, skin.darkened(.35), thick)
+		_segment(c, mid, b, skin, thick)
+		_segment(c, mid.lerp(b, .4), b, core, 1)
+		if rivet and _inside(b):
+			c.fill_rect(int(b.x) - 1, int(b.y) - 1, 2, 2, core)
+
+
+## The teat gun's milk: one rope of drops from the teat to the mark, a squirt
+## at a time, lifted a little in its arc and falling to it; when the trigger is
+## let go its last stretch flies off the teat.
+func _draw_milk(c: Canvas, muzzle: Vector2) -> void:
+	if squirts.is_empty():
+		return
+	var p = game.player
+	var light: float = game.world.light[game.world.cell(p.x, p.y)]
+	var shade := clampf(.62 + .45 * light, .55, 1.0)
+	var tone := clampi(int(shade * 4.0), 0, 4)
+	var focal := Renderer.base_focal
+	for k in squirts.size():
+		var squirt: Array = squirts[k]
+		var born: float = squirt[0]
+		var gap := .1
+		if k + 1 < squirts.size():
+			gap = minf(.13, float(squirts[k + 1][0]) - born)
+		var far: float = squirt[2]
+		var span := maxf(.01, far - MUZZLE_AHEAD)
+		var front := clampf((game.clock - born) * MILK_SPEED / span, 0.0, 1.0)
+		var back := clampf((game.clock - born - gap) * MILK_SPEED / span, 0.0, 1.0)
+		if front <= back:
+			continue
+		var end: Vector3 = squirt[1]
+		var seen: Vector3 = game.to_canvas(end.x, end.y, end.z)
+		if seen.z < 0.0:
+			continue
+		var mark := Vector2(seen.x, seen.y)
+		var spout: Vector2 = muzzle + TEATS[int(squirt[3])]
+		var lift := .05 + .02 * far
+		# Drops spaced evenly on screen, not in the world (far off they bunch up).
+		var w_front := (1.0 - front) * MUZZLE_AHEAD / (MUZZLE_AHEAD + front * span)
+		var w_back := (1.0 - back) * MUZZLE_AHEAD / (MUZZLE_AHEAD + back * span)
+		var reach := spout.distance_to(mark) * (w_back - w_front)
+		var count := clampi(int(reach / 1.4) + 2, 2, 46)
+		for j in count:
+			var w := lerpf(w_back, w_front, j / maxf(1.0, count - 1.0))
+			var u := MUZZLE_AHEAD * (1.0 - w) / (w * span + MUZZLE_AHEAD)
+			var d := MUZZLE_AHEAD + u * span
+			var at := _along(spout, mark, far, u)
+			at.y -= 4.0 * lift * u * (1.0 - u) * focal / d
+			# A living stream wavers a little.
+			var r := clampf(MILK_DROP * focal / d, .5, 2.7)
+			# Each squirt swells and narrows: the beat of the teat.
+			var beat := j / maxf(1.0, count - 1.0)
+			r *= .72 + .28 * sin(PI * beat)
+			at.x += sin(born * 53.0 + u * 11.0) * .3 * r
+			# Far along, the rope breaks up into drops.
+			var hash := fposmod(sin(born * 91.0 + j * 12.9898) * 437.585, 1.0)
+			if u > .62:
+				if hash < (u - .62) * 1.9:
+					continue
+				at.y += (hash - .5) * 3.0 * (u - .62)
+				at.x += (fposmod(hash * 7.31, 1.0) - .5) * 3.0 * (u - .62)
+			if not _inside(at):
+				continue
+			var ri := clampi(int(roundf(r)), 0, 3)
+			var drop := _milk_drop(ri, tone)
+			var size := ri * 2 + 1
+			c.blit_rgba(drop, size, size, int(at.x) - ri, int(at.y) - ri, "milk|%d|%d" % [ri, tone])
+
+
+## The Copperhead's jet: a cone of steam out of the barrel to the mark, drawn
+## as a dither of pale pixels (thin at the muzzle, spreading and thinning out),
+## the way a 256-colour picture shows something you can see through.
+func _draw_jets(c: Canvas, muzzle: Vector2) -> void:
+	if jets.is_empty():
+		return
+	var p = game.player
+	var light: float = game.world.light[game.world.cell(p.x, p.y)]
+	var shade := clampf(.6 + .45 * light, .55, 1.0)
+	var tone := clampi(int(shade * 4.0), 0, 4)
+	var focal := Renderer.base_focal
+	var frame := int(game.clock * 30.0)
+	for jet: Array in jets:
+		var age: float = game.clock - float(jet[0])
+		var far: float = jet[2]
+		var span := maxf(.01, far - MUZZLE_AHEAD)
+		var front := clampf(age * JET_SPEED / span, 0.0, 1.0)
+		var fade: float = 1.0 - age / JET_LIFE
+		if front <= 0.0 or fade <= 0.0:
+			continue
+		var end: Vector3 = jet[1]
+		var seen: Vector3 = game.to_canvas(end.x, end.y, end.z)
+		if seen.z < 0.0:
+			continue
+		var mark := Vector2(seen.x, seen.y)
+		for j in 16:
+			var u := front * j / 15.0
+			var d := MUZZLE_AHEAD + u * span
+			var at := _along(muzzle, mark, far, u)
+			# Rising a little as it goes, as steam does.
+			at.y -= .08 * u * focal / d * (1.0 + age * 3.0)
+			# A cone: barrel-thin at the muzzle, spreading as it goes.
+			var spread: float = .006 + .11 * (d - MUZZLE_AHEAD)
+			var r: float = clampf(spread * focal / d, 1.0, 8.0) * (1.0 + age * 1.2)
+			var ri := clampi(int(roundf(r)), 1, 10)
+			var thick := clampi(int(fade * (3.0 - 2.0 * u)), 0, 2)
+			# Four churning speckles, a different one each frame and each ring.
+			var turn := (frame + j) & 3
+			var size := ri * 2 + 1
+			c.blit_rgba(
+				_steam_disc(ri, thick, turn, tone),
+				size,
+				size,
+				int(at.x) - ri,
+				int(at.y) - ri,
+				"steam|%d|%d|%d|%d" % [ri, thick, turn, tone]
+			)
+
+
+static var _discs := {}
+
+
+## A drop of milk `r` pixels round (0 is one pixel) in light `tone` (0 to 4):
+## a cool rim, a cream body, a shine at the top.
+static func _milk_drop(r: int, tone: int) -> PackedByteArray:
+	var key := "m%d|%d" % [r, tone]
+	if _discs.has(key):
+		return _discs[key]
+	var shade := tone / 4.0
+	var size := r * 2 + 1
+	var out := PackedByteArray()
+	out.resize(size * size * 4)
+	for y in size:
+		for x in size:
+			var dx := x - r
+			var dy := y - r
+			var dist := dx * dx + dy * dy
+			if dist > r * r + (r if r > 0 else 0):
+				continue
+			var c := Color8(244, 240, 226)
+			if r >= 2 and dy >= r - 1:
+				c = Color8(184, 182, 176)
+			if r >= 2 and dx == -1 and dy == -r + 1:
+				c = Color8(255, 255, 250)
+			var o := (y * size + x) * 4
+			out[o] = int(c.r8 * shade)
+			out[o + 1] = int(c.g8 * shade)
+			out[o + 2] = int(c.b8 * shade)
+			out[o + 3] = 255
+	_discs[key] = out
+	return out
+
+
+## A ring of the Copperhead's steam, `r` pixels round: a speckle of pale pixels,
+## `thick` (0 to 2) how many, fewer toward the edge; `turn` picks one of four
+## speckles; `tone` (0 to 4) the light it is seen in.
+static func _steam_disc(r: int, thick: int, turn: int, tone: int) -> PackedByteArray:
+	var key := "s%d|%d|%d|%d" % [r, thick, turn, tone]
+	if _discs.has(key):
+		return _discs[key]
+	var shade := clampf(tone / 4.0, .55, 1.0)
+	var density: float = [.16, .27, .38][thick]
+	var size := r * 2 + 1
+	var out := PackedByteArray()
+	out.resize(size * size * 4)
+	for y in size:
+		for x in size:
+			var dx := x - r
+			var dy := y - r
+			var edge := float(dx * dx + dy * dy) / maxf(1.0, r * r)
+			if edge > 1.0:
+				continue
+			var speck := x * 374761393 + y * 668265263 + (turn * 31 + r * 7) * 1274126177
+			speck = (speck ^ (speck >> 13)) * 1274126177
+			speck = (speck ^ (speck >> 16)) & 255
+			if speck / 255.0 >= density * (1.0 - .7 * edge):
+				continue
+			var c := Color8(214, 218, 220) if edge < .35 else Color8(158, 164, 170)
+			var o := (y * size + x) * 4
+			out[o] = int(c.r8 * shade)
+			out[o + 1] = int(c.g8 * shade)
+			out[o + 2] = int(c.b8 * shade)
+			out[o + 3] = 255
+	_discs[key] = out
+	return out
+
+
+## Sparks as short bright streaks along the way they fly, white-hot to orange.
+func _draw_sparks(c: Canvas) -> void:
+	for bit: Bit in bits:
+		if bit.kind != "spark" or bit.age < 0.0:
+			continue
+		var a: Vector3 = game.to_canvas(bit.x, bit.y, bit.z)
+		var b: Vector3 = game.to_canvas(
+			bit.x - bit.vx * .035, bit.y - bit.vy * .035, bit.z - bit.vz * .035
+		)
+		if a.z < 0.0 or b.z < 0.0:
+			continue
+		var heat := 1.0 - bit.age / bit.life
+		var colour := (
+			Color8(255, 250, 214)
+			if heat > .66
+			else Color8(255, 196, 92) if heat > .33 else Color8(226, 110, 38)
+		)
+		var head := Vector2(a.x, a.y)
+		_segment(c, Vector2(b.x, b.y), head, colour, 2 if a.z < 1.6 else 1)
 
 
 func ground_marks() -> Array:

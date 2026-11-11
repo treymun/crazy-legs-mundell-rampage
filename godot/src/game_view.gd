@@ -236,8 +236,15 @@ func sprites() -> Array:
 	for puff: Gore.Puff in gore_fx.puffs:
 		var hot := puff.kind == "sparks"
 		var step := mini(2 if hot else 3, int(puff.age * (14.0 if hot else 11.0)))
+		# A puff right in front (a swing at a wall) stays small: at full size it
+		# would fill the view.
+		var near_k := clampf(Vector2(puff.x - player.x, puff.y - player.y).length() / 2.5, .35, 1.0)
 		var cloud := Renderer.Sprite.new(
-			puff.x, puff.y, "fx_%s_%d" % [puff.kind, step], .20 + puff.age * .85, puff.z - .08
+			puff.x,
+			puff.y,
+			"fx_%s_%d" % [puff.kind, step],
+			(.20 + puff.age * .85) * near_k,
+			puff.z - .08 * near_k
 		)
 		cloud.glow = hot
 		cloud.translucent = true
@@ -279,6 +286,33 @@ func sprites() -> Array:
 		blast_sprite.translucent = true
 		sprites.append(blast_sprite)
 	return sprites
+
+
+## Where a point of the world falls on the 320-wide canvas this frame:
+## (x, y, distance ahead), the distance below zero when it is behind the eye.
+func to_canvas(x: float, y: float, z: float) -> Vector3:
+	if view_eye.is_empty():
+		return Vector3(0, 0, -1)
+	var angle: float = view_eye["view_angle"]
+	var fx := cos(angle)
+	var fy := sin(angle)
+	var dx: float = x - float(view_eye["x"])
+	var dy: float = y - float(view_eye["y"])
+	var ahead := dx * fx + dy * fy
+	if ahead < .12:
+		return Vector3(0, 0, -1)
+	var horizon: float = (
+		Renderer.VIEW / 2.0
+		+ float(view_eye["pitch"])
+		+ float(view_eye["bob"])
+		+ float(view_eye["sway"])
+	)
+	var focal := Renderer.base_focal
+	return Vector3(
+		Renderer.WIDTH / 2.0 + (dy * fx - dx * fy) / ahead * focal,
+		horizon - (z - float(view_eye["eye"])) / ahead * focal,
+		ahead
+	)
 
 
 # ---------------------------------------------------------------- objective
@@ -396,6 +430,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		eye["view_angle"] += (sin(clock * 71.0) + sin(clock * 43.0 + 1.3)) * .009 * trauma
 		eye["pitch"] += (sin(clock * 59.0 + .7) + sin(clock * 37.0)) * 2.4 * trauma
 	renderer.frame_begin(eye, flash)
+	view_eye = eye
 	var listing := Time.get_ticks_usec()
 	var marks: Array = ground_marks()
 	var marks_list: Array = wall_marks if bullet_marks else []
@@ -417,6 +452,15 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		c.pixels = renderer.render_end()
 		c.base_set = true
 	var t2 := Time.get_ticks_usec()
+	# What the features draw over the view (tracers, the milk, sparks), under the gun.
+	c.view_tint = Color(1, 1, 1)
+	if weapon.has_method("place_muzzle"):
+		weapon.place_muzzle(p, bob_scale, 12 if weapon_view == 1 else 0)
+	if c.gpu:
+		c.gpu_item(Canvas.ITEM_NORMAL_VIEW)
+	Features.draw_view(self, c)
+	if c.gpu:
+		c.gpu_item(Canvas.ITEM_NORMAL)
 	c.view_tint = gun_light() if c.gpu and Effects.enabled else Color(1, 1, 1)
 	if p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
 		weapon.draw(

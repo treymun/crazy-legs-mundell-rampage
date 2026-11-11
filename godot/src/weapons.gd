@@ -168,6 +168,9 @@ static var under := false
 ## Set by Armory.draw on a Godot 2D canvas: the helpers below issue its
 ## commands instead of writing pixels.
 static var painter: Canvas = null
+## Where the gun in hand had its muzzle on the view (320-wide canvas) when last
+## drawn firing: weapon_fx.gd starts tracers and the milk there.
+static var muzzle_at := Vector2(-1, -1)
 
 
 ## True for a gun that fires from its ammo pool with no magazine.
@@ -602,6 +605,65 @@ class Armory:
 	## Compose one viewmodel frame into `frame` (320x200 RGB8).
 	## `light` is the cell light, `bob`/`flashes` the presentation scales and
 	## `offset` the vertical nudge used by the weapon-view option.
+	## Where the gun in hand is held on the view this frame: walking, recoil,
+	## the raise, a reload's sway, the gun's weight, the lowered view.
+	func _hold(player, bob: float, offset: int) -> Vector2:
+		var i := active
+		var gait: float = player.motion * (0.35 if player.air else 1.0) * bob
+		var progress := minf(1.0, shot_age / float(Weapons.SETTLE[i]))
+		var settling := ((1.0 - progress) * (1.0 - progress) - .32 * sin(PI * progress)) * recoil
+		var lift_amt := minf(1.0, switch / .23)
+		lift_amt = lift_amt * lift_amt * (3.0 - 2.0 * lift_amt) * float(Weapons.RAISE_DEPTH[i])
+		var reload_sway := sin(PI * reload / Weapons.RELOAD_TIME[i]) if reload else 0.0
+		if i in Weapons.CYCLE_GUNS and reserve[i] > 0:
+			var cycle_span: float = Weapons.FIRE_TIME[i]
+			if shot_age < cycle_span:
+				reload_sway = sin(PI * shot_age / cycle_span)
+		var x := roundf(
+			(
+				sin(player.walk_phase) * gait * 6.5
+				+ player.sway * .7
+				+ settling * float(Weapons.RETREAT[i])
+				+ reload_sway * (2.0 if i == Weapons.CROSSBOW else 4.0)
+				+ player.weapon_lag.x
+			)
+		)
+		var y := (
+			float(Renderer.VIEW - Weapons.GUN_H + offset)
+			+ roundf(
+				(
+					(absf(cos(player.walk_phase)) * 5.2 - 2.2) * gait
+					+ player.air * 5.0
+					- float(Weapons.VIEW_RISE[i]) * settling
+					+ lift_amt
+					+ lower * 88.0
+					+ reload_sway * 2.0
+					+ player.weapon_lag.y
+				)
+			)
+		)
+		y = maxf(y, float(Renderer.VIEW - Weapons.GUN_H - Weapons.HOLD_FLOOR))
+		var nudge: Vector2 = Weapons.VIEW_SHIFT.get(i, Vector2.ZERO)
+		x += nudge.x
+		y += nudge.y
+		return Vector2(x, y)
+
+	## Works out where the muzzle of the gun in hand is on the view now, before
+	## it is drawn, for what is drawn under it (weapon_fx.gd draw_view).
+	func place_muzzle(player, bob: float, offset: int) -> void:
+		var i := active
+		if not i in Weapons.MUZZLE_GUNS:
+			return
+		var s: float = float(Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE))
+		var held := _hold(player, bob, offset)
+		var anchor := Vector3i(Weapons.MUZZLES[i])
+		var table: Dictionary = Weapons.muzzle_anchors().get(String(Weapons.NAMES[i]), {})
+		var pose_name := pose()
+		if table.has(pose_name):
+			var pair: Array = table[pose_name]
+			anchor = Vector3i(int(round(float(pair[0]))), int(round(float(pair[1]))), anchor.z)
+		Weapons.muzzle_at = Weapons.view_point(held.x, held.y, float(anchor.x), float(anchor.y), s)
+
 	func draw(
 		frame: PackedByteArray,
 		assets: Assets,
@@ -643,43 +705,9 @@ class Armory:
 		if image.is_empty():
 			image = _grade(assets, name, s, level)
 			graded[key] = image
-		var gait: float = player.motion * (0.35 if player.air else 1.0) * bob
-		var progress := minf(1.0, shot_age / float(Weapons.SETTLE[i]))
-		var settling := ((1.0 - progress) * (1.0 - progress) - .32 * sin(PI * progress)) * recoil
-		var lift_amt := minf(1.0, switch / .23)
-		lift_amt = lift_amt * lift_amt * (3.0 - 2.0 * lift_amt) * float(Weapons.RAISE_DEPTH[i])
-		var reload_sway := sin(PI * reload / Weapons.RELOAD_TIME[i]) if reload else 0.0
-		if i in Weapons.CYCLE_GUNS and reserve[i] > 0:
-			var cycle_span: float = Weapons.FIRE_TIME[i]
-			if shot_age < cycle_span:
-				reload_sway = sin(PI * shot_age / cycle_span)
-		var x := roundf(
-			(
-				sin(player.walk_phase) * gait * 6.5
-				+ player.sway * .7
-				+ settling * float(Weapons.RETREAT[i])
-				+ reload_sway * (2.0 if i == Weapons.CROSSBOW else 4.0)
-				+ player.weapon_lag.x
-			)
-		)
-		var y := (
-			float(Renderer.VIEW - Weapons.GUN_H + offset)
-			+ roundf(
-				(
-					(absf(cos(player.walk_phase)) * 5.2 - 2.2) * gait
-					+ player.air * 5.0
-					- float(Weapons.VIEW_RISE[i]) * settling
-					+ lift_amt
-					+ lower * 88.0
-					+ reload_sway * 2.0
-					+ player.weapon_lag.y
-				)
-			)
-		)
-		y = maxf(y, float(Renderer.VIEW - Weapons.GUN_H - Weapons.HOLD_FLOOR))
-		var nudge: Vector2 = Weapons.VIEW_SHIFT.get(i, Vector2.ZERO)
-		x += nudge.x
-		y += nudge.y
+		var held := _hold(player, bob, offset)
+		var x := held.x
+		var y := held.y
 		var bx := int(round(x + Weapons.VIEW_PIVOT.x * (1.0 - s)))
 		var by := int(round(y + Weapons.VIEW_PIVOT.y * (1.0 - s) + Weapons.VIEW_SINK))
 		var source: String = Weapons.NAMES[i]
@@ -707,8 +735,7 @@ class Armory:
 			var prefix := String(style[0])
 			var aspect := float(style[1])
 			var smoke_scale := float(style[2])
-			if i == Weapons.TEAT and shot_age < .14:
-				_milk_stream(frame, assets, Weapons.view_point(x, y, anchor.x, anchor.y, s), s)
+			Weapons.muzzle_at = Weapons.view_point(x, y, float(anchor.x), float(anchor.y), s)
 			if flash > 0.0 and flashes > 0.0:
 				var index := mini(3, int(shot_age * 48))
 				var size := int(
@@ -1256,30 +1283,6 @@ class Armory:
 
 	## Nearest-neighbour scale blit (pygame.transform.scale), alpha scaled.
 	## _blit_scaled, but adding light: a flash brightens what is behind it.
-	## The teat gun's stream on screen: drops thrown from the teat in an arc
-	## toward the middle of the view, smaller as they go (weapon_fx.gd carries
-	## them on through the world to the mark).
-	func _milk_stream(frame: PackedByteArray, assets: Assets, spout: Vector2, s: float) -> void:
-		var drop := assets.art("fx_milkdrop")
-		var aim := Vector2(Renderer.WIDTH * .5, Renderer.VIEW * .5 + 4.0)
-		for k in 18:
-			var t := fposmod(k / 18.0 + shot_age * 6.5, 1.0)
-			var at := spout.lerp(aim, t * .9)
-			# Up off the teat, then falling away.
-			at.y += -6.0 * sin(t * PI) + 6.0 * t * t
-			at.x += float((k * 7) % 5 - 2) * .5 * t
-			var size := int(round(lerpf(9.0, 3.0, t) * s))
-			_blit_scaled(
-				frame,
-				drop,
-				size,
-				size,
-				int(at.x) - size / 2,
-				int(at.y) - size / 2,
-				int(255.0 * (1.0 - t * .35)),
-				"fx_milkdrop"
-			)
-
 	static func _blit_glow(
 		frame: PackedByteArray,
 		art: Dictionary,

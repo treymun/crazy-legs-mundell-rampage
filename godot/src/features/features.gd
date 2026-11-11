@@ -45,6 +45,12 @@ static func sprites(game) -> Array:
 	return out
 
 
+## Drawing over the view, under the gun (game_view.gd), on the 320-wide canvas.
+static func draw_view(game, c: Canvas) -> void:
+	for key: String in game.features:
+		game.features[key].draw_view(c)
+
+
 static func ground_marks(game) -> Array:
 	var out: Array = []
 	for key: String in game.features:

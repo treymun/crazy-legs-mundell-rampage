@@ -35,13 +35,12 @@ func _init() -> void:
 		scorch(k).save(out.path_join("mark_scorch_%d.png" % k))
 	# What the guns throw between the muzzle and the mark (features/weapon_fx.gd).
 	milk_drop().save(out.path_join("fx_milkdrop.png"))
-	tracer().save(out.path_join("fx_tracer.png"))
 	for k in 2:
 		mote(k).save(out.path_join("fx_mote_%d.png" % k))
 	for k in 3:
 		milk_splash(k).save(out.path_join("fx_milksplash_%d.png" % k))
 		milk_puddle(k).save(out.path_join("mark_milk_%d.png" % k))
-	print("world fx: 21 pictures in ", out)
+	print("world fx: 20 pictures in ", out)
 	quit()
 
 
@@ -122,15 +121,6 @@ func milk_drop() -> Paint.Sheet:
 	Paint.ellipse(s, 7, 4, 25, 23, Color8(246, 242, 228))
 	Paint.ellipse(s, 11, 7, 17, 13, Color8(255, 255, 250))
 	return shrunk(s, 8, 8, 100)
-
-
-## A bullet's hot streak: a pale yellow core in an orange skin.
-func tracer() -> Paint.Sheet:
-	var s := Paint.Sheet.new(32, 32)
-	Paint.ellipse(s, 6, 6, 25, 25, Color8(246, 170, 60))
-	Paint.ellipse(s, 10, 10, 21, 21, Color8(255, 236, 160))
-	Paint.ellipse(s, 13, 13, 18, 18, Color8(255, 255, 230))
-	return shrunk(s, 6, 6, 90)
 
 
 ## A green spark shed by the alien arm gun's bolt.

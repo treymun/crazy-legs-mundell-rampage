@@ -766,6 +766,9 @@ signal gun_reloading(gun: int)
 ## struck is "enemy", "thing" (a drum or scenery), "glass", "wall:<surface>"
 ## (wood, metal, plaster, dirt) or "air" (nothing within its range).
 signal traced(end: Vector3, struck: String)
+## The eye the view was drawn from this frame, shake and all (game_view.gd
+## to_canvas() projects the world onto the canvas with it).
+var view_eye := {}
 ## A lightning flash this moment, 0 to 1 (features/weather.gd; the shader).
 var lightning := 0.0
 ## A kill streak's call across the screen (features/callouts.gd).

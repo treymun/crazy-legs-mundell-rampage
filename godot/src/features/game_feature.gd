@@ -47,6 +47,12 @@ func sprites() -> Array:
 	return []
 
 
+## Draws over the view this frame, under the gun: lines and drops on the
+## 320-wide canvas `c` (game.to_canvas() says where a point of the world falls).
+func draw_view(_c: Canvas) -> void:
+	pass
+
+
 ## Marks it lays on the floors this frame (Renderer.GroundMark).
 func ground_marks() -> Array:
 	return []

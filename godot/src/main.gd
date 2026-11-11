@@ -163,8 +163,9 @@ func _view_tour() -> void:
 		game.armory.lower = 0.0 if armed else 1.0
 		if shot.has("detail"):
 			game.renderer.set_detail(int(shot["detail"]))
-		if shot.has("gun"):
-			# A viewpoint of one gun firing: given it, loaded, in hand.
+		if shot.has("gun") and game.armory.active != int(shot["gun"]):
+			# A viewpoint of one gun firing: given it, loaded, in hand (viewpoints
+			# after it with the same gun go on firing it, frame by frame).
 			var g := int(shot["gun"])
 			var arms = game.armory
 			arms.owned[g] = true
