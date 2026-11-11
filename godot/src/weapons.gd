@@ -927,10 +927,20 @@ class Armory:
 			composed.clear()
 		var s: float = float(Weapons.VIEW_SCALES.get(active, Weapons.VIEW_SCALE))
 		_warm_thread = Thread.new()
-		_warm_thread.start(_warm_jobs.bind(jobs, s), Thread.PRIORITY_LOW)
+		# A static function of the class, not this armory's: a new game can free
+		# this armory while the thread still runs, and a call bound to a freed
+		# instance loses every function it calls.
+		_warm_thread.start(Callable(Armory, "_warm_jobs").bind(jobs, s), Thread.PRIORITY_LOW)
+
+	## Wait for a warming thread still at work (the program is closing: its
+	## scripts must outlive it).
+	static func settle() -> void:
+		if _warm_thread != null:
+			_warm_thread.wait_to_finish()
+			_warm_thread = null
 
 	## On the warming thread: only its own arguments and static functions.
-	func _warm_jobs(jobs: Array, s: float) -> Dictionary:
+	static func _warm_jobs(jobs: Array, s: float) -> Dictionary:
 		var out := {}
 		var own_boxes := {}
 		for job: Array in jobs:

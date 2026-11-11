@@ -37,7 +37,10 @@ func result() -> Array:
 
 
 func configure(options: Dictionary) -> void:
-	incoming = [0.66, 1.0, 1.34][clampi(int(options.get("difficulty", 1)), 0, 2)]
+	difficulty = clampi(int(options.get("difficulty", 1)), 0, 3)
+	incoming = [0.66, 1.0, 1.34, 1.65][difficulty]
+	sharpness = [.88, 1.0, 1.18, 1.36][difficulty]
+	ammo_scale = [1.0, 1.0, .75, .55][difficulty]
 	bob_scale = float(options.get("bob", 100)) / 100.0
 	flash_scale = [1.0, .32, 0.0][clampi(int(options.get("flashes", 0)), 0, 2)]
 	gore = bool(options.get("gore", 1))
@@ -262,6 +265,7 @@ func collect(name: String) -> bool:
 		var amount := int(entry_ammo[1])
 		if supply_rule == 1:
 			amount = maxi(1, int(round(amount * .70)))
+		amount = maxi(1, int(round(amount * ammo_scale)))
 		if not armory.add_ammo(slot, amount):
 			return false
 		if name == "dynamite" and not armory.owned[Weapons.DYNAMITE]:

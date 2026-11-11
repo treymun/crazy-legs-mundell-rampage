@@ -396,6 +396,29 @@ add("distant",
     crowd_cheer=G("A rowdy crowd whooping, hollering and clapping at a county fair stage.", 2.0, None, "crowd"),
     )
 
+# ------------------------------------------------- bosses, brawls, the milk
+# A boss's roar when it goes fightin' mad at half health and its holler going
+# down (enemies.gd _enrage / _boss_falls); a fistfight between two of the
+# county's hands; a hand slipping in the teat gun's milk.
+add("alert",
+    sheriff_rage=G("A rubbery B-movie alien sheriff shrieking in fury, warbling, electric and furious.", 1.6, None, "alien"),
+    jerry_rage=G("A huge country man bellowing an angry roar like a furious football coach, then a sharp whistle blast.", 1.6, None, "vox"),
+    rudy_rage=G("A crazed carnival barker cackling madly, then two blasts of a wheezy air horn.", 1.7, None, "creature"),
+    foreman_rage=G("A hulking lumber-mill foreman roaring in rage over a chainsaw revving hard.", 1.6, None, "vox"),
+    baron_rage=G("A pompous old moonshine baron bellowing furiously while steam pipes shriek around him.", 1.6, None, "vox"),
+    )
+add("death",
+    sheriff_death=G("A rubbery alien's long dying wail that fizzles out into crackling electric sparks.", 2.2, None, "alien"),
+    jerry_death=G("A huge country man's long dying groan ending in a heavy thud on the ground.", 2.0, None, "vox"),
+    rudy_death=G("A carnival barker's long strangled howl ending in a deflating, wheezing honk.", 2.0, None, "creature"),
+    foreman_death=G("A big man's dying bellow as a chainsaw sputters, coughs and dies.", 2.2, None, "vox"),
+    baron_death=G("A pompous old man's dying wail as a copper boiler bursts with a hiss and a clang.", 2.2, None, "vox"),
+    )
+add("scene",
+    brawl_punch=G("A meaty bare-knuckle punch to the jaw with a short grunt.", .5, None, "impact"),
+    enemy_slip=G("A man's boots slipping in a puddle of milk: a wet squelch, a yelp and a heavy thud on the ground.", 1.2, None, "scene"),
+    )
+
 # ----------------------------------------------------------------------- ui
 add("ui",
     menu_move=G("One tiny wooden tick, like a guitar pick tapping a fretboard.", .5, .09, "ui"),
@@ -466,6 +489,18 @@ MUSIC = [
     ("quarry_score", "Limestone Stomp", 120, "Dark Southern rock stomp: detuned heavy riff, pressure-building pedal bass, tambourine and chain percussion, ominous twang."),
     ("copper_and_steam", "Copper and Steam", 140, "Tense dark Southern rock: sinister tremolo-picked riff over a driving bass ostinato, hissing hi-hats, a slow-burn middle that builds like boiler pressure."),
     ("last_load", "Last Load from Stillwater", 164, "Full-throttle industrial Southern rock finale: pounding double-time drums, snarling dual guitars, hammering metal hits, a huge climactic hook return."),
+]
+# Fight music: (stem, title, bpm, prompt). One per chapter; the game swells it
+# in over the chapter's track while enemies are on the player (sound.gd,
+# features/fight_music.gd). Each take is cut into a seamless loop.
+FIGHT_TAIL = ("Instrumental, no vocals, no synths. Full energy from the very first beat to the last: "
+              "no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it "
+              "loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.")
+FIGHTS = [
+    ("fight_hickston", "Hickston Barn Burner", 172, "Fast small-town barn-burner hillbilly punk rock at 172 BPM: furious banjo rolls, sawing fiddle, twangy overdriven electric guitar riff, washboard scraping, thumping upright bass and stomping train-beat drums. Rowdy and reckless, a bar fight spilling into the street."),
+    ("fight_fair", "Runaway Midway", 180, "Frantic carnival-midway hoedown punkabilly at 180 BPM: galloping slap bass, banjo and fiddle racing a wheezy off-kilter calliope organ riff, twangy reverb-soaked guitar stabs, washboard and crashing drums. Manic and crooked, like a runaway fairground ride."),
+    ("fight_mill", "Ripsaw Stomp", 150, "Pounding industrial lumberjack stomp, country-metal at 150 BPM: buzzing distorted guitar riff that whines like a ripsaw biting a log, chugging palm-muted rhythm guitar, stomping kick and floor toms, anvil and chain clanks on the backbeat, fiddle stabs and driving banjo. Heavy, mechanical, relentless."),
+    ("fight_quarry", "Stillwater Jug Brawl", 132, "Heavy moonshine-fuelled blues-rock at 132 BPM: grinding fuzz guitar riff, howling bottleneck slide guitar, booming jug bass blowing the low notes, stomping drums with tambourine and chain hits, frantic banjo answers. Dark, drunk and dangerous swamp-blues muscle."),
 ]
 VICTORY = ("victory", "A short celebratory cowpunk victory tune for a score tally screen: jubilant twangy "
            "guitar fanfare lick, slap bass and drums, playful and proud, ending on a big ringing final "

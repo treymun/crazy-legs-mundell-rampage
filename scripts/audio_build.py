@@ -2,7 +2,8 @@
 
     python scripts/audio_build.py            # effects, voices, music, manifest
     python scripts/audio_build.py --sfx      # only the effect bank sources
-    python scripts/audio_build.py --music    # only the songs
+    python scripts/audio_build.py --music    # only the songs (the fight loops too)
+    python scripts/audio_build.py --fights   # only the chapters' fight loops
     python scripts/audio_build.py --check    # validate what is on disk, exit 1 on failure
     python scripts/audio_build.py --sfx --only crowd_cheer   # just these cues, the rest kept as they are
 
@@ -550,13 +551,216 @@ def master(source: Path, target: Path, pre: str, ending: float = .35) -> dict:
             "true_peak_db": grab("Peak:"), "source_lufs": float(s["input_i"])}
 
 
+# Calibration: the generated band sits ~4 dB under the reference soundtrack
+# between 400 Hz and 4 kHz and ~1.5 dB over it below 400 Hz.
+GENTLE = ("highpass=f=32,bass=g=-1.5:f=160:w=0.8,equalizer=f=1000:t=q:w=1:g=2.5,"
+          "equalizer=f=3000:t=q:w=1.2:g=3")
+
+# ---------------------------------------------------------------- fight loops
+# A fight track loops for as long as a fight lasts, so each take is cut into a
+# ring: the join is placed where the bars before the loop's end match the bars
+# before its start (drum hits and harmony), and the end crossfades into the
+# music that led up to the start. The file then runs straight back into its
+# own first sample (sound.gd loops it from 0).
+LOOP_RATE = 44100
+LOOP_HOP = 256              # onset frames, 5.8 ms
+LOOP_BEFORE = 3.0           # seconds compared before the join ...
+LOOP_AFTER = 1.0            # ... and after it
+LOOP_CROSS = .75            # crossfade at the join, seconds
+LOOP_START = (3.2, 16.0)    # where the loop may begin
+LOOP_SPAN = 10.0            # how far back from the take's ending its end may go
+
+
+def pcm(command: list[str], data: bytes | None = None) -> bytes:
+    return subprocess.run([ffmpeg(), "-v", "error", *command], input=data, check=True,
+                          capture_output=True).stdout
+
+
+def stereo(path: Path, filters: str) -> np.ndarray:
+    raw = pcm(["-i", str(path), "-af", filters, "-ac", "2", "-ar", str(LOOP_RATE), "-f", "f32le", "-"])
+    return np.frombuffer(raw, "<f4").astype(np.float64).reshape(-1, 2)
+
+
+def ebur128(x: np.ndarray) -> dict:
+    """Integrated loudness, range and true peak of stereo samples."""
+    log = subprocess.run([ffmpeg(), "-hide_banner", "-nostats", "-f", "f32le", "-ar", str(LOOP_RATE),
+                          "-ac", "2", "-i", "-", "-af", "ebur128=peak=true", "-f", "null", "-"],
+                         input=x.astype("<f4").tobytes(), capture_output=True, check=True).stderr.decode(
+                             "utf-8", "replace")
+    tail = log[log.rindex("Summary"):]
+    grab = lambda key: float(tail.split(key)[1].split()[0])
+    return {"lufs": grab("I:"), "lra": grab("LRA:"), "true_peak_db": grab("Peak:")}
+
+
+def onset_strength(mono: np.ndarray, hop: int = LOOP_HOP, size: int = 2048) -> np.ndarray:
+    """Spectral flux per hop: where the drums and picked notes land."""
+    frames = 1 + (len(mono) - size) // hop
+    window = np.hanning(size)
+    flux = np.zeros(frames)
+    last = None
+    for first in range(0, frames, 512):
+        idx = np.arange(size)[None, :] + hop * np.arange(first, min(frames, first + 512))[:, None]
+        mag = np.log1p(100 * np.abs(np.fft.rfft(mono[idx] * window, axis=1)))
+        prev = np.vstack([mag[:1] if last is None else last, mag[:-1]])
+        flux[first:first + len(mag)] = np.maximum(0, mag - prev).sum(1)
+        last = mag[-1:]
+    flux -= np.convolve(flux, np.ones(43) / 43, "same")          # keep the hits, drop the swell
+    return np.maximum(flux, 0)
+
+
+def chroma(mono: np.ndarray, hop: int = 2048, size: int = 8192) -> np.ndarray:
+    """Pitch-class energy per hop, for matching the harmony either side of the join."""
+    frames = 1 + (len(mono) - size) // hop
+    idx = np.arange(size)[None, :] + hop * np.arange(frames)[:, None]
+    mag = np.abs(np.fft.rfft(mono[idx] * np.hanning(size), axis=1))
+    f = np.fft.rfftfreq(size, 1 / LOOP_RATE)
+    keep = (f > 80) & (f < 2500)
+    pitch = np.round(12 * np.log2(f[keep] / 440.0)).astype(int) % 12
+    out = np.zeros((frames, 12))
+    for pc in range(12):
+        out[:, pc] = mag[:, keep][:, pitch == pc].sum(1)
+    return out / (out.sum(1, keepdims=True) + 1e-9)
+
+
+def find_loop(x: np.ndarray) -> dict:
+    """The (start, end) sample pair whose surroundings match best."""
+    mono = x.mean(1)
+    rate = LOOP_RATE / LOOP_HOP
+    # The take's body: from where the full band is in to just before its ending.
+    second = LOOP_RATE
+    rms = np.array([np.sqrt(np.mean(mono[i:i + second] ** 2)) + 1e-9
+                    for i in range(0, len(mono) - second, second // 4)])
+    level = 20 * np.log10(rms)
+    body = np.median(level)
+    full = np.flatnonzero(level >= body - 2.0)
+    loud = np.flatnonzero(level >= body - 6.0)
+    begin = max(LOOP_START[0], full[0] * .25 + 1.0)
+    finish = loud[-1] * .25 + 1.0 - 1.0 - LOOP_AFTER          # a second clear of the ending
+    env = onset_strength(mono)
+    before, after = int(LOOP_BEFORE * rate), int(LOOP_AFTER * rate)
+
+    def windows(lo: float, hi: float) -> tuple[np.ndarray, np.ndarray]:
+        at = np.arange(int(lo * rate), int(hi * rate))
+        rows = np.stack([env[i - before:i + after] for i in at])
+        rows = rows - rows.mean(1, keepdims=True)
+        return at, rows / (np.linalg.norm(rows, axis=1, keepdims=True) + 1e-9)
+
+    starts, a = windows(begin, min(LOOP_START[1], finish - 30.0))
+    ends, b = windows(finish - LOOP_SPAN, finish)
+    rhythm = a @ b.T                                            # [start, end] correlation
+    harmony_frames = chroma(mono)
+    hop_c = 2048 / LOOP_HOP
+
+    def mean_chroma(at: np.ndarray) -> np.ndarray:
+        rows = []
+        for i in at:
+            lo, hi = int((i - before) / hop_c), int((i + after) / hop_c)
+            rows.append(harmony_frames[lo:hi].mean(0))
+        rows = np.array(rows)
+        rows = rows - rows.mean(1, keepdims=True)
+        return rows / (np.linalg.norm(rows, axis=1, keepdims=True) + 1e-9)
+
+    harmony = mean_chroma(starts) @ mean_chroma(ends).T
+    # Between near-equal joins, keep more of the take: a longer loop repeats less.
+    unused = (starts[:, None] - starts[0] + ends[-1] - ends[None, :]) / rate
+    score = rhythm + .5 * harmony - .006 * unused
+    i, j = np.unravel_index(int(np.argmax(score)), score.shape)
+    start, end = int(starts[i]) * LOOP_HOP, int(ends[j]) * LOOP_HOP
+    # Refine the start to the sample on the treble's attack envelope (hats, snare).
+    treble = np.abs(np.diff(mono, prepend=mono[0]))
+    smooth = np.convolve(treble, np.ones(44) / 44, "same")
+    ref = smooth[end - int(LOOP_BEFORE * LOOP_RATE):end + int(LOOP_AFTER * LOOP_RATE)]
+    ref = ref - ref.mean()
+    best, shift = -2.0, 0
+    for k in range(-LOOP_HOP, LOOP_HOP + 1, 4):
+        seg = smooth[start + k - int(LOOP_BEFORE * LOOP_RATE):start + k + int(LOOP_AFTER * LOOP_RATE)]
+        seg = seg - seg.mean()
+        c = float(ref @ seg / (np.linalg.norm(ref) * np.linalg.norm(seg) + 1e-12))
+        if c > best:
+            best, shift = c, k
+    return {"start": start + shift, "end": end, "rhythm": round(float(rhythm[i, j]), 3),
+            "harmony": round(float(harmony[i, j]), 3), "attack": round(best, 3)}
+
+
+def ring(x: np.ndarray, start: int, end: int, cross: float = LOOP_CROSS) -> tuple[np.ndarray, float]:
+    """x[start:end] whose last `cross` seconds blend into what led up to `start`."""
+    n = int(cross * LOOP_RATE)
+    out = x[start:end].copy()
+    tail, lead = x[end - n:end], x[start - n:start]
+    rho = float(np.sum(tail.mean(1) * lead.mean(1))
+                / (np.linalg.norm(tail.mean(1)) * np.linalg.norm(lead.mean(1)) + 1e-12))
+    theta = np.linspace(0, np.pi / 2, n)[:, None]
+    fade_out, fade_in = np.cos(theta), np.sin(theta)
+    # Equal power, corrected for how alike the two passages are, so the join
+    # neither dips nor swells.
+    out[-n:] = (tail * fade_out + lead * fade_in) / np.sqrt(1 + 2 * fade_out * fade_in * max(0.0, rho))
+    return out, rho
+
+
+def build_fight(source: Path, target: Path) -> dict:
+    trim = ("silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.02,"
+            "areverse,silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.15,areverse")
+    pre = f"aresample={LOOP_RATE}:resampler={resampler()},{trim},{GENTLE}"
+    s = loudnorm_stats(source, pre)
+    two = (f"loudnorm=I={MUSIC_LUFS}:TP=-1.5:LRA=11:measured_I={s['input_i']}:measured_TP={s['input_tp']}"
+           f":measured_LRA={s['input_lra']}:measured_thresh={s['input_thresh']}:offset={s['target_offset']}"
+           f":linear=true,aresample={LOOP_RATE}")
+    x = stereo(source, f"{pre},{two}")
+    found = find_loop(x)
+    loop, rho = ring(x, found["start"], found["end"])
+    # The cut changes the average a little: bring the ring itself to the target.
+    loop *= 10 ** ((MUSIC_LUFS - ebur128(loop)["lufs"]) / 20)
+    peak = float(np.abs(loop).max())
+    if peak > 10 ** (-1.0 / 20):
+        loop *= 10 ** (-1.0 / 20) / peak
+    target.parent.mkdir(parents=True, exist_ok=True)
+    data = loop.astype("<f4").tobytes()
+    subprocess.run([ffmpeg(), "-v", "error", "-y", "-f", "f32le", "-ar", str(LOOP_RATE), "-ac", "2", "-i", "-",
+                    "-c:a", "libvorbis", "-q:a", "5", "-map_metadata", "-1", "-bitexact", str(target)],
+                   input=data, check=True, capture_output=True)
+    back = stereo(target, "anull")
+    facts = ebur128(back)
+    # The join as the game hears it: the file's end running into its start.
+    seam = np.concatenate([back[-LOOP_RATE:], back[:LOOP_RATE]]).mean(1)
+    win = int(.05 * LOOP_RATE)
+    levels = [db(float(np.sqrt(np.mean(seam[i:i + win] ** 2)))) for i in range(0, len(seam) - win + 1, win)]
+    step = np.abs(np.diff(back.mean(1)))
+    return {"seconds": round(len(back) / LOOP_RATE, 3), **facts, "source_lufs": float(s["input_i"]),
+            "loop_from_take": round(found["start"] / LOOP_RATE, 3),
+            "loop_to_take": round(found["end"] / LOOP_RATE, 3),
+            "match_rhythm": found["rhythm"], "match_harmony": found["harmony"],
+            "match_attack": found["attack"], "cross_correlation": round(rho, 3),
+            "join_jump": round(float(abs(back[0].mean() - back[-1].mean()) / (np.median(step) + 1e-12)), 2),
+            "join_level_spread_db": round(max(levels) - min(levels), 2),
+            "body_level_spread_db": _spread(back.mean(1), win)}
+
+
+def _spread(mono: np.ndarray, win: int) -> float:
+    """The 50 ms level spread over a typical two seconds, for comparing with the join."""
+    spans = []
+    for first in range(LOOP_RATE * 4, len(mono) - LOOP_RATE * 6, LOOP_RATE * 5):
+        part = mono[first:first + 2 * LOOP_RATE]
+        levels = [db(float(np.sqrt(np.mean(part[i:i + win] ** 2)))) for i in range(0, len(part) - win + 1, win)]
+        spans.append(max(levels) - min(levels))
+    return round(float(np.median(spans)), 2)
+
+
+def build_fights(report: dict, ends: dict) -> None:
+    for stem, title, bpm, _text in spec.FIGHTS:
+        source = GEN / "music" / f"{stem}.mp3"
+        if not source.is_file():
+            report[stem] = {"status": "missing source", "title": title}
+            continue
+        facts = build_fight(source, MUSIC_OUT / f"{stem}.ogg")
+        # A fight loop has no cut-off: it wraps at its own end.
+        ends[stem] = facts["seconds"]
+        report[stem] = {"status": "built", "title": title, "bpm_asked": bpm, "loop": True, **facts}
+
+
 def build_music() -> dict:
     report: dict = {}
     ends: dict = {}
-    # Calibration: the generated band sits ~4 dB under the reference soundtrack
-    # between 400 Hz and 4 kHz and ~1.5 dB over it below 400 Hz.
-    gentle = ("highpass=f=32,bass=g=-1.5:f=160:w=0.8,equalizer=f=1000:t=q:w=1:g=2.5,"
-              "equalizer=f=3000:t=q:w=1.2:g=3")
+    gentle = GENTLE
     for stem, title, bpm, _text in spec.MUSIC:
         source = GEN / "music" / f"{stem}.mp3"
         if not source.is_file():
@@ -580,7 +784,19 @@ def build_music() -> dict:
                            "supplied": supplied[0].name, **master(supplied[0], MUSIC_OUT / "title.ogg", shaped, 1.2)}
     else:
         report["title"] = {"status": "missing source"}
+    build_fights(report, ends)
     (MUSIC_OUT / "playback_ends.json").write_text(json.dumps(ends, indent=1) + "\n", encoding="utf-8", newline="\n")
+    return report
+
+
+def build_fight_music(previous: dict) -> dict:
+    """Only the fight loops; every other song and its cut-off stay as they are."""
+    path = MUSIC_OUT / "playback_ends.json"
+    ends = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    report = {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")}
+              for s, m in previous.items()}
+    build_fights(report, ends)
+    path.write_text(json.dumps(ends, indent=1) + "\n", encoding="utf-8", newline="\n")
     return report
 
 
@@ -627,6 +843,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--sfx", action="store_true")
     parser.add_argument("--music", action="store_true")
+    parser.add_argument("--fights", action="store_true")
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--only", nargs="*", default=[])
     args = parser.parse_args()
@@ -642,9 +859,14 @@ def main() -> None:
         for name, why in sorted(bad.items()):
             print(f"  {name}: {why}")
         raise SystemExit(1 if bad or missing else 0)
-    everything = not (args.sfx or args.music)
+    everything = not (args.sfx or args.music or args.fights)
     sfx = build_sfx(inventory, args.only, previous) if args.sfx or everything else {n: {k: c[k] for k in ("recipe", "measured") if k in c} for n, c in previous["cues"].items()}
-    music = build_music() if args.music or everything else {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")} for s, m in previous["music"].items()}
+    if args.music or everything:
+        music = build_music()
+    elif args.fights:
+        music = build_fight_music(previous["music"])
+    else:
+        music = {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")} for s, m in previous["music"].items()}
     result = manifest(sfx, music, inventory)
     path.write_text(json.dumps(result, indent=1) + "\n", encoding="utf-8", newline="\n")
     built = sum(1 for c in result["cues"].values() if c["validation"] == "ok")

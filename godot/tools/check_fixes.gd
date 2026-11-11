@@ -374,6 +374,7 @@ func _run() -> void:
 				around = true
 				break
 	check(around, "an enemy out of sight is led round the walls, not straight at the player")
+	_tactics(main)
 	var town: Game = main.make_game("hickston")
 	town.configure({})
 	var pin = town.objective_target()
@@ -599,3 +600,136 @@ func _run() -> void:
 	main.queue_free()
 	await process_frame
 	quit(1 if not failures.is_empty() else 0)
+
+
+## The county's hands fight smarter: a stray shot starts a brawl, the hurt
+## duck out of sight, the badly hurt run for a friend.
+func _tactics(main) -> void:
+	print("TACTICS")
+	var town: Game = main.make_game("hickston")
+	town.configure({})
+	town.spawn_grace = 0.0
+	var p := town.player
+	# A clear stretch of road east of the start: the player, then two hands.
+	var row := Vector2(p.x, p.y)
+	var hands: Array[Enemy] = []
+	for e: Enemy in town.enemies:
+		if e.tactical() and e.brain == "billy":
+			hands.append(e)
+		if hands.size() == 4:
+			break
+	var shooter := hands[0]
+	var friend := hands[1]
+	shooter.x = row.x + 5.0
+	shooter.y = row.y
+	friend.x = row.x + 2.6
+	friend.y = row.y
+	for e: Enemy in [shooter, friend]:
+		e.alerted = true
+	var start_hp := friend.hp
+	var eye: float = town.world.elevation(shooter.x, shooter.y) + .9
+	for i in 30:
+		if friend.hp < start_hp:
+			break
+		shooter.attack(town, PI, 5.0, eye)
+	check(
+		friend.hp < start_hp and friend.grudge == shooter,
+		"a friend in the line of fire takes the shot and turns on the shooter"
+	)
+	var shooter_hp := shooter.hp
+	for i in 300:
+		town.tick(1.0 / 60.0, Game.Controls.new())
+		if shooter.hp < shooter_hp:
+			break
+	check(shooter.hp < shooter_hp, "the brawl lands punches")
+	# A hurt hand ducks out of the player's sight when there is cover near.
+	var ducked := false
+	for e: Enemy in town.enemies:
+		if not e.tactical() or not e.alive or e == shooter or e == friend:
+			continue
+		var spot = e.find_cover(town)
+		if spot != null:
+			var head: float = town.world.elevation(spot.x, spot.y) + .9
+			ducked = not town.world.visible(p.x, p.y, spot.x, spot.y, p.eye, head)
+			break
+	check(ducked, "a hand finds a spot out of the player's sight")
+	# The badly hurt run for a friend who has not seen the fight, and bring them.
+	var runner := hands[2]
+	var helper := hands[3]
+	helper.alerted = false
+	helper.dormant = false
+	runner.x = row.x + 3.0
+	runner.y = row.y
+	helper.x = row.x + 7.0
+	helper.y = row.y
+	runner.alerted = true
+	runner.target = [p.x, p.y]
+	check(runner.fetch_help(town) and runner.fetching != null, "a badly hurt hand runs for help")
+	for i in 400:
+		town.tick(1.0 / 60.0, Game.Controls.new())
+		if runner.fetching == null:
+			break
+	check(runner.fetching == null and helper.alerted, "the friend comes back with them")
+	# Each gun moves what it hits its own way.
+	var target := hands[1] if hands[1].alive else hands[0]
+	for e: Enemy in town.enemies:
+		if e.tactical() and e.alive and e != runner and e != helper:
+			target = e
+			break
+	target.hp = 999.0
+	target.x = p.x + 2.0
+	target.y = p.y
+	var before := Vector2(target.x, target.y)
+	for i in 8:
+		target.hurt(6.0, town, false, false, null, "shotgun")
+	check(
+		Vector2(target.x, target.y).distance_to(before) > .3 and target.stun > .2,
+		"a full load of the sawed-off throws a body back"
+	)
+	for i in 4:
+		target.hurt(2.0, town, false, false, null, "teat_gun")
+	check(target.soak > .4, "the teat gun soaks them")
+	target.stun = 0.0
+	target.hurt(10.0, town, false, false, null, "bowling")
+	check(target.stun > .8, "a bowling ball bowls them over")
+	# Bosses: fightin' mad at half health, a harder pattern, a death that lands.
+	var mill: Game = main.make_game("sawmill")
+	mill.configure({})
+	var boss_man: Enemy = null
+	for e: Enemy in mill.enemies:
+		if e.brain == "foreman":
+			boss_man = e
+	boss_man.dormant = false  # the finale wakes him in play
+	var calm_lanes := boss_man.saw_lanes(0.0, 1).size()
+	boss_man.hurt(boss_man.max_hp * .55, mill)
+	check(boss_man.enraged and boss_man.stun > .5, "a boss goes fightin' mad at half health")
+	check(boss_man.saw_lanes(0.0, 1).size() > calm_lanes, "the mad foreman cuts more lanes")
+	boss_man.hurt(99999.0, mill)
+	check(not boss_man.alive and mill.hitstop > .3, "a boss going down holds the world a beat")
+	# HOG WILD: a bigger posse, sharper hands, less from an ammo pickup.
+	var wild: Game = main.make_game("hickston")
+	wild.configure({"difficulty": 3})
+	var own := wild.enemies.size()
+	wild.tick(1.0 / 60.0, Game.Controls.new())
+	check(
+		wild.enemies.size() > own and wild.sharpness > 1.2,
+		"HOG WILD brings a bigger, sharper posse"
+	)
+	var shells := wild.armory.reserve[Weapons.REVOLVER]
+	wild.collect("bullets")
+	var got := wild.armory.reserve[Weapons.REVOLVER] - shells
+	var tame: Game = main.make_game("hickston")
+	tame.configure({"difficulty": 1})
+	var tame_shells := tame.armory.reserve[Weapons.REVOLVER]
+	tame.collect("bullets")
+	check(
+		got < tame.armory.reserve[Weapons.REVOLVER] - tame_shells,
+		"HOG WILD gives less from an ammo pickup"
+	)
+	var wild_path := OS.get_cache_dir().path_join("clmr-posse-check.json")
+	SessionStore.save(wild, wild_path)
+	var wild_back: Game = SessionStore.read(wild_path, Callable(main, "make_game"), false)
+	check(
+		wild_back != null and wild_back.enemies.size() == wild.enemies.size(),
+		"the posse is still there after a save and a load"
+	)

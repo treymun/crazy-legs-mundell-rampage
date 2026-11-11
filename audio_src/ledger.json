@@ -8012,14 +8012,346 @@
    "bytes": 49571
   },
   {
-   "id": "reconcile@2026-11-11T12:51:44",
+   "id": "music/fight_hickston#1",
+   "kind": "music",
+   "name": "fight_hickston",
+   "params": {
+    "prompt": "Fast small-town barn-burner hillbilly punk rock at 172 BPM: furious banjo rolls, sawing fiddle, twangy overdriven electric guitar riff, washboard scraping, thumping upright bass and stomping train-beat drums. Rowdy and reckless, a bar fight spilling into the street. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "20d7264041ba",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T16:21:16",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/fight_hickston.mp3",
+   "bytes": 1681493
+  },
+  {
+   "id": "music/fight_fair#1",
+   "kind": "music",
+   "name": "fight_fair",
+   "params": {
+    "prompt": "Frantic carnival-midway hoedown punkabilly at 180 BPM: galloping slap bass, banjo and fiddle racing a wheezy off-kilter calliope organ riff, twangy reverb-soaked guitar stabs, washboard and crashing drums. Manic and crooked, like a runaway fairground ride. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e8e0852ae05b",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T16:21:26",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/fight_fair.mp3",
+   "bytes": 1682747
+  },
+  {
+   "id": "music/fight_mill#1",
+   "kind": "music",
+   "name": "fight_mill",
+   "params": {
+    "prompt": "Pounding industrial lumberjack stomp, country-metal at 150 BPM: buzzing distorted guitar riff that whines like a ripsaw biting a log, chugging palm-muted rhythm guitar, stomping kick and floor toms, anvil and chain clanks on the backbeat, fiddle stabs and driving banjo. Heavy, mechanical, relentless. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "df96a6651c84",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T16:21:37",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/fight_mill.mp3",
+   "bytes": 1682747
+  },
+  {
+   "id": "music/fight_quarry#1",
+   "kind": "music",
+   "name": "fight_quarry",
+   "params": {
+    "prompt": "Heavy moonshine-fuelled blues-rock at 132 BPM: grinding fuzz guitar riff, howling bottleneck slide guitar, booming jug bass blowing the low notes, stomping drums with tambourine and chain hits, frantic banjo answers. Dark, drunk and dangerous swamp-blues muscle. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "56820d38a8eb",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T16:21:47",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/fight_quarry.mp3",
+   "bytes": 1678359
+  },
+  {
+   "id": "sfx/sheriff_rage#1",
+   "kind": "sfx",
+   "name": "sheriff_rage",
+   "params": {
+    "text": "A rubbery B-movie alien sheriff shrieking in fury, warbling, electric and furious. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "40f630a0efc0",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-11T16:43:00",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sheriff_rage.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/sheriff_death#1",
+   "kind": "sfx",
+   "name": "sheriff_death",
+   "params": {
+    "text": "A rubbery alien's long dying wail that fizzles out into crackling electric sparks. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "fb65854e12ff",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-11T16:43:02",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sheriff_death.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/jerry_rage#1",
+   "kind": "sfx",
+   "name": "jerry_rage",
+   "params": {
+    "text": "A huge country man bellowing an angry roar like a furious football coach, then a sharp whistle blast. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0945b515358a",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-11T16:43:04",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/jerry_rage.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/jerry_death#1",
+   "kind": "sfx",
+   "name": "jerry_death",
+   "params": {
+    "text": "A huge country man's long dying groan ending in a heavy thud on the ground. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "28ca97cc1b84",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-11T16:43:06",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/jerry_death.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/rudy_rage#1",
+   "kind": "sfx",
+   "name": "rudy_rage",
+   "params": {
+    "text": "A crazed carnival barker cackling madly, then two blasts of a wheezy air horn. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "fe9b204ecbc4",
+   "reserved": 73,
+   "status": "settled",
+   "started": "2026-11-11T16:43:08",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rudy_rage.mp3",
+   "bytes": 42048
+  },
+  {
+   "id": "sfx/rudy_death#1",
+   "kind": "sfx",
+   "name": "rudy_death",
+   "params": {
+    "text": "A carnival barker's long strangled howl ending in a deflating, wheezing honk. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4f3d8dc503f5",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-11T16:43:10",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rudy_death.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/foreman_rage#1",
+   "kind": "sfx",
+   "name": "foreman_rage",
+   "params": {
+    "text": "A hulking lumber-mill foreman roaring in rage over a chainsaw revving hard. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ef19f54d2f3a",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-11T16:43:12",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/foreman_rage.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/foreman_death#1",
+   "kind": "sfx",
+   "name": "foreman_death",
+   "params": {
+    "text": "A big man's dying bellow as a chainsaw sputters, coughs and dies. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "70b5930780dc",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-11T16:43:14",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/foreman_death.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/baron_rage#1",
+   "kind": "sfx",
+   "name": "baron_rage",
+   "params": {
+    "text": "A pompous old moonshine baron bellowing furiously while steam pipes shriek around him. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "58c4b6e39301",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-11T16:43:16",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/baron_rage.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/baron_death#1",
+   "kind": "sfx",
+   "name": "baron_death",
+   "params": {
+    "text": "A pompous old man's dying wail as a copper boiler bursts with a hiss and a clang. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8899d017cb27",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-11T16:43:18",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/baron_death.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/brawl_punch#1",
+   "kind": "sfx",
+   "name": "brawl_punch",
+   "params": {
+    "text": "A meaty bare-knuckle punch to the jaw with a short grunt. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ef04a49e384d",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-11T16:43:21",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/brawl_punch.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/enemy_slip#1",
+   "kind": "sfx",
+   "name": "enemy_slip",
+   "params": {
+    "text": "A man's boots slipping in a puddle of milk: a wet squelch, a yelp and a heavy thud on the ground. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "5d682f477eef",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-11T16:43:23",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/enemy_slip.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "reconcile@2026-11-11T16:44:26",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -2394,
+   "actual": -2422,
    "basis": "account",
-   "balance_after": 35414
+   "balance_after": 39488
   }
  ],
  "anchor": {
@@ -8027,7 +8359,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-11T12:51:44",
-  "account_drop": 30691
+  "when": "2026-11-11T16:44:26",
+  "account_drop": 34765
  }
 }

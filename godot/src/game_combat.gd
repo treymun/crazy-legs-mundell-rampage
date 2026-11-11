@@ -15,25 +15,26 @@ func launch(
 	vz := 0.0,
 	enemy := false,
 	damage := 0,
-	life := -1.0
+	life := -1.0,
+	owner := 0
 ) -> void:
 	if life <= 0.0:
 		life = 2.6 if kind == "blade" else 3.8 if enemy else 1.55
-	shots.append(
-		Shot.new(
-			x,
-			y,
-			z,
-			cos(angle) * speed,
-			sin(angle) * speed,
-			vz,
-			kind,
-			life,
-			enemy,
-			damage,
-			3 if kind == "blade" else 0
-		)
+	var shot := Shot.new(
+		x,
+		y,
+		z,
+		cos(angle) * speed,
+		sin(angle) * speed,
+		vz,
+		kind,
+		life,
+		enemy,
+		damage,
+		3 if kind == "blade" else 0
 	)
+	shot.owner = owner
+	shots.append(shot)
 
 
 func throw_dynamite(remaining: float) -> void:
@@ -148,7 +149,7 @@ func hitscan(
 		return true
 	if best != null:
 		_traced(ax, ay, slope, near, "enemy")
-		best.hurt(amount, self, false, pressure)
+		best.hurt(amount, self, false, pressure, null, String(Weapons.NAMES[armory.active]))
 		return true
 	if not spark:
 		var reach := _wall_distance(ax, ay, slope, max_range)
@@ -410,7 +411,14 @@ func explode(shot: Shot) -> void:
 	for enemy: Enemy in enemies:
 		var distance := sqrt((enemy.x - x) * (enemy.x - x) + (enemy.y - y) * (enemy.y - y))
 		if enemy.alive and distance < radius and world.visible(x, y, enemy.x, enemy.y):
-			enemy.hurt(maxi(1, int(strength * (1.0 - distance / (radius + .3)))), self, not energy)
+			enemy.hurt(
+				maxi(1, int(strength * (1.0 - distance / (radius + .3)))),
+				self,
+				not energy,
+				false,
+				null,
+				"energy" if energy else "blast"
+			)
 	for prop: LevelData.Scenery in world.scenery:
 		if (
 			sqrt((prop.x - x) * (prop.x - x) + (prop.y - y) * (prop.y - y)) < radius
@@ -578,6 +586,20 @@ func move_shot(shot: Shot, dt: float) -> bool:
 			)
 			finish_shot(shot)
 			return false
+		if shot.enemy and shot.owner != 0 and shot.travelled > .45:
+			# A stray from one of the county's catching another of them.
+			var struck := _county_in_the_way(shot, x, y, z)
+			if struck != null:
+				var thrower = instance_from_id(shot.owner)
+				struck.hurt(
+					float(shot.damage) * .8,
+					self,
+					false,
+					false,
+					thrower if thrower is Enemy else null
+				)
+				finish_shot(shot)
+				return false
 		if shot.enemy or tnt:
 			continue
 		var drum = null
@@ -603,7 +625,7 @@ func move_shot(shot: Shot, dt: float) -> bool:
 				and sqrt(pow(enemy.x - x, 2) + pow(enemy.y - y, 2)) < enemy.radius + .10
 			):
 				if shot.kind == "blade":
-					enemy.hurt(shot.damage, self)
+					enemy.hurt(shot.damage, self, false, false, null, "blade")
 					sound_at("saw_hit", x, y)
 				elif shot.kind == "bowling":
 					var key := shot.get_instance_id()
@@ -613,8 +635,13 @@ func move_shot(shot: Shot, dt: float) -> bool:
 					var eid := enemy.get_instance_id()
 					if not seen.has(eid):
 						seen[eid] = true
-						enemy.hurt(shot.damage, self)
+						enemy.hurt(shot.damage, self, false, false, null, "bowling")
 						sound_at("bowling_hit", x, y)
+						if seen.size() == 3 and barks.enabled:
+							# Three down with one ball.
+							callout = "STRIKE!"
+							callout_until = clock + 1.3
+							sound.play("yee_haw", .7)
 						burst(x, y, z, "dust", 6, 1.4)
 						shot.vx *= .8
 						shot.vy *= .8
@@ -622,6 +649,22 @@ func move_shot(shot: Shot, dt: float) -> bool:
 					finish_shot(shot)
 				return false
 	return true
+
+
+func _county_in_the_way(shot: Shot, x: float, y: float, z: float) -> Enemy:
+	for e: Enemy in enemies:
+		if not e.alive or not e.hostile or e.get_instance_id() == shot.owner:
+			continue
+		if absf(e.x - x) > .6 or absf(e.y - y) > .6:
+			continue
+		var feet: float = world.elevation(e.x, e.y) + e.z
+		if (
+			(e.x - x) * (e.x - x) + (e.y - y) * (e.y - y) < e.radius * e.radius
+			and feet < z
+			and z < feet + e.height
+		):
+			return e
+	return null
 
 
 func update_shots(dt: float) -> void:
@@ -731,9 +774,35 @@ func ground_marks() -> Array:
 			marks.append(_spot(mx, my, .89, "warning"))
 		elif enemy.brain == "bottle_tosser":
 			marks.append(_spot(mx, my, .77, "warning"))
-		elif enemy.brain == "baron" and enemy.attacks % 2 == 0:
+		elif enemy.brain == "baron" and (enemy.attacks % 2 == 0 or enemy.enraged):
 			for point: Vector2 in pressure_ports(enemy.attacks):
 				marks.append(_spot(point.x, point.y, .94, "warning"))
+		elif enemy.brain == "rudy":
+			# The horn sweep: the fan its volley will rake along the ground.
+			var toward := atan2(my - enemy.y, mx - enemy.x)
+			var sweep := -1.0 if (enemy.attacks + 1) % 2 else 1.0
+			for off: float in [-.16, 0.0, .12]:
+				var bearing := toward + sweep * off
+				var length := 0.0
+				while length < 7.0:
+					var step := length + .32
+					if world.blocked(
+						enemy.x + cos(bearing) * step, enemy.y + sin(bearing) * step, .03
+					):
+						break
+					length = step
+				if length > .6:
+					marks.append(
+						Renderer.GroundMark.new(
+							enemy.x + cos(bearing) * length / 2.0,
+							enemy.y + sin(bearing) * length / 2.0,
+							world.elevation(enemy.x, enemy.y) + .003,
+							bearing,
+							length / 2.0,
+							.22,
+							"mark_lane"
+						)
+					)
 		elif enemy.brain == "foreman":
 			var direction := atan2(my - enemy.y, mx - enemy.x)
 			for lane in enemy.saw_lanes(direction, enemy.attacks + 1):

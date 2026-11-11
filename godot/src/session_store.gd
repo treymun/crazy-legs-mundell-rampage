@@ -1048,7 +1048,9 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 	var ai_doc = doc.get("ai", {})
 	if not (enemies_doc is Dictionary) or not (ai_doc is Dictionary):
 		return _fail_at(755)
-	if enemies_doc.size() != game.enemies.size() or ai_doc.size() != game.enemies.size():
+	# The level's own enemies (a bigger posse is the posse feature's to restore).
+	var own := game.enemy_ids.size()
+	if enemies_doc.size() != own or ai_doc.size() != own:
 		return _restart(doc, game, expected_replay)
 	var seen := {}
 	for i in game.enemy_ids.size():
@@ -1085,7 +1087,7 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 			return _fail_at(784)
 		if enemy.windup > 0.0 and enemy.aim_mark == null:
 			return _fail_at(786)
-	if seen.size() != game.enemies.size():
+	if seen.size() != game.enemy_ids.size():
 		return _fail_at(788)
 
 	# reactions

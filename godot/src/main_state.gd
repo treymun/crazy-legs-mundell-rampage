@@ -561,6 +561,10 @@ func _build_tone(level: int) -> void:
 
 
 func persist_options() -> void:
+	# A tool driving the game (a SceneTree script: tools/check_fixes.gd and the
+	# like) keeps settings in memory: it must never write the player's profile.
+	if Engine.get_main_loop() != null and Engine.get_main_loop().get_script() != null:
+		return
 	if not SessionStore.save_settings("", options):
 		menu_note = "SETUP COULD NOT BE SAVED."
 
@@ -621,10 +625,11 @@ func _pad_bindings() -> Array:
 			[JOY_BUTTON_RIGHT_SHOULDER, KEY_APOSTROPHE],
 			[JOY_BUTTON_START, KEY_ESCAPE],
 			[JOY_BUTTON_BACK, KEY_TAB],
-			[JOY_BUTTON_DPAD_UP, KEY_C],
+			# With the map open, up and down zoom it instead.
+			[JOY_BUTTON_DPAD_UP, KEY_PAGEUP if game.map else KEY_C],
 			[JOY_BUTTON_DPAD_LEFT, KEY_B],
 			[JOY_BUTTON_DPAD_RIGHT, KEY_M],
-			[JOY_BUTTON_DPAD_DOWN, KEY_F]
+			[JOY_BUTTON_DPAD_DOWN, KEY_PAGEDOWN if game.map else KEY_F]
 		]
 	return [
 		[JOY_BUTTON_DPAD_UP, KEY_UP],
@@ -689,6 +694,7 @@ const SHOWCASE_SECONDS := 6.0
 
 
 func _exit_tree() -> void:
+	Weapons.Armory.settle()
 	Renderer.stop_crew()
 	canvas.gpu_free()
 

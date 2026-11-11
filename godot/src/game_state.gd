@@ -199,6 +199,8 @@ class Shot:
 	var bounces := 0
 	var travelled := 0.0
 	var resting := false
+	## Who threw it (an enemy's instance id; 0: the player or not known).
+	var owner := 0
 
 	func _init(
 		px := 0.0,
@@ -762,6 +764,14 @@ signal level_won
 signal ticked(dt: float)
 signal exploded(x: float, y: float, z: float, energy: bool)
 signal gun_reloading(gun: int)
+## DIFFICULTY (0 EASY .. 3 HOG WILD), how sharp the county's hands are (their
+## attack recovery, how far they notice, how true they shoot), and how much of
+## an ammo pickup the player gets.
+var difficulty := 1
+var sharpness := 1.0
+var ammo_scale := 1.0
+## A boss went fightin' mad at half health (enemies.gd _enrage).
+signal boss_enraged(enemy: Enemy)
 ## A hitscan shot (a bullet, a pellet, a swing, the milk) ended at `end`:
 ## struck is "enemy", "thing" (a drum or scenery), "glass", "wall:<surface>"
 ## (wood, metal, plaster, dirt) or "air" (nothing within its range).

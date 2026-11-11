@@ -15,8 +15,9 @@
 ##                it the first time it is drawn), + art_index.json
 ##   sfx.bin      every cue of the audio manifest, mono 16-bit, + sfx_index.json
 ##   music.bin    the menu theme and the tally tune (Ogg Vorbis), and
-##   music_<chapter>.bin   each chapter's three tracks (a browser build leaves
-##                these out of its first download: tools/make_packs.gd), +
+##   music_<chapter>.bin   each chapter's three tracks and its fight loop (a
+##                browser build leaves these out of its first download:
+##                tools/make_packs.gd), +
 ##                music_index.json (track -> file, offset, length), music_ends.json
 ##   sky.bin      the 512x116 panoramas, + sky_index.json
 ##   palette.bin  the RGB555 -> 256-colour table; grain.bin the film grain frames
@@ -28,11 +29,13 @@ const AssetsLib := preload("res://src/assets.gd")
 
 const SFX_RATE := 22050
 const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky"]
+## Each chapter's file: its three tracks, then the loop its fights swell into
+## (Sound.FIGHTS).
 const MUSIC_FILES := {
-	"music_hickston": ["music", "county_line", "porchlight_stomp"],
-	"music_fair": ["fair_score", "tickets_after_dark", "closing_time_shuffle"],
-	"music_mill": ["mill_score", "green_chain", "apron_run"],
-	"music_quarry": ["quarry_score", "copper_and_steam", "last_load"],
+	"music_hickston": ["music", "county_line", "porchlight_stomp", "fight_hickston"],
+	"music_fair": ["fair_score", "tickets_after_dark", "closing_time_shuffle", "fight_fair"],
+	"music_mill": ["mill_score", "green_chain", "apron_run", "fight_mill"],
+	"music_quarry": ["quarry_score", "copper_and_steam", "last_load", "fight_quarry"],
 }
 const REQUIRED_MUSIC := ["title", "victory"]
 

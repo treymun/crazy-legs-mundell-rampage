@@ -33,6 +33,15 @@ const SCORES := {
 	"mill_score": ["mill_score", "green_chain", "apron_run"],
 	"quarry_score": ["quarry_score", "copper_and_steam", "last_load"],
 }
+## Each chapter's fight loop (seamless, made by scripts/audio_build.py): it
+## swells in over the chapter's track while features/fight_music.gd says the
+## player is in a fight.
+const FIGHTS := {
+	"music": "fight_hickston",
+	"fair_score": "fight_fair",
+	"mill_score": "fight_mill",
+	"quarry_score": "fight_quarry",
+}
 
 const PRIORITY := [
 	"revolver",
@@ -155,11 +164,22 @@ class ShuffleBank:
 		offset = 0.0
 
 
-## score_player.ScorePlayer: single music stream, shuffled banks, fades, seeks.
+## score_player.ScorePlayer: single music stream, shuffled banks, fades, seeks;
+## and over a chapter's track, a second stream with its fight loop.
+##
+## The fight layer crossfades at equal power (the track at cos, the loop at
+## sin of the mix), swelling in over FIGHT_IN when the game asks for it
+## (set_fight) and giving way over FIGHT_OUT when it stops asking; a change of
+## mind halfway turns the fade around where it is. Under a full fight the
+## chapter's track stops ("parked") and later picks up where it left off; the
+## loop likewise keeps its place between fights. Both streams go through the
+## same master level, so the MUSIC volume, ducking and the radio hold for both.
 class ScorePlayer:
 	extends RefCounted
 	const FADE := .24
 	const CODA_FADE := .12
+	const FIGHT_IN := 1.0
+	const FIGHT_OUT := 3.0
 
 	var assets: Assets
 	var player: AudioStreamPlayer
@@ -178,12 +198,32 @@ class ScorePlayer:
 	var paused := false
 	var reopen := false
 	var ready := false
+	## The fight layer: its player, each score's loop, the loop of the score
+	## playing now, where each loop was left, whether a fight is asked for,
+	## the crossfade (0 the track alone, 1 the loop alone), the loop's own
+	## fade when the score changes, and whether the track is parked.
+	var fight_player: AudioStreamPlayer
+	var fights := {}
+	var fight_track := ""
+	var fight_marks := {}
+	var fight_at := 0.0
+	var fight_want := false
+	var fight_mix := 0.0
+	var fight_gate := 0.0
+	var parked := false
 
 	func _init(
-		p_assets: Assets, p_player: AudioStreamPlayer, definitions: Dictionary, seed_value := 1997
+		p_assets: Assets,
+		p_player: AudioStreamPlayer,
+		definitions: Dictionary,
+		seed_value := 1997,
+		p_fight: AudioStreamPlayer = null,
+		p_fights := {}
 	) -> void:
 		assets = p_assets
 		player = p_player
+		fight_player = p_fight
+		fights = p_fights
 		var rng := ShuffleRng.new(seed_value)
 		for key in definitions:
 			banks[key] = ShuffleBank.new(definitions[key], rng)
@@ -212,7 +252,14 @@ class ScorePlayer:
 
 	func level(value: float) -> void:
 		master = value
-		player.volume_linear = master * gain
+		apply_levels()
+
+	## Both streams at the master level, crossfaded at equal power.
+	func apply_levels() -> void:
+		var angle := fight_mix * PI * .5
+		player.volume_linear = master * gain * cos(angle)
+		if fight_player != null:
+			fight_player.volume_linear = master * fight_gate * sin(angle)
 
 	func set_enabled(value: bool) -> void:
 		enabled = value
@@ -226,7 +273,10 @@ class ScorePlayer:
 	func sync_pause() -> void:
 		if not ready:
 			return
-		if not enabled or paused:
+		var hold := not enabled or paused
+		if fight_player != null:
+			fight_player.stream_paused = hold
+		if hold:
 			position()
 			player.stream_paused = true
 		elif active == null:
@@ -241,10 +291,13 @@ class ScorePlayer:
 			resume[active] = position()
 		if store and banks.has(active):
 			var previous: ShuffleBank = banks[active]
-			if player.playing and not player.stream_paused:
+			if parked or (player.playing and not player.stream_paused):
 				previous.offset = position()
 			else:
 				previous.advance()
+		if context != active:
+			drop_fight(context)
+		parked = false
 		var track_name := ""
 		var start_at := 0.0
 		var loop := false
@@ -292,16 +345,77 @@ class ScorePlayer:
 		var remaining := (finish - position()) if bank != null else 0.0
 		var switching: bool = active != requested or reopen
 		if switching:
+			# The fight loop leaves with the track, at the same pace.
 			gain = maxf(0.0, gain - dt / FADE)
-			if gain == 0.0 or not player.playing:
+			fight_gate = maxf(0.0, fight_gate - dt / FADE)
+			var loop_heard := fight_player != null and fight_player.playing and fight_gate > 0.0
+			if (gain == 0.0 or not player.playing) and not loop_heard:
 				start(requested, not reopen)
-		elif bank != null and (remaining <= 0.0 or not player.playing):
+		elif bank != null and not parked and (remaining <= 0.0 or not player.playing):
 			bank.advance()
 			start(active, false)
 		else:
 			var cap := 1.0 if bank == null else maxf(0.0, minf(1.0, remaining / CODA_FADE))
 			gain = minf(cap, gain + dt / FADE)
-		player.volume_linear = master * gain
+			fight_gate = minf(1.0, fight_gate + dt / FADE)
+			fight_step(dt)
+		apply_levels()
+
+	## Where the fight loop is, in seconds.
+	func fight_position() -> float:
+		if fight_player != null and fight_player.playing:
+			fight_at = fight_player.get_playback_position()
+		return fight_at
+
+	## A new score: stop the fight layer, keeping the old loop's place, and
+	## make ready the new score's loop (none for the menus and the tally).
+	func drop_fight(context: String) -> void:
+		if fight_track != "":
+			fight_marks[fight_track] = fight_position()
+		if fight_player != null and fight_player.playing:
+			fight_player.stop()
+		fight_track = String(fights.get(context, ""))
+		fight_at = float(fight_marks.get(fight_track, 0.0))
+		fight_mix = 0.0
+
+	## Turn the crossfade toward what the game asks; start, park and resume
+	## the two streams, so a quick spot-and-lose never restarts either one.
+	func fight_step(dt: float) -> void:
+		# Asked for only around a fight: a browser build may still be fetching
+		# the chapter's music file, and each miss looks for it on disk.
+		var stream: AudioStream = null
+		if fight_track != "" and fight_player != null and (fight_want or fight_mix > 0.0):
+			stream = assets.track(fight_track)
+		if fight_want and stream != null:
+			fight_mix = minf(1.0, fight_mix + dt / FIGHT_IN)
+		else:
+			fight_mix = maxf(0.0, fight_mix - dt / FIGHT_OUT)
+		if stream != null:
+			if fight_mix > 0.0 and not fight_player.playing:
+				Assets.set_loop(stream, true)
+				fight_player.stream = stream
+				fight_player.stream_paused = false
+				fight_player.volume_linear = 0.0
+				fight_player.play(fight_at)
+			elif fight_mix == 0.0 and fight_player.playing:
+				fight_position()
+				fight_player.stop()
+		elif fight_player != null and fight_player.playing:
+			fight_position()
+			fight_player.stop()
+		if fight_mix >= 1.0 and not parked and player.playing:
+			# The track stops under a full fight, right where it is.
+			offset = position()
+			player.stop()
+			parked = true
+		elif fight_mix < 1.0 and parked:
+			parked = false
+			player.stream_paused = false
+			player.volume_linear = 0.0
+			if offset >= .05:
+				player.play(offset)
+			else:
+				player.play()
 
 	func bookmark(context: String):
 		var bank: ShuffleBank = banks.get(context)
@@ -370,6 +484,7 @@ var _preview: Voice
 var _preview_left := 0.0
 var _preview_side := 1.0
 var _music: AudioStreamPlayer
+var _fight: AudioStreamPlayer
 
 var _amb_target := [0.0, 0.0]
 var _amb_rate := [0.0, 0.0]
@@ -406,6 +521,10 @@ func _init(p_art: Assets) -> void:
 	_music.name = "Music"
 	add_child(_music)
 	_music.bus = "Master"
+	_fight = AudioStreamPlayer.new()
+	_fight.name = "FightMusic"
+	add_child(_fight)
+	_fight.bus = "Master"
 	# Everything leaves through one limiter, so a double-barrel blast over an
 	# explosion presses against the ceiling instead of clipping or ducking speech.
 	if AudioServer.get_bus_effect_count(0) == 0:
@@ -418,7 +537,9 @@ func _init(p_art: Assets) -> void:
 		assets,
 		_music,
 		SCORES,
-		int(Time.get_unix_time_from_system() * 1000.0) ^ Time.get_ticks_usec()
+		int(Time.get_unix_time_from_system() * 1000.0) ^ Time.get_ticks_usec(),
+		_fight,
+		FIGHTS
 	)
 	set_levels(1.0, 1.0, 1.0, 2)
 
@@ -847,6 +968,18 @@ func restore_score(context: String, value) -> void:
 func level_music(gain: float) -> void:
 	if score_player != null:
 		score_player.level(gain)
+
+
+## Whether the player is in a fight (features/fight_music.gd, every tick): the
+## chapter's fight loop swells in over its track, or gives way again.
+func set_fight(active: bool) -> void:
+	if score_player != null:
+		score_player.fight_want = active
+
+
+## How far the music has crossfaded into the fight loop, 0 to 1.
+func fight_mix() -> float:
+	return score_player.fight_mix if score_player != null else 0.0
 
 
 func sting(cue: String) -> void:

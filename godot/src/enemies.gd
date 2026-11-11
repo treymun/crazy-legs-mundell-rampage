@@ -45,6 +45,23 @@ static var LUCKY_CHANCE := .07
 ## Off, enemies that lose sight of the player go back to the old way (straight
 ## for where they last saw them); tools/first_minutes.gd compares the two.
 static var hunting := true
+## How each gun moves what it hits (`how` in hurt(): the gun's name for a
+## bullet or a swing, the shot's kind for what flies): [shove in cells, stun
+## seconds, flinch seconds]. Champions take a quarter. The sawed-off's shove
+## is per pellet, so a full load at close range throws a body back.
+const REACTIONS := {
+	"shotgun": [.075, 0.0, 0.0],
+	"revolver": [.12, .16, 0.0],
+	"rifle": [.04, .1, 0.0],
+	"riveter": [.08, .38, .3],
+	"pressure_gun": [.32, 0.0, .35],
+	"crowbar": [.28, .3, 0.0],
+	"slingblade": [.42, .4, 0.0],
+	"bowling": [.9, .9, .4],
+	"blade": [.15, .2, 0.0],
+	"ripsaw": [.06, .12, 0.0],
+	"energy": [.05, .3, .25],
+}
 
 
 static func _static_init() -> void:
@@ -192,6 +209,25 @@ var variant := 1.0
 var died_at := -1.0
 var struck_at := -1.0
 var struck_sum := 0.0
+## Tactics (the county's hands only, not bugs, saucers, animals or bosses):
+## a spot out of the player's sight it is ducking to [x, y, until], and when
+## it may duck again; a friend it ran to for help while badly hurt; another
+## of the county's it is brawling after a stray shot or swing caught it; the
+## side it is swinging out to so it does not come in on a friend's heels.
+var cover = null
+var cover_ready := 0.0
+var fetching: Enemy = null
+var fetch_until := 0.0
+var grudge: Enemy = null
+var grudge_until := 0.0
+var spread := 0.0
+var spread_next := 0.0
+## Soaked by the teat gun (0 to 1): it slows them and they may slip and fall.
+var soak := 0.0
+## A boss past half its health: fightin' mad (faster, a harder pattern), and
+## when it got that way.
+var enraged := false
+var enraged_at := -10.0
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -223,6 +259,78 @@ func _init(p_kind := "", px := 0.0, py := 0.0, p_angle := 0.0) -> void:
 	hostile = bool(spec[4])
 	max_hp = hp
 	variant = 1.0 if BOSS_TITLES.has(kind) else .94 + fmod(x * 13.1 + y * 7.7, 1.0) * .11
+
+
+## The county's own hands, who duck, fetch help and brawl.
+func tactical() -> bool:
+	return (
+		hostile
+		and not BOSS_TITLES.has(kind)
+		and brain != "skeeter"
+		and brain != "saucer"
+		and brain != "crawler"
+	)
+
+
+## The nearest spot a step or three away the player cannot see, or null.
+func find_cover(game) -> Variant:
+	var p = game.player
+	for ring: float in [1.2, 2.0, 2.8, 3.6]:
+		var best = null
+		var best_turn := 9.0
+		var away := atan2(y - p.y, x - p.x)
+		for k in 12:
+			var a := k * TAU / 12.0
+			var cx := x + cos(a) * ring
+			var cy := y + sin(a) * ring
+			if game.world.blocked(cx, cy, radius) or not game.world.visible(x, y, cx, cy):
+				continue
+			var head: float = game.world.elevation(cx, cy) + minf(.92, height * .72)
+			if game.world.visible(p.x, p.y, cx, cy, p.eye, head):
+				continue
+			# Of the hidden spots this far off, the one least toward the player.
+			var turn := absf(angle_delta(a, away))
+			if turn < best_turn:
+				best_turn = turn
+				best = Vector2(cx, cy)
+		if best != null:
+			return best
+	return null
+
+
+## Duck out of sight for a breath, if there is anywhere to duck.
+func take_cover(game) -> void:
+	if game.clock < cover_ready or fetching != null or grudge != null:
+		return
+	var spot = find_cover(game)
+	if spot != null:
+		cover = [spot.x, spot.y, game.clock + game.rng.uniform(1.3, 2.4)]
+		cover_ready = game.clock + game.rng.uniform(5.0, 8.0)
+
+
+## Badly hurt: run for a friend who has not seen the fight yet and bring
+## them back; with nobody near, just back off as before.
+func fetch_help(game) -> bool:
+	var best: Enemy = null
+	var near := 12.0
+	for other: Enemy in game.enemies:
+		if (
+			other != self
+			and other.alive
+			and other.tactical()
+			and not other.alerted
+			and not other.dormant
+		):
+			var d := sqrt(pow(other.x - x, 2) + pow(other.y - y, 2))
+			if d < near:
+				near = d
+				best = other
+	if best == null:
+		return false
+	fetching = best
+	fetch_until = game.clock + 7.0
+	cover = null
+	return true
 
 
 static func angle_delta(a: float, b: float) -> float:
@@ -259,9 +367,14 @@ func wake(game, px: float, py: float) -> void:
 			game.sound.sting("shakedown_intro")
 
 
-func hurt(amount: float, game, explosive_hit := false, pressure := false) -> void:
+## `by`: another of the county's (a stray shot, a brawl); null is the player.
+func hurt(
+	amount: float, game, explosive_hit := false, pressure := false, by: Enemy = null, how := ""
+) -> void:
 	if not alive or brain == "bessie":
 		return
+	var from_x: float = game.player.x if by == null else by.x
+	var from_y: float = game.player.y if by == null else by.y
 	var was_stunned := stun > 0.0
 	hp = maxf(0.0, hp - amount)
 	# Pellets and blast fragments land as separate hits in the same instant.
@@ -273,7 +386,7 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 	var champion := BOSS_TITLES.has(kind)
 	flinch = maxf(flinch, .08 if champion else .14 + minf(.16, amount * .004))
 	if hp > 0.0 and hostile and not champion and amount >= 20.0:
-		var away := atan2(y - game.player.y, x - game.player.x)
+		var away := atan2(y - from_y, x - from_x)
 		game.move_actor(
 			self,
 			cos(away) * .10 * minf(3.0, amount / 30.0),
@@ -289,10 +402,21 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 		and kind != "crawler"
 		and hp < max_hp * .22
 		and not fled
+		and by == null
 		and game.rng.random() < .55
 	):
 		fled = true
-		retreat_from(game, game.player.x, game.player.y)
+		if not (tactical() and fetch_help(game)):
+			retreat_from(game, game.player.x, game.player.y)
+	elif (
+		hp > 0.0
+		and by == null
+		and tactical()
+		and hp < max_hp * .75
+		and cover == null
+		and game.rng.random() < .45
+	):
+		take_cover(game)
 	var interrupt := pressure and not champion and pressure_guard == 0.0 and windup > 0.0
 	if interrupt:
 		pressure_guard = 1.75
@@ -300,8 +424,21 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 		game.sound_at("pressure_interrupt", x, y, .76)
 	elif not pressure:
 		stun = .065 if champion else .13
-	if hostile:
+	if by == null and hp > 0.0 and hostile:
+		_react(how, champion, game, from_x, from_y)
+	if champion and hp > 0.0 and not enraged and hp < max_hp * .5:
+		_enrage(game)
+	if hostile and by != null:
+		# Caught by one of its own: it turns on them for a while.
+		if tactical() and by.alive and by != self and alive:
+			grudge = by
+			grudge_until = game.clock + 7.0
+			cover = null
+			fetching = null
+	elif hostile:
+		grudge = null
 		wake(game, game.player.x, game.player.y)
+	if hostile:
 		if (
 			windup > 0.0
 			and not champion
@@ -317,14 +454,15 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 	var burst_kind := "plasma" if PLASMA.has(kind) else "gore"
 	game.burst(x, y, floor_z + z + .56 * height, burst_kind, 4, .9)
 	if hostile:
-		var from := atan2(y - game.player.y, x - game.player.x)
+		var from := atan2(y - from_y, x - from_x)
 		game.gore_fx.spray(
 			x, y, floor_z + z + .56 * height, cos(from), sin(from), amount, burst_kind == "plasma"
 		)
 	var material := (
 		"shell" if SHELL_ACTORS.has(kind) else "tool" if TOOL_ACTORS.has(kind) else "cloth"
 	)
-	game.struck(amount, hostile and not alive, champion)
+	if by == null:
+		game.struck(amount, hostile and not alive, champion)
 	if alive:
 		if hostile and amount >= 14.0 and not was_stunned and not interrupt:
 			game.sound_at(voice_cue("pain", material), x, y, .47)
@@ -338,7 +476,12 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 		and not BOSS_TITLES.has(kind)
 		and kind != "skeeter"
 		and kind != "saucer"
-		and (explosive_hit or struck_sum >= maxf(48.0, max_hp * .7))
+		and (
+			explosive_hit
+			or struck_sum >= maxf(48.0, max_hp * .7)
+			or how == "blade"
+			or how == "ripsaw"
+		)
 	):
 		explosive = true
 		game.gore_fx.burst(self)
@@ -355,6 +498,8 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 	if hostile:
 		var cue := "skeeter_pop" if brain == "skeeter" else voice_cue("down", material)
 		game.sound_at(cue, x, y, .83)
+		if champion:
+			_boss_falls(game, floor_z)
 		game.enemy_down(self)
 	else:
 		game.sound_at("chicken" if brain == "chicken" else "pig", x, y, .9)
@@ -371,6 +516,15 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 func advance(dt: float, game, direction: float, pace := 1.0) -> float:
 	var ox := x
 	var oy := y
+	if soak > 0.0:
+		pace *= 1.0 - .35 * soak
+		if soak > .35 and stun == 0.0 and game.rng.random() < dt * 1.2 * soak:
+			# Down they go in the milk.
+			stun = .6
+			flinch = .35
+			soak = maxf(0.0, soak - .25)
+			game.sound_at("enemy_slip", x, y, .8)
+			return 0.0
 	game.move_actor(
 		self, cos(direction) * speed * dt * pace, sin(direction) * speed * dt * pace, radius
 	)
@@ -470,6 +624,7 @@ func tick(dt: float, game) -> void:
 	pressure_guard = maxf(0.0, pressure_guard - dt)
 	hit_flash = maxf(0.0, hit_flash - dt)
 	flinch = maxf(0.0, flinch - dt)
+	soak = maxf(0.0, soak - dt / 6.0)
 	if volley:
 		volley_timer -= dt
 		if volley_timer <= 0.0:
@@ -518,7 +673,7 @@ func tick(dt: float, game) -> void:
 			angle += PI * .71
 		return
 
-	cooldown -= dt
+	cooldown -= dt * float(game.sharpness)
 	var eye: float = game.world.elevation(x, y) + z + minf(.92, height * .72)
 	see_time -= dt
 	if see_time <= 0.0 or (0.0 < windup and windup <= dt):
@@ -529,6 +684,7 @@ func tick(dt: float, game) -> void:
 		can_see = false
 		player_seen = false
 	var aggro_range := (5.5 if p.crouched else 8.4) + 2.2 * (1.0 if p.gut >= 66 else 0.0)
+	aggro_range += (float(game.sharpness) - 1.0) * 8.0
 	if brain == "skeeter" or brain == "saucer":
 		aggro_range += .9
 	var watching := absf(angle_delta(direction, angle)) < 1.55 or distance < 2.65
@@ -569,6 +725,9 @@ func tick(dt: float, game) -> void:
 			):
 				attack(game, aimed, sqrt(pow(tx - x, 2) + pow(ty - y, 2)), eye, tz)
 				recovery = recovery_time(brain == "baron" and game.relief_open())
+				if RANGED.has(kind) and tactical() and game.rng.random() < .3:
+					# A shot off, then down behind something before the reply.
+					take_cover(game)
 			else:
 				cooldown = .43
 			aim_mark = null
@@ -576,6 +735,12 @@ func tick(dt: float, game) -> void:
 	if stun > 0.0:
 		return
 	if recovery > .17 and (BOSS_TITLES.has(kind) or SIGNATURES.has(kind) or brain == "boilerback"):
+		return
+	if grudge != null and _brawl(dt, game):
+		return
+	if fetching != null and _fetch(dt, game, p):
+		return
+	if cover != null and _hold_cover(dt, game, can_see, direction):
 		return
 	if retreat != null:
 		var rx: float = retreat[0]
@@ -620,7 +785,7 @@ func tick(dt: float, game) -> void:
 			return
 	if not can_see or distance > goal:
 		if sqrt(pow(tx2 - x, 2) + pow(ty2 - y, 2)) > .36:
-			var pace := 1.21 if brain == "boss" and hp < 145.0 else 1.0
+			var pace := 1.21 if brain == "boss" and hp < 145.0 else 1.25 if enraged else 1.0
 			var partner = game.partners.get(get_instance_id()) if can_see else null
 			if (
 				partner != null
@@ -642,8 +807,10 @@ func tick(dt: float, game) -> void:
 				approach += strafe * (.39 if (brain == "skeeter" or brain == "crawler") else .23)
 			elif can_see and not BOSS_TITLES.has(kind):
 				# Swing out to one side while still far off, so a group closes from
-				# more than one direction.
+				# more than one direction, and away from a friend close by.
 				approach += flank * clampf((distance - 2.5) / 5.0, 0.0, 1.0)
+				if tactical() and distance > 2.0:
+					approach += _spread(game) * clampf((distance - 2.0) / 3.0, 0.0, 1.0)
 			follow(dt, game, approach, pace)
 	elif (
 		(brain == "coot" or brain == "skeeter" or brain == "chalk_spitter")
@@ -655,6 +822,133 @@ func tick(dt: float, game) -> void:
 		sidestep(dt, game, direction + strafe, pace2)
 		if TURN_CELS.has(kind):
 			angle = direction + strafe * .29
+
+
+## Half its health gone: a roar, a stagger, then a harder fight.
+func _enrage(game) -> void:
+	enraged = true
+	enraged_at = game.clock
+	stun = maxf(stun, .9)
+	windup = 0.0
+	aim_mark = null
+	cooldown = maxf(cooldown, .9)
+	game.message(String(BOSS_TITLES[kind]) + " IS FIGHTIN' MAD!", 2.6)
+	game.sound_at(("sheriff" if kind == "boss" else kind) + "_rage", x, y, 1.0)
+	game.shake = minf(1.0, game.shake + .6)
+	var floor_z: float = game.world.elevation(x, y)
+	game.burst(x, y, floor_z + height * .7, "spark", 16, 2.2)
+	game.boss_enraged.emit(self)
+
+
+## A boss going down: the world holds its breath, the ground shakes, it hollers.
+func _boss_falls(game, floor_z: float) -> void:
+	game.hitstop = maxf(game.hitstop, .38)
+	game.shake = minf(1.0, game.shake + .9)
+	game.blast_flash = maxf(game.blast_flash, .55)
+	game.sound_at(("sheriff" if kind == "boss" else kind) + "_death", x, y, 1.0)
+	game.burst(x, y, floor_z + height * .6, "spark", 30, 3.2)
+	game.burst(x, y, floor_z + height * .5, "plasma" if PLASMA.has(kind) else "gore", 26, 2.6)
+	if game.barks.enabled:
+		game.callout = "BOSS DOWN!"
+		game.callout_until = game.clock + 2.2
+
+
+## How the gun that hit it moves it (REACTIONS), and the teat gun's soaking.
+func _react(how: String, champion: bool, game, from_x: float, from_y: float) -> void:
+	if how == "teat_gun":
+		soak = minf(1.0, soak + (.04 if champion else .14))
+		return
+	var r: Array = REACTIONS.get(how, [])
+	if r.is_empty():
+		return
+	var scale := .25 if champion else 1.0
+	var shove: float = float(r[0]) * scale
+	if shove > 0.0:
+		var away := atan2(y - from_y, x - from_x)
+		game.move_actor(self, cos(away) * shove, sin(away) * shove, radius)
+	var held: float = float(r[1]) * scale
+	if how == "shotgun" and struck_sum >= 36.0:
+		held = .32 * scale
+	stun = maxf(stun, minf(held, .1) if champion else held)
+	flinch = maxf(flinch, float(r[2]) * scale)
+
+
+## A brawl with one of its own: close in and swing until one drops or it cools off.
+func _brawl(dt: float, game) -> bool:
+	if not grudge.alive or game.clock > grudge_until:
+		grudge = null
+		return false
+	var gap := sqrt(pow(grudge.x - x, 2) + pow(grudge.y - y, 2))
+	var heading := atan2(grudge.y - y, grudge.x - x)
+	if gap > radius + grudge.radius + .25:
+		follow(dt, game, heading, 1.08)
+		return true
+	angle = heading
+	face_left = cos(heading) < 0.0
+	if cooldown <= 0.0:
+		cooldown = game.rng.uniform(.75, 1.15)
+		game.sound_at("brawl_punch", x, y, .8)
+		grudge.hurt(game.rng.uniform(8.0, 13.0), game, false, false, self)
+	return true
+
+
+## Running for a friend: once close, it hollers and both come back for the player.
+func _fetch(dt: float, game, p) -> bool:
+	if not fetching.alive or fetching.alerted or game.clock > fetch_until:
+		fetching = null
+		return false
+	var gap := sqrt(pow(fetching.x - x, 2) + pow(fetching.y - y, 2))
+	if gap < 2.4 or game.world.visible(x, y, fetching.x, fetching.y) and gap < 4.0:
+		var friend := fetching
+		fetching = null
+		friend.wake(game, p.x, p.y)
+		game.sound_at(String(AWAKE.get(kind, "billy_alert")), x, y, .85)
+		hunt_until = game.clock + 9.0
+		return false
+	follow(dt, game, atan2(fetching.y - y, fetching.x - x), 1.12)
+	return true
+
+
+## Ducked out of sight: get there, keep low a moment, then come back out.
+func _hold_cover(dt: float, game, can_see: bool, direction: float) -> bool:
+	if game.clock > float(cover[2]):
+		cover = null
+		return false
+	var cx: float = cover[0]
+	var cy: float = cover[1]
+	var gap := sqrt(pow(cx - x, 2) + pow(cy - y, 2))
+	if gap > .25:
+		follow(dt, game, atan2(cy - y, cx - x), 1.1)
+		return true
+	if can_see:
+		# The player came round: no use hiding here.
+		cover = null
+		return false
+	angle = direction
+	return true
+
+
+## Which way to swing out so as not to close in on a friend's heels: toward
+## the side away from the nearest friend also coming in (0: no one close).
+func _spread(game) -> float:
+	if game.clock < spread_next:
+		return spread
+	spread_next = game.clock + .3
+	spread = 0.0
+	var p = game.player
+	var best := 2.2
+	for other: Enemy in game.enemies:
+		if other == self or not other.alive or not other.alerted or not other.hostile:
+			continue
+		var d := sqrt(pow(other.x - x, 2) + pow(other.y - y, 2))
+		if d < best:
+			best = d
+			var ax: float = x - p.x
+			var ay: float = y - p.y
+			var bx: float = other.x - p.x
+			var by: float = other.y - p.y
+			spread = .55 if ax * by - ay * bx > 0.0 else -.55
+	return spread
 
 
 func attack(game, direction: float, distance: float, eye: float, aim_z = null) -> void:
@@ -707,9 +1001,27 @@ func attack(game, direction: float, distance: float, eye: float, aim_z = null) -
 	game.burst(x + cos(direction) * radius, y + sin(direction) * radius, eye, "spark", 3, 1.2)
 	var p2 = game.player
 	var miss := absf(angle_delta(atan2(p2.y - y, p2.x - x), direction))
-	var spread := .23 if brain == "billy" else .11 if brain == "coot" else .15
-	chance *= (.79 if p2.crouched else 1.0) * maxf(0.0, 1.0 - miss / spread * .60)
-	if miss < spread and game.rng.random() < chance:
+	var fan := .23 if brain == "billy" else .11 if brain == "coot" else .15
+	# One of their own between them and the player takes it instead.
+	var in_way: Enemy = null
+	var nearest := distance
+	for other: Enemy in game.enemies:
+		if other == self or not other.alive or not other.hostile:
+			continue
+		var ox: float = other.x - x
+		var oy: float = other.y - y
+		var along := ox * cos(direction) + oy * sin(direction)
+		if along > .3 and along < nearest:
+			if absf(ox * sin(direction) - oy * cos(direction)) < other.radius + .06:
+				nearest = along
+				in_way = other
+	if in_way != null:
+		if game.rng.random() < maxf(.35, chance):
+			in_way.hurt(float(damage), game, false, false, self)
+		return
+	chance *= (.79 if p2.crouched else 1.0) * maxf(0.0, 1.0 - miss / fan * .60)
+	chance = minf(.97, chance * float(game.sharpness))
+	if miss < fan and game.rng.random() < chance:
 		game.damage(damage, [x, y], "FIRE")
 
 
@@ -777,12 +1089,12 @@ func special_attack(game, direction: float, distance: float, eye: float, aim_z) 
 		cooldown = 1.88
 		game.sound_at("chalk_spit", x, y)
 	elif brain == "rudy":
-		volley = 5
+		volley = 8 if enraged else 5
 		volley_timer = .02
 		volley_angle = direction if attacks % 2 else direction + .095
 		var aim_target: float = p.eye if aim_z == null else float(aim_z)
 		volley_slope = (aim_target - eye) * 6.8 / maxf(1.0, distance)
-		cooldown = 1.42 if attacks % 2 else 1.73
+		cooldown = (1.42 if attacks % 2 else 1.73) * (.8 if enraged else 1.0)
 		game.sound_at("rudy_horn", x, y)
 	elif brain == "foreman":
 		for lane: Array in saw_lanes(direction):
@@ -799,16 +1111,16 @@ func special_attack(game, direction: float, distance: float, eye: float, aim_z) 
 					13,
 					1.38
 				)
-		cooldown = 1.69
+		cooldown = 1.69 * (.85 if enraged else 1.0)
 		game.sound_at("foreman_cut", x, y)
-	elif brain == "baron" and attacks % 2 == 1:
+	elif brain == "baron" and (attacks % 2 == 1 or enraged):
 		var ports = game.pressure_ports(attacks - 1)
 		var relieved: bool = game.relief_open()
 		# pressure_ports() hands back the level's Vector2 points, not [x, y] pairs.
 		for point: Vector2 in ports:
 			game.add_hazard("steam", point.x, point.y, .94, .69, 1.08 if relieved else 1.35, 15)
 			game.sound_at("pressure_vent", point.x, point.y, .76)
-		cooldown = 1.95 if relieved else 1.58
+		cooldown = (1.95 if relieved else 1.58) * (.8 if enraged else 1.0)
 	else:
 		var rad := 4.45 if brain == "boilerback" else 5.45
 		for spread: float in [-.23, 0.0, .23]:
@@ -833,6 +1145,9 @@ func saw_lanes(direction: float, attack = null) -> Array:
 	var side_y := cos(direction)
 	var index := attacks if attack == null else int(attack)
 	var nudges: Array = [-.85, .85] if index % 2 == 0 else [-.70, 0.0, .70]
+	if enraged:
+		# Fightin' mad: the gap closes and the outside lanes come in.
+		nudges = [-1.4, -.70, 0.0, .70, 1.4] if index % 2 else [-1.25, -.42, .42, 1.25]
 	var out: Array = []
 	for nudge: float in nudges:
 		out.append([x + side_x * nudge, y + side_y * nudge, direction])
@@ -888,7 +1203,19 @@ func fire_projectiles(game, direction: float, distance: float, eye: float, aim_z
 		var t := maxf(.12, distance / speed2)
 		var aim_target: float = game.player.eye if aim_z == null else float(aim_z)
 		var lift := (aim_target - eye) / t + (1.2 * t if football else 0.0)
-		game.launch(x + dx, y + dy, eye, theta, speed2, kind_name, lift, true, damage)
+		game.launch(
+			x + dx,
+			y + dy,
+			eye,
+			theta,
+			speed2,
+			kind_name,
+			lift,
+			true,
+			damage,
+			-1.0,
+			get_instance_id()
+		)
 	var cue: String = (
 		{
 			"jerry": "football_throw",

@@ -558,6 +558,8 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 					var phase: String = (
 						tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
 					)
+					if boss.enraged and clock - boss.enraged_at < 1.6:
+						phase = "FIGHTIN' MAD"
 					HUD.panel(
 						c,
 						193,
@@ -1039,7 +1041,7 @@ func automap(c: Canvas) -> void:
 	)
 	HUD.text(
 		c,
-		tally + "   /   PGUP PGDN ZOOM   /   TAB CLOSE",
+		tally + ("   /   TAP TO ZOOM" if touch_aim else "   /   PGUP PGDN ZOOM   /   TAB CLOSE"),
 		160,
 		MAP_Y + MAP_H + 15,
 		"body",

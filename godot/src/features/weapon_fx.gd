@@ -310,6 +310,8 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 
 func _tick(dt: float) -> void:
 	_follow_shots()
+	_soaked(dt)
+	_bosses()
 	var kept: Array = []
 	for bit: Bit in bits:
 		bit.age += dt
@@ -382,6 +384,68 @@ func _tick(dt: float) -> void:
 		squirts.pop_front()
 	while not puddles.is_empty() and game.clock - float(puddles[0][6]) > PUDDLE_LIFE:
 		puddles.pop_front()
+
+
+var _drip_next := 0.0
+var _boss_next := 0.0
+
+
+## A boss fightin' mad gives off its own: the sheriff green sparks, Jerry
+## steam off his head, Rudy fireworks, the foreman sawdust and sparks, the
+## baron steam from his pipes. A fallen boss smoulders a while.
+func _bosses() -> void:
+	if game.clock < _boss_next:
+		return
+	_boss_next = game.clock + .09
+	var p = game.player
+	for e: Enemy in game.enemies:
+		if not Enemy.BOSS_TITLES.has(e.kind):
+			continue
+		if absf(e.x - p.x) > 14.0 or absf(e.y - p.y) > 14.0:
+			continue
+		var floor_z: float = game.world.elevation(e.x, e.y)
+		var top := Vector3(e.x, e.y, floor_z + e.z + e.height * .9)
+		if not e.alive:
+			if e.died_at >= 0.0 and game.clock - e.died_at < 6.0 and dice.randf() < .5:
+				var smoke := _bit(
+					"smoke", top - Vector3(0, 0, e.height * .5), Vector3(0, 0, .35), 1.4, .2
+				)
+				smoke.grow = .5
+			continue
+		if not e.enraged:
+			continue
+		match e.brain:
+			"boss":
+				var mote := _bit("mote", top, _scatter(.8, .6), .5, .045)
+				mote.gravity = -.5
+			"jerry", "baron":
+				var steam := _bit("steam", top, _scatter(.3, .5), .7, .14)
+				steam.grow = .6
+			"rudy":
+				_bit("spark", top, _scatter(1.6, 1.6), .45, .03, 4.0)
+			"foreman":
+				_bit("chip", top, _scatter(1.0, 1.0), .6, .04, 6.0)
+				_bit("spark", top - Vector3(0, 0, .3), _scatter(1.2, .8), .3, .03, 6.0)
+
+
+## Milk dripping off whoever the teat gun soaked.
+func _soaked(_dt: float) -> void:
+	if game.clock < _drip_next:
+		return
+	_drip_next = game.clock + .12
+	var p = game.player
+	for e: Enemy in game.enemies:
+		if e.soak < .12 or not e.alive or absf(e.x - p.x) > 10.0 or absf(e.y - p.y) > 10.0:
+			continue
+		if dice.randf() > e.soak:
+			continue
+		var floor_z: float = game.world.elevation(e.x, e.y)
+		var at := Vector3(
+			e.x + dice.randf_range(-.15, .15),
+			e.y + dice.randf_range(-.15, .15),
+			floor_z + e.z + e.height * dice.randf_range(.3, .8)
+		)
+		_bit("drip", at, _scatter(.2, 0.0), .5, .03, 7.0)
 
 
 ## What the player's shots shed as they fly.

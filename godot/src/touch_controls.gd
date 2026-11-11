@@ -34,9 +34,10 @@ const LABELS := {
 	"rinds": "RIND",
 	"beer": "BEER",
 	"shine": "SHINE",
+	"map": "MAP",
 }
 ## One-shot roles: a press counts once, however long the finger rests there.
-const TAPPED := ["use", "next", "menu", "rinds", "beer", "shine"]
+const TAPPED := ["use", "next", "menu", "rinds", "beer", "shine", "map"]
 ## TOUCH BUTTONS: MY LAYOUT puts the stick and buttons where the player
 ## dragged them (MOVE THEM), kept as parts of the overlay's width and height.
 const LAYOUT_FILE := "user://touch-layout.json"
@@ -108,6 +109,7 @@ func layout(rect: Rect2, again := false) -> void:
 		["rinds", _place("rinds", Vector2(.58, .10)), tiny],
 		["beer", _place("beer", Vector2(.67, .10)), tiny],
 		["shine", _place("shine", Vector2(.76, .10)), tiny],
+		["map", _place("map", Vector2(.85, .10)), tiny],
 	]
 	_done_rect = Rect2(rect.position + Vector2(w * .30, h * .40), Vector2(w * .18, h * .12))
 	_reset_rect = Rect2(rect.position + Vector2(w * .52, h * .40), Vector2(w * .18, h * .12))

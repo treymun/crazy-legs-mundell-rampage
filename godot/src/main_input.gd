@@ -626,12 +626,17 @@ func _touch_actions() -> void:
 	for pair: Array in [["rinds", KEY_C], ["beer", KEY_B], ["shine", KEY_M]]:
 		if touch.consume(String(pair[0])) and state == "play":
 			key(int(pair[1]))
+	if touch.consume("map"):
+		game.map = not game.map
 	# With CROUCH set to TOGGLE the DUCK button flips the latch, like the Z key.
 	if int(options["crouch"]) != 0 and touch.crouch and not duck_held:
 		crouch_latched = not crouch_latched
 	duck_held = touch.crouch
 	var tapped = touch.consume_tap()
-	if (
+	if tapped != null and state == "play" and game != null and game.map:
+		# A tap on the open map steps the zoom in, then back out to the whole level.
+		game.map_zoom = (game.map_zoom + 1) % 4
+	elif (
 		tapped != null
 		and state == "play"
 		and game != null

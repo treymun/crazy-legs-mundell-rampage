@@ -46,6 +46,17 @@ func _run() -> void:
 				failed = true
 			else:
 				print("track      %-22s %.2f s, ends %.2f" % [stem, ogg.get_length(), cut])
+	# Each chapter's fight loop opens, from that chapter's own music file.
+	for bank: String in Sound.FIGHTS:
+		var stem: String = Sound.FIGHTS[bank]
+		var ogg := assets.track(stem)
+		var home := String(assets.music_index.get(stem, {}).get("file", ""))
+		var chapter := String(assets.music_index.get(Sound.SCORES[bank][0], {}).get("file", ""))
+		if ogg == null or ogg.get_length() < 20.0 or home != chapter:
+			print("fight loop ", stem, " FAILED (", home, ")")
+			failed = true
+		else:
+			print("fight loop %-18s %.2f s, in %s" % [stem, ogg.get_length(), home])
 	for stem: String in ["title", "victory"]:
 		var jingle := assets.jingle(stem)
 		print("%-10s " % stem, "ok %.2f s" % jingle.get_length() if jingle != null else "FAILED")

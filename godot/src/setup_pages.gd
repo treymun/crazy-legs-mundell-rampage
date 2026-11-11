@@ -182,8 +182,8 @@ static func build() -> Array:
 					"DIFFICULTY",
 					"difficulty",
 					1,
-					["EASY", "NORMAL", "HARD"],
-					"ADJUSTS INCOMING DAMAGE IN THE CURRENT RUN"
+					["EASY", "NORMAL", "HARD", "HOG WILD"],
+					"HARD: SHARPER HANDS, A BIGGER POSSE, LESS AMMO. HOG WILD: ALL THAT AND MORE."
 				),
 				SessionStore.choices(
 					"AIM ASSIST",
