@@ -12,7 +12,7 @@ extends RefCounted
 ## step to save_upgrade.gd that turns a save of the version before into this
 ## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
 ## keeps real saves of each version (tools/saves/) and checks they still do.
-const VERSION := 6
+const VERSION := 7
 const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"
@@ -372,6 +372,7 @@ static func snapshot(game: Game) -> Dictionary:
 	return {
 		"version": VERSION,
 		"level": game.level.id,
+		"layout": game.level.layout,
 		"game": _selected(game, GAME_FIELDS),
 		"player": _selected(game.player, PLAYER_FIELDS),
 		"armory": _selected(game.armory, ARM_FIELDS),
@@ -844,6 +845,15 @@ static func read(
 			if String(chapter_doc.get("level", "")) != String(key):
 				return _fail_at(678)
 			var chapter := restore(chapter_doc, make_game, false)
+			if chapter != null and chapter.layout_restarted:
+				# A finished chapter whose level has been rebuilt since: it
+				# stays finished, its new map cleared.
+				var finished = chapter_doc.get("game", {}).get("won", false)
+				chapter.won = finished is bool and finished
+				for enemy: Enemy in chapter.enemies:
+					if enemy.hostile:
+						enemy.hp = 0.0
+				chapter.kills = chapter.total_kills
 			if chapter == null or not chapter.won:
 				return _fail_at(681)
 			game.retained[String(key)] = chapter
@@ -858,6 +868,8 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 	if game == null or game.level.id != level_id:
 		return _fail_at(692)
 	var w := game.world
+	if int(doc.get("layout", 1)) != game.level.layout:
+		return _restart(doc, game, expected_replay)
 	if not _restore_fields(game, doc.get("game", {}), GAME_FIELDS):
 		return _fail_at(695)
 	var reward = doc.get("county_gallery", false)
@@ -873,17 +885,8 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 	game.supply_rule = supplies
 	if not _restore_fields(game.player, doc.get("player", {}), PLAYER_FIELDS):
 		return _fail_at(708)
-	var armory_doc = doc.get("armory", {})
-	if armory_doc is Dictionary:
-		armory_doc = armory_doc.duplicate(true)
-		for key in ["owned", "loaded", "reserve"]:
-			var saved = armory_doc.get(key)
-			if saved is Array and saved.size() < Weapons.COUNT:
-				# Saved before a gun was added: the new ones start empty.
-				for k in Weapons.COUNT - saved.size():
-					saved.append(false if key == "owned" else 0)
-	if not _restore_fields(game.armory, armory_doc, ARM_FIELDS):
-		return _fail_at(710)
+	if not _restore_armory(game, doc):
+		return null
 	if game.clock < 0.0 or game.player.health <= 0 or game.player.health > 100:
 		return _fail_at(712)
 	if game.inventory_slot < 0 or game.inventory_slot >= HUD.ITEMS.size():
@@ -896,16 +899,129 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 		return _fail_at(720)
 	if game.secrets < 0 or game.secrets > game.total_secrets:
 		return _fail_at(722)
+	if not _check_armory(game):
+		return null
+	return _restore_rest(doc, game, expected_replay)
+
+
+## The guns as saved: a save from before a gun existed has it empty.
+static func _restore_armory(game: Game, doc: Dictionary) -> bool:
+	var armory_doc = doc.get("armory", {})
+	if armory_doc is Dictionary:
+		armory_doc = armory_doc.duplicate(true)
+		for key in ["owned", "loaded", "reserve"]:
+			var saved = armory_doc.get(key)
+			if saved is Array and saved.size() < Weapons.COUNT:
+				# Saved before a gun was added: the new ones start empty.
+				for k in Weapons.COUNT - saved.size():
+					saved.append(false if key == "owned" else 0)
+	if not _restore_fields(game.armory, armory_doc, ARM_FIELDS):
+		_fail_at(710)
+		return false
+	return true
+
+
+static func _check_armory(game: Game) -> bool:
 	if game.armory.active < 0 or game.armory.active >= Weapons.COUNT:
-		return _fail_at(724)
+		_fail_at(724)
+		return false
 	if not game.armory.owned[game.armory.active]:
-		return _fail_at(726)
+		_fail_at(726)
+		return false
 	for i in Weapons.COUNT:
 		if game.armory.loaded[i] < 0 or game.armory.loaded[i] > Weapons.SAVED_CAPACITY[i]:
-			return _fail_at(729)
+			_fail_at(729)
+			return false
 		if game.armory.reserve[i] < 0 or game.armory.reserve[i] > Weapons.MAX_RESERVE[i]:
-			return _fail_at(731)
+			_fail_at(731)
+			return false
+	return true
 
+
+## A save of a level that has been rebuilt since (its layout is older): the
+## chapter starts over on the new map, with the guns, ammunition, health and
+## pockets as saved and the campaign so far. Keys and the map's state go.
+static func _restart(doc: Dictionary, game: Game, expected_replay) -> Game:
+	var supplies := int(doc.get("county_supplies", 0))
+	if supplies < 0 or supplies > 2:
+		return _fail_at(705)
+	game.supply_rule = supplies
+	var health = doc.get("player", {}).get("health")
+	if not _number(health) or int(health) <= 0 or int(health) > 100:
+		return _fail_at(712)
+	game.player.health = int(health)
+	if not _restore_armory(game, doc) or not _check_armory(game):
+		return null
+	if not _restore_campaign(doc, game, expected_replay):
+		return null
+	if not _restore_inventory(doc, game):
+		return null
+	var slot = doc.get("game", {}).get("inventory_slot", 0)
+	game.inventory_slot = clampi(int(slot) if _number(slot) else 0, 0, HUD.ITEMS.size() - 1)
+	game.music_bookmark = null
+	game.layout_restarted = true
+	game.message("%s HAS BEEN REBUILT. THE CHAPTER STARTS OVER." % game.level.title, 5.0)
+	game.configure({})
+	return game
+
+
+static func _restore_campaign(doc: Dictionary, game: Game, expected_replay) -> bool:
+	var campaign: Dictionary = doc.get("campaign", {})
+	if typeof(campaign.get("replay", false)) != TYPE_BOOL:
+		_fail_at(813)
+		return false
+	game.replay = campaign["replay"]
+	if expected_replay != null and game.replay != bool(expected_replay):
+		_fail_at(816)
+		return false
+	if not _validate_kit(campaign.get("entry")):
+		game.entry = _normalise_kit(campaign.get("entry"))
+		if game.entry.is_empty():
+			_fail_at(820)
+			return false
+	else:
+		game.entry = _normalise_kit(campaign["entry"])
+	var history = campaign.get("history", [])
+	if not (history is Array):
+		_fail_at(825)
+		return false
+	var expected_history := 0 if game.replay else Campaign.ORDER.find(game.level.id)
+	if history.size() != expected_history:
+		_fail_at(828)
+		return false
+	var clean_history: Array = []
+	for row in history:
+		if not (row is Array) or row.size() != 6:
+			_fail_at(832)
+			return false
+		var clean: Array = [String(row[0])]
+		for k in range(1, 6):
+			clean.append(int(row[k]))
+		clean_history.append(clean)
+	game.history = clean_history
+	return true
+
+
+static func _restore_inventory(doc: Dictionary, game: Game) -> bool:
+	var inventory = doc.get("inventory", {})
+	if not (inventory is Dictionary) or inventory.size() != HUD.ITEMS.size():
+		_fail_at(899)
+		return false
+	game.inventory = {}
+	for name in HUD.ITEMS:
+		if not inventory.has(name):
+			_fail_at(903)
+			return false
+		var amount := int(inventory[name])
+		if amount < 0 or amount > 5:
+			_fail_at(906)
+			return false
+		game.inventory[name] = amount
+	return true
+
+
+static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
+	var w := game.world
 	# doors
 	var doors_doc = doc.get("doors", {})
 	if not (doors_doc is Dictionary):
@@ -913,11 +1029,14 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 	var expected_doors := {}
 	for door: LevelData.Door in w.doors:
 		expected_doors[_door_key(door)] = door
+	# Doors or enemies that no longer match the level's: it was changed since
+	# without a new layout number. The chapter starts over rather than the save
+	# being lost.
 	if doors_doc.size() != expected_doors.size():
-		return _fail_at(741)
+		return _restart(doc, game, expected_replay)
 	for key in doors_doc:
 		if not expected_doors.has(key):
-			return _fail_at(744)
+			return _restart(doc, game, expected_replay)
 		var door: LevelData.Door = expected_doors[key]
 		if not _restore_fields(door, doors_doc[key], DOOR_FIELDS):
 			return _fail_at(747)
@@ -930,13 +1049,13 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 	if not (enemies_doc is Dictionary) or not (ai_doc is Dictionary):
 		return _fail_at(755)
 	if enemies_doc.size() != game.enemies.size() or ai_doc.size() != game.enemies.size():
-		return _fail_at(757)
+		return _restart(doc, game, expected_replay)
 	var seen := {}
 	for i in game.enemy_ids.size():
 		var key := String(game.enemy_ids[i])
 		var enemy: Enemy = game.enemies[i]
 		if not enemies_doc.has(key) or not ai_doc.has(key):
-			return _fail_at(763)
+			return _restart(doc, game, expected_replay)
 		seen[key] = true
 		if not _restore_fields(enemy, enemies_doc[key], ENEMY_FIELDS):
 			return _fail_at(766)
@@ -994,33 +1113,8 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 			return _fail_at(809)
 
 	# campaign
-	var campaign: Dictionary = doc.get("campaign", {})
-	if typeof(campaign.get("replay", false)) != TYPE_BOOL:
-		return _fail_at(813)
-	game.replay = campaign["replay"]
-	if expected_replay != null and game.replay != bool(expected_replay):
-		return _fail_at(816)
-	if not _validate_kit(campaign.get("entry")):
-		game.entry = _normalise_kit(campaign.get("entry"))
-		if game.entry.is_empty():
-			return _fail_at(820)
-	else:
-		game.entry = _normalise_kit(campaign["entry"])
-	var history = campaign.get("history", [])
-	if not (history is Array):
-		return _fail_at(825)
-	var expected_history := 0 if game.replay else Campaign.ORDER.find(game.level.id)
-	if history.size() != expected_history:
-		return _fail_at(828)
-	var clean_history: Array = []
-	for row in history:
-		if not (row is Array) or row.size() != 6:
-			return _fail_at(832)
-		var clean: Array = [String(row[0])]
-		for k in range(1, 6):
-			clean.append(int(row[k]))
-		clean_history.append(clean)
-	game.history = clean_history
+	if not _restore_campaign(doc, game, expected_replay):
+		return null
 
 	# The features (src/features/) each take back their own state, or start
 	# afresh when the save has none for them.
@@ -1095,17 +1189,8 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 			if not _valid_position(w, obj.x, obj.y):
 				return _fail_at(895)
 
-	var inventory = doc.get("inventory", {})
-	if not (inventory is Dictionary) or inventory.size() != HUD.ITEMS.size():
-		return _fail_at(899)
-	game.inventory = {}
-	for name in HUD.ITEMS:
-		if not inventory.has(name):
-			return _fail_at(903)
-		var amount := int(inventory[name])
-		if amount < 0 or amount > 5:
-			return _fail_at(906)
-		game.inventory[name] = amount
+	if not _restore_inventory(doc, game):
+		return null
 
 	var key_rows = doc.get("keys", [])
 	if not (key_rows is Array):

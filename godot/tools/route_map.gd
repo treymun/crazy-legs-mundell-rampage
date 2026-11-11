@@ -10,6 +10,7 @@
 ## Prints each leg's length and writes <out dir>/route_<level>.png: walls dark,
 ## the route from yellow (walked once) to red (walked three or more times),
 ## stations white, the start green, the exit blue, long legs magenta.
+## Hickston has no exit: its legs are the keys, the sheriff, Jerry and Bessie.
 extends SceneTree
 
 const SCALE := 6
@@ -68,6 +69,16 @@ func _route(level: LevelData, out_dir: String) -> void:
 		if shutdown != null:
 			stops.append([shutdown.id, Vector2(shutdown.x, shutdown.y)])
 		stops.append(["exit", Vector2(exit.x, exit.y)])
+	elif level.rescue:
+		# Hickston: the brass key, the steel key, the sheriff, Jerry, Bessie.
+		for key in ["key_brass", "key_steel"]:
+			for pickup in level.pickups:
+				if String(pickup[0]) == key:
+					stops.append([key, Vector2(float(pickup[1]), float(pickup[2]))])
+		for kind in ["boss", "jerry", "bessie"]:
+			for enemy in level.enemies:
+				if String(enemy["kind"]) == kind:
+					stops.append([kind, Vector2(float(enemy["x"]), float(enemy["y"]))])
 	else:
 		for station: LevelData.Station in level.stations:
 			stops.append([station.id, Vector2(station.x, station.y)])

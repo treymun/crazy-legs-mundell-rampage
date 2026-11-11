@@ -32,7 +32,8 @@ are made by the Godot art tools in `godot/tools/art/` (with Blender for the
 | `godot/tools/` | Headless checks and tools (excluded from exports) |
 | `godot/data/tuning/` | Weapon, enemy, shot and effect definitions and numbers (`weapons.cfg`, `enemies.cfg`, `shots.cfg`, `effects.cfg`): fire rates, damage, reloads, how each gun fires (hitscan, pellets, projectile, melee), sits in view and sounds; enemy health, speed, reach, voice, boss title and drops; each shot's fall, size, glow and blast; lights and glows. The guns are weapons.cfg's sections in order: a new one goes at the end (section plus art). A new enemy can be a section with `brain=<kind>` (it acts as that kind) plus its art. Edit these, not the scripts; a running game from the project folder reloads them within a second |
 | `godot/assets_gen/` | Packed art, sound and levels. Generated, not committed |
-| `godot/tools/art/` | The art builders (GDScript, run like the other tools): `build_fx_art`, `build_gore_art`, `build_menu_art`, `build_building_tiles`, and `build_enemy_actors` / `build_weapon_views`, which run Blender and then shrink, grade and digitize its renders; `paint.gd` is their drawing library. Each takes `out=<dir>` to write somewhere else for a comparison. Their pictures have the old Python builders' look, not their exact bytes |
+| `godot/tools/levels/` | The level builder: `level_builder.gd` (yards, rooms, buildings, fences, doors, fixtures, signs, actors; works out the walls, skins rooms, bands building fronts, checks the plan) with its kit (gates, lamps, poles, booths, trailers, stations, `town()` props, `clutter()` that never closes a way, `lamp_grid()`, rock risers per floor) and each level's plan: `hickston_plan.gd` (+ `hickston_cast.gd`), `fair_plan.gd`, `sawmill_plan.gd`, `quarry_plan.gd`, `hub_plan.gd` (the Crossroads). `fill_empty()` puts each district's own things wherever nothing is within a few cells, and `build_level.gd` prints how much open ground is still empty (red on its map picture). `build_level.gd -- <id> map=<png>` writes `data/<id>.json` and a top-down picture, and stops on problems: a thing in a wall or furniture, furniture cutting a path, a picture missing, anything the start cannot walk to |
+| `godot/tools/art/` | The art builders (GDScript, run like the other tools): `build_fx_art`, `build_gore_art`, `build_menu_art`, `build_building_tiles`, `build_town_signs` (Hickston's painted signs and the corn tile), `build_town_props` (runs `scripts/blender/town_props.py` and `props_more.py`: every chapter's modelled props, `town_<name>`, their sizes in `assets/art/town_props.json` for the level builder's `town()`), and `build_enemy_actors` / `build_weapon_views`, which run Blender and then shrink, grade and digitize its renders; `paint.gd` is their drawing library. Each takes `out=<dir>` to write somewhere else for a comparison. Their pictures have the old Python builders' look, not their exact bytes |
 | `scripts/` | Python: the sound (`audio_*`: ElevenLabs, budget ledger, mastering), the landing page's pictures (`build_site_assets.py`), and the Blender scripts (`blender/`, run inside Blender's own Python) |
 | `site/` | The landing page; the browser builds deploy under `play/` and `play/lite/` |
 | `.github/workflows/release.yml` | Checks and the shader-view comparison on every push; the four builds, the release and the site on `main`, `v*` tags or a run started by hand (packs are cached until an asset changes) |
@@ -53,6 +54,7 @@ godot --headless --path godot --script res://tools/pack_assets.gd   # rebuild go
 # Art (then pack_assets): see godot/tools/art/
 godot --headless --path godot --script res://tools/art/build_fx_art.gd       # also gore, menu, building tiles
 godot --headless --path godot --script res://tools/art/build_enemy_actors.gd -- kinds=billy no-render   # weapon views likewise
+godot --headless --path godot --script res://tools/art/build_town_props.gd -- names=outhouse,still   # Blender; no-render reuses
 godot --headless --path godot --import        # after adding a class_name script
 
 # Checks (all run in CI too). One command runs them all at once, each in
@@ -82,6 +84,12 @@ godot --path godot --audio-driver Dummy --resolution 1280x800 -- \
   --view-tour=res://tools/picture_views.json --view-out=<dir>
 godot --headless --path godot --script res://tools/compare_views.gd -- <dir>   # shader view (no lights) against software view
 godot --headless --path godot --script res://tools/compare_views.gd -- <dir> refs   # shader view against tools/pictures_gpu (update: rewrite them)
+
+# Levels built from a plan (all four chapters): change the plan and rebuild; an edit to
+# its JSON is lost at the next build. Bump the plan's "layout" when the map
+# changes so old saves of it start the chapter over (see below).
+godot --headless --path godot --script res://tools/levels/build_level.gd -- fair map=<png>   # hickston, fair, sawmill, quarry
+godot --headless --path godot --script res://tools/first_minutes.gd -- hickston whole   # bot plays it to the end (god mode)
 
 # Levels: godot/data/<id>.json is the source. Change one in the Godot editor's
 # Levels screen (addons/clmr_levels: paint walls, floors, enemies, pickups and
@@ -144,6 +152,31 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
 - **Benchmarks are noisy.** The owner's own copy of the game, Steam and other
   apps often run on this PC. Compare old and new back to back, never against
   a number from earlier.
+- **The Crossroads is `data/hub.json`** (`hub_plan.gd`), its own level (the hub
+  game is `make_game("hub")`): its gates, clues, dispatch board (`hub_board`),
+  start (`spawn`) and map window come from the file, not from code.
+- **Levels have a `layout` number.** A save records it (save version 7); a save
+  of an older layout of its level loads at that chapter's start with its guns,
+  rounds, health and pockets (`session_store.gd _restart`), and a finished
+  chapter of an older layout stays finished. Rebuilding a level's map means
+  bumping its plan's `layout`, then `save_fixtures.gd -- make` and fixing the
+  old fixtures' expected positions in `tools/saves/expected.json`. A save whose
+  doors or enemies no longer match its level (changed without a new layout)
+  restarts the chapter too, rather than failing to load.
+- **Paths are planned cell to cell** (`flow_field.gd`: a cell is open when a body
+  fits at its middle). A thin fixture across the line between two open cells
+  traps the objective pin and the enemies alike: stand small pieces in a cell's
+  middle and posts on its corners (`build_level.gd` reports any that cut).
+- **Ledges a step won't climb** (more than .245 up) take a jump (about .6);
+  the pin and the enemies plan paths without heights, so keep a ramp beside
+  any drop on the way. `first_minutes.gd -- <id> whole` hops when stuck and
+  shoots a station that is struck (the mill's belt).
+- **The objective pin** leads to a station's carried item first while it lies
+  somewhere (the fair's PA patch lead). The fair's tin rooster booth is where
+  its level puts it (`gallery` in the JSON: the stand; targets 3.58 east).
+- **Wall runs merge when a level loads** (`LevelData._merge_runs`): straight runs
+  of one repeating material become one piece for the renderer, whose cost goes
+  with the pieces in view. Files keep a piece per cell for the editors.
 - **Saves are versioned.** Changing what a save holds means bumping
   `SessionStore.VERSION`, adding the step from the old version in
   `src/save_upgrade.gd`, and running `tools/save_fixtures.gd -- make` to add

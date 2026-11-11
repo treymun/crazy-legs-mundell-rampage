@@ -254,6 +254,22 @@ var hidden_rooms: Array = []
 var map_labels: Array = []
 var objective_side_tasks: Array = []
 var control_name := ""
+## Things to use that are not stations: [name, x, y] ("jukebox" plays the
+## radio there, "sink").
+var devices: Array = []
+## District -> the room sound it has ("creek", "barn"); levels that say
+## nothing get the old town's (creek 9, barn 4).
+var area_sounds := {9: "creek", 4: "barn"}
+## District -> the far-off cue heard now and then outdoors there.
+var area_cues := {}
+## Bumped when a level is rebuilt: a save of an older layout restarts it.
+var layout := 1
+## The fair's shooting booth: where its stand is (null: where it always was).
+var gallery_stand = null
+## The Crossroads: where its dispatch board stands (the trunk tag and the dust
+## follow it) and the part of it the map shows [x, y, w, h].
+var hub_board := Vector2(30.36, 44.13)
+var map_window: Array = []
 
 
 static func load_level(level_id: String, assets: Assets) -> LevelData:
@@ -307,6 +323,9 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		var o := i * WALL_STRIDE
 		for k in WALL_STRIDE:
 			lv.walls[o + k] = float(row[k])
+
+	if not bool(j.get("hub_split", false)):
+		lv._merge_runs()
 
 	for d in j.get("doors", []):
 		var door := Door.new()
@@ -410,6 +429,20 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		lv.stations.append(station)
 
 	lv.control_name = String(j.get("control_name", ""))
+	lv.layout = int(j.get("layout", 1))
+	if j.get("hub_board") != null:
+		lv.hub_board = Vector2(float(j["hub_board"][0]), float(j["hub_board"][1]))
+	lv.map_window = j.get("map_window", [])
+	if j.get("gallery") != null:
+		lv.gallery_stand = Vector2(float(j["gallery"][0]), float(j["gallery"][1]))
+	for d in j.get("devices", []):
+		lv.devices.append([String(d[0]), float(d[1]), float(d[2])])
+	if j.has("area_sounds"):
+		lv.area_sounds = {}
+		for key in j["area_sounds"]:
+			lv.area_sounds[int(key)] = String(j["area_sounds"][key])
+	for key in j.get("area_cues", {}):
+		lv.area_cues[int(key)] = String(j["area_cues"][key])
 	if j.get("extraction") != null:
 		var exit := Extraction.new()
 		exit.x = float(j["extraction"]["x"])
@@ -482,7 +515,7 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		lv.map_labels.append([String(label[0]), int(label[1]), int(label[2])])
 	lv._build_indexes()
 
-	if not lv.hub_gates.is_empty():
+	if bool(j.get("hub_split", false)):
 		lv._split_road_and_hub()
 	lv._build_moving_floors()
 	return lv
@@ -646,6 +679,67 @@ func _tight_boxes(bounds: Dictionary, grid: PackedFloat32Array, capped: Dictiona
 
 
 ## Mirrors Renderer.__init__'s wall split when the level has hub gates.
+## Runs of one repeating wall material in a straight line, cell edge to cell
+## edge, become one piece: what the renderer spends goes with the pieces in
+## view, and a long street is all runs. They look the same (a repeating
+## material is laid along a wall by its length). The file keeps one piece a
+## cell, which is what level_edit.gd patches. Not for the Crossroads, whose
+## walls are split at its row 33 into the road's and the hub's.
+func _merge_runs() -> void:
+	var tiled := {}
+	for name: String in RenderState.TILED:
+		if tile_index.has(name):
+			tiled[int(tile_index[name])] = true
+	var out := PackedFloat32Array()
+	var by_end := {}
+	var by_start := {}
+	for i in wall_count:
+		var o := i * WALL_STRIDE
+		var a := Vector2(walls[o], walls[o + 1])
+		var b := Vector2(walls[o + 2], walls[o + 3])
+		var step := b - a
+		var whole := a == a.floor() and b == b.floor() and (step.x == 0.0 or step.y == 0.0)
+		if not tiled.has(int(walls[o + 4])) or not whole or step == Vector2.ZERO:
+			for k in WALL_STRIDE:
+				out.append(walls[o + k])
+			continue
+		var kind := (
+			"%s|%s|%s|%s|%s|%s"
+			% [
+				step.normalized(),
+				walls[o + 4],
+				walls[o + 5],
+				walls[o + 6],
+				walls[o + 7],
+				walls[o + 8]
+			]
+		)
+		var after := "%s|%s" % [a, kind]
+		var before := "%s|%s" % [b, kind]
+		if by_end.has(after):
+			# This piece carries on from the end of a run: the run reaches b.
+			var r: int = by_end[after]
+			by_end.erase(after)
+			out[r + 2] = b.x
+			out[r + 3] = b.y
+			by_end["%s|%s" % [b, kind]] = r
+		elif by_start.has(before):
+			# A run starts where this piece ends: the run starts at a now.
+			var r: int = by_start[before]
+			by_start.erase(before)
+			out[r] = a.x
+			out[r + 1] = a.y
+			by_start["%s|%s" % [a, kind]] = r
+		else:
+			var r := out.size()
+			for k in WALL_STRIDE:
+				out.append(walls[o + k])
+			by_end["%s|%s" % [b, kind]] = r
+			by_start["%s|%s" % [a, kind]] = r
+	walls = out
+	wall_count = out.size() / WALL_STRIDE
+
+
 func _split_road_and_hub() -> void:
 	road_and_hub = [PackedFloat32Array(), PackedFloat32Array()]
 	var a: PackedFloat32Array = road_and_hub[0]
@@ -935,6 +1029,10 @@ func active_walls(at_hub: bool) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
 	if at_hub and not road_and_hub.is_empty():
 		out = road_and_hub[1].duplicate()
+		for gate: Gate in locked_gates:
+			out.append_array(gate.barrier())
+	elif at_hub:
+		out = walls.duplicate()
 		for gate: Gate in locked_gates:
 			out.append_array(gate.barrier())
 	else:

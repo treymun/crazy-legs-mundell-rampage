@@ -13192,6 +13192,196 @@
     "problems": []
    },
    "validation": "ok"
+  },
+  "distant_derby_engine": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/distant_derby_engine.mp3",
+   "prompt": "Old V8 engines revving and two cars crunching together at a dirt demolition derby.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/distant_derby_engine.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -6.8,
+    "loud_db": -14.0,
+    "dc": 0.0,
+    "onset_ms": 26.1,
+    "centroid_hz": 171,
+    "end_db": -111.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "distant_corn_rustle": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/distant_corn_rustle.mp3",
+   "prompt": "Wind rustling through a tall dry cornfield, stalks knocking together.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/distant_corn_rustle.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -13.4,
+    "dc": 0.0005,
+    "onset_ms": 7.4,
+    "centroid_hz": 2559,
+    "end_db": -116.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "distant_mill_flume": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/distant_mill_flume.mp3",
+   "prompt": "Water rushing down a wooden flume and splashing into a pond.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/distant_mill_flume.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -1.0,
+    "loud_db": -14.0,
+    "dc": 0.0,
+    "onset_ms": 14.9,
+    "centroid_hz": 1059,
+    "end_db": -134.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "distant_quarry_blast": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/distant_quarry_blast.mp3",
+   "prompt": "A dynamite blast rumbling and echoing across a rock quarry.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/distant_quarry_blast.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -6.5,
+    "loud_db": -14.0,
+    "dc": 0.0001,
+    "onset_ms": 21.8,
+    "centroid_hz": 153,
+    "end_db": -140.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "crowd_cheer": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/crowd_cheer.mp3",
+   "prompt": "A rowdy crowd whooping, hollering and clapping at a county fair stage.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/crowd_cheer.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -5.4,
+    "loud_db": -14.0,
+    "dc": 0.0001,
+    "onset_ms": 15.6,
+    "centroid_hz": 968,
+    "end_db": -110.9,
+    "problems": []
+   },
+   "validation": "ok"
   }
  },
  "music": {
@@ -13437,6 +13627,11 @@
   "foreman_down",
   "baron_down",
   "spitter_down",
+  "distant_derby_engine",
+  "distant_corn_rustle",
+  "distant_mill_flume",
+  "distant_quarry_blast",
+  "crowd_cheer",
   "menu_back"
  ]
 }

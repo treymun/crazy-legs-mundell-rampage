@@ -5,9 +5,13 @@
 ## health after one, two and five minutes; FIRST MINUTES OK when the first
 ## fight of every chapter starts within FIRST_FIGHT seconds.
 ##
-##   godot --headless --path godot --script res://tools/first_minutes.gd [-- <level>] [old-ai]
+##   godot --headless --path godot --script res://tools/first_minutes.gd
+##       [-- <level>] [old-ai] [whole]
 ##
 ## old-ai: enemies that lose sight of the player do not hunt for them.
+## whole: the bot cannot be hurt and never runs dry, and plays on until the
+##   chapter is won (or WHOLE_LIMIT seconds): the way through can be walked,
+##   every door, key and set piece on it working. Prints how long it took.
 ##
 ## It is a yardstick for pacing, not a judge of fun: it never dodges, so its
 ## health says more about how hard enemies press than about the difficulty.
@@ -16,8 +20,10 @@ extends SceneTree
 const STEP := 1.0 / 60.0
 const MARKS := [60.0, 120.0, 300.0]
 const FIRST_FIGHT := 20.0
+const WHOLE_LIMIT := 1500.0
 
 var sound: Sound
+var whole := false
 
 
 func _init() -> void:
@@ -29,6 +35,9 @@ func _run() -> void:
 	if args.has("old-ai"):
 		Enemy.hunting = false
 		args.erase("old-ai")
+	if args.has("whole"):
+		whole = true
+		args.erase("whole")
 	var ids := ["hickston", "fair", "sawmill", "quarry"] if args.is_empty() else [args[0]]
 	var art := Assets.new()
 	var hud := HUD.new(art)
@@ -46,6 +55,7 @@ func _run() -> void:
 func _play(art: Assets, hud: HUD, id: String) -> float:
 	var game := Game.new(art, hud, sound, id)
 	game.configure({"hints": 1})
+	game.cheats.god = whole
 	var seen := -1.0
 	var landed := -1.0
 	var taken := -1.0
@@ -55,7 +65,11 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 	var mark := 0
 	var stuck := 0.0
 	var last := Vector2(game.player.x, game.player.y)
-	while mark < MARKS.size() and game.player.health > 0 and not game.won:
+	while (
+		(mark < MARKS.size() or (whole and game.clock < WHOLE_LIMIT))
+		and game.player.health > 0
+		and not game.won
+	):
 		var controls := Game.Controls.new()
 		var foe := _nearest_threat(game)
 		var p := game.player
@@ -90,6 +104,22 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 				var turn := fposmod(aim - p.angle + PI, TAU) - PI
 				controls.turn = clampf(turn, -.12, .12)
 				var gap := Vector2(goal.x - p.x, goal.y - p.y).length()
+				var struck := _strike_target(game, goal)
+				if struck != null and gap < 3.0:
+					# A thing to hit rather than use (the mill's belt release): shoot it.
+					var want := atan2(struck.y - p.y, struck.x - p.x)
+					turn = fposmod(want - p.angle + PI, TAU) - PI
+					controls.turn = clampf(turn, -.12, .12)
+					var top: float = (
+						game.world.elevation(struck.x, struck.y) + struck.z + struck.height * .5
+					)
+					var reach := maxf(.5, Vector2(struck.x - p.x, struck.y - p.y).length())
+					controls.look = clampf(
+						(top - p.eye) / reach * Renderer.base_focal - p.pitch, -3.0, 3.0
+					)
+					controls.fire = absf(turn) < .05
+					way = [goal, 0]
+					gap = 0.0
 				if int(way[1]) > 1 or gap > .3:
 					controls.forward = 1.0 if absf(turn) < .9 else .2
 					controls.running = gap > 1.5
@@ -102,7 +132,14 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 			game.armory.loaded[game.armory.active] == 0
 			and game.armory.reserve[game.armory.active] == 0
 		):
-			game.armory.cycle(1, game)
+			if whole:
+				game.armory.reserve[game.armory.active] = Weapons.MAX_RESERVE[game.armory.active]
+			else:
+				game.armory.cycle(1, game)
+		# Stuck against a ledge: hop it, as a player would (a jump clears about .6).
+		if stuck > .35 and foe == null:
+			controls.jump = fmod(game.clock, .6) < .1
+			controls.forward = 1.0
 		game.tick(STEP, controls)
 		if Vector2(p.x, p.y).distance_to(last) < .002 and foe == null:
 			stuck += STEP
@@ -118,7 +155,7 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 			landed = game.clock
 		if taken < 0.0 and p.health < health_was:
 			taken = game.clock
-		if game.clock >= MARKS[mark]:
+		if mark < MARKS.size() and game.clock >= MARKS[mark]:
 			var goal = game.objective_target()
 			var left := -1
 			if goal != null:
@@ -145,6 +182,21 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 		print("    went down at %.0f s with %d kills" % [game.clock, game.kills])
 	elif game.won:
 		print("    finished at %.0f s with %d kills" % [game.clock, game.kills])
+	elif whole:
+		var goal = game.objective_target()
+		print(
+			(
+				"    NOT FINISHED by %.0f s: at (%.1f, %.1f), %s, %d steps to the objective"
+				% [
+					game.clock,
+					game.player.x,
+					game.player.y,
+					game.objective(),
+					int(game.objective_route(goal)[1]) if goal != null else -1
+				]
+			)
+		)
+		return -1.0
 	return seen
 
 
@@ -165,6 +217,19 @@ func _nearest_threat(game: Game) -> Enemy:
 			best = e
 			near = d
 	return best
+
+
+## The scenery a strike station at `goal` is struck through, if it is one.
+func _strike_target(game: Game, goal: Vector2) -> LevelData.Scenery:
+	for station: LevelData.Station in game.world.stations:
+		if station.action != "strike" or game.stations_done.has(station.id):
+			continue
+		if Vector2(station.x, station.y).distance_to(goal) > .5:
+			continue
+		for prop: LevelData.Scenery in game.world.scenery:
+			if prop.station == station.id and not game.scenery_used(prop):
+				return prop
+	return null
 
 
 ## A closed door within reach that the player can open (no key it lacks, not

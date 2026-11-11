@@ -42,16 +42,9 @@ func _fixed_key() -> Array:
 
 
 func _list_fixed() -> void:
-	var sprites: Array = []
-	if in_hub:
-		for sprite: Renderer.Sprite in props:
-			if sprite.y >= 28.0 and sprite.x < HUB_WIDTH:
-				sprites.append(sprite)
-	else:
-		sprites = props.duplicate()
+	# The Crossroads is its own level (data/hub.json): everything in it shows.
+	var sprites: Array = props.duplicate()
 	for board: LevelData.Billboard in world.billboards:
-		if (in_hub and board.y < 33.0) or (level.rescue and not in_hub and board.y >= 34.0):
-			continue
 		var image := board.image
 		if board.signal_name == "legacy-key":
 			if legacy_key_route:
@@ -133,15 +126,19 @@ func sprites() -> Array:
 	if in_hub:
 		# plane = 0: these are flat boards fixed in the world, as in the
 		# reference, not sprites that turn to face the camera.
+		var board_at: Vector2 = level.hub_board
+		var shift: Vector2 = board_at - HUB_BOARD
 		var dispatch := Renderer.Sprite.new(
-			HUB_BOARD.x, HUB_BOARD.y, "county_dispatch_%d" % hub_milestone, .46, 1.02
+			board_at.x, board_at.y, "county_dispatch_%d" % hub_milestone, .46, 1.02
 		)
 		dispatch.plane = 0.0
 		sprites.append(dispatch)
 		if hub_milestone != 0:
 			var trunk := hub_milestone in [2, 3]
 			var prop := "county_dispatch_trunk" if trunk else "county_dispatch_tag"
-			var tag := Renderer.Sprite.new(29.67, 44.12, prop, .31 if trunk else .24, .83)
+			var tag := Renderer.Sprite.new(
+				29.67 + shift.x, 44.12 + shift.y, prop, .31 if trunk else .24, .83
+			)
 			tag.plane = 0.0
 			sprites.append(tag)
 		var detail: int = renderer.world_motion
@@ -154,7 +151,7 @@ func sprites() -> Array:
 			var row: Array = dust_rows[i]
 			var dx: float = float(row[0]) + .11 * sin(clock * motion_speed * .68 + float(row[1]))
 			var puff := Renderer.Sprite.new(
-				dx, float(row[1]), "hub_dust", float(row[2]), float(row[3])
+				dx + shift.x, float(row[1]) + shift.y, "hub_dust", float(row[2]), float(row[3])
 			)
 			puff.translucent = true
 			puff.plane = 0.0
@@ -602,6 +599,19 @@ func effect_lights() -> Array:
 	for spr: Renderer.Sprite in props:
 		if spr.image == "prop_lamp" and absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
 			found.append(Effects.light("lamp", spr.x, spr.y, spr.z, 1.0, clock))
+	# Street lamps pool their light on the ground; the keys glint where they lie.
+	for board: LevelData.Billboard in world.billboards:
+		if board.glow and board.image == "hub_lamp":
+			if absf(board.x - p.x) < 14.0 and absf(board.y - p.y) < 14.0:
+				var top := world.elevation(board.x, board.y) + board.z + board.height * .9
+				found.append(Effects.light("streetlamp", board.x, board.y, top, 1.0, clock))
+	for entry: Array in pickups:
+		var item := String(entry[0])
+		if item.begins_with("key_") and absf(float(entry[1]) - p.x) < 10.0:
+			if absf(float(entry[2]) - p.y) < 10.0:
+				var x := float(entry[1])
+				var y := float(entry[2])
+				found.append(Effects.light(item, x, y, world.elevation(x, y) + .4, 1.0, clock))
 	for l: Array in trigger_lights:
 		if clock < float(l[6]):
 			found.append([l[0], l[1], l[2], l[3], l[4], l[5]])
@@ -1028,11 +1038,13 @@ func _map_signature_changed() -> bool:
 func _build_map_base() -> void:
 	var width := int(world.width)
 	var height := int(world.height)
-	var start_y := 33 if in_hub else 0
-	if level.rescue:
-		height = height - start_y if in_hub else 34
-	if in_hub:
-		width = int(HUB_WIDTH)
+	# The Crossroads map shows its own part of hub.json (all of it when the
+	# level does not say).
+	var start_y := 0
+	if in_hub and not level.map_window.is_empty():
+		start_y = int(level.map_window[1])
+		width = int(level.map_window[2])
+		height = int(level.map_window[3])
 	var scale_x: float = minf(4.0, 208.0 / float(width))
 	var scale_y: float = minf(3.0, 102.0 / float(height))
 	var left: float = (246.0 - width * scale_x) / 2.0

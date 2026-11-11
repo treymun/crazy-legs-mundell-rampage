@@ -77,7 +77,7 @@ func open_hub(origin = null, message := "") -> void:
 		if not origin.replay and campaign_run != null:
 			if not write_campaign(campaign_run, _entry_path()):
 				message = "CROSSROADS OPEN. PROGRESS COULD NOT BE SAVED."
-	var hub := make_game()
+	var hub := make_game("hub")
 	hub.in_hub = true
 	hub.hub_findings = hub_findings
 	hub.visited = hub_visited
@@ -102,10 +102,10 @@ func open_hub(origin = null, message := "") -> void:
 		hub.hub_milestone = campaign_run.history.size() + (1 if campaign_run.won else 0)
 	if carried != null and carried.player.health > 0:
 		hub.apply_loadout(carried.loadout())
-	hub.player.x = 24.5
-	hub.player.y = 53.90
-	hub.player.angle = -PI / 2.0
-	hub.district = 11
+	hub.player.x = float(hub.level.spawn[0])
+	hub.player.y = float(hub.level.spawn[1])
+	hub.player.angle = float(hub.level.spawn[2])
+	hub.district = int(hub.world.area[hub.world.cell(hub.player.x, hub.player.y)])
 	hub.message(message if message != "" else "COUNTY CROSSROADS. FACE A GATE AND PRESS E.", 4.5)
 	play(hub)
 

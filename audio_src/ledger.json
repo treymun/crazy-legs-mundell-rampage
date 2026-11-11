@@ -7907,14 +7907,119 @@
    "bytes": 25747
   },
   {
-   "id": "reconcile@2026-11-10T16:50:48",
+   "id": "sfx/distant_derby_engine#1",
+   "kind": "sfx",
+   "name": "distant_derby_engine",
+   "params": {
+    "text": "Old V8 engines revving and two cars crunching together at a dirt demolition derby. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "5e95e9546dfb",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T12:50:33",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/distant_derby_engine.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/distant_corn_rustle#1",
+   "kind": "sfx",
+   "name": "distant_corn_rustle",
+   "params": {
+    "text": "Wind rustling through a tall dry cornfield, stalks knocking together. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c07da71774d2",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T12:50:35",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/distant_corn_rustle.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/distant_mill_flume#1",
+   "kind": "sfx",
+   "name": "distant_mill_flume",
+   "params": {
+    "text": "Water rushing down a wooden flume and splashing into a pond. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f33f46564572",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T12:50:37",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/distant_mill_flume.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/distant_quarry_blast#1",
+   "kind": "sfx",
+   "name": "distant_quarry_blast",
+   "params": {
+    "text": "A dynamite blast rumbling and echoing across a rock quarry. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b824822cafd8",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T12:50:39",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/distant_quarry_blast.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/crowd_cheer#1",
+   "kind": "sfx",
+   "name": "crowd_cheer",
+   "params": {
+    "text": "A rowdy crowd whooping, hollering and clapping at a county fair stage. A small rural outdoor crowd, a few dozen people, short, slightly distant. No music.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a6c556a128f9",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-11T12:50:41",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/crowd_cheer.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "reconcile@2026-11-11T12:51:44",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -2389,
+   "actual": -2394,
    "basis": "account",
-   "balance_after": 35280
+   "balance_after": 35414
   }
  ],
  "anchor": {
@@ -7922,7 +8027,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-10T16:50:48",
-  "account_drop": 30557
+  "when": "2026-11-11T12:51:44",
+  "account_drop": 30691
  }
 }

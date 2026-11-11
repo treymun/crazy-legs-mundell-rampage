@@ -74,7 +74,11 @@ static func implied_walls(level: Dictionary, tile_index: Dictionary) -> Array:
 	var area: Array = level["area"]
 	var ground: Array = level["ground"]
 	var floor_tile: Array = level["floor"]
-	var facades := String(level.get("id", "")) == "hickston"
+	# A row of building fronts with a fascia band above the door height (the
+	# old town's main street; hub.json still has it).
+	var facade_row := int(level.get("facade_row", -1))
+	var facades := facade_row >= 0
+	var cap: Array = level.get("fascia_cap", [-1, -1])
 	var fascia := int(tile_index.get("fascia", 0))
 	var porch := int(tile_index.get("porch", 0))
 	var shoulder := int(tile_index.get("shoulder", 0))
@@ -94,7 +98,7 @@ static func implied_walls(level: Dictionary, tile_index: Dictionary) -> Array:
 					var top := maxf(float(wall_height[i]), float(roof[n]))
 					var lit := float(light[n]) * (1.0 if e[0] == 0 else .83)
 					var base := float(ground[n])
-					if facades and int(area[n]) == 0 and y == 20 and top > 2.05:
+					if facades and int(area[n]) == 0 and y == facade_row and top > 2.05:
 						walls.append(edge + [int(solid[i]), lit, base, 2.14, int(area[n])])
 						walls.append(edge + [fascia, lit, 2.14, top, int(area[n])])
 					else:
@@ -116,7 +120,7 @@ static func implied_walls(level: Dictionary, tile_index: Dictionary) -> Array:
 				var top := float(roof[i])
 				if bottom == 0.0:
 					bottom = top
-					top = top + (.48 if facades and y == 20 and x == 23 else .35)
+					top = top + (.48 if facades and y == int(cap[1]) and x == int(cap[0]) else .35)
 				walls.append(
 					[
 						x + e[2],

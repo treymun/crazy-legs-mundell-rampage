@@ -665,8 +665,6 @@ func ground_marks() -> Array:
 		var x := float(row[0])
 		var y := float(row[1])
 		var image := String(row[6])
-		if level.rescue and ((y > 33.0) != in_hub):
-			continue
 		var reach := 14.0 if image == "fx_shadow" else 9.49
 		if (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y) >= reach * reach:
 			continue

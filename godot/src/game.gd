@@ -115,6 +115,8 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 			total_secrets += 1
 
 	gallery = Gallery.new() if level_id == "fair" else null
+	if gallery != null and level.gallery_stand != null:
+		gallery.offset = level.gallery_stand - GALLERY_STAND
 	exchanges = [] if in_hub else level.exchanges
 
 	entry = loadout()
@@ -248,9 +250,7 @@ func tick(dt: float, controls) -> void:
 		ambience == "mill"
 		and (
 			stations_done.has("relay")
-			or (
-				roof == 0.0 and sqrt((p.x - 24.3) * (p.x - 24.3) + (p.y - 6.7) * (p.y - 6.7)) > 13.0
-			)
+			or (roof == 0.0 and Vector2(p.x, p.y).distance_to(_relay_at()) > 13.0)
 		)
 	):
 		ambience = "mill_bank"
@@ -272,8 +272,9 @@ func tick(dt: float, controls) -> void:
 		):
 			ambience = String(recovery[4])
 	var room: String = ambience
+	var area_sound := String(level.area_sounds.get(area, ""))
 	if room == "":
-		room = "creek" if area == 9 else "barn" if area == 4 else "room" if roof != 0.0 else "yard"
+		room = area_sound if area_sound != "" else "room" if roof != 0.0 else "yard"
 	sound.set_room(room)
 	# The reverb follows the space: under a roof a room, a barn or the long
 	# quarry line and mill floor; outside the open air or the creek bed.
@@ -281,20 +282,24 @@ func tick(dt: float, controls) -> void:
 	if roof != 0.0:
 		space = (
 			"barn"
-			if area == 4
+			if area_sound == "barn"
 			else "hall" if ambience == "quarry_line" or ambience == "mill" else "room"
 		)
-	elif area == 9:
+	elif area_sound == "creek":
 		space = "creek"
 	sound.set_space(space)
 	if clock >= radio_check:
 		radio_check = clock + .045
+		var radio: Array = []
+		for device: Array in level.devices:
+			if device[0] == "jukebox":
+				radio = device
 		if (
-			level.rescue
-			and jukebox_on
-			and sqrt((p.x - 7.26) * (p.x - 7.26) + (p.y - 17.14) * (p.y - 17.14)) < 11.0
+			jukebox_on
+			and not radio.is_empty()
+			and Vector2(p.x - float(radio[1]), p.y - float(radio[2])).length() < 11.0
 		):
-			var place := sound_position(7.26, 17.14, .60)
+			var place := sound_position(float(radio[1]), float(radio[2]), .60)
 			sound.set_radio(true, place.x, place.y)
 		else:
 			sound.set_radio(false)
@@ -332,9 +337,8 @@ func tick(dt: float, controls) -> void:
 						continue
 					message("PA: WINNERS MUST FEED THEIR PRIZES.", 3.5)
 				sound_at(cue, cx, cy, .55)
-		elif level.rescue and area in [0, 5, 8, 9, 10] and roof == 0.0:
-			var cue2 := "distant_dog" if area in [0, 8] else "distant_crow"
-			sound.play(cue2, .24, .7 if int(clock) % 2 else -.64)
+		elif level.area_cues.has(area) and roof == 0.0:
+			sound.play(String(level.area_cues[area]), .24, .7 if int(clock) % 2 else -.64)
 	var step := int(p.walk_phase / PI)
 	if landed or step != step_number:
 		var surface: String = world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)]))

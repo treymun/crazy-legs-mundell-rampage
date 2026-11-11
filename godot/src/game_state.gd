@@ -129,6 +129,7 @@ const REACTIONS := {
 
 const WASH := {
 	"hickston": [255, 226, 190, .10],
+	"hub": [255, 226, 190, .10],
 	"fair": [255, 200, 230, .12],
 	"sawmill": [255, 214, 160, .13],
 	"quarry": [178, 214, 255, .12]
@@ -458,6 +459,9 @@ class Gallery:
 		Vector3(29.54, 33.15, 1.32)
 	]
 
+	## Where this level's booth stands relative to the first fair's
+	## (GALLERY_STAND): its targets and its bounds move with it.
+	var offset := Vector2.ZERO
 	var rewarded := false
 	var active := false
 	var clock := 0.0
@@ -499,7 +503,7 @@ class Gallery:
 		)
 
 	func sprite(game):
-		var t: Vector3 = TARGETS[index]
+		var t: Vector3 = TARGETS[index] + Vector3(offset.x, offset.y, 0.0)
 		var out := Renderer.Sprite.new(
 			t.x,
 			t.y,
@@ -522,7 +526,8 @@ class Gallery:
 		var p = game.player
 		clock += dt
 		pistol.tick(dt, game)
-		if not (25.10 <= p.x and p.x <= 28.66 and 32.77 <= p.y and p.y <= 33.94):
+		var at: Vector2 = Vector2(p.x, p.y) - offset
+		if not (25.10 <= at.x and at.x <= 28.66 and 32.77 <= at.y and at.y <= 33.94):
 			finish(game, "LEFT THE GALLERY. E AT THE TICKET BOOTH TO RETRY.")
 			return
 		if clock >= LIMIT:
@@ -541,7 +546,7 @@ class Gallery:
 		pistol.cooldown = .18
 		pistol.shot_age = 0.0
 		game.sound.play("revolver", .56)
-		var t: Vector3 = TARGETS[index]
+		var t: Vector3 = TARGETS[index] + Vector3(offset.x, offset.y, 0.0)
 		var z: float = t.z + game.world.elevation(t.x, t.y)
 		var dx: float = t.x - p.x
 		var dy: float = t.y - p.y
@@ -624,6 +629,8 @@ var revisiting := false
 var retained := {}
 var music_bookmark = null
 var in_hub := false
+## Loaded from a save of an older build of this level: started over (session_store.gd).
+var layout_restarted := false
 var gallery: Gallery = null
 var supply_rule := 0
 var gate_modes := {}

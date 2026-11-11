@@ -4,6 +4,7 @@
     python scripts/audio_build.py --sfx      # only the effect bank sources
     python scripts/audio_build.py --music    # only the songs
     python scripts/audio_build.py --check    # validate what is on disk, exit 1 on failure
+    python scripts/audio_build.py --sfx --only crowd_cheer   # just these cues, the rest kept as they are
 
 Reads   audio_src/generated/   raw ElevenLabs recordings (committed)
         audio_src/supplied/    the menu theme supplied by the author
@@ -94,12 +95,28 @@ def ffmpeg() -> str:
     return tool
 
 
+_SOXR: bool | None = None
+
+
+def resampler() -> str:
+    """soxr where this ffmpeg has it (every bank so far was built with it), else
+    ffmpeg's own resampler, with a warning: a build without soxr is close but
+    not byte for byte the same."""
+    global _SOXR
+    if _SOXR is None:
+        version = subprocess.run([ffmpeg(), "-version"], capture_output=True, text=True).stdout
+        _SOXR = "--enable-libsoxr" in version
+        if not _SOXR:
+            print("warning: this ffmpeg has no soxr; resampling with swr")
+    return "soxr" if _SOXR else "swr"
+
+
 def decode(path: Path, rate: int = RATE, cents: float = 0.0) -> np.ndarray:
     """Any audio file -> mono float32 at `rate`, optionally retuned."""
     filters = []
     if cents:                                   # play faster or slower, like tape
         filters.append(f"asetrate=44100*{2 ** (cents / 1200):.6f}")
-    filters.append(f"aresample={rate}:resampler=soxr")
+    filters.append(f"aresample={rate}:resampler={resampler()}")
     command = [ffmpeg(), "-v", "error", "-i", str(path), "-ac", "1",
                "-af", ",".join(filters), "-ar", str(rate), "-f", "f32le", "-"]
     raw = subprocess.run(command, check=True, capture_output=True).stdout
@@ -469,10 +486,17 @@ def measure(name: str, x: np.ndarray, loop: bool) -> dict:
     return facts
 
 
-def build_sfx(inventory: dict) -> dict:
+def build_sfx(inventory: dict, only: list[str] | None = None, previous: dict | None = None) -> dict:
     done: dict[str, np.ndarray] = {}
     report: dict = {}
     order = sorted(spec.CUES, key=lambda n: spec.CUES[n].get("how") == "room")
+    if only:
+        # Just these cues; every other one keeps its file and its record.
+        kept = (previous or {}).get("cues", {})
+        for name in order:
+            if name not in only and name in kept:
+                report[name] = {k: kept[name][k] for k in ("recipe", "measured") if k in kept[name]}
+        order = [n for n in order if n in only]
     for name in order:
         x, recipe = build_cue(name, inventory, done)
         record = {"recipe": recipe}
@@ -481,9 +505,10 @@ def build_sfx(inventory: dict) -> dict:
             write_wav(FINAL / f"{name}.wav", x)
             record["measured"] = measure(name, x, bool(CHAIN[spec.FAMILY[name]].get("loop")))
         report[name] = record
-    for stale in FINAL.glob("*.wav"):
-        if stale.stem not in spec.CUES:
-            stale.unlink()
+    if not only:
+        for stale in FINAL.glob("*.wav"):
+            if stale.stem not in spec.CUES:
+                stale.unlink()
     return report
 
 
@@ -603,6 +628,7 @@ def main() -> None:
     parser.add_argument("--sfx", action="store_true")
     parser.add_argument("--music", action="store_true")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--only", nargs="*", default=[])
     args = parser.parse_args()
     inventory = json.loads((SRC / "cue_inventory.json").read_text(encoding="utf-8"))
     path = SRC / "manifest.json"
@@ -617,7 +643,7 @@ def main() -> None:
             print(f"  {name}: {why}")
         raise SystemExit(1 if bad or missing else 0)
     everything = not (args.sfx or args.music)
-    sfx = build_sfx(inventory) if args.sfx or everything else {n: {k: c[k] for k in ("recipe", "measured") if k in c} for n, c in previous["cues"].items()}
+    sfx = build_sfx(inventory, args.only, previous) if args.sfx or everything else {n: {k: c[k] for k in ("recipe", "measured") if k in c} for n, c in previous["cues"].items()}
     music = build_music() if args.music or everything else {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")} for s, m in previous["music"].items()}
     result = manifest(sfx, music, inventory)
     path.write_text(json.dumps(result, indent=1) + "\n", encoding="utf-8", newline="\n")

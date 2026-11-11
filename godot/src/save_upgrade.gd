@@ -46,6 +46,12 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 			var kept: bool = fired is Array and not fired.is_empty()
 			doc["features"] = {"triggers": {"fired": fired}} if kept else {}
 			return doc
+		6:
+			# Version 7 says which build of its level a save is of; every save
+			# before it was of the first (SessionStore restarts a chapter whose
+			# level has been rebuilt since).
+			doc["layout"] = 1
+			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
 			return null

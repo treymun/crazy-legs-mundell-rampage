@@ -566,3 +566,45 @@ static func rgb(r: float, g: float, b: float, a := 255.0) -> Color:
 		clampi(int(b), 0, 255),
 		clampi(int(a), 0, 255)
 	)
+
+
+## Down to game size with premultiplied alpha, a hard edge, a dark rim, and a
+## grade toward a worn photograph (muzzle flashes and glows keep theirs).
+static func photo_shrink(image: Sheet, size: Vector2i, seed: int) -> Sheet:
+	# Colour weighed by alpha twice over, as the Python builder's own premultiply
+	# followed by Pillow's did: a thin wing keeps its bright core over its dark
+	# render edge, which is the look the cels were tuned with.
+	var floats := PackedFloat32Array()
+	floats.resize(image.w * image.h * 4)
+	for i in image.w * image.h:
+		var a := image.data[i * 4 + 3] / 255.0
+		for k in 3:
+			floats[i * 4 + k] = image.data[i * 4 + k] / 255.0 * a * a
+		floats[i * 4 + 3] = a
+	var small := Sheet.resample(floats, image.w, image.h, 4, size.x, size.y)
+	var n := size.x * size.y
+	var solid := PackedByteArray()
+	solid.resize(n)
+	for i in n:
+		solid[i] = 1 if small[i * 4 + 3] >= .5 else 0
+	var inner := shrink_mask(solid, size.x, size.y)
+	var grain := noise(seed, n, .026)
+	var out := Sheet.new(size.x, size.y)
+	for i in n:
+		if solid[i] == 0:
+			continue
+		var o := i * 4
+		var alpha := maxf(small[o + 3], .02)
+		var c := Vector3(small[o], small[o + 1], small[o + 2]) / (alpha * alpha)
+		var bright := maxf(c.x, maxf(c.y, c.z)) > .93
+		if not bright:
+			var grey := (c.x + c.y + c.z) / 3.0
+			c = Vector3.ONE * grey + (c - Vector3.ONE * grey) * .86
+			c = (c - Vector3.ONE * .42) * 1.18 + Vector3.ONE * .52 + Vector3.ONE * grain[i]
+			if inner[i] == 0:
+				c *= .55
+		out.data[o] = clampi(int(c.x * 255), 0, 255)
+		out.data[o + 1] = clampi(int(c.y * 255), 0, 255)
+		out.data[o + 2] = clampi(int(c.z * 255), 0, 255)
+		out.data[o + 3] = 255
+	return out

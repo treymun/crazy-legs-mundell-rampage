@@ -507,7 +507,7 @@ func face_name() -> String:
 ## Mirrors Game.use_target: returns [target, x, y] or null.
 func use_target() -> Variant:
 	if gallery != null and gallery.active:
-		return [gallery, GALLERY_STAND.x, GALLERY_STAND.y]
+		return [gallery, GALLERY_STAND.x + gallery.offset.x, GALLERY_STAND.y + gallery.offset.y]
 	var facing := Vector2(cos(player.view_angle()), sin(player.view_angle()))
 	if bessie != null and bessie.alive:
 		var dx: float = bessie.x - player.x
@@ -534,11 +534,12 @@ func use_target() -> Variant:
 			devices.append([station, station.x, station.y])
 	if world.extraction != null:
 		devices.append([world.extraction, world.extraction.x, world.extraction.y])
-	if level.rescue:
-		devices.append(["jukebox", 7.26, 17.14])
-		devices.append(["sink", 3.2, 13.5])
+	for device: Array in level.devices:
+		devices.append(device)
 	if gallery != null:
-		devices.append([gallery, GALLERY_STAND.x, GALLERY_STAND.y])
+		devices.append(
+			[gallery, GALLERY_STAND.x + gallery.offset.x, GALLERY_STAND.y + gallery.offset.y]
+		)
 	for note: LevelData.Note in level.notes:
 		devices.append([note, note.x, note.y])
 	# Rank candidates exactly like the reference: (not aimed, distance), so an
@@ -648,7 +649,7 @@ func interact() -> void:
 			if String(clue[0]) == "dispatch":
 				if clock >= hub_dispatch_until:
 					hub_dispatch_until = clock + 6.0
-					var place := sound_position(HUB_BOARD.x, HUB_BOARD.y, .64)
+					var place := sound_position(level.hub_board.x, level.hub_board.y, .64)
 					sound.play_voice("county_dispatch_%d" % hub_milestone, place.x, place.y)
 					if voice_captions:
 						caption = String(HUB_DISPATCH[hub_milestone][2])
@@ -809,6 +810,24 @@ func operate_station(station: LevelData.Station) -> void:
 	activate_station(station)
 
 
+## Where to go for a station: the station, or first the thing it needs carried
+## to it (the fair's PA patch lead) while that still lies somewhere.
+func _station_goal(station: LevelData.Station) -> Vector2:
+	if station.held != "" and not task_items.has(station.held):
+		for entry: Array in pickups:
+			if String(entry[0]) == station.held:
+				return Vector2(float(entry[1]), float(entry[2]))
+	return Vector2(station.x, station.y)
+
+
+## The mill's relay, where the saws are loudest (the rain is heard away from it).
+func _relay_at() -> Vector2:
+	for station: LevelData.Station in world.stations:
+		if station.id == "relay":
+			return Vector2(station.x, station.y)
+	return Vector2(24.3, 6.7)
+
+
 func exit_ready() -> bool:
 	if world.extraction == null:
 		return false
@@ -855,7 +874,7 @@ func hub_clue() -> Variant:
 	var best = null
 	var nearest := 1.32 * 1.32
 	var candidates: Array = world.hub_clues.duplicate()
-	candidates.append(["dispatch", HUB_BOARD.x, HUB_BOARD.y, "READ " + label, text])
+	candidates.append(["dispatch", level.hub_board.x, level.hub_board.y, "READ " + label, text])
 	for clue in candidates:
 		var x: float = clue[1]
 		var y: float = clue[2]
@@ -1036,8 +1055,7 @@ func objective_target() -> Variant:
 		if pending.size() == 1:
 			for station: LevelData.Station in world.stations:
 				if station.id == pending[0]:
-					if not (station.held != "" and not task_items.has(station.held)):
-						return Vector2(station.x, station.y)
+					return _station_goal(station)
 		if not pending.is_empty():
 			var options: Array = []
 			for station: LevelData.Station in world.stations:
@@ -1058,7 +1076,7 @@ func objective_target() -> Variant:
 					)
 				):
 					near = station
-			return Vector2(near.x, near.y)
+			return _station_goal(near)
 		for station: LevelData.Station in world.stations:
 			if world.objective_side_tasks.has(station.id) and not stations_done.has(station.id):
 				return Vector2(station.x, station.y)

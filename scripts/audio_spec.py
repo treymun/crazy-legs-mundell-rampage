@@ -34,6 +34,7 @@ STYLE = {
     "vox": "One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
     "sting": "Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
     "scene": "Close, dry, comic prop destruction foley. No music, no voice.",
+    "crowd": "A small rural outdoor crowd, a few dozen people, short, slightly distant. No music.",
 }
 
 
@@ -388,6 +389,11 @@ add("distant",
     distant_mill_timber=G("A big log rolling and crashing onto a pile far away.", 2.0, None, "far"),
     distant_quarry_bottler=G("Glass bottles clinking along a machine far away.", 1.3, None, "far"),
     distant_quarry_pipe=G("A steam pipe groaning and knocking in the distance.", 1.5, None, "far"),
+    distant_derby_engine=G("Old V8 engines revving and two cars crunching together at a dirt demolition derby.", 2.5, None, "far"),
+    distant_corn_rustle=G("Wind rustling through a tall dry cornfield, stalks knocking together.", 2.5, None, "far"),
+    distant_mill_flume=G("Water rushing down a wooden flume and splashing into a pond.", 2.5, None, "far"),
+    distant_quarry_blast=G("A dynamite blast rumbling and echoing across a rock quarry.", 2.5, None, "far"),
+    crowd_cheer=G("A rowdy crowd whooping, hollering and clapping at a county fair stage.", 2.0, None, "crowd"),
     )
 
 # ----------------------------------------------------------------------- ui

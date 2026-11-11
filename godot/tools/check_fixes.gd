@@ -435,8 +435,8 @@ func _run() -> void:
 	var alarm: Game = main.make_game("hickston")
 	alarm.configure({})
 	alarm.spawn_grace = 0.0
-	alarm.player.x = 13.65
-	alarm.player.y = 9.4
+	alarm.player.x = 34.5
+	alarm.player.y = 34.5
 	var awake_before := 0
 	for e: Enemy in alarm.enemies:
 		if e.alerted:
