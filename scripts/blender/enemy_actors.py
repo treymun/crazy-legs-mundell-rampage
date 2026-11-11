@@ -360,13 +360,18 @@ def legs(S, J, cloth, radii, boot, cuff=None, boot_top=0.):
             limb(knee.lerp(foot, 1 - boot_top), foot, r1 * (1 - boot_top) + r2 * boot_top + .008, r2 + .008, boot)
         if cuff:
             limb(foot + Vector((0, 0, .05)), foot + Vector((0, 0, .0)), r2 + .012, r2 + .016, cuff, caps=False)
-        drop = -.05 if J["toe" + tag] < 0 else 0.
-        heel = Vector((foot.x, foot.y + .035, foot.z - S["ankle"] + .045))
-        toe = Vector((foot.x + side * .035, foot.y - .17, foot.z - S["ankle"] + .04 + drop))
-        limb(heel, toe, S["boot"], S["boot"] * .86, boot)
-        low = Vector((0, 0, -S["boot"] * .55))
-        limb(heel + low, toe + low, S["boot"] * .62, S["boot"] * .56, mat(24, 20, 18, .9, grime=.2))
-        limb(foot, heel, r2 + .006, S["boot"], boot)
+        shoe(S, J, side, tag, r2, boot)
+
+
+def shoe(S, J, side, tag, r2, boot):
+    foot = J["foot" + tag]
+    drop = -.05 if J["toe" + tag] < 0 else 0.
+    heel = Vector((foot.x, foot.y + .035, foot.z - S["ankle"] + .045))
+    toe = Vector((foot.x + side * .035, foot.y - .17, foot.z - S["ankle"] + .04 + drop))
+    limb(heel, toe, S["boot"], S["boot"] * .86, boot)
+    low = Vector((0, 0, -S["boot"] * .55))
+    limb(heel + low, toe + low, S["boot"] * .62, S["boot"] * .56, mat(24, 20, 18, .9, grime=.2))
+    limb(foot, heel, r2 + .006, S["boot"], boot)
 
 
 # ---------------------------------------------------------------- billy
@@ -555,160 +560,481 @@ def coot(frame):
     ball((k.x, k.y - .04, k.z - .01), (.058, .04, .066), patch)
 
 
+# ---------------------------------------------------------------- boss kit
+def frame_along(c, d):
+    """A matrix at c whose local Z runs along d."""
+    return T(c) @ Vector(d).normalized().to_track_quat("Z", "Y").to_matrix().to_4x4()
+
+
+def basis(normal, up):
+    k = Vector(normal).normalized()
+    u = Vector(up) - k * Vector(up).dot(k)
+    if u.length < 1e-6:
+        u = k.orthogonal()
+    u.normalize()
+    return k, u, k.cross(u)
+
+
+def arc(center, normal, up, radius, a0, a1, thick, material, n=8):
+    """Part of a ring; angle 0 points along up."""
+    c = Vector(center)
+    k, u, v = basis(normal, up)
+    pts = [c + (u * math.cos(a) + v * math.sin(a)) * radius
+           for a in (a0 + (a1 - a0) * i / n for i in range(n + 1))]
+    for a, b in zip(pts, pts[1:]):
+        limb(a, b, thick, thick, material, seg=10)
+    return pts
+
+
+def sawblade(center, normal, radius, up=(0, 0, 1), spin=0.):
+    """A circular saw blade: bright plate, dark gullet ring, brass arbor, hooked teeth."""
+    c = Vector(center)
+    k, u, v = basis(normal, up)
+    steel = mat(196, 198, 196, .24, .92, grime=.25)
+    disc(c, k, radius, .016, steel)
+    disc(c, k, radius * .6, .022, mat(96, 98, 102, .45, .8, grime=.5))
+    disc(c, k, radius * .22, .05, BRASS())
+    count = max(12, int(radius * 72))
+    for i in range(count):
+        a = spin + i * math.tau / count
+        out = u * math.cos(a) + v * math.sin(a)
+        along = v * math.cos(a) - u * math.sin(a)
+        p = c + out * radius * .96
+        limb(p, p + out * radius * .16 + along * radius * .13, radius * .09, .003, steel, caps=False, seg=6)
+
+
+def puff(at, size, turn=0):
+    """A cloud of steam."""
+    white = mat(224, 224, 218, .95, grime=0)
+    at = Vector(at)
+    lumps = ((0, 0, 0, 1.), (.75, -.2, .45, .78), (-.7, -.1, .55, .72), (.15, -.35, 1.05, .62), (-.2, .3, .9, .5))
+    for x, y, z, r in lumps:
+        if turn:
+            x = -x
+        ball(at + Vector((x, y, z)) * size, size * r, white)
+
+
+def jitter(i, k=0):
+    return (math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1.0
+
+
+def sparks(at, toward, count, reach):
+    hot = mat(255, 206, 110, emit=2.6)
+    at, toward = Vector(at), Vector(toward).normalized()
+    for i in range(count):
+        d = (toward + Vector((jitter(i) - .5, jitter(i, 1) - .5, jitter(i, 2) - .3)) * 1.3).normalized()
+        a = at + d * reach * (.25 + .5 * jitter(i, 3))
+        limb(a, a + d * reach * .35, .012, .004, hot, caps=False, seg=6)
+
+
+def football(at, d, leather):
+    at, d = Vector(at), Vector(d).normalized()
+    limb(at, at + d * .125, .074, .022, leather)
+    limb(at, at - d * .125, .074, .022, leather)
+    ring(at + d * .072, d, .056, .008, WHITE(), n=10)
+    ring(at - d * .072, d, .056, .008, WHITE(), n=10)
+    up = Vector((0, 0, 1)) - d * d.z
+    up = up.normalized() if up.length > .01 else Vector((1, 0, 0))
+    limb(at + up * .07 - d * .035, at + up * .07 + d * .035, .01, .01, WHITE())
+
+
+def fingers(hand, el, material, r=.016, spread=.035, length=.11):
+    reach = (hand - el).normalized()
+    for k in (-1, 0, 1):
+        limb(hand, hand + reach * length + Vector((k * spread, 0, 0)), r, r * .75, material)
+
+
+def beat_of(frame):
+    return int(frame[1:]) if isinstance(frame, str) and frame[0] == "w" and frame[1:].isdigit() else 0
+
+
 # ---------------------------------------------------------------- alien sheriff
-BOSS = dict(lean=.03, hip_h=1.02, hip_w=.13, stance=.21, stride=.22, ankle=.08, thigh=.49, shin=.48,
-            torso_len=.60, neck=.25, head_fwd=-.02, sw=.31, upper=.37, fore=.37, boot=.066, bow=.1,
-            canvas=(1.9, 2.42), px=184, depth=.2, head_scale=1.0)
+BOSS = dict(lean=.03, hip_h=1.0, hip_w=.13, stance=.22, stride=.22, ankle=.08, thigh=.48, shin=.47,
+            torso_len=.58, neck=.21, head_fwd=-.02, sw=.31, upper=.37, fore=.37, boot=.07, bow=.1,
+            canvas=(2.3, 2.42), px=184, depth=.24, head_scale=1.0, down_frame=(3.6, 1.5), down_x=-.75)
 
 
 def boss(frame):
+    """A grey from out past the county line wearing the late sheriff's things: a hat three sizes too
+    big with its feelers poking through, a glued-on moustache, a duster, a tin star, a gun belt of
+    glowing cells and a chrome ray pistol."""
     S = BOSS
     J = skeleton(S, frame)
     Tm, Hm = J["torso"], J["head"]
-    green = mat(112, 128, 92, .6, grime=.45)
-    eye = mat(8, 10, 12, .08, grime=0)
-    tan, tan_dark = mat(150, 126, 86, .9), mat(118, 98, 64, .9)
-    trouser = mat(58, 50, 42, .9)
-    belt = mat(26, 24, 22, .45, grime=.1)
-    gold = mat(186, 146, 58, .4, .85, grime=.25)
-    felt, band = mat(98, 78, 52, .95), mat(44, 32, 24, .9)
-    boot = mat(34, 30, 28, .4, grime=.1)
-    chrome = mat(120, 126, 132, .35, .9, grime=.3)
-    glow = mat(120, 255, 140, emit=2.4)
     hot = frame in ("aim", "fire")
-    # torso
-    ball((0, 0, .02), (.22, .16, .15), trouser, Tm)
-    ball((0, 0, .10), (.228, .172, .048), belt, Tm)
-    box((0, -.172, .10), (.075, .02, .065), gold, Tm)
-    ball((0, -.01, .23), (.21, .155, .16), tan, Tm)
-    ball((0, -.01, .44), (.29, .162, .20), tan, Tm)
-    limb((-.2, .155, .50), (.2, .155, .50), .009, .009, tan_dark, Tm, caps=False)
-    for k in range(-3, 4):
-        limb((k * .055, .165, .085), (k * .055, .165, .12), .011, .011, gold, Tm)
-    limb((-.27, 0, .575), (.27, 0, .575), .09, .09, tan, Tm)
+    grey = mat(160, 178, 138, .55, grime=.35)
+    eye = mat(8, 10, 12, .08, grime=0)
+    glow = mat(70, 255, 100, emit=2.0 if hot else 1.15)
+    shirt, shirt_dark = mat(180, 150, 100, .9), mat(126, 102, 66, .9)
+    duster, duster_dark = mat(98, 64, 42, .75, grime=.45), mat(58, 40, 28, .8)
+    trouser = mat(46, 48, 56, .9)
+    belt = mat(36, 28, 22, .5, grime=.3)
+    gold = mat(208, 168, 64, .32, .9, grime=.2)
+    felt, felt_dark, band = mat(204, 186, 146, .95, grime=.4), mat(150, 132, 100, .95), mat(52, 36, 26, .9)
+    boot = mat(30, 26, 24, .35, grime=.15)
+    chrome = mat(156, 162, 168, .24, .95, grime=.25)
+    stache = mat(40, 28, 20, .95)
+    # trousers and a gun belt of glowing cells
+    ball((0, 0, .02), (.21, .16, .15), trouser, Tm)
+    ball((0, 0, .075), (.235, .18, .05), belt, Tm)
+    for k in range(13):
+        a = -2.1 + k * .35
+        if abs(a) < .2:
+            continue
+        x, y = .247 * math.sin(a), -.192 * math.cos(a)
+        limb((x, y, .052), (x, y, .10), .017, .017, glow, Tm)
+    ball((0, -.19, .075), (.08, .026, .058), gold, Tm)
+    star((0, -.21, .075), .036, belt, Tm)
+    box((.27, -.02, -.06), (.07, .11, .21), belt, Tm, (0, 0, .2))
+    limb((.27, -.05, .05), (.29, -.07, .15), .026, .03, chrome, Tm)
+    ball((.29, -.075, .175), .024, glow, Tm)
+    # shirt, bolo tie
+    ball((0, -.01, .23), (.20, .15, .16), shirt, Tm)
+    ball((0, -.01, .43), (.27, .16, .19), shirt, Tm)
     for s in (-1, 1):
-        box((s * .135, -.178, .44), (.115, .02, .095), tan_dark, Tm)
-        ball((s * .065, -.125, .615), (.06, .04, .035), tan, Tm, (0, s * .5, 0))
-        box((s * .25, 0, .668), (.13, .09, .02), band, Tm)
-    star((.135, -.20, .455), .062, gold, Tm)
-    limb((0, -.19, .585), (0, -.205, .33), .024, .03, belt, Tm)
-    box((-.25, .01, .0), (.07, .13, .22), band, Tm)
-    limb((0, 0, .60), (0, -.015, .82), .052, .045, green, Tm)
-    # head
-    ball((0, .02, .06), (.17, .185, .17), green, Hm)
-    ball((0, -.03, -.08), (.11, .12, .12), green, Hm)
-    ball((0, -.06, -.165), (.055, .06, .05), green, Hm)
+        box((s * .11, -.165, .45), (.09, .02, .07), shirt_dark, Tm)
+        limb((s * .03, -.135, .57), (s * .012, -.172, .44), .007, .007, BLACK(), Tm)
+    ball((0, -.176, .50), (.034, .016, .038), mat(64, 160, 152, .3, grime=.1), Tm)
+    # the duster: open in front, skirts behind the legs, collar turned up
     for s in (-1, 1):
-        ball((s * .08, -.128, -.015), (.076, .038, .048), eye, Hm, (0, s * .62, 0))
-        limb((s * .15, -.135, .055), (s * .03, -.17, .018), .02, .016, green, Hm)
-        ball((s * .014, -.148, -.095), .006, band, Hm)
-    limb((-.032, -.132, -.14), (.032, -.132, -.14), .008, .008, band, Hm)
-    ball((0, 0, .168), (.31, .31, .02), felt, Hm, (.07, 0, 0))
+        ball((s * .20, .02, .31), (.14, .185, .30), duster, Tm)
+        limb((s * .065, -.168, .575), (s * .175, -.172, .17), .04, .03, duster, Tm)
+        ball((s * .19, .09, -.16), (.14, .12, .41), duster, Tm, (0, -s * .14, 0))
+        box((s * .23, -.08, .66), (.13, .1, .022), duster_dark, Tm)
+    ball((0, .09, .33), (.26, .14, .30), duster, Tm)
+    ball((0, .13, -.14), (.22, .085, .42), duster, Tm)
+    limb((0, .215, .10), (0, .22, -.52), .008, .008, duster_dark, Tm, caps=False)
+    ball((0, .07, .60), (.16, .08, .085), duster, Tm)
+    # the tin star, points balled
+    star((.17, -.205, .45), .092, gold, Tm)
+    for i in range(5):
+        a = i * math.tau / 5
+        ball((.17 + math.sin(a) * .092, -.212, .45 + math.cos(a) * .092), .015, gold, Tm)
+    limb((0, 0, .58), (0, -.015, .80), .05, .042, grey, Tm)
+    # the great grey dome, black almond eyes with a green fire in them
+    ball((0, .03, .07), (.20, .215, .20), grey, Hm)
+    ball((0, -.03, -.07), (.12, .13, .12), grey, Hm)
+    ball((0, -.065, -.16), (.055, .06, .05), grey, Hm)
     for s in (-1, 1):
-        ball((s * .27, 0, .19), (.06, .26, .022), felt, Hm, (.07, -s * .5, 0))
-    ball((0, 0, .255), (.152, .166, .12), felt, Hm)
-    ball((0, 0, .192), (.158, .172, .032), band, Hm)
-    star((0, -.172, .235), .034, gold, Hm)
-    # blaster
-    hold = {"ready": ((-.37, -.14, 1.04), (.0, -.75, -.65)), "aim": ((-.46, -.52, 1.50), (.5, -1, -.03)),
-            "fire": ((-.46, -.47, 1.56), (.5, -1, .2)), "recover": ((-.31, -.42, 1.32), (.1, -.9, -.35)),
-            "pain": ((-.52, -.1, 1.5), (-.4, -.2, .9))}
+        ball((s * .085, -.14, -.01), (.084, .042, .054), eye, Hm, (0, s * .6, 0))
+        ball((s * .094, -.174, -.002), (.03, .014, .02), glow, Hm, (0, s * .6, 0))
+        limb((s * .16, -.13, .07), (s * .03, -.18, .035), .022, .016, grey, Hm)
+        # the moustache, glued on a little crooked
+        limb((s * .004, -.174, -.10), (s * .062, -.164, -.112 - .006 * s), .03, .026, stache, Hm)
+        limb((s * .062, -.164, -.112 - .006 * s), (s * .078, -.144, -.22), .026, .013, stache, Hm)
+    if frame in ("pain", "fire") or J["dead"]:
+        ball((0, -.152, -.142), (.022, .012, .026), MOUTH(), Hm)
+    # the feelers come through holes in the crown
+    for s in (-1, 1):
+        knee = Vector((s * .12, .0, .38))
+        tip = Vector((s * .21, -.02, .48))
+        limb((s * .06, .03, .22), knee, .016, .013, grey, Hm)
+        limb(knee, tip, .013, .01, grey, Hm)
+        ball(tip, .04, glow, Hm)
+    Hat = Hm @ T((0, .01, .13)) @ R(-.05, 0, .05)
+    ball((0, 0, 0), (.46, .42, .022), felt, Hat)
+    for s in (-1, 1):
+        ball((s * .38, .0, .06), (.11, .33, .02), felt, Hat, (0, -s * .8, 0))
+        ball((s * .115, 0, .248), .026, band, Hat)
+    limb((0, 0, 0), (0, 0, .21), .195, .17, felt, Hat, caps=False, seg=28)
+    ball((0, 0, .21), (.17, .185, .06), felt, Hat)
+    ball((0, .01, .252), (.03, .15, .03), felt_dark, Hat)
+    limb((0, 0, .012), (0, 0, .062), .198, .195, band, Hat, caps=False, seg=28)
+    star((0, -.2, .037), .046, gold, Hat)
+    # ray pistol
+    hold = {"ready": ((-.38, -.14, 1.0), (.0, -.75, -.65)), "aim": ((-.46, -.52, 1.46), (.5, -1, -.03)),
+            "fire": ((-.46, -.47, 1.52), (.5, -1, .2)), "recover": ((-.31, -.42, 1.28), (.1, -.9, -.35)),
+            "pain": ((-.52, -.1, 1.46), (-.4, -.2, .9))}
     g, d = gun_hold(hold, J)
     shoulder_z = (Tm @ Vector((0, 0, S["torso_len"]))).z
-    hands = {"R": g, "L": Tm @ Vector((.23, -.15, .11))}
+    hands = {"R": g, "L": Tm @ Vector((.27, -.09, .16))}
     if frame == "pain":
         hands["L"] = Vector((.52, -.1, shoulder_z + .1))
     if J["dead"]:
         hands = flung(J, S, .6)
     else:
-        limb(g - d * .05, g + d * .24, .052, .046, chrome)
-        box(g + d * .08 + Vector((0, 0, .06)), (.02, .02, .05), chrome)
-        limb(g + d * .02, g + d * .02 + Vector((0, 0, -.11)), .024, .026, belt)
-        for k, radius in enumerate((.058, .046, .034)):
-            disc(g + d * (.28 + k * .05), d, radius, .018, glow if hot else chrome)
-        ball(g + d * .43, .024, glow)
+        gu = (Vector((0, 0, 1)) - d * d.z).normalized()
+        core = g + gu * .06
+        ball(core + d * .03, .078, chrome)
+        limb(core + d * .03, core + d * .34, .048, .034, chrome)
+        limb(g + gu * .03, g - gu * .13 - d * .04, .028, .032, belt)
+        for k, radius in enumerate((.08, .064, .048)):
+            disc(core + d * (.17 + k * .065), d, radius, .022, glow if hot else gold)
+        limb(core + gu * .05 - d * .02, core + gu * .13 - d * .11, .03, .008, mat(156, 40, 36, .5, grime=.2))
+        ball(core + d * .39, .032, glow)
         if frame == "fire":
-            flash(g + d * .48, .24, (130, 255, 120))
+            flash(core + d * .46, .32, (130, 255, 120))
 
     def sleeve(tag, sh, el, hand):
-        ball(sh, .095, tan)
-        limb(sh, el, .08, .064, tan)
-        limb(el, el.lerp(hand, .78), .064, .05, tan)
-        limb(el.lerp(hand, .74), el.lerp(hand, .80), .056, .056, tan_dark, caps=False)
-        limb(el.lerp(hand, .78), hand, .036, .034, green)
-        ball(hand, (.05, .05, .055), green)
-        reach = (hand - el).normalized()
-        if not J["dead"] and tag == "R":
-            return
-        for k in (-1, 0, 1):
-            tip = hand + reach * .11 + Vector((k * .035, 0, 0))
-            limb(hand, tip, .016, .012, green)
+        ball(sh, .10, duster)
+        limb(sh, el, .086, .07, duster)
+        limb(el, el.lerp(hand, .72), .07, .064, duster)
+        limb(el.lerp(hand, .68), el.lerp(hand, .77), .074, .074, duster_dark, caps=False)
+        limb(el.lerp(hand, .74), hand, .034, .032, grey)
+        ball(hand, (.05, .05, .056), grey)
+        if J["dead"] or tag == "L":
+            fingers(hand, el, grey)
 
     arms(S, J, hands, sleeve)
-    legs(S, J, trouser, (.105, .088, .072), boot, boot_top=.62)
+    legs(S, J, trouser, (.10, .085, .07), boot, boot_top=.62)
+    for side, tag in ((-1, "R"), (1, "L")):
+        foot = J["foot" + tag]
+        heel = Vector((foot.x, foot.y + .075, foot.z - S["ankle"] + .06))
+        limb(heel + Vector((0, -.03, 0)), heel + Vector((0, .05, 0)), .01, .01, gold, caps=False)
+        disc(heel + Vector((0, .075, 0)), (1, 0, 0), .04, .012, gold)
+
+
+# ---------------------------------------------------------------- jerry jones
+JERRY = dict(lean=.10, hip_h=.90, hip_w=.17, stance=.25, stride=.19, ankle=.08, thigh=.44, shin=.42,
+             torso_len=.64, neck=.09, head_fwd=-.06, sw=.40, upper=.34, fore=.32, boot=.08, bow=.22,
+             canvas=(2.1, 1.98), px=184, depth=.36, head_scale=1.15, down_frame=(3.4, 1.6), down_x=-.5)
+
+
+def jerry(frame):
+    """A booster-club coach the size of a feed shed: shoulder pads under a hog-red jersey, faded
+    overalls, a cracked helmet with its cage bent, eye black, a chaw, a whistle and a sack of balls."""
+    S = JERRY
+    J = skeleton(S, frame)
+    Tm, Hm = J["torso"], J["head"]
+    skin = mat(212, 140, 108, .7, grime=.4)
+    jersey = mat(140, 34, 40, .9, grime=.45)
+    gold = mat(220, 176, 66, .8, grime=.3)
+    denim, denim_dark = mat(88, 108, 146, .92), mat(58, 70, 100, .92)
+    shell = mat(220, 174, 52, .3, .25, grime=.35)
+    cage = mat(158, 158, 152, .4, .7, grime=.3)
+    tape = mat(184, 184, 176, .6, .3, grime=.15)
+    leather = mat(118, 62, 34, .7)
+    net = mat(204, 194, 158, .95, grime=.3, plaid=26.0)
+    sock = mat(214, 208, 192, .9, grime=.35)
+    cleat = mat(26, 24, 24, .5, grime=.2)
+    stubble = mat(156, 100, 78, .9)
+    brow = mat(120, 80, 52, .9)
+    # denim seat and gut, red jersey over the chest and back
+    ball((0, 0, .02), (.30, .22, .18), denim, Tm)
+    ball((0, -.10, .22), (.37, .35, .30), denim, Tm)
+    ball((0, -.02, .48), (.37, .25, .22), jersey, Tm)
+    ball((0, .07, .30), (.33, .22, .28), jersey, Tm)
+    ball((0, -.24, .46), (.20, .12, .16), denim, Tm)
+    box((.0, -.355, .47), (.15, .02, .10), denim_dark, Tm, (.3, 0, 0))
+    limb((.03, -.36, .52), (.05, -.37, .62), .011, .011, mat(214, 180, 60, .8), Tm)
+    for s in (-1, 1):
+        ball((s * .15, -.335, .565), .026, BRASS(), Tm)
+        limb((s * .15, -.33, .56), (s * .21, -.08, .67), .036, .034, denim, Tm)
+        limb((s * .21, -.08, .67), (s * .13, .27, .36), .034, .034, denim, Tm)
+        # shoulder pads under the jersey, a gold stripe over each
+        ball((s * .35, .0, .62), (.21, .22, .115), jersey, Tm)
+        ball((s * .43, .0, .555), (.12, .18, .12), jersey, Tm)
+        ball((s * .35, .0, .63), (.04, .225, .116), gold, Tm)
+        limb((s * .12, -.20, .63), (0, -.265, .555), .016, .014, gold, Tm)
+        # the double zero on his back
+        ring((-.13 + s * .088, .285, .33), (0, 1, 0), .07, .02, mat(232, 228, 214, .8, grime=.25), n=16, M=Tm)
+    # whistle on a lanyard
+    for s in (-1, 1):
+        limb((s * .10, -.18, .66), (.03, -.36, .585), .008, .008, gold, Tm)
+    limb((.03, -.37, .58), (.08, -.38, .58), .022, .02, mat(196, 198, 200, .25, .9, grime=.15), Tm)
+    ball((.035, -.375, .58), .03, mat(196, 198, 200, .25, .9, grime=.15), Tm)
+    limb((0, -.02, .62), (0, -.06, .70), .12, .11, skin, Tm)
+    # face: sunburnt jowls, a cheek full of chaw, eye black and a scowl
+    ball((0, 0, 0), (.15, .16, .16), skin, Hm)
+    ball((0, -.03, -.09), (.165, .15, .10), skin, Hm)
+    ball((0, -.07, -.16), (.12, .10, .07), stubble, Hm)
+    ball((.10, -.11, -.075), .052, skin, Hm)
+    ball((0, -.172, -.015), (.046, .046, .042), mat(216, 104, 88, .6, grime=.25), Hm)
+    for s in (-1, 1):
+        ball((s * .058, -.142, .035), .02, WHITE(), Hm)
+        ball((s * .058, -.158, .035), .011, BLACK(), Hm)
+        limb((s * .11, -.15, .08), (s * .02, -.168, .055), .022, .022, brow, Hm)
+        box((s * .058, -.16, -.012), (.052, .014, .02), BLACK(), Hm)
+        ball((s * .152, .0, -.01), (.03, .04, .05), skin, Hm)
+    wide = frame in ("pain", "fire", "aim") or J["dead"]
+    ball((0, -.162, -.10), (.062, .022, .036 if wide else .018), MOUTH(), Hm)
+    box((0, -.18, -.09 + (.006 if wide else 0)), (.085, .012, .016), TOOTH(), Hm)
+    # the helmet: gold shell, red stripe, a taped crack, a dent, the cage knocked crooked
+    ball((0, .03, .07), (.185, .195, .155), shell, Hm)
+    ball((0, .09, -.03), (.16, .12, .13), shell, Hm)
+    ball((0, .03, .07), (.036, .207, .166), jersey, Hm)
+    for s in (-1, 1):
+        ball((s * .155, -.01, -.03), (.05, .12, .13), shell, Hm)
+        ball((s * .2, -.01, -.03), (.008, .03, .03), BLACK(), Hm)
+    for twist in (-.55, .55):
+        box((.075, -.12, .162), (.12, .022, .03), tape, Hm, (.72, 0, twist))
+    ball((-.09, -.10, .165), (.05, .04, .03), mat(150, 116, 36, .5, grime=.4), Hm)
+    lug_l, lug_r = Vector((.15, -.07, -.02)), Vector((-.15, -.08, -.07))
+    bar_l, bar_r = Vector((.11, -.215, -.04)), Vector((-.09, -.20, -.13))
+    limb(lug_l, bar_l, .014, .014, cage, Hm)
+    limb(lug_r, bar_r, .014, .014, cage, Hm)
+    limb(bar_l, bar_r, .014, .014, cage, Hm)
+    limb((.14, -.06, -.11), (.05, -.20, -.175), .012, .012, cage, Hm)
+    limb((.05, -.20, -.175), (-.08, -.15, -.23), .012, .012, cage, Hm)
+    limb((.012, -.216, -.07), (.03, -.20, -.18), .012, .012, cage, Hm)
+    limb((.15, -.04, -.10), (.13, -.08, -.26), .01, .01, BLACK(), Hm)
+    # the sack of balls over his left shoulder
+    ball((.22, .31, .46), (.22, .18, .30), net, Tm)
+    for (x, y, z), d in (((.16, .33, .78), (.4, .2, 1)), ((.31, .29, .74), (-.5, .3, .8)),
+                         ((.10, .41, .64), (.2, -.3, 1)), ((.36, .42, .57), (1, .4, .3)),
+                         ((.20, .47, .42), (.3, 1, .2))):
+        football(Tm @ Vector((x, y, z)), Tm.to_3x3() @ Vector(d), leather)
+    neck = Tm @ Vector((.19, .22, .72))
+    # throwing
+    hold_t = {"ready": ((-.46, -.22, -.42), (0, -.3, 1)), "aim": ((-.58, .16, .20), (.1, .5, .85)),
+              "fire": ((-.30, -.58, .02), (.1, -1, -.2)), "recover": ((-.38, -.42, -.22), (0, -.8, -.5)),
+              "pain": ((-.62, -.1, -.10), (-.4, -.2, .9))}
+    g, d = hold(hold_t, J, S)
+    zs = (Tm @ Vector((0, 0, S["torso_len"]))).z
+    grip = Tm @ Vector((.30, -.24, .56))
+    hands = {"R": g, "L": grip}
+    if J["dead"]:
+        hands = flung(J, S, S["sw"] + .5)
+    else:
+        if frame == "pain":
+            hands["L"] = Vector((S["sw"] + .3, -.12, zs + .14))
+        else:
+            limb(neck, Tm @ Vector((.33, -.02, .76)), .014, .014, net)
+            limb(Tm @ Vector((.33, -.02, .76)), grip, .014, .014, net)
+        if frame != "recover":
+            football(g + d * (.24 if frame == "fire" else .0), d, leather)
+
+    def sleeve(tag, sh, el, hand):
+        ball(sh, .13, jersey)
+        limb(sh, el, .12, .10, jersey)
+        for t in (.6, .74):
+            ring(sh.lerp(el, t), el - sh, .12 * (1 - t) + .10 * t + .006, .014, gold, n=14)
+        limb(el, hand, .094, .074, skin)
+        ball(hand, (.08, .08, .085), skin)
+
+    arms(S, J, hands, sleeve, (skin, .07))
+    # legs rolled to the shin, striped tube socks, cleats
+    for side, tag in ((-1, "R"), (1, "L")):
+        hip, knee, foot = J["hip" + tag], J["knee" + tag], J["foot" + tag]
+        limb(hip, knee, .155, .128, denim)
+        roll = knee.lerp(foot, .28)
+        limb(knee, roll, .128, .122, denim)
+        limb(roll, knee.lerp(foot, .40), .138, .134, denim_dark)
+        limb(knee.lerp(foot, .36), foot, .092, .082, sock)
+        for t in (.52, .62):
+            ring(knee.lerp(foot, t), foot - knee, .09, .014, jersey, n=14)
+        shoe(S, J, side, tag, .082, cleat)
 
 
 # ---------------------------------------------------------------- rudy racket
-RUDY = dict(lean=.04, hip_h=.88, hip_w=.14, stance=.21, stride=.20, ankle=.08, thigh=.42, shin=.41,
-            torso_len=.56, neck=.16, head_fwd=-.03, sw=.31, upper=.32, fore=.30, boot=.066, bow=.14,
-            canvas=(2.0, 2.22), px=172, depth=.26, head_scale=1.0)
+RUDY = dict(lean=.04, hip_h=.88, hip_w=.14, stance=.22, stride=.20, ankle=.08, thigh=.42, shin=.41,
+            torso_len=.56, neck=.16, head_fwd=-.03, sw=.32, upper=.32, fore=.30, boot=.068, bow=.14,
+            canvas=(2.1, 2.22), px=172, depth=.3, head_scale=1.0, down_frame=(3.4, 1.5), down_x=-.5)
 
 
 def rudy(frame):
+    """The ringmaster gone to seed: a battered top hat ringed with marquee bulbs, a red tailcoat with
+    gold frogging and fringed epaulettes, a squirting flower, a cigar, a manic gold-toothed grin, and
+    a PA rig on his back, two brass horns off a car battery, to go with the megaphone."""
     S = RUDY
     J = skeleton(S, frame)
     Tm, Hm = J["torso"], J["head"]
-    skin = mat(190, 126, 98, .75, grime=.4)
-    coat = mat(124, 34, 38, .9)
+    hot = frame in ("aim", "fire")
+    beat = beat_of(frame)
+    skin = mat(194, 128, 100, .75, grime=.4)
+    coat = mat(132, 34, 38, .9)
     black = mat(30, 28, 30, .7, grime=.35)
-    gold = mat(176, 138, 58, .45, .85, grime=.3)
-    vest = mat(142, 116, 60, .9)
-    stripe = mat(186, 174, 142, .9, stripes=(11.0, (86, 50, 46)))
-    stripe_ball = mat(186, 174, 142, .9, stripes=(2.6, (86, 50, 46)))
-    glove = mat(190, 184, 164, .85)
+    gold = mat(188, 148, 60, .42, .85, grime=.3)
+    vest = mat(176, 136, 58, .8)
+    stripe = mat(190, 178, 146, .9, stripes=(11.0, (86, 50, 46)))
+    stripe_ball = mat(190, 178, 146, .9, stripes=(2.6, (86, 50, 46)))
+    glove = mat(196, 190, 170, .85)
     hair = mat(24, 20, 18, .6, grime=0)
-    horn_in = mat(70, 34, 20, .7, grime=.1)
-    # torso
-    ball((0, 0, .02), (.23, .18, .16), stripe_ball, Tm)
-    ball((0, -.065, .21), (.265, .235, .22), vest, Tm)
-    ball((0, -.01, .43), (.30, .21, .20), coat, Tm)
-    ball((0, .075, .24), (.27, .2, .30), coat, Tm)
+    horn_in = mat(40, 22, 16, .7, grime=.1)
+    iron = mat(56, 54, 52, .5, .7, grime=.4)
+    lit, unlit = mat(255, 220, 120, emit=2.4), mat(110, 84, 50, .4, grime=.2)
+    # pelvis, gold vest, tailcoat
+    ball((0, 0, .02), (.24, .19, .16), stripe_ball, Tm)
+    ball((0, -.07, .21), (.28, .25, .22), vest, Tm)
+    ball((0, -.01, .43), (.31, .21, .20), coat, Tm)
+    ball((0, .075, .24), (.28, .2, .30), coat, Tm)
     for s in (-1, 1):
-        ball((s * .205, .01, .22), (.14, .2, .26), coat, Tm)
-        ball((s * .13, .215, -.15), (.115, .05, .31), coat, Tm, (.14, 0, s * .08))
+        ball((s * .21, .01, .22), (.145, .2, .26), coat, Tm)
+        ball((s * .13, .215, -.17), (.12, .05, .33), coat, Tm, (.14, 0, s * .08))
         ball((s * .07, .275, .13), .022, gold, Tm)
-        ball((s * .16, -.235, .40), .017, gold, Tm)
         limb((s * .065, -.205, .56), (s * .155, -.215, .32), .034, .028, black, Tm)
-        ball((s * .32, 0, .585), (.10, .09, .036), gold, Tm)
         ball((s * .052, -.205, .575), (.05, .02, .034), black, Tm)
+        # frogging across the chest
+        for k in range(4):
+            z = .34 + k * .055
+            x0 = .065 + (.56 - z) / .24 * .09
+            limb((s * (x0 + .02), -.21, z), (s * (x0 + .11), -.18, z), .011, .011, gold, Tm)
+            ball((s * (x0 + .115), -.18, z), .016, gold, Tm)
+        # fringed epaulettes
+        ball((s * .33, 0, .59), (.105, .095, .036), gold, Tm)
+        for k in range(7):
+            t = -1.25 + k * (2.5 / 6)
+            top = Vector((s * (.33 + .10 * math.cos(t)), .09 * math.sin(t), .575))
+            limb(top, top + Vector((s * .012, 0, -.10)), .011, .009, gold, Tm)
     for k in range(3):
-        ball((0, -.295 + .012 * k, .14 + k * .085), .022, gold, Tm)
+        ball((0, -.31 + .012 * k, .14 + k * .085), .022, gold, Tm)
+    limb((.06, -.31, .19), (.20, -.25, .16), .006, .006, gold, Tm)
+    ball((.21, -.245, .16), .02, gold, Tm)
     ball((0, -.19, .50), (.075, .04, .07), WHITE(), Tm)
-    ball((0, -.212, .575), .022, black, Tm)
+    for s in (-1, 1):
+        ball((s * .05, -.214, .575), (.05, .022, .034), black, Tm, (0, s * .25, 0))
+    ball((0, -.222, .575), .018, gold, Tm)
+    # the flower that squirts
+    for i in range(6):
+        a = i * math.tau / 6
+        ball((.19 + math.cos(a) * .028, -.215, .47 + math.sin(a) * .028), .018, WHITE(), Tm)
+    ball((.19, -.228, .47), .019, mat(230, 196, 60, .6, grime=.1), Tm)
     limb((0, -.01, .56), (0, -.03, .66), .085, .08, skin, Tm)
-    # head
+    # the PA rig: a battery on a pipe rack, two horns over his shoulders
+    box((0, .31, .30), (.27, .15, .22), mat(28, 28, 30, .5, grime=.45), Tm)
+    box((0, .31, .43), (.20, .11, .04), mat(60, 58, 54, .6, grime=.4), Tm)
+    ball((-.07, .31, .46), .026, mat(170, 40, 36, .5, grime=.2), Tm)
+    ball((.07, .31, .46), .026, BLACK(), Tm)
+    for s in (-1, 1):
+        limb((s * .14, .29, .06), (s * .16, .29, .74), .018, .018, iron, Tm)
+        base = Vector((s * .16, .28, .74))
+        aim = Vector((s * .64, -.3, .66)).normalized()
+        bell = base + aim * .42
+        limb(base, base + aim * .11, .045, .05, iron, Tm)
+        limb(base + aim * .1, bell, .035, .175, gold, Tm, caps=False, seg=28)
+        wb = Tm @ bell
+        wa = (Tm.to_3x3() @ aim).normalized()
+        disc(wb, wa, .185, .016, gold)
+        disc(wb + wa * .007, wa, .155, .006, horn_in)
+        if frame == "fire":
+            ring(wb + wa * .1, wa, .2, .011, mat(255, 226, 110, emit=2.2), n=22)
+    limb((-.14, .29, .74), (.14, .29, .74), .018, .018, iron, Tm)
+    # head: greasy curls, a manic stare, a gold-toothed grin and a cigar
     ball((0, 0, 0), (.14, .15, .155), skin, Hm)
     ball((0, -.03, -.09), (.13, .12, .09), skin, Hm)
     ball((0, -.10, -.135), (.07, .06, .05), skin, Hm)
+    ball((0, -.02, -.10), (.125, .115, .08), mat(150, 100, 82, .8), Hm)
     for s in (-1, 1):
-        ball((s * .078, -.10, -.035), .054, mat(196, 116, 96, .75, grime=.35), Hm)
-        ball((s * .056, -.136, .04), .02, WHITE(), Hm)
-        ball((s * .056, -.150, .04), .011, BLACK(), Hm)
-        limb((s * .10, -.14, .078), (s * .055, -.15, .098), .017, .017, hair, Hm)
-        limb((s * .055, -.15, .098), (s * .015, -.152, .082), .017, .017, hair, Hm)
+        ball((s * .078, -.10, -.035), .054, mat(200, 116, 96, .75, grime=.35), Hm)
+        ball((s * .056, -.134, .042), .026, WHITE(), Hm)
+        ball((s * .056 + .004, -.157, .046), .009, BLACK(), Hm)
+        limb((s * .10, -.14, .088), (s * .055, -.152, .108), .017, .017, hair, Hm)
+        limb((s * .055, -.152, .108), (s * .015, -.152, .092), .017, .017, hair, Hm)
         limb((0, -.168, -.055), (s * .10, -.155, -.068), .028, .02, hair, Hm)
         limb((s * .10, -.155, -.068), (s * .165, -.13, -.005), .02, .007, hair, Hm)
         ball((s * .148, .01, 0), (.024, .034, .045), skin, Hm)
         ball((s * .135, .0, -.04), (.03, .06, .07), hair, Hm)
-    ring((-.056, -.156, .04), (0, 1, 0), .03, .006, gold, n=14, M=Hm)
-    ball((0, -.166, -.005), (.04, .044, .04), mat(194, 104, 88, .7, grime=.3), Hm)
-    wide = frame in ("pain", "fire", "aim") or J["dead"]
-    ball((0, -.158, -.105), (.052, .02, .034 if wide else .02), MOUTH(), Hm)
-    box((0, -.176, -.092), (.07, .01, .016), TOOTH(), Hm)
+    ball((0, -.166, -.005), (.04, .044, .04), mat(198, 104, 88, .7, grime=.3), Hm)
+    ball((0, -.156, -.105), (.064, .02, .036 if (hot or frame == "pain" or J["dead"]) else .026), MOUTH(), Hm)
+    box((0, -.174, -.094), (.092, .01, .018), TOOTH(), Hm)
+    box((.024, -.177, -.094), (.018, .01, .019), gold, Hm)
+    if not J["dead"]:
+        limb((.05, -.165, -.108), (.15, -.225, -.125), .016, .014, mat(100, 64, 40, .8), Hm)
+        ball((.155, -.229, -.126), .018, mat(255, 120, 50, emit=2.0), Hm)
+    # a battered top hat with a chaser of bulbs round the band and a ticket in it
     Hat = Hm @ T((0, 0, .115)) @ R(.05, .12, 0)
-    ball((0, 0, 0), (.215, .215, .016), black, Hat)
-    limb((0, 0, 0), (0, 0, .30), .136, .154, black, Hat, caps=False, seg=28)
-    limb((0, 0, .012), (0, 0, .07), .140, .144, coat, Hat, caps=False, seg=28)
+    ball((0, 0, 0), (.22, .22, .016), black, Hat)
+    limb((0, 0, 0), (0, 0, .17), .138, .148, black, Hat, caps=False, seg=28)
+    limb((0, 0, .168), (.025, -.012, .31), .149, .158, black, Hat, caps=False, seg=28)
+    ball((.025, -.012, .31), (.158, .158, .014), black, Hat)
+    ball((.12, -.06, .23), (.04, .05, .05), mat(56, 50, 52, .8, grime=.5), Hat)
+    box((-.09, -.10, .20), (.06, .02, .05), mat(70, 60, 56, .9), Hat, (0, 0, .6))
+    limb((0, 0, .012), (0, 0, .07), .142, .146, coat, Hat, caps=False, seg=28)
+    box((.115, -.075, .10), (.035, .03, .075), mat(214, 196, 150, .9, grime=.3), Hat, (0, 0, .55))
+    for i in range(12):
+        a = i * math.tau / 12
+        on = hot or (not J["dead"] and (i + beat) % 2 == 0)
+        ball((math.sin(a) * .152, -math.cos(a) * .152, .042), .02, lit if on else unlit, Hat)
     # megaphone and cane
     hold = {"ready": ((-.36, -.22, 1.04), (-.3, -.6, .75)), "aim": ((-.11, -.24, 1.47), (-.36, -.93, -.04)),
             "fire": ((-.11, -.22, 1.50), (-.36, -.93, .06)), "recover": ((-.27, -.31, 1.26), (-.3, -.8, .4)),
@@ -716,27 +1042,30 @@ def rudy(frame):
     p, d = gun_hold(hold, J)
     shoulder_z = (Tm @ Vector((0, 0, S["torso_len"]))).z
     grip = p + d * .16 + Vector((0, 0, -.11))
-    cane_hand = Vector((.37, -.16, .96)) + J["offset"]
+    cane_hand = Vector((.38, -.16, .96)) + J["offset"]
     cane_dir = unit(.08, -.12 - .1 * J["walk"], -1)
     if frame in ("aim", "fire"):
         cane_hand, cane_dir = Vector((.34, -.46, 1.30)), unit(.12, -.9, .32)
     if frame == "pain":
-        cane_hand, cane_dir = Vector((.5, -.1, shoulder_z + .12)), unit(.5, -.2, .8)
+        cane_hand, cane_dir = Vector((.5, -.1, shoulder_z + .12)), unit(.6, -.2, .5)
     hands = {"R": grip, "L": cane_hand}
     if J["dead"]:
         hands = flung(J, S, .56)
     else:
-        limb(p, p + d * .47, .03, .195, gold, caps=False, seg=30)
-        disc(p + d * .472, d, .205, .014, gold)
-        disc(p + d * .482, d, .178, .006, horn_in)
+        limb(p, p + d * .47, .03, .2, gold, caps=False, seg=30)
+        disc(p + d * .472, d, .21, .014, gold)
+        disc(p + d * .482, d, .18, .006, horn_in)
         limb(p - d * .03, p, .04, .03, gold, caps=False)
         limb(p + d * .16, grip, .02, .02, black)
+        cable = [Tm @ Vector((-.2, .3, .22)), Tm @ Vector((-.34, .1, .02)), p - d * .03]
+        for a, b in zip(cable, cable[1:]):
+            limb(a, b, .012, .012, black)
         if frame == "fire":
             wave = mat(255, 226, 110, emit=2.2)
             for k, radius in enumerate((.25, .34, .44)):
                 ring(p + d * (.60 + k * .16), d, radius, .011, wave, n=26)
-        limb(cane_hand - cane_dir * .12, cane_hand + cane_dir * .86, .017, .013, black)
-        ball(cane_hand - cane_dir * .14, .036, gold)
+        limb(cane_hand - cane_dir * .12, cane_hand + cane_dir * (.6 if frame == "pain" else .8), .017, .013, black)
+        ball(cane_hand - cane_dir * .14, .038, gold)
 
     def sleeve(tag, sh, el, hand):
         ball(sh, .105, coat)
@@ -747,17 +1076,347 @@ def rudy(frame):
         ball(hand, (.062, .062, .066), glove)
 
     arms(S, J, hands, sleeve, (glove, .054))
-    legs(S, J, stripe, (.118, .096, .078), black, boot_top=.5)
+    legs(S, J, stripe, (.12, .098, .08), black, boot_top=.5)
+
+
+# ---------------------------------------------------------------- splinter foreman
+FOREMAN = dict(lean=.10, hip_h=.95, hip_w=.16, stance=.24, stride=.21, ankle=.08, thigh=.46, shin=.44,
+               torso_len=.62, neck=.10, head_fwd=-.05, sw=.40, upper=.35, fore=.34, boot=.082, bow=.18,
+               canvas=(2.4, 2.04), px=172, depth=.32, head_scale=1.05, down_frame=(3.6, 1.6), down_x=-.6)
+
+
+def foreman(frame):
+    """The mill boss: a yellow hard hat with a lamp, a hi-vis vest over buffalo check, a ginger beard
+    like a hay bale, splinters stuck all over him, a buzz saw where his right hand was, spare blades on
+    his back and a double-bit axe over his shoulder."""
+    S = FOREMAN
+    J = skeleton(S, frame)
+    Tm, Hm = J["torso"], J["head"]
+    hot = frame in ("aim", "fire")
+    skin = mat(198, 134, 102, .75, grime=.45)
+    flannel = mat(150, 40, 34, .9, plaid=3.2)
+    flannel_arm = mat(150, 40, 34, .9, plaid=11.0)
+    vest = mat(232, 118, 30, .8, grime=.22)
+    silver = mat(222, 222, 212, .3, .4, grime=.15)
+    beard = mat(160, 76, 34, .95)
+    pants = mat(108, 86, 60, .92)
+    pants_dark = mat(78, 62, 44, .92)
+    boots = mat(70, 48, 32, .7)
+    leather = mat(84, 56, 34, .75)
+    hat = mat(222, 178, 40, .35, .1, grime=.35)
+    tool = mat(214, 128, 34, .5, .2, grime=.45)
+    splinter = mat(206, 166, 100, .9, grime=.2)
+    glove = mat(150, 112, 70, .85)
+    # canvas pants, buffalo check, tool belt
+    ball((0, 0, .02), (.29, .22, .18), pants, Tm)
+    ball((0, -.07, .22), (.34, .28, .25), flannel, Tm)
+    ball((0, -.01, .45), (.38, .24, .22), flannel, Tm)
+    ball((0, .07, .30), (.33, .21, .28), flannel, Tm)
+    for k in range(3):
+        ball((0, -.34 + .03 * k, .16 + k * .11), .018, mat(40, 30, 26, .6), Tm)
+    ball((0, -.01, .08), (.315, .255, .05), leather, Tm)
+    box((0, -.27, .08), (.09, .02, .065), BRASS(), Tm)
+    box((-.25, -.16, .0), (.10, .08, .13), mat(62, 42, 26, .8), Tm, (0, 0, .55))
+    box((.17, -.23, .03), (.09, .06, .08), mat(206, 172, 40, .5, grime=.4), Tm, (0, 0, -.4))
+    limb((.31, -.03, .07), (.33, -.01, -.24), .018, .018, WOOD(), Tm)
+    box((.31, -.03, .085), (.04, .13, .04), STEEL(), Tm)
+    # the hi-vis vest, open at the front, with reflective bands and braces
+    for x, y, rx, ry in ((-.24, -.03, .17, .27), (.24, -.03, .17, .27), (0, .08, .34, .19)):
+        ball((x, y, .36), (rx, ry, .29), vest, Tm)
+        for z in (.24, .42):
+            f = math.sqrt(1 - ((z - .36) / .29) ** 2) * 1.035
+            ball((x, y, z), (rx * f, ry * f, .022), silver, Tm)
+    for s in (-1, 1):
+        limb((s * .17, -.25, .26), (s * .22, -.08, .65), .024, .024, silver, Tm)
+        limb((s * .22, -.08, .65), (s * .19, .24, .28), .024, .024, silver, Tm)
+    # spare blades strapped on his back
+    up_t = Tm.to_3x3() @ Vector((0, 0, 1))
+    back_n = Tm.to_3x3() @ Vector((0, 1, -.12))
+    sawblade(Tm @ Vector((-.09, .31, .50)), back_n, .25, up_t, spin=.1)
+    sawblade(Tm @ Vector((.11, .34, .43)), back_n, .23, up_t, spin=.3)
+    limb((-.30, .37, .40), (.30, .37, .46), .022, .022, leather, Tm)
+    limb((0, -.02, .60), (0, -.05, .70), .12, .11, skin, Tm)
+    # splinters
+    for (x, y, z), (dx, dy, dz), n in (((.33, -.16, .52), (.6, -.5, .6), .17), ((-.27, -.21, .30), (-.5, -.7, .3), .14),
+                                       ((.12, .26, .56), (.2, .7, .6), .15), ((-.35, .05, .58), (-.7, .1, .7), .13),
+                                       ((.30, -.20, .24), (.5, -.6, -.1), .11)):
+        a = Tm @ Vector((x, y, z))
+        d = (Tm.to_3x3() @ Vector((dx, dy, dz))).normalized()
+        limb(a - d * .03, a + d * n, .017, .003, splinter, caps=False, seg=6)
+    # head: a ginger beard like a hay bale, a scowl, a wet cigar, a pencil behind the ear
+    ball((0, 0, 0), (.13, .14, .15), skin, Hm)
+    ball((0, -.02, -.07), (.135, .13, .09), skin, Hm)
+    ball((0, -.075, -.15), (.15, .12, .13), beard, Hm)
+    ball((0, -.10, -.27), (.12, .09, .11), beard, Hm)
+    ball((0, -.11, -.36), (.07, .06, .07), beard, Hm)
+    for s in (-1, 1):
+        ball((s * .12, -.025, -.065), .062, beard, Hm)
+        ball((s * .048, -.152, -.062), (.062, .03, .026), beard, Hm, (0, -s * .3, 0))
+        ball((s * .05, -.128, .036), .018, WHITE(), Hm)
+        ball((s * .05, -.143, .034), .01, BLACK(), Hm)
+        limb((s * .105, -.135, .078), (s * .015, -.152, .046), .024, .022, beard, Hm)
+        ball((s * .133, .01, 0), (.024, .034, .045), skin, Hm)
+    ball((0, -.155, -.01), (.04, .045, .04), mat(206, 104, 84, .7, grime=.3), Hm)
+    if frame in ("pain", "fire") or J["dead"]:
+        ball((0, -.16, -.095), (.045, .02, .03), MOUTH(), Hm)
+    if not J["dead"]:
+        limb((-.05, -.16, -.09), (-.15, -.24, -.115), .017, .015, mat(96, 60, 36, .8), Hm)
+        ball((-.155, -.244, -.117), .019, mat(255, 120, 50, emit=2.0), Hm)
+    limb((-.14, -.07, .05), (-.15, .07, .03), .01, .01, mat(226, 190, 60, .7), Hm)
+    # hard hat: a dome with a ridge, a lamp, a sticker and a dent
+    ball((0, 0, .085), (.165, .18, .135), hat, Hm)
+    ball((0, 0, .06), (.20, .215, .017), hat, Hm)
+    ball((0, -.16, .066), (.14, .10, .017), hat, Hm, (-.10, 0, 0))
+    limb((0, -.15, .17), (0, -.01, .226), .022, .02, hat, Hm)
+    limb((0, -.01, .226), (0, .15, .17), .02, .022, hat, Hm)
+    ball((-.08, -.1, .165), (.04, .03, .03), mat(160, 124, 30, .5, grime=.4), Hm)
+    box((.10, -.12, .15), (.05, .02, .045), mat(40, 96, 160, .6, grime=.2), Hm, (.6, 0, -.5))
+    c = Hm @ Vector((0, -.17, .13))
+    n = (Hm.to_3x3() @ Vector((0, -1, .25))).normalized()
+    disc(c, n, .045, .035, DARK())
+    disc(c + n * .02, n, .034, .01, mat(255, 236, 170, emit=2.2 if hot else 1.2))
+    # the buzz saw arm and the axe
+    arm_t = {"ready": ((-.46, -.36, -.40), (0, -.8, -.6)), "aim": ((-.42, -.52, -.12), (.15, -1, .1)),
+             "fire": ((-.36, -.62, -.10), (.2, -1, 0)), "recover": ((-.44, -.46, -.25), (.1, -.9, -.3)),
+             "pain": ((-.64, -.12, -.02), (-.5, -.2, .8))}
+    g, d = hold(arm_t, J, S)
+    zs = (Tm @ Vector((0, 0, S["torso_len"]))).z
+    hl = Tm @ Vector((.30, -.24, .40))
+    hands = {"R": g, "L": hl}
+    if J["dead"]:
+        hands = flung(J, S, S["sw"] + .25)
+        hands["R"] = hands["R"] + Vector((0, 0, -.2))
+    elif frame == "pain":
+        hands["L"] = Vector((S["sw"] + .3, -.12, zs + .14))
+    else:
+        ad = (Tm.to_3x3() @ Vector((.26, .74, .60))).normalized()
+        limb(hl - ad * .14, hl + ad * .70, .025, .023, WOOD())
+        Ax = frame_along(hl + ad * .63, ad)
+        bit = mat(150, 152, 150, .3, .9, grime=.35)
+        for s in (-1, 1):
+            ball((s * .10, 0, 0), (.075, .016, .095), bit, Ax)
+            limb((s * .05, 0, 0), (s * .1, 0, 0), .03, .018, bit, Ax, caps=False)
+        box((0, 0, 0), (.075, .05, .11), mat(150, 36, 30, .6, grime=.4), Ax)
+
+    def sleeve(tag, sh, el, hand):
+        ball(sh, .13, flannel_arm)
+        limb(sh, el, .118, .10, flannel_arm)
+        limb(el, el.lerp(hand, .14), .112, .108, mat(110, 30, 26, .9, plaid=11.0), caps=False)
+        if tag == "L":
+            limb(el.lerp(hand, .1), hand, .096, .078, skin)
+            ball(hand, (.088, .088, .092), glove)
+            return
+        reach = (hand - el).normalized()
+        mid = el.lerp(hand, .38)
+        limb(el.lerp(hand, .1), mid, .097, .092, skin)
+        limb(mid, hand, .092, .086, tool)
+        for t in (.12, .55, .68, .81):
+            ring(mid.lerp(hand, t), reach, .094, .014, DARK(), n=14)
+        hub = hand + reach * .12
+        limb(hand, hub, .045, .045, STEEL())
+        n = (reach * .55 + Vector((-.5, -.55, 0))).normalized()
+        guard_up = Vector((0, 0, 1)) - reach * .4
+        arc(hub + n * .025, n, guard_up, .265, -1.0, 1.0, .03, tool, n=8)
+        sawblade(hub, n, .25, Vector((0, 0, 1)), spin=.13 * beat_of(J["frame"]))
+        if hot:
+            low = hub + (Vector((0, 0, -1)) - n * n.z).normalized() * .25
+            sparks(low, Vector((-.3, -.6, -.5)), 9 if J["frame"] == "fire" else 5, .32)
+        if J["frame"] == "fire":
+            flash(hub + reach * .2 + n * .1, .26, (255, 190, 90))
+
+    arms(S, J, hands, sleeve)
+    legs(S, J, pants, (.155, .125, .10), boots, boot_top=.45)
+    for side, tag in ((-1, "R"), (1, "L")):
+        knee, foot = J["knee" + tag], J["foot" + tag]
+        top = knee.lerp(foot, .52)
+        limb(top, top + (foot - knee).normalized() * .05, .14, .135, pants_dark, caps=False)
+        for k in range(3):
+            ball(knee.lerp(foot, .66 + .1 * k) + Vector((0, -.11, 0)), .014, BRASS())
+
+
+# ---------------------------------------------------------------- copper baron
+BARON = dict(lean=.05, hip_h=.86, hip_w=.16, stance=.25, stride=.19, ankle=.08, thigh=.42, shin=.40,
+             torso_len=.64, neck=.08, head_fwd=-.08, sw=.42, upper=.35, fore=.33, boot=.08, bow=.22,
+             canvas=(2.3, 2.26), px=176, depth=.42, head_scale=1.12, down_frame=(3.6, 1.6), down_x=-.6)
+
+
+def baron(frame):
+    """The moonshine king: his body is a riveted copper pot still with a fire glowing in its door,
+    gauges on his chest, the worm coiled on his back and two stacks venting over his shoulders; a
+    soot-black top hat with its own gauge and vent, white mutton chops, a moonshine nose and a
+    monocle; a steam hose in one hand and a jug of the good stuff in the other."""
+    S = BARON
+    J = skeleton(S, frame)
+    Tm, Hm = J["torso"], J["head"]
+    hot = frame in ("aim", "fire")
+    beat = beat_of(frame)
+    copper = mat(190, 108, 62, .36, .85, grime=.45)
+    copper_dk = mat(126, 70, 40, .45, .8, grime=.5)
+    patina = mat(90, 128, 108, .8, grime=.35)
+    iron = mat(50, 48, 46, .5, .7, grime=.4)
+    fire = mat(255, 110, 30, emit=3.0 if hot else 2.0)
+    face = mat(210, 134, 106, .7, grime=.4)
+    whisker = mat(222, 216, 202, .95, grime=.25)
+    hat_c = mat(34, 30, 32, .6, grime=.5)
+    coat = mat(48, 40, 44, .85, grime=.4)
+    glove = mat(64, 48, 36, .8)
+    trouser = mat(66, 62, 64, .9)
+    spat = mat(196, 190, 176, .85, grime=.35)
+    shoe_c = mat(28, 26, 26, .35, grime=.15)
+    rubber = mat(38, 34, 32, .7, grime=.3)
+    ball((0, 0, .02), (.28, .22, .18), trouser, Tm)
+
+    def pot(a, z, out=1.0):
+        f = math.sqrt(max(0., 1 - ((z - .30) / .36) ** 2)) * out
+        return Vector((.40 * f * math.sin(a), -.07 - .36 * f * math.cos(a), z))
+
+    # the pot: riveted bands, patina, the firebox, gauges, a tap
+    ball((0, -.07, .30), (.40, .36, .36), copper, Tm)
+    for z in (.10, .30, .50):
+        f = math.sqrt(1 - ((z - .30) / .36) ** 2) * 1.025
+        ball((0, -.07, z), (.40 * f, .36 * f, .022), copper_dk, Tm)
+        for k in range(11):
+            ball(pot(-1.5 + k * .3, z, 1.05), .016, BRASS(), Tm)
+    for a, z, r in ((-.75, .20, .06), (.55, .40, .05), (-.25, .56, .04), (2.6, .25, .07)):
+        ball(pot(a, z, .99), (r, r * .6, r * .8), patina, Tm, (0, 0, a))
+    ball((0, -.03, .60), (.34, .28, .13), copper_dk, Tm)
+    door = pot(0, .20, 1.0)
+    box(door + Vector((0, -.008, 0)), (.23, .03, .16), iron, Tm)
+    box(door + Vector((0, -.02, 0)), (.18, .02, .11), fire, Tm)
+    for k in (-1, 1):
+        limb(door + Vector((-.09, -.04, k * .022)), door + Vector((.09, -.04, k * .022)), .008, .008, iron, Tm)
+    ball(door + Vector((.09, -.04, 0)), .014, BRASS(), Tm)
+    tap = pot(.62, .06, 1.0)
+    limb(tap, tap + Vector((.04, -.09, -.02)), .02, .018, BRASS(), Tm)
+    limb(tap + Vector((.02, -.05, 0)), tap + Vector((.02, -.05, .05)), .01, .01, BRASS(), Tm)
+    for s in (-1, 1):
+        a = s * .42
+        c = Tm @ pot(a, .45, 1.0)
+        nrm = (Tm.to_3x3() @ Vector((math.sin(a), -math.cos(a), .35))).normalized()
+        disc(c, nrm, .07, .04, BRASS())
+        disc(c + nrm * .012, nrm, .056, .02, mat(214, 206, 180, .5, grime=.2))
+        tip = Vector((.03 * s, 0, .04)) if not hot else Vector((.045, 0, .0))
+        limb(c + nrm * .025, c + nrm * .025 + tip, .007, .005, mat(170, 30, 26, .5, grime=0), caps=False)
+    # the worm coiled on his back and the pipe from the lid
+    pts = []
+    for i in range(49):
+        t = i / 48 * 4.2 * math.tau
+        pts.append(Tm @ Vector((.08 + .13 * math.cos(t), .44 + .11 * math.sin(t), .06 + .46 * i / 48)))
+    for a, b in zip(pts, pts[1:]):
+        limb(a, b, .028, .028, copper)
+    limb(pts[-1], Tm @ Vector((.0, .22, .64)), .03, .03, copper)
+    # two stacks venting over his shoulders
+    for s in (-1, 1):
+        limb((s * .22, .25, .48), (s * .26, .28, .90), .055, .062, copper_dk, Tm, caps=False)
+        limb((s * .26, .28, .88), (s * .27, .285, .98), .064, .09, iron, Tm, caps=False)
+        ring((s * .24, .265, .70), (0, 0, 1), .062, .012, BRASS(), M=Tm)
+        if hot or (beat % 2 == (0 if s < 0 else 1) and not J["dead"] and frame != "pain"):
+            puff(Tm @ Vector((s * .30, .29, 1.03)), .065 if hot else .05, turn=s > 0)
+    # head: ruddy jowls, a moonshine nose, white mutton chops, a monocle
+    ball((0, 0, 0), (.15, .16, .16), face, Hm)
+    ball((0, -.03, -.09), (.16, .15, .10), face, Hm)
+    ball((0, -.178, -.02), (.058, .052, .052), mat(208, 78, 66, .4, grime=.2), Hm)
+    for s in (-1, 1):
+        ball((s * .058, -.14, .04), .019, WHITE(), Hm)
+        ball((s * .058, -.156, .04), .01, BLACK(), Hm)
+        limb((s * .12, -.14, .085), (s * .025, -.162, .07), .024, .02, whisker, Hm)
+        ball((s * .13, -.05, -.08), (.07, .11, .13), whisker, Hm)
+        ball((s * .062, -.165, -.08), (.08, .042, .036), whisker, Hm, (0, -s * .35, 0))
+        limb((s * .12, -.152, -.07), (s * .18, -.12, .0), .022, .008, whisker, Hm)
+        ball((s * .152, .0, 0), (.026, .036, .046), face, Hm)
+    wide = frame in ("pain", "fire") or J["dead"]
+    ball((0, -.15, -.125), (.05, .02, .03 if wide else .014), MOUTH(), Hm)
+    box((-.02, -.165, -.118), (.018, .01, .016), BRASS(), Hm)
+    ring((-.058, -.168, .04), (0, 1, 0), .036, .008, BRASS(), n=14, M=Hm)
+    limb(Hm @ Vector((-.09, -.17, .02)), Tm @ Vector((-.14, -.36, .50)), .005, .005, BRASS())
+    # a soot-black top hat with a copper band, a gauge and a vent of its own
+    Hat = Hm @ T((0, .02, .10)) @ R(-.04, .10, 0)
+    ball((0, 0, 0), (.22, .23, .018), hat_c, Hat)
+    for s in (-1, 1):
+        ball((s * .185, 0, .03), (.06, .19, .016), hat_c, Hat, (0, -s * .6, 0))
+    limb((0, 0, 0), (0, 0, .33), .148, .162, hat_c, Hat, caps=False, seg=28)
+    ball((0, 0, .33), (.162, .162, .014), hat_c, Hat)
+    limb((0, 0, .01), (0, 0, .075), .152, .154, copper, Hat, caps=False, seg=28)
+    for k in range(10):
+        a = k * math.tau / 10
+        ball((math.sin(a) * .155, -math.cos(a) * .155, .02), .01, BRASS(), Hat)
+    hc = Hat @ Vector((0, -.16, .045))
+    hn = (Hat.to_3x3() @ Vector((0, -1, 0))).normalized()
+    disc(hc, hn, .04, .03, BRASS())
+    disc(hc + hn * .01, hn, .03, .02, mat(214, 206, 180, .5, grime=.2))
+    limb((.06, .02, .33), (.065, .02, .41), .026, .03, copper, Hat, caps=False)
+    ring((.065, .02, .41), (0, 0, 1), .03, .008, BRASS(), n=10, M=Hat)
+    # steam hose and the jug
+    hold_t = {"ready": ((-.50, -.30, -.44), (.1, -.8, -.5)), "aim": ((-.44, -.52, -.18), (.3, -1, 0)),
+              "fire": ((-.42, -.58, -.15), (.3, -1, .05)), "recover": ((-.46, -.46, -.28), (.2, -.9, -.3)),
+              "pain": ((-.66, -.1, -.05), (-.4, -.2, .9))}
+    g, d = hold(hold_t, J, S)
+    zs = (Tm @ Vector((0, 0, S["torso_len"]))).z
+    rest = Vector((S["sw"] + .16, -.14, S["hip_h"] + .14 - .02 * J["walk"])) + J["offset"]
+    hands = {"R": g, "L": rest}
+    if J["dead"]:
+        hands = flung(J, S, S["sw"] + .5)
+    else:
+        start = Tm @ Vector((-.36, -.12, .14))
+        end = g - d * .12
+        sag = (start + end) / 2 + Vector((0, 0, -.22))
+        hose = [start.lerp(sag, t).lerp(sag.lerp(end, t), t) for t in (k / 6 for k in range(7))]
+        for a, b in zip(hose, hose[1:]):
+            limb(a, b, .036, .036, rubber)
+        limb(g - d * .12, g + d * .32, .048, .026, BRASS())
+        for t in (-.06, .12):
+            ring(g + d * t, d, .05, .012, copper_dk, n=12)
+        gu = (Vector((0, 0, 1)) - d * d.z).normalized()
+        limb(g + d * .04 + gu * .04, g - d * .06 + gu * .1, .014, .012, iron)
+        if frame == "aim":
+            puff(g + d * .40, .04)
+        if frame == "fire":
+            flash(g + d * .38, .2, (236, 232, 214))
+            for k, (t, r) in enumerate(((.5, .06), (.68, .09), (.92, .12))):
+                puff(g + d * t + Vector((0, 0, .02 * k)), r, turn=k % 2)
+        if frame == "pain":
+            hands["L"] = Vector((S["sw"] + .3, -.12, zs + .14))
+        else:
+            if frame == "recover":
+                hands["L"] = Hm @ Vector((.12, -.24, -.14))
+                tip = (Hm.to_3x3() @ Vector((-.5, -.4, .7))).normalized()
+            else:
+                tip = Vector((0, 0, 1))
+            body = hands["L"] - tip * .24
+            stone, glaze = mat(196, 180, 140, .6, grime=.45), mat(84, 50, 30, .45)
+            ball(body, (.13, .13, .15), stone)
+            ball(body - tip * .06, (.133, .133, .1), glaze)
+            limb(body + tip * .11, body + tip * .21, .045, .034, glaze, caps=False)
+            ball(body + tip * .22, .032, mat(150, 110, 70, .9))
+            ring(body + tip * .15 + Vector((.06, 0, 0)), (0, 1, 0), .042, .013, glaze, n=10)
+            out = Vector((1, -.6, 0)).normalized()
+            for k in (-1, 0, 1):
+                c = body + out * .13 + Vector((-out.y, out.x, 0)) * .05 * k + tip * .03
+                limb(c + Vector((-.012, 0, -.02)), c + Vector((.012, 0, .02)), .006, .006, BLACK(), caps=False)
+                limb(c + Vector((.012, 0, -.02)), c + Vector((-.012, 0, .02)), .006, .006, BLACK(), caps=False)
+
+    def sleeve(tag, sh, el, hand):
+        ball(sh, .12, coat)
+        limb(sh, el, .112, .096, coat)
+        limb(el, hand, .098, .082, copper_dk)
+        for t in (.15, .85):
+            ring(el.lerp(hand, t), hand - el, .1, .013, BRASS(), n=12)
+        ball(hand, (.082, .082, .088), glove)
+        ball(sh + Vector((0, 0, .035)), (.17, .18, .12), copper)
+        ring(sh + Vector((0, 0, -.01)), (0, 0, 1), .16, .014, copper_dk, n=16)
+
+    arms(S, J, hands, sleeve, (glove, .07))
+    legs(S, J, trouser, (.15, .122, .10), shoe_c, cuff=spat)
+    for tag in ("R", "L"):
+        foot = J["foot" + tag]
+        ball(foot + Vector((0, -.06, -.03)), (.085, .1, .045), spat)
 
 
 # ---------------------------------------------------------------- the rest of the cast
 AVG = dict(lean=.06, hip_h=.88, hip_w=.11, stance=.17, stride=.21, ankle=.075, thigh=.42, shin=.41,
            torso_len=.52, neck=.15, head_fwd=-.035, sw=.22, upper=.30, fore=.28, boot=.058, bow=.14,
            depth=.17, gut=.2, limb=(.086, .07, .058), arm=(.064, .054, .043), canvas=(1.6, 1.96), px=158)
-BIG = dict(AVG, hip_h=.95, hip_w=.15, stance=.22, thigh=.455, shin=.445, torso_len=.60, neck=.17, sw=.32,
-           upper=.34, fore=.32, boot=.07, depth=.24, gut=.5, limb=(.125, .10, .084), arm=(.095, .08, .064),
-           canvas=(2.1, 2.26), px=172)
-TWO = {"ready": ((-.23, -.31, -.36), (.78, -.34, .46)), "aim": ((-.22, -.34, -.15), (.46, -1, 0)),
+TWO ={"ready": ((-.23, -.31, -.36), (.78, -.34, .46)), "aim": ((-.22, -.34, -.15), (.46, -1, 0)),
        "fire": ((-.22, -.30, -.12), (.46, -1, .13)), "recover": ((-.21, -.33, -.26), (.5, -.7, .12)),
        "pain": ((-.44, -.16, -.30), (-.3, -.3, .9)), "fidget": ((-.32, -.16, -.48), (.1, -.5, -.85))}
 ONE = {"ready": ((-.29, -.19, -.54), (.1, -.8, -.5)), "aim": ((-.36, -.50, -.09), (.3, -1, 0)),
@@ -1057,21 +1716,14 @@ def weapon(kind, g, d, J, C):
             for k in range(5):
                 ball(g + d * (.3 + k * .1) + Vector((0, 0, .05)), .012, mat(255, 210, 120, emit=2.0))
         return g + d * .10 + Vector((.02, 0, .13))
-    if kind in ("bottle", "football"):
+    if kind == "bottle":
         if frame in ("fire", "recover"):
             return None
-        if kind == "bottle":
-            glass = mat(*C.get("bandolier", (60, 96, 60)), .25, grime=.2)
-            limb(g, g + d * .16, .03, .028, glass)
-            limb(g + d * .16, g + d * .25, .012, .012, glass, caps=False)
-            if frame == "aim":
-                ball(g + d * .28, .02, mat(255, 170, 70, emit=2.2))
-        else:
-            leather = mat(110, 62, 36, .7)
-            limb(g + d * .0, g + d * .09, .058, .02, leather)
-            limb(g + d * .0, g - d * .09, .058, .02, leather)
-            ring(g + d * .05, d, .042, .006, WHITE(), n=10)
-            ring(g - d * .05, d, .042, .006, WHITE(), n=10)
+        glass = mat(*C.get("bandolier", (60, 96, 60)), .25, grime=.2)
+        limb(g, g + d * .16, .03, .028, glass)
+        limb(g + d * .16, g + d * .25, .012, .012, glass, caps=False)
+        if frame == "aim":
+            ball(g + d * .28, .02, mat(255, 170, 70, emit=2.2))
         return None
     if kind == "chain":
         link = mat(60, 62, 66, .45, .85, grime=.4)
@@ -1096,30 +1748,6 @@ def weapon(kind, g, d, J, C):
         if frame == "fire":
             flash(g + d * .5, .2, (236, 232, 214))
         return g + d * .26
-    if kind == "sawgun":
-        limb(g - d * .12, g + d * .34, .05, .045, DARK())
-        limb(g + d * .1, g + d * .1 + Vector((0, 0, -.12)), .026, .028, WOOD())
-        tilt = (up + d * .25).normalized()
-        if frame != "fire" and frame != "recover":
-            disc(g + d * .50, tilt, .21, .012, mat(150, 152, 150, .3, .9, grime=.35))
-            disc(g + d * .50, tilt, .06, .03, BRASS())
-            for k in range(12):
-                a = k * math.tau / 12
-                u = tilt.orthogonal().normalized()
-                v = tilt.cross(u)
-                ball(g + d * .50 + (u * math.cos(a) + v * math.sin(a)) * .215, .02, STEEL())
-        if frame == "fire":
-            flash(g + d * .52, .24, (255, 190, 90))
-        return g + d * .22
-    if kind == "cannon":
-        copper = mat(150, 88, 50, .45, .8, grime=.45)
-        limb(g - d * .15, g + d * .5, .078, .07, copper)
-        disc(g + d * .51, d, .095, .05, BRASS())
-        disc(g + d * .54, d, .06, .01, BLACK())
-        limb(g - d * .15, g - d * .3 + Vector((.1, .2, .05)), .035, .035, DARK())
-        if frame == "fire":
-            flash(g + d * .6, .28, (255, 170, 70))
-        return g + d * .28
     return None
 
 
@@ -1153,10 +1781,6 @@ def person(S, frame):
             left = weapon(kind, g, d, J, C)
             if left is not None:
                 hands["L"] = left
-        if kind == "football" and frame != "pain":
-            radio = hands["L"] = Tm @ Vector((S["sw"] * .9, -.24, .22))
-            box(radio + Vector((0, -.02, .05)), (.07, .04, .13), DARK())
-            limb(radio + Vector((.02, -.02, .11)), radio + Vector((.03, -.02, .30)), .005, .005, STEEL(), caps=False)
         if kind == "bottle" and frame != "pain":
             glass = mat(*C.get("bandolier", (60, 96, 60)), .25, grime=.2)
             limb(rest, rest + Vector((0, 0, .17)), .03, .026, glass)
@@ -1234,18 +1858,6 @@ VALVERAT = cast(AVG, lean=.30, hip_h=.56, thigh=.27, shin=.26, torso_len=.40, ne
                 stride=.15, gut=.3, canvas=(1.5, 1.38), px=118, shirt=(104, 84, 56), coat=(104, 84, 56),
                 pants=(60, 66, 72), eyes="goggles", hat="flat", hat_c=(70, 54, 40), tanks=(124, 96, 52),
                 beard="stubble", gloves=(60, 46, 36), weapon="pipe", hold=TWO)
-FOREMAN = cast(BIG, bandolier=(150, 152, 150), shirt=(92, 96, 88), coat=(56, 98, 102), coat_long=1, pants=(72, 76, 72), hat="hardhat",
-               hat_c=(132, 134, 126), eyes="goggles", beard="full", hair=(120, 118, 110), gloves=(70, 54, 40),
-               kneepads=1, belt=(40, 32, 26), boot_top=.45, weapon="sawgun", hold=TWO)
-BARON = cast(BIG, bands=(168, 132, 62), gut=.8, sw=.36, canvas=(2.3, 2.42), px=176, limb=(.135, .108, .09), shirt=(150, 90, 52),
-             pants=(70, 72, 68), armor=(150, 90, 52), tanks=(140, 84, 48), stacks=.32, gauge=(-.1, .1), eyes="visor",
-             mask_c=(140, 86, 50), hat="pipes", hat_c=(140, 84, 48), gloves=(60, 46, 36), boot_top=.5,
-             weapon="cannon", hold=TWO)
-JERRY = cast(AVG, trim=(206, 204, 196), hip_h=.92, thigh=.44, shin=.43, torso_len=.56, sw=.27, gut=.55, canvas=(1.8, 2.08), px=184,
-             limb=(.10, .082, .066), arm=(.078, .066, .052), skin=(204, 150, 124), shirt=(44, 58, 88),
-             coat=(44, 58, 88), pants=(62, 72, 94), collar=(206, 204, 196), badge=(196, 200, 206), belt=(30, 26, 24),
-             hat="cap", hat_c=(40, 54, 86), cap_star=1, hair=(212, 210, 202), eyes="glasses", boots=(34, 30, 28),
-             weapon="football", hold=THROW)
 
 
 def maker(S):
@@ -1385,8 +1997,8 @@ ACTORS = {"billy": (billy, BILLY, ("fidget",), None), "coot": (coot, COOT, ("fid
           "boilerback": (maker(BOILERBACK), BOILERBACK, (), None),
           "chalk_spitter": (maker(CHALK), CHALK, (), None), "yard_deputy": (maker(DEPUTY), DEPUTY, (), None),
           "bottle_tosser": (maker(TOSSER), TOSSER, (), None), "chain_hand": (maker(CHAINHAND), CHAINHAND, (), None),
-          "valve_rat": (maker(VALVERAT), VALVERAT, (), None), "foreman": (maker(FOREMAN), FOREMAN, (), None),
-          "baron": (maker(BARON), BARON, (), None), "jerry": (maker(JERRY), JERRY, (), None),
+          "valve_rat": (maker(VALVERAT), VALVERAT, (), None), "foreman": (foreman, FOREMAN, (), None),
+          "baron": (baron, BARON, (), None), "jerry": (jerry, JERRY, (), None),
           "skeeter": (skeeter, SKEETER, (), FLYER), "saucer": (saucer, SAUCER, (), FLYER),
           "crawler": (crawler, CRAWLER, (), GROUND), "lantern": (lantern, LANTERN, (), GROUND)}
 
@@ -1486,12 +2098,13 @@ def main():
             elif frame == "down":
                 root = R(0, 0, math.pi / 2) @ T((0, 0, S["depth"])) @ R(-math.pi / 2, 0, 0)
                 pitch = math.radians(26)
-                w, h = 2.9, 1.5
+                # A tall boss lies longer than the usual frame: it may widen it and slide it headward.
+                w, h = S.get("down_frame", (2.9, 1.5))
             ROOT.matrix_basis = root
             scene.render.resolution_x = round(w * scale)
             scene.render.resolution_y = round(h * scale)
             camera.data.ortho_scale = max(w, h)
-            look = Vector((0, 0, h / 2 - .04)) if (frame != "down" or own) else Vector((0, 0, .25))
+            look = Vector((0, 0, h / 2 - .04)) if (frame != "down" or own) else Vector((S.get("down_x", 0.), 0, .25))
             back = Vector((0, -math.cos(pitch), math.sin(pitch)))
             camera.location = look + back * 12
             camera.rotation_euler = (math.pi / 2 - pitch, 0, 0)
