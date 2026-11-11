@@ -74,11 +74,13 @@ func _init() -> void:
 			print("%-34s nothing to hold it against (%s)" % [tag, against_path])
 			failed.append(tag)
 			continue
-		if OS.has_environment("GITHUB_ACTIONS") and tag in ["hickston_mirror_0", "fair_01_0"]:
-			var crop := shown.get_region(Rect2i(660, 300, 300, 330))
-			crop.convert(Image.FORMAT_RGB8)
-			crop.resize(100, 110, Image.INTERPOLATE_NEAREST)
-			print("::notice title=%s crop::%s" % [tag, Marshalls.raw_to_base64(crop.get_data())])
+		if OS.has_environment("GITHUB_ACTIONS") and tag == "hickston_mirror_0":
+			var area := shown.get_region(Rect2i(660, 330, 288, 288))
+			area.convert(Image.FORMAT_RGB8)
+			area.resize(96, 96, Image.INTERPOLATE_NEAREST)
+			for k in 9:
+				var piece := area.get_region(Rect2i((k % 3) * 32, (k / 3) * 32, 32, 32))
+				print("::notice title=crop %d::%s" % [k, Marshalls.raw_to_base64(piece.get_data())])
 		var strong_pc := _compare(shown, against, folder.path_join(tag + "_diff.png"))
 		var white := folder.path_join(tag + "_fxw.png")
 		if mode == "refs" and FileAccess.file_exists(white):
