@@ -1,7 +1,6 @@
-pygame-ce==2.5.8
+# The art and sound tools in scripts/ (the game and its build need only Godot).
 numpy==2.3.5
 Pillow==13.0.0
-pyinstaller==6.22.3
 # Audio tooling only (scripts/audio_generator.py); the game never imports these.
 elevenlabs==2.77.0
 python-dotenv==1.2.4

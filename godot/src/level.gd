@@ -1,8 +1,6 @@
-## Level data for the port, mirroring the Python TileMap structures.
-##
-## The JSON is produced by tools/export_levels.py from the reference build, so
-## this class only has to shuttle it into packed arrays the renderer can read
-## without per-pixel dictionary lookups.
+## A level: res://data/<id>.json (the source of every map; see level_edit.gd
+## for changing one) shuttled into packed arrays the renderer can read without
+## per-pixel dictionary lookups.
 class_name LevelData
 extends RefCounted
 

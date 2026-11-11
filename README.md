@@ -20,11 +20,11 @@ This development pass adds the optional Tin Rooster gallery, a dry boardwalk aro
 | Android | `CrazyLegsMundellRampage.apk` | Android 7.0+, arm64 |
 | Browser | <https://treymun.github.io/crazy-legs-mundell-rampage/> | Godot WebAssembly build, playable on the landing page |
 
-The landing page's download buttons always point at the newest GitHub release. From 2.0.0-dev.9 the release is built from the Godot project in `godot/`; the Python game in this folder is the original it was ported from and still runs with `python main.py`.
+The landing page's download buttons always point at the newest GitHub release. From 2.0.0-dev.9 the release is built from the Godot project in `godot/`; the original Python/pygame game it was ported from is kept at the git tag `python-original`.
 
 ### The Godot build
 
-`godot/` is a Godot 4.7 project, and it is the game: releases, the site and all new work come from it. It started as a port of the Python game in this folder and still takes its content from there (the maps are exported from the Python level modules, and the art, sound and palette are packed from `assets/`), but it no longer has to behave or draw exactly like the Python original. Its own reference images (`godot/tools/pictures/`, checked by `tools/picture_check.gd`) guard its look from one change to the next.
+`godot/` is a Godot 4.7 project, and it is the game: releases, the site and all new work come from it. It started as a port of a Python/pygame game (kept at the git tag `python-original`). Its maps are `godot/data/*.json`, and its art, sound and palette are packed from `assets/` and `audio_src/`. Its own reference images (`godot/tools/pictures/`, checked by `tools/picture_check.gd`) guard its look from one change to the next.
 
 Build it from a clone:
 
@@ -55,7 +55,6 @@ The Godot build's sound is produced from `audio_src/`: stored ElevenLabs recordi
 
 The landing page lives in `site/` (plain HTML, CSS and JavaScript). `python scripts/build_site_assets.py --audio` rebuilds its pictures and sound previews from the game's assets.
 
-The Python build still packages as before: `build_windows.bat` (PyInstaller), `buildozer -v android debug` after `python scripts/make_ogg.py`, or `python -m pygbag --build .`.
 
 ### Play
 
@@ -113,30 +112,13 @@ On Windows saves, settings, and screenshots live under `%LOCALAPPDATA%\HickstonI
 
 Menus, the HUD, and gameplay messages use native pixel lettering. Brightness changes the scene only, so the HUD and prompts stay readable even on the darkest setting.
 
-### Build from source
-
-Extract the complete ZIP. On Windows with Python 3.12 x64, double-click **Build_CrazyLegsMundellRampage.bat**. It makes a project-local virtual environment, installs the pinned dependencies, and builds the versioned EXE in **dist**. The prebuilt EXE in the ZIP runs independently.
-
-From the project folder, run these commands for the same build.
-
-    py -3.12 -m venv .venv
-    .venv\Scripts\python.exe -m pip install -r requirements.txt
-    .venv\Scripts\python.exe build_standalone.py
-
-Run **main.py** with the same interpreter to play from source. The project includes pre-rendered art, WAV effects and streaming Opus music. **world_art.py** and **audio.py** regenerate the scenery, props, weapons, effects, VGA lookup, and music. For weapons only, run **weapon_art.py** followed by **expansion_weapons.py**. **face_pipeline.py** documents the four-photo workflow. The package includes derived sprites and the wardrobe plate. Keep your private photos separately.
-
 ### How the game is put together
 
-- **engine.py** casts rays against walls at different heights with NumPy, draws porch steps and solid furniture, shades distance in steps, and renders the bathroom reflection through the visible part of the mirror.
-- **period_palette.py** maps each 320×200 frame to the project's original 256-color VGA grade before scaling.
-- **campaign.py**, **level_hickston.py**, **level_expansion.py**, and **level_quarry.py** define the four maps, gate destinations, routes, and completion conditions. **game.py** and **enemies.py** handle combat, patrols, secrets, and finales. **world_art.py**, **route_art.py**, **expansion_art.py**, and **quarry_art.py** bake scenery. **actor_models.py**, **expansion_enemies.py**, and **quarry_actors.py** bake the enemy animation frames.
-- **county_detail.py** places the new hardware, wall finishes, and floor wear against existing map geometry. Run **county_detail_art.py** to regenerate those PNGs.
-- **hud.py**, **weapons.py**, **weapon_art.py**, **weapon_models.py**, and **expansion_weapons.py** draw the status bar and twelve weapon sets. The rifle's magazine and bolt move independently. The sawed-off breaks open and shows one or both shells during reload.
-- **session_store.py** handles quicksaves, level entry, chapter unlocks, save migration, and setup controls.
-- **face_pipeline.py** aligns the photos, reshapes expression regions, and creates the digitized palette and sprite cutouts.
-- **player_art.py** combines the baked portrait with work clothes and makes the directional mirror cels, wanted poster and title composition. It runs from the included art without the original photos.
-- **audio.py**, **sound_production.py**, **expansion_audio.py**, and **soundtrack_production.py** assemble 16-bit PCM effects, area ambience, and original arrangements from recorded instruments. Nearby sounds pan and lose level behind walls. **score_player.py** runs the four shuffle playlists. See [the soundtrack manifest](MUSIC.md).
-- **expression_sheet.png** shows all twelve expression sprites.
+The game is the Godot 4.7 project in `godot/`; `CLAUDE.md` lists the commands, the checks and the rules for working on it.
 
-The 320×200 software presentation, distance shading, inventory meters, rural environments, and humor are period-inspired. The campaign, sprite artwork, audio, and engine are custom. The materials and title photograph are credited in **THIRD_PARTY_NOTICES.md**. Visual and gameplay references include [Interplay's game listing](https://store.steampowered.com/app/565550/Redneck_Rampage/), [the original manual](https://store.steampowered.com/manual/565550/), and [the 1997 demo](https://www.dosgamesarchive.com/file/redneck-rampage/redneckd).
+- `godot/src/` holds the game in GDScript. Three big parts are chains of layers, each file extending the one before: the front end (`main_state` → `main_flow` → `main_input` → `main`), play (`game_state` → `game_world` → `game_combat` → `game_view` → `game`) and the software view (`render_state` → `render_surfaces` → `render_sprites` → `renderer`).
+- With a window, `palette.gdshader` draws the view on the graphics card: sky, floors, ceilings, walls and sprites, then the weapon and HUD layer (drawn with Godot 2D) and the 256-colour grade. Without one (tools, CI) the software view draws the same picture.
+- `godot/data/` holds the four maps (`*.json`, the source of every level) and `godot/data/tuning/` the weapon and enemy numbers.
+- `assets/` and `audio_src/` hold the art and sound; `tools/pack_assets.gd` packs them for the game. The Python scripts in `scripts/` make that art and sound (Blender renders, digitizing, ElevenLabs, mastering); the game and its build need no Python.
 
+The original Python/pygame game this was ported from is kept at the git tag `python-original`.

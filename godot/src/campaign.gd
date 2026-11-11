@@ -1,9 +1,9 @@
 ## Port of campaign.py: stable map ids plus the metadata the campaign, automap
 ## and save files share.
 ##
-## The baked playable data lives in res://data/*.json (produced by
-## tools/export_levels.py); this class only carries the ordering and the strings
-## the UI needs without loading a whole level.
+## The playable data lives in res://data/*.json, the source of every level;
+## this class only carries the ordering and the strings the UI needs without
+## loading a whole level.
 class_name Campaign
 extends RefCounted
 

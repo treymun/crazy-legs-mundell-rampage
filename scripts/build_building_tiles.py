@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 TILES = ROOT / "assets" / "tiles"
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from level_buildings import MATERIALS  # noqa: E402
 
 RNG = np.random.default_rng(1931)
