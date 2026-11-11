@@ -196,6 +196,8 @@ var pane_tiles: Array[Vector2i] = []
 var fixtures: Array[PackedFloat32Array] = []
 var collision_volumes: Array[PackedFloat32Array] = []
 
+## Bumped whenever `light` is rewritten, so the display shader's copy follows.
+var light_version := 0
 var ground_heights := PackedFloat32Array()
 var roof_heights := PackedFloat32Array()
 ## height -> Vector4i(x0, y0, x1, y1)

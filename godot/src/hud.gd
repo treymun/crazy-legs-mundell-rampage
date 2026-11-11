@@ -149,6 +149,19 @@ static func _paste(c: Canvas, kept: Dictionary) -> void:
 		var until := ((y + row + 1) * Canvas.WIDTH + x) * 3 if row < h - 1 else pix.size()
 		out.append_array(pix.slice(after, until))
 	c.pixels = out
+	if c.layer:
+		# The same join for the layer's coverage: the block is solid.
+		var solid := PackedByteArray()
+		solid.resize(w)
+		solid.fill(255)
+		var cover := c.cover
+		var joined := cover.slice(0, y * Canvas.WIDTH + x)
+		for row in h:
+			joined.append_array(solid)
+			var after := (y + row) * Canvas.WIDTH + x + w
+			var until := (y + row + 1) * Canvas.WIDTH + x if row < h - 1 else cover.size()
+			joined.append_array(cover.slice(after, until))
+		c.cover = joined
 
 
 ## Port of HUD.number: the big rust-orange plate numerals.
@@ -487,6 +500,8 @@ static func _blit_rgb(c: Canvas, src: PackedByteArray, w: int, h: int, x: int, y
 			c.pixels[o] = src[sp]
 			c.pixels[o + 1] = src[sp + 1]
 			c.pixels[o + 2] = src[sp + 2]
+			if c.layer:
+				c.cover[ty * Canvas.WIDTH + tx] = 255
 
 
 # ---------------------------------------------------------------- objective

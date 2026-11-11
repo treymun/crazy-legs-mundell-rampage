@@ -136,6 +136,35 @@ var pass_ms: Array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 var threads := 8
 var plane_cull := true
 
+## Layered drawing, for the display shader (palette.gdshader). The sky, the
+## floors and the ceilings are left to the graphics card; walls and wall marks
+## go to `frame` with their distances in `depth`; sprites and ground marks go to
+## an overlay the shader lays over whichever surface turns out to be in front.
+## Off, everything is composed here exactly as before (tools, the mirror).
+var layered := false
+var _lay := false
+## The overlay: premultiplied colour, coverage, and the distance that decides
+## whether a floor hides it (above zero a sprite, below zero a ground mark).
+var over := PackedByteArray()
+var over_a := PackedByteArray()
+var over_d := PackedFloat32Array()
+## Where sprites and ground marks are blended: the frame, or the overlay.
+var spr := PackedByteArray()
+## Layered walls. A plain wall pixel is not coloured here: the shader is handed
+## which texel it shows (tile * 16384 + row * 128 + column, in the low 21 bits)
+## and which shade row lights it (tint * PROFILE_COUNT + step, above them), and
+## looks the colour up. That is one write per pixel in place of three texel
+## reads, three table reads and three writes. A pixel that carries WALL_RGB
+## instead has its colour in `frame` (signs that glow, the mirror, the hub's
+## shadowed walls, anything a wall mark was blended into).
+var wall_code := PackedInt32Array()
+const WALL_RGB := -1
+const WALL_ROW_SHIFT := 21
+## True when this frame's main pass drew window panes (pane_rgb / pane_dist).
+var pane_any := false
+## The main pass's camera, kept because the mirror pass reuses the members.
+var cam := {}
+
 # Camera state for the pass in flight.
 var cx := 0.0
 var cy := 0.0
@@ -240,9 +269,13 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 	depth.fill(160.0)
 	pane_dist.fill(160.0)
 	sky = assets.sky(level.sky)
-	# Measured on a 16c/32t CPU: 8 bands is the sweet spot. Fewer leaves the
-	# machine idle; more just contends (16 bands was ~50% slower than 8).
-	threads = maxi(1, mini(8, OS.get_processor_count() - 1))
+	# One band thread per spare core, guessing two logical processors to a core,
+	# and never more than six. A frame waits for its slowest band, so a thread
+	# too many is worse than one too few: with more threads at work than cores
+	# awake to run them (measured on a 16c/32t laptop on its balanced power
+	# plan: the main thread and anything past six or seven band threads) one is
+	# always held up and the frame with it.
+	threads = clampi(OS.get_processor_count() / 2 - 1, 1, 6)
 	# A browser build without SharedArrayBuffer cannot start a Thread at all:
 	# render the bands one after another on the main thread instead.
 	if not OS.has_feature("threads"):
@@ -361,6 +394,33 @@ func render(
 	marks: Array,
 	ground_marks: Array
 ) -> PackedByteArray:
+	render_begin(player, sprites, reflection_sprite, flash_value, marks, ground_marks)
+	return render_end()
+
+
+## The frame in steps, so the caller's own work overlaps the band threads':
+## frame_begin() sets the camera and buffers up and has a band thread sort out
+## the wall segments (the caller can list its sprites meanwhile);
+## frame_sprites() takes the sprites and marks and starts the bands (the caller
+## can draw its weapon and HUD meanwhile); render_end() waits and finishes.
+var _pending: Array = []
+var _begun_usec := 0
+var _prepare_out := false
+
+
+func render_begin(
+	player: Dictionary,
+	sprites: Array,
+	reflection_sprite,
+	flash_value: float,
+	marks: Array,
+	ground_marks: Array
+) -> void:
+	frame_begin(player, flash_value)
+	frame_sprites(sprites, reflection_sprite, marks, ground_marks)
+
+
+func frame_begin(player: Dictionary, flash_value: float) -> void:
 	var started := Time.get_ticks_usec()
 	var px: float = player["x"]
 	var py: float = player["y"]
@@ -382,59 +442,93 @@ func render(
 	# and returning this one directly is then safe because the next frame
 	# allocates a different array instead of rewriting it.
 	frame = PackedByteArray()
-	frame.resize(vw * (HEIGHT if detail == 0 else vh) * 3)
+	frame.resize(vw * (HEIGHT if detail == 0 and not layered else vh) * 3)
+	if layered:
+		over = PackedByteArray()
+		over.resize(vw * vh * 3)
+		over.fill(0)
+		over_a = PackedByteArray()
+		over_a.resize(vw * vh)
+		over_a.fill(0)
+		over_d = PackedFloat32Array()
+		over_d.resize(vw * vh)
+		over_d.fill(0.0)
+		# Handed to a texture afterwards, so it must not be the array the band
+		# threads wrote into last frame.
+		pane_rgb = PackedByteArray()
+		pane_rgb.resize(vw * vh * 3)
+		wall_code = PackedInt32Array()
+		wall_code.resize(vw * vh)
 	depth = PackedFloat32Array()
 	depth.resize(vw * vh)
 	glass = PackedByteArray()
 	glass.resize(vw * vh)
 	pane_dist = PackedFloat32Array()
 	pane_dist.resize(vw * vh)
-	_scene(
-		px,
-		py,
-		pz,
-		angle,
-		hz,
-		1,
-		active,
-		sprites,
-		marks,
-		ground_marks,
-		frame,
-		vw,
-		0,
-		vw,
-		depth,
-		glass
-	)
-	_mirror_pass(px, py, pz, angle, hz, active, sprites, reflection_sprite, marks, ground_marks)
-	if detail != 0:
+	_pending = [px, py, pz, angle, hz, active]
+	_scene_view(px, py, pz, angle, hz, 1, frame, vw, 0, vw, depth, glass, layered)
+	if use_threads:
+		_need_crew(1)
+		Renderer._crew_job = _prepare.bind(active)
+		_prepare_out = true
+		_crew_go.post()
+	else:
+		_prepare(active)
+	_begun_usec = Time.get_ticks_usec() - started
+
+
+func frame_sprites(sprites: Array, reflection_sprite, marks: Array, ground_marks: Array) -> void:
+	var started := Time.get_ticks_usec()
+	if _prepare_out:
+		_prepare_out = false
+		_crew_done.wait()
+	_pending.append_array([sprites, reflection_sprite, marks, ground_marks])
+	_scene_draw(sprites, marks, ground_marks, 1, 0, vw, layered)
+	_begun_usec += Time.get_ticks_usec() - started
+
+
+func render_end() -> PackedByteArray:
+	var started := Time.get_ticks_usec()
+	_scene_end()
+	var p := _pending
+	_pending = []
+	if layered:
+		cam = {"x": p[0], "y": p[1], "z": p[2], "angle": p[3], "hz": p[4]}
+		pane_any = false
+		for i in vw:
+			if pane_cols[i] != 0:
+				pane_any = true
+				break
+	_mirror_pass(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9])
+	if detail != 0 and not layered:
 		var small := Image.create_from_data(vw, vh, false, Image.FORMAT_RGB8, frame)
 		small.resize(WIDTH, VIEW, Image.INTERPOLATE_NEAREST)
 		frame = small.get_data()
 		frame.resize(WIDTH * HEIGHT * 3)
-	last_render_ms = (Time.get_ticks_usec() - started) / 1000.0
+	last_render_ms = (_begun_usec + Time.get_ticks_usec() - started) / 1000.0
 	return frame
 
 
-func _scene(
+## A scene is set up (_scene_view), has its wall segments sorted out (_prepare),
+## is drawn (_scene_draw, which may only start the band threads) and is
+## finished (_scene_end).
+func _scene_view(
 	x: float,
 	y: float,
 	z: float,
 	angle: float,
 	hz: float,
 	par: int,
-	segments: PackedFloat32Array,
-	sprites: Array,
-	marks: Array,
-	ground_marks: Array,
 	buf: PackedByteArray,
 	buf_w: int,
 	c0: int,
 	c1: int,
 	depth_buf: PackedFloat32Array,
-	glass_buf: PackedByteArray
+	glass_buf: PackedByteArray,
+	lay := false
 ) -> void:
+	_lay = lay
+	spr = over if lay else buf
 	cx = x
 	cy = y
 	cz = z
@@ -458,7 +552,7 @@ func _scene(
 	depth_buf.fill(160.0)
 	glass_buf.fill(0)
 	pane_dist.fill(160.0)
-	split = clampi(int(floor(hz - .5)) + 1, 0, vh)
+	split = clampi(int(floorf(hz - .5)) + 1, 0, vh)
 	for r in vh:
 		sy_rows[r] = row_sy[r] - hz
 	for i in vw:
@@ -467,57 +561,275 @@ func _scene(
 	for i in vw:
 		pane_cols[i] = 0
 
+
+func _scene_draw(
+	sprites: Array, marks: Array, ground_marks: Array, par: int, c0: int, c1: int, lay: bool
+) -> void:
 	_sprite_list = sprites
 	_mark_list = marks
 	_ground_list = ground_marks
-	_prepare(segments)
 	_warm_art()
 
-	# Bands own disjoint columns, so walls, planes and overlays all band.
-	if use_threads and threads > 1 and c1 - c0 >= 96:
-		_run_bands(c0, c1)
+	# Bands own disjoint columns, so walls, planes and overlays all band. Only
+	# the main view is worth the threads (and keeps their balance, see
+	# _cut_bands); a mirror's reflection is a narrow strip.
+	if use_threads and (threads > 1 or lay) and par > 0 and c1 - c0 >= 96:
+		_start_bands(c0, c1)
 	else:
 		_band(c0, c1)
-	_pane_wash()
 
 
-## Resolve every sprite lookup on the main thread before the band workers run.
-## `art_cache` and `pivots` are plain Dictionaries; two workers inserting into
-## the same Dictionary at once can corrupt its table (an access violation), and
-## the first frame of a level is exactly when every sprite misses the cache.
+## Wait for the scene's bands, then finish what follows them.
+func _scene_end() -> void:
+	if _bands_out > 0:
+		_band_worker()
+	for i in _bands_out:
+		_crew_done.wait()
+	if _bands_out > 0:
+		_bands_out = 0
+		Renderer._crew_job = Callable()
+	if not _lay:
+		_pane_wash()
+
+
+## What each band needs to draw this frame's sprites and marks, worked out once
+## on the main thread. A band thread then reads nothing but packed arrays:
+## reading a field of another object, or calling a script function, costs five
+## to eleven times more while the other band threads are doing the same, and
+## that was most of what a band spent on anything but pixels. It also keeps
+## `art_cache` and `pivots` (plain Dictionaries, not safe to fill from two
+## threads) on one thread.
+const SPR_F := 7
+const SPR_I := 9
+const MK_F := 9
+const MK_I := 5
+const GM_F := 11
+const GM_I := 5
+## centre column, distance, light, tint r g b, hurt wash
+var _spr_f := PackedFloat64Array()
+## kind (0 skip, 1 sprite, 2 sign), height, top, width, art w, art h, alpha cut,
+## 1 flip | 2 translucent, left column
+var _spr_i := PackedInt32Array()
+var _spr_data: Array = []
+## distance, lateral, axis, fall, extent, left, right, light, z
+var _mk_f := PackedFloat64Array()
+## live, first row, last row + 1, art w, art h
+var _mk_i := PackedInt32Array()
+var _mk_data: Array = []
+## eye - x, eye - y, eye height above it, radial, bounds, cos, sin, reach, width, ahead, side
+var _gm_f := PackedFloat64Array()
+## live, art w, art h, first column it can touch, last column + 1
+var _gm_i := PackedInt32Array()
+var _gm_data: Array = []
+
+
 func _warm_art() -> void:
-	# Also note which columns each sprite can touch, so a band skips the rest
-	# without a call. Signs and anything behind the eye keep the whole view.
 	var count := _sprite_list.size()
 	_spr_c0.resize(count)
 	_spr_c1.resize(count)
+	_spr_f.resize(count * SPR_F)
+	_spr_i.resize(count * SPR_I)
+	_spr_data.resize(count)
+	var mirrored := parity < 0
+	var edge := level.mirror_x
+	var lights := level.light
+	var areas := level.area
+	var tint_max := tints.size() / 3 - 1
 	for i in count:
 		var s: Sprite = _sprite_list[i]
-		var art := sprite_art(s.image)
-		if s.body and not pivots.has(s.image):
-			body_offset(s.image, art["data"], int(art["w"]), int(art["h"]), 1)
+		var io := i * SPR_I
+		_spr_i[io] = 0
 		_spr_c0[i] = 0
-		_spr_c1[i] = vw
-		var dist := (s.x - cx) * fx + (s.y - cy) * fy
-		if is_nan(s.plane) and dist > .13:
-			var mid := vw / 2.0 + ((s.x - cx) * rx + (s.y - cy) * ry) / dist * focal
-			var half := s.height / dist * focal * float(art["w"]) / float(art["h"]) * .5 + 3.0
-			_spr_c0[i] = int(mid - half)
-			_spr_c1[i] = int(mid + half) + 1
-		elif is_nan(s.plane):
-			_spr_c1[i] = 0
-	for m: WallMark in _mark_list:
-		sprite_art(m.image)
-	for m: GroundMark in _ground_list:
-		sprite_art(m.image)
+		_spr_c1[i] = 0
+		var sx := s.x
+		var sy := s.y
+		var tall := s.height
+		var dx := sx - cx
+		var dy := sy - cy
+		if mirrored and sx < edge:
+			continue
+		var dist := dx * fx + dy * fy
+		var limit := 51.0 if tall > 2.7 else 32.0
+		if dist <= .13 or dist >= limit:
+			continue
+		var height := int(tall / dist * focal)
+		if height < 2:
+			continue
+		var board := not is_nan(s.plane)
+		var body := s.body
+		var top := 0
+		if not board:
+			top = int(roundf(horizon - (s.z + tall - cz) / dist * focal))
+			if top >= vh or (top + height <= 0 and not body):
+				continue
+		var image := s.image
+		var art := sprite_art(image)
+		var sw: int = art["w"]
+		var sh: int = art["h"]
+		var data: PackedByteArray = art["data"]
+		_spr_data[i] = data
+		_spr_i[io + 4] = sw
+		_spr_i[io + 5] = sh
+		if board:
+			# A painted board is projected along its own axis (_draw_sign); there
+			# are few enough of them that it stays a call.
+			_spr_i[io] = 2
+			_spr_c1[i] = vw
+			continue
+		var width := maxi(1, int(height * float(sw) / float(sh)))
+		var centre := vw / 2.0 + (dx * rx + dy * ry) / dist * focal
+		if body:
+			top += body_offset(image, data, sw, sh, height)
+		if top >= vh or top + height <= 0:
+			continue
+		var glow := s.glow
+		var ci := level.cell(sx, sy)
+		var light := 1.1 if glow else light_at(dist, lights[ci])
+		if body:
+			light = maxf(light, .58 - .021 * dist)
+		if not glow:
+			light = floorf(light * 32.0 + .5) / 32.0
+		var ti := mini(maxi(1 if glow else areas[ci], 0), tint_max) * 3
+		var hurt := s.hurt
+		var see_through := s.translucent
+		var fo := i * SPR_F
+		_spr_f[fo] = centre
+		_spr_f[fo + 1] = dist
+		_spr_f[fo + 2] = light
+		_spr_f[fo + 3] = tints[ti]
+		_spr_f[fo + 4] = tints[ti + 1]
+		_spr_f[fo + 5] = tints[ti + 2]
+		_spr_f[fo + 6] = minf(.46, hurt / .18 * .44) if hurt > 0.0 else 0.0
+		_spr_i[io] = 1
+		_spr_i[io + 1] = height
+		_spr_i[io + 2] = top
+		_spr_i[io + 3] = width
+		_spr_i[io + 6] = 12 if see_through else 100
+		_spr_i[io + 7] = (1 if s.flip != mirrored else 0) | (2 if see_through else 0)
+		# Its left column, decided once for the whole view. Rounded per band (as
+		# it used to be) a sprite landing on an exact half column, which is every
+		# odd-width sprite dead ahead, sat one column further right in the band
+		# holding its left edge than in the bands after it. A half goes down, as
+		# it did in all those other bands.
+		var left := int(ceilf(centre - width / 2.0 - .5))
+		_spr_i[io + 8] = left
+		_spr_c0[i] = left
+		_spr_c1[i] = left + width
+
+	count = _mark_list.size()
+	_mk_f.resize(count * MK_F)
+	_mk_i.resize(count * MK_I)
+	_mk_data.resize(count)
+	for k in count:
+		var m: WallMark = _mark_list[k]
+		var io := k * MK_I
+		_mk_i[io] = 0
+		var rxv := m.x - cx
+		var ryv := m.y - cy
+		var d := rxv * fx + ryv * fy
+		if d <= .19 or d >= 15.0:
+			continue
+		var lateral := rxv * rx + ryv * ry
+		var ux := m.ux
+		var uy := m.uy
+		var axis := ux * rx + uy * ry
+		var fall := ux * fx + uy * fy
+		if absf(axis * d - lateral * fall) < .08:
+			continue
+		var extent: float = m.radius
+		var mz := m.z
+		var half := focal * extent / d
+		var cy_screen := horizon - (mz - cz) * focal / d
+		var y0 := maxi(0, int(cy_screen - half - 1.0))
+		var y1 := mini(vh, int(cy_screen + half + 2.0))
+		if y0 >= y1:
+			continue
+		var art := sprite_art(m.image)
+		_mk_data[k] = art["data"]
+		var fo := k * MK_F
+		_mk_f[fo] = d
+		_mk_f[fo + 1] = lateral
+		_mk_f[fo + 2] = axis
+		_mk_f[fo + 3] = fall
+		_mk_f[fo + 4] = extent
+		_mk_f[fo + 5] = (lateral - axis * extent) * focal / (d - fall * extent)
+		_mk_f[fo + 6] = (lateral + axis * extent) * focal / (d + fall * extent)
+		_mk_f[fo + 7] = light_at(d, 1.0)
+		_mk_f[fo + 8] = mz
+		_mk_i[io] = 1
+		_mk_i[io + 1] = y0
+		_mk_i[io + 2] = y1
+		_mk_i[io + 3] = int(art["w"])
+		_mk_i[io + 4] = int(art["h"])
+
+	count = _ground_list.size()
+	_gm_f.resize(count * GM_F)
+	_gm_i.resize(count * GM_I)
+	_gm_data.resize(count)
+	for k in count:
+		var m: GroundMark = _ground_list[k]
+		var io := k * GM_I
+		_gm_i[io] = 0
+		var gx := m.x
+		var gy := m.y
+		var gz := m.z
+		var reach := m.reach
+		var width := m.width
+		var mx := gx - cx
+		var my := gy - cy
+		var radial := sqrt((gx - cx) * (gx - cx) + (gy - cy) * (gy - cy))
+		if cz <= gz + .015 or radial > 26.0:
+			continue
+		var angle := m.angle
+		var art := sprite_art(m.image)
+		_gm_data[k] = art["data"]
+		var fo := k * GM_F
+		_gm_f[fo] = cx - gx
+		_gm_f[fo + 1] = cy - gy
+		_gm_f[fo + 2] = cz - gz
+		_gm_f[fo + 3] = radial
+		_gm_f[fo + 4] = sqrt(reach * reach + width * width)
+		_gm_f[fo + 5] = cos(angle)
+		_gm_f[fo + 6] = sin(angle)
+		_gm_f[fo + 7] = reach
+		_gm_f[fo + 8] = width
+		_gm_f[fo + 9] = mx * fx + my * fy
+		_gm_f[fo + 10] = mx * rx + my * ry
+		_gm_i[io] = 1
+		_gm_i[io + 1] = int(art["w"])
+		_gm_i[io + 2] = int(art["h"])
+		# The mark is a rectangle on the floor; seen from in front, it lies between
+		# the screen columns of its corners. (Any corner beside or behind the eye:
+		# no shortcut, every column is tested as before.)
+		var lo := 1e9
+		var hi := -1e9
+		for corner in 4:
+			var along := reach if corner < 2 else -reach
+			var across := width if corner % 2 == 0 else -width
+			var px := mx + along * _gm_f[fo + 5] - across * _gm_f[fo + 6]
+			var py := my + along * _gm_f[fo + 6] + across * _gm_f[fo + 5]
+			var ahead := px * fx + py * fy
+			if ahead <= .05:
+				lo = -1e9
+				hi = 1e9
+				break
+			var column := vw / 2.0 + (px * rx + py * ry) / ahead * focal
+			lo = minf(lo, column)
+			hi = maxf(hi, column)
+		_gm_i[io + 3] = clampi(int(floorf(maxf(lo, -4.0))) - 2, 0, vw)
+		_gm_i[io + 4] = clampi(int(ceilf(minf(hi, vw + 4.0))) + 3, 0, vw)
 
 
-var _band_per := 0
 var _band_count := 0
 var _band_next := 0
 var _band_lock := Mutex.new()
-const BAND_COLUMNS := 40
-var _workers: Array[Thread] = []
+## One band per band thread, cut where the work was even last frame.
+var _band_edges := PackedInt32Array()
+var _band_cost := PackedFloat32Array()
+var _band_span := Vector2i(-1, -1)
+## Band threads still drawing (0 when no band phase is running).
+var _bands_out := 0
+const BAND_SHARE := 2
 ## Band threads shared by every renderer; they sleep on a semaphore between frames.
 static var _crew: Array[Thread] = []
 static var _crew_go := Semaphore.new()
@@ -550,25 +862,65 @@ static func stop_crew() -> void:
 ## task slots shared with the rest of the engine, which made the band workers
 ## observe a half-swapped set of pass buffers. Each band is a fixed column
 ## range and bands never share pixels, so ordering does not matter.
-func _run_bands(c0: int, c1: int) -> void:
-	# Narrow bands handed out on demand: a worker that draws cheap columns comes
-	# back for more, so one crowded stretch of the view does not hold the frame.
-	_band_per = maxi(8, BAND_COLUMNS * vw / WIDTH)
-	_band_count = int(ceil(float(c1 - c0) / _band_per))
-	_band_next = 0
-	var crew := mini(threads, _band_count)
-	# The crew is started once and kept: starting a thread per band per frame
-	# cost more than some bands took to draw, and far more in a browser.
-	while _crew.size() < crew:
+## The crew is started once and kept: starting a thread per band per frame
+## cost more than some bands took to draw, and far more in a browser.
+func _need_crew(count: int) -> void:
+	while _crew.size() < count:
 		var t := Thread.new()
 		t.start(Renderer._crew_loop)
 		_crew.append(t)
+
+
+func _start_bands(c0: int, c1: int) -> void:
+	var crew := clampi((c1 - c0) / 16, 1, threads)
+	# Two bands a thread, taken as they come: a thread that is held up keeps one
+	# small band waiting instead of an eighth of the view, and the main thread
+	# takes whatever is left when it gets to _scene_end().
+	_band_count = crew * BAND_SHARE
+	_cut_bands(c0, c1, _band_count)
+	_band_next = 0
+	_need_crew(crew)
 	Renderer._crew_job = _band_worker
+	_bands_out = crew
 	for i in crew:
 		_crew_go.post()
+
+
+## Where each band starts. A frame waits for its slowest band, and equal widths
+## are rarely equal work (a near wall or a crowd of sprites to one side), so the
+## cuts move toward where each band would have taken the same time last frame.
+func _cut_bands(c0: int, c1: int, crew: int) -> void:
+	if _band_edges.size() != crew + 1 or _band_span != Vector2i(c0, c1):
+		_band_span = Vector2i(c0, c1)
+		_band_edges.resize(crew + 1)
+		_band_cost.resize(crew)
+		_band_cost.fill(0.0)
+		for i in crew + 1:
+			_band_edges[i] = c0 + (c1 - c0) * i / crew
+		return
+	var total := 0.0
 	for i in crew:
-		_crew_done.wait()
-	Renderer._crew_job = Callable()
+		total += _band_cost[i]
+	if total <= 0.0:
+		return
+	var share := total / crew
+	var edges := _band_edges.duplicate()
+	var k := 0
+	var before := 0.0
+	for i in range(1, crew):
+		var want := share * i
+		while k < crew - 1 and before + _band_cost[k] < want:
+			before += _band_cost[k]
+			k += 1
+		var part := clampf((want - before) / maxf(_band_cost[k], .000001), 0.0, 1.0)
+		var ideal := _band_edges[k] + (_band_edges[k + 1] - _band_edges[k]) * part
+		# Half way there each frame: the timings are noisy.
+		edges[i] = int(roundf((_band_edges[i] + ideal) * .5))
+	for i in range(1, crew):
+		edges[i] = maxi(edges[i], edges[i - 1] + 4)
+	for i in range(crew - 1, 0, -1):
+		edges[i] = mini(edges[i], edges[i + 1] - 4)
+	_band_edges = edges
 
 
 func _band_worker() -> void:
@@ -579,10 +931,9 @@ func _band_worker() -> void:
 		_band_lock.unlock()
 		if i >= _band_count:
 			return
-		var a := col0 + i * _band_per
-		var b := mini(col1, a + _band_per)
-		if a < b:
-			_band(a, b)
+		var began := Time.get_ticks_usec()
+		_band(_band_edges[i], _band_edges[i + 1])
+		_band_cost[i] = (_band_cost[i] + (Time.get_ticks_usec() - began) / 1000.0) * .5
 
 
 ## One band: sky, wall spans, planes, then marks and sprites for its columns.
@@ -590,6 +941,8 @@ func _band(a: int, b: int) -> void:
 	if profile:
 		var t := Time.get_ticks_usec()
 		for k in 6:
+			if _lay and (k == 0 or k == 2):
+				continue
 			[_sky_band, _wall_band, _plane_band, _mark_band, _ground_band, _sprite_band][k].call(
 				a, b
 			)
@@ -597,9 +950,12 @@ func _band(a: int, b: int) -> void:
 			pass_ms[k] += (now - t) / 1000.0
 			t = now
 		return
-	_sky_band(a, b)
-	_wall_band(a, b)
-	_plane_band(a, b)
+	if _lay:
+		_wall_band(a, b)
+	else:
+		_sky_band(a, b)
+		_wall_band(a, b)
+		_plane_band(a, b)
 	_mark_band(a, b)
 	_ground_band(a, b)
 	_sprite_band(a, b)
@@ -643,8 +999,8 @@ func _prepare(segments: PackedFloat32Array) -> void:
 			s1 += (s0 - s1) * f
 		var m0 := vw / 2.0 + s0 / a0 * focal - .5
 		var m1 := vw / 2.0 + s1 / a1 * focal - .5
-		seg_c0[i] = maxi(col0, int(floor(minf(m0, m1))) - 1)
-		seg_c1[i] = mini(col1, int(ceil(maxf(m0, m1))) + 2)
+		seg_c0[i] = maxi(col0, int(floorf(minf(m0, m1))) - 1)
+		seg_c1[i] = mini(col1, int(ceilf(maxf(m0, m1))) + 2)
 		if seg_c0[i] < seg_c1[i]:
 			seg_order.append(int(minf(a0, a1) * 4096.0) * 65536 + i)
 	seg_order.sort()
@@ -677,218 +1033,264 @@ func _sky_band(a: int, b: int) -> void:
 
 
 # -------------------------------------------------------------- wall spans
-func _wall_band(a: int, b: int) -> void:
-	for key in seg_order:
-		var i := key & 65535
-		var s0 := maxi(a, seg_c0[i])
-		var s1 := mini(b, seg_c1[i])
-		if s0 < s1:
-			_wall_segment(i, s0, s1)
-
-
-func _wall_segment(i: int, a: int, b: int) -> void:
-	var o := i * WALL_STRIDE
-	var x1 := walls[o]
-	var y1 := walls[o + 1]
-	var x2 := walls[o + 2]
-	var y2 := walls[o + 3]
-	var material := int(walls[o + 4])
-	var base_light := walls[o + 5] + flash
-	var bottom := walls[o + 6]
-	var top := walls[o + 7]
-	var area := int(walls[o + 8])
-	if top <= bottom:
-		return
-	var ex := x2 - x1
-	var ey := y2 - y1
-	var px := x1 - cx
-	var py := y1 - cy
-	var den_a := fx * ey - fy * ex
-	var den_b := rx * ey - ry * ex
-	var t_num := px * ey - py * ex
-	var u_a := px * fy - py * fx
-	var u_b := px * ry - py * rx
-	var vspan := top - bottom
-	var tile_off := material * TILE_BYTES
-	var glow := material == tile_liquor or material == tile_eat or material == tile_window
-	var mirror := material == tile_mirror
-	var ti := tint_index(area, tints)
-	var glazing := material == tile_glazing
-	var hub_wall := hub_fx and material == tile_hub_wall
-	var hub_screen := hub_fx and material == tile_hub_screen
-	var opaque := not glazing and not hub_screen
-	var plain := not (glow or mirror or glazing or hub_wall or hub_screen)
-	var mode := int(tile_mode[material]) if (wall_tiling and plain) else 0
-	var along := sqrt(ex * ex + ey * ey) * 128.0
-	var base_off := tile_base[material] * TILE_BYTES if mode == 2 else 0
+## Every wall span of a band, nearest first. The segment loop is written out
+## here rather than called per segment: a script call costs about ten times
+## more while the other band threads are making calls of their own.
+func _wall_band(band_a: int, band_b: int) -> void:
+	var shade := shade_rows
+	var depth_here := dep
+	var glass_here := gls
+	var tint_max := tints.size() / 3 - 1
+	var w := out_w
+	var lay := _lay
+	var code_ := wall_code
 	var phase := time - floorf(time / 6.1) * 6.1
 	var flicker := phase > .87 and phase < 1.02
-	var w := out_w
-	for c in range(a, b):
-		var ray := rays[c]
-		var den := den_a + ray * den_b
-		if absf(den) < 1e-6:
+	for key in seg_order:
+		var i := key & 65535
+		var a := maxi(band_a, seg_c0[i])
+		var b := mini(band_b, seg_c1[i])
+		if a >= b:
 			continue
-		var t := t_num / den
-		if t <= .015 or t >= 160.0:
+		var o := i * WALL_STRIDE
+		var x1 := walls[o]
+		var y1 := walls[o + 1]
+		var x2 := walls[o + 2]
+		var y2 := walls[o + 3]
+		var material := int(walls[o + 4])
+		var base_light := walls[o + 5] + flash
+		var bottom := walls[o + 6]
+		var top := walls[o + 7]
+		var area := int(walls[o + 8])
+		if top <= bottom:
 			continue
-		var u := (u_a + ray * u_b) / den
-		if u < -.00002 or u > 1.00002:
-			continue
-		if mirror_min:
-			var dxv := dir_x[c]
-			var dnm := dxv if absf(dxv) > .00001 else -.00001
-			var min_t := (mirror_x - cx) / dnm + .008
-			if min_t > .015 and t <= min_t:
+		var ex := x2 - x1
+		var ey := y2 - y1
+		var px := x1 - cx
+		var py := y1 - cy
+		var den_a := fx * ey - fy * ex
+		var den_b := rx * ey - ry * ex
+		var t_num := px * ey - py * ex
+		var u_a := px * fy - py * fx
+		var u_b := px * ry - py * rx
+		var vspan := top - bottom
+		var tile_off := material * TILE_BYTES
+		var glow := material == tile_liquor or material == tile_eat or material == tile_window
+		var mirror := material == tile_mirror
+		var ti := mini(maxi(area, 0), tint_max) * 3
+		var glazing := material == tile_glazing
+		var hub_wall := hub_fx and material == tile_hub_wall
+		var hub_screen := hub_fx and material == tile_hub_screen
+		var opaque := not glazing and not hub_screen
+		var plain := not (glow or mirror or glazing or hub_wall or hub_screen)
+		var mode := int(tile_mode[material]) if (wall_tiling and plain) else 0
+		var along := sqrt(ex * ex + ey * ey) * 128.0
+		var base_off := tile_base[material] * TILE_BYTES if mode == 2 else 0
+		for c in range(a, b):
+			var ray := rays[c]
+			var den := den_a + ray * den_b
+			if absf(den) < 1e-6:
 				continue
-		var tex_u := 1.0 - u if den < 0.0 else u
-		var uu := clampi(int(tex_u * 128.0), 0, 127)
-		if mode == 1:
-			uu = int(tex_u * along) & 127
-		# A glazing tile keeps its frame and mullions opaque; only the pane
-		# rectangles are held back and composited after the scene (the reference
-		# drops them from the opaque layer's pixel list).
-		var pane_ok := glazing and uu > 5 and uu < 122 and (uu < 62 or uu > 67)
-		# light_at() and shade_step() written out: a script call costs several
-		# times more when the band threads all make it at once.
-		var lit := base_light / (1.0 + .102 * t)
-		if lit < .19:
-			lit = .19
-		var sample_off := tile_off + uu * 3
-		var step := clampi(int(floorf(lit * 32.0 + .5) / 32.0 * 32.0 + .5), 0, SHADE_STEPS - 1)
-		var profile := (ti / 3) * PROFILE_COUNT
-		var row_base := (profile + step) * SHADE_ROW
-		var glow_base := (profile + PROFILE_GLOW) * SHADE_ROW
-		var flick_base := (profile + PROFILE_FLICK) * SHADE_ROW
-		var shade := shade_rows
-		var sy_lo := (cz - top) * focal / t
-		var sy_hi := (cz - bottom) * focal / t
-		if sy_lo > sy_hi:
-			var swap := sy_lo
-			sy_lo = sy_hi
-			sy_hi = swap
-		var r0 := maxi(0, int(ceil(sy_lo + horizon - .5)))
-		var r1 := mini(vh - 1, int(floor(sy_hi + horizon - .5)))
-		if r0 > r1:
-			continue
-		var cover_top := cov_top[c]
-		var cover_bot := cov_bot[c]
-		if r0 >= cover_top and r1 <= cover_bot and t >= cov_t[c]:
-			continue
-		var sy := float(r0) + .5 - horizon
-		var t_inv := t / focal
-		var row := r0
-		var lx := c - col0
-		var gi := row * w + lx
-		var oi := gi * 3
-		var depth_here := dep
-		var glass_here := gls
-		if plain:
-			# Most walls: no glow, glass, mesh or hub shadow to test per pixel.
-			for _row in range(r0, r1 + 1):
-				if t < depth_here[gi]:
-					var wz := cz - sy * t_inv
-					if wz >= bottom and wz <= top:
-						var pv := 0
-						var pi := sample_off
-						if mode == 0:
-							pv = int((top - wz) / vspan * 128.0)
-							if pv > 127:
-								pv = 127
-							elif pv < 0:
-								pv = 0
+			var t := t_num / den
+			if t <= .015 or t >= 160.0:
+				continue
+			var u := (u_a + ray * u_b) / den
+			if u < -.00002 or u > 1.00002:
+				continue
+			if mirror_min:
+				var dxv := dir_x[c]
+				var dnm := dxv if absf(dxv) > .00001 else -.00001
+				var min_t := (mirror_x - cx) / dnm + .008
+				if min_t > .015 and t <= min_t:
+					continue
+			var tex_u := 1.0 - u if den < 0.0 else u
+			var uu := clampi(int(tex_u * 128.0), 0, 127)
+			if mode == 1:
+				uu = int(tex_u * along) & 127
+			# A glazing tile keeps its frame and mullions opaque; only the pane
+			# rectangles are held back and composited after the scene (the reference
+			# drops them from the opaque layer's pixel list).
+			var pane_ok := glazing and uu > 5 and uu < 122 and (uu < 62 or uu > 67)
+			# light_at() and shade_step() written out: a script call costs several
+			# times more when the band threads all make it at once.
+			var lit := base_light / (1.0 + .102 * t)
+			if lit < .19:
+				lit = .19
+			var sample_off := tile_off + uu * 3
+			var step := clampi(int(floorf(lit * 32.0 + .5) / 32.0 * 32.0 + .5), 0, SHADE_STEPS - 1)
+			var profile := (ti / 3) * PROFILE_COUNT
+			var row_base := (profile + step) * SHADE_ROW
+			var glow_base := (profile + PROFILE_GLOW) * SHADE_ROW
+			var flick_base := (profile + PROFILE_FLICK) * SHADE_ROW
+			var sy_lo := (cz - top) * focal / t
+			var sy_hi := (cz - bottom) * focal / t
+			if sy_lo > sy_hi:
+				var swap := sy_lo
+				sy_lo = sy_hi
+				sy_hi = swap
+			var r0 := maxi(0, int(ceilf(sy_lo + horizon - .5)))
+			var r1 := mini(vh - 1, int(floorf(sy_hi + horizon - .5)))
+			if r0 > r1:
+				continue
+			var cover_top := cov_top[c]
+			var cover_bot := cov_bot[c]
+			if r0 >= cover_top and r1 <= cover_bot and t >= cov_t[c]:
+				continue
+			var sy := float(r0) + .5 - horizon
+			var t_inv := t / focal
+			var row := r0
+			var lx := c - col0
+			var gi := row * w + lx
+			var oi := gi * 3
+			if plain and lay:
+				# Most walls, layered: note the texel and the shade row for the shader.
+				var code := material * 16384 + uu + ((profile + step) << WALL_ROW_SHIFT)
+				var code_plain := code
+				if mode == 2:
+					code_plain = (
+						tile_base[material] * 16384 + uu + ((profile + step) << WALL_ROW_SHIFT)
+					)
+				for _row in range(r0, r1 + 1):
+					if t < depth_here[gi]:
+						var wz := cz - sy * t_inv
+						if wz >= bottom and wz <= top:
+							var pv := 0
+							var texel := code
+							if mode == 0:
+								pv = int((top - wz) / vspan * 128.0)
+								if pv > 127:
+									pv = 127
+								elif pv < 0:
+									pv = 0
+							else:
+								pv = int((TILE_ANCHOR - wz) * TILE_ROWS_PER_UNIT) & 127
+								if mode == 2 and (wz < WINDOW_SILL or wz > WINDOW_HEAD):
+									texel = code_plain
+							code_[gi] = texel + pv * 128
+							depth_here[gi] = t
+							glass_here[gi] = 0
+					sy += 1.0
+					gi += w
+				oi = gi * 3
+				row = r1 + 1
+			elif plain:
+				# Most walls: no glow, glass, mesh or hub shadow to test per pixel.
+				for _row in range(r0, r1 + 1):
+					if t < depth_here[gi]:
+						var wz := cz - sy * t_inv
+						if wz >= bottom and wz <= top:
+							var pv := 0
+							var pi := sample_off
+							if mode == 0:
+								pv = int((top - wz) / vspan * 128.0)
+								if pv > 127:
+									pv = 127
+								elif pv < 0:
+									pv = 0
+							else:
+								pv = int((TILE_ANCHOR - wz) * TILE_ROWS_PER_UNIT) & 127
+								if mode == 2 and (wz < WINDOW_SILL or wz > WINDOW_HEAD):
+									pi = base_off + uu * 3
+							pi += pv * TILE_W * 3
+							out[oi] = shade[row_base + tiles[pi] * 3]
+							out[oi + 1] = shade[row_base + tiles[pi + 1] * 3 + 1]
+							out[oi + 2] = shade[row_base + tiles[pi + 2] * 3 + 2]
+							depth_here[gi] = t
+							glass_here[gi] = 0
+					sy += 1.0
+					gi += w
+					oi += w * 3
+				row = r1 + 1
+			var hit_x := cx + t * dir_x[c]
+			var hit_y := cy + t * dir_y[c]
+			while row <= r1:
+				var wall_z := cz - sy * t_inv
+				if wall_z >= bottom and wall_z <= top and t < depth_here[gi]:
+					var v := int(clampi(int((top - wall_z) / vspan * 128.0), 0, 127))
+					# The road shed's hardware cloth: the open mesh is simply not
+					# drawn, so whatever stands behind it shows through.
+					if not (
+						hub_screen
+						and uu >= 7
+						and uu <= 120
+						and v >= 7
+						and v <= 119
+						and not ((uu >= 48 and uu <= 54) or (v >= 67 and v <= 73))
+						and not (v > 95 and uu < 42 + v / 5)
+						and (uu + v) % 17 >= 2
+						and posmod(uu - v, 18) >= 2
+					):
+						var si := sample_off + v * TILE_W * 3
+						var sr := tiles[si]
+						var sg := tiles[si + 1]
+						var sb := tiles[si + 2]
+						var base := row_base
+						var bright := glow and (sr > 156 or sg > 156 or sb > 156)
+						if bright and step < GLOW_STEP:
+							base = flick_base if flicker and material == tile_liquor else glow_base
+						var cr := shade[base + sr * 3]
+						var cg := shade[base + sg * 3 + 1]
+						var cb := shade[base + sb * 3 + 2]
+						if bright and step >= GLOW_STEP and flicker and material == tile_liquor:
+							# A tube already lit past the .9 glow floor still dips
+							# to .73 of its own light; that grade is off the table.
+							var dim := float(step) / 32.0 * .73
+							cr = clampi(int(sr * dim * tints[ti]), 0, 255)
+							cg = clampi(int(sg * dim * tints[ti + 1]), 0, 255)
+							cb = clampi(int(sb * dim * tints[ti + 2]), 0, 255)
+						if hub_wall:
+							var shadow := tower_shadow(hit_x, hit_y, wall_z)
+							if shadow < 1.0:
+								cr = int(cr * shadow)
+								cg = int(cg * shadow)
+								cb = int(cb * shadow)
+						var pane := pane_ok and v > 6 and v < 121 and (v < 67 or v > 73)
+						if pane:
+							if t < pane_dist[gi]:
+								pane_dist[gi] = t
+								var p := gi * 3
+								pane_rgb[p] = cr
+								pane_rgb[p + 1] = cg
+								pane_rgb[p + 2] = cb
+								pane_cols[c] = 1
 						else:
-							pv = int((TILE_ANCHOR - wz) * TILE_ROWS_PER_UNIT) & 127
-							if mode == 2 and (wz < WINDOW_SILL or wz > WINDOW_HEAD):
-								pi = base_off + uu * 3
-						pi += pv * TILE_W * 3
-						out[oi] = shade[row_base + tiles[pi] * 3]
-						out[oi + 1] = shade[row_base + tiles[pi + 1] * 3 + 1]
-						out[oi + 2] = shade[row_base + tiles[pi + 2] * 3 + 2]
-						depth_here[gi] = t
-						glass_here[gi] = 0
+							out[oi] = cr
+							out[oi + 1] = cg
+							out[oi + 2] = cb
+							depth_here[gi] = t
+							if lay:
+								code_[gi] = WALL_RGB
+							if mirror:
+								glass_cols[c] = 1
+							glass_here[gi] = (
+								1
+								if (
+									mirror
+									and parity > 0
+									and uu >= 12
+									and uu < 116
+									and v >= 17
+									and v < 108
+								)
+								else 0
+							)
 				sy += 1.0
+				row += 1
 				gi += w
 				oi += w * 3
-			row = r1 + 1
-		var hit_x := cx + t * dir_x[c]
-		var hit_y := cy + t * dir_y[c]
-		while row <= r1:
-			var wall_z := cz - sy * t_inv
-			if wall_z >= bottom and wall_z <= top and t < depth_here[gi]:
-				var v := int(clampi(int((top - wall_z) / vspan * 128.0), 0, 127))
-				# The road shed's hardware cloth: the open mesh is simply not
-				# drawn, so whatever stands behind it shows through.
-				if not (hub_screen and screen_hole(uu, v)):
-					var si := sample_off + v * TILE_W * 3
-					var sr := tiles[si]
-					var sg := tiles[si + 1]
-					var sb := tiles[si + 2]
-					var base := row_base
-					var bright := glow and (sr > 156 or sg > 156 or sb > 156)
-					if bright and step < GLOW_STEP:
-						base = flick_base if flicker and material == tile_liquor else glow_base
-					var cr := shade[base + sr * 3]
-					var cg := shade[base + sg * 3 + 1]
-					var cb := shade[base + sb * 3 + 2]
-					if bright and step >= GLOW_STEP and flicker and material == tile_liquor:
-						# A tube already lit past the .9 glow floor still dips
-						# to .73 of its own light; that grade is off the table.
-						var dim := float(step) / 32.0 * .73
-						cr = clampi(int(sr * dim * tints[ti]), 0, 255)
-						cg = clampi(int(sg * dim * tints[ti + 1]), 0, 255)
-						cb = clampi(int(sb * dim * tints[ti + 2]), 0, 255)
-					if hub_wall:
-						var shadow := tower_shadow(hit_x, hit_y, wall_z)
-						if shadow < 1.0:
-							cr = int(cr * shadow)
-							cg = int(cg * shadow)
-							cb = int(cb * shadow)
-					var pane := pane_ok and v > 6 and v < 121 and (v < 67 or v > 73)
-					if pane:
-						if t < pane_dist[gi]:
-							pane_dist[gi] = t
-							var p := gi * 3
-							pane_rgb[p] = cr
-							pane_rgb[p + 1] = cg
-							pane_rgb[p + 2] = cb
-							pane_cols[c] = 1
-					else:
-						out[oi] = cr
-						out[oi + 1] = cg
-						out[oi + 2] = cb
-						depth_here[gi] = t
-						if mirror:
-							glass_cols[c] = 1
-						glass_here[gi] = (
-							1
-							if (
-								mirror
-								and parity > 0
-								and uu >= 12
-								and uu < 116
-								and v >= 17
-								and v < 108
-							)
-							else 0
-						)
-			sy += 1.0
-			row += 1
-			gi += w
-			oi += w * 3
-		if opaque and r1 - r0 > 2:
-			# Every row strictly inside the span now holds this wall or a nearer one.
-			if cover_top > cover_bot:
-				cov_top[c] = r0 + 1
-				cov_bot[c] = r1 - 1
-				cov_t[c] = t
-			elif r0 <= cover_bot and r1 >= cover_top:
-				if r0 + 1 < cover_top:
+			if opaque and r1 - r0 > 2:
+				# Every row strictly inside the span now holds this wall or a nearer one.
+				if cover_top > cover_bot:
 					cov_top[c] = r0 + 1
-				if r1 - 1 > cover_bot:
 					cov_bot[c] = r1 - 1
-				if t > cov_t[c]:
 					cov_t[c] = t
+				elif r0 <= cover_bot and r1 >= cover_top:
+					if r0 + 1 < cover_top:
+						cov_top[c] = r0 + 1
+					if r1 - 1 > cover_bot:
+						cov_bot[c] = r1 - 1
+					if t > cov_t[c]:
+						cov_t[c] = t
 
 
 # ------------------------------------------------------- crossroads surfaces
@@ -1281,27 +1683,24 @@ func _mirror_pass(
 	var keep_out := out
 	var keep_dep := dep
 	var keep_gls := gls
-	_scene(
-		2.0 * level.mirror_x - x,
-		y,
-		z,
-		PI - angle,
-		hz,
-		-1,
-		segments,
-		ghost,
-		marks,
-		ground_marks,
-		rframe,
-		w,
-		a,
-		b,
-		rdepth,
-		rglass
-	)
+	var keep_pane_dist := pane_dist
+	var keep_pane_rgb := pane_rgb
+	if layered:
+		# The reflection draws its own panes; the display shader still needs the
+		# main pass's.
+		pane_dist = PackedFloat32Array()
+		pane_dist.resize(vw * vh)
+		pane_rgb = PackedByteArray()
+		pane_rgb.resize(vw * vh * 3)
+	_scene_view(2.0 * level.mirror_x - x, y, z, PI - angle, hz, -1, rframe, w, a, b, rdepth, rglass)
+	_prepare(segments)
+	_scene_draw(ghost, marks, ground_marks, -1, a, b, false)
+	_scene_end()
 	out = keep_out
 	dep = keep_dep
 	gls = keep_gls
+	pane_dist = keep_pane_dist
+	pane_rgb = keep_pane_rgb
 	for r in vh:
 		var drow := r * vw
 		var srow := r * w
@@ -1350,109 +1749,124 @@ func body_offset(name: String, data: PackedByteArray, w: int, h: int, height: in
 				last = y
 				break
 		pivots[name] = float(h - 1 - last) / float(h) if last >= 0 else 0.0
-	return int(round(height * pivots[name]))
+	return int(roundf(height * pivots[name]))
 
 
 func _sprite_band(a: int, b: int) -> void:
 	var n := _sprite_list.size()
-	for i in n:
-		if _spr_c1[i] > a and _spr_c0[i] < b:
-			_draw_sprite(_sprite_list[i], a, b)
-
-
-func _draw_sprite(s: Sprite, a: int, b: int) -> void:
-	var dx := s.x - cx
-	var dy := s.y - cy
-	if parity < 0 and s.x < level.mirror_x:
-		return
-	var dist := dx * fx + dy * fy
-	var limit := 51.0 if s.height > 2.7 else 32.0
-	if dist <= .13 or dist >= limit:
-		return
-	var lateral := dx * rx + dy * ry
-	var screen_x := vw / 2.0 + lateral / dist * focal - a
-	var height := int(s.height / dist * focal)
-	if height < 2:
-		return
-	var top := 0
-	if is_nan(s.plane):
-		top = int(round(horizon - (s.z + s.height - cz) / dist * focal))
-		if top >= vh or (top + height <= 0 and not s.body):
-			return
-	var art := sprite_art(s.image)
-	var sw: int = art["w"]
-	var sh: int = art["h"]
-	var data: PackedByteArray = art["data"]
-	if not is_nan(s.plane):
-		_draw_sign(s, a, b, data, sw, sh)
-		return
-	var width := maxi(1, int(height * float(sw) / float(sh)))
-	if screen_x < -width / 2.0 or screen_x > b - a + width / 2.0:
-		return
-	var left := int(round(screen_x - width / 2.0))
-	if s.body:
-		top += body_offset(s.image, data, sw, sh, height)
-	var x0 := maxi(0, left)
-	var x1 := mini(b - a, left + width)
-	var y0 := maxi(0, top)
-	var y1 := mini(vh, top + height)
-	if x0 >= x1 or y0 >= y1:
-		return
-	var ci := level.cell(s.x, s.y)
-	var light := 1.1 if s.glow else light_at(dist, level.light[ci])
-	if s.body:
-		light = maxf(light, .58 - .021 * dist)
-	if not s.glow:
-		light = floorf(light * 32.0 + .5) / 32.0
-	var area := 1 if s.glow else level.area[ci]
-	var ti := tint_index(area, tints)
-	var tr := tints[ti]
-	var tg := tints[ti + 1]
-	var tb := tints[ti + 2]
-	var hurt_k := minf(.46, s.hurt / .18 * .44) if s.hurt > 0.0 else 0.0
-	var threshold := 12 if s.translucent else 100
-	var flip := s.flip != (parity < 0)
+	var first := _spr_c0
+	var last := _spr_c1
+	var fs := _spr_f
+	var ns := _spr_i
 	var w := out_w
-	var out_ := out
+	var out_ := spr
 	var dep_ := dep
 	var gls_ := gls
+	var lay := _lay
+	var cover_ := over_a
+	var far_ := over_d
 	var lx0 := a - col0
-	for y in range(y0, y1):
-		var syi := (y - top) * sh / height
-		var drow := y * w
+	var span := b - a
+	var rows := vh
+	# Each sprite's texture column for every screen column, worked out once per
+	# sprite instead of once per pixel.
+	var across := PackedInt32Array()
+	across.resize(span)
+	for i in n:
+		if last[i] <= a or first[i] >= b:
+			continue
+		var io := i * SPR_I
+		if ns[io] == 2:
+			_draw_sign(_sprite_list[i], a, b, _spr_data[i], ns[io + 4], ns[io + 5])
+			continue
+		var fo := i * SPR_F
+		var width := ns[io + 3]
+		var left := ns[io + 8] - a
+		var height := ns[io + 1]
+		var top := ns[io + 2]
+		var x0 := maxi(0, left)
+		var x1 := mini(span, left + width)
+		var y0 := maxi(0, top)
+		var y1 := mini(rows, top + height)
+		if x0 >= x1 or y0 >= y1:
+			continue
+		# Most sprites of a town are behind a wall. Where a column already holds
+		# wall from the sprite's top row to its bottom row, all of it nearer than
+		# the sprite (see cov_top in _wall_band), no pixel of that column can pass
+		# the depth test below: trim such columns off both sides first.
+		var dist := fs[fo + 1]
+		var hidden := dist - .014
+		var foot := y1 - 1
+		while x0 < x1:
+			var c := a + x0
+			if hidden >= cov_t[c] and y0 >= cov_top[c] and foot <= cov_bot[c]:
+				x0 += 1
+			else:
+				break
+		while x0 < x1:
+			var c := a + x1 - 1
+			if hidden >= cov_t[c] and y0 >= cov_top[c] and foot <= cov_bot[c]:
+				x1 -= 1
+			else:
+				break
+		if x0 >= x1:
+			continue
+		var data: PackedByteArray = _spr_data[i]
+		var sw := ns[io + 4]
+		var sh := ns[io + 5]
+		var threshold := ns[io + 6]
+		var flip := (ns[io + 7] & 1) != 0
+		var translucent := (ns[io + 7] & 2) != 0
+		var light := fs[fo + 2]
+		var tr := fs[fo + 3]
+		var tg := fs[fo + 4]
+		var tb := fs[fo + 5]
+		var hurt_k := fs[fo + 6]
 		for x in range(x0, x1):
 			var sxi := (x - left) * sw / width
-			if flip:
-				sxi = sw - sxi - 1
-			var sp := (syi * sw + sxi) * 4
-			var alpha := data[sp + 3]
-			if alpha <= threshold:
-				continue
-			var gi := drow + lx0 + x
-			if dist >= dep_[gi] + .014:
-				continue
-			# The reference's order: shade (and clip) the texel first, then wash
-			# the lit colour toward hot white, so a hit flash reads the same on a
-			# dark or distant enemy as on a bright near one.
-			var cr := clampi(int(data[sp] * light * tr), 0, 255)
-			var cg := clampi(int(data[sp + 1] * light * tg), 0, 255)
-			var cb := clampi(int(data[sp + 2] * light * tb), 0, 255)
-			if hurt_k > 0.0:
-				cr = int(cr * (1.0 - hurt_k) + 255.0 * hurt_k)
-				cg = int(cg * (1.0 - hurt_k) + 232.0 * hurt_k)
-				cb = int(cb * (1.0 - hurt_k) + 208.0 * hurt_k)
-			var o := gi * 3
-			if s.translucent:
-				var cov := alpha / 255.0
-				out_[o] = clampi(int(round(out_[o] * (1.0 - cov) + cr * cov)), 0, 255)
-				out_[o + 1] = clampi(int(round(out_[o + 1] * (1.0 - cov) + cg * cov)), 0, 255)
-				out_[o + 2] = clampi(int(round(out_[o + 2] * (1.0 - cov) + cb * cov)), 0, 255)
-			else:
-				out_[o] = cr
-				out_[o + 1] = cg
-				out_[o + 2] = cb
-				dep_[gi] = dist
-				gls_[gi] = 0
+			across[x] = (sw - sxi - 1 if flip else sxi) * 4
+		for y in range(y0, y1):
+			var srow := (y - top) * sh / height * sw * 4
+			var drow := y * w + lx0
+			for x in range(x0, x1):
+				var sp := srow + across[x]
+				var alpha := data[sp + 3]
+				if alpha <= threshold:
+					continue
+				var gi := drow + x
+				if dist >= dep_[gi] + .014:
+					continue
+				# The reference's order: shade (and clip) the texel first, then wash
+				# the lit colour toward hot white, so a hit flash reads the same on a
+				# dark or distant enemy as on a bright near one.
+				var cr := clampi(int(data[sp] * light * tr), 0, 255)
+				var cg := clampi(int(data[sp + 1] * light * tg), 0, 255)
+				var cb := clampi(int(data[sp + 2] * light * tb), 0, 255)
+				if hurt_k > 0.0:
+					cr = int(cr * (1.0 - hurt_k) + 255.0 * hurt_k)
+					cg = int(cg * (1.0 - hurt_k) + 232.0 * hurt_k)
+					cb = int(cb * (1.0 - hurt_k) + 208.0 * hurt_k)
+				var o := gi * 3
+				if translucent:
+					var cov := alpha / 255.0
+					out_[o] = clampi(int(roundf(out_[o] * (1.0 - cov) + cr * cov)), 0, 255)
+					out_[o + 1] = clampi(int(roundf(out_[o + 1] * (1.0 - cov) + cg * cov)), 0, 255)
+					out_[o + 2] = clampi(int(roundf(out_[o + 2] * (1.0 - cov) + cb * cov)), 0, 255)
+					if lay:
+						var have := cover_[gi]
+						if have == 0:
+							far_[gi] = dist
+						cover_[gi] = have + int((255 - have) * cov + .5)
+				else:
+					out_[o] = cr
+					out_[o + 1] = cg
+					out_[o + 2] = cb
+					dep_[gi] = dist
+					if lay:
+						cover_[gi] = 255
+						far_[gi] = dist
+					else:
+						gls_[gi] = 0
 
 
 ## Painted board: project along the sprite's world axis (draw_sign()).
@@ -1518,15 +1932,24 @@ func _draw_sign(s: Sprite, a: int, b: int, data: PackedByteArray, sw: int, sh: i
 			var o := gi * 3
 			if s.translucent:
 				var cov := alpha / 255.0
-				out[o] = clampi(int(round(out[o] * (1.0 - cov) + cr * cov)), 0, 255)
-				out[o + 1] = clampi(int(round(out[o + 1] * (1.0 - cov) + cg * cov)), 0, 255)
-				out[o + 2] = clampi(int(round(out[o + 2] * (1.0 - cov) + cb * cov)), 0, 255)
+				spr[o] = clampi(int(roundf(spr[o] * (1.0 - cov) + cr * cov)), 0, 255)
+				spr[o + 1] = clampi(int(roundf(spr[o + 1] * (1.0 - cov) + cg * cov)), 0, 255)
+				spr[o + 2] = clampi(int(roundf(spr[o + 2] * (1.0 - cov) + cb * cov)), 0, 255)
+				if _lay:
+					var have := over_a[gi]
+					if have == 0:
+						over_d[gi] = d
+					over_a[gi] = have + int((255 - have) * cov + .5)
 			else:
-				out[o] = clampi(cr, 0, 255)
-				out[o + 1] = clampi(cg, 0, 255)
-				out[o + 2] = clampi(cb, 0, 255)
+				spr[o] = clampi(cr, 0, 255)
+				spr[o + 1] = clampi(cg, 0, 255)
+				spr[o + 2] = clampi(cb, 0, 255)
 				dep[gi] = d
-				gls[gi] = 0
+				if _lay:
+					over_a[gi] = 255
+					over_d[gi] = d
+				else:
+					gls[gi] = 0
 
 
 # ------------------------------------------------------------- wall marks
@@ -1582,140 +2005,169 @@ func wall_mark(x: float, y: float, z: float, ax: float, ay: float, slope: float,
 
 
 func _mark_band(a: int, b: int) -> void:
-	for m: WallMark in _mark_list:
-		_draw_mark(m, a, b)
-
-
-func _draw_mark(m: WallMark, a: int, b: int) -> void:
-	var rxv := m.x - cx
-	var ryv := m.y - cy
-	var d := rxv * fx + ryv * fy
-	if d <= .19 or d >= 15.0:
+	var count := _mark_list.size()
+	if count == 0:
 		return
-	var lateral := rxv * rx + ryv * ry
-	var axis := m.ux * rx + m.uy * ry
-	var fall := m.ux * fx + m.uy * fy
-	if absf(axis * d - lateral * fall) < .08:
-		return
-	var extent: float = m.radius
+	var fs := _mk_f
+	var ns := _mk_i
 	var half_w := vw * .5 - a
-	var left := half_w + (lateral - axis * extent) * focal / (d - fall * extent)
-	var right := half_w + (lateral + axis * extent) * focal / (d + fall * extent)
-	if absf(right - left) < .15:
-		return
-	var x0 := maxi(0, int(floor(minf(left, right))))
-	var x1 := mini(b - a, int(ceil(maxf(left, right))))
-	var half := focal * extent / d
-	var cy_screen := horizon - (m.z - cz) * focal / d
-	var y0 := maxi(0, int(cy_screen - half - 1.0))
-	var y1 := mini(vh, int(cy_screen + half + 2.0))
-	if x0 >= x1 or y0 >= y1:
-		return
-	var art := sprite_art(m.image)
-	var sw: int = art["w"]
-	var sh: int = art["h"]
-	var data: PackedByteArray = art["data"]
-	var light := light_at(d, 1.0)
 	var w := out_w
 	var lx0 := a - col0
-	for y in range(y0, y1):
-		var vv := (horizon - (y + .5)) * d / focal + cz - m.z
-		if absf(vv) > extent:
+	var span := b - a
+	var lay := _lay
+	for k in count:
+		var io := k * MK_I
+		if ns[io] == 0:
 			continue
-		var v := clampi(int((1.0 - vv / extent) * .5 * sh), 0, sh - 1)
-		var drow := y * w
-		for x in range(x0, x1):
-			var proj := (x + .5 - half_w) / focal
-			var den := axis - proj * fall
-			if absf(den) < 1e-12:
+		var fo := k * MK_F
+		var left := half_w + fs[fo + 5]
+		var right := half_w + fs[fo + 6]
+		if absf(right - left) < .15:
+			continue
+		var x0 := maxi(0, int(floorf(minf(left, right))))
+		var x1 := mini(span, int(ceilf(maxf(left, right))))
+		if x0 >= x1:
+			continue
+		var y0 := ns[io + 1]
+		var y1 := ns[io + 2]
+		var sw := ns[io + 3]
+		var sh := ns[io + 4]
+		var data: PackedByteArray = _mk_data[k]
+		var d := fs[fo]
+		var lateral := fs[fo + 1]
+		var axis := fs[fo + 2]
+		var fall := fs[fo + 3]
+		var extent := fs[fo + 4]
+		var light := fs[fo + 7]
+		var mz := fs[fo + 8]
+		for y in range(y0, y1):
+			var vv := (horizon - (y + .5)) * d / focal + cz - mz
+			if absf(vv) > extent:
 				continue
-			var along := (proj * d - lateral) / den
-			if absf(along) > extent:
-				continue
-			var dd := d + along * fall
-			var gi := drow + lx0 + x
-			if absf(dep[gi] - dd) >= .12 or glass[gi] != 0:
-				continue
-			var u := clampi(int((along / extent + 1.0) * .5 * sw), 0, sw - 1)
-			var sp := (v * sw + u) * 4
-			var alpha := data[sp + 3]
-			if alpha <= 20:
-				continue
-			var mix := alpha / 255.0
-			var o := gi * 3
-			out[o] = clampi(int(round(out[o] * (1.0 - mix) + data[sp] * light * mix)), 0, 255)
-			out[o + 1] = clampi(
-				int(round(out[o + 1] * (1.0 - mix) + data[sp + 1] * light * mix)), 0, 255
-			)
-			out[o + 2] = clampi(
-				int(round(out[o + 2] * (1.0 - mix) + data[sp + 2] * light * mix)), 0, 255
-			)
+			var v := clampi(int((1.0 - vv / extent) * .5 * sh), 0, sh - 1)
+			var drow := y * w
+			for x in range(x0, x1):
+				var proj := (x + .5 - half_w) / focal
+				var den := axis - proj * fall
+				if absf(den) < 1e-12:
+					continue
+				var along := (proj * d - lateral) / den
+				if absf(along) > extent:
+					continue
+				var dd := d + along * fall
+				var gi := drow + lx0 + x
+				if absf(dep[gi] - dd) >= .12 or glass[gi] != 0:
+					continue
+				var u := clampi(int((along / extent + 1.0) * .5 * sw), 0, sw - 1)
+				var sp := (v * sw + u) * 4
+				var alpha := data[sp + 3]
+				if alpha <= 20:
+					continue
+				var mix := alpha / 255.0
+				var o := gi * 3
+				if lay and wall_code[gi] != WALL_RGB:
+					# The wall here is still a texel and a shade row: colour it the
+					# way the shader would have, then the mark can go over it.
+					var code := wall_code[gi] & 0xFFFFFFFF
+					var pi := (code & 0x1FFFFF) * 3
+					var row_base := (code >> WALL_ROW_SHIFT) * SHADE_ROW
+					out[o] = shade_rows[row_base + tiles[pi] * 3]
+					out[o + 1] = shade_rows[row_base + tiles[pi + 1] * 3 + 1]
+					out[o + 2] = shade_rows[row_base + tiles[pi + 2] * 3 + 2]
+					wall_code[gi] = WALL_RGB
+				out[o] = clampi(int(roundf(out[o] * (1.0 - mix) + data[sp] * light * mix)), 0, 255)
+				out[o + 1] = clampi(
+					int(roundf(out[o + 1] * (1.0 - mix) + data[sp + 1] * light * mix)), 0, 255
+				)
+				out[o + 2] = clampi(
+					int(roundf(out[o + 2] * (1.0 - mix) + data[sp + 2] * light * mix)), 0, 255
+				)
 
 
 # ----------------------------------------------------------- ground marks
 func _ground_band(a: int, b: int) -> void:
-	if _ground_list.is_empty():
+	var count := _ground_list.size()
+	if count == 0:
 		return
+	var fs := _gm_f
+	var ns := _gm_i
 	var edge := maxf(absf(rays[a]), absf(rays[b - 1])) + .012
 	var edge_scale := sqrt(1.0 + edge * edge)
-	for m: GroundMark in _ground_list:
-		var mx := m.x - cx
-		var my := m.y - cy
-		var reach := sqrt(m.reach * m.reach + m.width * m.width)
-		var ahead := mx * fx + my * fy
-		var side := mx * rx + my * ry
-		if ahead + reach <= 0.0 or absf(side) - ahead * edge > reach * edge_scale:
-			continue
-		_draw_ground_mark(m, a, b)
-
-
-func _draw_ground_mark(m: GroundMark, a: int, b: int) -> void:
-	var radial := sqrt((m.x - cx) * (m.x - cx) + (m.y - cy) * (m.y - cy))
-	if cz <= m.z + .015 or radial > 26.0:
-		return
-	var bounds := sqrt(m.reach * m.reach + m.width * m.width)
-	var art := sprite_art(m.image)
-	var sw: int = art["w"]
-	var sh: int = art["h"]
-	var data: PackedByteArray = art["data"]
-	var cs := cos(m.angle)
-	var sn := sin(m.angle)
 	var w := out_w
 	var lx0 := a - col0
-	for r in vh:
-		var sy := sy_rows[r]
-		if sy <= 0.0:
+	var lay := _lay
+	for k in count:
+		var io := k * GM_I
+		if ns[io] == 0:
 			continue
-		var distance := (cz - m.z) * focal / maxf(sy, .015)
-		if distance >= radial + bounds + 1.0:
+		var fo := k * GM_F
+		var bounds := fs[fo + 4]
+		var ahead := fs[fo + 9]
+		if ahead + bounds <= 0.0 or absf(fs[fo + 10]) - ahead * edge > bounds * edge_scale:
 			continue
-		if distance <= maxf(0.0, (radial - bounds) * .76):
+		var from_x := fs[fo]
+		var from_y := fs[fo + 1]
+		var above := fs[fo + 2]
+		var radial := fs[fo + 3]
+		var cs := fs[fo + 5]
+		var sn := fs[fo + 6]
+		var reach := fs[fo + 7]
+		var width := fs[fo + 8]
+		var sw := ns[io + 1]
+		var sh := ns[io + 2]
+		var first := maxi(a, ns[io + 3])
+		var last := mini(b, ns[io + 4])
+		if first >= last:
 			continue
-		var light := maxf(.63, light_at(distance, 1.12))
-		var drow := r * w
-		for i in range(a, b):
-			var ray := rays[i]
-			var wx := (cx - m.x) + distance * (fx + rx * ray)
-			var wy := (cy - m.y) + distance * (fy + ry * ray)
-			var u := (wx * cs + wy * sn) / m.reach
-			var v := (-wx * sn + wy * cs) / m.width
-			if absf(u) >= 1.0 or absf(v) >= 1.0:
+		var data: PackedByteArray = _gm_data[k]
+		for r in vh:
+			var sy := sy_rows[r]
+			if sy <= 0.0:
 				continue
-			var gi := drow + lx0 + (i - a)
-			if distance <= .015 or absf(distance - dep[gi]) >= .13:
+			var distance := above * focal / maxf(sy, .015)
+			if distance >= radial + bounds + 1.0:
 				continue
-			var au := clampi(int((u + 1.0) * .5 * sw), 0, sw - 1)
-			var av := clampi(int((v + 1.0) * .5 * sh), 0, sh - 1)
-			var sp := (av * sw + au) * 4
-			var alpha := data[sp + 3]
-			if alpha == 0:
+			if distance <= maxf(0.0, (radial - bounds) * .76):
 				continue
-			var cov := alpha / 255.0
-			var o := gi * 3
-			out[o] = clampi(int(round(out[o] * (1.0 - cov) + data[sp] * light * cov)), 0, 255)
-			out[o + 1] = clampi(
-				int(round(out[o + 1] * (1.0 - cov) + data[sp + 1] * light * cov)), 0, 255
+			# light_at(distance, 1.12), written out (no script call in a band).
+			var light := maxf(
+				.63, floorf(maxf(.19, 1.12 / (1.0 + .102 * distance)) * 32.0 + .5) / 32.0
 			)
-			out[o + 2] = clampi(
-				int(round(out[o + 2] * (1.0 - cov) + data[sp + 2] * light * cov)), 0, 255
-			)
+			var drow := r * w
+			for i in range(first, last):
+				var ray := rays[i]
+				var wx := from_x + distance * (fx + rx * ray)
+				var wy := from_y + distance * (fy + ry * ray)
+				var u := (wx * cs + wy * sn) / reach
+				var v := (-wx * sn + wy * cs) / width
+				if absf(u) >= 1.0 or absf(v) >= 1.0:
+					continue
+				var gi := drow + lx0 + (i - a)
+				if distance <= .015:
+					continue
+				if lay:
+					# The shader knows which floor shows here; only a wall in front
+					# can be ruled out now.
+					if dep[gi] <= distance - .13:
+						continue
+				elif absf(distance - dep[gi]) >= .13:
+					continue
+				var au := clampi(int((u + 1.0) * .5 * sw), 0, sw - 1)
+				var av := clampi(int((v + 1.0) * .5 * sh), 0, sh - 1)
+				var sp := (av * sw + au) * 4
+				var alpha := data[sp + 3]
+				if alpha == 0:
+					continue
+				var cov := alpha / 255.0
+				var o := gi * 3
+				spr[o] = clampi(int(roundf(spr[o] * (1.0 - cov) + data[sp] * light * cov)), 0, 255)
+				spr[o + 1] = clampi(
+					int(roundf(spr[o + 1] * (1.0 - cov) + data[sp + 1] * light * cov)), 0, 255
+				)
+				spr[o + 2] = clampi(
+					int(roundf(spr[o + 2] * (1.0 - cov) + data[sp + 2] * light * cov)), 0, 255
+				)
+				if lay:
+					var have := over_a[gi]
+					over_a[gi] = have + int((255 - have) * cov + .5)
+					over_d[gi] = -distance

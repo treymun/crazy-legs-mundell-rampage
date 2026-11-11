@@ -120,6 +120,30 @@ var tone_sent = null
 ## True when the display shader does the view's look pass (a real window).
 var gpu_look := false
 var gpu_ready := false
+## The display shader also composes the game view (sky, floors, ceilings and
+## the renderer's layers); see scene_layers.gd. --cpu-view keeps it in software.
+var layers: SceneLayers
+var cpu_view := false
+## The first time the shader composes the view it is checked, at a grid of
+## points, against the software picture of the same frame (_check_view). A
+## graphics driver the shader does not suit would show a picture that does not
+## match, and the view then stays in software for the session.
+## 0 not checked yet, 1 matched, -1 did not.
+var view_check := 0
+var _view_checking := false
+## --view-check prints the result of that check, and --view-broken makes the
+## shader's picture wrong on purpose, to see the fallback work.
+var view_check_report := false
+var view_broken := false
+## --view-tour=<shots.json> --view-out=<dir>: for every viewpoint in the list
+## save the window twice, composed by the shader (<tag>_gpu.png) and in software
+## (<tag>_cpu.png), from the same instant. For checking one against the other.
+var view_tour := ""
+var view_out := ""
+var touring := false
+## --view-bench=<frames>: time whole frames in the real window, uncapped, with
+## the view composed in software and then by the shader, and print both.
+var view_bench := 0
 ## --view-shot=<png> saves the window as shown (shader included) at the end of a smoke run;
 ## --cpu-look keeps the look pass in software for comparison.
 var view_shot := ""
@@ -221,6 +245,8 @@ func _ready() -> void:
 		var grain_image := Image.create_from_data(936, WIDTH, false, Image.FORMAT_R8, art.grain)
 		palette_material.set_shader_parameter("grain", ImageTexture.create_from_image(grain_image))
 		gpu_ready = DisplayServer.get_name() != "headless"
+	palette_material.set_shader_parameter("post_tex", frame_texture)
+	layers = SceneLayers.new(palette_material, art)
 	view.material = palette_material
 
 	# A plain black sheet over the picture: a tenth of a second of dip between
@@ -245,7 +271,13 @@ func _ready() -> void:
 		# picks FULLSCREEN (FILL) in setup.
 		fullscreen = true
 		fullscreen_mode = 1 if int(options["window_mode"]) == 1 else 2
-	elif int(options["window_mode"]) != 0 and not smoke and not web:
+	elif (
+		int(options["window_mode"]) != 0
+		and not smoke
+		and not web
+		and view_tour == ""
+		and view_bench == 0
+	):
 		# A browser only grants fullscreen from a click or key, never at boot.
 		change_window_mode(int(options["window_mode"]))
 	_apply_view()
@@ -280,6 +312,19 @@ func _parse_smoke() -> void:
 			view_shot = text.substr(12)
 		elif text == "--cpu-look":
 			cpu_look = true
+		elif text == "--cpu-view":
+			cpu_view = true
+		elif text == "--view-check":
+			view_check_report = true
+		elif text == "--view-broken":
+			view_check_report = true
+			view_broken = true
+		elif text.begins_with("--view-tour="):
+			view_tour = text.substr(12)
+		elif text.begins_with("--view-out="):
+			view_out = text.substr(11)
+		elif text.begins_with("--view-bench="):
+			view_bench = int(text.substr(13))
 		elif text == "--demo":
 			demo = true
 		elif text == "--showcase":
@@ -978,7 +1023,7 @@ func apply_options() -> void:
 
 
 func frame_interval() -> float:
-	return 1.0 / float([30, 60, 120][clampi(int(options.get("frame_limit", 1)), 0, 2)])
+	return 1.0 / float([30, 60, 120, 144, 240][clampi(int(options.get("frame_limit", 1)), 0, 4)])
 
 
 func _build_tone(level: int) -> void:
@@ -1180,7 +1225,18 @@ func _screenshot() -> void:
 	)
 	var target := directory.path_join("Hickston-%s.png" % stamp)
 	var image := Image.create_empty(WIDTH, HEIGHT, false, Image.FORMAT_RGB8)
-	image.set_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, palettised(canvas.pixels))
+	var picture := canvas.pixels
+	if game != null and game.scene_live:
+		# The canvas is only the layer over a view the shader composed: draw the
+		# frame once more in software for the file.
+		var whole := Canvas.new()
+		var was_look := game.gpu_look
+		game.gpu_look = false
+		game.layered = false
+		game.draw(whole, int(options["crosshair"]), true)
+		game.gpu_look = was_look
+		picture = whole.pixels
+	image.set_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, palettised(picture))
 	if image.save_png(ProjectSettings.globalize_path(target)) == OK:
 		notice("SCREENSHOT SAVED.")
 	else:
@@ -1662,7 +1718,116 @@ func _deadzone(value: float) -> float:
 # ------------------------------------------------------------------- frame
 
 
+func _view_tour() -> void:
+	touring = true
+	await get_tree().process_frame
+	var shots = JSON.parse_string(FileAccess.get_file_as_string(view_tour))
+	var loaded := ""
+	for shot: Dictionary in shots:
+		var level_id := String(shot["level"])
+		if level_id != loaded or game == null:
+			start(level_id)
+			loaded = level_id
+		var p := game.player
+		p.x = float(shot["x"])
+		p.y = float(shot["y"])
+		p.angle = float(shot["angle"])
+		p.eye = .95 + game.world.elevation(p.x, p.y)
+		p.pitch = float(shot.get("pitch", 0.0))
+		p.drunk = float(shot.get("drunk", 0.0))
+		p.sway = 0.0
+		game.message_until = 0.0
+		game.district_until = 0.0
+		var armed := bool(shot.get("weapon", false))
+		game.armory.holstered = not armed
+		game.armory.lower = 0.0 if armed else 1.0
+		if shot.has("detail"):
+			game.renderer.set_detail(int(shot["detail"]))
+		if shot.has("ticks"):
+			var held := Game.Controls.new()
+			held.fire = bool(shot.get("fire", false))
+			held.forward = float(shot.get("forward", 0.0))
+			for i in int(shot["ticks"]):
+				game.tick(1.0 / 60.0, held)
+		for mode in ["gpu", "cpu"]:
+			cpu_view = mode == "cpu"
+			render()
+			await RenderingServer.frame_post_draw
+			await RenderingServer.frame_post_draw
+			get_viewport().get_texture().get_image().save_png(
+				"%s/%s_%s.png" % [view_out, String(shot["tag"]), mode]
+			)
+	get_tree().quit()
+
+
+func _view_bench() -> void:
+	touring = true
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = 0
+	await get_tree().process_frame
+	var totals := {"cpu": 0.0, "gpu": 0.0}
+	for level_id in ["hickston", "fair", "sawmill", "quarry"]:
+		var line := "%-9s" % level_id
+		for mode in ["cpu", "gpu"]:
+			start(level_id)
+			Engine.max_fps = 0
+			cpu_view = mode == "cpu"
+			var held := Game.Controls.new()
+			held.turn = .3
+			held.fire = true
+			for i in 20:
+				game.tick(1.0 / 60.0, held)
+				render()
+				await get_tree().process_frame
+			var began := Time.get_ticks_usec()
+			var busy := 0
+			var drawing := 0
+			for i in view_bench:
+				var t0 := Time.get_ticks_usec()
+				game.tick(1.0 / 60.0, held)
+				var t1 := Time.get_ticks_usec()
+				render()
+				var t2 := Time.get_ticks_usec()
+				busy += t2 - t0
+				drawing += t2 - t1
+				await get_tree().process_frame
+			var each := (Time.get_ticks_usec() - began) / 1000.0 / view_bench
+			totals[mode] += each
+			line += (
+				"  %s %6.2f ms (%4.0f fps; work %.2f, render() %.2f)"
+				% [
+					mode,
+					each,
+					1000.0 / each,
+					busy / 1000.0 / view_bench,
+					drawing / 1000.0 / view_bench
+				]
+			)
+		print(line)
+	print(
+		(
+			"WINDOW    software view %.2f ms (%.0f fps)   shader view %.2f ms (%.0f fps)   x%.2f"
+			% [
+				totals["cpu"] / 4.0,
+				4000.0 / totals["cpu"],
+				totals["gpu"] / 4.0,
+				4000.0 / totals["gpu"],
+				totals["cpu"] / totals["gpu"]
+			]
+		)
+	)
+	get_tree().quit()
+
+
 func _process(delta: float) -> void:
+	if touring:
+		return
+	if view_bench > 0:
+		_view_bench()
+		return
+	if view_tour != "":
+		_view_tour()
+		return
 	# The engine paces frames to the FRAME LIMIT option (apply_options sets
 	# Engine.max_fps), which is what the reference's clock.tick() does. A
 	# browser ignores that cap and calls back once per display refresh, so
@@ -1988,6 +2153,9 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 
 
 func render() -> void:
+	canvas.layer = false
+	if game != null:
+		game.scene_live = false
 	if state == "title":
 		var steady := int(options.get("flashes", 0)) != 0 or int(options.get("flicker", 1)) == 0
 		menu.draw_title(
@@ -2013,6 +2181,7 @@ func render() -> void:
 	elif game != null:
 		gpu_look = gpu_ready and not cpu_look and (not smoke or view_shot != "")
 		game.gpu_look = gpu_look
+		game.layered = gpu_look and not cpu_view and int(options.get("fast_view", 1)) != 0
 		game.draw(canvas, int(options["crosshair"]), true)
 	else:
 		canvas.clear(0, 0, 0)
@@ -2022,11 +2191,76 @@ func render() -> void:
 		canvas.resize(WIDTH, HEIGHT)
 	frame_image.set_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, canvas.pixels)
 	frame_texture.update(frame_image)
+	if game != null and game.scene_live and canvas.layer:
+		layers.frame(game, canvas)
+		if view_broken:
+			palette_material.set_shader_parameter("scene_on", false)
+		if view_check == 0 and not _view_checking and not touring and state == "play":
+			_check_view()
+	else:
+		layers.off()
 	_apply_view()
 
 
 func _exit_tree() -> void:
 	Renderer.stop_crew()
+
+
+func _check_view() -> void:
+	var rect := view.get_global_rect()
+	if rect.size.x < WIDTH or rect.size.y < HEIGHT:
+		return
+	_view_checking = true
+	await RenderingServer.frame_post_draw
+	_view_checking = false
+	if game == null or state != "play" or not game.scene_live:
+		return
+	var shown := get_viewport().get_texture().get_image()
+	if shown == null or shown.is_empty():
+		return
+	# The same frame again, in software.
+	var whole := Canvas.new()
+	game.gpu_look = false
+	game.layered = false
+	game.draw(whole, int(options["crosshair"]), true)
+	game.gpu_look = gpu_look
+	var want := whole.pixels
+	var lut := art.palette
+	var tried := 0
+	var off := 0
+	for gy in 10:
+		for gx in 14:
+			var px := 30 + gx * 20
+			var py := 10 + gy * 13
+			var sx := int(rect.position.x + (px + .5) / WIDTH * rect.size.x)
+			var sy := int(rect.position.y + (py + .5) / HEIGHT * rect.size.y)
+			if sx < 0 or sy < 0 or sx >= shown.get_width() or sy >= shown.get_height():
+				continue
+			var o := (py * WIDTH + px) * 3
+			var code := (
+				(((want[o] * 31 + 127) / 255) << 10)
+				| (((want[o + 1] * 31 + 127) / 255) << 5)
+				| ((want[o + 2] * 31 + 127) / 255)
+			)
+			var c := shown.get_pixel(sx, sy)
+			var apart := (
+				absf(c.r * 255.0 - lut[code * 3])
+				+ absf(c.g * 255.0 - lut[code * 3 + 1])
+				+ absf(c.b * 255.0 - lut[code * 3 + 2])
+			)
+			tried += 1
+			if apart > 36.0:
+				off += 1
+	if tried < 40:
+		return
+	view_check = 1 if off * 3 <= tried else -1
+	if view_check_report:
+		print("view check: %d of %d points differ" % [off, tried])
+	if view_check < 0:
+		cpu_view = true
+		print(
+			"The shader's view does not match the software picture; keeping the view in software."
+		)
 
 
 func _save_view() -> void:

@@ -23,6 +23,30 @@ var h := HEIGHT
 ## pixels were actually painted, because the reference blits them with alpha.
 var use_mask := false
 var mask := PackedByteArray()
+## Layer mode, for the display shader: the game view is not in `pixels` (the
+## graphics card composes it), so the surface starts empty and `cover` records
+## how much of each pixel has been painted over (0 nothing, 255 all of it).
+## Blends keep working on `pixels` unchanged because an empty pixel is black.
+var layer := false
+var cover := PackedByteArray()
+static var _blank := PackedByteArray()
+static var _blank_cover := PackedByteArray()
+
+
+## Start an empty 320x200 layer: nothing over the view, the status rows solid.
+func begin_layer() -> void:
+	if _blank.is_empty():
+		_blank.resize(WIDTH * HEIGHT * 3)
+		_blank.fill(0)
+		_blank_cover.resize(WIDTH * HEIGHT)
+		_blank_cover.fill(255)
+		for i in WIDTH * 156:
+			_blank_cover[i] = 0
+	w = WIDTH
+	h = HEIGHT
+	pixels = _blank.duplicate()
+	cover = _blank_cover.duplicate()
+	layer = true
 
 
 ## Turn on coverage tracking for a small offscreen surface.
@@ -60,6 +84,8 @@ func clear(r: int, g: int, b: int) -> void:
 		pixels[i + 1] = g
 		pixels[i + 2] = b
 		i += 3
+	if layer:
+		cover.fill(255)
 
 
 func set_pixel(x: int, y: int, r: int, g: int, b: int) -> void:
@@ -71,6 +97,8 @@ func set_pixel(x: int, y: int, r: int, g: int, b: int) -> void:
 	pixels[o + 2] = b
 	if use_mask:
 		mask[y * w + x] = 1
+	if layer:
+		cover[y * w + x] = 255
 
 
 func get_r(x: int, y: int) -> int:
@@ -120,6 +148,9 @@ func fill_rect(x: int, y: int, box_w: int, box_h: int, c: Color) -> void:
 		if use_mask:
 			for xx in range(x0, x1):
 				mask[yy * w + xx] = 1
+		if layer:
+			for xx in range(x0, x1):
+				cover[yy * w + xx] = 255
 
 
 ## Hollow 1px rectangle, matching pygame.draw.rect(..., 1).
@@ -352,6 +383,8 @@ func _hspan(x0: int, y: int, x1: int, r: int, g: int, b: int) -> void:
 		pixels[o + 2] = b
 		if use_mask:
 			mask[y * w + _x] = 1
+		if layer:
+			cover[y * w + _x] = 255
 		o += 3
 
 
@@ -517,6 +550,8 @@ func _vspan(x: int, y0: int, y1: int, r: int, g: int, b: int) -> void:
 		pixels[o + 2] = b
 		if use_mask:
 			mask[y * w + x] = 1
+		if layer:
+			cover[y * w + x] = 255
 
 
 ## pygame draw.polygon: 3 points use draw_filltri, more use draw_fillpoly.
@@ -663,6 +698,9 @@ func blit_rgba(data: PackedByteArray, img_w: int, img_h: int, x: int, y: int) ->
 			if a == 0:
 				continue
 			var o := (ty * w + tx) * 3
+			if layer:
+				var p := ty * w + tx
+				cover[p] = 255 if a == 255 else cover[p] + (((255 - cover[p]) * a + 255) >> 8)
 			if a == 255:
 				pixels[o] = data[sp]
 				pixels[o + 1] = data[sp + 1]
@@ -706,6 +744,8 @@ func blit_rgba_opaque(
 			pixels[o] = int(br * (1.0 - a) + data[sp] * a)
 			pixels[o + 1] = int(bgc * (1.0 - a) + data[sp + 1] * a)
 			pixels[o + 2] = int(bb * (1.0 - a) + data[sp + 2] * a)
+			if layer:
+				cover[ty * w + tx] = 255
 
 
 ## Text drawn with pixel_type glyphs; returns the rect as Rect2i.

@@ -42,6 +42,11 @@ func _run() -> void:
 			game.configure(options)
 			# As in a window: the display shader does the look pass (pass "cpu" to time it in software).
 			game.gpu_look = not (args.size() > 1 and String(args[1]) == "cpu")
+			# As in a window: the shader also draws the sky, floors and ceilings and
+			# shades the walls ("classic" keeps all of it in software). There is no
+			# graphics card here, so its share is not in these numbers; main.gd's
+			# --view-bench times whole frames in a real window.
+			game.layered = game.gpu_look and not args.has("classic")
 			if args.has("low"):
 				game.renderer.set_detail(1)
 			if args.has("single"):

@@ -269,7 +269,7 @@ static func _build_pages() -> Array:
 					"FRAME LIMIT",
 					"frame_limit",
 					1,
-					["30 FPS", "60 FPS", "120 FPS"],
+					["30 FPS", "60 FPS", "120 FPS", "144 FPS", "240 FPS"],
 					"LIMIT SCREEN REFRESH AND CPU USE"
 				),
 				choices(
@@ -455,6 +455,12 @@ static func _build_pages() -> Array:
 					"wall_tiling",
 					1,
 					"REPEAT WALL TEXTURES AT ONE SIZE INSTEAD OF STRETCHING THEM"
+				),
+				toggle(
+					"FAST VIEW",
+					"fast_view",
+					1,
+					"FLOORS, SKY AND SHADING ON THE GRAPHICS CARD. SAME PICTURE, FASTER."
 				),
 				toggle(
 					"LAMP FLICKER",

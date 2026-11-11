@@ -708,6 +708,13 @@ var look_bands := 0
 ## palette.gdshader instead of in draw(); main.gd turns it on when there is a
 ## window. look_live / tone_live say which of them this frame wants.
 var gpu_look := false
+## With `layered` (and gpu_look) the display shader also draws the sky, floors
+## and ceilings and composes the view; the canvas is then only a layer over it.
+## scene_live says whether this frame was drawn that way. drunk_k is the
+## moonshine warp's strength for the shader (0 none).
+var layered := false
+var scene_live := false
+var drunk_k := 0.0
 ## The red hurt wash (0-255) the display shader lays over the view this frame.
 var hurt_alpha := 0
 var look_live := false
@@ -1559,6 +1566,7 @@ func set_station_lights(station: LevelData.Station) -> void:
 		for i in n:
 			if int(world.area[i]) == sector:
 				world.light[i] += .26
+		world.light_version += 1
 		for i in world.wall_count:
 			var o := i * LevelData.WALL_STRIDE
 			if int(world.walls[o + 8]) == sector:
@@ -3247,10 +3255,26 @@ func feedback(c: Canvas) -> void:
 
 
 func draw(c: Canvas, crosshair := 1, grade := true) -> void:
+	_draw(c, crosshair, grade)
+	if _render_open:
+		# The band threads drew the view while the weapon and HUD were painted.
+		_render_open = false
+		var began := Time.get_ticks_usec()
+		renderer.render_end()
+		stage_ms[1] += (Time.get_ticks_usec() - began) / 1000.0
+
+
+var _render_open := false
+
+
+func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	var p := player
 	look_live = false
 	tone_live = false
 	hurt_alpha = 0
+	scene_live = false
+	drunk_k = 0.0
+	c.layer = false
 	if showing_tally:
 		hud.intermission(c, self)
 		return
@@ -3258,20 +3282,31 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 	var weapon = gallery.pistol if practice else armory
 	var flash: float = (weapon.flash * 4.0 + blast_flash * .85) * flash_scale
 	renderer.time = clock
+	renderer.layered = layered and gpu_look
 	var t0 := Time.get_ticks_usec()
+	# The renderer sorts out the wall segments on a band thread while the
+	# sprites and marks are listed here.
+	renderer.frame_begin(p.as_render_player(), flash)
+	var listing := Time.get_ticks_usec()
 	var marks: Array = ground_marks()
 	var marks_list: Array = wall_marks if bullet_marks else []
 	if not gore_fx.walls.is_empty():
 		marks_list = marks_list + gore_fx.walls
 	var listed: Array = sprites()
 	var t1 := Time.get_ticks_usec()
-	var view_frame: PackedByteArray = renderer.render(
-		p.as_render_player(), listed, reflection(), flash, marks_list, marks
-	)
+	renderer.frame_sprites(listed, reflection(), marks_list, marks)
+	if renderer.layered:
+		# The display shader composes the view from the renderer's layers; the
+		# weapon and the HUD are painted on an empty layer that goes over it,
+		# and that happens here while the band threads are still drawing.
+		c.begin_layer()
+		scene_live = true
+		_render_open = true
+	else:
+		# render_end() hands back a private copy so the HUD, weapon and grade passes
+		# can composite into it while the renderer keeps its own band buffers untouched.
+		c.pixels = renderer.render_end()
 	var t2 := Time.get_ticks_usec()
-	# render() hands back a private copy so the HUD, weapon and grade passes can
-	# composite into it while the renderer keeps its own band buffers untouched.
-	c.pixels = view_frame
 	if p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
 		weapon.draw(
 			c.pixels,
@@ -3280,13 +3315,17 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 			world.light[world.cell(p.x, p.y)],
 			bob_scale,
 			flash_scale,
-			12 if weapon_view == 1 else 0
+			12 if weapon_view == 1 else 0,
+			c if c.layer else null
 		)
 	var t3 := Time.get_ticks_usec()
 	if hurt_flash > 0.0 and flash_scale > 0.0:
 		_apply_hurt_flash(c)
 	if p.drunk >= 38.0 and flash_scale > 0.0:
-		_drunk_warp(c)
+		if scene_live:
+			drunk_k = minf(1.0, (p.drunk - 38.0) / 62.0)
+		else:
+			_drunk_warp(c)
 	# The look pass and the brightness grade touch the same view rectangle; the
 	# lookup table is folded into the look pass when both are active.
 	var graded := false
@@ -3304,7 +3343,13 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 		if tone_live and not graded:
 			_grade_view(c)
 	var t4 := Time.get_ticks_usec()
-	stage_ms = [(t1 - t0) / 1000.0, (t2 - t1) / 1000.0, (t3 - t2) / 1000.0, (t4 - t3) / 1000.0, 0.0]
+	stage_ms = [
+		(t1 - listing) / 1000.0,
+		(listing - t0 + t2 - t1) / 1000.0,
+		(t3 - t2) / 1000.0,
+		(t4 - t3) / 1000.0,
+		0.0
+	]
 	if p.health > 0:
 		if crosshair == 2:
 			c.circle(160, VIEW / 2, 4, Canvas.rgb(188, 168, 132), false)
@@ -3859,6 +3904,10 @@ func _blit_region(c: Canvas, dx: int, dy: int) -> void:
 		var dst := ((dy + row) * Canvas.WIDTH + dx) * 3
 		for k in row_bytes:
 			pix[dst + k] = _map_base[src + k]
+		if c.layer:
+			var at := (dy + row) * Canvas.WIDTH + dx
+			for k in 246:
+				c.cover[at + k] = 255
 
 
 # ------------------------------------------------------------------ controls

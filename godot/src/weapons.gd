@@ -222,6 +222,12 @@ const OPEN_AUDIO := {
 }
 
 static var _anchors: Dictionary = {}
+## Set by Armory.draw for its pixel helpers: the canvas layer's coverage map,
+## and whether what they paint goes under what is already there (the muzzle
+## flash and smoke, painted after the gun on the layer canvas).
+static var cover := PackedByteArray()
+static var covering := false
+static var under := false
 
 
 ## True for a gun that fires from its ammo pool with no magazine.
@@ -267,8 +273,13 @@ class Armory:
 	var tnt_latched := false
 	var auto_switch := true
 	var auto_reload := true
-	var graded := {}
-	var rim_cache := {}
+	## The lit, enlarged cels, their rims and their composed rows, by cel and
+	## light level. Kept for the whole session, not per level: lighting a cel is
+	## the slowest thing a frame ever does (some 15 ms the first time a gun is
+	## seen in a given light), and a new level used to pay for all of it again.
+	static var graded := {}
+	static var rim_cache := {}
+	static var composed := {}
 	var boxes := {}
 
 	func _init(start_slot := 1) -> void:
@@ -679,8 +690,16 @@ class Armory:
 		light: float,
 		bob: float,
 		flashes: float,
-		offset: int
+		offset: int,
+		canvas: Canvas = null
 	) -> void:
+		# With `canvas` (a layer over a view the display shader composes) every
+		# pixel painted here is also marked as painted, and the gun itself is laid
+		# in first with whole-row copies instead of pixel by pixel.
+		var lay := canvas != null and canvas.layer
+		Weapons.covering = lay
+		Weapons.under = false
+		Weapons.cover = canvas.cover if lay else PackedByteArray()
 		if lower >= 1.0:
 			return
 		var i := active
@@ -689,6 +708,11 @@ class Armory:
 		var name := "gun_%s_%s" % [Weapons.NAMES[i], pose_name]
 		var level := clampi(int(round((.68 + .38 * light + flash * flashes * 1.6) * 16)), 11, 18)
 		var key := name + "|" + str(level)
+		if graded.size() > 220:
+			# Every gun in every light would run to hundreds of megabytes.
+			graded.clear()
+			rim_cache.clear()
+			composed.clear()
 		var image: Dictionary = graded.get(key, {})
 		if image.is_empty():
 			image = _grade(assets, name, s, level)
@@ -731,6 +755,19 @@ class Armory:
 		var bx := int(round(x + Weapons.VIEW_PIVOT.x * (1.0 - s)))
 		var by := int(round(y + Weapons.VIEW_PIVOT.y * (1.0 - s) + Weapons.VIEW_SINK))
 		var source: String = Weapons.NAMES[i]
+		var rim: Dictionary = rim_cache.get(key, {})
+		if rim.is_empty():
+			rim = _rim(image)
+			rim_cache[key] = rim
+		if lay:
+			var whole: Dictionary = composed.get(key, {})
+			if whole.is_empty():
+				whole = _compose(image, rim)
+				composed[key] = whole
+			_lay_cel(canvas, whole, bx, by - 1)
+			frame = canvas.pixels
+			Weapons.cover = canvas.cover
+			Weapons.under = true
 
 		if i in Weapons.MUZZLE_GUNS and shot_age < .62 and lower < .2 and reload == 0.0:
 			var anchor := Vector3i(Weapons.MUZZLES[i])
@@ -813,13 +850,11 @@ class Armory:
 					int(clampf(1.15 - drift * 2.0, 0.0, 1.0) * 235.0)
 				)
 
-		# Rim first, one pixel high, then the cel.
-		var rim: Dictionary = rim_cache.get(key, {})
-		if rim.is_empty():
-			rim = _rim(image)
-			rim_cache[key] = rim
-		_blit_rgba(frame, rim, bx, by - 1)
-		_blit_rgba(frame, image, bx, by)
+		Weapons.under = false
+		if not lay:
+			# Rim first, one pixel high, then the cel.
+			_blit_rgba(frame, rim, bx, by - 1)
+			_blit_rgba(frame, image, bx, by)
 
 		if i == Weapons.RIPSAW and grinding and flashes > 0.0 and shot_age < .135 and lower < .2:
 			var anchors: Dictionary = Weapons.muzzle_anchors().get(source, {})
@@ -1003,6 +1038,113 @@ class Armory:
 					out[i + 3] = 42
 		return {"w": w, "h": h, "data": out, "spans": spans}
 
+	## The cel with its rim under it, composed once: for each row the first
+	## column painted, then the run of colour and coverage from there. Laid into
+	## the empty layer canvas (_lay_cel) it gives exactly what blitting the rim
+	## and then the cel would have, at a fraction of the cost.
+	func _compose(image: Dictionary, rim: Dictionary) -> Dictionary:
+		var w: int = image["w"]
+		var h: int = image["h"]
+		var cel: PackedByteArray = image["data"]
+		var edge: PackedByteArray = rim["data"]
+		var first := PackedInt32Array()
+		first.resize(h + 1)
+		var colours: Array = []
+		var covers: Array = []
+		var row_rgb := PackedByteArray()
+		row_rgb.resize(w * 3)
+		var row_cover := PackedByteArray()
+		row_cover.resize(w)
+		for y in h + 1:
+			row_rgb.fill(0)
+			row_cover.fill(0)
+			var lo := w
+			var hi := -1
+			for x in w:
+				var r := 0
+				var g := 0
+				var b := 0
+				var c := 0
+				if y < h:
+					# The rim sits one row above the cel.
+					var e := (y * w + x) * 4
+					var a := edge[e + 3]
+					if a == 255:
+						r = edge[e]
+						g = edge[e + 1]
+						b = edge[e + 2]
+						c = 255
+					elif a != 0:
+						r = clampi((edge[e] * a + edge[e]) >> 8, 0, 255)
+						g = clampi((edge[e + 1] * a + edge[e + 1]) >> 8, 0, 255)
+						b = clampi((edge[e + 2] * a + edge[e + 2]) >> 8, 0, 255)
+						c = (255 * a + 255) >> 8
+				if y >= 1:
+					var q := ((y - 1) * w + x) * 4
+					var a := cel[q + 3]
+					if a == 255:
+						r = cel[q]
+						g = cel[q + 1]
+						b = cel[q + 2]
+						c = 255
+					elif a != 0:
+						r = clampi(r + (((cel[q] - r) * a + cel[q]) >> 8), 0, 255)
+						g = clampi(g + (((cel[q + 1] - g) * a + cel[q + 1]) >> 8), 0, 255)
+						b = clampi(b + (((cel[q + 2] - b) * a + cel[q + 2]) >> 8), 0, 255)
+						c = c + (((255 - c) * a + 255) >> 8)
+				if c == 0:
+					continue
+				row_rgb[x * 3] = r
+				row_rgb[x * 3 + 1] = g
+				row_rgb[x * 3 + 2] = b
+				row_cover[x] = c
+				if x < lo:
+					lo = x
+				hi = x
+			if hi < 0:
+				first[y] = -1
+				colours.append(PackedByteArray())
+				covers.append(PackedByteArray())
+			else:
+				first[y] = lo
+				colours.append(row_rgb.slice(lo * 3, (hi + 1) * 3))
+				covers.append(row_cover.slice(lo, hi + 1))
+		return {"first": first, "rgb": colours, "cover": covers}
+
+	## Lay a composed cel (_compose) into the still empty layer canvas, its top
+	## left at x, y: each row's run goes in with one copy.
+	static func _lay_cel(canvas: Canvas, whole: Dictionary, x: int, y: int) -> void:
+		var first: PackedInt32Array = whole["first"]
+		var colours: Array = whole["rgb"]
+		var covers: Array = whole["cover"]
+		var pix := canvas.pixels
+		var cov := canvas.cover
+		var out := PackedByteArray()
+		var out_cover := PackedByteArray()
+		var done := 0
+		for row in first.size():
+			var ty := y + row
+			if ty < 0 or first[row] < 0:
+				continue
+			if ty >= Renderer.VIEW:
+				break
+			var run: PackedByteArray = covers[row]
+			var left := x + first[row]
+			var skip := maxi(0, -left)
+			var stop := mini(run.size(), Renderer.WIDTH - left)
+			if skip >= stop:
+				continue
+			var at := ty * Renderer.WIDTH + left + skip
+			out.append_array(pix.slice(done * 3, at * 3))
+			out.append_array((colours[row] as PackedByteArray).slice(skip * 3, stop * 3))
+			out_cover.append_array(cov.slice(done, at))
+			out_cover.append_array(run.slice(skip, stop))
+			done = at + stop - skip
+		out.append_array(pix.slice(done * 3))
+		out_cover.append_array(cov.slice(done))
+		canvas.pixels = out
+		canvas.cover = out_cover
+
 	## Clip-blit an RGBA image into the view rows of `frame`. Uses the cached
 	## per-row opaque span when the image has one.
 	static func _blit_rgba(frame: PackedByteArray, image: Dictionary, x: int, y: int) -> void:
@@ -1010,6 +1152,8 @@ class Armory:
 		var h: int = image["h"]
 		var data: PackedByteArray = image["data"]
 		var spans = image.get("spans")
+		var cv := Weapons.covering
+		var cover := Weapons.cover
 		if spans == null:
 			for yy in h:
 				var ty := y + yy
@@ -1025,6 +1169,11 @@ class Armory:
 					if a == 0:
 						continue
 					var o := (ty * Renderer.WIDTH + tx) * 3
+					if cv:
+						var p := o / 3
+						cover[p] = (
+							255 if a == 255 else cover[p] + (((255 - cover[p]) * a + 255) >> 8)
+						)
 					if a == 255:
 						frame[o] = data[sp]
 						frame[o + 1] = data[sp + 1]
@@ -1067,6 +1216,11 @@ class Armory:
 			for tx in range(x0, x1 + 1):
 				var a := data[sp + 3]
 				if a != 0:
+					if cv:
+						var p := o / 3
+						cover[p] = (
+							255 if a == 255 else cover[p] + (((255 - cover[p]) * a + 255) >> 8)
+						)
 					if a == 255:
 						frame[o] = data[sp]
 						frame[o + 1] = data[sp + 1]
@@ -1119,6 +1273,11 @@ class Armory:
 				if a == 0:
 					continue
 				var o := (gy * Renderer.WIDTH + gx) * 3
+				if Weapons.under:
+					# What is already painted here (the gun) is in front of the flash.
+					a = a * (255 - Weapons.cover[o / 3]) / 255
+					if a == 0:
+						continue
 				frame[o] = mini(255, frame[o] + data[sp] * a / 255)
 				frame[o + 1] = mini(255, frame[o + 1] + data[sp + 1] * a / 255)
 				frame[o + 2] = mini(255, frame[o + 2] + data[sp + 2] * a / 255)
@@ -1148,6 +1307,20 @@ class Armory:
 				if alpha < 255:
 					a = a * alpha / 255
 				var o := (gy * Renderer.WIDTH + gx) * 3
+				if Weapons.under:
+					# Behind what is already painted: only what shows past it.
+					var front := Weapons.cover[o / 3]
+					var k := a * (255 - front) / 255
+					if k != 0:
+						frame[o] = mini(255, frame[o] + data[sp] * k / 255)
+						frame[o + 1] = mini(255, frame[o + 1] + data[sp + 1] * k / 255)
+						frame[o + 2] = mini(255, frame[o + 2] + data[sp + 2] * k / 255)
+						Weapons.cover[o / 3] = mini(255, front + k)
+					continue
+				if Weapons.covering:
+					var p := o / 3
+					var had := Weapons.cover[p]
+					Weapons.cover[p] = 255 if a == 255 else had + (((255 - had) * a + 255) >> 8)
 				if a == 255:
 					frame[o] = data[sp]
 					frame[o + 1] = data[sp + 1]
@@ -1174,6 +1347,8 @@ class Armory:
 		frame[o] = roundi(c.r * 255.0)
 		frame[o + 1] = roundi(c.g * 255.0)
 		frame[o + 2] = roundi(c.b * 255.0)
+		if Weapons.covering:
+			Weapons.cover[o / 3] = 255
 
 	static func _fill(frame: PackedByteArray, x: int, y: int, w: int, h: int, c: Color) -> void:
 		var r := roundi(c.r * 255.0)
@@ -1182,9 +1357,18 @@ class Armory:
 		for yy in range(maxi(0, y), mini(Renderer.VIEW, y + h)):
 			for xx in range(maxi(0, x), mini(Renderer.WIDTH, x + w)):
 				var o := (yy * Renderer.WIDTH + xx) * 3
+				if Weapons.under:
+					var k := 255 - Weapons.cover[o / 3]
+					frame[o] = mini(255, frame[o] + r * k / 255)
+					frame[o + 1] = mini(255, frame[o + 1] + g * k / 255)
+					frame[o + 2] = mini(255, frame[o + 2] + b * k / 255)
+					Weapons.cover[o / 3] = 255
+					continue
 				frame[o] = r
 				frame[o + 1] = g
 				frame[o + 2] = b
+				if Weapons.covering:
+					Weapons.cover[o / 3] = 255
 
 	## Bresenham line with an optional square width, matching pg.draw.line.
 	static func _line(
@@ -1202,9 +1386,17 @@ class Armory:
 			if width <= 1:
 				if x0 >= 0 and y0 >= 0 and x0 < Renderer.WIDTH and y0 < Renderer.VIEW:
 					var o := (y0 * Renderer.WIDTH + x0) * 3
-					frame[o] = r
-					frame[o + 1] = g
-					frame[o + 2] = b
+					if Weapons.under:
+						var k := 255 - Weapons.cover[o / 3]
+						frame[o] = mini(255, frame[o] + r * k / 255)
+						frame[o + 1] = mini(255, frame[o + 1] + g * k / 255)
+						frame[o + 2] = mini(255, frame[o + 2] + b * k / 255)
+					else:
+						frame[o] = r
+						frame[o + 1] = g
+						frame[o + 2] = b
+					if Weapons.covering:
+						Weapons.cover[o / 3] = 255
 			else:
 				_fill(frame, x0, y0, width, width, c)
 			if x0 == x1 and y0 == y1:
