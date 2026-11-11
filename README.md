@@ -53,7 +53,7 @@ Both scripts save into the game's own profile. Point `APPDATA` at a scratch fold
 
 The Godot build's sound is produced from `audio_src/`: stored ElevenLabs recordings, the supplied menu theme, and `scripts/audio_build.py`, which finishes them into the effect bank's cues and the Ogg music. `audio_src/README.md` explains the layout, how to change a sound, and the credit ledger; nothing in a normal build contacts ElevenLabs.
 
-The landing page lives in `site/` (plain HTML, CSS and JavaScript). `python scripts/build_site_assets.py --audio` rebuilds its pictures and sound previews from the game's assets.
+The landing page lives in `site/` (plain HTML, CSS and JavaScript). `.venv\Scripts\python.exe scripts/build_site_assets.py --audio` rebuilds its pictures and sound previews from the game's assets.
 
 
 ### Play
@@ -119,6 +119,6 @@ The game is the Godot 4.7 project in `godot/`; `CLAUDE.md` lists the commands, t
 - `godot/src/` holds the game in GDScript. Three big parts are chains of layers, each file extending the one before: the front end (`main_state` → `main_flow` → `main_input` → `main`), play (`game_state` → `game_world` → `game_combat` → `game_view` → `game`) and the software view (`render_state` → `render_surfaces` → `render_sprites` → `renderer`).
 - With a window, `palette.gdshader` draws the view on the graphics card: sky, floors, ceilings, walls and sprites, then the weapon and HUD layer (drawn with Godot 2D) and the 256-colour grade. Without one (tools, CI) the software view draws the same picture.
 - `godot/data/` holds the four maps (`*.json`, the source of every level) and `godot/data/tuning/` the weapon and enemy numbers.
-- `assets/` and `audio_src/` hold the art and sound; `tools/pack_assets.gd` packs them for the game. The Python scripts in `scripts/` make that art and sound (Blender renders, digitizing, ElevenLabs, mastering); the game and its build need no Python.
+- `assets/` and `audio_src/` hold the art and sound; `tools/pack_assets.gd` packs them for the game. The art is made by the Godot tools in `godot/tools/art/` (Blender renders the 3D enemies and weapons); the Python scripts in `scripts/` make the sound (ElevenLabs, mastering) and the landing page's pictures. The game, its build and its art need no Python.
 
 The original Python/pygame game this was ported from is kept at the git tag `python-original`.

@@ -4,7 +4,8 @@ A 1997-style FPS in the spirit of Redneck Rampage. The game is the Godot
 4.7.2 project in `godot/`, and it is its own reference. It was ported from a
 Python/pygame game, kept at the git tag `python-original` and no longer on the
 main line. The levels are `godot/data/*.json`; the art and sound in `assets/`
-and `audio_src/` are made by the Python tools in `scripts/`.
+are made by the Godot art tools in `godot/tools/art/` (with Blender for the
+3D renders) and the sound in `audio_src/` by the Python tools in `scripts/`.
 
 ## Rules from the owner
 
@@ -13,7 +14,7 @@ and `audio_src/` are made by the Python tools in `scripts/`.
 - **Never open, print or `cat` `.env`.** It holds the ElevenLabs key. Never
   ask for a key in chat and never put one in code.
 - **ElevenLabs: 80,000 credits, cumulative, hard ceiling.** The ledger is
-  `audio_src/ledger.json`; check `python scripts/audio_generator.py status`
+  `audio_src/ledger.json`; check `.venv\Scripts\python.exe scripts/audio_generator.py status`
   before spending. Never run two generation processes at once. Any separate
   dollar billing needs the owner's approval first.
 - **Never run `git clean` or delete untracked files.**
@@ -31,20 +32,27 @@ and `audio_src/` are made by the Python tools in `scripts/`.
 | `godot/tools/` | Headless checks and tools (excluded from exports) |
 | `godot/data/tuning/` | Weapon and enemy definitions and numbers (`weapons.cfg`, `enemies.cfg`): fire rates, damage, reloads, how each gun sits in view, its name and sounds; enemy health, speed, reach, voice, alert sound, boss title. A new enemy can be a section with `brain=<kind>` (it acts as that kind) plus its art. Edit these, not the scripts; a running game from the project folder reloads them within a second |
 | `godot/assets_gen/` | Packed art, sound and levels. Generated, not committed |
-| `scripts/` | Python builders: art (`build_*`), audio (`audio_*`), version stamping |
+| `godot/tools/art/` | The art builders (GDScript, run like the other tools): `build_fx_art`, `build_gore_art`, `build_menu_art`, `build_building_tiles`, and `build_enemy_actors` / `build_weapon_views`, which run Blender and then shrink, grade and digitize its renders; `paint.gd` is their drawing library. Each takes `out=<dir>` to write somewhere else for a comparison. Their pictures have the old Python builders' look, not their exact bytes |
+| `scripts/` | Python: the sound (`audio_*`: ElevenLabs, budget ledger, mastering), the landing page's pictures (`build_site_assets.py`), and the Blender scripts (`blender/`, run inside Blender's own Python) |
 | `site/` | The landing page; the browser builds deploy under `play/` and `play/lite/` |
 | `.github/workflows/release.yml` | Checks and the shader-view comparison on every push; the four builds, the release and the site on `main`, `v*` tags or a run started by hand (packs are cached until an asset changes) |
 
 ## Commands
 
-Building and checking the game needs only Godot. Python is only for the art
-and sound tools in `scripts/` (Blender renders, digitizing, ElevenLabs,
-mastering): use the repo's `.venv\Scripts\python.exe` (numpy, Pillow); the audio
-scripts need the system Python, which has `dotenv` and `elevenlabs`. Godot is
+Building and checking the game, and making its art, need only Godot (and
+Blender for the enemy and weapon renders). Python is only for the sound tools,
+the landing page's pictures and gdformat/gdlint, all in the repo's one
+`.venv` (`requirements-dev.txt`: numpy, Pillow, elevenlabs, dotenv, gdtoolkit):
+run them with `.venv\Scripts\python.exe`, and lint with `.venv\Scripts\gdformat`
+and `gdlint`. Godot is
 `C:\Users\treym\OneDrive\Desktop\Tools\Godot_v4.7.2-stable_win64_console.exe`.
 
 ```
 godot --headless --path godot --script res://tools/pack_assets.gd   # rebuild godot/assets_gen (no Python)
+
+# Art (then pack_assets): see godot/tools/art/
+godot --headless --path godot --script res://tools/art/build_fx_art.gd       # also gore, menu, building tiles
+godot --headless --path godot --script res://tools/art/build_enemy_actors.gd -- kinds=billy no-render   # weapon views likewise
 godot --headless --path godot --import        # after adding a class_name script
 
 # Checks (all run in CI too)

@@ -81,7 +81,7 @@ python scripts/audio_build.py --check
   category tabs, an 8-row scrolling list, a help footer, per-page reset, an
   "applies next run" note, and a keep/revert trial for display changes.
   Controls has keyboard, gamepad and touch pages. Art comes from
-  `scripts/build_menu_art.py`.
+  `godot/tools/art/build_menu_art.gd`.
 * **CI.** `.github/workflows/release.yml` now runs on every branch push; the
   Pages steps stay limited to main and tags.
 

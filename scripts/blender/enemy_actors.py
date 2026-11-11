@@ -5,7 +5,7 @@
 ``kinds`` is a comma list from ACTORS, ``frames`` is ``all`` or a comma list of
 cel stems (0, w0..w3, aim, fire, pain, recover, fidget, die_0..die_2, down,
 quarter_0, side_w1, ...). Each cel is written oversized to <out dir>/<kind>_<stem>.png
-with a meta.json; scripts/build_enemy_actors.py shrinks them into assets/art.
+with a meta.json; godot/tools/art/build_enemy_actors.gd shrinks them into assets/art.
 
 Every character is built from scratch for every cel: a small skeleton is posed
 with two-bone IK, then dressed with capsules and ellipsoids. Nothing here is

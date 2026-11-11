@@ -44,6 +44,13 @@ jobs:
             echo "::error::The game logged script errors while booting."
             exit 1
           fi
+      - name: The art tools still run
+        run: |
+          for tool in build_fx_art build_building_tiles build_menu_art build_gore_art; do
+            godot --headless --path godot --script res://tools/art/$tool.gd -- "out=$RUNNER_TEMP/art" 2>&1 | tee art.log
+            if grep -E "SCRIPT ERROR|Parse Error" art.log; then exit 1; fi
+          done
+          test -s "$RUNNER_TEMP/art/fx_fire_0.png" && test -s "$RUNNER_TEMP/art/menu_board.png"
       - name: Assets and levels load
         run: godot --headless --path godot --script res://tools/verify_assets.gd
       - name: Parity regression checks

@@ -3,7 +3,7 @@
     blender -b -P scripts/blender/weapon_views.py -- <out dir> <names|all>
 
 Writes <name>.png (1280x896, transparent) and views.json with where each
-weapon's grip and foremost point landed. scripts/build_weapon_views.py lays the
+weapon's grip and foremost point landed. godot/tools/art/build_weapon_views.gd lays the
 photographed hands over them and cuts the animation cels.
 
 The crowbar, revolver and shotgun in the game are photographs, hands included.
