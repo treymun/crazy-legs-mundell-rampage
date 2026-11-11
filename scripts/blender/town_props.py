@@ -475,7 +475,7 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "props_more.p
     exec(_more.read(), globals())
 PROPS.update(MORE)
 # Drawn flat on a plane in the game: rendered face on.
-FLAT = {"laundry"}
+FLAT = {"laundry", "powder_shelf"}
 
 
 # ---------------------------------------------------------------- stage
