@@ -34,3 +34,6 @@ web_game/
 audio_src/*.log
 audio_src/ledger.tmp
 _preview/
+
+# Reference images are read as plain files (tools/picture_check.gd), not imported.
+godot/tools/pictures/*.import

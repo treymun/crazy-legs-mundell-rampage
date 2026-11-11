@@ -1,0 +1,961 @@
+## What the game draws: the sprite list, the frame (view, weapon, HUD), the
+## view effects and the automap (the game layers are listed in game_state.gd).
+class_name GameView
+extends GameCombat
+
+
+func reflection() -> Variant:
+	if is_nan(world.mirror_x):
+		return null
+	var p := player
+	var facing := fposmod(TAU - p.angle, TAU) - PI
+	var direction := mini(4, int(absf(facing) / (PI / 4.0) + .5))
+	var heading: String = ["front", "quarter", "side", "away", "back"][direction]
+	var stride := 0
+	if p.motion > .15 and p.air == 0.0:
+		stride = int(round(sin(p.walk_phase)))
+	var height := 1.24 if p.crouched else 1.65
+	var feet: float = world.elevation(p.x, p.y) + p.air
+	var out := Renderer.Sprite.new(p.x, p.y, "player_%s_%d" % [heading, stride], height, feet)
+	out.flip = facing < 0.0 and direction < 4
+	return out
+
+
+# ------------------------------------------------------------------ sprites
+
+
+func sprites() -> Array:
+	var sprites: Array = []
+	if in_hub:
+		for sprite: Renderer.Sprite in props:
+			if sprite.y >= 28.0 and sprite.x < HUB_WIDTH:
+				sprites.append(sprite)
+	else:
+		sprites = props.duplicate()
+	for board: LevelData.Billboard in world.billboards:
+		if (in_hub and board.y < 33.0) or (level.rescue and not in_hub and board.y >= 34.0):
+			continue
+		var image := board.image
+		if board.signal_name == "legacy-key":
+			if legacy_key_route:
+				image = "wing_town_legacy_key"
+		elif board.signal_name != "":
+			var active := (
+				exit_ready()
+				if board.signal_name == "exit"
+				else won if board.signal_name == "cleared" else stations_done.has(board.signal_name)
+			)
+			image += "_on" if active else "_off"
+		var z: float = world.elevation(board.x, board.y) + board.z
+		var spr := Renderer.Sprite.new(board.x, board.y, image, board.height, z)
+		spr.glow = board.glow
+		spr.plane = board.plane
+		sprites.append(spr)
+		if board.back != "":
+			var back := Renderer.Sprite.new(board.x, board.y, board.back, board.height, z)
+			back.plane = board.plane + PI
+			sprites.append(back)
+	for point in drums.keys():
+		var vec: Vector2 = point
+		sprites.append(
+			Renderer.Sprite.new(vec.x, vec.y, "prop_fuel", 1.04, world.elevation(vec.x, vec.y))
+		)
+	for sprite: Renderer.Sprite in sprites:
+		if sprite.image.begins_with("prop_windmill_"):
+			sprite.image = "prop_windmill_%d" % (int(clock * 5.0) % 3)
+	if in_hub:
+		# plane = 0: these are flat boards fixed in the world, as in the
+		# reference, not sprites that turn to face the camera.
+		var dispatch := Renderer.Sprite.new(
+			HUB_BOARD.x, HUB_BOARD.y, "county_dispatch_%d" % hub_milestone, .46, 1.02
+		)
+		dispatch.plane = 0.0
+		sprites.append(dispatch)
+		if hub_milestone != 0:
+			var trunk := hub_milestone in [2, 3]
+			var prop := "county_dispatch_trunk" if trunk else "county_dispatch_tag"
+			var tag := Renderer.Sprite.new(29.67, 44.12, prop, .31 if trunk else .24, .83)
+			tag.plane = 0.0
+			sprites.append(tag)
+		var detail: int = renderer.world_motion
+		var motion_speed: float = [1.0, .32, 0.0][detail]
+		var dust_rows: Array = [
+			[30.40, 46.85, 1.46, .19], [30.48, 45.95, 1.64, .28], [30.73, 44.95, 1.48, .37]
+		]
+		var dust: Array = []
+		for i in 3 - detail:
+			var row: Array = dust_rows[i]
+			var dx: float = float(row[0]) + .11 * sin(clock * motion_speed * .68 + float(row[1]))
+			var puff := Renderer.Sprite.new(
+				dx, float(row[1]), "hub_dust", float(row[2]), float(row[3])
+			)
+			puff.translucent = true
+			puff.plane = 0.0
+			dust.append(puff)
+		dust.sort_custom(
+			func(a, b):
+				return (
+					sqrt(pow(a.x - player.x, 2) + pow(a.y - player.y, 2))
+					> sqrt(pow(b.x - player.x, 2) + pow(b.y - player.y, 2))
+				)
+		)
+		sprites.append_array(dust)
+		return sprites
+	for note: LevelData.Note in level.notes:
+		var note_sprite := Renderer.Sprite.new(
+			note.x, note.y, "county_note", .23, world.elevation(note.x, note.y) + .90
+		)
+		note_sprite.plane = note.plane
+		sprites.append(note_sprite)
+	if gallery != null:
+		var gallery_sign := Renderer.Sprite.new(25.95, 32.72, "county_gallery_sign", .51, 1.03)
+		gallery_sign.plane = 0.0
+		sprites.append(gallery_sign)
+		var backstop := Renderer.Sprite.new(29.90, 33.48, "county_gallery_backstop", 1.49, .19)
+		backstop.plane = PI / 2.0
+		sprites.append(backstop)
+		if gallery.active:
+			sprites.append(gallery.sprite(self))
+	for room: LevelData.Interior in level.interior_art:
+		var room_sprite := Renderer.Sprite.new(
+			room.x,
+			room.y,
+			"county_room_" + room.art,
+			room.height,
+			world.elevation(room.x, room.y) + room.z
+		)
+		room_sprite.plane = room.plane
+		sprites.append(room_sprite)
+	for prop: LevelData.Scenery in world.scenery:
+		var state := "spent" if scenery_used(prop) else "whole"
+		sprites.append(
+			Renderer.Sprite.new(
+				prop.x,
+				prop.y,
+				"scenery_%s_%s" % [prop.kind, state],
+				prop.height,
+				world.elevation(prop.x, prop.y) + prop.z
+			)
+		)
+	if finale != null and finale.kind == "rudy" and finale.alive:
+		for point: Vector2 in world.boss_decoys:
+			var decoy := Renderer.Sprite.new(
+				point.x, point.y, "rudy_decoy", 1.65, world.elevation(point.x, point.y)
+			)
+			decoy.plane = 0.0
+			sprites.append(decoy)
+	for hazard: Hazard in hazards:
+		if hazard.age >= hazard.warning:
+			var mist := Renderer.Sprite.new(
+				hazard.x,
+				hazard.y,
+				"fx_%s_mist" % hazard.kind,
+				.47 if hazard.kind == "steam" else .32,
+				world.elevation(hazard.x, hazard.y) + .03
+			)
+			mist.translucent = true
+			sprites.append(mist)
+	var observer := [player.x, player.y]
+	var relieved := not world.pressure_ports.is_empty() and relief_open()
+	for enemy: Enemy in enemies:
+		var sprite = enemy.sprite(observer, relieved, clock)
+		if sprite != null:
+			sprite.z += world.elevation(sprite.x, sprite.y)
+			sprites.append(sprite)
+	for entry in pickups:
+		var x := float(entry[1])
+		var y := float(entry[2])
+		var hover := .06 + sin(clock * 3.5 + x) * .035
+		sprites.append(
+			Renderer.Sprite.new(
+				x, y, "item_" + String(entry[0]), .33, world.elevation(x, y) + hover
+			)
+		)
+	for shot: Shot in shots:
+		if (
+			shot.enemy
+			or shot.kind == "tnt"
+			or (
+				sqrt(
+					(
+						(shot.x - player.x) * (shot.x - player.x)
+						+ (shot.y - player.y) * (shot.y - player.y)
+					)
+				)
+				> .95
+			)
+		):
+			var name := (
+				"blade_%d" % (int(shot.travelled * 9.0) % 3) if shot.kind == "blade" else shot.kind
+			)
+			if shot.kind == "tnt":
+				var phase := (
+					int(shot.travelled * 12.0) if not shot.resting else int(shot.life * 9.0)
+				)
+				name += "_%d" % (phase % 3)
+			var size: float = float(SHOT_SIZES.get(shot.kind, .14 if shot.enemy else .10))
+			var shot_sprite := Renderer.Sprite.new(shot.x, shot.y, "fx_" + name, size, shot.z)
+			shot_sprite.glow = GLOW_SHOTS.has(shot.kind)
+			sprites.append(shot_sprite)
+	for fx: Speck in specks:
+		var speck_sprite := Renderer.Sprite.new(fx.x, fx.y, "fx_" + fx.kind, .095, fx.z)
+		speck_sprite.glow = fx.kind == "spark"
+		sprites.append(speck_sprite)
+	for puff: Gore.Puff in gore_fx.puffs:
+		var hot := puff.kind == "sparks"
+		var step := mini(2 if hot else 3, int(puff.age * (14.0 if hot else 11.0)))
+		var cloud := Renderer.Sprite.new(
+			puff.x, puff.y, "fx_%s_%d" % [puff.kind, step], .20 + puff.age * .85, puff.z - .08
+		)
+		cloud.glow = hot
+		cloud.translucent = true
+		sprites.append(cloud)
+	for g: Gore.Gib in gore_fx.gibs:
+		var chunk := Renderer.Sprite.new(g.x, g.y, g.image, g.size, g.z)
+		chunk.flip = g.flip
+		sprites.append(chunk)
+	var blast_order: Array = []
+	for blast: Blast in blasts:
+		blast_order.append(
+			[
+				sqrt(
+					(
+						(blast.x - player.x) * (blast.x - player.x)
+						+ (blast.y - player.y) * (blast.y - player.y)
+					)
+				),
+				blast
+			]
+		)
+	blast_order.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
+	for entry in blast_order:
+		var blast: Blast = entry[1]
+		var smoke := blast.age >= .27
+		var age := blast.age - .27 if smoke else blast.age
+		var frame := mini(3, int(age * (11.0 if smoke else 16.0)))
+		var size := .55 + blast.age * 1.3
+		var z := maxf(.03, blast.z - size * .43 + blast.age * .63)
+		var ball := (
+			"blast"
+			if blast.kind == "fire"
+			else "blast_energy" if blast.kind == "energy" else blast.kind
+		)
+		var blast_sprite := Renderer.Sprite.new(
+			blast.x, blast.y, "fx_%s_%d" % ["smoke" if smoke else ball, frame], size, z
+		)
+		blast_sprite.glow = not smoke
+		blast_sprite.translucent = true
+		sprites.append(blast_sprite)
+	return sprites
+
+
+# ---------------------------------------------------------------- objective
+
+
+func feedback(c: Canvas) -> void:
+	if not in_hub:
+		var p := player
+		var alert = null
+		var nearest := 10.5 * 10.5
+		for enemy: Enemy in enemies:
+			if not (
+				enemy.alive
+				and enemy.windup > 0.0
+				and enemy.player_seen
+				and (Enemy.RANGED.has(enemy.kind) or enemy.kind in ["clone", "billy", "coot"])
+			):
+				continue
+			var dx := enemy.x - p.x
+			var dy := enemy.y - p.y
+			var square := dx * dx + dy * dy
+			var turn := fposmod(atan2(dy, dx) - p.view_angle() + PI, TAU) - PI
+			if absf(turn) > .70 and square < nearest:
+				alert = turn
+				nearest = square
+		if alert != null:
+			var side := "REAR" if absf(alert) > 2.41 else "LEFT" if float(alert) < 0.0 else "RIGHT"
+			var label := "WINDUP " + side
+			var width := 10 + PixelType.text_width(label, "mini")
+			var x := (
+				(WIDTH - width) / 2
+				if side == "REAR"
+				else 6 if side == "LEFT" else WIDTH - width - 6
+			)
+			HUD.panel(c, x, 74, width, 14, Canvas.rgb(40, 29, 22))
+			HUD.text(c, label, x + 5, 78, "mini", Canvas.rgb(233, 188, 111), false, false)
+	if item_feedback != null:
+		var name := String(item_feedback[0])
+		var text := String(item_feedback[1])
+		var end := float(item_feedback[2])
+		if clock < end:
+			var y := 102 + int(round(maxf(0.0, end - clock - .79) * 25.0 * bob_scale))
+			var label: String = (
+				text if text != "" else String(HUD.ITEM_LABELS[HUD.ITEMS.find(name)])
+			)
+			HUD.panel(c, 8, y, 29 + PixelType.text_width(label, "mini"), 20, Canvas.rgb(38, 27, 21))
+			var image := art.art("item_" + name)
+			var iw: int = image["w"]
+			var ih: int = image["h"]
+			var data: PackedByteArray = image["data"]
+			for ty in 16:
+				var sy := clampi(ty * ih / 16, 0, ih - 1)
+				for tx in 16:
+					var sx := clampi(tx * iw / 16, 0, iw - 1)
+					var sp := (sy * iw + sx) * 4
+					if data[sp + 3] == 0:
+						continue
+					c.set_pixel(11 + tx, y + 2 + ty, data[sp], data[sp + 1], data[sp + 2])
+			HUD.text(c, label, 30, y + 7, "mini", Canvas.rgb(249, 205, 144), false, false)
+	if damage_feedback != null:
+		var heading = damage_feedback[0]
+		var cause := String(damage_feedback[1])
+		var end2 := float(damage_feedback[2])
+		if clock >= end2:
+			return
+		var side := ""
+		if heading != null and not NO_MARK_SURFACE.has(cause):
+			var turn2 := fposmod(float(heading) - player.view_angle() + PI, TAU) - PI
+			side = (
+				" REAR"
+				if absf(turn2) > 2.41
+				else " LEFT" if turn2 < -.40 else " RIGHT" if turn2 > .40 else " FRONT"
+			)
+		HUD.banner(c, cause + side, 87, 288, Canvas.rgb(244, 160, 108))
+
+
+# ---------------------------------------------------------------- main draw
+
+
+func draw(c: Canvas, crosshair := 1, grade := true) -> void:
+	_draw(c, crosshair, grade)
+	if _render_open:
+		# The band threads drew the view while the weapon and HUD were painted.
+		_render_open = false
+		var began := Time.get_ticks_usec()
+		renderer.render_end()
+		stage_ms[1] += (Time.get_ticks_usec() - began) / 1000.0
+
+
+func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
+	var p := player
+	look_live = false
+	tone_live = false
+	hurt_alpha = 0
+	scene_live = false
+	drunk_k = 0.0
+	c.layer = false
+	if showing_tally:
+		hud.intermission(c, self)
+		return
+	var practice := gallery != null and gallery.active
+	var weapon = gallery.pistol if practice else armory
+	var flash: float = (weapon.flash * 4.0 + blast_flash * .85) * flash_scale
+	renderer.time = clock
+	renderer.layered = layered and gpu_look
+	var t0 := Time.get_ticks_usec()
+	# The renderer sorts out the wall segments on a band thread while the
+	# sprites and marks are listed here.
+	renderer.frame_begin(p.as_render_player(), flash)
+	var listing := Time.get_ticks_usec()
+	var marks: Array = ground_marks()
+	var marks_list: Array = wall_marks if bullet_marks else []
+	if not gore_fx.walls.is_empty():
+		marks_list = marks_list + gore_fx.walls
+	var listed: Array = sprites()
+	var t1 := Time.get_ticks_usec()
+	renderer.frame_sprites(listed, reflection(), marks_list, marks)
+	if renderer.layered:
+		# The display shader composes the view from the renderer's layers; the
+		# weapon and the HUD are painted on an empty layer that goes over it,
+		# and that happens here while the band threads are still drawing.
+		c.begin_layer()
+		scene_live = true
+		_render_open = true
+	else:
+		# render_end() hands back a private copy so the HUD, weapon and grade passes
+		# can composite into it while the renderer keeps its own band buffers untouched.
+		c.pixels = renderer.render_end()
+	var t2 := Time.get_ticks_usec()
+	if p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
+		weapon.draw(
+			c.pixels,
+			art,
+			p,
+			world.light[world.cell(p.x, p.y)],
+			bob_scale,
+			flash_scale,
+			12 if weapon_view == 1 else 0,
+			c if c.layer else null
+		)
+	var t3 := Time.get_ticks_usec()
+	if hurt_flash > 0.0 and flash_scale > 0.0:
+		_apply_hurt_flash(c)
+	if p.drunk >= 38.0 and flash_scale > 0.0:
+		if scene_live:
+			drunk_k = minf(1.0, (p.drunk - 38.0) / 62.0)
+		else:
+			_drunk_warp(c)
+	# The look pass and the brightness grade touch the same view rectangle; the
+	# lookup table is folded into the look pass when both are active.
+	var graded := false
+	look_live = retro_look and flash_scale > 0.0
+	tone_live = grade and tone != null
+	if gpu_look:
+		# The display shader grades the view; only its numbers are worked out here.
+		if look_live:
+			_look_params()
+	else:
+		if look_live:
+			var table = tone if grade else null
+			_look_pass(c, table)
+			graded = tone_live
+		if tone_live and not graded:
+			_grade_view(c)
+	var t4 := Time.get_ticks_usec()
+	stage_ms = [
+		(t1 - listing) / 1000.0,
+		(listing - t0 + t2 - t1) / 1000.0,
+		(t3 - t2) / 1000.0,
+		(t4 - t3) / 1000.0,
+		0.0
+	]
+	if p.health > 0:
+		if crosshair == 2:
+			c.circle(160, VIEW / 2, 4, Canvas.rgb(188, 168, 132), false)
+		elif crosshair != 0:
+			c.set_pixel(160, VIEW / 2, 188, 168, 132)
+		var after_notice := 5
+		if not map:
+			if practice:
+				after_notice = HUD.banner(c, gallery.hud(), 5) + 3
+			elif message_until > clock and (hints or notice != level.introduction):
+				after_notice = HUD.banner(c, notice, 5) + 3
+			elif district_labels and district_until > clock:
+				after_notice = (
+					HUD.banner(c, level.districts[district], 5, 288, Canvas.rgb(245, 196, 122)) + 3
+				)
+			var boss = (
+				finale if finale != null else (jerry if jerry != null and jerry.alive else boss)
+			)
+			if boss != null:
+				var in_finale: bool = (
+					sqrt((boss.x - p.x) * (boss.x - p.x) + (boss.y - p.y) * (boss.y - p.y)) < 14.0
+					if finale != null
+					else p.y < 10.0
+				)
+				if in_finale and boss.alive and boss.alerted and not in_hub:
+					var y := after_notice
+					var tell: String = String(
+						Enemies_TELLS().get(
+							boss.kind, "PLASMA CHARGE" if boss == self.boss else "WHISTLE"
+						)
+					)
+					if boss.kind == "baron" and boss.attacks % 2 == 1:
+						tell = "STEAM SWEEP"
+					if boss.kind == "foreman" and boss.attacks % 2 == 1:
+						tell = "GAP IN THE MIDDLE"
+					if boss.kind == "rudy":
+						tell = "LEFT HORN" if boss.attacks % 2 == 1 else "RIGHT HORN"
+					var phase: String = (
+						tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
+					)
+					HUD.panel(
+						c,
+						193,
+						y,
+						122,
+						27 if phase != "" else 20,
+						Canvas.rgb(35, 24, 20),
+						Canvas.rgb(126, 85, 57)
+					)
+					HUD.text(c, _boss_title(boss.kind), 253, y + 3, "body", HUD.INK, true, false)
+					c.fill_rect(199, y + 12, 110, 4, Canvas.rgb(70, 42, 32))
+					c.fill_rect(
+						199,
+						y + 12,
+						int(round(110.0 * boss.hp / boss.max_hp)),
+						4,
+						Canvas.rgb(236, 143, 69) if boss.windup > 0.0 else Canvas.rgb(204, 77, 47)
+					)
+					if phase != "":
+						HUD.text(
+							c, phase, 253, y + 19, "mini", Canvas.rgb(249, 194, 124), true, false
+						)
+		if not map and armory.fuse == 0.0:
+			var hint := gate_prompt()
+			if hint == "" and hints and not in_hub:
+				hint = use_prompt()
+			if hint != "":
+				HUD.banner(c, hint, 137, 288, Canvas.rgb(251, 207, 142))
+			if voice_captions and caption_until > clock:
+				HUD.banner(c, caption, 121 if hint != "" else 137, 288, Canvas.rgb(209, 221, 179))
+			elif barks.visible(self) and hint == "":
+				HUD.banner(c, '"' + barks.text + '"', 137, 288, Canvas.rgb(255, 214, 150))
+		if not map:
+			feedback(c)
+	else:
+		HUD.panel(c, 27, 54, 266, 52, Canvas.rgb(43, 26, 22))
+		HUD.text(c, "YOU BOUGHT THE FARM", 160, 64, "heading", HUD.INK, true)
+		HUD.text(
+			c,
+			(
+				"ENTER CROSSROADS  /  ESC TITLE"
+				if revisiting
+				else "ENTER RETRY  /  F9 QUICKLOAD  /  ESC TITLE"
+			),
+			160,
+			90,
+			"body",
+			HUD.INK,
+			true
+		)
+	if map and p.health > 0:
+		automap(c)
+	gore_fx.draw_lens(c)
+	hud.draw(c, self, weapon)
+	stage_ms[4] = (Time.get_ticks_usec() - t4) / 1000.0
+
+
+func _boss_title(kind: String) -> String:
+	return String(
+		(
+			{
+				"boss": "ALIEN SHERIFF",
+				"jerry": "JERRY JONES",
+				"rudy": "RUDY RACKET",
+				"foreman": "SPLINTER FOREMAN",
+				"baron": "COPPER BARON"
+			}
+			. get(kind, "BOSS")
+		)
+	)
+
+
+# ------------------------------------------------------------- view effects
+
+
+func _build_grit() -> void:
+	var count := WIDTH * VIEW
+	_grit_r.resize(count)
+	_grit_g.resize(count)
+	_grit_b.resize(count)
+	_dither.resize(count)
+	var wash: Array = WASH.get(level.id, [255, 255, 255, 0])
+	var amount := float(wash[3])
+	var tr := float(wash[0]) / 255.0
+	var tg := float(wash[1]) / 255.0
+	var tb := float(wash[2]) / 255.0
+	var w := float(maxi(WIDTH - 1, 1))
+	var h := float(maxi(VIEW - 1, 1))
+	for y in VIEW:
+		var ny := (float(y) / h - .5) * 2.0
+		for x in WIDTH:
+			var nx := (float(x) / w - .5) * 2.0
+			var radius := sqrt(nx * nx + ny * ny) / 1.4142
+			var vignette := 1.0 - .13 * pow(radius, 2.1)
+			var i := y * WIDTH + x
+			_grit_r[i] = ((1.0 - amount) + tr * amount) * vignette
+			_grit_g[i] = ((1.0 - amount) + tg * amount) * vignette
+			_grit_b[i] = ((1.0 - amount) + tb * amount) * vignette
+			_dither[i] = (float(BAYER[(x % 4) * 4 + (y % 4)]) / 16.0 - .5) * 6.0
+
+
+func _apply_hurt_flash(c: Canvas) -> void:
+	var alpha := clampi(int(round(hurt_flash * 310.0 * flash_scale)), 0, 255)
+	hurt_alpha = alpha if gpu_look else 0
+	if alpha == 0 or gpu_look:
+		return
+	var pix := c.pixels
+	var inv := 255 - alpha
+	var n := WIDTH * VIEW * 3
+	var i := 0
+	while i < n:
+		pix[i] = (131 * alpha + pix[i] * inv) / 255
+		pix[i + 1] = (27 * alpha + pix[i + 1] * inv) / 255
+		pix[i + 2] = (17 * alpha + pix[i + 2] * inv) / 255
+		i += 3
+
+
+## rampage2.drunk_warp: per-row sine shear, ghost double image, amber tint.
+func _drunk_warp(c: Canvas) -> void:
+	var drunk := player.drunk
+	if drunk < 38.0:
+		return
+	var strength := minf(1.0, (drunk - 38.0) / 62.0)
+	var width := WIDTH
+	var source := PackedByteArray()
+	source.resize(width * VIEW * 3)
+	var shift := PackedInt32Array()
+	shift.resize(VIEW)
+	for y in VIEW:
+		shift[y] = int(round(sin(y * .16 + clock * 3.1) * (1.0 + 3.4 * strength)))
+	var pix := c.pixels
+	for y in VIEW:
+		var row := y * width * 3
+		var offset := shift[y]
+		for x in width:
+			var sx := posmod(x + offset, width)
+			var sp := row + sx * 3
+			var dp := row + x * 3
+			source[dp] = pix[sp]
+			source[dp + 1] = pix[sp + 1]
+			source[dp + 2] = pix[sp + 2]
+	var ghost_dx := int(2 + 4 * strength)
+	if sin(clock * 1.7) <= 0.0:
+		ghost_dx = -ghost_dx
+	var mix := .30 * strength
+	for y in VIEW:
+		var row := y * width * 3
+		for x in width:
+			var gx := posmod(x - ghost_dx, width)
+			var gp := row + gx * 3
+			var dp := row + x * 3
+			var r := float(source[dp]) * (1.0 - mix) + float(source[gp]) * mix
+			var g := float(source[dp + 1]) * (1.0 - mix) + float(source[gp + 1]) * mix
+			var b := float(source[dp + 2]) * (1.0 - mix) + float(source[gp + 2]) * mix
+			pix[dp] = clampi(int(r * (1.0 + .06 * strength)), 0, 255)
+			pix[dp + 1] = clampi(int(g), 0, 255)
+			pix[dp + 2] = clampi(int(b * (1.0 - .10 * strength)), 0, 255)
+
+
+## This frame's lamp buzz, grain frame and blast lift, for either look path.
+func _look_params() -> void:
+	var indoors: bool = world.roof[world.cell(player.x, player.y)] != 0.0
+	var gain := 1.0
+	# SCREEN FLASH below FULL also stills the lamp buzz, as in the reference.
+	if indoors and flicker and flash_scale == 1.0:
+		var buzz := .985 + .015 * sin(clock * 53.0)
+		if int(clock * 7.3) % 29 == 0 and fmod(clock * 7.3, 1.0) < .35:
+			buzz -= .07
+		gain = buzz
+	_look_gain = gain
+	_look_frame = int(clock * 17.0) % GRAIN_FRAMES
+	_look_blast = blast_flash * 60.0
+
+
+func _look_pass(c: Canvas, grade_tone = null) -> void:
+	_look_params()
+	_look_tone = grade_tone
+	# Row-banded across explicit threads. This pass is ~10 ms of per-pixel float
+	# work at 50k pixels, so it is worth splitting. Each worker owns a private
+	# output buffer for its own rows; only writes need a single owner, and a
+	# shared buffer would make every worker detach on its first write (packed
+	# arrays are copy-on-write). The bands are concatenated natively with
+	# append_array, and the status rows below VIEW are carried over verbatim.
+	var src := c.pixels
+	var view_bytes := WIDTH * VIEW * 3
+	var bands := _look_band_count()
+	if bands <= 1:
+		var dst := src.slice(0)
+		_look_rows(dst, src, 0, VIEW)
+		c.pixels = dst
+		return
+	_look_rows_per = int(ceil(float(VIEW) / bands))
+	while _look_threads.size() < bands:
+		_look_threads.append(Thread.new())
+	for i in bands:
+		var t: Thread = _look_threads[i]
+		if t.is_started():
+			t.wait_to_finish()
+		t.start(_look_worker.bind(src, i))
+	# Each worker builds and returns its own buffer, so no band ever writes into
+	# memory another thread can see; the main thread collects the results.
+	var out := PackedByteArray()
+	for i in bands:
+		var part: PackedByteArray = _look_threads[i].wait_to_finish()
+		if part.size() > 0:
+			out.append_array(part)
+	if src.size() > view_bytes:
+		out.append_array(src.slice(view_bytes))
+	c.pixels = out
+
+
+func _look_band_count() -> int:
+	if VIEW < 48 or not OS.has_feature("threads"):
+		return 1
+	if look_bands > 0:
+		return mini(look_bands, VIEW)
+	# Four bands measured fastest: the renderer already fills the machine with
+	# its own band threads, and more look workers just contend with them.
+	return mini(4, VIEW)
+
+
+func _look_worker(src: PackedByteArray, slot: int) -> PackedByteArray:
+	var y0 := slot * _look_rows_per
+	var y1 := mini(VIEW, y0 + _look_rows_per)
+	if y0 >= y1:
+		return PackedByteArray()
+	# Private buffer: one owner, so the band write cannot race with a detach.
+	var part := PackedByteArray()
+	part.resize((y1 - y0) * WIDTH * 3)
+	_look_rows(part, src, y0, y1)
+	return part
+
+
+## Apply the look + tone passes to rows [y0, y1) of `src`, writing them into
+## `dst` starting at its row 0. Both buffers are row-aligned to `y0`.
+func _look_rows(dst: PackedByteArray, src: PackedByteArray, y0: int, y1: int) -> void:
+	var grain := art.grain
+	var grit_r := _grit_r
+	var grit_g := _grit_g
+	var grit_b := _grit_b
+	var dither := _dither
+	var tone = _look_tone
+	var gain := _look_gain
+	var blast_add := _look_blast
+	var frame_index := _look_frame
+	# Yields: the reference runs look_pass over (0,0,WIDTH,VIEW) and then the
+	# brightness grade over the same rectangle, so folding the two passes
+	# together here produces identical pixels for half the memory traffic.
+	var dst_row := 0
+	var y := y0
+	while y < y1:
+		var i := y * WIDTH
+		var o := dst_row
+		var so := i * 3
+		var gx := frame_index * VIEW + y
+		var x := 0
+		while x < WIDTH:
+			var add := float(int(grain[gx]) - 2) + blast_add + dither[i]
+			var r := clampi(int(float(src[so]) * (grit_r[i] * gain) + add), 0, 255)
+			var g := clampi(int(float(src[so + 1]) * (grit_g[i] * gain) + add), 0, 255)
+			var b := clampi(int(float(src[so + 2]) * (grit_b[i] * gain) + add), 0, 255)
+			if tone != null:
+				dst[o] = tone[r]
+				dst[o + 1] = tone[g]
+				dst[o + 2] = tone[b]
+			else:
+				dst[o] = r
+				dst[o + 1] = g
+				dst[o + 2] = b
+			gx += GRAIN_STRIDE
+			i += 1
+			o += 3
+			so += 3
+			x += 1
+		dst_row += WIDTH * 3
+		y += 1
+
+
+func _grade_view(c: Canvas) -> void:
+	var pix := c.pixels
+	var n := WIDTH * VIEW * 3
+	for i in n:
+		pix[i] = tone[pix[i]]
+
+
+# ----------------------------------------------------------------- automap
+
+
+func automap(c: Canvas) -> void:
+	if _map_base.is_empty() or _map_signature_changed():
+		_build_map_base()
+	_blit_region(c, 37, 5)
+	var geom := _map_geom
+	var width: int = geom["width"]
+	var height: int = geom["height"]
+	var start_y: int = geom["start_y"]
+	for key: Vector2i in visited:
+		if key.x >= 0 and key.x < width and key.y >= start_y and key.y < start_y + height:
+			var rect := _map_tile(float(key.x), float(key.y))
+			c.fill_rect(
+				rect.position.x, rect.position.y, rect.size.x, rect.size.y, Canvas.rgb(152, 120, 75)
+			)
+	if not in_hub:
+		for door: LevelData.Door in world.doors:
+			if not door.secret or door.discovered:
+				var color := (
+					Canvas.rgb(110, 120, 88)
+					if door.opened
+					else Canvas.rgb(200, 119, 56) if door.key != "" else Canvas.rgb(146, 112, 77)
+				)
+				var rect2 := _map_tile(float(door.x), float(door.y))
+				c.fill_rect(rect2.position.x, rect2.position.y, rect2.size.x, rect2.size.y, color)
+	var labels: Array = []
+	if in_hub:
+		for gate: LevelData.Gate in world.hub_gates:
+			labels.append(
+				[
+					String(Campaign.GATE_LABELS.get(gate.destination, "")),
+					gate.x,
+					gate.y,
+					not world.locked_gates.has(gate)
+				]
+			)
+		for clue in world.hub_clues:
+			if hub_findings.has(String(clue[0])):
+				var at := _map_tile(float(clue[1]), float(clue[2]))
+				var cx := at.position.x
+				var cy := at.position.y
+				c.polygon(
+					[
+						Vector2(cx, cy - 3),
+						Vector2(cx + 3, cy),
+						Vector2(cx, cy + 3),
+						Vector2(cx - 3, cy)
+					],
+					Canvas.rgb(200, 173, 111)
+				)
+	else:
+		for row in level.map_labels:
+			labels.append([String(row[0]), float(row[1]), float(row[2]), true])
+	for label_row in labels:
+		var label := String(label_row[0])
+		var at := _map_tile(float(label_row[1]), float(label_row[2]))
+		var left_edge := (
+			at.position.x - PixelType.text_width(label) / 2 if in_hub else at.position.x
+		)
+		c.fill_rect(
+			left_edge - 2,
+			at.position.y - 1,
+			PixelType.text_width(label) + 4,
+			9,
+			Canvas.rgb(35, 27, 22)
+		)
+		HUD.text(
+			c,
+			label,
+			left_edge,
+			at.position.y,
+			"body",
+			Canvas.rgb(244, 223, 185) if bool(label_row[3]) else Canvas.rgb(185, 123, 85),
+			false,
+			false
+		)
+	for station: LevelData.Station in world.stations:
+		if not station.reveals_secret and (not station.hidden or stations_done.has(station.id)):
+			var at2 := _map_tile(station.x, station.y)
+			c.fill_rect(
+				at2.position.x - 2,
+				at2.position.y - 2,
+				4,
+				4,
+				(
+					Canvas.rgb(151, 187, 110)
+					if stations_done.has(station.id)
+					else Canvas.rgb(230, 163, 83)
+				)
+			)
+	if world.extraction != null:
+		var at3 := _map_tile(world.extraction.x, world.extraction.y)
+		c.circle(
+			at3.position.x,
+			at3.position.y,
+			3,
+			Canvas.rgb(151, 187, 110) if exit_ready() else Canvas.rgb(170, 103, 82),
+			false
+		)
+	var geom2 := _map_geom
+	var px := 37 + int(round(float(geom2["left"]) + player.x * float(geom2["scale_x"])))
+	var py := 5 + int(round(5.0 + (player.y - float(geom2["start_y"])) * float(geom2["scale_y"])))
+	c.circle(px, py, 2, Canvas.rgb(235, 154, 78))
+	c.line(
+		px,
+		py,
+		px + int(round(cos(player.angle) * 6.0)),
+		py + int(round(sin(player.angle) * 6.0)),
+		Canvas.rgb(235, 154, 78)
+	)
+	c.line(48, 114, 271, 114, Canvas.rgb(120, 87, 59))
+	HUD.text(
+		c, objective() if hints else level.title, 160, 121, "body", Canvas.rgb(248, 199, 127), true
+	)
+	var footer := (
+		"ROAD NOTES %d/%d   /   TAB TO CLOSE" % [hub_findings.size(), world.hub_clues.size()]
+		if in_hub
+		else "SECRETS %d/%d   /   TAB TO CLOSE" % [secrets, total_secrets]
+	)
+	HUD.text(c, footer, 160, 137, "body", HUD.INK, true)
+
+
+func _map_signature_changed() -> bool:
+	var signature: Array = []
+	for door: LevelData.Door in world.doors:
+		if door.secret and not door.discovered:
+			signature.append(Vector2i(door.x, door.y))
+	return signature != map_signature
+
+
+func _build_map_base() -> void:
+	var width := int(world.width)
+	var height := int(world.height)
+	var start_y := 33 if in_hub else 0
+	if level.rescue:
+		height = height - start_y if in_hub else 34
+	if in_hub:
+		width = int(HUB_WIDTH)
+	var scale_x: float = minf(4.0, 208.0 / float(width))
+	var scale_y: float = minf(3.0, 102.0 / float(height))
+	var left: float = (246.0 - width * scale_x) / 2.0
+	_map_geom = {
+		"width": width,
+		"height": height,
+		"start_y": start_y,
+		"scale_x": scale_x,
+		"scale_y": scale_y,
+		"left": left
+	}
+	var signature: Array = []
+	for door: LevelData.Door in world.doors:
+		if door.secret and not door.discovered:
+			signature.append(Vector2i(door.x, door.y))
+	map_signature = signature
+	var concealed := {}
+	for point: Vector2i in signature:
+		concealed[point] = true
+		for room in level.hidden_rooms:
+			if room[0] == point:
+				var box: Vector4i = room[1]
+				for yy in range(box.y, box.w + 1):
+					for xx in range(box.x, box.z + 1):
+						concealed[Vector2i(xx, yy)] = true
+	var base := Canvas.new()
+	base.fill_rect(37, 5, 246, 149, Canvas.rgb(30, 24, 19))
+	base.rect_outline(37, 5, 246, 149, Canvas.rgb(149, 117, 81))
+	for yy in range(start_y, start_y + height):
+		for xx in width:
+			var cell := yy * int(world.width) + xx
+			if int(world.solid[cell]) < 0 and not concealed.has(Vector2i(xx, yy)):
+				var color := (
+					Canvas.rgb(74, 86, 76) if world.roof[cell] == 0.0 else Canvas.rgb(104, 85, 66)
+				)
+				if world.surface_sound(int(world.floor_tile[cell])) == "water":
+					color = Canvas.rgb(67, 104, 106)
+				var rect := _map_tile(float(xx), float(yy))
+				base.fill_rect(rect.position.x, rect.position.y, rect.size.x, rect.size.y, color)
+	var data := PackedByteArray()
+	data.resize(246 * 149 * 3)
+	for row in 149:
+		var src := ((5 + row) * Canvas.WIDTH + 37) * 3
+		for k in 246 * 3:
+			data[row * 246 * 3 + k] = base.pixels[src + k]
+	_map_base = data
+
+
+func _map_tile(x: float, y: float) -> Rect2i:
+	var left: float = _map_geom["left"]
+	var scale_x: float = _map_geom["scale_x"]
+	var scale_y: float = _map_geom["scale_y"]
+	var start_y: int = _map_geom["start_y"]
+	var x0 := int(round(left + x * scale_x))
+	var y0 := int(round(5.0 + (y - start_y) * scale_y))
+	var x1 := int(round(left + (x + 1.0) * scale_x))
+	var y1 := int(round(5.0 + (y - start_y + 1.0) * scale_y))
+	return Rect2i(37 + x0, 5 + y0, maxi(1, x1 - x0), maxi(1, y1 - y0))
+
+
+## Fast region copy of the cached 246x149 map panel into the 320x200 canvas.
+func _blit_region(c: Canvas, dx: int, dy: int) -> void:
+	var pix := c.pixels
+	var row_bytes := 246 * 3
+	for row in 149:
+		var src := row * row_bytes
+		var dst := ((dy + row) * Canvas.WIDTH + dx) * 3
+		for k in row_bytes:
+			pix[dst + k] = _map_base[src + k]
+		if c.layer:
+			var at := (dy + row) * Canvas.WIDTH + dx
+			for k in 246:
+				c.cover[at + k] = 255
+
+# ------------------------------------------------------------------ controls
