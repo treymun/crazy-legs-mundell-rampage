@@ -6,8 +6,26 @@
 ## the panner to (right-left)/(left+right) reproduces pygame's
 ## Channel.set_volume(left, right) balance law exactly:
 ##     L = v*(1-pan), R = v*(1+pan)
+##
+## Placed sounds also get a low-pass filter on their bus (muffled through a
+## wall, duller far off or behind), and every sound of the world goes through
+## one "world" bus whose reverb follows the space the player stands in
+## (set_space; SPACES). Ambience beds, music and menu previews skip it.
 class_name Sound
 extends Node
+
+## A space's reverb: [room size, damping, wet]. Kept low: the levels already
+## carry baked "room_" takes of the loudest reports.
+const SPACES := {
+	"": [0.0, 0.5, 0.0],
+	"open": [0.18, 0.7, 0.03],
+	"creek": [0.32, 0.65, 0.06],
+	"room": [0.36, 0.55, 0.11],
+	"barn": [0.62, 0.45, 0.15],
+	"hall": [0.82, 0.35, 0.19],
+}
+## The cutoff of a sound with nothing in the way.
+const OPEN_CUTOFF := 20500.0
 
 const SCORES := {
 	"music": ["music", "county_line", "porchlight_stomp"],
@@ -331,6 +349,10 @@ var music_gain := .50
 var ambient_gain := 1.0
 var mix_headroom := 1.0
 var pan_width := .70
+## ROOM REVERB setting; the space the reverb is set for.
+var reverb_on := true
+var space := ""
+var _world_bus := -1
 
 var score_player: ScorePlayer
 
@@ -360,7 +382,7 @@ func _init(p_art: Assets) -> void:
 		_effects.append(_make_voice(slot))
 		slot += 1
 	for i in 2:
-		_ambience.append(_make_voice(slot))
+		_ambience.append(_make_voice(slot, false))
 		slot += 1
 	_radio = _make_voice(slot)
 	slot += 1
@@ -372,13 +394,13 @@ func _init(p_art: Assets) -> void:
 	slot += 1
 	_warning_alt = _make_voice(slot)
 	slot += 1
-	_sting = _make_voice(slot)
+	_sting = _make_voice(slot, false)
 	slot += 1
 	_tool = _make_voice(slot)
 	slot += 1
 	_voice = _make_voice(slot)
 	slot += 1
-	_preview = _make_voice(slot)
+	_preview = _make_voice(slot, false)
 
 	_music = AudioStreamPlayer.new()
 	_music.name = "Music"
@@ -406,30 +428,75 @@ func _ready() -> void:
 	score_player.set_enabled(music)
 
 
-func _make_voice(slot: int) -> Voice:
+func _make_voice(slot: int, in_world := true) -> Voice:
 	var player := AudioStreamPlayer.new()
 	player.name = "Voice%d" % slot
 	player.max_polyphony = 1
-	var bus := _ensure_bus(slot)
+	var bus := _ensure_bus(slot, in_world)
 	player.bus = AudioServer.get_bus_name(bus)
 	add_child(player)
 	return Voice.new(player, bus)
 
 
-## Every voice gets its own bus because the panner is a bus effect.
-func _ensure_bus(slot: int) -> int:
+## Every voice gets its own bus because the panner (effect 0) and the
+## muffling filter (effect 1) are bus effects. A world voice sends to the
+## world bus and its reverb.
+func _ensure_bus(slot: int, in_world := true) -> int:
+	var send := _world() if in_world else "Master"
 	var bus_name := "pan_%d" % slot
 	for i in range(1, AudioServer.get_bus_count()):
 		if AudioServer.get_bus_name(i) == bus_name:
+			AudioServer.set_bus_send(i, send)
 			return i
 	var index := AudioServer.get_bus_count()
 	AudioServer.add_bus(index)
 	AudioServer.set_bus_name(index, bus_name)
-	AudioServer.set_bus_send(index, "Master")
+	AudioServer.set_bus_send(index, send)
 	var panner := AudioEffectPanner.new()
 	panner.pan = 0.0
 	AudioServer.add_bus_effect(index, panner)
+	var muffle := AudioEffectLowPassFilter.new()
+	muffle.cutoff_hz = OPEN_CUTOFF
+	AudioServer.add_bus_effect(index, muffle)
 	return index
+
+
+## The world bus (made once), its reverb silent until set_space().
+func _world() -> String:
+	if _world_bus < 0:
+		for i in range(1, AudioServer.get_bus_count()):
+			if AudioServer.get_bus_name(i) == "world":
+				_world_bus = i
+		if _world_bus < 0:
+			_world_bus = AudioServer.get_bus_count()
+			AudioServer.add_bus(_world_bus)
+			AudioServer.set_bus_name(_world_bus, "world")
+			AudioServer.set_bus_send(_world_bus, "Master")
+			var reverb := AudioEffectReverb.new()
+			reverb.dry = 1.0
+			reverb.wet = 0.0
+			reverb.predelay_msec = 18.0
+			reverb.hipass = .25
+			AudioServer.add_bus_effect(_world_bus, reverb)
+	return "world"
+
+
+## Set the reverb for the space the player is in (a SPACES key; "" for none,
+## as in the menus).
+func set_space(kind: String) -> void:
+	if not reverb_on:
+		kind = ""
+	if kind == space or not SPACES.has(kind):
+		return
+	space = kind
+	var reverb := AudioServer.get_bus_effect(_world_bus, 0) as AudioEffectReverb
+	if reverb == null:
+		return
+	var row: Array = SPACES[kind]
+	reverb.room_size = float(row[0])
+	reverb.damping = float(row[1])
+	reverb.wet = float(row[2])
+	reverb.spread = .8
 
 
 func _all_voices() -> Array:
@@ -458,10 +525,15 @@ func _balance(v: Voice, left: float, right: float) -> void:
 		panner.pan = clampf((right - left) / total, -1.0, 1.0)
 
 
-func _start(v: Voice, name: String, cue: String, volume: float, pan: float) -> void:
+func _start(
+	v: Voice, name: String, cue: String, volume: float, pan: float, cutoff := OPEN_CUTOFF
+) -> void:
 	var stream := assets.cue(cue)
 	if stream == null:
 		return
+	var muffle := AudioServer.get_bus_effect(v.bus, 1) as AudioEffectLowPassFilter
+	if muffle != null:
+		muffle.cutoff_hz = cutoff
 	v.cue = cue
 	v.player.stream = stream
 	v.player.play()
@@ -499,7 +571,7 @@ func has(cue: String) -> bool:
 	return assets.has_cue(cue)
 
 
-func play(name: String, volume := 1.0, pan := 0.0) -> void:
+func play(name: String, volume := 1.0, pan := 0.0, cutoff := OPEN_CUTOFF) -> void:
 	if effects_gain == 0.0:
 		return
 	var cue := name
@@ -528,7 +600,7 @@ func play(name: String, volume := 1.0, pan := 0.0) -> void:
 		target = _priority
 	if target == null:
 		return
-	_start(target, name, cue, volume, pan)
+	_start(target, name, cue, volume, pan, cutoff)
 
 
 func set_room(room_name) -> void:
@@ -677,6 +749,7 @@ func stop_voice() -> void:
 
 func pause_world() -> void:
 	set_room(null)
+	set_space("")
 	set_radio(false)
 	set_fuse(false)
 	set_tool(false)

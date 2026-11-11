@@ -503,6 +503,9 @@ func apply_options() -> void:
 		int(options["stereo"])
 	)
 	sound.footstep_gain = float(options["footsteps"]) / 100.0
+	sound.reverb_on = int(options.get("reverb", 1)) != 0
+	if not sound.reverb_on:
+		sound.set_space("")
 	sound.voice_gain = float(options["voice_volume"]) / 100.0
 	_build_tone(int(options["brightness"]))
 	# Smoke runs count frames, not seconds: leave them uncapped.

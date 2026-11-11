@@ -81,9 +81,27 @@ func sound_position(x: float, y: float, strength := 1.0, muffle := true) -> Vect
 	return Vector2(volume, pan)
 
 
+## How dull a sound from x, y reaches the player: muffled through a wall,
+## a little duller far off or behind (a pan alone cannot say behind).
+func sound_cutoff(x: float, y: float) -> float:
+	var p := player
+	var dx := x - p.x
+	var dy := y - p.y
+	var distance := sqrt(dx * dx + dy * dy)
+	if distance <= 1.0:
+		return Sound.OPEN_CUTOFF
+	if not world.visible(p.x, p.y, x, y):
+		return 1300.0
+	var cutoff := Sound.OPEN_CUTOFF / (1.0 + maxf(0.0, distance - 6.0) * .12)
+	var facing := (cos(p.view_angle()) * dx + sin(p.view_angle()) * dy) / distance
+	if facing < -.3:
+		cutoff = minf(cutoff, 9000.0)
+	return maxf(2500.0, cutoff)
+
+
 func sound_at(name: String, x: float, y: float, strength := 1.0) -> void:
 	var place := sound_position(x, y, strength)
-	sound.play(name, place.x, place.y)
+	sound.play(name, place.x, place.y, sound_cutoff(x, y))
 	var p := player
 	if name != "bessie" and world.roof[int(p.y) * level.width + int(p.x)] != 0.0:
 		if sound.has("room_" + name):

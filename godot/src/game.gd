@@ -236,6 +236,18 @@ func tick(dt: float, controls) -> void:
 	if room == "":
 		room = "creek" if area == 9 else "barn" if area == 4 else "room" if roof != 0.0 else "yard"
 	sound.set_room(room)
+	# The reverb follows the space: under a roof a room, a barn or the long
+	# quarry line and mill floor; outside the open air or the creek bed.
+	var space := "open"
+	if roof != 0.0:
+		space = (
+			"barn"
+			if area == 4
+			else "hall" if ambience == "quarry_line" or ambience == "mill" else "room"
+		)
+	elif area == 9:
+		space = "creek"
+	sound.set_space(space)
 	if clock >= radio_check:
 		radio_check = clock + .045
 		if (

@@ -237,8 +237,8 @@ func _run() -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 39 + KeyBindings.ACTIONS.size(),
-		"all 39 settings and every control's key are on a page"
+		seen.size() == 40 + KeyBindings.ACTIONS.size(),
+		"all 40 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
 	var kept := true

@@ -401,6 +401,12 @@ static func _build_pages() -> Array:
 					["MONO", "NARROW", "NORMAL", "WIDE"],
 					"CONTROL HOW FAR POSITIONAL SOUNDS PAN"
 				),
+				toggle(
+					"ROOM REVERB",
+					"reverb",
+					1,
+					"ECHO THAT FOLLOWS THE ROOM, BARN OR OPEN AIR YOU STAND IN"
+				),
 			]
 		],
 		[
