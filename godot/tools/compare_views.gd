@@ -74,6 +74,11 @@ func _init() -> void:
 			print("%-34s nothing to hold it against (%s)" % [tag, against_path])
 			failed.append(tag)
 			continue
+		if OS.has_environment("GITHUB_ACTIONS") and tag in ["hickston_mirror_0", "fair_01_0"]:
+			var crop := shown.get_region(Rect2i(660, 300, 300, 330))
+			crop.convert(Image.FORMAT_RGB8)
+			crop.resize(100, 110, Image.INTERPOLATE_NEAREST)
+			print("::notice title=%s crop::%s" % [tag, Marshalls.raw_to_base64(crop.get_data())])
 		var strong_pc := _compare(shown, against, folder.path_join(tag + "_diff.png"))
 		var white := folder.path_join(tag + "_fxw.png")
 		if mode == "refs" and FileAccess.file_exists(white):
@@ -146,7 +151,7 @@ func _compare(shown: Image, against: Image, diff_path: String) -> float:
 		var mean := signed / maxf(1.0, any)
 		print(
 			(
-				"::notice title=%s detail::shift %.1f %.1f %.1f, box %s, %d of %d in HUD"
+				"%s detail: shift %.1f %.1f %.1f, box %s, %d of %d in HUD"
 				% [
 					diff_path.get_file().trim_suffix("_diff.png"),
 					mean.x,
@@ -165,12 +170,7 @@ func _compare(shown: Image, against: Image, diff_path: String) -> float:
 			for gx in 10:
 				row.append("%+.0f/%d" % [grid[gy * 10 + gx] / per, grid_strong[gy * 10 + gx]])
 			rows.append(" ".join(row))
-		print(
-			(
-				"::notice title=%s grid::%s"
-				% [diff_path.get_file().trim_suffix("_diff.png"), " | ".join(rows)]
-			)
-		)
+		print("%s grid: %s" % [diff_path.get_file().trim_suffix("_diff.png"), " | ".join(rows)])
 		# An annotation: readable on the run's page without its log.
 		print(
 			(
