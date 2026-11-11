@@ -3,7 +3,10 @@
 ##   - writing a level and reading it back gives the same values,
 ##   - taking a wall cell out and putting it back again leaves every wall away
 ##     from that cell as it was and every wall the grids imply in the list
-##     (walls on the cell's own edges come back plain, not dressed).
+##     (walls on the cell's own edges come back plain, not dressed),
+##   - the Godot editor's Levels screen (addons/clmr_levels) paints walls and
+##     floors, places and removes enemies, draws trigger areas and takes a
+##     trigger's JSON, without writing anything.
 ##
 ##   Godot --headless --path godot --script res://tools/level_edit_check.gd   # LEVEL EDIT OK
 extends SceneTree
@@ -50,6 +53,7 @@ func _init() -> void:
 				% [id, level["walls"].size(), opened["walls"].size(), closed["walls"].size()]
 			)
 		)
+	_panel_checks(failures)
 	for failure in failures:
 		push_error(failure)
 	print("LEVEL EDIT OK" if failures.is_empty() else "LEVEL EDIT FAILED")
@@ -98,3 +102,62 @@ func _away(walls: Array, near: Rect2) -> Array:
 		if not (near.has_point(a) and near.has_point(b)):
 			out.append(wall)
 	return out
+
+
+## The Levels screen outside the editor: no undo history, nothing saved.
+func _panel_checks(failures: Array) -> void:
+	var script = load("res://addons/clmr_levels/level_panel.gd")
+	if not (script is GDScript and script.can_instantiate()):
+		failures.append("Levels screen: addons/clmr_levels/level_panel.gd does not load")
+		return
+	var panel = script.new()
+	panel.open()
+	var level: Dictionary = panel.level
+	var w := int(level["width"])
+	var spot := Vector2.ZERO
+	for i in level["solid"].size():
+		if int(level["solid"][i]) < 0 and i % w > 2:
+			spot = Vector2(i % w + .5, i / w + .5)
+			break
+	var cell := int(spot.y) * w + int(spot.x)
+	var ground_was := float(level["ground"][cell])
+	panel._tool_pick.select(panel.TOOLS.find("Wall"))
+	panel._begin(spot)
+	panel._end(spot)
+	if int(panel.level["solid"][cell]) != panel._tile_pick.selected:
+		failures.append("Levels screen: painting a wall did not change the cell")
+	panel._tool_pick.select(panel.TOOLS.find("Open floor"))
+	panel._begin(spot)
+	panel._end(spot)
+	panel._tool_pick.select(panel.TOOLS.find("Raise floor"))
+	panel._begin(spot)
+	panel._end(spot)
+	if int(panel.level["solid"][cell]) >= 0 or float(panel.level["ground"][cell]) <= ground_was:
+		failures.append("Levels screen: opening and raising the cell did not work")
+	var enemies := int(panel.level["enemies"].size())
+	panel._tool_pick.select(panel.TOOLS.find("Enemy"))
+	panel._begin(spot)
+	panel._end(spot)
+	panel._tool_pick.select(panel.TOOLS.find("Remove"))
+	panel._begin(spot)
+	panel._end(spot)
+	if panel.level["enemies"].size() != enemies:
+		failures.append("Levels screen: placing then removing an enemy did not balance")
+	var triggers := int(panel.level.get("triggers", []).size())
+	panel._tool_pick.select(panel.TOOLS.find("Trigger area"))
+	panel._begin(spot)
+	panel._drag_to = spot + Vector2(3, 2)
+	panel._end(spot + Vector2(3, 2))
+	var made: Array = panel.level.get("triggers", [])
+	if made.size() != triggers + 1 or not made[-1]["when"].has("area"):
+		failures.append("Levels screen: dragging a trigger area made no trigger")
+	else:
+		var typed := '{"id": "checked", "when": {"after": 1.0}, '
+		panel._trigger_text.text = typed + '"do": [{"message": "HI."}]}'
+		panel._apply_trigger()
+		if String(panel.level["triggers"][-1]["id"]) != "checked":
+			failures.append("Levels screen: a trigger's JSON was not taken")
+	if LevelEdit.read("hickston").get("triggers", []).size() != triggers:
+		failures.append("Levels screen: something was written without Save")
+	panel.free()
+	print("levels screen: paint, place, remove, trigger area and JSON all work")

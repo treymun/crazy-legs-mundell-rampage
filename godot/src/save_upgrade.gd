@@ -32,8 +32,12 @@ static func upgrade(doc) -> Variant:
 ## Turn a save of `version` into one of version + 1 (null if it cannot be).
 ## Each format change adds its step here, oldest first, for example:
 ##   4: _doc["player"]["stamina"] = 1.0   # version 5 added stamina
-static func _upgrade_step(version: int, _doc: Dictionary) -> Variant:
+static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 	match version:
+		4:
+			# Version 5 saves which level triggers have fired; none had.
+			doc["triggers"] = []
+			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
 			return null

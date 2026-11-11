@@ -90,7 +90,9 @@ func _ready() -> void:
 		change_window_mode(int(options["window_mode"]))
 	_apply_view()
 
-	if smoke_frames > 0 and smoke_screen != "":
+	if play_at != "":
+		_play_at()
+	elif smoke_frames > 0 and smoke_screen != "":
 		var parts := smoke_screen.split(":")
 		state = parts[0]
 		if parts.size() > 1:
@@ -103,6 +105,21 @@ func _ready() -> void:
 	elif smoke_frames > 0:
 		render()
 		start(smoke_level)
+
+
+## Start the level and place the player as --play-at says.
+func _play_at() -> void:
+	var parts := play_at.split(":")
+	start(parts[0])
+	if parts.size() < 2 or game == null:
+		return
+	var at := parts[1].split(",")
+	var p := game.player
+	p.x = float(at[0])
+	p.y = float(at[1])
+	if at.size() > 2:
+		p.angle = float(at[2])
+	p.eye = .95 + game.world.elevation(p.x, p.y)
 
 
 func _view_tour() -> void:
@@ -136,8 +153,11 @@ func _view_tour() -> void:
 			held.forward = float(shot.get("forward", 0.0))
 			for i in int(shot["ticks"]):
 				game.tick(1.0 / 60.0, held)
-		for mode in ["gpu", "cpu"]:
+		# fx: the shader view as players see it (lights and glows); gpu: the same
+		# without them, to hold against the software view (cpu).
+		for mode in ["fx", "gpu", "cpu"]:
 			cpu_view = mode == "cpu"
+			Effects.enabled = mode == "fx"
 			render()
 			await RenderingServer.frame_post_draw
 			await RenderingServer.frame_post_draw

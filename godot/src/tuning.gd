@@ -94,4 +94,5 @@ static func watch() -> bool:
 	_stamps.clear()
 	Weapons.load_tuning()
 	Enemy.load_tuning()
+	Effects.load_tuning()
 	return true

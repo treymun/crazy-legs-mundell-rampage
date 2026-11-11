@@ -245,6 +245,8 @@ var boss_decoys: Array = []
 var distant_cues: Array = []
 var notes: Array = []
 var partners: Array = []
+## Set pieces as data (triggers.gd): each a Dictionary as the JSON gives it.
+var triggers: Array = []
 var exchanges: Array = []
 var ruptures := {}
 var recovery_room = null
@@ -435,6 +437,9 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		lv.notes.append(note)
 	for n in j.get("partners", []):
 		lv.partners.append([String(n[0]), String(n[1]), int(n[2])])
+	for trigger in j.get("triggers", []):
+		if trigger is Dictionary and trigger.has("id"):
+			lv.triggers.append(trigger)
 	for n in j.get("exchanges", []):
 		var exchange := Exchange.new()
 		exchange.id = String(n["id"])

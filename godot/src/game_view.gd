@@ -562,6 +562,53 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	stage_ms[4] = (Time.get_ticks_usec() - t4) / 1000.0
 
 
+## This frame's lights for the graphics-card view (effects.cfg): the gun's
+## flash, blasts, glowing shots, lamps and trigger lights, nearest first, at
+## most Effects.MAX_LIGHTS of them.
+func effect_lights() -> Array:
+	var p := player
+	var found: Array = []
+	if armory.flash > 0.0:
+		var aim := p.view_angle()
+		found.append(
+			Effects.light(
+				"muzzle",
+				p.x + cos(aim) * .45,
+				p.y + sin(aim) * .45,
+				p.eye - .1,
+				armory.flash / .072
+			)
+		)
+	for blast: Blast in blasts:
+		var source := "blast_energy" if blast.kind == "energy" else "blast_fire"
+		if blast.kind != "energy" and blast.kind != "fire":
+			continue
+		var life := float(Effects.LIGHTS.get(source, {}).get("life", .64))
+		found.append(
+			Effects.light(source, blast.x, blast.y, blast.z, 1.0 - blast.age / maxf(life, .01))
+		)
+	for shot in shots:
+		if Effects.LIGHTS.has("shot_" + String(shot.kind)):
+			found.append(Effects.light("shot_" + String(shot.kind), shot.x, shot.y, shot.z))
+	for spr: Renderer.Sprite in props:
+		if spr.image == "prop_lamp" and absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
+			found.append(Effects.light("lamp", spr.x, spr.y, spr.z, 1.0, clock))
+	for l: Array in trigger_lights:
+		if clock < float(l[6]):
+			found.append([l[0], l[1], l[2], l[3], l[4], l[5]])
+	var lights: Array = []
+	for l in found:
+		if l != null:
+			var dx: float = l[0] - p.x
+			var dy: float = l[1] - p.y
+			lights.append([dx * dx + dy * dy, l])
+	lights.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
+	var out: Array = []
+	for i in mini(Effects.MAX_LIGHTS, lights.size()):
+		out.append(lights[i][1])
+	return out
+
+
 ## Four short ticks around the crosshair when a hit lands; red and wider on a kill.
 func _hit_mark(c: Canvas) -> void:
 	var gap := 4 if hit_mark_kill else 3

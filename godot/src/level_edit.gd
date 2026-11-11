@@ -7,7 +7,9 @@
 ## after the change; the ones that went away are taken out of the stored list
 ## and the new ones added, and every other wall stays exactly as it was.
 ##
-## The in-game editor (level_editor.gd) and tools/level_edit.gd use this.
+## The in-game editor (level_editor.gd), tools/level_edit.gd and the Godot
+## editor's Levels screen (addons/clmr_levels) use this, hence @tool.
+@tool
 class_name LevelEdit
 extends RefCounted
 

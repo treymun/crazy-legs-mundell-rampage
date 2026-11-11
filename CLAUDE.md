@@ -48,7 +48,7 @@ godot --headless --path godot --script res://tools/pack_assets.gd   # rebuild go
 godot --headless --path godot --import        # after adding a class_name script
 
 # Checks (all run in CI too)
-cd godot && gdformat --check src tools && gdlint src tools
+cd godot && gdformat --check src tools addons && gdlint src tools addons
 godot --headless --path godot --script res://tools/verify_assets.gd   # ASSETS OK
 godot --headless --path godot --script res://tools/check_fixes.gd     # PARITY FIXES OK
 godot --headless --path godot --script res://tools/bot_campaign.gd    # CAMPAIGN WALKTHROUGH OK
@@ -69,12 +69,16 @@ godot --headless --path godot --script res://tools/picture_check.gd -- update
 godot --path godot --audio-driver Dummy --resolution 1280x800 -- --view-bench=300
 godot --path godot --audio-driver Dummy --resolution 1280x800 -- \
   --view-tour=res://tools/picture_views.json --view-out=<dir>
-godot --headless --path godot --script res://tools/compare_views.gd -- <dir>   # shader view against software view
+godot --headless --path godot --script res://tools/compare_views.gd -- <dir>   # shader view (no lights) against software view
+godot --headless --path godot --script res://tools/compare_views.gd -- <dir> refs   # shader view against tools/pictures_gpu (update: rewrite them)
 
-# Levels: godot/data/<id>.json is the source. Change one in the game (F2 when
-# running from the project folder) or from the command line; either way the
+# Levels: godot/data/<id>.json is the source. Change one in the Godot editor's
+# Levels screen (addons/clmr_levels: paint walls, floors, enemies, pickups and
+# trigger areas, with undo, then Save; Play from here), in the game (F2 when
+# running from the project folder) or from the command line; every way the
 # wall list is patched (src/level_edit.gd) and a running game reloads the level.
 godot --headless --path godot --script res://tools/level_edit.gd -- fair enemy billy 30.5 25.5
+godot --headless --path godot --script res://tools/level_edit.gd -- hickston trigger '<json>'   # src/triggers.gd
 
 # Version
 godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
@@ -82,11 +86,16 @@ godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
 
 ## Things that are easy to get wrong
 
-- **Two views.** With a window, `palette.gdshader` draws the sky, floors,
-  ceilings and wall shading from layers the renderer hands over
-  (`Renderer.layered`). Headless, and with FAST VIEW off, the renderer draws
-  everything in software. A visual change usually needs both, and
-  `tools/compare_views.gd` checks they agree.
+- **One renderer.** With a window, `palette.gdshader` composes the view from
+  layers the renderer hands over (`Renderer.layered`), and that is the picture
+  players see; there is no setting to turn it off. The software view is the
+  fallback (headless tools and CI, and a graphics driver that fails the start-up
+  check) and is frozen: build new visuals in the shader only, behind
+  `effects_on` (lights and glows from `data/tuning/effects.cfg`). Two checks
+  hold the line: `tools/compare_views.gd` holds the shader view with effects off
+  against the software view, and with `refs` holds the full shader view against
+  `tools/pictures_gpu/` (rewrite with `update`, from a window tour, and commit).
+  `tools/picture_check.gd` still guards the software fallback.
 - **Two canvases.** With a window the HUD, menus and weapon draw with Godot
   2D (`Canvas.gpu`): the same calls become canvas commands in a 320x200
   viewport the shader lays over the view. Shapes still come down to

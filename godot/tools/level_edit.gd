@@ -8,6 +8,9 @@
 ##   enemy <kind> <x> <y>          add an enemy
 ##   pickup <name> <x> <y>         add a pickup
 ##   remove <x> <y>                take away the enemy, pickup or prop nearest there
+##   trigger '<json>'              add a trigger (src/triggers.gd), or replace the
+##                                 one with its id
+##   untrigger <id>                take a trigger away
 ##
 ## A game running from the project folder reloads the level when the file
 ## changes.
@@ -55,6 +58,24 @@ func _init() -> void:
 			)
 		"pickup":
 			after["pickups"].append([String(args[2]), float(args[3]), float(args[4])])
+		"trigger":
+			var trigger = JSON.parse_string(String(args[2]))
+			if not (trigger is Dictionary and trigger.has("id") and trigger.has("do")):
+				push_error("a trigger is a JSON object with an id and a do list")
+				quit(1)
+				return
+			var kept: Array = []
+			for old: Dictionary in after.get("triggers", []):
+				if String(old["id"]) != String(trigger["id"]):
+					kept.append(old)
+			kept.append(trigger)
+			after["triggers"] = kept
+		"untrigger":
+			var left: Array = []
+			for old: Dictionary in after.get("triggers", []):
+				if String(old["id"]) != String(args[2]):
+					left.append(old)
+			after["triggers"] = left
 		"remove":
 			if not _remove(after, Vector2(float(args[2]), float(args[3]))):
 				push_error("nothing within 1.2 of that spot")

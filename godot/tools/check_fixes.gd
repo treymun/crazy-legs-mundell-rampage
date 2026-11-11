@@ -431,6 +431,41 @@ func _run() -> void:
 	main.state = "title"
 	check(fired, "on touch, a foe in the sights pulls the trigger")
 
+	# Level triggers: Hickston's dispatch safe rings when the brass key is taken.
+	var alarm: Game = main.make_game("hickston")
+	alarm.configure({})
+	alarm.spawn_grace = 0.0
+	alarm.player.x = 13.65
+	alarm.player.y = 9.4
+	var awake_before := 0
+	for e: Enemy in alarm.enemies:
+		if e.alerted:
+			awake_before += 1
+	alarm.keys["key_brass"] = true
+	alarm.tick(1.0 / 60.0, Game.Controls.new())
+	var awake_after := 0
+	for e: Enemy in alarm.enemies:
+		if e.alerted:
+			awake_after += 1
+	check(
+		(
+			alarm.triggers_fired.has("dispatch-alarm")
+			and alarm.notice.begins_with("THE DISPATCH SAFE")
+		),
+		"a trigger fires on its condition and shows its message"
+	)
+	check(
+		awake_after > awake_before and not alarm.trigger_lights.is_empty(),
+		"its alert wakes the enemies near and its light goes up"
+	)
+	var alarm_path := OS.get_user_data_dir().path_join("trigger-check.json")
+	SessionStore.save(alarm, alarm_path)
+	var alarm_back: Game = SessionStore.read(alarm_path, Callable(main, "make_game"), false)
+	check(
+		alarm_back != null and alarm_back.triggers_fired.has("dispatch-alarm"),
+		"a fired trigger stays fired after a save and a load"
+	)
+
 	print("")
 	if failures.is_empty():
 		print("PARITY FIXES OK")

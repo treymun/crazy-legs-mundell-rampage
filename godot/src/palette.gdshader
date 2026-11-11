@@ -5,8 +5,9 @@ render_mode unshaded;
 // grade, exactly like period_palette.VGAPalette.apply (RGB555 -> palette LUT).
 // The palette table (rows 0-127, 256 wide), the grain frames (rows 128-447)
 // and the brightness table (row 448), in one texture. Godot keeps several of a
-// WebGL page's 16 texture units for itself, so this shader samples only nine
-// textures (godot/tools/check_shader.py keeps count).
+// WebGL page's 16 texture units for itself, so this shader samples at most
+// nine textures (godot/tools/check_shader.gd keeps count); it uses seven, the
+// per-level and per-frame number tables all riding in `spans`.
 uniform sampler2D looks : filter_nearest, repeat_disable;
 const int GRAIN_ROW = 128;
 const int TONE_ROW = 448;
@@ -50,16 +51,20 @@ uniform sampler2D post_tex : filter_nearest, repeat_disable;
 // bytes so a frame is only copied, never converted. colours (RGB, a view wide):
 // walls, sprites/ground marks (premultiplied), window panes, then a stream of
 // bytes read three to a texel: the wall codes (four bytes a pixel), then the
-// sprite/ground mark coverage (one byte a pixel). distances: walls,
-// sprites/ground marks, window panes.
+// sprite/ground mark coverage (one byte a pixel). The distances (walls,
+// sprites/ground marks, window panes) are a float stream in `spans`, four to a
+// texel, from row dist_row (dist_at()).
 uniform sampler2D colours : filter_nearest, repeat_disable;
-uniform sampler2D distances : filter_nearest, repeat_disable;
 // Plain walls as whole spans, up to two texels each down a column, and how
 // many spans each column has (renderer: render_state.gd SPAN_K).
 // The wall spans (two rows a span), then a row of each column's span count,
 // then the sprite table: sprite i's texel k is texel i * 4 + k counted on
-// across the rows, from row SPAN_K * 2 + 1.
+// across the rows, from row SPAN_K * 2 + 1. Then the distances from dist_row,
+// and the level's plane table from plane_row (plane()).
 uniform sampler2D spans : filter_nearest, repeat_disable;
+uniform int dist_row = 0;
+uniform int plane_row = 0;
+uniform int plane_w = 1;
 // Sprites and painted boards, drawn here in list order (render_state.gd
 // GPU_SPRITES): four texels a sprite in `spans`, the pictures in a texture array.
 uniform int sprite_count = 0;
@@ -77,10 +82,9 @@ uniform bool pane_on = false;
 uniform sampler2D tiles_tex : filter_nearest, repeat_disable;
 uniform int sky_row = 1024;
 uniform int cells_row = 1140;
-// Row 0 floor heights nearest first (height, first cap, cap count), row 1 roof
-// heights, row 2 cap rectangles, row 3 cap tiles, row 4 tints, and from row
-// 5 each cell's light.
-uniform sampler2D plane_data : filter_nearest, repeat_disable;
+// The plane table, plane_w texels a row (plane()): row 0 floor heights nearest
+// first (height, first cap, cap count), row 1 roof heights, row 2 cap
+// rectangles, row 3 cap tiles, row 4 tints, and from row 5 each cell's light.
 uniform ivec2 map_size = ivec2(1);
 uniform int floor_count = 0;
 uniform int roof_count = 0;
@@ -113,9 +117,50 @@ uniform float water_drift = 0.0;
 uniform float drunk = 0.0;
 uniform float drunk_phase = 0.0;
 uniform int drunk_ghost = 0;
+// Lights and glows (data/tuning/effects.cfg, effects.gd): with effects_on a
+// tile texel whose alpha is under one lights itself to at least 1 - alpha
+// (scene_layers.gd bakes that in), and up to sixteen lights add their colour
+// to whatever surface is nearest along each pixel's ray. The software view
+// has neither; with effects_on false the two views agree.
+uniform bool effects_on = false;
+uniform int light_count = 0;
+uniform vec4 light_pos[16];
+uniform vec4 light_col[16];
 
 int byte_of(float v) {
 	return int(v * 255.0 + 0.5);
+}
+
+// The light a tile texel gives itself (its alpha, see effects_on), or none.
+float glow_of(vec4 texel) {
+	return effects_on ? 1.0 - texel.a : 0.0;
+}
+
+// What this frame's lights add at a point: a fraction per channel.
+vec3 lights_at(vec3 p) {
+	vec3 sum = vec3(0.0);
+	for (int i = 0; i < light_count; i++) {
+		vec4 at = light_pos[i];
+		float reach = clamp(1.0 - distance(p, at.xyz) / at.w, 0.0, 1.0);
+		sum += light_col[i].rgb * light_col[i].a * reach * reach;
+	}
+	return sum;
+}
+
+// Texel c of the plane table, flowing on across the rows of `spans`.
+vec4 plane(ivec2 c) {
+	int at = c.y * plane_w + c.x;
+	return texelFetch(spans, ivec2(at % view_size.x, plane_row + at / view_size.x), 0);
+}
+
+// The distance band b (0 walls, 1 sprites and ground marks, 2 window panes)
+// holds at this view pixel.
+float dist_at(ivec2 lp, int b) {
+	int i = (b * view_size.y + lp.y) * view_size.x + lp.x;
+	int t = i / 4;
+	vec4 v = texelFetch(spans, ivec2(t % view_size.x, dist_row + t / view_size.x), 0);
+	int k = i - t * 4;
+	return k == 0 ? v.r : k == 1 ? v.g : k == 2 ? v.b : v.a;
 }
 
 // renderer.gd tower_shadow()
@@ -184,7 +229,7 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 	int count = overhead ? roof_count : floor_count;
 	int row = overhead ? 1 : 0;
 	for (int i = 0; i < count; i++) {
-		vec4 entry = texelFetch(plane_data, ivec2(i, row), 0);
+		vec4 entry = plane(ivec2(i, row));
 		float h = entry.r;
 		if (overhead ? h <= eye.z : h >= eye.z) {
 			continue;
@@ -211,9 +256,9 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 			int first = int(entry.g + 0.5);
 			int last = first + int(entry.b + 0.5);
 			for (int k = first; k < last; k++) {
-				vec4 box = texelFetch(plane_data, ivec2(k, 2), 0);
+				vec4 box = plane(ivec2(k, 2));
 				if (at.x >= box.x && at.x <= box.z && at.y >= box.y && at.y <= box.w) {
-					tile = int(floor(texelFetch(plane_data, ivec2(k, 3), 0).r + 0.5));
+					tile = int(floor(plane(ivec2(k, 3)).r + 0.5));
 					break;
 				}
 			}
@@ -228,11 +273,12 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 				pv = (pv + flow_shift[f]) & 127;
 			}
 		}
-		vec3 texel = floor(texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0).rgb * 255.0 + 0.5);
-		float raw = (texelFetch(plane_data, cell + ivec2(0, 5), 0).r * (overhead ? 0.77 : 0.94) + flash_light) / (1.0 + 0.102 * t);
-		float lit = float(min(int(max(raw, 0.19) * 32.0 + 0.5), 96)) / 32.0;
+		vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
+		vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
+		float raw = (plane(cell + ivec2(0, 5)).r * (overhead ? 0.77 : 0.94) + flash_light) / (1.0 + 0.102 * t);
+		float lit = max(float(min(int(max(raw, 0.19) * 32.0 + 0.5), 96)) / 32.0, glow_of(fetched));
 		int tint_at = min(byte_of(texelFetch(tiles_tex, cell + ivec2(0, cells_row + map_size.y), 0).r), tint_count - 1);
-		vec3 tint = texelFetch(plane_data, ivec2(tint_at, 4), 0).rgb;
+		vec3 tint = plane(ivec2(tint_at, 4)).rgb;
 		if (hub_fx && !overhead) {
 			if (tile == hub_runoff) {
 				texel = running_water(texel, at.x, at.y);
@@ -265,9 +311,10 @@ vec3 wall_at(ivec2 lp) {
 	int tile = ((code.b & 31) << 2) | (code.g >> 6);
 	int pv = ((code.g & 63) << 1) | (code.r >> 7);
 	int pu = code.r & 127;
-	vec3 texel = floor(texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0).rgb * 255.0 + 0.5);
-	float lit = float(shade_row % 99) / 32.0;
-	vec3 tint = texelFetch(plane_data, ivec2(shade_row / 99, 4), 0).rgb;
+	vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
+	vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
+	float lit = max(float(shade_row % 99) / 32.0, glow_of(fetched));
+	vec3 tint = plane(ivec2(shade_row / 99, 4)).rgb;
 	return clamp(floor(texel * lit * tint), 0.0, 255.0);
 }
 
@@ -312,11 +359,12 @@ vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit) {
 		}
 	}
 	int pu = how >> 2;
-	vec3 texel = floor(texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0).rgb * 255.0 + 0.5);
+	vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
+	vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
 	int shade_row = int(b.w + 0.5);
 	int step = shade_row % 99;
 	float lit = row_light(step);
-	vec3 tint = texelFetch(plane_data, ivec2(shade_row / 99, 4), 0).rgb;
+	vec3 tint = plane(ivec2(shade_row / 99, 4)).rgb;
 	if (kind == 1 || kind == 2) {
 		// A sign's bright texels light at no less than .9, the liquor tube
 		// dipping to .73 of that, or of its own light past it.
@@ -328,6 +376,7 @@ vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit) {
 			}
 		}
 	}
+	lit = max(lit, glow_of(fetched));
 	vec3 colour = clamp(floor(texel * lit * tint), 0.0, 255.0);
 	if (kind == 3) {
 		colour = floor(colour * tower_shadow(hit.x, hit.y, wz));
@@ -355,7 +404,7 @@ vec3 view_at(ivec2 px) {
 	float ray = (float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal;
 	vec2 dir = fwd + side * ray;
 	float sy = float(lp.y) + 0.5 - horizon;
-	float drawn = texelFetch(distances, lp, 0).r;
+	float drawn = dist_at(lp, 0);
 	// The nearest whole span covering this pixel, if it is nearer still.
 	int best = -1;
 	float best_wz = 0.0;
@@ -403,7 +452,7 @@ vec3 view_at(ivec2 px) {
 	float nearest = min(plane, drawn);
 	float cover = float(stream_byte(view_size.x * view_size.y * 4 + lp.y * view_size.x + lp.x)) / 255.0;
 	if (cover > 0.0) {
-		float reach = texelFetch(distances, lp + ivec2(0, view_size.y), 0).r;
+		float reach = dist_at(lp, 1);
 		// A sprite shows unless a surface the shader drew is in front of it; a ground
 		// mark shows only on the surface it lies on.
 		bool shown = reach > 0.0 ? nearest > reach - 0.014 : abs(-reach - nearest) < 0.13;
@@ -492,8 +541,13 @@ vec3 view_at(ivec2 px) {
 			nearest = dist;
 		}
 	}
+	if (effects_on && light_count > 0 && nearest < 160.0) {
+		// The point of the nearest surface along this ray, lit by the frame's lights.
+		vec3 p = vec3(eye.xy + dir * nearest, eye.z - sy * nearest / focal);
+		base = min(floor(base * (vec3(1.0) + lights_at(p))), vec3(255.0));
+	}
 	if (pane_on) {
-		float glass = texelFetch(distances, lp + ivec2(0, view_size.y * 2), 0).r;
+		float glass = dist_at(lp, 2);
 		if (glass < 160.0 && glass < nearest) {
 			base = floor(base * vec3(0.67, 0.78, 0.82) + texelFetch(colours, lp + ivec2(0, view_size.y * 2), 0).rgb * 255.0 * 0.33);
 		}

@@ -21,9 +21,15 @@ var _sky_row := 0
 var _cells_row := 0
 var _plane_table := PackedFloat32Array()
 var _plane_width := 0
+## The plane table with the cells' light under it, as `spans` carries it.
+var _plane_floats := PackedFloat32Array()
 var _renderer: Renderer = null
 var _light_version := -1
 var _on := false
+var _assets: Assets
+var _glow_version := -1
+## The atlas before any glow is baked in (every alpha whole).
+var _atlas_plain: Image
 
 
 func _init(p_material: ShaderMaterial, assets: Assets) -> void:
@@ -50,6 +56,9 @@ func _init(p_material: ShaderMaterial, assets: Assets) -> void:
 		)
 	atlas.convert(Image.FORMAT_RGBA8)
 	_atlas = atlas
+	_atlas_plain = atlas
+	_assets = assets
+	_bake_glow()
 	_cells_row = _sky_row + Renderer.SKY_H
 	# The sprite pictures' texture array exists from the start: a sampler with
 	# nothing of its own type bound is an error in WebGL.
@@ -173,6 +182,10 @@ func _load_level(renderer: Renderer) -> void:
 func frame(game: Game, _canvas: Canvas) -> void:
 	var r: Renderer = game.renderer
 	var level := r.level
+	if Effects.version != _glow_version:
+		# effects.cfg changed: bake the glows again and hand the level over anew.
+		_bake_glow()
+		_renderer = null
 	if r != _renderer:
 		_renderer = r
 		_light_version = -1
@@ -193,10 +206,6 @@ func frame(game: Game, _canvas: Canvas) -> void:
 	var row_bytes := vw * 3
 	colours.resize((colours.size() + row_bytes - 1) / row_bytes * row_bytes)
 	_put("colours", vw, colours.size() / row_bytes, Image.FORMAT_RGB8, colours)
-	var distances := r.depth.to_byte_array()
-	distances.append_array(r.over_d.to_byte_array())
-	distances.append_array(r.pane_dist.to_byte_array())
-	_put("distances", vw, vh * 3, Image.FORMAT_RF, distances)
 	_sprites(r)
 	# The wall spans, their counts, then the sprite table flowing on across rows.
 	var table := r.span_f.duplicate()
@@ -208,7 +217,22 @@ func frame(game: Game, _canvas: Canvas) -> void:
 		sprites.resize(sprite_rows * vw * 4)
 		table.append_array(sprites)
 		rows += sprite_rows
+	# Then the three distance bands, four floats a texel, and the plane table:
+	# riding here keeps two of the shader's nine texture slots free.
+	var row_floats := vw * 4
+	var dist_row := rows
+	table.append_array(r.depth)
+	table.append_array(r.over_d)
+	table.append_array(r.pane_dist)
+	table.resize((table.size() + row_floats - 1) / row_floats * row_floats)
+	var plane_row := table.size() / row_floats
+	table.append_array(_plane_floats)
+	table.resize((table.size() + row_floats - 1) / row_floats * row_floats)
+	rows = table.size() / row_floats
 	_put("spans", vw, rows, Image.FORMAT_RGBAF, table.to_byte_array())
+	material.set_shader_parameter("dist_row", dist_row)
+	material.set_shader_parameter("plane_row", plane_row)
+	material.set_shader_parameter("plane_w", _plane_width)
 
 	var m := material
 	var angle: float = r.cam["angle"]
@@ -243,6 +267,7 @@ func frame(game: Game, _canvas: Canvas) -> void:
 		m.set_shader_parameter("shadow_lx", r._shadow_lx)
 		m.set_shader_parameter("shadow_ly", r._shadow_ly)
 		m.set_shader_parameter("water_drift", fposmod(r._water_drift, TAU_ * 1000.0))
+	_lights(game)
 	m.set_shader_parameter("drunk", game.drunk_k)
 	if game.drunk_k > 0.0:
 		var ghost := int(2 + 4 * game.drunk_k)
@@ -267,19 +292,62 @@ func _sprites(r: Renderer) -> void:
 	material.set_shader_parameter("sprite_count", r.gpu_spr_n if r.gpu_sprites else 0)
 
 
-## The level's light map, as the band of `plane_data` under its five rows.
+## The level's light map, under the plane table's five rows.
 func _light(level: LevelData) -> void:
 	var lw := level.width
 	var lh := level.height
-	var light := Image.create_from_data(lw, lh, false, Image.FORMAT_RF, level.light.to_byte_array())
-	light.convert(Image.FORMAT_RGBAF)
-	var table := Image.create_from_data(
-		_plane_width, 5, false, Image.FORMAT_RGBAF, _plane_table.to_byte_array()
+	var floats := _plane_table.duplicate()
+	floats.resize(_plane_width * (5 + lh) * 4)
+	for y in lh:
+		for x in lw:
+			floats[((5 + y) * _plane_width + x) * 4] = level.light[y * lw + x]
+	_plane_floats = floats
+
+
+## The glows of effects.cfg in the atlas's alpha: a texel brighter than its
+## tile's threshold gets 1 - its light there (palette.gdshader glow_of()).
+func _bake_glow() -> void:
+	_glow_version = Effects.version
+	var data := _atlas_plain.get_data()
+	var width := _atlas_plain.get_width()
+	for name: String in Effects.GLOW:
+		if not _assets.tile_index.has(name):
+			push_warning("effects.cfg glows a tile that does not exist: " + name)
+			continue
+		var tile := int(_assets.tile_index[name])
+		var spec: Vector2 = Effects.GLOW[name]
+		var alpha := clampi(255 - int(roundf(spec.y * 255.0)), 0, 254)
+		var left := (tile % ATLAS_COLUMNS) * 128
+		var top := (tile / ATLAS_COLUMNS) * 128
+		for y in 128:
+			var row := ((top + y) * width + left) * 4
+			for x in 128:
+				var o := row + x * 4
+				if maxi(data[o], maxi(data[o + 1], data[o + 2])) > int(spec.x):
+					data[o + 3] = alpha
+	_atlas = Image.create_from_data(
+		width, _atlas_plain.get_height(), false, Image.FORMAT_RGBA8, data
 	)
-	var whole := Image.create_empty(_plane_width, 5 + lh, false, Image.FORMAT_RGBAF)
-	whole.blit_rect(table, Rect2i(0, 0, _plane_width, 5), Vector2i.ZERO)
-	whole.blit_rect(light, Rect2i(0, 0, lw, lh), Vector2i(0, 5))
-	_put("plane_data", _plane_width, 5 + lh, Image.FORMAT_RGBAF, whole.get_data())
+
+
+## This frame's lights (Game.effect_lights()) for the shader, when LIGHTS AND
+## GLOW is on.
+func _lights(game: Game) -> void:
+	var m := material
+	m.set_shader_parameter("effects_on", Effects.enabled)
+	var found: Array = game.effect_lights() if Effects.enabled else []
+	var at := PackedVector4Array()
+	var tint := PackedVector4Array()
+	at.resize(Effects.MAX_LIGHTS)
+	tint.resize(Effects.MAX_LIGHTS)
+	for i in found.size():
+		var l: Array = found[i]
+		var c: Color = l[4]
+		at[i] = Vector4(l[0], l[1], l[2], l[3])
+		tint[i] = Vector4(c.r, c.g, c.b, l[5])
+	m.set_shader_parameter("light_count", found.size())
+	m.set_shader_parameter("light_pos", at)
+	m.set_shader_parameter("light_col", tint)
 
 
 ## The canvas holds a finished picture this frame (menus, the tally).

@@ -258,6 +258,12 @@ static func build() -> Array:
 					["STANDARD", "LOWER", "HIDDEN"],
 					"LOWER OR HIDE WEAPON ART. LIT TNT STAYS VISIBLE."
 				),
+				SessionStore.toggle(
+					"LIGHTS AND GLOW",
+					"lights",
+					1,
+					"GUNFIRE, BLASTS, SHOTS AND LAMPS CAST COLOURED LIGHT. LIT WINDOWS GLOW."
+				),
 				SessionStore.choices(
 					"FIELD OF VIEW",
 					"fov",
@@ -303,12 +309,6 @@ static func build() -> Array:
 					"wall_tiling",
 					1,
 					"REPEAT WALL TEXTURES AT ONE SIZE INSTEAD OF STRETCHING THEM"
-				),
-				SessionStore.toggle(
-					"FAST VIEW",
-					"fast_view",
-					1,
-					"FLOORS, SKY AND SHADING ON THE GRAPHICS CARD. SAME PICTURE, FASTER."
 				),
 				SessionStore.toggle(
 					"LAMP FLICKER",

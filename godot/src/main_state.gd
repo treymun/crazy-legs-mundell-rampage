@@ -223,6 +223,9 @@ var showcase_only := -1
 var demo_clock := 0.0
 var demo_step := 0
 var smoke_level := "hickston"
+## --play-at=<level>:<x>,<y>,<angle>: start there (the Godot editor's Levels
+## screen, Play from here).
+var play_at := ""
 var frame_count := 0
 
 
@@ -263,6 +266,8 @@ func _parse_smoke() -> void:
 		elif text.begins_with("--showcase="):
 			showcase = true
 			showcase_only = int(text.substr(11))
+		elif text.begins_with("--play-at="):
+			play_at = text.substr(10)
 		elif text.begins_with("--smoke-screen="):
 			# A front-end screen instead of a level: title, setup, controls,
 			# credits, replays or slots; "setup:3" opens the fourth settings page.
@@ -514,6 +519,7 @@ func apply_options() -> void:
 	if not sound.reverb_on:
 		sound.set_space("")
 	sound.voice_gain = float(options["voice_volume"]) / 100.0
+	Effects.enabled = int(options.get("lights", 1)) != 0
 	HUD.text_style = ["body", "menu", "heading"][clampi(int(options.get("text_size", 0)), 0, 2)]
 	if int(options.get("tilt_aim", 0)) != 0:
 		TiltAim.enable()
@@ -984,9 +990,9 @@ func render() -> void:
 	elif game != null:
 		gpu_look = gpu_ready and not cpu_look and (not smoke or view_shot != "")
 		game.gpu_look = gpu_look
-		game.layered = (
-			gpu_look and canvas.gpu and not cpu_view and int(options.get("fast_view", 1)) != 0
-		)
+		# One renderer: with a window the shader composes the view, always (the
+		# software view is the fallback when the driver check fails, cpu_look).
+		game.layered = gpu_look and canvas.gpu and not cpu_view
 		game.draw(canvas, int(options["crosshair"]), true)
 		if editor != null and editor.active:
 			editor.draw(canvas)

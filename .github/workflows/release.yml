@@ -33,8 +33,8 @@ jobs:
         working-directory: godot
         run: |
           pipx install "$(grep -E '^gdtoolkit==' ../requirements-dev.txt | cut -d' ' -f1)"
-          gdformat --check src tools
-          gdlint src tools
+          gdformat --check src tools addons
+          gdlint src tools addons
       - name: The display shader fits a WebGL page's 16 textures
         run: godot --headless --path godot --script res://tools/check_shader.gd
       - name: Boot the game headless
@@ -90,9 +90,12 @@ jobs:
           mkdir -p "$RUNNER_TEMP/views"
           xvfb-run -a -s "-screen 0 1280x800x24"             godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 --             --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views" 2>&1 | tee window.log
           if grep -E "SCRIPT ERROR|Parse Error|SHADER ERROR" window.log; then exit 1; fi
-      - name: Compare
+      - name: Without its lights the shader view matches the software fallback
         run: |
           godot --headless --path godot --script res://tools/compare_views.gd -- "$RUNNER_TEMP/views"
+      - name: The shader view matches its references
+        run: |
+          godot --headless --path godot --script res://tools/compare_views.gd -- "$RUNNER_TEMP/views" refs
       - name: Keep the frames
         if: always()
         uses: actions/upload-artifact@v4

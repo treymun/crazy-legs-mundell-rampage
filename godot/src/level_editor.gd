@@ -248,6 +248,23 @@ func draw(c: Canvas) -> void:
 	line += "  [4] %s" % String(things[thing][1]).to_upper()
 	c.fill_rect(0, 0, Canvas.WIDTH, 9, Color(0, 0, 0))
 	HUD.text(c, line, 2, 1, "mini", HUD.AMBER, false, false)
+	# Trigger areas the player stands in (triggers.gd), with whether they fired.
+	var inside := PackedStringArray()
+	var p := game.player
+	for trigger: Dictionary in game.level.triggers:
+		var box = trigger.get("when", {}).get("area")
+		if (
+			box is Array
+			and float(box[0]) <= p.x
+			and p.x <= float(box[2])
+			and float(box[1]) <= p.y
+			and p.y <= float(box[3])
+		):
+			var id := String(trigger["id"])
+			inside.append(id.to_upper() + (" (FIRED)" if game.triggers_fired.has(id) else ""))
+	if not inside.is_empty():
+		c.fill_rect(0, 9, Canvas.WIDTH, 9, Color(0, 0, 0))
+		HUD.text(c, "TRIGGER  " + ", ".join(inside), 2, 10, "mini", HUD.AMBER, false, false)
 	if _note != "":
 		c.fill_rect(0, 147, Canvas.WIDTH, 9, Color(0, 0, 0))
 		HUD.text(c, _note, 2, 148, "mini", HUD.INK, false, false)

@@ -1,5 +1,52 @@
 {
 	"v4_fair_carrying_hickston.json": {
+		"alive": 17.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"level": "fair",
+		"replay": false,
+		"reserve": 41.0,
+		"retained": [
+			"hickston"
+		],
+		"x": 23.211,
+		"y": 34.568
+	},
+	"v4_hickston_fight.json": {
+		"alive": 43.0,
+		"health": 78.0,
+		"kills": 0.0,
+		"level": "hickston",
+		"replay": false,
+		"reserve": 24.0,
+		"retained": [],
+		"x": 15.252,
+		"y": 27.521
+	},
+	"v4_quarry_replay.json": {
+		"alive": 18.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"level": "quarry",
+		"replay": true,
+		"reserve": 169.0,
+		"retained": [],
+		"x": 28.456,
+		"y": 36.738
+	},
+	"v4_sawmill_slot.json": {
+		"alive": 19.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"label": "OLD SLOT",
+		"level": "sawmill",
+		"replay": false,
+		"reserve": 45.0,
+		"retained": [],
+		"x": 21.906,
+		"y": 33.849
+	},
+	"v5_fair_carrying_hickston.json": {
 		"alive": 17,
 		"health": 100.0,
 		"kills": 0,
@@ -12,9 +59,9 @@
 		"x": 23.211,
 		"y": 34.568
 	},
-	"v4_hickston_fight.json": {
+	"v5_hickston_fight.json": {
 		"alive": 43,
-		"health": 78.0,
+		"health": 92.0,
 		"kills": 0,
 		"level": "hickston",
 		"replay": false,
@@ -23,7 +70,7 @@
 		"x": 15.252,
 		"y": 27.521
 	},
-	"v4_quarry_replay.json": {
+	"v5_quarry_replay.json": {
 		"alive": 18,
 		"health": 100.0,
 		"kills": 0,
@@ -34,7 +81,7 @@
 		"x": 28.456,
 		"y": 36.738
 	},
-	"v4_sawmill_slot.json": {
+	"v5_sawmill_slot.json": {
 		"alive": 19,
 		"health": 100.0,
 		"kills": 0,

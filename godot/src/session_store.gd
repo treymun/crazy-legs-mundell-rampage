@@ -12,7 +12,7 @@ extends RefCounted
 ## step to save_upgrade.gd that turns a save of the version before into this
 ## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
 ## keeps real saves of each version (tools/saves/) and checks they still do.
-const VERSION := 4
+const VERSION := 5
 const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"
@@ -384,6 +384,7 @@ static func snapshot(game: Game) -> Dictionary:
 		"county_reactions": reactions,
 		"music": game.music_bookmark,
 		"stations": _sorted_keys(game.stations_done),
+		"triggers": _sorted_keys(game.triggers_fired),
 		"tasks": _sorted_keys(game.task_items),
 		"valve_turns": game.valve_turns.duplicate(),
 		"scenery": _sorted_keys(game.scenery_spent),
@@ -1009,6 +1010,20 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 			clean.append(int(row[k]))
 		clean_history.append(clean)
 	game.history = clean_history
+
+	# level triggers that have fired (a trigger no longer in the level is dropped)
+	var fired = doc.get("triggers", [])
+	if not (fired is Array):
+		return _note("triggers is not a list")
+	game.triggers_fired = {}
+	var known_triggers := {}
+	for trigger: Dictionary in w.triggers:
+		known_triggers[String(trigger["id"])] = true
+	for name in fired:
+		if typeof(name) != TYPE_STRING:
+			return _note("a fired trigger is not named")
+		if known_triggers.has(name):
+			game.triggers_fired[String(name)] = true
 
 	# task state
 	var stations = doc.get("stations", [])

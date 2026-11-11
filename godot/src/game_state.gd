@@ -775,6 +775,13 @@ var sights_last := false
 ## Real play (main_flow.gd play()) teaches the controls as they come up
 ## (lessons.gd); tools that build a Game leave it off.
 var lessons := false
+## Lights level triggers have put up (triggers.gd): [x, y, z, radius, Color,
+## strength, until].
+var trigger_lights: Array = []
+## Level triggers that have fired (saved), and which repeating ones the player
+## is inside of now.
+var triggers_fired := {}
+var triggers_inside := {}
 var district_labels := true
 var hints := true
 var hud_style := 0

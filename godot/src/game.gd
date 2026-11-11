@@ -27,6 +27,10 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 		)
 		foe.flank = .42 if i % 2 else -.42
 		enemies.append(foe)
+	var held := Triggers.held_back(level)
+	for i in enemies.size():
+		if held.has(enemy_ids[i]):
+			enemies[i].dormant = true
 	flow = FlowField.new(level)
 	route = FlowField.new(level, flow)
 	route.reach = 100000
@@ -384,6 +388,9 @@ func tick(dt: float, controls) -> void:
 				combat = true
 				break
 	tick_exchanges(combat)
+	Triggers.tick(self)
+	if not trigger_lights.is_empty():
+		trigger_lights = trigger_lights.filter(func(l: Array) -> bool: return clock < float(l[6]))
 	Lessons.tick(self)
 
 # --------------------------------------------------------------- reflection
