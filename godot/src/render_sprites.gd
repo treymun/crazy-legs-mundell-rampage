@@ -413,6 +413,9 @@ func _mark_band(a: int, b: int) -> void:
 	var lx0 := a - col0
 	var span := b - a
 	var lay := _lay
+	var sf := span_f
+	var sn := span_n
+	var span_row := vw * 4
 	for k in count:
 		var io := k * MK_I
 		if ns[io] == 0:
@@ -454,7 +457,27 @@ func _mark_band(a: int, b: int) -> void:
 					continue
 				var dd := d + along * fall
 				var gi := drow + lx0 + x
-				if absf(dep[gi] - dd) >= .12 or glass[gi] != 0:
+				# The wall here: the nearest the renderer drew, or (layered) the
+				# nearest span the shader will draw.
+				var here := dep[gi]
+				var span_at := -1
+				var row_sy := y + .5 - horizon
+				if lay:
+					var col := a + x
+					for k2 in sn[col]:
+						var so := (k2 * 2 * vw + col) * 4
+						var st := sf[so]
+						if st >= here:
+							continue
+						var rows := int(sf[so + 3])
+						if y < (rows >> 8) or y > (rows & 255):
+							continue
+						var wz := cz - row_sy * (st / focal)
+						if wz < sf[so + 1] or wz > sf[so + 2]:
+							continue
+						here = st
+						span_at = so
+				if absf(here - dd) >= .12 or glass[gi] != 0:
 					continue
 				var u := clampi(int((along / extent + 1.0) * .5 * sw), 0, sw - 1)
 				var sp := (v * sw + u) * 4
@@ -463,7 +486,31 @@ func _mark_band(a: int, b: int) -> void:
 					continue
 				var mix := alpha / 255.0
 				var o := gi * 3
-				if lay and wall_code[gi] != WALL_RGB:
+				if span_at >= 0:
+					# Colour the span's pixel the way the shader would, then the
+					# mark can go over it.
+					var wz := cz - row_sy * (here / focal)
+					var bottom := sf[span_at + 1]
+					var top := sf[span_at + 2]
+					var fo2 := span_at + span_row
+					var how := int(sf[fo2 + 2])
+					var mode := how & 3
+					var tile := int(sf[fo2])
+					var pv := 0
+					if mode == 0:
+						pv = clampi(int((top - wz) / (top - bottom) * 128.0), 0, 127)
+					else:
+						pv = int((TILE_ANCHOR - wz) * TILE_ROWS_PER_UNIT) & 127
+						if mode == 2 and (wz < WINDOW_SILL or wz > WINDOW_HEAD):
+							tile = int(sf[fo2 + 1])
+					var pi := tile * TILE_BYTES + pv * TILE_W * 3 + (how >> 2) * 3
+					var row_base := int(sf[fo2 + 3]) * SHADE_ROW
+					out[o] = shade_rows[row_base + tiles[pi] * 3]
+					out[o + 1] = shade_rows[row_base + tiles[pi + 1] * 3 + 1]
+					out[o + 2] = shade_rows[row_base + tiles[pi + 2] * 3 + 2]
+					wall_code[gi] = WALL_RGB
+					dep[gi] = here
+				elif lay and wall_code[gi] != WALL_RGB:
 					# The wall here is still a texel and a shade row: colour it the
 					# way the shader would have, then the mark can go over it.
 					var code := wall_code[gi] & 0xFFFFFFFF

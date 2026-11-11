@@ -142,6 +142,8 @@ func frame(game: Game, canvas: Canvas) -> void:
 	var vh := r.vh
 	_put("wall_tex", vw, vh, Image.FORMAT_RGB8, r.frame)
 	_put("wall_code", vw, vh, Image.FORMAT_RGBA8, r.wall_code.to_byte_array())
+	_put("spans", vw, Renderer.SPAN_K * 2, Image.FORMAT_RGBAF, r.span_f.to_byte_array())
+	_put("span_count", vw, 1, Image.FORMAT_R8, r.span_n)
 	_put("wall_dist", vw, vh, Image.FORMAT_RF, r.depth.to_byte_array())
 	_put("over_tex", vw, vh, Image.FORMAT_RGB8, r.over)
 	_put("over_cover", vw, vh, Image.FORMAT_R8, r.over_a)

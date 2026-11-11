@@ -37,6 +37,10 @@ uniform sampler2D post_cover : filter_nearest, repeat_disable;
 uniform sampler2D wall_tex : filter_nearest, repeat_disable;
 uniform sampler2D wall_code : filter_nearest, repeat_disable;
 uniform sampler2D wall_dist : filter_nearest, repeat_disable;
+// Plain walls as whole spans, up to two texels each down a column, and how
+// many spans each column has (renderer: render_state.gd SPAN_K).
+uniform sampler2D spans : filter_nearest, repeat_disable;
+uniform sampler2D span_count : filter_nearest, repeat_disable;
 // Sprites and ground marks: premultiplied colour, coverage, distance
 // (above zero a sprite, below zero a ground mark lying on a floor).
 uniform sampler2D over_tex : filter_nearest, repeat_disable;
@@ -238,6 +242,29 @@ vec3 wall_at(ivec2 lp) {
 	return clamp(floor(texel * lit * tint), 0.0, 255.0);
 }
 
+// A span's colour at height wz (render_surfaces.gd _wall_band, plain walls).
+vec3 span_at(int column, int k, float wz, float bottom, float top) {
+	vec4 b = texelFetch(spans, ivec2(column, k * 2 + 1), 0);
+	int how = int(b.z + 0.5);
+	int mode = how & 3;
+	int tile = int(b.x + 0.5);
+	int pv;
+	if (mode == 0) {
+		pv = clamp(int((top - wz) / (top - bottom) * 128.0), 0, 127);
+	} else {
+		pv = int((1.96 - wz) * 100.0) & 127;
+		if (mode == 2 && (wz < 1.0 || wz > 1.68)) {
+			tile = int(b.y + 0.5);
+		}
+	}
+	int pu = how >> 2;
+	vec3 texel = floor(texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0).rgb * 255.0 + 0.5);
+	int shade_row = int(b.w + 0.5);
+	float lit = float(shade_row % 99) / 32.0;
+	vec3 tint = texelFetch(plane_data, ivec2(shade_row / 99, 4), 0).rgb;
+	return clamp(floor(texel * lit * tint), 0.0, 255.0);
+}
+
 // renderer.gd _sky_band()
 vec3 sky_at(int column, float sy) {
 	float ray = (float(column) + 0.5 - float(view_size.x) * 0.5) / focal;
@@ -253,10 +280,37 @@ vec3 view_at(ivec2 px) {
 	vec2 dir = fwd + side * ray;
 	float sy = float(lp.y) + 0.5 - horizon;
 	float drawn = texelFetch(wall_dist, lp, 0).r;
+	// The nearest whole span covering this pixel, if it is nearer still.
+	int best = -1;
+	float best_wz = 0.0;
+	float best_bottom = 0.0;
+	float best_top = 0.0;
+	int count = int(texelFetch(span_count, ivec2(lp.x, 0), 0).r * 255.0 + 0.5);
+	for (int k = 0; k < count; k++) {
+		vec4 a = texelFetch(spans, ivec2(lp.x, k * 2), 0);
+		if (a.x >= drawn) {
+			continue;
+		}
+		int rows = int(a.w + 0.5);
+		if (lp.y < (rows >> 8) || lp.y > (rows & 255)) {
+			continue;
+		}
+		float wz = eye.z - sy * (a.x / focal);
+		if (wz < a.y || wz > a.z) {
+			continue;
+		}
+		drawn = a.x;
+		best = k;
+		best_wz = wz;
+		best_bottom = a.y;
+		best_top = a.z;
+	}
 	vec3 base;
 	float plane = plane_at(dir, sy, base);
 	if (plane >= drawn) {
-		if (drawn < 160.0) {
+		if (best >= 0) {
+			base = span_at(lp.x, best, best_wz, best_bottom, best_top);
+		} else if (drawn < 160.0) {
 			base = wall_at(lp);
 		} else {
 			base = sky_at(lp.x, sy);
@@ -266,9 +320,9 @@ vec3 view_at(ivec2 px) {
 	float cover = texelFetch(over_cover, lp, 0).r;
 	if (cover > 0.0) {
 		float reach = texelFetch(over_dist, lp, 0).r;
-		// A sprite shows unless a floor or ceiling is in front of it; a ground
+		// A sprite shows unless a surface the shader drew is in front of it; a ground
 		// mark shows only on the surface it lies on.
-		bool shown = reach > 0.0 ? plane > reach - 0.014 : abs(-reach - nearest) < 0.13;
+		bool shown = reach > 0.0 ? nearest > reach - 0.014 : abs(-reach - nearest) < 0.13;
 		if (shown) {
 			base = floor(texelFetch(over_tex, lp, 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
 		}

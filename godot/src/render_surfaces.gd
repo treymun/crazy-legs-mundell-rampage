@@ -88,6 +88,9 @@ func _wall_band(band_a: int, band_b: int) -> void:
 	var w := out_w
 	var lay := _lay
 	var code_ := wall_code
+	var sf := span_f
+	var sn := span_n
+	var span_row := vw * 4
 	var phase := time - floorf(time / 6.1) * 6.1
 	var flicker := phase > .87 and phase < 1.02
 	for key in seg_order:
@@ -186,8 +189,24 @@ func _wall_band(band_a: int, band_b: int) -> void:
 			var lx := c - col0
 			var gi := row * w + lx
 			var oi := gi * 3
-			if plain and lay:
-				# Most walls, layered: note the texel and the shade row for the shader.
+			var spans_here := sn[c] if plain and lay else SPAN_K
+			if spans_here < SPAN_K:
+				# Most walls, layered: hand the whole run to the shader as one span.
+				var so := (spans_here * 2 * vw + c) * 4
+				sf[so] = t
+				sf[so + 1] = bottom
+				sf[so + 2] = top
+				sf[so + 3] = float(r0 * 256 + r1)
+				so += span_row
+				sf[so] = float(material)
+				sf[so + 1] = float(tile_base[material] if mode == 2 else material)
+				sf[so + 2] = float(uu * 4 + mode)
+				sf[so + 3] = float(profile + step)
+				sn[c] = spans_here + 1
+				row = r1 + 1
+			elif plain and lay:
+				# A column with SPAN_K spans already: note each pixel's texel and
+				# shade row instead.
 				var code := material * 16384 + uu + ((profile + step) << WALL_ROW_SHIFT)
 				var code_plain := code
 				if mode == 2:

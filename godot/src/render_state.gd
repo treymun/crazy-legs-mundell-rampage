@@ -155,6 +155,17 @@ var spr := PackedByteArray()
 var wall_code := PackedInt32Array()
 const WALL_RGB := -1
 const WALL_ROW_SHIFT := 21
+## Layered walls, whole spans. Most plain walls are not even coded pixel by
+## pixel: a wall's run down one column is handed to the shader as one span,
+## and the shader finds, for every pixel, the nearest span that covers it.
+## Up to SPAN_K spans a column; past that a column falls back to the pixel
+## codes above. Two RGBA float texels a span, laid out as an image of
+## vw x (SPAN_K * 2): span k of column c is at (c, 2k) and (c, 2k + 1):
+##   distance, bottom, top, first row * 256 + last row;
+##   tile, tile outside the window band (mode 2), u * 4 + mode, shade row.
+const SPAN_K := 12
+var span_f := PackedFloat32Array()
+var span_n := PackedByteArray()
 ## True when this frame's main pass drew window panes (pane_rgb / pane_dist).
 var pane_any := false
 ## The main pass's camera, kept because the mirror pass reuses the members.

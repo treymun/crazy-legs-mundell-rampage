@@ -30,7 +30,8 @@ func _render(shot: Dictionary, assets: Assets, hud: HUD, sound: Sound) -> Image:
 	# A fresh game per viewpoint: what one shot fires or ticks must not leak
 	# into the next.
 	var game := Game.new(assets, hud, sound, level)
-	game.configure(SessionStore.settings(""))
+	# The defaults, not this machine's saved settings: the references must match anywhere.
+	game.configure(SessionStore.defaults())
 	var p := game.player
 	p.x = float(shot["x"])
 	p.y = float(shot["y"])
