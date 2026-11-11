@@ -118,6 +118,9 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   hold the line: `tools/compare_views.gd` holds the shader view with effects off
   against the software view, and with `refs` holds the full shader view against
   `tools/pictures_gpu/` (rewrite with `update`, from a window tour, and commit).
+  A view tour always draws with the default settings, never the profile's
+  (the owner's own copy shares it): a lowered gun or the film look in a local
+  reference fails CI's Mesa window, which has none.
   `tools/picture_check.gd` still guards the software fallback.
 - **Two canvases.** With a window the HUD, menus and weapon draw with Godot
   2D (`Canvas.gpu`): the same calls become canvas commands in a 320x200

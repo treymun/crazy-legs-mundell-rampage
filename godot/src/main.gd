@@ -80,7 +80,9 @@ func _ready() -> void:
 	touch = TouchControls.new()
 	add_child(touch)
 
-	options = SessionStore.settings("")
+	# A view tour draws with the default settings, never this machine's own
+	# (its references must match CI's, which has no profile).
+	options = SessionStore.settings("" if view_tour == "" else "res://no_settings.json")
 	unlocked = SessionStore.unlocks("")
 	hub_findings = SessionStore.road_notes("")
 	apply_options()
@@ -169,34 +171,10 @@ func _view_tour() -> void:
 				game.tick(1.0 / 60.0, held)
 		# fx: the shader view as players see it (lights and glows); gpu: the same
 		# without them, to hold against the software view (cpu).
-		var modes := ["fx", "gpu", "cpu"]
-		if OS.has_environment("GITHUB_ACTIONS"):
-			modes.append("fxw")
-		for mode in modes:
+		for mode in ["fx", "gpu", "cpu"]:
 			cpu_view = mode == "cpu"
-			Effects.enabled = mode == "fx" or mode == "fxw"
-			if mode == "fxw":
-				Engine.set_meta("no_tint", true)
-			elif Engine.has_meta("no_tint"):
-				Engine.remove_meta("no_tint")
+			Effects.enabled = mode == "fx"
 			render()
-			if mode == "fx" and OS.has_environment("GITHUB_ACTIONS"):
-				var kinds: Array = []
-				for l: Array in game.effect_lights():
-					kinds.append("%.1f,%.1f r%.1f s%.3f" % [l[0], l[1], l[3], l[5]])
-				print(
-					(
-						"::notice title=%s lights::clock %.4f, sprites %d, tint %s, %d lights: %s"
-						% [
-							String(shot["tag"]),
-							game.clock,
-							game.renderer.gpu_spr_n,
-							game.gun_light(),
-							kinds.size(),
-							"; ".join(kinds)
-						]
-					)
-				)
 			await RenderingServer.frame_post_draw
 			await RenderingServer.frame_post_draw
 			get_viewport().get_texture().get_image().save_png(
