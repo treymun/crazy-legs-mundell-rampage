@@ -64,6 +64,11 @@ godot --path godot --audio-driver Dummy --resolution 1280x800 -- \
   --view-tour=res://tools/picture_views.json --view-out=<dir>
 godot --headless --path godot --script res://tools/compare_views.gd -- <dir>   # shader view against software view
 
+# Levels: godot/data/<id>.json is the source. Change one in the game (F2 when
+# running from the project folder) or from the command line; either way the
+# wall list is patched (src/level_edit.gd) and a running game reloads the level.
+godot --headless --path godot --script res://tools/level_edit.gd -- fair enemy billy 30.5 25.5
+
 # Version
 godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
 ```

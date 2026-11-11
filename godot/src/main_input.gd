@@ -59,6 +59,12 @@ func key(code: int, shift := false) -> void:
 	if state == "slots":
 		key_slots(code)
 		return
+	if state == "play" and editor != null:
+		if code == KEY_F2:
+			editor.toggle()
+			return
+		if editor.key(code, shift):
+			return
 	if code == KEY_F11:
 		toggle_fullscreen()
 		return

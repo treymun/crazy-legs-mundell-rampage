@@ -54,6 +54,8 @@ func _ready() -> void:
 	_start_overlay()
 	packs = PackLoader.new()
 	add_child(packs)
+	if LevelEditor.available():
+		editor = LevelEditor.new(self)
 
 	# A plain black sheet over the picture: a tenth of a second of dip between
 	# menu screens instead of a hard cut.
@@ -217,6 +219,7 @@ func _process(delta: float) -> void:
 		notice("TUNING RELOADED.")
 	if game != null:
 		packs.want_first(String(CHAPTER_PACKS.get(game.level.id, "")))
+		_watch_level()
 	# The engine paces frames to the FRAME LIMIT option (apply_options sets
 	# Engine.max_fps), which is what the reference's clock.tick() does. A
 	# browser ignores that cap and calls back once per display refresh, so
@@ -368,3 +371,17 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 		if game.portal_request != "":
 			travel(game.portal_request)
 			break
+
+
+## From the project folder: a level file saved from outside reloads the level.
+func _watch_level() -> void:
+	if editor == null or state != "play" or Time.get_ticks_msec() < level_check:
+		return
+	level_check = Time.get_ticks_msec() + 500
+	var stamp := FileAccess.get_modified_time(LevelEdit.path_of(game.level.id))
+	if level_stamp_of != game.level.id:
+		level_stamp_of = game.level.id
+		level_stamp = stamp
+	elif stamp != level_stamp:
+		reload_level_in_place()
+		notice("LEVEL RELOADED.")

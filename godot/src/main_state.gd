@@ -129,6 +129,12 @@ var overlay: SubViewport
 var cpu_canvas := false
 ## The browser build's chapter music, fetched after start (pack_loader.gd).
 var packs: PackLoader
+## The in-game level editor (level_editor.gd; only from the project folder),
+## and when the playing level's file was last seen changed.
+var editor: LevelEditor
+var level_stamp := 0
+var level_stamp_of := ""
+var level_check := 0
 const CHAPTER_PACKS := {
 	"hickston": "music_hickston",
 	"fair": "music_fair",
@@ -960,6 +966,8 @@ func render() -> void:
 			gpu_look and canvas.gpu and not cpu_view and int(options.get("fast_view", 1)) != 0
 		)
 		game.draw(canvas, int(options["crosshair"]), true)
+		if editor != null and editor.active:
+			editor.draw(canvas)
 	else:
 		canvas.clear(0, 0, 0)
 	_look_uniforms()

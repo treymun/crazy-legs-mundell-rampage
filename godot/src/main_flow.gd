@@ -496,4 +496,23 @@ func toggle_fullscreen() -> void:
 	options["window_mode"] = mode
 	persist_options()
 
+
 # -------------------------------------------------------------------- keys
+
+
+## Load the playing level again from its file, the player kept where they
+## stand (the level editor and a changed level file use this).
+func reload_level_in_place() -> void:
+	if game == null:
+		return
+	var p := game.player
+	var keep := [p.x, p.y, p.angle, p.pitch]
+	start(game.level.id)
+	p = game.player
+	p.x = keep[0]
+	p.y = keep[1]
+	p.angle = keep[2]
+	p.pitch = keep[3]
+	p.eye = .95 + game.world.elevation(p.x, p.y)
+	level_stamp = FileAccess.get_modified_time(LevelEdit.path_of(game.level.id))
+	level_stamp_of = game.level.id
