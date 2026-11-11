@@ -166,6 +166,26 @@ const WALL_ROW_SHIFT := 21
 const SPAN_K := 12
 var span_f := PackedFloat32Array()
 var span_n := PackedByteArray()
+## Layered sprites. The shader draws the sprites and painted boards too, in
+## list order and with the same depth tests: gpu_spr holds four RGBA float
+## texels a sprite (a row of an image 4 wide), and the art goes in slots of
+## a texture array of ART_SIZE squares (render_sprites.gd _gpu_sprite).
+## When a frame has more sprites than GPU_SPRITES, or more different
+## pictures than ART_SLOTS, the renderer draws them itself, as before.
+const GPU_SPRITES := 256
+const ART_SLOTS := 96
+const ART_SIZE := 256
+var gpu_spr := PackedFloat32Array()
+var gpu_spr_n := 0
+var gpu_sprites := false
+## Art slot bookkeeping: picture name -> slot, each slot's picture and the
+## frame it was last used, and the slots waiting to be uploaded (slot -> art;
+## scene_layers.gd empties it).
+var art_slot := {}
+var art_name: Array = []
+var art_used := PackedInt64Array()
+var art_dirty := {}
+var _art_frame := 0
 ## True when this frame's main pass drew window panes (pane_rgb / pane_dist).
 var pane_any := false
 ## The main pass's camera, kept because the mirror pass reuses the members.

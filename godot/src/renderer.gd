@@ -343,7 +343,7 @@ func _band(a: int, b: int) -> void:
 	if profile:
 		var t := Time.get_ticks_usec()
 		for k in 6:
-			if _lay and (k == 0 or k == 2):
+			if _lay and (k == 0 or k == 2 or k == 5 and gpu_sprites):
 				continue
 			[_sky_band, _wall_band, _plane_band, _mark_band, _ground_band, _sprite_band][k].call(
 				a, b
@@ -360,7 +360,8 @@ func _band(a: int, b: int) -> void:
 		_plane_band(a, b)
 	_mark_band(a, b)
 	_ground_band(a, b)
-	_sprite_band(a, b)
+	if not (_lay and gpu_sprites):
+		_sprite_band(a, b)
 
 
 # ------------------------------------------------------------------ mirror

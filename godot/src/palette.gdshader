@@ -21,10 +21,12 @@ const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 
 
 // ---------------------------------------------------------------- the view
 // With scene_on the software renderer (renderer.gd, `layered`) hands over the
-// view in layers instead of a finished picture, and the rest is done here per
-// pixel: the sky, every floor and ceiling (renderer.gd _plane_layer and
-// _sky_band, line for line), the choice between them and the wall in front,
-// the sprite overlay, the window panes, and last the weapon and HUD layer.
+// view in parts instead of a finished picture, and the rest is done here per
+// pixel, with the renderer's own formulas: the sky, every floor and ceiling,
+// the plain walls (whole spans down each column), the sprites and painted
+// boards in list order, the window panes, and last the weapon and HUD layer.
+// What the renderer still draws itself (glowing signs, the mirror, the hub's
+// shadowed and mesh walls, wall marks, ground marks) arrives as pixels.
 uniform bool scene_on = false;
 // The canvas (weapon, HUD) and how much of each of its pixels is painted.
 uniform sampler2D post_tex : filter_nearest, repeat_disable;
@@ -41,6 +43,11 @@ uniform sampler2D wall_dist : filter_nearest, repeat_disable;
 // many spans each column has (renderer: render_state.gd SPAN_K).
 uniform sampler2D spans : filter_nearest, repeat_disable;
 uniform sampler2D span_count : filter_nearest, repeat_disable;
+// Sprites and painted boards, drawn here in list order (render_state.gd
+// GPU_SPRITES): four texels a sprite, and the pictures in a texture array.
+uniform int sprite_count = 0;
+uniform sampler2D sprite_tab : filter_nearest, repeat_disable;
+uniform sampler2DArray sprite_art : filter_nearest, repeat_disable;
 // Sprites and ground marks: premultiplied colour, coverage, distance
 // (above zero a sprite, below zero a ground mark lying on a floor).
 uniform sampler2D over_tex : filter_nearest, repeat_disable;
@@ -325,6 +332,87 @@ vec3 view_at(ivec2 px) {
 		bool shown = reach > 0.0 ? nearest > reach - 0.014 : abs(-reach - nearest) < 0.13;
 		if (shown) {
 			base = floor(texelFetch(over_tex, lp, 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
+		}
+	}
+	// Sprites and painted boards (render_sprites.gd _sprite_band, _draw_sign).
+	for (int i = 0; i < sprite_count; i++) {
+		vec4 a = texelFetch(sprite_tab, ivec2(0, i), 0);
+		vec4 b = texelFetch(sprite_tab, ivec2(1, i), 0);
+		int flags = int(b.w + 0.5);
+		bool clear = (flags & 2) != 0;
+		vec4 c;
+		vec4 d;
+		vec3 texel;
+		float alpha;
+		float dist;
+		float light;
+		if ((flags & 4) == 0) {
+			int left = int(a.x);
+			int top = int(a.y);
+			int width = int(a.z);
+			int height = int(a.w);
+			if (lp.x < left || lp.x >= left + width || lp.y < top || lp.y >= top + height) {
+				continue;
+			}
+			dist = b.x;
+			if (dist >= nearest + 0.014) {
+				continue;
+			}
+			c = texelFetch(sprite_tab, ivec2(2, i), 0);
+			d = texelFetch(sprite_tab, ivec2(3, i), 0);
+			int sw = int(d.x + 0.5);
+			int sh = int(d.y + 0.5);
+			int sxi = (lp.x - left) * sw / width;
+			if ((flags & 1) != 0) {
+				sxi = sw - sxi - 1;
+			}
+			vec4 t = texelFetch(sprite_art, ivec3(sxi, (lp.y - top) * sh / height, int(c.w + 0.5)), 0);
+			alpha = floor(t.a * 255.0 + 0.5);
+			if (alpha <= (clear ? 12.0 : 100.0)) {
+				continue;
+			}
+			texel = floor(t.rgb * 255.0 + 0.5);
+			light = b.y;
+			texel = clamp(floor(texel * light * c.rgb), 0.0, 255.0);
+			if (b.z > 0.0) {
+				texel = floor(texel * (1.0 - b.z) + vec3(255.0, 232.0, 208.0) * b.z);
+			}
+		} else {
+			d = texelFetch(sprite_tab, ivec2(3, i), 0);
+			vec2 dv = fwd + side * ((float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal);
+			float den = a.y * dv.x - a.x * dv.y;
+			if (den <= 0.001) {
+				continue;
+			}
+			dist = d.w / den;
+			if (dist <= 0.13 || dist >= nearest + 0.012) {
+				continue;
+			}
+			float along = ((eye.x - a.z + dv.x * dist) * a.x + (eye.y - a.w + dv.y * dist) * a.y) / b.z + 0.5;
+			if (along < 0.0 || along >= 1.0) {
+				continue;
+			}
+			float v = (b.x + b.y - eye.z + sy * dist / focal) / b.y;
+			if (v < 0.0 || v >= 1.0) {
+				continue;
+			}
+			c = texelFetch(sprite_tab, ivec2(2, i), 0);
+			int sw = int(d.x + 0.5);
+			int sh = int(d.y + 0.5);
+			vec4 t = texelFetch(sprite_art, ivec3(clamp(int(along * float(sw)), 0, sw - 1), clamp(int(v * float(sh)), 0, sh - 1), int(c.w + 0.5)), 0);
+			alpha = floor(t.a * 255.0 + 0.5);
+			if (alpha <= (clear ? 12.0 : 100.0)) {
+				continue;
+			}
+			light = floor(max(0.19, d.z / (1.0 + 0.102 * dist)) * 32.0 + 0.5) / 32.0;
+			texel = floor(floor(t.rgb * 255.0 + 0.5) * light * c.rgb);
+		}
+		if (clear) {
+			float cov = alpha / 255.0;
+			base = clamp(floor(base * (1.0 - cov) + texel * cov + 0.5), 0.0, 255.0);
+		} else {
+			base = clamp(texel, 0.0, 255.0);
+			nearest = dist;
 		}
 	}
 	if (pane_on) {

@@ -14,6 +14,8 @@ const TAU_ := 6.283185307179586
 
 var material: ShaderMaterial
 var _textures := {}
+var _art: Texture2DArray
+var _art_blank: Image
 var _renderer: Renderer = null
 var _light_version := -1
 var _on := false
@@ -144,6 +146,7 @@ func frame(game: Game, canvas: Canvas) -> void:
 	_put("wall_code", vw, vh, Image.FORMAT_RGBA8, r.wall_code.to_byte_array())
 	_put("spans", vw, Renderer.SPAN_K * 2, Image.FORMAT_RGBAF, r.span_f.to_byte_array())
 	_put("span_count", vw, 1, Image.FORMAT_R8, r.span_n)
+	_sprites(r)
 	_put("wall_dist", vw, vh, Image.FORMAT_RF, r.depth.to_byte_array())
 	_put("over_tex", vw, vh, Image.FORMAT_RGB8, r.over)
 	_put("over_cover", vw, vh, Image.FORMAT_R8, r.over_a)
@@ -194,6 +197,36 @@ func frame(game: Game, canvas: Canvas) -> void:
 	if not _on:
 		_on = true
 		m.set_shader_parameter("scene_on", true)
+
+
+## The sprite table and any pictures new to the art slots.
+func _sprites(r: Renderer) -> void:
+	if _art == null:
+		_art_blank = Image.create_empty(
+			Renderer.ART_SIZE, Renderer.ART_SIZE, false, Image.FORMAT_RGBA8
+		)
+		var blanks: Array[Image] = []
+		for i in Renderer.ART_SLOTS:
+			blanks.append(_art_blank)
+		_art = Texture2DArray.new()
+		_art.create_from_images(blanks)
+		material.set_shader_parameter("sprite_art", _art)
+	for slot_index: int in r.art_dirty:
+		var art: Dictionary = r.art_dirty[slot_index]
+		var w: int = art["w"]
+		var h: int = art["h"]
+		var picture := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, art["data"])
+		var slot := _art_blank.duplicate() as Image
+		slot.blit_rect(picture, Rect2i(0, 0, w, h), Vector2i.ZERO)
+		_art.update_layer(slot, slot_index)
+	r.art_dirty.clear()
+	var count := r.gpu_spr_n if r.gpu_sprites else 0
+	material.set_shader_parameter("sprite_count", count)
+	if count > 0:
+		var rows := mini(Renderer.GPU_SPRITES, (count + 31) / 32 * 32)
+		_put(
+			"sprite_tab", 4, rows, Image.FORMAT_RGBAF, r.gpu_spr.slice(0, rows * 16).to_byte_array()
+		)
 
 
 ## The canvas holds a finished picture this frame (menus, the tally).

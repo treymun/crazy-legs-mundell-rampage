@@ -5,8 +5,96 @@ class_name RenderSprites
 extends RenderSurfaces
 
 
+## The slot holding this picture for the shader, uploading it if need be;
+## -1 when every slot already holds a picture this frame needs.
+func _art_for(image: String, art: Dictionary) -> int:
+	var slot: int = art_slot.get(image, -1)
+	if slot < 0:
+		if art_name.size() != ART_SLOTS:
+			art_name.resize(ART_SLOTS)
+			art_used.resize(ART_SLOTS)
+			art_used.fill(-1)
+		var oldest := _art_frame
+		for k in ART_SLOTS:
+			if art_used[k] < oldest:
+				oldest = art_used[k]
+				slot = k
+		if slot < 0:
+			return -1
+		if art_name[slot] != null:
+			art_slot.erase(art_name[slot])
+		art_name[slot] = image
+		art_slot[image] = slot
+		art_dirty[slot] = art
+	art_used[slot] = _art_frame
+	return slot
+
+
+## One row of the shader's sprite table (see GPU_SPRITES): a billboard
+## (kind 1) or a painted board (kind 2).
+func _gpu_sprite(i: int, s: Sprite, art: Dictionary) -> void:
+	if not (_lay and gpu_sprites):
+		return
+	var slot := _art_for(s.image, art)
+	if slot < 0 or gpu_spr_n >= GPU_SPRITES:
+		gpu_sprites = false
+		return
+	var io := i * SPR_I
+	var fo := i * SPR_F
+	var o := gpu_spr_n * 16
+	gpu_spr_n += 1
+	var sw: int = art["w"]
+	var sh: int = art["h"]
+	if _spr_i[io] == 1:
+		gpu_spr[o] = _spr_i[io + 8]
+		gpu_spr[o + 1] = _spr_i[io + 2]
+		gpu_spr[o + 2] = _spr_i[io + 3]
+		gpu_spr[o + 3] = _spr_i[io + 1]
+		gpu_spr[o + 4] = _spr_f[fo + 1]
+		gpu_spr[o + 5] = _spr_f[fo + 2]
+		gpu_spr[o + 6] = _spr_f[fo + 6]
+		gpu_spr[o + 7] = _spr_i[io + 7]
+		gpu_spr[o + 8] = _spr_f[fo + 3]
+		gpu_spr[o + 9] = _spr_f[fo + 4]
+		gpu_spr[o + 10] = _spr_f[fo + 5]
+		gpu_spr[o + 11] = slot
+		gpu_spr[o + 12] = sw
+		gpu_spr[o + 13] = sh
+		gpu_spr[o + 14] = 0.0
+		gpu_spr[o + 15] = 0.0
+		return
+	var ax := cos(s.plane)
+	var ay := sin(s.plane)
+	var ci := level.cell(s.x, s.y)
+	var ti := tint_index(level.area[ci], tints)
+	gpu_spr[o] = ax
+	gpu_spr[o + 1] = ay
+	gpu_spr[o + 2] = s.x
+	gpu_spr[o + 3] = s.y
+	gpu_spr[o + 4] = s.z
+	gpu_spr[o + 5] = s.height
+	gpu_spr[o + 6] = s.height * float(sw) / float(sh)
+	gpu_spr[o + 7] = 4 | (2 if s.translucent else 0)
+	gpu_spr[o + 8] = tints[ti]
+	gpu_spr[o + 9] = tints[ti + 1]
+	gpu_spr[o + 10] = tints[ti + 2]
+	gpu_spr[o + 11] = slot
+	gpu_spr[o + 12] = sw
+	gpu_spr[o + 13] = sh
+	gpu_spr[o + 14] = level.light[ci]
+	gpu_spr[o + 15] = (s.x - cx) * ay - (s.y - cy) * ax
+
+
 func _warm_art() -> void:
 	var count := _sprite_list.size()
+	# The shader draws this frame's sprites, unless they do not fit (see
+	# GPU_SPRITES). A mirror's reflection is drawn here, and must leave the
+	# main view's table and uploads alone: scene_layers.gd reads them after.
+	if _lay:
+		gpu_sprites = true
+		gpu_spr_n = 0
+		_art_frame += 1
+		gpu_spr.resize(GPU_SPRITES * 16)
 	_spr_c0.resize(count)
 	_spr_c1.resize(count)
 	_spr_f.resize(count * SPR_F)
@@ -55,8 +143,12 @@ func _warm_art() -> void:
 		if board:
 			# A painted board is projected along its own axis (_draw_sign); there
 			# are few enough of them that it stays a call.
+			var side := (sx - cx) * sin(s.plane) - (sy - cy) * cos(s.plane)
+			if side <= .02:
+				continue
 			_spr_i[io] = 2
 			_spr_c1[i] = vw
+			_gpu_sprite(i, s, art)
 			continue
 		var width := maxi(1, int(height * float(sw) / float(sh)))
 		var centre := vw / 2.0 + (dx * rx + dy * ry) / dist * focal
@@ -97,6 +189,10 @@ func _warm_art() -> void:
 		_spr_i[io + 8] = left
 		_spr_c0[i] = left
 		_spr_c1[i] = left + width
+		if left >= vw or left + width <= 0:
+			_spr_i[io] = 0
+			continue
+		_gpu_sprite(i, s, art)
 
 	count = _mark_list.size()
 	_mk_f.resize(count * MK_F)
