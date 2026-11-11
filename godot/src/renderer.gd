@@ -86,7 +86,7 @@ func frame_begin(player: Dictionary, flash_value: float) -> void:
 		wall_code = PackedInt32Array()
 		wall_code.resize(vw * vh)
 		span_f = PackedFloat32Array()
-		span_f.resize(vw * SPAN_K * 8)
+		span_f.resize(vw * (SPAN_K * 2 + 1) * 4)
 		span_n = PackedByteArray()
 		span_n.resize(vw)
 	depth = PackedFloat32Array()

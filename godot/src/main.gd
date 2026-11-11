@@ -45,18 +45,15 @@ func _ready() -> void:
 
 	palette_material = ShaderMaterial.new()
 	palette_material.shader = load("res://src/palette.gdshader")
-	var lut_image := Image.create_empty(256, 128, false, Image.FORMAT_RGB8)
-	lut_image.set_data(256, 128, false, Image.FORMAT_RGB8, art.palette)
-	palette_material.set_shader_parameter("lut", ImageTexture.create_from_image(lut_image))
+	_grain_tone(PackedByteArray())
 	if art.grain.size() == 936 * WIDTH:
-		var grain_image := Image.create_from_data(936, WIDTH, false, Image.FORMAT_R8, art.grain)
-		palette_material.set_shader_parameter("grain", ImageTexture.create_from_image(grain_image))
 		gpu_ready = DisplayServer.get_name() != "headless"
 	palette_material.set_shader_parameter("post_tex", frame_texture)
-	palette_material.set_shader_parameter("frame_tex", frame_texture)
 	layers = SceneLayers.new(palette_material, art)
 	view.material = palette_material
 	_start_overlay()
+	packs = PackLoader.new()
+	add_child(packs)
 
 	# A plain black sheet over the picture: a tenth of a second of dip between
 	# menu screens instead of a hard cut.
@@ -218,6 +215,8 @@ func _process(delta: float) -> void:
 		return
 	if Tuning.watch():
 		notice("TUNING RELOADED.")
+	if game != null:
+		packs.want_first(String(CHAPTER_PACKS.get(game.level.id, "")))
 	# The engine paces frames to the FRAME LIMIT option (apply_options sets
 	# Engine.max_fps), which is what the reference's clock.tick() does. A
 	# browser ignores that cap and calls back once per display refresh, so

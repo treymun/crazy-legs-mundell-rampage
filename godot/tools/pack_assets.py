@@ -8,8 +8,12 @@ Outputs (in ``godot/assets_gen``):
   tiles.bin    TILES-order 128x128x3 RGB
   art.bin      concatenated RGBA images + art_index.json
   sfx.bin      the audio manifest's cues, mono 16-bit PCM + sfx_index.json
-  music.bin    concatenated Ogg Vorbis (chapter tracks, menu theme, tally tune)
-               + music_index.json and music_ends.json
+  music.bin    concatenated Ogg Vorbis: the menu theme and the tally tune
+  music_<chapter>.bin   each chapter's three tracks, the same way (a browser
+               build leaves these out of its first download and fetches them
+               as packs: tools/make_packs.gd, src/pack_loader.gd)
+               + music_index.json (track -> file, offset, length) and
+               music_ends.json
   palette.bin  32768x3 RGB555 grade
   grain.bin    6 frames of 320x156 signed grain, stored +2 biased
 
@@ -137,26 +141,41 @@ def sfx():
     print(f"sfx.bin {len(blob)/1e6:.2f} MB, {len(index)} cues at {SFX_RATE} Hz")
 
 
+## Which file each track goes in. Anything not listed goes in music.bin.
+MUSIC_FILES = {
+    "music_hickston": ["music", "county_line", "porchlight_stomp"],
+    "music_fair": ["fair_score", "tickets_after_dark", "closing_time_shuffle"],
+    "music_mill": ["mill_score", "green_chain", "apron_run"],
+    "music_quarry": ["quarry_score", "copper_and_steam", "last_load"],
+}
+
+
 def music():
-    """Chapter tracks plus the menu theme ("title") and the tally tune ("victory")."""
+    """The menu theme ("title") and tally tune ("victory"), and each chapter's tracks."""
     index = {}
-    blob = bytearray()
+    blobs = {}
+    home = {track: name for name, tracks in MUSIC_FILES.items() for track in tracks}
     for path in sorted(SRC_MUSIC.glob("*.ogg")):
         data = path.read_bytes()
         if data[:4] != b"OggS" or b"vorbis" not in data[:64]:
             raise SystemExit(f"{path.name} is not Ogg Vorbis (Godot cannot stream Opus).")
-        index[path.stem] = {"offset": len(blob), "length": len(data)}
+        name = home.get(path.stem, "music")
+        blob = blobs.setdefault(name, bytearray())
+        index[path.stem] = {"file": f"{name}.bin", "offset": len(blob), "length": len(data)}
         blob += data
     missing = sorted(REQUIRED_MUSIC - set(index))
     if missing:
         raise SystemExit(f"Music missing from {SRC_MUSIC}: {', '.join(missing)}")
-    (OUT / "music.bin").write_bytes(blob)
+    for name, blob in blobs.items():
+        (OUT / f"{name}.bin").write_bytes(blob)
+    blob = blobs["music"]
     (OUT / "music_index.json").write_text(json.dumps(index, separators=(",", ":")))
     ends = json.loads((SRC_MUSIC / "playback_ends.json").read_text(encoding="utf-8"))
     (OUT / "music_ends.json").write_text(json.dumps(ends, separators=(",", ":")))
     for stale in ("streams.bin", "streams_index.json"):      # the old PCM jingle bank
         (OUT / stale).unlink(missing_ok=True)
-    print(f"music.bin {len(blob)/1e6:.2f} MB, {len(index)} tracks")
+    print(f"music: {len(index)} tracks in {len(blobs)} files, "
+          + ", ".join(f"{name} {len(b)/1e6:.1f} MB" for name, b in blobs.items()))
 
 
 def luts():

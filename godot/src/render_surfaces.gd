@@ -203,6 +203,7 @@ func _wall_band(band_a: int, band_b: int) -> void:
 				sf[so + 2] = float(uu * 4 + mode)
 				sf[so + 3] = float(profile + step)
 				sn[c] = spans_here + 1
+				sf[(SPAN_K * 2 * vw + c) * 4] = spans_here + 1
 				row = r1 + 1
 			elif plain and lay:
 				# A column with SPAN_K spans already: note each pixel's texel and

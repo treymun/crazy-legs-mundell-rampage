@@ -163,6 +163,7 @@ const WALL_ROW_SHIFT := 21
 ## vw x (SPAN_K * 2): span k of column c is at (c, 2k) and (c, 2k + 1):
 ##   distance, bottom, top, first row * 256 + last row;
 ##   tile, tile outside the window band (mode 2), u * 4 + mode, shade row.
+## Row 2 * SPAN_K holds each column's span count, for the shader.
 const SPAN_K := 12
 var span_f := PackedFloat32Array()
 var span_n := PackedByteArray()

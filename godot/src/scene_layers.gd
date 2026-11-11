@@ -16,6 +16,11 @@ var material: ShaderMaterial
 var _textures := {}
 var _art: Texture2DArray
 var _art_blank: Image
+var _atlas: Image
+var _sky_row := 0
+var _cells_row := 0
+var _plane_table := PackedFloat32Array()
+var _plane_width := 0
 var _renderer: Renderer = null
 var _light_version := -1
 var _on := false
@@ -25,7 +30,11 @@ func _init(p_material: ShaderMaterial, assets: Assets) -> void:
 	material = p_material
 	var count := assets.tiles.size() / Renderer.TILE_BYTES
 	var rows := maxi(1, int(ceil(count / float(ATLAS_COLUMNS))))
-	var atlas := Image.create_empty(ATLAS_COLUMNS * 128, rows * 128, false, Image.FORMAT_RGB8)
+	# The tiles, and under them room for the level's sky (_load_level).
+	_sky_row = rows * 128
+	var atlas := Image.create_empty(
+		ATLAS_COLUMNS * 128, _sky_row + Renderer.SKY_H, false, Image.FORMAT_RGB8
+	)
 	for i in count:
 		var tile := Image.create_from_data(
 			128,
@@ -39,7 +48,20 @@ func _init(p_material: ShaderMaterial, assets: Assets) -> void:
 			Rect2i(0, 0, 128, 128),
 			Vector2i((i % ATLAS_COLUMNS) * 128, (i / ATLAS_COLUMNS) * 128)
 		)
-	material.set_shader_parameter("tiles_tex", ImageTexture.create_from_image(atlas))
+	atlas.convert(Image.FORMAT_RGBA8)
+	_atlas = atlas
+	_cells_row = _sky_row + Renderer.SKY_H
+	# The sprite pictures' texture array exists from the start: a sampler with
+	# nothing of its own type bound is an error in WebGL.
+	_art_blank = Image.create_empty(Renderer.ART_SIZE, Renderer.ART_SIZE, false, Image.FORMAT_RGBA8)
+	var blanks: Array[Image] = []
+	for i in Renderer.ART_SLOTS:
+		blanks.append(_art_blank)
+	_art = Texture2DArray.new()
+	_art.create_from_images(blanks)
+	material.set_shader_parameter("sprite_art", _art)
+	material.set_shader_parameter("sky_row", _sky_row)
+	material.set_shader_parameter("cells_row", _cells_row)
 
 
 ## Create or refill one of the shader's textures.
@@ -86,13 +108,19 @@ func _load_level(renderer: Renderer) -> void:
 		var above := level.ceiling_tile[i]
 		cells[o + 3] = above if above >= 0 and above < 255 else 255
 		areas[i] = clampi(level.area[i], 0, tint_count - 1)
-	_put("cells_tex", lw, lh, Image.FORMAT_RGBA8, cells)
-	_put("cells_area", lw, lh, Image.FORMAT_R8, areas)
+	# The tint indices go under the cells, as a second band.
+	var tint_band := Image.create_from_data(lw, lh, false, Image.FORMAT_R8, areas)
+	tint_band.convert(Image.FORMAT_RGBA8)
+	cells.append_array(tint_band.get_data())
+	var cell_bands := Image.create_from_data(lw, lh * 2, false, Image.FORMAT_RGBA8, cells)
 
 	var cap_total := 0
 	for h in floors:
 		cap_total += (level.caps.get(h, []) as Array).size()
 	var width := maxi(maxi(64, cap_total), maxi(maxi(floors.size(), roofs.size()), tint_count))
+	# The cells' light goes under the five table rows (_light), so the table is
+	# at least as wide as the map.
+	width = maxi(width, lw)
 	var table := PackedFloat32Array()
 	table.resize(width * 5 * 4)
 	table.fill(0.0)
@@ -117,8 +145,20 @@ func _load_level(renderer: Renderer) -> void:
 		table[o] = renderer.tints[i * 3]
 		table[o + 1] = renderer.tints[i * 3 + 1]
 		table[o + 2] = renderer.tints[i * 3 + 2]
-	_put("plane_data", width, 5, Image.FORMAT_RGBAF, table.to_byte_array())
-	_put("sky_tex", Renderer.SKY_W, Renderer.SKY_H, Image.FORMAT_RGB8, renderer.sky["data"])
+	_plane_table = table
+	_plane_width = width
+	# The tiles, this level's sky under them, then its cells.
+	var sky := Image.create_from_data(
+		Renderer.SKY_W, Renderer.SKY_H, false, Image.FORMAT_RGB8, renderer.sky["data"]
+	)
+	sky.convert(Image.FORMAT_RGBA8)
+	var whole := Image.create_empty(
+		_atlas.get_width(), _cells_row + lh * 2, false, Image.FORMAT_RGBA8
+	)
+	whole.blit_rect(_atlas, Rect2i(0, 0, _atlas.get_width(), _sky_row), Vector2i.ZERO)
+	whole.blit_rect(sky, Rect2i(0, 0, Renderer.SKY_W, Renderer.SKY_H), Vector2i(0, _sky_row))
+	whole.blit_rect(cell_bands, Rect2i(0, 0, lw, lh * 2), Vector2i(0, _cells_row))
+	_put("tiles_tex", whole.get_width(), whole.get_height(), Image.FORMAT_RGBA8, whole.get_data())
 
 	material.set_shader_parameter("map_size", Vector2i(lw, lh))
 	material.set_shader_parameter("floor_count", floors.size())
@@ -130,7 +170,7 @@ func _load_level(renderer: Renderer) -> void:
 
 
 ## This frame's layers and camera; call after Game.draw() when game.scene_live.
-func frame(game: Game, canvas: Canvas) -> void:
+func frame(game: Game, _canvas: Canvas) -> void:
 	var r: Renderer = game.renderer
 	var level := r.level
 	if r != _renderer:
@@ -139,23 +179,37 @@ func frame(game: Game, canvas: Canvas) -> void:
 		_load_level(r)
 	if level.light_version != _light_version:
 		_light_version = level.light_version
-		_put("cells_light", level.width, level.height, Image.FORMAT_RF, level.light.to_byte_array())
+		_light(level)
 	var vw := r.vw
 	var vh := r.vh
-	_put("wall_tex", vw, vh, Image.FORMAT_RGB8, r.frame)
-	_put("wall_code", vw, vh, Image.FORMAT_RGBA8, r.wall_code.to_byte_array())
-	_put("spans", vw, Renderer.SPAN_K * 2, Image.FORMAT_RGBAF, r.span_f.to_byte_array())
-	_put("span_count", vw, 1, Image.FORMAT_R8, r.span_n)
+	# Stacked a view's height apart (see the shader's `colours` and `distances`).
+	var colours := r.frame.duplicate()
+	colours.append_array(r.over)
+	colours.append_array(r.pane_rgb)
+	var colour_bands := Image.create_from_data(vw, vh * 3, false, Image.FORMAT_RGB8, colours)
+	colour_bands.convert(Image.FORMAT_RGBA8)
+	var parts := colour_bands.get_data()
+	parts.append_array(r.wall_code.to_byte_array())
+	_put("colours", vw, vh * 4, Image.FORMAT_RGBA8, parts)
+	var cover := Image.create_from_data(vw, vh, false, Image.FORMAT_R8, r.over_a)
+	cover.convert(Image.FORMAT_RF)
+	var distances := r.depth.to_byte_array()
+	distances.append_array(r.over_d.to_byte_array())
+	distances.append_array(r.pane_dist.to_byte_array())
+	distances.append_array(cover.get_data())
+	_put("distances", vw, vh * 4, Image.FORMAT_RF, distances)
 	_sprites(r)
-	_put("wall_dist", vw, vh, Image.FORMAT_RF, r.depth.to_byte_array())
-	_put("over_tex", vw, vh, Image.FORMAT_RGB8, r.over)
-	_put("over_cover", vw, vh, Image.FORMAT_R8, r.over_a)
-	_put("over_dist", vw, vh, Image.FORMAT_RF, r.over_d.to_byte_array())
-	if r.pane_any:
-		_put("pane_tex", vw, vh, Image.FORMAT_RGB8, r.pane_rgb)
-		_put("pane_dist", vw, vh, Image.FORMAT_RF, r.pane_dist.to_byte_array())
-	if not canvas.gpu:
-		_put("post_cover", Canvas.WIDTH, Canvas.HEIGHT, Image.FORMAT_R8, canvas.cover)
+	# The wall spans, their counts, then the sprite table flowing on across rows.
+	var table := r.span_f.duplicate()
+	var count := r.gpu_spr_n if r.gpu_sprites else 0
+	var rows := Renderer.SPAN_K * 2 + 1
+	if count > 0:
+		var sprite_rows := (count * 4 + vw - 1) / vw
+		var sprites := r.gpu_spr.slice(0, count * 16)
+		sprites.resize(sprite_rows * vw * 4)
+		table.append_array(sprites)
+		rows += sprite_rows
+	_put("spans", vw, rows, Image.FORMAT_RGBAF, table.to_byte_array())
 
 	var m := material
 	var angle: float = r.cam["angle"]
@@ -202,16 +256,6 @@ func frame(game: Game, canvas: Canvas) -> void:
 
 ## The sprite table and any pictures new to the art slots.
 func _sprites(r: Renderer) -> void:
-	if _art == null:
-		_art_blank = Image.create_empty(
-			Renderer.ART_SIZE, Renderer.ART_SIZE, false, Image.FORMAT_RGBA8
-		)
-		var blanks: Array[Image] = []
-		for i in Renderer.ART_SLOTS:
-			blanks.append(_art_blank)
-		_art = Texture2DArray.new()
-		_art.create_from_images(blanks)
-		material.set_shader_parameter("sprite_art", _art)
 	for slot_index: int in r.art_dirty:
 		var art: Dictionary = r.art_dirty[slot_index]
 		var w: int = art["w"]
@@ -221,13 +265,22 @@ func _sprites(r: Renderer) -> void:
 		slot.blit_rect(picture, Rect2i(0, 0, w, h), Vector2i.ZERO)
 		_art.update_layer(slot, slot_index)
 	r.art_dirty.clear()
-	var count := r.gpu_spr_n if r.gpu_sprites else 0
-	material.set_shader_parameter("sprite_count", count)
-	if count > 0:
-		var rows := mini(Renderer.GPU_SPRITES, (count + 31) / 32 * 32)
-		_put(
-			"sprite_tab", 4, rows, Image.FORMAT_RGBAF, r.gpu_spr.slice(0, rows * 16).to_byte_array()
-		)
+	material.set_shader_parameter("sprite_count", r.gpu_spr_n if r.gpu_sprites else 0)
+
+
+## The level's light map, as the band of `plane_data` under its five rows.
+func _light(level: LevelData) -> void:
+	var lw := level.width
+	var lh := level.height
+	var light := Image.create_from_data(lw, lh, false, Image.FORMAT_RF, level.light.to_byte_array())
+	light.convert(Image.FORMAT_RGBAF)
+	var table := Image.create_from_data(
+		_plane_width, 5, false, Image.FORMAT_RGBAF, _plane_table.to_byte_array()
+	)
+	var whole := Image.create_empty(_plane_width, 5 + lh, false, Image.FORMAT_RGBAF)
+	whole.blit_rect(table, Rect2i(0, 0, _plane_width, 5), Vector2i.ZERO)
+	whole.blit_rect(light, Rect2i(0, 0, lw, lh), Vector2i(0, 5))
+	_put("plane_data", _plane_width, 5 + lh, Image.FORMAT_RGBAF, whole.get_data())
 
 
 ## The canvas holds a finished picture this frame (menus, the tally).

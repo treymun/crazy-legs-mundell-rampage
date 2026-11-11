@@ -33,6 +33,8 @@ jobs:
           pip install --quiet "$(grep -E '^gdtoolkit==' ../requirements-dev.txt | cut -d' ' -f1)"
           gdformat --check src tools
           gdlint src tools
+      - name: The display shader fits a WebGL page's 16 textures
+        run: python godot/tools/check_shader.py
       - name: Boot the game headless
         run: |
           godot --headless --path godot --quit-after 100 2>&1 | tee boot.log
@@ -244,9 +246,15 @@ jobs:
           # browser that will not isolate the page are sent to (play/lite/).
           godot --headless --path godot --export-release "Web Lite" build/web-lite/index.html 2>&1 | tee -a export.log
           if grep -iE "export .*failed|SCRIPT ERROR" export.log; then exit 1; fi
+          # Each chapter's music is left out of index.pck and fetched after the
+          # game starts (src/pack_loader.gd), from packs beside it.
+          godot --headless --path godot --script res://tools/make_packs.gd -- build/web 2>&1 | tee packs.log
+          grep -q "PACKS OK" packs.log
+          cp godot/build/web/packs.json godot/build/web/music_*.pck godot/build/web-lite/
           for build in web web-lite; do
             test -s godot/build/$build/index.wasm
             test -s godot/build/$build/index.pck
+            test -s godot/build/$build/packs.json
             ls -lh godot/build/$build
           done
       - name: Assemble the Pages site

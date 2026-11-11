@@ -127,6 +127,14 @@ var cpu_view := false
 ## and --cpu-canvas, which keeps the canvas in software.
 var overlay: SubViewport
 var cpu_canvas := false
+## The browser build's chapter music, fetched after start (pack_loader.gd).
+var packs: PackLoader
+const CHAPTER_PACKS := {
+	"hickston": "music_hickston",
+	"fair": "music_fair",
+	"sawmill": "music_mill",
+	"quarry": "music_quarry"
+}
 ## The first time the shader composes the view it is checked, at a grid of
 ## points, against the software picture of the same frame (_check_view). A
 ## graphics driver the shader does not suit would show a picture that does not
@@ -640,6 +648,7 @@ const SHOWCASE_SECONDS := 6.0
 
 func _exit_tree() -> void:
 	Renderer.stop_crew()
+	canvas.gpu_free()
 
 
 func _save_view() -> void:
@@ -672,8 +681,27 @@ func _look_uniforms() -> void:
 		palette_material.set_shader_parameter("grain_frame", game._look_frame)
 	if tone_on and tone_table != tone_sent:
 		tone_sent = tone_table
-		var strip := Image.create_from_data(256, 1, false, Image.FORMAT_R8, tone_table)
-		palette_material.set_shader_parameter("tone", ImageTexture.create_from_image(strip))
+		_grain_tone(tone_table)
+
+
+## The palette table, the grain frames and the brightness table, as one
+## texture (the shader may only sample so many): see palette.gdshader `looks`.
+func _grain_tone(table: PackedByteArray) -> void:
+	var looks := Image.create_empty(936, 128 + WIDTH + 1, false, Image.FORMAT_RGB8)
+	looks.blit_rect(
+		Image.create_from_data(256, 128, false, Image.FORMAT_RGB8, art.palette),
+		Rect2i(0, 0, 256, 128),
+		Vector2i.ZERO
+	)
+	if art.grain.size() == 936 * WIDTH:
+		var grain := Image.create_from_data(936, WIDTH, false, Image.FORMAT_R8, art.grain)
+		grain.convert(Image.FORMAT_RGB8)
+		looks.blit_rect(grain, Rect2i(0, 0, 936, WIDTH), Vector2i(0, 128))
+	if not table.is_empty():
+		var strip := Image.create_from_data(256, 1, false, Image.FORMAT_R8, table)
+		strip.convert(Image.FORMAT_RGB8)
+		looks.blit_rect(strip, Rect2i(0, 0, 256, 1), Vector2i(0, 128 + WIDTH))
+	palette_material.set_shader_parameter("looks", ImageTexture.create_from_image(looks))
 
 
 func menu_panel(title: String) -> void:
@@ -928,7 +956,9 @@ func render() -> void:
 	elif game != null:
 		gpu_look = gpu_ready and not cpu_look and (not smoke or view_shot != "")
 		game.gpu_look = gpu_look
-		game.layered = gpu_look and not cpu_view and int(options.get("fast_view", 1)) != 0
+		game.layered = (
+			gpu_look and canvas.gpu and not cpu_view and int(options.get("fast_view", 1)) != 0
+		)
 		game.draw(canvas, int(options["crosshair"]), true)
 	else:
 		canvas.clear(0, 0, 0)

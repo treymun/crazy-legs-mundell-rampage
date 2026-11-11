@@ -3,15 +3,19 @@ render_mode unshaded;
 
 // Convert the composed 320x200 RGB frame to the project's VGA-style 256-color
 // grade, exactly like period_palette.VGAPalette.apply (RGB555 -> palette LUT).
-uniform sampler2D lut : filter_nearest, repeat_disable;
+// The palette table (rows 0-127, 256 wide), the grain frames (rows 128-447)
+// and the brightness table (row 448), in one texture. Godot keeps several of a
+// WebGL page's 16 texture units for itself, so this shader samples only nine
+// textures (godot/tools/check_shader.py keeps count).
+uniform sampler2D looks : filter_nearest, repeat_disable;
+const int GRAIN_ROW = 128;
+const int TONE_ROW = 448;
 
 // The game view's look pass (game.gd _look_rows), done here when there is a
 // window: level wash and vignette, film grain, ordered dither, lamp buzz and
 // blast lift, then the brightness table. Rows from 156 down are the status bar.
 uniform bool look = false;
 uniform bool tone_on = false;
-uniform sampler2D grain : filter_nearest, repeat_disable;
-uniform sampler2D tone : filter_nearest, repeat_disable;
 uniform vec3 wash = vec3(1.0);
 uniform float gain = 1.0;
 uniform float blast = 0.0;
@@ -28,52 +32,52 @@ const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 
 // What the renderer still draws itself (glowing signs, the mirror, the hub's
 // shadowed and mesh walls, wall marks, ground marks) arrives as pixels.
 uniform bool scene_on = false;
+const int SPAN_K = 12;
 // With overlay_on the weapon, HUD and menus come from a Godot 2D viewport
 // (canvas.gd, gpu): post_tex is that viewport, premultiplied, its alpha the
 // coverage, and under it goes the view (scene_on), the software frame in
 // TEXTURE (base_on: FAST VIEW off) or black.
 uniform bool overlay_on = false;
 uniform bool base_on = false;
-uniform sampler2D frame_tex : filter_nearest, repeat_disable;
 // The canvas (weapon, HUD) and how much of each of its pixels is painted.
 uniform sampler2D post_tex : filter_nearest, repeat_disable;
-uniform sampler2D post_cover : filter_nearest, repeat_disable;
 // Walls. wall_code says, four bytes low to high, which texel of which tile a
 // wall pixel shows (21 bits: tile * 16384 + row * 128 + column) and which
 // shade row lights it (11 bits: tint * 99 + light step); all ones in the shade
-// row means the pixel's finished colour is in wall_tex instead (glowing signs,
+// row means the pixel's finished colour is in `colours` instead (glowing signs,
 // the mirror, wall marks). wall_dist is the distance of what the renderer drew.
-uniform sampler2D wall_tex : filter_nearest, repeat_disable;
-uniform sampler2D wall_code : filter_nearest, repeat_disable;
-uniform sampler2D wall_dist : filter_nearest, repeat_disable;
+// The renderer's per-frame parts, stacked a view's height apart.
+// colours: walls, sprites/ground marks (premultiplied), window panes, then the
+// wall codes (four bytes each). distances: walls, sprites/ground marks, window
+// panes, then the sprite/ground mark coverage.
+uniform sampler2D colours : filter_nearest, repeat_disable;
+uniform sampler2D distances : filter_nearest, repeat_disable;
 // Plain walls as whole spans, up to two texels each down a column, and how
 // many spans each column has (renderer: render_state.gd SPAN_K).
+// The wall spans (two rows a span), then a row of each column's span count,
+// then the sprite table: sprite i's texel k is texel i * 4 + k counted on
+// across the rows, from row SPAN_K * 2 + 1.
 uniform sampler2D spans : filter_nearest, repeat_disable;
-uniform sampler2D span_count : filter_nearest, repeat_disable;
 // Sprites and painted boards, drawn here in list order (render_state.gd
-// GPU_SPRITES): four texels a sprite, and the pictures in a texture array.
+// GPU_SPRITES): four texels a sprite in `spans`, the pictures in a texture array.
 uniform int sprite_count = 0;
-uniform sampler2D sprite_tab : filter_nearest, repeat_disable;
 uniform sampler2DArray sprite_art : filter_nearest, repeat_disable;
 // Sprites and ground marks: premultiplied colour, coverage, distance
 // (above zero a sprite, below zero a ground mark lying on a floor).
-uniform sampler2D over_tex : filter_nearest, repeat_disable;
-uniform sampler2D over_cover : filter_nearest, repeat_disable;
-uniform sampler2D over_dist : filter_nearest, repeat_disable;
 // Window panes held back from the walls, washed over what is behind them.
 uniform bool pane_on = false;
-uniform sampler2D pane_tex : filter_nearest, repeat_disable;
-uniform sampler2D pane_dist : filter_nearest, repeat_disable;
 // The level: 128x128 tiles sixteen to a row, the sky strip, and per map cell
 // the floor height index, roof height index, floor tile, ceiling tile; the
 // tint index; the light.
+// The tiles sixteen to a row, the level's sky strip under them from row
+// sky_row, and from row cells_row the cells, then each cell's tint index a
+// map's height further down.
 uniform sampler2D tiles_tex : filter_nearest, repeat_disable;
-uniform sampler2D sky_tex : filter_nearest, repeat_disable;
-uniform sampler2D cells_tex : filter_nearest, repeat_disable;
-uniform sampler2D cells_area : filter_nearest, repeat_disable;
-uniform sampler2D cells_light : filter_nearest, repeat_disable;
+uniform int sky_row = 1024;
+uniform int cells_row = 1140;
 // Row 0 floor heights nearest first (height, first cap, cap count), row 1 roof
-// heights, row 2 cap rectangles, row 3 cap tiles, row 4 tints.
+// heights, row 2 cap rectangles, row 3 cap tiles, row 4 tints, and from row
+// 5 each cell's light.
 uniform sampler2D plane_data : filter_nearest, repeat_disable;
 uniform ivec2 map_size = ivec2(1);
 uniform int floor_count = 0;
@@ -192,7 +196,7 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 		if (cell.x < 0 || cell.y < 0 || cell.x >= map_size.x || cell.y >= map_size.y) {
 			continue;
 		}
-		vec4 here = texelFetch(cells_tex, cell, 0);
+		vec4 here = texelFetch(tiles_tex, cell + ivec2(0, cells_row), 0);
 		int tile = 255;
 		if (overhead) {
 			if (byte_of(here.g) == i) {
@@ -223,9 +227,9 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 			}
 		}
 		vec3 texel = floor(texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0).rgb * 255.0 + 0.5);
-		float raw = (texelFetch(cells_light, cell, 0).r * (overhead ? 0.77 : 0.94) + flash_light) / (1.0 + 0.102 * t);
+		float raw = (texelFetch(plane_data, cell + ivec2(0, 5), 0).r * (overhead ? 0.77 : 0.94) + flash_light) / (1.0 + 0.102 * t);
 		float lit = float(min(int(max(raw, 0.19) * 32.0 + 0.5), 96)) / 32.0;
-		int tint_at = min(byte_of(texelFetch(cells_area, cell, 0).r), tint_count - 1);
+		int tint_at = min(byte_of(texelFetch(tiles_tex, cell + ivec2(0, cells_row + map_size.y), 0).r), tint_count - 1);
 		vec3 tint = texelFetch(plane_data, ivec2(tint_at, 4), 0).rgb;
 		if (hub_fx && !overhead) {
 			if (tile == hub_runoff) {
@@ -242,10 +246,10 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 
 // A wall pixel's colour (renderer.gd _wall_band and its shade table).
 vec3 wall_at(ivec2 lp) {
-	ivec4 code = ivec4(texelFetch(wall_code, lp, 0) * 255.0 + 0.5);
+	ivec4 code = ivec4(texelFetch(colours, lp + ivec2(0, view_size.y * 3), 0) * 255.0 + 0.5);
 	int shade_row = (code.b >> 5) | (code.a << 3);
 	if (shade_row == 2047) {
-		return texelFetch(wall_tex, lp, 0).rgb * 255.0;
+		return texelFetch(colours, lp, 0).rgb * 255.0;
 	}
 	int tile = ((code.b & 31) << 2) | (code.g >> 6);
 	int pv = ((code.g & 63) << 1) | (code.r >> 7);
@@ -279,12 +283,18 @@ vec3 span_at(int column, int k, float wz, float bottom, float top) {
 	return clamp(floor(texel * lit * tint), 0.0, 255.0);
 }
 
+// Texel k of sprite i of the sprite table (in `spans`, after the wall spans).
+vec4 sprite_texel(int i, int k) {
+	int at = i * 4 + k;
+	return texelFetch(spans, ivec2(at % view_size.x, SPAN_K * 2 + 1 + at / view_size.x), 0);
+}
+
 // renderer.gd _sky_band()
 vec3 sky_at(int column, float sy) {
 	float ray = (float(column) + 0.5 - float(view_size.x) * 0.5) / focal;
 	int sx = int((view_angle + atan(ray)) * 81.48733086305042) & 511;
 	int sr = clamp(int(93.0 + sy * res_up * 0.95), 0, 115);
-	return texelFetch(sky_tex, ivec2(sx, sr), 0).rgb * 255.0;
+	return texelFetch(tiles_tex, ivec2(sx, sr + sky_row), 0).rgb * 255.0;
 }
 
 // One pixel of the 320x156 view, 0-255, before the weapon and HUD layer.
@@ -293,13 +303,13 @@ vec3 view_at(ivec2 px) {
 	float ray = (float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal;
 	vec2 dir = fwd + side * ray;
 	float sy = float(lp.y) + 0.5 - horizon;
-	float drawn = texelFetch(wall_dist, lp, 0).r;
+	float drawn = texelFetch(distances, lp, 0).r;
 	// The nearest whole span covering this pixel, if it is nearer still.
 	int best = -1;
 	float best_wz = 0.0;
 	float best_bottom = 0.0;
 	float best_top = 0.0;
-	int count = int(texelFetch(span_count, ivec2(lp.x, 0), 0).r * 255.0 + 0.5);
+	int count = int(texelFetch(spans, ivec2(lp.x, SPAN_K * 2), 0).r + 0.5);
 	for (int k = 0; k < count; k++) {
 		vec4 a = texelFetch(spans, ivec2(lp.x, k * 2), 0);
 		if (a.x >= drawn) {
@@ -331,20 +341,20 @@ vec3 view_at(ivec2 px) {
 		}
 	}
 	float nearest = min(plane, drawn);
-	float cover = texelFetch(over_cover, lp, 0).r;
+	float cover = texelFetch(distances, lp + ivec2(0, view_size.y * 3), 0).r;
 	if (cover > 0.0) {
-		float reach = texelFetch(over_dist, lp, 0).r;
+		float reach = texelFetch(distances, lp + ivec2(0, view_size.y), 0).r;
 		// A sprite shows unless a surface the shader drew is in front of it; a ground
 		// mark shows only on the surface it lies on.
 		bool shown = reach > 0.0 ? nearest > reach - 0.014 : abs(-reach - nearest) < 0.13;
 		if (shown) {
-			base = floor(texelFetch(over_tex, lp, 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
+			base = floor(texelFetch(colours, lp + ivec2(0, view_size.y), 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
 		}
 	}
 	// Sprites and painted boards (render_sprites.gd _sprite_band, _draw_sign).
 	for (int i = 0; i < sprite_count; i++) {
-		vec4 a = texelFetch(sprite_tab, ivec2(0, i), 0);
-		vec4 b = texelFetch(sprite_tab, ivec2(1, i), 0);
+		vec4 a = sprite_texel(i, 0);
+		vec4 b = sprite_texel(i, 1);
 		int flags = int(b.w + 0.5);
 		bool clear = (flags & 2) != 0;
 		vec4 c;
@@ -365,8 +375,8 @@ vec3 view_at(ivec2 px) {
 			if (dist >= nearest + 0.014) {
 				continue;
 			}
-			c = texelFetch(sprite_tab, ivec2(2, i), 0);
-			d = texelFetch(sprite_tab, ivec2(3, i), 0);
+			c = sprite_texel(i, 2);
+			d = sprite_texel(i, 3);
 			int sw = int(d.x + 0.5);
 			int sh = int(d.y + 0.5);
 			int sxi = (lp.x - left) * sw / width;
@@ -385,7 +395,7 @@ vec3 view_at(ivec2 px) {
 				texel = floor(texel * (1.0 - b.z) + vec3(255.0, 232.0, 208.0) * b.z);
 			}
 		} else {
-			d = texelFetch(sprite_tab, ivec2(3, i), 0);
+			d = sprite_texel(i, 3);
 			vec2 dv = fwd + side * ((float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal);
 			float den = a.y * dv.x - a.x * dv.y;
 			if (den <= 0.001) {
@@ -403,7 +413,7 @@ vec3 view_at(ivec2 px) {
 			if (v < 0.0 || v >= 1.0) {
 				continue;
 			}
-			c = texelFetch(sprite_tab, ivec2(2, i), 0);
+			c = sprite_texel(i, 2);
 			int sw = int(d.x + 0.5);
 			int sh = int(d.y + 0.5);
 			vec4 t = texelFetch(sprite_art, ivec3(clamp(int(along * float(sw)), 0, sw - 1), clamp(int(v * float(sh)), 0, sh - 1), int(c.w + 0.5)), 0);
@@ -423,51 +433,44 @@ vec3 view_at(ivec2 px) {
 		}
 	}
 	if (pane_on) {
-		float glass = texelFetch(pane_dist, lp, 0).r;
+		float glass = texelFetch(distances, lp + ivec2(0, view_size.y * 2), 0).r;
 		if (glass < 160.0 && glass < nearest) {
-			base = floor(base * vec3(0.67, 0.78, 0.82) + texelFetch(pane_tex, lp, 0).rgb * 255.0 * 0.33);
+			base = floor(base * vec3(0.67, 0.78, 0.82) + texelFetch(colours, lp + ivec2(0, view_size.y * 2), 0).rgb * 255.0 * 0.33);
 		}
 	}
 	return clamp(base, 0.0, 255.0);
 }
 
 // The finished view pixel: the weapon and HUD layer over the view.
-vec3 picture_at(ivec2 px) {
-	if (overlay_on) {
-		vec4 o = texelFetch(post_tex, px, 0);
-		if (o.a >= 1.0) {
-			return o.rgb * 255.0;
-		}
-		vec3 under = vec3(0.0);
-		if (scene_on && px.y < 156) {
-			under = view_at(px);
-		} else if (base_on) {
-			under = texelFetch(frame_tex, px, 0).rgb * 255.0;
-		}
-		return floor(o.rgb * 255.0 + (1.0 - o.a) * under + 0.5);
+vec3 picture_at(ivec2 px, vec3 frame) {
+	vec4 o = texelFetch(post_tex, px, 0);
+	if (o.a >= 1.0) {
+		return o.rgb * 255.0;
 	}
-	vec3 over = texelFetch(post_tex, px, 0).rgb * 255.0;
-	float cover = texelFetch(post_cover, px, 0).r;
-	if (cover >= 1.0) {
-		return over;
+	vec3 under = vec3(0.0);
+	if (scene_on && px.y < 156) {
+		under = view_at(px);
+	} else if (base_on) {
+		under = frame;
 	}
-	return over + (1.0 - cover) * view_at(px);
+	return floor(o.rgb * 255.0 + (1.0 - o.a) * under + 0.5);
 }
 
 void fragment() {
 	ivec2 px = ivec2(UV * vec2(320.0, 200.0));
 	vec3 c;
-	if (overlay_on || (scene_on && px.y < 156)) {
+	if (overlay_on) {
 		if (drunk > 0.0 && px.y < 156) {
 			// game.gd _drunk_warp(): per-row shear, ghost double image, amber tint.
 			int shift = int(floor(sin(float(px.y) * 0.16 + drunk_phase) * (1.0 + 3.4 * drunk) + 0.5));
 			int sx = (px.x + shift + 640) % 320;
 			int gx = (px.x - drunk_ghost + shift + 640) % 320;
 			float blend = 0.30 * drunk;
-			vec3 v = picture_at(ivec2(sx, px.y)) * (1.0 - blend) + picture_at(ivec2(gx, px.y)) * blend;
+			vec3 v = picture_at(ivec2(sx, px.y), texelFetch(TEXTURE, ivec2(sx, px.y), 0).rgb * 255.0) * (1.0 - blend)
+					+ picture_at(ivec2(gx, px.y), texelFetch(TEXTURE, ivec2(gx, px.y), 0).rgb * 255.0) * blend;
 			c = floor(vec3(v.r * (1.0 + 0.06 * drunk), v.g, v.b * (1.0 - 0.10 * drunk)));
 		} else {
-			c = picture_at(px);
+			c = picture_at(px, texelFetch(TEXTURE, px, 0).rgb * 255.0);
 		}
 		c = clamp(c, 0.0, 255.0) / 255.0;
 	} else {
@@ -482,13 +485,13 @@ void fragment() {
 		if (look) {
 			vec2 n = (vec2(px) / vec2(319.0, 155.0) - 0.5) * 2.0;
 			float vignette = 1.0 - 0.13 * pow(length(n) / 1.4142, 2.1);
-			float g = texelFetch(grain, ivec2(grain_frame * 156 + px.y, px.x), 0).r * 255.0;
+			float g = texelFetch(looks, ivec2(grain_frame * 156 + px.y, GRAIN_ROW + px.x), 0).r * 255.0;
 			float add = g - 2.0 + blast + (BAYER[(px.x % 4) * 4 + (px.y % 4)] / 16.0 - 0.5) * 6.0;
 			v = clamp(trunc(v * (wash * vignette * gain) + add), 0.0, 255.0);
 		}
 		if (tone_on) {
-			v = vec3(texelFetch(tone, ivec2(int(v.r), 0), 0).r, texelFetch(tone, ivec2(int(v.g), 0), 0).r,
-					texelFetch(tone, ivec2(int(v.b), 0), 0).r) * 255.0;
+			v = vec3(texelFetch(looks, ivec2(int(v.r), TONE_ROW), 0).r, texelFetch(looks, ivec2(int(v.g), TONE_ROW), 0).r,
+					texelFetch(looks, ivec2(int(v.b), TONE_ROW), 0).r) * 255.0;
 		}
 		q = ivec3(v + 0.5);
 	}
@@ -497,5 +500,5 @@ void fragment() {
 	int b5 = (q.b * 31 + 127) / 255;
 	int code = (r5 << 10) | (g5 << 5) | b5;
 	ivec2 pos = ivec2(code & 255, code >> 8);
-	COLOR = vec4(texelFetch(lut, pos, 0).rgb, 1.0);
+	COLOR = vec4(texelFetch(looks, pos, 0).rgb, 1.0);
 }

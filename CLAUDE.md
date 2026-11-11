@@ -80,6 +80,16 @@ python scripts/godot_version.py --set 2.0.0-dev.N
   through those works in both. Never write `canvas.pixels` directly for
   something on screen; give `blit_rgba` a cache name. Headless (tools, CI)
   and `--cpu-canvas` draw in software.
+- **Nine textures at most in `palette.gdshader`.** WebGL and many phones give a
+  shader 16 texture units and Godot keeps several; past nine the browser
+  and Android builds draw nothing while a desktop looks fine.
+  `tools/check_shader.py` (in CI) counts them. Stack new data into an existing
+  texture instead of adding one.
+- **Chapter music is a separate download in the browser.** `pack_assets.py`
+  writes `music_<chapter>.bin`, the web presets leave them out, CI turns them
+  into packs (`tools/make_packs.gd`) and `pack_loader.gd` fetches them after
+  start. A browser cannot rename files in its storage and HTTPRequest's
+  `download_file` does not write there: keep writing packs from memory.
 - **Band threads.** Inside the renderer's band loops, never call a script
   function, read a field of another object or use untyped `round`, `floor`
   or `ceil`. Each costs 5 to 11 times more while the other threads do the

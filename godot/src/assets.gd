@@ -28,7 +28,9 @@ var _sfx_cache: Dictionary = {}
 
 var music_index: Dictionary = {}
 var music_ends: Dictionary = {}
-var _music_file: FileAccess
+## Open music files by name. A browser build fetches the chapters' files after
+## it starts (pack_loader.gd); until one arrives its tracks are simply missing.
+var _music_files := {}
 var _music_cache: Dictionary = {}
 
 
@@ -58,7 +60,6 @@ func _init() -> void:
 
 	music_index = _json("res://assets_gen/music_index.json")
 	music_ends = _json("res://assets_gen/music_ends.json")
-	_music_file = FileAccess.open("res://assets_gen/music.bin", FileAccess.READ)
 
 
 static func _json(path: String) -> Dictionary:
@@ -140,8 +141,18 @@ func track(name: String) -> AudioStreamOggVorbis:
 	var info = music_index.get(name)
 	if info == null:
 		return null
-	_music_file.seek(int(info["offset"]))
-	var raw := _music_file.get_buffer(int(info["length"]))
+	var file_name := String(info.get("file", "music.bin"))
+	var handle: FileAccess = _music_files.get(file_name)
+	if handle == null:
+		var path := "res://assets_gen/" + file_name
+		if not FileAccess.file_exists(path):
+			return null
+		handle = FileAccess.open(path, FileAccess.READ)
+		if handle == null:
+			return null
+		_music_files[file_name] = handle
+	handle.seek(int(info["offset"]))
+	var raw := handle.get_buffer(int(info["length"]))
 	var stream := AudioStreamOggVorbis.load_from_buffer(raw)
 	if stream == null:
 		push_warning("bad ogg " + name)

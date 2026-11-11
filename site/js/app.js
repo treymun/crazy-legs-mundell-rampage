@@ -51,6 +51,20 @@
   const playNote = $('#play-note');
   const fullscreenButton = $('#fullscreen-button');
   const canIsolate = 'serviceWorker' in navigator && window.isSecureContext;
+  // Older releases installed Godot's own offline worker under play/, and it
+  // keeps handing out the old game from its cache. Remove it and its caches;
+  // sw.js (which caches nothing) is the only worker the site uses now.
+  if (canIsolate) {
+    navigator.serviceWorker.getRegistrations().then((found) => found.forEach((r) => {
+      const script = (r.active || r.waiting || r.installing || {}).scriptURL || '';
+      if (!/\/sw\.js$/.test(script)) r.unregister();
+    })).catch(() => {});
+    if (window.caches) {
+      caches.keys().then((keys) => keys.forEach((k) => {
+        if (/sw-cache/.test(k)) caches.delete(k);
+      })).catch(() => {});
+    }
+  }
   const worker = canIsolate
     ? navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).catch(() => null)
     : Promise.resolve(null);

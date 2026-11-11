@@ -57,6 +57,15 @@ static var _textures := {}
 static var _glyphs := {}
 
 
+## Free the items made for Godot 2D drawing (the program is closing).
+func gpu_free() -> void:
+	for item in _items:
+		RenderingServer.free_rid(item)
+	_items.clear()
+	_item_kinds.clear()
+	_items_used = 0
+
+
 ## Start a frame's drawing: forget last frame's commands.
 func gpu_begin() -> void:
 	for i in _items_used:
