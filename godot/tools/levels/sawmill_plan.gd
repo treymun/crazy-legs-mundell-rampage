@@ -77,6 +77,7 @@ func build(_b) -> Array:
 	cast()
 	detail()
 	polish()
+	dress()
 	return [64.5, 81.5, -PI / 2]
 
 
@@ -246,7 +247,7 @@ func west_bank() -> void:
 	# The bank: log decks, the saw-doctor's stump, a skiff pulled up.
 	for p in [Vector2(28.5, 34.5), Vector2(28.5, 58.5), Vector2(12.5, 40.5)]:
 		b.town("log_pile", p.x, p.y, {"solid": .45})
-	b.town("axe_stump", 24.5, 50.5, {"solid": .3})
+	b.town("axe_stump", 25.5, 58.5, {"solid": .3})
 	b.fixture(30.0, 47.3, 33.0, 47.7, .45, "wood", "wood")
 	b.town("lantern_post", 32.5, 44.5, {"solid": .1, "glow": true})
 	b.town("lantern_post", 32.5, 52.5, {"solid": .1, "glow": true})
@@ -324,8 +325,8 @@ func east_bank() -> void:
 	for y in [33.5, 36.5]:
 		b.fixture(98.0, y - .3, 119.0, y + .3, .82, "steel_mesh", "mill_log")
 	b.board("wing_mill_sort", 108.0, 32.06, .8, {"z": 1.5, "plane": 0.0})
-	b.board("wing_mill_sort_rollers", 104.0, 35.0, .6, {"z": .82})
-	b.board("detail_sort_chain_box", 116.0, 35.0, .5, {"z": .82})
+	b.board("wing_mill_sort_rollers", 104.0, 36.5, .6, {"z": .82})
+	b.board("detail_sort_chain_box", 116.0, 33.5, .5, {"z": .82})
 	for p in [Vector2(99.5, 44.5), Vector2(113.5, 45.5), Vector2(123.5, 34.5)]:
 		b.town("lumber_cart", p.x, p.y, {"solid": .45})
 	b.town("forklift", 106.5, 45.5, {"solid": .45})
@@ -422,8 +423,9 @@ func rain_storage() -> void:
 		for x in [96.0, 103.0, 110.0, 117.0, 124.0]:
 			b.fixture(x - .07, y0 - .07, x + .07, y0 + .07, 2.4, "mill_log", "mill_log")
 			b.fixture(x - .07, y0 + 4.93, x + .07, y0 + 5.07, 2.4, "mill_log", "mill_log")
+		# One stack to a bay: logs under cover, sawn stock tarped against the drip.
 		for x in [99.5, 106.5, 113.5, 120.5]:
-			b.town("log_pile" if int(x) % 2 else "pallet_stack", x, y0 + 2.5, {"solid": .45})
+			b.town("log_pile" if int(x) % 2 else "lumber_stack", x, y0 + 2.5, {"solid": .45})
 	b.board("wing_mill_rain", 109.0, 49.94, .8, {"z": 1.1, "plane": PI})
 	b.board("detail_rain_stock", 101.0, 57.2, .5)
 	b.board("county_mill_bypass", 94.0, 64.6, .9, {"z": .2, "plane": PI / 2})
@@ -482,7 +484,7 @@ func cutting_shed() -> void:
 	)
 	b.board("mill_brake", 63.0, 22.1, .98, {"signal": "brake"})
 	b.board("mill_saw", 52.5, 17.0, 1.0, {"z": 2.0})
-	b.board("detail_carriage_tools", 70.5, 22.4, .5, {"z": .7})
+	b.board("detail_carriage_tools", 69.4, 21.0, .5, {"z": .7})
 	for p in [Vector2(42.5, 24.5), Vector2(86.5, 24.5), Vector2(44.5, 9.5), Vector2(84.5, 9.5)]:
 		b.town("log_pile", p.x, p.y, {"solid": .45})
 	b.town("sawdust_pile", 48.5, 25.5, {"solid": .45})
@@ -521,7 +523,7 @@ func cutting_shed() -> void:
 	)
 	b.board("mill_relay", 63.0, 7.1, 1.54, {"signal": "relay"})
 	b.board("mill_pump_sign", 64.0, 14.6, .7, {"z": 1.6, "plane": 0.0})
-	b.board("detail_pump_manifold", 68.0, 7.4, .5, {"z": .8})
+	b.board("detail_pump_manifold", 68.0, 7.06, .5, {"z": .8, "plane": 0.0})
 	b.secret(71, 11, true, [72, 10, 73, 12], {"from": "w", "id": "pump-cache", "tile": "mill_pump"})
 	b.wall(71, 9, 74, 9, "mill_pump", 3.6)
 	b.wall(71, 13, 74, 13, "mill_pump", 3.6)
@@ -571,7 +573,7 @@ func story() -> void:
 	b.fuel_drums.append([94.5, 48.0])
 	b.fuel_drums.append([40.5, 26.6])
 	b.fuel_drums.append([88.5, 26.6])
-	for p in [Vector2(94.4, 47.2), Vector2(39.7, 26.4), Vector2(89.4, 26.2)]:
+	for p in [Vector2(94.4, 47.2), Vector2(41.3, 26.6), Vector2(89.4, 26.2)]:
 		b.prop("barrel", p.x, p.y)
 
 
@@ -723,14 +725,9 @@ func detail() -> void:
 ## The polish pass: the pond and the yards full of what a mill floats,
 ## stacks and leaves lying.
 func polish() -> void:
-	# Set pieces where a yard read unfinished, each against a wall, nothing strewn.
-	# The west bank: a cut log deck by the fence, the splitting stump beside it.
-	b.town("log_pile", 5.45, 31.5)
-	b.town("axe_stump", 4.6, 30.0)
-	b.town("lumber_cart", 5.05, 60.5)
 	# The pump house: the hoist over the pump pit, its cable and fuel by it.
 	b.town("engine_hoist", 59.5, 13.05)
-	b.town("cable_spool", 58.0, 13.2)
+	b.town("cable_spool", 58.75, 12.4)
 	b.town("gas_cans", 60.9, 13.6)
 	b.board("detail_pump_manifold", 62.0, 13.98, .6, {"z": .8, "plane": PI})
 	# The truck scale office: the test weights on the wall.
@@ -758,9 +755,6 @@ func polish() -> void:
 	for x in [72.0, 76.0, 81.0]:
 		for y in [68.0, 73.0]:
 			b.fixture(x - .07, y - .07, x + .07, y + .07, 2.6, "mill_log", "mill_log")
-	var timber := [
-		"log_pile", "pallet_stack", "axe_stump", "prop:barrel", "prop:crate", "lumber_cart"
-	]
 	for e in [
 		["chain_hand", 76.0, 70.5, "shed-chain-b"],
 		["lantern", 70.0, 50.0, "raft-lantern"],
@@ -783,3 +777,86 @@ func polish() -> void:
 			}
 		)
 	)
+
+
+# ------------------------------------------------------------------ dressing
+# By hand, district by district: each group shows what the place is for and
+# stands where the work would leave it, against a wall, a fence or a machine.
+# Big pieces stand clear of walls by their own half width (they turn to face
+# the eye), small ones in the middle of a cell so paths go round them.
+
+
+func dress() -> void:
+	dress_cutting_shed()
+	dress_yard()
+	dress_banks()
+	dress_east()
+
+
+## The head saw line west to east: the log deck, the carriage with a log
+## dogged on, the saw, the grader's table and the sawn stock; the resaw east
+## of the brake and the conveyor taking its cut out to the green chain.
+func dress_cutting_shed() -> void:
+	b.town("headrig", 44.5, 20.5, {"solid": .45})
+	b.board("detail_mill_tie_off", 37.06, 21.5, .5, {"z": .9, "plane": -PI / 2})
+	b.town("sorting_table", 53.5, 23.5, {"solid": .45})
+	b.town("lumber_stack", 57.5, 25.5, {"solid": .45})
+	b.town("lumber_stack", 72.5, 25.5, {"solid": .45})
+	b.town("belt_conveyor", 84.5, 21.5, {"solid": .45})
+	# The saw filer's corner: the spare blade on its stand, the resaw blades
+	# racked on the wall over it.
+	b.town("saw_blade", 40.5, 9.5, {"solid": .45})
+	b.board("detail_apron_blade_rack", 40.5, 7.06, .55, {"z": 1.1, "plane": 0.0})
+	# The north-east bay: the forklift parked by the stock it moves.
+	b.town("forklift", 88.5, 10.5, {"solid": .45})
+	b.town("lumber_stack", 80.5, 8.5, {"solid": .45})
+	# The pump house: the pump engine in its corner.
+	b.town("generator", 68.5, 8.5, {"solid": .45})
+	# The apron: sawn stock stacked along the wall for the trucks.
+	b.town("lumber_stack", 66.5, 2.5, {"solid": .45})
+	b.town("lumber_stack", 78.5, 2.5, {"solid": .45})
+
+
+## The delivery yard: the loader working the west log deck, the log truck up
+## on blocks in its shed with the hoist over it, the scale man's old sedan and
+## his office (beer in the fridge, a rocker in front of the set).
+func dress_yard() -> void:
+	b.town("log_loader", 14.5, 75.5, {"solid": .45})
+	b.town("truck_blocks", 74.5, 69.5, {"solid": .45})
+	b.town("engine_hoist", 72.5, 70.5, {"solid": .45})
+	b.town("tire_stack", 78.5, 68.5, {"solid": .3})
+	b.town("gas_cans", 77.7, 68.6)
+	b.town("wreck_sedan", 97.5, 79.5, {"solid": .45})
+	b.town("fridge", 85.5, 77.5, {"solid": .35})
+	b.town("rocker", 90.5, 79.5, {"solid": .3})
+
+
+## The banks: the skiff pulled up where the west boardwalk starts, sawn stock
+## by the north fence, logs riding the flume; the sluice works' cable drum by
+## its pump; the bunkhouse fridge and couch, the washing out back.
+func dress_banks() -> void:
+	b.town("skiff", 34.5, 42.5, {"solid": .45})
+	b.town("lumber_stack", 22.5, 31.5, {"solid": .45})
+	for c in [[6.2, 33.0, 6.8, 35.6], [5.4, 57.2, 6.0, 59.6]]:
+		b.fixture(c[0], c[1], c[2], c[3], .64, "mill_log", "mill_log", .4)
+	b.town("cable_spool", 16.5, 22.5, {"solid": .45})
+	b.town("fridge", 21.5, 8.5, {"solid": .35})
+	b.town("porch_couch", 17.5, 11.5, {"solid": .45})
+	b.town("laundry", 25.5, 6.5, {"plane": 0.0, "z": .68, "back": "town_laundry"})
+
+
+## The east bank: the grader's table at the end of the green chain, stacks
+## waiting for the forklift by the fence; stock drying in the kilns (two
+## stacks, a stack and a kiln car, a stack and an empty pallet being loaded)
+## and the conveyor at the head of the kiln belt.
+func dress_east() -> void:
+	b.town("sorting_table", 121.5, 35.5, {"solid": .45})
+	b.town("lumber_stack", 101.5, 47.5, {"solid": .45})
+	b.town("lumber_stack", 119.5, 47.5, {"solid": .45})
+	b.town("lumber_stack", 99.5, 6.5, {"solid": .45})
+	b.town("lumber_stack", 99.5, 9.5, {"solid": .45})
+	b.town("lumber_stack", 109.5, 7.5, {"solid": .45})
+	b.town("lumber_cart", 109.5, 10.5, {"solid": .45})
+	b.town("lumber_stack", 119.5, 6.5, {"solid": .45})
+	b.town("pallet_stack", 119.5, 10.5, {"solid": .45})
+	b.town("belt_conveyor", 121.5, 20.5, {"solid": .45})

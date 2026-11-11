@@ -81,6 +81,7 @@ func build(_b) -> Array:
 	cast()
 	detail()
 	polish()
+	dress()
 	return [64.5, 81.5, -PI / 2]
 
 
@@ -141,7 +142,7 @@ func weigh_station() -> void:
 	# The truck scale, the trucks, a jug crate for the inspector.
 	b.paint(66, 74, 74, 80, "steel_mesh")
 	b.town("dump_truck", 70.5, 77.5, {"solid": .45})
-	b.town("dump_truck", 82.5, 72.5, {"solid": .45})
+	b.town("dump_truck", 80.5, 77.5, {"solid": .45})
 	b.town("jug_stack", 52.5, 70.5, {"solid": .4})
 	b.town("warning_barrel", 76.5, 82.5, {"solid": .3})
 	b.town("warning_barrel", 51.5, 82.5, {"solid": .3})
@@ -183,14 +184,14 @@ func cut_yard() -> void:
 		b.fixture(c[0], c[1], c[2], c[3], c[4] + .48, "quarry_face", "quarry_face", .48)
 	b.town("drill_rig", 54.5, 38.5, {"solid": .45})
 	b.town("drill_rig", 76.5, 40.5, {"solid": .45})
-	b.town("crusher", 64.5, 37.5, {"solid": .45})
+	b.town("crusher", 64.5, 37.5, {"solid": .45, "z": .32})
 	b.fixture(63.0, 36.0, 66.0, 39.0, .8, "quarry_iron", "quarry_iron", .48)
 	b.town("mine_cart", 50.5, 47.5, {"solid": .45})
 	b.town("mine_cart", 78.5, 47.5, {"solid": .45})
 	b.town("cable_spool", 88.5, 44.5, {"solid": .45})
 	for p in [Vector2(48.5, 56.5), Vector2(70.5, 42.5), Vector2(58.5, 52.5), Vector2(86.5, 40.5)]:
 		b.town("boulder_a" if int(p.x) % 2 else "boulder_b", p.x, p.y, {"solid": .4})
-	b.board("detail_cutting_drill", 56.0, 40.5, .5, {"z": .48})
+	b.board("detail_cutting_drill", 56.0, 40.5, .5)
 	b.board("quarry_cut_arrow", 40.0, 47.0, .7, {"z": 1.4, "plane": -PI / 2})
 	b.board("quarry_stills_arrow", 90.0, 47.0, .7, {"z": 1.4, "plane": PI / 2})
 	b.react("pipe", 67.5, 53.5, .9, {"id": "quarry-cut-leak"})
@@ -275,7 +276,7 @@ func chalk_terraces() -> void:
 	b.raise(18, 33, 20, 33, .6)
 	b.paint(4, 2, 36, 32, "quarry_dust")
 	b.paint(18, 2, 22, 32, "quarry_face")
-	b.board("wing_quarry_terrace", 33.0, 31.4, .8, {"z": .72})
+	b.board("wing_quarry_terrace", 33.0, 31.4, .8)
 	for p in [Vector2(10.5, 28.5), Vector2(26.5, 20.5), Vector2(14.5, 12.5), Vector2(30.5, 4.5)]:
 		b.town("boulder_b" if int(p.x) % 2 else "boulder_a", p.x, p.y, {"solid": .4})
 	b.town("drill_rig", 22.5, 27.5, {"solid": .45})
@@ -373,7 +374,7 @@ func lower_cut() -> void:
 	b.wall(126, 63, 128, 63, "quarry_face", 2.0)
 	b.wall(126, 69, 128, 69, "quarry_face", 2.0)
 	b.board("wing_quarry_wash_rack", 127.5, 64.04, .7, {"z": .9, "plane": 0.0})
-	b.board("detail_wash_rejects", 127.0, 67.0, .5, {"z": .48})
+	b.board("detail_wash_rejects", 127.0, 67.0, .5)
 	b.react("pipe", 127.5, 66.0, .9, {"id": "quarry-wash-pipe"})
 	b.town("jug_stack", 127.5, 67.5, {"solid": .4})
 	for p in [
@@ -435,10 +436,10 @@ func condenser_yard() -> void:
 			"action": "crank"
 		}
 	)
-	b.board("mill_control", 121.5, 6.4, 1.26, {"signal": "stills", "z": .48})
-	b.board("wing_quarry_condenser", 118.0, 6.4, .73, {"signal": "stills", "z": 1.45})
-	b.board("detail_still_gauge_bank", 122.5, 11.6, .5, {"z": .9})
-	b.board("wing_quarry_still", 104.0, 4.4, .8, {"z": 1.5})
+	b.board("mill_control", 121.5, 6.4, 1.26, {"signal": "stills"})
+	b.board("wing_quarry_condenser", 118.0, 5.5, .73, {"signal": "stills", "z": 1.12})
+	b.board("detail_still_gauge_bank", 122.5, 11.6, .5)
+	b.board("wing_quarry_still", 104.0, 2.06, .8, {"z": 1.2, "plane": 0.0})
 	b.distant_cues.append([104.5, 11.5, "distant_quarry_bottler"])
 	b.town("still", 108.5, 26.5, {"solid": .45})
 	b.town("jug_stack", 112.5, 26.5, {"solid": .4})
@@ -510,12 +511,12 @@ func bottling_works() -> void:
 	for y in [12.5, 20.5]:
 		b.fixture(44.0, y - .4, 84.0, y + .4, 1.4, "steel_mesh", "quarry_iron", .48)
 	for x in [50.5, 60.5, 70.5, 80.5]:
-		b.town("jug_stack", x, 16.5, {"solid": .4, "z": .48})
-	b.town("copper_vat", 44.5, 25.5, {"solid": .45, "z": .48})
-	b.town("copper_vat", 82.5, 25.5, {"solid": .45, "z": .48})
-	b.board("quarry_bottles", 56.0, 12.5, .7, {"z": 1.88})
-	b.board("quarry_bottles", 72.0, 20.5, .7, {"z": 1.88})
-	b.board("detail_bottling_cradles", 64.0, 24.0, .6, {"z": .48})
+		b.town("jug_stack", x, 16.5, {"solid": .4})
+	b.town("copper_vat", 44.5, 25.5, {"solid": .45})
+	b.town("copper_vat", 82.5, 25.5, {"solid": .45})
+	b.board("quarry_bottles", 56.0, 12.5, .7, {"z": .92})
+	b.board("quarry_bottles", 72.0, 20.5, .7, {"z": .92})
+	b.board("detail_bottling_cradles", 64.0, 24.0, .6)
 	b.station(
 		"bottling",
 		64.5,
@@ -529,7 +530,7 @@ func bottling_works() -> void:
 			"cue": "mill_trip"
 		}
 	)
-	b.board("mill_relay", 63.0, 7.1, 1.46, {"signal": "bottling", "z": .48})
+	b.board("mill_relay", 63.0, 7.1, 1.46, {"signal": "bottling"})
 	b.exchanges.append(
 		{
 			"id": "line-speaker",
@@ -757,7 +758,6 @@ func cast() -> void:
 ## The last pass: the cut yard, the pit and the works crowded the way a
 ## working quarry is, and lit.
 func detail() -> void:
-	var rock := ["boulder_a", "boulder_b", "warning_barrel", "tnt_crate"]
 	for e in [
 		["coot", 80.0, 80.0, "scale-coot"],
 		["chalk_spitter", 26.0, 6.0, "powder-chalk"],
@@ -815,7 +815,6 @@ func polish() -> void:
 	b.door(83, 74, false, {"from": "n", "id": "magazine-door"})
 	b.board("quarry_blast", 83.0, 74.06, .7, {"z": 1.3, "plane": 0.0})
 	b.town("tnt_crate", 81.5, 71.5, {"solid": .4})
-	var rock := ["boulder_a", "boulder_b", "warning_barrel", "tnt_crate"]
 	for e in [
 		["chalk_spitter", 75.0, 44.0, "outcrop-chalk"],
 		["valve_rat", 100.0, 10.0, "vat-rat"],
@@ -839,3 +838,64 @@ func polish() -> void:
 			}
 		)
 	)
+
+
+# ------------------------------------------------------------------ dressing
+# By hand, district by district: each group shows what the place is for and
+# stands where the work would leave it, against a wall, a face or a machine.
+# Big pieces stand clear of walls by their own half width (they turn to face
+# the eye), small ones in the middle of a cell so paths go round them.
+
+
+func dress() -> void:
+	dress_weigh_station()
+	dress_cut()
+	dress_works()
+
+
+## The weigh station: cut stone and the stone-boat waiting by the scale for a
+## truck, the second truck queued behind the one on the scale; the magazine's
+## powder shelf; in the scale house the open safe under the scale ticket and
+## the inspector's rocker in front of the set.
+func dress_weigh_station() -> void:
+	b.town("stone_blocks", 44.5, 72.5, {"solid": .45})
+	b.town("stone_sledge", 41.5, 76.5, {"solid": .45})
+	b.town("powder_shelf", 83.5, 71.06, {"plane": 0.0})
+	b.town("tnt_crate", 84.5, 72.5, {"solid": .4})
+	b.town("safe_open", 60.5, 74.5, {"solid": .36, "base": "tin"})
+	b.town("rocker", 57.5, 75.5, {"solid": .3})
+
+
+## The cut: the derrick lifting blocks off the west stack, the chute feeding
+## the crusher, cut stone and the stone-boat at the head of the haul road;
+## in the cutting shed the finished blocks and a loaded stone-boat; on the
+## terraces a second derrick at a bench's lip with blocks waiting to go down;
+## the powder shelf in the dynamite shack; a rig drilling the next shot on the
+## pit's top bench with its powder by it.
+func dress_cut() -> void:
+	b.town("crane_hook", 40.5, 50.5, {"solid": .45})
+	b.town("crane_hook", 26.5, 14.5, {"solid": .45})
+	b.town("stone_blocks", 22.5, 13.5, {"solid": .45})
+	b.town("rock_chute", 60.5, 37.5, {"solid": .45})
+	b.town("stone_blocks", 58.5, 57.5, {"solid": .45})
+	b.town("stone_sledge", 69.5, 57.5, {"solid": .45})
+	b.town("stone_blocks", 25.5, 44.5, {"solid": .45})
+	b.town("stone_sledge", 16.5, 47.5, {"solid": .45})
+	b.town("powder_shelf", 12.0, 3.06, {"plane": 0.0})
+	b.town("drill_rig", 103.5, 37.5, {"solid": .45})
+	b.town("tnt_crate", 105.5, 37.5, {"solid": .4})
+
+
+## The bootleg works: mash barrels working along the condenser yard's west
+## wall, a second still with its barrel and jugs, stripped copper wire on its
+## drum in copper recovery; in the bottling works a barrel by each copper vat
+## and crates of full jugs by the door to ship.
+func dress_works() -> void:
+	for y in [9.5, 12.5, 15.5]:
+		b.town("mash_barrel", 95.5, y, {"solid": .4})
+	b.town("mash_barrel", 106.5, 26.5, {"solid": .4})
+	b.town("cable_spool", 115.5, 10.5, {"solid": .45})
+	b.town("mash_barrel", 41.5, 25.5, {"solid": .4})
+	b.town("mash_barrel", 85.5, 25.5, {"solid": .4})
+	b.town("jug_stack", 60.5, 28.5, {"solid": .4})
+	b.town("jug_stack", 68.5, 28.5, {"solid": .4})

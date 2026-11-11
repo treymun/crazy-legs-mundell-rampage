@@ -441,6 +441,374 @@ def warning_barrel():
     return .8, 1.0
 
 
+# ----------------------------------------------- the mill and the quarry, more
+SAWN = (204, 168, 116)
+MACHINE = (92, 104, 84)
+LIME = (172, 162, 138)
+
+
+def beam(p0, p1, t, m, t2=None):
+    # A squared timber or a bar from p0 to p1, t across (t2 the other way).
+    a, b = Vector(p0), Vector(p1)
+    d = b - a
+    rot = [math.degrees(v) for v in d.normalized().to_track_quat("Z", "Y").to_euler()]
+    return box(t, t if t2 is None else t2, d.length, (a + b) / 2, m, rot)
+
+
+def chain(p0, p1, m, link=.09):
+    # Links from p0 to p1, every other one turned a quarter.
+    a, b = Vector(p0), Vector(p1)
+    n = max(2, int((b - a).length / link))
+    for k in range(n):
+        p = a.lerp(b, (k + .5) / n)
+        beam(p - (b - a) / n * .55, p + (b - a) / n * .55, .045 if k % 2 else .018, m, .018 if k % 2 else .045)
+
+
+def headrig():
+    # The log carriage of the head saw: an iron car on its rails, the log
+    # dogged against the knees, the setter's stand and lever at the end.
+    iron = mat(*MACHINE, metal=.45, rough=.55, grime=.85)
+    rust = mat(*RUST, metal=.3, grime=.7)
+    for y in (-.42, .42):
+        box(3.8, .07, .07, (0, y, .04), mat(150, 150, 146, metal=.8, rough=.3, grime=.6))
+    for k in range(7):
+        box(.14, 1.2, .05, (-1.7 + k * .57, 0, .01), mat(*GREY_WOOD, grime=.7))
+    steel = mat(176, 176, 170, metal=.8, rough=.3, grime=.5)
+    red = mat(170, 44, 32, metal=.3, rough=.5, grime=.6)
+    box(2.7, .95, .3, (0, 0, .4), iron)
+    box(2.72, .97, .07, (0, 0, .58), red)
+    for x in (-1.05, -.35, .35, 1.05):
+        for y in (-.44, .44):
+            cyl(.17, .1, (x, y, .2), mat(60, 60, 58, metal=.7), (90, 0, 0), seg=14)
+    for x in (-.95, 0, .95):
+        box(.2, .26, 1.25, (x, .36, 1.2), iron)
+        box(.22, .5, .1, (x, .2, 1.75), red)
+        beam((x, .0, 1.72), (x, -.14, 1.36), .07, steel)
+    cyl(.4, 3.3, (0, -.06, 1.0), mat(*BARK, grime=.55), (0, 90, 0), seg=16)
+    for s in (1, -1):
+        cyl(.38, .01, (s * 1.65, -.06, 1.0), mat(*SAWN, grime=.3), (0, 90, 0), seg=16)
+        cyl(.06, .012, (s * 1.656, -.06, 1.0), mat(150, 110, 70), (0, 90, 0), seg=8)
+    box(.7, .6, .08, (1.65, .3, .78), mat(*GREY_WOOD, planks=8.0))
+    box(.3, .3, .6, (1.85, .45, 1.1), iron)
+    box(.32, .32, .06, (1.85, .45, 1.42), red)
+    beam((1.6, .15, .82), (1.75, -.02, 1.6), .06, mat(40, 40, 40, metal=.6))
+    ball(.07, (1.75, -.02, 1.63), red)
+    cyl(.2, .06, (1.85, .28, 1.12), steel, (90, 0, 0), seg=16)
+    return 4.1, 2.1
+
+
+def belt_conveyor():
+    # A slab conveyor on its trestle: belt, side rails, the drive at the top.
+    iron = mat(*MACHINE, metal=.45, rough=.55, grime=.85)
+    slope = -20
+    tan = math.tan(math.radians(20))
+
+    def at(x, dz=0.0):
+        return .95 + x * tan + dz
+
+    box(3.3, .66, .16, (0, 0, at(0)), iron, (0, slope, 0))
+    box(3.3, .56, .03, (0, 0, at(0, .09)), mat(34, 32, 30, rough=.9, grime=.3), (0, slope, 0))
+    for y in (-.33, .33):
+        box(3.3, .05, .08, (0, y, at(0, .1)), mat(170, 44, 32, metal=.3, rough=.5, grime=.6), (0, slope, 0))
+    for x in (-1.6, 1.6):
+        cyl(.13, .7, (x * .94, 0, at(x * .94)), mat(60, 60, 58, metal=.7), (90, 0, 0), seg=12)
+    for x in (-1.2, .0, 1.2):
+        for y in (-.28, .28):
+            box(.09, .09, at(x) - .05, (x, y, (at(x) - .05) / 2), iron)
+        box(.06, .6, .06, (x, 0, (at(x) - .05) * .4), iron)
+    box(.4, .34, .34, (1.45, -.45, at(1.45, -.2)), mat(200, 150, 40, metal=.3, grime=.7))
+    cyl(.09, .16, (1.45, -.36, at(1.45, .0)), mat(30, 30, 30), (90, 0, 0), seg=10)
+    box(.5, .7, .4, (-1.75, 0, .3), mat(*RUST, metal=.4, grime=.75))
+    for k, x in enumerate((-1.1, -.15, .85)):
+        r = .15 + (k % 2) * .03
+        cyl(r, .52, (x, -.02, at(x, .1 + r)), mat(*BARK, grime=.5), (90, 0, 0), seg=12)
+        cyl(r - .02, .01, (x, -.285, at(x, .1 + r)), mat(*SAWN, grime=.3), (90, 0, 0), seg=12)
+    for k in range(7):
+        rock(.08, (-1.95 + (k % 4) * .14, -.15 + (k // 4) * .2, .52), (150, 112, 72), (1.4, 1, .6), (k * 30, 0, k * 40))
+    return 4.2, 2.0
+
+
+def log_loader():
+    # A tired yellow log loader, the grapple holding one up.
+    paint = mat(206, 150, 44, metal=.3, rough=.55, grime=.85)
+    dark = mat(54, 52, 48, metal=.5, grime=.7)
+    box(2.0, 1.1, .55, (-.1, 0, .78), paint)
+    box(.5, 1.1, .5, (-1.0, 0, 1.25), dark)
+    box(.75, .85, .85, (-.35, 0, 1.48), paint)
+    box(.6, .87, .45, (-.32, 0, 1.6), mat(30, 38, 44, rough=.15, metal=.2, grime=.3))
+    box(.82, .9, .06, (-.35, 0, 1.93), paint)
+    cyl(.05, .6, (-.85, -.3, 1.7), dark, seg=8)
+    for x in (-.65, .55):
+        for y in (-.58, .58):
+            wheel(.4, .32, (x, y, .4), mat(80, 78, 70, metal=.5), (90, 0, 0))
+    box(.4, .3, .3, (.55, 0, 1.15), dark)
+    beam((.55, 0, 1.2), (1.4, 0, 2.5), .2, paint)
+    beam((1.4, 0, 2.5), (1.85, 0, 1.45), .16, paint)
+    beam((.75, -.15, 1.25), (1.3, -.15, 2.2), .07, mat(170, 170, 166, metal=.8, rough=.3))
+    box(.22, .3, .22, (1.88, 0, 1.36), dark)
+    for s in (1, -1):
+        beam((1.88, s * .1, 1.3), (1.88 + s * .02, s * .38, .95), .06, dark)
+        beam((1.88 + s * .02, s * .38, .95), (1.88, s * .3, .7), .06, dark)
+    cyl(.27, 1.9, (1.88, 0, .85), mat(*BARK, grime=.5), (90, 0, 0), seg=14)
+    for s in (1, -1):
+        cyl(.25, .01, (1.88, s * .95, .85), mat(*SAWN, grime=.3), (90, 0, 0), seg=14)
+    box(.4, .02, .2, (-.1, -.56, .85), mat(*RUST, grime=.6))
+    return 3.6, 2.8
+
+
+def lumber_stack():
+    # Sawn boards stacked on stickers to dry, banded, a tarp roped over the top.
+    sawn = mat(*SAWN, planks=24.0, grime=.35)
+    stick = mat(120, 90, 60, grime=.5)
+    for x in (-.85, 0, .85):
+        box(.16, 1.05, .16, (x, 0, .08), mat(*GREY_WOOD, grime=.7))
+    z = .16
+    for layer in range(6):
+        for k in range(5):
+            box(2.2 - (layer % 2) * .04, .18, .08, ((k % 2) * .03, -.4 + k * .2, z + .04), sawn)
+        z += .08
+        if layer < 5:
+            for x in (-.85, 0, .85):
+                box(.06, .98, .035, (x, 0, z + .017), stick)
+            z += .035
+    for x in (-.55, .55):
+        box(.03, 1.0, .02, (x, 0, z + .01), mat(60, 60, 62, metal=.7))
+        for y in (-.5, .5):
+            box(.03, .02, z - .16, (x, y, .16 + (z - .16) / 2), mat(60, 60, 62, metal=.7))
+    box(1.4, 1.1, .04, (.45, 0, z + .03), mat(70, 96, 110, rough=.6, grime=.6), (0, 0, 3))
+    box(.04, 1.1, .45, (1.13, 0, z - .2), mat(70, 96, 110, rough=.6, grime=.6), (0, 8, 3))
+    box(.02, .9, .14, (-1.11, 0, .35), mat(200, 50, 40, grime=.4))
+    return 2.5, 1.3
+
+
+def sorting_table():
+    # The grader's table at the end of the green chain: chains across a heavy
+    # top, boards waiting for a crayon mark, the stamp hammer, a sorted pile.
+    top = mat(*GREY_WOOD, planks=12.0, grime=.65)
+    sawn = mat(*SAWN, planks=24.0, grime=.35)
+    for x in (-1.15, 1.15):
+        for y in (-.35, .35):
+            box(.13, .13, .8, (x, y, .4), top)
+    box(2.6, .85, .1, (0, 0, .82), top)
+    box(2.5, .06, .1, (0, -.38, .2), top)
+    for x in (-.85, 0, .85):
+        box(.05, .9, .03, (x, 0, .885), mat(44, 42, 40, metal=.7))
+    for k, x in enumerate((-1.0, -.45, .2, .7)):
+        box(.17, 1.5, .06, (x, (k % 2) * .08 - .1, .92), sawn, (0, 0, (k - 1.5) * 3))
+        box(.13, .02, .04, (x, (k % 2) * .08 - .85, .93), mat(*((200, 50, 40) if k % 2 else (60, 90, 170))))
+    cyl(.07, .14, (1.05, .25, .94), mat(170, 40, 30, metal=.4, grime=.5), seg=10)
+    for k in range(3):
+        box(.02, .02, .14, (1.03 + k * .03, .25, 1.02), mat(*((230, 200, 40), (60, 90, 170), (200, 50, 40))[k]))
+    box(.04, .45, .04, (.95, -.2, .89), mat(*WOOD), (0, 0, 20))
+    box(.12, .08, .08, (.87, -.42, .9), mat(90, 90, 90, metal=.8))
+    for k in range(4):
+        box(1.6, .18, .07, (-.2 + (k % 2) * .05, -.75, .04 + k * .075), sawn, (0, 0, k * 2))
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=16, radius1=.45, radius2=.08, depth=.25)
+    place(bm, mat(206, 168, 112, rough=1.0, grime=.25), (.3, .1, .12), (0, 0, 0))
+    return 2.9, 1.15
+
+
+def skiff():
+    # A dented jon boat pulled up on the bank: oars across the seats, the pike
+    # pole for the logs, a coffee can to bail with.
+    hull = mat(78, 100, 72, metal=.4, rough=.55, grime=.8)
+    inside = mat(60, 74, 58, metal=.3, rough=.7, grime=.8)
+    box(2.0, .86, .07, (-.1, 0, .06), inside)
+    for s in (1, -1):
+        box(2.1, .05, .34, (-.05, s * .43, .22), hull, (s * 8, 0, 0))
+        box(2.12, .07, .05, (-.05, s * .45, .4), mat(*RUST, metal=.3, grime=.7))
+    box(.06, .9, .36, (-1.1, 0, .22), hull)
+    box(.5, .9, .05, (1.12, 0, .2), hull, (0, -40, 0))
+    for x in (-.65, .35):
+        box(.16, .86, .04, (x, 0, .3), mat(*GREY_WOOD, planks=6.0, grime=.6))
+    for k, y in enumerate((-.12, .14)):
+        beam((-1.1, y, .36), (.9, y + (k * 2 - 1) * .1, .34), .045, mat(*WOOD))
+        box(.36, .02, .14, (.9 + .14, y + (k * 2 - 1) * .1, .34), mat(*WOOD), (0, 0, (k * 2 - 1) * 3))
+    beam((-1.5, .3, .02), (1.6, .25, .45), .04, mat(*WOOD))
+    box(.05, .05, .2, (1.62, .25, .52), mat(80, 80, 80, metal=.7), (0, 30, 0))
+    cyl(.07, .14, (-.85, -.2, .16), mat(170, 40, 30, metal=.4, grime=.6), seg=10)
+    box(.3, .24, .32, (-1.26, 0, .58), mat(150, 36, 28, metal=.4, rough=.5, grime=.7))
+    box(.32, .26, .06, (-1.26, 0, .76), mat(40, 40, 40, metal=.5))
+    box(.07, .07, .5, (-1.3, 0, .2), mat(40, 40, 40, metal=.5))
+    box(.04, .26, .08, (-1.32, 0, .0), mat(150, 140, 120, metal=.7))
+    for k in range(4):
+        box(.18, .4, .05, (-1.6 + k * .2, -.55 + (k % 2) * .5, .02), mat(70, 64, 40, grime=.5), (0, 0, k * 30))
+    ROOT.rotation_euler = Euler((0, math.radians(-4), math.radians(12)))
+    return 3.4, 1.0
+
+
+def stone_blocks():
+    # Cut limestone squared off the face, stacked on skids: feather holes
+    # along an edge, a lot number in blue chalk, a red cutter's mark.
+    stone = mat(*LIME, rough=.95, grime=.75)
+    for y in (-.25, .25):
+        box(2.5, .12, .1, (0, y, .05), mat(*GREY_WOOD, grime=.7))
+    for k, (x, z, r) in enumerate([(-.78, .38, 2), (.02, .38, -3), (.8, .38, 4), (-.4, .93, -2), (.42, .93, 3)]):
+        box(.76, .66, .54, (x, (k % 2) * .04, z), stone, (0, 0, r))
+    box(.72, .6, .5, (0, .02, 1.45), stone, (0, 0, -5))
+    for k in range(5):
+        cyl(.03, .04, (-.26 + k * .13, -.3, 1.6), mat(40, 36, 30, grime=0), (90, 0, -5), seg=6)
+    box(.3, .01, .12, (-.78, -.335, .45), mat(70, 110, 190, rough=.6, grime=.2))
+    box(.2, .01, .03, (.42, -.335, 1.0), mat(200, 40, 30, grime=.3), (0, 40, 0))
+    box(.2, .01, .03, (.42, -.335, 1.0), mat(200, 40, 30, grime=.3), (0, -40, 0))
+    for k in range(5):
+        rock(.07, (-1.1 + k * .5, -.45 - (k % 2) * .1, .05), LIME, (1.2, 1, .7), (k * 20, 0, k * 30))
+    return 2.7, 1.8
+
+
+def mash_barrel():
+    # A sour-mash barrel working: foam on top, the paddle, a sack of meal and
+    # a sack of sugar leant against it, the tin dipper on the rim.
+    oak = mat(132, 92, 56, planks=14.0, grime=.6)
+    hoop = mat(56, 50, 46, metal=.6, grime=.6)
+    cyl(.42, .5, (0, 0, .25), oak, seg=20, top=.46)
+    cyl(.46, .46, (0, 0, .73), oak, seg=20, top=.42)
+    for z in (.1, .5, .9):
+        cyl(.47 if z == .5 else .44, .05, (0, 0, z), hoop, seg=20)
+    cyl(.39, .03, (0, 0, .93), mat(190, 160, 84, rough=.6, grime=.35), seg=20)
+    for k in range(7):
+        ball(.05 + (k % 3) * .015, (math.cos(k * 2.3) * .25, math.sin(k * 2.3) * .25, .95),
+             mat(220, 204, 150, rough=.4, grime=.1))
+    beam((.15, .05, .6), (.4, .25, 1.5), .05, mat(*WOOD))
+    box(.16, .02, .3, (.15, .05, .55), mat(*WOOD), (0, 15, 30))
+    cyl(.07, .1, (-.38, -.15, .98), mat(*CHROME, metal=.8, grime=.6), seg=10)
+    beam((-.38, -.15, .98), (-.6, -.25, .95), .025, mat(*CHROME, metal=.8, grime=.6))
+    sack = mat(170, 140, 92, rough=.95, grime=.5)
+    box(.44, .3, .62, (.66, -.22, .31), sack, (0, -14, 6))
+    box(.36, .24, .14, (.74, -.22, .64), sack, (0, -30, 6))
+    cyl(.05, .08, (.79, -.22, .72), mat(120, 96, 60), (0, -14, 0), seg=8)
+    box(.22, .01, .16, (.64, -.38, .36), mat(150, 40, 30, grime=.3), (0, -14, 6))
+    for k in range(3):
+        x, y = -.5 - (k % 2) * .16, -.45 + k * .1
+        cyl(.075, .2, (x, y, .1), mat(176, 196, 188, rough=.15, metal=.1, grime=.25), seg=10)
+        cyl(.06, .14, (x, y, .08), mat(220, 214, 196, rough=.3, grime=.2), seg=10)
+        cyl(.07, .03, (x, y, .215), mat(*CHROME, metal=.8, grime=.5), seg=10)
+    return 1.8, 1.6
+
+
+def crane_hook():
+    # A stiff-leg derrick of squared timber at the face: the mast, its two
+    # back legs, the boom out over the cut and the worn hook on its cable,
+    # a block of limestone slung in chain under it.
+    wood = mat(*WOOD, planks=4.0, grime=.65)
+    iron = mat(*RUST, metal=.5, rough=.6, grime=.75)
+    box(.55, .55, .16, (-.8, 0, .08), mat(110, 110, 104, grime=.7))
+    box(.22, .22, 3.2, (-.8, 0, 1.6), wood)
+    box(.26, .26, .1, (-.8, 0, 3.2), iron)
+    for y in (-.7, .7):
+        beam((-.8, 0, 2.9), (-1.6, y, .05), .15, wood)
+        box(.32, .32, .12, (-1.6, y, .06), mat(110, 110, 104, grime=.7))
+    beam((-.75, 0, .35), (1.15, 0, 2.75), .18, wood)
+    for t in (.3, .6):
+        box(.2, .2, .06, (-.75 + 1.9 * t, 0, .35 + 2.4 * t), iron, (0, 38, 0))
+    beam((-.8, 0, 3.15), (1.15, 0, 2.8), .02, mat(40, 40, 40, metal=.6))
+    box(.2, .14, .26, (1.15, 0, 2.66), iron)
+    cyl(.09, .16, (1.15, 0, 2.66), mat(60, 60, 58, metal=.7), (90, 0, 0), seg=12)
+    beam((1.15, 0, 2.55), (1.15, 0, 1.55), .025, mat(40, 40, 40, metal=.6))
+    box(.18, .12, .22, (1.15, 0, 1.45), iron)
+    for k in range(9):
+        a = math.radians(200 - k * 30)
+        beam((1.15 + math.cos(a) * .14, 0, 1.12 + math.sin(a) * .14),
+             (1.15 + math.cos(a - math.radians(30)) * .14, 0, 1.12 + math.sin(a - math.radians(30)) * .14),
+             .065, iron)
+    box(.06, .06, .12, (1.01, 0, 1.3), iron)
+    for s in (1, -1):
+        chain((1.15, 0, .98), (1.15 + s * .32, -.22, .7), mat(60, 58, 54, metal=.7, rough=.4))
+    box(.76, .56, .48, (1.15, 0, .45), mat(*LIME, rough=.95, grime=.65), (0, 0, 8))
+    box(.3, .01, .1, (1.1, -.29, .45), mat(70, 110, 190, rough=.6, grime=.2))
+    for k, (x, y) in enumerate([(.2, -.6), (1.9, -.4), (1.95, .45)]):
+        box(.28, .22, .12, (x, y, .06), mat(*GREY_WOOD, grime=.7), (0, 0, k * 25))
+    return 3.4, 3.4
+
+
+def powder_shelf():
+    # The powder shack's shelves, face on to hang on a wall: crates of
+    # dynamite, coils of fuse, cap tins, a keg of black powder, the warning.
+    wood = mat(*GREY_WOOD, planks=10.0, grime=.6)
+    for x in (-.85, .85):
+        box(.08, .3, 2.25, (x, 0, 1.12), wood)
+    box(1.78, .04, .06, (0, .1, 2.2), wood)
+    for z in (.12, .62, 1.12, 1.62):
+        box(1.78, .32, .05, (0, 0, z), wood)
+    crate = mat(150, 110, 70, planks=8.0, grime=.5)
+    for x in (-.55, .05):
+        box(.5, .28, .3, (x, 0, .3), crate)
+        box(.38, .01, .1, (x, -.15, .32), mat(200, 30, 26))
+    cyl(.18, .38, (.58, 0, .33), mat(70, 56, 40, planks=6.0, grime=.6), seg=14)
+    for z in (.2, .45):
+        cyl(.185, .03, (.58, 0, z), mat(50, 46, 42, metal=.6), seg=14)
+    box(.12, .01, .08, (.58, -.19, .33), mat(240, 230, 200))
+    for k in range(4):
+        cyl(.04, .4, (-.65 + k * .1, 0, .87), mat(200, 50, 40, rough=.4), (0, 90, 0), seg=8)
+        cyl(.04, .4, (-.6 + k * .1, 0, .95), mat(200, 50, 40, rough=.4), (0, 90, 0), seg=8)
+    box(.42, .01, .05, (-.5, -.05, .91), mat(220, 210, 180))
+    for k, x in enumerate((.05, .35, .62)):
+        cyl(.13, .07, (x, 0, .69 + k * .07 * 0), mat(60, 56, 50, grime=.4), (90, 0, 0), seg=16)
+        cyl(.06, .072, (x, 0, .69), mat(22, 20, 18, grime=0), (90, 0, 0), seg=12)
+    for k in range(6):
+        cyl(.05, .06, (-.6 + (k % 3) * .13, 0, 1.18 + (k // 3) * .07), mat(*CHROME, metal=.8, grime=.5), (90, 0, 0), seg=10)
+    box(.45, .26, .28, (.4, 0, 1.29), crate)
+    box(.34, .01, .09, (.4, -.14, 1.3), mat(200, 30, 26))
+    box(.5, .28, .25, (-.45, 0, 1.77), crate)
+    cyl(.14, .07, (.35, 0, 1.73), mat(60, 56, 50, grime=.4), (90, 0, 0), seg=16)
+    box(.7, .02, .3, (0, -.02, 2.0), mat(214, 190, 60, grime=.4))
+    box(.58, .025, .06, (0, -.03, 2.02), mat(170, 30, 26))
+    return 1.9, 2.3
+
+
+def stone_sledge():
+    # A timber stone-boat: runners turned up at the nose, a block chained on,
+    # the pinch bar and the beetle left on top, the tow chain in the dust.
+    wood = mat(*WOOD, planks=6.0, grime=.65)
+    for y in (-.38, .38):
+        box(1.8, .14, .16, (0, y, .08), wood)
+        box(.4, .14, .14, (1.05, y, .16), wood, (0, -35, 0))
+    for k in range(6):
+        box(.24, 1.0, .06, (-.75 + k * .3, 0, .19), mat(*GREY_WOOD, planks=8.0, grime=.6))
+    box(.95, .7, .6, (-.15, .02, .52), mat(*LIME, rough=.95, grime=.75), (0, 0, -4))
+    box(.3, .01, .1, (-.3, -.33, .55), mat(70, 110, 190, rough=.6, grime=.2), (0, 0, -4))
+    iron = mat(44, 42, 40, metal=.7, rough=.4)
+    chain((.36, -.3, .22), (.36, -.3, .84), iron, .07)
+    chain((.36, -.3, .84), (.36, .36, .84), iron, .07)
+    beam((.55, -.42, .05), (.25, -.42, 1.25), .05, mat(50, 50, 52, metal=.8, rough=.3))
+    chain((1.25, 0, .2), (1.75, -.3, .03), iron)
+    chain((1.75, -.3, .03), (1.9, .1, .03), iron)
+    return 2.4, 1.15
+
+
+def rock_chute():
+    # The hopper and chute off the crusher: rusted iron on a timber trestle,
+    # stone sliding down into a heap.
+    iron = mat(*RUST, metal=.5, rough=.6, grime=.8)
+    wood = mat(*WOOD, planks=4.0, grime=.65)
+    for x in (-1.15, -.45):
+        for y in (-.4, .4):
+            box(.12, .12, 1.7, (x, y, .85), wood)
+    for y in (-.4, .4):
+        beam((-1.15, y, .2), (-.45, y, 1.4), .07, wood)
+    box(.8, .9, .08, (-.8, 0, 1.68), wood)
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=4, radius1=.75, radius2=.3, depth=.8)
+    place(bm, iron, (-.8, 0, 2.15), (180, 0, 45))
+    for k in range(5):
+        rock(.13, (-.95 + (k % 3) * .15, -.1 + (k // 3) * .2, 2.52), STONE, (1.2, 1, .8), (k * 30, 10, k * 50))
+    slope = 32
+    box(1.7, .5, .04, (.1, 0, 1.05), iron, (0, slope, 0))
+    for y in (-.25, .25):
+        box(1.7, .04, .2, (.1, y, 1.13), iron, (0, slope, 0))
+    beam((.55, -.25, .78), (.55, -.25, .0), .08, wood)
+    beam((.55, .25, .78), (.55, .25, .0), .08, wood)
+    for k in range(4):
+        rock(.1, (-.3 + k * .28, (k % 2) * .1 - .05, 1.38 - k * .18), STONE, (1.2, 1, .8), (k * 40, 0, k * 70))
+    for k in range(9):
+        a = k * 2.1
+        rad = .15 + (k % 4) * .12
+        rock(.16 + (k % 3) * .04, (1.2 + math.cos(a) * rad, math.sin(a) * rad, .12 + (k % 2) * .08),
+             STONE, (1.2, 1, .8), (k * 25, k * 10, k * 40))
+    return 3.1, 2.8
+
+
 MORE = {
     "truck_blocks": truck_blocks, "porch_couch": porch_couch, "wheelbarrow": wheelbarrow,
     "chicken_coop": chicken_coop, "gas_cans": gas_cans, "tire_stack": tire_stack,
@@ -454,6 +822,10 @@ MORE = {
     "mine_cart": mine_cart, "drill_rig": drill_rig, "boulder_a": boulder_a, "boulder_b": boulder_b,
     "tnt_crate": tnt_crate, "copper_vat": copper_vat, "crusher": crusher, "jug_stack": jug_stack,
     "dump_truck": dump_truck, "cable_spool": cable_spool, "warning_barrel": warning_barrel,
+    "headrig": headrig, "belt_conveyor": belt_conveyor, "log_loader": log_loader,
+    "lumber_stack": lumber_stack, "sorting_table": sorting_table, "skiff": skiff,
+    "stone_blocks": stone_blocks, "mash_barrel": mash_barrel, "crane_hook": crane_hook,
+    "powder_shelf": powder_shelf, "stone_sledge": stone_sledge, "rock_chute": rock_chute,
 }
 
 
