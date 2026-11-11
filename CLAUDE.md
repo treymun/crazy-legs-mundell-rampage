@@ -1,9 +1,10 @@
 # Working on Crazy Legs Mundell Rampage
 
-A 1997-style FPS in the spirit of Redneck Rampage. The released game is the
-Godot 4.7.2 project in `godot/`. The Python/pygame game at the repo root is
-the original it was ported from; its scripts still build the art and data the
-Godot game packs.
+A 1997-style FPS in the spirit of Redneck Rampage. The game is the Godot
+4.7.2 project in `godot/`, and it is its own reference: it no longer has to
+match the Python/pygame original at the repo root, which it was ported from.
+That original still supplies content (levels, art and sound are built from
+it by `scripts/`), so do not break the Python level modules or `assets/`.
 
 ## Rules from the owner
 

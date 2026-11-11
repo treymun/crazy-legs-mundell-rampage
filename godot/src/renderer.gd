@@ -1,9 +1,9 @@
-## Software renderer: a GDScript translation of the reference engine.py.
+## Software renderer, first translated from the Python game's engine.py.
 ##
-## The original is a 320x156 raycaster with multiple wall heights, per-height
-## floor/ceiling planes, sprites, signs, wall marks and a planar mirror pass.
-## Every formula mirrors the numpy source so a frame can be diffed against
-## tools/frames/py_*.png (see tools/py_frame.py).
+## A 320x156 raycaster with multiple wall heights, per-height floor/ceiling
+## planes, sprites, signs, wall marks and a planar mirror pass. Its pictures
+## are guarded by tools/picture_check.gd's reference images; it no longer has
+## to match the Python original.
 ##
 ## Walls are drawn as projected vertical spans with a depth buffer rather than
 ## as a per-column ray matrix, but the winning hit per pixel is identical.

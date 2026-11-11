@@ -24,7 +24,7 @@ The landing page's download buttons always point at the newest GitHub release. F
 
 ### The Godot build
 
-`godot/` is a Godot 4.7 project that plays the same campaign. It keeps no content of its own: the maps are exported from the Python level modules and the art, sound and palette are packed from `assets/`, so the two versions cannot drift apart. Its renderer is checked against the Python one frame by frame (`godot/tools/compare_frames.py`, `compare_full.py`).
+`godot/` is a Godot 4.7 project, and it is the game: releases, the site and all new work come from it. It started as a port of the Python game in this folder and still takes its content from there (the maps are exported from the Python level modules, and the art, sound and palette are packed from `assets/`), but it no longer has to behave or draw exactly like the Python original. Its own reference images (`godot/tools/pictures/`, checked by `tools/picture_check.gd`) guard its look from one change to the next.
 
 Build it from a clone:
 
