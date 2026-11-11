@@ -173,6 +173,23 @@ func _view_tour() -> void:
 			cpu_view = mode == "cpu"
 			Effects.enabled = mode == "fx"
 			render()
+			if mode == "fx" and OS.has_environment("GITHUB_ACTIONS"):
+				var kinds: Array = []
+				for l: Array in game.effect_lights():
+					kinds.append("%.1f,%.1f r%.1f s%.3f" % [l[0], l[1], l[3], l[5]])
+				print(
+					(
+						"::notice title=%s lights::clock %.4f, sprites %d, tint %s, %d lights: %s"
+						% [
+							String(shot["tag"]),
+							game.clock,
+							game.renderer.gpu_spr_n,
+							game.gun_light(),
+							kinds.size(),
+							"; ".join(kinds)
+						]
+					)
+				)
 			await RenderingServer.frame_post_draw
 			await RenderingServer.frame_post_draw
 			get_viewport().get_texture().get_image().save_png(

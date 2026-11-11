@@ -107,6 +107,9 @@ func _compare(shown: Image, against: Image, diff_path: String) -> float:
 	var any := 0
 	var strong := 0
 	var mask := Image.create_empty(width, shown.get_height(), false, Image.FORMAT_RGB8)
+	var signed := Vector3.ZERO
+	var box := Rect2i(width, shown.get_height(), -width, -shown.get_height())
+	var hud := 0
 	for i in pixels:
 		var o := i * 3
 		var apart := maxi(
@@ -114,15 +117,36 @@ func _compare(shown: Image, against: Image, diff_path: String) -> float:
 		)
 		if apart > 0:
 			any += 1
+			signed += Vector3(a[o] - b[o], a[o + 1] - b[o + 1], a[o + 2] - b[o + 2])
 			if apart > 40:
 				strong += 1
-				mask.set_pixel(i % width, i / width, Color(1, .24, .24))
+				var px := i % width
+				var py := i / width
+				box = box.merge(Rect2i(px, py, 1, 1)) if box.size.x > 0 else Rect2i(px, py, 1, 1)
+				if py >= shown.get_height() * 620 / 800:
+					hud += 1
+				mask.set_pixel(px, py, Color(1, .24, .24))
 	var strong_pc := strong * 100.0 / pixels
 	var verdict := ""
 	if strong_pc > STRONG_MAX:
 		verdict = "  FAIL"
 		mask.save_png(diff_path)
 	if OS.has_environment("GITHUB_ACTIONS") and strong_pc > .05:
+		var mean := signed / maxf(1.0, any)
+		print(
+			(
+				"::notice title=%s detail::mean shift %.1f %.1f %.1f, strong box %s, %d of %d strong in the HUD rows"
+				% [
+					diff_path.get_file().trim_suffix("_diff.png"),
+					mean.x,
+					mean.y,
+					mean.z,
+					box,
+					hud,
+					strong
+				]
+			)
+		)
 		# An annotation: readable on the run's page without its log.
 		print(
 			(
