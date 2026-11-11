@@ -753,6 +753,13 @@ signal shot_fired(gun: int)
 signal hit_landed(amount: float, killed: bool)
 signal level_won
 signal ticked(dt: float)
+signal exploded(x: float, y: float, z: float, energy: bool)
+signal gun_reloading(gun: int)
+## A lightning flash this moment, 0 to 1 (features/weather.gd; the shader).
+var lightning := 0.0
+## A kill streak's call across the screen (features/callouts.gd).
+var callout := ""
+var callout_until := 0.0
 ## The features, by id (features.gd).
 var features := {}
 ## Level triggers that have fired (saved), and which repeating ones the player

@@ -164,7 +164,18 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `GameFeature` (see `game_feature.gd`), listed in `features.gd`: it connects
   to those, saves its own state in the save's `features` block (restore gets
   {} from older saves, so no new save version), and may add a tally row.
-  Triggers, lessons and chapter stats are features.
+  Triggers, lessons and chapter stats are features, and so is the polish that
+  only looks: `weather` (lightning and thunder), `debris` (brass, hulls,
+  embers, scorches, smoke, blood trails), `ambient` (crows, fireflies),
+  `callouts` (TWOFER, HAT TRICK, HOG WILD, RAMPAGE) and `tally` (rows that
+  thud down and a ribbon). Features may add sprites and ground marks; looks-only
+  ones use their own dice so play never changes.
+- **A level's mood** is `effects.cfg` `[level.<id>]`: fog colour and distance,
+  grade, cloud drift, lightning, crows, fireflies; `[anim.<tile>]` makes a sign
+  buzz or pulse. All of it is the shader's, behind LIGHTS AND GLOW.
+- **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
+  red hulls, crows, county-fair words and ribbons, cartoon wipes; original art
+  and sound only (new small sounds can be made in `assets.gd` MADE_CUES).
 - **The developer console** (` in play, project folder only, `dev_console.gd`):
   spawn, give, god, tp, time, trigger, reload, stats, and overlays (`show map`:
   walls, enemies by state with the hunting ones' paths, triggers, lights;

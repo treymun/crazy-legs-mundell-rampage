@@ -80,6 +80,8 @@ static var MUZZLES := {}
 static var MUZZLE_STYLE := {}
 static var RELOAD_BEATS := {}
 static var SHAKE := {}
+## [all] sway_turn, sway_strafe, sway_limit, land_dip: the gun's weight.
+static var SWAY := {}
 static var DYNAMITE_FUSE: float
 static var SHOTGUN_DAMAGE: int
 static var SHOTGUN_PELLETS: int
@@ -136,6 +138,12 @@ static func load_tuning() -> void:
 	MUZZLE_STYLE = Tuning.entries(path, NAMES, "muzzle_style")
 	RELOAD_BEATS = Tuning.entries(path, NAMES, "reload_beats")
 	SHAKE = Tuning.entries(path, NAMES, "shake")
+	SWAY = {
+		"turn": Tuning.value(path, "sway_turn"),
+		"strafe": Tuning.value(path, "sway_strafe"),
+		"limit": Tuning.value(path, "sway_limit"),
+		"land": Tuning.value(path, "land_dip"),
+	}
 	DYNAMITE_FUSE = Tuning.value(path, "dynamite_fuse")
 	SHOTGUN_DAMAGE = Tuning.value(path, "shotgun_damage")
 	SHOTGUN_PELLETS = Tuning.value(path, "shotgun_pellets")
@@ -351,6 +359,7 @@ class Armory:
 			reload = Weapons.RELOAD_TIME[i]
 			grinding = false
 			game.sound.play(String(Weapons.OPEN_AUDIO[i]), .85)
+			game.gun_reloading.emit(i)
 			return true
 		return false
 
@@ -650,6 +659,7 @@ class Armory:
 				+ player.sway * .7
 				+ settling * float(Weapons.RETREAT[i])
 				+ reload_sway * (2.0 if i == Weapons.CROSSBOW else 4.0)
+				+ player.weapon_lag.x
 			)
 		)
 		var y := (
@@ -662,6 +672,7 @@ class Armory:
 					+ lift_amt
 					+ lower * 88.0
 					+ reload_sway * 2.0
+					+ player.weapon_lag.y
 				)
 			)
 		)

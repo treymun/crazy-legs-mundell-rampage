@@ -607,9 +607,24 @@ var _bar_key := 0
 var _bar_texture: ImageTexture
 var _bar_scratch: Canvas
 
+## The health shown, ticking toward the real one at TICK_RATE a second of play.
+const TICK_RATE := 45.0
+var _shown_health := -1.0
+var _shown_for: Game = null
+var _shown_clock := 0.0
+
 
 func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
-	var health := maxi(0, game.player.health)
+	var real := maxi(0, game.player.health)
+	if game != _shown_for or _shown_health < 0.0:
+		_shown_for = game
+		_shown_health = real
+	else:
+		_shown_health = move_toward(
+			_shown_health, real, maxf(0.0, game.clock - _shown_clock) * TICK_RATE
+		)
+	_shown_clock = game.clock
+	var health := roundi(_shown_health)
 	var item: String = ITEMS[game.inventory_slot]
 	var key := hash(
 		[
@@ -678,7 +693,7 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		amount = str(armory.reserve[slot])
 	elif slot not in [Weapons.CROWBAR, Weapons.SLING]:
 		amount = str(armory.loaded[slot])
-	var health := maxi(0, game.player.health)
+	var health := roundi(_shown_health) if _shown_for == game else maxi(0, game.player.health)
 	number(c, str(health), 29, Renderer.VIEW + 23, health <= 25)
 	if health <= 25 and int(game.clock * 3) % 2 == 0:
 		c.line(
@@ -851,18 +866,39 @@ func intermission(c: Canvas, game: Game) -> void:
 	# Features add their own rows (features.gd); room for one more.
 	rows.append_array(Features.tally_rows(game).slice(0, 1))
 	var gap := 18 if rows.size() <= 3 else 16
-	for i in rows.size():
+	# The rows come down one at a time with a thud, then the ribbon (tally.gd).
+	var show = game.features.get("tally")
+	var shown: int = show.rows_shown(rows.size()) if show != null else rows.size() + 1
+	for i in mini(shown, rows.size()):
 		var y := 79 + i * gap
 		c.fill_rect(21, y, 187, 15, Color(30 / 255.0, 21 / 255.0, 17 / 255.0))
 		text(c, String(rows[i][0]), 26, y + 4, "body", INK)
 		text(c, String(rows[i][1]), 202, y + 4, "body", AMBER, false, true, true)
 	text(c, game.level.ending, 22, 142 if rows.size() <= 3 else 146, "body", AMBER)
+	if show != null and shown > rows.size():
+		_ribbon(c, show.ribbon())
 	var action := (
 		"ENTER  CONTINUE TO CROSSROADS"
 		if following != "" and not game.replay
 		else "ENTER  RETURN TO TITLE"
 	)
 	text(c, action, 22, 165, "body", INK)
+
+
+## The county fair ribbon pinned beside the tally: how the chapter went.
+func _ribbon(c: Canvas, word: String) -> void:
+	var red := Color(150 / 255.0, 30 / 255.0, 24 / 255.0)
+	var gold := Color(236 / 255.0, 196 / 255.0, 104 / 255.0)
+	c.fill_rect(229, 58, 84, 34, Color(.08, .05, .04))
+	c.fill_rect(228, 56, 84, 34, red)
+	c.fill_rect(230, 58, 80, 1, gold)
+	c.fill_rect(230, 87, 80, 1, gold)
+	text(c, "RANKED", 270, 61, "mini", gold, true)
+	text(c, word, 270, 72, "body", INK, true)
+	# The ribbon's two tails.
+	for x in [248, 288]:
+		c.fill_rect(x, 90, 8, 14, red)
+		c.fill_rect(x + 2, 104, 4, 3, red)
 
 
 func campaign_report(c: Canvas, game: Game) -> void:

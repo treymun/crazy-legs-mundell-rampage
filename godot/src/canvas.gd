@@ -44,6 +44,9 @@ var gpu := false
 var gpu_parent := RID()
 ## Set when `pixels` holds a software-drawn game view this frame.
 var base_set := false
+## What the gun's view items are tinted by (game_view.gd: the world's light
+## where the player stands); white leaves them as drawn.
+var view_tint := Color(1, 1, 1)
 var _items: Array[RID] = []
 var _item_kinds := PackedInt32Array()
 var _items_used := 0
@@ -100,6 +103,9 @@ func gpu_item(kind: int) -> void:
 		var clipped := kind == ITEM_NORMAL_VIEW or kind == ITEM_ADD_VIEW
 		RenderingServer.canvas_item_set_clip(item, clipped)
 		RenderingServer.canvas_item_set_custom_rect(item, clipped, Rect2(0, 0, WIDTH, 156))
+	RenderingServer.canvas_item_set_modulate(
+		item, view_tint if kind == ITEM_NORMAL_VIEW else Color(1, 1, 1)
+	)
 	RenderingServer.canvas_item_set_draw_index(item, _items_used)
 	_items_used += 1
 	_item = item

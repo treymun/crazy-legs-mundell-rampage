@@ -220,6 +220,26 @@ func tick(dt: float, controls) -> void:
 			dt * 11.0 * p.motion * (1.25 if controls.running else .80 if p.crouched else 1.0)
 		)
 	p.bob = sin(p.walk_phase * 2.0) * p.motion * (0.0 if p.air else 1.9) * bob_scale
+	# The gun has weight: it trails a turn, leans off a strafe, dips on landing.
+	var sway: Dictionary = Weapons.SWAY
+	var side_speed := -sin(p.angle) * p.vx + cos(p.angle) * p.vy
+	var limit := float(sway.get("limit", 10.0))
+	var want := Vector2(
+		clampf(
+			(
+				-controls.turn / maxf(dt, .001) * float(sway.get("turn", 4.0))
+				- side_speed * float(sway.get("strafe", 1.4))
+			),
+			-limit,
+			limit
+		),
+		0.0
+	)
+	p.weapon_lag = p.weapon_lag.lerp(want * bob_scale, 1.0 - exp(-dt * 9.0))
+	if landed:
+		p.weapon_dip = float(sway.get("land", 6.0)) * bob_scale
+	p.weapon_dip *= exp(-dt * 7.0)
+	p.weapon_lag.y = p.weapon_dip
 	var iy := int(p.y)
 	var ix := int(p.x)
 	var area := int(world.area[world.cell(p.x, p.y)])

@@ -40,3 +40,13 @@ func restore(_state: Dictionary) -> void:
 ## [label, value] rows for the chapter's tally.
 func tally_rows() -> Array:
 	return []
+
+
+## Sprites it adds to the view this frame (Renderer.Sprite).
+func sprites() -> Array:
+	return []
+
+
+## Marks it lays on the floors this frame (Renderer.GroundMark).
+func ground_marks() -> Array:
+	return []

@@ -126,6 +126,20 @@ uniform bool effects_on = false;
 uniform int light_count = 0;
 uniform vec4 light_pos[16];
 uniform vec4 light_col[16];
+// A level's mood (effects.cfg [level.<id>]): the distance fades to fog_color
+// from fog_range.x to fog_range.y cells, at most fog_range.z of the way; every
+// surface is tinted by grade; the upper sky drifts sky_drift of a turn; and a
+// lightning flash (0 to 1) lights the sky and the yard.
+uniform vec3 fog_color = vec3(0.0);
+uniform vec3 fog_range = vec3(1000.0, 2000.0, 0.0);
+uniform vec3 grade = vec3(1.0);
+uniform float sky_drift = 0.0;
+uniform float lightning = 0.0;
+// Tiles that move (effects.cfg [anim.<tile>]): (tile, mode, rate, depth);
+// mode 0 a neon tube's buzz and drop-outs, 1 a slow pulse.
+uniform int anim_count = 0;
+uniform vec4 anims[8];
+uniform float anim_time = 0.0;
 
 int byte_of(float v) {
 	return int(v * 255.0 + 0.5);
@@ -134,6 +148,29 @@ int byte_of(float v) {
 // The light a tile texel gives itself (its alpha, see effects_on), or none.
 float glow_of(vec4 texel) {
 	return effects_on ? 1.0 - texel.a : 0.0;
+}
+
+// How lit a moving tile is this moment (1 for a tile that does not move).
+float anim_light(int tile) {
+	for (int i = 0; i < anim_count; i++) {
+		vec4 a = anims[i];
+		if (int(a.x + 0.5) != tile) {
+			continue;
+		}
+		if (a.y < 0.5) {
+			float beat = floor(anim_time * a.z);
+			float roll = fract(sin(beat * 12.9898 + a.x * 78.233) * 43758.5453);
+			return roll < a.w ? 0.32 : 1.0 - 0.07 * fract(anim_time * a.z * 7.3);
+		}
+		return 1.0 - a.w * (0.5 + 0.5 * sin(anim_time * a.z * 6.2831853));
+	}
+	return 1.0;
+}
+
+// A sprite texel that lights itself in the dark: the green of alien glass,
+// eyes and plasma, and lamp yellow.
+bool self_lit(vec3 c) {
+	return (c.g >= 170.0 && c.g > c.r * 1.3 && c.g > c.b * 1.1) || (c.r >= 230.0 && c.g >= 200.0 && c.b <= 150.0);
 }
 
 // What this frame's lights add at a point: a fraction per channel.
@@ -277,6 +314,9 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 		vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
 		float raw = (plane(cell + ivec2(0, 5)).r * (overhead ? 0.77 : 0.94) + flash_light) / (1.0 + 0.102 * t);
 		float lit = max(float(min(int(max(raw, 0.19) * 32.0 + 0.5), 96)) / 32.0, glow_of(fetched));
+		if (effects_on && anim_count > 0) {
+			lit *= anim_light(tile);
+		}
 		int tint_at = min(byte_of(texelFetch(tiles_tex, cell + ivec2(0, cells_row + map_size.y), 0).r), tint_count - 1);
 		vec3 tint = plane(ivec2(tint_at, 4)).rgb;
 		if (hub_fx && !overhead) {
@@ -314,6 +354,9 @@ vec3 wall_at(ivec2 lp) {
 	vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
 	vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
 	float lit = max(float(shade_row % 99) / 32.0, glow_of(fetched));
+	if (effects_on && anim_count > 0) {
+		lit *= anim_light(tile);
+	}
 	vec3 tint = plane(ivec2(shade_row / 99, 4)).rgb;
 	return clamp(floor(texel * lit * tint), 0.0, 255.0);
 }
@@ -377,6 +420,9 @@ vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit) {
 		}
 	}
 	lit = max(lit, glow_of(fetched));
+	if (effects_on && anim_count > 0) {
+		lit *= anim_light(tile);
+	}
 	vec3 colour = clamp(floor(texel * lit * tint), 0.0, 255.0);
 	if (kind == 3) {
 		colour = floor(colour * tower_shadow(hit.x, hit.y, wz));
@@ -395,7 +441,14 @@ vec3 sky_at(int column, float sy) {
 	float ray = (float(column) + 0.5 - float(view_size.x) * 0.5) / focal;
 	int sx = int((view_angle + atan(ray)) * 81.48733086305042) & 511;
 	int sr = clamp(int(93.0 + sy * res_up * 0.95), 0, 115);
-	return texelFetch(tiles_tex, ivec2(sx, sr + sky_row), 0).rgb * 255.0;
+	if (!effects_on) {
+		return texelFetch(tiles_tex, ivec2(sx, sr + sky_row), 0).rgb * 255.0;
+	}
+	// The clouds drift, faster overhead, still at the treeline.
+	float lift = clamp(1.0 - float(sr) / 88.0, 0.0, 1.0);
+	sx = (sx + int(sky_drift * 512.0 * lift)) & 511;
+	vec3 sky = texelFetch(tiles_tex, ivec2(sx, sr + sky_row), 0).rgb * 255.0;
+	return min(sky * (1.0 + lightning * 1.8 * (0.4 + lift)) + vec3(18.0, 20.0, 30.0) * lightning, vec3(255.0));
 }
 
 // One pixel of the 320x156 view, 0-255, before the weapon and HUD layer.
@@ -499,7 +552,11 @@ vec3 view_at(ivec2 px) {
 			}
 			texel = floor(t.rgb * 255.0 + 0.5);
 			light = b.y;
+			vec3 own = texel;
 			texel = clamp(floor(texel * light * c.rgb), 0.0, 255.0);
+			if (effects_on && self_lit(own)) {
+				texel = max(texel, floor(own * 0.95));
+			}
 			if (b.z > 0.0) {
 				texel = floor(texel * (1.0 - b.z) + vec3(255.0, 232.0, 208.0) * b.z);
 			}
@@ -545,6 +602,12 @@ vec3 view_at(ivec2 px) {
 		// The point of the nearest surface along this ray, lit by the frame's lights.
 		vec3 p = vec3(eye.xy + dir * nearest, eye.z - sy * nearest / focal);
 		base = min(floor(base * (vec3(1.0) + lights_at(p))), vec3(255.0));
+	}
+	if (effects_on && nearest < 160.0) {
+		// The level's mood: its tint, a lightning flash, and the fog of distance.
+		base = min(base * grade * (1.0 + lightning * 0.55), vec3(255.0));
+		float fog = fog_range.z * smoothstep(fog_range.x, fog_range.y, nearest);
+		base = floor(mix(base, fog_color * 255.0, fog));
 	}
 	if (pane_on) {
 		float glass = dist_at(lp, 2);

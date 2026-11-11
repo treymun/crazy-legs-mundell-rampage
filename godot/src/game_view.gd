@@ -231,6 +231,7 @@ func sprites() -> Array:
 			var shot_sprite := Renderer.Sprite.new(shot.x, shot.y, "fx_" + name, size, shot.z)
 			shot_sprite.glow = Shots.glows(shot.kind)
 			sprites.append(shot_sprite)
+	sprites.append_array(Features.sprites(self))
 	for fx: Speck in specks:
 		var speck_sprite := Renderer.Sprite.new(fx.x, fx.y, "fx_" + fx.kind, .095, fx.z)
 		speck_sprite.glow = fx.kind == "spark"
@@ -355,6 +356,8 @@ func feedback(c: Canvas) -> void:
 				else " LEFT" if turn2 < -.40 else " RIGHT" if turn2 > .40 else " FRONT"
 			)
 		HUD.banner(c, cause + side, 87, 288, Canvas.rgb(244, 160, 108))
+		if heading != null and not NO_MARK_SURFACE.has(cause):
+			_hurt_arc(c, fposmod(float(heading) - player.view_angle() + PI, TAU) - PI, end2)
 
 
 # ---------------------------------------------------------------- main draw
@@ -417,6 +420,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		c.pixels = renderer.render_end()
 		c.base_set = true
 	var t2 := Time.get_ticks_usec()
+	c.view_tint = gun_light() if c.gpu and Effects.enabled else Color(1, 1, 1)
 	if p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
 		weapon.draw(
 			c.pixels,
@@ -470,6 +474,11 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			c.set_pixel(160, VIEW / 2, 188, 168, 132)
 		if hit_mark_until > clock and hit_feedback:
 			_hit_mark(c)
+		if callout_until > clock and not map:
+			# A kill streak's call, big, shaking a little as it lands.
+			var fresh := 1.3 - (callout_until - clock)
+			var jolt := int(maxf(0.0, .2 - fresh) * 20.0 * shake_scale)
+			HUD.text(c, callout, 160 + jolt, 30, "heading", HUD.AMBER, true)
 		var after_notice := 5
 		if not map:
 			if practice:
@@ -607,6 +616,39 @@ func effect_lights() -> Array:
 	for i in mini(Effects.MAX_LIGHTS, lights.size()):
 		out.append(lights[i][1])
 	return out
+
+
+## The light on the gun: the frame's lights where the player stands (a blast
+## turns it orange, a lamp warms it, its own flash brightens it), the level's
+## tint and a lightning flash. White is the gun as drawn.
+func gun_light() -> Color:
+	var p := player
+	var sum := Vector3.ONE
+	for l: Array in effect_lights():
+		var reach := clampf(
+			1.0 - Vector3(p.x, p.y, p.eye).distance_to(Vector3(l[0], l[1], l[2])) / float(l[3]),
+			0,
+			1
+		)
+		var c: Color = l[4]
+		sum += Vector3(c.r, c.g, c.b) * float(l[5]) * reach * reach
+	var tone: Color = Effects.mood(level.id, "grade", Color(1, 1, 1))
+	sum *= Vector3(tone.r, tone.g, tone.b) * (1.0 + lightning * .5)
+	return Color(minf(sum.x, 1.8), minf(sum.y, 1.8), minf(sum.z, 1.8))
+
+
+## A red arc at the edge of the view on the side the hurt came from, fading.
+func _hurt_arc(c: Canvas, turn: float, end: float) -> void:
+	var fade := clampf((end - clock) / .64, 0.0, 1.0)
+	var colour := Color(.35 + .55 * fade, .06 + .08 * fade, .04)
+	for k in range(-14, 15):
+		var a := turn + k * .022
+		var x := int(160.0 + sin(a) * 132.0)
+		var y := int(VIEW / 2.0 - cos(a) * 66.0)
+		var thick := 3 if absi(k) < 10 else 2
+		c.fill_rect(
+			clampi(x - 1, 0, WIDTH - thick), clampi(y - 1, 0, VIEW - thick), thick, thick, colour
+		)
 
 
 ## Four short ticks around the crosshair when a hit lands; red and wider on a kill.

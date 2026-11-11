@@ -335,6 +335,8 @@ func _bake_glow() -> void:
 func _lights(game: Game) -> void:
 	var m := material
 	m.set_shader_parameter("effects_on", Effects.enabled)
+	if not Effects.enabled:
+		m.set_shader_parameter("lightning", 0.0)
 	var found: Array = game.effect_lights() if Effects.enabled else []
 	var at := PackedVector4Array()
 	var tint := PackedVector4Array()
@@ -348,6 +350,42 @@ func _lights(game: Game) -> void:
 	m.set_shader_parameter("light_count", found.size())
 	m.set_shader_parameter("light_pos", at)
 	m.set_shader_parameter("light_col", tint)
+	if not Effects.enabled:
+		return
+	# The level's mood and its moving tiles (effects.cfg).
+	var id := game.level.id
+	var fog: Color = Effects.mood(id, "fog", Color(0, 0, 0))
+	m.set_shader_parameter("fog_color", Vector3(fog.r, fog.g, fog.b))
+	m.set_shader_parameter(
+		"fog_range",
+		Vector3(
+			float(Effects.mood(id, "fog_start", 1000.0)),
+			float(Effects.mood(id, "fog_full", 2000.0)),
+			float(Effects.mood(id, "fog_most", 0.0))
+		)
+	)
+	var tone: Color = Effects.mood(id, "grade", Color(1, 1, 1))
+	m.set_shader_parameter("grade", Vector3(tone.r, tone.g, tone.b))
+	m.set_shader_parameter(
+		"sky_drift", fposmod(game.clock * float(Effects.mood(id, "clouds", 0.0)), 1.0)
+	)
+	m.set_shader_parameter("lightning", game.lightning)
+	var anims := PackedVector4Array()
+	anims.resize(Effects.MAX_ANIMS)
+	var count := 0
+	for tile_name: String in Effects.ANIMS:
+		if count < Effects.MAX_ANIMS and _assets.tile_index.has(tile_name):
+			var a: Dictionary = Effects.ANIMS[tile_name]
+			anims[count] = Vector4(
+				_assets.tile_index[tile_name],
+				0.0 if String(a.get("mode", "neon")) == "neon" else 1.0,
+				float(a.get("rate", 8.0)),
+				float(a.get("depth", .05))
+			)
+			count += 1
+	m.set_shader_parameter("anim_count", count)
+	m.set_shader_parameter("anims", anims)
+	m.set_shader_parameter("anim_time", fposmod(game.clock, 3600.0))
 
 
 ## The canvas holds a finished picture this frame (menus, the tally).

@@ -7,8 +7,10 @@ const TILE_W := 128
 const TILE_H := 128
 const TILE_BYTES := TILE_W * TILE_H * 3
 ## Cues made here instead of recorded: the crosshair's hit knock and the
-## cowbell clank of a kill (game_world.gd struck()).
-const MADE_CUES := ["hit_tick", "kill_tick"]
+## cowbell clank of a kill (game_world.gd struck()), far-off thunder rolling
+## (features/weather.gd), a spent case tinking on the ground
+## (features/debris.gd) and the thud of the tally's stamps (hud.gd).
+const MADE_CUES := ["hit_tick", "kill_tick", "thunder", "casing_tink", "stamp_thud"]
 ## Enemies only one chapter has: their pictures live in that chapter's file,
 ## which the browser build fetches after it starts (tools/make_packs.gd puts
 ## it in the chapter's pack with its music) and main_flow.gd play() waits for.
@@ -244,23 +246,47 @@ func has_cue(name: String) -> bool:
 	return sfx_index.has(name) or name in MADE_CUES
 
 
-## A short knock (a damped tone and a click) or a cowbell clank (two
-## inharmonic square-ish tones), as 16-bit samples.
+## A short knock (a damped tone and a click), a cowbell clank (two inharmonic
+## square-ish tones), rolling thunder (low noise swelling and fading), a brass
+## tink, or a rubber stamp's thud, as 16-bit samples.
 func _made_cue(name: String) -> AudioStreamWAV:
-	var kill := name == "kill_tick"
-	var frames := int(sfx_rate * (.20 if kill else .045))
+	var length: float = (
+		{"kill_tick": .20, "thunder": 3.2, "casing_tink": .16, "stamp_thud": .22}.get(name, .045)
+	)
+	var frames := int(sfx_rate * length)
 	var raw := PackedByteArray()
 	raw.resize(frames * 2)
+	var low := 0.0
+	var lower := 0.0
 	for i in frames:
 		var t := float(i) / sfx_rate
 		var v := 0.0
-		if kill:
-			var env := exp(-t * 22.0) * minf(1.0, t * 900.0)
-			v = (signf(sin(TAU * 545.0 * t)) * .55 + signf(sin(TAU * 815.0 * t)) * .45) * env * .42
-			v += sin(TAU * 140.0 * t) * exp(-t * 40.0) * .35
-		else:
-			v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
-			v += (fposmod(sin(i * 12.9898) * 43758.5453, 1.0) - .5) * exp(-t * 600.0) * .5
+		var hiss := fposmod(sin(i * 12.9898) * 43758.5453, 1.0) - .5
+		match name:
+			"kill_tick":
+				var env := exp(-t * 22.0) * minf(1.0, t * 900.0)
+				v = (
+					(signf(sin(TAU * 545.0 * t)) * .55 + signf(sin(TAU * 815.0 * t)) * .45)
+					* env
+					* .42
+				)
+				v += sin(TAU * 140.0 * t) * exp(-t * 40.0) * .35
+			"thunder":
+				# Noise through two low passes: a crack, then a long rumble that rolls.
+				low += (hiss - low) * .05
+				lower += (low - lower) * .08
+				var swell := minf(1.0, t * 3.0) * exp(-t * 1.1) * (.8 + .2 * sin(t * 5.3))
+				v = lower * 9.0 * swell + low * 1.5 * exp(-t * 9.0)
+			"casing_tink":
+				v = (sin(TAU * 3150.0 * t) * .5 + sin(TAU * 4720.0 * t) * .3) * exp(-t * 38.0) * .5
+			"stamp_thud":
+				v = (
+					sin(TAU * (90.0 - t * 120.0) * t) * exp(-t * 20.0) * .8
+					+ hiss * exp(-t * 90.0) * .6
+				)
+			_:
+				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
+				v += hiss * exp(-t * 600.0) * .5
 		raw.encode_s16(i * 2, clampi(int(v * 32767.0), -32768, 32767))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS

@@ -364,6 +364,7 @@ func explode(shot: Shot) -> void:
 	shake = minf(1.0, shake + maxf(0.0, 1.0 - near / 9.0) * (.45 if energy else .9))
 	duck = maxf(duck, float(spec["duck"]))
 	blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
+	exploded.emit(x, y, z, energy)
 	sound_at(String(spec["cue"]), x, y)
 	burst(x, y, z, "plasma" if energy else "spark", 12 if energy else 23, 2.2 if energy else 3.3)
 	burst(x, y, z, "dust", 6 if energy else 16, 2.3)
@@ -677,6 +678,7 @@ func ground_marks() -> Array:
 	for stain: Renderer.GroundMark in gore_fx.blood_marks:
 		if (stain.x - p.x) * (stain.x - p.x) + (stain.y - p.y) * (stain.y - p.y) < 81.0:
 			marks.append(stain)
+	marks.append_array(Features.ground_marks(self))
 	if in_hub:
 		return marks
 	for hazard: Hazard in hazards:

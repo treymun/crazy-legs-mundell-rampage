@@ -62,7 +62,16 @@ func _ready() -> void:
 	# A plain black sheet over the picture: a tenth of a second of dip between
 	# menu screens instead of a hard cut.
 	fade = ColorRect.new()
-	fade.color = Color(0, 0, 0, 0)
+	fade.color = Color(0, 0, 0, 1)
+	var iris := Shader.new()
+	iris.code = (
+		"shader_type canvas_item;\nuniform float open = 1.0;\nuniform float aspect = 1.6;\n"
+		+ "void fragment() {\n\tvec2 d = (UV - 0.5) * vec2(aspect, 1.0);\n"
+		+ "\tfloat edge = open * 1.05 * length(vec2(aspect, 1.0)) * 0.5;\n"
+		+ "\tCOLOR = vec4(0.0, 0.0, 0.0, open >= 1.0 ? 0.0 : step(edge, length(d)));\n}\n"
+	)
+	fade.material = ShaderMaterial.new()
+	(fade.material as ShaderMaterial).shader = iris
 	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(fade)
@@ -268,11 +277,15 @@ func _process(delta: float) -> void:
 		shown_state = state
 		screen_age = 0.0
 	screen_age += dt
-	# A short dip to black between screens; none with SCENERY MOTION on STATIC.
-	var dip := 0.0
-	if int(options.get("world_motion", 0)) != 2 and state != "play":
-		dip = clampf(1.0 - screen_age / .14, 0.0, 1.0) * .6
-	fade.color.a = dip
+	# An iris opening on each new screen, a cartoon's wipe; none with SCENERY
+	# MOTION on STATIC.
+	var opening := 1.0
+	if int(options.get("world_motion", 0)) != 2 and not smoke and not touring:
+		opening = clampf(screen_age / .32, 0.0, 1.0)
+		opening = opening * opening * (3.0 - 2.0 * opening)
+	var wipe := fade.material as ShaderMaterial
+	wipe.set_shader_parameter("open", opening)
+	wipe.set_shader_parameter("aspect", fade.size.x / maxf(1.0, fade.size.y))
 	if reset_armed > 0.0:
 		reset_armed -= dt
 		if reset_armed <= 0.0 and state == "setup":

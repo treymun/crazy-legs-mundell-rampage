@@ -22,6 +22,10 @@ var jump_held := false
 var vx := 0.0
 var vy := 0.0
 var crouched := false
+## How far the gun trails the view in screen pixels: behind a turn, away from
+## a strafe, down on landing (game.gd works it out; never saved).
+var weapon_lag := Vector2.ZERO
+var weapon_dip := 0.0
 
 
 func _init(px := 0.0, py := 0.0, pa := 0.0) -> void:

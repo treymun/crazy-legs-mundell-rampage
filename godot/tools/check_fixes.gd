@@ -557,6 +557,40 @@ func _run() -> void:
 	guns.erase_section("test_gun")
 	Weapons.load_tuning()
 
+	# The polish: what fights leave, kill calls, the tally's ribbon, the weather.
+	print("POLISH")
+	var fx_game: Game = main.make_game("hickston")
+	fx_game.configure({})
+	fx_game.exploded.emit(fx_game.player.x + 2.0, fx_game.player.y, .3, false)
+	var debris = fx_game.features["debris"]
+	check(
+		(
+			debris.scorches.size() == 1
+			and debris.bits.size() > 3
+			and not debris.ground_marks().is_empty()
+		),
+		"a blast leaves a scorch, embers and smoke"
+	)
+	fx_game.gun_reloading.emit(Weapons.REVOLVER)
+	check(debris.sprites().size() > 6, "a revolver reload dumps its brass")
+	var sweep: Array = []
+	for e: Enemy in fx_game.enemies:
+		if e.hostile and not Enemy.BOSS_TITLES.has(e.kind) and sweep.size() < 3:
+			sweep.append(e)
+	for e: Enemy in sweep:
+		e.hurt(9999.0, fx_game)
+	check(fx_game.callout == "HAT TRICK!", "three quick kills are called a hat trick")
+	fx_game.total_kills = 3
+	fx_game.kills = 3
+	check(fx_game.features["tally"].ribbon() != "", "the tally has a ribbon to stamp")
+	var stormy: Game = main.make_game("sawmill")
+	stormy.configure({})
+	stormy.replay = true
+	var weather = stormy.features["weather"]
+	weather.next_flash = 0.0
+	stormy.ticked.emit(1.0 / 60.0)
+	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
+
 	print("")
 	if failures.is_empty():
 		print("PARITY FIXES OK")

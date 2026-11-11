@@ -7,6 +7,11 @@ const ALL := [
 	preload("res://src/features/triggers_feature.gd"),
 	preload("res://src/features/lessons_feature.gd"),
 	preload("res://src/features/chapter_stats.gd"),
+	preload("res://src/features/weather.gd"),
+	preload("res://src/features/debris.gd"),
+	preload("res://src/features/ambient.gd"),
+	preload("res://src/features/callouts.gd"),
+	preload("res://src/features/tally.gd"),
 ]
 
 
@@ -30,6 +35,20 @@ static func restore_all(game, saved) -> void:
 	for key: String in game.features:
 		var state = states.get(key, {})
 		game.features[key].restore(state if state is Dictionary else {})
+
+
+static func sprites(game) -> Array:
+	var out: Array = []
+	for key: String in game.features:
+		out.append_array(game.features[key].sprites())
+	return out
+
+
+static func ground_marks(game) -> Array:
+	var out: Array = []
+	for key: String in game.features:
+		out.append_array(game.features[key].ground_marks())
+	return out
 
 
 static func tally_rows(game) -> Array:
