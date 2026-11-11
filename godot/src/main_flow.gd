@@ -51,7 +51,11 @@ func play(target: Game) -> void:
 		notice("FETCHING THE CHAPTER. A MOMENT...", 4.0)
 		return
 	waiting_play = null
-	target.lessons = true
+	# Lessons are for players: tours, benches, smoke runs and demos must look the
+	# same on every machine, whatever this profile was already taught.
+	target.lessons = (
+		view_tour == "" and view_bench == 0 and smoke_frames == 0 and not demo and not showcase
+	)
 	game = target
 	if not target.replay and not target.in_hub and not target.revisiting:
 		campaign_run = target
