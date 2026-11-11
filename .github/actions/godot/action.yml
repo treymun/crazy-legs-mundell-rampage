@@ -1,8 +1,9 @@
 name: Set up Godot and the game data
 description: >
-  Rebuilds the asset packs the Godot project reads from assets/, installs the
-  Godot editor and the four export templates the release uses, stamps the tag
-  version on release builds, and imports the project. Linux runners only.
+  Installs the Godot editor and the export templates the release uses, packs
+  the assets the project reads (tools/pack_assets.gd; kept between runs until
+  an asset changes), stamps the tag version on release builds, and imports the
+  project. No Python. Linux runners only.
 
 inputs:
   godot-version:
@@ -12,21 +13,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-
-    - name: Build the asset packs
-      shell: bash
-      run: |
-        pip install --quiet $(grep -iE '^(numpy|pillow)==' requirements.txt)
-        python scripts/build_godot_data.py
-
-    - name: Stamp the release version
-      if: github.ref_type == 'tag'
-      shell: bash
-      run: python scripts/godot_version.py --set "$GITHUB_REF_NAME"
-
     - name: Restore Godot
       id: cache
       uses: actions/cache@v4
@@ -64,6 +50,23 @@ runs:
           templates/android_release.apk \
           -d ~/.local/share/godot/export_templates/${VERSION}.stable
         rm -rf "$work"
+
+    - name: Restore the asset packs
+      id: packs
+      uses: actions/cache@v4
+      with:
+        path: godot/assets_gen
+        key: packs-${{ hashFiles('assets/art/**', 'assets/tiles/**', 'audio_src/manifest.json', 'audio_src/final/sfx/**', 'godot/assets/music/**', 'godot/assets_gen/tiles_index.json', 'godot/tools/pack_assets.gd') }}
+
+    - name: Pack the assets
+      if: steps.packs.outputs.cache-hit != 'true'
+      shell: bash
+      run: ~/godot/godot --headless --path godot --script res://tools/pack_assets.gd
+
+    - name: Stamp the release version
+      if: github.ref_type == 'tag'
+      shell: bash
+      run: ~/godot/godot --headless --path godot --script res://tools/version.gd -- "$GITHUB_REF_NAME"
 
     - name: Import the project
       shell: bash

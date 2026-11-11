@@ -1,9 +1,11 @@
 name: Build, release and publish
 
-# Every push checks the Godot port and exports the Windows, Web and Android
-# builds. A push to main also deploys the landing page with the browser build
-# under play/. A v* tag stamps its version into the build, deploys, and
-# publishes the EXE, the installer and the APK as a GitHub release.
+# Every push runs the checks and the shader-view comparison. A push to main, a
+# v* tag or a run started by hand also exports the Windows, Web and Android
+# builds (they take most of a run's time, so a branch push skips them); main
+# also deploys the landing page with the browser builds under play/. A v* tag
+# stamps its version into the builds, deploys, and publishes the EXE, the
+# installer and the APK as a GitHub release.
 
 on:
   push:
@@ -30,11 +32,11 @@ jobs:
       - name: Format and lint the GDScript
         working-directory: godot
         run: |
-          pip install --quiet "$(grep -E '^gdtoolkit==' ../requirements-dev.txt | cut -d' ' -f1)"
+          pipx install "$(grep -E '^gdtoolkit==' ../requirements-dev.txt | cut -d' ' -f1)"
           gdformat --check src tools
           gdlint src tools
       - name: The display shader fits a WebGL page's 16 textures
-        run: python godot/tools/check_shader.py
+        run: godot --headless --path godot --script res://tools/check_shader.gd
       - name: Boot the game headless
         run: |
           godot --headless --path godot --quit-after 100 2>&1 | tee boot.log
@@ -86,8 +88,7 @@ jobs:
           if grep -E "SCRIPT ERROR|Parse Error|SHADER ERROR" window.log; then exit 1; fi
       - name: Compare
         run: |
-          pip install --quiet $(grep -iE '^(numpy|pillow)==' requirements.txt)
-          python godot/tools/compare_views.py "$RUNNER_TEMP/views"
+          godot --headless --path godot --script res://tools/compare_views.gd -- "$RUNNER_TEMP/views"
       - name: Keep the frames
         if: always()
         uses: actions/upload-artifact@v4
@@ -99,6 +100,7 @@ jobs:
   windows:
     name: Windows EXE
     needs: checks
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -124,9 +126,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - uses: actions/download-artifact@v4
         with:
           name: windows-exe
@@ -147,8 +146,8 @@ jobs:
       - name: Build the installer
         shell: pwsh
         run: |
-          if ($env:GITHUB_REF_TYPE -eq "tag") { python scripts/godot_version.py --set $env:GITHUB_REF_NAME }
-          $version = python scripts/godot_version.py
+          if ($env:GITHUB_REF_TYPE -eq "tag") { $version = $env:GITHUB_REF_NAME.TrimStart("v") }
+          else { $version = ([regex]::Match((Get-Content godot/project.godot -Raw), 'config/version="([^"]*)"')).Groups[1].Value }
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppFullVersion=$version" installer.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC exited $LASTEXITCODE" }
       - uses: actions/upload-artifact@v4
@@ -163,6 +162,7 @@ jobs:
   android:
     name: Android APK
     needs: checks
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -234,6 +234,7 @@ jobs:
   web:
     name: Browser build and landing page
     needs: checks
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -264,7 +265,7 @@ jobs:
           cp -r godot/build/web/. _site/play/
           mkdir -p _site/play/lite
           cp -r godot/build/web-lite/. _site/play/lite/
-          python scripts/godot_version.py > _site/version.txt
+          godot --headless --path godot --script res://tools/version.gd | tail -n 1 > _site/version.txt
           du -sh _site
       - uses: actions/configure-pages@v5
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')

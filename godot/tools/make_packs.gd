@@ -2,7 +2,7 @@
 ##
 ##   Godot --headless --path <project> --script res://tools/make_packs.gd -- <web build dir>
 ##
-## Each pack holds one assets_gen/music_<chapter>.bin (pack_assets.py) and is
+## Each pack holds one assets_gen/music_<chapter>.bin (tools/pack_assets.gd) and is
 ## named after its contents' hash, so a browser that kept an older pack from
 ## an earlier visit fetches the new one. packs.json lists them in the order
 ## src/pack_loader.gd fetches them: the first chapter first.
@@ -22,7 +22,7 @@ func _init() -> void:
 	for pack: String in PACKS:
 		var source := "res://assets_gen/%s.bin" % pack
 		if not FileAccess.file_exists(source):
-			push_error("missing " + source + " (run scripts/build_godot_data.py)")
+			push_error("missing " + source + " (run tools/pack_assets.gd)")
 			quit(1)
 			return
 		var file := "%s-%s.pck" % [pack, FileAccess.get_md5(source).substr(0, 10)]

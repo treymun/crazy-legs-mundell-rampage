@@ -29,8 +29,7 @@ The landing page's download buttons always point at the newest GitHub release. F
 Build it from a clone:
 
 ```
-pip install numpy Pillow
-python scripts/build_godot_data.py
+godot --headless --path godot --script res://tools/pack_assets.gd
 godot --headless --path godot --import
 godot --headless --path godot --export-release "Windows Desktop" build/windows/CrazyLegsMundellRampage.exe
 godot --headless --path godot --export-release "Web" build/web/index.html
@@ -38,7 +37,7 @@ godot --headless --path godot --export-release "Android" build/android/CrazyLegs
 ISCC installer.iss
 ```
 
-`build_godot_data.py` writes the asset packs (`godot/assets_gen/*.bin`, about 170 MB, not committed); add `--levels` after changing a level module. The exports need Godot 4.7.2 with its export templates, and the Android one also needs a JDK 17, the Android SDK and a keystore. The Windows export is a single EXE with its data inside; `installer.iss` wraps that one file.
+`tools/pack_assets.gd` writes the asset packs (`godot/assets_gen/*.bin`, about 70 MB, not committed) from `assets/`, `audio_src/` and `godot/assets/music` in a few seconds; it needs no Python. The exports need Godot 4.7.2 with its export templates, and the Android one also needs a JDK 17, the Android SDK and a keystore. The Windows export is a single EXE with its data inside; `installer.iss` wraps that one file.
 
 Checks, all headless:
 

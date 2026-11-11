@@ -33,16 +33,18 @@ it by `scripts/`), so do not break the Python level modules or `assets/`.
 | `godot/assets_gen/` | Packed art, sound and levels. Generated, not committed |
 | `scripts/` | Python builders: art (`build_*`), audio (`audio_*`), version stamping |
 | `site/` | The landing page; the browser builds deploy under `play/` and `play/lite/` |
-| `.github/workflows/release.yml` | Checks, all builds, release and site deploy on every push |
+| `.github/workflows/release.yml` | Checks and the shader-view comparison on every push; the four builds, the release and the site on `main`, `v*` tags or a run started by hand (packs are cached until an asset changes) |
 
 ## Commands
 
-Use the repo's `.venv\Scripts\python.exe` (numpy, Pillow). The audio scripts
-need the system Python, which has `dotenv` and `elevenlabs`. Godot is
+Building and checking the game needs only Godot. Python is only for the art
+and sound tools in `scripts/` (Blender renders, digitizing, ElevenLabs,
+mastering): use the repo's `.venv\Scripts\python.exe` (numpy, Pillow); the audio
+scripts need the system Python, which has `dotenv` and `elevenlabs`. Godot is
 `C:\Users\treym\OneDrive\Desktop\Tools\Godot_v4.7.2-stable_win64_console.exe`.
 
 ```
-python scripts/build_godot_data.py            # rebuild godot/assets_gen
+godot --headless --path godot --script res://tools/pack_assets.gd   # rebuild godot/assets_gen (no Python)
 godot --headless --path godot --import        # after adding a class_name script
 
 # Checks (all run in CI too)
@@ -60,10 +62,10 @@ godot --headless --path godot --script res://tools/picture_check.gd -- update
 godot --path godot --audio-driver Dummy --resolution 1280x800 -- --view-bench=300
 godot --path godot --audio-driver Dummy --resolution 1280x800 -- \
   --view-tour=res://tools/picture_views.json --view-out=<dir>
-python godot/tools/compare_views.py <dir>     # shader view against software view
+godot --headless --path godot --script res://tools/compare_views.gd -- <dir>   # shader view against software view
 
 # Version
-python scripts/godot_version.py --set 2.0.0-dev.N
+godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
 ```
 
 ## Things that are easy to get wrong
@@ -72,7 +74,7 @@ python scripts/godot_version.py --set 2.0.0-dev.N
   ceilings and wall shading from layers the renderer hands over
   (`Renderer.layered`). Headless, and with FAST VIEW off, the renderer draws
   everything in software. A visual change usually needs both, and
-  `compare_views.py` checks they agree.
+  `tools/compare_views.gd` checks they agree.
 - **Two canvases.** With a window the HUD, menus and weapon draw with Godot
   2D (`Canvas.gpu`): the same calls become canvas commands in a 320x200
   viewport the shader lays over the view. Shapes still come down to
@@ -83,9 +85,9 @@ python scripts/godot_version.py --set 2.0.0-dev.N
 - **Nine textures at most in `palette.gdshader`.** WebGL and many phones give a
   shader 16 texture units and Godot keeps several; past nine the browser
   and Android builds draw nothing while a desktop looks fine.
-  `tools/check_shader.py` (in CI) counts them. Stack new data into an existing
+  `tools/check_shader.gd` (in CI) counts them. Stack new data into an existing
   texture instead of adding one.
-- **Chapter music is a separate download in the browser.** `pack_assets.py`
+- **Chapter music is a separate download in the browser.** `tools/pack_assets.gd`
   writes `music_<chapter>.bin`, the web presets leave them out, CI turns them
   into packs (`tools/make_packs.gd`) and `pack_loader.gd` fetches them after
   start. A browser cannot rename files in its storage and HTTPRequest's

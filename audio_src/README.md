@@ -21,7 +21,7 @@ finished audio and the game's packs with no network access:
 pip install numpy Pillow            # and ffmpeg on PATH
 python scripts/audio_build.py       # generated/ -> final/sfx, godot/assets/music, manifest.json
 python scripts/audio_build.py --check
-python scripts/build_godot_data.py  # final/sfx + music -> godot/assets_gen/*.bin
+godot --headless --path godot --script res://tools/pack_assets.gd  # final/sfx + music -> godot/assets_gen/*.bin
 ```
 
 `final/sfx` and `godot/assets/music/*.ogg` are committed too, so CI and anyone
@@ -34,7 +34,7 @@ without ffmpeg can skip the first two lines.
 2. A new recording: `python scripts/audio_produce.py --redo <cue>` (paid; the
    old take is kept beside it as `<cue>.take1.mp3`). A processing change needs
    no request.
-3. `python scripts/audio_build.py`, then `python scripts/build_godot_data.py`.
+3. `python scripts/audio_build.py`, then `godot --headless --path godot --script res://tools/pack_assets.gd`.
 
 ## The budget
 
