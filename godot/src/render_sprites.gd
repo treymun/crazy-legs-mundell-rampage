@@ -566,7 +566,7 @@ func _mark_band(a: int, b: int) -> void:
 						if st >= here:
 							continue
 						var rows := int(sf[so + 3])
-						if y < (rows >> 8) or y > (rows & 255):
+						if y < (rows >> 10) or y > (rows & 1023):
 							continue
 						var wz := cz - row_sy * (st / focal)
 						if wz < sf[so + 1] or wz > sf[so + 2]:

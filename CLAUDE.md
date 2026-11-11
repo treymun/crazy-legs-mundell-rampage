@@ -122,6 +122,12 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   (the owner's own copy shares it): a lowered gun or the film look in a local
   reference fails CI's Mesa window, which has none.
   `tools/picture_check.gd` still guards the software fallback.
+- **VIEW DETAIL HD** (setting value 3, off by default) is `Renderer.set_detail(-1)`:
+  the view is drawn 640x312 at twice the focal length and the display shader
+  shows it at that size (`view_mul`), while the weapon, HUD and their effects
+  stay 320x200. The software view has no HD (game_view.gd drops to HIGH). Rows
+  past 255 exist in HD: pack a row into 10 bits, not 8 (wall spans do). It
+  costs about 2.3x the shader view's frame time.
 - **Two canvases.** With a window the HUD, menus and weapon draw with Godot
   2D (`Canvas.gpu`): the same calls become canvas commands in a 320x200
   viewport the shader lays over the view. Shapes still come down to

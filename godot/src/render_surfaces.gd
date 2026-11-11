@@ -207,7 +207,7 @@ func _wall_band(band_a: int, band_b: int) -> void:
 				sf[so] = t
 				sf[so + 1] = bottom
 				sf[so + 2] = top
-				sf[so + 3] = float(r0 * 256 + r1)
+				sf[so + 3] = float(r0 * 1024 + r1)
 				so += span_row
 				sf[so] = float(material)
 				sf[so + 1] = float(tile_base[material] if mode == 2 else material)

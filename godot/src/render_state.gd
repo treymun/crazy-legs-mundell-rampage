@@ -178,7 +178,7 @@ const SPAN_MESH := 4
 ## Up to SPAN_K spans a column; past that a column falls back to the pixel
 ## codes above. Two RGBA float texels a span, laid out as an image of
 ## vw x (SPAN_K * 2): span k of column c is at (c, 2k) and (c, 2k + 1):
-##   distance, bottom, top, first row * 256 + last row;
+##   distance, bottom, top, first row * 1024 + last row (HD has 312 rows);
 ##   tile, tile outside the window band (mode 2), u * 4 + mode, shade row.
 ## Row 2 * SPAN_K holds each column's span count, for the shader.
 const SPAN_K := 12
@@ -349,13 +349,27 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 	_build_shade_rows()
 
 
-## Choose HIGH (0) or LOW (1) view detail.
+## Choose HIGH (0), LOW (1) or HD (-1) view detail. HD draws the view at twice
+## the size each way (640x312) for the display shader to show at that size; the
+## weapon and HUD stay 320x200. Only the graphics-card view has it (game_view.gd
+## falls back to HIGH without one).
 func set_detail(level_of_detail: int) -> void:
-	detail = clampi(level_of_detail, 0, 1)
-	vw = WIDTH >> detail
-	vh = VIEW >> detail
-	focal = base_focal / (1 << detail)
+	detail = clampi(level_of_detail, -1, 1)
+	vw = WIDTH * 2 if detail < 0 else WIDTH >> detail
+	vh = VIEW * 2 if detail < 0 else VIEW >> detail
+	focal = base_focal * vw / WIDTH
 	res_up = float(VIEW) / vh
+	if rays.size() < vw:
+		rays.resize(vw)
+		minimum.resize(vw)
+		pane_cols.resize(vw)
+		dir_x.resize(vw)
+		dir_y.resize(vw)
+	if row_sy.size() < vh:
+		row_sy.resize(vh)
+		sy_rows.resize(vh)
+		for i in vh:
+			row_sy[i] = i + .5
 	for i in vw:
 		rays[i] = (i + .5 - vw / 2.0) / focal
 

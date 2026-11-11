@@ -420,6 +420,9 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	var flash: float = (weapon.flash * 4.0 + blast_flash * .85) * flash_scale
 	renderer.time = clock
 	renderer.layered = layered and gpu_look
+	if renderer.detail < 0 and not renderer.layered:
+		# HD is the display shader's: the software view draws at HIGH.
+		renderer.set_detail(0)
 	var t0 := Time.get_ticks_usec()
 	# The renderer sorts out the wall segments on a band thread while the
 	# sprites and marks are listed here.

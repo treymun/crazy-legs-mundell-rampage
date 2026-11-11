@@ -98,6 +98,9 @@ uniform float horizon = 78.0;
 uniform float focal = 230.0;
 uniform ivec2 view_size = ivec2(320, 156);
 uniform int view_div = 1;
+// HD: the view is drawn at twice the size each way and shown at that size; the
+// weapon and HUD layer stays 320x200.
+uniform int view_mul = 1;
 uniform float res_up = 1.0;
 uniform float flash_light = 0.0;
 // Tiles that scroll (creek, mill race) and how far along they are.
@@ -451,9 +454,10 @@ vec3 sky_at(int column, float sy) {
 	return min(sky * (1.0 + lightning * 1.8 * (0.4 + lift)) + vec3(18.0, 20.0, 30.0) * lightning, vec3(255.0));
 }
 
-// One pixel of the 320x156 view, 0-255, before the weapon and HUD layer.
-vec3 view_at(ivec2 px) {
-	ivec2 lp = px / view_div;
+// One pixel of the view, 0-255, before the weapon and HUD layer. `fine` is the
+// screen pixel in view_mul steps of a 320x200 one (HD: 640x400).
+vec3 view_at(ivec2 fine) {
+	ivec2 lp = fine / view_div;
 	float ray = (float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal;
 	vec2 dir = fwd + side * ray;
 	float sy = float(lp.y) + 0.5 - horizon;
@@ -470,7 +474,7 @@ vec3 view_at(ivec2 px) {
 			continue;
 		}
 		int rows = int(a.w + 0.5);
-		if (lp.y < (rows >> 8) || lp.y > (rows & 255)) {
+		if (lp.y < (rows >> 10) || lp.y > (rows & 1023)) {
 			continue;
 		}
 		float wz = eye.z - sy * (a.x / focal);
@@ -619,14 +623,14 @@ vec3 view_at(ivec2 px) {
 }
 
 // The finished view pixel: the weapon and HUD layer over the view.
-vec3 picture_at(ivec2 px, vec3 frame) {
+vec3 picture_at(ivec2 px, ivec2 fine, vec3 frame) {
 	vec4 o = texelFetch(post_tex, px, 0);
 	if (o.a >= 1.0) {
 		return o.rgb * 255.0;
 	}
 	vec3 under = vec3(0.0);
 	if (scene_on && px.y < 156) {
-		under = view_at(px);
+		under = view_at(fine);
 	} else if (base_on) {
 		under = frame;
 	}
@@ -635,6 +639,8 @@ vec3 picture_at(ivec2 px, vec3 frame) {
 
 void fragment() {
 	ivec2 px = ivec2(UV * vec2(320.0, 200.0));
+	ivec2 fine = ivec2(UV * vec2(320.0, 200.0) * float(view_mul));
+	ivec2 sub = fine - px * view_mul;
 	vec3 c;
 	if (overlay_on) {
 		if (drunk > 0.0 && px.y < 156) {
@@ -643,11 +649,11 @@ void fragment() {
 			int sx = (px.x + shift + 640) % 320;
 			int gx = (px.x - drunk_ghost + shift + 640) % 320;
 			float blend = 0.30 * drunk;
-			vec3 v = picture_at(ivec2(sx, px.y), texelFetch(TEXTURE, ivec2(sx, px.y), 0).rgb * 255.0) * (1.0 - blend)
-					+ picture_at(ivec2(gx, px.y), texelFetch(TEXTURE, ivec2(gx, px.y), 0).rgb * 255.0) * blend;
+			vec3 v = picture_at(ivec2(sx, px.y), ivec2(sx, px.y) * view_mul + sub, texelFetch(TEXTURE, ivec2(sx, px.y), 0).rgb * 255.0) * (1.0 - blend)
+					+ picture_at(ivec2(gx, px.y), ivec2(gx, px.y) * view_mul + sub, texelFetch(TEXTURE, ivec2(gx, px.y), 0).rgb * 255.0) * blend;
 			c = floor(vec3(v.r * (1.0 + 0.06 * drunk), v.g, v.b * (1.0 - 0.10 * drunk)));
 		} else {
-			c = picture_at(px, texelFetch(TEXTURE, px, 0).rgb * 255.0);
+			c = picture_at(px, fine, texelFetch(TEXTURE, px, 0).rgb * 255.0);
 		}
 		c = clamp(c, 0.0, 255.0) / 255.0;
 	} else {

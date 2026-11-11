@@ -300,8 +300,8 @@ static func build() -> Array:
 						"VIEW DETAIL",
 						"detail",
 						2,
-						["HIGH", "LOW", "AUTO"],
-						"LOW DRAWS THE VIEW AT HALF SIZE AND DOUBLES IT. AUTO DOES THAT ONLY WHILE FRAMES RUN LATE."
+						["HIGH", "LOW", "AUTO", "HD"],
+						"LOW HALVES THE VIEW. AUTO GOES LOW ONLY WHEN FRAMES RUN LATE. HD DRAWS IT TWICE AS SHARP."
 					)
 				),
 				SessionStore.toggle(

@@ -58,9 +58,10 @@ func configure(options: Dictionary) -> void:
 	# A browser without threads draws every band on one core: it gets LOW whatever the setting.
 	var unthreaded := OS.has_feature("web") and not OS.has_feature("threads")
 	var detail := int(options.get("detail", 0))
-	renderer.set_detail(
-		1 if (unthreaded or detail == 1 or (detail == 2 and Renderer.auto_low)) else 0
-	)
+	if unthreaded or detail == 1 or (detail == 2 and Renderer.auto_low):
+		renderer.set_detail(1)
+	else:
+		renderer.set_detail(-1 if detail == 3 else 0)
 	flicker = bool(options.get("flicker", 1))
 	armory.auto_switch = bool(options.get("auto_switch", 1))
 	armory.auto_reload = bool(options.get("auto_reload", 1))
