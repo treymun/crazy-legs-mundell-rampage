@@ -512,10 +512,23 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		0.0
 	]
 	if p.health > 0:
+		var tint := crosshair_tint
 		if crosshair == 2:
-			c.circle(160, VIEW / 2, 4, Canvas.rgb(188, 168, 132), false)
+			c.circle(160, VIEW / 2, 4, tint, false)
+		elif crosshair == 3:
+			# CROSS: four short arms around an open middle.
+			c.fill_rect(156, VIEW / 2, 3, 1, tint)
+			c.fill_rect(162, VIEW / 2, 3, 1, tint)
+			c.fill_rect(160, VIEW / 2 - 4, 1, 3, tint)
+			c.fill_rect(160, VIEW / 2 + 2, 1, 3, tint)
 		elif crosshair != 0:
-			c.set_pixel(160, VIEW / 2, 188, 168, 132)
+			c.set_pixel(
+				160,
+				VIEW / 2,
+				roundi(tint.r * 255.0),
+				roundi(tint.g * 255.0),
+				roundi(tint.b * 255.0)
+			)
 		if hit_mark_until > clock and hit_feedback:
 			_hit_mark(c)
 		if callout_until > clock and not map:

@@ -4,6 +4,9 @@
 class_name MainInput
 extends MainFlow
 
+## pad_dir while a direction held from before must be let go first.
+const PAD_WAIT := Vector2i(2, 2)
+
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
@@ -32,6 +35,8 @@ func _on_focus_lost() -> void:
 	focused = false
 	block_fire = true
 	left_ctrl = false
+	drag_mode = ""
+	apply_master()
 	if state == "play" and game != null:
 		game.player.vx = 0.0
 		game.player.vy = 0.0
@@ -49,8 +54,9 @@ func _on_focus_gained() -> void:
 		return
 	focused = true
 	block_fire = true
+	apply_master()
 	if state != "play":
-		sound.pause_score(false)
+		sound.pause_score(int(options.get("menu_music", 1)) == 0)
 	if state == "play" and game != null:
 		grab(not game.showing_tally and game.player.health > 0)
 
@@ -101,9 +107,14 @@ func key(code: int, shift := false) -> void:
 		_key_setup(code, shift)
 		return
 	if state == "controls" or state == "credits":
-		if state == "controls" and (code == KEY_LEFT or code == KEY_RIGHT or code == KEY_TAB):
+		if (
+			state == "controls"
+			and code in [KEY_LEFT, KEY_RIGHT, KEY_TAB, KEY_PAGEUP, KEY_PAGEDOWN, KEY_A, KEY_D]
+		):
+			var back := code == KEY_LEFT or code == KEY_PAGEUP or code == KEY_A
 			controls_page = posmod(
-				controls_page + (-1 if code == KEY_LEFT else 1), CONTROL_PAGES.size()
+				controls_page + (-1 if back or (code == KEY_TAB and shift) else 1),
+				CONTROL_PAGES.size()
 			)
 			sound.play("menu_move")
 		elif code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_ESCAPE or code == KEY_SPACE:
@@ -188,18 +199,30 @@ func _key_setup(code: int, shift: bool) -> void:
 		if code == KEY_ESCAPE:
 			settle_display(false)
 			return
+		if code not in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]:
+			return  # the question box covers the list: only another step of the same row
 	var item: SessionStore.Setting = option_items()[option_slot]
 	if item is SessionStore.KeySetting and (code == KEY_ENTER or code == KEY_KP_ENTER):
 		binding_action = (item as SessionStore.KeySetting).action
 		menu_note = "PRESS A KEY FOR %s. ESC KEEPS THE OLD ONE." % item.label
 		sound.play("menu_accept")
 		return
-	if code == KEY_UP or code == KEY_DOWN:
-		setup_select(option_slot + (1 if code == KEY_DOWN else -1))
+	var sideways := code in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]
+	if key_echo and sideways and not Menu.is_bar(item):
+		return  # a held arrow slides a level; it would only flicker a switch
+	if code in [KEY_UP, KEY_DOWN, KEY_W, KEY_S]:
+		var down := code == KEY_DOWN or code == KEY_S
+		var count := option_items().size()
+		# Held keys stop at the ends instead of wrapping round.
+		if key_echo and option_slot == (count - 1 if down else 0):
+			return
+		setup_select(option_slot + (1 if down else -1))
+	elif code == KEY_HOME or code == KEY_END:
+		setup_select(0 if code == KEY_HOME else option_items().size() - 1)
 	elif code == KEY_TAB or code == KEY_PAGEUP or code == KEY_PAGEDOWN:
 		setup_page(-1 if code == KEY_PAGEUP or (code == KEY_TAB and shift) else 1)
-	elif code == KEY_LEFT or code == KEY_RIGHT or code == KEY_ENTER or code == KEY_KP_ENTER:
-		adjust_setting(-1 if code == KEY_LEFT else 1)
+	elif sideways or code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
+		adjust_setting(-1 if code == KEY_LEFT or code == KEY_A else 1)
 	elif code == KEY_R:
 		reset_page()
 	elif code == KEY_ESCAPE:
@@ -211,7 +234,10 @@ func _key_replays(code: int) -> void:
 		back_to_title()
 	elif code == KEY_UP or code == KEY_DOWN or code == KEY_W or code == KEY_S:
 		var step := -1 if code == KEY_UP or code == KEY_W else 1
-		replay_selection = posmod(replay_selection + step, Campaign.ORDER.size())
+		var count := Campaign.ORDER.size()
+		if key_echo and replay_selection + step != posmod(replay_selection + step, count):
+			return
+		replay_selection = posmod(replay_selection + step, count)
 		sound.play("menu_move")
 	elif code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
 		var level_id: String = Campaign.ORDER[replay_selection]
@@ -235,6 +261,8 @@ func _key_title(code: int) -> void:
 		step.x = 1
 	if step != Vector2i.ZERO:
 		var next := Menu.title_move(rows, selection, step.x, step.y)
+		if key_echo and step.y != 0 and (next - posmod(selection, rows.size())) * step.y < 0:
+			return  # a held key stops at the ends instead of wrapping round
 		if next != posmod(selection, rows.size()):
 			selection = next
 			menu_note = ""
@@ -358,13 +386,14 @@ func _input(event: InputEvent) -> void:
 			and key_event.location != KEY_LOCATION_RIGHT
 		):
 			left_ctrl = key_event.pressed
-		if key_event.pressed and not key_event.echo:
+		if key_event.pressed and (not key_event.echo or _repeats(key_event.keycode)):
 			input_device = "keys"
-			if console != null and console.text(key_event.unicode):
+			if not key_event.echo and console != null and console.text(key_event.unicode):
 				return
 			if (
 				state == "slots"
 				and slot_stage == "edit"
+				and not key_event.echo
 				and key_event.unicode >= 32
 				and key_event.unicode < 127
 			):
@@ -376,7 +405,9 @@ func _input(event: InputEvent) -> void:
 				code = KeyBindings.translate(code)
 				if code == KEY_NONE:
 					return
+			key_echo = key_event.echo
 			key(code, key_event.shift_pressed)
+			key_echo = false
 	elif event is InputEventScreenTouch:
 		var finger := event as InputEventScreenTouch
 		input_device = "touch"
@@ -384,21 +415,33 @@ func _input(event: InputEvent) -> void:
 			touch.touch(finger)
 		elif state != "play":
 			touch.active = true
-			if finger.pressed:
-				_touch_menu(finger.position)
+			_touch_menu(finger)
 		else:
 			touch.touch(finger)
 	elif event is InputEventScreenDrag:
 		if state == "play" or touch.editing:
 			touch.drag(event as InputEventScreenDrag)
+		elif state == "setup":
+			_touch_drag(event as InputEventScreenDrag)
 	elif event is InputEventMouseMotion:
+		var moved := event as InputEventMouseMotion
 		if state == "play" and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			mouse_rel += (event as InputEventMouseMotion).relative
-		elif state == "title" or state == "setup":
-			hover((event as InputEventMouseMotion).position)
+			mouse_rel += moved.relative
+		elif state != "play":
+			pointer = moved.position
+			if drag_mode != "" and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+				_drag(moved.position)
+			else:
+				drag_mode = ""
+				hover(moved.position)
 	elif event is InputEventMouseButton:
 		var button := event as InputEventMouseButton
 		if not button.pressed:
+			if button.button_index == MOUSE_BUTTON_LEFT:
+				drag_mode = ""
+			return
+		if button.button_index == MOUSE_BUTTON_XBUTTON1 and state != "play":
+			key(KEY_ESCAPE)  # the mouse's back button goes back on every menu
 			return
 		if (
 			button.button_index == MOUSE_BUTTON_WHEEL_UP
@@ -421,14 +464,8 @@ func _input(event: InputEvent) -> void:
 				and not game.in_hub
 			):
 				game.armory.cycle(1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1, game)
-			elif state == "setup" and display_trial.is_empty():
-				setup_select(
-					clampi(
-						option_slot + (-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1),
-						0,
-						option_items().size() - 1
-					)
-				)
+			elif state != "play":
+				_wheel(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1, button.position)
 			return
 		input_device = "keys"
 		if (
@@ -453,28 +490,149 @@ func _input(event: InputEvent) -> void:
 			key(KEY_E)
 
 
+## Held arrow keys repeat on the menus (and Backspace while naming a save);
+## play and a KEYS page row waiting for its key take presses only.
+func _repeats(code: int) -> bool:
+	if state == "play" or binding_action != "":
+		return false
+	if state == "slots" and slot_stage == "edit":
+		return code == KEY_BACKSPACE
+	return code in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_W, KEY_S, KEY_A, KEY_D]
+
+
+## The wheel on a menu: the settings list scrolls under the pointer (which then
+## picks the row it is over); the other lists move their cursor.
+func _wheel(step: int, position: Vector2) -> void:
+	if state == "setup":
+		if display_trial.is_empty() and binding_action == "":
+			setup_scroll_to(option_scroll + step)
+			hover(position)
+	elif state == "title":
+		var rows := entries()
+		var next := Menu.title_move(rows, selection, 0, step)
+		if (next - posmod(selection, rows.size())) * step > 0:
+			selection = next
+			menu_note = ""
+			sound.play("menu_move")
+	elif state == "replays":
+		var next_replay := clampi(replay_selection + step, 0, Campaign.ORDER.size() - 1)
+		if next_replay != replay_selection:
+			replay_selection = next_replay
+			sound.play("menu_move")
+	elif state == "slots" and slot_stage == "choose":
+		slot_index = clampi(slot_index + step, 0, slots.size() - 1)
+		menu_note = ""
+	elif state == "controls":
+		key(KEY_PAGEUP if step < 0 else KEY_PAGEDOWN)
+
+
 ## Fingers are left clicks on every menu. The reference stops there, which left
 ## CONTROLS and CREDITS with no way back on a phone, so a tap closes those.
-func _touch_menu(position: Vector2) -> void:
-	click(position, MOUSE_BUTTON_LEFT)
+## The settings list also scrolls under a dragged finger, so there a tap counts
+## when the finger lifts without having moved; a finger that lands on the
+## picked row's bar or on the scroll groove slides it straight away.
+func _touch_menu(finger: InputEventScreenTouch) -> void:
+	if finger.index != 0:
+		return
+	if state != "setup":
+		if finger.pressed:
+			click(finger.position, MOUSE_BUTTON_LEFT)
+		return
+	if finger.pressed:
+		touch_down = true
+		touch_travel = 0.0
+		touch_carry = 0.0
+		var at := picture_point(finger.position)
+		if at.x >= 0 and display_trial.is_empty() and binding_action == "":
+			var hit := Menu.setup_hit(at.x, at.y, option_page, option_scroll)
+			var on_bar := (
+				String(hit["kind"]) == "row"
+				and bool(hit["bar"])
+				and int(hit["index"]) == option_slot
+			)
+			if on_bar or String(hit["kind"]) == "track":
+				drag_mode = "bar" if on_bar else "track"
+				_drag(finger.position)
+	elif touch_down:
+		touch_down = false
+		if drag_mode == "" and touch_travel < 5.0:
+			click(finger.position, MOUSE_BUTTON_LEFT)
+		drag_mode = ""
 
 
-## The pointer lights the row it is over, without a sound per pixel.
+func _touch_drag(drag: InputEventScreenDrag) -> void:
+	if not touch_down or drag.index != 0:
+		return
+	if drag_mode != "":
+		_drag(drag.position)
+		return
+	var rect := viewport_rect()
+	var moved := drag.relative * Vector2(WIDTH, HEIGHT) / rect.size.max(Vector2.ONE)
+	touch_travel += moved.length()
+	if touch_travel < 5.0:
+		return
+	touch_carry += moved.y
+	while touch_carry <= -Menu.SET_ROW:
+		touch_carry += Menu.SET_ROW
+		setup_scroll_to(option_scroll + 1)
+	while touch_carry >= Menu.SET_ROW:
+		touch_carry -= Menu.SET_ROW
+		setup_scroll_to(option_scroll - 1)
+
+
+## A held button (or finger) sliding a level setting's bar or the scroll groove.
+func _drag(position: Vector2) -> void:
+	var at := picture_point(position)
+	if at.x < 0 or state != "setup":
+		return
+	if drag_mode == "bar":
+		var item: SessionStore.Setting = option_items()[option_slot]
+		if Menu.is_bar(item):
+			change_setting(Menu.bar_value(item, at.x))
+	elif drag_mode == "track":
+		var track := Menu.track_rect()
+		var share := float(at.y - track.position.y) / float(maxi(1, track.size.y - 1))
+		setup_scroll_to(Menu.scroll_at(option_page, clampf(share, 0.0, 1.0)))
+
+
+## The pointer lights the row it is over, without a sound per pixel, and the
+## button, tab or arrow it is over.
 func hover(position: Vector2) -> void:
 	var at := picture_point(position)
-	if at.x < 0:
-		return
-	if state == "title":
+	var part := ""
+	if at.x >= 0 and state == "title":
 		var index := Menu.title_hit(entries(), at.x, at.y)
 		if index >= 0 and index != selection:
 			selection = index
 			sound.play("menu_move")
-	elif state == "setup" and display_trial.is_empty():
-		var hit := Menu.setup_hit(
-			at.x, at.y, SessionStore.setup_pages().size(), option_items().size(), option_scroll
-		)
-		if String(hit["kind"]) == "row" and int(hit["index"]) != option_slot:
-			setup_select(int(hit["index"]))
+	elif at.x >= 0 and state == "setup":
+		if not display_trial.is_empty():
+			if Menu.CONFIRM.has_point(at):
+				part = "keep" if at.x < 160 else "undo"
+		else:
+			var hit := Menu.setup_hit(at.x, at.y, option_page, option_scroll)
+			var kind := String(hit["kind"])
+			if kind == "row" and binding_action == "":
+				if int(hit["index"]) != option_slot:
+					setup_select(int(hit["index"]))
+			elif kind == "tab":
+				part = "tab%d" % int(hit["index"])
+			elif kind in ["back", "reset", "up", "down"]:
+				part = kind
+	elif at.x >= 0:
+		if Menu.BACK.has_point(at) and not (state == "slots" and slot_stage != "choose"):
+			part = "back"
+		elif state == "replays" and at.x >= 19 and at.x < 301:
+			var row := (at.y - REPLAY_TOP) / REPLAY_ROW
+			if at.y >= REPLAY_TOP and row < Campaign.ORDER.size() and row != replay_selection:
+				replay_selection = row
+				sound.play("menu_move")
+		elif state == "slots" and slot_stage == "choose" and at.x >= 23 and at.x < 296:
+			var slot_row := (at.y - SLOT_TOP) / SLOT_ROW
+			if at.y >= SLOT_TOP and slot_row < slots.size() and slot_row != slot_index:
+				slot_index = slot_row
+				menu_note = ""
+	hover_part = part
 
 
 func click(position: Vector2, button: int) -> void:
@@ -522,34 +680,45 @@ func click(position: Vector2, button: int) -> void:
 	elif state == "replays" and button == MOUSE_BUTTON_LEFT and Menu.BACK.has_point(at):
 		back_to_title()
 	elif state == "setup" and (button == MOUSE_BUTTON_LEFT or button == MOUSE_BUTTON_RIGHT):
-		if not display_trial.is_empty():
-			# The question box: left half keeps, right half goes back.
-			if y >= 78 and y < 122:
-				settle_display(x < 160)
-			return
-		var hit := Menu.setup_hit(
-			x, y, SessionStore.setup_pages().size(), option_items().size(), option_scroll
-		)
-		var kind := String(hit["kind"])
-		if kind == "tab" and int(hit["index"]) != option_page:
-			setup_page(int(hit["index"]) - option_page)
-		elif kind == "row":
-			setup_select(int(hit["index"]))
-			if option_items()[option_slot] is SessionStore.KeySetting:
-				_key_setup(KEY_ENTER, false)
-			elif int(hit["direction"]) != 0:
-				adjust_setting(-1 if button == MOUSE_BUTTON_RIGHT else int(hit["direction"]))
-		elif kind == "up" or kind == "down":
-			var count := option_items().size()
-			option_scroll = clampi(
-				option_scroll + (-1 if kind == "up" else 1), 0, maxi(0, count - Menu.VISIBLE_ROWS)
-			)
-			option_slot = clampi(option_slot, option_scroll, option_scroll + Menu.VISIBLE_ROWS - 1)
-			sound.play("menu_move")
-		elif kind == "reset":
-			reset_page()
-		elif kind == "back":
-			back_to_title()
+		_click_setup(x, y, button)
+
+
+func _click_setup(x: int, y: int, button: int) -> void:
+	if not display_trial.is_empty():
+		# The question box: its left half (KEEP) keeps, its right half undoes.
+		if Menu.CONFIRM.has_point(Vector2i(x, y)):
+			settle_display(x < 160)
+		return
+	if binding_action != "":
+		_bind_key(KEY_ESCAPE)  # a click while a row waits for its key keeps the old one
+		return
+	var hit := Menu.setup_hit(x, y, option_page, option_scroll)
+	var kind := String(hit["kind"])
+	if kind == "tab" and int(hit["index"]) != option_page:
+		setup_page(int(hit["index"]) - option_page)
+	elif kind == "row":
+		var again := int(hit["index"]) == option_slot
+		setup_select(int(hit["index"]))
+		var item: SessionStore.Setting = option_items()[option_slot]
+		if item is SessionStore.KeySetting:
+			_key_setup(KEY_ENTER, false)
+		elif bool(hit["bar"]) and button == MOUSE_BUTTON_LEFT:
+			drag_mode = "bar"
+			change_setting(Menu.bar_value(item, x))
+		elif int(hit["direction"]) != 0:
+			adjust_setting(-1 if button == MOUSE_BUTTON_RIGHT else int(hit["direction"]))
+		elif again and Menu.is_toggle(item):
+			adjust_setting(1)  # a second click on a switch's name flips it
+	elif kind == "up" or kind == "down":
+		setup_scroll_to(option_scroll + (-1 if kind == "up" else 1))
+		sound.play("menu_move")
+	elif kind == "track" and button == MOUSE_BUTTON_LEFT:
+		drag_mode = "track"
+		setup_scroll_to(Menu.scroll_at(option_page, float(hit["share"])))
+	elif kind == "reset":
+		reset_page()
+	elif kind == "back":
+		back_to_title()
 
 
 func read_pad(dt: float) -> Dictionary:
@@ -580,16 +749,23 @@ func read_pad(dt: float) -> Dictionary:
 		pad_down[index] = down
 	var before := state
 	for pair: Array in _pad_bindings():
-		if pressed.has(int(pair[0])):
+		if pressed.has(int(pair[0])) and int(pair[1]) != KEY_NONE:
 			key(int(pair[1]))
 			if state != before:
 				break
-	if state != "play" or game == null:
+	if state != "play":
+		_pad_menu(device, dt, state == before)
+		return idle
+	pad_dir = PAD_WAIT
+	if game == null:
 		return idle
 	var forward := -_deadzone(Input.get_joy_axis(device, JOY_AXIS_LEFT_Y))
 	var strafe := _deadzone(Input.get_joy_axis(device, JOY_AXIS_LEFT_X))
-	var turn := _deadzone(Input.get_joy_axis(device, JOY_AXIS_RIGHT_X)) * dt * 2.6
-	var look := -_deadzone(Input.get_joy_axis(device, JOY_AXIS_RIGHT_Y)) * dt * 55.0
+	# PAD LOOK SPEED and INVERT PAD Y (100 and off: the stick as it always was).
+	var speed := float(options.get("pad_look", 100)) / 100.0
+	var flip := -1.0 if int(options.get("pad_invert", 0)) != 0 else 1.0
+	var turn := _deadzone(Input.get_joy_axis(device, JOY_AXIS_RIGHT_X)) * dt * 2.6 * speed
+	var look := -_deadzone(Input.get_joy_axis(device, JOY_AXIS_RIGHT_Y)) * dt * 55.0 * speed * flip
 	# The reference fires when the raw trigger axis (-1 at rest) passes 0: half
 	# a pull. Godot reports triggers 0..1, so half a pull is 0.5.
 	var trigger_right := Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT)
@@ -609,6 +785,54 @@ func read_pad(dt: float) -> Dictionary:
 		"jump": Input.is_joy_button_pressed(device, JOY_BUTTON_A),
 		"crouch": Input.is_joy_button_pressed(device, JOY_BUTTON_B)
 	}
+
+
+## The D-pad and the left stick on the menus: a push moves the cursor once,
+## holding it repeats after a moment, as a held arrow key does. `settled` is
+## false on the frame a button changed screens, so a held direction does not
+## also move the new screen's cursor.
+func _pad_menu(device: int, dt: float, settled: bool) -> void:
+	var dir := Vector2i.ZERO
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_UP):
+		dir.y -= 1
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_DOWN):
+		dir.y += 1
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_LEFT):
+		dir.x -= 1
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_RIGHT):
+		dir.x += 1
+	if dir == Vector2i.ZERO:
+		var sx := Input.get_joy_axis(device, JOY_AXIS_LEFT_X)
+		var sy := Input.get_joy_axis(device, JOY_AXIS_LEFT_Y)
+		if absf(sy) > .55 and absf(sy) >= absf(sx):
+			dir.y = 1 if sy > 0.0 else -1
+		elif absf(sx) > .55:
+			dir.x = 1 if sx > 0.0 else -1
+	if dir.y != 0:
+		dir.x = 0
+	# Held through a change of screen (or out of play): wait for a fresh push.
+	if not settled or (pad_dir == PAD_WAIT and dir != Vector2i.ZERO):
+		pad_dir = PAD_WAIT
+		return
+	if dir == Vector2i.ZERO:
+		pad_dir = dir
+		return
+	if dir != pad_dir:
+		pad_dir = dir
+		pad_repeat = .38
+		key_echo = false
+	else:
+		pad_repeat -= dt
+		if pad_repeat > 0.0:
+			return
+		pad_repeat = .09
+		key_echo = true
+	input_device = "pad"
+	if dir.y != 0:
+		key(KEY_UP if dir.y < 0 else KEY_DOWN)
+	else:
+		key(KEY_LEFT if dir.x < 0 else KEY_RIGHT)
+	key_echo = false
 
 
 ## The overlay's one-shot buttons, in the reference's order: menu first, then

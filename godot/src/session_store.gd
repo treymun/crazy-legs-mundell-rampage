@@ -200,7 +200,7 @@ class KeySetting:
 			0x7FFFFFFF,
 			1,
 			[],
-			"ENTER, THEN PRESS A KEY. R TWICE PUTS THEM ALL BACK."
+			"THE KEY FOR %s IN PLAY. RESET PAGE PUTS EVERY KEY BACK." % p_label
 		)
 		action = p_action
 

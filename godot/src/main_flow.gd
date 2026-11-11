@@ -371,13 +371,19 @@ func key_slots(code: int) -> void:
 			play_music()
 			block_fire = true
 			grab(game.player.health > 0 and not game.showing_tally)
-	elif code == KEY_TAB or code == KEY_LEFT or code == KEY_RIGHT:
+	elif code in [KEY_TAB, KEY_LEFT, KEY_RIGHT, KEY_PAGEUP, KEY_PAGEDOWN]:
+		if key_echo:
+			return
 		slot_mode = "save" if slot_mode == "load" else "load"
 		menu_note = ""
-	elif code == KEY_UP or code == KEY_DOWN:
-		var step := 1 if code == KEY_DOWN else -1
+		sound.play("menu_move")
+	elif code in [KEY_UP, KEY_DOWN, KEY_W, KEY_S]:
+		var step := 1 if code == KEY_DOWN or code == KEY_S else -1
+		if key_echo and slot_index + step != posmod(slot_index + step, slots.size()):
+			return
 		slot_index = posmod(slot_index + step, slots.size())
 		menu_note = ""
+		sound.play("menu_move")
 	elif code == KEY_ENTER or code == KEY_KP_ENTER:
 		var entry: Array = slots[slot_index]
 		var digest = entry[1]
@@ -401,17 +407,27 @@ func key_slots(code: int) -> void:
 
 
 func adjust_setting(direction: int) -> void:
+	var item: SessionStore.Setting = option_items()[option_slot]
+	change_setting(item.adjust(int(options[item.key]), direction))
+
+
+## Give the picked setting a value: a step from the arrows, or a point on a
+## level setting's bar (main_input.gd).
+func change_setting(value: int) -> void:
 	var items := option_items()
 	var item: SessionStore.Setting = items[option_slot]
 	var before := int(options[item.key])
-	options[item.key] = item.adjust(before, direction)
+	options[item.key] = clampi(value, item.low, item.high)
 	if int(options[item.key]) == before:
-		sound.play("empty")  # already at the end of its range
+		if drag_mode == "":
+			sound.play("empty")  # already at the end of its range
 		return
 	reset_armed = 0.0
 	menu_note = ""
 	if item.key == "crouch":
 		crouch_latched = false
+	if item.key == "menu_music":
+		menu_music()
 	if item.key == "window_mode":
 		change_window_mode(int(options["window_mode"]))
 	if (item.key == "window_mode" or item.key == "aspect") and not smoke:
@@ -465,6 +481,7 @@ func reset_page() -> void:
 	crouch_latched = false
 	display_trial = {}
 	apply_options()
+	menu_music()
 	persist_options()
 	menu_note = "%s PAGE RESET." % page_name
 	sound.play("menu_accept")
@@ -477,6 +494,7 @@ func setup_page(step: int) -> void:
 	option_scroll = 0
 	menu_note = ""
 	reset_armed = 0.0
+	binding_action = ""
 	sound.play("menu_move")
 
 
@@ -488,7 +506,22 @@ func setup_select(slot: int) -> void:
 		menu_note = ""
 		reset_armed = 0.0
 		sound.play("menu_move")
-	option_scroll = Menu.scroll_for(option_slot, option_scroll, count)
+	option_scroll = Menu.scroll_for(option_page, option_slot, option_scroll)
+
+
+## Move the list's window (wheel, drag, scroll buttons, groove) without
+## dragging it back to the picked row: the pick follows into the window.
+func setup_scroll_to(scroll: int) -> void:
+	var target := clampi(scroll, 0, Menu.max_scroll(option_page))
+	if target == option_scroll:
+		return
+	option_scroll = target
+	var slot := Menu.slot_in_view(option_page, option_slot, option_scroll)
+	if slot != option_slot:
+		option_slot = slot
+		menu_note = ""
+		reset_armed = 0.0
+	option_scroll = Menu.scroll_for(option_page, option_slot, option_scroll)
 
 
 ## Leave a sub-screen for the title, with the cursor where it was.

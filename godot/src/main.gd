@@ -111,6 +111,7 @@ func _ready() -> void:
 		if parts.size() > 1:
 			option_page = clampi(int(parts[1]), 0, SessionStore.setup_pages().size() - 1)
 			controls_page = clampi(int(parts[1]), 0, CONTROL_PAGES.size() - 1)
+			selection = int(parts[1])
 		if parts.size() > 2:
 			option_slot = clampi(int(parts[2]), 0, option_items().size() - 1)
 		if state == "slots":
@@ -121,6 +122,8 @@ func _ready() -> void:
 	if console != null and dev_commands != "" and game != null:
 		for command in dev_commands.split(";", false):
 			console.run(command)
+	if state != "play":
+		menu_music()  # MENU MUSIC off: the title tune waits paused
 
 
 ## Start the level and place the player as --play-at says.
@@ -293,6 +296,9 @@ func _process(delta: float) -> void:
 	if state != shown_state:
 		shown_state = state
 		screen_age = 0.0
+		hover_part = ""
+		drag_mode = ""
+		touch_down = false
 	screen_age += dt
 	# An iris opening on each new screen, a cartoon's wipe; none with SCENERY
 	# MOTION on STATIC.

@@ -788,6 +788,8 @@ var voice_captions := true
 var bullet_marks := true
 var retro_look := true
 var flicker := true
+## CROSSHAIR COLOR: what the aiming mark is painted (bone by default).
+var crosshair_tint := Color8(188, 168, 132)
 
 ## Final VGA brightness tone table (set by the front end when brightness != 100).
 var tone = null

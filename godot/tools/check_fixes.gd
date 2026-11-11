@@ -220,15 +220,11 @@ func _run() -> void:
 		var settings: Array = pages[page_index][1]
 		for slot in settings.size():
 			main.setup_select(slot)
-			var row := Menu.row_rect(main.option_slot, main.option_scroll)
+			var row := Menu.row_rect(page_index, main.option_slot, main.option_scroll)
 			if row.size.y == 0 or row.end.y > Menu.FOOTER_Y - 2 or not Menu.LIST.encloses(row):
 				bounded = false
 			var hit := Menu.setup_hit(
-				row.position.x + 4,
-				row.position.y + 4,
-				pages.size(),
-				settings.size(),
-				main.option_scroll
+				row.position.x + 4, row.position.y + 4, page_index, main.option_scroll
 			)
 			if String(hit["kind"]) != "row" or int(hit["index"]) != slot:
 				bounded = false
@@ -237,8 +233,8 @@ func _run() -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 48 + KeyBindings.ACTIONS.size(),
-		"all 40 settings and every control's key are on a page"
+		seen.size() == 56 + KeyBindings.ACTIONS.size(),
+		"all 56 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
 	var kept := true
@@ -246,16 +242,18 @@ func _run() -> void:
 		if not stored.has(key):
 			kept = false
 	check(kept, "every setting still has its stored key")
-	main.option_page = 2
-	main.option_slot = 1
+	_check_setup_fits(pages)
+	_check_setup_moves(main)
+	main.option_page = _place_of("effects").x
+	main.option_slot = _place_of("effects").y
 	var was := int(main.options["effects"])
 	main.adjust_setting(-1)
 	check(int(main.options["effects"]) == was - 10, "a volume step changes the option")
 	check(main.sound._preview.player.playing, "and plays a preview")
 	main.adjust_setting(1)
 	check(main.sound._preview.cue == "shotgun", "a second change restarts the one preview voice")
-	main.option_page = 1
-	main.option_slot = 1
+	main.option_page = _place_of("aspect").x
+	main.option_slot = _place_of("aspect").y
 	var aspect := int(main.options["aspect"])
 	main.smoke = false
 	main.adjust_setting(1)
@@ -599,3 +597,214 @@ func _run() -> void:
 	main.queue_free()
 	await process_frame
 	quit(1 if not failures.is_empty() else 0)
+
+
+## Where a setting lives: (page, slot).
+func _place_of(key: String) -> Vector2i:
+	var pages := SessionStore.setup_pages()
+	for p in pages.size():
+		var items: Array = pages[p][1]
+		for s in items.size():
+			if (items[s] as SessionStore.Setting).key == key:
+				return Vector2i(p, s)
+	return Vector2i(-1, -1)
+
+
+## Nothing on the settings pages is cut off: every name clears the value
+## column, every value fits it, every help text fits its two lines, and the
+## stored settings stay well inside what the loader reads.
+func _check_setup_fits(pages: Array) -> void:
+	var names := true
+	var values := true
+	var hints := true
+	var long := ""
+	for page: Array in pages:
+		for raw in page[1]:
+			var item: SessionStore.Setting = raw
+			if Menu.LABEL_X + PixelType.text_width(item.label) > Menu.VALUE_X - 4:
+				names = false
+				long = item.label
+			if PixelType.wrap(item.hint, Menu.HINT.size.x - 14).size() > 2:
+				hints = false
+				long = item.hint
+			if item is SessionStore.KeySetting:
+				continue
+			var shown: Array = (
+				item.choices if not item.choices.is_empty() else [item.format_value(item.high)]
+			)
+			for value in shown:
+				var room := Menu.VALUE_END - 4 - (Menu.VALUE_X + 5)
+				if Menu.is_bar(item):
+					room = Menu.VALUE_END - (Menu.BAR_X + Menu.BAR_W + 8)
+				if PixelType.text_width(String(value)) > room:
+					values = false
+					long = String(value)
+	check(names, "every setting's name clears the value column %s" % long)
+	check(values, "every value fits its column %s" % long)
+	check(hints, "every help text fits its two lines %s" % long)
+	var blurbs := true
+	for id in Menu.BLURBS:
+		if PixelType.text_width(String(Menu.BLURBS[id]), "mini") > Menu.BOARD.size.x - 12:
+			blurbs = false
+	check(blurbs, "every title entry's line fits under the board")
+	var widest := 0
+	for p in pages.size():
+		widest = maxi(widest, Menu.tab_rect(p, pages.size()).end.x)
+		var name := String(pages[p][0])
+		if Menu.tab_rect(p, pages.size()).size.x < PixelType.text_width(name) + 4:
+			widest = 999
+	check(widest <= Menu.PANEL.end.x, "every tab's name fits and the row of tabs fits the frame")
+	# Every setting at its longest value (a key at the largest code there is).
+	var everything := {}
+	for raw in SessionStore.options_list():
+		everything[(raw as SessionStore.Setting).key] = (raw as SessionStore.Setting).high
+	var size := JSON.stringify(everything, "", false).length()
+	check(size < 3000, "the stored settings stay well under the 4 KB the loader reads (%d)" % size)
+	var defaults := SessionStore.defaults()
+	check(
+		(
+			int(defaults["master"]) == 100
+			and int(defaults["menu_music"]) == 1
+			and int(defaults["bg_mute"]) == 0
+			and int(defaults["crosshair"]) == 1
+			and int(defaults["crosshair_color"]) == 0
+			and int(defaults["show_fps"]) == 0
+			and int(defaults["pad_look"]) == 100
+			and int(defaults["pad_deadzone"]) == 1
+			and int(defaults["pad_invert"]) == 0
+		),
+		"the new settings' defaults leave the game as it played"
+	)
+
+
+## Moving round a long settings page with the wheel, held keys, a finger and
+## the scroll bar keeps the picked row in the window.
+func _check_setup_moves(main: Control) -> void:
+	var keys_page := _place_of("key_forward").x
+	main.state = "setup"
+	main.option_page = keys_page
+	main.option_slot = 0
+	main.option_scroll = 0
+	main.setup_select(0)
+	var last: int = Menu.max_scroll(keys_page)
+	check(last > 0, "the KEYS page is long enough to scroll")
+	for i in 3:
+		main.setup_scroll_to(main.option_scroll + 1)
+	var shown: Rect2i = Menu.row_rect(keys_page, main.option_slot, main.option_scroll)
+	check(
+		main.option_scroll > 0 and shown.size.y > 0,
+		"the wheel scrolls the list and the pick follows into the window"
+	)
+	main.setup_scroll_to(999)
+	check(main.option_scroll == last, "the list stops at its end")
+	var count: int = main.option_items().size()
+	main.setup_select(count - 1)
+	main.key_echo = true
+	main.key(KEY_DOWN)
+	main.key_echo = false
+	check(main.option_slot == count - 1, "a held key stops at the bottom instead of wrapping")
+	main.key(KEY_DOWN)
+	check(main.option_slot == 0 and main.option_scroll == 0, "a fresh press wraps to the top")
+	main.key(KEY_END)
+	check(
+		(
+			main.option_slot == count - 1
+			and Menu.row_rect(keys_page, count - 1, main.option_scroll).size.y > 0
+		),
+		"End jumps to the last row and shows it"
+	)
+	main.key(KEY_HOME)
+	check(main.option_slot == 0 and main.option_scroll == 0, "Home jumps back to the first")
+	# The scroll groove: a point near its bottom scrolls near the end.
+	var track: Rect2i = Menu.track_rect()
+	var hit: Dictionary = Menu.setup_hit(
+		track.position.x + 1, track.end.y - 1, keys_page, main.option_scroll
+	)
+	check(String(hit["kind"]) == "track", "the scroll groove can be clicked")
+	main.setup_scroll_to(Menu.scroll_at(keys_page, float(hit["share"])))
+	check(main.option_scroll == last, "the bottom of the groove is the end of the page")
+	main.setup_scroll_to(0)
+	# A level setting's bar: a click at its right end sets the top value.
+	var volume := _place_of("effects")
+	main.option_page = volume.x
+	main.option_scroll = 0
+	main.setup_select(volume.y)
+	var item: SessionStore.Setting = main.option_items()[volume.y]
+	var row: Rect2i = Menu.row_rect(volume.x, volume.y, main.option_scroll)
+	var shape: Array = Menu.bar_shape(item)
+	var bar_hit: Dictionary = Menu.setup_hit(int(shape[0]) + 2, row.position.y + 5, volume.x, 0)
+	check(bool(bar_hit["bar"]), "a level setting's bar can be clicked")
+	check(
+		(
+			Menu.bar_value(item, int(shape[0])) == item.low
+			and Menu.bar_value(item, int(shape[0]) + Menu.BAR_W) == item.high
+		),
+		"the bar runs from the lowest value to the highest"
+	)
+	# A toggle held sideways does not flicker.
+	var lamp := _place_of("voice_captions")
+	main.option_page = lamp.x
+	main.setup_select(lamp.y)
+	var before := int(main.options["voice_captions"])
+	main.key_echo = true
+	main.key(KEY_RIGHT)
+	main.key_echo = false
+	check(int(main.options["voice_captions"]) == before, "a held arrow does not flicker a switch")
+	# A finger: dragged up the list it scrolls and picks nothing; a tap on a
+	# row's right side steps that setting.
+	var view: Rect2 = main.viewport_rect()
+	var scale := view.size / Vector2(320, 200)
+	main.option_page = keys_page
+	main.option_slot = 0
+	main.option_scroll = 0
+	var finger := InputEventScreenTouch.new()
+	finger.index = 0
+	finger.pressed = true
+	finger.position = view.position + Vector2(100, 120) * scale
+	main._input(finger)
+	var swipe := InputEventScreenDrag.new()
+	swipe.index = 0
+	swipe.position = view.position + Vector2(100, 80) * scale
+	swipe.relative = Vector2(0, -40) * scale
+	main._input(swipe)
+	var lift := InputEventScreenTouch.new()
+	lift.index = 0
+	lift.position = swipe.position
+	main._input(lift)
+	check(
+		main.option_scroll >= 2 and main.binding_action == "",
+		"a finger dragged up the list scrolls it and picks nothing"
+	)
+	var width := _place_of("stereo")
+	main.option_page = width.x
+	main.option_scroll = 0
+	main.setup_select(width.y)
+	main.setup_select(width.y - 1)
+	var width_row: Rect2i = Menu.row_rect(width.x, width.y, main.option_scroll)
+	var stereo := int(main.options["stereo"])
+	for down: bool in [true, false]:
+		var tap := InputEventScreenTouch.new()
+		tap.index = 0
+		tap.pressed = down
+		tap.position = view.position + Vector2(286, width_row.position.y + 5) * scale
+		main._input(tap)
+	check(
+		main.option_slot == width.y and int(main.options["stereo"]) == (stereo + 1) % 4,
+		"a tap on a row's right side picks it and steps it"
+	)
+	main.options["stereo"] = stereo
+	main.apply_options()
+	main.persist_options()
+	main.touch.active = false
+	main.hover(view.position + Vector2(Menu.BACK.position.x + 4, Menu.BACK.position.y + 4) * scale)
+	check(main.hover_part == "back", "the pointer lights the BACK plate it is over")
+	main.hover_part = ""
+	var plain: Game = main.make_game("hickston")
+	plain.configure(SessionStore.defaults())
+	check(
+		plain.crosshair_tint == Color8(188, 168, 132) and main._deadzone(.17) == 0.0,
+		"by default the aiming mark keeps its bone colour and the sticks their deadzone"
+	)
+	main.option_page = 0
+	main.option_slot = 0
+	main.option_scroll = 0
