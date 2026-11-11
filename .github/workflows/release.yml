@@ -48,7 +48,7 @@ jobs:
         run: godot --headless --path godot --script res://tools/bot_campaign.gd
       - name: Pictures match their references
         run: |
-          godot --headless --path godot --script res://tools/picture_check.gd --             "out=$RUNNER_TEMP/pictures" 2>&1 | tee pictures.log
+          godot --headless --path godot --script res://tools/picture_check.gd --             "out=$RUNNER_TEMP/pictures" annotate 2>&1 | tee pictures.log
           grep -q "PICTURES OK" pictures.log
       - name: Frame time
         run: |

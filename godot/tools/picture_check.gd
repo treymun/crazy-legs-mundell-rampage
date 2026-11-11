@@ -5,6 +5,7 @@
 ##   Godot --headless --path <project> --script res://tools/picture_check.gd
 ##   ... -- update          rewrite the reference images from this build
 ##   ... -- out=<dir>       also save every render and a diff image there
+##   ... -- annotate        also report each difference as a GitHub annotation
 ##
 ## The viewpoints are tools/picture_views.json: {"tag", "level", "x", "y",
 ## "angle"} and optionally "pitch", "drunk", "weapon" (drawn and lit),
@@ -58,10 +59,13 @@ func _render(shot: Dictionary, assets: Assets, hud: HUD, sound: Sound) -> Image:
 
 func _run() -> void:
 	var update := false
+	var annotate := false
 	var out_dir := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg == "update":
 			update = true
+		elif arg == "annotate":
+			annotate = true
 		elif String(arg).begins_with("out="):
 			out_dir = String(arg).substr(4)
 	var shots = JSON.parse_string(FileAccess.get_file_as_string(VIEWS))
@@ -102,6 +106,8 @@ func _run() -> void:
 				off += 1
 				diff.set_pixel(i % 320, i / 320, Color(1, .24, .24))
 		worst = maxi(worst, off)
+		if annotate and off > 0:
+			print("::warning title=picture %s::%d pixels differ (limit %d)" % [tag, off, LIMIT])
 		if off > LIMIT:
 			failed.append(tag)
 			print("%-34s %5d pixels differ  FAIL" % [tag, off])
