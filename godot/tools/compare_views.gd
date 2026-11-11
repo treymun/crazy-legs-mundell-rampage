@@ -122,6 +122,14 @@ func _compare(shown: Image, against: Image, diff_path: String) -> float:
 	if strong_pc > STRONG_MAX:
 		verdict = "  FAIL"
 		mask.save_png(diff_path)
+	if OS.has_environment("GITHUB_ACTIONS") and strong_pc > .05:
+		# An annotation: readable on the run's page without its log.
+		print(
+			(
+				"::warning title=%s::%.2f%% of pixels differ, %.2f%% strongly"
+				% [diff_path.get_file().trim_suffix("_diff.png"), any * 100.0 / pixels, strong_pc]
+			)
+		)
 	print(
 		(
 			"%-34s %6.2f%% differ %6.2f%% strongly%s"
