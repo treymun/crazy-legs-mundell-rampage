@@ -48,6 +48,8 @@ jobs:
         run: godot --headless --path godot --script res://tools/verify_assets.gd
       - name: Parity regression checks
         run: godot --headless --path godot --script res://tools/check_fixes.gd
+      - name: Saves from earlier versions still load
+        run: godot --headless --path godot --script res://tools/save_fixtures.gd
       - name: Level editing keeps the walls right
         run: godot --headless --path godot --script res://tools/level_edit_check.gd
       - name: Campaign walkthrough

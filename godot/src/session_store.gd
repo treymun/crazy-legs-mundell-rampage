@@ -8,7 +8,12 @@
 class_name SessionStore
 extends RefCounted
 
+## The save format. A change to what a save holds bumps VERSION and adds a
+## step to save_upgrade.gd that turns a save of the version before into this
+## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
+## keeps real saves of each version (tools/saves/) and checks they still do.
 const VERSION := 4
+const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"
 const UNLOCKS_FILE := "campaign-unlocks.json"
@@ -756,8 +761,8 @@ static func slot_metadata(path: String, replay_level = null) -> Array:
 	if raw.size() > MAX_BYTES:
 		return ["", null]
 	var fingerprint := _sha256(raw)
-	var doc = JSON.parse_string(raw.get_string_from_utf8())
-	if not (doc is Dictionary) or int(doc.get("version", 0)) != VERSION:
+	var doc = SaveUpgrade.upgrade(JSON.parse_string(raw.get_string_from_utf8()))
+	if doc == null:
 		return ["", null]
 	if not Campaign.ORDER.has(String(doc.get("level", ""))):
 		return ["", null]
@@ -1073,11 +1078,12 @@ static func read(
 	if raw.size() > MAX_BYTES:
 		push_warning("checkpoint too large")
 		return _fail_at(650)
-	var doc = JSON.parse_string(raw.get_string_from_utf8())
-	if not (doc is Dictionary):
+	var parsed = JSON.parse_string(raw.get_string_from_utf8())
+	if not (parsed is Dictionary):
 		push_warning("checkpoint is not an object")
 		return _fail_at(654)
-	if int(doc.get("version", 0)) != VERSION:
+	var doc = SaveUpgrade.upgrade(parsed)
+	if doc == null:
 		push_warning("unsupported checkpoint version")
 		return _fail_at(657)
 	var game := restore(doc, make_game, expected_replay)
@@ -1102,7 +1108,7 @@ static func read(
 			if not (chapter_doc is Dictionary):
 				return _fail_at(674)
 			if int(chapter_doc.get("version", 0)) != VERSION:
-				return _fail_at(676)
+				return _fail_at(676)  # upgrade() brought every chapter up to VERSION
 			if String(chapter_doc.get("level", "")) != String(key):
 				return _fail_at(678)
 			var chapter := restore(chapter_doc, make_game, false)

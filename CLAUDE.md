@@ -53,6 +53,8 @@ godot --headless --path godot --script res://tools/verify_assets.gd   # ASSETS O
 godot --headless --path godot --script res://tools/check_fixes.gd     # PARITY FIXES OK
 godot --headless --path godot --script res://tools/bot_campaign.gd    # CAMPAIGN WALKTHROUGH OK
 godot --headless --path godot --script res://tools/picture_check.gd   # PICTURES OK
+godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVES OK
+godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 
 # Pictures changed on purpose: rewrite the references and commit them
@@ -105,6 +107,11 @@ godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
 - **Benchmarks are noisy.** The owner's own copy of the game, Steam and other
   apps often run on this PC. Compare old and new back to back, never against
   a number from earlier.
+- **Saves are versioned.** Changing what a save holds means bumping
+  `SessionStore.VERSION`, adding the step from the old version in
+  `src/save_upgrade.gd`, and running `tools/save_fixtures.gd -- make` to add
+  saves of the new version to `godot/tools/saves/`. Never delete the old ones:
+  they are how CI knows players' saves still load.
 - **Gameplay randomness** comes from the game's `rng`. Cosmetic effects use
   their own seeded generator (`gore_fx.dice`), so they never change play.
 - **Layers only call down.** In those chains a function may call functions of
