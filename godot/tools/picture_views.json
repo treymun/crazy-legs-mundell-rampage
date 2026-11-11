@@ -1,0 +1,243 @@
+[
+ {
+  "angle": 8.5,
+  "drunk": 70.0,
+  "level": "hickston",
+  "pitch": -18.0,
+  "tag": "hickston_05_0",
+  "weapon": true,
+  "x": 29.38,
+  "y": 5.1
+ },
+ {
+  "angle": 19.3,
+  "drunk": 0.0,
+  "level": "hickston",
+  "pitch": 22.0,
+  "tag": "hickston_10_2",
+  "weapon": false,
+  "x": 28.80536,
+  "y": 5.76507
+ },
+ {
+  "angle": 1.7,
+  "drunk": 0.0,
+  "level": "hickston",
+  "pitch": 22.0,
+  "tag": "hickston_01_0",
+  "weapon": true,
+  "x": 5.08346,
+  "y": 21.21834
+ },
+ {
+  "angle": 10.8,
+  "drunk": 70.0,
+  "level": "fair",
+  "pitch": -18.0,
+  "tag": "fair_05_2",
+  "weapon": true,
+  "x": 65.12443,
+  "y": 23.79333
+ },
+ {
+  "angle": 1.7,
+  "drunk": 0.0,
+  "level": "fair",
+  "pitch": 22.0,
+  "tag": "fair_01_0",
+  "weapon": true,
+  "x": 6.88346,
+  "y": 25.36834
+ },
+ {
+  "angle": 6.8,
+  "drunk": 0.0,
+  "level": "sawmill",
+  "pitch": 22.0,
+  "tag": "sawmill_04_0",
+  "weapon": false,
+  "x": 31.6,
+  "y": 3.25
+ },
+ {
+  "angle": 4.0,
+  "drunk": 0.0,
+  "level": "sawmill",
+  "pitch": 22.0,
+  "tag": "sawmill_01_2",
+  "weapon": true,
+  "x": 29.13346,
+  "y": 18.01834
+ },
+ {
+  "angle": 6.8,
+  "drunk": 0.0,
+  "level": "quarry",
+  "pitch": 22.0,
+  "tag": "quarry_04_0",
+  "weapon": false,
+  "x": 22.18733,
+  "y": 3.81295
+ },
+ {
+  "angle": 3.14159,
+  "detail": 0,
+  "level": "hickston",
+  "tag": "hickston_mirror_0",
+  "weapon": true,
+  "x": 4.9,
+  "y": 13.5
+ },
+ {
+  "angle": 1.8208,
+  "level": "hickston",
+  "tag": "hickston_window_1",
+  "weapon": false,
+  "x": 7.5,
+  "y": 19.1
+ },
+ {
+  "angle": -1.5708,
+  "level": "hickston",
+  "tag": "hickston_liquor_0",
+  "weapon": true,
+  "x": 8.5,
+  "y": 21.9
+ },
+ {
+  "angle": -1.5708,
+  "level": "hickston",
+  "tag": "hickston_hub_screen_0",
+  "weapon": true,
+  "x": 30.49,
+  "y": 49.9
+ },
+ {
+  "angle": 3.39159,
+  "level": "hickston",
+  "tag": "hickston_hub_service_wall_1",
+  "weapon": false,
+  "x": 25.24,
+  "y": 48.45
+ },
+ {
+  "angle": 3.14159,
+  "level": "hickston",
+  "pitch": -20.0,
+  "tag": "hickston_hub_patch_1",
+  "x": 26.9,
+  "y": 47.5
+ },
+ {
+  "angle": 3.14159,
+  "level": "hickston",
+  "pitch": -20.0,
+  "tag": "hickston_creek_1",
+  "x": 45.9,
+  "y": 4.5
+ },
+ {
+  "angle": 3.14159,
+  "level": "sawmill",
+  "pitch": -20.0,
+  "tag": "sawmill_mill_water_0",
+  "x": 22.9,
+  "y": 18.5
+ },
+ {
+  "angle": -1.54159,
+  "fire": true,
+  "level": "hickston",
+  "pitch": -8.0,
+  "tag": "hickston_fight_9_16",
+  "ticks": 55,
+  "weapon": true,
+  "x": 27.60328,
+  "y": 14.94932
+ },
+ {
+  "angle": 3.14159,
+  "fire": true,
+  "level": "hickston",
+  "pitch": -8.0,
+  "tag": "hickston_fight_1_16",
+  "ticks": 55,
+  "weapon": true,
+  "x": 14.4,
+  "y": 22.9
+ },
+ {
+  "angle": 3.14159,
+  "fire": true,
+  "level": "fair",
+  "pitch": -8.0,
+  "tag": "fair_fight_5_16",
+  "ticks": 55,
+  "weapon": true,
+  "x": 7.15,
+  "y": 21.75
+ },
+ {
+  "angle": 3.14159,
+  "fire": true,
+  "level": "sawmill",
+  "pitch": -8.0,
+  "tag": "sawmill_fight_5_16",
+  "ticks": 55,
+  "weapon": true,
+  "x": 17.0,
+  "y": 23.5
+ },
+ {
+  "angle": 3.14159,
+  "fire": true,
+  "level": "quarry",
+  "pitch": -8.0,
+  "tag": "quarry_fight_9_16",
+  "ticks": 55,
+  "weapon": true,
+  "x": 25.2,
+  "y": 12.05
+ },
+ {
+  "angle": 3.14159,
+  "fire": true,
+  "level": "quarry",
+  "pitch": 0.0,
+  "tag": "quarry_fight_1_26",
+  "ticks": 14,
+  "weapon": true,
+  "x": 22.9,
+  "y": 30.45
+ },
+ {
+  "angle": 3.14159,
+  "detail": 1,
+  "level": "hickston",
+  "tag": "low_hickston_mirror_0",
+  "weapon": true,
+  "x": 4.9,
+  "y": 13.5
+ },
+ {
+  "angle": 3.14159,
+  "detail": 1,
+  "level": "sawmill",
+  "pitch": -20.0,
+  "tag": "low_sawmill_mill_water_0",
+  "x": 22.9,
+  "y": 18.5
+ },
+ {
+  "angle": 3.14159,
+  "detail": 1,
+  "fire": true,
+  "level": "fair",
+  "pitch": -8.0,
+  "tag": "low_fair_fight_1_16",
+  "ticks": 55,
+  "weapon": true,
+  "x": 15.3,
+  "y": 23.9
+ }
+]

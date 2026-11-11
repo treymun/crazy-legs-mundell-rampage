@@ -1,6 +1,7 @@
 ## Frame-time benchmark: the simulation and the software renderer, without a window.
 ##
 ##   Godot --headless --path <project> --script res://tools/bench.gd [-- <frames>]
+##   ... -- <frames> max=<ms>   fail when the mean draw takes longer (for CI)
 ##
 ## For every chapter it stands the player in the open at the spawn, then walks
 ## into the nearest fight holding the trigger. Each frame is timed in parts:
@@ -125,4 +126,12 @@ func _run() -> void:
 		% [1000.0 / (a[0] + b[0]), 1000.0 / (a[1] + b[1])]
 	)
 	print(total)
+	for arg in args:
+		if String(arg).begins_with("max="):
+			var limit := float(String(arg).substr(4))
+			if b[0] > limit:
+				print("TOO SLOW: mean draw %.2f ms, the limit is %.2f ms" % [b[0], limit])
+				quit(1)
+				return
+			print("SPEED OK: mean draw %.2f ms, the limit is %.2f ms" % [b[0], limit])
 	quit()

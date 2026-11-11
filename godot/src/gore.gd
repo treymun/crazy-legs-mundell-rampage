@@ -82,6 +82,9 @@ var game: Game
 
 func _init(owner: Game) -> void:
 	game = owner
+	# A fixed seed: a new RandomNumberGenerator starts from a random one, and the
+	# same fight should splash the same way every time it is replayed or tested.
+	dice.seed = 1997
 
 
 func _stain(x: float, y: float, radius: float, green: bool) -> void:

@@ -46,6 +46,53 @@ jobs:
         run: godot --headless --path godot --script res://tools/check_fixes.gd
       - name: Campaign walkthrough
         run: godot --headless --path godot --script res://tools/bot_campaign.gd
+      - name: Pictures match their references
+        run: |
+          godot --headless --path godot --script res://tools/picture_check.gd --             "out=$RUNNER_TEMP/pictures" 2>&1 | tee pictures.log
+          grep -q "PICTURES OK" pictures.log
+      - name: Frame time
+        run: |
+          # A shared runner is slow and noisy: this only catches a big slowdown.
+          # The real numbers come from tools/bench.gd and main.gd --view-bench
+          # on a desktop.
+          godot --headless --path godot --script res://tools/bench.gd -- 120 max=60 2>&1 | tee bench.log
+          grep -q "SPEED OK" bench.log
+          { echo '### Frame time (headless, CPU side only)'; echo '```'; grep -E "fps|OK|SLOW" bench.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the picture check's renders
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pictures
+          path: ${{ runner.temp }}/pictures
+          if-no-files-found: ignore
+
+  window:
+    name: Shader view matches the software view
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/godot
+      - name: A virtual screen and Mesa's software OpenGL
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 > /dev/null
+      - name: Draw every viewpoint both ways in a real window
+        run: |
+          mkdir -p "$RUNNER_TEMP/views"
+          xvfb-run -a -s "-screen 0 1280x800x24"             godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 --             --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views" 2>&1 | tee window.log
+          if grep -E "SCRIPT ERROR|Parse Error|SHADER ERROR" window.log; then exit 1; fi
+      - name: Compare
+        run: |
+          pip install --quiet $(grep -iE '^(numpy|pillow)==' requirements.txt)
+          python godot/tools/compare_views.py "$RUNNER_TEMP/views"
+      - name: Keep the frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: views
+          path: ${{ runner.temp }}/views
+          if-no-files-found: ignore
 
   windows:
     name: Windows EXE
