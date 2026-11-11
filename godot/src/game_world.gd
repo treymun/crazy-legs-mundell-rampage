@@ -52,6 +52,13 @@ func configure(options: Dictionary) -> void:
 	district_labels = bool(options.get("district_labels", 1))
 	hints = bool(options.get("hints", 1))
 	hud_style = int(options.get("hud_style", 0))
+	crosshair_tint = [
+		Color8(188, 168, 132),
+		Color8(251, 183, 98),
+		Color8(160, 236, 92),
+		Color8(240, 64, 48),
+		Color8(255, 255, 255)
+	][clampi(int(options.get("crosshair_color", 0)), 0, 4)]
 	renderer.world_motion = int(options.get("world_motion", 0))
 	weapon_view = int(options.get("weapon_view", 0))
 	voice_captions = bool(options.get("voice_captions", 1))

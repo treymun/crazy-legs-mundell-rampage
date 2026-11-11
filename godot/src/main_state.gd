@@ -56,6 +56,7 @@ const TOUCH_ROWS := [
 const CONTROL_PAGES := [["KEYBOARD", CONTROL_ROWS], ["GAMEPAD", PAD_ROWS], ["TOUCH", TOUCH_ROWS]]
 ## Which sound answers a change to each audio setting.
 const AUDIO_PREVIEW := {
+	"master": "effects",
 	"effects": "effects",
 	"ambience": "ambience",
 	"footsteps": "footsteps",
@@ -196,6 +197,23 @@ var reset_armed := 0.0
 ## A display change waiting to be kept: {key, previous, left}.
 var display_trial := {}
 var controls_page := 0
+## What the pointer is over on the settings screen ("back", "tab2", "up"...)
+## for the hover light, where it last was, and what a held button is dragging
+## ("bar": a level setting's bar, "track": the scroll groove).
+var hover_part := ""
+var pointer := Vector2(-1, -1)
+var drag_mode := ""
+## A finger on the settings list: whether it is down, how far it has travelled
+## and the part of a row it has dragged the list by (a drag scrolls, a tap picks).
+var touch_travel := 0.0
+var touch_carry := 0.0
+var touch_down := false
+## A pad in the menus: the direction held (stick or D-pad) and the time to
+## its next repeat.
+var pad_dir := Vector2i.ZERO
+var pad_repeat := 0.0
+## True while key() handles a held key's repeat (keyboard or pad), not a press.
+var key_echo := false
 
 var touch: TouchControls
 var duck_held := false
@@ -278,7 +296,8 @@ func _parse_smoke() -> void:
 			play_at = text.substr(10)
 		elif text.begins_with("--smoke-screen="):
 			# A front-end screen instead of a level: title, setup, controls,
-			# credits, replays or slots; "setup:3" opens the fourth settings page.
+			# credits, replays or slots; "setup:3" opens the fourth settings page
+			# ("setup:3:9" picks its tenth row), "title:4" the fifth title entry.
 			smoke_screen = text.substr(15)
 	smoke = smoke_frames > 0
 	focused = true
@@ -442,9 +461,20 @@ func face_into_level(target: Game) -> void:
 
 ## The menu theme, for every screen that is not the game itself. It keeps its
 ## place while play is paused, and the chapter's own track keeps its bookmark.
+## MENU MUSIC off holds it paused.
 func menu_music() -> void:
 	sound.set_score("title")
-	sound.pause_score(false)
+	sound.pause_score(int(options.get("menu_music", 1)) == 0)
+
+
+## MASTER VOLUME on the mixer's last bus, silent while another window has the
+## focus when MUTE IN BACKGROUND is on.
+func apply_master() -> void:
+	var level := float(options.get("master", 100)) / 100.0
+	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(level, .001)))
+	AudioServer.set_bus_mute(
+		0, level <= 0.0 or (int(options.get("bg_mute", 0)) != 0 and not focused)
+	)
 
 
 ## Back to whatever the game in progress should be playing.
@@ -527,6 +557,7 @@ func apply_options() -> void:
 	if not sound.reverb_on:
 		sound.set_space("")
 	sound.voice_gain = float(options["voice_volume"]) / 100.0
+	apply_master()
 	Effects.enabled = int(options.get("lights", 1)) != 0
 	HUD.text_style = ["body", "menu", "heading"][clampi(int(options.get("text_size", 0)), 0, 2)]
 	if int(options.get("tilt_aim", 0)) != 0:
@@ -631,21 +662,22 @@ func _pad_bindings() -> Array:
 			[JOY_BUTTON_DPAD_RIGHT, KEY_M],
 			[JOY_BUTTON_DPAD_DOWN, KEY_PAGEDOWN if game.map else KEY_F]
 		]
+	# The menus: the D-pad and the left stick move the cursor and repeat while
+	# held (main_input.gd _pad_menu); Y resets a settings page.
 	return [
-		[JOY_BUTTON_DPAD_UP, KEY_UP],
-		[JOY_BUTTON_DPAD_DOWN, KEY_DOWN],
-		[JOY_BUTTON_DPAD_LEFT, KEY_LEFT],
-		[JOY_BUTTON_DPAD_RIGHT, KEY_RIGHT],
 		[JOY_BUTTON_A, KEY_ENTER],
 		[JOY_BUTTON_START, KEY_ENTER],
 		[JOY_BUTTON_B, KEY_ESCAPE],
+		[JOY_BUTTON_Y, KEY_R if state == "setup" else KEY_NONE],
 		[JOY_BUTTON_LEFT_SHOULDER, KEY_PAGEUP],
 		[JOY_BUTTON_RIGHT_SHOULDER, KEY_PAGEDOWN]
 	]
 
 
+## PAD DEADZONE: how far a stick moves before it counts.
 func _deadzone(value: float) -> float:
-	return 0.0 if absf(value) < .18 else value
+	var dead: float = [.10, .18, .28][clampi(int(options.get("pad_deadzone", 1)), 0, 2)]
+	return 0.0 if absf(value) < dead else value
 
 
 # ------------------------------------------------------------------- frame
@@ -660,6 +692,7 @@ const DEMO_KEYS := [
 	[4.8, KEY_ENTER],
 	[5.8, KEY_TAB],
 	[6.6, KEY_TAB],  # DISPLAY, AUDIO
+	[7.0, KEY_DOWN],
 	[7.2, KEY_DOWN],
 	[7.8, KEY_LEFT],
 	[8.6, KEY_RIGHT],  # effects volume
@@ -760,15 +793,15 @@ func title_hint() -> String:
 	if input_device == "touch":
 		return "TAP A SIGN TO PICK IT"
 	if input_device == "pad":
-		return "D-PAD MOVE / A SELECT / B BACK"
+		return "STICK OR D-PAD MOVE / A PICK / B BACK"
 	return "ARROWS MOVE / ENTER SELECT"
 
 
 func setup_guide() -> String:
 	if input_device == "touch":
-		return "TAP A ROW  THEN ITS LEFT OR RIGHT"
+		return "TAP A ROW, THEN A SIDE / DRAG TO SCROLL"
 	if input_device == "pad":
-		return "LB RB PAGE / D-PAD CHANGE / B BACK"
+		return "LB RB PAGE / D-PAD CHANGE / Y RESET"
 	return "TAB PAGE / ARROWS CHANGE / R RESET"
 
 
@@ -793,7 +826,7 @@ func render_replays() -> void:
 		HUD.INK,
 		true
 	)
-	Menu.plate_button(canvas, Menu.BACK, "BACK")
+	Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
 
 
 func render_controls() -> void:
@@ -817,9 +850,12 @@ func render_controls() -> void:
 		if i % 2 == 0:
 			canvas.fill_rect(19, y - 2, 282, 12, Canvas.rgb(33, 23, 19))
 		HUD.text(canvas, String(row[0]), 24, y, "menu", HUD.INK)
-		HUD.text(canvas, String(row[1]), 146, y, "menu", Canvas.rgb(232, 213, 178))
-	HUD.text(canvas, "LEFT / RIGHT  OTHER CONTROLLERS", 24, 181, "mini", Menu.PAINT, false, false)
-	Menu.plate_button(canvas, Menu.BACK, "BACK")
+		HUD.text(canvas, String(row[1]), 136, y, "menu", Canvas.rgb(232, 213, 178))
+	var other := (
+		"LB RB  OTHER CONTROLLERS" if input_device == "pad" else "LEFT / RIGHT  OTHER CONTROLLERS"
+	)
+	HUD.text(canvas, other, 24, 181, "mini", Menu.PAINT, false, false)
+	Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
 
 
 func render_credits() -> void:
@@ -848,17 +884,17 @@ func render_credits() -> void:
 		var lines: Array = block[1]
 		for j in lines.size():
 			HUD.text(canvas, String(lines[j]), 25, y + 13 + j * 10, "body", HUD.INK)
-	Menu.plate_button(canvas, Menu.BACK, "BACK")
+	Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
 
 
 func render_setup() -> void:
 	var pages := SessionStore.setup_pages()
-	option_scroll = Menu.scroll_for(option_slot, option_scroll, option_items().size())
+	option_scroll = Menu.scroll_for(option_page, option_slot, option_scroll)
 	var confirm := ""
 	if not display_trial.is_empty():
 		var left := int(ceilf(float(display_trial["left"])))
 		if input_device == "touch":
-			confirm = "TAP LEFT TO KEEP / RIGHT TO UNDO  (%d)" % left
+			confirm = "TAP KEEP OR UNDO  (%d)" % left
 		elif input_device == "pad":
 			confirm = "A KEEP / B UNDO  (%d)" % left
 		else:
@@ -872,7 +908,9 @@ func render_setup() -> void:
 		options,
 		menu_note,
 		setup_guide(),
-		confirm
+		confirm,
+		"reset" if reset_armed > 0.0 else hover_part,  # an armed reset stays lit
+		binding_action
 	)
 
 
@@ -926,7 +964,9 @@ func render_slots() -> void:
 			lines.append(wrapped[i])
 	for i in lines.size():
 		HUD.text(canvas, String(lines[i]), 160, 153 + i * 9, "body", HUD.AMBER, true)
-	HUD.text(canvas, guide, 160, 179, "mini", HUD.INK, true)
+	HUD.text(canvas, guide, 132, 181, "mini", HUD.INK, true)
+	if slot_stage == "choose":
+		Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
 
 
 func _blit_art(name: String, x: int, y: int) -> void:
@@ -979,8 +1019,12 @@ func render() -> void:
 		canvas.gpu_begin()
 	if game != null:
 		game.scene_live = false
+	# The menus' little motions follow SCENERY MOTION, SCREEN FLASH and LAMP FLICKER.
+	var steady := int(options.get("flashes", 0)) != 0 or int(options.get("flicker", 1)) == 0
+	menu.clock = menu_clock
+	menu.motion = int(options.get("world_motion", 0))
+	menu.steady = steady
 	if state == "title":
-		var steady := int(options.get("flashes", 0)) != 0 or int(options.get("flicker", 1)) == 0
 		menu.draw_title(
 			canvas,
 			entries(),
@@ -1008,6 +1052,19 @@ func render() -> void:
 		# software view is the fallback when the driver check fails, cpu_look).
 		game.layered = gpu_look and canvas.gpu and not cpu_view
 		game.draw(canvas, int(options["crosshair"]), true)
+		if int(options.get("show_fps", 0)) != 0 and not touring:
+			# FRAME COUNTER: frames per second, top right, over the view.
+			HUD.text(
+				canvas,
+				"%d FPS" % roundi(Engine.get_frames_per_second()),
+				316,
+				2,
+				"mini",
+				HUD.AMBER,
+				false,
+				true,
+				true
+			)
 		if editor != null and editor.active:
 			editor.draw(canvas)
 		if console != null:

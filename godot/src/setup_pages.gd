@@ -1,7 +1,31 @@
 ## The setup screen's pages: every setting's label, key, default, range and
 ## hint (SessionStore.setup_pages() builds them once and keeps the defaults).
+## A setting's default is how the game played before it existed.
 class_name SetupPages
 extends RefCounted
+
+## The small headings that split a page into groups: page -> {the key of the
+## first setting under a heading: the heading}. Only drawn (menu.gd).
+const HEADERS := {
+	"INPUT": {"sensitivity": "MOUSE", "pad_look": "GAMEPAD", "autorun": "HABITS"},
+	"DISPLAY": {"brightness": "SCREEN", "crosshair": "SIGHTS AND GAUGES"},
+	"AUDIO": {"master": "VOLUME", "voice_captions": "SOUND", "menu_music": "MENUS AND WINDOW"},
+	"PLAY":
+	{
+		"difficulty": "THE RUN",
+		"aim_assist": "AIM AND GUNS",
+		"barks": "ON THE SCREEN",
+	},
+	"VIEW": {"detail": "PICTURE", "world_motion": "EASY ON THE EYES"},
+	"KEYS":
+	{
+		"key_forward": "MOVING",
+		"key_fire_key": "DOING",
+		"key_prev_weapon": "GUNS AND GROCERIES",
+		"key_map": "LOOKING AROUND",
+	},
+	"TOUCH": {"auto_fire": "PHONE AND TABLET"},
+}
 
 
 static func build() -> Array:
@@ -31,6 +55,26 @@ static func build() -> Array:
 				),
 				SessionStore.toggle(
 					"INVERT MOUSE Y", "invert", 0, "REVERSE UP AND DOWN MOUSE LOOK"
+				),
+				SessionStore.Setting.new(
+					"PAD LOOK SPEED",
+					"pad_look",
+					100,
+					40,
+					220,
+					10,
+					[],
+					"HOW FAST THE RIGHT STICK TURNS AND TIPS THE VIEW"
+				),
+				SessionStore.choices(
+					"PAD DEADZONE",
+					"pad_deadzone",
+					1,
+					["SMALL", "NORMAL", "LARGE"],
+					"HOW FAR A STICK MOVES BEFORE IT COUNTS. LARGE STOPS A WORN STICK DRIFTING."
+				),
+				SessionStore.toggle(
+					"INVERT PAD Y", "pad_invert", 0, "REVERSE UP AND DOWN ON THE RIGHT STICK"
 				),
 				SessionStore.toggle("ALWAYS RUN", "autorun", 0, "SHIFT INVERTS RUN WHILE HELD"),
 				SessionStore.choices(
@@ -76,7 +120,18 @@ static func build() -> Array:
 					"FILL REMOVES THE TITLE BAR AND ALL BLACK BARS"
 				),
 				SessionStore.choices(
-					"CROSSHAIR", "crosshair", 1, ["OFF", "DOT", "RING"], "CHOOSE AN AIMING MARK"
+					"CROSSHAIR",
+					"crosshair",
+					1,
+					["OFF", "DOT", "RING", "CROSS"],
+					"CHOOSE AN AIMING MARK"
+				),
+				SessionStore.choices(
+					"CROSSHAIR COLOR",
+					"crosshair_color",
+					0,
+					["BONE", "AMBER", "LIME", "RED", "WHITE"],
+					"PAINT THE AIMING MARK SO IT STANDS OUT AGAINST THE DIRT"
 				),
 				SessionStore.choices(
 					"STATUS PANEL",
@@ -85,28 +140,41 @@ static func build() -> Array:
 					["METERS", "DIALS"],
 					"GAUGE STYLE FOR THE GUT AND DRUNK METERS"
 				),
-				SessionStore.Setting.new(
-					"WEAPON / VIEW BOB",
-					"bob",
-					100,
+				SessionStore.choices(
+					"WEAPON POSITION",
+					"weapon_view",
 					0,
-					100,
-					25,
-					[],
-					"REDUCE VIEW AND WEAPON SWAY WHILE WALKING"
+					["STANDARD", "LOWER", "HIDDEN"],
+					"LOWER OR HIDE WEAPON ART. LIT TNT STAYS VISIBLE."
 				),
 				SessionStore.choices(
-					"SCREEN FLASH",
-					"flashes",
+					"TEXT SIZE",
+					"text_size",
 					0,
-					["FULL", "REDUCED", "OFF"],
-					"REDUCE DAMAGE, MUZZLE AND BLAST FLASHES"
+					["NORMAL", "TALL", "LARGE"],
+					"SIZE OF NOTICES, PROMPTS, CAPTIONS AND ONE-LINERS"
+				),
+				SessionStore.toggle(
+					"FRAME COUNTER",
+					"show_fps",
+					0,
+					"FRAMES PER SECOND IN THE TOP CORNER WHILE YOU PLAY"
 				),
 			]
 		],
 		[
 			"AUDIO",
 			[
+				SessionStore.Setting.new(
+					"MASTER VOLUME",
+					"master",
+					100,
+					0,
+					100,
+					10,
+					[],
+					"SCORE, GUNS, VOICES AND YARD, ALL AT ONCE"
+				),
 				SessionStore.Setting.new(
 					"MUSIC VOLUME",
 					"music",
@@ -173,6 +241,18 @@ static func build() -> Array:
 					1,
 					"ECHO THAT FOLLOWS THE ROOM, BARN OR OPEN AIR YOU STAND IN"
 				),
+				SessionStore.toggle(
+					"MENU MUSIC",
+					"menu_music",
+					1,
+					"THE TITLE TUNE ON THE MENUS. OFF KEEPS THE FRONT PORCH QUIET."
+				),
+				SessionStore.toggle(
+					"MUTE IN BACKGROUND",
+					"bg_mute",
+					0,
+					"SILENCE THE GAME WHILE ANOTHER WINDOW OR APP HAS THE FOCUS"
+				),
 			]
 		],
 		[
@@ -185,18 +265,31 @@ static func build() -> Array:
 					["EASY", "NORMAL", "HARD", "HOG WILD"],
 					"HARD: SHARPER HANDS, A BIGGER POSSE, LESS AMMO. HOG WILD: ALL THAT AND MORE."
 				),
+				SessionStore.toggle(
+					"ADAPTIVE DIFFICULTY",
+					"adaptive",
+					1,
+					"EASES OFF A LITTLE AFTER EACH DEATH, PUSHES BACK WHEN YOU FINISH IN GOOD SHAPE"
+				),
+				SessionStore.choices(
+					"NEXT RUN SUPPLIES",
+					"supply_rule",
+					0,
+					["STANDARD", "SCARCE", "NO DROPS"],
+					"NEW RUNS ONLY. SCARCE CUTS BOXES. NO DROPS REMOVES BASIC FOE AMMO."
+				),
+				SessionStore.toggle(
+					"CLASSIC LEVEL FLOW",
+					"classic",
+					0,
+					"SKIP THE CROSSROADS. GO STRAIGHT TO THE NEXT CHAPTER."
+				),
 				SessionStore.choices(
 					"AIM ASSIST",
 					"aim_assist",
 					0,
 					["OFF", "VERTICAL", "CLASSIC"],
 					"HELPS LINE UP VISIBLE TARGETS"
-				),
-				SessionStore.toggle(
-					"ADAPTIVE DIFFICULTY",
-					"adaptive",
-					1,
-					"EASES OFF A LITTLE AFTER EACH DEATH, PUSHES BACK WHEN YOU FINISH IN GOOD SHAPE"
 				),
 				SessionStore.toggle(
 					"HIT FEEDBACK",
@@ -213,12 +306,6 @@ static func build() -> Array:
 				SessionStore.toggle(
 					"RELOAD ON EMPTY", "auto_reload", 1, "FIRING AN EMPTY GUN STARTS RELOADING"
 				),
-				SessionStore.toggle(
-					"CLASSIC LEVEL FLOW",
-					"classic",
-					0,
-					"SKIP THE CROSSROADS. GO STRAIGHT TO THE NEXT CHAPTER."
-				),
 				SessionStore.toggle("PLAYER ONE-LINERS", "barks", 1, "SHOW THE HERO'S WISECRACKS"),
 				SessionStore.toggle(
 					"BLOOD PARTICLES", "gore", 1, "SHOW BLOOD PARTICLES WHEN ENEMIES ARE HIT"
@@ -232,68 +319,11 @@ static func build() -> Array:
 				SessionStore.toggle(
 					"TOOLTIPS / OBJECTIVES", "hints", 1, "SHOW USE PROMPTS AND OBJECTIVES"
 				),
-				SessionStore.choices(
-					"NEXT RUN SUPPLIES",
-					"supply_rule",
-					0,
-					["STANDARD", "SCARCE", "NO DROPS"],
-					"NEW RUNS ONLY. SCARCE CUTS BOXES. NO DROPS REMOVES BASIC FOE AMMO."
-				),
 			]
 		],
 		[
 			"VIEW",
 			[
-				SessionStore.choices(
-					"SCENERY MOTION",
-					"world_motion",
-					0,
-					["FULL", "REDUCED", "STATIC"],
-					"ADJUST MOTION IN CROSSROADS SCENERY"
-				),
-				SessionStore.choices(
-					"WEAPON POSITION",
-					"weapon_view",
-					0,
-					["STANDARD", "LOWER", "HIDDEN"],
-					"LOWER OR HIDE WEAPON ART. LIT TNT STAYS VISIBLE."
-				),
-				SessionStore.toggle(
-					"LIGHTS AND GLOW",
-					"lights",
-					1,
-					"GUNFIRE, BLASTS, SHOTS AND LAMPS CAST COLOURED LIGHT. LIT WINDOWS GLOW."
-				),
-				SessionStore.choices(
-					"FIELD OF VIEW",
-					"fov",
-					0,
-					["70", "80", "90", "100"],
-					"HOW WIDE THE VIEW IS, IN DEGREES. 70 IS THE ORIGINAL."
-				),
-				SessionStore.choices(
-					"TEXT SIZE",
-					"text_size",
-					0,
-					["NORMAL", "TALL", "LARGE"],
-					"SIZE OF NOTICES, PROMPTS, CAPTIONS AND ONE-LINERS"
-				),
-				SessionStore.choices(
-					"SCREEN SHAKE",
-					"shake",
-					2,
-					["OFF", "LOW", "FULL"],
-					"BLASTS, BIG GUNS AND HITS JOLT THE VIEW"
-				),
-				SessionStore.toggle(
-					"BULLET MARKS", "bullet_marks", 1, "DRAW IMPACT MARKS ON WALLS"
-				),
-				SessionStore.toggle(
-					"FILM GRAIN + COLOR WASH",
-					"film_look",
-					0,
-					"OFF IS THE PLAIN 256-COLOR PICTURE. ON ADDS GRAIN, DITHER AND A TINT."
-				),
 				(
 					SessionStore
 					. choices(
@@ -304,11 +334,64 @@ static func build() -> Array:
 						"LOW HALVES THE VIEW. AUTO GOES LOW ONLY WHEN FRAMES RUN LATE. HD DRAWS IT TWICE AS SHARP."
 					)
 				),
+				SessionStore.choices(
+					"FIELD OF VIEW",
+					"fov",
+					0,
+					["70", "80", "90", "100"],
+					"HOW WIDE THE VIEW IS, IN DEGREES. 70 IS THE ORIGINAL."
+				),
+				SessionStore.toggle(
+					"LIGHTS AND GLOW",
+					"lights",
+					1,
+					"GUNFIRE, BLASTS, SHOTS AND LAMPS CAST COLOURED LIGHT. LIT WINDOWS GLOW."
+				),
+				SessionStore.toggle(
+					"FILM GRAIN + COLOR WASH",
+					"film_look",
+					0,
+					"OFF IS THE PLAIN 256-COLOR PICTURE. ON ADDS GRAIN, DITHER AND A TINT."
+				),
 				SessionStore.toggle(
 					"TILED WALLS",
 					"wall_tiling",
 					1,
 					"REPEAT WALL TEXTURES AT ONE SIZE INSTEAD OF STRETCHING THEM"
+				),
+				SessionStore.toggle(
+					"BULLET MARKS", "bullet_marks", 1, "DRAW IMPACT MARKS ON WALLS"
+				),
+				SessionStore.choices(
+					"SCENERY MOTION",
+					"world_motion",
+					0,
+					["FULL", "REDUCED", "STATIC"],
+					"ADJUST MOTION IN CROSSROADS SCENERY AND THE MENUS"
+				),
+				SessionStore.choices(
+					"SCREEN SHAKE",
+					"shake",
+					2,
+					["OFF", "LOW", "FULL"],
+					"BLASTS, BIG GUNS AND HITS JOLT THE VIEW"
+				),
+				SessionStore.choices(
+					"SCREEN FLASH",
+					"flashes",
+					0,
+					["FULL", "REDUCED", "OFF"],
+					"REDUCE DAMAGE, MUZZLE AND BLAST FLASHES, AND THE MENU LIGHTS"
+				),
+				SessionStore.Setting.new(
+					"WEAPON / VIEW BOB",
+					"bob",
+					100,
+					0,
+					100,
+					25,
+					[],
+					"REDUCE VIEW AND WEAPON SWAY WHILE WALKING"
 				),
 				SessionStore.toggle(
 					"LAMP FLICKER",
