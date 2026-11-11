@@ -227,9 +227,9 @@ func sprites() -> Array:
 					int(shot.travelled * 12.0) if not shot.resting else int(shot.life * 9.0)
 				)
 				name += "_%d" % (phase % 3)
-			var size: float = float(SHOT_SIZES.get(shot.kind, .14 if shot.enemy else .10))
+			var size := Shots.size(shot.kind, shot.enemy)
 			var shot_sprite := Renderer.Sprite.new(shot.x, shot.y, "fx_" + name, size, shot.z)
-			shot_sprite.glow = GLOW_SHOTS.has(shot.kind)
+			shot_sprite.glow = Shots.glows(shot.kind)
 			sprites.append(shot_sprite)
 	for fx: Speck in specks:
 		var speck_sprite := Renderer.Sprite.new(fx.x, fx.y, "fx_" + fx.kind, .095, fx.z)

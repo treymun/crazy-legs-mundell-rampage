@@ -132,6 +132,10 @@ var packs: PackLoader
 ## The in-game level editor (level_editor.gd; only from the project folder),
 ## and when the playing level's file was last seen changed.
 var editor: LevelEditor
+## The developer console (dev_console.gd; only from the project folder), and
+## how fast play runs (its `time` command).
+var console: DevConsole
+var time_scale := 1.0
 var level_stamp := 0
 var level_stamp_of := ""
 var level_check := 0
@@ -226,6 +230,8 @@ var smoke_level := "hickston"
 ## --play-at=<level>:<x>,<y>,<angle>: start there (the Godot editor's Levels
 ## screen, Play from here).
 var play_at := ""
+## --dev="cmd;cmd": developer console commands to run once a level starts.
+var dev_commands := ""
 var frame_count := 0
 
 
@@ -266,6 +272,8 @@ func _parse_smoke() -> void:
 		elif text.begins_with("--showcase="):
 			showcase = true
 			showcase_only = int(text.substr(11))
+		elif text.begins_with("--dev="):
+			dev_commands = text.substr(6)
 		elif text.begins_with("--play-at="):
 			play_at = text.substr(10)
 		elif text.begins_with("--smoke-screen="):
@@ -996,6 +1004,8 @@ func render() -> void:
 		game.draw(canvas, int(options["crosshair"]), true)
 		if editor != null and editor.active:
 			editor.draw(canvas)
+		if console != null:
+			console.draw(canvas)
 	else:
 		canvas.clear(0, 0, 0)
 	_look_uniforms()

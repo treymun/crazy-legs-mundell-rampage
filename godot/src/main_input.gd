@@ -62,6 +62,12 @@ func key(code: int, shift := false) -> void:
 	if state == "slots":
 		key_slots(code)
 		return
+	if state == "play" and console != null:
+		if code == KEY_QUOTELEFT:
+			console.toggle()
+			return
+		if console.key(code):
+			return
 	if state == "play" and editor != null:
 		if code == KEY_F2:
 			editor.toggle()
@@ -350,6 +356,8 @@ func _input(event: InputEvent) -> void:
 			left_ctrl = key_event.pressed
 		if key_event.pressed and not key_event.echo:
 			input_device = "keys"
+			if console != null and console.text(key_event.unicode):
+				return
 			if (
 				state == "slots"
 				and slot_stage == "edit"

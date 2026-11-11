@@ -466,6 +466,97 @@ func _run() -> void:
 		"a fired trigger stays fired after a save and a load"
 	)
 
+	# The developer console, driven as a script would.
+	print("DEVELOPER CONSOLE")
+	var console := DevConsole.new(main)
+	var kept_game2: Game = main.game
+	main.game = main.make_game("hickston")
+	main.game.configure({})
+	var before := int(main.game.enemies.size())
+	console.run("spawn billy 3")
+	check(main.game.enemies.size() > before, "spawn puts awake enemies in front of the player")
+	console.run("give all")
+	var all_guns := true
+	for owned: bool in main.game.armory.owned:
+		all_guns = all_guns and owned
+	check(all_guns, "give all hands over every gun")
+	console.run("god")
+	check(main.game.cheats.god, "god turns on taking no damage")
+	console.run("trigger dispatch-alarm")
+	check(main.game.triggers_fired.has("dispatch-alarm"), "trigger runs a level trigger by its id")
+	console.run("tp 20 30")
+	check(
+		absf(main.game.player.x - 20.5) < .01 and absf(main.game.player.y - 30.5) < .01,
+		"tp moves the player to the middle of a cell"
+	)
+	console.run("time 2")
+	var scaled: float = main.time_scale
+	console.run("time 1")
+	check(scaled == 2.0 and main.time_scale == 1.0, "time sets how fast play runs")
+	check(console.run("frobnicate").begins_with("unknown"), "an unknown command says so")
+	main.game = kept_game2
+
+	# Events and features: the chapter's stats come from events alone and
+	# survive a save, and a save without them starts them afresh.
+	print("EVENTS, FEATURES AND DATA GUNS")
+	var eventful: Game = main.make_game("hickston")
+	eventful.configure({})
+	var heard := []
+	eventful.enemy_killed.connect(func(e: Enemy) -> void: heard.append(e.kind))
+	var target: Enemy = null
+	for e: Enemy in eventful.enemies:
+		if e.hostile and not Enemy.BOSS_TITLES.has(e.kind):
+			target = e
+			break
+	eventful.shot_fired.emit(Weapons.REVOLVER)
+	target.hurt(9999.0, eventful)
+	var stats = eventful.features["stats"]
+	check(heard == [target.kind], "a kill is announced to whoever listens")
+	check(stats.shots == 1 and stats.landed == 1, "the stats feature counts a shot and its hit")
+	var stats_path := OS.get_user_data_dir().path_join("features-check.json")
+	SessionStore.save(eventful, stats_path)
+	var stats_back: Game = SessionStore.read(stats_path, Callable(main, "make_game"), false)
+	check(
+		stats_back != null and stats_back.features["stats"].shots == 1,
+		(
+			"a feature's state comes back from a save"
+			+ ("" if stats_back != null else " (%s)" % SessionStore.last_error)
+		)
+	)
+	if stats_back != null:
+		stats_back.features["stats"].restore({})
+		check(
+			stats_back.features["stats"].shots == 0, "a save without it starts the feature afresh"
+		)
+	# A gun from weapons.cfg alone: a copy of the revolver's section at the end.
+	var guns := Tuning.file(Tuning.WEAPONS)
+	for key in guns.get_section_keys("revolver"):
+		guns.set_value("test_gun", key, guns.get_value("revolver", key))
+	Weapons.load_tuning()
+	var gunner: Game = main.make_game("fair")
+	gunner.configure({})
+	var slot: int = Weapons.COUNT - 1
+	gunner.armory.pickup(slot, gunner)
+	gunner.armory.select(slot, gunner)
+	gunner.armory.switch = 0.0
+	gunner.armory.fire(gunner)
+	check(
+		(
+			Weapons.NAMES[slot] == "test_gun"
+			and gunner.armory.loaded[slot] == Weapons.CAPACITY[slot] - 1
+		),
+		"a section added to weapons.cfg is a gun that fires"
+	)
+	var older: Game = SessionStore.read(
+		"res://tools/saves/v6_hickston_fight.json", Callable(main, "make_game"), false
+	)
+	check(
+		older != null and older.armory.owned.size() == Weapons.COUNT,
+		"a save from before the gun existed still loads, the new gun empty"
+	)
+	guns.erase_section("test_gun")
+	Weapons.load_tuning()
+
 	print("")
 	if failures.is_empty():
 		print("PARITY FIXES OK")

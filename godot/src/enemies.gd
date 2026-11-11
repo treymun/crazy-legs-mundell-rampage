@@ -40,6 +40,8 @@ static var AWAKE := {}
 static var RANGED: Array = []
 static var PLASMA: Array = []
 static var GREEN_GIBS: Array = []
+## How likely a common enemy leaves a random food or drink.
+static var LUCKY_CHANCE := .07
 ## Off, enemies that lose sight of the player go back to the old way (straight
 ## for where they last saw them); tools/first_minutes.gd compares the two.
 static var hunting := true
@@ -56,6 +58,7 @@ static func load_tuning() -> void:
 	DEATH_TIME = Tuning.value(path, "death_time")
 	VOICE_TAKES = Tuning.value(path, "voice_takes")
 	DEATH_ONLY = Tuning.value(path, "death_only_voices")
+	LUCKY_CHANCE = float(Tuning.value(path, "lucky_chance"))
 	DEFS = {}
 	for kind in Tuning.sections(path):
 		DEFS[kind] = _definition(cfg, kind, 0)

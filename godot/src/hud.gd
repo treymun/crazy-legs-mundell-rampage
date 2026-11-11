@@ -848,12 +848,15 @@ func intermission(c: Canvas, game: Game) -> void:
 		["SECRETS", "%02d / %02d" % [game.secrets, game.total_secrets]],
 		["TIME", "%02d:%02d" % [minutes, seconds]]
 	]
-	for i in 3:
-		var y := 79 + i * 18
+	# Features add their own rows (features.gd); room for one more.
+	rows.append_array(Features.tally_rows(game).slice(0, 1))
+	var gap := 18 if rows.size() <= 3 else 16
+	for i in rows.size():
+		var y := 79 + i * gap
 		c.fill_rect(21, y, 187, 15, Color(30 / 255.0, 21 / 255.0, 17 / 255.0))
 		text(c, String(rows[i][0]), 26, y + 4, "body", INK)
 		text(c, String(rows[i][1]), 202, y + 4, "body", AMBER, false, true, true)
-	text(c, game.level.ending, 22, 142, "body", AMBER)
+	text(c, game.level.ending, 22, 142 if rows.size() <= 3 else 146, "body", AMBER)
 	var action := (
 		"ENTER  CONTINUE TO CROSSROADS"
 		if following != "" and not game.replay

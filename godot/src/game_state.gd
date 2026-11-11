@@ -135,33 +135,6 @@ const WASH := {
 }
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
-const GRAVITY_SHOT := {
-	"bolt": 2.2,
-	"football": 2.4,
-	"tnt": 6.9,
-	"chalk_lob": 4.2,
-	"fair_bottle": 5.5,
-	"keg": 5.0,
-	"cow": 1.8
-}
-const SHOT_SIZES := {
-	"keg": .26,
-	"cow": .30,
-	"bowling": .18,
-	"milk": .08,
-	"football": .20,
-	"blade": .15,
-	"arm_bolt": .18,
-	"tnt": .19,
-	"barker_bolt": .24,
-	"lantern_bolt": .18,
-	"fair_bottle": .25,
-	"chain_hook": .17,
-	"valve_slug": .16,
-	"deputy_slug": .10,
-	"bottle_rocket": .22
-}
-const GLOW_SHOTS := ["plasma", "arm_bolt", "barker_bolt", "lantern_bolt"]
 const NO_MARK_SURFACE := ["BACKBLAST", "LIT DYNAMITE", "STEAM", "CHALK"]
 
 # ------------------------------------------------------------------ helpers
@@ -759,17 +732,9 @@ static var adapt := 1.0
 var adaptive := true
 ## The touch overlay is in use (main.gd sets it): aim help reaches further.
 var touch_aim := false
-## TOUCH AUTO FIRE (game_combat.gd sights_on_enemy): the guns it fires, never
-## one that could blow up in the player's face, and its last answer.
-const AUTO_FIRE_GUNS := [
-	Weapons.CROWBAR,
-	Weapons.REVOLVER,
-	Weapons.SHOTGUN,
-	Weapons.RIFLE,
-	Weapons.RIVETER,
-	Weapons.PRESSURE,
-	Weapons.TEAT
-]
+## TOUCH AUTO FIRE (game_combat.gd sights_on_enemy): its last answer. The
+## guns it fires have auto_fire in weapons.cfg (never one that could blow up
+## in the player's face).
 var sights_next := 0.0
 var sights_last := false
 ## Real play (main_flow.gd play()) teaches the controls as they come up
@@ -778,6 +743,18 @@ var lessons := false
 ## Lights level triggers have put up (triggers.gd): [x, y, z, radius, Color,
 ## strength, until].
 var trigger_lights: Array = []
+## What happens in play, announced for the features (src/features/) to listen
+## to, instead of each feature being written into the code that does it.
+signal enemy_killed(enemy: Enemy)
+signal player_hurt(amount: float, cause: String)
+signal pickup_taken(name: String)
+signal station_done(station_id: String)
+signal shot_fired(gun: int)
+signal hit_landed(amount: float, killed: bool)
+signal level_won
+signal ticked(dt: float)
+## The features, by id (features.gd).
+var features := {}
 ## Level triggers that have fired (saved), and which repeating ones the player
 ## is inside of now.
 var triggers_fired := {}

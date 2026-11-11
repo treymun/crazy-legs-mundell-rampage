@@ -25,26 +25,12 @@ const KEG := 13
 const COW := 14
 const TEAT := 15
 
-const COUNT := 16
-
-const NAMES := [
-	"crowbar",
-	"revolver",
-	"shotgun",
-	"crossbow",
-	"rifle",
-	"ripsaw",
-	"armgun",
-	"tnt",
-	"slingblade",
-	"bottle_launcher",
-	"riveter",
-	"pressure_gun",
-	"bowling_ball",
-	"powder_keg",
-	"cow_launcher",
-	"teat_gun"
-]
+## The guns, in weapons.cfg's order (the constants above are the first
+## sixteen); a section added at the end of the file is a new gun.
+static var COUNT := 16
+static var NAMES: Array = []
+## Each gun's whole section: how it fires (Armory.fire reads it).
+static var FIRING: Array = []
 const RELOAD_POSES := ["open", "eject", "load", "close"]
 const GUN_W := 320
 const GUN_H := 120
@@ -110,6 +96,15 @@ static func _static_init() -> void:
 ## Read the tuned values; Tuning.watch() calls it again after a change.
 static func load_tuning() -> void:
 	var path := Tuning.WEAPONS
+	NAMES = Array(Tuning.sections(path))
+	COUNT = NAMES.size()
+	var cfg := Tuning.file(path)
+	FIRING = []
+	for name: String in NAMES:
+		var section := {}
+		for key in cfg.get_section_keys(name):
+			section[key] = cfg.get_value(name, key)
+		FIRING.append(section)
 	LABELS = Tuning.table(path, NAMES, "label")
 	SAVED_CAPACITY = Tuning.table(path, NAMES, "saved_capacity")
 	CYCLE_GUNS = Tuning.entries(path, NAMES, "cycle").keys()
@@ -118,6 +113,10 @@ static func load_tuning() -> void:
 	RELOAD_AUDIO = Tuning.entries(path, NAMES, "reload_sounds")
 	OPEN_AUDIO = Tuning.entries(path, NAMES, "open_sound")
 	CAPACITY = Tuning.table(path, NAMES, "capacity")
+	for i in COUNT:
+		# A gun added after the ammo pool change has no older magazine to remember.
+		if SAVED_CAPACITY[i] == null:
+			SAVED_CAPACITY[i] = CAPACITY[i]
 	RELOAD_TIME = Tuning.table(path, NAMES, "reload_time")
 	FIRE_TIME = Tuning.table(path, NAMES, "fire_time")
 	MAX_RESERVE = Tuning.table(path, NAMES, "max_reserve")
@@ -262,22 +261,27 @@ class Armory:
 				cooldown = Weapons.FIRE_TIME[Weapons.DYNAMITE]
 				shot_age = 0.0
 				game.throw_dynamite(0.0)
-		var swing_at := .118 if active == Weapons.SLING else .061
-		if active in [Weapons.CROWBAR, Weapons.SLING] and swing_hit and shot_age >= swing_at:
+		var how: Dictionary = Weapons.FIRING[active]
+		if (
+			String(how.get("fire", "")) == "melee"
+			and swing_hit
+			and shot_age >= float(how["swing_at"])
+		):
 			swing_hit = false
 			var p = game.player
-			var sling := active == Weapons.SLING
-			var table: Array = Weapons.MELEE[Weapons.SLING if sling else Weapons.CROWBAR]
+			var table: Array = Weapons.MELEE[active]
 			var damage: int = table[1 if game.sprint else 0]
 			var reached: bool = game.hitscan(
 				p.view_angle(),
 				(p.pitch + p.sway) / Renderer.base_focal,
 				damage,
-				2.15 if sling else 1.65,
-				.30 if sling else .34
+				float(how["melee_range"]),
+				float(how["melee_width"])
 			)
 			if reached:
-				game.sound.play("sling_hit" if sling else "crowbar_hit")
+				game.sound.play(
+					"%s_hit" % ("sling" if active == Weapons.SLING else Weapons.NAMES[active])
+				)
 		rifle_heat = maxf(0.0, rifle_heat - dt * 1.8)
 		lower = maxf(0.0, minf(1.0, lower + dt * (5.5 if holstered else -5.5)))
 		if reload > 0.0:
@@ -400,6 +404,7 @@ class Armory:
 		grinding = grind
 		last_spent = spent
 		game.shake = minf(1.0, game.shake + float(Weapons.SHAKE.get(i, 0.0)) * maxf(1, spent))
+		game.shot_fired.emit(i)
 		shot_age = 0.0
 		if pool:
 			reserve[i] -= spent
@@ -421,123 +426,87 @@ class Armory:
 		var player = game.player
 		var aim: float = player.view_angle()
 		var slope: float = (player.pitch + player.sway) / Renderer.base_focal
-		if i in [Weapons.REVOLVER, Weapons.SHOTGUN, Weapons.RIFLE]:
+		var how: Dictionary = Weapons.FIRING[i]
+		if bool(how.get("assist", false)):
 			var assisted: Array = game.assisted_aim(aim, slope)
 			aim = assisted[0]
 			slope = assisted[1]
 		game.wake_nearby(Weapons.SHOT_NOISE[i], player.x, player.y)
-		if i in [Weapons.CROWBAR, Weapons.SLING]:
+		var mode := String(how.get("fire", ""))
+		if grind:
+			game.hitscan(aim, slope, Weapons.GRIND_DAMAGE, 1.45, .36)
+		elif mode == "melee":
 			swing_hit = true
-		elif i == Weapons.REVOLVER:
-			game.hitscan(
-				aim + game.rng.randf_range(-.009, .009),
-				slope,
-				Weapons.DAMAGE[Weapons.REVOLVER],
-				23.0,
-				.055
-			)
-		elif i == Weapons.SHOTGUN:
-			for pellet in Weapons.SHOTGUN_PELLETS * spent:
-				var dx: float = game.rng.randf_range(-.135, .135)
-				var dy: float = game.rng.randf_range(-.09, .09)
-				game.hitscan(aim + dx, slope + dy, Weapons.SHOTGUN_DAMAGE, 11.5, .04, pellet < 4)
-		elif i == Weapons.RIFLE:
-			var spread := .009 + rifle_heat * .027
-			game.hitscan(
-				aim + game.rng.randf_range(-spread, spread),
-				slope + game.rng.randf_range(-spread, spread),
-				Weapons.DAMAGE[Weapons.RIFLE],
-				27.0,
-				.045
-			)
-			player.pitch = minf(53.0, player.pitch + .70 + rifle_heat * 1.2)
-			rifle_heat = minf(1.0, rifle_heat + .29)
-		elif i == Weapons.RIVETER:
-			var offsets: Array = [-.031, .031] if spent == 2 else [0.0]
-			for offset in offsets:
+		elif mode == "hitscan":
+			var spread: Vector2 = how.get("spread", Vector2.ZERO)
+			if how.has("heat_spread"):
+				spread += Vector2.ONE * float(how["heat_spread"]) * rifle_heat
+			var offsets: Array = [0.0]
+			if spent == 2 and how.has("pair_spread"):
+				offsets = [-float(how["pair_spread"]), float(how["pair_spread"])]
+			for offset: float in offsets:
+				var yaw := aim + offset
+				var tilt := slope
+				if spread.x > 0.0:
+					yaw += game.rng.randf_range(-spread.x, spread.x)
+				if spread.y > 0.0:
+					tilt += game.rng.randf_range(-spread.y, spread.y)
 				game.hitscan(
-					aim + float(offset), slope, Weapons.DAMAGE[Weapons.RIVETER], 16.0, .042
+					yaw,
+					tilt,
+					Weapons.DAMAGE.get(i, 0),
+					float(how["range"]),
+					float(how["width"]),
+					true,
+					bool(how.get("pressure", false))
 				)
-		elif i == Weapons.PRESSURE:
-			# pressure=True only: a miss still sparks, chips and breaks glass.
-			game.hitscan(aim, slope, Weapons.DAMAGE[Weapons.PRESSURE], 8.5, .035, true, true)
-		elif i == Weapons.TEAT:
-			game.hitscan(
-				aim + game.rng.randf_range(-.05, .05),
-				slope + game.rng.randf_range(-.04, .04),
-				Weapons.DAMAGE[Weapons.TEAT],
-				9.0,
-				.06
-			)
-		elif i in [Weapons.BOWLING, Weapons.KEG, Weapons.COW]:
-			var kind := ""
-			var speed := 0.0
-			var damage := 0
-			var lift := 0.0
-			if i == Weapons.BOWLING:
-				kind = "bowling"
-				speed = 7.4
-				damage = Weapons.DAMAGE[Weapons.BOWLING]
-			elif i == Weapons.KEG:
-				kind = "keg"
-				speed = 6.2
-				lift = .55
-			else:
-				kind = "cow"
-				speed = 8.6
-				damage = Weapons.DAMAGE[Weapons.COW]
-				lift = .30
-			var z: float = (
-				(game.world.elevation(player.x, player.y) + .22)
-				if i == Weapons.BOWLING
-				else player.eye - .12
+			if how.has("climb"):
+				player.pitch = minf(
+					53.0,
+					(
+						player.pitch
+						+ float(how["climb"])
+						+ rifle_heat * float(how.get("climb_heat", 0.0))
+					)
+				)
+				rifle_heat = minf(1.0, rifle_heat + float(how.get("heat_gain", 0.0)))
+		elif mode == "pellets":
+			var spread: Vector2 = how.get("spread", Vector2.ZERO)
+			var sparks := int(how.get("spark_pellets", 0))
+			for pellet in int(how.get("pellets", Weapons.SHOTGUN_PELLETS)) * spent:
+				var dx: float = game.rng.randf_range(-spread.x, spread.x)
+				var dy: float = game.rng.randf_range(-spread.y, spread.y)
+				game.hitscan(
+					aim + dx,
+					slope + dy,
+					int(how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)),
+					float(how["range"]),
+					float(how["width"]),
+					pellet < sparks
+				)
+		elif mode == "projectile":
+			var speed := float(how["shot_speed"])
+			var reach := float(how.get("shot_reach", .23))
+			var base: float = (
+				game.world.elevation(player.x, player.y)
+				if String(how.get("shot_from", "eye")) == "floor"
+				else player.eye
 			)
 			game.launch(
-				player.x + cos(aim) * .25,
-				player.y + sin(aim) * .25,
-				z,
+				player.x + cos(aim) * reach,
+				player.y + sin(aim) * reach,
+				base + float(how.get("shot_height", 0.0)),
 				aim,
 				speed,
-				kind,
-				(slope * speed + lift) if i != Weapons.BOWLING else 0.0,
+				String(how["shot"]),
+				(
+					(slope * speed + float(how.get("shot_lift", 0.0)))
+					if bool(how.get("shot_aimed", true))
+					else 0.0
+				),
 				false,
-				damage,
-				4.5 if i == Weapons.BOWLING else -1.0
-			)
-		elif grind:
-			game.hitscan(aim, slope, Weapons.GRIND_DAMAGE, 1.45, .36)
-		else:
-			var kind2 := ""
-			var speed2 := 0.0
-			var damage2 := 0
-			match i:
-				Weapons.CROSSBOW:
-					kind2 = "bolt"
-					speed2 = 10.8
-				Weapons.RIPSAW:
-					kind2 = "blade"
-					speed2 = 15.0
-					damage2 = Weapons.DAMAGE[Weapons.RIPSAW]
-				Weapons.ARMGUN:
-					kind2 = "arm_bolt"
-					speed2 = 12.2
-					damage2 = Weapons.DAMAGE[Weapons.ARMGUN]
-				Weapons.ROCKET:
-					kind2 = "bottle_rocket"
-					speed2 = 9.6
-					damage2 = Weapons.DAMAGE[Weapons.ROCKET]
-			var lift2 := .34 if i in [Weapons.CROSSBOW, Weapons.ROCKET] else 0.0
-			game.launch(
-				player.x + cos(aim) * .23,
-				player.y + sin(aim) * .23,
-				player.eye - .09,
-				aim,
-				speed2,
-				kind2,
-				slope * speed2 + lift2,
-				false,
-				damage2,
-				-1.0
+				Weapons.DAMAGE.get(i, 0),
+				float(how.get("shot_life", -1.0))
 			)
 
 	func release_dynamite(game) -> void:

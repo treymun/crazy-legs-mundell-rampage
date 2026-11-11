@@ -128,6 +128,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	district = int(level.area[int(player.y) * level.width + int(player.x)])
 	configure({})
 	_build_grit()
+	Features.attach_all(self)
 	message(level.introduction, 5.0)
 
 
@@ -388,9 +389,6 @@ func tick(dt: float, controls) -> void:
 				combat = true
 				break
 	tick_exchanges(combat)
-	Triggers.tick(self)
-	if not trigger_lights.is_empty():
-		trigger_lights = trigger_lights.filter(func(l: Array) -> bool: return clock < float(l[6]))
-	Lessons.tick(self)
+	ticked.emit(dt)
 
 # --------------------------------------------------------------- reflection

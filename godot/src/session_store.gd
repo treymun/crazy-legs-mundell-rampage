@@ -12,7 +12,7 @@ extends RefCounted
 ## step to save_upgrade.gd that turns a save of the version before into this
 ## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
 ## keeps real saves of each version (tools/saves/) and checks they still do.
-const VERSION := 5
+const VERSION := 6
 const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"
@@ -384,7 +384,7 @@ static func snapshot(game: Game) -> Dictionary:
 		"county_reactions": reactions,
 		"music": game.music_bookmark,
 		"stations": _sorted_keys(game.stations_done),
-		"triggers": _sorted_keys(game.triggers_fired),
+		"features": Features.save_all(game),
 		"tasks": _sorted_keys(game.task_items),
 		"valve_turns": game.valve_turns.duplicate(),
 		"scenery": _sorted_keys(game.scenery_spent),
@@ -764,10 +764,12 @@ static func _validate_kit(kit) -> bool:
 	var owned: Array = kit["owned"]
 	var loaded: Array = kit["loaded"]
 	var reserve: Array = kit["reserve"]
+	# A save from before a gun was added has fewer: the rest start empty.
 	if (
-		owned.size() != Weapons.COUNT
-		or loaded.size() != Weapons.COUNT
-		or reserve.size() != Weapons.COUNT
+		owned.size() > Weapons.COUNT
+		or owned.size() != loaded.size()
+		or owned.size() != reserve.size()
+		or owned.size() < 1
 	):
 		return false
 	if typeof(kit["health"]) != TYPE_INT and typeof(kit["health"]) != TYPE_FLOAT:
@@ -778,7 +780,7 @@ static func _validate_kit(kit) -> bool:
 		return false
 	if not owned[int(kit["active"])]:
 		return false
-	for i in Weapons.COUNT:
+	for i in owned.size():
 		if int(loaded[i]) < 0 or int(loaded[i]) > Weapons.SAVED_CAPACITY[i]:
 			return false
 		if int(reserve[i]) < 0 or int(reserve[i]) > Weapons.MAX_RESERVE[i]:
@@ -871,7 +873,16 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 	game.supply_rule = supplies
 	if not _restore_fields(game.player, doc.get("player", {}), PLAYER_FIELDS):
 		return _fail_at(708)
-	if not _restore_fields(game.armory, doc.get("armory", {}), ARM_FIELDS):
+	var armory_doc = doc.get("armory", {})
+	if armory_doc is Dictionary:
+		armory_doc = armory_doc.duplicate(true)
+		for key in ["owned", "loaded", "reserve"]:
+			var saved = armory_doc.get(key)
+			if saved is Array and saved.size() < Weapons.COUNT:
+				# Saved before a gun was added: the new ones start empty.
+				for k in Weapons.COUNT - saved.size():
+					saved.append(false if key == "owned" else 0)
+	if not _restore_fields(game.armory, armory_doc, ARM_FIELDS):
 		return _fail_at(710)
 	if game.clock < 0.0 or game.player.health <= 0 or game.player.health > 100:
 		return _fail_at(712)
@@ -1011,19 +1022,9 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 		clean_history.append(clean)
 	game.history = clean_history
 
-	# level triggers that have fired (a trigger no longer in the level is dropped)
-	var fired = doc.get("triggers", [])
-	if not (fired is Array):
-		return _note("triggers is not a list")
-	game.triggers_fired = {}
-	var known_triggers := {}
-	for trigger: Dictionary in w.triggers:
-		known_triggers[String(trigger["id"])] = true
-	for name in fired:
-		if typeof(name) != TYPE_STRING:
-			return _note("a fired trigger is not named")
-		if known_triggers.has(name):
-			game.triggers_fired[String(name)] = true
+	# The features (src/features/) each take back their own state, or start
+	# afresh when the save has none for them.
+	Features.restore_all(game, doc.get("features", {}))
 
 	# task state
 	var stations = doc.get("stations", [])

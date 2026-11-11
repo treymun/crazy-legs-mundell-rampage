@@ -38,6 +38,14 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 			# Version 5 saves which level triggers have fired; none had.
 			doc["triggers"] = []
 			return doc
+		5:
+			# Version 6 keeps each feature's state in one block; the triggers'
+			# list moved into it.
+			var fired = doc.get("triggers", [])
+			doc.erase("triggers")
+			var kept: bool = fired is Array and not fired.is_empty()
+			doc["features"] = {"triggers": {"fired": fired}} if kept else {}
+			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
 			return null

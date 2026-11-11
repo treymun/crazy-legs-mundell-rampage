@@ -56,6 +56,8 @@ func _ready() -> void:
 	add_child(packs)
 	if LevelEditor.available():
 		editor = LevelEditor.new(self)
+	if DevConsole.available():
+		console = DevConsole.new(self)
 
 	# A plain black sheet over the picture: a tenth of a second of dip between
 	# menu screens instead of a hard cut.
@@ -105,6 +107,9 @@ func _ready() -> void:
 	elif smoke_frames > 0:
 		render()
 		start(smoke_level)
+	if console != null and dev_commands != "" and game != null:
+		for command in dev_commands.split(";", false):
+			console.run(command)
 
 
 ## Start the level and place the player as --play-at says.
@@ -283,8 +288,11 @@ func _process(delta: float) -> void:
 		_watch_pointer_lock()
 		game.touch_aim = touch.active
 
+	if console != null:
+		console.tick(delta)
+	dt *= time_scale
 	if state == "play" and game != null:
-		if not focused:
+		if not focused or (console != null and console.open):
 			var neutral := Game.Controls.new()
 			neutral.fire = game.armory.fuse > 0.0
 			advance(dt, neutral)

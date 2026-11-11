@@ -295,7 +295,7 @@ func sights_on_enemy() -> bool:
 	sights_next = clock + .1
 	sights_last = false
 	var gun := armory.active
-	if armory.holstered or not (gun in AUTO_FIRE_GUNS):
+	if armory.holstered or not bool(Weapons.FIRING[gun].get("auto_fire", false)):
 		return false
 	var p := player
 	var angle := p.view_angle()
@@ -350,31 +350,24 @@ func explode(shot: Shot) -> void:
 	var x := shot.x
 	var y := shot.y
 	var z := maxf(.07, shot.z)
-	var energy := shot.kind == "arm_bolt"
-	var radius := 1.40 if energy else 2.8
-	var strength := float(shot.damage) if energy else (125.0 if shot.kind == "fuel" else 160.0)
-	if shot.kind == "bottle_rocket":
-		radius = 1.72
+	# Every number of the blast is its kind's (shots.cfg).
+	var spec := Shots.blast(shot.kind)
+	var energy := bool(spec["energy"])
+	var radius := float(spec["radius"])
+	var strength := float(spec["strength"])
+	if strength <= 0.0:
 		strength = float(shot.damage)
-	elif shot.kind == "keg":
-		radius = 3.7
-		strength = 240.0
-	elif shot.kind == "cow":
-		radius = 2.3
-		strength = float(shot.damage)
-		sound_at("cow_moo", x, y, .9)
-	blast_flash = maxf(blast_flash, .14 if energy else .27)
+	if spec.has("also_sound"):
+		sound_at(String(spec["also_sound"]), x, y, .9)
+	blast_flash = maxf(blast_flash, float(spec["flash"]))
 	var near := sqrt((player.x - x) * (player.x - x) + (player.y - y) * (player.y - y))
 	shake = minf(1.0, shake + maxf(0.0, 1.0 - near / 9.0) * (.45 if energy else .9))
-	duck = maxf(duck, 1.1 if not energy else .5)
+	duck = maxf(duck, float(spec["duck"]))
 	blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
-	var cue := (
-		"arm_impact" if energy else ("rocket_pop" if shot.kind == "bottle_rocket" else "explosion")
-	)
-	sound_at(cue, x, y)
+	sound_at(String(spec["cue"]), x, y)
 	burst(x, y, z, "plasma" if energy else "spark", 12 if energy else 23, 2.2 if energy else 3.3)
 	burst(x, y, z, "dust", 6 if energy else 16, 2.3)
-	wake_nearby(8.0 if energy else 16.0, x, y)
+	wake_nearby(float(spec["wake"]), x, y)
 	if not energy:
 		disturb(x, y, 3.5, z)
 	for enemy: Enemy in enemies:
@@ -391,7 +384,7 @@ func explode(shot: Shot) -> void:
 	var distance := sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y))
 	if distance < radius * .75 and world.visible(x, y, p.x, p.y):
 		damage(
-			maxi(2, int((13.0 if energy else 30.0) * (1.0 - distance / (radius * .75)))),
+			maxi(2, int(float(spec["player_damage"]) * (1.0 - distance / (radius * .75)))),
 			[x, y],
 			"BLAST" if shot.enemy or shot.kind == "fuel" else "BACKBLAST"
 		)
@@ -410,7 +403,7 @@ func explode(shot: Shot) -> void:
 			var centre := door.center()
 			if (
 				(level.rescue or door.blast_only)
-				and shot.kind != "bottle_rocket"
+				and bool(spec["opens_secrets"])
 				and door.secret
 				and not door.opened
 				and sqrt(pow(centre.x - x, 2) + pow(centre.y - y, 2)) < 1.27
@@ -449,7 +442,7 @@ func hit_scenery(prop: LevelData.Scenery) -> void:
 
 
 func finish_shot(shot: Shot) -> void:
-	if shot.kind in ["bolt", "arm_bolt", "tnt", "bottle_rocket", "keg", "cow"]:
+	if Shots.explodes(shot.kind):
 		explode(shot)
 	elif shot.kind == "football":
 		burst(shot.x, shot.y, shot.z, "dust", 8, 1.3)
@@ -476,7 +469,7 @@ func move_shot(shot: Shot, dt: float) -> bool:
 	var distance: float = sqrt(shot.vx * shot.vx + shot.vy * shot.vy + shot.vz * shot.vz) * dt
 	var steps := maxi(1, int(ceil(distance / .09)))
 	dt /= steps
-	var gravity: float = float(GRAVITY_SHOT.get(shot.kind, 0.0))
+	var gravity := Shots.gravity(shot.kind)
 	var tnt := shot.kind == "tnt"
 	for _step in steps:
 		shot.life -= dt

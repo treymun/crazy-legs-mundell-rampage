@@ -95,4 +95,5 @@ static func watch() -> bool:
 	Weapons.load_tuning()
 	Enemy.load_tuning()
 	Effects.load_tuning()
+	Shots.load_tuning()
 	return true

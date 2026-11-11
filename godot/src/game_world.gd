@@ -187,6 +187,7 @@ func damage(amount: float, source = null, cause := "HIT") -> void:
 		1.0, round_even(amount * (1.0 - mellow) * incoming * (adapt if adaptive else 1.0))
 	)
 	p.health = maxi(0, p.health - int(amount))
+	player_hurt.emit(amount, cause)
 	if p.health == 0 and adaptive:
 		adapt = maxf(.78, adapt - .07)
 	if gallery != null and gallery.active:
@@ -205,6 +206,7 @@ func damage(amount: float, source = null, cause := "HIT") -> void:
 ## One of the player's hits landed (Enemy.hurt): mark the crosshair, tick, and
 ## hold the world still a moment on a kill or a heavy blow.
 func struck(amount: float, killed: bool, champion: bool) -> void:
+	hit_landed.emit(amount, killed)
 	if not hit_feedback:
 		return
 	if clock >= hit_mark_until:
@@ -274,6 +276,7 @@ func collect(name: String) -> bool:
 		),
 		.8
 	)
+	pickup_taken.emit(name)
 	return true
 
 
@@ -386,6 +389,7 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 
 func enemy_down(enemy: Enemy) -> void:
 	kills += 1
+	enemy_killed.emit(enemy)
 	if enemy.hostile:
 		barks.kill(self)
 	if not Enemy.BOSS_TITLES.has(enemy.kind):
@@ -420,11 +424,7 @@ func enemy_down(enemy: Enemy) -> void:
 			if shot.kind != "foreman_cut" and shot.kind != "rudy_horn":
 				kept.append(shot)
 		shots = kept
-		var reward := String(
-			{"rudy": "rocket_ammo", "foreman": "rivet_ammo", "baron": "pressure_ammo"}.get(
-				enemy.kind, "bullets"
-			)
-		)
+		var reward := String(Enemy.DEFS[enemy.kind].get("finale_drop", "bullets"))
 		add_pickup(String(reward), enemy.x, enemy.y)
 		message(
 			(
@@ -434,23 +434,17 @@ func enemy_down(enemy: Enemy) -> void:
 			3.0
 		)
 		sound.sting(enemy.kind + "_end")
-	elif enemy.brain == "boilerback":
-		add_pickup("pressure_ammo", enemy.x, enemy.y)
-	elif enemy.brain == "chalk_spitter" and rng.random() < .42 and supply_rule != 2:
-		add_pickup("bullets", enemy.x, enemy.y)
-	elif (
-		(enemy.brain == "clone" or enemy.brain == "coot")
-		and rng.random() < .65
-		and supply_rule != 2
-	):
-		add_pickup("bullets", enemy.x, enemy.y)
-	elif enemy.brain == "billy" and rng.random() < .60 and supply_rule != 2:
-		add_pickup("shells", enemy.x, enemy.y)
+	elif Enemy.DEFS[enemy.kind].has("drop"):
+		# What it leaves (enemies.cfg): always, or by chance unless NO DROPS.
+		var spec: Dictionary = Enemy.DEFS[enemy.kind]
+		var chance := float(spec.get("drop_chance", 1.0))
+		if chance >= 1.0 or (rng.random() < chance and supply_rule != 2):
+			add_pickup(String(spec["drop"]), enemy.x, enemy.y)
 	if (
 		enemy.hostile
 		and not Enemy.BOSS_TITLES.has(enemy.kind)
 		and supply_rule != 2
-		and rng.random() < .07
+		and rng.random() < Enemy.LUCKY_CHANCE
 	):
 		add_pickup(String(rng.choice(HUD.ITEMS)), enemy.x + .2, enemy.y)
 		message("FEELIN' LUCKY. SOMETHING DROPPED.", 1.6)
@@ -765,6 +759,7 @@ func activate_station(station: LevelData.Station) -> void:
 			sound.play("empty")
 			return
 	stations_done[station.id] = true
+	station_done.emit(station.id)
 	set_station_lights(station)
 	for door: LevelData.Door in world.doors:
 		var point := Vector2i(door.x, door.y)
@@ -823,6 +818,7 @@ func exit_ready() -> bool:
 func finish_level(cue: String) -> void:
 	if not won:
 		won = true
+		level_won.emit()
 		if adaptive and player.health >= 60 and not replay:
 			adapt = minf(1.15, adapt + .05)
 		shots.clear()

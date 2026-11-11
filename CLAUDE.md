@@ -30,7 +30,7 @@ are made by the Godot art tools in `godot/tools/art/` (with Blender for the
 | --- | --- |
 | `godot/src/` | The game (GDScript). Three chains of layers, each file extending the one before: front end `main_state` -> `main_flow` -> `main_input` -> `main`; play `game_state` -> `game_world` -> `game_combat` -> `game_view` -> `game`; software view `render_state` -> `render_surfaces` -> `render_sprites` -> `renderer`. `palette.gdshader` + `scene_layers.gd` are the graphics-card view |
 | `godot/tools/` | Headless checks and tools (excluded from exports) |
-| `godot/data/tuning/` | Weapon and enemy definitions and numbers (`weapons.cfg`, `enemies.cfg`): fire rates, damage, reloads, how each gun sits in view, its name and sounds; enemy health, speed, reach, voice, alert sound, boss title. A new enemy can be a section with `brain=<kind>` (it acts as that kind) plus its art. Edit these, not the scripts; a running game from the project folder reloads them within a second |
+| `godot/data/tuning/` | Weapon, enemy, shot and effect definitions and numbers (`weapons.cfg`, `enemies.cfg`, `shots.cfg`, `effects.cfg`): fire rates, damage, reloads, how each gun fires (hitscan, pellets, projectile, melee), sits in view and sounds; enemy health, speed, reach, voice, boss title and drops; each shot's fall, size, glow and blast; lights and glows. The guns are weapons.cfg's sections in order: a new one goes at the end (section plus art). A new enemy can be a section with `brain=<kind>` (it acts as that kind) plus its art. Edit these, not the scripts; a running game from the project folder reloads them within a second |
 | `godot/assets_gen/` | Packed art, sound and levels. Generated, not committed |
 | `godot/tools/art/` | The art builders (GDScript, run like the other tools): `build_fx_art`, `build_gore_art`, `build_menu_art`, `build_building_tiles`, and `build_enemy_actors` / `build_weapon_views`, which run Blender and then shrink, grade and digitize its renders; `paint.gd` is their drawing library. Each takes `out=<dir>` to write somewhere else for a comparison. Their pictures have the old Python builders' look, not their exact bytes |
 | `scripts/` | Python: the sound (`audio_*`: ElevenLabs, budget ledger, mastering), the landing page's pictures (`build_site_assets.py`), and the Blender scripts (`blender/`, run inside Blender's own Python) |
@@ -55,7 +55,10 @@ godot --headless --path godot --script res://tools/art/build_fx_art.gd       # a
 godot --headless --path godot --script res://tools/art/build_enemy_actors.gd -- kinds=billy no-render   # weapon views likewise
 godot --headless --path godot --import        # after adding a class_name script
 
-# Checks (all run in CI too)
+# Checks (all run in CI too). One command runs them all at once, each in
+# its own process and scratch profile, with one table (lint: gdformat and
+# gdlint too; fast: without the walkthrough and the pictures):
+godot --headless --path godot --script res://tools/check_all.gd -- lint
 cd godot && gdformat --check src tools addons && gdlint src tools addons
 godot --headless --path godot --script res://tools/verify_assets.gd   # ASSETS OK
 godot --headless --path godot --script res://tools/check_fixes.gd     # PARITY FIXES OK
@@ -90,6 +93,10 @@ godot --headless --path godot --script res://tools/level_edit.gd -- hickston tri
 
 # Version
 godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
+
+# Publish (ask the owner first): stamps, commits, pushes, waits for CI, moves
+# main, tags, then checks the site and the release's three files
+godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
 ```
 
 ## Things that are easy to get wrong
@@ -151,6 +158,17 @@ godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
   alerted enemy walks downhill on the steps from the player for a few seconds
   (`Enemy.hunt_until`). The objective pin walks a second field measured from
   the objective (`Game.route`) through doors the player can open now.
+- **Features listen to events.** `game_state.gd` announces `enemy_killed`,
+  `player_hurt`, `pickup_taken`, `station_done`, `shot_fired`, `hit_landed`,
+  `level_won` and `ticked`. A new piece of play goes in `src/features/` as a
+  `GameFeature` (see `game_feature.gd`), listed in `features.gd`: it connects
+  to those, saves its own state in the save's `features` block (restore gets
+  {} from older saves, so no new save version), and may add a tally row.
+  Triggers, lessons and chapter stats are features.
+- **The developer console** (` in play, project folder only, `dev_console.gd`):
+  spawn, give, god, tp, time, trigger, reload, stats, and overlays (`show map`:
+  walls, enemies by state with the hunting ones' paths, triggers, lights;
+  `show fps`). `DevConsole.run()` takes the same text from scripts.
 - **Layers only call down.** In those chains a function may call functions of
   its own layer or the layers below it; calling up is a parse error. New
   fields go in the bottom layer (`game_state.gd`, `render_state.gd`,
