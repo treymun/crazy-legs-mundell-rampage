@@ -154,7 +154,8 @@ func frame(game: Game, canvas: Canvas) -> void:
 	if r.pane_any:
 		_put("pane_tex", vw, vh, Image.FORMAT_RGB8, r.pane_rgb)
 		_put("pane_dist", vw, vh, Image.FORMAT_RF, r.pane_dist.to_byte_array())
-	_put("post_cover", Canvas.WIDTH, Canvas.HEIGHT, Image.FORMAT_R8, canvas.cover)
+	if not canvas.gpu:
+		_put("post_cover", Canvas.WIDTH, Canvas.HEIGHT, Image.FORMAT_R8, canvas.cover)
 
 	var m := material
 	var angle: float = r.cam["angle"]

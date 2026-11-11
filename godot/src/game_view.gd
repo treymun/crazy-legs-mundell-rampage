@@ -375,6 +375,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		# render_end() hands back a private copy so the HUD, weapon and grade passes
 		# can composite into it while the renderer keeps its own band buffers untouched.
 		c.pixels = renderer.render_end()
+		c.base_set = true
 	var t2 := Time.get_ticks_usec()
 	if p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
 		weapon.draw(
@@ -385,13 +386,16 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			bob_scale,
 			flash_scale,
 			12 if weapon_view == 1 else 0,
-			c if c.layer else null
+			c if c.layer or c.gpu else null
 		)
+		if c.gpu:
+			# The weapon drew on items clipped to the view rows.
+			c.gpu_item(Canvas.ITEM_NORMAL)
 	var t3 := Time.get_ticks_usec()
 	if hurt_flash > 0.0 and flash_scale > 0.0:
 		_apply_hurt_flash(c)
 	if p.drunk >= 38.0 and flash_scale > 0.0:
-		if scene_live:
+		if scene_live or c.gpu:
 			drunk_k = minf(1.0, (p.drunk - 38.0) / 62.0)
 		else:
 			_drunk_warp(c)
@@ -946,6 +950,13 @@ func _map_tile(x: float, y: float) -> Rect2i:
 
 ## Fast region copy of the cached 246x149 map panel into the 320x200 canvas.
 func _blit_region(c: Canvas, dx: int, dy: int) -> void:
+	if c.gpu:
+		if _map_texture == null or _map_texture_of != _map_base:
+			_map_texture_of = _map_base
+			var image := Image.create_from_data(246, 149, false, Image.FORMAT_RGB8, _map_base)
+			_map_texture = ImageTexture.create_from_image(image)
+		c.gpu_texture(_map_texture, dx, dy, 246, 149)
+		return
 	var pix := c.pixels
 	var row_bytes := 246 * 3
 	for row in 149:

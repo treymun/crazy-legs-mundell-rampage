@@ -228,6 +228,9 @@ static var _anchors: Dictionary = {}
 static var cover := PackedByteArray()
 static var covering := false
 static var under := false
+## Set by Armory.draw on a Godot 2D canvas: the helpers below issue its
+## commands instead of writing pixels.
+static var painter: Canvas = null
 
 
 ## True for a gun that fires from its ammo pool with no magazine.
@@ -696,12 +699,18 @@ class Armory:
 		# With `canvas` (a layer over a view the display shader composes) every
 		# pixel painted here is also marked as painted, and the gun itself is laid
 		# in first with whole-row copies instead of pixel by pixel.
-		var lay := canvas != null and canvas.layer
+		# On a Godot 2D canvas the same drawing becomes canvas commands, in
+		# painting order: flashes and smoke, then the gun, then what flies off it.
+		var gpu := canvas != null and canvas.gpu
+		var lay := canvas != null and canvas.layer and not gpu
 		Weapons.covering = lay
 		Weapons.under = false
 		Weapons.cover = canvas.cover if lay else PackedByteArray()
+		Weapons.painter = canvas if gpu else null
 		if lower >= 1.0:
 			return
+		if gpu:
+			canvas.gpu_item(Canvas.ITEM_NORMAL_VIEW)
 		var i := active
 		var pose_name := pose()
 		var s: float = float(Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE))
@@ -784,7 +793,8 @@ class Armory:
 				var size := int(
 					round((float(anchor.z) * 1.4 + (10.0 if last_spent == 2 else 0.0)) * s)
 				)
-				var flash_art := assets.art("fx_%s_%d" % [prefix, index])
+				var flash_name := "fx_%s_%d" % [prefix, index]
+				var flash_art := assets.art(flash_name)
 				var fw := size
 				var fh := int(round(size * aspect))
 				var front := Weapons.view_point(x, y, float(anchor.x), float(anchor.y), s)
@@ -797,7 +807,8 @@ class Armory:
 					fh,
 					int(fc.x) - fw / 2,
 					int(fc.y) - fh / 2,
-					int(255.0 * minf(1.0, flashes))
+					int(255.0 * minf(1.0, flashes)),
+					flash_name
 				)
 				if prefix != "energy" and prefix != "steam" and shot_age < .075:
 					# Burning powder thrown ahead of the muzzle.
@@ -815,7 +826,8 @@ class Armory:
 						)
 				if i == Weapons.SHOTGUN and last_spent == 2:
 					var twin_size := int(round(size * .76))
-					var twin := assets.art("fx_%s_%d" % [prefix, mini(3, index + 1)])
+					var twin_name := "fx_%s_%d" % [prefix, mini(3, index + 1)]
+					var twin := assets.art(twin_name)
 					_blit_glow(
 						frame,
 						twin,
@@ -823,16 +835,16 @@ class Armory:
 						twin_size,
 						int(fc.x + roundf(6.0 * s)) - twin_size / 2,
 						int(fc.y + roundf(1.0 * s)) - twin_size / 2,
-						int(255.0 * minf(1.0, flashes))
+						int(255.0 * minf(1.0, flashes)),
+						twin_name
 					)
 			elif smoke_scale > 0.0 and shot_age >= .048:
 				# Smoke leaves the muzzle, rises, spreads and thins over half a second.
 				var drift := shot_age - .048
 				var index2 := clampi(int(drift * 9.0), 0, 3)
 				var size2 := int(round((20.0 + drift * 60.0) * smoke_scale))
-				var cloud := assets.art(
-					"fx_%s_%d" % ["steam" if prefix == "steam" else "smoke", index2]
-				)
+				var cloud_name := "fx_%s_%d" % ["steam" if prefix == "steam" else "smoke", index2]
+				var cloud := assets.art(cloud_name)
 				var spot := Weapons.view_point(
 					x,
 					y,
@@ -847,11 +859,24 @@ class Armory:
 					size2,
 					int(roundf(spot.x)) - size2 / 2,
 					int(roundf(spot.y)) - size2 / 2,
-					int(clampf(1.15 - drift * 2.0, 0.0, 1.0) * 235.0)
+					int(clampf(1.15 - drift * 2.0, 0.0, 1.0) * 235.0),
+					cloud_name
 				)
 
 		Weapons.under = false
-		if not lay:
+		if gpu:
+			# Rim first, one pixel high, then the cel: two cached textures.
+			var rim_w: int = rim["w"]
+			var rim_h: int = rim["h"]
+			canvas.gpu_texture(
+				Canvas.texture("gunrim|" + key, rim["data"], rim_w, rim_h), bx, by - 1, rim_w, rim_h
+			)
+			var cel_w: int = image["w"]
+			var cel_h: int = image["h"]
+			canvas.gpu_texture(
+				Canvas.texture("gun|" + key, image["data"], cel_w, cel_h), bx, by, cel_w, cel_h
+			)
+		elif not lay:
 			# Rim first, one pixel high, then the cel.
 			_blit_rgba(frame, rim, bx, by - 1)
 			_blit_rgba(frame, image, bx, by)
@@ -1252,12 +1277,26 @@ class Armory:
 	## Nearest-neighbour scale blit (pygame.transform.scale), alpha scaled.
 	## _blit_scaled, but adding light: a flash brightens what is behind it.
 	static func _blit_glow(
-		frame: PackedByteArray, art: Dictionary, tw: int, th: int, x: int, y: int, alpha: int
+		frame: PackedByteArray,
+		art: Dictionary,
+		tw: int,
+		th: int,
+		x: int,
+		y: int,
+		alpha: int,
+		art_name := ""
 	) -> void:
 		var w: int = art["w"]
 		var h: int = art["h"]
 		var data: PackedByteArray = art["data"]
 		if tw <= 0 or th <= 0:
+			return
+		if Weapons.painter != null:
+			Weapons.painter.gpu_item(Canvas.ITEM_ADD_VIEW)
+			Weapons.painter.gpu_texture(
+				Canvas.texture("art|" + art_name, data, w, h), x, y, tw, th, alpha
+			)
+			Weapons.painter.gpu_item(Canvas.ITEM_NORMAL_VIEW)
 			return
 		for ty in th:
 			var gy := y + ty
@@ -1283,12 +1322,24 @@ class Armory:
 				frame[o + 2] = mini(255, frame[o + 2] + data[sp + 2] * a / 255)
 
 	static func _blit_scaled(
-		frame: PackedByteArray, art: Dictionary, tw: int, th: int, x: int, y: int, alpha: int
+		frame: PackedByteArray,
+		art: Dictionary,
+		tw: int,
+		th: int,
+		x: int,
+		y: int,
+		alpha: int,
+		art_name := ""
 	) -> void:
 		var w: int = art["w"]
 		var h: int = art["h"]
 		var data: PackedByteArray = art["data"]
 		if tw <= 0 or th <= 0:
+			return
+		if Weapons.painter != null:
+			Weapons.painter.gpu_texture(
+				Canvas.texture("art|" + art_name, data, w, h), x, y, tw, th, alpha
+			)
 			return
 		for ty in th:
 			var sy := clampi(ty * h / th, 0, h - 1)
@@ -1343,6 +1394,11 @@ class Armory:
 	static func _set_pixel(frame: PackedByteArray, x: int, y: int, c: Color) -> void:
 		if x < 0 or y < 0 or x >= Renderer.WIDTH or y >= Renderer.VIEW:
 			return
+		if Weapons.painter != null:
+			Weapons.painter.set_pixel(
+				x, y, roundi(c.r * 255.0), roundi(c.g * 255.0), roundi(c.b * 255.0)
+			)
+			return
 		var o := (y * Renderer.WIDTH + x) * 3
 		frame[o] = roundi(c.r * 255.0)
 		frame[o + 1] = roundi(c.g * 255.0)
@@ -1354,6 +1410,14 @@ class Armory:
 		var r := roundi(c.r * 255.0)
 		var g := roundi(c.g * 255.0)
 		var b := roundi(c.b * 255.0)
+		if Weapons.painter != null:
+			var x0 := maxi(0, x)
+			var y0 := maxi(0, y)
+			var x1 := mini(Renderer.WIDTH, x + w)
+			var y1 := mini(Renderer.VIEW, y + h)
+			if x0 < x1 and y0 < y1:
+				Weapons.painter.fill_rect(x0, y0, x1 - x0, y1 - y0, Color8(r, g, b))
+			return
 		for yy in range(maxi(0, y), mini(Renderer.VIEW, y + h)):
 			for xx in range(maxi(0, x), mini(Renderer.WIDTH, x + w)):
 				var o := (yy * Renderer.WIDTH + xx) * 3
@@ -1384,7 +1448,10 @@ class Armory:
 		var b := roundi(c.b * 255.0)
 		while true:
 			if width <= 1:
-				if x0 >= 0 and y0 >= 0 and x0 < Renderer.WIDTH and y0 < Renderer.VIEW:
+				if Weapons.painter != null:
+					if x0 >= 0 and y0 >= 0 and x0 < Renderer.WIDTH and y0 < Renderer.VIEW:
+						Weapons.painter.set_pixel(x0, y0, r, g, b)
+				elif x0 >= 0 and y0 >= 0 and x0 < Renderer.WIDTH and y0 < Renderer.VIEW:
 					var o := (y0 * Renderer.WIDTH + x0) * 3
 					if Weapons.under:
 						var k := 255 - Weapons.cover[o / 3]

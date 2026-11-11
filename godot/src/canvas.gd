@@ -32,9 +32,124 @@ var cover := PackedByteArray()
 static var _blank := PackedByteArray()
 static var _blank_cover := PackedByteArray()
 
+## Godot 2D mode (main.gd turns it on for the window's canvas). Drawing calls
+## become Godot canvas commands on items inside a 320x200 viewport instead of
+## writes to `pixels`, and the viewport goes to the display shader over the
+## view. Every shape still comes down to the same pixels, spans and
+## rectangles as in software (set_pixel, _hspan, _vspan, fill_rect), so the
+## pictures are the same; letters are cached glyph textures and pictures are
+## cached textures. `pixels` then only carries a software-drawn game view, if
+## any. Small offscreen canvases (icons, the status bar) stay in software.
+var gpu := false
+var gpu_parent := RID()
+## Set when `pixels` holds a software-drawn game view this frame.
+var base_set := false
+var _items: Array[RID] = []
+var _item_kinds := PackedInt32Array()
+var _items_used := 0
+var _item := RID()
+const ITEM_NORMAL := 0
+const ITEM_ADD := 1
+const ITEM_NORMAL_VIEW := 2
+const ITEM_ADD_VIEW := 3
+static var _add_material: ShaderMaterial
+static var _textures := {}
+static var _glyphs := {}
+
+
+## Start a frame's drawing: forget last frame's commands.
+func gpu_begin() -> void:
+	for i in _items_used:
+		RenderingServer.canvas_item_clear(_items[i])
+	_items_used = 0
+	gpu_item(ITEM_NORMAL)
+
+
+## Go on drawing on a new item above everything drawn so far: ITEM_ADD adds
+## its light to what is under it instead of covering it (muzzle flashes);
+## the _VIEW kinds are clipped to the view rows.
+func gpu_item(kind: int) -> void:
+	if _items_used == _items.size():
+		var made := RenderingServer.canvas_item_create()
+		RenderingServer.canvas_item_set_parent(made, gpu_parent)
+		_items.append(made)
+		_item_kinds.append(-1)
+	var item := _items[_items_used]
+	if _item_kinds[_items_used] != kind:
+		_item_kinds[_items_used] = kind
+		var adds := kind == ITEM_ADD or kind == ITEM_ADD_VIEW
+		if adds and _add_material == null:
+			var shader := Shader.new()
+			shader.code = (
+				"shader_type canvas_item;\nrender_mode blend_premul_alpha;\n"
+				+ "void fragment() {\n\tvec4 t = texture(TEXTURE, UV) * COLOR;\n"
+				+ "\tCOLOR = vec4(t.rgb * t.a, 0.0);\n}\n"
+			)
+			_add_material = ShaderMaterial.new()
+			_add_material.shader = shader
+		RenderingServer.canvas_item_set_material(item, _add_material.get_rid() if adds else RID())
+		var clipped := kind == ITEM_NORMAL_VIEW or kind == ITEM_ADD_VIEW
+		RenderingServer.canvas_item_set_clip(item, clipped)
+		RenderingServer.canvas_item_set_custom_rect(item, clipped, Rect2(0, 0, WIDTH, 156))
+	RenderingServer.canvas_item_set_draw_index(item, _items_used)
+	_items_used += 1
+	_item = item
+
+
+func _gpu_rect(x: int, y: int, box_w: int, box_h: int, r: int, g: int, b: int) -> void:
+	RenderingServer.canvas_item_add_rect(_item, Rect2(x, y, box_w, box_h), Color8(r, g, b))
+
+
+## A cached texture for a picture, by a name that stands for its contents.
+static func texture(key: String, data: PackedByteArray, img_w: int, img_h: int) -> ImageTexture:
+	var made: ImageTexture = _textures.get(key)
+	if made == null:
+		if _textures.size() > 600:
+			_textures.clear()
+		made = ImageTexture.create_from_image(
+			Image.create_from_data(img_w, img_h, false, Image.FORMAT_RGBA8, data)
+		)
+		_textures[key] = made
+	return made
+
+
+## Draw a cached texture scaled to tw x th, its alpha scaled by `alpha`.
+func gpu_texture(made: Texture2D, x: int, y: int, tw: int, th: int, alpha := 255) -> void:
+	RenderingServer.canvas_item_add_texture_rect(
+		_item, Rect2(x, y, tw, th), made.get_rid(), false, Color(1, 1, 1, alpha / 255.0)
+	)
+
+
+static func _glyph_texture(char: String, mini: bool, sx: int, height: int) -> Array:
+	var key := (char.unicode_at(0) << 16) | (int(mini) << 15) | (sx << 8) | height
+	var kept = _glyphs.get(key)
+	if kept != null:
+		return kept
+	var info := PixelType.glyph(char, mini)
+	var rows: Array = info[0]
+	var glyph_w: int = info[1]
+	var n := rows.size()
+	var image := Image.create_empty(
+		maxi(1, glyph_w * sx), maxi(1, height), false, Image.FORMAT_RGBA8
+	)
+	for yi in n:
+		var bits: int = rows[yi]
+		for col in glyph_w:
+			if bits & (1 << (glyph_w - col - 1)):
+				for yy in range(yi * height / n, (yi + 1) * height / n):
+					for xx in sx:
+						image.set_pixel(col * sx + xx, yy, Color(1, 1, 1, 1))
+	kept = [ImageTexture.create_from_image(image), glyph_w]
+	_glyphs[key] = kept
+	return kept
+
 
 ## Start an empty 320x200 layer: nothing over the view, the status rows solid.
 func begin_layer() -> void:
+	if gpu:
+		# The viewport starts each frame empty; its alpha is the coverage.
+		layer = true
+		return
 	if _blank.is_empty():
 		_blank.resize(WIDTH * HEIGHT * 3)
 		_blank.fill(0)
@@ -77,6 +192,9 @@ func resize(pw: int, ph: int) -> void:
 
 
 func clear(r: int, g: int, b: int) -> void:
+	if gpu:
+		_gpu_rect(0, 0, w, h, r, g, b)
+		return
 	var n := w * h
 	var i := 0
 	for _i in n:
@@ -90,6 +208,9 @@ func clear(r: int, g: int, b: int) -> void:
 
 func set_pixel(x: int, y: int, r: int, g: int, b: int) -> void:
 	if x < 0 or y < 0 or x >= w or y >= h:
+		return
+	if gpu:
+		_gpu_rect(x, y, 1, 1, r, g, b)
 		return
 	var o := (y * w + x) * 3
 	pixels[o] = r
@@ -132,6 +253,9 @@ func fill_rect(x: int, y: int, box_w: int, box_h: int, c: Color) -> void:
 	var r := roundi(c.r * 255.0)
 	var g := roundi(c.g * 255.0)
 	var b := roundi(c.b * 255.0)
+	if gpu:
+		_gpu_rect(x0, y0, x1 - x0, y1 - y0, r, g, b)
+		return
 	var row := PackedByteArray()
 	row.resize((x1 - x0) * 3)
 	var i := 0
@@ -376,6 +500,9 @@ func _hspan(x0: int, y: int, x1: int, r: int, g: int, b: int) -> void:
 	hi = mini(w - 1, hi)
 	if lo > hi:
 		return
+	if gpu:
+		_gpu_rect(lo, y, hi - lo + 1, 1, r, g, b)
+		return
 	var o := (y * w + lo) * 3
 	for _x in range(lo, hi + 1):
 		pixels[o] = r
@@ -543,6 +670,10 @@ func _vspan(x: int, y0: int, y1: int, r: int, g: int, b: int) -> void:
 		return
 	var lo := maxi(0, mini(y0, y1))
 	var hi := mini(h - 1, maxi(y0, y1))
+	if gpu:
+		if lo <= hi:
+			_gpu_rect(x, lo, 1, hi - lo + 1, r, g, b)
+		return
 	for y in range(lo, hi + 1):
 		var o := (y * w + x) * 3
 		pixels[o] = r
@@ -683,7 +814,18 @@ func _fill_poly(xs: PackedInt32Array, ys: PackedInt32Array, r: int, g: int, b: i
 ## Alpha-blend an RGBA image (assets.art format) with its top-left at x,y.
 ## The destination is an opaque RGB surface, so pygame runs
 ## ALPHA_BLEND_COMP ((s-d)*a+s)>>8 + d for every channel.
-func blit_rgba(data: PackedByteArray, img_w: int, img_h: int, x: int, y: int) -> void:
+func blit_rgba(data: PackedByteArray, img_w: int, img_h: int, x: int, y: int, key := "") -> void:
+	if gpu:
+		# Pictures are cached by name; one without a name is made afresh.
+		var made: ImageTexture
+		if key == "":
+			made = ImageTexture.create_from_image(
+				Image.create_from_data(img_w, img_h, false, Image.FORMAT_RGBA8, data)
+			)
+		else:
+			made = texture(key, data, img_w, img_h)
+		gpu_texture(made, x, y, img_w, img_h)
+		return
 	for yy in img_h:
 		var ty := y + yy
 		if ty < 0 or ty >= h:
@@ -784,6 +926,20 @@ func _draw_glyphs(
 	var r := roundi(color.r * 255.0)
 	var g := roundi(color.g * 255.0)
 	var b := roundi(color.b * 255.0)
+	if gpu:
+		var tint := Color8(r, g, b)
+		for ch in text.to_upper():
+			var kept := _glyph_texture(ch, mini, sx, height)
+			var made: ImageTexture = kept[0]
+			RenderingServer.canvas_item_add_texture_rect(
+				_item,
+				Rect2(x, y0, made.get_width(), made.get_height()),
+				made.get_rid(),
+				false,
+				tint
+			)
+			x += (int(kept[1]) + 1) * sx
+		return
 	for ch in text.to_upper():
 		var info := PixelType.glyph(ch, mini)
 		var rows: Array = info[0]

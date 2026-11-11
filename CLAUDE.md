@@ -72,6 +72,13 @@ python scripts/godot_version.py --set 2.0.0-dev.N
   (`Renderer.layered`). Headless, and with FAST VIEW off, the renderer draws
   everything in software. A visual change usually needs both, and
   `compare_views.py` checks they agree.
+- **Two canvases.** With a window the HUD, menus and weapon draw with Godot
+  2D (`Canvas.gpu`): the same calls become canvas commands in a 320x200
+  viewport the shader lays over the view. Shapes still come down to
+  `set_pixel`, `_hspan`, `_vspan` and `fill_rect`, so a new shape drawn
+  through those works in both. Never write `canvas.pixels` directly for
+  something on screen; give `blit_rgba` a cache name. Headless (tools, CI)
+  and `--cpu-canvas` draw in software.
 - **Band threads.** Inside the renderer's band loops, never call a script
   function, read a field of another object or use untyped `round`, `floor`
   or `ceil`. Each costs 5 to 11 times more while the other threads do the

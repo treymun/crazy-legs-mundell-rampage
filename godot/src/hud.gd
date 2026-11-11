@@ -93,6 +93,8 @@ static func banner(c: Canvas, value: String, top: int, limit := 288, color := IN
 	# A banner is an opaque plate that says the same thing for seconds on end:
 	# it is drawn once, kept as a block of pixels and pasted back each frame.
 	var key := [value, top, limit, color]
+	if c.gpu:
+		return _banner_texture(c, key, value, top, limit, color)
 	var kept = _banners.get(key)
 	if kept != null:
 		_paste(c, kept)
@@ -118,7 +120,13 @@ static func banner(c: Canvas, value: String, top: int, limit := 288, color := IN
 	for i in lines.size():
 		text(c, lines[i], middle, top + 4 + i * 10, "body", color, true, false)
 	var x := middle - width / 2
-	if x >= 0 and top >= 0 and x + width <= Canvas.WIDTH and top + height <= Canvas.HEIGHT:
+	if (
+		not c.gpu
+		and x >= 0
+		and top >= 0
+		and x + width <= Canvas.WIDTH
+		and top + height <= Canvas.HEIGHT
+	):
 		var block := PackedByteArray()
 		for row in height:
 			var from := ((top + row) * Canvas.WIDTH + x) * 3
@@ -132,6 +140,54 @@ static func banner(c: Canvas, value: String, top: int, limit := 288, color := IN
 
 
 static var _banners := {}
+static var _banner_textures := {}
+
+
+## A banner on a Godot 2D canvas: drawn once in software, drop shadow and all,
+## onto a small transparent surface, then shown as one texture.
+static func _banner_texture(
+	c: Canvas, key: Array, value: String, top: int, limit: int, color: Color
+) -> int:
+	var kept = _banner_textures.get(key)
+	if kept == null:
+		var lines := PixelType.wrap(value, limit - 14)
+		if lines.is_empty():
+			return top
+		var widest := 0
+		for line in lines:
+			widest = maxi(widest, PixelType.text_width(line))
+		var width := widest + 14
+		var height := 10 * lines.size() + 4
+		var plate := Canvas.new(width + 1, height + 2)
+		plate.enable_mask()
+		panel(
+			plate,
+			0,
+			0,
+			width,
+			height,
+			Color(32 / 255.0, 23 / 255.0, 19 / 255.0),
+			Color(128 / 255.0, 88 / 255.0, 57 / 255.0)
+		)
+		for i in lines.size():
+			text(plate, lines[i], width / 2, 4 + i * 10, "body", color, true, false)
+		if _banner_textures.size() > 24:
+			_banner_textures.clear()
+		kept = {
+			"x": Canvas.WIDTH / 2 - width / 2,
+			"w": width + 1,
+			"h": height + 2,
+			"bottom": top + height,
+			"texture":
+			ImageTexture.create_from_image(
+				Image.create_from_data(
+					width + 1, height + 2, false, Image.FORMAT_RGBA8, plate.to_rgba()
+				)
+			)
+		}
+		_banner_textures[key] = kept
+	c.gpu_texture(kept["texture"], int(kept["x"]), top, int(kept["w"]), int(kept["h"]))
+	return int(kept["bottom"])
 
 
 ## Lay a kept block of pixels back into the frame with whole-row copies.
@@ -230,7 +286,7 @@ func blit_icon(c: Canvas, name: String, box_w: int, box_h: int, cx: int, cy: int
 	var image := icon(name, box_w, box_h)
 	var w: int = image["w"]
 	var h: int = image["h"]
-	c.blit_rgba(image["data"], w, h, cx - w / 2, cy - h / 2)
+	c.blit_rgba(image["data"], w, h, cx - w / 2, cy - h / 2, "icon|%s|%d|%d" % [name, box_w, box_h])
 
 
 ## Port of HUD.make_ammo_icons(): seven 12x6 cartridge tokens.
@@ -535,6 +591,8 @@ func objective_pin(c: Canvas, game: Game) -> void:
 ## view and is drawn every frame.
 var _bar := PackedByteArray()
 var _bar_key := 0
+var _bar_texture: ImageTexture
+var _bar_scratch: Canvas
 
 
 func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
@@ -559,7 +617,27 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		]
 	)
 	var head := Renderer.VIEW * Canvas.WIDTH * 3
-	if key == _bar_key and _bar.size() == c.pixels.size() - head:
+	if c.gpu:
+		# Drawn in software only when it changes, then shown as one texture.
+		if key != _bar_key or _bar_texture == null:
+			if _bar_scratch == null:
+				_bar_scratch = Canvas.new()
+			var scratch := _bar_scratch
+			_draw_bar(scratch, game, armory)
+			var rows := Image.create_from_data(
+				Canvas.WIDTH,
+				Canvas.HEIGHT - Renderer.VIEW,
+				false,
+				Image.FORMAT_RGB8,
+				scratch.pixels.slice(head)
+			)
+			if _bar_texture == null:
+				_bar_texture = ImageTexture.create_from_image(rows)
+			else:
+				_bar_texture.update(rows)
+			_bar_key = key
+		c.gpu_texture(_bar_texture, 0, Renderer.VIEW, Canvas.WIDTH, Canvas.HEIGHT - Renderer.VIEW)
+	elif key == _bar_key and _bar.size() == c.pixels.size() - head:
 		var joined := c.pixels.slice(0, head)
 		joined.append_array(_bar)
 		c.pixels = joined
@@ -608,7 +686,12 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		if game.keys.has(name):
 			var image := icon(name, 9, 12)
 			c.blit_rgba(
-				image["data"], image["w"], image["h"], cx - image["w"] / 2, cy - image["h"] / 2
+				image["data"],
+				image["w"],
+				image["h"],
+				cx - image["w"] / 2,
+				cy - image["h"] / 2,
+				"icon|%s|9|12" % name
 			)
 		else:
 			c.circle(cx, cy, 2, Color(68 / 255.0, 53 / 255.0, 43 / 255.0), false)
@@ -696,7 +779,8 @@ func _draw_face(c: Canvas, face_name: String) -> void:
 			int(scaled["w"]),
 			int(scaled["h"]),
 			129 + int(scaled["x"]),
-			Renderer.VIEW + 7 + int(scaled["y"])
+			Renderer.VIEW + 7 + int(scaled["y"]),
+			"face|" + face_name
 		)
 
 
@@ -808,4 +892,4 @@ func campaign_report(c: Canvas, game: Game) -> void:
 
 func _blit_art(c: Canvas, name: String, x: int, y: int) -> void:
 	var art := assets.art(name)
-	c.blit_rgba(art["data"], art["w"], art["h"], x, y)
+	c.blit_rgba(art["data"], art["w"], art["h"], x, y, "art|" + name)

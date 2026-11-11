@@ -122,7 +122,14 @@ func _screenshot() -> void:
 	var target := directory.path_join("Hickston-%s.png" % stamp)
 	var image := Image.create_empty(WIDTH, HEIGHT, false, Image.FORMAT_RGB8)
 	var picture := canvas.pixels
-	if game != null and game.scene_live:
+	if canvas.gpu and not (game != null and game.scene_live):
+		# A menu (or a software view) under Godot 2D drawing: draw this screen
+		# once more in software for the file.
+		canvas.gpu = false
+		render()
+		picture = canvas.pixels.duplicate()
+		canvas.gpu = true
+	elif game != null and game.scene_live:
 		# The canvas is only the layer over a view the shader composed: draw the
 		# frame once more in software for the file.
 		var whole := Canvas.new()

@@ -57,7 +57,7 @@ func _init(p_art: Assets) -> void:
 
 func _blit(c: Canvas, name: String, x: int, y: int) -> void:
 	var sheet := art.art(name)
-	c.blit_rgba(sheet["data"], int(sheet["w"]), int(sheet["h"]), x, y)
+	c.blit_rgba(sheet["data"], int(sheet["w"]), int(sheet["h"]), x, y, "art|" + name)
 
 
 # ------------------------------------------------------------------ title

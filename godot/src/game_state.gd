@@ -759,6 +759,9 @@ var _look_blast := 0.0
 var _look_tone = null
 
 var _map_base := PackedByteArray()
+## The automap panel as a texture, for a Godot 2D canvas, and the base it shows.
+var _map_texture: ImageTexture
+var _map_texture_of := PackedByteArray()
 var _map_geom := {}
 
 ## game.Controls: one sim step's input.

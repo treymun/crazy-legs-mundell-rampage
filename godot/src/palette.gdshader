@@ -28,6 +28,13 @@ const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 
 // What the renderer still draws itself (glowing signs, the mirror, the hub's
 // shadowed and mesh walls, wall marks, ground marks) arrives as pixels.
 uniform bool scene_on = false;
+// With overlay_on the weapon, HUD and menus come from a Godot 2D viewport
+// (canvas.gd, gpu): post_tex is that viewport, premultiplied, its alpha the
+// coverage, and under it goes the view (scene_on), the software frame in
+// TEXTURE (base_on: FAST VIEW off) or black.
+uniform bool overlay_on = false;
+uniform bool base_on = false;
+uniform sampler2D frame_tex : filter_nearest, repeat_disable;
 // The canvas (weapon, HUD) and how much of each of its pixels is painted.
 uniform sampler2D post_tex : filter_nearest, repeat_disable;
 uniform sampler2D post_cover : filter_nearest, repeat_disable;
@@ -426,6 +433,19 @@ vec3 view_at(ivec2 px) {
 
 // The finished view pixel: the weapon and HUD layer over the view.
 vec3 picture_at(ivec2 px) {
+	if (overlay_on) {
+		vec4 o = texelFetch(post_tex, px, 0);
+		if (o.a >= 1.0) {
+			return o.rgb * 255.0;
+		}
+		vec3 under = vec3(0.0);
+		if (scene_on && px.y < 156) {
+			under = view_at(px);
+		} else if (base_on) {
+			under = texelFetch(frame_tex, px, 0).rgb * 255.0;
+		}
+		return floor(o.rgb * 255.0 + (1.0 - o.a) * under + 0.5);
+	}
 	vec3 over = texelFetch(post_tex, px, 0).rgb * 255.0;
 	float cover = texelFetch(post_cover, px, 0).r;
 	if (cover >= 1.0) {
@@ -437,8 +457,8 @@ vec3 picture_at(ivec2 px) {
 void fragment() {
 	ivec2 px = ivec2(UV * vec2(320.0, 200.0));
 	vec3 c;
-	if (scene_on && px.y < 156) {
-		if (drunk > 0.0) {
+	if (overlay_on || (scene_on && px.y < 156)) {
+		if (drunk > 0.0 && px.y < 156) {
 			// game.gd _drunk_warp(): per-row shear, ghost double image, amber tint.
 			int shift = int(floor(sin(float(px.y) * 0.16 + drunk_phase) * (1.0 + 3.4 * drunk) + 0.5));
 			int sx = (px.x + shift + 640) % 320;

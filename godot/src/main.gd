@@ -53,8 +53,10 @@ func _ready() -> void:
 		palette_material.set_shader_parameter("grain", ImageTexture.create_from_image(grain_image))
 		gpu_ready = DisplayServer.get_name() != "headless"
 	palette_material.set_shader_parameter("post_tex", frame_texture)
+	palette_material.set_shader_parameter("frame_tex", frame_texture)
 	layers = SceneLayers.new(palette_material, art)
 	view.material = palette_material
+	_start_overlay()
 
 	# A plain black sheet over the picture: a tenth of a second of dip between
 	# menu screens instead of a hard cut.
@@ -365,110 +367,3 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 		if game.portal_request != "":
 			travel(game.portal_request)
 			break
-
-
-func render() -> void:
-	canvas.layer = false
-	if game != null:
-		game.scene_live = false
-	if state == "title":
-		var steady := int(options.get("flashes", 0)) != 0 or int(options.get("flicker", 1)) == 0
-		menu.draw_title(
-			canvas,
-			entries(),
-			selection,
-			menu_note,
-			title_hint(),
-			menu_clock,
-			int(options.get("world_motion", 0)),
-			steady
-		)
-	elif state == "setup":
-		render_setup()
-	elif state == "slots":
-		render_slots()
-	elif state == "replays":
-		render_replays()
-	elif state == "controls":
-		render_controls()
-	elif state == "credits":
-		render_credits()
-	elif game != null:
-		gpu_look = gpu_ready and not cpu_look and (not smoke or view_shot != "")
-		game.gpu_look = gpu_look
-		game.layered = gpu_look and not cpu_view and int(options.get("fast_view", 1)) != 0
-		game.draw(canvas, int(options["crosshair"]), true)
-	else:
-		canvas.clear(0, 0, 0)
-	_look_uniforms()
-
-	if canvas.pixels.size() != WIDTH * HEIGHT * 3:
-		canvas.resize(WIDTH, HEIGHT)
-	frame_image.set_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, canvas.pixels)
-	frame_texture.update(frame_image)
-	if game != null and game.scene_live and canvas.layer:
-		layers.frame(game, canvas)
-		if view_broken:
-			palette_material.set_shader_parameter("scene_on", false)
-		if view_check == 0 and not _view_checking and not touring and state == "play":
-			_check_view()
-	else:
-		layers.off()
-	_apply_view()
-
-
-func _check_view() -> void:
-	var rect := view.get_global_rect()
-	if rect.size.x < WIDTH or rect.size.y < HEIGHT:
-		return
-	_view_checking = true
-	await RenderingServer.frame_post_draw
-	_view_checking = false
-	if game == null or state != "play" or not game.scene_live:
-		return
-	var shown := get_viewport().get_texture().get_image()
-	if shown == null or shown.is_empty():
-		return
-	# The same frame again, in software.
-	var whole := Canvas.new()
-	game.gpu_look = false
-	game.layered = false
-	game.draw(whole, int(options["crosshair"]), true)
-	game.gpu_look = gpu_look
-	var want := whole.pixels
-	var lut := art.palette
-	var tried := 0
-	var off := 0
-	for gy in 10:
-		for gx in 14:
-			var px := 30 + gx * 20
-			var py := 10 + gy * 13
-			var sx := int(rect.position.x + (px + .5) / WIDTH * rect.size.x)
-			var sy := int(rect.position.y + (py + .5) / HEIGHT * rect.size.y)
-			if sx < 0 or sy < 0 or sx >= shown.get_width() or sy >= shown.get_height():
-				continue
-			var o := (py * WIDTH + px) * 3
-			var code := (
-				(((want[o] * 31 + 127) / 255) << 10)
-				| (((want[o + 1] * 31 + 127) / 255) << 5)
-				| ((want[o + 2] * 31 + 127) / 255)
-			)
-			var c := shown.get_pixel(sx, sy)
-			var apart := (
-				absf(c.r * 255.0 - lut[code * 3])
-				+ absf(c.g * 255.0 - lut[code * 3 + 1])
-				+ absf(c.b * 255.0 - lut[code * 3 + 2])
-			)
-			tried += 1
-			if apart > 36.0:
-				off += 1
-	if tried < 40:
-		return
-	view_check = 1 if off * 3 <= tried else -1
-	if view_check_report:
-		print("view check: %d of %d points differ" % [off, tried])
-	if view_check < 0:
-		cpu_view = true
-		print(
-			"The shader's view does not match the software picture; keeping the view in software."
-		)
