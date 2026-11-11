@@ -417,7 +417,11 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		c.pixels = renderer.render_end()
 		c.base_set = true
 	var t2 := Time.get_ticks_usec()
-	c.view_tint = gun_light() if c.gpu and Effects.enabled else Color(1, 1, 1)
+	c.view_tint = (
+		gun_light()
+		if c.gpu and Effects.enabled and not Engine.has_meta("no_tint")
+		else Color(1, 1, 1)
+	)
 	if p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
 		weapon.draw(
 			c.pixels,

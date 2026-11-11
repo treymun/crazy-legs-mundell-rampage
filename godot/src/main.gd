@@ -169,9 +169,16 @@ func _view_tour() -> void:
 				game.tick(1.0 / 60.0, held)
 		# fx: the shader view as players see it (lights and glows); gpu: the same
 		# without them, to hold against the software view (cpu).
-		for mode in ["fx", "gpu", "cpu"]:
+		var modes := ["fx", "gpu", "cpu"]
+		if OS.has_environment("GITHUB_ACTIONS"):
+			modes.append("fxw")
+		for mode in modes:
 			cpu_view = mode == "cpu"
-			Effects.enabled = mode == "fx"
+			Effects.enabled = mode == "fx" or mode == "fxw"
+			if mode == "fxw":
+				Engine.set_meta("no_tint", true)
+			elif Engine.has_meta("no_tint"):
+				Engine.remove_meta("no_tint")
 			render()
 			if mode == "fx" and OS.has_environment("GITHUB_ACTIONS"):
 				var kinds: Array = []
