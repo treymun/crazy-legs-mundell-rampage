@@ -45,40 +45,7 @@ const NAMES := [
 	"cow_launcher",
 	"teat_gun"
 ]
-const LABELS := [
-	"RUSTED CROWBAR",
-	".38 SPECIAL",
-	"SAWED-OFF",
-	"DYNAMITE CROSSBOW",
-	"RANCH RIFLE",
-	"RIP SAW",
-	"ALIEN ARM GUN",
-	"DYNAMITE",
-	"SLING BLADE [9]",
-	"BOTTLE ROCKET LAUNCHER [0]",
-	"MILL RIVETER",
-	"COPPERHEAD",
-	"BOWLING BALL [-]",
-	"POWDER KEG [=]",
-	"COW LAUNCHER",
-	"TEAT GUN"
-]
-## Only the .38 and the sawed-off have a magazine and a reload. Every other
-## gun fires straight from its ammo pool (`reserve`).
-## Magazine sizes before the pool change: a save written then may still hold
-## rounds in `loaded`, which `Armory.tick` folds back into the pool.
-const SAVED_CAPACITY := [0, 6, 2, 1, 18, 1, 6, 0, 0, 1, 8, 3, 1, 1, 1, 30]
-## Seconds between shots. For the CYCLE_GUNS this is the whole hand-loaded
-## cycle: the shot, then the open / eject / load / close poses.
-## One shot, then a visible reload inside the fire delay.
-const CYCLE_GUNS := [CROSSBOW, RIPSAW, ROCKET, BOWLING, KEG, COW]
-
-## Per-shot damage; the shotgun entry is [per pellet, pellet count].
-const RECOVERY_GUNS := [
-	REVOLVER, SHOTGUN, RIFLE, ARMGUN, ROCKET, RIVETER, PRESSURE, BOWLING, KEG, COW, TEAT
-]
 const RELOAD_POSES := ["open", "eject", "load", "close"]
-const MUZZLE_GUNS := [REVOLVER, SHOTGUN, RIFLE, ARMGUN, ROCKET, RIVETER, PRESSURE, COW, TEAT]
 const GUN_W := 320
 const GUN_H := 120
 ## The crowbar, revolver and shotgun are photographed plates. Every other
@@ -90,36 +57,21 @@ const HIP_PISTOL := Vector2(13, 9)
 const HIP_LONG := Vector2(15, 11)
 const VIEW_PIVOT := Vector2(160.0, 120.0)
 
-const RELOAD_AUDIO := {
-	REVOLVER: ["rev_extract", "rev_cylinder", "rev_lock"],
-	SHOTGUN: ["shot_extract", "shot_shell", "shot_lock"],
-	CROSSBOW: ["bow_pull", "bow_seat", "bow_latch"],
-	RIFLE: ["mag_out", "mag_in", "bolt_rack"],
-	RIPSAW: ["saw_latch", "saw_seat", "saw_latch"],
-	ARMGUN: ["arm_vent", "arm_cell", "arm_ready"],
-	ROCKET: ["rocket_case", "rocket_seat", "rocket_lock"],
-	RIVETER: ["rivet_mag", "rivet_strip", "rivet_lock"],
-	PRESSURE: ["pressure_vent", "pressure_charge", "pressure_pump"],
-	BOWLING: ["eject", "load", "close"],
-	KEG: ["shot_hinge", "load", "close"],
-	COW: ["rocket_case", "rocket_seat", "rocket_lock"],
-	TEAT: ["mag_out", "gulp", "bolt_rack"],
-}
-const OPEN_AUDIO := {
-	REVOLVER: "rev_cylinder",
-	SHOTGUN: "shot_hinge",
-	CROSSBOW: "bow_hook",
-	RIFLE: "reload",
-	RIPSAW: "saw_latch",
-	ARMGUN: "arm_vent",
-	ROCKET: "rocket_breech",
-	RIVETER: "rivet_mag",
-	PRESSURE: "pressure_seal",
-	BOWLING: "load",
-	KEG: "shot_hinge",
-	COW: "rocket_breech",
-	TEAT: "reload",
-}
+## Defined in data/tuning/weapons.cfg (see the key list there), loaded by
+## load_tuning(): each gun's name and its reload and open sounds; the guns
+## that are hand-loaded (CYCLE_GUNS: fire_time holds the whole cycle), that
+## ease back after the kick, that show a muzzle flash.
+static var LABELS: Array = []
+## Magazine sizes before the pool change: a save written then may still hold
+## rounds in `loaded`, which `Armory.tick` folds back into the pool. (Only the
+## .38 and the sawed-off have a magazine and a reload now; every other gun
+## fires straight from its ammo pool, `reserve`.)
+static var SAVED_CAPACITY: Array = []
+static var CYCLE_GUNS: Array = []
+static var RECOVERY_GUNS: Array = []
+static var MUZZLE_GUNS: Array = []
+static var RELOAD_AUDIO := {}
+static var OPEN_AUDIO := {}
 
 ## Tuned in data/tuning/weapons.cfg (see tuning.gd), loaded by load_tuning().
 static var CAPACITY: Array = []
@@ -157,6 +109,13 @@ static func _static_init() -> void:
 ## Read the tuned values; Tuning.watch() calls it again after a change.
 static func load_tuning() -> void:
 	var path := Tuning.WEAPONS
+	LABELS = Tuning.table(path, NAMES, "label")
+	SAVED_CAPACITY = Tuning.table(path, NAMES, "saved_capacity")
+	CYCLE_GUNS = Tuning.entries(path, NAMES, "cycle").keys()
+	RECOVERY_GUNS = Tuning.entries(path, NAMES, "recovers").keys()
+	MUZZLE_GUNS = Tuning.entries(path, NAMES, "muzzle_flash").keys()
+	RELOAD_AUDIO = Tuning.entries(path, NAMES, "reload_sounds")
+	OPEN_AUDIO = Tuning.entries(path, NAMES, "open_sound")
 	CAPACITY = Tuning.table(path, NAMES, "capacity")
 	RELOAD_TIME = Tuning.table(path, NAMES, "reload_time")
 	FIRE_TIME = Tuning.table(path, NAMES, "fire_time")

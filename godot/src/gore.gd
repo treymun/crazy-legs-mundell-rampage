@@ -144,7 +144,7 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 
 ## An overkill: the body comes apart instead of falling over.
 func burst(enemy: Enemy) -> void:
-	var green := enemy.kind in ["alien", "boss", "crawler", "lantern", "chalk_spitter"]
+	var green := Enemy.GREEN_GIBS.has(enemy.kind)
 	var floor_z: float = game.world.elevation(enemy.x, enemy.y)
 	var away := atan2(enemy.y - game.player.y, enemy.x - game.player.x)
 	var prefix := "gib_a_" if green else "gib_"

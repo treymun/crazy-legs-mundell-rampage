@@ -3,12 +3,6 @@
 class_name GameWorld
 extends GameState
 
-
-## TELLS keys (enemies.gd owns the table; keep the lookup without a type cycle).
-func Enemies_TELLS() -> Dictionary:
-	return {"rudy": "HORN SWEEP", "foreman": "CLEAR THE SAW LANES", "baron": "PIPE OUTLETS"}
-
-
 # --------------------------------------------------------------- loadout
 
 
@@ -133,9 +127,9 @@ func disturb(x: float, y: float, radius: float, z = null) -> void:
 			not actor.alive
 			or actor.alerted
 			or actor.heard != null
-			or Enemies_BOSS_TITLES().has(actor.kind)
-			or actor.kind == "bessie"
-			or actor.kind == "saucer"
+			or Enemy.BOSS_TITLES.has(actor.kind)
+			or actor.brain == "bessie"
+			or actor.brain == "saucer"
 		):
 			continue
 		var dx := actor.x - x
@@ -149,20 +143,7 @@ func disturb(x: float, y: float, radius: float, z = null) -> void:
 		var ready: float = clock + .22 + sqrt(dx * dx + dy * dy) * .035
 		actor.heard = [x, y, ready, clock + (2.6 if actor.hostile else 1.05)]
 		if not actor.hostile:
-			sound_at("chicken" if actor.kind == "chicken" else "pig", actor.x, actor.y, .43)
-
-
-## Local copy of Enemies.BOSS_TITLES so this file does not have to reach across
-## the module boundary at parse time. Both `.has(kind)` and `.get(kind, ...)`
-## are used, so the values are the display titles, not placeholders.
-func Enemies_BOSS_TITLES() -> Dictionary:
-	return {
-		"boss": "ALIEN SHERIFF",
-		"jerry": "JERRY JONES",
-		"rudy": "RUDY RACKET",
-		"foreman": "SPLINTER FOREMAN",
-		"baron": "COPPER BARON"
-	}
+			sound_at("chicken" if actor.brain == "chicken" else "pig", actor.x, actor.y, .43)
 
 
 # ----------------------------------------------------------------- damage
@@ -357,7 +338,7 @@ func enemy_down(enemy: Enemy) -> void:
 	kills += 1
 	if enemy.hostile:
 		barks.kill(self)
-	if not Enemies_BOSS_TITLES().has(enemy.kind):
+	if not Enemy.BOSS_TITLES.has(enemy.kind):
 		for actor: Enemy in enemies:
 			if (
 				Enemy.LOSS_RESPONDERS.has(actor.kind)
@@ -397,25 +378,27 @@ func enemy_down(enemy: Enemy) -> void:
 		add_pickup(String(reward), enemy.x, enemy.y)
 		message(
 			(
-				String(Enemies_BOSS_TITLES().get(enemy.kind, "BOSS"))
+				String(Enemy.BOSS_TITLES.get(enemy.kind, "BOSS"))
 				+ " IS DOWN. CLEAR THE LAST VARMINTS."
 			),
 			3.0
 		)
 		sound.sting(enemy.kind + "_end")
-	elif enemy.kind == "boilerback":
+	elif enemy.brain == "boilerback":
 		add_pickup("pressure_ammo", enemy.x, enemy.y)
-	elif enemy.kind == "chalk_spitter" and rng.random() < .42 and supply_rule != 2:
+	elif enemy.brain == "chalk_spitter" and rng.random() < .42 and supply_rule != 2:
 		add_pickup("bullets", enemy.x, enemy.y)
 	elif (
-		(enemy.kind == "clone" or enemy.kind == "coot") and rng.random() < .65 and supply_rule != 2
+		(enemy.brain == "clone" or enemy.brain == "coot")
+		and rng.random() < .65
+		and supply_rule != 2
 	):
 		add_pickup("bullets", enemy.x, enemy.y)
-	elif enemy.kind == "billy" and rng.random() < .60 and supply_rule != 2:
+	elif enemy.brain == "billy" and rng.random() < .60 and supply_rule != 2:
 		add_pickup("shells", enemy.x, enemy.y)
 	if (
 		enemy.hostile
-		and not Enemies_BOSS_TITLES().has(enemy.kind)
+		and not Enemy.BOSS_TITLES.has(enemy.kind)
 		and supply_rule != 2
 		and rng.random() < .07
 	):

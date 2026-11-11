@@ -84,7 +84,7 @@ func hitscan(
 	var best: Enemy = null
 	var near := max_range
 	for enemy: Enemy in enemies:
-		if not enemy.alive or enemy.kind == "bessie":
+		if not enemy.alive or enemy.brain == "bessie":
 			continue
 		var dx := enemy.x - p.x
 		var dy := enemy.y - p.y
@@ -526,7 +526,7 @@ func move_shot(shot: Shot, dt: float) -> bool:
 			drum_hit(drum, 25)
 			return false
 		for enemy: Enemy in enemies:
-			if not enemy.alive or enemy.kind == "bessie":
+			if not enemy.alive or enemy.brain == "bessie":
 				continue
 			var dz: float = z - enemy.z - world.elevation(enemy.x, enemy.y)
 			if (
@@ -660,14 +660,14 @@ func ground_marks() -> Array:
 		var mark: Array = enemy.aim_mark
 		var mx: float = mark[0]
 		var my: float = mark[1]
-		if enemy.kind == "chalk_spitter":
+		if enemy.brain == "chalk_spitter":
 			marks.append(_spot(mx, my, .89, "warning"))
-		elif enemy.kind == "bottle_tosser":
+		elif enemy.brain == "bottle_tosser":
 			marks.append(_spot(mx, my, .77, "warning"))
-		elif enemy.kind == "baron" and enemy.attacks % 2 == 0:
+		elif enemy.brain == "baron" and enemy.attacks % 2 == 0:
 			for point: Vector2 in pressure_ports(enemy.attacks):
 				marks.append(_spot(point.x, point.y, .94, "warning"))
-		elif enemy.kind == "foreman":
+		elif enemy.brain == "foreman":
 			var direction := atan2(my - enemy.y, mx - enemy.x)
 			for lane in enemy.saw_lanes(direction, enemy.attacks + 1):
 				var sx: float = lane[0]

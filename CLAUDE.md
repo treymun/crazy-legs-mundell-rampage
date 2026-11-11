@@ -29,7 +29,7 @@ and `audio_src/` are made by the Python tools in `scripts/`.
 | --- | --- |
 | `godot/src/` | The game (GDScript). Three chains of layers, each file extending the one before: front end `main_state` -> `main_flow` -> `main_input` -> `main`; play `game_state` -> `game_world` -> `game_combat` -> `game_view` -> `game`; software view `render_state` -> `render_surfaces` -> `render_sprites` -> `renderer`. `palette.gdshader` + `scene_layers.gd` are the graphics-card view |
 | `godot/tools/` | Headless checks and tools (excluded from exports) |
-| `godot/data/tuning/` | Weapon and enemy numbers (`weapons.cfg`, `enemies.cfg`): fire rates, damage, reloads, how each gun sits in view, enemy health, speed, reach. Edit these, not the scripts; a running game from the project folder reloads them within a second |
+| `godot/data/tuning/` | Weapon and enemy definitions and numbers (`weapons.cfg`, `enemies.cfg`): fire rates, damage, reloads, how each gun sits in view, its name and sounds; enemy health, speed, reach, voice, alert sound, boss title. A new enemy can be a section with `brain=<kind>` (it acts as that kind) plus its art. Edit these, not the scripts; a running game from the project folder reloads them within a second |
 | `godot/assets_gen/` | Packed art, sound and levels. Generated, not committed |
 | `scripts/` | Python builders: art (`build_*`), audio (`audio_*`), version stamping |
 | `site/` | The landing page; the browser builds deploy under `play/` and `play/lite/` |

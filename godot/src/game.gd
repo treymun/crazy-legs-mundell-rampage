@@ -47,17 +47,17 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	for enemy: Enemy in wave:
 		enemy.dormant = true
 	for enemy: Enemy in wave:
-		if Enemies_TELLS().has(enemy.kind):
+		if Enemy.TELLS.has(enemy.kind):
 			finale = enemy
 			break
 	if level.rescue:
 		enemies[0].angle = PI * .58
 		for enemy: Enemy in enemies:
-			if enemy.kind == "boss" and boss == null:
+			if enemy.brain == "boss" and boss == null:
 				boss = enemy
-			elif enemy.kind == "jerry" and jerry == null:
+			elif enemy.brain == "jerry" and jerry == null:
 				jerry = enemy
-			elif enemy.kind == "bessie" and bessie == null:
+			elif enemy.brain == "bessie" and bessie == null:
 				bessie = enemy
 		if boss != null:
 			boss.angle = PI * .49

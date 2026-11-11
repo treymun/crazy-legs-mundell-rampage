@@ -296,7 +296,7 @@ func feedback(c: Canvas) -> void:
 				enemy.alive
 				and enemy.windup > 0.0
 				and enemy.player_seen
-				and (Enemy.RANGED.has(enemy.kind) or enemy.kind in ["clone", "billy", "coot"])
+				and (Enemy.RANGED.has(enemy.kind) or enemy.brain in ["clone", "billy", "coot"])
 			):
 				continue
 			var dx := enemy.x - p.x
@@ -484,15 +484,15 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 				if in_finale and boss.alive and boss.alerted and not in_hub:
 					var y := after_notice
 					var tell: String = String(
-						Enemies_TELLS().get(
+						Enemy.TELLS.get(
 							boss.kind, "PLASMA CHARGE" if boss == self.boss else "WHISTLE"
 						)
 					)
-					if boss.kind == "baron" and boss.attacks % 2 == 1:
+					if boss.brain == "baron" and boss.attacks % 2 == 1:
 						tell = "STEAM SWEEP"
-					if boss.kind == "foreman" and boss.attacks % 2 == 1:
+					if boss.brain == "foreman" and boss.attacks % 2 == 1:
 						tell = "GAP IN THE MIDDLE"
-					if boss.kind == "rudy":
+					if boss.brain == "rudy":
 						tell = "LEFT HORN" if boss.attacks % 2 == 1 else "RIGHT HORN"
 					var phase: String = (
 						tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""

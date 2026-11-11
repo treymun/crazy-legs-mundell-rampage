@@ -276,6 +276,31 @@ func _run() -> void:
 		"back returns to the title with the cursor where it was"
 	)
 
+	# An enemy kind defined only by data: it takes its brain's behaviour and
+	# values, and keeps what it sets itself.
+	var defs := ConfigFile.new()
+	defs.load(Tuning.ENEMIES)
+	defs.set_value("test_hick", "brain", "billy")
+	defs.set_value("test_hick", "hp", 99)
+	var made := Enemy._definition(defs, "test_hick", 0)
+	check(
+		(
+			made.get("brain") == "billy"
+			and made.get("hp") == 99
+			and made.get("speed") == defs.get_value("billy", "speed")
+			and made.get("voice") == "hick"
+		),
+		"a data-only enemy kind takes its brain's values under its own"
+	)
+	check(
+		Array(Tuning.sections(Tuning.WEAPONS)) == Weapons.NAMES,
+		"weapons.cfg has a section for each gun, in Weapons.NAMES order"
+	)
+	check(
+		Weapons.LABELS[Weapons.SHOTGUN] == "SAWED-OFF" and Weapons.CYCLE_GUNS.has(Weapons.COW),
+		"gun definitions load from weapons.cfg"
+	)
+
 	print("")
 	if failures.is_empty():
 		print("PARITY FIXES OK")

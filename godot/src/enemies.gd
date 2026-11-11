@@ -5,11 +5,13 @@
 class_name Enemy
 extends RefCounted
 
-## kind -> [health, speed, radius, height, hostile]
-
-## Tuned in data/tuning/enemies.cfg (see tuning.gd), loaded by load_tuning():
+## Tuned and defined in data/tuning/enemies.cfg (see tuning.gd and the key
+## list at the top of that file), loaded by load_tuning(): DEFS is kind -> its
+## section's values, with what its `brain` kind sets filled in under them;
 ## KINDS is kind -> [hp, speed, radius, height, hostile]; WINDUP holds
-## [windup, cue] and LUNGES the lunge numbers and its cue.
+## [windup, cue] and LUNGES the lunge numbers and its cue. The rest are the
+## kinds with each key, read from DEFS.
+static var DEFS := {}
 static var KINDS := {}
 static var DEATH_TIME: float
 static var RECOVERY_TIMES := {}
@@ -17,136 +19,120 @@ static var LUNGES := {}
 static var REACH := {}
 static var WINDUP := {}
 static var COMFORT := {}
+static var BOSS_TITLES := {}
+## Reach, stand-off, windup, recovery, cooldown, warning, release.
+static var SIGNATURES := {}
+static var TELLS := {}
+## Every kind in TURN_CELS also has a four-beat walk (w0..w3) and falling cels (die_0..die_2).
+static var TURN_CELS: Array = []
+static var FIDGET_CELS: Array = []
+## Creatures that tumble for two cels before they lie still.
+static var CREATURE_FALLS: Array = []
+## Whose voice a kind has when it is hurt or killed; the rest use the material cues.
+static var VOICES := {}
+static var VOICE_TAKES := {}
+## Voices that only have a death cry.
+static var DEATH_ONLY: Array = []
+static var SHELL_ACTORS: Array = []
+static var TOOL_ACTORS: Array = []
+static var LOSS_RESPONDERS: Array = []
+static var AWAKE := {}
+static var RANGED: Array = []
+static var PLASMA: Array = []
+static var GREEN_GIBS: Array = []
 
 
 static func _static_init() -> void:
 	load_tuning()
 
 
-## Read the tuned values; Tuning.watch() calls it again after a change.
+## Read the tuned values and definitions; Tuning.watch() calls it again after a change.
 static func load_tuning() -> void:
 	var path := Tuning.ENEMIES
-	DEATH_TIME = Tuning.value(path, "death_time")
 	var cfg := Tuning.file(path)
-	KINDS = {}
+	DEATH_TIME = Tuning.value(path, "death_time")
+	VOICE_TAKES = Tuning.value(path, "voice_takes")
+	DEATH_ONLY = Tuning.value(path, "death_only_voices")
+	DEFS = {}
 	for kind in Tuning.sections(path):
-		KINDS[kind] = [
-			cfg.get_value(kind, "hp"),
-			cfg.get_value(kind, "speed"),
-			cfg.get_value(kind, "radius"),
-			cfg.get_value(kind, "height"),
-			cfg.get_value(kind, "hostile")
-		]
-	RECOVERY_TIMES = Tuning.by_section(path, "recovery_times")
-	LUNGES = Tuning.by_section(path, "lunges")
-	REACH = Tuning.by_section(path, "reach")
-	WINDUP = Tuning.by_section(path, "windup")
-	COMFORT = Tuning.by_section(path, "comfort")
+		DEFS[kind] = _definition(cfg, kind, 0)
+	KINDS = {}
+	RECOVERY_TIMES = {}
+	LUNGES = {}
+	REACH = {}
+	WINDUP = {}
+	COMFORT = {}
+	BOSS_TITLES = {}
+	SIGNATURES = {}
+	TELLS = {}
+	VOICES = {}
+	AWAKE = {}
+	TURN_CELS = []
+	FIDGET_CELS = []
+	CREATURE_FALLS = []
+	SHELL_ACTORS = []
+	TOOL_ACTORS = []
+	LOSS_RESPONDERS = []
+	RANGED = []
+	PLASMA = []
+	GREEN_GIBS = []
+	var keyed := {
+		"recovery_times": RECOVERY_TIMES,
+		"lunges": LUNGES,
+		"reach": REACH,
+		"windup": WINDUP,
+		"comfort": COMFORT,
+		"title": BOSS_TITLES,
+		"signature": SIGNATURES,
+		"tell": TELLS,
+		"voice": VOICES,
+		"alert": AWAKE,
+	}
+	for kind: String in DEFS:
+		var d: Dictionary = DEFS[kind]
+		KINDS[kind] = [d["hp"], d["speed"], d["radius"], d["height"], d["hostile"]]
+		for key: String in keyed:
+			if d.has(key):
+				keyed[key][kind] = d[key]
+		var cels := String(d.get("cels", ""))
+		if cels == "turn":
+			TURN_CELS.append(kind)
+		elif cels == "tumble":
+			CREATURE_FALLS.append(kind)
+		if d.get("fidget", false):
+			FIDGET_CELS.append(kind)
+		if d.get("struck", "") == "shell":
+			SHELL_ACTORS.append(kind)
+		elif d.get("struck", "") == "tool":
+			TOOL_ACTORS.append(kind)
+		if d.get("answers_losses", false):
+			LOSS_RESPONDERS.append(kind)
+		if d.get("ranged", false):
+			RANGED.append(kind)
+		if d.get("blood", "") == "plasma":
+			PLASMA.append(kind)
+		if d.get("green_gibs", false):
+			GREEN_GIBS.append(kind)
 
 
-const BOSS_TITLES := {
-	"boss": "ALIEN SHERIFF",
-	"jerry": "JERRY JONES",
-	"rudy": "RUDY RACKET",
-	"foreman": "SPLINTER FOREMAN",
-	"baron": "COPPER BARON"
-}
+## A section's values over those of the kind it names as its brain.
+static func _definition(cfg: ConfigFile, kind: String, depth: int) -> Dictionary:
+	var d := {}
+	if cfg.has_section_key(kind, "brain") and depth < 4:
+		var brain_kind := String(cfg.get_value(kind, "brain"))
+		if cfg.has_section(brain_kind) and brain_kind != kind:
+			d = _definition(cfg, brain_kind, depth + 1)
+			d["brain"] = String(d.get("brain", brain_kind))
+	for key in cfg.get_section_keys(kind):
+		if key != "brain":
+			d[key] = cfg.get_value(kind, key)
+	return d
 
-## Reach, stand-off, windup, recovery, cooldown, warning, release.
-const SIGNATURES := {
-	"yard_deputy": [7.3, 4.1, .61, .52, 1.54, "deputy_work", "deputy_shot"],
-	"bottle_tosser": [7.8, 5.5, .73, .50, 1.86, "tosser_rattle", "tosser_throw"],
-	"chain_hand": [4.15, 2.9, .82, .74, 1.65, "chain_raise", "chain_crack"],
-	"valve_rat": [7.4, 4.2, .67, .60, 1.72, "rat_hiss", "rat_blow"],
-}
-
-const TELLS := {"rudy": "HORN SWEEP", "foreman": "CLEAR THE SAW LANES", "baron": "PIPE OUTLETS"}
-
-const TURN_CELS := [
-	"clone",
-	"billy",
-	"coot",
-	"alien",
-	"boss",
-	"barker",
-	"millhand",
-	"boilerback",
-	"chalk_spitter",
-	"yard_deputy",
-	"bottle_tosser",
-	"chain_hand",
-	"valve_rat",
-	"rudy",
-	"foreman",
-	"baron",
-	"jerry"
-]
-const FIDGET_CELS := ["clone", "billy", "coot"]
-## Every kind in TURN_CELS also has a four-beat walk (w0..w3) and falling cels (die_0..die_2).
-## Creatures that tumble for two cels before they lie still.
-const CREATURE_FALLS := ["crawler", "lantern"]
-## Whose voice a kind has when it is hurt or killed; the rest use the material cues.
-const VOICES := {
-	"billy": "hick",
-	"clone": "hick",
-	"barker": "hick",
-	"millhand": "hick",
-	"boilerback": "hick",
-	"yard_deputy": "hick",
-	"bottle_tosser": "hick",
-	"chain_hand": "hick",
-	"valve_rat": "hick",
-	"coot": "coot",
-	"alien": "grey",
-	"boss": "grey",
-	"jerry": "jerry",
-	"rudy": "rudy",
-	"foreman": "foreman",
-	"baron": "baron",
-	"chalk_spitter": "spitter"
-}
-const VOICE_TAKES := {"hick": 3}
-## Voices that only have a death cry.
-const DEATH_ONLY := ["rudy", "foreman", "baron", "spitter"]
-
-const SHELL_ACTORS := ["alien", "saucer", "boss", "crawler", "lantern", "skeeter", "valve_rat"]
-const TOOL_ACTORS := ["boilerback", "foreman", "baron", "chain_hand", "millhand"]
-const LOSS_RESPONDERS := ["coot", "yard_deputy", "bottle_tosser"]
-
-## windup, lunge pace, reach, damage, cue, cooldown
-
-const AWAKE := {
-	"clone": "clone_alert",
-	"billy": "billy_alert",
-	"coot": "coot_alert",
-	"skeeter": "skeeter",
-	"alien": "alien_alert",
-	"saucer": "saucer_spot",
-	"boss": "sheriff_spot",
-	"yard_deputy": "deputy_work",
-	"bottle_tosser": "tosser_rattle",
-	"chain_hand": "chain_raise",
-	"valve_rat": "rat_hiss"
-}
-
-const RANGED := [
-	"alien",
-	"saucer",
-	"barker",
-	"lantern",
-	"chalk_spitter",
-	"yard_deputy",
-	"bottle_tosser",
-	"chain_hand",
-	"valve_rat",
-	"boss",
-	"jerry",
-	"rudy",
-	"foreman",
-	"baron"
-]
 
 var kind := ""
+## The kind whose behaviour this one has (its own kind unless enemies.cfg
+## gives it a brain).
+var brain := ""
 var x := 0.0
 var y := 0.0
 var timer := 0.0
@@ -201,17 +187,18 @@ var alive: bool:
 
 var z: float:
 	get:
-		if kind == "saucer":
+		if brain == "saucer":
 			return .76 + .10 * sin(pose * 2.4)
-		if kind == "skeeter":
+		if brain == "skeeter":
 			return (.61 if (windup > 0.0 or recovery > 0.0) else .84) + .13 * sin(pose * 6.5)
-		if kind == "lantern":
+		if brain == "lantern":
 			return .13 + .09 * sin(pose * 4.3)
 		return 0.0
 
 
 func _init(p_kind := "", px := 0.0, py := 0.0, p_angle := 0.0) -> void:
 	kind = p_kind
+	brain = String(DEFS[kind].get("brain", kind))
 	x = px
 	y = py
 	angle = p_angle
@@ -252,13 +239,13 @@ func wake(game, px: float, py: float) -> void:
 					other.wake(game, px, py)
 		if AWAKE.has(kind):
 			game.sound_at(String(AWAKE[kind]), x, y, .9)
-		if kind == "boss":
+		if brain == "boss":
 			game.message("THE COUNTY SHAKEDOWN / ALIEN SHERIFF", 3.5)
 			game.sound.sting("shakedown_intro")
 
 
 func hurt(amount: float, game, explosive_hit := false, pressure := false) -> void:
-	if not alive or kind == "bessie":
+	if not alive or brain == "bessie":
 		return
 	var was_stunned := stun > 0.0
 	hp = maxf(0.0, hp - amount)
@@ -304,16 +291,14 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 			and not champion
 			and (
 				interrupt
-				or (not pressure and (amount >= 26.0 or kind == "skeeter" or kind == "crawler"))
+				or (not pressure and (amount >= 26.0 or brain == "skeeter" or brain == "crawler"))
 			)
 		):
 			windup = 0.0
 			aim_mark = null
 			cooldown = .65 if interrupt else .32
 	var floor_z: float = game.world.elevation(x, y)
-	var burst_kind := (
-		"plasma" if kind in ["alien", "saucer", "boss", "crawler", "lantern"] else "gore"
-	)
+	var burst_kind := "plasma" if PLASMA.has(kind) else "gore"
 	game.burst(x, y, floor_z + z + .56 * height, burst_kind, 4, .9)
 	if hostile:
 		var from := atan2(y - game.player.y, x - game.player.x)
@@ -351,16 +336,16 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 		2.6 if explosive_hit else 1.5
 	)
 	if hostile:
-		var cue := "skeeter_pop" if kind == "skeeter" else voice_cue("down", material)
+		var cue := "skeeter_pop" if brain == "skeeter" else voice_cue("down", material)
 		game.sound_at(cue, x, y, .83)
 		game.enemy_down(self)
 	else:
-		game.sound_at("chicken" if kind == "chicken" else "pig", x, y, .9)
+		game.sound_at("chicken" if brain == "chicken" else "pig", x, y, .9)
 		game.burst(
 			x,
 			y,
 			floor_z + height * .6,
-			"feather" if kind == "chicken" else "gore",
+			"feather" if brain == "chicken" else "gore",
 			27 if explosive_hit else 9,
 			2.8 if explosive_hit else 1.4
 		)
@@ -411,10 +396,10 @@ func patrol(dt: float, game) -> void:
 	var point: Array = route[route_slot]
 	if sqrt(pow(float(point[0]) - x, 2) + pow(float(point[1]) - y, 2)) < .19:
 		route_slot = (route_slot + 1) % route.size()
-		patrol_pause = .5 if (kind == "skeeter" or kind == "saucer") else 1.3
+		patrol_pause = .5 if (brain == "skeeter" or brain == "saucer") else 1.3
 		return
 	follow(
-		dt, game, atan2(float(point[1]) - y, float(point[0]) - x), .45 if kind == "coot" else .55
+		dt, game, atan2(float(point[1]) - y, float(point[0]) - x), .45 if brain == "coot" else .55
 	)
 
 
@@ -460,7 +445,7 @@ func retreat_from(game, px: float, py: float) -> void:
 
 
 func tick(dt: float, game) -> void:
-	if not alive or kind == "bessie":
+	if not alive or brain == "bessie":
 		return
 	pose += dt
 	stun = maxf(0.0, stun - dt)
@@ -470,7 +455,7 @@ func tick(dt: float, game) -> void:
 	if volley:
 		volley_timer -= dt
 		if volley_timer <= 0.0:
-			var deputy := kind == "yard_deputy"
+			var deputy := brain == "yard_deputy"
 			var sweep := 1 if attacks % 2 else -1
 			var bearing := volley_angle + (.023 if deputy else sweep * (.153 - volley * .061))
 			var ground_z: float = game.world.elevation(x, y)
@@ -506,10 +491,10 @@ func tick(dt: float, game) -> void:
 		if timer <= 0.0:
 			timer = game.rng.uniform(.7, 2.1)
 			angle += game.rng.uniform(-1.9, 1.9)
-		var shy := 2.2 if kind == "chicken" else 1.35
+		var shy := 2.2 if brain == "chicken" else 1.35
 		if distance < shy:
 			angle = direction + PI
-		elif kind == "pig" and timer > 1.05:
+		elif brain == "pig" and timer > 1.05:
 			return
 		if advance(dt, game, angle, 1.42 if distance < shy else .72) < .0003:
 			angle += PI * .71
@@ -526,7 +511,7 @@ func tick(dt: float, game) -> void:
 		can_see = false
 		player_seen = false
 	var aggro_range := (5.5 if p.crouched else 8.4) + 2.2 * (1.0 if p.gut >= 66 else 0.0)
-	if kind == "skeeter" or kind == "saucer":
+	if brain == "skeeter" or brain == "saucer":
 		aggro_range += .9
 	var watching := absf(angle_delta(direction, angle)) < 1.55 or distance < 2.65
 	if can_see and (alerted or (distance < aggro_range and watching)):
@@ -555,22 +540,22 @@ func tick(dt: float, game) -> void:
 			var committed := (
 				TELLS.has(kind)
 				or SIGNATURES.has(kind)
-				or kind == "boilerback"
-				or kind == "chalk_spitter"
+				or brain == "boilerback"
+				or brain == "chalk_spitter"
 			)
 			if (
 				stun == 0.0
 				and (lunge != null or committed or (can_see and distance < attack_range + .90))
 			):
 				attack(game, aimed, sqrt(pow(tx - x, 2) + pow(ty - y, 2)), eye, tz)
-				recovery = recovery_time(kind == "baron" and game.relief_open())
+				recovery = recovery_time(brain == "baron" and game.relief_open())
 			else:
 				cooldown = .43
 			aim_mark = null
 		return
 	if stun > 0.0:
 		return
-	if recovery > .17 and (BOSS_TITLES.has(kind) or SIGNATURES.has(kind) or kind == "boilerback"):
+	if recovery > .17 and (BOSS_TITLES.has(kind) or SIGNATURES.has(kind) or brain == "boilerback"):
 		return
 	if retreat != null:
 		var rx: float = retreat[0]
@@ -583,7 +568,7 @@ func tick(dt: float, game) -> void:
 		var spec: Array = WINDUP[kind]
 		windup = float(spec[0])
 		var cue := String(spec[1])
-		if kind == "boss" and hp < max_hp / 2.0:
+		if brain == "boss" and hp < max_hp / 2.0:
 			windup *= .83
 		aim_mark = [p.x, p.y, p.eye]
 		angle = direction
@@ -600,7 +585,7 @@ func tick(dt: float, game) -> void:
 	var strafe := PI / 2.0 if (attacks + int(pose / 1.45) + int(y)) % 2 else -PI / 2.0
 	if not can_see or distance > goal:
 		if sqrt(pow(tx2 - x, 2) + pow(ty2 - y, 2)) > .36:
-			var pace := 1.21 if kind == "boss" and hp < 145.0 else 1.0
+			var pace := 1.21 if brain == "boss" and hp < 145.0 else 1.0
 			var partner = game.partners.get(get_instance_id()) if can_see else null
 			if (
 				partner != null
@@ -611,17 +596,22 @@ func tick(dt: float, game) -> void:
 				approach += float(partner[1]) * .48
 			elif (
 				can_see
-				and (kind == "skeeter" or kind == "saucer" or kind == "billy" or kind == "crawler")
+				and (
+					brain == "skeeter"
+					or brain == "saucer"
+					or brain == "billy"
+					or brain == "crawler"
+				)
 				and cooldown > .32
 			):
-				approach += strafe * (.39 if (kind == "skeeter" or kind == "crawler") else .23)
+				approach += strafe * (.39 if (brain == "skeeter" or brain == "crawler") else .23)
 			follow(dt, game, approach, pace)
 	elif (
-		(kind == "coot" or kind == "skeeter" or kind == "chalk_spitter")
+		(brain == "coot" or brain == "skeeter" or brain == "chalk_spitter")
 		and distance < float({"coot": 3., "skeeter": 1.18, "chalk_spitter": 3.3}[kind])
 	):
-		sidestep(dt, game, direction + PI + strafe * .26, .80 if kind == "coot" else 1.16, false)
-	elif RANGED.has(kind) or (kind == "clone" and cooldown > .55):
+		sidestep(dt, game, direction + PI + strafe * .26, .80 if brain == "coot" else 1.16, false)
+	elif RANGED.has(kind) or (brain == "clone" and cooldown > .55):
 		var pace2: float = {"saucer": 1.24, "alien": .62, "boss": .70, "jerry": .78}.get(kind, .42)
 		sidestep(dt, game, direction + strafe, pace2)
 		if TURN_CELS.has(kind):
@@ -633,14 +623,14 @@ func attack(game, direction: float, distance: float, eye: float, aim_z = null) -
 	if SIGNATURES.has(kind):
 		signature_attack(game, direction, distance, eye, aim_z)
 		return
-	if kind == "boilerback" or kind == "chalk_spitter" or TELLS.has(kind):
+	if brain == "boilerback" or brain == "chalk_spitter" or TELLS.has(kind):
 		special_attack(game, direction, distance, eye, aim_z)
 		return
 	if LUNGES.has(kind):
 		var lunge: Array = LUNGES[kind]
 		var p = game.player
 		var aim := atan2(p.y - y, p.x - x)
-		var swing := kind == "skeeter" or absf(angle_delta(aim, direction)) < .61
+		var swing := brain == "skeeter" or absf(angle_delta(aim, direction)) < .61
 		if (
 			swing
 			and sqrt(pow(p.x - x, 2) + pow(p.y - y, 2)) < float(lunge[2])
@@ -658,12 +648,12 @@ func attack(game, direction: float, distance: float, eye: float, aim_z = null) -
 	var damage := 0
 	var cue := ""
 	var delay := 0.0
-	if kind == "billy":
+	if brain == "billy":
 		chance = maxf(.24, .88 - distance * .104)
 		damage = 14 if distance < 2.4 else 8
 		cue = "enemy_scatter"
 		delay = 1.45
-	elif kind == "coot":
+	elif brain == "coot":
 		chance = maxf(.34, .83 - distance * .060)
 		damage = 7
 		cue = "enemy_pistol"
@@ -678,7 +668,7 @@ func attack(game, direction: float, distance: float, eye: float, aim_z = null) -
 	game.burst(x + cos(direction) * radius, y + sin(direction) * radius, eye, "spark", 3, 1.2)
 	var p2 = game.player
 	var miss := absf(angle_delta(atan2(p2.y - y, p2.x - x), direction))
-	var spread := .23 if kind == "billy" else .11 if kind == "coot" else .15
+	var spread := .23 if brain == "billy" else .11 if brain == "coot" else .15
 	chance *= (.79 if p2.crouched else 1.0) * maxf(0.0, 1.0 - miss / spread * .60)
 	if miss < spread and game.rng.random() < chance:
 		game.damage(damage, [x, y], "FIRE")
@@ -693,7 +683,7 @@ func signature_attack(game, direction: float, distance: float, eye: float, aim_z
 	var sy := y + sin(direction) * .34
 	if game.world.blocked(sx, sy, .045, eye):
 		return
-	if kind == "yard_deputy":
+	if brain == "yard_deputy":
 		var aim_target: float = p.eye if aim_z == null else float(aim_z)
 		var slope := (aim_target - eye) * 8.4 / maxf(distance - .34, .6)
 		game.launch(sx, sy, eye, direction - .023, 8.4, "deputy_slug", slope, true, 8, 1.08)
@@ -701,7 +691,7 @@ func signature_attack(game, direction: float, distance: float, eye: float, aim_z
 		volley_timer = .23
 		volley_angle = direction
 		volley_slope = slope
-	elif kind == "bottle_tosser":
+	elif brain == "bottle_tosser":
 		var flight := minf(1.32, maxf(.48, distance / 6.1))
 		var speed2 := maxf(.45, (distance - .34) / flight)
 		var mark: Array = aim_mark if aim_mark != null else [p.x, p.y]
@@ -718,7 +708,7 @@ func signature_attack(game, direction: float, distance: float, eye: float, aim_z
 			0,
 			flight
 		)
-	elif kind == "chain_hand":
+	elif brain == "chain_hand":
 		for swing: float in [-.19, 0.0, .19]:
 			game.launch(sx, sy, eye - .12, direction + swing, 8.0, "chain_hook", 0.0, true, 7, .44)
 	else:
@@ -728,7 +718,7 @@ func signature_attack(game, direction: float, distance: float, eye: float, aim_z
 
 func special_attack(game, direction: float, distance: float, eye: float, aim_z) -> void:
 	var p = game.player
-	if kind == "chalk_spitter":
+	if brain == "chalk_spitter":
 		var flight := minf(1.25, maxf(.51, distance / 6.15))
 		var speed2 := maxf(.5, (distance - .18) / flight)
 		var mark: Array = aim_mark if aim_mark != null else [p.x, p.y]
@@ -747,7 +737,7 @@ func special_attack(game, direction: float, distance: float, eye: float, aim_z) 
 		)
 		cooldown = 1.88
 		game.sound_at("chalk_spit", x, y)
-	elif kind == "rudy":
+	elif brain == "rudy":
 		volley = 5
 		volley_timer = .02
 		volley_angle = direction if attacks % 2 else direction + .095
@@ -755,7 +745,7 @@ func special_attack(game, direction: float, distance: float, eye: float, aim_z) 
 		volley_slope = (aim_target - eye) * 6.8 / maxf(1.0, distance)
 		cooldown = 1.42 if attacks % 2 else 1.73
 		game.sound_at("rudy_horn", x, y)
-	elif kind == "foreman":
+	elif brain == "foreman":
 		for lane: Array in saw_lanes(direction):
 			if not game.world.blocked(float(lane[0]), float(lane[1]), .04):
 				game.launch(
@@ -772,7 +762,7 @@ func special_attack(game, direction: float, distance: float, eye: float, aim_z) 
 				)
 		cooldown = 1.69
 		game.sound_at("foreman_cut", x, y)
-	elif kind == "baron" and attacks % 2 == 1:
+	elif brain == "baron" and attacks % 2 == 1:
 		var ports = game.pressure_ports(attacks - 1)
 		var relieved: bool = game.relief_open()
 		# pressure_ports() hands back the level's Vector2 points, not [x, y] pairs.
@@ -781,7 +771,7 @@ func special_attack(game, direction: float, distance: float, eye: float, aim_z) 
 			game.sound_at("pressure_vent", point.x, point.y, .76)
 		cooldown = 1.95 if relieved else 1.58
 	else:
-		var rad := 4.45 if kind == "boilerback" else 5.45
+		var rad := 4.45 if brain == "boilerback" else 5.45
 		for spread: float in [-.23, 0.0, .23]:
 			var sx := x + cos(direction + spread) * .72
 			var sy := y + sin(direction + spread) * .72
@@ -793,7 +783,7 @@ func special_attack(game, direction: float, distance: float, eye: float, aim_z) 
 			and absf(angle_delta(aim, direction)) < .47
 			and game.world.visible(x, y, p.x, p.y, eye, p.eye)
 		):
-			game.damage(15 if kind == "boilerback" else 18, [x, y], "STEAM")
+			game.damage(15 if brain == "boilerback" else 18, [x, y], "STEAM")
 		cooldown = 1.60
 		game.sound_at("boiler_release", x, y)
 
@@ -811,7 +801,7 @@ func saw_lanes(direction: float, attack = null) -> Array:
 
 
 func fire_projectiles(game, direction: float, distance: float, eye: float, aim_z) -> void:
-	var football := kind == "jerry"
+	var football := brain == "jerry"
 	var kind_name := "football" if football else "plasma"
 	var spread := .15
 	var count := 1
@@ -822,24 +812,24 @@ func fire_projectiles(game, direction: float, distance: float, eye: float, aim_z
 		speed2 = 7.1
 		damage = 13
 		cooldown = 1.02 if count == 3 else 1.32
-	elif kind == "boss":
+	elif brain == "boss":
 		count = 3 if hp < max_hp / 2.0 else 1
 		speed2 = 5.7
 		damage = 13
 		cooldown = 1.28
-	elif kind == "saucer":
+	elif brain == "saucer":
 		count = 2
 		speed2 = 3.7
 		damage = 8
 		cooldown = 1.74
-	elif kind == "barker":
+	elif brain == "barker":
 		count = 3
 		speed2 = 4.7
 		damage = 8
 		spread = .27
 		cooldown = 1.70
 		kind_name = "barker_bolt"
-	elif kind == "lantern":
+	elif brain == "lantern":
 		count = 2
 		speed2 = 4.15
 		damage = 9
@@ -886,9 +876,9 @@ func voice_cue(moment: String, material: String) -> String:
 
 
 func recovery_time(relieved := false) -> float:
-	if kind == "baron" and relieved:
+	if brain == "baron" and relieved:
 		return 1.23
-	if kind == "boss" and hp < max_hp / 2.0:
+	if brain == "boss" and hp < max_hp / 2.0:
 		return .51
 	return float(RECOVERY_TIMES.get(kind, .095))
 
@@ -897,7 +887,7 @@ func sprite(observer = null, relieved := false, now := -1.0):
 	if dormant:
 		return null
 	if not alive:
-		if explosive or kind == "saucer" or kind == "skeeter":
+		if explosive or brain == "saucer" or brain == "skeeter":
 			return null
 		var fallen := now - died_at
 		var cels := 5 if TURN_CELS.has(kind) else 2 if CREATURE_FALLS.has(kind) else 0
@@ -921,9 +911,9 @@ func sprite(observer = null, relieved := false, now := -1.0):
 		frame = "aim"
 	elif recover > 0.0 and TURN_CELS.has(kind):
 		frame = "recover"
-	elif kind == "saucer" or kind == "skeeter" or kind == "lantern":
-		frame = int(pose * (16 if kind == "skeeter" else 5)) % 3 - 1
-	elif stun > 0.0 or kind == "bessie" or pose - last_stride > .18:
+	elif brain == "saucer" or brain == "skeeter" or brain == "lantern":
+		frame = int(pose * (16 if brain == "skeeter" else 5)) % 3 - 1
+	elif stun > 0.0 or brain == "bessie" or pose - last_stride > .18:
 		frame = 0
 	elif TURN_CELS.has(kind):
 		# Four-beat walk: contact, passing, contact, passing.
