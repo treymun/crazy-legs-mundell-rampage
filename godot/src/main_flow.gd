@@ -45,6 +45,13 @@ func start(
 
 
 func play(target: Game) -> void:
+	if not art.chapter_ready(target.level.id):
+		waiting_play = target
+		packs.want_first(String(CHAPTER_PACKS.get(target.level.id, "")))
+		notice("FETCHING THE CHAPTER. A MOMENT...", 4.0)
+		return
+	waiting_play = null
+	target.lessons = true
 	game = target
 	if not target.replay and not target.in_hub and not target.revisiting:
 		campaign_run = target

@@ -8,7 +8,14 @@
 ## src/pack_loader.gd fetches them: the first chapter first.
 extends SceneTree
 
-const PACKS := ["music_hickston", "music_fair", "music_mill", "music_quarry"]
+## Each pack and the assets_gen files in it: a chapter's music, and the
+## pictures of the enemies only that chapter has (assets.gd CHAPTER_ART).
+const PACKS := {
+	"music_hickston": ["music_hickston.bin"],
+	"music_fair": ["music_fair.bin", "art_fair.bin"],
+	"music_mill": ["music_mill.bin", "art_mill.bin"],
+	"music_quarry": ["music_quarry.bin", "art_quarry.bin"],
+}
 
 
 func _init() -> void:
@@ -20,16 +27,21 @@ func _init() -> void:
 	var out := String(args[0])
 	var manifest := {}
 	for pack: String in PACKS:
-		var source := "res://assets_gen/%s.bin" % pack
-		if not FileAccess.file_exists(source):
-			push_error("missing " + source + " (run tools/pack_assets.gd)")
-			quit(1)
-			return
-		var file := "%s-%s.pck" % [pack, FileAccess.get_md5(source).substr(0, 10)]
+		var sums := ""
+		for part: String in PACKS[pack]:
+			var source := "res://assets_gen/" + part
+			if not FileAccess.file_exists(source):
+				push_error("missing " + source + " (run tools/pack_assets.gd)")
+				quit(1)
+				return
+			sums += FileAccess.get_md5(source)
+		var file := "%s-%s.pck" % [pack, sums.md5_text().substr(0, 10)]
 		var target := out.path_join(file)
 		var packer := PCKPacker.new()
 		packer.pck_start(target)
-		packer.add_file(source, ProjectSettings.globalize_path(source))
+		for part: String in PACKS[pack]:
+			var source := "res://assets_gen/" + part
+			packer.add_file(source, ProjectSettings.globalize_path(source))
 		packer.flush()
 		var handle := FileAccess.open(target, FileAccess.READ)
 		manifest[pack] = {"file": file, "size": handle.get_length()}

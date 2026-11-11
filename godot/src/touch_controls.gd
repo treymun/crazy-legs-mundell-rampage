@@ -37,6 +37,9 @@ const LABELS := {
 }
 ## One-shot roles: a press counts once, however long the finger rests there.
 const TAPPED := ["use", "next", "menu", "rinds", "beer", "shine"]
+## TOUCH BUTTONS: MY LAYOUT puts the stick and buttons where the player
+## dragged them (MOVE THEM), kept as parts of the overlay's width and height.
+const LAYOUT_FILE := "user://touch-layout.json"
 
 var active := false
 var area := Rect2()
@@ -56,6 +59,12 @@ var buttons: Array = []
 var font_size := 14
 var clock := 0.0
 var showing := false
+var custom := {}
+var use_custom := false
+var editing := false
+var _moving := {}
+var _done_rect := Rect2()
+var _reset_rect := Rect2()
 
 
 func _init() -> void:
@@ -65,6 +74,7 @@ func _init() -> void:
 		or OS.has_feature("web_android")
 		or OS.has_feature("web_ios")
 	)
+	_load_custom()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
@@ -74,31 +84,33 @@ func _init() -> void:
 
 ## `rect` is the part of the window the overlay may use (the display's safe
 ## area on a phone, the whole window elsewhere), in window pixels.
-func layout(rect: Rect2) -> void:
-	if rect == area:
+func layout(rect: Rect2, again := false) -> void:
+	if rect == area and not again:
 		return
 	area = rect
 	var w := rect.size.x
 	var h := rect.size.y
 	var m := maxf(1.0, minf(w, h))
 	stick_radius = m * .18
-	stick_center = rect.position + Vector2(w * .16, h * .70)
+	stick_center = _place("stick", Vector2(.16, .70))
 	var r := m * .125
 	var small := m * .072
 	var tiny := small * .78
 	buttons = [
-		["fire", rect.position + Vector2(w * .87, h * .72), r],
-		["use", rect.position + Vector2(w * .68, h * .85), small],
-		["alt", rect.position + Vector2(w * .73, h * .55), small],
-		["next", rect.position + Vector2(w * .91, h * .50), small],
-		["menu", rect.position + Vector2(w * .95, h * .10), tiny],
+		["fire", _place("fire", Vector2(.87, .72)), r],
+		["use", _place("use", Vector2(.68, .85)), small],
+		["alt", _place("alt", Vector2(.73, .55)), small],
+		["next", _place("next", Vector2(.91, .50)), small],
+		["menu", _place("menu", Vector2(.95, .10)), tiny],
 		# Godot additions, placed in the gaps of the reference layout.
-		["jump", rect.position + Vector2(w * .78, h * .90), small],
-		["crouch", rect.position + Vector2(w * .82, h * .38), small],
-		["rinds", rect.position + Vector2(w * .58, h * .10), tiny],
-		["beer", rect.position + Vector2(w * .67, h * .10), tiny],
-		["shine", rect.position + Vector2(w * .76, h * .10), tiny],
+		["jump", _place("jump", Vector2(.78, .90)), small],
+		["crouch", _place("crouch", Vector2(.82, .38)), small],
+		["rinds", _place("rinds", Vector2(.58, .10)), tiny],
+		["beer", _place("beer", Vector2(.67, .10)), tiny],
+		["shine", _place("shine", Vector2(.76, .10)), tiny],
 	]
+	_done_rect = Rect2(rect.position + Vector2(w * .30, h * .40), Vector2(w * .18, h * .12))
+	_reset_rect = Rect2(rect.position + Vector2(w * .52, h * .40), Vector2(w * .18, h * .12))
 	font_size = maxi(14, roundi(m * .028))
 	fingers.clear()
 	stick = Vector2.ZERO
@@ -106,6 +118,85 @@ func layout(rect: Rect2) -> void:
 	alt = false
 	jump = false
 	crouch = false
+	queue_redraw()
+
+
+## Where a control sits: the player's place for it with MY LAYOUT, else the
+## standard one (both as parts of the overlay's width and height).
+func _place(role: String, standard: Vector2) -> Vector2:
+	var at: Vector2 = custom.get(role, standard) if use_custom or editing else standard
+	return area.position + at * area.size
+
+
+func _load_custom() -> void:
+	custom = {}
+	if not FileAccess.file_exists(LAYOUT_FILE):
+		return
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(LAYOUT_FILE))
+	if not parsed is Dictionary:
+		return
+	for role in parsed:
+		var pair = parsed[role]
+		if (role == "stick" or LABELS.has(role)) and pair is Array and pair.size() == 2:
+			custom[String(role)] = Vector2(
+				clampf(float(pair[0]), .03, .97), clampf(float(pair[1]), .03, .97)
+			)
+
+
+func _save_custom() -> void:
+	var out := {}
+	for role: String in custom:
+		var at: Vector2 = custom[role]
+		out[role] = [snappedf(at.x, .001), snappedf(at.y, .001)]
+	var file := FileAccess.open(LAYOUT_FILE, FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify(out))
+
+
+## MOVE THEM: show every control over whatever screen is up and let a finger
+## drag each one; DONE keeps the places (and MY LAYOUT uses them), RESET puts
+## them back where they started.
+func start_editing() -> void:
+	editing = true
+	active = true
+	visible = true
+	showing = true
+	layout(area, true)
+	queue_redraw()
+
+
+func _edit_touch(event: InputEventScreenTouch) -> void:
+	var pos := event.position
+	if not event.pressed:
+		_moving.erase(event.index)
+		return
+	if _done_rect.has_point(pos):
+		editing = false
+		use_custom = true
+		_moving.clear()
+		_save_custom()
+		layout(area, true)
+		set_showing(false)
+		return
+	if _reset_rect.has_point(pos):
+		custom.clear()
+		layout(area, true)
+		queue_redraw()
+		return
+	var role := _hit_button(pos)
+	if role == "" and pos.distance_to(stick_center) <= stick_radius:
+		role = "stick"
+	if role != "":
+		_moving[event.index] = role
+
+
+func _edit_drag(event: InputEventScreenDrag) -> void:
+	var role = _moving.get(event.index)
+	if role == null:
+		return
+	var at := (event.position - area.position) / area.size
+	custom[String(role)] = Vector2(clampf(at.x, .03, .97), clampf(at.y, .03, .97))
+	layout(area, true)
 	queue_redraw()
 
 
@@ -131,6 +222,9 @@ func _stick(pos: Vector2) -> Vector2:
 
 
 func touch(event: InputEventScreenTouch) -> void:
+	if editing:
+		_edit_touch(event)
+		return
 	var pos := event.position
 	if event.pressed:
 		active = true
@@ -160,6 +254,9 @@ func touch(event: InputEventScreenTouch) -> void:
 
 
 func drag(event: InputEventScreenDrag) -> void:
+	if editing:
+		_edit_drag(event)
+		return
 	var state = fingers.get(event.index)
 	if state == null:
 		return
@@ -234,6 +331,8 @@ func consume_tap():
 
 
 func set_showing(value: bool) -> void:
+	if editing:
+		return
 	value = value and active
 	if value != showing:
 		showing = value
@@ -280,3 +379,36 @@ func _draw() -> void:
 	var knob := stick_center + stick * stick_radius * .58
 	draw_circle(knob, stick_radius * .42, Color8(238, 217, 178, 132))
 	draw_arc(knob, stick_radius * .42, 0.0, TAU, 48, Color8(255, 240, 208, 188), 2.0, true)
+	if editing:
+		_draw_editing(font)
+
+
+func _draw_editing(font: Font) -> void:
+	var strip := Rect2(area.position, Vector2(area.size.x, area.size.y * .08))
+	draw_rect(strip, Color8(20, 15, 12, 200))
+	var note := "DRAG THE STICK AND BUTTONS WHERE YOUR THUMBS WANT THEM"
+	var wide := font.get_string_size(note, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	draw_string(
+		font,
+		strip.get_center() + Vector2(-wide.x * .5, wide.y * .28),
+		note,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		font_size,
+		Color8(255, 226, 160, 240)
+	)
+	for pair: Array in [[_done_rect, "DONE"], [_reset_rect, "RESET"]]:
+		var box: Rect2 = pair[0]
+		draw_rect(box, Color8(64, 42, 28, 220))
+		draw_rect(box, Color8(255, 226, 160, 230), false, 2.0)
+		var word := String(pair[1])
+		var extent := font.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+		draw_string(
+			font,
+			box.get_center() + Vector2(-extent.x * .5, extent.y * .28),
+			word,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			font_size,
+			Color8(255, 242, 214, 240)
+		)

@@ -93,6 +93,7 @@ static var VIEW_SHIFT := {}
 static var MUZZLES := {}
 static var MUZZLE_STYLE := {}
 static var RELOAD_BEATS := {}
+static var SHAKE := {}
 static var DYNAMITE_FUSE: float
 static var SHOTGUN_DAMAGE: int
 static var SHOTGUN_PELLETS: int
@@ -135,6 +136,7 @@ static func load_tuning() -> void:
 	MUZZLES = Tuning.entries(path, NAMES, "muzzles")
 	MUZZLE_STYLE = Tuning.entries(path, NAMES, "muzzle_style")
 	RELOAD_BEATS = Tuning.entries(path, NAMES, "reload_beats")
+	SHAKE = Tuning.entries(path, NAMES, "shake")
 	DYNAMITE_FUSE = Tuning.value(path, "dynamite_fuse")
 	SHOTGUN_DAMAGE = Tuning.value(path, "shotgun_damage")
 	SHOTGUN_PELLETS = Tuning.value(path, "shotgun_pellets")
@@ -269,7 +271,7 @@ class Armory:
 			var damage: int = table[1 if game.sprint else 0]
 			var reached: bool = game.hitscan(
 				p.view_angle(),
-				(p.pitch + p.sway) / Renderer.FOCAL,
+				(p.pitch + p.sway) / Renderer.base_focal,
 				damage,
 				2.15 if sling else 1.65,
 				.30 if sling else .34
@@ -397,6 +399,7 @@ class Armory:
 		flash = (.10 if spent == 2 else .072) if i in Weapons.MUZZLE_GUNS else 0.0
 		grinding = grind
 		last_spent = spent
+		game.shake = minf(1.0, game.shake + float(Weapons.SHAKE.get(i, 0.0)) * maxf(1, spent))
 		shot_age = 0.0
 		if pool:
 			reserve[i] -= spent
@@ -417,7 +420,7 @@ class Armory:
 				game.sound.play(cue)
 		var player = game.player
 		var aim: float = player.view_angle()
-		var slope: float = (player.pitch + player.sway) / Renderer.FOCAL
+		var slope: float = (player.pitch + player.sway) / Renderer.base_focal
 		if i in [Weapons.REVOLVER, Weapons.SHOTGUN, Weapons.RIFLE]:
 			var assisted: Array = game.assisted_aim(aim, slope)
 			aim = assisted[0]

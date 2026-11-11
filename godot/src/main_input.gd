@@ -368,14 +368,16 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch:
 		var finger := event as InputEventScreenTouch
 		input_device = "touch"
-		if state != "play":
+		if touch.editing:
+			touch.touch(finger)
+		elif state != "play":
 			touch.active = true
 			if finger.pressed:
 				_touch_menu(finger.position)
 		else:
 			touch.touch(finger)
 	elif event is InputEventScreenDrag:
-		if state == "play":
+		if state == "play" or touch.editing:
 			touch.drag(event as InputEventScreenDrag)
 	elif event is InputEventMouseMotion:
 		if state == "play" and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -686,6 +688,12 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		+ float(fingers["look"]) * vertical * invert
 	)
 	controls.running = sprint or bool(pad["run"])
+	if touch.active:
+		var tilt := int(options.get("tilt_aim", 0))
+		if tilt > 0:
+			var rate := TiltAim.rates() * (.8 if tilt == 1 else 1.6) * dt
+			controls.turn += rate.x
+			controls.look += rate.y * Renderer.base_focal
 	controls.fire = (
 		(
 			Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
@@ -703,6 +711,15 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		)
 		and not block_fire
 	)
+	if (
+		touch.active
+		and not controls.fire
+		and not block_fire
+		and int(options.get("auto_fire", 1)) != 0
+		and game.sights_on_enemy()
+	):
+		# TOUCH AUTO FIRE: a straight-shooting gun fires at a foe in the sights.
+		controls.fire = true
 	controls.jump = KeyBindings.held("jump") or bool(pad["jump"]) or bool(fingers["jump"])
 	# As the reference: a toggle setting reads only the latch, a hold setting
 	# only what is held (keyboard, pad B, or the overlay's DUCK button).

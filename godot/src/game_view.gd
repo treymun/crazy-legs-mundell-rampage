@@ -389,7 +389,13 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	var t0 := Time.get_ticks_usec()
 	# The renderer sorts out the wall segments on a band thread while the
 	# sprites and marks are listed here.
-	renderer.frame_begin(p.as_render_player(), flash)
+	var eye := p.as_render_player()
+	var trauma := shake * shake * shake_scale
+	if trauma > .001:
+		# The view shakes, the gun does not: a jolt of yaw and of horizon.
+		eye["view_angle"] += (sin(clock * 71.0) + sin(clock * 43.0 + 1.3)) * .009 * trauma
+		eye["pitch"] += (sin(clock * 59.0 + .7) + sin(clock * 37.0)) * 2.4 * trauma
+	renderer.frame_begin(eye, flash)
 	var listing := Time.get_ticks_usec()
 	var marks: Array = ground_marks()
 	var marks_list: Array = wall_marks if bullet_marks else []
@@ -462,6 +468,8 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			c.circle(160, VIEW / 2, 4, Canvas.rgb(188, 168, 132), false)
 		elif crosshair != 0:
 			c.set_pixel(160, VIEW / 2, 188, 168, 132)
+		if hit_mark_until > clock and hit_feedback:
+			_hit_mark(c)
 		var after_notice := 5
 		if not map:
 			if practice:
@@ -552,6 +560,20 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	gore_fx.draw_lens(c)
 	hud.draw(c, self, weapon)
 	stage_ms[4] = (Time.get_ticks_usec() - t4) / 1000.0
+
+
+## Four short ticks around the crosshair when a hit lands; red and wider on a kill.
+func _hit_mark(c: Canvas) -> void:
+	var gap := 4 if hit_mark_kill else 3
+	var r := 236 if hit_mark_kill else 246
+	var g := 72 if hit_mark_kill else 228
+	var b := 48 if hit_mark_kill else 190
+	for k in 3:
+		var d := gap + k
+		c.set_pixel(160 - d, VIEW / 2 - d, r, g, b)
+		c.set_pixel(160 + d, VIEW / 2 - d, r, g, b)
+		c.set_pixel(160 - d, VIEW / 2 + d, r, g, b)
+		c.set_pixel(160 + d, VIEW / 2 + d, r, g, b)
 
 
 func _boss_title(kind: String) -> String:

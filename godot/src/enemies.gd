@@ -40,6 +40,9 @@ static var AWAKE := {}
 static var RANGED: Array = []
 static var PLASMA: Array = []
 static var GREEN_GIBS: Array = []
+## Off, enemies that lose sight of the player go back to the old way (straight
+## for where they last saw them); tools/first_minutes.gd compares the two.
+static var hunting := true
 
 
 static func _static_init() -> void:
@@ -174,6 +177,13 @@ var heard = null
 var retreat = null
 var responded := false
 var hit_flash := 0.0
+## How long the pain cel shows: a hard hit reads longer than the stun it
+## causes, which is what the fight itself feels.
+var flinch := 0.0
+## Until when it hunts the player on the flow field after losing sight of them,
+## and which side it swings out to when it closes in (game.gd sets it).
+var hunt_until := 0.0
+var flank := 0.0
 var fled := false
 var variant := 1.0
 var died_at := -1.0
@@ -221,6 +231,8 @@ func wake(game, px: float, py: float) -> void:
 		return
 	target = [px, py]
 	heard = null
+	if hostile and not BOSS_TITLES.has(kind):
+		hunt_until = maxf(hunt_until, game.clock + 6.0)
 	if not alerted:
 		alerted = true
 		cooldown = maxf(.65, cooldown)
@@ -256,6 +268,7 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 	struck_sum += amount
 	hit_flash = minf(.18, hit_flash + .075 + minf(.06, amount * .0016))
 	var champion := BOSS_TITLES.has(kind)
+	flinch = maxf(flinch, .08 if champion else .14 + minf(.16, amount * .004))
 	if hp > 0.0 and hostile and not champion and amount >= 20.0:
 		var away := atan2(y - game.player.y, x - game.player.x)
 		game.move_actor(
@@ -308,6 +321,7 @@ func hurt(amount: float, game, explosive_hit := false, pressure := false) -> voi
 	var material := (
 		"shell" if SHELL_ACTORS.has(kind) else "tool" if TOOL_ACTORS.has(kind) else "cloth"
 	)
+	game.struck(amount, hostile and not alive, champion)
 	if alive:
 		if hostile and amount >= 14.0 and not was_stunned and not interrupt:
 			game.sound_at(voice_cue("pain", material), x, y, .47)
@@ -452,6 +466,7 @@ func tick(dt: float, game) -> void:
 	recovery = maxf(0.0, recovery - dt)
 	pressure_guard = maxf(0.0, pressure_guard - dt)
 	hit_flash = maxf(0.0, hit_flash - dt)
+	flinch = maxf(0.0, flinch - dt)
 	if volley:
 		volley_timer -= dt
 		if volley_timer <= 0.0:
@@ -516,6 +531,8 @@ func tick(dt: float, game) -> void:
 	var watching := absf(angle_delta(direction, angle)) < 1.55 or distance < 2.65
 	if can_see and (alerted or (distance < aggro_range and watching)):
 		wake(game, p.x, p.y)
+		if not BOSS_TITLES.has(kind):
+			hunt_until = game.clock + 9.0
 	if not alerted:
 		if not noise_step(dt, game):
 			patrol(dt, game)
@@ -564,6 +581,15 @@ func tick(dt: float, game) -> void:
 			follow(dt, game, atan2(y - ry, x - rx), .88)
 			return
 		retreat = null
+	if not BOSS_TITLES.has(kind):
+		# Lit dynamite on the ground: get clear of it.
+		for danger: Vector3 in game.dangers:
+			if (
+				(danger.x - x) * (danger.x - x) + (danger.y - y) * (danger.y - y)
+				< danger.z * danger.z
+			):
+				retreat = [danger.x, danger.y, game.clock + .9]
+				return
 	if can_see and distance <= attack_range and cooldown <= 0.0:
 		var spec: Array = WINDUP[kind]
 		windup = float(spec[0])
@@ -583,6 +609,12 @@ func tick(dt: float, game) -> void:
 	var goal: float = COMFORT[kind]
 	var approach := atan2(ty2 - y, tx2 - x)
 	var strafe := PI / 2.0 if (attacks + int(pose / 1.45) + int(y)) % 2 else -PI / 2.0
+	if hunting and not can_see and game.clock < hunt_until and game.flow != null:
+		# Out of sight: come round by the open floor, not straight at the wall.
+		var lead: float = game.flow.heading(x, y)
+		if not is_nan(lead):
+			follow(dt, game, lead, .92)
+			return
 	if not can_see or distance > goal:
 		if sqrt(pow(tx2 - x, 2) + pow(ty2 - y, 2)) > .36:
 			var pace := 1.21 if brain == "boss" and hp < 145.0 else 1.0
@@ -605,6 +637,10 @@ func tick(dt: float, game) -> void:
 				and cooldown > .32
 			):
 				approach += strafe * (.39 if (brain == "skeeter" or brain == "crawler") else .23)
+			elif can_see and not BOSS_TITLES.has(kind):
+				# Swing out to one side while still far off, so a group closes from
+				# more than one direction.
+				approach += flank * clampf((distance - 2.5) / 5.0, 0.0, 1.0)
 			follow(dt, game, approach, pace)
 	elif (
 		(brain == "coot" or brain == "skeeter" or brain == "chalk_spitter")
@@ -903,7 +939,7 @@ func sprite(observer = null, relieved := false, now := -1.0):
 	var recover := recovery_time(relieved) if recovery > 0.0 else 0.0
 	var release := minf(.14, recover * .53)
 	var frame = 0
-	if hostile and stun > 0.0:
+	if hostile and (stun > 0.0 or (flinch > 0.0 and windup <= 0.0)):
 		frame = "pain"
 	elif recover > 0.0 and recovery > recover - release:
 		frame = "fire"

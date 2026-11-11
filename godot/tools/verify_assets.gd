@@ -76,5 +76,20 @@ func _run() -> void:
 				]
 			)
 		)
+	# A browser build waits only for its own chapter's pack (main_flow.gd play()):
+	# every enemy a level has must be drawn from art.bin or that chapter's file.
+	for id: String in Campaign.ORDER:
+		var data := LevelEdit.read(id)
+		var kinds := {}
+		for spec: Dictionary in data.get("enemies", []):
+			kinds[String(spec["kind"])] = true
+		for kind: String in kinds:
+			for name: String in assets.art_index:
+				if not name.begins_with(kind + "_"):
+					continue
+				var home := String(assets.art_index[name].get("file", ""))
+				if home != "" and home != String(Assets.CHAPTER_ART.get(id, "")):
+					print("art ", name, " is in ", home, " but ", id, " needs it")
+					failed = true
 	print("ASSETS OK" if not failed else "ASSETS FAILED")
 	quit(1 if failed else 0)

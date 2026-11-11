@@ -92,21 +92,23 @@ static func panel(
 static func banner(c: Canvas, value: String, top: int, limit := 288, color := INK) -> int:
 	# A banner is an opaque plate that says the same thing for seconds on end:
 	# it is drawn once, kept as a block of pixels and pasted back each frame.
-	var key := [value, top, limit, color]
+	var style := text_style
+	var key := [value, top, limit, color, style]
 	if c.gpu:
 		return _banner_texture(c, key, value, top, limit, color)
 	var kept = _banners.get(key)
 	if kept != null:
 		_paste(c, kept)
 		return int(kept["bottom"])
-	var lines := PixelType.wrap(value, limit - 14)
+	var lines := PixelType.wrap(value, limit - 14, style)
 	if lines.is_empty():
 		return top
 	var widest := 0
 	for line in lines:
-		widest = maxi(widest, PixelType.text_width(line))
+		widest = maxi(widest, PixelType.text_width(line, style))
 	var width := widest + 14
-	var height := 10 * lines.size() + 4
+	var line_h := int(PixelType.style_of(style)[1]) + 3
+	var height := line_h * lines.size() + 4
 	var middle := Canvas.WIDTH / 2
 	panel(
 		c,
@@ -118,7 +120,7 @@ static func banner(c: Canvas, value: String, top: int, limit := 288, color := IN
 		Color(128 / 255.0, 88 / 255.0, 57 / 255.0)
 	)
 	for i in lines.size():
-		text(c, lines[i], middle, top + 4 + i * 10, "body", color, true, false)
+		text(c, lines[i], middle, top + 4 + i * line_h, style, color, true, false)
 	var x := middle - width / 2
 	if (
 		not c.gpu
@@ -141,6 +143,8 @@ static func banner(c: Canvas, value: String, top: int, limit := 288, color := IN
 
 static var _banners := {}
 static var _banner_textures := {}
+## TEXT SIZE: the type banners (notices, prompts, captions, one-liners) use.
+static var text_style := "body"
 
 
 ## A banner on a Godot 2D canvas: drawn once in software, drop shadow and all,
@@ -150,14 +154,16 @@ static func _banner_texture(
 ) -> int:
 	var kept = _banner_textures.get(key)
 	if kept == null:
-		var lines := PixelType.wrap(value, limit - 14)
+		var style := text_style
+		var lines := PixelType.wrap(value, limit - 14, style)
 		if lines.is_empty():
 			return top
 		var widest := 0
 		for line in lines:
-			widest = maxi(widest, PixelType.text_width(line))
+			widest = maxi(widest, PixelType.text_width(line, style))
 		var width := widest + 14
-		var height := 10 * lines.size() + 4
+		var line_h := int(PixelType.style_of(style)[1]) + 3
+		var height := line_h * lines.size() + 4
 		var plate := Canvas.new(width + 1, height + 2)
 		plate.enable_mask()
 		panel(
@@ -170,7 +176,7 @@ static func _banner_texture(
 			Color(128 / 255.0, 88 / 255.0, 57 / 255.0)
 		)
 		for i in lines.size():
-			text(plate, lines[i], width / 2, 4 + i * 10, "body", color, true, false)
+			text(plate, lines[i], width / 2, 4 + i * line_h, style, color, true, false)
 		if _banner_textures.size() > 24:
 			_banner_textures.clear()
 		kept = {
@@ -573,6 +579,13 @@ func objective_pin(c: Canvas, game: Game) -> void:
 	var distance := sqrt(dx * dx + dy * dy)
 	if distance < .8:
 		return
+	# Point along the walk there, and count its steps, not the crow's flight.
+	var way: Array = game.objective_route(target)
+	if int(way[1]) >= 0:
+		var lead: Vector2 = way[0]
+		dx = lead.x - p.x
+		dy = lead.y - p.y
+		distance = float(way[1])
 	var rel := fposmod(atan2(dy, dx) - p.view_angle() + PI, TAU) - PI
 	var x := int(160.0 + clampf(rel / PI, -1.0, 1.0) * 118.0)
 	var color := Color(244 / 255.0, 194 / 255.0, 116 / 255.0)

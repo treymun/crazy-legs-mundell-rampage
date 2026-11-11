@@ -193,17 +193,18 @@ func _scene_view(
 
 
 func _scene_draw(
-	sprites: Array, marks: Array, ground_marks: Array, par: int, c0: int, c1: int, lay: bool
+	sprites: Array, marks: Array, ground_marks: Array, _par: int, c0: int, c1: int, lay: bool
 ) -> void:
 	_sprite_list = sprites
 	_mark_list = marks
 	_ground_list = ground_marks
 	_warm_art()
 
-	# Bands own disjoint columns, so walls, planes and overlays all band. Only
-	# the main view is worth the threads (and keeps their balance, see
-	# _cut_bands); a mirror's reflection is a narrow strip.
-	if use_threads and (threads > 1 or lay) and par > 0 and c1 - c0 >= 96:
+	# Bands own disjoint columns, so walls, planes and overlays all band. A
+	# mirror's reflection bands too when it is wide (standing in front of the
+	# bar mirror it is most of the view, and on one thread it tripled the
+	# frame); it keeps its own band balance (_mirror_pass).
+	if use_threads and (threads > 1 or lay) and c1 - c0 >= 96:
 		_start_bands(c0, c1)
 	else:
 		_band(c0, c1)
@@ -229,6 +230,10 @@ var _band_lock := Mutex.new()
 var _band_edges := PackedInt32Array()
 var _band_cost := PackedFloat32Array()
 var _band_span := Vector2i(-1, -1)
+## The reflection's own cuts and timings, swapped in while it draws.
+var _mirror_edges := PackedInt32Array()
+var _mirror_cost := PackedFloat32Array()
+var _mirror_span := Vector2i(-1, -1)
 ## Band threads still drawing (0 when no band phase is running).
 var _bands_out := 0
 const BAND_SHARE := 2
@@ -365,6 +370,22 @@ func _band(a: int, b: int) -> void:
 
 
 # ------------------------------------------------------------------ mirror
+
+
+## Trade the main view's band cuts for the reflection's (and back), so each
+## keeps balancing against its own last frame.
+func _swap_balance() -> void:
+	var edges := _band_edges
+	var cost := _band_cost
+	var span := _band_span
+	_band_edges = _mirror_edges
+	_band_cost = _mirror_cost
+	_band_span = _mirror_span
+	_mirror_edges = edges
+	_mirror_cost = cost
+	_mirror_span = span
+
+
 func _mirror_pass(
 	x: float,
 	y: float,
@@ -423,8 +444,10 @@ func _mirror_pass(
 		pane_rgb.resize(vw * vh * 3)
 	_scene_view(2.0 * level.mirror_x - x, y, z, PI - angle, hz, -1, rframe, w, a, b, rdepth, rglass)
 	_prepare(segments)
+	_swap_balance()
 	_scene_draw(ghost, marks, ground_marks, -1, a, b, false)
 	_scene_end()
+	_swap_balance()
 	out = keep_out
 	dep = keep_dep
 	gls = keep_gls

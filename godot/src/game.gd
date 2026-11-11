@@ -22,9 +22,16 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	for i in level.enemies.size():
 		var spec: Dictionary = level.enemies[i]
 		enemy_ids.append(String(spec["id"]))
-		enemies.append(
-			Enemy.new(String(spec["kind"]), float(spec["x"]), float(spec["y"]), fmod(i * 2.3, TAU))
+		var foe := Enemy.new(
+			String(spec["kind"]), float(spec["x"]), float(spec["y"]), fmod(i * 2.3, TAU)
 		)
+		foe.flank = .42 if i % 2 else -.42
+		enemies.append(foe)
+	flow = FlowField.new(level)
+	route = FlowField.new(level, flow)
+	route.reach = 100000
+	route.doors_open = true
+	route.keys = keys
 	var by_id := {}
 	for i in enemy_ids.size():
 		by_id[enemy_ids[i]] = enemies[i]
@@ -128,6 +135,13 @@ func tick(dt: float, controls) -> void:
 			sound.set_fuse(false)
 			sound.set_tool(false)
 			sound.stop_voice()
+		return
+	shake = maxf(0.0, shake - dt * 1.7)
+	if hitstop > 0.0:
+		# The world holds still for a few hundredths after a kill; the aim does not.
+		hitstop = maxf(0.0, hitstop - dt)
+		p.angle = fposmod(p.angle + controls.turn, TAU)
+		p.pitch = maxf(-53.0, minf(53.0, p.pitch + controls.look))
 		return
 	clock += dt
 	spawn_grace = maxf(0.0, spawn_grace - dt)
@@ -347,6 +361,11 @@ func tick(dt: float, controls) -> void:
 			and p.health > 0
 		)
 	)
+	flow.update(p.x, p.y, clock)
+	dangers.clear()
+	for shot in shots:
+		if shot.kind == "tnt" and not shot.enemy:
+			dangers.append(Vector3(shot.x, shot.y, 3.1))
 	for enemy: Enemy in enemies:
 		enemy.tick(dt, self)
 	update_shots(dt)
@@ -365,5 +384,6 @@ func tick(dt: float, controls) -> void:
 				combat = true
 				break
 	tick_exchanges(combat)
+	Lessons.tick(self)
 
 # --------------------------------------------------------------- reflection

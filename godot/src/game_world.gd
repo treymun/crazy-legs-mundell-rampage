@@ -42,6 +42,10 @@ func configure(options: Dictionary) -> void:
 	flash_scale = [1.0, .32, 0.0][clampi(int(options.get("flashes", 0)), 0, 2)]
 	gore = bool(options.get("gore", 1))
 	aim_assist = int(options.get("aim_assist", 0))
+	hit_feedback = bool(options.get("hit_feedback", 1))
+	adaptive = bool(options.get("adaptive", 1))
+	Renderer.base_focal = Renderer.FOCAL_FOR[clampi(int(options.get("fov", 0)), 0, 3)]
+	shake_scale = [0.0, .5, 1.0][clampi(int(options.get("shake", 2)), 0, 2)]
 	district_labels = bool(options.get("district_labels", 1))
 	hints = bool(options.get("hints", 1))
 	hud_style = int(options.get("hud_style", 0))
@@ -53,7 +57,10 @@ func configure(options: Dictionary) -> void:
 	renderer.wall_tiling = bool(options.get("wall_tiling", 1))
 	# A browser without threads draws every band on one core: it gets LOW whatever the setting.
 	var unthreaded := OS.has_feature("web") and not OS.has_feature("threads")
-	renderer.set_detail(1 if (unthreaded or int(options.get("detail", 0)) == 1) else 0)
+	var detail := int(options.get("detail", 0))
+	renderer.set_detail(
+		1 if (unthreaded or detail == 1 or (detail == 2 and Renderer.auto_low)) else 0
+	)
 	flicker = bool(options.get("flicker", 1))
 	armory.auto_switch = bool(options.get("auto_switch", 1))
 	armory.auto_reload = bool(options.get("auto_reload", 1))
@@ -176,18 +183,43 @@ func damage(amount: float, source = null, cause := "HIT") -> void:
 	var mellow: float = (
 		.10 * float(15 <= p.drunk and p.drunk <= 56) + .09 * float(16 <= p.gut and p.gut <= 64)
 	)
-	amount = maxf(1.0, round_even(amount * (1.0 - mellow) * incoming))
+	amount = maxf(
+		1.0, round_even(amount * (1.0 - mellow) * incoming * (adapt if adaptive else 1.0))
+	)
 	p.health = maxi(0, p.health - int(amount))
+	if p.health == 0 and adaptive:
+		adapt = maxf(.78, adapt - .07)
 	if gallery != null and gallery.active:
 		gallery.finish(self, "GALLERY CLOSED. CLEAR THE BOOTH AND RETRY.")
 	var heading = null if source == null else atan2(float(source[1]) - p.y, float(source[0]) - p.x)
 	damage_feedback = [heading, cause, clock + .64]
 	hurt_flash = .27
+	shake = minf(1.0, shake + minf(.55, amount / 40.0))
 	set_face("ouch_shock", .32)
 	barks.say(self, "low" if p.health <= 25 else "hurt")
 	sound.play("player_down" if p.health == 0 else "hurt")
 	if p.health == 0:
 		message("YOU BOUGHT THE FARM.", 8.0)
+
+
+## One of the player's hits landed (Enemy.hurt): mark the crosshair, tick, and
+## hold the world still a moment on a kill or a heavy blow.
+func struck(amount: float, killed: bool, champion: bool) -> void:
+	if not hit_feedback:
+		return
+	if clock >= hit_mark_until:
+		hit_mark_kill = false
+	hit_mark_until = maxf(hit_mark_until, clock + (.24 if killed else .12))
+	hit_mark_kill = hit_mark_kill or killed
+	if clock >= hitstop_next and (killed or amount >= 40.0):
+		hitstop = maxf(hitstop, .09 if killed and champion else .05 if killed else .03)
+		hitstop_next = clock + .22
+	if killed:
+		sound.play("kill_tick", .55)
+		hit_tick_next = clock + .06
+	elif clock >= hit_tick_next:
+		sound.play("hit_tick", .34)
+		hit_tick_next = clock + .06
 
 
 func add_pickup(name: String, x: float, y: float) -> void:
@@ -791,6 +823,8 @@ func exit_ready() -> bool:
 func finish_level(cue: String) -> void:
 	if not won:
 		won = true
+		if adaptive and player.health >= 60 and not replay:
+			adapt = minf(1.15, adapt + .05)
 		shots.clear()
 		hazards.clear()
 		blasts.clear()
@@ -1054,13 +1088,45 @@ func objective_target() -> Variant:
 					near2 = enemy
 			return Vector2(near2.x, near2.y)
 		return Vector2(exit.x, exit.y)
-	if boss != null and boss.alive:
-		return Vector2(boss.x, boss.y)
-	if jerry != null and jerry.alive:
+	# Hickston: the same steps objective() names. The pin used to point at the
+	# sheriff from the start, through the locked barn, while the words said to
+	# fetch the brass key.
+	var boss_up: bool = boss != null and boss.alive
+	var jerry_up: bool = jerry != null and jerry.alive
+	if not boss_up and not jerry_up:
+		return Vector2(bessie.x, bessie.y) if bessie != null and bessie.hp > 0.0 else null
+	if jerry_up and not jerry.dormant:
 		return Vector2(jerry.x, jerry.y)
-	if bessie != null and bessie.alive:
-		return Vector2(bessie.x, bessie.y)
-	return null
+	if not keys.has("key_steel"):
+		var wanted := "key_steel" if keys.has("key_brass") else "key_brass"
+		for entry: Array in pickups:
+			if String(entry[0]) == wanted:
+				return Vector2(float(entry[1]), float(entry[2]))
+	if boss_up:
+		return Vector2(boss.x, boss.y)
+	return Vector2(jerry.x, jerry.y)
+
+
+## Where the objective pin points: four steps along the walk to `target`, and
+## how many steps the whole walk is (-1 when it cannot be walked).
+func objective_route(target: Vector2) -> Array:
+	if route == null:
+		return [target, -1]
+	var opened := 0
+	for door: LevelData.Door in world.doors:
+		if door.opened:
+			opened += 1
+	var sig := [stations_done.size(), keys.size(), opened]
+	if sig != route_sig:
+		# A door opened or a key was found: the way may be different now.
+		route_sig = sig
+		route.origin = Vector2i(-1, -1)
+		route.next_at = 0.0
+	route.update(target.x, target.y, clock)
+	var steps := route.distance(player.x, player.y)
+	if steps >= FlowField.FAR:
+		return [target, -1]
+	return [route.waypoint(player.x, player.y, 4), steps]
 
 
 func gate_prompt() -> String:

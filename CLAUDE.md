@@ -57,6 +57,11 @@ godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVE
 godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 
+# Pacing and balance (not in CI)
+godot --headless --path godot --script res://tools/first_minutes.gd   # a bot plays each chapter's opening: first fight, kills, health (old-ai: enemies do not hunt)
+godot --headless --path godot --script res://tools/ttk.gd -- ../docs/weapon_ttk.md   # time to kill, every gun against every enemy
+godot --headless --path godot --script res://tools/route_map.gd -- <dir>   # each level's objective route, long detours flagged, PNGs
+
 # Pictures changed on purpose: rewrite the references and commit them
 godot --headless --path godot --script res://tools/picture_check.gd -- update
 
@@ -94,11 +99,19 @@ godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
   and Android builds draw nothing while a desktop looks fine.
   `tools/check_shader.gd` (in CI) counts them. Stack new data into an existing
   texture instead of adding one.
-- **Chapter music is a separate download in the browser.** `tools/pack_assets.gd`
-  writes `music_<chapter>.bin`, the web presets leave them out, CI turns them
-  into packs (`tools/make_packs.gd`) and `pack_loader.gd` fetches them after
-  start. A browser cannot rename files in its storage and HTTPRequest's
-  `download_file` does not write there: keep writing packs from memory.
+- **Chapter music and chapter enemies are a separate download in the browser.**
+  `tools/pack_assets.gd` writes `music_<chapter>.bin` and, for the enemies only
+  one chapter has (`Assets.CHAPTER_KINDS`), `art_<chapter>.bin`; the web presets
+  leave them out, CI turns each chapter's pair into a pack (`tools/make_packs.gd`)
+  and `pack_loader.gd` fetches them after start. `main_flow.gd play()` holds a
+  chapter until its pictures are there. A new enemy kind used in more than one
+  level must not be in `CHAPTER_KINDS` (`verify_assets.gd` checks). A browser
+  cannot rename files in its storage and HTTPRequest's `download_file` does not
+  write there: keep writing packs from memory.
+- **Sound effects are QOA** (`sfx.bin`, about a fifth of 16-bit samples), and
+  the tiles and skies are deflated whole (`Assets.pack_whole`). An
+  `AudioStreamWAV`'s `data` is then not samples: count frames with
+  `get_length() * mix_rate`.
 - **Band threads.** Inside the renderer's band loops, never call a script
   function, read a field of another object or use untyped `round`, `floor`
   or `ceil`. Each costs 5 to 11 times more while the other threads do the
@@ -114,6 +127,13 @@ godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
   they are how CI knows players' saves still load.
 - **Gameplay randomness** comes from the game's `rng`. Cosmetic effects use
   their own seeded generator (`gore_fx.dice`), so they never change play.
+- **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
+  default, choices, hint); `tools/check_fixes.gd` counts them. Settings are not
+  part of a save, so a new one needs no save version.
+- **Enemies path on a flow field** (`src/flow_field.gd`): out of sight, an
+  alerted enemy walks downhill on the steps from the player for a few seconds
+  (`Enemy.hunt_until`). The objective pin walks a second field measured from
+  the objective (`Game.route`) through doors the player can open now.
 - **Layers only call down.** In those chains a function may call functions of
   its own layer or the layers below it; calling up is a parse error. New
   fields go in the bottom layer (`game_state.gd`, `render_state.gd`,

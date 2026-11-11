@@ -237,7 +237,7 @@ func _run() -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 40 + KeyBindings.ACTIONS.size(),
+		seen.size() == 48 + KeyBindings.ACTIONS.size(),
 		"all 40 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
@@ -308,7 +308,9 @@ func _run() -> void:
 	var kept_options: Dictionary = main.options.duplicate()
 	var key_pages := SessionStore.setup_pages()
 	main.state = "setup"
-	main.option_page = key_pages.size() - 1
+	for index in key_pages.size():
+		if String(key_pages[index][0]) == "KEYS":
+			main.option_page = index
 	main.option_scroll = 0
 	main.setup_select(0)
 	main.key(KEY_ENTER)
@@ -338,6 +340,96 @@ func _run() -> void:
 	main.apply_options()
 	main.persist_options()
 	main.state = "title"
+
+	print("GAME FEEL, PATHS AND THE PIN")
+	var felt: Game = main.make_game("fair")
+	felt.configure({})
+	var foe: Enemy = null
+	for e: Enemy in felt.enemies:
+		if e.hostile and not Enemy.BOSS_TITLES.has(e.kind):
+			foe = e
+			break
+	foe.hurt(9999.0, felt)
+	var frozen_at := felt.clock
+	felt.tick(1.0 / 60.0, Game.Controls.new())
+	check(
+		felt.hit_mark_until > felt.clock and felt.hit_mark_kill and felt.clock == frozen_at,
+		"a kill marks the crosshair red and holds the world a moment"
+	)
+	for i in 10:
+		felt.tick(1.0 / 60.0, Game.Controls.new())
+	check(felt.clock > frozen_at, "the world moves again after the hold")
+	# An enemy on the far side of a wall from the player walks round it.
+	var field := FlowField.new(felt.level)
+	var px := felt.player.x
+	var py := felt.player.y
+	field.update(px, py, 0.0)
+	var around := false
+	for e: Enemy in felt.enemies:
+		var steps := field.distance(e.x, e.y)
+		if steps < FlowField.FAR and steps > 4 and not felt.world.visible(px, py, e.x, e.y):
+			var lead := field.heading(e.x, e.y)
+			var straight := atan2(py - e.y, px - e.x)
+			if not is_nan(lead) and absf(Enemy.angle_delta(lead, straight)) > .3:
+				around = true
+				break
+	check(around, "an enemy out of sight is led round the walls, not straight at the player")
+	var town: Game = main.make_game("hickston")
+	town.configure({})
+	var pin = town.objective_target()
+	var brass := Vector2.ZERO
+	for found: Array in town.pickups:
+		if String(found[0]) == "key_brass":
+			brass = Vector2(float(found[1]), float(found[2]))
+	check(
+		pin is Vector2 and pin == brass, "Hickston's pin starts on the brass key, as its words do"
+	)
+	var way: Array = town.objective_route(brass)
+	check(int(way[1]) > 0 and int(way[1]) < FlowField.FAR, "the pin counts the walk to the key")
+	check(
+		int(way[1]) >= int(Vector2(town.player.x, town.player.y).distance_to(brass)),
+		"the walk is never shorter than the straight line"
+	)
+
+	# TOUCH AUTO FIRE: a foe square in the sights fires a straight gun.
+	var sights: Game = main.make_game("fair")
+	sights.configure({})
+	var aimed_at: Enemy = null
+	for e: Enemy in sights.enemies:
+		if e.hostile and not Enemy.BOSS_TITLES.has(e.kind):
+			aimed_at = e
+			break
+	var sp := sights.player
+	sp.x = aimed_at.x - 3.0
+	sp.y = aimed_at.y
+	while (
+		sights.world.blocked(sp.x, sp.y, .2)
+		or not sights.world.visible(sp.x, sp.y, aimed_at.x, aimed_at.y)
+	):
+		sp.x += .25
+	sp.angle = atan2(aimed_at.y - sp.y, aimed_at.x - sp.x)
+	sp.eye = .95 + sights.world.elevation(sp.x, sp.y)
+	sp.pitch = 0.0
+	sights.armory.active = Weapons.REVOLVER
+	var on_target := sights.sights_on_enemy()
+	sights.sights_next = 0.0
+	sp.angle += 1.2
+	check(
+		on_target and not sights.sights_on_enemy(),
+		"touch auto fire sees a foe in the sights, and only then"
+	)
+	var kept_game: Game = main.game
+	main.game = sights
+	main.state = "play"
+	main.touch.active = true
+	main.block_fire = false
+	sp.angle -= 1.2
+	sights.sights_next = 0.0
+	var fired: bool = main._controls(1.0 / 60.0, main.read_pad(1.0 / 60.0), main.touch.state()).fire
+	main.touch.active = false
+	main.game = kept_game
+	main.state = "title"
+	check(fired, "on touch, a foe in the sights pulls the trigger")
 
 	print("")
 	if failures.is_empty():

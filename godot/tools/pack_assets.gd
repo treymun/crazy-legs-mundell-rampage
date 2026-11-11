@@ -121,13 +121,18 @@ func _tiles() -> void:
 		if image.get_width() != 128 or image.get_height() != 128:
 			_fail("tile %s is %dx%d, not 128x128" % [name, image.get_width(), image.get_height()])
 		blob.append_array(image.get_data())
-	_write("tiles.bin", blob)
+	_write("tiles.bin", Assets.pack_whole(blob))
 	print("tiles.bin %.2f MB, %d tiles, missing %s" % [blob.size() / 1e6, names.size(), missing])
 
 
 func _art() -> void:
 	var index := {}
 	var blob := PackedByteArray()
+	# A chapter's own enemies go in a file of their own, which the browser
+	# build fetches after it starts (src/assets.gd, tools/make_packs.gd).
+	var chapter_blobs := {}
+	for file_name: String in Assets.CHAPTER_ART.values():
+		chapter_blobs[file_name] = PackedByteArray()
 	for file in _sorted_files("assets/art", "png"):
 		var image := _image(repo.path_join("assets/art").path_join(file), Image.FORMAT_RGBA8)
 		if image == null:
@@ -136,14 +141,24 @@ func _art() -> void:
 		# Sprites are mostly empty air: each one is deflated on its own and
 		# inflated the first time the game asks for it.
 		var packed := image.get_data().compress(FileAccess.COMPRESSION_DEFLATE)
-		index[file.get_basename()] = {
-			"offset": blob.size(),
+		var home := Assets.art_home(file.get_basename())
+		var into: PackedByteArray = blob if home == "" else chapter_blobs[home]
+		var entry := {
+			"offset": into.size(),
 			"size": packed.size(),
 			"w": image.get_width(),
 			"h": image.get_height()
 		}
-		blob.append_array(packed)
+		if home != "":
+			entry["file"] = home
+		index[file.get_basename()] = entry
+		into.append_array(packed)
+		if home != "":
+			chapter_blobs[home] = into
 	_write("art.bin", blob)
+	for file_name: String in chapter_blobs:
+		_write(file_name, chapter_blobs[file_name])
+		print("%s %.2f MB" % [file_name, chapter_blobs[file_name].size() / 1e6])
 	_write_json("art_index.json", index)
 	print("art.bin %.2f MB, %d pictures" % [blob.size() / 1e6, index.size()])
 
@@ -192,14 +207,44 @@ func _sfx() -> void:
 		var raw := _wav(repo.path_join("audio_src/final/sfx/%s.wav" % name), problems, name)
 		if raw.is_empty():
 			continue
-		index[name] = {"offset": blob.size(), "frames": raw.size() / 2}
-		blob.append_array(raw)
+		# QOA, about a fifth of the 16-bit samples and near enough the same
+		# sound; Godot plays it as it is (assets.gd cue()).
+		var qoa := _qoa(raw)
+		if qoa.is_empty():
+			problems.append(name + ": QOA encoding failed")
+			continue
+		index[name] = {"offset": blob.size(), "size": qoa.size(), "frames": raw.size() / 2}
+		blob.append_array(qoa)
 	if not problems.is_empty():
 		_fail("effect bank not written, fix these cues first: " + "; ".join(problems))
 		return
 	_write("sfx.bin", blob)
-	_write_json("sfx_index.json", {"rate": SFX_RATE, "cues": index})
+	_write_json("sfx_index.json", {"rate": SFX_RATE, "codec": "qoa", "cues": index})
 	print("sfx.bin %.2f MB, %d cues" % [blob.size() / 1e6, index.size()])
+
+
+## Mono 16-bit samples at SFX_RATE as QOA, by way of a WAV Godot compresses.
+func _qoa(raw: PackedByteArray) -> PackedByteArray:
+	var head := PackedByteArray()
+	head.resize(44)
+	head.encode_u32(0, 0x46464952)
+	head.encode_u32(4, 36 + raw.size())
+	head.encode_u32(8, 0x45564157)
+	head.encode_u32(12, 0x20746D66)
+	head.encode_u32(16, 16)
+	head.encode_u16(20, 1)
+	head.encode_u16(22, 1)
+	head.encode_u32(24, SFX_RATE)
+	head.encode_u32(28, SFX_RATE * 2)
+	head.encode_u16(32, 2)
+	head.encode_u16(34, 16)
+	head.encode_u32(36, 0x61746164)
+	head.encode_u32(40, raw.size())
+	head.append_array(raw)
+	var stream := AudioStreamWAV.load_from_buffer(head, {"compress/mode": 2})
+	if stream == null or stream.format != AudioStreamWAV.FORMAT_QOA:
+		return PackedByteArray()
+	return stream.data
 
 
 func _music() -> void:
@@ -249,6 +294,6 @@ func _skies() -> void:
 			continue
 		index[name] = {"offset": blob.size(), "w": image.get_width(), "h": image.get_height()}
 		blob.append_array(image.get_data())
-	_write("sky.bin", blob)
+	_write("sky.bin", Assets.pack_whole(blob))
 	_write_json("sky_index.json", index)
 	print("sky.bin %.2f MB, %d skies" % [blob.size() / 1e6, index.size()])

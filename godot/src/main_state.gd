@@ -135,6 +135,13 @@ var editor: LevelEditor
 var level_stamp := 0
 var level_stamp_of := ""
 var level_check := 0
+## A Game whose chapter's pictures a browser build is still fetching: play()
+## leaves it here and main.gd starts it when they arrive.
+var waiting_play: Game = null
+## VIEW DETAIL AUTO: the frame's work, smoothed, and how long it has been over
+## or well under the frame's time.
+var work_ms := 0.0
+var detail_strain := 0.0
 const CHAPTER_PACKS := {
 	"hickston": "music_hickston",
 	"fair": "music_fair",
@@ -507,6 +514,15 @@ func apply_options() -> void:
 	if not sound.reverb_on:
 		sound.set_space("")
 	sound.voice_gain = float(options["voice_volume"]) / 100.0
+	HUD.text_style = ["body", "menu", "heading"][clampi(int(options.get("text_size", 0)), 0, 2)]
+	if int(options.get("tilt_aim", 0)) != 0:
+		TiltAim.enable()
+	if int(options.get("touch_layout", 0)) == 2:
+		# MOVE THEM is a doing, not a state: it opens the editor and reads MY LAYOUT.
+		options["touch_layout"] = 1
+		touch.start_editing()
+	touch.use_custom = int(options.get("touch_layout", 0)) == 1
+	touch.layout(touch.area, true)
 	_build_tone(int(options["brightness"]))
 	# Smoke runs count frames, not seconds: leave them uncapped.
 	Engine.max_fps = 0 if smoke or web else roundi(1.0 / frame_interval())

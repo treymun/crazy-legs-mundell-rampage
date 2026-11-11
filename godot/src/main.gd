@@ -217,6 +217,8 @@ func _process(delta: float) -> void:
 		return
 	if Tuning.watch():
 		notice("TUNING RELOADED.")
+	if waiting_play != null and art.chapter_ready(waiting_play.level.id):
+		play(waiting_play)
 	if game != null:
 		packs.want_first(String(CHAPTER_PACKS.get(game.level.id, "")))
 		_watch_level()
@@ -230,6 +232,7 @@ func _process(delta: float) -> void:
 	var dt := minf(0.08, pending_dt)
 	pending_dt = 0.0
 
+	var work_began := Time.get_ticks_usec()
 	touch.tick(dt)
 	if demo:
 		_demo(dt)
@@ -258,6 +261,7 @@ func _process(delta: float) -> void:
 	if state == "play" and game != null:
 		_touch_actions()
 		_watch_pointer_lock()
+		game.touch_aim = touch.active
 
 	if state == "play" and game != null:
 		if not focused:
@@ -276,6 +280,7 @@ func _process(delta: float) -> void:
 
 	sound.tick_score(dt)
 	render()
+	_auto_detail(dt, (Time.get_ticks_usec() - work_began) / 1000.0)
 	mouse_rel = Vector2.ZERO
 
 	if smoke_frames > 0:
@@ -291,6 +296,25 @@ func _process(delta: float) -> void:
 				_save_view()
 				return
 			get_tree().quit()
+
+
+## VIEW DETAIL AUTO: draw at half size while the frame's own work (not the
+## wait for the screen) keeps going past most of the frame's time, and back at
+## full size once there is plenty of room again.
+func _auto_detail(dt: float, spent: float) -> void:
+	if game == null or state != "play" or int(options.get("detail", 0)) != 2:
+		return
+	var budget := frame_interval() * 1000.0
+	work_ms = lerpf(work_ms, spent, minf(1.0, dt * 4.0))
+	var low := Renderer.auto_low
+	if (not low and work_ms > budget * .85) or (low and work_ms < budget * .3):
+		detail_strain += dt
+	else:
+		detail_strain = 0.0
+	if detail_strain > (1.5 if not low else 5.0):
+		detail_strain = 0.0
+		Renderer.auto_low = not low
+		game.renderer.set_detail(1 if Renderer.auto_low else 0)
 
 
 func _demo(dt: float) -> void:

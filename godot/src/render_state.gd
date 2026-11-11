@@ -10,6 +10,14 @@ const WIDTH := 320
 const VIEW := 156
 const HEIGHT := 200
 const FOCAL := 230.0
+## FIELD OF VIEW: the focal length for 70 (the view the game was drawn for),
+## 80, 90 and 100 degrees across. base_focal is the one in use; aiming
+## (weapons.gd, game_state.gd) works its slopes out with it too.
+const FOCAL_FOR := [230.0, 190.7, 160.0, 134.3]
+static var base_focal := FOCAL
+## VIEW DETAIL AUTO has dropped to LOW (main.gd _auto_detail); kept for the
+## session so the next level starts where the last one settled.
+static var auto_low := false
 const SKY_W := 512
 ## The size the view is actually drawn at. HIGH is the full 320x156; LOW draws
 ## half of that each way and doubles it up, for machines (and browsers without
@@ -288,7 +296,7 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 	tints = level.tints
 	rays.resize(WIDTH)
 	for i in WIDTH:
-		rays[i] = (i + .5 - WIDTH / 2.0) / FOCAL
+		rays[i] = (i + .5 - WIDTH / 2.0) / base_focal
 	row_sy.resize(VIEW)
 	for i in VIEW:
 		row_sy[i] = i + .5
@@ -346,7 +354,7 @@ func set_detail(level_of_detail: int) -> void:
 	detail = clampi(level_of_detail, 0, 1)
 	vw = WIDTH >> detail
 	vh = VIEW >> detail
-	focal = FOCAL / (1 << detail)
+	focal = base_focal / (1 << detail)
 	res_up = float(VIEW) / vh
 	for i in vw:
 		rays[i] = (i + .5 - vw / 2.0) / focal

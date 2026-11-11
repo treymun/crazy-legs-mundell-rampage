@@ -255,10 +255,12 @@ func hitscan(
 
 
 func assisted_aim(angle: float, slope: float) -> Array:
-	if aim_assist == 0:
+	# A thumb aims less finely than a mouse: on touch the help turns too, wider.
+	var mode := maxi(aim_assist, 2) if touch_aim else aim_assist
+	if mode == 0:
 		return [angle, slope]
 	var p := player
-	var threshold := .047 if aim_assist == 2 else .025
+	var threshold := .075 if touch_aim else .047 if mode == 2 else .025
 	var best := INF
 	var correction = null
 	for e: Enemy in enemies:
@@ -279,9 +281,43 @@ func assisted_aim(angle: float, slope: float) -> Array:
 			continue
 		var score := error * 12.0 + absf(vertical - slope) * .4 + distance * .009
 		if score < best and world.visible(p.x, p.y, e.x, e.y, p.eye, target):
-			correction = [yaw if aim_assist == 2 else angle, vertical]
+			correction = [yaw if mode == 2 else angle, vertical]
 			best = score
 	return correction if correction != null else [angle, slope]
+
+
+## TOUCH AUTO FIRE: a hostile is in the sights of a gun that fires straight,
+## close enough to the crosshair that the touch aim help would take it.
+## Checked at most ten times a second.
+func sights_on_enemy() -> bool:
+	if clock < sights_next:
+		return sights_last
+	sights_next = clock + .1
+	sights_last = false
+	var gun := armory.active
+	if armory.holstered or not (gun in AUTO_FIRE_GUNS):
+		return false
+	var p := player
+	var angle := p.view_angle()
+	var slope := (p.pitch + p.sway) / Renderer.base_focal
+	for e: Enemy in enemies:
+		if not e.hostile or not e.alive:
+			continue
+		var dx := e.x - p.x
+		var dy := e.y - p.y
+		var distance := sqrt(dx * dx + dy * dy)
+		if distance < .3 or distance > (1.7 if gun == Weapons.CROWBAR else 16.0):
+			continue
+		var error := absf(fposmod(atan2(dy, dx) - angle + PI, TAU) - PI)
+		if error > maxf(.06, (e.radius + .05) / distance):
+			continue
+		var target: float = world.elevation(e.x, e.y) + e.z + e.height * .58
+		if absf((target - p.eye) / distance - slope) > .2:
+			continue
+		if world.visible(p.x, p.y, e.x, e.y, p.eye, target):
+			sights_last = true
+			return true
+	return false
 
 
 func shatter(pane: Vector2i, z := .99) -> void:
@@ -328,6 +364,8 @@ func explode(shot: Shot) -> void:
 		strength = float(shot.damage)
 		sound_at("cow_moo", x, y, .9)
 	blast_flash = maxf(blast_flash, .14 if energy else .27)
+	var near := sqrt((player.x - x) * (player.x - x) + (player.y - y) * (player.y - y))
+	shake = minf(1.0, shake + maxf(0.0, 1.0 - near / 9.0) * (.45 if energy else .9))
 	duck = maxf(duck, 1.1 if not energy else .5)
 	blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
 	var cue := (

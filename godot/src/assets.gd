@@ -6,6 +6,18 @@ extends RefCounted
 const TILE_W := 128
 const TILE_H := 128
 const TILE_BYTES := TILE_W * TILE_H * 3
+## Cues made here instead of recorded: the crosshair's hit knock and the
+## cowbell clank of a kill (game_world.gd struck()).
+const MADE_CUES := ["hit_tick", "kill_tick"]
+## Enemies only one chapter has: their pictures live in that chapter's file,
+## which the browser build fetches after it starts (tools/make_packs.gd puts
+## it in the chapter's pack with its music) and main_flow.gd play() waits for.
+const CHAPTER_KINDS := {
+	"fair": ["barker", "bottle_tosser", "crawler", "rudy"],
+	"sawmill": ["chain_hand", "foreman", "lantern", "millhand"],
+	"quarry": ["baron", "boilerback", "chalk_spitter", "valve_rat"],
+}
+const CHAPTER_ART := {"fair": "art_fair.bin", "sawmill": "art_mill.bin", "quarry": "art_quarry.bin"}
 
 var tile_names: PackedStringArray = PackedStringArray()
 var tile_index: Dictionary = {}
@@ -19,10 +31,13 @@ var grain: PackedByteArray = PackedByteArray()
 
 var art_index: Dictionary = {}
 var _art_file: FileAccess
+var _art_files := {}
 var _art_cache: Dictionary = {}
 
 var sfx_index: Dictionary = {}
 var sfx_rate: int = 22050
+## The bank holds QOA (tools/pack_assets.gd), or 16-bit samples in an older pack.
+var sfx_qoa := false
 var _sfx_file: FileAccess
 var _sfx_cache: Dictionary = {}
 
@@ -42,10 +57,10 @@ func _init() -> void:
 	tile_index = {}
 	for i in tile_names.size():
 		tile_index[tile_names[i]] = i
-	tiles = FileAccess.get_file_as_bytes("res://assets_gen/tiles.bin")
+	tiles = unpack_whole(FileAccess.get_file_as_bytes("res://assets_gen/tiles.bin"))
 
 	sky_index = _json("res://assets_gen/sky_index.json")
-	sky_blob = FileAccess.get_file_as_bytes("res://assets_gen/sky.bin")
+	sky_blob = unpack_whole(FileAccess.get_file_as_bytes("res://assets_gen/sky.bin"))
 
 	palette = FileAccess.get_file_as_bytes("res://assets_gen/palette.bin")
 	grain = FileAccess.get_file_as_bytes("res://assets_gen/grain.bin")
@@ -55,11 +70,30 @@ func _init() -> void:
 
 	var sfx := _json("res://assets_gen/sfx_index.json")
 	sfx_rate = int(sfx.get("rate", 22050))
+	sfx_qoa = String(sfx.get("codec", "")) == "qoa"
 	sfx_index = sfx.get("cues", {})
 	_sfx_file = FileAccess.open("res://assets_gen/sfx.bin", FileAccess.READ)
 
 	music_index = _json("res://assets_gen/music_index.json")
 	music_ends = _json("res://assets_gen/music_ends.json")
+
+
+## A whole file deflated, behind "TZ01" and its size (tools/pack_assets.gd):
+## the tiles and skies are half their size that way, and the browser download
+## with them.
+static func pack_whole(raw: PackedByteArray) -> PackedByteArray:
+	var out := "TZ01".to_ascii_buffer()
+	out.resize(8)
+	out.encode_u32(4, raw.size())
+	out.append_array(raw.compress(FileAccess.COMPRESSION_DEFLATE))
+	return out
+
+
+## The bytes pack_whole() packed, or `data` itself when it was never packed.
+static func unpack_whole(data: PackedByteArray) -> PackedByteArray:
+	if data.size() < 8 or data.slice(0, 4).get_string_from_ascii() != "TZ01":
+		return data
+	return data.slice(8).decompress(data.decode_u32(4), FileAccess.COMPRESSION_DEFLATE)
 
 
 static func _json(path: String) -> Dictionary:
@@ -75,22 +109,48 @@ func tile(name: String) -> int:
 	return int(tile_index.get(name, 0))
 
 
+## Which chapter file a picture belongs in ("" for art.bin).
+static func art_home(name: String) -> String:
+	for level_id: String in CHAPTER_KINDS:
+		for kind: String in CHAPTER_KINDS[level_id]:
+			if name.begins_with(kind + "_"):
+				return CHAPTER_ART[level_id]
+	return ""
+
+
+## True when every picture this level needs is here (a browser build may still
+## be fetching a chapter's pack).
+func chapter_ready(level_id: String) -> bool:
+	var file_name := String(CHAPTER_ART.get(level_id, ""))
+	return file_name == "" or FileAccess.file_exists("res://assets_gen/" + file_name)
+
+
 ## Returns {w, h, data:PackedByteArray} with RGBA8 pixels.
 func art(name: String) -> Dictionary:
 	var cached = _art_cache.get(name)
 	if cached != null:
 		return cached
 	var info = art_index.get(name)
+	var blank := {"w": 1, "h": 1, "data": PackedByteArray([0, 0, 0, 0])}
 	if info == null:
 		push_warning("missing art " + name)
-		var blank := {"w": 1, "h": 1, "data": PackedByteArray([0, 0, 0, 0])}
 		_art_cache[name] = blank
 		return blank
-	_art_file.seek(int(info["offset"]))
+	var source := _art_file
+	if info.has("file"):
+		var file_name := String(info["file"])
+		source = _art_files.get(file_name)
+		if source == null:
+			source = FileAccess.open("res://assets_gen/" + file_name, FileAccess.READ)
+			if source == null:
+				# Not fetched yet: blank for now, and asked again next time.
+				return blank
+			_art_files[file_name] = source
+	source.seek(int(info["offset"]))
 	var w := int(info["w"])
 	var h := int(info["h"])
 	# Each image is stored deflated (tools/pack_assets.gd) and inflated on first use.
-	var packed := _art_file.get_buffer(int(info["size"]))
+	var packed := source.get_buffer(int(info["size"]))
 	var data := packed.decompress(w * h * 4, FileAccess.COMPRESSION_DEFLATE)
 	var result := {"w": w, "h": h, "data": data}
 	_art_cache[name] = result
@@ -121,15 +181,21 @@ func cue(name: String) -> AudioStreamWAV:
 		return cached
 	var info = sfx_index.get(name)
 	if info == null:
+		if name in MADE_CUES:
+			_sfx_cache[name] = _made_cue(name)
+			return _sfx_cache[name]
 		return null
 	_sfx_file.seek(int(info["offset"]))
 	var frames := int(info["frames"])
-	var raw := _sfx_file.get_buffer(frames * 2)
 	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = sfx_rate
 	stream.stereo = false
-	stream.data = raw
+	if sfx_qoa:
+		stream.format = AudioStreamWAV.FORMAT_QOA
+		stream.data = _sfx_file.get_buffer(int(info["size"]))
+	else:
+		stream.format = AudioStreamWAV.FORMAT_16_BITS
+		stream.data = _sfx_file.get_buffer(frames * 2)
 	_sfx_cache[name] = stream
 	return stream
 
@@ -175,7 +241,32 @@ func jingle(name: String) -> AudioStreamOggVorbis:
 
 
 func has_cue(name: String) -> bool:
-	return sfx_index.has(name)
+	return sfx_index.has(name) or name in MADE_CUES
+
+
+## A short knock (a damped tone and a click) or a cowbell clank (two
+## inharmonic square-ish tones), as 16-bit samples.
+func _made_cue(name: String) -> AudioStreamWAV:
+	var kill := name == "kill_tick"
+	var frames := int(sfx_rate * (.20 if kill else .045))
+	var raw := PackedByteArray()
+	raw.resize(frames * 2)
+	for i in frames:
+		var t := float(i) / sfx_rate
+		var v := 0.0
+		if kill:
+			var env := exp(-t * 22.0) * minf(1.0, t * 900.0)
+			v = (signf(sin(TAU * 545.0 * t)) * .55 + signf(sin(TAU * 815.0 * t)) * .45) * env * .42
+			v += sin(TAU * 140.0 * t) * exp(-t * 40.0) * .35
+		else:
+			v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
+			v += (fposmod(sin(i * 12.9898) * 43758.5453, 1.0) - .5) * exp(-t * 600.0) * .5
+		raw.encode_s16(i * 2, clampi(int(v * 32767.0), -32768, 32767))
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sfx_rate
+	stream.data = raw
+	return stream
 
 
 ## Ambience, the jukebox, the fuse and the saw motor all loop in the reference.
@@ -187,7 +278,8 @@ static func set_loop(stream: AudioStream, enabled: bool) -> void:
 			if wav.loop_mode != AudioStreamWAV.LOOP_FORWARD:
 				wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
 				wav.loop_begin = 0
-				wav.loop_end = int(wav.data.size() / (4 if wav.stereo else 2))
+				# Frames, whatever the encoding (a QOA bank's data is not samples).
+				wav.loop_end = int(roundf(wav.get_length() * wav.mix_rate))
 		elif wav.loop_mode != AudioStreamWAV.LOOP_DISABLED:
 			wav.loop_mode = AudioStreamWAV.LOOP_DISABLED
 	elif stream is AudioStreamOggVorbis:

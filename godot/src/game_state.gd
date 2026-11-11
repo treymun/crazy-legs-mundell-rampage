@@ -575,7 +575,7 @@ class Gallery:
 		var ax := cos(p.view_angle())
 		var ay := sin(p.view_angle())
 		var reach: float = dx * ax + dy * ay
-		var hit_z: float = p.eye + reach * (p.pitch + p.sway) / FOCAL
+		var hit_z: float = p.eye + reach * (p.pitch + p.sway) / Renderer.base_focal
 		if (
 			reach > 0.0
 			and absf(dx * ay - dy * ax) < RADIUS
@@ -611,6 +611,16 @@ var player: Player
 var armory: Weapons.Armory
 
 var enemy_ids: Array = []
+## Steps from the player over open floor, for enemies that have lost sight of
+## them (flow_field.gd), and the places enemies run from this tick (lit
+## dynamite on the ground): Vector3(x, y, radius).
+var flow: FlowField
+var dangers: Array = []
+## The same, measured from the objective over the whole level with its doors
+## open: the objective pin points along it instead of through walls.
+var route: FlowField
+## What the route was last measured with: stations done, keys, doors open.
+var route_sig := []
 var enemies: Array = []
 var partners := {}
 var wave: Array = []
@@ -670,6 +680,16 @@ var blast_flash := 0.0
 var sprint := 0.0
 var damage_feedback = null
 var item_feedback = null
+## Game feel (HIT FEEDBACK and SCREEN SHAKE): a short freeze when a shot kills
+## or hits hard, the crosshair's hit mark (red after a kill) and its tick, and
+## a shake of the view (0 to 1, squared when drawn) from blasts, heavy guns and
+## blows. None of it is saved; the freeze stops the world but not the aim.
+var hitstop := 0.0
+var hitstop_next := 0.0
+var hit_mark_until := 0.0
+var hit_mark_kill := false
+var hit_tick_next := 0.0
+var shake := 0.0
 var step_number := 0
 var next_belch := 0.0
 
@@ -730,6 +750,31 @@ var tone_live := false
 var flash_scale := 1.0
 var gore := true
 var aim_assist := 0
+var hit_feedback := true
+var shake_scale := 1.0
+## ADAPTIVE DIFFICULTY: incoming damage eases after each death and stiffens
+## after a chapter finished in good health, between .78 and 1.15 of what the
+## DIFFICULTY setting gives. Kept for the session (every Game shares it).
+static var adapt := 1.0
+var adaptive := true
+## The touch overlay is in use (main.gd sets it): aim help reaches further.
+var touch_aim := false
+## TOUCH AUTO FIRE (game_combat.gd sights_on_enemy): the guns it fires, never
+## one that could blow up in the player's face, and its last answer.
+const AUTO_FIRE_GUNS := [
+	Weapons.CROWBAR,
+	Weapons.REVOLVER,
+	Weapons.SHOTGUN,
+	Weapons.RIFLE,
+	Weapons.RIVETER,
+	Weapons.PRESSURE,
+	Weapons.TEAT
+]
+var sights_next := 0.0
+var sights_last := false
+## Real play (main_flow.gd play()) teaches the controls as they come up
+## (lessons.gd); tools that build a Game leave it off.
+var lessons := false
 var district_labels := true
 var hints := true
 var hud_style := 0
