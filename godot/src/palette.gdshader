@@ -29,8 +29,8 @@ const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 
 // pixel, with the renderer's own formulas: the sky, every floor and ceiling,
 // the plain walls (whole spans down each column), the sprites and painted
 // boards in list order, the window panes, and last the weapon and HUD layer.
-// What the renderer still draws itself (glowing signs, the mirror, the hub's
-// shadowed and mesh walls, wall marks, ground marks) arrives as pixels.
+// What the renderer still draws itself (the mirror, window glazing, wall
+// marks, ground marks, and walls past SPAN_K in a column) arrives as pixels.
 uniform bool scene_on = false;
 const int SPAN_K = 12;
 // With overlay_on the weapon, HUD and menus come from a Godot 2D viewport
@@ -271,10 +271,35 @@ vec3 wall_at(ivec2 lp) {
 	return clamp(floor(texel * lit * tint), 0.0, 255.0);
 }
 
-// A span's colour at height wz (render_surfaces.gd _wall_band, plain walls).
-vec3 span_at(int column, int k, float wz, float bottom, float top) {
+// The light of shade step k: on the 1/32 grid, but for the sign glow (97) and
+// the liquor flicker (98) (render_state.gd _build_shade_rows).
+float row_light(int k) {
+	if (k == 97) {
+		return 0.9;
+	}
+	if (k == 98) {
+		return 0.9 * 0.73;
+	}
+	return float(k) / 32.0;
+}
+
+// The road shed's hardware cloth: true where the open mesh shows what is
+// behind (render_surfaces.gd _wall_band, hub_screen).
+bool span_hole(int pu, int pv) {
+	return pu >= 7 && pu <= 120 && pv >= 7 && pv <= 119
+		&& !((pu >= 48 && pu <= 54) || (pv >= 67 && pv <= 73))
+		&& !(pv > 95 && pu < 42 + pv / 5)
+		&& (pu + pv) % 17 >= 2
+		&& (pu - pv + 144) % 18 >= 2; // kept positive: % of a negative is undefined in GLSL
+}
+
+// A span's colour at height wz (render_surfaces.gd _wall_band): plain walls,
+// glowing signs, and the hub walls the water tower shades (at the point hit).
+vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit) {
 	vec4 b = texelFetch(spans, ivec2(column, k * 2 + 1), 0);
 	int how = int(b.z + 0.5);
+	int kind = how >> 9;
+	how = how & 511;
 	int mode = how & 3;
 	int tile = int(b.x + 0.5);
 	int pv;
@@ -289,9 +314,25 @@ vec3 span_at(int column, int k, float wz, float bottom, float top) {
 	int pu = how >> 2;
 	vec3 texel = floor(texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0).rgb * 255.0 + 0.5);
 	int shade_row = int(b.w + 0.5);
-	float lit = float(shade_row % 99) / 32.0;
+	int step = shade_row % 99;
+	float lit = row_light(step);
 	vec3 tint = texelFetch(plane_data, ivec2(shade_row / 99, 4), 0).rgb;
-	return clamp(floor(texel * lit * tint), 0.0, 255.0);
+	if (kind == 1 || kind == 2) {
+		// A sign's bright texels light at no less than .9, the liquor tube
+		// dipping to .73 of that, or of its own light past it.
+		if (texel.r > 156.0 || texel.g > 156.0 || texel.b > 156.0) {
+			if (step < 29) {
+				lit = row_light(kind == 2 ? 98 : 97);
+			} else if (kind == 2) {
+				lit = float(step) / 32.0 * 0.73;
+			}
+		}
+	}
+	vec3 colour = clamp(floor(texel * lit * tint), 0.0, 255.0);
+	if (kind == 3) {
+		colour = floor(colour * tower_shadow(hit.x, hit.y, wz));
+	}
+	return colour;
 }
 
 // Texel k of sprite i of the sprite table (in `spans`, after the wall spans).
@@ -334,6 +375,14 @@ vec3 view_at(ivec2 px) {
 		if (wz < a.y || wz > a.z) {
 			continue;
 		}
+		vec4 b = texelFetch(spans, ivec2(lp.x, k * 2 + 1), 0);
+		int how = int(b.z + 0.5);
+		if ((how >> 9) == 4) {
+			int pv = clamp(int((a.z - wz) / (a.z - a.y) * 128.0), 0, 127);
+			if (span_hole((how >> 2) & 127, pv)) {
+				continue;
+			}
+		}
 		drawn = a.x;
 		best = k;
 		best_wz = wz;
@@ -344,7 +393,7 @@ vec3 view_at(ivec2 px) {
 	float plane = plane_at(dir, sy, base);
 	if (plane >= drawn) {
 		if (best >= 0) {
-			base = span_at(lp.x, best, best_wz, best_bottom, best_top);
+			base = span_at(lp.x, best, best_wz, best_bottom, best_top, eye.xy + dir * drawn);
 		} else if (drawn < 160.0) {
 			base = wall_at(lp);
 		} else {

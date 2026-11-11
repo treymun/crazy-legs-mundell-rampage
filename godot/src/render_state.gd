@@ -155,6 +155,15 @@ var spr := PackedByteArray()
 var wall_code := PackedInt32Array()
 const WALL_RGB := -1
 const WALL_ROW_SHIFT := 21
+## What a wall span is, in its third texel above the column and mode (times
+## 512): a plain wall, a sign whose bright texels glow (SPAN_FLICKER: the liquor
+## tube in its flicker), a hub wall in the water tower's shadow, the road
+## shed's open mesh (palette.gdshader span_at, span_hole).
+const SPAN_PLAIN := 0
+const SPAN_GLOW := 1
+const SPAN_FLICKER := 2
+const SPAN_SHADOW := 3
+const SPAN_MESH := 4
 ## Layered walls, whole spans. Most plain walls are not even coded pixel by
 ## pixel: a wall's run down one column is handed to the shader as one span,
 ## and the shader finds, for every pixel, the nearest span that covers it.
@@ -394,6 +403,21 @@ func _build_shade_rows() -> void:
 						v = 255
 					shade_rows[o] = v
 					o += 1
+
+
+## The road shed's hardware cloth: true where the open mesh lets what is
+## behind show (_wall_band writes the same test out; palette.gdshader span_hole).
+static func mesh_hole(uu: int, v: int) -> bool:
+	return (
+		uu >= 7
+		and uu <= 120
+		and v >= 7
+		and v <= 119
+		and not ((uu >= 48 and uu <= 54) or (v >= 67 and v <= 73))
+		and not (v > 95 and uu < 42 + v / 5)
+		and (uu + v) % 17 >= 2
+		and posmod(uu - v, 18) >= 2
+	)
 
 
 ## Shade-step index for a light already produced by light_at().

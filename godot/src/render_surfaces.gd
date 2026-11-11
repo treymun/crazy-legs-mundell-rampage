@@ -130,6 +130,17 @@ func _wall_band(band_a: int, band_b: int) -> void:
 		var hub_screen := hub_fx and material == tile_hub_screen
 		var opaque := not glazing and not hub_screen
 		var plain := not (glow or mirror or glazing or hub_wall or hub_screen)
+		# Layered, the shader draws these as spans too: the sign glow, the hub's
+		# tower shadow and the shed's open mesh are worked out per pixel there
+		# (SPAN_GLOW and the rest). The mirror and window glazing stay here.
+		var kind := SPAN_PLAIN
+		if glow:
+			kind = SPAN_FLICKER if flicker and material == tile_liquor else SPAN_GLOW
+		elif hub_wall:
+			kind = SPAN_SHADOW
+		elif hub_screen:
+			kind = SPAN_MESH
+		var spannable := lay and (plain or kind != SPAN_PLAIN)
 		var mode := int(tile_mode[material]) if (wall_tiling and plain) else 0
 		var along := sqrt(ex * ex + ey * ey) * 128.0
 		var base_off := tile_base[material] * TILE_BYTES if mode == 2 else 0
@@ -189,7 +200,7 @@ func _wall_band(band_a: int, band_b: int) -> void:
 			var lx := c - col0
 			var gi := row * w + lx
 			var oi := gi * 3
-			var spans_here := sn[c] if plain and lay else SPAN_K
+			var spans_here := sn[c] if spannable else SPAN_K
 			if spans_here < SPAN_K:
 				# Most walls, layered: hand the whole run to the shader as one span.
 				var so := (spans_here * 2 * vw + c) * 4
@@ -200,7 +211,7 @@ func _wall_band(band_a: int, band_b: int) -> void:
 				so += span_row
 				sf[so] = float(material)
 				sf[so + 1] = float(tile_base[material] if mode == 2 else material)
-				sf[so + 2] = float(uu * 4 + mode)
+				sf[so + 2] = float(uu * 4 + mode + kind * 512)
 				sf[so + 3] = float(profile + step)
 				sn[c] = spans_here + 1
 				sf[(SPAN_K * 2 * vw + c) * 4] = spans_here + 1

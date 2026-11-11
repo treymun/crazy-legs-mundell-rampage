@@ -571,6 +571,19 @@ func _mark_band(a: int, b: int) -> void:
 						var wz := cz - row_sy * (st / focal)
 						if wz < sf[so + 1] or wz > sf[so + 2]:
 							continue
+						var how_k := int(sf[so + span_row + 2])
+						if (
+							how_k >> 9 == SPAN_MESH
+							and mesh_hole(
+								(how_k >> 2) & 127,
+								clampi(
+									int((sf[so + 2] - wz) / (sf[so + 2] - sf[so + 1]) * 128.0),
+									0,
+									127
+								)
+							)
+						):
+							continue
 						here = st
 						span_at = so
 				if absf(here - dd) >= .12 or glass[gi] != 0:
@@ -590,6 +603,8 @@ func _mark_band(a: int, b: int) -> void:
 					var top := sf[span_at + 2]
 					var fo2 := span_at + span_row
 					var how := int(sf[fo2 + 2])
+					var kind := how >> 9
+					how = how & 511
 					var mode := how & 3
 					var tile := int(sf[fo2])
 					var pv := 0
@@ -600,10 +615,23 @@ func _mark_band(a: int, b: int) -> void:
 						if mode == 2 and (wz < WINDOW_SILL or wz > WINDOW_HEAD):
 							tile = int(sf[fo2 + 1])
 					var pi := tile * TILE_BYTES + pv * TILE_W * 3 + (how >> 2) * 3
-					var row_base := int(sf[fo2 + 3]) * SHADE_ROW
+					var row := int(sf[fo2 + 3])
+					var row_base := row * SHADE_ROW
 					out[o] = shade_rows[row_base + tiles[pi] * 3]
 					out[o + 1] = shade_rows[row_base + tiles[pi + 1] * 3 + 1]
 					out[o + 2] = shade_rows[row_base + tiles[pi + 2] * 3 + 2]
+					if kind != SPAN_PLAIN:
+						# A sign's glow or the tower's shadow, as the shader does it
+						# (rare: only marks on those walls come here).
+						_span_special(
+							o,
+							pi,
+							row,
+							kind,
+							cz - row_sy * (here / focal),
+							cx + here * dir_x[a + x],
+							cy + here * dir_y[a + x]
+						)
 					wall_code[gi] = WALL_RGB
 					dep[gi] = here
 				elif lay and wall_code[gi] != WALL_RGB:
@@ -712,3 +740,33 @@ func _ground_band(a: int, b: int) -> void:
 					var have := over_a[gi]
 					over_a[gi] = have + int((255 - have) * cov + .5)
 					over_d[gi] = -distance
+
+
+## The glow and shadow wall spans' colour for a wall mark over one (the
+## shader's span_at; _wall_band's per-pixel path for the same walls).
+func _span_special(o: int, pi: int, row: int, kind: int, wz: float, hx: float, hy: float) -> void:
+	var step := row % PROFILE_COUNT
+	var profile := row - step
+	var sr := tiles[pi]
+	var sg := tiles[pi + 1]
+	var sb := tiles[pi + 2]
+	if (kind == SPAN_GLOW or kind == SPAN_FLICKER) and (sr > 156 or sg > 156 or sb > 156):
+		if step < GLOW_STEP:
+			var base := (
+				(profile + (PROFILE_FLICK if kind == SPAN_FLICKER else PROFILE_GLOW)) * SHADE_ROW
+			)
+			out[o] = shade_rows[base + sr * 3]
+			out[o + 1] = shade_rows[base + sg * 3 + 1]
+			out[o + 2] = shade_rows[base + sb * 3 + 2]
+		elif kind == SPAN_FLICKER:
+			var ti := (profile / PROFILE_COUNT) * 3
+			var dim := float(step) / 32.0 * .73
+			out[o] = clampi(int(sr * dim * tints[ti]), 0, 255)
+			out[o + 1] = clampi(int(sg * dim * tints[ti + 1]), 0, 255)
+			out[o + 2] = clampi(int(sb * dim * tints[ti + 2]), 0, 255)
+	elif kind == SPAN_SHADOW:
+		var shadow := tower_shadow(hx, hy, wz)
+		if shadow < 1.0:
+			out[o] = int(out[o] * shadow)
+			out[o + 1] = int(out[o + 1] * shadow)
+			out[o + 2] = int(out[o + 2] * shadow)
