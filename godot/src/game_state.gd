@@ -620,6 +620,14 @@ var bessie = null
 var finale = null
 
 var props: Array = []
+# The sprites that only change with the game's state (props, boards, drums,
+# notes, rooms, scenery): game_view.gd lists them again only when the state
+# they show changes. Two parts, so the list keeps its order around the
+# gallery's moving target.
+var fixed_sprites: Array = []
+var fixed_sprites_late: Array = []
+var fixed_windmills: Array = []
+var fixed_sprites_key := []
 var pickups: Array = []
 var drums := {}
 var inventory := {}

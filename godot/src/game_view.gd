@@ -24,7 +24,24 @@ func reflection() -> Variant:
 # ------------------------------------------------------------------ sprites
 
 
-func sprites() -> Array:
+## What the fixed sprites show: when any of it changes they are listed again.
+func _fixed_key() -> Array:
+	return [
+		world.get_instance_id(),
+		in_hub,
+		legacy_key_route,
+		exit_ready(),
+		won,
+		stations_done.hash(),
+		scenery_spent.hash(),
+		drums.size(),
+		drums.keys().hash() if drums.size() < 64 else drums.size(),
+		gallery != null,
+		props.size(),
+	]
+
+
+func _list_fixed() -> void:
 	var sprites: Array = []
 	if in_hub:
 		for sprite: Renderer.Sprite in props:
@@ -60,9 +77,59 @@ func sprites() -> Array:
 		sprites.append(
 			Renderer.Sprite.new(vec.x, vec.y, "prop_fuel", 1.04, world.elevation(vec.x, vec.y))
 		)
+	fixed_windmills.clear()
 	for sprite: Renderer.Sprite in sprites:
 		if sprite.image.begins_with("prop_windmill_"):
-			sprite.image = "prop_windmill_%d" % (int(clock * 5.0) % 3)
+			fixed_windmills.append(sprite)
+	fixed_sprites = sprites
+	var late: Array = []
+	if not in_hub:
+		for note: LevelData.Note in level.notes:
+			var note_sprite := Renderer.Sprite.new(
+				note.x, note.y, "county_note", .23, world.elevation(note.x, note.y) + .90
+			)
+			note_sprite.plane = note.plane
+			fixed_sprites.append(note_sprite)
+		if gallery != null:
+			var gallery_sign := Renderer.Sprite.new(25.95, 32.72, "county_gallery_sign", .51, 1.03)
+			gallery_sign.plane = 0.0
+			fixed_sprites.append(gallery_sign)
+			var backstop := Renderer.Sprite.new(29.90, 33.48, "county_gallery_backstop", 1.49, .19)
+			backstop.plane = PI / 2.0
+			fixed_sprites.append(backstop)
+		for room: LevelData.Interior in level.interior_art:
+			var room_sprite := Renderer.Sprite.new(
+				room.x,
+				room.y,
+				"county_room_" + room.art,
+				room.height,
+				world.elevation(room.x, room.y) + room.z
+			)
+			room_sprite.plane = room.plane
+			late.append(room_sprite)
+		for prop: LevelData.Scenery in world.scenery:
+			var state := "spent" if scenery_used(prop) else "whole"
+			late.append(
+				Renderer.Sprite.new(
+					prop.x,
+					prop.y,
+					"scenery_%s_%s" % [prop.kind, state],
+					prop.height,
+					world.elevation(prop.x, prop.y) + prop.z
+				)
+			)
+	fixed_sprites_late = late
+
+
+func sprites() -> Array:
+	var key := _fixed_key()
+	if key != fixed_sprites_key:
+		fixed_sprites_key = key
+		_list_fixed()
+	var mill := "prop_windmill_%d" % (int(clock * 5.0) % 3)
+	for sprite: Renderer.Sprite in fixed_windmills:
+		sprite.image = mill
+	var sprites: Array = fixed_sprites.duplicate()
 	if in_hub:
 		# plane = 0: these are flat boards fixed in the world, as in the
 		# reference, not sprites that turn to face the camera.
@@ -101,42 +168,9 @@ func sprites() -> Array:
 		)
 		sprites.append_array(dust)
 		return sprites
-	for note: LevelData.Note in level.notes:
-		var note_sprite := Renderer.Sprite.new(
-			note.x, note.y, "county_note", .23, world.elevation(note.x, note.y) + .90
-		)
-		note_sprite.plane = note.plane
-		sprites.append(note_sprite)
-	if gallery != null:
-		var gallery_sign := Renderer.Sprite.new(25.95, 32.72, "county_gallery_sign", .51, 1.03)
-		gallery_sign.plane = 0.0
-		sprites.append(gallery_sign)
-		var backstop := Renderer.Sprite.new(29.90, 33.48, "county_gallery_backstop", 1.49, .19)
-		backstop.plane = PI / 2.0
-		sprites.append(backstop)
-		if gallery.active:
-			sprites.append(gallery.sprite(self))
-	for room: LevelData.Interior in level.interior_art:
-		var room_sprite := Renderer.Sprite.new(
-			room.x,
-			room.y,
-			"county_room_" + room.art,
-			room.height,
-			world.elevation(room.x, room.y) + room.z
-		)
-		room_sprite.plane = room.plane
-		sprites.append(room_sprite)
-	for prop: LevelData.Scenery in world.scenery:
-		var state := "spent" if scenery_used(prop) else "whole"
-		sprites.append(
-			Renderer.Sprite.new(
-				prop.x,
-				prop.y,
-				"scenery_%s_%s" % [prop.kind, state],
-				prop.height,
-				world.elevation(prop.x, prop.y) + prop.z
-			)
-		)
+	if gallery != null and gallery.active:
+		sprites.append(gallery.sprite(self))
+	sprites.append_array(fixed_sprites_late)
 	if finale != null and finale.kind == "rudy" and finale.alive:
 		for point: Vector2 in world.boss_decoys:
 			var decoy := Renderer.Sprite.new(
