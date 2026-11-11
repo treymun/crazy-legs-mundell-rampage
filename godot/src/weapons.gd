@@ -211,6 +211,13 @@ class Armory:
 	static var graded := {}
 	static var rim_cache := {}
 	static var composed := {}
+	## So the first sight of a pose costs nothing on the frame: when a gun comes
+	## out (or the light it is held in changes) a thread lights every pose of it
+	## from that light up to the brightest a muzzle flash gives (_warm), and
+	## draw() takes the results in when it is done.
+	static var _warm_thread: Thread = null
+	static var _warm_key := ""
+	static var _poses := {}
 	var boxes := {}
 
 	func _init(start_slot := 1) -> void:
@@ -644,6 +651,7 @@ class Armory:
 		var s: float = float(Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE))
 		var name := "gun_%s_%s" % [Weapons.NAMES[i], pose_name]
 		var level := clampi(int(round((.68 + .38 * light + flash * flashes * 1.6) * 16)), 11, 18)
+		_warm(assets, clampi(int(round((.68 + .38 * light) * 16)), 11, 18))
 		var key := name + "|" + str(level)
 		if graded.size() > 220:
 			# Every gun in every light would run to hundreds of megabytes.
@@ -866,11 +874,66 @@ class Armory:
 			_line(frame, int(tail.x), int(tail.y), int(tip.x), int(tip.y), Color8(216, 170, 83))
 			_set_pixel(frame, int(tip.x), int(tip.y), Color8(233, 193, 112))
 
+	# ------------------------------------------------------------ warming
+
+	## Take in what the warming thread lit, and start it for the gun in hand
+	## when that gun or its light is new (see _warm_thread).
+	func _warm(assets: Assets, base_level: int) -> void:
+		if _warm_thread != null:
+			if _warm_thread.is_alive():
+				return
+			var done: Dictionary = _warm_thread.wait_to_finish()
+			_warm_thread = null
+			for key: String in done:
+				if not graded.has(key):
+					var entry: Array = done[key]
+					graded[key] = entry[0]
+					rim_cache[key] = entry[1]
+					composed[key] = entry[2]
+		var gun: String = Weapons.NAMES[active]
+		var want := "%s|%d" % [gun, base_level]
+		if want == _warm_key:
+			return
+		_warm_key = want
+		if not _poses.has(gun):
+			var names: Array = []
+			for name: String in assets.art_index:
+				if name.begins_with("gun_%s_" % gun):
+					names.append(name)
+			_poses[gun] = names
+		var jobs: Array = []
+		for name: String in _poses[gun]:
+			for level in range(base_level, 19):
+				var key := name + "|" + str(level)
+				if not graded.has(key):
+					jobs.append([name, assets.art(name), level, key])
+		if jobs.is_empty():
+			return
+		if graded.size() + jobs.size() > 220:
+			graded.clear()
+			rim_cache.clear()
+			composed.clear()
+		var s: float = float(Weapons.VIEW_SCALES.get(active, Weapons.VIEW_SCALE))
+		_warm_thread = Thread.new()
+		_warm_thread.start(_warm_jobs.bind(jobs, s), Thread.PRIORITY_LOW)
+
+	## On the warming thread: only its own arguments and static functions.
+	func _warm_jobs(jobs: Array, s: float) -> Dictionary:
+		var out := {}
+		var own_boxes := {}
+		for job: Array in jobs:
+			var image := _grade_cel(own_boxes, job[1], job[0], s, job[2])
+			var rim := _rim(image)
+			out[job[3]] = [image, rim, _compose(image, rim)]
+		return out
+
 	# ------------------------------------------------------------ helpers
 
 	## Multiply the cel by the graded light, add the warm floor, then smoothscale.
 	## Where a cel has anything in it (one pixel of margin), found once per cel.
-	func _opaque_box(name: String, data: PackedByteArray, w: int, h: int) -> Rect2i:
+	static func _opaque_box(
+		boxes: Dictionary, name: String, data: PackedByteArray, w: int, h: int
+	) -> Rect2i:
 		if boxes.has(name):
 			return boxes[name]
 		var x0 := w
@@ -900,7 +963,11 @@ class Armory:
 	## holds the weapon is graded and scaled, then seated in the full frame:
 	## doing the whole 320x120 was a visible hitch the first time a pose showed.
 	func _grade(assets: Assets, name: String, s: float, level: int) -> Dictionary:
-		var art := assets.art(name)
+		return _grade_cel(boxes, assets.art(name), name, s, level)
+
+	static func _grade_cel(
+		boxes: Dictionary, art: Dictionary, name: String, s: float, level: int
+	) -> Dictionary:
 		var w: int = art["w"]
 		var h: int = art["h"]
 		var data: PackedByteArray = art["data"]
@@ -909,7 +976,7 @@ class Armory:
 		var spans := PackedInt32Array()
 		spans.resize(th * 2)
 		spans.fill(-1)
-		var box := _opaque_box(name, data, w, h)
+		var box := _opaque_box(boxes, name, data, w, h)
 		var out := PackedByteArray()
 		if box.size.x <= 0:
 			out.resize(tw * th * 4)
@@ -971,7 +1038,7 @@ class Armory:
 		return {"w": tw, "h": th, "data": out, "spans": spans}
 
 	## mask.from_surface(image).to_surface((205,168,116,42)) over the scaled cel.
-	func _rim(image: Dictionary) -> Dictionary:
+	static func _rim(image: Dictionary) -> Dictionary:
 		var w: int = image["w"]
 		var h: int = image["h"]
 		var data: PackedByteArray = image["data"]
@@ -995,7 +1062,7 @@ class Armory:
 	## column painted, then the run of colour and coverage from there. Laid into
 	## the empty layer canvas (_lay_cel) it gives exactly what blitting the rim
 	## and then the cel would have, at a fraction of the cost.
-	func _compose(image: Dictionary, rim: Dictionary) -> Dictionary:
+	static func _compose(image: Dictionary, rim: Dictionary) -> Dictionary:
 		var w: int = image["w"]
 		var h: int = image["h"]
 		var cel: PackedByteArray = image["data"]
