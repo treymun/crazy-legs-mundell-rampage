@@ -135,7 +135,7 @@ func _compare(shown: Image, against: Image, diff_path: String) -> float:
 		var mean := signed / maxf(1.0, any)
 		print(
 			(
-				"::notice title=%s detail::mean shift %.1f %.1f %.1f, strong box %s, %d of %d strong in the HUD rows"
+				"::notice title=%s detail::shift %.1f %.1f %.1f, box %s, %d of %d in HUD"
 				% [
 					diff_path.get_file().trim_suffix("_diff.png"),
 					mean.x,
