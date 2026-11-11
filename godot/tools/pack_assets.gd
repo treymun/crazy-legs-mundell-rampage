@@ -22,6 +22,10 @@
 ##   palette.bin  the RGB555 -> 256-colour table; grain.bin the film grain frames
 extends SceneTree
 
+## By path, not class name: CI packs before the project is imported, when
+## class names do not resolve yet.
+const AssetsLib := preload("res://src/assets.gd")
+
 const SFX_RATE := 22050
 const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky"]
 const MUSIC_FILES := {
@@ -121,7 +125,7 @@ func _tiles() -> void:
 		if image.get_width() != 128 or image.get_height() != 128:
 			_fail("tile %s is %dx%d, not 128x128" % [name, image.get_width(), image.get_height()])
 		blob.append_array(image.get_data())
-	_write("tiles.bin", Assets.pack_whole(blob))
+	_write("tiles.bin", AssetsLib.pack_whole(blob))
 	print("tiles.bin %.2f MB, %d tiles, missing %s" % [blob.size() / 1e6, names.size(), missing])
 
 
@@ -131,7 +135,7 @@ func _art() -> void:
 	# A chapter's own enemies go in a file of their own, which the browser
 	# build fetches after it starts (src/assets.gd, tools/make_packs.gd).
 	var chapter_blobs := {}
-	for file_name: String in Assets.CHAPTER_ART.values():
+	for file_name: String in AssetsLib.CHAPTER_ART.values():
 		chapter_blobs[file_name] = PackedByteArray()
 	for file in _sorted_files("assets/art", "png"):
 		var image := _image(repo.path_join("assets/art").path_join(file), Image.FORMAT_RGBA8)
@@ -141,7 +145,7 @@ func _art() -> void:
 		# Sprites are mostly empty air: each one is deflated on its own and
 		# inflated the first time the game asks for it.
 		var packed := image.get_data().compress(FileAccess.COMPRESSION_DEFLATE)
-		var home := Assets.art_home(file.get_basename())
+		var home := AssetsLib.art_home(file.get_basename())
 		var into: PackedByteArray = blob if home == "" else chapter_blobs[home]
 		var entry := {
 			"offset": into.size(),
@@ -294,6 +298,6 @@ func _skies() -> void:
 			continue
 		index[name] = {"offset": blob.size(), "w": image.get_width(), "h": image.get_height()}
 		blob.append_array(image.get_data())
-	_write("sky.bin", Assets.pack_whole(blob))
+	_write("sky.bin", AssetsLib.pack_whole(blob))
 	_write_json("sky_index.json", index)
 	print("sky.bin %.2f MB, %d skies" % [blob.size() / 1e6, index.size()])

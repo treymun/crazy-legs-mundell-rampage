@@ -56,7 +56,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: godot/assets_gen
-        key: packs-${{ hashFiles('assets/art/**', 'assets/tiles/**', 'audio_src/manifest.json', 'audio_src/final/sfx/**', 'godot/assets/music/**', 'godot/assets_gen/tiles_index.json', 'godot/tools/pack_assets.gd') }}
+        key: packs-${{ hashFiles('assets/art/**', 'assets/tiles/**', 'audio_src/manifest.json', 'audio_src/final/sfx/**', 'godot/assets/music/**', 'godot/assets_gen/tiles_index.json', 'godot/tools/pack_assets.gd', 'godot/src/assets.gd') }}
 
     - name: Pack the assets
       if: steps.packs.outputs.cache-hit != 'true'
