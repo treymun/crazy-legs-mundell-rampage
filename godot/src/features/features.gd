@@ -9,6 +9,7 @@ const ALL := [
 	preload("res://src/features/chapter_stats.gd"),
 	preload("res://src/features/weather.gd"),
 	preload("res://src/features/debris.gd"),
+	preload("res://src/features/weapon_fx.gd"),
 	preload("res://src/features/ambient.gd"),
 	preload("res://src/features/callouts.gd"),
 	preload("res://src/features/tally.gd"),

@@ -139,15 +139,22 @@ func hitscan(
 			scenery = prop
 			near = d
 	if scenery != null:
+		_traced(ax, ay, slope, near, "thing")
 		hit_scenery(scenery)
 		return true
 	if drum != null:
+		_traced(ax, ay, slope, near, "thing")
 		drum_hit(drum, amount)
 		return true
 	if best != null:
+		_traced(ax, ay, slope, near, "enemy")
 		best.hurt(amount, self, false, pressure)
 		return true
+	if not spark:
+		var reach := _wall_distance(ax, ay, slope, max_range)
+		_traced(ax, ay, slope, reach, "air" if reach >= max_range else "wall:")
 	if spark:
+		var ended := false
 		var steps := int(ceil(max_range / .105))
 		for i in range(1, steps + 1):
 			var d: float = i * max_range / steps
@@ -167,6 +174,7 @@ func hitscan(
 			if surface_tile != null or world.blocked(x, y, .024, z):
 				var pane = world.pane_at(x, y, z, .025)
 				if pane != null:
+					_traced(ax, ay, slope, d, "glass")
 					shatter(pane, z)
 					return true
 				var mark = (
@@ -204,6 +212,8 @@ func hitscan(
 				var hit_d: float = (i - .70) * max_range / steps
 				x = p.x + ax * hit_d
 				y = p.y + ay * hit_d
+				_traced(ax, ay, slope, hit_d, "wall:" + surface)
+				ended = true
 				if specks.size() < 144:
 					var particle := String(
 						(
@@ -251,7 +261,33 @@ func hitscan(
 						cue = "impact_pressure"
 					sound_at(cue, x, y, .64)
 				break
+		if not ended:
+			_traced(ax, ay, slope, max_range, "air")
 	return false
+
+
+func _traced(ax: float, ay: float, slope: float, d: float, struck: String) -> void:
+	var p := player
+	traced.emit(Vector3(p.x + ax * d, p.y + ay * d, p.eye + d * slope), struck)
+
+
+## How far a shot along (ax, ay, slope) goes before a wall, floor or roof stops
+## it (max_range when nothing does), for the look of a shot that chips nothing.
+func _wall_distance(ax: float, ay: float, slope: float, max_range: float) -> float:
+	var p := player
+	var steps := int(ceil(max_range / .21))
+	for i in range(1, steps + 1):
+		var d: float = i * max_range / steps
+		var x := p.x + ax * d
+		var y := p.y + ay * d
+		var z := p.eye + d * slope
+		var cell := (
+			clampi(int(y), 0, world.height - 1) * world.width + clampi(int(x), 0, world.width - 1)
+		)
+		var roof_z: float = world.roof[cell]
+		if z < world.ground[cell] or (0.0 < roof_z and roof_z < z) or world.blocked(x, y, .024, z):
+			return (i - .7) * max_range / steps
+	return max_range
 
 
 func assisted_aim(angle: float, slope: float) -> Array:

@@ -33,7 +33,15 @@ func _init() -> void:
 		firefly(k).save(out.path_join("fx_firefly_%d.png" % k))
 	for k in 3:
 		scorch(k).save(out.path_join("mark_scorch_%d.png" % k))
-	print("world fx: 11 pictures in ", out)
+	# What the guns throw between the muzzle and the mark (features/weapon_fx.gd).
+	milk_drop().save(out.path_join("fx_milkdrop.png"))
+	tracer().save(out.path_join("fx_tracer.png"))
+	for k in 2:
+		mote(k).save(out.path_join("fx_mote_%d.png" % k))
+	for k in 3:
+		milk_splash(k).save(out.path_join("fx_milksplash_%d.png" % k))
+		milk_puddle(k).save(out.path_join("mark_milk_%d.png" % k))
+	print("world fx: 21 pictures in ", out)
 	quit()
 
 
@@ -105,6 +113,90 @@ func scorch(k: int) -> Paint.Sheet:
 		)
 	var out := s.resized(48, 48)
 	return out
+
+
+## A drop of milk in flight: cream white, a shine on top, a bluish belly.
+func milk_drop() -> Paint.Sheet:
+	var s := Paint.Sheet.new(32, 32)
+	Paint.ellipse(s, 6, 4, 26, 28, Color8(196, 200, 206))
+	Paint.ellipse(s, 7, 4, 25, 23, Color8(246, 242, 228))
+	Paint.ellipse(s, 11, 7, 17, 13, Color8(255, 255, 250))
+	return shrunk(s, 8, 8, 100)
+
+
+## A bullet's hot streak: a pale yellow core in an orange skin.
+func tracer() -> Paint.Sheet:
+	var s := Paint.Sheet.new(32, 32)
+	Paint.ellipse(s, 6, 6, 25, 25, Color8(246, 170, 60))
+	Paint.ellipse(s, 10, 10, 21, 21, Color8(255, 236, 160))
+	Paint.ellipse(s, 13, 13, 18, 18, Color8(255, 255, 230))
+	return shrunk(s, 6, 6, 90)
+
+
+## A green spark shed by the alien arm gun's bolt.
+func mote(k: int) -> Paint.Sheet:
+	var s := Paint.Sheet.new(24, 24)
+	if k == 0:
+		Paint.ellipse(s, 3, 3, 20, 20, Color8(90, 230, 110))
+		Paint.ellipse(s, 8, 8, 15, 15, Color8(220, 255, 210))
+	else:
+		Paint.ellipse(s, 6, 6, 17, 17, Color8(60, 170, 80))
+		Paint.ellipse(s, 10, 10, 13, 13, Color8(170, 250, 170))
+	return shrunk(s, 5, 5, 80)
+
+
+## Milk hitting something: a crown of drops thrown up and out, then falling.
+func milk_splash(k: int) -> Paint.Sheet:
+	var s := Paint.Sheet.new(96, 96)
+	var cream := Color8(244, 240, 226)
+	var shade := Color8(198, 202, 210)
+	var spread := 14.0 + k * 13.0
+	var lift := 30.0 - k * 9.0
+	# The sheet of milk at the foot, thinning as the crown opens.
+	var foot := 34.0 - k * 6.0
+	Paint.ellipse(s, 48 - foot, 78, 48 + foot, 90, shade)
+	Paint.ellipse(s, 48 - foot + 4, 78, 48 + foot - 4, 86, cream)
+	for i in 9:
+		var a := -PI + (i + .5) * PI / 9.0
+		var x := 48.0 + cos(a) * spread * 1.6
+		var y := 82.0 + sin(a) * lift * (1.3 if i % 2 else 1.0) + k * k * 4.0
+		var r := (6.0 - k * 1.4) * (1.0 if i % 3 else 1.3)
+		if k < 2:
+			# A thread of milk back down to the sheet.
+			Paint.line2(s, 48 + cos(a) * spread * .6, 82, x, y, cream, 5.0)
+		Paint.ellipse(s, x - r, y - r, x + r, y + r, shade)
+		Paint.ellipse(s, x - r + 1, y - r, x + r - 1, y + r - 2, cream)
+	return shrunk(s, 24, 24, 100)
+
+
+## A pool of spilt milk on the ground, with drops flicked out around it.
+func milk_puddle(k: int) -> Paint.Sheet:
+	var size := 80
+	var s := Paint.Sheet.new(size * 2, size * 2)
+	var c := size
+	var pts := PackedVector2Array()
+	for i in 24:
+		var a := i * TAU / 24.0
+		var rr := size * .62 * (1.0 + rng.randf_range(-.22, .16) + .12 * sin(a * (2 + k) + k))
+		pts.append(Vector2(c + cos(a) * rr, c + sin(a) * rr))
+	Paint.polygon(s, pts, Color8(214, 216, 220, 200))
+	var inner := PackedVector2Array()
+	for p in pts:
+		inner.append(Vector2(c, c).lerp(p, .8))
+	Paint.polygon(s, inner, Color8(240, 238, 228, 215))
+	for _i in 14:
+		var a := rng.randf_range(0, TAU)
+		var d := size * rng.randf_range(.7, .98)
+		var r2 := rng.randf_range(3, 9)
+		Paint.ellipse(
+			s,
+			c + cos(a) * d - r2,
+			c + sin(a) * d - r2,
+			c + cos(a) * d + r2,
+			c + sin(a) * d + r2,
+			Color8(236, 234, 226, 200)
+		)
+	return s.resized(40, 40)
 
 
 func crow(k: int) -> Paint.Sheet:

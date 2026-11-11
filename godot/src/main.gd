@@ -163,6 +163,17 @@ func _view_tour() -> void:
 		game.armory.lower = 0.0 if armed else 1.0
 		if shot.has("detail"):
 			game.renderer.set_detail(int(shot["detail"]))
+		if shot.has("gun"):
+			# A viewpoint of one gun firing: given it, loaded, in hand.
+			var g := int(shot["gun"])
+			var arms = game.armory
+			arms.owned[g] = true
+			arms.reserve[g] = maxi(Weapons.MAX_RESERVE[g], 1)
+			arms.loaded[g] = Weapons.CAPACITY[g]
+			arms.active = g
+			arms.switch = 0.0
+			arms.cooldown = 0.0
+			arms.reload = 0.0
 		if shot.has("ticks"):
 			var held := Game.Controls.new()
 			held.fire = bool(shot.get("fire", false))

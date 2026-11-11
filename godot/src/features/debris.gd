@@ -198,7 +198,11 @@ func _trails() -> void:
 
 func sprites() -> Array:
 	var out: Array = []
+	var p = game.player
 	for bit: Bit in bits:
+		# Brass just out of the gun is at the lens: a blur filling the view's edge.
+		if (bit.x - p.x) * (bit.x - p.x) + (bit.y - p.y) * (bit.y - p.y) < .36:
+			continue
 		var name := "fx_casing"
 		match bit.kind:
 			"hull":

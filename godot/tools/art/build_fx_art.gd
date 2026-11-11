@@ -58,6 +58,9 @@ func _init() -> void:
 	for frame in 3:
 		sparks(frame).save(out.path_join("fx_sparks_%d.png" % frame))
 		count += 1
+	for frame in 4:
+		spray(frame).save(out.path_join("fx_spray_%d.png" % frame))
+		count += 1
 	var bolt := Paint.Sheet.load_png(out.path_join("fx_energy_1.png")).resized(24, 24)
 	bolt.save(out.path_join("fx_arm_bolt.png"))
 	print("fx art: %d frames in %s" % [count, out])
@@ -214,6 +217,43 @@ func sparks(frame: int) -> Paint.Sheet:
 		colours[i] = ramp(hv, FIRE)
 		alphas[i] = clampf((hv - .12) * 5, 0.0, 1.0) * 255
 	return sheet_of(size, colours, alphas)
+
+
+## The teat gun's squirt: a burst of milk beads flung out from the teat,
+## thinning to a mist (four frames, like a muzzle flash).
+func spray(frame: int) -> Paint.Sheet:
+	var p := polar(SIZE)
+	var r: PackedFloat32Array = p[0]
+	var a: PackedFloat32Array = p[1]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
+	var body := PackedFloat32Array()
+	body.resize(SIZE * SIZE)
+	var core: float = [1.1, .8, .45, .2][frame]
+	for i in body.size():
+		body[i] = exp(-pow(r[i] / .3, 2)) * core
+	for _k in 13:
+		var at := rng.randf_range(-PI, PI)
+		var length := rng.randf_range(.5, 1.0)
+		var head: float = [.3, .55, .78, .95][frame] * length
+		var gain: float = [1.0, .95, .75, .5][frame]
+		for i in body.size():
+			# Beads along each ray, not a smooth streak.
+			var along := clampf(1.0 - absf(r[i] - head) / .3, 0.0, 1.0)
+			var beads := .55 + .45 * cos(r[i] * 46.0)
+			body[i] += exp(-pow(angle_gap(a[i], at) / .12, 2)) * along * beads * gain * 1.4
+	var mist := Paint.cloud(SIZE, 19 + frame, [6, 12, 24])
+	var colours := PackedVector3Array()
+	var alphas := PackedFloat32Array()
+	colours.resize(body.size())
+	alphas.resize(body.size())
+	for i in body.size():
+		var v := clampf(body[i], 0.0, 1.0)
+		var shade := 200.0 + 55.0 * v
+		colours[i] = Vector3(shade, shade * .985, shade * .93)
+		var haze := clampf(1.0 - r[i] / (.5 + .12 * frame), 0.0, 1.0) * mist[i] * 90.0
+		alphas[i] = maxf(clampf((v - .1) * 3.5, 0.0, 1.0) * 250.0, haze * (1.0 - .2 * frame))
+	return sheet_of(SIZE, colours, alphas)
 
 
 ## A blast: a rolling ball of fire that swells, then chars at the edges.

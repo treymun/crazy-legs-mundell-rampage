@@ -707,6 +707,8 @@ class Armory:
 			var prefix := String(style[0])
 			var aspect := float(style[1])
 			var smoke_scale := float(style[2])
+			if i == Weapons.TEAT and shot_age < .14:
+				_milk_stream(frame, assets, Weapons.view_point(x, y, anchor.x, anchor.y, s), s)
 			if flash > 0.0 and flashes > 0.0:
 				var index := mini(3, int(shot_age * 48))
 				var size := int(
@@ -729,7 +731,7 @@ class Armory:
 					int(255.0 * minf(1.0, flashes)),
 					flash_name
 				)
-				if prefix != "energy" and prefix != "steam" and shot_age < .075:
+				if prefix in ["fire", "rocket", "forge"] and shot_age < .075:
 					# Burning powder thrown ahead of the muzzle.
 					var reach := (5.0 + shot_age * 170.0) * s
 					for k in 7:
@@ -1254,6 +1256,30 @@ class Armory:
 
 	## Nearest-neighbour scale blit (pygame.transform.scale), alpha scaled.
 	## _blit_scaled, but adding light: a flash brightens what is behind it.
+	## The teat gun's stream on screen: drops thrown from the teat in an arc
+	## toward the middle of the view, smaller as they go (weapon_fx.gd carries
+	## them on through the world to the mark).
+	func _milk_stream(frame: PackedByteArray, assets: Assets, spout: Vector2, s: float) -> void:
+		var drop := assets.art("fx_milkdrop")
+		var aim := Vector2(Renderer.WIDTH * .5, Renderer.VIEW * .5 + 4.0)
+		for k in 18:
+			var t := fposmod(k / 18.0 + shot_age * 6.5, 1.0)
+			var at := spout.lerp(aim, t * .9)
+			# Up off the teat, then falling away.
+			at.y += -6.0 * sin(t * PI) + 6.0 * t * t
+			at.x += float((k * 7) % 5 - 2) * .5 * t
+			var size := int(round(lerpf(9.0, 3.0, t) * s))
+			_blit_scaled(
+				frame,
+				drop,
+				size,
+				size,
+				int(at.x) - size / 2,
+				int(at.y) - size / 2,
+				int(255.0 * (1.0 - t * .35)),
+				"fx_milkdrop"
+			)
+
 	static func _blit_glow(
 		frame: PackedByteArray,
 		art: Dictionary,
