@@ -183,21 +183,20 @@ func frame(game: Game, _canvas: Canvas) -> void:
 	var vw := r.vw
 	var vh := r.vh
 	# Stacked a view's height apart (see the shader's `colours` and `distances`).
+	# Plain bytes, only copied: three colour bands, then the wall codes and the
+	# coverage as a byte stream (palette.gdshader stream_byte()).
 	var colours := r.frame.duplicate()
 	colours.append_array(r.over)
 	colours.append_array(r.pane_rgb)
-	var colour_bands := Image.create_from_data(vw, vh * 3, false, Image.FORMAT_RGB8, colours)
-	colour_bands.convert(Image.FORMAT_RGBA8)
-	var parts := colour_bands.get_data()
-	parts.append_array(r.wall_code.to_byte_array())
-	_put("colours", vw, vh * 4, Image.FORMAT_RGBA8, parts)
-	var cover := Image.create_from_data(vw, vh, false, Image.FORMAT_R8, r.over_a)
-	cover.convert(Image.FORMAT_RF)
+	colours.append_array(r.wall_code.to_byte_array())
+	colours.append_array(r.over_a)
+	var row_bytes := vw * 3
+	colours.resize((colours.size() + row_bytes - 1) / row_bytes * row_bytes)
+	_put("colours", vw, colours.size() / row_bytes, Image.FORMAT_RGB8, colours)
 	var distances := r.depth.to_byte_array()
 	distances.append_array(r.over_d.to_byte_array())
 	distances.append_array(r.pane_dist.to_byte_array())
-	distances.append_array(cover.get_data())
-	_put("distances", vw, vh * 4, Image.FORMAT_RF, distances)
+	_put("distances", vw, vh * 3, Image.FORMAT_RF, distances)
 	_sprites(r)
 	# The wall spans, their counts, then the sprite table flowing on across rows.
 	var table := r.span_f.duplicate()

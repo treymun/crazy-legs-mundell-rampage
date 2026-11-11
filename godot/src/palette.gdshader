@@ -46,10 +46,12 @@ uniform sampler2D post_tex : filter_nearest, repeat_disable;
 // shade row lights it (11 bits: tint * 99 + light step); all ones in the shade
 // row means the pixel's finished colour is in `colours` instead (glowing signs,
 // the mirror, wall marks). wall_dist is the distance of what the renderer drew.
-// The renderer's per-frame parts, stacked a view's height apart.
-// colours: walls, sprites/ground marks (premultiplied), window panes, then the
-// wall codes (four bytes each). distances: walls, sprites/ground marks, window
-// panes, then the sprite/ground mark coverage.
+// The renderer's per-frame parts, stacked a view's height apart, as plain
+// bytes so a frame is only copied, never converted. colours (RGB, a view wide):
+// walls, sprites/ground marks (premultiplied), window panes, then a stream of
+// bytes read three to a texel: the wall codes (four bytes a pixel), then the
+// sprite/ground mark coverage (one byte a pixel). distances: walls,
+// sprites/ground marks, window panes.
 uniform sampler2D colours : filter_nearest, repeat_disable;
 uniform sampler2D distances : filter_nearest, repeat_disable;
 // Plain walls as whole spans, up to two texels each down a column, and how
@@ -244,9 +246,18 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 	return 1e9;
 }
 
+// Byte i of the stream after the three colour bands of `colours`.
+int stream_byte(int i) {
+	int t = i / 3;
+	vec3 texel = texelFetch(colours, ivec2(t % view_size.x, view_size.y * 3 + t / view_size.x), 0).rgb;
+	int k = i - t * 3;
+	return int((k == 0 ? texel.r : k == 1 ? texel.g : texel.b) * 255.0 + 0.5);
+}
+
 // A wall pixel's colour (renderer.gd _wall_band and its shade table).
 vec3 wall_at(ivec2 lp) {
-	ivec4 code = ivec4(texelFetch(colours, lp + ivec2(0, view_size.y * 3), 0) * 255.0 + 0.5);
+	int at = (lp.y * view_size.x + lp.x) * 4;
+	ivec4 code = ivec4(stream_byte(at), stream_byte(at + 1), stream_byte(at + 2), stream_byte(at + 3));
 	int shade_row = (code.b >> 5) | (code.a << 3);
 	if (shade_row == 2047) {
 		return texelFetch(colours, lp, 0).rgb * 255.0;
@@ -341,7 +352,7 @@ vec3 view_at(ivec2 px) {
 		}
 	}
 	float nearest = min(plane, drawn);
-	float cover = texelFetch(distances, lp + ivec2(0, view_size.y * 3), 0).r;
+	float cover = float(stream_byte(view_size.x * view_size.y * 4 + lp.y * view_size.x + lp.x)) / 255.0;
 	if (cover > 0.0) {
 		float reach = texelFetch(distances, lp + ivec2(0, view_size.y), 0).r;
 		// A sprite shows unless a surface the shader drew is in front of it; a ground
