@@ -48,6 +48,8 @@ jobs:
         run: godot --headless --path godot --script res://tools/verify_assets.gd
       - name: Parity regression checks
         run: godot --headless --path godot --script res://tools/check_fixes.gd
+      - name: Level editing keeps the walls right
+        run: godot --headless --path godot --script res://tools/level_edit_check.gd
       - name: Campaign walkthrough
         run: godot --headless --path godot --script res://tools/bot_campaign.gd
       - name: Pictures match their references
