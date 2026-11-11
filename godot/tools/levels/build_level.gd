@@ -33,6 +33,7 @@ func _init() -> void:
 	var plan = load("res://tools/levels/%s_plan.gd" % level_id).new()
 	var b = plan.make()
 	var spawn: Array = plan.build(b)
+	b.mount_signs()
 	var problems: Array = b.problems(spawn)
 	for p in problems:
 		print("PROBLEM ", p)

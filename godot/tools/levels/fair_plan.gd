@@ -100,22 +100,14 @@ func parking_and_gate() -> void:
 	b.arch(64.0, 84.4, 3.45, "route_hub")
 	b.board("hub_road_stake", 66.2, 83.4, .97, {"plane": PI, "back": "hub_road_stake_back"})
 	# Trucks parked in rows, a camper, a horse trailer; whoever came never left.
-	for p in [
-		Vector2(12.5, 78.5),
-		Vector2(27.6, 79.0),
-		Vector2(43.2, 77.6),
-		Vector2(84.0, 78.4),
-		Vector2(101.0, 79.4),
-		Vector2(116.0, 77.6)
-	]:
-		b.prop("pickup_truck" if int(p.x) % 2 else "pickup_truck_b", p.x, p.y)
+	b.prop("pickup_truck_b", 118.0, 77.6)
 	b.town("truck_blocks", 35.5, 81.5, {"solid": .45})
 	b.town("port_a_john", 49.5, 74.5, {"solid": .45})
 	b.town("port_a_john", 51.5, 74.5, {"solid": .45})
 	b.town("searchlight", 54.5, 76.5, {"solid": .35, "glow": true})
 	b.town("searchlight", 73.5, 76.5, {"solid": .35, "glow": true})
 	for k in 6:
-		b.board("fair_pylon", 58.0 + (k % 2) * 12.0, 75.0 + (k / 2) * 3.0, 1.2, {"glow": true})
+		b.board("fair_pylon", 58.0 + (k % 2) * 12.0, 75.2 + (k / 2) * 3.0, 1.2, {"glow": true})
 	# The ticket line: the fence with its gate between two ticket shacks.
 	b.fence(4, 72, 124, 72, 1.6, "fair_iron")
 	b.building(
@@ -337,7 +329,7 @@ func livestock_barn() -> void:
 	b.board("fair_lost_property", 31.92, 20.0, .6, {"z": 1.0, "plane": PI / 2})
 	for p in [Vector2(18.0, 20.0), Vector2(23.0, 34.0), Vector2(29.5, 24.0), Vector2(10.0, 20.0)]:
 		b.prop("hay", p.x, p.y)
-	for p in [Vector2(14.0, 27.0), Vector2(26.0, 20.0), Vector2(14.0, 35.0), Vector2(26.0, 35.0)]:
+	for p in [Vector2(13.6, 27.2), Vector2(26.0, 20.0), Vector2(14.0, 35.0), Vector2(26.0, 35.0)]:
 		b.prop("lamp", p.x, p.y)
 		b.glow(p.x, p.y, 3.0, .18)
 	b.trough(16.0, 28.6, 18.4, 29.0)
@@ -366,7 +358,7 @@ func ferris_plaza() -> void:
 		b.town("carousel_horse", 45.5 + cos(a) * 2.6, 32.5 + sin(a) * 2.6, {"solid": .12})
 	b.glow(45.5, 32.5, 3.6, .3)
 	b.town("balloons", 38.5, 38.5)
-	b.town("prize_bear", 50.4, 16.0)
+	b.town("prize_bear", 49.55, 16.4)
 	b.town("port_a_john", 37.5, 15.5, {"solid": .45})
 	b.board("fair_pylon", 41.0, 28.0, 1.2, {"glow": true})
 	b.board("fair_pylon", 50.0, 28.0, 1.2, {"glow": true})
@@ -567,7 +559,7 @@ func sideshows() -> void:
 	b.booth(108, 20, 114, 26, sideshow, "e", {"sign": "wing_fair_sideshow", "skin": "fair_marquee"})
 	b.booth(120, 22, 126, 28, sideshow, "w", {"sign": "wing_fair_rope", "skin": "fair_marquee"})
 	b.booth(120, 32, 126, 38, sideshow, "w", {"sign": "wing_fair_sideshow", "skin": "fair_marquee"})
-	b.town("giant_hog", 111.5, 33.0, {"scale": .55})
+	b.town("giant_hog", 110.0, 32.4, {"scale": .55})
 	b.town("carousel_horse", 123.0, 25.0, {"scale": .8})
 	# The PA shed: where the patch lead goes in.
 	b.building(
@@ -653,7 +645,7 @@ func game_court() -> void:
 	b.prop("lamp", 81.0, 56.0)
 	b.glow(81.0, 56.0, 2.6, .3)
 	b.town("high_striker", 82.5, 61.5, {"solid": .3})
-	b.town("balloons", 84.5, 54.5)
+	b.town("balloons", 85.5, 54.5)
 	b.town("prize_bear", 103.6, 50.0)
 	b.town("cotton_candy", 103.5, 61.5, {"solid": .4})
 	b.react("vending", 82.6, 66.0, 1.5, {"id": "x2-fair-2"})
@@ -671,7 +663,7 @@ func game_court() -> void:
 	)
 	b.streetlamp(90.0, 56.0)
 	b.streetlamp(100.0, 57.0)
-	scatter_spill([Vector2(88.0, 59.0), Vector2(97.0, 53.0)])
+	scatter_spill([Vector2(88.0, 59.0), Vector2(97.0, 53.3)])
 
 
 func derby_arena() -> void:
@@ -872,76 +864,6 @@ func cast() -> void:
 
 ## The last pass: the fair packed with what a fair leaves about, and lit.
 func detail() -> void:
-	b.lamp_grid(57, 30, 71, 66, 9)
-	b.lamp_grid(8, 58, 48, 62, 10)
-	b.lamp_grid(80, 50, 104, 62, 8)
-	b.lamp_grid(82, 25, 104, 40, 9)
-	b.lamp_grid(110, 12, 124, 40, 9)
-	b.lamp_grid(8, 74, 120, 83, 12)
-	b.lamp_grid(8, 40, 33, 49, 9)
-	var junk := ["prop:barrel", "prop:crate", "board:fair_spill@.3", "prop:hay"]
-	b.clutter(
-		57,
-		28,
-		71,
-		66,
-		["balloons", "prize_bear", "cotton_candy", "board:fair_pylon@1.2"] + junk,
-		16
-	)
-	b.clutter(51, 43, 75, 51, ["balloons", "prize_bear", "board:fair_prize_pile@.9"] + junk, 8)
-	b.clutter(
-		7,
-		58,
-		48,
-		63,
-		["picnic_table", "cotton_candy", "generator", "board:fair_spill@.3", "prop:barrel"],
-		12
-	)
-	b.clutter(
-		78,
-		49,
-		104,
-		63,
-		["balloons", "prize_bear", "high_striker", "board:fair_prize_pile@.9", "prop:crate"],
-		14
-	)
-	b.clutter(
-		81,
-		24,
-		105,
-		41,
-		["pallet_stack", "generator", "prop:crate", "prop:barrel", "tire_stack"],
-		10
-	)
-	b.clutter(
-		109,
-		11,
-		125,
-		41,
-		["port_a_john", "balloons", "prop:hay", "board:fair_pylon@1.2", "prop:barrel"],
-		10
-	)
-	b.clutter(
-		6,
-		74,
-		122,
-		83,
-		["prop:pickup_truck", "prop:pickup_truck_b", "truck_blocks", "prop:tire", "port_a_john"],
-		12
-	)
-	b.clutter(
-		5,
-		3,
-		47,
-		12,
-		["tire_stack", "gas_cans", "porch_couch", "grill", "prop:barrel", "laundry"],
-		8
-	)
-	b.clutter(110, 47, 123, 68, ["tire_stack", "prop:tire", "warning_barrel"], 8)
-	b.clutter(7, 40, 33, 50, ["prop:hay", "wheelbarrow", "prop:barrel", "chicken_coop"], 6)
-	b.clutter(37, 15, 51, 40, ["balloons", "prize_bear", "cotton_candy", "prop:crate"], 6)
-	b.clutter(9, 17, 31, 37, ["prop:hay", "wheelbarrow"], 6)
-	b.clutter(51, 4, 77, 24, ["prize_bear", "board:fair_prize_pile@.9", "prop:crate"], 8)
 	for e in [
 		["coot", 100.0, 75.0, "lot-coot"],
 		["skeeter", 30.0, 80.0, "lot-skeeter"],
@@ -953,52 +875,27 @@ func detail() -> void:
 
 ## The polish pass: the empty lots filled the way a fair fills them.
 func polish() -> void:
+	# Set pieces where a yard read unfinished, each against a wall, nothing strewn.
+	# The service exit: a pallet of stock and a crate by the back fence.
+	b.town("pallet_stack", 82.5, 2.78)
+	b.prop("crate", 81.1, 2.45)
+	# The freight lot: the forklift left by the dock, its pallets, the cartons.
+	b.town("forklift", 79.5, 40.85)
+	b.town("pallet_stack", 81.4, 41.15)
+	b.board("detail_freight_cartons", 77.9, 41.98, .6, {"z": 0.0, "plane": PI})
 	# More booths down the middle of the game court, back to back.
 	b.booth(86, 52, 91, 56, games, "w", {"sign": "fair_prize_pile"})
 	b.booth(92, 52, 97, 56, games, "e", {"sign": "fair_redemption"})
 	# Cars parked nose to tail in the field.
 	for k in 8:
 		b.car(10.0 + k * 5.5, 79.5, true, "tin" if k % 2 else "mill_tin")
-		b.car(84.0 + (k % 5) * 7.0, 79.5, true, "mill_tin" if k % 2 else "tin")
+		if k < 5:
+			b.car(84.0 + k * 7.0, 79.5, true, "mill_tin" if k % 2 else "tin")
 	# The sideshow stage, its bleachers and its spotlights.
 	b.raise(116, 14, 124, 17, .36)
 	b.raise(116, 18, 124, 18, .18)
 	b.paint(116, 14, 124, 18, "porch")
 	b.fixture(115.0, 19.6, 125.0, 20.4, .6, "bleachers", "bleachers")
-	var carnival := [
-		"balloons",
-		"prize_bear",
-		"cotton_candy",
-		"prop:barrel",
-		"prop:crate",
-		"board:fair_spill@.3",
-		"board:fair_pylon@1.2"
-	]
-	var themes := {
-		midway: carnival + ["high_striker"],
-		conc: ["picnic_table", "cotton_candy", "prop:barrel", "board:fair_spill@.3", "generator"],
-		games: carnival,
-		parking:
-		["prop:pickup_truck", "prop:pickup_truck_b", "port_a_john", "prop:tire", "truck_blocks"],
-		barn: ["prop:hay", "wheelbarrow", "board:prop_hay@.9", "chicken_coop"],
-		wheel: carnival,
-		freight: ["pallet_stack", "prop:crate", "generator", "forklift", "prop:barrel"],
-		sideshow: ["port_a_john", "balloons", "prop:hay", "board:fair_pylon@1.2", "prop:barrel"],
-		derby: ["tire_stack", "warning_barrel", "prop:tire", "truck_blocks"],
-		camp: ["tire_stack", "gas_cans", "grill", "porch_couch", "prop:barrel", "laundry"],
-		service: ["prop:crate", "pallet_stack", "generator"],
-		ticket: ["prop:crate", "prop:barrel"],
-	}
-	var marks := {
-		midway: ["detail_wear_tickets"],
-		games: ["detail_wear_tickets"],
-		derby: ["detail_wear_oil"],
-		parking: ["detail_wear_oil", "detail_wear_grain"],
-		barn: ["detail_wear_silt"],
-		conc: ["detail_wear_soda"],
-	}
-	var filled := b.fill_empty(themes, 4, marks)
-	print("fair: empty ground %d -> %d" % [filled.x, filled.y])
 	for e in [
 		["barker", 120.0, 15.5, "stage-barker"],
 		["crawler", 89.0, 58.5, "court-crawler"],

@@ -81,7 +81,6 @@ func build(_b) -> Array:
 	quarry_road()
 	crew_yard()
 	finish_up()
-	polish()
 	return [35.5, 56.5, -PI / 2]
 
 
@@ -106,7 +105,7 @@ func crossroads() -> void:
 	b.paint(14, 35, 57, 40, "asphalt")
 	b.paint(34, 37, 37, 38, "road")
 	# The four-way stop: signs on every corner, the county directory between.
-	for p in [Vector2(30.4, 34.4), Vector2(41.6, 34.4), Vector2(30.4, 41.6), Vector2(41.6, 41.6)]:
+	for p in [Vector2(30.4, 34.4), Vector2(41.6, 34.4), Vector2(30.4, 41.6), Vector2(41.45, 41.75)]:
 		b.prop("roadsign", p.x, p.y)
 	b.board("hub_directory", 35.5, 42.6, 1.56, {"plane": 0.06, "back": "hub_directory_back"})
 	b.fixture(35.0, 42.5, 36.0, 43.0, .2, "concrete", "concrete")
@@ -133,7 +132,7 @@ func crossroads() -> void:
 	b.board("hub_title", 22.0, 40.96, .9, {"z": 2.2, "plane": 0.0, "glow": true})
 	for x in [17.0, 22.0, 28.0]:
 		b.fixture(x - .06, 39.94, x + .06, 40.06, 2.1, "wood", "counter_top", .12)
-	b.town("porch_couch", 19.5, 40.4)
+	b.town("porch_couch", 19.4, 40.25)
 	b.react("vending", 26.4, 40.4, 1.5, {"id": "diner-cooler"})
 	b.town("picnic_table", 15.5, 37.5, {"solid": .4})
 	# The County Road Department: the dispatch board on its front.
@@ -214,7 +213,7 @@ func town_road() -> void:
 	b.paint(24, 8, 24, 29, "grass")
 	gate(20.0, "route_hickston", "hub_hickston_marker", "tracks", town)
 	b.town("tractor", 23.5, 17.5, {"solid": .45})
-	b.town("hay_wagon", 16.5, 23.5, {"solid": .45})
+	b.town("hay_wagon", 17.5, 23.5, {"solid": .45})
 	b.town("mailbox_row", 23.6, 12.5)
 	for p in [Vector2(16.5, 12.0), Vector2(23.6, 21.0)]:
 		b.prop("hay", p.x, p.y)
@@ -237,8 +236,8 @@ func fair_road() -> void:
 	for p in [Vector2(46.5, 15.5), Vector2(53.5, 22.5)]:
 		b.town("balloons", p.x, p.y)
 	b.town("prize_bear", 53.4, 14.0)
-	b.town("cotton_candy", 46.5, 26.5, {"solid": .4})
-	b.board("fair_pylon", 46.0, 11.0, 1.2, {"glow": true})
+	b.town("cotton_candy", 46.5, 26.5, {"solid": .4, "scale": .88})
+	b.board("fair_pylon", 46.2, 11.0, 1.2, {"glow": true})
 	b.board("fair_pylon", 54.0, 11.0, 1.2, {"glow": true})
 	b.board("detail_fair_route_crate", 52.0, 27.6, .56, {"z": .57, "plane": PI})
 	b.glow(50.0, 18.0, 5.0, .3)
@@ -251,7 +250,7 @@ func quarry_road() -> void:
 	gate(62.0, "route_quarry", "hub_quarry_marker", "quarry_dust", quarry)
 	b.wall(56, 8, 57, 29, "quarry_face", 2.0)
 	b.wall(69, 8, 69, 40, "quarry_face", 2.6)
-	for p in [Vector2(58.5, 13.5), Vector2(67.5, 19.5), Vector2(58.5, 23.5)]:
+	for p in [Vector2(59.5, 13.5), Vector2(67.5, 19.5), Vector2(59.5, 23.5)]:
 		b.town("boulder_a" if int(p.y) % 2 else "boulder_b", p.x, p.y, {"solid": .4})
 	b.town("warning_barrel", 67.5, 12.5, {"solid": .3})
 	b.town("warning_barrel", 67.5, 26.5, {"solid": .3})
@@ -298,25 +297,3 @@ func finish_up() -> void:
 		["STOP", 33, 36]
 	]:
 		b.label(String(l[0]), int(l[1]), int(l[2]))
-
-
-## The polish pass: the Crossroads' empty ground filled, road by road.
-func polish() -> void:
-	var themes := {
-		cross: ["prop:barrel", "prop:tire", "gas_cans", "warning_barrel", "mailbox_row"],
-		south: ["prop:tire", "prop:reeds"],
-		mill: ["log_pile", "axe_stump", "pallet_stack", "prop:barrel"],
-		town: ["prop:hay", "wheelbarrow", "prop:barrel"],
-		fair: ["balloons", "prize_bear", "board:fair_spill@.3"],
-		quarry: ["boulder_a", "boulder_b", "warning_barrel", "tnt_crate"],
-		crew: ["warning_barrel", "tire_stack", "gas_cans", "cable_spool", "prop:barrel"],
-	}
-	var marks := {
-		cross: ["detail_wear_oil"],
-		mill: ["detail_wear_sawdust"],
-		quarry: ["detail_wear_chalk"],
-		town: ["detail_wear_grain"],
-		crew: ["detail_wear_oil"],
-	}
-	var filled := b.fill_empty(themes, 3, marks)
-	print("hub: empty ground %d -> %d" % [filled.x, filled.y])

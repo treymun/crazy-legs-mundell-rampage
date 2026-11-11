@@ -816,11 +816,19 @@ var _look_frame := 0
 var _look_blast := 0.0
 var _look_tone = null
 
-var _map_base := PackedByteArray()
-## The automap panel as a texture, for a Godot 2D canvas, and the base it shows.
+## The automap (game_view.gd): the whole map drawn at the zoom in use, the
+## scale it was drawn at, how much of `visited` is painted on it, the cells a
+## secret still hides, and this frame's window onto it; the zoom (an index into
+## MAP_ZOOMS; 0 fits the level); the texture the window shows on a 2D canvas.
+var _map_image: Image = null
+var _map_built_scale := -1.0
+var _map_painted := 0
+var _map_hidden := {}
+var _map_origin := Vector2.ZERO
+var _map_scale_now := 1.0
+var _map_region_now := Rect2i()
+var map_zoom := 2
 var _map_texture: ImageTexture
-var _map_texture_of := PackedByteArray()
-var _map_geom := {}
 
 ## game.Controls: one sim step's input.
 ## Milliseconds the last draw spent listing sprites, rendering the scene, drawing

@@ -952,31 +952,230 @@ func _grade_view(c: Canvas) -> void:
 
 # ----------------------------------------------------------------- automap
 
+## The map over the view: the window it shows the level in, with two lines of
+## text under it (the status bar stays below).
+const MAP_X := 6
+const MAP_Y := 6
+const MAP_W := 308
+const MAP_H := 126
+## Pixels a cell at each zoom; 0 fits the whole level in the window.
+const MAP_ZOOMS := [0.0, 2.0, 3.0, 4.0]
+const MAP_BACK := Color8(22, 17, 13)
+const MAP_WALL := Color8(214, 178, 118)
+## Ground not walked yet, then walked: under the sky, under a roof, water.
+const MAP_GROUND := [Color8(54, 58, 47), Color8(70, 58, 45), Color8(44, 68, 72)]
+## A wall's own mass, against the void beyond the level.
+const MAP_MASS := Color8(40, 31, 23)
+const MAP_WALKED := [Color8(104, 92, 64), Color8(132, 104, 72), Color8(66, 104, 110)]
+
 
 func automap(c: Canvas) -> void:
-	if _map_base.is_empty() or _map_signature_changed():
-		_build_map_base()
-	_blit_region(c, 37, 5)
-	var geom := _map_geom
-	var width: int = geom["width"]
-	var height: int = geom["height"]
-	var start_y: int = geom["start_y"]
-	for key: Vector2i in visited:
-		if key.x >= 0 and key.x < width and key.y >= start_y and key.y < start_y + height:
-			var rect := _map_tile(float(key.x), float(key.y))
-			c.fill_rect(
-				rect.position.x, rect.position.y, rect.size.x, rect.size.y, Canvas.rgb(152, 120, 75)
-			)
+	var region := _map_region()
+	var scale := _map_scale(region)
+	if _map_image == null or _map_built_scale != scale or _map_signature_changed():
+		_build_map_image(region, scale)
+	_paint_walked(region, scale)
+	# The window follows the player (clamped to the level), or shows it all.
+	var full := Vector2(region.size) * scale
+	var origin := Vector2.ZERO
+	for k in 2:
+		var span: float = MAP_W if k == 0 else MAP_H
+		var at: float = (player.x if k == 0 else player.y) - float(region.position[k])
+		if full[k] <= span:
+			origin[k] = -(span - full[k]) / 2.0
+		else:
+			origin[k] = clampf(at * scale - span / 2.0, 0.0, full[k] - span)
+	_map_origin = origin.floor()
+	_map_scale_now = scale
+	_map_region_now = region
+	c.fill_rect(MAP_X - 4, MAP_Y - 4, MAP_W + 8, 152, Canvas.rgb(30, 23, 18))
+	c.rect_outline(MAP_X - 4, MAP_Y - 4, MAP_W + 8, 152, Canvas.rgb(149, 117, 81))
+	c.rect_outline(MAP_X - 1, MAP_Y - 1, MAP_W + 2, MAP_H + 2, Canvas.rgb(84, 64, 45))
+	_blit_map(c)
 	if not in_hub:
 		for door: LevelData.Door in world.doors:
 			if not door.secret or door.discovered:
 				var color := (
-					Canvas.rgb(110, 120, 88)
+					Canvas.rgb(110, 136, 90)
 					if door.opened
-					else Canvas.rgb(200, 119, 56) if door.key != "" else Canvas.rgb(146, 112, 77)
+					else Canvas.rgb(222, 128, 52) if door.key != "" else Canvas.rgb(176, 132, 82)
 				)
-				var rect2 := _map_tile(float(door.x), float(door.y))
-				c.fill_rect(rect2.position.x, rect2.position.y, rect2.size.x, rect2.size.y, color)
+				_map_cell_mark(c, float(door.x), float(door.y), color)
+	for station: LevelData.Station in world.stations:
+		if not station.reveals_secret and (not station.hidden or stations_done.has(station.id)):
+			var at2 := _map_point(station.x, station.y)
+			if _map_shows(at2):
+				var done := stations_done.has(station.id)
+				var mark := Canvas.rgb(151, 187, 110) if done else Canvas.rgb(236, 168, 84)
+				c.fill_rect(int(at2.x) - 2, int(at2.y) - 2, 5, 5, Canvas.rgb(22, 17, 13))
+				c.fill_rect(int(at2.x) - 1, int(at2.y) - 1, 3, 3, mark)
+	if world.extraction != null:
+		var at3 := _map_point(world.extraction.x, world.extraction.y)
+		if _map_shows(at3):
+			c.circle(
+				int(at3.x),
+				int(at3.y),
+				3,
+				Canvas.rgb(151, 187, 110) if exit_ready() else Canvas.rgb(190, 110, 84),
+				false
+			)
+	_map_labels(c)
+	_map_goal(c)
+	_map_player(c)
+	c.line(MAP_X, MAP_Y + MAP_H + 3, MAP_X + MAP_W - 1, MAP_Y + MAP_H + 3, Canvas.rgb(120, 87, 59))
+	HUD.text(
+		c,
+		objective() if hints else level.title,
+		160,
+		MAP_Y + MAP_H + 6,
+		"body",
+		Canvas.rgb(248, 199, 127),
+		true
+	)
+	var tally := (
+		"ROAD NOTES %d/%d" % [hub_findings.size(), world.hub_clues.size()]
+		if in_hub
+		else "SECRETS %d/%d" % [secrets, total_secrets]
+	)
+	HUD.text(
+		c,
+		tally + "   /   PGUP PGDN ZOOM   /   TAB CLOSE",
+		160,
+		MAP_Y + MAP_H + 15,
+		"body",
+		HUD.INK,
+		true
+	)
+
+
+## The part of the level the map covers, in cells: all of it, or the
+## Crossroads' own window of hub.json.
+func _map_region() -> Rect2i:
+	if in_hub and not level.map_window.is_empty():
+		var wnd: Array = level.map_window
+		return Rect2i(int(wnd[0]), int(wnd[1]), int(wnd[2]), int(wnd[3]))
+	return Rect2i(0, 0, int(world.width), int(world.height))
+
+
+func _map_scale(region: Rect2i) -> float:
+	var fit := minf(float(MAP_W) / region.size.x, float(MAP_H) / region.size.y)
+	var zoom: float = MAP_ZOOMS[clampi(map_zoom, 0, MAP_ZOOMS.size() - 1)]
+	return fit if zoom <= 0.0 or zoom <= fit else zoom
+
+
+func _map_signature_changed() -> bool:
+	var signature: Array = []
+	for door: LevelData.Door in world.doors:
+		if door.secret and not door.discovered:
+			signature.append(Vector2i(door.x, door.y))
+	return signature != map_signature
+
+
+## The whole map at this scale, in an image: ground by kind, walls drawn as
+## lines along every edge between open ground and a wall. Ground still hidden
+## behind a secret door stays dark.
+func _build_map_image(region: Rect2i, scale: float) -> void:
+	var signature: Array = []
+	for door: LevelData.Door in world.doors:
+		if door.secret and not door.discovered:
+			signature.append(Vector2i(door.x, door.y))
+	map_signature = signature
+	_map_hidden.clear()
+	for point: Vector2i in signature:
+		_map_hidden[point] = true
+		for room in level.hidden_rooms:
+			if room[0] == point:
+				var box: Vector4i = room[1]
+				for yy in range(box.y, box.w + 1):
+					for xx in range(box.x, box.z + 1):
+						_map_hidden[Vector2i(xx, yy)] = true
+	var size := (Vector2(region.size) * scale).ceil()
+	_map_image = Image.create_empty(
+		maxi(1, int(size.x)), maxi(1, int(size.y)), false, Image.FORMAT_RGB8
+	)
+	_map_image.fill(MAP_BACK)
+	_map_built_scale = scale
+	_map_region_now = region
+	_map_painted = 0
+	for yy in range(region.position.y, region.end.y):
+		for xx in range(region.position.x, region.end.x):
+			if _map_open(xx, yy):
+				_map_paint_cell(xx, yy, false)
+
+
+func _map_open(x: int, y: int) -> bool:
+	if x < 0 or y < 0 or x >= world.width or y >= world.height:
+		return false
+	return int(world.solid[y * int(world.width) + x]) < 0 and not _map_hidden.has(Vector2i(x, y))
+
+
+func _map_cell_rect(x: int, y: int) -> Rect2i:
+	var region := _map_region_now
+	var s := _map_built_scale
+	var x0 := int(roundf((x - region.position.x) * s))
+	var y0 := int(roundf((y - region.position.y) * s))
+	var x1 := int(roundf((x - region.position.x + 1) * s))
+	var y1 := int(roundf((y - region.position.y + 1) * s))
+	return Rect2i(x0, y0, maxi(1, x1 - x0), maxi(1, y1 - y0))
+
+
+## One cell of ground, walked or not, with its wall edges.
+func _map_paint_cell(x: int, y: int, walked: bool) -> void:
+	var cell := y * int(world.width) + x
+	var kind := 0 if world.roof[cell] == 0.0 else 1
+	if world.surface_sound(int(world.floor_tile[cell])) == "water":
+		kind = 2
+	var r := _map_cell_rect(x, y)
+	_map_image.fill_rect(r, (MAP_WALKED if walked else MAP_GROUND)[kind])
+	var line := 2 if _map_built_scale >= 4.0 else 1
+	for k: Vector2i in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+		var n := Vector2i(x, y) + k
+		if not _map_open(n.x, n.y) and _map_region_now.has_point(n):
+			_map_image.fill_rect(_map_cell_rect(n.x, n.y), MAP_MASS)
+	if not _map_open(x - 1, y):
+		_map_image.fill_rect(Rect2i(r.position.x, r.position.y, line, r.size.y), MAP_WALL)
+	if not _map_open(x + 1, y):
+		_map_image.fill_rect(Rect2i(r.end.x - line, r.position.y, line, r.size.y), MAP_WALL)
+	if not _map_open(x, y - 1):
+		_map_image.fill_rect(Rect2i(r.position.x, r.position.y, r.size.x, line), MAP_WALL)
+	if not _map_open(x, y + 1):
+		_map_image.fill_rect(Rect2i(r.position.x, r.end.y - line, r.size.x, line), MAP_WALL)
+
+
+## The ground walked since the image was last brought up to date.
+func _paint_walked(region: Rect2i, _scale: float) -> void:
+	var keys: Array = visited.keys()
+	for i in range(_map_painted, keys.size()):
+		var key: Vector2i = keys[i]
+		if region.has_point(key) and _map_open(key.x, key.y):
+			_map_paint_cell(key.x, key.y, true)
+	_map_painted = keys.size()
+
+
+## Where a point of the level is on the canvas, this frame.
+func _map_point(x: float, y: float) -> Vector2:
+	return Vector2(
+		MAP_X + (x - _map_region_now.position.x) * _map_scale_now - _map_origin.x,
+		MAP_Y + (y - _map_region_now.position.y) * _map_scale_now - _map_origin.y
+	)
+
+
+func _map_shows(at: Vector2) -> bool:
+	return at.x >= MAP_X and at.y >= MAP_Y and at.x < MAP_X + MAP_W and at.y < MAP_Y + MAP_H
+
+
+func _map_cell_mark(c: Canvas, x: float, y: float, color: Color) -> void:
+	var a := _map_point(x, y)
+	var b := _map_point(x + 1.0, y + 1.0)
+	var x0 := maxi(MAP_X, int(a.x))
+	var y0 := maxi(MAP_Y, int(a.y))
+	var x1 := mini(MAP_X + MAP_W, maxi(int(b.x), int(a.x) + 1))
+	var y1 := mini(MAP_Y + MAP_H, maxi(int(b.y), int(a.y) + 1))
+	if x1 > x0 and y1 > y0:
+		c.fill_rect(x0, y0, x1 - x0, y1 - y0, color)
+
+
+func _map_labels(c: Canvas) -> void:
 	var labels: Array = []
 	if in_hub:
 		for gate: LevelData.Gate in world.hub_gates:
@@ -990,187 +1189,128 @@ func automap(c: Canvas) -> void:
 			)
 		for clue in world.hub_clues:
 			if hub_findings.has(String(clue[0])):
-				var at := _map_tile(float(clue[1]), float(clue[2]))
-				var cx := at.position.x
-				var cy := at.position.y
-				c.polygon(
-					[
-						Vector2(cx, cy - 3),
-						Vector2(cx + 3, cy),
-						Vector2(cx, cy + 3),
-						Vector2(cx - 3, cy)
-					],
-					Canvas.rgb(200, 173, 111)
-				)
+				var at := _map_point(float(clue[1]), float(clue[2]))
+				if _map_shows(at):
+					c.polygon(
+						[
+							Vector2(at.x, at.y - 3),
+							Vector2(at.x + 3, at.y),
+							Vector2(at.x, at.y + 3),
+							Vector2(at.x - 3, at.y)
+						],
+						Canvas.rgb(200, 173, 111)
+					)
 	else:
 		for row in level.map_labels:
 			labels.append([String(row[0]), float(row[1]), float(row[2]), true])
+	var placed: Array[Rect2i] = []
 	for label_row in labels:
 		var label := String(label_row[0])
-		var at := _map_tile(float(label_row[1]), float(label_row[2]))
-		var left_edge := (
-			at.position.x - PixelType.text_width(label) / 2 if in_hub else at.position.x
-		)
-		c.fill_rect(
-			left_edge - 2,
-			at.position.y - 1,
-			PixelType.text_width(label) + 4,
-			9,
-			Canvas.rgb(35, 27, 22)
-		)
+		if label == "":
+			continue
+		var at := _map_point(float(label_row[1]), float(label_row[2]))
+		var wide := PixelType.text_width(label)
+		var left := int(at.x) - wide / 2
+		if left < MAP_X + 1 or left + wide > MAP_X + MAP_W - 1:
+			continue
+		if at.y < MAP_Y + 1 or at.y > MAP_Y + MAP_H - 9:
+			continue
+		# Zoomed out, names that would sit on each other: the first one only.
+		var box := Rect2i(left - 3, int(at.y) - 2, wide + 6, 11)
+		var crowded := false
+		for other: Rect2i in placed:
+			if other.intersects(box):
+				crowded = true
+				break
+		if crowded:
+			continue
+		placed.append(box)
+		c.fill_rect(left - 2, int(at.y) - 1, wide + 4, 9, Canvas.rgb(30, 23, 18))
 		HUD.text(
 			c,
 			label,
-			left_edge,
-			at.position.y,
+			left,
+			int(at.y),
 			"body",
 			Canvas.rgb(244, 223, 185) if bool(label_row[3]) else Canvas.rgb(185, 123, 85),
 			false,
 			false
 		)
-	for station: LevelData.Station in world.stations:
-		if not station.reveals_secret and (not station.hidden or stations_done.has(station.id)):
-			var at2 := _map_tile(station.x, station.y)
-			c.fill_rect(
-				at2.position.x - 2,
-				at2.position.y - 2,
-				4,
-				4,
-				(
-					Canvas.rgb(151, 187, 110)
-					if stations_done.has(station.id)
-					else Canvas.rgb(230, 163, 83)
-				)
-			)
-	if world.extraction != null:
-		var at3 := _map_tile(world.extraction.x, world.extraction.y)
-		c.circle(
-			at3.position.x,
-			at3.position.y,
-			3,
-			Canvas.rgb(151, 187, 110) if exit_ready() else Canvas.rgb(170, 103, 82),
-			false
-		)
-	var geom2 := _map_geom
-	var px := 37 + int(round(float(geom2["left"]) + player.x * float(geom2["scale_x"])))
-	var py := 5 + int(round(5.0 + (player.y - float(geom2["start_y"])) * float(geom2["scale_y"])))
-	c.circle(px, py, 2, Canvas.rgb(235, 154, 78))
-	c.line(
-		px,
-		py,
-		px + int(round(cos(player.angle) * 6.0)),
-		py + int(round(sin(player.angle) * 6.0)),
-		Canvas.rgb(235, 154, 78)
-	)
-	c.line(48, 114, 271, 114, Canvas.rgb(120, 87, 59))
-	HUD.text(
-		c, objective() if hints else level.title, 160, 121, "body", Canvas.rgb(248, 199, 127), true
-	)
-	var footer := (
-		"ROAD NOTES %d/%d   /   TAB TO CLOSE" % [hub_findings.size(), world.hub_clues.size()]
-		if in_hub
-		else "SECRETS %d/%d   /   TAB TO CLOSE" % [secrets, total_secrets]
-	)
-	HUD.text(c, footer, 160, 137, "body", HUD.INK, true)
 
 
-func _map_signature_changed() -> bool:
-	var signature: Array = []
-	for door: LevelData.Door in world.doors:
-		if door.secret and not door.discovered:
-			signature.append(Vector2i(door.x, door.y))
-	return signature != map_signature
-
-
-func _build_map_base() -> void:
-	var width := int(world.width)
-	var height := int(world.height)
-	# The Crossroads map shows its own part of hub.json (all of it when the
-	# level does not say).
-	var start_y := 0
-	if in_hub and not level.map_window.is_empty():
-		start_y = int(level.map_window[1])
-		width = int(level.map_window[2])
-		height = int(level.map_window[3])
-	var scale_x: float = minf(4.0, 208.0 / float(width))
-	var scale_y: float = minf(3.0, 102.0 / float(height))
-	var left: float = (246.0 - width * scale_x) / 2.0
-	_map_geom = {
-		"width": width,
-		"height": height,
-		"start_y": start_y,
-		"scale_x": scale_x,
-		"scale_y": scale_y,
-		"left": left
-	}
-	var signature: Array = []
-	for door: LevelData.Door in world.doors:
-		if door.secret and not door.discovered:
-			signature.append(Vector2i(door.x, door.y))
-	map_signature = signature
-	var concealed := {}
-	for point: Vector2i in signature:
-		concealed[point] = true
-		for room in level.hidden_rooms:
-			if room[0] == point:
-				var box: Vector4i = room[1]
-				for yy in range(box.y, box.w + 1):
-					for xx in range(box.x, box.z + 1):
-						concealed[Vector2i(xx, yy)] = true
-	var base := Canvas.new()
-	base.fill_rect(37, 5, 246, 149, Canvas.rgb(30, 24, 19))
-	base.rect_outline(37, 5, 246, 149, Canvas.rgb(149, 117, 81))
-	for yy in range(start_y, start_y + height):
-		for xx in width:
-			var cell := yy * int(world.width) + xx
-			if int(world.solid[cell]) < 0 and not concealed.has(Vector2i(xx, yy)):
-				var color := (
-					Canvas.rgb(74, 86, 76) if world.roof[cell] == 0.0 else Canvas.rgb(104, 85, 66)
-				)
-				if world.surface_sound(int(world.floor_tile[cell])) == "water":
-					color = Canvas.rgb(67, 104, 106)
-				var rect := _map_tile(float(xx), float(yy))
-				base.fill_rect(rect.position.x, rect.position.y, rect.size.x, rect.size.y, color)
-	var data := PackedByteArray()
-	data.resize(246 * 149 * 3)
-	for row in 149:
-		var src := ((5 + row) * Canvas.WIDTH + 37) * 3
-		for k in 246 * 3:
-			data[row * 246 * 3 + k] = base.pixels[src + k]
-	_map_base = data
-
-
-func _map_tile(x: float, y: float) -> Rect2i:
-	var left: float = _map_geom["left"]
-	var scale_x: float = _map_geom["scale_x"]
-	var scale_y: float = _map_geom["scale_y"]
-	var start_y: int = _map_geom["start_y"]
-	var x0 := int(round(left + x * scale_x))
-	var y0 := int(round(5.0 + (y - start_y) * scale_y))
-	var x1 := int(round(left + (x + 1.0) * scale_x))
-	var y1 := int(round(5.0 + (y - start_y + 1.0) * scale_y))
-	return Rect2i(37 + x0, 5 + y0, maxi(1, x1 - x0), maxi(1, y1 - y0))
-
-
-## Fast region copy of the cached 246x149 map panel into the 320x200 canvas.
-func _blit_region(c: Canvas, dx: int, dy: int) -> void:
-	if c.gpu:
-		if _map_texture == null or _map_texture_of != _map_base:
-			_map_texture_of = _map_base
-			var image := Image.create_from_data(246, 149, false, Image.FORMAT_RGB8, _map_base)
-			_map_texture = ImageTexture.create_from_image(image)
-		c.gpu_texture(_map_texture, dx, dy, 246, 149)
+## Where the objective pin points: a blinking diamond, or an arrow on the
+## window's edge pointing to it when it is off the map.
+func _map_goal(c: Canvas) -> void:
+	var goal = objective_target()
+	if goal == null or not (goal is Vector2):
 		return
+	var at := _map_point(goal.x, goal.y)
+	var color := (
+		Canvas.rgb(255, 214, 110) if int(clock * 3.0) % 2 == 0 else Canvas.rgb(214, 120, 60)
+	)
+	if _map_shows(at):
+		c.polygon(
+			[
+				Vector2(at.x, at.y - 4),
+				Vector2(at.x + 4, at.y),
+				Vector2(at.x, at.y + 4),
+				Vector2(at.x - 4, at.y)
+			],
+			color
+		)
+		return
+	var middle := Vector2(MAP_X + MAP_W / 2.0, MAP_Y + MAP_H / 2.0)
+	var way := (at - middle).normalized()
+	var reach := minf(
+		(MAP_W / 2.0 - 6.0) / maxf(.001, absf(way.x)), (MAP_H / 2.0 - 6.0) / maxf(.001, absf(way.y))
+	)
+	var tip := middle + way * reach
+	var side := Vector2(-way.y, way.x)
+	c.polygon([tip + way * 4.0, tip - way * 3.0 + side * 3.5, tip - way * 3.0 - side * 3.5], color)
+
+
+func _map_player(c: Canvas) -> void:
+	var at := _map_point(player.x, player.y)
+	var way := Vector2(cos(player.angle), sin(player.angle))
+	var side := Vector2(-way.y, way.x)
+	var size := clampf(_map_scale_now * 1.4, 3.0, 5.0)
+	var tip := at + way * size * 1.3
+	var back_l := at - way * size * .8 + side * size * .8
+	var back_r := at - way * size * .8 - side * size * .8
+	c.polygon([tip, back_l, at - way * size * .3, back_r], Canvas.rgb(255, 170, 80))
+	c.line(int(tip.x), int(tip.y), int(back_l.x), int(back_l.y), Canvas.rgb(70, 32, 14))
+	c.line(int(tip.x), int(tip.y), int(back_r.x), int(back_r.y), Canvas.rgb(70, 32, 14))
+
+
+## The visible part of the map image into the window.
+func _blit_map(c: Canvas) -> void:
+	var src := Rect2i(maxi(0, int(_map_origin.x)), maxi(0, int(_map_origin.y)), 0, 0)
+	var dst := Vector2i(MAP_X + maxi(0, -int(_map_origin.x)), MAP_Y + maxi(0, -int(_map_origin.y)))
+	src.size = Vector2i(
+		mini(_map_image.get_width() - src.position.x, MAP_X + MAP_W - dst.x),
+		mini(_map_image.get_height() - src.position.y, MAP_Y + MAP_H - dst.y)
+	)
+	if src.size.x <= 0 or src.size.y <= 0:
+		return
+	var crop := _map_image.get_region(src)
+	if c.gpu:
+		if _map_texture == null or _map_texture.get_size() != Vector2(src.size):
+			_map_texture = ImageTexture.create_from_image(crop)
+		else:
+			_map_texture.update(crop)
+		c.gpu_texture(_map_texture, dst.x, dst.y, src.size.x, src.size.y)
+		return
+	var data := crop.get_data()
 	var pix := c.pixels
-	var row_bytes := 246 * 3
-	for row in 149:
-		var src := row * row_bytes
-		var dst := ((dy + row) * Canvas.WIDTH + dx) * 3
+	var row_bytes := src.size.x * 3
+	for row in src.size.y:
+		var from := row * row_bytes
+		var to := ((dst.y + row) * Canvas.WIDTH + dst.x) * 3
 		for k in row_bytes:
-			pix[dst + k] = _map_base[src + k]
+			pix[to + k] = data[from + k]
 		if c.layer:
-			var at := (dy + row) * Canvas.WIDTH + dx
-			for k in 246:
+			var at := (dst.y + row) * Canvas.WIDTH + dst.x
+			for k in src.size.x:
 				c.cover[at + k] = 255
 
 # ------------------------------------------------------------------ controls

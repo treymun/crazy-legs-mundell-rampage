@@ -82,7 +82,6 @@ func build(_b) -> Array:
 	town_detail()
 	more_detail()
 	story()
-	clutter_pass()
 	polish()
 	return [7.5, 69.5, 0.0]
 
@@ -218,7 +217,7 @@ func county_road() -> void:
 	arch(7.0, 76.4, 3.25, "route_hub")
 	b.board("hub_road_stake", 9.6, 75.4, .97, {"plane": PI, "back": "hub_road_stake_back"})
 	# Mundell's truck, nose in the ditch, and how it got there.
-	b.prop("pickup_truck_b", 12.2, 73.6)
+	b.prop("pickup_truck_b", 12.05, 73.45)
 	b.mark("detail_wear_oil", 11.0, 72.2, .4, 1.4, .5)
 	b.mark("detail_wear_grain", 14.5, 70.5, -.2, 2.2, .3)
 	b.board("prop_tire", 9.8, 73.8, .49)
@@ -254,7 +253,7 @@ func county_road() -> void:
 	b.fixture(13.95, 64.05, 14.05, 64.15, 1.1, "wood", "wood")
 	b.fixture(13.95, 65.05, 14.05, 65.15, 1.1, "wood", "wood")
 	b.prop("mailbox", 99.6, 63.4)
-	scatter("reeds", [Vector2(16, 74.4), Vector2(33, 74.5), Vector2(58, 74.3), Vector2(77, 74.5)])
+	scatter("reeds", [Vector2(16, 74.4), Vector2(33, 74.5), Vector2(58, 74.3), Vector2(76.7, 73.7)])
 	scatter("reeds", [Vector2(101, 74.4), Vector2(118, 74.5)])
 	scatter("tire", [Vector2(70.4, 73.8), Vector2(113.6, 64.4)])
 	# The east end: the road closed by a jackknifed stock trailer.
@@ -296,9 +295,10 @@ func creek_and_orchard() -> void:
 	b.prop("windmill", 23.2, 2.4)
 	b.prop("water_tower", 2.8, 3.2)
 	for k in 22:
-		b.prop("reeds", 4.8 + b.rng.randf() * 4.5, 2.0 + k * 2.75)
+		# Not on the footbridge's rail (y 29.5).
+		b.prop("reeds", 4.8 + b.rng.randf() * 4.5, 2.0 + k * 2.75 + (.6 if k == 10 else 0.0))
 	for k in 9:
-		b.prop("tree_b" if k % 2 else "tree", 1.7 + (k % 2) * 9.8, 6.0 + k * 6.6)
+		b.prop("tree_b" if k % 2 else "tree", 11.5 if k % 2 else 2.4, 6.0 + k * 6.6)
 	b.board("prop_hay", 16.3, 5.6, .92)
 	b.board("split_feed_sacks", 22.5, 12.4, .52, {"z": 0.0})
 	b.mark("detail_wear_silt", 6.5, 40.0, 1.5, 2.0, .7)
@@ -483,7 +483,6 @@ func main_street_block() -> void:
 	# Re-open the boardwalk the yard painted over.
 	b.room(54, 31, 55, 46, "porch", main_street, {"roof": 2.05, "ceiling": "joists", "light": .95})
 	b.raise(54, 31, 55, 46, .12)
-	b.prop("pickup_truck", 63.2, 37.4)
 	b.prop("pickup_truck_b", 57.0, 55.6)
 	b.prop("mailbox", 55.2, 50.2)
 	scatter("barrel", [Vector2(65.5, 44.6), Vector2(65.6, 45.4)])
@@ -493,7 +492,7 @@ func main_street_block() -> void:
 	streetlamp(56.4, 49.6)
 	streetlamp(64.6, 41.4)
 	streetlamp(64.6, 57.6)
-	streetlamp(56.4, 30.2)
+	streetlamp(57.6, 30.2)
 	b.mark("detail_wear_oil", 61.5, 44.0, 1.6, 1.4, .5)
 	b.mark("detail_wear_oil", 58.0, 35.0, .2, 1.2, .5)
 
@@ -665,7 +664,7 @@ func gas_station() -> void:
 	b.fuel_drums.append([32.2, 50.6])
 	b.fuel_drums.append([33.2, 51.3])
 	b.fuel_drums.append([32.5, 52.4])
-	scatter("tire", [Vector2(35.6, 50.6), Vector2(36.2, 51.4), Vector2(35.8, 55.6)])
+	scatter("tire", [Vector2(36.2, 51.4), Vector2(35.8, 55.6)])
 	b.prop("pickup_truck_b", 33.6, 58.4)
 	b.mark("detail_wear_oil", 24.0, 61.6, 0.0, 1.8, .6)
 	b.mark("detail_wear_oil", 33.0, 56.2, 1.2, 1.2, .5)
@@ -719,7 +718,7 @@ func trailer_court() -> void:
 	b.board("detail_trailer_service", 98.0, 53.0, .49, {"z": .008, "plane": PI})
 	scatter("tire", [Vector2(101.4, 61.4), Vector2(112.6, 61.2), Vector2(91.0, 54.6)])
 	scatter("barrel", [Vector2(122.4, 49.0), Vector2(100.6, 48.8)])
-	b.prop("pickup_truck", 108.6, 54.2)
+	b.prop("pickup_truck", 108.7, 54.5)
 	b.board("lazy_eight_sign", 96.0, 62.2, 1.0, {"z": 1.2, "plane": 0.0})
 	b.fixture(94.7, 62.14, 94.84, 62.28, 1.25, "wood", "wood")
 	b.fixture(97.16, 62.14, 97.3, 62.28, 1.25, "wood", "wood")
@@ -822,7 +821,7 @@ func feed_barn() -> void:
 	for p in [Vector2(51.2, 9.6), Vector2(56.8, 13.4), Vector2(50.6, 14.2), Vector2(57.6, 6.4)]:
 		b.board("split_feed_sacks", p.x, p.y, .52)
 	b.town("tractor", 56.5, 18.5, {"solid": .45})
-	scatter("hay", [Vector2(50.2, 4.2), Vector2(58.0, 3.0), Vector2(49.0, 19.8)])
+	scatter("hay", [Vector2(50.2, 4.2), Vector2(55.95, 3.9), Vector2(49.3, 19.8)])
 	scatter("barrel", [Vector2(64.8, 20.6), Vector2(65.4, 21.2)])
 	for p in [Vector2(46.5, 12.5), Vector2(53.5, 6.5), Vector2(53.5, 16.5), Vector2(60.0, 12.0)]:
 		b.prop("lamp", p.x, p.y)
@@ -1008,7 +1007,7 @@ func corn_maze() -> void:
 				b.paint(x, y, x, y, "orchard")
 	for k in 6:
 		b.mark("mark_scorch_%d" % (k % 3), 136.0 + k * .9, 31.0 + (k % 2) * 2.5, k * 1.1, 1.0, .8)
-	scatter("reeds", [Vector2(128.6, 44.4), Vector2(146.4, 40.4), Vector2(130.0, 25.4)])
+	scatter("reeds", [Vector2(128.6, 44.4), Vector2(146.4, 40.4), Vector2(131.3, 25.6)])
 	b.board("prop_hay", 147.4, 32.0, .92)
 	b.town("skull_post", 128.5, 36.5, {"solid": .1})
 	# The steel gate in the registry yard's east fence.
@@ -1109,7 +1108,7 @@ func dressing() -> void:
 	b.glow(77.0, 46.5, 2.4, .3)
 	b.board("hub_lamp", 75.0, 46.3, .9, {"glow": true, "z": .24})
 	b.board("hub_lamp", 79.0, 46.3, .9, {"glow": true, "z": .24})
-	b.board("detail_lost_property_tray", 72.4, 46.3, .4, {"z": .0})
+	b.board("detail_lost_property_tray", 72.55, 46.45, .4, {"z": .0})
 	# The trailers: a table, a bed, a TV in each that has room.
 	for t: Vector2i in [
 		Vector2i(92, 49), Vector2i(103, 49), Vector2i(114, 49), Vector2i(92, 56), Vector2i(103, 56)
@@ -1159,7 +1158,7 @@ func town_detail() -> void:
 	b.town("washer", 27.5, 38.5, {"solid": .3})
 	b.town("engine_hoist", 17.5, 38.5, {"solid": .45})
 	b.town("rocker", 55.0, 33.6)
-	b.town("rocker", 96.5, 53.4)
+	b.town("rocker", 96.6, 53.5)
 	# The trailer court: dishes, a washer, flamingos, grills, a doghouse.
 	b.town("dish", 101.5, 48.5, {"solid": .2})
 	b.town("washer", 101.5, 50.5, {"solid": .3})
@@ -1180,9 +1179,9 @@ func town_detail() -> void:
 	b.town("hay_wagon", 78.5, 18.5, {"solid": .45})
 	# Scarecrows in the corn and the orchard; skulls on the fence posts.
 	for p in [
-		Vector2(143.5, 45.5),
-		Vector2(129.5, 41.5),
-		Vector2(145.5, 35.5),
+		Vector2(143.35, 45.35),
+		Vector2(129.65, 41.35),
+		Vector2(145.35, 35.65),
 		Vector2(130.5, 25.5),
 		Vector2(100.5, 11.5),
 		Vector2(16.5, 17.5),
@@ -1240,10 +1239,10 @@ func town_detail() -> void:
 func more_detail() -> void:
 	b.town("truck_blocks", 123.5, 50.5, {"solid": .45})
 	b.town("truck_blocks", 24.5, 32.5, {"solid": .45})
-	b.town("porch_couch", 104.6, 53.4)
-	b.town("porch_couch", 54.6, 44.2)
+	b.town("porch_couch", 104.75, 53.8)
+	b.town("porch_couch", 54.8, 44.2)
 	b.town("chicken_coop", 21.5, 9.5, {"solid": .45})
-	b.town("chicken_coop", 93.5, 48.5, {"solid": .45})
+	b.town("chicken_coop", 93.4, 46.25, {"scale": .9})
 	b.town("bathtub", 37.5, 17.5, {"solid": .45})
 	b.town("bathtub", 125.5, 51.5, {"solid": .45})
 	b.town("wheelbarrow", 35.5, 13.6)
@@ -1258,12 +1257,12 @@ func more_detail() -> void:
 	b.town("log_pile", 3.5, 26.6)
 	b.town("forklift", 86.5, 41.5, {"solid": .45})
 	b.town("pallet_stack", 83.5, 33.5, {"solid": .45})
-	b.town("generator", 32.5, 57.5, {"solid": .45})
+	b.town("generator", 30.5, 58.5, {"solid": .45})
 	b.town("lantern_post", 12.5, 17.5, {"solid": .1, "glow": true})
 	b.glow(12.5, 17.5, 3.0, .25)
 	b.town("cable_spool", 118.5, 44.5, {"solid": .45})
 	b.town("warning_barrel", 117.5, 64.5, {"solid": .3})
-	b.town("warning_barrel", 120.5, 64.5, {"solid": .3})
+	b.town("warning_barrel", 118.5, 64.5, {"solid": .3})
 	b.town("searchlight", 125.5, 21.5, {"solid": .35, "glow": true})
 	b.town("searchlight", 97.5, 21.5, {"solid": .35, "glow": true})
 
@@ -1306,24 +1305,6 @@ func story() -> void:
 	Cast.set_pieces(b)
 
 
-## The last pass: more of everything in the yards, scattered where it blocks
-## no way through, and more light over the big ones.
-func clutter_pass() -> void:
-	b.clutter(
-		14, 31, 27, 47, ["tire_stack", "gas_cans", "prop:tire", "prop:barrel", "truck_blocks"], 6
-	)
-	b.clutter(91, 48, 125, 62, ["flamingo", "grill", "porch_couch", "tire_stack", "prop:barrel"], 8)
-	b.clutter(91, 23, 125, 46, ["prop:hay", "prop:barrel", "pallet_stack", "warning_barrel"], 8)
-	b.clutter(68, 1, 93, 21, ["prop:hay", "wheelbarrow", "prop:barrel"], 6)
-	b.clutter(2, 63, 125, 72, ["prop:tire", "gas_cans", "board:prop_tire@.49", "prop:barrel"], 8)
-	b.clutter(97, 1, 147, 21, ["prop:hay", "boulder_b", "scarecrow"], 8)
-	b.clutter(14, 1, 24, 21, ["prop:hay", "wheelbarrow", "axe_stump"], 4)
-	b.clutter(67, 44, 88, 62, ["prop:hay", "prop:barrel"], 4)
-	b.lamp_grid(96, 24, 124, 45, 9)
-	b.lamp_grid(68, 2, 94, 21, 9)
-	b.lamp_grid(98, 2, 146, 21, 12)
-
-
 ## The polish pass: structure in the big empty stretches, then every empty
 ## patch filled with what that part of town would have lying in it.
 func polish() -> void:
@@ -1346,9 +1327,7 @@ func polish() -> void:
 		"n",
 		{"wall": "wood", "skin": "wood", "sign": "wing_town_feed", "roof": 2.1}
 	)
-	b.board("wanted_poster", 51.0, 73.9, 1.4, {"z": 1.0, "plane": 0.0})
-	b.fixture(49.95, 73.95, 50.05, 74.05, 2.4, "wood", "wood")
-	b.fixture(51.95, 73.95, 52.05, 74.05, 2.4, "wood", "wood")
+	b.board("wanted_poster", 51.0, 73.9, 1.4, {"z": 1.0, "plane": PI})
 	# The creek: a fallen cottonwood across the bank, a moonshiner's stump.
 	b.fixture(1.0, 44.4, 4.0, 44.6, .5, "mill_log", "mill_log", -.12)
 	b.town("axe_stump", 2.5, 30.5, {"solid": .3})
@@ -1368,36 +1347,6 @@ func polish() -> void:
 	b.trough(121.0, 41.3, 124.6, 41.7)
 	var junk := ["prop:tire", "prop:barrel", "gas_cans", "tire_stack", "warning_barrel"]
 	var farm := ["prop:hay", "wheelbarrow", "prop:barrel", "axe_stump", "chicken_coop"]
-	var themes := {
-		road: junk + ["mailbox_row", "board:prop_tire@.49"],
-		main_street: ["prop:barrel", "mailbox_row", "gas_cans", "prop:crate"],
-		lane: farm + ["hay_wagon"],
-		creek: ["prop:reeds", "boulder_b", "board:prop_reeds@.9", "axe_stump"],
-		orchard: ["prop:hay", "wheelbarrow", "board:prop_hay@.9", "axe_stump"],
-		junk: junk + ["truck_blocks", "fridge", "washer", "engine_hoist"],
-		gas: ["gas_cans", "tire_stack", "prop:barrel", "warning_barrel"],
-		bait: ["prop:crate", "prop:barrel", "gas_cans"],
-		feed_store: ["pallet_stack", "prop:crate", "board:split_feed_sacks@.52"],
-		chapel: ["tombstone_a", "tombstone_b", "tombstone_c", "prop:tree_b"],
-		trailers: ["flamingo", "grill", "porch_couch", "tire_stack", "dish", "prop:barrel"],
-		lots: farm + ["board:split_feed_sacks@.52"],
-		registry: ["prop:hay", "pallet_stack", "prop:barrel", "warning_barrel"],
-		pasture: ["prop:hay", "boulder_b", "scarecrow", "board:prop_hay@.9"],
-		hogpen: ["prop:hay", "wheelbarrow"],
-		corn: ["scarecrow", "prop:reeds"],
-	}
-	var marks := {
-		road: ["detail_wear_oil", "detail_wear_grain"],
-		lane: ["detail_wear_grain", "detail_wear_silt"],
-		lots: ["detail_wear_silt"],
-		hogpen: ["detail_wear_silt"],
-		junk: ["detail_wear_oil"],
-		gas: ["detail_wear_oil"],
-		main_street: ["detail_wear_oil"],
-		pasture: ["detail_wear_grain"],
-	}
-	var filled := b.fill_empty(themes, 4, marks)
-	print("hickston: empty ground %d -> %d" % [filled.x, filled.y])
 	for e in [
 		["billy", 26.0, 66.5, "stand-billy"],
 		["coot", 76.0, 66.5, "stand-coot"],

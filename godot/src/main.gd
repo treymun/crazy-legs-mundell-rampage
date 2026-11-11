@@ -158,6 +158,9 @@ func _view_tour() -> void:
 		p.sway = 0.0
 		game.message_until = 0.0
 		game.district_until = 0.0
+		# A viewpoint may open the map, at a zoom (game_view.gd MAP_ZOOMS).
+		game.map = bool(shot.get("map", false))
+		game.map_zoom = int(shot.get("map_zoom", 2))
 		var armed := bool(shot.get("weapon", false))
 		game.armory.holstered = not armed
 		game.armory.lower = 0.0 if armed else 1.0

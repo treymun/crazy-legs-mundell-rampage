@@ -141,7 +141,7 @@ func weigh_station() -> void:
 	# The truck scale, the trucks, a jug crate for the inspector.
 	b.paint(66, 74, 74, 80, "steel_mesh")
 	b.town("dump_truck", 70.5, 77.5, {"solid": .45})
-	b.town("dump_truck", 82.5, 71.5, {"solid": .45})
+	b.town("dump_truck", 82.5, 72.5, {"solid": .45})
 	b.town("jug_stack", 52.5, 70.5, {"solid": .4})
 	b.town("warning_barrel", 76.5, 82.5, {"solid": .3})
 	b.town("warning_barrel", 51.5, 82.5, {"solid": .3})
@@ -757,28 +757,7 @@ func cast() -> void:
 ## The last pass: the cut yard, the pit and the works crowded the way a
 ## working quarry is, and lit.
 func detail() -> void:
-	b.lamp_grid(38, 35, 90, 58, 9)
-	b.lamp_grid(40, 70, 90, 82, 10)
-	b.lamp_grid(96, 3, 125, 31, 9)
-	b.lamp_grid(6, 3, 35, 31, 9)
 	var rock := ["boulder_a", "boulder_b", "warning_barrel", "tnt_crate"]
-	b.clutter(
-		37,
-		35,
-		91,
-		58,
-		rock + ["mine_cart", "cable_spool", "drill_rig", "prop:crate", "prop:barrel"],
-		22
-	)
-	b.clutter(
-		40, 8, 86, 29, ["jug_stack", "copper_vat", "prop:crate", "prop:barrel", "tnt_crate"], 16
-	)
-	b.clutter(95, 36, 125, 69, rock, 12)
-	b.clutter(95, 3, 125, 31, ["copper_vat", "jug_stack", "prop:barrel", "tnt_crate"], 8)
-	b.clutter(37, 69, 91, 83, ["dump_truck", "warning_barrel", "prop:crate", "cable_spool"], 8)
-	b.clutter(5, 3, 35, 31, rock + ["drill_rig"], 12)
-	b.clutter(9, 37, 29, 51, ["prop:crate", "tnt_crate", "boulder_b", "mine_cart"], 6)
-	b.clutter(7, 53, 34, 61, ["tnt_crate", "mine_cart", "boulder_a", "prop:crate"], 5)
 	for e in [
 		["coot", 80.0, 80.0, "scale-coot"],
 		["chalk_spitter", 26.0, 6.0, "powder-chalk"],
@@ -793,6 +772,19 @@ func detail() -> void:
 ## The polish pass: the cut yard and benches crowded with cut stone, rock
 ## and gear, the empty ground filled with what a quarry leaves about.
 func polish() -> void:
+	# Set pieces where a yard read unfinished, each against a wall, nothing strewn.
+	# The limestone cut: a drill rig parked at the face, spoil and powder by it.
+	b.town("drill_rig", 92.0, 34.5)
+	b.town("boulder_b", 92.45, 33.05)
+	b.town("tnt_crate", 92.45, 35.95)
+	# The condenser yard: a still against the north wall, its vat and its jugs.
+	b.town("still", 111.5, 2.8)
+	b.town("copper_vat", 109.9, 2.92)
+	b.town("jug_stack", 112.8, 2.6)
+	# Copper recovery: a vat waiting for the scrap man, wire, a barrel.
+	b.town("copper_vat", 92.08, 17.5)
+	b.town("cable_spool", 92.33, 16.0)
+	b.town("warning_barrel", 92.65, 18.7)
 	# Rock outcrops left standing where the cut went round them.
 	for c in [
 		[44, 40, 45, 41, 1.9], [82, 50, 83, 51, 1.6], [70, 37, 71, 38, 2.2], [54, 54, 55, 55, 1.4]
@@ -824,31 +816,6 @@ func polish() -> void:
 	b.board("quarry_blast", 83.0, 74.06, .7, {"z": 1.3, "plane": 0.0})
 	b.town("tnt_crate", 81.5, 71.5, {"solid": .4})
 	var rock := ["boulder_a", "boulder_b", "warning_barrel", "tnt_crate"]
-	var themes := {
-		cut: rock + ["mine_cart", "cable_spool", "prop:crate", "drill_rig"],
-		weigh: ["dump_truck", "warning_barrel", "prop:crate", "cable_spool", "jug_stack"],
-		haul: rock,
-		shed: rock + ["mine_cart"],
-		terraces: rock + ["drill_rig"],
-		powder: ["tnt_crate"],
-		lower: rock,
-		condenser: ["copper_vat", "jug_stack", "prop:barrel", "still"],
-		copper: ["jug_stack", "prop:barrel"],
-		bottling: ["jug_stack", "prop:crate", "prop:barrel"],
-		court: ["prop:crate", "cable_spool", "warning_barrel"],
-	}
-	var marks := {
-		cut: ["detail_wear_chalk", "detail_wear_chalk"],
-		terraces: ["detail_wear_chalk"],
-		lower: ["detail_wear_chalk"],
-		weigh: ["detail_wear_oil"],
-		condenser: ["detail_wear_copper"],
-		bottling: ["detail_wear_copper"],
-	}
-	var filled := b.fill_empty(themes, 4, marks)
-	var again := b.fill_empty(themes, 3, marks)
-	filled.y = again.y
-	print("quarry: empty ground %d -> %d" % [filled.x, filled.y])
 	for e in [
 		["chalk_spitter", 75.0, 44.0, "outcrop-chalk"],
 		["valve_rat", 100.0, 10.0, "vat-rat"],

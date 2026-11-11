@@ -581,45 +581,6 @@ func controlled(x: int, y: int, vertical: bool, o := {}) -> void:
 	controlled_doors.append([x, y])
 
 
-## Things scattered over a yard: `count` of `names` (town props, or
-## "prop:<name>" for a plain prop, or "board:<image>@<height>"), each where
-## nothing else is and never where it could close a way: only in a cell whose
-## four neighbours are all open floor and no door. Solid ones get a base.
-func clutter(
-	x0: int, y0: int, x1: int, y1: int, names: Array, count: int, solid_base := .32
-) -> void:
-	var taken := _taken_cells()
-	var tries := 0
-	var placed := 0
-	while placed < count and tries < count * 40:
-		tries += 1
-		var x := rng.randi_range(x0, x1)
-		var y := rng.randi_range(y0, y1)
-		if taken.has(Vector2i(x, y)) or not _roomy(x, y, taken):
-			continue
-		var name := String(names[rng.randi() % names.size()])
-		if name.begins_with("prop:"):
-			prop(name.substr(5), x + .3 + rng.randf() * .4, y + .3 + rng.randf() * .4)
-		elif name.begins_with("board:"):
-			var parts := name.substr(6).split("@")
-			board(parts[0], x + .5, y + .5, float(parts[1]))
-		else:
-			town(name, x, y, {"solid": solid_base})
-		taken[Vector2i(x, y)] = true
-		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-			taken[Vector2i(x, y) + d] = true
-		placed += 1
-
-
-## Street lamps over a yard, `step` apart, on open cells only.
-func lamp_grid(x0: int, y0: int, x1: int, y1: int, step: int) -> void:
-	var taken := _taken_cells()
-	for y in range(y0, y1 + 1, step):
-		for x in range(x0, x1 + 1, step):
-			if not taken.has(Vector2i(x, y)) and _roomy(x, y, taken):
-				streetlamp(x + .5, y + .5)
-
-
 ## How far each open cell is from anything (a wall, a piece of furniture, a
 ## prop, a board, an enemy, a pickup): the empty ground a pass should fill.
 func emptiness() -> PackedInt32Array:
@@ -663,58 +624,149 @@ func emptiness() -> PackedInt32Array:
 	return dist
 
 
-## Fill the empty ground: wherever nothing is within `radius`, something from
-## that district's list in `themes` (district -> names, as clutter() takes
-## them), and a ground decal from `marks` (district -> images) about it.
-## Returns how many open cells were still empty before and after.
-func fill_empty(themes: Dictionary, radius := 4, marks := {}) -> Vector2i:
-	var dist := emptiness()
-	var before := 0
-	for i in w * h:
-		if int(solid[i]) < 0 and dist[i] >= radius:
-			before += 1
-	var taken := _taken_cells()
-	for y in range(1, h - 1):
-		for x in range(1, w - 1):
-			var i := at(x, y)
-			if int(solid[i]) >= 0 or dist[i] < radius or taken.has(Vector2i(x, y)):
-				continue
-			var names: Array = themes.get(area[i], [])
-			if names.is_empty() or not _roomy(x, y, taken):
-				continue
-			var name := String(names[rng.randi() % names.size()])
-			if name.begins_with("prop:"):
-				prop(name.substr(5), x + .3 + rng.randf() * .4, y + .3 + rng.randf() * .4)
-			elif name.begins_with("board:"):
-				var parts := name.substr(6).split("@")
-				board(parts[0], x + .5, y + .5, float(parts[1]))
-			else:
-				town(name, x, y, {"solid": .3})
-			var images: Array = marks.get(area[i], [])
-			if not images.is_empty():
-				mark(
-					String(images[rng.randi() % images.size()]),
-					x + rng.randf() * 2.0 - .5,
-					y + rng.randf() * 2.0 - .5,
-					rng.randf() * TAU,
-					1.2 + rng.randf(),
-					.7
-				)
-			# Everything this close is no longer empty.
-			for yy in range(y - radius + 1, y + radius):
-				for xx in range(x - radius + 1, x + radius):
-					if inside(xx, yy):
-						var j := at(xx, yy)
-						dist[j] = mini(dist[j], absi(xx - x) + absi(yy - y))
-			for k in [
-				Vector2i(0, 0), Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)
-			]:
-				taken[Vector2i(x, y) + k] = true
-	var after := 0
-	for i in w * h:
-		if int(solid[i]) < 0 and dist[i] >= radius:
-			after += 1
-	return Vector2i(before, after)
+var _art_shapes := {}
+
+
+## A picture's [width / height, how much of it is solid (0 to 1)].
+func _art_shape(image: String) -> Array:
+	if not _art_shapes.has(image):
+		var folder := ProjectSettings.globalize_path("res://").path_join("../assets/art")
+		var path := folder.path_join("%s.png" % image).simplify_path()
+		if not FileAccess.file_exists(path):
+			# A board that lights up (signal) has _on and _off pictures.
+			path = folder.path_join("%s_off.png" % image).simplify_path()
+		var pic := Image.load_from_file(path)
+		var solid_px := 0
+		for y in pic.get_height():
+			for x in pic.get_width():
+				if pic.get_pixel(x, y).a > .5:
+					solid_px += 1
+		_art_shapes[image] = [
+			float(pic.get_width()) / pic.get_height(),
+			float(solid_px) / (pic.get_width() * pic.get_height())
+		]
+	return _art_shapes[image]
+
+
+## How far from a flat picture at `c` (`span` wide along `along`, from `z0` to
+## `z1` up) the first wall, door, piece of furniture or panel stands, going `way`.
+func _clear_along(
+	c: Vector2, along: Vector2, span: float, way: Vector2, z0: float, z1: float, reach := .7
+) -> float:
+	var door_cells := {}
+	for d: Dictionary in doors:
+		door_cells[Vector2i(int(d["x"]), int(d["y"]))] = true
+	var nearest := 9.0
+	for t: float in [-.38, 0.0, .38]:
+		var base := c + along * span * t
+		var step := .04
+		while step < minf(nearest, reach):
+			var q := base + way * step
+			var cell := Vector2i(int(floorf(q.x)), int(floorf(q.y)))
+			var hit := not inside(cell.x, cell.y) or int(solid[at(cell.x, cell.y)]) >= 0
+			hit = hit or door_cells.has(cell)
+			if not hit:
+				for f: Array in fixtures:
+					if (
+						float(f[0]) <= q.x
+						and q.x <= float(f[2])
+						and float(f[1]) <= q.y
+						and q.y <= float(f[3])
+						and float(f[4]) > z0 + .1
+						and float(f[7]) < z1
+					):
+						hit = true
+						break
+			if not hit:
+				for wl: Array in extra_walls:
+					var p0 := Vector2(float(wl[0]), float(wl[1]))
+					var p1 := Vector2(float(wl[2]), float(wl[3]))
+					var on := Geometry2D.get_closest_point_to_segment(q, p0, p1)
+					if on.distance_to(q) < .04 and float(wl[7]) > z0 and float(wl[6]) < z1:
+						hit = true
+						break
+			if hit:
+				nearest = minf(nearest, step)
+				break
+			step += .04 if step < .7 else .2
+	return nearest
+
+
+## Every flat sign gets something to hang on (build_level.gd runs this after
+## the plan). One whose face looks into a wall while its back is open is turned
+## round. A sign or piece of equipment with nothing behind it gets a plank
+## backing a little bigger than it (a cut-out picture, a stake or a line of
+## washing, gets none), its faces a hair either side; ground decals are not
+## pictures and are left alone; one up off the ground with nothing under it gets two posts
+## down to the ground.
+func mount_signs() -> void:
+	for bd: Dictionary in billboards.duplicate():
+		if bd["plane"] == null:
+			continue
+		var image := String(bd["image"])
+		var shape := _art_shape(image)
+		var tall := float(bd["height"])
+		var span: float = tall * float(shape[0])
+		var z := float(bd["z"])
+		var plane := float(bd["plane"])
+		var c := Vector2(float(bd["x"]), float(bd["y"]))
+		var along := Vector2(cos(plane), sin(plane))
+		var face := Vector2(-sin(plane), cos(plane))
+		var two_sided := String(bd["back"]) != ""
+		var ahead := _clear_along(c, along, span, face, z, z + tall)
+		var behind := _clear_along(c, along, span, -face, z, z + tall)
+		var open_ahead := _clear_along(c, along, span, face, z, z + tall, 4.0)
+		var open_behind := _clear_along(c, along, span, -face, z, z + tall, 4.0)
+		var into_wall := ahead < .3 and behind >= .3
+		var to_corner := open_ahead < 1.5 and open_behind > open_ahead + 1.0
+		if not two_sided and (into_wall or to_corner):
+			# Painted facing the wall it hangs on, or a fence a step away, with the
+			# way people come from behind it: nobody would see it.
+			plane = fposmod(plane + PI, TAU)
+			bd["plane"] = snappedf(plane, .0001)
+			along = -along
+			face = -face
+			var swap := ahead
+			ahead = behind
+			behind = swap
+		if behind <= .26:
+			continue
+		# A painted board or a piece of equipment (detail_*) hangs on planks; a
+		# cut-out (a stake, an arrow, washing on a line) on its posts alone.
+		var board_like := float(shape[1]) > .82 or image.begins_with("detail_")
+		if board_like:
+			var m := .05
+			var p0 := c - along * (span * .5 + m)
+			var p1 := c + along * (span * .5 + m)
+			panel(p0.x, p0.y, p1.x, p1.y, "wood", z - m, z + tall + m, .82)
+			var front := c + face * .02
+			bd["x"] = snappedf(front.x, .01)
+			bd["y"] = snappedf(front.y, .01)
+			if two_sided:
+				var rear := c - face * .02
+				board(bd["back"], rear.x, rear.y, tall, {"z": z, "plane": fposmod(plane + PI, TAU)})
+				bd["back"] = ""
+		# Posts only for a sign within reach of the ground: one up on a roof or a
+		# water tank belongs to that, not to poles from the dirt.
+		if z < .12 or z + tall > 2.6:
+			continue
+		var seated := false
+		for f: Array in fixtures:
+			var mid := Vector2((float(f[0]) + float(f[2])) * .5, (float(f[1]) + float(f[3])) * .5)
+			if (
+				absf(float(f[4]) - z) < .2
+				and absf((mid - c).dot(along)) < span * .5 + .3
+				and absf((mid - c).dot(face)) < .5
+			):
+				seated = true
+				break
+		if seated:
+			continue
+		# Posts are free walls (tower), not furniture: slim, in nobody's way.
+		var post_top := z + tall * (.6 if board_like else .95)
+		for side: float in [-1.0, 1.0]:
+			var q := c + along * side * maxf(span * .5 - .04, .05) - face * .03
+			tower(q.x - .035, q.y - .035, q.x + .035, q.y + .035, 0.0, post_top, "wood", .8)
 
 
 func _taken_cells() -> Dictionary:

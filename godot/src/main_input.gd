@@ -286,6 +286,10 @@ func _key_play(code: int) -> void:
 				target.message("ROAD NOTE FOUND. IT COULD NOT BE FILED.", 3.2)
 		if target.portal_request != "":
 			travel(target.portal_request)
+	elif target.map and code in [KEY_PAGEUP, KEY_KP_ADD, KEY_PAGEDOWN, KEY_KP_SUBTRACT]:
+		# The open map zooms: in, or out to the whole level.
+		var step := 1 if code == KEY_PAGEUP or code == KEY_KP_ADD else -1
+		target.map_zoom = clampi(target.map_zoom + step, 0, 3)
 	elif target.in_hub:
 		if code == KEY_TAB:
 			target.map = not target.map
@@ -401,6 +405,15 @@ func _input(event: InputEvent) -> void:
 			or button.button_index == MOUSE_BUTTON_WHEEL_DOWN
 		):
 			if (
+				state == "play"
+				and game != null
+				and game.player.health > 0
+				and not game.showing_tally
+				and game.map
+			):
+				var step := 1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1
+				game.map_zoom = clampi(game.map_zoom + step, 0, 3)
+			elif (
 				state == "play"
 				and game != null
 				and game.player.health > 0

@@ -98,7 +98,7 @@ func delivery_yard() -> void:
 	for p in [
 		Vector2(20.5, 69.5),
 		Vector2(24.5, 80.5),
-		Vector2(100.5, 69.5),
+		Vector2(100.5, 71.5),
 		Vector2(108.5, 80.5),
 		Vector2(36.5, 80.5)
 	]:
@@ -571,7 +571,7 @@ func story() -> void:
 	b.fuel_drums.append([94.5, 48.0])
 	b.fuel_drums.append([40.5, 26.6])
 	b.fuel_drums.append([88.5, 26.6])
-	for p in [Vector2(94.4, 47.2), Vector2(39.6, 26.2), Vector2(89.4, 26.2)]:
+	for p in [Vector2(94.4, 47.2), Vector2(39.7, 26.4), Vector2(89.4, 26.2)]:
 		b.prop("barrel", p.x, p.y)
 
 
@@ -712,35 +712,6 @@ func cast() -> void:
 
 ## The last pass: timber everywhere a mill keeps it, and light to see it by.
 func detail() -> void:
-	b.lamp_grid(8, 68, 120, 82, 10)
-	b.lamp_grid(12, 31, 34, 64, 9)
-	b.lamp_grid(94, 30, 124, 48, 9)
-	b.lamp_grid(6, 14, 34, 27, 9)
-	b.clutter(
-		6,
-		67,
-		122,
-		83,
-		["log_pile", "pallet_stack", "lumber_cart", "axe_stump", "prop:barrel", "prop:crate"],
-		18
-	)
-	b.clutter(
-		11, 30, 34, 64, ["log_pile", "axe_stump", "pallet_stack", "lantern_post", "prop:barrel"], 10
-	)
-	b.clutter(94, 39, 125, 48, ["lumber_cart", "pallet_stack", "log_pile", "prop:barrel"], 8)
-	b.clutter(94, 14, 125, 27, ["pallet_stack", "prop:barrel", "log_pile"], 6)
-	b.clutter(
-		5, 14, 34, 27, ["axe_stump", "log_pile", "prop:barrel", "chicken_coop", "tire_stack"], 6
-	)
-	b.clutter(
-		38,
-		8,
-		90,
-		27,
-		["log_pile", "sawdust_pile", "pallet_stack", "lumber_cart", "prop:barrel", "prop:crate"],
-		14
-	)
-	b.clutter(38, 1, 90, 5, ["pallet_stack", "prop:crate"], 4)
 	for e in [
 		["chain_hand", 34.0, 76.0, "yard-chain"],
 		["lantern", 100.0, 74.0, "scale-lantern"],
@@ -752,6 +723,18 @@ func detail() -> void:
 ## The polish pass: the pond and the yards full of what a mill floats,
 ## stacks and leaves lying.
 func polish() -> void:
+	# Set pieces where a yard read unfinished, each against a wall, nothing strewn.
+	# The west bank: a cut log deck by the fence, the splitting stump beside it.
+	b.town("log_pile", 5.45, 31.5)
+	b.town("axe_stump", 4.6, 30.0)
+	b.town("lumber_cart", 5.05, 60.5)
+	# The pump house: the hoist over the pump pit, its cable and fuel by it.
+	b.town("engine_hoist", 59.5, 13.05)
+	b.town("cable_spool", 58.0, 13.2)
+	b.town("gas_cans", 60.9, 13.6)
+	b.board("detail_pump_manifold", 62.0, 13.98, .6, {"z": .8, "plane": PI})
+	# The truck scale office: the test weights on the wall.
+	b.board("detail_scale_weights", 92.5, 82.98, .55, {"z": .7, "plane": PI})
 	# Log rafts and boom logs across the open water.
 	for c in [
 		[40.0, 40.0],
@@ -778,31 +761,6 @@ func polish() -> void:
 	var timber := [
 		"log_pile", "pallet_stack", "axe_stump", "prop:barrel", "prop:crate", "lumber_cart"
 	]
-	var themes := {
-		yard: timber + ["dump_truck", "sawdust_pile"],
-		pond: ["board:mill_pilings@.9", "prop:reeds", "board:prop_reeds@.9"],
-		west: timber + ["lantern_post"],
-		east: timber + ["forklift"],
-		bunk: ["axe_stump", "log_pile", "chicken_coop", "tire_stack", "prop:barrel"],
-		kilns: ["pallet_stack", "log_pile", "prop:barrel"],
-		storage: ["pallet_stack", "log_pile"],
-		shed: ["log_pile", "sawdust_pile", "pallet_stack", "lumber_cart", "prop:barrel"],
-		apron: ["pallet_stack", "prop:crate", "lumber_cart"],
-		sort: ["pallet_stack", "lumber_cart"],
-		scale: ["prop:crate"],
-	}
-	var marks := {
-		yard: ["detail_wear_silt", "detail_wear_sawdust"],
-		west: ["detail_wear_silt"],
-		east: ["detail_wear_sawdust"],
-		shed: ["detail_wear_sawdust", "detail_wear_oil"],
-		kilns: ["detail_wear_sawdust"],
-		apron: ["detail_wear_oil"],
-	}
-	var filled := b.fill_empty(themes, 4, marks)
-	var again := b.fill_empty(themes, 3, marks)
-	filled.y = again.y
-	print("sawmill: empty ground %d -> %d" % [filled.x, filled.y])
 	for e in [
 		["chain_hand", 76.0, 70.5, "shed-chain-b"],
 		["lantern", 70.0, 50.0, "raft-lantern"],
