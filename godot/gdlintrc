@@ -16,6 +16,9 @@ max-line-length: 100
 # (out_, dep_) or a name that would shadow a built-in (TAU_, scale_).
 constant-name: _?[A-Z][A-Z0-9]*(_[A-Z0-9]+)*_?
 function-variable-name: '[a-z][a-z0-9]*(_[a-z0-9]+)*_?'
+# Upper-case class variables are the tuned tables loaded from data/tuning
+# (Weapons.RECOIL, Enemy.REACH...), named like the constants they replaced.
+class-variable-name: '(_?[a-z][a-z0-9]*(_[a-z0-9]+)*|[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)'
 # Enemies_TELLS() / Enemies_BOSS_TITLES() stand in for the Python module tables.
 function-name: (_on_([A-Z][a-z0-9]*)+(_[a-z0-9]+)*|_?[a-z][a-z0-9]*(_[a-z0-9]+)*|Enemies_[A-Z]+(_[A-Z]+)*)
 excluded_directories: !!set

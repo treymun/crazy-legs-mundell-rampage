@@ -216,6 +216,8 @@ func _process(delta: float) -> void:
 	if view_tour != "":
 		_view_tour()
 		return
+	if Tuning.watch():
+		notice("TUNING RELOADED.")
 	# The engine paces frames to the FRAME LIMIT option (apply_options sets
 	# Engine.max_fps), which is what the reference's clock.tick() does. A
 	# browser ignores that cap and calls back once per display refresh, so

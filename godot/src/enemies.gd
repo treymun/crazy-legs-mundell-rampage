@@ -6,32 +6,43 @@ class_name Enemy
 extends RefCounted
 
 ## kind -> [health, speed, radius, height, hostile]
-const KINDS := {
-	"clone": [60, 1.25, .26, 1.55, true],
-	"billy": [70, 1.40, .28, 1.58, true],
-	"coot": [53, 1.06, .22, 1.51, true],
-	"skeeter": [36, 2.55, .20, .46, true],
-	"alien": [91, 1.40, .28, 1.56, true],
-	"saucer": [75, 1.55, .32, .45, true],
-	"boss": [620, 1.08, .52, 2.24, true],
-	"jerry": [720, 1.16, .43, 1.94, true],
-	"barker": [80, 1.15, .27, 1.69, true],
-	"crawler": [34, 2.01, .21, .58, true],
-	"millhand": [98, 1.31, .33, 1.73, true],
-	"lantern": [69, 1.20, .28, .78, true],
-	"boilerback": [99, .99, .34, 1.77, true],
-	"chalk_spitter": [52, 1.43, .24, 1.38, true],
-	"yard_deputy": [64, 1.23, .25, 1.63, true],
-	"bottle_tosser": [51, 1.31, .23, 1.54, true],
-	"chain_hand": [78, 1.03, .29, 1.72, true],
-	"valve_rat": [63, 1.20, .26, 1.19, true],
-	"rudy": [360, 1.28, .35, 1.85, true],
-	"foreman": [420, .91, .42, 1.91, true],
-	"baron": [480, .96, .43, 1.96, true],
-	"chicken": [11, 1.05, .13, .52, false],
-	"pig": [22, .70, .23, .66, false],
-	"bessie": [100, 0, .22, .70, false],
-}
+
+## Tuned in data/tuning/enemies.cfg (see tuning.gd), loaded by load_tuning():
+## KINDS is kind -> [hp, speed, radius, height, hostile]; WINDUP holds
+## [windup, cue] and LUNGES the lunge numbers and its cue.
+static var KINDS := {}
+static var DEATH_TIME: float
+static var RECOVERY_TIMES := {}
+static var LUNGES := {}
+static var REACH := {}
+static var WINDUP := {}
+static var COMFORT := {}
+
+
+static func _static_init() -> void:
+	load_tuning()
+
+
+## Read the tuned values; Tuning.watch() calls it again after a change.
+static func load_tuning() -> void:
+	var path := Tuning.ENEMIES
+	DEATH_TIME = Tuning.value(path, "death_time")
+	var cfg := Tuning.file(path)
+	KINDS = {}
+	for kind in Tuning.sections(path):
+		KINDS[kind] = [
+			cfg.get_value(kind, "hp"),
+			cfg.get_value(kind, "speed"),
+			cfg.get_value(kind, "radius"),
+			cfg.get_value(kind, "height"),
+			cfg.get_value(kind, "hostile")
+		]
+	RECOVERY_TIMES = Tuning.by_section(path, "recovery_times")
+	LUNGES = Tuning.by_section(path, "lunges")
+	REACH = Tuning.by_section(path, "reach")
+	WINDUP = Tuning.by_section(path, "windup")
+	COMFORT = Tuning.by_section(path, "comfort")
+
 
 const BOSS_TITLES := {
 	"boss": "ALIEN SHERIFF",
@@ -72,7 +83,6 @@ const TURN_CELS := [
 ]
 const FIDGET_CELS := ["clone", "billy", "coot"]
 ## Every kind in TURN_CELS also has a four-beat walk (w0..w3) and falling cels (die_0..die_2).
-const DEATH_TIME := .50
 ## Creatures that tumble for two cels before they lie still.
 const CREATURE_FALLS := ["crawler", "lantern"]
 ## Whose voice a kind has when it is hurt or killed; the rest use the material cues.
@@ -99,32 +109,11 @@ const VOICE_TAKES := {"hick": 3}
 ## Voices that only have a death cry.
 const DEATH_ONLY := ["rudy", "foreman", "baron", "spitter"]
 
-const RECOVERY_TIMES := {
-	"boilerback": .64,
-	"rudy": .75,
-	"foreman": .82,
-	"baron": .91,
-	"boss": .33,
-	"jerry": .38,
-	"skeeter": .15,
-	"crawler": .20,
-	"millhand": .20,
-	"yard_deputy": .52,
-	"bottle_tosser": .50,
-	"chain_hand": .74,
-	"valve_rat": .60,
-}
-
 const SHELL_ACTORS := ["alien", "saucer", "boss", "crawler", "lantern", "skeeter", "valve_rat"]
 const TOOL_ACTORS := ["boilerback", "foreman", "baron", "chain_hand", "millhand"]
 const LOSS_RESPONDERS := ["coot", "yard_deputy", "bottle_tosser"]
 
 ## windup, lunge pace, reach, damage, cue, cooldown
-const LUNGES := {
-	"skeeter": [.22, 2.32, .93, 10, "skeeter_bite", 1.05],
-	"crawler": [.25, 2.75, 1.02, 11, "crawler_click", 1.15],
-	"millhand": [.24, 2.48, 1.28, 16, "millhand_hit", 1.46],
-}
 
 const AWAKE := {
 	"clone": "clone_alert",
@@ -138,79 +127,6 @@ const AWAKE := {
 	"bottle_tosser": "tosser_rattle",
 	"chain_hand": "chain_raise",
 	"valve_rat": "rat_hiss"
-}
-
-const REACH := {
-	"clone": 5.5,
-	"billy": 4.5,
-	"coot": 7.3,
-	"skeeter": 2.15,
-	"alien": 8.4,
-	"saucer": 7.6,
-	"boss": 10.0,
-	"jerry": 9.5,
-	"barker": 8.,
-	"crawler": 2.25,
-	"millhand": 2.15,
-	"lantern": 7.4,
-	"boilerback": 4.35,
-	"chalk_spitter": 8.0,
-	"rudy": 10.2,
-	"foreman": 10.3,
-	"baron": 10.5,
-	"yard_deputy": 7.3,
-	"bottle_tosser": 7.8,
-	"chain_hand": 4.15,
-	"valve_rat": 7.4
-}
-
-## [windup, cue]
-const WINDUP := {
-	"clone": [.25, "clone_bolt"],
-	"billy": [.34, "enemy_pump"],
-	"coot": [.32, "coot_cock"],
-	"skeeter": [.37, "skeeter_dive"],
-	"alien": [.35, "guard_charge"],
-	"saucer": [.56, "saucer_charge"],
-	"boss": [.53, "sheriff_siren"],
-	"jerry": [.54, "whistle"],
-	"barker": [.63, "barker_wind"],
-	"crawler": [.36, "crawler_click"],
-	"millhand": [.60, "millhand_rev"],
-	"lantern": [.48, "lantern_charge"],
-	"boilerback": [.78, "boiler_priming"],
-	"chalk_spitter": [.64, "chalk_cough"],
-	"rudy": [.86, "rudy_warn"],
-	"foreman": [.95, "foreman_warn"],
-	"baron": [.95, "baron_warn"],
-	"yard_deputy": [.61, "deputy_work"],
-	"bottle_tosser": [.73, "tosser_rattle"],
-	"chain_hand": [.82, "chain_raise"],
-	"valve_rat": [.67, "rat_hiss"]
-}
-
-const COMFORT := {
-	"clone": 3.1,
-	"billy": 1.7,
-	"coot": 4.8,
-	"skeeter": .95,
-	"alien": 4.7,
-	"saucer": 5.0,
-	"boss": 4.45,
-	"jerry": 4.0,
-	"barker": 4.1,
-	"crawler": .80,
-	"millhand": 1.30,
-	"lantern": 4.2,
-	"boilerback": 3.15,
-	"chalk_spitter": 5.6,
-	"rudy": 6.2,
-	"foreman": 6.9,
-	"baron": 5.25,
-	"yard_deputy": 4.1,
-	"bottle_tosser": 5.5,
-	"chain_hand": 2.9,
-	"valve_rat": 4.2
 }
 
 const RANGED := [

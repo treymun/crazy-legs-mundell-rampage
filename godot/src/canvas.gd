@@ -100,6 +100,11 @@ func _gpu_rect(x: int, y: int, box_w: int, box_h: int, r: int, g: int, b: int) -
 	RenderingServer.canvas_item_add_rect(_item, Rect2(x, y, box_w, box_h), Color8(r, g, b))
 
 
+## Drop every cached picture texture (their pictures changed).
+static func forget_textures() -> void:
+	_textures.clear()
+
+
 ## A cached texture for a picture, by a name that stands for its contents.
 static func texture(key: String, data: PackedByteArray, img_w: int, img_h: int) -> ImageTexture:
 	var made: ImageTexture = _textures.get(key)

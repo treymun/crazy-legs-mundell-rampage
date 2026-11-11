@@ -65,131 +65,31 @@ const LABELS := [
 ]
 ## Only the .38 and the sawed-off have a magazine and a reload. Every other
 ## gun fires straight from its ammo pool (`reserve`).
-const CAPACITY := [0, 6, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ## Magazine sizes before the pool change: a save written then may still hold
 ## rounds in `loaded`, which `Armory.tick` folds back into the pool.
 const SAVED_CAPACITY := [0, 6, 2, 1, 18, 1, 6, 0, 0, 1, 8, 3, 1, 1, 1, 30]
-const RELOAD_TIME := [
-	0.0, .88, 1.10, .68, 1.30, .58, .88, 0.0, 0.0, .79, .94, 1.18, .72, .95, 1.10, 1.25
-]
 ## Seconds between shots. For the CYCLE_GUNS this is the whole hand-loaded
 ## cycle: the shot, then the open / eject / load / close poses.
-const FIRE_TIME := [
-	.33, .30, .55, 1.05, .11, .78, .21, .46, .49, 1.15, .22, .60, 1.10, 1.35, 1.55, .09
-]
-const MAX_RESERVE := [0, 90, 48, 30, 200, 22, 60, 0, 0, 16, 60, 24, 9, 6, 6, 150]
 ## One shot, then a visible reload inside the fire delay.
 const CYCLE_GUNS := [CROSSBOW, RIPSAW, ROCKET, BOWLING, KEG, COW]
-const PICKUP_RESERVE := [0, 12, 15, 8, 20, 5, 8, 0, 0, 6, 16, 6, 3, 2, 2, 30]
-const RECOIL := [.60, .70, 1.03, .8, .44, .55, .42, .25, .87, .74, .65, .82, .55, .75, 1.1, .30]
-const SHOT_NOISE := [
-	2.8, 10.0, 14.0, 4.0, 13.0, 7.0, 8.0, 1.0, 2.9, 8.5, 7.0, 7.5, 4.0, 6.0, 12.0, 6.0
-]
-const KICK_HOLD := [
-	0.0, .073, .095, .11, .052, .09, .075, .14, 0.0, .095, .086, .125, .12, .12, .12, .04
-]
-const VIEW_RISE := [4, 6, 10, 5, 6, 4, 5, 5, 7, 6, 8, 8, 3, 5, 9, 2]
-const SETTLE := [.21, .17, .24, .24, .10, .19, .22, .19, .27, .23, .13, .29, .25, .25, .30, .08]
-const RETREAT := [3, 3, 7, 2, 4, 4, 2, 4, 4, 6, 3, 5, 3, 4, 8, 1]
-const RAISE_DEPTH := [42, 36, 45, 43, 47, 49, 40, 36, 49, 46, 45, 50, 44, 44, 46, 42]
-const DYNAMITE_FUSE := 2.65
 
 ## Per-shot damage; the shotgun entry is [per pellet, pellet count].
-const DAMAGE := {
-	REVOLVER: 34,
-	RIFLE: 21,
-	RIVETER: 32,
-	PRESSURE: 24,
-	ARMGUN: 50,
-	RIPSAW: 54,
-	TEAT: 10,
-	BOWLING: 108,
-	COW: 150,
-	ROCKET: 120
-}
-const SHOTGUN_DAMAGE := 12
-const SHOTGUN_PELLETS := 10
-const GRIND_DAMAGE := 21
-const MELEE := {CROWBAR: [44, 58], SLING: [58, 72]}
 const RECOVERY_GUNS := [
 	REVOLVER, SHOTGUN, RIFLE, ARMGUN, ROCKET, RIVETER, PRESSURE, BOWLING, KEG, COW, TEAT
 ]
 const RELOAD_POSES := ["open", "eject", "load", "close"]
 const MUZZLE_GUNS := [REVOLVER, SHOTGUN, RIFLE, ARMGUN, ROCKET, RIVETER, PRESSURE, COW, TEAT]
-const MUZZLES := {
-	REVOLVER: Vector3i(182, 73, 32),
-	SHOTGUN: Vector3i(181, 75, 48),
-	RIFLE: Vector3i(173, 63, 32),
-	ARMGUN: Vector3i(171, 79, 31),
-	ROCKET: Vector3i(165, 70, 25),
-	RIVETER: Vector3i(174, 75, 23),
-	PRESSURE: Vector3i(173, 76, 19),
-	COW: Vector3i(163, 69, 26),
-	TEAT: Vector3i(280, 82, 18),
-}
 const GUN_W := 320
 const GUN_H := 120
-const VIEW_SCALE := 1.22
 ## The crowbar, revolver and shotgun are photographed plates. Every other
 ## weapon is rendered through one of those plates' cameras and held by that
 ## plate's hand, so it draws at that plate's scale and with its nudge.
-const VIEW_SCALES := {
-	CROWBAR: 1.36,
-	SLING: 1.36,
-	DYNAMITE: 1.36,
-	SHOTGUN: 1.20,
-	RIFLE: 1.20,
-	CROSSBOW: 1.20,
-	ROCKET: 1.20,
-	COW: 1.20
-}
 ## Pixels to slide a viewmodel right and down so its muzzle sits under the
 ## crosshair instead of on it.
 const HIP_PISTOL := Vector2(13, 9)
 const HIP_LONG := Vector2(15, 11)
-const VIEW_SHIFT := {
-	REVOLVER: HIP_PISTOL,
-	ARMGUN: HIP_PISTOL,
-	RIVETER: HIP_PISTOL,
-	PRESSURE: HIP_PISTOL,
-	TEAT: HIP_PISTOL,
-	RIPSAW: HIP_PISTOL,
-	SHOTGUN: HIP_LONG,
-	RIFLE: HIP_LONG,
-	CROSSBOW: HIP_LONG,
-	ROCKET: HIP_LONG,
-	COW: HIP_LONG
-}
 const VIEW_PIVOT := Vector2(160.0, 120.0)
-const VIEW_SINK := 4.0
-const HOLD_FLOOR := 3.0
 
-const MUZZLE_STYLE := {
-	REVOLVER: ["fire", .81, 0.76],
-	SHOTGUN: ["fire", .91, 1.24],
-	RIFLE: ["fire", .65, .69],
-	ARMGUN: ["energy", 1.06, 0.0],
-	ROCKET: ["rocket", 1.07, 1.14],
-	RIVETER: ["forge", .58, .62],
-	PRESSURE: ["steam", .86, 1.23],
-	COW: ["rocket", 1.07, 1.14],
-	TEAT: ["steam", .74, .55],
-}
-const RELOAD_BEATS := {
-	REVOLVER: [.22, .48, .83],
-	SHOTGUN: [.23, .46, .80],
-	CROSSBOW: [.26, .51, .82],
-	RIFLE: [.27, .49, .85],
-	RIPSAW: [.22, .47, .80],
-	ARMGUN: [.29, .52, .85],
-	ROCKET: [.26, .49, .83],
-	RIVETER: [.23, .48, .82],
-	PRESSURE: [.30, .52, .84],
-	BOWLING: [.25, .50, .82],
-	KEG: [.25, .50, .82],
-	COW: [.26, .50, .83],
-	TEAT: [.28, .52, .84],
-}
 const RELOAD_AUDIO := {
 	REVOLVER: ["rev_extract", "rev_cylinder", "rev_lock"],
 	SHOTGUN: ["shot_extract", "shot_shell", "shot_lock"],
@@ -220,6 +120,75 @@ const OPEN_AUDIO := {
 	COW: "rocket_breech",
 	TEAT: "reload",
 }
+
+## Tuned in data/tuning/weapons.cfg (see tuning.gd), loaded by load_tuning().
+static var CAPACITY: Array = []
+static var RELOAD_TIME: Array = []
+static var FIRE_TIME: Array = []
+static var MAX_RESERVE: Array = []
+static var PICKUP_RESERVE: Array = []
+static var RECOIL: Array = []
+static var SHOT_NOISE: Array = []
+static var KICK_HOLD: Array = []
+static var VIEW_RISE: Array = []
+static var SETTLE: Array = []
+static var RETREAT: Array = []
+static var RAISE_DEPTH: Array = []
+static var DAMAGE := {}
+static var MELEE := {}
+static var VIEW_SCALES := {}
+static var VIEW_SHIFT := {}
+static var MUZZLES := {}
+static var MUZZLE_STYLE := {}
+static var RELOAD_BEATS := {}
+static var DYNAMITE_FUSE: float
+static var SHOTGUN_DAMAGE: int
+static var SHOTGUN_PELLETS: int
+static var GRIND_DAMAGE: int
+static var VIEW_SCALE: float
+static var VIEW_SINK: float
+static var HOLD_FLOOR: float
+
+
+static func _static_init() -> void:
+	load_tuning()
+
+
+## Read the tuned values; Tuning.watch() calls it again after a change.
+static func load_tuning() -> void:
+	var path := Tuning.WEAPONS
+	CAPACITY = Tuning.table(path, NAMES, "capacity")
+	RELOAD_TIME = Tuning.table(path, NAMES, "reload_time")
+	FIRE_TIME = Tuning.table(path, NAMES, "fire_time")
+	MAX_RESERVE = Tuning.table(path, NAMES, "max_reserve")
+	PICKUP_RESERVE = Tuning.table(path, NAMES, "pickup_reserve")
+	RECOIL = Tuning.table(path, NAMES, "recoil")
+	SHOT_NOISE = Tuning.table(path, NAMES, "shot_noise")
+	KICK_HOLD = Tuning.table(path, NAMES, "kick_hold")
+	VIEW_RISE = Tuning.table(path, NAMES, "view_rise")
+	SETTLE = Tuning.table(path, NAMES, "settle")
+	RETREAT = Tuning.table(path, NAMES, "retreat")
+	RAISE_DEPTH = Tuning.table(path, NAMES, "raise_depth")
+	DAMAGE = Tuning.entries(path, NAMES, "damage")
+	MELEE = Tuning.entries(path, NAMES, "melee")
+	VIEW_SCALES = Tuning.entries(path, NAMES, "view_scales")
+	VIEW_SHIFT = Tuning.entries(path, NAMES, "view_shift")
+	MUZZLES = Tuning.entries(path, NAMES, "muzzles")
+	MUZZLE_STYLE = Tuning.entries(path, NAMES, "muzzle_style")
+	RELOAD_BEATS = Tuning.entries(path, NAMES, "reload_beats")
+	DYNAMITE_FUSE = Tuning.value(path, "dynamite_fuse")
+	SHOTGUN_DAMAGE = Tuning.value(path, "shotgun_damage")
+	SHOTGUN_PELLETS = Tuning.value(path, "shotgun_pellets")
+	GRIND_DAMAGE = Tuning.value(path, "grind_damage")
+	VIEW_SCALE = Tuning.value(path, "view_scale")
+	VIEW_SINK = Tuning.value(path, "view_sink")
+	HOLD_FLOOR = Tuning.value(path, "hold_floor")
+	# A gun drawn at a new size or place must be lit and scaled again.
+	Armory.graded.clear()
+	Armory.rim_cache.clear()
+	Armory.composed.clear()
+	Canvas.forget_textures()
+
 
 static var _anchors: Dictionary = {}
 ## Set by Armory.draw for its pixel helpers: the canvas layer's coverage map,
