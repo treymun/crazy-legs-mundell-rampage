@@ -154,8 +154,11 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   viewport the shader lays over the view. Shapes still come down to
   `set_pixel`, `_hspan`, `_vspan` and `fill_rect`, so a new shape drawn
   through those works in both. Never write `canvas.pixels` directly for
-  something on screen; give `blit_rgba` a cache name. Headless (tools, CI)
-  and `--cpu-canvas` draw in software.
+  something on screen; give `blit_rgba` a cache name. Each rect is a command,
+  so what is drawn every frame from many shapes is drawn once in software and
+  shown as a cached texture (the status bar, banners, the objective pin:
+  `hud.gd _pin_texture`). Headless (tools, CI) and `--cpu-canvas` draw in
+  software.
 - **Nine textures at most in `palette.gdshader`.** WebGL and many phones give a
   shader 16 texture units and Godot keeps several; past nine the browser
   and Android builds draw nothing while a desktop looks fine.
@@ -170,12 +173,24 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   uniforms say where each part starts (`over_row`, `stream_row`, `cover_at`,
   `pane_row`, `dist_start`), as do the wall spans' rows (only as many as the
   fullest column needs, then the counts row at `count_row`, the sprites from
-  `sprite_row`, the shader's wall table from `wall_row`). A texture is kept for
-  each size it has been, and a shader number is only set when it changes
-  (`_set_param`). Layered, the
-  renderer keeps its pass buffers from frame to frame (only the overlay, span
-  counts, distances and glass start cleared): never hand one of its arrays to
-  an Image or texture directly, copy it (`scene_layers.gd` does).
+  `sprite_row`, the shader's wall table from `wall_row`). Each part carries only
+  the view rows it wrote anything in: every band that writes a wall pixel, an
+  overlay pixel or a pane sets that row's byte in `px_hit`, `over_hit` or
+  `pane_hit` (a few rows too many at worst, never too few), `render_end()`
+  turns them into `px_span`, `over_span`, `pane_span`, and the shader gets
+  `px_rows`, `over_rows`, `pane_rows` and treats a pixel outside them as empty.
+  A new pass that writes `depth`, `frame`, `wall_code`, `over*` or `pane_*`
+  must mark its rows too. A texture is kept for each size it has been (heights
+  rounded up to eight sizes an octave, `_tall`), and a shader number is only
+  set when it changes (`_set_param`). Layered, the renderer keeps its pass
+  buffers from frame to frame (only the overlay, span counts, distances and
+  glass start cleared, and only when the frame before wrote in them; the
+  overlay's distances never, being read only where its coverage is set; the
+  counts are their own row, `span_c`): never hand one of its arrays to an
+  Image or texture directly, copy it (`scene_layers.gd` does). Once
+  `frame()` has copied the parts, `clear_ahead()` clears them on the idle
+  set-up thread while the main thread finishes the frame and ticks;
+  `frame_begin()` waits for it (`_settle_clear`, static: the thread is shared).
 - **The shader finds most walls itself.** In the shader view the band threads
   no longer work out every wall's span down every column: `_prepare()` runs on
   the whole crew in chunks (`_prepare_chunk`) and, while projecting, packs each

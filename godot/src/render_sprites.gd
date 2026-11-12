@@ -349,6 +349,8 @@ func _sprite_band(a: int, b: int) -> void:
 	var lay := _lay
 	var cover_ := over_a
 	var far_ := over_d
+	var px_rows := px_hit
+	var over_rows := over_hit
 	var lx0 := a - col0
 	var span := b - a
 	var rows := vh
@@ -361,6 +363,12 @@ func _sprite_band(a: int, b: int) -> void:
 			continue
 		var io := i * SPR_I
 		if ns[io] == 2:
+			if lay:
+				# A board may write any row of its columns (rare: the renderer draws
+				# sprites only when the shader's table is full).
+				for y in rows:
+					px_rows[y] = 1
+					over_rows[y] = 1
 			_draw_sign(_sprite_list[i], a, b, _spr_data[i], ns[io + 4], ns[io + 5])
 			continue
 		var fo := i * SPR_F
@@ -395,6 +403,10 @@ func _sprite_band(a: int, b: int) -> void:
 				break
 		if x0 >= x1:
 			continue
+		if lay:
+			for y in range(y0, y1):
+				px_rows[y] = 1
+				over_rows[y] = 1
 		var data: PackedByteArray = _spr_data[i]
 		var sw := ns[io + 4]
 		var sh := ns[io + 5]
@@ -550,6 +562,7 @@ func _mark_band(a: int, b: int) -> void:
 	var sf := span_f
 	var sn := span_n
 	var span_row := vw * 4
+	var px_rows := px_hit
 	for k in count:
 		var io := k * MK_I
 		if ns[io] == 0:
@@ -579,6 +592,8 @@ func _mark_band(a: int, b: int) -> void:
 			var vv := (horizon - (y + .5)) * d / focal + cz - mz
 			if absf(vv) > extent:
 				continue
+			if lay:
+				px_rows[y] = 1
 			var v := clampi(int((1.0 - vv / extent) * .5 * sh), 0, sh - 1)
 			var drow := y * w
 			for x in range(x0, x1):
@@ -705,6 +720,7 @@ func _ground_band(a: int, b: int) -> void:
 	var lay := _lay
 	var ray0 := rays[0]
 	var ray_step := rays[1] - rays[0]
+	var over_rows := over_hit
 	for k in count:
 		var io := k * GM_I
 		if ns[io] == 0:
@@ -778,6 +794,8 @@ func _ground_band(a: int, b: int) -> void:
 			var to_col := mini(
 				last, int(ceilf(clampf((ray_hi - ray0) / ray_step, -4.0, vw + 4.0))) + 3
 			)
+			if lay and from_col < to_col:
+				over_rows[r] = 1
 			for i in range(from_col, to_col):
 				var ray := rays[i]
 				var wx := from_x + distance * (fx + rx * ray)

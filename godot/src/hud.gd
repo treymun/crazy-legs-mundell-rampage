@@ -28,6 +28,8 @@ var plate_w := 320
 var plate_h := 44
 var icons := {}
 var ammo_icons: Array = []
+## Each token as RGBA, worked out once (_build_ammo_icons).
+var ammo_rgba: Array[PackedByteArray] = []
 var face_cache := {}
 var dial_cache := {}
 
@@ -332,6 +334,9 @@ func _build_ammo_icons() -> void:
 	for x in [2, 5, 8]:
 		c5.fill_rect(x, 1, 2, 4, green)
 		c5.set_pixel(x, 1, 185, 174, 145)
+	ammo_rgba.clear()
+	for token: Canvas in ammo_icons:
+		ammo_rgba.append(token.to_rgba())
 
 
 # ---------------------------------------------------------------- rail
@@ -390,8 +395,7 @@ func ammo_rail(c: Canvas, armory: Weapons.Armory) -> void:
 			)
 			c.fill_rect(x, Renderer.VIEW + 1, 39, 6, Color(51 / 255.0, 33 / 255.0, 25 / 255.0))
 		if armory.owned[slot]:
-			var token: Canvas = ammo_icons[i]
-			c.blit_rgba(token.to_rgba(), 12, 6, x + 8 - 6, Renderer.VIEW + 4 - 3)
+			c.blit_rgba(ammo_rgba[i], 12, 6, x + 8 - 6, Renderer.VIEW + 4 - 3)
 		var pool := Weapons.CROSSBOW if slot == Weapons.DYNAMITE else slot
 		var value2 := str(armory.reserve[pool]) if armory.owned[slot] else "-"
 		text(
@@ -605,12 +609,58 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 	var side := clampf(rel / 1.2, -1.0, 1.0)
 	var x := int(160.0 + side * 116.0)
 	var y := top + 1 + int(roundf(sin(game.clock * 4.2) * .6 + .4))
+	var label := str(int(distance))
+	if c.gpu:
+		# On a Godot 2D canvas every rect is a command: the arrow and the plate
+		# are drawn once in software (as below, pixel for pixel) and shown as
+		# two cached textures.
+		var shape := 0 if absf(rel) <= 1.2 else (-1 if rel < 0.0 else 1)
+		var arrow := _pin_texture("arrow|%d" % shape, PIN_BOX, PIN_BOX, rel, "")
+		c.gpu_texture(arrow, x - PIN_X, y - PIN_Y, PIN_BOX, PIN_BOX)
+		var w := PixelType.text_width(label, "mini") + 10
+		var h := int(PixelType.style_of("mini")[1]) + 4
+		var plate := _pin_texture("plate|" + label, w + 1, h + 2, rel, label)
+		c.gpu_texture(plate, x - w / 2, y + 14, w + 1, h + 2)
+		return
+	_pin_arrow(c, x, y, rel)
+	_pin_plate(c, x, y + 14, label)
+
+
+## The objective pin's pictures for a Godot 2D canvas, by shape and label: the
+## arrow drawn at (PIN_X, PIN_Y) of a PIN_BOX square, or the plate at (0, 0).
+const PIN_BOX := 17
+const PIN_X := 8
+const PIN_Y := 2
+var _pin_textures := {}
+
+
+func _pin_texture(key: String, w: int, h: int, rel: float, label: String) -> ImageTexture:
+	var kept: ImageTexture = _pin_textures.get(key)
+	if kept != null:
+		return kept
+	var surface := Canvas.new(w, h)
+	surface.enable_mask()
+	if label == "":
+		_pin_arrow(surface, PIN_X, PIN_Y, rel)
+	else:
+		_pin_plate(surface, (w - 1) / 2, 0, label)
+	if _pin_textures.size() > 64:
+		_pin_textures.clear()
+	kept = ImageTexture.create_from_image(
+		Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, surface.to_rgba())
+	)
+	_pin_textures[key] = kept
+	return kept
+
+
+## The pin's arrow hung at (x, y): pointing down at the way ahead, or lying
+## on its side pointing round (rel: where the way is from the view's middle).
+func _pin_arrow(c: Canvas, x: int, y: int, rel: float) -> void:
 	var ink := Canvas.rgb(31, 21, 16)
 	var paint := Canvas.rgb(188, 56, 36)
 	var shine := Canvas.rgb(244, 194, 116)
 	var nail := Canvas.rgb(236, 220, 188)
 	var shade := Canvas.rgb(120, 34, 24)
-	var py := y + 14
 	if absf(rel) <= 1.2:
 		# A painted arrow pointing down at the way: a stubby shaft and a broad
 		# head, dark rim, barn-red tin with a darker lower half, a bright top
@@ -642,8 +692,12 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 		c.set_pixel(
 			nx, y + 5, roundi(nail.r * 255.0), roundi(nail.g * 255.0), roundi(nail.b * 255.0)
 		)
-	# The steps left, stencilled on a tin plate with a rivet at each end.
-	var label := str(int(distance))
+
+
+## The steps left, stencilled on a tin plate with a rivet at each end, centred
+## on x from row py.
+func _pin_plate(c: Canvas, x: int, py: int, label: String) -> void:
+	var shine := Canvas.rgb(244, 194, 116)
 	var w := PixelType.text_width(label, "mini") + 10
 	var h := int(PixelType.style_of("mini")[1]) + 4
 	var px := x - w / 2

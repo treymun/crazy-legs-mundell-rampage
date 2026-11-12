@@ -110,6 +110,14 @@ func _put(name: String, w: int, h: int, format: Image.Format, data: PackedByteAr
 		material.set_shader_parameter(name, texture)
 
 
+## A per-frame texture's height, `rows` rounded up to one of eight sizes an
+## octave: the texture kept for each size (_put) is refilled, not made anew,
+## and few are ever made. The rows past `rows` are never read.
+static func _tall(rows: int) -> int:
+	var step := maxi(1, (nearest_po2(rows + 1) >> 1) >> 3)
+	return (rows + step - 1) / step * step
+
+
 ## The level's surfaces: they only change when the level does.
 func _load_level(renderer: Renderer) -> void:
 	var level := renderer.level
@@ -220,37 +228,48 @@ func frame(game: Game, _canvas: Canvas) -> void:
 	_early = false
 	var r: Renderer = game.renderer
 	var vw := r.vw
-	var vh := r.vh
-	# What the renderer left empty this frame is not sent (the shader's
-	# pixels_on, over_on, pane_on): no wall pixel (every wall a span) leaves the
-	# wall distances at their 160, no sprite or ground mark pixel leaves the
-	# coverage at 0.
-	var view_px := vw * vh
-	var pixels_on := r.depth.count(160.0) != view_px
-	var over_on := r.over_a.count(0) != view_px
-	var pane_on := r.pane_any
-	# Stacked a view's height apart (see the shader's `colours`). Plain bytes,
+	# Only the rows of each part the renderer wrote anything in this frame are
+	# sent (render_state.gd px_hit); a part with none is left out altogether
+	# (the shader's pixels_on, over_on, pane_on). A row outside a part's rows
+	# holds what an empty one does: no wall pixel (the distance 160), no sprite
+	# or ground mark (coverage 0), no pane.
+	var px := r.px_span
+	var ov := r.over_span
+	var pn := r.pane_span
+	var pixels_on := px.y > px.x
+	var over_on := ov.y > ov.x
+	var pane_on := r.pane_any and pn.y > pn.x
+	# Stacked a part's rows apart (see the shader's `colours`). Plain bytes,
 	# only copied: walls, sprites and ground marks, then the wall codes and the
 	# coverage as a byte stream (palette.gdshader stream_byte()), then panes.
 	var row_bytes := vw * 3
-	var colours := r.frame.duplicate() if pixels_on else PackedByteArray()
+	var colours := PackedByteArray()
+	if pixels_on:
+		colours = r.frame.slice(px.x * row_bytes, px.y * row_bytes)
 	var over_row := colours.size() / row_bytes
 	if over_on:
-		colours.append_array(r.over)
+		colours.append_array(r.over.slice(ov.x * row_bytes, ov.y * row_bytes))
 	var stream_row := colours.size() / row_bytes
 	if pixels_on:
-		colours.append_array(r.wall_code.to_byte_array())
+		colours.append_array(r.wall_code.slice(px.x * vw, px.y * vw).to_byte_array())
 	var cover_at := colours.size() - stream_row * row_bytes
 	if over_on:
-		colours.append_array(r.over_a)
-	colours.resize((colours.size() + row_bytes - 1) / row_bytes * row_bytes)
-	var pane_row := colours.size() / row_bytes
-	if pane_on:
-		colours.append_array(r.pane_rgb)
-	if not colours.is_empty():
-		_put("colours", vw, colours.size() / row_bytes, Image.FORMAT_RGB8, colours)
+		colours.append_array(r.over_a.slice(ov.x * vw, ov.y * vw))
+	var pane_row := (colours.size() + row_bytes - 1) / row_bytes
+	var rows := pane_row + (pn.y - pn.x if pane_on else 0)
+	if rows > 0:
+		colours.resize(pane_row * row_bytes)
+		if pane_on:
+			colours.append_array(r.pane_rgb.slice(pn.x * row_bytes, pn.y * row_bytes))
+		# Padded to a height of few sizes (_tall): a texture is kept per size.
+		var tall := _tall(rows)
+		colours.resize(tall * row_bytes)
+		_put("colours", vw, tall, Image.FORMAT_RGB8, colours)
 	_set_param("pixels_on", pixels_on)
 	_set_param("over_on", over_on)
+	_set_param("px_rows", Vector2i(px.x, px.y))
+	_set_param("over_rows", Vector2i(ov.x, ov.y))
+	_set_param("pane_rows", Vector2i(pn.x, pn.y))
 	_set_param("over_row", over_row)
 	_set_param("stream_row", stream_row)
 	_set_param("cover_at", cover_at)
@@ -266,12 +285,11 @@ func frame(game: Game, _canvas: Canvas) -> void:
 			span_rows = k * 2
 			break
 	var table := r.span_f.slice(0, span_rows * row_floats)
-	var count_at := Renderer.SPAN_K * 2 * row_floats
-	table.append_array(r.span_f.slice(count_at, count_at + row_floats))
+	table.append_array(r.span_c)
 	_set_param("count_row", span_rows)
 	_set_param("sprite_row", span_rows + 1)
 	var count := r.gpu_spr_n if r.gpu_sprites else 0
-	var rows := span_rows + 1
+	rows = span_rows + 1
 	if count > 0:
 		var sprite_rows := (count * 4 + vw - 1) / vw
 		var sprites := r.gpu_spr.slice(0, count * 16)
@@ -289,27 +307,30 @@ func frame(game: Game, _canvas: Canvas) -> void:
 		table.append_array(r.wall_table)
 		table.resize((table.size() + row_floats - 1) / row_floats * row_floats)
 		rows = table.size() / row_floats
-	# Then the distance bands this frame has, four floats a texel.
+	# Then the distance bands this frame has (their rows only), four floats a
+	# texel.
 	var dist_row := rows
 	var dist_start := Vector3i.ZERO
 	var floats := 0
 	if pixels_on:
-		table.append_array(r.depth)
-		floats += view_px
+		table.append_array(r.depth.slice(px.x * vw, px.y * vw))
+		floats += (px.y - px.x) * vw
 	if over_on:
 		dist_start.y = floats
-		table.append_array(r.over_d)
-		floats += view_px
+		table.append_array(r.over_d.slice(ov.x * vw, ov.y * vw))
+		floats += (ov.y - ov.x) * vw
 	if pane_on:
 		dist_start.z = floats
-		table.append_array(r.pane_dist)
-	table.resize((table.size() + row_floats - 1) / row_floats * row_floats)
-	rows = table.size() / row_floats
+		table.append_array(r.pane_dist.slice(pn.x * vw, pn.y * vw))
+	rows = _tall((table.size() + row_floats - 1) / row_floats)
+	table.resize(rows * row_floats)
 	_put("spans", vw, rows, Image.FORMAT_RGBAF, table.to_byte_array())
 	_set_param("dist_row", dist_row)
 	_set_param("dist_start", dist_start)
 
-	_set_param("pane_on", r.pane_any)
+	_set_param("pane_on", pane_on)
+	# Everything is copied out: the next frame's clearing can start now.
+	r.clear_ahead()
 	if not _on:
 		_on = true
 		material.set_shader_parameter("scene_on", true)
