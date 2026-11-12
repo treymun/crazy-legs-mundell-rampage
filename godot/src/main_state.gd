@@ -797,6 +797,16 @@ func title_hint() -> String:
 	return "ARROWS MOVE / ENTER SELECT"
 
 
+## The button that uses things, as the play prompts name it: USE on a touch
+## screen, Y on a controller, else the key USE is bound to (KEYS page).
+func use_button() -> String:
+	if input_device == "touch":
+		return "USE"
+	if input_device == "pad":
+		return "Y"
+	return KeyBindings.key_name(int(options.get(KeyBindings.option_key("use"), KEY_E)))
+
+
 func setup_guide() -> String:
 	if input_device == "touch":
 		return "TAP A ROW, THEN A SIDE / DRAG TO SCROLL"

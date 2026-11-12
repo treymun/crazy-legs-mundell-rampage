@@ -552,52 +552,163 @@ func use_target() -> Variant:
 	var devices: Array = []
 	for station: LevelData.Station in world.stations:
 		if not station.reveals_secret or not stations_done.has(station.id):
-			devices.append([station, station.x, station.y])
+			devices.append(station)
 	if world.extraction != null:
-		devices.append([world.extraction, world.extraction.x, world.extraction.y])
+		devices.append(world.extraction)
 	for device: Array in level.devices:
 		devices.append(device)
 	if gallery != null:
-		devices.append(
-			[gallery, GALLERY_STAND.x + gallery.offset.x, GALLERY_STAND.y + gallery.offset.y]
-		)
+		devices.append(gallery)
 	for note: LevelData.Note in level.notes:
-		devices.append([note, note.x, note.y])
-	# Rank candidates exactly like the reference: (not aimed, distance), so an
-	# aimed target always beats an unaimed one no matter how far away it is.
-	var best_worse := true
-	var best_distance := INF
+		devices.append(note)
+	# An aimed target beats an unaimed one (the reference's rule); among them
+	# the one nearest the crosshair wins, a little in favour of the nearer.
+	var best := [true, INF]
 	var result = null
-	for group in [[doors, 1.57, .50, .48], [devices, 1.45, .52, .40]]:
-		var candidates: Array = group[0]
-		var reach: float = group[1]
-		var touch: float = group[2]
-		var cone: float = group[3]
-		for candidate in candidates:
-			var target = candidate[0]
-			var x: float = candidate[1]
-			var y: float = candidate[2]
-			var dx := x - player.x
-			var dy := y - player.y
-			var distance := sqrt(dx * dx + dy * dy)
-			var aimed := dx * facing.x + dy * facing.y > distance * cone
-			var worse := aimed == false
-			# Reference rank is the tuple (not aimed, distance) compared with <.
-			var better: bool
-			if worse == best_worse:
-				better = distance < best_distance
-			else:
-				better = worse == false
-			if (
-				distance < reach
-				and (aimed or distance < touch)
-				and better
-				and world.visible(player.x, player.y, x, y)
-			):
-				best_worse = worse
-				best_distance = distance
-				result = [target, x, y]
+	use_aim = Vector3.INF
+	for door_entry: Array in doors:
+		var x: float = door_entry[1]
+		var y: float = door_entry[2]
+		var rank := _use_rank(x, y, 1.57, .50, .48, facing)
+		if _ranks_above(rank, best) and world.visible(player.x, player.y, x, y):
+			best = rank
+			result = door_entry
+			use_aim = Vector3.INF
+	for device in devices:
+		for point: Vector3 in aim_points(device):
+			var rank := _use_rank(point.x, point.y, DEVICE_REACH, DEVICE_TOUCH, DEVICE_CONE, facing)
+			if _ranks_above(rank, best) and seen_at(point):
+				best = rank
+				use_aim = point
+				var at := use_point(device)
+				result = [device[0] if device is Array else device, at.x, at.y]
 	return result
+
+
+## Quest devices (stations, the exit, notes, the jukebox and sink, the tin
+## rooster stand) answer USE from a little farther than doors and a little
+## wider round the crosshair, at any of their aim points (aim_points).
+const DEVICE_REACH := 1.65
+const DEVICE_TOUCH := .62
+const DEVICE_CONE := .34
+
+
+## [not aimed, score] for something at x, y, or [] when it is out of reach:
+## aimed within `cone` (the dot of the facing and the way to it, per unit of
+## distance), or closer than `touch` whichever way the player faces. The score
+## is how far off the crosshair it is (radians) and a third of its distance.
+func _use_rank(
+	x: float, y: float, reach: float, touch: float, cone: float, facing: Vector2
+) -> Array:
+	var dx := x - player.x
+	var dy := y - player.y
+	var distance := sqrt(dx * dx + dy * dy)
+	if distance >= reach:
+		return []
+	var along := dx * facing.x + dy * facing.y
+	var aimed := along > distance * cone
+	if not aimed and distance >= touch:
+		return []
+	var off := acos(clampf(along / maxf(distance, .001), -1.0, 1.0))
+	return [not aimed, off + distance * .35]
+
+
+func _ranks_above(rank: Array, best: Array) -> bool:
+	if rank.is_empty():
+		return false
+	if bool(rank[0]) != bool(best[0]):
+		return not bool(rank[0])
+	return float(rank[1]) < float(best[1])
+
+
+## Where USE acts on a device, as the game has always reported it.
+func use_point(device) -> Vector2:
+	if device is Array:
+		return Vector2(float(device[1]), float(device[2]))
+	if device is GameState.Gallery:
+		return GALLERY_STAND + gallery.offset
+	return Vector2(device.x, device.y)
+
+
+## The points a device can be aimed at, with the height of what is seen there:
+## its own point, and for a station or the exit the board that lights up for it
+## close by (the panel the player looks at), for a note the slip on the table,
+## for the jukebox and sink the thing itself.
+func aim_points(device) -> Array:
+	if aim_cache.get("level") != world:
+		# A level reloaded from the editor: its boards may have moved.
+		aim_cache = {"level": world}
+	var key = device if not (device is Array) else String(device[0])
+	if aim_cache.has(key):
+		return aim_cache[key]
+	var at := use_point(device)
+	var lift := .9
+	var signal_name := ""
+	var near_art := ""
+	if device is LevelData.Station:
+		signal_name = device.id
+	elif device is LevelData.Extraction:
+		signal_name = "exit"
+	elif device is LevelData.Note:
+		lift = 1.01
+		near_art = "note"
+	elif device is Array:
+		near_art = String(device[0])
+	var points: Array = [Vector3(at.x, at.y, world.elevation(at.x, at.y) + lift)]
+	for board: LevelData.Billboard in world.billboards:
+		var d := Vector2(board.x, board.y).distance_to(at)
+		var mine := signal_name != "" and board.signal_name == signal_name and d < 3.5
+		if near_art == "note":
+			mine = d < .8 and (board.image == "county_note" or board.image.begins_with("story_"))
+		if mine:
+			var z: float = world.elevation(board.x, board.y) + board.z + board.height * .5
+			points.append(Vector3(board.x, board.y, z))
+	if near_art != "" and near_art != "note":
+		for prop: LevelData.Scenery in world.scenery:
+			if prop.kind == near_art and Vector2(prop.x, prop.y).distance_to(at) < 1.5:
+				var z: float = world.elevation(prop.x, prop.y) + prop.z + prop.height * .5
+				points.append(Vector3(prop.x, prop.y, z))
+		for spec in level.props:
+			var q := Vector2(float(spec[1]), float(spec[2]))
+			if String(spec[0]) == near_art and q.distance_to(at) < 1.5:
+				var h := float(PROP_HEIGHTS.get(near_art, 1.0))
+				points.append(Vector3(q.x, q.y, world.elevation(q.x, q.y) + h * .5))
+	aim_cache[key] = points
+	return points
+
+
+## Whether the player's eye sees `point` (x, y, height), or failing that the
+## face of what it is mounted in or stood on: a point stepped back toward the
+## player, out of the wall, counter or pump, at most .45 (less than half a
+## cell, so a thing in a wall is only ever seen from its own side).
+func seen_at(point: Vector3) -> bool:
+	var p := player
+	if world.visible(p.x, p.y, point.x, point.y, p.eye, point.z):
+		return true
+	var way := Vector2(p.x - point.x, p.y - point.y)
+	var length := way.length()
+	if length < .05:
+		return true
+	way /= length
+	for k in range(1, 10):
+		var step := minf(k * .05, length - .02)
+		var face := Vector2(point.x, point.y) + way * step
+		if not world.blocked(face.x, face.y, .023, point.z):
+			return world.visible(p.x, p.y, face.x, face.y, p.eye, point.z)
+	return false
+
+
+## Whether the player standing where they are takes the pickup `entry`
+## ([name, x, y]). A key or the patch lead is taken from a little farther and
+## over a counter or crate it lies by; anything else as it always was.
+func reaches_pickup(entry: Array) -> bool:
+	var name := String(entry[0])
+	var x := float(entry[1])
+	var y := float(entry[2])
+	var gap := (player.x - x) * (player.x - x) + (player.y - y) * (player.y - y)
+	if name.begins_with("key_") or TASK_ITEMS.has(name):
+		return gap < .62 * .62 and seen_at(Vector3(x, y, world.elevation(x, y) + .25))
+	return gap < .43 * .43 and world.visible(player.x, player.y, x, y)
 
 
 func use_prompt() -> String:
@@ -855,6 +966,73 @@ func exit_ready() -> bool:
 	return stations_done.has(world.extraction.shutdown) and not _wave_alive()
 
 
+## What the objective is done at glows: a station still to do blinks amber at
+## its panel's lamp, a done one shows a small green pilot; the exit is red
+## until the way is clear, then green; a Crossroads gate red while locked,
+## green once open (effects.cfg station_todo, station_done, exit_locked,
+## exit_open, gate_locked, gate_open). A hidden station keeps its secret.
+func _quest_lights() -> Array:
+	var p := player
+	var out: Array = []
+	if in_hub:
+		for gate: LevelData.Gate in world.hub_gates:
+			if absf(gate.x - p.x) < 14.0 and absf(gate.y - p.y) < 14.0:
+				var locked := world.locked_gates.has(gate)
+				var z := world.elevation(gate.x, gate.y + gate.side * .4) + 2.0
+				out.append(
+					Effects.light(
+						"gate_locked" if locked else "gate_open",
+						gate.x,
+						gate.y + gate.side * .4,
+						z,
+						1.0,
+						clock
+					)
+				)
+		return out
+	var blink := .55 + .45 * sin(clock * 3.2)
+	for station: LevelData.Station in world.stations:
+		if station.hidden or station.reveals_secret:
+			continue
+		if absf(station.x - p.x) > 12.0 or absf(station.y - p.y) > 12.0:
+			continue
+		var done := stations_done.has(station.id)
+		var at: Vector3 = _lamp_at(station)
+		out.append(
+			Effects.light(
+				"station_done" if done else "station_todo",
+				at.x,
+				at.y,
+				at.z - (.45 if done else 0.0),
+				1.0 if done else blink,
+				clock
+			)
+		)
+	var exit: LevelData.Extraction = world.extraction
+	if exit != null and absf(exit.x - p.x) < 12.0 and absf(exit.y - p.y) < 12.0:
+		var at: Vector3 = _lamp_at(exit)
+		var open := exit_ready()
+		out.append(
+			Effects.light(
+				"exit_open" if open else "exit_locked",
+				at.x,
+				at.y,
+				at.z,
+				1.0 if open else blink,
+				clock
+			)
+		)
+	return out
+
+
+## Where a device's lamp is: on top of its panel (the last of its aim points,
+## its board), else above its own point.
+func _lamp_at(device) -> Vector3:
+	var points := aim_points(device)
+	var last: Vector3 = points[points.size() - 1]
+	return Vector3(last.x, last.y, last.z + .35)
+
+
 func finish_level(cue: String) -> void:
 	if not won:
 		won = true
@@ -875,7 +1053,7 @@ func portal_target(reach := 2.62) -> Variant:
 	for gate in portals:
 		if gate == null:
 			continue
-		if gate.approach(player.x, player.y, player.view_angle(), reach):
+		if gate.approach(player.x, player.y, player.view_angle(), reach) or _gate_aimed(gate):
 			var face: float = gate.y + (.17 if player.y - gate.y >= 0.0 else -.17)
 			if world.visible(
 				player.x,
@@ -889,26 +1067,35 @@ func portal_target(reach := 2.62) -> Variant:
 	return null
 
 
+## A gate the player stands in front of with the crosshair on its opening,
+## however slanting (Gate.approach wants the gate fairly square ahead).
+func _gate_aimed(gate: LevelData.Gate) -> bool:
+	var d := (player.y - gate.y) * gate.side
+	if d < .15 or d > 1.9 or absf(player.x - gate.x) > gate.width * .5 + .1:
+		return false
+	var toward := -sin(player.view_angle()) * gate.side
+	if toward < .15:
+		return false
+	var hit := player.x + cos(player.view_angle()) * d / toward
+	return absf(hit - gate.x) < gate.width * .5 and d / toward < 2.4
+
+
 func hub_clue() -> Variant:
 	var label: String = String(HUB_DISPATCH[hub_milestone][0])
 	var text: String = String(HUB_DISPATCH[hub_milestone][1])
 	var best = null
-	var nearest := 1.32 * 1.32
+	var best_rank := [true, INF]
 	var candidates: Array = world.hub_clues.duplicate()
 	candidates.append(["dispatch", level.hub_board.x, level.hub_board.y, "READ " + label, text])
+	var facing := Vector2(cos(player.view_angle()), sin(player.view_angle()))
 	for clue in candidates:
 		var x: float = clue[1]
 		var y: float = clue[2]
-		var dx := x - player.x
-		var dy := y - player.y
-		var square := dx * dx + dy * dy
-		if (
-			square < nearest
-			and dx * cos(player.view_angle()) + dy * sin(player.view_angle()) > .22
-			and world.visible(player.x, player.y, x, y, player.eye, world.elevation(x, y) + .96)
-		):
+		# As the quest devices: a little reach, the one nearest the crosshair.
+		var rank := _use_rank(x, y, DEVICE_REACH, DEVICE_TOUCH, DEVICE_CONE, facing)
+		if _ranks_above(rank, best_rank) and seen_at(Vector3(x, y, world.elevation(x, y) + .96)):
 			best = clue
-			nearest = square
+			best_rank = rank
 	return best
 
 

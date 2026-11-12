@@ -362,14 +362,7 @@ func tick(dt: float, controls) -> void:
 	world.update(dt, p, enemies)
 	var remaining: Array = []
 	for entry in pickups:
-		var name := String(entry[0])
-		var x := float(entry[1])
-		var y := float(entry[2])
-		if (
-			(p.x - x) * (p.x - x) + (p.y - y) * (p.y - y) >= .43 * .43
-			or not world.visible(p.x, p.y, x, y)
-			or not collect(name)
-		):
+		if not reaches_pickup(entry) or not collect(String(entry[0])):
 			remaining.append(entry)
 	pickups = remaining
 	armory.tick(dt, self)

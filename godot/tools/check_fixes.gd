@@ -589,6 +589,7 @@ func _run() -> void:
 	weather.next_flash = 0.0
 	stormy.ticked.emit(1.0 / 60.0)
 	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
+	_quest_props(main)
 
 	print("")
 	if failures.is_empty():
@@ -942,3 +943,102 @@ func _check_setup_moves(main: Control) -> void:
 	main.option_page = 0
 	main.option_slot = 0
 	main.option_scroll = 0
+
+
+## Quest props and items: forgiving to use, never through a wall (game_world.gd
+## use_target, seen_at, reaches_pickup; tools/quest_reach.gd checks them all).
+func _quest_props(main: Control) -> void:
+	print("QUEST PROPS")
+	var mill: Game = main.make_game("sawmill")
+	mill.configure({})
+	var west: LevelData.Station = null
+	for station: LevelData.Station in mill.world.stations:
+		if station.id == "west":
+			west = station
+	# The west feed's box stands 1.6 south of its point: a player at the box,
+	# facing it, used to have the point behind them.
+	_stand(mill, 9.5, 23.3, PI / 2)
+	var found = mill.use_target()
+	check(
+		found != null and found[0] == west,
+		"the box a station lights up answers USE from in front of it (was: its point only)"
+	)
+	var town: Game = main.make_game("hickston")
+	town.configure({})
+	_stand(town, 34.0, 32.4, PI / 2)
+	found = town.use_target()
+	check(
+		found != null and found[0] is LevelData.Note,
+		"a note lying on a table is read from beside it (the table hid it)"
+	)
+	_stand(town, 80.5, 23.5, -PI / 2)
+	found = town.use_target()
+	check(
+		found == null or not (found[0] is LevelData.Station),
+		"the stock gate's bolt does not answer through the fence from the lane"
+	)
+	# The thing under the crosshair wins over a nearer one off to the side.
+	var front: LevelData.Door = null
+	for door: LevelData.Door in town.world.doors:
+		if door.id == "front":
+			front = door
+	var slip := LevelData.Note.new()
+	slip.x = 52.75
+	slip.y = 43.35
+	slip.label = "TEST SLIP"
+	town.level.notes.append(slip)
+	_stand(town, 52.25, 42.5, 0.0)
+	found = town.use_target()
+	check(
+		found != null and found[0] == front,
+		"facing the door opens the door, not the slip beside it"
+	)
+	_stand(town, 52.25, 42.5, atan2(43.35 - 42.5, 52.75 - 52.25))
+	found = town.use_target()
+	check(found != null and found[0] == slip, "facing the slip reads it, with the door still near")
+	town.level.notes.erase(slip)
+	_stand(town, 34.0, 32.6, PI / 2)
+	check(
+		town.reaches_pickup(["key_brass", 34.0, 33.2]),
+		"a key lying over the edge of a table is taken by walking up to it"
+	)
+	check(not town.reaches_pickup(["bullets", 34.0, 33.2]), "ammo keeps its own short reach")
+	var kept_device: String = main.input_device
+	main.input_device = "pad"
+	var pad: String = main.use_button()
+	main.input_device = "touch"
+	var finger: String = main.use_button()
+	main.input_device = kept_device
+	check(
+		pad == "Y" and finger == "USE", "the use prompt names the controller's and the touch button"
+	)
+	var hub: Game = main.make_game("hub")
+	hub.in_hub = true
+	hub.world.locked_gates = [hub.world.hub_gates[0]]
+	var walls: PackedFloat32Array = hub.world.active_walls(false)
+	var barred := false
+	var closed := hub.world.tile_id("route_closed")
+	for i in walls.size() / LevelData.WALL_STRIDE:
+		barred = barred or int(walls[i * LevelData.WALL_STRIDE + 4]) == closed
+	check(barred, "a locked Crossroads gate shows its barricade (the rebuilt hub never did)")
+	var gate: LevelData.Gate = hub.world.hub_gates[0]
+	_stand(hub, gate.x - 1.1, gate.y + .5, -PI / 2 + 1.2)
+	check(
+		hub.portal_target() == gate, "a gate answers with the crosshair on its opening, at a slant"
+	)
+	var facing_hub := false
+	var face_tile := hub.world.tile_id("route_" + gate.destination)
+	for i in hub.world.wall_count:
+		var o := i * LevelData.WALL_STRIDE
+		if int(hub.world.walls[o + 4]) == face_tile and hub.world.walls[o + 1] > gate.y:
+			facing_hub = true
+	check(facing_hub, "a Crossroads gate's name board faces the Crossroads, not the hedge")
+
+
+func _stand(g: Game, x: float, y: float, angle: float) -> void:
+	var p := g.player
+	p.x = x
+	p.y = y
+	p.angle = angle
+	p.pitch = 0.0
+	p.eye = g.world.elevation(x, y) + .95

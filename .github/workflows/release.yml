@@ -59,6 +59,8 @@ jobs:
         run: godot --headless --path godot --script res://tools/save_fixtures.gd
       - name: Level editing keeps the walls right
         run: godot --headless --path godot --script res://tools/level_edit_check.gd
+      - name: Every quest prop and item can be used from where it is seen
+        run: godot --headless --path godot --script res://tools/quest_reach.gd
       - name: Campaign walkthrough
         run: godot --headless --path godot --script res://tools/bot_campaign.gd
       - name: Pictures match their references

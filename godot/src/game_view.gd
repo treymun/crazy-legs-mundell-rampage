@@ -705,6 +705,10 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			var hint := gate_prompt()
 			if hint == "" and hints and not in_hub:
 				hint = use_prompt()
+				if hint != "":
+					_use_mark(c)
+			if hint.begins_with("E  ") and use_key != "E":
+				hint = use_key + "  " + hint.substr(3)
 			if hint != "":
 				HUD.banner(c, hint, 137, 288, Canvas.rgb(251, 207, 142))
 			if voice_captions and caption_until > clock:
@@ -781,11 +785,13 @@ func effect_lights() -> Array:
 			found.append(Effects.light("streetlamp", board.x, board.y, top, 1.0, clock))
 	for entry: Array in pickups:
 		var item := String(entry[0])
-		if item.begins_with("key_") and absf(float(entry[1]) - p.x) < 10.0:
+		var quest := item.begins_with("key_") or TASK_ITEMS.has(item)
+		if quest and absf(float(entry[1]) - p.x) < 10.0:
 			if absf(float(entry[2]) - p.y) < 10.0:
 				var x := float(entry[1])
 				var y := float(entry[2])
 				found.append(Effects.light(item, x, y, world.elevation(x, y) + .4, 1.0, clock))
+	found.append_array(_quest_lights())
 	for l: Array in trigger_lights:
 		if clock < float(l[6]):
 			found.append([l[0], l[1], l[2], l[3], l[4], l[5]])
@@ -833,6 +839,34 @@ func _hurt_arc(c: Canvas, turn: float, end: float) -> void:
 		c.fill_rect(
 			clampi(x - 1, 0, WIDTH - thick), clampi(y - 1, 0, VIEW - thick), thick, thick, colour
 		)
+
+
+## Corner brackets round the quest device USE would act on (use_aim, set by
+## use_target), breathing slowly: what the prompt names is the thing marked.
+## Doors and things already done get none.
+func _use_mark(c: Canvas) -> void:
+	var found = use_target()
+	if found == null or found[0] is LevelData.Door or use_aim == Vector3.INF:
+		return
+	if found[0] is LevelData.Station and stations_done.has(found[0].id):
+		return
+	var at := to_canvas(use_aim.x, use_aim.y, use_aim.z)
+	if at.z <= 0.0:
+		return
+	var half := int(clampf(.2 / at.z * Renderer.base_focal, 5, 16))
+	var cx := int(at.x)
+	var cy := int(at.y)
+	if cx < half or cx > WIDTH - half or cy < half + 2 or cy > VIEW - half:
+		return
+	var glow := .72 + .28 * sin(clock * 4.2)
+	var colour := Color(1.0 * glow, .80 * glow, .42 * glow)
+	var arm := maxi(2, half / 3)
+	for sx: int in [-1, 1]:
+		for sy: int in [-1, 1]:
+			var x := cx + sx * half
+			var y := cy + sy * half
+			c.fill_rect(mini(x, x - sx * arm), y, arm + 1, 1, colour)
+			c.fill_rect(x, mini(y, y - sy * arm), 1, arm + 1, colour)
 
 
 ## Four short ticks around the crosshair when a hit lands; red and wider on a kill.

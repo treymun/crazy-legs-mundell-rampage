@@ -726,6 +726,15 @@ var district := 0
 var district_until := 3.0
 var amb_clock := 3.0
 var jukebox_on := false
+## Where each thing to use can be aimed at (game_world.gd aim_points): the
+## thing -> its points with heights, worked out once per level.
+var aim_cache := {}
+## The name of the button that uses things, for the prompt: the bound key, Y
+## on a controller, USE on a touch screen (main.gd sets it each frame).
+var use_key := "E"
+## The aim point (x, y, height) of the device use_target() last chose, for the
+## marker drawn round it; INF when it chose none or a door.
+var use_aim := Vector3.INF
 var flush_until := 0.0
 var map_panel = null
 var map_signature = null
