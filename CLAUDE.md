@@ -386,6 +386,19 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   the saw speeds up; HOG WILD a kicked fuel drum (shoot it). `tools/arena_check.gd`
   (in check_fixes) holds it; `tools/arena_frames.gd` takes window pictures of
   each arena (`docs/boss_arenas/`).
+- **The bosses' art wears the fight** (`src/boss_looks.gd`, called from
+  `Enemy.sprite()` for bosses only). `build_enemy_actors.gd` renders the eight
+  bosses on a dusk stage (warm key, two rims, more samples; `enemy_actors.py
+  light_for`, the graphics card when Cycles has one) with less grain, plus a
+  wind-up cel `<kind>_wind` (the first half of a wind-up; then `_aim`) and a
+  battle-damaged copy of every living cel per phase: `<kind>_p2_<cel>` under
+  half health, `<kind>_p3_<cel>` under a fifth (Maw: `maw_p2_` from her fight's
+  phase two, two thirds, housecoat on fire; `maw_p3_bare_` out of it). The
+  damage is `DAMAGE` in the Blender scripts: every material scorched (`mat`
+  `_battle_worn`) plus each boss's own rags, smoke, flames and breakage; falls
+  are drawn beaten. A cel without a variant keeps its name. `tools/boss_closeups.gd
+  -- out=<png>` draws every boss in its level in each state (software view).
+  `pack_assets.gd` stores identical pictures once (the old three-cel walk names).
 - **Fight music** (`features/fight_music.gd`, `sound.gd` crossfade) swaps a
   chapter's music for its fight track (`assets/music/fight_*.ogg`, made by
   `audio_build.py --fights`) while hands hunt or attack nearby. Each chapter

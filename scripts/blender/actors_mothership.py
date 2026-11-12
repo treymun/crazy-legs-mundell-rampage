@@ -134,7 +134,9 @@ def maw(frame, bare=False):
     S = MAW
     J = skeleton(S, frame)
     Tm, Hm = J["torso"], J["head"]
-    hot = frame in ("aim", "fire")
+    hot = frame in ("aim", "wind", "fire")
+    # Phase two (her housecoat's on fire) and, out of it, the beaten bare set.
+    burning = DAMAGE and not bare and not J["dead"]
     grey = mat(150, 166, 128, .55, grime=.35)
     eye = mat(8, 10, 12, .08, grime=0)
     iris = mat(255, 60, 40, emit=2.6 if (hot or bare) else 1.2)
@@ -189,6 +191,12 @@ def maw(frame, bare=False):
             a = k / 9 * math.pi * 1.6 - math.pi * .8
             at = Vector((math.sin(a) * .17, .06 + math.cos(a) * .08, .2 + .05 * math.cos(a)))
             roll = mat(176, 180, 184, .3, .9) if k % 2 else mat(240, 150, 190, .7)
+            if burning and k == 1:
+                # shaken loose: one hangs by a strand past her ear
+                at = Vector((-.25, .0, -.08))
+                limb(Vector((-.16, .04, .14)), at, .005, .005, mat(80, 60, 50, .9, grime=0), Hm)
+            elif burning and k == 6:
+                at = Vector((.34, -.12, .36))  # and one flies off
             limb(at + Vector((-.05, 0, 0)), at + Vector((.05, 0, 0)), .05, .05, roll, Hm)
         ring(Hm @ Vector((0, .04, .17)), Hm.to_3x3() @ Vector((0, 0, 1)), .2, .006, mat(80, 60, 50, .9, grime=0), n=20)
     else:
@@ -252,6 +260,27 @@ def maw(frame, bare=False):
         foot = J["foot" + tag]
         ball((foot.x, foot.y - .12, foot.z - S["ankle"] + .1), (.2, .3, .14), slipper)
         ball((foot.x, foot.y - .3, foot.z - S["ankle"] + .16), .1, mat(255, 210, 230, .95, grime=.1))
+    if burning:
+        # HOUSECOAT'S ON FIRE: the hem and a shoulder alight, scorch spreading,
+        # smoke off her back, one lens starred
+        for k, (x, y, z, r) in enumerate(((-.42, -.52, -.9, .62), (.3, -.56, -.92, .5), (.72, -.2, -.72, .46),
+                                            (-.52, -.38, .74, .4))):
+            flames(Tm @ Vector((x, y, z)), r, 4, k0=k * 3)
+        smoke(Tm @ Vector((-.3, .3, 1.0)), .14, (-.4, .5))
+        embers(Tm @ Vector((0, -.4, -.4)), .9, 10)
+        crack([(.04, -.2, .03), (.09, -.205, -.01), (.07, -.205, -.05), (.12, -.2, -.03)], Hm, WHITE(), .005)
+    if bare and DAMAGE == 2 and not J["dead"]:
+        # beaten: two curlers still snarled in her feelers, the housecoat's last
+        # charred rags hanging off the girdle, cells shorting, the dome split
+        for at, roll in ((Vector((-.2, .02, .2)), mat(240, 150, 190, .7)), (Vector((.16, .1, .26)), mat(176, 180, 184, .3, .9))):
+            limb(at + Vector((-.05, 0, -.02)), at + Vector((.05, 0, .02)), .05, .05, roll, Hm)
+        rag = mat(70, 44, 52, .95, plaid=2.2, grime=.6)
+        rags(Tm @ Vector((0, -.5, -.36)), Tm.to_3x3() @ Vector((0, -1, 0)), 7, .5, .9, rag, k0=1)
+        rags(Tm @ Vector((0, .45, -.36)), Tm.to_3x3() @ Vector((0, 1, 0)), 5, .4, .8, rag, k0=9)
+        crack([(-.05, -.12, .2), (.02, -.17, .12), (-.03, -.2, .05), (.04, -.21, -.02)], Hm, mat(255, 70, 40, emit=2.6), .012)
+        sparks(Tm @ Vector((.5, -.4, .34)), (.6, -.6, .3), 9, .5)
+        sparks(Tm @ Vector((-.55, -.3, .34)), (-.6, -.6, .3), 7, .45)
+        smoke(Tm @ Vector((.2, .2, .9)), .14, (.4, .5))
 
 
 def maw_cels(frame):

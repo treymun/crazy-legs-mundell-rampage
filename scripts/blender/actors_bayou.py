@@ -193,7 +193,7 @@ def swamp_king(frame):
     dead = isinstance(frame, str) and frame.startswith("die_")
     stage = int(frame[4:]) if dead else -1
     beat = beat_of(frame)
-    hot = frame in ("aim", "fire")
+    hot = frame in ("aim", "wind", "fire")
     steel = mat(96, 100, 98, .45, .75, grime=.6)
     rust = mat(128, 66, 38, .6, .4, grime=.6)
     alu = mat(170, 172, 168, .4, .7, grime=.6)
@@ -227,8 +227,24 @@ def swamp_king(frame):
     box((0, .95, .9 + bob), (.5, .4, .1), red, B)
     for s in (-1, 1):
         limb(B @ Vector((s * .22, .85, .9 + bob)), B @ Vector((s * .26, .8, 1.4 + bob)), .04, .05, dark, caps=False)
-        if hot or (beat % 2 == (0 if s < 0 else 1) and not dead):
+        if DAMAGE and not dead:
+            # the engine missing and coughing: black smoke, then fire out of it
+            smoke(B @ Vector((s * .28, .8, 1.45 + bob)), .1 + .04 * DAMAGE, (.55 * s, .3))
+        elif hot or (beat % 2 == (0 if s < 0 else 1) and not dead):
             puff(B @ Vector((s * .3, .8, 1.5 + bob)), .07 if hot else .05, turn=s > 0)
+    if DAMAGE and not dead:
+        # holes punched through the bow shield, the grin scorched
+        for k, (x, z) in enumerate(((-.35, .5), (.22, .78), (.4, .42), (-.1, .86), (.05, .55))[:2 + 2 * DAMAGE]):
+            disc(B @ Vector((x, -1.0, z + bob)), (0, 1, 0), .04 + .01 * (k % 2), .085, BLACK())
+            for j in range(4):
+                a = j * math.tau / 4 + k
+                limb(B @ Vector((x + math.cos(a) * .04, -1.0, z + bob + math.sin(a) * .04)),
+                     B @ Vector((x + math.cos(a) * .075, -1.03, z + bob + math.sin(a) * .075)), .012, .003, steel, caps=False, seg=4)
+        char_patch(B @ Vector((.3, -1.0, .6 + bob)), .2, None)
+    if DAMAGE == 2 and not dead:
+        flames(B @ Vector((.42, .9, .9 + bob)), .34, 4, k0=2)
+        flames(B @ Vector((-.4, 1.05, .9 + bob)), .26, 3, k0=6)
+        sparks(B @ Vector((0, 1.0, .9 + bob)), (0, .3, 1), 8, .35)
     cage_c = Vector((0, 1.32, 1.18 + bob))
     pts = []
     for k in range(20):
@@ -242,7 +258,9 @@ def swamp_king(frame):
     spin = beat * .7 + (.35 if hot else 0)
     for k in range(2):
         a = spin + k * math.pi
-        limb(B @ (cage_c + Vector((0, -.08, 0))), B @ (cage_c + Vector((math.cos(a) * .88, -.08, math.sin(a) * .88))), .05, .03,
+        # beaten, one blade is shot off short
+        reach = .4 if DAMAGE == 2 and k == 1 else .88
+        limb(B @ (cage_c + Vector((0, -.08, 0))), B @ (cage_c + Vector((math.cos(a) * reach, -.08, math.sin(a) * reach))), .05, .03,
              mat(150, 116, 72, .7, grime=.4), caps=False)
     disc(B @ (cage_c + Vector((0, -.1, 0))), (0, 1, 0), .1, .08, dark)
     for s in (-1, 1):
@@ -255,9 +273,9 @@ def swamp_king(frame):
         for k in range(6):
             ball(B @ Vector(((k % 3 - 1) * .5, -1.65 - (k // 3) * .2, .15 + (k % 2) * .1)), .14 + (k % 3) * .04, white)
     if dead:
-        fire = mat(255, 130, 40, emit=3.0)
         for k in range(2 + stage):
-            ball(B @ Vector(((jitter(k) - .5) * .8, .9 + jitter(k, 1) * .4, .9 + jitter(k, 2) * .4)), .1 + jitter(k, 3) * .1, fire)
+            flames(B @ Vector(((jitter(k) - .5) * 1.0, .9 + jitter(k, 1) * .4, .85 + jitter(k, 2) * .3)), .26 + jitter(k, 3) * .14,
+                   3, k0=k * 3)
         if stage >= 2:
             puff(B @ Vector((0, .9, 1.6)), .12 + stage * .02)
     # the king himself, stood at the helm
@@ -266,7 +284,7 @@ def swamp_king(frame):
     J = skeleton(S, pose)
     Tm, Hm = J["torso"], J["head"]
     tin = mat(200, 168, 70, .35, .85, grime=.45)
-    crown = Hm @ T((0, .0, .15))
+    crown = Hm @ T((.02 * DAMAGE, .0, .15 - .01 * DAMAGE)) @ R(-.08 * DAMAGE, .22 * DAMAGE, 0)
     limb(crown @ Vector((0, 0, 0)), crown @ Vector((0, 0, .07)), .135, .14, tin, caps=False, seg=24)
     for k in range(7):
         a = k * math.tau / 7
@@ -289,6 +307,9 @@ def swamp_king(frame):
         limb(Tm @ Vector((-.3, -.12 - k * .06, S["torso_len"] - .02)), Tm @ Vector((-.3, -.12 - k * .06, S["torso_len"] - .06)),
              .01, .002, TOOTH(), caps=False, seg=4)
     ball(Tm @ Vector((-.24, -.1, S["torso_len"] + .12)), .02, mat(214, 180, 50, .3, grime=0))
+    if DAMAGE and not dead:
+        rags(Tm @ Vector((0, .22, S["torso_len"] - .78)), Tm.to_3x3() @ Vector((0, 1, 0)), 3 + 2 * DAMAGE, .12 + .05 * DAMAGE,
+             .5, cape, k0=4)
 
 
 def king_wreck(steel, rust, alu, dark, red):
@@ -303,9 +324,8 @@ def king_wreck(steel, rust, alu, dark, red):
     pts = [M @ (c + Vector((math.cos(k * math.tau / 16) * .9, math.sin(k * math.tau / 16) * .9, 0))) for k in range(16)]
     for a, b in zip(pts, pts[1:] + pts[:1]):
         limb(a, b, .025, .025, alu, caps=False, seg=8)
-    fire = mat(255, 130, 40, emit=3.0)
-    for k in range(5):
-        ball(M @ Vector(((jitter(k) - .5) * .6, .8 + jitter(k, 1) * .4, .5 + jitter(k, 2) * .3)), .1 + jitter(k, 3) * .08, fire)
+    for k in range(4):
+        flames(M @ Vector(((jitter(k) - .5) * .7, .8 + jitter(k, 1) * .4, .5 + jitter(k, 2) * .3)), .22 + jitter(k, 3) * .1, 3, k0=k * 5)
     puff(M @ Vector((0, .9, .9)), .14)
     tin = mat(200, 168, 70, .35, .85, grime=.45)
     limb((-1.0, -.9, .02), (-1.0, -.9, .09), .135, .14, tin, caps=False, seg=24)

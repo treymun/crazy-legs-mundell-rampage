@@ -570,7 +570,8 @@ static func rgb(r: float, g: float, b: float, a := 255.0) -> Color:
 
 ## Down to game size with premultiplied alpha, a hard edge, a dark rim, and a
 ## grade toward a worn photograph (muzzle flashes and glows keep theirs).
-static func photo_shrink(image: Sheet, size: Vector2i, seed: int) -> Sheet:
+## `grain_sigma` is the photograph's speckle (the bosses take less: cleaner).
+static func photo_shrink(image: Sheet, size: Vector2i, seed: int, grain_sigma := .026) -> Sheet:
 	# Colour weighed by alpha twice over, as the Python builder's own premultiply
 	# followed by Pillow's did: a thin wing keeps its bright core over its dark
 	# render edge, which is the look the cels were tuned with.
@@ -588,7 +589,7 @@ static func photo_shrink(image: Sheet, size: Vector2i, seed: int) -> Sheet:
 	for i in n:
 		solid[i] = 1 if small[i * 4 + 3] >= .5 else 0
 	var inner := shrink_mask(solid, size.x, size.y)
-	var grain := noise(seed, n, .026)
+	var grain := noise(seed, n, grain_sigma)
 	var out := Sheet.new(size.x, size.y)
 	for i in n:
 		if solid[i] == 0:

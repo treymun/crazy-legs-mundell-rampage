@@ -86,6 +86,7 @@ func _init() -> void:
 	grain = FileAccess.get_file_as_bytes("res://assets_gen/grain.bin")
 
 	art_index = _json("res://assets_gen/art_index.json")
+	BossLooks.index = art_index
 	_art_file = FileAccess.open("res://assets_gen/art.bin", FileAccess.READ)
 
 	var sfx := _json("res://assets_gen/sfx_index.json")
