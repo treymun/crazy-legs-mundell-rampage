@@ -185,6 +185,13 @@ const VIEW_TRIES := 90
 ## --view-check prints the result of that check, and --view-broken makes the
 ## shader's picture wrong on purpose, to see the fallback work.
 var view_check_report := false
+## --launch-check: a player's launch in any build, the exported game too: the
+## settings' window mode, then a chapter, and after LAUNCH_CHECK_SECONDS of play
+## one line saying whether the view is the graphics card's and HD is on; then
+## it quits. Point APPDATA at a scratch profile: it plays with that profile.
+var launch_check := false
+var launch_clock := 0.0
+const LAUNCH_CHECK_SECONDS := 4.0
 var view_broken := false
 ## --view-tour=<shots.json> --view-out=<dir>: for every viewpoint in the list
 ## save the window twice, composed by the shader (<tag>_gpu.png) and in software
@@ -305,6 +312,9 @@ func _parse_smoke() -> void:
 			RenderState.wall_walk = false
 		elif text == "--cpu-canvas":
 			cpu_canvas = true
+		elif text == "--launch-check":
+			launch_check = true
+			view_check_report = true
 		elif text == "--view-check":
 			view_check_report = true
 		elif text == "--view-broken":

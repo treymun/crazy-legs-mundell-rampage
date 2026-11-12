@@ -132,6 +132,13 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   fog or grade (`hd_held`, `Effects.enabled` off for that frame only). It used
   to judge the full picture, which a moody level (Hickston) always failed, and
   that kept the whole session in software: no lights, no HD, four times slower.
+  It waits until play is a third of a second in, treats a blank grab as not
+  ready, and needs two real mismatches in a row: until dev.34 it judged a
+  level's first frame, still black in a normal launch, and every player's
+  session fell back to software. `--launch-check` (any build, the exported EXE
+  too, with APPDATA pointed at a profile holding an options.json) launches as
+  a player does and writes one line to the log (`LAUNCH CHECK: ... graphics-card
+  view true  HD true`); `tools/launch_check.gd` is the project-folder twin.
 - **VIEW DETAIL HD** (setting value 3, off by default) is `Renderer.set_detail(-1)`:
   the view is drawn 640x312 at twice the focal length and the display shader
   shows it at that size (`view_mul`), while the weapon, HUD and their effects

@@ -334,6 +334,30 @@ func _view_bench() -> void:
 	get_tree().quit()
 
 
+## --launch-check (main_state.gd): from the title into Hickston as a player
+## starts, then the verdict on the view after a few seconds of play.
+func _launch_check(delta: float) -> void:
+	launch_clock += delta
+	if state == "title" and launch_clock > 1.0:
+		start("hickston")
+		state = "play"
+		launch_clock = 0.0
+	elif state == "play" and game != null and launch_clock > LAUNCH_CHECK_SECONDS:
+		print(
+			(
+				"LAUNCH CHECK: view_check %d  graphics-card view %s  HD %s  window %s  mode %d"
+				% [
+					view_check,
+					game.layered and not cpu_view,
+					game.renderer.detail < 0,
+					get_window().size,
+					get_window().mode
+				]
+			)
+		)
+		get_tree().quit()
+
+
 ## Plays every chapter with the bot for play_bench seconds each (god mode, guns
 ## refilled) and prints how the frames went: the median, the slow tail, and
 ## the slowest frames with when they came and the tick's and the draw's share.
@@ -394,6 +418,8 @@ func _play_bench() -> void:
 func _process(delta: float) -> void:
 	if touring:
 		return
+	if launch_check:
+		_launch_check(delta)
 	if play_bench > 0:
 		_play_bench()
 		return
