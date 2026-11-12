@@ -82,7 +82,19 @@ func build(_b) -> Array:
 	detail()
 	polish()
 	dress()
+	lintels()
 	return [64.5, 81.5, -PI / 2]
+
+
+## Door tops in this plan count from the door's own floor, as on flat ground:
+## the usual 1.85 over a bench door as over the weigh station's. The builder
+## counts them from the map's zero, so the bench under each door is added on
+## (after every raise). A gate open to the sky (roof 0) stays open.
+func lintels() -> void:
+	for d: Dictionary in b.doors:
+		var i := b.at(int(d["x"]), int(d["y"]))
+		if float(b.roof[i]) > 0.0:
+			b.roof[i] = snappedf(float(b.ground[i]) + float(b.roof[i]), .01)
 
 
 # ------------------------------------------------------------------- areas
@@ -250,12 +262,15 @@ func cutting_shed() -> void:
 	b.raise(19, 36, 19, 36, .48)
 	b.secret(8, 45, true, [5, 44, 6, 46], {"from": "e", "id": "cut-cache", "tile": "quarry_shed"})
 	b.raise(8, 45, 8, 45, .48)
-	b.room(5, 44, 6, 46, "quarry_shed", shed, {"roof": 2.2, "light": .5, "ground": .48})
-	b.wall(5, 43, 7, 43, "quarry_face", 2.5)
-	b.wall(5, 47, 7, 47, "quarry_face", 2.5)
-	b.room(7, 44, 7, 46, "quarry_shed", shed, {"roof": 2.2, "light": .5, "ground": .48})
-	b.wall(7, 44, 7, 44, "quarry_face", 2.5)
-	b.wall(7, 46, 7, 46, "quarry_face", 2.5)
+	# A cache on a bench: 2.2 of room over its .48 floor and walls .3 over that,
+	# as the scale house's cache has on flat ground.
+	b.room(5, 44, 6, 46, "quarry_shed", shed, {"roof": 2.68, "light": .5, "ground": .48})
+	b.wall(5, 43, 7, 43, "quarry_face", 2.98)
+	b.wall(5, 47, 7, 47, "quarry_face", 2.98)
+	b.room(7, 44, 7, 46, "quarry_shed", shed, {"roof": 2.68, "light": .5, "ground": .48})
+	b.wall(7, 44, 7, 44, "quarry_face", 2.98)
+	b.wall(7, 46, 7, 46, "quarry_face", 2.98)
+	b.wall_top(4, 44, 4, 46, 2.98)
 	for p in [Vector2(12.5, 58.5), Vector2(28.5, 58.5)]:
 		b.town("tnt_crate", p.x, p.y, {"solid": .4})
 	b.town("mine_cart", 20.5, 57.5, {"solid": .45})
@@ -282,9 +297,9 @@ func chalk_terraces() -> void:
 	b.town("drill_rig", 22.5, 27.5, {"solid": .45})
 	for k in 8:
 		b.mark("detail_wear_chalk", 8.0 + k * 3.5, 5.0 + (k % 4) * 7.0, k * .9, 1.4, 1.0)
-	# The dynamite shack on the top bench. Roof and door heights count from the
-	# map's zero, not the floor, so both carry the bench's 2.16: 2.4 of room
-	# under the roof (the powder shelf is 2.25 tall), a door the usual 1.85.
+	# The dynamite shack on the top bench. Roof heights count from the map's
+	# zero, not the floor, so the roof carries the bench's 2.16: 2.4 of room
+	# (the powder shelf is 2.25 tall); lintels() lifts the door the same way.
 	# The warning sign hangs on the front wall beside the door.
 	b.building(
 		8,
@@ -301,7 +316,7 @@ func chalk_terraces() -> void:
 		}
 	)
 	b.raise(9, 3, 15, 6, 2.16)
-	b.door(16, 5, true, {"from": "w", "id": "powder-door", "roof": 4.01})
+	b.door(16, 5, true, {"from": "w", "id": "powder-door"})
 	b.raise(16, 5, 16, 5, 2.16)
 	b.board("quarry_blast", 17.06, 3.5, .7, {"z": 1.3, "plane": -PI / 2})
 	b.town("tnt_crate", 10.5, 4.5, {"solid": .4})
@@ -373,9 +388,13 @@ func lower_cut() -> void:
 		125, 66, true, {"from": "w", "id": "wash-bench-latch", "tile": "gate", "roof": 0.0}
 	)
 	b.raise(125, 66, 125, 66, .24)
-	b.room(126, 64, 128, 68, "quarry_shed", lower, {"roof": 2.2, "light": .6, "ground": .48})
-	b.wall(126, 63, 128, 63, "quarry_face", 2.0)
-	b.wall(126, 69, 128, 69, "quarry_face", 2.0)
+	# The bottle wash: 2.2 of room over its .48 floor, its rock walls .3 over the
+	# roof so the room's far walls do not show over them.
+	b.room(126, 64, 128, 68, "quarry_shed", lower, {"roof": 2.68, "light": .6, "ground": .48})
+	b.wall(126, 63, 128, 63, "quarry_face", 2.98)
+	b.wall(126, 69, 128, 69, "quarry_face", 2.98)
+	b.wall_top(125, 64, 125, 68, 2.98)
+	b.wall_top(129, 64, 129, 68, 2.98)
 	b.board("wing_quarry_wash_rack", 127.5, 64.04, .7, {"z": .9, "plane": 0.0})
 	b.board("detail_wash_rejects", 127.0, 67.0, .5)
 	b.react("pipe", 127.5, 66.0, .9, {"id": "quarry-wash-pipe"})
@@ -464,7 +483,14 @@ func condenser_yard() -> void:
 		[127, 23, 128, 25],
 		{"from": "w", "id": "condensate-stash", "tile": "quarry_iron"}
 	)
-	b.room(127, 23, 128, 25, "quarry_shed", condenser, {"roof": 2.2, "light": .5, "ground": .48})
+	# The stash is cut into the yard's east face. The yard runs to x 126, so the
+	# door gets an iron jamb either side to stand in, and the yard's bench under
+	# it like the room behind; 2.2 of room over that.
+	b.raise(126, 24, 126, 24, .48)
+	b.wall(126, 23, 126, 23, "quarry_iron", 2.98)
+	b.wall(126, 25, 126, 25, "quarry_iron", 2.98)
+	b.room(127, 23, 128, 25, "quarry_shed", condenser, {"roof": 2.68, "light": .5, "ground": .48})
+	b.wall_top(127, 22, 129, 26, 2.98)
 	b.controlled(
 		93, 22, true, {"from": "e", "id": "condenser-recovery-gate", "tile": "gate", "roof": 0.0}
 	)
@@ -574,10 +600,11 @@ func loading_court() -> void:
 	b.yard(39, 1, 87, 5, "concrete", court)
 	b.raise(39, 1, 87, 5, .48)
 	b.paint(39, 1, 87, 5, "tracks")
-	b.room(63, 4, 65, 5, "quarry_shed", court, {"roof": 2.2, "light": .5, "ground": .48})
-	b.wall(62, 4, 62, 5, "quarry_iron", 2.5)
-	b.wall(66, 4, 66, 5, "quarry_iron", 2.5)
-	b.wall(63, 3, 65, 3, "quarry_iron", 2.5)
+	# The stash behind the works' north wall: 2.2 of room over the court's .48.
+	b.room(63, 4, 65, 5, "quarry_shed", court, {"roof": 2.68, "light": .5, "ground": .48})
+	b.wall(62, 4, 62, 5, "quarry_iron", 2.98)
+	b.wall(66, 4, 66, 5, "quarry_iron", 2.98)
+	b.wall(63, 3, 65, 3, "quarry_iron", 2.98)
 	b.controlled(52, 6, false, {"from": "s", "id": "court-west"})
 	b.controlled(76, 6, false, {"from": "s", "id": "court-east"})
 	for d in [Vector2i(52, 6), Vector2i(76, 6)]:
@@ -800,7 +827,9 @@ func polish() -> void:
 			c[0] + .3, c[1] + .1, c[0] + 1.7, c[1] + .9, 2.2, "quarry_face", "quarry_face", 1.4
 		)
 	b.fixture(66.0, 37.3, 76.0, 37.7, 1.3, "steel_mesh", "quarry_iron", .48)
-	# The powder magazine on the weigh station's edge, sandbagged.
+	# The powder magazine on the weigh station's edge, sandbagged: 2.4 of room
+	# so its powder shelf (2.25) stands under the roof, the warning sign on the
+	# front wall beside the door.
 	b.building(
 		80,
 		70,
@@ -809,14 +838,14 @@ func polish() -> void:
 		weigh,
 		{
 			"wall": "quarry_shed",
-			"roof": 2.1,
+			"roof": 2.4,
 			"floor": "quarry_shed",
 			"light": .7,
 			"skin": "quarry_shed"
 		}
 	)
 	b.door(83, 74, false, {"from": "n", "id": "magazine-door"})
-	b.board("quarry_blast", 83.0, 74.06, .7, {"z": 1.3, "plane": 0.0})
+	b.board("quarry_blast", 81.5, 75.06, .7, {"z": 1.3, "plane": 0.0})
 	b.town("tnt_crate", 81.5, 71.5, {"solid": .4})
 	for e in [
 		["chalk_spitter", 75.0, 44.0, "outcrop-chalk"],
