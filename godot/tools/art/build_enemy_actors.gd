@@ -1,7 +1,7 @@
 ## Render the remade enemies in Blender and shrink them into assets/art.
 ##
 ##   godot --headless --path godot --script res://tools/art/build_enemy_actors.gd \
-##       [-- kinds=billy,coot] [no-render] [out=<dir>] [raw=<dir>]
+##       [-- kinds=billy,coot] [no-render] [out=<dir>] [raw=<dir>] [grain=<sigma>]
 ##
 ## Blender (scripts/blender/enemy_actors.py, run in Blender's own Python) writes
 ## each cel four times oversized into _preview/enemies/raw; this shrinks them to
@@ -17,6 +17,13 @@
 ## `<kind>_p2_<cel>` (below half health) and `<kind>_p3_<cel>` (below a fifth;
 ## Maw's bare set is `maw_p3_bare_<cel>`), which src/boss_looks.gd picks. Their
 ## falls are drawn beaten. They are digitized with less grain (cleaner).
+##
+## The regular hands come out the same way since their own pass: the dusk stage,
+## the cleaner grain, a wind-up cel (`<kind>_wind`) and a hurt copy of every
+## living cel, `<kind>_hurt_<cel>` (bloodied, torn, limping; dented and sparking
+## for tin), which src/enemy_looks.gd shows under half health. The variants
+## big_billy, drunk_coot and shield_deputy (scripts/blender/actors_variants.py)
+## have their base kind's cels.
 extends SceneTree
 
 const Paint := preload("res://tools/art/paint.gd")
@@ -25,9 +32,15 @@ const BOSSES := [
 	"boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "maw", "maw_bare"
 ]
 const BOSS_GRAIN := .011
+## Kinds still digitized with the old heavier grain (none: every actor is drawn
+## on the dusk stage and digitized cleaner now).
+const FLAT: Array[String] = []
 const KINDS := [
 	"billy",
+	"big_billy",
 	"coot",
+	"drunk_coot",
+	"shield_deputy",
 	"boss",
 	"rudy",
 	"clone",
@@ -69,6 +82,7 @@ func _init() -> void:
 	var render := true
 	var out := Paint.repo("assets/art")
 	var raw := Paint.repo("_preview/enemies/raw")
+	var grain_wish := -1.0
 	for arg in OS.get_cmdline_user_args():
 		var text := String(arg)
 		if text.begins_with("kinds="):
@@ -79,6 +93,8 @@ func _init() -> void:
 			out = text.substr(4)
 		elif text.begins_with("raw="):
 			raw = text.substr(4)
+		elif text.begins_with("grain="):
+			grain_wish = float(text.substr(6))
 	DirAccess.make_dir_recursive_absolute(raw)
 	DirAccess.make_dir_recursive_absolute(out)
 	if render:
@@ -125,11 +141,13 @@ func _init() -> void:
 			var seed := 0
 			for c in stem.to_utf8_buffer():
 				seed += c
-			var grain := BOSS_GRAIN if kind in BOSSES else .026
+			var grain := BOSS_GRAIN if kind in BOSSES or kind not in FLAT else .026
+			if grain_wish >= 0.0:
+				grain = grain_wish
 			var cel := Paint.digitize(Paint.photo_shrink(image, target, seed, grain))
 			cel.save(out.path_join(file))
 			count += 1
-			if stem.contains("_p2_") or stem.contains("_p3_"):
+			if stem.contains("_p2_") or stem.contains("_p3_") or stem.contains("_hurt_"):
 				continue
 			# The first build of the game still asks for the old three-cel walk by name.
 			for pair in [["_w0", "_1"], ["_w2", "_-1"]]:

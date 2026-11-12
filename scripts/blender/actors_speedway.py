@@ -26,21 +26,23 @@ def _anchor(table, J, g):
 # ---------------------------------------------------------------- hold tables
 LUG = {"ready": ((-.30, -.16, -.50), (0, -.3, 1)), "aim": ((-.38, .18, .14), (.15, .7, .6)),
        "fire": ((-.14, -.52, .0), (.1, -1, -.2)), "recover": ((-.22, -.42, -.30), (0, -.8, -.5)),
-       "pain": ((-.42, -.1, -.17), (-.4, -.2, .9)), "fidget": ((-.30, -.20, -.48), (.1, -.4, -.9))}
+       "pain": ((-.42, -.1, -.17), (-.4, -.2, .9)), "fidget": ((-.30, -.20, -.48), (.1, -.4, -.9)),
+       "wind": ((-.36, .30, -.40), (0, .6, .6))}
 # The tyre roller's right hand; TYRE_POSE gives the tyre and the left hand, from the same anchor.
 TYRE = {"ready": ((-.31, -.44, -.30), (1, 0, 0)), "aim": ((-.38, .24, -.37), (0, -.4, -.9)),
         "fire": ((-.17, -.48, -.40), (0, -1, 0)), "recover": ((-.24, -.38, -.40), (0, -1, 0)),
-        "pain": ((-.44, -.16, -.30), (-.3, -.3, .9))}
+        "pain": ((-.44, -.16, -.30), (-.3, -.3, .9)), "wind": ((-.31, -.34, -.08), (1, 0, 0))}
 TYRE_POSE = {"ready": ((0., -.46, -.30), (0, 1, 0), (.31, -.44, -.30)),
              "aim": ((-.30, .02, -.60), (1, .35, 0), (-.20, -.22, -.30)),
+             "wind": ((0., -.36, -.08), (0, 1, 0), (.31, -.34, -.08)),
              "fire": (None, None, (.17, -.48, -.40)), "recover": (None, None, (.24, -.38, -.40)),
              "pain": (None, None, None)}
 FLARE = {"ready": ((-.30, -.22, -.42), (0, -.45, 1)), "aim": ((-.20, -.12, .20), (.3, -.35, .9)),
          "fire": ((-.15, -.56, -.02), (0, -1, .18)), "recover": ((-.24, -.42, -.22), (0, -.8, .4)),
-         "pain": ((-.42, -.1, -.17), (-.4, -.2, .9))}
+         "pain": ((-.42, -.1, -.17), (-.4, -.2, .9)), "wind": ((-.36, .22, -.40), (0, .5, .8))}
 FLAG = {"ready": ((-.30, -.20, -.40), (-.05, -.15, 1)), "aim": ((-.26, -.08, .18), (-.25, -.1, .95)),
         "fire": ((-.30, -.16, -.46), (-.25, -.5, -.8)), "recover": ((-.30, -.22, -.38), (0, -.3, 1)),
-        "pain": ((-.42, -.1, -.17), (-.4, -.2, .9))}
+        "pain": ((-.42, -.1, -.17), (-.4, -.2, .9)), "wind": ((-.24, -.12, .34), (-.05, -.1, 1))}
 
 CHROME = lambda: mat(200, 202, 208, .22, .95, grime=.12)
 RUBBER = lambda: mat(28, 26, 26, .9, grime=.25)
@@ -91,7 +93,7 @@ def _tyre_hold(g, d, J, C):
 
 def _flare(g, d, J, C):
     frame = J["frame"]
-    hot = frame in ("aim", "fire")
+    hot = frame in ("aim", "fire", "wind")
     limb(g - d * .07, g + d * .22, .024, .024, mat(196, 36, 30, .6, grime=.2), caps=False)
     disc(g - d * .07, d, .026, .01, mat(40, 40, 40))
     ring(g + d * .1, d, .025, .005, mat(230, 220, 190, .6, grime=0), n=10)
@@ -126,7 +128,7 @@ def _flag(g, d, J, C):
     n = d.cross(u).normalized()
     green = mat(36, 150, 58, .8, grime=.2)
     hem = mat(230, 226, 214, .8, grime=.2)
-    waving = frame == "aim"
+    waving = frame in ("aim", "wind")
     width, tall, strips = .42, .32, 5
     for k in range(strips):
         t = (k + .5) / strips
@@ -217,7 +219,7 @@ def head(Hm, C, J):
             disc(c + up * .01, up, .03, .035, mat(60, 120, 110, .1, grime=0))
     if C.get("nitro"):
         rubber = mat(30, 30, 32, .8, grime=.2)
-        if frame == "aim":
+        if frame in ("aim", "wind"):
             limb((0, -.12, -.05), (0, -.19, -.06), .05, .036, rubber, Hm)
             mouth = Hm @ Vector((0, -.2, -.06))
         else:
@@ -287,7 +289,7 @@ NITRO_HUFFER = cast(AVG, lean=.16, gut=.0, sw=.18, hip_w=.09, px=150, limb=(.07,
                     sleeve="bare", skin=(198, 156, 126), eyes="wild", hair=(150, 112, 62), beard="stubble",
                     goggles_up=1, nitro=(40, 92, 190), suit_tie=(176, 36, 30), boots=(30, 30, 30),
                     weapon="flare", hold=FLARE)
-TIRE_ROLLER["crouch"] = {"aim": .11, "fire": .06}
+TIRE_ROLLER["crouch"] = {"aim": .11, "fire": .06, "wind": .05}
 FLAGMAN = cast(AVG, lean=.08, gut=.1, sw=.2, hip_h=.94, thigh=.45, shin=.44, torso_len=.54, px=178,
                canvas=(1.8, 2.2), limb=(.078, .064, .052), arm=(.058, .05, .04), upper=.32, fore=.30,
                shirt=(214, 210, 198), vest=(30, 30, 32), collar=(214, 210, 198), pants=(46, 44, 42),
