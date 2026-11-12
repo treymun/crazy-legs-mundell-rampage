@@ -1023,24 +1023,42 @@ func cell(x: float, y: float) -> int:
 	return int(y) * width + int(x)
 
 
+## The fixed walls active_walls() starts from (the moving ones follow them).
+func active_base(at_hub: bool) -> PackedFloat32Array:
+	if at_hub and not road_and_hub.is_empty():
+		return road_and_hub[1]
+	if at_hub or road_and_hub.is_empty():
+		return walls
+	return road_and_hub[0]
+
+
 ## Wall segments drawn this frame: static walls (or the hub split) plus doors,
 ## panes and locked gate barriers, matching Renderer.draw / door_walls().
 func active_walls(at_hub: bool) -> PackedFloat32Array:
-	var out := PackedFloat32Array()
-	if at_hub and not road_and_hub.is_empty():
-		out = road_and_hub[1].duplicate()
-		for gate: Gate in locked_gates:
-			out.append_array(gate.barrier())
-	elif at_hub:
-		out = walls.duplicate()
+	# Only doors and gates move (and the light, which the walls carry, changes
+	# with light_version): the list is made again only when one of them has.
+	var key: Array = [at_hub, light_version, locked_gates.size()]
+	if not at_hub:
+		for door in doors:
+			key.append(door.progress)
+	if key == _active_key:
+		return _active_last
+	_active_key = key
+	_active_last = _make_active(at_hub)
+	return _active_last
+
+
+## The last active_walls() list and what it was made for.
+var _active_key: Array = []
+var _active_last := PackedFloat32Array()
+
+
+func _make_active(at_hub: bool) -> PackedFloat32Array:
+	var out := active_base(at_hub).duplicate()
+	if at_hub:
 		for gate: Gate in locked_gates:
 			out.append_array(gate.barrier())
 	else:
-		if road_and_hub.is_empty():
-			out = walls
-		else:
-			out = road_and_hub[0]
-		out = out.duplicate()
 		for door in doors:
 			var seg := door.segment()
 			if seg.is_empty():

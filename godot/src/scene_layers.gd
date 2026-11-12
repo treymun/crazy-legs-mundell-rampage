@@ -14,6 +14,10 @@ const TAU_ := 6.283185307179586
 
 var material: ShaderMaterial
 var _textures := {}
+## The texture each of the shader's samplers has now.
+var _bound := {}
+## The numbers last handed to the shader (_set_param).
+var _params := {}
 var _art: Texture2DArray
 var _art_blank: Image
 var _atlas: Image
@@ -21,8 +25,6 @@ var _sky_row := 0
 var _cells_row := 0
 var _plane_table := PackedFloat32Array()
 var _plane_width := 0
-## The plane table with the cells' light under it, as `spans` carries it.
-var _plane_floats := PackedFloat32Array()
 var _renderer: Renderer = null
 var _light_version := -1
 var _on := false
@@ -68,26 +70,37 @@ func _init(p_material: ShaderMaterial, assets: Assets) -> void:
 		blanks.append(_art_blank)
 	_art = Texture2DArray.new()
 	_art.create_from_images(blanks)
-	material.set_shader_parameter("sprite_art", _art)
-	material.set_shader_parameter("sky_row", _sky_row)
-	material.set_shader_parameter("cells_row", _cells_row)
+	_set_param("sprite_art", _art)
+	_set_param("sky_row", _sky_row)
+	_set_param("cells_row", _cells_row)
 
 
-## Create or refill one of the shader's textures.
+## Set one of the shader's numbers, skipping one that has not changed (most of
+## them stay the same from frame to frame, and each set costs the engine work).
+## scene_on is set directly: main_state.gd sets it too.
+func _set_param(name: String, value: Variant) -> void:
+	var old: Variant = _params.get(name)
+	if old != null and typeof(old) == typeof(value) and old == value:
+		return
+	_params[name] = value
+	material.set_shader_parameter(name, value)
+
+
+## Create or refill one of the shader's textures. A texture is kept for each
+## size it has been (the per-frame ones change height with what they carry),
+## so a frame refills one instead of making a new one.
 func _put(name: String, w: int, h: int, format: Image.Format, data: PackedByteArray) -> void:
 	var image := Image.create_from_data(w, h, false, format, data)
-	var texture: ImageTexture = _textures.get(name)
-	if (
-		texture == null
-		or texture.get_width() != w
-		or texture.get_height() != h
-		or texture.get_format() != format
-	):
+	var key := "%s %d %d %d" % [name, w, h, format]
+	var texture: ImageTexture = _textures.get(key)
+	if texture == null:
 		texture = ImageTexture.create_from_image(image)
-		_textures[name] = texture
-		material.set_shader_parameter(name, texture)
+		_textures[key] = texture
 	else:
 		texture.update(image)
+	if _bound.get(name) != texture:
+		_bound[name] = texture
+		material.set_shader_parameter(name, texture)
 
 
 ## The level's surfaces: they only change when the level does.
@@ -169,13 +182,13 @@ func _load_level(renderer: Renderer) -> void:
 	whole.blit_rect(cell_bands, Rect2i(0, 0, lw, lh * 2), Vector2i(0, _cells_row))
 	_put("tiles_tex", whole.get_width(), whole.get_height(), Image.FORMAT_RGBA8, whole.get_data())
 
-	material.set_shader_parameter("map_size", Vector2i(lw, lh))
-	material.set_shader_parameter("floor_count", floors.size())
-	material.set_shader_parameter("roof_count", roofs.size())
-	material.set_shader_parameter("tint_count", tint_count)
-	material.set_shader_parameter("hub_runoff", renderer.tile_hub_runoff)
-	material.set_shader_parameter("hub_patch", renderer.tile_hub_patch)
-	material.set_shader_parameter("hub_wall", renderer.tile_hub_wall)
+	_set_param("map_size", Vector2i(lw, lh))
+	_set_param("floor_count", floors.size())
+	_set_param("roof_count", roofs.size())
+	_set_param("tint_count", tint_count)
+	_set_param("hub_runoff", renderer.tile_hub_runoff)
+	_set_param("hub_patch", renderer.tile_hub_patch)
+	_set_param("hub_wall", renderer.tile_hub_wall)
 
 
 ## This frame's layers and camera; call after Game.draw() when game.scene_live.
@@ -195,17 +208,40 @@ func frame(game: Game, _canvas: Canvas) -> void:
 		_light(level)
 	var vw := r.vw
 	var vh := r.vh
-	# Stacked a view's height apart (see the shader's `colours` and `distances`).
-	# Plain bytes, only copied: three colour bands, then the wall codes and the
-	# coverage as a byte stream (palette.gdshader stream_byte()).
-	var colours := r.frame.duplicate()
-	colours.append_array(r.over)
-	colours.append_array(r.pane_rgb)
-	colours.append_array(r.wall_code.to_byte_array())
-	colours.append_array(r.over_a)
+	# What the renderer left empty this frame is not sent (the shader's
+	# pixels_on, over_on, pane_on): no wall pixel (every wall a span) leaves the
+	# wall distances at their 160, no sprite or ground mark pixel leaves the
+	# coverage at 0.
+	var view_px := vw * vh
+	var pixels_on := r.depth.count(160.0) != view_px
+	var over_on := r.over_a.count(0) != view_px
+	var pane_on := r.pane_any
+	# Stacked a view's height apart (see the shader's `colours`). Plain bytes,
+	# only copied: walls, sprites and ground marks, then the wall codes and the
+	# coverage as a byte stream (palette.gdshader stream_byte()), then panes.
 	var row_bytes := vw * 3
+	var colours := r.frame.duplicate() if pixels_on else PackedByteArray()
+	var over_row := colours.size() / row_bytes
+	if over_on:
+		colours.append_array(r.over)
+	var stream_row := colours.size() / row_bytes
+	if pixels_on:
+		colours.append_array(r.wall_code.to_byte_array())
+	var cover_at := colours.size() - stream_row * row_bytes
+	if over_on:
+		colours.append_array(r.over_a)
 	colours.resize((colours.size() + row_bytes - 1) / row_bytes * row_bytes)
-	_put("colours", vw, colours.size() / row_bytes, Image.FORMAT_RGB8, colours)
+	var pane_row := colours.size() / row_bytes
+	if pane_on:
+		colours.append_array(r.pane_rgb)
+	if not colours.is_empty():
+		_put("colours", vw, colours.size() / row_bytes, Image.FORMAT_RGB8, colours)
+	_set_param("pixels_on", pixels_on)
+	_set_param("over_on", over_on)
+	_set_param("over_row", over_row)
+	_set_param("stream_row", stream_row)
+	_set_param("cover_at", cover_at)
+	_set_param("pane_row", pane_row)
 	_sprites(r)
 	# The wall spans, their counts, then the sprite table flowing on across rows.
 	var table := r.span_f.duplicate()
@@ -217,38 +253,42 @@ func frame(game: Game, _canvas: Canvas) -> void:
 		sprites.resize(sprite_rows * vw * 4)
 		table.append_array(sprites)
 		rows += sprite_rows
-	# Then the three distance bands, four floats a texel, and the plane table:
-	# riding here keeps two of the shader's nine texture slots free.
+	# Then the distance bands this frame has, four floats a texel.
 	var row_floats := vw * 4
 	var dist_row := rows
-	table.append_array(r.depth)
-	table.append_array(r.over_d)
-	table.append_array(r.pane_dist)
-	table.resize((table.size() + row_floats - 1) / row_floats * row_floats)
-	var plane_row := table.size() / row_floats
-	table.append_array(_plane_floats)
+	var dist_start := Vector3i.ZERO
+	var floats := 0
+	if pixels_on:
+		table.append_array(r.depth)
+		floats += view_px
+	if over_on:
+		dist_start.y = floats
+		table.append_array(r.over_d)
+		floats += view_px
+	if pane_on:
+		dist_start.z = floats
+		table.append_array(r.pane_dist)
 	table.resize((table.size() + row_floats - 1) / row_floats * row_floats)
 	rows = table.size() / row_floats
 	_put("spans", vw, rows, Image.FORMAT_RGBAF, table.to_byte_array())
-	material.set_shader_parameter("dist_row", dist_row)
-	material.set_shader_parameter("plane_row", plane_row)
-	material.set_shader_parameter("plane_w", _plane_width)
+	_set_param("dist_row", dist_row)
+	_set_param("dist_start", dist_start)
 
 	var m := material
 	var angle: float = r.cam["angle"]
-	m.set_shader_parameter("pane_on", r.pane_any)
-	m.set_shader_parameter("eye", Vector3(r.cam["x"], r.cam["y"], r.cam["z"]))
-	m.set_shader_parameter("fwd", Vector2(cos(angle), sin(angle)))
-	m.set_shader_parameter("side", Vector2(-sin(angle), cos(angle)))
+	_set_param("pane_on", r.pane_any)
+	_set_param("eye", Vector3(r.cam["x"], r.cam["y"], r.cam["z"]))
+	_set_param("fwd", Vector2(cos(angle), sin(angle)))
+	_set_param("side", Vector2(-sin(angle), cos(angle)))
 	# Whole turns only: the sky column is cut off toward zero, so the sign stays.
-	m.set_shader_parameter("view_angle", fmod(angle, TAU_ * 512.0))
-	m.set_shader_parameter("horizon", float(r.cam["hz"]))
-	m.set_shader_parameter("focal", r.focal)
-	m.set_shader_parameter("view_size", Vector2i(vw, vh))
-	m.set_shader_parameter("view_div", 1 << maxi(r.detail, 0))
-	m.set_shader_parameter("view_mul", 2 if r.detail < 0 else 1)
-	m.set_shader_parameter("res_up", r.res_up)
-	m.set_shader_parameter("flash_light", r.flash)
+	_set_param("view_angle", fmod(angle, TAU_ * 512.0))
+	_set_param("horizon", float(r.cam["hz"]))
+	_set_param("focal", r.focal)
+	_set_param("view_size", Vector2i(vw, vh))
+	_set_param("view_div", 1 << maxi(r.detail, 0))
+	_set_param("view_mul", 2 if r.detail < 0 else 1)
+	_set_param("res_up", r.res_up)
+	_set_param("flash_light", r.flash)
 	var flow_tile := PackedInt32Array([-1, -1])
 	var flow_shift := PackedInt32Array([0, 0])
 	var found := 0
@@ -259,24 +299,24 @@ func frame(game: Game, _canvas: Canvas) -> void:
 				flow_tile[found] = tile
 				flow_shift[found] = int(r.time * float(f[1])) & 127
 				found += 1
-	m.set_shader_parameter("flow_tile", flow_tile)
-	m.set_shader_parameter("flow_shift", flow_shift)
-	m.set_shader_parameter("hub_fx", r.hub_fx)
+	_set_param("flow_tile", flow_tile)
+	_set_param("flow_shift", flow_shift)
+	_set_param("hub_fx", r.hub_fx)
 	if r.hub_fx:
-		m.set_shader_parameter("shadow_still", r._shadow_still)
-		m.set_shader_parameter("shadow_gust", r._shadow_gust)
-		m.set_shader_parameter("shadow_lx", r._shadow_lx)
-		m.set_shader_parameter("shadow_ly", r._shadow_ly)
-		m.set_shader_parameter("water_drift", fposmod(r._water_drift, TAU_ * 1000.0))
+		_set_param("shadow_still", r._shadow_still)
+		_set_param("shadow_gust", r._shadow_gust)
+		_set_param("shadow_lx", r._shadow_lx)
+		_set_param("shadow_ly", r._shadow_ly)
+		_set_param("water_drift", fposmod(r._water_drift, TAU_ * 1000.0))
 	_lights(game)
-	m.set_shader_parameter("drunk", game.drunk_k)
+	_set_param("drunk", game.drunk_k)
 	if game.drunk_k > 0.0:
 		var ghost := int(2 + 4 * game.drunk_k)
-		m.set_shader_parameter("drunk_phase", fposmod(game.clock * 3.1, TAU_))
-		m.set_shader_parameter("drunk_ghost", -ghost if sin(game.clock * 1.7) <= 0.0 else ghost)
+		_set_param("drunk_phase", fposmod(game.clock * 3.1, TAU_))
+		_set_param("drunk_ghost", -ghost if sin(game.clock * 1.7) <= 0.0 else ghost)
 	if not _on:
 		_on = true
-		m.set_shader_parameter("scene_on", true)
+		material.set_shader_parameter("scene_on", true)
 
 
 ## The sprite table and any pictures new to the art slots.
@@ -290,7 +330,7 @@ func _sprites(r: Renderer) -> void:
 		slot.blit_rect(picture, Rect2i(0, 0, w, h), Vector2i.ZERO)
 		_art.update_layer(slot, slot_index)
 	r.art_dirty.clear()
-	material.set_shader_parameter("sprite_count", r.gpu_spr_n if r.gpu_sprites else 0)
+	_set_param("sprite_count", r.gpu_spr_n if r.gpu_sprites else 0)
 
 
 ## The level's light map, under the plane table's five rows.
@@ -302,7 +342,7 @@ func _light(level: LevelData) -> void:
 	for y in lh:
 		for x in lw:
 			floats[((5 + y) * _plane_width + x) * 4] = level.light[y * lw + x]
-	_plane_floats = floats
+	_put("planes", _plane_width, 5 + lh, Image.FORMAT_RGBAF, floats.to_byte_array())
 
 
 ## The glows of effects.cfg in the atlas's alpha: a texel brighter than its
@@ -335,9 +375,9 @@ func _bake_glow() -> void:
 ## GLOW is on.
 func _lights(game: Game) -> void:
 	var m := material
-	m.set_shader_parameter("effects_on", Effects.enabled)
+	_set_param("effects_on", Effects.enabled)
 	if not Effects.enabled:
-		m.set_shader_parameter("lightning", 0.0)
+		_set_param("lightning", 0.0)
 	var found: Array = game.effect_lights() if Effects.enabled else []
 	var at := PackedVector4Array()
 	var tint := PackedVector4Array()
@@ -348,16 +388,16 @@ func _lights(game: Game) -> void:
 		var c: Color = l[4]
 		at[i] = Vector4(l[0], l[1], l[2], l[3])
 		tint[i] = Vector4(c.r, c.g, c.b, l[5])
-	m.set_shader_parameter("light_count", found.size())
-	m.set_shader_parameter("light_pos", at)
-	m.set_shader_parameter("light_col", tint)
+	_set_param("light_count", found.size())
+	_set_param("light_pos", at)
+	_set_param("light_col", tint)
 	if not Effects.enabled:
 		return
 	# The level's mood and its moving tiles (effects.cfg).
 	var id := game.level.id
 	var fog: Color = Effects.mood(id, "fog", Color(0, 0, 0))
-	m.set_shader_parameter("fog_color", Vector3(fog.r, fog.g, fog.b))
-	m.set_shader_parameter(
+	_set_param("fog_color", Vector3(fog.r, fog.g, fog.b))
+	_set_param(
 		"fog_range",
 		Vector3(
 			float(Effects.mood(id, "fog_start", 1000.0)),
@@ -366,11 +406,9 @@ func _lights(game: Game) -> void:
 		)
 	)
 	var tone: Color = Effects.mood(id, "grade", Color(1, 1, 1))
-	m.set_shader_parameter("grade", Vector3(tone.r, tone.g, tone.b))
-	m.set_shader_parameter(
-		"sky_drift", fposmod(game.clock * float(Effects.mood(id, "clouds", 0.0)), 1.0)
-	)
-	m.set_shader_parameter("lightning", game.lightning)
+	_set_param("grade", Vector3(tone.r, tone.g, tone.b))
+	_set_param("sky_drift", fposmod(game.clock * float(Effects.mood(id, "clouds", 0.0)), 1.0))
+	_set_param("lightning", game.lightning)
 	var anims := PackedVector4Array()
 	anims.resize(Effects.MAX_ANIMS)
 	var count := 0
@@ -384,9 +422,9 @@ func _lights(game: Game) -> void:
 				float(a.get("depth", .05))
 			)
 			count += 1
-	m.set_shader_parameter("anim_count", count)
-	m.set_shader_parameter("anims", anims)
-	m.set_shader_parameter("anim_time", fposmod(game.clock, 3600.0))
+	_set_param("anim_count", count)
+	_set_param("anims", anims)
+	_set_param("anim_time", fposmod(game.clock, 3600.0))
 
 
 ## The canvas holds a finished picture this frame (menus, the tally).

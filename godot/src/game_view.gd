@@ -112,9 +112,104 @@ func _list_fixed() -> void:
 				)
 			)
 	fixed_sprites_late = late
+	fixed_blocks = _blocks_of(fixed_sprites)
+	late_blocks = _blocks_of(fixed_sprites_late)
+
+
+## A side of a block of fixed sprites, in cells.
+const SPRITE_BLOCK := 6.0
+
+
+## `list` in blocks for _seen(): [middle x, middle y, reach, the sprites' places].
+## The reach takes in each sprite's half width, from its picture.
+func _blocks_of(list: Array) -> Array:
+	var by_key := {}
+	for i in list.size():
+		var s: Renderer.Sprite = list[i]
+		var key := Vector2i(floori(s.x / SPRITE_BLOCK), floori(s.y / SPRITE_BLOCK))
+		var places: PackedInt32Array = by_key.get(key, PackedInt32Array())
+		places.append(i)
+		by_key[key] = places
+	var blocks: Array = []
+	for key: Vector2i in by_key:
+		var places: PackedInt32Array = by_key[key]
+		var mx := (key.x + .5) * SPRITE_BLOCK
+		var my := (key.y + .5) * SPRITE_BLOCK
+		var reach := 0.0
+		for i in places:
+			var s: Renderer.Sprite = list[i]
+			var art: Dictionary = renderer.sprite_art(s.image)
+			var half := s.height * float(art["w"]) / maxf(1.0, float(art["h"])) * .5
+			reach = maxf(reach, Vector2(s.x - mx, s.y - my).length() + half + .3)
+		blocks.append([mx, my, reach, places])
+	return blocks
+
+
+## The sprites of `list` in the blocks the view can see, in list order: the
+## renderer would skip every other one (behind the eye, past its reach or off
+## the side), so leaving them out changes nothing drawn. A level with a mirror
+## also keeps what the mirror's view could show.
+func _seen(list: Array, blocks: Array) -> Array:
+	if view_cone.is_empty():
+		return list.duplicate()
+	var places := PackedInt32Array()
+	for block: Array in blocks:
+		if in_view(block[0], block[1], block[2]):
+			places.append_array(block[3])
+	places.sort()
+	var out: Array = []
+	out.resize(places.size())
+	for j in places.size():
+		out[j] = list[places[j]]
+	return out
+
+
+## Set this frame's view for in_view() from the eye the renderer was given.
+func _aim_view() -> void:
+	if view_eye.is_empty():
+		view_cone = PackedFloat64Array()
+		return
+	var angle: float = view_eye["view_angle"]
+	var edge: float = world.mirror_x
+	view_cone = PackedFloat64Array(
+		[
+			view_eye["x"],
+			view_eye["y"],
+			cos(angle),
+			sin(angle),
+			renderer.vw * .5 / renderer.focal + .02,
+			edge,
+			2.0 * edge - float(view_eye["x"]) if not is_nan(edge) else 0.0
+		]
+	)
+
+
+## Whether anything standing within `reach` of (x, y) can show in this frame's
+## view (or a mirror's, in a level with one): if not, the renderer would skip it.
+func in_view(x: float, y: float, reach: float) -> bool:
+	if view_cone.is_empty():
+		return true
+	var fx := view_cone[2]
+	var fy := view_cone[3]
+	var k := view_cone[4]
+	var dx := x - view_cone[0]
+	var dy := y - view_cone[1]
+	var d := dx * fx + dy * fy
+	if d > .13 - reach and d < 51.0 + reach and absf(dy * fx - dx * fy) < (d + reach) * k + reach:
+		return true
+	var edge := view_cone[5]
+	if is_nan(edge) or x + reach < edge:
+		return false
+	# The mirror shows the room as seen from the eye mirrored in its line.
+	dx = x - view_cone[6]
+	d = -dx * fx + dy * fy
+	return (
+		d > .13 - reach and d < 51.0 + reach and absf(dy * fx + dx * fy) < (d + reach) * k + reach
+	)
 
 
 func sprites() -> Array:
+	_aim_view()
 	var key := _fixed_key()
 	if key != fixed_sprites_key:
 		fixed_sprites_key = key
@@ -122,7 +217,7 @@ func sprites() -> Array:
 	var mill := "prop_windmill_%d" % (int(clock * 5.0) % 3)
 	for sprite: Renderer.Sprite in fixed_windmills:
 		sprite.image = mill
-	var sprites: Array = fixed_sprites.duplicate()
+	var sprites: Array = _seen(fixed_sprites, fixed_blocks)
 	if in_hub:
 		# plane = 0: these are flat boards fixed in the world, as in the
 		# reference, not sprites that turn to face the camera.
@@ -167,7 +262,7 @@ func sprites() -> Array:
 		return sprites
 	if gallery != null and gallery.active:
 		sprites.append(gallery.sprite(self))
-	sprites.append_array(fixed_sprites_late)
+	sprites.append_array(_seen(fixed_sprites_late, late_blocks))
 	if finale != null and finale.kind == "rudy" and finale.alive:
 		for point: Vector2 in world.boss_decoys:
 			var decoy := Renderer.Sprite.new(
@@ -189,6 +284,9 @@ func sprites() -> Array:
 	var observer := [player.x, player.y]
 	var relieved := not world.pressure_ports.is_empty() and relief_open()
 	for enemy: Enemy in enemies:
+		# Not even a boss or a corpse reaches 3.5 from where it stands.
+		if not in_view(enemy.x, enemy.y, 3.5):
+			continue
 		var sprite = enemy.sprite(observer, relieved, clock)
 		if sprite != null:
 			sprite.z += world.elevation(sprite.x, sprite.y)
@@ -196,6 +294,8 @@ func sprites() -> Array:
 	for entry in pickups:
 		var x := float(entry[1])
 		var y := float(entry[2])
+		if not in_view(x, y, 1.0):
+			continue
 		var hover := .06 + sin(clock * 3.5 + x) * .035
 		sprites.append(
 			Renderer.Sprite.new(
@@ -230,10 +330,14 @@ func sprites() -> Array:
 			sprites.append(shot_sprite)
 	sprites.append_array(Features.sprites(self))
 	for fx: Speck in specks:
+		if not in_view(fx.x, fx.y, .3):
+			continue
 		var speck_sprite := Renderer.Sprite.new(fx.x, fx.y, "fx_" + fx.kind, .095, fx.z)
 		speck_sprite.glow = fx.kind == "spark"
 		sprites.append(speck_sprite)
 	for puff: Gore.Puff in gore_fx.puffs:
+		if not in_view(puff.x, puff.y, 1.6):
+			continue
 		var hot := puff.kind == "sparks"
 		var step := mini(2 if hot else 3, int(puff.age * (14.0 if hot else 11.0)))
 		# A puff right in front (a swing at a wall) stays small: at full size it
@@ -250,6 +354,8 @@ func sprites() -> Array:
 		cloud.translucent = true
 		sprites.append(cloud)
 	for g: Gore.Gib in gore_fx.gibs:
+		if not in_view(g.x, g.y, g.size + .4):
+			continue
 		var chunk := Renderer.Sprite.new(g.x, g.y, g.image, g.size, g.z)
 		chunk.flip = g.flip
 		sprites.append(chunk)
@@ -658,15 +764,21 @@ func effect_lights() -> Array:
 	for shot in shots:
 		if Effects.LIGHTS.has("shot_" + String(shot.kind)):
 			found.append(Effects.light("shot_" + String(shot.kind), shot.x, shot.y, shot.z))
-	for spr: Renderer.Sprite in props:
-		if spr.image == "prop_lamp" and absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
+	var lamps_key := Vector2i(world.get_instance_id(), props.size())
+	if lamps_key != lamps_of:
+		lamps_of = lamps_key
+		lamp_props = props.filter(func(spr): return spr.image == "prop_lamp")
+		lamp_boards = world.billboards.filter(
+			func(board): return board.glow and board.image == "hub_lamp"
+		)
+	for spr: Renderer.Sprite in lamp_props:
+		if absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
 			found.append(Effects.light("lamp", spr.x, spr.y, spr.z, 1.0, clock))
 	# Street lamps pool their light on the ground; the keys glint where they lie.
-	for board: LevelData.Billboard in world.billboards:
-		if board.glow and board.image == "hub_lamp":
-			if absf(board.x - p.x) < 14.0 and absf(board.y - p.y) < 14.0:
-				var top := world.elevation(board.x, board.y) + board.z + board.height * .9
-				found.append(Effects.light("streetlamp", board.x, board.y, top, 1.0, clock))
+	for board: LevelData.Billboard in lamp_boards:
+		if absf(board.x - p.x) < 14.0 and absf(board.y - p.y) < 14.0:
+			var top := world.elevation(board.x, board.y) + board.z + board.height * .9
+			found.append(Effects.light("streetlamp", board.x, board.y, top, 1.0, clock))
 	for entry: Array in pickups:
 		var item := String(entry[0])
 		if item.begins_with("key_") and absf(float(entry[1]) - p.x) < 10.0:

@@ -143,8 +143,37 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
 - **Nine textures at most in `palette.gdshader`.** WebGL and many phones give a
   shader 16 texture units and Godot keeps several; past nine the browser
   and Android builds draw nothing while a desktop looks fine.
-  `tools/check_shader.gd` (in CI) counts them. Stack new data into an existing
-  texture instead of adding one.
+  `tools/check_shader.gd` (in CI) counts them; eight are used now (the level's
+  plane table and light map have their own `planes`, sent only when the level
+  or its light changes). Stack new data into an existing texture instead of
+  adding one.
+- **What the shader view is sent each frame** (`scene_layers.gd frame()`): only
+  the parts the renderer drew. `pixels_on` off (every wall a span: no wall
+  pixel, code or distance), `over_on` off (no ground mark or wall mark pixel)
+  and `pane_on` off leave those parts out of `colours` and `spans`, and
+  uniforms say where each part starts (`over_row`, `stream_row`, `cover_at`,
+  `pane_row`, `dist_start`). A texture is kept for each size it has been, and a
+  shader number is only set when it changes (`_set_param`). Layered, the
+  renderer keeps its pass buffers from frame to frame (only the overlay, span
+  counts, distances and glass start cleared): never hand one of its arrays to
+  an Image or texture directly, copy it (`scene_layers.gd` does).
+- **The renderer culls before it draws, and must stay exact.** `_prepare()`
+  projects only fixed walls in map blocks the view (or the mirror's view) can
+  reach (`_block_walls`; doors, panes and gates are tested every frame), gives
+  each wall only the columns its ends span plus the bands' tolerance, and
+  `_wall_band` trims columns already covered by nearer walls before setting a
+  wall up, drops a span wholly inside one nearer span, and leaves out mirror and
+  glass pixels nearer spans hide (a hidden mirror would start a reflection
+  pass). `game_view.gd sprites()` lists only what can show: fixed sprites in
+  blocks (`fixed_blocks`), and enemies, pickups and effects through
+  `in_view(x, y, reach)`; a new sprite source should use it too. The shader
+  draws sprites in list order, so culling only ever leaves sprites out, never
+  reorders them. A window tour of old and new code compared pixel for pixel is
+  how these were checked: do the same after touching them.
+- **A browser build asks the browser for its core count** (`RenderState.processors()`):
+  Godot's own answer there is capped at two, which held the browser to one
+  band thread although the build keeps 24 worker threads ready
+  (`export_presets.cfg`).
 - **Chapter music and chapter enemies are a separate download in the browser.**
   `tools/pack_assets.gd` writes `music_<chapter>.bin` and, for the enemies only
   one chapter has (`Assets.CHAPTER_KINDS`), `art_<chapter>.bin`; the web presets
@@ -165,7 +194,13 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `floorf`, `ceilf`.
 - **Benchmarks are noisy.** The owner's own copy of the game, Steam and other
   apps often run on this PC. Compare old and new back to back, never against
-  a number from earlier.
+  a number from earlier. Window runs that change settings get a scratch
+  `APPDATA` (the owner's profile is shared). For the browser, export both
+  builds, serve each with COOP/COEP headers, add a page whose `GODOT_CONFIG`
+  args are `["--", "--view-bench=300"]`, and run headless Chrome with its own
+  `--user-data-dir` and `--disable-frame-rate-limit --disable-gpu-vsync`
+  (otherwise it caps at about 240 fps, as vsync would); the numbers are in its
+  console log (`--enable-logging=stderr`).
 - **The Crossroads is `data/hub.json`** (`hub_plan.gd`), its own level (the hub
   game is `make_game("hub")`): its gates, clues, dispatch board (`hub_board`),
   start (`spawn`) and map window come from the file, not from code.
@@ -201,6 +236,25 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
   default, choices, hint); `tools/check_fixes.gd` counts them. Settings are not
   part of a save, so a new one needs no save version.
+- **The county's hands fight smart** (`enemies.gd`): a hurt hand may duck
+  behind cover the player cannot see (`find_cover`), a badly hurt one runs to
+  fetch a friend, and a stray shot from another hand starts a brawl (`hurt(...,
+  by)` sets a grudge). `hurt()` also takes the gun's name (`how`): the REACTIONS
+  table throws back, stuns, soaks (teat gun) or gibs by gun. A boss goes
+  fightin' mad at half health (`_enrage`, `boss_enraged`: phase two) and gets a
+  death moment (`_boss_falls`). DIFFICULTY runs EASY..HOG WILD (0..3):
+  `game_world.gd configure()` sets `sharpness` (attack recovery, notice range,
+  aim) and `ammo_scale`, and `features/posse.gd` adds partners on HARD and HOG
+  WILD after the level's own enemies (saved in the features block, so a save
+  checks its count against `enemy_ids.size()`). Set `alerted` by assignment:
+  its setter counts changes, which `player_sheltered()` relies on.
+- **Fight music** (`features/fight_music.gd`, `sound.gd` crossfade) swaps a
+  chapter's music for its fight track (`assets/music/fight_*.ogg`, made by
+  `audio_build.py --fights`) while hands hunt or attack nearby.
+- **Tool scripts never write the player's settings** (`main_state.gd
+  persist_options` returns when a script runs the main loop), and tests write
+  saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
+  `Weapons.Armory.settle()` waits for when the program closes.
 - **Enemies path on a flow field** (`src/flow_field.gd`): out of sight, an
   alerted enemy walks downhill on the steps from the player for a few seconds
   (`Enemy.hunt_until`). The objective pin walks a second field measured from

@@ -49,22 +49,32 @@ uniform sampler2D post_tex : filter_nearest, repeat_disable;
 // the mirror, wall marks). wall_dist is the distance of what the renderer drew.
 // The renderer's per-frame parts, stacked a view's height apart, as plain
 // bytes so a frame is only copied, never converted. colours (RGB, a view wide):
-// walls, sprites/ground marks (premultiplied), window panes, then a stream of
-// bytes read three to a texel: the wall codes (four bytes a pixel), then the
-// sprite/ground mark coverage (one byte a pixel). The distances (walls,
-// sprites/ground marks, window panes) are a float stream in `spans`, four to a
-// texel, from row dist_row (dist_at()).
+// walls (from row 0), sprites/ground marks (premultiplied, from over_row),
+// then from stream_row a stream of bytes read three to a texel: the wall codes
+// (four bytes a pixel), then the sprite/ground mark coverage (one byte a pixel,
+// from byte cover_at), then the window panes from pane_row. The distances
+// (walls, sprites/ground marks, window panes) are a float stream in `spans`,
+// four to a texel, from row dist_row, each band from float dist_start[band]
+// (dist_at()). A part the renderer left empty this frame is not sent at all:
+// pixels_on off means no wall pixel (walls, codes, their distances; every wall
+// is a span), over_on off no sprite or ground mark pixel, pane_on off no pane.
 uniform sampler2D colours : filter_nearest, repeat_disable;
+uniform bool pixels_on = true;
+uniform bool over_on = true;
+uniform int over_row = 156;
+uniform int stream_row = 468;
+uniform int cover_at = 199680;
+uniform int pane_row = 312;
+uniform ivec3 dist_start = ivec3(0, 49920, 99840);
 // Plain walls as whole spans, up to two texels each down a column, and how
 // many spans each column has (renderer: render_state.gd SPAN_K).
 // The wall spans (two rows a span), then a row of each column's span count,
 // then the sprite table: sprite i's texel k is texel i * 4 + k counted on
-// across the rows, from row SPAN_K * 2 + 1. Then the distances from dist_row,
-// and the level's plane table from plane_row (plane()).
+// across the rows, from row SPAN_K * 2 + 1. Then the distances from dist_row.
 uniform sampler2D spans : filter_nearest, repeat_disable;
 uniform int dist_row = 0;
-uniform int plane_row = 0;
-uniform int plane_w = 1;
+// The level's plane table (plane()), sent when the level or its light changes.
+uniform sampler2D planes : filter_nearest, repeat_disable;
 // Sprites and painted boards, drawn here in list order (render_state.gd
 // GPU_SPRITES): four texels a sprite in `spans`, the pictures in a texture array.
 uniform int sprite_count = 0;
@@ -82,7 +92,7 @@ uniform bool pane_on = false;
 uniform sampler2D tiles_tex : filter_nearest, repeat_disable;
 uniform int sky_row = 1024;
 uniform int cells_row = 1140;
-// The plane table, plane_w texels a row (plane()): row 0 floor heights nearest
+// The plane table (plane()): row 0 floor heights nearest
 // first (height, first cap, cap count), row 1 roof heights, row 2 cap
 // rectangles, row 3 cap tiles, row 4 tints, and from row 5 each cell's light.
 uniform ivec2 map_size = ivec2(1);
@@ -187,16 +197,15 @@ vec3 lights_at(vec3 p) {
 	return sum;
 }
 
-// Texel c of the plane table, flowing on across the rows of `spans`.
+// Texel c of the plane table.
 vec4 plane(ivec2 c) {
-	int at = c.y * plane_w + c.x;
-	return texelFetch(spans, ivec2(at % view_size.x, plane_row + at / view_size.x), 0);
+	return texelFetch(planes, c, 0);
 }
 
 // The distance band b (0 walls, 1 sprites and ground marks, 2 window panes)
 // holds at this view pixel.
 float dist_at(ivec2 lp, int b) {
-	int i = (b * view_size.y + lp.y) * view_size.x + lp.x;
+	int i = dist_start[b] + lp.y * view_size.x + lp.x;
 	int t = i / 4;
 	vec4 v = texelFetch(spans, ivec2(t % view_size.x, dist_row + t / view_size.x), 0);
 	int k = i - t * 4;
@@ -335,10 +344,10 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 	return 1e9;
 }
 
-// Byte i of the stream after the three colour bands of `colours`.
+// Byte i of the stream in `colours` (from stream_row).
 int stream_byte(int i) {
 	int t = i / 3;
-	vec3 texel = texelFetch(colours, ivec2(t % view_size.x, view_size.y * 3 + t / view_size.x), 0).rgb;
+	vec3 texel = texelFetch(colours, ivec2(t % view_size.x, stream_row + t / view_size.x), 0).rgb;
 	int k = i - t * 3;
 	return int((k == 0 ? texel.r : k == 1 ? texel.g : texel.b) * 255.0 + 0.5);
 }
@@ -461,7 +470,7 @@ vec3 view_at(ivec2 fine) {
 	float ray = (float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal;
 	vec2 dir = fwd + side * ray;
 	float sy = float(lp.y) + 0.5 - horizon;
-	float drawn = dist_at(lp, 0);
+	float drawn = pixels_on ? dist_at(lp, 0) : 160.0;
 	// The nearest whole span covering this pixel, if it is nearer still.
 	int best = -1;
 	float best_wz = 0.0;
@@ -507,14 +516,14 @@ vec3 view_at(ivec2 fine) {
 		}
 	}
 	float nearest = min(plane, drawn);
-	float cover = float(stream_byte(view_size.x * view_size.y * 4 + lp.y * view_size.x + lp.x)) / 255.0;
+	float cover = over_on ? float(stream_byte(cover_at + lp.y * view_size.x + lp.x)) / 255.0 : 0.0;
 	if (cover > 0.0) {
 		float reach = dist_at(lp, 1);
 		// A sprite shows unless a surface the shader drew is in front of it; a ground
 		// mark shows only on the surface it lies on.
 		bool shown = reach > 0.0 ? nearest > reach - 0.014 : abs(-reach - nearest) < 0.13;
 		if (shown) {
-			base = floor(texelFetch(colours, lp + ivec2(0, view_size.y), 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
+			base = floor(texelFetch(colours, lp + ivec2(0, over_row), 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
 		}
 	}
 	// Sprites and painted boards (render_sprites.gd _sprite_band, _draw_sign).
@@ -616,7 +625,7 @@ vec3 view_at(ivec2 fine) {
 	if (pane_on) {
 		float glass = dist_at(lp, 2);
 		if (glass < 160.0 && glass < nearest) {
-			base = floor(base * vec3(0.67, 0.78, 0.82) + texelFetch(colours, lp + ivec2(0, view_size.y * 2), 0).rgb * 255.0 * 0.33);
+			base = floor(base * vec3(0.67, 0.78, 0.82) + texelFetch(colours, lp + ivec2(0, pane_row), 0).rgb * 255.0 * 0.33);
 		}
 	}
 	return clamp(base, 0.0, 255.0);

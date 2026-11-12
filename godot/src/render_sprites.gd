@@ -665,6 +665,8 @@ func _ground_band(a: int, b: int) -> void:
 	var w := out_w
 	var lx0 := a - col0
 	var lay := _lay
+	var ray0 := rays[0]
+	var ray_step := rays[1] - rays[0]
 	for k in count:
 		var io := k * GM_I
 		if ns[io] == 0:
@@ -703,7 +705,42 @@ func _ground_band(a: int, b: int) -> void:
 				.63, floorf(maxf(.19, 1.12 / (1.0 + .102 * distance)) * 32.0 + .5) / 32.0
 			)
 			var drow := r * w
-			for i in range(first, last):
+			# Along a row u and v change in step with the ray: the columns where both
+			# stay inside (-1, 1), a column wider each side for the rounding (the
+			# test below still decides every pixel).
+			var bx := from_x + distance * fx
+			var by := from_y + distance * fy
+			var ax := distance * rx
+			var ay := distance * ry
+			var u0 := (bx * cs + by * sn) / reach
+			var u1 := (ax * cs + ay * sn) / reach
+			var v0 := (-bx * sn + by * cs) / width
+			var v1 := (-ax * sn + ay * cs) / width
+			var ray_lo := -1e6
+			var ray_hi := 1e6
+			if absf(u1) > 1e-9:
+				var ua := (-1.0 - u0) / u1
+				var ub := (1.0 - u0) / u1
+				ray_lo = maxf(ray_lo, minf(ua, ub))
+				ray_hi = minf(ray_hi, maxf(ua, ub))
+			elif absf(u0) >= 1.0:
+				continue
+			if absf(v1) > 1e-9:
+				var va := (-1.0 - v0) / v1
+				var vb := (1.0 - v0) / v1
+				ray_lo = maxf(ray_lo, minf(va, vb))
+				ray_hi = minf(ray_hi, maxf(va, vb))
+			elif absf(v0) >= 1.0:
+				continue
+			if ray_lo > ray_hi:
+				continue
+			var from_col := maxi(
+				first, int(floorf(clampf((ray_lo - ray0) / ray_step, -4.0, vw + 4.0))) - 2
+			)
+			var to_col := mini(
+				last, int(ceilf(clampf((ray_hi - ray0) / ray_step, -4.0, vw + 4.0))) + 3
+			)
+			for i in range(from_col, to_col):
 				var ray := rays[i]
 				var wx := from_x + distance * (fx + rx * ray)
 				var wy := from_y + distance * (fy + ry * ray)

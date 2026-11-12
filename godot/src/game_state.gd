@@ -618,6 +618,28 @@ var fixed_sprites: Array = []
 var fixed_sprites_late: Array = []
 var fixed_windmills: Array = []
 var fixed_sprites_key := []
+## The fixed sprites in blocks of the map, so a frame lists only the blocks the
+## view can see (game_view.gd _seen): per block its middle, its reach and the
+## sprites' places in fixed_sprites (fixed_blocks) or fixed_sprites_late.
+var fixed_blocks: Array = []
+var late_blocks: Array = []
+## This frame's view for in_view(): eye x, y, facing x, y, the half width of
+## the view per unit ahead, the mirror's line (NAN: none) and the mirrored eye's x.
+var view_cone := PackedFloat64Array()
+## The level's dress marks made once (game_combat.gd ground_marks()): the marks,
+## and for each its x, y and the reach it shows within, for the level `dress_of`.
+var dress_list: Array = []
+var dress_at := PackedFloat64Array()
+var dress_of: LevelData = null
+## player_sheltered(): whether a hostile enemy was alerted, as of
+## (Enemy.alert_changes, enemies.size()) in shelter_key.
+var shelter_key := Vector2i(-1, -1)
+var shelter_alert := false
+## effect_lights(): the props that are lamps and the street lamp boards, found
+## once for the level `lamps_of` with that many props.
+var lamp_props: Array = []
+var lamp_boards: Array = []
+var lamps_of := Vector2i(-1, -1)
 var pickups: Array = []
 var drums := {}
 var inventory := {}

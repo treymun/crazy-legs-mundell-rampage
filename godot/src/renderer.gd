@@ -59,42 +59,54 @@ func frame_begin(player: Dictionary, flash_value: float) -> void:
 	flash = flash_value
 	var at_hub := not level.road_and_hub.is_empty() and py > 33.0
 	var active := level.active_walls(at_hub)
+	_block_walls(level.active_base(at_hub), at_hub)
 	_prepare_hub(at_hub)
-	# Fresh, exclusively-owned pass buffers every frame. PackedArray writes are
+	# The software view: fresh, exclusively-owned pass buffers every frame. PackedArray writes are
 	# copy-on-write, and Godot's detach is not safe when several band threads
 	# write into storage that any other reference (the previous frame handed to
 	# Image.set_data, the canvas) still holds: workers would intermittently see
 	# a zero-length array. Allocating per frame keeps every buffer single-owner,
 	# and returning this one directly is then safe because the next frame
 	# allocates a different array instead of rewriting it.
-	frame = PackedByteArray()
-	frame.resize(vw * (HEIGHT if detail == 0 and not layered else vh) * 3)
-	if layered:
-		over = PackedByteArray()
-		over.resize(vw * vh * 3)
+	if layered and frame.size() == vw * vh * 3 and over_d.size() == vw * vh:
+		# Layered, nothing outside the renderer keeps these: scene_layers.gd copies
+		# what it sends. So they are kept from frame to frame, and only what is
+		# read before it is written starts the frame cleared: the overlay (blended
+		# into), the span counts, and (in _scene_view) the distances and the glass.
+		# The walls, wall codes and panes are read only where this frame's
+		# distances say they were drawn.
 		over.fill(0)
-		over_a = PackedByteArray()
-		over_a.resize(vw * vh)
 		over_a.fill(0)
-		over_d = PackedFloat32Array()
-		over_d.resize(vw * vh)
 		over_d.fill(0.0)
-		# Handed to a texture afterwards, so it must not be the array the band
-		# threads wrote into last frame.
-		pane_rgb = PackedByteArray()
-		pane_rgb.resize(vw * vh * 3)
-		wall_code = PackedInt32Array()
-		wall_code.resize(vw * vh)
-		span_f = PackedFloat32Array()
-		span_f.resize(vw * (SPAN_K * 2 + 1) * 4)
-		span_n = PackedByteArray()
-		span_n.resize(vw)
-	depth = PackedFloat32Array()
-	depth.resize(vw * vh)
-	glass = PackedByteArray()
-	glass.resize(vw * vh)
-	pane_dist = PackedFloat32Array()
-	pane_dist.resize(vw * vh)
+		span_f.fill(0.0)
+		span_n.fill(0)
+	else:
+		frame = PackedByteArray()
+		frame.resize(vw * (HEIGHT if detail == 0 and not layered else vh) * 3)
+		if layered:
+			over = PackedByteArray()
+			over.resize(vw * vh * 3)
+			over.fill(0)
+			over_a = PackedByteArray()
+			over_a.resize(vw * vh)
+			over_a.fill(0)
+			over_d = PackedFloat32Array()
+			over_d.resize(vw * vh)
+			over_d.fill(0.0)
+			pane_rgb = PackedByteArray()
+			pane_rgb.resize(vw * vh * 3)
+			wall_code = PackedInt32Array()
+			wall_code.resize(vw * vh)
+			span_f = PackedFloat32Array()
+			span_f.resize(vw * (SPAN_K * 2 + 1) * 4)
+			span_n = PackedByteArray()
+			span_n.resize(vw)
+		depth = PackedFloat32Array()
+		depth.resize(vw * vh)
+		glass = PackedByteArray()
+		glass.resize(vw * vh)
+		pane_dist = PackedFloat32Array()
+		pane_dist.resize(vw * vh)
 	_pending = [px, py, pz, angle, hz, active]
 	_scene_view(px, py, pz, angle, hz, 1, frame, vw, 0, vw, depth, glass, layered)
 	if use_threads:
@@ -109,11 +121,17 @@ func frame_begin(player: Dictionary, flash_value: float) -> void:
 
 func frame_sprites(sprites: Array, reflection_sprite, marks: Array, ground_marks: Array) -> void:
 	var started := Time.get_ticks_usec()
+	# The sprites and marks are worked out while the wall segments are still
+	# being sorted out on a band thread (they share no buffer), then the bands go.
+	_sprite_list = sprites
+	_mark_list = marks
+	_ground_list = ground_marks
+	_warm_art()
 	if _prepare_out:
 		_prepare_out = false
 		_crew_done.wait()
 	_pending.append_array([sprites, reflection_sprite, marks, ground_marks])
-	_scene_draw(sprites, marks, ground_marks, 1, 0, vw, layered)
+	_scene_draw(sprites, marks, ground_marks, 1, 0, vw, layered, false)
 	_begun_usec += Time.get_ticks_usec() - started
 
 
@@ -188,17 +206,24 @@ func _scene_view(
 	for i in vw:
 		dir_x[i] = fx + rx * rays[i]
 		dir_y[i] = fy + ry * rays[i]
-	for i in vw:
-		pane_cols[i] = 0
+	pane_cols.fill(0)
 
 
 func _scene_draw(
-	sprites: Array, marks: Array, ground_marks: Array, _par: int, c0: int, c1: int, lay: bool
+	sprites: Array,
+	marks: Array,
+	ground_marks: Array,
+	_par: int,
+	c0: int,
+	c1: int,
+	lay: bool,
+	warm := true
 ) -> void:
 	_sprite_list = sprites
 	_mark_list = marks
 	_ground_list = ground_marks
-	_warm_art()
+	if warm:
+		_warm_art()
 
 	# Bands own disjoint columns, so walls, planes and overlays all band. A
 	# mirror's reflection bands too when it is wide (standing in front of the

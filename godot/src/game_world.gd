@@ -134,9 +134,18 @@ func report(name: String) -> void:
 
 
 func player_sheltered() -> bool:
-	for enemy: Enemy in enemies:
-		if enemy.alerted and enemy.hostile:
-			return false
+	# Every idle enemy asks this every tick: the answer to the first part only
+	# changes when some enemy's alerted does (or the list does).
+	var key := Vector2i(Enemy.alert_changes, enemies.size())
+	if key != shelter_key:
+		shelter_key = key
+		shelter_alert = false
+		for enemy: Enemy in enemies:
+			if enemy.alerted and enemy.hostile:
+				shelter_alert = true
+				break
+	if shelter_alert:
+		return false
 	var p := player
 	var sx := float(level.spawn[0])
 	var sy := float(level.spawn[1])

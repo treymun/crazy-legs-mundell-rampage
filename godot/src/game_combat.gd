@@ -740,18 +740,32 @@ func update_hazards(dt: float) -> void:
 func ground_marks() -> Array:
 	var p := player
 	var marks: Array = []
-	for row in world.dress_marks:
-		var x := float(row[0])
-		var y := float(row[1])
-		var image := String(row[6])
-		var reach := 14.0 if image == "fx_shadow" else 9.49
-		if (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y) >= reach * reach:
-			continue
-		marks.append(
-			Renderer.GroundMark.new(
-				x, y, float(row[2]), float(row[3]), float(row[4]), float(row[5]), image
+	if dress_of != world:
+		dress_of = world
+		dress_list = []
+		dress_at = PackedFloat64Array()
+		for row in world.dress_marks:
+			var image := String(row[6])
+			dress_list.append(
+				Renderer.GroundMark.new(
+					float(row[0]),
+					float(row[1]),
+					float(row[2]),
+					float(row[3]),
+					float(row[4]),
+					float(row[5]),
+					image
+				)
 			)
-		)
+			dress_at.append(float(row[0]))
+			dress_at.append(float(row[1]))
+			dress_at.append(14.0 if image == "fx_shadow" else 9.49)
+	for i in dress_list.size():
+		var x := dress_at[i * 3]
+		var y := dress_at[i * 3 + 1]
+		var reach := dress_at[i * 3 + 2]
+		if (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y) < reach * reach:
+			marks.append(dress_list[i])
 	for stain: Renderer.GroundMark in gore_fx.blood_marks:
 		if (stain.x - p.x) * (stain.x - p.x) + (stain.y - p.y) * (stain.y - p.y) < 81.0:
 			marks.append(stain)

@@ -203,6 +203,8 @@ func sprites() -> Array:
 		# Brass just out of the gun is at the lens: a blur filling the view's edge.
 		if (bit.x - p.x) * (bit.x - p.x) + (bit.y - p.y) * (bit.y - p.y) < .36:
 			continue
+		if not game.in_view(bit.x, bit.y, bit.size * 2.0 + .3):
+			continue
 		var name := "fx_casing"
 		match bit.kind:
 			"hull":

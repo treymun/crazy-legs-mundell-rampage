@@ -235,6 +235,12 @@ var gls: PackedByteArray
 
 var walls := PackedFloat32Array()
 var seg_n := 0
+## The fixed walls (the first _static_n segments of `walls`) in blocks of the
+## map: [middle x, middle y, reach, their indices] (render_surfaces.gd
+## _block_walls), so _prepare() projects only the blocks the view can see.
+var _static_n := 0
+var _seg_blocks: Array = []
+var _seg_blocks_key := Vector2i(-1, -1)
 var seg_c0 := PackedInt32Array()
 var seg_c1 := PackedInt32Array()
 ## Wall segments on screen, nearest first, and per column the rows already
@@ -289,6 +295,22 @@ var _mark_list: Array = []
 var _ground_list: Array = []
 
 
+## Logical processors. A browser build asks the browser: Godot's own answer
+## there is capped at two, which held the view to a single band thread although
+## the build keeps two dozen worker threads ready (export_presets.cfg).
+static func processors() -> int:
+	if _processors == 0:
+		_processors = OS.get_processor_count()
+		if OS.has_feature("web") and OS.has_feature("threads"):
+			var told: Variant = JavaScriptBridge.eval("navigator.hardwareConcurrency || 0", true)
+			if told != null and int(told) > _processors:
+				_processors = int(told)
+	return _processors
+
+
+static var _processors := 0
+
+
 func _init(p_assets: Assets, p_level: LevelData) -> void:
 	assets = p_assets
 	level = p_level
@@ -319,7 +341,7 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 	# awake to run them (measured on a 16c/32t laptop on its balanced power
 	# plan: the main thread and anything past six or seven band threads) one is
 	# always held up and the frame with it.
-	threads = clampi(OS.get_processor_count() / 2 - 1, 1, 6)
+	threads = clampi(processors() / 2 - 1, 1, 6)
 	# A browser build without SharedArrayBuffer cannot start a Thread at all:
 	# render the bands one after another on the main thread instead.
 	if not OS.has_feature("threads"):

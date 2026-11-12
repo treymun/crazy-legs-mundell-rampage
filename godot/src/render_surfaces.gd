@@ -5,6 +5,38 @@ class_name RenderSurfaces
 extends RenderState
 
 
+## Put the fixed walls `base` (the start of every frame's wall list) in blocks
+## of the map for _prepare(); done again only when the list changes.
+func _block_walls(base: PackedFloat32Array, at_hub: bool) -> void:
+	var key := Vector2i(int(at_hub), base.size())
+	if key == _seg_blocks_key:
+		return
+	_seg_blocks_key = key
+	_static_n = base.size() / WALL_STRIDE
+	var by_key := {}
+	for i in _static_n:
+		var o := i * WALL_STRIDE
+		var mid := Vector2i(
+			floori((base[o] + base[o + 2]) * .0625), floori((base[o + 1] + base[o + 3]) * .0625)
+		)
+		var list: PackedInt32Array = by_key.get(mid, PackedInt32Array())
+		list.append(i)
+		by_key[mid] = list
+	_seg_blocks = []
+	for mid: Vector2i in by_key:
+		var list: PackedInt32Array = by_key[mid]
+		var lo := Vector2(INF, INF)
+		var hi := Vector2(-INF, -INF)
+		for i in list:
+			var o := i * WALL_STRIDE
+			for end in 2:
+				var p := Vector2(base[o + end * 2], base[o + end * 2 + 1])
+				lo = lo.min(p)
+				hi = hi.max(p)
+		var middle := (lo + hi) * .5
+		_seg_blocks.append([middle.x, middle.y, (hi - lo).length() * .5 + .01, list])
+
+
 func _prepare(segments: PackedFloat32Array) -> void:
 	walls = segments
 	seg_n = segments.size() / WALL_STRIDE
@@ -19,7 +51,26 @@ func _prepare(segments: PackedFloat32Array) -> void:
 	cov_t.fill(0.0)
 	glass_cols.resize(vw)
 	glass_cols.fill(0)
-	for i in seg_n:
+	# Only the fixed walls in blocks some view ray can reach (ahead of the eye,
+	# inside the view's sides, nearer than the farthest a wall is drawn), then
+	# every moving one. A wall of a block left out has no column to draw.
+	var todo := PackedInt32Array()
+	var fixed := _static_n if not _seg_blocks.is_empty() and _static_n <= seg_n else 0
+	if fixed > 0:
+		var k := vw * .5 / focal + .01
+		for block: Array in _seg_blocks:
+			var dx: float = float(block[0]) - cx
+			var dy: float = float(block[1]) - cy
+			var reach: float = block[2]
+			var ahead := dx * fx + dy * fy
+			if ahead + reach <= .015 or ahead - reach >= 160.0:
+				continue
+			if absf(dx * rx + dy * ry) > (ahead + reach) * k + reach:
+				continue
+			todo.append_array(block[3])
+	for i in range(fixed, seg_n):
+		todo.append(i)
+	for i in todo:
 		var o := i * WALL_STRIDE
 		var r0x := segments[o] - cx
 		var r0y := segments[o + 1] - cy
@@ -33,6 +84,7 @@ func _prepare(segments: PackedFloat32Array) -> void:
 			continue
 		var s0 := r0x * rx + r0y * ry
 		var s1 := r1x * rx + r1y * ry
+		var clipped := a0 < .02 or a1 < .02
 		if a0 < .02:
 			var f := (a0 - .02) / (a0 - a1)
 			a0 = .02
@@ -43,9 +95,22 @@ func _prepare(segments: PackedFloat32Array) -> void:
 			s1 += (s0 - s1) * f
 		var m0 := vw / 2.0 + s0 / a0 * focal - .5
 		var m1 := vw / 2.0 + s1 / a1 * focal - .5
-		seg_c0[i] = maxi(col0, int(floorf(minf(m0, m1))) - 1)
-		seg_c1[i] = mini(col1, int(ceilf(maxf(m0, m1))) + 2)
-		if seg_c0[i] < seg_c1[i]:
+		var c0 := maxi(col0, int(floorf(minf(m0, m1))) - 1)
+		var c1 := mini(col1, int(ceilf(maxf(m0, m1))) + 2)
+		if not clipped:
+			# Column c's ray meets the wall when c lies between its ends' places,
+			# give or take how far the bands' tolerance at each end (u within
+			# .00002 of 0 and 1) reaches on screen: m changes by
+			# focal * (s1 a0 - s0 a1) / a^2 per unit of u there. Past that the
+			# padding above holds only columns the bands turn away.
+			var spread := absf(s1 * a0 - s0 * a1) * focal * .00003
+			var e0 := spread / (a0 * a0) + .05
+			var e1 := spread / (a1 * a1) + .05
+			c0 = maxi(c0, int(ceilf(minf(m0 - e0, m1 - e1))))
+			c1 = mini(c1, int(floorf(maxf(m0 + e0, m1 + e1))) + 1)
+		seg_c0[i] = c0
+		seg_c1[i] = c1
+		if c0 < c1:
 			seg_order.append(int(minf(a0, a1) * 4096.0) * 65536 + i)
 	seg_order.sort()
 
@@ -100,17 +165,41 @@ func _wall_band(band_a: int, band_b: int) -> void:
 		if a >= b:
 			continue
 		var o := i * WALL_STRIDE
+		var bottom := walls[o + 6]
+		var top := walls[o + 7]
+		if top <= bottom:
+			continue
+		# The nearest this segment comes (its sort key, a little less for the
+		# rounding and the ends' tolerance), and so the most rows it can cover in
+		# any column: a column whose covered rows already hold all of those, with
+		# nearer walls, is skipped before any of its arithmetic (the test after
+		# it would skip it anyway, and nothing before that test writes). Covered
+		# columns at either end are trimmed off before the segment is even set up.
+		var near_t := maxf(float(key >> 16) / 4096.0 - .004, .015)
+		var reach_lo := (cz - top) * focal / near_t if cz < top else 0.0
+		var reach_hi := (cz - bottom) * focal / near_t if cz > bottom else 0.0
+		var most_r0 := maxi(0, int(ceilf(reach_lo + horizon - .5)))
+		var most_r1 := mini(vh - 1, int(floorf(reach_hi + horizon - .5)))
+		if most_r0 > most_r1:
+			continue
+		while a < b and most_r0 >= cov_top[a] and most_r1 <= cov_bot[a] and near_t >= cov_t[a]:
+			a += 1
+		while (
+			b > a
+			and most_r0 >= cov_top[b - 1]
+			and most_r1 <= cov_bot[b - 1]
+			and near_t >= cov_t[b - 1]
+		):
+			b -= 1
+		if a >= b:
+			continue
 		var x1 := walls[o]
 		var y1 := walls[o + 1]
 		var x2 := walls[o + 2]
 		var y2 := walls[o + 3]
 		var material := int(walls[o + 4])
 		var base_light := walls[o + 5] + flash
-		var bottom := walls[o + 6]
-		var top := walls[o + 7]
 		var area := int(walls[o + 8])
-		if top <= bottom:
-			continue
 		var ex := x2 - x1
 		var ey := y2 - y1
 		var px := x1 - cx
@@ -144,7 +233,12 @@ func _wall_band(band_a: int, band_b: int) -> void:
 		var mode := int(tile_mode[material]) if (wall_tiling and plain) else 0
 		var along := sqrt(ex * ex + ey * ey) * 128.0
 		var base_off := tile_base[material] * TILE_BYTES if mode == 2 else 0
+		var profile := (ti / 3) * PROFILE_COUNT
+		var glow_base := (profile + PROFILE_GLOW) * SHADE_ROW
+		var flick_base := (profile + PROFILE_FLICK) * SHADE_ROW
 		for c in range(a, b):
+			if most_r0 >= cov_top[c] and most_r1 <= cov_bot[c] and near_t >= cov_t[c]:
+				continue
 			var ray := rays[c]
 			var den := den_a + ray * den_b
 			if absf(den) < 1e-6:
@@ -161,6 +255,36 @@ func _wall_band(band_a: int, band_b: int) -> void:
 				var min_t := (mirror_x - cx) / dnm + .008
 				if min_t > .015 and t <= min_t:
 					continue
+			var sy_lo := (cz - top) * focal / t
+			var sy_hi := (cz - bottom) * focal / t
+			if sy_lo > sy_hi:
+				var swap := sy_lo
+				sy_lo = sy_hi
+				sy_hi = swap
+			var r0 := maxi(0, int(ceilf(sy_lo + horizon - .5)))
+			var r1 := mini(vh - 1, int(floorf(sy_hi + horizon - .5)))
+			if r0 > r1:
+				continue
+			var cover_top := cov_top[c]
+			var cover_bot := cov_bot[c]
+			if r0 >= cover_top and r1 <= cover_bot and t >= cov_t[c]:
+				continue
+			var have := sn[c] if spannable else 0
+			if have > 0 and have < SPAN_K:
+				# Wholly behind one nearer whole span (strictly inside its rows, so the
+				# shader shows it at every one of these pixels): left out, so it costs
+				# the shader nothing and pushes no later wall past SPAN_K.
+				var hidden := false
+				for k2 in have:
+					var so2 := (k2 * 2 * vw + c) * 4
+					if sf[so2] <= t:
+						var rows2 := int(sf[so2 + 3])
+						if r0 > rows2 >> 10 and r1 < (rows2 & 1023):
+							if int(sf[so2 + span_row + 2]) >> 9 != SPAN_MESH:
+								hidden = true
+								break
+				if hidden:
+					continue
 			var tex_u := 1.0 - u if den < 0.0 else u
 			var uu := clampi(int(tex_u * 128.0), 0, 127)
 			if mode == 1:
@@ -176,24 +300,7 @@ func _wall_band(band_a: int, band_b: int) -> void:
 				lit = .19
 			var sample_off := tile_off + uu * 3
 			var step := clampi(int(floorf(lit * 32.0 + .5) / 32.0 * 32.0 + .5), 0, SHADE_STEPS - 1)
-			var profile := (ti / 3) * PROFILE_COUNT
 			var row_base := (profile + step) * SHADE_ROW
-			var glow_base := (profile + PROFILE_GLOW) * SHADE_ROW
-			var flick_base := (profile + PROFILE_FLICK) * SHADE_ROW
-			var sy_lo := (cz - top) * focal / t
-			var sy_hi := (cz - bottom) * focal / t
-			if sy_lo > sy_hi:
-				var swap := sy_lo
-				sy_lo = sy_hi
-				sy_hi = swap
-			var r0 := maxi(0, int(ceilf(sy_lo + horizon - .5)))
-			var r1 := mini(vh - 1, int(floorf(sy_hi + horizon - .5)))
-			if r0 > r1:
-				continue
-			var cover_top := cov_top[c]
-			var cover_bot := cov_bot[c]
-			if r0 >= cover_top and r1 <= cover_bot and t >= cov_t[c]:
-				continue
 			var sy := float(r0) + .5 - horizon
 			var t_inv := t / focal
 			var row := r0
@@ -276,9 +383,39 @@ func _wall_band(band_a: int, band_b: int) -> void:
 					gi += w
 					oi += w * 3
 				row = r1 + 1
+			var last_row := r1
+			if lay and row <= r1 and sn[c] > 0:
+				# A mirror or window glass behind nearer whole spans is left out where
+				# they hide it: the shader shows the spans there anyway, and a hidden
+				# mirror would set off a whole reflection pass for nothing.
+				var lo := row
+				var hi := r1
+				var moved := true
+				var have_n := sn[c]
+				while moved and lo <= hi:
+					moved = false
+					for k2 in have_n:
+						var so2 := (k2 * 2 * vw + c) * 4
+						if sf[so2] >= t or int(sf[so2 + span_row + 2]) >> 9 == SPAN_MESH:
+							continue
+						var rows2 := int(sf[so2 + 3])
+						var in_lo := (rows2 >> 10) + 1
+						var in_hi := (rows2 & 1023) - 1
+						if lo >= in_lo and lo <= in_hi:
+							lo = in_hi + 1
+							moved = true
+						if hi >= in_lo and hi <= in_hi:
+							hi = in_lo - 1
+							moved = true
+				if lo > row:
+					sy += float(lo - row)
+					gi += (lo - row) * w
+					oi = gi * 3
+					row = lo
+				last_row = hi
 			var hit_x := cx + t * dir_x[c]
 			var hit_y := cy + t * dir_y[c]
-			while row <= r1:
+			while row <= last_row:
 				var wall_z := cz - sy * t_inv
 				if wall_z >= bottom and wall_z <= top and t < depth_here[gi]:
 					var v := int(clampi(int((top - wall_z) / vspan * 128.0), 0, 127))

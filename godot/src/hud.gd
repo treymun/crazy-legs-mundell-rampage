@@ -549,6 +549,14 @@ static func _ring(ox: int, oy: int, a: float, radius: float) -> Vector2:
 ## Copy an RGB8 image into the canvas (the dials are drawn on transparent masks
 ## in the reference; they always sit on the plate, so an opaque copy matches).
 static func _blit_rgb(c: Canvas, src: PackedByteArray, w: int, h: int, x: int, y: int) -> void:
+	if x == 0 and w == Canvas.WIDTH and y >= 0 and y + h <= Canvas.HEIGHT and not c.layer:
+		# Whole rows (the status plate): spliced in at once, not pixel by pixel.
+		var row := Canvas.WIDTH * 3
+		var joined := c.pixels.slice(0, y * row)
+		joined.append_array(src.slice(0, h * row))
+		joined.append_array(c.pixels.slice((y + h) * row))
+		c.pixels = joined
+		return
 	for yy in h:
 		var ty := y + yy
 		if ty < 0 or ty >= Canvas.HEIGHT:

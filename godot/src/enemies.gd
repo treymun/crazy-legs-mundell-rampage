@@ -161,7 +161,14 @@ var y := 0.0
 var timer := 0.0
 var pose := 0.0
 var stun := 0.0
-var alerted := false
+var alerted := false:
+	set(value):
+		if value != alerted:
+			alerted = value
+			Enemy.alert_changes += 1
+## Counts every change of any enemy's `alerted`, so game_world.gd
+## player_sheltered() asks all of them again only when one has changed.
+static var alert_changes := 0
 var cooldown := .75
 var angle := 0.0
 var hp := 0.0
