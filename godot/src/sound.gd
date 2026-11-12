@@ -32,6 +32,8 @@ const SCORES := {
 	"fair_score": ["fair_score", "tickets_after_dark", "closing_time_shuffle"],
 	"mill_score": ["mill_score", "green_chain", "apron_run"],
 	"quarry_score": ["quarry_score", "copper_and_steam", "last_load"],
+	"bayou_score": ["bayou_score"],
+	"music_speedway": ["music_speedway"],
 }
 ## Each chapter's fight loop (seamless, made by scripts/audio_build.py): it
 ## swells in over the chapter's track while features/fight_music.gd says the
@@ -41,6 +43,8 @@ const FIGHTS := {
 	"fair_score": "fight_fair",
 	"mill_score": "fight_mill",
 	"quarry_score": "fight_quarry",
+	"bayou_score": "fight_bayou",
+	"music_speedway": "fight_speedway",
 }
 
 const PRIORITY := [
@@ -70,6 +74,10 @@ const WARNS := [
 	"whistle",
 	"barker_wind",
 	"millhand_rev",
+	"king_rev",
+	"noodler_grunt",
+	"chum_slosh",
+	"gator_hiss",
 	"lantern_charge",
 	"deputy_work",
 	"tosser_rattle",

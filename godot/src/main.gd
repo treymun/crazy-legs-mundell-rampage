@@ -223,7 +223,7 @@ func _view_bench() -> void:
 	Engine.max_fps = 0
 	await get_tree().process_frame
 	var totals := {"cpu": 0.0, "gpu": 0.0}
-	for level_id in ["hickston", "fair", "sawmill", "quarry", "speedway"]:
+	for level_id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway"]:
 		var line := "%-9s" % level_id
 		for mode in ["cpu", "gpu"]:
 			start(level_id)

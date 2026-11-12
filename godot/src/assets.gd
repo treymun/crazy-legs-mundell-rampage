@@ -18,12 +18,14 @@ const CHAPTER_KINDS := {
 	"fair": ["barker", "bottle_tosser", "crawler", "rudy"],
 	"sawmill": ["chain_hand", "foreman", "lantern", "millhand"],
 	"quarry": ["baron", "boilerback", "chalk_spitter", "valve_rat"],
+	"bayou": ["chum_tosser", "gator", "noodler", "swamp_king"],
 	"speedway": ["derby_champ", "flagman", "nitro_huffer", "pit_mechanic", "tire_roller"],
 }
 const CHAPTER_ART := {
 	"fair": "art_fair.bin",
 	"sawmill": "art_mill.bin",
 	"quarry": "art_quarry.bin",
+	"bayou": "art_bayou.bin",
 	"speedway": "art_speedway.bin",
 }
 

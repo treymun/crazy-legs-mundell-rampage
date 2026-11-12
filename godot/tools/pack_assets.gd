@@ -28,7 +28,7 @@ extends SceneTree
 const AssetsLib := preload("res://src/assets.gd")
 
 const SFX_RATE := 22050
-const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky", "speedway_sky"]
+const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky", "bayou_sky", "speedway_sky"]
 ## Each chapter's file: its three tracks, then the loop its fights swell into
 ## (Sound.FIGHTS).
 const MUSIC_FILES := {
@@ -36,7 +36,14 @@ const MUSIC_FILES := {
 	"music_fair": ["fair_score", "tickets_after_dark", "closing_time_shuffle", "fight_fair"],
 	"music_mill": ["mill_score", "green_chain", "apron_run", "fight_mill"],
 	"music_quarry": ["quarry_score", "copper_and_steam", "last_load", "fight_quarry"],
+	"music_bayou": ["bayou_score", "fight_bayou"],
+	"music_speedway": ["music_speedway", "fight_speedway"],
 }
+## Chapter files whose tracks are not made yet: written empty (so the browser
+## packs still build) and their missing tracks only noted; verify_assets.gd
+## skips them, and the chapter plays without music. The main session takes a
+## chapter off once its music is in godot/assets/music.
+const PENDING_MUSIC := ["music_bayou", "music_speedway"]
 const REQUIRED_MUSIC := ["title", "victory"]
 
 var repo := ""
@@ -261,6 +268,8 @@ func _music() -> void:
 			home[track] = file_name
 	var index := {}
 	var blobs := {}
+	for file_name: String in PENDING_MUSIC:
+		blobs[file_name] = PackedByteArray()
 	for file in _sorted_files("godot/assets/music", "ogg"):
 		var data := FileAccess.get_file_as_bytes(
 			repo.path_join("godot/assets/music").path_join(file)
@@ -278,7 +287,10 @@ func _music() -> void:
 		blobs[file_name] = blob
 	for track: String in home.keys() + REQUIRED_MUSIC:
 		if not index.has(track):
-			_fail("music missing: " + track)
+			if String(home.get(track, "")) in PENDING_MUSIC:
+				print("music not made yet: " + track)
+			else:
+				_fail("music missing: " + track)
 	for file_name: String in blobs:
 		_write(file_name + ".bin", blobs[file_name])
 	_write_json("music_index.json", index)

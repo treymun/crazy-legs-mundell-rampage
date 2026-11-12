@@ -156,6 +156,7 @@ const CHAPTER_PACKS := {
 	"fair": "music_fair",
 	"sawmill": "music_mill",
 	"quarry": "music_quarry",
+	"bayou": "music_bayou",
 	"speedway": "music_speedway"
 }
 ## The first time the shader composes the view it is checked, at a grid of

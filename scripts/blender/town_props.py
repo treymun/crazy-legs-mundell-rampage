@@ -474,13 +474,15 @@ PROPS = {
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "props_more.py"), encoding="utf-8") as _more:
     exec(_more.read(), globals())
 # Each chapter's own props (props_<chapter>.py beside this file), in name order.
+# props_range.py is not one: it is a script of its own that runs this library
+# (build_town_props.gd SCRIPTS), so loading it here would loop.
 for _name in sorted(os.listdir(os.path.dirname(os.path.abspath(__file__)))):
-    if _name.startswith("props_") and _name.endswith(".py") and _name != "props_more.py":
+    if _name.startswith("props_") and _name.endswith(".py") and _name not in ("props_more.py", "props_range.py"):
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), _name), encoding="utf-8") as _own:
             exec(_own.read(), globals())
 PROPS.update(MORE)
 # Drawn flat on a plane in the game: rendered face on.
-FLAT = {"laundry", "powder_shelf", "hubcap_board"}
+FLAT = {"laundry", "powder_shelf", "hubcap_board", "gator_hide"}
 
 
 # ---------------------------------------------------------------- stage

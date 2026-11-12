@@ -235,6 +235,10 @@ var soak := 0.0
 ## when it got that way.
 var enraged := false
 var enraged_at := -10.0
+## Gator Bayou (bayou_brains.gd): it swims (deep water is no wall to it), and
+## how far it is sunk in the water this moment (wading, lurking, a gator low).
+var swims := false
+var sunk := 0.0
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -243,6 +247,8 @@ var alive: bool:
 
 var z: float:
 	get:
+		if sunk > 0.0:
+			return -sunk
 		if brain == "saucer":
 			return .76 + .10 * sin(pose * 2.4)
 		if brain == "skeeter":
@@ -265,6 +271,7 @@ func _init(p_kind := "", px := 0.0, py := 0.0, p_angle := 0.0) -> void:
 	height = float(spec[3])
 	hostile = bool(spec[4])
 	max_hp = hp
+	swims = bool(DEFS[kind].get("swims", false))
 	variant = 1.0 if BOSS_TITLES.has(kind) else .94 + fmod(x * 13.1 + y * 7.7, 1.0) * .11
 
 
@@ -637,6 +644,8 @@ func tick(dt: float, game) -> void:
 	if brain == "derby_champ":
 		DerbyChamp.tick(self, dt, game)
 		return
+	if BayouBrains.tick(self, dt, game):
+		return
 	if volley:
 		volley_timer -= dt
 		if volley_timer <= 0.0:
@@ -968,6 +977,8 @@ func _spread(game) -> float:
 func attack(game, direction: float, distance: float, eye: float, aim_z = null) -> void:
 	attacks += 1
 	if SpeedwayHands.attack(self, game, direction, distance, eye, aim_z):
+		return
+	if BayouBrains.attack(self, game, direction, distance, eye):
 		return
 	if SIGNATURES.has(kind):
 		signature_attack(game, direction, distance, eye, aim_z)

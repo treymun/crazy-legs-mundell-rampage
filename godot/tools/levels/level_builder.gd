@@ -68,6 +68,9 @@ var _ids := {}
 var _town_sizes := {}
 ## Floor tile -> the tile the step up onto it shows (rock for a quarry bench).
 var riser_tiles := {}
+## A floor nobody walks on (Gator Bayou's deep water, LevelData.deep_at): the
+## checks treat it as blocked. -1: none.
+var deep_floor := -1
 
 
 func _init(level_id: String, width: int, height: int, border := "hedgerow") -> void:
@@ -1135,7 +1138,9 @@ func problems(spawn: Array) -> Array:
 	var out: Array = []
 	var spots: Array = [["spawn", spawn[0], spawn[1]]]
 	for e: Dictionary in enemies:
-		spots.append(["enemy " + String(e["id"]), e["x"], e["y"]])
+		# One that swims (enemies.cfg) may start out in deep water nobody can walk to.
+		var swims := bool(Enemy.DEFS.get(String(e["kind"]), {}).get("swims", false))
+		spots.append(["enemy " + String(e["id"]), e["x"], e["y"], swims])
 	for p: Array in pickups:
 		spots.append(["pickup " + String(p[0]), p[1], p[2]])
 	for s: Dictionary in stations:
@@ -1189,6 +1194,8 @@ func problems(spawn: Array) -> Array:
 	var reached := _reach_from(int(spawn[0]), int(spawn[1]))
 	for spot: Array in spots:
 		var cell := Vector2i(int(spot[1]), int(spot[2]))
+		if spot.size() > 3 and bool(spot[3]):
+			continue
 		if inside(cell.x, cell.y) and int(solid[at(cell.x, cell.y)]) < 0 and not reached.has(cell):
 			var near := false
 			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
@@ -1221,6 +1228,8 @@ func problems(spawn: Array) -> Array:
 ## A cell nobody can stand in the middle of: solid, or a fixture there.
 func _cell_blocked(x: int, y: int) -> bool:
 	if int(solid[at(x, y)]) >= 0:
+		return true
+	if deep_floor >= 0 and int(floor_tile[at(x, y)]) == deep_floor:
 		return true
 	var cx := x + .5
 	var cy := y + .5

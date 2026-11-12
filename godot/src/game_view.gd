@@ -680,6 +680,10 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 						tell = "LEFT HORN" if boss.attacks % 2 == 1 else "RIGHT HORN"
 					if boss.brain == "derby_champ":
 						tell = DerbyChamp.tell(boss)
+					if BayouBrains.is_king(boss) and boss.aim_mark != null:
+						var toward := atan2(boss.aim_mark[1] - boss.y, boss.aim_mark[0] - boss.x)
+						var run := BayouBrains.runs_on(boss, boss.attacks + 1, world, toward)
+						tell = "AIRBOAT RUN" if run else "PUNT GUN"
 					var phase: String = (
 						tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
 					)

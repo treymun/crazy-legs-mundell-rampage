@@ -54,16 +54,13 @@ silent music until they do. In the style of the chapter tracks in
 | `music_speedway` | Buzzard Bend Feature Race | 126 | Greasy Southern rock and honky-tonk at a dirt-track race night: driving overdriven Telecaster riff, chugging bass, snare on two and four with a ride cymbal like a revving engine, a wailing harmonica answering, a pedal steel swell over the bridge. Loose, loud, beer-soaked and fast. |
 | `fight_speedway` | Demolition Derby Brawl | 138 | Heavy redneck rock brawl at 138 BPM: crunching fuzz guitar riff, pounding floor toms and crash cymbals like cars colliding, slide guitar screaming over the top, honky-tonk piano hammering, a quick banjo roll on the turnarounds. Dangerous, sweaty and relentless; a seamless loop. |
 
-When the files exist (both in `godot/assets/music`, each in
-`playback_ends.json`), wire them like the quarry's:
-
-- `src/sound.gd` SCORES `"music_speedway": ["music_speedway"]` (add more
-  stems if a three-track playlist is made) and FIGHTS
-  `"music_speedway": "fight_speedway"`;
-- `tools/pack_assets.gd` MUSIC_FILES `"music_speedway": ["music_speedway",
-  "fight_speedway"]`;
-- `tools/make_packs.gd` PACKS `"music_speedway": ["music_speedway.bin",
-  "art_speedway.bin"]` (it holds only the art now).
-
-verify_assets fails on a SCORES or FIGHTS entry without its file, so these are
-left out until then.
+They are already wired like the bayou's: `src/sound.gd` SCORES
+`"music_speedway": ["music_speedway"]` and FIGHTS
+`"music_speedway": "fight_speedway"`, `tools/pack_assets.gd` MUSIC_FILES
+`"music_speedway": ["music_speedway", "fight_speedway"]`, and
+`tools/make_packs.gd` PACKS `"music_speedway": ["music_speedway.bin",
+"art_speedway.bin"]`. Until the tracks exist, `music_speedway` is on
+pack_assets.gd's `PENDING_MUSIC` (its file is written empty and
+verify_assets skips it). When both files are in `godot/assets/music` (each in
+`playback_ends.json`), take it off that list (add more stems to SCORES if a
+three-track playlist is made).

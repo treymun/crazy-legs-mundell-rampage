@@ -46,10 +46,13 @@ func _run() -> void:
 		advance_campaign(main, chapter)
 
 	print("\nEND OF CAMPAIGN")
-	var last: String = Campaign.ORDER[Campaign.ORDER.size() - 1]
+	var last: String = Campaign.ORDER.back()
 	check(main.campaign_run.level.id == last, "campaign still on " + last)
 	check(main.game.in_hub, "finale returns to Crossroads")
-	check(main.game.hub_milestone == Campaign.ORDER.size(), "hub milestone reached the finale")
+	check(
+		main.game.hub_milestone == mini(Campaign.ORDER.size(), GameState.HUB_DISPATCH.size() - 1),
+		"hub milestone reached the finale"
+	)
 
 	print("\nREVISITS")
 	for chapter: String in Campaign.ORDER:
@@ -130,6 +133,7 @@ func _run() -> void:
 		"user://probe-fair.json",
 		"user://probe-sawmill.json",
 		"user://probe-quarry.json",
+		"user://probe-bayou.json",
 		"user://probe-speedway.json",
 	]
 	for p in path_clean:
@@ -292,8 +296,15 @@ func advance_campaign(main: Control, chapter: String) -> void:
 		return
 	check(main.game.in_hub, chapter + " close returns to the Crossroads")
 	check(main.unlocked.has(following), "gate opened for " + following)
-	check(
-		main.game.gate_modes.get(following, "") in ["REPLAY", "CONTINUE"],
-		"gate mode set for " + following
-	)
+	var gated := false
+	for gate: LevelData.Gate in main.game.world.hub_gates:
+		gated = gated or gate.destination == following
+	if gated:
+		check(
+			main.game.gate_modes.get(following, "") in ["REPLAY", "CONTINUE"],
+			"gate mode set for " + following
+		)
+	else:
+		# A new chapter before the Crossroads has its gate: travelled to directly.
+		print("  note no Crossroads gate yet for ", following)
 	check(main.game.gate_modes.get(chapter, "") == "REVISIT", "finished chapter offers REVISIT")

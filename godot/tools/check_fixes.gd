@@ -96,6 +96,34 @@ func _run() -> void:
 		check(quarry.hazards.size() == before + 2, "two steam outlets open")
 		check(is_equal_approx(baron.cooldown, 1.58), "attack sets its 1.58 s cooldown")
 
+	print("\nGATOR BAYOU: DEEP WATER, THE KING'S AIRBOAT RUN")
+	main.start("bayou")
+	var bayou: Game = main.game
+	var king: Enemy = null
+	for enemy: Enemy in bayou.enemies:
+		if enemy.kind == "swamp_king":
+			king = enemy
+	check(king != null, "the bayou has the Swamp King")
+	check(bayou.world.deep_at(20.5, 39.5), "the west channel is deep water")
+	var wader := Enemy.new("billy", 20.5, 43.5)
+	bayou.move_actor(wader, 0.0, -1.0, wader.radius)
+	check(wader.y > 43.0, "a walker cannot wade into the deep channel")
+	var gator := Enemy.new("gator", 20.5, 43.5)
+	bayou.move_actor(gator, 0.0, -1.0, gator.radius)
+	check(gator.y < 43.0, "a gator swims into it")
+	if king != null:
+		king.dormant = false
+		king.alerted = true
+		king.attacks = 0
+		bayou.player.x = king.x + 6.0
+		bayou.player.y = king.y
+		var toward := atan2(bayou.player.y - king.y, bayou.player.x - king.x)
+		check(BayouBrains.runs_on(king, 1, bayou.world, toward), "the king's first attack is a run")
+		king.attack(bayou, toward, 6.0, 1.2, null)
+		check(king.has_meta("run"), "the attack starts an airboat run")
+		king.attack(bayou, toward, 6.0, 1.2, null)
+		check(not king.has_meta("pair"), "a calm king makes no second run")
+
 	print("\nSTATION LIGHTS AFTER A LOAD (were lost on quickload and slot load)")
 	# A campaign run in chapter two carries one finished chapter in its history;
 	# the loader rejects a save without it.

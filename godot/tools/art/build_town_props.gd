@@ -3,7 +3,8 @@
 ##   godot --headless --path godot --script res://tools/art/build_town_props.gd \
 ##       [-- names=outhouse,still] [no-render] [out=<dir>]
 ##
-## Blender (scripts/blender/town_props.py) models each prop from plain shapes
+## Blender (scripts/blender/town_props.py, with props_more.py and Gator Bayou's
+## props_bayou.py exec'd into it) models each prop from plain shapes
 ## and writes it four times oversized, with a margin, into _preview/props/raw;
 ## this crops each to its edges, shrinks it to game size with the enemies'
 ## grade (paint.gd photo_shrink: a hard alpha edge, a dark rim, a worn

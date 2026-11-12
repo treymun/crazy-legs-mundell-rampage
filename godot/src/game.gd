@@ -262,6 +262,15 @@ func tick(dt: float, controls) -> void:
 		)
 	elif ambience == "fair" and stations_done.has("broadcast"):
 		ambience = "fair_after"
+	elif ambience == "bayou":
+		ambience = (
+			"bayou_after"
+			if stations_done.has("fuel")
+			else "bayou_shack" if roof != 0.0 else "bayou"
+		)
+		if not art.has_cue("amb_" + ambience):
+			# Until the bayou's own beds are made: the plain yard and room.
+			ambience = ""
 	var recovery = level.recovery_room
 	if recovery != null and ambience != "quarry_after" and ambience != "fair_after":
 		if (
@@ -321,6 +330,7 @@ func tick(dt: float, controls) -> void:
 						cue in ["distant_quarry_bottler", "distant_quarry_pipe"]
 						and stations_done.has("bottling")
 					)
+					or (cue == "distant_bayou_airboat" and stations_done.has("fuel"))
 					or (
 						cue in ["distant_fair_motif", "distant_fair_generator"]
 						and stations_done.has("broadcast")

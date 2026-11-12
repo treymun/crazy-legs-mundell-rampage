@@ -9,7 +9,7 @@
 ## Prints the mean and the worst 1% per part, and what frame rate that allows.
 extends SceneTree
 
-const LEVELS := ["hickston", "fair", "sawmill", "quarry", "speedway"]
+const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway"]
 
 
 func _init() -> void:
