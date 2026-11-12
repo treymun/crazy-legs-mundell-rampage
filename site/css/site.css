@@ -230,6 +230,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 8px 20px 60px; }
   box-shadow: 0 12px 22px rgba(0, 0, 0, .55);
 }
 .note h3 { margin-bottom: 8px; font: bold 15px/1.2 var(--typed); letter-spacing: .14em; text-transform: uppercase; text-decoration: underline; }
+.note p + p { margin-top: 10px; }
 .note-tilt-left { transform: rotate(-1.1deg); }
 .note-tilt-right { transform: rotate(.9deg); }
 .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 26px; margin-top: 8px; }

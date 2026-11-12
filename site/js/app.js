@@ -260,7 +260,9 @@
   show(WEAPONS[1]);
 
   // ------------------------------------------------------------ chapters
-  // Objectives, districts and sign-offs are the game's own text (campaign.py).
+  // Objectives, districts and sign-offs are the game's own text (godot/src/campaign.gd);
+  // bosses and locals follow their code (enemies.cfg, bayou_brains.gd, derby_champ.gd,
+  // speedway_hands.gd, ship_aliens.gd, features/mothership.gd); the range is range_layout.gd.
   const CHAPTERS = [
     { id: 'hickston', tab: 'Hickston', order: 'Chapter one', title: 'The Hickston Incident', shot: 'shot_hickston',
       caption: 'County road, facing Stanky\'s. Evening.',
@@ -270,7 +272,7 @@
         { name: 'The Alien Sheriff', img: 'boss_sheriff', text: 'Charges a plasma shot you can hear coming. Under half health he fires three at a time and hurries.' },
         { name: 'Jerry Jones', img: 'boss_jerry', text: 'Blows a whistle, then throws a football that hurts. Three footballs once he is losing.' },
       ],
-      secrets: 'Three hidden rooms. Check the mirror in the GENTS while you are in there.',
+      secrets: 'Four hidden rooms. Check the mirror in the GENTS while you are in there.',
       signoff: '"Next time, take the tractor."' },
     { id: 'fair', tab: 'County Fair', order: 'Chapter two', title: 'Possum County Fair', shot: 'shot_fair',
       caption: 'Main gate. The prize pavilion is lit; nobody is selling tickets.',
@@ -279,7 +281,7 @@
       bosses: [
         { name: 'Rudy Racket', img: 'boss_rudy', text: 'Sweeps the stage with five horn blasts. His health bar calls LEFT HORN or RIGHT HORN first. Two of him are cardboard.' },
       ],
-      secrets: 'Three hidden rooms. One hatch is low enough that you have to duck for it.',
+      secrets: 'Two hidden rooms, one of them behind a sideshow panel.',
       signoff: '"No refunds after the abduction."' },
     { id: 'sawmill', tab: 'Blackwater', order: 'Chapter three', title: 'Blackwater Timber', shot: 'shot_sawmill',
       caption: 'Delivery yard, looking over the flooded log pond.',
@@ -288,7 +290,7 @@
       bosses: [
         { name: 'The Splinter Foreman', img: 'boss_foreman', text: 'Sends saw blades down marked lanes, three lanes and then two. When it reads GAP IN THE MIDDLE, stand in the middle.' },
       ],
-      secrets: 'Three hidden rooms. The county map only draws a secret once you have found it.',
+      secrets: 'Four hidden rooms. The county map only draws a secret once you have found it.',
       signoff: '"Clock out. Leave the boots outside."' },
     { id: 'quarry', tab: 'Stillwater', order: 'Chapter four', title: 'Stillwater Cut', shot: 'shot_quarry',
       caption: 'County weigh station at the limestone cut.',
@@ -299,13 +301,51 @@
       ],
       secrets: 'Three hidden rooms in the cut and the works.',
       signoff: '"Weight includes contents and debts."' },
+    { id: 'bayou', tab: 'Gator Bayou', order: 'Chapter five', title: 'Gator Bayou', shot: 'shot_bayou',
+      caption: 'King\'s Lagoon at dusk. The Swamp King is out in his airboat.',
+      job: 'Lower the bridges over the Big Channel: crank the boil yard generator and trip the cannery breaker. Then spike the fuel at the airboat dock, which fetches the king, and hot-wire his airboat home. The black water wades slow; the deep channels belong to the gators.',
+      stops: ['County Line Landing', 'Bait & Tackle', 'Crawfish Boil', 'Stilt Row', 'Fish Camp Cabins', 'Swamp King Cannery', 'Big Channel', 'Bridge Tender\'s Hammock', 'Gator Farm', 'Wrasslin Pit', 'The Mudhole', 'King\'s Lagoon', 'Airboat Dock', 'The King\'s Still', 'Backwater'],
+      locals: ['New varmints', 'Noodlers squat in the water up to the eyes and come up out of it all at once. Chum tossers sling chum the moment they see you, and every gator near comes for it. Gators lie low in the water, quick in it and slow on the bank.'],
+      bosses: [
+        { name: 'The Swamp King', img: 'boss_king', text: 'Circles his lagoon in an armoured airboat and fires a punt gun off the bow. A lane marked on the water means he is about to run it flat out; a run that ends on a piling or a bank beaches him, wide open. Past half health the runs come in pairs and he hollers for his gators.' },
+      ],
+      secrets: 'Four hidden rooms, and the king\'s own still hid behind the reeds. A taste counts.',
+      signoff: '"No wake zone, my foot."' },
+    { id: 'speedway', tab: 'Buzzard Bend', order: 'Chapter six', title: 'Dirt Track Speedway', shot: 'shot_speedway',
+      caption: 'The front stretch on race night. Nobody told the drivers.',
+      job: 'Dump the pit fuel, run the crusher and cut in on the PA. Until that fuel is dumped the cars keep running laps, and whoever is on the racing line gets run down. Then drop the green flag at the figure 8, beat the champ and take the checkered flag on the front stretch.',
+      stops: ['Truck Stop', 'Lugnut\'s Diner', 'Haulers\' Lot', 'Pit Row', 'Fuel Depot', 'The Oval', 'Infield Camp', 'Figure 8', 'Grandstands', 'Announcer\'s Booth', 'The Concourse', 'Boggs Salvage', 'Crusher Yard', 'Tow Lot', 'Grandstand Parking'],
+      locals: ['New varmints', 'Pit mechanics throw wrenches and tyre rollers roll tyres. Nitro huffers run in close and go up in a nitrous blast, shot down or not, and take their own side with them. Flagmen wave the green flag to call in every hand within earshot, then hang back and fire flares.'],
+      bosses: [
+        { name: 'Bumper Boggs', img: 'boss_boggs', text: 'The champ, in an armoured derby car. He paints his ramming lane on the ground while he revs, locks it a moment before he goes, and runs down whatever is in it. Up close he spits spare tyres down a fan of lanes. A charge into a wall stalls him: that is the opening. Fightin\' mad, he charges straight out of a crash and sheds parts.' },
+      ],
+      secrets: 'Three hidden rooms. Lugnut\'s walk-in is one of them.',
+      signoff: '"Checkered flag. Nobody else finished."' },
+    { id: 'mothership', tab: 'Mothership', order: 'Chapter seven, the last', title: 'The Mothership', shot: 'shot_mothership',
+      caption: 'The specimen hold. Cows in the tubes, and a probe that has seen you.',
+      job: 'Spike the shine drive and drain the cow tubes, and the core\'s iris opens on the bridge. Maw Glorb waits in the core. When she falls the ship comes apart round you all the way back to the escape outhouse in the tractor-beam bay. Ride it home and the whole campaign\'s tally comes up, then the credits.',
+      stops: ['Tractor Beam Bay', 'Ring Deck', 'The Core', 'The Bridge', 'Trophy Room', 'Maw\'s Parlor', 'Crew Bunks', 'Crew Mess', 'Specimen Hold', 'Probe Lab', 'Corn Deck', 'Engine Room', 'Shine Tanks', 'Cargo Hold', 'Service Ducts'],
+      locals: ['New varmints', 'Grey drones zap with a cattle prod and skitter back out of reach. Tin guards soak shots on a pickup\'s tailgate and swing it aside only to fire a bug zapper. Probes float in and reel you toward them on a beam.'],
+      bosses: [
+        { name: 'Maw Glorb', img: 'boss_maw', text: 'Everybody\'s maw. In her housecoat: a rolling pin on a marked circle, a hair dryer along marked lanes, and hollers to the pods for her younguns. With the housecoat on fire, stomps send a ring of cracks over the deck that has to be jumped, and the tractor beam gets loose on the floor. Out of the housecoat, all of it comes quicker.' },
+      ],
+      secrets: 'Four hidden rooms, and a lawn elf whose hat is worth a tug.',
+      signoff: '"Tell yer maw she can keep the bus."' },
     { id: 'hub', tab: 'Crossroads', order: 'The hub', title: 'County Crossroads', shot: 'shot_hub',
-      caption: 'The service road, in the shadow of the county water tower.',
-      job: 'Every finished chapter opens the next gate here. Face a gate and press E to continue, revisit a finished chapter, or replay one from scratch with a fresh kit.',
-      stops: ['Four road gates', 'Dispatch board', 'County service road', 'Water tower', 'Road shed', 'Culvert'],
+      caption: 'The four-way stop. The fingerpost points down every road; the beam pad stands at the end of the one north.',
+      job: 'Every finished chapter opens the next gate here. The county line road runs west and east from the four-way stop with a gate on it for each chapter, further out as the campaign goes on, and the road the county closed runs north to the crash site and the tractor-beam pad. Face a gate and press E to continue, revisit a finished chapter, or replay one from scratch with a fresh kit.',
+      stops: ['Seven road gates', 'Fingerpost', 'Crossroads Diner', 'Road Department', 'Dispatch board', 'Road Crew Yard', 'County Impound', 'Crash Site', 'Beam pad'],
       bosses: [],
-      secrets: 'Road notes are pinned around the hub and in each chapter. The county map keeps count.',
+      secrets: 'Four road notes are pinned around the hub, and more in the chapters. The county map keeps count.',
       signoff: '"County crossroads. Face a gate and press E."' },
+    { id: 'range', tab: 'Firing Range', order: 'Off the title menu', title: 'Mundell\'s Proving Grounds', shot: 'shot_range',
+      caption: 'The armory. Every gun on the wall, and every one of them yours.',
+      job: 'Pick FIRING RANGE on the title menu. Every gun is yours and the ammo refills itself. Walk up to a gun on the armory wall and press use to hear what it does and which lane to take it to; each lane keeps score on its own card.',
+      stops: ['The Armory', 'Firing Line', 'Tin Can Alley', 'Pellet Patch', 'Rifle Range', 'Duck Gallery', 'Bowl-O-Rama', 'Soak Tank', 'Special Orders', 'Powder Pit', 'Whuppin\' Yard', 'The Bullpen', 'Boss Corral'],
+      locals: ['Live targets', 'Pull a lever in the bullpen and meet the locals, one kind at a time or a whole squad: they duck behind cover, run for help when hurt and brawl if they shoot each other. The boss corral lets out the first five bosses, one at a time.'],
+      bosses: [],
+      secrets: 'Nothing to find and nothing saved. The range medic patches you up before you can buy the farm.',
+      signoff: '"Every gun, all the ammo. Pause to leave."' },
   ];
   const tabs = $('#chapter-tabs');
   const panel = $('#chapter-panel');
@@ -327,6 +367,9 @@
       el('h4', { text: 'The job' }), el('p', { text: chapter.job }),
       el('h4', { text: 'Stops on the route' }),
       el('ul', { class: 'stops' }, ...chapter.stops.map((stop) => el('li', { text: stop }))));
+    if (chapter.locals) {
+      file.append(el('h4', { text: chapter.locals[0] }), el('p', { text: chapter.locals[1] }));
+    }
     if (chapter.bosses.length) {
       file.append(el('h4', { text: 'Waiting at the end' }),
         el('div', { class: 'mugs' }, ...chapter.bosses.map((boss) => el('div', { class: 'mug' },
@@ -363,10 +406,17 @@
     ['The fair', [['fair_score', 'The Wheel Turns Crooked'], ['tickets_after_dark', 'Tickets After Dark'], ['closing_time_shuffle', 'Last Call at the Midway']]],
     ['Blackwater', [['mill_score', 'Rain on the Green Chain'], ['green_chain', 'Green Chain Blues'], ['apron_run', 'Across the Loading Apron']]],
     ['Stillwater', [['quarry_score', 'Limestone Stomp'], ['copper_and_steam', 'Copper and Steam'], ['last_load', 'Last Load from Stillwater']]],
+    ['Gator Bayou', [['bayou_score', 'Black Water Stomp'], ['cypress_crawl', 'Cypress Knee Crawl'], ['crawdad_boil_hop', 'Crawdad Boil Hop']]],
+    ['Buzzard Bend', [['music_speedway', 'Buzzard Bend Feature Race'], ['pit_row_boogie', 'Pit Row Boogie'], ['checkered_flag_rag', 'Checkered Flag Rag']]],
+    ['The Mothership', [['mothership_score', 'Abducted Hoedown']]],
+    ['Boss fights', [['boss_hickston', 'Sheriff\'s Last Stand'], ['boss_fair', 'Ringmaster Meltdown'], ['boss_mill', 'Head Saw Showdown'],
+      ['boss_quarry', 'Boil-Over at the Still'], ['boss_bayou', 'Swamp King\'s Rampage'], ['boss_speedway', 'Bumper Boggs Wrecking Ball'],
+      ['boss_mothership', 'Maw\'s Last Supper']]],
   ];
   const HOLLERS = [['yee_haw', 'Yee-haw'], ['yee_haw_alt', 'Yee-haw, again'], ['belch', 'Belch'], ['gulp', 'Beer'],
     ['moonshine', 'Moonshine'], ['shotgun_both', 'Both barrels'], ['cow_moo', 'Cow, outbound'], ['pig', 'Hog'],
-    ['chicken', 'Chicken'], ['rudy_horn', 'Rudy\'s horn'], ['sheriff_siren', 'Sheriff'], ['got_bessie', 'Got Bessie']];
+    ['chicken', 'Chicken'], ['rudy_horn', 'Rudy\'s horn'], ['sheriff_siren', 'Sheriff'], ['got_bessie', 'Got Bessie'],
+    ['king_holler', 'Swamp King'], ['gator_snap', 'Gator'], ['lap_car_pass', 'Race car'], ['maw_holler', 'Maw']];
   const player = $('#player');
   const stop = $('#juke-stop');
   const nowPlaying = $('#juke-title');

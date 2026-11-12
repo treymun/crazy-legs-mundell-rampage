@@ -9,7 +9,7 @@ game. The results are small and committed; rerun this after the art changes.
 
   site/img/weapons/<name>.png   one strip of view-model frames per weapon
   site/img/faces.png            the twelve status-bar expressions
-  site/img/<chapter>.png        reference frames used as chapter pictures
+  site/img/shot_<id>.png        chapter pictures, from window captures in docs/media/site_shots
   site/audio/<stem>.mp3         40-second soundtrack previews and short cues
   site/js/frames.js             frame counts and sizes for the strips
 """
@@ -28,7 +28,7 @@ ART = ROOT / "assets" / "art"
 # The Godot build's finished audio: mastered songs and the effect bank.
 MUSIC = ROOT / "godot" / "assets" / "music"
 SFX = ROOT / "audio_src" / "final" / "sfx"
-FRAMES = ROOT / "godot" / "tools" / "frames"
+SHOTS_DIR = ROOT / "docs" / "media" / "site_shots"
 SITE = ROOT / "site"
 
 # Site name -> (art stem, frames shown in order). Guns fire then cycle their
@@ -59,19 +59,22 @@ COPIES = {
     "wanted_poster": "poster", "title_logo": "logo", "title_backdrop": "backdrop",
     "bessie_0": "bessie", "boss_0": "boss_sheriff", "jerry_0": "boss_jerry",
     "rudy_0": "boss_rudy", "foreman_0": "boss_foreman", "baron_0": "boss_baron",
+    "swamp_king_0": "boss_king", "derby_champ_0": "boss_boggs", "maw_0": "boss_maw",
     "player_front_0": "mundell", "hickston_icon": "icon",
 }
-SHOTS = {
-    "py_full_stankys_road": "shot_hickston", "py_full_fair_gate_full": "shot_fair",
-    "py_full_mill_yard_full": "shot_sawmill", "py_full_quarry_yard_full": "shot_quarry",
-    "py_full_stankys_bar": "shot_bar", "py_full_stankys_enemy": "shot_fight",
-    "py_hub_tower": "shot_hub",
-}
+# Captures from the Godot build's window (docs/media/site_shots, 320x200). The
+# old Python frames they once fell back to left with the Python game.
+SHOTS = ("shot_hickston", "shot_fair", "shot_sawmill", "shot_quarry", "shot_fight", "shot_hub",
+         "shot_bayou", "shot_speedway", "shot_mothership", "shot_range")
 TRACKS = ("title", "music", "county_line", "porchlight_stomp", "fair_score", "tickets_after_dark",
           "closing_time_shuffle", "mill_score", "green_chain", "apron_run", "quarry_score",
-          "copper_and_steam", "last_load")
+          "copper_and_steam", "last_load", "bayou_score", "cypress_crawl", "crawdad_boil_hop",
+          "music_speedway", "pit_row_boogie", "checkered_flag_rag", "mothership_score",
+          "boss_hickston", "boss_fair", "boss_mill", "boss_quarry", "boss_bayou",
+          "boss_speedway", "boss_mothership")
 CUES = ("yee_haw", "yee_haw_alt", "belch", "gulp", "moonshine", "shotgun_both", "cow_moo",
-        "pig", "chicken", "rudy_horn", "sheriff_siren", "got_bessie")
+        "pig", "chicken", "rudy_horn", "sheriff_siren", "got_bessie", "king_holler", "gator_snap",
+        "lap_car_pass", "maw_holler")
 
 
 def strip(name: str, stem: str, poses: tuple[str, ...]) -> dict:
@@ -109,11 +112,9 @@ def images() -> None:
     table["faces"] = faces()
     for source, target in COPIES.items():
         Image.open(ART / f"{source}.png").save(SITE / "img" / f"{target}.png", optimize=True)
-    for source, target in SHOTS.items():
-        # A capture from the Godot build (docs/media/site_shots) beats the old Python frame.
-        fresh = ROOT / "docs" / "media" / "site_shots" / f"{target}.png"
-        Image.open(fresh if fresh.is_file() else FRAMES / f"{source}.png").convert("RGB").save(
-            SITE / "img" / f"{target}.png", optimize=True)
+    for name in SHOTS:
+        Image.open(SHOTS_DIR / f"{name}.png").convert("RGB").save(
+            SITE / "img" / f"{name}.png", optimize=True)
     (SITE / "js" / "frames.js").write_text(
         "// Written by scripts/build_site_assets.py: sprite strip sizes.\n"
         f"window.CLM_FRAMES = {json.dumps(table, separators=(',', ':'))};\n",
@@ -128,8 +129,10 @@ def audio() -> None:
     out = SITE / "audio"
     out.mkdir(parents=True, exist_ok=True)
     for stem in TRACKS:
-        # Forty seconds from a little way in, faded at both ends.
-        subprocess.run([tool, "-y", "-loglevel", "error", "-ss", "12", "-t", "40",
+        # Forty seconds from a little way in, faded at both ends. A boss loop is
+        # a short seamless loop (under a minute): it runs into its second time round.
+        again = ["-stream_loop", "1"] if stem.startswith("boss_") else []
+        subprocess.run([tool, "-y", "-loglevel", "error", *again, "-ss", "12", "-t", "40",
                         "-i", str(MUSIC / f"{stem}.ogg"), "-ar", "44100",
                         "-af", "afade=t=in:d=1.2,afade=t=out:st=37:d=3",
                         "-c:a", "libmp3lame", "-b:a", "112k", str(out / f"{stem}.mp3")],
