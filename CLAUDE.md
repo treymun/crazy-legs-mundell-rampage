@@ -75,6 +75,7 @@ godot --headless --path godot --script res://tools/bench.gd -- 150    # frame ti
 godot --headless --path godot --script res://tools/first_minutes.gd   # a bot plays each chapter's opening: first fight, kills, health (old-ai: enemies do not hunt)
 godot --headless --path godot --script res://tools/ttk.gd -- ../docs/weapon_ttk.md   # time to kill, every gun against every enemy
 godot --headless --path godot --script res://tools/route_map.gd -- <dir>   # each level's objective route, long detours flagged, PNGs
+godot --headless --path godot --script res://tools/boss_rematch_check.gd -- bot   # the bot fights every boss rematch: time to kill (boss_rematch.gd PAR)
 
 # Pictures changed on purpose: rewrite the references and commit them
 godot --headless --path godot --script res://tools/picture_check.gd -- update
@@ -334,6 +335,25 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   that takes over while its last boss is alive, awake and the player is in its
   arena (as far as the boss bar shows), holds `BOSS_HOLD` seconds after the
   player steps out and hands back the moment the boss falls.
+- **The boss checkpoint and BOSS REMATCH.** A beat after a boss fight begins
+  (`BossFight.on`, the boss bar's test) `features/boss_checkpoint.gd` saves the
+  game, in SessionStore's own format (no new version), to
+  `boss-checkpoint-<chapter>[-replay].json` in the profile; the door is the
+  last spot the player stood clear of the arena. On the death screen ENTER
+  then retries the fight (`main_flow.gd retry_fight`, `boss_door.gd`: boss
+  whole, player at the door, health and rounds as they were) and RELOAD's key
+  starts the chapter over. A win clears it, another chapter's start clears it.
+  The title's BOSS REMATCH (`boss_rematch.gd`, `features/boss_rematch.gd`)
+  loads a beaten chapter with only that boss, every station done and door
+  open, the `GUNS` table full and the player `DOOR_STEPS` flow-field steps
+  from the boss; it is timed to the fall and ribboned by `PAR` (from
+  `boss_rematch_check.gd -- bot`: run it again after changing a fight). Bests
+  and beaten chapters live in `boss-rematch.json`, never in a save; nothing in
+  a rematch saves or carries out. `--rematch-all` or the console's `rematch`
+  opens every boss. Tool scripts keep both files under the cache folder.
+  `fight_began(foe)` in both features is the one place a fight's start is
+  noticed (the boss framework's intro signal can call it).
+  `tools/boss_rematch_check.gd` holds both (its quick part runs in check_fixes).
 - **Tool scripts never write the player's settings** (`main_state.gd
   persist_options` returns when a script runs the main loop), and tests write
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
