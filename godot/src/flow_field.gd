@@ -77,7 +77,7 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 				continue
 			if changing.has(cell):
 				open[cell] = 2
-			elif not world.blocked(cx + .5, cy + .5, BODY):
+			elif not world.blocked(cx + .5, cy + .5, BODY) and not world.deep_at(cx + .5, cy + .5):
 				open[cell] = 1
 
 

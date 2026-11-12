@@ -175,6 +175,8 @@ var districts: PackedStringArray = PackedStringArray()
 var width := 0
 var height := 0
 var sky := "sky"
+## The deep-water floor's tile (deep_at()), -1 without one.
+var deep_tile := -1
 var mirror_x := NAN
 
 var solid: PackedInt32Array
@@ -518,6 +520,7 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 	if bool(j.get("hub_split", false)):
 		lv._split_road_and_hub()
 	lv._build_moving_floors()
+	lv.deep_tile = lv.tile_id("bayou_deep")
 	return lv
 
 
@@ -762,6 +765,9 @@ func _build_moving_floors() -> void:
 	var flows: Array = [["creek", 6]]
 	if sky == "mill_sky":
 		flows.append(["mill_water", 5])
+	if sky == "bayou_sky":
+		flows.append(["bayou_water", 2])
+		flows.append(["bayou_deep", 1])
 	for flow in flows:
 		var tile := int(tile_index.get(flow[0], 0))
 		var rate := int(flow[1])
@@ -809,10 +815,20 @@ const METAL_TILES := [
 	"quarry_iron",
 	"quarry_copper",
 	"hub_tank_shell",
-	"powder_panel"
+	"powder_panel",
+	"bayou_tin",
+	"bayou_pen"
 ]
 const PLASTER_TILES := [
-	"plaster", "brick", "cinder", "tile", "concrete", "quarry_face", "office_wall", "tavern"
+	"plaster",
+	"brick",
+	"cinder",
+	"tile",
+	"concrete",
+	"quarry_face",
+	"office_wall",
+	"tavern",
+	"bayou_cannery"
 ]
 const DIRT_TILES := [
 	"dirt",
@@ -827,7 +843,12 @@ const DIRT_TILES := [
 	"creek",
 	"asphalt",
 	"road",
-	"oil_asphalt"
+	"oil_asphalt",
+	"bayou_mud",
+	"bayou_marsh",
+	"bayou_bank",
+	"bayou_water",
+	"bayou_deep"
 ]
 
 ## Sound cue per floor surface; anything else is gravel.
@@ -847,6 +868,11 @@ const SURFACE_SOUNDS := {
 	"quarry_dust": "gravel",
 	"quarry_face": "gravel",
 	"route_threshold": "gravel",
+	"bayou_water": "water",
+	"bayou_deep": "water",
+	"bayou_planks": "wood",
+	"bayou_mud": "mud",
+	"bayou_marsh": "grass",
 }
 
 var _impact_surfaces := {}
@@ -975,8 +1001,18 @@ func move(body, dx: float, dy: float, radius: float, occupied = null) -> void:
 		body.y += dy
 
 
+## Gator Bayou's deep channels: nobody wades in (a body already in one may
+## climb out); a body that swims (a gator, the king's airboat) goes anywhere.
+func deep_at(x: float, y: float) -> bool:
+	if deep_tile < 0 or x < 0.0 or y < 0.0 or x >= width or y >= height:
+		return false
+	return floor_tile[int(y) * width + int(x)] == deep_tile
+
+
 func _can_walk(body, x: float, y: float, radius: float, occupied) -> bool:
 	if blocked(x, y, radius):
+		return false
+	if deep_tile >= 0 and deep_at(x, y) and not deep_at(body.x, body.y) and not body.get("swims"):
 		return false
 	if occupied != null and occupied.call(x, y):
 		return false

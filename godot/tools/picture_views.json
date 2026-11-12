@@ -239,5 +239,36 @@
   "weapon": true,
   "x": 38.0,
   "y": 61.0
+ },
+ {
+  "angle": -1.5708,
+  "drunk": 0.0,
+  "level": "bayou",
+  "pitch": 6.0,
+  "tag": "bayou_stilt_row_0",
+  "weapon": false,
+  "x": 63.5,
+  "y": 73.5
+ },
+ {
+  "angle": 3.14159,
+  "drunk": 0.0,
+  "level": "bayou",
+  "pitch": 0.0,
+  "tag": "bayou_bait_shop_0",
+  "weapon": false,
+  "x": 45.0,
+  "y": 74.5
+ },
+ {
+  "angle": -1.85,
+  "fire": true,
+  "level": "bayou",
+  "pitch": 10.0,
+  "tag": "bayou_fight_juke_14",
+  "ticks": 14,
+  "weapon": true,
+  "x": 63.5,
+  "y": 26.5
  }
 ]

@@ -7,9 +7,11 @@
 class_name Campaign
 extends RefCounted
 
-const ORDER := ["hickston", "fair", "sawmill", "quarry"]
+const ORDER := ["hickston", "fair", "sawmill", "quarry", "bayou"]
 
-const GATE_LABELS := {"hickston": "HICKSTON", "fair": "FAIR", "sawmill": "MILL", "quarry": "QUARRY"}
+const GATE_LABELS := {
+	"hickston": "HICKSTON", "fair": "FAIR", "sawmill": "MILL", "quarry": "QUARRY", "bayou": "BAYOU"
+}
 
 const LEVEL_INFO := {
 	"hickston":
@@ -152,6 +154,49 @@ const LEVEL_INFO := {
 			["LOWER CUT", 51, 26],
 			["WASH", 70, 37],
 			["COPPER", 67, 12]
+		],
+	},
+	"bayou":
+	{
+		"title": "GATOR BAYOU",
+		"heading": ["GATOR BAYOU", "PAST THE COUNTY LINE"],
+		"districts":
+		[
+			"BACKWATER",
+			"COUNTY LINE LANDING",
+			"BAIT & TACKLE",
+			"CRAWFISH BOIL",
+			"STILT ROW",
+			"FISH CAMP CABINS",
+			"SWAMP KING CANNERY",
+			"BIG CHANNEL",
+			"BRIDGE TENDER'S HAMMOCK",
+			"GATOR FARM",
+			"WRASSLIN PIT",
+			"THE MUDHOLE",
+			"KING'S LAGOON",
+			"AIRBOAT DOCK",
+			"THE KING'S STILL"
+		],
+		"introduction":
+		"LOWER THE BRIDGES: CRANK THE BOIL YARD GENERATOR, TRIP THE CANNERY BREAKER.",
+		"ending": '"NO WAKE ZONE, MY FOOT."',
+		"score": "bayou_score",
+		"ambience": "bayou",
+		"rescue": false,
+		"labels":
+		[
+			["LANDING", 56, 86],
+			["BAIT", 24, 66],
+			["BOIL", 14, 47],
+			["STILT ROW", 66, 70],
+			["CABINS", 99, 70],
+			["CANNERY", 98, 64],
+			["HAMMOCK", 66, 37],
+			["GATOR FARM", 13, 22],
+			["MUDHOLE", 52, 3],
+			["LAGOON", 80, 10],
+			["DOCK", 115, 33]
 		],
 	},
 }

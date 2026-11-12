@@ -2001,6 +2001,9 @@ ACTORS = {"billy": (billy, BILLY, ("fidget",), None), "coot": (coot, COOT, ("fid
           "baron": (baron, BARON, (), None), "jerry": (jerry, JERRY, (), None),
           "skeeter": (skeeter, SKEETER, (), FLYER), "saucer": (saucer, SAUCER, (), FLYER),
           "crawler": (crawler, CRAWLER, (), GROUND), "lantern": (lantern, LANTERN, (), GROUND)}
+# Gator Bayou's cast (chapter five) lives next door.
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "actors_bayou.py"), encoding="utf-8") as _bayou:
+    exec(_bayou.read(), globals())
 
 
 # ---------------------------------------------------------------- stage
