@@ -58,7 +58,10 @@ func play(target: Game) -> void:
 		view_tour == "" and view_bench == 0 and smoke_frames == 0 and not demo and not showcase
 	)
 	game = target
-	if not target.replay and not target.in_hub and not target.revisiting:
+	var practice := target.level.id == RANGE_ID
+	if not practice:
+		range_return = null
+	if not target.replay and not target.in_hub and not target.revisiting and not practice:
 		campaign_run = target
 	if target.replay:
 		replay_runs[target.level.id] = target
@@ -226,10 +229,35 @@ func return_to_title(discard := false) -> void:
 	grab(false)
 
 
+## To the firing range from the title: the game paused there (if any) waits,
+## untouched and unsaved, until the player leaves the range.
+func open_range() -> void:
+	if not in_range():
+		range_return = game
+	start(RANGE_ID)
+
+
+## Off the range, back to the title with whatever was paused before it.
+func leave_range() -> void:
+	game = range_return
+	range_return = null
+
+
 func menu_action() -> void:
 	var rows := entries()
 	var entry := rows[selection % rows.size()]
 	menu_note = ""
+	if in_range() and not entry in ["RESUME", "SAVE SLOTS", "SETUP", "CONTROLS", "CREDITS", "QUIT"]:
+		# Anything that goes somewhere else leaves the range first, so nothing
+		# from it (its guns least of all) is carried into the county.
+		leave_range()
+	if entry == "LEAVE RANGE":
+		return_to_title()
+		menu_note = "BACK FROM THE RANGE. NOTHING THERE WAS SAVED."
+		return
+	if entry == "FIRING RANGE":
+		open_range()
+		return
 	if entry == "RESUME":
 		state = "play"
 		play_music()
@@ -263,6 +291,8 @@ func save_game() -> void:
 	var slot := current_slot()
 	if target != null and target.in_hub:
 		notice("ENTER A LEVEL TO QUICKSAVE.")
+	elif target != null and target.level.id == RANGE_ID:
+		notice("NO SAVING ON THE RANGE. IT'S ALL PRACTICE.")
 	elif target == null or state != "play" or target.player.health <= 0 or target.showing_tally:
 		notice("START A LIVE RUN TO SAVE.")
 	elif target.armory.fuse > 0.0:

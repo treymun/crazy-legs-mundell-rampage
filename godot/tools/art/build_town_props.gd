@@ -16,6 +16,10 @@ extends SceneTree
 const Paint := preload("res://tools/art/paint.gd")
 const Actors := preload("res://tools/art/build_enemy_actors.gd")
 const SUPERSAMPLE := 4
+## The Blender scripts that model props, each run in turn into the same folder
+## (each renders only the names it knows): the town's (with props_more.py) and
+## the firing range's.
+const SCRIPTS := ["town_props.py", "props_range.py"]
 
 
 func _init() -> void:
@@ -34,22 +38,23 @@ func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(raw)
 	DirAccess.make_dir_recursive_absolute(out)
 	if render:
-		var code := OS.execute(
-			Actors.blender(),
-			[
-				"-b",
-				"-P",
-				Paint.repo("scripts/blender/town_props.py"),
-				"--",
-				raw,
-				names,
-				str(SUPERSAMPLE)
-			]
-		)
-		if code != 0:
-			push_error("Blender failed (exit %d); set BLENDER_PATH if it is elsewhere" % code)
-			quit(1)
-			return
+		for script: String in SCRIPTS:
+			var code := OS.execute(
+				Actors.blender(),
+				[
+					"-b",
+					"-P",
+					Paint.repo("scripts/blender/" + script),
+					"--",
+					raw,
+					names,
+					str(SUPERSAMPLE)
+				]
+			)
+			if code != 0:
+				push_error("Blender failed (exit %d); set BLENDER_PATH if it is elsewhere" % code)
+				quit(1)
+				return
 	var meta = JSON.parse_string(FileAccess.get_file_as_string(raw.path_join("meta.json")))
 	if not meta is Dictionary:
 		push_error("no %s/meta.json: render first" % raw)
