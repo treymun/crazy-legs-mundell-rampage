@@ -18,7 +18,7 @@ _BASE_WEAPON = weapon
 # way what it holds points. A catfish hangs by its lip; a chum jug is lobbed.
 FISH = {"ready": ((-.30, -.12, -.52), (0, -.15, -1)), "aim": ((-.34, .18, .24), (.1, .55, .8)),
         "fire": ((-.14, -.54, -.06), (.05, -1, -.35)), "recover": ((-.24, -.42, -.32), (0, -.5, -.85)),
-        "pain": ((-.42, -.1, -.17), (-.4, -.2, -.9))}
+        "pain": ((-.42, -.1, -.17), (-.4, -.2, -.9)), "wind": ((-.40, .30, -.36), (.1, .5, -.85))}
 KING_HOLD = {"ready": ((-.30, -.34, -.32), (.05, -1, .02)), "aim": ((-.26, -.42, -.2), (.02, -1, .06)),
              "fire": ((-.26, -.36, -.17), (.02, -1, .16)), "recover": ((-.28, -.38, -.26), (.04, -1, .04)),
              "pain": ((-.44, -.16, -.24), (-.3, -.8, .5))}
@@ -103,9 +103,12 @@ def gator(frame):
     scute = mat(38, 48, 30, .7, grime=.4)
     belly = mat(196, 184, 140, .7, grime=.4)
     mouth = mat(196, 96, 90, .6, grime=.2)
-    open_jaw = {"aim": .62, "fire": .22, "pain": .4}.get(frame, .06)
-    lift = {"aim": .14, "fire": .04}.get(frame, 0.)
-    reach = .16 if frame == "fire" else 0.
+    open_jaw = {"aim": .62, "fire": .22, "pain": .4, "wind": .16}.get(frame, .06)
+    lift = {"aim": .14, "fire": .04, "wind": -.08}.get(frame, 0.)
+    # The wind-up: drawn back low on its legs, jaw clamped, tail curled to spring.
+    reach = .16 if frame == "fire" else -.12 if frame == "wind" else 0.
+    if frame == "wind":
+        phase = 1
     M = R(0, 0, -.35) @ T((reach, 0, 0))
     if frame == "pain":
         M = M @ R(.25, 0, .18)
@@ -147,7 +150,9 @@ def gator(frame):
     pts = []
     for k in range(9):
         t = k / 8
-        pts.append(Vector((-.5 - t * 1.0, .1 * phase * math.sin(t * 2.5) + (.08 if frame == "pain" else 0) * t, .18 - t * .1)))
+        curl = .42 * t * t if frame == "wind" else 0.
+        pts.append(Vector((-.5 - t * (1.0 - curl * .5), .1 * phase * math.sin(t * 2.5) + (.08 if frame == "pain" else 0) * t,
+                           .18 - t * .1 + curl)))
     for k, (a, b) in enumerate(zip(pts, pts[1:])):
         limb(M @ a, M @ b, .14 * (1 - k / 9) + .02, .14 * (1 - (k + 1) / 9) + .02, hide)
         limb(M @ (a + Vector((0, 0, .1 - k * .01))), M @ (b + Vector((0, 0, .1 - k * .01))), .02, .005, scute, caps=False, seg=5)
@@ -170,6 +175,15 @@ def gator(frame):
         white = mat(220, 226, 220, .9, grime=0)
         for k in range(4):
             ball(M @ Vector((.9 + k * .05, (k % 2 - .5) * .3, .05 + k * .03)), .05 + k * .01, white)
+    if frame == "wind":
+        for s in (-1, 1):
+            ball(H @ Vector((.135, s * .095, .118)), .02, mat(255, 210, 60, emit=1.8))
+    if WOUND and not dead:
+        # Gashed along the flank (both sides show), bleeding from the jaw.
+        for s in (-1, 1):
+            splat((-.1, s * .27, .2), .07, M, (0, 0, math.pi / 2 * (1 - s)), 3 + s)
+            limb(M @ Vector((.1, s * .265, .25)), M @ Vector((-.25, s * .27, .14)), .015, .012, mat(70, 8, 8, .35, grime=0))
+        drip((.5, .1, .0), .1, H, 2)
 
 
 # ---------------------------------------------------------------- the swamp king

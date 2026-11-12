@@ -419,6 +419,22 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   are drawn beaten. A cel without a variant keeps its name. `tools/boss_closeups.gd
   -- out=<png>` draws every boss in its level in each state (software view).
   `pack_assets.gd` stores identical pictures once (the old three-cel walk names).
+- **The regular hands' art wears the fight too** (`src/enemy_looks.gd`, called
+  from `Enemy.sprite()` for every non-boss hostile). They are drawn on the same
+  dusk stage with the cleaner grain, with a wind-up cel `<kind>_wind` (racking,
+  cocking, rearing, revving, charging; a glint on the business end) and a hurt
+  copy of every living cel, `<kind>_hurt_<cel>`, shown under half health: blood
+  soaked in (`actors_wounds.py _wounded`, green for `blood="plasma"` kinds, dents
+  and scratches on metal), a split brow, a gut wound the free hand clutches, a
+  limp in the walk (`skeleton()` while `WOUND`); creatures mark their own (torn
+  wing, cracked shell, smoke, sparks). A cel without a variant keeps its name.
+  The variants `big_billy`, `drunk_coot` and `shield_deputy` (behaviour in
+  enemies.cfg with `brain=`) are drawn in `scripts/blender/actors_variants.py`
+  with their base kind's cels (big_billy at 1.15x Billy's frame); they are in
+  art.bin, not a chapter pack. `tools/enemy_closeups.gd -- out=<png>` draws each
+  kind in a level (whole, walking, wind-up, aim, attack, hurt, limping, pain,
+  down); `tools/art/enemy_sheet.gd -- dirs=<old>,<new>` lays cels side by side
+  (`docs/enemy_art/`). The chicken, pig and Bessie are not Blender actors.
 - **The last four bosses' arenas** (`features/boss_arenas.gd`, from each plan's
   `boss_arena` meta, `LevelData.boss_arena`): hazards that hurt the boss as
   well as the player, each third phase's arena change, `drop()` (a throw onto

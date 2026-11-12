@@ -14,7 +14,7 @@ def weapon(kind, g, d, J, C):
     """The crew's own tools, then whatever enemy_actors.py already draws."""
     frame = J["frame"]
     up = Vector((0, 0, 1))
-    hot = frame in ("aim", "fire")
+    hot = frame in ("aim", "fire", "wind")
     if kind == "prod":
         # A yellow cattle prod off somebody's feedlot, two prongs at the end.
         limb(g - d * .12, g + d * .52, .02, .016, mat(196, 166, 52, .5, .2, grime=.4))
@@ -24,6 +24,8 @@ def weapon(kind, g, d, J, C):
             limb(g + d * .52 + side * s, g + d * .63 + side * s, .009, .006, STEEL())
         if hot:
             ball(g + d * .66, .036, mat(150, 220, 255, emit=2.6))
+        if frame == "wind":
+            sparks(g + d * .66, d, 6, .14)
         if frame == "fire":
             flash(g + d * .68, .2, (150, 220, 255))
         return None
@@ -79,6 +81,9 @@ def guard(frame):
     open_up = frame in ("aim", "fire")
     at = (.34, -.36, .26) if not open_up else (.5, -.06, .28)
     turn = (0, 0, 0) if not open_up else (0, 0, -1.15)
+    if frame == "wind":
+        # Swinging the tailgate aside, half open.
+        at, turn = (.44, -.24, .27), (0, 0, -.6)
     if frame == "pain":
         at, turn = (.4, -.3, .2), (.3, .2, -.4)
     gate = mat(150, 52, 36, .5, .3, grime=.75)
@@ -87,6 +92,13 @@ def guard(frame):
     box((at[0], at[1] - .03, at[2] - .32), (.6, .02, .05), mat(176, 180, 184, .25, .9, grime=.4), Tm, turn)
     for k in range(3):
         ball((at[0] - .2 + k * .2, at[1] - .03, at[2] + .05 - (k % 2) * .12), .03, mat(90, 40, 30, grime=.5), Tm)
+    if WOUND:
+        # The tailgate shot through and buckled.
+        G = Tm @ T(at) @ R(*turn)
+        for x, z in ((-.18, .2), (.1, -.05), (.2, .25), (-.05, -.25)):
+            ball((x, -.03, z), (.024, .01, .024), BLACK(), G)
+            ball((x, -.028, z), (.036, .008, .036), mat(196, 196, 190, .3, .9, grime=0), G)
+        dent((.0, -.03, .05), .1, G)
 
 
 # ---------------------------------------------------------------- floating probe
@@ -98,7 +110,9 @@ def probe(frame):
     phase = frame if isinstance(frame, int) else 0
     hot = frame in ("aim", "fire")
     chrome = mat(176, 180, 184, .25, .9, grime=.35)
-    tilt = R(.45, 0, .35) if frame == "pain" else R(-.22 if hot else 0, 0, 0)
+    tilt = R(.45, 0, .35) if frame == "pain" else R(-.22 if hot else .2 if frame == "wind" else 0, 0, 0)
+    if WOUND and frame != "pain":
+        tilt = tilt @ R(0, .3, .1)
     M = T((0, 0, .62)) @ tilt
     ball((0, 0, 0), (.28, .28, .26), chrome, M)
     ball((0, 0, -.02), (.29, .29, .05), mat(70, 74, 72, .5, .7), M)
@@ -116,6 +130,17 @@ def probe(frame):
         ball((s * .25, .02, .34), .026, mat(120, 255, 160, emit=2.0), M)
     if frame == "aim":
         ring(M @ Vector((0, -.29, .02)), M.to_3x3() @ Vector((0, 1, 0)), .13, .014, mat(120, 255, 160, emit=2.6), n=16)
+    if frame == "wind":
+        # Charging: the eye flares, a small ring gathers in front of it.
+        ball((0, -.27, .02), (.07, .04, .07), mat(255, 230, 160, emit=3.0), M)
+        ring(M @ Vector((0, -.31, .02)), M.to_3x3() @ Vector((0, 1, 0)), .07, .012, mat(120, 255, 160, emit=2.6), n=12)
+    if WOUND:
+        # Dented, the eye cracked, sparks and smoke from the rotor post.
+        dent((.16, -.16, .12), .07, M, (0, 0, .7))
+        dent((-.2, -.08, -.1), .06, M, (0, 0, -.9))
+        crack([(-.07, -.3, .07), (-.01, -.31, .02), (.03, -.31, -.02), (.08, -.3, -.06)], M, BLACK(), .007)
+        sparks(M @ Vector((.12, -.1, .2)), (.6, -.6, .5), 6, .18)
+        smoke(M @ Vector((0, .02, .32)), .05, (.2, .1))
     if frame == "fire":
         limb(M @ Vector((0, -.3, .02)), M @ Vector((0, -.62, -.08)), .05, .12, mat(140, 255, 180, emit=2.2), caps=False)
         flash(M @ Vector((0, -.34, .02)), .2, (140, 255, 180))

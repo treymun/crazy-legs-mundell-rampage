@@ -1406,6 +1406,8 @@ func sprite(observer = null, relieved := false, now := -1.0):
 	var look := "%s_%s" % [stem, str(frame)]
 	if BOSS_TITLES.has(kind):
 		look = BossLooks.cel(self, look)
+	elif hostile:
+		look = EnemyLooks.cel(self, look)
 	var out := Renderer.Sprite.new(x, y, look, height * variant, z)
 	out.flip = flip
 	out.body = hostile
