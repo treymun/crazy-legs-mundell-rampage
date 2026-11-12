@@ -1,0 +1,30 @@
+{
+ "text": "As usual, what a shock",
+ "words": [
+  {
+   "text": "As",
+   "start": 0.28,
+   "end": 0.48
+  },
+  {
+   "text": "usual,",
+   "start": 0.58,
+   "end": 0.96
+  },
+  {
+   "text": "what",
+   "start": 1.12,
+   "end": 1.24
+  },
+  {
+   "text": "a",
+   "start": 1.3,
+   "end": 1.32
+  },
+  {
+   "text": "shock",
+   "start": 1.4,
+   "end": 1.82
+  }
+ ]
+}

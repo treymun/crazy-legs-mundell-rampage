@@ -1,0 +1,35 @@
+{
+ "text": "Medic to the firing line again",
+ "words": [
+  {
+   "text": "Medic",
+   "start": 0.18,
+   "end": 0.58
+  },
+  {
+   "text": "to",
+   "start": 0.74,
+   "end": 0.86
+  },
+  {
+   "text": "the",
+   "start": 0.9,
+   "end": 1.02
+  },
+  {
+   "text": "firing",
+   "start": 1.06,
+   "end": 1.56
+  },
+  {
+   "text": "line",
+   "start": 1.66,
+   "end": 2.02
+  },
+  {
+   "text": "again",
+   "start": 2.12,
+   "end": 2.72
+  }
+ ]
+}

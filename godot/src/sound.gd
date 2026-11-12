@@ -32,8 +32,8 @@ const SCORES := {
 	"fair_score": ["fair_score", "tickets_after_dark", "closing_time_shuffle"],
 	"mill_score": ["mill_score", "green_chain", "apron_run"],
 	"quarry_score": ["quarry_score", "copper_and_steam", "last_load"],
-	"bayou_score": ["bayou_score"],
-	"music_speedway": ["music_speedway"],
+	"bayou_score": ["bayou_score", "cypress_crawl", "crawdad_boil_hop"],
+	"music_speedway": ["music_speedway", "pit_row_boogie", "checkered_flag_rag"],
 	"mothership_score": ["mothership_score"],
 }
 ## Each chapter's fight loop (seamless, made by scripts/audio_build.py): it
@@ -47,6 +47,19 @@ const FIGHTS := {
 	"bayou_score": "fight_bayou",
 	"music_speedway": "fight_speedway",
 	"mothership_score": "fight_mothership",
+}
+## Each chapter's boss loop (seamless, scripts/audio_build.py): it takes over
+## from the chapter's track and fight loop while its boss fight is on
+## (features/fight_music.gd; Maw Glorb's own feature plays hers) and hands back
+## when the boss falls.
+const BOSSES := {
+	"music": "boss_hickston",
+	"fair_score": "boss_fair",
+	"mill_score": "boss_mill",
+	"quarry_score": "boss_quarry",
+	"bayou_score": "boss_bayou",
+	"music_speedway": "boss_speedway",
+	"mothership_score": "boss_mothership",
 }
 
 const PRIORITY := [
@@ -80,6 +93,14 @@ const WARNS := [
 	"noodler_grunt",
 	"chum_slosh",
 	"gator_hiss",
+	"derby_champ_warn",
+	"huffer_hiss",
+	"drone_buzz",
+	"guard_wind",
+	"probe_whine",
+	"maw_pin_raise",
+	"maw_dryer_whine",
+	"maw_stomp_warn",
 	"lantern_charge",
 	"deputy_work",
 	"tosser_rattle",

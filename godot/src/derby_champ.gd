@@ -105,7 +105,6 @@ static func _start_aim(e: Enemy, s: Dictionary, game, windup := -1.0) -> void:
 	s["heading"] = atan2(game.player.y - e.y, game.player.x - e.x)
 	e.aim_mark = [game.player.x, game.player.y, game.player.eye]
 	game.sound_at(String(Enemy.WINDUP[e.kind][1]), e.x, e.y, .9)
-	game.sound_at("millhand_rev", e.x, e.y, .7)
 
 
 static func _roam(
@@ -205,7 +204,6 @@ static func _crash(e: Enemy, s: Dictionary, game, heading: float) -> void:
 	var floor_z: float = game.world.elevation(e.x, e.y)
 	game.burst(fx, fy, floor_z + .6, "spark", 18, 2.4)
 	game.burst(fx, fy, floor_z + .4, "dust", 12, 1.8)
-	game.sound_at("scenery_scrap", fx, fy, 1.0)
 	game.sound_at("derby_champ_crash", fx, fy, 1.0)
 	game.disturb(fx, fy, 6.0)
 	if e.enraged:

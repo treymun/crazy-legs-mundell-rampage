@@ -1,5 +1,9 @@
 # Firing range: sound wanted
 
+Made (audio pass, 2026-11-11): all twelve cues (the crowd bed as `amb_range`,
+the range's ambience) and swapped in. The range keeps Hickston's score; a boss
+in the corral now brings Hickston's boss loop.
+
 Mundell's Proving Grounds (the FIRING RANGE off the title screen) runs on
 existing cues for now. These are the ones it should get; the main session
 makes them (one generation process at a time). Family is the first argument

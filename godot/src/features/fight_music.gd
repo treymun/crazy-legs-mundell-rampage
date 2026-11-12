@@ -9,6 +9,12 @@
 ## attack near them. Damage taken or dealt counts too while an alerted enemy
 ## is within NEAR. The fight is over HOLD seconds after the last of these, so
 ## losing sight of someone for a moment never lets the music drop.
+##
+## A chapter's boss fight goes further: its boss loop (Sound.BOSSES) takes over
+## from the track and the fight loop while the boss is alive, awake and the
+## player is in its arena (where the boss bar shows: within BOSS_RANGE of a
+## chapter's last boss, the pen at Hickston's top), until BOSS_HOLD seconds
+## after the player last was, and hands back the moment the boss falls.
 extends GameFeature
 
 ## Seconds of quiet before the fight loop gives way.
@@ -21,8 +27,18 @@ const ATTACK_RANGE := 14.0
 const NEAR := 20.0
 ## Seconds between looks over the enemies.
 const SCAN := .1
+## The boss arena: as far as the boss bar shows (game_view.gd), and how long
+## the boss loop holds once the player steps out of it.
+const BOSS_RANGE := 14.0
+const BOSS_HOLD := 10.0
+## Bosses whose own feature plays their loop (features/mothership.gd).
+const OWN_MUSIC := ["maw"]
 
 var fighting := false
+## The boss loop is wanted (tools read it), and when the player was last in
+## an awake boss's arena.
+var boss_fight := false
+var boss_heat := -100.0
 var last_heat := -100.0
 var scan_left := 0.0
 ## Enemies on the player at the last look (tools read it).
@@ -46,9 +62,50 @@ func _tick(dt: float) -> void:
 		engaged = _engaged()
 		if engaged > 0:
 			last_heat = game.clock
+		_boss_scan()
 	fighting = not game.in_hub and game.clock - last_heat < HOLD
 	if game.sound != null and game.sound.has_method("set_fight"):
 		game.sound.set_fight(fighting)
+		_boss_music()
+
+
+## The boss whose fight it is: the chapter's last boss, or Hickston's sheriff
+## and then Jerry; null when none is awake.
+func boss() -> Enemy:
+	for foe in [game.finale, game.boss, game.jerry]:
+		if foe != null and foe.alive and foe.alerted and not foe.dormant:
+			return foe
+	return null
+
+
+func _boss_scan() -> void:
+	var foe := boss()
+	if foe == null or game.in_hub or OWN_MUSIC.has(foe.kind):
+		boss_fight = false
+		return
+	var p = game.player
+	var near: bool = (
+		Vector2(foe.x - p.x, foe.y - p.y).length() < BOSS_RANGE
+		if foe == game.finale
+		else p.y < 10.0
+	)
+	if near:
+		boss_heat = game.clock
+	boss_fight = game.clock - boss_heat < BOSS_HOLD
+
+
+## Swap the chapter's score for its boss loop and back. Only ever between
+## those two: the menus, the tally and Maw's own track are left alone.
+func _boss_music() -> void:
+	var score := String(game.level.score)
+	var track := String(Sound.BOSSES.get(score, ""))
+	if track == "" or (game.finale != null and OWN_MUSIC.has(game.finale.kind)):
+		return
+	var now := String(game.sound.score)
+	if boss_fight and now == score:
+		game.sound.set_score(track)
+	elif not boss_fight and now == track:
+		game.sound.set_score(score)
 
 
 ## A hit taken or landed counts only with an alerted enemy about: a hot coal

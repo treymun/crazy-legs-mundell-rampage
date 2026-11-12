@@ -1,5 +1,9 @@
 # Chapter 7, the Mothership: sound and music to make
 
+Made (audio pass, 2026-11-11): every cue below, the stings, the voices (the
+ship's PA is Maw's own designed voice) and the three tracks are in the bank,
+and enemies.cfg points at them. Kept as the brief.
+
 Nothing here has been generated (no ElevenLabs run from the chapter's
 worktree). Every cue below is already called by the game, which plays an
 existing stand-in until the new one is in the bank, so the chapter is never

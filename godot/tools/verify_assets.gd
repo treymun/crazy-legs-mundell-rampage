@@ -63,6 +63,20 @@ func _run() -> void:
 			failed = true
 		else:
 			print("fight loop %-18s %.2f s, in %s" % [stem, ogg.get_length(), home])
+	# And its boss loop, likewise (features/fight_music.gd plays it).
+	for bank: String in Sound.BOSSES:
+		var stem: String = Sound.BOSSES[bank]
+		if stem in Assets.PENDING_MUSIC and not assets.music_index.has(stem):
+			print("boss loop  %-18s pending (assets.gd PENDING_MUSIC)" % stem)
+			continue
+		var ogg := assets.track(stem)
+		var home := String(assets.music_index.get(stem, {}).get("file", ""))
+		var chapter := String(assets.music_index.get(Sound.SCORES[bank][0], {}).get("file", ""))
+		if ogg == null or ogg.get_length() < 20.0 or home != chapter:
+			print("boss loop ", stem, " FAILED (", home, ")")
+			failed = true
+		else:
+			print("boss loop  %-18s %.2f s, in %s" % [stem, ogg.get_length(), home])
 	for stem: String in ["title", "victory"]:
 		var jingle := assets.jingle(stem)
 		print("%-10s " % stem, "ok %.2f s" % jingle.get_length() if jingle != null else "FAILED")

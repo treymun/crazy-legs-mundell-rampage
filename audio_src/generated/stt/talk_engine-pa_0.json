@@ -1,0 +1,35 @@
+{
+ "text": "Who put diesel in the drive?",
+ "words": [
+  {
+   "text": "Who",
+   "start": 0.08,
+   "end": 0.2
+  },
+  {
+   "text": "put",
+   "start": 0.32,
+   "end": 0.5
+  },
+  {
+   "text": "diesel",
+   "start": 0.58,
+   "end": 1.06
+  },
+  {
+   "text": "in",
+   "start": 1.12,
+   "end": 1.22
+  },
+  {
+   "text": "the",
+   "start": 1.26,
+   "end": 1.32
+  },
+  {
+   "text": "drive?",
+   "start": 1.38,
+   "end": 1.88
+  }
+ ]
+}

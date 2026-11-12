@@ -1,0 +1,35 @@
+{
+ "text": "Which one is the Who man?",
+ "words": [
+  {
+   "text": "Which",
+   "start": 0.08,
+   "end": 0.42
+  },
+  {
+   "text": "one",
+   "start": 0.56,
+   "end": 0.92
+  },
+  {
+   "text": "is",
+   "start": 0.98,
+   "end": 1.16
+  },
+  {
+   "text": "the",
+   "start": 1.2,
+   "end": 1.34
+  },
+  {
+   "text": "Who",
+   "start": 1.4,
+   "end": 1.6
+  },
+  {
+   "text": "man?",
+   "start": 1.74,
+   "end": 2.08
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "text": "All again, again",
+ "words": [
+  {
+   "text": "All",
+   "start": 0.04,
+   "end": 0.16
+  },
+  {
+   "text": "again,",
+   "start": 0.3,
+   "end": 0.84
+  },
+  {
+   "text": "again",
+   "start": 1.08,
+   "end": 1.74
+  }
+ ]
+}

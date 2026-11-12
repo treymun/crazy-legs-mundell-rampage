@@ -28,6 +28,7 @@ func make() -> Builder:
 		"heading": ["MUNDELL'S", "PROVING GROUNDS"],
 		"intro": "MUNDELL'S PROVING GROUNDS. EVERY GUN, ALL THE AMMO. PAUSE TO LEAVE.",
 		"score": "music",
+		"ambience": "range",
 		"layout": 1,
 		"sky": "sky",
 		"pressure_ports": L.PRESSURE_PORTS,
@@ -89,7 +90,7 @@ func lever(
 	id: String, x: float, y: float, label_text: String, plate: String, facing := 0.0
 ) -> void:
 	b.town("range_lever", x, y)
-	b.station("range-" + id, x, y, label_text, "", {"cue": "menu_accept"})
+	b.station("range-" + id, x, y, label_text, "", {"cue": "range_lever"})
 	if plate != "":
 		var face := Vector2(-sin(facing), cos(facing))
 		var at := Vector2(x, y) - face * .3
@@ -351,7 +352,8 @@ func armory() -> void:
 			stand.x,
 			stand.y,
 			"TAKE THE " + String(Weapons.LABELS[i]).get_slice(" [", 0),
-			""
+			"",
+			{"cue": "range_lever"}
 		)
 	b.town("range_gun_rack", 44.5, 63.5, {"solid": .45})
 	b.town("range_gun_rack", 51.5, 63.5, {"solid": .45})

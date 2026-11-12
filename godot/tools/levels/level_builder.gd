@@ -382,6 +382,10 @@ func board(image: String, x: float, y: float, height: float, o := {}) -> void:
 		"plane": o.get("plane"),
 		"back": String(o.get("back", "")),
 	}
+	if o.get("hung", false):
+		# Hung on something of its own (a fingerpost's arm): mount_signs()
+		# leaves it as it is.
+		b["hung"] = true
 	billboards.append(b)
 
 
@@ -523,6 +527,32 @@ func arch(cx: float, y: float, width: float, face: String, back := "stockyard") 
 	panel(l + .17, y, r - .17, y, "stockyard", 2.34, 2.53, 1.08)
 
 
+## A fingerpost: a square timber `top` high with an arm for each place, nailed
+## on at its height and pointing at it. arms: [picture, the way it points (an
+## angle, as the player's), the arm's bottom, its height]; the picture has the
+## point on its right and a <picture>_back seen from behind.
+func fingerpost(x: float, y: float, arms: Array, top := 2.85) -> void:
+	fixture(x - .07, y - .07, x + .07, y + .07, top, "wood", "counter_top")
+	for spec: Array in arms:
+		var image := String(spec[0])
+		var angle := float(spec[1])
+		var tall := float(spec[3])
+		var span: float = tall * float(_art_shape(image)[0])
+		var c := Vector2(x, y) + Vector2(cos(angle), sin(angle)) * (span * .5 + .08)
+		board(
+			image,
+			c.x,
+			c.y,
+			tall,
+			{
+				"z": float(spec[2]),
+				"plane": snappedf(angle, .0001),
+				"back": image + "_back",
+				"hung": true
+			}
+		)
+
+
 ## A lit lamp head on a post and the pool of light under it.
 func streetlamp(x: float, y: float, reach := 4.2) -> void:
 	board("hub_lamp", x, y, 2.52, {"glow": true})
@@ -594,7 +624,7 @@ func station(
 				"requires": o.get("requires", []),
 				"opens": o.get("opens", []),
 				"sectors": o.get("sectors", []),
-				"cue": String(o.get("cue", "menu_accept")),
+				"cue": String(o.get("cue", "lever_clunk")),
 				"reveals_secret": bool(o.get("reveals_secret", false)),
 				"hidden": bool(o.get("hidden", false)),
 				"action": String(o.get("action", "use")),
@@ -730,6 +760,9 @@ func _clear_along(
 ## down to the ground.
 func mount_signs() -> void:
 	for bd: Dictionary in billboards.duplicate():
+		if bd.has("hung"):
+			bd.erase("hung")
+			continue
 		# Quest props are modelled whole and stand on their own feet.
 		if bd["plane"] == null or String(bd["image"]).begins_with("town_quest_"):
 			continue

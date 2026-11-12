@@ -1,0 +1,30 @@
+{
+ "text": "Then don't light a smoke",
+ "words": [
+  {
+   "text": "Then",
+   "start": 0.1,
+   "end": 0.62
+  },
+  {
+   "text": "don't",
+   "start": 0.76,
+   "end": 1.1
+  },
+  {
+   "text": "light",
+   "start": 1.18,
+   "end": 1.46
+  },
+  {
+   "text": "a",
+   "start": 1.54,
+   "end": 1.56
+  },
+  {
+   "text": "smoke",
+   "start": 1.68,
+   "end": 2.22
+  }
+ ]
+}

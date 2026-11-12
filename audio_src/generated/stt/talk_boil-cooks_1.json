@@ -1,0 +1,20 @@
+{
+ "text": "That season in",
+ "words": [
+  {
+   "text": "That",
+   "start": 0.2,
+   "end": 0.58
+  },
+  {
+   "text": "season",
+   "start": 0.9,
+   "end": 1.6
+  },
+  {
+   "text": "in",
+   "start": 1.74,
+   "end": 2.24
+  }
+ ]
+}

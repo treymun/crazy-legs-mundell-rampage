@@ -13,5 +13,10 @@
   "id": "yA6oSRbzEUnWgzyaiiht",
   "description": "A fast-talking Southern carnival barker, a man in his fifties with a brassy, theatrical, wheedling voice and a strong country accent. Loud and showy. Close, dry studio recording.",
   "preview": "audio_src/generated/voice_design/barker.mp3"
+ },
+ "maw": {
+  "id": "V9sQTyyNbGP4p3hjbOhX",
+  "description": "A towering elderly alien grandmother from a 1950s B-movie flying saucer: a big, warbling, rubbery, nasal old woman's voice with a thick rural Southern drawl, bossy, doting and comic. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/maw.mp3"
  }
 }

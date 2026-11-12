@@ -65,7 +65,7 @@ class Station:
 	var requires: Array = []
 	var opens: Array = []
 	var sectors: Array = []
-	var cue := "menu_accept"
+	var cue := "lever_clunk"
 	var reveals_secret := false
 	var hidden := false
 	var action := "use"
@@ -113,10 +113,12 @@ class Gate:
 			and (facing > .34 if d < -.30 else facing < -.43)
 		)
 
-	## Wall segment that closes a locked gate.
+	## Wall segment that closes a locked gate, its face to the side the gate
+	## is walked up to (a wall shows on its left: east to west faces south).
 	func barrier() -> PackedFloat32Array:
+		var half := width * .5 * side
 		return PackedFloat32Array(
-			[x + width * .5, y, x - width * .5, y, float(closed_tile), 1.08, 0.0, 1.34, 11.0]
+			[x + half, y, x - half, y, float(closed_tile), 1.08, 0.0, 1.34, 11.0]
 		)
 
 
@@ -426,7 +428,7 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		for p in s.get("opens", []):
 			station.opens.append(Vector2i(int(p[0]), int(p[1])))
 		station.sectors = s.get("sectors", [])
-		station.cue = String(s.get("cue", "menu_accept"))
+		station.cue = String(s.get("cue", "lever_clunk"))
 		station.reveals_secret = bool(s.get("reveals_secret", false))
 		station.hidden = bool(s.get("hidden", false))
 		station.action = String(s.get("action", "use"))

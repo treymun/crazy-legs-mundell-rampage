@@ -8344,14 +8344,3162 @@
    "bytes": 30136
   },
   {
-   "id": "reconcile@2026-11-11T16:44:26",
+   "id": "music/boss_hickston#1",
+   "kind": "music",
+   "name": "boss_hickston",
+   "params": {
+    "prompt": "Furious small-town hillbilly punk-metal showdown at 184 BPM: thundering train-beat drums with double kick, a heavy overdriven twang guitar riff, furious banjo rolls and a screaming fiddle, slapping upright bass, a slide guitar wailing like a squad car siren. Much faster and heavier than a bar fight: a jailhouse riot. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "19fcb5b5429d",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:14:19",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_hickston.mp3",
+   "bytes": 1678359
+  },
+  {
+   "id": "music/boss_fair#1",
+   "kind": "music",
+   "name": "boss_fair",
+   "params": {
+    "prompt": "Deranged carnival psychobilly-metal at 192 BPM: a wheezy off-kilter calliope organ riff doubled by a crunching heavy guitar, frantic slap bass, banjo and fiddle racing, crashing drums with double kick, rude honking horn stabs. A runaway midway on fire. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "52e1daa8f3e5",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:14:29",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_fair.mp3",
+   "bytes": 1681493
+  },
+  {
+   "id": "music/boss_mill#1",
+   "kind": "music",
+   "name": "boss_mill",
+   "params": {
+    "prompt": "Crushing sawmill country-metal at 164 BPM: a buzzing ultra-heavy guitar riff that screams like a head saw biting oak, chugging palm-muted rhythm guitar, thunderous double kick and floor toms, anvil and chain clanks on every backbeat, fiddle stabs and driving banjo. Brutal, fast and mechanical. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a96864e5cfc8",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:14:36",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_mill.mp3",
+   "bytes": 1681493
+  },
+  {
+   "id": "music/boss_quarry#1",
+   "kind": "music",
+   "name": "boss_quarry",
+   "params": {
+    "prompt": "Ferocious moonshine swamp-blues metal at 150 BPM: a grinding detuned fuzz riff, howling bottleneck slide guitar, booming jug bass, stomping double-kick drums with chain hits and tambourine, a harmonica screaming like a steam whistle, frantic banjo. Heavier and faster than ever, a still about to blow. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2ce91b3fd461",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:14:45",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_quarry.mp3",
+   "bytes": 1678359
+  },
+  {
+   "id": "music/boss_bayou#1",
+   "kind": "music",
+   "name": "boss_bayou",
+   "params": {
+    "prompt": "Ferocious swamp-metal stomp at 168 BPM: a growling fuzzed slide guitar riff that roars like an airboat engine, pounding double-kick drums and floor toms, washboard and tambourine slammed on every beat, a droning jug bass, harmonica and fiddle screaming over the top. Enormous, fast and heavy. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a82d57036516",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:14:54",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_bayou.mp3",
+   "bytes": 1681493
+  },
+  {
+   "id": "music/boss_speedway#1",
+   "kind": "music",
+   "name": "boss_speedway",
+   "params": {
+    "prompt": "Furious demolition-derby country-metal at 180 BPM: a crushing low-tuned guitar riff that revs like a big-block engine, a screaming slide guitar, pounding toms and crash cymbals like steel colliding, honky-tonk piano hammered hard, banjo rolls on the turnarounds. Heavy, fast and reckless. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "cef96e44c2a5",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:15:04",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_speedway.mp3",
+   "bytes": 1678359
+  },
+  {
+   "id": "music/boss_mothership#1",
+   "kind": "music",
+   "name": "boss_mothership",
+   "params": {
+    "prompt": "The biggest, heaviest cut on the record: a thundering country-metal riff on detuned twangy baritone guitars, booming toms and anvil hits, a church-organ swell under a screaming theremin lead, a slide guitar howling back at it, the whole band slamming unison stabs. Relentless and epic, a hoedown at the end of the world. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 90000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "fb3f92ba23e2",
+   "reserved": 1913,
+   "status": "settled",
+   "started": "2026-11-11T22:15:13",
+   "actual": 1242,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_mothership.mp3",
+   "bytes": 2161102
+  },
+  {
+   "id": "music/bayou_score#1",
+   "kind": "music",
+   "name": "bayou_score",
+   "params": {
+    "prompt": "Swampy dark Southern rock at dusk: a greasy slide guitar riff over a loping kick and washboard, a growling bass, jug blows and a lonesome harmonica answering; humid, muddy and menacing, with a slow build like an airboat winding up out on the water. About 112 BPM. Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. Gritty, mischievous, swaggering, lo-fi but punchy. No vocals, no synths. Clear hook riff, a contrasting middle section, then the hook returns bigger and ends on a hard stop.",
+    "music_length_ms": 120000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "77cc088bf68a",
+   "reserved": 2534,
+   "status": "settled",
+   "started": "2026-11-11T22:21:36",
+   "actual": 1656,
+   "basis": "expected",
+   "file": "audio_src/generated/music/bayou_score.mp3",
+   "bytes": 2641337
+  },
+  {
+   "id": "music/cypress_crawl#1",
+   "kind": "music",
+   "name": "cypress_crawl",
+   "params": {
+    "prompt": "Slow creeping swamp-blues crawl through the fog: a tremolo-soaked twangy guitar picking a sneaky minor riff, a moaning harmonica, a thumping jug bass, brushed snare with a washboard tick; a sly half-time middle with a dobro slide, then the riff comes back heavier. About 96 BPM. Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. Gritty, mischievous, swaggering, lo-fi but punchy. No vocals, no synths. Clear hook riff, a contrasting middle section, then the hook returns bigger and ends on a hard stop.",
+    "music_length_ms": 120000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d2905f540209",
+   "reserved": 2534,
+   "status": "settled",
+   "started": "2026-11-11T22:21:58",
+   "actual": 1656,
+   "basis": "expected",
+   "file": "audio_src/generated/music/cypress_crawl.mp3",
+   "bytes": 2641337
+  },
+  {
+   "id": "music/crawdad_boil_hop#1",
+   "kind": "music",
+   "name": "crawdad_boil_hop",
+   "params": {
+    "prompt": "Rowdy fish-camp juke-joint boogie at a crawfish boil: a hopping two-step beat with washboard and stomping kick, a squeezebox and a fiddle trading a greasy hook with the twangy guitar, slapping upright bass; a stop-time middle with jug blows, then full tilt. About 150 BPM. Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. Gritty, mischievous, swaggering, lo-fi but punchy. No vocals, no synths. Clear hook riff, a contrasting middle section, then the hook returns bigger and ends on a hard stop.",
+    "music_length_ms": 120000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e7a5d8054655",
+   "reserved": 2534,
+   "status": "settled",
+   "started": "2026-11-11T22:22:07",
+   "actual": 1656,
+   "basis": "expected",
+   "file": "audio_src/generated/music/crawdad_boil_hop.mp3",
+   "bytes": 2641337
+  },
+  {
+   "id": "music/music_speedway#1",
+   "kind": "music",
+   "name": "music_speedway",
+   "params": {
+    "prompt": "Greasy Southern rock and honky-tonk at a dirt-track race night: driving overdriven Telecaster riff, chugging bass, snare on two and four with a ride cymbal like a revving engine, a wailing harmonica answering, a pedal steel swell over the bridge. Loose, loud, beer-soaked and fast. About 126 BPM. Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. Gritty, mischievous, swaggering, lo-fi but punchy. No vocals, no synths. Clear hook riff, a contrasting middle section, then the hook returns bigger and ends on a hard stop.",
+    "music_length_ms": 120000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "eec3eddeecfa",
+   "reserved": 2534,
+   "status": "settled",
+   "started": "2026-11-11T22:22:19",
+   "actual": 1656,
+   "basis": "expected",
+   "file": "audio_src/generated/music/music_speedway.mp3",
+   "bytes": 2882081
+  },
+  {
+   "id": "music/pit_row_boogie#1",
+   "kind": "music",
+   "name": "pit_row_boogie",
+   "params": {
+    "prompt": "Swaggering pit-row boogie: a chugging palm-muted guitar riff like an idling V8, cowbell and clanking wrench percussion on the backbeat, honky-tonk piano rolls, a slide guitar wailing through the turns; a grinding half-time breakdown, then the riff floors it. About 144 BPM. Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. Gritty, mischievous, swaggering, lo-fi but punchy. No vocals, no synths. Clear hook riff, a contrasting middle section, then the hook returns bigger and ends on a hard stop.",
+    "music_length_ms": 120000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "589ceb7e5d03",
+   "reserved": 2534,
+   "status": "settled",
+   "started": "2026-11-11T22:22:30",
+   "actual": 1656,
+   "basis": "expected",
+   "file": "audio_src/generated/music/pit_row_boogie.mp3",
+   "bytes": 2882081
+  },
+  {
+   "id": "music/checkered_flag_rag#1",
+   "kind": "music",
+   "name": "checkered_flag_rag",
+   "params": {
+    "prompt": "Hell-for-leather train-beat hillbilly rock under the floodlights: a fast chicken-picked guitar hook, galloping slap bass, banjo rolls and honky-tonk piano racing each other, crash cymbals like a pile-up at the finish line; a stop-time middle, then a last lap even faster. About 172 BPM. Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. Gritty, mischievous, swaggering, lo-fi but punchy. No vocals, no synths. Clear hook riff, a contrasting middle section, then the hook returns bigger and ends on a hard stop.",
+    "music_length_ms": 120000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d929833132ad",
+   "reserved": 2534,
+   "status": "settled",
+   "started": "2026-11-11T22:22:41",
+   "actual": 1656,
+   "basis": "expected",
+   "file": "audio_src/generated/music/checkered_flag_rag.mp3",
+   "bytes": 2882081
+  },
+  {
+   "id": "music/mothership_score#1",
+   "kind": "music",
+   "name": "mothership_score",
+   "params": {
+    "prompt": "Dark, spooky cowpunk aboard a junky flying saucer: a B-movie theremin answering a twangy tremolo guitar hook, slap bass walking like a creeping alien, a clanking hull-plate backbeat; a half-time middle with a musical saw, then the hook returns bigger. About 136 BPM. Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. Gritty, mischievous, swaggering, lo-fi but punchy. No vocals, no synths. Clear hook riff, a contrasting middle section, then the hook returns bigger and ends on a hard stop.",
+    "music_length_ms": 120000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1db2b0df9c94",
+   "reserved": 2534,
+   "status": "settled",
+   "started": "2026-11-11T22:22:52",
+   "actual": 1656,
+   "basis": "expected",
+   "file": "audio_src/generated/music/mothership_score.mp3",
+   "bytes": 2880827
+  },
+  {
+   "id": "music/fight_bayou#1",
+   "kind": "music",
+   "name": "fight_bayou",
+   "params": {
+    "prompt": "Heavy swamp-rock brawl at 136 BPM: fuzzed slide guitar riff, stomping drums with washboard and tambourine, a droning jug bass, frantic fiddle and harmonica stabs over a roaring overdriven riff. Loud, sweaty and dangerous. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "bca905dff9ac",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:24:32",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/fight_bayou.mp3",
+   "bytes": 1681493
+  },
+  {
+   "id": "music/fight_speedway#1",
+   "kind": "music",
+   "name": "fight_speedway",
+   "params": {
+    "prompt": "Heavy redneck rock brawl at 138 BPM: crunching fuzz guitar riff, pounding floor toms and crash cymbals like cars colliding, slide guitar screaming over the top, honky-tonk piano hammering, a quick banjo roll on the turnarounds. Dangerous, sweaty and relentless. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4620a6727fcf",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:24:42",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/fight_speedway.mp3",
+   "bytes": 1681493
+  },
+  {
+   "id": "music/fight_mothership#1",
+   "kind": "music",
+   "name": "fight_mothership",
+   "params": {
+    "prompt": "Frantic hillbilly punk at 176 BPM: furious banjo rolls and sawing fiddle against a wailing theremin riff, overdriven twang guitar, washboard and crashing train-beat drums. Manic, like a hoedown in a crashing spaceship. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b5fe0df32175",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:24:49",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/fight_mothership.mp3",
+   "bytes": 1681493
+  },
+  {
+   "id": "music/boss_mill#2",
+   "kind": "music",
+   "name": "boss_mill",
+   "params": {
+    "prompt": "Crushing fast sawmill country-metal at 164 BPM, the whole band flat out from the first bar: a buzzing ultra-heavy guitar riff that screams like a head saw biting oak, chugging palm-muted rhythm guitar, thunderous double kick and floor toms, anvil and chain clanks on every backbeat, fiddle stabs and driving banjo. Brutal, fast and mechanical. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f84404262304",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-11T22:24:58",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_mill.mp3",
+   "bytes": 1681493
+  },
+  {
+   "id": "voice_design/maw#1",
+   "kind": "voice_design",
+   "name": "maw",
+   "params": {
+    "description": "A towering elderly alien grandmother from a 1950s B-movie flying saucer: a big, warbling, rubbery, nasal old woman's voice with a thick rural Southern drawl, bossy, doting and comic. Close, dry studio recording.",
+    "text": "Supper's on the table and somebody's tracked mud all over my nice clean deck. Where is my baby boy? You young'uns get in here right now before I fetch my rolling pin."
+   },
+   "hash": "5a8ab884a922",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-11T22:31:49",
+   "actual": 498,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/maw.mp3",
+   "bytes": 341098
+  },
+  {
+   "id": "tts/county_dispatch_4#4",
+   "kind": "tts",
+   "name": "county_dispatch_4",
+   "params": {
+    "text": "Check the bayou.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9fd9bfa60e43",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-11T22:32:01",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/county_dispatch_4.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/talk_boil-cooks_0#1",
+   "kind": "tts",
+   "name": "talk_boil-cooks_0",
+   "params": {
+    "text": "Who dropped a boot in the boil?",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "151d0e6e626f",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-11T22:32:02",
+   "actual": 31,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_boil-cooks_0.mp3",
+   "bytes": 65244
+  },
+  {
+   "id": "tts/talk_boil-cooks_1#1",
+   "kind": "tts",
+   "name": "talk_boil-cooks_1",
+   "params": {
+    "text": "That's seasonin'.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b3087607c49e",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-11T22:32:02",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_boil-cooks_1.mp3",
+   "bytes": 61483
+  },
+  {
+   "id": "tts/talk_juke-band_0#1",
+   "kind": "tts",
+   "name": "talk_juke-band_0",
+   "params": {
+    "text": "We know two songs.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a3aac2e01ba1",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-11T22:32:03",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_juke-band_0.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/talk_juke-band_1#1",
+   "kind": "tts",
+   "name": "talk_juke-band_1",
+   "params": {
+    "text": "Then play the other one.",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8d3de1b516a4",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-11T22:32:04",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_juke-band_1.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/talk_dock-radio_0#1",
+   "kind": "tts",
+   "name": "talk_dock-radio_0",
+   "params": {
+    "text": "King to dock. Fuel her up.",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "470a5d0617e7",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-11T22:32:05",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_dock-radio_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/talk_dock-radio_1#1",
+   "kind": "tts",
+   "name": "talk_dock-radio_1",
+   "params": {
+    "text": "Tank's full, your majesty.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "65c24410dca9",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-11T22:32:05",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_dock-radio_1.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/talk_pit-radio_0#1",
+   "kind": "tts",
+   "name": "talk_pit-radio_0",
+   "params": {
+    "text": "Fuel's a hundred and ten proof, boys.",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2904619ee521",
+   "reserved": 64,
+   "status": "settled",
+   "started": "2026-11-11T22:32:06",
+   "actual": 37,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_pit-radio_0.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "tts/talk_pit-radio_1#1",
+   "kind": "tts",
+   "name": "talk_pit-radio_1",
+   "params": {
+    "text": "Then don't light a smoke.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9b027da43e71",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-11T22:32:07",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_pit-radio_1.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/talk_booth-pa_0#1",
+   "kind": "tts",
+   "name": "talk_booth-pa_0",
+   "params": {
+    "text": "Lap forty-seven, Boggs leads.",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6fe22bc88dcc",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-11T22:32:08",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_booth-pa_0.mp3",
+   "bytes": 59602
+  },
+  {
+   "id": "tts/talk_booth-pa_1#1",
+   "kind": "tts",
+   "name": "talk_booth-pa_1",
+   "params": {
+    "text": "As usual. What a shock.",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cac658aa8309",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-11T22:32:08",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_booth-pa_1.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/talk_camp-fire_0#1",
+   "kind": "tts",
+   "name": "talk_camp-fire_0",
+   "params": {
+    "text": "See that saucer over turn two?",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e282a932ae8c",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-11T22:32:09",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_camp-fire_0.mp3",
+   "bytes": 63990
+  },
+  {
+   "id": "tts/talk_camp-fire_1#1",
+   "kind": "tts",
+   "name": "talk_camp-fire_1",
+   "params": {
+    "text": "That's a floodlight, Earl.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "11ee635f4fd7",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-11T22:32:10",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_camp-fire_1.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/talk_ship-pa_0#1",
+   "kind": "tts",
+   "name": "talk_ship-pa_0",
+   "params": {
+    "text": "Hooman loose on deck four.",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "85e85ea8f69f",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-11T22:32:11",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_ship-pa_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/talk_ship-pa_1#1",
+   "kind": "tts",
+   "name": "talk_ship-pa_1",
+   "params": {
+    "text": "Which one is the hooman?",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "baa8208877f6",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-11T22:32:12",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_ship-pa_1.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/talk_mess-pa_0#1",
+   "kind": "tts",
+   "name": "talk_mess-pa_0",
+   "params": {
+    "text": "Corn dogs are off.",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "898226a34db0",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-11T22:32:12",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_mess-pa_0.mp3",
+   "bytes": 33897
+  },
+  {
+   "id": "tts/talk_mess-pa_1#1",
+   "kind": "tts",
+   "name": "talk_mess-pa_1",
+   "params": {
+    "text": "Again? Again.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "25a93b9e8a22",
+   "reserved": 35,
+   "status": "settled",
+   "started": "2026-11-11T22:32:13",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_mess-pa_1.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/talk_engine-pa_0#1",
+   "kind": "tts",
+   "name": "talk_engine-pa_0",
+   "params": {
+    "text": "Who put diesel in the drive?",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "be85cb592598",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-11T22:32:14",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_engine-pa_0.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/talk_engine-pa_1#1",
+   "kind": "tts",
+   "name": "talk_engine-pa_1",
+   "params": {
+    "text": "Sign said unleaded.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "318c7ad5a805",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-11T22:32:15",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_engine-pa_1.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/talk_bridge-pa_0#1",
+   "kind": "tts",
+   "name": "talk_bridge-pa_0",
+   "params": {
+    "text": "Where's my boy's tin star?",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f0f2c000f387",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-11T22:32:15",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_bridge-pa_0.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/talk_bridge-pa_1#1",
+   "kind": "tts",
+   "name": "talk_bridge-pa_1",
+   "params": {
+    "text": "Hickston, Maw.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f6f785bac2f1",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-11T22:32:16",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_bridge-pa_1.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/county_dispatch_5#1",
+   "kind": "tts",
+   "name": "county_dispatch_5",
+   "params": {
+    "text": "Check the speedway.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6d05e259401d",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-11T22:32:17",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/county_dispatch_5.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/county_dispatch_7#1",
+   "kind": "tts",
+   "name": "county_dispatch_7",
+   "params": {
+    "text": "Nothing up there but stars.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2ff20ca17291",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-11T22:32:18",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/county_dispatch_7.mp3",
+   "bytes": 67125
+  },
+  {
+   "id": "tts/range_pa_hot#1",
+   "kind": "tts",
+   "name": "range_pa_hot",
+   "params": {
+    "text": "The range is hot. Keep it pointed downrange, y'hear.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a02a98da1ba4",
+   "reserved": 82,
+   "status": "settled",
+   "started": "2026-11-11T22:32:18",
+   "actual": 52,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/range_pa_hot.mp3",
+   "bytes": 89695
+  },
+  {
+   "id": "tts/range_pa_medic#1",
+   "kind": "tts",
+   "name": "range_pa_medic",
+   "params": {
+    "text": "Medic to the firing line. Again.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "29d043bb89ec",
+   "reserved": 58,
+   "status": "settled",
+   "started": "2026-11-11T22:32:19",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/range_pa_medic.mp3",
+   "bytes": 68379
+  },
+  {
+   "id": "stt/county_dispatch_4#4",
+   "kind": "stt",
+   "name": "county_dispatch_4",
+   "params": {
+    "file": "county_dispatch_4.mp3",
+    "bytes": 51452
+   },
+   "hash": "6c67d9f8f340",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:00",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/county_dispatch_4.json",
+   "bytes": 289
+  },
+  {
+   "id": "stt/talk_boil-cooks_0#1",
+   "kind": "stt",
+   "name": "talk_boil-cooks_0",
+   "params": {
+    "file": "talk_boil-cooks_0.mp3",
+    "bytes": 65244
+   },
+   "hash": "557792bffe7c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:01",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_boil-cooks_0.json",
+   "bytes": 482
+  },
+  {
+   "id": "stt/talk_boil-cooks_1#1",
+   "kind": "stt",
+   "name": "talk_boil-cooks_1",
+   "params": {
+    "file": "talk_boil-cooks_1.mp3",
+    "bytes": 61483
+   },
+   "hash": "28497354ad58",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:02",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_boil-cooks_1.json",
+   "bytes": 224
+  },
+  {
+   "id": "stt/talk_juke-band_0#1",
+   "kind": "stt",
+   "name": "talk_juke-band_0",
+   "params": {
+    "file": "talk_juke-band_0.mp3",
+    "bytes": 47063
+   },
+   "hash": "2e0d918131a7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:03",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_juke-band_0.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/talk_juke-band_1#1",
+   "kind": "stt",
+   "name": "talk_juke-band_1",
+   "params": {
+    "file": "talk_juke-band_1.mp3",
+    "bytes": 43928
+   },
+   "hash": "460fb4c4c305",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:04",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_juke-band_1.json",
+   "bytes": 355
+  },
+  {
+   "id": "stt/talk_dock-radio_0#1",
+   "kind": "stt",
+   "name": "talk_dock-radio_0",
+   "params": {
+    "file": "talk_dock-radio_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "e29563728089",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:04",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_dock-radio_0.json",
+   "bytes": 412
+  },
+  {
+   "id": "stt/talk_dock-radio_1#1",
+   "kind": "stt",
+   "name": "talk_dock-radio_1",
+   "params": {
+    "file": "talk_dock-radio_1.mp3",
+    "bytes": 45182
+   },
+   "hash": "7f4fe315f5f1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:05",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_dock-radio_1.json",
+   "bytes": 304
+  },
+  {
+   "id": "stt/talk_pit-radio_0#1",
+   "kind": "stt",
+   "name": "talk_pit-radio_0",
+   "params": {
+    "file": "talk_pit-radio_0.mp3",
+    "bytes": 60856
+   },
+   "hash": "f4c8cd1fd497",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_pit-radio_0.json",
+   "bytes": 298
+  },
+  {
+   "id": "stt/talk_pit-radio_1#1",
+   "kind": "stt",
+   "name": "talk_pit-radio_1",
+   "params": {
+    "file": "talk_pit-radio_1.mp3",
+    "bytes": 56467
+   },
+   "hash": "daf18d1216a5",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_pit-radio_1.json",
+   "bytes": 357
+  },
+  {
+   "id": "stt/talk_booth-pa_0#1",
+   "kind": "stt",
+   "name": "talk_booth-pa_0",
+   "params": {
+    "file": "talk_booth-pa_0.mp3",
+    "bytes": 59602
+   },
+   "hash": "2e12b26b936f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_booth-pa_0.json",
+   "bytes": 309
+  },
+  {
+   "id": "stt/talk_booth-pa_1#1",
+   "kind": "stt",
+   "name": "talk_booth-pa_1",
+   "params": {
+    "file": "talk_booth-pa_1.mp3",
+    "bytes": 47063
+   },
+   "hash": "b9620f677a97",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_booth-pa_1.json",
+   "bytes": 353
+  },
+  {
+   "id": "stt/talk_camp-fire_0#1",
+   "kind": "stt",
+   "name": "talk_camp-fire_0",
+   "params": {
+    "file": "talk_camp-fire_0.mp3",
+    "bytes": 63990
+   },
+   "hash": "d5831b9fa1da",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_camp-fire_0.json",
+   "bytes": 369
+  },
+  {
+   "id": "stt/talk_camp-fire_1#1",
+   "kind": "stt",
+   "name": "talk_camp-fire_1",
+   "params": {
+    "file": "talk_camp-fire_1.mp3",
+    "bytes": 50825
+   },
+   "hash": "1a1631c7769f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_camp-fire_1.json",
+   "bytes": 305
+  },
+  {
+   "id": "stt/talk_ship-pa_0#1",
+   "kind": "stt",
+   "name": "talk_ship-pa_0",
+   "params": {
+    "file": "talk_ship-pa_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "d0f78838c7e0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_ship-pa_0.json",
+   "bytes": 358
+  },
+  {
+   "id": "stt/talk_ship-pa_1#1",
+   "kind": "stt",
+   "name": "talk_ship-pa_1",
+   "params": {
+    "file": "talk_ship-pa_1.mp3",
+    "bytes": 56467
+   },
+   "hash": "dce53d3e9291",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_ship-pa_1.json",
+   "bytes": 414
+  },
+  {
+   "id": "stt/talk_mess-pa_0#1",
+   "kind": "stt",
+   "name": "talk_mess-pa_0",
+   "params": {
+    "file": "talk_mess-pa_0.mp3",
+    "bytes": 33897
+   },
+   "hash": "9d17e7ab858e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_mess-pa_0.json",
+   "bytes": 289
+  },
+  {
+   "id": "stt/talk_mess-pa_1#1",
+   "kind": "stt",
+   "name": "talk_mess-pa_1",
+   "params": {
+    "file": "talk_mess-pa_1.mp3",
+    "bytes": 45182
+   },
+   "hash": "486d17414d07",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_mess-pa_1.json",
+   "bytes": 230
+  },
+  {
+   "id": "stt/talk_engine-pa_0#1",
+   "kind": "stt",
+   "name": "talk_engine-pa_0",
+   "params": {
+    "file": "talk_engine-pa_0.mp3",
+    "bytes": 49571
+   },
+   "hash": "da1e7f691a76",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_engine-pa_0.json",
+   "bytes": 421
+  },
+  {
+   "id": "stt/talk_engine-pa_1#1",
+   "kind": "stt",
+   "name": "talk_engine-pa_1",
+   "params": {
+    "file": "talk_engine-pa_1.mp3",
+    "bytes": 46436
+   },
+   "hash": "3e2b5dcf1b34",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_engine-pa_1.json",
+   "bytes": 234
+  },
+  {
+   "id": "stt/talk_bridge-pa_0#1",
+   "kind": "stt",
+   "name": "talk_bridge-pa_0",
+   "params": {
+    "file": "talk_bridge-pa_0.mp3",
+    "bytes": 48317
+   },
+   "hash": "588b478c803f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_bridge-pa_0.json",
+   "bytes": 360
+  },
+  {
+   "id": "stt/talk_bridge-pa_1#1",
+   "kind": "stt",
+   "name": "talk_bridge-pa_1",
+   "params": {
+    "file": "talk_bridge-pa_1.mp3",
+    "bytes": 40794
+   },
+   "hash": "d127181d48d3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_bridge-pa_1.json",
+   "bytes": 165
+  },
+  {
+   "id": "stt/county_dispatch_5#1",
+   "kind": "stt",
+   "name": "county_dispatch_5",
+   "params": {
+    "file": "county_dispatch_5.mp3",
+    "bytes": 38286
+   },
+   "hash": "e7c98588f356",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/county_dispatch_5.json",
+   "bytes": 296
+  },
+  {
+   "id": "stt/county_dispatch_7#1",
+   "kind": "stt",
+   "name": "county_dispatch_7",
+   "params": {
+    "file": "county_dispatch_7.mp3",
+    "bytes": 67125
+   },
+   "hash": "765f2b0f050c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/county_dispatch_7.json",
+   "bytes": 423
+  },
+  {
+   "id": "stt/range_pa_hot#1",
+   "kind": "stt",
+   "name": "range_pa_hot",
+   "params": {
+    "file": "range_pa_hot.mp3",
+    "bytes": 89695
+   },
+   "hash": "539fc5630419",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/range_pa_hot.json",
+   "bytes": 755
+  },
+  {
+   "id": "stt/range_pa_medic#1",
+   "kind": "stt",
+   "name": "range_pa_medic",
+   "params": {
+    "file": "range_pa_medic.mp3",
+    "bytes": 68379
+   },
+   "hash": "e947f434a4c4",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-11T22:34:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/range_pa_medic.json",
+   "bytes": 426
+  },
+  {
+   "id": "sfx/noodler_holler#1",
+   "kind": "sfx",
+   "name": "noodler_holler",
+   "params": {
+    "text": "A big swamp man hollers, startled and mean, a wet bark of a shout rising out of the water. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0976f4c2b949",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:36:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/noodler_holler.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/chum_holler#1",
+   "kind": "sfx",
+   "name": "chum_holler",
+   "params": {
+    "text": "A bait man yells \"Chum's in!\" and sloshes a bucket, slop hitting the water. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e8a6f3632167",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-11T22:36:18",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/chum_holler.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/king_holler#1",
+   "kind": "sfx",
+   "name": "king_holler",
+   "params": {
+    "text": "A big redneck swamp boss whoops over a roaring airboat engine, \"Who's on my water?\" One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f58cbd7b4587",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-11T22:36:20",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/king_holler.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/swamp_king_rage#1",
+   "kind": "sfx",
+   "name": "swamp_king_rage",
+   "params": {
+    "text": "A fat swamp king bellows furiously over a redlining airboat engine. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e165f1a60b62",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-11T22:36:22",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/swamp_king_rage.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/noodler_grunt#1",
+   "kind": "sfx",
+   "name": "noodler_grunt",
+   "params": {
+    "text": "A heavy man grunts and winds up a swing, a big wet fish slapping against his waders. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6623bb0267b7",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-11T22:36:25",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/noodler_grunt.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/chum_slosh#1",
+   "kind": "sfx",
+   "name": "chum_slosh",
+   "params": {
+    "text": "A plastic jug of fish chum sloshed back over a shoulder to throw: thick liquid glug. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "aeb108fc053f",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-11T22:36:26",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/chum_slosh.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/gator_hiss#1",
+   "kind": "sfx",
+   "name": "gator_hiss",
+   "params": {
+    "text": "An alligator's low warning hiss and throat rumble, close. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9865fbfe8b1f",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:36:28",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/gator_hiss.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/king_rev#1",
+   "kind": "sfx",
+   "name": "king_rev",
+   "params": {
+    "text": "An airboat's aircraft engine revving hard, the big caged propeller winding up to a roar. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "49ada9781ecb",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-11T22:36:30",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/king_rev.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/noodler_slap#1",
+   "kind": "sfx",
+   "name": "noodler_slap",
+   "params": {
+    "text": "A huge wet catfish slammed across somebody: meaty slap, splatter of swamp water. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0d0cd7d2bb74",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-11T22:36:32",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/noodler_slap.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/chum_throw#1",
+   "kind": "sfx",
+   "name": "chum_throw",
+   "params": {
+    "text": "A full jug of chum lobbed: effortful toss, the jug tumbling with a gurgle. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d9992175e2ec",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-11T22:36:34",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/chum_throw.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/gator_snap#1",
+   "kind": "sfx",
+   "name": "gator_snap",
+   "params": {
+    "text": "An alligator's jaws snapping shut hard: heavy clack and a lunge splash. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "154bc65a1f62",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-11T22:36:36",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/gator_snap.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/king_charge#1",
+   "kind": "sfx",
+   "name": "king_charge",
+   "params": {
+    "text": "An airboat launching flat out across water: engine howl, prop roar, a hissing rooster tail of spray. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6776cf4dae11",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-11T22:36:39",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/king_charge.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/king_ram#1",
+   "kind": "sfx",
+   "name": "king_ram",
+   "params": {
+    "text": "A steel airboat hull rams a wooden dock: heavy crunch, splintering planks, engine still screaming. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8918badef3a0",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:36:41",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/king_ram.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/king_beached#1",
+   "kind": "sfx",
+   "name": "king_beached",
+   "params": {
+    "text": "An airboat runs aground on a mud bank: grinding scrape, the engine choking and sputtering down. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.3,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "37a10c19dc6f",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-11T22:36:43",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/king_beached.mp3",
+   "bytes": 32016
+  },
+  {
+   "id": "sfx/king_puntgun#1",
+   "kind": "sfx",
+   "name": "king_puntgun",
+   "params": {
+    "text": "A huge punt gun fires from a boat: enormous black-powder boom, a spray of shot ripping across water. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a908694ebf2b",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-11T22:36:45",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/king_puntgun.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/noodler_rise#1",
+   "kind": "sfx",
+   "name": "noodler_rise",
+   "params": {
+    "text": "A big man bursts up out of shallow swamp water: heavy splash, water pouring off him. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "71583af7edc4",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:36:47",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/noodler_rise.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/record_scratch#1",
+   "kind": "sfx",
+   "name": "record_scratch",
+   "params": {
+    "text": "A needle dragged across a spinning record: a quick scratch to silence. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "048aef6f8518",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-11T22:36:50",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/record_scratch.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/king_down#1",
+   "kind": "sfx",
+   "name": "king_down",
+   "params": {
+    "text": "A big man's dying howl as his airboat engine coughs and dies. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d6a2cfc9f18e",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-11T22:36:51",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/king_down.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "sfx/swamp_king_death#1",
+   "kind": "sfx",
+   "name": "swamp_king_death",
+   "params": {
+    "text": "A swamp king's last wail as his airboat's fuel tank goes up with a whump and a splash. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4bbdd1d9f9cc",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-11T22:36:54",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/swamp_king_death.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/swamp_king_intro#1",
+   "kind": "sfx",
+   "name": "swamp_king_intro",
+   "params": {
+    "text": "Swampy dark Southern rock: a growling slide guitar riff, an airboat engine roar and pounding toms, boss arrival sting. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b32ad60aa8c2",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T22:36:56",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/swamp_king_intro.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/swamp_king_end#1",
+   "kind": "sfx",
+   "name": "swamp_king_end",
+   "params": {
+    "text": "A huge victorious Southern rock final chord with a washboard rattle and a rolling drum fill. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e291b5646daa",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T22:36:59",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/swamp_king_end.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/amb_bayou#1",
+   "kind": "sfx",
+   "name": "amb_bayou",
+   "params": {
+    "text": "A swamp at dusk: bullfrogs, cicadas and crickets, still water lapping at pilings, a far heron call. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 14,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c5238b4b3b51",
+   "reserved": 565,
+   "status": "settled",
+   "started": "2026-11-11T22:37:01",
+   "actual": 155,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/amb_bayou.mp3",
+   "bytes": 337336
+  },
+  {
+   "id": "sfx/amb_bayou_shack#1",
+   "kind": "sfx",
+   "name": "amb_bayou_shack",
+   "params": {
+    "text": "Inside a tin-roofed stilt shack: a box fan rattling, water lapping under the floor, insects on the screens. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 12,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8cbf8b6678fe",
+   "reserved": 485,
+   "status": "settled",
+   "started": "2026-11-11T22:37:06",
+   "actual": 133,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/amb_bayou_shack.mp3",
+   "bytes": 289688
+  },
+  {
+   "id": "sfx/amb_bayou_after#1",
+   "kind": "sfx",
+   "name": "amb_bayou_after",
+   "params": {
+    "text": "A swamp gone quiet after a fight: frogs starting up again, drifting smoke, water settling. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 12,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "cc9af98600a9",
+   "reserved": 485,
+   "status": "settled",
+   "started": "2026-11-11T22:37:10",
+   "actual": 133,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/amb_bayou_after.mp3",
+   "bytes": 289688
+  },
+  {
+   "id": "sfx/distant_bayou_airboat#1",
+   "kind": "sfx",
+   "name": "distant_bayou_airboat",
+   "params": {
+    "text": "An airboat engine idling out on open water far away. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f5e22134b493",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T22:37:14",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/distant_bayou_airboat.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/distant_bayou_juke#1",
+   "kind": "sfx",
+   "name": "distant_bayou_juke",
+   "params": {
+    "text": "A juke joint band thumping through thin walls across the water, muffled. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e1035693eabc",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T22:37:16",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/distant_bayou_juke.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/distant_bayou_gator#1",
+   "kind": "sfx",
+   "name": "distant_bayou_gator",
+   "params": {
+    "text": "An alligator's deep bellow rolling across a swamp. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "09a0e24d1f67",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-11T22:37:18",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/distant_bayou_gator.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/distant_bayou_frogs#1",
+   "kind": "sfx",
+   "name": "distant_bayou_frogs",
+   "params": {
+    "text": "A chorus of bullfrogs swelling far off in the cypress. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d988758927e4",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-11T22:37:20",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/distant_bayou_frogs.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/derby_champ_warn#1",
+   "kind": "sfx",
+   "name": "derby_champ_warn",
+   "params": {
+    "text": "A big-block V8 in a battered derby car revving hard, lifters clattering, then the tyres starting to spin on dirt. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2162807daf25",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-11T22:37:22",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/derby_champ_warn.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/huffer_hiss#1",
+   "kind": "sfx",
+   "name": "huffer_hiss",
+   "params": {
+    "text": "A wild man huffing nitrous from a hose: a long gas hiss and a giggle. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b2958aaeacc3",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:37:24",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/huffer_hiss.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/derby_champ_crash#1",
+   "kind": "sfx",
+   "name": "derby_champ_crash",
+   "params": {
+    "text": "An armoured demolition-derby car slams into a concrete wall at speed: heavy crunch of steel, glass and a radiator bursting. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "af96f0709a4c",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-11T22:37:26",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/derby_champ_crash.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/lap_car_hit#1",
+   "kind": "sfx",
+   "name": "lap_car_hit",
+   "params": {
+    "text": "A man struck by a speeding race car: bang of a fender and a body thrown onto dirt. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d840157d68de",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:37:28",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/lap_car_hit.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/derby_champ_rage#1",
+   "kind": "sfx",
+   "name": "derby_champ_rage",
+   "params": {
+    "text": "A redneck derby champion bellowing from inside his car over a screaming engine and a horn blast. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6282d895cb92",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-11T22:37:30",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/derby_champ_rage.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/derby_champ_death#1",
+   "kind": "sfx",
+   "name": "derby_champ_death",
+   "params": {
+    "text": "A derby car's engine dies in a tearing explosion: fuel tank whoomp, steel crumpling, a man's last holler. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "61604d2c4b03",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-11T22:37:32",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/derby_champ_death.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/derby_champ_pain#1",
+   "kind": "sfx",
+   "name": "derby_champ_pain",
+   "params": {
+    "text": "A man inside a steel car grunting as bullets ping off the armour plate. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "55c000e3f66f",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-11T22:37:34",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/derby_champ_pain.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/derby_champ_down#1",
+   "kind": "sfx",
+   "name": "derby_champ_down",
+   "params": {
+    "text": "A man inside a steel car gives a short dying groan as the engine coughs out. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "803793557816",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:37:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/derby_champ_down.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/flagman_flare#1",
+   "kind": "sfx",
+   "name": "flagman_flare",
+   "params": {
+    "text": "A flare pistol fired: hollow pop and a fizzing whoosh of a burning flare. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "bbf277c9effe",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-11T22:37:38",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/flagman_flare.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/tire_roll#1",
+   "kind": "sfx",
+   "name": "tire_roll",
+   "params": {
+    "text": "A heavy racing tyre bowled hard along packed dirt: rubbery thump and a rumbling roll. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "948981b5746a",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-11T22:37:40",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/tire_roll.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/wrench_throw#1",
+   "kind": "sfx",
+   "name": "wrench_throw",
+   "params": {
+    "text": "A heavy steel lug wrench thrown end over end: whoosh and a ringing clang where it lands. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "92efe97e63ff",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-11T22:37:41",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wrench_throw.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/lap_car_pass#1",
+   "kind": "sfx",
+   "name": "lap_car_pass",
+   "params": {
+    "text": "A dirt-track stock car blasting past close: V8 roar dopplering by, gravel spraying the wall. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0faec41567fb",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-11T22:37:43",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/lap_car_pass.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/derby_champ_intro#1",
+   "kind": "sfx",
+   "name": "derby_champ_intro",
+   "params": {
+    "text": "A gritty Southern rock riff over a revving V8 and a starter's horn: the derby champ rolls out. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "20c9138ba199",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T22:37:45",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/derby_champ_intro.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/derby_champ_end#1",
+   "kind": "sfx",
+   "name": "derby_champ_end",
+   "params": {
+    "text": "A huge victorious Southern rock chord with an engine coughing to silence and a crowd whoop. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "aea17116bb27",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T22:37:47",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/derby_champ_end.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/drone_zap#1",
+   "kind": "sfx",
+   "name": "drone_zap",
+   "params": {
+    "text": "A cattle prod jabbed into somebody: a crackling electric zap and a short buzz. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c7b334af1bb8",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-11T22:37:51",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/drone_zap.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/guard_zapper#1",
+   "kind": "sfx",
+   "name": "guard_zapper",
+   "params": {
+    "text": "A giant bug zapper fired like a gun: three quick crackling purple bolts, fat and buzzy. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e39b62984197",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-11T22:37:52",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/guard_zapper.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/probe_tug#1",
+   "kind": "sfx",
+   "name": "probe_tug",
+   "params": {
+    "text": "A tractor beam yanks something: rising wobbling hum snapping into a zap. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9c2652290dc8",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-11T22:37:55",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/probe_tug.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/maw_dryer_blast#1",
+   "kind": "sfx",
+   "name": "maw_dryer_blast",
+   "params": {
+    "text": "The giant hair dryer fires a fan of heat bolts: roaring hot whoosh with fizzing zaps. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ac422257b2b8",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:37:57",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_dryer_blast.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/tailgate_clang#1",
+   "kind": "sfx",
+   "name": "tailgate_clang",
+   "params": {
+    "text": "A bullet ricochets off a rusty pickup truck tailgate: hard tinny clang and a whine. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d639a3878564",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-11T22:37:58",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/tailgate_clang.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/maw_pin_raise#1",
+   "kind": "sfx",
+   "name": "maw_pin_raise",
+   "params": {
+    "text": "A giant raises a huge wooden rolling pin: creaking wood, a deep grunting inhale. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.1,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d2dda596cb69",
+   "reserved": 49,
+   "status": "settled",
+   "started": "2026-11-11T22:38:00",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_pin_raise.mp3",
+   "bytes": 27628
+  },
+  {
+   "id": "sfx/maw_dryer_whine#1",
+   "kind": "sfx",
+   "name": "maw_dryer_whine",
+   "params": {
+    "text": "A salon hair dryer the size of a car spinning up: rising whining fan and electric crackle. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "04b6f997e72f",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:38:02",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_dryer_whine.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/maw_stomp_warn#1",
+   "kind": "sfx",
+   "name": "maw_stomp_warn",
+   "params": {
+    "text": "A huge creature lifts one foot in a fuzzy slipper: a creak of the deck and a building rumble. Cartoonish, expressive, dry, close. One single sound, no music.",
+    "duration_seconds": 1.1,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "834131f7d8bc",
+   "reserved": 49,
+   "status": "settled",
+   "started": "2026-11-11T22:38:04",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_stomp_warn.mp3",
+   "bytes": 27628
+  },
+  {
+   "id": "sfx/drone_buzz#1",
+   "kind": "sfx",
+   "name": "drone_buzz",
+   "params": {
+    "text": "A cattle prod charging: quick rising electric buzz. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "faf97f5fd62e",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-11T22:38:06",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/drone_buzz.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/guard_wind#1",
+   "kind": "sfx",
+   "name": "guard_wind",
+   "params": {
+    "text": "A huge bug zapper powering up: rising electric hum with crackling sparks. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9d1ded5d05d6",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-11T22:38:08",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/guard_wind.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/probe_whine#1",
+   "kind": "sfx",
+   "name": "probe_whine",
+   "params": {
+    "text": "A small flying eyeball drone focuses its beam: rising wobbling theremin whine. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "504785130dd1",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-11T22:38:10",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/probe_whine.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/maw_pin_slam#1",
+   "kind": "sfx",
+   "name": "maw_pin_slam",
+   "params": {
+    "text": "A gigantic rolling pin slammed onto a steel deck: booming wooden thud, ringing metal, rattling floor plates. Punchy, chunky, slightly crunchy 1990s game explosion with weight and a short tail. No music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "98030fe6b896",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-11T22:38:11",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_pin_slam.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/maw_stomp#1",
+   "kind": "sfx",
+   "name": "maw_stomp",
+   "params": {
+    "text": "A towering giant stomps a metal deck: deep booming quake, rattling bolts, a shockwave rolling out. Punchy, chunky, slightly crunchy 1990s game explosion with weight and a short tail. No music.",
+    "duration_seconds": 1.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "56e94f885394",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-11T22:38:13",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_stomp.mp3",
+   "bytes": 40167
+  },
+  {
+   "id": "sfx/maw_holler#1",
+   "kind": "sfx",
+   "name": "maw_holler",
+   "params": {
+    "text": "An enormous alien grandmother hollers to call her children in for supper, warbling and rubbery. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1242c096cd4a",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-11T22:38:15",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_holler.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/maw_rage#1",
+   "kind": "sfx",
+   "name": "maw_rage",
+   "params": {
+    "text": "A giant alien grandma shrieks in fury as her housecoat catches fire: warbling scream and crackling flames. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4271436ee75f",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-11T22:38:17",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_rage.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "sfx/maw_bare#1",
+   "kind": "sfx",
+   "name": "maw_bare",
+   "params": {
+    "text": "A huge alien bellows with power cells humming up to full charge: furious roar over a rising electric whine. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "22f1bed2f4f2",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-11T22:38:19",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_bare.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "sfx/maw_spot#1",
+   "kind": "sfx",
+   "name": "maw_spot",
+   "params": {
+    "text": "A huge alien grandma spots someone: a low suspicious \"hmmmm\" through a rubbery throat. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "370ba11f3591",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-11T22:38:21",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_spot.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/probe_spot#1",
+   "kind": "sfx",
+   "name": "probe_spot",
+   "params": {
+    "text": "A floating eyeball robot notices someone: quick curious beeping chirp. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2552255b6b25",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-11T22:38:23",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/probe_spot.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/pod_open#1",
+   "kind": "sfx",
+   "name": "pod_open",
+   "params": {
+    "text": "A crew pod's hatch hisses open: pressure hiss, wet suction pop, a chirp. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4cb63bcb5d68",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-11T22:38:25",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/pod_open.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/beam_hum#1",
+   "kind": "sfx",
+   "name": "beam_hum",
+   "params": {
+    "text": "A tractor beam touching someone: thick wobbling hum and a buzzing burn. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4e35a7ec79c4",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-11T22:38:27",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/beam_hum.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/maw_death#1",
+   "kind": "sfx",
+   "name": "maw_death",
+   "params": {
+    "text": "A towering alien grandmother's long dying wail, curlers clattering, ending in a crash and fizzling sparks. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 2.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "26de3214df41",
+   "reserved": 109,
+   "status": "settled",
+   "started": "2026-11-11T22:38:28",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_death.mp3",
+   "bytes": 62736
+  },
+  {
+   "id": "sfx/maw_pain#1",
+   "kind": "sfx",
+   "name": "maw_pain",
+   "params": {
+    "text": "A giant alien grandma is hit: short indignant rubbery yelp. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d33044172369",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-11T22:38:31",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_pain.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/maw_down#1",
+   "kind": "sfx",
+   "name": "maw_down",
+   "params": {
+    "text": "A giant alien grandma falls: long warbling shriek and a floor-shaking thud. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "01a86caf73da",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-11T22:38:33",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_down.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "sfx/ship_quake#1",
+   "kind": "sfx",
+   "name": "ship_quake",
+   "params": {
+    "text": "A spaceship coming apart far off: groaning metal, a muffled explosion, rattling debris. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1e1caadb4eef",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T22:38:35",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/ship_quake.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/amb_mothership#1",
+   "kind": "sfx",
+   "name": "amb_mothership",
+   "params": {
+    "text": "Inside a junky alien mothership: low engine drone, ticking hull, bubbling tanks, a faint distant moo. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 12,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ded10915bc42",
+   "reserved": 485,
+   "status": "settled",
+   "started": "2026-11-11T22:38:37",
+   "actual": 133,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/amb_mothership.mp3",
+   "bytes": 289688
+  },
+  {
+   "id": "sfx/maw_intro#1",
+   "kind": "sfx",
+   "name": "maw_intro",
+   "params": {
+    "text": "A menacing cowpunk riff with a theremin wail and a slammed screen door: final boss arrival sting. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e8cc5ad27f09",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-11T22:38:41",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_intro.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/maw_end#1",
+   "kind": "sfx",
+   "name": "maw_end",
+   "params": {
+    "text": "A huge triumphant cowpunk final chord with a falling theremin and a cymbal crash: the last boss is down. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 3.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6af2918628b4",
+   "reserved": 125,
+   "status": "settled",
+   "started": "2026-11-11T22:38:44",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/maw_end.mp3",
+   "bytes": 73394
+  },
+  {
+   "id": "sfx/range_gong#1",
+   "kind": "sfx",
+   "name": "range_gong",
+   "params": {
+    "text": "A steel gong target struck by a rifle bullet at 20 yards: bright metallic clang ringing out, outdoors. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2d368a747620",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-11T22:38:46",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_gong.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/range_board_hit#1",
+   "kind": "sfx",
+   "name": "range_board_hit",
+   "params": {
+    "text": "A bullet punching through a plywood bullseye target on a wooden stand: dry crack and a wobble of the stand. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "81de21fd67ee",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-11T22:38:48",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_board_hit.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/range_pin_scatter#1",
+   "kind": "sfx",
+   "name": "range_pin_scatter",
+   "params": {
+    "text": "Bowling pins scattering on a wooden lane, a full strike: hollow wooden clatter. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a52ea6e9c841",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-11T22:38:49",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_pin_scatter.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/range_dummy_thwack#1",
+   "kind": "sfx",
+   "name": "range_dummy_thwack",
+   "params": {
+    "text": "A crowbar thwacking a straw-stuffed feed-sack dummy: dull burlap thump with straw rustle. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a07edef8450f",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-11T22:38:52",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_dummy_thwack.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/range_strike#1",
+   "kind": "sfx",
+   "name": "range_strike",
+   "params": {
+    "text": "A county-fair bell and a short brass \"ta-da\" for a bowling strike, cheerful and cheap. Tiny, dry, clean, tactile 1990s PC game interface sound. No music, no voice.",
+    "duration_seconds": 1.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a5cc13424059",
+   "reserved": 65,
+   "status": "settled",
+   "started": "2026-11-11T22:38:53",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_strike.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "sfx/range_gallery_ding#1",
+   "kind": "sfx",
+   "name": "range_gallery_ding",
+   "params": {
+    "text": "A tin shooting-gallery duck knocked flat: a high tin ping and a spring clack. Tiny, dry, clean, tactile 1990s PC game interface sound. No music, no voice.",
+    "duration_seconds": 0.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e05659804ab3",
+   "reserved": 21,
+   "status": "failed",
+   "started": "2026-11-11T22:38:56",
+   "actual": 5,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.4.'}}"
+  },
+  {
+   "id": "sfx/range_gallery_buzzer#1",
+   "kind": "sfx",
+   "name": "range_gallery_buzzer",
+   "params": {
+    "text": "An old carnival game buzzer ending the round: a rattly electric buzz. Tiny, dry, clean, tactile 1990s PC game interface sound. No music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "88b451f62d52",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-11T22:38:56",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_gallery_buzzer.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/range_lever#1",
+   "kind": "sfx",
+   "name": "range_lever",
+   "params": {
+    "text": "A heavy iron release lever thrown on a fence-post switch box: clunk and ratchet. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a4d31c5267e4",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-11T22:38:58",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_lever.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/lever_clunk#1",
+   "kind": "sfx",
+   "name": "lever_clunk",
+   "params": {
+    "text": "A big knife-switch lever on a steel control box thrown down hard: heavy clunk and a spring twang. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "32f0bb70434d",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-11T22:39:00",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/lever_clunk.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/range_pen_gate#1",
+   "kind": "sfx",
+   "name": "range_pen_gate",
+   "params": {
+    "text": "A wooden livestock pen gate banging open on its chain. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ae490d50040f",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-11T22:39:02",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_pen_gate.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/chain_rattle#1",
+   "kind": "sfx",
+   "name": "chain_rattle",
+   "params": {
+    "text": "A heavy chain and padlock on a gate yanked and rattled, locked tight. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "358c628351fe",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-11T22:39:04",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/chain_rattle.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/amb_range#1",
+   "kind": "sfx",
+   "name": "amb_range",
+   "params": {
+    "text": "A thin county-fair crowd at dusk far off: murmur, a distant calliope, crickets, the odd whoop. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 20,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "999743da91ef",
+   "reserved": 805,
+   "status": "settled",
+   "started": "2026-11-11T22:39:06",
+   "actual": 221,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/amb_range.mp3",
+   "bytes": 481532
+  },
+  {
+   "id": "sfx/range_gallery_ding#2",
+   "kind": "sfx",
+   "name": "range_gallery_ding",
+   "params": {
+    "text": "A tin shooting-gallery duck knocked flat: a high tin ping and a spring clack. Tiny, dry, clean, tactile 1990s PC game interface sound. No music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a964f4307423",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-11T22:40:24",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/range_gallery_ding.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "reconcile@2026-11-11T22:41:30",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -2422,
+   "actual": -3973,
    "basis": "account",
-   "balance_after": 39488
+   "balance_after": 63810
   }
  ],
  "anchor": {
@@ -8359,7 +11507,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-11T16:44:26",
-  "account_drop": 34765
+  "when": "2026-11-11T22:41:30",
+  "account_drop": 59087
  }
 }

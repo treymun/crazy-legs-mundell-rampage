@@ -1,0 +1,25 @@
+{
+ "text": "That's a floodlight, Earl",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.18,
+   "end": 0.42
+  },
+  {
+   "text": "a",
+   "start": 0.48,
+   "end": 0.52
+  },
+  {
+   "text": "floodlight,",
+   "start": 0.58,
+   "end": 1.22
+  },
+  {
+   "text": "Earl",
+   "start": 1.36,
+   "end": 1.78
+  }
+ ]
+}

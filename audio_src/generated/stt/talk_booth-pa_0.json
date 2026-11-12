@@ -1,0 +1,25 @@
+{
+ "text": "Lap forty-seven, Boggs leads",
+ "words": [
+  {
+   "text": "Lap",
+   "start": 0.16,
+   "end": 0.38
+  },
+  {
+   "text": "forty-seven,",
+   "start": 0.52,
+   "end": 1.28
+  },
+  {
+   "text": "Boggs",
+   "start": 1.4,
+   "end": 1.8
+  },
+  {
+   "text": "leads",
+   "start": 1.88,
+   "end": 2.28
+  }
+ ]
+}
