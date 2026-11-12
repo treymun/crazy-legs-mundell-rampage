@@ -554,7 +554,7 @@ func juke_wall() -> Paint.Sheet:
 		func(x: int, y: int) -> Vector3:
 			var board := y / 16
 			var row := y % 16
-			var c: Vector3 = paints[(board + (1 if x >= 64 else 0) * 3) % paints.size()]
+			var c: Vector3 = paints[board % paints.size()]
 			var n := g[y * S + x]
 			if n > .68:
 				c = Vector3(110, 92, 72)

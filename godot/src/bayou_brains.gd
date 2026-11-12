@@ -86,6 +86,10 @@ static func tick(e: Enemy, dt: float, game) -> bool:
 			if call_gators(game, e.x, e.y, 13.0) > 0:
 				game.message("CHUM'S IN THE WATER! GATORS COMIN'.", 2.4)
 				game.sound_at("chum_holler", e.x, e.y, .9)
+	if not e.has_meta("settled"):
+		# Already down in the water when the chapter starts, not sinking into it.
+		e.set_meta("settled", true)
+		e.sunk = want
 	var was := e.sunk
 	e.sunk = move_toward(e.sunk, want, dt * (4.0 if want < e.sunk else 1.2))
 	if was > e.height * .5 and e.sunk <= e.height * .5:
