@@ -1,4 +1,4 @@
-## Stillwater Cut, rebuilt (layout 2): a limestone quarry with a bootleg
+## Stillwater Cut, rebuilt (layout 3): a limestone quarry with a bootleg
 ## works hidden in it, chalk on everything, a cold blue sky. The county weigh
 ## station in the south and the haul road up; the cut yard with its blocks,
 ## rigs and the crusher; the cutting shed west (disengage the cutting feed)
@@ -42,7 +42,7 @@ func make() -> Builder:
 		"ending": '"WEIGHT INCLUDES CONTENTS AND DEBTS."',
 		"score": "quarry_score",
 		"ambience": "quarry",
-		"layout": 2,
+		"layout": 3,
 		"sky": "quarry_sky",
 		"control_name": "QUARRY FEEDS ISOLATED",
 		"extraction":
@@ -282,7 +282,10 @@ func chalk_terraces() -> void:
 	b.town("drill_rig", 22.5, 27.5, {"solid": .45})
 	for k in 8:
 		b.mark("detail_wear_chalk", 8.0 + k * 3.5, 5.0 + (k % 4) * 7.0, k * .9, 1.4, 1.0)
-	# The dynamite shack on the top bench.
+	# The dynamite shack on the top bench. Roof and door heights count from the
+	# map's zero, not the floor, so both carry the bench's 2.16: 2.4 of room
+	# under the roof (the powder shelf is 2.25 tall), a door the usual 1.85.
+	# The warning sign hangs on the front wall beside the door.
 	b.building(
 		8,
 		2,
@@ -291,16 +294,16 @@ func chalk_terraces() -> void:
 		powder,
 		{
 			"wall": "quarry_shed",
-			"roof": 2.2,
+			"roof": 4.56,
 			"floor": "quarry_shed",
 			"light": .7,
 			"skin": "quarry_shed"
 		}
 	)
 	b.raise(9, 3, 15, 6, 2.16)
-	b.door(16, 5, true, {"from": "w", "id": "powder-door"})
+	b.door(16, 5, true, {"from": "w", "id": "powder-door", "roof": 4.01})
 	b.raise(16, 5, 16, 5, 2.16)
-	b.board("quarry_blast", 16.06, 3.5, .7, {"z": 3.0, "plane": -PI / 2})
+	b.board("quarry_blast", 17.06, 3.5, .7, {"z": 1.3, "plane": -PI / 2})
 	b.town("tnt_crate", 10.5, 4.5, {"solid": .4})
 	b.town("tnt_crate", 13.5, 3.5, {"solid": .4})
 	b.prop("lamp", 12.0, 5.0)

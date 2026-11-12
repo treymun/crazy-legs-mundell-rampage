@@ -175,6 +175,17 @@
 		"x": 65.506,
 		"y": 79.389
 	},
+	"v7_quarry_replay_layout2.json": {
+		"alive": 43,
+		"health": 100.0,
+		"kills": 0,
+		"level": "quarry",
+		"replay": true,
+		"reserve": 159,
+		"retained": [],
+		"x": 64.5,
+		"y": 81.5
+	},
 	"v7_sawmill_slot.json": {
 		"alive": 44,
 		"health": 100.0,
@@ -186,5 +197,17 @@
 		"retained": [],
 		"x": 64.956,
 		"y": 79.999
+	},
+	"v7_sawmill_slot_layout2.json": {
+		"alive": 44,
+		"health": 100.0,
+		"kills": 0,
+		"label": "OLD SLOT",
+		"level": "sawmill",
+		"replay": false,
+		"reserve": 30,
+		"retained": [],
+		"x": 64.5,
+		"y": 81.5
 	}
 }

@@ -1,4 +1,4 @@
-## Blackwater Timber, rebuilt (layout 2): a mill in the rain. The delivery
+## Blackwater Timber, rebuilt (layout 3): a mill in the rain. The delivery
 ## yard and truck scale in the south; the flooded log pond in the middle,
 ## crossed on boardwalks; the west bank's sluice house (isolate the west feed)
 ## by the loggers' bunkhouse and the flume; the east bank's green chain sort
@@ -38,7 +38,7 @@ func make() -> Builder:
 		"ending": '"CLOCK OUT. LEAVE THE BOOTS OUTSIDE."',
 		"score": "mill_score",
 		"ambience": "mill",
-		"layout": 2,
+		"layout": 3,
 		"sky": "mill_sky",
 		"control_name": "SLUICE FEED AND DRY-KILN BELT",
 		"objective_side_tasks": ["brake"],
@@ -262,7 +262,11 @@ func west_bank() -> void:
 
 
 func bunkhouse() -> void:
-	b.yard(4, 2, 35, 28, "mill_grit", bunk)
+	# The yard goes round the sluice house west_bank() built (6,16 to 18,25) and
+	# the dry alcove behind it, north, east and south of them, so their walls stand.
+	b.yard(4, 2, 35, 15, "mill_grit", bunk)
+	b.yard(19, 16, 35, 28, "mill_grit", bunk)
+	b.yard(4, 26, 18, 28, "mill_grit", bunk)
 	b.fence(36, 2, 36, 5, 1.6, "mill_log")
 	b.building(
 		6,
@@ -593,7 +597,7 @@ func cast() -> void:
 		["chain_hand", 12.5, 21.5, "sluice-chain"],
 		["billy", 26.0, 61.0, "bank-billy"],
 		["lantern", 7.0, 40.0, "flume-lantern"],
-		["coot", 14.0, 16.0, "bunk-coot"],
+		["coot", 14.0, 15.0, "bunk-coot"],
 		["billy", 25.0, 20.0, "bunk-billy"],
 		["clone", 11.5, 10.0, "bunkroom-clone"],
 		["skeeter", 30.0, 12.0, "outhouse-skeeter"],
