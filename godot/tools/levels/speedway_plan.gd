@@ -483,7 +483,7 @@ func pit_row() -> void:
 		"TANKS DUMPED. THE CARS ARE RUNNING ON FUMES.",
 		{"sectors": [pits, depot], "cue": "pressure_vent", "action": "crank"}
 	)
-	b.board("mill_control", 74.5, 1.04, 1.1, {"signal": "pits", "z": .1, "plane": 0.0})
+	b.quest("quest_fuel_dump", 74.5, 1.5, "pits")
 	for y in range(1, 6):
 		for x in range(65, 84):
 			if b.area[b.at(x, y)] == pits:
@@ -556,8 +556,8 @@ func figure_eight() -> void:
 		"GREEN FLAG! BUMPER BOGGS IS ROLLIN'. TAKE HIM APART.",
 		{"requires": ["pits", "crusher", "booth"], "opens": [[89, 39], [89, 51]], "cue": "gate"}
 	)
-	b.board("mill_control", 88.5, 37.96, .9, {"signal": "flag", "z": .1, "plane": PI})
-	b.board("mill_exit", 74.5, 62.06, 1.2, {"signal": "exit", "z": .0, "plane": 0.0})
+	b.quest("quest_flag", 88.5, 37.5, "flag")
+	b.quest("quest_exit_flag", 74.5, 62.5, "exit")
 	b.town("floodlight_tower", 84.5, 32.5, {"solid": .25, "glow": true})
 	b.town("floodlight_tower", 84.5, 58.5, {"solid": .25, "glow": true})
 	b.glow(89.5, 45.5, 12.0, .28)
@@ -609,7 +609,7 @@ func grandstands() -> void:
 		"PA: BUMPER BOGGS, GET YOUR RUST BUCKET TO THE FIGURE 8!",
 		{"sectors": [figure8, booth], "cue": "menu_accept"}
 	)
-	b.board("mill_relay", 74.5, 76.78, .7, {"signal": "booth", "z": .58, "plane": 0.0})
+	b.quest("quest_pa_rig", 74.5, 76.75, "booth", {"z": .58, "scale": .55})
 	b.town("pa_horns", 74.5, 78.5, {"z": 2.3})
 	b.prop("lamp", 73.0, 78.0)
 	b.glow(74.5, 78.0, 3.0, .2)
@@ -709,7 +709,7 @@ func salvage_yard() -> void:
 		"BOGGS' BACKUP CAR IS A PANCAKE. THE BACK GATE'S OPEN.",
 		{"opens": [[129, 71]], "sectors": [crusher_yard, salvage], "cue": "mill_trip"}
 	)
-	b.board("mill_brake", 137.64, 31.0, .8, {"signal": "crusher", "z": .3, "plane": -PI / 2})
+	b.quest("quest_switch_speedway", 138.5, 30.45, "crusher")
 	b.board("speedway_crusher_warn", 136.5, 29.95, .6, {"z": 1.5, "plane": PI})
 	b.board("speedway_junk_sign", 121.5, 18.0, .8, {"z": 2.45, "plane": -PI / 2})
 	b.town("floodlight_tower", 122.5, 33.5, {"solid": .25, "glow": true})

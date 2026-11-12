@@ -82,15 +82,12 @@ func _init() -> void:
 		"ship_jukebox_note": note_card("JUKEBOX", "1 COW = 3 SONGS"),
 		"ship_shine_note": note_card("FUEL", "SHINE ONLY. NO DIESEL"),
 	}
-	# Station boards: dark until their job is done, then lit.
-	for pair in [
-		["ship_valve", "SHINE VALVE"],
-		["ship_chiller", "TUBE RELEASE"],
-		["ship_iris", "CORE IRIS"],
-		["ship_launch", "LAUNCH"],
-	]:
-		signs[pair[0] + "_off"] = station_board(String(pair[1]), false)
-		signs[pair[0] + "_on"] = station_board(String(pair[1]), true)
+	# The station boards are modelled quest consoles now (build_quest_art.gd).
+	# They are still drawn, and dropped, so the pictures after them roll the
+	# same dice and come out as they always have.
+	for title in ["SHINE VALVE", "TUBE RELEASE", "CORE IRIS", "LAUNCH"]:
+		station_board(title, false)
+		station_board(title, true)
 	signs["mark_slam"] = slam_mark()
 	signs["mark_beam"] = beam_mark()
 	signs["fx_beam_column"] = beam_column()

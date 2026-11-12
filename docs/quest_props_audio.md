@@ -6,6 +6,6 @@ spend ElevenLabs credits on them, or to make them in `assets.gd` MADE_CUES.
 
 | Cue | When it plays | Why it would help |
 | --- | --- | --- |
-| `chain_rattle` | USE on an exit that is still locked (`EXIT LOCKED`), or on a locked Crossroads gate | The exit sign and the gate barricade now show a chain and padlock; today the press plays `empty` (a dry click), which sounds like a gun, not a lock |
-| `lever_clunk` | A station's lever is thrown (the stations that use the default `menu_accept` cue) | The control boxes now show a knife lever that drops to OFF; a heavy clunk would sell it. Stations with their own cue (`mill_isolate`, `scenery_scrap`, `scenery_pipe`) keep theirs |
+| `chain_rattle` | USE on an exit that is still locked (`EXIT LOCKED`), or on a locked Crossroads gate | The exit signal post's barrier arm and the gate barricade show a chain and padlock; today the press plays `empty` (a dry click), which sounds like a gun, not a lock |
+| `lever_clunk` | A station's lever is thrown (the stations that use the default `menu_accept` cue) | The modelled control boxes, relay cabinet and brake show a big lever that is thrown and tagged; a heavy clunk would sell it. Stations with their own cue (`mill_isolate`, `scenery_scrap`, `scenery_pipe`) keep theirs |
 | `pickup_key` | A key or the patch lead is picked up | They have no sound of their own; a jingle would mark the objective step |

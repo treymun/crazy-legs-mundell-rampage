@@ -237,7 +237,7 @@ func west_bank() -> void:
 		"WEST FEED ISOLATED. SERVICE GATE OPEN.",
 		{"opens": [[36, 17]], "sectors": [west], "cue": "mill_isolate"}
 	)
-	b.board("mill_control", 9.5, 24.1, 1.12, {"signal": "west"})
+	b.quest("quest_switch", 9.5, 24.45, "west")
 	b.board("mill_west_arrow", 12.0, 15.96, .6, {"z": 1.6, "plane": PI})
 	b.fixture(13.0, 23.2, 17.0, 24.0, 1.0, "mill_pump", "tin")
 	b.board("detail_sluice_winder", 15.0, 23.6, .5, {"z": 1.0})
@@ -390,8 +390,7 @@ func dry_kilns() -> void:
 		"KILN STOPPED. THE RETURN SHUTTER IS OPEN.",
 		{"opens": [[92, 17]], "sectors": [east, kilns], "cue": "brake_ratchet", "action": "strike"}
 	)
-	b.board("mill_control", 101.5, 22.6, 1.11, {"signal": "east"})
-	b.board("wing_mill_belt", 97.5, 20.2, .8, {"z": 1.2, "plane": 0.0, "signal": "east"})
+	b.quest("quest_estop", 101.5, 22.5, "east")
 	b.board("mill_east_arrow", 124.0, 28.6, .6, {"z": 1.0, "plane": 0.0})
 	b.board("detail_kiln_duct", 116.6, 14.04, .5, {"z": 1.0, "plane": 0.0})
 	for p in [Vector2(98.5, 25.5), Vector2(122.5, 25.5), Vector2(124.5, 16.5)]:
@@ -491,7 +490,7 @@ func cutting_shed() -> void:
 			"cue": "brake_ratchet"
 		}
 	)
-	b.board("mill_brake", 63.0, 22.1, .98, {"signal": "brake"})
+	b.quest("quest_brake", 63.0, 22.5, "brake")
 	b.board("mill_saw", 52.5, 17.0, 1.0, {"z": 2.0})
 	b.board("detail_carriage_tools", 69.4, 21.0, .5, {"z": .7})
 	for p in [Vector2(42.5, 24.5), Vector2(86.5, 24.5), Vector2(44.5, 9.5), Vector2(84.5, 9.5)]:
@@ -530,7 +529,7 @@ func cutting_shed() -> void:
 			"cue": "mill_trip"
 		}
 	)
-	b.board("mill_relay", 63.0, 7.1, 1.54, {"signal": "relay"})
+	b.quest("quest_relay", 63.0, 7.55, "relay")
 	b.board("mill_pump_sign", 64.0, 14.6, .7, {"z": 1.6, "plane": 0.0})
 	b.board("detail_pump_manifold", 68.0, 7.06, .5, {"z": .8, "plane": 0.0})
 	b.secret(71, 11, true, [72, 10, 73, 12], {"from": "w", "id": "pump-cache", "tile": "mill_pump"})
@@ -554,7 +553,7 @@ func cutting_shed() -> void:
 func loading_apron() -> void:
 	b.yard(37, 1, 91, 5, "concrete", apron)
 	b.paint(40, 2, 88, 4, "tracks")
-	b.board("mill_exit", 39.5, 1.6, .78, {"z": .71, "plane": 0.0, "signal": "exit"})
+	b.quest("quest_exit", 39.5, 1.6, "exit")
 	b.town("lumber_cart", 45.5, 3.5, {"solid": .45})
 	b.town("forklift", 82.5, 3.5, {"solid": .45})
 	b.board("detail_apron_blade_rack", 70.0, 1.4, .5, {"plane": 0.0})

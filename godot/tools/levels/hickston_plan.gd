@@ -861,7 +861,7 @@ func livestock_lots() -> void:
 			}
 		)
 	)
-	b.board("wing_town_hatch", 81.2, 21.9, .47, {"z": .53, "plane": PI, "signal": "stock-gate"})
+	b.quest("quest_bolt", 81.5, 21.5, "stock-gate")
 	# Through to the registry yard: a cattle gate.
 	b.door(92, 22, false, {"from": "n", "tile": "gate", "id": "cattle-gate", "roof": 0.0})
 	# Pens: rails in rows with gaps to slip through.
@@ -1193,8 +1193,8 @@ func town_detail() -> void:
 	for p in [Vector2(140.5, 3.5), Vector2(146.5, 3.5), Vector2(140.5, 7.5), Vector2(146.5, 7.5)]:
 		b.town("pylon", p.x, p.y, {"solid": .15, "glow": true})
 		b.glow(p.x, p.y, 2.0, .2)
-	# Where the station levers are: a sign that lights when it is thrown.
-	b.board("wing_town_hatch", 90.06, 26.65, .47, {"z": .6, "plane": -PI / 2, "signal": "yard-bar"})
+	# Where the station levers are: the gate bolt, its lamp green once drawn.
+	b.quest("quest_bolt", 90.5, 26.5, "yard-bar")
 	b.glow(90.4, 25.5, 2.0, .2)
 	b.glow(80.5, 21.2, 2.0, .2)
 	# False fronts on Main Street.

@@ -176,13 +176,18 @@ func town_on_wall(name: String, x: float, y: float, side: String, z: float, o :=
 
 ## A modelled prop standing in the middle of its cell with a base that is in
 ## the way, the base on whatever floor the cell has (town()'s own sits at 0,
-## which shows over a sunken floor).
+## which shows over a sunken floor). o.quest: a quest prop lit by that station.
 func stand(name: String, x: float, y: float, r := .42, o := {}) -> void:
 	var px := floorf(x) + .5
 	var py := floorf(y) + .5
 	var floor_z: float = b.ground[b.at(int(x), int(y))]
 	b.fixture(px - r, py - r, px + r, py + r, floor_z + .05, "ship_hull", "ship_grate", floor_z)
-	b.town(name, px, py, o)
+	if o.has("quest"):
+		var opts := o.duplicate()
+		opts.erase("quest")
+		b.quest(name, px, py, String(o["quest"]), opts)
+	else:
+		b.town(name, px, py, o)
 
 
 ## A desk-high box standing on the cell's own floor (a plinth, a cradle, a desk).

@@ -387,6 +387,214 @@
 		0.44,
 		1.55
 	],
+	"quest_bell_off": [
+		1.02,
+		1.49
+	],
+	"quest_bell_on": [
+		1.02,
+		1.49
+	],
+	"quest_bolt_off": [
+		0.84,
+		1.34
+	],
+	"quest_bolt_on": [
+		0.84,
+		1.34
+	],
+	"quest_brake_off": [
+		1.16,
+		1.33
+	],
+	"quest_brake_on": [
+		1.16,
+		1.33
+	],
+	"quest_condenser_off": [
+		0.72,
+		1.34
+	],
+	"quest_condenser_on": [
+		0.72,
+		1.34
+	],
+	"quest_estop_off": [
+		0.57,
+		1.35
+	],
+	"quest_estop_on": [
+		0.57,
+		1.35
+	],
+	"quest_exit_fair_off": [
+		1.13,
+		1.68
+	],
+	"quest_exit_fair_on": [
+		1.13,
+		1.68
+	],
+	"quest_exit_flag_off": [
+		0.84,
+		1.7
+	],
+	"quest_exit_flag_on": [
+		0.84,
+		1.7
+	],
+	"quest_exit_off": [
+		1.13,
+		1.68
+	],
+	"quest_exit_on": [
+		1.13,
+		1.68
+	],
+	"quest_flag_off": [
+		0.69,
+		1.39
+	],
+	"quest_flag_on": [
+		0.69,
+		1.39
+	],
+	"quest_fuel_drum_off": [
+		1.12,
+		1.12
+	],
+	"quest_fuel_drum_on": [
+		1.12,
+		1.12
+	],
+	"quest_fuel_dump_off": [
+		0.69,
+		1.35
+	],
+	"quest_fuel_dump_on": [
+		0.69,
+		1.35
+	],
+	"quest_generator_off": [
+		1.16,
+		1.39
+	],
+	"quest_generator_on": [
+		1.16,
+		1.39
+	],
+	"quest_ignition_off": [
+		0.45,
+		1.29
+	],
+	"quest_ignition_on": [
+		0.45,
+		1.29
+	],
+	"quest_latch_off": [
+		1.32,
+		1.17
+	],
+	"quest_latch_on": [
+		1.32,
+		1.17
+	],
+	"quest_pa_rig_off": [
+		0.86,
+		1.53
+	],
+	"quest_pa_rig_on": [
+		0.86,
+		1.53
+	],
+	"quest_patchbay_off": [
+		0.67,
+		1.34
+	],
+	"quest_patchbay_on": [
+		0.67,
+		1.34
+	],
+	"quest_relay_off": [
+		0.77,
+		1.34
+	],
+	"quest_relay_on": [
+		0.77,
+		1.34
+	],
+	"quest_ship_drain_off": [
+		0.57,
+		1.36
+	],
+	"quest_ship_drain_on": [
+		0.57,
+		1.36
+	],
+	"quest_ship_drive_off": [
+		0.78,
+		1.37
+	],
+	"quest_ship_drive_on": [
+		0.78,
+		1.37
+	],
+	"quest_ship_iris_off": [
+		0.72,
+		1.15
+	],
+	"quest_ship_iris_on": [
+		0.72,
+		1.15
+	],
+	"quest_ship_launch_off": [
+		0.66,
+		1.33
+	],
+	"quest_ship_launch_on": [
+		0.66,
+		1.33
+	],
+	"quest_switch_bayou_off": [
+		0.61,
+		1.36
+	],
+	"quest_switch_bayou_on": [
+		0.61,
+		1.36
+	],
+	"quest_switch_fair_off": [
+		0.63,
+		1.34
+	],
+	"quest_switch_fair_on": [
+		0.63,
+		1.34
+	],
+	"quest_switch_off": [
+		0.63,
+		1.35
+	],
+	"quest_switch_on": [
+		0.63,
+		1.35
+	],
+	"quest_switch_speedway_off": [
+		0.63,
+		1.34
+	],
+	"quest_switch_speedway_on": [
+		0.63,
+		1.34
+	],
+	"quest_valve_off": [
+		0.7,
+		1.22
+	],
+	"quest_valve_on": [
+		0.7,
+		1.22
+	],
 	"race_car_0": [
 		1.21,
 		1.09

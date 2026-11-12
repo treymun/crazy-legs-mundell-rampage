@@ -175,17 +175,23 @@ func door(
 
 ## One of the modelled props stood at (x, y); `solid` gives it a base that
 ## blocks the way at the floor (a sliver over water, not a box in the air).
+## o.quest makes it a quest prop lit by that station (level_builder quest()).
 func stand(name: String, x: float, y: float, solid := 0.0, o := {}) -> void:
+	var px := x
+	var py := y
 	if solid > 0.0:
-		var px := floorf(x) + .5
-		var py := floorf(y) + .5
+		px = floorf(x) + .5
+		py = floorf(y) + .5
 		var g: float = b.ground[b.at(int(x), int(y))]
 		b.fixture(
 			px - solid, py - solid, px + solid, py + solid, g + .04, "bayou_bank", "bayou_mud", g
 		)
-		b.town(name, px, py, o)
+	if o.has("quest"):
+		var opts := o.duplicate()
+		opts.erase("quest")
+		b.quest(name, px, py, String(o["quest"]), opts)
 	else:
-		b.town(name, x, y, o)
+		b.town(name, px, py, o)
 
 
 ## A box standing on the floor of a raised room (fixtures count from 0 up).
@@ -390,7 +396,7 @@ func boil_yard() -> void:
 	b.wall(4, 46, 4, 50, "bayou_shack", 2.6)
 	b.wall(11, 46, 11, 50, "bayou_shack", 2.6)
 	b.room(5, 46, 10, 50, "bayou_mud", d["boil"], {"roof": 2.3, "light": .8})
-	stand("generator", 8.5, 47.5, .45)
+	stand("quest_generator", 8.5, 47.5, .45, {"quest": "generator"})
 	stand("propane_tank", 6.5, 46.5)
 	b.board("bayou_arrow_farm", 13.0, 45.06, .4, {"z": 1.3, "plane": 0.0})
 	# The boil itself: three burners, the long tables, the sacks, the shells.
@@ -889,13 +895,13 @@ func dock() -> void:
 	door(112, 21, true, "e", 0.0, "boathouse-door")
 	stand("airboat", 118.5, 20.5)
 	box(122.2, 16.2, 123.6, 18.0, 1.0, "wood", "counter_top")
-	b.board("mill_exit", 113.2, 23.0, 1.42, {"signal": "exit"})
+	b.quest("quest_ignition", 113.5, 23.5, "exit")
 	for p in [Vector2(114.0, 18.0), Vector2(118.0, 17.0), Vector2(118.0, 23.0)]:
 		b.prop("lamp", p.x, p.y)
 		b.glow(p.x, p.y, 3.0, .2)
 	# The pump on the dock's edge: sugar in it ends the king's fleet.
 	stand("marina_pump", 108.5, 17.5, .3)
-	b.board("mill_control", 109.6, 17.2, 1.1, {"signal": "fuel"})
+	b.quest("quest_fuel_drum", 109.55, 17.55, "fuel")
 	b.board("bayou_airboat_sign", 111.94, 19.0, .7, {"z": 1.5, "plane": PI / 2})
 	stand("propane_tank", 110.5, 30.5, .45)
 	stand("net_rack", 124.5, 30.5, .4)

@@ -22,13 +22,12 @@ static func rail(b: Builder, x0: float, y0: float, x1: float, y1: float, floor_z
 
 
 ## The jobs: spike the drive with shine (east), drain the cow tubes (west),
-## then open the core's iris from the bridge (north). Each at a console the
-## player walks up to, its board above it lit when it is done.
+## then open the core's iris from the bridge (north). Each at a quest
+## console the player walks up to, its lamp dark and its glow green once done.
 static func stations(p) -> void:
 	var b: Builder = p.b
 	# The drive, down in the engine pit: the console west of the engine.
-	p.stand("alien_console", 93.5, 50.5, .42)
-	b.board("ship_valve", 93.88, 50.5, .5, {"z": 1.45, "plane": -PI / 2, "signal": "drive"})
+	p.stand("quest_ship_drive", 93.5, 50.5, .42, {"quest": "drive"})
 	b.station(
 		"drive",
 		94.7,
@@ -38,8 +37,7 @@ static func stations(p) -> void:
 		{"opens": [[73, 23]], "sectors": [p.engine, p.corn], "cue": "mill_trip"}
 	)
 	# The tubes, at the specimen hold's north wall.
-	p.stand("alien_console", 10.5, 62.5, .42)
-	p.on_wall("ship_chiller", 10.5, 62.0, "n", .5, 1.6, {"signal": "tubes"})
+	p.stand("quest_ship_drain", 10.5, 62.5, .42, {"quest": "tubes"})
 	b.station(
 		"tubes",
 		10.5,
@@ -49,8 +47,7 @@ static func stations(p) -> void:
 		{"opens": [[55, 23]], "sectors": [p.specimen], "cue": "pressure_vent"}
 	)
 	# The iris, at the captain's console on the bridge dais.
-	p.stand("alien_console", 64.5, 18.5, .42)
-	b.board("ship_iris", 64.5, 18.88, .5, {"z": 1.45, "plane": 0.0, "signal": "iris"})
+	p.stand("quest_ship_iris", 64.5, 18.5, .42, {"quest": "iris"})
 	b.station(
 		"iris",
 		64.5,
@@ -73,10 +70,10 @@ static func stations(p) -> void:
 		"THE ELF'S HAT IS A LEVER. OF COURSE IT IS.",
 		{"opens": [[40, 12]], "hidden": true, "reveals_secret": true, "cue": "secret_slide"}
 	)
-	# The way home: the escape outhouse on its pad, its board lit once the
-	# core is quiet.
+	# The way home: the escape outhouse on its pad and its launch post, the
+	# button under its cover lit green once the core is quiet.
 	p.stand("escape_outhouse", 70.5, 94.5, .45)
-	p.on_wall("ship_launch", 74.5, 97.0, "s", .5, 1.3, {"signal": "exit"})
+	p.stand("quest_ship_launch", 73.5, 93.5, .3, {"quest": "exit"})
 	p.on_wall("ship_sign_escape", 67.0, 97.0, "s", .7, 2.2)
 
 
@@ -672,7 +669,8 @@ static func _east(p) -> void:
 	p.stand("engine_hoist", 93.5, 59.5, .45)
 	p.stand("generator", 101.5, 59.5, .45)
 	b.table(95.2, 59.2, 97.8, 59.8, .9)
-	b.board("ship_shine_note", 93.88, 51.25, .3, {"z": .9, "plane": -PI / 2})
+	# The fuel rule on the pit rail by the way down to the drive.
+	b.board("ship_shine_note", 90.74, 48.5, .3, {"z": .62, "plane": -PI / 2})
 	p.on_wall("ship_sign_engine", 84.0, 46.0, "w", .7, 2.4)
 	p.on_wall("ship_glyphs_a", 97.0, 39.0, "n", .5, 2.0)
 	for d in [Vector2(85.5, 52.5), Vector2(108.5, 47.5)]:

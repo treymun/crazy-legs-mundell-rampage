@@ -170,8 +170,9 @@ func midway_strip() -> void:
 	b.paint(58, 44, 70, 50, "porch")
 	b.raise(62, 46, 66, 48, .12)
 	b.paint(62, 46, 66, 48, "floor_tile")
-	b.fixture(63.6, 47.1, 64.4, 47.9, 2.4, "fair_iron", "fair_iron", .12)
-	b.board("fair_bell", 64.0, 47.0, 1.12, {"signal": "bell", "z": .12})
+	# The bell on its plinth: a frame of its own, nothing hung behind it.
+	b.fixture(63.6, 47.1, 64.4, 47.9, .17, "fair_iron", "fair_iron", .12)
+	b.quest("quest_bell", 64.0, 47.5, "bell", {"z": .05})
 	b.station(
 		"bell",
 		64.5,
@@ -275,7 +276,7 @@ func concession_alley() -> void:
 		"CONCESSION LIVE. NORTH GATE IS OPEN.",
 		{"opens": [[20, 51]], "sectors": [conc, midway], "cue": "breaker_thunk"}
 	)
-	b.board("fair_control", 7.5, 54.1, 1.03, {"signal": "concession"})
+	b.quest("quest_switch_fair", 7.5, 54.5, "concession")
 	b.board("fair_concession_arrow", 50.6, 60.04, .7, {"z": 1.0, "plane": 0.0})
 	b.controlled(
 		20, 51, false, {"from": "s", "id": "concession-shortcut", "tile": "fair_gate", "roof": 0.0}
@@ -446,8 +447,7 @@ func prize_pavilion() -> void:
 			"cue": "broadcast_cut"
 		}
 	)
-	b.board("fair_relay", 63.0, 4.1, 1.47, {"signal": "broadcast", "z": .36})
-	b.board("wing_fair_pa", 66.0, 4.04, .65, {"signal": "broadcast", "z": 1.31, "plane": 0.0})
+	b.quest("quest_pa_rig", 63.5, 4.5, "broadcast")
 	b.board("detail_stage_footlights", 64.0, 9.4, .4, {"z": .18})
 	for x in [58.0, 70.0]:
 		b.town("searchlight", x + .5, 8.5, {"glow": true})
@@ -463,7 +463,7 @@ func service_exit() -> void:
 	b.fence(105, 2, 105, 12, 1.6, "fair_iron")
 	b.paint(92, 3, 101, 10, "concrete")
 	b.raise(98, 3, 101, 5, .36)
-	b.board("fair_exit", 96.5, 4.4, .82, {"z": .72, "plane": 0.0, "signal": "exit"})
+	b.quest("quest_exit_fair", 96.5, 4.5, "exit")
 	b.prop("pickup_truck", 88.5, 5.0)
 	for p in [Vector2(83.5, 10.5), Vector2(84.5, 10.6), Vector2(102.5, 10.5)]:
 		b.crate_stack(p.x, p.y, 1.0)
@@ -591,7 +591,7 @@ func sideshows() -> void:
 			"held": "pa_patch"
 		}
 	)
-	b.board("fair_relay", 123.5, 4.1, 1.28, {"signal": "games"})
+	b.quest("quest_patchbay", 123.5, 4.5, "games")
 	b.board("detail_pa_cable_case", 119.0, 4.0, .5, {"z": .0, "plane": 0.0})
 	b.prop("lamp", 120.0, 6.5)
 	b.distant_cues.append([122.5, 5.5, "distant_fair_pa"])

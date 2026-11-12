@@ -245,7 +245,7 @@ func cutting_shed() -> void:
 		"CUTTING FEED OFF. BENCH SHUTTER OPEN.",
 		{"opens": [[19, 36]], "sectors": [shed], "cue": "mill_isolate"}
 	)
-	b.board("mill_control", 12.5, 37.1, 1.1, {"signal": "stone"})
+	b.quest("quest_switch", 12.5, 37.5, "stone")
 	b.fixture(14.0, 39.0, 26.0, 40.0, 1.2, "quarry_iron", "quarry_iron", .48)
 	b.town("saw_blade", 20.5, 42.5, {"solid": .45})
 	b.town("crusher", 25.5, 48.5, {"solid": .45})
@@ -381,7 +381,7 @@ func lower_cut() -> void:
 		"OPEN CUT TO THE BOTTLE WASH.",
 		{"opens": [[125, 66]], "hidden": true, "cue": "scenery_pipe"}
 	)
-	b.board("wing_quarry_latch", 116.5, 65.4, .48, {"z": .64, "plane": 0.0, "signal": "wash-latch"})
+	b.quest("quest_latch", 116.5, 65.5, "wash-latch")
 	b.wall(125, 64, 125, 65, "quarry_face", 2.0)
 	b.wall(125, 67, 125, 68, "quarry_face", 2.0)
 	b.controlled(
@@ -458,8 +458,7 @@ func condenser_yard() -> void:
 			"action": "crank"
 		}
 	)
-	b.board("mill_control", 121.5, 6.4, 1.26, {"signal": "stills"})
-	b.board("wing_quarry_condenser", 118.0, 5.5, .73, {"signal": "stills", "z": 1.12})
+	b.quest("quest_condenser", 121.5, 6.5, "stills")
 	b.board("detail_still_gauge_bank", 122.5, 11.6, .5)
 	b.board("wing_quarry_still", 104.0, 2.06, .8, {"z": 1.2, "plane": 0.0})
 	b.distant_cues.append([104.5, 11.5, "distant_quarry_bottler"])
@@ -559,7 +558,7 @@ func bottling_works() -> void:
 			"cue": "mill_trip"
 		}
 	)
-	b.board("mill_relay", 63.0, 7.1, 1.46, {"signal": "bottling"})
+	b.quest("quest_relay", 63.0, 7.55, "bottling")
 	b.exchanges.append(
 		{
 			"id": "line-speaker",
@@ -625,9 +624,9 @@ func loading_court() -> void:
 		"RELIEF OPEN. FEWER OUTLETS UNDER PRESSURE.",
 		{"requires": ["bottling"], "cue": "pressure_vent"}
 	)
-	b.board("mill_control", 41.5, 1.4, .76, {"signal": "relief-west"})
-	b.board("mill_control", 84.5, 1.4, .76, {"signal": "relief-east"})
-	b.board("mill_exit", 86.5, 1.3, 1.42, {"signal": "exit"})
+	b.quest("quest_valve", 41.5, 1.5, "relief-west")
+	b.quest("quest_valve", 84.5, 1.5, "relief-east")
+	b.quest("quest_exit", 86.6, 1.6, "exit")
 	for p in [Vector2(48.5, 3.5), Vector2(56.5, 2.5), Vector2(72.5, 2.5), Vector2(80.5, 3.5)]:
 		b.mark("mark_outlet", p.x, p.y, 0.0, 1.0, 1.0)
 	b.board("quarry_safety", 70.0, 1.06, .7, {"z": 1.0, "plane": 0.0})

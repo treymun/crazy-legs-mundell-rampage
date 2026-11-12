@@ -966,11 +966,12 @@ func exit_ready() -> bool:
 	return stations_done.has(world.extraction.shutdown) and not _wave_alive()
 
 
-## What the objective is done at glows: a station still to do blinks amber at
-## its panel's lamp, a done one shows a small green pilot; the exit is red
-## until the way is clear, then green; a Crossroads gate red while locked,
-## green once open (effects.cfg station_todo, station_done, exit_locked,
-## exit_open, gate_locked, gate_open). A hidden station keeps its secret.
+## What the objective is done at glows a little, as the lamp on the quest prop
+## would: a station still to do warm at its lamp, a done one a small green
+## pilot; the exit red until the way is clear, then green; a Crossroads gate
+## red while locked, green once open (effects.cfg station_todo, station_done,
+## exit_locked, exit_open, gate_locked, gate_open). Steady: the props are
+## modelled whole and read without a blink. A hidden station keeps its secret.
 func _quest_lights() -> Array:
 	var p := player
 	var out: Array = []
@@ -990,7 +991,6 @@ func _quest_lights() -> Array:
 					)
 				)
 		return out
-	var blink := .55 + .45 * sin(clock * 3.2)
 	for station: LevelData.Station in world.stations:
 		if station.hidden or station.reveals_secret:
 			continue
@@ -1004,7 +1004,7 @@ func _quest_lights() -> Array:
 				at.x,
 				at.y,
 				at.z - (.45 if done else 0.0),
-				1.0 if done else blink,
+				1.0,
 				clock
 			)
 		)
@@ -1013,24 +1013,17 @@ func _quest_lights() -> Array:
 		var at: Vector3 = _lamp_at(exit)
 		var open := exit_ready()
 		out.append(
-			Effects.light(
-				"exit_open" if open else "exit_locked",
-				at.x,
-				at.y,
-				at.z,
-				1.0 if open else blink,
-				clock
-			)
+			Effects.light("exit_open" if open else "exit_locked", at.x, at.y, at.z, 1.0, clock)
 		)
 	return out
 
 
-## Where a device's lamp is: on top of its panel (the last of its aim points,
-## its board), else above its own point.
+## Where a device's lamp is: near the top of its quest prop (the last of its
+## aim points, the prop's middle), else above its own point.
 func _lamp_at(device) -> Vector3:
 	var points := aim_points(device)
 	var last: Vector3 = points[points.size() - 1]
-	return Vector3(last.x, last.y, last.z + .35)
+	return Vector3(last.x, last.y, last.z + .5)
 
 
 func finish_level(cue: String) -> void:

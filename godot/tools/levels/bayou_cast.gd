@@ -219,7 +219,7 @@ static func set_pieces(b) -> void:
 		"GENERATOR'S UP. THE WEST DRAWBRIDGE COMES DOWN.",
 		{"opens": [[15, 39]], "sectors": [boil], "cue": "mill_isolate", "action": "crank"}
 	)
-	b.board("mill_control", 6.5, 46.3, 1.1, {"signal": "generator"})
+	# (The generator itself stands under its lean-to: bayou_plan.gd boil_yard.)
 	# The cannery's ice plant breaker: trip it and the hoist bridge drops.
 	b.station(
 		"breaker",
@@ -229,7 +229,7 @@ static func set_pieces(b) -> void:
 		"ICE PLANT'S DEAD. THE HOIST BRIDGE DROPS ON THE CHANNEL.",
 		{"opens": [[104, 39]], "sectors": [cannery], "cue": "mill_trip"}
 	)
-	b.board("mill_control", 116.5, 59.25, 1.1, {"signal": "breaker"})
+	b.quest("quest_switch_bayou", 116.5, 59.5, "breaker")
 	# The fuel: sugar in the king's pump and his fleet is done. He comes.
 	b.station(
 		"fuel",

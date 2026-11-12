@@ -411,6 +411,19 @@ func town(name: String, x: float, y: float, o := {}) -> void:
 	board("town_" + name, px, py, float(size[1]) * float(o.get("scale", 1.0)), options)
 
 
+## A quest prop (tools/art/build_quest_art.gd): a modelled station, exit or
+## gate bolt standing free on the floor, facing whoever looks at it, as
+## town_<name>_off until `signal_name` (a station id, or "exit") is done, then
+## town_<name>_on. o.scale, o.z and o.solid as town() has them. It needs no
+## plank backing and no posts (mount_signs() leaves it alone).
+func quest(name: String, x: float, y: float, signal_name: String, o := {}) -> void:
+	var options := o.duplicate()
+	options["signal"] = signal_name
+	options.erase("plane")
+	town(name + "_off", x, y, options)
+	billboards[billboards.size() - 1]["image"] = "town_" + name
+
+
 ## A block of four free walls standing up off a roof: a chimney, a gable's
 ## step, a spire's stage. Walls only, so it is in nobody's way (a fixture
 ## would block whatever cell it stands over, a doorway included).
@@ -717,7 +730,8 @@ func _clear_along(
 ## down to the ground.
 func mount_signs() -> void:
 	for bd: Dictionary in billboards.duplicate():
-		if bd["plane"] == null:
+		# Quest props are modelled whole and stand on their own feet.
+		if bd["plane"] == null or String(bd["image"]).begins_with("town_quest_"):
 			continue
 		var image := String(bd["image"])
 		var shape := _art_shape(image)
