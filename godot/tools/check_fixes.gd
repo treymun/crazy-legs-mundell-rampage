@@ -622,6 +622,9 @@ func _run() -> void:
 	# The firing range: its title entry, its way out, the campaign untouched.
 	preload("res://tools/range_check.gd").run(main, check)
 
+	# Bullets through planks, the gun and view on springs, marks that stay.
+	preload("res://tools/feel_check.gd").run(main, check)
+
 	# The Mothership, the last chapter, and the true finale after it.
 	_mothership(main)
 	_boss_music(main)

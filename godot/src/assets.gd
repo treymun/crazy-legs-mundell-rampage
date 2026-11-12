@@ -181,6 +181,23 @@ func has_art(name: String) -> bool:
 	return art_index.has(name)
 
 
+## The name of picture `base` faded to `keep` (0 to 1, in eighths) of its
+## strength, made from it the first time it is asked for: marks fading out
+## (features/impacts.gd).
+func faded_art(base: String, keep: float) -> String:
+	var step := clampi(int(keep * 8.0 + .5), 0, 8)
+	if step >= 8:
+		return base
+	var name := "%s~%d" % [base, step]
+	if not _art_cache.has(name):
+		var whole := art(base)
+		var data: PackedByteArray = whole["data"].duplicate()
+		for i in range(3, data.size(), 4):
+			data[i] = data[i] * step / 8
+		_art_cache[name] = {"w": whole["w"], "h": whole["h"], "data": data}
+	return name
+
+
 ## Returns {w, h, data:RGB8} for one of the 512x116 panoramas.
 func sky(name: String) -> Dictionary:
 	var info = sky_index.get(name)

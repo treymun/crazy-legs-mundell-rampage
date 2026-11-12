@@ -183,32 +183,30 @@ func hitscan(
 					if surface_tile != null
 					else renderer.wall_mark(p.x, p.y, p.eye, ax, ay, slope, d)
 				)
-				var surface := ""
-				if mark != null:
-					surface = String(mark.material)
-				else:
-					var tile := int(world.solid[cell])
-					if surface_tile == null and tile < 0:
-						var candidates: Array = world.near_doors.get(Vector2i(ix, iy), [])
-						for door: LevelData.Door in candidates:
-							if door.blocks(x, y, .024):
-								tile = door.material
-								break
-						if tile < 0:
-							tile = int(world.floor_tile[cell])
-					surface = world.impact_surface(
-						int(surface_tile) if surface_tile != null else tile
-					)
+				# What it met (materials.gd): its chips, its sound, its hole. The
+				# face as drawn when there is one (a front's bands are not its cell's).
+				var kind := (
+					Materials.of_tile(world, mark.tile)
+					if mark != null and mark.tile >= 0
+					else Materials.struck(world, x, y, z, surface_tile)
+				)
+				var surface := Materials.coarse(kind)
+				impact_kind = kind
 				if (
 					mark != null
+					and Materials.hole(kind) != ""
 					and (
 						armory.active == Weapons.REVOLVER
 						or armory.active == Weapons.RIFLE
 						or armory.active == Weapons.SHOTGUN
 					)
 				):
+					mark.image = Materials.hole(kind)
+					mark.radius = .09 if kind == "glass" else .051 if kind == "steel" else .060
+					mark.material = surface
+					# features/impacts.gd keeps them to a cap, fading the oldest first.
 					wall_marks.append(mark)
-					if wall_marks.size() > 38:
+					if wall_marks.size() > 160:
 						wall_marks.pop_front()
 				var hit_d: float = (i - .70) * max_range / steps
 				x = p.x + ax * hit_d
@@ -216,12 +214,7 @@ func hitscan(
 				_traced(ax, ay, slope, hit_d, "wall:" + surface)
 				ended = true
 				if specks.size() < 144:
-					var particle := String(
-						(
-							{"wood": "chips", "metal": "spark", "plaster": "powder", "dirt": "soil"}
-							. get(surface, "chips")
-						)
-					)
+					var particle := String(Materials.SPECKS.get(kind, "chips"))
 					var pspeed := float(
 						{"wood": .64, "metal": 1.21, "plaster": .53, "dirt": .48}.get(surface, .64)
 					)
@@ -245,22 +238,20 @@ func hitscan(
 					and clock >= wall_sound
 				):
 					wall_sound = clock + .08
-					var cue := String(
-						(
-							{
-								"wood": "impact_wood",
-								"metal": "ricochet",
-								"plaster": "impact_plaster",
-								"dirt": "impact_dirt"
-							}
-							. get(surface, "impact_wood")
-						)
-					)
+					var cue := String(Materials.CUES.get(kind, "impact_wood"))
 					if armory.active == Weapons.RIVETER:
 						cue = "impact_rivet"
 					elif armory.active == Weapons.PRESSURE:
 						cue = "impact_pressure"
 					sound_at(cue, x, y, .64)
+				# A strong enough round goes on through a thin wall (penetration.gd).
+				if (
+					surface_tile == null
+					and Penetration.pierce(
+						self, ax, ay, slope, d, amount, max_range, spread, pressure
+					)
+				):
+					return true
 				break
 		if not ended:
 			_traced(ax, ay, slope, max_range, "air")

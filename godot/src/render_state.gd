@@ -73,6 +73,8 @@ class WallMark:
 	var image := ""
 	var radius := .06
 	var material := "wood"
+	## The drawn face's tile (-1 when not from a wall): what the hole looks like.
+	var tile := -1
 
 
 class GroundMark:
@@ -757,4 +759,5 @@ func wall_mark(x: float, y: float, z: float, ax: float, ay: float, slope: float,
 	mark.image = "fx_hole_" + kind
 	mark.radius = .051 if kind == "metal" else .060
 	mark.material = material
+	mark.tile = int(w[o + 4])
 	return mark

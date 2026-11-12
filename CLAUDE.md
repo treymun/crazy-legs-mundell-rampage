@@ -341,6 +341,29 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `callouts` (TWOFER, HAT TRICK, HOG WILD, RAMPAGE) and `tally` (rows that
   thud down and a ribbon). Features may add sprites and ground marks; looks-only
   ones use their own dice so play never changes.
+- **What a bullet strikes is a material** (`src/materials.gd`: a level's tile
+  names map to wood, timber, tin, steel, mesh, brick, stone, dirt, brush,
+  glass, rubber, water; `_lit`/`_win` variants are their base). Hitscan sets
+  `impact_kind` before `traced`, picks the speck and sound by it, and gives a
+  hole its picture (`fx_hole_<kind>`); `traced`'s "wall:<surface>" stays the
+  old four. The game's `burst()` spends the game's `rng`, so a strike still
+  bursts the same count it always did. **Penetration is play**
+  (`src/penetration.gd`): a gun with `penetrate` in weapons.cfg goes through
+  that much wall (planks 1.0 a cell, tin .75, wire .25, brush .6; anything
+  else stops it) and hurts the first hand behind for `penetrate_damage`, by
+  the game's own tests, no dice (`pierced` announces it; `tools/feel_check.gd`,
+  run by check_fixes, holds it). `features/impacts.gd` throws the chips and
+  keeps the marks: holes, floor pocks, wall scorches, blood running down from
+  `gore.walls`, each to a cap and a life from effects.cfg `[debris]`, the
+  oldest fading first (`Assets.faded_art`, alpha-scaled copies). Features add
+  wall marks through `wall_marks()`. `features/dust.gd` is gun smoke, boot
+  dust, race-car and derby dust and embers off fires (`dust_cap`), drifting on
+  `[debris] wind_<level>`. `features/feel.gd` puts the gun on springs (sway,
+  each gun's kick from recoil/retreat/view_rise/settle/spring_damp, landing,
+  blows) into `player.weapon_lag` and the view's kick into `view_kick`
+  (game_view.gd adds it to the eye like the shake, never to the aim); VIEW BOB
+  scales sway and landing, SCREEN SHAKE the blows, off means none. Sounds it
+  wants are in `docs/feel_audio.md`.
 - **A level's mood** is `effects.cfg` `[level.<id>]`: fog colour and distance,
   grade, cloud drift, lightning, crows, fireflies; `[anim.<tile>]` makes a sign
   buzz or pulse. All of it is the shader's, behind LIGHTS AND GLOW.

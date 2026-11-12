@@ -2,12 +2,15 @@
 ## dumped on reload and the shotgun's red hulls, tinking where they land;
 ## embers and slow smoke rising off a blast and the black scorch it leaves;
 ## and a wounded varmint's trail of blood. All of it looks only: its own dice,
-## never saved, never in the way. Lifetimes are effects.cfg [debris].
+## never saved, never in the way. Lifetimes are effects.cfg [debris]; the
+## scorches stay a long while (scorch_cap of them), the oldest fading first,
+## and the smoke goes off on the level's wind (wind_<level>).
 extends GameFeature
 
 const GRAVITY := 9.0
 const MAX_BITS := 90
-const MAX_SCORCHES := 14
+## Seconds a scorch takes to fade out once its time is up.
+const FADE := 2.5
 
 
 ## One piece of debris in the air or on the ground.
@@ -27,7 +30,7 @@ class Bit:
 
 var dice := RandomNumberGenerator.new()
 var bits: Array = []
-## [x, y, z, angle, size, frame, made at]
+## [x, y, z, angle, size, frame, made at, fading since (below 0: not yet)]
 var scorches: Array = []
 var _trail_next := 0.0
 
@@ -98,11 +101,10 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 				dice.randf_range(0, TAU),
 				dice.randf_range(.75, 1.05),
 				dice.randi_range(0, 2),
-				game.clock
+				game.clock,
+				-1.0
 			]
 		)
-		if scorches.size() > MAX_SCORCHES:
-			scorches.pop_front()
 	for k in int(Effects.DEBRIS.get("embers", 7)):
 		var ember := Bit.new()
 		ember.kind = "ember"
@@ -128,6 +130,7 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 
 
 func _tick(dt: float) -> void:
+	var wind: Vector2 = Effects.DEBRIS.get("wind_" + game.level.id, Vector2.ZERO)
 	var kept: Array = []
 	for bit: Bit in bits:
 		bit.age += dt
@@ -144,6 +147,8 @@ func _tick(dt: float) -> void:
 				bit.vy *= 1.0 - dt
 			"smoke":
 				bit.size += dt * .35
+				bit.vx += (wind.x - bit.vx) * minf(1.0, dt * 1.5)
+				bit.vy += (wind.y - bit.vy) * minf(1.0, dt * 1.5)
 			_:
 				bit.vz -= GRAVITY * dt
 		var nx := bit.x + bit.vx * dt
@@ -166,11 +171,24 @@ func _tick(dt: float) -> void:
 			else:
 				bit.rest = true
 	bits = kept
-	while (
-		not scorches.is_empty() and game.clock - float(scorches[0][6]) > _life("scorch_life", 60.0)
-	):
-		scorches.pop_front()
+	_age_scorches()
 	_trails()
+
+
+## Past the cap or their life the oldest scorches fade out, then go.
+func _age_scorches() -> void:
+	var over := scorches.size() - int(_life("scorch_cap", 24))
+	var life := _life("scorch_life", 900.0)
+	var k := 0
+	while k < scorches.size():
+		var s: Array = scorches[k]
+		if float(s[7]) < 0.0 and (k < over or game.clock - float(s[6]) > life):
+			s[7] = game.clock
+		if float(s[7]) >= 0.0 and game.clock - float(s[7]) > FADE:
+			scorches.remove_at(k)
+			over -= 1
+			continue
+		k += 1
 
 
 ## A hurt enemy on the move leaves drops behind it.
@@ -228,9 +246,8 @@ func ground_marks() -> Array:
 			(float(s[0]) - p.x) * (float(s[0]) - p.x) + (float(s[1]) - p.y) * (float(s[1]) - p.y)
 			< 100.0
 		):
-			out.append(
-				Renderer.GroundMark.new(
-					s[0], s[1], s[2], s[3], s[4], s[4], "mark_scorch_%d" % int(s[5])
-				)
-			)
+			var picture := "mark_scorch_%d" % int(s[5])
+			if float(s[7]) >= 0.0:
+				picture = game.art.faded_art(picture, 1.0 - (game.clock - float(s[7])) / FADE)
+			out.append(Renderer.GroundMark.new(s[0], s[1], s[2], s[3], s[4], s[4], picture))
 	return out

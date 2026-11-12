@@ -19,6 +19,9 @@ const ALL := [
 	preload("res://src/features/firing_range.gd"),
 	preload("res://src/features/bayou_feature.gd"),
 	preload("res://src/features/mothership.gd"),
+	preload("res://src/features/impacts.gd"),
+	preload("res://src/features/dust.gd"),
+	preload("res://src/features/feel.gd"),
 ]
 
 
@@ -61,6 +64,13 @@ static func ground_marks(game) -> Array:
 	var out: Array = []
 	for key: String in game.features:
 		out.append_array(game.features[key].ground_marks())
+	return out
+
+
+static func wall_marks(game) -> Array:
+	var out: Array = []
+	for key: String in game.features:
+		out.append_array(game.features[key].wall_marks())
 	return out
 
 

@@ -143,6 +143,9 @@ static func load_tuning() -> void:
 		"strafe": Tuning.value(path, "sway_strafe"),
 		"limit": Tuning.value(path, "sway_limit"),
 		"land": Tuning.value(path, "land_dip"),
+		"hz": Tuning.value(path, "sway_hz"),
+		"damp": Tuning.value(path, "sway_damp"),
+		"spring_damp": Tuning.value(path, "spring_damp"),
 	}
 	DYNAMITE_FUSE = Tuning.value(path, "dynamite_fuse")
 	SHOTGUN_DAMAGE = Tuning.value(path, "shotgun_damage")
@@ -605,13 +608,12 @@ class Armory:
 	## Compose one viewmodel frame into `frame` (320x200 RGB8).
 	## `light` is the cell light, `bob`/`flashes` the presentation scales and
 	## `offset` the vertical nudge used by the weapon-view option.
-	## Where the gun in hand is held on the view this frame: walking, recoil,
-	## the raise, a reload's sway, the gun's weight, the lowered view.
+	## Where the gun in hand is held on the view this frame: walking, the raise,
+	## a reload's sway, the lowered view, and (player.weapon_lag, from
+	## features/feel.gd's springs) its weight, its kick and its jolts.
 	func _hold(player, bob: float, offset: int) -> Vector2:
 		var i := active
 		var gait: float = player.motion * (0.35 if player.air else 1.0) * bob
-		var progress := minf(1.0, shot_age / float(Weapons.SETTLE[i]))
-		var settling := ((1.0 - progress) * (1.0 - progress) - .32 * sin(PI * progress)) * recoil
 		var lift_amt := minf(1.0, switch / .23)
 		lift_amt = lift_amt * lift_amt * (3.0 - 2.0 * lift_amt) * float(Weapons.RAISE_DEPTH[i])
 		var reload_sway := sin(PI * reload / Weapons.RELOAD_TIME[i]) if reload else 0.0
@@ -623,7 +625,6 @@ class Armory:
 			(
 				sin(player.walk_phase) * gait * 6.5
 				+ player.sway * .7
-				+ settling * float(Weapons.RETREAT[i])
 				+ reload_sway * (2.0 if i == Weapons.CROSSBOW else 4.0)
 				+ player.weapon_lag.x
 			)
@@ -634,7 +635,6 @@ class Armory:
 				(
 					(absf(cos(player.walk_phase)) * 5.2 - 2.2) * gait
 					+ player.air * 5.0
-					- float(Weapons.VIEW_RISE[i]) * settling
 					+ lift_amt
 					+ lower * 88.0
 					+ reload_sway * 2.0

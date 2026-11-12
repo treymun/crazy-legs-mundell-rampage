@@ -56,3 +56,9 @@ func draw_view(_c: Canvas) -> void:
 ## Marks it lays on the floors this frame (Renderer.GroundMark).
 func ground_marks() -> Array:
 	return []
+
+
+## Marks it lays on the walls this frame (Renderer.WallMark, as
+## Renderer.wall_mark() finds them): scorches, blood running down.
+func wall_marks() -> Array:
+	return []
