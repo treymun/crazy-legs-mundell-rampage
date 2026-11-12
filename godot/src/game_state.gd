@@ -825,6 +825,19 @@ signal boss_enraged(enemy: Enemy)
 ## struck is "enemy", "thing" (a drum or scenery), "glass", "wall:<surface>"
 ## (wood, metal, plaster, dirt) or "air" (nothing within its range).
 signal traced(end: Vector3, struck: String)
+## What the last shot to strike a wall, floor or roof met (materials.gd kinds:
+## wood, tin, steel, brick, glass...), set just before `traced` says so.
+var impact_kind := ""
+## A strong round went through a thin wall (penetration.gd): where it went in
+## and came out; struck is "enemy" when it hurt someone behind, else "air".
+signal pierced(entry: Vector3, exit: Vector3, struck: String)
+## The view's kick this frame, from features/feel.gd: yaw (radians), pitch
+## (screen pixels) and how far the eye drops (cells). Never moves the aim.
+var view_kick := Vector3.ZERO
+## This tick's turn of the view and whether the player just landed (game.gd),
+## for features/feel.gd's springs.
+var feel_turn := 0.0
+var feel_landed := false
 ## The eye the view was drawn from this frame, shake and all (game_view.gd
 ## to_canvas() projects the world onto the canvas with it).
 var view_eye := {}

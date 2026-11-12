@@ -45,6 +45,7 @@ class Bit:
 	var gravity := 0.0
 	var rest := false
 	var trail := 0.0
+	var bounced := false
 
 
 var dice := RandomNumberGenerator.new()
@@ -98,6 +99,22 @@ func _bit(kind: String, at: Vector3, v: Vector3, life: float, size: float, gravi
 	bit.size = size
 	bit.gravity = gravity
 	return _add(bit)
+
+
+## One speck for another feature (impacts.gd): the same kinds, drawn and moved
+## here, under the same cap.
+func spawn(kind: String, at: Vector3, v: Vector3, life: float, size: float, gravity := 0.0) -> Bit:
+	return _bit(kind, at, v, life, size, gravity)
+
+
+## A spray of sparks off metal at `at` (they fall, bounce once and die).
+func sparks(at: Vector3, count: int, speed: float) -> void:
+	_sparks(at, count, speed)
+
+
+## A direction at random, `speed` across at most and `up` upward at most.
+func scatter(speed: float, up: float) -> Vector3:
+	return _scatter(speed, up)
 
 
 ## Where a shot leaves the gun, in the world: ahead, a little right and low.
@@ -312,6 +329,7 @@ func _tick(dt: float) -> void:
 	_follow_shots()
 	_soaked(dt)
 	_bosses()
+	var wind: Vector2 = Effects.DEBRIS.get("wind_" + game.level.id, Vector2.ZERO)
 	var kept: Array = []
 	for bit: Bit in bits:
 		bit.age += dt
@@ -324,8 +342,14 @@ func _tick(dt: float) -> void:
 		bit.vz -= bit.gravity * dt
 		match bit.kind:
 			"steam", "smoke", "dust":
-				bit.vx *= 1.0 - minf(1.0, dt * 3.0)
-				bit.vy *= 1.0 - minf(1.0, dt * 3.0)
+				# Slowing, and carried off on the level's wind (effects.cfg [debris]).
+				bit.vx += (wind.x - bit.vx) * minf(1.0, dt * 3.0)
+				bit.vy += (wind.y - bit.vy) * minf(1.0, dt * 3.0)
+			"chaff":
+				# Husk and leaf: floats down, rocking on the wind.
+				bit.vx += (wind.x - bit.vx) * minf(1.0, dt * 2.0)
+				bit.vy += (wind.y - bit.vy) * minf(1.0, dt * 2.0)
+				bit.vz = maxf(bit.vz, -.6)
 			"cinder":
 				bit.trail -= dt
 				if bit.trail <= 0.0:
@@ -353,9 +377,23 @@ func _tick(dt: float) -> void:
 		if bit.z <= floor_z:
 			bit.z = floor_z
 			match bit.kind:
-				"spark", "drip":
+				"spark", "glint":
+					# Off the floor once, then out.
+					if bit.bounced or bit.vz > -1.0:
+						if bit.kind == "spark":
+							bit.life = bit.age
+						else:
+							bit.rest = true
+					else:
+						bit.bounced = true
+						bit.vz *= -.38
+						bit.vx *= .55
+						bit.vy *= .55
+				"drip":
 					bit.life = bit.age
-				"clod", "chip", "cinder":
+				"chaff":
+					bit.rest = true
+				"clod", "chip", "cinder", "splinter", "grit_brick", "grit_stone":
 					if bit.vz < -2.0:
 						bit.vz *= -.3
 						bit.vx *= .5
@@ -555,6 +593,17 @@ func sprites() -> Array:
 				name = "fx_chips"
 			"clod":
 				name = "fx_soil"
+			"splinter":
+				name = "fx_splinter_%d" % (0 if bit.rest else int(bit.age * 14.0) % 2)
+			"grit_brick", "grit_stone":
+				name = "fx_" + bit.kind
+			"chaff":
+				name = "fx_chaff_%d" % (int(bit.age * 6.0 + bit.size * 97.0) % 2)
+			"glint":
+				# A chip of glass catching the light now and then.
+				var flash := int(bit.age * 11.0 + bit.size * 131.0) % 5 == 0
+				name = "fx_glint_%d" % (1 if flash else 0)
+				glow = flash
 		var s := Renderer.Sprite.new(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = glow
 		s.translucent = translucent
