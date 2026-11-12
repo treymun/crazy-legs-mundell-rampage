@@ -561,6 +561,8 @@ func sprites() -> Array:
 			continue
 		if (bit.x - p.x) * (bit.x - p.x) + (bit.y - p.y) * (bit.y - p.y) < .3:
 			continue
+		if bit.kind == "spark" or not game.in_view(bit.x, bit.y, bit.size + .3):
+			continue
 		var step := bit.age / bit.life
 		var name := ""
 		var glow := false
@@ -623,7 +625,7 @@ func _inside(at: Vector2) -> bool:
 	return at.x >= 0.0 and at.y >= 0.0 and at.x < Renderer.WIDTH and at.y < Renderer.VIEW
 
 
-func _segment(c: Canvas, a: Vector2, b: Vector2, colour: Color, width := 1) -> void:
+func _segment(c: Canvas, a: Vector2, b: Vector2, colour: Color, width := 1, fast := false) -> void:
 	if not _inside(a) and not _inside(b):
 		return
 	# Cut it at the bottom of the view (the status bar is below).
@@ -632,6 +634,9 @@ func _segment(c: Canvas, a: Vector2, b: Vector2, colour: Color, width := 1) -> v
 		a = b.lerp(a, (floor_y - b.y) / maxf(.001, a.y - b.y))
 	elif b.y > floor_y:
 		b = a.lerp(b, (floor_y - a.y) / maxf(.001, b.y - a.y))
+	if fast:
+		c.stroke(int(a.x), int(a.y), int(b.x), int(b.y), colour, width)
+		return
 	c.line(int(a.x), int(a.y), int(b.x), int(b.y), colour, width)
 
 
@@ -654,6 +659,8 @@ func draw_view(c: Canvas) -> void:
 ## Each shot's streak: a white-hot head with an orange skin and a tail that
 ## thins out behind it.
 func _draw_streaks(c: Canvas, muzzle: Vector2) -> void:
+	var rich := Effects.rich and c.gpu
+	var heads: Array = []
 	for s: Array in streaks:
 		var far: float = s[5]
 		var run: float = (game.clock - float(s[0])) * float(s[1])
@@ -675,11 +682,63 @@ func _draw_streaks(c: Canvas, muzzle: Vector2) -> void:
 		var core := Color8(255, 200, 110) if rivet else Color8(255, 246, 196)
 		# Thicker near the gun, a thread far off.
 		var thick := 2 if head < .5 else 1
+		if rich:
+			# The shader view: a fatter, hotter streak with a glow at its head.
+			thick = 3 if head < .3 else 2 if head < .7 else 1
+			_segment(c, a, b, skin.darkened(.45), thick, true)
+			_segment(c, mid, b, skin.lightened(.1), thick, true)
+			_segment(c, a.lerp(b, .3), b, core, maxi(1, thick - 1), true)
+			if _inside(b):
+				heads.append([b, 3 if rivet or head < .4 else 2, rivet])
+			continue
 		_segment(c, a, b, skin.darkened(.35), thick)
 		_segment(c, mid, b, skin, thick)
 		_segment(c, mid.lerp(b, .4), b, core, 1)
 		if rivet and _inside(b):
 			c.fill_rect(int(b.x) - 1, int(b.y) - 1, 2, 2, core)
+	if heads.is_empty():
+		return
+	# The heads' glow adds its light to the view, all in one go.
+	c.gpu_item(Canvas.ITEM_ADD_VIEW)
+	for h: Array in heads:
+		var at: Vector2 = h[0]
+		var r: int = h[1]
+		var size := r * 4 + 1
+		c.blit_rgba(
+			_glow_dot(r, bool(h[2])),
+			size,
+			size,
+			int(at.x) - r * 2,
+			int(at.y) - r * 2,
+			"tracer_glow|%d|%s" % [r, h[2]]
+		)
+	c.gpu_item(Canvas.ITEM_NORMAL_VIEW)
+
+
+## A soft round of hot light `r` (2 or 3) for a tracer's head: white to
+## orange, red for a rivet; to be added to what is under it.
+static func _glow_dot(r: int, rivet: bool) -> PackedByteArray:
+	var key := "g%d|%s" % [r, rivet]
+	if _discs.has(key):
+		return _discs[key]
+	var size := r * 4 + 1
+	var out := PackedByteArray()
+	out.resize(size * size * 4)
+	var hot := Color8(255, 150, 70) if rivet else Color8(255, 196, 110)
+	for y in size:
+		for x in size:
+			var d := Vector2(x - r * 2, y - r * 2).length() / (r * 2.0 + .5)
+			if d >= 1.0:
+				continue
+			# Stepped, not smooth: three rings of light.
+			var k := 1.0 if d < .3 else .55 if d < .6 else .22
+			var o := (y * size + x) * 4
+			out[o] = int(hot.r8 * k)
+			out[o + 1] = int(hot.g8 * k)
+			out[o + 2] = int(hot.b8 * k)
+			out[o + 3] = 255
+	_discs[key] = out
+	return out
 
 
 ## The teat gun's milk: one rope of drops from the teat to the mark, a squirt
@@ -879,7 +938,7 @@ func _draw_sparks(c: Canvas) -> void:
 			else Color8(255, 196, 92) if heat > .33 else Color8(226, 110, 38)
 		)
 		var head := Vector2(a.x, a.y)
-		_segment(c, Vector2(b.x, b.y), head, colour, 2 if a.z < 1.6 else 1)
+		_segment(c, Vector2(b.x, b.y), head, colour, 2 if a.z < 1.6 else 1, Effects.rich and c.gpu)
 
 
 func ground_marks() -> Array:

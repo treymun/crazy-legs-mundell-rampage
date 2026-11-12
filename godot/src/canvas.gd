@@ -226,6 +226,20 @@ func clear(r: int, g: int, b: int) -> void:
 		cover.fill(255)
 
 
+## A line as one command on a Godot 2D canvas, not one a pixel (the shader
+## view's tracers and sparks: the 320-wide viewport keeps it hard edged); in
+## software it is line(), pixel for pixel.
+func stroke(x0: int, y0: int, x1: int, y1: int, c: Color, width := 1) -> void:
+	if not gpu:
+		line(x0, y0, x1, y1, c, width)
+		return
+	var a := Vector2(x0 + .5, y0 + .5)
+	var b := Vector2(x1 + .5, y1 + .5)
+	if a == b:
+		b.x += 1.0
+	RenderingServer.canvas_item_add_line(_item, a, b, c, -1.0 if width <= 1 else float(width))
+
+
 func set_pixel(x: int, y: int, r: int, g: int, b: int) -> void:
 	if x < 0 or y < 0 or x >= w or y >= h:
 		return

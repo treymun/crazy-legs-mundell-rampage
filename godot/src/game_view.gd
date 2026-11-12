@@ -375,6 +375,9 @@ func sprites() -> Array:
 	blast_order.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
 	for entry in blast_order:
 		var blast: Blast = entry[1]
+		if Effects.rich and blast.kind == "fire":
+			# features/gun_fx.gd draws the shader view's fireball.
+			continue
 		var smoke := blast.age >= .27
 		var age := blast.age - .27 if smoke else blast.age
 		var frame := mini(3, int(age * (11.0 if smoke else 16.0)))
@@ -528,6 +531,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	var flash: float = (weapon.flash * 4.0 + blast_flash * .85) * flash_scale
 	renderer.time = clock
 	renderer.layered = layered and gpu_look
+	Effects.rich = renderer.layered and Effects.enabled
 	if renderer.detail < 0 and (not renderer.layered or renderer.hd_held):
 		# HD is the display shader's: the software view draws at HIGH (as does
 		# the frame the start-up check looks at), and the next frame the shader

@@ -33,9 +33,11 @@ static func _gather(g: GameView) -> Array:
 	var found: Array = []
 	if g.armory.flash > 0.0:
 		var aim := p.view_angle()
+		# Each gun's own flash where effects.cfg has one ([light.muzzle_<gun>]).
+		var own := "muzzle_" + String(Weapons.NAMES[g.armory.active])
 		found.append(
 			Effects.light(
-				"muzzle",
+				own if Effects.LIGHTS.has(own) else "muzzle",
 				p.x + cos(aim) * .45,
 				p.y + sin(aim) * .45,
 				p.eye - .1,
@@ -50,6 +52,10 @@ static func _gather(g: GameView) -> Array:
 		found.append(
 			Effects.light(source, blast.x, blast.y, blast.z, 1.0 - blast.age / maxf(life, .01))
 		)
+	# A blast's first flash and its fireball's afterglow (features/gun_fx.gd).
+	var gun_fx = g.features.get("gun_fx")
+	if gun_fx != null:
+		found.append_array(gun_fx.lights())
 	for shot in g.shots:
 		if Effects.LIGHTS.has("shot_" + String(shot.kind)):
 			found.append(Effects.light("shot_" + String(shot.kind), shot.x, shot.y, shot.z))
