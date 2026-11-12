@@ -12,6 +12,7 @@
 ##   trigger <id>           run a level trigger's actions now (triggers.gd)
 ##   reload / level <id>    reload this level / go to another
 ##   stats                  how the chapter went (features/chapter_stats.gd)
+##   rematch                every boss on the BOSS REMATCH board (this session)
 ##   show map|fps|off       overlays: a map of walls, enemies (and the way
 ##                          hunting ones will take), triggers and lights; a
 ##                          frame-time graph
@@ -22,7 +23,7 @@ extends RefCounted
 
 const HELP := (
 	"GOD  GIVE <GUN|ALL>  AMMO  HEAL  SPAWN <KIND> [N]  KILLALL  TP <X> <Y>  WHERE  "
-	+ "TIME <SCALE>  TRIGGER <ID>  RELOAD  LEVEL <ID>  STATS  SHOW MAP|FPS|OFF"
+	+ "TIME <SCALE>  TRIGGER <ID>  RELOAD  LEVEL <ID>  STATS  REMATCH  SHOW MAP|FPS|OFF"
 )
 const MAP_CELL := 4
 const MAP_REACH := 15
@@ -113,6 +114,10 @@ func run(command: String) -> String:
 			show_map = false
 			show_fps = false
 		return _say("map %s, fps %s" % ["on" if show_map else "off", "on" if show_fps else "off"])
+	if verb == "rematch":
+		# Every boss on the title's BOSS REMATCH board, for this session.
+		BossRematch.unlock_all = true
+		return _say("every boss is on the rematch board")
 	if game == null:
 		return _say("start a level first")
 	var p := game.player

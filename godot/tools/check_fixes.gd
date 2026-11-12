@@ -630,6 +630,10 @@ func _run() -> void:
 	# Bullets through planks, the gun and view on springs, marks that stay.
 	preload("res://tools/feel_check.gd").run(main, check)
 
+	# The boss checkpoint and the BOSS REMATCH (the bot's timed fights are
+	# that tool's own `bot`).
+	preload("res://tools/boss_rematch_check.gd").run(main, check)
+
 	# The Mothership, the last chapter, and the true finale after it.
 	_mothership(main)
 	_boss_music(main)

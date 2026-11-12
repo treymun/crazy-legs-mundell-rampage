@@ -83,6 +83,14 @@ var replay_runs := {}
 ## range from the title (back in its place when they leave it).
 const RANGE_ID := "range"
 var range_return: Game = null
+## BOSS REMATCH (boss_rematch.gd): the game paused when one began (back when
+## it ends), the board's picked row, and the last result shown.
+var rematch_return: Game = null
+var rematch_pick := 0
+var rematch_result := {}
+## The board's bosses open to fight and best times, read when it opens.
+var rematch_open := {}
+var rematch_bests := {}
 
 var state := "title"
 var selection := 0
@@ -190,7 +198,9 @@ var layers_us := 0
 ## --cpu-look keeps the look pass in software for comparison.
 var view_shot := ""
 var cpu_look := false
-const MENU_STATES := ["title", "setup", "slots", "replays", "controls", "credits"]
+const MENU_STATES := [
+	"title", "setup", "slots", "replays", "controls", "credits", "rematch", "rematch_done"
+]
 
 var pad_down := {}
 
@@ -311,6 +321,9 @@ func _parse_smoke() -> void:
 			showcase_only = int(text.substr(11))
 		elif text.begins_with("--dev="):
 			dev_commands = text.substr(6)
+		elif text == "--rematch-all":
+			# Every boss on the rematch board (from the project folder only).
+			BossRematch.unlock_all = DevConsole.available()
 		elif text.begins_with("--play-at="):
 			play_at = text.substr(10)
 		elif text.begins_with("--smoke-screen="):
@@ -418,6 +431,7 @@ func entries() -> PackedStringArray:
 			"COUNTY HUB",
 			"REPLAY LEVEL",
 			"LEAVE RANGE" if in_range() else "FIRING RANGE",
+			"LEAVE REMATCH" if in_rematch() else "BOSS REMATCH",
 			"SAVE SLOTS",
 			"SETUP",
 			"CONTROLS",
@@ -445,6 +459,11 @@ func entries() -> PackedStringArray:
 ## saved, never the campaign.
 func in_range() -> bool:
 	return game != null and game.level.id == RANGE_ID
+
+
+## A boss rematch is the game in play: never saved, never the campaign.
+func in_rematch() -> bool:
+	return BossRematch.active(game)
 
 
 func _save_exists() -> bool:
@@ -548,6 +567,7 @@ func slot_source() -> Game:
 		or current.player.health <= 0
 		or current.armory.fuse > 0.0
 		or current.level.id == RANGE_ID
+		or BossRematch.active(current)
 	):
 		return null
 	return campaign_run if current.revisiting else current
@@ -673,8 +693,12 @@ func picture_point(position: Vector2) -> Vector2i:
 func _pad_bindings() -> Array:
 	if state == "play" and game != null:
 		if game.showing_tally or game.player.health <= 0:
+			# X: the chapter's start when A retries a boss fight (boss_checkpoint.gd).
 			return [
-				[JOY_BUTTON_A, KEY_ENTER], [JOY_BUTTON_START, KEY_ENTER], [JOY_BUTTON_B, KEY_ESCAPE]
+				[JOY_BUTTON_A, KEY_ENTER],
+				[JOY_BUTTON_START, KEY_ENTER],
+				[JOY_BUTTON_B, KEY_ESCAPE],
+				[JOY_BUTTON_X, KEY_R]
 			]
 		return [
 			[JOY_BUTTON_X, KEY_R],
@@ -832,6 +856,16 @@ func use_button() -> String:
 	if input_device == "pad":
 		return "Y"
 	return KeyBindings.key_name(int(options.get(KeyBindings.option_key("use"), KEY_E)))
+
+
+## The rematch board's and result's line on how to drive them.
+func rematch_guide() -> String:
+	var board := state == "rematch"
+	if input_device == "touch":
+		return "TAP A BOSS TO FIGHT" if board else "TAP FOR THE BOARD"
+	if input_device == "pad":
+		return "D-PAD MOVE / A FIGHT / B BACK" if board else "A BOARD / B TITLE"
+	return "ARROWS MOVE / ENTER FIGHT / ESC BACK" if board else "ENTER BOARD / ESC TITLE"
 
 
 func setup_guide() -> String:
@@ -1083,6 +1117,19 @@ func render() -> void:
 		render_controls()
 	elif state == "credits":
 		render_credits()
+	elif state == "rematch":
+		BossRematch.draw_board(
+			canvas,
+			menu,
+			rematch_pick,
+			rematch_open,
+			rematch_bests,
+			menu_note,
+			rematch_guide(),
+			hover_part
+		)
+	elif state == "rematch_done":
+		BossRematch.draw_result(canvas, menu, rematch_result, rematch_guide(), hover_part)
 	elif game != null:
 		gpu_look = gpu_ready and not cpu_look and (not smoke or view_shot != "")
 		game.gpu_look = gpu_look

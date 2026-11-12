@@ -123,6 +123,9 @@ func key(code: int, shift := false) -> void:
 	if state == "replays":
 		_key_replays(code)
 		return
+	if state == "rematch" or state == "rematch_done":
+		_key_rematch(code)
+		return
 	if state == "title":
 		_key_title(code)
 		return
@@ -248,6 +251,33 @@ func _key_replays(code: int) -> void:
 			menu_note = "CONTINUE THE CAMPAIGN TO UNLOCK."
 
 
+## The rematch board (pick a boss, fight) and the result after (to the board).
+func _key_rematch(code: int) -> void:
+	var accept := code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE
+	if state == "rematch_done":
+		if accept:
+			sound.play("menu_accept")
+			open_rematch_board()
+		elif code == KEY_ESCAPE:
+			back_to_title()
+		return
+	var count := BossRematch.BOSSES.size()
+	if code == KEY_ESCAPE:
+		back_to_title()
+	elif code == KEY_UP or code == KEY_DOWN or code == KEY_W or code == KEY_S:
+		var step := -1 if code == KEY_UP or code == KEY_W else 1
+		if key_echo and rematch_pick + step != posmod(rematch_pick + step, count):
+			return
+		rematch_pick = posmod(rematch_pick + step, count)
+		menu_note = ""
+		sound.play("menu_move")
+	elif accept:
+		sound.play("menu_accept")
+		start_rematch(String(BossRematch.BOSSES[rematch_pick]))
+		if state == "play":
+			block_fire = true
+
+
 func _key_title(code: int) -> void:
 	var rows := entries()
 	var step := Vector2i.ZERO
@@ -287,7 +317,19 @@ func _key_play(code: int) -> void:
 		if code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
 			continue_campaign()
 	elif target.player.health <= 0:
-		if code == KEY_ENTER or code == KEY_KP_ENTER:
+		var enter := code == KEY_ENTER or code == KEY_KP_ENTER
+		var checkpoint = target.features.get("boss_checkpoint")
+		if in_rematch():
+			if enter:
+				start_rematch(String(target.features["boss_rematch"].kind), false)
+		elif checkpoint != null and checkpoint.offered() and not target.revisiting:
+			# RETRY THE FIGHT (features/boss_checkpoint.gd); RELOAD's key the
+			# chapter's start, as Enter was.
+			if enter:
+				retry_fight()
+			elif code == KEY_R:
+				restart_chapter(target)
+		elif enter:
 			if target.revisiting:
 				target.player.health = 1
 				var spawn := target.level.spawn
@@ -302,10 +344,7 @@ func _key_play(code: int) -> void:
 				target.shots.clear()
 				open_hub(target)
 			else:
-				start(
-					target.level.id, target.entry, target.history, target.replay, target.supply_rule
-				)
-				game.retained = target.retained
+				restart_chapter(target)
 	elif code == KEY_E or code == KEY_SPACE:
 		var previous := hub_findings.size()
 		target.interact()
@@ -519,6 +558,12 @@ func _wheel(step: int, position: Vector2) -> void:
 		if next_replay != replay_selection:
 			replay_selection = next_replay
 			sound.play("menu_move")
+	elif state == "rematch":
+		var next_pick := clampi(rematch_pick + step, 0, BossRematch.BOSSES.size() - 1)
+		if next_pick != rematch_pick:
+			rematch_pick = next_pick
+			menu_note = ""
+			sound.play("menu_move")
 	elif state == "slots" and slot_stage == "choose":
 		slot_index = clampi(slot_index + step, 0, slots.size() - 1)
 		menu_note = ""
@@ -627,6 +672,12 @@ func hover(position: Vector2) -> void:
 			if at.y >= REPLAY_TOP and row < Campaign.ORDER.size() and row != replay_selection:
 				replay_selection = row
 				sound.play("menu_move")
+		elif state == "rematch":
+			var pick := BossRematch.row_at(at.x, at.y)
+			if pick >= 0 and pick != rematch_pick:
+				rematch_pick = pick
+				menu_note = ""
+				sound.play("menu_move")
 		elif state == "slots" and slot_stage == "choose" and at.x >= 23 and at.x < 296:
 			var slot_row := (at.y - SLOT_TOP) / SLOT_ROW
 			if at.y >= SLOT_TOP and slot_row < slots.size() and slot_row != slot_index:
@@ -679,6 +730,16 @@ func click(position: Vector2, button: int) -> void:
 		key(KEY_ENTER)
 	elif state == "replays" and button == MOUSE_BUTTON_LEFT and Menu.BACK.has_point(at):
 		back_to_title()
+	elif state == "rematch" and button == MOUSE_BUTTON_LEFT:
+		var pick := BossRematch.row_at(x, y)
+		if Menu.BACK.has_point(at):
+			back_to_title()
+		elif pick >= 0:
+			rematch_pick = pick
+			key(KEY_ENTER)
+	elif state == "rematch_done" and button == MOUSE_BUTTON_LEFT:
+		if Menu.BACK.has_point(at) or input_device == "touch":
+			key(KEY_ENTER)
 	elif state == "setup" and (button == MOUSE_BUTTON_LEFT or button == MOUSE_BUTTON_RIGHT):
 		_click_setup(x, y, button)
 
@@ -866,7 +927,14 @@ func _touch_actions() -> void:
 		and game != null
 		and (game.showing_tally or game.player.health <= 0)
 	):
-		key(KEY_ENTER)
+		# With a boss checkpoint the death screen's second line (TAP HERE) is
+		# the chapter's start, the rest of the screen RETRY THE FIGHT.
+		var checkpoint = game.features.get("boss_checkpoint")
+		var lower: bool = picture_point(tapped).y >= 90
+		if game.player.health <= 0 and lower and checkpoint != null and checkpoint.offered():
+			key(KEY_R)
+		else:
+			key(KEY_ENTER)
 
 
 ## Esc in a browser releases pointer lock and never reaches the page. Treat a

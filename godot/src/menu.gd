@@ -34,6 +34,8 @@ const BLURBS := {
 	"REPLAY LEVEL": "RUN A CHAPTER AGAIN FOR THE HELL OF IT.",
 	"FIRING RANGE": "EVERY GUN, ALL THE AMMO. GO LEARN 'EM.",
 	"LEAVE RANGE": "BACK TO THE TITLE. THE RANGE KEEPS NO SCORE.",
+	"BOSS REMATCH": "EVERY BOSS YOU BEAT, AGAIN, ON THE CLOCK.",
+	"LEAVE REMATCH": "BACK TO THE TITLE. NOTHING THERE IS KEPT.",
 	"SAVE SLOTS": "FOUR NAMED SAVES, APART FROM QUICKSAVE.",
 	"SETUP": "TUNE THE MOUSE, SCREEN, SOUND AND KEYS.",
 	"CONTROLS": "WHAT EVERY KEY, BUTTON AND TAP DOES.",
@@ -331,12 +333,19 @@ func draw_title(
 				"body",
 				BRIGHT if active else PAINT
 			)
-	# Under the board: what the entry is for, then how to drive the menu.
-	_hline(c, 12, 181, 168, Color(52 / 255.0, 36 / 255.0, 24 / 255.0))
-	_hline(c, 12, 182, 168, Color(120 / 255.0, 88 / 255.0, 58 / 255.0))
+	# Under the board: what the entry is for, then how to drive the menu. A
+	# column of six (a game paused, a quicksave and every road open) reaches
+	# down to where the second line was: the entry's line alone, lower.
+	var deepest := 0
+	for item: Dictionary in items:
+		deepest = maxi(deepest, int(item["row"]) + 1)
+	var foot := 181 if deepest <= 5 else ROWS_Y + ROW_H * deepest
+	_hline(c, 12, foot, 168, Color(52 / 255.0, 36 / 255.0, 24 / 255.0))
+	_hline(c, 12, foot + 1, 168, Color(120 / 255.0, 88 / 255.0, 58 / 255.0))
 	var first := note if note != "" else String(BLURBS.get(selected_id, ""))
-	HUD.text(c, first, 96, 184, "mini", HUD.AMBER if note != "" else BRIGHT, true, true)
-	HUD.text(c, hint, 96, 191, "mini", FADED, true, false)
+	HUD.text(c, first, 96, foot + 3, "mini", HUD.AMBER if note != "" else BRIGHT, true, true)
+	if deepest <= 5:
+		HUD.text(c, hint, 96, 191, "mini", FADED, true, false)
 	var version := String(ProjectSettings.get_setting("application/config/version", ""))
 	if version != "":
 		HUD.text(c, "V" + version.to_upper(), 317, 193, "mini", FADED, false, true, true)

@@ -469,6 +469,7 @@ func _process(delta: float) -> void:
 				sound.pause_score(true)
 			if game.showing_tally or game.player.health <= 0:
 				grab(false)
+		watch_rematch()
 
 	sound.tick_score(dt)
 	render()

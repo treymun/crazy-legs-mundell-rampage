@@ -61,12 +61,19 @@ func play(target: Game) -> void:
 	)
 	game = target
 	var practice := target.level.id == RANGE_ID
+	var rematch := BossRematch.active(target)
 	if not practice:
 		range_return = null
-	if not target.replay and not target.in_hub and not target.revisiting and not practice:
+	if not rematch:
+		rematch_return = null
+	var chapter := not target.in_hub and not practice and not rematch and not target.revisiting
+	if chapter and not target.replay:
 		campaign_run = target
-	if target.replay:
+	if chapter and target.replay:
 		replay_runs[target.level.id] = target
+	if chapter:
+		# A chapter under way: the other chapters' boss checkpoints go (boss_door.gd).
+		BossDoor.clear_others(target.level.id, target.replay)
 	target.configure(options)
 	target.tone = tone_table
 	crouch_latched = target.player.crouched and int(options["crouch"]) != 0
@@ -124,6 +131,9 @@ func open_hub(origin = null, message := "") -> void:
 func travel(destination: String) -> void:
 	var current := game
 	current.portal_request = ""
+	if BossRematch.active(current):
+		current.message("NO WAY OUT OF A REMATCH BUT THROUGH THE BOSS. ESC TO QUIT.", 3.0)
+		return
 	if destination == "hub":
 		open_hub(current)
 		return
@@ -198,6 +208,14 @@ func resume_entry() -> void:
 
 func continue_campaign() -> void:
 	var current := game
+	if BossRematch.active(current):
+		# A rematch never leads on into the campaign.
+		if current.features["boss_rematch"].fell >= 0.0:
+			finish_rematch()
+		else:
+			leave_rematch()
+			return_to_title()
+		return
 	if current.replay:
 		replay_runs.erase(current.level.id)
 		if hub_origin == current:
@@ -250,14 +268,101 @@ func leave_range() -> void:
 	range_return = null
 
 
+## The rematch board (boss_rematch.gd), from the title.
+func open_rematch_board() -> void:
+	rematch_open = BossRematch.available(unlocked)
+	rematch_bests = BossRematch.profile()["bests"]
+	rematch_pick = posmod(rematch_pick, BossRematch.BOSSES.size())
+	menu_note = ""
+	state = "rematch"
+	sound.pause_world()
+	menu_music()
+	grab(false)
+
+
+## A rematch with `kind`; the game paused before it (if any) waits, untouched
+## and unsaved, until the rematch is over. `board`: picked on the board, which
+## only offers the bosses open to fight.
+func start_rematch(kind: String, board := true) -> void:
+	if board and not rematch_open.has(kind):
+		sound.play("empty")
+		menu_note = "BEAT %s TO GET A REMATCH." % Campaign.title_of(BossRematch.LEVEL_OF[kind])
+		return
+	var fight := BossRematch.build(make_game, kind)
+	if fight == null:
+		menu_note = "THAT FIGHT COULD NOT BE SET UP."
+		return
+	if not in_rematch():
+		rematch_return = game
+	var waiting := rematch_return
+	menu_note = ""
+	play(fight)
+	rematch_return = waiting
+
+
+## Out of the rematch: the game paused before it comes back (nothing of the
+## rematch is kept).
+func leave_rematch() -> void:
+	game = rematch_return
+	rematch_return = null
+
+
+## The boss fell a moment ago: the time, its ribbon, the best kept.
+func finish_rematch() -> void:
+	var fight = game.features["boss_rematch"]
+	var kind := String(fight.kind)
+	var seconds: float = fight.seconds()
+	var fresh := BossRematch.record(kind, seconds)
+	rematch_result = {
+		"kind": kind, "seconds": seconds, "best": BossRematch.best(kind), "fresh": fresh
+	}
+	leave_rematch()
+	rematch_open = BossRematch.available(unlocked)
+	rematch_bests = BossRematch.profile()["bests"]
+	menu_note = ""
+	state = "rematch_done"
+	sound.pause_world()
+	menu_music()
+	sound.play("yee_haw")
+	grab(false)
+
+
+## Each frame in play: a rematch whose boss fell a moment ago ends.
+func watch_rematch() -> void:
+	if state == "play" and in_rematch() and game.features["boss_rematch"].finished():
+		finish_rematch()
+
+
+## The death screen's RETRY THE FIGHT: the boss checkpoint loaded, the player
+## at the arena's door (boss_door.gd). The chapter's start when it cannot load.
+func retry_fight() -> void:
+	var current := game
+	var loaded := BossDoor.restore(make_game, current)
+	if loaded == null:
+		restart_chapter(current)
+		game.message("THE BOSS CHECKPOINT COULD NOT BE LOADED. THE CHAPTER STARTS OVER.", 4.0)
+		return
+	play(loaded)
+
+
+## The death screen's retry: the chapter from its start, with the guns it was
+## entered with.
+func restart_chapter(target: Game) -> void:
+	start(target.level.id, target.entry, target.history, target.replay, target.supply_rule)
+	game.retained = target.retained
+
+
 func menu_action() -> void:
 	var rows := entries()
 	var entry := rows[selection % rows.size()]
 	menu_note = ""
-	if in_range() and not entry in ["RESUME", "SAVE SLOTS", "SETUP", "CONTROLS", "CREDITS", "QUIT"]:
+	var staying := ["RESUME", "SAVE SLOTS", "SETUP", "CONTROLS", "CREDITS", "QUIT"]
+	if in_range() and not entry in staying:
 		# Anything that goes somewhere else leaves the range first, so nothing
 		# from it (its guns least of all) is carried into the county.
 		leave_range()
+	if in_rematch() and not entry in staying:
+		leave_rematch()  # likewise a rematch
 	if entry == "LEAVE RANGE":
 		return_to_title()
 		menu_note = "BACK FROM THE RANGE. NOTHING THERE WAS SAVED."
@@ -265,11 +370,19 @@ func menu_action() -> void:
 	if entry == "FIRING RANGE":
 		open_range()
 		return
+	if entry == "LEAVE REMATCH":
+		return_to_title()
+		menu_note = "BACK FROM THE REMATCH. NOTHING THERE WAS KEPT."
+		return
+	if entry == "BOSS REMATCH":
+		open_rematch_board()
+		return
 	if entry == "RESUME":
 		state = "play"
 		play_music()
 		grab(not game.showing_tally and game.player.health > 0)
 	elif entry == "NEW GAME":
+		BossDoor.clear_others("", false)
 		start()
 		if not SessionStore.save(game, _entry_path()):
 			notice("CAMPAIGN ENTRY COULD NOT BE SAVED.")
@@ -300,6 +413,8 @@ func save_game() -> void:
 		notice("ENTER A LEVEL TO QUICKSAVE.")
 	elif target != null and target.level.id == RANGE_ID:
 		notice("NO SAVING ON THE RANGE. IT'S ALL PRACTICE.")
+	elif BossRematch.active(target):
+		notice("NO SAVING IN A REMATCH. IT'S FOR THE RIBBON.")
 	elif target == null or state != "play" or target.player.health <= 0 or target.showing_tally:
 		notice("START A LIVE RUN TO SAVE.")
 	elif target.armory.fuse > 0.0:

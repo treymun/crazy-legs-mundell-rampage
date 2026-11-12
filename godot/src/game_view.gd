@@ -684,19 +684,29 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	else:
 		HUD.panel(c, 27, 54, 266, 52, Canvas.rgb(43, 26, 22))
 		HUD.text(c, "YOU BOUGHT THE FARM", 160, 64, "heading", HUD.INK, true)
-		HUD.text(
-			c,
-			(
-				"ENTER CROSSROADS  /  ESC TITLE"
-				if revisiting
-				else "ENTER RETRY  /  F9 QUICKLOAD  /  ESC TITLE"
-			),
-			160,
-			90,
-			"body",
-			HUD.INK,
-			true
-		)
+		# A rematch, or a boss fight with its checkpoint (features/boss_*.gd),
+		# says its own two lines.
+		var lines: Array = []
+		for key: String in ["boss_rematch", "boss_checkpoint"]:
+			if lines.is_empty() and features.has(key):
+				lines = features[key].death_lines()
+		if lines.size() == 2:
+			HUD.text(c, String(lines[0]), 160, 82, "body", HUD.AMBER, true)
+			HUD.text(c, String(lines[1]), 160, 94, "body", HUD.INK, true)
+		else:
+			HUD.text(
+				c,
+				(
+					"ENTER CROSSROADS  /  ESC TITLE"
+					if revisiting
+					else "ENTER RETRY  /  F9 QUICKLOAD  /  ESC TITLE"
+				),
+				160,
+				90,
+				"body",
+				HUD.INK,
+				true
+			)
 	if map and p.health > 0:
 		automap(c)
 	gore_fx.draw_lens(c)
