@@ -175,6 +175,13 @@ const CHAPTER_PACKS := {
 ## 0 not checked yet, 1 matched, -1 did not.
 var view_check := 0
 var _view_checking := false
+## The start-up check's tries: frames judged blank (the shader's picture not
+## up yet), and mismatches in a row. Only two real mismatches running drop
+## the session to software; after VIEW_TRIES blank frames it keeps the
+## graphics-card view.
+var _view_blank := 0
+var _view_misses := 0
+const VIEW_TRIES := 90
 ## --view-check prints the result of that check, and --view-broken makes the
 ## shader's picture wrong on purpose, to see the fallback work.
 var view_check_report := false
@@ -1196,6 +1203,8 @@ func render() -> void:
 func _view_unchecked() -> bool:
 	if view_check != 0 or touring or state != "play" or game == null:
 		return false
+	if game.clock < .35:
+		return false
 	var rect := view.get_global_rect()
 	return rect.size.x >= WIDTH and rect.size.y >= HEIGHT
 
@@ -1222,12 +1231,18 @@ func _check_view() -> void:
 	var lut := art.palette
 	var tried := 0
 	var off := 0
+	var lit := 0
+	# The grab is the window's own pixels; the view's rect is in its units.
+	var seen := get_viewport().get_visible_rect().size
+	var scale := Vector2(
+		shown.get_width() / maxf(1.0, seen.x), shown.get_height() / maxf(1.0, seen.y)
+	)
 	for gy in 10:
 		for gx in 14:
 			var px := 30 + gx * 20
 			var py := 10 + gy * 13
-			var sx := int(rect.position.x + (px + .5) / WIDTH * rect.size.x)
-			var sy := int(rect.position.y + (py + .5) / HEIGHT * rect.size.y)
+			var sx := int((rect.position.x + (px + .5) / WIDTH * rect.size.x) * scale.x)
+			var sy := int((rect.position.y + (py + .5) / HEIGHT * rect.size.y) * scale.y)
 			if sx < 0 or sy < 0 or sx >= shown.get_width() or sy >= shown.get_height():
 				continue
 			var o := (py * WIDTH + px) * 3
@@ -1237,6 +1252,8 @@ func _check_view() -> void:
 				| ((want[o + 2] * 31 + 127) / 255)
 			)
 			var c := shown.get_pixel(sx, sy)
+			if c.r + c.g + c.b > .06:
+				lit += 1
 			var apart := (
 				absf(c.r * 255.0 - lut[code * 3])
 				+ absf(c.g * 255.0 - lut[code * 3 + 1])
@@ -1247,9 +1264,32 @@ func _check_view() -> void:
 				off += 1
 	if tried < 40:
 		return
+	if lit * 10 < tried:
+		# A blank grab: the shader's picture is not up yet (a level's first
+		# frames, a window still settling). Not a verdict: look again later,
+		# and after enough blank frames trust the graphics card.
+		_view_blank += 1
+		if view_check_report:
+			print("view check: blank frame %d (%d of %d points lit)" % [_view_blank, lit, tried])
+		if _view_blank >= VIEW_TRIES:
+			view_check = 1
+		return
+	if off * 3 > tried:
+		_view_misses += 1
+		if view_check_report:
+			print("view check: %d of %d points differ (miss %d)" % [off, tried, _view_misses])
+		if _view_misses < 2:
+			return
 	view_check = 1 if off * 3 <= tried else -1
 	if view_check_report:
 		print("view check: %d of %d points differ" % [off, tried])
+		# Both pictures, for a look at what differed (the report is a tool's).
+		var dump := OS.get_cache_dir().path_join("view_check")
+		shown.save_png(dump + "_shown.png")
+		Image.create_from_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, want).save_png(
+			dump + "_software.png"
+		)
+		print("view check pictures: %s_*.png  rect %s  image %s" % [dump, rect, shown.get_size()])
 	if view_check < 0:
 		cpu_view = true
 		print(
