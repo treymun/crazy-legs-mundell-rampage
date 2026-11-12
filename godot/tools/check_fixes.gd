@@ -644,6 +644,8 @@ func _run() -> void:
 	preload("res://tools/boss_check.gd").run(main, check)
 	# The sheriff's, Jerry's, Rudy's and the foreman's arenas and moves.
 	preload("res://tools/arena_check.gd").run(main, check)
+	# Squads, idle life, the tougher variants and each chapter's tough guy.
+	preload("res://tools/squad_check.gd").run(main, check)
 
 	print("")
 	if failures.is_empty():

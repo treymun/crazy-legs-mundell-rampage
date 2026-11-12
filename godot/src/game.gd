@@ -393,7 +393,8 @@ func tick(dt: float, controls) -> void:
 	flow.update(p.x, p.y, clock)
 	dangers.clear()
 	for shot in shots:
-		if shot.kind == "tnt" and not shot.enemy:
+		if shot.kind == "tnt":
+			# The player's, or one a hand lobbed to flush them out (squad.gd).
 			dangers.append(Vector3(shot.x, shot.y, 3.1))
 	for enemy: Enemy in enemies:
 		enemy.tick(wdt, self)

@@ -331,6 +331,50 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   WILD after the level's own enemies (saved in the features block, so a save
   checks its count against `enemy_ids.size()`). Set `alerted` by assignment:
   its setter counts changes, which `player_sheltered()` relies on.
+- **Squads, idle life and variants** (new code lives outside `enemies.gd`,
+  which only has small hooks: `mind`, `Squad.watch/calm/move/startled`,
+  `IdleLife.notice/frame`, `Variants.attack/stem/look/wobble`). A hand
+  (`Squad.hand`: tactical, turn cels, not a swimmer) gets a `Squad.Mind`
+  from `features/squad_feature.gd` on the first tick. Before it notices
+  anything it does an activity picked from the props, boards and scenery
+  within 2.6 of its place in the level (`idle_life.gd BY_THINGS`; no plan
+  changes), faces the thing, loops its fidget/recover/aim cels and notices
+  less (`NOTICE`, less so the harder it is); woken it fumbles (`startled`),
+  hit from behind unaware it is stunned (`SNEAK_STUN`, no extra damage).
+  A shot is heard through walls out to `SHOT_NOISE` x `HEARING`: unaware
+  hands come to look. Every .4 s the alerted hands within 18 are a squad:
+  a flanker goes round the player along the flow field's rings
+  (`_flank_step`), one presses in while another shoots, a lobbed bottle or
+  (HARD+, outdoors) a stick of dynamite flushes a player unseen for 2.5 s
+  (wind-up, warning mark; enemy dynamite is in `dangers` too), and two or
+  three losses make them fall back on the farthest. A hunt that runs out
+  becomes a search of the last-seen spot (`SEARCH` s), then `alerted` goes
+  off. EASY does none of the squad moves. No new sight lines but the
+  flush's one; dice from `game.rng`; nothing saved. Barks for voices:
+  `game.enemy_bark(e, moment)` (spot, lost, search, help, flank, cover,
+  brawl, idle, surprised, hurt_bad, regroup), throttled per hand (3.5 s),
+  per moment (`MOMENT_GAP`) and overall (.7 s).
+  **Variants** are enemies.cfg sections (`src/variants.gd` lists the keys):
+  `big_billy`, `drunk_coot`, `shield_deputy`, and a tough guy a chapter
+  (`tough_for`: BIG EARL, CARNY CLEM, TIMBER TOM, BOILER BUBBA, CHUM-BUCKET
+  CHUCK, PIT BOSS PETE, ZORGO THE LARGE; taller via `height`, `tint`ed copies
+  of the pictures, `Assets.tinted_art`). `features/variants_feature.gd`
+  swaps them in on a chapter's first tick, never on a load: variants by
+  difficulty and the enemy's index (`Variants.swaps`, EASY none), the tough
+  guy on the regular at the busiest spot in the middle half by distance from
+  the start. A save keeps each kind (restore re-derives its stats); the
+  doors' hit points are in the features block. The shield deputy's door is
+  `Variants.soak` via `ShipAliens.soak`; it is painted in code
+  (`made_car_door`). **Art:** `art="billy"` draws a variant with its
+  regular's pictures until `<kind>_0` is in the art index, so dropping in
+  `big_billy_*` (and `drunk_coot_*`, `shield_deputy_*`) with every cel the
+  regular has and running `pack_assets` just works; then delete the `art`
+  line, and `door_picture` too if the deputy's art carries the door.
+  `tools/squad_check.gd` (in check_fixes) holds it; `tools/squad_frames.gd`
+  takes window pictures; `first_minutes.gd -- diff=<0..3>` plays a
+  difficulty and prints the damage taken. The bot (`bot_pilot.gd`) steps
+  back onto the route from a nook it does not cover and backs off a last
+  threat it is pressed against but cannot see (Boggs wedged in a gap).
 - **Boss fights share a framework** (`src/boss_kit.gd`, `features/boss_fight.gd`,
   `src/bosses/`). Each of the eight bosses (a `title` in enemies.cfg) has a
   `BossMoves` file (`bosses/boss_moves.gd`: `fight_start`, `phase_changed`,

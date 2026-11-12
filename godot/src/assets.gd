@@ -203,6 +203,31 @@ func faded_art(base: String, keep: float) -> String:
 	return name
 
 
+## The name of picture `base` with its colours multiplied by `tint` ([r, g,
+## b]), made the first time it is asked for: a chapter's tough guy
+## (src/variants.gd).
+func tinted_art(base: String, tint: Array) -> String:
+	var name := "%s~%d.%d.%d" % [base, int(tint[0] * 100), int(tint[1] * 100), int(tint[2] * 100)]
+	if not _art_cache.has(name):
+		var whole := art(base)
+		var data: PackedByteArray = whole["data"].duplicate()
+		var r := float(tint[0])
+		var g := float(tint[1])
+		var b := float(tint[2])
+		for i in range(0, data.size(), 4):
+			data[i] = mini(255, int(data[i] * r))
+			data[i + 1] = mini(255, int(data[i + 1] * g))
+			data[i + 2] = mini(255, int(data[i + 2] * b))
+		_art_cache[name] = {"w": whole["w"], "h": whole["h"], "data": data}
+	return name
+
+
+## A picture painted in code, kept under `name` like a packed one (the shield
+## deputy's car door, src/variants.gd).
+func put_art(name: String, w: int, h: int, data: PackedByteArray) -> void:
+	_art_cache[name] = {"w": w, "h": h, "data": data}
+
+
 ## Returns {w, h, data:RGB8} for one of the 512x116 panoramas.
 func sky(name: String) -> Dictionary:
 	var info = sky_index.get(name)

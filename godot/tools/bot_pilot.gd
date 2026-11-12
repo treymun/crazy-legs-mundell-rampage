@@ -12,6 +12,23 @@ var stuck := 0.0
 var last := Vector2.INF
 ## The enemy it was after this tick (null: none).
 var foe: Enemy = null
+var close_for := 0.0
+var back_until := 0.0
+
+
+## The heading to the nearest neighbouring cell the route covers, or `aim`.
+func _back_on_route(game: Game, aim: float) -> float:
+	var p := game.player
+	var best := INF
+	for n: Vector2i in FlowField.NEIGHBOURS:
+		var at := Vector2(int(p.x) + n.x + .5, int(p.y) + n.y + .5)
+		if game.route.distance(at.x, at.y) >= FlowField.FAR:
+			continue
+		var d := at.distance_to(Vector2(p.x, p.y))
+		if d < best:
+			best = d
+			aim = atan2(at.y - p.y, at.x - p.x)
+	return aim
 
 
 ## This tick's controls for `game`.
@@ -51,6 +68,10 @@ func steer(game: Game) -> Game.Controls:
 				# One cell at a time, so it never cuts a corner into a wall.
 				var next := game.route.heading(p.x, p.y)
 				aim = next if not is_nan(next) else aim
+			elif int(way[1]) < 0:
+				# Pressed into a nook the route does not cover (beside a station
+				# after a fight there): back to the nearest cell it does.
+				aim = _back_on_route(game, aim)
 			var turn := fposmod(aim - p.angle + PI, TAU) - PI
 			controls.turn = clampf(turn, -.12, .12)
 			var gap := Vector2(goal.x - p.x, goal.y - p.y).length()
@@ -73,6 +94,15 @@ func steer(game: Game) -> Game.Controls:
 			if int(way[1]) > 1 or gap > .3:
 				controls.forward = 1.0 if absf(turn) < .9 else .2
 				controls.running = gap > 1.5
+			# Up against the objective a while with nothing to use or shoot (a
+			# last threat wedged where it cannot be seen): back off and come again.
+			close_for = close_for + STEP if gap < 1.6 else 0.0
+			if close_for > 4.0:
+				close_for = 0.0
+				back_until = game.clock + 2.5
+			if game.clock < back_until:
+				controls.turn = clampf(fposmod(aim + PI - p.angle + PI, TAU) - PI, -.12, .12)
+				controls.forward = 1.0
 			if gap < 1.3 and absf(turn) < .3 and fmod(game.clock, .4) < STEP:
 				# At the objective: use it (a key is picked up by walking on it).
 				game.interact()
