@@ -40,6 +40,11 @@ const MAX_ANIMS := 8
 static var version := 0
 ## LIGHTS AND GLOW (main_state.gd); the comparison tour turns it off too.
 static var enabled := true
+## This frame is the shader view drawn with them (game_view.gd sets it): the
+## gun and blast effects only the shader view shows (features/gun_fx.gd, the
+## muzzle flashes of weapons.cfg flash_art, the tracers' glow) draw now. The
+## software view and the shader view without lights never see them.
+static var rich := false
 
 
 static func _static_init() -> void:

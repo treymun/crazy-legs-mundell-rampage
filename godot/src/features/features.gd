@@ -26,6 +26,7 @@ const ALL := [
 	preload("res://src/features/water.gd"),
 	preload("res://src/features/impacts.gd"),
 	preload("res://src/features/dust.gd"),
+	preload("res://src/features/gun_fx.gd"),
 	preload("res://src/features/feel.gd"),
 	preload("res://src/features/soundscape.gd"),
 	preload("res://src/features/boss_voices.gd"),

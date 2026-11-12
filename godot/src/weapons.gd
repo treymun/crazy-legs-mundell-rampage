@@ -78,6 +78,9 @@ static var VIEW_SCALES := {}
 static var VIEW_SHIFT := {}
 static var MUZZLES := {}
 static var MUZZLE_STYLE := {}
+## The shader view's own flash for a gun and its size (gun_flash.gd).
+static var FLASH_ART := {}
+static var FLASH_SIZE := {}
 static var RELOAD_BEATS := {}
 static var SHAKE := {}
 ## [all] sway_turn, sway_strafe, sway_limit, land_dip: the gun's weight.
@@ -136,6 +139,8 @@ static func load_tuning() -> void:
 	VIEW_SHIFT = Tuning.entries(path, NAMES, "view_shift")
 	MUZZLES = Tuning.entries(path, NAMES, "muzzles")
 	MUZZLE_STYLE = Tuning.entries(path, NAMES, "muzzle_style")
+	FLASH_ART = Tuning.entries(path, NAMES, "flash_art")
+	FLASH_SIZE = Tuning.entries(path, NAMES, "flash_size")
 	RELOAD_BEATS = Tuning.entries(path, NAMES, "reload_beats")
 	SHAKE = Tuning.entries(path, NAMES, "shake")
 	SWAY = {
@@ -733,59 +738,22 @@ class Armory:
 				anchor = Vector3i(int(round(float(pair[0]))), int(round(float(pair[1]))), anchor.z)
 			var style: Array = Weapons.MUZZLE_STYLE[i]
 			var prefix := String(style[0])
-			var aspect := float(style[1])
 			var smoke_scale := float(style[2])
 			Weapons.muzzle_at = Weapons.view_point(x, y, float(anchor.x), float(anchor.y), s)
 			if flash > 0.0 and flashes > 0.0:
-				var index := mini(3, int(shot_age * 48))
-				var size := int(
-					round((float(anchor.z) * 1.4 + (10.0 if last_spent == 2 else 0.0)) * s)
-				)
-				var flash_name := "fx_%s_%d" % [prefix, index]
-				var flash_art := assets.art(flash_name)
-				var fw := size
-				var fh := int(round(size * aspect))
-				var front := Weapons.view_point(x, y, float(anchor.x), float(anchor.y), s)
-				var fc := Vector2(roundf(front.x - 3.0 * s), roundf(front.y - 2.0 * s))
-				# The flash adds its light to the picture instead of covering it.
-				_blit_glow(
+				GunFlash.draw(
 					frame,
-					flash_art,
-					fw,
-					fh,
-					int(fc.x) - fw / 2,
-					int(fc.y) - fh / 2,
-					int(255.0 * minf(1.0, flashes)),
-					flash_name
+					assets,
+					i,
+					anchor,
+					s,
+					Vector2(x, y),
+					shot_age,
+					last_spent,
+					style,
+					flashes,
+					reserve[i] + loaded[i]
 				)
-				if prefix in ["fire", "rocket", "forge"] and shot_age < .075:
-					# Burning powder thrown ahead of the muzzle.
-					var reach := (5.0 + shot_age * 170.0) * s
-					for k in 7:
-						var ang := -3.2 + k * .33 + float((last_spent * 3 + k * 5) % 7) * .06
-						var far := reach * (.62 + .1 * float(k % 4))
-						_line(
-							frame,
-							int(fc.x + cos(ang) * far * .55),
-							int(fc.y + sin(ang) * far * .55),
-							int(fc.x + cos(ang) * far),
-							int(fc.y + sin(ang) * far),
-							Color8(255, 220, 130) if k % 2 else Color8(255, 150, 60)
-						)
-				if i == Weapons.SHOTGUN and last_spent == 2:
-					var twin_size := int(round(size * .76))
-					var twin_name := "fx_%s_%d" % [prefix, mini(3, index + 1)]
-					var twin := assets.art(twin_name)
-					_blit_glow(
-						frame,
-						twin,
-						twin_size,
-						twin_size,
-						int(fc.x + roundf(6.0 * s)) - twin_size / 2,
-						int(fc.y + roundf(1.0 * s)) - twin_size / 2,
-						int(255.0 * minf(1.0, flashes)),
-						twin_name
-					)
 			elif smoke_scale > 0.0 and shot_age >= .048:
 				# Smoke leaves the muzzle, rises, spreads and thins over half a second.
 				var drift := shot_age - .048
