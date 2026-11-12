@@ -21,6 +21,7 @@ const ALL := [
 	preload("res://src/features/mothership.gd"),
 	preload("res://src/features/corpses.gd"),
 	preload("res://src/features/breakables.gd"),
+	preload("res://src/features/water.gd"),
 ]
 
 

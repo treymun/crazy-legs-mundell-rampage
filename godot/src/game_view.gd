@@ -754,91 +754,15 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	stage_ms[4] = (Time.get_ticks_usec() - t4) / 1000.0
 
 
-## This frame's lights for the graphics-card view (effects.cfg): the gun's
-## flash, blasts, glowing shots, lamps and trigger lights, nearest first, at
-## most Effects.MAX_LIGHTS of them.
+## This frame's lights for the graphics-card view (effects.cfg), nearest
+## first, at most Effects.MAX_LIGHTS of them (view_lights.gd).
 func effect_lights() -> Array:
-	var p := player
-	var found: Array = []
-	if armory.flash > 0.0:
-		var aim := p.view_angle()
-		found.append(
-			Effects.light(
-				"muzzle",
-				p.x + cos(aim) * .45,
-				p.y + sin(aim) * .45,
-				p.eye - .1,
-				armory.flash / .072
-			)
-		)
-	for blast: Blast in blasts:
-		var source := "blast_energy" if blast.kind == "energy" else "blast_fire"
-		if blast.kind != "energy" and blast.kind != "fire":
-			continue
-		var life := float(Effects.LIGHTS.get(source, {}).get("life", .64))
-		found.append(
-			Effects.light(source, blast.x, blast.y, blast.z, 1.0 - blast.age / maxf(life, .01))
-		)
-	for shot in shots:
-		if Effects.LIGHTS.has("shot_" + String(shot.kind)):
-			found.append(Effects.light("shot_" + String(shot.kind), shot.x, shot.y, shot.z))
-	var lamps_key := Vector2i(world.get_instance_id(), props.size())
-	if lamps_key != lamps_of:
-		lamps_of = lamps_key
-		lamp_props = props.filter(func(spr): return spr.image == "prop_lamp")
-		lamp_boards = world.billboards.filter(
-			func(board): return board.glow and board.image in ["hub_lamp", "town_floodlight_tower"]
-		)
-	for spr: Renderer.Sprite in lamp_props:
-		if absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
-			found.append(Effects.light("lamp", spr.x, spr.y, spr.z, 1.0, clock))
-	# Street lamps pool their light on the ground; the keys glint where they lie.
-	for board: LevelData.Billboard in lamp_boards:
-		if absf(board.x - p.x) < 14.0 and absf(board.y - p.y) < 14.0:
-			var top := world.elevation(board.x, board.y) + board.z + board.height * .9
-			found.append(Effects.light("streetlamp", board.x, board.y, top, 1.0, clock))
-	for entry: Array in pickups:
-		var item := String(entry[0])
-		var quest := item.begins_with("key_") or TASK_ITEMS.has(item)
-		if quest and absf(float(entry[1]) - p.x) < 10.0:
-			if absf(float(entry[2]) - p.y) < 10.0:
-				var x := float(entry[1])
-				var y := float(entry[2])
-				found.append(Effects.light(item, x, y, world.elevation(x, y) + .4, 1.0, clock))
-	found.append_array(_quest_lights())
-	for l: Array in trigger_lights:
-		if clock < float(l[6]):
-			found.append([l[0], l[1], l[2], l[3], l[4], l[5]])
-	var lights: Array = []
-	for l in found:
-		if l != null:
-			var dx: float = l[0] - p.x
-			var dy: float = l[1] - p.y
-			lights.append([dx * dx + dy * dy, l])
-	lights.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
-	var out: Array = []
-	for i in mini(Effects.MAX_LIGHTS, lights.size()):
-		out.append(lights[i][1])
-	return out
+	return ViewLights.effect_lights(self)
 
 
-## The light on the gun: the frame's lights where the player stands (a blast
-## turns it orange, a lamp warms it, its own flash brightens it), the level's
-## tint and a lightning flash. White is the gun as drawn.
+## The light on the gun (view_lights.gd): white is the gun as drawn.
 func gun_light() -> Color:
-	var p := player
-	var sum := Vector3.ONE
-	for l: Array in effect_lights():
-		var reach := clampf(
-			1.0 - Vector3(p.x, p.y, p.eye).distance_to(Vector3(l[0], l[1], l[2])) / float(l[3]),
-			0,
-			1
-		)
-		var c: Color = l[4]
-		sum += Vector3(c.r, c.g, c.b) * float(l[5]) * reach * reach
-	var tone: Color = Effects.mood(level.id, "grade", Color(1, 1, 1))
-	sum *= Vector3(tone.r, tone.g, tone.b) * (1.0 + lightning * .5)
-	return Color(minf(sum.x, 1.8), minf(sum.y, 1.8), minf(sum.z, 1.8))
+	return ViewLights.gun_light(self)
 
 
 ## A red arc at the edge of the view on the side the hurt came from, fading.

@@ -124,8 +124,10 @@ func _load_level(renderer: Renderer) -> void:
 	var tint_count := maxi(1, renderer.tints.size() / 3)
 	var cells := PackedByteArray()
 	cells.resize(lw * lh * 4)
+	# The second band: each cell's tint index (r), and 255 in g where the cell
+	# is under the open sky, no roof over it (the shader's weather).
 	var areas := PackedByteArray()
-	areas.resize(lw * lh)
+	areas.resize(lw * lh * 4)
 	for i in lw * lh:
 		var o := i * 4
 		cells[o] = mini(255, int(floor_index.get(level.ground[i], 255)))
@@ -134,11 +136,10 @@ func _load_level(renderer: Renderer) -> void:
 		cells[o + 2] = below if below >= 0 and below < 255 else 255
 		var above := level.ceiling_tile[i]
 		cells[o + 3] = above if above >= 0 and above < 255 else 255
-		areas[i] = clampi(level.area[i], 0, tint_count - 1)
-	# The tint indices go under the cells, as a second band.
-	var tint_band := Image.create_from_data(lw, lh, false, Image.FORMAT_R8, areas)
-	tint_band.convert(Image.FORMAT_RGBA8)
-	cells.append_array(tint_band.get_data())
+		areas[o] = clampi(level.area[i], 0, tint_count - 1)
+		areas[o + 1] = 255 if level.roof[i] <= level.ground[i] + .01 else 0
+		areas[o + 3] = 255
+	cells.append_array(areas)
 	var cell_bands := Image.create_from_data(lw, lh * 2, false, Image.FORMAT_RGBA8, cells)
 
 	var cap_total := 0
@@ -174,18 +175,23 @@ func _load_level(renderer: Renderer) -> void:
 		table[o + 2] = renderer.tints[i * 3 + 2]
 	_plane_table = table
 	_plane_width = width
-	# The tiles, this level's sky under them, then its cells.
+	# The tiles, this level's sky under them, then its cells, then a row of what
+	# each tile is to the weather (_tile_info).
 	var sky := Image.create_from_data(
 		Renderer.SKY_W, Renderer.SKY_H, false, Image.FORMAT_RGB8, renderer.sky["data"]
 	)
 	sky.convert(Image.FORMAT_RGBA8)
 	var whole := Image.create_empty(
-		_atlas.get_width(), _cells_row + lh * 2, false, Image.FORMAT_RGBA8
+		_atlas.get_width(), _cells_row + lh * 2 + 1, false, Image.FORMAT_RGBA8
 	)
 	whole.blit_rect(_atlas, Rect2i(0, 0, _atlas.get_width(), _sky_row), Vector2i.ZERO)
 	whole.blit_rect(sky, Rect2i(0, 0, Renderer.SKY_W, Renderer.SKY_H), Vector2i(0, _sky_row))
 	whole.blit_rect(cell_bands, Rect2i(0, 0, lw, lh * 2), Vector2i(0, _cells_row))
+	whole.blit_rect(
+		_tile_info(), Rect2i(0, 0, _atlas.get_width(), 1), Vector2i(0, _cells_row + lh * 2)
+	)
 	_put("tiles_tex", whole.get_width(), whole.get_height(), Image.FORMAT_RGBA8, whole.get_data())
+	_set_param("info_row", _cells_row + lh * 2)
 
 	_set_param("map_size", Vector2i(lw, lh))
 	_set_param("floor_count", floors.size())
@@ -381,6 +387,37 @@ func _light(level: LevelData) -> void:
 	_put("planes", _plane_width, 5 + lh, Image.FORMAT_RGBAF, floats.to_byte_array())
 
 
+## One texel a tile (as wide as the atlas): r how much it is water (effects.cfg
+## [water]: ripples, rings, a broken reflection), g how deep its relief reads
+## ([relief], 128 + 127 * relief), b how readily it gathers puddles in the
+## rain ([puddles]).
+func _tile_info() -> Image:
+	var width := _atlas.get_width()
+	var bytes := PackedByteArray()
+	bytes.resize(width * 4)
+	bytes.fill(0)
+	# Relief is signed, 128 flat: below, the darker texels are the raised ones
+	# (light mortar between bricks).
+	for tile in width:
+		bytes[tile * 4 + 1] = 128
+	var tables := [Effects.WATER, Effects.RELIEF, Effects.PUDDLES]
+	for k in tables.size():
+		var table: Dictionary = tables[k]
+		for name: String in table:
+			if not _assets.tile_index.has(name):
+				push_warning("effects.cfg names a tile that does not exist: " + name)
+				continue
+			var tile := int(_assets.tile_index[name])
+			var value := float(table[name])
+			if tile < width:
+				bytes[tile * 4 + k] = (
+					clampi(128 + int(roundf(value * 127.0)), 1, 255)
+					if k == 1
+					else clampi(int(roundf(value * 255.0)), 0, 255)
+				)
+	return Image.create_from_data(width, 1, false, Image.FORMAT_RGBA8, bytes)
+
+
 ## The glows of effects.cfg in the atlas's alpha: a texel brighter than its
 ## tile's threshold gets 1 - its light there (palette.gdshader glow_of()).
 func _bake_glow() -> void:
@@ -410,25 +447,33 @@ func _bake_glow() -> void:
 ## This frame's lights (Game.effect_lights()) for the shader, when LIGHTS AND
 ## GLOW is on.
 func _lights(game: Game) -> void:
-	var m := material
 	_set_param("effects_on", Effects.enabled)
 	if not Effects.enabled:
 		_set_param("lightning", 0.0)
+		_set_param("rain", 0.0)
+		_set_param("wet", 0.0)
+		_set_param("ring_count", 0)
+		_set_param("haze_count", 0)
 	var found: Array = game.effect_lights() if Effects.enabled else []
 	var at := PackedVector4Array()
 	var tint := PackedVector4Array()
+	var flags := PackedInt32Array()
 	at.resize(Effects.MAX_LIGHTS)
 	tint.resize(Effects.MAX_LIGHTS)
+	flags.resize(Effects.MAX_LIGHTS)
 	for i in found.size():
 		var l: Array = found[i]
 		var c: Color = l[4]
 		at[i] = Vector4(l[0], l[1], l[2], l[3])
 		tint[i] = Vector4(c.r, c.g, c.b, l[5])
+		flags[i] = int(l[6]) if l.size() > 6 else 0
 	_set_param("light_count", found.size())
 	_set_param("light_pos", at)
 	_set_param("light_col", tint)
+	_set_param("light_flags", flags)
 	if not Effects.enabled:
 		return
+	_weather(game)
 	# The level's mood and its moving tiles (effects.cfg).
 	var id := game.level.id
 	var fog: Color = Effects.mood(id, "fog", Color(0, 0, 0))
@@ -465,6 +510,91 @@ func _lights(game: Game) -> void:
 	_set_param("anim_count", count)
 	_set_param("anims", anims)
 	_set_param("anim_time", fposmod(game.clock, 3600.0))
+
+
+## The weather (features/weather.gd), the rings on the water
+## (features/water.gd) and the shimmer over hot things (ViewLights), for the
+## shader, when LIGHTS AND GLOW is on. EASY ON THE EYES slows the water and
+## the shimmer (GENTLE) or stills them and the falling rain (STILL).
+func _weather(game: Game) -> void:
+	var r: Renderer = game.renderer
+	var motion: float = [1.0, .4, 0.0][clampi(r.world_motion, 0, 2)]
+	_set_param("motion", motion)
+	var weather = game.features.get("weather")
+	_set_param("rain", float(weather.rain) if weather != null else 0.0)
+	_set_param("wet", float(weather.wet) if weather != null else 0.0)
+	if weather != null:
+		_set_param("flash_dir", weather.flash_dir)
+	_set_param("fog_banks", float(Effects.mood(game.level.id, "fog_banks", 0.0)))
+	var water = game.features.get("water")
+	var shown: Array = water.shown(game.player.x, game.player.y) if water != null else []
+	var rings := PackedVector4Array()
+	rings.resize(16)
+	for i in mini(shown.size(), 16):
+		var w: Array = shown[i]
+		rings[i] = Vector4(w[0], w[1], w[2], w[3])
+	_set_param("ring_count", mini(shown.size(), 16))
+	_set_param("rings", rings)
+	_haze(game, motion)
+
+
+## Up to four boxes of the view, each over a hot thing the eye can see, whose
+## air shimmers (palette.gdshader haze_shift): centre column, base row, half
+## width and height in view pixels, and how far it sways.
+func _haze(game: Game, motion: float) -> void:
+	var r: Renderer = game.renderer
+	var boxes := PackedVector4Array()
+	var sway := PackedFloat32Array()
+	boxes.resize(4)
+	sway.resize(4)
+	var count := 0
+	var sources: Array = ViewLights.heat_sources(game, 6) if motion > 0.0 else []
+	var cx: float = r.cam["x"]
+	var cy: float = r.cam["y"]
+	var cz: float = r.cam["z"]
+	var angle: float = r.cam["angle"]
+	var fx := cos(angle)
+	var fy := sin(angle)
+	for s: Array in sources:
+		if count >= 4:
+			break
+		var dx := float(s[0]) - cx
+		var dy := float(s[1]) - cy
+		var depth := dx * fx + dy * fy
+		if depth < .6 or depth > 14.0:
+			continue
+		var column := r.vw * .5 + (-dx * fy + dy * fx) / depth * r.focal
+		var half := float(s[3]) / depth * r.focal
+		if column + half < 0.0 or column - half > r.vw:
+			continue
+		if not _walls_clear(game.world, cx, cy, float(s[0]), float(s[1])):
+			continue
+		var base: float = r.cam["hz"] + (cz - float(s[2])) / depth * r.focal
+		boxes[count] = Vector4(column, base, half, float(s[3]) * 3.2 / depth * r.focal)
+		sway[count] = (1.6 - depth * .07) * motion * (2.0 if r.detail < 0 else 1.0)
+		count += 1
+	_set_param("haze_count", count)
+	_set_param("haze_box", boxes)
+	_set_param("haze_amp", sway)
+
+
+## No wall cell nor shut door on the line from the eye to a hot thing (props
+## and furniture do not count: the thing itself is one, and the shimmer rises
+## above them).
+static func _walls_clear(world: LevelData, ax: float, ay: float, bx: float, by: float) -> bool:
+	var steps := maxi(1, int(Vector2(bx - ax, by - ay).length() * 4.0))
+	for i in range(1, steps):
+		var t := float(i) / steps
+		var x := ax + (bx - ax) * t
+		var y := ay + (by - ay) * t
+		if x < 0.0 or y < 0.0 or x >= world.width or y >= world.height:
+			return false
+		if world.solid[int(y) * world.width + int(x)] >= 0:
+			return false
+		for door: LevelData.Door in world.near_doors.get(Vector2i(int(x), int(y)), []):
+			if door.blocks(x, y, 0.0):
+				return false
+	return true
 
 
 ## The canvas holds a finished picture this frame (menus, the tally).

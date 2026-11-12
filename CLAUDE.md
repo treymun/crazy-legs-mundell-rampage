@@ -362,8 +362,23 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   for them: `docs/physics_audio.md`. `tools/break_check.gd` (in check_fixes)
   and `tools/physics_frames.gd` (window pictures of each effect) cover it.
 - **A level's mood** is `effects.cfg` `[level.<id>]`: fog colour and distance,
-  grade, cloud drift, lightning, crows, fireflies; `[anim.<tile>]` makes a sign
+  grade, cloud drift, lightning, rain (`rain`, `showers` for spells),
+  `fog_banks`, `heat` spots, crows, fireflies; `[anim.<tile>]` makes a sign
   buzz or pulse. All of it is the shader's, behind LIGHTS AND GLOW.
+- **Weather, water, relief and shimmer** (shader only, behind `effects_on`):
+  `features/weather.gd` keeps `rain` and `wet` (puddles on `[puddles]`
+  floors, a sheen on walls under the sky, streaks over the view) and the
+  lightning's `flash_dir`; `features/water.gd` keeps the rings bodies leave
+  wading on `[water]` floors (the shader takes the nearest 16). What each tile
+  is to them (`[water]`, signed `[relief]`, `[puddles]`) is one row of
+  `tiles_tex` (`info_row`), and "under the open sky" is the cells' second
+  band's g (roof at the floor): no new texture. Lights come from
+  `view_lights.gd` (moved out of `game_view.gd`): `[light.*]` takes `pool`,
+  `hot` (the shimmer's width; strength 0 only shimmers) and `props` (every
+  prop with that picture carries it). Rain never on the Mothership;
+  `tools/weather_check.gd` (in check_fixes) holds where it falls. A view tour
+  viewpoint may hold the weather: `rain`, `wet`, `lightning`. Sounds they would
+  want are listed in `docs/visual_audio.md` (none made).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
   red hulls, crows, county-fair words and ribbons, cartoon wipes; original art
   and sound only (new small sounds can be made in `assets.gd` MADE_CUES).
