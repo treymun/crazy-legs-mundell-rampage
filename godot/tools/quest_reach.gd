@@ -17,7 +17,7 @@
 ## thing's best spot, for before-and-after pictures. Prints QUEST REACH OK.
 extends SceneTree
 
-const LEVELS := ["hickston", "fair", "sawmill", "quarry", "hub"]
+const LEVELS := ["hickston", "fair", "sawmill", "quarry", "speedway", "hub", "range"]
 ## The ring a player stands in to use something: no nearer, no farther.
 const NEAR := .5
 const FAR := 1.2
