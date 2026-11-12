@@ -81,6 +81,21 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 				open[cell] = 1
 
 
+## Measure the open floor again over a box of the map, from x0, y0 to x1, y1
+## (furniture that stood there is gone: a crate shot to pieces), and measure
+## the steps again from wherever they are measured from.
+func reopen(x0: float, y0: float, x1: float, y1: float) -> void:
+	for cy in range(maxi(0, int(y0 - BODY)), mini(height - 1, int(y1 + BODY)) + 1):
+		for cx in range(maxi(0, int(x0 - BODY)), mini(width - 1, int(x1 + BODY)) + 1):
+			var cell := cy * width + cx
+			if open[cell] != 0 or world.solid[cell] >= 0:
+				continue
+			if not world.blocked(cx + .5, cy + .5, BODY) and not world.deep_at(cx + .5, cy + .5):
+				open[cell] = 1
+	origin = Vector2i(-1, -1)
+	next_at = 0.0
+
+
 func passable(cell: int) -> bool:
 	var kind := open[cell]
 	if kind == 2:

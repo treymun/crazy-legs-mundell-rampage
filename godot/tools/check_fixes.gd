@@ -619,6 +619,9 @@ func _run() -> void:
 	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
 	_quest_props(main)
 
+	# Things that break, bodies and bits that move, blasts that throw and chain.
+	preload("res://tools/break_check.gd").run(main, check)
+
 	# The firing range: its title entry, its way out, the campaign untouched.
 	preload("res://tools/range_check.gd").run(main, check)
 

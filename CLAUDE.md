@@ -341,6 +341,26 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `callouts` (TWOFER, HAT TRICK, HOG WILD, RAMPAGE) and `tally` (rows that
   thud down and a ribbon). Features may add sprites and ground marks; looks-only
   ones use their own dice so play never changes.
+- **Things break and loose things move** (`features/breakables.gd`,
+  `features/corpses.gd`, `gore.gd`, `tumble.gd`). `data/tuning/breakables.cfg`
+  names each picture that breaks (a board's image or `prop_<name>`), its broken
+  picture (props: `scripts/blender/props_broken.py` through
+  `build_town_props.gd`; signs' `<name>_shot` and the bits `fx_brk_*`:
+  `tools/art/build_break_art.gd`), hp, bits, cues and, for explosives, the blast
+  (`shots.cfg`) it sets off a moment later, which can set off the next (chain).
+  Quest props, signal or glowing boards, anything on furniture it shares with
+  something whole, and anything whose base alone parts two stretches of floor
+  never break; a broken piece's base leaves `collision_volumes`
+  (`LevelData.drop_volume`) and its cells reopen for both flow fields
+  (`FlowField.reopen`). game_combat.gd asks it first in `hitscan`, `_hits` and
+  `explode` (`_blast_shoves` also throws gibs, bodies, bits, loose barrels and
+  rolling shots). `tumble.gd` is the one stepper for gibs, bits, bodies, the
+  player's dynamite and bowling balls (walls axis by axis, ledges, furniture
+  tops, slopes from the floor sampled .45 each way, drag). Bodies take a knock
+  from `Enemy.killed_by`/`killed_from` (an overkill still gibs); their place is
+  the enemy's saved x, y. Breakables save in the features block. Sounds wanted
+  for them: `docs/physics_audio.md`. `tools/break_check.gd` (in check_fixes)
+  and `tools/physics_frames.gd` (window pictures of each effect) cover it.
 - **A level's mood** is `effects.cfg` `[level.<id>]`: fog colour and distance,
   grade, cloud drift, lightning, crows, fireflies; `[anim.<tile>]` makes a sign
   buzz or pulse. All of it is the shader's, behind LIGHTS AND GLOW.

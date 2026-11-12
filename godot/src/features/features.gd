@@ -19,6 +19,8 @@ const ALL := [
 	preload("res://src/features/firing_range.gd"),
 	preload("res://src/features/bayou_feature.gd"),
 	preload("res://src/features/mothership.gd"),
+	preload("res://src/features/corpses.gd"),
+	preload("res://src/features/breakables.gd"),
 ]
 
 

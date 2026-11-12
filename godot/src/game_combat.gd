@@ -31,7 +31,7 @@ func launch(
 		life,
 		enemy,
 		damage,
-		3 if kind == "blade" else 0
+		3 if kind == "blade" else 2 if kind == "bowling" else 0
 	)
 	shot.owner = owner
 	shots.append(shot)
@@ -139,6 +139,12 @@ func hitscan(
 		):
 			scenery = prop
 			near = d
+	var pieces = features.get("breakables")
+	if pieces != null and pieces.ray(p.x, p.y, p.eye, ax, ay, slope, near, spread) >= 0:
+		near = pieces.ray_d
+		_traced(ax, ay, slope, near, "thing")
+		pieces.strike(pieces.ray_piece, amount, ax, ay)
+		return true
 	if scenery != null:
 		_traced(ax, ay, slope, near, "thing")
 		hit_scenery(scenery)
@@ -377,6 +383,9 @@ func drum_hit(point: Vector2, amount: float) -> void:
 	var z: float = world.elevation(x, y) + .57
 	if int(drums[point]) <= 0:
 		drums.erase(point)
+		var pieces = features.get("breakables")
+		if pieces != null:
+			pieces.wreck(x, y, "town_fuel_drum_burst")
 		explode(Shot.new(x, y, z, 0.0, 0.0, 0.0, "fuel", 0.0, false, 0))
 	else:
 		sound_at("ricochet", x, y, .6)
@@ -425,13 +434,14 @@ func explode(shot: Shot) -> void:
 			and world.visible(x, y, prop.x, prop.y)
 		):
 			hit_scenery(prop)
+	_blast_shoves(shot, x, y, z, radius, strength, energy)
 	var p := player
 	var distance := sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y))
 	if distance < radius * .75 and world.visible(x, y, p.x, p.y):
 		damage(
 			maxi(2, int(float(spec["player_damage"]) * (1.0 - distance / (radius * .75)))),
 			[x, y],
-			"BLAST" if shot.enemy or shot.kind == "fuel" else "BACKBLAST"
+			"BLAST" if shot.enemy or shot.kind == "fuel" or shot.owner == -1 else "BACKBLAST"
 		)
 	if not energy:
 		for pane in world.pane_tiles:
@@ -454,6 +464,33 @@ func explode(shot: Shot) -> void:
 				and sqrt(pow(centre.x - x, 2) + pow(centre.y - y, 2)) < 1.27
 			):
 				toggle_door(door, true)
+
+
+## What a blast does to loose things: breaks the breakables near it (an
+## explosive one goes up after, the chain reaction), throws gibs, bodies, bits
+## and the barrels it did not break outward, and knocks lit dynamite and
+## bowling balls rolling. Its damage to enemies and the player is explode()'s.
+func _blast_shoves(
+	shot: Shot, x: float, y: float, z: float, radius: float, strength: float, energy: bool
+) -> void:
+	var power := 2.5 if energy else 4.5
+	var pieces = features.get("breakables")
+	if pieces != null:
+		pieces.blast(x, y, z, radius, strength, energy)
+	gore_fx.shove(x, y, radius * 1.4, power)
+	var bodies = features.get("corpses")
+	if bodies != null:
+		bodies.shove(x, y, radius * 1.3, power * .75)
+	for other: Shot in shots:
+		if other == shot or other.enemy or (other.kind != "tnt" and other.kind != "bowling"):
+			continue
+		var push := Tumble.shove(x, y, radius, power, other.x, other.y)
+		if push != Vector3.ZERO and world.visible(x, y, other.x, other.y):
+			other.vx += push.x
+			other.vy += push.y
+			if other.kind == "tnt":
+				other.vz = maxf(other.vz, push.z * .6)
+			other.resting = false
 
 
 func hit_scenery(prop: LevelData.Scenery) -> void:
@@ -516,12 +553,19 @@ func move_shot(shot: Shot, dt: float) -> bool:
 	dt /= steps
 	var gravity := Shots.gravity(shot.kind)
 	var tnt := shot.kind == "tnt"
+	var rolls := (tnt or shot.kind == "bowling") and not shot.enemy
 	for _step in steps:
 		shot.life -= dt
 		if shot.life <= 0.0:
 			finish_shot(shot)
 			return false
 		if shot.resting:
+			continue
+		if rolls:
+			if not _roll(shot, dt, tnt):
+				return false
+			if not tnt and not _hits(shot, shot.x, shot.y, shot.z):
+				return false
 			continue
 		var x := shot.x + shot.vx * dt
 		var y := shot.y + shot.vy * dt
@@ -602,52 +646,93 @@ func move_shot(shot: Shot, dt: float) -> bool:
 				return false
 		if shot.enemy or tnt:
 			continue
-		var drum = null
-		for point in drums.keys():
-			var vec: Vector2 = point
-			if (
-				sqrt(pow(vec.x - x, 2) + pow(vec.y - y, 2)) < .27
-				and 0.0 <= z - world.elevation(vec.x, vec.y)
-				and z - world.elevation(vec.x, vec.y) <= 1.07
-			):
-				drum = vec
-				break
-		if drum != null:
-			drum_hit(drum, 25)
+		if not _hits(shot, x, y, z):
 			return false
-		for enemy: Enemy in enemies:
-			if not enemy.alive or enemy.brain == "bessie":
-				continue
-			var dz: float = z - enemy.z - world.elevation(enemy.x, enemy.y)
-			if (
-				-.07 < dz
-				and dz < enemy.height + .05
-				and sqrt(pow(enemy.x - x, 2) + pow(enemy.y - y, 2)) < enemy.radius + .10
-			):
-				if shot.kind == "blade":
-					enemy.hurt(shot.damage, self, false, false, null, "blade")
-					sound_at("saw_hit", x, y)
-				elif shot.kind == "bowling":
-					var key := shot.get_instance_id()
-					if not bowled.has(key):
-						bowled[key] = {}
-					var seen: Dictionary = bowled[key]
-					var eid := enemy.get_instance_id()
-					if not seen.has(eid):
-						seen[eid] = true
-						enemy.hurt(shot.damage, self, false, false, null, "bowling")
-						sound_at("bowling_hit", x, y)
-						if seen.size() == 3 and barks.enabled:
-							# Three down with one ball.
-							callout = "STRIKE!"
-							callout_until = clock + 1.3
-							sound.play("yee_haw", .7)
-						burst(x, y, z, "dust", 6, 1.4)
-						shot.vx *= .8
-						shot.vy *= .8
-				else:
-					finish_shot(shot)
-				return false
+	return true
+
+
+## A rolling shot's step (tumble.gd): a stick of dynamite bounces, rolls down
+## slopes and off walls and lies still to burn down; a bowling ball rolls on
+## till it slows, coming off two walls on the way. False: the ball is done.
+func _roll(shot: Shot, dt: float, tnt: bool) -> bool:
+	var before := Vector2(shot.x, shot.y)
+	var hit := Tumble.step(world, shot, Tumble.shot_feel(shot.kind), dt)
+	shot.travelled += before.distance_to(Vector2(shot.x, shot.y))
+	if tnt:
+		if hit & (Tumble.WALL | Tumble.FLOOR):
+			sound_at("tnt_bounce", shot.x, shot.y)
+		if hit & Tumble.RESTED:
+			shot.resting = true
+		return true
+	if hit & Tumble.WALL:
+		shot.bounces -= 1
+		sound_at("impact_wood", shot.x, shot.y, .7)
+		burst(shot.x, shot.y, shot.z, "dust", 5, 1.0)
+	if shot.bounces < 0 or hit & Tumble.RESTED or shot.vx * shot.vx + shot.vy * shot.vy < .09:
+		finish_shot(shot)
+		return false
+	return true
+
+
+## What a player's shot strikes where it is now: a drum, something that
+## breaks, an enemy. False when it is used up there.
+func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
+	var drum = null
+	for point in drums.keys():
+		var vec: Vector2 = point
+		if (
+			sqrt(pow(vec.x - x, 2) + pow(vec.y - y, 2)) < .27
+			and 0.0 <= z - world.elevation(vec.x, vec.y)
+			and z - world.elevation(vec.x, vec.y) <= 1.07
+		):
+			drum = vec
+			break
+	if drum != null:
+		drum_hit(drum, 25)
+		return false
+	var pieces = features.get("breakables")
+	var piece: int = -1 if pieces == null else pieces.touch(x, y, z, .22)
+	if piece >= 0:
+		pieces.strike(piece, float(maxi(shot.damage, 25)), shot.vx, shot.vy)
+		if shot.kind != "bowling" and shot.kind != "blade":
+			finish_shot(shot)
+			return false
+		# A ball or a blade goes on through, slowed.
+		shot.vx *= .8
+		shot.vy *= .8
+	for enemy: Enemy in enemies:
+		if not enemy.alive or enemy.brain == "bessie":
+			continue
+		var dz: float = z - enemy.z - world.elevation(enemy.x, enemy.y)
+		if (
+			-.07 < dz
+			and dz < enemy.height + .05
+			and sqrt(pow(enemy.x - x, 2) + pow(enemy.y - y, 2)) < enemy.radius + .10
+		):
+			if shot.kind == "blade":
+				enemy.hurt(shot.damage, self, false, false, null, "blade")
+				sound_at("saw_hit", x, y)
+			elif shot.kind == "bowling":
+				var key := shot.get_instance_id()
+				if not bowled.has(key):
+					bowled[key] = {}
+				var seen: Dictionary = bowled[key]
+				var eid := enemy.get_instance_id()
+				if not seen.has(eid):
+					seen[eid] = true
+					enemy.hurt(shot.damage, self, false, false, null, "bowling")
+					sound_at("bowling_hit", x, y)
+					if seen.size() == 3 and barks.enabled:
+						# Three down with one ball.
+						callout = "STRIKE!"
+						callout_until = clock + 1.3
+						sound.play("yee_haw", .7)
+					burst(x, y, z, "dust", 6, 1.4)
+					shot.vx *= .8
+					shot.vy *= .8
+			else:
+				finish_shot(shot)
+			return false
 	return true
 
 

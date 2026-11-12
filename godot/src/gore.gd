@@ -22,6 +22,8 @@ class Gib:
 	var age := 0.0
 	var green := false
 	var drip := 0.0
+	## How far it has rolled along the ground (it turns over as it goes).
+	var roll := 0.0
 
 
 ## Dust or sparks where a bullet struck.
@@ -77,6 +79,8 @@ var blood_marks: Array = []
 var walls: Array = []
 var dice := RandomNumberGenerator.new()
 var _splat_clock := -1.0
+## How each size of chunk moves (tumble.gd), made once.
+var _feels := {}
 var game: Game
 
 
@@ -243,10 +247,9 @@ func tick(dt: float) -> void:
 		if g.rest:
 			g.age += dt
 			continue
-		g.vz -= 9.4 * dt
 		# A chunk in the air leaves a line of drops behind it.
 		g.drip -= dt
-		if g.drip <= 0.0 and game.specks.size() < 170:
+		if g.vz != 0.0 and g.drip <= 0.0 and game.specks.size() < 170:
 			g.drip = .09
 			game.specks.append(
 				Game.Speck.new(
@@ -260,28 +263,53 @@ func tick(dt: float) -> void:
 					"plasma" if g.green else "gore"
 				)
 			)
-		var nx := g.x + g.vx * dt
-		var ny := g.y + g.vy * dt
-		if game.world.blocked(nx, ny, .06):
-			g.vx *= -.35
-			g.vy *= -.35
-		else:
-			g.x = nx
-			g.y = ny
-		g.z += g.vz * dt
-		var floor_z: float = game.world.elevation(g.x, g.y)
-		if g.z <= floor_z:
-			g.z = floor_z
-			if g.vz < -1.5:
-				g.vz *= -.36
-				g.vx *= .55
-				g.vy *= .55
-				_stain(g.x, g.y, dice.randf_range(.09, .18), g.green)
-				if game.clock - _splat_clock > .11:
-					_splat_clock = game.clock
-					game.sound_at("gib_splat", g.x, g.y, .55)
-			else:
-				g.rest = true
-				g.vz = 0.0
+		# Off walls, floors and furniture, down slopes, rolling to a stop
+		# (tumble.gd): never left inside a wall.
+		var ox := g.x
+		var oy := g.y
+		var hit := Tumble.step(game.world, g, _feel(g.size), dt)
+		if hit & Tumble.RESTED:
+			g.rest = true
+		if hit & Tumble.FLOOR:
+			_stain(g.x, g.y, dice.randf_range(.09, .18), g.green)
+			if game.clock - _splat_clock > .11:
+				_splat_clock = game.clock
+				game.sound_at("gib_splat", g.x, g.y, .55)
+		elif hit & Tumble.WALL and game.clock - _splat_clock > .11:
+			_splat_clock = game.clock
+			game.sound_at("gib_splat", g.x, g.y, .35)
+		if g.vz == 0.0:
+			var was := int(g.roll / .22)
+			g.roll += Vector2(g.x - ox, g.y - oy).length()
+			if int(g.roll / .22) != was:
+				g.flip = not g.flip
 	if not gibs.is_empty() and gibs[0].rest and gibs[0].age > 45.0:
 		gibs.pop_front()
+
+
+## How a chunk its size moves: small ones bounce more and roll further.
+func _feel(size: float) -> Tumble.Feel:
+	var key := snappedf(size, .05)
+	var feel: Tumble.Feel = _feels.get(key)
+	if feel == null:
+		feel = Tumble.Feel.new(clampf(size * .3, .03, .1), .45, .36, 1.6 + size * 4.0)
+		feel.grip = .55
+		feel.hard = 1.5
+		feel.pull = .9
+		_feels[key] = feel
+	return feel
+
+
+## A blast throws the chunks lying near it (game_combat.gd explode()).
+func shove(x: float, y: float, reach: float, power: float) -> void:
+	for g: Gib in gibs:
+		if absf(g.x - x) > reach or absf(g.y - y) > reach:
+			continue
+		var push := Tumble.shove(x, y, reach, power, g.x, g.y)
+		if push == Vector3.ZERO or not game.world.visible(x, y, g.x, g.y):
+			continue
+		g.vx += push.x * dice.randf_range(.8, 1.2)
+		g.vy += push.y * dice.randf_range(.8, 1.2)
+		g.vz += push.z
+		g.rest = false
+		g.age = 0.0

@@ -239,6 +239,11 @@ var enraged_at := -10.0
 ## how far it is sunk in the water this moment (wading, lurking, a gator low).
 var swims := false
 var sunk := 0.0
+## How it was killed (hurt()'s `how`) and from where, and how high its body
+## is thrown this moment (features/corpses.gd moves the body after).
+var killed_by := ""
+var killed_from := Vector2.ZERO
+var toss := 0.0
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -484,6 +489,8 @@ func hurt(
 		return
 	explosive = explosive_hit
 	died_at = game.clock
+	killed_by = "blast" if explosive_hit else how
+	killed_from = Vector2(from_x, from_y)
 	# Overkill: far more than the body had left, all at once, takes it apart.
 	if (
 		game.gore
@@ -1291,11 +1298,11 @@ func sprite(observer = null, relieved := false, now := -1.0):
 		var span := DEATH_TIME if cels == 5 else DEATH_TIME * .5
 		if cels > 0 and died_at >= 0.0 and now >= died_at and fallen < span:
 			var cel := "%s_die_%d" % [kind, mini(cels - 1, int(fallen / span * cels))]
-			var falling := Renderer.Sprite.new(x, y, cel, height * variant, z)
+			var falling := Renderer.Sprite.new(x, y, cel, height * variant, z + toss)
 			falling.flip = face_left
 			return falling
 		var lying := height * (.45 if brain == "derby_champ" else .25)
-		var down := Renderer.Sprite.new(x, y, "%s_down" % kind, lying, -.07)
+		var down := Renderer.Sprite.new(x, y, "%s_down" % kind, lying, toss - .07)
 		down.flip = face_left
 		return down
 	var recover := recovery_time(relieved) if recovery > 0.0 else 0.0

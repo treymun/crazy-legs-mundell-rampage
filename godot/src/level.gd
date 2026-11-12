@@ -962,6 +962,22 @@ func _build_indexes() -> void:
 				near_fixtures[key].append(fixture)
 
 
+## Take one piece of furniture out of the way (a crate shot to pieces:
+## features/breakables.gd): nothing collides with it after.
+func drop_volume(volume: PackedFloat32Array) -> void:
+	var i := collision_volumes.find(volume)
+	if i < 0:
+		return
+	collision_volumes.remove_at(i)
+	# Out of the index too, from the cells _build_indexes() put it in.
+	for yy in range(int(floor(volume[1] - index_radius)), int(floor(volume[3] + index_radius)) + 1):
+		for xx in range(
+			int(floor(volume[0] - index_radius)), int(floor(volume[2] + index_radius)) + 1
+		):
+			var near: Array = near_fixtures.get(Vector2i(xx, yy), [])
+			near.erase(volume)
+
+
 ## Mirrors TileMap.blocked().
 func blocked(x: float, y: float, radius := 0.0, z = null) -> bool:
 	for step in 4:
