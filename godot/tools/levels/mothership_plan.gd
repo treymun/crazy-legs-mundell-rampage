@@ -1,7 +1,8 @@
-## The Mothership (chapter 7, the last; layout 1): the ship that sent the
+## The Mothership (chapter 7, the last; layout 2): the ship that sent the
 ## Alien Sheriff, every room of it indoors, riveted, patched with county tin
 ## and stuffed with what the greys hauled up. Round the middle the core, a tall
-## round chamber under the tractor-beam column where Maw Glorb waits; round the
+## round chamber under the tractor-beam column where Maw Glorb waits on her
+## throne (a dais in its south, seen past the column from the iris); round the
 ## core the ring deck, a corridor that goes all the way round, with viewports
 ## looking into the core; off the ring the rooms. South, where the beam set the
 ## player down: the tractor-beam bay, a pickup hanging in the beam, the escape
@@ -65,7 +66,7 @@ func make() -> Builder:
 		"ending": '"TELL YER MAW SHE CAN KEEP THE BUS."',
 		"score": "mothership_score",
 		"ambience": "mothership",
-		"layout": 1,
+		"layout": 2,
 		"sky": "sky",
 		"control_name": "SHIP'S GUTS SCRAMBLED",
 		"extraction": {"x": 70.5, "y": 92.5, "label": "RIDE THE OUTHOUSE HOME", "shutdown": "iris"},
@@ -276,6 +277,16 @@ func core_and_ring() -> void:
 	b.controlled(64, 37, false, {"from": "n", "id": "core-iris", "tile": "ship_door"})
 	b.room(64, 61, 64, 61, "ship_deck", core, _room({"roof": 3.0, "light": .8}))
 	b.controlled(64, 62, false, {"from": "s", "id": "core-hatch", "tile": "ship_door"})
+	# Her throne: a dais two steps up in the south of the core, beside the hatch.
+	for y in range(55, 62):
+		for x in range(55, 66):
+			if dist(x, y) > CORE_R:
+				continue
+			if y >= 56 and x >= 57 and x <= 63:
+				b.raise(x, y, x, y, .48)
+			elif x >= 56 and x <= 64:
+				b.raise(x, y, x, y, .24)
+	b.paint(57, 56, 63, 61, "ship_lino")
 	# The beam column: light from floor to roof, a pillar to hide behind.
 	b.fixture(63.42, 49.42, 64.58, 50.58, 8.0, "ship_beam", "ship_beam")
 	for p in [Vector2i(59, 45), Vector2i(68, 45), Vector2i(59, 54), Vector2i(68, 54)]:

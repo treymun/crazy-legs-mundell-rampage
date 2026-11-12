@@ -19,7 +19,7 @@ static func draw(game, c: Canvas, y: int) -> int:
 	var tell: String = String(
 		Enemy.TELLS.get(boss.kind, "PLASMA CHARGE" if boss == game.boss else "WHISTLE")
 	)
-	if boss.brain == "baron" and boss.attacks % 2 == 1:
+	if boss.brain == "baron" and not BaronMoves.outlets_next(boss.attacks, boss.enraged):
 		tell = "STEAM SWEEP"
 	if boss.brain == "foreman" and boss.attacks % 2 == 1:
 		tell = "GAP IN THE MIDDLE"
@@ -31,6 +31,9 @@ static func draw(game, c: Canvas, y: int) -> int:
 		var toward := atan2(boss.aim_mark[1] - boss.y, boss.aim_mark[0] - boss.x)
 		var run := BayouBrains.runs_on(boss, boss.attacks + 1, game.world, toward)
 		tell = "AIRBOAT RUN" if run else "PUNT GUN"
+	if boss.has_meta("tell"):
+		# An attack of its own moves (src/bosses/) names itself.
+		tell = String(boss.get_meta("tell"))
 	tell = ShipAliens.tell(game, boss, tell)
 	var phase: String = tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
 	if boss.brain == "derby_champ" and phase == "RECOVERING":

@@ -399,6 +399,45 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   are drawn beaten. A cel without a variant keeps its name. `tools/boss_closeups.gd
   -- out=<png>` draws every boss in its level in each state (software view).
   `pack_assets.gd` stores identical pictures once (the old three-cel walk names).
+- **The last four bosses' arenas** (`features/boss_arenas.gd`, from each plan's
+  `boss_arena` meta, `LevelData.boss_arena`): hazards that hurt the boss as
+  well as the player, each third phase's arena change, `drop()` (a throw onto
+  a marked spot whose ring closes in: copper rain, dynamite, curlers), `burn()`
+  (burning fuel or oil), and the arena's own `lights` and valve `steam`.
+  Nothing saved: the change follows the boss's health. `tools/arena_frames_late.gd`
+  (a window) takes pictures of each: the way in, the reveal, the fight, phase 3.
+  - *Baron*: the still house (quarry layout 4), the north end of the bottling
+    works walled off behind a three-bay gate the relay (now beside it) throws
+    open; he waits on the boiler deck between two giant boilers. His outlets
+    are the nearest three to where the player stood as he wound up
+    (`pressure_ports` reads them off him); one blowing under him scalds him.
+    Phase 3 COPPER RAIN (five marked spots round the player, steam) and the
+    wall pipes bursting (`jets`). Weak spot: the boiler on his back (from
+    behind, body high, x2). HOG WILD: BLOWDOWN, every outlet every third time.
+    `BaronMoves.outlets_next` is the one test of outlets vs. steam sweep.
+  - *Swamp King*: the lagoon (bayou layout 2) is open all round the feed
+    platform (the dock walk came out); fish houses on the north shore,
+    cypress in the deep, fuel drums on the dock edge that a beached run sets
+    off. Phase 3 DYNAMITE (three lit sticks onto marked spots) and burning
+    slicks off his holed tank. Weak spot: the engine cage (from behind, x2).
+    HOG WILD: a broadside of the punt gun at the end of every run.
+  - *Boggs*: the derby bowl (speedway layout 2, was the figure 8), one long
+    tyre-walled bowl, a three-bay gate by the flag, a clear run up the middle;
+    wrecks, tyre stacks, nitro and gas cans (his crashes set them off,
+    `derby_champ.gd _crash`). Phase 3 NITRO RAM (three legs off the walls,
+    painted, then a long stall) and the floodlights blow (`floods`, his
+    headlights the light left). Weak spot: the radiator (front, low, x2).
+    HOG WILD: burning oil down every charge lane.
+  - *Maw*: her throne on a dais in the core's south (Mothership layout 2),
+    seen past the column from the iris; crates, jars and two shine barrels.
+    Her last phase adds HOT CURLERS (mothership.gd) and the core going
+    critical: pulses roll out from the column to be jumped, burning her too.
+    Weak spot: her curlers (top of her head, x2) and in her last phase the
+    power-cell girdle (x1.6). HOG WILD: the rolling pin comes down twice.
+    A rematch keeps the escape hatch and the derby bowl's back gate shut
+    (`BossRematch.SHUT`), so it starts by the iris and by the flag. The bot's
+    times (`boss_rematch_check.gd -- bot`, now with `diff=` and `runs=`) set
+    their PAR.
 - **Fight music** (`features/fight_music.gd`, `sound.gd` crossfade) swaps a
   chapter's music for its fight track (`assets/music/fight_*.ogg`, made by
   `audio_build.py --fights`) while hands hunt or attack nearby. Each chapter

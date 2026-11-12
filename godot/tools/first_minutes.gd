@@ -171,6 +171,9 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 				]
 			)
 		)
+		for e: Enemy in game.wave:
+			if e.alive:
+				print("      still up: %s at (%.1f, %.1f)" % [e.kind, e.x, e.y])
 		return -1.0
 	return seen
 

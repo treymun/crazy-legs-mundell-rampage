@@ -1173,7 +1173,7 @@ func special_attack(game, direction: float, distance: float, eye: float, aim_z) 
 				)
 		cooldown = 1.69 * (.85 if enraged else 1.0)
 		game.sound_at("foreman_cut", x, y)
-	elif brain == "baron" and (attacks % 2 == 1 or enraged):
+	elif brain == "baron" and BaronMoves.outlets_next(attacks - 1, enraged):
 		var ports = game.pressure_ports(attacks - 1)
 		var relieved: bool = game.relief_open()
 		# pressure_ports() hands back the level's Vector2 points, not [x, y] pairs.

@@ -262,7 +262,9 @@ var discovery_rooms := {}
 var reinforcements: Array = []
 var pressure_ports: Array = []
 var boss_decoys: Array = []
-## Where a boss arena's things stand (features/boss_arena.gd): kind -> notes.
+## Where a boss arena's things stand, as each plan marks them: the first
+## chapters' hazards (features/boss_arena.gd: kind -> notes) and the last
+## bosses' burst pipes, floodlights and core (features/boss_arenas.gd).
 var boss_arena := {}
 ## Cars still lapping the track (features/race_laps.gd): their path, how
 ## many, how fast, the station that stops them.

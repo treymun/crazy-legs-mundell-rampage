@@ -1175,6 +1175,11 @@ func pressure_ports(attacks: int) -> Array:
 	if ports.is_empty():
 		return []
 	var count := 1 if relief_open() else 2
+	# The baron picks the outlets nearest where the player stood as he wound up
+	# (bosses/baron.gd keeps them on him); otherwise they go in turn.
+	if finale != null and int(finale.get_meta("ports_for", -1)) == attacks:
+		var picked: Array = finale.get_meta("ports")
+		return picked.slice(0, mini(count, picked.size()))
 	var offset := int(attacks / 2) % ports.size()
 	var out: Array = []
 	for i in count:
@@ -1240,6 +1245,27 @@ func objective() -> String:
 			else "STEEL KEY / EAST AT THE STOCK REGISTRY"
 		)
 	return "STANKY'S / BRASS KEY IN DISPATCH"
+
+
+## The middle of the nearest cell to (x, y) a body can stand in out of deep
+## water (rings out to 12 cells), or (x, y) itself when there is none.
+func shore_near(x: float, y: float) -> Vector2:
+	for r in range(1, 13):
+		var best := Vector2.INF
+		for cy in range(int(y) - r, int(y) + r + 1):
+			for cx in range(int(x) - r, int(x) + r + 1):
+				if maxi(absi(cx - int(x)), absi(cy - int(y))) != r:
+					continue
+				var at := Vector2(cx + .5, cy + .5)
+				if cx < 1 or cy < 1 or cx >= world.width - 1 or cy >= world.height - 1:
+					continue
+				if world.blocked(at.x, at.y, .3) or world.deep_at(at.x, at.y):
+					continue
+				if at.distance_squared_to(Vector2(x, y)) < best.distance_squared_to(Vector2(x, y)):
+					best = at
+		if best != Vector2.INF:
+			return best
+	return Vector2(x, y)
 
 
 func objective_target() -> Variant:
@@ -1312,6 +1338,9 @@ func objective_target() -> Variant:
 					)
 				):
 					near2 = enemy
+			if world.deep_at(near2.x, near2.y):
+				# Out on deep water (the swamp king): the nearest ground to it.
+				return shore_near(near2.x, near2.y)
 			return Vector2(near2.x, near2.y)
 		return Vector2(exit.x, exit.y)
 	# Hickston: the same steps objective() names. The pin used to point at the

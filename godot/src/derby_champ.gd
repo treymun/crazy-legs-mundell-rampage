@@ -206,6 +206,10 @@ static func _crash(e: Enemy, s: Dictionary, game, heading: float) -> void:
 	game.burst(fx, fy, floor_z + .4, "dust", 12, 1.8)
 	game.sound_at("derby_champ_crash", fx, fy, 1.0)
 	game.disturb(fx, fy, 6.0)
+	# Into the pit crew's nitro or gas cans: they go up, on him as well.
+	var pieces = game.features.get("breakables")
+	if pieces != null:
+		pieces.blast(fx, fy, floor_z + .4, 1.1, 50.0, false)
 	if e.enraged:
 		# The radiator goes, and parts come off him.
 		game.add_hazard(

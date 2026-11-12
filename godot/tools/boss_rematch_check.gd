@@ -2,7 +2,7 @@
 ## quick part; this also runs on its own):
 ##
 ##   Godot --headless --path <project> --script res://tools/boss_rematch_check.gd
-##       [-- bot] [kinds=boss,maw]
+##       [-- bot] [kinds=boss,maw] [diff=0..3] [runs=N]
 ##
 ## Quick: the guns table matches the levels' pickups; every boss's rematch
 ## loads with that boss alone, present and awake, the player at an entrance a
@@ -15,7 +15,9 @@
 ## bot: also has tools/bot_pilot.gd fight each rematch on its own, god mode
 ## off, and prints its time to kill (the par times in boss_rematch.gd come from
 ## these); a bot that goes down is reported and the fight is won again in god
-## mode. Takes minutes, so it is not in check_fixes.
+## mode. diff= fights at that difficulty (NORMAL otherwise), runs= that many
+## times each (the game's dice started elsewhere each run), and the health
+## the bot lost is printed. Takes minutes, so it is not in check_fixes.
 extends SceneTree
 
 const Pilot := preload("res://tools/bot_pilot.gd")
@@ -23,6 +25,8 @@ const STEP := 1.0 / 60.0
 const BOT_LIMIT := 300.0
 
 var failures: Array = []
+var difficulty := 1
+var runs := 1
 
 
 func _init() -> void:
@@ -37,23 +41,18 @@ func _run() -> void:
 	main.state = "title"
 	var kinds: Array = BossRematch.BOSSES.duplicate()
 	var bot := false
-	var levels: Array = [1]
-	var quick := true
 	for arg in OS.get_cmdline_user_args():
 		if arg == "bot":
 			bot = true
-		elif arg == "only-bot":
-			bot = true
-			quick = false
 		elif String(arg).begins_with("kinds="):
 			kinds = Array(String(arg).substr(6).split(",", false))
-		elif String(arg).begins_with("difficulty="):
-			levels = Array(String(arg).substr(11).split(",", false)).map(func(v): return int(v))
-	if quick:
-		run(main, func(ok: bool, text: String) -> void: _check(ok, text), kinds)
+		elif String(arg).begins_with("diff="):
+			difficulty = clampi(int(String(arg).substr(5)), 0, 3)
+		elif String(arg).begins_with("runs="):
+			runs = maxi(1, int(String(arg).substr(5)))
+	run(main, func(ok: bool, text: String) -> void: _check(ok, text), kinds)
 	if bot:
-		for level: int in levels:
-			_bot_times(main, kinds, level)
+		_bot_times(main, kinds)
 	print("")
 	print(
 		(
@@ -419,36 +418,41 @@ static func _stamp(path: String) -> String:
 
 
 ## The bot fights each rematch alone (god mode off) and its time is printed.
-func _bot_times(main, kinds: Array, level := 1) -> void:
+func _bot_times(main, kinds: Array) -> void:
 	print(
-		(
-			"\nBOT TIMES at %s (tools/bot_pilot.gd, god mode off; par = BLUE in boss_rematch.gd)"
-			% ["EASY", "NORMAL", "HARD", "HOG WILD"][clampi(level, 0, 3)]
-		)
+		"\nBOT TIMES at difficulty %d (tools/bot_pilot.gd, god mode off; par = BLUE)" % difficulty
 	)
 	for kind: String in kinds:
-		var first := _bot_fight(main, kind, false, level)
-		var line := "  %-12s " % kind
-		if first[0] == "won":
-			line += "%6.1f s  health left %d" % [float(first[1]), int(first[2])]
-		else:
-			var again := _bot_fight(main, kind, true, level)
-			line += (
-				"bot went down after %.1f s (boss at %d%%); god mode: %s %.1f s"
-				% [float(first[1]), int(first[3]), again[0], float(again[1])]
-			)
-			if again[0] != "won":
-				failures.append("%s cannot be won by the bot even in god mode" % kind)
-		line += "   par %.0f s" % float(BossRematch.PAR[kind])
-		print(line)
+		for run_index in runs:
+			var first := _bot_fight(main, kind, false, run_index)
+			var line := "  %-12s " % kind
+			if first[0] == "won":
+				line += (
+					"%6.1f s  health left %d (lost %d)"
+					% [float(first[1]), int(first[2]), int(first[4])]
+				)
+			else:
+				var again := _bot_fight(main, kind, true, run_index)
+				line += (
+					"bot went down after %.1f s (boss at %d%%); god mode: %s %.1f s"
+					% [float(first[1]), int(first[3]), again[0], float(again[1])]
+				)
+				if again[0] != "won":
+					failures.append("%s cannot be won by the bot even in god mode" % kind)
+			line += "   par %.0f s" % float(BossRematch.PAR[kind])
+			print(line)
 
 
-## [outcome ("won", "died", "timeout"), seconds, health, boss health %].
-func _bot_fight(main, kind: String, god: bool, level := 1) -> Array:
+## [outcome ("won", "died", "timeout"), seconds, health, boss health %,
+## health lost (what the bot drank or ate back does not count)].
+func _bot_fight(main, kind: String, god: bool, run_index := 0) -> Array:
 	var g: Game = BossRematch.build(Callable(main, "make_game"), kind)
 	var options := SessionStore.defaults()
-	options["difficulty"] = level
+	options["difficulty"] = difficulty
 	g.configure(options)
+	# Later runs start the game's dice elsewhere.
+	for k in run_index * 7:
+		g.rng.random()
 	g.cheats.god = god
 	var boss := BossFight.of_kind(g, kind)
 	var fight = g.features["boss_rematch"]
@@ -456,6 +460,8 @@ func _bot_fight(main, kind: String, god: bool, level := 1) -> Array:
 	var field: FlowField = null
 	var field_at := -9.0
 	var ticks := 0
+	var lost := 0
+	var last_health: int = g.player.health
 	while g.clock < BOT_LIMIT and ticks < int(BOT_LIMIT / STEP) * 2:
 		ticks += 1
 		if g.clock - field_at > 1.0 and boss.alive:
@@ -474,6 +480,9 @@ func _bot_fight(main, kind: String, god: bool, level := 1) -> Array:
 			controls.running = true
 		g.tick(STEP, controls)
 		pilot.moved(g)
+		if g.player.health < last_health:
+			lost += last_health - g.player.health
+		last_health = g.player.health
 		if OS.get_cmdline_user_args().has("trace") and ticks % 30 == 0:
 			print(
 				(
@@ -492,7 +501,7 @@ func _bot_fight(main, kind: String, god: bool, level := 1) -> Array:
 				)
 			)
 		if fight.fell >= 0.0:
-			return ["won", fight.seconds(), g.player.health, 0]
+			return ["won", fight.seconds(), g.player.health, 0, lost]
 		if g.player.health <= 0:
-			return ["died", g.clock, 0, int(100.0 * boss.hp / boss.max_hp)]
-	return ["timeout", g.clock, g.player.health, int(100.0 * boss.hp / boss.max_hp)]
+			return ["died", g.clock, 0, int(100.0 * boss.hp / boss.max_hp), lost]
+	return ["timeout", g.clock, g.player.health, int(100.0 * boss.hp / boss.max_hp), lost]
