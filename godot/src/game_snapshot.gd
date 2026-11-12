@@ -116,6 +116,7 @@ const PLAYER_FIELDS := [
 ## (enemies and enemy_ids are carried under "enemies"; partners, route,
 ## dangers and the use/aim caches are worked out from the level or the tick.)
 const VIEW_FIELDS := [
+	"_named_enemies",
 	"specks",
 	"blasts",
 	"art",

@@ -104,8 +104,12 @@ func _tick(dt: float) -> void:
 			game.sound_at("lap_car_pass", at.x, at.y, .9)
 		# Any player on the track is run down (one a car at a time).
 		for q: Player in game.players:
-			gap = Vector2(q.x - at.x, q.y - at.y).length()
-			if gap < REACH + GameState.PLAYER_RADIUS and q.air < .5 and game.clock >= float(car[2]):
+			var near := gap if q == p else Vector2(q.x - at.x, q.y - at.y).length()
+			if (
+				near < REACH + GameState.PLAYER_RADIUS
+				and q.air < .5
+				and game.clock >= float(car[2])
+			):
 				car[2] = game.clock + 1.0
 				game.focus(q)
 				game.damage(float(spec.get("damage", 30)), [at.x, at.y], "RUN DOWN")

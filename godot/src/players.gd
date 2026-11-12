@@ -154,6 +154,8 @@ static func _nearest_seen(game, e: Enemy) -> Player:
 ## Controls is the local player's (everyone else stands idle), a Dictionary
 ## maps slot -> Controls (a slot left out stands idle).
 static func controls_by_slot(game, given, idle) -> Array:
+	if game.players.size() == 1 and not (given is Dictionary):
+		return [given]
 	var out: Array = []
 	out.resize(game.players.size())
 	for p: Player in game.players:

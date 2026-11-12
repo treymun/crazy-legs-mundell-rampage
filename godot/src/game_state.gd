@@ -666,6 +666,8 @@ var sprint: float:
 		player.sprint = value
 ## The acting player acts by their own hand this moment (focus()).
 var own_step := false
+## How many of `enemies` name_new() has looked at.
+var _named_enemies := 0
 ## The controls of a player nobody steers this tick (never changed).
 var _idle := Controls.new()
 ## The next stable entity id (enemies, shots, pickups): handed out in the

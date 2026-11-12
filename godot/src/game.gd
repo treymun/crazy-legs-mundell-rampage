@@ -249,9 +249,13 @@ func tick(dt: float, controls) -> void:
 ## Gives everything that came into being this tick (enemies, shots) its stable
 ## id, in list order: the same on every machine running the same ticks.
 func name_new() -> void:
-	for enemy: Enemy in enemies:
+	# Enemies only ever join at the end: look from the last one named.
+	var from := _named_enemies if _named_enemies <= enemies.size() else 0
+	for i in range(from, enemies.size()):
+		var enemy: Enemy = enemies[i]
 		if enemy.uid == 0:
 			enemy.uid = take_uid()
+	_named_enemies = enemies.size()
 	for shot in shots:
 		if shot.uid == 0:
 			shot.uid = take_uid()
