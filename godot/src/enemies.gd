@@ -1349,7 +1349,10 @@ func sprite(observer = null, relieved := false, now := -1.0):
 		and fmod(pose + x * .37 + y * .13, 5.2) > 4.68
 	):
 		frame = "fidget"
-	var out := Renderer.Sprite.new(x, y, "%s_%s" % [stem, str(frame)], height * variant, z)
+	var look := "%s_%s" % [stem, str(frame)]
+	if BOSS_TITLES.has(kind):
+		look = BossLooks.cel(self, look)
+	var out := Renderer.Sprite.new(x, y, look, height * variant, z)
 	out.flip = flip
 	out.body = hostile
 	out.hurt = hit_flash

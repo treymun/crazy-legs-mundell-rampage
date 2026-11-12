@@ -1,7 +1,7 @@
 ## Render the remade enemies in Blender and shrink them into assets/art.
 ##
 ##   godot --headless --path godot --script res://tools/art/build_enemy_actors.gd \
-##       [-- kinds=billy,coot] [no-render] [out=<dir>]
+##       [-- kinds=billy,coot] [no-render] [out=<dir>] [raw=<dir>]
 ##
 ## Blender (scripts/blender/enemy_actors.py, run in Blender's own Python) writes
 ## each cel four times oversized into _preview/enemies/raw; this shrinks them to
@@ -9,11 +9,22 @@
 ## silhouette by one pixel so a figure reads against any wall, grades it toward
 ## a worn photograph and commits it to the palette (paint.gd digitize). The
 ## BLENDER_PATH environment variable overrides where Blender is. no-render
-## reuses the last renders. Then run tools/pack_assets.gd.
+## reuses the last renders (raw=<dir> reads and writes them elsewhere). Then run
+## tools/pack_assets.gd.
+##
+## The bosses (BOSSES) come out of Blender with a wind-up cel (`<kind>_wind`) and
+## a set of their living cels for each later phase of the fight, battle-damaged:
+## `<kind>_p2_<cel>` (below half health) and `<kind>_p3_<cel>` (below a fifth;
+## Maw's bare set is `maw_p3_bare_<cel>`), which src/boss_looks.gd picks. Their
+## falls are drawn beaten. They are digitized with less grain (cleaner).
 extends SceneTree
 
 const Paint := preload("res://tools/art/paint.gd")
 const SUPERSAMPLE := 4
+const BOSSES := [
+	"boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "maw", "maw_bare"
+]
+const BOSS_GRAIN := .011
 const KINDS := [
 	"billy",
 	"coot",
@@ -57,6 +68,7 @@ func _init() -> void:
 	var kinds: Array = KINDS.duplicate()
 	var render := true
 	var out := Paint.repo("assets/art")
+	var raw := Paint.repo("_preview/enemies/raw")
 	for arg in OS.get_cmdline_user_args():
 		var text := String(arg)
 		if text.begins_with("kinds="):
@@ -65,7 +77,8 @@ func _init() -> void:
 			render = false
 		elif text.begins_with("out="):
 			out = text.substr(4)
-	var raw := Paint.repo("_preview/enemies/raw")
+		elif text.begins_with("raw="):
+			raw = text.substr(4)
 	DirAccess.make_dir_recursive_absolute(raw)
 	DirAccess.make_dir_recursive_absolute(out)
 	if render:
@@ -112,9 +125,12 @@ func _init() -> void:
 			var seed := 0
 			for c in stem.to_utf8_buffer():
 				seed += c
-			var cel := Paint.digitize(shrink(image, target, seed))
+			var grain := BOSS_GRAIN if kind in BOSSES else .026
+			var cel := Paint.digitize(Paint.photo_shrink(image, target, seed, grain))
 			cel.save(out.path_join(file))
 			count += 1
+			if stem.contains("_p2_") or stem.contains("_p3_"):
+				continue
 			# The first build of the game still asks for the old three-cel walk by name.
 			for pair in [["_w0", "_1"], ["_w2", "_-1"]]:
 				if stem.ends_with(pair[0]):
@@ -135,8 +151,3 @@ static func _round_even(v: float) -> int:
 	if absf(v - low - .5) < 1e-9:
 		return int(low) if int(low) % 2 == 0 else int(low) + 1
 	return roundi(v)
-
-
-## Down to game size with the sprites' grade (paint.gd photo_shrink).
-func shrink(image: Paint.Sheet, size: Vector2i, seed: int) -> Paint.Sheet:
-	return Paint.photo_shrink(image, size, seed)

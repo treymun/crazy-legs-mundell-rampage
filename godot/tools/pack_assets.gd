@@ -12,7 +12,8 @@
 ##
 ##   tiles.bin    128x128 RGB per tile, in tiles_index.json order
 ##   art.bin      each picture's RGBA, deflated on its own (assets.gd inflates
-##                it the first time it is drawn), + art_index.json
+##                it the first time it is drawn; identical pictures share one
+##                copy), + art_index.json
 ##   sfx.bin      every cue of the audio manifest, mono 16-bit, + sfx_index.json
 ##   music.bin    the menu theme and the tally tune (Ogg Vorbis), and
 ##   music_<chapter>.bin   each chapter's three tracks and its fight loop (a
@@ -154,6 +155,7 @@ func _art() -> void:
 	# A chapter's own enemies go in a file of their own, which the browser
 	# build fetches after it starts (src/assets.gd, tools/make_packs.gd).
 	var chapter_blobs := {}
+	var twins := {}
 	for file_name: String in AssetsLib.CHAPTER_ART.values():
 		chapter_blobs[file_name] = PackedByteArray()
 	for file in _sorted_files("assets/art", "png"):
@@ -165,6 +167,13 @@ func _art() -> void:
 		# inflated the first time the game asks for it.
 		var packed := image.get_data().compress(FileAccess.COMPRESSION_DEFLATE)
 		var home := AssetsLib.art_home(file.get_basename())
+		# A picture the same as one already in its file (the actors' old
+		# three-cel walk names) points at that one's bytes instead.
+		var key := "%s|%d|%d|%d" % [home, hash(packed), image.get_width(), image.get_height()]
+		var twin = twins.get(key)
+		if twin != null and twin[1] == packed:
+			index[file.get_basename()] = Dictionary(twin[0]).duplicate()
+			continue
 		var into: PackedByteArray = blob if home == "" else chapter_blobs[home]
 		var entry := {
 			"offset": into.size(),
@@ -175,6 +184,7 @@ func _art() -> void:
 		if home != "":
 			entry["file"] = home
 		index[file.get_basename()] = entry
+		twins[key] = [entry, packed]
 		into.append_array(packed)
 		if home != "":
 			chapter_blobs[home] = into

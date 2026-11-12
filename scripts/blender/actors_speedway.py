@@ -333,6 +333,9 @@ def _derby_car(frame):
         lift = (0., .012, 0., .012)[beat]
     elif frame == "aim":
         pitch, lift = -.035, .01
+    elif frame == "wind":
+        # the wind-up's first beat: squatting back on its springs as he revs
+        pitch, lift, fwd = .03, -.01, .04
     elif frame == "fire":
         pitch, fwd = .06, -.06
     elif frame == "pain":
@@ -363,7 +366,10 @@ def _derby_car(frame):
     spin = (.0, .6, 1.2, 1.8)[beat] if beat >= 0 else (.9 if frame == "fire" else .3)
     for y, front in ((-.70, True), (.88, False)):
         for s in (-1, 1):
-            yaw = (.32 if frame == "aim" and front else 0.) + (.08 * s * (stage % 2) if dead else 0.)
+            yaw = (.32 if frame == "aim" and front else .16 if frame == "wind" and front else 0.)
+            yaw += .08 * s * (stage % 2) if dead else 0.
+            if DAMAGE == 2 and front and s > 0 and not dead:
+                yaw += .22  # a front wheel knocked out of true
             _derby_wheel(Vector((s * .64, y + SHIFT, .3)), yaw, spin + s, s)
 
     # The body: a boxy sedan in primer, fenders over the wheels, hood and trunk lids.
@@ -373,6 +379,9 @@ def _derby_car(frame):
             box((s * .67, y, .64 - crumple), (.08, .76, .26), primer, M)
             box((s * .712, y, .47), (.012, .7, .3), mat(24, 22, 20, .9, grime=0), M)
     hood_open = .2 if frame == "recover" else (.12 * min(burn, 3) if dead else 0.)
+    if not dead:
+        # sprung by a blast, then blown up and flapping
+        hood_open = max(hood_open, (0., .07, .34)[DAMAGE])
     hinge = Vector((0, -.32, .79 - crumple))
     box((0, -.37, -.0), (1.28, .74, .05), primer, M @ T(hinge) @ R(-hood_open, 0, 0))
     box((0, .95, .80 - crumple), (1.28, .48, .05), primer, M)
@@ -393,7 +402,10 @@ def _derby_car(frame):
         box((-.48 + k * .19, -1.1, .58), (.03, .03, .22), steel, M)
     for s in (-1, 1):
         c = M @ Vector((s * .48, -1.11, .6))
-        disc(c, M.to_3x3() @ Vector((0, -1, 0)), .08, .03, mat(232, 222, 168, emit=.9 if frame == "aim" else .35))
+        if DAMAGE and s < 0:
+            disc(c, M.to_3x3() @ Vector((0, -1, 0)), .08, .03, mat(24, 22, 20, .4, grime=0))  # shot out
+            continue
+        disc(c, M.to_3x3() @ Vector((0, -1, 0)), .08, .03, mat(232, 222, 168, emit=.9 if frame in ("aim", "wind") else .35))
     for x, y, z, sx, sz, side in ((.69, -.2, .44, .3, .14, 1), (-.69, .6, .5, .36, .12, -1),
                                   (.69, .9, .62, .2, .1, 1), (-.69, -.75, .42, .22, .12, -1)):
         box((x + side * .004, y, z), (.01, sx, sz), rust, M)
@@ -460,6 +472,11 @@ def _derby_car(frame):
         if frame == "aim" or (dead and stage >= 1):
             limb(top, top + Vector((0, .04, .38)), .07, .01, fire, caps=False)
             limb(top, top + Vector((0, .02, .24)), .035, .006, core, caps=False)
+        elif frame == "wind":
+            limb(top, top + Vector((0, .03, .2)), .05, .01, fire, caps=False)
+            smoke(top + Vector((0, .05, .12)), .05, (.0, .3))
+        elif DAMAGE and not dead:
+            smoke(top + Vector((0, .04, .06)), .05 + .015 * DAMAGE, (.1 * s, .4))
         elif frame == "fire":
             limb(top, top + Vector((0, .3, .2)), .06, .01, fire, caps=False)
         elif beat >= 0 or frame == 0:
@@ -481,7 +498,7 @@ def _derby_car(frame):
         limb(cab @ tops[a], cab @ tops[b], .014, .014, rebar)
 
     # The push-bar ram: I-beams, spikes, the steer horns over it.
-    bent = R(0, 0, .05 * burn)
+    bent = R(0, -.03 * DAMAGE, .05 * burn + .05 * DAMAGE)
     ram = M @ bent
     for z in (.44, .76):
         box((0, -1.25, z), (1.62, .05, .1), hazard if burn < 3 else steel, ram)
@@ -502,12 +519,24 @@ def _derby_car(frame):
                  mat(70, 50, 34, .7) if k == 2 else ivory)
 
     # What each frame adds: dust when it revs or lurches, sparks and steam when hurt, fire as it dies.
-    if frame in ("aim", "fire"):
+    if frame in ("aim", "wind", "fire"):
         dust = mat(168, 140, 104, .95, grime=0)
         for k, s in enumerate((-1, 1, -1, 1)):
             at = Vector((s * (.74 + .1 * (k // 2)), 1.0 + SHIFT + .14 * (k // 2), .12))
             for x, y, z, r in ((0, 0, 0, 1.), (.6 * s, .1, .4, .8), (-.3 * s, .3, .7, .7), (.2 * s, -.2, .9, .55)):
                 ball(at + Vector((x, y, z)) * (.16 + .03 * k), (.16 + .03 * k) * r, dust)
+    if DAMAGE and not dead:
+        # dents and scorch down the flanks, the radiator spitting steam; beaten,
+        # the engine on fire under the sprung hood, a side plate hanging off
+        for x, y, z, r in ((.71, -.5, .6, .14), (-.71, .3, .55, .12), (.71, .6, .5, .1), (-.71, -.7, .62, .13))[:1 + DAMAGE]:
+            char_patch(M @ Vector((x, y, z)), r, None, (0, 0, math.pi / 2))
+        puff(M @ Vector((.25, -1.15, .78)), .08 + .03 * DAMAGE, turn=True)
+    if DAMAGE == 2 and not dead:
+        flames(M @ Vector((-.15, -.55, .82)), .3, 4, k0=1)
+        flames(M @ Vector((.25, -.75, .8)), .24, 3, k0=5)
+        smoke(M @ Vector((0, -.6, 1.15)), .12, (.1, .6))
+        box((0, 0, 0), (.04, .7, .3), plate, cab @ T((.6, .05, .76)) @ R(0, .5, .2))
+        embers(M @ Vector((0, -.6, 1.0)), .4, 8, k0=2)
     if frame == "pain":
         sparks(M @ Vector((0, -1.12, .62)), (0, -1, .3), 12, .5)
         puff(M @ Vector((.15, -1.2, .7)), .13)
@@ -519,12 +548,10 @@ def _derby_car(frame):
             y = (-.6, -.3, .2, .6, -.1, .9)[k]
             at = M @ Vector((x, y, 1.0 if y < -.25 or y > .7 else 1.3))
             tall = .22 + .06 * burn
-            # A ragged fire: a few tongues leaning every way, a hot core low in them.
-            for j in range(3):
-                lean = Vector(((jitter(k, j) - .5) * .25, (jitter(k, j + 3) - .5) * .2, 0))
-                reach = tall * (.65 + .5 * jitter(k, j + 6))
-                limb(at + lean * .3, at + lean + Vector((0, 0, reach)), .07, .006, fire, caps=False, seg=8)
-            limb(at, at + Vector((0, 0, tall * .45)), .06, .005, core, caps=False)
+            # A ragged fire: red tongues leaning every way, orange and yellow out of them.
+            flames(at, tall * 1.1, 3, k0=k * 4)
+        if stage >= 1:
+            smoke(M @ Vector((.1, .1, 1.5)), .1 + .02 * stage, (.2, .5))
         if stage >= 2:
             sparks(M @ Vector((0, -1.0, .8)), (0, -.5, 1), 6 + stage * 2, .45)
 

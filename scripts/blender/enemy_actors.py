@@ -26,6 +26,15 @@ SS = int(ARGS[3]) if len(ARGS) > 3 else 3
 TURNS = (("quarter", 45), ("side", 90), ("away", 135), ("back", 180))
 ROOT = None
 MATS = {}
+# Battle damage for a boss's later phases (0 whole, 1 scuffed, 2 beaten): every
+# material made while it is set takes soot and scorch at that strength (mat).
+DAMAGE = 0
+# The bosses get the richer stage (dusk key, two rims), a wind-up cel and their
+# phase sets: kind -> [(phase, name the cels go under, prefix of their stem)].
+# Maw's housecoat set burns in phase 2; out of it, her bare set is phase 3.
+BOSS_PHASES = {k: [(2, k, ""), (3, k, "")] for k in
+               ("boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ")}
+BOSS_PHASES.update({"maw": [(2, "maw", "")], "maw_bare": [(3, "maw", "bare_")]})
 
 
 # ---------------------------------------------------------------- materials
@@ -35,7 +44,7 @@ def lin(c):
 
 
 def mat(r, g, b, rough=.86, metal=0., emit=0., grime=.42, stripes=None, plaid=0.):
-    key = (r, g, b, rough, metal, emit, grime, stripes, plaid)
+    key = (r, g, b, rough, metal, emit, grime, stripes, plaid, DAMAGE)
     if key in MATS:
         return MATS[key]
     m = bpy.data.materials.new("m%d" % len(MATS))
@@ -142,10 +151,73 @@ def mat(r, g, b, rough=.86, metal=0., emit=0., grime=.42, stripes=None, plaid=0.
         bump.inputs["Distance"].default_value = .03
         nt.links.new(wrinkle.outputs[0], bump.inputs["Height"])
         nt.links.new(bump.outputs[0], bsdf.inputs["Normal"])
+    if DAMAGE and not emit and grime:
+        source = _battle_worn(nt, bsdf, source, base)
     if source is not None:
         nt.links.new(source, bsdf.inputs["Base Color"])
     MATS[key] = m
     return m
+
+
+def _battle_worn(nt, bsdf, source, base):
+    """Soot over everything, then scorched patches stuck to each part (its own generated
+    coordinates, so a patch stays put from cel to cel); beaten, the patches spread and
+    their hearts smoulder."""
+    def mix(fac, a, b, blend="MIX"):
+        m = nt.nodes.new("ShaderNodeMix")
+        m.data_type = "RGBA"
+        m.blend_type = blend
+        if isinstance(fac, float):
+            m.inputs[0].default_value = fac
+        else:
+            nt.links.new(fac, m.inputs[0])
+        m.inputs[6].default_value = base
+        if a is not None:
+            nt.links.new(a, m.inputs[6])
+        m.inputs[7].default_value = b
+        return m.outputs[2]
+
+    beaten = DAMAGE >= 2
+    soot = (lin(56), lin(46), lin(38), 1)
+    source = mix(.19 if beaten else .1, source, soot)
+    patch = nt.nodes.new("ShaderNodeTexNoise")
+    patch.inputs["Scale"].default_value = 2.0
+    patch.inputs["Detail"].default_value = 6.0
+    patch.inputs["Roughness"].default_value = .62
+    edge = nt.nodes.new("ShaderNodeMapRange")
+    edge.inputs[1].default_value = .49 if beaten else .53
+    edge.inputs[2].default_value = .56 if beaten else .59
+    nt.links.new(patch.outputs[0], edge.inputs[0])
+    source = mix(edge.outputs[0], source, (lin(38), lin(28), lin(22), 1))
+    rough = nt.nodes.new("ShaderNodeMapRange")
+    rough.inputs[3].default_value = bsdf.inputs["Roughness"].default_value
+    rough.inputs[4].default_value = .95
+    nt.links.new(edge.outputs[0], rough.inputs[0])
+    nt.links.new(rough.outputs[0], bsdf.inputs["Roughness"])
+    if beaten:
+        # Embers in the deepest scorch.
+        speck = nt.nodes.new("ShaderNodeTexNoise")
+        speck.inputs["Scale"].default_value = 30.0
+        speck.inputs["Detail"].default_value = 2.0
+        hot = nt.nodes.new("ShaderNodeMapRange")
+        hot.inputs[1].default_value = .66
+        hot.inputs[2].default_value = .74
+        nt.links.new(speck.outputs[0], hot.inputs[0])
+        deep = nt.nodes.new("ShaderNodeMapRange")
+        deep.inputs[1].default_value = .58
+        deep.inputs[2].default_value = .64
+        nt.links.new(patch.outputs[0], deep.inputs[0])
+        both = nt.nodes.new("ShaderNodeMath")
+        both.operation = "MULTIPLY"
+        nt.links.new(hot.outputs[0], both.inputs[0])
+        nt.links.new(deep.outputs[0], both.inputs[1])
+        gain = nt.nodes.new("ShaderNodeMath")
+        gain.operation = "MULTIPLY"
+        gain.inputs[1].default_value = 3.0
+        nt.links.new(both.outputs[0], gain.inputs[0])
+        bsdf.inputs["Emission Color"].default_value = (1.0, .32, .05, 1)
+        nt.links.new(gain.outputs[0], bsdf.inputs["Emission Strength"])
+    return source
 
 
 STEEL = lambda: mat(70, 72, 78, .45, .85, grime=.3)
@@ -291,6 +363,9 @@ def skeleton(S, frame):
         bob, twist, sway = -.03 * abs(walk), .14 * walk, .025 * walk
         if swing:
             bob, sway = .012, (.035 if swing == "R" else -.035)
+    elif frame == "wind":
+        # The wind-up's first beat: drawn back and down, turned away, gathering.
+        lean, twist, bob, head = lean - .12, .26, -.05, (.10, 0, -.12)
     elif frame == "aim":
         lean, twist = lean + .07, -.14
     elif frame == "fire":
@@ -328,6 +403,9 @@ def skeleton(S, frame):
             foot.y = .05
         if frame == "pain":
             foot.y += .10 * side
+        if frame == "wind":
+            foot.x += side * .05
+            foot.y += -.12 if tag == "L" else .14
         if frame == "down":
             foot = Vector((side * (S["stance"] + .10), -.04 * side, S["ankle"]))
         knee, foot = ik(hip, foot, S["thigh"], S["shin"], (side * S.get("bow", .12), -1, 0))
@@ -380,10 +458,21 @@ BILLY = dict(lean=.10, hip_h=.78, hip_w=.15, stance=.20, stride=.21, ankle=.08, 
              canvas=(1.75, 1.86), px=152, depth=.24, head_scale=1.0)
 
 
+def wound_up(table):
+    """Where a weapon sits in the wind-up's first beat when a table has no "wind" of its
+    own: half way from ready to aim, drawn back behind the shoulder and tipped up."""
+    if "wind" in table or "aim" not in table:
+        return table.get("wind", table.get("ready"))
+    (g0, d0), (g1, d1) = table["ready"], table["aim"]
+    g = Vector(g0).lerp(Vector(g1), .5) + Vector((0, .16, .08))
+    d = unit(*d0).lerp(unit(*d1), .5) + Vector((0, 0, .7))
+    return tuple(g), tuple(d)
+
+
 def gun_hold(table, J, default="ready"):
     frame = J["frame"]
     key = frame if frame in table else default
-    g, d = table[key]
+    g, d = wound_up(table) if frame == "wind" else table[key]
     g = Vector(g) + J["offset"]
     g = g + Vector((0, 0, .018 * J["walk"]))
     return g, unit(*d)
@@ -627,6 +716,78 @@ def sparks(at, toward, count, reach):
         limb(a, a + d * reach * .35, .012, .004, hot, caps=False, seg=6)
 
 
+# ---------------------------------------------------------------- battle damage kit
+def smoke(at, size, drift=(.25, .1), dark=True):
+    """A plume of smoke climbing and leaning off from `at`."""
+    greys = ([mat(96, 90, 86, .95, grime=0), mat(124, 118, 112, .95, grime=0)] if dark
+             else [mat(170, 166, 160, .95, grime=0), mat(206, 204, 198, .95, grime=0)])
+    at = Vector(at)
+    for k in range(9):
+        t = k / 8
+        c = at + Vector((drift[0] * t * t, drift[1] * t, size * 3.0 * t))
+        wob = Vector(((jitter(k, 5) - .5) * size * 1.3, (jitter(k, 6) - .5) * size * .6, (jitter(k, 7) - .5) * size * .5))
+        ball(c + wob, size * (.5 + .75 * t) * (.8 + .4 * jitter(k, 8)), greys[k % 2])
+
+
+def embers(at, spread, count, k0=0):
+    hot = mat(255, 150, 50, emit=2.6)
+    at = Vector(at)
+    for k in range(count):
+        o = Vector((jitter(k + k0, 1) - .5, jitter(k + k0, 2) - .5, jitter(k + k0, 3))) * spread
+        ball(at + o, .012 + .012 * jitter(k + k0, 4), hot)
+
+
+def flames(at, size, count=3, k0=0):
+    """Licks of fire going up from `at`."""
+    shells = (mat(214, 52, 20, emit=1.5), mat(255, 120, 26, emit=2.0), mat(255, 216, 110, emit=2.6))
+    at = Vector(at)
+    for j in range(count):
+        lean = Vector(((jitter(j + k0, 1) - .5) * .7, (jitter(j + k0, 2) - .5) * .3, 0)) * size
+        curl = Vector(((jitter(j + k0, 4) - .5) * .5, 0, 0)) * size
+        reach = size * (.75 + .7 * jitter(j + k0, 3))
+        base = at + lean * .3
+        # Opaque shells: the hotter ones stand out of the red one front and back.
+        for i, (shell, (w, h)) in enumerate(zip(shells, ((.26, 1.), (.15, .74), (.08, .46)))):
+            for side in ((0,) if i == 0 else (-1, 1)):
+                b = base + Vector((0, side * size * (0., .2, .32)[i], 0))
+                mid = b + lean * .5 * h + Vector((0, 0, reach * .5 * h))
+                tip = b + (lean + curl) * h + Vector((0, 0, reach * h))
+                limb(b, mid, size * w, size * w * .7, shell, caps=False, seg=8)
+                limb(mid, tip, size * w * .7, .003, shell, caps=False, seg=8)
+
+
+def rags(top, down, count, length, width, material, k0=0):
+    """Torn strips hanging from a ragged edge: from `top` along the world vector `down`."""
+    top, down = Vector(top), Vector(down)
+    across = down.cross(Vector((0, 0, 1)))
+    across = across.normalized() if across.length > 1e-4 else Vector((1, 0, 0))
+    for k in range(count):
+        a = top + across * width * (k / max(1, count - 1) - .5)
+        n = length * (.5 + .7 * jitter(k + k0, 7))
+        b = a + Vector((0, 0, -n)) + across * (jitter(k + k0, 8) - .5) * .06 + down * n * .15
+        limb(a, b, .028, .006, material, caps=False, seg=6)
+
+
+def crack(points, M, material, r=.008):
+    pts = [M @ Vector(p) for p in points]
+    for a, b in zip(pts, pts[1:]):
+        limb(a, b, r, r * .8, material, seg=6)
+
+
+def char_patch(c, size, M, rot=(0, 0, 0)):
+    """A ragged scorched blotch standing just proud of a surface (thin along local y),
+    browner at its edge than its heart."""
+    c = Vector(c)
+    k0 = int(c.length * 1000) % 97
+    for k, (shade, f) in enumerate((((60, 40, 30), 1.0), ((28, 22, 20), .62))):
+        for j in range(3):
+            off = Vector(((jitter(j + k0, 1) - .5) * .9, 0, (jitter(j + k0, 2) - .5) * .7)) * size * f
+            off = Euler(rot, "XYZ").to_matrix() @ off
+            r = size * f * (.55 + .4 * jitter(j + k0, 3))
+            ball(c + off + (Euler(rot, "XYZ").to_matrix() @ Vector((0, -.004 * k, 0))), (r, size * .3, r * .8),
+                 mat(*shade, .95, grime=0), M, rot)
+
+
 def football(at, d, leather):
     at, d = Vector(at), Vector(d).normalized()
     limb(at, at + d * .125, .074, .022, leather)
@@ -661,7 +822,8 @@ def boss(frame):
     S = BOSS
     J = skeleton(S, frame)
     Tm, Hm = J["torso"], J["head"]
-    hot = frame in ("aim", "fire")
+    hot = frame in ("aim", "wind", "fire")
+    hurt = DAMAGE
     grey = mat(160, 178, 138, .55, grime=.35)
     eye = mat(8, 10, 12, .08, grime=0)
     glow = mat(70, 255, 100, emit=2.0 if hot else 1.15)
@@ -677,12 +839,20 @@ def boss(frame):
     # trousers and a gun belt of glowing cells
     ball((0, 0, .02), (.21, .16, .15), trouser, Tm)
     ball((0, 0, .075), (.235, .18, .05), belt, Tm)
+    dead_cell = mat(40, 52, 44, .4, grime=.2)
     for k in range(13):
         a = -2.1 + k * .35
         if abs(a) < .2:
             continue
         x, y = .247 * math.sin(a), -.192 * math.cos(a)
-        limb((x, y, .052), (x, y, .10), .017, .017, glow, Tm)
+        limb((x, y, .052), (x, y, .10), .017, .017, dead_cell if hurt and k % (4 - hurt) == 1 else glow, Tm)
+    # a bandolier of spare cells across the chest, shoulder to hip
+    sash_a, sash_b = Vector((.22, -.17, .60)), Vector((-.24, -.215, .12))
+    limb(Tm @ sash_a, Tm @ sash_b, .03, .03, belt)
+    for k in range(7):
+        p = sash_a.lerp(sash_b, .1 + k * .13) + Vector((0, -.032, 0))
+        cell = dead_cell if hurt == 2 and k in (2, 5) else glow
+        limb(Tm @ (p + Vector((-.012, 0, .03))), Tm @ (p + Vector((.012, 0, -.03))), .016, .016, cell)
     ball((0, -.19, .075), (.08, .026, .058), gold, Tm)
     star((0, -.21, .075), .036, belt, Tm)
     box((.27, -.02, -.06), (.07, .11, .21), belt, Tm, (0, 0, .2))
@@ -719,9 +889,11 @@ def boss(frame):
         ball((s * .085, -.14, -.01), (.084, .042, .054), eye, Hm, (0, s * .6, 0))
         ball((s * .094, -.174, -.002), (.03, .014, .02), glow, Hm, (0, s * .6, 0))
         limb((s * .16, -.13, .07), (s * .03, -.18, .035), .022, .016, grey, Hm)
-        # the moustache, glued on a little crooked
-        limb((s * .004, -.174, -.10), (s * .062, -.164, -.112 - .006 * s), .03, .026, stache, Hm)
-        limb((s * .062, -.164, -.112 - .006 * s), (s * .078, -.144, -.22), .026, .013, stache, Hm)
+        # the moustache, glued on a little crooked; knocked loose, one side hangs
+        droop = .06 * hurt if s > 0 else 0.
+        limb((s * .004, -.174, -.10), (s * .062, -.164 - droop * .3, -.112 - .006 * s - droop), .03, .026, stache, Hm)
+        limb((s * .062, -.164 - droop * .3, -.112 - .006 * s - droop), (s * .078 - droop * .5, -.144 - droop, -.22 - droop * 1.6),
+             .026, .013, stache, Hm)
     if frame in ("pain", "fire") or J["dead"]:
         ball((0, -.152, -.142), (.022, .012, .026), MOUTH(), Hm)
     # the feelers come through holes in the crown
@@ -731,8 +903,16 @@ def boss(frame):
         limb((s * .06, .03, .22), knee, .016, .013, grey, Hm)
         limb(knee, tip, .013, .01, grey, Hm)
         ball(tip, .04, glow, Hm)
-    Hat = Hm @ T((0, .01, .13)) @ R(-.05, 0, .05)
+    Hat = Hm @ T((0, .01, .13 - .015 * hurt)) @ R(-.05 - .07 * hurt, 0, .05 + .1 * hurt)
     ball((0, 0, 0), (.46, .42, .022), felt, Hat)
+    if hurt:
+        # a bullet hole through the crown, a scorch on the brim; beaten, the crown caves
+        ball((.07, -.17, .12), (.03, .012, .03), BLACK(), Hat)
+        char_patch(Vector((-.3, -.12, .02)), .09, Hat, (math.pi / 2, 0, 0))
+    if hurt == 2:
+        ball((-.05, .1, .2), (.08, .04, .05), BLACK(), Hat)
+        ball((0, 0, .2), (.15, .16, .04), felt_dark, Hat, (0, .2, 0))
+        smoke(Hat @ Vector((.08, -.05, .25)), .05, (.2, .1))
     for s in (-1, 1):
         ball((s * .38, .0, .06), (.11, .33, .02), felt, Hat, (0, -s * .8, 0))
         ball((s * .115, 0, .248), .026, band, Hat)
@@ -782,6 +962,18 @@ def boss(frame):
         heel = Vector((foot.x, foot.y + .075, foot.z - S["ankle"] + .06))
         limb(heel + Vector((0, -.03, 0)), heel + Vector((0, .05, 0)), .01, .01, gold, caps=False)
         disc(heel + Vector((0, .075, 0)), (1, 0, 0), .04, .012, gold)
+    if hurt and not J["dead"]:
+        # the duster's hem shot to rags, scorch on the chest; beaten, a burning
+        # shoulder, the dome split and leaking green, the belt spitting sparks
+        for s in (-1, 1):
+            rags(Tm @ Vector((s * .2, .06, -.52)), Tm.to_3x3() @ Vector((s * .3, 1, 0)), 3 + 2 * hurt, .12 + .05 * hurt,
+                 .26, duster, k0=s + 3)
+        char_patch(Tm @ Vector((-.12, -.2, .36)), .08 + .03 * hurt, None, (0, 0, .3))
+    if hurt == 2 and not J["dead"]:
+        smoke(Tm @ Vector((-.3, .05, .66)), .06, (-.25, .12))
+        embers(Tm @ Vector((-.3, -.05, .6)), .14, 5)
+        crack([(.0, -.18, .11), (.04, -.188, .07), (.02, -.19, .035), (.06, -.185, .0)], Hm, mat(90, 255, 120, emit=2.0), .011)
+        sparks(Tm @ Vector((.2, -.2, .08)), (.6, -.6, -.2), 6, .22)
 
 
 # ---------------------------------------------------------------- jerry jones
@@ -870,13 +1062,18 @@ def jerry(frame):
     limb((.15, -.04, -.10), (.13, -.08, -.26), .01, .01, BLACK(), Hm)
     # the sack of balls over his left shoulder
     ball((.22, .31, .46), (.22, .18, .30), net, Tm)
-    for (x, y, z), d in (((.16, .33, .78), (.4, .2, 1)), ((.31, .29, .74), (-.5, .3, .8)),
-                         ((.10, .41, .64), (.2, -.3, 1)), ((.36, .42, .57), (1, .4, .3)),
-                         ((.20, .47, .42), (.3, 1, .2))):
+    balls = (((.16, .33, .78), (.4, .2, 1)), ((.31, .29, .74), (-.5, .3, .8)),
+             ((.10, .41, .64), (.2, -.3, 1)), ((.36, .42, .57), (1, .4, .3)),
+             ((.20, .47, .42), (.3, 1, .2)))
+    for (x, y, z), d in balls[:5 - 2 * DAMAGE]:
         football(Tm @ Vector((x, y, z)), Tm.to_3x3() @ Vector(d), leather)
+    if DAMAGE:
+        # the sack split: net hanging in strings
+        rags(Tm @ Vector((.22, .45, .3)), Tm.to_3x3() @ Vector((.3, 1, 0)), 2 + 2 * DAMAGE, .16, .2, net, k0=11)
     neck = Tm @ Vector((.19, .22, .72))
-    # throwing
-    hold_t = {"ready": ((-.46, -.22, -.42), (0, -.3, 1)), "aim": ((-.58, .16, .20), (.1, .5, .85)),
+    # throwing: the wind-up gathers the ball low behind his hip
+    hold_t = {"ready": ((-.46, -.22, -.42), (0, -.3, 1)), "wind": ((-.56, .34, -.40), (.1, .7, .45)),
+              "aim": ((-.58, .16, .20), (.1, .5, .85)),
               "fire": ((-.30, -.58, .02), (.1, -1, -.2)), "recover": ((-.38, -.42, -.22), (0, -.8, -.5)),
               "pain": ((-.62, -.1, -.10), (-.4, -.2, .9))}
     g, d = hold(hold_t, J, S)
@@ -914,6 +1111,22 @@ def jerry(frame):
         for t in (.52, .62):
             ring(knee.lerp(foot, t), foot - knee, .09, .014, jersey, n=14)
         shoe(S, J, side, tag, .082, cleat)
+    if DAMAGE and not J["dead"]:
+        # the jersey torn off his right pad, stuffing out; a shiner, the shell cracking
+        foam = mat(222, 214, 180, .95, grime=.3)
+        ball(Tm @ Vector((-.36, -.06, .64)), (.12, .1, .07), foam)
+        rags(Tm @ Vector((-.4, -.16, .56)), Tm.to_3x3() @ Vector((-.3, -1, 0)), 3 + DAMAGE, .1 + .05 * DAMAGE, .16, jersey, k0=2)
+        ball((.058, -.146, .035), (.04, .016, .032), mat(80, 40, 70, .7, grime=0), Hm)
+        crack([(-.02, -.1, .2), (.04, -.13, .15), (.02, -.17, .1), (.07, -.19, .05)], Hm, BLACK(), .007)
+        char_patch(Tm @ Vector((.12, -.36, .25)), .07, None, (0, 0, -.4))
+    if DAMAGE == 2 and not J["dead"]:
+        # beaten: the helmet split down the middle, one strap snapped, steam off his ears
+        crack([(0, -.05, .23), (-.03, .02, .25), (.01, .1, .2), (-.02, .17, .1)], Hm, BLACK(), .014)
+        ball((-.08, -.12, .14), (.06, .03, .04), BLACK(), Hm)
+        box((-.03, -.178, -.09), (.018, .012, .016), BLACK(), Hm)
+        limb(Tm @ Vector((.15, -.33, .56)), Tm @ Vector((.2, -.36, .36)), .03, .026, denim)
+        for s in (-1, 1):
+            puff(Hm @ Vector((s * .2, .02, .02)), .045, turn=s > 0)
 
 
 # ---------------------------------------------------------------- rudy racket
@@ -929,7 +1142,7 @@ def rudy(frame):
     S = RUDY
     J = skeleton(S, frame)
     Tm, Hm = J["torso"], J["head"]
-    hot = frame in ("aim", "fire")
+    hot = frame in ("aim", "wind", "fire")
     beat = beat_of(frame)
     skin = mat(194, 128, 100, .75, grime=.4)
     coat = mat(132, 34, 38, .9)
@@ -989,6 +1202,9 @@ def rudy(frame):
         limb((s * .14, .29, .06), (s * .16, .29, .74), .018, .018, iron, Tm)
         base = Vector((s * .16, .28, .74))
         aim = Vector((s * .64, -.3, .66)).normalized()
+        if DAMAGE and s < 0:
+            # a horn knocked crooked; beaten, it hangs off its bracket
+            aim = Vector((s * .7, -.1, .3 if DAMAGE == 1 else -.55)).normalized()
         bell = base + aim * .42
         limb(base, base + aim * .11, .045, .05, iron, Tm)
         limb(base + aim * .1, bell, .035, .175, gold, Tm, caps=False, seg=28)
@@ -1018,15 +1234,22 @@ def rudy(frame):
     ball((0, -.156, -.105), (.064, .02, .036 if (hot or frame == "pain" or J["dead"]) else .026), MOUTH(), Hm)
     box((0, -.174, -.094), (.092, .01, .018), TOOTH(), Hm)
     box((.024, -.177, -.094), (.018, .01, .019), gold, Hm)
-    if not J["dead"]:
+    if not J["dead"] and DAMAGE < 2:
         limb((.05, -.165, -.108), (.15, -.225, -.125), .016, .014, mat(100, 64, 40, .8), Hm)
         ball((.155, -.229, -.126), .018, mat(255, 120, 50, emit=2.0), Hm)
-    # a battered top hat with a chaser of bulbs round the band and a ticket in it
-    Hat = Hm @ T((0, 0, .115)) @ R(.05, .12, 0)
+    # a battered top hat with a chaser of bulbs round the band and a ticket in it;
+    # knocked back on his head, then its crown stove in and folded over
+    Hat = Hm @ T((0, .02 * DAMAGE, .115)) @ R(.05 - .12 * DAMAGE, .12 + .08 * DAMAGE, 0)
     ball((0, 0, 0), (.22, .22, .016), black, Hat)
     limb((0, 0, 0), (0, 0, .17), .138, .148, black, Hat, caps=False, seg=28)
-    limb((0, 0, .168), (.025, -.012, .31), .149, .158, black, Hat, caps=False, seg=28)
-    ball((.025, -.012, .31), (.158, .158, .014), black, Hat)
+    if DAMAGE == 2:
+        Fold = Hat @ T((0, 0, .168)) @ R(.2, -.7, 0)
+        limb((0, 0, 0), (.02, 0, .12), .149, .156, black, Fold, caps=False, seg=28)
+        ball((.02, 0, .12), (.156, .156, .014), black, Fold)
+        ball((-.06, -.14, .0), (.05, .02, .045), BLACK(), Hat)
+    else:
+        limb((0, 0, .168), (.025, -.012, .31), .149, .158, black, Hat, caps=False, seg=28)
+        ball((.025, -.012, .31), (.158, .158, .014), black, Hat)
     ball((.12, -.06, .23), (.04, .05, .05), mat(56, 50, 52, .8, grime=.5), Hat)
     box((-.09, -.10, .20), (.06, .02, .05), mat(70, 60, 56, .9), Hat, (0, 0, .6))
     limb((0, 0, .012), (0, 0, .07), .142, .146, coat, Hat, caps=False, seg=28)
@@ -1034,7 +1257,12 @@ def rudy(frame):
     for i in range(12):
         a = i * math.tau / 12
         on = hot or (not J["dead"] and (i + beat) % 2 == 0)
-        ball((math.sin(a) * .152, -math.cos(a) * .152, .042), .02, lit if on else unlit, Hat)
+        broke = (DAMAGE == 1 and i % 3 == 0) or (DAMAGE == 2 and i % 3 != 1)
+        if broke:
+            on = False
+        ball((math.sin(a) * .152, -math.cos(a) * .152, .042), .012 if broke else .02, lit if on else unlit, Hat)
+    if DAMAGE == 2 and not J["dead"]:
+        sparks(Hat @ Vector((.15, -.06, .05)), (.5, -.5, .4), 5, .16)
     # megaphone and cane
     hold = {"ready": ((-.36, -.22, 1.04), (-.3, -.6, .75)), "aim": ((-.11, -.24, 1.47), (-.36, -.93, -.04)),
             "fire": ((-.11, -.22, 1.50), (-.36, -.93, .06)), "recover": ((-.27, -.31, 1.26), (-.3, -.8, .4)),
@@ -1077,6 +1305,15 @@ def rudy(frame):
 
     arms(S, J, hands, sleeve, (glove, .054))
     legs(S, J, stripe, (.12, .098, .08), black, boot_top=.5)
+    if DAMAGE and not J["dead"]:
+        # tails shot to ribbons, scorch on the vest; beaten, the battery smoking
+        for s in (-1, 1):
+            rags(Tm @ Vector((s * .13, .25, -.48)), Tm.to_3x3() @ Vector((s * .4, 1, 0)), 2 + DAMAGE, .1 + .06 * DAMAGE,
+                 .14, coat, k0=s + 5)
+        char_patch(Tm @ Vector((.1, -.3, .22)), .07 + .03 * DAMAGE, None, (0, 0, .4))
+    if DAMAGE == 2 and not J["dead"]:
+        smoke(Tm @ Vector((.05, .36, .48)), .06, (.3, .25))
+        sparks(Tm @ Vector((-.07, .3, .48)), (-.3, .2, 1), 6, .2)
 
 
 # ---------------------------------------------------------------- splinter foreman
@@ -1092,7 +1329,7 @@ def foreman(frame):
     S = FOREMAN
     J = skeleton(S, frame)
     Tm, Hm = J["torso"], J["head"]
-    hot = frame in ("aim", "fire")
+    hot = frame in ("aim", "wind", "fire")
     skin = mat(198, 134, 102, .75, grime=.45)
     flannel = mat(150, 40, 34, .9, plaid=3.2)
     flannel_arm = mat(150, 40, 34, .9, plaid=11.0)
@@ -1174,7 +1411,13 @@ def foreman(frame):
     c = Hm @ Vector((0, -.17, .13))
     n = (Hm.to_3x3() @ Vector((0, -1, .25))).normalized()
     disc(c, n, .045, .035, DARK())
-    disc(c + n * .02, n, .034, .01, mat(255, 236, 170, emit=2.2 if hot else 1.2))
+    if DAMAGE:
+        # the lamp's glass gone, the shell cracked across
+        disc(c + n * .02, n, .034, .01, mat(30, 28, 26, .3, grime=0))
+        crack([(-.12, -.12, .13), (-.05, -.15, .16), (.0, -.11, .2), (.07, -.13, .19), (.11, -.06, .2)][:3 + DAMAGE],
+              Hm, BLACK(), .008 + .004 * DAMAGE)
+    else:
+        disc(c + n * .02, n, .034, .01, mat(255, 236, 170, emit=2.2 if hot else 1.2))
     # the buzz saw arm and the axe
     arm_t = {"ready": ((-.46, -.36, -.40), (0, -.8, -.6)), "aim": ((-.42, -.52, -.12), (.15, -1, .1)),
              "fire": ((-.36, -.62, -.10), (.2, -1, 0)), "recover": ((-.44, -.46, -.25), (.1, -.9, -.3)),
@@ -1232,6 +1475,18 @@ def foreman(frame):
         limb(top, top + (foot - knee).normalized() * .05, .14, .135, pants_dark, caps=False)
         for k in range(3):
             ball(knee.lerp(foot, .66 + .1 * k) + Vector((0, -.11, 0)), .014, BRASS())
+    if DAMAGE and not J["dead"]:
+        # the vest torn, flannel hanging out, a scorch; beaten, his beard singed
+        # and smouldering and the saw arm's motor smoking
+        rags(Tm @ Vector((-.2, -.22, .1)), Tm.to_3x3() @ Vector((-.3, -1, 0)), 3 + DAMAGE, .1 + .05 * DAMAGE, .2, vest, k0=7)
+        rags(Tm @ Vector((.18, -.22, .05)), Tm.to_3x3() @ Vector((.3, -1, 0)), 2 + DAMAGE, .1, .14, flannel, k0=9)
+        char_patch(Tm @ Vector((.2, -.28, .45)), .08 + .02 * DAMAGE, None, (0, 0, -.5))
+    if DAMAGE == 2 and not J["dead"]:
+        ball((0, -.09, -.22), (.14, .1, .1), mat(40, 26, 18, .95, grime=0), Hm)
+        embers(Hm @ Vector((0, -.14, -.25)), .14, 6, k0=3)
+        smoke(Hm @ Vector((.05, -.18, -.2)), .035, (.2, -.1))
+        smoke(g + Vector((0, .1, .1)), .055, (-.3, .2))
+        sparks(g, (-.4, -.5, .5), 7, .25)
 
 
 # ---------------------------------------------------------------- copper baron
@@ -1248,7 +1503,7 @@ def baron(frame):
     S = BARON
     J = skeleton(S, frame)
     Tm, Hm = J["torso"], J["head"]
-    hot = frame in ("aim", "fire")
+    hot = frame in ("aim", "wind", "fire")
     beat = beat_of(frame)
     copper = mat(190, 108, 62, .36, .85, grime=.45)
     copper_dk = mat(126, 70, 40, .45, .8, grime=.5)
@@ -1307,10 +1562,20 @@ def baron(frame):
     limb(pts[-1], Tm @ Vector((.0, .22, .64)), .03, .03, copper)
     # two stacks venting over his shoulders
     for s in (-1, 1):
+        if DAMAGE == 2 and s > 0:
+            # shot through and bent over, spewing black smoke
+            limb((s * .22, .25, .48), (s * .25, .27, .74), .055, .06, copper_dk, Tm, caps=False)
+            limb((s * .25, .27, .74), (s * .44, .30, .86), .06, .064, copper_dk, Tm, caps=False)
+            ring((s * .44, .30, .86), (1, 0, .6), .064, .014, iron, M=Tm)
+            if not J["dead"]:
+                smoke(Tm @ Vector((s * .5, .3, .9)), .07, (.3, .15))
+            continue
         limb((s * .22, .25, .48), (s * .26, .28, .90), .055, .062, copper_dk, Tm, caps=False)
         limb((s * .26, .28, .88), (s * .27, .285, .98), .064, .09, iron, Tm, caps=False)
         ring((s * .24, .265, .70), (0, 0, 1), .062, .012, BRASS(), M=Tm)
-        if hot or (beat % 2 == (0 if s < 0 else 1) and not J["dead"] and frame != "pain"):
+        if DAMAGE == 2 and not J["dead"]:
+            smoke(Tm @ Vector((s * .30, .29, 1.03)), .06, (-.25, .15))
+        elif hot or (beat % 2 == (0 if s < 0 else 1) and not J["dead"] and frame != "pain"):
             puff(Tm @ Vector((s * .30, .29, 1.03)), .065 if hot else .05, turn=s > 0)
     # head: ruddy jowls, a moonshine nose, white mutton chops, a monocle
     ball((0, 0, 0), (.15, .16, .16), face, Hm)
@@ -1410,6 +1675,23 @@ def baron(frame):
     for tag in ("R", "L"):
         foot = J["foot" + tag]
         ball(foot + Vector((0, -.06, -.03)), (.085, .1, .045), spat)
+    if DAMAGE:
+        # dents in the pot, steam whistling from a sprung seam, the monocle starred
+        for a, z, r in ((.5, .32, .09), (-.35, .45, .07), (-.6, .15, .06))[:1 + DAMAGE]:
+            char_patch(Tm @ pot(a, z, 1.0), r, None, (0, 0, a))
+        crack([(-.088, -.172, .06), (-.05, -.172, .03), (-.07, -.172, .01)], Hm, WHITE(), .004)
+        if not J["dead"]:
+            puff(Tm @ pot(-.9, .3, 1.08), .05, turn=True)
+    if DAMAGE == 2:
+        # beaten: the pot split, the fire showing through, the hat caved
+        lava = mat(255, 120, 30, emit=3.0)
+        crack([pot(-.1, .58, 1.01), pot(.05, .5, 1.01), pot(-.05, .42, 1.01), pot(.12, .33, 1.01), pot(.04, .26, 1.01)],
+              Tm, lava, .016)
+        crack([pot(.35, .45, 1.01), pot(.45, .38, 1.01), pot(.4, .3, 1.01)], Tm, lava, .012)
+        ball((-.05, -.1, .24), (.1, .05, .06), BLACK(), Hat)
+        if not J["dead"]:
+            embers(Tm @ pot(0, .45, 1.1), .2, 6, k0=5)
+            puff(Hat @ Vector((.0, -.05, .36)), .05)
 
 
 # ---------------------------------------------------------------- the rest of the cast
@@ -1440,7 +1722,7 @@ CLAW = {"ready": ((-.30, -.16, -.50), (0, -1, 0)), "aim": ((-.30, -.22, -.05), (
 
 def hold(table, J, S):
     frame = J["frame"]
-    g, d = table[frame if frame in table else "ready"]
+    g, d = wound_up(table) if frame == "wind" else table[frame if frame in table else "ready"]
     g = Vector(g) + Vector((0, 0, S["hip_h"] + S["torso_len"] + .018 * J["walk"])) + J["offset"]
     return g, unit(*d)
 
@@ -2035,9 +2317,12 @@ def stage():
     bg.inputs[0].default_value = (.62, .60, .56, 1)
     bg.inputs[1].default_value = .50
     nt.links.new(bg.outputs[0], out.inputs[0])
+    LIGHTS.clear()
+    LIGHTS["bg"] = bg
     for name, travel, power, color in (("key", (.50, .58, -.70), 4.4, (1, .94, .84)),
                                        ("fill", (-.7, .55, -.25), .8, (.80, .86, 1)),
-                                       ("rim", (-.35, -.75, -.55), 1.5, (1, .95, .85))):
+                                       ("rim", (-.35, -.75, -.55), 1.5, (1, .95, .85)),
+                                       ("rim2", (.6, -.7, -.35), 0., (.72, .80, 1))):
         light = bpy.data.lights.new(name, "SUN")
         light.energy = power
         light.color = color
@@ -2045,6 +2330,24 @@ def stage():
         ob = bpy.data.objects.new(name, light)
         ob.rotation_euler = Vector(travel).to_track_quat("-Z", "Y").to_euler()
         scene.collection.objects.link(ob)
+        LIGHTS[name] = (light, ob)
+    try:
+        # The graphics card when Cycles can have one: the bosses' sets are big.
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        for kind in ("OPTIX", "CUDA"):
+            try:
+                prefs.compute_device_type = kind
+                prefs.get_devices()
+                gpus = [d for d in prefs.devices if d.type == kind]
+                if gpus:
+                    for d in prefs.devices:
+                        d.use = d.type == kind
+                    scene.cycles.device = "GPU"
+                    break
+            except Exception:
+                continue
+    except Exception:
+        pass
     cam = bpy.data.cameras.new("cam")
     cam.type = "ORTHO"
     camera = bpy.data.objects.new("cam", cam)
@@ -2053,6 +2356,32 @@ def stage():
     ROOT = bpy.data.objects.new("root", None)
     scene.collection.objects.link(ROOT)
     return scene, camera
+
+
+LIGHTS = {}
+
+
+def light_for(scene, boss):
+    """The usual stage, or the bosses' dusk: a warm low key, a violet fill, a hot rim
+    behind one shoulder and a cool one behind the other, so the silhouette cuts out
+    against any wall; more samples for the finer parts."""
+    key, fill, rim, rim2 = (LIGHTS[n][0] for n in ("key", "fill", "rim", "rim2"))
+    if boss:
+        key.energy, key.color = 4.9, (1, .86, .66)
+        fill.energy, fill.color = 1.0, (.66, .70, 1)
+        rim.energy, rim.color = 6.5, (1, .70, .42)
+        rim2.energy = 4.0
+        LIGHTS["bg"].inputs[0].default_value = (.56, .54, .58, 1)
+        LIGHTS["bg"].inputs[1].default_value = .42
+        scene.cycles.samples = 64
+    else:
+        key.energy, key.color = 4.4, (1, .94, .84)
+        fill.energy, fill.color = .8, (.80, .86, 1)
+        rim.energy, rim.color = 1.5, (1, .95, .85)
+        rim2.energy = 0.
+        LIGHTS["bg"].inputs[0].default_value = (.62, .60, .56, 1)
+        LIGHTS["bg"].inputs[1].default_value = .50
+        scene.cycles.samples = 28
 
 
 def clear():
@@ -2073,7 +2402,30 @@ def stem_of(item):
     return "%s_%s" % item if isinstance(item, tuple) else str(item)
 
 
+DYING_STEMS = ("die_0", "die_1", "die_2", "die_3", "die_4", "down")
+# The cels a phase set repeats: everything a living boss shows (no falls, no old walk).
+PHASE_STEMS = [0, "w0", "w1", "w2", "w3", "aim", "wind", "fire", "pain", "recover"]
+PHASE_STEMS += [(name, step) for name, _ in TURNS for step in (0, "w0", "w1", "w2", "w3")]
+
+
+def jobs_for(kind, wanted):
+    """(item, file stem, damage) for each cel of a kind: a boss adds its wind-up, falls
+    beaten (its last phase's damage) and repeats its living cels for each phase set."""
+    if kind not in BOSS_PHASES:
+        return [(item, "%s_%s" % (kind, stem_of(item)), 0) for item in wanted]
+    wanted = list(wanted) + ["wind"]
+    out = [(item, "%s_%s" % (kind, stem_of(item)), 2 if stem_of(item) in DYING_STEMS else 0)
+           for item in wanted]
+    have = {stem_of(item) for item in wanted}
+    for phase, base, prefix in BOSS_PHASES[kind]:
+        for item in PHASE_STEMS:
+            if stem_of(item) in have:
+                out.append((item, "%s_p%d_%s%s" % (base, phase, prefix, stem_of(item)), phase - 1))
+    return out
+
+
 def main():
+    global DAMAGE
     scene, camera = stage()
     os.makedirs(OUT, exist_ok=True)
     meta = {}
@@ -2082,11 +2434,15 @@ def main():
         width, height = S["canvas"]
         scale = S["px"] / height * SS
         wanted = list(own) if own else frames_for(extra)
+        jobs = jobs_for(kind, wanted)
         if FRAMES != "all":
-            wanted = [f for f in wanted if stem_of(f) in FRAMES.split(",")]
+            pick = FRAMES.split(",")
+            jobs = [j for j in jobs if stem_of(j[0]) in pick or j[1][len(kind) + 1:] in pick or j[1] in pick]
         meta[kind] = {"size": [round(width * S["px"] / height), S["px"]], "walk": not own}
-        for item in wanted:
+        light_for(scene, kind in BOSS_PHASES)
+        for item, name, damage in jobs:
             clear()
+            DAMAGE = damage
             yaw = 0.
             frame = item
             if isinstance(item, tuple):
@@ -2118,8 +2474,9 @@ def main():
             back = Vector((0, -math.cos(pitch), math.sin(pitch)))
             camera.location = look + back * 12
             camera.rotation_euler = (math.pi / 2 - pitch, 0, 0)
-            scene.render.filepath = os.path.join(OUT, "%s_%s.png" % (kind, stem_of(item)))
+            scene.render.filepath = os.path.join(OUT, name + ".png")
             bpy.ops.render.render(write_still=True)
+        DAMAGE = 0
     path = os.path.join(OUT, "meta.json")
     old = json.load(open(path)) if os.path.exists(path) else {}
     old.update(meta)
