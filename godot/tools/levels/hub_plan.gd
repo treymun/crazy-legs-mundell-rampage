@@ -360,7 +360,7 @@ func fair_road() -> void:
 func quarry_road() -> void:
 	# The haul road's turn: rock and the powder on the south side by the gate.
 	b.wall(65, ROAD_S + 1, 66, ROAD_S + 1, "quarry_face", 2.0)
-	b.town("boulder_a", 58.5, 38.5, {"solid": .4})
+	b.town("boulder_a", 67.5, 38.5, {"solid": .4})
 	b.town("warning_barrel", 66.5, 37.5, {"solid": .3})
 	b.town("tnt_crate", 65.5, 39.2)
 	b.board("survey_peg", 66.6, 38.5, .58, {"plane": PI + .35})
@@ -385,7 +385,7 @@ func speedway_road() -> void:
 	b.town("tire_pile", 79.5, 29.5, {"solid": .45})
 	b.town("tire_stack", 77.5, 28.6, {"solid": .3})
 	for y in [31.5, 33.5, 35.5]:
-		b.town("pylon", 77.5, y)
+		b.prop("tire", 77.5, y)
 	b.town("fuel_pump", 68.5, 39.2)
 	b.streetlamp(73.5, 39.3)
 
@@ -419,7 +419,7 @@ func impound_lot() -> void:
 
 func crash_site() -> void:
 	# The road the county closed, up to where the saucer came down and the
-	# Mothership's beam still stands: cones and tape across it, the county's
+	# Mothership's beam still stands: barrels and tape across it, the county's
 	# order, the lights they brought, the saucer in the trench it dug, what fell
 	# out of it, and at the far end the pad.
 	b.yard(39, 21, 48, ROAD_N - 1, "tracks", site)
@@ -427,7 +427,7 @@ func crash_site() -> void:
 	b.yard(33, 8, 55, 20, "dirt", site)
 	b.paint(42, 8, 45, 20, "tracks")
 	for p in [Vector2(39.5, 21.5), Vector2(41.5, 21.5), Vector2(46.5, 21.5), Vector2(48.5, 21.5)]:
-		b.town("pylon", p.x, p.y)
+		b.town("warning_barrel", p.x, p.y, {"solid": .3})
 	for pair in [[39.5, 41.5], [46.5, 48.5]]:
 		b.panel(float(pair[0]), 21.5, float(pair[1]), 21.5, "warning", .82, .94, 1.0)
 	b.board("hub_county_order", 47.2, 21.6, .6, {"z": .45, "plane": 0.0})
