@@ -214,7 +214,7 @@ static func enemies(b: Builder) -> void:
 		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
 	# The core: Maw, her two guards and two of her crew, all asleep till the iris.
 	for e in [
-		["maw", 64.5, 57.5, "core-maw"],
+		["maw", 60.5, 58.5, "core-maw"],
 		["tin_guard", 57.5, 50.5, "core-guard-w"],
 		["tin_guard", 71.5, 50.5, "core-guard-e"],
 		["drone", 62.5, 42.5, "core-drone-n"],
@@ -409,6 +409,8 @@ static func _ring(p) -> void:
 	p.stand("pod", 76.5, 42.5, .4)
 	p.stand("pod", 49.5, 47.5, .4)
 	p.on_wall("ship_sign_core", 62.0, 37.0, "s", .7, 1.3)
+	p.on_wall("ship_hazard", 62.9, 37.0, "s", .5, .2)
+	p.on_wall("ship_hazard", 65.1, 37.0, "s", .5, .2)
 	p.on_wall("ship_sign_ring", 62.0, 63.0, "n", .6, 1.6)
 	b.board("ship_arrow_left", 66.0, 64.4, .35, {"z": 1.0, "plane": 0.0})
 	b.board("ship_arrow_right", 66.0, 35.6, .35, {"z": 1.0, "plane": PI})
@@ -430,6 +432,24 @@ static func _core(p) -> void:
 		var at := Vector2(p.CX + cos(a) * 8.3, p.CY + sin(a) * 8.3)
 		spawns.append([snappedf(floorf(at.x) + .5, .01), snappedf(floorf(at.y) + .5, .01)])
 	b.meta["boss_decoys"] = spawns
+	# Her throne on its dais, lit; what she keeps about her: crates of loot to
+	# get behind (they break), jars, two barrels of the county's shine that go
+	# up on her as soon as anybody.
+	p.stand("captain_chair", 60.5, 60.5, .42, {"scale": 1.8})
+	b.glow(60.5, 59.0, 4.2, .3)
+	for c in [Vector2(56.5, 48.5), Vector2(70.5, 52.5)]:
+		p.stand("alien_crate", c.x, c.y, .38)
+	for c in [Vector2(59.5, 41.5), Vector2(69.5, 58.5)]:
+		p.stand("specimen_jar", c.x, c.y, .25)
+	for c in [Vector2(60.5, 47.5), Vector2(67.5, 52.5)]:
+		p.stand("warning_barrel", c.x, c.y, .3)
+	b.meta["boss_arena"] = {
+		"core": [p.CX, p.CY],
+		"core_reach": p.CORE_R - .4,
+		"alarms": [[64.0, 50.0, 5.5, 11.0], [57.0, 57.0, 3.0, 6.0], [71.0, 43.0, 3.0, 6.0]],
+		"lights":
+		[[60.5, 59.5, 3.2, 6.5, [1.0, .5, .85], 1.3], [64.0, 50.0, 2.0, 7.0, [.5, 1.0, .75], .8]],
+	}
 
 
 static func _west(p) -> void:

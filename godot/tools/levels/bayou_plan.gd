@@ -1,4 +1,4 @@
-## Gator Bayou (chapter five, layout 1): a fish camp out past the county line
+## Gator Bayou (chapter five, layout 2): a fish camp out past the county line
 ## at dusk, built on the water. Black water everywhere: shallow you wade
 ## (slowly), deep channels nobody but a gator crosses. The Big Channel splits
 ## the swamp in two, forking round the bridge tender's hammock and joining the
@@ -58,7 +58,7 @@ func make() -> Builder:
 		"ending": '"NO WAKE ZONE, MY FOOT."',
 		"score": "bayou_score",
 		"ambience": "bayou",
-		"layout": 1,
+		"layout": 2,
 		"sky": "bayou_sky",
 		"control_name": "BRIDGES: BOIL YARD GENERATOR, CANNERY BREAKER",
 		"extraction":
@@ -840,8 +840,12 @@ func juke_joint() -> void:
 
 
 func lagoon() -> void:
-	# The king's lagoon: deep in the middle, a feed platform out in it, the
-	# boardwalks to the juke joint and the dock across it. The boss's water.
+	# The king's lagoon: deep in the middle, the feed platform out in it on its
+	# walk from the juke joint, the king's pier off the dock. The boss's water,
+	# open all the way round the platform for his runs since the walk to the
+	# dock came out; the dock's long edge and the pier to fight him from, fish
+	# houses on stilts along the north shore, cypress standing in the water for
+	# him to run up on, fuel drums on the edge that go up on whoever is near.
 	water(73, 2, 105, 26, "lagoon")
 	water(85, 27, 105, 36, "lagoon")
 	for y in range(6, 30):
@@ -853,8 +857,32 @@ func lagoon() -> void:
 	b.yard(88, 29, 96, 36, "bayou_deep", d["lagoon"], {"ground": WATER, "light": .88})
 	walk(74, 13, 86, 14, "lagoon")
 	walk(87, 11, 92, 16, "lagoon")
-	walk(93, 13, 107, 14, "lagoon")
+	walk(103, 13, 105, 14, "lagoon")
 	walk(98, 24, 107, 25, "lagoon")
+	# The fish houses on the north shore, their windows lit over the water.
+	shack(85, 1, 90, 4, "lagoon", .24, "bayou_shack", {"windows": 2, "lit": .9})
+	shack(96, 1, 102, 4, "lagoon", .24, "bayou_tin", {"windows": 2, "lit": .9})
+	b.glow(87.5, 5.5, 3.0, .24)
+	b.glow(99.0, 5.5, 3.0, .24)
+	# Cypress and a snag standing in the deep: a run that meets one stops dead.
+	stand("cypress", 88.5, 25.5, .3)
+	stand("cypress_b", 101.5, 8.5, .3)
+	stand("dead_snag", 84.5, 9.5, .3)
+	# The way onto the dock from the hoist bridge: the king's gate.
+	b.fixture(102.95, 35.95, 103.05, 36.05, 2.7, "wood", "wood")
+	b.fixture(105.95, 35.95, 106.05, 36.05, 2.7, "wood", "wood")
+	b.panel(103.0, 36.0, 106.0, 36.0, "bayou_stilts", 2.35, 2.55, 1.0)
+	b.panel(106.0, 36.02, 103.0, 36.02, "bayou_stilts", 2.35, 2.55, 1.0)
+	b.board(
+		"bayou_king_sign",
+		104.5,
+		36.06,
+		.6,
+		{"z": 1.7, "plane": 0.0, "back": "bayou_keepout_sign", "hung": true}
+	)
+	# Lanterns down the dock's edge and out on the pier, lighting the water.
+	for p in [Vector2(106.5, 15.5), Vector2(106.5, 30.5), Vector2(99.5, 24.5)]:
+		lantern(p.x, p.y, 4.4)
 	# The feed platform: the chute the king tips chum down, a sign for tourists.
 	box(89.0, 11.2, 90.6, 12.2, 1.1, "steel_mesh", "steel_mesh")
 	stand("crawfish_traps", 91.5, 15.5, .35)

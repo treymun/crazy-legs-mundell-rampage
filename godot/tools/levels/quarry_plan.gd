@@ -1,12 +1,14 @@
-## Stillwater Cut, rebuilt (layout 3): a limestone quarry with a bootleg
+## Stillwater Cut, rebuilt (layout 4): a limestone quarry with a bootleg
 ## works hidden in it, chalk on everything, a cold blue sky. The county weigh
 ## station in the south and the haul road up; the cut yard with its blocks,
 ## rigs and the crusher; the cutting shed west (disengage the cutting feed)
 ## under the chalk terraces and the dynamite shack; the lower cut east, a pit
 ## stepped down to a flooded bottom, and up out of it the condenser yard
 ## (crank the copper condenser) and copper recovery; the bottling works in the
-## north (vent the relay: the baron) and the loading court behind, where the
-## relief valves are and the load ticket gets signed.
+## north, its line in front and the baron's still house behind it (vent the
+## relay by the gate: the still house opens and the baron is in it), and the
+## loading court behind that, where the relief valves are and the load ticket
+## gets signed.
 ##
 ## Built by tools/levels/build_level.gd -- quarry.
 extends RefCounted
@@ -14,6 +16,25 @@ extends RefCounted
 const Builder := preload("res://tools/levels/level_builder.gd")
 const W := 130
 const H := 86
+## The still house's steam outlets (the baron's pressure ports), and its pipes
+## that burst in his third phase: [x, y, heading, length, height of the mouth]
+## from the wall face (features/boss_arenas.gd).
+const OUTLETS := [
+	[52.5, 13.5],
+	[59.5, 15.5],
+	[69.5, 15.5],
+	[76.5, 13.5],
+	[60.5, 12.5],
+	[68.5, 12.5],
+	[45.5, 14.5],
+	[83.5, 14.5]
+]
+const JETS := [
+	[39.0, 11.5, 0.0, 6.5, 1.6],
+	[88.0, 11.5, PI, 6.5, 1.6],
+	[39.0, 16.5, 0.0, 5.5, 1.2],
+	[88.0, 16.5, PI, 5.5, 1.2]
+]
 
 var b: Builder
 var weigh: int
@@ -28,6 +49,7 @@ var copper: int
 var haul: int
 var powder: int
 var flooded: int
+var still: int
 
 
 func make() -> Builder:
@@ -42,14 +64,14 @@ func make() -> Builder:
 		"ending": '"WEIGHT INCLUDES CONTENTS AND DEBTS."',
 		"score": "quarry_score",
 		"ambience": "quarry",
-		"layout": 3,
+		"layout": 4,
 		"sky": "quarry_sky",
 		"control_name": "QUARRY FEEDS ISOLATED",
 		"extraction":
 		{"x": 86.5, "y": 2.5, "label": "SIGN THE LOAD TICKET", "shutdown": "bottling"},
 		"return_gate": {"destination": "hub", "x": 64.0, "y": 84.4, "width": 3.5, "side": -1},
 		"recovery_room": [57.4, 74.4, 62.6, 78.6, "room"],
-		"pressure_ports": [[48.5, 3.5], [56.5, 2.5], [72.5, 2.5], [80.5, 3.5]],
+		"pressure_ports": OUTLETS,
 		"wave": ["court-guard", "court-clone", "court-center", "court-billy"],
 	}
 	return b
@@ -68,6 +90,7 @@ func build(_b) -> Array:
 	haul = b.district("HAUL ROAD", Color(.94, .96, 1.02))
 	powder = b.district("DYNAMITE SHACK", Color(1.06, .96, .9))
 	flooded = b.district("FLOODED PIT", Color(.84, .96, 1.06))
+	still = b.district("THE STILL HOUSE", Color(1.1, .95, .84))
 	weigh_station()
 	haul_road()
 	cut_yard()
@@ -452,7 +475,7 @@ func condenser_yard() -> void:
 		"DIVERT THE COPPER CONDENSER",
 		"PRESSURE DIVERTED. TAKE THE RECOVERY GATE.",
 		{
-			"opens": [[88, 18], [93, 22]],
+			"opens": [[88, 24], [93, 22]],
 			"sectors": [condenser, copper],
 			"cue": "pressure_vent",
 			"action": "crank"
@@ -529,36 +552,39 @@ func bottling_works() -> void:
 	b.door(38, 28, true, {"from": "e", "id": "bottling-west"})
 	b.yard(37, 28, 37, 28, "quarry_face", terraces)
 	b.raise(37, 28, 37, 28, .72)
-	b.controlled(88, 18, true, {"from": "w", "id": "stills-shutter", "tile": "gate"})
+	b.controlled(88, 24, true, {"from": "w", "id": "stills-shutter", "tile": "gate"})
 	b.door(64, 30, false, {"from": "n", "id": "bottling-entry"})
 	b.access_doors["64,30"] = ["stone", "stills"]
-	for d in [Vector2i(38, 28), Vector2i(88, 18), Vector2i(64, 30)]:
+	for d in [Vector2i(38, 28), Vector2i(88, 24), Vector2i(64, 30)]:
 		b.raise(d.x, d.y, d.x, d.y, .48)
 	b.board("quarry_bottling", 64.0, 31.06, 1.0, {"z": 2.4, "plane": 0.0})
-	# The bottling line: rollers, the filler, crates of jugs, the capper.
-	for y in [12.5, 20.5]:
-		b.fixture(44.0, y - .4, 84.0, y + .4, 1.4, "steel_mesh", "quarry_iron", .48)
-	for x in [50.5, 60.5, 70.5, 80.5]:
-		b.town("jug_stack", x, 16.5, {"solid": .4})
-	b.town("copper_vat", 44.5, 25.5, {"solid": .45})
-	b.town("copper_vat", 82.5, 25.5, {"solid": .45})
-	b.board("quarry_bottles", 56.0, 12.5, .7, {"z": .92})
-	b.board("quarry_bottles", 72.0, 20.5, .7, {"z": .92})
-	b.board("detail_bottling_cradles", 64.0, 24.0, .6)
+	still_house()
+	# The bottling line south of it: rollers either side of the way up the
+	# middle to the still house gate, crates of jugs, the capper's vats.
+	b.fixture(44.0, 24.6, 59.0, 25.4, 1.4, "steel_mesh", "quarry_iron", .48)
+	b.fixture(69.0, 24.6, 84.0, 25.4, 1.4, "steel_mesh", "quarry_iron", .48)
+	for x in [50.5, 78.5]:
+		b.town("jug_stack", x, 22.5, {"solid": .4})
+	b.town("copper_vat", 44.5, 26.5, {"solid": .45})
+	b.town("copper_vat", 82.5, 26.5, {"solid": .45})
+	b.board("quarry_bottles", 52.0, 25.0, .7, {"z": .92})
+	b.board("quarry_bottles", 76.0, 25.0, .7, {"z": .92})
+	b.board("detail_bottling_cradles", 47.0, 27.6, .6)
+	# The relay beside the gate: venting it throws the still house open.
 	b.station(
 		"bottling",
-		64.5,
-		8.5,
+		60.5,
+		22.6,
 		"VENT THE BOTTLING RELAY",
-		"COPPER BARON! USE THE RELIEF VALVES.",
+		"THE STILL HOUSE IS OPEN. COPPER BARON! USE THE RELIEF VALVES.",
 		{
 			"requires": ["stone", "stills"],
-			"opens": [[52, 6], [76, 6]],
-			"sectors": [bottling, court],
+			"opens": [[63, 20], [64, 20], [65, 20], [52, 6], [76, 6]],
+			"sectors": [bottling, still, court],
 			"cue": "mill_trip"
 		}
 	)
-	b.quest("quest_relay", 63.0, 7.55, "bottling")
+	b.quest("quest_relay", 60.5, 21.55, "bottling")
 	b.exchanges.append(
 		{
 			"id": "line-speaker",
@@ -572,6 +598,47 @@ func bottling_works() -> void:
 	b.react("cancan", 42.0, 28.0, .4, {"id": "x2-quarry-1"})
 	b.react("toilet", 40.0, 8.0, .82, {"id": "x2-quarry-3"})
 	b.react("cancan", 85.0, 8.0, .4, {"id": "x2-quarry-6"})
+	for p in [Vector2(46.0, 22.0), Vector2(82.0, 22.0), Vector2(56.0, 27.5), Vector2(72.0, 27.5)]:
+		b.prop("lamp", p.x, p.y)
+		b.glow(p.x, p.y, 3.2, .2)
+
+
+## The baron's still house, the north end of the works walled off from the
+## line: a tall hall of copper. Twin boilers against the north wall with the
+## stash hatch between them, the boiler deck in front where he waits (seen
+## straight through the gate from the relay), vats down both walls, copper
+## manifolds and barrels to get behind, the steam outlets in the floor and the
+## pipes along the walls that burst when he is near done (boss_arena: jets).
+func still_house() -> void:
+	b.room(
+		39,
+		7,
+		87,
+		19,
+		"quarry_shed",
+		still,
+		{"roof": 5.4, "ceiling": "quarry_iron", "light": .68, "skin": "detail_wall_copper_seams"}
+	)
+	b.raise(39, 7, 87, 19, .48)
+	b.wall_top(38, 6, 88, 6, 5.9)
+	b.wall_top(38, 7, 38, 20, 5.9)
+	b.wall_top(88, 7, 88, 20, 5.9)
+	b.wall(39, 20, 87, 20, "quarry_iron", 5.9)
+	# The gate: three bays the relay throws open, a sign over them.
+	for x in [63, 64, 65]:
+		b.controlled(
+			x, 20, false, {"from": "s", "id": "still-gate-%d" % x, "tile": "gate", "roof": 2.6}
+		)
+		b.raise(x, 20, x, 20, .48)
+	b.board("quarry_safety", 64.0, 21.06, .55, {"z": 2.0, "plane": 0.0})
+	b.board("quarry_blast", 59.0, 21.06, .55, {"z": 1.1, "plane": 0.0})
+	# The twin boilers on their fireboxes and the hatch between them; the deck
+	# in front.
+	b.paint(39, 7, 87, 19, "concrete")
+	for x in [60.0, 68.0]:
+		b.fixture(x - 2.4, 7.0, x + 2.4, 8.8, 1.38, "quarry_iron", "quarry_iron", .48)
+		b.town("copper_vat", x, 7.9, {"scale": 1.55, "z": .9, "glow": true})
+	b.board("wing_quarry_still", 64.0, 7.06, .7, {"z": 2.3, "plane": 0.0})
 	b.secret(
 		64,
 		6,
@@ -580,19 +647,92 @@ func bottling_works() -> void:
 		{"from": "s", "id": "condensate-stash-n", "tile": "quarry_iron"}
 	)
 	b.raise(64, 6, 64, 6, .48)
-	for p in [
-		Vector2(46.0, 9.0),
-		Vector2(64.0, 16.5),
-		Vector2(82.0, 9.0),
-		Vector2(56.0, 25.0),
-		Vector2(72.0, 25.0),
-		Vector2(46.0, 25.0),
-		Vector2(82.0, 25.0),
-		Vector2(54.0, 9.0),
-		Vector2(74.0, 9.0)
-	]:
+	b.board("detail_still_gauge_bank", 60.0, 8.86, .55, {"z": .2, "plane": 0.0})
+	b.board("detail_still_gauge_bank", 68.0, 8.86, .55, {"z": .2, "plane": 0.0})
+	b.raise(56, 9, 72, 11, .72)
+	b.paint(56, 9, 72, 11, "steel_mesh")
+	b.mark("detail_wear_copper", 64.0, 10.0, 0.0, 3.0, 1.2)
+	for x in [56.5, 71.5]:
+		b.town("copper_vat", x, 9.5, {"solid": .45, "glow": true})
+		b.glow(x, 10.5, 3.0, .26)
+	b.glow(60.0, 9.5, 5.5, .3)
+	b.glow(68.0, 9.5, 5.5, .3)
+	# Vats down both walls, their fires lit.
+	for p in [Vector2(41.5, 9.5), Vector2(41.5, 14.5), Vector2(85.5, 9.5), Vector2(85.5, 14.5)]:
+		b.town("copper_vat", p.x, p.y, {"solid": .45, "glow": true})
+		b.glow(p.x + (1.0 if p.x < 64 else -1.0), p.y, 2.6, .22)
+	# The copper manifolds: chest-high cover that does not break.
+	b.fixture(46.1, 12.1, 49.9, 12.9, 1.75, "quarry_copper", "quarry_copper", .48)
+	b.fixture(78.1, 12.1, 81.9, 12.9, 1.75, "quarry_copper", "quarry_copper", .48)
+	b.fixture(54.1, 16.1, 57.9, 16.9, 1.5, "quarry_copper", "quarry_copper", .48)
+	b.fixture(70.1, 16.1, 73.9, 16.9, 1.5, "quarry_copper", "quarry_copper", .48)
+	# What does break: the mash barrels and jugs, and the fuel barrels that go
+	# up (on the baron as well as anybody).
+	for p in [Vector2(44.5, 17.5), Vector2(45.5, 17.5), Vector2(82.5, 17.5), Vector2(83.5, 17.5)]:
+		b.town("mash_barrel", p.x, p.y, {"solid": .4})
+	for p in [Vector2(50.5, 15.5), Vector2(77.5, 15.5)]:
+		b.town("jug_stack", p.x, p.y, {"solid": .4})
+	for p in [Vector2(54.5, 12.5), Vector2(74.5, 12.5), Vector2(47.5, 9.5), Vector2(81.5, 9.5)]:
+		b.town("warning_barrel", p.x, p.y, {"solid": .3})
+	# The outlets in the floor, and the pipes along the walls that feed them.
+	for p in OUTLETS:
+		b.mark("mark_outlet", p[0], p[1], 0.0, 1.0, 1.0)
+	for x in [39.03, 87.97]:
+		for z in [1.15, 1.6]:
+			b.panel(x, 7.0, x, 19.99, "quarry_copper", z, z + .14, .95)
+			b.panel(x, 19.99, x, 7.0, "quarry_copper", z, z + .14, .95)
+	for j in JETS:
+		var jx := float(j[0]) + (.04 if float(j[0]) < 64 else -.04)
+		var jy := float(j[1])
+		b.panel(jx, jy - .12, jx, jy + .12, "quarry_copper", .48, 2.4, 1.0)
+		b.panel(jx, jy + .12, jx, jy - .12, "quarry_copper", .48, 2.4, 1.0)
+	for p in [Vector2(46.0, 15.0), Vector2(82.0, 15.0), Vector2(52.0, 9.0), Vector2(76.0, 9.0)]:
 		b.prop("lamp", p.x, p.y)
-		b.glow(p.x, p.y, 3.2, .2)
+		b.glow(p.x, p.y, 3.0, .16)
+	b.lighten(39, 18, 87, 19, .56)
+	b.meta["boss_arena"] = {
+		"jets": JETS,
+		"alarms": [[47.0, 8.0, 3.8, 8.0], [81.0, 8.0, 3.8, 8.0], [64.0, 16.0, 3.8, 9.0]],
+		"lights":
+		[[60.0, 9.6, 1.4, 5.5, [1.0, .55, .22], 1.2], [68.0, 9.6, 1.4, 5.5, [1.0, .55, .22], 1.2]],
+		"steam":
+		[
+			[59.4, 7.9, 4.0],
+			[60.8, 7.9, 4.0],
+			[67.2, 7.9, 4.0],
+			[68.6, 7.9, 4.0],
+			[41.5, 9.5, 1.7],
+			[85.5, 9.5, 1.7],
+			[41.5, 14.5, 1.7],
+			[85.5, 14.5, 1.7]
+		],
+	}
+	(
+		b
+		. triggers
+		. append(
+			{
+				"id": "still-house-open",
+				"when": {"station": "bottling"},
+				"do":
+				[
+					{"sound": "pressure_vent", "at": [64.5, 19.0]},
+					{"shake": .5},
+					{
+						"light":
+						{
+							"at": [64.0, 18.0],
+							"z": 1.6,
+							"color": [1.0, .55, .25],
+							"radius": 7.0,
+							"strength": 1.5,
+							"for": 3.5
+						}
+					}
+				],
+			}
+		)
+	)
 
 
 func loading_court() -> void:
@@ -627,8 +767,6 @@ func loading_court() -> void:
 	b.quest("quest_valve", 41.5, 1.5, "relief-west")
 	b.quest("quest_valve", 84.5, 1.5, "relief-east")
 	b.quest("quest_exit", 86.6, 1.6, "exit")
-	for p in [Vector2(48.5, 3.5), Vector2(56.5, 2.5), Vector2(72.5, 2.5), Vector2(80.5, 3.5)]:
-		b.mark("mark_outlet", p.x, p.y, 0.0, 1.0, 1.0)
 	b.board("quarry_safety", 70.0, 1.06, .7, {"z": 1.0, "plane": 0.0})
 	b.board("quarry_ledger", 58.0, 1.06, .7, {"z": 1.0, "plane": 0.0})
 	b.town("cable_spool", 44.5, 1.5)
@@ -648,7 +786,8 @@ func story() -> void:
 		["PIT", 107, 50],
 		["STILLS", 98, 12],
 		["COPPER", 114, 8],
-		["BOTTLING", 44, 18],
+		["BOTTLING", 44, 23],
+		["STILL HOUSE", 44, 11],
 		["COURT", 44, 3],
 	]:
 		b.label(String(l[0]), int(l[1]), int(l[2]))
@@ -691,13 +830,13 @@ func cast() -> void:
 		["billy", 122.0, 18.0, "copper-billy"],
 		["saucer", 100.0, 28.0, "condenser-saucer"],
 		["coot", 90.5, 26.0, "quarry-store-coot"],
-		["boilerback", 48.0, 18.0, "line-guard"],
-		["billy", 67.0, 17.0, "line-billy"],
+		["boilerback", 48.0, 23.0, "line-guard"],
+		["billy", 70.0, 23.0, "line-billy"],
 		["coot", 58.0, 24.0, "line-coot"],
 		["valve_rat", 80.0, 23.0, "line-rat"],
 		["alien", 50.0, 3.0, "court-guard"],
 		["chalk_spitter", 70.0, 3.0, "court-clone"],
-		["baron", 64.5, 9.6, "court-center"],
+		["baron", 64.5, 10.5, "court-center"],
 		["boilerback", 78.0, 3.0, "court-billy"],
 	]:
 		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
@@ -749,7 +888,10 @@ func cast() -> void:
 		["shells", 46.0, 28.0],
 		["rinds", 82.0, 28.0],
 		["pressure_ammo", 64.0, 27.0],
-		["whiskey", 86.0, 14.0],
+		["whiskey", 86.5, 18.5],
+		["shells", 40.5, 18.5],
+		["rinds", 87.0, 7.5],
+		["pressure_ammo", 40.5, 11.5],
 		["rifle_ammo", 63.6, 4.4],
 		["pressure_ammo", 64.4, 4.6],
 		["rinds", 42.0, 2.0],
@@ -849,7 +991,7 @@ func polish() -> void:
 	for e in [
 		["chalk_spitter", 75.0, 44.0, "outcrop-chalk"],
 		["valve_rat", 100.0, 10.0, "vat-rat"],
-		["boilerback", 60.0, 22.5, "works-boiler"],
+		["boilerback", 68.0, 22.5, "works-boiler"],
 	]:
 		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
 	(

@@ -164,6 +164,17 @@
 		"x": 9.376,
 		"y": 74.246
 	},
+	"v7_mothership_replay.json": {
+		"alive": 78,
+		"health": 100.0,
+		"kills": 0,
+		"level": "mothership",
+		"replay": true,
+		"reserve": 174,
+		"retained": [],
+		"x": 65.506,
+		"y": 90.389
+	},
 	"v7_quarry_replay.json": {
 		"alive": 43,
 		"health": 100.0,
@@ -176,6 +187,17 @@
 		"y": 79.389
 	},
 	"v7_quarry_replay_layout2.json": {
+		"alive": 43,
+		"health": 100.0,
+		"kills": 0,
+		"level": "quarry",
+		"replay": true,
+		"reserve": 159,
+		"retained": [],
+		"x": 64.5,
+		"y": 81.5
+	},
+	"v7_quarry_replay_layout3.json": {
 		"alive": 43,
 		"health": 100.0,
 		"kills": 0,
@@ -209,5 +231,16 @@
 		"retained": [],
 		"x": 64.5,
 		"y": 81.5
+	},
+	"v7_speedway_replay.json": {
+		"alive": 59,
+		"health": 100.0,
+		"kills": 0,
+		"level": "speedway",
+		"replay": true,
+		"reserve": 162,
+		"retained": [],
+		"x": 13.006,
+		"y": 98.389
 	}
 }

@@ -86,7 +86,7 @@ static func enemies(b) -> void:
 		["clone", 118.5, 13.5, "dock-clone"],
 		["coot", 113.5, 17.5, "boathouse-coot"],
 		# The king and his last hands: asleep until the fuel is spiked.
-		["swamp_king", 95.5, 21.5, "king"],
+		["swamp_king", 99.5, 21.0, "king"],
 		["gator", 99.5, 23.5, "lagoon-gator-a"],
 		["gator", 86.5, 15.5, "lagoon-gator-b"],
 		["chum_tosser", 109.5, 24.5, "dock-chummer"],
@@ -201,7 +201,16 @@ static func pickups(b) -> void:
 	]:
 		b.pickup(String(p[0]), float(p[1]), float(p[2]))
 	# Drums that go up when shot: fuel on the dock and the landing, propane at the boil.
-	for p in [[110.5, 32.5], [123.5, 26.5], [27.5, 52.8], [99.0, 46.0], [77.0, 84.0]]:
+	for p in [
+		[110.5, 32.5],
+		[123.5, 26.5],
+		[27.5, 52.8],
+		[99.0, 46.0],
+		[77.0, 84.0],
+		[106.6, 21.6],
+		[106.6, 27.4],
+		[104.4, 24.5]
+	]:
 		b.fuel_drums.append(p)
 
 

@@ -33,7 +33,7 @@ func labels() -> void:
 		["OVAL", 44, 25],
 		["CAMP", 42, 46],
 		["JUMP", 54, 33],
-		["FIGURE 8", 82, 45],
+		["DERBY BOWL", 82, 45],
 		["STANDS", 50, 75],
 		["BOOTH", 71, 77],
 		["CONCOURSE", 58, 85],
@@ -138,7 +138,7 @@ func dress_pits() -> void:
 
 
 ## The infield camp: the trailers, the fire and the chairs round it, the
-## coolers; the monster jump and its truck; the figure 8's flag stand.
+## coolers; the monster jump and its truck; the derby bowl's wrecks.
 func dress_infield() -> void:
 	b.town("burn_barrel", 50.5, 46.5, {"solid": .3, "glow": true})
 	b.glow(50.5, 46.5, 4.0, .34)
@@ -163,7 +163,7 @@ func dress_infield() -> void:
 	b.town("floodlight_tower", 46.5, 51.5, {"solid": .25, "glow": true})
 	b.glow(46.5, 51.5, 9.0, .3)
 	b.streetlamp(62.0, 40.0)
-	# Inside the figure 8: wrecks of the last derby, mud, the islands' tyres.
+	# In the derby bowl: wrecks of the last derby at either end, oil on the mud.
 	b.town("wrecked_derby", 72.5, 45.5, {"solid": .45})
 	b.fixture(72.1, 44.5, 72.9, 46.5, .3, "mill_tin", "tin")
 	b.town("wrecked_derby", 105.5, 45.5, {"solid": .45})
@@ -346,11 +346,11 @@ func cast() -> void:
 		["pit_mechanic", 143.0, 55.0, "maze-mechanic"],
 		["skeeter", 137.0, 46.0, "maze-skeeter"],
 		["alien", 141.6, 62.4, "office-alien"],
-		# The figure 8: the champ and his pit crew wait for the flag.
-		["derby_champ", 98.5, 37.5, "figure8-champ"],
+		# The derby bowl: the champ and his pit crew wait for the flag.
+		["derby_champ", 89.5, 52.5, "figure8-champ"],
 		["pit_mechanic", 79.5, 37.5, "figure8-wrench"],
 		["tire_roller", 79.5, 53.5, "figure8-tires"],
-		["nitro_huffer", 98.5, 53.5, "figure8-huffer"],
+		["nitro_huffer", 101.5, 53.5, "figure8-huffer"],
 	]:
 		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
 	b.partners.append(["bay-mechanic-a", "bay-roller", 1])
@@ -422,7 +422,7 @@ func pickups() -> void:
 		["whiskey", 145.5, 62.4],
 		["dynamite", 142.4, 63.4],
 		["shells", 124.0, 62.0],
-		# Round the figure 8 for the fight.
+		# Round the derby bowl for the fight.
 		["shells", 86.5, 33.5],
 		["rinds", 89.5, 54.0],
 		["rocket_ammo", 70.5, 57.5],

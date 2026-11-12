@@ -6,7 +6,10 @@
 ## along marked lanes, hollers to the pods for her younguns); the housecoat on
 ## fire (stomps whose ring of cracks rolls out over the deck and has to be
 ## jumped, and the tractor beam loose on the floor, dragging and burning); out
-## of the housecoat (all of it quicker, more beams, wider slams). Each attack is
+## of the housecoat (all of it quicker, more beams, wider slams, and her hot
+## curlers thrown onto marked spots round the player; the core goes critical:
+## features/boss_arenas.gd). On HOG WILD the rolling pin comes down twice, the
+## second time where the player stood as it first landed. Each attack is
 ## picked as she starts to wind up, so its marks lie on the floor the whole
 ## wind-up and the boss bar names it. When she falls the chamber shakes and
 ## burns, her pod crew drop where they stand, and the ship keeps coming apart
@@ -25,16 +28,26 @@ const TRACK := "boss_mothership"
 const PATTERN := {
 	1: ["slam", "sweep", "slam", "call", "sweep", "slam", "sweep"],
 	2: ["slam", "stomp", "sweep", "call", "slam", "stomp", "sweep"],
-	3: ["stomp", "slam", "sweep", "stomp", "call", "slam", "sweep", "stomp"],
+	3: ["stomp", "curlers", "slam", "sweep", "curlers", "call", "slam", "sweep"],
 }
 const TELLS := {
-	"slam": "ROLLIN' PIN", "sweep": "HAIR DRYER", "stomp": "STOMP! JUMP IT", "call": "YOUNGUNS!"
+	"slam": "ROLLIN' PIN",
+	"sweep": "HAIR DRYER",
+	"stomp": "STOMP! JUMP IT",
+	"call": "YOUNGUNS!",
+	"curlers": "HOT CURLERS!",
 }
 const PHASE_LINES := ["", "", "HOUSECOAT'S ON FIRE", "OUT OF THE HOUSECOAT"]
 ## Seconds of wind-up for each attack (then scaled by PACE and the phase) and
 ## of cooldown after it.
-const WINDUP := {"slam": 1.05, "sweep": .85, "stomp": 1.0, "call": .9}
-const COOLDOWN := {"slam": 1.5, "sweep": 1.35, "stomp": 1.6, "call": 1.9}
+const WINDUP := {"slam": 1.05, "sweep": .85, "stomp": 1.0, "call": .9, "curlers": .95}
+const COOLDOWN := {"slam": 1.5, "sweep": 1.35, "stomp": 1.6, "call": 1.9, "curlers": 1.6}
+## Her hot curlers: how many, how far round the player, how wide each lands;
+## HOG WILD's second pin: how long after the first.
+const CURLER_COUNT := 5
+const CURLER_SPREAD := 2.1
+const CURLER_R := 1.0
+const PIN_AGAIN := .6
 ## By DIFFICULTY, EASY .. HOG WILD: wind-ups and cooldowns stretched or cut,
 ## how hard she hits, the most pod crew up at once, beams loose in phases 2, 3.
 const PACE := [1.35, 1.0, .9, .8]
@@ -94,6 +107,8 @@ var winding := false
 var rings: Array = []
 ## Where a slam landed lately, for its cracks: [x, y, reach, at].
 var cracks: Array = []
+## HOG WILD's second pins on their way down: [x, y, lands_at].
+var pins: Array = []
 var beam_hurt_at := -10.0
 var fallen_at := -1.0
 var blasts_done := 0
@@ -228,6 +243,7 @@ func _tick(dt: float) -> void:
 	winding = maw.windup > 0.0
 	_rings(dt)
 	_beams(dt)
+	_pins()
 	cracks = cracks.filter(func(c: Array) -> bool: return game.clock - float(c[3]) < 1.2)
 
 
@@ -273,7 +289,30 @@ func _wind_up() -> void:
 		pending = "sweep" if maw.attacks % 2 else "slam" if gap <= 6.5 else "sweep"
 	maw.windup = float(WINDUP[pending]) * PACE[game.difficulty] * (.85 if phase == 3 else 1.0)
 	maw.aim_mark = [p.x, p.y, p.eye]
+	if pending == "curlers":
+		_curlers()
+		game.sound_at(cue("sweep_warn"), maw.x, maw.y, .9)
+		return
 	game.sound_at(cue(pending + "_warn"), maw.x, maw.y, .9)
+
+
+## HOT CURLERS: she pulls them out of her hair and throws; each comes down on
+## a marked spot round the player (features/boss_arenas.gd drops them).
+func _curlers() -> void:
+	var arenas = game.features.get("boss_arenas")
+	if arenas == null:
+		return
+	var p = game.player
+	var spots: Array = [Vector2(p.x, p.y)]
+	for k in CURLER_COUNT - 1:
+		var a: float = maw.attacks * .9 + k * TAU / (CURLER_COUNT - 1)
+		spots.append(Vector2(p.x + cos(a) * CURLER_SPREAD, p.y + sin(a) * CURLER_SPREAD))
+	var k := 0
+	for at: Vector2 in spots:
+		if game.world.blocked(at.x, at.y, .2):
+			continue
+		arenas.drop("curler", at.x, at.y, maw.windup + .3 + k * .12, CURLER_R, 0, "HOT CURLERS")
+		k += 1
 
 
 ## The wind-up is done (from ShipAliens.attack, by way of enemies.gd attack()).
@@ -290,6 +329,10 @@ func maw_attack(enemy: Enemy, direction: float) -> void:
 		"call":
 			_call_crew()
 			game.sound_at(cue("call_warn"), maw.x, maw.y, 1.0)
+		"curlers":
+			var top: float = game.world.elevation(maw.x, maw.y) + maw.height * .9
+			game.burst(maw.x, maw.y, top, "plasma", 12, 2.2)
+			game.sound_at(cue("sweep"), maw.x, maw.y, .8)
 		_:
 			_sweep(direction)
 	maw.cooldown = float(COOLDOWN[what]) * PACE[game.difficulty] * (.8 if phase == 3 else 1.0)
@@ -319,6 +362,23 @@ func _slam() -> void:
 	# Out of the housecoat on the hard settings, the blow rolls on as a ring.
 	if phase == 3 and game.difficulty >= 2:
 		rings.append([x, y, game.clock, false])
+	# HOG WILD: the pin comes down again where the player stands now.
+	if BossKit.moves(BOSS).hog_wild(game) and not bool(mark.size() > 3 and mark[3]):
+		pins.append([p.x, p.y, game.clock + PIN_AGAIN])
+
+
+## HOG WILD's second pins landing.
+func _pins() -> void:
+	var going: Array = []
+	for pin: Array in pins:
+		if game.clock >= float(pin[2]):
+			going.append(pin)
+	for pin: Array in going:
+		pins.erase(pin)
+		var keep = maw.aim_mark
+		maw.aim_mark = [float(pin[0]), float(pin[1]), 0.0, true]
+		_slam()
+		maw.aim_mark = keep
 
 
 ## The hair dryer: a fan of heat bolts along the lanes its wind-up marked.
@@ -526,6 +586,12 @@ func ground_marks() -> Array:
 	var out: Array = []
 	for c: Array in cracks:
 		out.append(_spot(float(c[0]), float(c[1]), float(c[2]) * .8, "mark_slam"))
+	for pin: Array in pins:
+		var t := clampf(1.0 - (float(pin[2]) - game.clock) / PIN_AGAIN, 0.0, 1.0)
+		out.append(
+			_spot(float(pin[0]), float(pin[1]), SLAM_REACH[phase - 1] * (.4 + .6 * t), "mark_slam")
+		)
+		out.append(_spot(float(pin[0]), float(pin[1]), SLAM_REACH[phase - 1], "mark_warning"))
 	if _fighting() and maw.windup > 0.0 and maw.aim_mark != null:
 		var mark: Array = maw.aim_mark
 		match pending:

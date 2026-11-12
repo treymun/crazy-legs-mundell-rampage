@@ -894,8 +894,9 @@ func ground_marks() -> Array:
 	for hazard: Hazard in hazards:
 		var kind := hazard.kind if hazard.age >= hazard.warning else "warning"
 		marks.append(_spot(hazard.x, hazard.y, hazard.radius, kind))
-	if player.y < 13.0:
-		for point: Vector2 in world.pressure_ports:
+	for point: Vector2 in world.pressure_ports:
+		# The outlets in the baron's still house, glowing for whoever is near.
+		if absf(point.x - player.x) < 16.0 and absf(point.y - player.y) < 12.0:
 			marks.append(_spot(point.x, point.y, .38, "outlet"))
 	for enemy: Enemy in enemies:
 		if not enemy.alive or enemy.windup <= 0.0 or enemy.aim_mark == null:
@@ -907,7 +908,7 @@ func ground_marks() -> Array:
 			marks.append(_spot(mx, my, .89, "warning"))
 		elif enemy.brain == "bottle_tosser":
 			marks.append(_spot(mx, my, .77, "warning"))
-		elif enemy.brain == "baron" and (enemy.attacks % 2 == 0 or enemy.enraged):
+		elif enemy.brain == "baron" and BaronMoves.outlets_next(enemy.attacks, enemy.enraged):
 			for point: Vector2 in pressure_ports(enemy.attacks):
 				marks.append(_spot(point.x, point.y, .94, "warning"))
 		elif enemy.brain == "rudy":

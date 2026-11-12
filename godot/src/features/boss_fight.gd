@@ -391,7 +391,7 @@ func ground_marks() -> Array:
 func _rings(e: Enemy) -> bool:
 	if e.aim_mark == null or NO_RING.has(e.brain):
 		return false
-	return not (e.brain == "baron" and (e.attacks % 2 == 0 or e.enraged))
+	return not (e.brain == "baron" and BaronMoves.outlets_next(e.attacks, e.enraged))
 
 
 ## Warning marks closing in round the aim point as the wind-up runs down, the

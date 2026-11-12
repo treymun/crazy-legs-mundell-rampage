@@ -6,9 +6,9 @@
 ## pit row's garages and the 'shine fuel depot north, Boggs Salvage's stacked
 ## wrecks and the crusher east, the grandstands and the announcer's booth
 ## south over the concourse underneath. In the infield: the campers, the
-## monster jump and the figure 8, where Bumper Boggs waits in his car.
+## monster jump and the derby bowl, where Bumper Boggs waits in his car.
 ## Stations: dump the pit fuel (north), run the crusher (east), cut in on the
-## PA (south), then drop the green flag at the figure 8, beat the champ and
+## PA (south), then drop the green flag at the derby bowl, beat the champ and
 ## take the checkered flag on the front stretch.
 ##
 ## Built by tools/levels/build_level.gd -- speedway. The cast, pickups, set
@@ -27,6 +27,10 @@ const MID := 45.5
 const INNER := 16.0
 const OUTER := 23.5
 const BANK := .72
+## The derby bowl's floodlight towers: four in its corners, two outside it.
+const FLOODS := [
+	[73.5, 38.5], [105.5, 38.5], [73.5, 52.5], [105.5, 52.5], [84.5, 32.5], [84.5, 58.5]
+]
 
 var b: Builder
 var truck: int
@@ -62,7 +66,7 @@ func make() -> Builder:
 		"ending": '"CHECKERED FLAG. NOBODY ELSE FINISHED."',
 		"score": "music_speedway",
 		"ambience": "",
-		"layout": 1,
+		"layout": 2,
 		"sky": "speedway_sky",
 		"control_name": "FIX THE FIX: FUEL, CRUSHER, PA",
 		"extraction":
@@ -81,7 +85,7 @@ func build(_b) -> Array:
 	depot = b.district("FUEL DEPOT", Color(1.06, .96, .88))
 	oval = b.district("THE OVAL", Color(1.04, 1.0, .94))
 	camp = b.district("INFIELD CAMP", Color(1.04, .96, .9))
-	figure8 = b.district("FIGURE 8", Color(1.06, .96, .9))
+	figure8 = b.district("DEMOLITION DERBY", Color(1.08, .95, .88))
 	stands = b.district("GRANDSTANDS", Color(1.0, 1.0, 1.04))
 	booth = b.district("ANNOUNCER'S BOOTH", Color(1.04, 1.0, .96))
 	concourse = b.district("THE CONCOURSE", Color(1.04, .98, .92))
@@ -525,6 +529,13 @@ func infield() -> void:
 	b.town("monster_truck", 60.5, 35.5, {"solid": .45})
 
 
+## The demolition derby bowl (it was the figure 8): one long bowl of mud walled
+## in tyres where Bumper Boggs waits for the flag, its gate north beside the
+## flag stand and south toward the front stretch. A clear run up the middle
+## from his spot to the north gate (he is seen down it as it opens); wrecks to
+## circle and crash him into, tyre stacks, the pit crew's nitro and gas cans
+## that go up on him or anybody; floodlight towers in its corners that blow in
+## his third phase (boss_arena: floods, fires; features/boss_arenas.gd).
 func figure_eight() -> void:
 	var left := Vector2(79.5, 45.5)
 	var right := Vector2(98.5, 45.5)
@@ -532,35 +543,98 @@ func figure_eight() -> void:
 		for x in range(66, 112):
 			if not is_infield(x, y):
 				continue
-			var dl := _oct(x, y, left)
-			var dr := _oct(x, y, right)
-			var d := minf(dl, dr)
-			if d <= 3.6:
-				b.wall(x, y, x, y, "tire_wall", 1.3)
-			elif d <= 10.6:
+			var d := _bowl(x, y, left, right)
+			if d <= 10.6:
 				b.yard(x, y, x, y, "derby_mud", figure8)
 			elif d <= 11.6:
-				b.wall(x, y, x, y, "tire_wall", 1.25)
-	# The gates at the crossing, north and south, that the green flag opens.
-	b.yard(89, 38, 89, 38, "grass", figure8)
-	b.yard(89, 52, 89, 52, "grass", figure8)
-	b.controlled(89, 39, false, {"from": "s", "id": "figure8-north", "tile": "gate", "roof": 0.0})
-	b.controlled(89, 51, false, {"from": "n", "id": "figure8-south", "tile": "gate", "roof": 0.0})
-	b.board("speedway_figure8", 87.0, 33.0, 1.0, {"z": .5, "plane": PI})
-	b.town("flag_stand", 91.5, 34.5, {"solid": .45})
+				b.wall(x, y, x, y, "tire_wall", 1.35)
+	# The gates the green flag opens, north and south, and the flag by the north.
+	for x in [88, 89, 90]:
+		b.controlled(
+			x,
+			34,
+			false,
+			{
+				"from": "s",
+				"id": "figure8-north" + ("" if x == 89 else "-%d" % x),
+				"tile": "gate",
+				"roof": 0.0
+			}
+		)
+	b.controlled(89, 56, false, {"from": "n", "id": "figure8-south", "tile": "gate", "roof": 0.0})
+	b.board("speedway_figure8", 93.5, 33.94, 1.0, {"z": .3, "plane": PI})
+	b.town("flag_stand", 96.5, 32.5, {"solid": .45})
 	b.station(
 		"flag",
-		88.6,
-		37.45,
+		86.5,
+		32.6,
 		"DROP THE GREEN FLAG",
 		"GREEN FLAG! BUMPER BOGGS IS ROLLIN'. TAKE HIM APART.",
-		{"requires": ["pits", "crusher", "booth"], "opens": [[89, 39], [89, 51]], "cue": "gate"}
+		{
+			"requires": ["pits", "crusher", "booth"],
+			"opens": [[88, 34], [89, 34], [90, 34], [89, 56]],
+			"cue": "gate"
+		}
 	)
-	b.quest("quest_flag", 88.5, 37.5, "flag")
+	b.quest("quest_flag", 85.5, 32.5, "flag")
 	b.quest("quest_exit_flag", 74.5, 62.5, "exit")
-	b.town("floodlight_tower", 84.5, 32.5, {"solid": .25, "glow": true})
-	b.town("floodlight_tower", 84.5, 58.5, {"solid": .25, "glow": true})
-	b.glow(89.5, 45.5, 12.0, .28)
+	# Wrecks and tyres in the bowl: two piles either side of the run up the
+	# middle, stacks and dead derby cars out toward the ends.
+	b.wall(84, 44, 85, 46, "junk_stack", 1.4)
+	b.wall(93, 44, 94, 46, "junk_stack", 1.4)
+	b.wall(77, 39, 78, 40, "tire_wall", 1.3)
+	b.wall(100, 50, 101, 51, "tire_wall", 1.3)
+	b.wall(77, 50, 78, 51, "junk_stack", 1.2)
+	b.wall(100, 39, 101, 40, "junk_stack", 1.2)
+	b.car(81.5, 37.5, true, "tin")
+	b.car(97.5, 53.5, true, "tin")
+	b.car(81.5, 53.5, true, "tin")
+	for p in [Vector2(84.5, 43.5), Vector2(93.5, 47.5)]:
+		b.town("crushed_stack", p.x, p.y)
+	# The pit crew's corner at each end: nitro and gas, a stack of spares.
+	for p in [["nitro_rack", 70.5, 43.5], ["gas_cans", 70.5, 47.5], ["nitro_rack", 108.5, 47.5]]:
+		b.town(String(p[0]), float(p[1]), float(p[2]), {"solid": .35})
+	b.town("gas_cans", 108.5, 43.5, {"solid": .35})
+	b.town("tire_stack", 72.5, 41.5, {"solid": .4})
+	b.town("tire_stack", 106.5, 49.5, {"solid": .4})
+	# Floodlights in the bowl's four corners and the two outside it.
+	for p in FLOODS:
+		b.town("floodlight_tower", p[0], p[1], {"solid": .25, "glow": true})
+		b.glow(p[0], p[1], 8.0, .26)
+	b.glow(89.5, 45.5, 12.0, .2)
+	b.meta["boss_arena"] = {"floods": FLOODS, "fires": [[72.5, 45.5], [105.5, 45.5]]}
+	(
+		b
+		. triggers
+		. append(
+			{
+				"id": "derby-bowl-open",
+				"when": {"station": "flag"},
+				"do":
+				[
+					{"sound": "derby_champ_warn", "at": [89.5, 51.5]},
+					{"shake": .4},
+					{
+						"light":
+						{
+							"at": [89.5, 50.5],
+							"z": 1.0,
+							"color": [1.0, .9, .6],
+							"radius": 6.0,
+							"strength": 1.6,
+							"for": 3.0
+						}
+					}
+				],
+			}
+		)
+	)
+
+
+## How far a cell's middle is from the bowl's long middle line, octagonally.
+func _bowl(x: int, y: int, a: Vector2, c: Vector2) -> float:
+	var px := clampf(x + .5, a.x, c.x)
+	return _oct(x, y, Vector2(px, a.y))
 
 
 func _oct(x: int, y: int, c: Vector2) -> float:

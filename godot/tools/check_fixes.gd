@@ -89,7 +89,9 @@ func _run() -> void:
 			baron = enemy
 	check(baron != null, "quarry has the Copper Baron")
 	if baron != null:
-		baron.attacks = 1
+		# The attack as counted by attack(): his second is the outlets (the
+		# first is the steam sweep, BaronMoves.outlets_next).
+		baron.attacks = 2
 		baron.cooldown = 0.0
 		var before := quarry.hazards.size()
 		baron.special_attack(quarry, 0.0, 6.0, 1.2, null)
