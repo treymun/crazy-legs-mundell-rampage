@@ -348,7 +348,7 @@ func salvage_yard() -> void:
 		b.board("prop_tire", p.x, p.y, .49)
 	scatter("tire", [Vector2(18.7, 42.8), Vector2(27.4, 42.4), Vector2(15.0, 38.6)])
 	scatter("barrel", [Vector2(27.4, 46.4), Vector2(27.6, 33.6)])
-	b.board("wing_town_tires", 13.95, 35.0, .74, {"z": .8, "plane": -PI / 2})
+	b.board("wing_town_tires", 14.04, 35.0, .74, {"z": .8, "plane": -PI / 2})
 	b.board("wing_town_tow", 19.5, 30.95, .66, {"z": .6, "plane": 0.0})
 	b.board("salvage_sign", 16.4, 29.96, .58, {"z": .45, "plane": PI})
 	b.board("detail_tow_spool", 26.0, 44.0, .62)
@@ -646,7 +646,7 @@ func gas_station() -> void:
 	b.prop("lamp", 18.5, 52.5)
 	b.prop("lamp", 22.5, 52.5)
 	# The back room: fuel, powder, a crossbow somebody pawned.
-	b.board("powder_notice", 27.5, 49.98, .62, {"z": .63, "plane": 0.0})
+	b.board("powder_notice", 27.5, 50.04, .62, {"z": .63, "plane": 0.0})
 	b.board("prop_crate", 28.6, 50.6, .72)
 	b.prop("lamp", 27.5, 52.5)
 	# The canopy over the pumps.
@@ -691,7 +691,7 @@ func bait_shop() -> void:
 	b.board("bait_ammo_sign", 45.0, 58.04, .36, {"z": 1.62, "plane": 0.0})
 	scatter("barrel", [Vector2(51.4, 50.6), Vector2(52.4, 51.1)])
 	b.board("prop_crate", 38.6, 50.0, .72)
-	b.board("delivery_plaque", 50.2, 57.95, .57, {"z": 1.0, "plane": 0.0})
+	b.board("delivery_plaque", 50.2, 58.04, .57, {"z": 1.0, "plane": 0.0})
 
 
 func trailer_court() -> void:
@@ -1103,7 +1103,7 @@ func dressing() -> void:
 	b.fixture(50.2, 14.6, 52.8, 16.0, .7, "wood", "wood")
 	b.board("prop_tire", 50.0, 16.3, .49)
 	b.board("prop_tire", 53.0, 16.3, .49)
-	b.board("wanted_poster", 40.98, 11.0, .6, {"z": 1.1, "plane": -PI / 2})
+	b.board("wanted_poster", 41.04, 11.0, .6, {"z": 1.1, "plane": -PI / 2})
 	# The chapel: candles at the altar, the hymn board.
 	b.glow(77.0, 46.5, 2.4, .3)
 	b.board("hub_lamp", 75.0, 46.3, .9, {"glow": true, "z": .24})
@@ -1194,7 +1194,7 @@ func town_detail() -> void:
 		b.town("pylon", p.x, p.y, {"solid": .15, "glow": true})
 		b.glow(p.x, p.y, 2.0, .2)
 	# Where the station levers are: a sign that lights when it is thrown.
-	b.board("wing_town_hatch", 89.06, 26.4, .47, {"z": .6, "plane": -PI / 2, "signal": "yard-bar"})
+	b.board("wing_town_hatch", 90.04, 26.65, .47, {"z": .6, "plane": -PI / 2, "signal": "yard-bar"})
 	b.glow(90.4, 25.5, 2.0, .2)
 	b.glow(80.5, 21.2, 2.0, .2)
 	# False fronts on Main Street.

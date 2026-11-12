@@ -122,7 +122,7 @@ func weigh_station() -> void:
 		}
 	)
 	b.door(63, 76, true, {"from": "w", "id": "scale-door"})
-	b.interiors.append(["bunk", 58.0, 73.05, .83, .52, 0.0])
+	b.interiors.append(["bunk", 58.0, 74.05, .83, .52, 0.0])
 	b.table(55.2, 77.2, 58.8, 78.0, .82)
 	b.notes.append(
 		[
@@ -134,7 +134,7 @@ func weigh_station() -> void:
 		]
 	)
 	b.board("county_note", 57.0, 77.2, .3, {"z": .82, "plane": 0.0})
-	b.board("quarry_scale", 60.0, 73.06, .9, {"z": 1.0, "plane": 0.0})
+	b.board("quarry_scale", 60.0, 74.06, .9, {"z": 1.0, "plane": 0.0})
 	b.board("detail_scale_weights", 61.5, 77.6, .5, {"z": .0})
 	b.station(
 		"scale-drawer",

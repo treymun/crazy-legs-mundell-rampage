@@ -141,9 +141,9 @@ func parking_and_gate() -> void:
 	b.door(59, 72, true, {"from": "w", "id": "ticket-west"})
 	b.door(69, 72, true, {"from": "e", "id": "ticket-east"})
 	b.yard(60, 69, 68, 74, "tracks", ticket)
-	b.interiors.append(["tickets", 57.0, 69.05, .78, .44, 0.0])
+	b.interiors.append(["tickets", 57.0, 70.05, .78, .44, 0.0])
 	b.board("fair_entry", 64.0, 72.0, 1.2, {"z": 1.5, "plane": 0.0, "back": "fair_ticket_rule"})
-	b.board("fair_ticket_rule", 59.94, 70.5, .7, {"z": .9, "plane": PI / 2})
+	b.board("fair_ticket_rule", 60.04, 70.5, .7, {"z": .9, "plane": -PI / 2})
 	b.board("detail_ticket_rolls", 57.0, 71.5, .5, {"z": .8})
 	for x in [61.0, 63.0, 65.0, 67.0]:
 		b.fixture(x - .06, 72.94, x + .06, 73.06, .9, "fair_iron", "fair_iron")
@@ -276,7 +276,7 @@ func concession_alley() -> void:
 		{"opens": [[20, 51]], "sectors": [conc, midway], "cue": "breaker_thunk"}
 	)
 	b.board("fair_control", 7.5, 54.1, 1.03, {"signal": "concession"})
-	b.board("fair_concession_arrow", 50.6, 59.9, .7, {"z": 1.0, "plane": 0.0})
+	b.board("fair_concession_arrow", 50.6, 60.04, .7, {"z": 1.0, "plane": 0.0})
 	b.controlled(
 		20, 51, false, {"from": "s", "id": "concession-shortcut", "tile": "fair_gate", "roof": 0.0}
 	)
@@ -325,7 +325,7 @@ func livestock_barn() -> void:
 	for y in [18.5, 22.5, 26.5, 30.5, 34.5]:
 		b.fixture(28.6, y - .06, 31.9, y + .06, 1.1, "wood", "counter_top")
 	b.table(16.4, 33.4, 19.6, 34.2, .8)
-	b.board("wing_fair_double_hog", 20.0, 16.98, .9, {"z": 1.2, "plane": 0.0})
+	b.board("wing_fair_double_hog", 20.0, 17.04, .9, {"z": 1.2, "plane": 0.0})
 	b.board("fair_lost_property", 31.92, 20.0, .6, {"z": 1.0, "plane": PI / 2})
 	for p in [Vector2(18.0, 20.0), Vector2(23.0, 34.0), Vector2(29.5, 24.0), Vector2(10.0, 20.0)]:
 		b.prop("hay", p.x, p.y)
@@ -447,7 +447,7 @@ func prize_pavilion() -> void:
 		}
 	)
 	b.board("fair_relay", 63.0, 4.1, 1.47, {"signal": "broadcast", "z": .36})
-	b.board("wing_fair_pa", 66.0, 3.98, .65, {"signal": "broadcast", "z": 1.31, "plane": 0.0})
+	b.board("wing_fair_pa", 66.0, 4.04, .65, {"signal": "broadcast", "z": 1.31, "plane": 0.0})
 	b.board("detail_stage_footlights", 64.0, 9.4, .4, {"z": .18})
 	for x in [58.0, 70.0]:
 		b.town("searchlight", x + .5, 8.5, {"glow": true})
@@ -661,7 +661,7 @@ func game_court() -> void:
 			"lines": ["PA: SAVE THAT ROPE.", "VOICE: FOR THE SHOW?"]
 		}
 	)
-	b.streetlamp(90.0, 56.0)
+	b.streetlamp(90.0, 57.5)
 	b.streetlamp(100.0, 57.0)
 	scatter_spill([Vector2(88.0, 59.0), Vector2(97.0, 53.3)])
 
@@ -882,7 +882,7 @@ func polish() -> void:
 	# The freight lot: the forklift left by the dock, its pallets, the cartons.
 	b.town("forklift", 79.5, 40.85)
 	b.town("pallet_stack", 81.4, 41.15)
-	b.board("detail_freight_cartons", 77.9, 41.98, .6, {"z": 0.0, "plane": PI})
+	b.board("detail_freight_cartons", 78.62, 41.98, .6, {"z": 0.0, "plane": PI})
 	# More booths down the middle of the game court, back to back.
 	b.booth(86, 52, 91, 56, games, "w", {"sign": "fair_prize_pile"})
 	b.booth(92, 52, 97, 56, games, "e", {"sign": "fair_redemption"})

@@ -126,7 +126,7 @@ func delivery_yard() -> void:
 	)
 	b.door(84, 79, true, {"from": "e", "id": "scale-door"})
 	b.paint(71, 76, 81, 79, "steel_mesh")
-	b.board("wing_mill_ledger", 89.0, 76.04, .8, {"z": 1.2, "plane": PI})
+	b.board("wing_mill_ledger", 89.0, 75.96, .8, {"z": 1.2, "plane": PI})
 	b.table(86.0, 81.2, 90.0, 82.0, .82)
 	b.react("tv", 87.0, 81.6, .75, {"z": .82, "id": "x2-sawmill-0"})
 	b.prop("lamp", 89.0, 79.5)
@@ -286,7 +286,7 @@ func bunkhouse() -> void:
 	for x in [9, 13, 17]:
 		b.wall(x, 4, x, 4, "window", 2.6)
 	b.door(14, 13, false, {"from": "n", "id": "bunk-door"})
-	b.interiors.append(["break", 12.0, 4.05, .73, .54, 0.0])
+	b.interiors.append(["break", 12.0, 5.05, .73, .54, 0.0])
 	for k in 4:
 		b.fixture(7.1, 5.2 + k * 2.0, 9.0, 6.0 + k * 2.0, .6, "wood", "counter_top")
 	b.table(14.0, 7.0, 18.0, 8.0, .78)
@@ -393,7 +393,7 @@ func dry_kilns() -> void:
 	b.board("mill_control", 101.5, 22.6, 1.11, {"signal": "east"})
 	b.board("wing_mill_belt", 97.5, 20.2, .8, {"z": 1.2, "plane": 0.0, "signal": "east"})
 	b.board("mill_east_arrow", 124.0, 28.6, .6, {"z": 1.0, "plane": 0.0})
-	b.board("detail_kiln_duct", 116.0, 13.94, .5, {"z": 1.0, "plane": PI})
+	b.board("detail_kiln_duct", 116.6, 14.04, .5, {"z": 1.0, "plane": 0.0})
 	for p in [Vector2(98.5, 25.5), Vector2(122.5, 25.5), Vector2(124.5, 16.5)]:
 		b.town("pallet_stack", p.x, p.y, {"solid": .45})
 	b.exchanges.append(
@@ -440,7 +440,12 @@ func rain_storage() -> void:
 		[127, 60, 128, 62],
 		{"from": "w", "id": "dry-stacks-breakout", "tile": "mill_log"}
 	)
+	# The yard runs to x 126, so the breakout's door gets a log jamb either side
+	# to stand in; the walls round the stash stand .3 over its roof.
+	b.wall(126, 60, 126, 60, "mill_log", 2.5)
+	b.wall(126, 62, 126, 62, "mill_log", 2.5)
 	b.room(127, 60, 128, 62, "mill_grit", storage, {"roof": 2.2, "light": .5})
+	b.wall_top(127, 59, 129, 63, 2.5)
 	b.streetlamp(108.0, 57.0)
 
 
