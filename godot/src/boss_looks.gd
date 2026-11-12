@@ -16,15 +16,13 @@ const P2_AT_KIND := {"maw": 2.0 / 3.0}
 ## The wind-up cel holds while more than this share of the wind-up is left.
 const WIND_SHARE := .5
 
-## The art index's names (Assets sets it when it reads the index).
-static var index: Dictionary = {}
 ## Each winding-up boss's wind-up as it started (by instance id).
 static var _wound := {}
 
 
 ## The cel a boss shows instead of `name` (one of its own `<kind>_...` cels).
 static func cel(e: Enemy, name: String) -> String:
-	if index.is_empty() or not name.begins_with(e.kind + "_"):
+	if Assets.shared_index.is_empty() or not name.begins_with(e.kind + "_"):
 		return name
 	var rest := name.substr(e.kind.length() + 1)
 	if rest == "aim" or rest.ends_with("_aim"):
@@ -32,7 +30,7 @@ static func cel(e: Enemy, name: String) -> String:
 		var full := maxf(float(_wound.get(id, 0.0)), e.windup)
 		_wound[id] = full
 		var wind := rest.trim_suffix("aim") + "wind"
-		if e.windup > full * WIND_SHARE and index.has(e.kind + "_" + wind):
+		if e.windup > full * WIND_SHARE and Assets.shared_index.has(e.kind + "_" + wind):
 			rest = wind
 	elif e.windup <= 0.0:
 		_wound.erase(e.get_instance_id())
@@ -40,6 +38,6 @@ static func cel(e: Enemy, name: String) -> String:
 	var phase := 3 if left <= P3_AT else 2 if left <= float(P2_AT_KIND.get(e.kind, P2_AT)) else 1
 	for p in range(phase, 1, -1):
 		var worn := "%s_p%d_%s" % [e.kind, p, rest]
-		if index.has(worn):
+		if Assets.shared_index.has(worn):
 			return worn
 	return e.kind + "_" + rest

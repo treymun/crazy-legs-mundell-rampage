@@ -49,6 +49,8 @@ var sky_blob: PackedByteArray = PackedByteArray()
 var palette: PackedByteArray = PackedByteArray()
 var grain: PackedByteArray = PackedByteArray()
 
+## The last art index read, for code with no Assets at hand (BossLooks).
+static var shared_index: Dictionary = {}
 var art_index: Dictionary = {}
 var _art_file: FileAccess
 var _art_files := {}
@@ -86,7 +88,9 @@ func _init() -> void:
 	grain = FileAccess.get_file_as_bytes("res://assets_gen/grain.bin")
 
 	art_index = _json("res://assets_gen/art_index.json")
-	BossLooks.index = art_index
+	# Shared for BossLooks (a class name here would stop tools/pack_assets.gd
+	# compiling in a fresh checkout, where it runs before the class cache exists).
+	shared_index = art_index
 	_art_file = FileAccess.open("res://assets_gen/art.bin", FileAccess.READ)
 
 	var sfx := _json("res://assets_gen/sfx_index.json")
