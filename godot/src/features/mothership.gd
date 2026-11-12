@@ -231,7 +231,8 @@ func _tick(dt: float) -> void:
 			game.sound.set_score(TRACK)
 	# In her own chamber she always knows where the player is: round the beam
 	# column she comes the long way, on the flow field, rather than waiting.
-	var p = game.player
+	# (The player she is after, with more than one: her attacks are about them.)
+	var p: Player = maw.hunted if maw.hunted != null else game.player
 	if Vector2(p.x, p.y).distance_to(center) < reach + 2.0:
 		maw.target = [p.x, p.y]
 		maw.hunt_until = game.clock + 1.0

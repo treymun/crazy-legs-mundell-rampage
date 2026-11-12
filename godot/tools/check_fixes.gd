@@ -649,6 +649,9 @@ func _run() -> void:
 	preload("res://tools/arena_check.gd").run(main, check)
 	# Squads, idle life, the tougher variants and each chapter's tough guy.
 	preload("res://tools/squad_check.gd").run(main, check)
+	# The multiplayer foundation: two players, snapshots, determinism (the
+	# quick part; net_check.gd on its own plays every chapter longer).
+	preload("res://tools/net_check.gd").run(main, check)
 
 	print("")
 	if failures.is_empty():

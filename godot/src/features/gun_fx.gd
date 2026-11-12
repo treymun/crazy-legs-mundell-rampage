@@ -130,6 +130,8 @@ func _ahead(far: float) -> Vector3:
 
 
 func _fired(gun: int) -> void:
+	if not game.acting_local():
+		return
 	_pellets = 0
 	var ahead := _forward()
 	match gun:

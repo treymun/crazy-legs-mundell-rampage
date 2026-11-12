@@ -292,6 +292,13 @@ var hatless := false
 var hop := 0.0
 ## A hand's part in the squad and its idle activity (Squad.Mind, src/squad.gd).
 var mind = null
+## Its stable id for snapshots (game.take_uid(); 0 until its first tick ends).
+var uid := 0
+## The player it is after till when (Players.hunted), and who hurt it till when.
+var hunted: Player = null
+var hunted_until := 0.0
+var spite: Player = null
+var spite_until := 0.0
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -523,6 +530,8 @@ func hurt(
 			fetching = null
 	elif hostile:
 		grudge = null
+		spite = game.player
+		spite_until = game.clock + Players.SPITE
 		wake(game, game.player.x, game.player.y)
 	if hostile:
 		if (

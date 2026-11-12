@@ -8,12 +8,25 @@ extends RefCounted
 const STEP := 1.0 / 60.0
 
 var whole := false
+## Asks for USE and the next gun through the controls it hands back instead
+## of calling the game (a game run in lockstep with another, or a player who
+## is not the local one: tools/net_check.gd).
+var as_controls := false
+## The turn away from a wall it was stuck on, for the next controls (as_controls).
+var turn_away := 0.0
 var stuck := 0.0
 var last := Vector2.INF
 ## The enemy it was after this tick (null: none).
 var foe: Enemy = null
 var close_for := 0.0
 var back_until := 0.0
+
+
+func _use(game: Game, controls: Game.Controls) -> void:
+	if as_controls:
+		controls.use = true
+	else:
+		game.interact()
 
 
 ## The heading to the nearest neighbouring cell the route covers, or `aim`.
@@ -60,7 +73,7 @@ func steer(game: Game) -> Game.Controls:
 			var face := fposmod(atan2(centre.y - p.y, centre.x - p.x) - p.angle + PI, TAU) - PI
 			controls.turn = clampf(face, -.12, .12)
 			if absf(face) < .3 and fmod(game.clock, .4) < STEP:
-				game.interact()
+				_use(game, controls)
 		elif goal != null:
 			var way: Array = game.objective_route(goal)
 			var aim := atan2(goal.y - p.y, goal.x - p.x)
@@ -105,18 +118,22 @@ func steer(game: Game) -> Game.Controls:
 				controls.forward = 1.0
 			if gap < 1.3 and absf(turn) < .3 and fmod(game.clock, .4) < STEP:
 				# At the objective: use it (a key is picked up by walking on it).
-				game.interact()
+				_use(game, controls)
 		controls.look = clampf(-p.pitch, -2.0, 2.0)
 	# Out of rounds and nothing in reach: switch to anything that has some.
 	if game.armory.loaded[game.armory.active] == 0 and game.armory.reserve[game.armory.active] == 0:
 		if whole:
 			game.armory.reserve[game.armory.active] = Weapons.MAX_RESERVE[game.armory.active]
+		elif as_controls:
+			controls.cycle = 1
 		else:
 			game.armory.cycle(1, game)
 	# Stuck against a ledge: hop it, as a player would (a jump clears about .6).
 	if stuck > .35 and foe == null:
 		controls.jump = fmod(game.clock, .6) < .1
 		controls.forward = 1.0
+	controls.turn += turn_away
+	turn_away = 0.0
 	return controls
 
 
@@ -126,7 +143,10 @@ func moved(game: Game) -> void:
 	if Vector2(p.x, p.y).distance_to(last) < .002 and foe == null:
 		stuck += STEP
 		if stuck > 2.0:
-			p.angle += 1.3
+			if as_controls:
+				turn_away = 1.3
+			else:
+				p.angle += 1.3
 			stuck = 0.0
 	else:
 		stuck = 0.0

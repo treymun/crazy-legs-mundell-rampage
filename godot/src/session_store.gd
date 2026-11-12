@@ -397,11 +397,20 @@ static func snapshot(game: Game) -> Dictionary:
 		"inventory": game.inventory.duplicate(),
 		"keys": _sorted_keys(game.keys),
 		"drums": drums,
-		"pickups": game.pickups.duplicate(true),
+		"pickups": _pickup_rows(game),
 		"visited": visited,
 		"panes": panes,
 		"rng": game.rng.get_state(),
 	}
+
+
+## The pickups as a save keeps them: [name, x, y] (the stable id each has in
+## play is handed out again when they load).
+static func _pickup_rows(game: Game) -> Array:
+	var rows: Array = []
+	for entry: Array in game.pickups:
+		rows.append([entry[0], entry[1], entry[2]])
+	return rows
 
 
 static func _door_key(door: LevelData.Door) -> String:
@@ -867,9 +876,15 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 	var game: Game = make_game.call(level_id)
 	if game == null or game.level.id != level_id:
 		return _fail_at(692)
-	var w := game.world
 	if int(doc.get("layout", 1)) != game.level.layout:
 		return _restart(doc, game, expected_replay)
+	return restore_onto(doc, game, expected_replay)
+
+
+## restore() onto `game`, a Game just made for the save's level and layout
+## (GameSnapshot.apply uses it): the game back, or null when the save is bad.
+static func restore_onto(doc: Dictionary, game: Game, expected_replay = null) -> Game:
+	var w := game.world
 	if not _restore_fields(game, doc.get("game", {}), GAME_FIELDS):
 		return _fail_at(695)
 	var reward = doc.get("county_gallery", false)
@@ -1223,7 +1238,7 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 			return _fail_at(933)
 		if not _valid_position(w, row[1], row[2]):
 			return _fail_at(935)
-		game.pickups.append([String(row[0]), float(row[1]), float(row[2])])
+		game.add_pickup(String(row[0]), float(row[1]), float(row[2]))
 
 	var visited = doc.get("visited", [])
 	if not (visited is Array):

@@ -125,7 +125,8 @@ var carriage_hit := {}
 var dice := RandomNumberGenerator.new()
 ## Kinds whose phase three has put the arena's floodlights out.
 var dark := {}
-var _burn_next := 0.0
+## When fire may next bite each player (by slot).
+var _burn_next := {}
 var _lights: Array = []
 var _light_used := 0
 ## The tyre stacks that have been knocked over (by index in the arena's list).
@@ -384,17 +385,17 @@ func _tick(dt: float) -> void:
 func _tick_fires(_dt: float) -> void:
 	if fires.is_empty():
 		return
-	var p = game.player
 	var kept: Array = []
 	var born: Array = []
 	for f: Fire in fires:
 		if game.clock >= f.until:
 			continue
 		kept.append(f)
-		var d := Vector2(p.x - f.x, p.y - f.y).length()
-		if d < f.r and p.air < .3 and game.clock >= _burn_next:
-			_burn_next = game.clock + FIRE_BITE
-			game.damage(FIRE_PLAYER, [f.x, f.y], "FIRE")
+		for p: Player in game.players:
+			var d := Vector2(p.x - f.x, p.y - f.y).length()
+			if d < f.r and p.air < .3 and game.clock >= float(_burn_next.get(p.slot, 0.0)):
+				_burn_next[p.slot] = game.clock + FIRE_BITE
+				game.damage(FIRE_PLAYER, [f.x, f.y], "FIRE", p)
 		for e: Enemy in game.enemies:
 			if not e.alive or not e.hostile or e.brain == "bessie":
 				continue
@@ -432,10 +433,15 @@ func _tick_strikes() -> void:
 func _tick_lobs(dt: float) -> void:
 	if lobs.is_empty():
 		return
-	var p = game.player
 	var kept: Array = []
 	for l: Lob in lobs:
 		if l.drift:
+			# A balloon bomb drifts on the nearest player.
+			var p: Player = game.player
+			if game.players.size() > 1:
+				p = Players.nearest(game, l.x, l.y)
+				if p == null:
+					p = game.local_player
 			var to := Vector2(p.x - l.x, p.y - l.y)
 			var d := to.length()
 			var pace := 1.5 if d > 1.0 else 2.2
@@ -460,7 +466,7 @@ func _tick_lobs(dt: float) -> void:
 			game.world.blocked(nx2, ny2, .06, nz)
 			or nz <= ground + .05
 			or game.clock >= l.until
-			or Vector2(p.x - nx2, p.y - ny2).length() < .35 and absf(nz - p.eye) < .6
+			or _lob_strikes(nx2, ny2, nz)
 		):
 			l.z = maxf(nz, ground + .1)
 			_burst_lob(l)
@@ -478,10 +484,17 @@ func _burst_lob(l: Lob) -> void:
 		fire(l.x, l.y, .6, 3.5)
 
 
+## Whether a lob at (x, y, z) has come down on a player.
+func _lob_strikes(x: float, y: float, z: float) -> bool:
+	for p: Player in game.players:
+		if Vector2(p.x - x, p.y - y).length() < .35 and absf(z - p.eye) < .6:
+			return true
+	return false
+
+
 func _tick_rollers(dt: float) -> void:
 	if rollers.is_empty():
 		return
-	var p = game.player
 	var kept: Array = []
 	for r: Roller in rollers:
 		var hit := Tumble.step(game.world, r, r.feel, dt)
@@ -492,12 +505,17 @@ func _tick_rollers(dt: float) -> void:
 			game.sound_at("bowling_thud", r.x, r.y, .6)
 			if r.blast != "":
 				done = true
-		if speed > 1.0 and not r.hit.has(0):
+		for p: Player in game.players:
+			# A player's key in `hit` is their slot (an enemy's its instance id).
+			if speed <= 1.0 or r.hit.has(p.slot):
+				continue
 			var d := Vector2(p.x - r.x, p.y - r.y).length()
 			if d < r.feel.radius + .3 and p.air < .45:
-				r.hit[0] = true
+				r.hit[p.slot] = true
+				game.focus(p)
 				game.damage(r.damage, [r.x, r.y], "RUN DOWN")
 				game.move_actor(p, r.vx * .12, r.vy * .12, GameState.PLAYER_RADIUS)
+				game.focus(game.local_player)
 				if r.blast != "":
 					done = true
 		if speed > 1.0:
@@ -572,18 +590,21 @@ func _tick_carriage(dt: float) -> void:
 	carriage_x += carriage_dir * CARRIAGE_SPEED * dt
 	var ended := carriage_x <= x0 or carriage_x >= x1
 	carriage_x = clampf(carriage_x, x0, x1)
-	var p = game.player
-	if (
-		not carriage_hit.has(0)
-		and absf(p.x - carriage_x) < CARRIAGE_HALF + .3
-		and absf(p.y - y) < .95
-		and p.air < .5
-	):
-		carriage_hit[0] = true
-		game.damage(CARRIAGE_PLAYER, [carriage_x, y], "LOG CARRIAGE")
-		var side := 1.0 if p.y >= y else -1.0
-		game.move_actor(p, carriage_dir * .5, side * .9, GameState.PLAYER_RADIUS)
-		game.shake = minf(1.0, game.shake + .5)
+	for p: Player in game.players:
+		if (
+			not carriage_hit.has(p.slot)
+			and absf(p.x - carriage_x) < CARRIAGE_HALF + .3
+			and absf(p.y - y) < .95
+			and p.air < .5
+		):
+			carriage_hit[p.slot] = true
+			game.focus(p)
+			game.damage(CARRIAGE_PLAYER, [carriage_x, y], "LOG CARRIAGE")
+			var side := 1.0 if p.y >= y else -1.0
+			game.move_actor(p, carriage_dir * .5, side * .9, GameState.PLAYER_RADIUS)
+			if game.acting_local():
+				game.shake = minf(1.0, game.shake + .5)
+			game.focus(game.local_player)
 	for e: Enemy in game.enemies:
 		var key := e.get_instance_id()
 		if not e.alive or not e.hostile or carriage_hit.has(key):

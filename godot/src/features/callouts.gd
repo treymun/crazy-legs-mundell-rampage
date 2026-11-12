@@ -20,6 +20,8 @@ func attach() -> void:
 
 
 func _killed(enemy: Enemy) -> void:
+	if not game.acting_local():
+		return
 	if not enemy.hostile:
 		return
 	streak = streak + 1 if game.clock - last_kill <= WINDOW else 1

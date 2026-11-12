@@ -523,8 +523,7 @@ func _tall(broken: String, whole_height: float, whole: String) -> float:
 ## Take a broken thing's base out of the way and open its cells to the paths.
 func _free(base: PackedFloat32Array) -> void:
 	game.world.drop_volume(base)
-	game.flow.reopen(base[0], base[1], base[2], base[3])
-	game.route.reopen(base[0], base[1], base[2], base[3])
+	game.reopen_paths(base[0], base[1], base[2], base[3])
 	game.route_sig = []
 
 

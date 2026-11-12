@@ -34,6 +34,7 @@ func launch(
 		3 if kind == "blade" else 2 if kind == "bowling" else 0
 	)
 	shot.owner = owner
+	shot.slot = player.slot
 	shots.append(shot)
 
 
@@ -51,21 +52,11 @@ func throw_dynamite(remaining: float) -> void:
 		explode(Shot.new(p.x, p.y, p.eye - .30, 0.0, 0.0, 0.0, "tnt", 0.0, false, 0))
 		damage(21, [p.x, p.y], "LIT DYNAMITE")
 		return
-	shots.append(
-		Shot.new(
-			x,
-			y,
-			p.eye - .17,
-			dx * 6.1,
-			dy * 6.1,
-			1.55 + p.pitch * .037,
-			"tnt",
-			remaining,
-			false,
-			0,
-			5
-		)
+	var stick := Shot.new(
+		x, y, p.eye - .17, dx * 6.1, dy * 6.1, 1.55 + p.pitch * .037, "tnt", remaining, false, 0, 5
 	)
+	stick.slot = p.slot
+	shots.append(stick)
 
 
 ## Mirrors Game.hitscan: hits actors, drums and breakable scenery, or chips the
@@ -431,7 +422,8 @@ func explode(shot: Shot) -> void:
 	if spec.has("also_sound"):
 		sound_at(String(spec["also_sound"]), x, y, .9)
 	blast_flash = maxf(blast_flash, float(spec["flash"]))
-	var near := sqrt((player.x - x) * (player.x - x) + (player.y - y) * (player.y - y))
+	var ear := local_player
+	var near := sqrt((ear.x - x) * (ear.x - x) + (ear.y - y) * (ear.y - y))
 	shake = minf(1.0, shake + maxf(0.0, 1.0 - near / 9.0) * (.45 if energy else .9))
 	duck = maxf(duck, float(spec["duck"]))
 	blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
@@ -464,14 +456,16 @@ func explode(shot: Shot) -> void:
 		):
 			hit_scenery(prop)
 	_blast_shoves(shot, x, y, z, radius, strength, energy)
-	var p := player
-	var distance := sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y))
-	if distance < radius * .75 and world.visible(x, y, p.x, p.y):
-		damage(
-			maxi(2, int(float(spec["player_damage"]) * (1.0 - distance / (radius * .75)))),
-			[x, y],
-			"BLAST" if shot.enemy or shot.kind == "fuel" or shot.owner == -1 else "BACKBLAST"
-		)
+	# Every player in reach (its owner's own blast is a BACKBLAST).
+	for p: Player in players:
+		var distance := sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y))
+		if distance < radius * .75 and world.visible(x, y, p.x, p.y):
+			damage(
+				maxi(2, int(float(spec["player_damage"]) * (1.0 - distance / (radius * .75)))),
+				[x, y],
+				"BLAST" if shot.enemy or shot.kind == "fuel" or shot.owner == -1 else "BACKBLAST",
+				p
+			)
 	if not energy:
 		for pane in world.pane_tiles:
 			if sqrt(pow(float(pane.x) + .5 - x, 2) + pow(float(pane.y) + .5 - y, 2)) < 2.0:
@@ -567,13 +561,13 @@ func finish_shot(shot: Shot) -> void:
 	elif shot.kind == "fair_bottle":
 		burst(shot.x, shot.y, shot.z, "glass", 13, 1.7)
 		sound_at("tosser_glass", shot.x, shot.y, .8)
-		var p := player
-		if (
-			p.air < .27
-			and sqrt(pow(p.x - shot.x, 2) + pow(p.y - shot.y, 2)) < .77
-			and world.visible(shot.x, shot.y, p.x, p.y, shot.z, p.eye)
-		):
-			damage(10, [shot.x, shot.y], "GLASS")
+		for p: Player in players:
+			if (
+				p.air < .27
+				and sqrt(pow(p.x - shot.x, 2) + pow(p.y - shot.y, 2)) < .77
+				and world.visible(shot.x, shot.y, p.x, p.y, shot.z, p.eye)
+			):
+				damage(10, [shot.x, shot.y], "GLASS", p)
 	elif shot.kind in ["deputy_slug", "chain_hook", "valve_slug", "wrench", "tire", "flare"]:
 		burst(shot.x, shot.y, shot.z, "spark" if shot.kind == "chain_hook" else "dust", 3, .75)
 
@@ -647,21 +641,18 @@ func move_shot(shot: Shot, dt: float) -> bool:
 		shot.x = x
 		shot.y = y
 		shot.z = z
-		var p := player
 		var ricochet: bool = shot.kind == "blade" and shot.bounces < 3 and shot.travelled > .72
-		if (
-			((shot.enemy and shot.kind != "chalk_lob" and shot.kind != "fair_bottle") or ricochet)
-			and sqrt(pow(p.x - x, 2) + pow(p.y - y, 2)) < .28
-			and p.eye - (.80 if not p.crouched else .55) < z
-			and z < p.eye + .32
-		):
-			damage(
-				float(shot.damage) if shot.enemy else 24.0,
-				[shot.x - shot.vx * .18, shot.y - shot.vy * .18],
-				"FIRE" if shot.enemy else "RICOCHET"
-			)
-			finish_shot(shot)
-			return false
+		if (shot.enemy and shot.kind != "chalk_lob" and shot.kind != "fair_bottle") or ricochet:
+			var p := _shot_finds_player(x, y, z)
+			if p != null:
+				damage(
+					float(shot.damage) if shot.enemy else 24.0,
+					[shot.x - shot.vx * .18, shot.y - shot.vy * .18],
+					"FIRE" if shot.enemy else "RICOCHET",
+					p
+				)
+				finish_shot(shot)
+				return false
 		if shot.enemy and shot.owner != 0 and shot.travelled > .45:
 			# A stray from one of the county's catching another of them.
 			var struck := _county_in_the_way(shot, x, y, z)
@@ -681,6 +672,20 @@ func move_shot(shot: Shot, dt: float) -> bool:
 		if not _hits(shot, x, y, z):
 			return false
 	return true
+
+
+## The player a shot at (x, y, z) strikes (the first by slot; one down is not
+## in the way, unless they are the only one), or null.
+func _shot_finds_player(x: float, y: float, z: float) -> Player:
+	for p: Player in players:
+		if (
+			sqrt(pow(p.x - x, 2) + pow(p.y - y, 2)) < .28
+			and p.eye - (.80 if not p.crouched else .55) < z
+			and z < p.eye + .32
+			and (p.health > 0 or players.size() == 1)
+		):
+			return p
+	return null
 
 
 ## A rolling shot's step (tumble.gd): a stick of dynamite bounces, rolls down
@@ -790,9 +795,18 @@ func _county_in_the_way(shot: Shot, x: float, y: float, z: float) -> Enemy:
 
 func update_shots(dt: float) -> void:
 	var kept: Array = []
+	var many := players.size() > 1
 	for shot in shots:
+		if many:
+			# A player's shot hits, blasts and scores for the player who threw it.
+			if shot.enemy:
+				focus(local_player)
+			else:
+				focus(players[shot.slot], true)
 		if move_shot(shot, dt):
 			kept.append(shot)
+	if many:
+		focus(local_player)
 	shots = kept
 	if finale != null and not finale.alive:
 		var filtered: Array = []
@@ -834,21 +848,24 @@ func add_hazard(
 
 
 func update_hazards(dt: float) -> void:
-	var p := player
 	for hazard: Hazard in hazards:
 		hazard.age += dt
-		if (
-			hazard.warning <= hazard.age
-			and hazard.age < hazard.life
-			and hazard.age >= hazard.next_hit
-			and p.air < .28
-			and sqrt(pow(p.x - hazard.x, 2) + pow(p.y - hazard.y, 2)) < hazard.radius
-			and world.visible(hazard.x, hazard.y, p.x, p.y)
-		):
-			damage(
-				hazard.damage, [hazard.x, hazard.y], "STEAM" if hazard.kind == "steam" else "CHALK"
-			)
-			hazard.next_hit = hazard.life if hazard.kind == "steam" else hazard.age + .68
+		if hazard.warning > hazard.age or hazard.age >= hazard.life or hazard.age < hazard.next_hit:
+			continue
+		for p: Player in players:
+			if (
+				p.air < .28
+				and sqrt(pow(p.x - hazard.x, 2) + pow(p.y - hazard.y, 2)) < hazard.radius
+				and world.visible(hazard.x, hazard.y, p.x, p.y)
+			):
+				damage(
+					hazard.damage,
+					[hazard.x, hazard.y],
+					"STEAM" if hazard.kind == "steam" else "CHALK",
+					p
+				)
+				hazard.next_hit = hazard.life if hazard.kind == "steam" else hazard.age + .68
+				break
 	var kept: Array = []
 	for hazard: Hazard in hazards:
 		if hazard.age < hazard.life:

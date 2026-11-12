@@ -139,6 +139,8 @@ func _down(e, _seconds = 0.0) -> void:
 
 
 func _hurt(_amount: float, _cause: String) -> void:
+	if not game.acting_local():
+		return
 	var e := _boss
 	if e == null or not e.alive or game.clock < _taunt_next:
 		return

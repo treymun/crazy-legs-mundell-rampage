@@ -574,8 +574,7 @@ func _break_through(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 	var cx := f.cell.x
 	var cy := f.cell.y
 	world.open_cell(cx, cy, _faces)
-	game.flow.reopen(cx, cy, cx + 1, cy + 1)
-	game.route.reopen(cx, cy, cx + 1, cy + 1)
+	game.reopen_paths(cx, cy, cx + 1, cy + 1)
 	game.route_sig = []
 	_stand_gap(f)
 	if quiet:

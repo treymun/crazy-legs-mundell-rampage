@@ -68,7 +68,8 @@ static var tool_intros := false
 
 ## Whether a boss's entrance may hold this game: real play only.
 static func intros_on(game) -> bool:
-	if not game.lessons:
+	# The entrance holds the whole world: a single-player nicety only.
+	if not game.lessons or game.players.size() > 1:
 		return false
 	var loop := Engine.get_main_loop()
 	return tool_intros or loop == null or loop.get_script() == null

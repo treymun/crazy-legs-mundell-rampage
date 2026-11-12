@@ -219,6 +219,10 @@ class Shot:
 	var resting := false
 	## Who threw it (an enemy's instance id; 0: the player or not known).
 	var owner := 0
+	## Which player threw it (their slot), when a player did.
+	var slot := 0
+	## Its stable id (game.take_uid(), named as the tick it was thrown ends).
+	var uid := 0
 
 	func _init(
 		px := 0.0,
@@ -373,7 +377,8 @@ class Barks:
 		return float(state >> 10) / 9007199254740992.0
 
 	func say(game, category: String, force := false) -> bool:
-		if not enabled:
+		# The local player's mouth (another player's kill is not ours to crow).
+		if not enabled or game.player != game.local_player:
 			return false
 		var now: float = game.clock
 		if (
@@ -491,6 +496,8 @@ class Gallery:
 	var index := 0
 	var held := true
 	var pistol: Weapons.Armory = null
+	## The player who opened the booth (their slot): only they play it.
+	var slot := 0
 
 	func _init() -> void:
 		pistol = Weapons.Armory.new(Weapons.REVOLVER)
@@ -503,6 +510,7 @@ class Gallery:
 			game.message("THROW THE LIT STICK FIRST.")
 			return
 		active = true
+		slot = game.player.slot
 		clock = 0.0
 		next_target = 2.35
 		hits = 0
@@ -600,19 +608,76 @@ class Gallery:
 
 var art: Assets
 var hud: HUD
+## What the game's sounds play through: the speaker (Sound) while the acting
+## player is the local one, that player's PlayerVoice otherwise (focus()).
 var sound = null
+## This machine's Sound itself: sound_at() places a sound for the local
+## player's ears through it whoever is acting.
+var speaker = null
 
 var level: LevelData
 var world: LevelData
 var renderer: Renderer
+
+# ----------------------------------------------------------------- players
+# src/players.gd says how this works (the multiplayer foundation, CLAUDE.md).
+
+## Everyone playing, by slot (index 0 is player one; a slot is never reused).
+var players: Array[Player] = []
+## The player this machine shows and plays the sound of: the HUD, the view,
+## the camera shake, the objective pin, captions, sound positions.
+var local_player: Player
+## The ACTING player: whose step the code running now is. Outside the tick it
+## is the local player; during the tick each player in turn while their
+## controls are played, and an enemy's hunted player while that enemy ticks
+## (focus()). The many single-player call sites keep reading game.player.
 var player: Player
+## The acting player's guns (Player.armory; focus() swaps it in).
 var armory: Weapons.Armory
+## The acting player's flow field (Player.flow): steps from them over open
+## floor, for enemies that have lost sight of them (flow_field.gd).
+var flow: FlowField
+## The acting player's pockets, keys, carried quest items, selected pocket and
+## moonshine sprint (Player; Players.SHARED says which are one shared object).
+var inventory: Dictionary:
+	get:
+		return player.inventory
+	set(value):
+		Players.store(self, "inventory", value)
+var keys: Dictionary:
+	get:
+		return player.keys
+	set(value):
+		Players.store(self, "keys", value)
+var task_items: Dictionary:
+	get:
+		return player.task_items
+	set(value):
+		Players.store(self, "task_items", value)
+var inventory_slot: int:
+	get:
+		return player.inventory_slot
+	set(value):
+		player.inventory_slot = value
+var sprint: float:
+	get:
+		return player.sprint
+	set(value):
+		player.sprint = value
+## The acting player acts by their own hand this moment (focus()).
+var own_step := false
+## How many of `enemies` name_new() has looked at.
+var _named_enemies := 0
+## The controls of a player nobody steers this tick (never changed).
+var _idle := Controls.new()
+## The next stable entity id (enemies, shots, pickups): handed out in the
+## order things come into being, so two machines running the same ticks agree
+## (game_snapshot.gd).
+var next_uid := 1
 
 var enemy_ids: Array = []
-## Steps from the player over open floor, for enemies that have lost sight of
-## them (flow_field.gd), and the places enemies run from this tick (lit
-## dynamite on the ground): Vector3(x, y, radius).
-var flow: FlowField
+## The places enemies run from this tick (lit dynamite on the ground):
+## Vector3(x, y, radius).
 var dangers: Array = []
 ## The same, measured from the objective over the whole level with its doors
 ## open: the objective pin points along it instead of through walls.
@@ -668,9 +733,6 @@ var lamp_boards: Array = []
 var lamps_of := Vector2i(-1, -1)
 var pickups: Array = []
 var drums := {}
-var inventory := {}
-var inventory_slot := 0
-var keys := {}
 var stations_done := {}
 var total_secrets := 0
 var history: Array = []
@@ -707,7 +769,6 @@ var face := ""
 var notice := ""
 var hurt_flash := 0.0
 var blast_flash := 0.0
-var sprint := 0.0
 var damage_feedback = null
 var item_feedback = null
 ## Game feel (HIT FEEDBACK and SCREEN SHAKE): a short freeze when a shot kills
@@ -720,8 +781,17 @@ var hit_mark_until := 0.0
 var hit_mark_kill := false
 var hit_tick_next := 0.0
 var shake := 0.0
-var step_number := 0
-var next_belch := 0.0
+## The acting player's footstep count and when their full gut may belch next.
+var step_number: int:
+	get:
+		return player.step_number
+	set(value):
+		player.step_number = value
+var next_belch: float:
+	get:
+		return player.next_belch
+	set(value):
+		player.next_belch = value
 
 var shots: Array = []
 var specks: Array = []
@@ -736,7 +806,6 @@ var map := false
 var won := false
 var legacy_completed := false
 var legacy_key_route := false
-var task_items := {}
 var valve_turns := {}
 var next_valve_turn := 0.0
 var scenery_spent := {}
@@ -964,6 +1033,34 @@ var _map_texture: ImageTexture
 var stage_ms: Array = [0.0, 0.0, 0.0, 0.0, 0.0]
 
 
+## Makes `p` the acting player (see `player`): its guns, flow field, pockets
+## and keys become the game's armory, flow, inventory, keys... `own`: it acts
+## by its own hand (its controls, a shot it threw), so its sounds play from
+## where it stands (unless it is the local player) and its notices are not
+## shown here; an enemy's turn after it is not its own. Nearly free with one
+## player.
+func focus(p: Player, own := false) -> void:
+	own_step = own
+	if p != player:
+		player = p
+		armory = p.armory
+		flow = p.flow
+	if speaker != null and players.size() > 1:
+		sound = p.voice if own and p != local_player and p.voice != null else speaker
+
+
+## The next stable entity id (an enemy, a shot, a pickup).
+func take_uid() -> int:
+	next_uid += 1
+	return next_uid - 1
+
+
+## Whether the acting player is the one this machine shows: presentation
+## (the HUD's flashes, the view's kick, the face, messages) is for them only.
+func acting_local() -> bool:
+	return player == local_player
+
+
 ## A sprite for this frame's list from the pool, as Renderer.Sprite.new()
 ## would make it (every other field at its default).
 func pooled(px: float, py: float, image: String, h: float, pz: float) -> Renderer.Sprite:
@@ -998,3 +1095,12 @@ class Controls:
 	var alt_fire := false
 	var jump := false
 	var crouch := false
+	## For a player whose actions arrive as controls (a second player, a bot,
+	## later the network): USE on a fresh press, a gun slot to take up and a
+	## pocket item to use (-1: none). The local player's front end calls
+	## interact(), Armory.select() and use_item() itself between ticks.
+	var use := false
+	var weapon := -1
+	var item := -1
+	## The next (1) or last (-1) gun, as the mouse wheel takes it.
+	var cycle := 0

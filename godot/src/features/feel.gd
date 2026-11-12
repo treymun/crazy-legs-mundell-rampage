@@ -52,6 +52,8 @@ func attach() -> void:
 
 
 func _hurt(amount: float, _cause: String) -> void:
+	if not game.acting_local():
+		return
 	_blow = maxf(_blow, amount)
 
 

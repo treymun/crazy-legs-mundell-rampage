@@ -253,7 +253,6 @@ func jet_state(k: int) -> int:
 
 
 func _jets() -> void:
-	var p = game.player
 	var jets: Array = arena.get("jets", [])
 	for k in jets.size():
 		var j: Array = jets[k]
@@ -262,9 +261,11 @@ func _jets() -> void:
 		if state != 2:
 			continue
 		var key := "%d:%d" % [k, cycle]
-		if not jet_hit.has(key + "p") and _in_lane(j, p.x, p.y, .45) and p.air < .4:
-			jet_hit[key + "p"] = true
-			game.damage(JET_HURT, [float(j[0]), float(j[1])], "STEAM")
+		for p: Player in game.players:
+			var mine := key + ("p" if p.slot == 0 else "p%d" % p.slot)
+			if not jet_hit.has(mine) and _in_lane(j, p.x, p.y, .45) and p.air < .4:
+				jet_hit[mine] = true
+				game.damage(JET_HURT, [float(j[0]), float(j[1])], "STEAM", p)
 		if not jet_hit.has(key + "b") and _in_lane(j, boss.x, boss.y, boss.radius):
 			jet_hit[key + "b"] = true
 			_burn(JET_SCALD, "steam")
@@ -306,7 +307,6 @@ func burn(x: float, y: float) -> void:
 
 
 func _burning() -> void:
-	var p = game.player
 	var kept: Array = []
 	for s: Array in slicks:
 		var age: float = game.clock - float(s[2])
@@ -316,13 +316,15 @@ func _burning() -> void:
 		if age < SLICK_CATCH:
 			continue
 		var at := Vector2(float(s[0]), float(s[1]))
-		if (
-			at.distance_to(Vector2(p.x, p.y)) < SLICK_R
-			and p.air < .3
-			and game.clock - float(s[3]) > .7
-		):
-			s[3] = game.clock
-			game.damage(SLICK_HURT, [at.x, at.y], "BURNED")
+		# (One bite a slick at a time, whoever stands in it.)
+		for p: Player in game.players:
+			if (
+				at.distance_to(Vector2(p.x, p.y)) < SLICK_R
+				and p.air < .3
+				and game.clock - float(s[3]) > .7
+			):
+				s[3] = game.clock
+				game.damage(SLICK_HURT, [at.x, at.y], "BURNED", p)
 		if (
 			boss.alive
 			and age > SLICK_CATCH + .5
@@ -372,7 +374,6 @@ func _blow_flood(k: int, quiet: bool) -> void:
 
 
 func _pulses() -> void:
-	var p = game.player
 	var c := _core()
 	if boss.alive and pulse_next > 0.0 and game.clock >= pulse_next:
 		pulse_next = game.clock + float(PULSE_EVERY[clampi(game.difficulty, 0, 3)])
@@ -387,10 +388,14 @@ func _pulses() -> void:
 		if r > reach + 1.0:
 			continue
 		kept.append(pulse)
-		var dp := Vector2(p.x, p.y).distance_to(c)
-		if not bool(pulse[1]) and absf(dp - r) < .45 and p.air < .22:
-			pulse[1] = true
-			game.damage(PULSE_HURT, [c.x, c.y], "CORE PULSE")
+		# pulse[1]: the players it has struck, a bit each by slot (true: player one).
+		for p: Player in game.players:
+			var bit := 1 << p.slot
+			var dp := Vector2(p.x, p.y).distance_to(c)
+			if not (int(pulse[1]) & bit) and absf(dp - r) < .45 and p.air < .22:
+				var struck: int = int(pulse[1]) | bit
+				pulse[1] = true if struck == 1 else struck
+				game.damage(PULSE_HURT, [c.x, c.y], "CORE PULSE", p)
 		var db := Vector2(boss.x, boss.y).distance_to(c)
 		if not bool(pulse[2]) and absf(db - r) < boss.radius:
 			pulse[2] = true

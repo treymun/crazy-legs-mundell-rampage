@@ -12,6 +12,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	art = p_art
 	hud = p_hud
 	sound = p_sound
+	speaker = p_sound
 	level = LevelData.load_level(level_id, art)
 	world = level
 	renderer = Renderer.new(art, level)
@@ -19,9 +20,8 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	# while the level loads, not the moment one first plays.
 	for cue: String in Assets.MADE_CUES:
 		art.cue(cue)
-	player = Player.new(float(level.spawn[0]), float(level.spawn[1]), float(level.spawn[2]))
-	player.eye += world.elevation(player.x, player.y)
-	armory = Weapons.Armory.new()
+	# Player one (src/players.gd): the local and acting player.
+	Players.join(self, float(level.spawn[0]), float(level.spawn[1]), float(level.spawn[2]))
 
 	for i in level.enemies.size():
 		var spec: Dictionary = level.enemies[i]
@@ -29,6 +29,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 		var foe := Enemy.new(
 			String(spec["kind"]), float(spec["x"]), float(spec["y"]), fmod(i * 2.3, TAU)
 		)
+		foe.uid = take_uid()
 		foe.flank = .42 if i % 2 else -.42
 		enemies.append(foe)
 	var held := Triggers.held_back(level)
@@ -36,6 +37,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 		if held.has(enemy_ids[i]):
 			enemies[i].dormant = true
 	flow = FlowField.new(level)
+	player.flow = flow
 	route = FlowField.new(level, flow)
 	route.budget = 1500
 	route.reach = 100000
@@ -102,15 +104,10 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 
 	for spec in level.pickups:
 		var name := String(spec[0])
-		pickups.append([String(ALIAS.get(name, name)), float(spec[1]), float(spec[2])])
+		add_pickup(String(ALIAS.get(name, name)), float(spec[1]), float(spec[2]))
 
 	for point in level.fuel_drums:
 		drums[Vector2(float(point[0]), float(point[1]))] = 18
-
-	for name in HUD.ITEMS:
-		inventory[name] = 0
-	inventory["rinds"] = 1
-	inventory_slot = 0
 
 	for door: LevelData.Door in level.doors:
 		if door.secret:
@@ -139,10 +136,15 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	message(level.introduction, 5.0)
 
 
-## Mirrors Game.tick: player physics, ambience, pickups, combat and hazards.
+## One step of the game (Game.tick of the reference): each player's controls,
+## then the world once: doors, pickups, guns, enemies, shots and hazards.
+## `controls` is one Controls for the local player (anyone else stands idle)
+## or a Dictionary of slot -> Controls (src/players.gd). With one player this
+## is the game as it always was, step for step and die for die.
 func tick(dt: float, controls) -> void:
-	var p := player
-	if showing_tally or p.health <= 0 or portal_request != "":
+	var by_slot := Players.controls_by_slot(self, controls, _idle)
+	var mine: Controls = by_slot[local_player.slot]
+	if showing_tally or not Players.anyone_alive(self) or portal_request != "":
 		if sound != null:
 			sound.set_fuse(false)
 			sound.set_tool(false)
@@ -152,12 +154,14 @@ func tick(dt: float, controls) -> void:
 	if hitstop > 0.0:
 		# The world holds still for a few hundredths after a kill; the aim does not.
 		hitstop = maxf(0.0, hitstop - dt)
-		p.angle = fposmod(p.angle + controls.turn, TAU)
-		p.pitch = maxf(-53.0, minf(53.0, p.pitch + controls.look))
+		for q: Player in players:
+			var c: Controls = by_slot[q.slot]
+			q.angle = fposmod(q.angle + c.turn, TAU)
+			q.pitch = maxf(-53.0, minf(53.0, q.pitch + c.look))
 		return
 	if boss_hold > 0.0:
 		# A boss's entrance: the world holds while the view comes round (boss_kit.gd).
-		BossKit.hold(self, dt, controls)
+		BossKit.hold(self, dt, mine)
 		return
 	# Slow motion as a boss falls: the world at SLOWMO_PACE, the player and gun not.
 	var wdt := dt
@@ -173,12 +177,101 @@ func tick(dt: float, controls) -> void:
 		)
 	hurt_flash = maxf(0.0, hurt_flash - dt)
 	blast_flash = maxf(0.0, blast_flash - dt)
+	for q: Player in players:
+		if q.health > 0:
+			focus(q, true)
+			_step_body(q, by_slot[q.slot], dt)
+	focus(local_player)
+	if in_hub:
+		return
+	for q: Player in players:
+		if q.health > 0:
+			focus(q, true)
+			_discover(q)
+	focus(local_player)
+	world.update(wdt, players, enemies)
+	for q: Player in players:
+		if q.health > 0:
+			focus(q, true)
+			_step_hands(q, by_slot[q.slot], dt)
+	focus(local_player)
+	sound.set_fuse(armory.fuse != 0.0)
+	sound.set_tool(
+		(
+			armory.active == Weapons.RIPSAW
+			and mine.alt_fire
+			and armory.grinding
+			and not armory.holstered
+			and armory.reload == 0.0
+			and player.health > 0
+		)
+	)
+	for q: Player in players:
+		if q.health > 0:
+			q.flow.update(q.x, q.y, clock)
+	dangers.clear()
+	for shot in shots:
+		if shot.kind == "tnt":
+			# The player's, or one a hand lobbed to flush them out (squad.gd).
+			dangers.append(Vector3(shot.x, shot.y, 3.1))
+	if players.size() == 1:
+		for enemy: Enemy in enemies:
+			enemy.tick(wdt, self)
+	else:
+		# Each enemy ticks with the player it is after acting (Players.hunted):
+		# its sight, flow field, aim and blows are about them.
+		for enemy: Enemy in enemies:
+			if enemy.hp > 0.0 and not enemy.dormant:
+				focus(Players.hunted(self, enemy))
+			enemy.tick(wdt, self)
+		focus(local_player)
+	update_shots(wdt)
+	if not hazards.is_empty():
+		update_hazards(wdt)
+	var p := player
+	var combat: bool = mine.fire or mine.alt_fire or hurt_flash > 0.0
+	if not combat:
+		for enemy: Enemy in enemies:
+			if (
+				enemy.alive
+				and enemy.hostile
+				and (enemy.windup > 0.0 or enemy.recovery > 0.0)
+				and absf(enemy.x - p.x) < 6.0
+				and absf(enemy.y - p.y) < 6.0
+			):
+				combat = true
+				break
+	tick_exchanges(combat)
+	ticked.emit(wdt)
+	name_new()
+
+
+## Gives everything that came into being this tick (enemies, shots) its stable
+## id, in list order: the same on every machine running the same ticks.
+func name_new() -> void:
+	# Enemies only ever join at the end: look from the last one named.
+	var from := _named_enemies if _named_enemies <= enemies.size() else 0
+	for i in range(from, enemies.size()):
+		var enemy: Enemy = enemies[i]
+		if enemy.uid == 0:
+			enemy.uid = take_uid()
+	_named_enemies = enemies.size()
+	for shot in shots:
+		if shot.uid == 0:
+			shot.uid = take_uid()
+
+
+## A player's body for one step: food and drink wearing off, the walk, the
+## jump, the eye, the footsteps; and for the local player the room's sound,
+## the place names and the automap's walked ground.
+func _step_body(p: Player, controls: Controls, dt: float) -> void:
+	var local := p == local_player
 	p.gut = maxf(0.0, p.gut - dt * .40)
-	p.drunk = maxf(0.0, p.drunk - dt * (2.4 if sprint else .77))
-	sprint = maxf(0.0, sprint - dt)
+	p.drunk = maxf(0.0, p.drunk - dt * (2.4 if p.sprint else .77))
+	p.sprint = maxf(0.0, p.sprint - dt)
 	var intoxication := maxf(0.0, (p.drunk - 23.0) / 77.0)
-	if p.gut >= 66.0 and clock >= next_belch:
-		next_belch = clock + 5.6
+	if p.gut >= 66.0 and clock >= p.next_belch:
+		p.next_belch = clock + 5.6
 		sound.play("belch", .76)
 		wake_nearby(5.7, p.x, p.y)
 	if p.drunk > 62.0:
@@ -190,7 +283,9 @@ func tick(dt: float, controls) -> void:
 	var forward: float = controls.forward
 	var strafe: float = controls.strafe + (sin(clock * 4.0) * .39 if p.drunk > 82.0 else 0.0)
 	var magnitude := maxf(1.0, sqrt(forward * forward + strafe * strafe))
-	var speed: float = (3.85 if controls.running else 2.75) * (1.42 if sprint else 1.0) / magnitude
+	var speed: float = (
+		(3.85 if controls.running else 2.75) * (1.42 if p.sprint else 1.0) / magnitude
+	)
 	speed *= 1.0 - maxf(0.0, p.gut - 65.0) * .004 - maxf(0.0, p.drunk - 70.0) * .004
 	if world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)])) == "water":
 		speed *= .69
@@ -236,11 +331,27 @@ func tick(dt: float, controls) -> void:
 			dt * 11.0 * p.motion * (1.25 if controls.running else .80 if p.crouched else 1.0)
 		)
 	p.bob = sin(p.walk_phase * 2.0) * p.motion * (0.0 if p.air else 1.9) * bob_scale
-	# The gun's weight, its kick and the view's jolts: features/feel.gd.
-	feel_turn = controls.turn
-	feel_landed = landed
-	var iy := int(p.y)
-	var ix := int(p.x)
+	if local:
+		# The gun's weight, its kick and the view's jolts: features/feel.gd.
+		feel_turn = controls.turn
+		feel_landed = landed
+		_surroundings(p, roof)
+	var step := int(p.walk_phase / PI)
+	if landed or step != p.step_number:
+		var surface: String = world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)]))
+		sound.play(
+			"step_%s_%d" % [surface, step % 2], .77 if landed else .31 if controls.crouch else .55
+		)
+		if surface == "water":
+			burst(p.x, p.y, ground + .16, "splash", 5 if landed else 3, .52)
+		p.step_number = step
+	if local:
+		visited[Vector2i(int(p.x), int(p.y))] = true
+
+
+## The local player's surroundings: the room's sound and reverb, the jukebox's
+## radio, the place name, and the distant sounds of the level.
+func _surroundings(p: Player, roof: float) -> void:
 	var area := int(world.area[world.cell(p.x, p.y)])
 	var ambience := level.ambience
 	if (
@@ -346,18 +457,12 @@ func tick(dt: float, controls) -> void:
 				sound_at(cue, cx, cy, .55)
 		elif level.area_cues.has(area) and roof == 0.0:
 			sound.play(String(level.area_cues[area]), .24, .7 if int(clock) % 2 else -.64)
-	var step := int(p.walk_phase / PI)
-	if landed or step != step_number:
-		var surface: String = world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)]))
-		sound.play(
-			"step_%s_%d" % [surface, step % 2], .77 if landed else .31 if controls.crouch else .55
-		)
-		if surface == "water":
-			burst(p.x, p.y, ground + .16, "splash", 5 if landed else 3, .52)
-		step_number = step
-	visited[Vector2i(ix, iy)] = true
-	if in_hub:
-		return
+
+
+## Rooms that open their secret door once the player walks in.
+func _discover(p: Player) -> void:
+	var ix := int(p.x)
+	var iy := int(p.y)
 	for point: Vector2i in world.discovery_rooms:
 		var span: Array = world.discovery_rooms[point]
 		if int(span[0]) <= ix and ix <= int(span[2]) and int(span[1]) <= iy and iy <= int(span[3]):
@@ -366,7 +471,21 @@ func tick(dt: float, controls) -> void:
 					if not door.discovered:
 						toggle_door(door, true)
 					break
-	world.update(wdt, p, enemies)
+
+
+## A player's hands for one step: what their controls use or take up (a
+## player played by controls; the local front end calls these between
+## ticks), the pickups at their feet, their gun and the tin rooster booth.
+func _step_hands(p: Player, controls: Controls, dt: float) -> void:
+	if controls.weapon >= 0:
+		armory.select(controls.weapon, self)
+	if controls.cycle != 0:
+		armory.cycle(controls.cycle, self)
+	if controls.item >= 0:
+		use_item(controls.item)
+	if controls.use and not p.use_held:
+		interact()
+	p.use_held = controls.use
 	# reaches_pickup()'s first test written out: most ticks nothing is near.
 	var near := false
 	for entry in pickups:
@@ -382,47 +501,11 @@ func tick(dt: float, controls) -> void:
 				remaining.append(entry)
 		pickups = remaining
 	armory.tick(dt, self)
-	if gallery != null and gallery.active:
+	if gallery != null and gallery.active and gallery.slot == p.slot:
 		gallery.tick(dt, self, controls.fire or controls.alt_fire)
 	elif controls.fire or controls.alt_fire:
 		armory.fire(self, controls.alt_fire)
 	else:
 		armory.release_dynamite(self)
-	sound.set_fuse(armory.fuse != 0.0)
-	sound.set_tool(
-		(
-			armory.active == Weapons.RIPSAW
-			and controls.alt_fire
-			and armory.grinding
-			and not armory.holstered
-			and armory.reload == 0.0
-			and p.health > 0
-		)
-	)
-	flow.update(p.x, p.y, clock)
-	dangers.clear()
-	for shot in shots:
-		if shot.kind == "tnt":
-			# The player's, or one a hand lobbed to flush them out (squad.gd).
-			dangers.append(Vector3(shot.x, shot.y, 3.1))
-	for enemy: Enemy in enemies:
-		enemy.tick(wdt, self)
-	update_shots(wdt)
-	if not hazards.is_empty():
-		update_hazards(wdt)
-	var combat: bool = controls.fire or controls.alt_fire or hurt_flash > 0.0
-	if not combat:
-		for enemy: Enemy in enemies:
-			if (
-				enemy.alive
-				and enemy.hostile
-				and (enemy.windup > 0.0 or enemy.recovery > 0.0)
-				and absf(enemy.x - p.x) < 6.0
-				and absf(enemy.y - p.y) < 6.0
-			):
-				combat = true
-				break
-	tick_exchanges(combat)
-	ticked.emit(wdt)
 
 # --------------------------------------------------------------- reflection
