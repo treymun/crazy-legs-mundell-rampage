@@ -374,9 +374,8 @@ func _fill_entries() -> void:
 func _fill_starts() -> void:
 	var ranks := _entry_ranks
 	var bw := block_w
-	var row := SPAN_K * 2 * vw * 4 + 1
 	var mine := cpu_n
-	var sf := span_f
+	var counts := span_c
 	var starts := _list_start
 	var lengths := _list_count
 	for c in vw:
@@ -392,7 +391,7 @@ func _fill_starts() -> void:
 				lo = mid + 1
 			else:
 				hi = mid
-		sf[row + c * 4] = lo - starts[b]
+		counts[c * 4 + 1] = lo - starts[b]
 
 
 # -------------------------------------------------------------------- sky
@@ -442,6 +441,12 @@ func _wall_band(band_a: int, band_b: int) -> void:
 	# seg_order in column c, and nothing at all in a band where that is none.
 	var walk := lay and gpu_walls
 	var mine := cpu_n
+	var counts := span_c
+	# The rows this band may write wall pixels and panes in (px_hit, pane_hit).
+	var px_lo := vh
+	var px_hi := -1
+	var pane_lo := vh
+	var pane_hi := -1
 	var upto := seg_order.size()
 	if walk:
 		upto = 0
@@ -619,11 +624,15 @@ func _wall_band(band_a: int, band_b: int) -> void:
 				sf[so + 2] = float(uu * 4 + mode + kind * 512)
 				sf[so + 3] = float(profile + step)
 				sn[c] = spans_here + 1
-				sf[(SPAN_K * 2 * vw + c) * 4] = spans_here + 1
+				counts[c * 4] = spans_here + 1
 				row = r1 + 1
 			elif plain and lay:
 				# A column with SPAN_K spans already: note each pixel's texel and
 				# shade row instead.
+				if r0 < px_lo:
+					px_lo = r0
+				if r1 > px_hi:
+					px_hi = r1
 				var code := material * 16384 + uu + ((profile + step) << WALL_ROW_SHIFT)
 				var code_plain := code
 				if mode == 2:
@@ -711,6 +720,16 @@ func _wall_band(band_a: int, band_b: int) -> void:
 					oi = gi * 3
 					row = lo
 				last_row = hi
+			if lay and row <= last_row:
+				if row < px_lo:
+					px_lo = row
+				if last_row > px_hi:
+					px_hi = last_row
+				if glazing:
+					if row < pane_lo:
+						pane_lo = row
+					if last_row > pane_hi:
+						pane_hi = last_row
 			var hit_x := cx + t * dir_x[c]
 			var hit_y := cy + t * dir_y[c]
 			while row <= last_row:
@@ -801,6 +820,14 @@ func _wall_band(band_a: int, band_b: int) -> void:
 						cov_bot[c] = r1 - 1
 					if t > cov_t[c]:
 						cov_t[c] = t
+	if px_lo <= px_hi:
+		var hit := px_hit
+		for r in range(px_lo, px_hi + 1):
+			hit[r] = 1
+	if pane_lo <= pane_hi:
+		var hit := pane_hit
+		for r in range(pane_lo, pane_hi + 1):
+			hit[r] = 1
 
 
 # ------------------------------------------------------- crossroads surfaces

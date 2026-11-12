@@ -47,20 +47,27 @@ uniform sampler2D post_tex : filter_nearest, repeat_disable;
 // shade row lights it (11 bits: tint * 99 + light step); all ones in the shade
 // row means the pixel's finished colour is in `colours` instead (glowing signs,
 // the mirror, wall marks). wall_dist is the distance of what the renderer drew.
-// The renderer's per-frame parts, stacked a view's height apart, as plain
-// bytes so a frame is only copied, never converted. colours (RGB, a view wide):
-// walls (from row 0), sprites/ground marks (premultiplied, from over_row),
-// then from stream_row a stream of bytes read three to a texel: the wall codes
-// (four bytes a pixel), then the sprite/ground mark coverage (one byte a pixel,
-// from byte cover_at), then the window panes from pane_row. The distances
-// (walls, sprites/ground marks, window panes) are a float stream in `spans`,
-// four to a texel, from row dist_row, each band from float dist_start[band]
-// (dist_at()). A part the renderer left empty this frame is not sent at all:
-// pixels_on off means no wall pixel (walls, codes, their distances; every wall
-// is a span), over_on off no sprite or ground mark pixel, pane_on off no pane.
+// The renderer's per-frame parts, stacked one after another, as plain bytes
+// so a frame is only copied, never converted. Each part holds only the view's
+// rows it wrote anything in this frame: the wall pixels (walls, codes, their
+// distances) rows px_rows.x to px_rows.y - 1, the sprites/ground marks
+// (colour, coverage, distance) over_rows, the window panes pane_rows; a pixel
+// outside them is empty there. colours (RGB, a view wide): walls (from row 0),
+// sprites/ground marks (premultiplied, from over_row), then from stream_row a
+// stream of bytes read three to a texel: the wall codes (four bytes a pixel),
+// then the sprite/ground mark coverage (one byte a pixel, from byte cover_at),
+// then the window panes from pane_row. The distances (walls, sprites/ground
+// marks, window panes) are a float stream in `spans`, four to a texel, from
+// row dist_row, each band from float dist_start[band] (dist_at()). A part the
+// renderer left empty this frame is not sent at all: pixels_on off means no
+// wall pixel (every wall a span), over_on off no sprite or ground mark pixel,
+// pane_on off no pane.
 uniform sampler2D colours : filter_nearest, repeat_disable;
 uniform bool pixels_on = true;
 uniform bool over_on = true;
+uniform ivec2 px_rows = ivec2(0, 156);
+uniform ivec2 over_rows = ivec2(0, 156);
+uniform ivec2 pane_rows = ivec2(0, 156);
 uniform int over_row = 156;
 uniform int stream_row = 468;
 uniform int cover_at = 199680;
@@ -350,9 +357,10 @@ vec4 plane(ivec2 c) {
 }
 
 // The distance band b (0 walls, 1 sprites and ground marks, 2 window panes)
-// holds at this view pixel.
+// holds at this view pixel, which lies in the band's rows.
 float dist_at(ivec2 lp, int b) {
-	int i = dist_start[b] + lp.y * view_size.x + lp.x;
+	int first = b == 0 ? px_rows.x : b == 1 ? over_rows.x : pane_rows.x;
+	int i = dist_start[b] + (lp.y - first) * view_size.x + lp.x;
 	int t = i / 4;
 	vec4 v = texelFetch(spans, ivec2(t % view_size.x, dist_row + t / view_size.x), 0);
 	int k = i - t * 4;
@@ -584,14 +592,14 @@ vec2 wall_relief(int tile, int pu, int pv, vec4 fetched, float t) {
 }
 
 // A wall pixel's colour (renderer.gd _wall_band and its shade table), and its
-// relief (wall_relief).
+// relief (wall_relief). The pixel lies in px_rows.
 vec3 wall_at(ivec2 lp, out vec2 bump) {
 	bump = vec2(0.0);
-	int at = (lp.y * view_size.x + lp.x) * 4;
+	int at = ((lp.y - px_rows.x) * view_size.x + lp.x) * 4;
 	ivec4 code = ivec4(stream_byte(at), stream_byte(at + 1), stream_byte(at + 2), stream_byte(at + 3));
 	int shade_row = (code.b >> 5) | (code.a << 3);
 	if (shade_row == 2047) {
-		return texelFetch(colours, lp, 0).rgb * 255.0;
+		return texelFetch(colours, lp - ivec2(0, px_rows.x), 0).rgb * 255.0;
 	}
 	int tile = ((code.b & 31) << 2) | (code.g >> 6);
 	int pv = ((code.g & 63) << 1) | (code.r >> 7);
@@ -868,7 +876,7 @@ vec3 view_at(ivec2 fine, out float far) {
 	float ray = (float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal;
 	vec2 dir = fwd + side * ray;
 	float sy = float(lp.y) + 0.5 - horizon;
-	float drawn = pixels_on ? dist_at(lp, 0) : 160.0;
+	float drawn = pixels_on && lp.y >= px_rows.x && lp.y < px_rows.y ? dist_at(lp, 0) : 160.0;
 	// The nearest whole span covering this pixel, if it is nearer still.
 	int best = -1;
 	float best_wz = 0.0;
@@ -943,14 +951,15 @@ vec3 view_at(ivec2 fine, out float far) {
 		}
 	}
 	float nearest = min(plane, drawn);
-	float cover = over_on ? float(stream_byte(cover_at + lp.y * view_size.x + lp.x)) / 255.0 : 0.0;
+	int over_y = lp.y - over_rows.x;
+	float cover = over_on && over_y >= 0 && lp.y < over_rows.y ? float(stream_byte(cover_at + over_y * view_size.x + lp.x)) / 255.0 : 0.0;
 	if (cover > 0.0) {
 		float reach = dist_at(lp, 1);
 		// A sprite shows unless a surface the shader drew is in front of it; a ground
 		// mark shows only on the surface it lies on.
 		bool shown = reach > 0.0 ? nearest > reach - 0.014 : abs(-reach - nearest) < 0.13;
 		if (shown) {
-			base = floor(texelFetch(colours, lp + ivec2(0, over_row), 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
+			base = floor(texelFetch(colours, ivec2(lp.x, over_row + over_y), 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
 			if (reach > 0.0 && cover > 0.5) {
 				bump = vec2(0.0);
 				gloss = 0.0;
@@ -1056,10 +1065,10 @@ vec3 view_at(ivec2 fine, out float far) {
 		// Fog banks lie along the treeline against the sky too.
 		base = floor(mix(base, fog_color * 255.0, fog_bank(dir, sy, 14.0)));
 	}
-	if (pane_on) {
+	if (pane_on && lp.y >= pane_rows.x && lp.y < pane_rows.y) {
 		float glass = dist_at(lp, 2);
 		if (glass < 160.0 && glass < nearest) {
-			base = floor(base * vec3(0.67, 0.78, 0.82) + texelFetch(colours, lp + ivec2(0, pane_row), 0).rgb * 255.0 * 0.33);
+			base = floor(base * vec3(0.67, 0.78, 0.82) + texelFetch(colours, ivec2(lp.x, pane_row + lp.y - pane_rows.x), 0).rgb * 255.0 * 0.33);
 		}
 	}
 	far = nearest;

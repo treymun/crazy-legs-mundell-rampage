@@ -192,9 +192,31 @@ const SPAN_MESH := 4
 ##   distance, bottom, top, first row * 1024 + last row (HD has 312 rows);
 ##   tile, tile outside the window band (mode 2), u * 4 + mode, shade row.
 ## Row 2 * SPAN_K holds each column's span count, for the shader.
+## Each column's span count and where the shader's own walk starts (its r and
+## g) are kept apart in span_c, a row of vw texels, so a frame clears only
+## that row: span k of a column is read only below its count.
 const SPAN_K := 12
 var span_f := PackedFloat32Array()
+var span_c := PackedFloat32Array()
 var span_n := PackedByteArray()
+## Layered, the rows of the view this frame's main pass wrote anything in, a
+## byte a row (1: written): the wall pixels with their codes, distances and
+## glass (px_hit), the overlay (over_hit) and the window panes (pane_hit).
+## Every band sets the rows it may have written, a few too many at worst,
+## never too few. render_end() turns them into the parts' spans of rows
+## (first, end), and scene_layers.gd sends only those rows; frame_begin()
+## clears a buffer only when the frame before wrote in it (_rows_kept).
+var px_hit := PackedByteArray()
+var over_hit := PackedByteArray()
+var pane_hit := PackedByteArray()
+var px_span := Vector2i.ZERO
+var over_span := Vector2i.ZERO
+var pane_span := Vector2i.ZERO
+## The pass buffers were the main layered pass's last frame too, so every row
+## outside last frame's spans is still clear (renderer.gd frame_begin).
+var _rows_kept := false
+## Set while the main layered pass's _scene_view() runs with _rows_kept.
+var _clear_spans := false
 ## Layered walls the shader finds itself. The band threads used to work out
 ## every wall's span down every column; now the shader walks the walls a
 ## column can see (palette.gdshader walk_walls) and the bands draw only the

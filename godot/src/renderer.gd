@@ -49,6 +49,7 @@ func render_begin(
 
 func frame_begin(player: Dictionary, flash_value: float) -> void:
 	var started := Time.get_ticks_usec()
+	Renderer._settle_clear()
 	var px: float = player["x"]
 	var py: float = player["y"]
 	var pz: float = player["eye"]
@@ -69,17 +70,21 @@ func frame_begin(player: Dictionary, flash_value: float) -> void:
 	# a zero-length array. Allocating per frame keeps every buffer single-owner,
 	# and returning this one directly is then safe because the next frame
 	# allocates a different array instead of rewriting it.
-	if layered and frame.size() == vw * vh * 3 and over_d.size() == vw * vh:
+	var kept := layered and frame.size() == vw * vh * 3 and over_d.size() == vw * vh
+	if kept:
 		# Layered, nothing outside the renderer keeps these: scene_layers.gd copies
 		# what it sends. So they are kept from frame to frame, and only what is
 		# read before it is written starts the frame cleared: the overlay (blended
 		# into), the span counts, and (in _scene_view) the distances and the glass.
 		# The walls, wall codes and panes are read only where this frame's
-		# distances say they were drawn.
-		over.fill(0)
-		over_a.fill(0)
-		over_d.fill(0.0)
-		span_f.fill(0.0)
+		# distances say they were drawn, the spans below each column's count, and
+		# the overlay's distances where its coverage is above 0 (every pass that
+		# covers a pixel sets its distance). A buffer the last frame wrote nothing
+		# in is still clear, and clear_ahead() may have cleared the rest already.
+		if not _rows_kept or over_span.y > over_span.x:
+			over.fill(0)
+			over_a.fill(0)
+		span_c.fill(0.0)
 		span_n.fill(0)
 	else:
 		frame = PackedByteArray()
@@ -99,20 +104,36 @@ func frame_begin(player: Dictionary, flash_value: float) -> void:
 			wall_code = PackedInt32Array()
 			wall_code.resize(vw * vh)
 			span_f = PackedFloat32Array()
-			span_f.resize(vw * (SPAN_K * 2 + 1) * 4)
+			span_f.resize(vw * SPAN_K * 2 * 4)
+			span_f.fill(0.0)
+			span_c = PackedFloat32Array()
+			span_c.resize(vw * 4)
+			span_c.fill(0.0)
 			span_n = PackedByteArray()
 			span_n.resize(vw)
+			span_n.fill(0)
 		depth = PackedFloat32Array()
 		depth.resize(vw * vh)
 		glass = PackedByteArray()
 		glass.resize(vw * vh)
 		pane_dist = PackedFloat32Array()
 		pane_dist.resize(vw * vh)
+	if layered:
+		if px_hit.size() != vh:
+			px_hit.resize(vh)
+			over_hit.resize(vh)
+			pane_hit.resize(vh)
+		px_hit.fill(0)
+		over_hit.fill(0)
+		pane_hit.fill(0)
 	_pending = [px, py, pz, angle, hz, active]
 	if layered:
 		# The shader's camera, known from here on (scene_layers.gd early()).
 		cam = {"x": px, "y": py, "z": pz, "angle": angle, "hz": hz}
+	_clear_spans = kept and _rows_kept
 	_scene_view(px, py, pz, angle, hz, 1, frame, vw, 0, vw, depth, glass, layered)
+	_clear_spans = false
+	_rows_kept = kept
 	# The crew projects the walls (and packs them for the shader) a chunk at a
 	# time while the caller lists its sprites; frame_sprites() sorts them.
 	_prepare_begin(active)
@@ -193,11 +214,10 @@ func render_end() -> PackedByteArray:
 	var p := _pending
 	_pending = []
 	if layered:
-		pane_any = false
-		for i in vw:
-			if pane_cols[i] != 0:
-				pane_any = true
-				break
+		pane_any = pane_cols.find(1) >= 0
+		px_span = _rows_of(px_hit)
+		over_span = _rows_of(over_hit)
+		pane_span = _rows_of(pane_hit)
 	_mirror_pass(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9])
 	if detail != 0 and not layered:
 		var small := Image.create_from_data(vw, vh, false, Image.FORMAT_RGB8, frame)
@@ -206,6 +226,54 @@ func render_end() -> PackedByteArray:
 		frame.resize(WIDTH * HEIGHT * 3)
 	last_render_ms = (_begun_usec + Time.get_ticks_usec() - started) / 1000.0
 	return frame
+
+
+## Layered, once the frame's parts are sent (scene_layers.gd frame()): clear
+## what the next frame_begin() would, on the set-up thread, idle until then,
+## while the main thread finishes the frame and runs the next tick.
+## frame_begin() waits for it (_settle_clear): nothing else touches these
+## buffers in between.
+func clear_ahead() -> void:
+	if not layered or not use_threads or _setup_open or Renderer._clear_open:
+		return
+	if px_span.y <= px_span.x and over_span.y <= over_span.x and pane_span.y <= pane_span.x:
+		return
+	_need_setup()
+	Renderer._setup_job = _clear_rows
+	Renderer._clear_open = true
+	_setup_go.post()
+
+
+## The clearing itself: afterwards no part holds a row (the buffers are as
+## frame_begin() would leave them).
+func _clear_rows() -> void:
+	if over_span.y > over_span.x:
+		over.fill(0)
+		over_a.fill(0)
+	if px_span.y > px_span.x:
+		depth.fill(160.0)
+		glass.fill(0)
+	if pane_span.y > pane_span.x:
+		pane_dist.fill(160.0)
+	px_span = Vector2i.ZERO
+	over_span = Vector2i.ZERO
+	pane_span = Vector2i.ZERO
+
+
+## Wait for a clear_ahead() still running (any renderer's: the set-up thread
+## is shared).
+static func _settle_clear() -> void:
+	if _clear_open:
+		_clear_open = false
+		_setup_done.wait()
+
+
+## The first row marked in `hit` and the row after the last (both 0: none).
+static func _rows_of(hit: PackedByteArray) -> Vector2i:
+	var first := hit.find(1)
+	if first < 0:
+		return Vector2i.ZERO
+	return Vector2i(first, hit.rfind(1) + 1)
 
 
 ## A scene is set up (_scene_view), has its wall segments sorted out (_prepare),
@@ -248,9 +316,12 @@ func _scene_view(
 	gls = glass_buf
 	# Python allocates fresh depth/pane arrays per scene; reuse the members but
 	# clear them here so a reflection pass never inherits the main pass's state.
-	depth_buf.fill(160.0)
-	glass_buf.fill(0)
-	pane_dist.fill(160.0)
+	# The main layered pass skips what the frame before left clear.
+	if not _clear_spans or px_span.y > px_span.x:
+		depth_buf.fill(160.0)
+		glass_buf.fill(0)
+	if not _clear_spans or pane_span.y > pane_span.x:
+		pane_dist.fill(160.0)
 	split = clampi(int(floorf(hz - .5)) + 1, 0, vh)
 	# Worked out again only when the horizon, or the facing, has moved (a
 	# mirror's pass faces the other way, so with one they are every frame).
@@ -339,6 +410,8 @@ static var _setup_done := Semaphore.new()
 static var _setup_job: Callable
 ## A set-up handed over that render_end() has not waited for yet.
 var _setup_open := false
+## A clear_ahead() handed over that no frame_begin() has waited for yet.
+static var _clear_open := false
 
 
 static func _crew_loop() -> void:
@@ -367,6 +440,7 @@ static func _need_setup() -> void:
 
 ## Let the band threads go; call once when the program is closing.
 static func stop_crew() -> void:
+	_settle_clear()
 	_crew_quit = true
 	for _i in _crew.size():
 		_crew_go.post()
