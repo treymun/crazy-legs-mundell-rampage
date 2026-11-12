@@ -1100,3 +1100,5 @@ class Controls:
 	var use := false
 	var weapon := -1
 	var item := -1
+	## The next (1) or last (-1) gun, as the mouse wheel takes it.
+	var cycle := 0

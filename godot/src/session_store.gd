@@ -876,9 +876,15 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 	var game: Game = make_game.call(level_id)
 	if game == null or game.level.id != level_id:
 		return _fail_at(692)
-	var w := game.world
 	if int(doc.get("layout", 1)) != game.level.layout:
 		return _restart(doc, game, expected_replay)
+	return restore_onto(doc, game, expected_replay)
+
+
+## restore() onto `game`, a Game just made for the save's level and layout
+## (GameSnapshot.apply uses it): the game back, or null when the save is bad.
+static func restore_onto(doc: Dictionary, game: Game, expected_replay = null) -> Game:
+	var w := game.world
 	if not _restore_fields(game, doc.get("game", {}), GAME_FIELDS):
 		return _fail_at(695)
 	var reward = doc.get("county_gallery", false)

@@ -475,6 +475,8 @@ func _discover(p: Player) -> void:
 func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 	if controls.weapon >= 0:
 		armory.select(controls.weapon, self)
+	if controls.cycle != 0:
+		armory.cycle(controls.cycle, self)
 	if controls.item >= 0:
 		use_item(controls.item)
 	if controls.use and not p.use_held:

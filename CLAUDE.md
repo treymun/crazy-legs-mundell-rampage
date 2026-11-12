@@ -71,6 +71,7 @@ godot --headless --path godot --script res://tools/picture_check.gd   # PICTURES
 godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVES OK
 godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
+godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 
 # Pacing and balance (not in CI)
@@ -749,3 +750,138 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
 - **`gh` is not logged in.** Read CI through the public API with curl.
 - **Close browser tabs and preview servers after testing.** The owner has
   heard game audio from tabs left open.
+
+## Multiplayer foundation
+
+There is no networking yet; this is what a server mode, co-op or deathmatch
+rules and a network test harness build on. `src/players.gd`,
+`src/player_voice.gd`, `src/game_snapshot.gd`, `src/snap_codec.gd` and
+`tools/net_check.gd` hold it. One player plays exactly as before (checked
+tick by tick against the old build: state hashes of bot runs in every
+chapter at NORMAL and HOG WILD, `first_minutes.gd -- whole`, the rematch
+times, the duels).
+
+- **Players are a list.** `game.players: Array[Player]` by slot (index 0 is
+  player one; `Player.slot` is never reused and is how a snapshot names a
+  player). `game.local_player` is the one this machine shows and hears.
+  `Players.join(game, x, y, angle)` adds one (Game._init joins player one),
+  `Players.set_local(game, p)` changes whose view this is.
+- **`game.player` is the ACTING player** (`game.focus(p, own)`): the local
+  player outside the tick; during the tick each player in turn while their
+  controls play (`own` true: their sounds come from where they stand, their
+  notices are not shown here), an enemy's hunted player while that enemy
+  ticks, a shot's thrower while it flies (`Shot.slot`). `game.armory`,
+  `flow`, `inventory`, `keys`, `task_items`, `inventory_slot`, `sprint`,
+  `step_number` and `next_belch` are the acting player's (`armory`/`flow` are
+  swapped in by focus, the rest are properties over `game.player`). Code that
+  acts for "the player" (damage, pickups, use, the guns, an enemy's sight,
+  aim, blows and flow field) keeps reading `game.player` and acts on the
+  right one. Code about the world goes over `game.players`: blasts, enemy
+  shots (`_shot_finds_player`), hazards, doors held open
+  (`LevelData.update(dt, players, enemies)`), triggers (`Triggers._met_any`:
+  the first player who meets it is left acting), arena fire, rollers, the
+  log carriage, steam jets, slicks, core pulses, race cars. A new hazard
+  loops over `game.players` and calls `game.damage(amount, source, cause,
+  who)`; a knock-back focuses the player first (`move_actor` tests the
+  acting player). `game.reopen_paths()` opens a broken piece's cells in
+  every player's flow field and the route. After focusing someone else,
+  focus back: `game.focus(game.local_player)`.
+- **Controls per player.** `game.tick(dt, controls)`: one `Game.Controls` is
+  the local player's (anyone else stands idle, the single-player path), or a
+  Dictionary slot -> Controls (a slot left out stands idle). Controls also
+  carry `use` (a fresh press), `weapon` (a slot), `item` (a pocket) and
+  `cycle` (+1/-1 gun) for a player who is not the local front end; the local
+  front end still calls `interact()`, `Armory.select()`, `use_item()`
+  between ticks. The tick plays every live player's body (`_step_body`),
+  then rooms that open (`_discover`), the doors once, every player's hands
+  (`_step_hands`: controls' actions, pickups, gun, the tin rooster booth for
+  the player who opened it), then each player's flow field, the enemies, the
+  shots, the hazards. The world stops when nobody is alive; a dead player's
+  steps are skipped (respawning is the co-op rules' to write).
+- **Per player vs shared** is `Players.SHARED` and nowhere else: `keys` and
+  `task_items` (the PA patch lead) are one object the party shares,
+  `inventory` (rinds, beer...) each player's own; flip one there. Always each
+  player's own: place, health, gut, drunk, guns and rounds (`Player.armory`),
+  sprint, footsteps, flow field. Always the world's: stations, doors, the
+  pickups lying about (whoever touches one takes it), kills and secrets,
+  clock, rng, enemies, scenery, triggers, `cheats.god`. With more than one
+  player there is no world-stopping hitstop or boss entrance hold, and no
+  ADAPTIVE DIFFICULTY (each is one machine's game feel).
+- **Enemies pick a player** (`Players.hunted(game, e)`, only with more than
+  one): it keeps its pick `RETARGET` (.5 s), then a player who hurt it within
+  `SPITE` (`Enemy.spite`, set in `hurt()`), else the nearest it can see
+  (14 cells), else the one nearest where it last heard something, else the
+  nearest alive; ties to the lower slot, no dice. `Enemy.hunted` is the pick;
+  the enemy ticks with that player acting, so its sight, flow field (each
+  player has one), aim marks, flanks and blows are about them. Squads form
+  per hunted player (`squad_feature.gd _step(only)`); Maw follows hers. A
+  hostile body keeps out of every player's way; players pass through each
+  other.
+- **Presentation follows the local player**: the HUD, view, automap,
+  objective pin, camera shake (a blast's by distance to the local player),
+  the face (`set_face`), barks, messages, the crosshair's hit mark, the hurt
+  flash, item feedback, captions, the room's sound, the place names, the
+  walked map, the gun's kick (`feel`), tracers and muzzle smoke (`weapon_fx`,
+  `gun_fx`), chapter stats, kill callouts, fight music and boss taunts are
+  the local player's (`game.acting_local()`). Sound is placed for the local
+  player's ears (`sound_position`, `sound_at` through `game.speaker`); while
+  another player acts by their own hand `game.sound` is their `PlayerVoice`,
+  which places their gun, pickups and grunts where they stand and ignores
+  the local-only calls (fuse, room, music, stings). A message during another
+  player's own step is not shown here (one said while an enemy is after
+  them is).
+- **Simulation vs presentation** is written down in `GameSnapshot`: every
+  field of Game is in `SIM_FIELDS`, `PLAYER_FIELDS` or `VIEW_FIELDS`, every
+  feature in `SIM_FEATURES` or `LOOKS_FEATURES`; `net_check.gd` fails on a
+  field or feature in none, so put a new one in one. Simulation is everything
+  that can change play and comes from `game.rng` or the features' own state;
+  presentation uses its own dice and is never carried (specks and blast
+  flashes are looks, though a save keeps them). Known mixes kept for exact
+  single-player play: the HIT FEEDBACK setting decides the hitstop, footstep
+  splashes spend `game.rng`, `cheats.god` is the game's.
+- **Stable ids.** Players by slot; enemies, shots and pickups by a uid from
+  `game.take_uid()` in the order they come into being (`Enemy.uid`,
+  `Shot.uid`, a pickup's fourth element; enemies and shots that joined during
+  a tick are named at its end, `game.name_new()`), so two machines running
+  the same ticks agree. Doors, stations and scenery by their place in the
+  level's lists; breakables and wall breaks by their place in their
+  feature's lists. A save keeps pickups as `[name, x, y]` (no new version);
+  their ids are handed out again on load. An enemy's instance id in carried
+  state (a shot's thrower, a dictionary keyed by enemy) travels as its uid.
+- **Snapshots** (`src/game_snapshot.gd`): `GameSnapshot.capture(game)` is a
+  Dictionary of plain values: "save" (SessionStore's save of the moment, which
+  puts back the level's doors, broken things, stations and features), "game"
+  (SIM_FIELDS), "players" (every carried field by slot), "enemies" (by uid,
+  every script variable) with "order", "features" (each simulation feature's
+  variables), "statics" (play kept in static variables: `DerbyChamp.state`;
+  new play belongs on the enemy or in a feature). `GameSnapshot.apply(game,
+  data)` puts it onto a Game just made for that level (never ticked): the
+  players it lacks join, then everything is set; presentation options stay.
+  `to_bytes`/`from_bytes` (var_to_bytes, zstd: 22 to 37 KB a chapter after
+  100 s of play, 10 to 35 ms to take, 3 to 30 ms to apply, headless),
+  `delta(base, now)` / `patch(base, delta)` (7 to 19 KB for the 90 s since a
+  base; dictionaries walked, other values whole: a per-tick delta is the
+  network harness's to tune), `same(a, b)` (bit for bit, key order too) and
+  `first_difference(a, b)` for reports. `snap_codec.gd` turns objects into
+  plain values by reflection (script variables, less
+  `SnapCodec.SKIP_FIELDS`; classes found from the roots in `_register_all`,
+  a class it cannot name is listed in the snapshot's "unknown" and fails the
+  check); decoding fills what is there in place, so what a snapshot does not
+  carry (a sprite) stays.
+- **The determinism check** (`tools/net_check.gd`; its quick part runs in
+  `check_fixes.gd`): two games fed the bot's recorded controls stay
+  identical, snapshot for snapshot; capture, apply to a fresh game, capture
+  is the same; bytes and a delta round-trip; the fresh game then runs on
+  beside the first and stays identical (the snapshot carries all the play
+  there is); with two players both are hunted, player two is hurt by a hand
+  and by a blast, takes shells and a beer for themselves and a key for the
+  party, opens a door with USE; two two-player games stay identical and
+  round-trip. The bot (`bot_pilot.gd as_controls`) asks for USE and the next
+  gun through its controls so a lockstep game gets them too.
+- **Not done yet:** applying a snapshot onto a game already running (only a
+  fresh one: SessionStore's restore is not idempotent for station lights,
+  breaks or the posse); per-player stats, messages and kill feed; player
+  bodies blocking each other; respawn; Maw's area attacks hit only the player
+  she is after; a slick or a race car bites one player at a time; the
+  objective pin, boss bar, boss checkpoint and rematch think of one player;
+  the steam scald list is keyed by hazard instance id (not carried).
