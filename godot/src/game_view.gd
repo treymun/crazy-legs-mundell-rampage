@@ -684,6 +684,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 						var toward := atan2(boss.aim_mark[1] - boss.y, boss.aim_mark[0] - boss.x)
 						var run := BayouBrains.runs_on(boss, boss.attacks + 1, world, toward)
 						tell = "AIRBOAT RUN" if run else "PUNT GUN"
+					tell = ShipAliens.tell(self, boss, tell)
 					var phase: String = (
 						tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
 					)
@@ -691,6 +692,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 						phase = tell
 					if boss.enraged and clock - boss.enraged_at < 1.6:
 						phase = "FIGHTIN' MAD"
+					phase = ShipAliens.phase_text(self, boss, phase)
 					HUD.panel(
 						c,
 						193,

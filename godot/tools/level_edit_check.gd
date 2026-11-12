@@ -15,7 +15,9 @@ extends SceneTree
 func _init() -> void:
 	var assets := Assets.new()
 	var failures: Array = []
-	for id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "hub", "range"]:
+	for id in [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership", "hub", "range"
+	]:
 		var level := LevelEdit.read(id)
 		if level.is_empty():
 			failures.append("%s: cannot read" % id)

@@ -481,8 +481,10 @@ for _name in sorted(os.listdir(os.path.dirname(os.path.abspath(__file__)))):
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), _name), encoding="utf-8") as _own:
             exec(_own.read(), globals())
 PROPS.update(MORE)
+# The mothership's props (props_mothership.py, loaded above) keep their own table.
+PROPS.update(SHIP)
 # Drawn flat on a plane in the game: rendered face on.
-FLAT = {"laundry", "powder_shelf", "hubcap_board", "gator_hide"}
+FLAT = {"laundry", "powder_shelf", "hubcap_board", "gator_hide"} | SHIP_FLAT
 
 
 # ---------------------------------------------------------------- stage

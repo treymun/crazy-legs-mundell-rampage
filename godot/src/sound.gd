@@ -34,6 +34,7 @@ const SCORES := {
 	"quarry_score": ["quarry_score", "copper_and_steam", "last_load"],
 	"bayou_score": ["bayou_score"],
 	"music_speedway": ["music_speedway"],
+	"mothership_score": ["mothership_score"],
 }
 ## Each chapter's fight loop (seamless, made by scripts/audio_build.py): it
 ## swells in over the chapter's track while features/fight_music.gd says the
@@ -45,6 +46,7 @@ const FIGHTS := {
 	"quarry_score": "fight_quarry",
 	"bayou_score": "fight_bayou",
 	"music_speedway": "fight_speedway",
+	"mothership_score": "fight_mothership",
 }
 
 const PRIORITY := [

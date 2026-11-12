@@ -12,7 +12,7 @@ extends VBoxContainer
 const TOOLS := [
 	"Wall", "Open floor", "Raise floor", "Lower floor", "Enemy", "Pickup", "Remove", "Trigger area"
 ]
-const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "hub"]
+const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership", "hub"]
 const FLOOR_STEP := .1
 
 

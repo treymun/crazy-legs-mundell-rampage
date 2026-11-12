@@ -71,8 +71,8 @@ needed for its voice (no pain cry).
 ## Music
 
 Both go in `music_bayou.bin` (pack_assets.gd `MUSIC_FILES`). Once they are in
-`godot/assets/music`, take `music_bayou` off `PENDING_MUSIC` in
-`godot/tools/pack_assets.gd` and add their cut-off points to
+`godot/assets/music`, take `bayou_score` and `fight_bayou` off
+`PENDING_MUSIC` in `godot/src/assets.gd` and add their cut-off points to
 `playback_ends.json`, as for the other chapters.
 
 | Track | Title | BPM | Prompt |

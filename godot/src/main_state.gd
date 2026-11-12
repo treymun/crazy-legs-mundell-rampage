@@ -157,7 +157,8 @@ const CHAPTER_PACKS := {
 	"sawmill": "music_mill",
 	"quarry": "music_quarry",
 	"bayou": "music_bayou",
-	"speedway": "music_speedway"
+	"speedway": "music_speedway",
+	"mothership": "music_mothership",
 }
 ## The first time the shader composes the view it is checked, at a grid of
 ## points, against the software picture of the same frame (_check_view). A

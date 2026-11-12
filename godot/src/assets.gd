@@ -20,6 +20,7 @@ const CHAPTER_KINDS := {
 	"quarry": ["baron", "boilerback", "chalk_spitter", "valve_rat"],
 	"bayou": ["chum_tosser", "gator", "noodler", "swamp_king"],
 	"speedway": ["derby_champ", "flagman", "nitro_huffer", "pit_mechanic", "tire_roller"],
+	"mothership": ["drone", "maw", "probe", "tin_guard"],
 }
 const CHAPTER_ART := {
 	"fair": "art_fair.bin",
@@ -27,7 +28,23 @@ const CHAPTER_ART := {
 	"quarry": "art_quarry.bin",
 	"bayou": "art_bayou.bin",
 	"speedway": "art_speedway.bin",
+	"mothership": "art_mothership.bin",
 }
+## Chapter music still to be made (the main session's audio pass; see
+## docs/new_chapters/<id>_audio.md): tools/pack_assets.gd and verify_assets.gd
+## note these as pending instead of failing (pack_assets still writes the
+## chapter's music file, empty if none of it is made), and the game plays
+## nothing for them till they come. Take a track off once it is in
+## godot/assets/music. (The firing range plays Hickston's score.)
+const PENDING_MUSIC := [
+	"bayou_score",
+	"fight_bayou",
+	"music_speedway",
+	"fight_speedway",
+	"mothership_score",
+	"fight_mothership",
+	"boss_mothership",
+]
 
 var tile_names: PackedStringArray = PackedStringArray()
 var tile_index: Dictionary = {}

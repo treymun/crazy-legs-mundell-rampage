@@ -287,6 +287,36 @@
  {
   "angle": -1.5708,
   "drunk": 0.0,
+  "level": "mothership",
+  "pitch": 6.0,
+  "tag": "mothership_bay_0",
+  "weapon": false,
+  "x": 64.5,
+  "y": 93.5
+ },
+ {
+  "angle": 3.14159,
+  "drunk": 0.0,
+  "level": "mothership",
+  "pitch": 2.0,
+  "tag": "mothership_ring_viewport_0",
+  "weapon": true,
+  "x": 78.6,
+  "y": 52.5
+ },
+ {
+  "angle": 1.22,
+  "drunk": 0.0,
+  "level": "mothership",
+  "pitch": 12.0,
+  "tag": "mothership_core_0",
+  "weapon": false,
+  "x": 58.5,
+  "y": 41.0
+ },
+ {
+  "angle": -1.5708,
+  "drunk": 0.0,
   "level": "bayou",
   "pitch": 6.0,
   "tag": "bayou_stilt_row_0",

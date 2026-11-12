@@ -4,9 +4,6 @@
 ##   Godot --headless --path <project> --script res://tools/verify_assets.gd
 extends SceneTree
 
-## The chapter music files whose tracks are still to be made (pack_assets.gd).
-const Pack := preload("res://tools/pack_assets.gd")
-
 
 func _init() -> void:
 	_run.call_deferred()
@@ -42,8 +39,8 @@ func _run() -> void:
 	print("pcm decode ", "%d cues, %.1f s" % [assets.sfx_index.size(), seconds])
 	for bank: String in Sound.SCORES:
 		for stem: String in Sound.SCORES[bank]:
-			if _pending(stem):
-				print("track      %-22s not made yet" % stem)
+			if stem in Assets.PENDING_MUSIC and not assets.music_index.has(stem):
+				print("track      %-22s pending (assets.gd PENDING_MUSIC)" % stem)
 				continue
 			var ogg := assets.track(stem)
 			var cut := float(assets.music_ends.get(stem, 0.0))
@@ -55,8 +52,8 @@ func _run() -> void:
 	# Each chapter's fight loop opens, from that chapter's own music file.
 	for bank: String in Sound.FIGHTS:
 		var stem: String = Sound.FIGHTS[bank]
-		if _pending(stem):
-			print("fight loop %-18s not made yet" % stem)
+		if stem in Assets.PENDING_MUSIC and not assets.music_index.has(stem):
+			print("fight loop %-18s pending (assets.gd PENDING_MUSIC)" % stem)
 			continue
 		var ogg := assets.track(stem)
 		var home := String(assets.music_index.get(stem, {}).get("file", ""))
@@ -113,11 +110,3 @@ func _run() -> void:
 					failed = true
 	print("ASSETS OK" if not failed else "ASSETS FAILED")
 	quit(1 if failed else 0)
-
-
-## A track of a chapter whose music is still to be made, not yet in the bank.
-func _pending(stem: String) -> bool:
-	for file_name: String in Pack.PENDING_MUSIC:
-		if stem in Pack.MUSIC_FILES.get(file_name, []):
-			return true
-	return false

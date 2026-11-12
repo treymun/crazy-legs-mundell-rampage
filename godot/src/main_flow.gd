@@ -27,7 +27,8 @@ func start(
 				"sawmill": [Weapons.BOWLING, 3],
 				"quarry": [Weapons.COW, 3],
 				"bayou": [Weapons.CROSSBOW, 6],
-				"speedway": [Weapons.CROSSBOW, 6]
+				"speedway": [Weapons.CROSSBOW, 6],
+				"mothership": [Weapons.ARMGUN, 18],
 			}
 			. get(level_id, [Weapons.ROCKET, 3])
 		)
@@ -205,7 +206,7 @@ func continue_campaign() -> void:
 		return
 	var following := Campaign.next_level(current.level.id)
 	if following == "":
-		open_hub(current, "SHIFT COMPLETE. OPEN ROADS LEAD BACK TO FINISHED CHAPTERS.")
+		open_hub(current, "THE SKY'S CLEAR. EVERY ROAD LEADS BACK TO A FINISHED CHAPTER.")
 		return
 	var history: Array = current.history.duplicate()
 	history.append(current.result())

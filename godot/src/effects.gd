@@ -20,7 +20,8 @@ static var LEVELS := {}
 static var ANIMS := {}
 ## [debris]: how long the leavings of a fight last
 static var DEBRIS := {}
-## The shader takes this many moving tiles.
+## The shader takes this many moving tiles at once: those the level draws
+## (scene_layers.gd), so [anim.*] may list more across all the chapters.
 const MAX_ANIMS := 8
 ## Goes up on every reload, so the tile atlas knows to bake its glows again.
 static var version := 0

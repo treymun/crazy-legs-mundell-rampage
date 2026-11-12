@@ -59,8 +59,8 @@ They are already wired like the bayou's: `src/sound.gd` SCORES
 `"music_speedway": "fight_speedway"`, `tools/pack_assets.gd` MUSIC_FILES
 `"music_speedway": ["music_speedway", "fight_speedway"]`, and
 `tools/make_packs.gd` PACKS `"music_speedway": ["music_speedway.bin",
-"art_speedway.bin"]`. Until the tracks exist, `music_speedway` is on
-pack_assets.gd's `PENDING_MUSIC` (its file is written empty and
-verify_assets skips it). When both files are in `godot/assets/music` (each in
-`playback_ends.json`), take it off that list (add more stems to SCORES if a
+"art_speedway.bin"]`. Until the tracks exist, both are on
+`godot/src/assets.gd PENDING_MUSIC` (the chapter's file is written empty and
+verify_assets skips them). When both files are in `godot/assets/music` (each
+in `playback_ends.json`), take them off that list (add more stems to SCORES if a
 three-track playlist is made).

@@ -38,12 +38,10 @@ const MUSIC_FILES := {
 	"music_quarry": ["quarry_score", "copper_and_steam", "last_load", "fight_quarry"],
 	"music_bayou": ["bayou_score", "fight_bayou"],
 	"music_speedway": ["music_speedway", "fight_speedway"],
+	"music_mothership": ["mothership_score", "fight_mothership", "boss_mothership"],
 }
-## Chapter files whose tracks are not made yet: written empty (so the browser
-## packs still build) and their missing tracks only noted; verify_assets.gd
-## skips them, and the chapter plays without music. The main session takes a
-## chapter off once its music is in godot/assets/music.
-const PENDING_MUSIC := ["music_bayou", "music_speedway"]
+## Tracks not made yet are listed in assets.gd PENDING_MUSIC: only noted here,
+## and their chapter's file is written all the same (empty if none is made).
 const REQUIRED_MUSIC := ["title", "victory"]
 
 var repo := ""
@@ -268,8 +266,6 @@ func _music() -> void:
 			home[track] = file_name
 	var index := {}
 	var blobs := {}
-	for file_name: String in PENDING_MUSIC:
-		blobs[file_name] = PackedByteArray()
 	for file in _sorted_files("godot/assets/music", "ogg"):
 		var data := FileAccess.get_file_as_bytes(
 			repo.path_join("godot/assets/music").path_join(file)
@@ -286,11 +282,16 @@ func _music() -> void:
 		blob.append_array(data)
 		blobs[file_name] = blob
 	for track: String in home.keys() + REQUIRED_MUSIC:
-		if not index.has(track):
-			if String(home.get(track, "")) in PENDING_MUSIC:
-				print("music not made yet: " + track)
-			else:
-				_fail("music missing: " + track)
+		if index.has(track):
+			continue
+		if track in AssetsLib.PENDING_MUSIC:
+			# Not made yet (assets.gd PENDING_MUSIC): its chapter's file is written
+			# all the same, so the browser packs and their loader find it.
+			print("music pending: " + track)
+			if not blobs.has(home[track]):
+				blobs[home[track]] = PackedByteArray()
+		else:
+			_fail("music missing: " + track)
 	for file_name: String in blobs:
 		_write(file_name + ".bin", blobs[file_name])
 	_write_json("music_index.json", index)

@@ -44,7 +44,12 @@ const KINDS := [
 	"tire_roller",
 	"nitro_huffer",
 	"flagman",
-	"derby_champ"
+	"derby_champ",
+	"drone",
+	"tin_guard",
+	"probe",
+	"maw",
+	"maw_bare"
 ]
 
 

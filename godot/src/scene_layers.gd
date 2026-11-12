@@ -32,6 +32,11 @@ var _assets: Assets
 var _glow_version := -1
 ## The atlas before any glow is baked in (every alpha whole).
 var _atlas_plain: Image
+## The tiles this level draws (walls, doors, floors, ceilings): a moving tile
+## ([anim.*]) takes one of the shader's Effects.MAX_ANIMS slots only in a level
+## that has it, so every chapter's signs fit, and the shader's per-pixel walk
+## of the list stays short.
+var _level_tiles := {}
 
 
 func _init(p_material: ShaderMaterial, assets: Assets) -> void:
@@ -189,6 +194,15 @@ func _load_level(renderer: Renderer) -> void:
 	_set_param("hub_runoff", renderer.tile_hub_runoff)
 	_set_param("hub_patch", renderer.tile_hub_patch)
 	_set_param("hub_wall", renderer.tile_hub_wall)
+	_level_tiles = {}
+	for i in level.wall_count:
+		_level_tiles[int(level.walls[i * LevelData.WALL_STRIDE + 4])] = true
+	for door: LevelData.Door in level.doors:
+		_level_tiles[door.material] = true
+	for tile in level.floor_tile:
+		_level_tiles[tile] = true
+	for tile in level.ceiling_tile:
+		_level_tiles[tile] = true
 
 
 ## This frame's layers and camera; call after Game.draw() when game.scene_live.
@@ -435,7 +449,11 @@ func _lights(game: Game) -> void:
 	anims.resize(Effects.MAX_ANIMS)
 	var count := 0
 	for tile_name: String in Effects.ANIMS:
-		if count < Effects.MAX_ANIMS and _assets.tile_index.has(tile_name):
+		if (
+			count < Effects.MAX_ANIMS
+			and _assets.tile_index.has(tile_name)
+			and _level_tiles.has(int(_assets.tile_index[tile_name]))
+		):
 			var a: Dictionary = Effects.ANIMS[tile_name]
 			anims[count] = Vector4(
 				_assets.tile_index[tile_name],

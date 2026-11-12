@@ -127,15 +127,9 @@ func _run() -> void:
 	check(absf(main.game.player.y - saved_y) < 0.001, "quickload restored the second axis")
 	check(main.game.kills == 3, "quickload restored the kill count")
 
-	var path_clean := [
-		"user://probe-campaign.json",
-		"user://probe-hickston.json",
-		"user://probe-fair.json",
-		"user://probe-sawmill.json",
-		"user://probe-quarry.json",
-		"user://probe-bayou.json",
-		"user://probe-speedway.json",
-	]
+	var path_clean := ["user://probe-campaign.json"]
+	for chapter: String in Campaign.ORDER:
+		path_clean.append("user://probe-%s.json" % chapter)
 	for p in path_clean:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
 

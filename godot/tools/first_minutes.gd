@@ -39,7 +39,7 @@ func _run() -> void:
 		whole = true
 		args.erase("whole")
 	var ids := (
-		["hickston", "fair", "sawmill", "quarry", "bayou", "speedway"]
+		["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
 		if args.is_empty()
 		else [args[0]]
 	)
