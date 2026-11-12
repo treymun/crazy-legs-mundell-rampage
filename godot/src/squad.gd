@@ -83,7 +83,7 @@ class Mind:
 
 ## One of the county's hands the squad has a part for.
 static func hand(e: Enemy) -> bool:
-	return e.tactical() and Enemy.TURN_CELS.has(e.kind) and not e.swims
+	return e.tactical() and Enemy.TURNS.has(e.kind) and not e.swims
 
 
 ## A bark for the voices (game.enemy_bark), unless one was just heard.

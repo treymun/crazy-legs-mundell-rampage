@@ -644,6 +644,14 @@ var late_blocks: Array = []
 ## This frame's view for in_view(): eye x, y, facing x, y, the half width of
 ## the view per unit ahead, the mirror's line (NAN: none) and the mirrored eye's x.
 var view_cone := PackedFloat64Array()
+## fixed_blocks and late_blocks flat for _seen(): per block middle x, y, reach.
+var fixed_cull := PackedFloat64Array()
+var late_cull := PackedFloat64Array()
+## The sprites that last one frame (enemies, pickups, shots, effects) come
+## from this pool (pooled()), kept from frame to frame; sprites() starts it
+## over. Nothing may keep a pooled sprite past the frame that listed it.
+var sprite_pool: Array = []
+var sprite_pool_n := 0
 ## The level's dress marks made once (game_combat.gd ground_marks()): the marks,
 ## and for each its x, y and the reach it shows within, for the level `dress_of`.
 var dress_list: Array = []
@@ -954,6 +962,30 @@ var _map_texture: ImageTexture
 ## Milliseconds the last draw spent listing sprites, rendering the scene, drawing
 ## the weapon, grading the view and drawing the HUD; read by tools/bench.gd.
 var stage_ms: Array = [0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+## A sprite for this frame's list from the pool, as Renderer.Sprite.new()
+## would make it (every other field at its default).
+func pooled(px: float, py: float, image: String, h: float, pz: float) -> Renderer.Sprite:
+	if sprite_pool_n < sprite_pool.size():
+		var s: Renderer.Sprite = sprite_pool[sprite_pool_n]
+		sprite_pool_n += 1
+		s.x = px
+		s.y = py
+		s.image = image
+		s.height = h
+		s.z = pz
+		s.glow = false
+		s.flip = false
+		s.translucent = false
+		s.body = false
+		s.plane = NAN
+		s.hurt = 0.0
+		return s
+	var made := Renderer.Sprite.new(px, py, image, h, pz)
+	sprite_pool.append(made)
+	sprite_pool_n += 1
+	return made
 
 
 class Controls:

@@ -266,7 +266,7 @@ func sprites() -> Array:
 			continue
 		var cel := 0 if b.rest or b.owner != null else int(b.age * 11.0) % 2
 		var name := b.image if b.owner != null else "%s_%d" % [b.image, cel]
-		var s := Renderer.Sprite.new(b.x, b.y, name, b.size, b.z)
+		var s: Renderer.Sprite = game.pooled(b.x, b.y, name, b.size, b.z)
 		s.flip = b.flip
 		out.append(s)
 	return out

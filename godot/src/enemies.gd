@@ -28,6 +28,14 @@ static var TURN_CELS: Array = []
 static var FIDGET_CELS: Array = []
 ## Creatures that tumble for two cels before they lie still.
 static var CREATURE_FALLS: Array = []
+## TURN_CELS, FIDGET_CELS and CREATURE_FALLS as sets (looked up every frame).
+static var TURNS := {}
+static var FIDGETS := {}
+static var FALLS := {}
+## Cel names by stem and frame (cel_name()), made once instead of every frame.
+static var _cels := {}
+const WALK_CELS := ["w0", "w1", "w2", "w3"]
+const HEADINGS := ["", "_quarter", "_side", "_away", "_back"]
 ## Whose voice a kind has when it is hurt or killed; the rest use the material cues.
 static var VOICES := {}
 static var VOICE_TAKES := {}
@@ -136,6 +144,16 @@ static func load_tuning() -> void:
 			PLASMA.append(kind)
 		if d.get("green_gibs", false):
 			GREEN_GIBS.append(kind)
+	TURNS = {}
+	FIDGETS = {}
+	FALLS = {}
+	for kind: String in TURN_CELS:
+		TURNS[kind] = true
+	for kind: String in FIDGET_CELS:
+		FIDGETS[kind] = true
+	for kind: String in CREATURE_FALLS:
+		FALLS[kind] = true
+	_cels = {}
 	Variants.tables()
 
 
@@ -695,7 +713,8 @@ func retreat_from(game, px: float, py: float) -> void:
 
 
 func tick(dt: float, game) -> void:
-	if not alive or brain == "bessie":
+	# (not alive, written out)
+	if not (hp > 0.0) or dormant or brain == "bessie":
 		return
 	pose += dt
 	stun = maxf(0.0, stun - dt)
@@ -712,7 +731,7 @@ func tick(dt: float, game) -> void:
 	if brain == "derby_champ":
 		DerbyChamp.tick(self, dt, game)
 		return
-	if BayouBrains.tick(self, dt, game):
+	if (swims or game.world.sky == BayouBrains.SKY) and BayouBrains.tick(self, dt, game):
 		return
 	if disarmed_until >= 0.0 and HitZones.tick(self, dt, game):
 		# Gone to fetch the weapon an arm hit made it drop.
@@ -770,28 +789,38 @@ func tick(dt: float, game) -> void:
 		return
 
 	cooldown -= dt * float(game.sharpness)
-	var eye: float = game.world.elevation(x, y) + z + minf(.92, height * .72)
 	see_time -= dt
-	if see_time <= 0.0 or (0.0 < windup and windup <= dt):
+	var looking := see_time <= 0.0 or (0.0 < windup and windup <= dt)
+	# The eye: unused by one that neither looks, sees nor is awake this tick.
+	var eye := 0.0
+	if looking or alerted or (player_seen and distance < 14.0):
+		eye = game.world.elevation(x, y) + z + minf(.92, height * .72)
+	if looking:
 		see_time = .079 + (radius - .2) * .051
 		player_seen = distance < 14.0 and game.world.visible(x, y, p.x, p.y, eye, p.eye)
 	var can_see := player_seen and distance < 14.0
-	if not alerted and (game.spawn_grace > 0.0 or game.player_sheltered()):
+	if not alerted and player_seen and (game.spawn_grace > 0.0 or game.player_sheltered()):
 		can_see = false
 		player_seen = false
-	var aggro_range := (5.5 if p.crouched else 8.4) + 2.2 * (1.0 if p.gut >= 66 else 0.0)
-	aggro_range += (float(game.sharpness) - 1.0) * 8.0
-	if brain == "skeeter" or brain == "saucer":
-		aggro_range += .9
-	if mind != null and can_see and not alerted:
-		aggro_range *= IdleLife.notice(self, game)
-	var watching := absf(angle_delta(direction, angle)) < 1.55 or distance < 2.65
-	if can_see and (alerted or (distance < aggro_range and watching)):
-		wake(game, p.x, p.y)
-		if not BOSS_TITLES.has(kind):
-			hunt_until = game.clock + 9.0
+	if can_see:
+		# (How near it notices the player matters only while it sees them.)
+		var aggro_range := (5.5 if p.crouched else 8.4) + 2.2 * (1.0 if p.gut >= 66 else 0.0)
+		aggro_range += (float(game.sharpness) - 1.0) * 8.0
+		if brain == "skeeter" or brain == "saucer":
+			aggro_range += .9
+		if mind != null and not alerted:
+			aggro_range *= IdleLife.notice(self, game)
+		var watching := absf(angle_delta(direction, angle)) < 1.55 or distance < 2.65
+		if alerted or (distance < aggro_range and watching):
+			wake(game, p.x, p.y)
+			if not BOSS_TITLES.has(kind):
+				hunt_until = game.clock + 9.0
 	if not alerted:
-		if not noise_step(dt, game) and (mind == null or not Squad.calm(self, dt, game)):
+		if (
+			not (heard != null and noise_step(dt, game))
+			and (mind == null or not Squad.calm(self, dt, game))
+			and not route.is_empty()
+		):
 			patrol(dt, game)
 		return
 
@@ -920,7 +949,7 @@ func tick(dt: float, game) -> void:
 	elif RANGED.has(kind) or (brain == "clone" and cooldown > .55):
 		var pace2: float = {"saucer": 1.24, "alien": .62, "boss": .70, "jerry": .78}.get(brain, .42)
 		sidestep(dt, game, direction + strafe, pace2)
-		if TURN_CELS.has(kind):
+		if TURNS.has(kind):
 			angle = direction + strafe * .29
 
 
@@ -1360,28 +1389,33 @@ func recovery_time(relieved := false) -> float:
 	return float(RECOVERY_TIMES.get(kind, .095))
 
 
-func sprite(observer = null, relieved := false, now := -1.0):
+## What it looks like this frame. `into` (a sprite fresh from Game.pooled(),
+## every field at its default) is filled in and handed back instead of a new one.
+func sprite(observer = null, relieved := false, now := -1.0, into: Renderer.Sprite = null):
 	if dormant:
 		return null
+	var out := into if into != null else Renderer.Sprite.new()
+	out.x = x
+	out.y = y
+	out.flip = face_left
 	if not alive:
 		if explosive or brain == "saucer" or brain == "skeeter":
 			return null
 		var fallen := now - died_at
-		var cels := 5 if TURN_CELS.has(kind) else 2 if CREATURE_FALLS.has(kind) else 0
+		var cels := 5 if TURNS.has(kind) else 2 if FALLS.has(kind) else 0
 		var span := DEATH_TIME if cels == 5 else DEATH_TIME * .5
 		var worn := Variants.stem(kind)
 		if cels > 0 and died_at >= 0.0 and now >= died_at and fallen < span:
-			var cel := "%s_die_%d" % [worn, mini(cels - 1, int(fallen / span * cels))]
-			var falling := Renderer.Sprite.new(
-				x, y, Variants.look(self, cel), height * variant, z + toss
-			)
-			falling.flip = face_left
-			return falling
-		var lying := height * (.45 if brain == "derby_champ" else .25)
-		var laid := Variants.look(self, "%s_down" % worn)
-		var down := Renderer.Sprite.new(x, y, laid, lying, toss - .07)
-		down.flip = face_left
-		return down
+			var cel := cel_name(worn + "_die", mini(cels - 1, int(fallen / span * cels)))
+			out.image = Variants.look(self, cel)
+			out.height = height * variant
+			out.z = z + toss
+			return out
+		out.image = Variants.look(self, cel_name(worn, "down"))
+		out.height = height * (.45 if brain == "derby_champ" else .25)
+		out.z = toss - .07
+		return out
+	var turns := TURNS.has(kind)
 	var recover := recovery_time(relieved) if recovery > 0.0 else 0.0
 	var release := minf(.14, recover * .53)
 	var frame = 0
@@ -1391,50 +1425,64 @@ func sprite(observer = null, relieved := false, now := -1.0):
 		frame = "fire"
 	elif windup > 0.0:
 		frame = "aim"
-	elif recover > 0.0 and TURN_CELS.has(kind):
+	elif recover > 0.0 and turns:
 		frame = "recover"
 	elif brain == "saucer" or brain == "skeeter" or brain == "lantern":
 		frame = int(pose * (16 if brain == "skeeter" else 5)) % 3 - 1
 	elif stun > 0.0 or brain == "bessie" or pose - last_stride > .18:
 		frame = 0
-	elif TURN_CELS.has(kind):
+	elif turns:
 		# Four-beat walk: contact, passing, contact, passing.
-		frame = "w%d" % posmod(int(floor(gait / (PI * .5))), 4)
+		frame = WALK_CELS[posmod(int(floor(gait / (PI * .5))), 4)]
 	else:
 		frame = int(round(sin(gait)))
 	if mind != null and not alerted and frame is int and frame == 0:
 		frame = IdleLife.frame(self, observer)
 	var worn := Variants.stem(kind)
-	var stem: String = worn + ShipAliens.skin(self)
-	var flip := face_left
+	var stem: String = worn if kind != "maw" else worn + ShipAliens.skin(self)
 	var walking: bool = frame is String and String(frame).begins_with("w")
 	var plain: bool = frame is int and frame >= -1 and frame <= 1
-	if observer != null and (plain or walking) and TURN_CELS.has(kind):
+	if observer != null and (plain or walking) and turns:
 		var bearing := atan2(float(observer[1]) - y, float(observer[0]) - x)
 		var relative := angle_delta(bearing, angle)
 		var direction := mini(4, int(absf(relative) / (PI / 4.0) + .5))
 		if direction:
-			stem += ["", "_quarter", "_side", "_away", "_back"][direction]
-		flip = relative < 0.0 and direction < 4
+			stem += HEADINGS[direction]
+		out.flip = relative < 0.0 and direction < 4
 	if (
 		frame is int
 		and frame == 0
 		and stem == worn
-		and FIDGET_CELS.has(kind)
+		and FIDGETS.has(kind)
 		and not alerted
 		and fmod(pose + x * .37 + y * .13, 5.2) > 4.68
 	):
 		frame = "fidget"
-	var look := "%s_%s" % [stem, str(frame)]
-	if BOSS_TITLES.has(kind):
+	var look := cel_name(stem, frame)
+	var boss := BOSS_TITLES.has(kind)
+	if boss:
 		look = BossLooks.cel(self, look)
 	elif hostile:
 		look = EnemyLooks.cel(self, look)
-	var out := Renderer.Sprite.new(x, y, Variants.look(self, look), height * variant, z)
-	out.flip = flip
+	out.image = Variants.look(self, look)
+	out.height = height * variant
+	out.z = z
 	out.body = hostile
 	out.hurt = hit_flash
-	if windup > 0.0 and BOSS_TITLES.has(kind):
+	if windup > 0.0 and boss:
 		# A boss winding up glows in a quickening beat (boss_kit.gd).
 		out.hurt = maxf(hit_flash, BossKit.pulse(self))
 	return out
+
+
+## "<stem>_<frame>", made once per pair.
+static func cel_name(stem: String, frame) -> String:
+	var row = _cels.get(stem)
+	if row == null:
+		row = {}
+		_cels[stem] = row
+	var name = row.get(frame)
+	if name == null:
+		name = "%s_%s" % [stem, str(frame)]
+		row[frame] = name
+	return name

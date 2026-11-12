@@ -606,7 +606,7 @@ func sprites() -> Array:
 				var flash := int(bit.age * 11.0 + bit.size * 131.0) % 5 == 0
 				name = "fx_glint_%d" % (1 if flash else 0)
 				glow = flash
-		var s := Renderer.Sprite.new(bit.x, bit.y, name, bit.size, bit.z)
+		var s: Renderer.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = glow
 		s.translucent = translucent
 		out.append(s)

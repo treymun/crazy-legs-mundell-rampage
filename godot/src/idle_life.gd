@@ -188,7 +188,7 @@ static func frame(e: Enemy, observer) -> Variant:
 	if absf(Enemy.angle_delta(bearing, e.angle)) > PI / 3.0:
 		return 0
 	var t: float = e.pose + m.phase
-	var fidgets := Enemy.FIDGET_CELS.has(e.kind)
+	var fidgets := Enemy.FIDGETS.has(e.kind)
 	match m.activity:
 		"drinking":
 			if fmod(t, 3.4) > 2.3:
