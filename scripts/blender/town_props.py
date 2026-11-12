@@ -473,9 +473,14 @@ PROPS = {
 # The rest of the props (the chapters' own and more of Hickston's) live next door.
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "props_more.py"), encoding="utf-8") as _more:
     exec(_more.read(), globals())
+# Each chapter's own props (props_<chapter>.py beside this file), in name order.
+for _name in sorted(os.listdir(os.path.dirname(os.path.abspath(__file__)))):
+    if _name.startswith("props_") and _name.endswith(".py") and _name != "props_more.py":
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), _name), encoding="utf-8") as _own:
+            exec(_own.read(), globals())
 PROPS.update(MORE)
 # Drawn flat on a plane in the game: rendered face on.
-FLAT = {"laundry", "powder_shelf"}
+FLAT = {"laundry", "powder_shelf", "hubcap_board"}
 
 
 # ---------------------------------------------------------------- stage

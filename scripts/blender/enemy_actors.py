@@ -2001,6 +2001,12 @@ ACTORS = {"billy": (billy, BILLY, ("fidget",), None), "coot": (coot, COOT, ("fid
           "baron": (baron, BARON, (), None), "jerry": (jerry, JERRY, (), None),
           "skeeter": (skeeter, SKEETER, (), FLYER), "saucer": (saucer, SAUCER, (), FLYER),
           "crawler": (crawler, CRAWLER, (), GROUND), "lantern": (lantern, LANTERN, (), GROUND)}
+# Each chapter's own cast lives beside this file as actors_<chapter>.py, exec'd
+# into this namespace (mat, limb, person, cast, ACTORS and the rest in scope).
+for _name in sorted(os.listdir(os.path.dirname(os.path.abspath(__file__)))):
+    if _name.startswith("actors_") and _name.endswith(".py"):
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), _name), encoding="utf-8") as _more:
+            exec(_more.read(), globals())
 
 
 # ---------------------------------------------------------------- stage
@@ -2090,12 +2096,15 @@ def main():
             root = R(0, 0, yaw)
             pitch = math.radians(4)
             w, h = width, height
+            # An upright kind (a car) burns where it stands: no fall, a down cel framed like the rest.
+            upright = S.get("upright", False)
             if own:
                 if frame == "down":
                     pitch = math.radians(20)
             elif isinstance(frame, str) and frame.startswith("die_"):
-                root = R((-.10, -.36, -.74, -1.12, -1.42)[int(frame[4:])], 0, 0)
-            elif frame == "down":
+                if not upright:
+                    root = R((-.10, -.36, -.74, -1.12, -1.42)[int(frame[4:])], 0, 0)
+            elif frame == "down" and not upright:
                 root = R(0, 0, math.pi / 2) @ T((0, 0, S["depth"])) @ R(-math.pi / 2, 0, 0)
                 pitch = math.radians(26)
                 # A tall boss lies longer than the usual frame: it may widen it and slide it headward.
@@ -2104,7 +2113,8 @@ def main():
             scene.render.resolution_x = round(w * scale)
             scene.render.resolution_y = round(h * scale)
             camera.data.ortho_scale = max(w, h)
-            look = Vector((0, 0, h / 2 - .04)) if (frame != "down" or own) else Vector((S.get("down_x", 0.), 0, .25))
+            framed = frame != "down" or own or upright
+            look = Vector((0, 0, h / 2 - .04)) if framed else Vector((S.get("down_x", 0.), 0, .25))
             back = Vector((0, -math.cos(pitch), math.sin(pitch)))
             camera.location = look + back * 12
             camera.rotation_euler = (math.pi / 2 - pitch, 0, 0)
