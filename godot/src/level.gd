@@ -1220,9 +1220,7 @@ func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> b
 ## cell's sides, then checked with the steps' own sums: the step before it must
 ## be in the cell, and since the steps only ever move one way, so is every step
 ## between.
-func _past_cell(
-	x: float, y: float, xx: float, yy: float, n: int, i: int, cx: int, cy: int
-) -> int:
+func _past_cell(x: float, y: float, xx: float, yy: float, n: int, i: int, cx: int, cy: int) -> int:
 	var j := n
 	var dx := xx - x
 	var dy := yy - y

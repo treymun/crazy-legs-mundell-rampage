@@ -29,7 +29,11 @@ func steer(game: Game) -> Game.Controls:
 		var slope := (target - p.eye) / maxf(.5, Vector2(foe.x - p.x, foe.y - p.y).length())
 		controls.look = clampf(slope * Renderer.base_focal - p.pitch, -3.0, 3.0)
 		controls.fire = absf(turn) < .08
-		controls.forward = .4 if Vector2(foe.x - p.x, foe.y - p.y).length() > 4.0 else 0.0
+		var gap := Vector2(foe.x - p.x, foe.y - p.y).length()
+		controls.forward = .4 if gap > 4.0 else 0.0
+		# Something at its feet (a gator under the gun): step back to get a shot.
+		if gap < 1.2:
+			controls.forward = -.8
 	else:
 		var goal = game.objective_target()
 		var door := door_ahead(game)
