@@ -85,7 +85,7 @@ const METAL := ["tin_guard", "drone", "saucer", "probe"]
 
 ## Whether it has a head and limbs to hit (the county's hands, the greys).
 static func limbs(e: Enemy) -> bool:
-	return Enemy.TURN_CELS.has(e.kind) and not Enemy.BOSS_TITLES.has(e.kind)
+	return Enemy.TURNS.has(e.kind) and not Enemy.BOSS_TITLES.has(e.kind)
 
 
 ## Whether this hit is on metal (sparks, a clank, no blood).

@@ -114,6 +114,12 @@ func _list_fixed() -> void:
 	fixed_sprites_late = late
 	fixed_blocks = _blocks_of(fixed_sprites)
 	late_blocks = _blocks_of(fixed_sprites_late)
+	fixed_cull = PackedFloat64Array()
+	for block: Array in fixed_blocks:
+		fixed_cull.append_array([block[0], block[1], block[2]])
+	late_cull = PackedFloat64Array()
+	for block: Array in late_blocks:
+		late_cull.append_array([block[0], block[1], block[2]])
 
 
 ## A side of a block of fixed sprites, in cells.
@@ -148,14 +154,35 @@ func _blocks_of(list: Array) -> Array:
 ## The sprites of `list` in the blocks the view can see, in list order: the
 ## renderer would skip every other one (behind the eye, past its reach or off
 ## the side), so leaving them out changes nothing drawn. A level with a mirror
-## also keeps what the mirror's view could show.
-func _seen(list: Array, blocks: Array) -> Array:
+## also keeps what the mirror's view could show. `cull` is the blocks' middles
+## and reaches, flat (fixed_cull, late_cull): in_view()'s test written out.
+func _seen(list: Array, blocks: Array, cull: PackedFloat64Array) -> Array:
 	if view_cone.is_empty():
 		return list.duplicate()
+	var cx := view_cone[0]
+	var cy := view_cone[1]
+	var fx := view_cone[2]
+	var fy := view_cone[3]
+	var k := view_cone[4]
+	var edge := view_cone[5]
+	var mx := view_cone[6]
+	var mirror := not is_nan(edge)
 	var places := PackedInt32Array()
-	for block: Array in blocks:
-		if in_view(block[0], block[1], block[2]):
-			places.append_array(block[3])
+	for b in blocks.size():
+		var x := cull[b * 3]
+		var y := cull[b * 3 + 1]
+		var r := cull[b * 3 + 2]
+		var dx := x - cx
+		var dy := y - cy
+		var d := dx * fx + dy * fy
+		if not (d > .13 - r and d < 51.0 + r and absf(dy * fx - dx * fy) < (d + r) * k + r):
+			if not mirror or x + r < edge:
+				continue
+			dx = x - mx
+			d = -dx * fx + dy * fy
+			if not (d > .13 - r and d < 51.0 + r and absf(dy * fx + dx * fy) < (d + r) * k + r):
+				continue
+		places.append_array(blocks[b][3])
 	places.sort()
 	var out: Array = []
 	out.resize(places.size())
@@ -210,20 +237,24 @@ func in_view(x: float, y: float, reach: float) -> bool:
 
 func sprites() -> Array:
 	_aim_view()
+	# Everything listed below but the fixed sprites comes from the pool.
+	sprite_pool_n = 0
 	var key := _fixed_key()
 	if key != fixed_sprites_key:
 		fixed_sprites_key = key
 		_list_fixed()
-	var mill := "prop_windmill_%d" % (int(clock * 5.0) % 3)
+	var mill := (
+		"prop_windmill_%d" % (int(clock * 5.0) % 3) if not fixed_windmills.is_empty() else ""
+	)
 	for sprite: Renderer.Sprite in fixed_windmills:
 		sprite.image = mill
-	var sprites: Array = _seen(fixed_sprites, fixed_blocks)
+	var sprites: Array = _seen(fixed_sprites, fixed_blocks, fixed_cull)
 	if in_hub:
 		# plane = 0: these are flat boards fixed in the world, as in the
 		# reference, not sprites that turn to face the camera.
 		var board_at: Vector2 = level.hub_board
 		var shift: Vector2 = board_at - HUB_BOARD
-		var dispatch := Renderer.Sprite.new(
+		var dispatch := pooled(
 			board_at.x, board_at.y, "county_dispatch_%d" % hub_milestone, .46, 1.02
 		)
 		dispatch.plane = 0.0
@@ -231,9 +262,7 @@ func sprites() -> Array:
 		if hub_milestone != 0:
 			var trunk := hub_milestone in [2, 3]
 			var prop := "county_dispatch_trunk" if trunk else "county_dispatch_tag"
-			var tag := Renderer.Sprite.new(
-				29.67 + shift.x, 44.12 + shift.y, prop, .31 if trunk else .24, .83
-			)
+			var tag := pooled(29.67 + shift.x, 44.12 + shift.y, prop, .31 if trunk else .24, .83)
 			tag.plane = 0.0
 			sprites.append(tag)
 		var detail: int = renderer.world_motion
@@ -245,7 +274,7 @@ func sprites() -> Array:
 		for i in 3 - detail:
 			var row: Array = dust_rows[i]
 			var dx: float = float(row[0]) + .11 * sin(clock * motion_speed * .68 + float(row[1]))
-			var puff := Renderer.Sprite.new(
+			var puff := pooled(
 				dx + shift.x, float(row[1]) + shift.y, "hub_dust", float(row[2]), float(row[3])
 			)
 			puff.translucent = true
@@ -262,17 +291,17 @@ func sprites() -> Array:
 		return sprites
 	if gallery != null and gallery.active:
 		sprites.append(gallery.sprite(self))
-	sprites.append_array(_seen(fixed_sprites_late, late_blocks))
+	sprites.append_array(_seen(fixed_sprites_late, late_blocks, late_cull))
 	if finale != null and finale.kind == "rudy" and finale.alive:
 		for point: Vector2 in world.boss_decoys:
-			var decoy := Renderer.Sprite.new(
+			var decoy := pooled(
 				point.x, point.y, "rudy_decoy", 1.65, world.elevation(point.x, point.y)
 			)
 			decoy.plane = 0.0
 			sprites.append(decoy)
 	for hazard: Hazard in hazards:
 		if hazard.age >= hazard.warning:
-			var mist := Renderer.Sprite.new(
+			var mist := pooled(
 				hazard.x,
 				hazard.y,
 				"fx_%s_mist" % hazard.kind,
@@ -283,25 +312,64 @@ func sprites() -> Array:
 			sprites.append(mist)
 	var observer := [player.x, player.y]
 	var relieved := not world.pressure_ports.is_empty() and relief_open()
+	# in_view() written out for the many enemies and pickups (the same sums).
+	var culling := not view_cone.is_empty()
+	var cx := view_cone[0] if culling else 0.0
+	var cy := view_cone[1] if culling else 0.0
+	var fx := view_cone[2] if culling else 0.0
+	var fy := view_cone[3] if culling else 0.0
+	var k := view_cone[4] if culling else 0.0
+	var edge := view_cone[5] if culling else NAN
+	var mx := view_cone[6] if culling else 0.0
+	var mirror := not is_nan(edge)
 	for enemy: Enemy in enemies:
-		# Not even a boss or a corpse reaches 3.5 from where it stands.
-		if not in_view(enemy.x, enemy.y, 3.5):
-			continue
-		var sprite = enemy.sprite(observer, relieved, clock)
+		if culling:
+			# Not even a boss or a corpse reaches 3.5 from where it stands.
+			var dx := enemy.x - cx
+			var dy := enemy.y - cy
+			var d := dx * fx + dy * fy
+			if not (
+				d > .13 - 3.5 and d < 51.0 + 3.5 and absf(dy * fx - dx * fy) < (d + 3.5) * k + 3.5
+			):
+				if not mirror or enemy.x + 3.5 < edge:
+					continue
+				dx = enemy.x - mx
+				d = -dx * fx + dy * fy
+				if not (
+					d > .13 - 3.5
+					and d < 51.0 + 3.5
+					and absf(dy * fx + dx * fy) < (d + 3.5) * k + 3.5
+				):
+					continue
+		var slot := pooled(0.0, 0.0, "", 1.0, 0.0)
+		var sprite = enemy.sprite(observer, relieved, clock, slot)
 		if sprite != null:
 			sprite.z += world.elevation(sprite.x, sprite.y)
 			sprites.append(sprite)
+		else:
+			sprite_pool_n -= 1
 	for entry in pickups:
 		var x := float(entry[1])
 		var y := float(entry[2])
-		if not in_view(x, y, 1.0):
-			continue
+		if culling:
+			var dx := x - cx
+			var dy := y - cy
+			var d := dx * fx + dy * fy
+			if not (
+				d > .13 - 1.0 and d < 51.0 + 1.0 and absf(dy * fx - dx * fy) < (d + 1.0) * k + 1.0
+			):
+				if not mirror or x + 1.0 < edge:
+					continue
+				dx = x - mx
+				d = -dx * fx + dy * fy
+				if not (
+					d > .13 - 1.0
+					and d < 51.0 + 1.0
+					and absf(dy * fx + dx * fy) < (d + 1.0) * k + 1.0
+				):
+					continue
 		var hover := .06 + sin(clock * 3.5 + x) * .035
-		sprites.append(
-			Renderer.Sprite.new(
-				x, y, "item_" + String(entry[0]), .33, world.elevation(x, y) + hover
-			)
-		)
+		sprites.append(pooled(x, y, "item_" + String(entry[0]), .33, world.elevation(x, y) + hover))
 	for shot: Shot in shots:
 		if (
 			shot.enemy
@@ -325,15 +393,15 @@ func sprites() -> Array:
 				)
 				name += "_%d" % (phase % 3)
 			var size := Shots.size(shot.kind, shot.enemy)
-			var shot_sprite := Renderer.Sprite.new(shot.x, shot.y, "fx_" + name, size, shot.z)
+			var shot_sprite := pooled(shot.x, shot.y, "fx_" + name, size, shot.z)
 			shot_sprite.glow = Shots.glows(shot.kind)
 			sprites.append(shot_sprite)
 	sprites.append_array(Features.sprites(self))
-	for fx: Speck in specks:
-		if not in_view(fx.x, fx.y, .3):
+	for fx_speck: Speck in specks:
+		if not in_view(fx_speck.x, fx_speck.y, .3):
 			continue
-		var speck_sprite := Renderer.Sprite.new(fx.x, fx.y, "fx_" + fx.kind, .095, fx.z)
-		speck_sprite.glow = fx.kind == "spark"
+		var speck_sprite := pooled(fx_speck.x, fx_speck.y, "fx_" + fx_speck.kind, .095, fx_speck.z)
+		speck_sprite.glow = fx_speck.kind == "spark"
 		sprites.append(speck_sprite)
 	for puff: Gore.Puff in gore_fx.puffs:
 		if not in_view(puff.x, puff.y, 1.6):
@@ -343,10 +411,10 @@ func sprites() -> Array:
 		# A puff right in front (a swing at a wall) stays small: at full size it
 		# would fill the view.
 		var near_k := clampf(Vector2(puff.x - player.x, puff.y - player.y).length() / 2.5, .35, 1.0)
-		var cloud := Renderer.Sprite.new(
+		var cloud := pooled(
 			puff.x,
 			puff.y,
-			"fx_%s_%d" % [puff.kind, step],
+			Enemy.cel_name("fx_" + puff.kind, step),
 			(.20 + puff.age * .85) * near_k,
 			puff.z - .08 * near_k
 		)
@@ -356,7 +424,7 @@ func sprites() -> Array:
 	for g: Gore.Gib in gore_fx.gibs:
 		if not in_view(g.x, g.y, g.size + .4):
 			continue
-		var chunk := Renderer.Sprite.new(g.x, g.y, g.image, g.size, g.z)
+		var chunk := pooled(g.x, g.y, g.image, g.size, g.z)
 		chunk.flip = g.flip
 		sprites.append(chunk)
 	var blast_order: Array = []
@@ -388,7 +456,7 @@ func sprites() -> Array:
 			if blast.kind == "fire"
 			else "blast_energy" if blast.kind == "energy" else blast.kind
 		)
-		var blast_sprite := Renderer.Sprite.new(
+		var blast_sprite := pooled(
 			blast.x, blast.y, "fx_%s_%d" % ["smoke" if smoke else ball, frame], size, z
 		)
 		blast_sprite.glow = not smoke

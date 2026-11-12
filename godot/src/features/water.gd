@@ -20,6 +20,11 @@ var rings: Array = []
 ## Per body (the player is key 0, an enemy its instance id): [x, y, travelled
 ## since its last ring, wet last tick, next drip].
 var _bodies := {}
+## The floor tiles sorted for wet_at() (_sort_tiles), for that level and tables.
+var _kinds := PackedByteArray()
+var _kinds_of: LevelData = null
+var _water: Dictionary = {}
+var _puddles: Dictionary = {}
 
 
 func id() -> String:
@@ -38,18 +43,36 @@ func wet_at(x: float, y: float) -> bool:
 	var world: LevelData = game.world
 	if x < 0.0 or y < 0.0 or x >= world.width or y >= world.height:
 		return false
-	var i := world.cell(x, y)
+	if not (
+		is_same(_kinds_of, world)
+		and is_same(_water, Effects.WATER)
+		and is_same(_puddles, Effects.PUDDLES)
+	):
+		_sort_tiles(world)
+	var i := int(y) * world.width + int(x)
 	var tile := int(world.floor_tile[i])
-	if tile < 0 or tile >= world.tile_names.size():
+	if tile < 0 or tile >= _kinds.size():
 		return false
-	var name := String(world.tile_names[tile])
-	if Effects.WATER.has(name):
+	var kind := _kinds[tile]
+	if kind == 1:
 		return true
-	if not Effects.PUDDLES.has(name):
+	if kind == 0:
 		return false
 	var weather = game.features.get("weather")
 	var open: bool = world.roof[i] <= world.ground[i] + .01
 	return weather != null and weather.wet > .35 and open
+
+
+## What each floor tile is to wet_at(): 1 water, 2 a puddle floor, 0 neither.
+func _sort_tiles(world: LevelData) -> void:
+	_kinds_of = world
+	_water = Effects.WATER
+	_puddles = Effects.PUDDLES
+	_kinds = PackedByteArray()
+	_kinds.resize(world.tile_names.size())
+	for t in world.tile_names.size():
+		var name := String(world.tile_names[t])
+		_kinds[t] = 1 if _water.has(name) else 2 if _puddles.has(name) else 0
 
 
 ## The nearest live rings, at most MAX_SHOWN: [x, y, age, size].
@@ -83,7 +106,7 @@ func _tick(_dt: float) -> void:
 		_wade(0, p.x, p.y, 1.0, false)
 	seen[0] = true
 	for e: Enemy in game.enemies:
-		if not e.alive or absf(e.x - p.x) > 16.0 or absf(e.y - p.y) > 16.0:
+		if absf(e.x - p.x) > 16.0 or absf(e.y - p.y) > 16.0 or not e.alive:
 			continue
 		var key := e.get_instance_id()
 		seen[key] = true
@@ -93,15 +116,19 @@ func _tick(_dt: float) -> void:
 			_wake(key, e, .8, 0.0)
 		else:
 			_wade(key, e.x, e.y, clampf(e.radius / .3, .7, 1.4), true)
-	for key in _bodies.keys():
-		if not seen.has(key):
-			_bodies.erase(key)
+	# Every key seen but the player's (0, not while in the air) is in _bodies
+	# now, so any other is stale only when there are more than that.
+	if _bodies.size() > seen.size() - (0 if _bodies.has(0) else 1):
+		for key in _bodies.keys():
+			if not seen.has(key):
+				_bodies.erase(key)
 
 
 ## A wading body: a ring each stride, a splash stepping in, drips standing.
 func _wade(key: int, x: float, y: float, size: float, enemy: bool) -> void:
 	var wet := wet_at(x, y)
-	var b: Array = _bodies.get(key, [x, y, 0.0, wet, game.clock + 1.0])
+	var known = _bodies.get(key)
+	var b: Array = known if known != null else [x, y, 0.0, wet, game.clock + 1.0]
 	var moved := Vector2(x - float(b[0]), y - float(b[1])).length()
 	if wet:
 		if not bool(b[3]) and moved > 0.0:
@@ -129,7 +156,8 @@ func _wade(key: int, x: float, y: float, size: float, enemy: bool) -> void:
 ## A body that swims: rings dropped behind it as it goes, two to the sides
 ## behind a boat (`spread`), which spread into a wake.
 func _wake(key: int, e: Enemy, size: float, spread: float) -> void:
-	var b: Array = _bodies.get(key, [e.x, e.y, 0.0, false, 0.0])
+	var known = _bodies.get(key)
+	var b: Array = known if known != null else [e.x, e.y, 0.0, false, 0.0]
 	var moved := Vector2(e.x - float(b[0]), e.y - float(b[1])).length()
 	b[2] = float(b[2]) + moved
 	if b[2] >= WAKE and wet_at(e.x, e.y):

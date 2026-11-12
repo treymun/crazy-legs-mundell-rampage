@@ -367,11 +367,20 @@ func tick(dt: float, controls) -> void:
 						toggle_door(door, true)
 					break
 	world.update(wdt, p, enemies)
-	var remaining: Array = []
+	# reaches_pickup()'s first test written out: most ticks nothing is near.
+	var near := false
 	for entry in pickups:
-		if not reaches_pickup(entry) or not collect(String(entry[0])):
-			remaining.append(entry)
-	pickups = remaining
+		var gx: float = float(entry[1]) - p.x
+		var gy: float = float(entry[2]) - p.y
+		if gx * gx + gy * gy < .62 * .62:
+			near = true
+			break
+	if near:
+		var remaining: Array = []
+		for entry in pickups:
+			if not reaches_pickup(entry) or not collect(String(entry[0])):
+				remaining.append(entry)
+		pickups = remaining
 	armory.tick(dt, self)
 	if gallery != null and gallery.active:
 		gallery.tick(dt, self, controls.fire or controls.alt_fire)

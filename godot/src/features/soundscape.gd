@@ -33,6 +33,10 @@ var _sources: Array = []
 var _near: Array = []
 var _look_at := 0.0
 var _boat := Vector2.INF
+## The swamp kings among game.enemies, as of that list at that size.
+var _kings: Array = []
+var _kings_in: Array = []
+var _kings_of := -1
 
 
 func id() -> String:
@@ -108,8 +112,13 @@ func _nearest(sound: Sound) -> void:
 
 func _wake(sound: Sound) -> void:
 	var water = game.features.get("water")
-	for e: Enemy in game.enemies:
-		if e.brain != "swamp_king" or not e.alive:
+	if not is_same(_kings_in, game.enemies) or _kings_of != game.enemies.size():
+		# The swamp kings, found again only when the list changes.
+		_kings_in = game.enemies
+		_kings_of = game.enemies.size()
+		_kings = game.enemies.filter(func(e: Enemy) -> bool: return e.brain == "swamp_king")
+	for e: Enemy in _kings:
+		if not e.alive:
 			continue
 		var here := Vector2(e.x, e.y)
 		var moving := _boat != Vector2.INF and here.distance_to(_boat) > .004

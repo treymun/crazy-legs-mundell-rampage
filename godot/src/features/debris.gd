@@ -231,7 +231,7 @@ func sprites() -> Array:
 				name = "fx_ember_%d" % (int(bit.age * 9.0) % 2)
 			"smoke":
 				name = "fx_smoke_%d" % mini(3, int(bit.age / bit.life * 4.0))
-		var s := Renderer.Sprite.new(bit.x, bit.y, name, bit.size, bit.z)
+		var s: Renderer.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = bit.kind == "ember"
 		s.translucent = bit.kind == "smoke"
 		out.append(s)

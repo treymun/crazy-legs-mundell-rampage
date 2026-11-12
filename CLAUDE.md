@@ -222,7 +222,25 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `in_view(x, y, reach)`; a new sprite source should use it too. The shader
   draws sprites in list order, so culling only ever leaves sprites out, never
   reorders them. A window tour of old and new code compared pixel for pixel is
-  how these were checked: do the same after touching them.
+  how these were checked: do the same after touching them. `in_view()`'s sums
+  are also written out in `_seen()` (blocks from `fixed_cull`/`late_cull`, kept
+  beside `fixed_blocks`; breakables' `_widen` updates both) and in the enemy and
+  pickup loops: change them all together.
+- **Sprites that last one frame come from a pool** (`game.pooled()`,
+  game_state.gd; `sprites()` starts it over each frame): enemies (through
+  `Enemy.sprite(..., into)`), pickups, shots, specks, puffs, gibs, blasts and
+  the effect features' sprites. A pooled sprite comes back with every field at
+  its default; never keep one past the frame (a sprite kept from frame to frame,
+  like the fixed ones or breakables' resting pieces, is `Renderer.Sprite.new`).
+  Cel names are made once (`Enemy.cel_name()`, `EnemyLooks._row()`, cleared when
+  the art index changes), not formatted every frame. These were checked exact:
+  every sprite of 32 scripted runs (fights, kills, gibs, blasts) listed old and
+  new, field for field, plus every enemy's state and the dice each frame.
+- **What was tried for the tick and dropped:** enemies far away (past the 32
+  cells the renderer draws) ticking at 30 Hz with the time saved up kept the
+  dice the same but stepped far patrols coarser, so where a hand stood when the
+  player got there could differ from before (not exact, so not kept); cosmetic features stepped at 60 Hz would move choppier on a
+  display over 60 Hz. Keep tick changes exact (same state, same dice).
 - **A browser build asks the browser for its core count** (`RenderState.processors()`):
   Godot's own answer there is capped at two, which held the browser to one
   band thread although the build keeps 24 worker threads ready

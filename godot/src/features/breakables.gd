@@ -429,10 +429,14 @@ func _widen(s: Renderer.Sprite) -> void:
 		return
 	var art: Dictionary = game.renderer.sprite_art(s.image)
 	var half := s.height * float(art["w"]) / maxf(1.0, float(art["h"])) * .5
-	for block: Array in game.fixed_blocks:
+	for b in game.fixed_blocks.size():
+		var block: Array = game.fixed_blocks[b]
 		if (block[3] as PackedInt32Array).has(index):
 			var far := Vector2(s.x - float(block[0]), s.y - float(block[1])).length() + half + .3
 			block[2] = maxf(float(block[2]), far)
+			# game_view.gd _seen() reads the reach from fixed_cull.
+			if game.fixed_cull.size() > b * 3 + 2:
+				game.fixed_cull[b * 3 + 2] = block[2]
 			return
 
 
@@ -616,15 +620,13 @@ func sprites() -> Array:
 			out.append_array(block[3])
 	for b: Bit in bits:
 		if not b.rest and game.in_view(b.x, b.y, b.size + .2):
-			var s := Renderer.Sprite.new(b.x, b.y, b.image, b.size, b.z)
+			var s: Renderer.Sprite = game.pooled(b.x, b.y, b.image, b.size, b.z)
 			s.flip = b.flip
 			out.append(s)
 	for w: Array in wrecks:
 		if game.in_view(float(w[0]), float(w[1]), 1.2):
 			out.append(
-				Renderer.Sprite.new(
-					w[0], w[1], String(w[2]), w[3], game.world.elevation(w[0], w[1])
-				)
+				game.pooled(w[0], w[1], String(w[2]), w[3], game.world.elevation(w[0], w[1]))
 			)
 	return out
 

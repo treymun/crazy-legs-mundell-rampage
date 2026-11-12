@@ -116,7 +116,7 @@ func sprites() -> Array:
 	var out: Array = []
 	for m: Mote in motes:
 		if m.crow:
-			var crow := Renderer.Sprite.new(
+			var crow: Renderer.Sprite = game.pooled(
 				m.x, m.y, "fx_crow_%d" % (int(m.age * 5.0 + m.phase) % 2), .32, m.z
 			)
 			crow.flip = m.vx < 0.0
@@ -124,7 +124,9 @@ func sprites() -> Array:
 		else:
 			# Lit a moment, dark a while.
 			var lit := fmod(m.age * .9 + m.phase, 2.4) < .7
-			var fly := Renderer.Sprite.new(m.x, m.y, "fx_firefly_%d" % (0 if lit else 1), .035, m.z)
+			var fly: Renderer.Sprite = game.pooled(
+				m.x, m.y, "fx_firefly_%d" % (0 if lit else 1), .035, m.z
+			)
 			fly.glow = lit
 			out.append(fly)
 	return out
