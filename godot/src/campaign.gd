@@ -7,9 +7,15 @@
 class_name Campaign
 extends RefCounted
 
-const ORDER := ["hickston", "fair", "sawmill", "quarry"]
+const ORDER := ["hickston", "fair", "sawmill", "quarry", "speedway"]
 
-const GATE_LABELS := {"hickston": "HICKSTON", "fair": "FAIR", "sawmill": "MILL", "quarry": "QUARRY"}
+const GATE_LABELS := {
+	"hickston": "HICKSTON",
+	"fair": "FAIR",
+	"sawmill": "MILL",
+	"quarry": "QUARRY",
+	"speedway": "SPEEDWAY",
+}
 
 const LEVEL_INFO := {
 	"hickston":
@@ -152,6 +158,46 @@ const LEVEL_INFO := {
 			["LOWER CUT", 51, 26],
 			["WASH", 70, 37],
 			["COPPER", 67, 12]
+		],
+	},
+	"speedway":
+	{
+		"title": "DIRT TRACK SPEEDWAY",
+		"heading": ["BUZZARD BEND", "RACE NIGHT"],
+		"districts":
+		[
+			"TRUCK STOP",
+			"LUGNUT'S DINER",
+			"HAULERS' LOT",
+			"PIT ROW",
+			"FUEL DEPOT",
+			"THE OVAL",
+			"INFIELD CAMP",
+			"FIGURE 8",
+			"GRANDSTANDS",
+			"ANNOUNCER'S BOOTH",
+			"THE CONCOURSE",
+			"BOGGS SALVAGE",
+			"CRUSHER YARD",
+			"TOW LOT",
+			"GRANDSTAND PARKING"
+		],
+		"introduction": "DUMP THE PIT FUEL, RUN THE CRUSHER AND CUT IN ON THE PA.",
+		"ending": '"CHECKERED FLAG. NOBODY ELSE FINISHED."',
+		"score": "music_speedway",
+		"ambience": "",
+		"rescue": false,
+		"labels":
+		[
+			["TRUCK STOP", 4, 88],
+			["DINER", 6, 60],
+			["PIT ROW", 40, 10],
+			["OVAL", 44, 25],
+			["FIGURE 8", 82, 45],
+			["STANDS", 50, 75],
+			["SALVAGE", 124, 8],
+			["CRUSHER", 130, 31],
+			["TOW LOT", 118, 88]
 		],
 	},
 }

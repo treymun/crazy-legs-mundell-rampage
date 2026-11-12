@@ -239,5 +239,32 @@
   "weapon": true,
   "x": 38.0,
   "y": 61.0
+ },
+ {
+  "angle": -0.6,
+  "level": "speedway",
+  "pitch": -4.0,
+  "tag": "speedway_oval_0",
+  "weapon": false,
+  "x": 60.5,
+  "y": 70.5
+ },
+ {
+  "angle": 0.0,
+  "level": "speedway",
+  "pitch": 2.0,
+  "tag": "speedway_pits_0",
+  "weapon": false,
+  "x": 30.5,
+  "y": 18.5
+ },
+ {
+  "angle": -1.2,
+  "level": "speedway",
+  "pitch": -6.0,
+  "tag": "speedway_figure8_0",
+  "weapon": false,
+  "x": 85.5,
+  "y": 31.5
  }
 ]

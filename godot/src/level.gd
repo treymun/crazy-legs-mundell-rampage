@@ -242,6 +242,9 @@ var discovery_rooms := {}
 var reinforcements: Array = []
 var pressure_ports: Array = []
 var boss_decoys: Array = []
+## Cars still lapping the track (features/race_laps.gd): their path, how
+## many, how fast, the station that stops them.
+var lap_cars := {}
 var distant_cues: Array = []
 var notes: Array = []
 var partners: Array = []
@@ -456,6 +459,8 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		)
 	for point in j.get("pressure_ports", []):
 		lv.pressure_ports.append(Vector2(float(point[0]), float(point[1])))
+	var laps = j.get("lap_cars", {})
+	lv.lap_cars = laps if laps is Dictionary else {}
 	for point in j.get("boss_decoys", []):
 		lv.boss_decoys.append(Vector2(float(point[0]), float(point[1])))
 	for cue in j.get("distant_cues", []):
@@ -799,6 +804,9 @@ const DETAIL_BASES := {
 }
 
 const METAL_TILES := [
+	"garage_door",
+	"junk_stack",
+	"diner_steel",
 	"tin",
 	"ship",
 	"steel_mesh",
@@ -812,7 +820,16 @@ const METAL_TILES := [
 	"powder_panel"
 ]
 const PLASTER_TILES := [
-	"plaster", "brick", "cinder", "tile", "concrete", "quarry_face", "office_wall", "tavern"
+	"plaster",
+	"brick",
+	"cinder",
+	"tile",
+	"concrete",
+	"quarry_face",
+	"office_wall",
+	"tavern",
+	"crash_wall",
+	"diner_checker"
 ]
 const DIRT_TILES := [
 	"dirt",
@@ -827,7 +844,11 @@ const DIRT_TILES := [
 	"creek",
 	"asphalt",
 	"road",
-	"oil_asphalt"
+	"oil_asphalt",
+	"track_dirt",
+	"track_chalk",
+	"derby_mud",
+	"junk_ground"
 ]
 
 ## Sound cue per floor surface; anything else is gravel.
@@ -847,6 +868,11 @@ const SURFACE_SOUNDS := {
 	"quarry_dust": "gravel",
 	"quarry_face": "gravel",
 	"route_threshold": "gravel",
+	"track_dirt": "mud",
+	"track_chalk": "mud",
+	"derby_mud": "mud",
+	"junk_ground": "gravel",
+	"diner_checker": "tile",
 }
 
 var _impact_surfaces := {}

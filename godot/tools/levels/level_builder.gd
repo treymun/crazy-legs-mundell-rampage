@@ -1103,6 +1103,7 @@ func finish(spawn: Array) -> Dictionary:
 		"gallery": meta.get("gallery"),
 		"pressure_ports": meta.get("pressure_ports", []),
 		"boss_decoys": meta.get("boss_decoys", []),
+		"lap_cars": meta.get("lap_cars", {}),
 	}
 	LevelEdit.refresh_heights(out)
 	var roofs := {}

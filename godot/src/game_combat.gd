@@ -505,7 +505,7 @@ func finish_shot(shot: Shot) -> void:
 			and world.visible(shot.x, shot.y, p.x, p.y, shot.z, p.eye)
 		):
 			damage(10, [shot.x, shot.y], "GLASS")
-	elif shot.kind in ["deputy_slug", "chain_hook", "valve_slug"]:
+	elif shot.kind in ["deputy_slug", "chain_hook", "valve_slug", "wrench", "tire", "flare"]:
 		burst(shot.x, shot.y, shot.z, "spark" if shot.kind == "chain_hook" else "dust", 3, .75)
 
 
@@ -817,6 +817,8 @@ func ground_marks() -> Array:
 							"mark_lane"
 						)
 					)
+		elif enemy.brain == "derby_champ":
+			marks.append_array(DerbyChamp.marks(enemy, self))
 		elif enemy.brain == "foreman":
 			var direction := atan2(my - enemy.y, mx - enemy.x)
 			for lane in enemy.saw_lanes(direction, enemy.attacks + 1):
