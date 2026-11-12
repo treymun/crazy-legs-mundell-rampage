@@ -93,6 +93,8 @@ func _tick(dt: float) -> void:
 		0.0
 	)
 	if game.feel_landed:
+		if _fall < -2.0:
+			game.sound.play("land_thump", clampf(-_fall / 5.0, .35, .9))
 		var hard := clampf(-_fall / 2.7, .4, 1.6) * bob
 		sway_v.y += float(cfg.get("land", 6.0)) * hard * w_sway * PUSH
 		view_v.z += LAND_DROP * hard * w_sway * PUSH

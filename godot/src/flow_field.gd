@@ -40,7 +40,17 @@ var open := PackedByteArray()
 var steps := PackedInt32Array()
 var origin := Vector2i(-1, -1)
 var next_at := 0.0
+## Cells a call walks at most (0: the whole walk at once). The objective
+## compass walks the whole level, 5 to 10 ms in one frame: Game.route spreads
+## it over a few frames, and the last finished answer stands until then.
+var budget := 0
 var _touched := PackedInt32Array()
+## The walk under way: its steps, the cells it set, its queue.
+var _next := PackedInt32Array()
+var _next_touched := PackedInt32Array()
+var _queue := PackedInt32Array()
+var _head := 0
+var _walked := false
 
 
 func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
@@ -49,6 +59,8 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 	height = world.height
 	steps.resize(width * height)
 	steps.fill(FAR)
+	_next.resize(width * height)
+	_next.fill(FAR)
 	if floor_from != null:
 		open = floor_from.open
 		_door_at = floor_from._door_at
@@ -118,27 +130,40 @@ func passable(cell: int) -> bool:
 	return kind == 1
 
 
-## Measure again from the player's cell if they have moved to another one.
+## Measure again from the player's cell if they have moved to another one
+## (with a budget, go on with a walk under way first).
 func update(x: float, y: float, clock: float) -> void:
+	if _head < _queue.size():
+		_walk()
 	var here := Vector2i(int(x), int(y))
 	if here == origin or clock < next_at:
 		return
 	origin = here
 	next_at = clock + .25
-	for cell in _touched:
-		steps[cell] = FAR
-	_touched.resize(0)
+	for cell in _next_touched:
+		_next[cell] = FAR
+	_next_touched.resize(0)
+	_queue.resize(0)
+	_head = 0
 	var start := here.y * width + here.x
-	if start < 0 or start >= steps.size():
-		return
-	steps[start] = 0
-	_touched.append(start)
-	var queue := PackedInt32Array([start])
-	var head := 0
-	while head < queue.size():
-		var cell := queue[head]
-		head += 1
-		var d := steps[cell]
+	if start >= 0 and start < steps.size():
+		_next[start] = 0
+		_next_touched.append(start)
+		_queue.append(start)
+	_walk()
+
+
+## Walk on from the queue (all of it, or `budget` cells; the first walk always
+## all of it, so there is an answer from the start); a finished walk becomes
+## the field.
+func _walk() -> void:
+	var stop := _queue.size() + width * height
+	if budget > 0 and _walked:
+		stop = _head + budget
+	while _head < _queue.size() and _head < stop:
+		var cell := _queue[_head]
+		_head += 1
+		var d := _next[cell]
 		if d >= reach:
 			continue
 		var cx := cell % width
@@ -150,11 +175,22 @@ func update(x: float, y: float, clock: float) -> void:
 			if nx < 0 or ny < 0 or nx >= width or ny >= height:
 				continue
 			var next := ny * width + nx
-			if steps[next] != FAR or not passable(next):
+			if _next[next] != FAR or not passable(next):
 				continue
-			steps[next] = d + 1
-			_touched.append(next)
-			queue.append(next)
+			_next[next] = d + 1
+			_next_touched.append(next)
+			_queue.append(next)
+	if _head < _queue.size():
+		return
+	var done := _next
+	_next = steps
+	steps = done
+	var was_touched := _next_touched
+	_next_touched = _touched
+	_touched = was_touched
+	_queue.resize(0)
+	_head = 0
+	_walked = true
 
 
 ## The heading from x, y one cell downhill toward the player, or NAN when the

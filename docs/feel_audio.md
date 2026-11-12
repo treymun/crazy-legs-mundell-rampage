@@ -1,13 +1,15 @@
 # Sounds the impacts and the gun's feel could use
 
-Listed by the impacts and feel pass (ricochets and penetration, smoke, dust
-and embers, marks that stay, the gun and view on springs). None of these
-were generated: the main session decides whether to spend ElevenLabs credits
-on them, or to make them in `assets.gd` MADE_CUES. Until then each plays the
-existing cue named in the last column (`src/materials.gd` CUES picks a
-strike's sound by what was struck).
+**Made in 2.0.0-dev.32** (ElevenLabs, through the budget ledger; spec in
+`scripts/audio_spec.py`, the block after the range). Where each plays is
+listed below; nobody has listened to them yet.
 
-| Cue | When it plays | Plays now |
+Listed by the impacts and feel pass (ricochets and penetration, smoke, dust
+and embers, marks that stay, the gun and view on springs). `src/materials.gd` CUES picks a strike's sound
+by what was struck; steel's long whine plays one round in three
+(`Sound.VARIANTS`). The last column was the stand-in before.
+
+| Cue | When it plays | Before |
 | --- | --- | --- |
 | `ricochet_tin` | A round strikes sheet tin, a trailer or a garage door: a thin, bright ping | `ricochet` |
 | `ricochet_whine` | A round glances off steel plate, the Mothership's hull or iron: the long whine | `ricochet` |

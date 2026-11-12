@@ -238,6 +238,11 @@ var near_fixtures := {}
 ## 1 for a cell either index lists anything under (it stays 1 when a piece is
 ## taken out): a 0 lets blocked() skip both lookups for the open floor.
 var index_cells := PackedByteArray()
+## 1 for a cell neither index lists anything under whose eight neighbours
+## and itself are all open floor, off the map's edge: every step of a sight
+## line inside it is clear, so visible() jumps to where the line leaves it.
+## Never set again after load: a wall taken out leaves it 0 (still exact).
+var clear_cells := PackedByteArray()
 var broken_panes := {}
 var return_gate = null
 var extraction = null
@@ -970,6 +975,28 @@ func _build_indexes() -> void:
 		for key: Vector2i in index:
 			if key.x >= 0 and key.y >= 0 and key.x < width and key.y < height:
 				index_cells[key.y * width + key.x] = 1
+	# Open across: a cell and its left and right neighbours all open floor.
+	var across := PackedByteArray()
+	across.resize(width * height)
+	across.fill(0)
+	for cy in height:
+		for cx in range(1, width - 1):
+			var cell := cy * width + cx
+			if solid[cell - 1] < 0 and solid[cell] < 0 and solid[cell + 1] < 0:
+				across[cell] = 1
+	clear_cells = PackedByteArray()
+	clear_cells.resize(width * height)
+	clear_cells.fill(0)
+	for cy in range(1, height - 1):
+		for cx in range(1, width - 1):
+			var cell := cy * width + cx
+			if (
+				index_cells[cell] == 0
+				and across[cell] != 0
+				and across[cell - width] != 0
+				and across[cell + width] != 0
+			):
+				clear_cells[cell] = 1
 
 
 ## Take one piece of furniture out of the way (a crate shot to pieces:
@@ -1056,10 +1083,18 @@ func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> b
 	var plain := (
 		pane_tiles.is_empty() and locked_gates.is_empty() and index_cells.size() == width * height
 	)
-	for i in range(1, n):
+	var fast := plain and clear_cells.size() == width * height
+	var i := 1
+	while i < n:
 		var t := float(i) / float(n)
 		var sx := x + (xx - x) * t
 		var sy := y + (yy - y) * t
+		if fast and sx >= 0.0 and sy >= 0.0:
+			var cx := int(sx)
+			var cy := int(sy)
+			if cx < width and cy < height and clear_cells[cy * width + cx] != 0:
+				i = _past_cell(x, y, xx, yy, n, i, cx, cy)
+				continue
 		if plain:
 			var ax := int(sx + -.023)
 			var bx := int(sx + .023)
@@ -1075,13 +1110,45 @@ func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> b
 			):
 				return false
 			if index_cells[int(sy) * width + int(sx)] == 0:
+				i += 1
 				continue
 		var wz = null
 		if z != null:
 			wz = float(z) + (float(zz) - float(z)) * t
 		if blocked(sx, sy, .023, wz):
 			return false
+		i += 1
 	return true
+
+
+## The first of a sight line's n steps after step i (in clear cell cx, cy) that
+## is outside that cell, or n. Worked out from where the line crosses the
+## cell's sides, then checked with the steps' own sums: the step before it must
+## be in the cell, and since the steps only ever move one way, so is every step
+## between.
+func _past_cell(
+	x: float, y: float, xx: float, yy: float, n: int, i: int, cx: int, cy: int
+) -> int:
+	var j := n
+	var dx := xx - x
+	var dy := yy - y
+	if dx > 0.0:
+		j = mini(j, int(ceil((float(cx + 1) - x) / dx * n)))
+	elif dx < 0.0:
+		j = mini(j, int(ceil((float(cx) - x) / dx * n)))
+	if dy > 0.0:
+		j = mini(j, int(ceil((float(cy + 1) - y) / dy * n)))
+	elif dy < 0.0:
+		j = mini(j, int(ceil((float(cy) - y) / dy * n)))
+	j = clampi(j, i + 1, n)
+	while j - 1 > i:
+		var t := float(j - 1) / float(n)
+		var sx := x + (xx - x) * t
+		var sy := y + (yy - y) * t
+		if sx >= 0.0 and sy >= 0.0 and int(sx) == cx and int(sy) == cy:
+			break
+		j -= 1
+	return j
 
 
 ## Mirrors TileMap.move(): axis-separated with a step-height limit.

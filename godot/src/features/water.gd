@@ -106,6 +106,7 @@ func _wade(key: int, x: float, y: float, size: float, enemy: bool) -> void:
 	if wet:
 		if not bool(b[3]) and moved > 0.0:
 			ring(x, y, size * 1.6)
+			game.sound_at("wade_splash", x, y, .45 if enemy else .7)
 			b[2] = 0.0
 		elif moved > .001:
 			b[2] = float(b[2]) + moved
@@ -116,6 +117,8 @@ func _wade(key: int, x: float, y: float, size: float, enemy: bool) -> void:
 			var a := dice.randf_range(0.0, TAU)
 			var off := dice.randf_range(.08, .22)
 			ring(x + cos(a) * off, y + sin(a) * off, size * .4)
+			if not enemy:
+				game.sound.play("drip_small", .35)
 			b[4] = game.clock + dice.randf_range(.6, 1.6) * (1.3 if enemy else 1.0)
 	b[0] = x
 	b[1] = y

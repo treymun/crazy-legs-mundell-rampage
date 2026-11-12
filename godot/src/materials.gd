@@ -135,15 +135,15 @@ const SPECKS := {
 const CUES := {
 	"wood": "impact_wood",
 	"timber": "impact_wood",
-	"tin": "ricochet",
-	"steel": "ricochet",
-	"mesh": "ricochet",
-	"brick": "impact_plaster",
+	"tin": "ricochet_tin",
+	"steel": "ricochet_whine",
+	"mesh": "impact_mesh",
+	"brick": "impact_brick",
 	"stone": "impact_plaster",
-	"glass": "impact_plaster",
+	"glass": "impact_glass",
 	"dirt": "impact_dirt",
-	"brush": "impact_dirt",
-	"rubber": "impact_dirt",
+	"brush": "impact_brush",
+	"rubber": "impact_rubber",
 	"water": "impact_dirt",
 }
 

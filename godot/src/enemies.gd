@@ -292,14 +292,24 @@ func tactical() -> bool:
 
 
 ## The nearest spot a step or three away the player cannot see, or null.
+## Of the hidden spots on the nearest ring that has one, the one least toward
+## the player (the first in heading order of those as little toward them). The
+## headings are tried in that order and the first hidden one is taken: the same
+## spot as testing all twelve, without the sight lines to the rest (a search of
+## the whole four rings was about 6 ms).
 func find_cover(game) -> Variant:
 	var p = game.player
+	var away := atan2(y - p.y, x - p.x)
+	var order: Array = []
+	for k in 12:
+		order.append([absf(angle_delta(k * TAU / 12.0, away)), k])
+	order.sort_custom(
+		func(m: Array, n: Array) -> bool:
+			return float(m[0]) < float(n[0]) or (m[0] == n[0] and int(m[1]) < int(n[1]))
+	)
 	for ring: float in [1.2, 2.0, 2.8, 3.6]:
-		var best = null
-		var best_turn := 9.0
-		var away := atan2(y - p.y, x - p.x)
-		for k in 12:
-			var a := k * TAU / 12.0
+		for pair: Array in order:
+			var a := int(pair[1]) * TAU / 12.0
 			var cx := x + cos(a) * ring
 			var cy := y + sin(a) * ring
 			if game.world.blocked(cx, cy, radius) or not game.world.visible(x, y, cx, cy):
@@ -307,13 +317,7 @@ func find_cover(game) -> Variant:
 			var head: float = game.world.elevation(cx, cy) + minf(.92, height * .72)
 			if game.world.visible(p.x, p.y, cx, cy, p.eye, head):
 				continue
-			# Of the hidden spots this far off, the one least toward the player.
-			var turn := absf(angle_delta(a, away))
-			if turn < best_turn:
-				best_turn = turn
-				best = Vector2(cx, cy)
-		if best != null:
-			return best
+			return Vector2(cx, cy)
 	return null
 
 

@@ -66,6 +66,8 @@ CHAIN = {
     "scene":    dict(hp=70, lp=10500, low=1.0, pres=1.5, fade=.3, level=-4.0),
     "station":  dict(hp=60, lp=10000, low=1.5, pres=1.5, fade=.25, level=-4.0),
     "ambience": dict(hp=50, lp=6800, low=2.0, pres=-2.5, fade=0, level=-22.0, loop=.6),
+    "weather":  dict(hp=60, lp=9000, low=1.0, pres=-1.0, fade=0, level=-15.0, loop=.6),
+    "near":     dict(hp=60, lp=9500, low=1.0, pres=0.0, fade=0, level=-11.0, loop=.3),
     "loop_tool": dict(hp=90, lp=10000, low=0.0, pres=1.0, fade=0, level=-8.0, loop=.09),
     "jukebox":  dict(hp=220, lp=4200, low=-3.0, pres=2.0, fade=0, level=-12.0, loop=.4, drive=1.4),
     "distant":  dict(hp=140, lp=3800, low=0.0, pres=-2.0, fade=.3, level=-14.0, fade_in=.04),

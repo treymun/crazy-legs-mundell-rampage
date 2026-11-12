@@ -218,7 +218,9 @@ func damage(amount: float, source = null, cause := "HIT") -> void:
 	shake = minf(1.0, shake + minf(.55, amount / 40.0))
 	set_face("ouch_shock", .32)
 	barks.say(self, "low" if p.health <= 25 else "hurt")
-	sound.play("player_down" if p.health == 0 else "hurt")
+	# A light knock is a grunt; a real wound the hurt cry.
+	var cry := "hurt" if amount > 6.0 or p.health <= 25 else "blow_grunt"
+	sound.play("player_down" if p.health == 0 else cry)
 	if p.health == 0:
 		message("YOU BOUGHT THE FARM.", 8.0)
 

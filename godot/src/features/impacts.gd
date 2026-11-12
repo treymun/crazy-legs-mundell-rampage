@@ -161,6 +161,7 @@ func _pierced(entry: Vector3, exit: Vector3, _struck: String) -> void:
 	if flat < .001:
 		return
 	var dir := way / way.length()
+	game.sound_at("pierce_plank", exit.x, exit.y, .6)
 	var kind := Materials.struck(game.world, exit.x - dir.x * .04, exit.y - dir.y * .04, exit.z)
 	_chips(exit + dir * .04, kind, dir, game.armory.active)
 	if not _marks_gun(game.armory.active):

@@ -361,6 +361,7 @@ func shatter(pane: Vector2i, z := .99) -> void:
 	var x := float(pane.x) + .5
 	var y := float(pane.y) + .5
 	sound_at("glass_break", x, y, .96)
+	sound_at("glass_settle", x, y, .5)
 	burst(x, y, minf(1.6, maxf(.38, z)), "glass", 17, 1.95)
 	disturb(x, y, 6.8, minf(1.6, maxf(.38, z)))
 
@@ -650,14 +651,16 @@ func _roll(shot: Shot, dt: float, tnt: bool) -> bool:
 	var hit := Tumble.step(world, shot, Tumble.shot_feel(shot.kind), dt)
 	shot.travelled += before.distance_to(Vector2(shot.x, shot.y))
 	if tnt:
-		if hit & (Tumble.WALL | Tumble.FLOOR):
+		if hit & Tumble.WALL:
 			sound_at("tnt_bounce", shot.x, shot.y)
+		elif hit & Tumble.FLOOR:
+			sound_at("tnt_roll", shot.x, shot.y, .7)
 		if hit & Tumble.RESTED:
 			shot.resting = true
 		return true
 	if hit & Tumble.WALL:
 		shot.bounces -= 1
-		sound_at("impact_wood", shot.x, shot.y, .7)
+		sound_at("bowling_thud", shot.x, shot.y, .7)
 		burst(shot.x, shot.y, shot.z, "dust", 5, 1.0)
 	if shot.bounces < 0 or hit & Tumble.RESTED or shot.vx * shot.vx + shot.vy * shot.vy < .09:
 		finish_shot(shot)

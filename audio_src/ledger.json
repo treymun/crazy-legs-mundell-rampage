@@ -11492,14 +11492,934 @@
    "bytes": 13208
   },
   {
-   "id": "reconcile@2026-11-11T22:41:30",
+   "id": "sfx/break_barrel#1",
+   "kind": "sfx",
+   "name": "break_barrel",
+   "params": {
+    "text": "An old oak whiskey barrel staved in: a heavy wooden crunch, staves falling and an iron hoop ringing as it drops. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "289c27ae84b1",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T06:46:17",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_barrel.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/break_mash#1",
+   "kind": "sfx",
+   "name": "break_mash",
+   "params": {
+    "text": "A wooden barrel of sour corn mash split open: a cracking stave, then a thick wet slosh pouring out onto the ground. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d3df1fde90d1",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T06:46:19",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_mash.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/break_crate#1",
+   "kind": "sfx",
+   "name": "break_crate",
+   "params": {
+    "text": "A wooden shipping crate shot to pieces: a dry splintering crack and loose boards clattering down onto dirt. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d2201a906584",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T06:46:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_crate.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/break_jugs#1",
+   "kind": "sfx",
+   "name": "break_jugs",
+   "params": {
+    "text": "Three clay moonshine jugs shattering at once: crockery bursting, shards tinkling, liquor splashing. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "364023c68a89",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T06:46:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_jugs.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/break_jar#1",
+   "kind": "sfx",
+   "name": "break_jar",
+   "params": {
+    "text": "A big glass specimen jar bursting: a heavy glass pop and brine gushing and splattering on the floor. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a72e0e8c5486",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T06:46:21",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_jar.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/break_cooler#1",
+   "kind": "sfx",
+   "name": "break_cooler",
+   "params": {
+    "text": "A plastic picnic cooler shot open: hollow plastic crack, the lid clattering off, beer cans rolling out. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c330fcbefb7d",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T06:46:21",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_cooler.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/break_tin#1",
+   "kind": "sfx",
+   "name": "break_tin",
+   "params": {
+    "text": "Tin cans and a tin mailbox shot off a post: bright tinny clanks rattling down onto gravel. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0340716800c2",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T06:46:21",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_tin.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/break_flamingo#1",
+   "kind": "sfx",
+   "name": "break_flamingo",
+   "params": {
+    "text": "A plastic lawn flamingo shot and knocked over: one hollow plastic clack and a light bounce. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "fad919392838",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-12T06:46:21",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_flamingo.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/break_stuffing#1",
+   "kind": "sfx",
+   "name": "break_stuffing",
+   "params": {
+    "text": "A plush carnival prize bear burst by a shot: a soft fabric thump and a puff of stuffing and straw. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "117936f91c85",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-12T06:46:23",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_stuffing.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/balloon_pop#1",
+   "kind": "sfx",
+   "name": "balloon_pop",
+   "params": {
+    "text": "A string of carnival balloons popping in a quick ragged run, four or five sharp pops. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a4ab08bee05b",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-12T06:46:23",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/balloon_pop.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/alien_crate_break#1",
+   "kind": "sfx",
+   "name": "alien_crate_break",
+   "params": {
+    "text": "An alien cargo pod bursting open: a buckling metal crunch and a wet rubbery squelch. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "859367276832",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T06:46:23",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/alien_crate_break.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/break_window#1",
+   "kind": "sfx",
+   "name": "break_window",
+   "params": {
+    "text": "A dusty old storefront window shot out: a sharp crack, then big glass shards raining down and tinkling on boards. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f2eabba40c9e",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T06:46:23",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_window.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/break_fence#1",
+   "kind": "sfx",
+   "name": "break_fence",
+   "params": {
+    "text": "Weathered wooden fence boards blown out by a shotgun: splintering crack, boards snapping and clattering down. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "5f3a240c7722",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T06:46:25",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/break_fence.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/sign_shot#1",
+   "kind": "sfx",
+   "name": "sign_shot",
+   "params": {
+    "text": "A bullet smacking into a painted wooden sign: one sharp hollow wooden knock and a little rattle. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f9b66802fc19",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-12T06:46:25",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sign_shot.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/debris_settle#1",
+   "kind": "sfx",
+   "name": "debris_settle",
+   "params": {
+    "text": "Small splinters, glass bits and scraps of tin landing and settling on the ground, a light scattered patter. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "fb3f52b148df",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-12T06:46:25",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/debris_settle.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/tnt_roll#1",
+   "kind": "sfx",
+   "name": "tnt_roll",
+   "params": {
+    "text": "A single stick of dynamite rolling across wooden boards: a light hollow papery roll and two small knocks. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "84170f2ba0da",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-12T06:46:25",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/tnt_roll.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/body_thud#1",
+   "kind": "sfx",
+   "name": "body_thud",
+   "params": {
+    "text": "A limp body thrown down hard on dirt and boards: one heavy dull thud. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ce3f11edeed2",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-12T06:46:27",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/body_thud.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/bowling_thud#1",
+   "kind": "sfx",
+   "name": "bowling_thud",
+   "params": {
+    "text": "A heavy bowling ball slamming into a wooden wall, then rumbling away across boards. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b1ba3f64b294",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T06:46:27",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/bowling_thud.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/ricochet_tin#1",
+   "kind": "sfx",
+   "name": "ricochet_tin",
+   "params": {
+    "text": "A bullet striking corrugated sheet tin: a thin bright metallic ping with a short buzz. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "daaf6025d749",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-12T06:46:27",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/ricochet_tin.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/ricochet_whine#1",
+   "kind": "sfx",
+   "name": "ricochet_whine",
+   "params": {
+    "text": "A bullet glancing off thick steel plate: a hard clank and a long whining ricochet flying off. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "fe6410382018",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T06:46:27",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/ricochet_whine.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/impact_brick#1",
+   "kind": "sfx",
+   "name": "impact_brick",
+   "params": {
+    "text": "A bullet striking an old brick wall: a dry crack and a patter of grit and brick dust. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4eabf0753f77",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-12T06:46:29",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/impact_brick.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/impact_glass#1",
+   "kind": "sfx",
+   "name": "impact_glass",
+   "params": {
+    "text": "A bullet cracking a thick window pane without breaking it out: a sharp tick and a small glassy tinkle. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1c5fb8689ed4",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-12T06:46:29",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/impact_glass.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/impact_brush#1",
+   "kind": "sfx",
+   "name": "impact_brush",
+   "params": {
+    "text": "A bullet tearing through dry cornstalks and brush: a quick rustling thwip. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "321deffc1e44",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-12T06:46:29",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/impact_brush.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/impact_mesh#1",
+   "kind": "sfx",
+   "name": "impact_mesh",
+   "params": {
+    "text": "A bullet striking a taut wire farm fence: a metallic twang that wobbles out. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "475a4fb5b6ee",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-12T06:46:29",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/impact_mesh.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/impact_rubber#1",
+   "kind": "sfx",
+   "name": "impact_rubber",
+   "params": {
+    "text": "A bullet thumping into a stack of old car tyres: one dull rubbery thud. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8b64d121ff0f",
+   "reserved": 21,
+   "status": "failed",
+   "started": "2026-11-12T06:46:31",
+   "actual": 5,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.4.'}}"
+  },
+  {
+   "id": "sfx/pierce_plank#1",
+   "kind": "sfx",
+   "name": "pierce_plank",
+   "params": {
+    "text": "A rifle bullet punching clean through a plank wall: a splintering crack and wood chips spraying out the far side. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "63660b661d49",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-12T06:46:31",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/pierce_plank.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/glass_settle#1",
+   "kind": "sfx",
+   "name": "glass_settle",
+   "params": {
+    "text": "Small chips of broken window glass falling and settling on a wooden floor: a light tinkling scatter. Close, dry, comic prop destruction foley. No music, no voice.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b530dc479f95",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-12T06:46:31",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/glass_settle.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/land_thump#1",
+   "kind": "sfx",
+   "name": "land_thump",
+   "params": {
+    "text": "A man in heavy work boots landing from a jump onto dirt: one solid boot thump with a little grunt of breath. Close foley, dry, no ambience, no music.",
+    "duration_seconds": 0.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "195c662f9f7a",
+   "reserved": 21,
+   "status": "failed",
+   "started": "2026-11-12T06:46:31",
+   "actual": 5,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.4.'}}"
+  },
+  {
+   "id": "sfx/blow_grunt#1",
+   "kind": "sfx",
+   "name": "blow_grunt",
+   "params": {
+    "text": "A tough redneck man takes a light punch and grunts once, short and annoyed. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1509233f6680",
+   "reserved": 21,
+   "status": "failed",
+   "started": "2026-11-12T06:46:31",
+   "actual": 5,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.4.'}}"
+  },
+  {
+   "id": "sfx/fuse_short#1",
+   "kind": "sfx",
+   "name": "fuse_short",
+   "params": {
+    "text": "A short sharp fuse sizzle, a quick fizzing hiss that cuts off, just before something blows. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "20b73d2308cd",
+   "reserved": 21,
+   "status": "failed",
+   "started": "2026-11-12T06:46:31",
+   "actual": 5,
+   "basis": "expected",
+   "error": "ApiError 400: {'detail': {'status': 'invalid_generation_settings', 'message': 'Invalid setting for duration_seconds received, expected to be greater or equal to 0.5 and less or equal to 30, received 0.4.'}}"
+  },
+  {
+   "id": "sfx/wade_splash#1",
+   "kind": "sfx",
+   "name": "wade_splash",
+   "params": {
+    "text": "A man in boots stepping heavily into knee-deep swamp water: one big slosh and splash. Close foley, dry, no ambience, no music.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "51f83f0282a7",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-12T06:46:32",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/wade_splash.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/drip_small#1",
+   "kind": "sfx",
+   "name": "drip_small",
+   "params": {
+    "text": "A few single water drips falling into a still swamp puddle, quiet and close. Close foley, dry, no ambience, no music.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "259447acab96",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-12T06:46:32",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/drip_small.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/rain_loop#1",
+   "kind": "sfx",
+   "name": "rain_loop",
+   "params": {
+    "text": "Steady moderate rain falling outdoors at night on dirt, puddles, tin roofs and parked truck hoods, no thunder. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 20,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2df41ccce8cd",
+   "reserved": 805,
+   "status": "settled",
+   "started": "2026-11-12T06:46:32",
+   "actual": 221,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rain_loop.mp3",
+   "bytes": 481532
+  },
+  {
+   "id": "sfx/rain_roof#1",
+   "kind": "sfx",
+   "name": "rain_roof",
+   "params": {
+    "text": "Steady rain drumming on a tin roof heard from inside a wooden shed: a muffled close drumming, no thunder. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 15,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "3705ce0090dc",
+   "reserved": 605,
+   "status": "settled",
+   "started": "2026-11-12T06:46:32",
+   "actual": 166,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/rain_roof.mp3",
+   "bytes": 361786
+  },
+  {
+   "id": "sfx/fire_crackle#1",
+   "kind": "sfx",
+   "name": "fire_crackle",
+   "params": {
+    "text": "A wood fire burning in a rusty steel burn barrel: crackles, pops and a soft roar, close. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 10,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "cb906cc275c9",
+   "reserved": 405,
+   "status": "settled",
+   "started": "2026-11-12T06:46:33",
+   "actual": 111,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fire_crackle.mp3",
+   "bytes": 241414
+  },
+  {
+   "id": "sfx/ember_crackle#1",
+   "kind": "sfx",
+   "name": "ember_crackle",
+   "params": {
+    "text": "Embers and a small wood fire crackling softly, little pops and a faint hiss, close. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 8,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4aee28b2faa2",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-12T06:46:33",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/ember_crackle.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/still_bubble#1",
+   "kind": "sfx",
+   "name": "still_bubble",
+   "params": {
+    "text": "A copper moonshine still on a fire: low steady bubbling mash, dripping and the tick of hot copper. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 8,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "cbaee7def47f",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-12T06:46:37",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/still_bubble.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/generator_hum#1",
+   "kind": "sfx",
+   "name": "generator_hum",
+   "params": {
+    "text": "A small gasoline generator running steadily: a putt-putting single-cylinder engine with a rattle. Gritty industrial machine sound, close and dry. No music, no voice.",
+    "duration_seconds": 6,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a203a0e49558",
+   "reserved": 245,
+   "status": "settled",
+   "started": "2026-11-12T06:46:38",
+   "actual": 67,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/generator_hum.mp3",
+   "bytes": 145492
+  },
+  {
+   "id": "sfx/core_thrum#1",
+   "kind": "sfx",
+   "name": "core_thrum",
+   "params": {
+    "text": "A deep slow pulsing alien power core: a low throbbing thrum with a faint warbling shimmer on top. Wet, rubbery, slightly comic B-movie alien sound, dry and close. No music.",
+    "duration_seconds": 10,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c10ed71e8f30",
+   "reserved": 405,
+   "status": "settled",
+   "started": "2026-11-12T06:46:38",
+   "actual": 111,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/core_thrum.mp3",
+   "bytes": 241414
+  },
+  {
+   "id": "sfx/airboat_wake#1",
+   "kind": "sfx",
+   "name": "airboat_wake",
+   "params": {
+    "text": "The hiss and slap of a fast boat's wake on swamp water: rushing water and spray, no engine. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 6,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0f3a67092894",
+   "reserved": 245,
+   "status": "settled",
+   "started": "2026-11-12T06:46:38",
+   "actual": 67,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/airboat_wake.mp3",
+   "bytes": 145492
+  },
+  {
+   "id": "sfx/land_thump#2",
+   "kind": "sfx",
+   "name": "land_thump",
+   "params": {
+    "text": "A man in heavy work boots landing from a jump onto dirt: one solid boot thump with a little grunt of breath. Close foley, dry, no ambience, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d86ee2b2aae1",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-12T06:48:04",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/land_thump.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/impact_rubber#2",
+   "kind": "sfx",
+   "name": "impact_rubber",
+   "params": {
+    "text": "A bullet thumping into a stack of old car tyres: one dull rubbery thud. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "422afc6c9036",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-12T06:48:07",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/impact_rubber.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/blow_grunt#2",
+   "kind": "sfx",
+   "name": "blow_grunt",
+   "params": {
+    "text": "A tough redneck man takes a light punch and grunts once, short and annoyed. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b096f1f77cc1",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-12T06:48:07",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/blow_grunt.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/fuse_short#2",
+   "kind": "sfx",
+   "name": "fuse_short",
+   "params": {
+    "text": "A short sharp fuse sizzle, a quick fizzing hiss that cuts off, just before something blows. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1c600f06bf6e",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-12T06:48:07",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fuse_short.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "reconcile@2026-11-12T06:49:10",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -3973,
+   "actual": -4027,
    "basis": "account",
-   "balance_after": 63810
+   "balance_after": 65013
   }
  ],
  "anchor": {
@@ -11507,7 +12427,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-11T22:41:30",
-  "account_drop": 59087
+  "when": "2026-11-12T06:49:10",
+  "account_drop": 60290
  }
 }

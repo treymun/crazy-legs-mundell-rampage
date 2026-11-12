@@ -1,12 +1,13 @@
 # Sounds wanted for breaking things and loose physics
 
-Nothing here has been generated (no ElevenLabs credits spent). Until these
-exist, `godot/data/tuning/breakables.cfg` and the code use cues the game
-already has; each line names the stand-in. Once made, add the cue to the
-sound tools as usual and change the `cue` / `cue2` names in breakables.cfg
-(and the two cues named in code below).
+**Made in 2.0.0-dev.32** (ElevenLabs, through the budget ledger; spec in
+`scripts/audio_spec.py`, the block after the range). Where each plays is
+listed below; nobody has listened to them yet.
 
-| Wanted cue | What it is | Stand-in now |
+The last column was the stand-in before; breakables.cfg now names the made
+cues (`cue`, `cue2`, and `chip` for a shot that does not break it).
+
+| Cue | What it is | Stand-in before |
 | --- | --- | --- |
 | `break_crate` | A wooden crate or pallet stove in: a dry crack and boards clattering down | `impact_wood` + `scenery_scrap` |
 | `break_barrel` | An oak barrel staved in, hoop ringing as it drops | `impact_wood` + `scenery_scrap` |
@@ -19,7 +20,7 @@ sound tools as usual and change the `cue` / `cue2` names in breakables.cfg
 | `break_stuffing` | A plush prize bear or hay bale bursting: a soft thump, straw and fluff | `scenery_prize` |
 | `balloon_pop` | Balloons popping in a quick ragged run | `rocket_pop` |
 | `alien_crate_break` | An alien cargo pod bursting: metal buckle and a wet squelch | `metal_down` + `splat` |
-| `fuse_hiss` | The short hiss before a shot barrel, tank or crate goes up (a tenth to a quarter of a second) | none (silent) |
+| `fuse_hiss` (made as `fuse_short`: `fuse_hiss` is the dynamite's own loop) | The short hiss before a shot barrel, tank or crate goes up (a tenth to a quarter of a second) | none (silent) |
 | `sign_shot` | A painted wooden sign taking a round: a sharp wooden knock | `impact_wood` |
 | `debris_settle` | Small bits (splinters, shards, tin) landing and settling | none (silent) |
 | `body_thud` | A body hitting the ground or a wall after being knocked back | none (the death cry covers it) |

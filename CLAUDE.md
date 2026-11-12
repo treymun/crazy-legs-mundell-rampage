@@ -341,7 +341,14 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
 - **Enemies path on a flow field** (`src/flow_field.gd`): out of sight, an
   alerted enemy walks downhill on the steps from the player for a few seconds
   (`Enemy.hunt_until`). The objective pin walks a second field measured from
-  the objective (`Game.route`) through doors the player can open now.
+  the objective (`Game.route`) through doors the player can open now. That one
+  walks the whole level (5 to 10 ms), so it has a `budget` (1500 cells a
+  tick): a new walk (a door opened, a key, something broken, the boss moving a
+  cell) finishes over a few frames while the last answer stands; the first
+  walk is always whole. Stutters: `first_minutes.gd -- whole hitches` times
+  every tick of a bot's playthrough; `--play-bench=<seconds>` has the same bot
+  (`tools/bot_pilot.gd`) play each chapter in a real window and prints the
+  slowest frames with the tick's and the draw's share.
 - **Features listen to events.** `game_state.gd` announces `enemy_killed`,
   `player_hurt`, `pickup_taken`, `station_done`, `shot_fired`, `hit_landed`,
   `level_won`, `ticked`, `exploded`, `gun_reloading` and `traced` (where each
@@ -424,8 +431,15 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `hot` (the shimmer's width; strength 0 only shimmers) and `props` (every
   prop with that picture carries it). Rain never on the Mothership;
   `tools/weather_check.gd` (in check_fixes) holds where it falls. A view tour
-  viewpoint may hold the weather: `rain`, `wet`, `lightning`. Sounds they would
-  want are listed in `docs/visual_audio.md` (none made).
+  viewpoint may hold the weather: `rain`, `wet`, `lightning`.
+- **World loops** (`features/soundscape.gd`, `Sound.set_bed`): four voices of
+  their own keep the rain (`rain_loop`, muffled under a roof, and `rain_roof`
+  overhead, both following `weather.rain`), the nearest burn barrel, grill,
+  still, generator or the Mothership's core within 9 cells (`SOURCES`, by
+  picture) and the swamp king's wake. `pause_world()` stops them. The sounds
+  for breaking, strikes, the gun's feel, weather and water were made in
+  dev.32 (`docs/*_audio.md` say where each plays); breakables.cfg's `chip` is
+  the knock of a shot that does not break a thing yet.
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
   red hulls, crows, county-fair words and ribbons, cartoon wipes; original art
   and sound only (new small sounds can be made in `assets.gd` MADE_CUES).

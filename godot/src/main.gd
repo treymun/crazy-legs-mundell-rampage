@@ -254,6 +254,9 @@ func _view_bench() -> void:
 			# The parts: tick, sprites, scene, weapon, look, hud, layers, waiting.
 			var parts := PackedFloat64Array()
 			parts.resize(8)
+			# Each whole frame, for the slow ones (a stutter hides in an average).
+			var frames := PackedFloat64Array()
+			var last := Time.get_ticks_usec()
 			for i in view_bench:
 				var t0 := Time.get_ticks_usec()
 				game.tick(1.0 / 60.0, held)
@@ -269,6 +272,8 @@ func _view_bench() -> void:
 				parts[6] += layers_us
 				await get_tree().process_frame
 				parts[7] += Time.get_ticks_usec() - t2
+				frames.append((Time.get_ticks_usec() - last) / 1000.0)
+				last = Time.get_ticks_usec()
 				card += RenderingServer.viewport_get_measured_render_time_gpu(rid)
 			var each := (Time.get_ticks_usec() - began) / 1000.0 / view_bench
 			totals[mode] += each
@@ -278,6 +283,23 @@ func _view_bench() -> void:
 				for k in 8:
 					row += " %s %.2f" % [names[k], parts[k] / 1000.0 / view_bench]
 				print("%-9s%s" % [level_id, row])
+				frames.sort()
+				var median := frames[frames.size() / 2]
+				var slow := 0
+				for f in frames:
+					slow += 1 if f > median * 2.5 else 0
+				print(
+					(
+						"%-9s  frames median %.2f  p99 %.2f  max %.2f  slow %d"
+						% [
+							level_id,
+							median,
+							frames[mini(frames.size() - 1, int(frames.size() * .99))],
+							frames[-1],
+							slow
+						]
+					)
+				)
 			line += (
 				"  %s %6.2f ms (%4.0f fps; work %.2f, render() %.2f, card %.2f)"
 				% [
@@ -305,8 +327,68 @@ func _view_bench() -> void:
 	get_tree().quit()
 
 
+## Plays every chapter with the bot for play_bench seconds each (god mode, guns
+## refilled) and prints how the frames went: the median, the slow tail, and
+## the slowest frames with when they came and the tick's and the draw's share.
+func _play_bench() -> void:
+	touring = true
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = 0
+	await get_tree().process_frame
+	var pilot_script: GDScript = load("res://tools/bot_pilot.gd")
+	for level_id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
+		start(level_id)
+		Engine.max_fps = 0
+		cpu_view = false
+		game.cheats.god = true
+		var pilot = pilot_script.new()
+		pilot.whole = true
+		var frames := PackedFloat64Array()
+		var slowest: Array = []
+		var last := Time.get_ticks_usec()
+		for i in play_bench * 60:
+			var t0 := Time.get_ticks_usec()
+			game.tick(1.0 / 60.0, pilot.steer(game))
+			var t1 := Time.get_ticks_usec()
+			render()
+			var t2 := Time.get_ticks_usec()
+			await get_tree().process_frame
+			pilot.moved(game)
+			var now := Time.get_ticks_usec()
+			var ms := (now - last) / 1000.0
+			last = now
+			if i < 30:
+				continue
+			frames.append(ms)
+			slowest.append([ms, game.clock, (t1 - t0) / 1000.0, (t2 - t1) / 1000.0])
+			if game.won:
+				break
+		frames.sort()
+		slowest.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
+		var n := frames.size()
+		print(
+			(
+				"%-10s frames %d  median %.2f  p99 %.2f  p99.9 %.2f  max %.2f ms"
+				% [
+					level_id,
+					n,
+					frames[n / 2],
+					frames[int(n * .99)],
+					frames[int(n * .999)],
+					frames[-1]
+				]
+			)
+		)
+		for row in slowest.slice(0, 6):
+			print("    %.2f ms at %.1f s (tick %.2f, draw %.2f)" % [row[0], row[1], row[2], row[3]])
+	get_tree().quit()
+
+
 func _process(delta: float) -> void:
 	if touring:
+		return
+	if play_bench > 0:
+		_play_bench()
 		return
 	if view_bench > 0:
 		_view_bench()

@@ -12,10 +12,14 @@
 ## whole: the bot cannot be hurt and never runs dry, and plays on until the
 ##   chapter is won (or WHOLE_LIMIT seconds): the way through can be walked,
 ##   every door, key and set piece on it working. Prints how long it took.
+## hitches: also times every tick and prints the slowest (a stutter in the
+##   game's own work, apart from drawing) with what happened in it.
 ##
 ## It is a yardstick for pacing, not a judge of fun: it never dodges, so its
 ## health says more about how hard enemies press than about the difficulty.
 extends SceneTree
+
+const Pilot := preload("res://tools/bot_pilot.gd")
 
 const STEP := 1.0 / 60.0
 const MARKS := [60.0, 120.0, 300.0]
@@ -24,6 +28,9 @@ const WHOLE_LIMIT := 1500.0
 
 var sound: Sound
 var whole := false
+var hitches := false
+## What the game announced during the tick being timed.
+var _events: Array[String] = []
 
 
 func _init() -> void:
@@ -38,6 +45,9 @@ func _run() -> void:
 	if args.has("whole"):
 		whole = true
 		args.erase("whole")
+	if args.has("hitches"):
+		hitches = true
+		args.erase("hitches")
 	var ids := (
 		["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
 		if args.is_empty()
@@ -67,92 +77,34 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 	var kills_was := 0
 	var lines: Array[String] = []
 	var mark := 0
-	var stuck := 0.0
-	var last := Vector2(game.player.x, game.player.y)
+	var pilot := Pilot.new()
+	pilot.whole = whole
+	var p := game.player
+	var times := PackedFloat64Array()
+	var slowest: Array = []
+	if hitches:
+		for event in ["enemy_killed", "player_hurt", "pickup_taken", "station_done", "exploded"]:
+			game.connect(
+				event, func(_a = null, _b = null, _c = null, _d = null): _events.append(event)
+			)
 	while (
 		(mark < MARKS.size() or (whole and game.clock < WHOLE_LIMIT))
 		and game.player.health > 0
 		and not game.won
 	):
-		var controls := Game.Controls.new()
-		var foe := _nearest_threat(game)
-		var p := game.player
-		if foe != null:
-			if seen < 0.0:
-				seen = game.clock
-			var want := atan2(foe.y - p.y, foe.x - p.x)
-			var turn := fposmod(want - p.angle + PI, TAU) - PI
-			controls.turn = clampf(turn, -.12, .12)
-			var target: float = game.world.elevation(foe.x, foe.y) + foe.z + foe.height * .58
-			var slope := (target - p.eye) / maxf(.5, Vector2(foe.x - p.x, foe.y - p.y).length())
-			controls.look = clampf(slope * Renderer.base_focal - p.pitch, -3.0, 3.0)
-			controls.fire = absf(turn) < .08
-			controls.forward = .4 if Vector2(foe.x - p.x, foe.y - p.y).length() > 4.0 else 0.0
-		else:
-			var goal = game.objective_target()
-			var door := _door_ahead(game)
-			if door != null:
-				# A closed door on the way: face it and press use, as a player would.
-				var centre := door.center()
-				var face := fposmod(atan2(centre.y - p.y, centre.x - p.x) - p.angle + PI, TAU) - PI
-				controls.turn = clampf(face, -.12, .12)
-				if absf(face) < .3 and fmod(game.clock, .4) < STEP:
-					game.interact()
-			elif goal != null:
-				var way: Array = game.objective_route(goal)
-				var aim := atan2(goal.y - p.y, goal.x - p.x)
-				if int(way[1]) > 1:
-					# One cell at a time, so it never cuts a corner into a wall.
-					var next := game.route.heading(p.x, p.y)
-					aim = next if not is_nan(next) else aim
-				var turn := fposmod(aim - p.angle + PI, TAU) - PI
-				controls.turn = clampf(turn, -.12, .12)
-				var gap := Vector2(goal.x - p.x, goal.y - p.y).length()
-				var struck := _strike_target(game, goal)
-				if struck != null and gap < 3.0:
-					# A thing to hit rather than use (the mill's belt release): shoot it.
-					var want := atan2(struck.y - p.y, struck.x - p.x)
-					turn = fposmod(want - p.angle + PI, TAU) - PI
-					controls.turn = clampf(turn, -.12, .12)
-					var top: float = (
-						game.world.elevation(struck.x, struck.y) + struck.z + struck.height * .5
-					)
-					var reach := maxf(.5, Vector2(struck.x - p.x, struck.y - p.y).length())
-					controls.look = clampf(
-						(top - p.eye) / reach * Renderer.base_focal - p.pitch, -3.0, 3.0
-					)
-					controls.fire = absf(turn) < .05
-					way = [goal, 0]
-					gap = 0.0
-				if int(way[1]) > 1 or gap > .3:
-					controls.forward = 1.0 if absf(turn) < .9 else .2
-					controls.running = gap > 1.5
-				if gap < 1.3 and absf(turn) < .3 and fmod(game.clock, .4) < STEP:
-					# At the objective: use it (a key is picked up by walking on it).
-					game.interact()
-			controls.look = clampf(-p.pitch, -2.0, 2.0)
-		# Out of rounds and nothing in reach: switch to anything that has some.
-		if (
-			game.armory.loaded[game.armory.active] == 0
-			and game.armory.reserve[game.armory.active] == 0
-		):
-			if whole:
-				game.armory.reserve[game.armory.active] = Weapons.MAX_RESERVE[game.armory.active]
-			else:
-				game.armory.cycle(1, game)
-		# Stuck against a ledge: hop it, as a player would (a jump clears about .6).
-		if stuck > .35 and foe == null:
-			controls.jump = fmod(game.clock, .6) < .1
-			controls.forward = 1.0
+		var controls := pilot.steer(game)
+		var foe := pilot.foe
+		if foe != null and seen < 0.0:
+			seen = game.clock
+		var t0 := Time.get_ticks_usec()
+		_events.clear()
 		game.tick(STEP, controls)
-		if Vector2(p.x, p.y).distance_to(last) < .002 and foe == null:
-			stuck += STEP
-			if stuck > 2.0:
-				p.angle += 1.3
-				stuck = 0.0
-		else:
-			stuck = 0.0
-		last = Vector2(p.x, p.y)
+		if hitches:
+			var ms := (Time.get_ticks_usec() - t0) / 1000.0
+			times.append(ms)
+			if ms > 4.0:
+				slowest.append([ms, game.clock, ",".join(_events)])
+		pilot.moved(game)
 		if landed < 0.0 and game.kills > kills_was:
 			landed = game.clock
 		if landed < 0.0 and game.hit_mark_until > game.clock:
@@ -182,6 +134,25 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 	)
 	for line in lines:
 		print(line)
+	if hitches and not times.is_empty():
+		var sorted := times.duplicate()
+		sorted.sort()
+		slowest.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
+		print(
+			(
+				"    ticks %d: median %.2f ms, p99 %.2f, p99.9 %.2f, max %.2f; over 4 ms: %d"
+				% [
+					sorted.size(),
+					sorted[sorted.size() / 2],
+					sorted[int(sorted.size() * .99)],
+					sorted[int(sorted.size() * .999)],
+					sorted[-1],
+					slowest.size()
+				]
+			)
+		)
+		for row in slowest.slice(0, 10):
+			print("      %.2f ms at %.1f s %s" % [row[0], row[1], row[2]])
 	if game.player.health <= 0:
 		print("    went down at %.0f s with %d kills" % [game.clock, game.kills])
 	elif game.won:
@@ -206,47 +177,3 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 
 func _when(t: float) -> String:
 	return "never" if t < 0.0 else "%5.1f s" % t
-
-
-## The nearest hostile that has noticed the player and can be seen.
-func _nearest_threat(game: Game) -> Enemy:
-	var p := game.player
-	var best: Enemy = null
-	var near := 14.0
-	for e: Enemy in game.enemies:
-		if not (e.alive and e.hostile and (e.alerted or e.player_seen)):
-			continue
-		var d := Vector2(e.x - p.x, e.y - p.y).length()
-		if d < near and game.world.visible(p.x, p.y, e.x, e.y):
-			best = e
-			near = d
-	return best
-
-
-## The scenery a strike station at `goal` is struck through, if it is one.
-func _strike_target(game: Game, goal: Vector2) -> LevelData.Scenery:
-	for station: LevelData.Station in game.world.stations:
-		if station.action != "strike" or game.stations_done.has(station.id):
-			continue
-		if Vector2(station.x, station.y).distance_to(goal) > .5:
-			continue
-		for prop: LevelData.Scenery in game.world.scenery:
-			if prop.station == station.id and not game.scenery_used(prop):
-				return prop
-	return null
-
-
-## A closed door within reach that the player can open (no key it lacks, not
-## a secret one), or null.
-func _door_ahead(game: Game) -> LevelData.Door:
-	var p := game.player
-	for door: LevelData.Door in game.world.doors:
-		if door.opened or door.secret or door.blast_only:
-			continue
-		if door.key != "" and not game.keys.has(door.key):
-			continue
-		if game.world.controlled_doors.has(Vector2i(door.x, door.y)):
-			continue
-		if door.center().distance_to(Vector2(p.x, p.y)) < 1.4:
-			return door
-	return null

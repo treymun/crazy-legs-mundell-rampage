@@ -1,4 +1,8 @@
-# Sounds the new looks want (not made yet)
+# Sounds for the new looks
+
+**Made in 2.0.0-dev.32** (ElevenLabs, through the budget ledger; spec in
+`scripts/audio_spec.py`, the block after the range). Where each plays is
+listed below; nobody has listened to them yet.
 
 The graphics-card view's weather, water and shimmer (palette.gdshader,
 features/weather.gd, features/water.gd, effects.cfg) are silent apart from the
@@ -34,3 +38,14 @@ The wading footsteps themselves already exist (`step_water_0`, `step_water_1`).
 | `still_bubble` | A moonshine still's low bubble and tick of hot copper | At each still (`still`) |
 | `generator_hum` | A small gas generator's putter, a loop | At each generator (`generator`) |
 | `core_thrum` | A deep, slow alien thrum | Round the Mothership's core (effects.cfg `heat` on `[level.mothership]`) |
+
+## What was made and where it plays
+
+`features/soundscape.gd` keeps four world loops (`Sound.set_bed`): `rain_loop`
+outdoors (muffled under a roof) and `rain_roof` overhead, both following
+`weather.rain`; the nearest burn barrel (`fire_crackle`), grill
+(`ember_crackle`), still (`still_bubble`), generator (`generator_hum`) or the
+Mothership's core heat spot (`core_thrum`) within 9 cells; and `airboat_wake`
+while the swamp king's boat moves on water. `features/water.gd` plays
+`wade_splash` stepping in and `drip_small` standing. Not made: `rain_gutter`,
+`rain_on_water` (optional).

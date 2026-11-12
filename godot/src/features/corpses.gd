@@ -38,6 +38,8 @@ var moving: Array = []
 ## again is knocked again).
 var _known := {}
 var _feel := Tumble.Feel.new(.24, .12, .2, 2.6)
+## A row of bodies landing at once is one thud, not one each.
+var _thud_next := 0.0
 
 
 func id() -> String:
@@ -123,7 +125,11 @@ func _tick(dt: float) -> void:
 		var e := b.enemy
 		# Two smaller steps a tick: a fast body never skips a thin wall.
 		for _k in 2:
-			if Tumble.step(game.world, b, _feel, dt * .5) & Tumble.RESTED:
+			var hit := Tumble.step(game.world, b, _feel, dt * .5)
+			if hit & (Tumble.WALL | Tumble.FLOOR) and game.clock >= _thud_next:
+				_thud_next = game.clock + .12
+				game.sound_at("body_thud", b.x, b.y, .7)
+			if hit & Tumble.RESTED:
 				b.rest = true
 				break
 		e.x = b.x

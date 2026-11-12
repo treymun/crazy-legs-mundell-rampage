@@ -671,6 +671,65 @@ add("ambience",
     amb_range=LOOP("A thin county-fair crowd at dusk far off: murmur, a distant calliope, crickets, the odd whoop.", 20, 20.0),
     )
 
+# --------------------------------------- things breaking, impacts, weather
+# The sounds docs/physics_audio.md, docs/feel_audio.md and docs/visual_audio.md
+# listed for the breakables, the struck materials, the gun's feel, the weather,
+# the water and the heat spots (2.0.0-dev.32). Each keeps what it asks for.
+add("scene",
+    break_crate=N("A wooden shipping crate shot to pieces: a dry splintering crack and loose boards clattering down onto dirt.", 1.0, style="scene"),
+    break_barrel=N("An old oak whiskey barrel staved in: a heavy wooden crunch, staves falling and an iron hoop ringing as it drops.", 1.2, style="scene"),
+    break_mash=N("A wooden barrel of sour corn mash split open: a cracking stave, then a thick wet slosh pouring out onto the ground.", 1.2, style="scene"),
+    break_jugs=N("Three clay moonshine jugs shattering at once: crockery bursting, shards tinkling, liquor splashing.", 1.0, style="scene"),
+    break_jar=N("A big glass specimen jar bursting: a heavy glass pop and brine gushing and splattering on the floor.", 1.2, style="scene"),
+    break_cooler=N("A plastic picnic cooler shot open: hollow plastic crack, the lid clattering off, beer cans rolling out.", 1.0, style="scene"),
+    break_tin=N("Tin cans and a tin mailbox shot off a post: bright tinny clanks rattling down onto gravel.", 1.0, style="scene"),
+    break_flamingo=N("A plastic lawn flamingo shot and knocked over: one hollow plastic clack and a light bounce.", .6, style="scene"),
+    break_stuffing=N("A plush carnival prize bear burst by a shot: a soft fabric thump and a puff of stuffing and straw.", .8, style="scene"),
+    balloon_pop=N("A string of carnival balloons popping in a quick ragged run, four or five sharp pops.", .8, style="scene"),
+    alien_crate_break=N("An alien cargo pod bursting open: a buckling metal crunch and a wet rubbery squelch.", 1.2, style="alien"),
+    break_window=N("A dusty old storefront window shot out: a sharp crack, then big glass shards raining down and tinkling on boards.", 1.2, style="scene"),
+    break_fence=N("Weathered wooden fence boards blown out by a shotgun: splintering crack, boards snapping and clattering down.", 1.0, style="scene"),
+    sign_shot=N("A bullet smacking into a painted wooden sign: one sharp hollow wooden knock and a little rattle.", .5, style="impact"),
+    debris_settle=N("Small splinters, glass bits and scraps of tin landing and settling on the ground, a light scattered patter.", .8, style="scene"),
+    tnt_roll=N("A single stick of dynamite rolling across wooden boards: a light hollow papery roll and two small knocks.", .8, style="scene"),
+    )
+add("impact",
+    body_thud=N("A limp body thrown down hard on dirt and boards: one heavy dull thud.", .6, style="impact"),
+    bowling_thud=N("A heavy bowling ball slamming into a wooden wall, then rumbling away across boards.", .9, style="impact"),
+    ricochet_tin=N("A bullet striking corrugated sheet tin: a thin bright metallic ping with a short buzz.", .6, style="impact"),
+    ricochet_whine=N("A bullet glancing off thick steel plate: a hard clank and a long whining ricochet flying off.", 1.0, style="impact"),
+    impact_brick=N("A bullet striking an old brick wall: a dry crack and a patter of grit and brick dust.", .5, style="impact"),
+    impact_glass=N("A bullet cracking a thick window pane without breaking it out: a sharp tick and a small glassy tinkle.", .6, style="impact"),
+    impact_brush=N("A bullet tearing through dry cornstalks and brush: a quick rustling thwip.", .5, style="impact"),
+    impact_mesh=N("A bullet striking a taut wire farm fence: a metallic twang that wobbles out.", .6, style="impact"),
+    impact_rubber=N("A bullet thumping into a stack of old car tyres: one dull rubbery thud.", .5, .4, style="impact"),
+    pierce_plank=N("A rifle bullet punching clean through a plank wall: a splintering crack and wood chips spraying out the far side.", .5, style="impact"),
+    glass_settle=N("Small chips of broken window glass falling and settling on a wooden floor: a light tinkling scatter.", .8, style="scene"),
+    )
+add("player",
+    land_thump=N("A man in heavy work boots landing from a jump onto dirt: one solid boot thump with a little grunt of breath.", .5, .4, style="foot"),
+    blow_grunt=N("A tough redneck man takes a light punch and grunts once, short and annoyed.", .5, .4, style="vox"),
+    )
+add("station",
+    fuse_short=N("A short sharp fuse sizzle, a quick fizzing hiss that cuts off, just before something blows.", .5, .4, style="mech"),
+    )
+add("foot",
+    wade_splash=N("A man in boots stepping heavily into knee-deep swamp water: one big slosh and splash.", .7, style="foot"),
+    drip_small=N("A few single water drips falling into a still swamp puddle, quiet and close.", .6, style="foot"),
+    )
+add("weather",
+    rain_loop=LOOP("Steady moderate rain falling outdoors at night on dirt, puddles, tin roofs and parked truck hoods, no thunder.", 20, 20.0, "amb"),
+    rain_roof=LOOP("Steady rain drumming on a tin roof heard from inside a wooden shed: a muffled close drumming, no thunder.", 15, 15.0, "amb"),
+    )
+add("near",
+    fire_crackle=LOOP("A wood fire burning in a rusty steel burn barrel: crackles, pops and a soft roar, close.", 10, 10.0, "amb"),
+    ember_crackle=LOOP("Embers and a small wood fire crackling softly, little pops and a faint hiss, close.", 8, 8.0, "amb"),
+    still_bubble=LOOP("A copper moonshine still on a fire: low steady bubbling mash, dripping and the tick of hot copper.", 8, 8.0, "amb"),
+    generator_hum=LOOP("A small gasoline generator running steadily: a putt-putting single-cylinder engine with a rattle.", 6, 6.0, "tool"),
+    core_thrum=LOOP("A deep slow pulsing alien power core: a low throbbing thrum with a faint warbling shimmer on top.", 10, 10.0, "alien"),
+    airboat_wake=LOOP("The hiss and slap of a fast boat's wake on swamp water: rushing water and spray, no engine.", 6, 6.0, "amb"),
+    )
+
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
 BAND = ("Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven "
         "Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. "

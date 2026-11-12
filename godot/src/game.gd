@@ -15,6 +15,10 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	level = LevelData.load_level(level_id, art)
 	world = level
 	renderer = Renderer.new(art, level)
+	# The sounds made in code (thunder alone is 30-odd ms of work) are made
+	# while the level loads, not the moment one first plays.
+	for cue: String in Assets.MADE_CUES:
+		art.cue(cue)
 	player = Player.new(float(level.spawn[0]), float(level.spawn[1]), float(level.spawn[2]))
 	player.eye += world.elevation(player.x, player.y)
 	armory = Weapons.Armory.new()
@@ -33,6 +37,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 			enemies[i].dormant = true
 	flow = FlowField.new(level)
 	route = FlowField.new(level, flow)
+	route.budget = 1500
 	route.reach = 100000
 	route.doors_open = true
 	route.keys = keys

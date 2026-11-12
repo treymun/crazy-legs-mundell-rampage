@@ -340,7 +340,7 @@ func strike(i: int, amount: float, ax: float, ay: float) -> void:
 	# A load of buckshot is one knock, not ten.
 	if game.clock >= _chip_next:
 		_chip_next = game.clock + .08
-		game.sound_at(String(p.spec.get("cue", "impact_wood")), p.x, p.y, .3)
+		game.sound_at(_chip_cue(p), p.x, p.y, .3)
 
 
 ## A blast at (x, y, z): what it reaches breaks (or takes the blast's damage,
@@ -475,13 +475,16 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 		cooking.append([pieces.find(p), fuse])
 	if quiet:
 		return
+	if cook and p.spec.has("blast"):
+		game.sound_at("fuse_short", p.x, p.y, .7)
 	var stuff := String(p.spec.get("stuff", "wood"))
 	var z: float = game.world.elevation(p.x, p.y) + p.z + p.height * .5
 	# A row going at once is one crash, not one each.
 	var loud: bool = game.clock >= _crash_next
 	if loud:
 		_crash_next = game.clock + .05
-		game.sound_at(String(p.spec.get("cue", "impact_wood")), p.x, p.y, .8)
+		var crash := "sign_shot" if bool(p.spec.get("sign", false)) else "impact_wood"
+		game.sound_at(String(p.spec.get("cue", crash)), p.x, p.y, .8)
 	if loud and p.spec.has("cue2"):
 		game.sound_at(String(p.spec["cue2"]), p.x, p.y, .6)
 	var sign := bool(p.spec.get("sign", false))
@@ -489,6 +492,15 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 	game.burst(p.x, p.y, z, String(SPECKS.get(stuff, "spark")), 4 if sign else 9, 1.2)
 	# Breaking things is loud: whoever is near and can see it comes to look.
 	game.disturb(p.x, p.y, 4.5, z)
+
+
+## The knock of a shot that does not break it yet.
+func _chip_cue(p: Piece) -> String:
+	if p.spec.has("chip"):
+		return String(p.spec["chip"])
+	if bool(p.spec.get("sign", false)):
+		return "sign_shot"
+	return String(p.spec.get("cue", "impact_wood"))
 
 
 ## How tall a broken picture stands: a modelled prop's at the scale the whole

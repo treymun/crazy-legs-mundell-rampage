@@ -180,6 +180,10 @@ var touring := false
 ## --view-bench=<frames>: time whole frames in the real window, uncapped, with
 ## the view composed in software and then by the shader, and print both.
 var view_bench := 0
+## --play-bench=<seconds>: tools/bot_pilot.gd plays each chapter in the real
+## window, uncapped, and the slowest frames are printed (stutters; project
+## folder only, the pilot is a tool).
+var play_bench := 0
 ## How long the last frame took to hand its layers to the shader (the bench's parts).
 var layers_us := 0
 ## --view-shot=<png> saves the window as shown (shader included) at the end of a smoke run;
@@ -295,6 +299,9 @@ func _parse_smoke() -> void:
 			view_out = text.substr(11)
 		elif text.begins_with("--view-bench="):
 			view_bench = int(text.substr(13))
+		elif text.begins_with("--play-bench="):
+			play_bench = int(text.substr(13))
+			view_bench = -1
 		elif text == "--demo":
 			demo = true
 		elif text == "--showcase":

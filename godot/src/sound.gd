@@ -142,12 +142,21 @@ const VARIANTS := {
 	"revolver": ["revolver", "revolver_alt"],
 	"hurt": ["hurt", "hurt_alt", "hurt_alt2"],
 	"yee_haw": ["yee_haw", "yee_haw_alt"],
+	# Steel plate: the long whine one round in three, the short ricochet between.
+	"ricochet_whine": ["ricochet_whine", "ricochet", "ricochet"],
 }
 
 const TOOL_GAIN := .26
 const STEP_GAIN := .83
 const AMB_FADE := .33
 const EFFECT_VOICES := 14
+## Loops that follow something in the world (set_bed): the rain outdoors, the
+## rain on a roof overhead, the nearest fire, still or engine, a boat's wake.
+const BED_RAIN := 0
+const BED_ROOF := 1
+const BED_NEAR := 2
+const BED_WAKE := 3
+const BEDS := 4
 
 
 ## Small deterministic generator so shuffling never touches the global RNG.
@@ -512,6 +521,7 @@ var _sting: Voice
 var _tool: Voice
 var _voice: Voice
 var _preview: Voice
+var _beds: Array[Voice] = []
 var _preview_left := 0.0
 var _preview_side := 1.0
 var _music: AudioStreamPlayer
@@ -547,6 +557,9 @@ func _init(p_art: Assets) -> void:
 	_voice = _make_voice(slot)
 	slot += 1
 	_preview = _make_voice(slot, false)
+	for _i in BEDS:
+		slot += 1
+		_beds.append(_make_voice(slot))
 
 	_music = AudioStreamPlayer.new()
 	_music.name = "Music"
@@ -862,6 +875,33 @@ func set_fuse(burning: bool) -> void:
 		_fuse.player.stop()
 
 
+## Keeps bed `slot` looping `cue` at `volume` (the ambience level for the
+## rain, the effects level for the rest) and `pan`; volume 0 or "" stops it.
+func set_bed(slot: int, cue: String, volume: float, pan := 0.0, cutoff := OPEN_CUTOFF) -> void:
+	var v := _beds[slot]
+	var level := ambient_gain if slot <= BED_ROOF else effects_gain
+	if volume <= .003 or level <= 0.0 or cue == "" or not assets.has_cue(cue):
+		if v.player.playing:
+			v.player.stop()
+		v.cue = ""
+		return
+	if v.cue != cue or not v.player.playing:
+		var stream := assets.cue(cue)
+		if stream == null:
+			return
+		Assets.set_loop(stream, true)
+		v.cue = cue
+		v.player.stream = stream
+		v.player.play()
+	var muffle := AudioServer.get_bus_effect(v.bus, 1) as AudioEffectLowPassFilter
+	if muffle != null:
+		muffle.cutoff_hz = cutoff
+	var gain := minf(1.0, level * volume) * .82 * mix_headroom
+	_balance(
+		v, gain * (1.0 - maxf(0.0, pan) * pan_width), gain * (1.0 + minf(0.0, pan) * pan_width)
+	)
+
+
 func set_tool(active: bool) -> void:
 	if active:
 		if not _tool.player.playing:
@@ -905,6 +945,8 @@ func pause_world() -> void:
 	set_radio(false)
 	set_fuse(false)
 	set_tool(false)
+	for i in BEDS:
+		set_bed(i, "", 0.0)
 	stop_voice()
 	for v: Voice in _all_voices():
 		if v.player.playing and WARNS.has(v.cue):
