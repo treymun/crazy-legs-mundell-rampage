@@ -1,0 +1,20 @@
+{
+ "text": "Well, I'll be",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.08,
+   "end": 0.3
+  },
+  {
+   "text": "I'll",
+   "start": 0.54,
+   "end": 0.72
+  },
+  {
+   "text": "be",
+   "start": 0.86,
+   "end": 1.2
+  }
+ ]
+}

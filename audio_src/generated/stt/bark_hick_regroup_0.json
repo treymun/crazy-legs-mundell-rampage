@@ -1,0 +1,25 @@
+{
+ "text": "Fall back! Fall back!",
+ "words": [
+  {
+   "text": "Fall",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "back!",
+   "start": 0.36,
+   "end": 0.68
+  },
+  {
+   "text": "Fall",
+   "start": 0.78,
+   "end": 1.0
+  },
+  {
+   "text": "back!",
+   "start": 1.1,
+   "end": 1.5
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+ "text": "Come on out, city boy",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.06,
+   "end": 0.2
+  },
+  {
+   "text": "on",
+   "start": 0.26,
+   "end": 0.4
+  },
+  {
+   "text": "out,",
+   "start": 0.46,
+   "end": 0.62
+  },
+  {
+   "text": "city",
+   "start": 0.74,
+   "end": 0.94
+  },
+  {
+   "text": "boy",
+   "start": 1.04,
+   "end": 1.32
+  }
+ ]
+}

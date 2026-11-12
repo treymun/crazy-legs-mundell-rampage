@@ -1,0 +1,25 @@
+{
+ "text": "Back in my day",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.06,
+   "end": 0.34
+  },
+  {
+   "text": "in",
+   "start": 0.42,
+   "end": 0.56
+  },
+  {
+   "text": "my",
+   "start": 0.64,
+   "end": 0.9
+  },
+  {
+   "text": "day",
+   "start": 1.0,
+   "end": 1.38
+  }
+ ]
+}

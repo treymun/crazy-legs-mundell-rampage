@@ -1,0 +1,30 @@
+{
+ "text": "To Brett out. Find him",
+ "words": [
+  {
+   "text": "To",
+   "start": 0.04,
+   "end": 0.12
+  },
+  {
+   "text": "Brett",
+   "start": 0.16,
+   "end": 0.4
+  },
+  {
+   "text": "out.",
+   "start": 0.52,
+   "end": 0.74
+  },
+  {
+   "text": "Find",
+   "start": 0.88,
+   "end": 1.22
+  },
+  {
+   "text": "him",
+   "start": 1.26,
+   "end": 1.36
+  }
+ ]
+}

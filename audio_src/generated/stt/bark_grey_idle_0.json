@@ -1,0 +1,25 @@
+{
+ "text": "This cow is defective",
+ "words": [
+  {
+   "text": "This",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "cow",
+   "start": 0.3,
+   "end": 0.5
+  },
+  {
+   "text": "is",
+   "start": 0.54,
+   "end": 0.66
+  },
+  {
+   "text": "defective",
+   "start": 0.7,
+   "end": 1.34
+  }
+ ]
+}

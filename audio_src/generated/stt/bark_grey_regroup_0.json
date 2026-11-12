@@ -1,0 +1,30 @@
+{
+ "text": "They turn to the saucers",
+ "words": [
+  {
+   "text": "They",
+   "start": 0.06,
+   "end": 0.2
+  },
+  {
+   "text": "turn",
+   "start": 0.24,
+   "end": 0.48
+  },
+  {
+   "text": "to",
+   "start": 0.52,
+   "end": 0.58
+  },
+  {
+   "text": "the",
+   "start": 0.62,
+   "end": 0.66
+  },
+  {
+   "text": "saucers",
+   "start": 0.76,
+   "end": 1.72
+  }
+ ]
+}

@@ -777,6 +777,90 @@ add("voice", **{f"boss_{who}_{moment}": V(text, voice, **({"heard": BOSS_HEARD[f
                 for who, (voice, lines) in BOSS_LINES.items()
                 for moment, text in zip(BOSS_MOMENTS, lines)})
 
+# The county's hands talking (2.0.0-dev.34, features/enemy_barks.gd): four
+# voices, a line or two for each moment the squads announce (enemy_bark).
+BARKS = {
+    "hick": {
+        "spot": ["There he is!", "Git him, boys!"],
+        "lost": ["Where'd he go?"],
+        "search": ["Come on out, city boy."],
+        "help": ["Bubba! Get out here!"],
+        "flank": ["I'll cut round back!"],
+        "cover": ["Keep yer head down!"],
+        "brawl": ["You shot me, Earl!", "That's it, you're dead!"],
+        "idle": ["Pass me another one.", "Ain't nothin' on TV."],
+        "surprised": ["What in tarnation?"],
+        "hurt_bad": ["Ow! I'm hit, Mama!"],
+        "regroup": ["Fall back! Fall back!"],
+    },
+    "deputy": {
+        "spot": ["Freeze, boy!", "Suspect spotted!"],
+        "lost": ["Lost visual."],
+        "search": ["Spread out and find him."],
+        "help": ["Officer needs assistance!"],
+        "flank": ["Flankin' left!"],
+        "cover": ["Takin' cover!"],
+        "brawl": ["You're under arrest, Cletus!", "Assaultin' an officer!"],
+        "idle": ["Quiet night.", "Donut run after this."],
+        "surprised": ["Well, I'll be!"],
+        "hurt_bad": ["Man down! Man down!"],
+        "regroup": ["Pull back to the cruiser!"],
+    },
+    "coot": {
+        "spot": ["Git off my land!", "I see you, varmint!"],
+        "lost": ["Dang eyes."],
+        "search": ["I know you're out there."],
+        "help": ["Junior! Fetch the shotgun!"],
+        "flank": ["Comin' round the barn!"],
+        "cover": ["My back ain't what it was."],
+        "brawl": ["Watch where yer shootin'!", "I'll tan yer hide!"],
+        "idle": ["Back in my day...", "Where'd I put my teeth?"],
+        "surprised": ["Lord have mercy!"],
+        "hurt_bad": ["I'm too old for this!"],
+        "regroup": ["Retreat! Move, ol' knees!"],
+    },
+    "grey": {
+        "spot": ["Earthling detected.", "Hooman sighted!"],
+        "lost": ["The hooman has vanished."],
+        "search": ["Scan the sector."],
+        "help": ["Requesting reinforcements!"],
+        "flank": ["Encircle the hooman."],
+        "cover": ["Raise the shields!"],
+        "brawl": ["Friendly fire, Zorp!", "You will be probed for that!"],
+        "idle": ["This cow is defective.", "Report: still no Bessie."],
+        "surprised": ["Eep! Intruder!"],
+        "hurt_bad": ["Hull breach!"],
+        "regroup": ["Return to the saucer!"],
+    },
+}
+# How a bark's transcript spells what the caption writes the county's way.
+BARK_HEARD = {
+    "bark_hick_spot_1": "Yeah, get him boys", "bark_hick_cover_0": "Uh, keep your head down",
+    "bark_hick_idle_1": "Ain't nothing on TV", "bark_deputy_flank_0": "Flank and left",
+    "bark_deputy_cover_0": "Taking cover", "bark_deputy_brawl_1": "Assaulting an officer",
+    "bark_deputy_idle_1": "Do not run after this", "bark_coot_spot_0": "Get off my land",
+    "bark_coot_flank_0": "Coming round the barn", "bark_coot_brawl_0": "Watch where you're shootin'!",
+    "bark_coot_brawl_1": "I'll tan your hide", "bark_coot_regroup_0": "Retreat! Move! On knees!",
+    "bark_grey_flank_0": "Encircle the humans", "bark_grey_brawl_0": "Friendly fire, sir",
+    # The grey's warble: the words are there, the transcript hears them sideways.
+    "bark_grey_cover_0": "Hey, erase the shield!", "bark_grey_surprised_0": "Hey, yeah. You're intruder",
+    "bark_grey_regroup_0": "They turn to the saucers",
+}
+
+
+def _bark(name, text, who):
+    if name in BARK_HEARD:
+        return V(text, who, heard=BARK_HEARD[name])
+    if "ooman" in text:
+        return V(text, who, heard=text.replace("Hooman", "Human").replace("hooman", "human"))
+    return V(text, who)
+
+
+add("voice", **{f"bark_{who}_{moment}_{n}": _bark(f"bark_{who}_{moment}_{n}", text, who)
+                for who, moments in BARKS.items()
+                for moment, lines in moments.items()
+                for n, text in enumerate(lines)})
+
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
 BAND = ("Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven "
         "Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. "

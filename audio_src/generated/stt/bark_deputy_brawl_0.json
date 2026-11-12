@@ -1,0 +1,25 @@
+{
+ "text": "You're under arrest, Cletus",
+ "words": [
+  {
+   "text": "You're",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "under",
+   "start": 0.34,
+   "end": 0.58
+  },
+  {
+   "text": "arrest,",
+   "start": 0.64,
+   "end": 1.06
+  },
+  {
+   "text": "Cletus",
+   "start": 1.16,
+   "end": 1.58
+  }
+ ]
+}

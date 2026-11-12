@@ -1,0 +1,25 @@
+{
+ "text": "Ain't nothing on TV",
+ "words": [
+  {
+   "text": "Ain't",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "nothing",
+   "start": 0.3,
+   "end": 0.66
+  },
+  {
+   "text": "on",
+   "start": 0.72,
+   "end": 0.84
+  },
+  {
+   "text": "TV",
+   "start": 0.94,
+   "end": 1.38
+  }
+ ]
+}

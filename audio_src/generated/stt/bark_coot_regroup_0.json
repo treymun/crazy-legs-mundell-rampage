@@ -1,0 +1,25 @@
+{
+ "text": "Retreat! Move! On knees!",
+ "words": [
+  {
+   "text": "Retreat!",
+   "start": 0.08,
+   "end": 0.52
+  },
+  {
+   "text": "Move!",
+   "start": 0.64,
+   "end": 1.02
+  },
+  {
+   "text": "On",
+   "start": 1.1,
+   "end": 1.24
+  },
+  {
+   "text": "knees!",
+   "start": 1.36,
+   "end": 1.88
+  }
+ ]
+}

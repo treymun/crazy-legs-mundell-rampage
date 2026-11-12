@@ -1,0 +1,40 @@
+{
+ "text": "Hey, ye, pull back to the cruiser",
+ "words": [
+  {
+   "text": "Hey,",
+   "start": 0.04,
+   "end": 0.14
+  },
+  {
+   "text": "ye,",
+   "start": 0.22,
+   "end": 0.36
+  },
+  {
+   "text": "pull",
+   "start": 0.5,
+   "end": 0.7
+  },
+  {
+   "text": "back",
+   "start": 0.78,
+   "end": 1.0
+  },
+  {
+   "text": "to",
+   "start": 1.04,
+   "end": 1.1
+  },
+  {
+   "text": "the",
+   "start": 1.14,
+   "end": 1.22
+  },
+  {
+   "text": "cruiser",
+   "start": 1.26,
+   "end": 1.72
+  }
+ ]
+}

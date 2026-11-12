@@ -1,0 +1,25 @@
+{
+ "text": "I'll tan your hide",
+ "words": [
+  {
+   "text": "I'll",
+   "start": 0.12,
+   "end": 0.3
+  },
+  {
+   "text": "tan",
+   "start": 0.36,
+   "end": 0.64
+  },
+  {
+   "text": "your",
+   "start": 0.7,
+   "end": 0.82
+  },
+  {
+   "text": "hide",
+   "start": 0.9,
+   "end": 1.42
+  }
+ ]
+}

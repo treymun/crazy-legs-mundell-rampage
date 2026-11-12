@@ -1,0 +1,25 @@
+{
+ "text": "She yelled. She yelled",
+ "words": [
+  {
+   "text": "She",
+   "start": 0.04,
+   "end": 0.14
+  },
+  {
+   "text": "yelled.",
+   "start": 0.2,
+   "end": 0.46
+  },
+  {
+   "text": "She",
+   "start": 0.58,
+   "end": 0.68
+  },
+  {
+   "text": "yelled",
+   "start": 0.74,
+   "end": 1.04
+  }
+ ]
+}

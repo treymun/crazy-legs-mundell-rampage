@@ -1,0 +1,25 @@
+{
+ "text": "I'll cut round back",
+ "words": [
+  {
+   "text": "I'll",
+   "start": 0.06,
+   "end": 0.18
+  },
+  {
+   "text": "cut",
+   "start": 0.24,
+   "end": 0.44
+  },
+  {
+   "text": "round",
+   "start": 0.5,
+   "end": 0.82
+  },
+  {
+   "text": "back",
+   "start": 0.88,
+   "end": 1.26
+  }
+ ]
+}

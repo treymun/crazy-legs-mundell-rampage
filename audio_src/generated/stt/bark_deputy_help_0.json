@@ -1,0 +1,20 @@
+{
+ "text": "Officer needs assistance",
+ "words": [
+  {
+   "text": "Officer",
+   "start": 0.12,
+   "end": 0.62
+  },
+  {
+   "text": "needs",
+   "start": 0.7,
+   "end": 0.9
+  },
+  {
+   "text": "assistance",
+   "start": 0.96,
+   "end": 1.58
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Yeah, what in tarnation?",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.0,
+   "end": 0.22
+  },
+  {
+   "text": "what",
+   "start": 0.36,
+   "end": 0.48
+  },
+  {
+   "text": "in",
+   "start": 0.52,
+   "end": 0.62
+  },
+  {
+   "text": "tarnation?",
+   "start": 0.68,
+   "end": 1.44
+  }
+ ]
+}

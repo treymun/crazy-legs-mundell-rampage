@@ -1,0 +1,25 @@
+{
+ "text": "Uh, there he is!",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.1,
+   "end": 0.2
+  },
+  {
+   "text": "there",
+   "start": 0.32,
+   "end": 0.5
+  },
+  {
+   "text": "he",
+   "start": 0.54,
+   "end": 0.64
+  },
+  {
+   "text": "is!",
+   "start": 0.76,
+   "end": 1.02
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Report, still no Bessie",
+ "words": [
+  {
+   "text": "Report,",
+   "start": 0.06,
+   "end": 0.5
+  },
+  {
+   "text": "still",
+   "start": 0.62,
+   "end": 0.86
+  },
+  {
+   "text": "no",
+   "start": 0.94,
+   "end": 1.06
+  },
+  {
+   "text": "Bessie",
+   "start": 1.12,
+   "end": 1.52
+  }
+ ]
+}

@@ -14462,14 +14462,2836 @@
    "bytes": 40794
   },
   {
-   "id": "reconcile@2026-11-12T08:32:29",
+   "id": "voice_design/hick#1",
+   "kind": "voice_design",
+   "name": "hick",
+   "params": {
+    "description": "A young rowdy Southern redneck man in his twenties, loud, twangy, cocky and none too bright, with a thick rural Arkansas accent. Close, dry studio recording.",
+    "text": "Hey Earl, git over here and look at this! Somebody done shot up the truck again, and I bet it was that delivery feller. Grab yer gun, we're goin' huntin' tonight, boys!"
+   },
+   "hash": "ebabd2a1d0ac",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T11:48:01",
+   "actual": 504,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/hick.mp3",
+   "bytes": 262104
+  },
+  {
+   "id": "voice_design/deputy#1",
+   "kind": "voice_design",
+   "name": "deputy",
+   "params": {
+    "description": "A gruff, self-important small-town Southern sheriff's deputy in his forties with a nasal drawl, barking orders like he owns the county. Close, dry studio recording.",
+    "text": "This is a county matter, son, and I am the county. Step away from the vehicle, keep your hands where I can see 'em, and don't make me call for backup on a Saturday night."
+   },
+   "hash": "56df2370dfcc",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T11:48:11",
+   "actual": 510,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/deputy.mp3",
+   "bytes": 220099
+  },
+  {
+   "id": "voice_design/coot#1",
+   "kind": "voice_design",
+   "name": "coot",
+   "params": {
+    "description": "A cranky old Southern hillbilly man in his seventies, wheezy and half toothless, cackling and grumbling, with a thick Ozark accent. Close, dry studio recording.",
+    "text": "Back in my day we didn't have no fancy alien cows, we had regular cows, and we liked 'em. Now git off my porch before I fetch the rock salt and learn you some manners."
+   },
+   "hash": "addfb189db78",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T11:48:21",
+   "actual": 501,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/coot.mp3",
+   "bytes": 314140
+  },
+  {
+   "id": "voice_design/grey#1",
+   "kind": "voice_design",
+   "name": "grey",
+   "params": {
+    "description": "A small B-movie grey alien speaking in a high, buzzing, nasal monotone with a slight electronic warble, comically officious and fussy. Close, dry studio recording.",
+    "text": "Attention, earthling. You are in violation of interstellar livestock regulations. Remain still for scanning. This will not hurt. That is a lie. It will hurt very much."
+   },
+   "hash": "98a459364560",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T11:48:31",
+   "actual": 501,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/grey.mp3",
+   "bytes": 300347
+  },
+  {
+   "id": "tts/bark_hick_lost_0#1",
+   "kind": "tts",
+   "name": "bark_hick_lost_0",
+   "params": {
+    "text": "Where'd he go?",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "928a854392aa",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-12T11:49:43",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_lost_0.mp3",
+   "bytes": 30763
+  },
+  {
+   "id": "tts/bark_hick_search_0#1",
+   "kind": "tts",
+   "name": "bark_hick_search_0",
+   "params": {
+    "text": "Come on out, city boy.",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8252764ed3ad",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-12T11:49:43",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_search_0.mp3",
+   "bytes": 36405
+  },
+  {
+   "id": "tts/bark_hick_spot_1#1",
+   "kind": "tts",
+   "name": "bark_hick_spot_1",
+   "params": {
+    "text": "Git him, boys!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2d6a0d872bca",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-12T11:49:43",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_spot_1.mp3",
+   "bytes": 28255
+  },
+  {
+   "id": "tts/bark_hick_spot_0#1",
+   "kind": "tts",
+   "name": "bark_hick_spot_0",
+   "params": {
+    "text": "There he is!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "238c3c63928e",
+   "reserved": 34,
+   "status": "settled",
+   "started": "2026-11-12T11:49:43",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_spot_0.mp3",
+   "bytes": 29509
+  },
+  {
+   "id": "tts/bark_hick_help_0#1",
+   "kind": "tts",
+   "name": "bark_hick_help_0",
+   "params": {
+    "text": "Bubba! Get out here!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b99ed27a9960",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-12T11:49:45",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_help_0.mp3",
+   "bytes": 31390
+  },
+  {
+   "id": "tts/bark_hick_flank_0#1",
+   "kind": "tts",
+   "name": "bark_hick_flank_0",
+   "params": {
+    "text": "I'll cut round back!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f501d2f8fc59",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-12T11:49:45",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_flank_0.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/bark_hick_cover_0#1",
+   "kind": "tts",
+   "name": "bark_hick_cover_0",
+   "params": {
+    "text": "Keep yer head down!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f87d3da87ba0",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-12T11:49:45",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_cover_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/bark_hick_brawl_0#1",
+   "kind": "tts",
+   "name": "bark_hick_brawl_0",
+   "params": {
+    "text": "You shot me, Earl!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d1b54c53bef9",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T11:49:45",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_brawl_0.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "tts/bark_hick_brawl_1#1",
+   "kind": "tts",
+   "name": "bark_hick_brawl_1",
+   "params": {
+    "text": "That's it, you're dead!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cbc37d18f17c",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-12T11:49:45",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_brawl_1.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_hick_idle_0#1",
+   "kind": "tts",
+   "name": "bark_hick_idle_0",
+   "params": {
+    "text": "Pass me another one.",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ebf020fee9b5",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-12T11:49:46",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_idle_0.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/bark_hick_idle_1#1",
+   "kind": "tts",
+   "name": "bark_hick_idle_1",
+   "params": {
+    "text": "Ain't nothin' on TV.",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7ea6b74ed31d",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-12T11:49:46",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_idle_1.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_hick_surprised_0#1",
+   "kind": "tts",
+   "name": "bark_hick_surprised_0",
+   "params": {
+    "text": "What in tarnation?",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ae0382a237ae",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T11:49:46",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_surprised_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_hick_hurt_bad_0#1",
+   "kind": "tts",
+   "name": "bark_hick_hurt_bad_0",
+   "params": {
+    "text": "Ow! Mama!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "27d4bc95ec82",
+   "reserved": 30,
+   "status": "settled",
+   "started": "2026-11-12T11:49:46",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_hurt_bad_0.mp3",
+   "bytes": 19478
+  },
+  {
+   "id": "tts/bark_hick_regroup_0#1",
+   "kind": "tts",
+   "name": "bark_hick_regroup_0",
+   "params": {
+    "text": "Fall back! Fall back!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d2037c55eae6",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T11:49:46",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_regroup_0.mp3",
+   "bytes": 39540
+  },
+  {
+   "id": "tts/bark_deputy_spot_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_spot_0",
+   "params": {
+    "text": "Freeze, boy!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "19e6666ef09b",
+   "reserved": 34,
+   "status": "settled",
+   "started": "2026-11-12T11:49:47",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_spot_0.mp3",
+   "bytes": 28255
+  },
+  {
+   "id": "tts/bark_deputy_spot_1#1",
+   "kind": "tts",
+   "name": "bark_deputy_spot_1",
+   "params": {
+    "text": "Suspect sighted!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bb49374cf1bf",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-12T11:49:47",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_spot_1.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/bark_deputy_lost_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_lost_0",
+   "params": {
+    "text": "Lost visual.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "32f2092eb80d",
+   "reserved": 34,
+   "status": "settled",
+   "started": "2026-11-12T11:49:47",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_lost_0.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "tts/bark_deputy_search_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_search_0",
+   "params": {
+    "text": "Spread out. Find him.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e38284dd290b",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T11:49:47",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_search_0.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "tts/bark_deputy_help_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_help_0",
+   "params": {
+    "text": "Officer needs assistance!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bf41a7ef83b8",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-12T11:49:48",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_help_0.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/bark_deputy_flank_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_flank_0",
+   "params": {
+    "text": "Flankin' left!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d2ad8e8444e7",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-12T11:49:48",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_flank_0.mp3",
+   "bytes": 26374
+  },
+  {
+   "id": "tts/bark_deputy_cover_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_cover_0",
+   "params": {
+    "text": "Takin' cover!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "845f5818f4de",
+   "reserved": 35,
+   "status": "settled",
+   "started": "2026-11-12T11:49:48",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_cover_0.mp3",
+   "bytes": 27001
+  },
+  {
+   "id": "tts/bark_deputy_brawl_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_brawl_0",
+   "params": {
+    "text": "You're under arrest, Cletus!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "55ac975ba12d",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T11:49:49",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_brawl_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/bark_deputy_brawl_1#1",
+   "kind": "tts",
+   "name": "bark_deputy_brawl_1",
+   "params": {
+    "text": "Assaultin' an officer!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c6ccca93bfca",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-12T11:49:49",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_brawl_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/bark_deputy_idle_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_idle_0",
+   "params": {
+    "text": "Quiet night.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1c56650149d3",
+   "reserved": 34,
+   "status": "settled",
+   "started": "2026-11-12T11:49:49",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_idle_0.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/bark_deputy_idle_1#1",
+   "kind": "tts",
+   "name": "bark_deputy_idle_1",
+   "params": {
+    "text": "Donut run after this.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "4e1f3ee49d6e",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T11:49:49",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_idle_1.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/bark_deputy_surprised_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_surprised_0",
+   "params": {
+    "text": "Well, I'll be!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6f71c441bb57",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-12T11:49:49",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_surprised_0.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/bark_deputy_hurt_bad_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_hurt_bad_0",
+   "params": {
+    "text": "Man down! Man down!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5e98da75ecf6",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-12T11:49:49",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_hurt_bad_0.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/bark_deputy_regroup_0#1",
+   "kind": "tts",
+   "name": "bark_deputy_regroup_0",
+   "params": {
+    "text": "Pull back to the cruiser!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "31a5263894f5",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-12T11:49:50",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_regroup_0.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/bark_coot_spot_0#1",
+   "kind": "tts",
+   "name": "bark_coot_spot_0",
+   "params": {
+    "text": "Git off my land!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "078cfa5a9081",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-12T11:49:50",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_spot_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_coot_spot_1#1",
+   "kind": "tts",
+   "name": "bark_coot_spot_1",
+   "params": {
+    "text": "I see ya, varmint!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "4fdb658a6175",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T11:49:50",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_spot_1.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/bark_coot_lost_0#1",
+   "kind": "tts",
+   "name": "bark_coot_lost_0",
+   "params": {
+    "text": "Dang eyes.",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "01611e925236",
+   "reserved": 32,
+   "status": "settled",
+   "started": "2026-11-12T11:49:50",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_lost_0.mp3",
+   "bytes": 25120
+  },
+  {
+   "id": "tts/bark_coot_search_0#1",
+   "kind": "tts",
+   "name": "bark_coot_search_0",
+   "params": {
+    "text": "I know you're out there.",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e998a211413e",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-12T11:49:50",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_search_0.mp3",
+   "bytes": 39540
+  },
+  {
+   "id": "tts/bark_coot_help_0#1",
+   "kind": "tts",
+   "name": "bark_coot_help_0",
+   "params": {
+    "text": "Junior! Fetch the shotgun!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d5282921cd68",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-12T11:49:51",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_help_0.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/bark_coot_flank_0#1",
+   "kind": "tts",
+   "name": "bark_coot_flank_0",
+   "params": {
+    "text": "Comin' round the barn!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "26dd91d5007e",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-12T11:49:51",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_flank_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_coot_cover_0#1",
+   "kind": "tts",
+   "name": "bark_coot_cover_0",
+   "params": {
+    "text": "My back ain't what it was.",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c04bce43ce33",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-12T11:49:51",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_cover_0.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/bark_coot_brawl_0#1",
+   "kind": "tts",
+   "name": "bark_coot_brawl_0",
+   "params": {
+    "text": "Watch where yer shootin'!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7bd9c89b9434",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-12T11:49:51",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_brawl_0.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/bark_coot_brawl_1#1",
+   "kind": "tts",
+   "name": "bark_coot_brawl_1",
+   "params": {
+    "text": "I'll tan yer hide!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8830d84a77b0",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T11:49:52",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_brawl_1.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_coot_idle_0#1",
+   "kind": "tts",
+   "name": "bark_coot_idle_0",
+   "params": {
+    "text": "Back in my day...",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d35576627788",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-12T11:49:52",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_idle_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_coot_idle_1#1",
+   "kind": "tts",
+   "name": "bark_coot_idle_1",
+   "params": {
+    "text": "Where'd I put my teeth?",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1d67a02787fd",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-12T11:49:52",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_idle_1.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/bark_coot_surprised_0#1",
+   "kind": "tts",
+   "name": "bark_coot_surprised_0",
+   "params": {
+    "text": "Lord have mercy!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6124bb099de4",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-12T11:49:52",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_surprised_0.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/bark_coot_hurt_bad_0#1",
+   "kind": "tts",
+   "name": "bark_coot_hurt_bad_0",
+   "params": {
+    "text": "I'm too old for this!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "02f1b83c6f1a",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T11:49:53",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_hurt_bad_0.mp3",
+   "bytes": 39540
+  },
+  {
+   "id": "tts/bark_coot_regroup_0#1",
+   "kind": "tts",
+   "name": "bark_coot_regroup_0",
+   "params": {
+    "text": "Retreat! Move, ol' knees!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5a8618abab5b",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-12T11:49:53",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_regroup_0.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/bark_grey_spot_0#1",
+   "kind": "tts",
+   "name": "bark_grey_spot_0",
+   "params": {
+    "text": "Earthling detected.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "28fb9438afcc",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-12T11:49:53",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_spot_0.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "tts/bark_grey_spot_1#1",
+   "kind": "tts",
+   "name": "bark_grey_spot_1",
+   "params": {
+    "text": "Hooman sighted!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ed0e0d88cfa7",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-12T11:49:53",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_spot_1.mp3",
+   "bytes": 36405
+  },
+  {
+   "id": "tts/bark_grey_lost_0#1",
+   "kind": "tts",
+   "name": "bark_grey_lost_0",
+   "params": {
+    "text": "The hooman has vanished.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9a4da7eb5d44",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-12T11:49:54",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_lost_0.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/bark_grey_search_0#1",
+   "kind": "tts",
+   "name": "bark_grey_search_0",
+   "params": {
+    "text": "Scan the sector.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d92c223a5e43",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-12T11:49:54",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_search_0.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/bark_grey_help_0#1",
+   "kind": "tts",
+   "name": "bark_grey_help_0",
+   "params": {
+    "text": "Requesting reinforcements!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e778b9cfa65e",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-12T11:49:54",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_help_0.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/bark_grey_flank_0#1",
+   "kind": "tts",
+   "name": "bark_grey_flank_0",
+   "params": {
+    "text": "Encircle the hooman.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "398638886240",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-12T11:49:55",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_flank_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_grey_cover_0#1",
+   "kind": "tts",
+   "name": "bark_grey_cover_0",
+   "params": {
+    "text": "Shields! Shields!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0d772f183799",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-12T11:49:55",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_cover_0.mp3",
+   "bytes": 28255
+  },
+  {
+   "id": "tts/bark_grey_brawl_0#1",
+   "kind": "tts",
+   "name": "bark_grey_brawl_0",
+   "params": {
+    "text": "Friendly fire, Zorp!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f2649d6e193c",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-12T11:49:55",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_brawl_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/bark_grey_brawl_1#1",
+   "kind": "tts",
+   "name": "bark_grey_brawl_1",
+   "params": {
+    "text": "You will be probed for that!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bc0adb8a293a",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T11:49:55",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_brawl_1.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/bark_grey_idle_0#1",
+   "kind": "tts",
+   "name": "bark_grey_idle_0",
+   "params": {
+    "text": "This cow is defective.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1d12907b5de2",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-12T11:49:55",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_idle_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_grey_idle_1#1",
+   "kind": "tts",
+   "name": "bark_grey_idle_1",
+   "params": {
+    "text": "Report: still no Bessie.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "03087ee94458",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-12T11:49:55",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_idle_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/bark_grey_surprised_0#1",
+   "kind": "tts",
+   "name": "bark_grey_surprised_0",
+   "params": {
+    "text": "Gleep!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "60a89bc51f42",
+   "reserved": 27,
+   "status": "settled",
+   "started": "2026-11-12T11:49:56",
+   "actual": 6,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_surprised_0.mp3",
+   "bytes": 12581
+  },
+  {
+   "id": "tts/bark_grey_hurt_bad_0#1",
+   "kind": "tts",
+   "name": "bark_grey_hurt_bad_0",
+   "params": {
+    "text": "Hull breach!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2999a9441ca9",
+   "reserved": 34,
+   "status": "settled",
+   "started": "2026-11-12T11:49:56",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_hurt_bad_0.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/bark_grey_regroup_0#1",
+   "kind": "tts",
+   "name": "bark_grey_regroup_0",
+   "params": {
+    "text": "Return to the saucer!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c86b64bb9aca",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-12T11:49:56",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_regroup_0.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "stt/bark_hick_search_0#1",
+   "kind": "stt",
+   "name": "bark_hick_search_0",
+   "params": {
+    "file": "bark_hick_search_0.mp3",
+    "bytes": 36405
+   },
+   "hash": "8d4e423955ce",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_search_0.json",
+   "bytes": 351
+  },
+  {
+   "id": "stt/bark_hick_spot_1#1",
+   "kind": "stt",
+   "name": "bark_hick_spot_1",
+   "params": {
+    "file": "bark_hick_spot_1.mp3",
+    "bytes": 28255
+   },
+   "hash": "3b152d67599f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_spot_1.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/bark_hick_spot_0#1",
+   "kind": "stt",
+   "name": "bark_hick_spot_0",
+   "params": {
+    "file": "bark_hick_spot_0.mp3",
+    "bytes": 29509
+   },
+   "hash": "2f499c04bf3d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_spot_0.json",
+   "bytes": 284
+  },
+  {
+   "id": "stt/bark_hick_lost_0#1",
+   "kind": "stt",
+   "name": "bark_hick_lost_0",
+   "params": {
+    "file": "bark_hick_lost_0.mp3",
+    "bytes": 30763
+   },
+   "hash": "d5907b9ccaa3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_lost_0.json",
+   "bytes": 292
+  },
+  {
+   "id": "stt/bark_hick_help_0#1",
+   "kind": "stt",
+   "name": "bark_hick_help_0",
+   "params": {
+    "file": "bark_hick_help_0.mp3",
+    "bytes": 31390
+   },
+   "hash": "39f86a4a9633",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_help_0.json",
+   "bytes": 292
+  },
+  {
+   "id": "stt/bark_hick_flank_0#1",
+   "kind": "stt",
+   "name": "bark_hick_flank_0",
+   "params": {
+    "file": "bark_hick_flank_0.mp3",
+    "bytes": 35151
+   },
+   "hash": "ef621a2d907a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_flank_0.json",
+   "bytes": 292
+  },
+  {
+   "id": "stt/bark_hick_cover_0#1",
+   "kind": "stt",
+   "name": "bark_hick_cover_0",
+   "params": {
+    "file": "bark_hick_cover_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "a75dafe7fe6a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_cover_0.json",
+   "bytes": 356
+  },
+  {
+   "id": "stt/bark_hick_brawl_0#1",
+   "kind": "stt",
+   "name": "bark_hick_brawl_0",
+   "params": {
+    "file": "bark_hick_brawl_0.mp3",
+    "bytes": 37032
+   },
+   "hash": "97ba7c60b8c6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_brawl_0.json",
+   "bytes": 353
+  },
+  {
+   "id": "stt/bark_hick_brawl_1#1",
+   "kind": "stt",
+   "name": "bark_hick_brawl_1",
+   "params": {
+    "file": "bark_hick_brawl_1.mp3",
+    "bytes": 38286
+   },
+   "hash": "8320fa0540a4",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_brawl_1.json",
+   "bytes": 362
+  },
+  {
+   "id": "stt/bark_hick_idle_0#1",
+   "kind": "stt",
+   "name": "bark_hick_idle_0",
+   "params": {
+    "file": "bark_hick_idle_0.mp3",
+    "bytes": 46436
+   },
+   "hash": "4bd74b51ee26",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_idle_0.json",
+   "bytes": 360
+  },
+  {
+   "id": "stt/bark_hick_idle_1#1",
+   "kind": "stt",
+   "name": "bark_hick_idle_1",
+   "params": {
+    "file": "bark_hick_idle_1.mp3",
+    "bytes": 38286
+   },
+   "hash": "73f73b2f44ed",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_idle_1.json",
+   "bytes": 292
+  },
+  {
+   "id": "stt/bark_hick_surprised_0#1",
+   "kind": "stt",
+   "name": "bark_hick_surprised_0",
+   "params": {
+    "file": "bark_hick_surprised_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "b5cc4f335930",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_surprised_0.json",
+   "bytes": 302
+  },
+  {
+   "id": "stt/bark_hick_hurt_bad_0#1",
+   "kind": "stt",
+   "name": "bark_hick_hurt_bad_0",
+   "params": {
+    "file": "bark_hick_hurt_bad_0.mp3",
+    "bytes": 19478
+   },
+   "hash": "fb4e19d6e311",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_hurt_bad_0.json",
+   "bytes": 158
+  },
+  {
+   "id": "stt/bark_hick_regroup_0#1",
+   "kind": "stt",
+   "name": "bark_hick_regroup_0",
+   "params": {
+    "file": "bark_hick_regroup_0.mp3",
+    "bytes": 39540
+   },
+   "hash": "5e39fb52d92e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_regroup_0.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/bark_deputy_spot_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_spot_0",
+   "params": {
+    "file": "bark_deputy_spot_0.mp3",
+    "bytes": 28255
+   },
+   "hash": "73a92b489fdf",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_spot_0.json",
+   "bytes": 165
+  },
+  {
+   "id": "stt/bark_deputy_spot_1#1",
+   "kind": "stt",
+   "name": "bark_deputy_spot_1",
+   "params": {
+    "file": "bark_deputy_spot_1.mp3",
+    "bytes": 35151
+   },
+   "hash": "18778f0a2b15",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_spot_1.json",
+   "bytes": 228
+  },
+  {
+   "id": "stt/bark_deputy_lost_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_lost_0",
+   "params": {
+    "file": "bark_deputy_lost_0.mp3",
+    "bytes": 20732
+   },
+   "hash": "c4f17fae302d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_lost_0.json",
+   "bytes": 165
+  },
+  {
+   "id": "stt/bark_deputy_search_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_search_0",
+   "params": {
+    "file": "bark_deputy_search_0.mp3",
+    "bytes": 37032
+   },
+   "hash": "45edb10428ea",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_search_0.json",
+   "bytes": 354
+  },
+  {
+   "id": "stt/bark_deputy_help_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_help_0",
+   "params": {
+    "file": "bark_deputy_help_0.mp3",
+    "bytes": 41421
+   },
+   "hash": "0a98c5d34c1f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_help_0.json",
+   "bytes": 245
+  },
+  {
+   "id": "stt/bark_deputy_flank_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_flank_0",
+   "params": {
+    "file": "bark_deputy_flank_0.mp3",
+    "bytes": 26374
+   },
+   "hash": "d5350cf69b34",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_flank_0.json",
+   "bytes": 226
+  },
+  {
+   "id": "stt/bark_deputy_cover_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_cover_0",
+   "params": {
+    "file": "bark_deputy_cover_0.mp3",
+    "bytes": 27001
+   },
+   "hash": "745beaf247ce",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_cover_0.json",
+   "bytes": 166
+  },
+  {
+   "id": "stt/bark_deputy_brawl_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_brawl_0",
+   "params": {
+    "file": "bark_deputy_brawl_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "6de95d240e20",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_brawl_0.json",
+   "bytes": 309
+  },
+  {
+   "id": "stt/bark_deputy_brawl_1#1",
+   "kind": "stt",
+   "name": "bark_deputy_brawl_1",
+   "params": {
+    "file": "bark_deputy_brawl_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "301fcef0107b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_brawl_1.json",
+   "bytes": 239
+  },
+  {
+   "id": "stt/bark_deputy_idle_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_idle_0",
+   "params": {
+    "file": "bark_deputy_idle_0.mp3",
+    "bytes": 35151
+   },
+   "hash": "18ea381e6331",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_idle_0.json",
+   "bytes": 222
+  },
+  {
+   "id": "stt/bark_deputy_idle_1#1",
+   "kind": "stt",
+   "name": "bark_deputy_idle_1",
+   "params": {
+    "file": "bark_deputy_idle_1.mp3",
+    "bytes": 49571
+   },
+   "hash": "47eb855bd826",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_idle_1.json",
+   "bytes": 352
+  },
+  {
+   "id": "stt/bark_deputy_surprised_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_surprised_0",
+   "params": {
+    "file": "bark_deputy_surprised_0.mp3",
+    "bytes": 35151
+   },
+   "hash": "7a150ee4164a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_surprised_0.json",
+   "bytes": 223
+  },
+  {
+   "id": "stt/bark_deputy_hurt_bad_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_hurt_bad_0",
+   "params": {
+    "file": "bark_deputy_hurt_bad_0.mp3",
+    "bytes": 41421
+   },
+   "hash": "a51ddf898bd6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_hurt_bad_0.json",
+   "bytes": 291
+  },
+  {
+   "id": "stt/bark_deputy_regroup_0#1",
+   "kind": "stt",
+   "name": "bark_deputy_regroup_0",
+   "params": {
+    "file": "bark_deputy_regroup_0.mp3",
+    "bytes": 50825
+   },
+   "hash": "97b444d03e05",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_regroup_0.json",
+   "bytes": 485
+  },
+  {
+   "id": "stt/bark_coot_spot_0#1",
+   "kind": "stt",
+   "name": "bark_coot_spot_0",
+   "params": {
+    "file": "bark_coot_spot_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "7ad74397f5d8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_spot_0.json",
+   "bytes": 285
+  },
+  {
+   "id": "stt/bark_coot_spot_1#1",
+   "kind": "stt",
+   "name": "bark_coot_spot_1",
+   "params": {
+    "file": "bark_coot_spot_1.mp3",
+    "bytes": 41421
+   },
+   "hash": "065187717b71",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_spot_1.json",
+   "bytes": 293
+  },
+  {
+   "id": "stt/bark_coot_lost_0#1",
+   "kind": "stt",
+   "name": "bark_coot_lost_0",
+   "params": {
+    "file": "bark_coot_lost_0.mp3",
+    "bytes": 25120
+   },
+   "hash": "7bcd84bd841d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_lost_0.json",
+   "bytes": 161
+  },
+  {
+   "id": "stt/bark_coot_search_0#1",
+   "kind": "stt",
+   "name": "bark_coot_search_0",
+   "params": {
+    "file": "bark_coot_search_0.mp3",
+    "bytes": 39540
+   },
+   "hash": "9e6296171bb0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_search_0.json",
+   "bytes": 355
+  },
+  {
+   "id": "stt/bark_coot_help_0#1",
+   "kind": "stt",
+   "name": "bark_coot_help_0",
+   "params": {
+    "file": "bark_coot_help_0.mp3",
+    "bytes": 49571
+   },
+   "hash": "e78a190f59bc",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_help_0.json",
+   "bytes": 305
+  },
+  {
+   "id": "stt/bark_coot_flank_0#1",
+   "kind": "stt",
+   "name": "bark_coot_flank_0",
+   "params": {
+    "file": "bark_coot_flank_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "7bc0b5ef78ea",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_flank_0.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/bark_coot_cover_0#1",
+   "kind": "stt",
+   "name": "bark_coot_cover_0",
+   "params": {
+    "file": "bark_coot_cover_0.mp3",
+    "bytes": 40794
+   },
+   "hash": "16c1cda3c7b0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_cover_0.json",
+   "bytes": 417
+  },
+  {
+   "id": "stt/bark_coot_brawl_0#1",
+   "kind": "stt",
+   "name": "bark_coot_brawl_0",
+   "params": {
+    "file": "bark_coot_brawl_0.mp3",
+    "bytes": 41421
+   },
+   "hash": "c29a482e1fc0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_brawl_0.json",
+   "bytes": 310
+  },
+  {
+   "id": "stt/bark_coot_brawl_1#1",
+   "kind": "stt",
+   "name": "bark_coot_brawl_1",
+   "params": {
+    "file": "bark_coot_brawl_1.mp3",
+    "bytes": 38286
+   },
+   "hash": "3cb2b9745170",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_brawl_1.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/bark_coot_idle_0#1",
+   "kind": "stt",
+   "name": "bark_coot_idle_0",
+   "params": {
+    "file": "bark_coot_idle_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "8aef1ad59722",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_idle_0.json",
+   "bytes": 281
+  },
+  {
+   "id": "stt/bark_coot_idle_1#1",
+   "kind": "stt",
+   "name": "bark_coot_idle_1",
+   "params": {
+    "file": "bark_coot_idle_1.mp3",
+    "bytes": 40794
+   },
+   "hash": "fdbb587a7ff6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_idle_1.json",
+   "bytes": 355
+  },
+  {
+   "id": "stt/bark_coot_surprised_0#1",
+   "kind": "stt",
+   "name": "bark_coot_surprised_0",
+   "params": {
+    "file": "bark_coot_surprised_0.mp3",
+    "bytes": 40794
+   },
+   "hash": "70f2d7b13d58",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_surprised_0.json",
+   "bytes": 228
+  },
+  {
+   "id": "stt/bark_coot_hurt_bad_0#1",
+   "kind": "stt",
+   "name": "bark_coot_hurt_bad_0",
+   "params": {
+    "file": "bark_coot_hurt_bad_0.mp3",
+    "bytes": 39540
+   },
+   "hash": "449a196435c5",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_hurt_bad_0.json",
+   "bytes": 348
+  },
+  {
+   "id": "stt/bark_coot_regroup_0#1",
+   "kind": "stt",
+   "name": "bark_coot_regroup_0",
+   "params": {
+    "file": "bark_coot_regroup_0.mp3",
+    "bytes": 49571
+   },
+   "hash": "0718af303036",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_regroup_0.json",
+   "bytes": 302
+  },
+  {
+   "id": "stt/bark_grey_spot_0#1",
+   "kind": "stt",
+   "name": "bark_grey_spot_0",
+   "params": {
+    "file": "bark_grey_spot_0.mp3",
+    "bytes": 37032
+   },
+   "hash": "a6b516677c16",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_spot_0.json",
+   "bytes": 178
+  },
+  {
+   "id": "stt/bark_grey_spot_1#1",
+   "kind": "stt",
+   "name": "bark_grey_spot_1",
+   "params": {
+    "file": "bark_grey_spot_1.mp3",
+    "bytes": 36405
+   },
+   "hash": "44606bdb3ea6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_spot_1.json",
+   "bytes": 169
+  },
+  {
+   "id": "stt/bark_grey_lost_0#1",
+   "kind": "stt",
+   "name": "bark_grey_lost_0",
+   "params": {
+    "file": "bark_grey_lost_0.mp3",
+    "bytes": 40794
+   },
+   "hash": "6f572de17ee3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_lost_0.json",
+   "bytes": 299
+  },
+  {
+   "id": "stt/bark_grey_search_0#1",
+   "kind": "stt",
+   "name": "bark_grey_search_0",
+   "params": {
+    "file": "bark_grey_search_0.mp3",
+    "bytes": 35151
+   },
+   "hash": "8eb8e2f928d7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_search_0.json",
+   "bytes": 227
+  },
+  {
+   "id": "stt/bark_grey_help_0#1",
+   "kind": "stt",
+   "name": "bark_grey_help_0",
+   "params": {
+    "file": "bark_grey_help_0.mp3",
+    "bytes": 47063
+   },
+   "hash": "195f7eac9de9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_help_0.json",
+   "bytes": 193
+  },
+  {
+   "id": "stt/bark_grey_cover_0#1",
+   "kind": "stt",
+   "name": "bark_grey_cover_0",
+   "params": {
+    "file": "bark_grey_cover_0.mp3",
+    "bytes": 28255
+   },
+   "hash": "efd795cc65d7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_cover_0.json",
+   "bytes": 298
+  },
+  {
+   "id": "stt/bark_grey_flank_0#1",
+   "kind": "stt",
+   "name": "bark_grey_flank_0",
+   "params": {
+    "file": "bark_grey_flank_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "193bee71de0e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_flank_0.json",
+   "bytes": 235
+  },
+  {
+   "id": "stt/bark_grey_brawl_0#1",
+   "kind": "stt",
+   "name": "bark_grey_brawl_0",
+   "params": {
+    "file": "bark_grey_brawl_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "ba17eb78f31f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_brawl_0.json",
+   "bytes": 235
+  },
+  {
+   "id": "stt/bark_grey_brawl_1#1",
+   "kind": "stt",
+   "name": "bark_grey_brawl_1",
+   "params": {
+    "file": "bark_grey_brawl_1.mp3",
+    "bytes": 46436
+   },
+   "hash": "ee176f64b071",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_brawl_1.json",
+   "bytes": 419
+  },
+  {
+   "id": "stt/bark_grey_idle_0#1",
+   "kind": "stt",
+   "name": "bark_grey_idle_0",
+   "params": {
+    "file": "bark_grey_idle_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "2c8c1d43f98f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_idle_0.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/bark_grey_idle_1#1",
+   "kind": "stt",
+   "name": "bark_grey_idle_1",
+   "params": {
+    "file": "bark_grey_idle_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "a2708e14a874",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_idle_1.json",
+   "bytes": 300
+  },
+  {
+   "id": "stt/bark_grey_surprised_0#1",
+   "kind": "stt",
+   "name": "bark_grey_surprised_0",
+   "params": {
+    "file": "bark_grey_surprised_0.mp3",
+    "bytes": 12581
+   },
+   "hash": "e8424e7ece3c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_surprised_0.json",
+   "bytes": 237
+  },
+  {
+   "id": "stt/bark_grey_hurt_bad_0#1",
+   "kind": "stt",
+   "name": "bark_grey_hurt_bad_0",
+   "params": {
+    "file": "bark_grey_hurt_bad_0.mp3",
+    "bytes": 45182
+   },
+   "hash": "5ba0515303e9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_hurt_bad_0.json",
+   "bytes": 299
+  },
+  {
+   "id": "stt/bark_grey_regroup_0#1",
+   "kind": "stt",
+   "name": "bark_grey_regroup_0",
+   "params": {
+    "file": "bark_grey_regroup_0.mp3",
+    "bytes": 47063
+   },
+   "hash": "f81ccb65c67e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:51:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_regroup_0.json",
+   "bytes": 358
+  },
+  {
+   "id": "tts/bark_deputy_search_0#2",
+   "kind": "tts",
+   "name": "bark_deputy_search_0",
+   "params": {
+    "text": "Spread out and find him.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e22224644e1a",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-12T11:53:09",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_search_0.mp3",
+   "bytes": 36405
+  },
+  {
+   "id": "tts/bark_coot_spot_1#2",
+   "kind": "tts",
+   "name": "bark_coot_spot_1",
+   "params": {
+    "text": "I see you, varmint!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "fd01399f05d4",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-12T11:53:09",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_spot_1.mp3",
+   "bytes": 31390
+  },
+  {
+   "id": "tts/bark_grey_cover_0#2",
+   "kind": "tts",
+   "name": "bark_grey_cover_0",
+   "params": {
+    "text": "Raise the shields!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "47ff19206df3",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T11:53:09",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_cover_0.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/bark_deputy_spot_1#2",
+   "kind": "tts",
+   "name": "bark_deputy_spot_1",
+   "params": {
+    "text": "Suspect spotted!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2c1737661599",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-12T11:53:10",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_spot_1.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/bark_grey_surprised_0#2",
+   "kind": "tts",
+   "name": "bark_grey_surprised_0",
+   "params": {
+    "text": "Eep! Intruder!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f4c0aa7f069b",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-12T11:53:10",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_surprised_0.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/bark_hick_hurt_bad_0#2",
+   "kind": "tts",
+   "name": "bark_hick_hurt_bad_0",
+   "params": {
+    "text": "Ow! I'm hit, Mama!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "73af2ee7bc4f",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T11:53:10",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_hurt_bad_0.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "stt/bark_coot_spot_1#2",
+   "kind": "stt",
+   "name": "bark_coot_spot_1",
+   "params": {
+    "file": "bark_coot_spot_1.mp3",
+    "bytes": 31390
+   },
+   "hash": "9b25b4162acc",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:54:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_spot_1.json",
+   "bytes": 290
+  },
+  {
+   "id": "stt/bark_deputy_spot_1#2",
+   "kind": "stt",
+   "name": "bark_deputy_spot_1",
+   "params": {
+    "file": "bark_deputy_spot_1.mp3",
+    "bytes": 35151
+   },
+   "hash": "18778f0a2b15",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:54:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_spot_1.json",
+   "bytes": 172
+  },
+  {
+   "id": "stt/bark_hick_hurt_bad_0#2",
+   "kind": "stt",
+   "name": "bark_hick_hurt_bad_0",
+   "params": {
+    "file": "bark_hick_hurt_bad_0.mp3",
+    "bytes": 37032
+   },
+   "hash": "243bd52a0a82",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:54:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_hurt_bad_0.json",
+   "bytes": 287
+  },
+  {
+   "id": "stt/bark_deputy_search_0#2",
+   "kind": "stt",
+   "name": "bark_deputy_search_0",
+   "params": {
+    "file": "bark_deputy_search_0.mp3",
+    "bytes": 36405
+   },
+   "hash": "cb5fdf39555a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:54:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_search_0.json",
+   "bytes": 354
+  },
+  {
+   "id": "stt/bark_grey_cover_0#2",
+   "kind": "stt",
+   "name": "bark_grey_cover_0",
+   "params": {
+    "file": "bark_grey_cover_0.mp3",
+    "bytes": 47063
+   },
+   "hash": "59e2647ba131",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:54:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_cover_0.json",
+   "bytes": 298
+  },
+  {
+   "id": "stt/bark_grey_surprised_0#2",
+   "kind": "stt",
+   "name": "bark_grey_surprised_0",
+   "params": {
+    "file": "bark_grey_surprised_0.mp3",
+    "bytes": 47063
+   },
+   "hash": "c0165744fcc4",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T11:54:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_surprised_0.json",
+   "bytes": 304
+  },
+  {
+   "id": "tts/bark_deputy_spot_1#3",
+   "kind": "tts",
+   "name": "bark_deputy_spot_1",
+   "params": {
+    "text": "Suspect spotted!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2c1737661599",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-12T11:54:16",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_spot_1.mp3",
+   "bytes": 39540
+  },
+  {
+   "id": "tts/bark_coot_spot_1#3",
+   "kind": "tts",
+   "name": "bark_coot_spot_1",
+   "params": {
+    "text": "I see you, varmint!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "fd01399f05d4",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-12T11:54:16",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_coot_spot_1.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/bark_grey_cover_0#3",
+   "kind": "tts",
+   "name": "bark_grey_cover_0",
+   "params": {
+    "text": "Raise the shields!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "47ff19206df3",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T11:54:16",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_cover_0.mp3",
+   "bytes": 25120
+  },
+  {
+   "id": "tts/bark_deputy_search_0#3",
+   "kind": "tts",
+   "name": "bark_deputy_search_0",
+   "params": {
+    "text": "Spread out and find him.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e22224644e1a",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-12T11:54:16",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_deputy_search_0.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/bark_grey_surprised_0#3",
+   "kind": "tts",
+   "name": "bark_grey_surprised_0",
+   "params": {
+    "text": "Eep! Intruder!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f4c0aa7f069b",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-12T11:54:17",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_grey_surprised_0.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/bark_hick_hurt_bad_0#3",
+   "kind": "tts",
+   "name": "bark_hick_hurt_bad_0",
+   "params": {
+    "text": "Ow! I'm hit, Mama!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "73af2ee7bc4f",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T11:54:17",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_hick_hurt_bad_0.mp3",
+   "bytes": 33897
+  },
+  {
+   "id": "reconcile@2026-11-12T11:55:19",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -7313,
+   "actual": -10058,
    "basis": "account",
-   "balance_after": 66661
+   "balance_after": 67955
   }
  ],
  "anchor": {
@@ -14477,7 +17299,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-12T08:32:29",
-  "account_drop": 61938
+  "when": "2026-11-12T11:55:19",
+  "account_drop": 63232
  }
 }

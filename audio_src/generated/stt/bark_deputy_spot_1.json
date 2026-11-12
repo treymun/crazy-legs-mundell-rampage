@@ -1,0 +1,15 @@
+{
+ "text": "Suspect spotted",
+ "words": [
+  {
+   "text": "Suspect",
+   "start": 0.04,
+   "end": 0.62
+  },
+  {
+   "text": "spotted",
+   "start": 0.7,
+   "end": 1.26
+  }
+ ]
+}

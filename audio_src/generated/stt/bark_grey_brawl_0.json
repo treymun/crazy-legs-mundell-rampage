@@ -1,0 +1,20 @@
+{
+ "text": "Friendly fire, sir",
+ "words": [
+  {
+   "text": "Friendly",
+   "start": 0.04,
+   "end": 0.48
+  },
+  {
+   "text": "fire,",
+   "start": 0.62,
+   "end": 0.98
+  },
+  {
+   "text": "sir",
+   "start": 1.14,
+   "end": 1.44
+  }
+ ]
+}

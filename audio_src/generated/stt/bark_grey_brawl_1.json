@@ -1,0 +1,35 @@
+{
+ "text": "You will be probed for that",
+ "words": [
+  {
+   "text": "You",
+   "start": 0.06,
+   "end": 0.2
+  },
+  {
+   "text": "will",
+   "start": 0.24,
+   "end": 0.4
+  },
+  {
+   "text": "be",
+   "start": 0.44,
+   "end": 0.52
+  },
+  {
+   "text": "probed",
+   "start": 0.64,
+   "end": 1.12
+  },
+  {
+   "text": "for",
+   "start": 1.16,
+   "end": 1.36
+  },
+  {
+   "text": "that",
+   "start": 1.42,
+   "end": 1.78
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Junior, fetch the shotgun",
+ "words": [
+  {
+   "text": "Junior,",
+   "start": 0.08,
+   "end": 0.56
+  },
+  {
+   "text": "fetch",
+   "start": 0.74,
+   "end": 1.02
+  },
+  {
+   "text": "the",
+   "start": 1.08,
+   "end": 1.16
+  },
+  {
+   "text": "shotgun",
+   "start": 1.24,
+   "end": 1.86
+  }
+ ]
+}

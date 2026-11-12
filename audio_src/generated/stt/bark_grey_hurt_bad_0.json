@@ -1,0 +1,25 @@
+{
+ "text": "Hey, yeah, hull breach",
+ "words": [
+  {
+   "text": "Hey,",
+   "start": 0.04,
+   "end": 0.16
+  },
+  {
+   "text": "yeah,",
+   "start": 0.26,
+   "end": 0.52
+  },
+  {
+   "text": "hull",
+   "start": 0.72,
+   "end": 0.98
+  },
+  {
+   "text": "breach",
+   "start": 1.08,
+   "end": 1.66
+  }
+ ]
+}

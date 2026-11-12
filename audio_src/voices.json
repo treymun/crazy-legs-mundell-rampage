@@ -48,5 +48,25 @@
   "id": "BUk7HAa0KlARmSkYDiaR",
   "description": "A redneck demolition derby champion in his forties, a hoarse, cocky, hollering voice with a thick country accent, wild and grinning. Close, dry studio recording.",
   "preview": "audio_src/generated/voice_design/boggs.mp3"
+ },
+ "hick": {
+  "id": "C4DubgctdO20yg477kAN",
+  "description": "A young rowdy Southern redneck man in his twenties, loud, twangy, cocky and none too bright, with a thick rural Arkansas accent. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/hick.mp3"
+ },
+ "deputy": {
+  "id": "jvHYwseygQQPlBP9Ogjd",
+  "description": "A gruff, self-important small-town Southern sheriff's deputy in his forties with a nasal drawl, barking orders like he owns the county. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/deputy.mp3"
+ },
+ "coot": {
+  "id": "uVPm1kovFPX5yudBSJwZ",
+  "description": "A cranky old Southern hillbilly man in his seventies, wheezy and half toothless, cackling and grumbling, with a thick Ozark accent. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/coot.mp3"
+ },
+ "grey": {
+  "id": "jpg4PVS8DA8UHcqqE8kq",
+  "description": "A small B-movie grey alien speaking in a high, buzzing, nasal monotone with a slight electronic warble, comically officious and fussy. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/grey.mp3"
  }
 }

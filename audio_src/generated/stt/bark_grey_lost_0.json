@@ -1,0 +1,25 @@
+{
+ "text": "The human has vanished",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.04,
+   "end": 0.18
+  },
+  {
+   "text": "human",
+   "start": 0.24,
+   "end": 0.56
+  },
+  {
+   "text": "has",
+   "start": 0.62,
+   "end": 0.82
+  },
+  {
+   "text": "vanished",
+   "start": 0.94,
+   "end": 1.48
+  }
+ ]
+}

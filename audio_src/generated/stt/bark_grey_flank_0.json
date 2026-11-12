@@ -1,0 +1,20 @@
+{
+ "text": "Encircle the humans",
+ "words": [
+  {
+   "text": "Encircle",
+   "start": 0.08,
+   "end": 0.6
+  },
+  {
+   "text": "the",
+   "start": 0.64,
+   "end": 0.74
+  },
+  {
+   "text": "humans",
+   "start": 0.8,
+   "end": 1.36
+  }
+ ]
+}

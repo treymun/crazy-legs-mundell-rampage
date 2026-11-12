@@ -1,0 +1,30 @@
+{
+ "text": "Do not run after this",
+ "words": [
+  {
+   "text": "Do",
+   "start": 0.04,
+   "end": 0.28
+  },
+  {
+   "text": "not",
+   "start": 0.36,
+   "end": 0.54
+  },
+  {
+   "text": "run",
+   "start": 0.7,
+   "end": 1.04
+  },
+  {
+   "text": "after",
+   "start": 1.18,
+   "end": 1.46
+  },
+  {
+   "text": "this",
+   "start": 1.56,
+   "end": 1.84
+  }
+ ]
+}

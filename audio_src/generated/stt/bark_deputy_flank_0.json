@@ -1,0 +1,20 @@
+{
+ "text": "Flank and left",
+ "words": [
+  {
+   "text": "Flank",
+   "start": 0.04,
+   "end": 0.32
+  },
+  {
+   "text": "and",
+   "start": 0.36,
+   "end": 0.48
+  },
+  {
+   "text": "left",
+   "start": 0.56,
+   "end": 0.9
+  }
+ ]
+}

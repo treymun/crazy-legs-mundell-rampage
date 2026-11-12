@@ -1,0 +1,25 @@
+{
+ "text": "Get off my land",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "off",
+   "start": 0.32,
+   "end": 0.52
+  },
+  {
+   "text": "my",
+   "start": 0.58,
+   "end": 0.76
+  },
+  {
+   "text": "land",
+   "start": 0.86,
+   "end": 1.42
+  }
+ ]
+}

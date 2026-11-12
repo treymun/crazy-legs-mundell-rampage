@@ -127,6 +127,23 @@ DESIGNS = {
               "thick country accent, wild and grinning. Close, dry studio recording.",
               "Forty-seven wins at Buzzard Bend and not a one of 'em clean! Buckle up, sunshine, because "
               "I'm gonna trade paint with you till there ain't no paint left to trade."),
+    # The county's hands talking (2.0.0-dev.34, features/enemy_barks.gd).
+    "hick": ("A young rowdy Southern redneck man in his twenties, loud, twangy, cocky and none too bright, "
+             "with a thick rural Arkansas accent. Close, dry studio recording.",
+             "Hey Earl, git over here and look at this! Somebody done shot up the truck again, and I bet "
+             "it was that delivery feller. Grab yer gun, we're goin' huntin' tonight, boys!"),
+    "deputy": ("A gruff, self-important small-town Southern sheriff's deputy in his forties with a nasal drawl, "
+               "barking orders like he owns the county. Close, dry studio recording.",
+               "This is a county matter, son, and I am the county. Step away from the vehicle, keep your "
+               "hands where I can see 'em, and don't make me call for backup on a Saturday night."),
+    "coot": ("A cranky old Southern hillbilly man in his seventies, wheezy and half toothless, cackling and "
+             "grumbling, with a thick Ozark accent. Close, dry studio recording.",
+             "Back in my day we didn't have no fancy alien cows, we had regular cows, and we liked 'em. "
+             "Now git off my porch before I fetch the rock salt and learn you some manners."),
+    "grey": ("A small B-movie grey alien speaking in a high, buzzing, nasal monotone with a slight electronic "
+             "warble, comically officious and fussy. Close, dry studio recording.",
+             "Attention, earthling. You are in violation of interstellar livestock regulations. Remain "
+             "still for scanning. This will not hurt. That is a lie. It will hurt very much."),
 }
 
 

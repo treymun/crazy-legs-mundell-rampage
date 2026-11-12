@@ -1,0 +1,25 @@
+{
+ "text": "Coming round the barn",
+ "words": [
+  {
+   "text": "Coming",
+   "start": 0.06,
+   "end": 0.32
+  },
+  {
+   "text": "round",
+   "start": 0.4,
+   "end": 0.7
+  },
+  {
+   "text": "the",
+   "start": 0.74,
+   "end": 0.82
+  },
+  {
+   "text": "barn",
+   "start": 0.94,
+   "end": 1.4
+  }
+ ]
+}

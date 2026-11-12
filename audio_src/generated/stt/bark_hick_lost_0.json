@@ -1,0 +1,25 @@
+{
+ "text": "Yeah, where'd he go?",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.08,
+   "end": 0.2
+  },
+  {
+   "text": "where'd",
+   "start": 0.3,
+   "end": 0.54
+  },
+  {
+   "text": "he",
+   "start": 0.58,
+   "end": 0.64
+  },
+  {
+   "text": "go?",
+   "start": 0.76,
+   "end": 1.1
+  }
+ ]
+}

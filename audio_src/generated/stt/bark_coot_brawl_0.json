@@ -1,0 +1,25 @@
+{
+ "text": "Watch where you're shootin'!",
+ "words": [
+  {
+   "text": "Watch",
+   "start": 0.08,
+   "end": 0.4
+  },
+  {
+   "text": "where",
+   "start": 0.52,
+   "end": 0.72
+  },
+  {
+   "text": "you're",
+   "start": 0.82,
+   "end": 1.02
+  },
+  {
+   "text": "shootin'!",
+   "start": 1.12,
+   "end": 1.54
+  }
+ ]
+}

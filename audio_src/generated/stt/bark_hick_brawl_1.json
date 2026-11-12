@@ -1,0 +1,30 @@
+{
+ "text": "Uh, that's it. You're dead",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.12,
+   "end": 0.2
+  },
+  {
+   "text": "that's",
+   "start": 0.32,
+   "end": 0.56
+  },
+  {
+   "text": "it.",
+   "start": 0.62,
+   "end": 0.74
+  },
+  {
+   "text": "You're",
+   "start": 0.84,
+   "end": 0.98
+  },
+  {
+   "text": "dead",
+   "start": 1.02,
+   "end": 1.38
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "I say you're varmint",
+ "words": [
+  {
+   "text": "I",
+   "start": 0.18,
+   "end": 0.28
+  },
+  {
+   "text": "say",
+   "start": 0.38,
+   "end": 0.6
+  },
+  {
+   "text": "you're",
+   "start": 0.68,
+   "end": 0.84
+  },
+  {
+   "text": "varmint",
+   "start": 0.88,
+   "end": 1.6
+  }
+ ]
+}

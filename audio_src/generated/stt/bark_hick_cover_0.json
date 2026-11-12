@@ -1,0 +1,30 @@
+{
+ "text": "Uh, keep your head down",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.14,
+   "end": 0.2
+  },
+  {
+   "text": "keep",
+   "start": 0.34,
+   "end": 0.54
+  },
+  {
+   "text": "your",
+   "start": 0.58,
+   "end": 0.68
+  },
+  {
+   "text": "head",
+   "start": 0.76,
+   "end": 0.98
+  },
+  {
+   "text": "down",
+   "start": 1.06,
+   "end": 1.48
+  }
+ ]
+}

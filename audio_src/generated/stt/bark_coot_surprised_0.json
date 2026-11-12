@@ -1,0 +1,20 @@
+{
+ "text": "Lord have mercy",
+ "words": [
+  {
+   "text": "Lord",
+   "start": 0.06,
+   "end": 0.4
+  },
+  {
+   "text": "have",
+   "start": 0.46,
+   "end": 0.74
+  },
+  {
+   "text": "mercy",
+   "start": 0.88,
+   "end": 1.42
+  }
+ ]
+}
