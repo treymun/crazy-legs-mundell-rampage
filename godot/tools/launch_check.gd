@@ -6,7 +6,8 @@
 ## drawn it, read the black as a mismatch and kept every launch in software:
 ## no HD, and about four times slower.
 ##
-##   godot --path godot --audio-driver Dummy \n##       --script res://tools/launch_check.gd [-- <window mode 0..3>]
+##   godot --path godot --audio-driver Dummy \
+##       --script res://tools/launch_check.gd [-- <window mode 0..3>]
 ##
 ## Point APPDATA at a scratch folder holding an options.json to try a player's settings.
 extends SceneTree
