@@ -512,6 +512,12 @@ func _free(base: PackedFloat32Array) -> void:
 	game.route_sig = []
 
 
+## Bits of a wall that broke (features/wall_breaks.gd: glass, splinters),
+## thrown, kept and saved with the rest.
+func scatter(x: float, y: float, z: float, stuff: String, count: int, ax: float, ay: float) -> void:
+	_throw(x, y, z, stuff, count, ax, ay)
+
+
 func _throw(x: float, y: float, z: float, stuff: String, count: int, ax: float, ay: float) -> void:
 	var size := float(BIT_SIZE.get(stuff, .07))
 	for k in count:

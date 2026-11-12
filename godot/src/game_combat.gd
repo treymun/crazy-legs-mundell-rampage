@@ -160,6 +160,8 @@ func hitscan(
 	if not spark:
 		var reach := _wall_distance(ax, ay, slope, max_range)
 		_traced(ax, ay, slope, reach, "air" if reach >= max_range else "wall:")
+		if reach < max_range:
+			_strike_wall(ax, ay, slope, reach + .7 * max_range / ceilf(max_range / .21), amount)
 	if spark:
 		var ended := false
 		var steps := int(ceil(max_range / .105))
@@ -189,6 +191,15 @@ func hitscan(
 					if surface_tile != null
 					else renderer.wall_mark(p.x, p.y, p.eye, ax, ay, slope, d)
 				)
+				# A window shot out or a fence knocked about (features/wall_breaks.gd);
+				# a shot in through a window's glass leaves no hole on it.
+				var breaks = features.get("wall_breaks")
+				if (
+					surface_tile == null
+					and breaks != null
+					and breaks.strike(x, y, z, ax, ay, amount) == breaks.HOLE
+				):
+					mark = null
 				# What it met (materials.gd): its chips, its sound, its hole. The
 				# face as drawn when there is one (a front's bands are not its cell's).
 				var kind := (
@@ -267,6 +278,25 @@ func hitscan(
 func _traced(ax: float, ay: float, slope: float, d: float, struck: String) -> void:
 	var p := player
 	traced.emit(Vector3(p.x + ax * d, p.y + ay * d, p.eye + d * slope), struck)
+
+
+## A shot that chips nothing (the pellets past a load's first few) still
+## breaks what it met at `d` along it, if that was a wall (wall_breaks.gd).
+func _strike_wall(ax: float, ay: float, slope: float, d: float, amount: float) -> void:
+	var breaks = features.get("wall_breaks")
+	if breaks == null:
+		return
+	var p := player
+	var x := p.x + ax * d
+	var y := p.y + ay * d
+	var z := p.eye + d * slope
+	if x < 0.0 or y < 0.0 or x >= world.width or y >= world.height:
+		return
+	var cell := int(y) * world.width + int(x)
+	if z < world.ground[cell] or (0.0 < world.roof[cell] and world.roof[cell] < z):
+		return
+	if world.blocked(x, y, .024, z):
+		breaks.strike(x, y, z, ax, ay, amount)
 
 
 ## How far a shot along (ax, ay, slope) goes before a wall, floor or roof stops
@@ -468,6 +498,9 @@ func _blast_shoves(
 	var pieces = features.get("breakables")
 	if pieces != null:
 		pieces.blast(x, y, z, radius, strength, energy)
+	var breaks = features.get("wall_breaks")
+	if breaks != null:
+		breaks.blast(x, y, z, radius, strength, energy)
 	gore_fx.shove(x, y, radius * 1.4, power)
 	var bodies = features.get("corpses")
 	if bodies != null:

@@ -2,7 +2,13 @@
 ## bits that fly and stay (fx_brk_<stuff>_<n>: splinters, planks, shards of
 ## glass and clay, torn tin, straw, stuffing, rubber, alien muck), and each
 ## breakable sign shot up (<sign>_shot: bullet holes through to the planks
-## behind and a corner knocked off, its words left readable).
+## behind and a corner knocked off, its words left readable). And the walls
+## that break (features/wall_breaks.gd): each window tile shot out
+## (<material>_brk in assets/tiles: the glass gone dark, teeth of it left in
+## the frame, a muntin snapped), the plank fence knocked about
+## (stockyard_hit: boards out and split) and the gap a fence cell leaves when
+## it goes through (stockyard_gap, a picture standing in the gap: the stumps,
+## a board each side, a rail hanging).
 ##
 ##   godot --headless --path godot --script res://tools/art/build_break_art.gd [-- out=<dir>]
 ##
@@ -12,6 +18,7 @@
 extends SceneTree
 
 const Paint := preload("res://tools/art/paint.gd")
+const WallArt := preload("res://tools/art/wall_break_art.gd")
 
 ## The signs that can be shot up (data/tuning/breakables.cfg lists them too).
 const SIGNS := [
@@ -52,13 +59,18 @@ const STUFF := {
 	"plastic": [[240, 240, 236], [200, 200, 196], [96, 96, 96]],
 }
 
+var count_walls := 0
+
 
 func _init() -> void:
 	var out := Paint.repo("assets/art")
+	var tiles := Paint.repo("assets/tiles")
 	for arg in OS.get_cmdline_user_args():
 		if String(arg).begins_with("out="):
 			out = String(arg).substr(4)
+			tiles = out
 	DirAccess.make_dir_recursive_absolute(out)
+	count_walls = WallArt.build(tiles, out)
 	var count := 0
 	for stuff: String in STUFF:
 		for n in 2:
@@ -72,7 +84,7 @@ func _init() -> void:
 			continue
 		_shot_up(whole, sign).save(out.path_join("%s_shot.png" % sign))
 		count += 1
-	print("break art: %d written to %s" % [count, out])
+	print("break art: %d written to %s, %d wall pictures" % [count, out, count_walls])
 	quit()
 
 

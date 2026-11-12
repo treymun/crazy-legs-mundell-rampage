@@ -385,6 +385,27 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   the enemy's saved x, y. Breakables save in the features block. Sounds wanted
   for them: `docs/physics_audio.md`. `tools/break_check.gd` (in check_fixes)
   and `tools/physics_frames.gd` (window pictures of each effect) cover it.
+- **Walls break too** (`features/wall_breaks.gd`, breakables.cfg `[windows]`
+  and `[fence.<tile>]`). A window face is one wall piece showing a `_win`/`_lit`
+  tile (or `trailer_window`); shot in its glass or blasted it swaps in place to
+  `<material>_brk` (`tools/art/wall_break_art.gd`; `_brk` is laid by height
+  like `_win`, `render_state.gd` tile_mode) and stays a wall. A fence cell
+  (stockyard) shot down to `damaged` swaps its faces to `stockyard_hit`, and at
+  0 hp `LevelData.open_cell()` makes it floor: its own face pieces leave
+  `walls`, each solid neighbour gets the face `implied_walls` would give it,
+  `walls_version`/`solid_version` bump (the renderer's `_block_walls` key and
+  the automap signature), both flow fields reopen it, and `stockyard_gap`
+  stands in it as two plane sprites. This stays exact because nothing is
+  rebuilt until something breaks: window and stockyard tiles are not
+  `RenderState.TILED`, so their pieces are never merged runs and a swap or a
+  removal touches only that cell's own pieces (keep a breakable fence tile out
+  of TILED). `index_cells` needs nothing (no fixture or door moves); `solid`
+  answers `blocked()`/`visible()`. Only cells whose opening joins no two
+  stretches of floor the level keeps apart (`regions()`: doors a key, station,
+  trigger, secret or blast opens counted shut), off the map's edge, outdoors,
+  level with their neighbours and with nothing on them may open; the rest get
+  shot about but hold. `tools/wall_break_check.gd` holds it (every level's
+  cells opened at once). The Crossroads breaks nothing.
 - **What a bullet strikes is a material** (`src/materials.gd`: a level's tile
   names map to wood, timber, tin, steel, mesh, brick, stone, dirt, brush,
   glass, rubber, water; `_lit`/`_win` variants are their base). Hitscan sets

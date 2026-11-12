@@ -314,7 +314,7 @@ var seg_n := 0
 ## _block_walls), so _prepare() projects only the blocks the view can see.
 var _static_n := 0
 var _seg_blocks: Array = []
-var _seg_blocks_key := Vector2i(-1, -1)
+var _seg_blocks_key := Vector3i(-1, -1, -1)
 var seg_c0 := PackedInt32Array()
 var seg_c1 := PackedInt32Array()
 ## Wall segments on screen, nearest first, and per column the rows already
@@ -443,7 +443,11 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 		tile_base[i] = -1
 		if TILED.has(tile_name):
 			tile_mode[i] = 1
-		elif tile_name.ends_with("_win") or tile_name.ends_with("_lit"):
+		elif (
+			tile_name.ends_with("_win")
+			or tile_name.ends_with("_lit")
+			or tile_name.ends_with("_brk")
+		):
 			var plain_name := tile_name.substr(0, tile_name.length() - 4)
 			if TILED.has(plain_name) and level.tile_id(plain_name) >= 0:
 				tile_mode[i] = 2

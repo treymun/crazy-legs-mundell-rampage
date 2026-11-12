@@ -2,7 +2,8 @@
 ## graphics-card view players see): a barrel shot to pieces, a hazard barrel
 ## setting off the one beside it, a body knocked back against a wall, a body
 ## taken apart and its gibs bouncing, a stick of dynamite rolling down a step,
-## and a blast throwing what lies about. Each is a row of frames,
+## a blast throwing what lies about, a storefront window shot out, and a plank
+## fence shot about and then through. Each is a row of frames,
 ## <effect>_<n>.png, in out=<dir>.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
@@ -41,6 +42,8 @@ func _run() -> void:
 	await _gibs()
 	await _dynamite()
 	await _blast()
+	await _window()
+	await _fence()
 	print("physics frames written to ", out)
 	main.queue_free()
 	await process_frame
@@ -332,3 +335,70 @@ func _blast() -> void:
 		)
 		await _row(g, "blast_throw", [4, 6, 10, 16, 30, 50])
 		return
+
+
+## A Hickston storefront window shot out with the revolver from across the
+## walk, seen a little from the side.
+func _window() -> void:
+	var g := _level("hickston")
+	var wb = g.features["wall_breaks"]
+	for face in wb.windows:
+		if not String(g.world.tile_names[face.whole]).begins_with("brick"):
+			continue
+		var n: Vector2 = face.normal()
+		var mid: Vector2 = face.middle()
+		var at := mid + n * 2.6 + n.orthogonal() * .7
+		if (
+			g.world.blocked(at.x, at.y, .3)
+			or not g.world.visible(at.x, at.y, mid.x + n.x * .05, mid.y + n.y * .05, .95, 1.34)
+			or not _clear(g, at, mid)
+		):
+			continue
+		_stand(g, at.x, at.y, mid.x, mid.y, 1.34)
+		_arm(g, Weapons.REVOLVER)
+		_ticks(g, 20)
+		await _snap("window_0")
+		_ticks(g, 1, true)
+		await _row(g, "window_shot", [2, 5, 10, 20, 40])
+		return
+
+
+## A plank fence cell shot about by one revolver round, then broken through by
+## two more, then the gap seen from further back and from the far side.
+func _fence() -> void:
+	for level_id: String in ["fair", "hickston"]:
+		var g := _level(level_id)
+		var wb = g.features["wall_breaks"]
+		for f in wb.fences.values():
+			if not f.opens:
+				continue
+			var centre := Vector2(f.cell.x + .5, f.cell.y + .5)
+			var n := Vector2(0, 1) if f.along_x else Vector2(1, 0)
+			for way: float in [1.0, -1.0]:
+				var near := centre + n * way * 2.4
+				var far := centre - n * way * 3.0
+				var face := centre + n * way * .55
+				if (
+					g.world.blocked(near.x, near.y, .3)
+					or g.world.blocked(far.x, far.y, .3)
+					or not _clear(g, near, centre)
+					or not g.world.visible(near.x, near.y, face.x, face.y)
+				):
+					continue
+				_stand(g, near.x, near.y, centre.x, centre.y, .55)
+				_arm(g, Weapons.REVOLVER)
+				_ticks(g, 20)
+				await _snap("fence_0")
+				for k in 3:
+					_ticks(g, 1, true)
+					_ticks(g, 40)
+					await _snap("fence_shot_%d" % (k + 1))
+				var back := centre + n * way * 4.5 + n.orthogonal() * 1.2
+				if not g.world.blocked(back.x, back.y, .3):
+					_stand(g, back.x, back.y, centre.x, centre.y, .4)
+					_ticks(g, 2)
+					await _snap("fence_gap")
+				_stand(g, far.x, far.y, centre.x, centre.y, .5)
+				_ticks(g, 2)
+				await _snap("fence_far_side")
+				return

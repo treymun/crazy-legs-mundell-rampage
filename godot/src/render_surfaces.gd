@@ -6,9 +6,10 @@ extends RenderState
 
 
 ## Put the fixed walls `base` (the start of every frame's wall list) in blocks
-## of the map for _prepare(); done again only when the list changes.
+## of the map for _prepare(); done again only when the list changes (a fence
+## cell broken through changes it: LevelData.walls_version).
 func _block_walls(base: PackedFloat32Array, at_hub: bool) -> void:
-	var key := Vector2i(int(at_hub), base.size())
+	var key := Vector3i(int(at_hub), base.size(), level.walls_version)
 	if key == _seg_blocks_key:
 		return
 	_seg_blocks_key = key
