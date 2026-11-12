@@ -9,7 +9,9 @@
 ## off sets off its neighbour (the chain reaction); a blast pushes a loose
 ## barrel it did not break; a body knocked into a wall stops against it, and a
 ## load of buckshot throws a body further than a revolver round; a stick of
-## dynamite and a bowling ball roll downhill.
+## dynamite and a bowling ball roll downhill. Then the walls that break
+## (tools/wall_break_check.gd): windows shot out, fence cells broken through,
+## and none that opens joins ground the level keeps apart.
 extends SceneTree
 
 const LEVELS := [
@@ -61,7 +63,10 @@ static func run(main, check: Callable) -> void:
 	var cfg := Tuning.file("res://data/tuning/breakables.cfg")
 	var pictures := true
 	for section in cfg.get_sections():
-		if section != "all" and not main.art.has_art(String(cfg.get_value(section, "broken"))):
+		# The windows' broken pictures are tiles (wall_break_check.gd holds them).
+		if section == "all" or section == "windows":
+			continue
+		if not main.art.has_art(String(cfg.get_value(section, "broken", ""))):
 			pictures = false
 			print("    no broken picture for ", section)
 	check.call(pictures, "every breakable has its broken picture")
@@ -78,6 +83,7 @@ static func run(main, check: Callable) -> void:
 	_shoves_a_barrel(main, check)
 	_bodies(main, check)
 	_rolls_downhill(main, check)
+	preload("res://tools/wall_break_check.gd").run(main, check)
 
 
 ## Breaking every piece that stands in the way, in every level, lets the player

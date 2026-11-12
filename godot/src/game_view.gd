@@ -1098,24 +1098,27 @@ func _map_scale(region: Rect2i) -> float:
 
 
 func _map_signature_changed() -> bool:
-	var signature: Array = []
+	return _map_signature() != map_signature
+
+
+## What the map image shows that can change: the secret doors still hidden,
+## and how many cells have opened (a fence broken through).
+func _map_signature() -> Array:
+	var signature: Array = [world.solid_version]
 	for door: LevelData.Door in world.doors:
 		if door.secret and not door.discovered:
 			signature.append(Vector2i(door.x, door.y))
-	return signature != map_signature
+	return signature
 
 
 ## The whole map at this scale, in an image: ground by kind, walls drawn as
 ## lines along every edge between open ground and a wall. Ground still hidden
 ## behind a secret door stays dark.
 func _build_map_image(region: Rect2i, scale: float) -> void:
-	var signature: Array = []
-	for door: LevelData.Door in world.doors:
-		if door.secret and not door.discovered:
-			signature.append(Vector2i(door.x, door.y))
+	var signature := _map_signature()
 	map_signature = signature
 	_map_hidden.clear()
-	for point: Vector2i in signature:
+	for point: Vector2i in signature.slice(1):
 		_map_hidden[point] = true
 		for room in level.hidden_rooms:
 			if room[0] == point:

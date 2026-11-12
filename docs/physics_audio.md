@@ -26,3 +26,5 @@ cues (`cue`, `cue2`, and `chip` for a shot that does not break it).
 | `body_thud` | A body hitting the ground or a wall after being knocked back | none (the death cry covers it) |
 | `bowling_thud` | A bowling ball striking a wall and rolling on (code: `game_combat.gd _roll`) | `impact_wood` |
 | `tnt_roll` | A stick of dynamite rolling on boards or deck plate (code: `game_combat.gd _roll`) | `tnt_bounce` on each knock |
+| `break_window` | A window painted on a building shot out: a pane bursting and glass raining down the wall (breakables.cfg `[windows]` cue, `features/wall_breaks.gd`) | `window_smash` + `glass_break` |
+| `break_fence` | A plank fence cell broken through: boards cracking and splintering, a rail dropping (breakables.cfg `[fence.stockyard]` cue) | `impact_wood` + `scenery_scrap` |

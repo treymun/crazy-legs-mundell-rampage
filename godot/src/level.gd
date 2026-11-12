@@ -193,6 +193,14 @@ var tints: PackedFloat32Array
 
 var walls := PackedFloat32Array()
 var wall_count := 0
+## Bumped when the fixed wall list changes shape (open_cell(): a fence cell
+## broken through), so the renderer puts it in map blocks again; and when a
+## cell opens, so the automap is drawn again. Both stay 0 until something
+## breaks, and nothing else reads the list differently.
+var walls_version := 0
+var solid_version := 0
+## The fixed wall pieces by their edge (walls_on()), made when first asked.
+var _edge_index := {}
 var doors: Array[Door] = []
 var pane_tiles: Array[Vector2i] = []
 var fixtures: Array[PackedFloat32Array] = []
@@ -1013,6 +1021,92 @@ func drop_volume(volume: PackedFloat32Array) -> void:
 		):
 			var near: Array = near_fixtures.get(Vector2i(xx, yy), [])
 			near.erase(volume)
+
+
+## Show `tile` on fixed wall piece i (a window shot out, a fence shot about:
+## features/wall_breaks.gd). Nothing else about the piece changes.
+func set_wall_tile(i: int, tile: int) -> void:
+	walls[i * WALL_STRIDE + 4] = float(tile)
+	_active_key = []
+
+
+## The fixed wall pieces lying exactly on the edge from (ax, ay) to (bx, by),
+## that way round (a solid cell's face toward an open one runs clockwise round
+## the cell, LevelEdit.EDGES).
+func walls_on(ax: float, ay: float, bx: float, by: float) -> PackedInt32Array:
+	if _edge_index.is_empty():
+		for i in wall_count:
+			var o := i * WALL_STRIDE
+			var key := Vector4(walls[o], walls[o + 1], walls[o + 2], walls[o + 3])
+			var list: PackedInt32Array = _edge_index.get(key, PackedInt32Array())
+			list.append(i)
+			_edge_index[key] = list
+	return _edge_index.get(Vector4(ax, ay, bx, by), PackedInt32Array())
+
+
+## Open a solid cell for good (a fence cell broken through: features/
+## wall_breaks.gd). It is floor from now on to blocked(), visible() and (once
+## reopened) the flow fields; the faces it showed leave the wall list and each
+## solid cell beside it shows a face toward it, as the builder would have made
+## it (LevelEdit.implied_walls), in `faces`' tile for its own when listed. The
+## pieces taken out are the cell's own (never merged: a broken fence's tile is
+## not one of RenderState.TILED); the rest keep their order and the new faces
+## go after them. Not for the Crossroads' split wall lists.
+func open_cell(cx: int, cy: int, faces: Dictionary) -> void:
+	if not road_and_hub.is_empty():
+		return
+	var c := cy * width + cx
+	if solid[c] < 0:
+		return
+	var drop := {}
+	var added := PackedFloat32Array()
+	for e: Array in LevelEdit.EDGES:
+		var ax := float(cx + int(e[2]))
+		var ay := float(cy + int(e[3]))
+		var bx := float(cx + int(e[4]))
+		var by := float(cy + int(e[5]))
+		for i in walls_on(ax, ay, bx, by):
+			drop[i] = true
+		var nx: int = cx + int(e[0])
+		var ny: int = cy + int(e[1])
+		if nx < 0 or ny < 0 or nx >= width or ny >= height:
+			continue
+		var n := ny * width + nx
+		if solid[n] < 0:
+			continue
+		var tile := int(faces.get(solid[n], solid[n]))
+		added.append_array(
+			PackedFloat32Array(
+				[
+					bx,
+					by,
+					ax,
+					ay,
+					float(tile),
+					snappedf(light[c] * (1.0 if int(e[0]) == 0 else .83), .0001),
+					ground[c],
+					maxf(wall_height[n], roof[c]),
+					float(area[c])
+				]
+			)
+		)
+	solid[c] = -1
+	var out := PackedFloat32Array()
+	out.resize(walls.size() - drop.size() * WALL_STRIDE)
+	var at := 0
+	for i in wall_count:
+		if drop.has(i):
+			continue
+		for k in WALL_STRIDE:
+			out[at + k] = walls[i * WALL_STRIDE + k]
+		at += WALL_STRIDE
+	out.append_array(added)
+	walls = out
+	wall_count = out.size() / WALL_STRIDE
+	walls_version += 1
+	solid_version += 1
+	_edge_index = {}
+	_active_key = []
 
 
 ## Mirrors TileMap.blocked().
