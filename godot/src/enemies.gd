@@ -251,6 +251,26 @@ var sunk := 0.0
 var killed_by := ""
 var killed_from := Vector2.ZERO
 var toss := 0.0
+## Hit locations (hit_zones.gd, not saved): where the player's last hit struck
+## ("head", "body", "arms", "legs"; "" not known) and from which side, the
+## shot whose blast killed it and the blast's middle, how far this instant has
+## reeled it, until when it limps, and its dropped weapon: until when it goes
+## without, where it lies, when it stoops for it. A hat knocked off stays off.
+var last_zone := ""
+var last_side := ""
+var killed_with := ""
+var blast_at := Vector2.INF
+var reel := 0
+var reel_at := -1.0
+var limp_until := -1.0
+var disarmed_until := -1.0
+var arm_at := Vector2.INF
+var arm_roll := -1.0
+var pick_at := -1.0
+var hatless := false
+## A critter's hop off the ground (features/critters.gd: a chicken flapping
+## off, a cow bowled up by a blast).
+var hop := 0.0
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -259,6 +279,8 @@ var alive: bool:
 
 var z: float:
 	get:
+		if hop > 0.0:
+			return hop
 		if sunk > 0.0:
 			return -sunk
 		if brain == "saucer":
@@ -404,6 +426,8 @@ func hurt(
 	if not alive or brain == "bessie":
 		return
 	amount = ShipAliens.soak(self, amount, game, how, explosive_hit, pressure, by)
+	# Head, body, arms or legs, where the player's hit struck (hit_zones.gd).
+	amount *= HitZones.strike(self, game, how, by)
 	var champion := BOSS_TITLES.has(kind)
 	if champion and by == null:
 		# A boss's weak spot (or armour) where the player's hit struck.
@@ -491,8 +515,8 @@ func hurt(
 			cooldown = .65 if interrupt else .32
 	var floor_z: float = game.world.elevation(x, y)
 	var burst_kind := "plasma" if PLASMA.has(kind) else "gore"
-	game.burst(x, y, floor_z + z + .56 * height, burst_kind, 4, .9)
-	if hostile:
+	HitZones.splash(self, game, x, y, floor_z + z + .56 * height, burst_kind)
+	if hostile and not HitZones.metal(self):
 		var from := atan2(y - from_y, x - from_x)
 		game.gore_fx.spray(
 			x, y, floor_z + z + .56 * height, cos(from), sin(from), amount, burst_kind == "plasma"
@@ -502,13 +526,18 @@ func hurt(
 	)
 	if by == null:
 		game.struck(amount, hostile and not alive, champion)
+	HitZones.land(self, game, amount, by)
 	if alive:
 		if hostile and amount >= 14.0 and not was_stunned and not interrupt:
 			game.sound_at(voice_cue("pain", material), x, y, .47)
 		return
-	explosive = explosive_hit
+	# A blast that only just finishes one, or the cow launcher, throws it
+	# whole (hit_zones.gd); the specks below are thrown as ever.
+	var whole := explosive_hit and not HitZones.blast_gibs(self, game)
+	explosive = explosive_hit and not whole
 	died_at = game.clock
 	killed_by = "blast" if explosive_hit else how
+	killed_with = game.blast_kind if explosive_hit else how
 	killed_from = Vector2(from_x, from_y)
 	# Overkill: far more than the body had left, all at once, takes it apart.
 	if (
@@ -517,11 +546,9 @@ func hurt(
 		and not BOSS_TITLES.has(kind)
 		and kind != "skeeter"
 		and kind != "saucer"
+		and not whole
 		and (
-			explosive_hit
-			or struck_sum >= maxf(48.0, max_hp * .7)
-			or how == "blade"
-			or how == "ripsaw"
+			explosive_hit or HitZones.overkill(self, game, how) or how == "blade" or how == "ripsaw"
 		)
 	):
 		explosive = true
@@ -559,6 +586,8 @@ func hurt(
 func advance(dt: float, game, direction: float, pace := 1.0) -> float:
 	var ox := x
 	var oy := y
+	if limp_until > game.clock:
+		pace *= HitZones.LIMP_PACE
 	if soak > 0.0:
 		pace *= 1.0 - .35 * soak
 		if soak > .35 and stun == 0.0 and game.rng.random() < dt * 1.2 * soak:
@@ -676,6 +705,9 @@ func tick(dt: float, game) -> void:
 		return
 	if BayouBrains.tick(self, dt, game):
 		return
+	if disarmed_until >= 0.0 and HitZones.tick(self, dt, game):
+		# Gone to fetch the weapon an arm hit made it drop.
+		return
 	if volley:
 		volley_timer -= dt
 		if volley_timer <= 0.0:
@@ -709,6 +741,10 @@ func tick(dt: float, game) -> void:
 	var distance := sqrt(dx * dx + dy * dy)
 	var direction := atan2(dy, dx)
 	if not hostile:
+		var critters = game.features.get("critters")
+		if critters != null and critters.steer(self, dt):
+			# A hurt hog charging (features/critters.gd).
+			return
 		if noise_step(dt, game):
 			return
 		timer -= dt

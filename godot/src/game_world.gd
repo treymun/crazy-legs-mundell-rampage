@@ -233,6 +233,8 @@ func struck(amount: float, killed: bool, champion: bool) -> void:
 		return
 	if clock >= hit_mark_until:
 		hit_mark_kill = false
+		hit_mark_head = false
+		hit_mark_at = clock
 	hit_mark_until = maxf(hit_mark_until, clock + (.24 if killed else .12))
 	hit_mark_kill = hit_mark_kill or killed
 	if clock >= hitstop_next and (killed or amount >= 40.0):

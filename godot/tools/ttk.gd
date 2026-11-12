@@ -20,6 +20,8 @@ const BLASTS := {
 ## Shotgun pellet cone (weapons.gd fire()): half-angles across and up.
 const PELLET_SPREAD := Vector2(.135, .09)
 const RANGES := [2.0, 5.0, 9.0]
+## The hands the hit-location table shows, light to heavy.
+const ZONE_FOES := ["coot", "clone", "billy", "alien", "millhand", "boilerback", "tin_guard"]
 
 
 func _init() -> void:
@@ -64,6 +66,7 @@ func _init() -> void:
 				row += " %.2f (%d) |" % [kill_time(slot, shots), shots]
 			lines.append(row)
 		lines.append("")
+	_zones(lines, foes)
 	var text := "\n".join(lines)
 	print(text)
 	if out_path != "":
@@ -71,6 +74,75 @@ func _init() -> void:
 		file.store_string(text + "\n")
 		print("wrote ", out_path)
 	quit()
+
+
+## Hit locations (src/hit_zones.gd): shots to kill at 5 cells (a swing at 2)
+## all on the body
+## (the tables above), all on the head and all on the legs, for the guns a
+## zone changes; buckshot over the whole body counts each zone by its share.
+func _zones(lines: Array[String], foes: Array) -> void:
+	var middle := HitZones.HEAD_AT - HitZones.LEGS_BELOW
+	var spread := (
+		(1.0 - HitZones.HEAD_AT) * float(HitZones.HEAD["shotgun"])
+		+ HitZones.LEGS_BELOW * HitZones.LEGS
+		+ middle * (1.0 - HitZones.ARM_OUT) * HitZones.ARMS
+		+ middle * HitZones.ARM_OUT
+	)
+	lines.append("## Hit locations\n")
+	(
+		lines
+		. append(
+			(
+				"Shots to kill at 5 cells (a swing at 2): body / head / legs (arms x%.2f, legs x%.2f). A load"
+				% [HitZones.ARMS, HitZones.LEGS]
+			)
+		)
+	)
+	lines.append(
+		"of buckshot spread over the whole body counts x%.2f of the body's damage.\n" % spread
+	)
+	var head := "| gun | head x |"
+	var rule := "| --- | ---: |"
+	var kinds: Array = []
+	for kind: String in foes:
+		if kind in ZONE_FOES:
+			kinds.append(kind)
+			head += " %s |" % kind
+			rule += " :---: |"
+	lines.append(head)
+	lines.append(rule)
+	for slot: int in [
+		Weapons.CROWBAR,
+		Weapons.REVOLVER,
+		Weapons.SHOTGUN,
+		Weapons.RIFLE,
+		Weapons.SLING,
+		Weapons.RIVETER,
+		Weapons.PRESSURE
+	]:
+		var name := String(Weapons.NAMES[slot])
+		var times := float(HitZones.HEAD.get(name, HitZones.HEAD_DEFAULT))
+		var row := "| %s | %.2f |" % [name, times]
+		for kind: String in kinds:
+			var spec: Array = Enemy.KINDS[kind]
+			var near: float = (
+				RANGES[0] if slot == Weapons.CROWBAR or slot == Weapons.SLING else RANGES[1]
+			)
+			var hit := shot_damage(slot, near, float(spec[2]), float(spec[3]))
+			var hp := float(spec[0])
+			if hit <= 0.0:
+				row += " - |"
+				continue
+			row += (
+				" %d / %d / %d |"
+				% [
+					ceili(hp / hit),
+					ceili(hp / (hit * times)),
+					ceili(hp / (hit * HitZones.LEGS)),
+				]
+			)
+		lines.append(row)
+	lines.append("")
 
 
 ## Damage one squarely aimed shot does to a body of this size at this range.
