@@ -664,7 +664,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 				after_notice = (
 					HUD.banner(c, level.districts[district], 5, 288, Canvas.rgb(245, 196, 122)) + 3
 				)
-			BossBar.draw(self, c, after_notice)
+			pin_top = BossBar.draw(self, c, after_notice)
 		if not map and armory.fuse == 0.0:
 			var hint := gate_prompt()
 			if hint == "" and hints and not in_hub:

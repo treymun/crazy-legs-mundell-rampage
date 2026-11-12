@@ -1,0 +1,25 @@
+{
+ "text": "Radiator's blown. Dang it",
+ "words": [
+  {
+   "text": "Radiator's",
+   "start": 0.04,
+   "end": 0.54
+  },
+  {
+   "text": "blown.",
+   "start": 0.64,
+   "end": 1.1
+  },
+  {
+   "text": "Dang",
+   "start": 1.22,
+   "end": 1.48
+  },
+  {
+   "text": "it",
+   "start": 1.54,
+   "end": 1.7
+  }
+ ]
+}

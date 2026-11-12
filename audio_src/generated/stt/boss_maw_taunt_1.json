@@ -1,0 +1,30 @@
+{
+ "text": "Wait till your father lands!",
+ "words": [
+  {
+   "text": "Wait",
+   "start": 0.08,
+   "end": 0.22
+  },
+  {
+   "text": "till",
+   "start": 0.32,
+   "end": 0.44
+  },
+  {
+   "text": "your",
+   "start": 0.5,
+   "end": 0.6
+  },
+  {
+   "text": "father",
+   "start": 0.72,
+   "end": 1.04
+  },
+  {
+   "text": "lands!",
+   "start": 1.12,
+   "end": 1.64
+  }
+ ]
+}

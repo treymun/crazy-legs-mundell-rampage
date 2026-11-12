@@ -1,0 +1,30 @@
+{
+ "text": "Trade paint with me, boy",
+ "words": [
+  {
+   "text": "Trade",
+   "start": 0.08,
+   "end": 0.42
+  },
+  {
+   "text": "paint",
+   "start": 0.5,
+   "end": 0.72
+  },
+  {
+   "text": "with",
+   "start": 0.76,
+   "end": 0.88
+  },
+  {
+   "text": "me,",
+   "start": 0.94,
+   "end": 1.1
+  },
+  {
+   "text": "boy",
+   "start": 1.22,
+   "end": 1.56
+  }
+ ]
+}

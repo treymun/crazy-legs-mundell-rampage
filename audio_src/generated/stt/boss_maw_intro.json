@@ -1,0 +1,40 @@
+{
+ "text": "Who tracked mud on my clean deck?",
+ "words": [
+  {
+   "text": "Who",
+   "start": 0.08,
+   "end": 0.24
+  },
+  {
+   "text": "tracked",
+   "start": 0.34,
+   "end": 0.68
+  },
+  {
+   "text": "mud",
+   "start": 0.76,
+   "end": 1.0
+  },
+  {
+   "text": "on",
+   "start": 1.06,
+   "end": 1.2
+  },
+  {
+   "text": "my",
+   "start": 1.24,
+   "end": 1.38
+  },
+  {
+   "text": "clean",
+   "start": 1.48,
+   "end": 1.74
+  },
+  {
+   "text": "deck?",
+   "start": 1.84,
+   "end": 2.16
+  }
+ ]
+}

@@ -12412,14 +12412,2064 @@
    "bytes": 13208
   },
   {
-   "id": "reconcile@2026-11-12T06:49:10",
+   "id": "voice_design/sheriff#1",
+   "kind": "voice_design",
+   "name": "sheriff",
+   "params": {
+    "description": "A B-movie alien posing as a small-town Southern sheriff: a rubbery, warbling, slightly electronic voice with a slow, smug county-lawman drawl, officious and comic. Close, dry studio recording.",
+    "text": "Well now. License and registration, Earth boy. You were doin' ninety in a cornfield, and out here we got rules. Step out of the truck and keep them squishy little hands where I can see 'em."
+   },
+   "hash": "89492695d097",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T08:24:49",
+   "actual": 567,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/sheriff.mp3",
+   "bytes": 285301
+  },
+  {
+   "id": "voice_design/jerry#1",
+   "kind": "voice_design",
+   "name": "jerry",
+   "params": {
+    "description": "A huge, booming Southern country man in his sixties, a self-made big shot who talks like a football coach at halftime: loud, gravelly, swaggering, red-faced. Close, dry studio recording.",
+    "text": "Listen up, son. This is my county, my field and my game, and I call every play on it. You want to run through my line, you better be ready to get hit, because I hit back harder."
+   },
+   "hash": "fd08c92fd557",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T08:25:01",
+   "actual": 531,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/jerry.mp3",
+   "bytes": 336710
+  },
+  {
+   "id": "voice_design/foreman#1",
+   "kind": "voice_design",
+   "name": "foreman",
+   "params": {
+    "description": "A hulking lumber-mill foreman in his fifties, a deep, rough, shouting voice worn ragged by sawdust and saw noise, Southern, bossy and mean. Close, dry studio recording.",
+    "text": "Back to work, every last one of you! That log ain't gonna cut itself, and the belt don't stop for nobody. You're on my clock now, and on my clock you sweat or you bleed."
+   },
+   "hash": "fa4eab4db808",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T08:25:13",
+   "actual": 507,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/foreman.mp3",
+   "bytes": 316021
+  },
+  {
+   "id": "voice_design/baron#1",
+   "kind": "voice_design",
+   "name": "baron",
+   "params": {
+    "description": "A pompous old Southern moonshine baron, a wheezy, plummy, self-important voice with a slow genteel drawl that turns into a bellow. Close, dry studio recording.",
+    "text": "Twelve years in the barrel, my friend, and smooth as a Sunday sermon. Nobody, and I do mean nobody, drinks my shine for free, and nobody walks out of my quarry with a jar of it."
+   },
+   "hash": "a6312c44bc41",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T08:25:26",
+   "actual": 531,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/baron.mp3",
+   "bytes": 404419
+  },
+  {
+   "id": "voice_design/swamp_king#1",
+   "kind": "voice_design",
+   "name": "swamp_king",
+   "params": {
+    "description": "A fat, loud bayou swamp boss, a big wet booming Cajun-country voice, cocky and rowdy, used to shouting over an airboat engine. Close, dry studio recording.",
+    "text": "Who's that out on my water? Ain't nobody runs this bayou but me and my gators, cher. You go on and paddle home now, before I feed you to my sweet babies one leg at a time."
+   },
+   "hash": "e23c13e3d90c",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T08:25:38",
+   "actual": 513,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/swamp_king.mp3",
+   "bytes": 352383
+  },
+  {
+   "id": "voice_design/boggs#1",
+   "kind": "voice_design",
+   "name": "boggs",
+   "params": {
+    "description": "A redneck demolition derby champion in his forties, a hoarse, cocky, hollering voice with a thick country accent, wild and grinning. Close, dry studio recording.",
+    "text": "Forty-seven wins at Buzzard Bend and not a one of 'em clean! Buckle up, sunshine, because I'm gonna trade paint with you till there ain't no paint left to trade."
+   },
+   "hash": "731f16e083aa",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-12T08:25:51",
+   "actual": 483,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/boggs.mp3",
+   "bytes": 258342
+  },
+  {
+   "id": "tts/boss_sheriff_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_sheriff_taunt_1",
+   "params": {
+    "text": "That's a citation, son.",
+    "voice_id": "dJ4TNUKmBX6jdpLoevHa",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1a7806281786",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-12T08:27:05",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_sheriff_taunt_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/boss_sheriff_intro#1",
+   "kind": "tts",
+   "name": "boss_sheriff_intro",
+   "params": {
+    "text": "You're under arrest, Earth boy.",
+    "voice_id": "dJ4TNUKmBX6jdpLoevHa",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "af7a370d48f0",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-12T08:27:05",
+   "actual": 31,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_sheriff_intro.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/boss_sheriff_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_sheriff_taunt_0",
+   "params": {
+    "text": "Resistin' arrest, I see.",
+    "voice_id": "dJ4TNUKmBX6jdpLoevHa",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "4405d4483faf",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-12T08:27:05",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_sheriff_taunt_0.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/boss_sheriff_worried#1",
+   "kind": "tts",
+   "name": "boss_sheriff_worried",
+   "params": {
+    "text": "Backup! I need backup!",
+    "voice_id": "dJ4TNUKmBX6jdpLoevHa",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "40e6ce7458f7",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-12T08:27:05",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_sheriff_worried.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/boss_sheriff_last#1",
+   "kind": "tts",
+   "name": "boss_sheriff_last",
+   "params": {
+    "text": "Tell my saucer... I loved her.",
+    "voice_id": "dJ4TNUKmBX6jdpLoevHa",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0ed7c17e1bf7",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-12T08:27:06",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_sheriff_last.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/boss_jerry_intro#1",
+   "kind": "tts",
+   "name": "boss_jerry_intro",
+   "params": {
+    "text": "Son, you're on my field now.",
+    "voice_id": "Dmewe1Qq2kzCrdpBpTg5",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1682bd7b4494",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:27:06",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_jerry_intro.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/boss_jerry_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_jerry_taunt_0",
+   "params": {
+    "text": "Run it again, boy!",
+    "voice_id": "Dmewe1Qq2kzCrdpBpTg5",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7ef3e0b49617",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T08:27:06",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_jerry_taunt_0.mp3",
+   "bytes": 28255
+  },
+  {
+   "id": "tts/boss_jerry_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_jerry_taunt_1",
+   "params": {
+    "text": "That's a penalty!",
+    "voice_id": "Dmewe1Qq2kzCrdpBpTg5",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "45d2b760cdff",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-12T08:27:07",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_jerry_taunt_1.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/boss_jerry_worried#1",
+   "kind": "tts",
+   "name": "boss_jerry_worried",
+   "params": {
+    "text": "Somebody get me a towel.",
+    "voice_id": "Dmewe1Qq2kzCrdpBpTg5",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "54990ed2c703",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-12T08:27:07",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_jerry_worried.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/boss_jerry_last#1",
+   "kind": "tts",
+   "name": "boss_jerry_last",
+   "params": {
+    "text": "Coach always said... hustle.",
+    "voice_id": "Dmewe1Qq2kzCrdpBpTg5",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e1c90d7c1a22",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:27:08",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_jerry_last.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/boss_rudy_intro#1",
+   "kind": "tts",
+   "name": "boss_rudy_intro",
+   "params": {
+    "text": "Step right up and lose, sucker!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f420e0872b8d",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-12T08:27:08",
+   "actual": 31,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_rudy_intro.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "tts/boss_rudy_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_rudy_taunt_0",
+   "params": {
+    "text": "Ain't nobody wins this game!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "36093f923c8f",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:27:08",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_rudy_taunt_0.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/boss_rudy_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_rudy_taunt_1",
+   "params": {
+    "text": "Three tries for a dime!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6bc49681cea4",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-12T08:27:08",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_rudy_taunt_1.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/boss_rudy_worried#1",
+   "kind": "tts",
+   "name": "boss_rudy_worried",
+   "params": {
+    "text": "Folks, the show's runnin' long...",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "54cf9cc39a78",
+   "reserved": 59,
+   "status": "settled",
+   "started": "2026-11-12T08:27:08",
+   "actual": 33,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_rudy_worried.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/boss_rudy_last#1",
+   "kind": "tts",
+   "name": "boss_rudy_last",
+   "params": {
+    "text": "The show's... over... folks.",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ab627b5319b8",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:27:09",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_rudy_last.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/boss_foreman_intro#1",
+   "kind": "tts",
+   "name": "boss_foreman_intro",
+   "params": {
+    "text": "You're on the clock, slacker.",
+    "voice_id": "2DLFGQf9moQ1vxNLrYTm",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6a3ceaf23c64",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-12T08:27:09",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_foreman_intro.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/boss_foreman_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_foreman_taunt_0",
+   "params": {
+    "text": "Back to work!",
+    "voice_id": "2DLFGQf9moQ1vxNLrYTm",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f6ca7190d14e",
+   "reserved": 35,
+   "status": "settled",
+   "started": "2026-11-12T08:27:09",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_foreman_taunt_0.mp3",
+   "bytes": 30763
+  },
+  {
+   "id": "tts/boss_foreman_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_foreman_taunt_1",
+   "params": {
+    "text": "That's comin' outta your pay!",
+    "voice_id": "2DLFGQf9moQ1vxNLrYTm",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5d1dea1466e9",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-12T08:27:09",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_foreman_taunt_1.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/boss_foreman_worried#1",
+   "kind": "tts",
+   "name": "boss_foreman_worried",
+   "params": {
+    "text": "Somebody shut off that saw!",
+    "voice_id": "2DLFGQf9moQ1vxNLrYTm",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "198f39ed60a6",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-12T08:27:09",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_foreman_worried.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/boss_foreman_last#1",
+   "kind": "tts",
+   "name": "boss_foreman_last",
+   "params": {
+    "text": "I'm... clockin' out.",
+    "voice_id": "2DLFGQf9moQ1vxNLrYTm",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1036e7ae9308",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-12T08:27:10",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_foreman_last.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "tts/boss_baron_intro#1",
+   "kind": "tts",
+   "name": "boss_baron_intro",
+   "params": {
+    "text": "Nobody drinks my shine for free.",
+    "voice_id": "W8jxknn90CKrozfkoElH",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "24780608aa2b",
+   "reserved": 58,
+   "status": "settled",
+   "started": "2026-11-12T08:27:10",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_baron_intro.mp3",
+   "bytes": 78410
+  },
+  {
+   "id": "tts/boss_baron_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_baron_taunt_0",
+   "params": {
+    "text": "Aged twelve years, like my temper!",
+    "voice_id": "W8jxknn90CKrozfkoElH",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9c34c6d0fa3d",
+   "reserved": 60,
+   "status": "settled",
+   "started": "2026-11-12T08:27:10",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_baron_taunt_0.mp3",
+   "bytes": 74021
+  },
+  {
+   "id": "tts/boss_baron_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_baron_taunt_1",
+   "params": {
+    "text": "You'll be pickled by sundown.",
+    "voice_id": "W8jxknn90CKrozfkoElH",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "fe8ce4fd2626",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-12T08:27:10",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_baron_taunt_1.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/boss_baron_worried#1",
+   "kind": "tts",
+   "name": "boss_baron_worried",
+   "params": {
+    "text": "My stills! Not my stills!",
+    "voice_id": "W8jxknn90CKrozfkoElH",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "690e2f8a2e78",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-12T08:27:11",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_baron_worried.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/boss_baron_last#1",
+   "kind": "tts",
+   "name": "boss_baron_last",
+   "params": {
+    "text": "Bury me... in a barrel.",
+    "voice_id": "W8jxknn90CKrozfkoElH",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f14b2fa7d8e0",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-12T08:27:12",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_baron_last.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/boss_swamp_king_intro#1",
+   "kind": "tts",
+   "name": "boss_swamp_king_intro",
+   "params": {
+    "text": "Who's on my water?",
+    "voice_id": "Hqr8LQ6kAH2veIeMeOvv",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6f72f59d164f",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-12T08:27:12",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_swamp_king_intro.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "tts/boss_swamp_king_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_swamp_king_taunt_0",
+   "params": {
+    "text": "Gator bait, that's all you are!",
+    "voice_id": "Hqr8LQ6kAH2veIeMeOvv",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "79fc9b2bf991",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-12T08:27:12",
+   "actual": 31,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_swamp_king_taunt_0.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/boss_swamp_king_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_swamp_king_taunt_1",
+   "params": {
+    "text": "Ride's free, landin's extra!",
+    "voice_id": "Hqr8LQ6kAH2veIeMeOvv",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b2130c54b3c2",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:27:12",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_swamp_king_taunt_1.mp3",
+   "bytes": 57094
+  },
+  {
+   "id": "tts/boss_swamp_king_worried#1",
+   "kind": "tts",
+   "name": "boss_swamp_king_worried",
+   "params": {
+    "text": "She's takin' on water!",
+    "voice_id": "Hqr8LQ6kAH2veIeMeOvv",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "88cc3faff794",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-12T08:27:12",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_swamp_king_worried.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/boss_swamp_king_last#1",
+   "kind": "tts",
+   "name": "boss_swamp_king_last",
+   "params": {
+    "text": "Tell the gators... I'm comin' home.",
+    "voice_id": "Hqr8LQ6kAH2veIeMeOvv",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cf6effd88997",
+   "reserved": 62,
+   "status": "settled",
+   "started": "2026-11-12T08:27:13",
+   "actual": 35,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_swamp_king_last.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/boss_boggs_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_boggs_taunt_0",
+   "params": {
+    "text": "Trade paint with me, boy!",
+    "voice_id": "BUk7HAa0KlARmSkYDiaR",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cfcf8e08e5c8",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-12T08:27:13",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_boggs_taunt_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/boss_boggs_intro#1",
+   "kind": "tts",
+   "name": "boss_boggs_intro",
+   "params": {
+    "text": "Buckle up, sunshine!",
+    "voice_id": "BUk7HAa0KlARmSkYDiaR",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "facea074a1f6",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-12T08:27:13",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_boggs_intro.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/boss_boggs_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_boggs_taunt_1",
+   "params": {
+    "text": "Forty-seven wins and countin'!",
+    "voice_id": "BUk7HAa0KlARmSkYDiaR",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bae324a55c7f",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-12T08:27:13",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_boggs_taunt_1.mp3",
+   "bytes": 74021
+  },
+  {
+   "id": "tts/boss_boggs_worried#1",
+   "kind": "tts",
+   "name": "boss_boggs_worried",
+   "params": {
+    "text": "Radiator's blown, dang it!",
+    "voice_id": "BUk7HAa0KlARmSkYDiaR",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9b7782e2da47",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-12T08:27:14",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_boggs_worried.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/boss_boggs_last#1",
+   "kind": "tts",
+   "name": "boss_boggs_last",
+   "params": {
+    "text": "Checkered flag... for me...",
+    "voice_id": "BUk7HAa0KlARmSkYDiaR",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "863820d973cd",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-12T08:27:14",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_boggs_last.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/boss_maw_intro#1",
+   "kind": "tts",
+   "name": "boss_maw_intro",
+   "params": {
+    "text": "Who tracked mud on my clean deck?",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "3499f13ae733",
+   "reserved": 59,
+   "status": "settled",
+   "started": "2026-11-12T08:27:14",
+   "actual": 33,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_maw_intro.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/boss_maw_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_maw_taunt_0",
+   "params": {
+    "text": "Eat your vegetables, hooman!",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c483c6ede37e",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:27:15",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_maw_taunt_0.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/boss_maw_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_maw_taunt_1",
+   "params": {
+    "text": "Wait till your father lands!",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b7d885918874",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:27:15",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_maw_taunt_1.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/boss_maw_worried#1",
+   "kind": "tts",
+   "name": "boss_maw_worried",
+   "params": {
+    "text": "My curlers! Not my curlers!",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d3ccb51afd53",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-12T08:27:15",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_maw_worried.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/boss_maw_last#1",
+   "kind": "tts",
+   "name": "boss_maw_last",
+   "params": {
+    "text": "Tell my young'uns... supper's cold.",
+    "voice_id": "V9sQTyyNbGP4p3hjbOhX",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1bb02b033382",
+   "reserved": 62,
+   "status": "settled",
+   "started": "2026-11-12T08:27:15",
+   "actual": 35,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_maw_last.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "stt/boss_sheriff_intro#1",
+   "kind": "stt",
+   "name": "boss_sheriff_intro",
+   "params": {
+    "file": "boss_sheriff_intro.mp3",
+    "bytes": 41421
+   },
+   "hash": "d6c1110aad16",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:32",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_sheriff_intro.json",
+   "bytes": 367
+  },
+  {
+   "id": "stt/boss_sheriff_worried#1",
+   "kind": "stt",
+   "name": "boss_sheriff_worried",
+   "params": {
+    "file": "boss_sheriff_worried.mp3",
+    "bytes": 48317
+   },
+   "hash": "caddb2593d3b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:32",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_sheriff_worried.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/boss_sheriff_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_sheriff_taunt_0",
+   "params": {
+    "file": "boss_sheriff_taunt_0.mp3",
+    "bytes": 40794
+   },
+   "hash": "f209589e3015",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:32",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_sheriff_taunt_0.json",
+   "bytes": 356
+  },
+  {
+   "id": "stt/boss_sheriff_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_sheriff_taunt_1",
+   "params": {
+    "file": "boss_sheriff_taunt_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "d85556ee9101",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:32",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_sheriff_taunt_1.json",
+   "bytes": 42
+  },
+  {
+   "id": "stt/boss_sheriff_last#1",
+   "kind": "stt",
+   "name": "boss_sheriff_last",
+   "params": {
+    "file": "boss_sheriff_last.mp3",
+    "bytes": 56467
+   },
+   "hash": "69eb88468e5e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:33",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_sheriff_last.json",
+   "bytes": 415
+  },
+  {
+   "id": "stt/boss_jerry_intro#1",
+   "kind": "stt",
+   "name": "boss_jerry_intro",
+   "params": {
+    "file": "boss_jerry_intro.mp3",
+    "bytes": 40794
+   },
+   "hash": "8e29131033fb",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:33",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_jerry_intro.json",
+   "bytes": 485
+  },
+  {
+   "id": "stt/boss_jerry_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_jerry_taunt_0",
+   "params": {
+    "file": "boss_jerry_taunt_0.mp3",
+    "bytes": 28255
+   },
+   "hash": "7bead04a486d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_jerry_taunt_0.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/boss_jerry_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_jerry_taunt_1",
+   "params": {
+    "file": "boss_jerry_taunt_1.mp3",
+    "bytes": 38286
+   },
+   "hash": "c96c20f43dd3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_jerry_taunt_1.json",
+   "bytes": 228
+  },
+  {
+   "id": "stt/boss_jerry_worried#1",
+   "kind": "stt",
+   "name": "boss_jerry_worried",
+   "params": {
+    "file": "boss_jerry_worried.mp3",
+    "bytes": 50825
+   },
+   "hash": "dcb34bfa0c8d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_jerry_worried.json",
+   "bytes": 355
+  },
+  {
+   "id": "stt/boss_rudy_intro#1",
+   "kind": "stt",
+   "name": "boss_rudy_intro",
+   "params": {
+    "file": "boss_rudy_intro.mp3",
+    "bytes": 60856
+   },
+   "hash": "5bd499c6362d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_rudy_intro.json",
+   "bytes": 425
+  },
+  {
+   "id": "stt/boss_jerry_last#1",
+   "kind": "stt",
+   "name": "boss_jerry_last",
+   "params": {
+    "file": "boss_jerry_last.mp3",
+    "bytes": 52705
+   },
+   "hash": "63c95344a975",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_jerry_last.json",
+   "bytes": 300
+  },
+  {
+   "id": "stt/boss_rudy_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_rudy_taunt_0",
+   "params": {
+    "file": "boss_rudy_taunt_0.mp3",
+    "bytes": 55213
+   },
+   "hash": "403384c530b7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_rudy_taunt_0.json",
+   "bytes": 359
+  },
+  {
+   "id": "stt/boss_rudy_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_rudy_taunt_1",
+   "params": {
+    "file": "boss_rudy_taunt_1.mp3",
+    "bytes": 51452
+   },
+   "hash": "c96821f9d97b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_rudy_taunt_1.json",
+   "bytes": 353
+  },
+  {
+   "id": "stt/boss_rudy_worried#1",
+   "kind": "stt",
+   "name": "boss_rudy_worried",
+   "params": {
+    "file": "boss_rudy_worried.mp3",
+    "bytes": 58348
+   },
+   "hash": "de494ea0b02e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_rudy_worried.json",
+   "bytes": 371
+  },
+  {
+   "id": "stt/boss_rudy_last#1",
+   "kind": "stt",
+   "name": "boss_rudy_last",
+   "params": {
+    "file": "boss_rudy_last.mp3",
+    "bytes": 45182
+   },
+   "hash": "5ebe1161bb4c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_rudy_last.json",
+   "bytes": 301
+  },
+  {
+   "id": "stt/boss_foreman_intro#1",
+   "kind": "stt",
+   "name": "boss_foreman_intro",
+   "params": {
+    "file": "boss_foreman_intro.mp3",
+    "bytes": 48317
+   },
+   "hash": "ca4332ac3a98",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_foreman_intro.json",
+   "bytes": 365
+  },
+  {
+   "id": "stt/boss_foreman_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_foreman_taunt_0",
+   "params": {
+    "file": "boss_foreman_taunt_0.mp3",
+    "bytes": 30763
+   },
+   "hash": "d4ee366788ae",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_foreman_taunt_0.json",
+   "bytes": 222
+  },
+  {
+   "id": "stt/boss_foreman_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_foreman_taunt_1",
+   "params": {
+    "file": "boss_foreman_taunt_1.mp3",
+    "bytes": 49571
+   },
+   "hash": "b04ea9fe0e77",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_foreman_taunt_1.json",
+   "bytes": 422
+  },
+  {
+   "id": "stt/boss_foreman_worried#1",
+   "kind": "stt",
+   "name": "boss_foreman_worried",
+   "params": {
+    "file": "boss_foreman_worried.mp3",
+    "bytes": 55213
+   },
+   "hash": "b04e8c8b49c2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_foreman_worried.json",
+   "bytes": 362
+  },
+  {
+   "id": "stt/boss_foreman_last#1",
+   "kind": "stt",
+   "name": "boss_foreman_last",
+   "params": {
+    "file": "boss_foreman_last.mp3",
+    "bytes": 37032
+   },
+   "hash": "2f82b183f35f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_foreman_last.json",
+   "bytes": 228
+  },
+  {
+   "id": "stt/boss_baron_intro#1",
+   "kind": "stt",
+   "name": "boss_baron_intro",
+   "params": {
+    "file": "boss_baron_intro.mp3",
+    "bytes": 78410
+   },
+   "hash": "a401ab3a3da6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_baron_intro.json",
+   "bytes": 424
+  },
+  {
+   "id": "stt/boss_baron_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_baron_taunt_0",
+   "params": {
+    "file": "boss_baron_taunt_0.mp3",
+    "bytes": 74021
+   },
+   "hash": "e8726d25d55d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:38",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_baron_taunt_0.json",
+   "bytes": 422
+  },
+  {
+   "id": "stt/boss_baron_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_baron_taunt_1",
+   "params": {
+    "file": "boss_baron_taunt_1.mp3",
+    "bytes": 56467
+   },
+   "hash": "b354395f91ba",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:38",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_baron_taunt_1.json",
+   "bytes": 366
+  },
+  {
+   "id": "stt/boss_baron_worried#1",
+   "kind": "stt",
+   "name": "boss_baron_worried",
+   "params": {
+    "file": "boss_baron_worried.mp3",
+    "bytes": 56467
+   },
+   "hash": "5ce4cf427e7d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:38",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_baron_worried.json",
+   "bytes": 358
+  },
+  {
+   "id": "stt/boss_baron_last#1",
+   "kind": "stt",
+   "name": "boss_baron_last",
+   "params": {
+    "file": "boss_baron_last.mp3",
+    "bytes": 41421
+   },
+   "hash": "d56942d17567",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:39",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_baron_last.json",
+   "bytes": 348
+  },
+  {
+   "id": "stt/boss_swamp_king_intro#1",
+   "kind": "stt",
+   "name": "boss_swamp_king_intro",
+   "params": {
+    "file": "boss_swamp_king_intro.mp3",
+    "bytes": 37032
+   },
+   "hash": "bb66c67c65bb",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:39",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_swamp_king_intro.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/boss_swamp_king_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_swamp_king_taunt_0",
+   "params": {
+    "file": "boss_swamp_king_taunt_0.mp3",
+    "bytes": 52705
+   },
+   "hash": "08eb6cca680a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:39",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_swamp_king_taunt_0.json",
+   "bytes": 425
+  },
+  {
+   "id": "stt/boss_swamp_king_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_swamp_king_taunt_1",
+   "params": {
+    "file": "boss_swamp_king_taunt_1.mp3",
+    "bytes": 57094
+   },
+   "hash": "7a977a9f4e10",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:40",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_swamp_king_taunt_1.json",
+   "bytes": 304
+  },
+  {
+   "id": "stt/boss_swamp_king_worried#1",
+   "kind": "stt",
+   "name": "boss_swamp_king_worried",
+   "params": {
+    "file": "boss_swamp_king_worried.mp3",
+    "bytes": 46436
+   },
+   "hash": "f8984370df42",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:40",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_swamp_king_worried.json",
+   "bytes": 295
+  },
+  {
+   "id": "stt/boss_swamp_king_last#1",
+   "kind": "stt",
+   "name": "boss_swamp_king_last",
+   "params": {
+    "file": "boss_swamp_king_last.mp3",
+    "bytes": 56467
+   },
+   "hash": "e7eb5ffe0a35",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:40",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_swamp_king_last.json",
+   "bytes": 426
+  },
+  {
+   "id": "stt/boss_boggs_intro#1",
+   "kind": "stt",
+   "name": "boss_boggs_intro",
+   "params": {
+    "file": "boss_boggs_intro.mp3",
+    "bytes": 46436
+   },
+   "hash": "9ede4a131ef9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:40",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_boggs_intro.json",
+   "bytes": 236
+  },
+  {
+   "id": "stt/boss_boggs_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_boggs_taunt_0",
+   "params": {
+    "file": "boss_boggs_taunt_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "6367d8d22873",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:41",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_boggs_taunt_0.json",
+   "bytes": 357
+  },
+  {
+   "id": "stt/boss_boggs_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_boggs_taunt_1",
+   "params": {
+    "file": "boss_boggs_taunt_1.mp3",
+    "bytes": 74021
+   },
+   "hash": "52b9a8d6be4a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:41",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_boggs_taunt_1.json",
+   "bytes": 290
+  },
+  {
+   "id": "stt/boss_boggs_worried#1",
+   "kind": "stt",
+   "name": "boss_boggs_worried",
+   "params": {
+    "file": "boss_boggs_worried.mp3",
+    "bytes": 46436
+   },
+   "hash": "34a1bd5f1e28",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:41",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_boggs_worried.json",
+   "bytes": 303
+  },
+  {
+   "id": "stt/boss_boggs_last#1",
+   "kind": "stt",
+   "name": "boss_boggs_last",
+   "params": {
+    "file": "boss_boggs_last.mp3",
+    "bytes": 49571
+   },
+   "hash": "19c26b4ba20f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:42",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_boggs_last.json",
+   "bytes": 291
+  },
+  {
+   "id": "stt/boss_maw_intro#1",
+   "kind": "stt",
+   "name": "boss_maw_intro",
+   "params": {
+    "file": "boss_maw_intro.mp3",
+    "bytes": 56467
+   },
+   "hash": "fc44240fb3f9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:42",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_maw_intro.json",
+   "bytes": 487
+  },
+  {
+   "id": "stt/boss_maw_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_maw_taunt_0",
+   "params": {
+    "file": "boss_maw_taunt_0.mp3",
+    "bytes": 40794
+   },
+   "hash": "5d9cad9346df",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:42",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_maw_taunt_0.json",
+   "bytes": 307
+  },
+  {
+   "id": "stt/boss_maw_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_maw_taunt_1",
+   "params": {
+    "file": "boss_maw_taunt_1.mp3",
+    "bytes": 43928
+   },
+   "hash": "4cdcd194137f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:43",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_maw_taunt_1.json",
+   "bytes": 365
+  },
+  {
+   "id": "stt/boss_maw_worried#1",
+   "kind": "stt",
+   "name": "boss_maw_worried",
+   "params": {
+    "file": "boss_maw_worried.mp3",
+    "bytes": 55213
+   },
+   "hash": "0ef8d7cb6be9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:43",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_maw_worried.json",
+   "bytes": 360
+  },
+  {
+   "id": "stt/boss_maw_last#1",
+   "kind": "stt",
+   "name": "boss_maw_last",
+   "params": {
+    "file": "boss_maw_last.mp3",
+    "bytes": 58348
+   },
+   "hash": "64d79c40963b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:28:43",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_maw_last.json",
+   "bytes": 372
+  },
+  {
+   "id": "tts/boss_jerry_intro#2",
+   "kind": "tts",
+   "name": "boss_jerry_intro",
+   "params": {
+    "text": "Son, you're on my field now.",
+    "voice_id": "Dmewe1Qq2kzCrdpBpTg5",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1682bd7b4494",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:30:14",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_jerry_intro.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/boss_boggs_last#2",
+   "kind": "tts",
+   "name": "boss_boggs_last",
+   "params": {
+    "text": "Checkered flag... for me...",
+    "voice_id": "BUk7HAa0KlARmSkYDiaR",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "863820d973cd",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-12T08:30:14",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_boggs_last.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/boss_foreman_worried#2",
+   "kind": "tts",
+   "name": "boss_foreman_worried",
+   "params": {
+    "text": "Somebody kill that dang saw!",
+    "voice_id": "2DLFGQf9moQ1vxNLrYTm",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bd1fa0cb5fec",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:30:14",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_foreman_worried.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/boss_sheriff_taunt_1#2",
+   "kind": "tts",
+   "name": "boss_sheriff_taunt_1",
+   "params": {
+    "text": "That's a citation, son.",
+    "voice_id": "dJ4TNUKmBX6jdpLoevHa",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1a7806281786",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-12T08:30:14",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_sheriff_taunt_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "stt/boss_foreman_worried#2",
+   "kind": "stt",
+   "name": "boss_foreman_worried",
+   "params": {
+    "file": "boss_foreman_worried.mp3",
+    "bytes": 52705
+   },
+   "hash": "1f27b35046d1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:31:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_foreman_worried.json",
+   "bytes": 363
+  },
+  {
+   "id": "stt/boss_boggs_last#2",
+   "kind": "stt",
+   "name": "boss_boggs_last",
+   "params": {
+    "file": "boss_boggs_last.mp3",
+    "bytes": 45182
+   },
+   "hash": "588693180ebd",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:31:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_boggs_last.json",
+   "bytes": 296
+  },
+  {
+   "id": "stt/boss_sheriff_taunt_1#2",
+   "kind": "stt",
+   "name": "boss_sheriff_taunt_1",
+   "params": {
+    "file": "boss_sheriff_taunt_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "d85556ee9101",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:31:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_sheriff_taunt_1.json",
+   "bytes": 297
+  },
+  {
+   "id": "stt/boss_jerry_intro#2",
+   "kind": "stt",
+   "name": "boss_jerry_intro",
+   "params": {
+    "file": "boss_jerry_intro.mp3",
+    "bytes": 46436
+   },
+   "hash": "a4d27a58ff05",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-12T08:31:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_jerry_intro.json",
+   "bytes": 418
+  },
+  {
+   "id": "tts/boss_foreman_worried#3",
+   "kind": "tts",
+   "name": "boss_foreman_worried",
+   "params": {
+    "text": "Somebody kill that dang saw!",
+    "voice_id": "2DLFGQf9moQ1vxNLrYTm",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bd1fa0cb5fec",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:31:18",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_foreman_worried.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/boss_boggs_last#3",
+   "kind": "tts",
+   "name": "boss_boggs_last",
+   "params": {
+    "text": "Checkered flag... for me...",
+    "voice_id": "BUk7HAa0KlARmSkYDiaR",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "863820d973cd",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-12T08:31:18",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_boggs_last.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/boss_jerry_intro#3",
+   "kind": "tts",
+   "name": "boss_jerry_intro",
+   "params": {
+    "text": "Son, you're on my field now.",
+    "voice_id": "Dmewe1Qq2kzCrdpBpTg5",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1682bd7b4494",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-12T08:31:18",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_jerry_intro.mp3",
+   "bytes": 39540
+  },
+  {
+   "id": "tts/boss_sheriff_taunt_1#3",
+   "kind": "tts",
+   "name": "boss_sheriff_taunt_1",
+   "params": {
+    "text": "That's a citation, son.",
+    "voice_id": "dJ4TNUKmBX6jdpLoevHa",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1a7806281786",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-12T08:31:18",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_sheriff_taunt_1.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "reconcile@2026-11-12T08:32:29",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -4027,
+   "actual": -7313,
    "basis": "account",
-   "balance_after": 65013
+   "balance_after": 66661
   }
  ],
  "anchor": {
@@ -12427,7 +14477,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-12T06:49:10",
-  "account_drop": 60290
+  "when": "2026-11-12T08:32:29",
+  "account_drop": 61938
  }
 }

@@ -730,6 +730,53 @@ add("near",
     airboat_wake=LOOP("The hiss and slap of a fast boat's wake on swamp water: rushing water and spray, no engine.", 6, 6.0, "amb"),
     )
 
+# The bosses talking (2.0.0-dev.33, features/boss_voices.gd): a line when the
+# fight starts, two taunts when they hurt the player, a worried one at their
+# last phase and a last word as they fall. The caption is the text.
+BOSS_LINES = {
+    "sheriff": ("sheriff", ["You're under arrest, Earth boy.", "Resistin' arrest, I see.",
+                            "That's a citation, son.", "Backup! I need backup!",
+                            "Tell my saucer... I loved her."]),
+    "jerry": ("jerry", ["Son, you're on my field now.", "Run it again, boy!", "That's a penalty!",
+                        "Somebody get me a towel.", "Coach always said... hustle."]),
+    "rudy": ("barker", ["Step right up and lose, sucker!", "Ain't nobody wins this game!",
+                        "Three tries for a dime!", "Folks, the show's runnin' long...",
+                        "The show's... over... folks."]),
+    "foreman": ("foreman", ["You're on the clock, slacker.", "Back to work!",
+                            "That's comin' outta your pay!", "Somebody kill that dang saw!",
+                            "I'm... clockin' out."]),
+    "baron": ("baron", ["Nobody drinks my shine for free.", "Aged twelve years, like my temper!",
+                        "You'll be pickled by sundown.", "My stills! Not my stills!",
+                        "Bury me... in a barrel."]),
+    "swamp_king": ("swamp_king", ["Who's on my water?", "Gator bait, that's all you are!",
+                                  "Ride's free, landin's extra!", "She's takin' on water!",
+                                  "Tell the gators... I'm comin' home."]),
+    "boggs": ("boggs", ["Buckle up, sunshine!", "Trade paint with me, boy!",
+                        "Forty-seven wins and countin'!", "Radiator's blown, dang it!",
+                        "Checkered flag... for me..."]),
+    "maw": ("maw", ["Who tracked mud on my clean deck?", "Eat your vegetables, hooman!",
+                    "Wait till your father lands!", "My curlers! Not my curlers!",
+                    "Tell my young'uns... supper's cold."]),
+}
+BOSS_MOMENTS = ["intro", "taunt_0", "taunt_1", "worried", "last"]
+# How a line's transcript spells words the caption writes the county's way.
+BOSS_HEARD = {
+    "boss_sheriff_taunt_0": "Resist an arrest, I see",
+    "boss_rudy_worried": "Folks, the show's running long!",
+    "boss_foreman_taunt_1": "That's coming out of your pay",
+    "boss_foreman_last": "I'm clocking out",
+    "boss_baron_taunt_0": "Aged 12 years, like my temper",
+    "boss_swamp_king_taunt_1": "Rides free, landings extra",
+    "boss_swamp_king_worried": "She's taking on water",
+    "boss_swamp_king_last": "Tell the gators I'm coming home",
+    "boss_boggs_taunt_1": "47 wins and counting",
+    "boss_maw_taunt_0": "Eat your vegetables, human",
+}
+add("voice", **{f"boss_{who}_{moment}": V(text, voice, **({"heard": BOSS_HEARD[f"boss_{who}_{moment}"]}
+                                                       if f"boss_{who}_{moment}" in BOSS_HEARD else {}))
+                for who, (voice, lines) in BOSS_LINES.items()
+                for moment, text in zip(BOSS_MOMENTS, lines)})
+
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
 BAND = ("Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven "
         "Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. "

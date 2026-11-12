@@ -1,0 +1,30 @@
+{
+ "text": "You're on the clock, slacker",
+ "words": [
+  {
+   "text": "You're",
+   "start": 0.06,
+   "end": 0.34
+  },
+  {
+   "text": "on",
+   "start": 0.42,
+   "end": 0.62
+  },
+  {
+   "text": "the",
+   "start": 0.66,
+   "end": 0.74
+  },
+  {
+   "text": "clock,",
+   "start": 0.86,
+   "end": 1.2
+  },
+  {
+   "text": "slacker",
+   "start": 1.32,
+   "end": 1.8
+  }
+ ]
+}

@@ -18,5 +18,35 @@
   "id": "V9sQTyyNbGP4p3hjbOhX",
   "description": "A towering elderly alien grandmother from a 1950s B-movie flying saucer: a big, warbling, rubbery, nasal old woman's voice with a thick rural Southern drawl, bossy, doting and comic. Close, dry studio recording.",
   "preview": "audio_src/generated/voice_design/maw.mp3"
+ },
+ "sheriff": {
+  "id": "dJ4TNUKmBX6jdpLoevHa",
+  "description": "A B-movie alien posing as a small-town Southern sheriff: a rubbery, warbling, slightly electronic voice with a slow, smug county-lawman drawl, officious and comic. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/sheriff.mp3"
+ },
+ "jerry": {
+  "id": "Dmewe1Qq2kzCrdpBpTg5",
+  "description": "A huge, booming Southern country man in his sixties, a self-made big shot who talks like a football coach at halftime: loud, gravelly, swaggering, red-faced. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/jerry.mp3"
+ },
+ "foreman": {
+  "id": "2DLFGQf9moQ1vxNLrYTm",
+  "description": "A hulking lumber-mill foreman in his fifties, a deep, rough, shouting voice worn ragged by sawdust and saw noise, Southern, bossy and mean. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/foreman.mp3"
+ },
+ "baron": {
+  "id": "W8jxknn90CKrozfkoElH",
+  "description": "A pompous old Southern moonshine baron, a wheezy, plummy, self-important voice with a slow genteel drawl that turns into a bellow. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/baron.mp3"
+ },
+ "swamp_king": {
+  "id": "Hqr8LQ6kAH2veIeMeOvv",
+  "description": "A fat, loud bayou swamp boss, a big wet booming Cajun-country voice, cocky and rowdy, used to shouting over an airboat engine. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/swamp_king.mp3"
+ },
+ "boggs": {
+  "id": "BUk7HAa0KlARmSkYDiaR",
+  "description": "A redneck demolition derby champion in his forties, a hoarse, cocky, hollering voice with a thick country accent, wild and grinning. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/boggs.mp3"
  }
 }

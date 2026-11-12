@@ -1,0 +1,30 @@
+{
+ "text": "You'll be pickled by sundown",
+ "words": [
+  {
+   "text": "You'll",
+   "start": 0.08,
+   "end": 0.32
+  },
+  {
+   "text": "be",
+   "start": 0.36,
+   "end": 0.46
+  },
+  {
+   "text": "pickled",
+   "start": 0.64,
+   "end": 0.98
+  },
+  {
+   "text": "by",
+   "start": 1.04,
+   "end": 1.24
+  },
+  {
+   "text": "sundown",
+   "start": 1.4,
+   "end": 2.18
+  }
+ ]
+}

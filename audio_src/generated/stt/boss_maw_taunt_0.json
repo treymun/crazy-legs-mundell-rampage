@@ -1,0 +1,25 @@
+{
+ "text": "Eat your vegetables, human",
+ "words": [
+  {
+   "text": "Eat",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "your",
+   "start": 0.28,
+   "end": 0.38
+  },
+  {
+   "text": "vegetables,",
+   "start": 0.48,
+   "end": 1.06
+  },
+  {
+   "text": "human",
+   "start": 1.12,
+   "end": 1.48
+  }
+ ]
+}

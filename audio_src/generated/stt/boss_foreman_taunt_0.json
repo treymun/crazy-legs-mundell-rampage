@@ -1,0 +1,20 @@
+{
+ "text": "Back to work",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.06,
+   "end": 0.32
+  },
+  {
+   "text": "to",
+   "start": 0.38,
+   "end": 0.52
+  },
+  {
+   "text": "work",
+   "start": 0.64,
+   "end": 1.1
+  }
+ ]
+}

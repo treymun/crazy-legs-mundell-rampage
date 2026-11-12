@@ -1,0 +1,25 @@
+{
+ "text": "The show's over, folks!",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.16,
+   "end": 0.22
+  },
+  {
+   "text": "show's",
+   "start": 0.28,
+   "end": 0.58
+  },
+  {
+   "text": "over,",
+   "start": 0.86,
+   "end": 1.12
+  },
+  {
+   "text": "folks!",
+   "start": 1.26,
+   "end": 1.64
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+ "text": "You're under arrest, Earth boy",
+ "words": [
+  {
+   "text": "You're",
+   "start": 0.08,
+   "end": 0.2
+  },
+  {
+   "text": "under",
+   "start": 0.26,
+   "end": 0.46
+  },
+  {
+   "text": "arrest,",
+   "start": 0.52,
+   "end": 0.9
+  },
+  {
+   "text": "Earth",
+   "start": 0.96,
+   "end": 1.1
+  },
+  {
+   "text": "boy",
+   "start": 1.2,
+   "end": 1.52
+  }
+ ]
+}

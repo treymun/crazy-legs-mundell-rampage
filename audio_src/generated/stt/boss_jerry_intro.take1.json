@@ -1,0 +1,40 @@
+{
+ "text": "So either you're on my field now",
+ "words": [
+  {
+   "text": "So",
+   "start": 0.06,
+   "end": 0.14
+  },
+  {
+   "text": "either",
+   "start": 0.16,
+   "end": 0.32
+  },
+  {
+   "text": "you're",
+   "start": 0.36,
+   "end": 0.5
+  },
+  {
+   "text": "on",
+   "start": 0.54,
+   "end": 0.64
+  },
+  {
+   "text": "my",
+   "start": 0.7,
+   "end": 0.84
+  },
+  {
+   "text": "field",
+   "start": 0.98,
+   "end": 1.22
+  },
+  {
+   "text": "now",
+   "start": 1.28,
+   "end": 1.54
+  }
+ ]
+}

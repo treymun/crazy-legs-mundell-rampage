@@ -177,6 +177,13 @@ func _view_tour() -> void:
 		p.sway = 0.0
 		game.message_until = 0.0
 		game.district_until = 0.0
+		# A viewpoint may hold a notice or the place name up (the objective pin
+		# hangs under them).
+		if shot.has("notice"):
+			game.message(String(shot["notice"]), 99.0)
+		if shot.has("district"):
+			game.district = int(game.world.area[game.world.cell(p.x, p.y)])
+			game.district_until = game.clock + 99.0
 		# A viewpoint may open the map, at a zoom (game_view.gd MAP_ZOOMS).
 		game.map = bool(shot.get("map", false))
 		game.map_zoom = int(shot.get("map_zoom", 2))

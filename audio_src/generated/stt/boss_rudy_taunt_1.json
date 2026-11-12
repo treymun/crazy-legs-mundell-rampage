@@ -1,0 +1,30 @@
+{
+ "text": "Three tries for a dime",
+ "words": [
+  {
+   "text": "Three",
+   "start": 0.16,
+   "end": 0.34
+  },
+  {
+   "text": "tries",
+   "start": 0.44,
+   "end": 0.92
+  },
+  {
+   "text": "for",
+   "start": 1.0,
+   "end": 1.12
+  },
+  {
+   "text": "a",
+   "start": 1.2,
+   "end": 1.22
+  },
+  {
+   "text": "dime",
+   "start": 1.38,
+   "end": 1.98
+  }
+ ]
+}

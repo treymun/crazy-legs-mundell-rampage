@@ -16693,1282 +16693,6 @@
    },
    "validation": "ok"
   },
-  "room_revolver": {
-   "purpose": "indoor tail layered under 'revolver' when player is under a roof (Game.report, vol .78 x .72)",
-   "refs": [
-    "game.gd:932"
-   ],
-   "family": "room",
-   "origin": "derived from revolver",
-   "source": "audio_src/generated/sfx/revolver.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_revolver.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.48,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of revolver (0.60 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.48
-   },
-   "measured": {
-    "seconds": 0.6,
-    "peak_db": -5.5,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 16.1,
-    "centroid_hz": 2087,
-    "end_db": -144.5,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_shotgun": {
-   "purpose": "indoor tail layered under 'shotgun' when player is under a roof (Game.report, vol .78 x .72)",
-   "refs": [
-    "game.gd:932"
-   ],
-   "family": "room",
-   "origin": "derived from shotgun",
-   "source": "audio_src/generated/sfx/shotgun.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_shotgun.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.65,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of shotgun (0.81 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.65
-   },
-   "measured": {
-    "seconds": 0.812,
-    "peak_db": -6.4,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 16.6,
-    "centroid_hz": 1268,
-    "end_db": -146.2,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_shotgun_both": {
-   "purpose": "indoor tail layered under 'shotgun_both' when player is under a roof (Game.report, vol .78 x .72)",
-   "refs": [
-    "game.gd:932"
-   ],
-   "family": "room",
-   "origin": "derived from shotgun_both",
-   "source": "audio_src/generated/sfx/shotgun_both.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_shotgun_both.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.72,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of shotgun_both (0.90 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.72
-   },
-   "measured": {
-    "seconds": 0.9,
-    "peak_db": -6.9,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 16.6,
-    "centroid_hz": 1312,
-    "end_db": -140.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_rifle": {
-   "purpose": "indoor tail layered under 'rifle' when player is under a roof (Game.report, vol .78 x .72)",
-   "refs": [
-    "game.gd:932"
-   ],
-   "family": "room",
-   "origin": "derived from rifle",
-   "source": "audio_src/generated/sfx/rifle.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_rifle.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.42,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of rifle (0.53 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.42
-   },
-   "measured": {
-    "seconds": 0.525,
-    "peak_db": -6.6,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 14.1,
-    "centroid_hz": 1498,
-    "end_db": -140.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_riveter": {
-   "purpose": "indoor tail layered under 'riveter' when player is under a roof (Game.report, vol .78 x .72)",
-   "refs": [
-    "game.gd:932"
-   ],
-   "family": "room",
-   "origin": "derived from riveter",
-   "source": "audio_src/generated/sfx/riveter.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_riveter.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.44,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of riveter (0.55 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.44
-   },
-   "measured": {
-    "seconds": 0.55,
-    "peak_db": -3.9,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 14.4,
-    "centroid_hz": 3249,
-    "end_db": -136.3,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_riveter_pair": {
-   "purpose": "indoor tail layered under 'riveter_pair' when player is under a roof (Game.report, vol .78 x .72)",
-   "refs": [
-    "game.gd:932"
-   ],
-   "family": "room",
-   "origin": "derived from riveter_pair",
-   "source": "audio_src/generated/sfx/riveter_pair.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_riveter_pair.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.51,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of riveter_pair (0.64 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.51
-   },
-   "measured": {
-    "seconds": 0.637,
-    "peak_db": -4.6,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 13.9,
-    "centroid_hz": 2171,
-    "end_db": -150.4,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_pressure_gun": {
-   "purpose": "indoor tail layered under 'pressure_gun' when player is under a roof (Game.report, vol .78 x .72)",
-   "refs": [
-    "game.gd:932"
-   ],
-   "family": "room",
-   "origin": "derived from pressure_gun",
-   "source": "audio_src/generated/sfx/pressure_gun.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_pressure_gun.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.67,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of pressure_gun (0.84 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.67
-   },
-   "measured": {
-    "seconds": 0.837,
-    "peak_db": -2.8,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 14.1,
-    "centroid_hz": 3987,
-    "end_db": -163.8,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_bottle_launcher": {
-   "purpose": "indoor tail layered under 'bottle_launcher' when player is under a roof (Game.report, vol .78 x .72)",
-   "refs": [
-    "game.gd:932"
-   ],
-   "family": "room",
-   "origin": "derived from bottle_launcher",
-   "source": "audio_src/generated/sfx/bottle_launcher.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_bottle_launcher.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.45,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of bottle_launcher (0.56 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.45
-   },
-   "measured": {
-    "seconds": 0.562,
-    "peak_db": -6.0,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 13.2,
-    "centroid_hz": 3090,
-    "end_db": -136.8,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_cow_launcher": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "room",
-   "origin": "derived from cow_launcher",
-   "source": "audio_src/generated/sfx/cow_launcher.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_cow_launcher.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of cow_launcher (1.39 s)",
-    "level": "-10.0 dB (new cue)",
-    "keep_seconds": 1.0
-   },
-   "measured": {
-    "seconds": 1.387,
-    "peak_db": -0.8,
-    "loud_db": -7.2,
-    "dc": 0.0004,
-    "onset_ms": 12.9,
-    "centroid_hz": 386,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_teat_gun": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "room",
-   "origin": "derived from teat_gun",
-   "source": "audio_src/generated/sfx/teat_gun.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_teat_gun.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of teat_gun (0.47 s)",
-    "level": "-10.0 dB (new cue)",
-    "keep_seconds": 1.0
-   },
-   "measured": {
-    "seconds": 0.475,
-    "peak_db": -0.8,
-    "loud_db": -8.0,
-    "dc": 0.0007,
-    "onset_ms": 17.1,
-    "centroid_hz": 1530,
-    "end_db": -135.4,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_explosion": {
-   "purpose": "indoor tail layered under 'explosion' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from explosion",
-   "source": "audio_src/generated/sfx/explosion.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_explosion.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 1.09,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of explosion (1.36 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 1.09
-   },
-   "measured": {
-    "seconds": 1.362,
-    "peak_db": -5.6,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 17.3,
-    "centroid_hz": 613,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_arm_impact": {
-   "purpose": "indoor tail layered under 'arm_impact' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from arm_impact",
-   "source": "audio_src/generated/sfx/arm_impact.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_arm_impact.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.63,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of arm_impact (0.79 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.63
-   },
-   "measured": {
-    "seconds": 0.787,
-    "peak_db": -4.7,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 13.5,
-    "centroid_hz": 3793,
-    "end_db": -178.8,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_rocket_pop": {
-   "purpose": "indoor tail layered under 'rocket_pop' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from rocket_pop",
-   "source": "audio_src/generated/sfx/rocket_pop.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_rocket_pop.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.5,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of rocket_pop (0.62 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.5
-   },
-   "measured": {
-    "seconds": 0.625,
-    "peak_db": -4.5,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 13.3,
-    "centroid_hz": 2166,
-    "end_db": -162.5,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_foreman_cut": {
-   "purpose": "indoor tail layered under 'foreman_cut' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from foreman_cut",
-   "source": "audio_src/generated/sfx/foreman_cut.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_foreman_cut.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.6,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of foreman_cut (0.75 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.6
-   },
-   "measured": {
-    "seconds": 0.75,
-    "peak_db": -4.3,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 13.2,
-    "centroid_hz": 3246,
-    "end_db": -160.2,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_rudy_horn": {
-   "purpose": "indoor tail layered under 'rudy_horn' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from rudy_horn",
-   "source": "audio_src/generated/sfx/rudy_horn.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_rudy_horn.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.76,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of rudy_horn (0.95 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.76
-   },
-   "measured": {
-    "seconds": 0.95,
-    "peak_db": -4.9,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 13.2,
-    "centroid_hz": 3400,
-    "end_db": -162.3,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_boiler_release": {
-   "purpose": "indoor tail layered under 'boiler_release' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from boiler_release",
-   "source": "audio_src/generated/sfx/boiler_release.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_boiler_release.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.67,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of boiler_release (0.84 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.67
-   },
-   "measured": {
-    "seconds": 0.837,
-    "peak_db": -4.0,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 42.9,
-    "centroid_hz": 959,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_chain_crack": {
-   "purpose": "indoor tail layered under 'chain_crack' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from chain_crack",
-   "source": "audio_src/generated/sfx/chain_crack.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_chain_crack.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.62,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of chain_crack (0.78 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.62
-   },
-   "measured": {
-    "seconds": 0.775,
-    "peak_db": -5.0,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 19.6,
-    "centroid_hz": 5450,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_deputy_shot": {
-   "purpose": "indoor tail layered under 'deputy_shot' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from deputy_shot",
-   "source": "audio_src/generated/sfx/deputy_shot.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_deputy_shot.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.47,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of deputy_shot (0.59 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.47
-   },
-   "measured": {
-    "seconds": 0.587,
-    "peak_db": -6.1,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 16.4,
-    "centroid_hz": 2610,
-    "end_db": -157.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_tosser_throw": {
-   "purpose": "indoor tail layered under 'tosser_throw' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from tosser_throw",
-   "source": "audio_src/generated/sfx/tosser_throw.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_tosser_throw.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.45,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of tosser_throw (0.56 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.45
-   },
-   "measured": {
-    "seconds": 0.562,
-    "peak_db": -7.6,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 46.2,
-    "centroid_hz": 234,
-    "end_db": -159.2,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_bowling_hit": {
-   "purpose": "indoor tail layered under 'bowling_hit' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from bowling_hit",
-   "source": "audio_src/generated/sfx/bowling_hit.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_bowling_hit.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.71,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of bowling_hit (0.89 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.71
-   },
-   "measured": {
-    "seconds": 0.887,
-    "peak_db": -6.3,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 15.1,
-    "centroid_hz": 867,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_saw_hit": {
-   "purpose": "indoor tail layered under 'saw_hit' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from saw_hit",
-   "source": "audio_src/generated/sfx/saw_hit.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_saw_hit.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.4,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of saw_hit (0.50 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.4
-   },
-   "measured": {
-    "seconds": 0.5,
-    "peak_db": -7.5,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 15.9,
-    "centroid_hz": 5062,
-    "end_db": -139.6,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_tnt_bounce": {
-   "purpose": "indoor tail layered under 'tnt_bounce' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from tnt_bounce",
-   "source": "audio_src/generated/sfx/tnt_bounce.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_tnt_bounce.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.34,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of tnt_bounce (0.43 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.34
-   },
-   "measured": {
-    "seconds": 0.425,
-    "peak_db": -6.2,
-    "loud_db": -16.0,
-    "dc": 0.0001,
-    "onset_ms": 15.1,
-    "centroid_hz": 176,
-    "end_db": -132.9,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_door": {
-   "purpose": "indoor tail layered under 'door' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from door",
-   "source": "audio_src/generated/sfx/door.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_door.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.59,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of door (0.74 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.59
-   },
-   "measured": {
-    "seconds": 0.737,
-    "peak_db": -5.2,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 12.7,
-    "centroid_hz": 1409,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_gate": {
-   "purpose": "indoor tail layered under 'gate' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from gate",
-   "source": "audio_src/generated/sfx/gate.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_gate.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.79,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of gate (0.99 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.79
-   },
-   "measured": {
-    "seconds": 0.987,
-    "peak_db": -6.7,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 13.2,
-    "centroid_hz": 2127,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_secret_slide": {
-   "purpose": "indoor tail layered under 'secret_slide' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from secret_slide",
-   "source": "audio_src/generated/sfx/secret_slide.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_secret_slide.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.71,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of secret_slide (0.89 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.71
-   },
-   "measured": {
-    "seconds": 0.887,
-    "peak_db": -7.4,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 22.2,
-    "centroid_hz": 621,
-    "end_db": -167.6,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_can_kick": {
-   "purpose": "indoor tail layered under 'can_kick' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from can_kick",
-   "source": "audio_src/generated/sfx/can_kick.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_can_kick.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.66,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of can_kick (0.83 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.66
-   },
-   "measured": {
-    "seconds": 0.825,
-    "peak_db": -4.7,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 43.7,
-    "centroid_hz": 1341,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_glass_break": {
-   "purpose": "indoor tail layered under 'glass_break' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from glass_break",
-   "source": "audio_src/generated/sfx/glass_break.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_glass_break.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.71,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of glass_break (0.89 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.71
-   },
-   "measured": {
-    "seconds": 0.887,
-    "peak_db": -6.5,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 14.6,
-    "centroid_hz": 3624,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_sink_flush": {
-   "purpose": "indoor tail layered under 'sink_flush' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from sink_flush",
-   "source": "audio_src/generated/sfx/sink_flush.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_sink_flush.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 1.34,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of sink_flush (1.68 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 1.34
-   },
-   "measured": {
-    "seconds": 1.675,
-    "peak_db": -5.3,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 14.0,
-    "centroid_hz": 917,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_toilet_burst": {
-   "purpose": "indoor tail layered under 'toilet_burst' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from toilet_burst",
-   "source": "audio_src/generated/sfx/toilet_burst.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_toilet_burst.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 1.26,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of toilet_burst (1.57 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 1.26
-   },
-   "measured": {
-    "seconds": 1.575,
-    "peak_db": -6.1,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 14.1,
-    "centroid_hz": 2711,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_tv_pop": {
-   "purpose": "indoor tail layered under 'tv_pop' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from tv_pop",
-   "source": "audio_src/generated/sfx/tv_pop.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_tv_pop.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.76,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of tv_pop (0.95 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.76
-   },
-   "measured": {
-    "seconds": 0.95,
-    "peak_db": -4.7,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 19.4,
-    "centroid_hz": 4390,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_vending_clunk": {
-   "purpose": "indoor tail layered under 'vending_clunk' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from vending_clunk",
-   "source": "audio_src/generated/sfx/vending_clunk.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_vending_clunk.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 1.01,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of vending_clunk (1.26 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 1.01
-   },
-   "measured": {
-    "seconds": 1.262,
-    "peak_db": -4.8,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 12.5,
-    "centroid_hz": 1395,
-    "end_db": -180.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "room_window_smash": {
-   "purpose": "indoor tail layered under 'window_smash' when the player stands under a roof (sound_at, vol x.55 x.72)",
-   "refs": [
-    "game.gd:925"
-   ],
-   "family": "room",
-   "origin": "derived from window_smash",
-   "source": "audio_src/generated/sfx/window_smash.mp3",
-   "prompt": null,
-   "credits": 0,
-   "destination": "audio_src/final/sfx/room_window_smash.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 0.71,
-   "recipe": {
-    "status": "built",
-    "family": "room",
-    "chain": {
-     "hp": 160,
-     "lp": 5200,
-     "low": 0.0,
-     "pres": 0.0,
-     "fade": 0.6,
-     "level": -10.0
-    },
-    "derived": "reverb tail of window_smash (0.89 s)",
-    "level": "-16.0 dB (new cue)",
-    "keep_seconds": 0.71
-   },
-   "measured": {
-    "seconds": 0.887,
-    "peak_db": -4.3,
-    "loud_db": -16.0,
-    "dc": 0.0,
-    "onset_ms": 14.7,
-    "centroid_hz": 3209,
-    "end_db": -170.6,
-    "problems": []
-   },
-   "validation": "ok"
-  },
   "break_crate": {
    "purpose": "new cue",
    "refs": [],
@@ -19478,6 +18202,2962 @@
     "problems": []
    },
    "validation": "ok"
+  },
+  "room_revolver": {
+   "purpose": "indoor tail layered under 'revolver' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "family": "room",
+   "origin": "derived from revolver",
+   "source": "audio_src/generated/sfx/revolver.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_revolver.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.48,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of revolver (0.60 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.48
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -5.5,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 16.1,
+    "centroid_hz": 2087,
+    "end_db": -144.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_shotgun": {
+   "purpose": "indoor tail layered under 'shotgun' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "family": "room",
+   "origin": "derived from shotgun",
+   "source": "audio_src/generated/sfx/shotgun.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_shotgun.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.65,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of shotgun (0.81 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.65
+   },
+   "measured": {
+    "seconds": 0.812,
+    "peak_db": -6.4,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 16.6,
+    "centroid_hz": 1268,
+    "end_db": -146.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_shotgun_both": {
+   "purpose": "indoor tail layered under 'shotgun_both' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "family": "room",
+   "origin": "derived from shotgun_both",
+   "source": "audio_src/generated/sfx/shotgun_both.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_shotgun_both.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.72,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of shotgun_both (0.90 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.72
+   },
+   "measured": {
+    "seconds": 0.9,
+    "peak_db": -6.9,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 16.6,
+    "centroid_hz": 1312,
+    "end_db": -140.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_rifle": {
+   "purpose": "indoor tail layered under 'rifle' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "family": "room",
+   "origin": "derived from rifle",
+   "source": "audio_src/generated/sfx/rifle.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_rifle.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.42,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of rifle (0.53 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.42
+   },
+   "measured": {
+    "seconds": 0.525,
+    "peak_db": -6.6,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 14.1,
+    "centroid_hz": 1498,
+    "end_db": -140.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_riveter": {
+   "purpose": "indoor tail layered under 'riveter' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "family": "room",
+   "origin": "derived from riveter",
+   "source": "audio_src/generated/sfx/riveter.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_riveter.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.44,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of riveter (0.55 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.44
+   },
+   "measured": {
+    "seconds": 0.55,
+    "peak_db": -3.9,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 14.4,
+    "centroid_hz": 3249,
+    "end_db": -136.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_riveter_pair": {
+   "purpose": "indoor tail layered under 'riveter_pair' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "family": "room",
+   "origin": "derived from riveter_pair",
+   "source": "audio_src/generated/sfx/riveter_pair.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_riveter_pair.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.51,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of riveter_pair (0.64 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.51
+   },
+   "measured": {
+    "seconds": 0.637,
+    "peak_db": -4.6,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 13.9,
+    "centroid_hz": 2171,
+    "end_db": -150.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_pressure_gun": {
+   "purpose": "indoor tail layered under 'pressure_gun' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "family": "room",
+   "origin": "derived from pressure_gun",
+   "source": "audio_src/generated/sfx/pressure_gun.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_pressure_gun.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.67,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of pressure_gun (0.84 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.67
+   },
+   "measured": {
+    "seconds": 0.837,
+    "peak_db": -2.8,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 14.1,
+    "centroid_hz": 3987,
+    "end_db": -163.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_bottle_launcher": {
+   "purpose": "indoor tail layered under 'bottle_launcher' when player is under a roof (Game.report, vol .78 x .72)",
+   "refs": [
+    "game.gd:932"
+   ],
+   "family": "room",
+   "origin": "derived from bottle_launcher",
+   "source": "audio_src/generated/sfx/bottle_launcher.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_bottle_launcher.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.45,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of bottle_launcher (0.56 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.45
+   },
+   "measured": {
+    "seconds": 0.562,
+    "peak_db": -6.0,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 13.2,
+    "centroid_hz": 3090,
+    "end_db": -136.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_cow_launcher": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from cow_launcher",
+   "source": "audio_src/generated/sfx/cow_launcher.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_cow_launcher.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of cow_launcher (1.39 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.387,
+    "peak_db": -0.8,
+    "loud_db": -7.2,
+    "dc": 0.0004,
+    "onset_ms": 12.9,
+    "centroid_hz": 386,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_teat_gun": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from teat_gun",
+   "source": "audio_src/generated/sfx/teat_gun.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_teat_gun.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of teat_gun (0.47 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.475,
+    "peak_db": -0.8,
+    "loud_db": -8.0,
+    "dc": 0.0007,
+    "onset_ms": 17.1,
+    "centroid_hz": 1530,
+    "end_db": -135.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_explosion": {
+   "purpose": "indoor tail layered under 'explosion' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from explosion",
+   "source": "audio_src/generated/sfx/explosion.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_explosion.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 1.09,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of explosion (1.36 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 1.09
+   },
+   "measured": {
+    "seconds": 1.362,
+    "peak_db": -5.6,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 17.3,
+    "centroid_hz": 613,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_arm_impact": {
+   "purpose": "indoor tail layered under 'arm_impact' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from arm_impact",
+   "source": "audio_src/generated/sfx/arm_impact.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_arm_impact.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.63,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of arm_impact (0.79 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.63
+   },
+   "measured": {
+    "seconds": 0.787,
+    "peak_db": -4.7,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 13.5,
+    "centroid_hz": 3793,
+    "end_db": -178.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_rocket_pop": {
+   "purpose": "indoor tail layered under 'rocket_pop' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from rocket_pop",
+   "source": "audio_src/generated/sfx/rocket_pop.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_rocket_pop.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.5,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of rocket_pop (0.62 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.625,
+    "peak_db": -4.5,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 13.3,
+    "centroid_hz": 2166,
+    "end_db": -162.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_foreman_cut": {
+   "purpose": "indoor tail layered under 'foreman_cut' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from foreman_cut",
+   "source": "audio_src/generated/sfx/foreman_cut.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_foreman_cut.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.6,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of foreman_cut (0.75 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.75,
+    "peak_db": -4.3,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 13.2,
+    "centroid_hz": 3246,
+    "end_db": -160.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_rudy_horn": {
+   "purpose": "indoor tail layered under 'rudy_horn' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from rudy_horn",
+   "source": "audio_src/generated/sfx/rudy_horn.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_rudy_horn.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.76,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of rudy_horn (0.95 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.76
+   },
+   "measured": {
+    "seconds": 0.95,
+    "peak_db": -4.9,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 13.2,
+    "centroid_hz": 3400,
+    "end_db": -162.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_boiler_release": {
+   "purpose": "indoor tail layered under 'boiler_release' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from boiler_release",
+   "source": "audio_src/generated/sfx/boiler_release.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_boiler_release.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.67,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of boiler_release (0.84 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.67
+   },
+   "measured": {
+    "seconds": 0.837,
+    "peak_db": -4.0,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 42.9,
+    "centroid_hz": 959,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_chain_crack": {
+   "purpose": "indoor tail layered under 'chain_crack' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from chain_crack",
+   "source": "audio_src/generated/sfx/chain_crack.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_chain_crack.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.62,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of chain_crack (0.78 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.62
+   },
+   "measured": {
+    "seconds": 0.775,
+    "peak_db": -5.0,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 19.6,
+    "centroid_hz": 5450,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_deputy_shot": {
+   "purpose": "indoor tail layered under 'deputy_shot' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from deputy_shot",
+   "source": "audio_src/generated/sfx/deputy_shot.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_deputy_shot.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.47,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of deputy_shot (0.59 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.47
+   },
+   "measured": {
+    "seconds": 0.587,
+    "peak_db": -6.1,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 16.4,
+    "centroid_hz": 2610,
+    "end_db": -157.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_tosser_throw": {
+   "purpose": "indoor tail layered under 'tosser_throw' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from tosser_throw",
+   "source": "audio_src/generated/sfx/tosser_throw.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_tosser_throw.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.45,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of tosser_throw (0.56 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.45
+   },
+   "measured": {
+    "seconds": 0.562,
+    "peak_db": -7.6,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 46.2,
+    "centroid_hz": 234,
+    "end_db": -159.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_bowling_hit": {
+   "purpose": "indoor tail layered under 'bowling_hit' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from bowling_hit",
+   "source": "audio_src/generated/sfx/bowling_hit.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_bowling_hit.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.71,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of bowling_hit (0.89 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.71
+   },
+   "measured": {
+    "seconds": 0.887,
+    "peak_db": -6.3,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 15.1,
+    "centroid_hz": 867,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_saw_hit": {
+   "purpose": "indoor tail layered under 'saw_hit' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from saw_hit",
+   "source": "audio_src/generated/sfx/saw_hit.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_saw_hit.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.4,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of saw_hit (0.50 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.4
+   },
+   "measured": {
+    "seconds": 0.5,
+    "peak_db": -7.5,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 15.9,
+    "centroid_hz": 5062,
+    "end_db": -139.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_tnt_bounce": {
+   "purpose": "indoor tail layered under 'tnt_bounce' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from tnt_bounce",
+   "source": "audio_src/generated/sfx/tnt_bounce.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_tnt_bounce.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.34,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of tnt_bounce (0.43 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.34
+   },
+   "measured": {
+    "seconds": 0.425,
+    "peak_db": -6.2,
+    "loud_db": -16.0,
+    "dc": 0.0001,
+    "onset_ms": 15.1,
+    "centroid_hz": 176,
+    "end_db": -132.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_door": {
+   "purpose": "indoor tail layered under 'door' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from door",
+   "source": "audio_src/generated/sfx/door.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_door.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.59,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of door (0.74 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.59
+   },
+   "measured": {
+    "seconds": 0.737,
+    "peak_db": -5.2,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 12.7,
+    "centroid_hz": 1409,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_gate": {
+   "purpose": "indoor tail layered under 'gate' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from gate",
+   "source": "audio_src/generated/sfx/gate.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_gate.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.79,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of gate (0.99 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.79
+   },
+   "measured": {
+    "seconds": 0.987,
+    "peak_db": -6.7,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 13.2,
+    "centroid_hz": 2127,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_secret_slide": {
+   "purpose": "indoor tail layered under 'secret_slide' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from secret_slide",
+   "source": "audio_src/generated/sfx/secret_slide.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_secret_slide.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.71,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of secret_slide (0.89 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.71
+   },
+   "measured": {
+    "seconds": 0.887,
+    "peak_db": -7.4,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 22.2,
+    "centroid_hz": 621,
+    "end_db": -167.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_can_kick": {
+   "purpose": "indoor tail layered under 'can_kick' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from can_kick",
+   "source": "audio_src/generated/sfx/can_kick.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_can_kick.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.66,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of can_kick (0.83 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.66
+   },
+   "measured": {
+    "seconds": 0.825,
+    "peak_db": -4.7,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 43.7,
+    "centroid_hz": 1341,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_glass_break": {
+   "purpose": "indoor tail layered under 'glass_break' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from glass_break",
+   "source": "audio_src/generated/sfx/glass_break.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_glass_break.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.71,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of glass_break (0.89 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.71
+   },
+   "measured": {
+    "seconds": 0.887,
+    "peak_db": -6.5,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 14.6,
+    "centroid_hz": 3624,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_sink_flush": {
+   "purpose": "indoor tail layered under 'sink_flush' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from sink_flush",
+   "source": "audio_src/generated/sfx/sink_flush.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_sink_flush.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 1.34,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of sink_flush (1.68 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 1.34
+   },
+   "measured": {
+    "seconds": 1.675,
+    "peak_db": -5.3,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 14.0,
+    "centroid_hz": 917,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_toilet_burst": {
+   "purpose": "indoor tail layered under 'toilet_burst' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from toilet_burst",
+   "source": "audio_src/generated/sfx/toilet_burst.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_toilet_burst.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 1.26,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of toilet_burst (1.57 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 1.26
+   },
+   "measured": {
+    "seconds": 1.575,
+    "peak_db": -6.1,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 14.1,
+    "centroid_hz": 2711,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_tv_pop": {
+   "purpose": "indoor tail layered under 'tv_pop' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from tv_pop",
+   "source": "audio_src/generated/sfx/tv_pop.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_tv_pop.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.76,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of tv_pop (0.95 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.76
+   },
+   "measured": {
+    "seconds": 0.95,
+    "peak_db": -4.7,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 19.4,
+    "centroid_hz": 4390,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_vending_clunk": {
+   "purpose": "indoor tail layered under 'vending_clunk' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from vending_clunk",
+   "source": "audio_src/generated/sfx/vending_clunk.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_vending_clunk.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 1.01,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of vending_clunk (1.26 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 1.01
+   },
+   "measured": {
+    "seconds": 1.262,
+    "peak_db": -4.8,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 12.5,
+    "centroid_hz": 1395,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_window_smash": {
+   "purpose": "indoor tail layered under 'window_smash' when the player stands under a roof (sound_at, vol x.55 x.72)",
+   "refs": [
+    "game.gd:925"
+   ],
+   "family": "room",
+   "origin": "derived from window_smash",
+   "source": "audio_src/generated/sfx/window_smash.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_window_smash.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": 0.71,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of window_smash (0.89 s)",
+    "level": "-16.0 dB (new cue)",
+    "keep_seconds": 0.71
+   },
+   "measured": {
+    "seconds": 0.887,
+    "peak_db": -4.3,
+    "loud_db": -16.0,
+    "dc": 0.0,
+    "onset_ms": 14.7,
+    "centroid_hz": 3209,
+    "end_db": -170.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_intro.mp3",
+   "prompt": "You're under arrest, Earth boy.",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/boss_sheriff_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.52
+    ],
+    "natural_seconds": 1.539,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.539
+   },
+   "measured": {
+    "seconds": 1.539,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0,
+    "onset_ms": 21.8,
+    "centroid_hz": 1719,
+    "end_db": -124.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_taunt_0.mp3",
+   "prompt": "Resistin' arrest, I see.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/boss_sheriff_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.48
+    ],
+    "natural_seconds": 1.308,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.308
+   },
+   "measured": {
+    "seconds": 1.308,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0035,
+    "onset_ms": 19.1,
+    "centroid_hz": 1798,
+    "end_db": -114.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_taunt_1.mp3",
+   "prompt": "That's a citation, son.",
+   "credits": 69,
+   "destination": "audio_src/final/sfx/boss_sheriff_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.58
+    ],
+    "natural_seconds": 1.382,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.382
+   },
+   "measured": {
+    "seconds": 1.382,
+    "peak_db": -0.8,
+    "loud_db": -9.2,
+    "dc": 0.0,
+    "onset_ms": 10.2,
+    "centroid_hz": 1689,
+    "end_db": -134.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_worried.mp3",
+   "prompt": "Backup! I need backup!",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/boss_sheriff_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.0,
+     1.78
+    ],
+    "natural_seconds": 1.762,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.762
+   },
+   "measured": {
+    "seconds": 1.762,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0,
+    "onset_ms": 1.7,
+    "centroid_hz": 1862,
+    "end_db": -162.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_last.mp3",
+   "prompt": "Tell my saucer... I loved her.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/boss_sheriff_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.1
+    ],
+    "natural_seconds": 2.131,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.131
+   },
+   "measured": {
+    "seconds": 2.131,
+    "peak_db": -0.8,
+    "loud_db": -9.9,
+    "dc": 0.0,
+    "onset_ms": 0.1,
+    "centroid_hz": 1597,
+    "end_db": -136.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_intro.mp3",
+   "prompt": "Son, you're on my field now.",
+   "credits": 84,
+   "destination": "audio_src/final/sfx/boss_jerry_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.64
+    ],
+    "natural_seconds": 1.494,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.494
+   },
+   "measured": {
+    "seconds": 1.494,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0068,
+    "onset_ms": 19.7,
+    "centroid_hz": 1383,
+    "end_db": -129.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_taunt_0.mp3",
+   "prompt": "Run it again, boy!",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/boss_jerry_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     0.96
+    ],
+    "natural_seconds": 1.03,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.03
+   },
+   "measured": {
+    "seconds": 1.03,
+    "peak_db": -0.8,
+    "loud_db": -3.9,
+    "dc": 0.0019,
+    "onset_ms": 14.8,
+    "centroid_hz": 1395,
+    "end_db": -129.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_taunt_1.mp3",
+   "prompt": "That's a penalty!",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/boss_jerry_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.4
+    ],
+    "natural_seconds": 1.364,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.364
+   },
+   "measured": {
+    "seconds": 1.364,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0022,
+    "onset_ms": 7.7,
+    "centroid_hz": 1553,
+    "end_db": -110.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_worried.mp3",
+   "prompt": "Somebody get me a towel.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/boss_jerry_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.78
+    ],
+    "natural_seconds": 1.781,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.781
+   },
+   "measured": {
+    "seconds": 1.781,
+    "peak_db": -0.8,
+    "loud_db": -4.1,
+    "dc": 0.0004,
+    "onset_ms": 24.0,
+    "centroid_hz": 1199,
+    "end_db": -122.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_last.mp3",
+   "prompt": "Coach always said... hustle.",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/boss_jerry_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.96
+    ],
+    "natural_seconds": 1.877,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.877
+   },
+   "measured": {
+    "seconds": 1.877,
+    "peak_db": -0.8,
+    "loud_db": -3.8,
+    "dc": 0.0022,
+    "onset_ms": 12.2,
+    "centroid_hz": 1370,
+    "end_db": -121.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_intro.mp3",
+   "prompt": "Step right up and lose, sucker!",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/boss_rudy_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     2.3
+    ],
+    "natural_seconds": 2.341,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.341
+   },
+   "measured": {
+    "seconds": 2.341,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0032,
+    "onset_ms": 98.3,
+    "centroid_hz": 2168,
+    "end_db": -149.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_taunt_0.mp3",
+   "prompt": "Ain't nobody wins this game!",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/boss_rudy_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.14,
+     2.1
+    ],
+    "natural_seconds": 2.096,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.096
+   },
+   "measured": {
+    "seconds": 2.096,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.0042,
+    "onset_ms": 9.2,
+    "centroid_hz": 1924,
+    "end_db": -152.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_taunt_1.mp3",
+   "prompt": "Three tries for a dime!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/boss_rudy_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.98
+    ],
+    "natural_seconds": 1.798,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.798
+   },
+   "measured": {
+    "seconds": 1.798,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0013,
+    "onset_ms": 14.2,
+    "centroid_hz": 1532,
+    "end_db": -107.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_worried.mp3",
+   "prompt": "Folks, the show's runnin' long...",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/boss_rudy_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.2
+    ],
+    "natural_seconds": 2.129,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.129
+   },
+   "measured": {
+    "seconds": 2.129,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0007,
+    "onset_ms": 21.1,
+    "centroid_hz": 1465,
+    "end_db": -156.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_last.mp3",
+   "prompt": "The show's... over... folks.",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/boss_rudy_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.64
+    ],
+    "natural_seconds": 1.584,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.584
+   },
+   "measured": {
+    "seconds": 1.584,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.0041,
+    "onset_ms": 8.5,
+    "centroid_hz": 1505,
+    "end_db": -141.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_intro.mp3",
+   "prompt": "You're on the clock, slacker.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/boss_foreman_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.8
+    ],
+    "natural_seconds": 1.879,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.879
+   },
+   "measured": {
+    "seconds": 1.879,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0037,
+    "onset_ms": 17.9,
+    "centroid_hz": 1909,
+    "end_db": -128.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_taunt_0.mp3",
+   "prompt": "Back to work!",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/boss_foreman_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.1
+    ],
+    "natural_seconds": 0.977,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.977
+   },
+   "measured": {
+    "seconds": 0.977,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0034,
+    "onset_ms": 18.4,
+    "centroid_hz": 1690,
+    "end_db": -130.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_taunt_1.mp3",
+   "prompt": "That's comin' outta your pay!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/boss_foreman_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.84
+    ],
+    "natural_seconds": 1.884,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.884
+   },
+   "measured": {
+    "seconds": 1.884,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0028,
+    "onset_ms": 11.4,
+    "centroid_hz": 1747,
+    "end_db": -123.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_worried.mp3",
+   "prompt": "Somebody kill that dang saw!",
+   "credits": 83,
+   "destination": "audio_src/final/sfx/boss_foreman_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.96
+    ],
+    "natural_seconds": 1.992,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.992
+   },
+   "measured": {
+    "seconds": 1.992,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0016,
+    "onset_ms": 10.7,
+    "centroid_hz": 1573,
+    "end_db": -128.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_last.mp3",
+   "prompt": "I'm... clockin' out.",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/boss_foreman_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.14,
+     1.32
+    ],
+    "natural_seconds": 1.327,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.327
+   },
+   "measured": {
+    "seconds": 1.327,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0006,
+    "onset_ms": 0.9,
+    "centroid_hz": 1830,
+    "end_db": -112.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_intro.mp3",
+   "prompt": "Nobody drinks my shine for free.",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/boss_baron_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     3.12
+    ],
+    "natural_seconds": 3.054,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.054
+   },
+   "measured": {
+    "seconds": 3.054,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0009,
+    "onset_ms": 41.0,
+    "centroid_hz": 1652,
+    "end_db": -128.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_taunt_0.mp3",
+   "prompt": "Aged twelve years, like my temper!",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/boss_baron_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.88
+    ],
+    "natural_seconds": 2.852,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.852
+   },
+   "measured": {
+    "seconds": 2.852,
+    "peak_db": -0.8,
+    "loud_db": -9.1,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1529,
+    "end_db": -130.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_taunt_1.mp3",
+   "prompt": "You'll be pickled by sundown.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/boss_baron_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.18
+    ],
+    "natural_seconds": 2.04,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.04
+   },
+   "measured": {
+    "seconds": 2.04,
+    "peak_db": -0.8,
+    "loud_db": -10.1,
+    "dc": 0.0001,
+    "onset_ms": 17.9,
+    "centroid_hz": 1632,
+    "end_db": -133.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_worried.mp3",
+   "prompt": "My stills! Not my stills!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/boss_baron_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.14
+    ],
+    "natural_seconds": 2.042,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.042
+   },
+   "measured": {
+    "seconds": 2.042,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 39.3,
+    "centroid_hz": 1913,
+    "end_db": -136.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_last.mp3",
+   "prompt": "Bury me... in a barrel.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/boss_baron_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.54
+    ],
+    "natural_seconds": 1.489,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.489
+   },
+   "measured": {
+    "seconds": 1.489,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.0022,
+    "onset_ms": 8.2,
+    "centroid_hz": 1694,
+    "end_db": -118.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_intro.mp3",
+   "prompt": "Who's on my water?",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/boss_swamp_king_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.28
+    ],
+    "natural_seconds": 1.286,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.286
+   },
+   "measured": {
+    "seconds": 1.286,
+    "peak_db": -0.8,
+    "loud_db": -9.1,
+    "dc": 0.0,
+    "onset_ms": 33.2,
+    "centroid_hz": 1667,
+    "end_db": -127.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_taunt_0.mp3",
+   "prompt": "Gator bait, that's all you are!",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/boss_swamp_king_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.02
+    ],
+    "natural_seconds": 2.002,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.002
+   },
+   "measured": {
+    "seconds": 2.002,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0038,
+    "onset_ms": 14.6,
+    "centroid_hz": 1804,
+    "end_db": -135.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_taunt_1.mp3",
+   "prompt": "Ride's free, landin's extra!",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/boss_swamp_king_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.18
+    ],
+    "natural_seconds": 2.229,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.229
+   },
+   "measured": {
+    "seconds": 2.229,
+    "peak_db": -0.8,
+    "loud_db": -9.4,
+    "dc": 0.0,
+    "onset_ms": 24.2,
+    "centroid_hz": 1791,
+    "end_db": -160.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_worried.mp3",
+   "prompt": "She's takin' on water!",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/boss_swamp_king_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.7
+    ],
+    "natural_seconds": 1.697,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.697
+   },
+   "measured": {
+    "seconds": 1.697,
+    "peak_db": -0.8,
+    "loud_db": -9.7,
+    "dc": 0.0,
+    "onset_ms": 49.7,
+    "centroid_hz": 1500,
+    "end_db": -134.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_last.mp3",
+   "prompt": "Tell the gators... I'm comin' home.",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/boss_swamp_king_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.12
+    ],
+    "natural_seconds": 2.121,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.121
+   },
+   "measured": {
+    "seconds": 2.121,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0009,
+    "onset_ms": 7.7,
+    "centroid_hz": 1970,
+    "end_db": -128.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_intro.mp3",
+   "prompt": "Buckle up, sunshine!",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/boss_boggs_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.6
+    ],
+    "natural_seconds": 1.788,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.788
+   },
+   "measured": {
+    "seconds": 1.718,
+    "peak_db": -0.8,
+    "loud_db": -9.4,
+    "dc": 0.0,
+    "onset_ms": 12.8,
+    "centroid_hz": 1718,
+    "end_db": -93.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_taunt_0.mp3",
+   "prompt": "Trade paint with me, boy!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/boss_boggs_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.56
+    ],
+    "natural_seconds": 1.599,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.599
+   },
+   "measured": {
+    "seconds": 1.599,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0014,
+    "onset_ms": 43.5,
+    "centroid_hz": 2114,
+    "end_db": -150.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_taunt_1.mp3",
+   "prompt": "Forty-seven wins and countin'!",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/boss_boggs_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.3,
+     2.86
+    ],
+    "natural_seconds": 2.82,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.82
+   },
+   "measured": {
+    "seconds": 2.75,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0041,
+    "onset_ms": 0.0,
+    "centroid_hz": 1923,
+    "end_db": -107.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_worried.mp3",
+   "prompt": "Radiator's blown, dang it!",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/boss_boggs_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.7
+    ],
+    "natural_seconds": 1.777,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.777
+   },
+   "measured": {
+    "seconds": 1.777,
+    "peak_db": -0.8,
+    "loud_db": -9.6,
+    "dc": 0.0,
+    "onset_ms": 16.7,
+    "centroid_hz": 1598,
+    "end_db": -158.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_last.mp3",
+   "prompt": "Checkered flag... for me...",
+   "credits": 81,
+   "destination": "audio_src/final/sfx/boss_boggs_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.62
+    ],
+    "natural_seconds": 1.82,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.82
+   },
+   "measured": {
+    "seconds": 1.75,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0011,
+    "onset_ms": 5.3,
+    "centroid_hz": 1830,
+    "end_db": -93.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_intro.mp3",
+   "prompt": "Who tracked mud on my clean deck?",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/boss_maw_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.16
+    ],
+    "natural_seconds": 2.048,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.048
+   },
+   "measured": {
+    "seconds": 2.048,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0011,
+    "onset_ms": 5.3,
+    "centroid_hz": 1563,
+    "end_db": -137.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_taunt_0.mp3",
+   "prompt": "Eat your vegetables, hooman!",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/boss_maw_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.48
+    ],
+    "natural_seconds": 1.581,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.581
+   },
+   "measured": {
+    "seconds": 1.581,
+    "peak_db": -0.8,
+    "loud_db": -9.1,
+    "dc": 0.0,
+    "onset_ms": 5.3,
+    "centroid_hz": 1817,
+    "end_db": -162.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_taunt_1.mp3",
+   "prompt": "Wait till your father lands!",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/boss_maw_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.64
+    ],
+    "natural_seconds": 1.696,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.696
+   },
+   "measured": {
+    "seconds": 1.696,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0068,
+    "onset_ms": 5.9,
+    "centroid_hz": 1567,
+    "end_db": -162.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_worried.mp3",
+   "prompt": "My curlers! Not my curlers!",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/boss_maw_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.1
+    ],
+    "natural_seconds": 2.081,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.081
+   },
+   "measured": {
+    "seconds": 2.081,
+    "peak_db": -0.8,
+    "loud_db": -3.1,
+    "dc": 0.0014,
+    "onset_ms": 9.2,
+    "centroid_hz": 1745,
+    "end_db": -120.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_last.mp3",
+   "prompt": "Tell my young'uns... supper's cold.",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/boss_maw_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.3
+    ],
+    "natural_seconds": 2.359,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.359
+   },
+   "measured": {
+    "seconds": 2.338,
+    "peak_db": -0.8,
+    "loud_db": -9.2,
+    "dc": 0.0,
+    "onset_ms": 5.8,
+    "centroid_hz": 1689,
+    "end_db": -165.5,
+    "problems": []
+   },
+   "validation": "ok"
   }
  },
  "music": {
@@ -20320,6 +22000,46 @@
   "still_bubble",
   "generator_hum",
   "core_thrum",
-  "airboat_wake"
+  "airboat_wake",
+  "boss_sheriff_intro",
+  "boss_sheriff_taunt_0",
+  "boss_sheriff_taunt_1",
+  "boss_sheriff_worried",
+  "boss_sheriff_last",
+  "boss_jerry_intro",
+  "boss_jerry_taunt_0",
+  "boss_jerry_taunt_1",
+  "boss_jerry_worried",
+  "boss_jerry_last",
+  "boss_rudy_intro",
+  "boss_rudy_taunt_0",
+  "boss_rudy_taunt_1",
+  "boss_rudy_worried",
+  "boss_rudy_last",
+  "boss_foreman_intro",
+  "boss_foreman_taunt_0",
+  "boss_foreman_taunt_1",
+  "boss_foreman_worried",
+  "boss_foreman_last",
+  "boss_baron_intro",
+  "boss_baron_taunt_0",
+  "boss_baron_taunt_1",
+  "boss_baron_worried",
+  "boss_baron_last",
+  "boss_swamp_king_intro",
+  "boss_swamp_king_taunt_0",
+  "boss_swamp_king_taunt_1",
+  "boss_swamp_king_worried",
+  "boss_swamp_king_last",
+  "boss_boggs_intro",
+  "boss_boggs_taunt_0",
+  "boss_boggs_taunt_1",
+  "boss_boggs_worried",
+  "boss_boggs_last",
+  "boss_maw_intro",
+  "boss_maw_taunt_0",
+  "boss_maw_taunt_1",
+  "boss_maw_worried",
+  "boss_maw_last"
  ]
 }

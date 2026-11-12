@@ -1,0 +1,25 @@
+{
+ "text": "Rides free, landings extra",
+ "words": [
+  {
+   "text": "Rides",
+   "start": 0.1,
+   "end": 0.62
+  },
+  {
+   "text": "free,",
+   "start": 0.7,
+   "end": 1.0
+  },
+  {
+   "text": "landings",
+   "start": 1.14,
+   "end": 1.66
+  },
+  {
+   "text": "extra",
+   "start": 1.78,
+   "end": 2.18
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "She's taking on water",
+ "words": [
+  {
+   "text": "She's",
+   "start": 0.08,
+   "end": 0.36
+  },
+  {
+   "text": "taking",
+   "start": 0.42,
+   "end": 0.82
+  },
+  {
+   "text": "on",
+   "start": 0.9,
+   "end": 1.12
+  },
+  {
+   "text": "water",
+   "start": 1.24,
+   "end": 1.7
+  }
+ ]
+}

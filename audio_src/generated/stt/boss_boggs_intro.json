@@ -1,0 +1,20 @@
+{
+ "text": "Buckle up, sunshine",
+ "words": [
+  {
+   "text": "Buckle",
+   "start": 0.04,
+   "end": 0.34
+  },
+  {
+   "text": "up,",
+   "start": 0.44,
+   "end": 0.58
+  },
+  {
+   "text": "sunshine",
+   "start": 0.68,
+   "end": 1.6
+  }
+ ]
+}

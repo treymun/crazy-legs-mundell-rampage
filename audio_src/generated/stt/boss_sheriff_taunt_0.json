@@ -1,0 +1,30 @@
+{
+ "text": "Resist an arrest, I see",
+ "words": [
+  {
+   "text": "Resist",
+   "start": 0.06,
+   "end": 0.34
+  },
+  {
+   "text": "an",
+   "start": 0.38,
+   "end": 0.44
+  },
+  {
+   "text": "arrest,",
+   "start": 0.48,
+   "end": 0.9
+  },
+  {
+   "text": "I",
+   "start": 1.06,
+   "end": 1.08
+  },
+  {
+   "text": "see",
+   "start": 1.18,
+   "end": 1.48
+  }
+ ]
+}

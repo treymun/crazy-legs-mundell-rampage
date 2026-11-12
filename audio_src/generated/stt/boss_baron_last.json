@@ -1,0 +1,30 @@
+{
+ "text": "Bury me in a barrel",
+ "words": [
+  {
+   "text": "Bury",
+   "start": 0.08,
+   "end": 0.44
+  },
+  {
+   "text": "me",
+   "start": 0.54,
+   "end": 0.74
+  },
+  {
+   "text": "in",
+   "start": 0.86,
+   "end": 0.96
+  },
+  {
+   "text": "a",
+   "start": 1.0,
+   "end": 1.04
+  },
+  {
+   "text": "barrel",
+   "start": 1.16,
+   "end": 1.54
+  }
+ ]
+}

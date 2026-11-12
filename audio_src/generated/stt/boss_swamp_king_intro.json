@@ -1,0 +1,25 @@
+{
+ "text": "Who's on my water?",
+ "words": [
+  {
+   "text": "Who's",
+   "start": 0.08,
+   "end": 0.34
+  },
+  {
+   "text": "on",
+   "start": 0.4,
+   "end": 0.56
+  },
+  {
+   "text": "my",
+   "start": 0.6,
+   "end": 0.78
+  },
+  {
+   "text": "water?",
+   "start": 0.9,
+   "end": 1.28
+  }
+ ]
+}

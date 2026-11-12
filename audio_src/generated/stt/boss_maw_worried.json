@@ -1,0 +1,30 @@
+{
+ "text": "My curlers. Not my curlers",
+ "words": [
+  {
+   "text": "My",
+   "start": 0.06,
+   "end": 0.22
+  },
+  {
+   "text": "curlers.",
+   "start": 0.3,
+   "end": 0.84
+  },
+  {
+   "text": "Not",
+   "start": 1.1,
+   "end": 1.32
+  },
+  {
+   "text": "my",
+   "start": 1.36,
+   "end": 1.54
+  },
+  {
+   "text": "curlers",
+   "start": 1.64,
+   "end": 2.1
+  }
+ ]
+}

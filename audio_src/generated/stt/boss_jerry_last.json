@@ -1,0 +1,25 @@
+{
+ "text": "Coach always said hustle",
+ "words": [
+  {
+   "text": "Coach",
+   "start": 0.06,
+   "end": 0.3
+  },
+  {
+   "text": "always",
+   "start": 0.4,
+   "end": 0.82
+  },
+  {
+   "text": "said",
+   "start": 0.88,
+   "end": 1.2
+  },
+  {
+   "text": "hustle",
+   "start": 1.42,
+   "end": 1.96
+  }
+ ]
+}

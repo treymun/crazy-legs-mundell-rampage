@@ -1,0 +1,25 @@
+{
+ "text": "Jagged Flag for me",
+ "words": [
+  {
+   "text": "Jagged",
+   "start": 0.06,
+   "end": 0.44
+  },
+  {
+   "text": "Flag",
+   "start": 0.56,
+   "end": 1.06
+  },
+  {
+   "text": "for",
+   "start": 1.24,
+   "end": 1.36
+  },
+  {
+   "text": "me",
+   "start": 1.42,
+   "end": 1.72
+  }
+ ]
+}

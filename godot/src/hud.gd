@@ -577,7 +577,12 @@ static func _blit_rgb(c: Canvas, src: PackedByteArray, w: int, h: int, x: int, y
 # ---------------------------------------------------------------- objective
 
 
-func objective_pin(c: Canvas, game: Game) -> void:
+## The objective pin: a little barn-red tin arrow hung along the top of the
+## view, swinging a hair like a sign on a nail, with the steps left on a tin
+## plate under it. It hangs under whatever notice, place name or boss bar is
+## up (`top`), so it is never hidden by them. Ahead it points down at the
+## way; past the side of the view it lies at the edge pointing round.
+func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 	var target = game.objective_target()
 	if target == null:
 		return
@@ -595,14 +600,57 @@ func objective_pin(c: Canvas, game: Game) -> void:
 		dy = lead.y - p.y
 		distance = float(way[1])
 	var rel := fposmod(atan2(dy, dx) - p.view_angle() + PI, TAU) - PI
-	var x := int(160.0 + clampf(rel / PI, -1.0, 1.0) * 118.0)
-	var color := Color(244 / 255.0, 194 / 255.0, 116 / 255.0)
-	c.polygon(
-		[Vector2(x, 7), Vector2(x - 4, 13), Vector2(x + 4, 13)],
-		Color(38 / 255.0, 27 / 255.0, 21 / 255.0)
-	)
-	c.polygon([Vector2(x, 8), Vector2(x - 3, 12), Vector2(x + 3, 12)], color)
-	text(c, str(int(distance)), x, 14, "mini", color, true, true)
+	# Ahead across the middle of the view; anything past about seventy degrees
+	# waits at the edge, turned to point the way round.
+	var side := clampf(rel / 1.2, -1.0, 1.0)
+	var x := int(160.0 + side * 116.0)
+	var y := top + 1 + int(roundf(sin(game.clock * 4.2) * .6 + .4))
+	var ink := Canvas.rgb(31, 21, 16)
+	var paint := Canvas.rgb(188, 56, 36)
+	var shine := Canvas.rgb(244, 194, 116)
+	var nail := Canvas.rgb(236, 220, 188)
+	var shade := Canvas.rgb(120, 34, 24)
+	var py := y + 14
+	if absf(rel) <= 1.2:
+		# A painted arrow pointing down at the way: a stubby shaft and a broad
+		# head, dark rim, barn-red tin with a darker lower half, a bright top
+		# edge and the nail it hangs by.
+		c.fill_rect(x - 3, y, 7, 6, ink)
+		c.polygon([Vector2(x - 7, y + 5), Vector2(x + 7, y + 5), Vector2(x, y + 12)], ink)
+		c.fill_rect(x - 2, y + 1, 5, 5, paint)
+		c.polygon([Vector2(x - 5, y + 6), Vector2(x + 5, y + 6), Vector2(x, y + 10)], paint)
+		c.polygon([Vector2(x - 2, y + 8), Vector2(x + 2, y + 8), Vector2(x, y + 10)], shade)
+		c.fill_rect(x - 2, y + 1, 5, 1, shine)
+		c.set_pixel(
+			x, y + 2, roundi(nail.r * 255.0), roundi(nail.g * 255.0), roundi(nail.b * 255.0)
+		)
+	else:
+		# Past the side of the view: the same arrow lying on its side at the
+		# edge, pointing the way round.
+		var around := -1 if rel < 0.0 else 1
+		var tail := x - around * 6
+		var neck := x + around * 1
+		var tip := x + around * 7
+		c.fill_rect(mini(tail, neck), y + 3, absi(neck - tail) + 1, 6, ink)
+		c.polygon([Vector2(neck, y - 1), Vector2(neck, y + 13), Vector2(tip, y + 6)], ink)
+		c.fill_rect(mini(tail, neck) + 1, y + 4, absi(neck - tail) - 1, 4, paint)
+		c.polygon(
+			[Vector2(neck, y + 1), Vector2(neck, y + 11), Vector2(tip - around * 2, y + 6)], paint
+		)
+		c.fill_rect(mini(tail, neck) + 1, y + 4, absi(neck - tail) - 1, 1, shine)
+		var nx := tail + around * 2
+		c.set_pixel(
+			nx, y + 5, roundi(nail.r * 255.0), roundi(nail.g * 255.0), roundi(nail.b * 255.0)
+		)
+	# The steps left, stencilled on a tin plate with a rivet at each end.
+	var label := str(int(distance))
+	var w := PixelType.text_width(label, "mini") + 10
+	var h := int(PixelType.style_of("mini")[1]) + 4
+	var px := x - w / 2
+	c.panel(px, py, w, h, Canvas.rgb(40, 29, 23), Canvas.rgb(141, 102, 65))
+	c.set_pixel(px + 2, py + h / 2, 196, 168, 120)
+	c.set_pixel(px + w - 3, py + h / 2, 196, 168, 120)
+	text(c, label, x, py + 2, "mini", shine, true, false)
 
 
 # ---------------------------------------------------------------- main draw
@@ -681,13 +729,8 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		_draw_bar(c, game, armory)
 		_bar = c.pixels.slice(head)
 		_bar_key = key
-	if (
-		game.hints
-		and not game.map
-		and game.clock > game.message_until
-		and game.clock > game.district_until
-	):
-		objective_pin(c, game)
+	if game.hints and not game.map:
+		objective_pin(c, game, game.pin_top)
 
 
 func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:

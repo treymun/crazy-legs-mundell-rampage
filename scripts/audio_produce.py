@@ -101,6 +101,32 @@ DESIGNS = {
             "Close, dry studio recording.",
             "Supper's on the table and somebody's tracked mud all over my nice clean deck. "
             "Where is my baby boy? You young'uns get in here right now before I fetch my rolling pin."),
+    # The bosses' own voices (2.0.0-dev.33): Rudy speaks with the barker's, Maw with her own.
+    "sheriff": ("A B-movie alien posing as a small-town Southern sheriff: a rubbery, warbling, slightly "
+                "electronic voice with a slow, smug county-lawman drawl, officious and comic. Close, dry "
+                "studio recording.",
+                "Well now. License and registration, Earth boy. You were doin' ninety in a cornfield, and "
+                "out here we got rules. Step out of the truck and keep them squishy little hands where I can see 'em."),
+    "jerry": ("A huge, booming Southern country man in his sixties, a self-made big shot who talks like a "
+              "football coach at halftime: loud, gravelly, swaggering, red-faced. Close, dry studio recording.",
+              "Listen up, son. This is my county, my field and my game, and I call every play on it. "
+              "You want to run through my line, you better be ready to get hit, because I hit back harder."),
+    "foreman": ("A hulking lumber-mill foreman in his fifties, a deep, rough, shouting voice worn ragged by "
+                "sawdust and saw noise, Southern, bossy and mean. Close, dry studio recording.",
+                "Back to work, every last one of you! That log ain't gonna cut itself, and the belt don't stop "
+                "for nobody. You're on my clock now, and on my clock you sweat or you bleed."),
+    "baron": ("A pompous old Southern moonshine baron, a wheezy, plummy, self-important voice with a slow "
+              "genteel drawl that turns into a bellow. Close, dry studio recording.",
+              "Twelve years in the barrel, my friend, and smooth as a Sunday sermon. Nobody, and I do mean "
+              "nobody, drinks my shine for free, and nobody walks out of my quarry with a jar of it."),
+    "swamp_king": ("A fat, loud bayou swamp boss, a big wet booming Cajun-country voice, cocky and rowdy, "
+                   "used to shouting over an airboat engine. Close, dry studio recording.",
+                   "Who's that out on my water? Ain't nobody runs this bayou but me and my gators, cher. "
+                   "You go on and paddle home now, before I feed you to my sweet babies one leg at a time."),
+    "boggs": ("A redneck demolition derby champion in his forties, a hoarse, cocky, hollering voice with a "
+              "thick country accent, wild and grinning. Close, dry studio recording.",
+              "Forty-seven wins at Buzzard Bend and not a one of 'em clean! Buckle up, sunshine, because "
+              "I'm gonna trade paint with you till there ain't no paint left to trade."),
 }
 
 

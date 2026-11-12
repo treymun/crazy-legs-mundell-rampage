@@ -1,0 +1,20 @@
+{
+ "text": "That's a penalty",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.1,
+   "end": 0.32
+  },
+  {
+   "text": "a",
+   "start": 0.4,
+   "end": 0.42
+  },
+  {
+   "text": "penalty",
+   "start": 0.56,
+   "end": 1.4
+  }
+ ]
+}

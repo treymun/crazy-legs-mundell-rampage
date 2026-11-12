@@ -1,0 +1,30 @@
+{
+ "text": "Somebody kill that dang saw",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.06,
+   "end": 0.54
+  },
+  {
+   "text": "kill",
+   "start": 0.66,
+   "end": 0.88
+  },
+  {
+   "text": "that",
+   "start": 0.94,
+   "end": 1.16
+  },
+  {
+   "text": "dang",
+   "start": 1.2,
+   "end": 1.48
+  },
+  {
+   "text": "saw",
+   "start": 1.6,
+   "end": 1.96
+  }
+ ]
+}

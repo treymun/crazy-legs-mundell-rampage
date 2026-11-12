@@ -1,0 +1,35 @@
+{
+ "text": "Gator bait, that's all you are",
+ "words": [
+  {
+   "text": "Gator",
+   "start": 0.06,
+   "end": 0.4
+  },
+  {
+   "text": "bait,",
+   "start": 0.52,
+   "end": 0.7
+  },
+  {
+   "text": "that's",
+   "start": 0.84,
+   "end": 1.08
+  },
+  {
+   "text": "all",
+   "start": 1.16,
+   "end": 1.36
+  },
+  {
+   "text": "you",
+   "start": 1.44,
+   "end": 1.58
+  },
+  {
+   "text": "are",
+   "start": 1.68,
+   "end": 2.02
+  }
+ ]
+}

@@ -1,24 +1,25 @@
 ## The boss's bar at the top right while a boss fight is on: its title, its
 ## health, and what it is winding up to (game_view.gd draws it under any
-## notice at the top, from `y` down).
+## notice at the top, from `y` down). Returns the row under it (`y` when
+## there is none).
 class_name BossBar
 extends RefCounted
 
 
-static func draw(game, c: Canvas, y: int) -> void:
+static func draw(game, c: Canvas, y: int) -> int:
 	var p = game.player
 	var finale = game.finale
 	var jerry = game.jerry
 	var boss = finale if finale != null else (jerry if jerry != null and jerry.alive else game.boss)
 	if boss == null:
-		return
+		return y
 	var in_finale: bool = (
 		sqrt((boss.x - p.x) * (boss.x - p.x) + (boss.y - p.y) * (boss.y - p.y)) < 14.0
 		if finale != null
 		else p.y < 10.0
 	)
 	if not in_finale or not boss.alive or not boss.alerted or game.in_hub:
-		return
+		return y
 	var tell: String = String(
 		Enemy.TELLS.get(boss.kind, "PLASMA CHARGE" if boss == game.boss else "WHISTLE")
 	)
@@ -55,6 +56,7 @@ static func draw(game, c: Canvas, y: int) -> void:
 	)
 	if phase != "":
 		HUD.text(c, phase, 253, y + 19, "mini", Canvas.rgb(249, 194, 124), true, false)
+	return y + (27 if phase != "" else 20) + 2
 
 
 static func title(kind: String) -> String:

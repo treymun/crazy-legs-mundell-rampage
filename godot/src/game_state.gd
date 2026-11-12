@@ -742,6 +742,9 @@ var caption_until := 0.0
 var visited := {}
 var district := 0
 var district_until := 3.0
+## Where the objective pin hangs this frame: under whatever notice, place name
+## or boss bar is at the top of the view (game_view.gd sets it, hud.gd uses it).
+var pin_top := 5
 var amb_clock := 3.0
 var jukebox_on := false
 ## Where each thing to use can be aimed at (game_world.gd aim_points): the

@@ -1,0 +1,30 @@
+{
+ "text": "Folks, the show's running long!",
+ "words": [
+  {
+   "text": "Folks,",
+   "start": 0.18,
+   "end": 0.56
+  },
+  {
+   "text": "the",
+   "start": 0.66,
+   "end": 0.72
+  },
+  {
+   "text": "show's",
+   "start": 0.8,
+   "end": 1.24
+  },
+  {
+   "text": "running",
+   "start": 1.32,
+   "end": 1.64
+  },
+  {
+   "text": "long!",
+   "start": 1.74,
+   "end": 2.2
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "text": "Nobody drinks my shine for free",
+ "words": [
+  {
+   "text": "Nobody",
+   "start": 0.08,
+   "end": 0.8
+  },
+  {
+   "text": "drinks",
+   "start": 0.94,
+   "end": 1.32
+  },
+  {
+   "text": "my",
+   "start": 1.42,
+   "end": 1.7
+  },
+  {
+   "text": "shine",
+   "start": 1.84,
+   "end": 2.2
+  },
+  {
+   "text": "for",
+   "start": 2.32,
+   "end": 2.5
+  },
+  {
+   "text": "free",
+   "start": 2.7,
+   "end": 3.12
+  }
+ ]
+}

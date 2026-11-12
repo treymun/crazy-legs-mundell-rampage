@@ -1,0 +1,30 @@
+{
+ "text": "Somebody get me a towel",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.08,
+   "end": 0.56
+  },
+  {
+   "text": "get",
+   "start": 0.8,
+   "end": 0.98
+  },
+  {
+   "text": "me",
+   "start": 1.02,
+   "end": 1.14
+  },
+  {
+   "text": "a",
+   "start": 1.2,
+   "end": 1.28
+  },
+  {
+   "text": "towel",
+   "start": 1.34,
+   "end": 1.78
+  }
+ ]
+}

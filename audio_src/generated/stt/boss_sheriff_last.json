@@ -1,0 +1,35 @@
+{
+ "text": "Tell my saucer I loved her",
+ "words": [
+  {
+   "text": "Tell",
+   "start": 0.08,
+   "end": 0.3
+  },
+  {
+   "text": "my",
+   "start": 0.4,
+   "end": 0.62
+  },
+  {
+   "text": "saucer",
+   "start": 0.76,
+   "end": 1.22
+  },
+  {
+   "text": "I",
+   "start": 1.54,
+   "end": 1.6
+  },
+  {
+   "text": "loved",
+   "start": 1.64,
+   "end": 1.94
+  },
+  {
+   "text": "her",
+   "start": 1.96,
+   "end": 2.1
+  }
+ ]
+}
