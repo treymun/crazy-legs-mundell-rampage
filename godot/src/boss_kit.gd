@@ -38,16 +38,16 @@ const DESPERATE_AT := .2
 ## load of buckshot at arm's length, a stick of dynamite at its feet or a
 ## bottle rocket does it; a revolver round never does.
 const STAGGER := {
-	"boss": [80.0, 3.5],
-	"jerry": [85.0, 3.5],
-	"rudy": [75.0, 3.5],
-	"foreman": [80.0, 4.0],
-	"baron": [85.0, 4.0],
-	"swamp_king": [85.0, 4.5],
-	"derby_champ": [95.0, 5.0],
-	"maw": [150.0, 6.0],
+	"boss": [170.0, 3.5],
+	"jerry": [180.0, 3.5],
+	"rudy": [160.0, 3.5],
+	"foreman": [170.0, 4.0],
+	"baron": [180.0, 4.0],
+	"swamp_king": [220.0, 4.5],
+	"derby_champ": [240.0, 5.0],
+	"maw": [300.0, 6.0],
 }
-const STAGGER_DEFAULT := [85.0, 4.0]
+const STAGGER_DEFAULT := [180.0, 4.0]
 ## How far a stagger throws a boss back (cells), and a car or a boat sideways.
 const STAGGER_SHOVE := .45
 const SKID := .35

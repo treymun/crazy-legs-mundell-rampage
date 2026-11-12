@@ -44,7 +44,8 @@ func ground_marks() -> Array:
 			continue
 		var mark: Array = e.aim_mark
 		var toward := atan2(float(mark[1]) - e.y, float(mark[0]) - e.x)
-		if BayouBrains.runs_on(e, e.attacks + 1, game.world, toward):
+		var gap := Vector2(float(mark[0]) - e.x, float(mark[1]) - e.y).length()
+		if BayouBrains.runs_on(e, e.attacks + 1, game.world, toward, gap):
 			out.append_array(_lane(e, toward))
 		else:
 			for k in 3:

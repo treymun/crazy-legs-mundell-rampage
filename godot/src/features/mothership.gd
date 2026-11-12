@@ -51,7 +51,7 @@ const PIN_AGAIN := .6
 ## By DIFFICULTY, EASY .. HOG WILD: wind-ups and cooldowns stretched or cut,
 ## how hard she hits, the most pod crew up at once, beams loose in phases 2, 3.
 const PACE := [1.35, 1.0, .9, .8]
-const HARM := [.6, 1.0, 1.2, 1.45]
+const HARM := [.45, .66, .9, 1.2]
 const CREW_CAP := [2, 3, 4, 5]
 const BEAMS := [[1, 1], [1, 2], [2, 2], [2, 3]]
 ## Who each phase calls up from the pods.

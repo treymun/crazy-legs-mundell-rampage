@@ -29,7 +29,8 @@ static func draw(game, c: Canvas, y: int) -> int:
 		tell = DerbyChamp.tell(boss)
 	if BayouBrains.is_king(boss) and boss.aim_mark != null:
 		var toward := atan2(boss.aim_mark[1] - boss.y, boss.aim_mark[0] - boss.x)
-		var run := BayouBrains.runs_on(boss, boss.attacks + 1, game.world, toward)
+		var reach: float = Vector2(p.x - boss.x, p.y - boss.y).length()
+		var run := BayouBrains.runs_on(boss, boss.attacks + 1, game.world, toward, reach)
 		tell = "AIRBOAT RUN" if run else "PUNT GUN"
 	if boss.has_meta("tell"):
 		# An attack of its own moves (src/bosses/) names itself.

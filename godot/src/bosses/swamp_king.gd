@@ -83,7 +83,7 @@ func _run_over(e: Enemy, game) -> void:
 		var sy := e.y + sin(bearing) * (e.radius + .3)
 		if not game.world.blocked(sx, sy, .045, eye):
 			var slope: float = (p.eye - eye) * 7.6 / maxf(gap, 1.0)
-			game.launch(sx, sy, eye, bearing, 7.6, "deputy_slug", slope, true, 6, 1.4)
+			game.launch(sx, sy, eye, bearing, 7.6, "deputy_slug", slope, true, 8, 2.0)
 	game.sound_at("king_puntgun", e.x, e.y, 1.0)
 	game.burst(e.x + cos(toward) * 1.1, e.y + sin(toward) * 1.1, eye, "spark", 8, 1.6)
 	game.message("BROADSIDE!", 1.2)

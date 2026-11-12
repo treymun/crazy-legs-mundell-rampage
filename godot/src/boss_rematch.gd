@@ -40,9 +40,9 @@ const PAR := {
 	"rudy": 10.0,
 	"foreman": 12.0,
 	"baron": 14.0,
-	"swamp_king": 10.0,
+	"swamp_king": 14.0,
 	"derby_champ": 12.0,
-	"maw": 32.0,
+	"maw": 24.0,
 }
 const RED_SHARE := 1.6
 ## The guns lying about in each chapter and those before it (the levels'

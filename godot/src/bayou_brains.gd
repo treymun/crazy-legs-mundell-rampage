@@ -40,8 +40,11 @@ static func wet_at(world: LevelData, x: float, y: float) -> bool:
 
 ## Whether this attack (counted from 1) is an airboat run rather than the punt
 ## gun: every other one (two in three when mad), and only with room to run.
-static func runs_on(e: Enemy, number: int, world: LevelData, bearing: float) -> bool:
-	if lane(e, world, bearing) < 3.0:
+## Given how far off the player is (`reach`), only when the water runs far
+## enough to reach them: on the bank he would only beach it, so he fires.
+static func runs_on(e: Enemy, number: int, world: LevelData, bearing: float, reach := 0.0) -> bool:
+	var room := lane(e, world, bearing)
+	if room < 3.0 or (reach > 0.0 and room < minf(RUN_LENGTH, reach) - 1.2):
 		return false
 	return e.has_meta("pair") or number % 2 == 1 or (e.enraged and number % 3 != 0)
 
@@ -203,7 +206,7 @@ static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
 static func attack(e: Enemy, game, direction: float, distance: float, eye: float) -> bool:
 	if not is_king(e):
 		return false
-	if runs_on(e, e.attacks, game.world, direction):
+	if runs_on(e, e.attacks, game.world, direction, distance):
 		var second := e.has_meta("pair")
 		e.remove_meta("pair")
 		e.set_meta("run", [direction, RUN_LENGTH, false, second])
@@ -213,14 +216,14 @@ static func attack(e: Enemy, game, direction: float, distance: float, eye: float
 	# The punt gun: a spray of slugs off the bow.
 	var spread := 5 if not e.enraged else 7
 	for k in spread:
-		var bearing := direction + (k - (spread - 1) / 2.0) * .11
+		var bearing := direction + (k - (spread - 1) / 2.0) * .07
 		var sx := e.x + cos(bearing) * (e.radius + .3)
 		var sy := e.y + sin(bearing) * (e.radius + .3)
 		var aim: float = game.player.eye
 		var slope := (aim - eye) * 7.6 / maxf(distance, 1.0)
 		if not game.world.blocked(sx, sy, .045, eye):
-			game.launch(sx, sy, eye, bearing, 7.6, "deputy_slug", slope, true, 6, 1.4)
+			game.launch(sx, sy, eye, bearing, 7.6, "deputy_slug", slope, true, 9, 2.0)
 	game.burst(e.x + cos(direction) * 1.1, e.y + sin(direction) * 1.1, eye, "spark", 8, 1.6)
 	game.sound_at("king_puntgun", e.x, e.y, 1.0)
-	e.cooldown = 1.25 if e.enraged else 1.7
+	e.cooldown = .75 if e.enraged else 1.05
 	return true

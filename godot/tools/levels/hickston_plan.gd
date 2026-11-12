@@ -41,6 +41,7 @@ var junk: int
 var orchard: int
 var kitchen: int
 var corn: int
+var field: int
 
 
 func make() -> Builder:
@@ -97,7 +98,7 @@ func districts() -> void:
 	office = b.district("DISPATCH OFFICE", Color(1.09, 1, .86))
 	trailers = b.district("LAZY 8 TRAILER COURT", Color(1.05, .98, .88))
 	creek = b.district("DRY CREEK", Color(.88, 1.02, .96))
-	pasture = b.district("NORTH PASTURE", Color(.91, .97, 1.04))
+	pasture = b.district("RODEO GROUNDS", Color(.91, .97, 1.04))
 	main_street = b.district("MAIN STREET", Color(1.03, 1, .91))
 	gas = b.district("GAS-N-GUT", Color(1.06, 1, .86))
 	lots = b.district("LIVESTOCK LOTS", Color(1.1, 1.01, .89))
@@ -110,6 +111,8 @@ func districts() -> void:
 	orchard = b.district("ORCHARD", Color(.9, 1.04, .94))
 	kitchen = b.district("GRILL KITCHEN", Color(1.08, .98, .84))
 	corn = b.district("CORN MAZE", Color(.92, 1.04, .9))
+	# The football field west of the rodeo, lit the same.
+	field = b.district("HOGS FIELD", Color(.91, .97, 1.04))
 
 
 # ----------------------------------------------------------------- helpers
@@ -1034,6 +1037,11 @@ func north_pasture() -> void:
 	b.distant_cues.append([138.5, 32.5, "distant_corn_rustle"])
 	rodeo()
 	football_field()
+	# West of the stock fence the pasture is the Hogs' field.
+	for y in range(1, 22):
+		for x in range(96, 122):
+			if b.area[b.at(x, y)] == pasture:
+				b.area[b.at(x, y)] = field
 	b.meta["boss_arena"] = {
 		"boss":
 		{
@@ -1379,6 +1387,7 @@ func story() -> void:
 		str(creek): "distant_crow",
 		str(orchard): "distant_crow",
 		str(pasture): "distant_crow",
+		str(field): "distant_crow",
 		str(corn): "distant_crow",
 		str(hogpen): "distant_crow",
 		str(chapel): "distant_crow",
