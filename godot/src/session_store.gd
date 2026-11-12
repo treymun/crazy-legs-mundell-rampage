@@ -895,7 +895,9 @@ static func restore(doc: Dictionary, make_game: Callable, expected_replay = null
 		return _fail_at(716)
 	if game.district < 0 or game.district >= game.level.districts.size():
 		return _fail_at(718)
-	if game.kills < 0 or game.kills > game.total_kills:
+	# Kills can pass the level's own count: posse partners, a boss's backup and
+	# Maw's crew join later (features/posse.gd counts them once they are back).
+	if game.kills < 0 or game.kills > game.total_kills + 2000:
 		return _fail_at(720)
 	if game.secrets < 0 or game.secrets > game.total_secrets:
 		return _fail_at(722)

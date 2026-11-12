@@ -25,6 +25,7 @@ func attach() -> void:
 	game.ticked.connect(_tick)
 	game.enemy_killed.connect(_killed)
 	game.level_won.connect(_won)
+	game.boss_intro.connect(fight_began)
 
 
 func _tick(_dt: float) -> void:
