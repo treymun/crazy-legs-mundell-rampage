@@ -230,10 +230,16 @@ func the_oval() -> void:
 		Vector2i(100, 21),
 		Vector2i(101, 21),
 	]:
-		b.yard(c.x, c.y, c.x, c.y, "track_dirt", oval)
+		# A step at most up to the banked lane beyond the gap.
+		var lane := bank_at(c.x, c.y + (1 if c.y < 40 else -1))
+		b.yard(c.x, c.y, c.x, c.y, "track_dirt", oval, {"ground": minf(.24, lane)})
+	# The breaches at the ends of the turns, where the top lane is highest: a
+	# ramp of two steps down from it to the lots.
 	for y in range(44, 48):
-		b.yard(27, y, 27, y, "gravel", haulers)
-		b.yard(120, y, 121, y, "junk_ground", salvage)
+		b.yard(27, y, 27, y, "gravel", haulers, {"ground": .48})
+		b.yard(26, y, 26, y, "gravel", haulers, {"ground": .24})
+		b.yard(120, y, 120, y, "junk_ground", salvage, {"ground": .48})
+		b.yard(121, y, 121, y, "junk_ground", salvage, {"ground": .24})
 	b.meta["lap_cars"] = {
 		"path": racing_line(19.6),
 		"cars": 2,
@@ -512,7 +518,11 @@ func infield() -> void:
 			up = (70 - x) * .2
 		b.raise(x, 34, x, 36, snappedf(up, .12))
 		b.paint(x, 34, x, 36, "dirt")
-	b.town("monster_truck", 61.0, 33.6, {"z": .0})
+	# Crushed cars banked along both sides of it: nobody climbs on from the side.
+	for x in range(54, 68):
+		for y in [33, 37]:
+			b.fixture(x + .05, y + .1, x + .95, y + .9, .62, "junk_stack", "tin")
+	b.town("monster_truck", 60.5, 35.5, {"solid": .45})
 
 
 func figure_eight() -> void:
@@ -742,6 +752,16 @@ func tow_lot() -> void:
 		{"wall": "tin", "roof": 2.4, "floor": "concrete", "windows": 3, "lit": .5, "light": .7}
 	)
 	b.door(112, 80, false, {"from": "s", "id": "tow-shack"})
+	# The tow man's stash behind the shack's east wall.
+	b.wall(117, 81, 119, 81, "tin", 2.6)
+	b.wall(117, 85, 119, 85, "tin", 2.6)
+	b.wall(119, 82, 119, 84, "tin", 2.6)
+	b.room(117, 82, 118, 84, "concrete", backlot, {"roof": 2.2, "light": .5, "skin": "tin"})
+	b.secret(116, 83, true, [117, 82, 118, 84], {"from": "e", "id": "tow-stash", "tile": "tin"})
+	b.table(109.2, 84.2, 111.8, 84.8, .78)
+	b.react("tv", 110.0, 84.5, .75, {"z": .78, "id": "tow-tv"})
+	b.prop("lamp", 112.5, 83.0)
+	b.glow(112.5, 83.0, 3.0, .2)
 	b.town("tow_truck", 120.5, 77.5, {"solid": .45})
 	b.town("wrecked_derby", 126.5, 84.5, {"solid": .45})
 	b.fixture(125.5, 84.1, 127.5, 84.9, .3, "mill_tin", "tin")

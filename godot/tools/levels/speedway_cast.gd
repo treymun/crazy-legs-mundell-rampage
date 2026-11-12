@@ -318,7 +318,7 @@ func cast() -> void:
 		["clone", 44.0, 42.0, "camp-clone"],
 		["nitro_huffer", 59.0, 49.0, "camp-huffer"],
 		["billy", 44.5, 52.0, "trailer-billy"],
-		["coot", 60.5, 35.0, "jump-coot"],
+		["coot", 62.5, 34.5, "jump-coot"],
 		["alien", 64.0, 56.0, "camp-alien"],
 		["saucer", 72.0, 32.0, "infield-saucer"],
 		# The stands, the booth, the concourse.
@@ -412,6 +412,9 @@ func pickups() -> void:
 		# The tow lot and the salvage yard.
 		["rinds", 111.0, 82.5],
 		["saw_ammo", 114.0, 84.0],
+		["keg_ammo", 117.6, 82.6],
+		["whiskey", 118.4, 83.4],
+		["arm_ammo", 117.6, 84.0],
 		["shells", 126.0, 2.5],
 		["rifle_ammo", 146.0, 7.0],
 		["rocket_ammo", 140.0, 36.0],
