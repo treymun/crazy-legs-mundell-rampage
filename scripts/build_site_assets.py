@@ -10,6 +10,7 @@ game. The results are small and committed; rerun this after the art changes.
   site/img/weapons/<name>.png   one strip of view-model frames per weapon
   site/img/faces.png            the twelve status-bar expressions
   site/img/shot_<id>.png        chapter pictures, from window captures in docs/media/site_shots
+  site/img/fight_<boss>.png     the fight card: each boss in its arena (same folder)
   site/audio/<stem>.mp3         40-second soundtrack previews and short cues
   site/js/frames.js             frame counts and sizes for the strips
 """
@@ -66,6 +67,10 @@ COPIES = {
 # old Python frames they once fell back to left with the Python game.
 SHOTS = ("shot_hickston", "shot_fair", "shot_sawmill", "shot_quarry", "shot_fight", "shot_hub",
          "shot_bayou", "shot_speedway", "shot_mothership", "shot_range")
+# The fight card: each boss in its arena, from tools/arena_frames.gd and
+# arena_frames_late.gd window pictures (the 4:3 view, 640 wide).
+FIGHTS = ("fight_sheriff", "fight_jerry", "fight_rudy", "fight_foreman", "fight_baron",
+          "fight_king", "fight_boggs", "fight_maw")
 TRACKS = ("title", "music", "county_line", "porchlight_stomp", "fair_score", "tickets_after_dark",
           "closing_time_shuffle", "mill_score", "green_chain", "apron_run", "quarry_score",
           "copper_and_steam", "last_load", "bayou_score", "cypress_crawl", "crawdad_boil_hop",
@@ -74,7 +79,10 @@ TRACKS = ("title", "music", "county_line", "porchlight_stomp", "fair_score", "ti
           "boss_speedway", "boss_mothership")
 CUES = ("yee_haw", "yee_haw_alt", "belch", "gulp", "moonshine", "shotgun_both", "cow_moo",
         "pig", "chicken", "rudy_horn", "sheriff_siren", "got_bessie", "king_holler", "gator_snap",
-        "lap_car_pass", "maw_holler")
+        "lap_car_pass", "maw_holler",
+        # The bosses talking (their trash talk on the holler board).
+        "boss_sheriff_intro", "boss_jerry_taunt_1", "boss_rudy_intro", "boss_foreman_intro",
+        "boss_baron_intro", "boss_swamp_king_intro", "boss_boggs_taunt_0", "boss_maw_worried")
 
 
 def strip(name: str, stem: str, poses: tuple[str, ...]) -> dict:
@@ -112,14 +120,14 @@ def images() -> None:
     table["faces"] = faces()
     for source, target in COPIES.items():
         Image.open(ART / f"{source}.png").save(SITE / "img" / f"{target}.png", optimize=True)
-    for name in SHOTS:
+    for name in SHOTS + FIGHTS:
         Image.open(SHOTS_DIR / f"{name}.png").convert("RGB").save(
             SITE / "img" / f"{name}.png", optimize=True)
     (SITE / "js" / "frames.js").write_text(
         "// Written by scripts/build_site_assets.py: sprite strip sizes.\n"
         f"window.CLM_FRAMES = {json.dumps(table, separators=(',', ':'))};\n",
         encoding="utf-8", newline="\n")
-    print(f"images: {len(table)} strips, {len(COPIES) + len(SHOTS)} pictures")
+    print(f"images: {len(table)} strips, {len(COPIES) + len(SHOTS) + len(FIGHTS)} pictures")
 
 
 def audio() -> None:

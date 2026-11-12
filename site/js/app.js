@@ -267,10 +267,10 @@
     { id: 'hickston', tab: 'Hickston', order: 'Chapter one', title: 'The Hickston Incident', shot: 'shot_hickston',
       caption: 'County road, facing Stanky\'s. Evening.',
       job: 'Find the brass key to Stanky\'s back office, then the steel one, and work north through the barn and the trailer lot to the pasture where they are keeping her.',
-      stops: ['County Road', 'Stanky\'s Bar & Grill', 'Restroom', 'Supply Room', 'Feed Barn', 'Hog Pen', 'Packing Shed', 'Dispatch Office', 'Trailer Lot', 'Dry Creek', 'North Pasture'],
+      stops: ['County Road', 'Stanky\'s Bar & Grill', 'Restroom', 'Supply Room', 'Feed Barn', 'Hog Pen', 'Packing Shed', 'Dispatch Office', 'Trailer Lot', 'Dry Creek', 'Rodeo Grounds', 'Hogs Field'],
       bosses: [
-        { name: 'The Alien Sheriff', img: 'boss_sheriff', text: 'Charges a plasma shot you can hear coming. Under half health he fires three at a time and hurries.' },
-        { name: 'Jerry Jones', img: 'boss_jerry', text: 'Blows a whistle, then throws a football that hurts. Three footballs once he is losing.' },
+        { name: 'The Alien Sheriff', img: 'boss_sheriff', text: 'Holds the rodeo grounds north of the corn, his crashed saucer smoking behind him. Charges a plasma shot you can hear coming. Once he is mad he turns his back every few shots to vent the power pack, and the pack takes double from behind. Plum desperate, he calls the saucer down on you and the ring catches fire.' },
+        { name: 'Jerry Jones', img: 'boss_jerry', text: 'Waits at midfield on the Hogs\' football field, behind the stock gate the sheriff kept shut. Whistles, then throws. Aim for his knees; the helmet shrugs off shots. Plum desperate, he blitzes down a marked lane, and if he hits a goalpost he is out cold for a moment.' },
       ],
       secrets: 'Four hidden rooms. Check the mirror in the GENTS while you are in there.',
       signoff: '"Next time, take the tractor."' },
@@ -279,7 +279,7 @@
       job: 'Set concession power and patch the backstage PA. The patch lead is in the raffle office, and the shooting gallery pays out if you can still aim.',
       stops: ['Ticket Shack', 'The Midway', 'Concession Alley', 'Game Court', 'Prize Pavilion', 'Service Exit', 'Freight and Raffle Lot', 'Backstage Sideshows', 'PA Booth'],
       bosses: [
-        { name: 'Rudy Racket', img: 'boss_rudy', text: 'Sweeps the stage with five horn blasts. His health bar calls LEFT HORN or RIGHT HORN first. Two of him are cardboard.' },
+        { name: 'Rudy Racket', img: 'boss_rudy', text: 'Runs his big top in the prize pavilion. Sweeps the ring with horn blasts, LEFT HORN or RIGHT HORN called on his bar, and once he is mad the PA stacks fire down their lanes too. The drum is his soft spot, the horns more so while he winds up. Plum desperate: rings of horn blasts with the gaps painted on the floor.' },
       ],
       secrets: 'Two hidden rooms, one of them behind a sideshow panel.',
       signoff: '"No refunds after the abduction."' },
@@ -288,7 +288,7 @@
       job: 'Isolate the west feed and trip the dry-kiln belt. The handle on the belt release is stripped, so it wants hitting rather than turning.',
       stops: ['Delivery Yard', 'Flooded Log Pond', 'West Bank', 'East Bank', 'The Cutting Shed', 'Loading Apron', 'Green Chain Sort', 'Dry Kilns', 'Rain Storage'],
       bosses: [
-        { name: 'The Splinter Foreman', img: 'boss_foreman', text: 'Sends saw blades down marked lanes, three lanes and then two. When it reads GAP IN THE MIDDLE, stand in the middle.' },
+        { name: 'The Splinter Foreman', img: 'boss_foreman', text: 'Stands across the carriage track on the saw floor. Saw blades down marked lanes, and the log carriage runs on a bell and flattens anybody on the track, him included. Hit the saw rig on his back. Plum desperate: a fan of blades that bounce off the walls.' },
       ],
       secrets: 'Four hidden rooms. The county map only draws a secret once you have found it.',
       signoff: '"Clock out. Leave the boots outside."' },
@@ -297,7 +297,7 @@
       job: 'Stop the cutting feed and divert the copper condenser. The valves take cranking, and the works behind the cut is bottling something that is not spring water.',
       stops: ['County Weigh Station', 'Limestone Cut Yard', 'Cutting Shed', 'Condenser Yard', 'Bottling Works', 'Loading Court', 'Lower Cut', 'Chalk Terraces', 'Copper Recovery'],
       bosses: [
-        { name: 'The Copper Baron', img: 'boss_baron', text: 'Takes turns venting steam from floor outlets and sweeping it across the room. Open a relief valve first: one outlet instead of two, and he recovers slower.' },
+        { name: 'The Copper Baron', img: 'boss_baron', text: 'Lords it over the still house between two giant copper boilers. Steam from the floor outlets nearest where you stood, and a sweep across the room; the boiler on his back takes double. Plum desperate: copper rain on marked spots while the wall pipes burst under red lights.' },
       ],
       secrets: 'Three hidden rooms in the cut and the works.',
       signoff: '"Weight includes contents and debts."' },
@@ -307,7 +307,7 @@
       stops: ['County Line Landing', 'Bait & Tackle', 'Crawfish Boil', 'Stilt Row', 'Fish Camp Cabins', 'Swamp King Cannery', 'Big Channel', 'Bridge Tender\'s Hammock', 'Gator Farm', 'Wrasslin Pit', 'The Mudhole', 'King\'s Lagoon', 'Airboat Dock', 'The King\'s Still', 'Backwater'],
       locals: ['New varmints', 'Noodlers squat in the water up to the eyes and come up out of it all at once. Chum tossers sling chum the moment they see you, and every gator near comes for it. Gators lie low in the water, quick in it and slow on the bank.'],
       bosses: [
-        { name: 'The Swamp King', img: 'boss_king', text: 'Circles his lagoon in an armoured airboat and fires a punt gun off the bow. A lane marked on the water means he is about to run it flat out; a run that ends on a piling or a bank beaches him, wide open. Past half health the runs come in pairs and he hollers for his gators.' },
+        { name: 'The Swamp King', img: 'boss_king', text: 'Runs his lagoon in an armoured airboat. When the water reaches you he paints a lane and runs it flat out; when it does not, it is the punt gun. A run that ends on a bank beaches him wide open, and the engine cage takes double from behind. Plum desperate: lit dynamite onto marked spots, and his holed tank sets the water burning.' },
       ],
       secrets: 'Four hidden rooms, and the king\'s own still hid behind the reeds. A taste counts.',
       signoff: '"No wake zone, my foot."' },
@@ -317,7 +317,7 @@
       stops: ['Truck Stop', 'Lugnut\'s Diner', 'Haulers\' Lot', 'Pit Row', 'Fuel Depot', 'The Oval', 'Infield Camp', 'Figure 8', 'Grandstands', 'Announcer\'s Booth', 'The Concourse', 'Boggs Salvage', 'Crusher Yard', 'Tow Lot', 'Grandstand Parking'],
       locals: ['New varmints', 'Pit mechanics throw wrenches and tyre rollers roll tyres. Nitro huffers run in close and go up in a nitrous blast, shot down or not, and take their own side with them. Flagmen wave the green flag to call in every hand within earshot, then hang back and fire flares.'],
       bosses: [
-        { name: 'Bumper Boggs', img: 'boss_boggs', text: 'The champ, in an armoured derby car. He paints his ramming lane on the ground while he revs, locks it a moment before he goes, and runs down whatever is in it. Up close he spits spare tyres down a fan of lanes. A charge into a wall stalls him: that is the opening. Fightin\' mad, he charges straight out of a crash and sheds parts.' },
+        { name: 'Bumper Boggs', img: 'boss_boggs', text: 'Owns the derby bowl behind the flag gate. Paints his ramming lane while he revs and runs down whatever is in it; a charge into a wall stalls him, and the radiator up front is the soft spot. Plum desperate: nitro rams off the walls while the floodlights blow one by one.' },
       ],
       secrets: 'Three hidden rooms. Lugnut\'s walk-in is one of them.',
       signoff: '"Checkered flag. Nobody else finished."' },
@@ -327,7 +327,7 @@
       stops: ['Tractor Beam Bay', 'Ring Deck', 'The Core', 'The Bridge', 'Trophy Room', 'Maw\'s Parlor', 'Crew Bunks', 'Crew Mess', 'Specimen Hold', 'Probe Lab', 'Corn Deck', 'Engine Room', 'Shine Tanks', 'Cargo Hold', 'Service Ducts'],
       locals: ['New varmints', 'Grey drones zap with a cattle prod and skitter back out of reach. Tin guards soak shots on a pickup\'s tailgate and swing it aside only to fire a bug zapper. Probes float in and reel you toward them on a beam.'],
       bosses: [
-        { name: 'Maw Glorb', img: 'boss_maw', text: 'Everybody\'s maw. In her housecoat: a rolling pin on a marked circle, a hair dryer along marked lanes, and hollers to the pods for her younguns. With the housecoat on fire, stomps send a ring of cracks over the deck that has to be jumped, and the tractor beam gets loose on the floor. Out of the housecoat, all of it comes quicker.' },
+        { name: 'Maw Glorb', img: 'boss_maw', text: 'Everybody\'s maw, on her throne in the core. A rolling pin on a marked circle, a hair dryer down marked lanes and hollers to the pods for her younguns; the curlers on top of her head are the soft spot. Housecoat on fire, then out of it: hot curlers drop on marked spots and the core goes critical. Jump the pulses.' },
       ],
       secrets: 'Four hidden rooms, and a lawn elf whose hat is worth a tug.',
       signoff: '"Tell yer maw she can keep the bus."' },
@@ -381,6 +381,33 @@
     panel.append(el('div', {}, photo, el('span', { class: 'stamp', text: 'Route approved' })), file);
   }
 
+  // The fight card (index.html #fightcard): each boss in its arena, from the
+  // boss files (src/bosses/*.gd, features/boss_arena.gd, boss_arenas.gd).
+  const FIGHTS = [
+    { name: 'The Alien Sheriff', where: 'Rodeo grounds, Hickston', img: 'fight_sheriff', soft: 'The power pack on his back.', desperate: 'Calls the saucer down: rings close, bolts drop, the ring burns.', hog: 'A ring of plasma in every direction, with one gap.' },
+    { name: 'Jerry Jones', where: 'Hogs Field, Hickston', img: 'fight_jerry', soft: 'His knees. Not the helmet.', desperate: 'A blitz down a marked lane. Make him hit a post.', hog: 'A flaming football that bursts where it lands.' },
+    { name: 'Rudy Racket', where: 'The big top, Possum County Fair', img: 'fight_rudy', soft: 'The drum; the horns while he winds up.', desperate: 'Rings of horn blasts. Find the painted gaps.', hog: 'Balloon bombs that drift after you. Shoot them down.' },
+    { name: 'The Splinter Foreman', where: 'The saw floor, Blackwater Timber', img: 'fight_foreman', soft: 'The saw rig on his back.', desperate: 'A fan of saw blades that bounce off the walls.', hog: 'Kicks a fuel drum at you. Shoot it first.' },
+    { name: 'The Copper Baron', where: 'The still house, Stillwater Cut', img: 'fight_baron', soft: 'The boiler on his back.', desperate: 'Copper rain on marked spots, burst pipes, red lights.', hog: 'Every third attack, every outlet in the house goes.' },
+    { name: 'The Swamp King', where: 'King\'s Lagoon, Gator Bayou', img: 'fight_king', soft: 'The engine cage, from behind.', desperate: 'Lit dynamite on marked spots; the water burns.', hog: 'A punt-gun broadside at the end of every run.' },
+    { name: 'Bumper Boggs', where: 'The derby bowl, Buzzard Bend', img: 'fight_boggs', soft: 'The radiator, up front and low.', desperate: 'Nitro rams off the walls as the floodlights blow.', hog: 'Burning oil down every charge lane.' },
+    { name: 'Maw Glorb', where: 'The throne in the core, the Mothership', img: 'fight_maw', soft: 'The curlers on top of her head.', desperate: 'Hot curlers and a core gone critical. Jump.', hog: 'The rolling pin comes down twice.' },
+  ];
+  const card = $('#fight-cards');
+  if (card) {
+    FIGHTS.forEach((fight) => {
+      card.append(el('article', { class: 'bout' },
+        el('p', { class: 'bout-bill', text: 'Tonight' }),
+        el('img', { src: `img/${fight.img}.png`, alt: `${fight.name} in ${fight.where}`, loading: 'lazy' }),
+        el('h3', { text: fight.name }),
+        el('p', { class: 'bout-where', text: fight.where }),
+        el('dl', {},
+          el('dt', { text: 'Soft spot' }), el('dd', { text: fight.soft }),
+          el('dt', { text: 'Plum desperate' }), el('dd', { text: fight.desperate }),
+          el('dt', { text: 'HOG WILD' }), el('dd', { text: fight.hog }))));
+    });
+  }
+
   CHAPTERS.forEach((chapter) => {
     const tab = el('button', { type: 'button', role: 'tab', id: `tab-${chapter.id}`, 'data-id': chapter.id,
       'aria-controls': 'chapter-panel', 'aria-selected': 'false', tabindex: '-1', text: chapter.tab });
@@ -416,7 +443,10 @@
   const HOLLERS = [['yee_haw', 'Yee-haw'], ['yee_haw_alt', 'Yee-haw, again'], ['belch', 'Belch'], ['gulp', 'Beer'],
     ['moonshine', 'Moonshine'], ['shotgun_both', 'Both barrels'], ['cow_moo', 'Cow, outbound'], ['pig', 'Hog'],
     ['chicken', 'Chicken'], ['rudy_horn', 'Rudy\'s horn'], ['sheriff_siren', 'Sheriff'], ['got_bessie', 'Got Bessie'],
-    ['king_holler', 'Swamp King'], ['gator_snap', 'Gator'], ['lap_car_pass', 'Race car'], ['maw_holler', 'Maw']];
+    ['king_holler', 'Swamp King'], ['gator_snap', 'Gator'], ['lap_car_pass', 'Race car'], ['maw_holler', 'Maw'],
+    ['boss_sheriff_intro', 'Sheriff talks'], ['boss_jerry_taunt_1', 'Jerry talks'], ['boss_rudy_intro', 'Rudy talks'],
+    ['boss_foreman_intro', 'Foreman talks'], ['boss_baron_intro', 'Baron talks'], ['boss_swamp_king_intro', 'King talks'],
+    ['boss_boggs_taunt_0', 'Boggs talks'], ['boss_maw_worried', 'Maw frets']];
   const player = $('#player');
   const stop = $('#juke-stop');
   const nowPlaying = $('#juke-title');

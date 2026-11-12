@@ -1,35 +1,115 @@
-# Crazy Legs Mundell Rampage
-## The Hickston Incident · Campaign 2.0.0-dev.6
+<p align="center">
+  <img src="site/img/logo.png" alt="Crazy Legs Mundell Rampage" width="520">
+</p>
 
-A standalone Windows FPS in the style of Xatrix Entertainment's 1997 Redneck Rampage. The campaign runs from Hickston through Possum County Fair and Blackwater Timber to Stillwater Cut. County Crossroads sits inside Hickston and has four road gates. The four reference photos supply the 12-frame mugshot and full-body player in the title, the intermission, the GENTS mirror, and Hickston County wanted posters.
+<h3 align="center">The Hickston Incident</h3>
 
-The 1.4.1 detail pass dresses 40 locations across the four chapters and County Crossroads. Look for garage tools, concession hardware, mill machinery, still gauges, and roadside gear. The Alien Sheriff wears a patched county coat, and the Ranch Rifle has a lower idle pose and visible ejection port.
+<p align="center">
+  A 1997-style first-person shooter about one delivery man, a .38, a bag of pork rinds and the county's prize hog.<br>
+  Seven chapters, a county crossroads, a firing range, sixteen guns and eight bosses that fight dirty.
+</p>
 
-The 1.4.2 combat pass gives the regulars distinct silhouettes and turning sprites. Billy leans into his scattergun, the Coot hunches over his pistol, and the larger bosses visibly settle after an attack. All twelve weapon sets have revised finishes and timing for their actions. The player's patched overalls and work cap appear in the title, posters, and eight-way bathroom reflection.
+<p align="center">
+  <a href="https://treymun.github.io/crazy-legs-mundell-rampage/"><b>Play it in your browser</b></a> &nbsp;·&nbsp;
+  <a href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest"><b>Download for Windows or Android</b></a>
+</p>
 
-The 1.4.3 armory pass gives the Bottle Rocket Launcher, Mill Riveter, and Copperhead their own shapes and reloads. The dynamite crossbow has a visible draw cycle, the Rip Saw shows its cutting wheel, and the Alien Arm Gun has an asymmetric shell and claws. A bottle rocket now cracks out of the pipe, whistles in flight, and lands with a smaller firecracker burst.
+<p align="center">
+  <a href="https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/treymun/crazy-legs-mundell-rampage?include_prereleases&label=release&color=a4441f"></a>
+  <img alt="Godot 4.7" src="https://img.shields.io/badge/Godot-4.7-478cbf">
+  <img alt="Windows, Android, browser" src="https://img.shields.io/badge/plays%20on-Windows%20%C2%B7%20Android%20%C2%B7%20browser-8a9193">
+</p>
 
-This development pass adds the optional Tin Rooster gallery, a dry boardwalk around the mill pond, and changing notices at County Dispatch. Look for short paper clues across the four chapters. Glass and loud machinery can draw a nearby enemy's attention. A shuddering pipe gives you time to step clear. Setup's **Next Run Supplies** offers Standard, Scarce and No Drops. Scarce cuts ammo from boxes. No Drops removes ordinary enemy ammo drops and preserves chapter supplies. The selection takes effect when you start a new run. Saved runs retain their original rule.
+<p align="center">
+  <img src="site/img/shot_hickston.png" width="24%" alt="Hickston at dusk">
+  <img src="site/img/shot_bayou.png" width="24%" alt="Gator Bayou">
+  <img src="site/img/shot_speedway.png" width="24%" alt="Buzzard Bend Speedway">
+  <img src="site/img/shot_mothership.png" width="24%" alt="The Mothership">
+</p>
 
-### Downloads and builds
+---
 
-| Target | File | Notes |
-| --- | --- | --- |
-| Windows portable | `CrazyLegsMundellRampage.exe` | Single-file EXE, no install |
-| Windows installer | `CrazyLegsMundellRampage_Setup.exe` | Start-menu shortcuts and uninstaller |
-| Android | `CrazyLegsMundellRampage.apk` | Android 7.0+, arm64 |
-| Browser | <https://treymun.github.io/crazy-legs-mundell-rampage/> | Godot WebAssembly build, playable on the landing page |
+Something from out of county took Bessie, the prize animal of Hickston, Arkansas. Get her back:
+through Stanky's Bar & Grill, the Possum County Fair, Blackwater Timber, Stillwater Cut, Gator Bayou
+and the dirt track at Buzzard Bend, then up into the ship that sent the sheriff.
 
-The landing page's download buttons always point at the newest GitHub release. From 2.0.0-dev.9 the release is built from the Godot project in `godot/`; the original Python/pygame game it was ported from is kept at the git tag `python-original`.
+It plays like the shooters of 1997 did: 320×200, 256 colours, dusk and dirt, a gut meter and a drunk
+meter, and a county full of locals who hunt you, duck for cover, run for help and brawl when they
+shoot each other. Every picture and every sound in it is original.
 
-### The Godot build
+## What's in it
 
-`godot/` is a Godot 4.7 project, and it is the game: releases, the site and all new work come from it. It started as a port of a Python/pygame game (kept at the git tag `python-original`). Its maps are `godot/data/*.json`, and its art, sound and palette are packed from `assets/` and `audio_src/`. Its own reference images (`godot/tools/pictures/`, checked by `tools/picture_check.gd`) guard its look from one change to the next.
+- **Seven chapters and a hub.** Hickston, the County Fair, Blackwater Timber, Stillwater Cut, Gator
+  Bayou, Buzzard Bend Speedway and the Mothership, joined by the County Crossroads with a gate for
+  each. Quests to work out, keys to find, counted secrets, a county map that fills in as you walk.
+- **Eight boss fights, rebuilt.** Each boss has an arena of its own: a floodlit rodeo ring round a
+  crashed saucer, the Hogs' football field, Rudy's big top, the saw floor, the copper still house,
+  the bayou lagoon, the derby bowl and Maw's throne in the core. They make an entrance, talk trash,
+  mark where the next hit lands, wear the beating they take, call in backup and, at a fifth of their
+  health, get *plum desperate* with one last trick while the arena turns on everybody. Every boss
+  has a weak spot, HOG WILD saves one extra attack for you, and dying in a fight puts you back at the
+  arena door.
+- **BOSS REMATCH** on the title menu: refight any boss you have beaten against the clock for a blue,
+  red or white ribbon, with your best times kept.
+- **Sixteen guns.** A rusted crowbar, the .38, a sawed-off with both barrels, a dynamite crossbow,
+  the Ranch Rifle, the Rip Saw, an alien arm gun, hand-thrown dynamite, the Sling Blade, a bottle
+  rocket launcher, the Mill Riveter, the Copperhead, a bowling ball, a powder keg, the Cow Launcher
+  and the Teat Gun. Try them all in the **firing range** off the title menu.
+- **Things break and move.** Crates, barrels, jugs, coolers and signs break; fuel drums, propane and
+  nitro chain-explode; windows shoot out and stockyard fences give way. Bodies get thrown by what hit
+  them, gibs bounce, and a rifle round punches through thin planks and tin to the man behind.
+- **A county you can hear.** Rain on the yard and on the roof over your head, burn barrels and stills
+  as you pass, a sound for every surface a round hits, a soundtrack of cowpunk records for every
+  chapter with fight music and boss loops, and bosses who talk back.
+- **Looks the part.** Weather, puddles, lightning and fog banks, coloured lamplight and heat shimmer,
+  layered explosions and muzzle flashes, all drawn by the graphics card, with an optional HD view.
 
-Build it from a clone:
+<p align="center">
+  <img src="site/img/fight_sheriff.png" width="24%" alt="The Alien Sheriff's entrance at the rodeo">
+  <img src="site/img/fight_rudy.png" width="24%" alt="Rudy Racket, plum desperate in his big top">
+  <img src="site/img/fight_baron.png" width="24%" alt="Copper rain in the Copper Baron's still house">
+  <img src="site/img/fight_boggs.png" width="24%" alt="Bumper Boggs in the derby bowl">
+</p>
+
+## Play
+
+| Where | What you get |
+| --- | --- |
+| **Browser** | <https://treymun.github.io/crazy-legs-mundell-rampage/>: desktop Chrome, Edge or Firefox. About 65 MB on the first visit, then the browser keeps it. iPhone and iPad get a lighter build. |
+| **Windows** | `CrazyLegsMundellRampage.exe` (one file, no install) or `CrazyLegsMundellRampage_Setup.exe` (Start-menu shortcut and uninstaller). Windows 10 or 11, 64-bit, OpenGL 3.3. |
+| **Android** | `CrazyLegsMundellRampage.apk`: Android 7.0 or newer, arm64, held sideways. Touch controls, or plug in a gamepad. |
+
+The downloads are on the [latest release](https://github.com/treymun/crazy-legs-mundell-rampage/releases/latest).
+Saves stay on your machine.
+
+### Controls
+
+| Keyboard and mouse | | Gamepad | |
+| --- | --- | --- | --- |
+| W A S D, mouse | Move and aim | Left / right stick | Move / look |
+| Shift, J, Z | Run, jump, crouch | Right / left trigger | Fire / alt fire |
+| Mouse 1 / Mouse 2 | Fire / alt fire | A / B | Jump / crouch |
+| E, Space, middle click | Use, open, rescue | X / Y | Reload / use |
+| 1–9, 0, -, =, wheel | Weapons | Bumpers | Previous / next weapon |
+| R | Reload | Stick click | Run |
+| 8, hold fire | Light the stick; let go to throw | D-pad up, left, right | Rinds, beer, moonshine |
+| C, B, M | Pork rinds, beer, moonshine | D-pad down | Use the picked item |
+| Q / F | Pick an item / use it | Start / Back | Pause / county map |
+| Tab | County map | | |
+| F6 / F9 / F5 | Quicksave, quickload, save slots | | |
+| F11, F4, F12 | Fullscreen, music, screenshot | | |
+
+On a touch screen the left thumb walks and a drag on the right half aims; the buttons appear the
+first time a finger lands. Rinds fill the gut and mend you, beer mends you and makes the county sway,
+and moonshine sobers you up and buys seven seconds of running like you stole it.
+
+## Building it
+
+The game is the Godot 4.7.2 project in `godot/`. It started as a port of a Python/pygame game, kept
+at the git tag `python-original`.
 
 ```
-godot --headless --path godot --script res://tools/pack_assets.gd
+godot --headless --path godot --script res://tools/pack_assets.gd   # asset packs, no Python needed
 godot --headless --path godot --import
 godot --headless --path godot --export-release "Windows Desktop" build/windows/CrazyLegsMundellRampage.exe
 godot --headless --path godot --export-release "Web" build/web/index.html
@@ -37,88 +117,46 @@ godot --headless --path godot --export-release "Android" build/android/CrazyLegs
 ISCC installer.iss
 ```
 
-`tools/pack_assets.gd` writes the asset packs (`godot/assets_gen/*.bin`, about 70 MB, not committed) from `assets/`, `audio_src/` and `godot/assets/music` in a few seconds; it needs no Python. The exports need Godot 4.7.2 with its export templates, and the Android one also needs a JDK 17, the Android SDK and a keystore. The Windows export is a single EXE with its data inside; `installer.iss` wraps that one file.
+`pack_assets.gd` writes `godot/assets_gen/*.bin` (about 70 MB, not committed) from `assets/`,
+`audio_src/` and `godot/assets/music` in a few seconds. The exports need Godot 4.7.2 with its export
+templates; Android also needs JDK 17, the Android SDK and a keystore.
 
-Checks, all headless:
+Every check runs headless, all at once, in about two minutes:
 
 ```
-godot --headless --path godot --script res://tools/check_fixes.gd    # porting regressions
-godot --headless --path godot --script res://tools/bot_campaign.gd   # the whole campaign
-gdformat --check godot/src godot/tools && (cd godot && gdlint src tools)
+godot --headless --path godot --script res://tools/check_all.gd -- lint
 ```
 
-Both scripts save into the game's own profile. Point `APPDATA` at a scratch folder first if yours matters.
+It runs gdformat and gdlint, the shader texture count, the asset check, the regression and feature
+checks (bosses, breakables, rematches and more), the old-save fixtures, the level editor, quest reach,
+a bot playing the whole campaign, and the reference pictures. Tools that play the game write into a
+scratch profile, never yours.
 
-`.github/workflows/release.yml` runs those checks and the three exports on every push to `main`, and deploys the landing page with the browser build under `play/`. A `v*` tag stamps its version into the build and also publishes the EXE, the installer and the APK as a release. Set the `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_USER` and `ANDROID_KEYSTORE_PASSWORD` repository secrets to sign the APK with a lasting key; without them each run signs with a throwaway one, and a phone has to uninstall the old copy before it takes a new one.
+`.github/workflows/release.yml` runs the checks and the shader-view comparison on every push, builds
+the Windows EXE, installer, APK and browser build on `main`, deploys this landing page, and on a `v*`
+tag publishes the release. Set `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_USER` and
+`ANDROID_KEYSTORE_PASSWORD` to sign the APK with a lasting key.
 
-The Godot build's sound is produced from `audio_src/`: stored ElevenLabs recordings, the supplied menu theme, and `scripts/audio_build.py`, which finishes them into the effect bank's cues and the Ogg music. `audio_src/README.md` explains the layout, how to change a sound, and the credit ledger; nothing in a normal build contacts ElevenLabs.
+## How it is put together
 
-The landing page lives in `site/` (plain HTML, CSS and JavaScript). `.venv\Scripts\python.exe scripts/build_site_assets.py --audio` rebuilds its pictures and sound previews from the game's assets.
+- **`godot/src/`** — the game in GDScript. Play is a chain of layers (`game_state` → `game_world` →
+  `game_combat` → `game_view` → `game`); new pieces of play are features in `src/features/` that
+  listen to the game's events. The bosses' moves are in `src/bosses/`.
+- **The view.** With a window, `palette.gdshader` composes the picture on the graphics card from layers
+  the renderer hands over: sky, floors, walls, sprites, lights, weather, then the gun and HUD and the
+  256-colour grade. Headless tools draw the same picture in software, and reference pictures in
+  `godot/tools/pictures*/` hold both to the pixel.
+- **Levels** are `godot/data/*.json`, built from hand-written plans in `godot/tools/levels/`; the
+  numbers for guns, enemies, shots, effects and breakables are in `godot/data/tuning/`.
+- **Art** is made by the Godot tools in `godot/tools/art/`, with Blender rendering the 3D enemies,
+  bosses, guns and props. **Sound** is produced from `audio_src/` by `scripts/audio_build.py`
+  (`audio_src/README.md` explains it); a normal build never contacts a sound service.
+- **The landing page** is plain HTML, CSS and JavaScript in `site/`;
+  `scripts/build_site_assets.py --audio` rebuilds its pictures and sound previews from the game.
 
+`CLAUDE.md` has the full list of commands, checks and things that are easy to get wrong.
 
-### Play
+---
 
-Double-click **CrazyLegsMundellRampage-2.0.0-dev.6.exe** on Windows x64 and press **Enter** at the title. The EXE contains the game, runtime, audio, and art. The first launch opens in a resizable 4:3 window. This build is a local development checkpoint.
-
-| Input | Action |
-| --- | --- |
-| WASD or Up/Down | Walk and strafe |
-| Mouse or Left/Right | Aim or turn; hold Alt with the arrows to strafe |
-| Left mouse or Left Ctrl | Fire; with dynamite, hold to light and release to throw |
-| Right mouse | Fire both shotgun barrels, grind with the Rip Saw, or fire a two-rivet burst |
-| Shift / Caps Lock | Run / toggle always-run |
-| J / Z | Jump / crouch |
-| 1–8 | Crowbar, .38 revolver, sawed-off shotgun, dynamite crossbow, Ranch Rifle, Rip Saw, Alien Arm Gun, handheld dynamite |
-| 9 / 0 / - | Sling Blade / Bottle Rocket Launcher / Mill Riveter |
-| = | Copperhead Pressure Gun |
-| Mouse wheel or ; / ' | Cycle owned weapons |
-| R | Reload |
-| H or Scroll Lock | Lower or raise the weapon |
-| E, Space, or middle mouse | Use doors, road gates and props or rescue Bessie |
-| Q or [ ] | Select inventory item |
-| F or Enter | Use selected item |
-| C, B, M | Use pork rinds, beer, or moonshine |
-| Tab | Toggle the automap and current objective |
-| Home / Backspace | Center vertical aim / turn 180° |
-| Y | Holler |
-| F4 | Toggle music |
-| F5 | Open the four named save slots |
-| F6 / F9 | Quicksave / quickload (F2 and F3 also work) |
-| F11 | Toggle between windowed mode and your last fullscreen mode |
-| F12 | Save a screenshot |
-| Esc | Pause and return to the title menu |
-
-Start at Stanky's and find the brass key in the dispatch office. It opens the barn's front gate and its loading entrance off the trailer lot. The barn holds the shotgun, crossbow, and Rip Saw. Follow the service road east to the Stock Registry for the steel pasture key. It also opens a shortcut back across the county yard. Runs started in older releases can still find an uncollected key at the original barn feed scale. Pick up the Alien Arm Gun in the pasture. Defeat the Alien Sheriff and the fictional Jerry Jones boss, then approach Bessie and use E. The trailer lot's powder store needs a blast to open. Use E on other cracked panels. Red fuel drums explode when shot and can set each other off.
-
-After each intermission, press **Enter** to return to the crossroads. Approach the next gate and press **E**, **Space**, or the middle mouse button to continue with your current health, weapons, ammo, and consumables. Gate signs identify the destination. Close prompts explain locked roads, continuing, revisiting, and resuming a replay. The fair, sawmill, and quarry gates open in campaign order. Use each level's return gate to suspend progress, or choose **County Hub** on the title.
-
-Use a completed chapter's gate to revisit its current world. Its enemies, pickups, doors, controls and secrets retain their state. A revisit has its own local supplies, and changes there stay separate from the active chapter's inventory. To start over with a fixed kit, choose **Replay Level** from the title. Hickston's kit includes the crowbar, revolver and one bag of rinds. The other kits also include a loaded sawed-off and Ranch Rifle, spare ammunition, two bags of rinds, and that chapter's weapon. The crossroads has three optional road notes that mark their locations on your map when found. Each chapter has three counted secrets plus optional approaches.
-
-At the fair, collect the patch lead from the Raffle Office and carry it to the backstage PA booth. Patch the booth and set the concession breaker in either order. Ring the show bell to open the pavilion, then cut its broadcast. Rudy Racket sweeps in alternating directions with a charged horn. Use the prize stalls for cover and attack during his recovery. The midway barker raises a small horn before a three-way spread. Watch the landing mark when a bottle tosser winds up.
-
-At Blackwater Timber, isolate the west feed and strike the belt release at the east dry kiln. Release the log carriage brake and shut down the pump house relay. The dry banks flank the shallow pond. Give a chain hand space when he raises both arms. The Splinter Foreman alternates between two and three marked cutting lanes. Step off the marks and use the log stacks for cover.
-
-At Stillwater Cut, isolate the cutting feed and turn the copper condenser three times. Follow the recovery gate and haul lanes back to the bottling works, vent the relay, and clear the loading court. Watch the Boilerback's gauge before it vents in a cone. Move after a Chalk Spitter marks your last position, and step or jump clear of a valve guard's low shot. The Copper Baron alternates bursts from marked pipe outlets with a forward vent. Optional relief valves reduce the pressure and lengthen his recovery. Use the load ticket after the court is clear to finish the campaign.
-
-Fire the Ranch Rifle in bursts to keep it on target. The Rip Saw's blades rebound off walls and can come back at you. Use the right mouse button to grind without spending a blade. The Arm Gun's plasma splashes nearby targets. Collect a box of sticks to unlock handheld dynamite in slot 8. It shares the crossbow's spare ammo. You can cook the fuse for a shorter throw delay, but it will go off in your hand if you wait too long. The Hickston Sling Blade has a slower swing and longer reach than the crowbar. The fair's Bottle Rocket Launcher deals splash damage, including at close range to the player. The Mill Riveter can fire one rivet or a pair. The Copperhead fires a short-range pressure slug that interrupts an ordinary enemy's windup. The interruption has a per-enemy cooldown. Bosses still take damage and keep their attack telegraph.
-
-Listen for the attack cues and move after an enemy takes aim. Billy Ray closes in with a scattergun, Old Coot backs off to shoot, and skeeters dive toward your last position. Saucers fire paired bolts. The Sheriff's plasma cannon has an audible siren and switches to a wider volley at low health. Listen for Jerry's whistle before he throws; he throws three footballs per volley at low health.
-
-Pork rinds and beer restore health and build the GUT and DRUNK meters. Excess beer makes aiming and movement drift. Moonshine lowers both meters and briefly boosts speed and crowbar damage. At Stanky's you can shoot out the front pane and jump through the sill, play the jukebox, or use the restroom sink.
-
-Open **Setup → Display → Window Mode → Fullscreen (Fill)** to use the entire monitor. **Fullscreen (Aspect)** keeps the chosen proportions. Use the mouse or Tab/Page Up to switch setup pages. Display also includes brightness, frame limit, scaling, screen flashes, bob, crosshair, and status panel style. Input has separate turn and look speeds and hold/toggle crouch. Audio has separate music, effects, ambience, footsteps and voice volume, plus optional dialogue captions. **View** has scenery motion, lower or hidden weapons, and bullet marks. Play has difficulty, aim assist, automatic reload, weapon switching, blood particles, and optional hints.
-
-On Windows saves, settings, and screenshots live under `%LOCALAPPDATA%\HickstonIncident`. **F5** opens named slots, four for the campaign and four per replay chapter. Enter a label and confirm separately to overwrite. Each slot shows the chapter, saved objective, and local timestamp. **F6/F9** use a separate quicksave. **Continue Campaign** opens the crossroads using the last recorded chapter entry or suspension, including completed worlds saved with 1.3.0. Retry after death restores the supplies you had when you entered the level. Supported V1–V3 saves are backed up before conversion to V4. Throw a lit stick before saving.
-
-Menus, the HUD, and gameplay messages use native pixel lettering. Brightness changes the scene only, so the HUD and prompts stay readable even on the darkest setting.
-
-### How the game is put together
-
-The game is the Godot 4.7 project in `godot/`; `CLAUDE.md` lists the commands, the checks and the rules for working on it.
-
-- `godot/src/` holds the game in GDScript. Three big parts are chains of layers, each file extending the one before: the front end (`main_state` → `main_flow` → `main_input` → `main`), play (`game_state` → `game_world` → `game_combat` → `game_view` → `game`) and the software view (`render_state` → `render_surfaces` → `render_sprites` → `renderer`).
-- With a window, `palette.gdshader` draws the view on the graphics card: sky, floors, ceilings, walls and sprites, then the weapon and HUD layer (drawn with Godot 2D) and the 256-colour grade. Without one (tools, CI) the software view draws the same picture.
-- `godot/data/` holds the four maps (`*.json`, the source of every level) and `godot/data/tuning/` the weapon and enemy numbers.
-- `assets/` and `audio_src/` hold the art and sound; `tools/pack_assets.gd` packs them for the game. The art is made by the Godot tools in `godot/tools/art/` (Blender renders the 3D enemies and weapons); the Python scripts in `scripts/` make the sound (ElevenLabs, mastering) and the landing page's pictures. The game, its build and its art need no Python.
-
-The original Python/pygame game this was ported from is kept at the git tag `python-original`.
+<sub>Made in the spirit of the redneck shooters of the late nineties. Every asset is original; no art,
+sound or maps from any other game are used.</sub>
