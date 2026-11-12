@@ -840,6 +840,13 @@ signal boss_down(enemy: Enemy, seconds: float)
 ## forgets it (INF: not known).
 var hit_point := Vector3.INF
 var hit_from := Vector2.ZERO
+## The shot kind whose blast is hurting things this moment (explode(): "cow",
+## "tnt"...), "" otherwise: how a body it kills is thrown (hit_zones.gd).
+var blast_kind := ""
+## The crosshair's mark (game_view.gd): when this one started, and whether a
+## hit in it was on the head (hit_zones.gd).
+var hit_mark_at := -1.0
+var hit_mark_head := false
 ## Bosses call in backup at their phase changes (a rematch may turn it off).
 var boss_backup := true
 ## A boss's entrance (BossKit.hold): seconds of it left, its whole length,

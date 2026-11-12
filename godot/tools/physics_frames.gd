@@ -5,6 +5,9 @@
 ## a blast throwing what lies about, a storefront window shot out, a plank
 ## fence shot about and then through, and a boss fight (its entrance, the ring
 ## of its wind-up, its damage, a stagger, its fall; only=boss for just those).
+## And how hits land (only=hits for just these): a head shot (the hat off, the
+## pop), buckshot throwing a hand through a window, the cow launcher's throw,
+## a body floating in the bayou, chickens scattering at a shot.
 ## Each is a row of frames, <effect>_<n>.png, in out=<dir>.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
@@ -39,8 +42,16 @@ func _run() -> void:
 	Effects.enabled = true
 	# The boss's entrance is pictured (a tool gets none otherwise).
 	BossKit.tool_intros = true
+	var args := OS.get_cmdline_user_args()
+	if args.has("only=hits"):
+		await _hits()
+		print("physics frames written to ", out)
+		main.queue_free()
+		await process_frame
+		quit()
+		return
 	# only=boss: just the boss fight's pictures.
-	if not OS.get_cmdline_user_args().has("only=boss"):
+	if not args.has("only=boss"):
 		await _barrel()
 		await _chain()
 		await _body()
@@ -49,6 +60,7 @@ func _run() -> void:
 		await _blast()
 		await _window()
 		await _fence()
+		await _hits()
 	await _boss()
 	print("physics frames written to ", out)
 	main.queue_free()
@@ -470,3 +482,185 @@ func _boss() -> void:
 	_ticks(g, 2)
 	_ticks(g, 1, true)
 	await _row(g, "boss_fall", [6, 14, 24, 40, 70, 110])
+
+
+func _hits() -> void:
+	await _headshot()
+	await _window_throw()
+	await _cow_throw()
+	await _floating()
+	await _chickens()
+
+
+## The first enemy of a kind in a level, the rest put to sleep: its index.
+func _first(level_id: String, kind: String) -> int:
+	var g := _level(level_id)
+	for i in g.enemies.size():
+		if (g.enemies[i] as Enemy).kind == kind:
+			return i
+	return -1
+
+
+## A revolver round to the head of a hand three paces off: the hat flies, the
+## head pops (and the gold mark at the crosshair).
+func _headshot() -> void:
+	var target := _first("hickston", "clone")
+	if target < 0:
+		return
+	var g := _level("hickston", [target])
+	g.aim_assist = 0
+	g.spawn_grace = 99.0
+	var e: Enemy = g.enemies[target]
+	var at := _spot(g, e.x, e.y, 3.0)
+	if at == Vector2.INF:
+		return
+	e.hp = 20.0
+	e.angle = atan2(at.y - e.y, at.x - e.x)
+	var top: float = g.world.elevation(e.x, e.y) + e.height * e.variant * .9
+	_stand(g, at.x, at.y, e.x, e.y, top)
+	_arm(g, Weapons.REVOLVER)
+	_ticks(g, 20)
+	_stand(g, at.x, at.y, e.x, e.y, top)
+	await _snap("headshot_0")
+	_ticks(g, 1, true)
+	await _row(g, "headshot_pop", [2, 5, 10, 20, 40])
+
+
+## A load of buckshot at arm's length throws a hand back through the window
+## behind it, seen from the side.
+func _window_throw() -> void:
+	var target := _first("hickston", "billy")
+	if target < 0:
+		return
+	var g := _level("hickston", [target])
+	g.aim_assist = 0
+	g.spawn_grace = 99.0
+	var w := g.world
+	var e: Enemy = g.enemies[target]
+	for face in g.features["wall_breaks"].windows:
+		var n: Vector2 = face.normal()
+		var mid: Vector2 = face.middle()
+		var stand := mid + n * .75
+		var gun := mid + n * 2.1
+		var side := mid + n * 2.6 + n.orthogonal() * 2.2
+		if (
+			w.blocked(stand.x, stand.y, .3)
+			or w.blocked(gun.x, gun.y, .3)
+			or w.blocked(side.x, side.y, .3)
+			or absf(w.elevation(stand.x, stand.y)) > .05
+			or w.elevation(gun.x, gun.y) != w.elevation(stand.x, stand.y)
+			or not w.visible(gun.x, gun.y, stand.x, stand.y)
+			or not w.visible(side.x, side.y, mid.x + n.x * .05, mid.y + n.y * .05, .95, 1.3)
+			or not _clear(g, side, mid)
+		):
+			continue
+		e.x = stand.x
+		e.y = stand.y
+		e.angle = n.angle()
+		e.cooldown = 99.0
+		_stand(g, side.x, side.y, mid.x, mid.y, 1.0)
+		_ticks(g, 20)
+		await _snap("window_throw_before")
+		_stand(g, gun.x, gun.y, e.x, e.y, w.elevation(e.x, e.y) + .9)
+		_arm(g, Weapons.SHOTGUN)
+		_ticks(g, 1, true)
+		_stand(g, side.x, side.y, mid.x, mid.y, 1.0)
+		await _row(g, "window_throw", [3, 6, 10, 16, 30, 50])
+		return
+
+
+## The cow launcher at a hand down the street: it goes up whole and comes down.
+func _cow_throw() -> void:
+	var g := _level("hickston")
+	var target := -1
+	var at := Vector2.INF
+	for i in g.enemies.size():
+		var e: Enemy = g.enemies[i]
+		if e.kind == "clone" or e.kind == "billy":
+			at = _spot(g, e.x, e.y, 5.0)
+			if at != Vector2.INF:
+				target = i
+				break
+	if target < 0:
+		return
+	g = _level("hickston", [target])
+	g.aim_assist = 0
+	g.spawn_grace = 99.0
+	var e: Enemy = g.enemies[target]
+	e.cooldown = 99.0
+	e.hp = 40.0
+	_stand(g, at.x, at.y, e.x, e.y, g.world.elevation(e.x, e.y) + .7)
+	_arm(g, Weapons.COW)
+	_ticks(g, 20)
+	_stand(g, at.x, at.y, e.x, e.y, g.world.elevation(e.x, e.y) + .7)
+	_ticks(g, 1, true)
+	var waited := 0
+	while e.alive and waited < 90:
+		_ticks(g, 1)
+		waited += 1
+	_stand(g, at.x, at.y, e.x, e.y, g.world.elevation(e.x, e.y) + 1.2)
+	await _row(g, "cow_throw", [6, 8, 10, 12, 30])
+
+
+## A hand dropped in a bayou channel floats there and bobs.
+func _floating() -> void:
+	var target := _first("bayou", "billy")
+	if target < 0:
+		return
+	var g := _level("bayou", [target])
+	g.spawn_grace = 99.0
+	var w := g.world
+	var e: Enemy = g.enemies[target]
+	for cy in range(3, w.height - 3):
+		for cx in range(3, w.width - 3):
+			var at := Vector2(cx + .5, cy + .5)
+			if not w.deep_at(at.x, at.y) or w.blocked(at.x, at.y, .3):
+				continue
+			var eye := Vector2.INF
+			for k in 16:
+				var q := at + Vector2.from_angle(k * TAU / 16.0) * 2.6
+				if (
+					not w.blocked(q.x, q.y, .3)
+					and not w.deep_at(q.x, q.y)
+					and w.visible(
+						q.x, q.y, at.x, at.y, w.elevation(q.x, q.y) + .95, w.elevation(at.x, at.y)
+					)
+				):
+					eye = q
+					break
+			if eye == Vector2.INF:
+				continue
+			e.x = at.x
+			e.y = at.y
+			e.hp = 5.0
+			g.hit_point = Vector3(e.x, e.y, w.elevation(e.x, e.y) + .9)
+			g.hit_from = eye
+			e.hurt(10.0, g, false, false, null, "rifle")
+			_stand(g, eye.x, eye.y, e.x, e.y, w.elevation(e.x, e.y))
+			_ticks(g, 90)
+			await _row(g, "float_bob", [12, 12, 12, 12, 12])
+			return
+
+
+## A revolver fired near the chickens: they scatter, flapping, feathers flying.
+func _chickens() -> void:
+	var g := _level("hickston")
+	var keep: Array = []
+	for i in g.enemies.size():
+		if (g.enemies[i] as Enemy).kind == "chicken":
+			keep.append(i)
+	if keep.is_empty():
+		return
+	g = _level("hickston", keep)
+	var hen: Enemy = g.enemies[keep[0]]
+	var at := _spot(g, hen.x, hen.y, 3.2)
+	if at == Vector2.INF:
+		return
+	_stand(g, at.x, at.y, hen.x, hen.y, g.world.elevation(hen.x, hen.y) + .3)
+	_arm(g, Weapons.REVOLVER)
+	_ticks(g, 20)
+	_stand(g, at.x, at.y, hen.x, hen.y, g.world.elevation(hen.x, hen.y) + .3)
+	g.player.angle += .25
+	await _snap("chickens_0")
+	_ticks(g, 1, true)
+	await _row(g, "chickens_scatter", [3, 6, 10, 16, 30])

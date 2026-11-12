@@ -626,6 +626,9 @@ func _run() -> void:
 	# Things that break, bodies and bits that move, blasts that throw and chain.
 	preload("res://tools/break_check.gd").run(main, check)
 
+	# Where hits land, how the killing blow throws a body, the animals.
+	preload("res://tools/hit_check.gd").run(main, check)
+
 	# The firing range: its title entry, its way out, the campaign untouched.
 	preload("res://tools/range_check.gd").run(main, check)
 

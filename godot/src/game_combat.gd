@@ -442,6 +442,7 @@ func explode(shot: Shot) -> void:
 	wake_nearby(float(spec["wake"]), x, y)
 	if not energy:
 		disturb(x, y, 3.5, z)
+	blast_kind = shot.kind
 	for enemy: Enemy in enemies:
 		var distance := sqrt((enemy.x - x) * (enemy.x - x) + (enemy.y - y) * (enemy.y - y))
 		if enemy.alive and distance < radius and world.visible(x, y, enemy.x, enemy.y):
@@ -455,6 +456,7 @@ func explode(shot: Shot) -> void:
 				null,
 				"energy" if energy else "blast"
 			)
+	blast_kind = ""
 	for prop: LevelData.Scenery in world.scenery:
 		if (
 			sqrt((prop.x - x) * (prop.x - x) + (prop.y - y) * (prop.y - y)) < radius

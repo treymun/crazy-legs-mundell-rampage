@@ -773,18 +773,34 @@ func _use_mark(c: Canvas) -> void:
 			c.fill_rect(x, mini(y, y - sy * arm), 1, arm + 1, colour)
 
 
-## Four short ticks around the crosshair when a hit lands; red and wider on a kill.
+## Four short ticks around the crosshair when a hit lands: they snap out white
+## and settle in, red and wider on a kill, gold with a longer tick on the head
+## (hit_zones.gd).
 func _hit_mark(c: Canvas) -> void:
-	var gap := 4 if hit_mark_kill else 3
-	var r := 236 if hit_mark_kill else 246
-	var g := 72 if hit_mark_kill else 228
-	var b := 48 if hit_mark_kill else 190
-	for k in 3:
+	var fresh := clock - hit_mark_at < .045
+	var gap := (4 if hit_mark_kill else 3) + (2 if fresh else 0)
+	var length := 4 if hit_mark_kill or hit_mark_head else 3
+	var r := 236 if hit_mark_kill else 255 if hit_mark_head else 246
+	var g := 72 if hit_mark_kill else 204 if hit_mark_head else 228
+	var b := 48 if hit_mark_kill else 64 if hit_mark_head else 190
+	if fresh:
+		r = 255
+		g = 250
+		b = 236
+	for k in length:
 		var d := gap + k
 		c.set_pixel(160 - d, VIEW / 2 - d, r, g, b)
 		c.set_pixel(160 + d, VIEW / 2 - d, r, g, b)
 		c.set_pixel(160 - d, VIEW / 2 + d, r, g, b)
 		c.set_pixel(160 + d, VIEW / 2 + d, r, g, b)
+	if hit_mark_kill and not fresh:
+		# A dark edge under a kill's ticks, so it reads on a bright sky.
+		for k in length:
+			var d := gap + k
+			c.set_pixel(160 - d, VIEW / 2 - d + 1, 40, 12, 8)
+			c.set_pixel(160 + d, VIEW / 2 - d + 1, 40, 12, 8)
+			c.set_pixel(160 - d, VIEW / 2 + d + 1, 40, 12, 8)
+			c.set_pixel(160 + d, VIEW / 2 + d + 1, 40, 12, 8)
 
 
 # ------------------------------------------------------------- view effects

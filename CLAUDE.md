@@ -331,6 +331,26 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   WILD after the level's own enemies (saved in the features block, so a save
   checks its count against `enemy_ids.size()`). Set `alerted` by assignment:
   its setter counts changes, which `player_sheltered()` relies on.
+- **Hits land somewhere** (`src/hit_zones.gd`, the play; `features/hit_reads.gd`,
+  the looks and sounds). Every player hit with a `game.hit_point` (hitscan,
+  pellets, swings, blades, balls, pierced rounds) gets `Enemy.last_zone` from
+  the body's height and how far off its middle: head (`HEAD` by gun: x2 a
+  round, x1.35 a pellet), arms x.82 (a held weapon dropped on `game.rng`
+  .4, fetched while it fights with its fists: `HitZones.tick` in
+  `Enemy.tick`; else a wind-up's aim thrown wide), legs x.78 and a limp.
+  No dice in damage; bosses keep `weak_spot`; a blast is the body. Overkill
+  ignores the head's extra, one barrel of buckshot throws (both gib), an edge
+  blast or the cow launcher throws whole (`blast_gibs`). The killing blow
+  shapes the fall (`corpses.gd _throw`: buckshot at arm's length into a
+  window or fence breaks it, `wall_breaks.gd crash()`; rifle drops, crowbar
+  crumples, milk slides; bodies at rest in water bob). Metal (`METAL`, the
+  boilerback's back) sparks and clanks; a bigger instant reels further
+  (`REEL`). Hats (`fx_hat_*`) and dropped weapons (`fx_drop_*`) are
+  `tools/art/build_hit_art.gd`; actor cels still wear the hat (`Enemy.hatless`
+  is there for the art). `features/critters.gd`: chickens and hogs run from
+  shots, blasts and a running player (chickens flap: `Enemy.hop`), a hurt hog
+  charges (5), a hit gator thrashes, a blast shoves Bessie. Not saved (seconds
+  long). `tools/hit_check.gd` (in check_fixes); `physics_frames.gd only=hits`.
 - **Boss fights share a framework** (`src/boss_kit.gd`, `features/boss_fight.gd`,
   `src/bosses/`). Each of the eight bosses (a `title` in enemies.cfg) has a
   `BossMoves` file (`bosses/boss_moves.gd`: `fight_start`, `phase_changed`,

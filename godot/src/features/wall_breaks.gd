@@ -31,6 +31,8 @@ const PATH := "res://data/tuning/breakables.cfg"
 ## window's glass (now or already gone), so it leaves no hole on it.
 const NONE := 0
 const HOLE := 1
+## crash()'s answer when the fence it hit broke through (the body goes on).
+const OPENED := 2
 ## Where the glass is on a window face: across it (as a share of its length),
 ## and up it, by world height for a tile laid by height (RenderState's
 ## WINDOW_SILL to WINDOW_HEAD) or as shares of the piece's height down from
@@ -419,6 +421,38 @@ func strike(x: float, y: float, z: float, ax: float, ay: float, amount: float) -
 	if f != null:
 		_knock(f, amount, ax, ay)
 	return NONE
+
+
+## A body thrown along (ax, ay) struck the wall at (x, y) (features/corpses.gd),
+## its shoulders at height z: a window it hit shatters (HOLE), a fence cell
+## takes `amount` (OPENED when that broke it through).
+func crash(x: float, y: float, z: float, ax: float, ay: float, amount: float) -> int:
+	if windows.is_empty() and fences.is_empty():
+		return NONE
+	var cell := _cell_at(x + ax * .35, y + ay * .35)
+	if cell.x < 0:
+		return NONE
+	var at := Vector2(x, y)
+	for face: WindowFace in by_cell.get(cell, []):
+		var n := face.normal()
+		if n.x * ax + n.y * ay >= 0.0:
+			continue
+		var a := Vector2(face.edge.x, face.edge.y)
+		var b := Vector2(face.edge.z, face.edge.w)
+		var near := Geometry2D.get_closest_point_to_segment(at, a, b)
+		var u := (near - a).length() / maxf(.01, (b - a).length())
+		if u < ACROSS.x - .15 or u > ACROSS.y + .15 or near.distance_to(at) > .6:
+			continue
+		if z < face.low - .5 or z > face.high + .3:
+			continue
+		if not face.broken:
+			_break_window(face, false)
+		return HOLE
+	var f: Fence = fences.get(cell)
+	if f == null or f.stage == 2:
+		return NONE
+	_knock(f, amount, ax, ay)
+	return OPENED if f.stage == 2 else HOLE
 
 
 ## The solid cell a point at a wall is in (or just short of), or (-1, -1).
