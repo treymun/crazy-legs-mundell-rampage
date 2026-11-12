@@ -2,7 +2,11 @@
 ## gate's barricade into assets/tiles): every chapter's control boxes, relays,
 ## the brake, the midway bell, the exit signs, the lettered signs that switch
 ## when a station is done, the keys and the PA patch lead. The same names the
-## levels already use, so every chapter (and any new one) picks them up.
+## levels already use, so every chapter (and any new one) picks them up. The
+## Crossroads' gates too: the name boards over the later chapters' gates
+## (route_<chapter>, a tile) and the markers beside them, the fingerpost's arms
+## (hub_arm_<chapter>, the point on the right; _back, the same arm seen from
+## behind) and the county's order on the beam pad.
 ##
 ##   godot --headless --path godot --script res://tools/art/build_quest_art.gd [-- out=<dir>]
 ##
@@ -120,6 +124,7 @@ func _init() -> void:
 	rng.seed = 14
 	_save(barricade(), tiles, "route_closed")
 	made += 4
+	made += crossroads(out, tiles)
 	print("quest art: %d pictures written to %s (route_closed to %s)" % [made, out, tiles])
 	quit()
 
@@ -710,3 +715,176 @@ func barricade() -> Paint.Sheet:
 	Paint.rect(s, 63, 107, 65, 113, SOOT)
 	weather(s, 120, 2)
 	return Paint.digitize(s, 6.0)
+
+
+# ---------------------------------------------------------------- crossroads
+
+## The later chapters' gates: [chapter, the name board over the gate, the
+## marker beside it, its two lines, the paint, the lettering]. The first four
+## chapters' boards and markers are older pictures, kept as they are.
+const GATE_BOARDS := [
+	[
+		"bayou",
+		"GATOR BAYOU",
+		"hub_bayou_marker",
+		"GATOR BAYOU",
+		"PAST THE COUNTY LINE",
+		Color(.22, .33, .2),
+		Color(.88, .95, .64)
+	],
+	[
+		"speedway",
+		"BUZZARD BEND",
+		"hub_speedway_marker",
+		"BUZZARD BEND",
+		"SPEEDWAY ROAD",
+		Color(.15, .14, .13),
+		Color(1.0, .8, .22)
+	],
+	[
+		"mothership",
+		"MOTHERSHIP",
+		"hub_ship_marker",
+		"CRASH SITE",
+		"BEAM UP AT OWN RISK",
+		Color(.84, .64, .12),
+		Color(.1, .07, .05)
+	],
+]
+
+## The fingerpost's arms, one a chapter: [chapter, words, paint, lettering].
+const ARMS := [
+	["hickston", "HICKSTON", Color(.44, .31, .18), INK],
+	["fair", "COUNTY FAIR", Color(.58, .17, .12), INK],
+	["sawmill", "BLACKWATER", Color(.3, .34, .22), INK],
+	["quarry", "STILLWATER CUT", Color(.42, .38, .3), INK],
+	["bayou", "GATOR BAYOU", Color(.22, .33, .2), Color(.88, .95, .64)],
+	["speedway", "BUZZARD BEND", Color(.15, .14, .13), Color(1.0, .8, .22)],
+	["mothership", "CRASH SITE", Color(.84, .64, .12), Color(.1, .07, .05)],
+]
+
+
+## Everything the Crossroads' gates and fingerpost need; how many pictures.
+func crossroads(out: String, tiles: String) -> int:
+	var made := 0
+	for spec: Array in GATE_BOARDS:
+		rng.seed = hash("route_" + String(spec[0]))
+		_save(route_board(String(spec[1]), spec[5], spec[6]), tiles, "route_" + String(spec[0]))
+		rng.seed = hash(String(spec[2]))
+		_save(marker(String(spec[3]), String(spec[4]), spec[5], spec[6]), out, String(spec[2]))
+		made += 2
+	for spec: Array in ARMS:
+		for right in [true, false]:
+			rng.seed = hash("hub_arm_" + String(spec[0]))
+			var name := "hub_arm_" + String(spec[0]) + ("" if right else "_back")
+			_save(arm(String(spec[1]), spec[2], spec[3], right), out, name)
+			made += 1
+	rng.seed = 15
+	_save(county_order(), out, "hub_county_order")
+	return made + 1
+
+
+## The largest glyph width (up to `most`) that keeps `text` within `room`.
+func fit(text: String, room: int, most: int) -> int:
+	var sx := most
+	while sx > 1 and text_width(text, sx) > room:
+		sx -= 1
+	return sx
+
+
+## Lettering with a hard shadow a glyph pixel down and right.
+func stencil(s: Paint.Sheet, text: String, cx: int, y: int, sx: int, sy: int, ink: Color) -> void:
+	letters(s, text, cx + sx, y + maxi(2, sy / 3), sx, sy, Color(.05, .03, .02, .85), false)
+	letters(s, text, cx, y, sx, sy, ink, false)
+
+
+## A gate's name board (a tile, stretched over the gate about seven times
+## wider than tall, so the letters are painted tall): planks in a dark frame.
+func route_board(text: String, base: Color, ink: Color) -> Paint.Sheet:
+	var s := Paint.Sheet.new(256, 256)
+	planks(s, 0, 0, 255, 255, base, 36)
+	for k in 10:
+		Paint.outline(s, k, k, 255 - k, 255 - k, base.darkened(.5 + k * .02))
+	Paint.outline(s, 13, 13, 242, 242, ink.darkened(.2))
+	Paint.outline(s, 14, 14, 241, 241, ink.darkened(.2))
+	stencil(s, text, 128, 82, fit(text, 216, 4), 13, ink)
+	for p in [Vector2i(22, 22), Vector2i(233, 22), Vector2i(22, 233), Vector2i(233, 233)]:
+		rivet(s, p.x, p.y)
+	weather(s, 140, 0)
+	return finish(s, 128, 128)
+
+
+## The plank marker beside a gate: the place, and the road under it.
+func marker(title: String, under: String, base: Color, ink: Color) -> Paint.Sheet:
+	var s := Paint.Sheet.new(276, 72)
+	planks(s, 2, 2, 273, 69, base, 18)
+	Paint.outline(s, 2, 2, 273, 69, SOOT)
+	Paint.outline(s, 6, 6, 269, 65, base.lightened(.35))
+	stencil(s, title, 138, 11, fit(title, 250, 3), 3, ink)
+	stencil(s, under, 138, 45, fit(under, 250, 2), 2, ink.lerp(base, .25))
+	weather(s, 60, 0)
+	return finish(s, 138, 36)
+
+
+## A fingerpost arm: a plank sawn to a point, the name painted on it and a bolt
+## through the square end where it clamps to the post. `right`: the point on
+## the right (the arm's front); otherwise on the left (its back).
+func arm(text: String, base: Color, ink: Color, right: bool) -> Paint.Sheet:
+	var point := 22
+	var width := text_width(text, 2) + 36 + point
+	width += width % 2
+	var s := Paint.Sheet.new(width, 40)
+	planks(s, 0, 0, width - 1, 39, base, 13)
+	for y in 40:
+		var cut := int(absf(y - 19.5) * point / 20.0)
+		for x in cut:
+			var px := width - 1 - x if right else x
+			s.data[(y * width + px) * 4 + 3] = 0
+	_edge(s, base.darkened(.6))
+	var bolt := 9 if right else width - 10
+	Paint.rect(s, bolt - 5, 3, bolt + 5, 36, base.darkened(.3))
+	rivet(s, bolt, 20)
+	var mid := (width - point) / 2 + (2 if right else point - 2)
+	stencil(s, text, mid, 13, 2, 2, ink)
+	weather(s, width / 3, 0)
+	return finish(s, width / 2, 20)
+
+
+## Darken every solid pixel within two of a clear one (or the edge): the rim.
+func _edge(s: Paint.Sheet, c: Color) -> void:
+	var keep := s.data.duplicate()
+	for y in s.h:
+		for x in s.w:
+			if keep[(y * s.w + x) * 4 + 3] == 0:
+				continue
+			var rim := false
+			for d: Vector2i in [
+				Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(2, 0)
+			]:
+				for sgn: int in [1, -1]:
+					var q: Vector2i = Vector2i(x, y) + d * sgn
+					if q.x < 0 or q.y < 0 or q.x >= s.w or q.y >= s.h:
+						rim = true
+					elif keep[(q.y * s.w + q.x) * 4 + 3] == 0:
+						rim = true
+			if rim:
+				s.put(x, y, c)
+
+
+## The county's order nailed up at the beam pad: white tin, a hazard band.
+func county_order() -> Paint.Sheet:
+	var s := Paint.Sheet.new(224, 160)
+	steel(s, 4, 4, 219, 155, Color(.86, .84, .78))
+	hazard(s, 8, 8, 215, 28)
+	Paint.outline(s, 4, 4, 219, 155, SOOT)
+	Paint.rect(s, 8, 29, 215, 30, SOOT)
+	var red := Color(.72, .08, .06)
+	letters(s, "COUNTY ORDER", 112, 38, fit("COUNTY ORDER", 196, 3), 3, red, false)
+	letters(s, "BEAM PAD CLOSED", 112, 68, fit("BEAM PAD CLOSED", 196, 2), 3, SOOT, false)
+	letters(s, "TILL THE COUNTY", 112, 98, 2, 2, SOOT, false)
+	letters(s, "IS CLEAN", 112, 116, 2, 2, SOOT, false)
+	letters(s, "ROAD DEPT", 112, 138, 1, 2, red, false)
+	for p in [Vector2i(12, 40), Vector2i(211, 40), Vector2i(12, 147), Vector2i(211, 147)]:
+		rivet(s, p.x, p.y)
+	weather(s, 90, 0)
+	return finish(s, 112, 80)

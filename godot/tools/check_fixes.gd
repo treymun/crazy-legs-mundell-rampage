@@ -1067,6 +1067,21 @@ func _quest_props(main: Control) -> void:
 		if int(hub.world.walls[o + 4]) == face_tile and hub.world.walls[o + 1] > gate.y:
 			facing_hub = true
 	check(facing_hub, "a Crossroads gate's name board faces the Crossroads, not the hedge")
+	# The fingerpost: an arm for every gate, its point (the picture's right, as
+	# the arm's plane runs) toward that gate. It used to send players the wrong way.
+	var pointed := 0
+	for each: LevelData.Gate in hub.world.hub_gates:
+		for board: LevelData.Billboard in hub.world.billboards:
+			if board.image != "hub_arm_" + each.destination or is_nan(float(board.plane)):
+				continue
+			var way := Vector2(cos(float(board.plane)), sin(float(board.plane)))
+			var to_gate := (Vector2(each.x, each.y) - Vector2(board.x, board.y)).normalized()
+			if way.dot(to_gate) > cos(deg_to_rad(1.5)):
+				pointed += 1
+	check(
+		pointed == hub.world.hub_gates.size() and pointed == Campaign.ORDER.size(),
+		"every chapter has a Crossroads gate and a fingerpost arm pointing at it"
+	)
 
 
 func _stand(g: Game, x: float, y: float, angle: float) -> void:
