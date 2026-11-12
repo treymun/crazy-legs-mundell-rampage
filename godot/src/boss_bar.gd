@@ -41,19 +41,28 @@ static func draw(game, c: Canvas, y: int) -> int:
 		phase = tell
 	if boss.enraged and game.clock - boss.enraged_at < 1.6:
 		phase = "FIGHTIN' MAD"
+	if game.clock - boss.desperate_at < 1.6:
+		phase = "PLUM DESPERATE"
+	# Staggered by a big hit (boss_kit.gd): the bar flashes.
+	var reeling: bool = game.clock - boss.staggered_at < .35
+	if reeling:
+		phase = "STAGGERED!"
 	phase = ShipAliens.phase_text(game, boss, phase)
 	HUD.panel(
-		c, 193, y, 122, 27 if phase != "" else 20, Canvas.rgb(35, 24, 20), Canvas.rgb(126, 85, 57)
+		c,
+		193,
+		y,
+		122,
+		27 if phase != "" else 20,
+		Canvas.rgb(35, 24, 20),
+		Canvas.rgb(250, 226, 170) if reeling else Canvas.rgb(126, 85, 57)
 	)
 	HUD.text(c, title(boss.kind), 253, y + 3, "body", HUD.INK, true, false)
 	c.fill_rect(199, y + 12, 110, 4, Canvas.rgb(70, 42, 32))
-	c.fill_rect(
-		199,
-		y + 12,
-		int(round(110.0 * boss.hp / boss.max_hp)),
-		4,
-		Canvas.rgb(236, 143, 69) if boss.windup > 0.0 else Canvas.rgb(204, 77, 47)
-	)
+	var fill := Canvas.rgb(236, 143, 69) if boss.windup > 0.0 else Canvas.rgb(204, 77, 47)
+	if reeling:
+		fill = Canvas.rgb(255, 238, 200)
+	c.fill_rect(199, y + 12, int(round(110.0 * boss.hp / boss.max_hp)), 4, fill)
 	if phase != "":
 		HUD.text(c, phase, 253, y + 19, "mini", Canvas.rgb(249, 194, 124), true, false)
 	return y + (27 if phase != "" else 20) + 2

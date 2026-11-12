@@ -2,9 +2,10 @@
 ## graphics-card view players see): a barrel shot to pieces, a hazard barrel
 ## setting off the one beside it, a body knocked back against a wall, a body
 ## taken apart and its gibs bouncing, a stick of dynamite rolling down a step,
-## a blast throwing what lies about, a storefront window shot out, and a plank
-## fence shot about and then through. Each is a row of frames,
-## <effect>_<n>.png, in out=<dir>.
+## a blast throwing what lies about, a storefront window shot out, a plank
+## fence shot about and then through, and a boss fight (its entrance, the ring
+## of its wind-up, its damage, a stagger, its fall; only=boss for just those).
+## Each is a row of frames, <effect>_<n>.png, in out=<dir>.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/physics_frames.gd -- out=<dir>
@@ -36,14 +37,19 @@ func _run() -> void:
 	await process_frame
 	main.touring = true
 	Effects.enabled = true
-	await _barrel()
-	await _chain()
-	await _body()
-	await _gibs()
-	await _dynamite()
-	await _blast()
-	await _window()
-	await _fence()
+	# The boss's entrance is pictured (a tool gets none otherwise).
+	BossKit.tool_intros = true
+	# only=boss: just the boss fight's pictures.
+	if not OS.get_cmdline_user_args().has("only=boss"):
+		await _barrel()
+		await _chain()
+		await _body()
+		await _gibs()
+		await _dynamite()
+		await _blast()
+		await _window()
+		await _fence()
+	await _boss()
 	print("physics frames written to ", out)
 	main.queue_free()
 	await process_frame
@@ -402,3 +408,65 @@ func _fence() -> void:
 				_ticks(g, 2)
 				await _snap("fence_far_side")
 				return
+
+
+## The sheriff's fight: his entrance (the name on its ribbon), his wind-up
+## with the ring closing round where he aims, smoke past half and sparks past
+## a fifth, a load of buckshot staggering him, and his fall in slow motion
+## with the gibs and the loot shower.
+func _boss() -> void:
+	var g := _level("hickston")
+	var index := g.enemies.find(g.boss)
+	g = _level("hickston", [index])
+	var e: Enemy = g.boss
+	var w := g.world
+	var at := _spot(g, e.x, e.y, 5.0)
+	if at == Vector2.INF:
+		return
+	_stand(g, at.x, at.y, e.x, e.y, w.elevation(e.x, e.y) + .9)
+	g.player.angle += .6
+	e.alerted = true
+	g.lessons = true
+	_ticks(g, 1)
+	await _row(g, "boss_intro", [6, 10, 30])
+	_ticks(g, 80)
+	g.lessons = false
+	_stand(g, at.x, at.y, e.x, e.y, w.elevation(e.x, e.y) + .5)
+	var toward := Vector2(e.x - at.x, e.y - at.y).normalized()
+	var aim := at + toward * 2.6
+	e.stun = 0.0
+	e.windup = 1.0
+	e.aim_mark = [aim.x, aim.y, g.player.eye]
+	g.features["boss_fight"].windups.clear()
+	_ticks(g, 1)
+	await _row(g, "boss_ring", [18, 18, 18])
+	e.windup = 0.0
+	e.aim_mark = null
+	e.cooldown = 99.0
+	e.hp = e.max_hp * .45
+	e.boss_phase = 2
+	_stand(g, at.x, at.y, e.x, e.y, w.elevation(e.x, e.y) + 1.0)
+	_ticks(g, 20)
+	await _snap("boss_smoke_2")
+	e.hp = e.max_hp * .15
+	e.boss_phase = 3
+	_ticks(g, 20)
+	await _snap("boss_smoke_3")
+	var close := _spot(g, e.x, e.y, 2.3)
+	if close == Vector2.INF:
+		return
+	_stand(g, close.x, close.y, e.x, e.y, w.elevation(e.x, e.y) + .6)
+	_arm(g, Weapons.SHOTGUN)
+	e.hp = e.max_hp * .9
+	e.boss_phase = 1
+	e.cooldown = 99.0
+	_ticks(g, 20)
+	_ticks(g, 1, true)
+	await _row(g, "boss_stagger", [2, 6, 12])
+	_stand(g, at.x, at.y, e.x, e.y, w.elevation(e.x, e.y) + .4)
+	e.hp = 1.0
+	e.cooldown = 99.0
+	_arm(g, Weapons.REVOLVER)
+	_ticks(g, 2)
+	_ticks(g, 1, true)
+	await _row(g, "boss_fall", [6, 14, 24, 40, 70, 110])

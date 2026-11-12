@@ -2,7 +2,9 @@
 ## (HARD) or every second (HOG WILD) of the county's hands that is about from
 ## the start gets a partner of the same kind beside it. They join the enemies
 ## after the level's own (so a save's count of those still matches) and are
-## saved here, in the save's features block.
+## saved here, in the save's features block, with every other enemy that
+## joined after the level's own (a boss's backup, features/boss_fight.gd;
+## Maw's pod crew).
 extends GameFeature
 
 const STEP := {2: 4, 3: 2}
@@ -10,6 +12,13 @@ const STEP := {2: 4, 3: 2}
 const KEPT := [
 	"kind", "x", "y", "hp", "alerted", "angle", "dormant", "hunt_until", "died_at", "explosive"
 ]
+
+## Room in total_kills for the enemies that join later. A save's kills are
+## checked against total_kills before the features give those enemies back
+## (session_store.gd counts them all once they are), so a new game leaves
+## this much room until its first tick counts them exactly: a save made after
+## killing a posse partner or a boss's backup never fails that check.
+const ROOM := 400
 
 var spawned := false
 
@@ -19,6 +28,9 @@ func id() -> String:
 
 
 func attach() -> void:
+	if game.level.id != "hub":
+		# The Crossroads never ticks its features and never keeps a count.
+		game.total_kills += ROOM
 	game.ticked.connect(_tick)
 
 
@@ -26,6 +38,10 @@ func _tick(_dt: float) -> void:
 	if spawned:
 		return
 	spawned = true
+	game.total_kills = 0
+	for e: Enemy in game.enemies:
+		if e.hostile:
+			game.total_kills += 1
 	var step: int = STEP.get(game.difficulty, 0)
 	if step == 0:
 		return

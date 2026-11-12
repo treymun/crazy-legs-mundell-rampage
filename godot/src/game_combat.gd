@@ -155,6 +155,9 @@ func hitscan(
 		return true
 	if best != null:
 		_traced(ax, ay, slope, near, "enemy")
+		# Where it struck, for a boss's weak spot (BossKit.weak).
+		hit_point = Vector3(p.x + ax * near, p.y + ay * near, p.eye + near * slope)
+		hit_from = Vector2(p.x, p.y)
 		best.hurt(amount, self, false, pressure, null, String(Weapons.NAMES[armory.active]))
 		return true
 	if not spark:
@@ -442,6 +445,8 @@ func explode(shot: Shot) -> void:
 	for enemy: Enemy in enemies:
 		var distance := sqrt((enemy.x - x) * (enemy.x - x) + (enemy.y - y) * (enemy.y - y))
 		if enemy.alive and distance < radius and world.visible(x, y, enemy.x, enemy.y):
+			hit_point = Vector3(x, y, z)
+			hit_from = Vector2(player.x, player.y)
 			enemy.hurt(
 				maxi(1, int(strength * (1.0 - distance / (radius + .3)))),
 				self,
@@ -736,6 +741,8 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 			and dz < enemy.height + .05
 			and sqrt(pow(enemy.x - x, 2) + pow(enemy.y - y, 2)) < enemy.radius + .10
 		):
+			hit_point = Vector3(x, y, z)
+			hit_from = Vector2(player.x, player.y)
 			if shot.kind == "blade":
 				enemy.hurt(shot.damage, self, false, false, null, "blade")
 				sound_at("saw_hit", x, y)

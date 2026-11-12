@@ -654,6 +654,8 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			var fresh := 1.3 - (callout_until - clock)
 			var jolt := int(maxf(0.0, .2 - fresh) * 20.0 * shake_scale)
 			HUD.text(c, callout, 160 + jolt, 30, "heading", HUD.AMBER, true)
+		# A boss's entrance: its name slammed onto a fair ribbon (boss_kit.gd).
+		BossKit.draw_intro(self, c)
 		var after_notice := 5
 		if not map:
 			if practice:

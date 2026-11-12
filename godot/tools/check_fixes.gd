@@ -638,6 +638,9 @@ func _run() -> void:
 	_mothership(main)
 	_boss_music(main)
 
+	# Boss fights: phases, stagger, weak spots, backup, entrance, the fall.
+	preload("res://tools/boss_check.gd").run(main, check)
+
 	print("")
 	if failures.is_empty():
 		print("PARITY FIXES OK")

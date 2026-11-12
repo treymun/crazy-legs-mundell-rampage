@@ -33,6 +33,8 @@ const BOSS_RANGE := 14.0
 const BOSS_HOLD := 10.0
 ## Bosses whose own feature plays their loop (features/mothership.gd).
 const OWN_MUSIC := ["maw"]
+## How high the boss loop plays once its boss is plum desperate (phase 3).
+const LIFT := 1.06
 
 var fighting := false
 ## The boss loop is wanted (tools read it), and when the player was last in
@@ -67,6 +69,10 @@ func _tick(dt: float) -> void:
 	if game.sound != null and game.sound.has_method("set_fight"):
 		game.sound.set_fight(fighting)
 		_boss_music()
+		# The boss loop lifts a touch in its boss's last phase (sound.gd tick_score
+		# eases it there; only a boss loop is ever lifted).
+		var foe := boss()
+		game.sound.score_lift = LIFT if foe != null and foe.boss_phase >= 3 else 1.0
 
 
 ## The boss whose fight it is: the chapter's last boss, or Hickston's sheriff
