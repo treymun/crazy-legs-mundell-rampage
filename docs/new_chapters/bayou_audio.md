@@ -1,5 +1,10 @@
 # Gator Bayou (chapter five): sound and music to make
 
+Made (audio pass, 2026-11-11): every cue below is in scripts/audio_spec.py and
+the bank, and the music is three tracks (bayou_score, cypress_crawl,
+crawdad_boil_hop), fight_bayou and the boss loop boss_bayou. The tables are
+kept as the brief they were made from.
+
 Nothing here has been generated: the chapter plays silently where these cues
 are missing (`sound.play` skips them; the ambience falls back to the plain yard
 and room beds until `amb_bayou*` exist). Names are exactly what the code and

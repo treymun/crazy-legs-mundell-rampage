@@ -1,0 +1,30 @@
+{
+ "text": "Where's my boy's tin star?",
+ "words": [
+  {
+   "text": "Where's",
+   "start": 0.08,
+   "end": 0.38
+  },
+  {
+   "text": "my",
+   "start": 0.42,
+   "end": 0.56
+  },
+  {
+   "text": "boy's",
+   "start": 0.64,
+   "end": 1.0
+  },
+  {
+   "text": "tin",
+   "start": 1.04,
+   "end": 1.24
+  },
+  {
+   "text": "star?",
+   "start": 1.4,
+   "end": 1.8
+  }
+ ]
+}

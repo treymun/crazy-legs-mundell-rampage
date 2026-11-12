@@ -26,6 +26,7 @@ import audio_spec as spec  # noqa: E402
 
 VOICES = gen.SRC / "voices.json"       # name -> ElevenLabs voice id (designed once)
 MUSIC_SECONDS = 140
+LOOP_SECONDS = 70
 
 
 def effect(name: str, redo: bool) -> None:
@@ -40,7 +41,13 @@ def song(stem: str, redo: bool) -> None:
         return
     for name, title, bpm, text in spec.MUSIC:
         if name == stem:
-            gen.music(stem, f"{text} About {bpm} BPM. {spec.BAND}", MUSIC_SECONDS, redo)
+            seconds = spec.MUSIC_LENGTH.get(stem, MUSIC_SECONDS)
+            gen.music(stem, f"{text} About {bpm} BPM. {spec.BAND}", seconds, redo)
+            return
+    # The fight and boss loops: no intro or ending, cut into rings by audio_build.py.
+    for name, title, bpm, text in spec.FIGHTS + spec.BOSSES:
+        if name == stem:
+            gen.music(stem, f"{text} {spec.FIGHT_TAIL}", spec.LOOP_LENGTH.get(stem, LOOP_SECONDS), redo)
             return
     raise SystemExit(f"No track named {stem}")
 
@@ -89,6 +96,11 @@ DESIGNS = {
                "wheedling voice and a strong country accent. Loud and showy. Close, dry studio recording."
                , "Step right up, step right up, clear the stage and save that rope! One thin dime, folks, one "
                "tenth of a dollar, to see the wonder of Possum County before the whole show leaves town!"),
+    "maw": ("A towering elderly alien grandmother from a 1950s B-movie flying saucer: a big, warbling, "
+            "rubbery, nasal old woman's voice with a thick rural Southern drawl, bossy, doting and comic. "
+            "Close, dry studio recording.",
+            "Supper's on the table and somebody's tracked mud all over my nice clean deck. "
+            "Where is my baby boy? You young'uns get in here right now before I fetch my rolling pin."),
 }
 
 

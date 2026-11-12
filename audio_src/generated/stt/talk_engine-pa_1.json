@@ -1,0 +1,20 @@
+{
+ "text": "Sign said unleaded",
+ "words": [
+  {
+   "text": "Sign",
+   "start": 0.1,
+   "end": 0.44
+  },
+  {
+   "text": "said",
+   "start": 0.56,
+   "end": 0.88
+  },
+  {
+   "text": "unleaded",
+   "start": 1.12,
+   "end": 1.78
+  }
+ ]
+}

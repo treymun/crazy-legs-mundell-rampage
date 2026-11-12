@@ -1,0 +1,35 @@
+{
+ "text": "Uh, nothing up there but stars",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.0,
+   "end": 0.1
+  },
+  {
+   "text": "nothing",
+   "start": 0.22,
+   "end": 0.62
+  },
+  {
+   "text": "up",
+   "start": 0.82,
+   "end": 0.94
+  },
+  {
+   "text": "there",
+   "start": 1.02,
+   "end": 1.4
+  },
+  {
+   "text": "but",
+   "start": 1.5,
+   "end": 1.72
+  },
+  {
+   "text": "stars",
+   "start": 1.88,
+   "end": 2.62
+  }
+ ]
+}

@@ -65,7 +65,7 @@ class Station:
 	var requires: Array = []
 	var opens: Array = []
 	var sectors: Array = []
-	var cue := "menu_accept"
+	var cue := "lever_clunk"
 	var reveals_secret := false
 	var hidden := false
 	var action := "use"
@@ -426,7 +426,7 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		for p in s.get("opens", []):
 			station.opens.append(Vector2i(int(p[0]), int(p[1])))
 		station.sectors = s.get("sectors", [])
-		station.cue = String(s.get("cue", "menu_accept"))
+		station.cue = String(s.get("cue", "lever_clunk"))
 		station.reveals_secret = bool(s.get("reveals_secret", false))
 		station.hidden = bool(s.get("hidden", false))
 		station.action = String(s.get("action", "use"))

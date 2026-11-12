@@ -1,0 +1,40 @@
+{
+ "text": "Who dropped a boot in the boil?",
+ "words": [
+  {
+   "text": "Who",
+   "start": 0.2,
+   "end": 0.58
+  },
+  {
+   "text": "dropped",
+   "start": 0.72,
+   "end": 1.12
+  },
+  {
+   "text": "a",
+   "start": 1.18,
+   "end": 1.24
+  },
+  {
+   "text": "boot",
+   "start": 1.38,
+   "end": 1.66
+  },
+  {
+   "text": "in",
+   "start": 1.7,
+   "end": 1.82
+  },
+  {
+   "text": "the",
+   "start": 1.88,
+   "end": 1.98
+  },
+  {
+   "text": "boil?",
+   "start": 2.1,
+   "end": 2.56
+  }
+ ]
+}

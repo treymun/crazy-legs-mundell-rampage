@@ -1,0 +1,25 @@
+{
+ "text": "Thanks full, Your Majesty",
+ "words": [
+  {
+   "text": "Thanks",
+   "start": 0.06,
+   "end": 0.36
+  },
+  {
+   "text": "full,",
+   "start": 0.42,
+   "end": 0.76
+  },
+  {
+   "text": "Your",
+   "start": 0.84,
+   "end": 0.92
+  },
+  {
+   "text": "Majesty",
+   "start": 1.0,
+   "end": 1.62
+  }
+ ]
+}

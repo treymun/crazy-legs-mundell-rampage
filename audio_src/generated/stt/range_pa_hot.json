@@ -1,0 +1,60 @@
+{
+ "text": "The range is hot. Keep it pointed down range, you hear?",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.08,
+   "end": 0.18
+  },
+  {
+   "text": "range",
+   "start": 0.28,
+   "end": 0.68
+  },
+  {
+   "text": "is",
+   "start": 0.76,
+   "end": 0.88
+  },
+  {
+   "text": "hot.",
+   "start": 0.92,
+   "end": 1.24
+  },
+  {
+   "text": "Keep",
+   "start": 1.46,
+   "end": 1.68
+  },
+  {
+   "text": "it",
+   "start": 1.72,
+   "end": 1.88
+  },
+  {
+   "text": "pointed",
+   "start": 1.94,
+   "end": 2.3
+  },
+  {
+   "text": "down",
+   "start": 2.36,
+   "end": 2.66
+  },
+  {
+   "text": "range,",
+   "start": 2.72,
+   "end": 3.12
+  },
+  {
+   "text": "you",
+   "start": 3.22,
+   "end": 3.3
+  },
+  {
+   "text": "hear?",
+   "start": 3.34,
+   "end": 3.56
+  }
+ ]
+}

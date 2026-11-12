@@ -49,7 +49,7 @@ static func attack(e: Enemy, game, direction: float, distance: float, eye: float
 				-1.0,
 				e.get_instance_id()
 			)
-		game.sound_at("rocket_pop", e.x, e.y, .8)
+		game.sound_at("flagman_flare", e.x, e.y, .8)
 		e.cooldown = 1.75 if e.attacks % 2 else 2.1
 		return true
 	return false

@@ -101,7 +101,7 @@ func _tick(dt: float) -> void:
 		var gap := Vector2(p.x - at.x, p.y - at.y).length()
 		if gap < 12.0 and game.clock >= float(car[3]):
 			car[3] = game.clock + 2.2
-			game.sound_at("distant_derby_engine", at.x, at.y, .9)
+			game.sound_at("lap_car_pass", at.x, at.y, .9)
 		if gap < REACH + GameState.PLAYER_RADIUS and p.air < .5 and game.clock >= float(car[2]):
 			car[2] = game.clock + 1.0
 			game.damage(float(spec.get("damage", 30)), [at.x, at.y], "RUN DOWN")
@@ -111,7 +111,7 @@ func _tick(dt: float) -> void:
 			var away := heading + side * PI / 2.0
 			game.move_actor(p, cos(away) * 1.2, sin(away) * 1.2, GameState.PLAYER_RADIUS)
 			game.shake = minf(1.0, game.shake + .8)
-			game.sound_at("scenery_scrap", p.x, p.y, 1.0)
+			game.sound_at("lap_car_hit", p.x, p.y, 1.0)
 		for e: Enemy in game.enemies:
 			if not e.alive or Enemy.BOSS_TITLES.has(e.kind) or e.z > .3:
 				continue

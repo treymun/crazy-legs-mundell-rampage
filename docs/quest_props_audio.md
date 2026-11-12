@@ -1,5 +1,9 @@
 # Sounds the quest props could use
 
+Made (audio pass, 2026-11-11): `chain_rattle` (a locked exit or Crossroads
+gate) and `lever_clunk` (the default station cue); keys and the patch lead
+play the existing `key_pickup`.
+
 Listed by the quest props pass (stations, exits, gates, keys and the patch
 lead). None of these were generated: the main session decides whether to
 spend ElevenLabs credits on them, or to make them in `assets.gd` MADE_CUES.

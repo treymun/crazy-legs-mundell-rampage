@@ -3,7 +3,8 @@
     python scripts/audio_build.py            # effects, voices, music, manifest
     python scripts/audio_build.py --sfx      # only the effect bank sources
     python scripts/audio_build.py --music    # only the songs (the fight loops too)
-    python scripts/audio_build.py --fights   # only the chapters' fight loops
+    python scripts/audio_build.py --fights   # only the chapters' fight and boss loops
+    python scripts/audio_build.py --music --only boss_bayou bayou_score   # just these songs
     python scripts/audio_build.py --check    # validate what is on disk, exit 1 on failure
     python scripts/audio_build.py --sfx --only crowd_cheer   # just these cues, the rest kept as they are
 
@@ -379,7 +380,7 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
     else:
         x = decode(path, cents=entry.get("cents", 0.0))
         if entry["make"] == "voice":
-            found = spoken(name, entry["text"])
+            found = spoken(name, entry.get("heard", entry["text"]))
             if isinstance(found, str):
                 return None, {"status": found, **recipe}
             a = max(0, int((found[0] - .05) * RATE))
@@ -745,8 +746,10 @@ def _spread(mono: np.ndarray, win: int) -> float:
     return round(float(np.median(spans)), 2)
 
 
-def build_fights(report: dict, ends: dict) -> None:
-    for stem, title, bpm, _text in spec.FIGHTS:
+def build_fights(report: dict, ends: dict, only: list[str] | None = None) -> None:
+    for stem, title, bpm, _text in spec.FIGHTS + spec.BOSSES:
+        if only and stem not in only:
+            continue
         source = GEN / "music" / f"{stem}.mp3"
         if not source.is_file():
             report[stem] = {"status": "missing source", "title": title}
@@ -767,7 +770,7 @@ def build_music() -> dict:
             report[stem] = {"status": "missing source", "title": title}
             continue
         facts = master(source, MUSIC_OUT / f"{stem}.ogg", gentle)
-        ends[stem] = round(facts["seconds"] - .05, 3)
+        ends[stem] = round(min(facts["seconds"] - .05, spec.MUSIC_END.get(stem, 1e9)), 3)
         report[stem] = {"status": "built", "title": title, "bpm_asked": bpm, **facts}
     source = GEN / "music" / "victory.mp3"
     if source.is_file():
@@ -789,13 +792,34 @@ def build_music() -> dict:
     return report
 
 
-def build_fight_music(previous: dict) -> dict:
-    """Only the fight loops; every other song and its cut-off stay as they are."""
+def build_fight_music(previous: dict, only: list[str] | None = None) -> dict:
+    """Only the fight and boss loops; every other song and its cut-off stay as they are."""
     path = MUSIC_OUT / "playback_ends.json"
     ends = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
     report = {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")}
               for s, m in previous.items()}
-    build_fights(report, ends)
+    build_fights(report, ends, only)
+    path.write_text(json.dumps(ends, indent=1) + "\n", encoding="utf-8", newline="\n")
+    return report
+
+
+def build_some_music(previous: dict, only: list[str]) -> dict:
+    """Just the named chapter tracks and loops; every other song keeps its file and cut-off."""
+    path = MUSIC_OUT / "playback_ends.json"
+    ends = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    report = {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")}
+              for s, m in previous.items()}
+    for stem, title, bpm, _text in spec.MUSIC:
+        if stem not in only:
+            continue
+        source = GEN / "music" / f"{stem}.mp3"
+        if not source.is_file():
+            report[stem] = {"status": "missing source", "title": title}
+            continue
+        facts = master(source, MUSIC_OUT / f"{stem}.ogg", GENTLE)
+        ends[stem] = round(min(facts["seconds"] - .05, spec.MUSIC_END.get(stem, 1e9)), 3)
+        report[stem] = {"status": "built", "title": title, "bpm_asked": bpm, **facts}
+    build_fights(report, ends, only)
     path.write_text(json.dumps(ends, indent=1) + "\n", encoding="utf-8", newline="\n")
     return report
 
@@ -861,10 +885,12 @@ def main() -> None:
         raise SystemExit(1 if bad or missing else 0)
     everything = not (args.sfx or args.music or args.fights)
     sfx = build_sfx(inventory, args.only, previous) if args.sfx or everything else {n: {k: c[k] for k in ("recipe", "measured") if k in c} for n, c in previous["cues"].items()}
-    if args.music or everything:
+    if args.music and args.only:
+        music = build_some_music(previous["music"], args.only)
+    elif args.music or everything:
         music = build_music()
     elif args.fights:
-        music = build_fight_music(previous["music"])
+        music = build_fight_music(previous["music"], args.only)
     else:
         music = {s: {k: v for k, v in m.items() if k not in ("credits", "origin", "destination", "format")} for s, m in previous["music"].items()}
     result = manifest(sfx, music, inventory)

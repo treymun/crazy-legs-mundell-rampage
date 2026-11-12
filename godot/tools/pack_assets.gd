@@ -29,15 +29,26 @@ const AssetsLib := preload("res://src/assets.gd")
 
 const SFX_RATE := 22050
 const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky", "bayou_sky", "speedway_sky"]
-## Each chapter's file: its three tracks, then the loop its fights swell into
-## (Sound.FIGHTS).
+## Each chapter's file: its tracks, the loop its fights swell into
+## (Sound.FIGHTS), then its boss loop (Sound.BOSSES).
 const MUSIC_FILES := {
-	"music_hickston": ["music", "county_line", "porchlight_stomp", "fight_hickston"],
-	"music_fair": ["fair_score", "tickets_after_dark", "closing_time_shuffle", "fight_fair"],
-	"music_mill": ["mill_score", "green_chain", "apron_run", "fight_mill"],
-	"music_quarry": ["quarry_score", "copper_and_steam", "last_load", "fight_quarry"],
-	"music_bayou": ["bayou_score", "fight_bayou"],
-	"music_speedway": ["music_speedway", "fight_speedway"],
+	"music_hickston":
+	["music", "county_line", "porchlight_stomp", "fight_hickston", "boss_hickston"],
+	"music_fair":
+	["fair_score", "tickets_after_dark", "closing_time_shuffle", "fight_fair", "boss_fair"],
+	"music_mill": ["mill_score", "green_chain", "apron_run", "fight_mill", "boss_mill"],
+	"music_quarry":
+	["quarry_score", "copper_and_steam", "last_load", "fight_quarry", "boss_quarry"],
+	"music_bayou":
+	["bayou_score", "cypress_crawl", "crawdad_boil_hop", "fight_bayou", "boss_bayou"],
+	"music_speedway":
+	[
+		"music_speedway",
+		"pit_row_boogie",
+		"checkered_flag_rag",
+		"fight_speedway",
+		"boss_speedway",
+	],
 	"music_mothership": ["mothership_score", "fight_mothership", "boss_mothership"],
 }
 ## Tracks not made yet are listed in assets.gd PENDING_MUSIC: only noted here,

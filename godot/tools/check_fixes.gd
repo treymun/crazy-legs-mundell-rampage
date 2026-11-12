@@ -624,6 +624,7 @@ func _run() -> void:
 
 	# The Mothership, the last chapter, and the true finale after it.
 	_mothership(main)
+	_boss_music(main)
 
 	print("")
 	if failures.is_empty():
@@ -1158,3 +1159,29 @@ func _mothership(main) -> void:
 			lit += 1
 	check(lit > 4000, "the finale's tally draws after the last chapter (%d lit)" % lit)
 	check(Campaign.next_level("mothership") == "", "the Mothership is the last chapter")
+
+
+## Each chapter's boss fight swaps its score for its boss loop, and the score
+## comes back when the boss falls (features/fight_music.gd, Sound.BOSSES).
+func _boss_music(main) -> void:
+	print("\nBOSS MUSIC")
+	for id: String in ["hickston", "quarry", "bayou", "speedway"]:
+		var g: Game = main.make_game(id)
+		g.configure({})
+		var foe: Enemy = g.finale if g.finale != null else g.boss
+		var track := String(Sound.BOSSES.get(g.level.score, ""))
+		check(foe != null and track != "", "%s has a boss and a boss loop (%s)" % [id, track])
+		if foe == null:
+			continue
+		g.sound.set_score(g.level.score)
+		foe.dormant = false
+		foe.alerted = true
+		g.player.x = foe.x + 3.0
+		g.player.y = foe.y if foe == g.finale else 6.0
+		g.ticked.emit(.2)
+		check(String(g.sound.score) == track, "%s's boss fight plays %s" % [id, track])
+		foe.hp = 0.0
+		if g.jerry != null:
+			g.jerry.hp = 0.0
+		g.ticked.emit(.2)
+		check(String(g.sound.score) == g.level.score, "%s's score is back when it falls" % id)

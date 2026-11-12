@@ -1,5 +1,10 @@
 # Chapter 6, Buzzard Bend Speedway: sound and music to make
 
+Made (audio pass, 2026-11-11): every cue below is in scripts/audio_spec.py and
+the bank and swapped in where the table says; the music is three tracks
+(music_speedway, pit_row_boogie, checkered_flag_rag), fight_speedway and the
+boss loop boss_speedway. Kept as the brief.
+
 Nothing here was generated: the speedway agent may not run ElevenLabs. Until
 these exist the chapter uses existing cues where it can (listed under each
 cue) and the game skips a missing cue silently, so every new cue below is

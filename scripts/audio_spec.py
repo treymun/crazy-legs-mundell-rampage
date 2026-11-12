@@ -10,7 +10,8 @@ audio_src/manifest.json for the triggers). An entry is one of:
                          "room"  the indoor tail layered under `base`
                          "event" another hit taken from the same recording
                          "pitch" the same hit retuned
-  V(text, voice, fx)     a spoken line; `text` is the caption
+  V(text, voice, fx)     a spoken line; `text` is the caption (`say`: what was sent
+                         instead, `heard`: how its transcript spells the words)
 
 FAMILY sets the finishing chain (tone curve, level, fades) each cue gets in
 scripts/audio_build.py. Nothing here costs money: scripts/audio_produce.py
@@ -452,7 +453,7 @@ add("voice",
     county_dispatch_1=V("The hog is home.", "dispatch", "radio"),
     county_dispatch_2=V("Check the blue trunk.", "dispatch", "radio"),
     county_dispatch_3=V("Keep the last load.", "dispatch", "radio"),
-    county_dispatch_4=V("The tag is home.", "dispatch", "radio"),
+    county_dispatch_4=V("Check the bayou.", "dispatch", "radio"),
     talk_tow__radio_0=V("Who took the truck?", "dispatch", "radio"),
     talk_tow__radio_1=V("Ask the pig.", "local", say="Ask the pig. I said, ask the pig. Go ask the pig."),
     talk_registry__radio_0=V("Keep the key dry.", "dispatch", "radio"),
@@ -469,6 +470,205 @@ add("voice",
     talk_pit__speaker_1=V("Needs more salt.", "local"),
     talk_line__speaker_0=V("Close the tap.", "barker", "horn"),
     talk_line__speaker_1=V("Which red one?", "local"),
+    )
+
+
+# ------------------------------------------- chapters five to seven, the range
+# From docs/new_chapters/<chapter>_audio.md and docs/quest_props_audio.md. A new
+# cue has no older cue to take its length from, so each keeps what it asks for.
+def N(prompt, gen, keep=None, style="mech", **opts):
+    return G(prompt, gen, keep if keep is not None else gen, style, **opts)
+
+
+# Gator Bayou (chapter five): the noodler, the chum tosser, the gator, the Swamp King.
+add("alert",
+    noodler_holler=N("A big swamp man hollers, startled and mean, a wet bark of a shout rising out of the water.", 1.0, style="vox"),
+    chum_holler=N("A bait man yells \"Chum's in!\" and sloshes a bucket, slop hitting the water.", 1.2, style="vox"),
+    king_holler=N("A big redneck swamp boss whoops over a roaring airboat engine, \"Who's on my water?\"", 1.6, style="vox"),
+    swamp_king_rage=N("A fat swamp king bellows furiously over a redlining airboat engine.", 1.6, style="vox"),
+    )
+add("warn",
+    noodler_grunt=N("A heavy man grunts and winds up a swing, a big wet fish slapping against his waders.", .8, style="creature"),
+    chum_slosh=N("A plastic jug of fish chum sloshed back over a shoulder to throw: thick liquid glug.", .7, style="impact"),
+    gator_hiss=N("An alligator's low warning hiss and throat rumble, close.", 1.0, style="creature"),
+    king_rev=N("An airboat's aircraft engine revving hard, the big caged propeller winding up to a roar.", 1.2, style="tool"),
+    )
+add("attack",
+    noodler_slap=N("A huge wet catfish slammed across somebody: meaty slap, splatter of swamp water.", .6, style="impact"),
+    chum_throw=N("A full jug of chum lobbed: effortful toss, the jug tumbling with a gurgle.", .6, style="impact"),
+    gator_snap=N("An alligator's jaws snapping shut hard: heavy clack and a lunge splash.", .6, style="creature"),
+    king_charge=N("An airboat launching flat out across water: engine howl, prop roar, a hissing rooster tail of spray.", 1.4, style="tool"),
+    king_ram=N("A steel airboat hull rams a wooden dock: heavy crunch, splintering planks, engine still screaming.", 1.0, style="impact"),
+    king_beached=N("An airboat runs aground on a mud bank: grinding scrape, the engine choking and sputtering down.", 1.3, style="impact"),
+    king_puntgun=N("A huge punt gun fires from a boat: enormous black-powder boom, a spray of shot ripping across water.", 1.4, .9, "gun"),
+    )
+add("scene",
+    noodler_rise=N("A big man bursts up out of shallow swamp water: heavy splash, water pouring off him.", 1.0, style="impact"),
+    record_scratch=N("A needle dragged across a spinning record: a quick scratch to silence.", .6, style="mech"),
+    )
+add("death",
+    king_down=N("A big man's dying howl as his airboat engine coughs and dies.", 1.8, style="vox"),
+    swamp_king_death=N("A swamp king's last wail as his airboat's fuel tank goes up with a whump and a splash.", 2.2, style="vox"),
+    )
+add("sting",
+    swamp_king_intro=N("Swampy dark Southern rock: a growling slide guitar riff, an airboat engine roar and pounding toms, boss arrival sting.", 2.5, 2.2, "sting"),
+    swamp_king_end=N("A huge victorious Southern rock final chord with a washboard rattle and a rolling drum fill.", 2.5, 2.2, "sting"),
+    )
+add("ambience",
+    amb_bayou=LOOP("A swamp at dusk: bullfrogs, cicadas and crickets, still water lapping at pilings, a far heron call.", 14, 14.0),
+    amb_bayou_shack=LOOP("Inside a tin-roofed stilt shack: a box fan rattling, water lapping under the floor, insects on the screens.", 12, 12.0),
+    amb_bayou_after=LOOP("A swamp gone quiet after a fight: frogs starting up again, drifting smoke, water settling.", 12, 11.6),
+    )
+add("distant",
+    distant_bayou_airboat=N("An airboat engine idling out on open water far away.", 2.5, style="far"),
+    distant_bayou_juke=N("A juke joint band thumping through thin walls across the water, muffled.", 2.5, style="far"),
+    distant_bayou_gator=N("An alligator's deep bellow rolling across a swamp.", 2.0, style="far"),
+    distant_bayou_frogs=N("A chorus of bullfrogs swelling far off in the cypress.", 2.0, style="far"),
+    )
+add("voice",
+    talk_boil__cooks_0=V("Who dropped a boot in the boil?", "local"),
+    talk_boil__cooks_1=V("That's seasonin'.", "dispatch", heard="That season in"),
+    talk_juke__band_0=V("We know two songs.", "local"),
+    talk_juke__band_1=V("Then play the other one.", "barker"),
+    talk_dock__radio_0=V("King to dock. Fuel her up.", "barker", "radio", heard="King to doc, fuel her up"),
+    talk_dock__radio_1=V("Tank's full, your majesty.", "local", heard="Thanks full, Your Majesty"),
+    )
+
+# Buzzard Bend Speedway (chapter six): the pit crew, the flagman, Bumper Boggs.
+add("warn",
+    derby_champ_warn=N("A big-block V8 in a battered derby car revving hard, lifters clattering, then the tyres starting to spin on dirt.", 1.2, style="tool"),
+    huffer_hiss=N("A wild man huffing nitrous from a hose: a long gas hiss and a giggle.", 1.0, style="creature"),
+    )
+add("impact",
+    derby_champ_crash=N("An armoured demolition-derby car slams into a concrete wall at speed: heavy crunch of steel, glass and a radiator bursting.", 1.4, style="impact"),
+    lap_car_hit=N("A man struck by a speeding race car: bang of a fender and a body thrown onto dirt.", 1.0, style="impact"),
+    )
+add("alert",
+    derby_champ_rage=N("A redneck derby champion bellowing from inside his car over a screaming engine and a horn blast.", 1.6, style="vox"),
+    )
+add("death",
+    derby_champ_death=N("A derby car's engine dies in a tearing explosion: fuel tank whoomp, steel crumpling, a man's last holler.", 2.2, style="vox"),
+    derby_champ_pain=N("A man inside a steel car grunting as bullets ping off the armour plate.", .8, style="vox"),
+    derby_champ_down=N("A man inside a steel car gives a short dying groan as the engine coughs out.", 1.0, style="vox"),
+    )
+add("attack",
+    flagman_flare=N("A flare pistol fired: hollow pop and a fizzing whoosh of a burning flare.", .8, style="gun"),
+    tire_roll=N("A heavy racing tyre bowled hard along packed dirt: rubbery thump and a rumbling roll.", 1.2, style="impact"),
+    wrench_throw=N("A heavy steel lug wrench thrown end over end: whoosh and a ringing clang where it lands.", .9, style="impact"),
+    )
+add("scene",
+    # Close by the fence as the field comes round: the full band, not the distant chain.
+    lap_car_pass=N("A dirt-track stock car blasting past close: V8 roar dopplering by, gravel spraying the wall.", 2.0, style="tool"),
+    )
+add("sting",
+    derby_champ_intro=N("A gritty Southern rock riff over a revving V8 and a starter's horn: the derby champ rolls out.", 2.5, 2.2, "sting"),
+    derby_champ_end=N("A huge victorious Southern rock chord with an engine coughing to silence and a crowd whoop.", 2.5, 2.2, "sting"),
+    )
+add("voice",
+    talk_pit__radio_0=V("Fuel's a hundred and ten proof, boys.", "barker", "radio", heard="Fuel's 110 proof, boys"),
+    talk_pit__radio_1=V("Then don't light a smoke.", "local"),
+    talk_booth__pa_0=V("Lap forty-seven, Boggs leads.", "barker", "pa"),
+    talk_booth__pa_1=V("As usual. What a shock.", "barker", "pa"),
+    talk_camp__fire_0=V("See that saucer over turn two?", "local", heard="See that saucer overturned too"),
+    talk_camp__fire_1=V("That's a floodlight, Earl.", "dispatch"),
+    )
+
+# The Mothership (chapter seven): the crew, the tin guard, the probe, Maw Glorb.
+add("attack",
+    drone_zap=N("A cattle prod jabbed into somebody: a crackling electric zap and a short buzz.", .7, .45, "alien"),
+    guard_zapper=N("A giant bug zapper fired like a gun: three quick crackling purple bolts, fat and buzzy.", .8, .5, "alien"),
+    probe_tug=N("A tractor beam yanks something: rising wobbling hum snapping into a zap.", .9, .6, "alien"),
+    maw_dryer_blast=N("The giant hair dryer fires a fan of heat bolts: roaring hot whoosh with fizzing zaps.", 1.0, .7, "alien"),
+    )
+add("impact",
+    tailgate_clang=N("A bullet ricochets off a rusty pickup truck tailgate: hard tinny clang and a whine.", .6, .35, "impact"),
+    )
+add("warn",
+    maw_pin_raise=N("A giant raises a huge wooden rolling pin: creaking wood, a deep grunting inhale.", 1.1, .9, "creature"),
+    maw_dryer_whine=N("A salon hair dryer the size of a car spinning up: rising whining fan and electric crackle.", 1.0, .85, "alien"),
+    maw_stomp_warn=N("A huge creature lifts one foot in a fuzzy slipper: a creak of the deck and a building rumble.", 1.1, 1.0, "creature"),
+    drone_buzz=N("A cattle prod charging: quick rising electric buzz.", .6, .4, "alien"),
+    guard_wind=N("A huge bug zapper powering up: rising electric hum with crackling sparks.", .8, .6, "alien"),
+    probe_whine=N("A small flying eyeball drone focuses its beam: rising wobbling theremin whine.", .8, .7, "alien"),
+    )
+add("boom",
+    maw_pin_slam=N("A gigantic rolling pin slammed onto a steel deck: booming wooden thud, ringing metal, rattling floor plates.", 1.4, 1.0, "boom"),
+    maw_stomp=N("A towering giant stomps a metal deck: deep booming quake, rattling bolts, a shockwave rolling out.", 1.6, 1.2, "boom"),
+    )
+add("alert",
+    maw_holler=N("An enormous alien grandmother hollers to call her children in for supper, warbling and rubbery.", 1.4, 1.2, "alien"),
+    maw_rage=N("A giant alien grandma shrieks in fury as her housecoat catches fire: warbling scream and crackling flames.", 1.8, 1.6, "alien"),
+    maw_bare=N("A huge alien bellows with power cells humming up to full charge: furious roar over a rising electric whine.", 1.8, 1.6, "alien"),
+    maw_spot=N("A huge alien grandma spots someone: a low suspicious \"hmmmm\" through a rubbery throat.", .9, .7, "alien"),
+    probe_spot=N("A floating eyeball robot notices someone: quick curious beeping chirp.", .6, .4, "alien"),
+    )
+add("scene",
+    pod_open=N("A crew pod's hatch hisses open: pressure hiss, wet suction pop, a chirp.", .9, .7, "alien"),
+    beam_hum=N("A tractor beam touching someone: thick wobbling hum and a buzzing burn.", .9, .7, "alien"),
+    )
+add("death",
+    maw_death=N("A towering alien grandmother's long dying wail, curlers clattering, ending in a crash and fizzling sparks.", 2.6, 2.4, "alien"),
+    maw_pain=N("A giant alien grandma is hit: short indignant rubbery yelp.", .7, .5, "alien"),
+    maw_down=N("A giant alien grandma falls: long warbling shriek and a floor-shaking thud.", 1.8, 1.5, "alien"),
+    )
+add("distant",
+    ship_quake=N("A spaceship coming apart far off: groaning metal, a muffled explosion, rattling debris.", 2.5, 2.2, "far"),
+    )
+add("ambience",
+    amb_mothership=LOOP("Inside a junky alien mothership: low engine drone, ticking hull, bubbling tanks, a faint distant moo.", 12, 12.0),
+    )
+add("sting",
+    maw_intro=N("A menacing cowpunk riff with a theremin wail and a slammed screen door: final boss arrival sting.", 2.5, 2.2, "sting"),
+    maw_end=N("A huge triumphant cowpunk final chord with a falling theremin and a cymbal crash: the last boss is down.", 3.0, 2.6, "sting"),
+    )
+add("voice",
+    # The ship's PA is Maw herself: she runs the place.
+    talk_ship__pa_0=V("Hooman loose on deck four.", "maw", "pa", heard="Human loose on deck four"),
+    talk_ship__pa_1=V("Which one is the hooman?", "local", heard="Which one is the Who man"),
+    talk_mess__pa_0=V("Corn dogs are off.", "maw", "pa"),
+    talk_mess__pa_1=V("Again?", "local", say="Again? Again."),
+    talk_engine__pa_0=V("Who put diesel in the drive?", "maw", "pa"),
+    talk_engine__pa_1=V("Sign said unleaded.", "local"),
+    talk_bridge__pa_0=V("Where's my boy's tin star?", "maw", "pa"),
+    talk_bridge__pa_1=V("Hickston, Maw.", "local", heard="Hixton Mall"),
+    # The Crossroads board's lines past the quarry (game_state.gd HUB_DISPATCH 4-7;
+    # 6 is the old 4's take, copied: the table grew two chapters in the middle).
+    county_dispatch_5=V("Check the speedway.", "dispatch", "radio"),
+    county_dispatch_6=V("The tag is home.", "dispatch", "radio"),
+    county_dispatch_7=V("Nothing up there but stars.", "dispatch", "radio"),
+    )
+
+# Mundell's Proving Grounds, the firing range (docs/new_chapters/range_audio.md).
+add("impact",
+    range_gong=N("A steel gong target struck by a rifle bullet at 20 yards: bright metallic clang ringing out, outdoors.", 1.4, style="impact"),
+    range_board_hit=N("A bullet punching through a plywood bullseye target on a wooden stand: dry crack and a wobble of the stand.", .5, style="impact"),
+    range_pin_scatter=N("Bowling pins scattering on a wooden lane, a full strike: hollow wooden clatter.", 1.2, style="impact"),
+    )
+add("melee",
+    range_dummy_thwack=N("A crowbar thwacking a straw-stuffed feed-sack dummy: dull burlap thump with straw rustle.", .5, style="impact"),
+    )
+add("ui",
+    range_strike=N("A county-fair bell and a short brass \"ta-da\" for a bowling strike, cheerful and cheap.", 1.5, style="ui"),
+    range_gallery_ding=N("A tin shooting-gallery duck knocked flat: a high tin ping and a spring clack.", .5, .4, "ui"),
+    range_gallery_buzzer=N("An old carnival game buzzer ending the round: a rattly electric buzz.", 1.0, style="ui"),
+    )
+add("station",
+    range_lever=N("A heavy iron release lever thrown on a fence-post switch box: clunk and ratchet.", .6, style="tool"),
+    # The quest props' knife lever (a station's default cue, level.gd).
+    lever_clunk=N("A big knife-switch lever on a steel control box thrown down hard: heavy clunk and a spring twang.", .7, style="tool"),
+    )
+add("door",
+    range_pen_gate=N("A wooden livestock pen gate banging open on its chain.", .8, style="mech"),
+    # A locked exit or gate shaken: chain and padlock (docs/quest_props_audio.md).
+    chain_rattle=N("A heavy chain and padlock on a gate yanked and rattled, locked tight.", .8, style="mech"),
+    )
+add("voice",
+    range_pa_hot=V("The range is hot. Keep it pointed downrange, y'hear.", "local", "pa",
+                  heard="The range is hot. Keep it pointed down range, you hear"),
+    range_pa_medic=V("Medic to the firing line. Again.", "local", "pa"),
+    )
+add("ambience",
+    amb_range=LOOP("A thin county-fair crowd at dusk far off: murmur, a distant calliope, crickets, the odd whoop.", 20, 20.0),
     )
 
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
@@ -489,7 +689,25 @@ MUSIC = [
     ("quarry_score", "Limestone Stomp", 120, "Dark Southern rock stomp: detuned heavy riff, pressure-building pedal bass, tambourine and chain percussion, ominous twang."),
     ("copper_and_steam", "Copper and Steam", 140, "Tense dark Southern rock: sinister tremolo-picked riff over a driving bass ostinato, hissing hi-hats, a slow-burn middle that builds like boiler pressure."),
     ("last_load", "Last Load from Stillwater", 164, "Full-throttle industrial Southern rock finale: pounding double-time drums, snarling dual guitars, hammering metal hits, a huge climactic hook return."),
+    # Gator Bayou: a fish camp on black water, a juke joint, airboats.
+    ("bayou_score", "Black Water Stomp", 112, "Swampy dark Southern rock at dusk: a greasy slide guitar riff over a loping kick and washboard, a growling bass, jug blows and a lonesome harmonica answering; humid, muddy and menacing, with a slow build like an airboat winding up out on the water."),
+    ("cypress_crawl", "Cypress Knee Crawl", 96, "Slow creeping swamp-blues crawl through the fog: a tremolo-soaked twangy guitar picking a sneaky minor riff, a moaning harmonica, a thumping jug bass, brushed snare with a washboard tick; a sly half-time middle with a dobro slide, then the riff comes back heavier."),
+    ("crawdad_boil_hop", "Crawdad Boil Hop", 150, "Rowdy fish-camp juke-joint boogie at a crawfish boil: a hopping two-step beat with washboard and stomping kick, a squeezebox and a fiddle trading a greasy hook with the twangy guitar, slapping upright bass; a stop-time middle with jug blows, then full tilt."),
+    # Buzzard Bend Speedway: dirt-track race night under floodlights, the pits, the derby.
+    ("music_speedway", "Buzzard Bend Feature Race", 126, "Greasy Southern rock and honky-tonk at a dirt-track race night: driving overdriven Telecaster riff, chugging bass, snare on two and four with a ride cymbal like a revving engine, a wailing harmonica answering, a pedal steel swell over the bridge. Loose, loud, beer-soaked and fast."),
+    ("pit_row_boogie", "Pit Row Boogie", 144, "Swaggering pit-row boogie: a chugging palm-muted guitar riff like an idling V8, cowbell and clanking wrench percussion on the backbeat, honky-tonk piano rolls, a slide guitar wailing through the turns; a grinding half-time breakdown, then the riff floors it."),
+    ("checkered_flag_rag", "Checkered Flag Rag", 172, "Hell-for-leather train-beat hillbilly rock under the floodlights: a fast chicken-picked guitar hook, galloping slap bass, banjo rolls and honky-tonk piano racing each other, crash cymbals like a pile-up at the finish line; a stop-time middle, then a last lap even faster."),
+    # The Mothership: a junky saucer run by B-movie greys and their grandma.
+    ("mothership_score", "Abducted Hoedown", 136, "Dark, spooky cowpunk aboard a junky flying saucer: a B-movie theremin answering a twangy tremolo guitar hook, slap bass walking like a creeping alien, a clanking hull-plate backbeat; a half-time middle with a musical saw, then the hook returns bigger."),
 ]
+# Seconds asked for a chapter track (scripts/audio_produce.py; the rest 140). The
+# later chapters' are shorter: the game shuffles three of them.
+MUSIC_LENGTH = {stem: 120 for stem in ("bayou_score", "cypress_crawl", "crawdad_boil_hop", "music_speedway",
+                                       "pit_row_boogie", "checkered_flag_rag", "mothership_score")}
+# Where a track's playback stops when the take ends past it (the game cuts
+# there and moves on): music_speedway's take stops dead at 111.9 s and only
+# hits one last stab four seconds of silence later.
+MUSIC_END = {"music_speedway": 111.95}
 # Fight music: (stem, title, bpm, prompt). One per chapter; the game swells it
 # in over the chapter's track while enemies are on the player (sound.gd,
 # features/fight_music.gd). Each take is cut into a seamless loop.
@@ -501,7 +719,25 @@ FIGHTS = [
     ("fight_fair", "Runaway Midway", 180, "Frantic carnival-midway hoedown punkabilly at 180 BPM: galloping slap bass, banjo and fiddle racing a wheezy off-kilter calliope organ riff, twangy reverb-soaked guitar stabs, washboard and crashing drums. Manic and crooked, like a runaway fairground ride."),
     ("fight_mill", "Ripsaw Stomp", 150, "Pounding industrial lumberjack stomp, country-metal at 150 BPM: buzzing distorted guitar riff that whines like a ripsaw biting a log, chugging palm-muted rhythm guitar, stomping kick and floor toms, anvil and chain clanks on the backbeat, fiddle stabs and driving banjo. Heavy, mechanical, relentless."),
     ("fight_quarry", "Stillwater Jug Brawl", 132, "Heavy moonshine-fuelled blues-rock at 132 BPM: grinding fuzz guitar riff, howling bottleneck slide guitar, booming jug bass blowing the low notes, stomping drums with tambourine and chain hits, frantic banjo answers. Dark, drunk and dangerous swamp-blues muscle."),
+    ("fight_bayou", "Airboat Brawl", 136, "Heavy swamp-rock brawl at 136 BPM: fuzzed slide guitar riff, stomping drums with washboard and tambourine, a droning jug bass, frantic fiddle and harmonica stabs over a roaring overdriven riff. Loud, sweaty and dangerous."),
+    ("fight_speedway", "Demolition Derby Brawl", 138, "Heavy redneck rock brawl at 138 BPM: crunching fuzz guitar riff, pounding floor toms and crash cymbals like cars colliding, slide guitar screaming over the top, honky-tonk piano hammering, a quick banjo roll on the turnarounds. Dangerous, sweaty and relentless."),
+    ("fight_mothership", "Ray Gun Barn Dance", 176, "Frantic hillbilly punk at 176 BPM: furious banjo rolls and sawing fiddle against a wailing theremin riff, overdriven twang guitar, washboard and crashing train-beat drums. Manic, like a hoedown in a crashing spaceship."),
 ]
+# Boss music: (stem, title, bpm, prompt). Each chapter's sound, faster and much
+# heavier; it takes over from the chapter's track and fight loop while the
+# boss fight is on (features/fight_music.gd; Maw Glorb's is features/mothership.gd).
+# Cut into seamless loops like the fight music.
+BOSSES = [
+    ("boss_hickston", "Sheriff's Last Stand", 184, "Furious small-town hillbilly punk-metal showdown at 184 BPM: thundering train-beat drums with double kick, a heavy overdriven twang guitar riff, furious banjo rolls and a screaming fiddle, slapping upright bass, a slide guitar wailing like a squad car siren. Much faster and heavier than a bar fight: a jailhouse riot."),
+    ("boss_fair", "Ringmaster Meltdown", 192, "Deranged carnival psychobilly-metal at 192 BPM: a wheezy off-kilter calliope organ riff doubled by a crunching heavy guitar, frantic slap bass, banjo and fiddle racing, crashing drums with double kick, rude honking horn stabs. A runaway midway on fire."),
+    ("boss_mill", "Head Saw Showdown", 164, "Crushing fast sawmill country-metal at 164 BPM, the whole band flat out from the first bar: a buzzing ultra-heavy guitar riff that screams like a head saw biting oak, chugging palm-muted rhythm guitar, thunderous double kick and floor toms, anvil and chain clanks on every backbeat, fiddle stabs and driving banjo. Brutal, fast and mechanical."),
+    ("boss_quarry", "Boil-Over at the Still", 150, "Ferocious moonshine swamp-blues metal at 150 BPM: a grinding detuned fuzz riff, howling bottleneck slide guitar, booming jug bass, stomping double-kick drums with chain hits and tambourine, a harmonica screaming like a steam whistle, frantic banjo. Heavier and faster than ever, a still about to blow."),
+    ("boss_bayou", "Swamp King's Rampage", 168, "Ferocious swamp-metal stomp at 168 BPM: a growling fuzzed slide guitar riff that roars like an airboat engine, pounding double-kick drums and floor toms, washboard and tambourine slammed on every beat, a droning jug bass, harmonica and fiddle screaming over the top. Enormous, fast and heavy."),
+    ("boss_speedway", "Bumper Boggs Wrecking Ball", 180, "Furious demolition-derby country-metal at 180 BPM: a crushing low-tuned guitar riff that revs like a big-block engine, a screaming slide guitar, pounding toms and crash cymbals like steel colliding, honky-tonk piano hammered hard, banjo rolls on the turnarounds. Heavy, fast and reckless."),
+    ("boss_mothership", "Maw's Last Supper", 148, "The biggest, heaviest cut on the record: a thundering country-metal riff on detuned twangy baritone guitars, booming toms and anvil hits, a church-organ swell under a screaming theremin lead, a slide guitar howling back at it, the whole band slamming unison stabs. Relentless and epic, a hoedown at the end of the world."),
+]
+# Seconds asked for each loop: the fights and bosses 70, the last boss more.
+LOOP_LENGTH = {"boss_mothership": 90}
 VICTORY = ("victory", "A short celebratory cowpunk victory tune for a score tally screen: jubilant twangy "
            "guitar fanfare lick, slap bass and drums, playful and proud, ending on a big ringing final "
            "chord with a cymbal crash. " + BAND.split(" No vocals")[0] + " No vocals.", 14)

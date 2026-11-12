@@ -35,16 +35,9 @@ const CHAPTER_ART := {
 ## note these as pending instead of failing (pack_assets still writes the
 ## chapter's music file, empty if none of it is made), and the game plays
 ## nothing for them till they come. Take a track off once it is in
-## godot/assets/music. (The firing range plays Hickston's score.)
-const PENDING_MUSIC := [
-	"bayou_score",
-	"fight_bayou",
-	"music_speedway",
-	"fight_speedway",
-	"mothership_score",
-	"fight_mothership",
-	"boss_mothership",
-]
+## godot/assets/music. (The firing range plays Hickston's score.) Every
+## chapter's tracks are made now.
+const PENDING_MUSIC: Array = []
 
 var tile_names: PackedStringArray = PackedStringArray()
 var tile_index: Dictionary = {}

@@ -183,9 +183,9 @@ func _struck(game, t: Dictionary, gun: int, damage: float, distance: float, miss
 	dps.append([game.clock, damage])
 	while not dps.is_empty() and game.clock - float(dps[0][0]) > 3.0:
 		dps.pop_front()
-	var cue := "ricochet" if String(t["kind"]) == "gong" else "impact_wood"
+	var cue := "range_gong" if String(t["kind"]) == "gong" else "range_board_hit"
 	if String(t["kind"]) == "dummy":
-		cue = "impact_plaster"
+		cue = "range_dummy_thwack"
 	game.sound_at(cue, t["x"], t["y"], .55)
 
 
@@ -276,8 +276,9 @@ func _knock(game, pin: Dictionary, push: Vector2) -> void:
 	pin["vx"] = push.x + dice.randf_range(-.5, .5)
 	pin["vy"] = push.y + dice.randf_range(-.5, .5)
 	if roll_started < 0.0:
+		# One clatter for the roll: the first pin down sets the rest going.
 		roll_started = game.clock
-	game.sound_at("can_kick", pin["x"], pin["y"], .5)
+		game.sound_at("range_pin_scatter", pin["x"], pin["y"], .55)
 	# It takes the ones behind it down with it, most of the time.
 	for other: Dictionary in pins:
 		if bool(other["down"]) or other == pin:
@@ -313,7 +314,7 @@ func tick_pins(game, dt: float) -> void:
 		last_roll = "STRIKE! ALL TEN"
 		game.callout = "STRIKE!"
 		game.callout_until = game.clock + 1.6
-		game.sound.play("yee_haw", .8)
+		game.sound.play("range_strike", .8)
 		rack_at = game.clock + 1.8
 	elif rolls == 2 and down == pins.size():
 		spares += 1
@@ -346,7 +347,7 @@ func start_gallery(game) -> void:
 func _gallery_hit(game, m: Dictionary) -> void:
 	m["down_until"] = game.clock + 1.1
 	var row: Array = L.GALLERY_ROWS[m["row"]]
-	game.sound_at("ricochet", m["x"], row[0], .5)
+	game.sound_at("range_gallery_ding", m["x"], row[0], .5)
 	if gallery_on:
 		gallery_hits += 1
 		gallery_score += int(row[4])
@@ -384,7 +385,7 @@ func tick_gallery(game, dt: float) -> void:
 		game.message("TIME! " + gallery_last, 4.0)
 		game.callout = ribbon
 		game.callout_until = game.clock + 1.8
-		game.sound.play("stamp_thud")
+		game.sound.play("range_gallery_buzzer")
 
 
 # ------------------------------------------------------------------- drawing

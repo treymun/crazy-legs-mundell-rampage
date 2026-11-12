@@ -10543,6 +10543,461 @@
    },
    "validation": "ok"
   },
+  "sheriff_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/sheriff_rage.mp3",
+   "prompt": "A rubbery B-movie alien sheriff shrieking in fury, warbling, electric and furious.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/sheriff_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.511,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.511
+   },
+   "measured": {
+    "seconds": 1.511,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1562,
+    "end_db": -137.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "jerry_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/jerry_rage.mp3",
+   "prompt": "A huge country man bellowing an angry roar like a furious football coach, then a sharp whistle blast.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/jerry_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.503,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.503
+   },
+   "measured": {
+    "seconds": 1.503,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0234,
+    "onset_ms": 0.0,
+    "centroid_hz": 1075,
+    "end_db": -147.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "rudy_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/rudy_rage.mp3",
+   "prompt": "A crazed carnival barker cackling madly, then two blasts of a wheezy air horn.",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/rudy_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.175,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.175
+   },
+   "measured": {
+    "seconds": 1.175,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.0061,
+    "onset_ms": 0.0,
+    "centroid_hz": 1737,
+    "end_db": -128.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "foreman_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/foreman_rage.mp3",
+   "prompt": "A hulking lumber-mill foreman roaring in rage over a chainsaw revving hard.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/foreman_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.527,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.527
+   },
+   "measured": {
+    "seconds": 1.527,
+    "peak_db": -0.8,
+    "loud_db": -7.1,
+    "dc": 0.0044,
+    "onset_ms": 0.0,
+    "centroid_hz": 2469,
+    "end_db": -142.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "baron_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/baron_rage.mp3",
+   "prompt": "A pompous old moonshine baron bellowing furiously while steam pipes shriek around him.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/baron_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.469,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.469
+   },
+   "measured": {
+    "seconds": 1.469,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0061,
+    "onset_ms": 0.0,
+    "centroid_hz": 1589,
+    "end_db": -131.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "sheriff_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/sheriff_death.mp3",
+   "prompt": "A rubbery alien's long dying wail that fizzles out into crackling electric sparks.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/sheriff_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.954,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.8,
+    "peak_db": -0.8,
+    "loud_db": -14.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 4368,
+    "end_db": -139.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "jerry_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/jerry_death.mp3",
+   "prompt": "A huge country man's long dying groan ending in a heavy thud on the ground.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/jerry_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.639,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.639
+   },
+   "measured": {
+    "seconds": 1.639,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0005,
+    "onset_ms": 0.0,
+    "centroid_hz": 1217,
+    "end_db": -143.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "rudy_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/rudy_death.mp3",
+   "prompt": "A carnival barker's long strangled howl ending in a deflating, wheezing honk.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/rudy_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.943,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.8,
+    "peak_db": -0.8,
+    "loud_db": -3.9,
+    "dc": 0.0077,
+    "onset_ms": 4.3,
+    "centroid_hz": 866,
+    "end_db": -115.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "foreman_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/foreman_death.mp3",
+   "prompt": "A big man's dying bellow as a chainsaw sputters, coughs and dies.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/foreman_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.995,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.8,
+    "peak_db": -0.8,
+    "loud_db": -4.5,
+    "dc": 0.0067,
+    "onset_ms": 0.0,
+    "centroid_hz": 1509,
+    "end_db": -137.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "baron_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/baron_death.mp3",
+   "prompt": "A pompous old man's dying wail as a copper boiler bursts with a hiss and a clang.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/baron_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 2.133,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.8,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0028,
+    "onset_ms": 0.0,
+    "centroid_hz": 2631,
+    "end_db": -146.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "brawl_punch": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/brawl_punch.mp3",
+   "prompt": "A meaty bare-knuckle punch to the jaw with a short grunt.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/brawl_punch.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.48,
+    "peak_db": -0.8,
+    "loud_db": -11.0,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 65,
+    "end_db": -133.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "enemy_slip": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/enemy_slip.mp3",
+   "prompt": "A man's boots slipping in a puddle of milk: a wet squelch, a yelp and a heavy thud on the ground.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/enemy_slip.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 11,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -13.1,
+    "dc": 0.0001,
+    "onset_ms": 28.8,
+    "centroid_hz": 3150,
+    "end_db": -166.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "menu_move": {
    "purpose": "menu cursor/page/option change; reading a wall note",
    "refs": [
@@ -11330,51 +11785,6 @@
     "onset_ms": 6.8,
     "centroid_hz": 1284,
     "end_db": -120.9,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "county_dispatch_4": {
-   "purpose": "hub dispatch board read at campaign milestone 4 (voice channel)",
-   "refs": [
-    "game.gd:1454"
-   ],
-   "family": "voice",
-   "origin": "generated speech",
-   "source": "audio_src/generated/tts/county_dispatch_4.mp3",
-   "prompt": "The tag is home.",
-   "credits": 48,
-   "destination": "audio_src/final/sfx/county_dispatch_4.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": 1.02,
-   "recipe": {
-    "status": "built",
-    "family": "voice",
-    "chain": {
-     "hp": 110,
-     "lp": 9000,
-     "low": 0.0,
-     "pres": 2.0,
-     "fade": 0.06,
-     "level": -3.0
-    },
-    "words_at": [
-     0.2,
-     1.7
-    ],
-    "natural_seconds": 1.617,
-    "speaker": "radio",
-    "level": "-9.0 dB (new cue)",
-    "keep_seconds": 1.617
-   },
-   "measured": {
-    "seconds": 1.617,
-    "peak_db": -3.4,
-    "loud_db": -9.0,
-    "dc": 0.0,
-    "onset_ms": 4.7,
-    "centroid_hz": 1284,
-    "end_db": -126.1,
     "problems": []
    },
    "validation": "ok"
@@ -13383,432 +13793,630 @@
    },
    "validation": "ok"
   },
-  "sheriff_rage": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "alert",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/sheriff_rage.mp3",
-   "prompt": "A rubbery B-movie alien sheriff shrieking in fury, warbling, electric and furious.",
-   "credits": 19,
-   "destination": "audio_src/final/sfx/sheriff_rage.wav -> godot/assets_gen/sfx.bin",
+  "county_dispatch_4": {
+   "purpose": "hub dispatch board read at campaign milestone 4 (voice channel)",
+   "refs": [
+    "game.gd:1454"
+   ],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/county_dispatch_4.mp3",
+   "prompt": "Check the bayou.",
+   "credits": 64,
+   "destination": "audio_src/final/sfx/county_dispatch_4.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
+   "replaced_seconds": 1.02,
    "recipe": {
     "status": "built",
-    "family": "alert",
+    "family": "voice",
     "chain": {
      "hp": 110,
-     "lp": 10000,
+     "lp": 9000,
      "low": 0.0,
-     "pres": 2.5,
-     "fade": 0.2,
-     "level": -4.0
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
     },
-    "natural_seconds": 1.511,
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.511
+    "words_at": [
+     0.26,
+     1.72
+    ],
+    "natural_seconds": 1.72,
+    "speaker": "radio",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.72
    },
    "measured": {
-    "seconds": 1.511,
-    "peak_db": -0.8,
-    "loud_db": -5.7,
-    "dc": 0.001,
-    "onset_ms": 0.0,
-    "centroid_hz": 1562,
-    "end_db": -137.2,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "jerry_rage": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "alert",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/jerry_rage.mp3",
-   "prompt": "A huge country man bellowing an angry roar like a furious football coach, then a sharp whistle blast.",
-   "credits": 19,
-   "destination": "audio_src/final/sfx/jerry_rage.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "alert",
-    "chain": {
-     "hp": 110,
-     "lp": 10000,
-     "low": 0.0,
-     "pres": 2.5,
-     "fade": 0.2,
-     "level": -4.0
-    },
-    "natural_seconds": 1.503,
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.503
-   },
-   "measured": {
-    "seconds": 1.503,
-    "peak_db": -0.8,
-    "loud_db": -5.1,
-    "dc": 0.0234,
-    "onset_ms": 0.0,
-    "centroid_hz": 1075,
-    "end_db": -147.2,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "rudy_rage": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "alert",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/rudy_rage.mp3",
-   "prompt": "A crazed carnival barker cackling madly, then two blasts of a wheezy air horn.",
-   "credits": 20,
-   "destination": "audio_src/final/sfx/rudy_rage.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "alert",
-    "chain": {
-     "hp": 110,
-     "lp": 10000,
-     "low": 0.0,
-     "pres": 2.5,
-     "fade": 0.2,
-     "level": -4.0
-    },
-    "natural_seconds": 1.175,
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.175
-   },
-   "measured": {
-    "seconds": 1.175,
-    "peak_db": -0.8,
-    "loud_db": -4.9,
-    "dc": 0.0061,
-    "onset_ms": 0.0,
-    "centroid_hz": 1737,
-    "end_db": -128.5,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "foreman_rage": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "alert",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/foreman_rage.mp3",
-   "prompt": "A hulking lumber-mill foreman roaring in rage over a chainsaw revving hard.",
-   "credits": 19,
-   "destination": "audio_src/final/sfx/foreman_rage.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "alert",
-    "chain": {
-     "hp": 110,
-     "lp": 10000,
-     "low": 0.0,
-     "pres": 2.5,
-     "fade": 0.2,
-     "level": -4.0
-    },
-    "natural_seconds": 1.527,
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.527
-   },
-   "measured": {
-    "seconds": 1.527,
-    "peak_db": -0.8,
-    "loud_db": -7.1,
-    "dc": 0.0044,
-    "onset_ms": 0.0,
-    "centroid_hz": 2469,
-    "end_db": -142.0,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "baron_rage": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "alert",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/baron_rage.mp3",
-   "prompt": "A pompous old moonshine baron bellowing furiously while steam pipes shriek around him.",
-   "credits": 19,
-   "destination": "audio_src/final/sfx/baron_rage.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "alert",
-    "chain": {
-     "hp": 110,
-     "lp": 10000,
-     "low": 0.0,
-     "pres": 2.5,
-     "fade": 0.2,
-     "level": -4.0
-    },
-    "natural_seconds": 1.469,
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.469
-   },
-   "measured": {
-    "seconds": 1.469,
-    "peak_db": -0.8,
-    "loud_db": -5.4,
-    "dc": 0.0061,
-    "onset_ms": 0.0,
-    "centroid_hz": 1589,
-    "end_db": -131.8,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "sheriff_death": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "death",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/sheriff_death.mp3",
-   "prompt": "A rubbery alien's long dying wail that fizzles out into crackling electric sparks.",
-   "credits": 25,
-   "destination": "audio_src/final/sfx/sheriff_death.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "death",
-    "chain": {
-     "hp": 80,
-     "lp": 10000,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
-     "level": -4.0
-    },
-    "natural_seconds": 1.954,
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.8
-   },
-   "measured": {
-    "seconds": 1.8,
-    "peak_db": -0.8,
-    "loud_db": -14.0,
+    "seconds": 1.65,
+    "peak_db": -4.7,
+    "loud_db": -9.0,
     "dc": 0.0,
     "onset_ms": 0.0,
-    "centroid_hz": 4368,
-    "end_db": -139.4,
+    "centroid_hz": 1517,
+    "end_db": -95.2,
     "problems": []
    },
    "validation": "ok"
   },
-  "jerry_death": {
+  "noodler_holler": {
    "purpose": "new cue",
    "refs": [],
-   "family": "death",
+   "family": "alert",
    "origin": "generated",
-   "source": "audio_src/generated/sfx/jerry_death.mp3",
-   "prompt": "A huge country man's long dying groan ending in a heavy thud on the ground.",
-   "credits": 23,
-   "destination": "audio_src/final/sfx/jerry_death.wav -> godot/assets_gen/sfx.bin",
+   "source": "audio_src/generated/sfx/noodler_holler.mp3",
+   "prompt": "A big swamp man hollers, startled and mean, a wet bark of a shout rising out of the water.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/noodler_holler.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": null,
    "recipe": {
     "status": "built",
-    "family": "death",
+    "family": "alert",
     "chain": {
-     "hp": 80,
+     "hp": 110,
      "lp": 10000,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
      "level": -4.0
     },
-    "natural_seconds": 1.639,
+    "natural_seconds": 0.902,
     "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.639
+    "keep_seconds": 0.902
    },
    "measured": {
-    "seconds": 1.639,
+    "seconds": 0.902,
     "peak_db": -0.8,
-    "loud_db": -5.4,
-    "dc": 0.0005,
+    "loud_db": -5.6,
+    "dc": 0.0049,
     "onset_ms": 0.0,
-    "centroid_hz": 1217,
-    "end_db": -143.2,
+    "centroid_hz": 1978,
+    "end_db": -144.5,
     "problems": []
    },
    "validation": "ok"
   },
-  "rudy_death": {
+  "chum_holler": {
    "purpose": "new cue",
    "refs": [],
-   "family": "death",
+   "family": "alert",
    "origin": "generated",
-   "source": "audio_src/generated/sfx/rudy_death.mp3",
-   "prompt": "A carnival barker's long strangled howl ending in a deflating, wheezing honk.",
-   "credits": 23,
-   "destination": "audio_src/final/sfx/rudy_death.wav -> godot/assets_gen/sfx.bin",
+   "source": "audio_src/generated/sfx/chum_holler.mp3",
+   "prompt": "A bait man yells \"Chum's in!\" and sloshes a bucket, slop hitting the water.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/chum_holler.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": null,
    "recipe": {
     "status": "built",
-    "family": "death",
+    "family": "alert",
     "chain": {
-     "hp": 80,
+     "hp": 110,
      "lp": 10000,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
      "level": -4.0
     },
-    "natural_seconds": 1.943,
+    "natural_seconds": 0.98,
     "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.8
+    "keep_seconds": 0.98
    },
    "measured": {
-    "seconds": 1.8,
+    "seconds": 0.98,
     "peak_db": -0.8,
-    "loud_db": -3.9,
-    "dc": 0.0077,
-    "onset_ms": 4.3,
-    "centroid_hz": 866,
-    "end_db": -115.3,
+    "loud_db": -6.5,
+    "dc": 0.0042,
+    "onset_ms": 0.2,
+    "centroid_hz": 2672,
+    "end_db": -131.0,
     "problems": []
    },
    "validation": "ok"
   },
-  "foreman_death": {
+  "king_holler": {
    "purpose": "new cue",
    "refs": [],
-   "family": "death",
+   "family": "alert",
    "origin": "generated",
-   "source": "audio_src/generated/sfx/foreman_death.mp3",
-   "prompt": "A big man's dying bellow as a chainsaw sputters, coughs and dies.",
-   "credits": 25,
-   "destination": "audio_src/final/sfx/foreman_death.wav -> godot/assets_gen/sfx.bin",
+   "source": "audio_src/generated/sfx/king_holler.mp3",
+   "prompt": "A big redneck swamp boss whoops over a roaring airboat engine, \"Who's on my water?\"",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/king_holler.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": null,
    "recipe": {
     "status": "built",
-    "family": "death",
+    "family": "alert",
     "chain": {
-     "hp": 80,
+     "hp": 110,
      "lp": 10000,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
      "level": -4.0
     },
-    "natural_seconds": 1.995,
+    "natural_seconds": 1.436,
     "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.8
+    "keep_seconds": 1.436
    },
    "measured": {
-    "seconds": 1.8,
+    "seconds": 1.436,
     "peak_db": -0.8,
-    "loud_db": -4.5,
-    "dc": 0.0067,
+    "loud_db": -6.1,
+    "dc": 0.0022,
+    "onset_ms": 5.4,
+    "centroid_hz": 2328,
+    "end_db": -136.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "swamp_king_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/swamp_king_rage.mp3",
+   "prompt": "A fat swamp king bellows furiously over a redlining airboat engine.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/swamp_king_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.316,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.316
+   },
+   "measured": {
+    "seconds": 1.316,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0081,
     "onset_ms": 0.0,
-    "centroid_hz": 1509,
-    "end_db": -137.7,
+    "centroid_hz": 2460,
+    "end_db": -131.3,
     "problems": []
    },
    "validation": "ok"
   },
-  "baron_death": {
+  "noodler_grunt": {
    "purpose": "new cue",
    "refs": [],
-   "family": "death",
+   "family": "warn",
    "origin": "generated",
-   "source": "audio_src/generated/sfx/baron_death.mp3",
-   "prompt": "A pompous old man's dying wail as a copper boiler bursts with a hiss and a clang.",
-   "credits": 25,
-   "destination": "audio_src/final/sfx/baron_death.wav -> godot/assets_gen/sfx.bin",
+   "source": "audio_src/generated/sfx/noodler_grunt.mp3",
+   "prompt": "A heavy man grunts and winds up a swing, a big wet fish slapping against his waders.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/noodler_grunt.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": null,
    "recipe": {
     "status": "built",
-    "family": "death",
+    "family": "warn",
     "chain": {
-     "hp": 80,
-     "lp": 10000,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
-     "level": -4.0
-    },
-    "natural_seconds": 2.133,
-    "level": "-4.0 dB (new cue)",
-    "keep_seconds": 1.8
-   },
-   "measured": {
-    "seconds": 1.8,
-    "peak_db": -0.8,
-    "loud_db": -6.3,
-    "dc": 0.0028,
-    "onset_ms": 0.0,
-    "centroid_hz": 2631,
-    "end_db": -146.7,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "brawl_punch": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "scene",
-   "origin": "generated",
-   "source": "audio_src/generated/sfx/brawl_punch.mp3",
-   "prompt": "A meaty bare-knuckle punch to the jaw with a short grunt.",
-   "credits": 7,
-   "destination": "audio_src/final/sfx/brawl_punch.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "scene",
-    "chain": {
-     "hp": 70,
+     "hp": 120,
      "lp": 10500,
-     "low": 1.0,
-     "pres": 1.5,
-     "fade": 0.3,
-     "level": -4.0
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
     },
-    "level": "-4.0 dB (new cue)",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.8
+   },
+   "measured": {
+    "seconds": 0.8,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0034,
+    "onset_ms": 7.1,
+    "centroid_hz": 1359,
+    "end_db": -128.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "chum_slosh": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/chum_slosh.mp3",
+   "prompt": "A plastic jug of fish chum sloshed back over a shoulder to throw: thick liquid glug.",
+   "credits": 9,
+   "destination": "audio_src/final/sfx/chum_slosh.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.7
+   },
+   "measured": {
+    "seconds": 0.68,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0026,
+    "onset_ms": 0.0,
+    "centroid_hz": 3369,
+    "end_db": -110.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "gator_hiss": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/gator_hiss.mp3",
+   "prompt": "An alligator's low warning hiss and throat rumble, close.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/gator_hiss.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
     "keep_seconds": 1.0
    },
    "measured": {
-    "seconds": 0.48,
+    "seconds": 1.0,
     "peak_db": -0.8,
-    "loud_db": -11.0,
-    "dc": 0.0001,
+    "loud_db": -3.7,
+    "dc": 0.004,
     "onset_ms": 0.0,
-    "centroid_hz": 65,
-    "end_db": -133.3,
+    "centroid_hz": 1155,
+    "end_db": -114.0,
     "problems": []
    },
    "validation": "ok"
   },
-  "enemy_slip": {
+  "king_rev": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/king_rev.mp3",
+   "prompt": "An airboat's aircraft engine revving hard, the big caged propeller winding up to a roar.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/king_rev.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.2
+   },
+   "measured": {
+    "seconds": 1.2,
+    "peak_db": -0.8,
+    "loud_db": -3.6,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 401,
+    "end_db": -78.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "noodler_slap": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/noodler_slap.mp3",
+   "prompt": "A huge wet catfish slammed across somebody: meaty slap, splatter of swamp water.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/noodler_slap.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -13.0,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 3326,
+    "end_db": -139.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "chum_throw": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/chum_throw.mp3",
+   "prompt": "A full jug of chum lobbed: effortful toss, the jug tumbling with a gurgle.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/chum_throw.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -10.0,
+    "dc": 0.0045,
+    "onset_ms": 0.0,
+    "centroid_hz": 339,
+    "end_db": -135.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "gator_snap": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/gator_snap.mp3",
+   "prompt": "An alligator's jaws snapping shut hard: heavy clack and a lunge splash.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/gator_snap.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -9.8,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1919,
+    "end_db": -136.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "king_charge": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/king_charge.mp3",
+   "prompt": "An airboat launching flat out across water: engine howl, prop roar, a hissing rooster tail of spray.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/king_charge.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.4
+   },
+   "measured": {
+    "seconds": 1.36,
+    "peak_db": -0.8,
+    "loud_db": -3.5,
+    "dc": 0.0087,
+    "onset_ms": 0.0,
+    "centroid_hz": 1374,
+    "end_db": -132.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "king_ram": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/king_ram.mp3",
+   "prompt": "A steel airboat hull rams a wooden dock: heavy crunch, splintering planks, engine still screaming.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/king_ram.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0007,
+    "onset_ms": 2.9,
+    "centroid_hz": 1268,
+    "end_db": -158.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "king_beached": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/king_beached.mp3",
+   "prompt": "An airboat runs aground on a mud bank: grinding scrape, the engine choking and sputtering down.",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/king_beached.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.3
+   },
+   "measured": {
+    "seconds": 1.28,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0027,
+    "onset_ms": 0.0,
+    "centroid_hz": 626,
+    "end_db": -137.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "king_puntgun": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/king_puntgun.mp3",
+   "prompt": "A huge punt gun fires from a boat: enormous black-powder boom, a spray of shot ripping across water.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/king_puntgun.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.9
+   },
+   "measured": {
+    "seconds": 0.9,
+    "peak_db": -0.8,
+    "loud_db": -4.0,
+    "dc": 0.0033,
+    "onset_ms": 0.0,
+    "centroid_hz": 256,
+    "end_db": -149.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "noodler_rise": {
    "purpose": "new cue",
    "refs": [],
    "family": "scene",
    "origin": "generated",
-   "source": "audio_src/generated/sfx/enemy_slip.mp3",
-   "prompt": "A man's boots slipping in a puddle of milk: a wet squelch, a yelp and a heavy thud on the ground.",
-   "credits": 14,
-   "destination": "audio_src/final/sfx/enemy_slip.wav -> godot/assets_gen/sfx.bin",
+   "source": "audio_src/generated/sfx/noodler_rise.mp3",
+   "prompt": "A big man bursts up out of shallow swamp water: heavy splash, water pouring off him.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/noodler_rise.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": null,
    "recipe": {
@@ -13822,18 +14430,3541 @@
      "fade": 0.3,
      "level": -4.0
     },
-    "lead_trimmed_ms": 11,
     "level": "-4.0 dB (new cue)",
     "keep_seconds": 1.0
    },
    "measured": {
     "seconds": 1.0,
     "peak_db": -0.8,
-    "loud_db": -13.1,
+    "loud_db": -11.4,
     "dc": 0.0001,
-    "onset_ms": 28.8,
-    "centroid_hz": 3150,
-    "end_db": -166.3,
+    "onset_ms": 0.0,
+    "centroid_hz": 2233,
+    "end_db": -160.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "record_scratch": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/record_scratch.mp3",
+   "prompt": "A needle dragged across a spinning record: a quick scratch to silence.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/record_scratch.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -12.0,
+    "dc": 0.0061,
+    "onset_ms": 0.3,
+    "centroid_hz": 4319,
+    "end_db": -95.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "king_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/king_down.mp3",
+   "prompt": "A big man's dying howl as his airboat engine coughs and dies.",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/king_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.559,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.559
+   },
+   "measured": {
+    "seconds": 1.559,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0009,
+    "onset_ms": 0.0,
+    "centroid_hz": 1049,
+    "end_db": -149.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "swamp_king_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/swamp_king_death.mp3",
+   "prompt": "A swamp king's last wail as his airboat's fuel tank goes up with a whump and a splash.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/swamp_king_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 2.086,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.086
+   },
+   "measured": {
+    "seconds": 2.086,
+    "peak_db": -0.8,
+    "loud_db": -6.6,
+    "dc": 0.0044,
+    "onset_ms": 18.9,
+    "centroid_hz": 2491,
+    "end_db": -164.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "swamp_king_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "sting",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/swamp_king_intro.mp3",
+   "prompt": "Swampy dark Southern rock: a growling slide guitar riff, an airboat engine roar and pounding toms, boss arrival sting.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/swamp_king_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "sting",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.12,
+     "level": -3.0
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0053,
+    "onset_ms": 0.0,
+    "centroid_hz": 264,
+    "end_db": -148.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "swamp_king_end": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "sting",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/swamp_king_end.mp3",
+   "prompt": "A huge victorious Southern rock final chord with a washboard rattle and a rolling drum fill.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/swamp_king_end.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "sting",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.12,
+     "level": -3.0
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0069,
+    "onset_ms": 0.0,
+    "centroid_hz": 916,
+    "end_db": -158.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "amb_bayou": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ambience",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/amb_bayou.mp3",
+   "prompt": "A swamp at dusk: bullfrogs, cicadas and crickets, still water lapping at pilings, a far heron call.",
+   "credits": 155,
+   "destination": "audio_src/final/sfx/amb_bayou.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ambience",
+    "chain": {
+     "hp": 50,
+     "lp": 6800,
+     "low": 2.0,
+     "pres": -2.5,
+     "fade": 0,
+     "level": -22.0,
+     "loop": 0.6
+    },
+    "level": "-22.0 dB (new cue)",
+    "keep_seconds": 14.0
+   },
+   "measured": {
+    "seconds": 13.4,
+    "peak_db": -10.9,
+    "loud_db": -22.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 6434,
+    "end_db": -28.2,
+    "seam_jump": 0.0306,
+    "seam_vs_p999": 0.12,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "amb_bayou_shack": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ambience",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/amb_bayou_shack.mp3",
+   "prompt": "Inside a tin-roofed stilt shack: a box fan rattling, water lapping under the floor, insects on the screens.",
+   "credits": 133,
+   "destination": "audio_src/final/sfx/amb_bayou_shack.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ambience",
+    "chain": {
+     "hp": 50,
+     "lp": 6800,
+     "low": 2.0,
+     "pres": -2.5,
+     "fade": 0,
+     "level": -22.0,
+     "loop": 0.6
+    },
+    "level": "-22.0 dB (new cue)",
+    "keep_seconds": 12.0
+   },
+   "measured": {
+    "seconds": 11.4,
+    "peak_db": -10.8,
+    "loud_db": -22.0,
+    "dc": 0.0,
+    "onset_ms": 96.6,
+    "centroid_hz": 240,
+    "end_db": -34.8,
+    "seam_jump": 0.0096,
+    "seam_vs_p999": 0.35,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "amb_bayou_after": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ambience",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/amb_bayou_after.mp3",
+   "prompt": "A swamp gone quiet after a fight: frogs starting up again, drifting smoke, water settling.",
+   "credits": 133,
+   "destination": "audio_src/final/sfx/amb_bayou_after.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ambience",
+    "chain": {
+     "hp": 50,
+     "lp": 6800,
+     "low": 2.0,
+     "pres": -2.5,
+     "fade": 0,
+     "level": -22.0,
+     "loop": 0.6
+    },
+    "level": "-22.0 dB (new cue)",
+    "keep_seconds": 11.6
+   },
+   "measured": {
+    "seconds": 11.344,
+    "peak_db": -11.4,
+    "loud_db": -22.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 2399,
+    "end_db": -27.7,
+    "seam_jump": 0.0243,
+    "seam_vs_p999": 0.21,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "distant_bayou_airboat": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/distant_bayou_airboat.mp3",
+   "prompt": "An airboat engine idling out on open water far away.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/distant_bayou_airboat.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 2.5
+   },
+   "measured": {
+    "seconds": 2.48,
+    "peak_db": -5.1,
+    "loud_db": -14.0,
+    "dc": 0.0005,
+    "onset_ms": 6.7,
+    "centroid_hz": 188,
+    "end_db": -126.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "distant_bayou_juke": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/distant_bayou_juke.mp3",
+   "prompt": "A juke joint band thumping through thin walls across the water, muffled.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/distant_bayou_juke.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 2.5
+   },
+   "measured": {
+    "seconds": 2.48,
+    "peak_db": -4.5,
+    "loud_db": -14.0,
+    "dc": 0.0007,
+    "onset_ms": 181.2,
+    "centroid_hz": 383,
+    "end_db": -150.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "distant_bayou_gator": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/distant_bayou_gator.mp3",
+   "prompt": "An alligator's deep bellow rolling across a swamp.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/distant_bayou_gator.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 2.0
+   },
+   "measured": {
+    "seconds": 2.0,
+    "peak_db": -10.2,
+    "loud_db": -14.0,
+    "dc": 0.0001,
+    "onset_ms": 86.4,
+    "centroid_hz": 157,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "distant_bayou_frogs": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/distant_bayou_frogs.mp3",
+   "prompt": "A chorus of bullfrogs swelling far off in the cypress.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/distant_bayou_frogs.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 2.0
+   },
+   "measured": {
+    "seconds": 1.973,
+    "peak_db": -6.6,
+    "loud_db": -14.0,
+    "dc": 0.0,
+    "onset_ms": 136.5,
+    "centroid_hz": 491,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_boil-cooks_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_boil-cooks_0.mp3",
+   "prompt": "Who dropped a boot in the boil?",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/talk_boil-cooks_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.56
+    ],
+    "natural_seconds": 2.43,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.43
+   },
+   "measured": {
+    "seconds": 2.43,
+    "peak_db": -0.8,
+    "loud_db": -10.2,
+    "dc": 0.0,
+    "onset_ms": 26.9,
+    "centroid_hz": 1231,
+    "end_db": -132.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_boil-cooks_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_boil-cooks_1.mp3",
+   "prompt": "That's seasonin'.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/talk_boil-cooks_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.24
+    ],
+    "natural_seconds": 2.243,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.243
+   },
+   "measured": {
+    "seconds": 2.23,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0021,
+    "onset_ms": 9.4,
+    "centroid_hz": 2072,
+    "end_db": -163.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_juke-band_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_juke-band_0.mp3",
+   "prompt": "We know two songs.",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/talk_juke-band_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.82
+    ],
+    "natural_seconds": 1.854,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.854
+   },
+   "measured": {
+    "seconds": 1.834,
+    "peak_db": -0.8,
+    "loud_db": -9.7,
+    "dc": 0.0,
+    "onset_ms": 3.4,
+    "centroid_hz": 1235,
+    "end_db": -159.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_juke-band_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_juke-band_1.mp3",
+   "prompt": "Then play the other one.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/talk_juke-band_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.64
+    ],
+    "natural_seconds": 1.579,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.579
+   },
+   "measured": {
+    "seconds": 1.579,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0014,
+    "onset_ms": 26.0,
+    "centroid_hz": 1511,
+    "end_db": -137.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_dock-radio_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_dock-radio_0.mp3",
+   "prompt": "King to dock. Fuel her up.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/talk_dock-radio_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.58
+    ],
+    "natural_seconds": 1.527,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.527
+   },
+   "measured": {
+    "seconds": 1.527,
+    "peak_db": -0.8,
+    "loud_db": -2.7,
+    "dc": 0.0027,
+    "onset_ms": 34.3,
+    "centroid_hz": 1290,
+    "end_db": -112.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_dock-radio_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_dock-radio_1.mp3",
+   "prompt": "Tank's full, your majesty.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/talk_dock-radio_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.62
+    ],
+    "natural_seconds": 1.748,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.748
+   },
+   "measured": {
+    "seconds": 1.743,
+    "peak_db": -0.8,
+    "loud_db": -11.2,
+    "dc": 0.0,
+    "onset_ms": 28.3,
+    "centroid_hz": 1100,
+    "end_db": -126.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "derby_champ_warn": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/derby_champ_warn.mp3",
+   "prompt": "A big-block V8 in a battered derby car revving hard, lifters clattering, then the tyres starting to spin on dirt.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/derby_champ_warn.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.2
+   },
+   "measured": {
+    "seconds": 1.2,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0011,
+    "onset_ms": 0.0,
+    "centroid_hz": 1180,
+    "end_db": -125.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "huffer_hiss": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/huffer_hiss.mp3",
+   "prompt": "A wild man huffing nitrous from a hose: a long gas hiss and a giggle.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/huffer_hiss.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0095,
+    "onset_ms": 3.2,
+    "centroid_hz": 2040,
+    "end_db": -121.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "derby_champ_crash": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/derby_champ_crash.mp3",
+   "prompt": "An armoured demolition-derby car slams into a concrete wall at speed: heavy crunch of steel, glass and a radiator bursting.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/derby_champ_crash.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 1.4
+   },
+   "measured": {
+    "seconds": 1.188,
+    "peak_db": -0.8,
+    "loud_db": -7.4,
+    "dc": 0.0004,
+    "onset_ms": 3.0,
+    "centroid_hz": 315,
+    "end_db": -159.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "lap_car_hit": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/lap_car_hit.mp3",
+   "prompt": "A man struck by a speeding race car: bang of a fender and a body thrown onto dirt.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/lap_car_hit.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "lead_trimmed_ms": 7,
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.941,
+    "peak_db": -0.8,
+    "loud_db": -7.3,
+    "dc": 0.0002,
+    "onset_ms": 26.0,
+    "centroid_hz": 2337,
+    "end_db": -165.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "derby_champ_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/derby_champ_rage.mp3",
+   "prompt": "A redneck derby champion bellowing from inside his car over a screaming engine and a horn blast.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/derby_champ_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.345,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.345
+   },
+   "measured": {
+    "seconds": 1.345,
+    "peak_db": -0.8,
+    "loud_db": -6.8,
+    "dc": 0.0018,
+    "onset_ms": 0.0,
+    "centroid_hz": 2609,
+    "end_db": -138.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "derby_champ_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/derby_champ_death.mp3",
+   "prompt": "A derby car's engine dies in a tearing explosion: fuel tank whoomp, steel crumpling, a man's last holler.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/derby_champ_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.888,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.888
+   },
+   "measured": {
+    "seconds": 1.888,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0017,
+    "onset_ms": 0.0,
+    "centroid_hz": 2442,
+    "end_db": -141.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "derby_champ_pain": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/derby_champ_pain.mp3",
+   "prompt": "A man inside a steel car grunting as bullets ping off the armour plate.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/derby_champ_pain.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.661,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.661
+   },
+   "measured": {
+    "seconds": 0.661,
+    "peak_db": -0.8,
+    "loud_db": -10.5,
+    "dc": 0.0004,
+    "onset_ms": 0.0,
+    "centroid_hz": 2249,
+    "end_db": -143.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "derby_champ_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/derby_champ_down.mp3",
+   "prompt": "A man inside a steel car gives a short dying groan as the engine coughs out.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/derby_champ_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.895,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.895
+   },
+   "measured": {
+    "seconds": 0.895,
+    "peak_db": -0.8,
+    "loud_db": -10.1,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1122,
+    "end_db": -128.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "flagman_flare": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/flagman_flare.mp3",
+   "prompt": "A flare pistol fired: hollow pop and a fizzing whoosh of a burning flare.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/flagman_flare.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.8
+   },
+   "measured": {
+    "seconds": 0.8,
+    "peak_db": -0.8,
+    "loud_db": -9.1,
+    "dc": 0.0017,
+    "onset_ms": 0.0,
+    "centroid_hz": 534,
+    "end_db": -140.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "tire_roll": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/tire_roll.mp3",
+   "prompt": "A heavy racing tyre bowled hard along packed dirt: rubbery thump and a rumbling roll.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/tire_roll.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.2
+   },
+   "measured": {
+    "seconds": 1.194,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0031,
+    "onset_ms": 11.8,
+    "centroid_hz": 170,
+    "end_db": -160.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "wrench_throw": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/wrench_throw.mp3",
+   "prompt": "A heavy steel lug wrench thrown end over end: whoosh and a ringing clang where it lands.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/wrench_throw.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.9
+   },
+   "measured": {
+    "seconds": 0.88,
+    "peak_db": -0.8,
+    "loud_db": -9.7,
+    "dc": 0.0004,
+    "onset_ms": 0.0,
+    "centroid_hz": 2405,
+    "end_db": -141.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "lap_car_pass": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/lap_car_pass.mp3",
+   "prompt": "A dirt-track stock car blasting past close: V8 roar dopplering by, gravel spraying the wall.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/lap_car_pass.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 292,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.0
+   },
+   "measured": {
+    "seconds": 1.707,
+    "peak_db": -0.8,
+    "loud_db": -11.3,
+    "dc": 0.0002,
+    "onset_ms": 1.0,
+    "centroid_hz": 1468,
+    "end_db": -169.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "derby_champ_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "sting",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/derby_champ_intro.mp3",
+   "prompt": "A gritty Southern rock riff over a revving V8 and a starter's horn: the derby champ rolls out.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/derby_champ_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "sting",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.12,
+     "level": -3.0
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -0.8,
+    "loud_db": -9.6,
+    "dc": 0.0004,
+    "onset_ms": 0.0,
+    "centroid_hz": 1114,
+    "end_db": -103.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "derby_champ_end": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "sting",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/derby_champ_end.mp3",
+   "prompt": "A huge victorious Southern rock chord with an engine coughing to silence and a crowd whoop.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/derby_champ_end.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "sting",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.12,
+     "level": -3.0
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -0.8,
+    "loud_db": -11.1,
+    "dc": 0.0004,
+    "onset_ms": 0.0,
+    "centroid_hz": 1311,
+    "end_db": -109.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_pit-radio_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_pit-radio_0.mp3",
+   "prompt": "Fuel's a hundred and ten proof, boys.",
+   "credits": 37,
+   "destination": "audio_src/final/sfx/talk_pit-radio_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     2.2
+    ],
+    "natural_seconds": 2.121,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.121
+   },
+   "measured": {
+    "seconds": 2.121,
+    "peak_db": -0.8,
+    "loud_db": -3.0,
+    "dc": 0.0007,
+    "onset_ms": 8.0,
+    "centroid_hz": 1309,
+    "end_db": -123.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_pit-radio_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_pit-radio_1.mp3",
+   "prompt": "Then don't light a smoke.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/talk_pit-radio_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.22
+    ],
+    "natural_seconds": 2.255,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.255
+   },
+   "measured": {
+    "seconds": 2.226,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 15.4,
+    "centroid_hz": 1228,
+    "end_db": -159.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_booth-pa_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_booth-pa_0.mp3",
+   "prompt": "Lap forty-seven, Boggs leads.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/talk_booth-pa_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     2.28
+    ],
+    "natural_seconds": 2.215,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.215
+   },
+   "measured": {
+    "seconds": 2.385,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.0006,
+    "onset_ms": 4.0,
+    "centroid_hz": 1183,
+    "end_db": -130.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_booth-pa_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_booth-pa_1.mp3",
+   "prompt": "As usual. What a shock.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/talk_booth-pa_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.28,
+     1.82
+    ],
+    "natural_seconds": 1.641,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.641
+   },
+   "measured": {
+    "seconds": 1.811,
+    "peak_db": -0.8,
+    "loud_db": -4.1,
+    "dc": 0.0009,
+    "onset_ms": 0.0,
+    "centroid_hz": 996,
+    "end_db": -132.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_camp-fire_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_camp-fire_0.mp3",
+   "prompt": "See that saucer over turn two?",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/talk_camp-fire_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.46
+    ],
+    "natural_seconds": 2.578,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.578
+   },
+   "measured": {
+    "seconds": 2.55,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0031,
+    "onset_ms": 0.9,
+    "centroid_hz": 956,
+    "end_db": -162.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_camp-fire_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_camp-fire_1.mp3",
+   "prompt": "That's a floodlight, Earl.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/talk_camp-fire_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.78
+    ],
+    "natural_seconds": 1.788,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.788
+   },
+   "measured": {
+    "seconds": 1.765,
+    "peak_db": -0.8,
+    "loud_db": -11.8,
+    "dc": 0.0,
+    "onset_ms": 7.9,
+    "centroid_hz": 1360,
+    "end_db": -122.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "drone_zap": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/drone_zap.mp3",
+   "prompt": "A cattle prod jabbed into somebody: a crackling electric zap and a short buzz.",
+   "credits": 9,
+   "destination": "audio_src/final/sfx/drone_zap.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.45
+   },
+   "measured": {
+    "seconds": 0.45,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0046,
+    "onset_ms": 0.0,
+    "centroid_hz": 2960,
+    "end_db": -102.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "guard_zapper": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/guard_zapper.mp3",
+   "prompt": "A giant bug zapper fired like a gun: three quick crackling purple bolts, fat and buzzy.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/guard_zapper.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.5,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 4582,
+    "end_db": -122.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "probe_tug": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/probe_tug.mp3",
+   "prompt": "A tractor beam yanks something: rising wobbling hum snapping into a zap.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/probe_tug.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0003,
+    "onset_ms": 0.0,
+    "centroid_hz": 2311,
+    "end_db": -95.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_dryer_blast": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "attack",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_dryer_blast.mp3",
+   "prompt": "The giant hair dryer fires a fan of heat bolts: roaring hot whoosh with fizzing zaps.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/maw_dryer_blast.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "attack",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -3.0,
+     "drive": 1.3
+    },
+    "lead_trimmed_ms": 67,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.7
+   },
+   "measured": {
+    "seconds": 0.7,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0006,
+    "onset_ms": 0.1,
+    "centroid_hz": 1235,
+    "end_db": -124.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "tailgate_clang": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/tailgate_clang.mp3",
+   "prompt": "A bullet ricochets off a rusty pickup truck tailgate: hard tinny clang and a whine.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/tailgate_clang.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 0.35
+   },
+   "measured": {
+    "seconds": 0.35,
+    "peak_db": -0.8,
+    "loud_db": -11.8,
+    "dc": 0.001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1126,
+    "end_db": -121.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_pin_raise": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_pin_raise.mp3",
+   "prompt": "A giant raises a huge wooden rolling pin: creaking wood, a deep grunting inhale.",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/maw_pin_raise.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.9
+   },
+   "measured": {
+    "seconds": 0.9,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0045,
+    "onset_ms": 0.0,
+    "centroid_hz": 324,
+    "end_db": -124.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_dryer_whine": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_dryer_whine.mp3",
+   "prompt": "A salon hair dryer the size of a car spinning up: rising whining fan and electric crackle.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/maw_dryer_whine.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.85
+   },
+   "measured": {
+    "seconds": 0.85,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 2413,
+    "end_db": -71.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_stomp_warn": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_stomp_warn.mp3",
+   "prompt": "A huge creature lifts one foot in a fuzzy slipper: a creak of the deck and a building rumble.",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/maw_stomp_warn.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.003,
+    "onset_ms": 0.0,
+    "centroid_hz": 2028,
+    "end_db": -112.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "drone_buzz": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/drone_buzz.mp3",
+   "prompt": "A cattle prod charging: quick rising electric buzz.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/drone_buzz.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.4
+   },
+   "measured": {
+    "seconds": 0.4,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0016,
+    "onset_ms": 0.0,
+    "centroid_hz": 3555,
+    "end_db": -55.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "guard_wind": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/guard_wind.mp3",
+   "prompt": "A huge bug zapper powering up: rising electric hum with crackling sparks.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/guard_wind.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0008,
+    "onset_ms": 0.0,
+    "centroid_hz": 5504,
+    "end_db": -102.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "probe_whine": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/probe_whine.mp3",
+   "prompt": "A small flying eyeball drone focuses its beam: rising wobbling theremin whine.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/probe_whine.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.7
+   },
+   "measured": {
+    "seconds": 0.7,
+    "peak_db": -0.8,
+    "loud_db": -3.6,
+    "dc": 0.0483,
+    "onset_ms": 0.0,
+    "centroid_hz": 659,
+    "end_db": -95.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_pin_slam": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_pin_slam.mp3",
+   "prompt": "A gigantic rolling pin slammed onto a steel deck: booming wooden thud, ringing metal, rattling floor plates.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/maw_pin_slam.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -3.8,
+    "dc": 0.0033,
+    "onset_ms": 0.0,
+    "centroid_hz": 101,
+    "end_db": -143.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_stomp": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_stomp.mp3",
+   "prompt": "A towering giant stomps a metal deck: deep booming quake, rattling bolts, a shockwave rolling out.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/maw_stomp.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.2
+   },
+   "measured": {
+    "seconds": 1.2,
+    "peak_db": -0.8,
+    "loud_db": -2.3,
+    "dc": 0.0133,
+    "onset_ms": 0.0,
+    "centroid_hz": 54,
+    "end_db": -143.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_holler": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_holler.mp3",
+   "prompt": "An enormous alien grandmother hollers to call her children in for supper, warbling and rubbery.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/maw_holler.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.996,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.996
+   },
+   "measured": {
+    "seconds": 0.996,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0046,
+    "onset_ms": 0.1,
+    "centroid_hz": 1838,
+    "end_db": -130.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_rage.mp3",
+   "prompt": "A giant alien grandma shrieks in fury as her housecoat catches fire: warbling scream and crackling flames.",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/maw_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.213,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.213
+   },
+   "measured": {
+    "seconds": 1.213,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0007,
+    "onset_ms": 0.7,
+    "centroid_hz": 1656,
+    "end_db": -140.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_bare": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_bare.mp3",
+   "prompt": "A huge alien bellows with power cells humming up to full charge: furious roar over a rising electric whine.",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/maw_bare.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.033,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.033
+   },
+   "measured": {
+    "seconds": 1.033,
+    "peak_db": -0.8,
+    "loud_db": -4.1,
+    "dc": 0.0022,
+    "onset_ms": 0.0,
+    "centroid_hz": 363,
+    "end_db": -128.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_spot": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_spot.mp3",
+   "prompt": "A huge alien grandma spots someone: a low suspicious \"hmmmm\" through a rubbery throat.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/maw_spot.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.799,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.799
+   },
+   "measured": {
+    "seconds": 0.799,
+    "peak_db": -0.8,
+    "loud_db": -4.0,
+    "dc": 0.0018,
+    "onset_ms": 0.0,
+    "centroid_hz": 197,
+    "end_db": -144.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "probe_spot": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/probe_spot.mp3",
+   "prompt": "A floating eyeball robot notices someone: quick curious beeping chirp.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/probe_spot.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 0.593,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.593
+   },
+   "measured": {
+    "seconds": 0.593,
+    "peak_db": -0.8,
+    "loud_db": -10.3,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 2962,
+    "end_db": -146.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "pod_open": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/pod_open.mp3",
+   "prompt": "A crew pod's hatch hisses open: pressure hiss, wet suction pop, a chirp.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/pod_open.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.7
+   },
+   "measured": {
+    "seconds": 0.7,
+    "peak_db": -0.8,
+    "loud_db": -11.7,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 8288,
+    "end_db": -109.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "beam_hum": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/beam_hum.mp3",
+   "prompt": "A tractor beam touching someone: thick wobbling hum and a buzzing burn.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/beam_hum.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.7
+   },
+   "measured": {
+    "seconds": 0.7,
+    "peak_db": -0.8,
+    "loud_db": -10.5,
+    "dc": 0.0002,
+    "onset_ms": 4.5,
+    "centroid_hz": 642,
+    "end_db": -127.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_death.mp3",
+   "prompt": "A towering alien grandmother's long dying wail, curlers clattering, ending in a crash and fizzling sparks.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/maw_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.948,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.948
+   },
+   "measured": {
+    "seconds": 1.948,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0038,
+    "onset_ms": 2.9,
+    "centroid_hz": 2151,
+    "end_db": -142.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_pain": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_pain.mp3",
+   "prompt": "A giant alien grandma is hit: short indignant rubbery yelp.",
+   "credits": 9,
+   "destination": "audio_src/final/sfx/maw_pain.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.606,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.606
+   },
+   "measured": {
+    "seconds": 0.606,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0016,
+    "onset_ms": 0.0,
+    "centroid_hz": 1584,
+    "end_db": -162.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_down.mp3",
+   "prompt": "A giant alien grandma falls: long warbling shriek and a floor-shaking thud.",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/maw_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.096,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.096
+   },
+   "measured": {
+    "seconds": 1.096,
+    "peak_db": -0.8,
+    "loud_db": -4.5,
+    "dc": 0.0054,
+    "onset_ms": 0.0,
+    "centroid_hz": 917,
+    "end_db": -132.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ship_quake": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "distant",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/ship_quake.mp3",
+   "prompt": "A spaceship coming apart far off: groaning metal, a muffled explosion, rattling debris.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/ship_quake.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "distant",
+    "chain": {
+     "hp": 140,
+     "lp": 3800,
+     "low": 0.0,
+     "pres": -2.0,
+     "fade": 0.3,
+     "level": -14.0,
+     "fade_in": 0.04
+    },
+    "level": "-14.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -5.3,
+    "loud_db": -14.0,
+    "dc": 0.001,
+    "onset_ms": 4.5,
+    "centroid_hz": 283,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "amb_mothership": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ambience",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/amb_mothership.mp3",
+   "prompt": "Inside a junky alien mothership: low engine drone, ticking hull, bubbling tanks, a faint distant moo.",
+   "credits": 133,
+   "destination": "audio_src/final/sfx/amb_mothership.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ambience",
+    "chain": {
+     "hp": 50,
+     "lp": 6800,
+     "low": 2.0,
+     "pres": -2.5,
+     "fade": 0,
+     "level": -22.0,
+     "loop": 0.6
+    },
+    "level": "-22.0 dB (new cue)",
+    "keep_seconds": 12.0
+   },
+   "measured": {
+    "seconds": 11.4,
+    "peak_db": -14.9,
+    "loud_db": -22.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 115,
+    "end_db": -34.7,
+    "seam_jump": 0.0005,
+    "seam_vs_p999": 0.11,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "sting",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_intro.mp3",
+   "prompt": "A menacing cowpunk riff with a theremin wail and a slammed screen door: final boss arrival sting.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/maw_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "sting",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.12,
+     "level": -3.0
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -0.8,
+    "loud_db": -3.7,
+    "dc": 0.0042,
+    "onset_ms": 4.4,
+    "centroid_hz": 847,
+    "end_db": -93.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "maw_end": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "sting",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/maw_end.mp3",
+   "prompt": "A huge triumphant cowpunk final chord with a falling theremin and a cymbal crash: the last boss is down.",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/maw_end.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "sting",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.12,
+     "level": -3.0
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.6
+   },
+   "measured": {
+    "seconds": 2.6,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 595,
+    "end_db": -116.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_ship-pa_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_ship-pa_0.mp3",
+   "prompt": "Hooman loose on deck four.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/talk_ship-pa_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.54
+    ],
+    "natural_seconds": 1.557,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.557
+   },
+   "measured": {
+    "seconds": 1.727,
+    "peak_db": -0.8,
+    "loud_db": -4.0,
+    "dc": 0.0005,
+    "onset_ms": 5.4,
+    "centroid_hz": 1522,
+    "end_db": -123.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_ship-pa_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_ship-pa_1.mp3",
+   "prompt": "Which one is the hooman?",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/talk_ship-pa_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.08
+    ],
+    "natural_seconds": 2.102,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.102
+   },
+   "measured": {
+    "seconds": 2.102,
+    "peak_db": -0.8,
+    "loud_db": -11.5,
+    "dc": 0.0,
+    "onset_ms": 10.9,
+    "centroid_hz": 1553,
+    "end_db": -124.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_mess-pa_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_mess-pa_0.mp3",
+   "prompt": "Corn dogs are off.",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/talk_mess-pa_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.14
+    ],
+    "natural_seconds": 1.094,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.094
+   },
+   "measured": {
+    "seconds": 1.264,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0003,
+    "onset_ms": 3.1,
+    "centroid_hz": 1580,
+    "end_db": -121.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_mess-pa_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_mess-pa_1.mp3",
+   "prompt": "Again?",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/talk_mess-pa_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.3,
+     0.84
+    ],
+    "natural_seconds": 0.8,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.8
+   },
+   "measured": {
+    "seconds": 0.73,
+    "peak_db": -0.8,
+    "loud_db": -13.1,
+    "dc": 0.0003,
+    "onset_ms": 0.0,
+    "centroid_hz": 1738,
+    "end_db": -75.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_engine-pa_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_engine-pa_0.mp3",
+   "prompt": "Who put diesel in the drive?",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/talk_engine-pa_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.88
+    ],
+    "natural_seconds": 1.854,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.854
+   },
+   "measured": {
+    "seconds": 2.024,
+    "peak_db": -0.8,
+    "loud_db": -4.5,
+    "dc": 0.0008,
+    "onset_ms": 5.2,
+    "centroid_hz": 1882,
+    "end_db": -131.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_engine-pa_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_engine-pa_1.mp3",
+   "prompt": "Sign said unleaded.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/talk_engine-pa_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.78
+    ],
+    "natural_seconds": 1.73,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.73
+   },
+   "measured": {
+    "seconds": 1.73,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0015,
+    "onset_ms": 0.0,
+    "centroid_hz": 928,
+    "end_db": -115.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_bridge-pa_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_bridge-pa_0.mp3",
+   "prompt": "Where's my boy's tin star?",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/talk_bridge-pa_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.8
+    ],
+    "natural_seconds": 1.841,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.841
+   },
+   "measured": {
+    "seconds": 2.011,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0004,
+    "onset_ms": 6.6,
+    "centroid_hz": 1624,
+    "end_db": -133.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_bridge-pa_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_bridge-pa_1.mp3",
+   "prompt": "Hickston, Maw.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/talk_bridge-pa_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.48
+    ],
+    "natural_seconds": 1.584,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.584
+   },
+   "measured": {
+    "seconds": 1.584,
+    "peak_db": -0.8,
+    "loud_db": -10.3,
+    "dc": 0.0001,
+    "onset_ms": 13.2,
+    "centroid_hz": 1474,
+    "end_db": -129.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "county_dispatch_5": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/county_dispatch_5.mp3",
+   "prompt": "Check the speedway.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/county_dispatch_5.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.14
+    ],
+    "natural_seconds": 1.133,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.133
+   },
+   "measured": {
+    "seconds": 1.133,
+    "peak_db": -0.8,
+    "loud_db": -4.4,
+    "dc": 0.0041,
+    "onset_ms": 22.0,
+    "centroid_hz": 1674,
+    "end_db": -106.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "county_dispatch_6": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/county_dispatch_6.mp3",
+   "prompt": "The tag is home.",
+   "credits": 0,
+   "destination": "audio_src/final/sfx/county_dispatch_6.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.7
+    ],
+    "natural_seconds": 1.617,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.617
+   },
+   "measured": {
+    "seconds": 1.617,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0071,
+    "onset_ms": 4.0,
+    "centroid_hz": 1316,
+    "end_db": -119.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "county_dispatch_7": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/county_dispatch_7.mp3",
+   "prompt": "Nothing up there but stars.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/county_dispatch_7.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.62
+    ],
+    "natural_seconds": 2.555,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.555
+   },
+   "measured": {
+    "seconds": 2.555,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.005,
+    "onset_ms": 0.0,
+    "centroid_hz": 1434,
+    "end_db": -129.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_gong": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_gong.mp3",
+   "prompt": "A steel gong target struck by a rifle bullet at 20 yards: bright metallic clang ringing out, outdoors.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/range_gong.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 1.4
+   },
+   "measured": {
+    "seconds": 1.36,
+    "peak_db": -0.8,
+    "loud_db": -7.2,
+    "dc": 0.0002,
+    "onset_ms": 0.3,
+    "centroid_hz": 2488,
+    "end_db": -148.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_board_hit": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_board_hit.mp3",
+   "prompt": "A bullet punching through a plywood bullseye target on a wooden stand: dry crack and a wobble of the stand.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/range_board_hit.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.478,
+    "peak_db": -0.8,
+    "loud_db": -15.6,
+    "dc": 0.0,
+    "onset_ms": 7.8,
+    "centroid_hz": 1116,
+    "end_db": -150.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_pin_scatter": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "impact",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_pin_scatter.mp3",
+   "prompt": "Bowling pins scattering on a wooden lane, a full strike: hollow wooden clatter.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/range_pin_scatter.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "impact",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 2.0,
+     "fade": 0.3,
+     "level": -5.0
+    },
+    "level": "-5.0 dB (new cue)",
+    "keep_seconds": 1.2
+   },
+   "measured": {
+    "seconds": 1.2,
+    "peak_db": -0.8,
+    "loud_db": -13.1,
+    "dc": 0.0006,
+    "onset_ms": 0.2,
+    "centroid_hz": 863,
+    "end_db": -170.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_dummy_thwack": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "melee",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_dummy_thwack.mp3",
+   "prompt": "A crowbar thwacking a straw-stuffed feed-sack dummy: dull burlap thump with straw rustle.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/range_dummy_thwack.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "melee",
+    "chain": {
+     "hp": 70,
+     "lp": 10000,
+     "low": 1.5,
+     "pres": 1.5,
+     "fade": 0.25,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.48,
+    "peak_db": -0.8,
+    "loud_db": -11.7,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1567,
+    "end_db": -123.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_strike": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ui",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_strike.mp3",
+   "prompt": "A county-fair bell and a short brass \"ta-da\" for a bowling strike, cheerful and cheap.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/range_strike.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ui",
+    "chain": {
+     "hp": 200,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.4,
+     "level": -9.0
+    },
+    "lead_trimmed_ms": 12,
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.5
+   },
+   "measured": {
+    "seconds": 1.468,
+    "peak_db": -0.8,
+    "loud_db": -9.4,
+    "dc": 0.0002,
+    "onset_ms": 1.4,
+    "centroid_hz": 3047,
+    "end_db": -175.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_gallery_ding": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ui",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_gallery_ding.mp3",
+   "prompt": "A tin shooting-gallery duck knocked flat: a high tin ping and a spring clack.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/range_gallery_ding.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ui",
+    "chain": {
+     "hp": 200,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.4,
+     "level": -9.0
+    },
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 0.4
+   },
+   "measured": {
+    "seconds": 0.4,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0011,
+    "onset_ms": 0.0,
+    "centroid_hz": 1201,
+    "end_db": -134.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_gallery_buzzer": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ui",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_gallery_buzzer.mp3",
+   "prompt": "An old carnival game buzzer ending the round: a rattly electric buzz.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/range_gallery_buzzer.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ui",
+    "chain": {
+     "hp": 200,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.4,
+     "level": -9.0
+    },
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -8.6,
+    "dc": 0.0006,
+    "onset_ms": 0.0,
+    "centroid_hz": 4611,
+    "end_db": -145.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_lever": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "station",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_lever.mp3",
+   "prompt": "A heavy iron release lever thrown on a fence-post switch box: clunk and ratchet.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/range_lever.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "station",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.5,
+     "pres": 1.5,
+     "fade": 0.25,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 31,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.569,
+    "peak_db": -0.8,
+    "loud_db": -13.8,
+    "dc": 0.0001,
+    "onset_ms": 27.0,
+    "centroid_hz": 2002,
+    "end_db": -153.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "lever_clunk": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "station",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/lever_clunk.mp3",
+   "prompt": "A big knife-switch lever on a steel control box thrown down hard: heavy clunk and a spring twang.",
+   "credits": 9,
+   "destination": "audio_src/final/sfx/lever_clunk.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "station",
+    "chain": {
+     "hp": 60,
+     "lp": 10000,
+     "low": 1.5,
+     "pres": 1.5,
+     "fade": 0.25,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.7
+   },
+   "measured": {
+    "seconds": 0.68,
+    "peak_db": -0.8,
+    "loud_db": -12.1,
+    "dc": 0.0005,
+    "onset_ms": 0.0,
+    "centroid_hz": 745,
+    "end_db": -136.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_pen_gate": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "door",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/range_pen_gate.mp3",
+   "prompt": "A wooden livestock pen gate banging open on its chain.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/range_pen_gate.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "door",
+    "chain": {
+     "hp": 70,
+     "lp": 9500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.25,
+     "level": -6.0
+    },
+    "level": "-6.0 dB (new cue)",
+    "keep_seconds": 0.8
+   },
+   "measured": {
+    "seconds": 0.8,
+    "peak_db": -0.8,
+    "loud_db": -13.8,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1214,
+    "end_db": -128.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "chain_rattle": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "door",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/chain_rattle.mp3",
+   "prompt": "A heavy chain and padlock on a gate yanked and rattled, locked tight.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/chain_rattle.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "door",
+    "chain": {
+     "hp": 70,
+     "lp": 9500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.25,
+     "level": -6.0
+    },
+    "level": "-6.0 dB (new cue)",
+    "keep_seconds": 0.8
+   },
+   "measured": {
+    "seconds": 0.8,
+    "peak_db": -0.8,
+    "loud_db": -14.0,
+    "dc": 0.0006,
+    "onset_ms": 0.0,
+    "centroid_hz": 3993,
+    "end_db": -137.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_pa_hot": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/range_pa_hot.mp3",
+   "prompt": "The range is hot. Keep it pointed downrange, y'hear.",
+   "credits": 52,
+   "destination": "audio_src/final/sfx/range_pa_hot.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     3.56
+    ],
+    "natural_seconds": 3.683,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.683
+   },
+   "measured": {
+    "seconds": 3.809,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0018,
+    "onset_ms": 16.4,
+    "centroid_hz": 1073,
+    "end_db": -138.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "range_pa_medic": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/range_pa_medic.mp3",
+   "prompt": "Medic to the firing line. Again.",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/range_pa_medic.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.72
+    ],
+    "natural_seconds": 2.612,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.612
+   },
+   "measured": {
+    "seconds": 2.782,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.0001,
+    "onset_ms": 3.1,
+    "centroid_hz": 1133,
+    "end_db": -136.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "amb_range": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ambience",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/amb_range.mp3",
+   "prompt": "A thin county-fair crowd at dusk far off: murmur, a distant calliope, crickets, the odd whoop.",
+   "credits": 221,
+   "destination": "audio_src/final/sfx/amb_range.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ambience",
+    "chain": {
+     "hp": 50,
+     "lp": 6800,
+     "low": 2.0,
+     "pres": -2.5,
+     "fade": 0,
+     "level": -22.0,
+     "loop": 0.6
+    },
+    "level": "-22.0 dB (new cue)",
+    "keep_seconds": 20.0
+   },
+   "measured": {
+    "seconds": 19.4,
+    "peak_db": -13.1,
+    "loud_db": -22.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 563,
+    "end_db": -28.8,
+    "seam_jump": 0.0024,
+    "seam_vs_p999": 0.03,
     "problems": []
    },
    "validation": "ok"
@@ -14130,6 +18261,344 @@
    "origin": "generated",
    "destination": "godot/assets/music/fight_quarry.ogg -> godot/assets_gen/music.bin",
    "format": "stereo Vorbis 44.1 kHz"
+  },
+  "boss_hickston": {
+   "status": "built",
+   "title": "Sheriff's Last Stand",
+   "bpm_asked": 184,
+   "loop": true,
+   "seconds": 63.313,
+   "lufs": -15.0,
+   "lra": 1.1,
+   "true_peak_db": -3.6,
+   "source_lufs": -9.99,
+   "loop_from_take": 4.327,
+   "loop_to_take": 67.64,
+   "match_rhythm": 0.699,
+   "match_harmony": 0.889,
+   "match_attack": 0.369,
+   "cross_correlation": -0.06,
+   "join_jump": 1.68,
+   "join_level_spread_db": 7.31,
+   "body_level_spread_db": 5.98,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/boss_hickston.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "boss_fair": {
+   "status": "built",
+   "title": "Ringmaster Meltdown",
+   "bpm_asked": 192,
+   "loop": true,
+   "seconds": 49.999,
+   "lufs": -15.1,
+   "lra": 0.7,
+   "true_peak_db": -2.7,
+   "source_lufs": -9.93,
+   "loop_from_take": 10.895,
+   "loop_to_take": 60.894,
+   "match_rhythm": 0.917,
+   "match_harmony": 0.925,
+   "match_attack": 0.698,
+   "cross_correlation": 0.123,
+   "join_jump": 1.0,
+   "join_level_spread_db": 9.0,
+   "body_level_spread_db": 7.34,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/boss_fair.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "boss_mill": {
+   "status": "built",
+   "title": "Head Saw Showdown",
+   "bpm_asked": 164,
+   "loop": true,
+   "seconds": 47.561,
+   "lufs": -15.2,
+   "lra": 0.9,
+   "true_peak_db": -1.8,
+   "source_lufs": -11.04,
+   "loop_from_take": 9.955,
+   "loop_to_take": 57.516,
+   "match_rhythm": 0.92,
+   "match_harmony": 0.924,
+   "match_attack": 0.781,
+   "cross_correlation": 0.258,
+   "join_jump": 0.39,
+   "join_level_spread_db": 8.76,
+   "body_level_spread_db": 9.66,
+   "credits": 1932,
+   "origin": "generated",
+   "destination": "godot/assets/music/boss_mill.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "boss_quarry": {
+   "status": "built",
+   "title": "Boil-Over at the Still",
+   "bpm_asked": 150,
+   "loop": true,
+   "seconds": 47.996,
+   "lufs": -15.1,
+   "lra": 1.5,
+   "true_peak_db": -5.5,
+   "source_lufs": -8.05,
+   "loop_from_take": 15.011,
+   "loop_to_take": 63.007,
+   "match_rhythm": 0.763,
+   "match_harmony": 0.988,
+   "match_attack": 0.815,
+   "cross_correlation": -0.04,
+   "join_jump": 0.13,
+   "join_level_spread_db": 7.0,
+   "body_level_spread_db": 6.84,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/boss_quarry.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "boss_bayou": {
+   "status": "built",
+   "title": "Swamp King's Rampage",
+   "bpm_asked": 168,
+   "loop": true,
+   "seconds": 46.428,
+   "lufs": -15.1,
+   "lra": 3.0,
+   "true_peak_db": -3.2,
+   "source_lufs": -10.11,
+   "loop_from_take": 14.461,
+   "loop_to_take": 60.889,
+   "match_rhythm": 0.902,
+   "match_harmony": 0.902,
+   "match_attack": 0.655,
+   "cross_correlation": -0.096,
+   "join_jump": 0.42,
+   "join_level_spread_db": 12.13,
+   "body_level_spread_db": 7.64,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/boss_bayou.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "boss_speedway": {
+   "status": "built",
+   "title": "Bumper Boggs Wrecking Ball",
+   "bpm_asked": 180,
+   "loop": true,
+   "seconds": 55.333,
+   "lufs": -15.1,
+   "lra": 2.6,
+   "true_peak_db": -4.0,
+   "source_lufs": -8.88,
+   "loop_from_take": 7.622,
+   "loop_to_take": 62.955,
+   "match_rhythm": 0.88,
+   "match_harmony": 0.991,
+   "match_attack": 0.329,
+   "cross_correlation": -0.007,
+   "join_jump": 1.04,
+   "join_level_spread_db": 3.17,
+   "body_level_spread_db": 7.32,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/boss_speedway.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "boss_mothership": {
+   "status": "built",
+   "title": "Maw's Last Supper",
+   "bpm_asked": 148,
+   "loop": true,
+   "seconds": 64.001,
+   "lufs": -15.1,
+   "lra": 2.4,
+   "true_peak_db": -2.7,
+   "source_lufs": -10.04,
+   "loop_from_take": 13.443,
+   "loop_to_take": 77.444,
+   "match_rhythm": 0.969,
+   "match_harmony": 0.825,
+   "match_attack": 0.727,
+   "cross_correlation": -0.106,
+   "join_jump": 1.27,
+   "join_level_spread_db": 5.83,
+   "body_level_spread_db": 11.26,
+   "credits": 1242,
+   "origin": "generated",
+   "destination": "godot/assets/music/boss_mothership.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "bayou_score": {
+   "status": "built",
+   "title": "Black Water Stomp",
+   "bpm_asked": 112,
+   "seconds": 107.59,
+   "lufs": -15.0,
+   "lra": 2.3,
+   "true_peak_db": -1.1,
+   "source_lufs": -11.83,
+   "credits": 1656,
+   "origin": "generated",
+   "destination": "godot/assets/music/bayou_score.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "cypress_crawl": {
+   "status": "built",
+   "title": "Cypress Knee Crawl",
+   "bpm_asked": 96,
+   "seconds": 108.21,
+   "lufs": -15.0,
+   "lra": 3.5,
+   "true_peak_db": -2.3,
+   "source_lufs": -10.25,
+   "credits": 1656,
+   "origin": "generated",
+   "destination": "godot/assets/music/cypress_crawl.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "crawdad_boil_hop": {
+   "status": "built",
+   "title": "Crawdad Boil Hop",
+   "bpm_asked": 150,
+   "seconds": 107.9,
+   "lufs": -15.0,
+   "lra": 3.1,
+   "true_peak_db": -0.9,
+   "source_lufs": -12.44,
+   "credits": 1656,
+   "origin": "generated",
+   "destination": "godot/assets/music/crawdad_boil_hop.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "music_speedway": {
+   "status": "built",
+   "title": "Buzzard Bend Feature Race",
+   "bpm_asked": 126,
+   "seconds": 118.2,
+   "lufs": -15.1,
+   "lra": 6.0,
+   "true_peak_db": -2.9,
+   "source_lufs": -9.8,
+   "credits": 1656,
+   "origin": "generated",
+   "destination": "godot/assets/music/music_speedway.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "pit_row_boogie": {
+   "status": "built",
+   "title": "Pit Row Boogie",
+   "bpm_asked": 144,
+   "seconds": 115.56,
+   "lufs": -15.0,
+   "lra": 7.6,
+   "true_peak_db": -2.2,
+   "source_lufs": -10.58,
+   "credits": 1656,
+   "origin": "generated",
+   "destination": "godot/assets/music/pit_row_boogie.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "checkered_flag_rag": {
+   "status": "built",
+   "title": "Checkered Flag Rag",
+   "bpm_asked": 172,
+   "seconds": 117.22,
+   "lufs": -15.0,
+   "lra": 6.7,
+   "true_peak_db": -1.0,
+   "source_lufs": -11.32,
+   "credits": 1656,
+   "origin": "generated",
+   "destination": "godot/assets/music/checkered_flag_rag.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "mothership_score": {
+   "status": "built",
+   "title": "Abducted Hoedown",
+   "bpm_asked": 136,
+   "seconds": 116.09,
+   "lufs": -15.0,
+   "lra": 2.2,
+   "true_peak_db": -0.8,
+   "source_lufs": -11.97,
+   "credits": 1656,
+   "origin": "generated",
+   "destination": "godot/assets/music/mothership_score.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "fight_bayou": {
+   "status": "built",
+   "title": "Airboat Brawl",
+   "bpm_asked": 136,
+   "loop": true,
+   "seconds": 48.0,
+   "lufs": -15.2,
+   "lra": 0.7,
+   "true_peak_db": -2.8,
+   "source_lufs": -9.7,
+   "loop_from_take": 15.432,
+   "loop_to_take": 63.431,
+   "match_rhythm": 0.738,
+   "match_harmony": 0.896,
+   "match_attack": 0.471,
+   "cross_correlation": 0.11,
+   "join_jump": 0.59,
+   "join_level_spread_db": 8.7,
+   "body_level_spread_db": 4.84,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/fight_bayou.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "fight_speedway": {
+   "status": "built",
+   "title": "Demolition Derby Brawl",
+   "bpm_asked": 138,
+   "loop": true,
+   "seconds": 48.0,
+   "lufs": -15.1,
+   "lra": 6.7,
+   "true_peak_db": -4.2,
+   "source_lufs": -8.65,
+   "loop_from_take": 6.259,
+   "loop_to_take": 54.259,
+   "match_rhythm": 0.686,
+   "match_harmony": 0.98,
+   "match_attack": 0.267,
+   "cross_correlation": -0.18,
+   "join_jump": 0.71,
+   "join_level_spread_db": 5.81,
+   "body_level_spread_db": 9.59,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/fight_speedway.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "fight_mothership": {
+   "status": "built",
+   "title": "Ray Gun Barn Dance",
+   "bpm_asked": 176,
+   "loop": true,
+   "seconds": 54.551,
+   "lufs": -15.1,
+   "lra": 7.6,
+   "true_peak_db": -3.4,
+   "source_lufs": -9.34,
+   "loop_from_take": 9.879,
+   "loop_to_take": 64.43,
+   "match_rhythm": 0.791,
+   "match_harmony": 0.883,
+   "match_attack": 0.283,
+   "cross_correlation": -0.079,
+   "join_jump": 0.88,
+   "join_level_spread_db": 10.42,
+   "body_level_spread_db": 10.47,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/fight_mothership.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
   }
  },
  "dropped_from_bank": [
@@ -14195,6 +18664,112 @@
   "baron_death",
   "brawl_punch",
   "enemy_slip",
-  "menu_back"
+  "menu_back",
+  "noodler_holler",
+  "chum_holler",
+  "king_holler",
+  "swamp_king_rage",
+  "noodler_grunt",
+  "chum_slosh",
+  "gator_hiss",
+  "king_rev",
+  "noodler_slap",
+  "chum_throw",
+  "gator_snap",
+  "king_charge",
+  "king_ram",
+  "king_beached",
+  "king_puntgun",
+  "noodler_rise",
+  "record_scratch",
+  "king_down",
+  "swamp_king_death",
+  "swamp_king_intro",
+  "swamp_king_end",
+  "amb_bayou",
+  "amb_bayou_shack",
+  "amb_bayou_after",
+  "distant_bayou_airboat",
+  "distant_bayou_juke",
+  "distant_bayou_gator",
+  "distant_bayou_frogs",
+  "talk_boil-cooks_0",
+  "talk_boil-cooks_1",
+  "talk_juke-band_0",
+  "talk_juke-band_1",
+  "talk_dock-radio_0",
+  "talk_dock-radio_1",
+  "derby_champ_warn",
+  "huffer_hiss",
+  "derby_champ_crash",
+  "lap_car_hit",
+  "derby_champ_rage",
+  "derby_champ_death",
+  "derby_champ_pain",
+  "derby_champ_down",
+  "flagman_flare",
+  "tire_roll",
+  "wrench_throw",
+  "lap_car_pass",
+  "derby_champ_intro",
+  "derby_champ_end",
+  "talk_pit-radio_0",
+  "talk_pit-radio_1",
+  "talk_booth-pa_0",
+  "talk_booth-pa_1",
+  "talk_camp-fire_0",
+  "talk_camp-fire_1",
+  "drone_zap",
+  "guard_zapper",
+  "probe_tug",
+  "maw_dryer_blast",
+  "tailgate_clang",
+  "maw_pin_raise",
+  "maw_dryer_whine",
+  "maw_stomp_warn",
+  "drone_buzz",
+  "guard_wind",
+  "probe_whine",
+  "maw_pin_slam",
+  "maw_stomp",
+  "maw_holler",
+  "maw_rage",
+  "maw_bare",
+  "maw_spot",
+  "probe_spot",
+  "pod_open",
+  "beam_hum",
+  "maw_death",
+  "maw_pain",
+  "maw_down",
+  "ship_quake",
+  "amb_mothership",
+  "maw_intro",
+  "maw_end",
+  "talk_ship-pa_0",
+  "talk_ship-pa_1",
+  "talk_mess-pa_0",
+  "talk_mess-pa_1",
+  "talk_engine-pa_0",
+  "talk_engine-pa_1",
+  "talk_bridge-pa_0",
+  "talk_bridge-pa_1",
+  "county_dispatch_5",
+  "county_dispatch_6",
+  "county_dispatch_7",
+  "range_gong",
+  "range_board_hit",
+  "range_pin_scatter",
+  "range_dummy_thwack",
+  "range_strike",
+  "range_gallery_ding",
+  "range_gallery_buzzer",
+  "range_lever",
+  "lever_clunk",
+  "range_pen_gate",
+  "chain_rattle",
+  "range_pa_hot",
+  "range_pa_medic",
+  "amb_range"
  ]
 }

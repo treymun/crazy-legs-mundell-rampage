@@ -1,25 +1,25 @@
 {
- "text": "The tag is home",
+ "text": "Uh, check the bayou",
  "words": [
   {
-   "text": "The",
-   "start": 0.2,
-   "end": 0.26
+   "text": "Uh,",
+   "start": 0.0,
+   "end": 0.1
   },
   {
-   "text": "tag",
-   "start": 0.4,
-   "end": 0.84
+   "text": "check",
+   "start": 0.26,
+   "end": 0.52
   },
   {
-   "text": "is",
-   "start": 0.9,
-   "end": 1.06
+   "text": "the",
+   "start": 0.62,
+   "end": 0.7
   },
   {
-   "text": "home",
-   "start": 1.12,
-   "end": 1.7
+   "text": "bayou",
+   "start": 0.8,
+   "end": 1.72
   }
  ]
 }

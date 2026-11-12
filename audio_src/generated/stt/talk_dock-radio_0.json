@@ -1,0 +1,35 @@
+{
+ "text": "King to doc, fuel her up",
+ "words": [
+  {
+   "text": "King",
+   "start": 0.16,
+   "end": 0.38
+  },
+  {
+   "text": "to",
+   "start": 0.42,
+   "end": 0.5
+  },
+  {
+   "text": "doc,",
+   "start": 0.54,
+   "end": 0.86
+  },
+  {
+   "text": "fuel",
+   "start": 0.96,
+   "end": 1.16
+  },
+  {
+   "text": "her",
+   "start": 1.18,
+   "end": 1.3
+  },
+  {
+   "text": "up",
+   "start": 1.4,
+   "end": 1.58
+  }
+ ]
+}

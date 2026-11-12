@@ -581,7 +581,7 @@ func station(
 				"requires": o.get("requires", []),
 				"opens": o.get("opens", []),
 				"sectors": o.get("sectors", []),
-				"cue": String(o.get("cue", "menu_accept")),
+				"cue": String(o.get("cue", "lever_clunk")),
 				"reveals_secret": bool(o.get("reveals_secret", false)),
 				"hidden": bool(o.get("hidden", false)),
 				"action": String(o.get("action", "use")),

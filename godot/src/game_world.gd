@@ -292,7 +292,7 @@ func collect(name: String) -> bool:
 	sound.play(
 		(
 			"key_pickup"
-			if name.begins_with("key_")
+			if name.begins_with("key_") or TASK_ITEMS.has(name)
 			else "weapon_pickup" if Weapons.NAMES.has(name) else "pickup"
 		),
 		.8
@@ -768,7 +768,7 @@ func interact() -> void:
 	if gate != null:
 		if world.locked_gates.has(gate):
 			message(gate_text(gate), 3.0)
-			sound.play("empty")
+			sound.play("chain_rattle")
 		elif armory.fuse > 0.0:
 			message("THROW THE LIT STICK BEFORE LEAVING.", 3.0)
 		else:
@@ -835,6 +835,7 @@ func interact() -> void:
 			finish_level("gate")
 		else:
 			message(objective(), 3.0)
+			sound_at("chain_rattle", x, y, .8)
 		return
 	var door: LevelData.Door = target
 	if world.controlled_doors.has(Vector2i(door.x, door.y)):

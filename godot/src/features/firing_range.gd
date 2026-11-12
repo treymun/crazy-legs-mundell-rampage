@@ -82,6 +82,8 @@ var reach_note := ""
 var reach_until := 0.0
 var cans_down := {}
 var say_next := 0.0
+## The PA's "range is hot" has been said this visit.
+var range_hot := false
 
 
 func id() -> String:
@@ -132,6 +134,9 @@ func _tick(dt: float) -> void:
 	if pending != "":
 		game.message(pending, pending_for)
 		pending = ""
+	if not range_hot and game.clock > 1.5 and game.sound != null:
+		range_hot = true
+		game.sound.play_voice("range_pa_hot", .7, 0.0)
 	targets.tick(game, dt)
 	_cans()
 	_watch()
@@ -226,6 +231,8 @@ func _hurt(_amount: float, _cause: String) -> void:
 		p.health = 100
 		game.hurt_flash = 0.0
 		say("THE RANGE MEDIC PATCHED YA UP. MIND THE BULLPEN.", 2.6)
+		if game.sound != null:
+			game.sound.play_voice("range_pa_medic", .7, 0.0)
 
 
 func _killed(enemy: Enemy) -> void:
@@ -402,7 +409,7 @@ func _spawn(kind: String, at: Vector2, home: String, awake: bool) -> Enemy:
 	if awake:
 		foe.wake(game, p.x, p.y)
 	game.burst(at.x, at.y, .3, "dust", 10, 1.4)
-	game.sound_at("gate", at.x, at.y, .7)
+	game.sound_at("range_pen_gate", at.x, at.y, .7)
 	return foe
 
 
