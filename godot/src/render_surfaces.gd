@@ -38,11 +38,21 @@ func _block_walls(base: PackedFloat32Array, at_hub: bool) -> void:
 
 
 func _prepare(segments: PackedFloat32Array) -> void:
+	_prepare_begin(segments)
+	for k in _prep_chunks:
+		_prepare_chunk(k)
+	_prepare_end()
+
+
+## _prepare() in three steps, so the crew can share the middle one
+## (renderer.gd frame_begin): list the walls in blocks of the map the view can
+## reach, then project them PREP_CHUNK at a time (_prepare_chunk), then sort
+## them nearest first (_prepare_end).
+func _prepare_begin(segments: PackedFloat32Array) -> void:
 	walls = segments
 	seg_n = segments.size() / WALL_STRIDE
 	seg_c0.resize(seg_n)
 	seg_c1.resize(seg_n)
-	seg_order.clear()
 	cov_top.resize(vw)
 	cov_bot.resize(vw)
 	cov_t.resize(vw)
@@ -70,7 +80,85 @@ func _prepare(segments: PackedFloat32Array) -> void:
 			todo.append_array(block[3])
 	for i in range(fixed, seg_n):
 		todo.append(i)
-	for i in todo:
+	_todo = todo
+	_prep_chunks = (todo.size() + PREP_CHUNK - 1) / PREP_CHUNK
+	_prep_next = 0
+	seg_order.resize(todo.size())
+	_packing = _lay and wall_walk
+	if _lay:
+		gpu_walls = false
+		_special_ranks.clear()
+	if not _packing:
+		return
+	block_w = maxi(1, ceili(float(vw) / WALL_BLOCKS))
+	_pack_blocks = ceili(float(vw) / block_w)
+	seg_flag.resize(seg_n)
+	seg_flag.fill(0)
+	seg_key.resize(seg_n)
+	_chunk_table.resize(todo.size() * 16)
+	_chunk_count.resize(_prep_chunks)
+	var cells := _prep_chunks * _pack_blocks
+	_chunk_n.resize(cells)
+	_chunk_n.fill(0)
+	_chunk_top.resize(cells)
+	_chunk_top.fill(vh)
+	_chunk_bottom.resize(cells)
+	_chunk_bottom.fill(-1)
+
+
+## The crew's share of _prepare(): chunks as they come.
+func _prepare_worker() -> void:
+	while true:
+		_prep_lock.lock()
+		var k := _prep_next
+		_prep_next += 1
+		_prep_lock.unlock()
+		if k >= _prep_chunks:
+			return
+		_prepare_chunk(k)
+
+
+## Project chunk k of the walls the view can reach: each one's columns (seg_c0,
+## seg_c1) and sort key (into seg_order at its place in _todo; SKIP when it is
+## not on screen). Packing (the main layered pass), a wall the bands would
+## draw something of is also handed to the shader: in double precision, then
+## as floats, what _wall_band works out once per wall, four texels:
+##   [0] first column + 1024 * end column, the nearest any column meets it,
+##       t's numerator, the top row + 1024 * the bottom row it can reach
+##       (+ 1048576 for the road shed's open mesh);
+##   [1] the denominator's two terms, then u's numerator's, per column offset
+##       from the middle of the view (ray = offset / focal folded in);
+##   [2] bottom, top, (eye - top) * focal, (eye - bottom) * focal;
+##   [3] tile + 4096 * tile outside the window band, texels along it, light,
+##       mode + 4 * kind + 32 * shade profile.
+## Mirrors and glazing stay the bands' alone (seg_flag); a wall that can cover
+## no row leaves seg_order altogether (the bands would skip it).
+func _prepare_chunk(k: int) -> void:
+	var segments := walls
+	var todo := _todo
+	var keys := seg_order
+	var c0s := seg_c0
+	var c1s := seg_c1
+	var first := k * PREP_CHUNK
+	var last := mini(first + PREP_CHUNK, todo.size())
+	var packing := _packing
+	var table := _chunk_table
+	var flags := seg_flag
+	var flag_keys := seg_key
+	var counts := _chunk_n
+	var tops := _chunk_top
+	var bottoms := _chunk_bottom
+	var modes := tile_mode
+	var bases := tile_base
+	var bw := block_w
+	var cell0 := k * _pack_blocks
+	var tint_max := tints.size() / 3 - 1
+	var phase := time - floorf(time / 6.1) * 6.1
+	var flicker := phase > .87 and phase < 1.02
+	var inv_focal := 1.0 / focal
+	var packed := 0
+	for p in range(first, last):
+		var i := todo[p]
 		var o := i * WALL_STRIDE
 		var r0x := segments[o] - cx
 		var r0y := segments[o + 1] - cy
@@ -79,8 +167,9 @@ func _prepare(segments: PackedFloat32Array) -> void:
 		var a0 := r0x * fx + r0y * fy
 		var a1 := r1x * fx + r1y * fy
 		if a0 <= .0001 and a1 <= .0001:
-			seg_c0[i] = 0
-			seg_c1[i] = 0
+			c0s[i] = 0
+			c1s[i] = 0
+			keys[p] = SKIP
 			continue
 		var s0 := r0x * rx + r0y * ry
 		var s1 := r1x * rx + r1y * ry
@@ -108,11 +197,186 @@ func _prepare(segments: PackedFloat32Array) -> void:
 			var e1 := spread / (a1 * a1) + .05
 			c0 = maxi(c0, int(ceilf(minf(m0 - e0, m1 - e1))))
 			c1 = mini(c1, int(floorf(maxf(m0 + e0, m1 + e1))) + 1)
-		seg_c0[i] = c0
-		seg_c1[i] = c1
-		if c0 < c1:
-			seg_order.append(int(minf(a0, a1) * 4096.0) * 65536 + i)
+		c0s[i] = c0
+		c1s[i] = c1
+		if c0 >= c1:
+			keys[p] = SKIP
+			continue
+		var near_key := int(minf(a0, a1) * 4096.0)
+		var key := (near_key << 32) | (i << 16) | NO_SLOT
+		if not packing:
+			keys[p] = key
+			continue
+		var bottom := segments[o + 6]
+		var top := segments[o + 7]
+		if top <= bottom:
+			keys[p] = SKIP
+			continue
+		# As _wall_band: the most rows the wall can cover in any column.
+		var near_t := maxf(float(near_key) / 4096.0 - .004, .015)
+		var reach_lo := (cz - top) * focal / near_t if cz < top else 0.0
+		var reach_hi := (cz - bottom) * focal / near_t if cz > bottom else 0.0
+		var most_r0 := maxi(0, int(ceilf(reach_lo + horizon - .5)))
+		var most_r1 := mini(vh - 1, int(floorf(reach_hi + horizon - .5)))
+		if most_r0 > most_r1:
+			keys[p] = SKIP
+			continue
+		var material := int(segments[o + 4])
+		if material == tile_mirror or material == tile_glazing:
+			flags[i] = 1
+			flag_keys[i] = key
+			keys[p] = key
+			continue
+		var slot := first + packed
+		packed += 1
+		keys[p] = key - NO_SLOT + slot
+		var ex := segments[o + 2] - segments[o]
+		var ey := segments[o + 3] - segments[o + 1]
+		var kind := SPAN_PLAIN
+		if material == tile_liquor or material == tile_eat or material == tile_window:
+			kind = SPAN_FLICKER if flicker and material == tile_liquor else SPAN_GLOW
+		elif hub_fx and material == tile_hub_wall:
+			kind = SPAN_SHADOW
+		elif hub_fx and material == tile_hub_screen:
+			kind = SPAN_MESH
+		var mode := int(modes[material]) if (wall_tiling and kind == SPAN_PLAIN) else 0
+		var profile := mini(maxi(int(segments[o + 8]), 0), tint_max) * PROFILE_COUNT
+		var t := slot * 16
+		table[t] = float(c0 + 1024 * c1)
+		# No column meets it nearer (a wall clipped at the eye may reach in to
+		# .015): the shader stops walking a column at the first wall past what
+		# it has found.
+		table[t + 1] = near_t if near_key > 81 else .015
+		table[t + 2] = r0x * ey - r0y * ex
+		table[t + 3] = float(most_r0 + 1024 * most_r1 + (1048576 if kind == SPAN_MESH else 0))
+		table[t + 4] = fx * ey - fy * ex
+		table[t + 5] = (rx * ey - ry * ex) * inv_focal
+		table[t + 6] = r0x * fy - r0y * fx
+		table[t + 7] = (r0x * ry - r0y * rx) * inv_focal
+		table[t + 8] = bottom
+		table[t + 9] = top
+		table[t + 10] = (cz - top) * focal
+		table[t + 11] = (cz - bottom) * focal
+		table[t + 12] = float(material + 4096 * (bases[material] if mode == 2 else material))
+		table[t + 13] = sqrt(ex * ex + ey * ey) * 128.0
+		table[t + 14] = segments[o + 5] + flash
+		table[t + 15] = float(mode + 4 * kind + 32 * profile)
+		for b in range(c0 / bw, (c1 - 1) / bw + 1):
+			var cell := cell0 + b
+			counts[cell] += 1
+			if most_r0 < tops[cell]:
+				tops[cell] = most_r0
+			if most_r1 > bottoms[cell]:
+				bottoms[cell] = most_r1
+	if packing:
+		_chunk_count[k] = packed
+
+
+## Nearest first; the walls with nothing to draw (SKIP) sort last and go.
+func _prepare_end() -> void:
 	seg_order.sort()
+	seg_order.resize(seg_order.size() - seg_order.count(SKIP))
+	if _packing:
+		_pack_end()
+
+
+## The shader's wall table from what the chunks packed (see wall_table): their
+## walls one chunk after another, each block's header, and room for the lists
+## _fill_lists() writes while the bands draw; and the mirrors and glazing in
+## view, for _cpu_columns().
+func _pack_end() -> void:
+	gpu_walls = seg_order.size() <= GPU_WALLS
+	if not gpu_walls:
+		return
+	var table := PackedFloat32Array()
+	_slot_shift.resize(_prep_chunks)
+	var packed := 0
+	for k in _prep_chunks:
+		var count := _chunk_count[k]
+		_slot_shift[k] = packed - k * PREP_CHUNK
+		if count > 0:
+			var at := k * PREP_CHUNK * 16
+			table.append_array(_chunk_table.slice(at, at + count * 16))
+			packed += count
+	var blocks := _pack_blocks
+	wall_blocks_at = packed * 4
+	wall_entries_at = wall_blocks_at + blocks
+	table.resize(wall_entries_at * 4)
+	_list_start.resize(blocks)
+	_list_count.resize(blocks)
+	var start := 0
+	for b in blocks:
+		var count := 0
+		var top := vh
+		var bottom := -1
+		for k in _prep_chunks:
+			var cell := k * blocks + b
+			count += _chunk_n[cell]
+			top = mini(top, _chunk_top[cell])
+			bottom = maxi(bottom, _chunk_bottom[cell])
+		var o := (wall_blocks_at + b) * 4
+		table[o] = start
+		table[o + 1] = count
+		table[o + 2] = top
+		table[o + 3] = bottom
+		_list_start[b] = start
+		_list_count[b] = count
+		start += count
+	table.resize((wall_entries_at + (start + 3) / 4) * 4)
+	wall_table = table
+	_list_entries = start
+	var at := seg_flag.find(1)
+	while at >= 0:
+		_special_ranks.append(seg_order.bsearch(seg_key[at]))
+		at = seg_flag.find(1, at + 1)
+
+
+## Each block's list of walls, nearest first (see wall_table), and where in
+## its block's list the shader's walk starts for each column the bands draw
+## walls in (past the first cpu_n of seg_order; beside the column's span
+## count). A job for the crew while the bands draw (renderer.gd _band_worker).
+func _fill_lists() -> void:
+	var keys := seg_order
+	var table := wall_table
+	var shift := _slot_shift
+	var c0s := seg_c0
+	var c1s := seg_c1
+	var bw := block_w
+	var fill := _list_start.duplicate()
+	var ranks := PackedInt32Array()
+	ranks.resize(_list_entries)
+	var base := wall_entries_at * 4
+	for rank in keys.size():
+		var key := keys[rank]
+		var slot := key & 65535
+		if slot == NO_SLOT:
+			continue
+		var i := (key >> 16) & 65535
+		slot += shift[slot / PREP_CHUNK]
+		for b in range(c0s[i] / bw, (c1s[i] - 1) / bw + 1):
+			var e := fill[b]
+			table[base + e] = slot
+			ranks[e] = rank
+			fill[b] = e + 1
+	var row := SPAN_K * 2 * vw * 4 + 1
+	var mine := cpu_n
+	var sf := span_f
+	var starts := _list_start
+	var lengths := _list_count
+	for c in vw:
+		var upto := mine[c]
+		if upto == 0:
+			continue
+		var b := c / bw
+		var lo := starts[b]
+		var hi := lo + lengths[b]
+		while lo < hi:
+			var mid := (lo + hi) >> 1
+			if ranks[mid] < upto:
+				lo = mid + 1
+			else:
+				hi = mid
+		sf[row + c * 4] = lo - starts[b]
 
 
 # -------------------------------------------------------------------- sky
@@ -158,10 +422,26 @@ func _wall_band(band_a: int, band_b: int) -> void:
 	var span_row := vw * 4
 	var phase := time - floorf(time / 6.1) * 6.1
 	var flicker := phase > .87 and phase < 1.02
-	for key in seg_order:
-		var i := key & 65535
+	# The shader walks the walls (gpu_walls): here only the first cpu_n[c] of
+	# seg_order in column c, and nothing at all in a band where that is none.
+	var walk := lay and gpu_walls
+	var mine := cpu_n
+	var upto := seg_order.size()
+	if walk:
+		upto = 0
+		for c in range(band_a, band_b):
+			if mine[c] > upto:
+				upto = mine[c]
+	for rank in upto:
+		var key := seg_order[rank]
+		var i := (key >> 16) & 65535
 		var a := maxi(band_a, seg_c0[i])
 		var b := mini(band_b, seg_c1[i])
+		if walk:
+			while a < b and mine[a] <= rank:
+				a += 1
+			while b > a and mine[b - 1] <= rank:
+				b -= 1
 		if a >= b:
 			continue
 		var o := i * WALL_STRIDE
@@ -175,7 +455,7 @@ func _wall_band(band_a: int, band_b: int) -> void:
 		# nearer walls, is skipped before any of its arithmetic (the test after
 		# it would skip it anyway, and nothing before that test writes). Covered
 		# columns at either end are trimmed off before the segment is even set up.
-		var near_t := maxf(float(key >> 16) / 4096.0 - .004, .015)
+		var near_t := maxf(float(key >> 32) / 4096.0 - .004, .015)
 		var reach_lo := (cz - top) * focal / near_t if cz < top else 0.0
 		var reach_hi := (cz - bottom) * focal / near_t if cz > bottom else 0.0
 		var most_r0 := maxi(0, int(ceilf(reach_lo + horizon - .5)))
@@ -238,6 +518,8 @@ func _wall_band(band_a: int, band_b: int) -> void:
 		var flick_base := (profile + PROFILE_FLICK) * SHADE_ROW
 		for c in range(a, b):
 			if most_r0 >= cov_top[c] and most_r1 <= cov_bot[c] and near_t >= cov_t[c]:
+				continue
+			if walk and mine[c] <= rank:
 				continue
 			var ray := rays[c]
 			var den := den_a + ray * den_b

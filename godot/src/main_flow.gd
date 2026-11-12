@@ -446,6 +446,28 @@ func change_setting(value: int) -> void:
 	else:
 		sound.play("menu_move")
 	persist_options()
+	if menu_note == "":
+		# Said where the hint goes: it took, and it is kept for next time.
+		menu_note = (
+			"%s: %s. APPLIED AND SAVED." % [item.label, item.format_value(options[item.key])]
+		)
+		if item.key == "detail":
+			menu_note = _detail_note(int(options[item.key]))
+
+
+## What each VIEW DETAIL draws, once it is picked.
+func _detail_note(detail: int) -> String:
+	if web and not OS.has_feature("threads") and detail != 1:
+		return "VIEW DETAIL SAVED, BUT THIS BROWSER DRAWS LOW: IT RUNS THE VIEW ON ONE CORE."
+	if detail == 3 and (cpu_view or not gpu_ready):
+		return "VIEW DETAIL HD SAVED. HD NEEDS THE GRAPHICS-CARD VIEW, WHICH IS OFF HERE: HIGH."
+	var said: Array[String] = [
+		"VIEW DETAIL HIGH: 320 PIXELS WIDE, AS THE GAME WAS MADE.",
+		"VIEW DETAIL LOW: HALF AS WIDE AND TALL, FOR SLOW MACHINES.",
+		"VIEW DETAIL AUTO: HIGH, DROPPING TO LOW ONLY WHILE FRAMES RUN LATE.",
+		"VIEW DETAIL HD: 640 PIXELS WIDE, TWICE AS SHARP. THE GUN AND STATUS BAR STAY 320."
+	]
+	return said[clampi(detail, 0, 3)] + " APPLIED AND SAVED."
 
 
 ## Keep (true) or undo (false) the display change that is on trial.

@@ -66,13 +66,24 @@ uniform int stream_row = 468;
 uniform int cover_at = 199680;
 uniform int pane_row = 312;
 uniform ivec3 dist_start = ivec3(0, 49920, 99840);
-// Plain walls as whole spans, up to two texels each down a column, and how
-// many spans each column has (renderer: render_state.gd SPAN_K).
-// The wall spans (two rows a span), then a row of each column's span count,
-// then the sprite table: sprite i's texel k is texel i * 4 + k counted on
-// across the rows, from row SPAN_K * 2 + 1. Then the distances from dist_row.
+// The walls the renderer drew as whole spans down a column, two texels a
+// span (renderer: render_state.gd SPAN_K), only as many rows as the fullest
+// column needs; then from row count_row each column's span count (r) and where
+// the shader's own walk starts in its block's list (g, walk_walls); then the
+// sprite table: sprite i's texel k is texel i * 4 + k counted on across the
+// rows, from row sprite_row. Then the distances from dist_row.
 uniform sampler2D spans : filter_nearest, repeat_disable;
+uniform int count_row = 24;
+uniform int sprite_row = 25;
 uniform int dist_row = 0;
+// Walls the shader finds itself (walk_walls; render_state.gd gpu_walls): from
+// row wall_row of `spans`, four texels a wall, then from texel block_at one a
+// block of block_w columns, then from texel entry_at the blocks' lists.
+uniform bool walls_on = false;
+uniform int wall_row = 0;
+uniform int block_at = 0;
+uniform int entry_at = 0;
+uniform int block_w = 8;
 // The level's plane table (plane()), sent when the level or its light changes.
 uniform sampler2D planes : filter_nearest, repeat_disable;
 // Sprites and painted boards, drawn here in list order (render_state.gd
@@ -395,28 +406,22 @@ bool span_hole(int pu, int pv) {
 		&& (pu - pv + 144) % 18 >= 2; // kept positive: % of a negative is undefined in GLSL
 }
 
-// A span's colour at height wz (render_surfaces.gd _wall_band): plain walls,
-// glowing signs, and the hub walls the water tower shades (at the point hit).
-vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit) {
-	vec4 b = texelFetch(spans, ivec2(column, k * 2 + 1), 0);
-	int how = int(b.z + 0.5);
-	int kind = how >> 9;
-	how = how & 511;
-	int mode = how & 3;
-	int tile = int(b.x + 0.5);
+// A wall's colour at height wz (render_surfaces.gd _wall_band): texel column
+// pu of `tile` (`plain` outside the window band, mode 2), lit by shade row
+// shade_row (tint * 99 + light step); plain walls, glowing signs (kind 1, 2),
+// and the hub walls the water tower shades (kind 3, at the point hit).
+vec3 wall_colour(int tile, int plain, int pu, int mode, int kind, int shade_row, float wz, float bottom, float top, vec2 hit) {
 	int pv;
 	if (mode == 0) {
 		pv = clamp(int((top - wz) / (top - bottom) * 128.0), 0, 127);
 	} else {
 		pv = int((1.96 - wz) * 100.0) & 127;
 		if (mode == 2 && (wz < 1.0 || wz > 1.68)) {
-			tile = int(b.y + 0.5);
+			tile = plain;
 		}
 	}
-	int pu = how >> 2;
 	vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
 	vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
-	int shade_row = int(b.w + 0.5);
 	int step = shade_row % 99;
 	float lit = row_light(step);
 	vec3 tint = plane(ivec2(shade_row / 99, 4)).rgb;
@@ -442,10 +447,107 @@ vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit) {
 	return colour;
 }
 
+// The colour of span k of a column the renderer drew (its second texel says
+// what it is: render_state.gd SPAN_K).
+vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit) {
+	vec4 b = texelFetch(spans, ivec2(column, k * 2 + 1), 0);
+	int how = int(b.z + 0.5);
+	return wall_colour(int(b.x + 0.5), int(b.y + 0.5), (how & 511) >> 2, how & 3, how >> 9, int(b.w + 0.5), wz, bottom, top, hit);
+}
+
+// Texel i of the walls the shader walks (render_surfaces.gd _pack_walls), in
+// `spans` from row wall_row.
+vec4 wall_texel(int i) {
+	return texelFetch(spans, ivec2(i % view_size.x, wall_row + i / view_size.x), 0);
+}
+
+// The nearest wall at this pixel among those the shader walks: column lp.x's
+// block's walls, nearest first, past the `skip` the renderer drew in this
+// column, nearer than `drawn` and no farther than `bound` (the floor or
+// ceiling there), with the renderer's own tests (_wall_band, then view_at's
+// for a span). Returns its place in the table, or -1, and lowers `drawn` to
+// its distance; `found` is its height here, bottom, top and u along it.
+int walk_walls(ivec2 lp, float sy, float bound, int skip, inout float drawn, out vec4 found) {
+	found = vec4(0.0);
+	vec4 block = wall_texel(block_at + lp.x / block_w);
+	if (float(lp.y) < block.z || float(lp.y) > block.w) {
+		return -1;
+	}
+	int first = int(block.x + 0.5) + skip;
+	int last = int(block.x + 0.5) + int(block.y + 0.5);
+	float offset = float(lp.x) + 0.5 - float(view_size.x) * 0.5;
+	float row = float(lp.y);
+	float lowest = float(view_size.y - 1);
+	int best = -1;
+	vec4 quad = vec4(0.0);
+	for (int e = first; e < last; e++) {
+		int q = e & 3;
+		if (q == 0 || e == first) {
+			quad = wall_texel(entry_at + (e >> 2));
+		}
+		int slot = int((q == 0 ? quad.x : q == 1 ? quad.y : q == 2 ? quad.z : quad.w) + 0.5);
+		vec4 w0 = wall_texel(slot * 4);
+		if (w0.y > min(bound, drawn)) {
+			break;
+		}
+		int cols = int(w0.x + 0.5);
+		int reach = int(w0.w + 0.5);
+		if (lp.x < (cols & 1023) || lp.x >= (cols >> 10) || lp.y < (reach & 1023) || lp.y > ((reach >> 10) & 1023)) {
+			continue;
+		}
+		vec4 w1 = wall_texel(slot * 4 + 1);
+		float den = w1.x + offset * w1.y;
+		if (abs(den) < 1e-6) {
+			continue;
+		}
+		float t = w0.z / den;
+		if (t <= 0.015 || t >= 160.0 || t >= drawn) {
+			continue;
+		}
+		float u = (w1.z + offset * w1.w) / den;
+		if (u < -0.00002 || u > 1.00002) {
+			continue;
+		}
+		vec4 w2 = wall_texel(slot * 4 + 2);
+		if (row < max(0.0, ceil(w2.z / t + horizon - 0.5)) || row > min(lowest, floor(w2.w / t + horizon - 0.5))) {
+			continue;
+		}
+		float wz = eye.z - sy * (t / focal);
+		if (wz < w2.x || wz > w2.y) {
+			continue;
+		}
+		float tex_u = den < 0.0 ? 1.0 - u : u;
+		if (reach >= 1048576) {
+			// The road shed's open mesh shows what is behind.
+			int pv = clamp(int((w2.y - wz) / (w2.y - w2.x) * 128.0), 0, 127);
+			if (span_hole(clamp(int(tex_u * 128.0), 0, 127), pv)) {
+				continue;
+			}
+		}
+		drawn = t;
+		best = slot;
+		found = vec4(wz, w2.x, w2.y, tex_u);
+	}
+	return best;
+}
+
+// The colour of the walked wall in table place `slot` at distance t
+// (render_surfaces.gd _wall_band's texel column and light step for its span).
+vec3 walked_at(int slot, float t, vec4 found, vec2 hit) {
+	vec4 w3 = wall_texel(slot * 4 + 3);
+	int tiles = int(w3.x + 0.5);
+	int how = int(w3.w + 0.5);
+	int mode = how & 3;
+	int pu = mode == 1 ? int(found.w * w3.y) & 127 : clamp(int(found.w * 128.0), 0, 127);
+	float lit = max(w3.z / (1.0 + 0.102 * t), 0.19);
+	int step = clamp(int(floor(lit * 32.0 + 0.5)), 0, 96);
+	return wall_colour(tiles & 4095, tiles >> 12, pu, mode, (how >> 2) & 7, (how >> 5) + step, found.x, found.y, found.z, hit);
+}
+
 // Texel k of sprite i of the sprite table (in `spans`, after the wall spans).
 vec4 sprite_texel(int i, int k) {
 	int at = i * 4 + k;
-	return texelFetch(spans, ivec2(at % view_size.x, SPAN_K * 2 + 1 + at / view_size.x), 0);
+	return texelFetch(spans, ivec2(at % view_size.x, sprite_row + at / view_size.x), 0);
 }
 
 // renderer.gd _sky_band()
@@ -476,7 +578,8 @@ vec3 view_at(ivec2 fine) {
 	float best_wz = 0.0;
 	float best_bottom = 0.0;
 	float best_top = 0.0;
-	int count = int(texelFetch(spans, ivec2(lp.x, SPAN_K * 2), 0).r + 0.5);
+	vec4 counts = texelFetch(spans, ivec2(lp.x, count_row), 0);
+	int count = int(counts.r + 0.5);
 	for (int k = 0; k < count; k++) {
 		vec4 a = texelFetch(spans, ivec2(lp.x, k * 2), 0);
 		if (a.x >= drawn) {
@@ -506,8 +609,17 @@ vec3 view_at(ivec2 fine) {
 	}
 	vec3 base;
 	float plane = plane_at(dir, sy, base);
+	// Then the walls the renderer left to the shader in this column, after the
+	// ones it drew here (counts.g of them, nearest first).
+	int walked = -1;
+	vec4 found = vec4(0.0);
+	if (walls_on) {
+		walked = walk_walls(lp, sy, plane, int(counts.g + 0.5), drawn, found);
+	}
 	if (plane >= drawn) {
-		if (best >= 0) {
+		if (walked >= 0) {
+			base = walked_at(walked, drawn, found, eye.xy + dir * drawn);
+		} else if (best >= 0) {
 			base = span_at(lp.x, best, best_wz, best_bottom, best_top, eye.xy + dir * drawn);
 		} else if (drawn < 160.0) {
 			base = wall_at(lp);
@@ -675,10 +787,15 @@ void fragment() {
 	if (px.y < 156 && (look || tone_on)) {
 		vec3 v = vec3(q);
 		if (look) {
-			vec2 n = (vec2(px) / vec2(319.0, 155.0) - 0.5) * 2.0;
+			// On the view's own grid: in HD each of a 320x200 pixel's four gets its
+			// own grain (another of the six frames) and dither, so the look does not
+			// blur HD back to 320 wide. At HIGH (view_mul 1) this is the 320 grid.
+			vec2 at = (vec2(fine) + 0.5) / float(view_mul) - 0.5;
+			vec2 n = (at / vec2(319.0, 155.0) - 0.5) * 2.0;
 			float vignette = 1.0 - 0.13 * pow(length(n) / 1.4142, 2.1);
-			float g = texelFetch(looks, ivec2(grain_frame * 156 + px.y, GRAIN_ROW + px.x), 0).r * 255.0;
-			float add = g - 2.0 + blast + (BAYER[(px.x % 4) * 4 + (px.y % 4)] / 16.0 - 0.5) * 6.0;
+			int frame_k = (grain_frame + sub.x + 2 * sub.y) % 6;
+			float g = texelFetch(looks, ivec2(frame_k * 156 + px.y, GRAIN_ROW + px.x), 0).r * 255.0;
+			float add = g - 2.0 + blast + (BAYER[(fine.x % 4) * 4 + (fine.y % 4)] / 16.0 - 0.5) * 6.0;
 			v = clamp(trunc(v * (wash * vignette * gain) + add), 0.0, 255.0);
 		}
 		if (tone_on) {

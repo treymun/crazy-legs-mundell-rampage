@@ -298,6 +298,44 @@ func _warm_art() -> void:
 		_gm_i[io + 4] = clampi(int(ceilf(minf(hi, vw + 4.0))) + 3, 0, vw)
 
 
+## The columns whose walls the bands still draw this frame (cpu_n, see
+## gpu_walls): a mirror's or glazing's columns, up to that wall in seg_order;
+## a wall mark's columns, up to the last wall that could be as near as the
+## mark at any column (_mark_band colours the wall it lies on, and only a
+## wall within .12 of it can be that one). The shader walks the walls after
+## those (render_surfaces.gd _fill_lists tells it where to start).
+func _cpu_columns() -> void:
+	if cpu_n.size() != vw:
+		cpu_n.resize(vw)
+	cpu_n.fill(0)
+	if not gpu_walls:
+		return
+	for rank in _special_ranks:
+		var i := (seg_order[rank] >> 16) & 65535
+		for c in range(seg_c0[i], seg_c1[i]):
+			if cpu_n[c] <= rank:
+				cpu_n[c] = rank + 1
+	var half := vw * .5
+	for k in _mark_list.size():
+		if _mk_i[k * MK_I] == 0:
+			continue
+		var fo := k * MK_F
+		var left := half + _mk_f[fo + 5]
+		var right := half + _mk_f[fo + 6]
+		if absf(right - left) < .15:
+			continue
+		# A column either side for _mark_band's own rounding.
+		var x0 := maxi(0, int(floorf(minf(left, right))) - 1)
+		var x1 := mini(vw, int(ceilf(maxf(left, right))) + 1)
+		# Every wall whose nearest (its sort key, less the bands' .004) is past
+		# this is farther than the mark can be coloured over in every column.
+		var reach := _mk_f[fo] + absf(_mk_f[fo + 3]) * _mk_f[fo + 4] + .121
+		var upto := seg_order.bsearch((int(floorf((reach + .004) * 4096.0)) + 1) << 32)
+		for c in range(x0, x1):
+			if cpu_n[c] < upto:
+				cpu_n[c] = upto
+
+
 func _sprite_band(a: int, b: int) -> void:
 	var n := _sprite_list.size()
 	var first := _spr_c0
