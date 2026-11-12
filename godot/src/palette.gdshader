@@ -164,9 +164,126 @@ uniform float lightning = 0.0;
 uniform int anim_count = 0;
 uniform vec4 anims[8];
 uniform float anim_time = 0.0;
+// The weather, the water and the shimmer of hot air, all behind effects_on
+// (features/weather.gd, features/water.gd, view_lights.gd, effects.cfg):
+// what each tile is to them sits in one row of tiles_tex from info_row (r
+// water, g relief, b puddles; tile_info()). rain is how hard it rains (streaks
+// over the view, rings on water and puddles), wet how wet the ground is
+// (puddles, a sheen on walls under the sky), flash_dir where the lightning
+// is, fog_banks how thick the banks rolling over a bayou night are, motion
+// how much it all moves (EASY ON THE EYES: 1, .4, 0). rings: where bodies
+// wade, x, y, age in seconds and size. light_flags: bit 1 a light pools on
+// the ground under it. haze_box: over each hot thing in sight, its centre
+// column, base row, half width and height in view pixels; haze_amp how far
+// its air sways.
+uniform int info_row = 0;
+uniform float rain = 0.0;
+uniform float wet = 0.0;
+uniform vec2 flash_dir = vec2(0.6, -0.8);
+uniform float fog_banks = 0.0;
+uniform float motion = 1.0;
+uniform int ring_count = 0;
+uniform vec4 rings[16];
+uniform int light_flags[16];
+uniform int haze_count = 0;
+uniform vec4 haze_box[4];
+uniform float haze_amp[4];
+// How much relief catches a light raking across it, and the sky's light from
+// above; how big a pool of lamp light is against the lamp's reach.
+const float RELIEF_K = 1.5;
+const float RELIEF_SKY = 0.45;
+const float POOL_REACH = 0.36;
+const float RELIEF_FAR = 10.0;
+const vec3 SKY_LIGHT = vec3(-0.33, -0.42, 0.85);
 
 int byte_of(float v) {
 	return int(v * 255.0 + 0.5);
+}
+
+// What `tile` is to the weather (scene_layers.gd _tile_info): r water, g
+// relief (-1 to 1: below 0 the darker texels are raised), b puddles.
+vec4 tile_info(int tile) {
+	vec4 info = texelFetch(tiles_tex, ivec2(tile, info_row), 0);
+	info.g = (info.g * 255.0 - 128.0) / 127.0;
+	return info;
+}
+
+// No roof over this point of the map: under the open sky (the cells' second
+// band, g; scene_layers.gd _load_level).
+bool open_sky(vec2 at) {
+	ivec2 cell = ivec2(floor(at));
+	if (cell.x < 0 || cell.y < 0 || cell.x >= map_size.x || cell.y >= map_size.y) {
+		return true;
+	}
+	return texelFetch(tiles_tex, cell + ivec2(0, cells_row + map_size.y), 0).g > 0.5;
+}
+
+float luma(vec3 c) {
+	return dot(c, vec3(0.30, 0.59, 0.11));
+}
+
+// How a tile's brightness climbs into texel (pu, pv) from the one before it
+// across and the one above: raised where a texel is brighter than its
+// neighbours (brick faces over mortar, plank faces over the gaps, the ridges
+// of tin). `here` is the texel, 0-1.
+vec2 relief_at(int tile, int pu, int pv, vec3 here) {
+	ivec2 o = ivec2((tile % 16) * 128, (tile / 16) * 128);
+	float h = luma(here);
+	float left = luma(texelFetch(tiles_tex, o + ivec2((pu + 127) & 127, pv), 0).rgb);
+	float up = luma(texelFetch(tiles_tex, o + ivec2(pu, (pv + 127) & 127), 0).rgb);
+	return vec2(h - left, h - up);
+}
+
+float hash12(vec2 p) {
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+// The rings on water where bodies wade (features/water.gd), 0 to about 1 at
+// `at` (snapped to the chunky grid).
+float wading_rings(vec2 at) {
+	float glint = 0.0;
+	for (int i = 0; i < ring_count; i++) {
+		vec4 r = rings[i];
+		float d = distance(at, r.xy);
+		float size = sqrt(r.w);
+		float radius = (0.06 + r.z * 0.62) * size;
+		float width = 0.03 + 0.018 * r.w;
+		float fade = (1.0 - r.z / 1.6) * min(r.w, 1.4);
+		float band = 1.0 - abs(d - radius) / width;
+		if (band > 0.0) {
+			glint = max(glint, fade * (band > 0.5 ? 1.0 : 0.5));
+		}
+		if (r.w > 1.1) {
+			float inner = 1.0 - abs(d - radius * 0.55) / width;
+			if (inner > 0.0) {
+				glint = max(glint, fade * (inner > 0.5 ? 0.6 : 0.3));
+			}
+		}
+		if (r.z < 0.16 && d < 0.06 * r.w) {
+			glint = max(glint, 1.3);
+		}
+	}
+	return glint;
+}
+
+// Rain falling on water: a little ring where each drop lands, more of them the
+// harder it rains, 0 to 1.
+float rain_rings(vec2 at, float tm) {
+	if (rain <= 0.0) {
+		return 0.0;
+	}
+	vec2 g = floor(at * 3.0);
+	float phase = hash12(g + 5.3);
+	float beat = tm * 1.5 + phase;
+	float cycle = floor(beat);
+	float h = hash12(g + cycle * 3.71);
+	if (h > rain * 0.8) {
+		return 0.0;
+	}
+	float age = fract(beat);
+	vec2 c = (g + 0.25 + 0.5 * vec2(fract(h * 7.13), fract(h * 13.7))) / 3.0;
+	float band = 1.0 - abs(distance(at, c) - age * 0.13) / 0.028;
+	return band > 0.0 ? (1.0 - age) * (band > 0.5 ? 0.9 : 0.45) : 0.0;
 }
 
 // The light a tile texel gives itself (its alpha, see effects_on), or none.
@@ -197,13 +314,32 @@ bool self_lit(vec3 c) {
 	return (c.g >= 170.0 && c.g > c.r * 1.3 && c.g > c.b * 1.1) || (c.r >= 230.0 && c.g >= 200.0 && c.b <= 150.0);
 }
 
-// What this frame's lights add at a point: a fraction per channel.
-vec3 lights_at(vec3 p) {
+// What this frame's lights add at a point: a fraction per channel. nf is the
+// surface's own normal, nb the same with its relief: a bump facing a light
+// takes more of it and one facing away less, so the gun's flash and the lamps
+// rake across brick and tin. A glossy surface (water, puddles, walls in the
+// rain) gives back a glint of each lamp toward the eye (`view`); on a floor,
+// a light that pools (light_flags) lays a banded, coloured pool under it.
+vec3 lights_at(vec3 p, vec3 nf, vec3 nb, bool ground, float gloss, vec3 view) {
 	vec3 sum = vec3(0.0);
 	for (int i = 0; i < light_count; i++) {
 		vec4 at = light_pos[i];
-		float reach = clamp(1.0 - distance(p, at.xyz) / at.w, 0.0, 1.0);
-		sum += light_col[i].rgb * light_col[i].a * reach * reach;
+		vec3 d = at.xyz - p;
+		float dist = length(d);
+		float reach = clamp(1.0 - dist / at.w, 0.0, 1.0);
+		if (reach <= 0.0) {
+			continue;
+		}
+		vec3 l = d / max(dist, 0.001);
+		float k = reach * reach * max(0.0, 1.0 + RELIEF_K * (dot(nb, l) - dot(nf, l)));
+		if (gloss > 0.0) {
+			k += gloss * reach * pow(max(dot(nb, normalize(l + view)), 0.0), 24.0) * 2.2;
+		}
+		if (ground && (light_flags[i] & 1) != 0) {
+			float q = clamp(1.0 - length(d.xy) / (at.w * POOL_REACH), 0.0, 1.0);
+			k += floor(q * 3.0 + 0.999) / 3.0 * 0.85;
+		}
+		sum += light_col[i].rgb * light_col[i].a * k;
 	}
 	return sum;
 }
@@ -280,10 +416,49 @@ vec3 running_water(vec3 rgb, float x, float y) {
 	return floor(rgb * (1.0 - mix_) + water * mix_ + 0.5);
 }
 
+// renderer.gd _sky_band()
+vec3 sky_at(int column, float sy) {
+	float ray = (float(column) + 0.5 - float(view_size.x) * 0.5) / focal;
+	int sx = int((view_angle + atan(ray)) * 81.48733086305042) & 511;
+	int sr = clamp(int(93.0 + sy * res_up * 0.95), 0, 115);
+	if (!effects_on) {
+		return texelFetch(tiles_tex, ivec2(sx, sr + sky_row), 0).rgb * 255.0;
+	}
+	// The clouds drift, faster overhead, still at the treeline.
+	float lift = clamp(1.0 - float(sr) / 88.0, 0.0, 1.0);
+	sx = (sx + int(sky_drift * 512.0 * lift)) & 511;
+	vec3 sky = texelFetch(tiles_tex, ivec2(sx, sr + sky_row), 0).rgb * 255.0;
+	return min(sky * (1.0 + lightning * 1.8 * (0.4 + lift)) + vec3(18.0, 20.0, 30.0) * lightning, vec3(255.0));
+}
+
+// A water floor (effects.cfg [water], how much `deep`) or a puddle on wet
+// ground, over the floor's lit colour: a broken reflection of the sky in
+// bands that sway, glints on the ripples' crests, rings where bodies wade and
+// where the rain lands. `light` is how lit the floor is; column and sy the
+// pixel's, for the sky it mirrors.
+vec3 water_over(vec3 colour, vec2 at, float t, float sy, int column, float deep, float light, float tm) {
+	vec2 q = floor(at * 16.0) / 16.0;
+	float sway = sin(q.y * 9.0 + sin(q.x * 3.1) * 1.4 + tm * 1.6);
+	vec3 mirrored = sky_at(column + int(floor(sway * 1.6 + 0.5)), -sy * (1.0 + 0.05 * sway));
+	float grazing = clamp(t * 0.14, 0.25, 1.0);
+	float band = sin(q.y * 11.0 + sin(q.x * 2.7) * 1.5 + tm * 1.1) > -0.2 ? 1.0 : 0.35;
+	float shine = deep * (0.2 + 0.4 * grazing) * band;
+	vec3 out_colour = colour * (1.0 - shine) + mirrored * 0.85 * shine;
+	float crest = sin(q.x * 4.7 + q.y * 3.1 + tm * 1.9) + sin(q.y * 7.3 - q.x * 2.2 - tm * 1.4);
+	float glint = (crest > 1.5 ? 0.42 : 0.0) * deep;
+	// Rings catch the light whatever the water: they are what moves on it.
+	glint = max(glint, wading_rings(q) * 1.2);
+	glint = max(glint, rain_rings(q, tm) * 0.8);
+	return out_colour + vec3(84.0, 92.0, 100.0) * glint * (0.45 + 0.5 * min(light, 1.2));
+}
+
 // The nearest floor (sy >= 0) or ceiling along this pixel's ray: its distance
-// (1e9 when there is none) and its lit colour, 0-255.
-float plane_at(vec2 dir, float sy, out vec3 colour) {
+// (1e9 when there is none) and its lit colour, 0-255. With effects_on, `surf`
+// says how its relief slopes (x, y along the map, texel steps) and how glossy
+// it is (z: water, puddles, wet ground); `column` is the pixel's.
+float plane_at(vec2 dir, float sy, int column, out vec3 colour, out vec3 surf) {
 	colour = vec3(0.0);
+	surf = vec3(0.0);
 	bool overhead = sy < 0.0;
 	float steep = max(0.02, abs(sy));
 	int count = overhead ? roof_count : floor_count;
@@ -333,6 +508,20 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 				pv = (pv + flow_shift[f]) & 127;
 			}
 		}
+		vec4 band = texelFetch(tiles_tex, cell + ivec2(0, cells_row + map_size.y), 0);
+		vec4 info = vec4(0.0);
+		bool open = false;
+		float tm = anim_time * motion;
+		if (effects_on && !overhead) {
+			info = tile_info(tile);
+			open = band.g > 0.5;
+			if (info.r > 0.0) {
+				// Water sways its texels a little, in chunky steps.
+				vec2 q = floor(at * 16.0) / 16.0;
+				pu = (pu + int(floor(sin(q.y * 6.3 + tm * 1.7 + sin(q.x * 2.3)) * 2.0 + 0.5))) & 127;
+				pv = (pv + int(floor(sin(q.x * 5.1 - tm * 1.3) * 1.5 + 0.5))) & 127;
+			}
+		}
 		vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
 		vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
 		float raw = (plane(cell + ivec2(0, 5)).r * (overhead ? 0.77 : 0.94) + flash_light) / (1.0 + 0.102 * t);
@@ -340,7 +529,7 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 		if (effects_on && anim_count > 0) {
 			lit *= anim_light(tile);
 		}
-		int tint_at = min(byte_of(texelFetch(tiles_tex, cell + ivec2(0, cells_row + map_size.y), 0).r), tint_count - 1);
+		int tint_at = min(byte_of(band.r), tint_count - 1);
 		vec3 tint = plane(ivec2(tint_at, 4)).rgb;
 		if (hub_fx && !overhead) {
 			if (tile == hub_runoff) {
@@ -350,6 +539,26 @@ float plane_at(vec2 dir, float sy, out vec3 colour) {
 			}
 		}
 		colour = clamp(floor(texel * lit * tint), 0.0, 255.0);
+		if (effects_on) {
+			if (info.r > 0.0) {
+				colour = water_over(colour, at, t, sy, column, info.r, lit, tm);
+				surf.z = info.r;
+			} else if (open && wet > 0.0) {
+				// Wet ground darkens; where it lies low it holds a puddle.
+				vec2 q = floor(at * 10.0) / 10.0;
+				float low = 0.5 + 0.25 * sin(q.x * 1.7 + sin(q.y * 1.3) * 1.8) + 0.25 * sin(q.y * 2.3 + sin(q.x * 0.9) * 2.1);
+				if (info.b > 0.0 && low > 1.0 - wet * info.b * 0.34) {
+					colour = water_over(colour * 0.5, at, t, sy, column, 0.85, lit, tm);
+					surf.z = 1.0;
+					return t;
+				}
+				colour = floor(colour * (1.0 - 0.17 * wet));
+				surf.z = 0.4 * wet;
+			}
+			if (abs(info.g) > 0.01 && t < RELIEF_FAR) {
+				surf.xy = relief_at(tile, pu, pv, fetched.rgb) * info.g * 3.0 * (1.0 - glow_of(fetched));
+			}
+		}
 		return t;
 	}
 	return 1e9;
@@ -363,8 +572,21 @@ int stream_byte(int i) {
 	return int((k == 0 ? texel.r : k == 1 ? texel.g : texel.b) * 255.0 + 0.5);
 }
 
-// A wall pixel's colour (renderer.gd _wall_band and its shade table).
-vec3 wall_at(ivec2 lp) {
+// How the relief of `tile` slopes at texel (pu, pv) along a wall (effects.cfg
+// [relief]; none on a texel that glows, nor past RELIEF_FAR, where it cannot
+// be seen: `t` is the distance).
+vec2 wall_relief(int tile, int pu, int pv, vec4 fetched, float t) {
+	if (!effects_on || t >= RELIEF_FAR) {
+		return vec2(0.0);
+	}
+	float deep = tile_info(tile).g;
+	return abs(deep) > 0.01 ? relief_at(tile, pu, pv, fetched.rgb) * deep * 3.0 * (1.0 - glow_of(fetched)) : vec2(0.0);
+}
+
+// A wall pixel's colour (renderer.gd _wall_band and its shade table), and its
+// relief (wall_relief).
+vec3 wall_at(ivec2 lp, out vec2 bump) {
+	bump = vec2(0.0);
 	int at = (lp.y * view_size.x + lp.x) * 4;
 	ivec4 code = ivec4(stream_byte(at), stream_byte(at + 1), stream_byte(at + 2), stream_byte(at + 3));
 	int shade_row = (code.b >> 5) | (code.a << 3);
@@ -375,6 +597,7 @@ vec3 wall_at(ivec2 lp) {
 	int pv = ((code.g & 63) << 1) | (code.r >> 7);
 	int pu = code.r & 127;
 	vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
+	bump = wall_relief(tile, pu, pv, fetched, pixels_on ? dist_at(lp, 0) : 0.0);
 	vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
 	float lit = max(float(shade_row % 99) / 32.0, glow_of(fetched));
 	if (effects_on && anim_count > 0) {
@@ -410,7 +633,7 @@ bool span_hole(int pu, int pv) {
 // pu of `tile` (`plain` outside the window band, mode 2), lit by shade row
 // shade_row (tint * 99 + light step); plain walls, glowing signs (kind 1, 2),
 // and the hub walls the water tower shades (kind 3, at the point hit).
-vec3 wall_colour(int tile, int plain, int pu, int mode, int kind, int shade_row, float wz, float bottom, float top, vec2 hit) {
+vec3 wall_colour(int tile, int plain, int pu, int mode, int kind, int shade_row, float wz, float bottom, float top, vec2 hit, float t, out vec2 bump) {
 	int pv;
 	if (mode == 0) {
 		pv = clamp(int((top - wz) / (top - bottom) * 128.0), 0, 127);
@@ -421,6 +644,7 @@ vec3 wall_colour(int tile, int plain, int pu, int mode, int kind, int shade_row,
 		}
 	}
 	vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
+	bump = wall_relief(tile, pu, pv, fetched, t);
 	vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
 	int step = shade_row % 99;
 	float lit = row_light(step);
@@ -449,10 +673,10 @@ vec3 wall_colour(int tile, int plain, int pu, int mode, int kind, int shade_row,
 
 // The colour of span k of a column the renderer drew (its second texel says
 // what it is: render_state.gd SPAN_K).
-vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit) {
+vec3 span_at(int column, int k, float wz, float bottom, float top, vec2 hit, float t, out vec2 bump) {
 	vec4 b = texelFetch(spans, ivec2(column, k * 2 + 1), 0);
 	int how = int(b.z + 0.5);
-	return wall_colour(int(b.x + 0.5), int(b.y + 0.5), (how & 511) >> 2, how & 3, how >> 9, int(b.w + 0.5), wz, bottom, top, hit);
+	return wall_colour(int(b.x + 0.5), int(b.y + 0.5), (how & 511) >> 2, how & 3, how >> 9, int(b.w + 0.5), wz, bottom, top, hit, t, bump);
 }
 
 // Texel i of the walls the shader walks (render_surfaces.gd _pack_walls), in
@@ -466,9 +690,11 @@ vec4 wall_texel(int i) {
 // column, nearer than `drawn` and no farther than `bound` (the floor or
 // ceiling there), with the renderer's own tests (_wall_band, then view_at's
 // for a span). Returns its place in the table, or -1, and lowers `drawn` to
-// its distance; `found` is its height here, bottom, top and u along it.
-int walk_walls(ivec2 lp, float sy, float bound, int skip, inout float drawn, out vec4 found) {
+// its distance; `found` is its height here, bottom, top and u along it, and
+// `terms` its per-column terms (wall_frame()).
+int walk_walls(ivec2 lp, float sy, float bound, int skip, inout float drawn, out vec4 found, out vec4 terms) {
 	found = vec4(0.0);
+	terms = vec4(0.0);
 	vec4 block = wall_texel(block_at + lp.x / block_w);
 	if (float(lp.y) < block.z || float(lp.y) > block.w) {
 		return -1;
@@ -527,13 +753,34 @@ int walk_walls(ivec2 lp, float sy, float bound, int skip, inout float drawn, out
 		drawn = t;
 		best = slot;
 		found = vec4(wz, w2.x, w2.y, tex_u);
+		terms = w1;
 	}
 	return best;
 }
 
+// The way a walked wall faces (toward the eye) and the way its texture's u
+// runs along it, from its per-column terms (render_surfaces.gd _pack_walls):
+// t = num / (w1.x + offset * w1.y) puts the wall's normal along
+// w1.x * fwd + w1.y * focal * side, and u = (w1.z + offset * w1.w) / den.
+void wall_frame(vec4 w1, vec2 dir, float t, float offset, out vec3 normal, out vec3 along) {
+	vec2 n = w1.x * fwd + w1.y * focal * side;
+	n = length(n) > 1e-6 ? normalize(n) : -normalize(dir);
+	if (dot(n, dir) > 0.0) {
+		n = -n;
+	}
+	vec2 run = vec2(-n.y, n.x);
+	float den = w1.x + offset * w1.y;
+	// Which way the hit point moves along the wall, and u with it, a column on.
+	vec2 moves = t * (side / focal - (w1.y / den) * dir);
+	float du = w1.w * w1.x - w1.z * w1.y;
+	float flip = sign(dot(moves, run)) * sign(du) * (den < 0.0 ? -1.0 : 1.0);
+	normal = vec3(n, 0.0);
+	along = vec3(run * (flip == 0.0 ? 1.0 : flip), 0.0);
+}
+
 // The colour of the walked wall in table place `slot` at distance t
 // (render_surfaces.gd _wall_band's texel column and light step for its span).
-vec3 walked_at(int slot, float t, vec4 found, vec2 hit) {
+vec3 walked_at(int slot, float t, vec4 found, vec2 hit, out vec2 bump) {
 	vec4 w3 = wall_texel(slot * 4 + 3);
 	int tiles = int(w3.x + 0.5);
 	int how = int(w3.w + 0.5);
@@ -541,7 +788,7 @@ vec3 walked_at(int slot, float t, vec4 found, vec2 hit) {
 	int pu = mode == 1 ? int(found.w * w3.y) & 127 : clamp(int(found.w * 128.0), 0, 127);
 	float lit = max(w3.z / (1.0 + 0.102 * t), 0.19);
 	int step = clamp(int(floor(lit * 32.0 + 0.5)), 0, 96);
-	return wall_colour(tiles & 4095, tiles >> 12, pu, mode, (how >> 2) & 7, (how >> 5) + step, found.x, found.y, found.z, hit);
+	return wall_colour(tiles & 4095, tiles >> 12, pu, mode, (how >> 2) & 7, (how >> 5) + step, found.x, found.y, found.z, hit, t, bump);
 }
 
 // Texel k of sprite i of the sprite table (in `spans`, after the wall spans).
@@ -550,24 +797,73 @@ vec4 sprite_texel(int i, int k) {
 	return texelFetch(spans, ivec2(at % view_size.x, sprite_row + at / view_size.x), 0);
 }
 
-// renderer.gd _sky_band()
-vec3 sky_at(int column, float sy) {
-	float ray = (float(column) + 0.5 - float(view_size.x) * 0.5) / focal;
-	int sx = int((view_angle + atan(ray)) * 81.48733086305042) & 511;
-	int sr = clamp(int(93.0 + sy * res_up * 0.95), 0, 115);
-	if (!effects_on) {
-		return texelFetch(tiles_tex, ivec2(sx, sr + sky_row), 0).rgb * 255.0;
+// Rolling fog banks over a bayou night (effects.cfg fog_banks): how much more
+// fog hangs where this ray meets them, low over the ground, drifting slowly.
+// `reach` is how far along the ray (capped), `sy` the pixel's row offset.
+float fog_bank(vec2 dir, float sy, float reach) {
+	vec2 q = eye.xy + dir * reach;
+	float tm = anim_time * motion;
+	float roll = 0.5 + 0.28 * sin(q.x * 0.21 + tm * 0.05 + sin(q.y * 0.13) * 1.7) + 0.22 * sin(q.y * 0.17 - tm * 0.037 + q.x * 0.07);
+	float high = (eye.z - sy * reach / focal) - (eye.z - 0.95);
+	float low = clamp(1.4 - high, 0.0, 1.0);
+	return fog_banks * smoothstep(0.56, 0.9, roll) * low * smoothstep(3.0, 9.0, reach);
+}
+
+// The view's own lights and weather over a surface's colour (effects_on):
+// the frame's lights with relief and pools, the level's tint and fog, a wet
+// sheen on what stands under the rain, the lightning lighting the yard. The
+// surface: its point p, normal nf, the ways its texture's u and v run (tu,
+// tv), how its relief slopes (bump), how glossy it is, and what it is (kind
+// 0 a floor or ceiling, 1 a wall, 2 a sprite).
+vec3 surface_light(vec3 base, vec3 p, vec2 dir, float sy, float nearest, vec3 nf, vec3 tu, vec3 tv, vec2 bump, float gloss, int kind) {
+	vec3 nb = (bump.x != 0.0 || bump.y != 0.0) ? normalize(nf - bump.x * tu - bump.y * tv) : nf;
+	bool ground = kind == 0 && nf.z > 0.0;
+	bool outside = false;
+	if (rain > 0.0 || wet > 0.0 || lightning > 0.0) {
+		outside = open_sky(p.xy - dir * 0.02);
 	}
-	// The clouds drift, faster overhead, still at the treeline.
-	float lift = clamp(1.0 - float(sr) / 88.0, 0.0, 1.0);
-	sx = (sx + int(sky_drift * 512.0 * lift)) & 511;
-	vec3 sky = texelFetch(tiles_tex, ivec2(sx, sr + sky_row), 0).rgb * 255.0;
-	return min(sky * (1.0 + lightning * 1.8 * (0.4 + lift)) + vec3(18.0, 20.0, 30.0) * lightning, vec3(255.0));
+	if (outside && wet > 0.0 && kind == 1) {
+		// Walls and things under the sky get wet: darker, glossy, with runs
+		// of water down them.
+		float run_at = floor(dot(p.xy, tu.xy) * 18.0);
+		float h = hash12(vec2(run_at, 3.0));
+		float flow = fract(p.z * 1.3 + anim_time * motion * 0.7 + h * 7.0);
+		base *= 1.0 - 0.14 * wet;
+		if (h < 0.22 && flow < 0.35) {
+			base += vec3(26.0, 28.0, 32.0) * wet * (1.0 - flow / 0.35);
+		}
+		gloss = max(gloss, 0.5 * wet);
+	}
+	// The sky's light from above: relief reads even where no lamp is.
+	if (nb != nf) {
+		vec3 sun = normalize(SKY_LIGHT);
+		base *= 1.0 + RELIEF_SKY * (dot(nb, sun) - dot(nf, sun));
+	}
+	if (light_count > 0 && nearest < 160.0) {
+		vec3 view = normalize(vec3(eye.xy, eye.z) - p);
+		base = min(floor(base * (vec3(1.0) + lights_at(p, nf, nb, ground, outside ? gloss : gloss * 0.5, view))), vec3(255.0));
+	}
+	// The level's mood: its tint, the rain greying it, and the fog of distance.
+	base = min(base * grade * (outside ? 1.0 - 0.05 * rain : 1.0), vec3(255.0));
+	if (lightning > 0.0) {
+		// The flash lights the yard, most where a face looks its way; under a
+		// roof only a little comes in.
+		vec3 toward = normalize(vec3(flash_dir, 1.1));
+		float lift = outside ? 0.4 + 0.5 * clamp(dot(nb, toward), 0.0, 1.0) + gloss * 0.2 : 0.14;
+		base = min(base * (vec3(1.0) + lightning * lift * vec3(0.86, 0.93, 1.12)), vec3(255.0));
+	}
+	float soak = 1.0 - 0.12 * rain;
+	float fog = min(fog_range.z + 0.06 * rain, 1.0) * smoothstep(fog_range.x * soak, fog_range.y * soak, nearest);
+	if (fog_banks > 0.0) {
+		fog = fog + (1.0 - fog) * fog_bank(dir, sy, min(nearest, 14.0));
+	}
+	return floor(mix(base, fog_color * 255.0, fog));
 }
 
 // One pixel of the view, 0-255, before the weapon and HUD layer. `fine` is the
-// screen pixel in view_mul steps of a 320x200 one (HD: 640x400).
-vec3 view_at(ivec2 fine) {
+// screen pixel in view_mul steps of a 320x200 one (HD: 640x400). `far` is the
+// distance of the nearest thing drawn there (1e9: the sky).
+vec3 view_at(ivec2 fine, out float far) {
 	ivec2 lp = fine / view_div;
 	float ray = (float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal;
 	vec2 dir = fwd + side * ray;
@@ -608,21 +904,40 @@ vec3 view_at(ivec2 fine) {
 		best_top = a.z;
 	}
 	vec3 base;
-	float plane = plane_at(dir, sy, base);
+	vec3 surf;
+	float plane = plane_at(dir, sy, lp.x, base, surf);
 	// Then the walls the renderer left to the shader in this column, after the
 	// ones it drew here (counts.g of them, nearest first).
 	int walked = -1;
 	vec4 found = vec4(0.0);
+	vec4 terms = vec4(0.0);
 	if (walls_on) {
-		walked = walk_walls(lp, sy, plane, int(counts.g + 0.5), drawn, found);
+		walked = walk_walls(lp, sy, plane, int(counts.g + 0.5), drawn, found, terms);
 	}
+	// What the nearest surface is, for the lights and weather (surface_light):
+	// a floor or ceiling until a wall or a sprite is nearer.
+	vec3 nf = vec3(0.0, 0.0, sy < 0.0 ? -1.0 : 1.0);
+	vec3 tu = vec3(1.0, 0.0, 0.0);
+	vec3 tv = vec3(0.0, 1.0, 0.0);
+	vec2 bump = surf.xy;
+	float gloss = surf.z;
+	int kind = 0;
 	if (plane >= drawn) {
+		bump = vec2(0.0);
+		gloss = 0.0;
+		kind = 1;
+		nf = -normalize(vec3(dir, 0.0));
+		tu = vec3(-nf.y, nf.x, 0.0);
+		tv = vec3(0.0, 0.0, -1.0);
 		if (walked >= 0) {
-			base = walked_at(walked, drawn, found, eye.xy + dir * drawn);
+			base = walked_at(walked, drawn, found, eye.xy + dir * drawn, bump);
+			if (effects_on) {
+				wall_frame(terms, dir, drawn, float(lp.x) + 0.5 - float(view_size.x) * 0.5, nf, tu);
+			}
 		} else if (best >= 0) {
-			base = span_at(lp.x, best, best_wz, best_bottom, best_top, eye.xy + dir * drawn);
+			base = span_at(lp.x, best, best_wz, best_bottom, best_top, eye.xy + dir * drawn, drawn, bump);
 		} else if (drawn < 160.0) {
-			base = wall_at(lp);
+			base = wall_at(lp, bump);
 		} else {
 			base = sky_at(lp.x, sy);
 		}
@@ -636,6 +951,11 @@ vec3 view_at(ivec2 fine) {
 		bool shown = reach > 0.0 ? nearest > reach - 0.014 : abs(-reach - nearest) < 0.13;
 		if (shown) {
 			base = floor(texelFetch(colours, lp + ivec2(0, over_row), 0).rgb * 255.0 + (1.0 - cover) * base + 0.5);
+			if (reach > 0.0 && cover > 0.5) {
+				bump = vec2(0.0);
+				gloss = 0.0;
+				kind = 2;
+			}
 		}
 	}
 	// Sprites and painted boards (render_sprites.gd _sprite_band, _draw_sign).
@@ -721,18 +1041,20 @@ vec3 view_at(ivec2 fine) {
 		} else {
 			base = clamp(texel, 0.0, 255.0);
 			nearest = dist;
+			bump = vec2(0.0);
+			gloss = 0.0;
+			kind = 2;
+			nf = -normalize(vec3(dir, 0.0));
+			tu = vec3(-nf.y, nf.x, 0.0);
+			tv = vec3(0.0, 0.0, -1.0);
 		}
 	}
-	if (effects_on && light_count > 0 && nearest < 160.0) {
-		// The point of the nearest surface along this ray, lit by the frame's lights.
-		vec3 p = vec3(eye.xy + dir * nearest, eye.z - sy * nearest / focal);
-		base = min(floor(base * (vec3(1.0) + lights_at(p))), vec3(255.0));
-	}
 	if (effects_on && nearest < 160.0) {
-		// The level's mood: its tint, a lightning flash, and the fog of distance.
-		base = min(base * grade * (1.0 + lightning * 0.55), vec3(255.0));
-		float fog = fog_range.z * smoothstep(fog_range.x, fog_range.y, nearest);
-		base = floor(mix(base, fog_color * 255.0, fog));
+		vec3 p = vec3(eye.xy + dir * nearest, eye.z - sy * nearest / focal);
+		base = surface_light(base, p, dir, sy, nearest, nf, tu, tv, bump, gloss, kind);
+	} else if (effects_on && fog_banks > 0.0) {
+		// Fog banks lie along the treeline against the sky too.
+		base = floor(mix(base, fog_color * 255.0, fog_bank(dir, sy, 14.0)));
 	}
 	if (pane_on) {
 		float glass = dist_at(lp, 2);
@@ -740,7 +1062,69 @@ vec3 view_at(ivec2 fine) {
 			base = floor(base * vec3(0.67, 0.78, 0.82) + texelFetch(colours, lp + ivec2(0, pane_row), 0).rgb * 255.0 * 0.33);
 		}
 	}
+	far = nearest;
 	return clamp(base, 0.0, 255.0);
+}
+
+// Rain over the view (effects_on, features/weather.gd): streaks falling on a
+// slant in three sheets, near, middle and far, on the 320-wide grid whatever
+// the detail, each streak shown only where the open sky is over it at its own
+// distance and nothing nearer stands in front.
+vec3 rain_over(vec3 base, ivec2 fine, float far) {
+	vec2 q = (vec2(fine) + 0.5) / float(view_mul);
+	ivec2 lp = fine / view_div;
+	vec2 dir = fwd + side * ((float(lp.x) + 0.5 - float(view_size.x) * 0.5) / focal);
+	// Turning carries the rain round with the world, not with the screen.
+	float f320 = focal * 320.0 / float(view_size.x);
+	float turn = mod(view_angle, 6.2831853) * f320;
+	vec3 drop = min(vec3(124.0, 134.0, 148.0) * (1.0 + lightning * 0.9), vec3(255.0));
+	for (int k = 0; k < 3; k++) {
+		float depth = k == 0 ? 1.3 : (k == 1 ? 2.8 : 6.0);
+		if (far <= depth) {
+			break;
+		}
+		float cw = k == 0 ? 7.0 : (k == 1 ? 5.0 : 4.0);
+		float len = k == 0 ? 10.0 : (k == 1 ? 7.0 : 4.0);
+		float speed = k == 0 ? 330.0 : (k == 1 ? 250.0 : 180.0);
+		float seg_len = len * 3.5;
+		float v = q.y - anim_time * speed;
+		float u = q.x + turn + v * 0.18;
+		float col = mod(floor(u / cw), floor(6.2831853 * f320 / cw));
+		float seg = floor(v / seg_len);
+		float h = hash12(vec2(col, seg) + float(k) * 41.0);
+		if (h > rain * (k == 0 ? 0.3 : 0.5)) {
+			continue;
+		}
+		float in_v = v - seg * seg_len;
+		float yo = floor(fract(h * 53.3) * (seg_len - len));
+		if (floor(u - floor(u / cw) * cw) != floor(fract(h * 91.7) * (cw - 1.0)) || in_v < yo || in_v >= yo + len) {
+			continue;
+		}
+		if (!open_sky(eye.xy + dir * depth)) {
+			continue;
+		}
+		float a = (k == 0 ? 0.32 : (k == 1 ? 0.24 : 0.16)) * (0.55 + 0.45 * (in_v - yo) / len);
+		base = mix(base, max(base, drop), a);
+	}
+	return base;
+}
+
+// How far the air over a hot thing sways this pixel (haze_box), in fine
+// pixels across: a chunky shimmer, strongest low and in the middle.
+int haze_shift(ivec2 fine) {
+	ivec2 lp = fine / view_div;
+	float shift = 0.0;
+	for (int i = 0; i < haze_count; i++) {
+		vec4 b = haze_box[i];
+		float across = (float(lp.x) + 0.5 - b.x) / max(b.z, 1.0);
+		float up = (b.y - float(lp.y) - 0.5) / max(b.w, 1.0);
+		if (abs(across) >= 1.0 || up < 0.0 || up >= 1.0) {
+			continue;
+		}
+		float fade = (1.0 - across * across) * (1.0 - up) * min(up * 6.0, 1.0);
+		shift += sin(float(lp.y) * 0.6 + anim_time * 8.0 + float(i) * 2.1) * haze_amp[i] * fade;
+	}
+	return int(floor(shift + 0.5)) * view_div;
 }
 
 // The finished view pixel: the weapon and HUD layer over the view.
@@ -751,7 +1135,14 @@ vec3 picture_at(ivec2 px, ivec2 fine, vec3 frame) {
 	}
 	vec3 under = vec3(0.0);
 	if (scene_on && px.y < 156) {
-		under = view_at(fine);
+		if (haze_count > 0) {
+			fine.x = clamp(fine.x + haze_shift(fine), 0, 320 * view_mul - 1);
+		}
+		float far;
+		under = view_at(fine, far);
+		if (effects_on && rain > 0.0 && motion > 0.0) {
+			under = rain_over(under, fine, far);
+		}
 	} else if (base_on) {
 		under = frame;
 	}

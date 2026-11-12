@@ -617,6 +617,8 @@ func _run() -> void:
 	weather.next_flash = 0.0
 	stormy.ticked.emit(1.0 / 60.0)
 	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
+	# The rain, the water's rings, the lamps' pools and the shimmer.
+	preload("res://tools/weather_check.gd").run(main, check)
 	_quest_props(main)
 
 	# The firing range: its title entry, its way out, the campaign untouched.

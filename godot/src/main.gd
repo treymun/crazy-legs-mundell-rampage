@@ -203,6 +203,13 @@ func _view_tour() -> void:
 			held.forward = float(shot.get("forward", 0.0))
 			for i in int(shot["ticks"]):
 				game.tick(1.0 / 60.0, held)
+		if shot.has("rain"):
+			# A viewpoint in the weather: rain this hard, the ground this wet, a
+			# lightning flash (features/weather.gd hold()).
+			var rain := float(shot["rain"])
+			game.features["weather"].hold(
+				rain, float(shot.get("wet", rain)), float(shot.get("lightning", 0.0))
+			)
 		# fx: the shader view as players see it (lights and glows); gpu: the same
 		# without them, to hold against the software view (cpu).
 		for mode in ["fx", "gpu", "cpu"]:
@@ -222,6 +229,10 @@ func _view_bench() -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	Engine.max_fps = 0
 	await get_tree().process_frame
+	# The graphics card's own time for each frame (the shader's per-pixel cost,
+	# which the frame time hides while the main thread is the slower side).
+	var rid := get_viewport().get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(rid, true)
 	var totals := {"cpu": 0.0, "gpu": 0.0}
 	for level_id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
 		var line := "%-9s" % level_id
@@ -239,6 +250,7 @@ func _view_bench() -> void:
 			var began := Time.get_ticks_usec()
 			var busy := 0
 			var drawing := 0
+			var card := 0.0
 			for i in view_bench:
 				var t0 := Time.get_ticks_usec()
 				game.tick(1.0 / 60.0, held)
@@ -248,16 +260,18 @@ func _view_bench() -> void:
 				busy += t2 - t0
 				drawing += t2 - t1
 				await get_tree().process_frame
+				card += RenderingServer.viewport_get_measured_render_time_gpu(rid)
 			var each := (Time.get_ticks_usec() - began) / 1000.0 / view_bench
 			totals[mode] += each
 			line += (
-				"  %s %6.2f ms (%4.0f fps; work %.2f, render() %.2f)"
+				"  %s %6.2f ms (%4.0f fps; work %.2f, render() %.2f, card %.2f)"
 				% [
 					mode,
 					each,
 					1000.0 / each,
 					busy / 1000.0 / view_bench,
-					drawing / 1000.0 / view_bench
+					drawing / 1000.0 / view_bench,
+					card / view_bench
 				]
 			)
 		print(line)
