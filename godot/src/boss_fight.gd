@@ -20,15 +20,34 @@ static func awake(game) -> Enemy:
 	return null
 
 
-## Whether a point is in `foe`'s arena.
+## Whether a point is in `foe`'s arena: within ARENA of a chapter's last boss;
+## for Hickston's two, the box its level gives it (boss_arena: the sheriff's
+## rodeo pen, Jerry's football field), or the top of the pasture.
 static func in_arena_at(game, foe: Enemy, x: float, y: float) -> bool:
 	if foe == game.finale:
 		return Vector2(foe.x - x, foe.y - y).length() < ARENA
+	var box = box_of(game, foe.kind)
+	if box != null:
+		return box.has_point(Vector2(x, y))
 	return y < PEN_Y
 
 
-## Whether a point is clear of `foe`'s arena: out of it and ARENA away (the
-## Hickston pen's test is its top half, where the sheriff seldom stands).
+## The box a kind's arena fills on its level's map (boss_arena's `box`, both
+## corner cells inside), or null.
+static func box_of(game, kind: String) -> Variant:
+	var notes = game.level.boss_arena.get(kind, {})
+	var box = notes.get("box") if notes is Dictionary else null
+	if not (box is Array) or box.size() < 4:
+		return null
+	return Rect2(
+		float(box[0]),
+		float(box[1]),
+		float(box[2]) - float(box[0]) + 1.0,
+		float(box[3]) - float(box[1]) + 1.0
+	)
+
+
+## Whether a point is clear of `foe`'s arena: out of it and ARENA away.
 static func clear_of(game, foe: Enemy, x: float, y: float) -> bool:
 	return not in_arena_at(game, foe, x, y) and Vector2(foe.x - x, foe.y - y).length() >= ARENA
 

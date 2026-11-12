@@ -1,4 +1,4 @@
-## Possum County Fair, rebuilt (layout 2): last call on the midway, at night,
+## Possum County Fair, rebuilt (layout 3): last call on the midway, at night,
 ## under string lights that only come on once the concession breaker is set.
 ## The parking field and ticket gate in the south; the midway north to the
 ## bell plaza; concession alley west (the breaker) with the livestock show
@@ -40,7 +40,7 @@ func make() -> Builder:
 		"ending": '"NO REFUNDS AFTER THE ABDUCTION."',
 		"score": "fair_score",
 		"ambience": "fair",
-		"layout": 2,
+		"layout": 3,
 		"sky": "fair_sky",
 		"control_name": "CONCESSION AND BACKSTAGE PA",
 		"objective_side_tasks": ["bell"],
@@ -48,7 +48,7 @@ func make() -> Builder:
 		"return_gate": {"destination": "hub", "x": 64.0, "y": 84.4, "width": 3.45, "side": -1},
 		"recovery_room": [56.6, 70.6, 58.9, 73.9, "room"],
 		"gallery": [79.96, 56.42],
-		"boss_decoys": [[57.5, 12.5], [70.5, 12.5]],
+		"boss_decoys": [[57.5, 9.5], [71.5, 9.5]],
 		"wave": ["wave-barker", "wave-guard", "wave-crawler", "show-ringmaster"],
 	}
 	return b
@@ -304,7 +304,7 @@ func livestock_barn() -> void:
 			"floor": "dirt",
 			"ceiling": "joists",
 			"windows": 5,
-			"light": .72,
+			"light": .9,
 			"skin": "barn"
 		}
 	)
@@ -402,22 +402,82 @@ func prize_pavilion() -> void:
 			"ceiling": "fair_iron",
 			"windows": 4,
 			"lit": .7,
-			"light": .8,
-			"skin": "fair_prize"
+			"light": .9,
+			"skin": "fair_booth"
 		}
 	)
 	b.controlled(61, 25, false, {"from": "n", "id": "pavilion-left", "tile": "fair_gate"})
 	b.controlled(67, 25, false, {"from": "n", "id": "pavilion-right", "tile": "fair_gate"})
 	b.board("fair_pavilion", 64.0, 26.06, 1.3, {"z": 2.0, "plane": 0.0, "glow": true})
-	# Prize stalls down both sides, the big bears on the shelves.
-	for y in [8, 13, 18]:
-		b.fixture(51.1, y, 54.0, y + 2.6, 1.2, "fair_prize", "counter_top")
-		b.fixture(74.0, y, 76.9, y + 2.6, 1.2, "fair_prize", "counter_top")
-		b.town("prize_bear", 52.5, y + 1.3, {"z": 1.2, "scale": .8})
-		b.town("prize_bear", 75.5, y + 1.3, {"z": 1.2, "scale": .8})
-	b.react("prize", 64.0, 20.5, .9, {"id": "fair-prize-counterweight"})
-	for p in [Vector2(58.0, 16.0), Vector2(70.0, 16.0), Vector2(64.0, 13.0)]:
-		b.board("fair_prize_pile", p.x, p.y, .9)
+	big_top()
+
+
+## Inside the pavilion, Rudy's big top: the ring in the middle (a sawdust floor
+## inside a red and white curb), bleachers down both sides, the PA horn stacks
+## at the ring's four corners, helium for the balloons, the rigging overhead,
+## and RUDY'S BIG TOP over the stage where the broadcast is cut.
+func big_top() -> void:
+	var ring := Vector2(64.5, 16.5)
+	for y in range(10, 24):
+		for x in range(57, 73):
+			var d := Vector2(x + .5, y + .5).distance_to(ring)
+			if d < 5.2:
+				b.paint(x, y, x, y, "dirt")
+			elif d < 6.0:
+				b.raise(x, y, x, y, .18)
+				b.paint(x, y, x, y, "crash_wall")
+	b.paint(54, 10, 56, 23, "porch")
+	b.paint(72, 10, 73, 23, "porch")
+	# Bleachers down both sides, three rows up.
+	for tier: Array in [[51.0, 51.95, 1.35], [52.0, 52.95, .9], [53.0, 53.95, .45]]:
+		b.fixture(tier[0], 10.0, tier[1], 23.0, tier[2], "grandstand_riser", "bleachers")
+	for tier: Array in [[76.05, 76.95, 1.35], [75.05, 76.0, .9], [74.05, 75.0, .45]]:
+		b.fixture(tier[0], 10.0, tier[1], 23.0, tier[2], "grandstand_riser", "bleachers")
+	# The horn stacks: Rudy's PA at the ring's corners (they fire down lanes).
+	for p in [Vector2(56.5, 11.5), Vector2(72.5, 11.5), Vector2(56.5, 21.5), Vector2(72.5, 21.5)]:
+		b.town("pa_horns", p.x, p.y, {"solid": .35})
+	# Helium for the balloons (it goes up), the balloons, the prizes for cover.
+	for p in [Vector2(55.5, 23.5), Vector2(73.5, 23.5), Vector2(59.5, 9.5)]:
+		b.town("propane_tank", p.x, p.y, {"solid": .4})
+	for p in [Vector2(54.5, 14.5), Vector2(73.5, 18.5), Vector2(69.5, 9.5)]:
+		b.town("balloons", p.x, p.y, {"solid": .3})
+	for p in [Vector2(54.5, 19.5), Vector2(73.5, 14.5), Vector2(59.5, 24.5), Vector2(69.5, 24.5)]:
+		b.town("prize_bear", p.x, p.y, {"solid": .35})
+	b.town("cotton_candy", 55.5, 9.5, {"solid": .4})
+	b.town("gas_cans", 72.6, 9.6)
+	# The rigging: lines from the corners to the king pole's crown overhead.
+	for c in [Vector2(51.5, 4.5), Vector2(77.5, 4.5), Vector2(51.5, 24.5), Vector2(77.5, 24.5)]:
+		b.cable(c.x, c.y, ring.x, ring.y, 3.05)
+	# Strings of bulbs across the ring, lit with the concession power.
+	for y: float in [11.5, 16.5, 21.5]:
+		b.cable(55.0, y, 74.0, y, 2.95)
+		b.board(
+			"fair_bulbs",
+			64.5,
+			y,
+			.39,
+			{"z": 2.55, "plane": 0.0, "signal": "concession", "back": "fair_bulbs_off"}
+		)
+	# The ringmaster's board hung over the front of the stage.
+	b.board("big_top_sign", 64.5, 9.92, .7, {"z": 1.95, "plane": 0.0, "hung": true})
+	b.glow(ring.x, ring.y, 6.5, .3)
+	b.meta["boss_arena"] = {
+		"rudy":
+		{
+			"box": [51, 4, 77, 24],
+			"ring": [ring.x, ring.y],
+			"horns": [[56.5, 11.5], [72.5, 11.5], [72.5, 21.5], [56.5, 21.5]],
+			"approach": [64.5, 24.0],
+			"lights":
+			[
+				[64.5, 13.0, 2.6, 7.0, [1.0, .9, .7], .9],
+				[64.5, 20.0, 2.6, 6.0, [1.0, .55, .45], .6],
+				[64.5, 6.5, 2.4, 6.0, [1.0, .82, .55], .8],
+				[54.5, 16.5, 2.4, 5.0, [.7, .6, 1.0], .45],
+				[74.5, 16.5, 2.4, 5.0, [.7, .6, 1.0], .45],
+			],
+		},
+	}
 	# The stage and the PA booth on it: where the broadcast is cut.
 	b.raise(56, 4, 72, 8, .36)
 	b.raise(56, 9, 72, 9, .18)
@@ -759,13 +819,13 @@ func cast() -> void:
 		["clone", 120.0, 8.0, "pa-stair-clone"],
 		["bottle_tosser", 112.5, 9.0, "sideshow-tosser"],
 		["billy", 76.0, 36.0, "cut-billy"],
-		["coot", 64.0, 22.0, "pavilion-coot"],
-		["alien", 57.5, 18.5, "pavilion-guard"],
+		["coot", 64.5, 23.5, "pavilion-coot"],
+		["alien", 55.5, 17.5, "pavilion-guard"],
 		["clone", 70.5, 10.5, "pavilion-clone"],
-		["barker", 64.5, 15.5, "wave-barker"],
-		["alien", 58.5, 11.5, "wave-guard"],
-		["crawler", 69.5, 13.5, "wave-crawler"],
-		["rudy", 64.5, 11.0, "show-ringmaster"],
+		["barker", 60.5, 20.5, "wave-barker"],
+		["alien", 68.5, 20.5, "wave-guard"],
+		["crawler", 69.5, 12.5, "wave-crawler"],
+		["rudy", 64.5, 16.5, "show-ringmaster"],
 		["coot", 90.0, 8.5, "exit-coot"],
 	]:
 		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
@@ -821,8 +881,8 @@ func cast() -> void:
 		["rocket_ammo", 124.0, 39.0],
 		["bullets", 116.5, 5.0],
 		["whiskey", 52.5, 6.0],
-		["rinds", 75.5, 22.0],
-		["shells", 52.0, 23.0],
+		["rinds", 74.6, 24.0],
+		["shells", 54.4, 24.2],
 		["rocket_ammo", 76.0, 4.0],
 		["beer", 81.0, 11.0],
 		["rinds", 103.0, 4.0],

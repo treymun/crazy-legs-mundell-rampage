@@ -151,7 +151,20 @@
 			"hickston"
 		],
 		"x": 66.212,
-		"y": 79.04
+		"y": 78.968
+	},
+	"v7_fair_carrying_hickston_layout2.json": {
+		"alive": 48,
+		"health": 100.0,
+		"kills": 0,
+		"level": "fair",
+		"replay": false,
+		"reserve": 30,
+		"retained": [
+			"hickston"
+		],
+		"x": 64.5,
+		"y": 81.5
 	},
 	"v7_hickston_fight.json": {
 		"alive": 86,
@@ -163,6 +176,17 @@
 		"retained": [],
 		"x": 9.376,
 		"y": 74.246
+	},
+	"v7_hickston_fight_layout2.json": {
+		"alive": 86,
+		"health": 100.0,
+		"kills": 0,
+		"level": "hickston",
+		"replay": false,
+		"reserve": 24,
+		"retained": [],
+		"x": 7.5,
+		"y": 69.5
 	},
 	"v7_quarry_replay.json": {
 		"alive": 43,
@@ -199,6 +223,18 @@
 		"y": 79.999
 	},
 	"v7_sawmill_slot_layout2.json": {
+		"alive": 44,
+		"health": 100.0,
+		"kills": 0,
+		"label": "OLD SLOT",
+		"level": "sawmill",
+		"replay": false,
+		"reserve": 30,
+		"retained": [],
+		"x": 64.5,
+		"y": 81.5
+	},
+	"v7_sawmill_slot_layout3.json": {
 		"alive": 44,
 		"health": 100.0,
 		"kills": 0,

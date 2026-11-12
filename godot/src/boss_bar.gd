@@ -13,11 +13,7 @@ static func draw(game, c: Canvas, y: int) -> int:
 	var boss = finale if finale != null else (jerry if jerry != null and jerry.alive else game.boss)
 	if boss == null:
 		return y
-	var in_finale: bool = (
-		sqrt((boss.x - p.x) * (boss.x - p.x) + (boss.y - p.y) * (boss.y - p.y)) < 14.0
-		if finale != null
-		else p.y < 10.0
-	)
+	var in_finale: bool = BossFight.in_arena_at(game, boss, p.x, p.y)
 	if not in_finale or not boss.alive or not boss.alerted or game.in_hub:
 		return y
 	var tell: String = String(

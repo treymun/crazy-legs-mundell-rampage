@@ -35,10 +35,10 @@ const LEVEL_OF := {
 ## RED_SHARE of it; any win takes WHITE. Run the bot again after a change to
 ## a boss's fight and set these from it.
 const PAR := {
-	"boss": 6.0,
-	"jerry": 8.0,
-	"rudy": 6.0,
-	"foreman": 5.0,
+	"boss": 12.0,
+	"jerry": 12.0,
+	"rudy": 10.0,
+	"foreman": 12.0,
 	"baron": 6.0,
 	"swamp_king": 6.0,
 	"derby_champ": 5.0,
