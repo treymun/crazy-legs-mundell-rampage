@@ -270,6 +270,9 @@ func _parse_smoke() -> void:
 			cpu_look = true
 		elif text == "--cpu-view":
 			cpu_view = true
+		elif text == "--cpu-walls":
+			# The band threads work out every wall span again (render_state.gd gpu_walls).
+			RenderState.wall_walk = false
 		elif text == "--cpu-canvas":
 			cpu_canvas = true
 		elif text == "--view-check":
@@ -1019,6 +1022,7 @@ func render() -> void:
 		canvas.gpu_begin()
 	if game != null:
 		game.scene_live = false
+	var checking := false
 	# The menus' little motions follow SCENERY MOTION, SCREEN FLASH and LAMP FLICKER.
 	var steady := int(options.get("flashes", 0)) != 0 or int(options.get("flicker", 1)) == 0
 	menu.clock = menu_clock
@@ -1051,6 +1055,15 @@ func render() -> void:
 		# One renderer: with a window the shader composes the view, always (the
 		# software view is the fallback when the driver check fails, cpu_look).
 		game.layered = gpu_look and canvas.gpu and not cpu_view
+		# The frame the start-up check judges (_check_view) is drawn as the
+		# software view draws it: at HIGH (render_state.gd hd_held) and without
+		# lights, glows, fog and grade, which only the shader has (with them a
+		# moody level like Hickston failed the check and kept the whole session
+		# in software). The frame after is drawn as set.
+		checking = _view_unchecked()
+		game.renderer.hd_held = checking
+		if checking:
+			Effects.enabled = false
 		game.draw(canvas, int(options["crosshair"]), true)
 		if int(options.get("show_fps", 0)) != 0 and not touring:
 			# FRAME COUNTER: frames per second, top right, over the view.
@@ -1085,11 +1098,21 @@ func render() -> void:
 		layers.frame(game, canvas)
 		if view_broken:
 			palette_material.set_shader_parameter("scene_on", false)
-		if view_check == 0 and not _view_checking and not touring and state == "play":
+		if checking and not _view_checking:
 			_check_view()
 	else:
 		layers.off()
+	if checking:
+		Effects.enabled = int(options.get("lights", 1)) != 0
 	_apply_view()
+
+
+## The start-up check of the shader's picture is still to come (_check_view).
+func _view_unchecked() -> bool:
+	if view_check != 0 or touring or state != "play" or game == null:
+		return false
+	var rect := view.get_global_rect()
+	return rect.size.x >= WIDTH and rect.size.y >= HEIGHT
 
 
 func _check_view() -> void:

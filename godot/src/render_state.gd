@@ -27,6 +27,15 @@ var vh := VIEW
 var focal := FOCAL
 var detail := 0
 var res_up := 1.0
+## VIEW DETAIL HD was chosen. A frame drawn in software (the start-up check of
+## the shader's picture, main_state.gd _check_view) draws at HIGH without
+## forgetting it: the next shader frame is HD again (game_view.gd _draw).
+var hd_wanted := false
+## Draw at HIGH for now though HD is wanted: the start-up check compares the
+## shader's picture with the software one at a grid of points, and an HD
+## picture (a quarter pixel apart, twice the texels) failed it, which kept the
+## whole session in software.
+var hd_held := false
 const SKY_H := 116
 const TILE_W := 128
 const TILE_BYTES := TILE_W * TILE_W * 3
@@ -184,6 +193,63 @@ const SPAN_MESH := 4
 const SPAN_K := 12
 var span_f := PackedFloat32Array()
 var span_n := PackedByteArray()
+## Layered walls the shader finds itself. The band threads used to work out
+## every wall's span down every column; now the shader walks the walls a
+## column can see (palette.gdshader walk_walls) and the bands draw only the
+## columns that need the renderer's own answer: where a mirror or window
+## glazing is (cut out and composited here), and where a wall mark lies (it is
+## coloured over its wall here). A column's cpu_n says how many of seg_order's
+## walls, nearest first, the bands handle in it (0: none, the shader walks
+## them all); the shader walks the rest. wall_table holds, for the shader,
+## four texels per wall (render_surfaces.gd _prepare_chunk), then a texel per
+## block of block_w columns (where its list starts, how long it is, the top
+## and bottom row any wall in it can reach), then the lists: each block's
+## walls nearest first, four to a texel (_fill_lists). Over GPU_WALLS walls in
+## view the bands draw every column as before (gpu_walls false), and
+## wall_walk false (--cpu-walls) keeps them all on the bands.
+const GPU_WALLS := 4096
+const WALL_BLOCKS := 80
+static var wall_walk := true
+var gpu_walls := false
+var wall_table := PackedFloat32Array()
+var wall_blocks_at := 0
+var wall_entries_at := 0
+var block_w := 8
+var cpu_n := PackedInt32Array()
+## seg_order ranks of this frame's mirror and glazing walls (drawn here).
+var _special_ranks := PackedInt32Array()
+## _prepare() in steps the crew shares (render_surfaces.gd): the walls the view
+## can reach, in chunks of PREP_CHUNK, and the next chunk to take. A sort key
+## is the nearest the wall comes (times 4096) << 32, its index << 16, and its
+## place in _chunk_table (NO_SLOT for none); SKIP for a wall with nothing to draw.
+const PREP_CHUNK := 128
+const NO_SLOT := 65535
+const SKIP := 9223372036854775807
+var _todo := PackedInt32Array()
+var _prep_chunks := 0
+var _prep_next := 0
+var _prep_lock := Mutex.new()
+var _prep_open := false
+## The main layered pass packs its walls for the shader as it projects them:
+## chunk k's from _chunk_table[k * PREP_CHUNK * 16], _chunk_count[k] of them,
+## and per chunk and block how many reach into it and their top and bottom rows.
+var _packing := false
+var _pack_blocks := 0
+var _chunk_table := PackedFloat32Array()
+var _chunk_count := PackedInt32Array()
+var _chunk_n := PackedInt32Array()
+var _chunk_top := PackedInt32Array()
+var _chunk_bottom := PackedInt32Array()
+## A chunk's places in the table are its own counted from k * PREP_CHUNK: this
+## moves them to the table's.
+var _slot_shift := PackedInt32Array()
+var _list_start := PackedInt32Array()
+var _list_count := PackedInt32Array()
+var _list_entries := 0
+var _fill_due := false
+## Mirrors and glazing in view (1 by wall index) and their sort keys.
+var seg_flag := PackedByteArray()
+var seg_key := PackedInt64Array()
 ## Layered sprites. The shader draws the sprites and painted boards too, in
 ## list order and with the same depth tests: gpu_spr holds four RGBA float
 ## texels a sprite (a row of an image 4 wide), and the art goes in slots of
@@ -375,8 +441,10 @@ func _init(p_assets: Assets, p_level: LevelData) -> void:
 ## the size each way (640x312) for the display shader to show at that size; the
 ## weapon and HUD stay 320x200. Only the graphics-card view has it (game_view.gd
 ## falls back to HIGH without one).
-func set_detail(level_of_detail: int) -> void:
+func set_detail(level_of_detail: int, keep_wish := false) -> void:
 	detail = clampi(level_of_detail, -1, 1)
+	if not keep_wish:
+		hd_wanted = detail < 0
 	vw = WIDTH * 2 if detail < 0 else WIDTH >> detail
 	vh = VIEW * 2 if detail < 0 else VIEW >> detail
 	focal = base_focal * vw / WIDTH

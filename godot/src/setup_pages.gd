@@ -331,7 +331,7 @@ static func build() -> Array:
 						"detail",
 						2,
 						["HIGH", "LOW", "AUTO", "HD"],
-						"LOW HALVES THE VIEW. AUTO GOES LOW ONLY WHEN FRAMES RUN LATE. HD DRAWS IT TWICE AS SHARP."
+						"HIGH IS 320 WIDE, LOW HALF. AUTO GOES LOW WHEN FRAMES RUN LATE. HD: 640, TWICE AS SHARP."
 					)
 				),
 				SessionStore.choices(

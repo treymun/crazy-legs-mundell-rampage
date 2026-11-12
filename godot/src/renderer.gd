@@ -31,7 +31,8 @@ func render(
 ## can draw its weapon and HUD meanwhile); render_end() waits and finishes.
 var _pending: Array = []
 var _begun_usec := 0
-var _prepare_out := false
+## Crew threads still projecting walls (frame_begin).
+var _prepare_out := 0
 
 
 func render_begin(
@@ -109,13 +110,22 @@ func frame_begin(player: Dictionary, flash_value: float) -> void:
 		pane_dist.resize(vw * vh)
 	_pending = [px, py, pz, angle, hz, active]
 	_scene_view(px, py, pz, angle, hz, 1, frame, vw, 0, vw, depth, glass, layered)
-	if use_threads:
-		_need_crew(1)
-		Renderer._crew_job = _prepare.bind(active)
-		_prepare_out = true
-		_crew_go.post()
+	# The crew projects the walls (and packs them for the shader) a chunk at a
+	# time while the caller lists its sprites; frame_sprites() sorts them.
+	_prepare_begin(active)
+	_prep_open = true
+	if use_threads and _prep_chunks > 0:
+		# Three chunks a thread at least: waking a thread costs more than a
+		# small chunk, most of all in a browser.
+		var crew := clampi(_prep_chunks / 3, 1, threads)
+		_need_crew(crew)
+		Renderer._crew_job = _prepare_worker
+		_prepare_out = crew
+		for i in crew:
+			_crew_go.post()
 	else:
-		_prepare(active)
+		for k in _prep_chunks:
+			_prepare_chunk(k)
 	_begun_usec = Time.get_ticks_usec() - started
 
 
@@ -127,9 +137,16 @@ func frame_sprites(sprites: Array, reflection_sprite, marks: Array, ground_marks
 	_mark_list = marks
 	_ground_list = ground_marks
 	_warm_art()
-	if _prepare_out:
-		_prepare_out = false
+	for i in _prepare_out:
 		_crew_done.wait()
+	_prepare_out = 0
+	if _prep_open:
+		_prep_open = false
+		_prepare_end()
+	if layered:
+		_cpu_columns()
+		# The blocks' lists for the shader are a job for the crew beside the bands.
+		_fill_due = gpu_walls
 	_pending.append_array([sprites, reflection_sprite, marks, ground_marks])
 	_scene_draw(sprites, marks, ground_marks, 1, 0, vw, layered, false)
 	_begun_usec += Time.get_ticks_usec() - started
@@ -232,6 +249,9 @@ func _scene_draw(
 	if use_threads and (threads > 1 or lay) and c1 - c0 >= 96:
 		_start_bands(c0, c1)
 	else:
+		if _fill_due:
+			_fill_due = false
+			_fill_lists()
 		_band(c0, c1)
 
 
@@ -250,6 +270,8 @@ func _scene_end() -> void:
 
 var _band_count := 0
 var _band_next := 0
+## Jobs taken before the bands (0 or 1: the shader's wall lists).
+var _band_jobs := 0
 var _band_lock := Mutex.new()
 ## One band per band thread, cut where the work was even last frame.
 var _band_edges := PackedInt32Array()
@@ -310,6 +332,10 @@ func _start_bands(c0: int, c1: int) -> void:
 	# takes whatever is left when it gets to _scene_end().
 	_band_count = crew * BAND_SHARE
 	_cut_bands(c0, c1, _band_count)
+	# Job 0 fills the shader's wall lists when the main view has them to fill
+	# (render_surfaces.gd _fill_lists); the bands follow.
+	_band_jobs = 1 if _fill_due else 0
+	_fill_due = false
 	_band_next = 0
 	_need_crew(crew)
 	Renderer._crew_job = _band_worker
@@ -361,6 +387,10 @@ func _band_worker() -> void:
 		var i := _band_next
 		_band_next += 1
 		_band_lock.unlock()
+		if i < _band_jobs:
+			_fill_lists()
+			continue
+		i -= _band_jobs
 		if i >= _band_count:
 			return
 		var began := Time.get_ticks_usec()

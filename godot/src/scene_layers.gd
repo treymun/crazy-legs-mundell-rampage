@@ -243,18 +243,40 @@ func frame(game: Game, _canvas: Canvas) -> void:
 	_set_param("cover_at", cover_at)
 	_set_param("pane_row", pane_row)
 	_sprites(r)
-	# The wall spans, their counts, then the sprite table flowing on across rows.
-	var table := r.span_f.duplicate()
+	# The wall spans (only as many rows as the fullest column needs: the shader
+	# walks most walls itself now), their counts and where the shader's own walk
+	# starts in each column, then the sprite table flowing on across rows.
+	var row_floats := vw * 4
+	var span_rows := 0
+	for k in range(Renderer.SPAN_K, 0, -1):
+		if r.span_n.count(k) > 0:
+			span_rows = k * 2
+			break
+	var table := r.span_f.slice(0, span_rows * row_floats)
+	var count_at := Renderer.SPAN_K * 2 * row_floats
+	table.append_array(r.span_f.slice(count_at, count_at + row_floats))
+	_set_param("count_row", span_rows)
+	_set_param("sprite_row", span_rows + 1)
 	var count := r.gpu_spr_n if r.gpu_sprites else 0
-	var rows := Renderer.SPAN_K * 2 + 1
+	var rows := span_rows + 1
 	if count > 0:
 		var sprite_rows := (count * 4 + vw - 1) / vw
 		var sprites := r.gpu_spr.slice(0, count * 16)
 		sprites.resize(sprite_rows * vw * 4)
 		table.append_array(sprites)
 		rows += sprite_rows
+	# Then the walls the shader walks itself (render_state.gd gpu_walls).
+	var walls_on := r.gpu_walls
+	_set_param("walls_on", walls_on)
+	if walls_on:
+		_set_param("wall_row", rows)
+		_set_param("block_at", r.wall_blocks_at)
+		_set_param("entry_at", r.wall_entries_at)
+		_set_param("block_w", r.block_w)
+		table.append_array(r.wall_table)
+		table.resize((table.size() + row_floats - 1) / row_floats * row_floats)
+		rows = table.size() / row_floats
 	# Then the distance bands this frame has, four floats a texel.
-	var row_floats := vw * 4
 	var dist_row := rows
 	var dist_start := Vector3i.ZERO
 	var floats := 0

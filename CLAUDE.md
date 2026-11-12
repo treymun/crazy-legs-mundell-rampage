@@ -121,13 +121,24 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   A view tour always draws with the default settings, never the profile's
   (the owner's own copy shares it): a lowered gun or the film look in a local
   reference fails CI's Mesa window, which has none.
-  `tools/picture_check.gd` still guards the software fallback.
+  `tools/picture_check.gd` still guards the software fallback. The start-up
+  check of a player's driver (`main_state.gd _check_view`) judges one frame
+  drawn as the software view would draw it: at HIGH and without lights, glows,
+  fog or grade (`hd_held`, `Effects.enabled` off for that frame only). It used
+  to judge the full picture, which a moody level (Hickston) always failed, and
+  that kept the whole session in software: no lights, no HD, four times slower.
 - **VIEW DETAIL HD** (setting value 3, off by default) is `Renderer.set_detail(-1)`:
   the view is drawn 640x312 at twice the focal length and the display shader
   shows it at that size (`view_mul`), while the weapon, HUD and their effects
-  stay 320x200. The software view has no HD (game_view.gd drops to HIGH). Rows
-  past 255 exist in HD: pack a row into 10 bits, not 8 (wall spans do). It
-  costs about 2.3x the shader view's frame time.
+  stay 320x200. The software view has no HD: a frame drawn in software
+  (a screenshot, the start-up check) draws at HIGH and keeps the wish
+  (`set_detail(0, true)`, `hd_wanted`), so the next shader frame is HD again;
+  never `set_detail(0)` for one frame. The film look (grain, dither, vignette)
+  works on the view's own grid, so HD keeps its detail under it; HIGH is the
+  320 grid as before. Rows past 255 exist in HD: pack a row into 10 bits, not
+  8 (wall spans and the shader's wall table do). It costs about 1.5x the
+  shader view's frame time on the desktop. Changing a setting shows what it
+  did and that it was saved where the hint goes (`main_flow.gd`).
 - **The automap** (`game_view.gd`) follows the player at a readable zoom
   (PGUP/PGDN, keypad +/-, the mouse wheel; zoom 0 fits the level), from an
   image of the whole map at that scale (walls as lines, ground by kind,
@@ -152,11 +163,32 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   pixel, code or distance), `over_on` off (no ground mark or wall mark pixel)
   and `pane_on` off leave those parts out of `colours` and `spans`, and
   uniforms say where each part starts (`over_row`, `stream_row`, `cover_at`,
-  `pane_row`, `dist_start`). A texture is kept for each size it has been, and a
-  shader number is only set when it changes (`_set_param`). Layered, the
+  `pane_row`, `dist_start`), as do the wall spans' rows (only as many as the
+  fullest column needs, then the counts row at `count_row`, the sprites from
+  `sprite_row`, the shader's wall table from `wall_row`). A texture is kept for
+  each size it has been, and a shader number is only set when it changes
+  (`_set_param`). Layered, the
   renderer keeps its pass buffers from frame to frame (only the overlay, span
   counts, distances and glass start cleared): never hand one of its arrays to
   an Image or texture directly, copy it (`scene_layers.gd` does).
+- **The shader finds most walls itself.** In the shader view the band threads
+  no longer work out every wall's span down every column: `_prepare()` runs on
+  the whole crew in chunks (`_prepare_chunk`) and, while projecting, packs each
+  wall for the shader (four texels: columns, nearest distance, the per-column
+  terms of t and u in double precision, rows it can reach, tile, light), a crew
+  job beside the bands lists each block of columns' walls nearest first
+  (`_fill_lists`), and `palette.gdshader walk_walls` finds each pixel's nearest
+  wall with `_wall_band`'s own tests, stopping at the first wall past what it
+  has. The bands draw walls only in columns that need the renderer's answer
+  (`cpu_n`, `_cpu_columns`): a mirror's or glazing's columns, up to that wall,
+  and a wall mark's columns, up to the last wall as near as the mark; the shader
+  walks the rest of those columns after them. Over `GPU_WALLS` walls in view, or
+  with `--cpu-walls`, the bands draw everything as before (a tour with
+  `--cpu-walls` matches the old code exactly). Against the old shader view the
+  walk differs only where float32 lands on the other side of a texel or row
+  boundary than the CPU's double did: a few single pixels a view (tour: 7 of 75
+  pictures, 176 window pixels; HD 11 of 66, one a row along a wall's top seen
+  dead on). Sort keys are nearest << 32 | wall << 16 | table place.
 - **The renderer culls before it draws, and must stay exact.** `_prepare()`
   projects only fixed walls in map blocks the view (or the mirror's view) can
   reach (`_block_walls`; doors, panes and gates are tested every frame), gives
@@ -164,7 +196,8 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `_wall_band` trims columns already covered by nearer walls before setting a
   wall up, drops a span wholly inside one nearer span, and leaves out mirror and
   glass pixels nearer spans hide (a hidden mirror would start a reflection
-  pass). `game_view.gd sprites()` lists only what can show: fixed sprites in
+  pass). The shader's walk keeps the same columns (`seg_c0`, `seg_c1`) and
+  order, so ties go the same way. `game_view.gd sprites()` lists only what can show: fixed sprites in
   blocks (`fixed_blocks`), and enemies, pickups and effects through
   `in_view(x, y, reach)`; a new sprite source should use it too. The shader
   draws sprites in list order, so culling only ever leaves sprites out, never
@@ -191,7 +224,10 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   function, read a field of another object or use untyped `round`, `floor`
   or `ceil`. Each costs 5 to 11 times more while the other threads do the
   same. Tabulate on the main thread (see `_warm_art`) and use `roundf`,
-  `floorf`, `ceilf`.
+  `floorf`, `ceilf`. The crew also projects the walls (`_prepare_worker`, from
+  `frame_begin` while the main thread lists sprites) and fills the shader's
+  wall lists (job 0 of the band phase); each writes only its own slots of
+  preallocated arrays, and the main thread merges (`_prepare_end`, `_pack_end`).
 - **Benchmarks are noisy.** The owner's own copy of the game, Steam and other
   apps often run on this PC. Compare old and new back to back, never against
   a number from earlier. Window runs that change settings get a scratch
