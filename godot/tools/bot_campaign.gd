@@ -46,9 +46,10 @@ func _run() -> void:
 		advance_campaign(main, chapter)
 
 	print("\nEND OF CAMPAIGN")
-	check(main.campaign_run.level.id == "quarry", "campaign still on quarry")
+	var last: String = Campaign.ORDER[Campaign.ORDER.size() - 1]
+	check(main.campaign_run.level.id == last, "campaign still on " + last)
 	check(main.game.in_hub, "finale returns to Crossroads")
-	check(main.game.hub_milestone == 4, "hub milestone reached the finale")
+	check(main.game.hub_milestone == Campaign.ORDER.size(), "hub milestone reached the finale")
 
 	print("\nREVISITS")
 	for chapter: String in Campaign.ORDER:
@@ -69,7 +70,10 @@ func _run() -> void:
 	if loaded != null:
 		main.play(loaded)
 		loaded.configure(main.options)
-		check(loaded.history.size() == 3, "history has 3 finished chapters")
+		check(
+			loaded.history.size() == Campaign.ORDER.size() - 1,
+			"history has every chapter before the last finished"
+		)
 		check(
 			loaded.loadout()["active"] == main.campaign_run.loadout()["active"],
 			"loadout survived the round trip"
@@ -126,6 +130,7 @@ func _run() -> void:
 		"user://probe-fair.json",
 		"user://probe-sawmill.json",
 		"user://probe-quarry.json",
+		"user://probe-speedway.json",
 	]
 	for p in path_clean:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(p))

@@ -28,7 +28,7 @@ extends SceneTree
 const AssetsLib := preload("res://src/assets.gd")
 
 const SFX_RATE := 22050
-const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky"]
+const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky", "speedway_sky"]
 ## Each chapter's file: its three tracks, then the loop its fights swell into
 ## (Sound.FIGHTS).
 const MUSIC_FILES := {

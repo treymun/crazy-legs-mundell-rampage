@@ -38,7 +38,9 @@ func _run() -> void:
 	if args.has("whole"):
 		whole = true
 		args.erase("whole")
-	var ids := ["hickston", "fair", "sawmill", "quarry"] if args.is_empty() else [args[0]]
+	var ids := (
+		["hickston", "fair", "sawmill", "quarry", "speedway"] if args.is_empty() else [args[0]]
+	)
 	var art := Assets.new()
 	var hud := HUD.new(art)
 	sound = Sound.new(art)

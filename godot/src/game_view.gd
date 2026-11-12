@@ -678,9 +678,13 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 						tell = "GAP IN THE MIDDLE"
 					if boss.brain == "rudy":
 						tell = "LEFT HORN" if boss.attacks % 2 == 1 else "RIGHT HORN"
+					if boss.brain == "derby_champ":
+						tell = DerbyChamp.tell(boss)
 					var phase: String = (
 						tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
 					)
+					if boss.brain == "derby_champ" and phase == "RECOVERING":
+						phase = tell
 					if boss.enraged and clock - boss.enraged_at < 1.6:
 						phase = "FIGHTIN' MAD"
 					HUD.panel(
@@ -777,7 +781,7 @@ func effect_lights() -> Array:
 		lamps_of = lamps_key
 		lamp_props = props.filter(func(spr): return spr.image == "prop_lamp")
 		lamp_boards = world.billboards.filter(
-			func(board): return board.glow and board.image == "hub_lamp"
+			func(board): return board.glow and board.image in ["hub_lamp", "town_floodlight_tower"]
 		)
 	for spr: Renderer.Sprite in lamp_props:
 		if absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
@@ -897,7 +901,7 @@ func _boss_title(kind: String) -> String:
 				"foreman": "SPLINTER FOREMAN",
 				"baron": "COPPER BARON"
 			}
-			. get(kind, "BOSS")
+			. get(kind, String(Enemy.BOSS_TITLES.get(kind, "BOSS")))
 		)
 	)
 

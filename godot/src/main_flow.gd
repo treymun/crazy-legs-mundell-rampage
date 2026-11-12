@@ -25,7 +25,8 @@ func start(
 			{
 				"fair": [Weapons.ROCKET, 3],
 				"sawmill": [Weapons.BOWLING, 3],
-				"quarry": [Weapons.COW, 3]
+				"quarry": [Weapons.COW, 3],
+				"speedway": [Weapons.CROSSBOW, 6]
 			}
 			. get(level_id, [Weapons.ROCKET, 3])
 		)

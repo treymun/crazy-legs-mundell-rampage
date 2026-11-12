@@ -508,6 +508,8 @@ func hurt(
 		if champion:
 			_boss_falls(game, floor_z)
 		game.enemy_down(self)
+		if brain == "nitro_huffer":
+			SpeedwayHands.huffer_down(self, game)
 	else:
 		game.sound_at("chicken" if brain == "chicken" else "pig", x, y, .9)
 		game.burst(
@@ -632,6 +634,9 @@ func tick(dt: float, game) -> void:
 	hit_flash = maxf(0.0, hit_flash - dt)
 	flinch = maxf(0.0, flinch - dt)
 	soak = maxf(0.0, soak - dt / 6.0)
+	if brain == "derby_champ":
+		DerbyChamp.tick(self, dt, game)
+		return
 	if volley:
 		volley_timer -= dt
 		if volley_timer <= 0.0:
@@ -855,6 +860,8 @@ func _boss_falls(game, floor_z: float) -> void:
 	game.sound_at(("sheriff" if kind == "boss" else kind) + "_death", x, y, 1.0)
 	game.burst(x, y, floor_z + height * .6, "spark", 30, 3.2)
 	game.burst(x, y, floor_z + height * .5, "plasma" if PLASMA.has(kind) else "gore", 26, 2.6)
+	if brain == "derby_champ":
+		DerbyChamp.falls(self, game)
 	if game.barks.enabled:
 		game.callout = "BOSS DOWN!"
 		game.callout_until = game.clock + 2.2
@@ -960,6 +967,8 @@ func _spread(game) -> float:
 
 func attack(game, direction: float, distance: float, eye: float, aim_z = null) -> void:
 	attacks += 1
+	if SpeedwayHands.attack(self, game, direction, distance, eye, aim_z):
+		return
 	if SIGNATURES.has(kind):
 		signature_attack(game, direction, distance, eye, aim_z)
 		return
@@ -1060,7 +1069,7 @@ func signature_attack(game, direction: float, distance: float, eye: float, aim_z
 			eye,
 			direction,
 			speed2,
-			"fair_bottle",
+			String(DEFS[kind].get("shot", "fair_bottle")),
 			(target_z + .06 - eye) / flight + 2.75 * flight,
 			true,
 			0,
@@ -1071,7 +1080,8 @@ func signature_attack(game, direction: float, distance: float, eye: float, aim_z
 			game.launch(sx, sy, eye - .12, direction + swing, 8.0, "chain_hook", 0.0, true, 7, .44)
 	else:
 		var ground_z: float = game.world.elevation(x, y)
-		game.launch(sx, sy, ground_z + .31, direction, 6.3, "valve_slug", 0.0, true, 12, 1.17)
+		var slug := String(DEFS[kind].get("shot", "valve_slug"))
+		game.launch(sx, sy, ground_z + .31, direction, 6.3, slug, 0.0, true, 12, 1.17)
 
 
 func special_attack(game, direction: float, distance: float, eye: float, aim_z) -> void:
@@ -1270,7 +1280,8 @@ func sprite(observer = null, relieved := false, now := -1.0):
 			var falling := Renderer.Sprite.new(x, y, cel, height * variant, z)
 			falling.flip = face_left
 			return falling
-		var down := Renderer.Sprite.new(x, y, "%s_down" % kind, height * .25, -.07)
+		var lying := height * (.45 if brain == "derby_champ" else .25)
+		var down := Renderer.Sprite.new(x, y, "%s_down" % kind, lying, -.07)
 		down.flip = face_left
 		return down
 	var recover := recovery_time(relieved) if recovery > 0.0 else 0.0

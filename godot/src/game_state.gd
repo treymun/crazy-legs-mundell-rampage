@@ -105,6 +105,11 @@ const HUB_DISPATCH := [
 		"RADIO: KEEP THE LAST LOAD."
 	],
 	[
+		"RACE NIGHT",
+		"STILLWATER QUIET. THE JUG MONEY RIDES ON TONIGHT'S RACE AT BUZZARD BEND.",
+		"RADIO: CHECK THE SPEEDWAY."
+	],
+	[
 		"ALL CLEAR",
 		"BESSIE'S TAG IS BACK. MUNDELL STILL OWES FOR THE JUGS.",
 		"RADIO: THE TAG IS HOME."
@@ -132,7 +137,8 @@ const WASH := {
 	"hub": [255, 226, 190, .10],
 	"fair": [255, 200, 230, .12],
 	"sawmill": [255, 214, 160, .13],
-	"quarry": [178, 214, 255, .12]
+	"quarry": [178, 214, 255, .12],
+	"speedway": [255, 206, 168, .12]
 }
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
