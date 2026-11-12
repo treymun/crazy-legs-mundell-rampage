@@ -45,6 +45,9 @@ static func pierce(
 		game.pierced.emit(at_entry, at_exit, "air")
 		return false
 	game.pierced.emit(at_entry, at_exit, "enemy")
+	var reach: float = (target.x - p.x) * ax + (target.y - p.y) * ay
+	game.hit_point = Vector3(p.x + ax * reach, p.y + ay * reach, p.eye + reach * slope)
+	game.hit_from = Vector2(p.x, p.y)
 	target.hurt(
 		amount * float(how.get("penetrate_damage", .6)),
 		game,

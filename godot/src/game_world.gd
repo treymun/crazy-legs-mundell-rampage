@@ -769,6 +769,11 @@ func use_prompt() -> String:
 func interact() -> void:
 	if showing_tally or player.health <= 0:
 		return
+	if boss_hold > 0.0:
+		# USE cuts a boss's entrance short (BossKit.hold).
+		if boss_hold_for - boss_hold > BossKit.SKIP_AFTER:
+			boss_hold = 0.0
+		return
 	var gate = portal_target()
 	if gate != null:
 		if world.locked_gates.has(gate):

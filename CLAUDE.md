@@ -327,6 +327,24 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   WILD after the level's own enemies (saved in the features block, so a save
   checks its count against `enemy_ids.size()`). Set `alerted` by assignment:
   its setter counts changes, which `player_sheltered()` relies on.
+- **Boss fights share a framework** (`src/boss_kit.gd`, `features/boss_fight.gd`,
+  `src/bosses/`). Each of the eight bosses (a `title` in enemies.cfg) has a
+  `BossMoves` file (`bosses/boss_moves.gd`: `fight_start`, `phase_changed`,
+  `tick` (true skips the brain), `weak_spot` (a damage multiplier, no dice),
+  `telegraph`, `looks`, `dying`, `stagger_hit`/`stagger_rest`, `hog_wild(game)`);
+  `BossKit.moves(kind)` hands back one instance shared by every game, so keep
+  a fight's state on the enemy or in a feature's save. `Enemy.boss_phase` (2
+  under half, 3 under a fifth; Maw by her own lines) is worked out from health,
+  never saved. A player's hit sets `game.hit_point`/`hit_from` before `hurt()`,
+  which asks the weak spot and forgets the point. A big instant (`struck_sum`
+  past `BossKit.STAGGER`) staggers; the entrance holds the world only when
+  `game.lessons` (never in tools, tours, benches, bots) and once a save; backup
+  at phases 2 and 3 joins the enemies after the level's own (the posse feature
+  saves them; `game.boss_backup` off for a rematch); a fall sets `game.slowmo`
+  (game.gd steps the world at `SLOWMO_PACE`, the player and gun at full speed).
+  Signals for voices and the like: `boss_intro`, `boss_phase`, `boss_staggered`,
+  `boss_weak_hit`, `boss_down(e, seconds)`. `tools/boss_check.gd` (in check_fixes)
+  holds it; `physics_frames.gd only=boss` takes its pictures.
 - **Fight music** (`features/fight_music.gd`, `sound.gd` crossfade) swaps a
   chapter's music for its fight track (`assets/music/fight_*.ogg`, made by
   `audio_build.py --fights`) while hands hunt or attack nearby. Each chapter

@@ -871,18 +871,21 @@ func intermission(c: Canvas, game: Game) -> void:
 		["SECRETS", "%02d / %02d" % [game.secrets, game.total_secrets]],
 		["TIME", "%02d:%02d" % [minutes, seconds]]
 	]
-	# Features add their own rows (features.gd); room for one more.
-	rows.append_array(Features.tally_rows(game).slice(0, 1))
-	var gap := 18 if rows.size() <= 3 else 16
+	# Features add their own rows (features.gd: accuracy, each boss's time);
+	# room for three more, the rows closing up to fit.
+	rows.append_array(Features.tally_rows(game).slice(0, 3))
+	var gap: int = [18, 18, 18, 18, 16, 13, 12][rows.size()]
+	var bar := mini(15, gap - 1)
 	# The rows come down one at a time with a thud, then the ribbon (tally.gd).
 	var show = game.features.get("tally")
 	var shown: int = show.rows_shown(rows.size()) if show != null else rows.size() + 1
 	for i in mini(shown, rows.size()):
 		var y := 79 + i * gap
-		c.fill_rect(21, y, 187, 15, Color(30 / 255.0, 21 / 255.0, 17 / 255.0))
-		text(c, String(rows[i][0]), 26, y + 4, "body", INK)
-		text(c, String(rows[i][1]), 202, y + 4, "body", AMBER, false, true, true)
-	text(c, game.level.ending, 22, 142 if rows.size() <= 3 else 146, "body", AMBER)
+		c.fill_rect(21, y, 187, bar, Color(30 / 255.0, 21 / 255.0, 17 / 255.0))
+		text(c, String(rows[i][0]), 26, y + int((bar - 7) / 2.0), "body", INK)
+		text(c, String(rows[i][1]), 202, y + int((bar - 7) / 2.0), "body", AMBER, false, true, true)
+	var ending_y: int = [142, 142, 142, 142, 146, 149, 152][rows.size()]
+	text(c, game.level.ending, 22, ending_y, "body", AMBER)
 	if show != null and shown > rows.size():
 		_ribbon(c, show.ribbon())
 	var action := (

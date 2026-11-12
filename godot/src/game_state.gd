@@ -821,6 +821,34 @@ var sharpness := 1.0
 var ammo_scale := 1.0
 ## A boss went fightin' mad at half health (enemies.gd _enrage).
 signal boss_enraged(enemy: Enemy)
+## The boss fights (boss_kit.gd, features/boss_fight.gd, src/bosses/): a
+## boss's fight began (its entrance), it reached a new phase (2 under half
+## health, 3 under a fifth; Maw Glorb by her own), one instant's hits
+## staggered it, a hit found its weak spot, and it fell `seconds` after its
+## fight began (0 when it never began).
+signal boss_intro(enemy: Enemy)
+signal boss_phase(enemy: Enemy, phase: int)
+signal boss_staggered(enemy: Enemy)
+signal boss_weak_hit(enemy: Enemy)
+signal boss_down(enemy: Enemy, seconds: float)
+## Where the player's hit about to hurt someone struck (a bullet or pellet on
+## the body, a shot where it touched, a blast's middle) and where the player
+## stood, set just before hurt(); hurt() asks a boss's weak spot with it and
+## forgets it (INF: not known).
+var hit_point := Vector3.INF
+var hit_from := Vector2.ZERO
+## Bosses call in backup at their phase changes (a rematch may turn it off).
+var boss_backup := true
+## A boss's entrance (BossKit.hold): seconds of it left, its whole length,
+## whose it is, and whether fire has been let go since (a fresh press skips).
+var boss_hold := 0.0
+var boss_hold_for := 0.0
+var boss_hold_of: Enemy = null
+var boss_hold_armed := false
+## Slow motion as a boss falls: real seconds of it left; the world goes at
+## SLOWMO_PACE meanwhile, the player and the gun at full speed.
+var slowmo := 0.0
+const SLOWMO_PACE := .35
 ## A hitscan shot (a bullet, a pellet, a swing, the milk) ended at `end`:
 ## struck is "enemy", "thing" (a drum or scenery), "glass", "wall:<surface>"
 ## (wood, metal, plaster, dirt) or "air" (nothing within its range).

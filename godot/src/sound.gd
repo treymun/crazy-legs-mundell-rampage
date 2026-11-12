@@ -526,6 +526,9 @@ var _preview_left := 0.0
 var _preview_side := 1.0
 var _music: AudioStreamPlayer
 var _fight: AudioStreamPlayer
+## How high a boss loop plays (features/fight_music.gd: a little over 1 in
+## the boss's last phase); tick_score eases toward it.
+var score_lift := 1.0
 
 var _amb_target := [0.0, 0.0]
 var _amb_rate := [0.0, 0.0]
@@ -974,6 +977,14 @@ func pause_score(paused: bool) -> void:
 func tick_score(dt: float) -> void:
 	if score_player != null:
 		score_player.update(dt)
+	if _music != null:
+		# A boss loop lifts in its boss's last phase (score_lift); anything else
+		# plays at its own pitch at once.
+		var want := score_lift if score.begins_with("boss_") else 1.0
+		if _music.pitch_scale != want:
+			_music.pitch_scale = (
+				move_toward(_music.pitch_scale, want, dt * .05) if want > 1.0 else want
+			)
 	if _preview_left > 0.0:
 		_preview_left -= dt
 		if _preview_left <= 0.0:

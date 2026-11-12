@@ -235,6 +235,13 @@ var soak := 0.0
 ## when it got that way.
 var enraged := false
 var enraged_at := -10.0
+## A boss's fight (boss_kit.gd): its phase (1, 2 under half its health, 3
+## under a fifth: from its health, so not saved), when it can next be staggered and
+## when it last was, and when it went plum desperate.
+var boss_phase := 1
+var stagger_ready := 0.0
+var staggered_at := -10.0
+var desperate_at := -10.0
 ## Gator Bayou (bayou_brains.gd): it swims (deep water is no wall to it), and
 ## how far it is sunk in the water this moment (wading, lurking, a gator low).
 var swims := false
@@ -397,6 +404,11 @@ func hurt(
 	if not alive or brain == "bessie":
 		return
 	amount = ShipAliens.soak(self, amount, game, how, explosive_hit, pressure, by)
+	var champion := BOSS_TITLES.has(kind)
+	if champion and by == null:
+		# A boss's weak spot (or armour) where the player's hit struck.
+		amount *= BossKit.weak(self, game, how)
+	game.hit_point = Vector3.INF
 	var from_x: float = game.player.x if by == null else by.x
 	var from_y: float = game.player.y if by == null else by.y
 	var was_stunned := stun > 0.0
@@ -407,7 +419,6 @@ func hurt(
 	struck_at = game.clock
 	struck_sum += amount
 	hit_flash = minf(.18, hit_flash + .075 + minf(.06, amount * .0016))
-	var champion := BOSS_TITLES.has(kind)
 	flinch = maxf(flinch, .08 if champion else .14 + minf(.16, amount * .004))
 	if hp > 0.0 and hostile and not champion and amount >= 20.0:
 		var away := atan2(y - from_y, x - from_x)
@@ -450,8 +461,12 @@ func hurt(
 		stun = .065 if champion else .13
 	if by == null and hp > 0.0 and hostile:
 		_react(how, champion, game, from_x, from_y)
-	if champion and hp > 0.0 and not enraged and hp < max_hp * .5:
-		_enrage(game)
+		if champion:
+			BossKit.stagger(self, game, from_x, from_y)
+	if champion and hp > 0.0:
+		if not enraged and hp < max_hp * .5:
+			_enrage(game)
+		BossKit.phase_check(self, game)
 	if hostile and by != null:
 		# Caught by one of its own: it turns on them for a while.
 		if tactical() and by.alive and by != self and alive:
@@ -653,6 +668,9 @@ func tick(dt: float, game) -> void:
 	hit_flash = maxf(0.0, hit_flash - dt)
 	flinch = maxf(0.0, flinch - dt)
 	soak = maxf(0.0, soak - dt / 6.0)
+	if BOSS_TITLES.has(kind) and BossKit.tick(self, dt, game):
+		# Its own moves (src/bosses/) took this tick.
+		return
 	if brain == "derby_champ":
 		DerbyChamp.tick(self, dt, game)
 		return
@@ -1353,4 +1371,7 @@ func sprite(observer = null, relieved := false, now := -1.0):
 	out.flip = flip
 	out.body = hostile
 	out.hurt = hit_flash
+	if windup > 0.0 and BOSS_TITLES.has(kind):
+		# A boss winding up glows in a quickening beat (boss_kit.gd).
+		out.hurt = maxf(hit_flash, BossKit.pulse(self))
 	return out

@@ -155,7 +155,16 @@ func tick(dt: float, controls) -> void:
 		p.angle = fposmod(p.angle + controls.turn, TAU)
 		p.pitch = maxf(-53.0, minf(53.0, p.pitch + controls.look))
 		return
-	clock += dt
+	if boss_hold > 0.0:
+		# A boss's entrance: the world holds while the view comes round (boss_kit.gd).
+		BossKit.hold(self, dt, controls)
+		return
+	# Slow motion as a boss falls: the world at SLOWMO_PACE, the player and gun not.
+	var wdt := dt
+	if slowmo > 0.0:
+		slowmo = maxf(0.0, slowmo - dt)
+		wdt = dt * SLOWMO_PACE
+	clock += wdt
 	spawn_grace = maxf(0.0, spawn_grace - dt)
 	duck = maxf(0.0, duck - dt)
 	if sound != null and sound.has_method("level_music"):
@@ -357,7 +366,7 @@ func tick(dt: float, controls) -> void:
 					if not door.discovered:
 						toggle_door(door, true)
 					break
-	world.update(dt, p, enemies)
+	world.update(wdt, p, enemies)
 	var remaining: Array = []
 	for entry in pickups:
 		if not reaches_pickup(entry) or not collect(String(entry[0])):
@@ -387,10 +396,10 @@ func tick(dt: float, controls) -> void:
 		if shot.kind == "tnt" and not shot.enemy:
 			dangers.append(Vector3(shot.x, shot.y, 3.1))
 	for enemy: Enemy in enemies:
-		enemy.tick(dt, self)
-	update_shots(dt)
+		enemy.tick(wdt, self)
+	update_shots(wdt)
 	if not hazards.is_empty():
-		update_hazards(dt)
+		update_hazards(wdt)
 	var combat: bool = controls.fire or controls.alt_fire or hurt_flash > 0.0
 	if not combat:
 		for enemy: Enemy in enemies:
@@ -404,6 +413,6 @@ func tick(dt: float, controls) -> void:
 				combat = true
 				break
 	tick_exchanges(combat)
-	ticked.emit(dt)
+	ticked.emit(wdt)
 
 # --------------------------------------------------------------- reflection
