@@ -59,7 +59,16 @@ func _tick(_dt: float) -> void:
 	if game.clock < next_step:
 		return
 	next_step = game.clock + SQUAD_STEP
-	_step()
+	busy.clear()
+	if game.players.size() == 1:
+		_step(null)
+		return
+	# A squad for each player: the hands after them (Enemy.hunted).
+	for q: Player in game.players:
+		if q.health > 0:
+			game.focus(q)
+			_step(q)
+	game.focus(game.local_player)
 
 
 ## Every hand a Mind, and the level's own still at their places an activity.
@@ -105,12 +114,12 @@ func _fell(e: Enemy) -> void:
 		losses.append([game.clock, e.x, e.y])
 
 
-func _step() -> void:
+## `only`: the hands after that player (null: all, with one player).
+func _step(only: Player) -> void:
 	var now: float = game.clock
 	var p = game.player
 	var group: Array = []
 	var seers: Array = []
-	busy.clear()
 	for e: Enemy in game.enemies:
 		if e.mind == null:
 			if not e.alive or not Squad.hand(e):
@@ -118,6 +127,8 @@ func _step() -> void:
 			# Joined since the start (a posse partner, a boss's backup).
 			e.mind = Squad.Mind.new()
 		if not e.alive or e.dormant:
+			continue
+		if only != null and (e.hunted if e.hunted != null else game.players[0]) != only:
 			continue
 		if not e.alerted:
 			if e.mind.activity != "":

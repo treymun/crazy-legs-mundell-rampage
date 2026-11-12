@@ -397,11 +397,20 @@ static func snapshot(game: Game) -> Dictionary:
 		"inventory": game.inventory.duplicate(),
 		"keys": _sorted_keys(game.keys),
 		"drums": drums,
-		"pickups": game.pickups.duplicate(true),
+		"pickups": _pickup_rows(game),
 		"visited": visited,
 		"panes": panes,
 		"rng": game.rng.get_state(),
 	}
+
+
+## The pickups as a save keeps them: [name, x, y] (the stable id each has in
+## play is handed out again when they load).
+static func _pickup_rows(game: Game) -> Array:
+	var rows: Array = []
+	for entry: Array in game.pickups:
+		rows.append([entry[0], entry[1], entry[2]])
+	return rows
 
 
 static func _door_key(door: LevelData.Door) -> String:
@@ -1223,7 +1232,7 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 			return _fail_at(933)
 		if not _valid_position(w, row[1], row[2]):
 			return _fail_at(935)
-		game.pickups.append([String(row[0]), float(row[1]), float(row[2])])
+		game.add_pickup(String(row[0]), float(row[1]), float(row[2]))
 
 	var visited = doc.get("visited", [])
 	if not (visited is Array):

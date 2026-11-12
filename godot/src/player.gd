@@ -27,6 +27,34 @@ var crouched := false
 ## (features/feel.gd's springs work it out; never saved).
 var weapon_lag := Vector2.ZERO
 
+# What each player has of their own (src/players.gd: the per-player vs shared
+# split). The game's `armory`, `inventory`, `keys`, `task_items`, `sprint`,
+# `inventory_slot` and `flow` are those of the acting player (Game.focus()).
+
+## Its place in game.players, never reused while the game runs: the stable id a
+## network snapshot names it by (0 is player one).
+var slot := 0
+var armory: Weapons.Armory
+## The pockets (rinds, beer...), a key ring and carried quest items. A
+## Dictionary Players.SHARED names is one object every player holds.
+var inventory := {}
+var inventory_slot := 0
+var keys := {}
+var task_items := {}
+## Moonshine's burst of speed, seconds left.
+var sprint := 0.0
+## Steps from this player over open floor: the enemies after this player
+## walk it when they lose sight of them (flow_field.gd).
+var flow: FlowField
+## USE was held last tick (Controls.use acts on a fresh press).
+var use_held := false
+## Footsteps taken (a sound each) and when a full gut may belch next.
+var step_number := 0
+var next_belch := 0.0
+## Heard from: what the acting player's own sounds play through when this is
+## not the local player (player_voice.gd places them where this player stands).
+var voice = null
+
 
 func _init(px := 0.0, py := 0.0, pa := 0.0) -> void:
 	x = px

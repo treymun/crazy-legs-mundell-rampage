@@ -102,14 +102,19 @@ func _tick(dt: float) -> void:
 		if gap < 12.0 and game.clock >= float(car[3]):
 			car[3] = game.clock + 2.2
 			game.sound_at("lap_car_pass", at.x, at.y, .9)
-		if gap < REACH + GameState.PLAYER_RADIUS and p.air < .5 and game.clock >= float(car[2]):
-			car[2] = game.clock + 1.0
-			game.damage(float(spec.get("damage", 30)), [at.x, at.y], "RUN DOWN")
-			var side := (
-				-1.0 if (p.x - at.x) * sin(heading) - (p.y - at.y) * cos(heading) > 0.0 else 1.0
-			)
-			var away := heading + side * PI / 2.0
-			game.move_actor(p, cos(away) * 1.2, sin(away) * 1.2, GameState.PLAYER_RADIUS)
+		# Any player on the track is run down (one a car at a time).
+		for q: Player in game.players:
+			gap = Vector2(q.x - at.x, q.y - at.y).length()
+			if gap < REACH + GameState.PLAYER_RADIUS and q.air < .5 and game.clock >= float(car[2]):
+				car[2] = game.clock + 1.0
+				game.focus(q)
+				game.damage(float(spec.get("damage", 30)), [at.x, at.y], "RUN DOWN")
+				var side := (
+					-1.0 if (q.x - at.x) * sin(heading) - (q.y - at.y) * cos(heading) > 0.0 else 1.0
+				)
+				var away := heading + side * PI / 2.0
+				game.move_actor(q, cos(away) * 1.2, sin(away) * 1.2, GameState.PLAYER_RADIUS)
+				game.focus(game.local_player)
 			game.shake = minf(1.0, game.shake + .8)
 			game.sound_at("lap_car_hit", p.x, p.y, 1.0)
 		for e: Enemy in game.enemies:

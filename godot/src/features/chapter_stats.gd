@@ -22,16 +22,22 @@ func id() -> String:
 func attach() -> void:
 	game.shot_fired.connect(_fired)
 	game.hit_landed.connect(_hit)
-	game.player_hurt.connect(func(amount: float, _cause: String) -> void: hurt += amount)
+	game.player_hurt.connect(
+		func(amount: float, _cause: String) -> void: hurt += amount if game.acting_local() else 0.0
+	)
 	game.enemy_killed.connect(_killed)
 
 
 func _fired(_gun: int) -> void:
+	if not game.acting_local():
+		return
 	shots += 1
 	_waiting.append(game.clock)
 
 
 func _hit(_amount: float, _killed: bool) -> void:
+	if not game.acting_local():
+		return
 	while not _waiting.is_empty() and game.clock - float(_waiting[0]) > LANDS_WITHIN:
 		_waiting.pop_front()
 	if not _waiting.is_empty():
@@ -40,6 +46,8 @@ func _hit(_amount: float, _killed: bool) -> void:
 
 
 func _killed(enemy: Enemy) -> void:
+	if not game.acting_local():
+		return
 	if enemy.hostile:
 		var gun := String(Weapons.NAMES[game.armory.active])
 		kills_by_gun[gun] = int(kills_by_gun.get(gun, 0)) + 1

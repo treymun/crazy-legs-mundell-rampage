@@ -48,7 +48,7 @@ static func tick(game) -> void:
 		var once := bool(trigger.get("once", true))
 		if once and game.triggers_fired.has(id):
 			continue
-		var now := _met(game, trigger.get("when", {}))
+		var now := _met_any(game, trigger.get("when", {}))
 		if not once:
 			# Fires on the way in, not on every tick spent inside.
 			var was := bool(game.triggers_inside.get(id, false))
@@ -60,6 +60,21 @@ static func tick(game) -> void:
 		game.triggers_fired[id] = true
 		for action: Dictionary in trigger.get("do", []):
 			run(game, action)
+	game.focus(game.local_player)
+
+
+## Whether any player meets `when`; the first who does (by slot) is left
+## acting, so what the trigger does (a wake, a light) is about them.
+static func _met_any(game, when: Dictionary) -> bool:
+	if game.players.size() == 1:
+		return _met(game, when)
+	for q: Player in game.players:
+		if q.health > 0:
+			game.focus(q)
+			if _met(game, when):
+				return true
+	game.focus(game.local_player)
+	return false
 
 
 static func _met(game, when: Dictionary) -> bool:

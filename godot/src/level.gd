@@ -1283,23 +1283,14 @@ func _can_walk(body, x: float, y: float, radius: float, occupied) -> bool:
 
 
 ## Mirrors TileMap.update(): doors slide open/closed, blocked by live enemies.
-func update(dt: float, player, enemies: Array) -> void:
+## Swings the doors; a closing door waits while any of `players` stands in
+## it (and backs off an enemy in its way).
+func update(dt: float, players: Array, enemies: Array) -> void:
 	for door in doors:
 		if (door.opened and door.progress >= 1.0) or (not door.opened and door.progress <= 0.0):
 			continue
 		var centre := door.center()
-		if (
-			not door.opened
-			and (
-				sqrt(
-					(
-						(player.x - centre.x) * (player.x - centre.x)
-						+ (player.y - centre.y) * (player.y - centre.y)
-					)
-				)
-				< .8
-			)
-		):
+		if not door.opened and _someone_in(players, centre):
 			continue
 		var direction := 1.0 if door.opened else -1.0
 		var previous := door.progress
@@ -1309,6 +1300,21 @@ func update(dt: float, player, enemies: Array) -> void:
 				if enemy.alive and door.blocks(enemy.x, enemy.y, enemy.radius):
 					door.progress = previous
 					break
+
+
+func _someone_in(players: Array, centre: Vector2) -> bool:
+	for player in players:
+		if (
+			sqrt(
+				(
+					(player.x - centre.x) * (player.x - centre.x)
+					+ (player.y - centre.y) * (player.y - centre.y)
+				)
+			)
+			< .8
+		):
+			return true
+	return false
 
 
 func elevation(x: float, y: float) -> float:

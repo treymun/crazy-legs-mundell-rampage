@@ -141,6 +141,8 @@ func _scatter(speed: float, up: float) -> Vector3:
 
 
 func _fired(gun: int) -> void:
+	if not game.acting_local():
+		return
 	_pellets = 0
 	var from := _muzzle()
 	var ahead := _forward()
@@ -152,6 +154,8 @@ func _fired(gun: int) -> void:
 
 
 func _traced(end: Vector3, struck: String) -> void:
+	if not game.acting_local():
+		return
 	var gun: int = game.armory.active
 	match gun:
 		Weapons.REVOLVER:

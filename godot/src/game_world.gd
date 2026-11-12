@@ -79,7 +79,11 @@ func configure(options: Dictionary) -> void:
 	barks.enabled = enabled
 
 
+## Shows a notice on the HUD: the local player's only (another player's
+## pickups and doors say nothing here).
 func message(text: String, length := 1.9) -> void:
+	if own_step and player != local_player:
+		return
 	notice = text
 	message_until = clock + maxf(length, .70 + .16 * text.split(" ", false).size())
 
@@ -87,8 +91,9 @@ func message(text: String, length := 1.9) -> void:
 # ----------------------------------------------------------------- sound
 
 
+## How loud and where a sound from (x, y) reaches the local player's ears.
 func sound_position(x: float, y: float, strength := 1.0, muffle := true) -> Vector2:
-	var p := player
+	var p := local_player
 	var dx := x - p.x
 	var dy := y - p.y
 	var distance := sqrt(dx * dx + dy * dy)
@@ -102,7 +107,7 @@ func sound_position(x: float, y: float, strength := 1.0, muffle := true) -> Vect
 ## How dull a sound from x, y reaches the player: muffled through a wall,
 ## a little duller far off or behind (a pan alone cannot say behind).
 func sound_cutoff(x: float, y: float) -> float:
-	var p := player
+	var p := local_player
 	var dx := x - p.x
 	var dy := y - p.y
 	var distance := sqrt(dx * dx + dy * dy)
@@ -119,14 +124,18 @@ func sound_cutoff(x: float, y: float) -> float:
 
 func sound_at(name: String, x: float, y: float, strength := 1.0) -> void:
 	var place := sound_position(x, y, strength)
-	sound.play(name, place.x, place.y, sound_cutoff(x, y))
-	var p := player
+	speaker.play(name, place.x, place.y, sound_cutoff(x, y))
+	var p := local_player
 	if name != "bessie" and world.roof[int(p.y) * level.width + int(p.x)] != 0.0:
-		if sound.has("room_" + name):
-			sound.play("room_" + name, place.x * .55, place.y)
+		if speaker.has("room_" + name):
+			speaker.play("room_" + name, place.x * .55, place.y)
 
 
 func report(name: String) -> void:
+	if not acting_local():
+		# Another player's gun: heard from where they stand.
+		sound.play(name)
+		return
 	sound.play(name)
 	var p := player
 	if world.roof[int(p.y) * level.width + int(p.x)] != 0.0:
@@ -194,7 +203,16 @@ func disturb(x: float, y: float, radius: float, z = null) -> void:
 # ----------------------------------------------------------------- damage
 
 
-func damage(amount: float, source = null, cause := "HIT") -> void:
+## Hurts the acting player, or `who` (made the acting player meanwhile, so
+## what listens to player_hurt hears it as theirs). The flashes, shake, face
+## and barks are the local player's only.
+func damage(amount: float, source = null, cause := "HIT", who: Player = null) -> void:
+	if who != null and who != player:
+		var was := player
+		focus(who)
+		damage(amount, source, cause)
+		focus(was)
+		return
 	if player.health <= 0:
 		return
 	var p := player
@@ -203,15 +221,22 @@ func damage(amount: float, source = null, cause := "HIT") -> void:
 	var mellow: float = (
 		.10 * float(15 <= p.drunk and p.drunk <= 56) + .09 * float(16 <= p.gut and p.gut <= 64)
 	)
+	# ADAPTIVE DIFFICULTY is this machine's own history: one player only.
+	var adapting := adaptive and players.size() == 1
 	amount = maxf(
-		1.0, round_even(amount * (1.0 - mellow) * incoming * (adapt if adaptive else 1.0))
+		1.0, round_even(amount * (1.0 - mellow) * incoming * (adapt if adapting else 1.0))
 	)
 	p.health = maxi(0, p.health - int(amount))
 	player_hurt.emit(amount, cause)
-	if p.health == 0 and adaptive:
+	if p.health == 0 and adapting:
 		adapt = maxf(.78, adapt - .07)
-	if gallery != null and gallery.active:
+	if gallery != null and gallery.active and gallery.slot == p.slot:
 		gallery.finish(self, "GALLERY CLOSED. CLEAR THE BOOTH AND RETRY.")
+	if not acting_local():
+		var grunt := "player_down" if p.health == 0 else "hurt" if amount > 6.0 else "blow_grunt"
+		if speaker != null:
+			sound_at(grunt, p.x, p.y, .9)
+		return
 	var heading = null if source == null else atan2(float(source[1]) - p.y, float(source[0]) - p.x)
 	damage_feedback = [heading, cause, clock + .64]
 	hurt_flash = .27
@@ -229,7 +254,9 @@ func damage(amount: float, source = null, cause := "HIT") -> void:
 ## hold the world still a moment on a kill or a heavy blow.
 func struck(amount: float, killed: bool, champion: bool) -> void:
 	hit_landed.emit(amount, killed)
-	if not hit_feedback:
+	# The crosshair's mark is the local player's; the world's hold the one
+	# player's game feel (it would stop everyone).
+	if not hit_feedback or not acting_local():
 		return
 	if clock >= hit_mark_until:
 		hit_mark_kill = false
@@ -237,7 +264,7 @@ func struck(amount: float, killed: bool, champion: bool) -> void:
 		hit_mark_at = clock
 	hit_mark_until = maxf(hit_mark_until, clock + (.24 if killed else .12))
 	hit_mark_kill = hit_mark_kill or killed
-	if clock >= hitstop_next and (killed or amount >= 40.0):
+	if players.size() == 1 and clock >= hitstop_next and (killed or amount >= 40.0):
 		hitstop = maxf(hitstop, .09 if killed and champion else .05 if killed else .03)
 		hitstop_next = clock + .22
 	if killed:
@@ -248,8 +275,9 @@ func struck(amount: float, killed: bool, champion: bool) -> void:
 		hit_tick_next = clock + .06
 
 
+## A pickup lying at (x, y): [name, x, y, its stable id].
 func add_pickup(name: String, x: float, y: float) -> void:
-	pickups.append([name, x, y])
+	pickups.append([name, x, y, take_uid()])
 
 
 func collect(name: String) -> bool:
@@ -356,7 +384,8 @@ func use_item(slot := -1) -> void:
 		bits.append(change)
 	if state != "":
 		bits.append(state)
-	item_feedback = [name, "  ".join(bits), clock + 1.05]
+	if acting_local():
+		item_feedback = [name, "  ".join(bits), clock + 1.05]
 
 
 # --------------------------------------------------------------- movement
@@ -364,6 +393,8 @@ func use_item(slot := -1) -> void:
 
 ## Mirrors Game.move_actor: axis-separated world move with body separation, so
 ## the player cannot walk through a hostile actor (or an actor through them).
+## (A hostile body keeps out of every player's way; a player out of the
+## enemies'. Players pass through each other.)
 func move_actor(body, dx: float, dy: float, radius: float) -> void:
 	var p := player
 	var neighbors: Array = []
@@ -376,16 +407,19 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 				and absf(p.y - enemy.y) < 1.1
 			):
 				neighbors.append(enemy)
-	elif body.hostile and absf(body.x - p.x) < 1.1 and absf(body.y - p.y) < 1.1:
-		neighbors = [p]
+	elif body.hostile:
+		for q: Player in players:
+			if absf(body.x - q.x) < 1.1 and absf(body.y - q.y) < 1.1:
+				neighbors.append(q)
 	var occupied = null
 	if not neighbors.is_empty():
 		occupied = func(x: float, y: float) -> bool:
 			for neighbor in neighbors:
 				var enemy = neighbor if body == p else body
+				var them: Player = p if body == p else neighbor
 				var enemy_base: float = world.elevation(enemy.x, enemy.y) + enemy.z
-				var player_base: float = world.elevation(p.x, p.y) + p.air
-				if enemy_base >= player_base + (.80 if p.crouched else 1.16):
+				var player_base: float = world.elevation(them.x, them.y) + them.air
+				if enemy_base >= player_base + (.80 if them.crouched else 1.16):
 					continue
 				if player_base >= enemy_base + enemy.height:
 					continue
@@ -407,6 +441,14 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 					return true
 			return false
 	world.move(body, dx, dy, radius, occupied)
+
+
+## A piece of floor opened (a barrel broken, a fence shot down): every
+## player's flow field and the objective's route walk through it now.
+func reopen_paths(x0: float, y0: float, x1: float, y1: float) -> void:
+	for p: Player in players:
+		p.flow.reopen(x0, y0, x1, y1)
+	route.reopen(x0, y0, x1, y1)
 
 
 # ------------------------------------------------------------------- death
@@ -497,7 +539,10 @@ func _wave_alive() -> bool:
 	return false
 
 
+## The HUD face (the local player's: another player's grin is not ours).
 func set_face(value: String, duration: float) -> void:
+	if not acting_local():
+		return
 	if face == "ouch_shock" and clock < face_until and value != "ouch_shock":
 		return
 	face = value
