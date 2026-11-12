@@ -169,7 +169,11 @@ static func _door(main, check: Callable) -> void:
 	g.hitscan(p.angle, 0.0, 20.0, 20.0, 0.0)
 	check.call(before - deputy.hp >= 19.0, "the door swung aside to fire lets a shot through")
 	deputy.windup = 0.0
-	check.call(not g.features["variants"].sprites().is_empty(), "the door is drawn in front of him")
+	# His own pictures carry the door; a door picture is drawn in front only
+	# for a kind whose art does not (door_picture in enemies.cfg).
+	var drawn: bool = not g.features["variants"].sprites().is_empty()
+	var own := String(Enemy.DEFS["shield_deputy"].get("door_picture", "")) == ""
+	check.call(drawn != own, "the door is drawn once: in his pictures or in front of him")
 	deputy.hurt(160.0, g, true)
 	check.call(keeper.door_left(deputy) <= 0.0, "a blast tears the door away")
 
