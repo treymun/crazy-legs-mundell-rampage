@@ -1,4 +1,4 @@
-## The Hickston Incident, rebuilt (layout 2): a dusk-lit nowhere town twice
+## The Hickston Incident, rebuilt (layout 3): a dusk-lit nowhere town twice
 ## the old one's length. The road in from the Crossroads runs east past the
 ## GAS-N-GUT and the bait shop to Main Street; Stanky's back office has the
 ## brass key; the farm lane leads to the feed barn it opens, the barn to the
@@ -52,7 +52,7 @@ func make() -> Builder:
 		"ending": '"NEXT TIME, TAKE THE TRACTOR."',
 		"score": "music",
 		"rescue": true,
-		"layout": 2,
+		"layout": 3,
 		"sky": "sky",
 	}
 	return b
@@ -1020,34 +1020,92 @@ func corn_maze() -> void:
 	b.board("wing_town_pen", 126.94, 42.6, .73, {"z": 1.1, "plane": PI / 2, "signal": "cleared"})
 
 
+## The north pasture, out of the corn: the county's rodeo grounds, where the
+## saucer came down in the middle of the ring and the alien sheriff holds
+## Bessie's pen (the chutes in the south, the ring with its grandstand and
+## floodlights, the wreck smoking in its crater), and west through a stock
+## gate that opens when he falls, the Hickston Hogs' football field, where
+## Jerry waits at midfield under the lights.
 func north_pasture() -> void:
 	b.yard(96, 1, W - 2, 21, "grass", pasture)
 	b.wall(127, 22, W - 2, 22, "corn", 2.3)
 	b.yard(129, 22, 131, 22, "dirt", corn)
 	b.distant_cues.append([137.0, 44.0, "distant_corn_rustle"])
 	b.distant_cues.append([138.5, 32.5, "distant_corn_rustle"])
+	rodeo()
+	football_field()
+	b.meta["boss_arena"] = {
+		"boss":
+		{
+			"box": [123, 1, 147, 21],
+			"wreck": [133.0, 10.0],
+			"approach": [130.5, 21.4],
+			"lights": [[133.0, 10.0, 1.6, 6.0, [.5, 1.0, .6], .8]],
+			"floods": [[123.5, 3.5], [138.5, 3.5], [123.5, 15.5], [146.5, 15.5]],
+		},
+		"jerry":
+		{
+			"box": [96, 1, 121, 21],
+			"floods": [[96.5, 2.5], [120.5, 2.5], [96.5, 16.5], [120.5, 16.5]],
+			"tires": [[103.5, 5.5], [114.5, 5.5], [103.5, 13.5], [114.5, 13.5]],
+			"bleachers": [[101.5, 17.4, 116.5]],
+			"scoreboard": [109.5, 1.6],
+			"approach": [117.5, 12.5],
+		},
+	}
+
+
+## The rodeo grounds (x 123..147): the chute yard by the corn, a plank fence
+## with the chute gate in it under the STAMPEDE RODEO board, the ring, its
+## grandstand along the north fence, Bessie's pen in the corner, the crater.
+func rodeo() -> void:
+	b.paint(123, 1, 147, 21, "dirt")
+	# The stock fence between the rodeo and the football field, and its gate.
+	fence(122, 1, 122, 21, 1.3)
+	b.door(122, 10, true, {"from": "e", "id": "field-gate", "tile": "gate", "roof": 0.0})
+	b.controlled_doors.append([122, 10])
+	# The chute fence across the south, the gate in from the corn in its middle.
+	fence(123, 17, 128, 17, 1.3)
+	fence(132, 17, 147, 17, 1.3)
+	for x: float in [128.83, 132.17]:
+		b.fixture(x - .17, 16.83, x + .17, 17.17, 2.6, "stockyard", "counter_top")
+	b.panel(128.83, 17.0, 132.17, 17.0, "stockyard", 2.42, 2.6, 1.05)
+	b.board("rodeo_sign", 130.5, 17.06, .48, {"z": 1.84, "plane": 0.0, "back": "rodeo_sign"})
+	# The chute yard: stalls along the fence, the tack and the fuel kept there.
+	for x in [124, 126, 134, 136, 138]:
+		fence(x, 19, x, 21, 1.1)
+
+	hay_bale(125.0, 20.0)
+	hay_bale(127.0, 19.0)
+	b.town("range_hay_bale", 133.5, 20.5, {"solid": .4})
+	b.town("propane_tank", 144.5, 20.5, {"solid": .4})
+	b.town("tractor", 141.5, 19.5, {"solid": .45})
+	b.town("warning_barrel", 146.5, 18.5, {"solid": .3})
+	b.prop("windmill", 146.0, 20.2)
+	b.town("searchlight", 125.5, 18.5, {"solid": .35, "glow": true})
+	b.glow(130.0, 19.5, 3.0, .15)
+	# The ring: hoof-churned mud, the grandstand on the north fence.
+	for r in [[124, 4, 138, 16], [139, 9, 146, 16]]:
+		b.paint(r[0], r[1], r[2], r[3], "derby_mud")
+	for tier: Array in [[1.0, 1.95, 1.35], [2.0, 2.95, .75]]:
+		b.fixture(124.0, tier[0], 138.0, tier[1], tier[2], "grandstand_riser", "bleachers")
+	b.fuel_drums.append([135.5, 3.5])
+	b.fuel_drums.append([136.5, 3.6])
 	# The crater the saucer dug, scorched, and the wreck in it.
-	for y in range(3, 18):
-		for x in range(108, 129):
-			var d := Vector2(x + .5 - 118.0, (y + .5 - 10.0) * 1.3).length()
-			if d < 4.2:
+	for y in range(4, 17):
+		for x in range(124, 139):
+			var d := Vector2(x + .5 - 133.0, (y + .5 - 10.0) * 1.3).length()
+			if d < 3.3:
 				b.raise(x, y, x, y, -.24)
 				b.paint(x, y, x, y, "quarry_dust")
-			elif d < 6.6:
+			elif d < 5.0:
 				b.raise(x, y, x, y, -.12)
 				b.paint(x, y, x, y, "dirt")
-	# The wreck: the modelled saucer over a low hull the shots and boots hit.
-	b.fixture(117.0, 9.0, 119.0, 11.0, -.1, "quarry_dust", "quarry_dust", -.24)
-	b.town("saucer_wreck", 118.0, 10.0, {"glow": true, "scale": 1.35})
-	for k in 12:
-		b.mark(
-			"mark_scorch_%d" % (k % 3),
-			113.0 + b.rng.randf() * 10.0,
-			6.0 + b.rng.randf() * 8.0,
-			b.rng.randf() * 3.0,
-			1.6,
-			1.0
-		)
+	b.fixture(132.0, 9.0, 134.0, 11.0, -.1, "quarry_dust", "quarry_dust", -.24)
+	b.town("saucer_wreck", 133.0, 10.0, {"glow": true, "scale": 1.35})
+	# The furrow it ploughed coming in from the west, through the fence.
+	for k in 10:
+		b.mark("mark_scorch_%d" % (k % 3), 124.5 + k * .8, 9.0 + sin(k * 1.3) * .6, k * .7, 1.4, .9)
 	# Bessie's pen in the far corner: an alien fence of mesh, cut open.
 	fence(139, 2, 147, 2, 1.1)
 	b.wall(139, 3, 139, 8, "steel_mesh", .55)
@@ -1056,23 +1114,72 @@ func north_pasture() -> void:
 	b.wall(145, 8, 147, 8, "steel_mesh", .55)
 	trough(141.0, 3.4, 143.6, 3.9)
 	b.glow(143.0, 5.0, 3.6, .3)
-	# Cover in the field: bales, rocks, the tractor the aliens tipped.
-	hay_bale(100.0, 6.0)
-	hay_bale(100.8, 15.6)
-	hay_bale(125.6, 16.4)
-	hay_bale(108.4, 18.6)
-	hay_bale(133.0, 7.0)
-	hay_bale(135.4, 15.0)
-	b.fixture(104.6, 10.4, 105.8, 11.4, .7, "quarry_face", "quarry_face")
-	b.fixture(129.4, 12.0, 130.8, 13.0, .7, "quarry_face", "quarry_face")
-	b.fixture(137.0, 18.4, 138.2, 19.6, .7, "quarry_face", "quarry_face")
-	b.town("tractor", 122.5, 18.5, {"solid": .45})
-	b.prop("tree", 97.4, 2.6)
-	b.prop("tree_b", 125.0, 2.4)
-	b.prop("tree", 147.4, 19.6)
-	b.prop("windmill", 133.6, 3.0)
-	scatter("hay", [Vector2(102.6, 2.6), Vector2(107.0, 20.6), Vector2(146.0, 12.0)])
-	b.glow(118.0, 10.0, 5.0, .2)
+	# Cover that breaks: bales round the ring, the alien fuel cells and the
+	# county's propane by the rails (they go up, and the ground burns).
+	for p in [
+		Vector2(126.5, 7.5), Vector2(127.5, 14.5), Vector2(140.5, 11.5), Vector2(143.5, 14.5)
+	]:
+		b.town("range_hay_bale", p.x, p.y, {"solid": .4})
+	b.town("propane_tank", 125.5, 5.5, {"solid": .4})
+	b.town("propane_tank", 145.5, 10.5, {"solid": .4})
+	for p in [Vector2(137.5, 14.5), Vector2(129.5, 15.5), Vector2(138.5, 5.5)]:
+		b.town("warning_barrel", p.x, p.y, {"solid": .3})
+	# The floodlights at the ring's corners.
+	for p in [Vector2(123.5, 3.5), Vector2(138.5, 3.5), Vector2(123.5, 15.5), Vector2(146.5, 15.5)]:
+		b.town("floodlight_tower", p.x, p.y, {"solid": .3, "glow": true})
+		b.glow(p.x, p.y, 5.5, .22)
+	b.glow(133.0, 10.0, 5.0, .2)
+
+
+## The Hickston Hogs' field (x 96..121): grass with yard lines, mud in the
+## middle, goalposts at both ends, the bleachers on the south side, the
+## scoreboard on the north, the tyre drill, the floodlights.
+func football_field() -> void:
+	b.paint(97, 3, 120, 16, "grass")
+	for x in range(100, 118, 3):
+		b.paint(x, 3, x, 16, "track_chalk")
+	b.paint(117, 3, 117, 16, "track_chalk")
+	for r in [[97, 3, 99, 16], [118, 3, 120, 16]]:
+		b.paint(r[0], r[1], r[2], r[3], "orchard")
+	b.lighten(97, 3, 120, 16, 1.12)
+	for r in [[106, 8, 111, 11], [104, 9, 105, 10], [112, 9, 113, 10]]:
+		b.paint(r[0], r[1], r[2], r[3], "derby_mud")
+	b.paint(96, 1, 121, 2, "dirt")
+	b.paint(96, 17, 121, 21, "dirt")
+	# Goalposts: the post in the middle of its cell, the crossbar and the two
+	# uprights over it (free walls, in nobody's way but the post's).
+	for x: float in [98.5, 119.5]:
+		b.fixture(x - .08, 9.42, x + .08, 9.58, 1.32, "tin", "tin")
+		b.tower(x - .06, 7.94, x + .06, 11.06, 1.2, 1.34, "tin", 1.15)
+		for y: float in [8.0, 11.0]:
+			b.tower(x - .06, y - .06, x + .06, y + .06, 1.34, 3.6, "tin", 1.15)
+	# The bleachers, three rows up.
+	for tier: Array in [[18.0, 18.95, .45], [19.0, 19.95, .9], [20.0, 20.95, 1.35]]:
+		b.fixture(101.0, tier[0], 117.0, tier[1], tier[2], "grandstand_riser", "bleachers")
+	# The scoreboard on the north side, its generator and the fuel for it.
+	b.town("range_scoreboard", 109.5, 1.5, {"solid": .45, "scale": 1.5})
+	b.town("generator", 113.5, 1.5, {"solid": .45})
+	b.town("warning_barrel", 114.5, 1.5, {"solid": .3})
+	b.town("gas_cans", 112.6, 1.6)
+	# The team bench and the coach's water.
+	for x0: float in [101.2, 115.2]:
+		b.fixture(x0, 2.35, x0 + 3.6, 2.75, .45, "wood", "counter_top")
+	b.town("cooler", 106.5, 2.5)
+	# The tyre drill: stacks a lineman runs through (they roll when hit).
+	for p in [Vector2(103.5, 5.5), Vector2(114.5, 5.5), Vector2(103.5, 13.5), Vector2(114.5, 13.5)]:
+		b.town("tire_stack", p.x, p.y, {"solid": .3})
+	# Concessions behind the west end: the grill and its propane.
+	b.town("grill", 97.5, 19.5, {"solid": .35})
+	b.town("propane_tank", 98.5, 20.5, {"solid": .4})
+	b.town("gas_cans", 99.6, 19.6)
+	# The floodlights.
+	for p in [Vector2(96.5, 2.5), Vector2(120.5, 2.5), Vector2(96.5, 16.5), Vector2(120.5, 16.5)]:
+		b.town("floodlight_tower", p.x, p.y, {"solid": .3, "glow": true})
+		b.glow(p.x, p.y, 5.5, .22)
+	b.glow(108.5, 9.5, 6.0, .12)
+	# The field's board on the stock fence by its gate, read from both sides.
+	b.board("hogs_sign", 123.06, 7.5, .62, {"z": .45, "plane": -PI / 2})
+	b.board("hogs_sign", 121.94, 7.5, .62, {"z": .45, "plane": PI / 2})
 
 
 ## The second pass: what makes a place look lived in (and shot up).
@@ -1183,11 +1290,9 @@ func town_detail() -> void:
 		Vector2(129.65, 41.35),
 		Vector2(145.35, 35.65),
 		Vector2(130.5, 25.5),
-		Vector2(100.5, 11.5),
 		Vector2(16.5, 17.5),
 	]:
 		b.town("scarecrow", p.x, p.y, {"solid": .12})
-	b.town("skull_post", 104.5, 20.5, {"solid": .1})
 	b.town("skull_post", 93.5, 6.5, {"solid": .1})
 	# The aliens' pylons round Bessie's pen, humming.
 	for p in [Vector2(140.5, 3.5), Vector2(146.5, 3.5), Vector2(140.5, 7.5), Vector2(146.5, 7.5)]:
@@ -1263,8 +1368,6 @@ func more_detail() -> void:
 	b.town("cable_spool", 118.5, 44.5, {"solid": .45})
 	b.town("warning_barrel", 117.5, 64.5, {"solid": .3})
 	b.town("warning_barrel", 118.5, 64.5, {"solid": .3})
-	b.town("searchlight", 125.5, 21.5, {"solid": .35, "glow": true})
-	b.town("searchlight", 97.5, 21.5, {"solid": .35, "glow": true})
 
 
 func story() -> void:
@@ -1334,13 +1437,6 @@ func polish() -> void:
 	# Main Street: cars nosed in at the kerb.
 	for y in [36.0, 44.0, 52.0, 58.0]:
 		b.car(63.2, y, false, "tin" if int(y) % 3 else "mill_tin")
-	# The pasture: an open hay shed and its stacked bales.
-	b.room(98, 13, 103, 17, "dirt", pasture, {"roof": 2.4, "ceiling": "tin", "light": .9})
-	for p in [Vector2(98.0, 13.0), Vector2(104.0, 13.0), Vector2(98.0, 18.0), Vector2(104.0, 18.0)]:
-		b.fixture(p.x - .07, p.y - .07, p.x + .07, p.y + .07, 2.4, "wood", "wood")
-	for y in [14.5, 16.5]:
-		b.bale(99.5, y)
-		b.bale(101.5, y)
 	# The registry yard: a second pen and a feed bunk.
 	b.fence(120, 39, 124, 39, 1.0)
 	b.fence(120, 44, 124, 44, 1.0)
@@ -1350,22 +1446,5 @@ func polish() -> void:
 	for e in [
 		["billy", 26.0, 66.5, "stand-billy"],
 		["coot", 76.0, 66.5, "stand-coot"],
-		["alien", 102.6, 15.5, "shed-alien"],
 	]:
 		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
-	(
-		b
-		. triggers
-		. append(
-			{
-				"id": "hay-shed-ambush",
-				"when": {"area": [96, 11, 106, 20]},
-				"do":
-				[
-					{"message": "SOMETHING'S BEEN SLEEPING IN THE HAY.", "for": 2.5},
-					{"wake": ["shed-alien"]},
-					{"alert": 10}
-				],
-			}
-		)
-	)

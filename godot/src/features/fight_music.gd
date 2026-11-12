@@ -93,7 +93,7 @@ func _boss_scan() -> void:
 	var near: bool = (
 		Vector2(foe.x - p.x, foe.y - p.y).length() < BOSS_RANGE
 		if foe == game.finale
-		else p.y < 10.0
+		else BossFight.in_arena_at(game, foe, p.x, p.y)
 	)
 	if near:
 		boss_heat = game.clock

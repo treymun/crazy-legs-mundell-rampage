@@ -685,7 +685,7 @@ func tick(dt: float, game) -> void:
 			var ground_z: float = game.world.elevation(x, y)
 			var sx := x + cos(bearing) * .42
 			var sy := y + sin(bearing) * .42
-			var sz := ground_z + (.91 if deputy else 1.30)
+			var sz := ground_z + (.91 if deputy else 1.12)
 			if not game.world.blocked(sx, sy, .045, sz):
 				game.launch(
 					sx,

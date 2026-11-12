@@ -1168,6 +1168,9 @@ func finish(spawn: Array) -> Dictionary:
 		"boss_decoys": meta.get("boss_decoys", []),
 		"lap_cars": meta.get("lap_cars", {}),
 	}
+	if meta.has("boss_arena"):
+		# Where a boss arena's hazards stand (features/boss_arena.gd).
+		out["boss_arena"] = meta["boss_arena"]
 	LevelEdit.refresh_heights(out)
 	var roofs := {}
 	for v in roof:

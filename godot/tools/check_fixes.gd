@@ -640,6 +640,8 @@ func _run() -> void:
 
 	# Boss fights: phases, stagger, weak spots, backup, entrance, the fall.
 	preload("res://tools/boss_check.gd").run(main, check)
+	# The sheriff's, Jerry's, Rudy's and the foreman's arenas and moves.
+	preload("res://tools/arena_check.gd").run(main, check)
 
 	print("")
 	if failures.is_empty():

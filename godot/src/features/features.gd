@@ -31,6 +31,7 @@ const ALL := [
 	preload("res://src/features/boss_voices.gd"),
 	preload("res://src/features/boss_checkpoint.gd"),
 	preload("res://src/features/boss_rematch.gd"),
+	preload("res://src/features/boss_arena.gd"),
 ]
 
 

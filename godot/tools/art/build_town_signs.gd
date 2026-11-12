@@ -12,6 +12,10 @@
 ##   chapel_sign       the chapel's notice board
 ##   salvage_sign      a car hood with JUNK painted on it
 ##   corn (tile)       late corn, head high, gone brown at the tassels
+##   rodeo_sign        STAMPEDE RODEO over the chute gate (Hickston's rodeo)
+##   hogs_sign         the Hickston Hogs' board by their field
+##   big_top_sign      RUDY'S BIG TOP over the fair's ring
+##   saw_floor_sign    the mill's carriage track warning
 ## Seeded, so a rerun gives the same files. Then run tools/pack_assets.gd.
 extends SceneTree
 
@@ -40,6 +44,17 @@ func _init() -> void:
 		sheet.save(out.path_join(name + ".png"))
 	var tiles := Paint.repo("assets/tiles") if out == Paint.repo("assets/art") else out
 	corn().save(tiles.path_join("corn.png"))
+	# The boss arenas' boards, after the rest so theirs keep their dice.
+	var arenas := {
+		"rodeo_sign": rodeo_sign(),
+		"hogs_sign": hogs_sign(),
+		"big_top_sign": big_top_sign(),
+		"saw_floor_sign": saw_floor_sign(),
+	}
+	for name: String in arenas:
+		var sheet: Paint.Sheet = arenas[name]
+		sheet.save(out.path_join(name + ".png"))
+	made.merge(arenas)
 	print("town signs: %d written to %s, corn to %s" % [made.size(), out, tiles])
 	quit()
 
@@ -228,6 +243,66 @@ func salvage_sign() -> Paint.Sheet:
 	letters(s, "JUNK", 26, 2, 2, Color8(240, 236, 220))
 	letters(s, "4 SALE", 26, 14, 1, Color8(240, 236, 220), false)
 	weather(s, 80, 11)
+	return Paint.digitize(s)
+
+
+## Over the chute gate at the rodeo grounds: red planks, cream letters, a
+## string of bulbs along the top, half of them dead.
+func rodeo_sign() -> Paint.Sheet:
+	var s := planks(210, 30, Color(.56, .16, .12), 6)
+	letters(s, "STAMPEDE RODEO", 105, 5, 2, Color8(244, 228, 186))
+	letters(s, "FRI NITE  -  BRING A COW", 105, 21, 1, Color8(236, 196, 104), false)
+	for x in range(4, 206, 7):
+		var on := rng.randf() < .55
+		Paint.point(s, x, 1, Color8(255, 228, 150) if on else Color8(80, 60, 44))
+	frame(s, Color8(42, 22, 16))
+	nails(s)
+	weather(s, 110, 6)
+	return Paint.digitize(s)
+
+
+## The football field's board on the stock fence: the Hogs' colours, a hog's
+## snout for a crest, the season nobody wants to talk about.
+func hogs_sign() -> Paint.Sheet:
+	var s := tin(100, 40, Color(.18, .3, .52))
+	Paint.rect(s, 3, 3, 96, 11, Color8(196, 150, 44))
+	letters(s, "HOME OF THE", 50, 5, 1, Color8(30, 26, 40), false)
+	letters(s, "HOGS", 50, 15, 2, Color8(246, 240, 226))
+	letters(s, "0 AND 9", 50, 31, 1, Color8(196, 150, 44), false)
+	# The snout, either side of the name.
+	for cx in [14, 85]:
+		Paint.rect(s, cx - 6, 17, cx + 6, 26, Color8(228, 150, 150))
+		Paint.rect(s, cx - 3, 20, cx - 2, 23, Color8(90, 40, 44))
+		Paint.rect(s, cx + 2, 20, cx + 3, 23, Color8(90, 40, 44))
+	frame(s, Color8(20, 24, 34))
+	weather(s, 80, 9)
+	return Paint.digitize(s)
+
+
+## Over the big top's ring: a gilt circus board, RUDY'S in red on cream.
+func big_top_sign() -> Paint.Sheet:
+	var s := planks(212, 34, Color(.86, .8, .64), 5)
+	Paint.rect(s, 3, 3, 208, 4, Color8(200, 160, 60))
+	Paint.rect(s, 3, 29, 208, 30, Color8(200, 160, 60))
+	letters(s, "RUDY'S BIG TOP", 106, 7, 2, Color8(170, 30, 26))
+	letters(s, "ONE NITE ONLY", 106, 21, 1, Color8(40, 30, 26), false)
+	for x in range(5, 208, 8):
+		Paint.point(s, x, 1, Color8(255, 226, 150) if rng.randf() < .7 else Color8(90, 70, 50))
+		Paint.point(s, x, 32, Color8(255, 226, 150) if rng.randf() < .7 else Color8(90, 70, 50))
+	frame(s, Color8(60, 40, 22))
+	weather(s, 60, 2)
+	return Paint.digitize(s)
+
+
+## On the saw floor: the carriage track's warning, stencilled on tin.
+func saw_floor_sign() -> Paint.Sheet:
+	var s := tin(200, 30, Color(.86, .7, .2))
+	for x in range(0, 200, 10):
+		Paint.rect(s, x, 0, x + 4, 3, Color8(30, 26, 22))
+		Paint.rect(s, x + 5, 26, x + 9, 29, Color8(30, 26, 22))
+	letters(s, "HEAD SAW", 100, 6, 2, Color8(30, 26, 22))
+	letters(s, "STAY OFF THE CARRIAGE TRACK", 100, 19, 1, Color8(120, 30, 20), false)
+	weather(s, 70, 8)
 	return Paint.digitize(s)
 
 

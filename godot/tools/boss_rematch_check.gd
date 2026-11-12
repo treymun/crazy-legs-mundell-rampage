@@ -37,14 +37,23 @@ func _run() -> void:
 	main.state = "title"
 	var kinds: Array = BossRematch.BOSSES.duplicate()
 	var bot := false
+	var levels: Array = [1]
+	var quick := true
 	for arg in OS.get_cmdline_user_args():
 		if arg == "bot":
 			bot = true
+		elif arg == "only-bot":
+			bot = true
+			quick = false
 		elif String(arg).begins_with("kinds="):
 			kinds = Array(String(arg).substr(6).split(",", false))
-	run(main, func(ok: bool, text: String) -> void: _check(ok, text), kinds)
+		elif String(arg).begins_with("difficulty="):
+			levels = Array(String(arg).substr(11).split(",", false)).map(func(v): return int(v))
+	if quick:
+		run(main, func(ok: bool, text: String) -> void: _check(ok, text), kinds)
 	if bot:
-		_bot_times(main, kinds)
+		for level: int in levels:
+			_bot_times(main, kinds, level)
 	print("")
 	print(
 		(
@@ -410,15 +419,20 @@ static func _stamp(path: String) -> String:
 
 
 ## The bot fights each rematch alone (god mode off) and its time is printed.
-func _bot_times(main, kinds: Array) -> void:
-	print("\nBOT TIMES (tools/bot_pilot.gd, god mode off; par = BLUE in boss_rematch.gd)")
+func _bot_times(main, kinds: Array, level := 1) -> void:
+	print(
+		(
+			"\nBOT TIMES at %s (tools/bot_pilot.gd, god mode off; par = BLUE in boss_rematch.gd)"
+			% ["EASY", "NORMAL", "HARD", "HOG WILD"][clampi(level, 0, 3)]
+		)
+	)
 	for kind: String in kinds:
-		var first := _bot_fight(main, kind, false)
+		var first := _bot_fight(main, kind, false, level)
 		var line := "  %-12s " % kind
 		if first[0] == "won":
 			line += "%6.1f s  health left %d" % [float(first[1]), int(first[2])]
 		else:
-			var again := _bot_fight(main, kind, true)
+			var again := _bot_fight(main, kind, true, level)
 			line += (
 				"bot went down after %.1f s (boss at %d%%); god mode: %s %.1f s"
 				% [float(first[1]), int(first[3]), again[0], float(again[1])]
@@ -430,9 +444,11 @@ func _bot_times(main, kinds: Array) -> void:
 
 
 ## [outcome ("won", "died", "timeout"), seconds, health, boss health %].
-func _bot_fight(main, kind: String, god: bool) -> Array:
+func _bot_fight(main, kind: String, god: bool, level := 1) -> Array:
 	var g: Game = BossRematch.build(Callable(main, "make_game"), kind)
-	g.configure(SessionStore.defaults())
+	var options := SessionStore.defaults()
+	options["difficulty"] = level
+	g.configure(options)
 	g.cheats.god = god
 	var boss := BossFight.of_kind(g, kind)
 	var fight = g.features["boss_rematch"]

@@ -116,11 +116,14 @@ static func phase_of(e: Enemy) -> int:
 
 ## Whether the player is in the boss's arena (the boss bar shows, the boss
 ## loop plays, its entrance can start): within ARENA of it, or anywhere in
-## Hickston's top rows for the sheriff and Jerry (the sheriff stands at y 16,
-## below the old pen line of 10, so that line alone missed him).
+## the arena Hickston gives the sheriff and Jerry (BossFight.in_arena_at).
 static func in_arena(game, e: Enemy) -> bool:
 	var p = game.player
-	if game.level.rescue and (e == game.boss or e == game.jerry) and p.y < 10.0:
+	if (
+		game.level.rescue
+		and (e == game.boss or e == game.jerry)
+		and BossFight.in_arena_at(game, e, p.x, p.y)
+	):
 		return true
 	return Vector2(e.x - p.x, e.y - p.y).length() < ARENA
 

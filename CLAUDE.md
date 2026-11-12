@@ -76,6 +76,7 @@ godot --headless --path godot --script res://tools/first_minutes.gd   # a bot pl
 godot --headless --path godot --script res://tools/ttk.gd -- ../docs/weapon_ttk.md   # time to kill, every gun against every enemy
 godot --headless --path godot --script res://tools/route_map.gd -- <dir>   # each level's objective route, long detours flagged, PNGs
 godot --headless --path godot --script res://tools/boss_rematch_check.gd -- bot   # the bot fights every boss rematch: time to kill (boss_rematch.gd PAR)
+godot --headless --path godot --script res://tools/boss_rematch_check.gd -- only-bot kinds=boss,rudy difficulty=0,1,2,3   # per difficulty
 
 # Pictures changed on purpose: rewrite the references and commit them
 godot --headless --path godot --script res://tools/picture_check.gd -- update
@@ -346,6 +347,43 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   Signals for voices and the like: `boss_intro`, `boss_phase`, `boss_staggered`,
   `boss_weak_hit`, `boss_down(e, seconds)`. `tools/boss_check.gd` (in check_fixes)
   holds it; `physics_frames.gd only=boss` takes its pictures.
+- **The arenas of the sheriff, Jerry, Rudy and the foreman** (`features/boss_arena.gd`,
+  `bosses/arena_moves.gd` under `sheriff.gd`, `jerry.gd`, `rudy.gd`, `foreman.gd`).
+  Each plan gives `meta["boss_arena"]` (level JSON `boss_arena`, `LevelData.boss_arena`):
+  per kind its `box` (Hickston's two are BossFight.in_arena_at's test: the bar,
+  the music, the checkpoint), `floods` (floodlight towers that cut at phase 3
+  and come back when it falls), `lights`, `approach` (the picture tool's walk-in)
+  and its hazards' places. The feature keeps fire (a fuel tank, gas can or drum
+  going up in an arena leaves the ground burning, sawdust too; it bites the
+  player and any boss or hand), strikes, lobs, rollers (tumble.gd), the mill's
+  carriage and the big top's horn lanes; it saves nothing. A boss's shot breaks
+  the cover it meets. All four: a desperate boss shrugs off staggers longer and a
+  gun's plain hit counts .7 (`guarded`). Per boss:
+  sheriff: the rodeo grounds north of the corn (chute gate under STAMPEDE RODEO,
+  the ring, grandstand, the saucer in its crater, Bessie's pen); stands before
+  the wreck, seen through the gate; propane, alien fuel cells, bales; weak spot
+  the power pack from behind (2x, shoulder 1.5x), and once mad he vents it with
+  his back turned; phase 3 the saucer strike (rings, then bolts that burn him
+  too), reactor red, fire round the wreck, lights out; HOG WILD a plasma ring.
+  Jerry: the Hogs' field west of the rodeo behind a stock gate the sheriff's
+  fall opens (trigger `field-gate`); midfield; tyre stacks that roll, the
+  concession propane; weak spot the knees (2x, a blast at his feet 1.5x),
+  helmet .6x; phase 3 the blitz down a marked lane (into a post or wall he rings
+  his bell, stunned), the scoreboard shorts, bleachers burn, lights out; HOG
+  WILD a flaming pigskin. Rudy: the pavilion is his big top (ring, bleachers, PA
+  horn stacks at its corners, helium, balloons, bulbs, RUDY'S BIG TOP over the
+  stage); in the ring, seen from the stage where the broadcast is cut; mad, the
+  stacks fire lanes at the player (and hurt him); weak spot the drum low in front
+  1.75x, the horns while he blows 2.25x; phase 3 the grand finale rings with
+  spokes showing the gaps, spotlights sweep; HOG WILD balloon bombs (shoot them).
+  His horn volley now flies at chest height (it used to pass over the player).
+  Foreman: the saw floor with its carriage track clear end to end (the
+  carriage runs on a bell, every 9/6.5/4 s by phase, and hits him too), head saw,
+  log decks, sawdust; across the track from the shed's south door; weak spot
+  the saw rig from behind 2x; phase 3 the big cut (a fan of blades that bounce),
+  the saw speeds up; HOG WILD a kicked fuel drum (shoot it). `tools/arena_check.gd`
+  (in check_fixes) holds it; `tools/arena_frames.gd` takes window pictures of
+  each arena (`docs/boss_arenas/`).
 - **Fight music** (`features/fight_music.gd`, `sound.gd` crossfade) swaps a
   chapter's music for its fight track (`assets/music/fight_*.ogg`, made by
   `audio_build.py --fights`) while hands hunt or attack nearby. Each chapter

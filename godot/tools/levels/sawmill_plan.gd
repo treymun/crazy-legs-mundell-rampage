@@ -1,4 +1,4 @@
-## Blackwater Timber, rebuilt (layout 3): a mill in the rain. The delivery
+## Blackwater Timber, rebuilt (layout 4): a mill in the rain. The delivery
 ## yard and truck scale in the south; the flooded log pond in the middle,
 ## crossed on boardwalks; the west bank's sluice house (isolate the west feed)
 ## by the loggers' bunkhouse and the flume; the east bank's green chain sort
@@ -38,7 +38,7 @@ func make() -> Builder:
 		"ending": '"CLOCK OUT. LEAVE THE BOOTS OUTSIDE."',
 		"score": "mill_score",
 		"ambience": "mill",
-		"layout": 3,
+		"layout": 4,
 		"sky": "mill_sky",
 		"control_name": "SLUICE FEED AND DRY-KILN BELT",
 		"objective_side_tasks": ["brake"],
@@ -476,7 +476,7 @@ func cutting_shed() -> void:
 	b.paint(40, 19, 88, 22, "tracks")
 	b.town("saw_blade", 52.5, 18.5, {"solid": .45})
 	b.town("saw_blade", 76.5, 18.5, {"solid": .45})
-	b.fixture(58.0, 20.2, 70.0, 21.8, .7, "mill_log", "mill_log")
+	saw_floor()
 	b.station(
 		"brake",
 		64.5,
@@ -492,7 +492,6 @@ func cutting_shed() -> void:
 	)
 	b.quest("quest_brake", 63.0, 22.5, "brake")
 	b.board("mill_saw", 52.5, 17.0, 1.0, {"z": 2.0})
-	b.board("detail_carriage_tools", 69.4, 21.0, .5, {"z": .7})
 	for p in [Vector2(42.5, 24.5), Vector2(86.5, 24.5), Vector2(44.5, 9.5), Vector2(84.5, 9.5)]:
 		b.town("log_pile", p.x, p.y, {"solid": .45})
 	b.town("sawdust_pile", 48.5, 25.5, {"solid": .45})
@@ -548,6 +547,42 @@ func cutting_shed() -> void:
 	b.wall(60, 1, 60, 5, "mill_log", 1.6)
 	b.yard(60, 3, 60, 3, "tracks", apron)
 	b.controlled(88, 6, false, {"from": "s", "id": "apron-east", "tile": "gate"})
+
+
+## The saw floor, where the foreman fights: the carriage track run clear end
+## to end (features/boss_arena.gd runs the carriage on it), the head saw at
+## its west end under its warning board, log decks along the north for cover,
+## sawdust heaped by the walls (it burns) and the mill's fuel by the doors.
+func saw_floor() -> void:
+	b.paint(46, 20, 87, 21, "tracks")
+	b.paint(46, 19, 87, 19, "mill_grit")
+	b.paint(46, 22, 87, 22, "mill_grit")
+	b.board("saw_floor_sign", 60.5, 15.06, .5, {"z": 1.25, "plane": 0.0})
+	b.glow(45.5, 20.5, 3.5, .25)
+	# Log decks along the north: cover that takes a carriage run or a blast.
+	for p in [Vector2(41.5, 16.5), Vector2(50.5, 15.5), Vector2(80.5, 15.5), Vector2(87.5, 16.5)]:
+		b.town("log_pile", p.x, p.y, {"solid": .45})
+	# The mill's fuel by the shed's ends: it goes up, the sawdust by it burns.
+	for p in [Vector2(38.5, 22.5), Vector2(90.5, 13.5)]:
+		b.town("propane_tank", p.x, p.y, {"solid": .4})
+	for p in [Vector2(56.5, 26.5), Vector2(71.5, 26.5), Vector2(89.5, 22.5)]:
+		b.town("warning_barrel", p.x, p.y, {"solid": .3})
+	b.town("gas_cans", 46.6, 26.6)
+	b.meta["boss_arena"] = {
+		"foreman":
+		{
+			"box": [37, 7, 91, 27],
+			"track": [47.0, 86.0, 20.5],
+			"head_saw": [45.0, 20.5],
+			"sawdust": [[48.5, 25.5], [80.5, 25.5], [41.5, 24.5]],
+			"approach": [64.5, 27.3],
+			"lights":
+			[
+				[45.0, 20.5, 1.2, 4.0, [1.0, .7, .35], .7],
+				[64.5, 20.5, 2.6, 8.0, [1.0, .9, .7], .5],
+			],
+		},
+	}
 
 
 func loading_apron() -> void:
@@ -628,7 +663,7 @@ func cast() -> void:
 		["millhand", 81.0, 13.0, "wave-millhand"],
 		["billy", 48.0, 15.5, "wave-billy"],
 		["lantern", 78.0, 22.0, "wave-lantern"],
-		["foreman", 64.5, 16.5, "loading-foreman"],
+		["foreman", 64.5, 17.0, "loading-foreman"],
 		["coot", 60.0, 3.0, "apron-coot"],
 		["millhand", 70.0, 3.0, "stack-rifle"],
 	]:
@@ -805,12 +840,12 @@ func dress() -> void:
 ## dogged on, the saw, the grader's table and the sawn stock; the resaw east
 ## of the brake and the conveyor taking its cut out to the green chain.
 func dress_cutting_shed() -> void:
-	b.town("headrig", 44.5, 20.5, {"solid": .45})
+	b.town("saw_blade", 44.5, 20.5, {"solid": .45, "scale": 1.35})
 	b.board("detail_mill_tie_off", 37.06, 21.5, .5, {"z": .9, "plane": -PI / 2})
 	b.town("sorting_table", 53.5, 23.5, {"solid": .45})
 	b.town("lumber_stack", 57.5, 25.5, {"solid": .45})
 	b.town("lumber_stack", 72.5, 25.5, {"solid": .45})
-	b.town("belt_conveyor", 84.5, 21.5, {"solid": .45})
+	b.town("belt_conveyor", 89.5, 20.5, {"solid": .45})
 	# The saw filer's corner: the spare blade on its stand, the resaw blades
 	# racked on the wall over it.
 	b.town("saw_blade", 40.5, 9.5, {"solid": .45})

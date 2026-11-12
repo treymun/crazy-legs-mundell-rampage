@@ -100,16 +100,18 @@ static func enemies(b: Builder) -> void:
 	b.enemy("yard_deputy", 102.5, 30.0, "clerk-deputy")
 	b.enemy("yard_deputy", 114.0, 36.5, "vault-deputy")
 	b.enemy("clone", 102.0, 38.5, "records-clone")
-	# The north pasture: the sheriff, Jerry, Bessie, and their escort.
-	b.enemy("boss", 118.0, 16.0, "sheriff")
-	b.enemy("jerry", 101.0, 5.0, "jerry")
+	# The north pasture: the sheriff in the rodeo ring before Bessie's pen,
+	# seen across it from the chute gate; Jerry at midfield on the Hogs'
+	# field, waiting behind the stock gate; Bessie, and their escort.
+	b.enemy("boss", 132.5, 14.0, "sheriff")
+	b.enemy("jerry", 108.5, 9.5, "jerry")
 	b.enemy("bessie", 143.0, 5.4, "bessie")
-	b.enemy("saucer", 104.0, 9.0, "pasture-saucer")
-	b.enemy("saucer", 132.0, 11.0, "pasture-saucer-b")
-	b.enemy("alien", 99.5, 18.5, "pasture-alien")
-	b.enemy("alien", 128.5, 17.0, "pasture-alien-b")
-	b.enemy("alien", 110.5, 3.0, "pasture-alien-c")
-	b.enemy("alien", 140.0, 12.5, "pen-guard")
+	b.enemy("saucer", 104.0, 6.0, "pasture-saucer")
+	b.enemy("saucer", 127.5, 5.5, "pasture-saucer-b")
+	b.enemy("alien", 100.5, 15.5, "pasture-alien")
+	b.enemy("alien", 145.5, 19.5, "pasture-alien-b")
+	b.enemy("alien", 117.5, 14.5, "pasture-alien-c")
+	b.enemy("alien", 141.5, 13.5, "pen-guard")
 	# The corn: things in the rows, and more waiting in the circle.
 	b.enemy("skeeter", 137.0, 44.0, "corn-skeeter")
 	b.enemy("clone", 133.0, 40.0, "corn-clone")
@@ -226,12 +228,12 @@ static func pickups(b: Builder) -> void:
 		["arm_ammo", 129.0, 29.6],
 		["dynamite", 145.6, 24.6],
 		# The pasture.
-		["arm_ammo", 98.0, 20.4],
+		["arm_ammo", 100.4, 21.4],
 		["arm_ammo", 131.6, 20.6],
 		["rinds", 99.6, 2.4],
 		["moonshine", 147.0, 14.6],
-		["dynamite", 112.0, 20.6],
-		["beer", 136.6, 2.4],
+		["dynamite", 118.6, 20.0],
+		["beer", 141.0, 16.2],
 	]:
 		b.pickup(String(p[0]), float(p[1]), float(p[2]))
 
@@ -348,8 +350,35 @@ static func set_pieces(b: Builder) -> void:
 		. append(
 			{
 				"id": "pasture-gate",
-				"when": {"area": [126, 14, 136, 21]},
+				"when": {"area": [127, 18, 133, 21]},
 				"do": [{"message": "HANG ON, BESSIE. DADDY'S HERE.", "for": 3.0}],
+			}
+		)
+	)
+	# The sheriff falls: the stock gate onto the Hogs' field swings open, the
+	# lights over it flare and the crowd that is not there roars.
+	(
+		b
+		. triggers
+		. append(
+			{
+				"id": "field-gate",
+				"when": {"down": ["sheriff"]},
+				"do":
+				[
+					{"open": [122, 10]},
+					{"sound": "crowd_cheer", "at": [108.5, 9.5]},
+					{
+						"light":
+						{
+							"at": [108.5, 9.5],
+							"color": [1, .92, .7],
+							"radius": 9,
+							"strength": 1.4,
+							"for": 3
+						}
+					},
+				],
 			}
 		)
 	)
