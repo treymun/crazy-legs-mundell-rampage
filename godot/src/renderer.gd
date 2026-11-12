@@ -109,6 +109,9 @@ func frame_begin(player: Dictionary, flash_value: float) -> void:
 		pane_dist = PackedFloat32Array()
 		pane_dist.resize(vw * vh)
 	_pending = [px, py, pz, angle, hz, active]
+	if layered:
+		# The shader's camera, known from here on (scene_layers.gd early()).
+		cam = {"x": px, "y": py, "z": pz, "angle": angle, "hz": hz}
 	_scene_view(px, py, pz, angle, hz, 1, frame, vw, 0, vw, depth, glass, layered)
 	# The crew projects the walls (and packs them for the shader) a chunk at a
 	# time while the caller lists its sprites; frame_sprites() sorts them.
@@ -131,11 +134,28 @@ func frame_begin(player: Dictionary, flash_value: float) -> void:
 
 func frame_sprites(sprites: Array, reflection_sprite, marks: Array, ground_marks: Array) -> void:
 	var started := Time.get_ticks_usec()
-	# The sprites and marks are worked out while the wall segments are still
-	# being sorted out on a band thread (they share no buffer), then the bands go.
 	_sprite_list = sprites
 	_mark_list = marks
 	_ground_list = ground_marks
+	_pending.append_array([sprites, reflection_sprite, marks, ground_marks])
+	if layered and use_threads:
+		# The set-up goes to a thread of its own, and the caller paints the gun,
+		# the view's effects and the HUD meanwhile (render_end() waits for it).
+		# The pictures are looked up here first: the art caches are plain
+		# Dictionaries, filled on this thread only.
+		_look_up_art()
+		_need_setup()
+		Renderer._setup_job = _setup_frame
+		_setup_open = true
+		_setup_go.post()
+	else:
+		_setup_frame()
+	_begun_usec += Time.get_ticks_usec() - started
+
+
+## The sprites and marks are worked out while the wall segments are still
+## being sorted out on the crew (they share no buffer), then the bands go.
+func _setup_frame() -> void:
 	_warm_art()
 	for i in _prepare_out:
 		_crew_done.wait()
@@ -147,18 +167,32 @@ func frame_sprites(sprites: Array, reflection_sprite, marks: Array, ground_marks
 		_cpu_columns()
 		# The blocks' lists for the shader are a job for the crew beside the bands.
 		_fill_due = gpu_walls
-	_pending.append_array([sprites, reflection_sprite, marks, ground_marks])
-	_scene_draw(sprites, marks, ground_marks, 1, 0, vw, layered, false)
-	_begun_usec += Time.get_ticks_usec() - started
+	_scene_draw(_sprite_list, _mark_list, _ground_list, 1, 0, vw, layered, false)
+
+
+## Every picture this frame's sprites and marks name, into art_cache (and a
+## body's pivot), so _warm_art() on the set-up thread only reads them.
+func _look_up_art() -> void:
+	for list: Array in [_sprite_list, _mark_list, _ground_list]:
+		for s in list:
+			var image: String = s.image
+			if not art_cache.has(image):
+				sprite_art(image)
+	for s: Sprite in _sprite_list:
+		if s.body and not pivots.has(s.image):
+			var art := sprite_art(s.image)
+			body_offset(s.image, art["data"], art["w"], art["h"], 1)
 
 
 func render_end() -> PackedByteArray:
 	var started := Time.get_ticks_usec()
+	if _setup_open:
+		_setup_open = false
+		_setup_done.wait()
 	_scene_end()
 	var p := _pending
 	_pending = []
 	if layered:
-		cam = {"x": p[0], "y": p[1], "z": p[2], "angle": p[3], "hz": p[4]}
 		pane_any = false
 		for i in vw:
 			if pane_cols[i] != 0:
@@ -218,11 +252,19 @@ func _scene_view(
 	glass_buf.fill(0)
 	pane_dist.fill(160.0)
 	split = clampi(int(floorf(hz - .5)) + 1, 0, vh)
-	for r in vh:
-		sy_rows[r] = row_sy[r] - hz
-	for i in vw:
-		dir_x[i] = fx + rx * rays[i]
-		dir_y[i] = fy + ry * rays[i]
+	# Worked out again only when the horizon, or the facing, has moved (a
+	# mirror's pass faces the other way, so with one they are every frame).
+	var rows_key := [hz, vh, res_up]
+	if rows_key != _rows_key:
+		_rows_key = rows_key
+		for r in vh:
+			sy_rows[r] = row_sy[r] - hz
+	var dirs_key := [angle, par, vw, focal]
+	if dirs_key != _dirs_key:
+		_dirs_key = dirs_key
+		for i in vw:
+			dir_x[i] = fx + rx * rays[i]
+			dir_y[i] = fy + ry * rays[i]
 	pane_cols.fill(0)
 
 
@@ -290,6 +332,13 @@ static var _crew_go := Semaphore.new()
 static var _crew_done := Semaphore.new()
 static var _crew_job: Callable
 static var _crew_quit := false
+## The thread that sets a frame's sprites and bands up (frame_sprites()).
+static var _setup_thread: Thread
+static var _setup_go := Semaphore.new()
+static var _setup_done := Semaphore.new()
+static var _setup_job: Callable
+## A set-up handed over that render_end() has not waited for yet.
+var _setup_open := false
 
 
 static func _crew_loop() -> void:
@@ -301,6 +350,21 @@ static func _crew_loop() -> void:
 		_crew_done.post()
 
 
+static func _setup_loop() -> void:
+	while true:
+		_setup_go.wait()
+		if _crew_quit:
+			return
+		_setup_job.call()
+		_setup_done.post()
+
+
+static func _need_setup() -> void:
+	if _setup_thread == null:
+		_setup_thread = Thread.new()
+		_setup_thread.start(Renderer._setup_loop)
+
+
 ## Let the band threads go; call once when the program is closing.
 static func stop_crew() -> void:
 	_crew_quit = true
@@ -309,6 +373,10 @@ static func stop_crew() -> void:
 	for t in _crew:
 		t.wait_to_finish()
 	_crew.clear()
+	if _setup_thread != null:
+		_setup_go.post()
+		_setup_thread.wait_to_finish()
+		_setup_thread = null
 	_crew_quit = false
 
 

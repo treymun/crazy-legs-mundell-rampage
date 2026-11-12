@@ -331,11 +331,16 @@ func _pack_end() -> void:
 		at = seg_flag.find(1, at + 1)
 
 
-## Each block's list of walls, nearest first (see wall_table), and where in
-## its block's list the shader's walk starts for each column the bands draw
-## walls in (past the first cpu_n of seg_order; beside the column's span
-## count). A job for the crew while the bands draw (renderer.gd _band_worker).
+## Each block's list of walls, nearest first (see wall_table), then where the
+## shader's walk starts in each column (_fill_starts()). A job for the crew
+## while the bands draw (renderer.gd _band_worker).
 func _fill_lists() -> void:
+	_fill_entries()
+	_fill_starts()
+
+
+## Each block's list of walls, nearest first (see wall_table).
+func _fill_entries() -> void:
 	var keys := seg_order
 	var table := wall_table
 	var shift := _slot_shift
@@ -358,6 +363,16 @@ func _fill_lists() -> void:
 			table[base + e] = slot
 			ranks[e] = rank
 			fill[b] = e + 1
+	wall_table = table
+	_entry_ranks = ranks
+
+
+## Where in its block's list the shader's walk starts for each column the
+## bands draw walls in (past the first cpu_n of seg_order; beside the column's
+## span count). Needs cpu_n (_cpu_columns()).
+func _fill_starts() -> void:
+	var ranks := _entry_ranks
+	var bw := block_w
 	var row := SPAN_K * 2 * vw * 4 + 1
 	var mine := cpu_n
 	var sf := span_f

@@ -873,6 +873,9 @@ var showing_tally: bool:
 # -------------------------------------------------------------- configure
 
 var _render_open := false
+## Called (by main_state.gd: scene_layers.gd early()) once the gun and HUD are
+## painted and before the draw waits for the renderer's bands.
+var scene_hook := Callable()
 
 ## rampage2.look_pass tables: wash tint, vignette and ordered dither.
 var _grit_r := PackedFloat32Array()

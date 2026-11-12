@@ -229,6 +229,26 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `frame_begin` while the main thread lists sprites) and fills the shader's
   wall lists (job 0 of the band phase); each writes only its own slots of
   preallocated arrays, and the main thread merges (`_prepare_end`, `_pack_end`).
+- **A frame's set-up has a thread of its own** (renderer.gd `frame_sprites`,
+  `_setup_frame`, layered with threads): `_warm_art`, the sort, `_cpu_columns`
+  and starting the bands run there while the main thread paints the gun, the
+  view effects and the HUD; `render_end()` waits for it. The art caches
+  (`art_cache`, `pivots`, `Assets._art_cache`) are plain Dictionaries, so
+  `_look_up_art()` fills them on the main thread first and the set-up thread
+  only reads them: nothing on the main thread may touch the renderer between
+  `frame_sprites` and `render_end`. The shader's camera, lights, weather and
+  shimmer go over in the same gap (`scene_layers.gd early()`, through
+  `Game.scene_hook`); `frame()` then only sends what the bands made. Godot's
+  own `--render-thread separate` was tried and was slower (and is marked
+  experimental). Up to `GPU_WALLS` (16384) walls the shader walks them: the
+  speedway seen across the oval has nearly 5,000 in view.
+- **Line of sight is the tick's big cost** (`LevelData.visible()`, nine
+  `blocked()` steps a cell, from every enemy's look and many effects).
+  `index_cells` marks the cells either index lists anything under (furniture,
+  doors), so a step over open floor with no panes or locked gates in the level
+  is answered from the solid grid alone; the answers are the same, about 2.6
+  times faster. Keep it exact: a new collision source must be in
+  `near_fixtures`/`near_doors` (built by `_build_indexes`) or `blocked()` loses it.
 - **Benchmarks are noisy.** The owner's own copy of the game, Steam and other
   apps often run on this PC. Compare old and new back to back, never against
   a number from earlier. Window runs that change settings get a scratch
@@ -309,7 +329,11 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   its setter counts changes, which `player_sheltered()` relies on.
 - **Fight music** (`features/fight_music.gd`, `sound.gd` crossfade) swaps a
   chapter's music for its fight track (`assets/music/fight_*.ogg`, made by
-  `audio_build.py --fights`) while hands hunt or attack nearby.
+  `audio_build.py --fights`) while hands hunt or attack nearby. Each chapter
+  also has a boss loop (`boss_<chapter>`, `Sound.BOSSES`), faster and heavier,
+  that takes over while its last boss is alive, awake and the player is in its
+  arena (as far as the boss bar shows), holds `BOSS_HOLD` seconds after the
+  player steps out and hands back the moment the boss falls.
 - **Tool scripts never write the player's settings** (`main_state.gd
   persist_options` returns when a script runs the main loop), and tests write
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that

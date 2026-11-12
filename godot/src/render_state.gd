@@ -208,8 +208,12 @@ var span_n := PackedByteArray()
 ## and bottom row any wall in it can reach), then the lists: each block's
 ## walls nearest first, four to a texel (_fill_lists). Over GPU_WALLS walls in
 ## view the bands draw every column as before (gpu_walls false), and
-## wall_walk false (--cpu-walls) keeps them all on the bands.
-const GPU_WALLS := 4096
+## wall_walk false (--cpu-walls) keeps them all on the bands. (Looking across
+## the speedway's oval sees nearly 5,000 of its 5,797 walls; at 4096 those
+## frames fell back to the bands and took three times as long. The shader's
+## walk stops at the first wall past what it has, so a long list costs little;
+## a wall's index and place must stay under 65535, NO_SLOT.)
+const GPU_WALLS := 16384
 const WALL_BLOCKS := 80
 static var wall_walk := true
 var gpu_walls := false
@@ -248,6 +252,8 @@ var _slot_shift := PackedInt32Array()
 var _list_start := PackedInt32Array()
 var _list_count := PackedInt32Array()
 var _list_entries := 0
+## Each list entry's place in seg_order (_fill_entries, for _fill_starts).
+var _entry_ranks := PackedInt32Array()
 var _fill_due := false
 ## Mirrors and glazing in view (1 by wall index) and their sort keys.
 var seg_flag := PackedByteArray()
@@ -323,6 +329,12 @@ var cov_t := PackedFloat32Array()
 var glass_cols := PackedByteArray()
 var dir_x := PackedFloat32Array()
 var dir_y := PackedFloat32Array()
+## What sy_rows and dir_x/dir_y were last worked out for (renderer.gd
+## _scene_view): horizon, rows and scale; facing, side, columns and focal.
+## (Arrays of exact doubles: a Vector holds float32, which would take two
+## horizons a hair apart for one.)
+var _rows_key: Array = []
+var _dirs_key: Array = []
 
 var pane_dist := PackedFloat32Array()
 var pane_rgb := PackedByteArray()
@@ -464,6 +476,8 @@ func set_detail(level_of_detail: int, keep_wish := false) -> void:
 			row_sy[i] = i + .5
 	for i in vw:
 		rays[i] = (i + .5 - vw / 2.0) / focal
+	_rows_key = []
+	_dirs_key = []
 
 
 ## Round a double to the nearest float32, matching numpy's float32 arithmetic.

@@ -235,6 +235,9 @@ var index_radius := .65
 ## Spatial indexes for movement/line-of-sight queries.
 var near_doors := {}
 var near_fixtures := {}
+## 1 for a cell either index lists anything under (it stays 1 when a piece is
+## taken out): a 0 lets blocked() skip both lookups for the open floor.
+var index_cells := PackedByteArray()
 var broken_panes := {}
 var return_gate = null
 var extraction = null
@@ -960,6 +963,13 @@ func _build_indexes() -> void:
 				if not near_fixtures.has(key):
 					near_fixtures[key] = []
 				near_fixtures[key].append(fixture)
+	index_cells = PackedByteArray()
+	index_cells.resize(width * height)
+	index_cells.fill(0)
+	for index: Dictionary in [near_doors, near_fixtures]:
+		for key: Vector2i in index:
+			if key.x >= 0 and key.y >= 0 and key.x < width and key.y < height:
+				index_cells[key.y * width + key.x] = 1
 
 
 ## Take one piece of furniture out of the way (a crate shot to pieces:
@@ -989,15 +999,17 @@ func blocked(x: float, y: float, radius := 0.0, z = null) -> bool:
 			return true
 		if solid[iy * width + ix] >= 0:
 			return true
-	if pane_at(x, y, z, radius) != null:
+	if not pane_tiles.is_empty() and pane_at(x, y, z, radius) != null:
 		return true
 	for gate: Gate in locked_gates:
 		if absf(y - gate.y) < radius + .09 and absf(x - gate.x) < gate.width * .5 + radius:
 			return true
+	var near := radius <= index_radius
+	if near and index_cells.size() == width * height and index_cells[int(y) * width + int(x)] == 0:
+		# Neither index lists anything here: no furniture near enough, no door.
+		return false
 	var tile := Vector2i(int(x), int(y))
-	var fixtures: Array = (
-		near_fixtures.get(tile, []) if radius <= index_radius else collision_volumes
-	)
+	var fixtures: Array = near_fixtures.get(tile, NOTHING) if near else collision_volumes
 	for fixture in fixtures:
 		var f: PackedFloat32Array = fixture
 		if (
@@ -1008,11 +1020,15 @@ func blocked(x: float, y: float, radius := 0.0, z = null) -> bool:
 			and (z == null or (f[7] - radius < float(z) and float(z) < f[4] + radius))
 		):
 			return true
-	for door in near_doors.get(tile, []):
+	for door in near_doors.get(tile, NOTHING):
 		var d: Door = door
 		if d.blocks(x, y, radius):
 			return true
 	return false
+
+
+## An empty list to hand out as an index's "nothing here" (never added to).
+const NOTHING: Array = []
 
 
 ## Mirrors TileMap.pane_at(); returns the pane cell or null.
@@ -1034,12 +1050,36 @@ func pane_at(x: float, y: float, z = null, radius := 0.0):
 func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> bool:
 	var distance := sqrt((xx - x) * (xx - x) + (yy - y) * (yy - y))
 	var n := maxi(1, int(ceil(distance * 9.0)))
+	# With no panes and no locked gates, a step whose four corners are open floor
+	# and whose cell neither index lists is clear, as blocked() would find: those
+	# steps (most of them) are tested here without the call.
+	var plain := (
+		pane_tiles.is_empty() and locked_gates.is_empty() and index_cells.size() == width * height
+	)
 	for i in range(1, n):
 		var t := float(i) / float(n)
+		var sx := x + (xx - x) * t
+		var sy := y + (yy - y) * t
+		if plain:
+			var ax := int(sx + -.023)
+			var bx := int(sx + .023)
+			var ay := int(sy + -.023)
+			var by := int(sy + .023)
+			if ax < 0 or ay < 0 or bx >= width or by >= height:
+				return false
+			if (
+				solid[ay * width + ax] >= 0
+				or solid[by * width + ax] >= 0
+				or solid[ay * width + bx] >= 0
+				or solid[by * width + bx] >= 0
+			):
+				return false
+			if index_cells[int(sy) * width + int(sx)] == 0:
+				continue
 		var wz = null
 		if z != null:
 			wz = float(z) + (float(zz) - float(z)) * t
-		if blocked(x + (xx - x) * t, y + (yy - y) * t, .023, wz):
+		if blocked(sx, sy, .023, wz):
 			return false
 	return true
 
@@ -1069,7 +1109,9 @@ func _can_walk(body, x: float, y: float, radius: float, occupied) -> bool:
 		return false
 	if occupied != null and occupied.call(x, y):
 		return false
-	if not ("air" in body):
+	# An enemy has no `air` (only the player climbs a step by jumping); the
+	# type test answers as `"air" in body` would, without looking the name up.
+	if body is Enemy or not ("air" in body):
 		return true
 	var up := elevation(x, y) - elevation(body.x, body.y)
 	return up <= .245 + float(body.air)

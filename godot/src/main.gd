@@ -251,18 +251,33 @@ func _view_bench() -> void:
 			var busy := 0
 			var drawing := 0
 			var card := 0.0
+			# The parts: tick, sprites, scene, weapon, look, hud, layers, waiting.
+			var parts := PackedFloat64Array()
+			parts.resize(8)
 			for i in view_bench:
 				var t0 := Time.get_ticks_usec()
 				game.tick(1.0 / 60.0, held)
 				var t1 := Time.get_ticks_usec()
+				layers_us = 0
 				render()
 				var t2 := Time.get_ticks_usec()
 				busy += t2 - t0
 				drawing += t2 - t1
+				parts[0] += t1 - t0
+				for k in 5:
+					parts[k + 1] += float(game.stage_ms[k]) * 1000.0
+				parts[6] += layers_us
 				await get_tree().process_frame
+				parts[7] += Time.get_ticks_usec() - t2
 				card += RenderingServer.viewport_get_measured_render_time_gpu(rid)
 			var each := (Time.get_ticks_usec() - began) / 1000.0 / view_bench
 			totals[mode] += each
+			if mode == "gpu":
+				var row := "  parts"
+				var names := ["tick", "sprites", "scene", "weapon", "look", "hud", "layers", "wait"]
+				for k in 8:
+					row += " %s %.2f" % [names[k], parts[k] / 1000.0 / view_bench]
+				print("%-9s%s" % [level_id, row])
 			line += (
 				"  %s %6.2f ms (%4.0f fps; work %.2f, render() %.2f, card %.2f)"
 				% [
@@ -279,10 +294,10 @@ func _view_bench() -> void:
 		(
 			"WINDOW    software view %.2f ms (%.0f fps)   shader view %.2f ms (%.0f fps)   x%.2f"
 			% [
-				totals["cpu"] / 4.0,
-				4000.0 / totals["cpu"],
-				totals["gpu"] / 4.0,
-				4000.0 / totals["gpu"],
+				totals["cpu"] / 7.0,
+				7000.0 / totals["cpu"],
+				totals["gpu"] / 7.0,
+				7000.0 / totals["gpu"],
 				totals["cpu"] / totals["gpu"]
 			]
 		)

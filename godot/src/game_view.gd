@@ -505,6 +505,8 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 	if _render_open:
 		# The band threads drew the view while the weapon and HUD were painted.
 		_render_open = false
+		if scene_hook.is_valid():
+			scene_hook.call()
 		var began := Time.get_ticks_usec()
 		renderer.render_end()
 		stage_ms[1] += (Time.get_ticks_usec() - began) / 1000.0

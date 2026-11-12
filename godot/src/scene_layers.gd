@@ -28,6 +28,8 @@ var _plane_width := 0
 var _renderer: Renderer = null
 var _light_version := -1
 var _on := false
+## early() has run for the frame frame() is about to finish.
+var _early := false
 var _assets: Assets
 var _glow_version := -1
 ## The atlas before any glow is baked in (every alpha whole).
@@ -213,19 +215,10 @@ func _load_level(renderer: Renderer) -> void:
 
 ## This frame's layers and camera; call after Game.draw() when game.scene_live.
 func frame(game: Game, _canvas: Canvas) -> void:
+	if not _early:
+		early(game)
+	_early = false
 	var r: Renderer = game.renderer
-	var level := r.level
-	if Effects.version != _glow_version:
-		# effects.cfg changed: bake the glows again and hand the level over anew.
-		_bake_glow()
-		_renderer = null
-	if r != _renderer:
-		_renderer = r
-		_light_version = -1
-		_load_level(r)
-	if level.light_version != _light_version:
-		_light_version = level.light_version
-		_light(level)
 	var vw := r.vw
 	var vh := r.vh
 	# What the renderer left empty this frame is not sent (the shader's
@@ -316,9 +309,35 @@ func frame(game: Game, _canvas: Canvas) -> void:
 	_set_param("dist_row", dist_row)
 	_set_param("dist_start", dist_start)
 
-	var m := material
-	var angle: float = r.cam["angle"]
 	_set_param("pane_on", r.pane_any)
+	if not _on:
+		_on = true
+		material.set_shader_parameter("scene_on", true)
+
+
+## What the shader needs this frame that the renderer's bands do not make:
+## the camera, the level's surfaces when they change, the lights, the weather
+## and the shimmer. The game calls it before it waits for the bands
+## (game_view.gd draw(), scene_hook), so it overlaps them; frame() calls it
+## when nothing did.
+func early(game: Game) -> void:
+	_early = true
+	var r: Renderer = game.renderer
+	var level := r.level
+	if Effects.version != _glow_version:
+		# effects.cfg changed: bake the glows again and hand the level over anew.
+		_bake_glow()
+		_renderer = null
+	if r != _renderer:
+		_renderer = r
+		_light_version = -1
+		_load_level(r)
+	if level.light_version != _light_version:
+		_light_version = level.light_version
+		_light(level)
+	var vw := r.vw
+	var vh := r.vh
+	var angle: float = r.cam["angle"]
 	_set_param("eye", Vector3(r.cam["x"], r.cam["y"], r.cam["z"]))
 	_set_param("fwd", Vector2(cos(angle), sin(angle)))
 	_set_param("side", Vector2(-sin(angle), cos(angle)))
@@ -356,9 +375,6 @@ func frame(game: Game, _canvas: Canvas) -> void:
 		var ghost := int(2 + 4 * game.drunk_k)
 		_set_param("drunk_phase", fposmod(game.clock * 3.1, TAU_))
 		_set_param("drunk_ghost", -ghost if sin(game.clock * 1.7) <= 0.0 else ghost)
-	if not _on:
-		_on = true
-		material.set_shader_parameter("scene_on", true)
 
 
 ## The sprite table and any pictures new to the art slots.

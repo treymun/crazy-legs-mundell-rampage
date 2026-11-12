@@ -702,10 +702,13 @@ func seen_at(point: Vector3) -> bool:
 ## ([name, x, y]). A key or the patch lead is taken from a little farther and
 ## over a counter or crate it lies by; anything else as it always was.
 func reaches_pickup(entry: Array) -> bool:
-	var name := String(entry[0])
 	var x := float(entry[1])
 	var y := float(entry[2])
 	var gap := (player.x - x) * (player.x - x) + (player.y - y) * (player.y - y)
+	if gap >= .62 * .62:
+		# Beyond either reach (every tick, for every pickup in the level).
+		return false
+	var name := String(entry[0])
 	if name.begins_with("key_") or TASK_ITEMS.has(name):
 		return gap < .62 * .62 and seen_at(Vector3(x, y, world.elevation(x, y) + .25))
 	return gap < .43 * .43 and world.visible(player.x, player.y, x, y)

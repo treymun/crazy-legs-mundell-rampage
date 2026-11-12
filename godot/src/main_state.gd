@@ -180,6 +180,8 @@ var touring := false
 ## --view-bench=<frames>: time whole frames in the real window, uncapped, with
 ## the view composed in software and then by the shader, and print both.
 var view_bench := 0
+## How long the last frame took to hand its layers to the shader (the bench's parts).
+var layers_us := 0
 ## --view-shot=<png> saves the window as shown (shader included) at the end of a smoke run;
 ## --cpu-look keeps the look pass in software for comparison.
 var view_shot := ""
@@ -1089,6 +1091,8 @@ func render() -> void:
 		game.renderer.hd_held = checking
 		if checking:
 			Effects.enabled = false
+		# The shader's camera, lights and weather go over while the bands draw.
+		game.scene_hook = layers.early.bind(game) if game.layered else Callable()
 		game.draw(canvas, int(options["crosshair"]), true)
 		if int(options.get("show_fps", 0)) != 0 and not touring:
 			# FRAME COUNTER: frames per second, top right, over the view.
@@ -1120,7 +1124,9 @@ func render() -> void:
 	if canvas.gpu:
 		palette_material.set_shader_parameter("base_on", canvas.base_set)
 	if game != null and game.scene_live and canvas.layer:
+		var handed := Time.get_ticks_usec()
 		layers.frame(game, canvas)
+		layers_us = Time.get_ticks_usec() - handed
 		if view_broken:
 			palette_material.set_shader_parameter("scene_on", false)
 		if checking and not _view_checking:
