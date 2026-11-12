@@ -239,5 +239,22 @@
   "weapon": true,
   "x": 38.0,
   "y": 61.0
+ },
+ {
+  "angle": -1.5708,
+  "level": "range",
+  "pitch": 6.0,
+  "tag": "range_01_0",
+  "weapon": true,
+  "x": 36.5,
+  "y": 57.6
+ },
+ {
+  "angle": 3.14159,
+  "level": "range",
+  "tag": "range_armory_1",
+  "weapon": false,
+  "x": 40.0,
+  "y": 67.0
  }
 ]

@@ -15,6 +15,7 @@ const ALL := [
 	preload("res://src/features/callouts.gd"),
 	preload("res://src/features/tally.gd"),
 	preload("res://src/features/fight_music.gd"),
+	preload("res://src/features/firing_range.gd"),
 ]
 
 

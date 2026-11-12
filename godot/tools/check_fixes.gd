@@ -590,6 +590,9 @@ func _run() -> void:
 	stormy.ticked.emit(1.0 / 60.0)
 	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
 
+	# The firing range: its title entry, its way out, the campaign untouched.
+	preload("res://tools/range_check.gd").run(main, check)
+
 	print("")
 	if failures.is_empty():
 		print("PARITY FIXES OK")

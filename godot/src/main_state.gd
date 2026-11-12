@@ -79,6 +79,10 @@ var game: Game = null
 var campaign_run: Game = null
 var hub_origin: Game = null
 var replay_runs := {}
+## The firing range's level, and the game paused when the player went to the
+## range from the title (back in its place when they leave it).
+const RANGE_ID := "range"
+var range_return: Game = null
 
 var state := "title"
 var selection := 0
@@ -398,6 +402,7 @@ func entries() -> PackedStringArray:
 			"NEW GAME",
 			"COUNTY HUB",
 			"REPLAY LEVEL",
+			"LEAVE RANGE" if in_range() else "FIRING RANGE",
 			"SAVE SLOTS",
 			"SETUP",
 			"CONTROLS",
@@ -419,6 +424,12 @@ func entries() -> PackedStringArray:
 		continued.append_array(out)
 		return continued
 	return out
+
+
+## The firing range (data/range.json) is the game in play: practice, never
+## saved, never the campaign.
+func in_range() -> bool:
+	return game != null and game.level.id == RANGE_ID
 
 
 func _save_exists() -> bool:
@@ -521,6 +532,7 @@ func slot_source() -> Game:
 		or current.showing_tally
 		or current.player.health <= 0
 		or current.armory.fuse > 0.0
+		or current.level.id == RANGE_ID
 	):
 		return null
 	return campaign_run if current.revisiting else current

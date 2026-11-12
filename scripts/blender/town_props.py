@@ -527,6 +527,8 @@ def main():
     scene, camera = stage()
     os.makedirs(OUT, exist_ok=True)
     names = list(PROPS) if NAMES == "all" else NAMES.split(",")
+    # Names another script models (build_town_props.gd runs each in turn).
+    names = [name for name in names if name in PROPS]
     meta = {}
     for name in names:
         for ob in [o for o in bpy.data.objects if o.type == "MESH" or o.name.startswith("root")]:
