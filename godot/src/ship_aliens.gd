@@ -47,6 +47,9 @@ static func attack(
 static func soak(
 	enemy: Enemy, amount: float, game, how: String, explosive: bool, pressure: bool, by
 ) -> float:
+	if Variants.DOORS.has(enemy.kind):
+		# The shield deputy's car door works the same way (src/variants.gd).
+		return Variants.soak(enemy, amount, game, how, explosive, pressure, by)
 	if enemy.kind != "tin_guard" or enemy.windup > 0.0 or explosive or pressure or by != null:
 		return amount
 	if SHIELD_PASSES.has(how):

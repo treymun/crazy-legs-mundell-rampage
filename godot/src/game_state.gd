@@ -816,6 +816,11 @@ signal level_won
 signal ticked(dt: float)
 signal exploded(x: float, y: float, z: float, energy: bool)
 signal gun_reloading(gun: int)
+## One of the county's hands has something to say (src/squad.gd, throttled):
+## "spot", "lost", "search", "help", "flank", "cover", "brawl", "idle",
+## "surprised", "hurt_bad", "regroup". When each may next be heard ("" any).
+signal enemy_bark(e: Enemy, moment: String)
+var bark_next := {}
 ## DIFFICULTY (0 EASY .. 3 HOG WILD), how sharp the county's hands are (their
 ## attack recovery, how far they notice, how true they shoot), and how much of
 ## an ammo pickup the player gets.

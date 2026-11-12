@@ -29,6 +29,8 @@ const WHOLE_LIMIT := 1500.0
 var sound: Sound
 var whole := false
 var hitches := false
+## diff=<0..3>: the difficulty played (NORMAL by default).
+var difficulty := 1
 ## What the game announced during the tick being timed.
 var _events: Array[String] = []
 
@@ -48,6 +50,10 @@ func _run() -> void:
 	if args.has("hitches"):
 		hitches = true
 		args.erase("hitches")
+	for arg: String in args.duplicate():
+		if arg.begins_with("diff="):
+			difficulty = int(arg.substr(5))
+			args.erase(arg)
 	var ids := (
 		["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
 		if args.is_empty()
@@ -68,8 +74,11 @@ func _run() -> void:
 ## Plays one chapter's opening and returns when its first fight began.
 func _play(art: Assets, hud: HUD, id: String) -> float:
 	var game := Game.new(art, hud, sound, id)
-	game.configure({"hints": 1})
+	game.configure({"hints": 1, "difficulty": difficulty})
 	game.cheats.god = whole
+	# Every hit the bot takes, whatever its health does after (food, god mode).
+	var taken_sum := [0.0]
+	game.player_hurt.connect(func(amount: float, _cause: String): taken_sum[0] += amount)
 	var seen := -1.0
 	var landed := -1.0
 	var taken := -1.0
@@ -116,13 +125,13 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 			var left := -1
 			if goal != null:
 				left = int(game.objective_route(goal)[1])
-			(
-				lines
-				. append(
+			lines.append(
+				(
 					(
-						"    at %3.0f s: %2d kills, health %3d, at (%.1f, %.1f), %d steps to the objective"
-						% [MARKS[mark], game.kills, p.health, p.x, p.y, left]
+						"    at %3.0f s: %2d kills, health %3d, damage taken %3d,"
+						+ " at (%.1f, %.1f), %d steps to the objective"
 					)
+					% [MARKS[mark], game.kills, p.health, taken_sum[0], p.x, p.y, left]
 				)
 			)
 			mark += 1

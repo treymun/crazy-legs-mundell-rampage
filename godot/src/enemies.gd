@@ -136,6 +136,7 @@ static func load_tuning() -> void:
 			PLASMA.append(kind)
 		if d.get("green_gibs", false):
 			GREEN_GIBS.append(kind)
+	Variants.tables()
 
 
 ## A section's values over those of the kind it names as its brain.
@@ -271,6 +272,8 @@ var hatless := false
 ## A critter's hop off the ground (features/critters.gd: a chicken flapping
 ## off, a cow bowled up by a blast).
 var hop := 0.0
+## A hand's part in the squad and its idle activity (Squad.Mind, src/squad.gd).
+var mind = null
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -397,6 +400,8 @@ func wake(game, px: float, py: float) -> void:
 	if hostile and not BOSS_TITLES.has(kind):
 		hunt_until = maxf(hunt_until, game.clock + 6.0)
 	if not alerted:
+		if mind != null:
+			Squad.startled(self, game)
 		alerted = true
 		cooldown = maxf(.65, cooldown)
 		if hostile and kind != "boss" and kind != "jerry":
@@ -597,6 +602,8 @@ func advance(dt: float, game, direction: float, pace := 1.0) -> float:
 			soak = maxf(0.0, soak - .25)
 			game.sound_at("enemy_slip", x, y, .8)
 			return 0.0
+	if Variants.STUMBLE.has(kind):
+		direction += Variants.wobble(self)
 	game.move_actor(
 		self, cos(direction) * speed * dt * pace, sin(direction) * speed * dt * pace, radius
 	)
@@ -697,6 +704,8 @@ func tick(dt: float, game) -> void:
 	hit_flash = maxf(0.0, hit_flash - dt)
 	flinch = maxf(0.0, flinch - dt)
 	soak = maxf(0.0, soak - dt / 6.0)
+	if mind != null and alerted:
+		Squad.watch(self, game)
 	if BOSS_TITLES.has(kind) and BossKit.tick(self, dt, game):
 		# Its own moves (src/bosses/) took this tick.
 		return
@@ -774,13 +783,15 @@ func tick(dt: float, game) -> void:
 	aggro_range += (float(game.sharpness) - 1.0) * 8.0
 	if brain == "skeeter" or brain == "saucer":
 		aggro_range += .9
+	if mind != null and can_see and not alerted:
+		aggro_range *= IdleLife.notice(self, game)
 	var watching := absf(angle_delta(direction, angle)) < 1.55 or distance < 2.65
 	if can_see and (alerted or (distance < aggro_range and watching)):
 		wake(game, p.x, p.y)
 		if not BOSS_TITLES.has(kind):
 			hunt_until = game.clock + 9.0
 	if not alerted:
-		if not noise_step(dt, game):
+		if not noise_step(dt, game) and (mind == null or not Squad.calm(self, dt, game)):
 			patrol(dt, game)
 		return
 
@@ -856,6 +867,8 @@ func tick(dt: float, game) -> void:
 		face_left = cos(direction) < -.24
 		game.sound_at(cue, x, y, .72)
 		return
+	if mind != null and Squad.move(self, dt, game, can_see, distance):
+		return
 
 	if target == null:
 		return
@@ -901,11 +914,11 @@ func tick(dt: float, game) -> void:
 			follow(dt, game, approach, pace)
 	elif (
 		(brain == "coot" or brain == "skeeter" or brain == "chalk_spitter")
-		and distance < float({"coot": 3., "skeeter": 1.18, "chalk_spitter": 3.3}[kind])
+		and distance < float({"coot": 3., "skeeter": 1.18, "chalk_spitter": 3.3}[brain])
 	):
 		sidestep(dt, game, direction + PI + strafe * .26, .80 if brain == "coot" else 1.16, false)
 	elif RANGED.has(kind) or (brain == "clone" and cooldown > .55):
-		var pace2: float = {"saucer": 1.24, "alien": .62, "boss": .70, "jerry": .78}.get(kind, .42)
+		var pace2: float = {"saucer": 1.24, "alien": .62, "boss": .70, "jerry": .78}.get(brain, .42)
 		sidestep(dt, game, direction + strafe, pace2)
 		if TURN_CELS.has(kind):
 			angle = direction + strafe * .29
@@ -950,7 +963,7 @@ func _react(how: String, champion: bool, game, from_x: float, from_y: float) -> 
 	var r: Array = REACTIONS.get(how, [])
 	if r.is_empty():
 		return
-	var scale := .25 if champion else 1.0
+	var scale := (.25 if champion else 1.0) * float(Variants.STEADY.get(kind, 1.0))
 	var shove: float = float(r[0]) * scale
 	if shove > 0.0:
 		var away := atan2(y - from_y, x - from_x)
@@ -1047,6 +1060,8 @@ func attack(game, direction: float, distance: float, eye: float, aim_z = null) -
 	if BayouBrains.attack(self, game, direction, distance, eye):
 		return
 	if ShipAliens.attack(self, game, direction, distance, eye, aim_z):
+		return
+	if Variants.attack(self, game, direction, distance, eye):
 		return
 	if SIGNATURES.has(kind):
 		signature_attack(game, direction, distance, eye, aim_z)
@@ -1354,13 +1369,17 @@ func sprite(observer = null, relieved := false, now := -1.0):
 		var fallen := now - died_at
 		var cels := 5 if TURN_CELS.has(kind) else 2 if CREATURE_FALLS.has(kind) else 0
 		var span := DEATH_TIME if cels == 5 else DEATH_TIME * .5
+		var worn := Variants.stem(kind)
 		if cels > 0 and died_at >= 0.0 and now >= died_at and fallen < span:
-			var cel := "%s_die_%d" % [kind, mini(cels - 1, int(fallen / span * cels))]
-			var falling := Renderer.Sprite.new(x, y, cel, height * variant, z + toss)
+			var cel := "%s_die_%d" % [worn, mini(cels - 1, int(fallen / span * cels))]
+			var falling := Renderer.Sprite.new(
+				x, y, Variants.look(self, cel), height * variant, z + toss
+			)
 			falling.flip = face_left
 			return falling
 		var lying := height * (.45 if brain == "derby_champ" else .25)
-		var down := Renderer.Sprite.new(x, y, "%s_down" % kind, lying, toss - .07)
+		var laid := Variants.look(self, "%s_down" % worn)
+		var down := Renderer.Sprite.new(x, y, laid, lying, toss - .07)
 		down.flip = face_left
 		return down
 	var recover := recovery_time(relieved) if recovery > 0.0 else 0.0
@@ -1383,7 +1402,10 @@ func sprite(observer = null, relieved := false, now := -1.0):
 		frame = "w%d" % posmod(int(floor(gait / (PI * .5))), 4)
 	else:
 		frame = int(round(sin(gait)))
-	var stem: String = kind + ShipAliens.skin(self)
+	if mind != null and not alerted and frame is int and frame == 0:
+		frame = IdleLife.frame(self, observer)
+	var worn := Variants.stem(kind)
+	var stem: String = worn + ShipAliens.skin(self)
 	var flip := face_left
 	var walking: bool = frame is String and String(frame).begins_with("w")
 	var plain: bool = frame is int and frame >= -1 and frame <= 1
@@ -1397,7 +1419,7 @@ func sprite(observer = null, relieved := false, now := -1.0):
 	if (
 		frame is int
 		and frame == 0
-		and stem == kind
+		and stem == worn
 		and FIDGET_CELS.has(kind)
 		and not alerted
 		and fmod(pose + x * .37 + y * .13, 5.2) > 4.68
@@ -1408,7 +1430,7 @@ func sprite(observer = null, relieved := false, now := -1.0):
 		look = BossLooks.cel(self, look)
 	elif hostile:
 		look = EnemyLooks.cel(self, look)
-	var out := Renderer.Sprite.new(x, y, look, height * variant, z)
+	var out := Renderer.Sprite.new(x, y, Variants.look(self, look), height * variant, z)
 	out.flip = flip
 	out.body = hostile
 	out.hurt = hit_flash
