@@ -113,10 +113,12 @@ class Gate:
 			and (facing > .34 if d < -.30 else facing < -.43)
 		)
 
-	## Wall segment that closes a locked gate.
+	## Wall segment that closes a locked gate, its face to the side the gate
+	## is walked up to (a wall shows on its left: east to west faces south).
 	func barrier() -> PackedFloat32Array:
+		var half := width * .5 * side
 		return PackedFloat32Array(
-			[x + width * .5, y, x - width * .5, y, float(closed_tile), 1.08, 0.0, 1.34, 11.0]
+			[x + half, y, x - half, y, float(closed_tile), 1.08, 0.0, 1.34, 11.0]
 		)
 
 
