@@ -1055,10 +1055,11 @@ var _active_last := PackedFloat32Array()
 
 func _make_active(at_hub: bool) -> PackedFloat32Array:
 	var out := active_base(at_hub).duplicate()
-	if at_hub:
-		for gate: Gate in locked_gates:
-			out.append_array(gate.barrier())
-	else:
+	# A locked gate's barricade shows wherever the gate is: the rebuilt
+	# Crossroads has no road split, so the renderer never asks for at_hub there.
+	for gate: Gate in locked_gates:
+		out.append_array(gate.barrier())
+	if not at_hub:
 		for door in doors:
 			var seg := door.segment()
 			if seg.is_empty():

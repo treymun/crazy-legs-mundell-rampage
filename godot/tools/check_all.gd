@@ -5,7 +5,7 @@
 ## Each check runs in its own Godot process with its own scratch profile
 ## (APPDATA), so none of them touches your saves or another check's files.
 ## lint also runs gdformat --check and gdlint from the repo's .venv; fast
-## leaves out the campaign walkthrough and the pictures. Exits 1 if anything
+## leaves out the campaign walkthrough, the pictures and the quest reach. Exits 1 if anything
 ## failed, and prints the end of each failing check's output.
 extends SceneTree
 
@@ -16,10 +16,11 @@ const CHECKS := [
 	["check_fixes", "PARITY FIXES OK"],
 	["save_fixtures", "OLD SAVES OK"],
 	["level_edit_check", "LEVEL EDIT OK"],
+	["quest_reach", "QUEST REACH OK"],
 	["bot_campaign", "CAMPAIGN WALKTHROUGH OK"],
 	["picture_check", "PICTURES OK"],
 ]
-const SLOW := ["bot_campaign", "picture_check"]
+const SLOW := ["bot_campaign", "picture_check", "quest_reach"]
 
 
 func _init() -> void:

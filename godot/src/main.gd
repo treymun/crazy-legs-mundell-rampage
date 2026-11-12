@@ -148,9 +148,25 @@ func _view_tour() -> void:
 	var loaded := ""
 	for shot: Dictionary in shots:
 		var level_id := String(shot["level"])
-		if level_id != loaded or game == null:
-			start(level_id)
+		if level_id != loaded or game == null or shot.has("done") or shot.has("unlock"):
+			# The Crossroads as players get it, its gates locked by the profile
+			# (open_hub); "unlock" opens them all. "done" sets every station
+			# (or those listed) and clears the exit, to show the after-state.
+			if level_id == "hub" and shot.has("hub"):
+				open_hub()
+			else:
+				start(level_id)
 			loaded = level_id
+			if shot.has("unlock"):
+				game.world.locked_gates = []
+			if shot.has("done"):
+				var listed = shot["done"]
+				for station: LevelData.Station in game.world.stations:
+					if not (listed is Array) or listed.has(station.id):
+						game.stations_done[station.id] = true
+				if not (listed is Array):
+					for member: Enemy in game.wave:
+						member.alive = false
 		var p := game.player
 		p.x = float(shot["x"])
 		p.y = float(shot["y"])
@@ -323,6 +339,7 @@ func _process(delta: float) -> void:
 		_touch_actions()
 		_watch_pointer_lock()
 		game.touch_aim = touch.active
+		game.use_key = use_button()
 
 	if console != null:
 		console.tick(delta)

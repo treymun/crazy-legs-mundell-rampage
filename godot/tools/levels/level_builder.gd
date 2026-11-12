@@ -483,14 +483,27 @@ func hedge(x0: int, y0: int, x1: int, y1: int, top := 1.48) -> void:
 	wall(x0, y0, x1, y1, "hedgerow", top)
 
 
-## A post-and-beam gate over a way through, a sign between the posts.
+## A post-and-beam gate over a way through, a sign between the posts. The
+## sign shows on the side the gate is walked up to (the side of the hub gate
+## or road gate meta names at this spot), the back boards on the other.
 func arch(cx: float, y: float, width: float, face: String, back := "stockyard") -> void:
 	var l := cx - width * .5
 	var r := cx + width * .5
 	fixture(l - .17, y - .17, l + .17, y + .17, 2.37, "stockyard", "counter_top")
 	fixture(r - .17, y - .17, r + .17, y + .17, 2.37, "stockyard", "counter_top")
-	panel(l + .17, y, r - .17, y, face, 1.83, 2.34, 1.29)
-	panel(r - .17, y + .035, l + .17, y + .035, back, 1.83, 2.34, .86)
+	var gates: Array = meta.get("hub_gates", []).duplicate()
+	if meta.get("return_gate") != null:
+		gates.append(meta["return_gate"])
+	var side := -1
+	for g: Dictionary in gates:
+		if absf(float(g["x"]) - cx) < .5 and absf(float(g["y"]) - y) < .5:
+			side = int(g.get("side", 1))
+	if side < 0:
+		panel(l + .17, y, r - .17, y, face, 1.83, 2.34, 1.29)
+		panel(r - .17, y + .035, l + .17, y + .035, back, 1.83, 2.34, .86)
+	else:
+		panel(l + .17, y, r - .17, y, back, 1.83, 2.34, .86)
+		panel(r - .17, y + .035, l + .17, y + .035, face, 1.83, 2.34, 1.29)
 	panel(l + .17, y, r - .17, y, "stockyard", 2.34, 2.53, 1.08)
 
 

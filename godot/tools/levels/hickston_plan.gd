@@ -1194,7 +1194,7 @@ func town_detail() -> void:
 		b.town("pylon", p.x, p.y, {"solid": .15, "glow": true})
 		b.glow(p.x, p.y, 2.0, .2)
 	# Where the station levers are: a sign that lights when it is thrown.
-	b.board("wing_town_hatch", 89.06, 26.4, .47, {"z": .6, "plane": -PI / 2, "signal": "yard-bar"})
+	b.board("wing_town_hatch", 90.06, 26.4, .47, {"z": .6, "plane": -PI / 2, "signal": "yard-bar"})
 	b.glow(90.4, 25.5, 2.0, .2)
 	b.glow(80.5, 21.2, 2.0, .2)
 	# False fronts on Main Street.
