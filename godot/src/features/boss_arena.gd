@@ -130,6 +130,8 @@ var _lights: Array = []
 var _light_used := 0
 ## The tyre stacks that have been knocked over (by index in the arena's list).
 var _tyres_out := {}
+## -1 then the indexes of the breakables in an arena (empty: not looked yet).
+var _cover: Array = []
 
 
 func id() -> String:
@@ -616,19 +618,41 @@ func _tick_shots() -> void:
 	var pieces = game.features.get("breakables")
 	if pieces == null or game.shots.is_empty():
 		return
+	if _cover.is_empty():
+		# The breakables standing in an arena, found once (indexes into pieces).
+		_cover.append(-1)
+		for i in pieces.pieces.size():
+			if arena_at(pieces.pieces[i].x, pieces.pieces[i].y) != "":
+				_cover.append(i)
 	var spent: Array = []
 	for shot in game.shots:
 		if not shot.enemy or not BOSS_SHOTS.has(String(shot.kind)):
 			continue
-		if arena_at(shot.x, shot.y) == "":
-			continue
-		var i: int = pieces.touch(shot.x, shot.y, shot.z, .14)
+		var i := _cover_at(pieces, shot.x, shot.y, shot.z)
 		if i >= 0:
 			pieces.strike(i, maxf(SHOT_BREAK, float(shot.damage) * 2.0), shot.vx, shot.vy)
 			spent.append(shot)
 	for shot in spent:
 		game.finish_shot(shot)
 		game.shots.erase(shot)
+
+
+## The whole piece of arena cover a shot at (x, y, z) is in, or -1 (the test
+## breakables.gd touch() makes, over the arena's own pieces only).
+func _cover_at(pieces, x: float, y: float, z: float) -> int:
+	for k in range(1, _cover.size()):
+		var i: int = _cover[k]
+		var p = pieces.pieces[i]
+		if p.broken or absf(p.x - x) > .14 + p.radius or absf(p.y - y) > .14 + p.radius:
+			continue
+		var foot: float = game.world.elevation(p.x, p.y) + p.z
+		if (
+			Vector2(p.x - x, p.y - y).length() < .14 + p.radius * .7
+			and z > foot - .05
+			and z < foot + p.height + .05
+		):
+			return i
+	return -1
 
 
 ## Something went up: a fuel tank, gas can or drum in an arena leaves the
