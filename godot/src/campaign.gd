@@ -7,9 +7,15 @@
 class_name Campaign
 extends RefCounted
 
-const ORDER := ["hickston", "fair", "sawmill", "quarry"]
+const ORDER := ["hickston", "fair", "sawmill", "quarry", "mothership"]
 
-const GATE_LABELS := {"hickston": "HICKSTON", "fair": "FAIR", "sawmill": "MILL", "quarry": "QUARRY"}
+const GATE_LABELS := {
+	"hickston": "HICKSTON",
+	"fair": "FAIR",
+	"sawmill": "MILL",
+	"quarry": "QUARRY",
+	"mothership": "SHIP",
+}
 
 const LEVEL_INFO := {
 	"hickston":
@@ -152,6 +158,47 @@ const LEVEL_INFO := {
 			["LOWER CUT", 51, 26],
 			["WASH", 70, 37],
 			["COPPER", 67, 12]
+		],
+	},
+	"mothership":
+	{
+		"title": "THE MOTHERSHIP",
+		"heading": ["MAW'S", "MOTHERSHIP"],
+		"districts":
+		[
+			"TRACTOR BEAM BAY",
+			"RING DECK",
+			"THE CORE",
+			"THE BRIDGE",
+			"TROPHY ROOM",
+			"MAW'S PARLOR",
+			"CREW BUNKS",
+			"CREW MESS",
+			"SPECIMEN HOLD",
+			"PROBE LAB",
+			"CORN DECK",
+			"ENGINE ROOM",
+			"SHINE TANKS",
+			"CARGO HOLD",
+			"SERVICE DUCTS"
+		],
+		"introduction": "SPIKE THE SHINE DRIVE AND DRAIN THE COW TUBES.",
+		"ending": '"TELL YER MAW SHE CAN KEEP THE BUS."',
+		"score": "mothership_score",
+		"ambience": "mothership",
+		"rescue": false,
+		"labels":
+		[
+			["BAY", 60, 86],
+			["CORE", 61, 50],
+			["BRIDGE", 60, 25],
+			["TROPHIES", 34, 24],
+			["PARLOR", 12, 22],
+			["MESS", 31, 50],
+			["SPECIMENS", 8, 76],
+			["CORN", 80, 22],
+			["ENGINE", 86, 48],
+			["CARGO", 92, 84]
 		],
 	},
 }

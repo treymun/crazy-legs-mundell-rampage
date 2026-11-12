@@ -474,8 +474,12 @@ PROPS = {
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "props_more.py"), encoding="utf-8") as _more:
     exec(_more.read(), globals())
 PROPS.update(MORE)
+# The mothership's own (chapter 7).
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "props_mothership.py"), encoding="utf-8") as _ship:
+    exec(_ship.read(), globals())
+PROPS.update(SHIP)
 # Drawn flat on a plane in the game: rendered face on.
-FLAT = {"laundry", "powder_shelf"}
+FLAT = {"laundry", "powder_shelf"} | SHIP_FLAT
 
 
 # ---------------------------------------------------------------- stage

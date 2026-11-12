@@ -674,11 +674,13 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 						tell = "GAP IN THE MIDDLE"
 					if boss.brain == "rudy":
 						tell = "LEFT HORN" if boss.attacks % 2 == 1 else "RIGHT HORN"
+					tell = ShipAliens.tell(self, boss, tell)
 					var phase: String = (
 						tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
 					)
 					if boss.enraged and clock - boss.enraged_at < 1.6:
 						phase = "FIGHTIN' MAD"
+					phase = ShipAliens.phase_text(self, boss, phase)
 					HUD.panel(
 						c,
 						193,
@@ -859,7 +861,7 @@ func _boss_title(kind: String) -> String:
 				"foreman": "SPLINTER FOREMAN",
 				"baron": "COPPER BARON"
 			}
-			. get(kind, "BOSS")
+			. get(kind, Enemy.BOSS_TITLES.get(kind, "BOSS"))
 		)
 	)
 

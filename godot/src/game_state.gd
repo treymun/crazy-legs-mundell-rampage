@@ -109,6 +109,11 @@ const HUB_DISPATCH := [
 		"BESSIE'S TAG IS BACK. MUNDELL STILL OWES FOR THE JUGS.",
 		"RADIO: THE TAG IS HOME."
 	],
+	[
+		"SKY CLEAR",
+		"THE SHIP CAME DOWN IN PIECES OVER THE COUNTY. MAW'S DONE.",
+		"RADIO: NOTHING UP THERE BUT STARS."
+	],
 ]
 
 ## scenery.REACTIONS: kind -> [cue, particle, count]
@@ -132,7 +137,8 @@ const WASH := {
 	"hub": [255, 226, 190, .10],
 	"fair": [255, 200, 230, .12],
 	"sawmill": [255, 214, 160, .13],
-	"quarry": [178, 214, 255, .12]
+	"quarry": [178, 214, 255, .12],
+	"mothership": [200, 255, 220, .12],
 }
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 

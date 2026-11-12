@@ -909,45 +909,11 @@ func _ribbon(c: Canvas, word: String) -> void:
 		c.fill_rect(x + 2, 104, 4, 3, red)
 
 
+## After the last chapter: the true finale, the campaign's tally and the
+## credits (finale.gd).
 func campaign_report(c: Canvas, game: Game) -> void:
 	_blit_art(c, "title_backdrop", 0, 0)
-	panel(c, 10, 9, 300, 180)
-	text(c, "SHIFT COMPLETE", 160, 20, "heading", AMBER, true)
-	text(c, "MAP", 21, 53, "body", INK)
-	var columns := [186, 237, 296]
-	var heads := ["KILLS", "SECRETS", "TIME"]
-	for i in 3:
-		text(c, heads[i], columns[i], 53, "body", INK, false, true, true)
-	var results: Array = game.history.duplicate()
-	results.append(game.result())
-	for i in results.size():
-		var row: Array = results[i]
-		var y := 70 + 18 * i
-		c.fill_rect(17, y - 4, 286, 16, Color(30 / 255.0, 21 / 255.0, 17 / 255.0))
-		var level_title: String = Campaign.title_of(String(row[0]))
-		text(c, level_title, 21, y, "body", INK)
-		var values := [
-			"%d/%d" % [int(row[1]), int(row[2])],
-			"%d/%d" % [int(row[3]), int(row[4])],
-			"%d:%02d" % [int(row[5]) / 60, int(row[5]) % 60]
-		]
-		for k in 3:
-			text(c, values[k], columns[k], y, "body", AMBER, false, true, true)
-	var totals := [0, 0, 0, 0, 0]
-	for row in results:
-		for k in 5:
-			totals[k] += int(row[k + 1])
-	var total_y := 70 + 18 * results.size() + 6
-	text(c, "TOTAL", 21, total_y, "body", AMBER)
-	var summ := [
-		"%d/%d" % [totals[0], totals[1]],
-		"%d/%d" % [totals[2], totals[3]],
-		"%d:%02d" % [totals[4] / 60, totals[4] % 60]
-	]
-	for k in 3:
-		text(c, summ[k], columns[k], total_y, "body", AMBER, false, true, true)
-	text(c, game.level.ending, 21, total_y + 15, "body", AMBER)
-	text(c, "ENTER  RETURN TO CROSSROADS", 160, 175, "body", INK, true)
+	Finale.draw(c, game)
 
 
 func _blit_art(c: Canvas, name: String, x: int, y: int) -> void:

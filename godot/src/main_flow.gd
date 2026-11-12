@@ -25,7 +25,8 @@ func start(
 			{
 				"fair": [Weapons.ROCKET, 3],
 				"sawmill": [Weapons.BOWLING, 3],
-				"quarry": [Weapons.COW, 3]
+				"quarry": [Weapons.COW, 3],
+				"mothership": [Weapons.ARMGUN, 18],
 			}
 			. get(level_id, [Weapons.ROCKET, 3])
 		)
@@ -99,7 +100,10 @@ func open_hub(origin = null, message := "") -> void:
 			hub.gate_modes[level_id] = "REPLAY"
 	var carried: Game = campaign_run if campaign_run != null else hub_origin
 	if campaign_run != null:
-		hub.hub_milestone = campaign_run.history.size() + (1 if campaign_run.won else 0)
+		hub.hub_milestone = mini(
+			campaign_run.history.size() + (1 if campaign_run.won else 0),
+			Game.HUB_DISPATCH.size() - 1
+		)
 	if carried != null and carried.player.health > 0:
 		hub.apply_loadout(carried.loadout())
 	hub.player.x = float(hub.level.spawn[0])
@@ -195,7 +199,7 @@ func continue_campaign() -> void:
 		return
 	var following := Campaign.next_level(current.level.id)
 	if following == "":
-		open_hub(current, "SHIFT COMPLETE. OPEN ROADS LEAD BACK TO FINISHED CHAPTERS.")
+		open_hub(current, "THE SKY'S CLEAR. EVERY ROAD LEADS BACK TO A FINISHED CHAPTER.")
 		return
 	var history: Array = current.history.duplicate()
 	history.append(current.result())

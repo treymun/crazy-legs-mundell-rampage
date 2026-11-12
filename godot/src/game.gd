@@ -283,7 +283,7 @@ func tick(dt: float, controls) -> void:
 		space = (
 			"barn"
 			if area_sound == "barn"
-			else "hall" if ambience == "quarry_line" or ambience == "mill" else "room"
+			else "hall" if ambience in ["quarry_line", "mill", "mothership"] else "room"
 		)
 	elif area_sound == "creek":
 		space = "creek"

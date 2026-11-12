@@ -2001,6 +2001,10 @@ ACTORS = {"billy": (billy, BILLY, ("fidget",), None), "coot": (coot, COOT, ("fid
           "baron": (baron, BARON, (), None), "jerry": (jerry, JERRY, (), None),
           "skeeter": (skeeter, SKEETER, (), FLYER), "saucer": (saucer, SAUCER, (), FLYER),
           "crawler": (crawler, CRAWLER, (), GROUND), "lantern": (lantern, LANTERN, (), GROUND)}
+# The mothership's crew and Maw Glorb (chapter 7) live next door.
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "enemy_ship.py"), encoding="utf-8") as _ship:
+    exec(_ship.read(), globals())
+ACTORS.update(SHIP_ACTORS)
 
 
 # ---------------------------------------------------------------- stage

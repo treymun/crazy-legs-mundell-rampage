@@ -39,6 +39,9 @@ func _run() -> void:
 	print("pcm decode ", "%d cues, %.1f s" % [assets.sfx_index.size(), seconds])
 	for bank: String in Sound.SCORES:
 		for stem: String in Sound.SCORES[bank]:
+			if stem in Assets.PENDING_MUSIC and not assets.music_index.has(stem):
+				print("track      %-22s pending (assets.gd PENDING_MUSIC)" % stem)
+				continue
 			var ogg := assets.track(stem)
 			var cut := float(assets.music_ends.get(stem, 0.0))
 			if ogg == null or cut <= 0.0 or cut > ogg.get_length():
@@ -49,6 +52,9 @@ func _run() -> void:
 	# Each chapter's fight loop opens, from that chapter's own music file.
 	for bank: String in Sound.FIGHTS:
 		var stem: String = Sound.FIGHTS[bank]
+		if stem in Assets.PENDING_MUSIC and not assets.music_index.has(stem):
+			print("fight loop %-18s pending (assets.gd PENDING_MUSIC)" % stem)
+			continue
 		var ogg := assets.track(stem)
 		var home := String(assets.music_index.get(stem, {}).get("file", ""))
 		var chapter := String(assets.music_index.get(Sound.SCORES[bank][0], {}).get("file", ""))

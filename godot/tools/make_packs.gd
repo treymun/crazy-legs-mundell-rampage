@@ -15,6 +15,7 @@ const PACKS := {
 	"music_fair": ["music_fair.bin", "art_fair.bin"],
 	"music_mill": ["music_mill.bin", "art_mill.bin"],
 	"music_quarry": ["music_quarry.bin", "art_quarry.bin"],
+	"music_mothership": ["music_mothership.bin", "art_mothership.bin"],
 }
 
 

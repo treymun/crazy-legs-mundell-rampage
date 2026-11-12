@@ -589,6 +589,7 @@ func _run() -> void:
 	weather.next_flash = 0.0
 	stormy.ticked.emit(1.0 / 60.0)
 	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
+	_mothership(main)
 
 	print("")
 	if failures.is_empty():
@@ -942,3 +943,85 @@ func _check_setup_moves(main: Control) -> void:
 	main.option_page = 0
 	main.option_slot = 0
 	main.option_scroll = 0
+
+
+## The Mothership, the last chapter: the tin guard's tailgate, Maw Glorb's
+## phases, telegraphs, pod crew and fall, and the true finale after it.
+func _mothership(main) -> void:
+	print("\nTHE MOTHERSHIP")
+	var ship: Game = main.make_game("mothership")
+	ship.configure({})
+	ship.spawn_grace = 0.0
+	var fight = ship.features.get("mothership")
+	check(fight != null and fight.maw != null, "the ship's finale is Maw Glorb")
+	check(ship.finale != null and ship.finale.kind == "maw", "Maw is the chapter's finale boss")
+	check(fight.pods.size() == 8, "eight pods round the core (%d)" % fight.pods.size())
+	var guard := Enemy.new("tin_guard", 30.0, 30.0, 0.0)
+	ship.enemies.append(guard)
+	ship.player.x = 33.0
+	ship.player.y = 30.0
+	var whole := guard.hp
+	guard.hurt(40.0, ship, false, false, null, "revolver")
+	check(absf(whole - guard.hp - 12.0) < .01, "the tailgate stops most of a shot from the front")
+	guard.angle = PI
+	var before := guard.hp
+	guard.hurt(40.0, ship, false, false, null, "revolver")
+	check(absf(before - guard.hp - 40.0) < .01, "from behind it takes the whole shot")
+	ship.enemies.erase(guard)
+	var maw: Enemy = fight.maw
+	check(maw.dormant, "Maw sleeps till the iris opens")
+	for id in ["drive", "tubes", "iris"]:
+		for station: LevelData.Station in ship.world.stations:
+			if station.id == id:
+				ship.activate_station(station)
+	check(not maw.dormant, "the iris wakes her")
+	ship.player.x = 64.5
+	ship.player.y = 41.5
+	ship.player.angle = PI / 2
+	maw.hurt(maw.max_hp * .4, ship)
+	ship.ticked.emit(1.0 / 60.0)
+	check(fight.phase == 2 and maw.enraged, "two thirds down she is fightin' mad (phase two)")
+	check(fight.beam_count() > 0, "the tractor beam comes loose in phase two")
+	maw.windup = 0.0
+	maw.attacks = 0
+	maw.cooldown = 0.0
+	maw.windup = .5
+	maw.aim_mark = [ship.player.x, ship.player.y, ship.player.eye]
+	fight.winding = false
+	ship.ticked.emit(1.0 / 60.0)
+	check(fight.pending != "", "her wind-up picks an attack (%s)" % fight.pending)
+	check(fight.ground_marks().size() > 0, "and marks the floor for it")
+	var crew_before := ship.enemies.size()
+	fight.phase = 2
+	fight._call_crew()
+	check(ship.enemies.size() > crew_before, "her holler brings crew out of the pods")
+	maw.hurt(maw.hp - maw.max_hp * .2, ship)
+	ship.ticked.emit(1.0 / 60.0)
+	check(fight.phase == 3, "a third left she is out of the housecoat (phase three)")
+	check(ShipAliens.skin(maw) == "_bare", "and drawn in her second set of pictures")
+	maw.hurt(99999.0, ship)
+	check(fight.fallen_at >= 0.0, "her fall starts the ship coming apart")
+	var crew_left := 0
+	for i in range(ship.enemy_ids.size(), ship.enemies.size()):
+		if ship.enemies[i].alive:
+			crew_left += 1
+	check(crew_left == 0, "her pod crew drop with her")
+	for e: Enemy in ship.wave:
+		e.hurt(99999.0, ship)
+	Triggers.tick(ship)
+	var hatch_open := false
+	for door: LevelData.Door in ship.world.doors:
+		if door.x == 64 and door.y == 62:
+			hatch_open = door.opened
+	check(hatch_open, "the core's hatch opens the way out")
+	check(ship.exit_ready(), "the escape outhouse is ready")
+	ship.history = [["hickston", 1, 2, 0, 1, 60], ["fair", 1, 2, 0, 1, 60]]
+	ship.finish_level("gate")
+	var canvas := Canvas.new()
+	ship.draw(canvas, 1, true)
+	var lit := 0
+	for i in range(0, canvas.pixels.size(), 3):
+		if canvas.pixels[i] != 0 or canvas.pixels[i + 1] != 0:
+			lit += 1
+	check(lit > 4000, "the finale's tally draws after the last chapter (%d lit)" % lit)
+	check(Campaign.next_level("mothership") == "", "the Mothership is the last chapter")

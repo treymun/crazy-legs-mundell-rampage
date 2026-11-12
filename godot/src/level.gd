@@ -809,7 +809,20 @@ const METAL_TILES := [
 	"quarry_iron",
 	"quarry_copper",
 	"hub_tank_shell",
-	"powder_panel"
+	"powder_panel",
+	"ship_hull",
+	"ship_tin",
+	"ship_rib",
+	"ship_panel",
+	"ship_core",
+	"ship_door",
+	"ship_edge",
+	"ship_pod",
+	"ship_vat",
+	"ship_beam",
+	"ship_screen",
+	"ship_deck",
+	"ship_grate"
 ]
 const PLASTER_TILES := [
 	"plaster", "brick", "cinder", "tile", "concrete", "quarry_face", "office_wall", "tavern"
@@ -847,6 +860,9 @@ const SURFACE_SOUNDS := {
 	"quarry_dust": "gravel",
 	"quarry_face": "gravel",
 	"route_threshold": "gravel",
+	"ship_deck": "tile",
+	"ship_grate": "tile",
+	"ship_lino": "tile",
 }
 
 var _impact_surfaces := {}

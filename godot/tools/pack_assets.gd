@@ -36,6 +36,7 @@ const MUSIC_FILES := {
 	"music_fair": ["fair_score", "tickets_after_dark", "closing_time_shuffle", "fight_fair"],
 	"music_mill": ["mill_score", "green_chain", "apron_run", "fight_mill"],
 	"music_quarry": ["quarry_score", "copper_and_steam", "last_load", "fight_quarry"],
+	"music_mothership": ["mothership_score", "fight_mothership", "boss_mothership"],
 }
 const REQUIRED_MUSIC := ["title", "victory"]
 
@@ -277,7 +278,15 @@ func _music() -> void:
 		blob.append_array(data)
 		blobs[file_name] = blob
 	for track: String in home.keys() + REQUIRED_MUSIC:
-		if not index.has(track):
+		if index.has(track):
+			continue
+		if track in AssetsLib.PENDING_MUSIC:
+			# Not made yet (assets.gd PENDING_MUSIC): its chapter's file is written
+			# all the same, so the browser packs and their loader find it.
+			print("music pending: " + track)
+			if not blobs.has(home[track]):
+				blobs[home[track]] = PackedByteArray()
+		else:
 			_fail("music missing: " + track)
 	for file_name: String in blobs:
 		_write(file_name + ".bin", blobs[file_name])

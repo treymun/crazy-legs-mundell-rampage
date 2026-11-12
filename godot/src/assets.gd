@@ -18,8 +18,19 @@ const CHAPTER_KINDS := {
 	"fair": ["barker", "bottle_tosser", "crawler", "rudy"],
 	"sawmill": ["chain_hand", "foreman", "lantern", "millhand"],
 	"quarry": ["baron", "boilerback", "chalk_spitter", "valve_rat"],
+	"mothership": ["drone", "maw", "probe", "tin_guard"],
 }
-const CHAPTER_ART := {"fair": "art_fair.bin", "sawmill": "art_mill.bin", "quarry": "art_quarry.bin"}
+const CHAPTER_ART := {
+	"fair": "art_fair.bin",
+	"sawmill": "art_mill.bin",
+	"quarry": "art_quarry.bin",
+	"mothership": "art_mothership.bin",
+}
+## Chapter music still to be made (the main session's audio pass; see
+## docs/new_chapters/<id>_audio.md): tools/pack_assets.gd and verify_assets.gd
+## note these as pending instead of failing, and the game plays nothing for
+## them till they come. Take a track off once it is in godot/assets/music.
+const PENDING_MUSIC := ["mothership_score", "fight_mothership", "boss_mothership"]
 
 var tile_names: PackedStringArray = PackedStringArray()
 var tile_index: Dictionary = {}

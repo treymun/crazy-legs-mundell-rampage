@@ -29,7 +29,7 @@ func _init(owner) -> void:
 	for kind in kinds:
 		things.append(["enemy", String(kind)])
 	var pickups := {}
-	for id in ["hickston", "fair", "sawmill", "quarry"]:
+	for id in ["hickston", "fair", "sawmill", "quarry", "mothership"]:
 		for entry: Array in LevelEdit.read(id).get("pickups", []):
 			pickups[String(entry[0])] = true
 	var names := pickups.keys()

@@ -380,6 +380,7 @@ func hurt(
 ) -> void:
 	if not alive or brain == "bessie":
 		return
+	amount = ShipAliens.soak(self, amount, game, how, explosive_hit, pressure, by)
 	var from_x: float = game.player.x if by == null else by.x
 	var from_y: float = game.player.y if by == null else by.y
 	var was_stunned := stun > 0.0
@@ -960,6 +961,8 @@ func _spread(game) -> float:
 
 func attack(game, direction: float, distance: float, eye: float, aim_z = null) -> void:
 	attacks += 1
+	if ShipAliens.attack(self, game, direction, distance, eye, aim_z):
+		return
 	if SIGNATURES.has(kind):
 		signature_attack(game, direction, distance, eye, aim_z)
 		return
@@ -1293,7 +1296,7 @@ func sprite(observer = null, relieved := false, now := -1.0):
 		frame = "w%d" % posmod(int(floor(gait / (PI * .5))), 4)
 	else:
 		frame = int(round(sin(gait)))
-	var stem := kind
+	var stem: String = kind + ShipAliens.skin(self)
 	var flip := face_left
 	var walking: bool = frame is String and String(frame).begins_with("w")
 	var plain: bool = frame is int and frame >= -1 and frame <= 1
