@@ -652,6 +652,9 @@ func _run() -> void:
 	# The multiplayer foundation: two players, snapshots, determinism (the
 	# quick part; net_check.gd on its own plays every chapter longer).
 	preload("res://tools/net_check.gd").run(main, check)
+	# The game modes: co-op's revive, respawn, scaling and shared hazards;
+	# deathmatch's spawns, frags, limits and results (mode_check.gd).
+	preload("res://tools/mode_check.gd").run(main, check)
 
 	print("")
 	if failures.is_empty():

@@ -950,6 +950,8 @@ func title(c: Canvas, index: int, entries: PackedStringArray, note := "") -> voi
 
 
 func intermission(c: Canvas, game: Game) -> void:
+	if ModeScreens.results(c, game):
+		return  # a versus match's results (src/modes/)
 	var following := Campaign.next_level(game.level.id)
 	if following == "" and not game.history.is_empty() and not game.replay:
 		campaign_report(c, game)

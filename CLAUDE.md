@@ -72,6 +72,7 @@ godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVE
 godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)
+godot --headless --path godot --script res://tools/mode_check.gd      # MODE CHECK OK (co-op, deathmatch; quick: check_fixes's part)
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 
 # Pacing and balance (not in CI)
@@ -814,9 +815,11 @@ times, the duels).
   nearest alive; ties to the lower slot, no dice. `Enemy.hunted` is the pick;
   the enemy ticks with that player acting, so its sight, flow field (each
   player has one), aim marks, flanks and blows are about them. Squads form
-  per hunted player (`squad_feature.gd _step(only)`); Maw follows hers. A
-  hostile body keeps out of every player's way; players pass through each
-  other.
+  per hunted player (`squad_feature.gd _step(only)`); Maw follows hers (her
+  wind-up, curlers and crew calls too). A hostile body keeps out of every
+  player's way; in co-op and versus players who are up block each other
+  (`move_actor`, `GameMode.bodies_block`; the campaign's two-player runs pass
+  through, as the foundation's checks expect).
 - **Presentation follows the local player**: the HUD, view, automap,
   objective pin, camera shake (a blast's by distance to the local player),
   the face (`set_face`), barks, messages, the crosshair's hit mark, the hurt
@@ -880,8 +883,113 @@ times, the duels).
   gun through its controls so a lockstep game gets them too.
 - **Not done yet:** applying a snapshot onto a game already running (only a
   fresh one: SessionStore's restore is not idempotent for station lights,
-  breaks or the posse); per-player stats, messages and kill feed; player
-  bodies blocking each other; respawn; Maw's area attacks hit only the player
-  she is after; a slick or a race car bites one player at a time; the
-  objective pin, boss bar, boss checkpoint and rematch think of one player;
-  the steam scald list is keyed by hazard instance id (not carried).
+  breaks or the posse); per-player stats (chapter stats and the tally are
+  the local player's) and a kill feed; the steam scald list is keyed by
+  hazard instance id (not carried). Respawn, bodies blocking, area attacks
+  on every player and the group's boss fight are the modes' (below).
+
+## Modes
+
+`src/modes/` holds the rules a game plays by; `features/mode_feature.gd`
+(id `mode`, a simulation feature, last in `Features.ALL`) holds what they
+remember and runs their hooks. The **campaign** is the default and nothing
+in either runs for it: its feature saves nothing (old saves, fixtures and
+every single-player check are as before).
+
+- **Framework.** `GameMode` (`game_mode.gd`) is one shared, stateless object
+  per mode (`Modes.rules_for(name)`): `start` (first tick, after the posse),
+  `joined`/`left`, `tick`, `downed(p, by)` (health reached 0; `by` the slot
+  whose hit landed, from `st.blame`, -1 the world or an enemy), `respawn`,
+  `defeated` (the death screen: `game.defeated()`, which the front end asks
+  instead of `player.health <= 0`), `over` (versus results), `pickup`,
+  `hurt_scale(attacker, victim, blast)` (friendly fire), `won`, `scores`.
+  State lives on the players (`Player.down_at`, `revive`, `holding`,
+  `frags`, `deaths`, `team`, `downed_by`) and in the feature (plain values:
+  `mode`, `scaled_upto`, limits, arena, spawns, pickups coming back). A
+  save keeps the mode and every player past the first (place, health, guns,
+  pockets; frags for all) in the features block (no new save version), so a
+  co-op save loads as co-op with its partners. `Modes.setup(game, name,
+  count, options)` before the first tick; `Modes.rules(game)`,
+  `Modes.mode_of(game)`, `Modes.is_versus(game)`. A player's hit on another
+  goes through `Modes.player_in_line`/`player_hit` (hitscan),
+  `shot_strikes` (`_hits`) and `blast_hit` (explode), which blame the
+  shooter; `Controls.hold` is USE held down (the front end sets it from the
+  bound key).
+- **Co-op** (`coop_mode.gd`): keys and the PA lead shared (`Players.SHARED`),
+  guns, health, rounds and pockets each player's own. A gun or ammo pickup
+  goes to EVERY player up (each gets the toucher's amount); pocket items to
+  the toucher. At 0 a player is DOWN: a partner holding USE within 1.3 for 3 s
+  stands them up with 35 (`REVIVE_*`; letting go eases the progress back);
+  left 20 s they come back beside the nearest partner with 50, guns kept.
+  Lost only when everyone is down at once. A partner's bullets pass through
+  you, their blasts bite at half, your own in full. A boss fight begins when
+  ANY player up walks into its arena (`BossKit.party_in_arena`); the bar,
+  boss loop and checkpoint follow the local player; a retried fight, a
+  loaded save or a rematch brings the partners to player one's side
+  (`Modes.gather`, main_flow `_take_mode`); the entrance hold and hitstop are
+  single-player only (as before). The exit ends the chapter for the whole
+  party (anyone down comes along with 35) and each partner carries their own
+  kit into the next game (`Modes.carry`). Every area attack hits everyone in
+  it: steam and chalk (`update_hazards`), burning slicks (per-player bites:
+  `s[3]` player one, `s[4+slot]` the rest), race cars (`car[2]`, `car[3+slot]`;
+  the shake and the hit sound only on a hit now), Maw's rolling pin, stomp
+  rings (`ring[3]` player one, bits of `ring[4]` the rest) and loose beam
+  (`beam_hurt`), arena fire, rollers, the log carriage, steam jets and core
+  pulses (already per player).
+- **Scaling** (`CoopMode.SCALE`, applied on the first tick and to every enemy
+  that joins later, `scale_new`):
+
+  | players | hands' health | bosses' health | extra hands at the start |
+  | --- | --- | --- | --- |
+  | 1 | x1 | x1 | none |
+  | 2 | x1.25 | x1.6 | a partner beside every 3rd hand about |
+  | 3 | x1.5 | x2.2 | every 2nd |
+  | 4 | x1.75 | x2.8 | every hand |
+
+  The extras join after the level's own (the posse feature saves them).
+- **Deathmatch** (`deathmatch_mode.gd`): no enemies (cleared at the start:
+  the level's own, posse, critters); spawn points worked out from the arena
+  (`Modes.spawn_points`: open dry cells with nothing within .45, reachable
+  from the middle, spread farthest-first, inside a boss kind's `box` when the
+  arena names one); everyone starts with `Modes.give_kit` (crowbar, .38,
+  shotgun). Every hit lands at `Modes.PVP_SCALE` (.5) of what it does to a
+  hand, your own blast too. A kill is a frag, a fall to the world or your
+  own blast takes one off; back 3 s later at the spawn point farthest from
+  everyone up, full health, the kit again. Pickups come back 20 s after they
+  are taken. The frag limit (10) or the time limit (300 s) ends the match:
+  `game.won` (play stops) and the results screen in the tally's county-fair
+  look (`ModeScreens.results`, from `hud.gd intermission`; ENTER another round,
+  ESC the title). Never saved (F5 says so); never the death screen. On the
+  range the medic, refills and station cards are off. Arenas
+  (`Modes.ARENAS`): `range`, `hub`, `hickston:boss`, `hickston:jerry`,
+  `fair:rudy`, `sawmill:foreman`.
+- **Team deathmatch** (`team_deathmatch_mode.gd`): RED slots 0 and 2, BLUE 1
+  and 3; teammates' bullets and blasts pass by; the frag limit is the team's
+  score.
+- **Presentation** (`mode_screens.gd`, drawn only with more than one player):
+  partners in the world (`player_<heading>_<step>` cels, tinted by slot,
+  squat when down), each partner's tag and health over their head or at the
+  view's edge with an arrow, `E  HOLD TO REVIVE P2` where the use prompts go
+  and the progress, the frags and clock in versus, the down screen
+  (`game_view.gd`: YOU'RE DOWN with the respawn count, FRAGGED BY P2) instead
+  of the death screen while play goes on, and the results.
+- **Running them locally** (no networking): `--mode=coop --players=2
+  [--level=hickston]` (without `--level` the title's NEW GAME), `--mode=
+  deathmatch --players=2 [--arena=hickston:boss] [--frag-limit=5]
+  [--time-limit=120]`, `--mode=team_deathmatch --players=4`. Every player but
+  this machine's is played by `tools/mode_bot.gd` (bot_pilot plus reviving and
+  following in co-op, hunting in versus), from the project folder only
+  (`DevConsole.available()`); an exported build leaves them standing.
+  `tools/mode_check.gd` (its quick part in check_fixes; `-- seconds=90` plays
+  longer) holds the rules; `tools/mode_frames.gd -- out=<dir>` (a window)
+  takes pictures of the partner tags, the revive, the down screen, a
+  deathmatch and both results screens (`docs/modes/`).
+- **Not done:** networking; a second local input set (split keyboard);
+  per-player kill counts and a kill feed; a lying-down picture for a player
+  who is down (the standing one, squat); spawn points from the plans (only
+  worked out); versus pickups other than the level's own; the title menu has
+  no mode entry (command line only). A save or snapshot taken while player
+  one is down does not load (SessionStore refuses a player at 0; the
+  quicksave is refused then anyway). The co-op boss checkpoint's retry with
+  partners is put together from the save round-trip and `gather`, with no
+  check of its own; the boss PARs and the tuning are single-player numbers.

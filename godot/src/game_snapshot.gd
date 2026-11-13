@@ -274,6 +274,7 @@ const SIM_FEATURES := [
 	"critters",
 	"variants",
 	"squad",
+	"mode",
 ]
 ## Features that only look or sound (their own dice; never carried).
 const LOOKS_FEATURES := [

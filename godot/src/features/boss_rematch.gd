@@ -76,7 +76,7 @@ func seconds() -> float:
 ## The result is due: the boss fell AFTER seconds ago (or the player went down
 ## after it fell).
 func finished() -> bool:
-	return active and fell >= 0.0 and (game.clock - fell >= AFTER or game.player.health <= 0)
+	return active and fell >= 0.0 and (game.clock - fell >= AFTER or game.defeated())
 
 
 func death_lines() -> Array:

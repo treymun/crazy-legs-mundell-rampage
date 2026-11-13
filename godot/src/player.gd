@@ -55,6 +55,22 @@ var next_belch := 0.0
 ## not the local player (player_voice.gd places them where this player stands).
 var voice = null
 
+# What the game modes keep on each player (src/modes/; CLAUDE.md "Modes").
+
+## USE is held down this tick (Controls.use or Controls.hold): reviving a partner.
+var holding := false
+## When this player went down (game.clock; -1 while up), and how far a partner
+## has got reviving them (seconds of REVIVE_TIME).
+var down_at := -1.0
+var revive := 0.0
+## Versus: frags (a kill of another player +1, a fall to the world or your
+## own blast -1), deaths, and the team (team deathmatch: 0 red, 1 blue).
+var frags := 0
+var deaths := 0
+var team := 0
+## Who last brought this player down (a slot; -1 the world or an enemy).
+var downed_by := -1
+
 
 func _init(px := 0.0, py := 0.0, pa := 0.0) -> void:
 	x = px
