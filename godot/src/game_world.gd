@@ -123,6 +123,8 @@ func sound_cutoff(x: float, y: float) -> float:
 
 
 func sound_at(name: String, x: float, y: float, strength := 1.0) -> void:
+	if host:
+		return
 	var place := sound_position(x, y, strength)
 	speaker.play(name, place.x, place.y, sound_cutoff(x, y))
 	var p := local_player
@@ -928,6 +930,7 @@ func interact() -> void:
 
 
 func set_station_lights(station: LevelData.Station) -> void:
+	lit_stations[station.id] = true
 	for sector_v in station.sectors:
 		var sector := int(sector_v)
 		var n := world.area.size()

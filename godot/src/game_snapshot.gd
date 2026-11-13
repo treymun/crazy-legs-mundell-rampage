@@ -1,12 +1,17 @@
-## Snapshots of the simulation, for a later network game: what a machine needs
-## to carry on the game another machine is running, tick for tick.
+## Snapshots of the simulation, for a network game: what a machine needs to
+## carry on the game another machine is running, tick for tick.
 ##
 ##   var data := GameSnapshot.capture(game)      # a Dictionary of plain values
-##   GameSnapshot.apply(fresh, data)             # fresh: Game.new(...) of that
-##                                               # level, never ticked
+##   GameSnapshot.apply(game, data)              # onto a Game of that level:
+##                                               # fresh, or one already running
 ##   var bytes := GameSnapshot.to_bytes(data)    # compact (zstd), from_bytes()
 ##   var d := GameSnapshot.delta(base, data)     # what changed since `base`
 ##   GameSnapshot.patch(base, d)                 # == data again
+##   GameSnapshot.apply_delta(game, d, data)     # only what d touches, from data
+##
+## The host (game_host.gd) does not capture and compare whole snapshots: its
+## NetTrack (net_track.gd) finds what changed field by field and hands out the
+## same deltas; a GameMirror puts them onto a client's game with apply_delta.
 ##
 ## What is SIMULATION (deterministic, from game.rng, carried) and what is
 ## PRESENTATION (cosmetic dice, sprites, sound, the HUD, never carried) is
@@ -15,21 +20,28 @@
 ## LOOKS_FEATURES, and tools/net_check.gd fails when one is in none (a new
 ## field or feature must be put in one). Enemies, players, shots and the
 ## state of the simulation's features are carried whole (every script
-## variable, snap_codec.gd), less SnapCodec.SKIP_FIELDS.
+## variable, snap_codec.gd), less SnapCodec.SKIP_FIELDS and what its
+## ONLY_FIELDS leave out of things the level makes the same everywhere.
 ##
-## A snapshot holds: "save" (the save game of the moment, SessionStore's own,
-## which puts back the level's doors, broken things, stations and features),
-## "game" (SIM_FIELDS), "players" (by slot), "enemies" (by uid, with "order"),
-## "features" (each simulation feature's variables). Entities are named by
-## stable ids: a player by slot, an enemy, shot or pickup by its uid
-## (game.take_uid, handed out as things come into being), a door, station or
-## scenery piece by its place in the level's list, a breakable or a wall
-## break by its place in its feature's list.
+## A snapshot holds: "game" (SIM_FIELDS), "world" (each door's progress,
+## opened and discovered by its place in the level's list; the panes broken,
+## in the order they broke), "facts" (the save() of each feature in
+## FACT_FEATURES: what it broke, which changes the level's walls and floor;
+## apply hands it to the feature's restore(), which puts back only what is
+## not broken yet), "players" (by slot), "enemies" (by uid, with "order"),
+## "features" (each simulation feature's variables), "statics". A finished
+## station's lights follow stations_done. Entities are named by stable ids: a
+## player by slot, an enemy, shot or pickup by its uid (game.take_uid, handed
+## out as things come into being), a door, station or scenery piece by its
+## place in the level's list, a breakable or a wall break by its place in its
+## feature's list.
 class_name GameSnapshot
 extends RefCounted
 
-const VERSION := 1
-
+const VERSION := 2
+## Features whose save() is how the level's walls and floor are put back (a
+## piece broken leaves its base, a fence shot through opens its cell).
+const FACT_FEATURES := ["breakables", "wall_breaks"]
 ## The game's simulation state: carried and put back.
 const SIM_FIELDS := [
 	"clock",
@@ -254,6 +266,9 @@ const VIEW_FIELDS := [
 	"map_zoom",
 	"_map_texture",
 	"stage_ms",
+	"host",
+	"net_facts",
+	"lit_stations",
 ]
 ## Features whose state is play (carried: every variable but `game`).
 const SIM_FEATURES := [
@@ -304,7 +319,8 @@ static func capture(game) -> Dictionary:
 	var codec := SnapCodec.new(game)
 	var fields := {}
 	for name: String in SIM_FIELDS:
-		fields[name] = codec.encode(game.get(name))
+		var v = game.get(name)
+		fields[name] = v if SnapCodec.PLAIN.has(typeof(v)) else codec.encode(v)
 	var players := {}
 	for p: Player in game.players:
 		players[str(p.slot)] = codec.encode_fields(p)
@@ -313,38 +329,72 @@ static func capture(game) -> Dictionary:
 	for i in game.enemies.size():
 		var e: Enemy = game.enemies[i]
 		order.append(e.uid)
-		var row: Dictionary = codec.encode_fields(e)
-		row["@id"] = String(game.enemy_ids[i]) if i < game.enemy_ids.size() else ""
-		enemies[str(e.uid)] = row
+		enemies[str(e.uid)] = enemy_row(game, codec, i)
 	var features := {}
 	for id: String in SIM_FEATURES:
 		var feature = game.features.get(id)
-		if feature == null:
-			continue
-		var vars := {}
-		for name: String in SnapCodec.fields_of(feature, id):
-			if name != "game":
-				vars[name] = codec.encode(feature.get(name))
-		features[id] = vars
+		if feature != null:
+			features[id] = feature_row(codec, feature, id)
 	return {
 		"v": VERSION,
 		"level": game.level.id,
 		"layout": game.level.layout,
-		"save": _save_of(game),
 		"game": fields,
+		"world": world_of(game),
+		"facts": facts_of(game),
 		"players": players,
 		"enemies": enemies,
 		"order": order,
 		"features": features,
-		"statics": _statics(codec),
+		"statics": statics_of(codec),
 		"unknown": codec.unknown.keys(),
 	}
+
+
+## The carried fields of game.enemies[i], with "@id" its id in the level ("" for
+## one that joined later).
+static func enemy_row(game, codec: SnapCodec, i: int) -> Dictionary:
+	var row: Dictionary = codec.encode_fields(game.enemies[i])
+	row["@id"] = String(game.enemy_ids[i]) if i < game.enemy_ids.size() else ""
+	return row
+
+
+## A simulation feature's variables (all but `game`).
+static func feature_row(codec: SnapCodec, feature, id: String) -> Dictionary:
+	var vars := {}
+	for name: String in SnapCodec.fields_of(feature, id):
+		if name != "game":
+			var v = feature.get(name)
+			vars[name] = v if SnapCodec.PLAIN.has(typeof(v)) else codec.encode(v)
+	return vars
+
+
+## The level's own changing state: each door's progress, opened and
+## discovered (by its place in the level's list), the panes broken.
+static func world_of(game) -> Dictionary:
+	var doors: Array = []
+	for door: LevelData.Door in game.world.doors:
+		doors.append([door.progress, door.opened, door.discovered])
+	var panes: Array = []
+	for cell: Vector2i in game.world.broken_panes:
+		panes.append(cell)
+	return {"doors": doors, "panes": panes}
+
+
+## What each FACT_FEATURES feature broke, in its save's own form.
+static func facts_of(game) -> Dictionary:
+	var out := {}
+	for id: String in FACT_FEATURES:
+		var feature = game.features.get(id)
+		if feature != null:
+			out[id] = SnapCodec.plain(feature.save())
+	return out
 
 
 ## Play kept in static variables (every game in the program shares them, by
 ## enemy instance id): this game's part. New play belongs on the enemy or in a
 ## feature instead.
-static func _statics(codec: SnapCodec) -> Dictionary:
+static func statics_of(codec: SnapCodec) -> Dictionary:
 	var derby := {}
 	for key in DerbyChamp.state:
 		if codec.iids.has(key):
@@ -352,19 +402,12 @@ static func _statics(codec: SnapCodec) -> Dictionary:
 	return {"derby": codec.encode(derby)}
 
 
-## The save game of the moment, less the flying specks and blast flashes (a
-## save keeps them; they are looks, made with the features' own dice too).
-static func _save_of(game) -> Dictionary:
-	var doc := SessionStore.snapshot(game)
-	doc["specks"] = []
-	doc["blasts"] = []
-	return SnapCodec.plain(doc)
-
-
-## Puts the simulation state `data` onto `game`, a Game just made for the
-## same level (Game.new, never ticked): the players it lacks join, the save
-## puts back the level's state, then every carried field is set. Presentation
-## options stay as `game` had them. False when `data` is for another level.
+## Puts the simulation state `data` onto `game`, a Game of the same level and
+## layout: one just made (Game.new) or one already running (a client keeping
+## up with a host). The players it lacks join, the level's doors, panes and
+## broken things are put as they were (only what is not broken yet breaks),
+## then every carried field is set. Presentation options stay as `game` had
+## them. False when `data` is for another level.
 static func apply(game, data: Dictionary) -> bool:
 	if String(data.get("level", "")) != game.level.id:
 		return false
@@ -376,19 +419,15 @@ static func apply(game, data: Dictionary) -> bool:
 		Players.join(game, game.player.x, game.player.y, 0.0)
 	var local: Player = game.local_player
 	game.focus(game.players[0])
-	if SessionStore.restore_onto(data["save"], game) != game:
-		return false
-	_apply_enemies(game, codec, data)
+	_apply_world(game, data.get("world", {}))
+	_apply_enemies(game, codec, data, {})
+	_apply_facts(game, data.get("facts", {}))
 	for slot: String in players:
 		var p: Player = game.players[int(slot)]
 		var row: Dictionary = players[slot]
 		for name: String in row:
 			codec.set_field(p, name, row[name])
-	# The dictionaries the party shares are one object again (Players.SHARED).
-	for name: String in Players.SHARED:
-		if bool(Players.SHARED[name]):
-			for p: Player in game.players:
-				p.set(name, game.players[0].get(name))
+	_share(game)
 	var fields: Dictionary = data["game"]
 	for name: String in SIM_FIELDS:
 		if fields.has(name):
@@ -401,42 +440,172 @@ static func apply(game, data: Dictionary) -> bool:
 		var vars: Dictionary = features[id]
 		for name: String in vars:
 			codec.set_field(feature, name, vars[name])
-	var statics: Dictionary = data.get("statics", {})
-	var derby = codec.decode(statics.get("derby", {}))
-	if derby is Dictionary:
-		DerbyChamp.state.merge(derby, true)
-	# Caches keyed on what changed underneath them start over.
-	game.shelter_key = Vector2i(-1, -1)
-	game.route_sig = []
-	game.player = null
-	game.focus(local)
+	_apply_statics(game, codec, data.get("statics", {}))
+	_settle(game, local)
 	return true
 
 
-## The enemies in the snapshot's order: each one the game has at that place
-## (the level's own, then a posse or backup the save brought back) or a new
-## one, every carried field set; uids map for the references.
-static func _apply_enemies(game, codec: SnapCodec, data: Dictionary) -> void:
+## Puts onto `game` only what `change` (a delta whose patch gives `full`, the
+## whole snapshot it now matches) touches, each field from `full`: what a
+## client does with every delta from its host. `game` must hold the state of
+## the snapshot `change` was taken against.
+static func apply_delta(game, change: Dictionary, full: Dictionary) -> void:
+	var codec := SnapCodec.new(game)
+	var players: Dictionary = full["players"]
+	while game.players.size() < players.size():
+		Players.join(game, game.player.x, game.player.y, 0.0)
+	var local: Player = game.local_player
+	game.focus(game.players[0])
+	if change.has("world"):
+		_apply_world(game, full["world"])
+	if change.has("enemies") or change.has("order"):
+		_apply_enemies(game, codec, full, change.get("enemies", {}))
+	else:
+		for e: Enemy in game.enemies:
+			codec.by_uid[e.uid] = e
+	if change.has("facts"):
+		_apply_facts(game, full["facts"])
+	var players_change: Dictionary = change.get("players", {})
+	for slot in players_change:
+		if typeof(slot) == TYPE_STRING and String(slot).begins_with("@"):
+			continue
+		var row: Dictionary = players[slot]
+		var p: Player = game.players[int(slot)]
+		for name: String in _touched(players_change[slot], row):
+			codec.set_field(p, name, row[name])
+	if not players_change.is_empty():
+		_share(game)
+	var fields: Dictionary = full["game"]
+	for name: String in _touched(change.get("game", {}), fields):
+		codec.set_field(game, name, fields[name])
+	var features_change: Dictionary = change.get("features", {})
+	for id in features_change:
+		var feature = game.features.get(id)
+		if feature == null or not full["features"].has(id):
+			continue
+		var vars: Dictionary = full["features"][id]
+		for name: String in _touched(features_change[id], vars):
+			codec.set_field(feature, name, vars[name])
+	if change.has("statics"):
+		_apply_statics(game, codec, full["statics"])
+	_settle(game, local)
+
+
+## The field names a row's change touches (all of the row for a new one).
+static func _touched(change, row: Dictionary) -> Array:
+	if not (change is Dictionary) or change.has("@new"):
+		return row.keys()
+	var out: Array = []
+	for name in change:
+		if typeof(name) == TYPE_STRING and not String(name).begins_with("@"):
+			out.append(name)
+	return out
+
+
+## The dictionaries the party shares are one object again (Players.SHARED).
+static func _share(game) -> void:
+	for name: String in Players.SHARED:
+		if bool(Players.SHARED[name]):
+			for p: Player in game.players:
+				p.set(name, game.players[0].get(name))
+
+
+static func _apply_statics(game, codec: SnapCodec, statics: Dictionary) -> void:
+	var derby = codec.decode(statics.get("derby", {}))
+	if derby is Dictionary:
+		# Ours only (the dictionary is every game's): the old part of it goes.
+		for e: Enemy in game.enemies:
+			if not derby.has(e.get_instance_id()):
+				DerbyChamp.state.erase(e.get_instance_id())
+		DerbyChamp.state.merge(derby, true)
+
+
+## After a snapshot: a finished station's lights, and the caches keyed on what
+## changed underneath them start over; the local player is acting again.
+static func _settle(game, local: Player) -> void:
+	for station: LevelData.Station in game.world.stations:
+		if game.stations_done.has(station.id) and not game.lit_stations.has(station.id):
+			game.set_station_lights(station)
+	game.shelter_key = Vector2i(-1, -1)
+	game.route_sig = []
+	game._named_enemies = game.enemies.size()
+	game.player = null
+	game.focus(local)
+
+
+## Each door as the snapshot has it, and the panes broken.
+static func _apply_world(game, world: Dictionary) -> void:
+	var doors: Array = world.get("doors", [])
+	var list: Array = game.world.doors
+	for i in mini(doors.size(), list.size()):
+		var door: LevelData.Door = list[i]
+		var row: Array = doors[i]
+		door.progress = float(row[0])
+		door.opened = bool(row[1])
+		door.discovered = bool(row[2])
+	var panes: Array = world.get("panes", [])
+	if panes.size() != game.world.broken_panes.size():
+		var broken := {}
+		for cell in panes:
+			broken[cell] = true
+		game.world.broken_panes = broken
+
+
+## What FACT_FEATURES broke, onto the level: each feature's restore() breaks
+## what is not broken yet (quietly). Only when it differs from what this game
+## was last given (game.net_facts), so a running game is not asked each time.
+static func _apply_facts(game, facts: Dictionary) -> void:
+	for id: String in facts:
+		var feature = game.features.get(id)
+		if feature == null:
+			continue
+		var state = facts[id]
+		var key := var_to_bytes(state)
+		if game.net_facts.get(id) == key:
+			continue
+		game.net_facts[id] = key
+		feature.restore(state if state is Dictionary else {})
+
+
+## The enemies in the snapshot's order: each one the game has with that uid,
+## else a new one; every carried field set (for a delta, only the fields
+## `change` touches of the enemies it names, every field of a new one); uids
+## map for the references.
+static func _apply_enemies(game, codec: SnapCodec, data: Dictionary, change) -> void:
 	var rows: Dictionary = data["enemies"]
 	var order: Array = data["order"]
+	var had := {}
+	for e: Enemy in game.enemies:
+		had[e.uid] = e
+	var whole: bool = not (change is Dictionary) or change.is_empty() or change.has("@new")
 	var list: Array = []
 	var ids: Array = []
+	var made := {}
 	for i in order.size():
-		var row: Dictionary = rows[str(order[i])]
-		var e: Enemy = null
-		if i < game.enemies.size() and game.enemies[i].kind == String(row["kind"]):
-			e = game.enemies[i]
-		else:
+		var uid := int(order[i])
+		var row: Dictionary = rows[str(uid)]
+		var e: Enemy = had.get(uid)
+		if e == null:
 			e = Enemy.new(String(row["kind"]), float(row["x"]), float(row["y"]))
+			made[uid] = true
 		list.append(e)
-		codec.by_uid[int(order[i])] = e
+		codec.by_uid[uid] = e
 		if String(row["@id"]) != "":
 			ids.append(String(row["@id"]))
 	game.enemies.assign(list)
 	game.enemy_ids.assign(ids)
 	for i in order.size():
-		var row: Dictionary = rows[str(order[i])]
-		for name: String in row:
+		var uid := int(order[i])
+		var key := str(uid)
+		var row: Dictionary = rows[key]
+		var names: Array
+		if whole or made.has(uid):
+			names = row.keys()
+		elif change.has(key):
+			names = _touched(change[key], row)
+		else:
+			continue
+		for name: String in names:
 			if name != "@id":
 				codec.set_field(list[i], name, row[name])
 
@@ -455,6 +624,8 @@ static func to_bytes(data: Dictionary) -> PackedByteArray:
 
 
 static func from_bytes(bytes: PackedByteArray) -> Dictionary:
+	if bytes.size() < 4:
+		return {}
 	var size := bytes.decode_u32(0)
 	var raw := bytes.slice(4).decompress(size, FileAccess.COMPRESSION_ZSTD)
 	var data = bytes_to_var(raw)
@@ -476,22 +647,30 @@ static func _without_unknown(d: Dictionary) -> Dictionary:
 
 
 ## What changed from `base` to `now`: dictionaries are walked (a changed key
-## carries its new value, a key gone is listed under "@gone", the keys' order
-## under "@order" when it is not base's with new keys after); anything else
-## that differs is carried whole. patch(base, delta(base, now)) == now.
+## carries its new value: a dictionary as {"@new": value}, anything else as
+## it is; a key gone is listed under "@gone", the keys' order under "@order"
+## when it is not base's with new keys after). patch(base, delta(base, now))
+## == now. Each value is compared once, bit for bit.
 static func delta(base, now):
 	if not (base is Dictionary and now is Dictionary):
-		return {"@new": now}
+		return {"@new": now} if now is Dictionary else now
 	var out := {}
 	var gone: Array = []
 	for key in base:
 		if not now.has(key):
 			gone.append(key)
 	for key in now:
+		var n = now[key]
 		if not base.has(key):
-			out[key] = {"@new": now[key]}
-		elif var_to_bytes(base[key]) != var_to_bytes(now[key]):
-			out[key] = delta(base[key], now[key])
+			out[key] = {"@new": n} if n is Dictionary else n
+			continue
+		var b = base[key]
+		if b is Dictionary and n is Dictionary:
+			var inner = delta(b, n)
+			if not inner.is_empty():
+				out[key] = inner
+		elif typeof(b) != typeof(n) or var_to_bytes(b) != var_to_bytes(n):
+			out[key] = {"@new": n} if n is Dictionary else n
 	if not gone.is_empty():
 		out["@gone"] = gone
 	var expected: Array = []
@@ -501,27 +680,93 @@ static func delta(base, now):
 	for key in now:
 		if not base.has(key):
 			expected.append(key)
-	if var_to_bytes(expected) != var_to_bytes(now.keys()):
+	if expected != now.keys():
 		out["@order"] = now.keys()
 	return out
 
 
 ## `base` with `change` (a delta()) laid over it, as a new snapshot.
 static func patch(base, change):
-	if change is Dictionary and change.has("@new"):
+	if not (change is Dictionary):
+		return change
+	if change.has("@new"):
 		return change["@new"]
 	var out: Dictionary = base.duplicate() if base is Dictionary else {}
+	if change.has("@gone"):
+		for gone in change["@gone"]:
+			out.erase(gone)
 	for key in change:
-		if typeof(key) == TYPE_STRING and key == "@gone":
-			for gone in change[key]:
-				out.erase(gone)
-		elif not (typeof(key) == TYPE_STRING and key == "@order"):
-			out[key] = patch(out.get(key), change[key])
+		if typeof(key) == TYPE_STRING and (key == "@gone" or key == "@order"):
+			continue
+		out[key] = patch(out.get(key), change[key])
 	if change.has("@order"):
 		var ordered := {}
 		for key in change["@order"]:
 			ordered[key] = out[key]
 		return ordered
+	return out
+
+
+## patch() into `base` itself, which must be the caller's own (a client's copy
+## of the last snapshot): only the dictionaries the change touches change.
+static func patch_into(base: Dictionary, change: Dictionary) -> Dictionary:
+	if change.has("@new"):
+		return change["@new"]
+	if change.has("@gone"):
+		for gone in change["@gone"]:
+			base.erase(gone)
+	for key in change:
+		if typeof(key) == TYPE_STRING and (key == "@gone" or key == "@order"):
+			continue
+		var c = change[key]
+		var b = base.get(key)
+		if c is Dictionary and not c.has("@new") and b is Dictionary:
+			base[key] = patch_into(b, c)
+		else:
+			base[key] = patch(b, c)
+	if change.has("@order"):
+		var ordered := {}
+		for key in change["@order"]:
+			ordered[key] = base[key]
+		return ordered
+	return base
+
+
+## Two deltas one after the other as one: patch(patch(b, older), newer) ==
+## patch(b, merge(older, newer)). Neither may carry "@order" (the host's never
+## do); null when one does.
+static func merge(older, newer):
+	if not (newer is Dictionary) or newer.has("@new"):
+		return newer
+	if newer.has("@order"):
+		return null
+	if not (older is Dictionary):
+		return newer
+	if older.has("@new"):
+		return {"@new": patch(older["@new"], newer)}
+	if older.has("@order"):
+		return null
+	var out: Dictionary = older.duplicate()
+	var gone: Array = (out.get("@gone", []) as Array).duplicate()
+	for key in newer.get("@gone", []):
+		out.erase(key)
+		if not gone.has(key):
+			gone.append(key)
+	for key in newer:
+		if typeof(key) == TYPE_STRING and key == "@gone":
+			continue
+		# (A key back again after it went stays under "@gone" too: patch()
+		# takes it away first, then puts it at the end, as it came.)
+		if out.has(key):
+			var merged = merge(out[key], newer[key])
+			if merged == null:
+				return null
+			out[key] = merged
+		else:
+			out[key] = newer[key]
+	out.erase("@gone")
+	if not gone.is_empty():
+		out["@gone"] = gone
 	return out
 
 

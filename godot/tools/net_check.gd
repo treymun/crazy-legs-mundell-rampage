@@ -12,13 +12,22 @@
 ## identical (the snapshot carries all the play there is). Two players: both
 ## are hunted, the second is hurt by enemies and blasts, takes pickups, opens a
 ## door with USE; two bots play a chapter for three minutes, and two such
-## games stay identical and a snapshot of one round-trips.
+## games stay identical and a snapshot of one round-trips. The host
+## (game_host.gd): its game has no looks-only feature and no sound; it and an
+## ordinary game fed the same controls stay identical; a mirror (game_mirror.gd)
+## over a fresh client game kept up by deltas alone (and once by a whole
+## snapshot onto its running game) matches the host every time it is compared,
+## with one, two and four players; deltas merge.
 extends SceneTree
 
 const Pilot := preload("res://tools/bot_pilot.gd")
 const STEP := 1.0 / 60.0
 const QUICK_TICKS := 1500
 const QUICK_AFTER := 600
+## The host's tick, and how often a host check compares whole snapshots.
+const HOST_STEP := GameHost.STEP
+const COMPARE_EVERY := 240
+const QUICK_HOST := 1200
 
 var failures: Array = []
 
@@ -77,6 +86,14 @@ static func run(
 		_lockstep(main, check, id, ticks, after)
 	# Two players for three minutes (the quick part: as long as the rest).
 	_two_players(main, check, String(levels[0]), ticks if ticks <= QUICK_TICKS else 10800)
+	# The host and its mirrors (game_host.gd, game_mirror.gd).
+	_merge_rules(check)
+	_host_game(main, check, String(levels[0]))
+	var host_ticks := QUICK_HOST if ticks <= QUICK_TICKS else ticks
+	for id: String in levels:
+		_host_and_mirror(main, check, id, host_ticks, 1)
+	for players: int in [2, 4]:
+		_host_and_mirror(main, check, String(levels[0]), host_ticks, players)
 
 
 static func _made(main, id: String, players := 1) -> Game:
@@ -86,15 +103,8 @@ static func _made(main, id: String, players := 1) -> Game:
 	for done: String in Campaign.ORDER.slice(0, maxi(0, Campaign.ORDER.find(id))):
 		g.history.append([done, 1, 2, 0, 1, 60])
 	for i in players - 1:
-		# A step off player one, where the floor is open.
-		var p := g.players[0]
-		var at := Vector2(p.x, p.y)
-		for side: Vector2 in [Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0), Vector2(0, -1)]:
-			var there := Vector2(p.x, p.y) + side * 1.2
-			if not g.world.blocked(there.x, there.y, .25):
-				at = there
-				break
-		Players.join(g, at.x, at.y, p.angle + .5)
+		# A step off player one, where the floor is open (as a host places them).
+		GameHost.join_near(g)
 	return g
 
 
@@ -401,4 +411,186 @@ static func _blast_for_two(main, check: Callable, id: String) -> void:
 			"%s: a blast by player two hurts player two (%d -> %d), not player one far off"
 			% [id, two, p2.health]
 		)
+	)
+
+
+# ------------------------------------------------------------ host and mirror
+
+
+## A host's game: the simulation's features and none of the looks-only ones,
+## no sound but a QuietSound, no voices.
+static func _host_game(main, check: Callable, id: String) -> void:
+	var host := GameHost.new(id, 2, {"difficulty": 1})
+	var plain: Game = main.make_game(id)
+	var g := host.game
+	var looks: Array = []
+	for key: String in plain.features:
+		var file: String = plain.features[key].get_script().resource_path.get_file()
+		if Features.LOOKS.has(file.get_basename()):
+			looks.append(key)
+	looks.sort()
+	var listed: Array = GameSnapshot.LOOKS_FEATURES.duplicate()
+	listed.sort()
+	check.call(
+		looks == listed,
+		"Features.LOOKS are GameSnapshot.LOOKS_FEATURES (%d features)" % looks.size()
+	)
+	var extra: Array = []
+	for key: String in g.features:
+		if not GameSnapshot.SIM_FEATURES.has(key):
+			extra.append(key)
+	var missing: Array = []
+	for key: String in plain.features:
+		if GameSnapshot.SIM_FEATURES.has(key) and not g.features.has(key):
+			missing.append(key)
+	check.call(
+		g.host and extra.is_empty() and missing.is_empty(),
+		(
+			"%s: a host's game has the simulation's features and no looks-only ones%s"
+			% [id, "" if extra.is_empty() and missing.is_empty() else ": %s %s" % [extra, missing]]
+		)
+	)
+	check.call(
+		g.sound is QuietSound and g.speaker is QuietSound and g.players[1].voice == null,
+		"%s: a host's game makes no sound (QuietSound) and gives players no voice" % id
+	)
+
+
+## A host's game and an ordinary one fed the same controls (bots playing every
+## player, god mode) stay identical; a mirror over a fresh client game takes
+## one whole snapshot, then only deltas every DELTA_EVERY ticks, and after
+## each matches the host (its patched snapshot is a fresh capture of the host,
+## and a capture of its game is too); halfway a whole snapshot is put onto the
+## mirror's running game and it carries on.
+static func _host_and_mirror(main, check: Callable, id: String, ticks: int, players: int) -> void:
+	var host := GameHost.new(id, players, {"difficulty": 1})
+	var plain := _made(main, id, players)
+	for g: Game in [host.game, plain]:
+		g.cheats.god = true
+	var mirror := GameHost.mirror_for(main.make_game(id))
+	var took := mirror.take(host.snapshot())
+	var pilots: Array = []
+	for i in players:
+		var pilot := Pilot.new()
+		pilot.as_controls = true
+		pilots.append(pilot)
+	var parted := ""
+	var tracked := ""
+	var mirrored := ""
+	var refused := 0
+	var sizes: Array = []
+	var delta_ms: Array = []
+	var take_ms: Array = []
+	var resynced := false
+	var compared := 0
+	for t in ticks:
+		var given := {}
+		for p: Player in plain.players:
+			if p.health > 0:
+				plain.focus(p)
+				given[p.slot] = pilots[p.slot].steer(plain)
+		plain.focus(plain.local_player)
+		plain.tick(HOST_STEP, given)
+		host.step(given)
+		for p: Player in plain.players:
+			plain.focus(p)
+			pilots[p.slot].moved(plain)
+		plain.focus(plain.local_player)
+		if host.tick % GameHost.DELTA_EVERY == 0:
+			if not resynced and t >= ticks / 2:
+				# A client that lost its way: a whole snapshot onto its running game.
+				resynced = true
+				took = mirror.take(host.snapshot()) and took
+			else:
+				var d := host.delta_since(mirror.acked)
+				delta_ms.append(host.delta_ms)
+				sizes.append(d.size())
+				if not mirror.take(d):
+					refused += 1
+				take_ms.append(mirror.take_ms)
+		if (t + 1) % COMPARE_EVERY == 0 or t == ticks - 1:
+			if host.tick != mirror.acked:
+				mirror.take(host.delta_since(mirror.acked))
+			compared += 1
+			var sh := GameSnapshot.capture(host.game)
+			if parted == "":
+				var sp := GameSnapshot.capture(plain)
+				if not GameSnapshot.same(sh, sp):
+					parted = "tick %d: %s" % [t + 1, GameSnapshot.first_difference(sp, sh)]
+			if tracked == "" and not GameSnapshot.same(mirror.full, sh):
+				tracked = "tick %d: %s" % [t + 1, GameSnapshot.first_difference(sh, mirror.full)]
+			if mirrored == "":
+				var sm := GameSnapshot.capture(mirror.game)
+				if not GameSnapshot.same(sm, sh):
+					mirrored = "tick %d: %s" % [t + 1, GameSnapshot.first_difference(sh, sm)]
+	var who := "%s, %d player%s" % [id, players, "" if players == 1 else "s"]
+	(
+		check
+		. call(
+			parted == "",
+			(
+				"%s: a host's game and an ordinary one fed the same controls are identical over %d ticks%s"
+				% [who, ticks, "" if parted == "" else " (%s)" % parted]
+			)
+		)
+	)
+	check.call(
+		tracked == "",
+		(
+			"%s: the host's deltas patch a client's snapshot to the host's exactly (%d looks)%s"
+			% [who, compared, "" if tracked == "" else " (%s)" % tracked]
+		)
+	)
+	check.call(
+		took and refused == 0 and mirrored == "",
+		(
+			(
+				"%s: a mirror kept up by deltas alone (and one whole snapshot onto its running"
+				+ " game) matches the host%s"
+			)
+			% [
+				who,
+				"" if mirrored == "" and refused == 0 else " (%s; %d refused)" % [mirrored, refused]
+			]
+		)
+	)
+	print(
+		(
+			"    %s: %d deltas, median %d bytes (largest %d), %.2f ms to make, %.2f ms to put on"
+			% [
+				who,
+				sizes.size(),
+				_median(sizes),
+				0 if sizes.is_empty() else sizes.max(),
+				_median(delta_ms),
+				_median(take_ms)
+			]
+		)
+	)
+
+
+static func _median(values: Array) -> float:
+	if values.is_empty():
+		return 0.0
+	var sorted := values.duplicate()
+	sorted.sort()
+	return float(sorted[sorted.size() / 2])
+
+
+## Merged deltas and patches agree: two deltas one after the other are their
+## merge, with keys going and coming back.
+static func _merge_rules(check: Callable) -> void:
+	var a := {"x": 1, "d": {"k": 1, "j": [1]}, "gone": 3}
+	var b := {"x": 2, "d": {"k": 1, "j": [2], "n": {"z": 1}}, "new": 4}
+	var c := {"x": 2, "d": {"j": [2], "n": {"z": 2}}, "new": 5, "gone": 6}
+	var ab = GameSnapshot.delta(a, b)
+	var bc = GameSnapshot.delta(b, c)
+	var merged = GameSnapshot.merge(ab, bc)
+	check.call(
+		(
+			merged != null
+			and GameSnapshot.same(GameSnapshot.patch(a, merged), c)
+			and GameSnapshot.same(GameSnapshot.patch(a, ab), b)
+		),
+		"deltas merge: patch(a, merge(delta(a, b), delta(b, c))) == c"
 	)

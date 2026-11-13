@@ -64,7 +64,7 @@ static func join(game, x: float, y: float, angle: float) -> Player:
 	# Its own steps over the same floor (as player one's floor is now: a
 	# fence shot down or a barrel broken stays open for it too).
 	p.flow = FlowField.new(game.level, first.flow)
-	if game.speaker != null:
+	if game.speaker != null and not game.host:
 		p.voice = PlayerVoice.new(game, p)
 	return p
 
@@ -86,7 +86,7 @@ static func set_local(game, p: Player) -> void:
 	for each: Player in game.players:
 		if each.voice != null or each == p:
 			continue
-		if game.speaker != null:
+		if game.speaker != null and not game.host:
 			each.voice = PlayerVoice.new(game, each)
 
 

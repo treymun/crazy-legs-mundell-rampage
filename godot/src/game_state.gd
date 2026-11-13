@@ -297,6 +297,8 @@ class Hazard:
 	var damage := 0
 	var age := 0.0
 	var next_hit := 0.0
+	## Has scalded the baron already (features/boss_arenas.gd).
+	var scalded := false
 
 	func _init(k := "", px := 0.0, py := 0.0, r := 0.0, w := 0.0, l := 0.0, dmg := 0) -> void:
 		kind = k
@@ -674,6 +676,14 @@ var _idle := Controls.new()
 ## order things come into being, so two machines running the same ticks agree
 ## (game_snapshot.gd).
 var next_uid := 1
+## An authoritative host's game (game_host.gd): no presentation at all (no
+## looks-only features, no sound, no voices, no talk, no room or place names),
+## the simulation exactly as in any other game.
+var host := false
+## What each FACT_FEATURES feature was last given from a snapshot (bytes), and
+## the stations whose lights are up (game_snapshot.gd puts both right).
+var net_facts := {}
+var lit_stations := {}
 
 var enemy_ids: Array = []
 ## The places enemies run from this tick (lit dynamite on the ground):

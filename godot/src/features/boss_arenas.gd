@@ -57,8 +57,9 @@ var boss: Enemy = null
 var arena := {}
 ## [kind, x, y, lands_at, fuse, radius, damage, cause] still coming down.
 var drops: Array = []
-## Hazards that have scalded the boss already (their instance ids).
-var scalded := {}
+## How many hazards have scalded the boss since the count last started over
+## (each marks itself: GameState.Hazard.scalded, carried with the hazard).
+var scald_count := 0
 ## Burning slicks: [x, y, dropped_at].
 var slicks: Array = []
 var slick_next := 0.0
@@ -231,15 +232,18 @@ func _outlets() -> void:
 	if level_id != "quarry" or not boss.alive:
 		return
 	for h: GameState.Hazard in game.hazards:
-		if h.kind != "steam" or h.age < h.warning or scalded.has(h.get_instance_id()):
+		if h.kind != "steam" or h.age < h.warning or h.scalded:
 			continue
 		if Vector2(boss.x - h.x, boss.y - h.y).length() < h.radius + boss.radius * .5:
-			scalded[h.get_instance_id()] = true
+			h.scalded = true
+			scald_count += 1
 			_burn(OUTLET_SCALD, "steam")
 			_sparks(boss.x, boss.y, game.world.elevation(boss.x, boss.y) + 1.0, "dust", 10, 1.4)
 			game.sound_at("boiler_release", boss.x, boss.y, .8)
-	if scalded.size() > 40:
-		scalded.clear()
+	if scald_count > 40:
+		scald_count = 0
+		for h: GameState.Hazard in game.hazards:
+			h.scalded = false
 
 
 ## Where a burst pipe is in its cycle: 0 resting, 1 warning, 2 roaring.

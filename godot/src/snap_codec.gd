@@ -9,6 +9,9 @@
 ##                       dictionary keyed by enemy): another machine's differ
 ##   {"@o": class, "f": {field: value}}    any other script object, by its
 ##                                         class's name (REGISTRY roots)
+##   {"@flow": [ox, oy, next_at, walked, cells, steps]}   a FlowField: only
+##                       the cells its last walk reached and their steps (the
+##                       rest is FAR; its open floor follows the level)
 ##   {"@skip": 1}        what a snapshot never carries (sprites, images,
 ##                       threads, callables): apply leaves it as it is.
 ## A dictionary with an object for a key is {"@D": [[key, value], ...]}.
@@ -21,15 +24,58 @@ extends RefCounted
 const SKIP := {"@skip": 1}
 ## Classes a snapshot never carries (presentation).
 const VIEW_CLASSES := [
-	"Renderer.Sprite", "Renderer.GroundMark", "Renderer.WallMark", "PlayerVoice", "Sound", "HUD"
+	"Renderer.Sprite",
+	"Renderer.GroundMark",
+	"Renderer.WallMark",
+	"PlayerVoice",
+	"Sound",
+	"HUD",
+	"QuietSound"
 ]
 ## Fields of a class a snapshot leaves out: worked out from others (Enemy
-## alive, z), presentation (a player's voice and gun sway), or wiring.
+## alive, z), presentation (a player's voice and gun sway), wiring, or what
+## the level makes the same on every machine and never changes (a feature's
+## tuning, its lookups over the level's walls).
 const SKIP_FIELDS := {
 	"Enemy": ["alive", "z"],
 	"Player": ["voice", "weapon_lag"],
 	"Weapons.Armory": ["boxes"],
-	"FlowField": ["world", "_door_at", "keys"],
+	"wall_breaks": ["by_cell", "win", "_faces", "_loose", "gaps"],
+	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty"],
+}
+## Classes of which a snapshot carries only these fields: things a level
+## makes the same on every machine (a window, a fence cell, a breakable
+## piece, a board) whose other fields never change once made. Only ever
+## decoded onto the same thing made by the same level.
+const ONLY_FIELDS := {
+	"wall_breaks.WindowFace": ["broken"],
+	"wall_breaks.Fence": ["hp", "stage"],
+	"breakables.Piece": ["x", "y", "hp", "broken", "board"],
+	"LevelData.Billboard": ["x", "y", "image", "height"],
+}
+## Value types passed through as they are (no objects inside them).
+const PLAIN := {
+	TYPE_NIL: true,
+	TYPE_BOOL: true,
+	TYPE_FLOAT: true,
+	TYPE_STRING: true,
+	TYPE_STRING_NAME: true,
+	TYPE_VECTOR2: true,
+	TYPE_VECTOR2I: true,
+	TYPE_VECTOR3: true,
+	TYPE_VECTOR3I: true,
+	TYPE_VECTOR4: true,
+	TYPE_RECT2: true,
+	TYPE_RECT2I: true,
+	TYPE_COLOR: true,
+	TYPE_PACKED_BYTE_ARRAY: true,
+	TYPE_PACKED_INT32_ARRAY: true,
+	TYPE_PACKED_INT64_ARRAY: true,
+	TYPE_PACKED_FLOAT32_ARRAY: true,
+	TYPE_PACKED_FLOAT64_ARRAY: true,
+	TYPE_PACKED_STRING_ARRAY: true,
+	TYPE_PACKED_VECTOR2_ARRAY: true,
+	TYPE_PACKED_VECTOR3_ARRAY: true,
 }
 const DEPTH := 14
 
@@ -44,6 +90,7 @@ var unknown := {}
 static var _by_script := {}
 static var _by_key := {}
 static var _fields := {}
+static var _snames := {}
 static var _made := {}
 
 
@@ -66,7 +113,8 @@ func encode(value, depth := 0):
 			var out: Array = []
 			out.resize(value.size())
 			for i in value.size():
-				out[i] = encode(value[i], depth + 1)
+				var v = value[i]
+				out[i] = v if PLAIN.has(typeof(v)) else encode(v, depth + 1)
 			return out
 		TYPE_DICTIONARY:
 			var plain := true
@@ -77,7 +125,8 @@ func encode(value, depth := 0):
 			if plain:
 				var out := {}
 				for key in value:
-					out[key] = encode(value[key], depth + 1)
+					var v = value[key]
+					out[key] = v if PLAIN.has(typeof(v)) else encode(v, depth + 1)
 				return out
 			var rows: Array = []
 			for key in value:
@@ -112,9 +161,47 @@ static func plain(value):
 func encode_fields(o: Object) -> Dictionary:
 	var key := class_key(o.get_script())
 	var fields := {}
-	for name: String in fields_of(o, key):
-		fields[name] = encode(o.get(name), 1)
+	var names := fields_of(o, key)
+	var snames: Array[StringName] = _snames[o.get_script()]
+	for i in names.size():
+		var v = o.get(snames[i])
+		# Most fields are plain: no call for them.
+		fields[names[i]] = v if PLAIN.has(typeof(v)) else encode(v, 1)
 	return fields
+
+
+## A flow field: where it was measured from and when next, whether its first
+## walk is done, and the steps of the cells its last walk reached (every
+## other cell is FAR: flow_field.gd keeps it so).
+static func encode_flow(f: FlowField) -> Dictionary:
+	var at := f._touched
+	var most := 0
+	for cell in at:
+		most = maxi(most, f.steps[cell])
+	var steps: Variant = PackedByteArray() if most < 255 else PackedInt32Array()
+	steps.resize(at.size())
+	for i in at.size():
+		steps[i] = f.steps[at[i]]
+	return {"@flow": [f.origin.x, f.origin.y, f.next_at, f._walked, at, steps]}
+
+
+## Puts an encode_flow() back: the steps it carries, FAR elsewhere, and no walk
+## left half done (the scratch field a walk fills is all FAR, as update()
+## leaves it before every walk).
+static func decode_flow(f: FlowField, row: Array) -> void:
+	f.origin = Vector2i(int(row[0]), int(row[1]))
+	f.next_at = float(row[2])
+	f._walked = bool(row[3])
+	var at := PackedInt32Array(row[4])
+	var steps = row[5]
+	f.steps.fill(FlowField.FAR)
+	for i in at.size():
+		f.steps[at[i]] = int(steps[i])
+	f._touched = at
+	f._next.fill(FlowField.FAR)
+	f._next_touched = PackedInt32Array()
+	f._queue = PackedInt32Array()
+	f._head = 0
 
 
 func _encode_object(o: Object, depth: int):
@@ -138,6 +225,8 @@ func _encode_object(o: Object, depth: int):
 		return {"@scenery": game.world.scenery.find(o)}
 	if o is RandomNumberGenerator:
 		return {"@rng": [o.seed, o.state]}
+	if o is FlowField:
+		return encode_flow(o)
 	if o is Renderer.Sprite or o is Renderer.GroundMark or o is Renderer.WallMark:
 		return SKIP
 	var script = o.get_script()
@@ -154,8 +243,11 @@ func _encode_object(o: Object, depth: int):
 	if VIEW_CLASSES.has(key):
 		return SKIP
 	var fields := {}
-	for name: String in fields_of(o, key):
-		fields[name] = encode(o.get(name), depth + 1)
+	var names := fields_of(o, key)
+	var snames: Array[StringName] = _snames[script]
+	for i in names.size():
+		var v = o.get(snames[i])
+		fields[names[i]] = v if PLAIN.has(typeof(v)) else encode(v, depth + 1)
 	return {"@o": key, "f": fields}
 
 
@@ -212,6 +304,11 @@ func _decode_dictionary(value: Dictionary, existing):
 		return rng
 	if value.has("@o"):
 		return _decode_object(String(value["@o"]), value["f"], existing)
+	if value.has("@flow"):
+		# Only ever onto the flow field already there (it needs its level).
+		if existing is FlowField:
+			decode_flow(existing, value["@flow"])
+		return existing
 	var into: Dictionary = existing if existing is Dictionary else {}
 	var old := into.duplicate()
 	into.clear()
@@ -283,15 +380,25 @@ static func fields_of(o: Object, key: String) -> PackedStringArray:
 	if _fields.has(script):
 		return _fields[script]
 	var skip: Array = SKIP_FIELDS.get(key, [])
+	var only: Array = ONLY_FIELDS.get(key, [])
 	var names := PackedStringArray()
 	for prop: Dictionary in o.get_property_list():
 		if int(prop["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
 			continue
 		var name := String(prop["name"])
-		if not skip.has(name):
+		if not skip.has(name) and (only.is_empty() or only.has(name)):
 			names.append(name)
 	_fields[script] = names
+	_snames[script] = names_of(names)
 	return names
+
+
+## The names as StringNames (Object.get() takes those without converting).
+static func names_of(names: PackedStringArray) -> Array[StringName]:
+	var out: Array[StringName] = []
+	for name in names:
+		out.append(StringName(name))
+	return out
 
 
 static func _register_all() -> void:

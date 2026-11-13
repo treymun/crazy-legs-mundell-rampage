@@ -7,7 +7,9 @@ class_name Game
 extends GameView
 
 
-func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
+## `p_host`: an authoritative host's game (game_host.gd), with no presentation.
+func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host := false) -> void:
+	host = p_host
 	gore_fx = Gore.new(self)
 	art = p_art
 	hud = p_hud
@@ -18,7 +20,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	renderer = Renderer.new(art, level)
 	# The sounds made in code (thunder alone is 30-odd ms of work) are made
 	# while the level loads, not the moment one first plays.
-	for cue: String in Assets.MADE_CUES:
+	for cue: String in [] if host else Assets.MADE_CUES:
 		art.cue(cue)
 	# Player one (src/players.gd): the local and acting player.
 	Players.join(self, float(level.spawn[0]), float(level.spawn[1]), float(level.spawn[2]))
@@ -171,7 +173,7 @@ func tick(dt: float, controls) -> void:
 	clock += wdt
 	spawn_grace = maxf(0.0, spawn_grace - dt)
 	duck = maxf(0.0, duck - dt)
-	if sound != null and sound.has_method("level_music"):
+	if not host and sound != null and sound.has_method("level_music"):
 		sound.level_music(
 			sound.music_gain * (1.0 - .5 * minf(1.0, duck) - (.2 if barks.visible(self) else 0.0))
 		)
@@ -228,6 +230,11 @@ func tick(dt: float, controls) -> void:
 	update_shots(wdt)
 	if not hazards.is_empty():
 		update_hazards(wdt)
+	if host:
+		# Nobody to hear the county talk.
+		ticked.emit(wdt)
+		name_new()
+		return
 	var p := player
 	var combat: bool = mine.fire or mine.alt_fire or hurt_flash > 0.0
 	if not combat:
@@ -331,7 +338,7 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 			dt * 11.0 * p.motion * (1.25 if controls.running else .80 if p.crouched else 1.0)
 		)
 	p.bob = sin(p.walk_phase * 2.0) * p.motion * (0.0 if p.air else 1.9) * bob_scale
-	if local:
+	if local and not host:
 		# The gun's weight, its kick and the view's jolts: features/feel.gd.
 		feel_turn = controls.turn
 		feel_landed = landed
@@ -345,7 +352,7 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 		if surface == "water":
 			burst(p.x, p.y, ground + .16, "splash", 5 if landed else 3, .52)
 		p.step_number = step
-	if local:
+	if local and not host:
 		visited[Vector2i(int(p.x), int(p.y))] = true
 
 

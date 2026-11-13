@@ -41,9 +41,35 @@ const ALL := [
 	preload("res://src/features/squad_feature.gd"),
 ]
 
+## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES
+## by id; tools/net_check.gd holds the two lists together): a host leaves
+## them off.
+const LOOKS := [
+	"lessons_feature",
+	"chapter_stats",
+	"weather",
+	"debris",
+	"weapon_fx",
+	"ambient",
+	"callouts",
+	"tally",
+	"fight_music",
+	"water",
+	"impacts",
+	"dust",
+	"gun_fx",
+	"feel",
+	"soundscape",
+	"boss_voices",
+	"enemy_barks",
+	"boss_checkpoint",
+]
+
 
 static func attach_all(game) -> void:
 	for script: GDScript in ALL:
+		if game.host and LOOKS.has(script.resource_path.get_file().get_basename()):
+			continue
 		var feature: GameFeature = script.new(game)
 		game.features[feature.id()] = feature
 

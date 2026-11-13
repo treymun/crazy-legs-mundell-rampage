@@ -9,6 +9,8 @@ const PAD_WAIT := Vector2i(2, 2)
 
 
 func _notification(what: int) -> void:
+	if server_level != "":
+		return
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
 		_on_focus_lost()
 	elif what == NOTIFICATION_WM_WINDOW_FOCUS_IN or what == NOTIFICATION_APPLICATION_RESUMED:

@@ -697,10 +697,12 @@ func restore(state: Dictionary) -> void:
 		if not (row is Array) or row.size() != 4:
 			continue
 		var f: Fence = fences.get(Vector2i(int(row[0]), int(row[1])))
-		if f == null or f.stage != 0:
+		var stage := int(row[2])
+		# A fence shot about already goes on only to broken through (a
+		# snapshot put onto a game already running: game_snapshot.gd).
+		if f == null or (f.stage != 0 and f.stage >= stage):
 			continue
 		f.hp = clampf(float(row[3]), 0.0, f.most)
-		var stage := int(row[2])
 		if stage >= 2 and f.opens:
 			_break_through(f, true)
 		elif stage >= 1:
