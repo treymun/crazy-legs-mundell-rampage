@@ -126,7 +126,12 @@ func _tick(dt: float) -> void:
 				continue
 			if absf(e.x - at.x) < 1.2 and absf(e.y - at.y) < 1.2:
 				if Vector2(e.x - at.x, e.y - at.y).length() < REACH + e.radius:
+					# hurt() blames the acting player: the nearest, the same on
+					# every machine (not whoever is local here).
+					var near_e = Players.nearest(game, e.x, e.y)
+					game.focus(near_e if near_e != null else game.players[0])
 					e.hurt(80.0, game, true, false, null, "car")
+					game.focus(game.local_player)
 
 
 ## The car's picture for where it is seen from: race_car_0 nose on to the
