@@ -24,7 +24,9 @@ Everyone needs the same version of the game.
    (1v1 to 5v5), bots on or off, bot skill, friendly fire, round time, buy
    time, freeze time, starting cash; and the lobby: how many people it has
    room for, late joining, and whether players pick their own team or you
-   balance them. Everyone sees the settings as you change them.
+   balance them. Everyone sees the settings as you change them. Picking a
+   2V2 map (Pump & Go, Pine Acres, Catfish Landing) switches to TAG TEAM 2V2:
+   search and destroy two a side, first to 9, 1:30 rounds.
 5. When everyone shows READY, go to **START!** and press ENTER. If START
    says why not (someone not ready, too many on one team for the team size,
    a team with nobody and bots off), fix that first.

@@ -28,7 +28,7 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 	main.set_process(false)
-	var maps: Array = Modes.SHOWDOWN_MAPS.duplicate()
+	var maps: Array = Modes.SHOWDOWN_MAPS + Modes.TAGTEAM_MAPS
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("maps="):
 			maps = Array(arg.substr(5).split(","))
@@ -101,14 +101,27 @@ func _plan_check(g: Game, plan: Dictionary) -> void:
 				print("  PROBLEM hold %s at %.1f,%.1f is in something" % [key, at.x, at.y])
 				problems += 1
 			var watched := 0
+			var behind := 0
 			for p: Vector2 in lanes:
 				var gap := p - at
 				if gap.length() < 2.0 or gap.length() > HOLD_REACH:
 					continue
+				var seen := g.world.visible(at.x, at.y, p.x, p.y)
 				if absf(Enemy.angle_delta(gap.angle(), float(h[2]))) > HOLD_CONE:
+					# Seen from the way in but looking elsewhere (past what a
+					# bot's eyes take in, TacticalBot._sees): shot in the back.
+					if seen and absf(Enemy.angle_delta(gap.angle(), float(h[2]))) > 1.3:
+						behind += 1
 					continue
-				if g.world.visible(at.x, at.y, p.x, p.y):
+				if seen:
 					watched += 1
+			if behind > 0:
+				print(
+					(
+						"  note: hold %s at %.1f,%.1f is open to %d points behind it"
+						% [key, at.x, at.y, behind]
+					)
+				)
 			if watched == 0:
 				print(
 					"  PROBLEM hold %s at %.1f,%.1f watches none of the ways in" % [key, at.x, at.y]

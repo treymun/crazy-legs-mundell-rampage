@@ -81,7 +81,7 @@ godot --headless --path godot --script res://tools/map_timing.gd   # 5v5 maps: r
 godot --headless --path godot --script res://tools/net_showdown_check.gd   # NET SHOWDOWN OK (online 5v5 lobby to lobby; lag= loss= seconds=)
 godot --path godot -- --host-online[=port] --online-name=TREY [--online-password=x]   # straight into a lobby
 godot --path godot -- --join-online=<code or address> --online-name=BOB   # (tests: --online-start=2 --online-bot)
-godot --headless --path godot --script res://tools/levels/build_level.gd -- grainyard   # the 5v5 maps: grainyard, holler, salvage
+godot --headless --path godot --script res://tools/levels/build_level.gd -- grainyard   # the 5v5 maps: grainyard, holler, salvage; 2v2: pumpngo, pineacres, landing
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 godot --headless --path godot --script res://tools/net_bench.gd -- levels=hickston players=1,2,4 [host]   # ticks, snapshots, deltas
 godot --headless --path godot -- --server=fair --server-players=2 --server-ticks=12000   # a host, no window (server_loop.gd)
@@ -1060,6 +1060,13 @@ what a networking pass still needs).
   no errors; prints bandwidth each way, snapshot and input sizes, lag and the
   host's costs. Its quick part (ENet 6 s with 40 ms, jitter and 5% loss;
   WebSocket 2 s) is in check_fixes.
+- **TAG TEAM 2V2** is search and destroy two a side (`Modes.TAGTEAM_MAPS`,
+  `TAGTEAM_PLAYERS`, `TAGTEAM_OPTIONS`: first to 9, 1:30 rounds, 15 s buy;
+  `Modes.is_tag_team`), not a mode of its own: everything 5v5 applies. Its
+  maps have one site ("A") and holds "A" only (two defenders); the picker's
+  third MODE, `--mode=tagteam`, or a 2V2 map in the online lobby (which sets
+  the format). `tactical_check.gd` plays the 2v2 maps four players, bomb
+  only; `map_timing.gd` times them.
 - **5v5 gun feel** (`TacticalMode.shot_tuning`, `TacticalShop.MOVE_SPREAD`,
   `REACH`, `FALLOFF`): weapons.gd asks `Modes.shot_spread` for every hitscan
   and pellet shot's spread and reach; outside the 5v5 modes it is the gun's

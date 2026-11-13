@@ -45,7 +45,12 @@ const LOBBY_ROWS := [
 ]
 const MATCH_ROWS := [
 	["mode", "MODE", ["bomb", "hostage"], ["SEARCH AND DESTROY", "HOSTAGE RESCUE"]],
-	["map", "MAP", ["grainyard", "holler", "salvage"], ["GRAIN CO-OP", "DISTILLERY", "SALVAGE"]],
+	[
+		"map",
+		"MAP",
+		["grainyard", "holler", "salvage", "pumpngo", "pineacres", "landing"],
+		["GRAIN CO-OP", "DISTILLERY", "SALVAGE", "2V2 PUMP & GO", "2V2 PINE ACRES", "2V2 LANDING"]
+	],
 	["rounds", "ROUNDS TO WIN", [3, 4, 5, 7, 10], ["3", "4", "5", "7", "10"]],
 	["team_size", "TEAM SIZE", [1, 2, 3, 4, 5], ["1V1", "2V2", "3V3", "4V4", "5V5"]],
 	["bots", "BOTS FILL", [true, false], ["ON", "OFF"]],
@@ -468,7 +473,17 @@ func send_lobby() -> void:
 func set_setting(key: String, value) -> void:
 	if role != Role.HOST:
 		return
+	var was_tag := Modes.TAGTEAM_MAPS.has(String(settings.get("map", "")))
 	settings[key] = value
+	if key == "map" and Modes.TAGTEAM_MAPS.has(String(value)) != was_tag:
+		# Onto a TAG TEAM map: its format (two a side, first to 9, short
+		# rounds); back onto a 5v5 map: the 5v5's.
+		var tag := Modes.TAGTEAM_MAPS.has(String(value))
+		settings["team_size"] = 2 if tag else 5
+		settings["mode"] = Modes.BOMB if tag else settings["mode"]
+		settings["rounds"] = 9 if tag else 7
+		settings["round_seconds"] = 90.0 if tag else 0.0
+		settings["buy_seconds"] = 15.0 if tag else 20.0
 	if key == "pick_teams" and not bool(value):
 		for p: Dictionary in players:
 			p["team"] = -1
@@ -490,6 +505,11 @@ func why_not_start() -> String:
 		return "TOO MANY ON A TEAM FOR %dV%d" % [size, size]
 	if not bool(settings["bots"]) and (count[0] == 0 or count[1] == 0):
 		return "BOTH TEAMS NEED A PLAYER (OR BOTS ON)"
+	if (
+		String(settings["mode"]) == Modes.HOSTAGE
+		and Modes.TAGTEAM_MAPS.has(String(settings["map"]))
+	):
+		return "NO HOSTAGES ON A 2V2 MAP: SEARCH AND DESTROY"
 	return ""
 
 

@@ -45,6 +45,9 @@ const MAP_TITLES := {
 	"grainyard": "PUCKETT GRAIN CO-OP",
 	"holler": "HOLLER DISTILLERY",
 	"salvage": "MUNDELL'S SALVAGE",
+	"pumpngo": "PUMP & GO",
+	"pineacres": "PINE ACRES",
+	"landing": "CATFISH LANDING",
 }
 const MAP_LINES := {
 	"grainyard":
@@ -52,11 +55,29 @@ const MAP_LINES := {
 	"holler":
 	["A CREEK ACROSS THE MIDDLE, ONE BRIDGE.", "A: THE STILL HOUSE   B: THE BOTTLING YARD"],
 	"salvage": ["TIGHT JUNK CANYONS, CORNERS EVERYWHERE.", "A: THE CRUSHER PIT   B: THE TIRE BARN"],
+	"pumpngo": ["A HIGHWAY GAS STATION. LONG LOT OR THE STORE.", "A: THE PUMPS"],
+	"pineacres": ["A TRAILER PARK. BACK ROW, GREEN OR DOUBLE-WIDE.", "A: THE CARPORT"],
+	"landing": ["A BAIT SHOP ON THE RIVER. BANK OR THE SHOP.", "A: THE DOCK"],
 }
 const MODE_LINES := {
 	Modes.BOMB: "OUTLAWS PLANT THE SHINE BOMB. DEPUTIES CUT THE FUSE.",
-	Modes.HOSTAGE: "DEPUTIES WALK A HOSTAGE OUT. OUTLAWS HOLD 'EM.",
+	Modes.HOSTAGE: "DEPUTIES RUN A HOSTAGE OUT. OUTLAWS HOLD 'EM.",
+	"tagteam": "TWO A SIDE, ONE SITE. PLANT IT OR CUT IT. FIRST TO 9.",
 }
+## The picker's modes: the two 5v5 modes, then TAG TEAM 2V2 (search and
+## destroy two a side on its own maps), and each one's match lengths.
+const PICKER_MODES := [Modes.BOMB, Modes.HOSTAGE, "tagteam"]
+const TAG_LENGTHS := [5, 9]
+
+
+static func picker_maps(mode: int) -> Array:
+	return Modes.TAGTEAM_MAPS if posmod(mode, PICKER_MODES.size()) == 2 else Modes.SHOWDOWN_MAPS
+
+
+static func picker_rounds(mode: int, long: int) -> int:
+	var lengths: Array = TAG_LENGTHS if posmod(mode, PICKER_MODES.size()) == 2 else MATCH_LENGTHS
+	return int(lengths[posmod(long, lengths.size())])
+
 
 ## The buy menu (this machine's): open, the row the cursor is on, the last
 ## word it had (NOT ENOUGH CASH...) and until when.
@@ -286,6 +307,8 @@ static func results(c: Canvas, game, st) -> void:
 	c.blit_rgba(art["data"], art["w"], art["h"], 0, 0, "art|title_backdrop")
 	HUD.panel(c, 8, 6, 304, 186)
 	var mode_name := "SEARCH & DESTROY" if String(st.mode) == Modes.BOMB else "HOSTAGE RESCUE"
+	if Modes.is_tag_team(game):
+		mode_name = "TAG TEAM 2V2"
 	var place: String = String(MAP_TITLES.get(game.level.id, game.level.id.to_upper()))
 	HUD.text(c, "%s  -  %s" % [place, mode_name], 160, 12, "mini", HUD.DIM, true)
 	var w: Array = st.wins
@@ -316,18 +339,22 @@ static func results(c: Canvas, game, st) -> void:
 			func(p: Player, q: Player) -> bool:
 				return p.frags > q.frags or (p.frags == q.frags and p.deaths < q.deaths)
 		)
+		# Two a side (TAG TEAM) gets the bigger lettering, spaced out.
+		var few := mine.size() <= 2
+		var step := 16 if few else 9
+		var style := "body" if few else "mini"
 		for i in mini(mine.size(), 5):
 			var p: Player = mine[i]
-			var y := 63 + i * 9
-			c.fill_rect(x0 - 4, y - 1, 136, 8, PLATE)
+			var y := 63 + i * step
+			c.fill_rect(x0 - 4, y - 2, 136, step - 1, PLATE)
 			var name := Modes.tag(p)
 			if p == game.local_player or p.slot == human:
 				name += " (YOU)"
-			HUD.text(c, name, x0, y, "mini", team_ink[t])
+			HUD.text(c, name, x0, y, style, team_ink[t])
 			if p == mvp and p.frags > 0:
-				HUD.text(c, "MVP", x0 + 92, y, "mini", HUD.AMBER, false, true, true)
-			HUD.text(c, str(p.frags), x0 + 112, y, "mini", HUD.INK, false, true, true)
-			HUD.text(c, str(p.deaths), x0 + 128, y, "mini", HUD.DIM, false, true, true)
+				HUD.text(c, "MVP", x0 + 92, y, style, HUD.AMBER, false, true, true)
+			HUD.text(c, str(p.frags), x0 + 112, y, style, HUD.INK, false, true, true)
+			HUD.text(c, str(p.deaths), x0 + 128, y, style, HUD.DIM, false, true, true)
 	# Every round as it went.
 	var rounds: Array = st.history
 	HUD.text(c, "ROUND BY ROUND", 160, 113, "mini", HUD.DIM, true)
@@ -668,10 +695,15 @@ static func _say(game, text: String) -> void:
 ## The title's 5V5 SHOWDOWN picker: mode, map, match length, START.
 static func draw_picker(c: Canvas, menu: Menu, row: int, mode: int, map: int, long: int) -> void:
 	menu.draw_sheet(c, "SHOWDOWN")
-	var mode_id := String(Modes.TACTICAL[posmod(mode, Modes.TACTICAL.size())])
-	var map_id := String(Modes.SHOWDOWN_MAPS[posmod(map, Modes.SHOWDOWN_MAPS.size())])
-	var rounds := int(MATCH_LENGTHS[posmod(long, MATCH_LENGTHS.size())])
-	var title := "SEARCH & DESTROY" if mode_id == Modes.BOMB else "HOSTAGE RESCUE"
+	var mode_id := String(PICKER_MODES[posmod(mode, PICKER_MODES.size())])
+	var maps := picker_maps(mode)
+	var map_id := String(maps[posmod(map, maps.size())])
+	var rounds := picker_rounds(mode, long)
+	var title := (
+		"SEARCH & DESTROY"
+		if mode_id == Modes.BOMB
+		else ("HOSTAGE RESCUE" if mode_id == Modes.HOSTAGE else "TAG TEAM 2V2")
+	)
 	var rows := [
 		["MODE", title],
 		["MAP", String(MAP_TITLES.get(map_id, map_id.to_upper()))],
@@ -701,7 +733,11 @@ static func draw_picker(c: Canvas, menu: Menu, row: int, mode: int, map: int, lo
 	HUD.text(c, String(lines[0]), 160, 153, "mini", HUD.INK, true)
 	HUD.text(c, String(lines[1]), 160, 160, "mini", HUD.INK, true)
 	var blurb := (
-		"YOU AND FOUR BOTS AGAINST FIVE. B BUYS IN THE FREEZE."
+		(
+			"YOU AND A BOT AGAINST TWO. B BUYS IN THE FREEZE."
+			if mode_id == "tagteam"
+			else "YOU AND FOUR BOTS AGAINST FIVE. B BUYS IN THE FREEZE."
+		)
 		if posmod(row, PICKER_ROWS) < 4
 		else "PLAY WITH FRIENDS ANYWHERE: HOST, OR JOIN BY CODE."
 	)

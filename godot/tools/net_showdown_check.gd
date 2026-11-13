@@ -135,6 +135,9 @@ func _play() -> void:
 	nets.append(bob)
 	_wait(func() -> bool: return bob.phase == "lobby" and host.players.size() == 3)
 	_check(host.players.size() == 3, "BOB comes back with the right password")
+	# The map first: a 2V2 map sets its own format, the sizes below override it.
+	host.set_setting("mode", String(opts["mode"]))
+	host.set_setting("map", String(opts["map"]))
 	host.set_setting("team_size", 3)
 	host.set_setting("rounds", 3)
 	host.set_setting("freeze_seconds", 3.0)

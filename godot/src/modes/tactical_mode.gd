@@ -394,6 +394,8 @@ func goal_line(game, st) -> String:
 	var me: Player = game.local_player
 	var attacking := attacks(game, st, me)
 	if id() == Modes.BOMB:
+		if game.world.tactical.get("sites", {}).size() == 1:
+			return "PLANT AT A" if attacking else "HOLD A"
 		return "PLANT AT A OR B" if attacking else "HOLD A AND B"
 	return "GET A HOSTAGE OUT" if attacking else "HOLD THE HOSTAGES"
 

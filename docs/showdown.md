@@ -157,3 +157,36 @@ the scale shack to the west. Tight and full of corners. North along hubcap
 alley and through the crane gap onto A, the crusher pit. Mid through wreck
 canyon's zig-zag of junk walls. South past the dead school bus to B, the tire
 barn.
+
+## Tag Team 2v2
+
+Search and destroy two a side on its own small maps, one bomb site each (the
+title's 5V5 SHOWDOWN, MODE: TAG TEAM 2V2; online, pick a 2V2 map in the
+lobby and the format follows; `--mode=tagteam [--arena=pineacres]` from the
+command line). First to 9 of 16 rounds (sides swap after 8; a short match is
+first to 5), 1:30 rounds, 15 seconds to buy, the same store, money, guns and
+throwables as the 5v5. You and a bot partner against two, or a friend online.
+The defenders reach the site four or five seconds before the attackers can.
+
+**Pump & Go**: a highway gas station. Outlaws on the highway shoulder to the
+west, deputies in the garage lot to the south-east. Long: truck parking along
+the top fence and in through the fence gap onto the pumps. Short: in the
+corner store's side door, through the aisles, out the loading dock and up the
+service alley onto the pumps from below. The frontage road along the bottom
+flanks round to the garage lot. The deputies come up the alley or through the
+garage bay. The site: the pump island, a car at the pumps, the fuel tank.
+
+**Pine Acres**: a trailer park. Outlaws at the park entrance to the south,
+deputies in their lane to the north-east. Long: the back row, a dirt lane
+behind the trailers, in at the carport's west end. Middle: the common green
+round a trailer parked across it and through the board fence's gap. East: the
+woodpile and through the double-wide to the deputies' lane (the flank). The
+site: the carport yard (a pickup, the wash line, a washer, a grill).
+
+**Catfish Landing**: a bait shop on the river. Outlaws in the gravel lot to
+the north-west, deputies at the marina office to the east. Long: the bank
+path down the west side and along the water onto the dock. Short: through the
+bait shop and its tanks, out past the cleaning shed and down onto the dock.
+Ice house row along the top flanks round to the office. The site: the dock
+(an airboat, bait tanks, the net rack); the water off its end slows anyone
+wading.

@@ -51,7 +51,10 @@ func _run() -> void:
 	root.get_texture().get_image().save_png(out.path_join("picker.png"))
 	for map: String in maps:
 		await _map(map)
-	await _hostage(String(maps[0]))
+	if not Modes.TAGTEAM_MAPS.has(String(maps[0])):
+		await _hostage(String(maps[0]))  # the 2v2 maps hold no hostages
+	else:
+		await _tag_results(String(maps[0]))
 	print("tactical frames written to ", out)
 	main.queue_free()
 	await process_frame
@@ -63,7 +66,12 @@ func _game(level_id: String, mode: String) -> Game:
 	main.game = g
 	main.state = "play"
 	g.configure(SessionStore.defaults())
-	Modes.setup(g, mode, 10, {"arena": level_id})
+	var options := {"arena": level_id}
+	var count := 10
+	if Modes.TAGTEAM_MAPS.has(level_id):
+		options.merge(Modes.TAGTEAM_OPTIONS)
+		count = Modes.TAGTEAM_PLAYERS
+	Modes.setup(g, mode, count, options)
 	g.barks.enabled = false
 	TacticalScreens.reset()
 	TacticalScreens.human = 0
@@ -125,7 +133,7 @@ func _map(id: String) -> void:
 	await _snap(id + "_lane")
 	g.cheats.god = true
 	var plan: Dictionary = g.world.tactical
-	for site: String in ["A", "B"]:
+	for site: String in plan["sites"]:
 		var box: Array = plan["sites"][site]
 		var centre := TacticalMode.box_centre(box)
 		var holds: Array = plan["holds"][site]
@@ -146,7 +154,7 @@ func _map(id: String) -> void:
 	var me: Player = g.local_player
 	TacticalShop.give(st, me, TacticalShop.item("hunter"))
 	me.armory.switch = 0.0
-	var mid: Array = plan["holds"]["mid"][0]
+	var mid: Array = plan["holds"].get("mid", plan["holds"]["A"])[0]
 	var sites: Dictionary = plan["sites"]
 	var aim_at := TacticalMode.box_centre(sites["A"])
 	_stand(g, float(mid[0]), float(mid[1]), aim_at.x, aim_at.y)
@@ -205,6 +213,20 @@ func _map(id: String) -> void:
 	g.message_until = 0.0
 	await _snap(id + "_planted")
 	g.cheats.god = false
+	main.game = null
+
+
+## A TAG TEAM match's end: a few rounds played out by the bots, then over.
+func _tag_results(id: String) -> void:
+	var g := _game(id, Modes.BOMB)
+	var st = Modes.feature(g)
+	_play(g, 120 * 60, true)
+	st.wins = [9, 6]
+	st.match_over = true
+	st.over_clock = g.clock
+	g.won = true
+	g.showing_tally = true
+	await _snap(id + "_results")
 	main.game = null
 
 

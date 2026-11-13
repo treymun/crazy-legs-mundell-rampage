@@ -73,7 +73,10 @@ func reset_objective(game, st) -> void:
 		else null
 	)
 	if carrier != null and carrier == game.local_player:
-		Modes.say(game, "YOU HAVE THE SHINE BOMB. PLANT IT ON A OR B.", float(st.freeze_seconds))
+		var where := "A" if game.world.tactical.get("sites", {}).size() == 1 else "A OR B"
+		Modes.say(
+			game, "YOU HAVE THE SHINE BOMB. PLANT IT ON %s." % where, float(st.freeze_seconds)
+		)
 	st.bomb = {
 		"state": "carried" if carrier != null else "dropped",
 		"slot": carrier.slot if carrier != null else -1,

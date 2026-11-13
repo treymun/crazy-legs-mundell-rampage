@@ -277,6 +277,8 @@ var net_look := 0.0
 ## --online-map= and --online-bot (project folder: a bot plays this
 ## machine's player).
 var online_args := {}
+## --mode=tagteam: the 2v2 format (Modes.TAGTEAM_*).
+var tag_team_arg := false
 var online_pilot = null
 
 var pad_down := {}
@@ -441,6 +443,9 @@ func _parse_smoke() -> void:
 			server_report = maxf(.5, float(text.substr(16)))
 		elif text.begins_with("--server-difficulty="):
 			server_difficulty = clampi(int(text.substr(20)), 0, 3)
+		elif text == "--mode=tagteam":
+			mode_name = Modes.BOMB
+			tag_team_arg = true
 		elif text.begins_with("--mode="):
 			mode_name = text.substr(7) if Modes.NAMES.has(text.substr(7)) else ""
 		elif text.begins_with("--players="):
@@ -475,10 +480,24 @@ func _parse_smoke() -> void:
 			# ("setup:3:9" picks its tenth row), "title:4" the fifth title entry.
 			smoke_screen = text.substr(15)
 	if Modes.TACTICAL.has(mode_name):
-		# A 5v5 mode: five a side unless --players says, on a 5v5 map.
+		# A 5v5 mode: five a side unless --players says, on a 5v5 map; on a
+		# TAG TEAM map (or --tag-team) two a side by its rules.
+		var arena := String(mode_options.get("arena", ""))
+		if tag_team_arg or Modes.TAGTEAM_MAPS.has(arena):
+			mode_name = Modes.BOMB
+			if not Modes.TAGTEAM_MAPS.has(arena):
+				mode_options["arena"] = Modes.TAGTEAM_MAPS[0]
+			for key: String in Modes.TAGTEAM_OPTIONS:
+				if not mode_options.has(key):
+					mode_options[key] = Modes.TAGTEAM_OPTIONS[key]
+			if mode_players < 2:
+				mode_players = Modes.TAGTEAM_PLAYERS
 		if mode_players < 2:
 			mode_players = Modes.MAX_PLAYERS
-		if not Modes.SHOWDOWN_MAPS.has(String(mode_options.get("arena", ""))):
+		if not (
+			Modes.SHOWDOWN_MAPS.has(String(mode_options.get("arena", "")))
+			or Modes.TAGTEAM_MAPS.has(String(mode_options.get("arena", "")))
+		):
 			mode_options["arena"] = Modes.SHOWDOWN_MAPS[0]
 	smoke = smoke_frames > 0
 	focused = true

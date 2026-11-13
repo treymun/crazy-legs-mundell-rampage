@@ -406,7 +406,12 @@ func _bomb_goal(game, st, p: Player, c: Game.Controls) -> Vector2:
 			return at
 		return at + Vector2(cos(slot * 2.3), sin(slot * 2.3)) * 3.5
 	var heard := called(game, p.team)
-	if heard != "" and team_index(game, p) != (0 if heard == "B" else 2):
+	# A call brings help from the other site; with one site (TAG TEAM 2V2)
+	# both are already on it, and leaving a hold for the site's middle only
+	# walks them into the open.
+	var sites = plan.get("sites", {})
+	var one_site: bool = sites is Dictionary and sites.size() == 1
+	if heard != "" and not one_site and team_index(game, p) != (0 if heard == "B" else 2):
 		var box = plan.get("sites", {}).get(heard, [])
 		if box is Array and box.size() >= 4:
 			return TacticalMode.box_centre(box)

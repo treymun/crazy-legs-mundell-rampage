@@ -1180,7 +1180,11 @@ func automap(c: Canvas) -> void:
 	)
 	var keys := "   /   TAP TO ZOOM" if touch_aim else "   /   PGUP PGDN ZOOM   /   TAB CLOSE"
 	if Modes.is_tactical(self):
-		tally = "SITES A AND B MARKED"
+		tally = (
+			"SITE A MARKED"
+			if world.tactical.get("sites", {}).size() == 1
+			else "SITES A AND B MARKED"
+		)
 		keys = "   /   PGUP PGDN ZOOM   /   M CLOSE"
 	HUD.text(c, tally + keys, 160, MAP_Y + MAP_H + 15, "body", HUD.INK, true)
 

@@ -133,12 +133,15 @@ func _take_mode(target: Game) -> void:
 ## The title's 5V5 SHOWDOWN: the match picked there, this machine's player
 ## and four bots against five.
 func start_showdown() -> void:
-	mode_name = String(Modes.TACTICAL[posmod(showdown_mode, Modes.TACTICAL.size())])
-	mode_players = Modes.MAX_PLAYERS
-	mode_options = {
-		"arena": String(Modes.SHOWDOWN_MAPS[posmod(showdown_map, Modes.SHOWDOWN_MAPS.size())]),
-		"rounds": int(TacticalScreens.MATCH_LENGTHS[posmod(showdown_long, 2)]),
-	}
+	var tag := posmod(showdown_mode, TacticalScreens.PICKER_MODES.size()) == 2
+	mode_name = Modes.BOMB if tag else String(Modes.TACTICAL[posmod(showdown_mode, 2)])
+	mode_players = Modes.TAGTEAM_PLAYERS if tag else Modes.MAX_PLAYERS
+	var maps := TacticalScreens.picker_maps(showdown_mode)
+	mode_options = {}
+	if tag:
+		mode_options = Modes.TAGTEAM_OPTIONS.duplicate()
+	mode_options["arena"] = String(maps[posmod(showdown_map, maps.size())])
+	mode_options["rounds"] = TacticalScreens.picker_rounds(showdown_mode, showdown_long)
 	showdown_on = true
 	sound.play("menu_accept")
 	start_match()

@@ -70,9 +70,18 @@ const ARENAS := [
 	"grainyard",
 	"holler",
 	"salvage",
+	"pumpngo",
+	"pineacres",
+	"landing",
 ]
 ## The 5v5 maps (tools/levels/<id>_plan.gd), each built for both round modes.
 const SHOWDOWN_MAPS := ["grainyard", "holler", "salvage"]
+## TAG TEAM 2V2: search and destroy two a side on its own small maps, one
+## bomb site each (tools/levels/pumpngo_plan.gd, pineacres, landing): first to
+## 9 of 16 rounds, 1:30 rounds, a shorter buy time.
+const TAGTEAM_MAPS := ["pumpngo", "pineacres", "landing"]
+const TAGTEAM_PLAYERS := 4
+const TAGTEAM_OPTIONS := {"rounds": 9, "round_seconds": 90.0, "buy_seconds": 15.0}
 
 static var _made := {}
 
@@ -95,6 +104,11 @@ static func rules_for(name: String) -> GameMode:
 				made = CampaignMode.new()
 		_made[name] = made
 	return _made[name]
+
+
+## A 5v5 round mode played two a side (TAG TEAM 2V2).
+static func is_tag_team(game) -> bool:
+	return is_tactical(game) and game.players.size() <= TAGTEAM_PLAYERS
 
 
 ## The game's mode feature (null only before its features are attached).

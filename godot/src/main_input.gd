@@ -285,9 +285,14 @@ func _key_showdown(code: int) -> void:
 		var step := -1 if code == KEY_LEFT or code == KEY_A else 1
 		match showdown_row:
 			0:
-				showdown_mode = posmod(showdown_mode + step, Modes.TACTICAL.size())
+				var was := TacticalScreens.picker_maps(showdown_mode)
+				showdown_mode = posmod(showdown_mode + step, TacticalScreens.PICKER_MODES.size())
+				if TacticalScreens.picker_maps(showdown_mode) != was:
+					showdown_map = 0
 			1:
-				showdown_map = posmod(showdown_map + step, Modes.SHOWDOWN_MAPS.size())
+				showdown_map = posmod(
+					showdown_map + step, TacticalScreens.picker_maps(showdown_mode).size()
+				)
 			2:
 				showdown_long = posmod(showdown_long + step, 2)
 		sound.play("menu_move")

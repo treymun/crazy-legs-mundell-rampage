@@ -133,6 +133,7 @@ func _ready() -> void:
 			selection = int(parts[1])
 		if parts.size() > 2:
 			option_slot = clampi(int(parts[2]), 0, option_items().size() - 1)
+			showdown_mode = int(parts[2])  # "showdown:<row>:<mode>"
 		if state == "slots":
 			show_slots("load")
 	elif smoke_frames > 0:

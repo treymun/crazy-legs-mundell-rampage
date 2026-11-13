@@ -37,7 +37,7 @@ func _run() -> void:
 	await process_frame
 	main.set_process(false)
 	main.state = "title"
-	var maps: Array = Modes.SHOWDOWN_MAPS.duplicate()
+	var maps: Array = Modes.SHOWDOWN_MAPS + Modes.TAGTEAM_MAPS
 	var modes: Array = Modes.TACTICAL.duplicate()
 	var rounds := 3
 	var minutes := 30.0
@@ -58,6 +58,8 @@ func _run() -> void:
 	var errors := CrashLog.tally()
 	for map: String in maps:
 		for mode: String in modes:
+			if Modes.TAGTEAM_MAPS.has(map) and mode != Modes.BOMB:
+				continue  # the 2v2 maps are search and destroy only
 			_match(main, map, mode, rounds, minutes, verbose)
 	errors.stop()
 	_summary()
@@ -85,7 +87,13 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 	print("== %s  %s  first to %d" % [map, mode, rounds])
 	var g: Game = main.make_game(map)
 	g.configure({"difficulty": 1})
-	Modes.setup(g, mode, 10, {"arena": map, "rounds": rounds})
+	var options := {"arena": map, "rounds": rounds}
+	var count := 10
+	if Modes.TAGTEAM_MAPS.has(map):
+		# TAG TEAM 2V2: two a side by its rules (the length as asked).
+		options.merge(Modes.TAGTEAM_OPTIONS)
+		count = Modes.TAGTEAM_PLAYERS
+	Modes.setup(g, mode, count, options)
 	TacticalScreens.human = -1
 	var pilots := {}
 	for p: Player in g.players:
