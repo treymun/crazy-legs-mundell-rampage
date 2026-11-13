@@ -297,6 +297,10 @@ var server_ticks := 0
 var server_report := 5.0
 var server_difficulty := 1
 var frame_count := 0
+## The crash and error log (crash_log.gd; null in tools and the browser) and
+## the controls the last play frame handed the game (its context).
+var crash_log: CrashLog = null
+var last_controls: Game.Controls = null
 
 
 func _parse_smoke() -> void:
@@ -816,6 +820,9 @@ const SHOWCASE_SECONDS := 6.0
 
 
 func _exit_tree() -> void:
+	if crash_log != null:
+		crash_log.close()
+		crash_log = null
 	Weapons.Armory.settle()
 	Renderer.stop_crew()
 	if canvas != null:

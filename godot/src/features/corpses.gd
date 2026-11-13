@@ -281,14 +281,20 @@ func _look_for_floaters() -> void:
 
 ## The nearest floating bodies bob on the water and now and then leave a ring.
 func _bob() -> void:
-	var p = game.player
 	var water = game.features.get("water")
 	var shown := 0
 	for f: Array in floating:
 		var e: Enemy = f[0]
 		if e.alive:
 			continue
-		if absf(e.x - p.x) > 14.0 or absf(e.y - p.y) > 14.0 or shown >= FLOAT_MAX:
+		# Near any player (a body's height is carried play, the same on every
+		# machine, not just the local player's surroundings).
+		var near := false
+		for p: Player in game.players:
+			if absf(e.x - p.x) <= 14.0 and absf(e.y - p.y) <= 14.0:
+				near = true
+				break
+		if not near or shown >= FLOAT_MAX:
 			continue
 		shown += 1
 		e.toss = BOB * (1.0 + sin(game.clock * BOB_SPEED + float(f[1])))

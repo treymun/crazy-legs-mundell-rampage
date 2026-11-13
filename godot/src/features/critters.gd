@@ -213,9 +213,14 @@ func _tick(dt: float) -> void:
 				_spatter(e, "splash", 2)
 		for e: Enemy in done:
 			_thrashing.erase(e)
-	var p = game.player
-	if game.clock >= _spook_next and Vector2(p.vx, p.vy).length() > RUNNING:
-		# The player running at the chickens.
+	# A player running at the chickens: the first by slot (any player's run,
+	# not the local one's: this is play).
+	var p: Player = null
+	for each: Player in game.players:
+		if Vector2(each.vx, each.vy).length() > RUNNING:
+			p = each
+			break
+	if game.clock >= _spook_next and p != null:
 		_spook_next = game.clock + .25
 		for e: Enemy in game.enemies:
 			if (
