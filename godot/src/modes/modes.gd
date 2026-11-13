@@ -102,6 +102,26 @@ static func feature(game):
 	return game.features.get("mode")
 
 
+## [spread, reach] of a hitscan or pellet shot about to go (weapons.gd):
+## weapons.cfg's spread (scope_spread with the scope up, more as heat_spread
+## builds) and range, and in the 5v5 modes the rules' say over them
+## (shot_tuning; the campaign never asks the rules).
+static func shot_spread(game, p: Player, gun: int, how: Dictionary, heat: float) -> Array:
+	var spread: Vector2 = how.get("spread", Vector2.ZERO)
+	if p.scoped and how.has("scope_spread"):
+		spread = how["scope_spread"]
+	if how.has("heat_spread"):
+		spread += Vector2.ONE * float(how["heat_spread"]) * heat
+	return shot_tuning(game, p, gun, spread, float(how["range"]))
+
+
+static func shot_tuning(game, p: Player, gun: int, spread: Vector2, reach: float) -> Array:
+	var st = game.features.get("mode")
+	if st == null or not TACTICAL.has(String(st.mode)):
+		return [spread, reach]
+	return rules(game).shot_tuning(game, p, gun, spread, reach)
+
+
 static func rules(game) -> GameMode:
 	var st = feature(game)
 	return rules_for(CAMPAIGN if st == null else String(st.mode))
@@ -122,6 +142,8 @@ static func is_tactical(game) -> bool:
 
 
 static func tag(p: Player) -> String:
+	if p.name != "":
+		return p.name
 	return String(TAGS[p.slot % TAGS.size()])
 
 
@@ -133,6 +155,21 @@ static func color(p: Player) -> Color:
 ## the others join beside player one. options: arena (versus: a boss kind's
 ## box, from --arena), frag_limit, time_limit. The mode's own start (scaling,
 ## enemies off, spawn points, kits) runs on the first tick.
+## What an online lobby may set on a match (Modes.setup copies each one given
+## into the mode feature; features/mode_feature.gd says what each does).
+const HOST_SETTINGS := [
+	"freeze_seconds",
+	"buy_seconds",
+	"round_seconds",
+	"start_money",
+	"friendly_fire",
+	"bot_skill",
+	"bots",
+	"teams",
+	"names",
+]
+
+
 static func setup(game, name: String, count: int, options := {}) -> void:
 	var st = feature(game)
 	if st == null or not NAMES.has(name):
@@ -142,11 +179,17 @@ static func setup(game, name: String, count: int, options := {}) -> void:
 	st.frag_limit = int(options.get("frag_limit", st.frag_limit))
 	st.time_limit = float(options.get("time_limit", st.time_limit))
 	st.rounds_to_win = clampi(int(options.get("rounds", st.rounds_to_win)), 1, 16)
+	# An online lobby's match settings (the 5v5 modes read them).
+	for key: String in HOST_SETTINGS:
+		if options.has(key):
+			st.set(key, options[key])
 	count = clampi(count, 1, MAX_PLAYERS if TACTICAL.has(name) else MAX_FREE_FOR_ALL)
 	while game.players.size() < count:
 		join_beside(game, game.players[0])
 	for p: Player in game.players:
 		p.team = p.slot % 2
+		if p.slot < st.names.size() and String(st.names[p.slot]) != "":
+			p.name = String(st.names[p.slot])
 		rules_for(name).joined(game, st, p)
 
 
@@ -427,7 +470,7 @@ static func player_hit(
 	if dealt <= 0.0:
 		return
 	_blamed(game, me.slot, victim, dealt, [me.x, me.y], cause)
-	game.burst(victim.x, victim.y, victim.eye - .3, "blood", 6, 1.2)
+	game.burst(victim.x, victim.y, victim.eye - .3, "gore", 6, 1.2)
 	game.struck(dealt, victim.health <= 0, false)
 
 
@@ -477,7 +520,7 @@ static func shot_strikes(game, shot, x: float, y: float, z: float) -> bool:
 				))
 			if dealt > 0.0:
 				_blamed(game, shot.slot, q, dealt, [x, y], "SHOT")
-				game.burst(q.x, q.y, z, "blood", 6, 1.2)
+				game.burst(q.x, q.y, z, "gore", 6, 1.2)
 			game.finish_shot(shot)
 			return true
 	return false

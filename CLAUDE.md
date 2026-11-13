@@ -76,6 +76,11 @@ godot --headless --path godot --script res://tools/multi_bots.gd -- players=1,2,
 godot --headless --path godot --script res://tools/net_loopback.gd -- seconds=180 lag=50 loss=0.05   # NET LOOPBACK OK (websocket: over WebSocket)
 godot --headless --path godot --script res://tools/mode_check.gd      # MODE CHECK OK (co-op, deathmatch; quick: check_fixes's part)
 godot --headless --path godot --script res://tools/tactical_check.gd -- rounds=3   # TACTICAL CHECK OK (the 5v5 modes, ten bots, every map)
+godot --headless --path godot --script res://tools/gun_sheet.gd   # the 5v5 guns' numbers side by side (md=<file>)
+godot --headless --path godot --script res://tools/map_timing.gd   # 5v5 maps: run times to sites, bots' routes and holds checked (strict)
+godot --headless --path godot --script res://tools/net_showdown_check.gd   # NET SHOWDOWN OK (online 5v5 lobby to lobby; lag= loss= seconds=)
+godot --path godot -- --host-online[=port] --online-name=TREY [--online-password=x]   # straight into a lobby
+godot --path godot -- --join-online=<code or address> --online-name=BOB   # (tests: --online-start=2 --online-bot)
 godot --headless --path godot --script res://tools/levels/build_level.gd -- grainyard   # the 5v5 maps: grainyard, holler, salvage
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 godot --headless --path godot --script res://tools/net_bench.gd -- levels=hickston players=1,2,4 [host]   # ticks, snapshots, deltas
@@ -1024,14 +1029,23 @@ what a networking pass still needs).
 - **The transport** (`src/net/`): `NetSession` wraps ENet or WebSocket
   (`MultiplayerPeer`, packets only), with test latency, jitter and loss on
   what it sends (on the clock handed to `poll`; loss only unreliable).
-  `NetWire` is every packet's layout (controls in 12 bytes; inputs sent
-  redundantly; snapshots with their base, tick, input ack and the inputs
-  played since the base). `NetSync.Host` plays the authoritative game and
-  sends deltas from each client's acknowledged snapshot (whole while it has
-  none); `NetSync.Client` rebuilds them and steps a copy of the game with the
-  inputs the host played, rebuilding it from a snapshot when it cannot step
-  and every 10 s (`GameSnapshot.apply` works on a running game now, so
-  `NetSync.APPLY_RUNNING` may go on). Two things about snapshots the tests
+  `NetWire` is every packet's layout (protocol 3: controls in 14 bytes, buys,
+  reloads and the host's rewind among them; inputs sent redundantly with the
+  tick the client shows; snapshots with their base, tick, input ack and the
+  inputs played since the base; the lobby's messages). `NetSync.Host` plays
+  the authoritative game and sends deltas from each client's acknowledged
+  snapshot (whole while it has none); `NetSync.Client` rebuilds them and
+  steps a copy of the game with the inputs the host played (`play_out`: a
+  few ticks behind the newest, smoothly), and puts a snapshot onto the copy
+  (`REBUILD_RUNNING`: the running game, no hitch) when it cannot step or a
+  check finds it parted. Both can be fed by whoever polls the session
+  (`take`, `play`, `add_remote`): the online lobby does. **Shots are judged
+  where the shooter saw them**: the host sets `Controls.rewind` (ticks back,
+  from the tick the client said it shows, at most `NetSync.MAX_REWIND`) and
+  `game.gd _rewound_hands` stands everyone else where `game.place_log` (60
+  ticks a second, never carried, every copy keeps its own) had them for that
+  player's hands. The rewind travels in the echoed inputs, so every copy
+  plays it the same. Two things about snapshots the tests
   found, both fixed in snapshot version 2: a capture shared the game's packed
   arrays (it copies them now; `NetSync.capture`'s deep copy is no longer
   needed), and the save part followed the acting player and carried
@@ -1046,6 +1060,58 @@ what a networking pass still needs).
   no errors; prints bandwidth each way, snapshot and input sizes, lag and the
   host's costs. Its quick part (ENet 6 s with 40 ms, jitter and 5% loss;
   WebSocket 2 s) is in check_fixes.
+- **5v5 gun feel** (`TacticalMode.shot_tuning`, `TacticalShop.MOVE_SPREAD`,
+  `REACH`, `FALLOFF`): weapons.gd asks `Modes.shot_spread` for every hitscan
+  and pellet shot's spread and reach; outside the 5v5 modes it is the gun's
+  own, unchanged (the campaign never asks the rules). In them a gun strays more
+  on the move by its kind, more in the air, less crouched and still, and some
+  guns reach further with their damage falling off (`pvp_damage`); the spread
+  is shown as ticks round the crosshair (`TacticalScreens._spread_marks`). The
+  bots stand to shoot with the guns that need it, scope a sniper rifle past
+  arm's length, and buy by a style per slot (`TacticalBot.STYLES`). The 5v5
+  maps' fences never break (`breakables.cfg` `never`). The bots' attack
+  gathers at the last route point no hold of the target site can see
+  (`TacticalBot._stage_for`, `_released`, `STAGE_MOST`) and goes in together,
+  guns on the site's holds (`_corner_to_check`). Hostage rescue has nearer
+  rescue points (`tactical` `rescue_more`, `HostageMode.rescue_boxes`) and
+  carriers run. The 5v5 HUD: `hud.gd _draw_team_bar` (VEST, side and goal,
+  THROWN; `TacticalScreens.bar_state`), the results
+  (`TacticalScreens.results`), the players drawn as `billy` (outlaws) and
+  `yard_deputy` (deputies) cels at the hit box's height
+  (`TacticalScreens.player_sprite`). Balance is read off `tactical_check.gd`'s
+  summary (side wins per map and mode, kills by gun, plants, `deaths=` for
+  where players fell); bot matches, so only a guide. The ten side guns'
+  models wear their side (`weapon_views.py` `O_*` outlaw materials: bluing
+  rubbed brown, rust, brass tacks, twine, snakeskin, XXX; `D_*` deputy ones:
+  blue-black steel, black polymer, silver stars, brass county tags, a light
+  on the riot pump); `pbr(edge=, cavity=)` rubs real edges and darkens
+  creases, used only by those materials so the campaign guns render as before.
+- **Online 5v5** (`src/net/net_play.gd`, `lobby_screens.gd`, `net_upnp.gd`;
+  `docs/online.md` is the how-to). `NetPlay.host_lobby` / `join_lobby`;
+  the front end polls it every frame (`main.gd _net_frame`) and acts on
+  `take_changes()` (a match began, back to the lobby, a bot or a person
+  took a slot). HELLO carries name, password and version (refused: wrong
+  password, another version, full, a match on without LATE JOIN). The host's
+  settings are `NetPlay.LOBBY_ROWS` and `MATCH_ROWS`; the match ones reach
+  the mode through `Modes.HOST_SETTINGS` (freeze, buy and round seconds,
+  start cash, friendly fire, bot skill, bots, `teams` and `names` by slot:
+  the host is slot 0, then the people, then bots to the team size). A match
+  is made by `main_flow.gd net_match_game` on every machine alike (the
+  host's play settings, START's "sim", over each machine's own), then
+  played: the host ticks at `NetSync.STEP` with its own player and the
+  bots (`_net_host_tick`); a client sends controls and plays its copy out
+  (`_net_advance`), and draws its own aim with the turns the host has not
+  played yet (`_net_aim`; never on a frame the start-up view check redraws).
+  Someone leaving mid-match: a bot plays on in their slot; LATE JOIN: a
+  newcomer takes the bot's slot on the team with fewer people. ESC asks
+  before leaving; nobody pauses or saves. The router is asked for the port
+  by UPnP on a thread; the join code is the outside IPv4 and port in ten
+  characters (`NetPlay.to_code`). ENet peers wait `NetSession.PATIENCE_MS`
+  of silence before giving up (a machine loading a map stalls). Play that
+  reads `game.local_player` must not change anything carried: the 5v5's
+  "last one standing" call used to, and the online check found it.
+  `tools/net_showdown_check.gd` holds it all (host plus three clients in one
+  process, lag and loss as asked; in check_all and CI).
   breaks or the posse); per-player stats (chapter stats and the tally are
   the local player's) and a kill feed; the steam scald list is keyed by
   hazard instance id (not carried). Respawn, bodies blocking, area attacks
@@ -1140,7 +1206,7 @@ every single-player check are as before).
   menu on B), live play (bomb 105 s, hostage 115 s), POST (5 s). Buying near
   your own spawn through the freeze and BUY_WINDOW (20 s) after. Survivors keep
   guns (topped up) and vest; the fallen get the crowbar and .38. The outlaws
-  plant the shine bomb (hold USE 3.2 s on site A or B; 40 s fuse; deputies
+  plant the shine bomb (hold USE 2.6 s on site A or B; 35 s fuse; deputies
   hold USE 7 s, 3.5 s with wire snips, to cut it; a blast of 420 falling off
   over 10 cells); in hostage rescue the deputies attack, carry a hostage (USE,
   walking) into the rescue box, one out wins. Hits between players use
@@ -1221,14 +1287,16 @@ every single-player check are as before).
   longer) holds the rules; `tools/mode_frames.gd -- out=<dir>` (a window)
   takes pictures of the partner tags, the revive, the down screen, a
   deathmatch and both results screens (`docs/modes/`).
-- **Not done:** networking; a second local input set (split keyboard);
+- **Not done:** online play outside the 5v5 modes (co-op and deathmatch);
+  the browser build online (it would need WebRTC or a WebSocket relay); a
+  relay or NAT punch-through for hosts whose router will not open the port
+  (forward it, or a VPN); client prediction of walking (only the aim); a
+  second local input set (split keyboard);
   a kill feed outside the 5v5 modes; a lying-down picture for a player
   who is down (the standing one, squat); spawn points from the plans outside
   the 5v5 maps (only worked out); versus pickups other than the level's own;
   the title menu's only mode entry is 5V5 SHOWDOWN (the rest command line
-  only). The 5v5 bots buy for themselves outside the tick (TacticalShop.buy
-  from the pilot, not through Controls), so a networked match would need a
-  buy in the controls first. A save or snapshot taken while player
+  only). A save or snapshot taken while player
   one is down does not load (SessionStore refuses a player at 0; the
   quicksave is refused then anyway). The co-op boss checkpoint's retry with
   partners is put together from the save round-trip and `gather`, with no

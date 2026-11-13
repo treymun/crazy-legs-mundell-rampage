@@ -47,7 +47,7 @@ const ITEMS := [
 	["riveter", "MILL RIVETER", 1350, Weapons.RIVETER, 0, 60, "SPRAYER", "outlaws"],
 	["teat_gun", "TEAT GUN", 1050, Weapons.TEAT, 0, 150, "SPRAYER", "outlaws"],
 	["rifle", "RANCH RIFLE", 2700, Weapons.RIFLE, 0, 90, "RIFLE", ""],
-	["arm_gun", "ALIEN ARM GUN", 3100, Weapons.ARMGUN, 0, 45, "RIFLE", ""],
+	["arm_gun", "ALIEN ARM GUN", 2500, Weapons.ARMGUN, 0, 45, "RIFLE", ""],
 	["hunter", "HOG HUNTER .30-06", 4750, Weapons.HUNTER, 5, 20, "SNIPER", "outlaws"],
 	["marksman", "COUNTY MARKSMAN", 5000, Weapons.MARKSMAN, 10, 30, "SNIPER", "deputies"],
 	["mower", "CORN MOWER", 5200, Weapons.MOWER, 100, 200, "MACHINE GUN", "outlaws"],
@@ -133,14 +133,16 @@ const KILL_DEFAULT := 300
 ## A gun's hit on another player: [times what it does to a hand, the part a
 ## vest lets through to health, times on the head]. Tuned so that, against a
 ## player with 100 health: the .38 takes three to the body or one to an
-## unprotected head; the ranch rifle four (five through a vest) or a head and
-## a bit through a hard hat; a sawed-off barrel up close drops anyone;
+## unprotected head (the issue .45 four, but holds eight and fires faster); the HOGLEG .44
+## one to the head even through a hard hat, the quicker STAR .357 two; the
+## ranch rifle four (five through a vest) or a head and a bit through a hard
+## hat; a sawed-off barrel up close drops anyone;
 ## a crowbar takes two; the Hog Hunter drops anyone with one to the body (120,
 ## 108 through a vest); the Corn Mower four (five through a vest).
 const DAMAGE := {
 	Weapons.CROWBAR: [1.25, .85, 1.0],
 	Weapons.SLING: [1.0, .85, 1.0],
-	Weapons.REVOLVER: [.89, .55, 3.0],
+	Weapons.REVOLVER: [1.05, .66, 3.2],
 	Weapons.SHOTGUN: [1.17, .7, 1.25],
 	Weapons.RIFLE: [1.43, .78, 3.0],
 	Weapons.RIPSAW: [1.1, .7, 1.5],
@@ -158,7 +160,7 @@ const DAMAGE := {
 	Weapons.GREASE_GUN: [1.1, .6, 2.5],
 	Weapons.COUNTY45: [1.0, .55, 3.0],
 	Weapons.STAR357: [1.0, .7, 2.5],
-	Weapons.HOGLEG: [1.0, .7, 2.5],
+	Weapons.HOGLEG: [1.0, .7, 2.6],
 }
 const DAMAGE_DEFAULT := [1.0, .7, 1.0]
 ## A blast on another player, by the shot's kind: times what the level's
@@ -169,6 +171,55 @@ const BLAST_DEFAULT := 2.0
 const BLAST_THROUGH := .6
 ## Where a hit counts as the head (0 the feet, 1 the top of the head).
 const HEAD_FROM := .8
+## Accuracy on the move: the spread (radians, each way) a gun of each kind
+## gains at a full run, from nothing at STILL_BELOW cells a second; more in
+## the air; less crouched and still. A scoped sniper rifle gains SCOPED_MOVE
+## times its kind's (a scope is for standing still).
+const MOVE_SPREAD := {
+	"PISTOL": .028,
+	"SMG": .02,
+	"SHOTGUN": .02,
+	"SPRAYER": .015,
+	"RIFLE": .05,
+	"MACHINE GUN": .065,
+	"SNIPER": .07,
+	"HEAVY": 0.0,
+}
+const STILL_BELOW := .9
+const RUN_SPEED := 3.85
+const AIR_SPREAD := .08
+const SCOPED_MOVE := 1.6
+const CROUCH_SCALE := .7
+## How far a gun reaches in the 5v5 modes where its own reach is short for
+## these maps, and where its damage starts to fall off and what is left at
+## that reach ([full damage out to, the share left at the end]). Past its
+## reach a shot does nothing, as everywhere.
+const REACH := {
+	Weapons.REVOLVER: 34.0,
+	Weapons.COUNTY45: 34.0,
+	Weapons.STAR357: 38.0,
+	Weapons.HOGLEG: 38.0,
+	Weapons.GREASE_GUN: 30.0,
+	Weapons.TOMMY: 32.0,
+	Weapons.RIVETER: 22.0,
+	Weapons.RIFLE: 44.0,
+	Weapons.MOWER: 44.0,
+	Weapons.PATROL_BAR: 44.0,
+}
+const FALLOFF := {
+	Weapons.REVOLVER: [16.0, .55],
+	Weapons.COUNTY45: [16.0, .55],
+	Weapons.STAR357: [20.0, .6],
+	Weapons.HOGLEG: [18.0, .6],
+	Weapons.GREASE_GUN: [11.0, .5],
+	Weapons.TOMMY: [12.0, .5],
+	Weapons.RIVETER: [10.0, .55],
+	Weapons.RIFLE: [26.0, .75],
+	Weapons.MOWER: [24.0, .7],
+	Weapons.PATROL_BAR: [24.0, .7],
+	Weapons.SHOTGUN: [5.0, .45],
+	Weapons.RIOT_PUMP: [6.0, .45],
+}
 
 
 static func item(id: String) -> Array:
@@ -231,6 +282,18 @@ static func price_for(st, p: Player, row: Array) -> int:
 
 ## Buys item `id` for `p`: "" when it was bought, else why not (for the HUD).
 static func buy(game, st, p: Player, id: String) -> String:
+	var said := why_not(game, st, p, id)
+	if said != "":
+		return said
+	var row := item(id)
+	st.money[p.slot] = int(st.money[p.slot]) - price_for(st, p, row)
+	give(st, p, row)
+	return ""
+
+
+## Why `p` may not buy item `id` now ("" when they may): the store's every
+## rule, without buying (the menu asks first, then sends the buy).
+static func why_not(game, st, p: Player, id: String) -> String:
 	var row := item(id)
 	if row.is_empty():
 		return "NOT FOR SALE"
@@ -242,12 +305,17 @@ static func buy(game, st, p: Player, id: String) -> String:
 		return "ALREADY GOT IT"
 	if String(row[6]) == "THROWN" and thrown_count(p) >= MAX_THROWN:
 		return "HANDS FULL"
-	var price := price_for(st, p, row)
-	if int(st.money[p.slot]) < price:
+	if int(st.money[p.slot]) < price_for(st, p, row):
 		return "NOT ENOUGH CASH"
-	st.money[p.slot] = int(st.money[p.slot]) - price
-	give(st, p, row)
 	return ""
+
+
+## Item `id`'s place in ITEMS (Controls.buy), or -1.
+static func index_of(id: String) -> int:
+	for i in ITEMS.size():
+		if String(ITEMS[i][0]) == id:
+			return i
+	return -1
 
 
 ## Puts item `row` in `p`'s hands (no money changes hands here).
@@ -338,6 +406,8 @@ static func settle(a: Weapons.Armory) -> void:
 static func reach(gun: int) -> float:
 	if gun < 0 or gun >= Weapons.FIRING.size():
 		return 0.0
+	if REACH.has(gun):
+		return float(REACH[gun])
 	var how: Dictionary = Weapons.FIRING[gun]
 	if how.has("range"):
 		return float(how["range"])
@@ -355,7 +425,9 @@ static func gun_for(p: Player, distance: float) -> int:
 	for gun: int in BOT_ORDER:
 		if not a.owned[gun] or (a.loaded[gun] <= 0 and a.reserve[gun] <= 0):
 			continue
-		var r := reach(gun)
+		if distance < SNIPER_CLOSE and gun in [Weapons.HUNTER, Weapons.MARKSMAN]:
+			continue  # up close a scope is too slow: the sidearm
+		var r := sweet(gun)
 		if r >= distance:
 			return gun
 		if r > far_reach:
@@ -364,8 +436,46 @@ static func gun_for(p: Player, distance: float) -> int:
 	return far if far >= 0 else Weapons.CROWBAR
 
 
+## How far a gun does most of its damage (a bot's choice of gun goes by it).
+static func sweet(gun: int) -> float:
+	if FALLOFF.has(gun):
+		var f: Array = FALLOFF[gun]
+		return lerpf(float(f[0]), reach(gun), .4)
+	return reach(gun)
+
+
+## The share of a hit that lands from `distance` away (FALLOFF).
+static func falloff(gun: int, distance: float) -> float:
+	if not FALLOFF.has(gun):
+		return 1.0
+	var f: Array = FALLOFF[gun]
+	var full := float(f[0])
+	if distance <= full:
+		return 1.0
+	var end := maxf(full + .01, reach(gun))
+	return lerpf(1.0, float(f[1]), clampf((distance - full) / (end - full), 0.0, 1.0))
+
+
+## A gun's kind in the store ("RIFLE", "PISTOL"...; the kit pistols too).
+static func kind_of(gun: int) -> String:
+	if _kinds.is_empty():
+		for row: Array in ITEMS:
+			if int(row[3]) >= 0:
+				_kinds[int(row[3])] = String(row[6])
+		_kinds[Weapons.REVOLVER] = "PISTOL"
+		_kinds[Weapons.COUNTY45] = "PISTOL"
+	return String(_kinds.get(gun, ""))
+
+
+static var _kinds := {}
+
+## Nearer than this a bot leaves a sniper rifle for its next gun.
+const SNIPER_CLOSE := 5.0
+
 ## The bots' order of preference among what they hold.
 const BOT_ORDER := [
+	Weapons.HUNTER,
+	Weapons.MARKSMAN,
 	Weapons.MOWER,
 	Weapons.PATROL_BAR,
 	Weapons.ARMGUN,

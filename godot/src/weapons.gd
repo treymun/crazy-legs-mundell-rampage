@@ -487,11 +487,8 @@ class Armory:
 		elif mode == "melee":
 			swing_hit = true
 		elif mode == "hitscan":
-			var spread: Vector2 = how.get("spread", Vector2.ZERO)
-			if player.scoped and how.has("scope_spread"):
-				spread = how["scope_spread"]
-			if how.has("heat_spread"):
-				spread += Vector2.ONE * float(how["heat_spread"]) * rifle_heat
+			var tuned := Modes.shot_spread(game, player, i, how, rifle_heat)
+			var spread: Vector2 = tuned[0]
 			var offsets: Array = [0.0]
 			if spent == 2 and how.has("pair_spread"):
 				offsets = [-float(how["pair_spread"]), float(how["pair_spread"])]
@@ -506,7 +503,7 @@ class Armory:
 					yaw,
 					tilt,
 					Weapons.DAMAGE.get(i, 0),
-					float(how["range"]),
+					tuned[1],
 					float(how["width"]),
 					true,
 					bool(how.get("pressure", false))
@@ -522,7 +519,8 @@ class Armory:
 				)
 				rifle_heat = minf(1.0, rifle_heat + float(how.get("heat_gain", 0.0)))
 		elif mode == "pellets":
-			var spread: Vector2 = how.get("spread", Vector2.ZERO)
+			var tuned := Modes.shot_spread(game, player, i, how, 0.0)
+			var spread: Vector2 = tuned[0]
 			var sparks := int(how.get("spark_pellets", 0))
 			for pellet in int(how.get("pellets", Weapons.SHOTGUN_PELLETS)) * spent:
 				var dx: float = game.rng.randf_range(-spread.x, spread.x)
@@ -531,7 +529,7 @@ class Armory:
 					aim + dx,
 					slope + dy,
 					int(how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)),
-					float(how["range"]),
+					tuned[1],
 					float(how["width"]),
 					pellet < sparks
 				)

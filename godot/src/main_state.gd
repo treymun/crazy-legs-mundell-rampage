@@ -53,7 +53,24 @@ const TOUCH_ROWS := [
 	["MENU", "PAUSE"],
 	["TAP A MENU ROW", "SELECT IT"],
 ]
-const CONTROL_PAGES := [["KEYBOARD", CONTROL_ROWS], ["GAMEPAD", PAD_ROWS], ["TOUCH", TOUCH_ROWS]]
+## The 5v5 SHOWDOWN's own keys (src/modes/tactical_screens.gd).
+const SHOWDOWN_ROWS := [
+	["B", "THE STORE (BUY TIME)"],
+	["1 2 3 4", "RIFLE / PISTOL / BAR / THROWN"],
+	["MOUSE 2", "SCOPE UP AND DOWN (SNIPERS)"],
+	["R", "RELOAD"],
+	["HOLD E", "PLANT / CUT THE FUSE"],
+	["E", "TAKE OR SET DOWN A HOSTAGE"],
+	["CROUCH, STAND STILL", "STEADIER AIM"],
+	["TAB HELD", "SCOREBOARD"],
+	["M", "MAP WITH THE SITES"],
+	["SPACE WHILE OUT", "WATCH THE NEXT TEAMMATE"],
+]
+const CONTROL_PAGES := [
+	["KEYBOARD", CONTROL_ROWS], ["GAMEPAD", PAD_ROWS], ["TOUCH", TOUCH_ROWS], ["5V5", SHOWDOWN_ROWS]
+]
+## The width of each controls page's tab.
+const CONTROL_TAB := 70
 ## Which sound answers a change to each audio setting.
 const AUDIO_PREVIEW := {
 	"master": "effects",
@@ -222,6 +239,9 @@ const MENU_STATES := [
 	"rematch",
 	"rematch_done",
 	"showdown",
+	"nethost",
+	"netjoin",
+	"lobby",
 ]
 ## The title's 5V5 SHOWDOWN picker (TacticalScreens.draw_picker): the row the
 ## cursor is on, the mode, map and match length picked, and whether the game
@@ -232,6 +252,32 @@ var showdown_mode := 0
 var showdown_map := 0
 var showdown_long := 1
 var showdown_on := false
+## Online play (src/net/net_play.gd, docs/online.md): the lobby or match this
+## machine is in (null: none), lobbies closing (polled until their goodbye is
+## out), the HOST ONLINE / JOIN ONLINE forms' typed fields and cursor, the
+## lobby's cursor, the kick row's pick and whether ENTER was pressed once on
+## it, a line for those screens, asking to leave a match (ESC), and the
+## match's own clock: time and mouse saved up toward the next tick.
+var net: NetPlay = null
+var net_old: Array = []
+var net_form := {}
+var net_row := 0
+var lobby_row := 0
+var net_kick := 0
+var net_kick_armed := false
+var net_note := ""
+var net_leave := false
+var net_accum := 0.0
+var net_turn := 0.0
+var net_look := 0.0
+## Online from the command line (tests, a quick game with friends):
+## --host-online[=port] or --join-online=<code or address>, --online-name=,
+## --online-password=; for tests --online-start=<players> (the host starts
+## once that many are in and ready, everyone readies by themselves),
+## --online-map= and --online-bot (project folder: a bot plays this
+## machine's player).
+var online_args := {}
+var online_pilot = null
 
 var pad_down := {}
 
@@ -409,6 +455,20 @@ func _parse_smoke() -> void:
 			mode_options["rounds"] = clampi(int(text.substr(9)), 1, 16)
 		elif text.begins_with("--level="):
 			mode_level = text.substr(8)
+		elif text == "--host-online" or text.begins_with("--host-online="):
+			online_args["host"] = int(text.substr(14)) if text.length() > 14 else NetSession.PORT
+		elif text.begins_with("--join-online="):
+			online_args["join"] = text.substr(14)
+		elif text.begins_with("--online-name="):
+			online_args["name"] = text.substr(14)
+		elif text.begins_with("--online-password="):
+			online_args["password"] = text.substr(18)
+		elif text.begins_with("--online-start="):
+			online_args["start"] = int(text.substr(15))
+		elif text.begins_with("--online-map="):
+			online_args["map"] = text.substr(13)
+		elif text == "--online-bot":
+			online_args["bot"] = true
 		elif text.begins_with("--smoke-screen="):
 			# A front-end screen instead of a level: title, setup, controls,
 			# credits, replays or slots; "setup:3" opens the fourth settings page
@@ -868,6 +928,11 @@ const SHOWCASE_SECONDS := 6.0
 
 
 func _exit_tree() -> void:
+	if net != null:
+		net.leave("THE HOST QUIT" if net.role == NetPlay.Role.HOST else "LEFT")
+		net.flush_leave()
+	for old: NetPlay in net_old:
+		old.finish()
 	if crash_log != null:
 		crash_log.close()
 		crash_log = null
@@ -998,11 +1063,17 @@ func render_controls() -> void:
 	menu_panel("HOW TO RAISE HELL")
 	for j in CONTROL_PAGES.size():
 		var on := j == controls_page
-		canvas.fill_rect(20 + j * 92, 32, 90, 13, Menu.RUST if on else Canvas.rgb(48, 34, 26))
+		canvas.fill_rect(
+			20 + j * CONTROL_TAB,
+			32,
+			CONTROL_TAB - 2,
+			13,
+			Menu.RUST if on else Canvas.rgb(48, 34, 26)
+		)
 		HUD.text(
 			canvas,
 			String(CONTROL_PAGES[j][0]),
-			65 + j * 92,
+			19 + j * CONTROL_TAB + CONTROL_TAB / 2,
 			35,
 			"body",
 			HUD.INK if on else Menu.FADED,
@@ -1215,6 +1286,12 @@ func render() -> void:
 		TacticalScreens.draw_picker(
 			canvas, menu, showdown_row, showdown_mode, showdown_map, showdown_long
 		)
+	elif state == "nethost":
+		LobbyScreens.draw_host_form(canvas, menu, net_form, net_row, net_note, menu_clock)
+	elif state == "netjoin":
+		LobbyScreens.draw_join_form(canvas, menu, net_form, net_row, net_note, menu_clock)
+	elif state == "lobby":
+		LobbyScreens.draw_lobby(canvas, menu, net, lobby_row, net_note, net_kick, net_kick_armed)
 	elif state == "rematch":
 		BossRematch.draw_board(
 			canvas,
@@ -1246,6 +1323,8 @@ func render() -> void:
 		# The shader's camera, lights and weather go over while the bands draw.
 		game.scene_hook = layers.early.bind(game) if game.layered else Callable()
 		game.draw(canvas, int(options["crosshair"]), true)
+		if net != null and state == "play":
+			LobbyScreens.draw_match(canvas, net, game, net_leave)
 		if int(options.get("show_fps", 0)) != 0 and not touring:
 			# FRAME COUNTER: frames per second, top right, over the view.
 			HUD.text(

@@ -33,6 +33,7 @@ const MTU_SAFE := 1200
 ## A guess at each packet's headers on the wire (IPv4 20, UDP 8, ENet's own
 ## about 16), for the bandwidth a report gives besides the payload.
 const HEADER_BYTES := 44
+const PATIENCE_MS := 15000
 
 var peer: MultiplayerPeer = null
 var transport := Transport.ENET
@@ -53,6 +54,8 @@ var joined: Array[int] = []
 var left: Array[int] = []
 var _queue: Array = []
 var _last_due := {}
+## The peers connected now.
+var _peers := {}
 var _now := 0.0
 var _dice := RandomNumberGenerator.new()
 
@@ -100,8 +103,27 @@ static func join(address: String, port := PORT, kind := Transport.ENET) -> NetSe
 
 func _wire() -> void:
 	_dice.seed = 1997
-	peer.peer_connected.connect(func(id: int) -> void: joined.append(id))
-	peer.peer_disconnected.connect(func(id: int) -> void: left.append(id))
+	peer.peer_connected.connect(
+		func(id: int) -> void:
+			joined.append(id)
+			_peers[id] = true
+			_patient(id)
+	)
+	peer.peer_disconnected.connect(
+		func(id: int) -> void:
+			left.append(id)
+			_peers.erase(id)
+	)
+
+
+## A peer is given up on only after PATIENCE_MS of silence: a machine loading
+## a map or compiling shaders can stall for a few seconds (ENet's own floor is
+## five).
+func _patient(id: int) -> void:
+	if peer is ENetMultiplayerPeer:
+		var other := (peer as ENetMultiplayerPeer).get_peer(id)
+		if other != null:
+			other.set_timeout(32, PATIENCE_MS, PATIENCE_MS * 3)
 
 
 func connected() -> bool:
@@ -149,6 +171,8 @@ func send(to: int, channel: int, bytes: PackedByteArray) -> void:
 
 
 func _put(to: int, channel: int, reliable: bool, bytes: PackedByteArray) -> void:
+	if peer == null or (to != 0 and not _peers.has(to)):
+		return  # gone meanwhile (a packet the test's lag held back)
 	peer.set_target_peer(to)
 	if transport == Transport.ENET:
 		peer.transfer_channel = channel
@@ -174,6 +198,8 @@ func poll(now_ms: float) -> Array:
 			else:
 				keep.append(item)
 		_queue = keep
+	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
+		return []
 	peer.poll()
 	var out: Array = []
 	while peer.get_available_packet_count() > 0:
@@ -183,6 +209,13 @@ func poll(now_ms: float) -> Array:
 		received_packets += 1
 		out.append([from, bytes])
 	return out
+
+
+## Lets one peer go (the host turning a client away or kicking it).
+func drop(id: int) -> void:
+	if peer != null and hosting:
+		peer.disconnect_peer(id)
+		_peers.erase(id)
 
 
 func close() -> void:

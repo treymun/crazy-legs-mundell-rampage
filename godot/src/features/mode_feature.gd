@@ -30,7 +30,8 @@ var match_over := false
 var over_clock := -1.0
 ## Co-op: partners stood up by a partner this chapter (a tally row).
 var revives := 0
-## The 5v5 round modes (tactical_mode.gd). Teams are fixed (slot % 2); which
+## The 5v5 round modes (tactical_mode.gd). Teams are fixed (`teams`, slot ->
+## team, from an online lobby; slot % 2 past its end); which
 ## of them plays the OUTLAWS this half is `outlaws`, the other the DEPUTIES.
 ## The round: its number, its phase ("freeze", "live", "post", "over") and
 ## when that phase ends, when play went live; each team's round wins and run
@@ -70,8 +71,27 @@ var fires: Array = []
 var decoys: Array = []
 var blind := {}
 var winner_name := ""
-## The announcer has said this machine's player is the last one standing.
-var last_called := false
+## The slots told this round they are the last of their team standing.
+var last_called: Array = []
+## The host's match settings (the lobby's; offline the defaults): the freeze
+## and buy seconds, the round's length (0: the mode's own), a half's starting
+## cash, friendly fire, the bots' skill (-1: the game's DIFFICULTY) and
+## whether empty slots get bots.
+var freeze_seconds := 6.0
+var buy_seconds := 20.0
+var round_seconds := 0.0
+var start_money := 800
+var friendly_fire := false
+var bot_skill := -1
+var bots := true
+## Each slot's team when a lobby picked them (empty: HOGS the even slots),
+## and each slot's name (empty: P1.. or a bot's county name).
+var teams: Array = []
+var names: Array = []
+## Whether each player's last hit taken was on the head (slot -> bool), and
+## who downed whom: slot -> [killer's name, gun, head].
+var head_hit := {}
+var killed_by := {}
 
 
 func id() -> String:

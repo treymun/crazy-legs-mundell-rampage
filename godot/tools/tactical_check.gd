@@ -18,6 +18,13 @@ extends SceneTree
 const STEP := 1.0 / 120.0
 
 var failures: Array = []
+## Across every match: kills by gun [kills, heads], wins by side per map and
+## mode, plants per site, and where players fell (deaths=<dir> writes them).
+var gun_kills := {}
+var side_wins := {}
+var plants := {}
+var deaths := {}
+var deaths_dir := ""
 
 
 func _init() -> void:
@@ -46,11 +53,14 @@ func _run() -> void:
 			minutes = float(arg.substr(8))
 		elif arg == "verbose":
 			verbose = true
+		elif arg.begins_with("deaths="):
+			deaths_dir = arg.substr(7)
 	var errors := CrashLog.tally()
 	for map: String in maps:
 		for mode: String in modes:
 			_match(main, map, mode, rounds, minutes, verbose)
 	errors.stop()
+	_summary()
 	_check(
 		errors.errors == 0,
 		(
@@ -133,11 +143,27 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 		var now := _objective(st)
 		if now != last_objective:
 			last_objective = now
+			if now.begins_with("planted-"):
+				var site_key := "%s %s" % [map, now.substr(8)]
+				plants[site_key] = int(plants.get(site_key, 0)) + 1
 			if now != "" and String(st.phase) in ["live", "post"]:
 				events.append("%s@%.0f" % [now, g.clock - round_began])
 		var dead := 0
 		for p: Player in g.players:
 			dead += 1 if p.health <= 0 else 0
+			if p.health <= 0 and alive_was.get(p.slot, false):
+				var said: Array = st.killed_by.get(p.slot, [])
+				var gun := String(said[1]) if said.size() > 1 else "?"
+				var counted: Array = gun_kills.get(gun, [0, 0])
+				counted[0] += 1
+				counted[1] += 1 if said.size() > 2 and bool(said[2]) else 0
+				gun_kills[gun] = counted
+				var key := "%s %s" % [map, mode]
+				if not deaths.has(key):
+					deaths[key] = []
+				deaths[key].append(
+					[snappedf(p.x, .1), snappedf(p.y, .1), TacticalMode.side_of(st, p)]
+				)
 			if verbose and p.health <= 0 and alive_was.get(p.slot, false):
 				var by := p.downed_by
 				var k: Player = g.players[by] if by >= 0 and by < g.players.size() else null
@@ -172,7 +198,7 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 			seen = st.history.size()
 			var row: Array = st.history[seen - 1]
 			var took := g.clock - round_began
-			var limit: float = (Modes.rules(g) as TacticalMode).round_time()
+			var limit: float = (Modes.rules(g) as TacticalMode).round_time_of(st)
 			if mode == Modes.BOMB:
 				limit += BombMode.BOMB_TIMER
 			worst_over = maxf(worst_over, took - limit)
@@ -181,6 +207,10 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 			if how == "TIME":
 				timeouts += 1
 			var side := "OUTLAWS" if int(row[0]) == int(st.outlaws) else "DEPUTIES"
+			var wins_key := "%s %s" % [map, mode]
+			var tally: Array = side_wins.get(wins_key, [0, 0])
+			tally[0 if side == "OUTLAWS" else 1] += 1
+			side_wins[wins_key] = tally
 			print(
 				(
 					"  round %2d  %s (%s) by %-7s  %5.1fs  %s %d - %d %s  kills %s"
@@ -238,6 +268,31 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 	_check(cash_ok, tag + ": cash stays within 0..16000")
 	_check(worst_over < 3.0, tag + ": no round outlasts its clock (worst %+.1fs)" % worst_over)
 	_check(seen == 0 or timeouts < seen, tag + ": not every round runs out of time")
+
+
+## Kills by gun, the sides' wins and the plants, over every match played.
+func _summary() -> void:
+	print("")
+	print("== summary")
+	for key: String in side_wins:
+		var t: Array = side_wins[key]
+		print(
+			(
+				"  %-20s outlaws %d - %d deputies (%d%% outlaws)"
+				% [key, t[0], t[1], roundi(100.0 * t[0] / maxf(1, t[0] + t[1]))]
+			)
+		)
+	var guns := gun_kills.keys()
+	guns.sort_custom(func(a, b) -> bool: return gun_kills[a][0] > gun_kills[b][0])
+	for gun: String in guns:
+		var k: Array = gun_kills[gun]
+		print("  %-20s %4d kills  %3d%% heads" % [gun, k[0], roundi(100.0 * k[1] / maxf(1, k[0]))])
+	if not plants.is_empty():
+		print("  plants: ", plants)
+	if deaths_dir != "":
+		DirAccess.make_dir_recursive_absolute(deaths_dir)
+		var f := FileAccess.open(deaths_dir.path_join("deaths.json"), FileAccess.WRITE)
+		f.store_string(JSON.stringify(deaths))
 
 
 ## The objective's state in a word (the bomb's, or hostages carried/out).

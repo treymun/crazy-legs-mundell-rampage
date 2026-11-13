@@ -76,7 +76,7 @@ func play(target: Game) -> void:
 	if chapter:
 		# A chapter under way: the other chapters' boss checkpoints go (boss_door.gd).
 		BossDoor.clear_others(target.level.id, target.replay)
-	target.configure(options)
+	target.configure(options if net == null else _net_options(net.match_info))
 	target.tone = tone_table
 	crouch_latched = target.player.crouched and int(options["crouch"]) != 0
 	sound.pause_world()
@@ -106,6 +106,14 @@ func _take_mode(target: Game) -> void:
 		# The 5v5 modes' own bots play everyone else, in any build.
 		TacticalScreens.reset()
 		TacticalScreens.human = target.local_player.slot
+		TacticalScreens.footer = "" if net != null else "ENTER  REMATCH   /   ESC  TITLE"
+		if net != null:
+			# Online: the host's bots play the slots nobody does; a client's
+			# copy plays what the host played.
+			for slot: int in net.bot_slots():
+				pilots[slot] = TacticalBot.new(slot)
+			return
+		target.local_player.name = String(options.get("player_name", "MUNDELL"))
 		for p: Player in target.players:
 			if p != target.local_player:
 				pilots[p.slot] = TacticalBot.new(p.slot)
@@ -807,3 +815,175 @@ func reload_level_in_place() -> void:
 	p.eye = .95 + game.world.elevation(p.x, p.y)
 	level_stamp = FileAccess.get_modified_time(LevelEdit.path_of(game.level.id))
 	level_stamp_of = game.level.id
+
+
+# -------------------------------------------------------------------- online
+
+
+## The HOST ONLINE (or JOIN ONLINE) form, filled from what was used last.
+func open_net_form(hosting: bool) -> void:
+	var last := NetPlay.remembered()
+	var name := String(last.get("name", options.get("player_name", "MUNDELL")))
+	net_form = {
+		"name": name,
+		"lobby_name": String(last.get("lobby_name", "%s'S LOBBY" % NetPlay.clean_name(name))),
+		"password": "",
+		"port": str(int(last.get("port", NetSession.PORT))),
+		"router": bool(last.get("router", true)),
+		"address": String(last.get("address", "")),
+	}
+	net_row = 0
+	net_note = WEB_NOTE if web else ""
+	state = "nethost" if hosting else "netjoin"
+	sound.play("menu_accept")
+
+
+const WEB_NOTE := "ONLINE NEEDS THE DESKTOP OR ANDROID GAME FOR NOW."
+
+
+## OPEN THE LOBBY on the HOST ONLINE form.
+func net_open_lobby() -> void:
+	if web:
+		net_note = WEB_NOTE
+		sound.play("empty")
+		return
+	var port := String(net_form["port"]).to_int()
+	if port < 1024 or port > 65535:
+		net_note = "A PORT FROM 1024 TO 65535, PLEASE."
+		sound.play("empty")
+		return
+	var lobby := {
+		"lobby_name": NetPlay.clean_name(String(net_form["lobby_name"]), 22),
+		"password": String(net_form["password"]),
+	}
+	var opened := NetPlay.host_lobby(
+		port, String(net_form["name"]), lobby, bool(net_form["router"])
+	)
+	if opened == null:
+		net_note = "PORT %d IS TAKEN. IS ANOTHER COPY HOSTING?" % port
+		sound.play("empty")
+		return
+	(
+		NetPlay
+		. remember(
+			{
+				"name": net_form["name"],
+				"lobby_name": net_form["lobby_name"],
+				"port": port,
+				"router": net_form["router"],
+			}
+		)
+	)
+	_net_ready(opened)
+	sound.play("menu_accept")
+
+
+## JOIN on the JOIN ONLINE form.
+func net_join() -> void:
+	if web:
+		net_note = WEB_NOTE
+		sound.play("empty")
+		return
+	var joined := NetPlay.join_lobby(
+		String(net_form["address"]), String(net_form["name"]), String(net_form["password"])
+	)
+	if joined == null:
+		net_note = "THAT CODE OR ADDRESS WON'T DO."
+		sound.play("empty")
+		return
+	NetPlay.remember({"name": net_form["name"], "address": net_form["address"]})
+	_net_ready(joined)
+	sound.play("menu_accept")
+
+
+func _net_ready(opened: NetPlay) -> void:
+	net = opened
+	net.make_match = net_match_game
+	var sim := {}
+	for key: String in ["difficulty", "gore", "aim_assist", "hit_feedback", "adaptive"]:
+		if options.has(key):
+			sim[key] = options[key]
+	net.sim_options = sim
+	net_leave = false
+	net_note = ""
+	lobby_row = 0
+	net_kick = 0
+	net_kick_armed = false
+	state = "lobby"
+
+
+## The game a match is played on (NetPlay.make_match): the map, the host's
+## play settings and the lobby's match on it; a client's view on its slot.
+func net_match_game(info: Dictionary) -> Game:
+	var made: Game = make_game(String(info["level"]))
+	if made == null:
+		return null
+	made.configure(_net_options(info))
+	Modes.setup(made, String(info["mode"]), int(info["count"]), info["options"])
+	var slot := int(info.get("slot", 0))
+	if slot > 0 and slot < made.players.size():
+		Players.set_local(made, made.players[slot])
+	return made
+
+
+## This machine's settings with the host's play settings over them.
+func _net_options(info: Dictionary) -> Dictionary:
+	var out := options.duplicate()
+	out.merge(info.get("sim", {}), true)
+	return out
+
+
+## A match began (START): play it.
+func net_begin_match() -> void:
+	var target := net.match_game()
+	if target == null:
+		return
+	mode_name = ""
+	showdown_on = false
+	net_leave = false
+	net_accum = 0.0
+	net_turn = 0.0
+	net_look = 0.0
+	play(target)
+
+
+## Everyone back in the lobby after a match.
+func net_to_lobby() -> void:
+	game = null
+	pilots.clear()
+	net_leave = false
+	lobby_row = 0
+	state = "lobby"
+	sound.pause_world()
+	menu_music()
+	grab(false)
+
+
+## Leaving the lobby or match by choice (the host's closes it for everyone).
+func net_quit() -> void:
+	if net == null:
+		return
+	var hosting := net.role == NetPlay.Role.HOST
+	net.leave("THE HOST CLOSED THE LOBBY" if hosting else "LEFT")
+	_net_gone("LOBBY CLOSED." if hosting else "YOU LEFT THE LOBBY.")
+
+
+## The lobby is gone (the host left, it could not be reached, a refusal).
+func net_closed() -> void:
+	var why := net.reason
+	_net_gone(why + ("." if not why.ends_with(".") else ""))
+	sound.play("empty")
+
+
+func _net_gone(note: String) -> void:
+	net_old.append(net)
+	net = null
+	game = null
+	pilots.clear()
+	net_leave = false
+	menu_music()
+	sound.pause_world()
+	grab(false)
+	state = "title"
+	selection = 0
+	menu_note = note

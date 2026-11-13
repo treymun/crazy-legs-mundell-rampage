@@ -24,6 +24,9 @@ const TITLE_ROW := 9
 
 var assets: Assets
 var plate := PackedByteArray()
+## The same plate headed for the 5v5 modes (VEST and THROWN where the
+## campaign's KEYS and YER STUFF go).
+var plate_5v5 := PackedByteArray()
 var plate_w := 320
 var plate_h := 44
 var icons := {}
@@ -46,19 +49,27 @@ func _init(p_assets: Assets) -> void:
 		plate[i * 3 + 1] = data[i * 4 + 1]
 		plate[i * 3 + 2] = data[i * 4 + 2]
 	# Bake the plate headings (HUD.__init__ draws them into the converted copy).
+	var bare := plate.duplicate()
+	plate = _headed(bare, ["KEYS", "YER STUFF"])
+	plate_5v5 = _headed(bare, ["VEST", "THROWN"])
+	_build_ammo_icons()
+
+
+## The status plate with its headings drawn on: HEALTH, AMMO and the two
+## given for the third box and the pocket.
+func _headed(bare: PackedByteArray, third: Array) -> PackedByteArray:
 	var scratch := Canvas.new(plate_w, plate_h)
-	scratch.pixels = plate
+	scratch.pixels = bare.duplicate()
 	for entry: Array in [
 		["HEALTH", 29, 13, "body"],
 		["AMMO", 77, 13, "body"],
-		["KEYS", 115, 13, "body"],
-		["YER STUFF", 292, 14, "mini"]
+		[third[0], 115, 13, "body"],
+		[third[1], 292, 14, "mini"]
 	]:
 		scratch.label(
 			String(entry[0]), int(entry[1]), int(entry[2]), String(entry[3]), INK, true, true
 		)
-	plate = scratch.pixels
-	_build_ammo_icons()
+	return scratch.pixels
 
 
 ## Port of HUD.text: blit a label with a one-pixel shade offset.
@@ -773,7 +784,8 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			snappedf(game.player.gut, .25),
 			snappedf(game.player.drunk, .25),
 			game.inventory_slot,
-			game.inventory.get(item, 0)
+			game.inventory.get(item, 0),
+			TacticalScreens.bar_state(game) if Modes.is_tactical(game) else []
 		]
 	)
 	var head := Renderer.VIEW * Canvas.WIDTH * 3
@@ -810,7 +822,10 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 
 
 func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
-	_blit_rgb(c, plate, plate_w, plate_h, 0, Renderer.VIEW)
+	var team_bar: Array = TacticalScreens.bar_state(game) if Modes.is_tactical(game) else []
+	_blit_rgb(
+		c, plate_5v5 if not team_bar.is_empty() else plate, plate_w, plate_h, 0, Renderer.VIEW
+	)
 	ammo_rail(c, armory)
 	var slot := armory.active
 	var amount := "-"
@@ -834,6 +849,9 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	number(c, amount, 77, Renderer.VIEW + 23, amount == "0")
 	if Weapons.CAPACITY[slot] > 0 and armory.loaded[slot] == 0 and armory.reserve[slot] > 0:
 		text(c, "RELOAD", 77, Renderer.VIEW + 36, "mini", AMBER, true, false)
+	if not team_bar.is_empty():
+		_draw_team_bar(c, game, team_bar)
+		return
 	for i in 2:
 		var name := "key_brass" if i == 0 else "key_steel"
 		var cx := 111 + 8 * i
@@ -894,6 +912,48 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		true
 	)
 	text(c, SHORT_LABELS[game.inventory_slot], 291, Renderer.VIEW + 34, "mini", INK, true, false)
+
+
+## The 5v5 modes' part of the status bar: the vest in the third box (a hard
+## hat under it), the face, the side and its goal and what the player carries
+## (snips, the bomb) where the gut and drunk meters go, the throwables in the
+## pocket.
+func _draw_team_bar(c: Canvas, game: Game, s: Array) -> void:
+	var vest := int(s[0])
+	text(
+		c,
+		str(vest) if vest > 0 else "NONE",
+		115,
+		Renderer.VIEW + 24,
+		"body",
+		AMBER if vest > 0 else Color8(150, 110, 80),
+		true,
+		true
+	)
+	if bool(s[1]):
+		text(c, "+HAT", 115, Renderer.VIEW + 35, "mini", AMBER, true, false)
+	_draw_face(c, game.face_name())
+	text(c, String(s[5]), 222, Renderer.VIEW + 10, "body", s[6], true, true)
+	text(c, String(s[7]), 222, Renderer.VIEW + 21, "mini", INK, true, false)
+	var gear: Array = []
+	if bool(s[3]):
+		gear.append("BOMB")
+	if bool(s[2]):
+		gear.append("SNIPS")
+	var flash := bool(s[3]) and int(game.clock * 2.0) % 2 == 0
+	if not gear.is_empty():
+		text(
+			c,
+			"  ".join(PackedStringArray(gear)),
+			222,
+			Renderer.VIEW + 30,
+			"mini",
+			Color8(255, 96, 60) if flash else AMBER,
+			true,
+			false
+		)
+	var thrown := int(s[4])
+	text(c, str(thrown), 292, Renderer.VIEW + 24, "body", AMBER if thrown else INK, true, true)
 
 
 func _draw_face(c: Canvas, face_name: String) -> void:

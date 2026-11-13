@@ -116,7 +116,9 @@ func _ready() -> void:
 		change_window_mode(int(options["window_mode"]))
 	_apply_view()
 
-	if play_at != "":
+	if online_args.has("host") or online_args.has("join"):
+		_online_from_args()
+	elif play_at != "":
 		_play_at()
 	elif mode_name != "" and Modes.rules_for(mode_name).versus():
 		start_match()  # --mode: the match in its arena (src/modes/)
@@ -504,6 +506,8 @@ func _process(delta: float) -> void:
 
 	if console != null:
 		console.tick(delta)
+	if net != null or not net_old.is_empty():
+		_net_frame()
 	dt *= time_scale
 	if state == "play" and game != null:
 		if not focused or (console != null and console.open):
@@ -522,7 +526,12 @@ func _process(delta: float) -> void:
 		watch_rematch()
 
 	sound.tick_score(dt)
+	var aimed := _net_aim()
 	render()
+	if not aimed.is_empty():
+		var me: Player = aimed[0]
+		me.angle = aimed[1]
+		me.pitch = aimed[2]
 	_auto_detail(dt, (Time.get_ticks_usec() - work_began) / 1000.0)
 	mouse_rel = Vector2.ZERO
 
@@ -622,6 +631,9 @@ func _demo_controls(dt: float) -> Game.Controls:
 
 
 func advance(elapsed: float, controls: Game.Controls) -> void:
+	if net != null and net.phase == "match":
+		_net_advance(elapsed, controls)
+		return
 	last_controls = controls
 	accumulator = minf(.1, accumulator + elapsed)
 	pending_turn += controls.turn
@@ -634,7 +646,10 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 	controls.look = pending_look / steps
 	pending_turn = 0.0
 	pending_look = 0.0
+	var tactical := Modes.is_tactical(game)
 	for _i in steps:
+		if tactical:
+			TacticalScreens.take_pending(controls)
 		if pilots.is_empty() or game.players.size() < 2:
 			game.tick(SIM_STEP, controls)
 		else:
@@ -660,6 +675,16 @@ func _follow_view() -> void:
 			Players.set_local(game, me)
 		return
 	var watched: Player = game.local_player
+	if TacticalScreens.watch_next and watched != me:
+		# SPACE: the next teammate up after the one watched.
+		TacticalScreens.watch_next = false
+		var order: Array = game.players.filter(
+			func(q: Player) -> bool: return q.team == me.team and q.health > 0 and q != me
+		)
+		if not order.is_empty():
+			var at := order.find(watched)
+			Players.set_local(game, order[(at + 1) % order.size()])
+			return
 	if watched != me and watched.health > 0 and watched.team == me.team:
 		return
 	if watched == me and me.down_at >= 0.0 and game.clock - me.down_at < 2.0:
@@ -708,3 +733,173 @@ func _watch_level() -> void:
 	elif stamp != level_stamp:
 		reload_level_in_place()
 		notice("LEVEL RELOADED.")
+
+
+# -------------------------------------------------------------------- online
+
+
+## Every frame while online (src/net/net_play.gd): what came in, who came and
+## went, a match beginning or ending, the lobby gone.
+func _net_frame() -> void:
+	var now := float(Time.get_ticks_msec())
+	for old: NetPlay in net_old.duplicate():
+		old.poll(now)
+		if old.finished():
+			net_old.erase(old)
+	if net == null:
+		return
+	net.poll(now)
+	for line: String in net.take_news():
+		if state == "play":
+			notice(line)
+		else:
+			net_note = line
+	for change: Dictionary in net.take_changes():
+		if change.has("started"):
+			net_begin_match()
+		elif change.has("lobby"):
+			net_to_lobby()
+		elif change.has("bot") and net.role == NetPlay.Role.HOST:
+			pilots[int(change["bot"])] = TacticalBot.new(int(change["bot"]))
+		elif change.has("human"):
+			pilots.erase(int(change["human"]))
+	if net.phase == "closed":
+		net_closed()
+		return
+	if int(online_args.get("start", 0)) > 0 and net.phase == "lobby":
+		_online_autostart()
+
+
+## A match's ticks online, at the network's rate (NetSync.STEP): the host
+## plays its own player and the bots and sends snapshots; a client sends its
+## controls and plays its copy on toward the host's newest snapshot.
+func _net_advance(elapsed: float, controls: Game.Controls) -> void:
+	last_controls = controls
+	net_accum = minf(.1, net_accum + elapsed)
+	net_turn += controls.turn
+	net_look += controls.look
+	var steps := int((net_accum + 1e-9) / NetSync.STEP)
+	var hosting := net.role == NetPlay.Role.HOST
+	if steps > 0:
+		net_accum = maxf(0.0, net_accum - steps * NetSync.STEP)
+		controls.turn = net_turn / steps
+		controls.look = net_look / steps
+		net_turn = 0.0
+		net_look = 0.0
+		if net_leave:
+			# Asking to leave: stand still (the round goes on).
+			controls = Game.Controls.new()
+		for _i in steps:
+			if online_pilot != null:
+				controls = _online_pilot_controls(controls)
+			TacticalScreens.take_pending(controls)
+			if hosting:
+				_net_host_tick(controls)
+			else:
+				net.client_input(controls)
+	if not hosting:
+		net.client_play(steps)
+		var copy := net.match_game()
+		if copy != null and copy != game:
+			game = copy
+	_follow_view()
+
+
+func _net_host_tick(mine: Game.Controls) -> void:
+	var target := net.match_game()
+	if target == null:
+		return
+	var own := {TacticalScreens.human: mine}
+	for p: Player in target.players:
+		var pilot = pilots.get(p.slot)
+		if pilot != null and p.slot != TacticalScreens.human and p.health > 0:
+			target.focus(p)
+			own[p.slot] = pilot.steer(target)
+	target.focus(target.local_player)
+	net.host_tick(own)
+	for p: Player in target.players:
+		var pilot = pilots.get(p.slot)
+		if pilot != null and p.slot != TacticalScreens.human:
+			target.focus(p)
+			pilot.moved(target)
+	target.focus(target.local_player)
+
+
+## A client's own aim drawn where the mouse has put it (inputs the host has
+## not played into the copy yet), so looking round never waits on the
+## network; put back after the frame. [player, angle, pitch] or [].
+func _net_aim() -> Array:
+	if net == null or net.role != NetPlay.Role.CLIENT or state != "play" or game == null:
+		return []
+	if not net.client_ready() or _view_checking or _view_unchecked():
+		return []  # the start-up check draws this frame again later, as it stands
+	var slot := net.my_slot()
+	if slot < 0 or slot >= game.players.size():
+		return []
+	var me: Player = game.players[slot]
+	if game.local_player != me or me.health <= 0 or game.showing_tally:
+		return []
+	var aim := net.client_sync.unplayed_aim() + Vector2(net_turn, net_look)
+	var kept := [me, me.angle, me.pitch]
+	me.angle = fposmod(me.angle + aim.x, TAU)
+	me.pitch = clampf(me.pitch + aim.y, -53.0, 53.0)
+	return kept
+
+
+## --host-online / --join-online: straight into a lobby.
+func _online_from_args() -> void:
+	var name := String(online_args.get("name", "MUNDELL"))
+	if online_args.has("host"):
+		net_form = {
+			"name": name,
+			"lobby_name": "%s'S LOBBY" % NetPlay.clean_name(name),
+			"password": String(online_args.get("password", "")),
+			"port": str(int(online_args["host"])),
+			"router": not online_args.has("start"),
+		}
+		net_open_lobby()
+		if net != null and online_args.has("map"):
+			net.set_setting("map", String(online_args["map"]))
+	else:
+		net_form = {
+			"name": name,
+			"address": String(online_args["join"]),
+			"password": String(online_args.get("password", "")),
+		}
+		net_join()
+	if net == null:
+		menu_note = net_note
+	if bool(online_args.get("bot", false)) and DevConsole.available():
+		online_pilot = true  # a TacticalBot made per match, for the slot played
+
+
+## --online-start: everyone readies by themselves, and the host starts the
+## match once that many are in.
+func _online_autostart() -> void:
+	var me := net.player_of(net.my_id)
+	if net.role == NetPlay.Role.CLIENT:
+		if (
+			not me.is_empty()
+			and not bool(me.get("ready", false))
+			and Engine.get_frames_drawn() % 30 == 0
+		):
+			net.ask({"ready": true})
+	elif net.players.size() >= int(online_args["start"]) and net.why_not_start() == "":
+		net.start_match()
+
+
+## --online-bot: TacticalBot plays this machine's player (tests).
+func _online_pilot_controls(mine: Game.Controls) -> Game.Controls:
+	var target := net.match_game()
+	var slot := net.my_slot()
+	if target == null or slot < 0 or slot >= target.players.size():
+		return mine
+	if not (online_pilot is TacticalBot) or online_pilot.slot != slot:
+		online_pilot = TacticalBot.new(slot)
+	var me: Player = target.players[slot]
+	if me.health <= 0 or (net.role == NetPlay.Role.CLIENT and not net.client_ready()):
+		return Game.Controls.new()
+	target.focus(me)
+	var c: Game.Controls = online_pilot.steer(target)
+	target.focus(target.local_player)
+	return c

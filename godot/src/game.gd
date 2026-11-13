@@ -200,10 +200,16 @@ func tick(dt: float, controls) -> void:
 			_discover(q)
 	focus(local_player)
 	world.update(wdt, players, enemies)
+	if players.size() > 1:
+		_log_places()
 	for q: Player in players:
 		if q.health > 0:
 			focus(q, true)
-			_step_hands(q, by_slot[q.slot], dt)
+			var back: int = by_slot[q.slot].rewind
+			if back > 0 and players.size() > 1:
+				_rewound_hands(q, by_slot[q.slot], dt, back)
+			else:
+				_step_hands(q, by_slot[q.slot], dt)
 	focus(local_player)
 	sound.set_fuse(armory.fuse != 0.0)
 	sound.set_tool(
@@ -520,11 +526,60 @@ func _discover(p: Player) -> void:
 ## A player's hands for one step: what their controls use or take up (a
 ## player played by controls; the local front end calls these between
 ## ticks), the pickups at their feet, their gun and the tin rooster booth.
+## Notes where every player stands this tick (place_log).
+func _log_places() -> void:
+	var row := PackedFloat32Array()
+	row.resize(players.size() * 3)
+	for q: Player in players:
+		row[q.slot * 3] = q.x
+		row[q.slot * 3 + 1] = q.y
+		row[q.slot * 3 + 2] = 1.0 if q.crouched else 0.0
+	place_log.append(row)
+	if place_log.size() > REWIND_KEEP:
+		place_log.remove_at(0)
+
+
+## `p`'s hands with everyone else stood where they were `back` ticks ago (as
+## its machine showed them), then put back: online shots land where they
+## were aimed. Every copy has the same log, so every copy plays the same.
+func _rewound_hands(p: Player, controls: Controls, dt: float, back: int) -> void:
+	var at := place_log.size() - 1 - back
+	if at < 0:
+		at = 0
+	if place_log.is_empty():
+		_step_hands(p, controls, dt)
+		return
+	var then := place_log[at]
+	var now := PackedFloat32Array()
+	now.resize(players.size() * 3)
+	for q: Player in players:
+		now[q.slot * 3] = q.x
+		now[q.slot * 3 + 1] = q.y
+		now[q.slot * 3 + 2] = 1.0 if q.crouched else 0.0
+	for q: Player in players:
+		if q != p and q.slot * 3 + 2 < then.size():
+			q.x = then[q.slot * 3]
+			q.y = then[q.slot * 3 + 1]
+			q.crouched = then[q.slot * 3 + 2] > .5
+	_step_hands(p, controls, dt)
+	for q: Player in players:
+		if q != p and q.slot * 3 + 2 < now.size():
+			q.x = now[q.slot * 3]
+			q.y = now[q.slot * 3 + 1]
+			q.crouched = now[q.slot * 3 + 2] > .5
+
+
 func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 	if controls.weapon >= 0:
 		armory.select(controls.weapon, self)
 	if controls.cycle != 0:
 		armory.cycle(controls.cycle, self)
+	if controls.reload:
+		armory.start_reload(self)
+	if controls.buy >= 0:
+		var mode_state = features.get("mode")
+		if mode_state != null and mode_state.mode != Modes.CAMPAIGN:
+			mode_state.rules().buy(self, mode_state, p, controls.buy)
 	if controls.item >= 0:
 		use_item(controls.item)
 	if controls.use and not p.use_held:

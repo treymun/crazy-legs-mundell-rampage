@@ -11,11 +11,15 @@ From the command line (the project folder or the EXE):
 --mode=hostage --arena=holler
 ```
 
+## Online
+
+Play it with friends on other networks: docs/online.md.
+
 ## The modes
 
 **Search & Destroy.** The OUTLAWS carry the shine bomb (a crate of moonshine
 and dynamite) to site A or B and plant it: stand on the site and hold USE for
-3.2 seconds. It blows 40 seconds later and takes anyone near with it. The
+2.6 seconds. It blows 35 seconds later and takes anyone near with it. The
 DEPUTIES cut the fuse: hold USE beside it for 7 seconds, or 3.5 with wire
 snips. Outlaws win when it blows or every deputy is down; deputies win when
 the fuse is cut, when every outlaw is down before a plant, or when the clock
@@ -23,10 +27,11 @@ runs out with nothing planted. A dropped bomb is picked up by walking over it.
 
 **Hostage Rescue.** Two hostages are held on the sites by the OUTLAWS. The
 DEPUTIES come in from the far end, press USE beside a hostage to take them
-(USE again sets them down) and walk them into the rescue box at their own
-spawn. One hostage out wins it for the deputies, as does downing every
-outlaw; the outlaws win by downing every deputy or by running out the clock.
-You can't run carrying a hostage.
+(USE again sets them down) and run them to a rescue point: the box at their
+own spawn, and on the Distillery and the Salvage yard two nearer points on the
+lanes back from the sites (each shows RESCUE over it). One hostage out wins it for the deputies, as
+does downing every outlaw; the outlaws win by downing every deputy or by
+running out the clock.
 
 ## A round
 
@@ -39,6 +44,14 @@ The county fair's barker calls the round over the PA: the start, the bomb
 planted, the fuse cut, a hostage out, who took the round and the match, half
 time, and when you are the last of your posse standing. The planted bomb beeps,
 faster as its fuse runs down.
+
+The status bar shows what matters in a round: health, ammo, your vest (and
++HAT with a hard hat), your side and its goal, the bomb or snips if you carry
+them, and how many throwables you have. TAB held is the scoreboard, M the map
+with the sites. At the end the results show both teams' kills and deaths,
+the match's MVP and every round as it went. The outlaws look like the
+county's hillbillies, the deputies like its yard deputies; the title's
+CONTROLS screen has a 5V5 page with every key.
 
 Nobody comes back inside a round. If you go down, the view follows a
 teammate who's still up. If you survive, you keep your guns (topped up) and
@@ -54,15 +67,28 @@ and their side's pistol: the outlaws a **.38 Special**, the deputies a
 
 | Class | Outlaws | Deputies |
 | --- | --- | --- |
-| Pistol | Hogleg .44, an old brass-framed single-action (700) | Star .357, a stainless magnum (700) |
+| Pistol | Hogleg .44, an old brass-framed single-action: one to the head drops anyone, hard hat or not (700) | Star .357, a stainless magnum: quicker to fire and reload, two to a hard hat (700) |
 | Shotgun | Sawed-off, two barrels (1100) | Riot Pump, six shells, pump-action (1300) |
 | SMG | Grease Gun, stamped steel, 30 rounds (1200) | Squad Tommy, a 50-round drum (1500) |
 | Sprayers | Mill Riveter (1350), Teat Gun (1050) | |
-| Rifle | Ranch Rifle (2700), Alien Arm Gun (3100) | the same |
+| Rifle | Ranch Rifle (2700), Alien Arm Gun (2500: slower, but its bolt does not fall off with distance) | the same |
 | Sniper | Hog Hunter .30-06, bolt-action: one to the body drops anyone (4750) | County Marksman, semi-auto: two to the body, fast (5000) |
 | Machine gun | Corn Mower, a 100-round belt (5200) | Patrol BAR, a 60-round box (5000) |
 | Heavy | Bottle Rockets (4200) | the same |
 | Gear | Tin Vest (650), Vest + Hard Hat (1000) | the same, and Wire Snips (400) in search and destroy |
+
+The kit pistols differ too: the .38 takes three to the body and drops anyone
+without a hard hat with one to the head; the .45 takes four but holds eight
+and fires faster.
+
+**Aim like you mean it.** Every gun is most accurate standing still, a bit
+better crouched, worse walking, much worse running and worst in the air; the
+four ticks round the crosshair show how far shots can stray right now. Rifles,
+machine guns and sniper rifles suffer most on the move (a scoped rifle is for
+standing still), SMGs and shotguns least. Damage falls off with distance for
+pistols, SMGs, shotguns, rifles and machine guns (full out to a gun's own
+range, then down to about half to three quarters at its reach); sniper rifles
+hit as hard at any distance. `tools/gun_sheet.gd` prints every gun's numbers.
 
 The store has two pages, **GUNS** and **GEAR + THROWN**: LEFT and RIGHT switch
 between them. The number keys buy a row (1 to 9, 0, -, =, then the comma and

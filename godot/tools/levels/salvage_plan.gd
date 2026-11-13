@@ -62,6 +62,7 @@ func make() -> Builder:
 			"sites": {"A": [6, 4, 17, 13], "B": [6, 36, 17, 45]},
 			"hostages": [[6.5, 4.5], [6.5, 45.5]],
 			"rescue": [50, 17, 57, 32],
+			"rescue_more": [[36, 5, 40, 8], [38, 43, 42, 45]],
 			"routes":
 			{
 				"A":
@@ -111,6 +112,18 @@ func build(_b) -> Array:
 	d["shack"] = b.district("SCALE SHACK", Color(1.0, 1.0, 1.04))
 	# Junk piled high everywhere; the yards are what is left between it.
 	b.wall(0, 0, W - 1, H - 1, "junk_stack", 3.1)
+	# Not all of it is crushed cars: the tow lot and the parts row are fenced
+	# in tin, the bus lane backs onto a wall of tyres, the scale shack's lot
+	# is board fence.
+	b.wall(48, 12, W - 1, 34, "mill_tin", 3.0)
+	b.wall(44, 31, W - 1, H - 1, "mill_tin", 3.0)
+	b.wall(24, 45, 45, H - 1, "tire_wall", 2.6)
+	# A row of dead house trailers behind hubcap alley, and the block between
+	# the canyon and the bus lane is tyres stacked high.
+	b.wall(27, 1, 46, 3, "trailer", 3.0)
+	b.wall(25, 30, 44, 40, "tire_wall", 2.8)
+	b.wall(0, 14, 9, 33, "stockyard", 2.8)
+	b.wall(9, 26, 19, 33, "stockyard", 2.8)
 	b.wall(0, 0, W - 1, 0, "crash_wall", 3.4)
 	b.wall(0, H - 1, W - 1, H - 1, "crash_wall", 3.4)
 	b.wall(4, 34, 19, 47, "tin", 3.2, true)

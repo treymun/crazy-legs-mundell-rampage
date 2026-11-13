@@ -1178,15 +1178,11 @@ func automap(c: Canvas) -> void:
 		if in_hub
 		else "SECRETS %d/%d" % [secrets, total_secrets]
 	)
-	HUD.text(
-		c,
-		tally + ("   /   TAP TO ZOOM" if touch_aim else "   /   PGUP PGDN ZOOM   /   TAB CLOSE"),
-		160,
-		MAP_Y + MAP_H + 15,
-		"body",
-		HUD.INK,
-		true
-	)
+	var keys := "   /   TAP TO ZOOM" if touch_aim else "   /   PGUP PGDN ZOOM   /   TAB CLOSE"
+	if Modes.is_tactical(self):
+		tally = "SITES A AND B MARKED"
+		keys = "   /   PGUP PGDN ZOOM   /   M CLOSE"
+	HUD.text(c, tally + keys, 160, MAP_Y + MAP_H + 15, "body", HUD.INK, true)
 
 
 ## The part of the level the map covers, in cells: all of it, or the

@@ -129,6 +129,7 @@ const PLAYER_FIELDS := [
 ## dangers and the use/aim caches are worked out from the level or the tick.)
 const VIEW_FIELDS := [
 	"_named_enemies",
+	"place_log",
 	"specks",
 	"blasts",
 	"art",

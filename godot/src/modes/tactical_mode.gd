@@ -30,11 +30,28 @@ extends GameMode
 const ROUNDS_TO_WIN := 7
 const FREEZE := 6.0
 const BUY_WINDOW := 20.0
+## A teammate's hit with FRIENDLY FIRE on: this much of it lands.
+const FRIENDLY_SHARE := .4
 const BUY_REACH := 7.5
 const POST := 5.0
 const TEAM_NAMES := ["HOGS", "GATORS"]
 const SIDE_NAMES := ["OUTLAWS", "DEPUTIES"]
 const FEED_SECONDS := 5.0
+## What the 5v5 bots are called, handed out by slot.
+const BOT_NAMES := [
+	"BUBBA",
+	"JOLENE",
+	"CLETUS",
+	"DARLENE",
+	"EARL",
+	"RAYLENE",
+	"BOONE",
+	"LURLEEN",
+	"TUCKER",
+	"MAYBELLE",
+	"OTIS",
+	"DOTTIE",
+]
 
 
 func versus() -> bool:
@@ -117,7 +134,8 @@ static func can_buy(game, st, p: Player) -> bool:
 	if p.health <= 0:
 		return false
 	var phase := String(st.phase)
-	if phase != "freeze" and not (phase == "live" and game.clock - st.live_from < BUY_WINDOW):
+	var window := float(st.buy_seconds)
+	if phase != "freeze" and not (phase == "live" and game.clock - st.live_from < window):
 		return false
 	for spot: Array in spawns_of(game, st, p.team):
 		if Vector2(float(spot[0]) - p.x, float(spot[1]) - p.y).length() < BUY_REACH:
@@ -128,9 +146,9 @@ static func can_buy(game, st, p: Player) -> bool:
 ## Seconds of buying left (0 when shut).
 static func buy_left(game, st) -> float:
 	if String(st.phase) == "freeze":
-		return float(st.phase_until) - game.clock + BUY_WINDOW
+		return float(st.phase_until) - game.clock + float(st.buy_seconds)
 	if String(st.phase) == "live":
-		return maxf(0.0, BUY_WINDOW - (game.clock - float(st.live_from)))
+		return maxf(0.0, float(st.buy_seconds) - (game.clock - float(st.live_from)))
 	return 0.0
 
 
@@ -140,8 +158,22 @@ func clock_left(game, st) -> float:
 		"freeze":
 			return float(st.phase_until) - game.clock
 		"live":
-			return maxf(0.0, round_time() - (game.clock - float(st.live_from)))
+			return maxf(0.0, round_time_of(st) - (game.clock - float(st.live_from)))
 	return 0.0
+
+
+## The round's length as the host set it (the mode's own when not set).
+func round_time_of(st) -> float:
+	var seconds := float(st.round_seconds) if st != null else 0.0
+	return seconds if seconds > 0.0 else round_time()
+
+
+## The acting player buys item `index` of the store (Controls.buy): the
+## store's own rules decide.
+func buy(game, st, p: Player, index: int) -> void:
+	if index < 0 or index >= TacticalShop.ITEMS.size():
+		return
+	TacticalShop.buy(game, st, p, String(TacticalShop.ITEMS[index][0]))
 
 
 ## The rounds a match lasts at most (12 for first to 7).
@@ -152,14 +184,24 @@ static func max_rounds(st) -> int:
 # ------------------------------------------------------------------ hooks
 
 
-func joined(_game, _st, p: Player) -> void:
-	p.team = p.slot % 2
+func joined(_game, st, p: Player) -> void:
+	p.team = team_of(st, p.slot)
 
 
-func hurt_scale(_game, attacker: Player, victim: Player, _blast: bool) -> float:
+## A slot's team: the lobby's pick, else HOGS the even slots.
+static func team_of(st, slot: int) -> int:
+	if st != null and slot < st.teams.size() and int(st.teams[slot]) >= 0:
+		return int(st.teams[slot]) % 2
+	return slot % 2
+
+
+func hurt_scale(game, attacker: Player, victim: Player, _blast: bool) -> float:
 	if attacker == victim:
 		return 1.0
-	return 0.0 if attacker.team == victim.team else 1.0
+	if attacker.team != victim.team:
+		return 1.0
+	var st = Modes.feature(game) if game != null else null
+	return FRIENDLY_SHARE if st != null and bool(st.friendly_fire) else 0.0
 
 
 func start(game, st) -> void:
@@ -175,10 +217,12 @@ func start(game, st) -> void:
 	st.winner_name = ""
 	_new_half(game, st)
 	for p: Player in game.players:
-		p.team = p.slot % 2
+		p.team = team_of(st, p.slot)
 		p.frags = 0
 		p.deaths = 0
 		p.health = 0  # the first round hands everyone the base kit
+		if p.name == "":
+			p.name = String(BOT_NAMES[p.slot % BOT_NAMES.size()])
 	begin_round(game, st)
 
 
@@ -190,7 +234,7 @@ func _new_half(game, st) -> void:
 	st.helmet = []
 	st.snips = []
 	for i in n:
-		st.money.append(TacticalShop.START_MONEY)
+		st.money.append(int(st.start_money))
 		st.armor.append(0.0)
 		st.helmet.append(false)
 		st.snips.append(false)
@@ -227,6 +271,8 @@ func begin_round(game, st) -> void:
 		Modes.stand_up(game, p, 100)
 		p.downed_by = -1
 		p.holding = false
+		for pocket in p.inventory.keys():
+			p.inventory[pocket] = 0  # no pork rinds in a round
 	game.shots.clear()
 	st.clouds = []
 	st.fires = []
@@ -235,17 +281,19 @@ func begin_round(game, st) -> void:
 	game.won = false
 	game.spawn_grace = 0.0
 	st.phase = "freeze"
-	st.phase_until = game.clock + FREEZE
+	st.phase_until = game.clock + float(st.freeze_seconds)
 	st.live_from = st.phase_until
 	st.round_winner = -1
 	st.round_reason = ""
+	st.killed_by = {}
+	st.head_hit = {}
 	reset_objective(game, st)
-	st.last_called = false
+	st.last_called = []
 	if swapped:
-		Modes.say(game, "HALF TIME. SIDES SWAP, CASH STARTS OVER.", FREEZE)
+		Modes.say(game, "HALF TIME. SIDES SWAP, CASH STARTS OVER.", float(st.freeze_seconds))
 		game.sound.play("ann_half", .95)
 	else:
-		Modes.say(game, "ROUND %d. B TO BUY." % int(st.round_no), 2.6)
+		Modes.say(game, "ROUND %d. %s. B TO BUY." % [int(st.round_no), goal_line(game, st)], 2.8)
 
 
 func tick(game, st, dt: float) -> void:
@@ -280,16 +328,18 @@ func tick(game, st, dt: float) -> void:
 					begin_round(game, st)
 
 
-## This machine's player is the last of their team up, foes still about: once
-## a round the announcer says so.
+## A player is the last of their team up, foes still about: once a round
+## the announcer tells them (only this machine's player hears it; every
+## player is noted alike, so every copy of an online game keeps the same).
 func _last_standing(game, st) -> void:
-	if bool(st.last_called):
-		return
-	var me: Player = game.local_player
-	if me.health <= 0 or alive(game, me.team) != 1 or alive(game, 1 - me.team) == 0:
-		return
-	st.last_called = true
-	game.sound.play("ann_last", .9)
+	for t in 2:
+		if alive(game, t) != 1 or alive(game, 1 - t) == 0:
+			continue
+		for p: Player in game.players:
+			if p.team == t and p.health > 0 and not st.last_called.has(p.slot):
+				st.last_called.append(p.slot)
+				if p == game.local_player:
+					game.sound.play("ann_last", .9)
 
 
 func _decided(st) -> bool:
@@ -339,6 +389,15 @@ func end_round(game, st, winner_team: int, how: String) -> void:
 	game.sound.play(line, .95)
 
 
+## What this machine's player's side is out to do, for the round's banner.
+func goal_line(game, st) -> String:
+	var me: Player = game.local_player
+	var attacking := attacks(game, st, me)
+	if id() == Modes.BOMB:
+		return "PLANT AT A OR B" if attacking else "HOLD A AND B"
+	return "GET A HOSTAGE OUT" if attacking else "HOLD THE HOSTAGES"
+
+
 ## The banner line for the round just taken.
 func round_line(st) -> String:
 	var team := int(st.round_winner)
@@ -375,7 +434,11 @@ func downed(game, st, p: Player, by: int) -> void:
 			var gun := killer.armory.active
 			pay(st, killer, TacticalShop.kill_reward(gun))
 			var label := String(Weapons.LABELS[gun]).split(" [")[0]
-			text = "%s  %s  %s" % [Modes.tag(killer), label, Modes.tag(p)]
+			var head := bool(st.head_hit.get(p.slot, false))
+			text = (
+				"%s  %s%s  %s" % [Modes.tag(killer), label, " (HEAD)" if head else "", Modes.tag(p)]
+			)
+			st.killed_by[p.slot] = [Modes.tag(killer), label, head]
 	elif by == p.slot:
 		p.frags -= 1
 	st.feed.append([text, game.clock + FEED_SECONDS, team])
@@ -420,6 +483,9 @@ func hold_controls(game, st, by_slot: Array) -> Array:
 		held.use = c.use
 		held.weapon = c.weapon
 		held.cycle = c.cycle
+		held.buy = c.buy
+		held.reload = c.reload
+		held.item = c.item
 		if not frozen and not busy:
 			held.forward = c.forward
 			held.strafe = c.strafe
@@ -448,7 +514,12 @@ func pvp_damage(
 	var spec: Array = TacticalShop.DAMAGE.get(weapon, TacticalShop.DAMAGE_DEFAULT)
 	var head := height >= TacticalShop.HEAD_FROM
 	var dealt := amount * float(spec[0]) * (float(spec[2]) if head else 1.0)
+	dealt *= TacticalShop.falloff(
+		weapon, Vector2(victim.x - attacker.x, victim.y - attacker.y).length()
+	)
 	var st = Modes.feature(game)
+	if st != null:
+		st.head_hit[victim.slot] = head
 	if st != null and victim.slot < st.armor.size():
 		var shielded: bool = (
 			float(st.armor[victim.slot]) > 0.0 and (not head or bool(st.helmet[victim.slot]))
@@ -456,6 +527,28 @@ func pvp_damage(
 		if shielded:
 			dealt = _through_vest(st, victim, dealt, float(spec[1]))
 	return dealt / maxf(.05, float(game.incoming))
+
+
+## Spread on the move (TacticalShop.MOVE_SPREAD) and the 5v5 reach.
+func shot_tuning(_game, p: Player, gun: int, spread: Vector2, reach: float) -> Array:
+	var kind := TacticalShop.kind_of(gun)
+	var add := float(TacticalShop.MOVE_SPREAD.get(kind, 0.0))
+	var speed := Vector2(p.vx, p.vy).length()
+	var moving := clampf(
+		(speed - TacticalShop.STILL_BELOW) / (TacticalShop.RUN_SPEED - TacticalShop.STILL_BELOW),
+		0.0,
+		1.0
+	)
+	if p.scoped:
+		add *= TacticalShop.SCOPED_MOVE
+	var extra := add * moving
+	if p.air > .01:
+		extra += TacticalShop.AIR_SPREAD
+	var out := spread
+	if p.crouched and moving <= 0.0 and p.air <= .01:
+		out *= TacticalShop.CROUCH_SCALE
+	out += Vector2(extra, extra * .7)
+	return [out, maxf(reach, TacticalShop.reach(gun))]
 
 
 func blast_damage(game, thrower: Player, victim: Player, amount: float, kind: String) -> float:

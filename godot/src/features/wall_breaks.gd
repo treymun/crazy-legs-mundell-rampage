@@ -179,6 +179,8 @@ func _find_fences(cfg: ConfigFile) -> void:
 			continue
 		var name := String(section).substr(6)
 		var spec := _section(cfg, section)
+		if (spec.get("never", []) as Array).has(world.id):
+			continue  # a level whose fences hold (the 5v5 maps: no new lanes mid-match)
 		var tile := world.tile_id(name)
 		var hit := world.tile_id(String(spec.get("hit", "")))
 		# A merged run would not come apart a cell at a time.

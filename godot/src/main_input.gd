@@ -71,6 +71,8 @@ func key(code: int, shift := false) -> void:
 	if binding_action != "":
 		_bind_key(code)
 		return
+	if _key_online(code):
+		return
 	if state == "slots":
 		key_slots(code)
 		return
@@ -271,10 +273,14 @@ func _key_showdown(code: int) -> void:
 		var step := -1 if code == KEY_UP or code == KEY_W else 1
 		showdown_row = posmod(showdown_row + step, rows)
 		sound.play("menu_move")
-	elif accept and showdown_row == rows - 1:
+	elif accept and showdown_row == 3:
 		start_showdown()
 		if state == "play":
 			block_fire = true
+	elif accept and showdown_row >= 4:
+		open_net_form(showdown_row == 4)
+	elif showdown_row >= 3:
+		pass
 	elif accept or code in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]:
 		var step := -1 if code == KEY_LEFT or code == KEY_A else 1
 		match showdown_row:
@@ -482,6 +488,8 @@ func _input(event: InputEvent) -> void:
 			):
 				slot_name = SessionStore.slot_label(slot_name + String.chr(key_event.unicode))
 				return
+			if (state == "nethost" or state == "netjoin") and _net_type(key_event):
+				return
 			var code := key_event.keycode
 			if state == "play" and binding_action == "":
 				# Play's key handler speaks in default keys (key_bindings.gd).
@@ -546,10 +554,11 @@ func _input(event: InputEvent) -> void:
 				and not game.showing_tally
 				and not game.in_hub
 			):
-				if not Modes.is_tactical(game) or game.local_player.slot == TacticalScreens.human:
-					game.armory.cycle(
-						1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1, game
-					)
+				var step := 1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1
+				if not Modes.is_tactical(game):
+					game.armory.cycle(step, game)
+				elif game.local_player.slot == TacticalScreens.human:
+					TacticalScreens.pending_cycle = step  # sent with the next controls
 			elif state != "play":
 				_wheel(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1, button.position)
 			return
@@ -583,6 +592,8 @@ func _repeats(code: int) -> bool:
 		return false
 	if state == "slots" and slot_stage == "edit":
 		return code == KEY_BACKSPACE
+	if state == "nethost" or state == "netjoin":
+		return code in [KEY_BACKSPACE, KEY_UP, KEY_DOWN]
 	return code in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_W, KEY_S, KEY_A, KEY_D]
 
 
@@ -749,7 +760,7 @@ func click(position: Vector2, button: int) -> void:
 				block_fire = true
 	elif state == "controls" or state == "credits":
 		if state == "controls" and y >= 32 and y < 46:
-			controls_page = clampi((x - 20) / 92, 0, CONTROL_PAGES.size() - 1)
+			controls_page = clampi((x - 20) / CONTROL_TAB, 0, CONTROL_PAGES.size() - 1)
 			sound.play("menu_move")
 		elif button == MOUSE_BUTTON_LEFT and (Menu.BACK.has_point(at) or input_device == "touch"):
 			back_to_title()
@@ -1099,3 +1110,184 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 			KeyBindings.held("crouch") or bool(pad["crouch"]) or bool(fingers["crouch"])
 		)
 	return controls
+
+
+# -------------------------------------------------------------------- online
+
+
+## The online screens' keys, and a match's online (no saving or pausing: ESC
+## asks to leave; on the results the host's ENTER calls everyone back to the
+## lobby). True when the key was theirs.
+func _key_online(code: int) -> bool:
+	if state == "nethost" or state == "netjoin":
+		_key_net_form(code)
+		return true
+	if state == "lobby":
+		_key_lobby(code)
+		return true
+	if net == null or state != "play":
+		return false
+	var enter := code == KEY_ENTER or code == KEY_KP_ENTER
+	if code in [KEY_F2, KEY_F3, KEY_F5, KEY_F6, KEY_F9]:
+		notice("NO SAVING ONLINE.")
+		return true
+	if net_leave:
+		if enter:
+			net_quit()
+		elif code == KEY_ESCAPE:
+			net_leave = false
+		return true
+	if game != null and game.showing_tally:
+		if enter or code == KEY_SPACE:
+			if net.role == NetPlay.Role.HOST:
+				net.back_to_lobby()
+			return true
+		if code == KEY_ESCAPE:
+			net_leave = true
+			return true
+		return false
+	if code == KEY_ESCAPE and not TacticalScreens.open:
+		net_leave = true
+		return true
+	return false
+
+
+func _net_form_rows() -> Array:
+	return LobbyScreens.HOST_FORM if state == "nethost" else LobbyScreens.JOIN_FORM
+
+
+## A character typed into the form's field (CTRL+V pastes). True when taken.
+func _net_type(event: InputEventKey) -> bool:
+	var rows := _net_form_rows()
+	var row: Array = rows[posmod(net_row, rows.size())]
+	var kind := String(row[2])
+	if kind != "text" and kind != "secret" and kind != "digits":
+		return false
+	var field := String(row[0])
+	var value := String(net_form.get(field, ""))
+	if event.ctrl_pressed and event.keycode == KEY_V:
+		value += DisplayServer.clipboard_get().strip_edges()
+	elif not event.ctrl_pressed and event.unicode >= 32 and event.unicode < 127:
+		var ch := String.chr(event.unicode)
+		if kind == "digits" and not ch.is_valid_int():
+			return true
+		value += ch
+	else:
+		return false
+	var most := 40 if field == "address" else (5 if kind == "digits" else 22)
+	net_form[field] = value.substr(0, most)
+	net_note = ""
+	return true
+
+
+func _key_net_form(code: int) -> void:
+	var rows := _net_form_rows()
+	var row: Array = rows[posmod(net_row, rows.size())]
+	var kind := String(row[2])
+	var field := String(row[0])
+	var accept := code == KEY_ENTER or code == KEY_KP_ENTER
+	if code == KEY_ESCAPE:
+		state = "showdown"
+		net_note = ""
+		sound.play("menu_back")
+	elif code == KEY_UP or code == KEY_DOWN or code == KEY_TAB:
+		var step := -1 if code == KEY_UP else 1
+		if (
+			key_echo
+			and (posmod(net_row + step, rows.size()) - posmod(net_row, rows.size())) * step < 0
+		):
+			return
+		net_row = posmod(net_row + step, rows.size())
+		sound.play("menu_move")
+	elif code == KEY_BACKSPACE and kind in ["text", "secret", "digits"]:
+		var value := String(net_form.get(field, ""))
+		net_form[field] = value.substr(0, maxi(0, value.length() - 1))
+	elif kind == "toggle" and (accept or code in [KEY_LEFT, KEY_RIGHT, KEY_SPACE]):
+		net_form[field] = not bool(net_form.get(field, true))
+		sound.play("menu_move")
+	elif accept and kind == "go":
+		if state == "nethost":
+			net_open_lobby()
+		else:
+			net_join()
+	elif accept:
+		net_row = posmod(net_row + 1, rows.size())
+		sound.play("menu_move")
+
+
+func _key_lobby(code: int) -> void:
+	if net == null:
+		state = "title"
+		return
+	if net.phase == "connecting" or net.phase == "hello":
+		if code == KEY_ESCAPE:
+			net_quit()
+		return
+	var list := LobbyScreens.rows(net)
+	var row := String(list[posmod(lobby_row, list.size())])
+	var host := net.role == NetPlay.Role.HOST
+	var accept := code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE
+	if not (accept and row == "kick"):
+		net_kick_armed = false
+	net_note = ""
+	if code == KEY_ESCAPE:
+		net_quit()
+		sound.play("menu_back")
+	elif code == KEY_C and host:
+		var lines := LobbyScreens.reach_lines(net)
+		var at := String(lines[0]).find("JOIN CODE ")
+		if at >= 0:
+			DisplayServer.clipboard_set(String(lines[0]).substr(at + 10, 11))
+			net_note = "JOIN CODE COPIED. SEND IT TO YOUR FRIENDS."
+		else:
+			net_note = "NO JOIN CODE YET: " + String(lines[0])
+	elif code in [KEY_UP, KEY_DOWN, KEY_W, KEY_S]:
+		var step := -1 if code == KEY_UP or code == KEY_W else 1
+		lobby_row = posmod(lobby_row + step, list.size())
+		sound.play("menu_move")
+	elif accept or code in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]:
+		var step := -1 if code == KEY_LEFT or code == KEY_A else 1
+		_lobby_change(row, step, accept)
+
+
+func _lobby_change(row: String, step: int, accept: bool) -> void:
+	var me := net.player_of(net.my_id)
+	var host := net.role == NetPlay.Role.HOST
+	match row:
+		"team":
+			if not bool(net.settings.get("pick_teams", true)):
+				net_note = "THE HOST BALANCES THE TEAMS."
+				return
+			var team := posmod(int(me.get("team", -1)) + 1 + step, 3) - 1
+			if host:
+				me["team"] = team
+				net.send_lobby()
+			else:
+				net.ask({"team": team})
+		"ready":
+			net.ask({"ready": not bool(me.get("ready", false))})
+		"kick":
+			var others := net.players.filter(
+				func(p: Dictionary) -> bool: return int(p["id"]) != NetSession.HOST_ID
+			)
+			if others.is_empty():
+				return
+			if not accept:
+				net_kick = posmod(net_kick + step, others.size())
+			elif net_kick_armed:
+				net.kick(int(others[posmod(net_kick, others.size())]["id"]))
+				net_kick_armed = false
+			else:
+				net_kick_armed = true
+		"start":
+			if not accept:
+				return
+			var why := net.start_match()
+			if why != "":
+				net_note = why
+				sound.play("empty")
+				return
+		_:
+			if host:
+				net.set_setting(row, LobbyScreens.stepped(row, net.settings.get(row), step))
+	sound.play("menu_move")

@@ -21,6 +21,9 @@ static func sprites(game) -> Array:
 	for q: Player in game.players:
 		if q == me or not game.in_view(q.x, q.y, 1.0):
 			continue
+		if Modes.is_tactical(game):
+			out.append(TacticalScreens.player_sprite(game, q, me))
+			continue
 		var bearing := atan2(me.y - q.y, me.x - q.x)
 		var relative := Enemy.angle_delta(bearing, q.angle)
 		var direction := mini(4, int(absf(relative) / (PI / 4.0) + .5))
@@ -153,6 +156,9 @@ static func results(c: Canvas, game) -> bool:
 	var rules = Modes.rules_for(String(st.mode))
 	if not rules.versus():
 		return false
+	if Modes.TACTICAL.has(String(st.mode)):
+		TacticalScreens.results(c, game, st)
+		return true
 	var art: Dictionary = game.art.art("title_backdrop")
 	c.blit_rgba(art["data"], art["w"], art["h"], 0, 0, "art|title_backdrop")
 	HUD.panel(c, 10, 9, 211, 177)

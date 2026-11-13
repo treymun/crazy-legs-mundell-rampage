@@ -86,6 +86,11 @@ func use(_game) -> bool:
 	return false
 
 
+## The acting player buys item `index` of the mode's store (Controls.buy).
+func buy(_game, _st, _p: Player, _index: int) -> void:
+	pass
+
+
 ## The controls each player plays this tick (by slot), changed as the
 ## mode needs before the tick (the 5v5 freeze time holds everyone still).
 func hold_controls(_game, _st, by_slot: Array) -> Array:
@@ -105,6 +110,12 @@ func pvp_damage(
 	game, attacker: Player, victim: Player, amount: float, _weapon: int, _height: float
 ) -> float:
 	return amount * hurt_scale(game, attacker, victim, false) * Modes.PVP_SCALE
+
+
+## A shot's spread and reach as the mode has them (a hitscan or pellet gun
+## about to fire, `p` holding it): as the gun has them, outside the 5v5 modes.
+func shot_tuning(_game, _p: Player, _gun: int, spread: Vector2, reach: float) -> Array:
+	return [spread, reach]
 
 
 ## A player's blast of `amount` on `victim` (as Modes.blast_hit hands it

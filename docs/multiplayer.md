@@ -1,7 +1,8 @@
 # Multiplayer: platforms, model and what is still to do
 
 The game has the pieces a network game is built from, and tests that hold
-them; it has no lobby, no menu entry and no networked play for players yet.
+them. The 5v5 modes play online with a lobby (docs/online.md); co-op and
+deathmatch do not yet.
 CLAUDE.md ("Multiplayer foundation", "Multiplayer tests and transport") lists
 the code. This note is the plan around it.
 
@@ -107,7 +108,11 @@ next step for it.
 
 ## What a later networking pass still needs
 
-- **Lobby and joining:** a menu to host or join (address, or a code from a
+Done for the 5v5 modes (docs/online.md): a lobby with host settings, joining
+by code or address with a password, late joining, a bot taking a leaver's
+slot, UPnP, shots judged where the shooter saw them, the aim drawn at once.
+
+- **Lobby and joining (co-op, deathmatch):** a menu to host or join (address, or a code from a
   lobby service), a ready screen, the level chosen by the host, players
   joining mid-chapter (a whole snapshot, then deltas: the protocol already
   does this), leaving and timing out (the host keeps the slot; the co-op

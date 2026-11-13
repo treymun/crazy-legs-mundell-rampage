@@ -3,7 +3,7 @@
 ## "hostages": [x, y] each) in the defenders' end of the map; the DEPUTIES
 ## come in from the attackers' end. A deputy stands by a hostage and presses
 ## USE to take them (USE again sets them down; a carrier who goes down drops
-## them) and walks them, never running, into the rescue box ("rescue":
+## them) and leads them at a run (a hostage keeps up) into the rescue box ("rescue":
 ## [x0, y0, x1, y1], round the deputies' spawn). One hostage out wins the
 ## round for the deputies, as does downing every outlaw; the outlaws win by
 ## downing every deputy or by the clock running out.
@@ -36,6 +36,34 @@ static func rescue_box(game) -> Array:
 	return box if box is Array else []
 
 
+## Every place a hostage counts as out: the box round the deputies' spawn and
+## the map's nearer rescue points ("rescue_more", on the lanes back from the
+## sites).
+static func rescue_boxes(game) -> Array:
+	var out: Array = []
+	var main := rescue_box(game)
+	if not main.is_empty():
+		out.append(main)
+	var more = game.world.tactical.get("rescue_more", [])
+	if more is Array:
+		for box in more:
+			if box is Array and box.size() >= 4:
+				out.append(box)
+	return out
+
+
+## The rescue point nearest (x, y) (straight line), [] when there is none.
+static func nearest_rescue(game, x: float, y: float) -> Array:
+	var best: Array = []
+	var near := INF
+	for box: Array in rescue_boxes(game):
+		var d := TacticalMode.box_centre(box).distance_to(Vector2(x, y))
+		if d < near:
+			near = d
+			best = box
+	return best
+
+
 func reset_objective(game, st) -> void:
 	st.hostages = []
 	st.rescued = 0
@@ -44,7 +72,7 @@ func reset_objective(game, st) -> void:
 
 
 func objective_tick(game, st, _dt: float) -> void:
-	var box := rescue_box(game)
+	var boxes := rescue_boxes(game)
 	for hostage: Array in st.hostages:
 		if String(hostage[2]) != "carried":
 			continue
@@ -56,7 +84,9 @@ func objective_tick(game, st, _dt: float) -> void:
 			hostage[2] = "free"
 			hostage[3] = -1
 			continue
-		if TacticalMode.in_box(box, carrier.x, carrier.y):
+		if boxes.any(
+			func(box: Array) -> bool: return TacticalMode.in_box(box, carrier.x, carrier.y)
+		):
 			hostage[2] = "rescued"
 			hostage[3] = -1
 			hostage[0] = carrier.x
@@ -83,7 +113,7 @@ func round_check(game, st) -> Array:
 		return [defend, "WIPE"]
 	if TacticalMode.alive(game, defend) == 0:
 		return [attack, "WIPE"]
-	if game.clock - float(st.live_from) >= round_time():
+	if game.clock - float(st.live_from) >= round_time_of(st):
 		return [defend, "TIME"]
 	return []
 
@@ -95,10 +125,9 @@ func dropped(_game, st, p: Player) -> void:
 			hostage[3] = -1
 
 
-func slowed(st, p: Player) -> bool:
-	for hostage: Array in st.hostages:
-		if String(hostage[2]) == "carried" and int(hostage[3]) == p.slot:
-			return true
+## A carrier may run: walking them out took most of the round and nearly
+## every one was run down from behind (tools/tactical_check.gd).
+func slowed(_st, _p: Player) -> bool:
 	return false
 
 
@@ -155,6 +184,6 @@ func use(game) -> bool:
 	hostage[3] = game.player.slot
 	TacticalMode.pay(st, game.player, TacticalShop.HOSTAGE_TAKE_REWARD)
 	if game.acting_local():
-		Modes.say(game, "HOSTAGE TAKEN. WALK 'EM TO THE RESCUE BOX.", 2.4)
+		Modes.say(game, "HOSTAGE TAKEN. RUN 'EM TO A RESCUE POINT.", 2.4)
 	game.sound.play("menu_accept", .5)
 	return true

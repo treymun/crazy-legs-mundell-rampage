@@ -77,6 +77,9 @@ var downed_by := -1
 ## down), and ALT FIRE was held last tick (it acts on a fresh press).
 var scoped := false
 var alt_held := false
+## What the HUD calls this player (empty: P1, P2...): a name from the lobby,
+## or a county name for a 5v5 bot.
+var name := ""
 
 
 func _init(px := 0.0, py := 0.0, pa := 0.0) -> void:

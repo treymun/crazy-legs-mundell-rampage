@@ -959,6 +959,12 @@ var boss_hold_armed := false
 ## Slow motion as a boss falls: real seconds of it left; the world goes at
 ## SLOWMO_PACE meanwhile, the player and the gun at full speed.
 var slowmo := 0.0
+## With more than one player: where every player stood on each of the last
+## REWIND_KEEP ticks, newest last (x, y, crouched per slot), so a shot can be
+## judged against what its shooter saw online (Controls.rewind). Worked out
+## again by every copy as it steps, never carried.
+var place_log: Array[PackedFloat32Array] = []
+const REWIND_KEEP := 40
 const SLOWMO_PACE := .35
 ## A hitscan shot (a bullet, a pellet, a swing, the milk) ended at `end`:
 ## struck is "enemy", "thing" (a drum or scenery), "glass", "wall:<surface>"
@@ -1160,3 +1166,11 @@ class Controls:
 	var cycle := 0
 	## USE held down (not only a fresh press): reviving a partner (src/modes/).
 	var hold := false
+	## Reload now (a fresh press), and an item of the 5v5 store to buy (its
+	## place in TacticalShop.ITEMS; -1 none): actions that must reach every copy
+	## of a networked game as controls do.
+	var reload := false
+	var buy := -1
+	## Online: how many ticks back the host judged this player's shots (what
+	## their screen showed; 0 now). Set by the host, carried to every copy.
+	var rewind := 0

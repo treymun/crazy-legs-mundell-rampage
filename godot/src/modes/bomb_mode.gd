@@ -15,8 +15,8 @@
 class_name BombMode
 extends TacticalMode
 
-const PLANT_TIME := 3.2
-const BOMB_TIMER := 40.0
+const PLANT_TIME := 2.6
+const BOMB_TIMER := 35.0
 const DEFUSE_TIME := 7.0
 const SNIPS_TIME := 3.5
 const DEFUSE_REACH := 1.25
@@ -72,6 +72,8 @@ func reset_objective(game, st) -> void:
 		if not outlaws.is_empty()
 		else null
 	)
+	if carrier != null and carrier == game.local_player:
+		Modes.say(game, "YOU HAVE THE SHINE BOMB. PLANT IT ON A OR B.", float(st.freeze_seconds))
 	st.bomb = {
 		"state": "carried" if carrier != null else "dropped",
 		"slot": carrier.slot if carrier != null else -1,
@@ -222,7 +224,7 @@ func round_check(game, st) -> Array:
 		return []
 	if TacticalMode.alive(game, attack) == 0:
 		return [defend, "WIPE"]
-	if game.clock - float(st.live_from) >= round_time():
+	if game.clock - float(st.live_from) >= round_time_of(st):
 		return [defend, "TIME"]
 	return []
 

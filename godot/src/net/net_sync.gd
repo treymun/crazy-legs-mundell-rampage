@@ -7,22 +7,33 @@
 ## pile up), and every `snap_every` ticks it takes a GameSnapshot and sends
 ## each client the delta from the newest snapshot that client acknowledged
 ## (the whole snapshot, at most every FULL_GAP ticks, while it has none),
-## with the inputs everyone played since that base.
+## with the inputs everyone played since that base. A client's shots are
+## judged against the others where that client's screen showed them
+## (Controls.rewind, from the tick its inputs say it was showing; game.gd
+## `_rewound_hands`), and the rewind travels in the inputs echoed, so every
+## copy plays it the same.
 ##
 ## NetSync.Client sends one input a tick (and the unconfirmed ones again),
 ## rebuilds each snapshot from its base, and keeps a copy of the game: it
-## steps the copy with the inputs the host played, compares it with the
-## snapshots as they come (CHECK_EVERY), and rebuilds it from a snapshot when
-## it cannot step (inputs lost past the redundancy) or every REBUILD_EVERY
-## ticks. GameSnapshot.apply only works on a game just made today, so a
-## rebuild is a fresh game with the snapshot put on it; once apply works on a
-## running game (the headless host work), set APPLY_RUNNING and the client
-## puts every snapshot onto its copy instead.
+## steps the copy with the inputs the host played (all at once, or played out
+## a tick a frame a little behind the newest, `play_out`), compares it with
+## the snapshots as they come (CHECK_EVERY), and puts a snapshot onto the copy
+## when it cannot step (inputs lost past the redundancy) or the copy parted
+## from the host. With REBUILD_RUNNING off it makes a fresh game for that
+## instead (the old way, and every REBUILD_EVERY ticks).
+##
+## Either side can be driven by something that polls the session itself (the
+## online lobby, net_play.gd): Host.take / play and Client.take / play_out.
 class_name NetSync
 extends RefCounted
 
 const STEP := 1.0 / 60.0
 const APPLY_RUNNING := false
+## A rebuild puts the snapshot onto the copy already running (no fresh game,
+## so no hitch): GameSnapshot.apply works on a running game.
+const REBUILD_RUNNING := true
+## Ticks a client's shots are rewound by at most (game.gd keeps REWIND_KEEP).
+const MAX_REWIND := 30
 ## Parts of a snapshot's save that follow the local player (presentation).
 const LOCAL_ONLY := ["visited"]
 
@@ -73,6 +84,8 @@ class Remote:
 	var full_at := -1000000
 	var starved := 0
 	var skipped := 0
+	## The tick of the game it was showing when it sent its newest inputs.
+	var view_tick := -1
 
 
 class Host:
@@ -99,6 +112,9 @@ class Host:
 	var remotes := {}
 	## Joins a player for a new client and returns its slot (-1: no room).
 	var seat: Callable
+	## Judge clients' shots where their screens showed the others (off: as
+	## the host stands them).
+	var rewind := true
 	var sizes_full := PackedInt32Array()
 	var sizes_delta := PackedInt32Array()
 	var capture_us := 0
@@ -119,6 +135,29 @@ class Host:
 	## host's own players) and sends snapshots when one is due.
 	func step(now_ms: float, own: Dictionary) -> void:
 		_receive(session.poll(now_ms))
+		play(own)
+
+	## Inputs handed in by whoever polls the session (the lobby around it).
+	func take(packets: Array) -> void:
+		for packet: Array in packets:
+			var bytes: PackedByteArray = packet[1]
+			var from := int(packet[0])
+			if not bytes.is_empty() and bytes[0] == NetWire.INPUTS and remotes.has(from):
+				_inputs(remotes[from], NetWire.read_inputs(bytes))
+
+	## A client playing `slot` from now on (seated by a lobby, not a HELLO).
+	func add_remote(id: int, slot: int) -> void:
+		var r := Remote.new()
+		r.id = id
+		r.slot = slot
+		remotes[id] = r
+
+	func drop_remote(id: int) -> void:
+		remotes.erase(id)
+
+	## One tick with `own` (slot -> Controls, the host's own players) and
+	## every client's next input; snapshots when one is due.
+	func play(own: Dictionary) -> void:
 		var given := {}
 		var rows := {}
 		for slot in own:
@@ -126,9 +165,11 @@ class Host:
 			rows[slot] = bytes
 			given[slot] = NetWire.unpack_controls(bytes)
 		for r: Remote in remotes.values():
-			if r.slot < 0:
+			if r.slot < 0 or r.slot >= game.players.size():
 				continue
 			var bytes := _next_input(r)
+			if rewind and r.view_tick >= 0:
+				bytes = NetWire.with_rewind(bytes, clampi(tick + 1 - r.view_tick, 0, MAX_REWIND))
 			rows[r.slot] = bytes
 			given[r.slot] = NetWire.unpack_controls(bytes)
 		var t0 := Time.get_ticks_usec()
@@ -194,10 +235,7 @@ class Host:
 			if slot < 0:
 				reply["refused"] = "the game is full"
 			else:
-				var r := Remote.new()
-				r.id = from
-				r.slot = slot
-				remotes[from] = r
+				add_remote(from, slot)
 				reply["slot"] = slot
 		session.send(from, NetSession.CH_RELIABLE, NetWire.welcome(reply))
 
@@ -205,6 +243,9 @@ class Host:
 		if msg.is_empty():
 			return
 		r.acked = maxi(r.acked, int(msg["ack"]))
+		var view := int(msg.get("view_tick", -1))
+		if view > r.view_tick and view <= tick:
+			r.view_tick = view
 		var first := int(msg["first"])
 		var list: Array = msg["list"]
 		if r.next < 0:
@@ -254,9 +295,12 @@ class Client:
 	extends RefCounted
 	## Compare the copy with a snapshot every this many ticks.
 	const CHECK_EVERY := 60
-	## Rebuild the copy from a snapshot every this many ticks (exercises apply).
+	## Rebuild the copy from a snapshot every this many ticks (exercises
+	## apply; only with REBUILD_RUNNING off).
 	const REBUILD_EVERY := 600
 	const KEEP := 32
+	## Inputs remembered after they are confirmed (the view's prediction).
+	const SENT_KEEP := 120
 
 	var session: NetSession
 	## level id -> a fresh Game for it (configured as the host's).
@@ -266,6 +310,11 @@ class Client:
 	var level := ""
 	var input_seq := 0
 	var unacked := {}
+	## Every input sent lately, seq -> packed controls (confirmed ones too).
+	var sent := {}
+	## The newest input of ours the host had played, and at which tick.
+	var input_ack := -1
+	var input_ack_tick := -1
 	## seq -> [tick, snapshot]
 	var snaps := {}
 	var latest := -1
@@ -303,8 +352,14 @@ class Client:
 
 	## Reads what came in and brings the copy up to the newest snapshot.
 	func receive(now_ms: float) -> void:
-		_now = now_ms
-		for packet: Array in session.poll(now_ms):
+		take(session.poll(now_ms), now_ms)
+		_catch_up()
+
+	## Snapshots and the welcome handed in by whoever polls the session.
+	func take(packets: Array, now_ms := -1.0) -> void:
+		if now_ms >= 0.0:
+			_now = now_ms
+		for packet: Array in packets:
 			var bytes: PackedByteArray = packet[1]
 			if bytes.is_empty():
 				continue
@@ -315,13 +370,26 @@ class Client:
 				level = String(info.get("level", ""))
 			elif bytes[0] == NetWire.SNAP:
 				_snap(NetWire.read_snap(bytes))
-		_catch_up()
+
+	## Steps the copy toward the newest snapshot: at most `most` ticks, and no
+	## nearer to it than `behind` ticks unless it has fallen far back (then it
+	## catches up at once). Played a tick or so a frame, the world moves
+	## smoothly between snapshots.
+	func play_out(most: int, behind := 0) -> void:
+		_catch_up(most, behind)
+
+	## Ticks of the game this copy is behind the newest snapshot.
+	func backlog() -> int:
+		return latest_tick - game_tick if latest >= 0 else 0
 
 	## Sends this tick's input (and every one not confirmed yet).
 	func send_input(c: Game.Controls) -> void:
 		if slot < 0:
 			return
-		unacked[input_seq] = NetWire.pack_controls(c)
+		var bytes := NetWire.pack_controls(c)
+		unacked[input_seq] = bytes
+		sent[input_seq] = bytes
+		sent.erase(input_seq - SENT_KEEP)
 		sent_at[input_seq] = _now
 		input_seq += 1
 		var first := input_seq - 1
@@ -330,7 +398,22 @@ class Client:
 		var list: Array = []
 		for i in range(first, input_seq):
 			list.append(unacked[i])
-		session.send(NetSession.HOST_ID, NetSession.CH_INPUTS, NetWire.inputs(latest, first, list))
+		session.send(
+			NetSession.HOST_ID, NetSession.CH_INPUTS, NetWire.inputs(latest, first, list, game_tick)
+		)
+
+	## The turn and look of our inputs the copy has not played yet (sent, or
+	## played by the host after the tick the copy is at): added to the view so
+	## the aim answers the mouse at once, whatever the lag.
+	func unplayed_aim() -> Vector2:
+		var played := input_ack - maxi(0, input_ack_tick - game_tick) if input_ack >= 0 else -1
+		var out := Vector2.ZERO
+		for n in range(maxi(played + 1, input_seq - SENT_KEEP), input_seq):
+			var bytes: PackedByteArray = sent.get(n, PackedByteArray())
+			if bytes.size() >= NetWire.CONTROL_BYTES:
+				out.x += bytes.decode_half(4)
+				out.y += bytes.decode_half(6)
+		return out
 
 	func _snap(msg: Dictionary) -> void:
 		if msg.is_empty():
@@ -357,6 +440,8 @@ class Client:
 		latest_tick = tick
 		var ack := int(msg["input_ack"])
 		if ack >= 0:
+			input_ack = ack
+			input_ack_tick = tick
 			if sent_at.has(ack):
 				lag_samples.append(_now - float(sent_at[ack]))
 			for n in unacked.keys():
@@ -373,13 +458,18 @@ class Client:
 			game_tick = tick
 			_after_apply()
 
-	func _catch_up() -> void:
+	func _catch_up(most := 1 << 30, behind := 0) -> void:
 		if latest < 0:
 			return
-		if game == null or latest_tick - rebuilt_at >= REBUILD_EVERY:
+		if game == null or (not REBUILD_RUNNING and latest_tick - rebuilt_at >= REBUILD_EVERY):
 			_rebuild()
 			return
-		while game_tick < latest_tick:
+		if latest_tick - game_tick > behind + 12:
+			behind = 0  # far back: catch up at once
+			most = 1 << 30
+		var steps := 0
+		while game_tick < latest_tick - behind and steps < most:
+			steps += 1
 			var row = echo.get(game_tick + 1)
 			if row == null or (row as Dictionary).is_empty():
 				# The inputs for the next tick never came (lost past the
@@ -393,10 +483,12 @@ class Client:
 			echo.erase(game_tick)
 			game_tick += 1
 			if game_tick - checked_at >= CHECK_EVERY:
-				_check_at(game_tick)
+				if not _check_at(game_tick):
+					return
 
-	## Compares the copy with the snapshot of the tick it is at, if one is kept.
-	func _check_at(tick: int) -> void:
+	## Compares the copy with the snapshot of the tick it is at, if one is
+	## kept; false when they parted (the copy is then put back on the newest).
+	func _check_at(tick: int) -> bool:
 		for seq in snaps:
 			if int(snaps[seq][0]) != tick:
 				continue
@@ -409,22 +501,31 @@ class Client:
 				mismatches += 1
 				if first_mismatch == "":
 					first_mismatch = "tick %d: %s" % [tick, where]
-			return
+				if REBUILD_RUNNING:
+					_rebuild(false)
+					return false
+			return true
+		return true
 
-	func _rebuild() -> void:
+	func _rebuild(check := true) -> void:
 		var data: Dictionary = snaps[latest][1]
-		var fresh: Game = make_game.call(level)
-		if fresh == null or not GameSnapshot.apply(fresh, data.duplicate(true)):
-			return
+		if REBUILD_RUNNING and game != null:
+			if not GameSnapshot.apply(game, data.duplicate(true)):
+				return
+		else:
+			var fresh: Game = make_game.call(level)
+			if fresh == null or not GameSnapshot.apply(fresh, data.duplicate(true)):
+				return
+			game = fresh
 		rebuilds += 1
-		game = fresh
 		game_tick = latest_tick
 		rebuilt_at = latest_tick
 		for t in echo.keys():
 			if int(t) <= game_tick:
 				echo.erase(t)
 		_after_apply()
-		_check_at(game_tick)
+		if check:
+			_check_at(game_tick)
 
 	func _after_apply() -> void:
 		if slot >= 0 and slot < game.players.size():
