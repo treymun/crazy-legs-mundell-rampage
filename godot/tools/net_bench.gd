@@ -4,9 +4,11 @@
 ## four ticks on (what a 30 Hz update carries at 120 Hz), applying it.
 ##
 ##   godot --headless --path godot --script res://tools/net_bench.gd
-##       [-- levels=hickston,fair] [players=1,2,4] [ticks=7200] [idle]
+##       [-- levels=hickston,fair] [players=1,2,4] [ticks=7200] [idle] [host]
+##       [no-snap]
 ##
-## idle: the players past the first stand still instead of playing. With a
+## idle: the players past the first stand still instead of playing. host: the
+## games are a GameHost's (no presentation). no-snap: ticks only. With a
 ## GameHost (src/game_host.gd) it also times the host's own snapshot, delta
 ## and a mirror keeping up.
 extends SceneTree
@@ -15,6 +17,9 @@ const Pilot := preload("res://tools/bot_pilot.gd")
 const STEP := 1.0 / 120.0
 const SAMPLES := 30
 const GAP := 4
+
+static var _host := false
+static var _host_script: Script = null
 
 
 func _init() -> void:
@@ -43,10 +48,13 @@ func _run() -> void:
 			idle = true
 		elif arg == "no-snap":
 			snaps = false
+		elif arg == "host":
+			_host = true
 	var host_script: Script = null
 	for row: Dictionary in ProjectSettings.get_global_class_list():
 		if String(row["class"]) == "GameHost":
 			host_script = load(String(row["path"]))
+	_host_script = host_script
 	for id: String in levels:
 		for n: int in counts:
 			_bench(main, id, n, ticks, idle, snaps and n == 1, host_script)
@@ -56,6 +64,10 @@ func _run() -> void:
 
 
 static func _made(main, id: String, players: int) -> Game:
+	if _host and _host_script != null:
+		var made: Game = _host_script.new(id, players, {"difficulty": 1}).game
+		made.cheats.god = true
+		return made
 	var g: Game = main.make_game(id)
 	g.configure({"difficulty": 1})
 	for done: String in Campaign.ORDER.slice(0, maxi(0, Campaign.ORDER.find(id))):
@@ -207,6 +219,10 @@ static func _bench_host(main, g: Game, pilots: Array, idle: bool, host_script: S
 	for s in SAMPLES:
 		for k in GAP:
 			host.step(_controls(g, pilots, idle))
+			for p: Player in g.players:
+				g.focus(p)
+				pilots[p.slot].moved(g)
+			g.focus(g.local_player)
 		var t1 := Time.get_ticks_usec()
 		var d: PackedByteArray = host.delta_since(mirror.acked)
 		var t2 := Time.get_ticks_usec()

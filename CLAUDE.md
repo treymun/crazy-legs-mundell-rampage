@@ -75,6 +75,8 @@ godot --headless --path godot --script res://tools/net_check.gd       # NET CHEC
 godot --headless --path godot --script res://tools/multi_bots.gd -- players=1,2,4 seconds=60   # MULTI BOTS OK (whole: to the end; mortal; diff=)
 godot --headless --path godot --script res://tools/net_loopback.gd -- seconds=180 lag=50 loss=0.05   # NET LOOPBACK OK (websocket: over WebSocket)
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
+godot --headless --path godot --script res://tools/net_bench.gd -- levels=hickston players=1,2,4 [host]   # ticks, snapshots, deltas
+godot --headless --path godot -- --server=fair --server-players=2 --server-ticks=12000   # a host, no window (server_loop.gd)
 
 # Pacing and balance (not in CI)
 godot --headless --path godot --script res://tools/first_minutes.gd   # a bot plays each chapter's opening: first fight, kills, health (old-ai: enemies do not hunt)
@@ -755,10 +757,12 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
 
 ## Multiplayer foundation
 
-There is no networking yet; this is what a server mode, co-op or deathmatch
-rules and a network test harness build on. `src/players.gd`,
-`src/player_voice.gd`, `src/game_snapshot.gd`, `src/snap_codec.gd` and
-`tools/net_check.gd` hold it. One player plays exactly as before (checked
+This is what co-op or deathmatch rules and the transport (next section)
+build on. `src/players.gd`, `src/player_voice.gd`, `src/game_snapshot.gd`,
+`src/snap_codec.gd`, the authoritative host (`src/game_host.gd`,
+`src/net_track.gd`, `src/quiet_sound.gd`, `src/server_loop.gd`), the client's
+`src/game_mirror.gd`, `tools/net_check.gd` and `tools/net_bench.gd` hold it.
+One player plays exactly as before (checked
 tick by tick against the old build: state hashes of bot runs in every
 chapter at NORMAL and HOG WILD, `first_minutes.gd -- whole`, the rematch
 times, the duels).
@@ -850,26 +854,97 @@ times, the duels).
   feature's lists. A save keeps pickups as `[name, x, y]` (no new version);
   their ids are handed out again on load. An enemy's instance id in carried
   state (a shot's thrower, a dictionary keyed by enemy) travels as its uid.
-- **Snapshots** (`src/game_snapshot.gd`): `GameSnapshot.capture(game)` is a
-  Dictionary of plain values: "save" (SessionStore's save of the moment, which
-  puts back the level's doors, broken things, stations and features), "game"
-  (SIM_FIELDS), "players" (every carried field by slot), "enemies" (by uid,
-  every script variable) with "order", "features" (each simulation feature's
-  variables), "statics" (play kept in static variables: `DerbyChamp.state`;
-  new play belongs on the enemy or in a feature). `GameSnapshot.apply(game,
-  data)` puts it onto a Game just made for that level (never ticked): the
-  players it lacks join, then everything is set; presentation options stay.
-  `to_bytes`/`from_bytes` (var_to_bytes, zstd: 22 to 37 KB a chapter after
-  100 s of play, 10 to 35 ms to take, 3 to 30 ms to apply, headless),
-  `delta(base, now)` / `patch(base, delta)` (7 to 19 KB for the 90 s since a
-  base; dictionaries walked, other values whole: a per-tick delta is the
-  network harness's to tune), `same(a, b)` (bit for bit, key order too) and
-  `first_difference(a, b)` for reports. `snap_codec.gd` turns objects into
-  plain values by reflection (script variables, less
-  `SnapCodec.SKIP_FIELDS`; classes found from the roots in `_register_all`,
-  a class it cannot name is listed in the snapshot's "unknown" and fails the
-  check); decoding fills what is there in place, so what a snapshot does not
-  carry (a sprite) stays.
+- **Snapshots** (`src/game_snapshot.gd`, version 2): `GameSnapshot.capture(game)`
+  is a Dictionary of plain values that never changes as play goes on (packed
+  arrays are shared by reference in Godot 4: encode and decode copy them):
+  "game" (SIM_FIELDS), "world" (each door's progress, opened and discovered by
+  its place in the level's list; the panes broken, in breaking order),
+  "facts" (`FACT_FEATURES`' own save(): what breakables and wall breaks broke,
+  which changes the level's walls and floor), "players" (every carried field
+  by slot, each player's own, whoever is acting), "enemies" (by uid) with
+  "order", "features" (each simulation feature's variables), "statics" (play
+  in static variables: `DerbyChamp.state`; new play belongs on the enemy or in
+  a feature). No save and no presentation inside it. `GameSnapshot.apply(game,
+  data)` puts it onto a Game of that level, just made OR already running: the
+  players it lacks join, the doors and panes are set, each fact feature's
+  restore() breaks what is not broken yet (only when its facts differ from
+  what the game was last given, `game.net_facts`), enemies are matched by uid
+  (new ones made), every carried field is set, and a finished station's
+  lights follow `stations_done` (`game.lit_stations`, kept by
+  `set_station_lights`). `apply_delta(game, d, full)` puts on only what a
+  delta touches, each field from `full` (its patched snapshot). A flow field
+  travels as the cells its last walk reached and their steps (`@flow`); a
+  level's windows, fences, breakable pieces and boards carry only what can
+  change (`SnapCodec.ONLY_FIELDS`), a feature's tuning and lookups not at all
+  (`SKIP_FIELDS`). `to_bytes`/`from_bytes` (var_to_bytes, zstd),
+  `delta(base, now)` (dictionaries walked, each value compared once, bit for
+  bit; a changed dictionary is `{"@new": value}`, anything else travels as it
+  is; gone keys under "@gone", a new key order under "@order"), `patch`,
+  `patch_into` (into the caller's own copy), `merge(older, newer)` (two deltas
+  as one), `same(a, b)` (bit for bit, key order too), `first_difference`.
+  `snap_codec.gd` turns objects into plain values by reflection (script
+  variables, read in one call through a script made per class, `packer()`);
+  a class it cannot name is listed in "unknown" and fails the check; decoding
+  fills what is there in place, so what a snapshot does not carry (a sprite)
+  stays.
+- **The host** (`src/game_host.gd`): `GameHost.new(level_id, slots, options)`
+  makes a host Game (`game.host`: no looks-only features, `Features.LOOKS`;
+  a `QuietSound` for `sound` and `speaker`; no voices, no talk, no room sound
+  or place names, `sound_at` returns at once; nothing is ever drawn) and runs
+  it `step({slot: controls})` one fixed 120 Hz tick at a time (`tick`
+  counts them). `snapshot()` is bytes of `{"tick", "full"}`;
+  `delta_since(acked)` is bytes of `{"tick", "base": acked, "d"}`, or a whole
+  snapshot when the base is older than `HISTORY` ticks (or -1). `adopt(game)`
+  wraps a game already made; `join_near(game)` seats one more player.
+  Presentation that play still leans on stays on a host: specks and gore
+  (their count gates `burst()` and its rng), the renderer object (hitscan's
+  `wall_mark` picks the material), and so on; a host game and an ordinary one
+  fed the same controls stay identical (net_check). `main.gd --server=<level>`
+  (`--server-players=N`, `--server-ticks=N` to time flat out and quit,
+  `--server-report=S`, `--server-difficulty=D`; run it `--headless`) runs a
+  host in `ServerLoop` with no window, picture, sound or menu work and prints
+  the tick's and the deltas' cost; players stand idle until a transport hands
+  their controls to `ServerLoop.controls`.
+- **How the host finds a delta** (`src/net_track.gd`): `NetTrack` keeps every
+  carried field's last value (plain values as they are, arrays and
+  dictionaries as bytes, packed arrays copied, objects by identity with a
+  watch over each object carried by value: a mind, a gun rack, a shot, a
+  flow field). Each look (once a tick at most, when a snapshot or delta is
+  asked for) compares the `HOT` fields one by one and the rest of an object
+  and everything inside it as ONE var_to_bytes, so a field is only looked at
+  alone when its part changed; floats to the sign of zero. A feature with
+  `NET_GUARDED` lists (wall breaks' windows and fences, breakables' pieces)
+  is looked through only when its `net_version` moved: anything that changes
+  a window, fence or piece must bump it. The changes per look are logged;
+  `delta_since` merges the log since the base (`GameSnapshot.merge`). Never
+  "@order": enemies that change places send the enemies whole.
+- **The mirror** (`src/game_mirror.gd`): `GameMirror.new(client_game)`,
+  `take(bytes)` puts a whole snapshot on (`apply`, onto its running game too)
+  or a delta made against the tick it holds (`acked`, the tick to acknowledge)
+  by patching its copy of the snapshot and `apply_delta`. It does not tick
+  its game; prediction is not here. `NetSync` (the transport) still diffs
+  whole captures; switching it to `GameHost.delta_since` / `GameMirror` is the
+  transport's to do, and `NetSync.APPLY_RUNNING` can go on.
+- **Several players cost little more than one** (one player's tick is the
+  same code as before): an enemy's pick stands `RETARGET` and is tested in
+  the enemy loop before any call; a new pick draws sight lines to the players
+  in reach nearest first and stops at the first seen (none with one alive);
+  each player's flow field is walked when something first needs it in a
+  tick (`Player.flow_due`, `focus()`), and a walk from a cell another
+  player's field was walked from this tick copies it (`flow_walks`,
+  `FlowField.adopt`); players' bodies look only at the enemies in the cells
+  round them (`body_cells`). New per-player work should be on demand like
+  these, never a loop over every enemy for every player each tick.
+- **Costs** (headless, this PC loaded by other work, so only roughly; see
+  `tools/net_bench.gd`, which times old and new alike, run side by side):
+  a whole capture 3 to 8 ms (was 10 to 30), 15 to 24 KB packed (was 23 to
+  38); the host's delta for 4 ticks 1.2 to 2.6 ms with bots playing (was a
+  capture and a diff, 20 to 57 ms), 0.6 to 2 KB (was 1.3 to 3.5 KB), put on
+  by a mirror in 0.3 to 0.9 ms; up to 4 ms in Hickston with all 99 hands
+  alive (`--server`, idle players). A whole snapshot onto a fresh game 8 to
+  18 ms. The enemies are most of a delta (every field of every one is read
+  each look: about 10 to 20 us an enemy). One player's tick is unchanged;
+  four bots cost 1.2 to 1.9 times one (Hickston .62 -> .88 ms).
 - **The determinism check** (`tools/net_check.gd`; its quick part runs in
   `check_fixes.gd`): two games fed the bot's recorded controls stay
   identical, snapshot for snapshot; capture, apply to a fresh game, capture
@@ -878,15 +953,21 @@ times, the duels).
   there is); with two players both are hunted, player two is hurt by a hand
   and by a blast, takes shells and a beer for themselves and a key for the
   party, opens a door with USE; two two-player games stay identical and
-  round-trip. The bot (`bot_pilot.gd as_controls`) asks for USE and the next
-  gun through its controls so a lockstep game gets them too.
-- **Not done yet:** applying a snapshot onto a game already running (only a
-  fresh one: SessionStore's restore is not idempotent for station lights,
-  breaks or the posse); per-player stats, messages and kill feed; player
-  bodies blocking each other; respawn; Maw's area attacks hit only the player
-  she is after; a slick or a race car bites one player at a time; the
-  objective pin, boss bar, boss checkpoint and rematch think of one player;
-  the steam scald list is keyed by hazard instance id (not carried).
+  round-trip; a snapshot kept from tick 600 has not changed by the end. The
+  host: its game has the simulation's features and no looks-only ones and no
+  sound; it and an ordinary game fed the same controls stay identical; a
+  mirror over a fresh client game, kept up by deltas alone every 4 ticks and
+  once by a whole snapshot onto its running game, matches the host each time
+  it is compared (the patched snapshot and a capture of its game), in every
+  chapter and with 2 and 4 players; deltas merge. The bot (`bot_pilot.gd
+  as_controls`) asks for USE and the next gun through its controls so a
+  lockstep game gets them too.
+- **Not done yet:** per-player stats, messages and kill feed; player bodies
+  blocking each other; respawn; Maw's area attacks hit only the player she
+  is after; a slick or a race car bites one player at a time; the objective
+  pin, boss bar, boss checkpoint and rematch think of one player; client
+  prediction; the transport using GameHost/GameMirror. The steam scald is
+  marked on the hazard now (`Hazard.scalded`, `boss_arenas.scald_count`).
 
 ## Multiplayer tests, the crash log and the transport
 
@@ -942,14 +1023,13 @@ what a networking pass still needs).
   sends deltas from each client's acknowledged snapshot (whole while it has
   none); `NetSync.Client` rebuilds them and steps a copy of the game with the
   inputs the host played, rebuilding it from a snapshot when it cannot step
-  and every 10 s (`GameSnapshot.apply` only works on a fresh game today: set
-  `NetSync.APPLY_RUNNING` once it works on a running one). Two things about
-  snapshots the tests found: a capture shares the game's packed arrays (the
-  flow fields go on writing into a kept snapshot), so `NetSync.capture` takes
-  a deep copy, and the client copies a snapshot before applying it; and the
-  save part follows the acting player and carries presentation (`visited`,
-  timers in VIEW_FIELDS), so snapshots are taken with player one acting and
-  compared through `NetSync.comparable`.
+  and every 10 s (`GameSnapshot.apply` works on a running game now, so
+  `NetSync.APPLY_RUNNING` may go on). Two things about snapshots the tests
+  found, both fixed in snapshot version 2: a capture shared the game's packed
+  arrays (it copies them now; `NetSync.capture`'s deep copy is no longer
+  needed), and the save part followed the acting player and carried
+  presentation (there is no save part now; `NetSync.comparable` passes a
+  version 2 snapshot through as it is).
 - **`tools/net_loopback.gd`**: one process, a host and a client peer on
   127.0.0.1 (a port from the process id, so parallel checks do not meet),
   two games, the game's own clock. The host's bot plays player one, the
