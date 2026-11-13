@@ -7,7 +7,9 @@ class_name Game
 extends GameView
 
 
-func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
+## `p_host`: an authoritative host's game (game_host.gd), with no presentation.
+func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host := false) -> void:
+	host = p_host
 	gore_fx = Gore.new(self)
 	art = p_art
 	hud = p_hud
@@ -18,7 +20,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston") -> void:
 	renderer = Renderer.new(art, level)
 	# The sounds made in code (thunder alone is 30-odd ms of work) are made
 	# while the level loads, not the moment one first plays.
-	for cue: String in Assets.MADE_CUES:
+	for cue: String in [] if host else Assets.MADE_CUES:
 		art.cue(cue)
 	# Player one (src/players.gd): the local and acting player.
 	Players.join(self, float(level.spawn[0]), float(level.spawn[1]), float(level.spawn[2]))
@@ -171,16 +173,19 @@ func tick(dt: float, controls) -> void:
 	clock += wdt
 	spawn_grace = maxf(0.0, spawn_grace - dt)
 	duck = maxf(0.0, duck - dt)
-	if sound != null and sound.has_method("level_music"):
+	if not host and sound != null and sound.has_method("level_music"):
 		sound.level_music(
 			sound.music_gain * (1.0 - .5 * minf(1.0, duck) - (.2 if barks.visible(self) else 0.0))
 		)
 	hurt_flash = maxf(0.0, hurt_flash - dt)
 	blast_flash = maxf(0.0, blast_flash - dt)
+	if players.size() > 1:
+		_bucket_bodies()
 	for q: Player in players:
 		if q.health > 0:
 			focus(q, true)
 			_step_body(q, by_slot[q.slot], dt)
+	body_cells_on = false
 	focus(local_player)
 	if in_hub:
 		return
@@ -206,9 +211,13 @@ func tick(dt: float, controls) -> void:
 			and player.health > 0
 		)
 	)
-	for q: Player in players:
-		if q.health > 0:
-			q.flow.update(q.x, q.y, clock)
+	if players.size() == 1:
+		player.flow.update(player.x, player.y, clock)
+	else:
+		# Walked when first needed (focus()): an enemy after them, a trigger...
+		flow_walks.clear()
+		for q: Player in players:
+			q.flow_due = q.health > 0
 	dangers.clear()
 	for shot in shots:
 		if shot.kind == "tnt":
@@ -222,12 +231,28 @@ func tick(dt: float, controls) -> void:
 		# its sight, flow field, aim and blows are about them.
 		for enemy: Enemy in enemies:
 			if enemy.hp > 0.0 and not enemy.dormant:
-				focus(Players.hunted(self, enemy))
+				# Its pick stands RETARGET seconds (Players.hunted's first test,
+				# written out), and focusing whoever is acting already is nothing.
+				var keep: Player = enemy.hunted
+				if keep == null or keep.health <= 0 or clock >= enemy.hunted_until:
+					keep = Players.hunted(self, enemy)
+				if keep != player or own_step or keep.flow_due:
+					focus(keep)
 			enemy.tick(wdt, self)
 		focus(local_player)
+		# Nobody needed theirs yet: walked now, so it is current after the tick
+		# for whatever reads it (a bot after another player, the next tick).
+		for q: Player in players:
+			if q.flow_due:
+				_walk_flow(q)
 	update_shots(wdt)
 	if not hazards.is_empty():
 		update_hazards(wdt)
+	if host:
+		# Nobody to hear the county talk.
+		ticked.emit(wdt)
+		name_new()
+		return
 	var p := player
 	var combat: bool = mine.fire or mine.alt_fire or hurt_flash > 0.0
 	if not combat:
@@ -244,6 +269,20 @@ func tick(dt: float, controls) -> void:
 	tick_exchanges(combat)
 	ticked.emit(wdt)
 	name_new()
+
+
+## The hostile bodies by cell, for every player's body this tick to look only
+## round itself (move_actor) instead of over every enemy.
+func _bucket_bodies() -> void:
+	body_cells.clear()
+	for enemy: Enemy in enemies:
+		if enemy.hostile and enemy.alive:
+			var key := Vector2i(floori(enemy.x), floori(enemy.y))
+			if body_cells.has(key):
+				body_cells[key].append(enemy)
+			else:
+				body_cells[key] = [enemy]
+	body_cells_on = true
 
 
 ## Gives everything that came into being this tick (enemies, shots) its stable
@@ -331,7 +370,7 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 			dt * 11.0 * p.motion * (1.25 if controls.running else .80 if p.crouched else 1.0)
 		)
 	p.bob = sin(p.walk_phase * 2.0) * p.motion * (0.0 if p.air else 1.9) * bob_scale
-	if local:
+	if local and not host:
 		# The gun's weight, its kick and the view's jolts: features/feel.gd.
 		feel_turn = controls.turn
 		feel_landed = landed
@@ -345,7 +384,7 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 		if surface == "water":
 			burst(p.x, p.y, ground + .16, "splash", 5 if landed else 3, .52)
 		p.step_number = step
-	if local:
+	if local and not host:
 		visited[Vector2i(int(p.x), int(p.y))] = true
 
 

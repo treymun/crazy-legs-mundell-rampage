@@ -9,6 +9,16 @@ extends MainInput
 
 func _ready() -> void:
 	_parse_smoke()
+	if server_level != "":
+		# A network game's host: no window, picture, sound or menus at all.
+		set_process(false)
+		set_process_input(false)
+		set_process_unhandled_input(false)
+		var options := {"difficulty": server_difficulty}
+		add_child(
+			ServerLoop.new(server_level, server_players, options, server_ticks, server_report)
+		)
+		return
 	get_window().title = TITLE
 	web = OS.has_feature("web")
 	# A real launch logs errors and crashes (a tool driving the game does not).

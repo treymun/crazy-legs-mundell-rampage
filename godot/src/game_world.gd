@@ -123,6 +123,8 @@ func sound_cutoff(x: float, y: float) -> float:
 
 
 func sound_at(name: String, x: float, y: float, strength := 1.0) -> void:
+	if host:
+		return
 	var place := sound_position(x, y, strength)
 	speaker.play(name, place.x, place.y, sound_cutoff(x, y))
 	var p := local_player
@@ -398,7 +400,14 @@ func use_item(slot := -1) -> void:
 func move_actor(body, dx: float, dy: float, radius: float) -> void:
 	var p := player
 	var neighbors: Array = []
-	if body == p:
+	if body == p and body_cells_on:
+		# (Several players: the bodies by cell, game.gd. Any of them blocks.)
+		for cx in range(floori(p.x - 1.1), floori(p.x + 1.1) + 1):
+			for cy in range(floori(p.y - 1.1), floori(p.y + 1.1) + 1):
+				for enemy: Enemy in body_cells.get(Vector2i(cx, cy), []):
+					if absf(p.x - enemy.x) < 1.1 and absf(p.y - enemy.y) < 1.1:
+						neighbors.append(enemy)
+	elif body == p:
 		for enemy: Enemy in enemies:
 			if (
 				enemy.hostile
@@ -947,6 +956,7 @@ func interact() -> void:
 
 
 func set_station_lights(station: LevelData.Station) -> void:
+	lit_stations[station.id] = true
 	for sector_v in station.sectors:
 		var sector := int(sector_v)
 		var n := world.area.size()

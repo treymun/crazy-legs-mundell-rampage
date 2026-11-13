@@ -64,7 +64,7 @@ static func join(game, x: float, y: float, angle: float) -> Player:
 	# Its own steps over the same floor (as player one's floor is now: a
 	# fence shot down or a barrel broken stays open for it too).
 	p.flow = FlowField.new(game.level, first.flow)
-	if game.speaker != null:
+	if game.speaker != null and not game.host:
 		p.voice = PlayerVoice.new(game, p)
 	return p
 
@@ -86,7 +86,7 @@ static func set_local(game, p: Player) -> void:
 	for each: Player in game.players:
 		if each.voice != null or each == p:
 			continue
-		if game.speaker != null:
+		if game.speaker != null and not game.host:
 			each.voice = PlayerVoice.new(game, each)
 
 
@@ -136,18 +136,33 @@ static func nearest(game, x: float, y: float) -> Player:
 	return best
 
 
+## The nearest player alive within SIGHT that `e` can see (ties: the lower
+## slot), or null. Sight lines are the cost: the players in reach are tried
+## nearest first and the first one seen is the answer, so a far one is only
+## looked at when every nearer one is hidden; with one player alive there is
+## no choice to make and no line is drawn.
 static func _nearest_seen(game, e: Enemy) -> Player:
-	var eye: float = game.world.elevation(e.x, e.y) + e.z + minf(.92, e.height * .72)
-	var best: Player = null
-	var gap := SIGHT * SIGHT
+	var near: Array = []
+	var alive := 0
 	for p: Player in game.players:
 		if p.health <= 0:
 			continue
+		alive += 1
 		var d := (p.x - e.x) * (p.x - e.x) + (p.y - e.y) * (p.y - e.y)
-		if d < gap and game.world.visible(e.x, e.y, p.x, p.y, eye, p.eye):
-			gap = d
-			best = p
-	return best
+		if d < SIGHT * SIGHT:
+			near.append([d, p.slot, p])
+	if alive <= 1 or near.is_empty():
+		# The one alive is picked whether seen or not (hunted(): nearest).
+		return null if near.is_empty() or alive == 0 else near[0][2]
+	near.sort_custom(
+		func(a: Array, b: Array) -> bool: return a[0] < b[0] or a[0] == b[0] and a[1] < b[1]
+	)
+	var eye: float = game.world.elevation(e.x, e.y) + e.z + minf(.92, e.height * .72)
+	for row: Array in near:
+		var p: Player = row[2]
+		if game.world.visible(e.x, e.y, p.x, p.y, eye, p.eye):
+			return p
+	return null
 
 
 ## The controls for each slot this tick from what tick() was handed: one

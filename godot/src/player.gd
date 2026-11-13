@@ -46,6 +46,9 @@ var sprint := 0.0
 ## Steps from this player over open floor: the enemies after this player
 ## walk it when they lose sight of them (flow_field.gd).
 var flow: FlowField
+## With more than one player: the flow field is to be walked from where they
+## stand when something first needs it this tick (Game.focus()).
+var flow_due := false
 ## USE was held last tick (Controls.use acts on a fresh press).
 var use_held := false
 ## Footsteps taken (a sound each) and when a full gut may belch next.

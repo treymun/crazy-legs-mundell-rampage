@@ -287,6 +287,15 @@ var smoke_level := "hickston"
 var play_at := ""
 ## --dev="cmd;cmd": developer console commands to run once a level starts.
 var dev_commands := ""
+## --server=<level>: run that chapter as a network game's host, with no window
+## work (server_loop.gd), with --server-players=N players, quitting after
+## --server-ticks=N ticks (0: never), reporting every --server-report=S
+## seconds, at --server-difficulty=D.
+var server_level := ""
+var server_players := 1
+var server_ticks := 0
+var server_report := 5.0
+var server_difficulty := 1
 ## The game mode (src/modes/, CLAUDE.md "Modes"): --mode=<name> --players=<n>
 ## [--arena=<level>[:<boss>]] [--level=<chapter>] [--frag-limit=] [--time-limit=].
 ## "" is the campaign. The players past the first are played by
@@ -357,6 +366,18 @@ func _parse_smoke() -> void:
 			BossRematch.unlock_all = DevConsole.available()
 		elif text.begins_with("--play-at="):
 			play_at = text.substr(10)
+		elif text == "--server":
+			server_level = "hickston"
+		elif text.begins_with("--server="):
+			server_level = text.substr(9)
+		elif text.begins_with("--server-players="):
+			server_players = clampi(int(text.substr(17)), 1, 16)
+		elif text.begins_with("--server-ticks="):
+			server_ticks = int(text.substr(15))
+		elif text.begins_with("--server-report="):
+			server_report = maxf(.5, float(text.substr(16)))
+		elif text.begins_with("--server-difficulty="):
+			server_difficulty = clampi(int(text.substr(20)), 0, 3)
 		elif text.begins_with("--mode="):
 			mode_name = text.substr(7) if Modes.NAMES.has(text.substr(7)) else ""
 		elif text.begins_with("--players="):
@@ -826,7 +847,8 @@ func _exit_tree() -> void:
 		crash_log = null
 	Weapons.Armory.settle()
 	Renderer.stop_crew()
-	canvas.gpu_free()
+	if canvas != null:
+		canvas.gpu_free()
 
 
 func _save_view() -> void:
