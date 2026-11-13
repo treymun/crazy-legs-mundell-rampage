@@ -54,6 +54,7 @@ func play(target: Game) -> void:
 		notice("FETCHING THE CHAPTER. A MOMENT...", 4.0)
 		return
 	waiting_play = null
+	CrashLog.note("play %s%s" % [target.level.id, " (replay)" if target.replay else ""])
 	# Lessons are for players: tours, benches, smoke runs and demos must look the
 	# same on every machine, whatever this profile was already taught.
 	target.lessons = (
