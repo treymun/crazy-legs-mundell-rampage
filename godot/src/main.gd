@@ -108,6 +108,10 @@ func _ready() -> void:
 
 	if play_at != "":
 		_play_at()
+	elif mode_name != "" and Modes.rules_for(mode_name).versus():
+		start_match()  # --mode: the match in its arena (src/modes/)
+	elif mode_name != "" and mode_level != "":
+		start(mode_level)
 	elif smoke_frames > 0 and smoke_screen != "":
 		var parts := smoke_screen.split(":")
 		state = parts[0]
@@ -501,9 +505,9 @@ func _process(delta: float) -> void:
 				advance(dt, _showcase_controls())
 			else:
 				advance(dt, _demo_controls(dt) if demo else _controls(dt, pad, fingers))
-			if game.player.health <= 0:
+			if game.defeated():
 				sound.pause_score(true)
-			if game.showing_tally or game.player.health <= 0:
+			if game.showing_tally or game.defeated():
 				grab(false)
 		watch_rematch()
 
@@ -621,10 +625,32 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 	pending_turn = 0.0
 	pending_look = 0.0
 	for _i in steps:
-		game.tick(SIM_STEP, controls)
+		if pilots.is_empty() or game.players.size() < 2:
+			game.tick(SIM_STEP, controls)
+		else:
+			_tick_party(controls)
 		if game.portal_request != "":
 			travel(game.portal_request)
 			break
+
+
+## One step with the other players played by their pilots (src/modes/,
+## tools/mode_bot.gd): this machine's player on `mine`.
+func _tick_party(mine: Game.Controls) -> void:
+	var given := {game.local_player.slot: mine}
+	for p: Player in game.players:
+		var pilot = pilots.get(p.slot)
+		if pilot != null and p != game.local_player and p.health > 0:
+			game.focus(p)
+			given[p.slot] = pilot.steer(game)
+	game.focus(game.local_player)
+	game.tick(SIM_STEP, given)
+	for p: Player in game.players:
+		var pilot = pilots.get(p.slot)
+		if pilot != null and p != game.local_player:
+			game.focus(p)
+			pilot.moved(game)
+	game.focus(game.local_player)
 
 
 ## From the project folder: a level file saved from outside reloads the level.

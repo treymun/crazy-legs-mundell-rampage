@@ -316,14 +316,21 @@ func _burning() -> void:
 		if age < SLICK_CATCH:
 			continue
 		var at := Vector2(float(s[0]), float(s[1]))
-		# (One bite a slick at a time, whoever stands in it.)
+		# A bite each for everyone standing in it: s[3] is player one's last,
+		# s[4 + slot] another player's (added when first needed).
 		for p: Player in game.players:
+			var at_k := 3 if p.slot == 0 else 4 + p.slot
+			if s.size() <= at_k:
+				var was := s.size()
+				s.resize(at_k + 1)
+				for k in range(was, at_k + 1):
+					s[k] = -10.0
 			if (
 				at.distance_to(Vector2(p.x, p.y)) < SLICK_R
 				and p.air < .3
-				and game.clock - float(s[3]) > .7
+				and game.clock - float(s[at_k]) > .7
 			):
-				s[3] = game.clock
+				s[at_k] = game.clock
 				game.damage(SLICK_HURT, [at.x, at.y], "BURNED", p)
 		if (
 			boss.alive

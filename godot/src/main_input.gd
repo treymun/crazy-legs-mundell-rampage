@@ -62,7 +62,7 @@ func _on_focus_gained() -> void:
 	if state != "play":
 		sound.pause_score(int(options.get("menu_music", 1)) == 0)
 	if state == "play" and game != null:
-		grab(not game.showing_tally and game.player.health > 0)
+		grab(not game.showing_tally and not game.defeated())
 
 
 func key(code: int, shift := false) -> void:
@@ -308,7 +308,7 @@ func _key_title(code: int) -> void:
 		state = "play"
 		sound.play("menu_back")
 		play_music()
-		grab(not game.showing_tally and game.player.health > 0)
+		grab(not game.showing_tally and not game.defeated())
 
 
 func _key_play(code: int) -> void:
@@ -320,7 +320,7 @@ func _key_play(code: int) -> void:
 	elif target.showing_tally:
 		if code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
 			continue_campaign()
-	elif target.player.health <= 0:
+	elif target.defeated():
 		var enter := code == KEY_ENTER or code == KEY_KP_ENTER
 		var checkpoint = target.features.get("boss_checkpoint")
 		if in_rematch():
@@ -349,7 +349,7 @@ func _key_play(code: int) -> void:
 				open_hub(target)
 			else:
 				restart_chapter(target)
-	elif code == KEY_E or code == KEY_SPACE:
+	elif (code == KEY_E or code == KEY_SPACE) and target.player.health > 0:
 		var previous := hub_findings.size()
 		target.interact()
 		if hub_findings.size() != previous:
@@ -929,13 +929,13 @@ func _touch_actions() -> void:
 		tapped != null
 		and state == "play"
 		and game != null
-		and (game.showing_tally or game.player.health <= 0)
+		and (game.showing_tally or game.defeated())
 	):
 		# With a boss checkpoint the death screen's second line (TAP HERE) is
 		# the chapter's start, the rest of the screen RETRY THE FIGHT.
 		var checkpoint = game.features.get("boss_checkpoint")
 		var lower: bool = picture_point(tapped).y >= 90
-		if game.player.health <= 0 and lower and checkpoint != null and checkpoint.offered():
+		if game.defeated() and lower and checkpoint != null and checkpoint.offered():
 			key(KEY_R)
 		else:
 			key(KEY_ENTER)
@@ -951,7 +951,7 @@ func _watch_pointer_lock() -> void:
 		lock_seen = true
 	elif lock_seen:
 		lock_seen = false
-		if not game.showing_tally and game.player.health > 0:
+		if not game.showing_tally and not game.defeated():
 			key(KEY_ESCAPE)
 
 
@@ -1043,6 +1043,8 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		# TOUCH AUTO FIRE: a straight-shooting gun fires at a foe in the sights.
 		controls.fire = true
 	controls.jump = KeyBindings.held("jump") or bool(pad["jump"]) or bool(fingers["jump"])
+	# USE held down: reviving a partner in co-op (src/modes/).
+	controls.hold = KeyBindings.held("use") or bool(pad.get("use", false))
 	# As the reference: a toggle setting reads only the latch, a hold setting
 	# only what is held (keyboard, pad B, or the overlay's DUCK button).
 	if int(options["crouch"]) != 0:

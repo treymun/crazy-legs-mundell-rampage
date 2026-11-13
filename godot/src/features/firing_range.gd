@@ -118,6 +118,8 @@ func _kit() -> void:
 
 
 func _tick(dt: float) -> void:
+	if Modes.is_versus(game):
+		return  # a versus match on the range: no refills, no medic (src/modes/)
 	game.lessons = false
 	var a = game.armory
 	for i in Weapons.COUNT:
@@ -226,6 +228,8 @@ func _exploded(x: float, y: float, _z: float, _energy: bool) -> void:
 
 
 func _hurt(_amount: float, _cause: String) -> void:
+	if Modes.is_versus(game):
+		return
 	var p = game.player
 	if p.health < 30:
 		p.health = 100
@@ -545,6 +549,8 @@ func sprites() -> Array:
 
 
 func draw_view(c: Canvas) -> void:
+	if Modes.is_versus(game):
+		return
 	if on:
 		var here := L.station_at(game.player.x, game.player.y)
 		if here != station:

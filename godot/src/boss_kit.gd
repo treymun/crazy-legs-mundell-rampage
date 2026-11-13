@@ -129,6 +129,24 @@ static func in_arena(game, e: Enemy) -> bool:
 	return Vector2(e.x - p.x, e.y - p.y).length() < ARENA
 
 
+## Whether anyone up is in the boss's arena (its fight begins for the whole
+## party when the first of them walks in; the bar and the loop stay the local
+## player's own, in_arena).
+static func party_in_arena(game, e: Enemy) -> bool:
+	if game.players.size() == 1:
+		return in_arena(game, e)
+	var was = game.player
+	var found := false
+	for q: Player in game.players:
+		if q.health > 0:
+			game.focus(q)
+			found = in_arena(game, e)
+			if found:
+				break
+	game.focus(was)
+	return found
+
+
 ## Enemy.tick's hook: true when the boss's own moves took the tick.
 static func tick(e: Enemy, dt: float, game) -> bool:
 	return moves(e.kind).tick(e, dt, game)

@@ -102,15 +102,23 @@ func _tick(dt: float) -> void:
 		if gap < 12.0 and game.clock >= float(car[3]):
 			car[3] = game.clock + 2.2
 			game.sound_at("lap_car_pass", at.x, at.y, .9)
-		# Any player on the track is run down (one a car at a time).
+		# Every player on the track is run down, each with their own second
+		# before the same car can hit them again: car[2] is player one's,
+		# car[3 + slot] another player's (added when first needed).
 		for q: Player in game.players:
 			var near := gap if q == p else Vector2(q.x - at.x, q.y - at.y).length()
+			var at_k := 2 if q.slot == 0 else 3 + q.slot
+			if car.size() <= at_k:
+				var was := car.size()
+				car.resize(at_k + 1)
+				for k in range(was, at_k + 1):
+					car[k] = 0.0
 			if (
 				near < REACH + GameState.PLAYER_RADIUS
 				and q.air < .5
-				and game.clock >= float(car[2])
+				and game.clock >= float(car[at_k])
 			):
-				car[2] = game.clock + 1.0
+				car[at_k] = game.clock + 1.0
 				game.focus(q)
 				game.damage(float(spec.get("damage", 30)), [at.x, at.y], "RUN DOWN")
 				var side := (
@@ -119,8 +127,9 @@ func _tick(dt: float) -> void:
 				var away := heading + side * PI / 2.0
 				game.move_actor(q, cos(away) * 1.2, sin(away) * 1.2, GameState.PLAYER_RADIUS)
 				game.focus(game.local_player)
-			game.shake = minf(1.0, game.shake + .8)
-			game.sound_at("lap_car_hit", p.x, p.y, 1.0)
+				if q == game.local_player:
+					game.shake = minf(1.0, game.shake + .8)
+				game.sound_at("lap_car_hit", q.x, q.y, 1.0)
 		for e: Enemy in game.enemies:
 			if not e.alive or Enemy.BOSS_TITLES.has(e.kind) or e.z > .3:
 				continue

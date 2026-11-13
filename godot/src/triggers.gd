@@ -41,7 +41,7 @@ static func held_back(level: LevelData) -> Dictionary:
 
 
 static func tick(game) -> void:
-	if game.in_hub or game.revisiting:
+	if game.in_hub or game.revisiting or Modes.is_versus(game):
 		return
 	for trigger: Dictionary in game.level.triggers:
 		var id := String(trigger.get("id", ""))
