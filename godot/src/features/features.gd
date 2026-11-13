@@ -39,6 +39,7 @@ const ALL := [
 	preload("res://src/features/critters.gd"),
 	preload("res://src/features/variants_feature.gd"),
 	preload("res://src/features/squad_feature.gd"),
+	preload("res://src/features/mode_feature.gd"),
 ]
 
 ## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES

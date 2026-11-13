@@ -755,6 +755,9 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 				HUD.banner(c, '"' + barks.text + '"', 137, 288, Canvas.rgb(255, 214, 150))
 		if not map:
 			feedback(c)
+	elif not defeated():
+		# Down, but a partner is up or a respawn is coming (src/modes/).
+		ModeScreens.draw_down(c, self)
 	else:
 		HUD.panel(c, 27, 54, 266, 52, Canvas.rgb(43, 26, 22))
 		HUD.text(c, "YOU BOUGHT THE FARM", 160, 64, "heading", HUD.INK, true)

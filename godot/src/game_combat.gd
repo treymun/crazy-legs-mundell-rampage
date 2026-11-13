@@ -93,6 +93,13 @@ func hitscan(
 		):
 			best = enemy
 			near = d
+	# Another player in the way, when the mode lets bullets hit players (src/modes/).
+	var mate: Array = []
+	if players.size() > 1 and Modes.rules(self).bullets_hit_players():
+		mate = Modes.player_in_line(self, ax, ay, slope, spread, near)
+		if not mate.is_empty():
+			near = mate[1]
+			best = null
 	var drum = null
 	for point in drums.keys():
 		var vec: Vector2 = point
@@ -143,6 +150,10 @@ func hitscan(
 	if drum != null:
 		_traced(ax, ay, slope, near, "thing")
 		drum_hit(drum, amount)
+		return true
+	if not mate.is_empty():
+		_traced(ax, ay, slope, near, "enemy")
+		Modes.player_hit(self, mate[0], amount)
 		return true
 	if best != null:
 		_traced(ax, ay, slope, near, "enemy")
@@ -456,15 +467,17 @@ func explode(shot: Shot) -> void:
 		):
 			hit_scenery(prop)
 	_blast_shoves(shot, x, y, z, radius, strength, energy)
-	# Every player in reach (its owner's own blast is a BACKBLAST).
+	# Every player in reach (its owner's own blast is a BACKBLAST; a partner's
+	# or another player's as the mode says, Modes.blast_hit).
 	for p: Player in players:
 		var distance := sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y))
 		if distance < radius * .75 and world.visible(x, y, p.x, p.y):
-			damage(
+			Modes.blast_hit(
+				self,
+				shot,
+				p,
 				maxi(2, int(float(spec["player_damage"]) * (1.0 - distance / (radius * .75)))),
-				[x, y],
-				"BLAST" if shot.enemy or shot.kind == "fuel" or shot.owner == -1 else "BACKBLAST",
-				p
+				"BLAST" if shot.enemy or shot.kind == "fuel" or shot.owner == -1 else "BACKBLAST"
 			)
 	if not energy:
 		for pane in world.pane_tiles:
@@ -774,6 +787,9 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 			else:
 				finish_shot(shot)
 			return false
+	# Another player's body, when the mode lets shots hit players (src/modes/).
+	if players.size() > 1 and Modes.shot_strikes(self, shot, x, y, z):
+		return false
 	return true
 
 
@@ -852,6 +868,8 @@ func update_hazards(dt: float) -> void:
 		hazard.age += dt
 		if hazard.warning > hazard.age or hazard.age >= hazard.life or hazard.age < hazard.next_hit:
 			continue
+		# Everyone standing in it is struck at once (then it rests, or is spent).
+		var struck_any := false
 		for p: Player in players:
 			if (
 				p.air < .28
@@ -864,8 +882,9 @@ func update_hazards(dt: float) -> void:
 					"STEAM" if hazard.kind == "steam" else "CHALK",
 					p
 				)
-				hazard.next_hit = hazard.life if hazard.kind == "steam" else hazard.age + .68
-				break
+				struck_any = true
+		if struck_any:
+			hazard.next_hit = hazard.life if hazard.kind == "steam" else hazard.age + .68
 	var kept: Array = []
 	for hazard: Hazard in hazards:
 		if hazard.age < hazard.life:

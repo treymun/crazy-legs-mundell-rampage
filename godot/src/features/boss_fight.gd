@@ -147,7 +147,7 @@ func _begins(e: Enemy) -> bool:
 		and not game.in_hub
 		and game.slowmo <= 0.0
 		and game.boss_hold <= 0.0
-		and (e.hp < e.max_hp or BossKit.in_arena(game, e))
+		and (e.hp < e.max_hp or BossKit.party_in_arena(game, e))
 	)
 
 

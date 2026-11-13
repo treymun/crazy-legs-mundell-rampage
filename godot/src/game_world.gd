@@ -396,7 +396,7 @@ func use_item(slot := -1) -> void:
 ## Mirrors Game.move_actor: axis-separated world move with body separation, so
 ## the player cannot walk through a hostile actor (or an actor through them).
 ## (A hostile body keeps out of every player's way; a player out of the
-## enemies'. Players pass through each other.)
+## enemies'; players who are up out of each other's.)
 func move_actor(body, dx: float, dy: float, radius: float) -> void:
 	var p := player
 	var neighbors: Array = []
@@ -420,6 +420,12 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 		for q: Player in players:
 			if absf(body.x - q.x) < 1.1 and absf(body.y - q.y) < 1.1:
 				neighbors.append(q)
+	# Players who are up block each other where the mode says (src/modes/).
+	var mates: Array = []
+	if body == p and players.size() > 1 and Modes.rules(self).bodies_block():
+		for q: Player in players:
+			if q != p and q.health > 0 and absf(p.x - q.x) < .6 and absf(p.y - q.y) < .6:
+				mates.append(q)
 	var occupied = null
 	if not neighbors.is_empty():
 		occupied = func(x: float, y: float) -> bool:
@@ -449,6 +455,16 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 				):
 					return true
 			return false
+	if not mates.is_empty():
+		var bodies = occupied
+		occupied = func(x: float, y: float) -> bool:
+			var reach := PLAYER_RADIUS * 2.0
+			for q: Player in mates:
+				var d := (x - q.x) * (x - q.x) + (y - q.y) * (y - q.y)
+				var was := (p.x - q.x) * (p.x - q.x) + (p.y - q.y) * (p.y - q.y)
+				if d < reach * reach and d < was and absf(p.air - q.air) < 1.0:
+					return true
+			return bodies != null and bodies.call(x, y)
 	world.move(body, dx, dy, radius, occupied)
 
 
@@ -773,6 +789,9 @@ func reaches_pickup(entry: Array) -> bool:
 
 
 func use_prompt() -> String:
+	if players.size() > 1 and ModeScreens.revive_prompt(self) != "":
+		use_aim = Vector3.INF  # a partner down beside you (src/modes/)
+		return ModeScreens.revive_prompt(self)
 	var found = use_target()
 	if found == null:
 		return ""

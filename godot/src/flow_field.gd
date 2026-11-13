@@ -161,8 +161,10 @@ func adopt(other: FlowField, clock: float) -> void:
 	next_at = clock + .25
 	_next = steps
 	_next_touched = _touched
-	steps = other.steps
-	_touched = other._touched
+	# Copies: packed arrays are shared by reference, and each field walks into
+	# its own in place.
+	steps = other.steps.duplicate()
+	_touched = other._touched.duplicate()
 	_queue.resize(0)
 	_head = 0
 	_walked = true

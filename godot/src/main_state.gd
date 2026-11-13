@@ -296,6 +296,16 @@ var server_players := 1
 var server_ticks := 0
 var server_report := 5.0
 var server_difficulty := 1
+## The game mode (src/modes/, CLAUDE.md "Modes"): --mode=<name> --players=<n>
+## [--arena=<level>[:<boss>]] [--level=<chapter>] [--frag-limit=] [--time-limit=].
+## "" is the campaign. The players past the first are played by
+## tools/mode_bot.gd (project folder only), one pilot a slot.
+var mode_name := ""
+var mode_players := 1
+var mode_options := {}
+var mode_level := ""
+var pilots := {}
+const BOT := "res://tools/mode_bot.gd"
 var frame_count := 0
 ## The crash and error log (crash_log.gd; null in tools and the browser) and
 ## the controls the last play frame handed the game (its context).
@@ -368,6 +378,18 @@ func _parse_smoke() -> void:
 			server_report = maxf(.5, float(text.substr(16)))
 		elif text.begins_with("--server-difficulty="):
 			server_difficulty = clampi(int(text.substr(20)), 0, 3)
+		elif text.begins_with("--mode="):
+			mode_name = text.substr(7) if Modes.NAMES.has(text.substr(7)) else ""
+		elif text.begins_with("--players="):
+			mode_players = clampi(int(text.substr(10)), 1, Modes.MAX_PLAYERS)
+		elif text.begins_with("--arena="):
+			mode_options["arena"] = text.substr(8)
+		elif text.begins_with("--frag-limit="):
+			mode_options["frag_limit"] = maxi(1, int(text.substr(13)))
+		elif text.begins_with("--time-limit="):
+			mode_options["time_limit"] = maxf(10.0, float(text.substr(13)))
+		elif text.begins_with("--level="):
+			mode_level = text.substr(8)
 		elif text.begins_with("--smoke-screen="):
 			# A front-end screen instead of a level: title, setup, controls,
 			# credits, replays or slots; "setup:3" opens the fourth settings page
@@ -446,7 +468,7 @@ func change_window_mode(mode: int) -> void:
 		get_window().size = window_size
 	_apply_view()
 	if state == "play" and game != null:
-		grab(not game.showing_tally and game.player.health > 0)
+		grab(not game.showing_tally and not game.defeated())
 
 
 func grab(value: bool) -> void:
@@ -572,7 +594,7 @@ func play_music() -> void:
 	sound.set_score(
 		"victory" if target.showing_tally else ("title" if target.in_hub else target.level.score)
 	)
-	sound.pause_score(target.player.health <= 0)
+	sound.pause_score(target.defeated())
 
 
 func notice(text: String, duration := 2.1) -> void:
@@ -734,7 +756,7 @@ func picture_point(position: Vector2) -> Vector2i:
 ## consumables or any menu, so a pad alone could not get past the title screen.
 func _pad_bindings() -> Array:
 	if state == "play" and game != null:
-		if game.showing_tally or game.player.health <= 0:
+		if game.showing_tally or game.defeated():
 			# X: the chapter's start when A retries a boss fight (boss_checkpoint.gd).
 			return [
 				[JOY_BUTTON_A, KEY_ENTER],

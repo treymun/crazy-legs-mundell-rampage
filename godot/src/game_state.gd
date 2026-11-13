@@ -1093,6 +1093,16 @@ func _walk_flow(p: Player) -> void:
 		flow_walks[here] = f
 
 
+## Whether this game is lost (the death screen): the mode's rules say
+## (src/modes/). The campaign and co-op: nobody is up; versus never (a match
+## ends on its limits).
+func defeated() -> bool:
+	var rules = features.get("mode")
+	if rules != null:
+		return rules.defeated()
+	return not Players.anyone_alive(self)
+
+
 ## The next stable entity id (an enemy, a shot, a pickup).
 func take_uid() -> int:
 	next_uid += 1
@@ -1148,3 +1158,5 @@ class Controls:
 	var item := -1
 	## The next (1) or last (-1) gun, as the mouse wheel takes it.
 	var cycle := 0
+	## USE held down (not only a fresh press): reviving a partner (src/modes/).
+	var hold := false

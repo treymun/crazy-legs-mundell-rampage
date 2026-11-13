@@ -657,6 +657,9 @@ func _run() -> void:
 	preload("res://tools/multi_bots.gd").run(main, check)
 	preload("res://tools/net_loopback.gd").run(main, check)
 	_crash_log(main)
+	# The game modes: co-op's revive, respawn, scaling and shared hazards;
+	# deathmatch's spawns, frags, limits and results (mode_check.gd).
+	preload("res://tools/mode_check.gd").run(main, check)
 
 	print("")
 	if failures.is_empty():

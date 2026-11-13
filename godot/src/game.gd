@@ -146,7 +146,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 func tick(dt: float, controls) -> void:
 	var by_slot := Players.controls_by_slot(self, controls, _idle)
 	var mine: Controls = by_slot[local_player.slot]
-	if showing_tally or not Players.anyone_alive(self) or portal_request != "":
+	if showing_tally or defeated() or portal_request != "":
 		if sound != null:
 			sound.set_fuse(false)
 			sound.set_tool(false)
@@ -240,6 +240,11 @@ func tick(dt: float, controls) -> void:
 					focus(keep)
 			enemy.tick(wdt, self)
 		focus(local_player)
+		# Nobody needed theirs yet: walked now, so it is current after the tick
+		# for whatever reads it (a bot after another player, the next tick).
+		for q: Player in players:
+			if q.flow_due:
+				_walk_flow(q)
 	update_shots(wdt)
 	if not hazards.is_empty():
 		update_hazards(wdt)
@@ -520,6 +525,7 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 	if controls.use and not p.use_held:
 		interact()
 	p.use_held = controls.use
+	p.holding = controls.use or controls.hold
 	# reaches_pickup()'s first test written out: most ticks nothing is near.
 	var near := false
 	for entry in pickups:

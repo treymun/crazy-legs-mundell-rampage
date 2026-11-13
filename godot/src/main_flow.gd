@@ -55,6 +55,7 @@ func play(target: Game) -> void:
 		return
 	waiting_play = null
 	CrashLog.note("play %s%s" % [target.level.id, " (replay)" if target.replay else ""])
+	_take_mode(target)
 	# Lessons are for players: tours, benches, smoke runs and demos must look the
 	# same on every machine, whatever this profile was already taught.
 	target.lessons = (
@@ -82,7 +83,40 @@ func play(target: Game) -> void:
 	play_music()
 	state = "play"
 	block_fire = true
-	grab(not target.showing_tally and target.player.health > 0)
+	grab(not target.showing_tally and not target.defeated())
+
+
+## The game mode on a game about to be played (src/modes/): one started under
+## --mode gets it and its partners, who bring their own kits from the game
+## before; in co-op a partner far from player one (a retried fight, a loaded
+## save) comes to them; each player not this machine's gets a pilot
+## (tools/mode_bot.gd, project folder only). Nothing for the campaign.
+func _take_mode(target: Game) -> void:
+	var prior := game
+	if mode_name != "" and mode_name != Modes.CAMPAIGN:
+		if Modes.mode_of(target) == Modes.CAMPAIGN:
+			Modes.setup(target, mode_name, mode_players, mode_options)
+			if prior != null and prior != target and Modes.mode_of(prior) == mode_name:
+				for i in range(1, mini(prior.players.size(), target.players.size())):
+					Modes.carry(prior.players[i], target.players[i])
+	if Modes.mode_of(target) == Modes.COOP:
+		Modes.gather(target)
+	pilots.clear()
+	if target.players.size() < 2 or not DevConsole.available():
+		return
+	var script = load("res://tools/mode_bot.gd") if FileAccess.file_exists(BOT) else null
+	if script == null:
+		return
+	for p: Player in target.players:
+		if p != target.local_player:
+			var pilot = script.new()
+			pilot.as_controls = true
+			pilots[p.slot] = pilot
+
+
+## Starts the versus match --mode asked for, in its arena (Modes.ARENAS).
+func start_match() -> void:
+	start(String(Modes.arena_of(String(mode_options.get("arena", "range")))[0]))
 
 
 func open_hub(origin = null, message := "") -> void:
@@ -209,6 +243,9 @@ func resume_entry() -> void:
 
 func continue_campaign() -> void:
 	var current := game
+	if Modes.is_versus(current):
+		start_match()  # another round in the same arena
+		return
 	if BossRematch.active(current):
 		# A rematch never leads on into the campaign.
 		if current.features["boss_rematch"].fell >= 0.0:
@@ -381,7 +418,7 @@ func menu_action() -> void:
 	if entry == "RESUME":
 		state = "play"
 		play_music()
-		grab(not game.showing_tally and game.player.health > 0)
+		grab(not game.showing_tally and not game.defeated())
 	elif entry == "NEW GAME":
 		BossDoor.clear_others("", false)
 		start()
@@ -416,6 +453,8 @@ func save_game() -> void:
 		notice("NO SAVING ON THE RANGE. IT'S ALL PRACTICE.")
 	elif BossRematch.active(target):
 		notice("NO SAVING IN A REMATCH. IT'S FOR THE RIBBON.")
+	elif Modes.is_versus(target):
+		notice("NO SAVING A MATCH. SETTLE IT.")
 	elif target == null or state != "play" or target.player.health <= 0 or target.showing_tally:
 		notice("START A LIVE RUN TO SAVE.")
 	elif target.armory.fuse > 0.0:
@@ -524,7 +563,7 @@ func key_slots(code: int) -> void:
 		if state == "play":
 			play_music()
 			block_fire = true
-			grab(game.player.health > 0 and not game.showing_tally)
+			grab(not game.defeated() and not game.showing_tally)
 	elif code in [KEY_TAB, KEY_LEFT, KEY_RIGHT, KEY_PAGEUP, KEY_PAGEDOWN]:
 		if key_echo:
 			return
