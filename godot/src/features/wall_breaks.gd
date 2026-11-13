@@ -89,6 +89,11 @@ var _faces := {}
 ## While finding the fences: the free wall pieces by cell (_loose_pieces).
 var _loose := {}
 var _crash_next := -1.0
+## Counts every change to a window or fence (broken, hp, stage): a host's
+## NetTrack looks through the lists in NET_GUARDED only when it moved, so
+## anything that changes one of them bumps it (game_host.gd).
+var net_version := 0
+const NET_GUARDED := ["windows", "fences"]
 
 
 func id() -> String:
@@ -515,6 +520,7 @@ func blast(x: float, y: float, z: float, radius: float, strength: float, energy:
 
 func _break_window(face: WindowFace, quiet: bool) -> void:
 	face.broken = true
+	net_version += 1
 	var world: LevelData = game.world
 	for i in world.walls_on(face.edge.x, face.edge.y, face.edge.z, face.edge.w):
 		if int(world.walls[i * LevelData.WALL_STRIDE + 4]) == face.whole:
@@ -538,6 +544,7 @@ func _break_window(face: WindowFace, quiet: bool) -> void:
 func _knock(f: Fence, amount: float, ax: float, ay: float) -> void:
 	if f.stage == 2 or amount <= 0.0:
 		return
+	net_version += 1
 	f.hp -= amount
 	if not f.opens:
 		f.hp = maxf(f.hp, 1.0)
@@ -549,6 +556,7 @@ func _knock(f: Fence, amount: float, ax: float, ay: float) -> void:
 
 func _shoot_about(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 	f.stage = 1
+	net_version += 1
 	var world: LevelData = game.world
 	for e: Array in LevelEdit.EDGES:
 		var edge := _own_edge(f.cell, e)
@@ -570,6 +578,7 @@ func _break_through(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 		_shoot_about(f, true)
 	f.stage = 2
 	f.hp = 0.0
+	net_version += 1
 	var world: LevelData = game.world
 	var cx := f.cell.x
 	var cy := f.cell.y
@@ -703,6 +712,7 @@ func restore(state: Dictionary) -> void:
 		if f == null or (f.stage != 0 and f.stage >= stage):
 			continue
 		f.hp = clampf(float(row[3]), 0.0, f.most)
+		net_version += 1
 		if stage >= 2 and f.opens:
 			_break_through(f, true)
 		elif stage >= 1:

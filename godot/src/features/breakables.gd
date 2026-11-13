@@ -112,6 +112,11 @@ var _resting: Array = []
 var _resting_dirty := false
 var _chip_next := 0.0
 var _crash_next := -1.0
+## Counts every change to a piece (hp, broken, moved, its board): a host's
+## NetTrack looks through the lists in NET_GUARDED only when it moved, so
+## anything that changes a piece bumps it (game_host.gd).
+var net_version := 0
+const NET_GUARDED := ["pieces"]
 
 
 func id() -> String:
@@ -331,6 +336,7 @@ func strike(i: int, amount: float, ax: float, ay: float) -> void:
 	if p.broken:
 		return
 	p.hp -= amount
+	net_version += 1
 	if p.hp <= 0.0:
 		_break(p, ax, ay, FUSE_SHOT)
 		return
@@ -357,6 +363,7 @@ func blast(x: float, y: float, z: float, radius: float, strength: float, energy:
 		if d < radius + p.radius * .5 and game.world.visible(x, y, p.x, p.y, z, mid):
 			var hurt := strength * maxf(0.0, 1.0 - d / (radius + .3)) * (.5 if energy else 1.0)
 			p.hp -= hurt
+			net_version += 1
 			if p.hp <= 0.0:
 				var away := Vector2(p.x - x, p.y - y).normalized()
 				_break(p, away.x, away.y, FUSE_BLAST + FUSE_STEP * order)
@@ -394,6 +401,7 @@ func _place(p: Piece, x: float, y: float) -> void:
 	var shown := _shown(p)
 	p.x = x
 	p.y = y
+	net_version += 1
 	if p.board != null:
 		p.board.x = x
 		p.board.y = y
@@ -456,6 +464,7 @@ func wreck(x: float, y: float, image: String) -> void:
 ## seconds unless `cook` is off.
 func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook := true) -> void:
 	p.broken = true
+	net_version += 1
 	var broken := String(p.spec["broken"])
 	var tall := _tall(broken, p.height, p.image)
 	var shown := _shown(p)

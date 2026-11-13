@@ -153,6 +153,21 @@ func update(x: float, y: float, clock: float) -> void:
 	_walk()
 
 
+## Takes the field `other` walked from the cell this one would walk from now
+## (the same level, the same tick: the same answer), as update() would have
+## left it after walking: what it had becomes the scratch field it clears next.
+func adopt(other: FlowField, clock: float) -> void:
+	origin = other.origin
+	next_at = clock + .25
+	_next = steps
+	_next_touched = _touched
+	steps = other.steps
+	_touched = other._touched
+	_queue.resize(0)
+	_head = 0
+	_walked = true
+
+
 ## Walk on from the queue (all of it, or `budget` cells; the first walk always
 ## all of it, so there is an answer from the start); a finished walk becomes
 ## the field.

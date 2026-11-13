@@ -672,6 +672,15 @@ var own_step := false
 var _named_enemies := 0
 ## The controls of a player nobody steers this tick (never changed).
 var _idle := Controls.new()
+## With more than one player, each player's flow field is walked when
+## something first needs it in a tick (focus(), for anyone not acting by their
+## own hand), and a walk from a cell another player's field was walked from
+## this tick copies that one: the fields walked this tick, by cell.
+var flow_walks := {}
+## With more than one player, the hostile bodies by cell while the players'
+## bodies step (game.gd): move_actor looks only round the player.
+var body_cells := {}
+var body_cells_on := false
 ## The next stable entity id (enemies, shots, pickups): handed out in the
 ## order things come into being, so two machines running the same ticks agree
 ## (game_snapshot.gd).
@@ -1055,8 +1064,33 @@ func focus(p: Player, own := false) -> void:
 		player = p
 		armory = p.armory
 		flow = p.flow
+	if p.flow_due and not own:
+		_walk_flow(p)
 	if speaker != null and players.size() > 1:
 		sound = p.voice if own and p != local_player and p.voice != null else speaker
+
+
+## Walks `p`'s flow field from where they stand (flow_due), or takes the field
+## another player's walked from that cell this tick.
+func _walk_flow(p: Player) -> void:
+	p.flow_due = false
+	var f := p.flow
+	var here := Vector2i(int(p.x), int(p.y))
+	var twin: FlowField = flow_walks.get(here)
+	if (
+		twin != null
+		and twin != f
+		and twin.origin == here
+		and here != f.origin
+		and clock >= f.next_at
+		and f._head >= f._queue.size()
+	):
+		f.adopt(twin, clock)
+		return
+	var was := f.origin
+	f.update(p.x, p.y, clock)
+	if was != here and f.origin == here:
+		flow_walks[here] = f
 
 
 ## The next stable entity id (an enemy, a shot, a pickup).

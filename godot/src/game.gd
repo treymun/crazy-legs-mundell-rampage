@@ -179,10 +179,13 @@ func tick(dt: float, controls) -> void:
 		)
 	hurt_flash = maxf(0.0, hurt_flash - dt)
 	blast_flash = maxf(0.0, blast_flash - dt)
+	if players.size() > 1:
+		_bucket_bodies()
 	for q: Player in players:
 		if q.health > 0:
 			focus(q, true)
 			_step_body(q, by_slot[q.slot], dt)
+	body_cells_on = false
 	focus(local_player)
 	if in_hub:
 		return
@@ -208,9 +211,13 @@ func tick(dt: float, controls) -> void:
 			and player.health > 0
 		)
 	)
-	for q: Player in players:
-		if q.health > 0:
-			q.flow.update(q.x, q.y, clock)
+	if players.size() == 1:
+		player.flow.update(player.x, player.y, clock)
+	else:
+		# Walked when first needed (focus()): an enemy after them, a trigger...
+		flow_walks.clear()
+		for q: Player in players:
+			q.flow_due = q.health > 0
 	dangers.clear()
 	for shot in shots:
 		if shot.kind == "tnt":
@@ -224,7 +231,13 @@ func tick(dt: float, controls) -> void:
 		# its sight, flow field, aim and blows are about them.
 		for enemy: Enemy in enemies:
 			if enemy.hp > 0.0 and not enemy.dormant:
-				focus(Players.hunted(self, enemy))
+				# Its pick stands RETARGET seconds (Players.hunted's first test,
+				# written out), and focusing whoever is acting already is nothing.
+				var keep: Player = enemy.hunted
+				if keep == null or keep.health <= 0 or clock >= enemy.hunted_until:
+					keep = Players.hunted(self, enemy)
+				if keep != player or own_step or keep.flow_due:
+					focus(keep)
 			enemy.tick(wdt, self)
 		focus(local_player)
 	update_shots(wdt)
@@ -251,6 +264,20 @@ func tick(dt: float, controls) -> void:
 	tick_exchanges(combat)
 	ticked.emit(wdt)
 	name_new()
+
+
+## The hostile bodies by cell, for every player's body this tick to look only
+## round itself (move_actor) instead of over every enemy.
+func _bucket_bodies() -> void:
+	body_cells.clear()
+	for enemy: Enemy in enemies:
+		if enemy.hostile and enemy.alive:
+			var key := Vector2i(floori(enemy.x), floori(enemy.y))
+			if body_cells.has(key):
+				body_cells[key].append(enemy)
+			else:
+				body_cells[key] = [enemy]
+	body_cells_on = true
 
 
 ## Gives everything that came into being this tick (enemies, shots) its stable

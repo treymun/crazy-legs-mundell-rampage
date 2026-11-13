@@ -400,7 +400,14 @@ func use_item(slot := -1) -> void:
 func move_actor(body, dx: float, dy: float, radius: float) -> void:
 	var p := player
 	var neighbors: Array = []
-	if body == p:
+	if body == p and body_cells_on:
+		# (Several players: the bodies by cell, game.gd. Any of them blocks.)
+		for cx in range(floori(p.x - 1.1), floori(p.x + 1.1) + 1):
+			for cy in range(floori(p.y - 1.1), floori(p.y + 1.1) + 1):
+				for enemy: Enemy in body_cells.get(Vector2i(cx, cy), []):
+					if absf(p.x - enemy.x) < 1.1 and absf(p.y - enemy.y) < 1.1:
+						neighbors.append(enemy)
+	elif body == p:
 		for enemy: Enemy in enemies:
 			if (
 				enemy.hostile

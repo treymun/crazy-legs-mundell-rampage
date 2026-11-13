@@ -53,7 +53,10 @@ const ONLY_FIELDS := {
 	"breakables.Piece": ["x", "y", "hp", "broken", "board"],
 	"LevelData.Billboard": ["x", "y", "image", "height"],
 }
-## Value types passed through as they are (no objects inside them).
+## Value types passed through as they are (no objects inside them, nothing
+## shared: packed arrays are not here, being shared by reference, so encode()
+## and decode() copy them; a snapshot never changes as the game goes on, and a
+## game never shares an array with a snapshot).
 const PLAIN := {
 	TYPE_NIL: true,
 	TYPE_BOOL: true,
@@ -68,14 +71,6 @@ const PLAIN := {
 	TYPE_RECT2: true,
 	TYPE_RECT2I: true,
 	TYPE_COLOR: true,
-	TYPE_PACKED_BYTE_ARRAY: true,
-	TYPE_PACKED_INT32_ARRAY: true,
-	TYPE_PACKED_INT64_ARRAY: true,
-	TYPE_PACKED_FLOAT32_ARRAY: true,
-	TYPE_PACKED_FLOAT64_ARRAY: true,
-	TYPE_PACKED_STRING_ARRAY: true,
-	TYPE_PACKED_VECTOR2_ARRAY: true,
-	TYPE_PACKED_VECTOR3_ARRAY: true,
 }
 const DEPTH := 14
 
@@ -91,6 +86,17 @@ static var _by_script := {}
 static var _by_key := {}
 static var _fields := {}
 static var _snames := {}
+## Per script: a packer() for all its carried fields (null: read one by one).
+static var _packs := {}
+## Scripts made to read many fields at once, by the fields' names (null: one
+## could not be made, so they are read one by one).
+static var _packers := {}
+## The classes always carried by value (inner classes but a level's doors,
+## stations and scenery and the renderer's marks): encoded without the tests
+## for what a snapshot names instead.
+static var _value_keys := {}
+## Fewer fields than this are read one by one.
+const PACK_FROM := 8
 static var _made := {}
 
 
@@ -137,12 +143,16 @@ func encode(value, depth := 0):
 				return {"@iid": iids[value]}
 		TYPE_CALLABLE, TYPE_SIGNAL, TYPE_RID:
 			return SKIP
+	if typeof(value) >= TYPE_PACKED_BYTE_ARRAY:
+		return value.duplicate()
 	return value
 
 
 ## A deep copy of plain data with every array untyped (a save document holds
 ## the game's own arrays: a snapshot must not change as the game goes on).
 static func plain(value):
+	if typeof(value) >= TYPE_PACKED_BYTE_ARRAY:
+		return value.duplicate()
 	if value is Array:
 		var out: Array = []
 		out.resize(value.size())
@@ -159,15 +169,52 @@ static func plain(value):
 
 ## Every carried field of `o` (a player, an enemy...) as plain values.
 func encode_fields(o: Object) -> Dictionary:
-	var key := class_key(o.get_script())
+	var script: Script = o.get_script()
+	return _fields_of_object(o, script, fields_of(o, class_key(script)), 1)
+
+
+## o's carried fields `names`, each encoded at `depth` (most are plain: no
+## call for them), read in one call where a packer can be made.
+func _fields_of_object(
+	o: Object, script: Script, names: PackedStringArray, depth: int
+) -> Dictionary:
 	var fields := {}
-	var names := fields_of(o, key)
-	var snames: Array[StringName] = _snames[o.get_script()]
+	var pack: GDScript = _packs.get(script)
+	if pack != null:
+		var vals: Array = []
+		pack.pack(o, vals)
+		for i in names.size():
+			var v = vals[i]
+			fields[names[i]] = v if PLAIN.has(typeof(v)) else encode(v, depth)
+		return fields
+	var snames: Array[StringName] = _snames[script]
 	for i in names.size():
 		var v = o.get(snames[i])
-		# Most fields are plain: no call for them.
-		fields[names[i]] = v if PLAIN.has(typeof(v)) else encode(v, 1)
+		fields[names[i]] = v if PLAIN.has(typeof(v)) else encode(v, depth)
 	return fields
+
+
+## A script whose pack(o, into) appends o's fields `names` to `into` in one
+## call: reading them as written member accesses is about twice as fast as
+## Object.get() name by name. Made once per list of names; null for a short
+## list or when it cannot be made.
+static func packer(names: Array[StringName]) -> GDScript:
+	if names.size() < PACK_FROM:
+		return null
+	var key := ",".join(names)
+	if _packers.has(key):
+		return _packers[key]
+	var reads := PackedStringArray()
+	for name: StringName in names:
+		reads.append("o." + String(name))
+	var script := GDScript.new()
+	script.source_code = (
+		"extends RefCounted\n\n\nstatic func pack(o, into: Array) -> void:\n\tinto.append_array([%s])\n"
+		% ", ".join(reads)
+	)
+	var made: GDScript = script if script.reload() == OK else null
+	_packers[key] = made
+	return made
 
 
 ## A flow field: where it was measured from and when next, whether its first
@@ -182,7 +229,7 @@ static func encode_flow(f: FlowField) -> Dictionary:
 	steps.resize(at.size())
 	for i in at.size():
 		steps[i] = f.steps[at[i]]
-	return {"@flow": [f.origin.x, f.origin.y, f.next_at, f._walked, at, steps]}
+	return {"@flow": [f.origin.x, f.origin.y, f.next_at, f._walked, at.duplicate(), steps]}
 
 
 ## Puts an encode_flow() back: the steps it carries, FAR elsewhere, and no walk
@@ -192,7 +239,7 @@ static func decode_flow(f: FlowField, row: Array) -> void:
 	f.origin = Vector2i(int(row[0]), int(row[1]))
 	f.next_at = float(row[2])
 	f._walked = bool(row[3])
-	var at := PackedInt32Array(row[4])
+	var at: PackedInt32Array = PackedInt32Array(row[4]).duplicate()
 	var steps = row[5]
 	f.steps.fill(FlowField.FAR)
 	for i in at.size():
@@ -207,6 +254,12 @@ static func decode_flow(f: FlowField, row: Array) -> void:
 func _encode_object(o: Object, depth: int):
 	if o == null:
 		return null
+	var script = o.get_script()
+	if script != null and depth <= DEPTH:
+		var value_key = _value_keys.get(script)
+		if value_key != null:
+			fields_of(o, value_key)
+			return {"@o": value_key, "f": _fields_of_object(o, script, _fields[script], depth + 1)}
 	if o is Player:
 		return {"@p": o.slot}
 	if o is Enemy:
@@ -229,7 +282,6 @@ func _encode_object(o: Object, depth: int):
 		return encode_flow(o)
 	if o is Renderer.Sprite or o is Renderer.GroundMark or o is Renderer.WallMark:
 		return SKIP
-	var script = o.get_script()
 	if script == null or not (o is RefCounted) or depth > DEPTH:
 		return SKIP
 	var key := class_key(script)
@@ -242,13 +294,7 @@ func _encode_object(o: Object, depth: int):
 		return SKIP
 	if VIEW_CLASSES.has(key):
 		return SKIP
-	var fields := {}
-	var names := fields_of(o, key)
-	var snames: Array[StringName] = _snames[script]
-	for i in names.size():
-		var v = o.get(snames[i])
-		fields[names[i]] = v if PLAIN.has(typeof(v)) else encode(v, depth + 1)
-	return {"@o": key, "f": fields}
+	return {"@o": key, "f": _fields_of_object(o, script, fields_of(o, key), depth + 1)}
 
 
 # ------------------------------------------------------------------ decode
@@ -269,6 +315,8 @@ func decode(value, existing = null):
 			return out
 		TYPE_DICTIONARY:
 			return _decode_dictionary(value, existing)
+	if typeof(value) >= TYPE_PACKED_BYTE_ARRAY:
+		return value.duplicate()
 	return value
 
 
@@ -390,6 +438,7 @@ static func fields_of(o: Object, key: String) -> PackedStringArray:
 			names.append(name)
 	_fields[script] = names
 	_snames[script] = names_of(names)
+	_packs[script] = packer(_snames[script])
 	return names
 
 
@@ -420,6 +469,18 @@ static func _register_all() -> void:
 		roots[script.resource_path.get_file().get_basename()] = script
 	for key: String in roots:
 		_register(key, roots[key])
+	var named := [
+		"LevelData.Door",
+		"LevelData.Station",
+		"LevelData.Scenery",
+		"Renderer.Sprite",
+		"Renderer.GroundMark",
+		"Renderer.WallMark",
+	]
+	for script: Script in _by_script:
+		var key: String = _by_script[script]
+		if key.contains(".") and not named.has(key) and not VIEW_CLASSES.has(key):
+			_value_keys[script] = key
 
 
 static func _register(key: String, script: Script) -> void:

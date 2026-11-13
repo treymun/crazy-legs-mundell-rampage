@@ -120,6 +120,7 @@ static func _lockstep(main, check: Callable, id: String, ticks: int, after: int)
 	var started := Time.get_ticks_msec()
 	var split := -1
 	var base := {}
+	var base_bytes := PackedByteArray()
 	for t in ticks:
 		var c := pilot.steer(a)
 		a.tick(STEP, c)
@@ -127,6 +128,7 @@ static func _lockstep(main, check: Callable, id: String, ticks: int, after: int)
 		pilot.moved(a)
 		if t == 599:
 			base = GameSnapshot.capture(a)
+			base_bytes = var_to_bytes(base)
 		if split < 0 and (t + 1) % 600 == 0:
 			var sa := GameSnapshot.capture(a)
 			var sb := GameSnapshot.capture(b)
@@ -161,6 +163,10 @@ static func _lockstep(main, check: Callable, id: String, ticks: int, after: int)
 		)
 	)
 	if not base.is_empty():
+		check.call(
+			var_to_bytes(base) == base_bytes,
+			"%s: a snapshot kept from tick 600 has not changed as play went on" % id
+		)
 		var change = GameSnapshot.delta(base, snap)
 		var back = GameSnapshot.patch(base, change)
 		check.call(

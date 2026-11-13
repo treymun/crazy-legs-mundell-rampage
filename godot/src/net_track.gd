@@ -45,6 +45,11 @@ class Watch:
 	var hot_mask := PackedByteArray()
 	var cold := PackedInt32Array()
 	var cold_names: Array[StringName] = []
+	## A feature's NET_GUARDED fields (by index), looked through only when its
+	## net_version (the field at `guard`) moved since `guard_seen`.
+	var guarded := PackedInt32Array()
+	var guard := -1
+	var guard_seen = null
 	## Reads the cold fields (or, for a kid, every field) in one call: a script
 	## made for the class (_packer), null to read them one by one.
 	var packer: GDScript = null
@@ -93,7 +98,8 @@ const HOT := {
 		"step_number",
 		"flow",
 		"sway",
-		"drift"
+		"drift",
+		"flow_due"
 	],
 	"Weapons.Armory": ["shot_age", "cooldown", "recoil", "reload", "flash"],
 }
@@ -125,11 +131,6 @@ var _doors := PackedByteArray()
 var _panes := PackedByteArray()
 var _facts := {}
 var _statics := PackedByteArray()
-## Scripts made to read many fields at once, by the fields' names (null: one
-## could not be made, so they are read one by one).
-static var _packers := {}
-## Fewer fields than this are read one by one.
-const PACK_FROM := 8
 ## How many fields the last changes() looked at and found changed (a bench's
 ## numbers).
 var looked := 0
@@ -310,6 +311,11 @@ func _watch(o: Object, names: PackedStringArray, depth: int, key := "", whole :=
 	w.kids.resize(names.size())
 	w.hot_mask.resize(names.size())
 	var hot: Array = HOT.get(key, [])
+	var guarded: Array = []
+	if o is GameFeature and o.get_script().get_script_constant_map().has("NET_GUARDED"):
+		guarded = o.get_script().get_script_constant_map()["NET_GUARDED"]
+		w.guard = names.find("net_version")
+		w.guard_seen = o.get("net_version")
 	for i in names.size():
 		var v = o.get(w.snames[i])
 		w.vals[i] = _kept(v)
@@ -317,41 +323,22 @@ func _watch(o: Object, names: PackedStringArray, depth: int, key := "", whole :=
 			w.kids[i] = _kids_of(v, depth)
 			if w.kids[i] != null:
 				w.leaf = false
-		if hot.has(names[i]) and not whole:
+		if guarded.has(names[i]) and w.guard >= 0:
+			w.guarded.append(i)
+			w.hot_mask[i] = 2
+		elif hot.has(names[i]) and not whole:
 			w.hot.append(i)
 			w.hot_mask[i] = 1
 		else:
 			w.cold.append(i)
 			w.cold_names.append(w.snames[i])
 	if not whole:
-		w.packer = _packer(w.cold_names)
-		w.all_packer = _packer(w.snames)
+		w.packer = SnapCodec.packer(w.cold_names)
+		w.all_packer = SnapCodec.packer(w.snames)
 		var now: Array = []
 		_gather(w, now)
 		w.sum = var_to_bytes(now)
 	return w
-
-
-## A script whose pack(o, into) appends o's fields `names` to `into` in one
-## call: reading them as written member accesses is about twice as fast as
-## Object.get() name by name. Made once per list of names.
-static func _packer(names: Array[StringName]) -> GDScript:
-	if names.size() < PACK_FROM:
-		return null
-	var key := ",".join(names)
-	if _packers.has(key):
-		return _packers[key]
-	var reads := PackedStringArray()
-	for name: StringName in names:
-		reads.append("o." + String(name))
-	var script := GDScript.new()
-	script.source_code = (
-		"extends RefCounted\n\n\nstatic func pack(o, into: Array) -> void:\n\tinto.append_array([%s])\n"
-		% ", ".join(reads)
-	)
-	var made: GDScript = script if script.reload() == OK else null
-	_packers[key] = made
-	return made
 
 
 ## What is kept of a value to compare against: arrays and dictionaries as
@@ -360,6 +347,9 @@ static func _kept(v):
 	var t := typeof(v)
 	if t == TYPE_ARRAY or t == TYPE_DICTIONARY:
 		return var_to_bytes(v)
+	if t >= TYPE_PACKED_BYTE_ARRAY:
+		# Shared by reference: a copy, or it would change with the game.
+		return v.duplicate()
 	return v
 
 
@@ -485,6 +475,12 @@ func _diff(w: Watch) -> Dictionary:
 		var cold := w.cold
 		for k in cold.size():
 			_field(w, cold[k], now[k], out)
+	if w.guard >= 0:
+		var version = obj.get(snames[w.guard])
+		if version != w.guard_seen:
+			w.guard_seen = version
+			for i in w.guarded:
+				_field(w, i, obj.get(snames[i]), out)
 	changed += out.size()
 	return out
 
@@ -529,9 +525,9 @@ func _field(w: Watch, i: int, v, out: Dictionary) -> void:
 		var enc = codec.encode(v, w.depth)
 		out[w.names[i]] = {"@new": enc} if enc is Dictionary else enc
 	elif typeof(old) == t and t >= TYPE_PACKED_BYTE_ARRAY and _same_packed(v, old):
-		w.vals[i] = v
+		return
 	else:
-		w.vals[i] = v
+		w.vals[i] = _kept(v)
 		if t == TYPE_OBJECT or typeof(old) == TYPE_OBJECT:
 			w.kids[i] = _kids_of(v, w.depth) if t == TYPE_OBJECT else null
 			_relevel(w)
@@ -539,7 +535,7 @@ func _field(w: Watch, i: int, v, out: Dictionary) -> void:
 			var enc = codec.encode(v, w.depth)
 			out[w.names[i]] = {"@new": enc} if enc is Dictionary else enc
 		else:
-			out[w.names[i]] = v
+			out[w.names[i]] = _kept(v) if t >= TYPE_PACKED_BYTE_ARRAY else v
 
 
 ## Whether `w` has no kids now (after one changed).
@@ -562,7 +558,7 @@ func _diff_whole(w: Watch) -> Dictionary:
 		if typeof(v) == typeof(old) and v == old:
 			if typeof(v) != TYPE_FLOAT or v != 0.0 or 1.0 / v == 1.0 / old:
 				continue
-		w.vals[i] = v
+		w.vals[i] = _kept(v)
 		out[w.names[i]] = true
 	return out
 

@@ -269,6 +269,9 @@ const VIEW_FIELDS := [
 	"host",
 	"net_facts",
 	"lit_stations",
+	"flow_walks",
+	"body_cells",
+	"body_cells_on",
 ]
 ## Features whose state is play (carried: every variable but `game`).
 const SIM_FEATURES := [
