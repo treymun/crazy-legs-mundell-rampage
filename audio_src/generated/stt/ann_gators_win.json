@@ -1,0 +1,35 @@
+{
+ "text": "Ah, the Gators win the showdown!",
+ "words": [
+  {
+   "text": "Ah,",
+   "start": 0.26,
+   "end": 0.44
+  },
+  {
+   "text": "the",
+   "start": 0.54,
+   "end": 0.6
+  },
+  {
+   "text": "Gators",
+   "start": 0.7,
+   "end": 1.04
+  },
+  {
+   "text": "win",
+   "start": 1.1,
+   "end": 1.22
+  },
+  {
+   "text": "the",
+   "start": 1.26,
+   "end": 1.32
+  },
+  {
+   "text": "showdown!",
+   "start": 1.4,
+   "end": 2.2
+  }
+ ]
+}

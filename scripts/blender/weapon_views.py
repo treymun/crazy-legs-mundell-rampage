@@ -425,6 +425,293 @@ def bottle_launcher():
     box((0, .26, .012), (.004, .012, .03), IRON(), bevel=.001)
 
 
+def hunter():
+    """A scoped bolt-action deer rifle: walnut Monte Carlo stock taped at the wrist,
+    long blued barrel, a big hunting scope in rings, bolt handle out to the right."""
+    blued = STEEL()
+    walnut = pbr("walnut", (84, 44, 22), .45, 0., grain=(44, 22, 12), wear=(150, 104, 66), scale=12.)
+    tape = pbr("duct", (130, 132, 134), .55, .2, bump=.5, scale=50.)
+    glass = pbr("lens", (40, 70, 90), .05, .2, bump=.02)
+    # buttstock with its comb and recoil pad, wrist, pistol grip cap
+    box((0, -.29, -.072), (.036, .24, .07), walnut, rot=(-.10, 0, 0), bevel=.014)
+    box((0, -.27, -.025), (.03, .19, .03), walnut, rot=(-.04, 0, 0), bevel=.012)
+    box((0, -.415, -.085), (.038, .016, .102), RUBBER(), rot=(-.10, 0, 0), bevel=.005)
+    box((0, -.115, -.08), (.03, .07, .045), walnut, rot=(.18, 0, 0), bevel=.010)
+    box((0, -.10, -.118), (.026, .032, .05), walnut, rot=(.42, 0, 0), bevel=.010)
+    box((0, -.088, -.143), (.024, .012, .006), IRON(), rot=(.42, 0, 0), bevel=.002)
+    rod((0, -.16, -.072), (0, -.13, -.07), .028, .028, tape, seg=24)
+    # receiver, bolt with its handle and knob, safety
+    rod((0, -.10, -.022), (0, .07, -.022), .0175, .0175, blued, seg=28)
+    rod((0, -.125, -.022), (0, -.10, -.022), .015, .013, blued, seg=24, round_ends=True)
+    rod((.012, -.07, -.016), (.052, -.075, -.045), .0045, .0045, blued, seg=10)
+    ball((.055, -.076, -.049), .0085, IRON())
+    box((.016, -.045, -.004), (.004, .05, .008), IRON(), bevel=.001)
+    box((.0165, -.115, -.01), (.004, .012, .006), IRON(), bevel=.001)
+    # stock fore-end under the barrel, trigger guard, trigger, floorplate
+    box((0, .14, -.048), (.032, .32, .034), walnut, rot=(.015, 0, 0), bevel=.010)
+    box((0, .02, -.068), (.028, .07, .012), IRON(), bevel=.002)
+    box((0, -.045, -.088), (.004, .07, .003), IRON(), bevel=.001)
+    box((0, -.06, -.072), (.004, .003, .022), IRON(), bevel=.001)
+    rod((0, -.048, -.062), (0, -.054, -.08), .0026, .0026, IRON(), seg=8)
+    # the long barrel, its crown and front sight base
+    rod((0, .07, -.022), (0, .80, -.022), .011, .0078, blued, seg=24)
+    rod((0, .80, -.022), (0, .815, -.022), .0086, .0086, IRON(), seg=18)
+    box((0, .72, -.011), (.008, .02, .006), IRON(), bevel=.001)
+    # scope: low rings, a slim tube, turrets, objective and eyepiece bells
+    for y in (-.03, .07):
+        box((0, y, -.002), (.014, .014, .01), IRON(), bevel=.002)
+        ring((0, y, .022), (0, 1, 0), .0105, .003, IRON(), n=20)
+    rod((0, -.055, .022), (0, .14, .022), .009, .009, blued, seg=30)
+    rod((0, .14, .022), (0, .17, .022), .009, .0135, blued, seg=30)
+    rod((0, .17, .022), (0, .19, .022), .0135, .0135, blued, seg=30)
+    disc((0, .191, .022), (0, 1, 0), .0115, .0015, glass)
+    rod((0, -.08, .022), (0, -.055, .022), .0115, .009, blued, seg=30)
+    rod((0, -.088, .022), (0, -.08, .022), .0115, .0115, RUBBER(), seg=30)
+    rod((0, .02, .031), (0, .02, .040), .005, .005, IRON(), seg=14)
+    rod((.008, .02, .022), (.018, .02, .022), .005, .005, IRON(), seg=14)
+    band(.02, .022, .0095, .009, blued, seg=24)
+    # sling swivels
+    ring((0, -.25, -.115), (1, 0, 0), .008, .002, IRON(), n=12)
+    ring((0, .26, -.07), (1, 0, 0), .008, .002, IRON(), n=12)
+
+
+def mower():
+    """A belt-fed light machine gun gone to seed on a farm: olive-drab receiver and
+    feed cover, a can of linked brass slung off the side, perforated heat shield,
+    carry handle, folded bipod and a slotted flash hider."""
+    drab = pbr("drab", (34, 38, 24), .6, .15, wear=(96, 94, 74), blotch=(26, 30, 18), scale=24.)
+    can = pbr("ammo_can", (44, 50, 28), .65, .2, wear=(110, 108, 84), blotch=(70, 46, 30), scale=20.)
+    vent = pbr("vent", (14, 12, 10), .9)
+    # stock, pistol grip, trigger guard
+    box((0, -.27, -.07), (.04, .25, .075), WOOD(), rot=(-.06, 0, 0), bevel=.014)
+    box((0, -.395, -.08), (.044, .016, .10), IRON(), rot=(-.06, 0, 0), bevel=.005)
+    box((0, -.11, -.11), (.032, .046, .095), WOOD(), rot=(.30, 0, 0), bevel=.010)
+    box((0, -.06, -.088), (.004, .085, .003), IRON(), bevel=.001)
+    box((0, -.075, -.074), (.004, .003, .024), IRON(), bevel=.001)
+    # receiver, feed cover with its latch, rear sight
+    box((0, .02, -.035), (.05, .30, .07), drab, bevel=.006)
+    box((0, .05, .008), (.052, .17, .018), drab, rot=(-.02, 0, 0), bevel=.004)
+    box((0, -.04, .02), (.02, .016, .01), IRON(), bevel=.002)
+    box((0, -.09, .012), (.016, .03, .026), IRON(), bevel=.003)
+    for y in (-.05, .0, .05, .1):
+        box((.0265, y, -.04), (.002, .02, .05), IRON(), bevel=.001)
+    rod((.026, .06, -.022), (.05, .06, -.022), .006, .006, IRON(), seg=10, round_ends=True)
+    # the ammo can on the left and the belt of brass running up into the feed
+    box((-.05, .03, -.115), (.05, .085, .06), can, bevel=.005)
+    box((-.05, .03, -.083), (.053, .088, .006), can, bevel=.002)
+    rod((-.05, .0, -.078), (-.05, .06, -.078), .003, .003, IRON(), seg=8)
+    for k in range(6):
+        t = k / 5
+        x = -.045 + .02 * t
+        z = -.08 + .05 * t
+        rod((x, .05, z), (x, .078, z), .0036, .0036, BRASS(), seg=10)
+        rod((x, .078, z), (x, .086, z), .0036, .0014, BRASS(), seg=10)
+        box((x, .064, z - .004), (.008, .036, .002), IRON(), bevel=.001)
+    # barrel jacket, heat shield, gas cylinder, carry handle
+    rod((0, .17, -.03), (0, .74, -.03), .0145, .0125, STEEL(), seg=24)
+    box((0, .33, -.008), (.036, .26, .024), drab, bevel=.004)
+    for y in (.23, .27, .31, .35, .39, .43):
+        for sx in (-1, 1):
+            box((sx * .018, y, -.008), (.003, .022, .012), vent, bevel=.001)
+    rod((0, .2, -.058), (0, .5, -.058), .009, .009, IRON(), seg=14)
+    for y in (.22, .34):
+        rod((0, y, -.015), (0, y, .04), .004, .004, IRON(), seg=8)
+    rod((0, .22, .04), (0, .34, .04), .006, .006, WOOD(), seg=12)
+    # folded bipod, front sight, slotted flash hider
+    for sx in (-1, 1):
+        rod((sx * .012, .5, -.072), (sx * .014, .70, -.074), .0035, .0035, IRON(), seg=8)
+        ball((sx * .014, .705, -.074), .006, RUBBER())
+    box((0, .5, -.062), (.03, .014, .012), IRON(), bevel=.002)
+    box((0, .66, -.008), (.006, .016, .03), IRON(), bevel=.001)
+    rod((0, .74, -.03), (0, .80, -.03), .015, .017, IRON(), seg=20)
+    for a in range(4):
+        ang = a * math.pi / 2 + math.pi / 4
+        box((math.cos(ang) * .016, .79, -.03 + math.sin(ang) * .016), (.004, .03, .004), vent, bevel=.001)
+
+
+POLY = lambda: pbr("poly", (30, 30, 32), .62, 0., wear=(84, 84, 86), bump=.35, scale=40.)
+PARKER = lambda: pbr("parker", (46, 48, 46), .62, .7, wear=(120, 120, 116), scale=30.)
+STAINLESS = lambda: pbr("stainless", (150, 152, 156), .28, 1., wear=(210, 210, 214), blotch=(110, 110, 112))
+
+
+def star_badge(center, normal, radius, material):
+    """A five-point lawman's star, flat on a face."""
+    c, k = Vector(center), Vector(normal).normalized()
+    u = k.orthogonal().normalized()
+    v = k.cross(u)
+    disc(c, k, radius * .42, .002, material, seg=20)
+    for i in range(5):
+        a = i * math.tau / 5 + math.pi / 2
+        tip = c + (u * math.cos(a) + v * math.sin(a)) * radius
+        rod(c, tip, radius * .2, radius * .04, material, seg=6)
+        ball(tip, radius * .09, material)
+
+
+def riot_pump():
+    """The county's riot pump: black synthetic stock and slide, a side saddle of
+    red shells, magazine tube under the barrel, bead sight, a star on the stock."""
+    blued = STEEL()
+    shell = pbr("shell_red", (150, 34, 28), .5, 0., wear=(200, 120, 100))
+    # stock and wrist
+    box((0, -.28, -.07), (.038, .25, .072), POLY(), rot=(-.12, 0, 0), bevel=.014)
+    box((0, -.40, -.082), (.04, .018, .10), RUBBER(), rot=(-.12, 0, 0), bevel=.006)
+    box((0, -.13, -.085), (.032, .06, .05), POLY(), rot=(.22, 0, 0), bevel=.012)
+    star_badge((.02, -.26, -.07), (1, 0, 0), .016, BRASS())
+    # receiver, ejection port, safety, trigger guard
+    box((0, -.01, -.035), (.042, .22, .066), blued, bevel=.006)
+    box((.0215, .0, -.025), (.002, .07, .022), pbr("port", (10, 10, 10), .9), bevel=.001)
+    rod((-.02, -.07, -.06), (.02, -.07, -.06), .0035, .0035, IRON(), seg=8)
+    box((0, -.07, -.078), (.004, .07, .003), IRON(), bevel=.001)
+    box((0, -.085, -.068), (.004, .003, .022), IRON(), bevel=.001)
+    # side saddle with four shells
+    box((-.024, .0, -.022), (.006, .11, .036), POLY(), bevel=.003)
+    for k in range(4):
+        y = -.04 + k * .027
+        rod((-.032, y, -.04), (-.032, y, -.004), .0085, .0085, shell, seg=14)
+        rod((-.032, y, -.044), (-.032, y, -.04), .009, .009, BRASS(), seg=14)
+    # barrel and its bead, magazine tube and cap
+    rod((0, .1, -.016), (0, .64, -.016), .0118, .0112, blued, seg=24)
+    ball((0, .635, -.003), .0035, BRASS())
+    rod((0, .1, -.044), (0, .58, -.044), .0115, .0115, blued, seg=20)
+    rod((0, .58, -.044), (0, .60, -.044), .0125, .0125, IRON(), seg=20)
+    band(.56, -.03, .013, .012, IRON(), seg=20)
+    # the slide: ribbed synthetic grip on the tube
+    box((0, .30, -.05), (.04, .17, .04), POLY(), bevel=.008)
+    for y in (.24, .27, .30, .33, .36):
+        box((0, y, -.05), (.042, .006, .032), pbr("rib", (18, 18, 20), .8), bevel=.002)
+
+
+def tommy():
+    """The squad car's drum-fed submachine gun: walnut stock and grips, a ribbed
+    barrel with its compensator, the round drum under the receiver."""
+    blued = STEEL()
+    box((0, -.28, -.068), (.036, .25, .072), WOOD(), rot=(-.1, 0, 0), bevel=.014)
+    box((0, -.40, -.08), (.038, .014, .1), IRON(), rot=(-.1, 0, 0), bevel=.004)
+    box((0, -.11, -.105), (.03, .045, .10), WOOD(), rot=(.3, 0, 0), bevel=.010)
+    # receiver, actuator knob, rear sight, trigger guard
+    box((0, .0, -.025), (.042, .26, .058), blued, bevel=.006)
+    ball((0, .05, .01), .007, IRON())
+    box((0, -.09, .012), (.014, .028, .022), IRON(), bevel=.003)
+    box((0, -.045, -.082), (.004, .085, .003), IRON(), bevel=.001)
+    # the drum, its winding key and rim
+    disc((0, .05, -.11), (1, 0, 0), .064, .052, blued, seg=48)
+    ring((0, .05, -.11), (1, 0, 0), .062, .004, IRON(), n=40)
+    disc((.03, .05, -.11), (1, 0, 0), .014, .008, IRON(), seg=20)
+    box((.036, .05, -.11), (.004, .006, .026), IRON(), bevel=.001)
+    # front grip with finger grooves
+    rod((0, .2, -.05), (0, .2, -.13), .014, .016, WOOD(), seg=18, round_ends=True)
+    for z in (-.075, -.095, -.115):
+        ring((0, .2, z), (0, 0, 1), .016, .003, WOOD(), n=16)
+    # ribbed barrel, front sight, compensator
+    rod((0, .13, -.02), (0, .56, -.02), .011, .010, blued, seg=20)
+    for k in range(10):
+        ring((0, .15 + k * .022, -.02), (0, 1, 0), .0135, .003, blued, n=20)
+    box((0, .52, -.005), (.004, .012, .012), IRON(), bevel=.001)
+    box((0, .58, -.02), (.026, .05, .026), IRON(), bevel=.004)
+    for k in range(3):
+        box((0, .565 + k * .014, -.006), (.018, .005, .004), pbr("port", (10, 10, 10), .9), bevel=.001)
+
+
+def grease_gun():
+    """A stamped steel tube gun the shiners keep in the truck, held one-handed:
+    a rusty tube receiver, the long stick magazine ahead of the hand, ejection
+    cover and cocking crank, tape round the barrel and a peep sight."""
+    tube = pbr("stamped", (66, 62, 56), .55, .8, wear=(150, 138, 120), blotch=(110, 62, 36), scale=26.)
+    tape = pbr("duct", (130, 132, 134), .55, .2, bump=.5, scale=50.)
+    pistol_grip(tube)
+    # the tube receiver, rear cap and a stub of the wire stock
+    rod((0, -.09, .05), (0, .13, .05), .027, .027, tube, seg=36)
+    disc((0, -.09, .05), (0, -1, 0), .027, .006, IRON(), seg=36)
+    for sx in (-1, 1):
+        rod((sx * .012, -.09, .04), (sx * .014, -.15, .02), .0035, .0035, IRON(), seg=8)
+    for y in (-.06, .0, .06):
+        band(y, .05, .0275, .005, IRON(), seg=36)
+    # ejection cover, cocking crank, peep sight
+    box((.024, .03, .062), (.008, .07, .026), tube, bevel=.003)
+    box((.029, .03, .062), (.002, .05, .014), pbr("port", (10, 10, 10), .9), bevel=.001)
+    rod((.026, -.05, .04), (.05, -.05, .04), .0035, .0035, IRON(), seg=8)
+    rod((.05, -.05, .04), (.05, -.068, .026), .0035, .0035, IRON(), seg=8, round_ends=True)
+    ring((0, -.06, .085), (0, 1, 0), .006, .0018, IRON(), n=12)
+    rod((0, -.06, .077), (0, -.06, .07), .002, .002, IRON(), seg=6)
+    # magazine well and the long stick magazine out ahead of the hand
+    box((0, .075, .018), (.022, .032, .03), tube, bevel=.003)
+    box((0, .078, -.065), (.018, .026, .15), IRON(), rot=(-.05, 0, 0), bevel=.003)
+    box((0, .081, -.142), (.02, .029, .008), IRON(), rot=(-.05, 0, 0), bevel=.002)
+    # collar, taped barrel, front sight
+    rod((0, .13, .05), (0, .15, .05), .019, .019, IRON(), seg=24)
+    rod((0, .15, .05), (0, .275, .05), .0105, .0105, STEEL(), seg=20)
+    rod((0, .16, .05), (0, .2, .05), .014, .014, tape, seg=20)
+    box((0, .14, .072), (.004, .008, .01), IRON(), bevel=.001)
+
+
+def patrol_bar():
+    """The deputies' automatic rifle: parkerized receiver, walnut stock and fore-end,
+    a big box magazine, the bipod folded under the barrel, a slotted flash hider."""
+    box((0, -.27, -.07), (.038, .25, .074), WOOD(), rot=(-.08, 0, 0), bevel=.014)
+    box((0, -.395, -.08), (.042, .016, .102), IRON(), rot=(-.08, 0, 0), bevel=.005)
+    box((0, -.11, -.105), (.03, .045, .098), WOOD(), rot=(.3, 0, 0), bevel=.010)
+    # receiver, rear sight leaf, charging handle, trigger guard
+    box((0, .02, -.03), (.044, .30, .068), PARKER(), bevel=.006)
+    box((0, -.1, .012), (.014, .03, .026), IRON(), bevel=.003)
+    rod((-.022, .08, -.03), (-.046, .08, -.03), .005, .005, IRON(), seg=10, round_ends=True)
+    box((0, -.06, -.086), (.004, .085, .003), IRON(), bevel=.001)
+    # the box magazine, deep
+    box((0, .06, -.12), (.034, .07, .13), PARKER(), bevel=.004)
+    box((0, .06, -.186), (.038, .074, .008), IRON(), bevel=.002)
+    for z in (-.09, -.13, -.16):
+        box((.0175, .06, z), (.002, .05, .004), IRON(), bevel=.001)
+    # fore-end, gas cylinder, barrel
+    box((0, .26, -.045), (.036, .18, .04), WOOD(), bevel=.008)
+    rod((0, .17, -.055), (0, .52, -.055), .009, .009, PARKER(), seg=14)
+    rod((0, .17, -.022), (0, .70, -.022), .0105, .0095, STEEL(), seg=20)
+    # bipod folded back along the barrel, front sight, flash hider
+    box((0, .58, -.035), (.024, .014, .02), IRON(), bevel=.002)
+    for sx in (-1, 1):
+        rod((sx * .01, .58, -.045), (sx * .014, .38, -.06), .0035, .0035, IRON(), seg=8)
+        ball((sx * .014, .375, -.06), .006, IRON())
+    box((0, .66, -.006), (.006, .014, .026), IRON(), bevel=.001)
+    rod((0, .70, -.022), (0, .76, -.022), .013, .015, IRON(), seg=20)
+    ring((0, -.16, -.115), (1, 0, 0), .009, .002, IRON(), n=12)
+
+
+def marksman():
+    """The county marksman's semi-automatic: black synthetic stock with a cheek
+    riser, a twenty-round box, a long scope with its sunshade and flip caps."""
+    blued = STEEL()
+    glass = pbr("lens", (40, 70, 90), .05, .2, bump=.02)
+    cap = pbr("flip_cap", (170, 130, 40), .5, 0.)
+    box((0, -.29, -.072), (.036, .24, .07), POLY(), rot=(-.10, 0, 0), bevel=.014)
+    box((0, -.28, -.026), (.03, .14, .028), POLY(), rot=(-.04, 0, 0), bevel=.010)
+    box((0, -.415, -.085), (.038, .016, .102), RUBBER(), rot=(-.10, 0, 0), bevel=.005)
+    box((0, -.115, -.105), (.03, .045, .095), POLY(), rot=(.3, 0, 0), bevel=.010)
+    star_badge((.019, -.3, -.075), (1, 0, 0), .014, pbr("silver", (190, 190, 196), .3, 1.))
+    # receiver, operating rod handle, magazine, trigger guard
+    box((0, -.01, -.03), (.036, .2, .056), blued, bevel=.005)
+    box((.021, .06, -.02), (.006, .1, .01), IRON(), bevel=.002)
+    box((.024, .015, -.02), (.012, .012, .014), IRON(), bevel=.002)
+    box((0, .03, -.1), (.026, .05, .09), IRON(), rot=(-.15, 0, 0), bevel=.003)
+    box((0, -.06, -.072), (.004, .07, .003), IRON(), bevel=.001)
+    # fore-end, barrel, muzzle brake
+    box((0, .17, -.046), (.032, .26, .034), POLY(), bevel=.010)
+    rod((0, .09, -.022), (0, .76, -.022), .0112, .0088, blued, seg=24)
+    box((0, .775, -.022), (.022, .04, .022), IRON(), bevel=.004)
+    for k in range(3):
+        box((0, .762 + k * .012, -.022), (.024, .004, .006), pbr("port", (10, 10, 10), .9), bevel=.001)
+    # the scope: rings, tube, turrets, sunshade, flip caps
+    for y in (-.03, .07):
+        box((0, y, -.002), (.014, .014, .01), IRON(), bevel=.002)
+        ring((0, y, .022), (0, 1, 0), .0105, .003, IRON(), n=20)
+    rod((0, -.06, .022), (0, .14, .022), .009, .009, blued, seg=30)
+    rod((0, .14, .022), (0, .17, .022), .009, .0135, blued, seg=30)
+    rod((0, .17, .022), (0, .23, .022), .0135, .0135, blued, seg=30)
+    disc((0, .231, .022), (0, 1, 0), .0115, .0015, glass)
+    rod((0, -.09, .022), (0, -.06, .022), .0115, .009, blued, seg=30)
+    box((0, .235, .038), (.026, .004, .02), cap, rot=(-1.1, 0, 0), bevel=.002)
+    box((0, -.093, .038), (.022, .004, .018), cap, rot=(1.1, 0, 0), bevel=.002)
+    rod((0, .02, .031), (0, .02, .040), .005, .005, IRON(), seg=14)
+    rod((.008, .02, .022), (.018, .02, .022), .005, .005, IRON(), seg=14)
+
+
 # ---------------------------------------------------------------- one-handed
 # Held like the revolver: the top of the grip at the origin, the body above and
 # ahead of it, short enough to stay in the picture.
@@ -552,6 +839,93 @@ def teat_gun():
         last = nxt
 
 
+def county45():
+    """The deputies' issue .45 automatic: blued slide with its serrations and
+    sights, walnut grips with a county star, hammer, safety, lanyard ring."""
+    blued = pbr("service_blue", (52, 58, 70), .32, 1., wear=(150, 152, 160))
+    pistol_grip(WOOD())
+    star_badge((.021, -.03, -.05), (1, 0, 0), .009, BRASS())
+    box((0, -.045, -.122), (.026, .03, .006), IRON(), rot=(.3, 0, 0), bevel=.002)
+    ring((0, -.06, -.13), (1, 0, 0), .006, .0016, IRON(), n=10)
+    # frame, dust cover, trigger guard and trigger
+    box((0, .03, .022), (.026, .12, .024), blued, bevel=.003)
+    box((0, .005, -.004), (.004, .05, .003), blued, bevel=.001)
+    box((0, .03, -.006), (.004, .003, .026), blued, bevel=.001)
+    rod((0, .0, .006), (0, -.004, -.012), .0028, .0028, IRON(), seg=8)
+    # slide, serrations, ejection port, sights, barrel bushing
+    box((0, .045, .052), (.028, .2, .034), blued, bevel=.004)
+    for k in range(6):
+        box((.0145, -.04 + k * .006, .052), (.002, .0025, .026), IRON(), bevel=.0005)
+    box((.0142, .06, .06), (.002, .03, .012), pbr("port", (10, 10, 10), .9), bevel=.001)
+    box((0, -.048, .074), (.014, .008, .008), IRON(), bevel=.001)
+    box((0, .135, .072), (.004, .008, .008), IRON(), bevel=.001)
+    rod((0, .145, .05), (0, .152, .05), .0095, .0095, IRON(), seg=18)
+    # hammer, thumb safety, slide stop
+    box((0, -.063, .062), (.008, .012, .016), IRON(), rot=(.4, 0, 0), bevel=.002)
+    box((.015, -.04, .04), (.004, .018, .006), IRON(), bevel=.001)
+    box((.015, .02, .034), (.004, .022, .006), IRON(), bevel=.001)
+
+
+def star357():
+    """A stainless .357 magnum with a six-inch full-lug barrel, ventilated rib,
+    rubber grips and a sheriff's star inlaid in them."""
+    pistol_grip(RUBBER())
+    star_badge((.024, -.03, -.05), (1, 0, 0), .010, pbr("silver", (190, 190, 196), .3, 1.))
+    steel = STAINLESS()
+    # frame, trigger guard, trigger, hammer spur
+    box((0, .01, .035), (.026, .09, .05), steel, bevel=.005)
+    rod((0, .04, .008), (0, -.01, -.006), .0032, .0032, steel, seg=10)
+    box((0, .02, -.006), (.004, .003, .024), steel, bevel=.001)
+    box((0, -.05, .07), (.008, .02, .012), steel, rot=(.5, 0, 0), bevel=.002)
+    # cylinder with its flutes, the crane latch
+    rod((0, -.005, .05), (0, .05, .05), .026, .026, steel, seg=36)
+    for k in range(6):
+        a = k * math.tau / 6
+        box((math.cos(a) * .025, .0225, .05 + math.sin(a) * .025), (.006, .04, .006),
+            pbr("flute", (60, 60, 62), .5, 1.), rot=(0, a, 0), bevel=.002)
+    box((.014, -.02, .062), (.004, .01, .008), steel, bevel=.001)
+    # full-lug barrel, vent rib, red ramp front sight, ejector shroud
+    box((0, .16, .058), (.02, .22, .026), steel, bevel=.004)
+    box((0, .16, .074), (.008, .22, .006), steel, bevel=.001)
+    for y in (.08, .11, .14, .17, .2, .23):
+        box((0, y, .074), (.009, .012, .002), pbr("port", (10, 10, 10), .9), bevel=.0005)
+    rod((0, .05, .058), (0, .272, .058), .0105, .0105, steel, seg=20)
+    box((0, .26, .082), (.004, .016, .01), pbr("ramp", (200, 40, 30), .4), rot=(.3, 0, 0), bevel=.001)
+    box((0, .14, .04), (.016, .17, .014), steel, bevel=.003)
+    box((0, -.035, .08), (.012, .01, .006), IRON(), bevel=.001)
+
+
+def hogleg():
+    """An old single-action .44: brass frame and trigger guard, case-hardened
+    cylinder, a long blued barrel with its ejector rod, worn walnut grips
+    wrapped in rawhide."""
+    hide = pbr("rawhide", (150, 112, 70), .85, 0., bump=.7, scale=40.)
+    pistol_grip(WOOD())
+    for z in (-.04, -.06, -.08):
+        ring((0, -.03, z), (0, .3, 1), .025, .0035, hide, n=18)
+    # brass frame, backstrap, trigger guard, trigger
+    box((0, .0, .03), (.026, .08, .04), BRASS(), bevel=.004)
+    rod((0, -.03, .03), (0, -.05, -.06), .006, .008, BRASS(), seg=12)
+    rod((0, .03, .01), (0, -.02, -.004), .0035, .0035, BRASS(), seg=10)
+    box((0, .01, -.002), (.004, .003, .022), IRON(), bevel=.001)
+    # hammer spur cocked back, loading gate
+    box((0, -.045, .072), (.007, .022, .01), IRON(), rot=(.7, 0, 0), bevel=.002)
+    for k in range(4):
+        box((0, -.054 + k * .004, .08 + k * .002), (.008, .0015, .003), pbr("port", (10, 10, 10), .9), bevel=.0003)
+    box((.0135, -.015, .045), (.003, .018, .02), BRASS(), bevel=.001)
+    # case-hardened cylinder with its stop notches
+    rod((0, -.012, .05), (0, .048, .05), .025, .025, pbr("case", (70, 64, 70), .35, 1., wear=(150, 120, 90), blotch=(90, 70, 110)), seg=36)
+    for k in range(6):
+        a = k * math.tau / 6
+        box((math.cos(a) * .025, .03, .05 + math.sin(a) * .025), (.004, .006, .004), IRON(), rot=(0, a, 0), bevel=.001)
+    # long round barrel, blade front sight, ejector rod and housing
+    rod((0, .048, .062), (0, .31, .062), .0105, .0098, STEEL(), seg=22)
+    box((0, .3, .075), (.002, .012, .008), BRASS(), bevel=.0005)
+    rod((.009, .05, .045), (.009, .18, .046), .0055, .0055, STEEL(), seg=12)
+    rod((.009, .18, .046), (.009, .19, .046), .004, .004, IRON(), seg=10, round_ends=True)
+    box((0, .04, .072), (.004, .012, .004), IRON(), bevel=.0005)
+
+
 def ripsaw():
     """A two-stroke saw motor with a stack of blades on its arbor."""
     blade = pbr("blade", (124, 128, 130), .25, 1., wear=(226, 226, 226), blotch=(84, 66, 54))
@@ -625,6 +999,95 @@ def tnt():
         rod(a, b, .0026, .0026, PAPER(), seg=6)
 
 
+# The 5v5 store's throwables, held like the dynamite: along the hand, the
+# business end (fuse, rag, ring) out at +Y.
+def _fuse(start, bend):
+    pts = [Vector(start)] + [Vector(start) + Vector(b) for b in bend]
+    for a, b in zip(pts, pts[1:]):
+        rod(a, b, .0026, .0026, PAPER(), seg=6)
+
+
+def flash_jar():
+    """A quart mason jar packed with magnesium flash powder: zinc lid and band,
+    a fuse through the lid, a paper label with a lightning bolt."""
+    glass = pbr("jar_glass", (150, 186, 176), .06, 0., bump=.02)
+    powder = pbr("flash_powder", (236, 236, 228), .5, 0., emit=.35)
+    zinc = pbr("zinc", (150, 150, 146), .35, 1., wear=(200, 200, 196), blotch=(110, 104, 96))
+    rod((0, -.08, 0), (0, .07, 0), .034, .034, glass, seg=40)
+    rod((0, -.075, 0), (0, .05, 0), .03, .03, powder, seg=32)
+    disc((0, -.082, 0), (0, -1, 0), .034, .004, glass, seg=40)
+    rod((0, .07, 0), (0, .09, 0), .027, .027, glass, seg=32)
+    rod((0, .085, 0), (0, .105, 0), .03, .03, zinc, seg=36)
+    for y in (.088, .094, .1):
+        ring((0, y, 0), (0, 1, 0), .0302, .0012, zinc, n=36)
+    rod((0, -.02, .0), (0, .03, .0), .0345, .0345, PAPER(), seg=40)
+    box((0, .005, .0352), (.012, .03, .001), pbr("bolt_ink", (180, 40, 30), .8), rot=(0, 0, .5), bevel=.0005)
+    _fuse((0, .105, .006), [(.006, .03, .012), (-.004, .06, .03), (.004, .09, .05)])
+
+
+def smudge_pot():
+    """A gallon paint can turned smoke bomb: wire bail, a lid hammered on with a
+    fuse and a pull ring, drips of grey paint, SMOKE stencilled on it."""
+    tin = pbr("paint_can", (150, 152, 150), .4, .9, wear=(200, 200, 196), blotch=(120, 100, 80))
+    paint = pbr("grey_paint", (120, 124, 120), .6, 0.)
+    rod((0, -.07, 0), (0, .06, 0), .042, .042, tin, seg=44)
+    for y in (-.068, .058):
+        ring((0, y, 0), (0, 1, 0), .043, .003, tin, n=40)
+    disc((0, .062, 0), (0, 1, 0), .04, .004, paint, seg=40)
+    for k in range(5):
+        a = k * 1.3
+        box((math.cos(a) * .0425, .045 - k * .012, math.sin(a) * .0425), (.006, .03, .002), paint,
+            rot=(0, a, 0), bevel=.001)
+    box((0, -.01, .043), (.04, .02, .001), pbr("stencil", (30, 28, 26), .9), bevel=.0005)
+    rod((-.042, .0, 0), (-.03, .0, .05), .0018, .0018, IRON(), seg=6)
+    rod((.042, .0, 0), (.03, .0, .05), .0018, .0018, IRON(), seg=6)
+    rod((-.03, .0, .05), (.03, .0, .05), .0018, .0018, IRON(), seg=6)
+    ring((.015, .07, .0), (0, 1, 0), .009, .0018, IRON(), n=14)
+    _fuse((-.01, .066, 0), [(.0, .03, .01), (-.01, .06, .025), (.0, .08, .045)])
+
+
+def shine_cocktail():
+    """A brown jug-glass bottle of moonshine with a rag stuffed in the neck,
+    already lit: amber shine sloshing inside, an XXX label, the rag burning."""
+    glass = pbr("bottle_glass", (110, 70, 34), .06, 0., bump=.02)
+    shine = pbr("shine", (200, 150, 60), .2, 0., emit=.15)
+    rag = pbr("rag", (170, 150, 120), .95, 0., bump=.8, scale=40.)
+    flame = pbr("flame", (255, 170, 60), emit=6.0)
+    rod((0, -.1, 0), (0, .03, 0), .031, .031, glass, seg=36)
+    rod((0, -.095, 0), (0, -.01, 0), .027, .027, shine, seg=30)
+    disc((0, -.102, 0), (0, -1, 0), .031, .004, glass, seg=36)
+    rod((0, .03, 0), (0, .07, 0), .031, .012, glass, seg=36)
+    rod((0, .07, 0), (0, .11, 0), .012, .012, glass, seg=24)
+    rod((0, -.07, 0), (0, -.02, 0), .0315, .0315, PAPER(), seg=36)
+    for k in range(3):
+        box((-.01 + k * .01, -.045, .0318), (.006, .02, .001), pbr("xxx", (40, 20, 14), .8), rot=(0, 0, .7), bevel=.0003)
+    rod((0, .1, 0), (0, .15, .01), .011, .013, rag, seg=14, round_ends=True)
+    rod((0, .14, .01), (.02, .17, .02), .006, .004, rag, seg=10, round_ends=True)
+    for k in range(4):
+        a = k * 1.7
+        rod((math.cos(a) * .006, .145, .01 + math.sin(a) * .006),
+            (math.cos(a) * .012, .2 + k * .012, .03 + math.sin(a) * .01), .009, .001, flame, seg=10)
+
+
+def firecracker_can():
+    """A soup can wound round with a string of firecrackers, a bundle of fuses
+    twisted together on top: it rattles off like a gunfight."""
+    tin = pbr("soup_can", (170, 172, 170), .3, 1., wear=(210, 210, 206))
+    label = pbr("soup_label", (170, 40, 34), .7, 0., wear=(220, 200, 180))
+    cracker = pbr("cracker", (196, 40, 30), .7, 0.)
+    rod((0, -.05, 0), (0, .05, 0), .03, .03, tin, seg=36)
+    rod((0, -.035, 0), (0, .035, 0), .0305, .0305, label, seg=36)
+    for y in (-.05, .05):
+        ring((0, y, 0), (0, 1, 0), .031, .0025, tin, n=36)
+    for k in range(9):
+        a = k * math.tau / 9
+        c = Vector((math.cos(a) * .036, .0, math.sin(a) * .036))
+        rod(c + Vector((0, -.02, 0)), c + Vector((0, .02, 0)), .005, .005, cracker, seg=10)
+    rod((0, .0, .0), (0, .0, .0), .001, .001, cracker, seg=6)
+    for k in range(3):
+        _fuse((.006 * k - .006, .05, .0), [(.0, .02, .006 * k), (.004, .045, .012 + .004 * k)])
+
+
 # ---------------------------------------------------------------- carried
 def bowling_ball():
     marble = pbr("marble", (22, 40, 100), .07, 0., blotch=(70, 104, 176), bump=.02, scale=7.)
@@ -667,6 +1130,14 @@ WEAPONS = {
     "ripsaw": (ripsaw, "pistol", (0, .30, .058)), "slingblade": (slingblade, "bar", (0, .68, .17)),
     "tnt": (tnt, "bar", (-.01, .30, .11)), "bowling_ball": (bowling_ball, "carry", (0, 0, .108)),
     "powder_keg": (powder_keg, "carry", (0, 0, .2)),
+    "hunter": (hunter, "long", (0, .815, -.022)), "mower": (mower, "long", (0, .80, -.03)),
+    "county45": (county45, "pistol", (0, .152, .05)), "star357": (star357, "pistol", (0, .272, .058)),
+    "hogleg": (hogleg, "pistol", (0, .31, .062)), "riot_pump": (riot_pump, "long", (0, .64, -.016)),
+    "tommy": (tommy, "long", (0, .605, -.02)), "grease_gun": (grease_gun, "pistol", (0, .275, .05)),
+    "patrol_bar": (patrol_bar, "long", (0, .76, -.022)), "marksman": (marksman, "long", (0, .795, -.022)),
+    "flash_jar": (flash_jar, "bar", (0, .2, .05)), "smudge_pot": (smudge_pot, "bar", (0, .15, .045)),
+    "shine_cocktail": (shine_cocktail, "bar", (0, .24, .04)),
+    "firecracker_can": (firecracker_can, "bar", (0, .1, .02)),
 }
 # Each rig reproduces the camera of one photographed plate, so that plate's hand
 # drops onto the weapon at its own size. Values: focal length in plate pixels,
@@ -678,7 +1149,10 @@ RIGS = {
     "carry": (746., T((0, .37, -.016))),
 }
 # Big props brought down so their muzzle ends short of the crosshair, as the shotgun's does.
-TRIM = {"cow_launcher": .74, "bottle_launcher": .86, "crossbow": .84}
+TRIM = {"cow_launcher": .74, "bottle_launcher": .86, "crossbow": .84, "hunter": .82, "mower": .84,
+        "riot_pump": .92, "patrol_bar": .86, "marksman": .83, "county45": 1.15}
+# Short things slid out along the hand so the fist does not swallow them.
+SHIFT = {"smudge_pot": (0, .075, .0), "firecracker_can": (0, .09, .0), "flash_jar": (0, .03, .0)}
 CANVAS = (1280, 896)        # the plate's 640x448 frame is the lower right quarter
 PLATE_AT = (640, 448)
 
@@ -748,6 +1222,7 @@ def main():
         build()
         focal, model = RIGS[rig]
         model = model @ Matrix.Scale(TRIM.get(name, 1.0), 4)
+        model = model @ T(SHIFT.get(name, (0, 0, 0)))
         for ob in PARTS:
             ob.matrix_world = model @ ob.matrix_world
         camera.data.lens = focal * 36.0 / CANVAS[0]

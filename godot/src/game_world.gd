@@ -47,7 +47,8 @@ func configure(options: Dictionary) -> void:
 	aim_assist = int(options.get("aim_assist", 0))
 	hit_feedback = bool(options.get("hit_feedback", 1))
 	adaptive = bool(options.get("adaptive", 1))
-	Renderer.base_focal = Renderer.FOCAL_FOR[clampi(int(options.get("fov", 0)), 0, 3)]
+	Renderer.fov_focal = Renderer.FOCAL_FOR[clampi(int(options.get("fov", 0)), 0, 3)]
+	Renderer.base_focal = Renderer.fov_focal
 	shake_scale = [0.0, .5, 1.0][clampi(int(options.get("shake", 2)), 0, 2)]
 	district_labels = bool(options.get("district_labels", 1))
 	hints = bool(options.get("hints", 1))
@@ -792,6 +793,12 @@ func use_prompt() -> String:
 	if players.size() > 1 and ModeScreens.revive_prompt(self) != "":
 		use_aim = Vector3.INF  # a partner down beside you (src/modes/)
 		return ModeScreens.revive_prompt(self)
+	var mst = features.get("mode")
+	if mst != null and mst.mode != Modes.CAMPAIGN:
+		var special: String = mst.rules().use_prompt(self)
+		if special != "":
+			use_aim = Vector3.INF  # the mode's own (a hostage, the bomb)
+			return special
 	var found = use_target()
 	if found == null:
 		return ""
@@ -849,6 +856,9 @@ func interact() -> void:
 		if boss_hold_for - boss_hold > BossKit.SKIP_AFTER:
 			boss_hold = 0.0
 		return
+	var mst = features.get("mode")
+	if mst != null and mst.mode != Modes.CAMPAIGN and mst.rules().use(self):
+		return  # the mode's own (a hostage taken or set down)
 	var gate = portal_target()
 	if gate != null:
 		if world.locked_gates.has(gate):

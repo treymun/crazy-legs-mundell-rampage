@@ -642,22 +642,55 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 		if game.portal_request != "":
 			travel(game.portal_request)
 			break
+	_follow_view()
+
+
+## The 5v5 modes: while this machine's player is out the view goes to a
+## teammate still up (the keys and mouse still drive their own player, who
+## is out), and back to them when the next round stands them up.
+func _follow_view() -> void:
+	if game == null or not Modes.is_tactical(game):
+		return
+	var human := TacticalScreens.human
+	if human < 0 or human >= game.players.size():
+		return
+	var me: Player = game.players[human]
+	if me.health > 0:
+		if game.local_player != me:
+			Players.set_local(game, me)
+		return
+	var watched: Player = game.local_player
+	if watched != me and watched.health > 0 and watched.team == me.team:
+		return
+	if watched == me and me.down_at >= 0.0 and game.clock - me.down_at < 2.0:
+		return  # a moment to see who did it
+	for q: Player in game.players:
+		if q.team == me.team and q.health > 0:
+			Players.set_local(game, q)
+			return
+	if watched != me:
+		Players.set_local(game, me)
 
 
 ## One step with the other players played by their pilots (src/modes/,
-## tools/mode_bot.gd): this machine's player on `mine`.
+## tools/mode_bot.gd; the 5v5 modes' TacticalBot): this machine's own player
+## on `mine` (in the 5v5 modes the one it plays, even while the view is on a
+## teammate).
 func _tick_party(mine: Game.Controls) -> void:
-	var given := {game.local_player.slot: mine}
+	var own: int = game.local_player.slot
+	if Modes.is_tactical(game):
+		own = TacticalScreens.human
+	var given := {own: mine}
 	for p: Player in game.players:
 		var pilot = pilots.get(p.slot)
-		if pilot != null and p != game.local_player and p.health > 0:
+		if pilot != null and p.slot != own and p.health > 0:
 			game.focus(p)
 			given[p.slot] = pilot.steer(game)
 	game.focus(game.local_player)
 	game.tick(SIM_STEP, given)
 	for p: Player in game.players:
 		var pilot = pilots.get(p.slot)
-		if pilot != null and p != game.local_player:
+		if pilot != null and p.slot != own:
 			game.focus(p)
 			pilot.moved(game)
 	game.focus(game.local_player)

@@ -145,6 +145,11 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 ## is the game as it always was, step for step and die for die.
 func tick(dt: float, controls) -> void:
 	var by_slot := Players.controls_by_slot(self, controls, _idle)
+	if players.size() > 1:
+		# The mode's say over what each player may do this tick (src/modes/).
+		var mst = features.get("mode")
+		if mst != null and mst.mode != Modes.CAMPAIGN:
+			by_slot = mst.rules().hold_controls(self, mst, by_slot)
 	var mine: Controls = by_slot[local_player.slot]
 	if showing_tally or defeated() or portal_request != "":
 		if sound != null:
@@ -541,10 +546,23 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 				remaining.append(entry)
 		pickups = remaining
 	armory.tick(dt, self)
+	# A scoped gun's ALT FIRE puts the scope up and down instead of firing;
+	# a reload or another gun takes it down.
+	var alt: bool = controls.alt_fire
+	if Weapons.FIRING[armory.active].has("scope"):
+		if alt and not p.alt_held and armory.reload <= 0.0:
+			p.scoped = not p.scoped
+		if armory.reload > 0.0 or armory.switch > 0.0:
+			p.scoped = false
+		p.alt_held = alt
+		alt = false
+	else:
+		p.scoped = false
+		p.alt_held = alt
 	if gallery != null and gallery.active and gallery.slot == p.slot:
-		gallery.tick(dt, self, controls.fire or controls.alt_fire)
-	elif controls.fire or controls.alt_fire:
-		armory.fire(self, controls.alt_fire)
+		gallery.tick(dt, self, controls.fire or alt)
+	elif controls.fire or alt:
+		armory.fire(self, alt)
 	else:
 		armory.release_dynamite(self)
 

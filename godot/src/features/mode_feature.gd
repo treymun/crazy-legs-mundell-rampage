@@ -30,6 +30,48 @@ var match_over := false
 var over_clock := -1.0
 ## Co-op: partners stood up by a partner this chapter (a tally row).
 var revives := 0
+## The 5v5 round modes (tactical_mode.gd). Teams are fixed (slot % 2); which
+## of them plays the OUTLAWS this half is `outlaws`, the other the DEPUTIES.
+## The round: its number, its phase ("freeze", "live", "post", "over") and
+## when that phase ends, when play went live; each team's round wins and run
+## of losses, who took the last round and how ("BOMB", "DEFUSED", "RESCUE",
+## "WIPE", "TIME"), every round's [winner, how] for the scoreboard.
+var rounds_to_win := TacticalMode.ROUNDS_TO_WIN
+var round_no := 0
+var phase := ""
+var phase_until := 0.0
+var live_from := 0.0
+var outlaws := 0
+var wins: Array = [0, 0]
+var losses_in_row: Array = [0, 0]
+var round_winner := -1
+var round_reason := ""
+var history: Array = []
+## Each slot's cash, vest (0..100), hard hat and wire snips.
+var money: Array = []
+var armor: Array = []
+var helmet: Array = []
+var snips: Array = []
+## Search and destroy: the shine bomb. state "carried" (by `slot`), "dropped"
+## or "planted" (at x, y on `site`), "defused" or "blown"; when it was
+## planted, and how far the plant and the defuse have got (seconds).
+var bomb := {}
+## Hostage rescue: [x, y, state ("free", "carried", "rescued"), carrier slot]
+## each, and how many got out this round.
+var hostages: Array = []
+var rescued := 0
+## The kill feed: [text, until, team of the one who did it].
+var feed: Array = []
+## The throwables going off (tactical_utility.gd): smoke clouds [x, y, until,
+## born], fires [x, y, until, next bite, thrower], decoys [x, y, until, next
+## pop, thrower, cue, pops], and who is blinded: slot -> [until, how hard].
+var clouds: Array = []
+var fires: Array = []
+var decoys: Array = []
+var blind := {}
+var winner_name := ""
+## The announcer has said this machine's player is the last one standing.
+var last_called := false
 
 
 func id() -> String:
@@ -52,6 +94,8 @@ func defeated() -> bool:
 
 
 func _tick(dt: float) -> void:
+	if not (clouds.is_empty() and fires.is_empty() and decoys.is_empty() and blind.is_empty()):
+		TacticalUtility.tick(game, self, dt)
 	if mode == Modes.CAMPAIGN:
 		return
 	if not started:
@@ -172,15 +216,25 @@ func _kit(p: Player, row: Dictionary) -> void:
 
 
 func sprites() -> Array:
+	var out: Array = []
+	if not (clouds.is_empty() and fires.is_empty() and decoys.is_empty()):
+		out = TacticalUtility.sprites(game, self)
 	if game.players.size() < 2:
-		return []
-	return ModeScreens.sprites(game)
+		return out
+	out.append_array(ModeScreens.sprites(game))
+	if Modes.TACTICAL.has(mode):
+		out.append_array(TacticalScreens.sprites(game, self))
+	return out
 
 
 func draw_view(c: Canvas) -> void:
-	if game.players.size() < 2:
-		return
-	ModeScreens.draw_view(c, game, self)
+	if game.players.size() > 1 and Modes.TACTICAL.has(mode):
+		TacticalScreens.draw_view(c, game, self)
+	elif game.players.size() > 1:
+		ModeScreens.draw_view(c, game, self)
+	# A flash whites out the view and everything drawn over it.
+	if not blind.is_empty():
+		TacticalUtility.draw_flash(c, game)
 
 
 func tally_rows() -> Array:

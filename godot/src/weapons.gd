@@ -24,10 +24,36 @@ const BOWLING := 12
 const KEG := 13
 const COW := 14
 const TEAT := 15
+## The scoped deer rifle and the belt-fed machine gun (the 5v5 store's).
+const HUNTER := 16
+const MOWER := 17
+## Each side's own guns in the 5v5 store: the deputies' issue .45, the
+## Star .357 magnum, the outlaws' Hogleg .44, the riot pump, the squad car's
+## drum-fed submachine gun, the shiners' grease gun, the patrol automatic
+## rifle and the county marksman's scoped semi-automatic.
+const COUNTY45 := 18
+const STAR357 := 19
+const HOGLEG := 20
+const RIOT_PUMP := 21
+const TOMMY := 22
+const GREASE_GUN := 23
+const PATROL_BAR := 24
+const MARKSMAN := 25
+## The 5v5 store's throwables (tactical_utility.gd): a flash, smoke, a
+## firebomb and a decoy.
+const FLASH_JAR := 26
+const SMUDGE_POT := 27
+const SHINE_COCKTAIL := 28
+const FIRECRACKER_CAN := 29
+## The 5v5 store's guns that fire bullets (their holes and their strikes
+## sound as the .38's and the rifle's do).
+const FRESH_BULLETS := [
+	COUNTY45, STAR357, HOGLEG, RIOT_PUMP, TOMMY, GREASE_GUN, PATROL_BAR, MARKSMAN
+]
 
 ## The guns, in weapons.cfg's order (the constants above are the first
-## sixteen); a section added at the end of the file is a new gun.
-static var COUNT := 16
+## thirty); a section added at the end of the file is a new gun.
+static var COUNT := 30
 static var NAMES: Array = []
 ## Each gun's whole section: how it fires (Armory.fire reads it).
 static var FIRING: Array = []
@@ -56,6 +82,8 @@ static var SAVED_CAPACITY: Array = []
 static var CYCLE_GUNS: Array = []
 static var RECOVERY_GUNS: Array = []
 static var MUZZLE_GUNS: Array = []
+## Held and thrown as the dynamite is (weapons.cfg `thrown`).
+static var THROWN_GUNS: Array = []
 static var RELOAD_AUDIO := {}
 static var OPEN_AUDIO := {}
 
@@ -115,6 +143,7 @@ static func load_tuning() -> void:
 	CYCLE_GUNS = Tuning.entries(path, NAMES, "cycle").keys()
 	RECOVERY_GUNS = Tuning.entries(path, NAMES, "recovers").keys()
 	MUZZLE_GUNS = Tuning.entries(path, NAMES, "muzzle_flash").keys()
+	THROWN_GUNS = Tuning.entries(path, NAMES, "thrown").keys()
 	RELOAD_AUDIO = Tuning.entries(path, NAMES, "reload_sounds")
 	OPEN_AUDIO = Tuning.entries(path, NAMES, "open_sound")
 	CAPACITY = Tuning.table(path, NAMES, "capacity")
@@ -459,6 +488,8 @@ class Armory:
 			swing_hit = true
 		elif mode == "hitscan":
 			var spread: Vector2 = how.get("spread", Vector2.ZERO)
+			if player.scoped and how.has("scope_spread"):
+				spread = how["scope_spread"]
 			if how.has("heat_spread"):
 				spread += Vector2.ONE * float(how["heat_spread"]) * rifle_heat
 			var offsets: Array = [0.0]
@@ -583,6 +614,12 @@ class Armory:
 			if shot_age < .16:
 				return "kick"
 			return "idle" if reserve[Weapons.CROSSBOW] else "dry"
+		elif active in Weapons.THROWN_GUNS:
+			if shot_age < .065:
+				return "throw"
+			if shot_age < .16:
+				return "kick"
+			return "idle" if reserve[active] else "dry"
 		elif active == Weapons.RIPSAW and grinding and shot_age < .19:
 			return "grind_hot" if int(shot_age * 40) % 2 else "grind"
 		elif (

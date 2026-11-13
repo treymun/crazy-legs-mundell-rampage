@@ -600,6 +600,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	renderer.time = clock
 	renderer.layered = layered and gpu_look
 	Effects.rich = renderer.layered and Effects.enabled
+	Scope.focal(self, p)
 	if renderer.detail < 0 and (not renderer.layered or renderer.hd_held):
 		# HD is the display shader's: the software view draws at HIGH (as does
 		# the frame the start-up check looks at), and the next frame the shader
@@ -651,11 +652,14 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		weapon.place_muzzle(p, bob_scale, 12 if weapon_view == 1 else 0)
 	if c.gpu:
 		c.gpu_item(Canvas.ITEM_NORMAL_VIEW)
+	var scoped := p.scoped and p.health > 0
+	if scoped:
+		Scope.mask(c)  # under the features' marks (the 5v5 score and cash stay)
 	Features.draw_view(self, c)
 	if c.gpu:
 		c.gpu_item(Canvas.ITEM_NORMAL)
 	c.view_tint = gun_light() if c.gpu and Effects.enabled else Color(1, 1, 1)
-	if p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
+	if not scoped and p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
 		weapon.draw(
 			c.pixels,
 			art,

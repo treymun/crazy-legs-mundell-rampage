@@ -26,9 +26,11 @@ static func sprites(game) -> Array:
 		var direction := mini(4, int(absf(relative) / (PI / 4.0) + .5))
 		var step := int(q.walk_phase / PI) % 2 if q.motion > .1 and q.health > 0 else 0
 		var base := "player%s_%d" % [HEADINGS[direction], step]
-		var image: String = (
-			base if q.slot == 0 else game.art.tinted_art(base, Modes.TINTS[q.slot % 4])
-		)
+		var image := base
+		if Modes.is_tactical(game):
+			image = game.art.tinted_art(base, TacticalScreens.tint_for(game, q))
+		elif q.slot != 0:
+			image = game.art.tinted_art(base, Modes.TINTS[q.slot % Modes.TINTS.size()])
 		var floor_z: float = game.world.elevation(q.x, q.y)
 		var spr = game.pooled(q.x, q.y, image, 1.02 if q.health > 0 else .5, floor_z + q.air)
 		spr.flip = relative < 0.0 and direction < 4
@@ -115,6 +117,9 @@ static func draw_down(c: Canvas, game) -> void:
 	var st = Modes.feature(game)
 	var me: Player = game.local_player
 	var mode := Modes.mode_of(game)
+	if Modes.TACTICAL.has(mode):
+		TacticalScreens.draw_down(c, game)
+		return
 	HUD.panel(c, 47, 50, 226, 50, Canvas.rgb(43, 26, 22))
 	var since: float = game.clock - me.down_at if me.down_at >= 0.0 else 0.0
 	if mode == Modes.COOP:
@@ -166,19 +171,24 @@ static func results(c: Canvas, game) -> bool:
 			["RED", rules.team_score(game, 0), -1, -1], ["BLUE", rules.team_score(game, 1), -1, -1]
 		]
 		rows = named + rows
-	for i in mini(rows.size(), 6):
+	# The 5v5 modes list twelve rows: two teams and ten players, packed tighter.
+	var many := rows.size() > 6
+	var step := 7 if many else 13
+	var style := "mini" if many else "body"
+	for i in mini(rows.size(), 12):
 		var row: Array = rows[i]
-		var y := 85 + i * 13
-		c.fill_rect(21, y, 187, 12, PLATE)
+		var y := 84 + i * step
+		c.fill_rect(21, y, 187, step - 1, PLATE)
 		var slot := int(row[3])
-		var tone: Color = Modes.COLORS[slot % 4] if slot >= 0 else HUD.AMBER
+		var tone: Color = Modes.COLORS[slot % Modes.COLORS.size()] if slot >= 0 else HUD.AMBER
 		var name := String(row[0])
 		if slot >= 0 and slot == game.local_player.slot:
 			name += "  (YOU)"
-		HUD.text(c, name, 26, y + 2, "body", tone)
-		HUD.text(c, str(row[1]), 168, y + 2, "body", HUD.AMBER, false, true, true)
+		var lift := 1 if many else 2
+		HUD.text(c, name, 26, y + lift, style, tone)
+		HUD.text(c, str(row[1]), 168, y + lift, style, HUD.AMBER, false, true, true)
 		if int(row[2]) >= 0:
-			HUD.text(c, str(row[2]), 202, y + 2, "body", HUD.INK, false, true, true)
+			HUD.text(c, str(row[2]), 202, y + lift, style, HUD.INK, false, true, true)
 	_ribbon(c, rules.winner(game))
 	HUD.text(c, "ENTER  ANOTHER ROUND  /  ESC TITLE", 22, 172, "body", HUD.INK)
 	return true

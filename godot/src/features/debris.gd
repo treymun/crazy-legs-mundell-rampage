@@ -77,13 +77,28 @@ func _add(bit: Bit) -> void:
 
 
 func _fired(gun: int) -> void:
-	if gun == Weapons.RIFLE or gun == Weapons.RIVETER:
+	if gun in [Weapons.RIFLE, Weapons.RIVETER, Weapons.HUNTER, Weapons.MOWER]:
 		_eject("casing", 1)
+	elif (
+		gun
+		in [
+			Weapons.COUNTY45,
+			Weapons.TOMMY,
+			Weapons.GREASE_GUN,
+			Weapons.PATROL_BAR,
+			Weapons.MARKSMAN,
+		]
+	):
+		_eject("casing", 1)
+	elif gun == Weapons.RIOT_PUMP:
+		_eject("hull", 1, .5)
 
 
 func _reloading(gun: int) -> void:
-	if gun == Weapons.REVOLVER:
+	if gun == Weapons.REVOLVER or gun == Weapons.STAR357:
 		_eject("casing", 6, .4)
+	elif gun == Weapons.HOGLEG:
+		_eject("casing", 3, .3)
 	elif gun == Weapons.SHOTGUN:
 		_eject("hull", 2, .7)
 

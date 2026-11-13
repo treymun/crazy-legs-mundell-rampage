@@ -998,7 +998,7 @@ func _react(how: String, champion: bool, game, from_x: float, from_y: float) -> 
 	if how == "teat_gun":
 		soak = minf(1.0, soak + (.04 if champion else .14))
 		return
-	var r: Array = REACTIONS.get(how, [])
+	var r: Array = REACTIONS.get(how, HitZones.MORE_REACTIONS.get(how, []))
 	if r.is_empty():
 		return
 	var scale := (.25 if champion else 1.0) * float(Variants.STEADY.get(kind, 1.0))

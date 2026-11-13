@@ -31,7 +31,7 @@ func launch(
 		life,
 		enemy,
 		damage,
-		3 if kind == "blade" else 2 if kind == "bowling" else 0
+		3 if kind == "blade" else 2 if kind == "bowling" else 5 if Shots.rolls(kind) else 0
 	)
 	shot.owner = owner
 	shot.slot = player.slot
@@ -153,7 +153,7 @@ func hitscan(
 		return true
 	if not mate.is_empty():
 		_traced(ax, ay, slope, near, "enemy")
-		Modes.player_hit(self, mate[0], amount)
+		Modes.player_hit(self, mate[0], amount, "SHOT", float(mate[2]))
 		return true
 	if best != null:
 		_traced(ax, ay, slope, near, "enemy")
@@ -221,6 +221,9 @@ func hitscan(
 						armory.active == Weapons.REVOLVER
 						or armory.active == Weapons.RIFLE
 						or armory.active == Weapons.SHOTGUN
+						or armory.active == Weapons.HUNTER
+						or armory.active == Weapons.MOWER
+						or Weapons.FRESH_BULLETS.has(armory.active)
 					)
 				):
 					mark.image = Materials.hole(kind)
@@ -256,6 +259,9 @@ func hitscan(
 						or armory.active == Weapons.SHOTGUN
 						or armory.active == Weapons.RIVETER
 						or armory.active == Weapons.PRESSURE
+						or armory.active == Weapons.HUNTER
+						or armory.active == Weapons.MOWER
+						or Weapons.FRESH_BULLETS.has(armory.active)
 					)
 					and clock >= wall_sound
 				):
@@ -420,6 +426,9 @@ func drum_hit(point: Vector2, amount: float) -> void:
 
 
 func explode(shot: Shot) -> void:
+	if TacticalUtility.KINDS.has(shot.kind):
+		TacticalUtility.burst(self, shot)  # a flash, smoke, fire or a decoy
+		return
 	var x := shot.x
 	var y := shot.y
 	var z := maxf(.07, shot.z)
@@ -591,7 +600,7 @@ func move_shot(shot: Shot, dt: float) -> bool:
 	var steps := maxi(1, int(ceil(distance / .09)))
 	dt /= steps
 	var gravity := Shots.gravity(shot.kind)
-	var tnt := shot.kind == "tnt"
+	var tnt := shot.kind == "tnt" or Shots.rolls(shot.kind)
 	var rolls := (tnt or shot.kind == "bowling") and not shot.enemy
 	for _step in steps:
 		shot.life -= dt

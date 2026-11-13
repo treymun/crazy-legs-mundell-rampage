@@ -213,8 +213,25 @@ var layers_us := 0
 var view_shot := ""
 var cpu_look := false
 const MENU_STATES := [
-	"title", "setup", "slots", "replays", "controls", "credits", "rematch", "rematch_done"
+	"title",
+	"setup",
+	"slots",
+	"replays",
+	"controls",
+	"credits",
+	"rematch",
+	"rematch_done",
+	"showdown",
 ]
+## The title's 5V5 SHOWDOWN picker (TacticalScreens.draw_picker): the row the
+## cursor is on, the mode, map and match length picked, and whether the game
+## now is a match started from it (anything else from the title clears the
+## mode it set, so a campaign never starts as a 5v5).
+var showdown_row := 0
+var showdown_mode := 0
+var showdown_map := 0
+var showdown_long := 1
+var showdown_on := false
 
 var pad_down := {}
 
@@ -388,6 +405,8 @@ func _parse_smoke() -> void:
 			mode_options["frag_limit"] = maxi(1, int(text.substr(13)))
 		elif text.begins_with("--time-limit="):
 			mode_options["time_limit"] = maxf(10.0, float(text.substr(13)))
+		elif text.begins_with("--rounds="):
+			mode_options["rounds"] = clampi(int(text.substr(9)), 1, 16)
 		elif text.begins_with("--level="):
 			mode_level = text.substr(8)
 		elif text.begins_with("--smoke-screen="):
@@ -395,6 +414,12 @@ func _parse_smoke() -> void:
 			# credits, replays or slots; "setup:3" opens the fourth settings page
 			# ("setup:3:9" picks its tenth row), "title:4" the fifth title entry.
 			smoke_screen = text.substr(15)
+	if Modes.TACTICAL.has(mode_name):
+		# A 5v5 mode: five a side unless --players says, on a 5v5 map.
+		if mode_players < 2:
+			mode_players = Modes.MAX_PLAYERS
+		if not Modes.SHOWDOWN_MAPS.has(String(mode_options.get("arena", ""))):
+			mode_options["arena"] = Modes.SHOWDOWN_MAPS[0]
 	smoke = smoke_frames > 0
 	focused = true
 
@@ -496,6 +521,7 @@ func entries() -> PackedStringArray:
 			"REPLAY LEVEL",
 			"LEAVE RANGE" if in_range() else "FIRING RANGE",
 			"LEAVE REMATCH" if in_rematch() else "BOSS REMATCH",
+			"5V5 SHOWDOWN",
 			"SAVE SLOTS",
 			"SETUP",
 			"CONTROLS",
@@ -1185,6 +1211,10 @@ func render() -> void:
 		render_controls()
 	elif state == "credits":
 		render_credits()
+	elif state == "showdown":
+		TacticalScreens.draw_picker(
+			canvas, menu, showdown_row, showdown_mode, showdown_map, showdown_long
+		)
 	elif state == "rematch":
 		BossRematch.draw_board(
 			canvas,

@@ -15,6 +15,9 @@ const FOCAL := 230.0
 ## (weapons.gd, game_state.gd) works its slopes out with it too.
 const FOCAL_FOR := [230.0, 190.7, 160.0, 134.3]
 static var base_focal := FOCAL
+## The FIELD OF VIEW setting's focal; base_focal is this times a scope's
+## zoom while this machine's player has one up (game_view.gd _scope_focal).
+static var fov_focal := FOCAL
 ## VIEW DETAIL AUTO has dropped to LOW (main.gd _auto_detail); kept for the
 ## session so the next level starts where the last one settled.
 static var auto_low := false

@@ -1,0 +1,30 @@
+{
+ "text": "The hogs win the showdown!",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.2,
+   "end": 0.3
+  },
+  {
+   "text": "hogs",
+   "start": 0.36,
+   "end": 0.78
+  },
+  {
+   "text": "win",
+   "start": 0.88,
+   "end": 1.04
+  },
+  {
+   "text": "the",
+   "start": 1.08,
+   "end": 1.16
+  },
+  {
+   "text": "showdown!",
+   "start": 1.24,
+   "end": 1.94
+  }
+ ]
+}

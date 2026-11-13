@@ -35,6 +35,7 @@ const BLURBS := {
 	"FIRING RANGE": "EVERY GUN, ALL THE AMMO. GO LEARN 'EM.",
 	"LEAVE RANGE": "BACK TO THE TITLE. THE RANGE KEEPS NO SCORE.",
 	"BOSS REMATCH": "EVERY BOSS YOU BEAT, AGAIN, ON THE CLOCK.",
+	"5V5 SHOWDOWN": "FIVE A SIDE. PLANT IT OR SPRING 'EM.",
 	"LEAVE REMATCH": "BACK TO THE TITLE. NOTHING THERE IS KEPT.",
 	"SAVE SLOTS": "FOUR NAMED SAVES, APART FROM QUICKSAVE.",
 	"SETUP": "TUNE THE MOUSE, SCREEN, SOUND AND KEYS.",
@@ -207,6 +208,10 @@ static func title_items(entries: PackedStringArray) -> Array:
 			item["row"] = -1
 		else:
 			var column := 1 if OFFICE_IDS.has(id) else 0
+			# The showdown sits under the left column's entries while there is
+			# room (it comes last of them), else heads the right one.
+			if id == "5V5 SHOWDOWN" and counts[0] >= 5:
+				column = 1
 			item["column"] = column
 			item["row"] = counts[column]
 			item["rect"] = Rect2i(

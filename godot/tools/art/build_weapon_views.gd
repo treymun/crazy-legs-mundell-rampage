@@ -156,8 +156,16 @@ const WRIST := {
 	"ball": Vector2(202, 174)
 }
 const GUN_POSES := ["idle", "kick", "recover", "open", "eject", "load", "close"]
+## The 5v5 store's throwables: held and thrown as the dynamite is.
+const THROWN := ["flash_jar", "smudge_pot", "shine_cocktail", "firecracker_can"]
+## How big a throwable's own picture in flight is (pixels across).
+const THROWN_SPRITE := 22
 const POSES := {
 	"slingblade": ["idle", "wind", "strike", "follow", "recover"],
+	"flash_jar": ["idle", "kick", "throw", "dry"],
+	"smudge_pot": ["idle", "kick", "throw", "dry"],
+	"shine_cocktail": ["idle", "kick", "throw", "dry"],
+	"firecracker_can": ["idle", "kick", "throw", "dry"],
 	"tnt": ["idle", "kick", "throw", "lit", "lit_alt", "dry"],
 	"ripsaw": ["idle", "kick", "open", "eject", "load", "close", "grind", "grind_hot"],
 	"crossbow": ["idle", "kick", "open", "eject", "load", "close"]
@@ -214,6 +222,13 @@ func _init() -> void:
 			var cel: Paint.Sheet = made[0][pose]
 			Paint.digitize(kept_rows(cel)).save(out.path_join("gun_%s_%s.png" % [name, pose]))
 			count += 1
+		if THROWN.has(name):
+			# Its own small picture, for while it flies and lies about.
+			var raw_art := Paint.Sheet.load_png(raw.path_join(name + ".png"))
+			var piece := raw_art.cropped(raw_art.bbox(0).grow(2))
+			var k := float(THROWN_SPRITE) / maxf(piece.w, piece.h)
+			piece = piece.resized(maxi(1, roundi(piece.w * k)), maxi(1, roundi(piece.h * k)))
+			Paint.digitize(piece).save(out.path_join("fx_%s.png" % name))
 		if String(view["rig"]) in ["pistol", "long"]:
 			var points := {}
 			for pose in ["idle", "kick", "recover"]:
@@ -399,7 +414,7 @@ func cels(name: String, view: Dictionary, raw: String) -> Array:
 	var table: Dictionary = (
 		SWING
 		if name == "slingblade"
-		else THROW if name == "tnt" else CARRY if rig == "carry" else GUN
+		else THROW if name == "tnt" or THROWN.has(name) else CARRY if rig == "carry" else GUN
 	)
 	var out := {}
 	var fronts := {}
@@ -408,7 +423,10 @@ func cels(name: String, view: Dictionary, raw: String) -> Array:
 		# The bowling ball is carried low on the right, the keg in front of the belly.
 		var matrix := to_cel("ball" if name == "bowling_ball" else rig, entry[0], entry[1])
 		var source := held
-		if (rig == "carry" and not entry[2]) or (name == "tnt" and pose == "dry"):
+		if (
+			(rig == "carry" and not entry[2])
+			or ((name == "tnt" or THROWN.has(name)) and pose == "dry")
+		):
 			source = hands
 		var cel := lay(source, matrix)
 		var front: Vector2 = matrix * Vector2(view["front"][0], view["front"][1])

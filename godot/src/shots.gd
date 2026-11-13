@@ -42,6 +42,11 @@ static func glows(kind: String) -> bool:
 	return bool(KINDS.get(kind, {}).get("glow", false))
 
 
+## It bounces, rolls and rests till its life runs out, as thrown dynamite does.
+static func rolls(kind: String) -> bool:
+	return bool(KINDS.get(kind, {}).get("rolls", false))
+
+
 static func explodes(kind: String) -> bool:
 	return bool(KINDS.get(kind, {}).get("explodes", false))
 

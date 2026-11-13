@@ -9,9 +9,11 @@
 ##   Modes.rules(game).versus()
 ##
 ## The command line picks one for the front end: --mode=coop|deathmatch|
-## team_deathmatch, --players=<1..4> (the others played by tools/mode_bot.gd
-## from the project folder), --arena=<level>[:<boss kind>], --level=<chapter>,
-## --frag-limit=<n>, --time-limit=<seconds>.
+## team_deathmatch|bomb|hostage, --players=<1..10> (four at most outside the
+## 5v5 modes; the others played by tools/mode_bot.gd from the project folder,
+## or in the 5v5 modes by TacticalBot in any build), --arena=<level>[:<boss
+## kind>], --level=<chapter>, --frag-limit=<n>, --time-limit=<seconds>,
+## --rounds=<rounds to win>.
 class_name Modes
 extends RefCounted
 
@@ -19,20 +21,58 @@ const CAMPAIGN := "campaign"
 const COOP := "coop"
 const DEATHMATCH := "deathmatch"
 const TEAM := "team_deathmatch"
-const NAMES := [CAMPAIGN, COOP, DEATHMATCH, TEAM]
-const MAX_PLAYERS := 4
+## The 5v5 round modes (tactical_mode.gd): search and destroy, hostage rescue.
+const BOMB := "bomb"
+const HOSTAGE := "hostage"
+const NAMES := [CAMPAIGN, COOP, DEATHMATCH, TEAM, BOMB, HOSTAGE]
+const TACTICAL := [BOMB, HOSTAGE]
+const MAX_PLAYERS := 10
+## The older modes were written and checked for four players at most.
+const MAX_FREE_FOR_ALL := 4
 ## What each player is called on the HUD and their colour (indicator, tint).
-const TAGS := ["P1", "P2", "P3", "P4"]
+const TAGS := ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10"]
 const COLORS := [
-	Color8(251, 207, 142), Color8(120, 196, 255), Color8(160, 236, 92), Color8(240, 112, 96)
+	Color8(251, 207, 142),
+	Color8(120, 196, 255),
+	Color8(160, 236, 92),
+	Color8(240, 112, 96),
+	Color8(220, 160, 250),
+	Color8(250, 226, 120),
+	Color8(140, 240, 220),
+	Color8(250, 150, 200),
+	Color8(190, 190, 250),
+	Color8(230, 190, 140),
 ]
 ## The tint of each player's pictures (the second on is drawn in their colour).
-const TINTS := [[1.0, 1.0, 1.0], [.72, .9, 1.25], [.85, 1.2, .75], [1.25, .78, .7]]
+const TINTS := [
+	[1.0, 1.0, 1.0],
+	[.72, .9, 1.25],
+	[.85, 1.2, .75],
+	[1.25, .78, .7],
+	[1.1, .85, 1.25],
+	[1.25, 1.12, .7],
+	[.75, 1.2, 1.1],
+	[1.25, .82, 1.05],
+	[.95, .95, 1.25],
+	[1.2, 1.05, .8],
+]
 ## A player's hit on another counts this much of what it does to the county's
 ## hands (a revolver round 36 -> 18: about six to drop someone).
 const PVP_SCALE := .5
 ## Versus arenas: <level> or <level>:<boss kind> (that boss's arena box).
-const ARENAS := ["range", "hub", "hickston:boss", "hickston:jerry", "fair:rudy", "sawmill:foreman"]
+const ARENAS := [
+	"range",
+	"hub",
+	"hickston:boss",
+	"hickston:jerry",
+	"fair:rudy",
+	"sawmill:foreman",
+	"grainyard",
+	"holler",
+	"salvage",
+]
+## The 5v5 maps (tools/levels/<id>_plan.gd), each built for both round modes.
+const SHOWDOWN_MAPS := ["grainyard", "holler", "salvage"]
 
 static var _made := {}
 
@@ -47,6 +87,10 @@ static func rules_for(name: String) -> GameMode:
 				made = DeathmatchMode.new()
 			TEAM:
 				made = TeamDeathmatchMode.new()
+			BOMB:
+				made = BombMode.new()
+			HOSTAGE:
+				made = HostageMode.new()
 			_:
 				made = CampaignMode.new()
 		_made[name] = made
@@ -72,6 +116,11 @@ static func is_versus(game) -> bool:
 	return rules(game).versus()
 
 
+## A 5v5 round mode (search and destroy, hostage rescue).
+static func is_tactical(game) -> bool:
+	return TACTICAL.has(mode_of(game))
+
+
 static func tag(p: Player) -> String:
 	return String(TAGS[p.slot % TAGS.size()])
 
@@ -92,7 +141,8 @@ static func setup(game, name: String, count: int, options := {}) -> void:
 	st.arena = String(options.get("arena", ""))
 	st.frag_limit = int(options.get("frag_limit", st.frag_limit))
 	st.time_limit = float(options.get("time_limit", st.time_limit))
-	count = clampi(count, 1, MAX_PLAYERS)
+	st.rounds_to_win = clampi(int(options.get("rounds", st.rounds_to_win)), 1, 16)
+	count = clampi(count, 1, MAX_PLAYERS if TACTICAL.has(name) else MAX_FREE_FOR_ALL)
 	while game.players.size() < count:
 		join_beside(game, game.players[0])
 	for p: Player in game.players:
@@ -358,21 +408,27 @@ static func player_in_line(game, ax: float, ay: float, slope: float, spread: flo
 			and game.world.visible(me.x, me.y, q.x, q.y, me.eye, z)
 		):
 			near = d
-			out = [q, d]
+			out = [q, d, (z - feet) / (top - feet)]
 	return out
 
 
 ## The acting player's hit of `amount` (as it would hurt a hand) lands on
-## `victim`: scaled by PVP_SCALE and the mode's friendly fire, blamed on the
-## shooter (frags), with blood and the crosshair's mark.
-static func player_hit(game, victim: Player, amount: float, cause := "SHOT") -> void:
+## `victim`: the mode's damage (GameMode.pvp_damage: PVP_SCALE and friendly
+## fire; the 5v5 modes their own table, head and armour), blamed on the
+## shooter (frags), with blood and the crosshair's mark. `height` is where on
+## the body it struck (0 the feet, 1 the top of the head; -1 not known).
+static func player_hit(
+	game, victim: Player, amount: float, cause := "SHOT", height := -1.0
+) -> void:
 	var me: Player = game.player
-	var scale := rules(game).hurt_scale(game, me, victim, false) * PVP_SCALE
-	if scale <= 0.0 or victim.health <= 0:
+	if victim.health <= 0:
 		return
-	_blamed(game, me.slot, victim, amount * scale, [me.x, me.y], cause)
+	var dealt := rules(game).pvp_damage(game, me, victim, amount, game.armory.active, height)
+	if dealt <= 0.0:
+		return
+	_blamed(game, me.slot, victim, dealt, [me.x, me.y], cause)
 	game.burst(victim.x, victim.y, victim.eye - .3, "blood", 6, 1.2)
-	game.struck(amount * scale, victim.health <= 0, false)
+	game.struck(dealt, victim.health <= 0, false)
 
 
 ## A blast's bite on player `p` (game_combat.gd explode): a player's own blast
@@ -385,16 +441,11 @@ static func blast_hit(game, shot, p: Player, amount: int, cause: String) -> void
 		game.damage(amount, [shot.x, shot.y], cause, p)
 		return
 	var thrower: Player = game.players[shot.slot]
-	var scale := rules(game).hurt_scale(game, thrower, p, true)
-	if scale <= 0.0:
+	var dealt := rules(game).blast_damage(game, thrower, p, float(amount), String(shot.kind))
+	if dealt <= 0.0:
 		return
 	_blamed(
-		game,
-		shot.slot,
-		p,
-		maxf(1.0, float(amount) * scale),
-		[shot.x, shot.y],
-		cause if thrower == p else "BLAST"
+		game, shot.slot, p, maxf(1.0, dealt), [shot.x, shot.y], cause if thrower == p else "BLAST"
 	)
 
 
@@ -414,13 +465,44 @@ static func shot_strikes(game, shot, x: float, y: float, z: float) -> bool:
 			and feet - .05 < z
 			and z < feet + 1.08
 		):
-			var scale := rules(game).hurt_scale(game, thrower, q, false) * PVP_SCALE
-			if scale > 0.0 and shot.damage > 0:
-				_blamed(game, shot.slot, q, float(shot.damage) * scale, [x, y], "SHOT")
+			var dealt := 0.0
+			if shot.damage > 0:
+				dealt = (rules(game).pvp_damage(
+					game,
+					thrower,
+					q,
+					float(shot.damage),
+					shot_weapon(String(shot.kind)),
+					(z - feet) / 1.08
+				))
+			if dealt > 0.0:
+				_blamed(game, shot.slot, q, dealt, [x, y], "SHOT")
 				game.burst(q.x, q.y, z, "blood", 6, 1.2)
 			game.finish_shot(shot)
 			return true
 	return false
+
+
+## The gun a player's shot in flight came from, by the shot's kind (-1: none).
+static func shot_weapon(kind: String) -> int:
+	match kind:
+		"bolt":
+			return Weapons.CROSSBOW
+		"blade":
+			return Weapons.RIPSAW
+		"arm_bolt":
+			return Weapons.ARMGUN
+		"bottle_rocket":
+			return Weapons.ROCKET
+		"bowling":
+			return Weapons.BOWLING
+		"keg":
+			return Weapons.KEG
+		"cow":
+			return Weapons.COW
+		"tnt":
+			return Weapons.DYNAMITE
+	return -1
 
 
 static func _blamed(

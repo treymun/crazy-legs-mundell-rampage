@@ -5,11 +5,13 @@
 ##
 ##   godot --headless --path godot --script res://tools/art/build_gun_fx_art.gd [-- out=<dir>]
 ##
-##   fx_mf_<style>_<v>_<f>   muzzle flashes: style pistol, shotgun, rifle, forge,
+##   fx_mf_<style>_<v>_<f>   muzzle flashes: style pistol, shotgun, rifle, hunter, mower, forge,
 ##                           rocket, energy, steam; two of each (v), three frames
 ##   fx_boom_N (8)           a blast: the flash, the fireball rolling up, soot
 ##                           taking it over
 ##   fx_boomflash_N (2)      the white star of the moment it goes
+##   fx_smokecloud_N (4)     a thrown smoke pot's billow: thick, grey, opaque
+##   fx_flame_N (4)          a firebomb's flames licking up, four frames
 ##   fx_soot_N (4)           chunky black smoke for a blast's column and trails
 ##   fx_chunk_N (4)          a charred scrap tumbling (four turns)
 ##   mark_shock_N (3)        the dust ring a blast throws along the ground
@@ -72,6 +74,14 @@ const STYLES := {
 	"pistol": [6, .95, .10, .30, 0.0, 6, false, FIRE],
 	"shotgun": [11, 1.0, .15, .36, .62, 16, false, FIRE],
 	"rifle": [4, .8, .09, .24, 0.0, 5, true, FIRE],
+	"hunter": [6, 1.15, .11, .36, .42, 14, true, FIRE],
+	"mower": [4, .92, .1, .28, 0.0, 9, true, FIRE],
+	"auto45": [5, .8, .1, .28, 0.0, 5, false, FIRE],
+	"magnum": [8, 1.05, .12, .34, .3, 12, false, FIRE],
+	"pump": [9, .95, .14, .34, .5, 14, false, FIRE],
+	"smg": [4, .7, .08, .22, 0.0, 4, false, FIRE],
+	"bar": [4, .9, .1, .27, .2, 8, true, FIRE],
+	"marksman": [6, 1.0, .1, .32, .3, 10, true, FIRE],
 	"forge": [3, .55, .12, .32, .3, 24, false, FORGE],
 	"rocket": [5, .9, .2, .3, .78, 10, false, FIRE],
 	"energy": [5, .9, .07, .22, 0.0, 8, false, GREEN],
@@ -112,6 +122,9 @@ func _init() -> void:
 		_save(chunk(f), "fx_chunk_%d" % f)
 	for f in 3:
 		_save(shock(f), "mark_shock_%d" % f)
+	for f in 4:
+		_save(smokecloud(f), "fx_smokecloud_%d" % f)
+		_save(flame(f), "fx_flame_%d" % f)
 	for kind: String in HITS:
 		for f in 3:
 			_save(hit(kind, f), "fx_hit_%s_%d" % [kind, f])
@@ -168,7 +181,7 @@ func muzzle(style: String, variant: int, frame: int) -> Paint.Sheet:
 		var at := rng.randf_range(-PI, PI)
 		if style == "pistol" and k < 4:
 			at = k * PI / 2.0 + rng.randf_range(-.3, .3) + variant * .4
-		elif style == "rifle":
+		elif style in ["rifle", "mower", "smg", "bar"]:
 			at = k * PI / 2.0 + variant * .12
 		rays.append(
 			[
@@ -484,4 +497,58 @@ func hit(kind: String, frame: int) -> Paint.Sheet:
 				if kind == "wood" or k % 3 == 0:
 					var q: Vector2 = p - Vector2(cos(at), sin(at)) * 1.5
 					s.put(int(q.x), int(q.y), chip)
+	return s
+
+
+## A billow of a thrown smoke pot: a lumpy, near-solid ball of grey smoke,
+## lit from above, with a hard edge (it hides what is behind it).
+func smokecloud(variant: int) -> Paint.Sheet:
+	var n := 64
+	var s := Paint.Sheet.new(n, n)
+	var churn := Paint.cloud(n, 9100 + variant * 31, [4, 8, 16])
+	var fine := Paint.cloud(n, 9300 + variant * 17, [8, 16, 32])
+	var c := (n - 1) / 2.0
+	var tones := [
+		Color8(88, 90, 92),
+		Color8(112, 114, 114),
+		Color8(136, 138, 136),
+		Color8(160, 160, 156),
+		Color8(186, 184, 178),
+		Color8(208, 206, 198),
+	]
+	for y in n:
+		for x in n:
+			var dx := (x - c) / (n / 2.0)
+			var dy := (y - c) / (n / 2.0)
+			var r := sqrt(dx * dx + dy * dy * 1.1)
+			var i := y * n + x
+			var body := 1.0 - r + (churn[i] - .5) * .9 + (fine[i] - .5) * .25
+			if body < .08:
+				continue
+			# Lit from above: the top of each lump the palest.
+			var light := clampf(.55 - dy * .45 + (fine[i] - .5) * .5, 0.0, .999)
+			s.put(x, y, tones[int(light * tones.size())])
+	_rim(s, Color8(150, 150, 146))
+	return s
+
+
+## A firebomb's flames, one frame of four: tongues licking up from a hot
+## bed, yellow at the root, orange, red at the tips, ragged at the top.
+func flame(frame: int) -> Paint.Sheet:
+	var w := 40
+	var h := 56
+	var s := Paint.Sheet.new(w, h)
+	var churn := Paint.cloud(64, 9500 + frame * 13, [4, 8, 16])
+	var ramp: Array = FIRE.slice(2)
+	for x in w:
+		var u := (x - (w - 1) / 2.0) / (w / 2.0)
+		var tongue := .55 + .45 * sin(x * .55 + frame * 1.7) * sin(x * .23 + frame * .9)
+		var top := (1.0 - u * u) * (.55 + .45 * tongue)
+		for y in h:
+			var v := 1.0 - float(y) / (h - 1)
+			var wobble := (churn[(y % 64) * 64 + (x * 3 + frame * 7) % 64] - .5) * .3
+			var heat := (top + wobble - v) / maxf(.05, top)
+			if heat <= 0.0:
+				continue
+			s.put(x, y, _step(ramp, clampf(.12 + heat * .66 - v * .1, 0.0, .78)))
 	return s

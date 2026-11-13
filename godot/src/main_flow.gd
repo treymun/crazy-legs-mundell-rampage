@@ -102,6 +102,14 @@ func _take_mode(target: Game) -> void:
 	if Modes.mode_of(target) == Modes.COOP:
 		Modes.gather(target)
 	pilots.clear()
+	if Modes.is_tactical(target):
+		# The 5v5 modes' own bots play everyone else, in any build.
+		TacticalScreens.reset()
+		TacticalScreens.human = target.local_player.slot
+		for p: Player in target.players:
+			if p != target.local_player:
+				pilots[p.slot] = TacticalBot.new(p.slot)
+		return
 	if target.players.size() < 2 or not DevConsole.available():
 		return
 	var script = load("res://tools/mode_bot.gd") if FileAccess.file_exists(BOT) else null
@@ -112,6 +120,20 @@ func _take_mode(target: Game) -> void:
 			var pilot = script.new()
 			pilot.as_controls = true
 			pilots[p.slot] = pilot
+
+
+## The title's 5V5 SHOWDOWN: the match picked there, this machine's player
+## and four bots against five.
+func start_showdown() -> void:
+	mode_name = String(Modes.TACTICAL[posmod(showdown_mode, Modes.TACTICAL.size())])
+	mode_players = Modes.MAX_PLAYERS
+	mode_options = {
+		"arena": String(Modes.SHOWDOWN_MAPS[posmod(showdown_map, Modes.SHOWDOWN_MAPS.size())]),
+		"rounds": int(TacticalScreens.MATCH_LENGTHS[posmod(showdown_long, 2)]),
+	}
+	showdown_on = true
+	sound.play("menu_accept")
+	start_match()
 
 
 ## Starts the versus match --mode asked for, in its arena (Modes.ARENAS).
@@ -401,6 +423,16 @@ func menu_action() -> void:
 		leave_range()
 	if in_rematch() and not entry in staying:
 		leave_rematch()  # likewise a rematch
+	if showdown_on and not entry in ["RESUME", "SETUP", "CONTROLS", "CREDITS", "QUIT"]:
+		# A 5v5 match was the game: what comes next is not one.
+		showdown_on = false
+		mode_name = ""
+		mode_players = 1
+		mode_options = {}
+	if entry == "5V5 SHOWDOWN":
+		state = "showdown"
+		sound.play("menu_accept")
+		return
 	if entry == "LEAVE RANGE":
 		return_to_title()
 		menu_note = "BACK FROM THE RANGE. NOTHING THERE WAS SAVED."

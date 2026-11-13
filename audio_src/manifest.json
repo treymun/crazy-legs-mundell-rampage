@@ -341,6 +341,544 @@
    },
    "validation": "ok"
   },
+  "hunter": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hunter.mp3",
+   "prompt": "A single high-powered .30-06 bolt-action hunting rifle shot, close microphone, outdoors: an enormous sharp supersonic crack over a deep booming thump, heavy and authoritative, dry, no echo.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/hunter.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      110,
+      50,
+      0.12
+     ],
+     "body": 0.09,
+     "crack": 1.0,
+     "tail": 0.3
+    },
+    "level": "-2.5 dB (set for this cue)",
+    "keep_seconds": 0.7
+   },
+   "measured": {
+    "seconds": 0.7,
+    "peak_db": -0.8,
+    "loud_db": -4.0,
+    "dc": 0.0006,
+    "onset_ms": 0.0,
+    "centroid_hz": 785,
+    "end_db": -117.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mower": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/mower.mp3",
+   "prompt": "A single shot from a belt-fed light machine gun, close microphone: short heavy punchy crack with a deep chunky thump and a metallic belt clatter, dry.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/mower.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      130,
+      60,
+      0.045
+     ],
+     "body": 0.04,
+     "crack": 0.85,
+     "tail": 0.06,
+     "clack": 0.35
+    },
+    "level": "-4.5 dB (set for this cue)",
+    "keep_seconds": 0.2
+   },
+   "measured": {
+    "seconds": 0.2,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.008,
+    "onset_ms": 0.0,
+    "centroid_hz": 1870,
+    "end_db": -100.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mower_alt": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/mower_alt.mp3",
+   "prompt": "One round from a heavy belt-fed machine gun, close and loud: hard crack, chunky low thud and a rattle of links, dry.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/mower_alt.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      124,
+      58,
+      0.05
+     ],
+     "body": 0.042,
+     "crack": 0.8,
+     "tail": 0.065,
+     "clack": 0.4,
+     "seed": 23
+    },
+    "level": "-4.5 dB (set for this cue)",
+    "keep_seconds": 0.2
+   },
+   "measured": {
+    "seconds": 0.2,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.0018,
+    "onset_ms": 1.1,
+    "centroid_hz": 834,
+    "end_db": -86.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "county45": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/county45.mp3",
+   "prompt": "A single .45 ACP semi-automatic service pistol shot, close microphone: a deep round boom with a sharp crack and the slide snapping back, dry, no echo.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/county45.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      140,
+      64,
+      0.07
+     ],
+     "body": 0.06,
+     "crack": 0.85,
+     "tail": 0.12,
+     "clack": 0.3
+    },
+    "level": "-3.5 dB (set for this cue)",
+    "keep_seconds": 0.4
+   },
+   "measured": {
+    "seconds": 0.4,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0101,
+    "onset_ms": 0.0,
+    "centroid_hz": 271,
+    "end_db": -92.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "star357": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/star357.mp3",
+   "prompt": "A single .357 Magnum revolver shot, close microphone: a very loud, sharp, ringing crack with a heavy concussive blast, dry, no echo.",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/star357.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      130,
+      56,
+      0.09
+     ],
+     "body": 0.08,
+     "crack": 1.0,
+     "tail": 0.2
+    },
+    "level": "-2.5 dB (set for this cue)",
+    "keep_seconds": 0.52
+   },
+   "measured": {
+    "seconds": 0.52,
+    "peak_db": -0.8,
+    "loud_db": -3.7,
+    "dc": 0.0014,
+    "onset_ms": 0.5,
+    "centroid_hz": 505,
+    "end_db": -119.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hogleg": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hogleg.mp3",
+   "prompt": "A single shot from an old .44 single-action black powder revolver: a big booming roar with a smoky low thump and a hard crack, dry.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/hogleg.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      105,
+      48,
+      0.12
+     ],
+     "body": 0.1,
+     "crack": 0.85,
+     "tail": 0.28
+    },
+    "level": "-2.5 dB (set for this cue)",
+    "keep_seconds": 0.6
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -3.8,
+    "dc": 0.0007,
+    "onset_ms": 0.0,
+    "centroid_hz": 543,
+    "end_db": -119.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "riot_pump": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/riot_pump.mp3",
+   "prompt": "A single 12 gauge pump-action shotgun blast, close microphone: a heavy deep boom and crack, then the pump racked back and forward with a solid double clack.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/riot_pump.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "lead_trimmed_ms": 8,
+    "punch": {
+     "thump": [
+      118,
+      44,
+      0.13
+     ],
+     "body": 0.11,
+     "crack": 0.9,
+     "tail": 0.32
+    },
+    "level": "-1.5 dB (set for this cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.931,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0002,
+    "onset_ms": 2.6,
+    "centroid_hz": 542,
+    "end_db": -129.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "tommy": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/tommy.mp3",
+   "prompt": "A single shot from a drum-fed .45 submachine gun, close microphone: a deep round thump and a quick hard crack with a heavy bolt clack, dry.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/tommy.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      136,
+      62,
+      0.045
+     ],
+     "body": 0.04,
+     "crack": 0.75,
+     "tail": 0.06,
+     "clack": 0.35
+    },
+    "level": "-5.0 dB (set for this cue)",
+    "keep_seconds": 0.2
+   },
+   "measured": {
+    "seconds": 0.2,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0031,
+    "onset_ms": 0.0,
+    "centroid_hz": 1027,
+    "end_db": -90.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "grease_gun": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/grease_gun.mp3",
+   "prompt": "A single shot from a stamped steel submachine gun, close microphone: a low chuffing pop with a tinny rattle of the bolt, dry.",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/grease_gun.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      150,
+      70,
+      0.04
+     ],
+     "body": 0.035,
+     "crack": 0.7,
+     "tail": 0.05,
+     "clack": 0.45,
+     "seed": 7
+    },
+    "level": "-5.0 dB (set for this cue)",
+    "keep_seconds": 0.2
+   },
+   "measured": {
+    "seconds": 0.2,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0007,
+    "onset_ms": 0.0,
+    "centroid_hz": 810,
+    "end_db": -89.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "patrol_bar": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/patrol_bar.mp3",
+   "prompt": "A single shot from a heavy .30-06 automatic rifle, close microphone: a big hard crack and a deep chest-thumping boom with a clanking bolt, dry.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/patrol_bar.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      125,
+      58,
+      0.06
+     ],
+     "body": 0.05,
+     "crack": 0.95,
+     "tail": 0.09,
+     "clack": 0.3
+    },
+    "level": "-4.0 dB (set for this cue)",
+    "keep_seconds": 0.3
+   },
+   "measured": {
+    "seconds": 0.3,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.0022,
+    "onset_ms": 0.0,
+    "centroid_hz": 796,
+    "end_db": -97.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "marksman": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/marksman.mp3",
+   "prompt": "A single shot from a semi-automatic .308 marksman rifle, close microphone: a sharp supersonic crack and a solid boom with the action cycling, dry.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/marksman.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "punch": {
+     "thump": [
+      118,
+      52,
+      0.1
+     ],
+     "body": 0.08,
+     "crack": 1.0,
+     "tail": 0.24,
+     "clack": 0.2
+    },
+    "level": "-3.0 dB (set for this cue)",
+    "keep_seconds": 0.55
+   },
+   "measured": {
+    "seconds": 0.55,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0019,
+    "onset_ms": 0.0,
+    "centroid_hz": 589,
+    "end_db": -119.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "armgun": {
    "purpose": "player fires armgun (sound.play, centred)",
    "refs": [
@@ -959,6 +1497,1029 @@
    },
    "validation": "ok"
   },
+  "flash_jar": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/flash_jar.mp3",
+   "prompt": "A glass mason jar lobbed overhand: a quick cloth whoosh and a hiss of a lit fuse.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/flash_jar.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.5,
+    "peak_db": -0.8,
+    "loud_db": -7.9,
+    "dc": 0.0076,
+    "onset_ms": 0.0,
+    "centroid_hz": 319,
+    "end_db": -114.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "smudge_pot": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/smudge_pot.mp3",
+   "prompt": "A heavy paint can heaved underhand: a wire bail rattle and a sloshing whoosh.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/smudge_pot.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "lead_trimmed_ms": 14,
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.5,
+    "peak_db": -0.8,
+    "loud_db": -8.5,
+    "dc": 0.0005,
+    "onset_ms": 0.9,
+    "centroid_hz": 762,
+    "end_db": -134.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "shine_cocktail": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/shine_cocktail.mp3",
+   "prompt": "A lit bottle of moonshine thrown: liquid sloshing, a rag flame fluttering and a whoosh.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/shine_cocktail.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.5,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0027,
+    "onset_ms": 0.0,
+    "centroid_hz": 344,
+    "end_db": -125.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "firecracker_can": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "report",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/firecracker_can.mp3",
+   "prompt": "A tin can tossed: a tinny rattle and a fizzing fuse.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/firecracker_can.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "report",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.5,
+     "pres": 3.5,
+     "fade": 0.35,
+     "level": -1.0,
+     "drive": 1.6
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 0.45
+   },
+   "measured": {
+    "seconds": 0.45,
+    "peak_db": -0.8,
+    "loud_db": -10.3,
+    "dc": 0.0005,
+    "onset_ms": 0.0,
+    "centroid_hz": 7373,
+    "end_db": -129.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "flash_bang": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/flash_bang.mp3",
+   "prompt": "A flash grenade goes off: one deafening sharp bang with a bright crackling snap, then high ringing.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/flash_bang.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 0.9
+   },
+   "measured": {
+    "seconds": 0.9,
+    "peak_db": -0.8,
+    "loud_db": -7.0,
+    "dc": 0.0012,
+    "onset_ms": 0.0,
+    "centroid_hz": 1236,
+    "end_db": -139.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "smoke_hiss": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/smoke_hiss.mp3",
+   "prompt": "A smoke bomb pops and pours out thick smoke: a loud rushing hiss and a soft billowing roar.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/smoke_hiss.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.8,
+    "peak_db": -0.8,
+    "loud_db": -4.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 4364,
+    "end_db": -156.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "molotov_burst": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/molotov_burst.mp3",
+   "prompt": "A bottle of moonshine smashes and bursts into flame: glass breaking and a big whooshing fireball.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/molotov_burst.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -10.0,
+    "dc": 0.0007,
+    "onset_ms": 0.0,
+    "centroid_hz": 7347,
+    "end_db": -162.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ear_ring": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/ear_ring.mp3",
+   "prompt": "A high, piercing ear-ringing tinnitus tone after a loud blast, fading slowly.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/ear_ring.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.8,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0013,
+    "onset_ms": 0.0,
+    "centroid_hz": 7402,
+    "end_db": -107.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bomb_beep": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/bomb_beep.mp3",
+   "prompt": "One short sharp electronic beep from a timer.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/bomb_beep.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "lead_trimmed_ms": 42,
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 0.14
+   },
+   "measured": {
+    "seconds": 0.14,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0022,
+    "onset_ms": 14.0,
+    "centroid_hz": 4494,
+    "end_db": -63.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bomb_arm": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/bomb_arm.mp3",
+   "prompt": "A homemade bomb being armed: a toggle switch flicked, two beeps and a fuse lit.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/bomb_arm.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 0.8
+   },
+   "measured": {
+    "seconds": 0.8,
+    "peak_db": -0.8,
+    "loud_db": -3.6,
+    "dc": 0.0018,
+    "onset_ms": 0.0,
+    "centroid_hz": 447,
+    "end_db": -124.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "fuse_cut": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "boom",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/fuse_cut.mp3",
+   "prompt": "Wire snips cutting a thick fuse wire: one decisive metal snip and a spark fizzling out.",
+   "credits": 9,
+   "destination": "audio_src/final/sfx/fuse_cut.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "boom",
+    "chain": {
+     "hp": 30,
+     "lp": 9500,
+     "low": 4.0,
+     "pres": 0.0,
+     "fade": 0.4,
+     "level": -1.0,
+     "drive": 1.8
+    },
+    "lead_trimmed_ms": 73,
+    "level": "-1.0 dB (new cue)",
+    "keep_seconds": 0.5
+   },
+   "measured": {
+    "seconds": 0.5,
+    "peak_db": -0.8,
+    "loud_db": -15.8,
+    "dc": 0.0002,
+    "onset_ms": 29.0,
+    "centroid_hz": 7841,
+    "end_db": -139.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_flash_jar": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_flash_jar.mp3",
+   "prompt": "A glass mason jar picked up: glass clink and a zinc lid tick.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_flash_jar.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.527,
+    "peak_db": -0.8,
+    "loud_db": -10.5,
+    "dc": 0.0008,
+    "onset_ms": 20.8,
+    "centroid_hz": 2280,
+    "end_db": -151.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_smudge_pot": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_smudge_pot.mp3",
+   "prompt": "A metal paint can lifted by its wire bail: a squeak and a hollow knock.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_smudge_pot.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -8.9,
+    "dc": 0.001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1481,
+    "end_db": -118.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_shine_cocktail": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_shine_cocktail.mp3",
+   "prompt": "A bottle of moonshine picked up and its rag lit with a lighter: slosh, flick and a whoomp of flame.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_shine_cocktail.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 28,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.572,
+    "peak_db": -0.8,
+    "loud_db": -10.5,
+    "dc": 0.0018,
+    "onset_ms": 0.0,
+    "centroid_hz": 623,
+    "end_db": -144.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_firecracker_can": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_firecracker_can.mp3",
+   "prompt": "A tin can of firecrackers picked up: tinny rattle and paper rustle.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_firecracker_can.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -14.9,
+    "dc": 0.0001,
+    "onset_ms": 0.4,
+    "centroid_hz": 3727,
+    "end_db": -140.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_flash_jar": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_tnt",
+   "source": "audio_src/generated/sfx/dry_tnt.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_flash_jar.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "derived": "dry_tnt retuned +300 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.404,
+    "peak_db": -0.8,
+    "loud_db": -15.3,
+    "dc": 0.0007,
+    "onset_ms": 8.1,
+    "centroid_hz": 669,
+    "end_db": -141.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_smudge_pot": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_tnt",
+   "source": "audio_src/generated/sfx/dry_tnt.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_smudge_pot.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "derived": "dry_tnt retuned -200 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.539,
+    "peak_db": -0.8,
+    "loud_db": -12.0,
+    "dc": 0.0031,
+    "onset_ms": 10.4,
+    "centroid_hz": 623,
+    "end_db": -139.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_shine_cocktail": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_tnt",
+   "source": "audio_src/generated/sfx/dry_tnt.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_shine_cocktail.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "derived": "dry_tnt retuned +100 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.453,
+    "peak_db": -0.8,
+    "loud_db": -12.7,
+    "dc": 0.0029,
+    "onset_ms": 8.5,
+    "centroid_hz": 679,
+    "end_db": -137.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_firecracker_can": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_tnt",
+   "source": "audio_src/generated/sfx/dry_tnt.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_firecracker_can.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "derived": "dry_tnt retuned +500 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.36,
+    "peak_db": -0.8,
+    "loud_db": -15.7,
+    "dc": 0.0007,
+    "onset_ms": 7.0,
+    "centroid_hz": 715,
+    "end_db": -140.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_defused": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_defused.mp3",
+   "prompt": "Fuse is cut!",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/ann_defused.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.34
+    ],
+    "natural_seconds": 1.277,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.277
+   },
+   "measured": {
+    "seconds": 1.447,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0048,
+    "onset_ms": 15.4,
+    "centroid_hz": 1159,
+    "end_db": -120.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_hostage_out": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_hostage_out.mp3",
+   "prompt": "Hostage is out!",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/ann_hostage_out.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.58
+    ],
+    "natural_seconds": 1.549,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.549
+   },
+   "measured": {
+    "seconds": 1.719,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0001,
+    "onset_ms": 8.6,
+    "centroid_hz": 1792,
+    "end_db": -123.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_outlaws": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_outlaws.mp3",
+   "prompt": "Outlaws take it!",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/ann_outlaws.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     1.58
+    ],
+    "natural_seconds": 1.501,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.501
+   },
+   "measured": {
+    "seconds": 1.671,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0017,
+    "onset_ms": 0.0,
+    "centroid_hz": 1355,
+    "end_db": -128.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_deputies": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_deputies.mp3",
+   "prompt": "Deputies take it!",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/ann_deputies.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.92
+    ],
+    "natural_seconds": 1.819,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.819
+   },
+   "measured": {
+    "seconds": 1.989,
+    "peak_db": -0.8,
+    "loud_db": -3.9,
+    "dc": 0.0053,
+    "onset_ms": 17.9,
+    "centroid_hz": 1305,
+    "end_db": -131.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_half": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_half.mp3",
+   "prompt": "Switch sides, partners!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/ann_half.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.48
+    ],
+    "natural_seconds": 1.543,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.543
+   },
+   "measured": {
+    "seconds": 1.713,
+    "peak_db": -0.8,
+    "loud_db": -4.0,
+    "dc": 0.001,
+    "onset_ms": 93.7,
+    "centroid_hz": 1082,
+    "end_db": -122.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_last.mp3",
+   "prompt": "You're the last one standing!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/ann_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.02
+    ],
+    "natural_seconds": 1.939,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.939
+   },
+   "measured": {
+    "seconds": 2.109,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.0082,
+    "onset_ms": 25.9,
+    "centroid_hz": 1288,
+    "end_db": -125.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_gators_win": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_gators_win.mp3",
+   "prompt": "The Gators win the showdown!",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/ann_gators_win.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.54,
+     2.2
+    ],
+    "natural_seconds": 1.699,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.699
+   },
+   "measured": {
+    "seconds": 1.869,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0032,
+    "onset_ms": 5.4,
+    "centroid_hz": 1246,
+    "end_db": -131.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "dry_revolver": {
    "purpose": "fire with empty revolver and no reload possible",
    "refs": [
@@ -1466,6 +3027,386 @@
     "onset_ms": 0.0,
     "centroid_hz": 591,
     "end_db": -84.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_hunter": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/dry_hunter.mp3",
+   "prompt": "A bolt-action rifle's firing pin falls on an empty chamber: one crisp heavy click.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/dry_hunter.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.48,
+    "peak_db": -0.8,
+    "loud_db": -17.9,
+    "dc": 0.0001,
+    "onset_ms": 0.4,
+    "centroid_hz": 7138,
+    "end_db": -131.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_mower": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/dry_mower.mp3",
+   "prompt": "A machine gun's bolt slams forward on an empty feed tray: hollow metal clunk.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/dry_mower.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.48,
+    "peak_db": -0.8,
+    "loud_db": -9.8,
+    "dc": 0.0007,
+    "onset_ms": 0.0,
+    "centroid_hz": 1371,
+    "end_db": -132.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_county45": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/dry_county45.mp3",
+   "prompt": "A semi-automatic pistol with its slide locked back clicks on empty: a hollow small metal snap.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/dry_county45.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "lead_trimmed_ms": 18,
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.462,
+    "peak_db": -0.8,
+    "loud_db": -11.2,
+    "dc": 0.0008,
+    "onset_ms": 1.0,
+    "centroid_hz": 3772,
+    "end_db": -140.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_riot_pump": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/dry_riot_pump.mp3",
+   "prompt": "A pump shotgun's trigger pulled on an empty chamber: a heavy single click.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/dry_riot_pump.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "lead_trimmed_ms": 1,
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.479,
+    "peak_db": -0.8,
+    "loud_db": -11.7,
+    "dc": 0.0018,
+    "onset_ms": 2.1,
+    "centroid_hz": 3745,
+    "end_db": -152.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_star357": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_revolver",
+   "source": "audio_src/generated/sfx/dry_revolver.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_star357.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "derived": "dry_revolver retuned -200 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.439,
+    "peak_db": -0.8,
+    "loud_db": -17.3,
+    "dc": 0.0,
+    "onset_ms": 10.2,
+    "centroid_hz": 6663,
+    "end_db": -150.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_hogleg": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_revolver",
+   "source": "audio_src/generated/sfx/dry_revolver.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_hogleg.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "derived": "dry_revolver retuned -400 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.492,
+    "peak_db": -0.8,
+    "loud_db": -15.7,
+    "dc": 0.0,
+    "onset_ms": 25.0,
+    "centroid_hz": 6294,
+    "end_db": -157.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_tommy": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_rifle",
+   "source": "audio_src/generated/sfx/dry_rifle.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_tommy.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "lead_trimmed_ms": 41,
+    "derived": "dry_rifle retuned -200 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.462,
+    "peak_db": -0.8,
+    "loud_db": -21.1,
+    "dc": 0.0,
+    "onset_ms": 14.2,
+    "centroid_hz": 4601,
+    "end_db": -162.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_grease_gun": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_rifle",
+   "source": "audio_src/generated/sfx/dry_rifle.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_grease_gun.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "lead_trimmed_ms": 47,
+    "derived": "dry_rifle retuned -350 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.501,
+    "peak_db": -0.8,
+    "loud_db": -20.5,
+    "dc": 0.0,
+    "onset_ms": 12.8,
+    "centroid_hz": 4379,
+    "end_db": -161.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_patrol_bar": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_mower",
+   "source": "audio_src/generated/sfx/dry_mower.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_patrol_bar.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "derived": "dry_mower retuned +200 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.428,
+    "peak_db": -0.8,
+    "loud_db": -9.7,
+    "dc": 0.0005,
+    "onset_ms": 0.0,
+    "centroid_hz": 1497,
+    "end_db": -131.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "dry_marksman": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "dry",
+   "origin": "derived from dry_hunter",
+   "source": "audio_src/generated/sfx/dry_hunter.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/dry_marksman.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "dry",
+    "chain": {
+     "hp": 180,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.3,
+     "level": -9.0
+    },
+    "derived": "dry_hunter retuned +200 cents",
+    "level": "-9.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.428,
+    "peak_db": -0.8,
+    "loud_db": -17.6,
+    "dc": 0.0002,
+    "onset_ms": 0.1,
+    "centroid_hz": 6988,
+    "end_db": -127.7,
     "problems": []
    },
    "validation": "ok"
@@ -2094,6 +4035,382 @@
     "onset_ms": 1.3,
     "centroid_hz": 4569,
     "end_db": -97.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_hunter": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_hunter.mp3",
+   "prompt": "A heavy scoped hunting rifle shouldered: wooden stock knock, sling buckle jingle and a bolt handle click.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_hunter.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 45,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.555,
+    "peak_db": -0.8,
+    "loud_db": -15.7,
+    "dc": 0.0005,
+    "onset_ms": 27.4,
+    "centroid_hz": 289,
+    "end_db": -149.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_mower": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_mower.mp3",
+   "prompt": "A heavy belt-fed machine gun hefted up: steel clank, ammo belt links jingling and a charging handle yanked back.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_mower.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 33,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.567,
+    "peak_db": -0.8,
+    "loud_db": -14.6,
+    "dc": 0.0001,
+    "onset_ms": 29.4,
+    "centroid_hz": 4203,
+    "end_db": -158.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_county45": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_county45.mp3",
+   "prompt": "A service pistol drawn from a stiff leather holster and its slide racked: snap, slide and click.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_county45.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 20,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.355,
+    "peak_db": -0.8,
+    "loud_db": -17.3,
+    "dc": 0.0,
+    "onset_ms": 20.8,
+    "centroid_hz": 4397,
+    "end_db": -145.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_star357": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_star357.mp3",
+   "prompt": "A big stainless revolver drawn and its cylinder clicked shut: leather slide and a firm click.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_star357.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 33,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.42,
+    "peak_db": -0.8,
+    "loud_db": -14.9,
+    "dc": 0.0,
+    "onset_ms": 28.3,
+    "centroid_hz": 5729,
+    "end_db": -158.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_hogleg": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_hogleg.mp3",
+   "prompt": "An old single-action revolver spun and cocked: a quick whirr and a loud ratcheting four-click hammer cock.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_hogleg.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -17.3,
+    "dc": 0.0006,
+    "onset_ms": 0.0,
+    "centroid_hz": 6122,
+    "end_db": -129.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_riot_pump": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_riot_pump.mp3",
+   "prompt": "A pump shotgun brought up and racked: a deep double clack-clack.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_riot_pump.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 12,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.588,
+    "peak_db": -0.8,
+    "loud_db": -15.4,
+    "dc": 0.0,
+    "onset_ms": 14.9,
+    "centroid_hz": 3433,
+    "end_db": -151.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_tommy": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_tommy.mp3",
+   "prompt": "A heavy drum-fed submachine gun hefted and its bolt cocked: a wooden knock and a hard metal clack.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_tommy.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 21,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.579,
+    "peak_db": -0.8,
+    "loud_db": -14.6,
+    "dc": 0.0001,
+    "onset_ms": 29.4,
+    "centroid_hz": 3622,
+    "end_db": -148.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_grease_gun": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_grease_gun.mp3",
+   "prompt": "A rusty stamped steel submachine gun picked up and its crank turned: tinny rattle and a ratchet.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_grease_gun.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -18.8,
+    "dc": 0.0,
+    "onset_ms": 20.7,
+    "centroid_hz": 7285,
+    "end_db": -148.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_patrol_bar": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_patrol_bar.mp3",
+   "prompt": "A heavy automatic rifle shouldered and its charging handle pulled: wood knock and a big steel clack.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_patrol_bar.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.6,
+    "peak_db": -0.8,
+    "loud_db": -19.1,
+    "dc": 0.0,
+    "onset_ms": 3.0,
+    "centroid_hz": 1599,
+    "end_db": -148.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "equip_marksman": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "equip",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/equip_marksman.mp3",
+   "prompt": "A scoped semi-automatic rifle raised and the scope caps flipped open: two plastic snaps and a metal click.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/equip_marksman.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "equip",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.574,
+    "peak_db": -0.8,
+    "loud_db": -15.5,
+    "dc": 0.0008,
+    "onset_ms": 12.3,
+    "centroid_hz": 3816,
+    "end_db": -104.3,
     "problems": []
    },
    "validation": "ok"
@@ -3440,6 +5757,715 @@
     "onset_ms": 0.0,
     "centroid_hz": 5031,
     "end_db": -120.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "pistol_mag_out": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/pistol_mag_out.mp3",
+   "prompt": "A pistol magazine dropped free from the grip: a quick metal slide.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/pistol_mag_out.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.48,
+    "peak_db": -0.8,
+    "loud_db": -15.8,
+    "dc": 0.001,
+    "onset_ms": 0.0,
+    "centroid_hz": 3075,
+    "end_db": -131.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "pistol_mag_in": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/pistol_mag_in.mp3",
+   "prompt": "A pistol magazine slapped home into the grip: a firm click.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/pistol_mag_in.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.452,
+    "peak_db": -0.8,
+    "loud_db": -15.1,
+    "dc": 0.0,
+    "onset_ms": 22.0,
+    "centroid_hz": 3364,
+    "end_db": -157.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "slide_rack": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/slide_rack.mp3",
+   "prompt": "A pistol slide racked back and released: a sharp double metallic snap.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/slide_rack.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.453,
+    "peak_db": -0.8,
+    "loud_db": -15.9,
+    "dc": 0.0,
+    "onset_ms": 9.6,
+    "centroid_hz": 3685,
+    "end_db": -149.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hogleg_gate": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hogleg_gate.mp3",
+   "prompt": "An old revolver's loading gate flicked open and the cylinder clicked round: small brass clicks.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/hogleg_gate.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.47,
+    "peak_db": -0.8,
+    "loud_db": -22.2,
+    "dc": 0.0001,
+    "onset_ms": 3.5,
+    "centroid_hz": 7682,
+    "end_db": -144.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hogleg_load": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hogleg_load.mp3",
+   "prompt": "Big brass cartridges thumbed one by one into a revolver cylinder: three quick soft clinks.",
+   "credits": 9,
+   "destination": "audio_src/final/sfx/hogleg_load.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 50,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.571,
+    "peak_db": -0.8,
+    "loud_db": -19.2,
+    "dc": 0.0,
+    "onset_ms": 27.8,
+    "centroid_hz": 5430,
+    "end_db": -153.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "hammer_cock": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/hammer_cock.mp3",
+   "prompt": "A single-action revolver hammer drawn back to full cock: a loud ratcheting four-click.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/hammer_cock.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.349,
+    "peak_db": -0.8,
+    "loud_db": -18.6,
+    "dc": 0.0,
+    "onset_ms": 8.4,
+    "centroid_hz": 7122,
+    "end_db": -143.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "shell_in": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/shell_in.mp3",
+   "prompt": "A shotgun shell thumbed into a pump shotgun's magazine tube: a short springy chunk.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/shell_in.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.48,
+    "peak_db": -0.8,
+    "loud_db": -17.6,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 2663,
+    "end_db": -130.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "pump_rack": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/pump_rack.mp3",
+   "prompt": "A pump-action shotgun racked hard: a deep double clack-clack.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/pump_rack.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 103,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.377,
+    "peak_db": -0.8,
+    "loud_db": -14.2,
+    "dc": 0.0001,
+    "onset_ms": 7.8,
+    "centroid_hz": 3651,
+    "end_db": -141.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "drum_out": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/drum_out.mp3",
+   "prompt": "A heavy drum magazine slid out sideways from a submachine gun: a metal scrape and a clunk.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/drum_out.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 28,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.564,
+    "peak_db": -0.8,
+    "loud_db": -15.8,
+    "dc": 0.0,
+    "onset_ms": 27.3,
+    "centroid_hz": 3546,
+    "end_db": -158.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "drum_in": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/drum_in.mp3",
+   "prompt": "A full drum magazine shoved into a submachine gun: a heavy rattle and a latch click.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/drum_in.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.576,
+    "peak_db": -0.8,
+    "loud_db": -10.4,
+    "dc": 0.001,
+    "onset_ms": 5.6,
+    "centroid_hz": 3322,
+    "end_db": -155.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "grease_crank": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/grease_crank.mp3",
+   "prompt": "The cocking crank of a stamped steel submachine gun cranked back: a tinny ratcheting rattle.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/grease_crank.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.48,
+    "peak_db": -0.8,
+    "loud_db": -22.7,
+    "dc": 0.0,
+    "onset_ms": 7.4,
+    "centroid_hz": 5754,
+    "end_db": -146.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bar_mag": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/bar_mag.mp3",
+   "prompt": "A big box magazine seated in an automatic rifle with a heavy palm slap: a solid metal clack.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/bar_mag.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.469,
+    "peak_db": -0.8,
+    "loud_db": -19.2,
+    "dc": 0.0,
+    "onset_ms": 23.9,
+    "centroid_hz": 5532,
+    "end_db": -146.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "op_rod": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/op_rod.mp3",
+   "prompt": "A semi-automatic rifle's operating rod handle pulled back and let fly: a long oiled slide and a hard slam.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/op_rod.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 22,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.576,
+    "peak_db": -0.8,
+    "loud_db": -15.2,
+    "dc": 0.0,
+    "onset_ms": 5.6,
+    "centroid_hz": 4132,
+    "end_db": -159.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bolt_lift": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/bolt_lift.mp3",
+   "prompt": "A bolt-action rifle bolt lifted and pulled back: smooth heavy metal slide and a spent brass case pinging out.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/bolt_lift.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.556,
+    "peak_db": -0.8,
+    "loud_db": -10.3,
+    "dc": 0.0014,
+    "onset_ms": 5.5,
+    "centroid_hz": 2913,
+    "end_db": -153.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "round_seat": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/round_seat.mp3",
+   "prompt": "A rifle cartridge pressed down into a bolt-action magazine: firm brass-on-steel click.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/round_seat.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.477,
+    "peak_db": -0.8,
+    "loud_db": -17.7,
+    "dc": 0.0,
+    "onset_ms": 10.4,
+    "centroid_hz": 3075,
+    "end_db": -148.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bolt_close": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/bolt_close.mp3",
+   "prompt": "A bolt-action rifle bolt shoved forward and turned down to lock: solid oiled clack.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/bolt_close.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 104,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.355,
+    "peak_db": -0.8,
+    "loud_db": -16.2,
+    "dc": 0.0001,
+    "onset_ms": 3.1,
+    "centroid_hz": 3091,
+    "end_db": -149.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "belt_cover": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/belt_cover.mp3",
+   "prompt": "A machine gun feed cover flipped open: springy steel clank.",
+   "credits": 7,
+   "destination": "audio_src/final/sfx/belt_cover.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.478,
+    "peak_db": -0.8,
+    "loud_db": -18.2,
+    "dc": 0.0,
+    "onset_ms": 15.5,
+    "centroid_hz": 5303,
+    "end_db": -151.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "belt_lay": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/belt_lay.mp3",
+   "prompt": "An ammunition belt laid into a machine gun feed tray: jingling metal links and a brass rattle.",
+   "credits": 9,
+   "destination": "audio_src/final/sfx/belt_lay.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.68,
+    "peak_db": -0.8,
+    "loud_db": -15.9,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 6542,
+    "end_db": -132.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cover_slam": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "reload",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/cover_slam.mp3",
+   "prompt": "A machine gun feed cover slammed shut and the charging handle racked: two heavy steel clacks.",
+   "credits": 8,
+   "destination": "audio_src/final/sfx/cover_slam.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "reload",
+    "chain": {
+     "hp": 140,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.0,
+     "fade": 0.25,
+     "level": -8.0
+    },
+    "lead_trimmed_ms": 2,
+    "level": "-8.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.598,
+    "peak_db": -0.8,
+    "loud_db": -16.0,
+    "dc": 0.0001,
+    "onset_ms": 1.7,
+    "centroid_hz": 3062,
+    "end_db": -150.4,
     "problems": []
    },
    "validation": "ok"
@@ -21899,6 +24925,48 @@
    },
    "validation": "ok"
   },
+  "bark_grey_cover_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_cover_0.mp3",
+   "prompt": "Raise the shields!",
+   "credits": 53,
+   "destination": "audio_src/final/sfx/bark_grey_cover_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.74
+    ],
+    "natural_seconds": 0.962,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.962
+   },
+   "measured": {
+    "seconds": 0.962,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0017,
+    "onset_ms": 24.0,
+    "centroid_hz": 2740,
+    "end_db": -150.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_grey_brawl_0": {
    "purpose": "new cue",
    "refs": [],
@@ -22067,6 +25135,48 @@
    },
    "validation": "ok"
   },
+  "bark_grey_surprised_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_surprised_0.mp3",
+   "prompt": "Eep! Intruder!",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/bark_grey_surprised_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.0,
+     1.68
+    ],
+    "natural_seconds": 1.877,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.877
+   },
+   "measured": {
+    "seconds": 1.807,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0014,
+    "onset_ms": 5.6,
+    "centroid_hz": 3912,
+    "end_db": -74.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_grey_hurt_bad_0": {
    "purpose": "new cue",
    "refs": [],
@@ -22105,6 +25215,48 @@
     "onset_ms": 15.9,
     "centroid_hz": 3124,
     "end_db": -142.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_grey_regroup_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_regroup_0.mp3",
+   "prompt": "Return to the saucer!",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/bark_grey_regroup_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.72
+    ],
+    "natural_seconds": 1.892,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.892
+   },
+   "measured": {
+    "seconds": 1.825,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0003,
+    "onset_ms": 10.5,
+    "centroid_hz": 3231,
+    "end_db": -103.1,
     "problems": []
    },
    "validation": "ok"
@@ -22265,6 +25417,386 @@
     "onset_ms": 14.1,
     "centroid_hz": 1498,
     "end_db": -140.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_hunter": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from hunter",
+   "source": "audio_src/generated/sfx/hunter.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_hunter.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of hunter (1.07 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.075,
+    "peak_db": -0.8,
+    "loud_db": -8.4,
+    "dc": 0.0021,
+    "onset_ms": 14.0,
+    "centroid_hz": 1320,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_mower": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from mower",
+   "source": "audio_src/generated/sfx/mower.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_mower.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of mower (0.45 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.45,
+    "peak_db": -0.8,
+    "loud_db": -8.0,
+    "dc": 0.0011,
+    "onset_ms": 12.9,
+    "centroid_hz": 2057,
+    "end_db": -129.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_county45": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from county45",
+   "source": "audio_src/generated/sfx/county45.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_county45.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of county45 (0.70 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.7,
+    "peak_db": -1.0,
+    "loud_db": -10.0,
+    "dc": 0.0,
+    "onset_ms": 14.7,
+    "centroid_hz": 941,
+    "end_db": -169.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_star357": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from star357",
+   "source": "audio_src/generated/sfx/star357.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_star357.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of star357 (0.85 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.85,
+    "peak_db": -0.8,
+    "loud_db": -8.3,
+    "dc": 0.0015,
+    "onset_ms": 14.9,
+    "centroid_hz": 1269,
+    "end_db": -168.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_hogleg": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from hogleg",
+   "source": "audio_src/generated/sfx/hogleg.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_hogleg.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of hogleg (0.95 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.95,
+    "peak_db": -0.8,
+    "loud_db": -8.5,
+    "dc": 0.0001,
+    "onset_ms": 12.4,
+    "centroid_hz": 1171,
+    "end_db": -170.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_riot_pump": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from riot_pump",
+   "source": "audio_src/generated/sfx/riot_pump.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_riot_pump.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of riot_pump (1.36 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.363,
+    "peak_db": -0.8,
+    "loud_db": -7.6,
+    "dc": 0.0003,
+    "onset_ms": 18.2,
+    "centroid_hz": 1405,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_tommy": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from tommy",
+   "source": "audio_src/generated/sfx/tommy.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_tommy.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of tommy (0.45 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.45,
+    "peak_db": -0.8,
+    "loud_db": -7.4,
+    "dc": 0.001,
+    "onset_ms": 12.7,
+    "centroid_hz": 1673,
+    "end_db": -128.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_grease_gun": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from grease_gun",
+   "source": "audio_src/generated/sfx/grease_gun.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_grease_gun.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of grease_gun (0.45 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.45,
+    "peak_db": -0.8,
+    "loud_db": -8.2,
+    "dc": 0.0002,
+    "onset_ms": 13.5,
+    "centroid_hz": 1284,
+    "end_db": -136.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_patrol_bar": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from patrol_bar",
+   "source": "audio_src/generated/sfx/patrol_bar.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_patrol_bar.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of patrol_bar (0.57 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.575,
+    "peak_db": -0.8,
+    "loud_db": -8.0,
+    "dc": 0.001,
+    "onset_ms": 14.1,
+    "centroid_hz": 1414,
+    "end_db": -137.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "room_marksman": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "room",
+   "origin": "derived from marksman",
+   "source": "audio_src/generated/sfx/marksman.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/room_marksman.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "room",
+    "chain": {
+     "hp": 160,
+     "lp": 5200,
+     "low": 0.0,
+     "pres": 0.0,
+     "fade": 0.6,
+     "level": -10.0
+    },
+    "derived": "reverb tail of marksman (0.89 s)",
+    "level": "-10.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 0.887,
+    "peak_db": -0.8,
+    "loud_db": -8.8,
+    "dc": 0.001,
+    "onset_ms": 13.5,
+    "centroid_hz": 1306,
+    "end_db": -172.9,
     "problems": []
    },
    "validation": "ok"
@@ -23385,15 +26917,15 @@
    },
    "validation": "ok"
   },
-  "bark_grey_cover_0": {
+  "ann_go": {
    "purpose": "new cue",
    "refs": [],
    "family": "voice",
    "origin": "generated speech",
-   "source": "audio_src/generated/tts/bark_grey_cover_0.mp3",
-   "prompt": "Raise the shields!",
-   "credits": 53,
-   "destination": "audio_src/final/sfx/bark_grey_cover_0.wav -> godot/assets_gen/sfx.bin",
+   "source": "audio_src/generated/tts/ann_go.mp3",
+   "prompt": "Let her rip!",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/ann_go.wav -> godot/assets_gen/sfx.bin",
    "format": "mono 16-bit PCM 22050 Hz",
    "replaced_seconds": null,
    "recipe": {
@@ -23408,105 +26940,108 @@
      "level": -3.0
     },
     "words_at": [
-     0.06,
-     1.74
+     0.2,
+     0.94
     ],
-    "natural_seconds": 0.962,
+    "natural_seconds": 0.801,
+    "speaker": "pa",
     "level": "-3.0 dB (new cue)",
-    "keep_seconds": 0.962
+    "keep_seconds": 0.801
    },
    "measured": {
-    "seconds": 0.962,
+    "seconds": 0.971,
     "peak_db": -0.8,
-    "loud_db": -4.8,
-    "dc": 0.0017,
-    "onset_ms": 24.0,
-    "centroid_hz": 2740,
-    "end_db": -150.7,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "bark_grey_surprised_0": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "voice",
-   "origin": "generated speech",
-   "source": "audio_src/generated/tts/bark_grey_surprised_0.mp3",
-   "prompt": "Eep! Intruder!",
-   "credits": 34,
-   "destination": "audio_src/final/sfx/bark_grey_surprised_0.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "voice",
-    "chain": {
-     "hp": 110,
-     "lp": 9000,
-     "low": 0.0,
-     "pres": 2.0,
-     "fade": 0.06,
-     "level": -3.0
-    },
-    "words_at": [
-     0.0,
-     1.68
-    ],
-    "natural_seconds": 1.877,
-    "level": "-3.0 dB (new cue)",
-    "keep_seconds": 1.877
-   },
-   "measured": {
-    "seconds": 1.807,
-    "peak_db": -0.8,
-    "loud_db": -4.8,
-    "dc": 0.0014,
-    "onset_ms": 5.6,
-    "centroid_hz": 3912,
-    "end_db": -74.3,
-    "problems": []
-   },
-   "validation": "ok"
-  },
-  "bark_grey_regroup_0": {
-   "purpose": "new cue",
-   "refs": [],
-   "family": "voice",
-   "origin": "generated speech",
-   "source": "audio_src/generated/tts/bark_grey_regroup_0.mp3",
-   "prompt": "Return to the saucer!",
-   "credits": 21,
-   "destination": "audio_src/final/sfx/bark_grey_regroup_0.wav -> godot/assets_gen/sfx.bin",
-   "format": "mono 16-bit PCM 22050 Hz",
-   "replaced_seconds": null,
-   "recipe": {
-    "status": "built",
-    "family": "voice",
-    "chain": {
-     "hp": 110,
-     "lp": 9000,
-     "low": 0.0,
-     "pres": 2.0,
-     "fade": 0.06,
-     "level": -3.0
-    },
-    "words_at": [
-     0.06,
-     1.72
-    ],
-    "natural_seconds": 1.892,
-    "level": "-3.0 dB (new cue)",
-    "keep_seconds": 1.892
-   },
-   "measured": {
-    "seconds": 1.825,
-    "peak_db": -0.8,
-    "loud_db": -5.7,
+    "loud_db": -5.3,
     "dc": 0.0003,
-    "onset_ms": 10.5,
-    "centroid_hz": 3231,
-    "end_db": -103.1,
+    "onset_ms": 34.8,
+    "centroid_hz": 1556,
+    "end_db": -118.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_planted": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_planted.mp3",
+   "prompt": "The shine bomb is planted!",
+   "credits": 73,
+   "destination": "audio_src/final/sfx/ann_planted.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.8
+    ],
+    "natural_seconds": 1.673,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.673
+   },
+   "measured": {
+    "seconds": 1.843,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0001,
+    "onset_ms": 5.3,
+    "centroid_hz": 1200,
+    "end_db": -128.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_hogs_win": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_hogs_win.mp3",
+   "prompt": "The Hogs win the showdown!",
+   "credits": 78,
+   "destination": "audio_src/final/sfx/ann_hogs_win.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.94
+    ],
+    "natural_seconds": 1.811,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.811
+   },
+   "measured": {
+    "seconds": 1.981,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0026,
+    "onset_ms": 8.2,
+    "centroid_hz": 1203,
+    "end_db": -132.0,
     "problems": []
    },
    "validation": "ok"
@@ -24169,8 +27704,97 @@
   "varmint_down"
  ],
  "added": [
+  "hunter",
+  "mower",
+  "mower_alt",
+  "county45",
+  "star357",
+  "hogleg",
+  "riot_pump",
+  "tommy",
+  "grease_gun",
+  "patrol_bar",
+  "marksman",
+  "room_hunter",
+  "room_mower",
+  "room_county45",
+  "room_star357",
+  "room_hogleg",
+  "room_riot_pump",
+  "room_tommy",
+  "room_grease_gun",
+  "room_patrol_bar",
+  "room_marksman",
   "room_cow_launcher",
   "room_teat_gun",
+  "flash_jar",
+  "smudge_pot",
+  "shine_cocktail",
+  "firecracker_can",
+  "flash_bang",
+  "smoke_hiss",
+  "molotov_burst",
+  "ear_ring",
+  "bomb_beep",
+  "bomb_arm",
+  "fuse_cut",
+  "equip_flash_jar",
+  "equip_smudge_pot",
+  "equip_shine_cocktail",
+  "equip_firecracker_can",
+  "dry_flash_jar",
+  "dry_smudge_pot",
+  "dry_shine_cocktail",
+  "dry_firecracker_can",
+  "ann_go",
+  "ann_planted",
+  "ann_defused",
+  "ann_hostage_out",
+  "ann_outlaws",
+  "ann_deputies",
+  "ann_half",
+  "ann_last",
+  "ann_hogs_win",
+  "ann_gators_win",
+  "dry_hunter",
+  "dry_mower",
+  "dry_county45",
+  "dry_riot_pump",
+  "dry_star357",
+  "dry_hogleg",
+  "dry_tommy",
+  "dry_grease_gun",
+  "dry_patrol_bar",
+  "dry_marksman",
+  "equip_hunter",
+  "equip_mower",
+  "equip_county45",
+  "equip_star357",
+  "equip_hogleg",
+  "equip_riot_pump",
+  "equip_tommy",
+  "equip_grease_gun",
+  "equip_patrol_bar",
+  "equip_marksman",
+  "pistol_mag_out",
+  "pistol_mag_in",
+  "slide_rack",
+  "hogleg_gate",
+  "hogleg_load",
+  "hammer_cock",
+  "shell_in",
+  "pump_rack",
+  "drum_out",
+  "drum_in",
+  "grease_crank",
+  "bar_mag",
+  "op_rod",
+  "bolt_lift",
+  "round_seat",
+  "bolt_close",
+  "belt_cover",
+  "belt_lay",
+  "cover_slam",
   "gib_burst",
   "gib_splat",
   "hick_pain_1",

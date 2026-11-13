@@ -162,6 +162,21 @@ func _traced(end: Vector3, struck: String) -> void:
 			_streak(end, 70.0, 1.8, false)
 		Weapons.RIFLE:
 			_streak(end, 78.0, 1.5, false)
+		Weapons.HUNTER:
+			# A heavy round: a long, fat, bright streak.
+			_streak(end, 110.0, 2.4, false)
+		Weapons.MOWER, Weapons.PATROL_BAR:
+			_streak(end, 82.0, 1.4, false)
+		Weapons.MARKSMAN:
+			_streak(end, 100.0, 2.0, false)
+		Weapons.COUNTY45, Weapons.STAR357, Weapons.HOGLEG:
+			_streak(end, 70.0, 1.8 if gun == Weapons.COUNTY45 else 2.1, false)
+		Weapons.TOMMY, Weapons.GREASE_GUN:
+			_streak(end, 66.0, 1.2, false)
+		Weapons.RIOT_PUMP:
+			_pellets += 1
+			if _pellets <= 7:
+				_streak(end, 60.0 + _pellets * 2.0, 1.1, false)
 		Weapons.SHOTGUN:
 			_pellets += 1
 			if _pellets <= 7:

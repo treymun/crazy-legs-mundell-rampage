@@ -132,6 +132,9 @@ func key(code: int, shift := false) -> void:
 	if state == "rematch" or state == "rematch_done":
 		_key_rematch(code)
 		return
+	if state == "showdown":
+		_key_showdown(code)
+		return
 	if state == "title":
 		_key_title(code)
 		return
@@ -257,6 +260,33 @@ func _key_replays(code: int) -> void:
 			menu_note = "CONTINUE THE CAMPAIGN TO UNLOCK."
 
 
+## The 5V5 SHOWDOWN picker: up and down pick a row, left and right (or ENTER)
+## change it, ENTER on START plays, ESC goes back.
+func _key_showdown(code: int) -> void:
+	var accept := code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE
+	var rows := TacticalScreens.PICKER_ROWS
+	if code == KEY_ESCAPE:
+		back_to_title()
+	elif code == KEY_UP or code == KEY_DOWN or code == KEY_W or code == KEY_S:
+		var step := -1 if code == KEY_UP or code == KEY_W else 1
+		showdown_row = posmod(showdown_row + step, rows)
+		sound.play("menu_move")
+	elif accept and showdown_row == rows - 1:
+		start_showdown()
+		if state == "play":
+			block_fire = true
+	elif accept or code in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]:
+		var step := -1 if code == KEY_LEFT or code == KEY_A else 1
+		match showdown_row:
+			0:
+				showdown_mode = posmod(showdown_mode + step, Modes.TACTICAL.size())
+			1:
+				showdown_map = posmod(showdown_map + step, Modes.SHOWDOWN_MAPS.size())
+			2:
+				showdown_long = posmod(showdown_long + step, 2)
+		sound.play("menu_move")
+
+
 ## The rematch board (pick a boss, fight) and the result after (to the board).
 func _key_rematch(code: int) -> void:
 	var accept := code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE
@@ -317,8 +347,16 @@ func _key_play(code: int) -> void:
 	var target := game
 	if target == null:
 		return
+	var tactical := Modes.is_tactical(target) and not target.showing_tally
+	# The 5v5 buy menu takes its keys first (B, the number keys, ESC to shut).
+	if tactical and TacticalScreens.key(target, code):
+		return
 	if code == KEY_ESCAPE:
 		return_to_title()
+	elif tactical and target.local_player.slot != TacticalScreens.human:
+		# Out, watching a teammate: their guns are not this machine's to change.
+		if code == KEY_TAB:
+			target.map = not target.map
 	elif target.showing_tally:
 		if code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
 			continue_campaign()
@@ -508,7 +546,10 @@ func _input(event: InputEvent) -> void:
 				and not game.showing_tally
 				and not game.in_hub
 			):
-				game.armory.cycle(1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1, game)
+				if not Modes.is_tactical(game) or game.local_player.slot == TacticalScreens.human:
+					game.armory.cycle(
+						1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1, game
+					)
 			elif state != "play":
 				_wheel(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1, button.position)
 			return
@@ -1003,6 +1044,8 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 	controls.turn = (
 		mouse_rel.x * .0034 * sensitivity + turn + float(pad["turn"]) + float(fingers["turn"])
 	)
+	# A scope up (scope.gd) slows the turn by its zoom, so aim keeps its feel.
+	controls.turn *= Renderer.fov_focal / maxf(1.0, Renderer.base_focal)
 	var invert := 1.0 if int(options["invert"]) != 0 else -1.0
 	var vertical := float(options["vertical"]) / 100.0
 	controls.look = (

@@ -27,11 +27,36 @@ const HEAD_AT := .8
 const LEGS_BELOW := .44
 const ARM_OUT := .62
 const ARM_SIDE := .42
+## How the 5v5 store's guns move what they hit, as enemies.gd REACTIONS has
+## the campaign's: [shove in cells, stun seconds, flinch seconds].
+const MORE_REACTIONS := {
+	"hunter": [.36, .3, .2],
+	"mower": [.05, .1, 0.0],
+	"county45": [.1, .14, 0.0],
+	"star357": [.2, .22, 0.0],
+	"hogleg": [.22, .24, 0.0],
+	"riot_pump": [.075, 0.0, 0.0],
+	"tommy": [.05, .1, 0.0],
+	"grease_gun": [.05, .1, 0.0],
+	"patrol_bar": [.06, .12, 0.0],
+	"marksman": [.28, .26, .15],
+}
+
 ## Damage on the head by gun (hurt()'s `how`); the rest take HEAD_DEFAULT. A
 ## pellet less than a single round, so a load of buckshot stays a load.
 const HEAD := {
 	"revolver": 2.0,
 	"rifle": 2.0,
+	"hunter": 2.5,
+	"mower": 1.8,
+	"county45": 2.0,
+	"star357": 2.2,
+	"hogleg": 2.2,
+	"riot_pump": 1.35,
+	"tommy": 1.8,
+	"grease_gun": 1.8,
+	"patrol_bar": 1.9,
+	"marksman": 2.4,
 	"riveter": 1.6,
 	"shotgun": 1.35,
 	"crowbar": 1.5,

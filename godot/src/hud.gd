@@ -358,7 +358,21 @@ func ammo_rail(c: Canvas, armory: Weapons.Armory) -> void:
 					Weapons.BOWLING,
 					Weapons.KEG,
 					Weapons.COW,
-					Weapons.TEAT
+					Weapons.TEAT,
+					Weapons.HUNTER,
+					Weapons.MOWER,
+					Weapons.COUNTY45,
+					Weapons.STAR357,
+					Weapons.HOGLEG,
+					Weapons.RIOT_PUMP,
+					Weapons.TOMMY,
+					Weapons.GREASE_GUN,
+					Weapons.PATROL_BAR,
+					Weapons.MARKSMAN,
+					Weapons.FLASH_JAR,
+					Weapons.SMUDGE_POT,
+					Weapons.SHINE_COCKTAIL,
+					Weapons.FIRECRACKER_CAN
 				]
 			)
 		):
@@ -379,10 +393,18 @@ func ammo_rail(c: Canvas, armory: Weapons.Armory) -> void:
 					token = "\\"
 				Weapons.TEAT:
 					token = "`"
+			if Weapons.FRESH_BULLETS.has(armory.active) or armory.active >= Weapons.HUNTER:
+				# The 5v5 guns: their round key (1 a long gun, 2 a sidearm).
+				token = "2" if TacticalShop.SIDEARMS.has(armory.active) else "1"
+				if Weapons.THROWN_GUNS.has(armory.active):
+					token = "4"
 			text(c, token, x + 8, Renderer.VIEW + 1, "body", AMBER, true, false)
 			var value := (
 				"-" if armory.active == Weapons.SLING else str(armory.reserve[armory.active])
 			)
+			if Weapons.CAPACITY[armory.active] > 0:
+				# A gun with a magazine (the machine gun's belt, the deer rifle's five).
+				value = "%d/%d" % [armory.loaded[armory.active], armory.reserve[armory.active]]
 			text(c, value, x + 25, Renderer.VIEW + 1, "body", INK, true, false)
 			continue
 		if armory.active == slot:

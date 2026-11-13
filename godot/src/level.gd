@@ -266,6 +266,10 @@ var boss_decoys: Array = []
 ## chapters' hazards (features/boss_arena.gd: kind -> notes) and the last
 ## bosses' burst pipes, floodlights and core (features/boss_arenas.gd).
 var boss_arena := {}
+## A 5v5 map's layout for the round modes (src/modes/tactical_mode.gd): the
+## attackers' and defenders' spawns, the bomb sites, the hostages, the rescue
+## box and the bots' routes and holds. Empty for every other level.
+var tactical := {}
 ## Cars still lapping the track (features/race_laps.gd): their path, how
 ## many, how fast, the station that stops them.
 var lap_cars := {}
@@ -489,6 +493,8 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		lv.boss_decoys.append(Vector2(float(point[0]), float(point[1])))
 	var arena = j.get("boss_arena", {})
 	lv.boss_arena = arena if arena is Dictionary else {}
+	var plan = j.get("tactical", {})
+	lv.tactical = plan if plan is Dictionary else {}
 	for cue in j.get("distant_cues", []):
 		lv.distant_cues.append([float(cue[0]), float(cue[1]), String(cue[2])])
 	for n in j.get("notes", []):

@@ -75,6 +75,8 @@ godot --headless --path godot --script res://tools/net_check.gd       # NET CHEC
 godot --headless --path godot --script res://tools/multi_bots.gd -- players=1,2,4 seconds=60   # MULTI BOTS OK (whole: to the end; mortal; diff=)
 godot --headless --path godot --script res://tools/net_loopback.gd -- seconds=180 lag=50 loss=0.05   # NET LOOPBACK OK (websocket: over WebSocket)
 godot --headless --path godot --script res://tools/mode_check.gd      # MODE CHECK OK (co-op, deathmatch; quick: check_fixes's part)
+godot --headless --path godot --script res://tools/tactical_check.gd -- rounds=3   # TACTICAL CHECK OK (the 5v5 modes, ten bots, every map)
+godot --headless --path godot --script res://tools/levels/build_level.gd -- grainyard   # the 5v5 maps: grainyard, holler, salvage
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 godot --headless --path godot --script res://tools/net_bench.gd -- levels=hickston players=1,2,4 [host]   # ticks, snapshots, deltas
 godot --headless --path godot -- --server=fair --server-players=2 --server-ticks=12000   # a host, no window (server_loop.gd)
@@ -1127,6 +1129,80 @@ every single-player check are as before).
 - **Team deathmatch** (`team_deathmatch_mode.gd`): RED slots 0 and 2, BLUE 1
   and 3; teammates' bullets and blasts pass by; the frag limit is the team's
   score.
+- **The 5v5 round modes** (`tactical_mode.gd`, under it `bomb_mode.gd` search
+  and destroy and `hostage_mode.gd` hostage rescue; money and guns
+  `tactical_shop.gd`, the HUD and buy menu `tactical_screens.gd`, the bots
+  `tactical_bot.gd` with `tactical_nav.gd`'s whole-map step fields). Ten
+  players, teams by slot (HOGS the even slots, GATORS the odd); each half one
+  plays the OUTLAWS (`st.outlaws`), sides and money swap after
+  `rounds_to_win - 1` rounds, first to `rounds_to_win` (7, `--rounds=`) wins, a
+  draw after twice that less two. A round: FREEZE (6 s, held still, the buy
+  menu on B), live play (bomb 105 s, hostage 115 s), POST (5 s). Buying near
+  your own spawn through the freeze and BUY_WINDOW (20 s) after. Survivors keep
+  guns (topped up) and vest; the fallen get the crowbar and .38. The outlaws
+  plant the shine bomb (hold USE 3.2 s on site A or B; 40 s fuse; deputies
+  hold USE 7 s, 3.5 s with wire snips, to cut it; a blast of 420 falling off
+  over 10 cells); in hostage rescue the deputies attack, carry a hostage (USE,
+  walking) into the rescue box, one out wins. Hits between players use
+  TacticalShop's table (`GameMode.pvp_damage`/`blast_damage`: times what the
+  gun does to a hand, a head multiplier above `HEAD_FROM`, the part a vest lets
+  through), never a teammate's; teammates walk through each other. The
+  economy is TacticalShop's header (800 start, 16000 cap, 3250/3500 a win,
+  1400 + 500 a loss in a row up to 3400, +800 each for a lost round with the
+  bomb planted, kill rewards by gun). The bots (`TacticalBot`) play every
+  slot but this machine's, in any build (main_flow `_take_mode`); they buy a
+  rifle or save, take the map's `routes` to the team's site of the round
+  (`plan_site`), hold the map's `holds` on defence, call foes seen on a site,
+  plant, defuse, carry and chase, pick the gun for the distance, and aim with
+  a reaction time and a wobble by DIFFICULTY. While this machine's player is
+  out the view follows a teammate up (`main.gd _follow_view`;
+  `TacticalScreens.human` is the slot the keys drive). The maps are
+  `tools/levels/grainyard_plan.gd` (Puckett Grain Co-op), `holler_plan.gd`
+  (Holler Distillery) and `salvage_plan.gd` (Mundell's Salvage), original
+  layouts each built for both modes; a plan's `meta["tactical"]` (level JSON
+  `tactical`, `LevelData.tactical`) holds `attack_spawns`, `defend_spawns`,
+  `sites`, `hostages`, `rescue`, the bots' `routes` and `holds`. The title's
+  5V5 SHOWDOWN picks mode, map and length (`main_state.gd showdown_*`); the
+  command line is `--mode=bomb|hostage [--arena=holler] [--rounds=7]`.
+  Ten guns were added for it, at the end of weapons.cfg (so saves and number
+  keys keep the old order), each side with its own pistol, shotgun, SMG,
+  sniper and machine gun (TacticalShop.ITEMS `who`; SIDE_PISTOL the kit's):
+  `hunter` (HOG HUNTER .30-06, scoped bolt-action) and `mower` (CORN MOWER,
+  belt-fed) the outlaws', with `hogleg` (HOGLEG .44) and `grease_gun`; the
+  deputies' `county45` (their kit pistol), `star357`, `riot_pump`, `tommy`
+  (SQUAD TOMMY), `patrol_bar` and `marksman` (COUNTY MARKSMAN, scoped
+  semi-auto). Weapons.HUNTER..MARKSMAN are 16..25. Each is modelled in
+  `scripts/blender/weapon_views.py` (pistols on the revolver plate's rig,
+  the grease gun too; the rest the shotgun plate's), cut by
+  `build_weapon_views.gd`, has its own flash style (`build_gun_fx_art.gd`
+  STYLES: hunter, mower, auto45, magnum, pump, smg, bar, marksman), muzzle
+  light (`[light.muzzle_<gun>]`) and sounds in audio_spec (a report, room
+  twin, dry, equip and reloads each; ElevenLabs, about 365 credits for all
+  ten). The throwables are four more (Weapons.FLASH_JAR..FIRECRACKER_CAN, 26..29;
+  weapons.cfg `thrown`: dynamite-like poses, `shot_life` a fuse; shots.cfg
+  `rolls`: they tumble as thrown dynamite does; the cocktail bursts on impact),
+  modelled on the crowbar plate's rig, with their own flight pictures
+  (`fx_<name>`, cut from the raw render by `build_weapon_views.gd`).
+  `game_combat.gd explode()` hands them to `src/modes/tactical_utility.gd`:
+  a flash blinds by distance and facing (`st.blind`, the white-out over the
+  view, bots blind too), smoke clouds (`st.clouds`, `fx_smokecloud_*`; bots'
+  sight held by `smoked()`), fire (`st.fires`, `fx_flame_*`, bites blamed on
+  the thrower; smoke puts it out) and decoys (`st.decoys`, the thrower's gun
+  in bursts). They tick in any mode (the range has them). The store has two
+  pages (guns, gear + thrown; four throwables at most); the barker announces
+  over the PA (`ann_*` voice cues) and the planted bomb beeps faster. A gun with weapons.cfg `scope` puts the
+  scope up and down on ALT FIRE (game.gd `_step_hands`, `Player.scoped`, carried
+  in snapshots with the player), fires with `scope_spread` while it is up
+  (weapons.gd), and `src/scope.gd` zooms the view (Renderer.base_focal =
+  `fov_focal` times the zoom; aiming slopes use the same focal, so the
+  cross-hair stays true) and masks it to a glass; the mouse turns slower by the
+  zoom. No campaign pickup gives them; the 5v5 store sells them and the range
+  and console can hand them out. In a 5v5 round the number keys are the round
+  shooters' (1 long gun, 2 sidearm, 3 crowbar, 4 dynamite; TacticalScreens).
+  `tools/tactical_check.gd` plays every map and mode out with ten bots (round
+  by round: who, how, when; `verbose` lists every death); `tools/tactical_frames.gd
+  -- out=<dir>` (a window) takes pictures of the picker, buy menu, sites,
+  automap, planted bomb, hostage, scoreboard and results. Never saved.
 - **Presentation** (`mode_screens.gd`, drawn only with more than one player):
   partners in the world (`player_<heading>_<step>` cels, tinted by slot,
   squat when down), each partner's tag and health over their head or at the
@@ -1146,10 +1222,13 @@ every single-player check are as before).
   takes pictures of the partner tags, the revive, the down screen, a
   deathmatch and both results screens (`docs/modes/`).
 - **Not done:** networking; a second local input set (split keyboard);
-  per-player kill counts and a kill feed; a lying-down picture for a player
-  who is down (the standing one, squat); spawn points from the plans (only
-  worked out); versus pickups other than the level's own; the title menu has
-  no mode entry (command line only). A save or snapshot taken while player
+  a kill feed outside the 5v5 modes; a lying-down picture for a player
+  who is down (the standing one, squat); spawn points from the plans outside
+  the 5v5 maps (only worked out); versus pickups other than the level's own;
+  the title menu's only mode entry is 5V5 SHOWDOWN (the rest command line
+  only). The 5v5 bots buy for themselves outside the tick (TacticalShop.buy
+  from the pilot, not through Controls), so a networked match would need a
+  buy in the controls first. A save or snapshot taken while player
   one is down does not load (SessionStore refuses a player at 0; the
   quicksave is refused then anyway). The co-op boss checkpoint's retry with
   partners is put together from the save round-trip and `gather`, with no

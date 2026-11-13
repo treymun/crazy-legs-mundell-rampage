@@ -1171,6 +1171,9 @@ func finish(spawn: Array) -> Dictionary:
 	if meta.has("boss_arena"):
 		# Where a boss arena's hazards stand (features/boss_arena.gd).
 		out["boss_arena"] = meta["boss_arena"]
+	if meta.has("tactical"):
+		# A 5v5 map's spawns, sites, hostages and bot routes (tactical_mode.gd).
+		out["tactical"] = meta["tactical"]
 	LevelEdit.refresh_heights(out)
 	var roofs := {}
 	for v in roof:

@@ -73,6 +73,10 @@ var deaths := 0
 var team := 0
 ## Who last brought this player down (a slot; -1 the world or an enemy).
 var downed_by := -1
+## The scope is up (a gun with weapons.cfg `scope`: ALT FIRE puts it up and
+## down), and ALT FIRE was held last tick (it acts on a fresh press).
+var scoped := false
+var alt_held := false
 
 
 func _init(px := 0.0, py := 0.0, pa := 0.0) -> void:

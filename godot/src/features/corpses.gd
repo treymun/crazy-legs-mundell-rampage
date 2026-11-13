@@ -18,6 +18,16 @@ const KNOCK := {
 	"shotgun": 1.6,
 	"revolver": 1.3,
 	"rifle": .25,
+	"hunter": 2.2,
+	"mower": .4,
+	"county45": 1.2,
+	"star357": 1.6,
+	"hogleg": 1.7,
+	"riot_pump": 1.6,
+	"tommy": .4,
+	"grease_gun": .4,
+	"patrol_bar": .45,
+	"marksman": 1.8,
 	"riveter": 1.6,
 	"crowbar": .18,
 	"slingblade": .22,
@@ -140,7 +150,7 @@ func _throw(e: Enemy) -> void:
 	elif how == "teat_gun":
 		feel = _slick
 		lift = 0.0
-	elif how == "rifle" or how == "crowbar" or how == "slingblade":
+	elif how in ["rifle", "mower", "tommy", "grease_gun", "patrol_bar", "crowbar", "slingblade"]:
 		lift = 0.0
 	var away := Vector2(e.x, e.y) - from
 	if away.length() < .01:

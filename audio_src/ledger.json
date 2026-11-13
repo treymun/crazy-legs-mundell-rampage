@@ -17284,14 +17284,1807 @@
    "bytes": 33897
   },
   {
-   "id": "reconcile@2026-11-12T11:55:19",
+   "id": "sfx/hunter#1",
+   "kind": "sfx",
+   "name": "hunter",
+   "params": {
+    "text": "A single high-powered .30-06 bolt-action hunting rifle shot, close microphone, outdoors: an enormous sharp supersonic crack over a deep booming thump, heavy and authoritative, dry, no echo. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6aab5b0541d2",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-13T08:06:30",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hunter.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/mower_alt#1",
+   "kind": "sfx",
+   "name": "mower_alt",
+   "params": {
+    "text": "One round from a heavy belt-fed machine gun, close and loud: hard crack, chunky low thud and a rattle of links, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b918c6ff1e55",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T08:06:30",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/mower_alt.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/dry_hunter#1",
+   "kind": "sfx",
+   "name": "dry_hunter",
+   "params": {
+    "text": "A bolt-action rifle's firing pin falls on an empty chamber: one crisp heavy click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f6c71915377a",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:06:30",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/dry_hunter.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/mower#1",
+   "kind": "sfx",
+   "name": "mower",
+   "params": {
+    "text": "A single shot from a belt-fed light machine gun, close microphone: short heavy punchy crack with a deep chunky thump and a metallic belt clatter, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f0197280cf49",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T08:06:30",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/mower.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/dry_mower#1",
+   "kind": "sfx",
+   "name": "dry_mower",
+   "params": {
+    "text": "A machine gun's bolt slams forward on an empty feed tray: hollow metal clunk. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d6ad026c9cce",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:06:32",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/dry_mower.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/equip_hunter#1",
+   "kind": "sfx",
+   "name": "equip_hunter",
+   "params": {
+    "text": "A heavy scoped hunting rifle shouldered: wooden stock knock, sling buckle jingle and a bolt handle click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b885e9f29b45",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:06:32",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_hunter.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_mower#1",
+   "kind": "sfx",
+   "name": "equip_mower",
+   "params": {
+    "text": "A heavy belt-fed machine gun hefted up: steel clank, ammo belt links jingling and a charging handle yanked back. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "fe9bccb2dfec",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:06:32",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_mower.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/bolt_lift#1",
+   "kind": "sfx",
+   "name": "bolt_lift",
+   "params": {
+    "text": "A bolt-action rifle bolt lifted and pulled back: smooth heavy metal slide and a spent brass case pinging out. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "35d75575f105",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:06:33",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/bolt_lift.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/round_seat#1",
+   "kind": "sfx",
+   "name": "round_seat",
+   "params": {
+    "text": "A rifle cartridge pressed down into a bolt-action magazine: firm brass-on-steel click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9580906f9a6a",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:06:34",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/round_seat.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/bolt_close#1",
+   "kind": "sfx",
+   "name": "bolt_close",
+   "params": {
+    "text": "A bolt-action rifle bolt shoved forward and turned down to lock: solid oiled clack. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "715389fb3f23",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:06:34",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/bolt_close.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/belt_cover#1",
+   "kind": "sfx",
+   "name": "belt_cover",
+   "params": {
+    "text": "A machine gun feed cover flipped open: springy steel clank. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b29ac964730d",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:06:34",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/belt_cover.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/belt_lay#1",
+   "kind": "sfx",
+   "name": "belt_lay",
+   "params": {
+    "text": "An ammunition belt laid into a machine gun feed tray: jingling metal links and a brass rattle. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7017fe7005a7",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-13T08:06:35",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/belt_lay.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/cover_slam#1",
+   "kind": "sfx",
+   "name": "cover_slam",
+   "params": {
+    "text": "A machine gun feed cover slammed shut and the charging handle racked: two heavy steel clacks. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2ad8706809f8",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:06:36",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/cover_slam.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/riot_pump#1",
+   "kind": "sfx",
+   "name": "riot_pump",
+   "params": {
+    "text": "A single 12 gauge pump-action shotgun blast, close microphone: a heavy deep boom and crack, then the pump racked back and forward with a solid double clack. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "32c8013c9b7b",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-13T08:20:14",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/riot_pump.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/star357#1",
+   "kind": "sfx",
+   "name": "star357",
+   "params": {
+    "text": "A single .357 Magnum revolver shot, close microphone: a very loud, sharp, ringing crack with a heavy concussive blast, dry, no echo. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.1,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "09b3c0cdae99",
+   "reserved": 49,
+   "status": "settled",
+   "started": "2026-11-13T08:20:14",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/star357.mp3",
+   "bytes": 27628
+  },
+  {
+   "id": "sfx/hogleg#1",
+   "kind": "sfx",
+   "name": "hogleg",
+   "params": {
+    "text": "A single shot from an old .44 single-action black powder revolver: a big booming roar with a smoky low thump and a hard crack, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8505dec48c49",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T08:20:14",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hogleg.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/county45#1",
+   "kind": "sfx",
+   "name": "county45",
+   "params": {
+    "text": "A single .45 ACP semi-automatic service pistol shot, close microphone: a deep round boom with a sharp crack and the slide snapping back, dry, no echo. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a53acb40e937",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T08:20:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/county45.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/grease_gun#1",
+   "kind": "sfx",
+   "name": "grease_gun",
+   "params": {
+    "text": "A single shot from a stamped steel submachine gun, close microphone: a low chuffing pop with a tinny rattle of the bolt, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b60b153210d4",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T08:20:17",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/grease_gun.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/tommy#1",
+   "kind": "sfx",
+   "name": "tommy",
+   "params": {
+    "text": "A single shot from a drum-fed .45 submachine gun, close microphone: a deep round thump and a quick hard crack with a heavy bolt clack, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 0.9,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4255ce97e880",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T08:20:17",
+   "actual": 11,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/tommy.mp3",
+   "bytes": 22612
+  },
+  {
+   "id": "sfx/patrol_bar#1",
+   "kind": "sfx",
+   "name": "patrol_bar",
+   "params": {
+    "text": "A single shot from a heavy .30-06 automatic rifle, close microphone: a big hard crack and a deep chest-thumping boom with a clanking bolt, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "54b7ad1bd3d5",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T08:20:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/patrol_bar.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/marksman#1",
+   "kind": "sfx",
+   "name": "marksman",
+   "params": {
+    "text": "A single shot from a semi-automatic .308 marksman rifle, close microphone: a sharp supersonic crack and a solid boom with the action cycling, dry. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0271abbec712",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T08:20:19",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/marksman.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/dry_county45#1",
+   "kind": "sfx",
+   "name": "dry_county45",
+   "params": {
+    "text": "A semi-automatic pistol with its slide locked back clicks on empty: a hollow small metal snap. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "9a0ab046cbee",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:19",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/dry_county45.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/dry_riot_pump#1",
+   "kind": "sfx",
+   "name": "dry_riot_pump",
+   "params": {
+    "text": "A pump shotgun's trigger pulled on an empty chamber: a heavy single click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f1217b5db5d9",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:19",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/dry_riot_pump.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/equip_county45#1",
+   "kind": "sfx",
+   "name": "equip_county45",
+   "params": {
+    "text": "A service pistol drawn from a stiff leather holster and its slide racked: snap, slide and click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "61830a5fa1d0",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:21",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_county45.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_star357#1",
+   "kind": "sfx",
+   "name": "equip_star357",
+   "params": {
+    "text": "A big stainless revolver drawn and its cylinder clicked shut: leather slide and a firm click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "bcd4d8eff4d1",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:21",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_star357.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_hogleg#1",
+   "kind": "sfx",
+   "name": "equip_hogleg",
+   "params": {
+    "text": "An old single-action revolver spun and cocked: a quick whirr and a loud ratcheting four-click hammer cock. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "3dbd77563e28",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:21",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_hogleg.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_riot_pump#1",
+   "kind": "sfx",
+   "name": "equip_riot_pump",
+   "params": {
+    "text": "A pump shotgun brought up and racked: a deep double clack-clack. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "27fca9a1c39f",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:22",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_riot_pump.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_tommy#1",
+   "kind": "sfx",
+   "name": "equip_tommy",
+   "params": {
+    "text": "A heavy drum-fed submachine gun hefted and its bolt cocked: a wooden knock and a hard metal clack. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f615f4e9dc18",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:23",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_tommy.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_grease_gun#1",
+   "kind": "sfx",
+   "name": "equip_grease_gun",
+   "params": {
+    "text": "A rusty stamped steel submachine gun picked up and its crank turned: tinny rattle and a ratchet. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "48c7f46bfb7b",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:23",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_grease_gun.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_patrol_bar#1",
+   "kind": "sfx",
+   "name": "equip_patrol_bar",
+   "params": {
+    "text": "A heavy automatic rifle shouldered and its charging handle pulled: wood knock and a big steel clack. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8c6607a6706b",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:24",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_patrol_bar.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_marksman#1",
+   "kind": "sfx",
+   "name": "equip_marksman",
+   "params": {
+    "text": "A scoped semi-automatic rifle raised and the scope caps flipped open: two plastic snaps and a metal click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "439d30f7a174",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:24",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_marksman.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/pistol_mag_out#1",
+   "kind": "sfx",
+   "name": "pistol_mag_out",
+   "params": {
+    "text": "A pistol magazine dropped free from the grip: a quick metal slide. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "eab2d78c07d0",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:25",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/pistol_mag_out.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/pistol_mag_in#1",
+   "kind": "sfx",
+   "name": "pistol_mag_in",
+   "params": {
+    "text": "A pistol magazine slapped home into the grip: a firm click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "db8887f5b9b1",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:26",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/pistol_mag_in.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/slide_rack#1",
+   "kind": "sfx",
+   "name": "slide_rack",
+   "params": {
+    "text": "A pistol slide racked back and released: a sharp double metallic snap. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2f3777d2353b",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:26",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/slide_rack.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/hogleg_gate#1",
+   "kind": "sfx",
+   "name": "hogleg_gate",
+   "params": {
+    "text": "An old revolver's loading gate flicked open and the cylinder clicked round: small brass clicks. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1254496d8eac",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:26",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hogleg_gate.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/hogleg_load#1",
+   "kind": "sfx",
+   "name": "hogleg_load",
+   "params": {
+    "text": "Big brass cartridges thumbed one by one into a revolver cylinder: three quick soft clinks. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "55d5ec06cf5e",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-13T08:20:27",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hogleg_load.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/hammer_cock#1",
+   "kind": "sfx",
+   "name": "hammer_cock",
+   "params": {
+    "text": "A single-action revolver hammer drawn back to full cock: a loud ratcheting four-click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "24245c0138a1",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:28",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/hammer_cock.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/shell_in#1",
+   "kind": "sfx",
+   "name": "shell_in",
+   "params": {
+    "text": "A shotgun shell thumbed into a pump shotgun's magazine tube: a short springy chunk. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "8ede1d0405e4",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:28",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/shell_in.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/pump_rack#1",
+   "kind": "sfx",
+   "name": "pump_rack",
+   "params": {
+    "text": "A pump-action shotgun racked hard: a deep double clack-clack. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "877f46ab70ba",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:29",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/pump_rack.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/drum_out#1",
+   "kind": "sfx",
+   "name": "drum_out",
+   "params": {
+    "text": "A heavy drum magazine slid out sideways from a submachine gun: a metal scrape and a clunk. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1035a543ce22",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:30",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/drum_out.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/drum_in#1",
+   "kind": "sfx",
+   "name": "drum_in",
+   "params": {
+    "text": "A full drum magazine shoved into a submachine gun: a heavy rattle and a latch click. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "f0c8a4b2ac79",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:30",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/drum_in.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/grease_crank#1",
+   "kind": "sfx",
+   "name": "grease_crank",
+   "params": {
+    "text": "The cocking crank of a stamped steel submachine gun cranked back: a tinny ratcheting rattle. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "705693c7324e",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:30",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/grease_crank.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/bar_mag#1",
+   "kind": "sfx",
+   "name": "bar_mag",
+   "params": {
+    "text": "A big box magazine seated in an automatic rifle with a heavy palm slap: a solid metal clack. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "5c813d70c7dc",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:20:31",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/bar_mag.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/op_rod#1",
+   "kind": "sfx",
+   "name": "op_rod",
+   "params": {
+    "text": "A semi-automatic rifle's operating rod handle pulled back and let fly: a long oiled slide and a hard slam. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2d0b74335cb2",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:20:32",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/op_rod.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/flash_jar#1",
+   "kind": "sfx",
+   "name": "flash_jar",
+   "params": {
+    "text": "A glass mason jar lobbed overhand: a quick cloth whoosh and a hiss of a lit fuse. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "aa54d2da18d9",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-13T08:42:49",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/flash_jar.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/smudge_pot#1",
+   "kind": "sfx",
+   "name": "smudge_pot",
+   "params": {
+    "text": "A heavy paint can heaved underhand: a wire bail rattle and a sloshing whoosh. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "faba6105e806",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-13T08:42:49",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/smudge_pot.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/shine_cocktail#1",
+   "kind": "sfx",
+   "name": "shine_cocktail",
+   "params": {
+    "text": "A lit bottle of moonshine thrown: liquid sloshing, a rag flame fluttering and a whoosh. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c634766b7136",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-13T08:42:49",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/shine_cocktail.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/firecracker_can#1",
+   "kind": "sfx",
+   "name": "firecracker_can",
+   "params": {
+    "text": "A tin can tossed: a tinny rattle and a fizzing fuse. Close, dry, punchy foley. One single impact, no music.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d116df5402ad",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-13T08:42:49",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/firecracker_can.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/flash_bang#1",
+   "kind": "sfx",
+   "name": "flash_bang",
+   "params": {
+    "text": "A flash grenade goes off: one deafening sharp bang with a bright crackling snap, then high ringing. Punchy, chunky, slightly crunchy 1990s game explosion with weight and a short tail. No music.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "591795d05314",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T08:42:52",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/flash_bang.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/smoke_hiss#1",
+   "kind": "sfx",
+   "name": "smoke_hiss",
+   "params": {
+    "text": "A smoke bomb pops and pours out thick smoke: a loud rushing hiss and a soft billowing roar. Punchy, chunky, slightly crunchy 1990s game explosion with weight and a short tail. No music.",
+    "duration_seconds": 2.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d2600a4fca9a",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-13T08:42:52",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/smoke_hiss.mp3",
+   "bytes": 54586
+  },
+  {
+   "id": "sfx/molotov_burst#1",
+   "kind": "sfx",
+   "name": "molotov_burst",
+   "params": {
+    "text": "A bottle of moonshine smashes and bursts into flame: glass breaking and a big whooshing fireball. Punchy, chunky, slightly crunchy 1990s game explosion with weight and a short tail. No music.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "048a083fed5f",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-13T08:42:52",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/molotov_burst.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/ear_ring#1",
+   "kind": "sfx",
+   "name": "ear_ring",
+   "params": {
+    "text": "A high, piercing ear-ringing tinnitus tone after a loud blast, fading slowly. Tiny, dry, clean, tactile 1990s PC game interface sound. No music, no voice.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "dbbc73543c84",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-13T08:42:53",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/ear_ring.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/bomb_beep#1",
+   "kind": "sfx",
+   "name": "bomb_beep",
+   "params": {
+    "text": "One short sharp electronic beep from a timer. Tiny, dry, clean, tactile 1990s PC game interface sound. No music, no voice.",
+    "duration_seconds": 0.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "bc3b155fa346",
+   "reserved": 25,
+   "status": "settled",
+   "started": "2026-11-13T08:42:54",
+   "actual": 7,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/bomb_beep.mp3",
+   "bytes": 13208
+  },
+  {
+   "id": "sfx/bomb_arm#1",
+   "kind": "sfx",
+   "name": "bomb_arm",
+   "params": {
+    "text": "A homemade bomb being armed: a toggle switch flicked, two beeps and a fuse lit. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "cecddb8b8126",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T08:42:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/bomb_arm.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/fuse_cut#1",
+   "kind": "sfx",
+   "name": "fuse_cut",
+   "params": {
+    "text": "Wire snips cutting a thick fuse wire: one decisive metal snip and a spark fizzling out. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.7,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "17b034e9549b",
+   "reserved": 33,
+   "status": "settled",
+   "started": "2026-11-13T08:42:54",
+   "actual": 9,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/fuse_cut.mp3",
+   "bytes": 18224
+  },
+  {
+   "id": "sfx/equip_flash_jar#1",
+   "kind": "sfx",
+   "name": "equip_flash_jar",
+   "params": {
+    "text": "A glass mason jar picked up: glass clink and a zinc lid tick. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a323fb7d711b",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:42:55",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_flash_jar.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_smudge_pot#1",
+   "kind": "sfx",
+   "name": "equip_smudge_pot",
+   "params": {
+    "text": "A metal paint can lifted by its wire bail: a squeak and a hollow knock. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "83b4f436097e",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:42:56",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_smudge_pot.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_shine_cocktail#1",
+   "kind": "sfx",
+   "name": "equip_shine_cocktail",
+   "params": {
+    "text": "A bottle of moonshine picked up and its rag lit with a lighter: slosh, flick and a whoomp of flame. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7ccde4b9a405",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:42:56",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_shine_cocktail.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "sfx/equip_firecracker_can#1",
+   "kind": "sfx",
+   "name": "equip_firecracker_can",
+   "params": {
+    "text": "A tin can of firecrackers picked up: tinny rattle and paper rustle. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b14cf65c75e8",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-13T08:42:56",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/equip_firecracker_can.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "tts/ann_go#1",
+   "kind": "tts",
+   "name": "ann_go",
+   "params": {
+    "text": "Let 'er rip!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6dc64ee49bc9",
+   "reserved": 34,
+   "status": "settled",
+   "started": "2026-11-13T08:42:57",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_go.mp3",
+   "bytes": 28255
+  },
+  {
+   "id": "tts/ann_planted#1",
+   "kind": "tts",
+   "name": "ann_planted",
+   "params": {
+    "text": "Shine bomb's planted!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cac0f2aad73b",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T08:42:58",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_planted.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/ann_defused#1",
+   "kind": "tts",
+   "name": "ann_defused",
+   "params": {
+    "text": "Fuse is cut!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "087559550b52",
+   "reserved": 34,
+   "status": "settled",
+   "started": "2026-11-13T08:42:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_defused.mp3",
+   "bytes": 36405
+  },
+  {
+   "id": "tts/ann_hostage_out#1",
+   "kind": "tts",
+   "name": "ann_hostage_out",
+   "params": {
+    "text": "Hostage is out!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8d7aa0fa7577",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-13T08:42:58",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_hostage_out.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/ann_outlaws#1",
+   "kind": "tts",
+   "name": "ann_outlaws",
+   "params": {
+    "text": "Outlaws take it!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "3255c2e6d6b4",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-13T08:42:58",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_outlaws.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/ann_deputies#1",
+   "kind": "tts",
+   "name": "ann_deputies",
+   "params": {
+    "text": "Deputies take it!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "38b325cf651e",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-13T08:42:59",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_deputies.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/ann_half#1",
+   "kind": "tts",
+   "name": "ann_half",
+   "params": {
+    "text": "Switch sides, partners!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9ffc025bd416",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-13T08:42:59",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_half.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/ann_last#1",
+   "kind": "tts",
+   "name": "ann_last",
+   "params": {
+    "text": "You're the last one standing!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "80e8ffe2ab80",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T08:42:59",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_last.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/ann_hogs_win#1",
+   "kind": "tts",
+   "name": "ann_hogs_win",
+   "params": {
+    "text": "The Hogs win the showdown!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7be770767e13",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-13T08:42:59",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_hogs_win.mp3",
+   "bytes": 57094
+  },
+  {
+   "id": "tts/ann_gators_win#1",
+   "kind": "tts",
+   "name": "ann_gators_win",
+   "params": {
+    "text": "The Gators win the showdown!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1ff09162e083",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T08:43:00",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_gators_win.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "stt/ann_planted#1",
+   "kind": "stt",
+   "name": "ann_planted",
+   "params": {
+    "file": "ann_planted.mp3",
+    "bytes": 45182
+   },
+   "hash": "606d062db264",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:49",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_planted.json",
+   "bytes": 236
+  },
+  {
+   "id": "stt/ann_hostage_out#1",
+   "kind": "stt",
+   "name": "ann_hostage_out",
+   "params": {
+    "file": "ann_hostage_out.mp3",
+    "bytes": 46436
+   },
+   "hash": "c8d49e9b7935",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:50",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_hostage_out.json",
+   "bytes": 229
+  },
+  {
+   "id": "stt/ann_defused#1",
+   "kind": "stt",
+   "name": "ann_defused",
+   "params": {
+    "file": "ann_defused.mp3",
+    "bytes": 36405
+   },
+   "hash": "b5dab3d2294b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:50",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_defused.json",
+   "bytes": 221
+  },
+  {
+   "id": "stt/ann_go#1",
+   "kind": "stt",
+   "name": "ann_go",
+   "params": {
+    "file": "ann_go.mp3",
+    "bytes": 28255
+   },
+   "hash": "5cb6a5fc3e31",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:50",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_go.json",
+   "bytes": 221
+  },
+  {
+   "id": "stt/ann_outlaws#1",
+   "kind": "stt",
+   "name": "ann_outlaws",
+   "params": {
+    "file": "ann_outlaws.mp3",
+    "bytes": 46436
+   },
+   "hash": "39cabb16fb79",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:50",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_outlaws.json",
+   "bytes": 231
+  },
+  {
+   "id": "stt/ann_deputies#1",
+   "kind": "stt",
+   "name": "ann_deputies",
+   "params": {
+    "file": "ann_deputies.mp3",
+    "bytes": 50825
+   },
+   "hash": "5b9ec0bf76c0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_deputies.json",
+   "bytes": 235
+  },
+  {
+   "id": "stt/ann_half#1",
+   "kind": "stt",
+   "name": "ann_half",
+   "params": {
+    "file": "ann_half.mp3",
+    "bytes": 40794
+   },
+   "hash": "cfe8bddef973",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_half.json",
+   "bytes": 245
+  },
+  {
+   "id": "stt/ann_last#1",
+   "kind": "stt",
+   "name": "ann_last",
+   "params": {
+    "file": "ann_last.mp3",
+    "bytes": 52705
+   },
+   "hash": "3c9601b781a0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_last.json",
+   "bytes": 365
+  },
+  {
+   "id": "stt/ann_hogs_win#1",
+   "kind": "stt",
+   "name": "ann_hogs_win",
+   "params": {
+    "file": "ann_hogs_win.mp3",
+    "bytes": 57094
+   },
+   "hash": "ec61ee1c5a55",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_hogs_win.json",
+   "bytes": 427
+  },
+  {
+   "id": "stt/ann_gators_win#1",
+   "kind": "stt",
+   "name": "ann_gators_win",
+   "params": {
+    "file": "ann_gators_win.mp3",
+    "bytes": 58348
+   },
+   "hash": "83187dac29a5",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:44:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_gators_win.json",
+   "bytes": 426
+  },
+  {
+   "id": "tts/ann_planted#2",
+   "kind": "tts",
+   "name": "ann_planted",
+   "params": {
+    "text": "The shine bomb is planted!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cd9066efe98f",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-13T08:46:29",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_planted.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/ann_hogs_win#2",
+   "kind": "tts",
+   "name": "ann_hogs_win",
+   "params": {
+    "text": "The Hogs win the showdown!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7be770767e13",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-13T08:46:29",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_hogs_win.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "stt/ann_planted#2",
+   "kind": "stt",
+   "name": "ann_planted",
+   "params": {
+    "file": "ann_planted.mp3",
+    "bytes": 47063
+   },
+   "hash": "8284e9db6a8b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:47:32",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_planted.json",
+   "bytes": 356
+  },
+  {
+   "id": "stt/ann_hogs_win#2",
+   "kind": "stt",
+   "name": "ann_hogs_win",
+   "params": {
+    "file": "ann_hogs_win.mp3",
+    "bytes": 51452
+   },
+   "hash": "13162f4e2d40",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T08:47:32",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_hogs_win.json",
+   "bytes": 361
+  },
+  {
+   "id": "tts/ann_hogs_win#3",
+   "kind": "tts",
+   "name": "ann_hogs_win",
+   "params": {
+    "text": "The Hogs win the showdown!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7be770767e13",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-13T08:47:33",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_hogs_win.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/ann_planted#3",
+   "kind": "tts",
+   "name": "ann_planted",
+   "params": {
+    "text": "The shine bomb is planted!",
+    "voice_id": "yA6oSRbzEUnWgzyaiiht",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cd9066efe98f",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-13T08:47:33",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/ann_planted.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "reconcile@2026-11-13T08:48:36",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -10058,
+   "actual": -10468,
    "basis": "account",
-   "balance_after": 67955
+   "balance_after": 68561
   }
  ],
  "anchor": {
@@ -17299,7 +19092,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-12T11:55:19",
-  "account_drop": 63232
+  "when": "2026-11-13T08:48:36",
+  "account_drop": 63838
  }
 }

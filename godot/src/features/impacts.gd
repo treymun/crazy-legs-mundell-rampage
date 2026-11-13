@@ -150,7 +150,24 @@ func _away(dir: Vector3, speed: float, up: float) -> Vector3:
 
 
 func _marks_gun(gun: int) -> bool:
-	return gun == Weapons.REVOLVER or gun == Weapons.RIFLE or gun == Weapons.SHOTGUN
+	return (
+		gun
+		in [
+			Weapons.REVOLVER,
+			Weapons.RIFLE,
+			Weapons.SHOTGUN,
+			Weapons.HUNTER,
+			Weapons.MOWER,
+			Weapons.COUNTY45,
+			Weapons.STAR357,
+			Weapons.HOGLEG,
+			Weapons.RIOT_PUMP,
+			Weapons.TOMMY,
+			Weapons.GREASE_GUN,
+			Weapons.PATROL_BAR,
+			Weapons.MARKSMAN,
+		]
+	)
 
 
 ## A round out the far side of a wall: what it tears out flies on with it, and

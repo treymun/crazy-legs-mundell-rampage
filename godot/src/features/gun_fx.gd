@@ -134,7 +134,12 @@ func _fired(gun: int) -> void:
 		return
 	_pellets = 0
 	var ahead := _forward()
-	match gun:
+	# The 5v5 store's bullet guns smoke and spark as the rifle does; its riot
+	# pump as the sawed-off.
+	var kind := gun
+	if Weapons.FRESH_BULLETS.has(gun):
+		kind = Weapons.SHOTGUN if gun == Weapons.RIOT_PUMP else Weapons.RIFLE
+	match kind:
 		Weapons.SHOTGUN:
 			# Burning wadding and a cloud of powder smoke thrown out of both barrels.
 			for _k in 6:
@@ -149,7 +154,7 @@ func _fired(gun: int) -> void:
 					.14
 				)
 				puff.grow = .4
-		Weapons.REVOLVER, Weapons.RIFLE:
+		Weapons.REVOLVER, Weapons.RIFLE, Weapons.HUNTER, Weapons.MOWER:
 			if game.clock >= _smoke_next:
 				# A fast gun lays one cloud a while, not a wall of them.
 				_smoke_next = game.clock + .2
@@ -189,6 +194,14 @@ func _traced(end: Vector3, struck: String) -> void:
 	var at := end - dir * .06
 	var art := String(HIT_ART[kind])
 	var big := 1.3 if gun == Weapons.RIFLE else .8 if gun == Weapons.SHOTGUN else 1.0
+	if gun == Weapons.HUNTER or gun == Weapons.MARKSMAN:
+		big = 1.7 if gun == Weapons.HUNTER else 1.5
+	elif gun == Weapons.STAR357 or gun == Weapons.HOGLEG:
+		big = 1.25
+	elif gun == Weapons.RIOT_PUMP:
+		big = .8
+	elif gun == Weapons.MOWER:
+		big = 1.2
 	var size := (.42 if art == "metal" or art == "glass" else .6) * big
 	hits.append([at.x, at.y, at.z, game.clock, art, size])
 	if hits.size() > MAX_HITS:

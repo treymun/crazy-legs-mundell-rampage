@@ -20,6 +20,16 @@ const AT_WALL := [
 	"revolver",
 	"shotgun",
 	"rifle",
+	"hunter",
+	"mower",
+	"county45",
+	"star357",
+	"hogleg",
+	"riot_pump",
+	"tommy",
+	"grease_gun",
+	"patrol_bar",
+	"marksman",
 	"riveter",
 	"pressure_gun",
 	"teat_gun",
@@ -31,7 +41,17 @@ const AT_WALL := [
 	"powder_keg",
 	"tnt",
 ]
-const HELD := ["rifle", "riveter", "pressure_gun", "teat_gun", "armgun"]
+const HELD := [
+	"rifle",
+	"mower",
+	"tommy",
+	"grease_gun",
+	"patrol_bar",
+	"riveter",
+	"pressure_gun",
+	"teat_gun",
+	"armgun"
+]
 ## Materials the .38 is shown striking, and where to look for each.
 const KINDS := ["wood", "brick", "tin", "steel", "stone", "dirt", "brush", "timber", "glass"]
 const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]

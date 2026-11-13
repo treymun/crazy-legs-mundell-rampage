@@ -1,0 +1,20 @@
+{
+ "text": "Hostage is out!",
+ "words": [
+  {
+   "text": "Hostage",
+   "start": 0.16,
+   "end": 0.76
+  },
+  {
+   "text": "is",
+   "start": 0.84,
+   "end": 0.98
+  },
+  {
+   "text": "out!",
+   "start": 1.24,
+   "end": 1.58
+  }
+ ]
+}
