@@ -11,6 +11,9 @@ func _ready() -> void:
 	_parse_smoke()
 	get_window().title = TITLE
 	web = OS.has_feature("web")
+	# A real launch logs errors and crashes (a tool driving the game does not).
+	if not web and Engine.get_main_loop().get_script() == null:
+		crash_log = CrashLog.start(self)
 	mobile = (
 		OS.has_feature("android")
 		or OS.has_feature("ios")
@@ -605,6 +608,7 @@ func _demo_controls(dt: float) -> Game.Controls:
 
 
 func advance(elapsed: float, controls: Game.Controls) -> void:
+	last_controls = controls
 	accumulator = minf(.1, accumulator + elapsed)
 	pending_turn += controls.turn
 	pending_look += controls.look

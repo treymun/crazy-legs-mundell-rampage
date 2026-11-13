@@ -652,6 +652,11 @@ func _run() -> void:
 	# The multiplayer foundation: two players, snapshots, determinism (the
 	# quick part; net_check.gd on its own plays every chapter longer).
 	preload("res://tools/net_check.gd").run(main, check)
+	# Four bots in one game and its twin seen from another player's machine;
+	# a host and a client over localhost (each tool on its own runs longer).
+	preload("res://tools/multi_bots.gd").run(main, check)
+	preload("res://tools/net_loopback.gd").run(main, check)
+	_crash_log(main)
 
 	print("")
 	if failures.is_empty():
@@ -1227,3 +1232,71 @@ func _boss_music(main) -> void:
 			g.jerry.hp = 0.0
 		g.ticked.emit(.2)
 		check(String(g.sound.score) == g.level.score, "%s's score is back when it falls" % id)
+
+
+## The crash and error log (src/crash_log.gd), in a folder of its own: an
+## error is written with its context, the same one only REPEATS times, a
+## session without a clean exit is kept as a crash log and noted at the next
+## start, a clean exit leaves a summary and no lock.
+func _crash_log(main) -> void:
+	print("CRASH LOG")
+	var dir := OS.get_cache_dir().path_join("clmr_crash_check_%d" % OS.get_process_id())
+	DirAccess.make_dir_recursive_absolute(dir)
+	for name in DirAccess.get_files_at(dir):
+		DirAccess.remove_absolute(dir.path_join(name))
+	var first := CrashLog.start(main, dir)
+	check(
+		first.last_session == "" and FileAccess.file_exists(dir.path_join("session.lock")),
+		"a first session starts a log and a lock, with nothing to report"
+	)
+	for i in CrashLog.REPEATS + 3:
+		push_error("crash log check: the same error")
+	push_warning("crash log check: a warning")
+	CrashLog.note("crash log check: a note")
+	var text := FileAccess.get_file_as_string(dir.path_join("session.log"))
+	check(
+		(
+			first.errors == CrashLog.REPEATS + 3
+			and first.warnings == 1
+			and text.count("crash log check: the same error") == CrashLog.REPEATS
+			and text.contains("screen ")
+			and text.contains("version ")
+			and text.contains("a note")
+		),
+		(
+			"errors are written with their context, the same one %d times (%d errors, %d written)"
+			% [CrashLog.REPEATS, first.errors, text.count("crash log check: the same error")]
+		)
+	)
+	# A crash: the hook goes, the file and lock stay.
+	first.stop()
+	first = null
+	var second := CrashLog.start(main, dir)
+	var crashes := Array(DirAccess.get_files_at(dir)).filter(
+		func(n: String) -> bool: return n.begins_with("crash-")
+	)
+	check(
+		second.last_session.begins_with("CRASH LOG") and crashes.size() == 1,
+		"a session that never closed is kept as a crash log and noted at the next start"
+	)
+	second.close()
+	var closed := FileAccess.get_file_as_string(dir.path_join("session.log"))
+	check(
+		(
+			closed.contains("SESSION SUMMARY")
+			and not FileAccess.file_exists(dir.path_join("session.lock"))
+		),
+		"a clean exit writes the summary and takes the lock away"
+	)
+	var third := CrashLog.start(main, dir)
+	third.close()
+	var sessions := Array(DirAccess.get_files_at(dir)).filter(
+		func(n: String) -> bool: return n.begins_with("session-")
+	)
+	check(
+		third.last_session == "" and sessions.size() == 1,
+		"after a clean exit the next start notes nothing and rotates the log"
+	)
+	for name in DirAccess.get_files_at(dir):
+		DirAccess.remove_absolute(dir.path_join(name))
+	DirAccess.remove_absolute(dir)

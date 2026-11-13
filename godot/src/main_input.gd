@@ -15,6 +15,10 @@ func _notification(what: int) -> void:
 		_on_focus_gained()
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		_on_back()
+	if crash_log != null and what == NOTIFICATION_APPLICATION_PAUSED:
+		crash_log.backgrounded(true)
+	elif crash_log != null and what == NOTIFICATION_APPLICATION_RESUMED:
+		crash_log.backgrounded(false)
 
 
 ## Android's back button: Esc everywhere, and leave from the bare title screen.

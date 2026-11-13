@@ -72,6 +72,8 @@ godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVE
 godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)
+godot --headless --path godot --script res://tools/multi_bots.gd -- players=1,2,4 seconds=60   # MULTI BOTS OK (whole: to the end; mortal; diff=)
+godot --headless --path godot --script res://tools/net_loopback.gd -- seconds=180 lag=50 loss=0.05   # NET LOOPBACK OK (websocket: over WebSocket)
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 
 # Pacing and balance (not in CI)
@@ -885,3 +887,75 @@ times, the duels).
   she is after; a slick or a race car bites one player at a time; the
   objective pin, boss bar, boss checkpoint and rematch think of one player;
   the steam scald list is keyed by hazard instance id (not carried).
+
+## Multiplayer tests, the crash log and the transport
+
+`docs/multiplayer.md` is the plan (model, rates, transports per platform,
+what a networking pass still needs).
+
+- **Presentation must never change play, whoever is local.** Play that reads
+  `game.player` outside an enemy's or a player's own step (in a `ticked`
+  handler, say) reads the LOCAL player, so two machines would play it
+  differently. `multi_bots.gd` holds this: its twin game is seen from the
+  last player's machine (`Players.set_local`), and the two must stay
+  identical. It found three (the chickens spooked by the local player's run
+  only, floating bodies bobbing near the local player only, a race car's
+  kill blamed on the local player): now any player, the nearest player.
+  Single-player play is unchanged by them.
+- **`tools/multi_bots.gd`**: 1 to 4 players in one game, each its own
+  `bot_pilot` (`as_controls`) through `game.tick(dt, {slot: controls})`, every
+  chapter for `seconds=` or to the end (`whole`), god mode unless `mortal`
+  (the harness fills a dry gun in both runs alike, never the pilot's own
+  `whole`, which touches one game). Per player: kills (credited to the acting
+  player when an enemy dies), damage taken, deaths, stuck time (still, with
+  no foe in sight) and the share of the enemies' hunting; the tick's median,
+  p99 and max. Fails on any script or engine error (a
+  `CrashLog.tally()` round the run), a position that is not a number, a
+  player's middle inside a solid cell for half a second, or the twin parting
+  (snapshots compared every 600 ticks and at the end). Its quick part
+  (`run()`: Hickston with four for 12 s, the bayou with two for 6 s) is in
+  check_fixes. Two bots on Hickston idle about 30 s at (45.5, 57.7) in a
+  minute: a bot or route matter, not looked into.
+- **The crash and error log** (`src/crash_log.gd`, a Godot `Logger` added
+  with `OS.add_logger` in `main.gd _ready`, closed in `main_state.gd
+  _exit_tree`): a real launch (not a tool, not the browser) writes every
+  error and warning to `user://logs/session.log` with the version, screen,
+  level, tick, mode, each player's place, health and gun, the last controls
+  (`main.last_controls`, set in `advance()`), the last lines of output and
+  the script backtrace (debug builds; a release export has none unless
+  `always_track_call_stacks`, which costs every call, is on). The same error
+  at one place is written REPEATS times, then counted; the file stops at 2
+  MB. `CrashLog.note(text)` leaves a line (each level started); a clean exit
+  appends a summary (counts, the busiest places, the last notes) and removes
+  `session.lock`. A launch that finds the lock keeps the old log as
+  `crash-<stamp>.log` and prints one `CRASH LOG:` line; a phone sent to the
+  background marks the lock so a system kill there is not a crash; another
+  copy running on the profile gets `live-<pid>.log`. KEEP (5) of each kind.
+  Nothing runs per frame. check_fixes's CRASH LOG block holds it in a cache
+  folder (`CrashLog.start(main, dir)`).
+- **The transport** (`src/net/`): `NetSession` wraps ENet or WebSocket
+  (`MultiplayerPeer`, packets only), with test latency, jitter and loss on
+  what it sends (on the clock handed to `poll`; loss only unreliable).
+  `NetWire` is every packet's layout (controls in 12 bytes; inputs sent
+  redundantly; snapshots with their base, tick, input ack and the inputs
+  played since the base). `NetSync.Host` plays the authoritative game and
+  sends deltas from each client's acknowledged snapshot (whole while it has
+  none); `NetSync.Client` rebuilds them and steps a copy of the game with the
+  inputs the host played, rebuilding it from a snapshot when it cannot step
+  and every 10 s (`GameSnapshot.apply` only works on a fresh game today: set
+  `NetSync.APPLY_RUNNING` once it works on a running one). Two things about
+  snapshots the tests found: a capture shares the game's packed arrays (the
+  flow fields go on writing into a kept snapshot), so `NetSync.capture` takes
+  a deep copy, and the client copies a snapshot before applying it; and the
+  save part follows the acting player and carries presentation (`visited`,
+  timers in VIEW_FIELDS), so snapshots are taken with player one acting and
+  compared through `NetSync.comparable`.
+- **`tools/net_loopback.gd`**: one process, a host and a client peer on
+  127.0.0.1 (a port from the process id, so parallel checks do not meet),
+  two games, the game's own clock. The host's bot plays player one, the
+  client's bot (steered from its copy) player two. Checks every snapshot the
+  client rebuilt against the host's (`GameSnapshot.same`), the copy against
+  the snapshots once a second, that the client's inputs move player two, and
+  no errors; prints bandwidth each way, snapshot and input sizes, lag and the
+  host's costs. Its quick part (ENet 6 s with 40 ms, jitter and 5% loss;
+  WebSocket 2 s) is in check_fixes.
