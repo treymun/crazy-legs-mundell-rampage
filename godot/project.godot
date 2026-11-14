@@ -10,6 +10,10 @@ config/version="2.0.0-dev.45"
 run/main_scene="res://src/Main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icons/icon.png"
+; The 3D rewrite keeps its own profile (saves, settings, records) so a test
+; build never touches the released game's.
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Crazy Legs Mundell Rampage 3D"
 config/quit_on_go_back=false
 boot_splash/bg_color=Color(0.047058824, 0.03529412, 0.03137255, 1)
 boot_splash/show_image=false
