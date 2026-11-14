@@ -287,6 +287,12 @@ on any level: `map new hickston base=hickston`, then add, validate, render,
 playtest and build. When a level's map changes, bump its `layout` (old saves
 then start that chapter over with their kit).
 
+The COUNTY RUN survival maps (`county_hickston`, `county_quarry`,
+`county_bayou`) are plans too, each over a chapter's plan
+(`tools/levels/county_<chapter>_plan.gd`, `county_kit.gd`); `COUNTY_RUN.md`
+says how to make one and validate it with a throwaway source
+(`map new zz_x base=county_quarry`, `validate zz_x`).
+
 ## Worked example: Mundell Feed & Seed
 
 `docs/map_examples/feedstore_build.sh` makes the demonstration map from

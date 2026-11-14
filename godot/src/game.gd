@@ -158,7 +158,8 @@ func tick(dt: float, controls) -> void:
 		if mst != null and mst.mode != Modes.CAMPAIGN:
 			by_slot = mst.rules().hold_controls(self, mst, by_slot)
 	var mine: Controls = by_slot[local_player.slot]
-	if showing_tally or defeated() or portal_request != "":
+	# (Modes.holds: COUNTY RUN holds the world while a choice is on screen.)
+	if showing_tally or defeated() or portal_request != "" or Modes.holds(self):
 		if sound != null:
 			sound.set_fuse(false)
 			sound.set_tool(false)
@@ -344,6 +345,7 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 		(3.85 if controls.running else 2.75) * (1.42 if p.sprint else 1.0) / magnitude
 	)
 	speed *= 1.0 - maxf(0.0, p.gut - 65.0) * .004 - maxf(0.0, p.drunk - 70.0) * .004
+	speed *= Modes.move_scale(self, p)
 	if world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)])) == "water":
 		speed *= .69
 	p.crouched = controls.crouch and p.air <= .01

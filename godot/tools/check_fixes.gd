@@ -662,6 +662,9 @@ func _run() -> void:
 	# The game modes: co-op's revive, respawn, scaling and shared hazards;
 	# deathmatch's spawns, frags, limits and results (mode_check.gd).
 	preload("res://tools/mode_check.gd").run(main, check)
+	# COUNTY RUN: slots, swaps, XP, level ups and milestones, spawns, a short
+	# play on each map through a death and a retry (county_check.gd).
+	preload("res://tools/county_check.gd").run(main, check)
 	# Level format 2 (decks, stairs, ramps, thin walls, nav between floors) and
 	# the map tools (geometry_check.gd, map_check.gd).
 	preload("res://tools/geometry_check.gd").run(main, check)

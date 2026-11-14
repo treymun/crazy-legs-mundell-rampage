@@ -27,6 +27,8 @@ const CHAPTER_ART := {
 	"sawmill": "art_mill.bin",
 	"quarry": "art_quarry.bin",
 	"bayou": "art_bayou.bin",
+	"county_quarry": "art_quarry.bin",
+	"county_bayou": "art_bayou.bin",
 	"speedway": "art_speedway.bin",
 	"mothership": "art_mothership.bin",
 }

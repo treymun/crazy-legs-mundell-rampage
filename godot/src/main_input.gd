@@ -137,6 +137,9 @@ func key(code: int, shift := false) -> void:
 	if state == "showdown":
 		_key_showdown(code)
 		return
+	if state == "county":
+		CountyInput.key_maps(self, code)
+		return
 	if state == "title":
 		_key_title(code)
 		return
@@ -359,6 +362,9 @@ func _key_play(code: int) -> void:
 	var target := game
 	if target == null:
 		return
+	# COUNTY RUN's keys first: its cards, swap, build screen, slots and end.
+	if CountyInput.key_play(self, target, code):
+		return
 	var tactical := Modes.is_tactical(target) and not target.showing_tally
 	# The 5v5 buy menu takes its keys first (B, the number keys, ESC to shut).
 	if tactical and TacticalScreens.key(target, code):
@@ -512,6 +518,10 @@ func _input(event: InputEvent) -> void:
 		input_device = "touch"
 		if touch.editing:
 			touch.touch(finger)
+		elif state == "play" and CountyScreens.covering(game):
+			# COUNTY RUN's cards or end over the view: a tap is a pick, never a control.
+			if finger.pressed and finger.index == 0:
+				CountyInput.tap(self, picture_point(finger.position))
 		elif state != "play":
 			touch.active = true
 			_touch_menu(finger)
@@ -528,6 +538,8 @@ func _input(event: InputEvent) -> void:
 			mouse_rel += moved.relative
 		elif state == "play" and TacticalScreens.open:
 			TacticalScreens.hover(picture_point(moved.position))
+		elif state == "play" and CountyScreens.covering(game):
+			CountyInput.hover(self, picture_point(moved.position))
 		elif state != "play":
 			pointer = moved.position
 			if drag_mode != "" and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -587,6 +599,9 @@ func _input(event: InputEvent) -> void:
 		elif TacticalScreens.open and game != null and button.button_index == MOUSE_BUTTON_LEFT:
 			# The open store: a click buys what it is on (outside it: shut).
 			TacticalScreens.tap(game, picture_point(button.position))
+			block_fire = true
+		elif CountyScreens.covering(game) and button.button_index == MOUSE_BUTTON_LEFT:
+			CountyInput.tap(self, picture_point(button.position))  # a COUNTY RUN card or button
 			block_fire = true
 		elif (
 			state == "play"
@@ -719,6 +734,8 @@ func hover(position: Vector2) -> void:
 	var part := ""
 	if at.x >= 0 and OnlineInput.SCREENS.has(state):
 		OnlineInput.hover(self, at)
+	elif at.x >= 0 and state == "county":
+		CountyInput.hover(self, at)
 	elif at.x >= 0 and state == "title":
 		var index := Menu.title_hit(entries(), at.x, at.y)
 		if index >= 0 and index != selection:
@@ -769,6 +786,10 @@ func click(position: Vector2, button: int) -> void:
 	if OnlineInput.SCREENS.has(state):
 		if button == MOUSE_BUTTON_LEFT:
 			OnlineInput.tap(self, at)
+		return
+	if state == "county":
+		if button == MOUSE_BUTTON_LEFT:
+			CountyInput.tap(self, at)
 		return
 	if state == "title" and button == MOUSE_BUTTON_LEFT:
 		var index := Menu.title_hit(entries(), x, y)

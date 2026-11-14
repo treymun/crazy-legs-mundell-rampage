@@ -207,9 +207,8 @@ func disturb(x: float, y: float, radius: float, z = null) -> void:
 # ----------------------------------------------------------------- damage
 
 
-## Hurts the acting player, or `who` (made the acting player meanwhile, so
-## what listens to player_hurt hears it as theirs). The flashes, shake, face
-## and barks are the local player's only.
+## Hurts the acting player, or `who` (made the acting player meanwhile, so what
+## listens to player_hurt hears it as theirs); the looks are the local player's.
 func damage(amount: float, source = null, cause := "HIT", who: Player = null) -> void:
 	if who != null and who != player:
 		var was := player
@@ -230,6 +229,7 @@ func damage(amount: float, source = null, cause := "HIT", who: Player = null) ->
 	amount = maxf(
 		1.0, round_even(amount * (1.0 - mellow) * incoming * (adapt if adapting else 1.0))
 	)
+	amount = Modes.incoming(self, p, amount, cause)  # a mode's armour (COUNTY RUN)
 	p.health = maxi(0, p.health - int(amount))
 	player_hurt.emit(amount, cause)
 	if p.health == 0 and adapting:

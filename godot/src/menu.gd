@@ -20,6 +20,8 @@ const COLUMN_X := [12, 98]
 const COLUMN_W := 82
 const ROWS_Y := 125
 const ROW_H := 11
+## The rows of a column of seven (title_items).
+const ROW_TIGHT := 9
 const PRIMARY_IDS := ["RESUME", "CONTINUE CAMPAIGN"]
 ## Left column: getting into the game. Right column: everything around it.
 const OFFICE_IDS := ["SAVE SLOTS", "SETUP", "CONTROLS", "CREDITS", "QUIT"]
@@ -29,6 +31,7 @@ const BLURBS := {
 	"RESUME": "BACK TO THE MAYHEM. IT WAITED FOR YA.",
 	"CONTINUE CAMPAIGN": "BACK TO THE CROSSROADS, GUNS AND ALL.",
 	"NEW GAME": "HICKSTON AIN'T GONNA SAVE ITSELF.",
+	"COUNTY RUN": "ENDLESS SURVIVAL. HOW LONG CAN YA LAST?",
 	"QUICKLOAD": "BACK TO YER LAST QUICKSAVE.",
 	"COUNTY HUB": "THE CROSSROADS. EVERY ROAD STARTS HERE.",
 	"REPLAY LEVEL": "RUN A CHAPTER AGAIN FOR THE HELL OF IT.",
@@ -199,6 +202,12 @@ static func title_items(entries: PackedStringArray) -> Array:
 	var items: Array = []
 	var first := String(entries[0]) if entries.size() > 0 else ""
 	var primary := first if PRIMARY_IDS.has(first) else "NEW GAME"
+	# A column of seven (a game paused, a quicksave and COUNTY RUN) sits on
+	# tighter rows so it stays on the board.
+	var left := 0
+	for id: String in entries:
+		left += 1 if id != primary and not OFFICE_IDS.has(id) and id != "MULTIPLAYER" else 0
+	var row_h := ROW_H if left <= 6 else ROW_TIGHT
 	var counts := [0, 0]
 	for id: String in entries:
 		var item := {"id": id, "label": String(LABELS.get(id, id)), "primary": id == primary}
@@ -215,7 +224,7 @@ static func title_items(entries: PackedStringArray) -> Array:
 			item["column"] = column
 			item["row"] = counts[column]
 			item["rect"] = Rect2i(
-				int(COLUMN_X[column]), ROWS_Y + ROW_H * int(counts[column]), COLUMN_W, ROW_H
+				int(COLUMN_X[column]), ROWS_Y + row_h * int(counts[column]), COLUMN_W, row_h
 			)
 			counts[column] += 1
 		items.append(item)
@@ -344,7 +353,7 @@ func draw_title(
 	var deepest := 0
 	for item: Dictionary in items:
 		deepest = maxi(deepest, int(item["row"]) + 1)
-	var foot := 181 if deepest <= 5 else ROWS_Y + ROW_H * deepest
+	var foot := 181 if deepest <= 5 else ROWS_Y + (ROW_H if deepest <= 6 else ROW_TIGHT) * deepest
 	_hline(c, 12, foot, 168, Color(52 / 255.0, 36 / 255.0, 24 / 255.0))
 	_hline(c, 12, foot + 1, 168, Color(120 / 255.0, 88 / 255.0, 58 / 255.0))
 	var first := note if note != "" else String(BLURBS.get(selected_id, ""))

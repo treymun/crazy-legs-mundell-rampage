@@ -1,0 +1,163 @@
+{
+	"_about": "COUNTY RUN, the endless survival mode (src/modes/county_*.gd, CLAUDE.md 'County Run'). Every number and every word on a reward card is here: change it, restart the run. Upgrade ranks are 1-based; 'per' is what one rank adds. {v} in a card's text is the value at the rank being offered, {now} at the rank held, {gun} the weapon's name.",
+	"maps": [
+		{
+			"id": "county_hickston",
+			"title": "HICKSTON",
+			"tag": "TOWN DISTRICT",
+			"blurb": "STOREFRONTS, ALLEYS AND BACKYARDS. THE SALOON AND THE FEED STORE GO RIGHT THROUGH.",
+			"pool": [
+				["billy", 0, 10],
+				["coot", 0, 8],
+				["clone", 0, 6],
+				["skeeter", 1, 5],
+				["yard_deputy", 2, 6],
+				["drunk_coot", 3, 4],
+				["big_billy", 4, 4],
+				["alien", 5, 4],
+				["shield_deputy", 6, 4],
+				["saucer", 8, 3]
+			],
+			"elites": ["tough_earl", "big_billy", "shield_deputy"]
+		},
+		{
+			"id": "county_quarry",
+			"title": "THE QUARRY",
+			"tag": "INDUSTRIAL SITE",
+			"blurb": "HAUL ROADS, TERRACED PITS, SHEDS AND A CATWALK OVER THE CUT.",
+			"pool": [
+				["billy", 0, 8],
+				["coot", 0, 6],
+				["valve_rat", 0, 7],
+				["chalk_spitter", 1, 6],
+				["clone", 1, 4],
+				["skeeter", 2, 4],
+				["boilerback", 3, 4],
+				["big_billy", 4, 3],
+				["yard_deputy", 5, 4],
+				["alien", 7, 3]
+			],
+			"elites": ["tough_bubba", "tough_earl", "boilerback"]
+		},
+		{
+			"id": "county_bayou",
+			"title": "GATOR BAYOU",
+			"tag": "SWAMP",
+			"pressure": 0.8,
+			"blurb": "BOARDWALKS OVER THE MUCK, SHACKS ON STILTS, OPEN GROUND TO CIRCLE IN.",
+			"pool": [
+				["billy", 0, 7],
+				["chum_tosser", 0, 7],
+				["coot", 0, 5],
+				["gator", 1, 6],
+				["skeeter", 1, 5],
+				["noodler", 3, 5],
+				["drunk_coot", 4, 3],
+				["big_billy", 5, 3],
+				["alien", 7, 3]
+			],
+			"elites": ["tough_chuck", "noodler", "big_billy"]
+		}
+	],
+	"xp": {
+		"_about": "XP to go from level L to L+1: first + step*(L-1) + curve*(L-1)^2. Each kill drops max health / per_hp XP (at least 1), elites times elite_times.",
+		"first": 6,
+		"step": 4,
+		"curve": 0.12,
+		"per_hp": 40,
+		"elite_times": 4,
+		"reach": 0.85,
+		"pull": 2.2,
+		"rise": 0.55,
+		"merge_over": 70,
+		"merge_reach": 1.6,
+		"life": 240
+	},
+	"spawn": {
+		"_about": "Minutes of survival raise the cap on live enemies, the rate and the mix (a map's \"pressure\" scales the cap and the rate). A lull every lull_every seconds holds new spawns for lull_for. Elites come every elite_every seconds from elite_from.",
+		"cap_start": 12,
+		"cap_per_minute": 2.4,
+		"cap_most": 38,
+		"every_start": 2.3,
+		"every_per_minute": -0.16,
+		"every_least": 0.42,
+		"group_most": 3,
+		"near": 11.0,
+		"far": 26.0,
+		"steps_most": 40,
+		"lull_every": 95.0,
+		"lull_for": 11.0,
+		"elite_from": 80.0,
+		"elite_every": 52.0,
+		"health_from_minute": 5.0,
+		"health_per_minute": 0.045,
+		"health_most": 2.2,
+		"recycle_after": 9.0,
+		"corpses_kept": 36,
+		"supply_chance": 0.075,
+		"food_chance": 0.05
+	},
+	"start": {
+		"weapons": ["revolver", "crowbar"],
+		"active": "revolver",
+		"slots": 3,
+		"health": 100
+	},
+	"weapons": {
+		"revolver": {"short": ".38", "plays": "SIX ROUNDS, DEAD ACCURATE, QUICK TO RELOAD.", "kind": "pistol", "reserve": 36, "upgrades": ["quick_hands", "deadeye", "heavy_hand", "hot_loads"]},
+		"crowbar": {"short": "CROWBAR", "plays": "NO AMMO. A RUNNING SWING HITS HARDER.", "kind": "melee", "reserve": 0, "upgrades": ["wide_swing", "long_reach", "crowd_control"]},
+		"shotgun": {"short": "SAWED-OFF", "plays": "TWO BARRELS OF BUCKSHOT. BOTH AT ONCE ON ALT FIRE.", "kind": "shotgun", "reserve": 24, "upgrades": ["extra_buck", "tight_choke", "slam_load", "hot_loads"]},
+		"rifle": {"short": "RIFLE", "plays": "A FAST-FIRING RANCH RIFLE FED FROM THE BELT. CLIMBS IF YOU HOLD IT.", "kind": "rifle", "reserve": 120, "upgrades": ["steady_stock", "field_magazine", "called_shot", "hot_loads"]},
+		"crossbow": {"short": "XBOW", "plays": "LOBS A STICK OF DYNAMITE THAT GOES OFF ON IMPACT.", "kind": "explosive", "reserve": 12, "upgrades": ["packed_charge", "shaped_charge", "blast_padding", "fast_hands"]},
+		"bottle_launcher": {"short": "ROCKETS", "plays": "BOTTLE ROCKETS: A STRAIGHT, FAST BLAST.", "kind": "explosive", "reserve": 10, "upgrades": ["packed_charge", "shaped_charge", "blast_padding", "fast_hands"]},
+		"powder_keg": {"short": "KEG", "plays": "ROLLS A KEG THAT BLOWS A WIDE HOLE IN A CROWD.", "kind": "explosive", "reserve": 4, "upgrades": ["packed_charge", "shaped_charge", "blast_padding"]},
+		"cow_launcher": {"short": "COW GUN", "plays": "A WHOLE COW, AIRMAIL. THE BIGGEST BANG IN THE COUNTY.", "kind": "explosive", "reserve": 4, "upgrades": ["packed_charge", "shaped_charge", "blast_padding"]},
+		"riveter": {"short": "RIVETER", "plays": "A STREAM OF HOT RIVETS. ALT FIRE SHOOTS TWO.", "kind": "auto", "reserve": 48, "upgrades": ["hot_loads", "fast_hands"]},
+		"pressure_gun": {"short": "COPPERHD", "plays": "A COPPER STEAM SLUG THAT CUTS A WIND-UP SHORT.", "kind": "auto", "reserve": 18, "upgrades": ["hot_loads", "fast_hands"]},
+		"ripsaw": {"short": "RIP SAW", "plays": "FLINGS SAW BLADES THAT BOUNCE. ALT FIRE GRINDS UP CLOSE.", "kind": "launcher", "reserve": 14, "upgrades": ["hot_loads", "fast_hands"]},
+		"armgun": {"short": "ARM GUN", "plays": "AN ALIEN ARM THAT SPITS ENERGY BOLTS.", "kind": "launcher", "reserve": 40, "upgrades": ["hot_loads", "fast_hands"]},
+		"slingblade": {"short": "SLING", "plays": "A LONG BLADE ON A POLE. NO AMMO, MORE REACH.", "kind": "melee", "reserve": 0, "upgrades": ["wide_swing", "long_reach", "crowd_control"]},
+		"teat_gun": {"short": "TEAT GUN", "plays": "A FIRE HOSE OF MILK. WEAK SHOTS, VERY FAST.", "kind": "auto", "reserve": 120, "upgrades": ["hot_loads", "fast_hands"]},
+		"bowling_ball": {"short": "BOWLING", "plays": "A BOWLING BALL THAT ROLLS THROUGH LEGS.", "kind": "launcher", "reserve": 6, "upgrades": ["hot_loads", "fast_hands"]}
+	},
+	"upgrades": {
+		"quick_hands": {"name": "QUICK HANDS", "ranks": 3, "per": 0.17, "text": "RELOADS {v}% FASTER.", "trade": "", "kinds": ["pistol", "shotgun"]},
+		"deadeye": {"name": "DEADEYE", "ranks": 3, "per": 0.06, "most": 5, "text": "+{v}% DAMAGE FOR EACH HIT IN A ROW, UP TO 5.", "trade": "A MISS RESETS THE STREAK."},
+		"heavy_hand": {"name": "HEAVY HAND", "ranks": 3, "per": 0.2, "unit": "dec", "reach": 5.0, "text": "HITS WITHIN 5 STEPS STAGGER TOUGH VARMINTS {v}S AND SHOVE THEM.", "trade": "ONLY UP CLOSE."},
+		"extra_buck": {"name": "EXTRA BUCK", "ranks": 3, "per": 2, "spread": 0.05, "text": "+{v} PELLETS EACH SHOT.", "trade": "SPREAD WIDENS A LITTLE."},
+		"tight_choke": {"name": "TIGHT CHOKE", "ranks": 3, "per": 0.14, "bonus": 0.12, "text": "SPREAD {v}% NARROWER, +{b}% DAMAGE 3 TO 9 STEPS OUT.", "trade": "HITS FEWER OF A CROWD UP CLOSE."},
+		"slam_load": {"name": "SLAM LOAD", "ranks": 3, "per": 0.16, "text": "SHELLS GO IN {v}% FASTER.", "trade": ""},
+		"steady_stock": {"name": "STEADY STOCK", "ranks": 3, "per": 0.3, "text": "{v}% LESS CLIMB AND HEAT BETWEEN SHOTS.", "trade": ""},
+		"field_magazine": {"name": "FIELD MAGAZINE", "ranks": 2, "per": 0.4, "text": "CARRIES {v}% MORE ROUNDS ON THE BELT, TOPPED UP NOW.", "trade": "THE RANCH RIFLE FEEDS FROM THE BELT, SO THIS IS ITS MAGAZINE."},
+		"called_shot": {"name": "CALLED SHOT", "ranks": 3, "per": 0.05, "most": 8, "text": "+{v}% DAMAGE FOR EACH HIT IN A ROW ON THE SAME TOUGH VARMINT, UP TO 8.", "trade": "SWITCHING TARGETS STARTS OVER."},
+		"wide_swing": {"name": "WIDE SWING", "ranks": 2, "per": 1, "share": 0.7, "text": "A SWING ALSO HITS {v} MORE NEARBY FOR 70%.", "trade": ""},
+		"long_reach": {"name": "LONG REACH", "ranks": 3, "per": 0.18, "text": "{v}% MORE REACH.", "trade": ""},
+		"crowd_control": {"name": "CROWD CONTROL", "ranks": 3, "per": 0.35, "unit": "dec", "text": "HITS KNOCK VARMINTS BACK {v} STEPS AND STUN THEM.", "trade": "SHOVED ONES MAY LAND OUT OF REACH."},
+		"packed_charge": {"name": "PACKED CHARGE", "ranks": 3, "per": 0.15, "text": "BLAST REACHES {v}% FURTHER.", "trade": "BIGGER BACKBLAST TOO."},
+		"shaped_charge": {"name": "SHAPED CHARGE", "ranks": 3, "per": 0.25, "edge": 0.06, "text": "+{v}% DAMAGE NEAR THE MIDDLE OF A BLAST.", "trade": "-{e}% AT THE EDGE."},
+		"blast_padding": {"name": "BLAST PADDING", "ranks": 3, "per": 0.25, "text": "{v}% LESS DAMAGE FROM YOUR OWN BLASTS.", "trade": ""},
+		"hot_loads": {"name": "HOT LOADS", "ranks": 3, "per": 0.12, "text": "+{v}% DAMAGE.", "trade": ""},
+		"fast_hands": {"name": "FAST HANDS", "ranks": 3, "per": 0.1, "text": "FIRES {v}% FASTER.", "trade": "BURNS AMMO FASTER."}
+	},
+	"perks": {
+		"deep_pockets": {"name": "DEEP POCKETS", "ranks": 3, "per": 0.3, "text": "EVERY GUN CARRIES {v}% MORE AMMO, AND PICKUPS GIVE {v}% MORE.", "trade": ""},
+		"good_boots": {"name": "GOOD BOOTS", "ranks": 3, "per": 0.07, "text": "{v}% FASTER ON YOUR FEET.", "trade": ""},
+		"xp_magnet": {"name": "XP MAGNET", "ranks": 3, "per": 0.4, "text": "PICK UP XP FROM {v}% FURTHER.", "trade": "STILL NOT THROUGH WALLS OR FLOORS."},
+		"thick_hide": {"name": "THICK HIDE", "ranks": 3, "per": 0.07, "text": "TAKE {v}% LESS DAMAGE.", "trade": ""},
+		"patch_up": {"name": "PATCH UP", "ranks": 0, "per": 40, "text": "HEALS {v} HEALTH NOW.", "trade": "", "supply": true},
+		"supply_grab": {"name": "SUPPLY GRAB", "ranks": 0, "per": 0.6, "text": "RESTOCKS {v}% OF {gun}'S AMMO NOW.", "trade": "", "supply": true}
+	},
+	"milestones": {
+		"buckshot_breaker": {"name": "BUCKSHOT BREAKER", "kind": "weapon", "needs": "shotgun", "share": 0.55, "text": "SHOTGUN PELLETS GO THROUGH THE FIRST VARMINT AND HIT THE NEXT FOR 55%.", "trade": "A TIGHT CHOKE LINES THEM UP. A WIDE SPREAD CLEARS A CROWD."},
+		"six_shooter": {"name": "SIX-SHOOTER SHOWDOWN", "kind": "weapon", "needs": "revolver", "hits": 4, "times": 2.0, "text": "EVERY 4 HITS IN A ROW CHARGE A SHOT: DOUBLE DAMAGE, AND IT GOES THROUGH TO A SECOND VARMINT.", "trade": "A MISS EMPTIES THE CHARGE."},
+		"chain_reaction": {"name": "CHAIN REACTION", "kind": "weapon", "needs": "explosive", "most": 3, "share": 0.5, "text": "EXPLOSIVE KILLS SET OFF SMALLER BLASTS, UP TO 3 A SHOT.", "trade": "THE LITTLE BLASTS CAN BITE YOU TOO."},
+		"last_stand": {"name": "LAST STAND", "kind": "weapon", "needs": "melee", "seconds": 3.5, "swing": 0.4, "guard": 0.5, "text": "A MELEE KILL GIVES 3.5S OF 40% FASTER SWINGS AND HALF DAMAGE TAKEN.", "trade": "ONLY WHILE YOU KEEP KILLING."},
+		"second_wind": {"name": "SECOND WIND", "kind": "survive", "health": 50, "reach": 3.5, "text": "ONCE: A HIT THAT WOULD KILL YOU LEAVES YOU AT 50 AND THROWS BACK EVERYTHING NEAR.", "trade": "ONE USE A RUN."},
+		"grit_armor": {"name": "GRIT ARMOR", "kind": "survive", "most": 40, "per": 1, "text": "EVERY XP YOU PICK UP ADDS 1 ARMOR, UP TO 40. ARMOR TAKES HITS FIRST.", "trade": ""},
+		"mudslide": {"name": "MUDSLIDE", "kind": "move", "cooldown": 6.0, "distance": 4.2, "text": "USE: SLIDE 4 STEPS, KNOCKING VARMINTS ASIDE. EVERY 6S.", "trade": ""},
+		"breakaway": {"name": "BREAKAWAY", "kind": "move", "crowd": 4, "seconds": 3.0, "speed": 0.3, "reload": 0.5, "cooldown": 15.0, "text": "BREAK OUT OF A CROWD OF 4+: 3S OF 30% SPEED AND 50% FASTER RELOADS. EVERY 15S.", "trade": ""},
+		"big_haul": {"name": "BIG HAUL", "kind": "spare", "text": "FULL HEALTH AND EVERY GUN FULL OF AMMO.", "trade": "", "again": true},
+		"double_down": {"name": "DOUBLE DOWN", "kind": "spare", "text": "TWO RANKS OF AN UPGRADE FOR {gun} AT ONCE.", "trade": "", "again": true},
+		"iron_gut": {"name": "IRON GUT", "kind": "spare", "per": 0.1, "ranks": 3, "text": "TAKE {v}% LESS DAMAGE.", "trade": ""}
+	}
+}

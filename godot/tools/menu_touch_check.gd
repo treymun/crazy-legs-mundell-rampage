@@ -8,7 +8,9 @@
 ## a tap on a picked row, BACK; the server list's name field and BACK; the
 ## host and join forms' rows and BACK; a hosted lobby's settings, ALL
 ## SETTINGS (a row, >, DONE), TEAM and CLOSE; and in a 5v5 freeze on a touch
-## screen the BUY plate, a store row (bought) and a tap outside (closed).
+## screen the BUY plate, a store row (bought) and a tap outside (closed);
+## COUNTY RUN's map picker, its reward cards (a pick, a swap, CANCEL), the
+## build screen and the end of a run's buttons, and a card picked by mouse.
 ## Fails on any script or engine error.
 extends SceneTree
 
@@ -30,6 +32,7 @@ func _run() -> void:
 	_menus()
 	_lobby()
 	_store()
+	_county()
 	tally.stop()
 	_check(
 		tally.errors == 0,
@@ -221,6 +224,113 @@ func _store() -> void:
 	)
 	main.game = null
 	main.state = "title"
+
+
+func _county() -> void:
+	print("\nCOUNTY RUN BY TOUCH")
+	CountyRecords.folder_override = OS.get_cache_dir().path_join("clmr-county-touch")
+	main.state = "title"
+	main.game = null
+	main.render()
+	var titles: Array = main.entries()
+	var at: int = titles.find("COUNTY RUN")
+	var spot := Vector2i(-1, -1)
+	for y in range(30, 200, 2):
+		for x in range(10, 310, 4):
+			if spot.x < 0 and Menu.title_hit(titles, x, y) == at:
+				spot = Vector2i(x, y)
+	_tap(spot)
+	_check(main.state == "county", "the title's COUNTY RUN opens the map picker (%s)" % main.state)
+	_tap_zone("back")
+	_check(main.state == "title", "BACK goes back to the title")
+	main.state = "county"
+	_tap_zone("map", 2)
+	var g: Game = main.game
+	_check(
+		(
+			main.state == "play"
+			and g != null
+			and g.level.id == "county_bayou"
+			and CountyMode.active(g)
+		),
+		"a tap on GATOR BAYOU starts a run there"
+	)
+	if g == null:
+		return
+	g.tick(1.0 / 120.0, Game.Controls.new())
+	var f = g.features["county"]
+	CountyBuild.put_weapon(g, f, Weapons.SHOTGUN, 2)
+	f.pending = [[2, false, g.armory.active]]
+	var cards := [
+		CountyBuild.card("weapon", "", Weapons.RIFLE),
+		CountyBuild.card("perk", "good_boots"),
+		CountyBuild.card("upgrade", "quick_hands", Weapons.REVOLVER)
+	]
+	f.offer = cards.duplicate(true)
+	main.render()
+	CountyScreens._shown_at = -100000
+	_tap_zone("card", 0)
+	_check(
+		CountyScreens.swapping == 0,
+		"a tap on a weapon card with every slot full asks which to swap"
+	)
+	_tap_zone("slot", 2)
+	_check(CountyScreens.swap_slot == 2, "a tap picks the slot to swap out")
+	_tap_zone("cancel")
+	_check(
+		CountyScreens.swapping < 0 and f.offer == cards, "CANCEL goes back to the same three cards"
+	)
+	_tap_zone("build")
+	_check(CountyScreens.build_open and f.paused, "BUILD opens the build screen (the world held)")
+	_tap_zone("close")
+	_check(not CountyScreens.build_open and not f.paused, "CLOSE shuts it")
+	CountyScreens._shown_at = -100000
+	_tap_zone("card", 1)
+	_check(
+		f.pending.is_empty() and CountyBuild.perk_rank(f, "good_boots") == 1,
+		"a tap on a perk card takes it"
+	)
+	print("\nCOUNTY RUN WITH A MOUSE")
+	f.pending = [[3, false, g.armory.active]]
+	f.offer = cards.duplicate(true)
+	main.render()
+	CountyScreens._shown_at = -100000
+	main._shop_pointer()
+	_check(CountyScreens.wants_pointer(g), "the cards let the pointer go")
+	var card := _find("card", 2)
+	if not card.is_empty():
+		var p: Vector2i = card[0].position + card[0].size / 2
+		var rect: Rect2 = main.viewport_rect()
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = true
+		click.position = (
+			rect.position + (Vector2(p) + Vector2(.5, .5)) * rect.size / Vector2(320, 200)
+		)
+		main._input(click)
+	_check(
+		f.pending.is_empty() and CountyBuild.rank(f, Weapons.REVOLVER, "quick_hands") == 1,
+		"a click on a card takes it"
+	)
+	print("\nTHE END OF A RUN BY TOUCH")
+	g.damage(9999.0, null, "TEST")
+	main.render()
+	_check(
+		CountyScreens.covering(g) and _find("retry").size() > 0,
+		"the end shows RETRY, MAPS and TITLE"
+	)
+	_tap_zone("retry")
+	_check(
+		main.game != g and main.game != null and main.game.level.id == "county_bayou",
+		"RETRY starts the map again"
+	)
+	main.game.tick(1.0 / 120.0, Game.Controls.new())
+	main.game.damage(9999.0, null, "TEST")
+	main.render()
+	_tap_zone("maps")
+	_check(main.state == "county" and main.game == null, "MAPS goes back to the map picker")
+	main.state = "title"
+	CountyRecords.folder_override = ""
 
 
 func _find(id: String, arg := -99) -> Array:

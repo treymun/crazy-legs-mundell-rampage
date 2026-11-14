@@ -1,3 +1,15 @@
+# 2.0.0-dev.41 changes
+
+## COUNTY RUN
+- **COUNTY RUN**, a new solo endless survival mode on the title: pick a map, roam free while the county's hands keep coming, and see how long you last. Survival time is the score; death ends the run with your time, the map's personal best, highest level, kills and final build, then RETRY, MAPS or TITLE. Records are kept on their own, apart from campaign saves.
+- **Three big maps**, each a campaign chapter's ground reworked for survival with every door open: **HICKSTON** (the town: Main Street's storefronts, alleys, backyards, the saloon and feed store; the creek, the stockyard, the rodeo and the trailer court now loop into each other; a footbridge over Main Street), **THE QUARRY** (haul roads, terraced pits and sheds; the weigh station opens into the lower cut, a new ramp comes down from the cut yard, and a steel catwalk crosses the flooded pit), **GATOR BAYOU** (plank causeways across the deep water and out to the lagoon island, two raised boardwalks over the shallows, shacks on stilts and open water to circle in). All three open from the start.
+- **Three weapon slots**: start with the .38 and the crowbar; earn more from the roster as level-up rewards. 1-3 pick a slot, the wheel and the next-gun keys cycle; the HUD shows your slots, the gun in hand and its ammo. With all three full, a new gun asks which one to swap out and shows the upgrades you would lose; CANCEL goes back to the cards. Switching keeps a gun's ammo and upgrades; swapping drops only that gun's upgrades.
+- **XP you collect**: kills drop spinning bottle caps (copper, silver, gold), more from tougher varmints, on ground you can reach. Walk close and they float in, never through a wall or from another floor. The HUD shows your level, XP and clock.
+- **Level ups** stop the clock and the world and offer three cards: always an upgrade for the gun in hand, plus upgrades for your other guns, new weapons and perks. Each card says which gun, what changes and by how much, the tradeoff and how long it lasts. Two to three paths per gun: the shotgun's EXTRA BUCK, TIGHT CHOKE and SLAM LOAD; the .38's QUICK HANDS, DEADEYE and HEAVY HAND; the rifle's STEADY STOCK, FIELD MAGAZINE and CALLED SHOT; the crowbar's WIDE SWING, LONG REACH and CROWD CONTROL; the explosives' PACKED CHARGE, SHAPED CHARGE and BLAST PADDING; perks DEEP POCKETS, GOOD BOOTS, XP MAGNET, THICK HIDE, PATCH UP and SUPPLY GRAB. B shows your whole build.
+- **Every tenth level is a milestone**: three major picks in their own colours: BUCKSHOT BREAKER, SIX-SHOOTER SHOWDOWN, CHAIN REACTION, LAST STAND, SECOND WIND, GRIT ARMOR, MUDSLIDE (a slide on USE) and BREAKAWAY. A big XP pickup that crosses several levels offers every choice in turn.
+- **The pressure keeps building**: enemies spawn continuously out of sight and far enough off to react, more and tougher with the minutes, with elites now and then and a short lull to reload and grab XP.
+- Works by keyboard, mouse and touch (Android and the browser): the map picker, the cards, the swap, the build screen and the end of a run.
+
 # 2.0.0-dev.40 changes
 
 ## Online

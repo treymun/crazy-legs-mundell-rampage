@@ -71,6 +71,8 @@ func hitscan(
 	pressure := false
 ) -> bool:
 	var p := player
+	# A mode's say over a swing's reach (COUNTY RUN's LONG REACH).
+	max_range = Modes.hit_reach(self, max_range)
 	var ax := cos(angle)
 	var ay := sin(angle)
 	var best: Enemy = null
@@ -160,7 +162,10 @@ func hitscan(
 		# Where it struck, for a boss's weak spot (BossKit.weak).
 		hit_point = Vector3(p.x + ax * near, p.y + ay * near, p.eye + near * slope)
 		hit_from = Vector2(p.x, p.y)
+		# A mode's upgrades on the hit and after it (COUNTY RUN; nothing elsewhere).
+		amount = Modes.hit_amount(self, best, amount, near)
 		best.hurt(amount, self, false, pressure, null, String(Weapons.NAMES[armory.active]))
+		Modes.hit_after(self, best, amount, near, ax, ay, slope)
 		return true
 	if not spark:
 		var reach := _wall_distance(ax, ay, slope, max_range)
@@ -443,6 +448,10 @@ func explode(shot: Shot) -> void:
 	var strength := float(spec["strength"])
 	if strength <= 0.0:
 		strength = float(shot.damage)
+	# A mode's say over the player's blasts (COUNTY RUN's charges; else as is).
+	var tuned := Modes.blast_tuning(self, shot, radius, strength)
+	radius = tuned[0]
+	strength = tuned[1]
 	if spec.has("also_sound"):
 		sound_at(String(spec["also_sound"]), x, y, .9)
 	blast_flash = maxf(blast_flash, float(spec["flash"]))
@@ -464,13 +473,11 @@ func explode(shot: Shot) -> void:
 		if enemy.alive and distance < radius and world.visible(x, y, enemy.x, enemy.y):
 			hit_point = Vector3(x, y, z)
 			hit_from = Vector2(player.x, player.y)
+			var bite := strength * (1.0 - distance / (radius + .3))
+			if float(tuned[2]) > 0.0:
+				bite *= 1.0 + float(tuned[2]) if distance < radius * .45 else 1.0 - float(tuned[3])
 			enemy.hurt(
-				maxi(1, int(strength * (1.0 - distance / (radius + .3)))),
-				self,
-				not energy,
-				false,
-				null,
-				"energy" if energy else "blast"
+				maxi(1, int(bite)), self, not energy, false, null, "energy" if energy else "blast"
 			)
 	blast_kind = ""
 	for prop: LevelData.Scenery in world.scenery:

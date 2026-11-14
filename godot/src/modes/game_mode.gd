@@ -128,6 +128,45 @@ func won(_game, _st) -> void:
 	pass
 
 
+## COUNTY RUN's hooks (county_mode.gd); every other mode leaves play as it is.
+## The world holds still (a choice on screen).
+func holds(_game) -> bool:
+	return false
+
+
+## The acting player's walking speed times this.
+func move_scale(_game, _p: Player) -> float:
+	return 1.0
+
+
+## A hit of `amount` on player `p` as it lands (armour, a second wind).
+func incoming(_game, _p: Player, amount: float, _cause: String) -> float:
+	return amount
+
+
+## A player's hitscan or swing reaches this far.
+func hit_reach(_game, reach: float) -> float:
+	return reach
+
+
+## A player's hit about to land on enemy `e`, `d` cells off.
+func hit_amount(_game, _e: Enemy, amount: float, _d: float) -> float:
+	return amount
+
+
+## After a player's hit landed on `e` (d cells along ax, ay at `slope`).
+func hit_after(
+	_game, _e: Enemy, _amount: float, _d: float, _ax: float, _ay: float, _slope: float
+) -> void:
+	pass
+
+
+## A blast's [radius, strength, share added near its middle, share taken at
+## its edge] (game_combat.gd explode).
+func blast_tuning(_game, _shot, radius: float, strength: float) -> Array:
+	return [radius, strength, 0.0, 0.0]
+
+
 ## The rows of the results screen ([label, value]), best first.
 func scores(_game, _st) -> Array:
 	return []

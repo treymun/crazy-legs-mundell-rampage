@@ -24,7 +24,9 @@ const TEAM := "team_deathmatch"
 ## The 5v5 round modes (tactical_mode.gd): search and destroy, hostage rescue.
 const BOMB := "bomb"
 const HOSTAGE := "hostage"
-const NAMES := [CAMPAIGN, COOP, DEATHMATCH, TEAM, BOMB, HOSTAGE]
+## COUNTY RUN, the endless survival mode (county_mode.gd): one player.
+const COUNTY := "county"
+const NAMES := [CAMPAIGN, COOP, DEATHMATCH, TEAM, BOMB, HOSTAGE, COUNTY]
 const TACTICAL := [BOMB, HOSTAGE]
 const MAX_PLAYERS := 10
 ## The older modes were written and checked for four players at most.
@@ -100,6 +102,8 @@ static func rules_for(name: String) -> GameMode:
 				made = BombMode.new()
 			HOSTAGE:
 				made = HostageMode.new()
+			COUNTY:
+				made = CountyMode.new()
 			_:
 				made = CampaignMode.new()
 		_made[name] = made
@@ -131,9 +135,59 @@ static func shot_spread(game, p: Player, gun: int, how: Dictionary, heat: float)
 
 static func shot_tuning(game, p: Player, gun: int, spread: Vector2, reach: float) -> Array:
 	var st = game.features.get("mode")
-	if st == null or not TACTICAL.has(String(st.mode)):
+	if st == null or not (TACTICAL.has(String(st.mode)) or String(st.mode) == COUNTY):
 		return [spread, reach]
 	return rules(game).shot_tuning(game, p, gun, spread, reach)
+
+
+## The rules of a game under a mode, or null in the campaign (whose play the
+## hooks below never touch: each hands back what it was given).
+static func _played(game) -> GameMode:
+	var st = game.features.get("mode")
+	if st == null or String(st.mode) == CAMPAIGN:
+		return null
+	return rules_for(String(st.mode))
+
+
+## The world holds still this tick (COUNTY RUN: a choice on screen).
+static func holds(game) -> bool:
+	var r := _played(game)
+	return r != null and r.holds(game)
+
+
+static func move_scale(game, p: Player) -> float:
+	var r := _played(game)
+	return 1.0 if r == null else r.move_scale(game, p)
+
+
+static func incoming(game, p: Player, amount: float, cause: String) -> float:
+	var r := _played(game)
+	return amount if r == null else r.incoming(game, p, amount, cause)
+
+
+static func hit_reach(game, reach: float) -> float:
+	var r := _played(game)
+	return reach if r == null else r.hit_reach(game, reach)
+
+
+static func hit_amount(game, e: Enemy, amount: float, d: float) -> float:
+	var r := _played(game)
+	return amount if r == null else r.hit_amount(game, e, amount, d)
+
+
+static func hit_after(
+	game, e: Enemy, amount: float, d: float, ax: float, ay: float, slope: float
+) -> void:
+	var r := _played(game)
+	if r != null:
+		r.hit_after(game, e, amount, d, ax, ay, slope)
+
+
+static func blast_tuning(game, shot, radius: float, strength: float) -> Array:
+	var r := _played(game)
+	return (
+		[radius, strength, 0.0, 0.0] if r == null else r.blast_tuning(game, shot, radius, strength)
+	)
 
 
 static func rules(game) -> GameMode:
@@ -198,7 +252,9 @@ static func setup(game, name: String, count: int, options := {}) -> void:
 	for key: String in HOST_SETTINGS:
 		if options.has(key):
 			st.set(key, options[key])
-	count = clampi(count, 1, MAX_PLAYERS if TACTICAL.has(name) else MAX_FREE_FOR_ALL)
+	count = clampi(
+		count, 1, MAX_PLAYERS if TACTICAL.has(name) else 1 if name == COUNTY else MAX_FREE_FOR_ALL
+	)
 	while game.players.size() < count:
 		join_beside(game, game.players[0])
 	for p: Player in game.players:

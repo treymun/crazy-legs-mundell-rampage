@@ -61,6 +61,8 @@ jobs:
         run: godot --headless --path godot --script res://tools/net_server_check.gd
       - name: Menus by touch
         run: godot --headless --path godot --script res://tools/menu_touch_check.gd
+      - name: County Run (rules, the three maps, a death and a retry on each)
+        run: godot --headless --path godot --script res://tools/county_check.gd -- seconds=45
       - name: Saves from earlier versions still load
         run: godot --headless --path godot --script res://tools/save_fixtures.gd
       - name: Level editing keeps the walls right

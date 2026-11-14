@@ -278,6 +278,7 @@ const VIEW_FIELDS := [
 ## Features whose state is play (carried: every variable but `game`).
 const SIM_FEATURES := [
 	"triggers",
+	"county",
 	"posse",
 	"boss_fight",
 	"race_laps",

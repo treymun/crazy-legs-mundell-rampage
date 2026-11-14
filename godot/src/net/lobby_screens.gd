@@ -143,7 +143,7 @@ static func draw_screen(main) -> bool:
 		"lobbyset":
 			draw_all_settings(c, menu, main.net, main.net_note)
 		_:
-			return false
+			return CountyScreens.draw_screen(main)  # COUNTY RUN's map picker
 	return true
 
 

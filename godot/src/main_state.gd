@@ -1,7 +1,6 @@
-## The front end's state, the window and letterbox, paths, and the menu
-## screens it draws. main.gd is a chain of layers, each extending the one
-## before: MainState -> MainFlow -> MainInput -> main.gd. A layer only calls
-## functions of its own or of the layers below it.
+## The front end's state, the window and letterbox, paths, and the menu screens it draws.
+## main.gd is a chain of layers, each extending the one before: MainState -> MainFlow ->
+## MainInput -> main.gd. A layer only calls functions of its own or of the layers below it.
 class_name MainState
 extends Control
 
@@ -245,6 +244,7 @@ const MENU_STATES := [
 	"servers",
 	"multi",
 	"lobbyset",
+	"county",
 ]
 ## The title's 5V5 SHOWDOWN picker (TacticalScreens.draw_picker): the row the
 ## cursor is on, the mode, map and match length picked, and whether the game
@@ -567,7 +567,7 @@ func _apply_view() -> void:
 	view.position = rect.position
 	view.size = rect.size
 	touch.layout(safe_rect())
-	touch.set_showing(state == "play")
+	touch.set_showing(state == "play" and not CountyScreens.covering(game))
 
 
 func change_window_mode(mode: int) -> void:
@@ -608,6 +608,7 @@ func entries() -> PackedStringArray:
 	var out := PackedStringArray(
 		[
 			"NEW GAME",
+			"COUNTY RUN",
 			"COUNTY HUB",
 			"REPLAY LEVEL",
 			"LEAVE RANGE" if in_range() else "FIRING RANGE",
@@ -749,6 +750,7 @@ func slot_source() -> Game:
 		or current.armory.fuse > 0.0
 		or current.level.id == RANGE_ID
 		or BossRematch.active(current)
+		or CountyMode.active(current)
 	):
 		return null
 	return campaign_run if current.revisiting else current
@@ -1353,6 +1355,7 @@ func render() -> void:
 		game.draw(canvas, int(options["crosshair"]), true)
 		if TacticalScreens.open and Modes.is_tactical(game) and not game.showing_tally:
 			TacticalScreens.draw_shop(canvas, game, Modes.feature(game))
+		CountyScreens.draw_over(canvas, game)  # a COUNTY RUN's HUD, cards and end
 		if net != null and state == "play":
 			LobbyScreens.draw_match(canvas, net, game, net_leave)
 		if int(options.get("show_fps", 0)) != 0 and not touring:

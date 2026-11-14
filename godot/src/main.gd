@@ -471,7 +471,7 @@ func _process(delta: float) -> void:
 	if waiting_play != null and art.chapter_ready(waiting_play.level.id):
 		play(waiting_play)
 	if game != null:
-		packs.want_first(String(CHAPTER_PACKS.get(game.level.id, "")))
+		packs.want_first(String(CHAPTER_PACKS.get(CountyData.base_of(game.level.id), "")))
 		_watch_level()
 	# The engine paces frames to the FRAME LIMIT option (apply_options sets
 	# Engine.max_fps), which is what the reference's clock.tick() does. A
@@ -764,7 +764,11 @@ func _watch_level() -> void:
 func _shop_pointer() -> void:
 	if state == "play" and game != null:
 		TacticalScreens.settle(game)
-	var free := state == "play" and TacticalScreens.open and not mobile
+	var free := (
+		state == "play"
+		and (TacticalScreens.open or CountyScreens.wants_pointer(game))
+		and not mobile
+	)
 	if free == TacticalScreens.mouse_free:
 		return
 	TacticalScreens.mouse_free = free

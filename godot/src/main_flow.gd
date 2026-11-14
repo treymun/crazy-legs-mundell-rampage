@@ -50,7 +50,7 @@ func start(
 func play(target: Game) -> void:
 	if not art.chapter_ready(target.level.id):
 		waiting_play = target
-		packs.want_first(String(CHAPTER_PACKS.get(target.level.id, "")))
+		packs.want_first(String(CHAPTER_PACKS.get(CountyData.base_of(target.level.id), "")))
 		notice("FETCHING THE CHAPTER. A MOMENT...", 4.0)
 		return
 	waiting_play = null
@@ -69,6 +69,7 @@ func play(target: Game) -> void:
 	if not rematch:
 		rematch_return = null
 	var chapter := not target.in_hub and not practice and not rematch and not target.revisiting
+	chapter = chapter and not CountyMode.active(target)  # a COUNTY RUN is never the campaign
 	if chapter and not target.replay:
 		campaign_run = target
 	if chapter and target.replay:
@@ -153,6 +154,33 @@ func start_showdown() -> void:
 ## Starts the versus match --mode asked for, in its arena (Modes.ARENAS).
 func start_match() -> void:
 	start(String(Modes.arena_of(String(mode_options.get("arena", "range")))[0]))
+
+
+## COUNTY RUN on map `map_id` (src/modes/county_mode.gd): a fresh run, one
+## player, never the campaign and never saved.
+func start_county(map_id: String) -> void:
+	mode_name = Modes.COUNTY
+	mode_players = 1
+	mode_options = {}
+	showdown_on = true  # anything else from the title clears the mode again
+	CountyScreens.reset()
+	start(map_id)
+	# Every run its own dice (the tools keep the game's fixed seed, to repeat).
+	var run: Game = waiting_play if waiting_play != null else game
+	if run != null:
+		run.rng.set_state(int(Time.get_unix_time_from_system() * 1000.0) & 0x7FFFFFFFFFFF)
+
+
+## The COUNTY RUN map picker (state "county"); from a finished run the run
+## is let go.
+func open_county(from_run := false) -> void:
+	if from_run:
+		game = null
+		menu_music()
+		grab(false)
+	state = "county"
+	CountyScreens.reset()
+	sound.play("menu_accept")
 
 
 func open_hub(origin = null, message := "") -> void:
@@ -443,6 +471,9 @@ func menu_action() -> void:
 		mode_name = ""
 		mode_players = 1
 		mode_options = {}
+	if entry == "COUNTY RUN":
+		open_county()
+		return
 	if entry == "MULTIPLAYER":
 		state = "multi"
 		net_note = ""
@@ -502,6 +533,8 @@ func save_game() -> void:
 		notice("NO SAVING IN A REMATCH. IT'S FOR THE RIBBON.")
 	elif Modes.is_versus(target):
 		notice("NO SAVING A MATCH. SETTLE IT.")
+	elif CountyMode.active(target):
+		notice("NO SAVING A COUNTY RUN. HOW LONG CAN YA LAST?")
 	elif target == null or state != "play" or target.player.health <= 0 or target.showing_tally:
 		notice("START A LIVE RUN TO SAVE.")
 	elif target.armory.fuse > 0.0:

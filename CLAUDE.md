@@ -82,6 +82,9 @@ godot --headless --path godot --script res://tools/net_showdown_check.gd   # NET
 godot --path godot -- --host-online[=port] --online-name=TREY [--online-password=x]   # straight into a lobby
 godot --path godot -- --join-online=<code or address> --online-name=BOB   # (tests: --online-start=2 --online-bot)
 godot --headless --path godot --script res://tools/net_server_check.gd   # NET SERVER OK (always-open lobby, no host player)
+godot --headless --path godot --script res://tools/county_check.gd     # COUNTY CHECK OK (COUNTY RUN: rules, maps, a death and a retry)
+godot --headless --path godot --script res://tools/county_play.gd -- md=<file>   # County Run played to death and long runs (not in CI)
+godot --headless --path godot --script res://tools/levels/build_level.gd -- county_quarry   # the County Run maps: county_hickston, county_quarry, county_bayou
 godot --headless --path godot -- --lobby-server=../server/lobbies.json   # always-open lobbies (src/net/lobby_server.gd)
 bash server/deploy.sh root@<server address>   # build the Linux server and install/update it (docs/online.md)
 godot --headless --path godot --script res://tools/levels/build_level.gd -- grainyard   # the 5v5 maps: grainyard, holler, salvage; 2v2: pumpngo, pineacres, landing
@@ -1392,9 +1395,104 @@ every single-player check are as before).
   a kill feed outside the 5v5 modes; a lying-down picture for a player
   who is down (the standing one, squat); spawn points from the plans outside
   the 5v5 maps (only worked out); versus pickups other than the level's own;
-  the title menu's only mode entry is MULTIPLAYER (the rest command line
+  the title's mode entries are MULTIPLAYER and COUNTY RUN (co-op and deathmatch command line
   only). A save or snapshot taken while player
   one is down does not load (SessionStore refuses a player at 0; the
   quicksave is refused then anyway). The co-op boss checkpoint's retry with
   partners is put together from the save round-trip and `gather`, with no
   check of its own; the boss PARs and the tuning are single-player numbers.
+
+## County Run
+
+COUNTY RUN (dev.41) is the solo endless survival mode: the title's COUNTY RUN
+(state "county", `CountyScreens.draw_maps`, `CountyInput.key_maps`) picks one
+of three big maps, enemies never stop coming, survival time is the score and
+death ends the run. `COUNTY_RUN.md` is the how-to for adding maps, weapons,
+upgrades and milestone abilities.
+
+- **The mode** is `Modes.COUNTY` ("county"; `src/modes/county_mode.gd`,
+  `CountyMode`, one player, `main_flow.gd start_county`/`open_county`). Its
+  state is one simulation feature, `features/county_run.gd` (id `county`,
+  just before `mode`; plain values; a run is never saved: F5/F6 refuse it and
+  `slot_source()` gives no game). The rest is static helpers in
+  `src/modes/`: `county_data.gd` (`data/tuning/county.json`: every number and
+  every word on a card), `county_build.gd` (slots, ranks, ammo caps, offers,
+  taking a card, card text, the build summary), `county_spawner.gd`,
+  `county_orbs.gd` (XP and supplies), `county_moves.gd` (upgrades and
+  milestone abilities in a fight), `county_screens.gd` and `county_input.gd`
+  (every screen, keys, taps, clicks), `county_records.gd`
+  (`county-records.json` beside the unlocks; tools under the cache folder or
+  `CountyRecords.folder_override`). `CountyMode.run(game)` is the feature in a
+  run (null otherwise), `CountyMode.active(game)` the mode test.
+- **Hooks in the engine** (all `GameMode` virtuals that hand back what they
+  are given in every other mode, reached through `Modes.holds`,
+  `move_scale`, `incoming`, `hit_reach`, `hit_amount`, `hit_after`,
+  `blast_tuning`, which return at once in the campaign): `game.gd tick` holds
+  the world (`Modes.holds`: a choice on screen or the build screen; the clock
+  stops), `_step_body` scales walking speed, `game_world.gd damage()` lets the
+  mode take a hit first (armor, SECOND WIND), `game_combat.gd hitscan` asks
+  for a swing's reach, the hit's damage and what happens after it (streaks,
+  pierce, wide swing, shoves), `explode()` for the player's blasts' radius,
+  strength and middle/edge shares; `Modes.shot_tuning` also asks the rules in
+  a run (spread). Fire rate, reload speed, extra pellets and projectile damage
+  act from the feature's own `shot_fired` and `ticked` handlers
+  (`CountyMoves.fired`/`tick`: a reload is sped by taking extra time off,
+  never to 0, so the armory finishes it itself). weapons.gd is untouched.
+- **Weapons**: three slots (`f.slots`, weapon indices in the armory's own
+  order, empty last: `sort_slots`, so 1-2-3, the wheel and the next-gun key
+  agree). The kit is county.json `start` (crowbar and .38). The armory owns
+  only what the slots hold; ammo goes through `CountyBuild.give_ammo` (DEEP
+  POCKETS and the rifle's FIELD MAGAZINE raise the cap past weapons.cfg's).
+  Number keys pick slots (`CountyInput.key_play`, before `_key_play`'s own),
+  the campaign's other gun keys and pocket keys do nothing in a run. A weapon
+  card fills an open slot; with all three full it asks which to swap
+  (`CountyScreens.swapping`, CONFIRM / CANCEL back to the same cards); a swap
+  drops that gun's upgrades (`"<gun>/<upgrade>"` ranks), perks (`perk/`) and
+  milestones (`m/`) stay. The level's and the hands' drops are cleared every
+  tick (`supply_rule` 2 and `game.pickups.clear()`); the run's own supplies are
+  in the orbs.
+- **XP** (`county_orbs.gd`): a kill drops `max_hp / per_hp` XP (elites times
+  `elite_times`, in piles) on a spot the player can stand on: not in a wall,
+  not deep water, on ground that walks to the start
+  (`CountySpawner.reached`). Taken within `reach` (XP MAGNET adds), on the same
+  floor (`SAME_FLOOR`) and seen from the eye; within `pull` it floats in.
+  Piles merge past `merge_over`, keeping their XP. A pickup worth several
+  levels queues each (`f.pending`: [level, milestone, gun in hand]) and they
+  are offered in turn; every tenth is a milestone. Art: `county_xp_<tier>_<n>`
+  (copper, silver, gold bottle caps) from `tools/art/build_county_art.gd`.
+- **Offers** (`CountyBuild.offers`): one upgrade for the gun in hand when the
+  level came (else another carried gun's, else a perk that helps), a weapon
+  while a slot is open, the rest weighted (`WEIGHTS`, `SWAP_CHANCE`); never a
+  gun already carried, never two of a card, supplies only when they would
+  help. Milestones (`milestone_offers`): a weapon change for a gun carried, a
+  way to stay alive, a move, then the rest, then the spares (`again`).
+- **The spawner** (`county_spawner.gd`): independent of kills and levels; a
+  ring `near`..`far` round the player sampled for a spot that is reached, dry,
+  open, out of sight and within `steps_most` flow-field steps; the cap and the
+  rate grow with the minutes, the pool's kinds come in by minute, health grows
+  after `health_from_minute`; a lull every `lull_every`; an elite every
+  `elite_every`. Hands far off or stuck unseen are moved to a fresh spot;
+  bodies past `corpses_kept` go (oldest first). The spawn spots and reached
+  cells are worked out once per level (by id: a broken window must not redo a
+  whole-map walk mid-fight; that was a 40 ms tick).
+- **The maps** are plans over the chapters (`tools/levels/county_hickston_plan.gd`,
+  `county_quarry_plan.gd`, `county_bayou_plan.gd`, with `county_kit.gd`): the
+  chapter's plan builds, `Kit.strip` takes the story off (hands, pickups,
+  stations, notes, triggers, waves, exit, the road back, boss arenas, Bessie)
+  and opens and unlocks every door, then each plan cuts its shortcuts
+  (`open_cells` like a neighbouring cell, `clear_fixtures`, `clear_things`),
+  lays its raised routes (Geo decks, stairs, bridges; a flight starts from the
+  floor at its foot: the bayou's shallows lie at -.24) and labels its
+  landmarks. Nobody steps off a deck into deep water (`can_walk`'s deep rule),
+  so a crossing over deep water is planks on the water. Validate one with a
+  throwaway source: `map.gd -- new zz_x base=county_quarry`, `validate zz_x`,
+  then delete `godot/maps/zz_x.map.json`. The browser fetches the chapter's
+  pack for a county map (`CountyData.base_of`, `Assets.CHAPTER_ART`).
+- **Checks**: `tools/county_check.gd` (CI, check_all; its quick part in
+  check_fixes) holds the rules and plays each map through a death and a
+  retry; `tools/menu_touch_check.gd` taps through the picker, cards, swap,
+  build screen and end; `tools/county_play.gd -- md=<file>` (not CI) plays to
+  death and long god-mode runs and tables time, levels, kills, horde and tick
+  times; `tools/county_frames.gd -- out=<dir>` (a window) takes pictures of
+  every screen; `tools/county_probe.gd` is a quick look; `tools/county_bot.gd`
+  is the bot they share.
