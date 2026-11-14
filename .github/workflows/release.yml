@@ -57,6 +57,8 @@ jobs:
         run: godot --headless --path godot --script res://tools/check_fixes.gd
       - name: Online 5v5, lobby to lobby
         run: godot --headless --path godot --script res://tools/net_showdown_check.gd
+      - name: Always-open lobby on a server
+        run: godot --headless --path godot --script res://tools/net_server_check.gd
       - name: Saves from earlier versions still load
         run: godot --headless --path godot --script res://tools/save_fixtures.gd
       - name: Level editing keeps the walls right

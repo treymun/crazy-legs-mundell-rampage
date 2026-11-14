@@ -12,6 +12,14 @@
 ## leaves during a match is played on by a bot; with LATE JOIN on a newcomer
 ## takes over a bot's place.
 ##
+## An ALWAYS-OPEN lobby (`serve_lobby`, run by lobby_server.gd on a server)
+## has no host player: everyone in it is a client, the first one in is its
+## ADMIN (settings, START, kick, calling everyone back, all through ASK: the
+## admin's set_setting/start_match/kick/back_to_lobby send them), the next
+## one in line when the admin leaves. Its matches go back to the lobby on
+## their own BACK_AFTER seconds after the results come up, or at once when
+## every person has left; an empty lobby goes back to its own settings.
+##
 ## Nothing here draws or reads keys: the front end (main.gd, lobby_screens.gd)
 ## and tools/net_showdown_check.gd drive it alike:
 ##   var net := NetPlay.host_lobby(port, name, lobby)   # or NetPlay.join_lobby(...)
@@ -36,6 +44,10 @@ const MAX_NAME := 12
 const CLOSE_GRACE := 400.0
 ## Where the last name, address and lobby are remembered (never by a tool).
 const REMEMBER := "user://online.json"
+## Seconds an always-open lobby's results stay up before everyone is back.
+const BACK_AFTER := 12.0
+## Settings an always-open lobby's admin may not change.
+const SERVER_ONLY := ["lobby_name", "password", "admin", "dedicated", "locked"]
 
 ## The lobby's settings: key, label, values, what each value is called.
 const LOBBY_ROWS := [
@@ -51,7 +63,7 @@ const MATCH_ROWS := [
 		["grainyard", "holler", "salvage", "pumpngo", "pineacres", "landing"],
 		["GRAIN CO-OP", "DISTILLERY", "SALVAGE", "2V2 PUMP & GO", "2V2 PINE ACRES", "2V2 LANDING"]
 	],
-	["rounds", "ROUNDS TO WIN", [3, 4, 5, 7, 10], ["3", "4", "5", "7", "10"]],
+	["rounds", "ROUNDS TO WIN", [3, 4, 5, 7, 9, 10], ["3", "4", "5", "7", "9", "10"]],
 	["team_size", "TEAM SIZE", [1, 2, 3, 4, 5], ["1V1", "2V2", "3V3", "4V4", "5V5"]],
 	["bots", "BOTS FILL", [true, false], ["ON", "OFF"]],
 	["bot_skill", "BOT SKILL", [0, 1, 2, 3], ["EASY", "NORMAL", "HARD", "HOG WILD"]],
@@ -62,7 +74,12 @@ const MATCH_ROWS := [
 		[0.0, 60.0, 90.0, 120.0, 150.0, 180.0],
 		["MODE'S", "1:00", "1:30", "2:00", "2:30", "3:00"]
 	],
-	["buy_seconds", "BUY TIME", [10.0, 20.0, 30.0, 45.0], ["10 S", "20 S", "30 S", "45 S"]],
+	[
+		"buy_seconds",
+		"BUY TIME",
+		[10.0, 15.0, 20.0, 30.0, 45.0],
+		["10 S", "15 S", "20 S", "30 S", "45 S"]
+	],
 	["freeze_seconds", "FREEZE TIME", [3.0, 6.0, 10.0, 15.0], ["3 S", "6 S", "10 S", "15 S"]],
 	[
 		"start_money",
@@ -118,6 +135,16 @@ var news: PackedStringArray = []
 ## for the front end to act on (take_changes()).
 var changes: Array = []
 var upnp: NetUpnp = null
+## An always-open lobby (no host player; this machine is the server).
+var dedicated := false
+## Who runs an always-open lobby (0: nobody in it).
+var admin_id := 0
+## An always-open lobby's own settings, put back when it empties.
+var base_settings := {}
+## When this match's results came up (ms, -1 not yet).
+var tally_at := -1.0
+## Lines an always-open lobby tells everyone with the next LOBBY.
+var _told: PackedStringArray = []
 var _now := 0.0
 var _opened_at := 0.0
 var _waiting_hello := {}
@@ -149,6 +176,24 @@ static func host_lobby(
 	if open_router:
 		net.upnp = NetUpnp.new()
 		net.upnp.open(at_port)
+	return net
+
+
+## An always-open lobby on `at_port` with no host player (null: the port is
+## taken). `lobby` overrides DEFAULTS and is what it goes back to when empty.
+static func serve_lobby(at_port: int, lobby := {}, bind := "*") -> NetPlay:
+	var s := NetSession.host(at_port, NetSession.Transport.ENET, Modes.MAX_PLAYERS, bind)
+	if s == null:
+		return null
+	var net := NetPlay.new()
+	net.role = Role.HOST
+	net.dedicated = true
+	net.session = s
+	net.port = at_port
+	net.my_id = NetSession.HOST_ID
+	net.phase = "lobby"
+	net.settings.merge(lobby, true)
+	net.base_settings = net.settings.duplicate()
 	return net
 
 
@@ -280,6 +325,29 @@ func poll(now_ms: float) -> void:
 	# After the packets: a BYE that came with the hang-up says why.
 	if role == Role.CLIENT and phase not in ["connecting", "closed"] and not session.connected():
 		_close("LOST THE HOST")
+		return
+	if phase == "match":
+		_watch_tally()
+
+
+## Notes when the match's results came up; an always-open lobby takes
+## everyone back BACK_AFTER seconds later.
+func _watch_tally() -> void:
+	var g := match_game()
+	if g == null or not g.showing_tally:
+		return
+	if tally_at < 0.0:
+		tally_at = _now
+	if dedicated and _now - tally_at >= BACK_AFTER * 1000.0:
+		back_to_lobby()
+
+
+## Whole seconds until an always-open lobby's results end (-1: not showing,
+## or a lobby with a host).
+func back_in() -> int:
+	if tally_at < 0.0 or not bool(settings.get("dedicated", dedicated)):
+		return -1
+	return maxi(0, ceili(BACK_AFTER - (_now - tally_at) / 1000.0))
 
 
 func _connecting() -> void:
@@ -332,15 +400,58 @@ func _host_message(from: int, kind: int, info: Dictionary) -> void:
 				var was := String(p["name"])
 				p["name"] = unique_name(clean_name(String(info["name"])), from)
 				if was != p["name"]:
-					news.append("%s IS NOW %s" % [was, p["name"]])
+					_tell("%s IS NOW %s" % [was, p["name"]])
 			if info.has("team") and bool(settings["pick_teams"]):
 				p["team"] = clampi(int(info["team"]), -1, 1)
 			if info.has("ready"):
 				p["ready"] = bool(info["ready"])
+			if dedicated and from == admin_id:
+				_admin_asks(info)
 			send_lobby()
 		NetWire.BYE:
 			_gone(from)
 			session.drop(from)
+
+
+## What an always-open lobby's admin asked for: settings, START, a kick,
+## everyone back from the results.
+func _admin_asks(info: Dictionary) -> void:
+	var wanted = info.get("set", {})
+	if wanted is Dictionary and phase == "lobby":
+		for key: String in (wanted as Dictionary).keys():
+			var value = allowed_value(key, wanted[key])
+			if value != null:
+				set_setting(key, value)
+	if info.has("kick"):
+		kick(int(info["kick"]))
+	if bool(info.get("start", false)):
+		var why := start_match()
+		if why != "":
+			_tell(why)
+	if bool(info.get("back", false)) and phase == "match" and tally_at >= 0.0:
+		back_to_lobby()
+
+
+## `value` as one of setting `key`'s own values (null: not a setting the
+## admin may change, or not one of its values).
+static func allowed_value(key: String, value):
+	if SERVER_ONLY.has(key):
+		return null
+	for row: Array in MATCH_ROWS + LOBBY_ROWS:
+		if String(row[0]) != key:
+			continue
+		for v in row[2]:
+			if str(v) == str(value):
+				return v
+	return null
+
+
+## A line every lobby screen shows (an always-open lobby sends it with the
+## next LOBBY; a host's own front end shows it).
+func _tell(line: String) -> void:
+	news.append(line)
+	if dedicated:
+		_told.append(line)
 
 
 func _hello(from: int, info: Dictionary) -> void:
@@ -349,10 +460,11 @@ func _hello(from: int, info: Dictionary) -> void:
 		return
 	var version := String(ProjectSettings.get_setting("application/config/version", ""))
 	var refused := ""
+	var who := "THE SERVER" if dedicated else "THE HOST"
 	if int(info.get("protocol", 0)) != NetWire.PROTOCOL:
-		refused = "THE HOST RUNS ANOTHER VERSION (%s)" % version
+		refused = "%s RUNS ANOTHER VERSION (%s)" % [who, version]
 	elif String(info.get("version", "")) != version:
-		refused = "THE HOST RUNS %s, YOU RUN %s" % [version, String(info.get("version", "?"))]
+		refused = "%s RUNS %s, YOU RUN %s" % [who, version, String(info.get("version", "?"))]
 	elif (
 		String(settings["password"]) != ""
 		and String(info.get("password", "")) != String(settings["password"])
@@ -372,7 +484,10 @@ func _hello(from: int, info: Dictionary) -> void:
 	var name := unique_name(clean_name(String(info.get("name", "PLAYER"))), from)
 	var p := {"id": from, "name": name, "team": -1, "ready": false}
 	players.append(p)
-	news.append("%s JOINED" % name)
+	_tell("%s JOINED" % name)
+	if dedicated and admin_id == 0:
+		admin_id = from
+		_tell("%s RUNS THE LOBBY" % name)
 	session.send(
 		from,
 		NetSession.CH_RELIABLE,
@@ -399,12 +514,29 @@ func _gone(id: int) -> void:
 	if p.is_empty() or id == NetSession.HOST_ID:
 		return
 	players.erase(p)
-	news.append("%s LEFT" % p["name"])
+	_tell("%s LEFT" % p["name"])
 	if phase == "match" and host_sync != null:
 		host_sync.drop_remote(id)
 		if p.has("slot"):
 			changes.append({"bot": int(p["slot"]), "name": String(p["name"])})
+	if dedicated:
+		_after_leaving(id)
 	send_lobby()
+
+
+## An always-open lobby after someone left: the next in line runs it; with
+## nobody left the match ends and the lobby has its own settings again.
+func _after_leaving(id: int) -> void:
+	if id == admin_id:
+		admin_id = int(players[0]["id"]) if not players.is_empty() else 0
+		if admin_id != 0:
+			_tell("%s RUNS THE LOBBY" % players[0]["name"])
+	if not players.is_empty():
+		return
+	if phase == "match":
+		back_to_lobby()
+	settings = base_settings.duplicate()
+	_told.clear()
 
 
 func _drop(id: int, _why: String) -> void:
@@ -423,13 +555,17 @@ func _drop_later(id: int) -> void:
 
 
 func kick(id: int) -> void:
+	if role == Role.CLIENT and is_admin() and id != my_id:
+		ask({"kick": id})
+		return
 	if role != Role.HOST or id == NetSession.HOST_ID or player_of(id).is_empty():
 		return
-	session.send(
-		id, NetSession.CH_RELIABLE, NetWire.message(NetWire.BYE, {"why": "THE HOST KICKED YOU"})
-	)
+	if dedicated and id == admin_id:
+		return
+	var why := "THE ADMIN KICKED YOU" if dedicated else "THE HOST KICKED YOU"
+	session.send(id, NetSession.CH_RELIABLE, NetWire.message(NetWire.BYE, {"why": why}))
 	session.poll(_now)
-	news.append("%s WAS KICKED" % player_of(id)["name"])
+	_tell("%s WAS KICKED" % player_of(id)["name"])
 	_gone(id)
 	_drop_later(id)
 
@@ -460,17 +596,40 @@ func lobby_info() -> Dictionary:
 				"slot": p.get("slot", -1)
 			}
 		)
+	shown["dedicated"] = dedicated
+	shown["admin"] = admin_id if dedicated else NetSession.HOST_ID
 	return {"settings": shown, "players": list, "phase": phase}
 
 
 func send_lobby() -> void:
 	if role != Role.HOST or session == null:
 		return
-	session.send(0, NetSession.CH_RELIABLE, NetWire.message(NetWire.LOBBY, lobby_info()))
+	var info := lobby_info()
+	if not _told.is_empty():
+		info["news"] = Array(_told)
+		_told.clear()
+	session.send(0, NetSession.CH_RELIABLE, NetWire.message(NetWire.LOBBY, info))
+
+
+## Does this machine run the lobby (the host, or an always-open lobby's admin)?
+func is_admin() -> bool:
+	if role == Role.HOST:
+		return not dedicated
+	return role == Role.CLIENT and my_id != 0 and int(settings.get("admin", -1)) == my_id
+
+
+## The id of whoever runs the lobby (0: nobody).
+func admin_of() -> int:
+	if role == Role.HOST:
+		return admin_id if dedicated else NetSession.HOST_ID
+	return int(settings.get("admin", 0))
 
 
 ## A host setting changed (lobby_screens.gd): every lobby hears.
 func set_setting(key: String, value) -> void:
+	if role == Role.CLIENT and is_admin():
+		ask({"set": {key: value}})
+		return
 	if role != Role.HOST:
 		return
 	var was_tag := Modes.TAGTEAM_MAPS.has(String(settings.get("map", "")))
@@ -492,14 +651,15 @@ func set_setting(key: String, value) -> void:
 
 ## Is everyone ready and are the teams playable? "" when it can start.
 func why_not_start() -> String:
-	if role != Role.HOST or phase != "lobby":
+	if phase != "lobby" or not (is_admin() or dedicated):
 		return "ONLY THE HOST STARTS"
 	var size := int(settings["team_size"])
 	var plan := team_plan()
 	var count := [0, 0]
+	var boss := admin_of()
 	for p: Dictionary in players:
 		count[int(plan[p["id"]])] += 1
-		if not bool(p["ready"]):
+		if not bool(p["ready"]) and int(p["id"]) != boss:
 			return "WAITING ON %s" % p["name"]
 	if count[0] > size or count[1] > size:
 		return "TOO MANY ON A TEAM FOR %dV%d" % [size, size]
@@ -533,6 +693,11 @@ func team_plan() -> Dictionary:
 ## Starts the match: slots, teams and names for everyone, the game made by
 ## make_match, START to each client. "" or why it could not.
 func start_match() -> String:
+	if role == Role.CLIENT:
+		var not_yet := why_not_start()
+		if not_yet == "":
+			ask({"start": true})
+		return not_yet
 	var why := why_not_start()
 	if why != "":
 		return why
@@ -564,6 +729,7 @@ func start_match() -> String:
 	if game == null:
 		return "THE MAP WOULD NOT LOAD"
 	match_info = info
+	tally_at = -1.0
 	host_sync = NetSync.Host.new(session, game, func() -> int: return -1, SNAP_EVERY)
 	for p: Dictionary in players:
 		p["ready"] = int(p["id"]) == NetSession.HOST_ID
@@ -620,7 +786,7 @@ func _seat_late(p: Dictionary) -> void:
 	host_sync.add_remote(int(p["id"]), slot)
 	_send_start(int(p["id"]), slot)
 	changes.append({"human": slot, "name": String(p["name"])})
-	news.append("%s TAKES OVER FROM A BOT" % p["name"])
+	_tell("%s TAKES OVER FROM A BOT" % p["name"])
 
 
 ## The bot's slot a late joiner gets (-1: none): on the team with fewer people.
@@ -665,10 +831,14 @@ func host_tick(own: Dictionary) -> void:
 
 ## Back to the lobby after a match (the host's ENTER on the results).
 func back_to_lobby() -> void:
+	if role == Role.CLIENT and is_admin():
+		ask({"back": true})
+		return
 	if role != Role.HOST:
 		return
 	host_sync = null
 	match_info = {}
+	tally_at = -1.0
 	phase = "lobby"
 	for p: Dictionary in players:
 		p.erase("slot")
@@ -697,6 +867,7 @@ func _client_message(kind: int, info: Dictionary) -> void:
 		NetWire.BACK:
 			client_sync = null
 			match_info = {}
+			tally_at = -1.0
 			phase = "lobby"
 			changes.append({"lobby": true})
 		NetWire.BYE:
@@ -709,6 +880,8 @@ func _take_lobby(info: Dictionary) -> void:
 	var shown: Dictionary = info.get("settings", {})
 	settings.merge(shown, true)
 	players = info.get("players", [])
+	for line in info.get("news", []):
+		news.append(String(line))
 
 
 ## What this player wants (lobby_screens.gd): name, team, ready.
@@ -720,6 +893,7 @@ func ask(what: Dictionary) -> void:
 
 func _start(info: Dictionary) -> void:
 	match_info = info
+	tally_at = -1.0
 	var game: Game = make_match.call(info)
 	if game == null:
 		_close("THE MAP WOULD NOT LOAD")

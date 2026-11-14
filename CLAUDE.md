@@ -13,7 +13,7 @@ are made by the Godot art tools in `godot/tools/art/` (with Blender for the
   but every asset is original: never copy Redneck Rampage art, sound or maps.
 - **Never open, print or `cat` `.env`.** It holds the ElevenLabs key. Never
   ask for a key in chat and never put one in code.
-- **ElevenLabs: 80,000 credits, cumulative, hard ceiling.** The ledger is
+- **ElevenLabs: 100,000 credits, cumulative, hard ceiling** (raised from 80,000 by the owner on 2026-11-13). The ledger is
   `audio_src/ledger.json`; check `.venv\Scripts\python.exe scripts/audio_generator.py status`
   before spending. Never run two generation processes at once. Any separate
   dollar billing needs the owner's approval first.

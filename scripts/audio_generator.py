@@ -42,7 +42,7 @@ SRC = ROOT / "audio_src"
 LEDGER = SRC / "ledger.json"
 OUT = SRC / "generated"
 
-CEILING = 80_000
+CEILING = 100_000  # raised from 80,000 by the owner, 2026-11-13
 # Worst-case credits reserved before a request is sent. The rates are the
 # ones measured on this account (see ledger "rates"); the margins cover drift.
 # Measured 2026-11-10 on the Creator plan (usage endpoint): a 1 s effect cost

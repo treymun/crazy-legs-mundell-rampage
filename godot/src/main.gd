@@ -9,6 +9,19 @@ extends MainInput
 
 func _ready() -> void:
 	_parse_smoke()
+	if lobby_server != "":
+		# Always-open lobbies: no window, picture, sound or menus at all.
+		set_process(false)
+		set_process_input(false)
+		set_process_unhandled_input(false)
+		var config := LobbyServer.read_config(lobby_server)
+		var sim := {}
+		var plain := SessionStore.defaults()
+		for key: String in ["difficulty", "gore", "aim_assist", "hit_feedback", "adaptive"]:
+			if plain.has(key):
+				sim[key] = plain[key]
+		add_child(LobbyServer.new(config, sim))
+		return
 	if server_level != "":
 		# A network game's host: no window, picture, sound or menus at all.
 		set_process(false)

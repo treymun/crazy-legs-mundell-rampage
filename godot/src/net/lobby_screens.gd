@@ -132,12 +132,24 @@ static func draw_join_form(
 # ------------------------------------------------------------------ the lobby
 
 
-## The rows the lobby's cursor walks: the host's settings and actions, or a
-## client's team and ready.
+## The rows the lobby's cursor walks: the settings and actions of whoever
+## runs the lobby (the host, an always-open lobby's admin), or a player's
+## team and ready.
 static func rows(net: NetPlay) -> Array:
-	if net == null or net.role != NetPlay.Role.HOST:
+	if net == null or not net.is_admin():
 		return ["team", "ready"]
 	return ["team"] + LEFT_KEYS + RIGHT_KEYS + ["kick", "start"]
+
+
+## The others in the lobby (whom the kick row walks through).
+static func others(net: NetPlay) -> Array:
+	return net.players.filter(func(p: Dictionary) -> bool: return int(p["id"]) != net.my_id)
+
+
+## The name of whoever runs the lobby ("" nobody).
+static func admin_name(net: NetPlay) -> String:
+	var p := net.player_of(net.admin_of())
+	return String(p.get("name", ""))
 
 
 static func setting_row(key: String) -> Array:
@@ -176,8 +188,15 @@ static func stepped(key: String, value, step: int):
 ## The line telling the host how friends get in.
 static func reach_lines(net: NetPlay) -> Array:
 	if net.role != NetPlay.Role.HOST:
+		var second := ""
+		if bool(net.settings.get("dedicated", false)):
+			second = (
+				"ALWAYS-OPEN LOBBY.  YOU RUN IT: ARROWS SET, ENTER STARTS"
+				if net.is_admin()
+				else "ALWAYS-OPEN LOBBY.  %s RUNS IT" % admin_name(net)
+			)
 		return [
-			"CONNECTED TO %s   PING %d MS" % [net.address.to_upper(), roundi(net.ping_ms())], ""
+			"CONNECTED TO %s   PING %d MS" % [net.address.to_upper(), roundi(net.ping_ms())], second
 		]
 	var lan := NetPlay.local_addresses()
 	var at_home := ""
@@ -229,7 +248,7 @@ static func draw_lobby(
 	_teams(c, net)
 	var list := rows(net)
 	var cursor := String(list[posmod(at, list.size())])
-	var host := net.role == NetPlay.Role.HOST
+	var host := net.is_admin()
 	for col in 2:
 		var keys: Array = LEFT_KEYS if col == 0 else RIGHT_KEYS
 		var x0 := 22 + col * 142
@@ -254,11 +273,11 @@ static func draw_lobby(
 				true
 			)
 	_actions(c, net, cursor, kick_at, armed)
-	var hint := (
-		"ARROWS SET   ENTER STARTS   ESC CLOSES THE LOBBY"
-		if host
-		else "LEFT/RIGHT TEAM   ENTER READY   ESC LEAVES"
-	)
+	var hint := "LEFT/RIGHT TEAM   ENTER READY   ESC LEAVES"
+	if net.role == NetPlay.Role.HOST:
+		hint = "ARROWS SET   ENTER STARTS   ESC CLOSES THE LOBBY"
+	elif host:
+		hint = "ARROWS SET   ENTER STARTS   ESC LEAVES"
 	HUD.text(
 		c,
 		note if note != "" else hint,
@@ -293,6 +312,8 @@ static func _teams(c: Canvas, net: NetPlay) -> void:
 			label += " ?"
 		if int(p["id"]) == NetSession.HOST_ID:
 			label += "  (HOST)"
+		elif int(p["id"]) == net.admin_of():
+			label += "  (ADMIN)"
 		HUD.text(c, label, x, y, "mini", HUD.AMBER if me else HUD.INK)
 		var ready := bool(p.get("ready", false))
 		HUD.text(
@@ -333,13 +354,11 @@ static func _actions(c: Canvas, net: NetPlay, cursor: String, kick_at: int, arme
 	if not bool(net.settings.get("pick_teams", true)):
 		team_name = "HOST BALANCES"
 	_action(c, "TEAM <%s>" % team_name, 22, y, cursor == "team")
-	if net.role == NetPlay.Role.HOST:
-		var others := net.players.filter(
-			func(p: Dictionary) -> bool: return int(p["id"]) != NetSession.HOST_ID
-		)
+	if net.is_admin():
+		var rest := others(net)
 		var who := "NOBODY"
-		if not others.is_empty():
-			who = String(others[posmod(kick_at, others.size())]["name"])
+		if not rest.is_empty():
+			who = String(rest[posmod(kick_at, rest.size())]["name"])
 		_action(
 			c,
 			("ENTER AGAIN: KICK %s" % who) if armed else "KICK <%s>" % who,
@@ -379,9 +398,14 @@ static func draw_match(c: Canvas, net: NetPlay, game, leave_asked: bool) -> void
 	if game != null and game.showing_tally:
 		var line := (
 			"ENTER: EVERYONE BACK TO THE LOBBY"
-			if net.role == NetPlay.Role.HOST
+			if net.is_admin()
 			else "WAITING FOR THE HOST TO CALL EVERYONE BACK"
 		)
+		var back := net.back_in()
+		if back >= 0:
+			line = "BACK TO THE LOBBY IN %d" % back
+			if net.is_admin():
+				line += "   ENTER: NOW"
 		HUD.text(c, line, 160, 181, "body", HUD.AMBER, true)
 	if leave_asked:
 		c.fill_rect(50, 78, 220, 34, Canvas.rgb(20, 13, 9))

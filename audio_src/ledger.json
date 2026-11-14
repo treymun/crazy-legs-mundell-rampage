@@ -1,5 +1,5 @@
 {
- "ceiling": 80000,
+ "ceiling": 100000,
  "rates": {
   "sfx_per_second": 11,
   "music_per_second": 13.8,

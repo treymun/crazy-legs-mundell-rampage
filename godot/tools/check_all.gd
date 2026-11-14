@@ -20,6 +20,7 @@ const CHECKS := [
 	["bot_campaign", "CAMPAIGN WALKTHROUGH OK"],
 	["picture_check", "PICTURES OK"],
 	["net_showdown_check", "NET SHOWDOWN OK"],
+	["net_server_check", "NET SERVER OK"],
 ]
 const SLOW := ["bot_campaign", "picture_check", "quest_reach"]
 

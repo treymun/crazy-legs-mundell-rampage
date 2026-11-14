@@ -361,6 +361,9 @@ var server_players := 1
 var server_ticks := 0
 var server_report := 5.0
 var server_difficulty := 1
+## --lobby-server=<config.json>: always-open online lobbies with no host
+## player (src/net/lobby_server.gd), no window work.
+var lobby_server := ""
 ## The game mode (src/modes/, CLAUDE.md "Modes"): --mode=<name> --players=<n>
 ## [--arena=<level>[:<boss>]] [--level=<chapter>] [--frag-limit=] [--time-limit=].
 ## "" is the campaign. The players past the first are played by
@@ -441,6 +444,8 @@ func _parse_smoke() -> void:
 			server_ticks = int(text.substr(15))
 		elif text.begins_with("--server-report="):
 			server_report = maxf(.5, float(text.substr(16)))
+		elif text.begins_with("--lobby-server="):
+			lobby_server = text.substr(15)
 		elif text.begins_with("--server-difficulty="):
 			server_difficulty = clampi(int(text.substr(20)), 0, 3)
 		elif text == "--mode=tagteam":

@@ -1144,7 +1144,7 @@ func _key_online(code: int) -> bool:
 		return true
 	if game != null and game.showing_tally:
 		if enter or code == KEY_SPACE:
-			if net.role == NetPlay.Role.HOST:
+			if net.is_admin():
 				net.back_to_lobby()
 			return true
 		if code == KEY_ESCAPE:
@@ -1272,9 +1272,7 @@ func _lobby_change(row: String, step: int, accept: bool) -> void:
 		"ready":
 			net.ask({"ready": not bool(me.get("ready", false))})
 		"kick":
-			var others := net.players.filter(
-				func(p: Dictionary) -> bool: return int(p["id"]) != NetSession.HOST_ID
-			)
+			var others := LobbyScreens.others(net)
 			if others.is_empty():
 				return
 			if not accept:
@@ -1293,6 +1291,6 @@ func _lobby_change(row: String, step: int, accept: bool) -> void:
 				sound.play("empty")
 				return
 		_:
-			if host:
+			if net.is_admin():
 				net.set_setting(row, LobbyScreens.stepped(row, net.settings.get(row), step))
 	sound.play("menu_move")
