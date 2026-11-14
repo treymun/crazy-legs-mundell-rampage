@@ -49,6 +49,42 @@ Everyone needs the same version of the game.
 With LATE JOIN on, someone who joins during a match takes over a bot on the
 team with fewer people, straight away.
 
+## Always-open lobbies (a server)
+
+A small Linux server can keep lobbies open all the time, so nobody hosts
+and nobody's router needs a port opened. Join one like any lobby, by its
+address and port (or join code) and its password if it has one.
+
+- The first person in **runs the lobby** (ADMIN by their name): the same
+  settings, START and kick a host has. Everyone else readies up as usual.
+  When the admin leaves, the next person in line runs it.
+- Bots fill the teams. When a match ends everyone is back in the lobby on
+  their own after 12 seconds (the admin's ENTER on the results does it at
+  once); when every person has left a match it ends.
+- An empty lobby goes back to its own settings. The lobby's name and
+  password are the server's: the admin cannot change them.
+- The server runs two matches at once at most (`most_matches`); a START in
+  a third lobby is told to wait. One 5v5 with nine bots is about 40% of a
+  one-core VPS.
+- Players need the same version as the server: update the server with each
+  release.
+
+**Running one** (`server/`): `lobbies.json` lists the lobbies (port plus any
+of `NetPlay.DEFAULTS`: `lobby_name`, `password`, `mode`, `map`, `team_size`,
+`rounds`, ...) and `most_matches`. `server/deploy.sh root@<address>` (Git Bash
+on the owner's PC, with the server's SSH key in `~/.ssh/clmr_oracle`) exports
+the "Linux Server" preset, copies it with the config and runs `setup.sh` on
+the server: a `clmr` user, `/opt/clmr`, the `clmr-lobbies` systemd service
+(restarts on a crash, starts at boot, its log in `journalctl -u
+clmr-lobbies`), the firewall (SSH and UDP 47197-47199) and SSH by key only.
+Run the same command to update it. Locally:
+
+```
+godot --headless --path godot -- --lobby-server=../server/lobbies.json
+```
+
+The server's address is kept out of this public repository.
+
 ## When the router won't open the port
 
 The host needs **UDP port 47197** reachable from outside. Three ways:
@@ -66,6 +102,14 @@ The host needs **UDP port 47197** reachable from outside. Three ways:
 3. **Someone else hosts**: a friend whose router does UPnP.
 
 ## What is checked and what is not
+
+`tools/net_server_check.gd` (in check_all and CI) holds the always-open
+lobby: the first player in runs it, a player who doesn't cannot change
+anything, the admin cannot change the password, START waits on readiness
+and on a busy server, a match with bots kept in step with the server, back
+to the lobby on its own, the next admin when one leaves, a kick, an empty
+lobby ending its match and getting its settings back, closing tells
+everyone.
 
 `tools/net_showdown_check.gd` plays a whole online session in one process
 over the network stack (a host and three clients on 127.0.0.1, with test lag

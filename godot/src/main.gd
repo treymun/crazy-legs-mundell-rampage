@@ -887,8 +887,8 @@ func _online_from_args() -> void:
 		online_pilot = true  # a TacticalBot made per match, for the slot played
 
 
-## --online-start: everyone readies by themselves, and the host starts the
-## match once that many are in.
+## --online-start: everyone readies by themselves, and the host (or an
+## always-open lobby's admin) starts the match once that many are in.
 func _online_autostart() -> void:
 	var me := net.player_of(net.my_id)
 	if net.role == NetPlay.Role.CLIENT:
@@ -898,6 +898,13 @@ func _online_autostart() -> void:
 			and Engine.get_frames_drawn() % 30 == 0
 		):
 			net.ask({"ready": true})
+		elif (
+			net.is_admin()
+			and net.players.size() >= int(online_args["start"])
+			and Engine.get_frames_drawn() % 60 == 0
+			and net.why_not_start() == ""
+		):
+			net.start_match()  # an always-open lobby's admin starts it
 	elif net.players.size() >= int(online_args["start"]) and net.why_not_start() == "":
 		net.start_match()
 

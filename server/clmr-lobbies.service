@@ -1,0 +1,23 @@
+[Unit]
+Description=Crazy Legs Mundell Rampage always-open lobbies
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=clmr
+Group=clmr
+WorkingDirectory=/opt/clmr
+Environment=HOME=/opt/clmr
+# Line-buffered, so each line reaches the journal as it is printed.
+ExecStart=/usr/bin/stdbuf -oL /opt/clmr/clmr_server.x86_64 --headless -- --lobby-server=/opt/clmr/lobbies.json
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/clmr
+PrivateTmp=true
+MemoryMax=1400M
+
+[Install]
+WantedBy=multi-user.target

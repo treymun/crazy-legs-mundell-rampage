@@ -181,6 +181,14 @@ func _play() -> void:
 	_check(lobby.phase == "lobby", "a START the server refuses leaves everyone in the lobby")
 	bob.ask({"ready": true})
 	_wait(func() -> bool: return bool(alice.player_of(bob.my_id).get("ready", false)))
+	server.most_matches = 0
+	alice.start_match()
+	var busy := func() -> bool:
+		return Array(alice.take_news()).any(
+			func(l: String) -> bool: return l.contains("MATCHES ON")
+		)
+	_check(_wait(busy, 60) and lobby.phase == "lobby", "a busy server says to wait")
+	server.most_matches = LobbyServer.MOST_MATCHES
 	var why := alice.start_match()
 	_check(why == "", "ALICE starts the match %s" % why)
 	_wait(func() -> bool: return alice.client_ready() and bob.client_ready())

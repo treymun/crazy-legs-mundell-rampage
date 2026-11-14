@@ -141,6 +141,8 @@ var dedicated := false
 var admin_id := 0
 ## An always-open lobby's own settings, put back when it empties.
 var base_settings := {}
+## An always-open lobby's server may say no to a START (too busy): "" or why.
+var may_start: Callable
 ## When this match's results came up (ms, -1 not yet).
 var tally_at := -1.0
 ## Lines an always-open lobby tells everyone with the next LOBBY.
@@ -424,7 +426,7 @@ func _admin_asks(info: Dictionary) -> void:
 				set_setting(key, value)
 	if info.has("kick"):
 		kick(int(info["kick"]))
-	if bool(info.get("start", false)):
+	if bool(info.get("start", false)) and phase == "lobby":
 		var why := start_match()
 		if why != "":
 			_tell(why)
@@ -699,6 +701,8 @@ func start_match() -> String:
 			ask({"start": true})
 		return not_yet
 	var why := why_not_start()
+	if why == "" and may_start.is_valid():
+		why = String(may_start.call())
 	if why != "":
 		return why
 	var size := int(settings["team_size"])

@@ -17,6 +17,9 @@ extends Node
 const STATUS_EVERY := 300.0
 ## Ticks played in one frame at most (a stall is not caught up past this).
 const MOST_STEPS := 8
+## Matches on at once at most (the config's "most_matches"): one 5v5 with
+## nine bots is about 40% of a small VPS core.
+const MOST_MATCHES := 2
 ## Frames a second while every lobby waits, and while a match is on.
 const IDLE_FPS := 20
 const MATCH_FPS := 120
@@ -37,6 +40,7 @@ class Room:
 var rooms: Array[Room] = []
 var art: Assets
 var sim := {}
+var most_matches := MOST_MATCHES
 var _status_in := 10.0
 var _failed := ""
 
@@ -47,6 +51,7 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 	sim = sim_options
 	art = Assets.new()
 	var bind := String(config.get("bind", "*"))
+	most_matches = int(config.get("most_matches", MOST_MATCHES))
 	for entry in config.get("lobbies", []):
 		if not entry is Dictionary:
 			continue
@@ -58,6 +63,7 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 			_failed = "PORT %d IS TAKEN" % port
 			continue
 		net.make_match = _make
+		net.may_start = _may_start
 		net.sim_options = sim
 		var room := Room.new()
 		room.net = net
@@ -68,6 +74,14 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 				% [net.settings["lobby_name"], port, net.settings["mode"], net.settings["map"]]
 			)
 		)
+
+
+## "" when another match may start, else why not.
+func _may_start() -> String:
+	var on := rooms.filter(func(r: Room) -> bool: return r.net.phase == "match").size()
+	if on >= most_matches:
+		return "THE SERVER HAS %d MATCHES ON: TRY AGAIN WHEN ONE ENDS" % on
+	return ""
 
 
 ## The config at `path` (res://, user:// or a plain path); {} when unreadable.

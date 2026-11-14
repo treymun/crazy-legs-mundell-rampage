@@ -81,6 +81,9 @@ godot --headless --path godot --script res://tools/map_timing.gd   # 5v5 maps: r
 godot --headless --path godot --script res://tools/net_showdown_check.gd   # NET SHOWDOWN OK (online 5v5 lobby to lobby; lag= loss= seconds=)
 godot --path godot -- --host-online[=port] --online-name=TREY [--online-password=x]   # straight into a lobby
 godot --path godot -- --join-online=<code or address> --online-name=BOB   # (tests: --online-start=2 --online-bot)
+godot --headless --path godot --script res://tools/net_server_check.gd   # NET SERVER OK (always-open lobby, no host player)
+godot --headless --path godot -- --lobby-server=../server/lobbies.json   # always-open lobbies (src/net/lobby_server.gd)
+bash server/deploy.sh root@<server address>   # build the Linux server and install/update it (docs/online.md)
 godot --headless --path godot --script res://tools/levels/build_level.gd -- grainyard   # the 5v5 maps: grainyard, holler, salvage; 2v2: pumpngo, pineacres, landing
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 godot --headless --path godot --script res://tools/net_bench.gd -- levels=hickston players=1,2,4 [host]   # ticks, snapshots, deltas
@@ -1119,6 +1122,20 @@ what a networking pass still needs).
   "last one standing" call used to, and the online check found it.
   `tools/net_showdown_check.gd` holds it all (host plus three clients in one
   process, lag and loss as asked; in check_all and CI).
+  **Always-open lobbies** (`NetPlay.serve_lobby`, `src/net/lobby_server.gd`,
+  `--lobby-server=<json>`, `server/`): no host player; the first person in is
+  the admin (`admin_id`, `is_admin()`, `admin_of()`; the admin's
+  `set_setting`/`start_match`/`kick`/`back_to_lobby` go as ASK `set`/`start`/
+  `kick`/`back`, checked by `allowed_value`, never `SERVER_ONLY` keys), the
+  next in line when they leave; results go back to the lobby after
+  `BACK_AFTER` (`tally_at`, `back_in()`), an emptied lobby ends its match and
+  takes `base_settings` back; server lines reach every lobby screen with the
+  next LOBBY (`_tell`). One process runs every lobby with TacticalBot pilots on
+  host games (`Game.new(..., true)`, which client copies match exactly), at
+  most `most_matches` at once (`may_start`). The snapshots are most of the
+  server's cost (capture + diff: about 1.5 of 2.3 ms a tick for a 5v5 with
+  nine bots); switching NetSync to NetTrack's deltas is the way to halve it.
+  `tools/net_server_check.gd` holds it.
   breaks or the posse); per-player stats (chapter stats and the tally are
   the local player's) and a kill feed; the steam scald list is keyed by
   hazard instance id (not carried). Respawn, bodies blocking, area attacks

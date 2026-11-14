@@ -1,0 +1,32 @@
+{
+	"bind": "*",
+	"most_matches": 2,
+	"lobbies": [
+		{
+			"port": 47197,
+			"lobby_name": "5V5 SEARCH & DESTROY",
+			"mode": "bomb",
+			"map": "grainyard",
+			"team_size": 5,
+			"rounds": 7
+		},
+		{
+			"port": 47198,
+			"lobby_name": "5V5 HOSTAGE RESCUE",
+			"mode": "hostage",
+			"map": "holler",
+			"team_size": 5,
+			"rounds": 7
+		},
+		{
+			"port": 47199,
+			"lobby_name": "2V2 TAG TEAM",
+			"mode": "bomb",
+			"map": "pumpngo",
+			"team_size": 2,
+			"rounds": 9,
+			"round_seconds": 90.0,
+			"buy_seconds": 15.0
+		}
+	]
+}
