@@ -74,7 +74,7 @@ static func hit_amount(game, f, e: Enemy, amount: float, d: float) -> float:
 		var spec := CountyData.upgrade("deadeye")
 		amount *= 1.0 + float(spec.get("per", .06)) * eye * mini(f.streak, int(spec.get("most", 5)))
 	var called := CountyBuild.rank(f, gun, "called_shot")
-	if called > 0 and e.max_hp >= TOUGH and f.called_uid == e.get_instance_id():
+	if called > 0 and e.max_hp >= TOUGH and e.uid != 0 and f.called_uid == e.uid:
 		var spec := CountyData.upgrade("called_shot")
 		amount *= (
 			1.0
@@ -97,10 +97,10 @@ static func hit_after(
 		f.streak += 1
 		f.best_streak = maxi(f.best_streak, f.streak)
 		if e.max_hp >= TOUGH:
-			if f.called_uid == e.get_instance_id():
+			if e.uid != 0 and f.called_uid == e.uid:
 				f.called_hits += 1
 			else:
-				f.called_uid = e.get_instance_id()
+				f.called_uid = e.uid if e.uid != 0 else -1
 				f.called_hits = 1
 		if gun == Weapons.REVOLVER and CountyBuild.has(f, "six_shooter"):
 			if f.six_ready:
@@ -258,7 +258,7 @@ static func killed(game, f, e: Enemy) -> void:
 	if not e.hostile:
 		return
 	CountyOrbs.drop(game, f, e)
-	f.watch.erase(e.get_instance_id())
+	e.county_watch = []
 	if f.over:
 		return
 	if CountyBuild.has(f, "chain_reaction") and e.killed_by == "blast" and f.blast_mine:
@@ -296,8 +296,13 @@ static func killed(game, f, e: Enemy) -> void:
 
 
 static func tick(game, f, dt: float) -> void:
-	var a: Weapons.Armory = game.armory
-	var p: Player = game.player
+	streaks(f)
+	hands(game, f, dt)
+	world(game, f, dt)
+
+
+## The shot just fired missed: the streaks start over.
+static func streaks(f) -> void:
 	if f.shot_gun >= 0:
 		if not f.shot_hit:
 			# A miss: the streaks start over.
@@ -307,6 +312,13 @@ static func tick(game, f, dt: float) -> void:
 				f.six_hits = 0
 				f.six_ready = false
 		f.shot_gun = -1
+
+
+## The acting player's part of a tick: STEADY STOCK, QUICK HANDS, their shots'
+## damage, their MUDSLIDE, BREAKAWAY.
+static func hands(game, f, dt: float) -> void:
+	var a: Weapons.Armory = game.armory
+	var p: Player = game.player
 	var steady := CountyBuild.value(f, a.active, "steady_stock")
 	if f.pitch_before > -900.0:
 		p.pitch -= (p.pitch - f.pitch_before) * minf(.9, steady)
@@ -321,14 +333,17 @@ static func tick(game, f, dt: float) -> void:
 	for shot: GameState.Shot in game.shots:
 		if shot.uid == 0 and not shot.enemy and shot.slot == p.slot:
 			var gun := gun_of_shot(String(shot.kind))
-			if gun >= 0 and not f.scaled.has(shot.get_instance_id()):
+			if gun >= 0 and not shot.county_scaled:
 				shot.damage = roundi(shot.damage * CountyBuild.damage_scale(f, gun))
 				shot.bounces += roundi(CountyBuild.value(f, gun, "extra_bounce"))
-				f.scaled[shot.get_instance_id()] = true
-	if not f.scaled.is_empty() and int(f.run_time) != int(f.run_time - dt):
-		f.scaled.clear()
-	_slide(game, f, dt)
+				shot.county_scaled = true
+	if p.slot == f.dash_slot:
+		_slide(game, f, dt)
 	_breakaway(game, f)
+
+
+## The world's part: CHAIN REACTION's blasts going off.
+static func world(game, f, _dt: float) -> void:
 	if not f.chains.is_empty():
 		var left: Array = []
 		for c: Array in f.chains:
@@ -374,6 +389,7 @@ static func dash(game, f) -> bool:
 		Modes.say(game, "MUDSLIDE IN %.1fS" % (f.dash_ready - game.clock), .8)
 		return true
 	var p: Player = game.player
+	f.dash_slot = p.slot
 	f.dash_left = SLIDE
 	var moving := Vector2(p.vx, p.vy)
 	f.dash_angle = moving.angle() if moving.length() > .4 else p.view_angle()

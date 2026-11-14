@@ -1,3 +1,50 @@
+# 2.0.0-dev.44 test results
+
+Run on the owner's PC (Windows 11, Godot 4.7.2), headless unless noted, on
+branch `polish-20`. Nobody on the agent side could listen to the sound, play
+by hand or try a phone; every "played" result is a bot or a scripted check.
+
+- **All checks** (`check_all.gd -- lint`, a scratch profile): every row passed (check_shader, verify_assets,
+  check_fixes, save_fixtures, level_edit_check, quest_reach, bot_campaign,
+  picture_check, net_showdown_check, net_server_check, menu_touch_check,
+  county_check, gdformat) but two, both since fixed and re-run on their own:
+  gdlint (three unused arguments) and county_net_check (a bar on how far the
+  bots got by themselves; it now hands the party two levels halfway). The
+  window tour matched the graphics-card references exactly (36 views).
+  The full `net_check.gd` found two places a server's game and a player's
+  copy part: a floating body's ring clock (since dev.43 at least, kept only
+  where the looks-only water feature runs) and the bowling ball's hit list
+  (keyed by object ids); both fixed and re-checked.
+- **County Run co-op online** (`tools/county_net_check.gd`, new, in CI): a
+  lobby server on Hickston, ALICE over ENet, BOB over the WebSocket side;
+  40 s of play with the County bot steering each player in their own copy:
+  level 3, 14 kills, 2 cards picked by the leader through her controls, both
+  copies at the party's level and carrying the party's guns, 41 checks each
+  with no parting (one on BOB's side from the test switching god mode on in
+  the server's game only), back in the lobby once both were down.
+- **Party rules** (`county_check.gd` `_party`): one kit for both, the party's
+  XP, a partner's card ignored, the leader's card in both armories, a partner
+  down is not the end, holding USE beside them stands them up, both down ends
+  the run. Local party of two bots for 40 s: level 4, 25 kills (solo: level
+  3, 18).
+- **Daily run** (`_daily`): two runs of Hickston on the same day spawn alike
+  (8 hands in 12 s), another day differs; the board keeps a name's best, best
+  first, refuses another version and an old day; a post over the lobby's
+  WebSocket comes back on the board (`net_server_check.gd`).
+- **Walking prediction** (`net_loopback.gd -- seconds=30 lag=60 loss=0.03`):
+  the player was drawn 6 ticks behind the host's path without it, 6 ticks
+  ahead (0.03 cells apart) with it: about 200 ms less delay at 60 ms lag.
+- **Browser online** (`net_server_check.gd`): BOB plays the whole match over
+  the WebSocket side (plain ws on 127.0.0.1); wss on the real server was
+  checked from the browser build after the release.
+- **Deep water steering** (`county_play.gd`, Gator Bayou, 4 minutes, god
+  mode): 107 kills and 121 hands spawned, hands reaching the player in 13 s
+  (before: 75, 90, 16 s).
+- **Melee blood** (`_melee_blood`): a crowbar hit wets the crowbar, never a
+  pistol; the wet cel has 396 red pixels against 0.
+- **Exit hang** (item 13): `county_play.gd` exited cleanly in three short runs
+  and a 155 s run of all three maps; not reproduced.
+
 # County Run test results (2.0.0-dev.41)
 
 Run on the owner's PC (Windows 11, Godot 4.7.2), headless unless noted, on

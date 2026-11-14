@@ -179,6 +179,11 @@ var desperate_at := -10.0
 ## Gator Bayou (bayou_brains.gd): it swims (deep water is no wall to it), and
 ## how far it is sunk in the water this moment (wading, lurking, a gator low).
 var swims := false
+## COUNTY RUN: an elite, and where it was last seen moving and last saw the
+## player ([x, y, moved at, saw at]; county_spawner.gd). On the enemy, not
+## keyed by instance id, so a snapshot carries them.
+var county_elite := false
+var county_watch: Array = []
 var sunk := 0.0
 ## How it was killed (hurt()'s `how`) and from where, and how high its body
 ## is thrown this moment (features/corpses.gd moves the body after).

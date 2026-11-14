@@ -21,6 +21,21 @@ testing it and adding to it. The code's own notes are in `CLAUDE.md`
 
   In the Godot editor, open `godot/project.godot` and press Play.
 
+## Co-op and the daily run (dev.44)
+
+- **Co-op, online, two to four**: in a lobby (HOST A GAME, or PLAY ONLINE's
+  county servers) pick a County Run map: MODE turns to COUNTY RUN CO-OP.
+  Everyone readies, the host or admin starts. The party shares the build and
+  the XP; the first player up picks the cards (the others see who is
+  picking); a downed player is stood up by a partner holding USE beside them
+  or comes back after 25 s; the run ends when all are down, then everyone is
+  back in the lobby. Rules: `src/modes/county_coop.gd`; check:
+  `godot --headless --path godot --script res://tools/county_net_check.gd`.
+- **DAILY RUN**: T on the map picker. The same dice for everyone that day on
+  each map; the day's best runs are on a board kept by the county's server
+  (`src/modes/county_board.gd`); the picker shows each map's top three, the
+  end of a daily run the board with yours.
+
 ## How it plays
 
 - You start at level 1 with the **.38** and the **crowbar** in two of three

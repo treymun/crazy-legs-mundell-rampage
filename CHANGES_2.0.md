@@ -1,3 +1,32 @@
+# 2.0.0-dev.44 changes
+
+## County Run
+- **Co-op County Run online, two to four players**: pick a County Run map in any lobby (the always-open COUNTY SERVERS too) and MODE becomes COUNTY RUN CO-OP. The party shares one build (everyone carries the same three guns, upgrades and perks, each with their own rounds and health) and one XP bar; the first player up picks the cards while the world holds for everyone. A downed player is stood up by a partner holding USE beside them, or comes back beside a partner after 25 seconds; the run ends when everyone is down. The horde grows with the party.
+- **DAILY RUN**: press T (or tap the bar) on the map picker. Everyone gets the same dice that day on each map, and the day's best runs are on a board shared through the county's server: today's top three show on each map, the end of a run shows the board with your run on it.
+- **Upgrade cards are simpler**: what it is for, one big line of what it does, rank pips, the catch in red and how long it lasts; the full words for the card under the cursor sit beside BUILD.
+- **The status bar is County Run's own**: your three gun slots with their rounds (the one in hand lit), your vest, and your level with its XP, where the campaign's gut, drunk and pockets go.
+- **New upgrades**: the riveter's HOT RIVETS (punch through) and BIG POUCH, the Copperhead's OVERPRESSURE (stuns) and SCALD (splash), the arm gun's ARC BOLT (a kill arcs to the next), the rip saw's EXTRA BOUNCE, the teat gun's SOUR MILK (slows), the bowling ball's EXTRA BOUNCE; BIG POUCH for the arm gun, rip saw and teat gun too.
+- **Gator Bayou** has four more raised crossings over the deep water (west and east crossings, to the island north and south); you can walk the decks over deep water and nobody steps off one into it.
+- New sounds for collecting XP, a level up and a milestone.
+
+## Online
+- **Your own moves show at once online**: the game predicts your walking and jumping from your keys instead of waiting for the server's answer (about 200 ms less delay on a 60 ms connection), and the server's picture corrects it.
+- Two things that made a player's copy of an online game part from the server's are fixed: a body floating in water, and the bowling ball's hits.
+- **Play online in the browser**: PLAY ONLINE lists the county's servers in the browser build too and joins them over a secure connection. Hosting and join codes still need the desktop or Android game.
+
+## Gore
+- A body whose head was taken off lies headless, with the stump, in every hand's own picture.
+- The crowbar and the sling blade come up bloody after close hits (green from the greys), more with each, and dry off over half a minute.
+
+## Enemies
+- The county's hands go round deep water instead of standing at the bank pushing into it when they can see you across it (the campaign's bayou too).
+
+## The game
+- **SMALL TEXT** setting (CLEAR): the tiniest text everywhere in the bigger letters.
+- The automap has a key: you, the goal, doors, walls.
+- The browser says how far a map's download has come while you wait.
+- The campaign explains pockets, the gut and drinking the first time each comes up.
+
 # 2.0.0-dev.43 changes
 
 ## Gore

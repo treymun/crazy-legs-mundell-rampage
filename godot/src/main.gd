@@ -836,6 +836,7 @@ func _net_advance(elapsed: float, controls: Game.Controls) -> void:
 			if online_pilot != null:
 				controls = _online_pilot_controls(controls)
 			TacticalScreens.take_pending(controls)
+			CountyScreens.take_pending(controls)
 			if hosting:
 				_net_host_tick(controls)
 			else:

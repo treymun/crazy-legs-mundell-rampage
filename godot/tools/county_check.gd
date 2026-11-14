@@ -78,6 +78,7 @@ static func run(main, check: Callable, seconds := QUICK_SECONDS) -> void:
 	_daily(main, check)
 	_steer(main, check)
 	_melee_blood(check)
+	_party(main, check)
 	_campaign_untouched(main, check)
 	for map_id: String in CountyData.MAP_IDS:
 		_play(main, check, map_id, seconds)
@@ -1030,6 +1031,63 @@ static func _melee_blood(check: Callable) -> void:
 			% [red.call(smeared), red.call(clean)]
 		)
 	)
+
+
+## A party of two (county_coop.gd): one kit for both, the party's XP, the
+## leader's card (in their controls, while the world holds) reaching both
+## armories, a partner's card ignored, down but not out while a partner is
+## up, stood up by a partner holding USE, and the run over when both are down.
+static func _party(main, check: Callable) -> void:
+	var g: Game = main.make_game("county_hickston")
+	g.configure({"difficulty": 1})
+	Modes.setup(g, Modes.COUNTY, 2)
+	g.tick(STEP, Game.Controls.new())
+	var f = g.features["county"]
+	f.next_spawn = 1e9
+	f.next_elite = 1e9
+	f.next_lull = 1e9
+	Modes.clear_enemies(g)
+	var one: Player = g.players[0]
+	var two: Player = g.players[1]
+	check.call(
+		g.players.size() == 2 and one.armory.owned == two.armory.owned and two.armory.owned[1],
+		"a party of two starts with one kit each, the same guns"
+	)
+	CountyMode.gain(g, f, CountyData.xp_to_next(1))
+	check.call(f.level == 2 and not f.pending.is_empty(), "the party's XP levels the party")
+	var weapon := -1
+	for i in f.offer.size():
+		if String(f.offer[i]["type"]) == "weapon":
+			weapon = i
+	if weapon < 0:
+		f.offer[0] = {"type": "weapon", "gun": Weapons.SHOTGUN, "id": ""}
+		weapon = 0
+	var gun := int(f.offer[weapon]["gun"])
+	var theirs := Game.Controls.new()
+	theirs.buy = CountyCoop.encode(weapon)
+	g.tick(STEP, {0: Game.Controls.new(), 1: theirs})
+	check.call(not f.pending.is_empty(), "the partner's card does nothing (the leader picks)")
+	var mine := Game.Controls.new()
+	mine.buy = CountyCoop.encode(weapon)
+	g.tick(STEP, {0: mine, 1: Game.Controls.new()})
+	check.call(
+		f.pending.is_empty() and one.armory.owned[gun] and two.armory.owned[gun],
+		"the leader's card, in their controls, puts the gun in both armories"
+	)
+	g.damage(999, null, "test", two)
+	for k in 30:
+		g.tick(STEP, Game.Controls.new())
+	check.call(not f.over and two.down_at >= 0.0, "a partner down is not the end while one is up")
+	Modes.place(g, one, two.x + .5, two.y, 0.0)
+	var help := Game.Controls.new()
+	help.hold = true
+	for k in int(CoopMode.REVIVE_TIME / STEP) + 20:
+		g.tick(STEP, {0: help, 1: Game.Controls.new()})
+	check.call(two.health > 0, "holding USE beside them stands them up (%d)" % two.health)
+	g.damage(999, null, "test", two)
+	g.damage(999, null, "test", one)
+	g.tick(STEP, Game.Controls.new())
+	check.call(f.over, "both down: the run is over")
 
 
 ## The campaign is untouched: no mode, the hooks hand back what they get.

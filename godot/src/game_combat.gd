@@ -796,13 +796,11 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 				enemy.hurt(shot.damage, self, false, false, null, "blade")
 				sound_at("saw_hit", x, y)
 			elif shot.kind == "bowling":
-				var key := shot.get_instance_id()
-				if not bowled.has(key):
-					bowled[key] = {}
-				var seen: Dictionary = bowled[key]
-				var eid := enemy.get_instance_id()
-				if not seen.has(eid):
-					seen[eid] = true
+				# Each hand once a ball, remembered on the ball by the hand's uid
+				# (an instance id differs on a client's copy of the game).
+				var seen: Array = shot.struck
+				if not seen.has(enemy.uid):
+					seen.append(enemy.uid)
 					enemy.hurt(shot.damage, self, false, false, null, "bowling")
 					sound_at("bowling_hit", x, y)
 					if seen.size() == 3 and barks.enabled:

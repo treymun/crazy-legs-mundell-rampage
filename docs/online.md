@@ -104,6 +104,26 @@ godot --headless --path godot -- --lobby-server=../server/lobbies.json
 
 The server's address is kept out of this public repository.
 
+## The browser build online (wss)
+
+A page on https may only open secure WebSockets, so each lobby in
+`server/lobbies.json` with a `ws_port` also listens there with TLS, and
+`godot/data/tuning/servers.json` gives the browser each lobby's `wss://`
+address (the server's hostname: the certificate is for it, not the IP).
+The ports are 443 and 8443 because IONOS's own firewall passes those and
+not the 47xxx TCP ports.
+
+Once on a new server (it accepts Let's Encrypt's terms, so it is a person's
+call): `apt-get install certbot`, then
+`certbot certonly --standalone -n --agree-tos --register-unsafely-without-email -d <hostname>`.
+`server/setup.sh` (run by deploy.sh) opens 80, 443 and 8443, installs the
+renewal hook that copies the certificate to `/etc/clmr/tls/` for the
+`clmr` user and restarts the lobbies, and the service may bind 443
+(`AmbientCapabilities=CAP_NET_BIND_SERVICE`). Without a certificate the
+WebSocket side runs plain (fine for tests on 127.0.0.1, refused by a page
+on https). `tools/net_server_check.gd` plays a whole match with one player
+on the WebSocket side; `tools/county_net_check.gd` a County Run party.
+
 ## When the router won't open the port
 
 The host needs **UDP port 47197** reachable from outside. Three ways:

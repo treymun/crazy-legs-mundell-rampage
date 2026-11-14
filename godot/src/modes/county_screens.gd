@@ -44,6 +44,9 @@ static var _shown := ""
 static var _shown_at := 0
 ## The picker's DAILY RUN switch, and the board heard from the server.
 static var daily := false
+## An online party's leader's card choice, sent with the next controls
+## (county_coop.gd encode; -1: none).
+static var pending_pick := -1
 static var board: CountyBoard = null
 
 
@@ -202,11 +205,11 @@ static func draw_hud(c: Canvas, game, f) -> void:
 
 ## A gold ELITE and a health bar over each elite in sight.
 static func _elite_tags(c: Canvas, game, f) -> void:
-	if f.elite_ids.is_empty():
+	if f.elites == f.elites_down:
 		return
 	var p: Player = game.player
 	for e: Enemy in game.enemies:
-		if not e.alive or not f.elite_ids.has(e.get_instance_id()):
+		if not e.alive or not e.county_elite:
 			continue
 		if Vector2(e.x - p.x, e.y - p.y).length() > 24.0:
 			continue
@@ -253,6 +256,11 @@ static func draw_cards(c: Canvas, game, f) -> void:
 		var tips: Array = CountyData.all().get("tips", [])
 		if not tips.is_empty():
 			note = "TIP: " + String(tips[f.level % tips.size()])
+	if not CountyInput.picks_here(game):
+		var who = CountyCoop.leader(game)
+		note = (
+			"%s PICKS FOR THE PARTY. HANG ON." % (Modes.tag(who) if who != null else "THE LEADER")
+		)
 	HUD.text(
 		c,
 		note,
@@ -537,6 +545,13 @@ static func draw_end(c: Canvas, game, f) -> void:
 
 
 # ------------------------------------------------------------------ daily run
+
+
+## An online party leader's card choice into the controls (main.gd).
+static func take_pending(c: Game.Controls) -> void:
+	if pending_pick >= 0:
+		c.buy = pending_pick
+		pending_pick = -1
 
 
 static func toggle_daily() -> void:

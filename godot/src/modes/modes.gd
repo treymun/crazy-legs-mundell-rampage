@@ -253,7 +253,13 @@ static func setup(game, name: String, count: int, options := {}) -> void:
 		if options.has(key):
 			st.set(key, options[key])
 	count = clampi(
-		count, 1, MAX_PLAYERS if TACTICAL.has(name) else 1 if name == COUNTY else MAX_FREE_FOR_ALL
+		count,
+		1,
+		(
+			MAX_PLAYERS
+			if TACTICAL.has(name)
+			else CountyCoop.MOST if name == COUNTY else MAX_FREE_FOR_ALL
+		)
 	)
 	while game.players.size() < count:
 		join_beside(game, game.players[0])

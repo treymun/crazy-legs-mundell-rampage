@@ -45,9 +45,6 @@ var next_lull := 0.0
 var lull_until := -1.0
 var spawned := 0
 var elites := 0
-var watch := {}
-## The elites up or down (instance id -> true): they drop more XP.
-var elite_ids := {}
 ## The shot in the air for the streak upgrades (DEADEYE, CALLED SHOT, the
 ## SHOWDOWN): its gun, whether it hit, the streak, the tough varmint being
 ## called and its hits, the showdown's charge.
@@ -59,10 +56,8 @@ var called_hits := 0
 var six_hits := 0
 var six_ready := false
 ## STEADY STOCK: the pitch before the rifle's climb this tick (-999: none);
-## the player's shots in flight whose damage HOT LOADS has raised; whether
-## the blast going off is the player's own (CHAIN REACTION).
+## whether the blast going off is the player's own (CHAIN REACTION).
 var pitch_before := -999.0
-var scaled := {}
 var blast_mine := false
 ## Milestone abilities: GRIT ARMOR, SECOND WIND used, LAST STAND's guard,
 ## MUDSLIDE (ready at, sliding for, which way), BREAKAWAY (last crowded,
@@ -75,6 +70,8 @@ var safe_until := -1.0
 var dash_ready := 0.0
 var dash_left := 0.0
 var dash_angle := 0.0
+## Whose MUDSLIDE it is (a party's run: county_coop.gd).
+var dash_slot := 0
 var crowd_at := -10.0
 var burst_until := -1.0
 var burst_ready := 0.0

@@ -23,6 +23,7 @@ const CHECKS := [
 	["net_server_check", "NET SERVER OK"],
 	["menu_touch_check", "MENU TOUCH OK"],
 	["county_check", "COUNTY CHECK OK"],
+	["county_net_check", "COUNTY NET CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "picture_check", "quest_reach"]
 

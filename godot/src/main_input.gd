@@ -577,9 +577,9 @@ func _input(event: InputEvent) -> void:
 				and not game.in_hub
 			):
 				var step := 1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1
-				if not Modes.is_tactical(game):
+				if not Modes.is_tactical(game) and net == null:
 					game.armory.cycle(step, game)
-				elif game.local_player.slot == TacticalScreens.human:
+				elif not Modes.is_tactical(game) or game.local_player.slot == TacticalScreens.human:
 					TacticalScreens.pending_cycle = step  # sent with the next controls
 			elif state != "play":
 				_wheel(-1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1, button.position)

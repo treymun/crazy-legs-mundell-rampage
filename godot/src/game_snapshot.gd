@@ -56,7 +56,6 @@ const SIM_FIELDS := [
 	"drums",
 	"stations_done",
 	"scenery_spent",
-	"bowled",
 	"valve_turns",
 	"next_valve_turn",
 	"triggers_fired",

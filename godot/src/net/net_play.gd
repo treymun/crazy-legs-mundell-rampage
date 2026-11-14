@@ -61,14 +61,34 @@ const MATCH_ROWS := [
 	[
 		"mode",
 		"MODE",
-		["bomb", "hostage", "tagteam"],
-		["SEARCH AND DESTROY", "HOSTAGE RESCUE", "TAG TEAM 2V2"]
+		["bomb", "hostage", "tagteam", "county"],
+		["SEARCH AND DESTROY", "HOSTAGE RESCUE", "TAG TEAM 2V2", "COUNTY RUN CO-OP"]
 	],
 	[
 		"map",
 		"MAP",
-		["grainyard", "holler", "salvage", "pumpngo", "pineacres", "landing"],
-		["GRAIN CO-OP", "DISTILLERY", "SALVAGE", "2V2 PUMP 'N GO", "2V2 PINE ACRES", "2V2 LANDING"]
+		[
+			"grainyard",
+			"holler",
+			"salvage",
+			"pumpngo",
+			"pineacres",
+			"landing",
+			"county_hickston",
+			"county_quarry",
+			"county_bayou",
+		],
+		[
+			"GRAIN CO-OP",
+			"DISTILLERY",
+			"SALVAGE",
+			"2V2 PUMP 'N GO",
+			"2V2 PINE ACRES",
+			"2V2 LANDING",
+			"RUN: HICKSTON",
+			"RUN: THE QUARRY",
+			"RUN: GATOR BAYOU",
+		]
 	],
 	["store_rules", "RULES", TacticalShop.RULE_IDS, TacticalShop.RULE_NAMES],
 	["rounds", "ROUNDS TO WIN", [3, 4, 5, 7, 9, 10], ["3", "4", "5", "7", "9", "10"]],
@@ -358,7 +378,8 @@ func poll(now_ms: float) -> void:
 ## everyone back BACK_AFTER seconds later.
 func _watch_tally() -> void:
 	var g := match_game()
-	if g == null or not g.showing_tally:
+	var run = CountyMode.run(g)
+	if g == null or not (g.showing_tally or (run != null and run.over)):
 		return
 	if tally_at < 0.0:
 		tally_at = _now
@@ -585,7 +606,8 @@ func _gone(id: int) -> void:
 	_tell("%s LEFT" % p["name"])
 	if phase == "match" and host_sync != null:
 		host_sync.drop_remote(id)
-		if p.has("slot"):
+		# (COUNTY RUN co-op: nobody takes their place; they stand where they were.)
+		if p.has("slot") and not county():
 			changes.append({"bot": int(p["slot"]), "name": String(p["name"])})
 	if dedicated:
 		_after_leaving(id)
@@ -726,13 +748,25 @@ func set_setting(key: String, value) -> void:
 
 ## The mode a lobby's MODE plays by (Modes): TAG TEAM 2V2 is search and
 ## destroy two a side.
+## A COUNTY RUN co-op lobby (MODE, or a county map).
+func county() -> bool:
+	return String(settings.get("mode", "")) == Modes.COUNTY
+
+
 static func play_mode(id: String) -> String:
 	return Modes.BOMB if id == "tagteam" else id
 
 
 ## MODE as the map makes it: TAG TEAM 2V2 on a 2v2 map, never on a 5v5 one.
 func _mode_fits_map() -> void:
-	var tag := Modes.TAGTEAM_MAPS.has(String(settings.get("map", "")))
+	var map := String(settings.get("map", ""))
+	# COUNTY RUN co-op on its own maps, and only there.
+	if CountyData.MAP_IDS.has(map):
+		settings["mode"] = Modes.COUNTY
+		return
+	if county():
+		settings["mode"] = Modes.BOMB
+	var tag := Modes.TAGTEAM_MAPS.has(map)
 	if tag:
 		settings["mode"] = "tagteam"
 	elif String(settings.get("mode", "")) == "tagteam":
@@ -743,6 +777,14 @@ func _mode_fits_map() -> void:
 func why_not_start() -> String:
 	if phase != "lobby" or not (is_admin() or dedicated):
 		return "ONLY THE HOST STARTS"
+	if county():
+		var boss_id := admin_of()
+		for p: Dictionary in players:
+			if not bool(p["ready"]) and int(p["id"]) != boss_id:
+				return "WAITING ON %s" % p["name"]
+		if players.size() > CountyCoop.MOST:
+			return "COUNTY RUN TAKES %d AT MOST" % CountyCoop.MOST
+		return ""
 	var size := int(settings["team_size"])
 	var plan := team_plan()
 	var count := [0, 0]
@@ -804,7 +846,7 @@ func start_match() -> String:
 		p["slot"] = teams.size()
 		teams.append(int(plan[p["id"]]))
 		names.append(String(p["name"]))
-	if bool(settings["bots"]):
+	if bool(settings["bots"]) and not county():
 		for t in 2:
 			while teams.count(t) < size:
 				teams.append(t)
@@ -816,6 +858,8 @@ func start_match() -> String:
 		"options": match_options(teams, names),
 		"slots": slot_of,
 		"sim": sim_options,
+		# Fresh dice for each match (every copy sets them: main_flow.gd).
+		"seed": int(Time.get_unix_time_from_system() * 1000.0) & 0x7FFFFFFFFFFF,
 	}
 	var game: Game = make_match.call(info)
 	if game == null:

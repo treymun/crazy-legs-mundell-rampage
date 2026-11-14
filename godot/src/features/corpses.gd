@@ -309,6 +309,9 @@ func _bob() -> void:
 			continue
 		shown += 1
 		e.toss = BOB * (1.0 + sin(game.clock * BOB_SPEED + float(f[1])))
-		if water != null and game.clock >= float(f[2]):
+		# The ring's clock is carried play: kept on a server's game too, which
+		# has no water feature (looks only) to draw the ring.
+		if game.clock >= float(f[2]):
 			f[2] = game.clock + RING_EVERY
-			water.ring(e.x, e.y, .7)
+			if water != null:
+				water.ring(e.x, e.y, .7)

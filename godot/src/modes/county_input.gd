@@ -63,8 +63,19 @@ static func key_play(main, game, code: int) -> bool:
 	if code in NUMBERS:
 		var i := NUMBERS.find(code)
 		if i < f.slots.size() and int(f.slots[i]) >= 0:
-			game.armory.select(int(f.slots[i]), game)
+			if main.net != null:
+				# Online: the gun goes with the next controls (never the copy itself).
+				TacticalScreens.pending_weapon = int(f.slots[i])
+			else:
+				game.armory.select(int(f.slots[i]), game)
 		return true
+	if main.net != null:
+		if code == KEY_R:
+			TacticalScreens.pending_reload = true
+			return true
+		if code == KEY_E or code == KEY_SPACE:
+			TacticalScreens.pending_use = true
+			return true
 	if code in [KEY_0, KEY_MINUS, KEY_EQUAL, KEY_BACKSLASH]:
 		return true  # the campaign's gun keys: nothing to carry there
 	if code == KEY_B:
@@ -78,7 +89,8 @@ static func key_play(main, game, code: int) -> bool:
 static func open_build(game) -> void:
 	CountyScreens.build_open = true
 	var f = CountyMode.run(game)
-	if f != null:
+	# A party's world never holds for one player's look at the build.
+	if f != null and not CountyCoop.party(game):
 		f.paused = true
 
 
@@ -98,7 +110,7 @@ static func _key_cards(main, game, f, code: int) -> bool:
 	if code == KEY_B:
 		open_build(game)
 		return true
-	if not CountyScreens.armed():
+	if not CountyScreens.armed() or not picks_here(game):
 		return true
 	var n: int = f.offer.size()
 	if CountyScreens.swapping >= 0:
@@ -124,10 +136,24 @@ static func _key_cards(main, game, f, code: int) -> bool:
 	return true
 
 
+## Whether this machine's player picks the cards (a party: its leader).
+static func picks_here(game) -> bool:
+	return not CountyCoop.party(game) or CountyCoop.leader(game) == game.local_player
+
+
+## Card `i` (and the slot for a swap) chosen: straight in, or online with
+## the next controls (county_coop.gd picks).
+static func _choose(main, game, i: int, slot := -1) -> bool:
+	if main.net != null:
+		CountyScreens.pending_pick = CountyCoop.encode(i, slot)
+		return true
+	return CountyMode.choose(game, i, slot)
+
+
 ## Card `i` taken: a weapon with every slot full asks which to swap out.
 static func take(main, game, i: int) -> void:
 	var f = CountyMode.run(game)
-	if f == null or i < 0 or i >= f.offer.size():
+	if f == null or i < 0 or i >= f.offer.size() or not picks_here(game):
 		return
 	CountyScreens.card_row = i
 	var card: Dictionary = f.offer[i]
@@ -136,7 +162,7 @@ static func take(main, game, i: int) -> void:
 		CountyScreens.swap_slot = -1
 		main.sound.play("menu_accept")
 		return
-	if CountyMode.choose(game, i):
+	if _choose(main, game, i):
 		CountyScreens.card_row = 0
 
 
@@ -155,7 +181,7 @@ static func confirm_swap(main, game) -> void:
 		return
 	CountyScreens.swapping = -1
 	CountyScreens.swap_slot = -1
-	if CountyMode.choose(game, i, slot):
+	if _choose(main, game, i, slot):
 		CountyScreens.card_row = 0
 	else:
 		main.sound.play("empty")
@@ -193,6 +219,15 @@ static func _key_end(main, game, code: int) -> bool:
 static func _end_action(main, game, which: int) -> void:
 	var map_id := String(game.level.id)
 	CountyScreens.reset()
+	if main.net != null:
+		# Online: back to the lobby (its host or admin says when), or leave.
+		if which == 2:
+			main.net_quit()
+		elif main.net.role == NetPlay.Role.HOST:
+			main.net.back_to_lobby()
+		elif main.net.is_admin():
+			main.net.ask({"back": true})
+		return
 	match which:
 		0:
 			main.sound.play("menu_accept")

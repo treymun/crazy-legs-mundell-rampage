@@ -999,6 +999,8 @@ func net_match_game(info: Dictionary) -> Game:
 	if made == null:
 		return null
 	made.configure(_net_options(info))
+	if info.has("seed"):
+		made.rng.set_state(int(info["seed"]))
 	Modes.setup(made, String(info["mode"]), int(info["count"]), info["options"])
 	var slot := int(info.get("slot", 0))
 	if slot > 0 and slot < made.players.size():

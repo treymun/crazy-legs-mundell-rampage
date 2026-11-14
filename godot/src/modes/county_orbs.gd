@@ -23,10 +23,10 @@ const SUPPLY_LIFE := 60.0
 const POP := .7
 
 
-static func xp_for(_game, f, e: Enemy) -> int:
+static func xp_for(_game, _f, e: Enemy) -> int:
 	var x := CountyData.section("xp")
 	var v := maxi(1, roundi(e.max_hp / maxf(1.0, float(x.get("per_hp", 34)))))
-	if f.elite_ids.has(e.get_instance_id()):
+	if e.county_elite:
 		v *= int(x.get("elite_times", 4))
 	return v
 
@@ -38,7 +38,7 @@ static func drop(game, f, e: Enemy) -> void:
 	if not _standable(game, e.x, e.y, z):
 		z = game.world.floor_under(at.x, at.y, z + .3)
 	var value := xp_for(game, f, e)
-	if f.elite_ids.has(e.get_instance_id()):
+	if e.county_elite:
 		f.elites_down += 1
 		# An elite throws its XP about in a few piles.
 		var piles := 4
@@ -46,7 +46,7 @@ static func drop(game, f, e: Enemy) -> void:
 			var a := k * TAU / piles + .3
 			var spot := _clear_spot(game, at.x + cos(a) * .6, at.y + sin(a) * .6, z)
 			_lay(f, spot.x, spot.y, z, maxi(1, value / piles), "xp")
-		f.elite_ids.erase(e.get_instance_id())
+		e.county_elite = false
 	else:
 		_lay(f, at.x, at.y, z, value, "xp")
 	var s := CountyData.section("spawn")

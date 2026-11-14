@@ -27,7 +27,6 @@ static func begin(game, f) -> void:
 	f.lull_until = -1.0
 	f.spawned = 0
 	f.elites = 0
-	f.watch = {}
 	spots(game)
 
 
@@ -122,7 +121,8 @@ static func tick(game, f, _dt: float) -> void:
 	_prune(game, f)
 	if t < f.lull_until:
 		return
-	if t >= f.next_elite and alive(game) < cap(f) + 2:
+	var most := roundi(cap(f) * CountyCoop.cap_scale(game))
+	if t >= f.next_elite and alive(game) < most + 2:
 		f.next_elite = t + float(s.get("elite_every", 52.0))
 		_elite(game, f)
 	if t < f.next_spawn:
@@ -131,8 +131,8 @@ static func tick(game, f, _dt: float) -> void:
 		float(s.get("every_least", .42)),
 		float(s.get("every_start", 2.3)) + float(s.get("every_per_minute", -.16)) * minutes(f)
 	)
-	f.next_spawn = t + every / maxf(.2, _pressure(f))
-	var room := cap(f) - alive(game)
+	f.next_spawn = t + every / maxf(.2, _pressure(f)) / CountyCoop.cap_scale(game)
+	var room := most - alive(game)
 	if room <= 0:
 		return
 	var group := mini(room, 1 + roll(game, maxi(1, int(s.get("group_most", 3)))))
@@ -215,17 +215,18 @@ static func spawn(game, f, kind: String, x: float, y: float, elite: bool) -> Ene
 	tough = minf(float(s.get("health_most", 2.2)), tough)
 	if elite:
 		tough *= 1.6
+	tough *= CountyCoop.tough_scale(game)
 	e.hp *= tough
 	e.max_hp = e.hp
 	if elite:
-		f.elite_ids[e.get_instance_id()] = true
+		e.county_elite = true
 	e.floor_z = game.world.elevation(x, y)
 	game.enemies.append(e)
 	game.total_kills += 1
 	f.spawned += 1
 	e.wake(game, p.x, p.y)
 	e.hunt_until = game.clock + 9999.0
-	f.watch[e.get_instance_id()] = [x, y, f.run_time, f.run_time]
+	e.county_watch = [x, y, f.run_time, f.run_time]
 	return e
 
 
@@ -293,12 +294,15 @@ static func _beside(game, at: Vector2, k: int) -> Vector2:
 ## a while comes back in nearer.
 static func _keep_hunting(game, f) -> void:
 	var p: Player = game.player
+	var party := CountyCoop.party(game)
 	var after := float(CountyData.number("spawn", "recycle_after", 9.0))
 	var far := float(CountyData.number("spawn", "far", 26.0)) + 8.0
 	for e: Enemy in game.enemies:
 		if not e.hostile or e.hp <= 0.0:
 			continue
-		var key := e.get_instance_id()
+		# A party: each hand after the player it hunts (Players.hunted).
+		if party:
+			p = Players.hunted(game, e)
 		if not e.alerted:
 			e.wake(game, p.x, p.y)
 		e.hunt_until = maxf(e.hunt_until, game.clock + 9.0)
@@ -306,18 +310,21 @@ static func _keep_hunting(game, f) -> void:
 		# rather than straight at the player: one that sees the player across
 		# deep water or a fence would walk into it and stand there.
 		e.target = [p.x, p.y]
-		if game.flow != null and Vector2(e.x - p.x, e.y - p.y).length() > 5.0:
-			var way: Vector2 = game.flow.waypoint(e.x, e.y, 1, [], e.floor_z)
+		var flow: FlowField = p.flow if party else game.flow
+		if flow != null and Vector2(e.x - p.x, e.y - p.y).length() > 5.0:
+			var way: Vector2 = flow.waypoint(e.x, e.y, 1, [], e.floor_z)
 			if way != Vector2(e.x, e.y):
 				e.target = [way.x, way.y]
-		var w: Array = f.watch.get(key, [e.x, e.y, f.run_time, f.run_time])
+		var w: Array = e.county_watch
+		if w.is_empty():
+			w = [e.x, e.y, f.run_time, f.run_time]
 		if Vector2(e.x, e.y).distance_to(Vector2(float(w[0]), float(w[1]))) > .8:
 			w[0] = e.x
 			w[1] = e.y
 			w[2] = f.run_time
 		if e.player_seen:
 			w[3] = f.run_time
-		f.watch[key] = w
+		e.county_watch = w
 		var gone := Vector2(e.x, e.y).distance_to(Vector2(p.x, p.y)) > far
 		var stuck: bool = f.run_time - float(w[2]) > after
 		var unseen: bool = f.run_time - float(w[3]) > after * .5 and not e.player_seen
@@ -337,7 +344,7 @@ static func _keep_hunting(game, f) -> void:
 				e.windup = 0.0
 				e.retreat = null
 				e.cover = null
-				f.watch[key] = [e.x, e.y, f.run_time, f.run_time]
+				e.county_watch = [e.x, e.y, f.run_time, f.run_time]
 
 
 ## Whether (x, y) is within 60 degrees of where `p` faces (play's own test of
@@ -351,7 +358,7 @@ static func _ahead(p: Player, x: float, y: float) -> bool:
 
 ## Bodies past `corpses_kept` go, oldest first (a long run would otherwise
 ## carry thousands of them through every loop over the enemies).
-static func _prune(game, f) -> void:
+static func _prune(game, _f) -> void:
 	var kept := int(CountyData.number("spawn", "corpses_kept", 36))
 	var dead: Array = []
 	for e: Enemy in game.enemies:
@@ -363,7 +370,6 @@ static func _prune(game, f) -> void:
 	var drop := {}
 	for i in dead.size() - kept:
 		drop[dead[i]] = true
-		f.watch.erase((dead[i] as Enemy).get_instance_id())
 	var left: Array = []
 	for e: Enemy in game.enemies:
 		if not drop.has(e):

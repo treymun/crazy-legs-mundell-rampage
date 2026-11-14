@@ -42,17 +42,23 @@ func start(game, _st) -> void:
 	f.map_id = game.level.id
 	f.level = 1
 	f.xp = 0
-	CountyBuild.start_kit(game, f)
-	var p: Player = game.player
-	p.health = int(CountyData.number("start", "health", 100))
-	for item in HUD.ITEMS:
-		game.inventory[item] = 0
+	var acting: Player = game.player
+	for p: Player in game.players:
+		# A party all start with the same kit (county_coop.gd).
+		game.focus(p, p != game.local_player)
+		CountyBuild.start_kit(game, f)
+		p.health = int(CountyData.number("start", "health", 100))
+		for item in HUD.ITEMS:
+			game.inventory[item] = 0
+	game.focus(acting)
 	CountySpawner.begin(game, f)
 	# Tips on the cards for a player's first three runs (any map).
 	var runs := 0
 	for rec in CountyRecords.read().values():
 		runs += int(rec.get("runs", 0)) if rec is Dictionary else 0
-	f.tips = runs < 3
+	# (A party's run: no tips, read from this machine's records, so every
+	# machine of an online run holds the same.)
+	f.tips = runs < 3 and not CountyCoop.party(game)
 	game.spawn_grace = 0.0
 	Modes.say(
 		game, "%s. SURVIVE." % String(CountyData.map(f.map_id).get("title", "COUNTY RUN")), 3.0
@@ -66,9 +72,12 @@ static func step(game, f, dt: float) -> void:
 	if not game.pickups.is_empty():
 		# The level's and the hands' own drops are the run's own supplies now.
 		game.pickups.clear()
-	CountySpawner.tick(game, f, dt)
-	CountyOrbs.tick(game, f, dt)
-	CountyMoves.tick(game, f, dt)
+	if CountyCoop.party(game):
+		CountyCoop.step(game, f, dt)
+	else:
+		CountySpawner.tick(game, f, dt)
+		CountyOrbs.tick(game, f, dt)
+		CountyMoves.tick(game, f, dt)
 	if not f.pending.is_empty() and f.offer.is_empty():
 		f.offer = CountyBuild.offers(game, f, f.pending[0])
 
@@ -108,12 +117,22 @@ static func choose(game, index: int, slot := -1) -> bool:
 	if String(c["type"]) == "weapon" and CountyBuild.open_slot(f) < 0 and slot < 0:
 		return false
 	CountyBuild.take(game, f, c, slot)
+	if CountyCoop.party(game):
+		CountyCoop.share(game, f, c, game.player)
 	f.pending.pop_front()
 	f.offer = []
 	if not f.pending.is_empty():
 		f.offer = CountyBuild.offers(game, f, f.pending[0])
 	game.sound.play("weapon_pickup" if String(c["type"]) == "weapon" else "menu_accept", .8)
 	return true
+
+
+## A party's cards come in the leader's controls (county_coop.gd).
+func hold_controls(game, _st, by_slot: Array) -> Array:
+	var f = run(game)
+	if f != null and CountyCoop.party(game):
+		CountyCoop.picks(game, f, by_slot)
+	return by_slot
 
 
 func holds(game) -> bool:
@@ -124,6 +143,11 @@ func holds(game) -> bool:
 func downed(game, _st, p: Player, _by: int) -> void:
 	var f = run(game)
 	if f == null or f.over:
+		return
+	if CountyCoop.party(game) and Players.anyone_alive(game):
+		# A partner still up: down, not out (county_coop.gd).
+		p.down_at = game.clock
+		Modes.say(game, "%s IS DOWN! HOLD %s BESIDE THEM." % [Modes.tag(p), game.use_key], 3.0)
 		return
 	f.over = true
 	f.pending.clear()
@@ -139,7 +163,10 @@ func downed(game, _st, p: Player, _by: int) -> void:
 		"hurt": roundi(f.hurt),
 		"streak": f.best_streak,
 	}
-	f.result["best_before"] = CountyRecords.finish(f.result)
+	# A party's run is not a solo record (and an online one is on every machine).
+	f.result["best_before"] = (
+		CountyRecords.best(f.map_id) if CountyCoop.party(game) else CountyRecords.finish(f.result)
+	)
 	p.down_at = game.clock
 
 
@@ -156,9 +183,9 @@ func use_prompt(_game) -> String:
 	return ""
 
 
-func move_scale(game, p: Player) -> float:
+func move_scale(game, _p: Player) -> float:
 	var f = run(game)
-	if f == null or p != game.players[0]:
+	if f == null:
 		return 1.0
 	var scale := 1.0 + CountyBuild.perk_value(f, "good_boots")
 	if game.clock < f.burst_until:

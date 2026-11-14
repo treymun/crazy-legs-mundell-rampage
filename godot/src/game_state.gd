@@ -223,6 +223,10 @@ class Shot:
 	var slot := 0
 	## Its stable id (game.take_uid(), named as the tick it was thrown ends).
 	var uid := 0
+	## The hands a bowling ball has bowled over (their uids: each once).
+	var struck: Array = []
+	## COUNTY RUN's upgrades already put on its damage (county_moves.gd).
+	var county_scaled := false
 
 	func _init(
 		px := 0.0,
@@ -932,7 +936,6 @@ var legacy_key_route := false
 var valve_turns := {}
 var next_valve_turn := 0.0
 var scenery_spent := {}
-var bowled := {}
 var exchanges: Array = []
 var heard_exchanges := {}
 var exchange_next := 0.0
