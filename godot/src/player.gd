@@ -17,6 +17,9 @@ var drift := 0.0
 var walk_phase := 0.0
 var motion := 0.0
 var air := 0.0
+## The floor under the feet (level format 2; `air` is over it). Read through
+## LevelData.stand().
+var floor_z := 0.0
 var vertical_speed := 0.0
 var jump_held := false
 var vx := 0.0

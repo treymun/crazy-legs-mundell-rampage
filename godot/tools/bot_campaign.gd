@@ -252,7 +252,7 @@ func stand_at(g: Game, x: float, y: float) -> void:
 	p.x = x + 0.9
 	p.y = y
 	p.angle = PI
-	p.eye = g.world.elevation(p.x, p.y) + .95
+	p.eye = g.world.stand(p) + .95
 	p.vx = 0.0
 	p.vy = 0.0
 	p.air = 0.0

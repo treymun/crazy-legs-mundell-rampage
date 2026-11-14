@@ -52,6 +52,19 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 			# level has been rebuilt since).
 			doc["layout"] = 1
 			return doc
+		7:
+			# Version 8 keeps the floor each body stands on (level format 2:
+			# a deck over the ground). No level had geometry before it, so
+			# every floor was the ground (never read without geometry).
+			var player = doc.get("player")
+			if player is Dictionary:
+				player["floor_z"] = 0.0
+			var enemies = doc.get("enemies")
+			if enemies is Dictionary:
+				for key in enemies:
+					if enemies[key] is Dictionary:
+						enemies[key]["floor_z"] = 0.0
+			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
 			return null

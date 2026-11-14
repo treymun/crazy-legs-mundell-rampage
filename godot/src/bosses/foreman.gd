@@ -75,7 +75,7 @@ func tick(e: Enemy, dt: float, game) -> bool:
 
 func act(e: Enemy, game, name: String) -> void:
 	if name == "cut":
-		var floor_z: float = game.world.elevation(e.x, e.y)
+		var floor_z: float = game.world.stand(e)
 		for off: float in CUT_FAN:
 			var a: float = e.angle + off
 			var sx := e.x + cos(a) * (e.radius + .15)
@@ -162,7 +162,7 @@ func looks(e: Enemy, game) -> Array:
 	if e.boss_phase < 3:
 		return []
 	# The rig on his back smoking and spitting sparks.
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	var spark := Renderer.Sprite.new(
 		e.x - cos(e.angle) * e.radius * .7,
 		e.y - sin(e.angle) * e.radius * .7,
@@ -175,5 +175,5 @@ func looks(e: Enemy, game) -> Array:
 
 
 func dying(e: Enemy, game) -> void:
-	game.burst(e.x, e.y, game.world.elevation(e.x, e.y) + 1.3, "spark", 18, 2.4)
+	game.burst(e.x, e.y, game.world.stand(e) + 1.3, "spark", 18, 2.4)
 	game.sound_at("saw_bounce", e.x, e.y, 1.0)

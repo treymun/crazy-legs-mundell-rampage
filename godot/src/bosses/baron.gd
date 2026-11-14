@@ -127,7 +127,7 @@ func _rain(e: Enemy, game) -> void:
 		k += 1
 	game.sound_at("baron_warn", e.x, e.y, 1.0)
 	game.sound_at("pressure_vent", e.x, e.y, .9)
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	game.burst(e.x, e.y, floor_z + e.height * .9, "spark", 10, 2.4)
 
 
@@ -166,7 +166,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 	var toward_shooter := atan2(from.y - e.y, from.x - e.x)
 	if absf(Enemy.angle_delta(toward_shooter, e.angle)) < BEHIND:
 		return 1.0
-	var up: float = (hit.z - game.world.elevation(e.x, e.y)) / maxf(.5, e.height)
+	var up: float = (hit.z - game.world.stand(e)) / maxf(.5, e.height)
 	return WEAK if up > .35 and up < .95 else 1.0
 
 
@@ -175,7 +175,7 @@ func looks(e: Enemy, game) -> Array:
 	var out: Array = []
 	if e.boss_phase < 2 and not e.has_meta("rain"):
 		return out
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	var back := Vector2(e.x - cos(e.angle) * .32, e.y - sin(e.angle) * .32)
 	var puffs := 2 if e.boss_phase < 3 else 4
 	for k in puffs:
@@ -204,7 +204,7 @@ func looks(e: Enemy, game) -> Array:
 
 ## His boiler goes as he falls: a roar of steam and copper.
 func dying(e: Enemy, game) -> void:
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	game.blasts.append(GameState.Blast.new(e.x, e.y, floor_z + e.height * .7, "fire"))
 	game.sound_at("boiler_release", e.x, e.y, 1.0)
 	game.sound_at("pressure_vent", e.x, e.y, 1.0)

@@ -26,7 +26,7 @@ func _down(enemy: Enemy) -> void:
 	if not BayouBrains.is_king(enemy):
 		return
 	# The airboat's tank goes: fire, the cage across the water, the crown gone.
-	var z: float = game.world.elevation(enemy.x, enemy.y)
+	var z: float = game.world.stand(enemy)
 	game.blasts.append(GameState.Blast.new(enemy.x, enemy.y, z + .6, "fire"))
 	game.blasts.append(GameState.Blast.new(enemy.x + .5, enemy.y - .3, z + 1.1, "fire"))
 	game.burst(enemy.x, enemy.y, z + .8, "splash", 30, 3.0)
@@ -79,7 +79,7 @@ func _lane(e: Enemy, bearing: float) -> Array:
 			Renderer.GroundMark.new(
 				e.x + ox + cos(bearing) * length / 2.0,
 				e.y + oy + sin(bearing) * length / 2.0,
-				game.world.elevation(e.x, e.y) + .003,
+				game.world.stand(e) + .003,
 				bearing,
 				length / 2.0,
 				.24,

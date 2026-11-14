@@ -604,7 +604,7 @@ static func _heading(game, p: Player, goal: Vector2) -> float:
 	if goal.distance_to(Vector2(p.x, p.y)) < 1.2:
 		return direct
 	var field := TacticalNav.field(game, goal.x, goal.y)
-	var h: float = field.heading(p.x, p.y) if field != null else NAN
+	var h: float = field.heading(p.x, p.y, game.world.stand(p)) if field != null else NAN
 	return direct if is_nan(h) else h
 
 
@@ -620,7 +620,7 @@ func _fight(game, _st, p: Player, c: Game.Controls, goal: Vector2) -> void:
 	var want := atan2(dy, dx) + settle + wobble
 	var turn := Enemy.angle_delta(want, p.angle)
 	c.turn = clampf(turn, -TURN, TURN)
-	var target: float = game.world.elevation(foe.x, foe.y) + foe.air + .7
+	var target: float = game.world.stand(foe) + foe.air + .7
 	var slope := (target - p.eye) / d
 	c.look = clampf(slope * Renderer.base_focal - p.pitch, -3.0, 3.0)
 	# On target as it means to aim (the wobble in that): some shots go wide.

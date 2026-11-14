@@ -815,7 +815,7 @@ func reload_level_in_place() -> void:
 	p.y = keep[1]
 	p.angle = keep[2]
 	p.pitch = keep[3]
-	p.eye = .95 + game.world.elevation(p.x, p.y)
+	p.eye = .95 + game.world.stand(p)
 	level_stamp = FileAccess.get_modified_time(LevelEdit.path_of(game.level.id))
 	level_stamp_of = game.level.id
 

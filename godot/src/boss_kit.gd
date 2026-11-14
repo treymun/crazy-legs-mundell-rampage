@@ -187,7 +187,7 @@ static func stagger(e: Enemy, game, from_x: float, from_y: float) -> bool:
 	e.stagger_ready = game.clock + m.stagger_rest(e)
 	e.staggered_at = game.clock
 	var away := atan2(e.y - from_y, e.x - from_x)
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	if e.brain == "derby_champ" or e.brain == "swamp_king":
 		# A car or a boat does not stumble: it slews round and skids.
 		var side := away + (PI / 2.0 if e.attacks % 2 else -PI / 2.0)
@@ -245,7 +245,7 @@ static func _desperate(e: Enemy, game) -> void:
 	game.sound_at(("sheriff" if e.kind == "boss" else e.kind) + "_rage", e.x, e.y, 1.0)
 	game.shake = minf(1.0, game.shake + .7)
 	game.blast_flash = maxf(game.blast_flash, .3)
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	_sparks(game, e.x, e.y, floor_z + e.height * .7, "spark", 22, 2.6)
 	_sparks(game, e.x, e.y, floor_z + e.height * .4, "dust", 10, 1.6)
 

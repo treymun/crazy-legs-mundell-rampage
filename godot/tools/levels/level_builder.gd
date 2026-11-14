@@ -37,6 +37,9 @@ var doors: Array = []
 var fixtures: Array = []
 var caps := {}
 var extra_walls: Array = []
+## Level format 2's pieces (tools/levels/geo_kit.gd adds them; finish() writes
+## them as the level's geometry block, src/level_geometry.gd).
+var geometry := {"slabs": [], "segments": [], "ceilings": []}
 var pane_tiles: Array = []
 var enemies: Array = []
 var patrols := {}
@@ -456,8 +459,11 @@ func enemy(kind: String, x: float, y: float, name := "", route := []) -> void:
 		patrols[str(enemies.size() - 1)] = route
 
 
-func pickup(name: String, x: float, y: float) -> void:
+func pickup(name: String, x: float, y: float, z := 0.0) -> void:
 	pickups.append([name, snappedf(x, .01), snappedf(y, .01)])
+	if z > 0.0:
+		# On a deck (level format 2): the floor it lies on.
+		pickups[pickups.size() - 1].append(snappedf(z, .001))
 
 
 ## Something that reacts when shot or kicked (cans, a TV, a toilet, a window).
@@ -1174,6 +1180,14 @@ func finish(spawn: Array) -> Dictionary:
 	if meta.has("tactical"):
 		# A 5v5 map's spawns, sites, hostages and bot routes (tactical_mode.gd).
 		out["tactical"] = meta["tactical"]
+	var pieces := 0
+	for kind: String in geometry:
+		pieces += (geometry[kind] as Array).size()
+	if pieces > 0:
+		out["format"] = LevelData.FORMAT
+		var block := {"version": LevelGeometry.VERSION}
+		block.merge(geometry)
+		out["geometry"] = block
 	LevelEdit.refresh_heights(out)
 	var roofs := {}
 	for v in roof:

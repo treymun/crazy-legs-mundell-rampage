@@ -194,7 +194,7 @@ func disturb(x: float, y: float, radius: float, z = null) -> void:
 		var reach := radius if actor.hostile else minf(radius, 3.5)
 		if dx * dx + dy * dy >= reach * reach:
 			continue
-		var ear: float = world.elevation(actor.x, actor.y) + actor.z + minf(.90, actor.height * .76)
+		var ear: float = world.stand(actor) + actor.z + minf(.90, actor.height * .76)
 		if not world.visible(x, y, actor.x, actor.y, source, ear):
 			continue
 		var ready: float = clock + .22 + sqrt(dx * dx + dy * dy) * .035
@@ -278,9 +278,14 @@ func struck(amount: float, killed: bool, champion: bool) -> void:
 		hit_tick_next = clock + .06
 
 
-## A pickup lying at (x, y): [name, x, y, its stable id].
-func add_pickup(name: String, x: float, y: float) -> void:
+## A pickup lying at (x, y): [name, x, y, its stable id] (and the deck it lies
+## on, level format 2).
+func add_pickup(name: String, x: float, y: float, lift := NAN) -> void:
 	pickups.append([name, x, y, take_uid()])
+	if world.geo != null and not is_nan(lift):
+		var on := world.floor_under(x, y, lift + .05)
+		if on > world.elevation(x, y) + .01:
+			pickups[pickups.size() - 1].append(on)
 
 
 func collect(name: String) -> bool:
@@ -433,8 +438,8 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 			for neighbor in neighbors:
 				var enemy = neighbor if body == p else body
 				var them: Player = p if body == p else neighbor
-				var enemy_base: float = world.elevation(enemy.x, enemy.y) + enemy.z
-				var player_base: float = world.elevation(them.x, them.y) + them.air
+				var enemy_base: float = world.stand(enemy) + enemy.z
+				var player_base: float = world.stand(them) + them.air
 				if enemy_base >= player_base + (.80 if them.crouched else 1.16):
 					continue
 				if player_base >= enemy_base + enemy.height:
@@ -747,7 +752,7 @@ func aim_points(device) -> Array:
 			var q := Vector2(float(spec[1]), float(spec[2]))
 			if String(spec[0]) == near_art and q.distance_to(at) < 1.5:
 				var h := float(PROP_HEIGHTS.get(near_art, 1.0))
-				points.append(Vector3(q.x, q.y, world.elevation(q.x, q.y) + h * .5))
+				points.append(Vector3(q.x, q.y, world.stand(q) + h * .5))
 	aim_cache[key] = points
 	return points
 
@@ -784,8 +789,14 @@ func reaches_pickup(entry: Array) -> bool:
 		# Beyond either reach (every tick, for every pickup in the level).
 		return false
 	var name := String(entry[0])
+	# On the player's own floor (format 2: not the deck over them).
+	var lies: float = entry[4] if entry.size() > 4 else world.elevation(x, y)
+	if world.geo != null and absf(world.stand(player) + player.air - lies) > .7:
+		return false
 	if name.begins_with("key_") or TASK_ITEMS.has(name):
-		return gap < .62 * .62 and seen_at(Vector3(x, y, world.elevation(x, y) + .25))
+		return gap < .62 * .62 and seen_at(Vector3(x, y, lies + .25))
+	if world.geo != null:
+		return gap < .43 * .43 and world.visible(player.x, player.y, x, y, player.eye, lies + .25)
 	return gap < .43 * .43 and world.visible(player.x, player.y, x, y)
 
 
@@ -1450,7 +1461,7 @@ func objective_target() -> Variant:
 
 ## Where the objective pin points: four steps along the walk to `target`, and
 ## how many steps the whole walk is (-1 when it cannot be walked).
-func objective_route(target: Vector2) -> Array:
+func objective_route(target: Vector2, target_z := NAN) -> Array:
 	if route == null:
 		return [target, -1]
 	var opened := 0
@@ -1463,11 +1474,12 @@ func objective_route(target: Vector2) -> Array:
 		route_sig = sig
 		route.origin = Vector2i(-1, -1)
 		route.next_at = 0.0
-	route.update(target.x, target.y, clock)
-	var steps := route.distance(player.x, player.y)
+	route.update(target.x, target.y, clock, target_z)
+	var feet := world.stand(player)
+	var steps := route.distance(player.x, player.y, feet)
 	if steps >= FlowField.FAR:
 		return [target, -1]
-	return [route.waypoint(player.x, player.y, 4), steps]
+	return [route.waypoint(player.x, player.y, 4, [], feet), steps]
 
 
 func gate_prompt() -> String:

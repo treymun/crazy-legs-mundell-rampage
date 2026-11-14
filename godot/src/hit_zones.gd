@@ -154,7 +154,7 @@ static func side(e: Enemy, from: Vector2) -> String:
 
 ## The zone a hit at `hit`, from `from`, is on.
 static func zone(e: Enemy, game, hit: Vector3, from: Vector2) -> String:
-	var feet: float = game.world.elevation(e.x, e.y) + e.z
+	var feet: float = game.world.stand(e) + e.z
 	var up := (hit.z - feet) / maxf(.1, e.height * e.variant)
 	if up >= HEAD_AT:
 		return "head"
@@ -267,7 +267,7 @@ static func _drop(e: Enemy, game, held: String) -> void:
 	var world: LevelData = game.world
 	var p = game.player
 	var away := atan2(e.y - p.y, e.x - p.x)
-	var here := world.elevation(e.x, e.y)
+	var here := world.stand(e)
 	var spot := Vector2(e.x, e.y)
 	for reach: float in [1.0, .75, .5, .25]:
 		var at := Vector2(e.x + cos(away) * reach, e.y + sin(away) * reach)

@@ -97,7 +97,7 @@ static func tick(e: Enemy, dt: float, game) -> bool:
 	e.sunk = move_toward(e.sunk, want, dt * (4.0 if want < e.sunk else 1.2))
 	if was > e.height * .5 and e.sunk <= e.height * .5:
 		# Up out of the water all at once.
-		game.burst(e.x, e.y, world.elevation(e.x, e.y) + .1, "splash", 16, 1.8)
+		game.burst(e.x, e.y, world.stand(e) + .1, "splash", 16, 1.8)
 		game.sound_at("noodler_rise", e.x, e.y, .85)
 	return false
 
@@ -166,7 +166,7 @@ static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
 		game.burst(
 			e.x - cos(heading) * .9,
 			e.y - sin(heading) * .9,
-			game.world.elevation(e.x, e.y) + .15,
+			game.world.stand(e) + .15,
 			"splash",
 			5,
 			1.6
@@ -191,7 +191,7 @@ static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
 		e.stun = 1.4
 		e.flinch = .5
 		game.shake = minf(1.0, game.shake + .4)
-		game.burst(e.x, e.y, game.world.elevation(e.x, e.y) + .4, "dust", 14, 1.8)
+		game.burst(e.x, e.y, game.world.stand(e) + .4, "dust", 14, 1.8)
 		game.sound_at("king_beached", e.x, e.y, 1.0)
 		game.message("HE BEACHED IT! LIGHT HIM UP!", 2.0)
 	elif e.enraged and not bool(run[3]) and e.stun <= 0.0:

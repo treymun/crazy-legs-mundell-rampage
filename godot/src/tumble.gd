@@ -114,7 +114,7 @@ static func _sample(world: LevelData, x: float, y: float, here: float) -> float:
 ## The floor under (x, y) for something at height z: the ground, or the top of
 ## furniture it is over and above (a counter, a crate stack).
 static func floor_at(world: LevelData, x: float, y: float, z: float) -> float:
-	var out := world.elevation(x, y)
+	var out := world.floor_under(x, y, z + .05)
 	for fixture in world.near_fixtures.get(Vector2i(int(x), int(y)), []):
 		var f: PackedFloat32Array = fixture
 		if f[0] < x and x < f[2] and f[1] < y and y < f[3] and f[4] <= z + .05 and f[4] > out:
@@ -127,7 +127,7 @@ static func floor_at(world: LevelData, x: float, y: float, z: float) -> float:
 static func blocks(world: LevelData, x: float, y: float, z: float, feel: Feel) -> bool:
 	if world.blocked(x, y, feel.radius, z - feel.lift + feel.radius + .01):
 		return true
-	return world.elevation(x, y) > z - feel.lift + feel.climb
+	return world.floor_under(x, y, z - feel.lift + feel.climb) > z - feel.lift + feel.climb
 
 
 ## Move `b` for dt. Returns WALL and FLOOR when it struck them hard enough to

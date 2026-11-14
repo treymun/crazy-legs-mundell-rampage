@@ -93,7 +93,7 @@ static func _weak(main, check: Callable, kind: String) -> void:
 	var f = g.features["boss_arena"]
 	check.call(f.in_box(kind, e.x, e.y), "%s: stands in its arena (%.1f, %.1f)" % [kind, e.x, e.y])
 	var m := BossKit.moves(kind)
-	var feet := g.world.elevation(e.x, e.y)
+	var feet := g.world.stand(e)
 	var tall := e.height * e.variant
 	e.angle = 0.0
 	var front := Vector2(e.x + 4.0, e.y)

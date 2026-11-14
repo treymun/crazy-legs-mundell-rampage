@@ -55,7 +55,7 @@ func steer(game: Game) -> Game.Controls:
 		var want := atan2(foe.y - p.y, foe.x - p.x)
 		var turn := fposmod(want - p.angle + PI, TAU) - PI
 		controls.turn = clampf(turn, -.12, .12)
-		var target: float = game.world.elevation(foe.x, foe.y) + foe.z + foe.height * .58
+		var target: float = game.world.stand(foe) + foe.z + foe.height * .58
 		var slope := (target - p.eye) / maxf(.5, Vector2(foe.x - p.x, foe.y - p.y).length())
 		controls.look = clampf(slope * Renderer.base_focal - p.pitch, -3.0, 3.0)
 		controls.fire = absf(turn) < .08
@@ -79,7 +79,7 @@ func steer(game: Game) -> Game.Controls:
 			var aim := atan2(goal.y - p.y, goal.x - p.x)
 			if int(way[1]) > 1:
 				# One cell at a time, so it never cuts a corner into a wall.
-				var next := game.route.heading(p.x, p.y)
+				var next := game.route.heading(p.x, p.y, game.world.stand(p))
 				aim = next if not is_nan(next) else aim
 			elif int(way[1]) < 0:
 				# Pressed into a nook the route does not cover (beside a station

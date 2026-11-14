@@ -51,21 +51,29 @@ var _next_touched := PackedInt32Array()
 var _queue := PackedInt32Array()
 var _head := 0
 var _walked := false
+## A level with geometry (format 2) walks its nav graph: node n below
+## width * height is cell n's own floor, the rest stand on decks, so a field
+## tells an upper floor from the one under it. null on every other level.
+var graph: LevelGeometry.NavGraph = null
 
 
 func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 	world = p_world
 	width = world.width
 	height = world.height
-	steps.resize(width * height)
+	var nodes := width * height
+	if world.geo != null:
+		graph = world.geo.nav(world) if floor_from == null else floor_from.graph
+		nodes = graph.count
+	steps.resize(nodes)
 	steps.fill(FAR)
-	_next.resize(width * height)
+	_next.resize(nodes)
 	_next.fill(FAR)
 	if floor_from != null:
 		open = floor_from.open
 		_door_at = floor_from._door_at
 		return
-	open.resize(width * height)
+	open.resize(nodes)
 	var changing := {}
 	for tile: Vector2i in world.near_doors:
 		changing[tile.y * width + tile.x] = true
@@ -89,8 +97,14 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 				continue
 			if changing.has(cell):
 				open[cell] = 2
+			elif graph != null and world.geo.cells[cell] != 0:
+				if world.geo.stands(world, graph, cell) and not world.deep_at(cx + .5, cy + .5):
+					open[cell] = 1
 			elif not world.blocked(cx + .5, cy + .5, BODY) and not world.deep_at(cx + .5, cy + .5):
 				open[cell] = 1
+	if graph != null:
+		for n in range(width * height, graph.count):
+			open[n] = 1 if world.geo.stands(world, graph, n) else 0
 
 
 ## Measure the open floor again over a box of the map, from x0, y0 to x1, y1
@@ -132,10 +146,13 @@ func passable(cell: int) -> bool:
 
 ## Measure again from the player's cell if they have moved to another one
 ## (with a budget, go on with a walk under way first).
-func update(x: float, y: float, clock: float) -> void:
+func update(x: float, y: float, clock: float, z := NAN) -> void:
 	if _head < _queue.size():
 		_walk()
 	var here := Vector2i(int(x), int(y))
+	if graph != null:
+		var node := graph.node_at(x, y, width, height, z)
+		here = Vector2i(node % width, node / width) if node >= 0 else Vector2i(-1, -1)
 	if here == origin or clock < next_at:
 		return
 	origin = here
@@ -183,6 +200,15 @@ func _walk() -> void:
 		var d := _next[cell]
 		if d >= reach:
 			continue
+		if graph != null:
+			for e in range(graph.first[cell], graph.first[cell + 1]):
+				var next := graph.edges[e]
+				if _next[next] != FAR or not passable(next):
+					continue
+				_next[next] = d + 1
+				_next_touched.append(next)
+				_queue.append(next)
+			continue
 		var cx := cell % width
 		var cy := cell / width
 		for k in 4:
@@ -212,7 +238,13 @@ func _walk() -> void:
 
 ## The heading from x, y one cell downhill toward the player, or NAN when the
 ## field does not reach there.
-func heading(x: float, y: float) -> float:
+func heading(x: float, y: float, z := NAN) -> float:
+	if graph != null:
+		var n := downhill_node(graph.node_at(x, y, width, height, z))
+		if n < 0:
+			return NAN
+		var c := graph.cell[n]
+		return atan2(c / width + .5 - y, c % width + .5 - x)
 	var to := downhill(Vector2i(int(x), int(y)))
 	if to.x < 0:
 		return NAN
@@ -249,9 +281,43 @@ func downhill(at: Vector2i) -> Vector2i:
 	return to
 
 
+## The node one step nearer than node n (the nav graph's), or -1.
+func downhill_node(n: int) -> int:
+	if n < 0 or n >= steps.size():
+		return -1
+	var best := steps[n]
+	if best >= FAR:
+		return -1
+	var to := -1
+	for e in range(graph.first[n], graph.first[n + 1]):
+		var m := graph.edges[e]
+		if steps[m] < best:
+			best = steps[m]
+			to = m
+	for e in range(graph.dfirst[n], graph.dfirst[n + 1]):
+		var m := graph.dedges[e]
+		if steps[m] < best:
+			best = steps[m]
+			to = m
+	return to
+
+
 ## The centre of the cell `hops` steps downhill from x, y (x, y itself when it
 ## is out of reach), and the cells walked on the way.
-func waypoint(x: float, y: float, hops: int, path: Array = []) -> Vector2:
+func waypoint(x: float, y: float, hops: int, path: Array = [], z := NAN) -> Vector2:
+	if graph != null:
+		var n := graph.node_at(x, y, width, height, z)
+		var went := false
+		for _i in hops:
+			var m := downhill_node(n)
+			if m < 0:
+				break
+			n = m
+			went = true
+			path.append(Vector2i(graph.cell[m] % width, graph.cell[m] / width))
+		if not went:
+			return Vector2(x, y)
+		return Vector2(graph.cell[n] % width + .5, graph.cell[n] / width + .5)
 	var at := Vector2i(int(x), int(y))
 	var moved := false
 	for _i in hops:
@@ -265,9 +331,11 @@ func waypoint(x: float, y: float, hops: int, path: Array = []) -> Vector2:
 
 
 ## Steps from x, y to the player (FAR when out of reach).
-func distance(x: float, y: float) -> int:
+func distance(x: float, y: float, z := NAN) -> int:
 	var cx := int(x)
 	var cy := int(y)
 	if cx < 0 or cy < 0 or cx >= width or cy >= height:
 		return FAR
+	if graph != null:
+		return steps[graph.node_at(x, y, width, height, z)]
 	return steps[cy * width + cx]

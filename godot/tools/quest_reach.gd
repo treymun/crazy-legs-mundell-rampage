@@ -117,7 +117,7 @@ func _targets(g: Game) -> Array:
 
 
 func _at(g: Game, p: Vector2, z: float) -> Vector3:
-	return Vector3(p.x, p.y, g.world.elevation(p.x, p.y) + z)
+	return Vector3(p.x, p.y, g.world.stand(p) + z)
 
 
 ## The middle of the board that lights up for `signal_name` nearest `p` (the
@@ -146,7 +146,7 @@ func _device_at(g: Game, device: Array) -> Vector3:
 		var q := Vector2(float(spec[1]), float(spec[2]))
 		if String(spec[0]) == String(device[0]) and q.distance_to(p) < 1.5:
 			var h := float(GameState.PROP_HEIGHTS.get(String(spec[0]), 1.0))
-			return Vector3(q.x, q.y, g.world.elevation(q.x, q.y) + h * .5)
+			return Vector3(q.x, q.y, g.world.stand(q) + h * .5)
 	return _at(g, p, .9)
 
 
@@ -443,10 +443,10 @@ func _items(g: Game, field: FlowField) -> void:
 		var view := Vector2(p.x + 2.3, p.y)
 		for k in 16:
 			var q := p + Vector2.from_angle(k * TAU / 16.0) * 2.3
-			var eye := g.world.elevation(q.x, q.y) + .95
+			var eye := g.world.stand(q) + .95
 			if (
 				_fits(g, q, field)
-				and g.world.visible(q.x, q.y, p.x, p.y, eye, g.world.elevation(p.x, p.y) + .3)
+				and g.world.visible(q.x, q.y, p.x, p.y, eye, g.world.stand(p) + .3)
 			):
 				view = q
 				break

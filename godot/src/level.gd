@@ -5,6 +5,8 @@ class_name LevelData
 extends RefCounted
 
 const WALL_STRIDE := 9
+## The newest level file format this build reads (2: a geometry block).
+const FORMAT := 2
 
 
 class Door:
@@ -193,6 +195,15 @@ var tints: PackedFloat32Array
 
 var walls := PackedFloat32Array()
 var wall_count := 0
+## Format 2: slabs, segments and ceilings beyond the grid (null without).
+var geo: LevelGeometry = null
+var format := 1
+## height -> [x0, y0, x1, y1, tile, cuts...] seen from below; sloped surfaces
+## [z0, gx, gy, side, x0, y0, x1, y1, tile, light, area, cuts...].
+var roof_caps := {}
+var slopes: Array = []
+## The cells doors stand in (a door's own cell may be marked solid).
+var door_cells := {}
 ## Bumped when the fixed wall list changes shape (open_cell(): a fence cell
 ## broken through), so the renderer puts it in map blocks again; and when a
 ## cell opens, so the automap is drawn again. Both stay 0 until something
@@ -302,8 +313,14 @@ var gallery_stand = null
 var hub_board := Vector2(30.36, 44.13)
 var map_window: Array = []
 
+## Levels a tool hands in by id before (or instead of) writing them (the map
+## tools' playtests and checks): load_level() takes these first.
+static var preview := {}
+
 
 static func load_level(level_id: String, assets: Assets) -> LevelData:
+	if preview.has(level_id):
+		return from_dict(preview[level_id], assets)
 	var raw := FileAccess.get_file_as_string("res://data/%s.json" % level_id)
 	if raw.is_empty():
 		push_error("no level data for " + level_id)
@@ -312,7 +329,19 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 	if not (j is Dictionary):
 		push_error("bad level json " + level_id)
 		return null
+	return from_dict(j, assets)
+
+
+## A level from its file's contents (load_level; the map tools check one
+## before it is written).
+static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 	var lv := LevelData.new()
+	lv.format = int(j.get("format", 1))
+	if lv.format > FORMAT:
+		push_error(
+			"level %s is format %d, newer than this build (%d)" % [j["id"], lv.format, FORMAT]
+		)
+		return null
 	lv.tile_names = assets.tile_names
 	lv.tile_index = assets.tile_index
 	lv.id = String(j["id"])
@@ -392,6 +421,7 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 			)
 		lv.caps[h] = list
 
+	lv._take_geometry(j.get("geometry"))
 	lv._build_plane_bounds()
 
 	for g in j.get("hub_gates", []):
@@ -676,10 +706,22 @@ func _build_plane_bounds() -> void:
 	rheight.sort()
 	for height in rheight:
 		var b = roof_buckets.get(height)
+		var over: Array = roof_caps.get(height, [])
+		if b == null and over.is_empty():
+			continue
+		var r := Vector4i(1 << 30, 1 << 30, -(1 << 30), -(1 << 30))
 		if b != null:
-			roof_bounds[height] = Vector4i(b[0], b[1], b[2], b[3])
+			r = Vector4i(b[0], b[1], b[2], b[3])
+		for c in over:
+			r = Vector4i(
+				mini(r.x, int(c[0])),
+				mini(r.y, int(c[1])),
+				maxi(r.z, int(ceil(c[2]))),
+				maxi(r.w, int(ceil(c[3])))
+			)
+		roof_bounds[height] = r
 	floor_boxes = _tight_boxes(floor_bounds, ground, caps)
-	roof_boxes = _tight_boxes(roof_bounds, roof, {})
+	roof_boxes = _tight_boxes(roof_bounds, roof, roof_caps)
 
 
 ## The planes the renderer walks: [height, box] in the bounds' order. A height
@@ -824,121 +866,12 @@ func tile_id(name: String) -> int:
 	return int(tile_index.get(name, -1))
 
 
-## engine.IMPACT_MATERIAL: detail-wall tiles report their base surface.
-const DETAIL_BASES := {
-	"bar_wainscot": "tavern",
-	"garage_courses": "brick",
-	"feed_pen_boards": "barn",
-	"raffle_stripes": "fair_booth",
-	"prize_skirting": "fair_prize",
-	"kiln_patches": "mill_tin",
-	"rain_sheets": "mill_tin",
-	"shed_repair": "mill_tin",
-	"chalk_cut": "quarry_face",
-	"copper_seams": "quarry_copper",
-	"approach_fence": "stockyard",
-}
-
-const METAL_TILES := [
-	"garage_door",
-	"junk_stack",
-	"diner_steel",
-	"tin",
-	"ship",
-	"steel_mesh",
-	"fair_iron",
-	"fair_gate",
-	"mill_tin",
-	"mill_pump",
-	"quarry_iron",
-	"quarry_copper",
-	"hub_tank_shell",
-	"powder_panel",
-	"bayou_tin",
-	"bayou_pen",
-	"ship_hull",
-	"ship_tin",
-	"ship_rib",
-	"ship_panel",
-	"ship_core",
-	"ship_door",
-	"ship_edge",
-	"ship_pod",
-	"ship_vat",
-	"ship_beam",
-	"ship_screen",
-	"ship_deck",
-	"ship_grate"
-]
-const PLASTER_TILES := [
-	"plaster",
-	"brick",
-	"cinder",
-	"tile",
-	"concrete",
-	"quarry_face",
-	"office_wall",
-	"tavern",
-	"bayou_cannery",
-	"crash_wall",
-	"diner_checker"
-]
-const DIRT_TILES := [
-	"dirt",
-	"grass",
-	"orchard",
-	"tracks",
-	"shoulder",
-	"gravel",
-	"quarry_dust",
-	"mill_grit",
-	"fair_gravel",
-	"creek",
-	"asphalt",
-	"road",
-	"oil_asphalt",
-	"bayou_mud",
-	"bayou_marsh",
-	"bayou_bank",
-	"bayou_water",
-	"bayou_deep",
-	"track_dirt",
-	"track_chalk",
-	"derby_mud",
-	"junk_ground"
-]
-
+const DETAIL_BASES := LevelTiles.DETAIL_BASES
+const METAL_TILES := LevelTiles.METAL_TILES
+const PLASTER_TILES := LevelTiles.PLASTER_TILES
+const DIRT_TILES := LevelTiles.DIRT_TILES
 ## Sound cue per floor surface; anything else is gravel.
-const SURFACE_SOUNDS := {
-	"porch": "wood",
-	"floor_tile": "tile",
-	"concrete": "tile",
-	"dirt": "mud",
-	"tracks": "mud",
-	"shoulder": "mud",
-	"grass": "grass",
-	"orchard": "grass",
-	"creek": "water",
-	"mill_water": "water",
-	"fair_gravel": "gravel",
-	"mill_grit": "gravel",
-	"quarry_dust": "gravel",
-	"quarry_face": "gravel",
-	"route_threshold": "gravel",
-	"bayou_water": "water",
-	"bayou_deep": "water",
-	"bayou_planks": "wood",
-	"bayou_mud": "mud",
-	"bayou_marsh": "grass",
-	"track_dirt": "mud",
-	"track_chalk": "mud",
-	"derby_mud": "mud",
-	"junk_ground": "gravel",
-	"diner_checker": "tile",
-	"ship_deck": "tile",
-	"ship_grate": "tile",
-	"ship_lino": "tile",
-}
+const SURFACE_SOUNDS := LevelTiles.SURFACE_SOUNDS
 
 var _impact_surfaces := {}
 
@@ -988,9 +921,15 @@ func _build_indexes() -> void:
 				if not near_fixtures.has(key):
 					near_fixtures[key] = []
 				near_fixtures[key].append(fixture)
+	door_cells = {}
+	for door in doors:
+		door_cells[door.y * width + door.x] = true
 	index_cells = PackedByteArray()
 	index_cells.resize(width * height)
 	index_cells.fill(0)
+	if geo != null:
+		for i in width * height:
+			index_cells[i] = geo.cells[i]
 	for index: Dictionary in [near_doors, near_fixtures]:
 		for key: Vector2i in index:
 			if key.x >= 0 and key.y >= 0 and key.x < width and key.y < height:
@@ -1137,6 +1076,13 @@ func blocked(x: float, y: float, radius := 0.0, z = null) -> bool:
 	for gate: Gate in locked_gates:
 		if absf(y - gate.y) < radius + .09 and absf(x - gate.x) < gate.width * .5 + radius:
 			return true
+	if geo != null and geo.cells[int(y) * width + int(x)] != 0:
+		if z == null:
+			var g := ground[int(y) * width + int(x)]
+			if geo.blocks(x, y, radius, g + LevelGeometry.STEP, g + LevelGeometry.BODY):
+				return true
+		elif geo.solid_point(x, y, float(z), radius, false):
+			return true
 	var near := radius <= index_radius
 	if near and index_cells.size() == width * height and index_cells[int(y) * width + int(x)] == 0:
 		# Neither index lists anything here: no furniture near enough, no door.
@@ -1181,6 +1127,9 @@ func pane_at(x: float, y: float, z = null, radius := 0.0):
 
 ## Mirrors TileMap.visible(): a stepped line-of-sight test.
 func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> bool:
+	if geo != null and z == null:
+		z = elevation(x, y) + .9
+		zz = elevation(xx, yy) + .9
 	var distance := sqrt((xx - x) * (xx - x) + (yy - y) * (yy - y))
 	var n := maxi(1, int(ceil(distance * 9.0)))
 	# With no panes and no locked gates, a step whose four corners are open floor
@@ -1263,6 +1212,8 @@ func move(body, dx: float, dy: float, radius: float, occupied = null) -> void:
 		body.x += dx
 	if _can_walk(body, body.x, start_y + dy, radius, occupied):
 		body.y += dy
+	if geo != null:
+		geo.settle(self, body)
 
 
 ## Gator Bayou's deep channels: nobody wades in (a body already in one may
@@ -1274,6 +1225,8 @@ func deep_at(x: float, y: float) -> bool:
 
 
 func _can_walk(body, x: float, y: float, radius: float, occupied) -> bool:
+	if geo != null:
+		return geo.can_walk(self, body, x, y, radius, occupied)
 	if blocked(x, y, radius):
 		return false
 	if deep_tile >= 0 and deep_at(x, y) and not deep_at(body.x, body.y) and not body.get("swims"):
@@ -1393,3 +1346,74 @@ func _make_active(at_hub: bool) -> PackedFloat32Array:
 			out.append(1.78)
 			out.append(1.0)
 	return out
+
+
+# ------------------------------------------------------------- format 2
+
+
+## Take a geometry block (format 2): its pieces join the walls, floors and
+## overhead surfaces the renderers draw, and the cells it touches are asked
+## about collision and sight from now on.
+func _take_geometry(block) -> void:
+	if block == null:
+		return
+	var errors: Array = []
+	geo = LevelGeometry.from_json(block, width, height, tile_index, errors)
+	for e in errors:
+		push_error("level %s %s" % [id, e])
+	if geo == null:
+		return
+	var parts := geo.render_parts(
+		func(x: float, y: float) -> float:
+			return elevation(clampf(x, 0.0, width - .001), clampf(y, 0.0, height - .001))
+	)
+	walls.append_array(parts["walls"])
+	wall_count = walls.size() / WALL_STRIDE
+	for key in parts["caps"]:
+		var h := _f32(float(key))
+		if not caps.has(h):
+			caps[h] = []
+		caps[h].append_array(parts["caps"][key])
+		if not ground_heights.has(h):
+			ground_heights.append(h)
+	for key in parts["roof_caps"]:
+		var h := _f32(float(key))
+		if not roof_caps.has(h):
+			roof_caps[h] = []
+		roof_caps[h].append_array(parts["roof_caps"][key])
+		if not roof_heights.has(h):
+			roof_heights.append(h)
+	slopes = parts["slopes"]
+
+
+## The floor under a body (its feet when it is not in the air).
+func stand(body) -> float:
+	if geo == null:
+		return elevation(body.x, body.y)
+	var c := cell(body.x, body.y)
+	return geo.floor_at(body.x, body.y, float(body.floor_z), ground[c], true)
+
+
+## The highest floor at (x, y) at or below z (the cell's ground without geometry).
+func floor_under(x: float, y: float, z: float) -> float:
+	if geo == null:
+		return elevation(x, y)
+	var c := cell(x, y)
+	return geo.floor_at(x, y, z - LevelGeometry.STEP, ground[c], true)
+
+
+## The lowest surface over (x, y, z), or 0 when the sky is over it (the
+## cell's roof without geometry).
+func roof_over(x: float, y: float, z: float) -> float:
+	var c := cell(x, y)
+	if geo == null:
+		return roof[c]
+	var r := roof[c] if roof[c] > z + .01 else INF
+	r = minf(r, geo.ceiling_at(x, y, z))
+	return 0.0 if r == INF else r
+
+
+## Whether a step of a shot or a sight line from one point to the next passed
+## through a deck's top or underside.
+func crosses(x0: float, y0: float, z0: float, x1: float, y1: float, z1: float) -> bool:
+	return geo != null and geo.crosses(x0, y0, z0, x1, y1, z1)

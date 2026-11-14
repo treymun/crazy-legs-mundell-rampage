@@ -36,7 +36,7 @@ func _render(shot: Dictionary, assets: Assets, hud: HUD, sound: Sound) -> Image:
 	p.x = float(shot["x"])
 	p.y = float(shot["y"])
 	p.angle = float(shot["angle"])
-	p.eye = .95 + game.world.elevation(p.x, p.y)
+	p.eye = .95 + game.world.stand(p)
 	p.pitch = float(shot.get("pitch", 0.0))
 	p.drunk = float(shot.get("drunk", 0.0))
 	p.sway = 0.0

@@ -331,7 +331,7 @@ func sprites() -> Array:
 		if not game.in_view(e.x, e.y, 1.0) or not IdleLife.at_it(e):
 			continue
 		var t: float = e.pose + m.phase
-		var floor_z: float = game.world.elevation(e.x, e.y)
+		var floor_z: float = game.world.stand(e)
 		match m.activity:
 			"smoking":
 				var puff := fmod(t, 4.6) - 3.9

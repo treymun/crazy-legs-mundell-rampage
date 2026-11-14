@@ -158,7 +158,7 @@ func _play_at() -> void:
 	p.y = float(at[1])
 	if at.size() > 2:
 		p.angle = float(at[2])
-	p.eye = .95 + game.world.elevation(p.x, p.y)
+	p.eye = .95 + game.world.stand(p)
 
 
 func _view_tour() -> void:
@@ -191,7 +191,7 @@ func _view_tour() -> void:
 		p.x = float(shot["x"])
 		p.y = float(shot["y"])
 		p.angle = float(shot["angle"])
-		p.eye = .95 + game.world.elevation(p.x, p.y)
+		p.eye = .95 + game.world.stand(p)
 		p.pitch = float(shot.get("pitch", 0.0))
 		p.drunk = float(shot.get("drunk", 0.0))
 		p.sway = 0.0

@@ -664,7 +664,7 @@ func face_into_level(target: Game) -> void:
 		if (p.y - gate.y) * gate.side < -0.30:
 			var x: float = gate.x
 			var y: float = gate.y + gate.side * 1.65
-			p.eye += target.world.elevation(x, y) - target.world.elevation(p.x, p.y)
+			p.eye += target.world.elevation(x, y) - target.world.stand(p)
 			p.x = x
 			p.y = y
 		p.angle = gate.side * PI / 2.0

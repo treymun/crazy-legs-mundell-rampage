@@ -85,7 +85,7 @@ func pops() -> int:
 ## A player's hit with a zone landed (HitZones.land): its sound, its sparks,
 ## and a hat off on the head.
 func landed(e: Enemy, amount: float) -> void:
-	var floor_z: float = game.world.elevation(e.x, e.y) + e.z
+	var floor_z: float = game.world.stand(e) + e.z
 	var tall: float = e.height * e.variant
 	var head := e.last_zone == "head"
 	var metal := HitZones.metal(e)
@@ -188,7 +188,7 @@ func drop_arm(e: Enemy, held: String, spot: Vector2) -> void:
 	b.image = "fx_drop_" + held
 	b.size = float(DROP_SIZE.get(held, .07))
 	b.owner = e
-	b.start = Vector3(e.x, e.y, game.world.elevation(e.x, e.y) + e.z + e.height * .5)
+	b.start = Vector3(e.x, e.y, game.world.stand(e) + e.z + e.height * .5)
 	b.land = Vector3(spot.x, spot.y, game.world.elevation(spot.x, spot.y))
 	b.x = b.start.x
 	b.y = b.start.y

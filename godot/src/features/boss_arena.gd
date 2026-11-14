@@ -616,7 +616,7 @@ func _tick_carriage(dt: float) -> void:
 			e.stun = maxf(e.stun, .9)
 			e.hurt(CARRIAGE_FOE, game, false, false, e, "carriage")
 			game.sound_at("body_thud", e.x, e.y, 1.0)
-			game.burst(e.x, e.y, game.world.elevation(e.x, e.y) + 1.0, "chips", 12, 2.0)
+			game.burst(e.x, e.y, game.world.stand(e) + 1.0, "chips", 12, 2.0)
 			if e.brain == "foreman":
 				game.message("THE FOREMAN TOOK HIS OWN CARRIAGE!", 2.2)
 	var pieces = game.features.get("breakables")
@@ -666,7 +666,7 @@ func _cover_at(pieces, x: float, y: float, z: float) -> int:
 		var p = pieces.pieces[i]
 		if p.broken or absf(p.x - x) > .14 + p.radius or absf(p.y - y) > .14 + p.radius:
 			continue
-		var foot: float = game.world.elevation(p.x, p.y) + p.z
+		var foot: float = game.world.stand(p) + p.z
 		if (
 			Vector2(p.x - x, p.y - y).length() < .14 + p.radius * .7
 			and z > foot - .05

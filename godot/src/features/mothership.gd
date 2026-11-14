@@ -265,7 +265,7 @@ func _new_phase(to: int) -> void:
 	game.hitstop = maxf(game.hitstop, .15)
 	game.shake = minf(1.0, game.shake + .7)
 	game.blast_flash = maxf(game.blast_flash, .5)
-	var floor_z: float = game.world.elevation(maw.x, maw.y)
+	var floor_z: float = game.world.stand(maw)
 	game.burst(maw.x, maw.y, floor_z + maw.height * .6, "spark", 24, 2.6)
 	if to == 2:
 		game.message("MAW GLORB IS FIGHTIN' MAD! HER HOUSECOAT'S ON FIRE!", 3.0)
@@ -334,7 +334,7 @@ func maw_attack(enemy: Enemy, direction: float) -> void:
 			_call_crew()
 			game.sound_at(cue("call_warn"), maw.x, maw.y, 1.0)
 		"curlers":
-			var top: float = game.world.elevation(maw.x, maw.y) + maw.height * .9
+			var top: float = game.world.stand(maw) + maw.height * .9
 			game.burst(maw.x, maw.y, top, "plasma", 12, 2.2)
 			game.sound_at(cue("sweep"), maw.x, maw.y, .8)
 		_:
@@ -392,7 +392,7 @@ func _pins() -> void:
 func _sweep(direction: float) -> void:
 	var count: int = [5, 7, 9][phase - 1]
 	var spread := .95
-	var floor_z: float = game.world.elevation(maw.x, maw.y)
+	var floor_z: float = game.world.stand(maw)
 	var z := floor_z + maw.height * .62
 	var p = game.player
 	var gap := maxf(1.0, Vector2(p.x - maw.x, p.y - maw.y).length())
@@ -418,7 +418,7 @@ func _sweep(direction: float) -> void:
 func _stomp() -> void:
 	rings.append([maw.x, maw.y, game.clock, false])
 	game.shake = minf(1.0, game.shake + .6)
-	var floor_z: float = game.world.elevation(maw.x, maw.y)
+	var floor_z: float = game.world.stand(maw)
 	game.burst(maw.x, maw.y, floor_z + .1, "dust", 22, 3.0)
 	game.sound_at(cue("stomp"), maw.x, maw.y, 1.0)
 
@@ -591,7 +591,7 @@ func _coming_apart() -> void:
 		game.shake = minf(1.0, game.shake + .35)
 		game.sound_at(cue("quake"), p.x + 3.0, p.y - 2.0, .7)
 		var roof: float = game.world.roof[game.world.cell(p.x, p.y)]
-		var top: float = roof - .2 if roof > 0.0 else game.world.elevation(p.x, p.y) + 2.5
+		var top: float = roof - .2 if roof > 0.0 else game.world.stand(p) + 2.5
 		game.burst(p.x + .8, p.y + .6, top, "dust", 8, .8)
 		game.burst(p.x - .7, p.y + .4, top, "spark", 5, .9)
 
@@ -677,7 +677,7 @@ func _lanes(toward: float) -> Array:
 				Renderer.GroundMark.new(
 					mx,
 					my,
-					game.world.elevation(maw.x, maw.y) + .004,
+					game.world.stand(maw) + .004,
 					bearing,
 					(length - maw.radius) / 2.0,
 					.2,
@@ -694,7 +694,7 @@ func sprites() -> Array:
 	for e: Vector3 in emitters:
 		if game.in_view(e.x, e.y, 1.5):
 			var beam := Renderer.Sprite.new(
-				e.x, e.y, "fx_beam_column", e.z + .1, game.world.elevation(e.x, e.y)
+				e.x, e.y, "fx_beam_column", e.z + .1, game.world.stand(e)
 			)
 			beam.translucent = true
 			beam.glow = true
@@ -702,7 +702,7 @@ func sprites() -> Array:
 	var frame := int(game.clock * 10.0) % 4
 	# The housecoat burning, all through phase two.
 	if _fighting() and phase == 2:
-		var floor_z: float = game.world.elevation(maw.x, maw.y)
+		var floor_z: float = game.world.stand(maw)
 		for k in 7:
 			var a: float = k * 1.9 + game.clock * .6
 			var x := maw.x + cos(a) * maw.radius * .5

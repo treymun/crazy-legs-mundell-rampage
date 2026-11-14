@@ -238,7 +238,7 @@ func _outlets() -> void:
 			h.scalded = true
 			scald_count += 1
 			_burn(OUTLET_SCALD, "steam")
-			_sparks(boss.x, boss.y, game.world.elevation(boss.x, boss.y) + 1.0, "dust", 10, 1.4)
+			_sparks(boss.x, boss.y, game.world.stand(boss) + 1.0, "dust", 10, 1.4)
 			game.sound_at("boiler_release", boss.x, boss.y, .8)
 	if scald_count > 40:
 		scald_count = 0
@@ -361,7 +361,7 @@ func _floods() -> void:
 		game.trigger_lights.append(head_light)
 	head_light[0] = boss.x + cos(boss.angle) * 1.4
 	head_light[1] = boss.y + sin(boss.angle) * 1.4
-	head_light[2] = game.world.elevation(boss.x, boss.y) + .8
+	head_light[2] = game.world.stand(boss) + .8
 	head_light[6] = INF if boss.alive else 0.0
 
 

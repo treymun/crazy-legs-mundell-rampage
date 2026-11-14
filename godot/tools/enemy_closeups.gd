@@ -194,6 +194,6 @@ func _stand_player(game, foe: Enemy, reach: float) -> void:
 		break
 	p.angle = atan2(foe.y - p.y, foe.x - p.x)
 	foe.angle = atan2(p.y - foe.y, p.x - foe.x)
-	p.eye = .95 + game.world.elevation(p.x, p.y)
+	p.eye = .95 + game.world.stand(p)
 	p.pitch = 0.0
 	p.drunk = 0.0

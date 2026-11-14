@@ -34,7 +34,7 @@ static func sprites(game) -> Array:
 			image = game.art.tinted_art(base, TacticalScreens.tint_for(game, q))
 		elif q.slot != 0:
 			image = game.art.tinted_art(base, Modes.TINTS[q.slot % Modes.TINTS.size()])
-		var floor_z: float = game.world.elevation(q.x, q.y)
+		var floor_z: float = game.world.stand(q)
 		var spr = game.pooled(q.x, q.y, image, 1.02 if q.health > 0 else .5, floor_z + q.air)
 		spr.flip = relative < 0.0 and direction < 4
 		spr.body = true
@@ -79,7 +79,7 @@ static func revive_prompt(game) -> String:
 ## One partner's tag and health bar over their head, or at the view's edge
 ## (with an arrow) when they are behind or out of sight.
 static func _tag(c: Canvas, game, me: Player, q: Player) -> void:
-	var head: float = game.world.elevation(q.x, q.y) + q.air + (1.14 if q.health > 0 else .6)
+	var head: float = game.world.stand(q) + q.air + (1.14 if q.health > 0 else .6)
 	var at: Vector3 = game.to_canvas(q.x, q.y, head)
 	var seen: bool = (
 		at.z > 0.0

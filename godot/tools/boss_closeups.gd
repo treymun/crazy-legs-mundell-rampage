@@ -120,6 +120,6 @@ func _stand_player(game, boss: Enemy, reach: float) -> void:
 		break
 	p.angle = atan2(boss.y - p.y, boss.x - p.x)
 	boss.angle = atan2(p.y - boss.y, p.x - boss.x)
-	p.eye = .95 + game.world.elevation(p.x, p.y)
+	p.eye = .95 + game.world.stand(p)
 	p.pitch = 8.0 if boss.kind == "maw" else 0.0
 	p.drunk = 0.0

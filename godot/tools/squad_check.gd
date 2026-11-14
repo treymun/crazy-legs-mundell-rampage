@@ -150,7 +150,7 @@ static func _door(main, check: Callable) -> void:
 	var deputy := Enemy.new("shield_deputy", at.x, at.y, p.angle + PI)
 	g.enemies.append(deputy)
 	p.pitch = 0.0
-	p.eye = .95 + g.world.elevation(p.x, p.y)
+	p.eye = .95 + g.world.stand(p)
 	var keeper = g.features["variants"]
 	var full := deputy.hp
 	g.hitscan(p.angle, 0.0, 20.0, 20.0, 0.0)

@@ -290,6 +290,8 @@ var hatless := false
 ## A critter's hop off the ground (features/critters.gd: a chicken flapping
 ## off, a cow bowled up by a blast).
 var hop := 0.0
+## Its floor on a level with geometry (format 2), read by LevelData.stand().
+var floor_z := 0.0
 ## A hand's part in the squad and its idle activity (Squad.Mind, src/squad.gd).
 var mind = null
 ## Its stable id for snapshots (game.take_uid(); 0 until its first tick ends).
@@ -545,13 +547,13 @@ func hurt(
 			windup = 0.0
 			aim_mark = null
 			cooldown = .65 if interrupt else .32
-	var floor_z: float = game.world.elevation(x, y)
+	var base: float = game.world.stand(self)
 	var burst_kind := "plasma" if PLASMA.has(kind) else "gore"
-	HitZones.splash(self, game, x, y, floor_z + z + .56 * height, burst_kind)
+	HitZones.splash(self, game, x, y, base + z + .56 * height, burst_kind)
 	if hostile and not HitZones.metal(self):
 		var from := atan2(y - from_y, x - from_x)
 		game.gore_fx.spray(
-			x, y, floor_z + z + .56 * height, cos(from), sin(from), amount, burst_kind == "plasma"
+			x, y, base + z + .56 * height, cos(from), sin(from), amount, burst_kind == "plasma"
 		)
 	var material := (
 		"shell" if SHELL_ACTORS.has(kind) else "tool" if TOOL_ACTORS.has(kind) else "cloth"
@@ -590,7 +592,7 @@ func hurt(
 	game.burst(
 		x,
 		y,
-		floor_z + z + .5 * height,
+		base + z + .5 * height,
 		burst_kind,
 		22 if explosive_hit else 9,
 		2.6 if explosive_hit else 1.5
@@ -599,7 +601,7 @@ func hurt(
 		var cue := "skeeter_pop" if brain == "skeeter" else voice_cue("down", material)
 		game.sound_at(cue, x, y, .83)
 		if champion:
-			_boss_falls(game, floor_z)
+			_boss_falls(game, base)
 		game.enemy_down(self)
 		if brain == "nitro_huffer":
 			SpeedwayHands.huffer_down(self, game)
@@ -608,7 +610,7 @@ func hurt(
 		game.burst(
 			x,
 			y,
-			floor_z + height * .6,
+			base + height * .6,
 			"feather" if brain == "chicken" else "gore",
 			27 if explosive_hit else 9,
 			2.8 if explosive_hit else 1.4
@@ -751,7 +753,7 @@ func tick(dt: float, game) -> void:
 			var deputy := brain == "yard_deputy"
 			var sweep := 1 if attacks % 2 else -1
 			var bearing := volley_angle + (.023 if deputy else sweep * (.153 - volley * .061))
-			var ground_z: float = game.world.elevation(x, y)
+			var ground_z: float = game.world.stand(self)
 			var sx := x + cos(bearing) * .42
 			var sy := y + sin(bearing) * .42
 			var sz := ground_z + (.91 if deputy else 1.12)
@@ -803,7 +805,7 @@ func tick(dt: float, game) -> void:
 	# The eye: unused by one that neither looks, sees nor is awake this tick.
 	var eye := 0.0
 	if looking or alerted or (player_seen and distance < 14.0):
-		eye = game.world.elevation(x, y) + z + minf(.92, height * .72)
+		eye = game.world.stand(self) + z + minf(.92, height * .72)
 	if looking:
 		see_time = .079 + (radius - .2) * .051
 		player_seen = distance < 14.0 and game.world.visible(x, y, p.x, p.y, eye, p.eye)
@@ -917,7 +919,7 @@ func tick(dt: float, game) -> void:
 	var strafe := PI / 2.0 if (attacks + int(pose / 1.45) + int(y)) % 2 else -PI / 2.0
 	if hunting and not can_see and game.clock < hunt_until and game.flow != null:
 		# Out of sight: come round by the open floor, not straight at the wall.
-		var lead: float = game.flow.heading(x, y)
+		var lead: float = game.flow.heading(x, y, floor_z)
 		if not is_nan(lead):
 			follow(dt, game, lead, .92)
 			return
@@ -973,19 +975,19 @@ func _enrage(game) -> void:
 	game.message(String(BOSS_TITLES[kind]) + " IS FIGHTIN' MAD!", 2.6)
 	game.sound_at(("sheriff" if kind == "boss" else kind) + "_rage", x, y, 1.0)
 	game.shake = minf(1.0, game.shake + .6)
-	var floor_z: float = game.world.elevation(x, y)
-	game.burst(x, y, floor_z + height * .7, "spark", 16, 2.2)
+	var base: float = game.world.stand(self)
+	game.burst(x, y, base + height * .7, "spark", 16, 2.2)
 	game.boss_enraged.emit(self)
 
 
 ## A boss going down: the world holds its breath, the ground shakes, it hollers.
-func _boss_falls(game, floor_z: float) -> void:
+func _boss_falls(game, base: float) -> void:
 	game.hitstop = maxf(game.hitstop, .38)
 	game.shake = minf(1.0, game.shake + .9)
 	game.blast_flash = maxf(game.blast_flash, .55)
 	game.sound_at(("sheriff" if kind == "boss" else kind) + "_death", x, y, 1.0)
-	game.burst(x, y, floor_z + height * .6, "spark", 30, 3.2)
-	game.burst(x, y, floor_z + height * .5, "plasma" if PLASMA.has(kind) else "gore", 26, 2.6)
+	game.burst(x, y, base + height * .6, "spark", 30, 3.2)
+	game.burst(x, y, base + height * .5, "plasma" if PLASMA.has(kind) else "gore", 26, 2.6)
 	if brain == "derby_champ":
 		DerbyChamp.falls(self, game)
 	if game.barks.enabled:
@@ -1211,7 +1213,7 @@ func signature_attack(game, direction: float, distance: float, eye: float, aim_z
 		for swing: float in [-.19, 0.0, .19]:
 			game.launch(sx, sy, eye - .12, direction + swing, 8.0, "chain_hook", 0.0, true, 7, .44)
 	else:
-		var ground_z: float = game.world.elevation(x, y)
+		var ground_z: float = game.world.stand(self)
 		var slug := String(DEFS[kind].get("shot", "valve_slug"))
 		game.launch(sx, sy, ground_z + .31, direction, 6.3, slug, 0.0, true, 12, 1.17)
 

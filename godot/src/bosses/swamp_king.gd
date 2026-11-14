@@ -76,7 +76,7 @@ func _run_over(e: Enemy, game) -> void:
 	var gap := Vector2(p.x - e.x, p.y - e.y).length()
 	if gap > 11.0 or not game.world.visible(e.x, e.y, p.x, p.y):
 		return
-	var eye: float = game.world.elevation(e.x, e.y) + 1.2
+	var eye: float = game.world.stand(e) + 1.2
 	for k in 5:
 		var bearing := toward + (k - 2) * .13
 		var sx := e.x + cos(bearing) * (e.radius + .3)
@@ -140,7 +140,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 	var toward_shooter := atan2(from.y - e.y, from.x - e.x)
 	if absf(Enemy.angle_delta(toward_shooter, e.angle)) < BEHIND:
 		return 1.0
-	var up: float = (hit.z - game.world.elevation(e.x, e.y)) / maxf(.5, e.height)
+	var up: float = (hit.z - game.world.stand(e)) / maxf(.5, e.height)
 	return WEAK if up > .3 else 1.0
 
 
@@ -149,7 +149,7 @@ func looks(e: Enemy, game) -> Array:
 	var out: Array = []
 	if e.boss_phase < 3:
 		return out
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	var frame := int(game.clock * 10.0)
 	for k in 2:
 		var back := Vector2(
@@ -166,7 +166,7 @@ func looks(e: Enemy, game) -> Array:
 
 ## His crate of dynamite goes with the boat: blasts strung across the water.
 func dying(e: Enemy, game) -> void:
-	var z: float = game.world.elevation(e.x, e.y)
+	var z: float = game.world.stand(e)
 	for k in 3:
 		var a := e.angle + k * 2.1
 		game.blasts.append(

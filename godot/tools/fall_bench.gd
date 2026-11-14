@@ -58,7 +58,7 @@ func _fall(kind: String) -> void:
 			p.y = at.y
 			break
 	p.angle = atan2(boss.y - p.y, boss.x - p.x)
-	p.eye = .95 + g.world.elevation(p.x, p.y)
+	p.eye = .95 + g.world.stand(p)
 	for i in 30:
 		g.tick(STEP, Game.Controls.new())
 		main.render()

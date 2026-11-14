@@ -101,7 +101,7 @@ func _flap(e: Enemy, lift: float) -> void:
 
 
 func _spatter(e: Enemy, kind: String, count: int) -> void:
-	var z: float = game.world.elevation(e.x, e.y) + e.z + e.height * .5
+	var z: float = game.world.stand(e) + e.z + e.height * .5
 	for _i in count:
 		if game.specks.size() >= SPECK_CAP:
 			return

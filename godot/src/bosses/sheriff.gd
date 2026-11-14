@@ -141,7 +141,7 @@ func _call_strike(e: Enemy, game) -> void:
 
 ## HOG WILD: bolts every way at once, a gap left on one side.
 func _ring(e: Enemy, game) -> void:
-	var eye: float = game.world.elevation(e.x, e.y) + e.height * .55
+	var eye: float = game.world.stand(e) + e.height * .55
 	var gap := int(game.rng.random() * RING_SHOTS)
 	for k in RING_SHOTS:
 		if k == gap or k == (gap + 1) % RING_SHOTS:
@@ -176,7 +176,7 @@ func _reactor(f, game) -> void:
 
 ## Where the pack is: on his back, high.
 func _pack(e: Enemy, game) -> Vector3:
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	return Vector3(
 		e.x - cos(e.angle) * (e.radius * .6),
 		e.y - sin(e.angle) * (e.radius * .6),
@@ -199,7 +199,7 @@ func telegraph(e: Enemy, game) -> Array:
 	if own(e) == "strike":
 		# Arms up to the sky: a column of light over him.
 		var col := Renderer.Sprite.new(
-			e.x, e.y, "fx_beam_column", 3.0, game.world.elevation(e.x, e.y) + e.height * .8
+			e.x, e.y, "fx_beam_column", 3.0, game.world.stand(e) + e.height * .8
 		)
 		col.glow = true
 		col.translucent = true

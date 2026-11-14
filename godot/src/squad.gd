@@ -155,7 +155,7 @@ static func startled(e: Enemy, game) -> void:
 
 ## Whatever it had in hand goes flying: the bottle, the cards, the feed.
 static func _spill(e: Enemy, game, was: String) -> void:
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	var what := "glass" if was == "drinking" else "dust"
 	game.burst(e.x + cos(e.angle) * .3, e.y + sin(e.angle) * .3, floor_z + .9, what, 6, 1.3)
 	game.sound_at("tosser_glass", e.x, e.y, .45)
@@ -343,7 +343,7 @@ static func _flush(e: Enemy, game) -> void:
 	var gap := to - Vector2(e.x, e.y)
 	var distance := gap.length()
 	var direction := gap.angle()
-	var eye: float = game.world.elevation(e.x, e.y) + minf(.92, e.height * .72)
+	var eye: float = game.world.stand(e) + minf(.92, e.height * .72)
 	var sx := e.x + cos(direction) * .34
 	var sy := e.y + sin(direction) * .34
 	if game.world.blocked(sx, sy, .045, eye):

@@ -158,7 +158,7 @@ func _boots() -> void:
 		_step = step
 		if p.air <= 0.0 and p.motion > .35 and Materials.dusty(world, p.x, p.y):
 			var a: float = p.angle
-			var at := Vector3(p.x - cos(a) * .2, p.y - sin(a) * .2, world.elevation(p.x, p.y) + .05)
+			var at := Vector3(p.x - cos(a) * .2, p.y - sin(a) * .2, world.stand(p) + .05)
 			_add("dust", at, Vector3(-cos(a) * .2, -sin(a) * .2, .25), .9, .08, .3)
 	var seen := {}
 	for e: Enemy in game.enemies:
@@ -177,7 +177,7 @@ func _boots() -> void:
 				var at := Vector3(
 					e.x + away.x * e.radius,
 					e.y + away.y * e.radius,
-					world.elevation(e.x, e.y) + (.15 if big else .05)
+					world.stand(e) + (.15 if big else .05)
 				)
 				_add(
 					"dust",

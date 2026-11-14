@@ -460,7 +460,7 @@ func _bosses() -> void:
 			continue
 		if absf(e.x - p.x) > 14.0 or absf(e.y - p.y) > 14.0:
 			continue
-		var floor_z: float = game.world.elevation(e.x, e.y)
+		var floor_z: float = game.world.stand(e)
 		var top := Vector3(e.x, e.y, floor_z + e.z + e.height * .9)
 		if not e.alive:
 			if e.died_at >= 0.0 and game.clock - e.died_at < 6.0 and dice.randf() < .5:
@@ -496,7 +496,7 @@ func _soaked(_dt: float) -> void:
 			continue
 		if dice.randf() > e.soak:
 			continue
-		var floor_z: float = game.world.elevation(e.x, e.y)
+		var floor_z: float = game.world.stand(e)
 		var at := Vector3(
 			e.x + dice.randf_range(-.15, .15),
 			e.y + dice.randf_range(-.15, .15),
