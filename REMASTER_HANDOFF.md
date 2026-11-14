@@ -9,6 +9,44 @@ Read with: `MAP_AUTHORING.md` (the workflow and every command),
 `docs/remaster_progress.md` (the running notes), `docs/map_schema.json`,
 `docs/map_catalog/catalog.md`.
 
+## In short
+
+**Done and verified**
+- **Engine**: level format 2 with walkable decks (rooms over rooms, passages
+  under), sloped ramps, stairs, thin and angled walls with openings cut to
+  size, rails, low cover, ceilings. Movement, collision, headroom, shots,
+  sight, grenades and debris, both renderers, the nav graph (bots tell floors
+  apart), snapshots and saves (version 8) all agree. Every old level is
+  unchanged in play.
+- **Authoring for agents**: JSON map sources with stable ids and a schema;
+  `tools/map.gd` (create, inspect, validate, build, render, screenshot,
+  playtest, targeted edits with dry runs, kept copies and undo, catalog,
+  schema, glTF import); a Maps screen in the Godot editor;
+  `MAP_AUTHORING.md`.
+- **Demo map** Mundell Feed & Seed, made and revised only through the
+  commands, validated, rendered, playtested (bots and hands up and down the
+  floors), round-tripped through the editor.
+- **Remaster**: Hickston (hay loft), the fair (bleachers), the sawmill (pond
+  bridge), the quarry (haul ramps), the bayou (stilt house and gangway), the
+  Mothership (gantry ramp), the range (deer stand); every other map reviewed
+  and kept, with reasons. Each changed chapter plays through to the end with
+  the bot; the versus maps play out identically to dev.39.
+- **Firing range brought up to date** (asked for by the owner during this
+  work; section 11): all 30 guns racked (the 14 newer guns and throwables on a
+  store wall with pictures rendered in Blender from their own models), all
+  eight bosses in the corral (a pond for the Swamp King, Maw's own fight),
+  every newer hand in the bullpen, and the bowling lane rebuilt with real pin
+  physics and ten-frame scoring.
+- **Checks**: `check_all` green; CI green; new `geometry_check.gd` and
+  `map_check.gd` in check_fixes.
+
+**Not verified**: playing by hand, sound, a phone, the browser and Android
+builds (CI builds those only on main/tags), clicking the Maps screen in a
+running editor. See section 10.
+
+**Merge notes**: section 7 (save version 8, small edits to `main.gd`,
+`main_state.gd`, `modes.gd`, `check_fixes.gd`, `project.godot`).
+
 ## 1. Architecture: extend the 2.5D engine, not a Godot 3D path
 
 **Audit.** The look is the custom renderer: the software view
@@ -148,7 +186,7 @@ over with their guns, rounds, health and pockets).
 | Quarry | 4 -> 5 | The half-step "ramp cells" between the chalk benches are **true sloped haul ramps**, three cells wide. | A quarry's benches are joined by haul roads; the cells read as odd steps. Same places, same routes. | validate clean; bot from the bottom bench to the top and back |
 | Gator Bayou | 2 -> 3 | The preacher's shack stands **higher on its stilts** (1.2), reached by a **sloped plank gangway** over the water (wade under its high end), where three one-cell steps were. | The stilt row's whole idea is height over the water; the steps were a staircase. | validate clean; bot up the gangway and under it; picture rewritten (`bayou_stilt_row_0`) |
 | Mothership | 2 -> 3 | The tractor bay gantry's six one-cell steps are a **sloped grating ramp**. | The rest of the ship is smooth hull and grating; the gantry stays as it was. | validate clean; bot up the ramp and along the gantry to the booth |
-| Firing range | 1 -> 2 | A **deer stand** by the bullpen gate: a deck 1.8 up on posts, railed, stairs from the south. Shoot down at the locals; they come up after you or round under. Also: the plan racked all 30 guns, but only the first 16 have pictures (the shipped range had 16): it now racks the guns whose pictures exist, so the plan reproduces the shipped range (plus the stand) and the rest come with their art. | Somewhere to practise fighting across floors. The rack fix makes the range plan reproducible again (it was not at dev.39). | validate clean; bot up the stand, down to the pen, under it; quest reach (every rack) passes |
+| Firing range | 1 -> 2 -> 3 | Layout 3 is the range update (section 11). Layout 2: a **deer stand** by the bullpen gate: a deck 1.8 up on posts, railed, stairs from the south. Shoot down at the locals; they come up after you or round under. Also: the plan racked all 30 guns, but only the first 16 have pictures (the shipped range had 16): it now racks the guns whose pictures exist, so the plan reproduces the shipped range (plus the stand) and the rest come with their art. | Somewhere to practise fighting across floors. The rack fix makes the range plan reproducible again (it was not at dev.39). | validate clean; bot up the stand, down to the pen, under it; quest reach (every rack) passes |
 | Speedway | 2 (unchanged) | none | Already has the height the place needs: a banked oval, stands rising a step a row, the announcer's booth on top, the derby bowl. A crossover bridge would put players over the race cars' lane, whose hits are worked out flat. | covered by the checks (bot campaign, pictures) |
 | The Crossroads (hub) | 3 (unchanged) | none | A hub of gates along one road, flat on purpose so every gate, sign and fingerpost reads from the four-way stop; height would hide them. | covered by the checks |
 | Grainyard, Holler, Salvage (5v5) | 1 (unchanged) | none | Their routes, holds and timing are tuned (`map_timing.gd` strict) and the bots' routes and holds are flat x, y: a perch the bots do not know would play one-sided against them, and any height changes the timing tables. They run on the new engine as format 1 maps, unchanged. | tactical_check and map_timing (see results), net_showdown_check |
@@ -191,7 +229,7 @@ map() { "$GODOT" --headless --path godot --script res://tools/map.gd -- "$@"; }
   turns a version 7 save into 8 (every floor the ground: no level had
   geometry before), so every older save still loads (4 to 7 fixtures pass).
 - Changed maps bumped their layout: hickston 4, fair 4, sawmill 5, quarry 5,
-  bayou 3, mothership 3, range 2. A save of an older layout loads at that
+  bayou 3, mothership 3, range 3 (the range is never saved). A save of an older layout loads at that
   chapter's start with its kit (the existing mechanism); a finished chapter of
   an older layout stays finished.
 - Fixtures: the v8 saves made before the remaster are kept as
@@ -281,6 +319,184 @@ or the tools (not worked round in a map):
 
 ## 9. Results
 
-<!-- RESULTS -->
+### Checks (this machine, final commit)
 
+- `tools/check_all.gd` (shader, assets, check_fixes with geometry_check and
+  map_check, save fixtures, level edit, quest reach, campaign walkthrough,
+  pictures, online 5v5): **ALL CHECKS OK** (check_fixes 307 s, every check ok).
+- Lint: `gdformat --check` and `gdlint` over `src tools addons`: clean.
+- CI on GitHub (lint + headless checks + the shader view against its
+  references in a Mesa window): green on every push after the fixtures and
+  references were rewritten (see the Actions page for `geometry-remaster`).
+- `tools/geometry_check.gd`: GEOMETRY CHECK OK (queries, walking, falling,
+  rails, ramps, thin walls, doorway and window, crawlspace, shots past a
+  deck's edge and stopped by it, nav floors apart and joined by stairs,
+  both views drawn, a save on a deck).
+- `tools/map_check.gd`: all pass (source diagnostics, the demo validates,
+  broken copies caught, targeted edits touch only their object, undo exact,
+  build guard, glTF import and refusal, the Maps screen round trip, a bot to
+  the loft's lever, hands climbing to a player on the loft).
 
+### Play, compared with dev.39 (the base, back to back on this machine)
+
+| | dev.39 | this branch |
+| --- | --- | --- |
+| first_minutes whole (a god-mode bot plays the chapter to the end): hickston | 184 s | 178 s |
+| fair | 207 s | 190 s |
+| sawmill | 148 s | 153 s |
+| quarry | 136 s | 139 s |
+| bayou | 220 s | 159 s |
+| mothership | 185 s | 184 s |
+| `map_timing.gd` (6 versus maps: run times, holds, hostages) | | identical output |
+| `tactical_check.gd -- rounds=2` (10 bots, every 5v5/2v2 map and mode) | | identical rounds, results and winners |
+| `mode_check.gd` range deathmatch (90 s) | 1/1 deaths | 1/1 deaths |
+
+### Performance
+
+Old (dev.39, a worktree at 17f1edc) and new run back to back on this PC
+(which runs other work too, so only the differences between neighbouring runs
+mean anything).
+
+`tools/bench.gd -- 150` (headless; tick and the CPU side of the draw), two
+rounds each:
+
+| run | tick mean / worst 1% | draw mean / worst 1% | fps mean |
+| --- | --- | --- | --- |
+| old 1 | 0.53 / 1.34 ms | 1.92 / 6.96 ms | 410 |
+| new 1 | 0.61 / 1.50 ms | 1.99 / 7.20 ms | 384 |
+| old 2 | 0.55 / 1.55 ms | 2.00 / 7.45 ms | 392 |
+| new 2 | 0.62 / 1.50 ms | 1.97 / 6.92 ms | 387 |
+
+Those bench rounds were before the last fast path (the deck crossing test in
+`visible()` skipped in cells with no geometry). With the final code, the idle
+tick alone (900 ticks at 60 Hz, three alternating rounds, ms):
+
+| level | old | new |
+| --- | --- | --- |
+| hickston (hay loft) | 0.53 to 0.57 | 0.60 to 0.65 |
+| bayou (stilt house) | 0.58 to 0.65 | 0.61 to 0.65 |
+| mothership (gantry ramp) | 0.44 to 0.49 | 0.49 to 0.52 |
+| speedway (format 1, unchanged) | 0.42 to 0.46 | 0.43 |
+
+So a level with geometry ticks about 5 to 12% slower (0.03 to 0.07 ms a
+tick), a format-1 level the same. In Hickston with geometry against the same
+level with `geo` removed: stand 1.1 us vs 0.27, can_walk 2.4 vs 1.6, a sight
+line 35 vs 33 us, a whole flow-field walk 2.0 vs 1.75 ms (the deck nodes).
+What made it cheap: `stand()`/`floor_under()` read the grid directly on a
+format-1 level; `LevelGeometry.clear_at` lets movement, support, ceilings and
+sight lines take the old grid path in any cell no slab or segment touches;
+enemies test "on another floor" only when the level has geometry.
+
+Window `--view-bench=300` (1280x800, every chapter): shader view 2.82 ms
+(355 fps) old, 2.96 ms (338 fps) new; the software fallback 38.4 vs 41.9 ms.
+The shader view's extra is the cut caps, roof caps and slopes in the plane
+table (format-1 levels send empty rows). Phones and the browser were not
+timed.
+
+### Pictures
+
+- Before/after of every changed spot: `docs/remaster/<map>/before_*.png`,
+  `after_*.png`; top-down plans: `plan_before.png`, `plan_after.png`.
+- The demo map: `docs/map_examples/edit_demo/before|after/*.png` (labelled
+  plans per floor with nav), software and graphics-card views checked in a
+  window tour (`map shot`, `--view-tour`).
+- Reference pictures that changed on purpose (rewritten and committed):
+  `tools/pictures/` and `tools/pictures_gpu/` for hickston_05_0,
+  hickston_fight_1_16, sawmill_01_2, sawmill_04_0, sawmill_mill_water_0,
+  sawmill_fight_5_16, low_sawmill_mill_water_0, quarry_fight_1_26,
+  bayou_stilt_row_0. The shader view matches the software view on all 36
+  reference views (compare_views: VIEWS MATCH).
+
+## 10. Not done, not checked, limitations
+
+Not checked (nobody on the agent side can):
+- Listening to anything; playing by hand with a mouse and keyboard; a phone
+  or the browser build (CI builds the browser and Android only on `main`
+  and tags, so those builds have not run for this branch: the merging
+  session's release run will be their first).
+- The Godot editor's Maps screen by hand: its logic runs headless in
+  `map_check.gd` (open, save unchanged, add, move, apply, undo/redo, build),
+  but nobody clicked it in a running editor.
+- The browser build's frame time with the new shader branches (one more
+  function call and a loop that is empty on every old level; two texture
+  fetches per cap that a pixel falls in).
+
+Not done:
+- New sounds (none were needed; no ElevenLabs credits spent).
+- Height on the speedway, the hub and the versus maps (reasons in section 4).
+- glTF materials with textures: import maps material names to the game's
+  tiles; it does not bring textures in (the game's art is its own palette).
+
+Range update, not checked: how the bowling lane feels with a mouse (only the
+physics in numbers and pictures); the new pin clack (a made cue, `assets.gd
+MADE_CUES`) has not been listened to; the Swamp King, Maw and Boggs in the
+corral were seen fighting in pictures and the range check, not played by hand.
+
+Limitations of the geometry (also in MAP_AUTHORING.md): upright walls and
+flat or planar sloped floors only (no slanted walls, arches, pitched roofs to
+walk on); solid cells are full height; one roof height per cell; grid doors
+one cell wide on the ground floor (openings of any size are door-less);
+cut lines at most two per piece; rain treats a cell under any deck as roofed;
+the automap draws every floor at once; things dropped in play land on the
+floor under where they fall.
+
+## 11. The firing range brought up to date (layout 3)
+
+Asked for by the owner during this work: the range had not kept up with the
+guns, bosses and hands added since it was made, and its bowling was a dice
+roll. Every existing station is where it was.
+
+- **Every gun on a rack.** The 14 guns and throwables of the 5v5 store hang
+  on a **store wall** standing free down the armory's middle (a thin wall of
+  the level's geometry, `range_layout.gd STORE_WALL`): the outlaws' guns on
+  its north face, the deputies' on its south, each with its picture, plaque
+  and take-station, a header board each side. The pictures are new:
+  `scripts/blender/item_pictures.py` lays each gun's own first-person model
+  (`weapon_views.py`) on its side and renders it square on (long guns get the
+  wrist the hand normally hides), and `tools/art/build_item_art.gd` crops,
+  shrinks and grades them into `assets/art/item_<gun>.png`. The plaques, lever
+  plates and store headers are painted by `build_range_signs.gd` after
+  everything else, so every existing sign comes out byte-identical. Each gun
+  says what it is when taken (`firing_range.gd GUN_NOTES`).
+- **All eight bosses in the corral.** New levers for THE SWAMP KING, BUMPER
+  BOGGS and MAW GLORB. The corral has a pond along its south fence (shallow
+  round a deep middle, `L.POND`): the King's airboat comes in on it and keeps
+  to it; nobody else goes in the deep. Maw's fight (`features/mothership.gd`)
+  now also runs on the range: it picks up a Maw let out into the corral, her
+  pods are the corral's (`L.MAW_PODS`), and there is no ship to come apart
+  after her. The Baron's outlets, Rudy's decoys and the boss gate moved north
+  of the pond. The clear lever also takes away a boss's backup and Maw's
+  younguns.
+- **Every hand in the bullpen.** A second lever bank down the bullpen's west
+  fence: noodler, chum tosser, gator, pit mechanic, tire roller, nitro huffer,
+  flagman, drone, probe, tin guard, and two levers that turn out the next
+  chapter's tough guy (Big Earl to Zorgo) and the next oddball (big Billy, the
+  drunk coot, the deputy with a door) each pull. A chapter-only kind waits for
+  its chapter's pictures in the browser, variants included.
+- **The Bowl-O-Rama** (`src/range_bowling.gd`, new): the pins are bodies. Each
+  has a base and a lean (a 2D vector with its rate): knocked, it leans; past
+  ~10 degrees its own weight takes it down, short of that it rocks back (a
+  wobbler). Leaning or down it is a capsule from base to head, so a falling
+  pin sweeps into the next; lying pins slide and spin; they bounce off the
+  kickbacks and drop into the pit or a gutter. The ball is the game's own
+  rolling shot: it trades momentum with each pin it meets (a 16-pounder
+  against 3.5) and goes on slower and deflected; past the oil it **hooks** the
+  way the thrower was turning as they let go; off the lane it runs down the
+  gutter. The pinsetter sweeps the deadwood after the first ball and stands
+  the rest up where they stood; a fresh rack after a strike or a frame's last
+  ball. **Ten-frame scoring** (strikes and spares count ahead, the tenth's
+  bonus balls), splits called by their pins ("7-10 SPLIT!"), the sheet and
+  best game on the lane's card. Pictures: the pin modelled in Blender tipped
+  22 and 50 degrees and lying, at seven headings to the viewer
+  (`props_range.py`, `town_range_pin_t<k>_<j>`), picked each frame by lean and
+  heading. A knock clacks (a made cue, no credits spent). Part of the range's
+  play (carried in snapshots), own dice. Bowling a range of lines: pocket hits
+  strike, head-on hits leave splits, the edge clips a pin or two, a hook from
+  the edge carries in.
+- **Checks**: `tools/range_check.gd` (in check_fixes) now lets every boss out
+  (the King on the water, Maw's fight picking her up), turns every pen kind
+  out (the tough guys and oddballs in turn), takes every one of the 30 guns
+  off its rack, rolls balls down the middle, the pocket, the edge, the gutter
+  and with a hook, keeps every pin on the lane, and scores sheets (300, 150,
+  90, 167) and a 7-10 split. `tools/range_frames.gd` takes window pictures of
+  all of it (`docs/remaster/range/update/`).

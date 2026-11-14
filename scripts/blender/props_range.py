@@ -95,7 +95,7 @@ def range_dummy():
     return 1.3, 1.9
 
 
-def range_pin():
+def _pin_shape():
     white = mat(238, 232, 222, rough=.25, grime=.15)
     red = mat(200, 34, 30, rough=.3, grime=.1)
     ball(.06, (0, 0, .08), white, (1, 1, 1.2))
@@ -104,7 +104,35 @@ def range_pin():
     cyl(.033, .015, (0, 0, .25), red, seg=16)
     cyl(.033, .015, (0, 0, .275), red, seg=16)
     ball(.042, (0, 0, .32), white, (1, 1, 1.1))
+
+
+def range_pin():
+    _pin_shape()
     return .25, .4
+
+
+# The pins in play (src/range_bowling.gd): tipped PIN_TILTS degrees with the
+# head toward PIN_YAWS degrees, measured from the viewer's right toward away
+# from the viewer (0 side on, head right; 90 head away; -90 head toward the
+# viewer). Heads to the left are the game's flip of these. The last tilt is a
+# pin lying on its belly and head.
+PIN_TILTS = (22, 50, 90)
+PIN_YAWS = (-90, -60, -30, 0, 30, 60, 90)
+
+
+def _pin_pose(tilt, yaw):
+    def build():
+        _pin_shape()
+        # The stage turns every prop -28 degrees about the vertical: undo it so
+        # the yaw is the viewer's. Tip about the rim of the base on that side.
+        a = math.radians(yaw + 28)
+        t = math.radians(tilt)
+        ROOT.rotation_mode = "AXIS_ANGLE"
+        ROOT.rotation_axis_angle = (t, -math.sin(a), math.cos(a), 0)
+        ROOT.location = (0, 0, .062 * math.sin(t) if tilt >= 90 else .0)
+        return .5, .45
+
+    return build
 
 
 def range_pin_down():
@@ -294,6 +322,9 @@ RANGE = {
     "range_duck": range_duck, "range_bench": range_bench, "range_scoreboard": range_scoreboard,
     "range_hay_bale": range_hay_bale,
 }
+for _k, _tilt in enumerate(PIN_TILTS):
+    for _j, _yaw in enumerate(PIN_YAWS):
+        RANGE["range_pin_t%d_%d" % (_k + 1, _j)] = _pin_pose(_tilt, _yaw)
 PROPS.clear()
 PROPS.update(RANGE)
 # Targets face the shooter: rendered face on, stood up in the game facing the

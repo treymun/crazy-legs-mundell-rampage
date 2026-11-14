@@ -4,7 +4,9 @@
 ## the covered firing line north of it with eight lanes off it (tin cans,
 ## pellets, the long rifle range, the duck gallery, the bowling alley, the
 ## soak tank, special orders and the powder pit), and along the midway the
-## boss corral, the whuppin' yard and the bullpen with its lever bank.
+## boss corral (all eight bosses, a pond for the Swamp King's airboat), the
+## whuppin' yard and the bullpen with its two lever banks. The armory's store
+## wall stands free down its middle with the 5v5 guns and throwables.
 ## Every number the range feature needs is in src/range_layout.gd.
 ##
 ## Built by tools/levels/build_level.gd -- range.
@@ -30,7 +32,7 @@ func make() -> Builder:
 		"intro": "MUNDELL'S PROVING GROUNDS. EVERY GUN, ALL THE AMMO. PAUSE TO LEAVE.",
 		"score": "music",
 		"ambience": "range",
-		"layout": 2,
+		"layout": 3,
 		"sky": "sky",
 		"pressure_ports": L.PRESSURE_PORTS,
 		"boss_decoys": L.BOSS_DECOYS,
@@ -264,6 +266,7 @@ func corral() -> void:
 	var r: Array = L.STATIONS["corral"]["lane"]
 	b.yard(int(r[0]), int(r[1]), int(r[2]), int(r[3]), "tracks", lanes["corral"], {"light": .86})
 	b.paint(3, 62, 22, 75, "dirt")
+	pond()
 	b.fence(1, 59, 24, 59, .85, "stockyard")
 	b.fence(25, 59, 25, 76, .85, "stockyard")
 	b.door(12, 59, false, {"from": "n", "tile": "stockyard", "id": "corral-gate"})
@@ -272,14 +275,28 @@ func corral() -> void:
 		var kind := String(L.BOSS_KINDS[i])
 		var label := "CLEAR THE CORRAL" if kind == "clear" else "LET OUT " + String(L.NAMES[kind])
 		lever("boss-" + kind, L.BOSS_LEVER_X[i], L.BOSS_LEVER_Y, label, kind, PI)
-	b.town("boulder_a", 6.5, 63.5, {"solid": .4})
-	b.town("boulder_b", 19.5, 70.5, {"solid": .4})
-	b.town("tombstone_a", 3.0, 75.4)
-	b.town("tombstone_c", 21.6, 62.4)
+	b.town("boulder_a", 9.5, 61.5, {"solid": .4})
+	b.town("boulder_b", 16.0, 68.5, {"solid": .4})
+	b.town("tombstone_a", 1.6, 66.5)
+	b.town("tombstone_c", 23.4, 64.4)
 	for p in L.PRESSURE_PORTS:
 		b.mark("mark_outlet", float(p[0]), float(p[1]), 0.0, .5, .5)
 	floodlight(1.6, 59.6, 9.0, .2)
 	floodlight(23.4, 75.4, 9.0, .2)
+
+
+## The corral's pond: shallow water round a deep middle along the south fence,
+## a muddy bank and cypress knees at its edge. Nobody but a gator or the Swamp King's
+## airboat goes into the deep.
+func pond() -> void:
+	var r: Rect2i = L.POND
+	b.paint(r.position.x, r.position.y, r.end.x - 1, r.end.y - 1, "bayou_water")
+	b.paint(r.position.x + 1, r.position.y + 1, r.end.x - 2, r.end.y - 1, "bayou_deep")
+	b.paint(r.position.x - 1, r.position.y - 1, r.end.x, r.position.y - 1, "bayou_bank")
+	b.town("cypress_knees", 3.6, 71.4)
+	b.town("cypress_knees", 21.4, 71.5)
+	b.town("cypress_knees", 9.0, 71.3)
+	b.town("cypress_knees", 16.6, 71.4)
 
 
 func yard() -> void:
@@ -335,10 +352,10 @@ func armory() -> void:
 	b.board("range_title", 48.0, 58.93, 1.25, {"z": 2.75, "plane": PI, "glow": true})
 	b.board("range_rules", 43.4, 58.94, .8, {"z": .7, "plane": PI})
 	b.board("range_head_armory", 48.0, 60.06, .62, {"z": 2.0, "plane": 0.0})
+	store_wall()
 	# Every gun on the walls, its plaque under it, and the station to take it:
-	# every gun that has its pictures (the 5v5 guns and throwables have none yet,
-	# so the range as shipped racks the first sixteen; their racks come with
-	# their art, assets/art/item_<gun>.png).
+	# every gun that has its pictures (assets/art/item_<gun>.png; the 5v5 guns'
+	# and throwables' are tools/art/build_item_art.gd's, on the store wall).
 	for i in Weapons.COUNT:
 		var spot: Array = L.rack(i)
 		var face := Vector2(-sin(float(spot[2])), cos(float(spot[2])))
@@ -349,11 +366,21 @@ func armory() -> void:
 		)
 		if not FileAccess.file_exists(art.simplify_path()):
 			continue
-		b.board("range_display", at.x, at.y, .78, {"z": .92, "plane": spot[2]})
+		# On the store wall they hang on it: mount_signs() sees only the grid's
+		# walls and would stand them on posts.
+		var hang := i >= 16
+		b.board("range_display", at.x, at.y, .78, {"z": .92, "plane": spot[2], "hung": hang})
 		var held := at + face * .04
-		b.board("item_" + gun, held.x, held.y, .56, {"z": 1.0, "plane": spot[2]})
+		var tall := item_height(i, art)
+		b.board("item_" + gun, held.x, held.y, tall, {"z": 1.0, "plane": spot[2], "hung": hang})
 		var plaque := at + face * .02
-		b.board("range_plaque_%d" % i, plaque.x, plaque.y, .28, {"z": .58, "plane": spot[2]})
+		b.board(
+			"range_plaque_%d" % i,
+			plaque.x,
+			plaque.y,
+			.28,
+			{"z": .58, "plane": spot[2], "hung": hang}
+		)
 		b.glow(at.x + face.x * .8, at.y + face.y * .8, 1.6, .16)
 		var stand: Vector2 = spot[3]
 		b.station(
@@ -375,12 +402,46 @@ func armory() -> void:
 		Vector2(40.0, 63.0),
 		Vector2(48.0, 63.0),
 		Vector2(56.0, 63.0),
-		Vector2(40.0, 71.0),
-		Vector2(48.0, 69.0),
-		Vector2(56.0, 71.0)
+		Vector2(40.0, 71.5),
+		Vector2(48.0, 72.5),
+		Vector2(56.0, 71.5)
 	]:
 		b.prop("lamp", p.x, p.y)
 	b.glow(48.0, 67.0, 9.0, .12)
+
+
+## The store wall: a plank partition standing free down the armory's middle
+## (a thin wall of the level's geometry), the outlaws' guns on its north face
+## and the deputies' on its south, a header board over each.
+func store_wall() -> void:
+	var w: Array = L.STORE_WALL
+	var y := float(w[2])
+	Geo.wall(
+		b,
+		"store_wall",
+		Vector2(float(w[0]), y),
+		Vector2(float(w[1]), y),
+		0.0,
+		2.0,
+		{"thick": .14, "tile": "barn"}
+	)
+	var mid := (float(w[0]) + float(w[1])) * .5
+	b.board("range_head_outlaws", mid, y - .09, .42, {"z": 1.5, "plane": PI, "hung": true})
+	b.board("range_head_deputies", mid, y + .09, .42, {"z": 1.5, "plane": 0.0, "hung": true})
+
+
+## How tall a gun's picture hangs: the campaign's as they always were, the
+## store wall's by kind (long guns most of a board wide, handguns half that,
+## throwables stood up).
+func item_height(i: int, art: String) -> float:
+	if i < 16:
+		return .56
+	var image := Image.load_from_file(art)
+	var wide := float(image.get_width())
+	var tall := float(image.get_height())
+	if wide < tall:
+		return .42
+	return (.95 if wide > 48.0 else .5) * tall / wide
 
 
 func bullpen() -> void:
@@ -400,9 +461,13 @@ func bullpen() -> void:
 			label = "CLEAR THE PEN"
 		elif kind == "squad":
 			label = "LET OUT A WHOLE SQUAD"
+		elif kind == "tough":
+			label = "LET OUT THE NEXT TOUGH GUY"
+		elif kind == "variant":
+			label = "LET OUT THE NEXT ODDBALL"
 		else:
 			label = "LET OUT A " + String(L.NAMES[kind])
-		lever("pen-" + kind, at.x, at.y, label, kind, PI)
+		lever("pen-" + kind, at.x, at.y, label, kind, L.pen_facing(i))
 	# Cover for the locals to use: crates, bales, a wreck, sandbags.
 	for p in [Vector2(74.5, 64.5), Vector2(80.5, 71.5), Vector2(87.5, 63.5), Vector2(91.5, 69.5)]:
 		b.crate_stack(p.x, p.y, 1.1)

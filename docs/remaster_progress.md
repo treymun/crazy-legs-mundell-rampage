@@ -37,8 +37,8 @@ carry `floor_z`; FlowField walks a nav graph with a node per floor over a cell.
   - [x] speedway, hub: reviewed, unchanged (reasons in the handoff)
 - [x] check_all, save fixtures (v8 + *_layoutN), picture and GPU references rewritten; CI green
 - [x] first_minutes whole on every changed chapter (all finish; bayou needed two nav fixes)
-- [ ] Performance (bench.gd, --view-bench) old vs new
-- [~] REMASTER_HANDOFF.md (results and performance to fill)
+- [x] Performance (bench.gd, --view-bench) old vs new: geometry levels tick 5-12% slower, shader view +5% (handoff "Performance")
+- [x] REMASTER_HANDOFF.md
 
 ## Known issues found (not caused here)
 
@@ -48,3 +48,18 @@ carry `floor_z`; FlowField walks a nav graph with a node per floor over a cell.
   as shipped, 16 racks); the other 14 racks appear when that art is made.
 - Two clones running check_all at once share OS cache files: boss rematch
   checks can fail (passes alone).
+
+## Range update (owner's request during the remaster)
+
+- [x] 30 guns racked: store wall (geometry thin wall) with the 14 5v5 guns and
+      throwables; pictures from Blender (scripts/blender/item_pictures.py,
+      tools/art/build_item_art.gd); plaques and plates painted last
+- [x] corral: all eight bosses, a pond for the Swamp King, Maw's fight on the
+      range (features/mothership.gd on_range)
+- [x] bullpen: west lever bank with every newer hand, tough guys and oddballs
+- [x] bowling: src/range_bowling.gd (pin bodies, lean, capsules, hook, gutter,
+      pit, pinsetter, ten-frame scoring), pin pictures tipped and lying
+- [x] range_check extended; tools/range_frames.gd pictures in
+      docs/remaster/range/update/
+- Perf note: the walk test's grid shortcut was taken out again (it changed
+  play on the bayou: fixture heights over water); the query early-outs stay.

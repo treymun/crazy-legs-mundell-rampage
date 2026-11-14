@@ -16,12 +16,16 @@
 ## round the player all the way to the escape outhouse.
 ##
 ## The level gives the pods' places (boss_decoys); the middle of the chamber and
-## its reach come from them. The ship's coloured lights come from the glowing
-## boards the plan put up (LIGHTS). Saved: whether she has fallen. Her phase
+## its reach come from them. On the firing range she is let out into the
+## corral by a lever: the fight runs there from the corral's own pods
+## (range_layout.gd MAW_PODS), without the ship to come apart after. The
+## ship's coloured lights come from the glowing boards the plan put up
+## (LIGHTS). Saved: whether she has fallen. Her phase
 ## follows her health; the crew she called are the posse feature's to keep.
 extends GameFeature
 
 const LEVEL := "mothership"
+const RANGE := preload("res://src/range_layout.gd")
 const BOSS := "maw"
 const TRACK := "boss_mothership"
 ## Her picks, phase by phase, taken in turn by her attack count.
@@ -120,6 +124,8 @@ var said := 0
 var music_check := 0.0
 ## Beam emitters' places and heights: each throws a column of light to the deck.
 var emitters: Array = []
+## On the firing range: Maw comes and goes by the corral's levers.
+var on_range := false
 
 
 func id() -> String:
@@ -127,12 +133,28 @@ func id() -> String:
 
 
 func attach() -> void:
+	if game.level != null and game.level.id == RANGE.ID:
+		on_range = true
+		pods = RANGE.MAW_PODS.duplicate()
+		_take_pods()
+		game.ticked.connect(_tick)
+		game.enemy_killed.connect(_killed)
+		return
 	if game.level.id != LEVEL:
 		return
 	for e: Enemy in game.wave:
 		if e.kind == BOSS:
 			maw = e
 	pods = game.world.boss_decoys.duplicate()
+	_take_pods()
+	_light_the_ship()
+	game.ticked.connect(_tick)
+	game.station_done.connect(_station)
+	game.enemy_killed.connect(_killed)
+
+
+## The middle of her chamber and her reach, from the pods round it.
+func _take_pods() -> void:
 	if not pods.is_empty():
 		var sum := Vector2.ZERO
 		for p: Vector2 in pods:
@@ -143,13 +165,31 @@ func attach() -> void:
 			reach = minf(reach, center.distance_to(p) - 1.2)
 	elif maw != null:
 		center = Vector2(maw.x, maw.y)
-	_light_the_ship()
-	game.ticked.connect(_tick)
-	game.station_done.connect(_station)
-	game.enemy_killed.connect(_killed)
+
+
+## The range: a Maw let out into the corral is the one fought; gone (cleared,
+## or down and her fall done), the fight forgets her.
+func _range_maw() -> void:
+	if maw != null and not maw in game.enemies:
+		maw = null
+	if maw == null:
+		for e: Enemy in game.enemies:
+			if e.kind == BOSS and e.alive:
+				maw = e
+				phase = 1
+				phase_at = -10.0
+				pending = ""
+				winding = false
+				rings.clear()
+				cracks.clear()
+				pins.clear()
+				fallen_at = -1.0
+				break
 
 
 func save() -> Dictionary:
+	if on_range:
+		return {}
 	return {"fallen": true} if fallen_at >= 0.0 else {}
 
 
@@ -221,10 +261,15 @@ func _station(station_id: String) -> void:
 
 
 func _tick(dt: float) -> void:
+	if on_range:
+		_range_maw()
 	if maw == null:
 		return
 	if fallen_at >= 0.0:
-		_coming_apart()
+		if on_range:
+			maw = null
+		else:
+			_coming_apart()
 		return
 	if not _fighting():
 		return

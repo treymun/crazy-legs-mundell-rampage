@@ -1,12 +1,13 @@
 ## The firing range's targets (src/range_layout.gd says where): boards, gongs,
-## straw dummies and plywood cows that spin and swing when hit, the ten pins
-## of the bowling alley, and the duck gallery's movers. None of them is in the
+## straw dummies and plywood cows that spin and swing when hit, the bowling
+## alley's lane (range_bowling.gd), and the duck gallery's movers. None of them is in the
 ## level's walls: a bullet is tested against them along its trace (the game's
 ## `traced` event) and a projectile as it flies, and they keep the score the
 ## range's cards show. Looks only: its own dice, never the game's.
 extends RefCounted
 
 const L := preload("res://src/range_layout.gd")
+const Bowling := preload("res://src/range_bowling.gd")
 ## Inches in a map cell, for groupings (a cell is about a yard).
 const INCHES := 36.0
 
@@ -14,16 +15,14 @@ var dice := RandomNumberGenerator.new()
 ## Each: {id, station, kind, x, y, hits, spin (seconds left), last [gun, damage,
 ## distance, offset in cells], offsets (the last six), dps: [[clock, damage]]}.
 var targets: Array = []
-## Each pin: {home, x, y, down, vx, vy}.
-var pins: Array = []
-## The roll in progress: when the first pin went, how many were down before.
-var roll_started := -1.0
-var roll_before := 0
-var rolls := 0
-var strikes := 0
-var spares := 0
-var last_roll := ""
-var rack_at := -1.0
+## The Bowl-O-Rama: its pins, ball, pinsetter and score sheet.
+var bowling := Bowling.new()
+## The newest ball seen thrown (its uid), the thrower's heading a tick ago and
+## how fast they have been turning (radians a second, smoothed over a tenth of
+## a second): how they turned as they let go is the ball's hook.
+var last_ball := 0
+var last_angle := 0.0
+var turn_rate := 0.0
 ## The gallery: movers {row, x, dir, down_until}, the round.
 var movers: Array = []
 var gallery_on := false
@@ -57,7 +56,6 @@ func _init() -> void:
 				}
 			)
 		)
-	rack()
 	for r in L.GALLERY_ROWS.size():
 		for k in 3:
 			(
@@ -73,22 +71,13 @@ func _init() -> void:
 			)
 
 
+## The lever: a fresh rack and a new game.
 func rack() -> void:
-	pins.clear()
-	for spot: Vector2 in L.pins():
-		pins.append({"home": spot, "x": spot.x, "y": spot.y, "down": false, "vx": 0.0, "vy": 0.0})
-	roll_started = -1.0
-	roll_before = 0
-	rolls = 0
-	rack_at = -1.0
+	bowling.new_game()
 
 
 func pins_down() -> int:
-	var n := 0
-	for pin: Dictionary in pins:
-		if bool(pin["down"]):
-			n += 1
-	return n
+	return bowling.pins_down()
 
 
 func reset_targets() -> void:
@@ -151,21 +140,18 @@ func trace(game, s: Vector3, e: Vector3, gun: int, damage: float) -> Dictionary:
 		if hit2.x >= 0.0 and hit2.x < best_t:
 			best_t = hit2.x
 			best = m
-	for pin: Dictionary in pins:
-		if bool(pin["down"]):
-			continue
-		var hit3 := crossing(s, e, pin["x"], pin["y"], .25, .25, .1)
-		if hit3.x >= 0.0 and hit3.x < best_t:
-			best_t = hit3.x
-			best = pin
+	var pin_hit := bowling.shot_at(s, e, crossing)
+	if not pin_hit.is_empty() and float(pin_hit["t"]) < best_t:
+		best_t = float(pin_hit["t"])
+		best = {"pin": pin_hit["pin"]}
 	if best.is_empty():
 		return {}
 	var distance := Vector2(e.x - s.x, e.y - s.y).length() * best_t
 	if best.has("row"):
 		_gallery_hit(game, best)
 		return {"gallery": true}
-	if best.has("home"):
-		_knock(game, best, Vector2(e.x - s.x, e.y - s.y).normalized() * 1.4)
+	if best.has("pin"):
+		bowling.shot_knock(game, best["pin"], Vector2(e.x - s.x, e.y - s.y), damage)
 		return {"pin": true}
 	_struck(game, best, gun, damage, distance, miss)
 	return best
@@ -216,27 +202,23 @@ func blast(game, x: float, y: float) -> void:
 			t["spin"] = 1.2
 			t["hits"] = int(t["hits"]) + 1
 			t["last"] = [game.armory.active, -1.0, d, 0.0]
-	for pin: Dictionary in pins:
-		var away := Vector2(pin["x"] - x, pin["y"] - y)
-		if not bool(pin["down"]) and away.length() < 2.4:
-			_knock(game, pin, away.normalized() * 2.5)
+	bowling.blast(game, x, y)
 
 
 ## Projectiles in flight: a bowling ball takes pins, anything else that
 ## would burst bursts on a target, a blade sails through it.
-func shots(game) -> void:
+func shots(game, dt: float) -> void:
 	var burst: Array = []
 	for shot in game.shots:
 		if shot.enemy:
 			continue
 		var key: int = shot.get_instance_id()
 		if shot.kind == "bowling":
-			for pin: Dictionary in pins:
-				if (
-					not bool(pin["down"])
-					and Vector2(pin["x"] - shot.x, pin["y"] - shot.y).length() < .2
-				):
-					_knock(game, pin, Vector2(shot.vx, shot.vy).normalized() * 2.0)
+			if shot.uid > last_ball:
+				last_ball = shot.uid
+				bowling.thrown(shot, turn_rate)
+			if shot.uid == bowling.ball_uid:
+				bowling.roll_ball(game, shot, dt)
 		for t: Dictionary in targets:
 			var spec: Array = L.TARGET_KINDS[t["kind"]]
 			var floor_z: float = game.world.elevation(t["x"], t["y"])
@@ -264,69 +246,6 @@ func shots(game) -> void:
 		game.shots.erase(shot)
 	if counted.size() > 400:
 		counted.clear()
-
-
-# ------------------------------------------------------------------- bowling
-
-
-func _knock(game, pin: Dictionary, push: Vector2) -> void:
-	if bool(pin["down"]):
-		return
-	pin["down"] = true
-	pin["vx"] = push.x + dice.randf_range(-.5, .5)
-	pin["vy"] = push.y + dice.randf_range(-.5, .5)
-	if roll_started < 0.0:
-		# One clatter for the roll: the first pin down sets the rest going.
-		roll_started = game.clock
-		game.sound_at("range_pin_scatter", pin["x"], pin["y"], .55)
-	# It takes the ones behind it down with it, most of the time.
-	for other: Dictionary in pins:
-		if bool(other["down"]) or other == pin:
-			continue
-		var gap := Vector2(other["x"] - pin["x"], other["y"] - pin["y"])
-		if gap.length() < L.PIN_GAP * 1.25 and gap.dot(push) > 0.0 and dice.randf() < .8:
-			_knock(game, other, push * .9)
-
-
-## Pins slide and settle; a roll is scored once they have; the deck is racked
-## again after a strike or a frame's second roll.
-func tick_pins(game, dt: float) -> void:
-	for pin: Dictionary in pins:
-		if bool(pin["down"]):
-			pin["x"] = float(pin["x"]) + float(pin["vx"]) * dt
-			pin["y"] = float(pin["y"]) + float(pin["vy"]) * dt
-			pin["vx"] = float(pin["vx"]) * exp(-dt * 4.0)
-			pin["vy"] = float(pin["vy"]) * exp(-dt * 4.0)
-			pin["x"] = clampf(pin["x"], 44.1, 48.9)
-			pin["y"] = clampf(pin["y"], L.PIN_HEAD.y - 4.2, L.PIN_HEAD.y + 1.0)
-	if rack_at > 0.0 and game.clock >= rack_at:
-		rack()
-		game.sound_at("menu_accept", L.PIN_HEAD.x, L.PIN_HEAD.y, .5)
-		return
-	if roll_started < 0.0 or game.clock - roll_started < 2.2:
-		return
-	var down := pins_down()
-	var this_roll := down - roll_before
-	rolls += 1
-	roll_started = -1.0
-	if rolls == 1 and down == pins.size():
-		strikes += 1
-		last_roll = "STRIKE! ALL TEN"
-		game.callout = "STRIKE!"
-		game.callout_until = game.clock + 1.6
-		game.sound.play("range_strike", .8)
-		rack_at = game.clock + 1.8
-	elif rolls == 2 and down == pins.size():
-		spares += 1
-		last_roll = "SPARE! %d ON THE SECOND BALL" % this_roll
-		game.callout = "SPARE!"
-		game.callout_until = game.clock + 1.3
-		rack_at = game.clock + 1.8
-	else:
-		last_roll = "%d PIN%s DOWN" % [this_roll, "" if this_roll == 1 else "S"]
-		if rolls >= 2:
-			rack_at = game.clock + 1.8
-	roll_before = down
 
 
 # ------------------------------------------------------------------- gallery
@@ -413,19 +332,8 @@ func sprites(game) -> Array:
 				# A gong swings, a dummy rocks.
 				sprite.x = x + sin(spin * 22.0) * spin * .12
 		out.append(sprite)
-	for pin: Dictionary in pins:
-		if not game.in_view(pin["x"], pin["y"], .5):
-			continue
-		var down := bool(pin["down"])
-		out.append(
-			Renderer.Sprite.new(
-				pin["x"],
-				pin["y"],
-				"town_range_pin_down" if down else "town_range_pin",
-				.2 if down else .5,
-				game.world.elevation(pin["x"], pin["y"])
-			)
-		)
+	var eye: Player = game.local_player
+	out.append_array(bowling.sprites(game, Vector2(eye.x, eye.y)))
 	for m: Dictionary in movers:
 		var row: Array = L.GALLERY_ROWS[m["row"]]
 		if game.clock < float(m["down_until"]) or not game.in_view(m["x"], row[0], .5):
@@ -441,6 +349,9 @@ func tick(game, dt: float) -> void:
 	for t: Dictionary in targets:
 		if float(t["spin"]) > 0.0:
 			t["spin"] = maxf(0.0, float(t["spin"]) - dt)
-	tick_pins(game, dt)
+	bowling.tick(game, dt)
 	tick_gallery(game, dt)
-	shots(game)
+	var turn := wrapf(game.player.angle - last_angle, -PI, PI) / maxf(dt, .001)
+	turn_rate += (turn - turn_rate) * minf(1.0, dt * 10.0)
+	last_angle = game.player.angle
+	shots(game, dt)
