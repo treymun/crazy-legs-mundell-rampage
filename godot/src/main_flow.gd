@@ -929,6 +929,9 @@ func net_match_game(info: Dictionary) -> Game:
 	var slot := int(info.get("slot", 0))
 	if slot > 0 and slot < made.players.size():
 		Players.set_local(made, made.players[slot])
+	if net != null:
+		# The lobby's CHATTER caps each player's own (presentation only).
+		made.chatter = mini(made.chatter, int(net.settings.get("chatter", CussLines.CUSSIN)))
 	return made
 
 

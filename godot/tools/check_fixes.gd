@@ -263,8 +263,8 @@ func _run() -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 56 + KeyBindings.ACTIONS.size(),
-		"all 56 settings and every control's key are on a page"
+		seen.size() == 57 + KeyBindings.ACTIONS.size(),
+		"all 57 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
 	var kept := true
@@ -649,6 +649,8 @@ func _run() -> void:
 	preload("res://tools/arena_check.gd").run(main, check)
 	# Squads, idle life, the tougher variants and each chapter's tough guy.
 	preload("res://tools/squad_check.gd").run(main, check)
+	# CHATTER: the cuss pack's lines for the hands, Mundell and the 5v5 bots.
+	preload("res://tools/chatter_check.gd").run(main, check)
 	# The multiplayer foundation: two players, snapshots, determinism (the
 	# quick part; net_check.gd on its own plays every chapter longer).
 	preload("res://tools/net_check.gd").run(main, check)

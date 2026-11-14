@@ -380,7 +380,11 @@ class Barks:
 
 	func say(game, category: String, force := false) -> bool:
 		# The local player's mouth (another player's kill is not ours to crow).
-		if not enabled or game.player != game.local_player:
+		if game.player != game.local_player:
+			return false
+		# With CHATTER on, Mundell says a cuss pack line aloud where one is made.
+		var spoken := _spoken(game, category)
+		if not enabled and spoken.is_empty():
 			return false
 		var now: float = game.clock
 		if (
@@ -391,6 +395,8 @@ class Barks:
 			)
 		):
 			return false
+		if not spoken.is_empty():
+			return _speak(game, category, spoken, now)
 		var pool: Array = LINES[category]
 		var choices: Array = []
 		for line in pool:
@@ -407,6 +413,32 @@ class Barks:
 		if category == "kill" or category == "streak":
 			if _rand() < .35:
 				game.sound.play("yee_haw_alt" if _rand() < .5 else "yee_haw", .7)
+		return true
+
+	## Mundell's cuss pack lines for `category` whose cue is made ([n, text]),
+	## [] with CHATTER off.
+	func _spoken(game, category: String) -> Array:
+		var chatter := int(game.chatter)
+		if chatter == CussLines.OFF or game.sound == null:
+			return []
+		var out: Array = []
+		var pool := CussLines.lines("mundell", "", category)
+		for n in pool.size():
+			if game.sound.has(CussLines.cue("mundell", category, n, chatter)):
+				out.append([n, String(pool[n])])
+		return out
+
+	func _speak(game, category: String, spoken: Array, now: float) -> bool:
+		var pick: Array = spoken[clampi(int(_rand() * spoken.size()), 0, spoken.size() - 1)]
+		if spoken.size() > 1 and pick[1] == last_line.get(category):
+			pick = spoken[(spoken.find(pick) + 1) % spoken.size()]
+		var chatter := int(game.chatter)
+		game.sound.play(CussLines.cue("mundell", category, int(pick[0]), chatter), .95)
+		last_line[category] = pick[1]
+		last_at[category] = now
+		next_any = now + GLOBAL_GAP
+		text = CussLines.caption(String(pick[1]), chatter).to_upper() if enabled else ""
+		until = now + SHOW_FOR if enabled else 0.0
 		return true
 
 	func kill(game) -> void:
@@ -779,6 +811,9 @@ var barks: Barks
 var duck := 0.0
 var cheats: Cheats
 var barks_off_by_code := false
+## The CHATTER setting (CussLines: OFF, CLEAN, CUSSIN'): what the hands, the
+## 5v5 bots and Mundell say aloud. Presentation only.
+var chatter := CussLines.CUSSIN
 var last_low_bark := 0.0
 var clock := 0.0
 var spawn_grace := 3.2

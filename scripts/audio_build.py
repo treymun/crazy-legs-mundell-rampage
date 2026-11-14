@@ -346,6 +346,75 @@ def spoken(name: str, caption: str) -> tuple[float, float] | str:
     return f"says {heard['text']!r}, caption is {caption!r}"
 
 
+# Where each cuss line's starred words sit in its built cue (samples), for
+# its CLEAN copy (spec how="bleep"): filled as the lines are built.
+BLEEPS: dict[str, list[tuple[int, int]]] = {}
+
+
+def bleep_times(name: str, words: list[str], within: tuple[float, float]) -> list[tuple[float, float]]:
+    """The seconds each of `words` is said at in the recording (its transcript)."""
+    path = GEN / "stt" / f"{name}.json"
+    if not path.is_file() or not words:
+        return []
+    heard = json.loads(path.read_text(encoding="utf-8"))
+    plain = lambda text: "".join(ch for ch in text.lower() if ch.isalpha() or ch == "'")
+    wanted = [plain(w) for w in words]
+    out = []
+    for w in heard["words"]:
+        said = plain(w["text"])
+        if within[0] - .01 <= w["start"] <= within[1] + .01 and any(
+                said == want or said.startswith(want) or want.startswith(said) and len(said) > 2
+                for want in wanted):
+            out.append((float(w["start"]), float(w["end"])))
+    return out
+
+
+def cover_sound(n: int, kind: str) -> np.ndarray:
+    """A duck call ("duck": a nasal wak-wak) or a clown horn ("horn"), n samples."""
+    t = np.arange(n) / RATE
+    if kind == "horn":
+        bend = 1.0 + .03 * np.sin(2 * np.pi * 5.5 * t)
+        x = sum(np.sign(np.sin(2 * np.pi * np.cumsum(np.full(n, f) * bend) / RATE)) for f in (349.0, 440.0))
+        x = band(x * .5, 300, 3500)
+        edge = np.minimum(1.0, np.minimum(t / .012, (t[-1] - t + 1e-9) / .02))
+        return x * edge
+    # A wak every .17 s, each falling in pitch, through a nasal band.
+    x = np.zeros(n)
+    step = int(.17 * RATE)
+    for at in range(0, n, step):
+        m = min(n - at, int(.15 * RATE))
+        tt = np.arange(m) / RATE
+        f = 560.0 * (1.0 - .35 * tt / .15)
+        phase = np.cumsum(f) / RATE
+        saw = 2.0 * (phase % 1.0) - 1.0
+        env = np.minimum(1.0, tt / .008) * np.exp(-tt / .07)
+        x[at: at + m] += saw * env
+    return band(x, 650, 3200)
+
+
+def bleeped(x: np.ndarray, spans: list[tuple[int, int]], kind: str) -> np.ndarray:
+    """`x` with every span covered by `kind`, as loud as the words it covers."""
+    out = x.copy()
+    whole = float(np.sqrt(np.mean(x ** 2)) + 1e-9)
+    for s, e in spans:
+        s = max(0, s - int(.012 * RATE))
+        e = min(len(x), e + int(.025 * RATE))
+        if e - s < int(.05 * RATE):
+            e = min(len(x), s + int(.05 * RATE))
+        part = x[s:e]
+        loud = max(float(np.sqrt(np.mean(part ** 2))), whole) * 1.1
+        cover = cover_sound(e - s, kind)
+        cover *= loud / (float(np.sqrt(np.mean(cover ** 2))) + 1e-9)
+        fade = min(int(.006 * RATE), (e - s) // 4)
+        ramp = np.ones(e - s)
+        if fade > 0:
+            ramp[:fade] = np.linspace(0, 1, fade)
+            ramp[-fade:] = np.linspace(1, 0, fade)
+        out[s:e] = part * (1 - ramp) + cover * ramp
+    peak = float(np.max(np.abs(out)) + 1e-9)
+    return out * min(1.0, .97 / peak)
+
+
 def old_seconds(name: str, inventory: dict) -> float | None:
     cue = inventory["cues"].get(name)
     return float(cue["seconds"]) if cue else None
@@ -372,6 +441,16 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
         return None, {"status": "missing source", **recipe}
     keep = entry.get("keep") or was or 1.0
     how = entry.get("how", "")
+    if how == "bleep":
+        base = done.get(entry["base"])
+        spans = BLEEPS.get(entry["base"])
+        if base is None or spans is None:
+            return None, {"status": "base not built", **recipe}
+        if not spans:
+            return None, {"status": "no cuss word found in the base's transcript", **recipe}
+        kind = entry.get("with", "duck")
+        recipe["derived"] = f"{entry['base']} with {len(spans)} word(s) under a {kind}"
+        return bleeped(base, spans, kind), {"status": "built", **recipe}
     if how == "room":
         base = done.get(entry["base"])
         if base is None:
@@ -389,6 +468,9 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
             b = min(len(x), int((found[1] + .14) * RATE))
             x = x[a:b]
             recipe["words_at"] = [round(found[0], 2), round(found[1], 2)]
+            cuss = bleep_times(name, entry.get("bleep", []), found)
+            if entry.get("bleep"):
+                recipe["cuss_at"] = [[round(s, 2), round(e, 2)] for s, e in cuss]
         hits = events(x)
         if not hits:
             return None, {"status": "source is silent", **recipe}
@@ -413,6 +495,10 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
             if strong > LEAD * RATE:
                 start += strong - int(LEAD * RATE)
                 recipe["lead_trimmed_ms"] = round((strong / RATE - LEAD) * 1000)
+        if entry.get("bleep"):
+            # In the built cue's samples: the recording from `a`, cut at `start`.
+            BLEEPS[name] = [(int(s * RATE) - a - start, int(e * RATE) - a - start)
+                            for s, e in cuss]
         if chain.get("loop"):
             x = seamless(x[start:], int(keep * RATE), chain["loop"])
         else:
@@ -493,7 +579,7 @@ def measure(name: str, x: np.ndarray, loop: bool) -> dict:
 def build_sfx(inventory: dict, only: list[str] | None = None, previous: dict | None = None) -> dict:
     done: dict[str, np.ndarray] = {}
     report: dict = {}
-    order = sorted(spec.CUES, key=lambda n: spec.CUES[n].get("how") == "room")
+    order = sorted(spec.CUES, key=lambda n: spec.CUES[n].get("how") in ("room", "bleep"))
     if only:
         # Just these cues; every other one keeps its file and its record.
         kept = (previous or {}).get("cues", {})

@@ -47,6 +47,7 @@ func configure(options: Dictionary) -> void:
 	aim_assist = int(options.get("aim_assist", 0))
 	hit_feedback = bool(options.get("hit_feedback", 1))
 	adaptive = bool(options.get("adaptive", 1))
+	chatter = clampi(int(options.get("chatter", CussLines.CUSSIN)), 0, 2)
 	Renderer.fov_focal = Renderer.FOCAL_FOR[clampi(int(options.get("fov", 0)), 0, 3)]
 	Renderer.base_focal = Renderer.fov_focal
 	shake_scale = [0.0, .5, 1.0][clampi(int(options.get("shake", 2)), 0, 2)]

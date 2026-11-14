@@ -1,6 +1,7 @@
 ## The setup screen's pages: every setting's label, key, default, range and
 ## hint (SessionStore.setup_pages() builds them once and keeps the defaults).
-## A setting's default is how the game played before it existed.
+## A setting's default is how the game played before it existed (CHATTER is
+## the owner's exception: CUSSIN' from the start).
 class_name SetupPages
 extends RefCounted
 
@@ -227,6 +228,13 @@ static func build() -> Array:
 				),
 				SessionStore.toggle(
 					"VOICE CAPTIONS", "voice_captions", 1, "TEXT FOR OVERHEARD LOCAL EXCHANGES"
+				),
+				SessionStore.choices(
+					"CHATTER",
+					"chatter",
+					2,
+					["OFF", "CLEAN", "CUSSIN'"],
+					"WHAT THE HANDS, THE BOTS AND MUNDELL SAY. CLEAN QUACKS OVER THE CUSSIN'"
 				),
 				SessionStore.choices(
 					"SFX STEREO WIDTH",

@@ -140,6 +140,12 @@ DESIGNS = {
              "grumbling, with a thick Ozark accent. Close, dry studio recording.",
              "Back in my day we didn't have no fancy alien cows, we had regular cows, and we liked 'em. "
              "Now git off my porch before I fetch the rock salt and learn you some manners."),
+    # Mundell himself, for the cuss pack (CHATTER): an original voice.
+    "mundell": ("A wiry, wild-eyed Southern country man in his thirties, the hero of a rowdy shoot-'em-up: "
+                "a twangy, raspy, quick-talking hillbilly voice, cocky, gleeful and a little unhinged, "
+                "with a thick Arkansas accent. Close, dry studio recording.",
+                "Well hot dang, look at this mess. Somebody done stole my cow, shot up my truck and drank "
+                "every last jar in the cellar. Reckon I'll just have to go and get it all back myself."),
     "grey": ("A small B-movie grey alien speaking in a high, buzzing, nasal monotone with a slight electronic "
              "warble, comically officious and fussy. Close, dry studio recording.",
              "Attention, earthling. You are in violation of interstellar livestock regulations. Remain "

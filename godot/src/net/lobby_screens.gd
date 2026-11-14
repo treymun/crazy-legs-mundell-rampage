@@ -34,7 +34,8 @@ const RIGHT_KEYS := [
 	"start_money",
 	"max_players",
 	"late_join",
-	"pick_teams"
+	"pick_teams",
+	"chatter"
 ]
 const RED := Color8(214, 86, 64)
 const GREEN := Color8(132, 206, 96)

@@ -18,6 +18,7 @@ scripts/audio_build.py. Nothing here costs money: scripts/audio_produce.py
 turns the G and V entries into paid requests through the budget ledger.
 """
 from __future__ import annotations
+import re
 
 STYLE = {
     # appended to every prompt of the family
@@ -952,6 +953,48 @@ add("voice", **{f"bark_{who}_{moment}_{n}": _bark(f"bark_{who}_{moment}_{n}", te
                 for who, moments in BARKS.items()
                 for moment, lines in moments.items()
                 for n, text in enumerate(lines)})
+
+# The CUSS PACK (CHATTER: CUSSIN' / CLEAN / OFF, features/enemy_barks.gd,
+# features/chatter.gd), from godot/data/tuning/cuss_lines.json (the game reads it
+# too). All original. Crude, never slurs, hate, sex or real people. *Starred*
+# words are the cuss words: the CLEAN build covers each with a duck call or a
+# horn (scripts/audio_build.py, from the transcript's word times), and the
+# CLEAN caption shows them as #@!%.
+import json as _json  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
+
+_CUSS = _json.loads((_Path(__file__).resolve().parent.parent / "godot" / "data" / "tuning" / "cuss_lines.json")
+                    .read_text(encoding="utf-8"))
+CUSS = _CUSS["enemies"]
+# Mundell's own mouth (game_state.gd Barks: the PLAYER ONE-LINERS moments),
+# in a voice of his own (scripts/audio_produce.py DESIGNS "mundell").
+CUSS_MUNDELL = _CUSS["mundell"]
+# The 5v5 and 2v2 bots (features/chatter.gd): the outlaws in the hick's voice,
+# the deputies in the deputy's; they also use the hands' lines above.
+CUSS_TACTICAL = _CUSS["tactical"]
+
+
+def _cuss(text, who):
+    words = re.findall(r"\*([^*]+)\*", text)
+    plain = text.replace("*", "")
+    say = plain.replace("hooman", "human") if who == "grey" else plain
+    return V(plain, who, bleep=words, **({"heard": say} if say != plain else {}))
+
+
+add("voice", **{f"cuss_{who}_{moment}_{n}": _cuss(text, who)
+                for who, moments in CUSS.items()
+                for moment, lines in moments.items()
+                for n, text in enumerate(lines)})
+add("voice", **{f"cuss_mundell_{moment}_{n}": _cuss(text, "mundell")
+                for moment, lines in CUSS_MUNDELL.items()
+                for n, text in enumerate(lines)})
+add("voice", **{f"cuss_{who}_{moment}_{n}": _cuss(text, who)
+                for who, moments in CUSS_TACTICAL.items()
+                for moment, lines in moments.items()
+                for n, text in enumerate(lines)})
+# Each cuss line's CLEAN copy: the cuss words under a duck call or a horn, by turns.
+add("voice", **{f"{name}_clean": D(name, "bleep", **{"with": "duck" if i % 2 == 0 else "horn"})
+                for i, name in enumerate(sorted(n for n in CUES if n.startswith("cuss_")))})
 
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
 BAND = ("Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven "

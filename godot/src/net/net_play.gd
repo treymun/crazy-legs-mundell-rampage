@@ -54,6 +54,7 @@ const LOBBY_ROWS := [
 	["max_players", "ROOM FOR", [2, 4, 6, 8, 10], ["2", "4", "6", "8", "10"]],
 	["late_join", "LATE JOIN", [true, false], ["ON", "OFF"]],
 	["pick_teams", "TEAMS", [true, false], ["PLAYERS PICK", "HOST BALANCES"]],
+	["chatter", "CHATTER", [2, 1, 0], ["EACH'S OWN", "CLEAN AT MOST", "OFF"]],
 ]
 const MATCH_ROWS := [
 	["mode", "MODE", ["bomb", "hostage"], ["SEARCH AND DESTROY", "HOSTAGE RESCUE"]],
@@ -95,6 +96,7 @@ const DEFAULTS := {
 	"max_players": 10,
 	"late_join": true,
 	"pick_teams": true,
+	"chatter": 2,
 	"mode": "bomb",
 	"map": "grainyard",
 	"rounds": 7,

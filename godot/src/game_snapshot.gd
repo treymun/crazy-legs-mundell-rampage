@@ -169,6 +169,7 @@ const VIEW_FIELDS := [
 	"barks",
 	"duck",
 	"barks_off_by_code",
+	"chatter",
 	"last_low_bark",
 	"face_until",
 	"message_until",
