@@ -313,7 +313,19 @@ const NOTHING: Array = []
 func near_items(x: float, y: float) -> Array:
 	if x < 0.0 or y < 0.0 or x >= width or y >= height:
 		return NOTHING
-	return _index.get(int(y) * width + int(x), NOTHING)
+	var c := int(y) * width + int(x)
+	if cells[c] == 0:
+		return NOTHING
+	return _index.get(c, NOTHING)
+
+
+## Whether nothing of the geometry is within reach of (x, y): its answers are
+## the grid's own there (the fast way, for the most of every level). Cells are
+## marked out to PAD each way, so it holds for a body narrower than PAD.
+func clear_at(x: float, y: float) -> bool:
+	return (
+		x >= 0.0 and y >= 0.0 and x < width and y < height and cells[int(y) * width + int(x)] == 0
+	)
 
 
 ## The highest floor under feet at z at (x, y): the cell's ground (`ground`,
@@ -337,6 +349,8 @@ func floor_at(x: float, y: float, z: float, ground: float, open: bool) -> float:
 ## it (a body half off a deck's edge still stands on the deck until it is clear
 ## of it, then falls).
 func support(x: float, y: float, r: float, feet: float, ground: float) -> float:
+	if r < PAD and clear_at(x, y):
+		return ground
 	var best := floor_at(x, y, feet, ground, true)
 	for k in 4:
 		var px := x + (r if k & 1 else -r)
@@ -349,7 +363,7 @@ func support(x: float, y: float, r: float, feet: float, ground: float) -> float:
 ## ceiling): INF when nothing of the geometry is over it.
 func ceiling_at(x: float, y: float, z: float) -> float:
 	var best := INF
-	if x < 0.0 or y < 0.0 or x >= width or y >= height:
+	if x < 0.0 or y < 0.0 or x >= width or y >= height or cells[int(y) * width + int(x)] == 0:
 		return best
 	for item in _over.get(int(y) * width + int(x), NOTHING):
 		if item is Slab:

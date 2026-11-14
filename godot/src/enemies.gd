@@ -917,7 +917,7 @@ func tick(dt: float, game) -> void:
 	var goal: float = COMFORT[kind]
 	var approach := atan2(ty2 - y, tx2 - x)
 	var strafe := PI / 2.0 if (attacks + int(pose / 1.45) + int(y)) % 2 else -PI / 2.0
-	var lost: bool = not can_see or game.world.apart(self, p)
+	var lost: bool = not can_see or game.world.geo != null and game.world.apart(self, p)
 	if hunting and lost and game.clock < hunt_until and game.flow != null:
 		# Out of sight: come round by the open floor, not straight at the wall.
 		var lead: float = game.flow.heading(x, y, floor_z)

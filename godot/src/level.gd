@@ -1177,7 +1177,7 @@ func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> b
 			wz = float(z) + (float(zz) - float(z)) * t
 		if blocked(sx, sy, .023, wz):
 			return false
-		if geo != null and wz != null:
+		if geo != null and wz != null and geo.cells[int(sy) * width + int(sx)] != 0:
 			# A steep look can step over a deck thinner than one step climbs.
 			var bt := float(i - 1) / float(n)
 			var bz := float(z) + (float(zz) - float(z)) * bt
@@ -1237,6 +1237,8 @@ func deep_at(x: float, y: float) -> bool:
 
 func _can_walk(body, x: float, y: float, radius: float, occupied) -> bool:
 	if geo != null:
+		# Format 2: the 3D test everywhere (the grid's own below differs from it
+		# by fixture heights, over water say, so it is never a short cut).
 		return geo.can_walk(self, body, x, y, radius, occupied)
 	if blocked(x, y, radius):
 		return false
@@ -1401,7 +1403,10 @@ func _take_geometry(block) -> void:
 ## that is not a body with a floor (a point, a piece of scenery) gets the
 ## cell's ground, as elevation() gives it.
 func stand(body) -> float:
-	if geo == null or not (body is Player or body is Enemy):
+	if geo == null:
+		# elevation() written out: this is asked thousands of times a tick.
+		return ground[int(body.y) * width + int(body.x)]
+	if not (body is Player or body is Enemy):
 		return elevation(body.x, body.y)
 	var c := _cell_near(body.x, body.y)
 	var r: float = body.radius if body is Enemy else .2
@@ -1411,7 +1416,7 @@ func stand(body) -> float:
 ## The highest floor at (x, y) at or below z (the cell's ground without geometry).
 func floor_under(x: float, y: float, z: float) -> float:
 	if geo == null:
-		return elevation(x, y)
+		return ground[int(y) * width + int(x)]
 	var c := _cell_near(x, y)
 	return geo.floor_at(x, y, z - LevelGeometry.STEP, ground[c], true)
 
