@@ -6,7 +6,7 @@ config_version=5
 
 config/name="Crazy Legs Mundell Rampage"
 config/description="Port of the 320x200 software-rendered FPS."
-config/version="2.0.0-dev.39"
+config/version="2.0.0-dev.40"
 run/main_scene="res://src/Main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icons/icon.png"
