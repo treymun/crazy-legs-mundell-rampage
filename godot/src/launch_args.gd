@@ -20,6 +20,8 @@ static func parse_smoke(m) -> void:
 			m.cpu_look = true
 		elif text == "--cpu-view":
 			m.cpu_view = true
+		elif text == "--view2d":
+			m.view3d_on = false
 		elif text == "--cpu-walls":
 			# The band threads work out every wall span again (render_state.gd gpu_walls).
 			RenderState.wall_walk = false

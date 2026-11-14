@@ -979,6 +979,11 @@ var gpu_look := false
 ## moonshine warp's strength for the shader (0 none).
 var layered := false
 var scene_live := false
+## The 3D view draws this frame (view3d/world_view.gd): the old renderer is
+## skipped and view_frame holds what the 3D view reads (the eye, the horizon,
+## the gun flash, the sprites and marks).
+var view3d := false
+var view_frame := {}
 var drunk_k := 0.0
 ## The red hurt wash (0-255) the display shader lays over the view this frame.
 var hurt_alpha := 0

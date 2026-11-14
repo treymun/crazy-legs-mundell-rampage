@@ -208,6 +208,8 @@ const VIEW_FIELDS := [
 	"gpu_look",
 	"layered",
 	"scene_live",
+	"view3d",
+	"view_frame",
 	"drunk_k",
 	"hurt_alpha",
 	"look_live",

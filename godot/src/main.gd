@@ -265,6 +265,10 @@ func _view_tour() -> void:
 			get_viewport().get_texture().get_image().save_png(
 				"%s/%s_%s.png" % [view_out, String(shot["tag"]), mode]
 			)
+			if world_view != null and mode == "fx":
+				world_view.viewport.get_texture().get_image().save_png(
+					"%s/%s_3d.png" % [view_out, String(shot["tag"])]
+				)
 	get_tree().quit()
 
 

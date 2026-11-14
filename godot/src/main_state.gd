@@ -152,6 +152,10 @@ var gpu_ready := false
 ## the renderer's layers); see scene_layers.gd. --cpu-view keeps it in software.
 var layers: SceneLayers
 var cpu_view := false
+## The 3D view (view3d/world_view.gd) draws the game, with a window; --view2d
+## keeps the old renderer for comparison pictures.
+var view3d_on := true
+var world_view: WorldView3D
 ## The 320x200 viewport the canvas draws into with Godot 2D (see _start_overlay),
 ## and --cpu-canvas, which keeps the canvas in software.
 var overlay: SubViewport
@@ -1217,6 +1221,7 @@ func render() -> void:
 		# One renderer: with a window the shader composes the view, always (the
 		# software view is the fallback when the driver check fails, cpu_look).
 		game.layered = gpu_look and canvas.gpu and not cpu_view
+		game.view3d = view3d_on and game.layered
 		# The frame the start-up check judges (_check_view) is drawn as the
 		# software view draws it: at HIGH (render_state.gd hd_held) and without
 		# lights, glows, fog and grade, which only the shader has (with them a
@@ -1229,6 +1234,7 @@ func render() -> void:
 		# The shader's camera, lights and weather go over while the bands draw.
 		game.scene_hook = layers.early.bind(game) if game.layered else Callable()
 		game.draw(canvas, int(options["crosshair"]), true)
+		_frame_3d()
 		if TacticalScreens.open and Modes.is_tactical(game) and not game.showing_tally:
 			TacticalScreens.draw_shop(canvas, game, Modes.feature(game))
 		CountyScreens.draw_over(canvas, game)  # a COUNTY RUN's HUD, cards and end
@@ -1278,9 +1284,28 @@ func render() -> void:
 	_apply_view()
 
 
+## Hand this frame to the 3D view (made the first time it is wanted) and tell
+## the display shader whether its picture is the view.
+func _frame_3d() -> void:
+	var on := game != null and game.view3d and not game.view_frame.is_empty()
+	if on:
+		if world_view == null:
+			world_view = WorldView3D.new(art)
+			add_child(world_view)
+			palette_material.set_shader_parameter("view3d_tex", world_view.texture())
+		world_view.frame(game)
+		palette_material.set_shader_parameter("view_mul", 2 if game.renderer.detail < 0 else 1)
+		palette_material.set_shader_parameter("haze_count", 0)
+	if world_view != null:
+		world_view.viewport.render_target_update_mode = (
+			SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
+		)
+	palette_material.set_shader_parameter("view3d_on", on)
+
+
 ## The start-up check of the shader's picture is still to come (_check_view).
 func _view_unchecked() -> bool:
-	if view_check != 0 or touring or state != "play" or game == null:
+	if view_check != 0 or touring or state != "play" or game == null or game.view3d:
 		return false
 	if game.clock < .35:
 		return false

@@ -42,6 +42,10 @@ uniform bool overlay_on = false;
 uniform bool base_on = false;
 // The canvas (weapon, HUD) and how much of each of its pixels is painted.
 uniform sampler2D post_tex : filter_nearest, repeat_disable;
+// With view3d_on the view is the 3D view's picture (view3d/world_view.gd), at
+// the view's own size (320x156, HD 640x312).
+uniform bool view3d_on = false;
+uniform sampler2D view3d_tex : filter_nearest, repeat_disable;
 // Walls. wall_code says, four bytes low to high, which texel of which tile a
 // wall pixel shows (21 bits: tile * 16384 + row * 128 + column) and which
 // shade row lights it (11 bits: tint * 99 + light step); all ones in the shade
@@ -1204,7 +1208,12 @@ vec3 picture_at(ivec2 px, ivec2 fine, vec3 frame) {
 		return o.rgb * 255.0;
 	}
 	vec3 under = vec3(0.0);
-	if (scene_on && px.y < 156) {
+	if (view3d_on && px.y < 156) {
+		if (haze_count > 0) {
+			fine.x = clamp(fine.x + haze_shift(fine), 0, 320 * view_mul - 1);
+		}
+		under = floor(texelFetch(view3d_tex, fine, 0).rgb * 255.0 + 0.5);
+	} else if (scene_on && px.y < 156) {
 		if (haze_count > 0) {
 			fine.x = clamp(fine.x + haze_shift(fine), 0, 320 * view_mul - 1);
 		}

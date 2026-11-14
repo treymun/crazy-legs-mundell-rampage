@@ -592,6 +592,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	tone_live = false
 	hurt_alpha = 0
 	scene_live = false
+	view_frame = {}
 	drunk_k = 0.0
 	c.layer = false
 	if showing_tally:
@@ -625,7 +626,8 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		eye["view_angle"] += view_kick.x
 		eye["pitch"] += view_kick.y
 		eye["eye"] -= view_kick.z
-	renderer.frame_begin(eye, flash)
+	if not view3d:
+		renderer.frame_begin(eye, flash)
 	view_eye = eye
 	var listing := Time.get_ticks_usec()
 	var marks: Array = ground_marks()
@@ -635,8 +637,26 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	marks_list = marks_list + Features.wall_marks(self)
 	var listed: Array = sprites()
 	var t1 := Time.get_ticks_usec()
-	renderer.frame_sprites(listed, reflection(), marks_list, marks)
-	if renderer.layered:
+	if view3d:
+		# The 3D view (view3d/world_view.gd) reads this after the draw.
+		view_frame = {
+			"eye": eye,
+			"horizon":
+			(
+				(VIEW / 2.0 + float(eye["pitch"]) + float(eye["bob"]) + float(eye["sway"]))
+				/ renderer.res_up
+			),
+			"flash": flash,
+			"sprites": listed,
+			"marks": marks_list,
+			"ground": marks,
+		}
+		c.begin_layer()
+	else:
+		renderer.frame_sprites(listed, reflection(), marks_list, marks)
+	if view3d:
+		pass
+	elif renderer.layered:
 		# The display shader composes the view from the renderer's layers; the
 		# weapon and the HUD are painted on an empty layer that goes over it,
 		# and that happens here while the band threads are still drawing.
