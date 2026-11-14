@@ -75,7 +75,7 @@ godot --headless --path godot --script res://tools/net_check.gd       # NET CHEC
 godot --headless --path godot --script res://tools/multi_bots.gd -- players=1,2,4 seconds=60   # MULTI BOTS OK (whole: to the end; mortal; diff=)
 godot --headless --path godot --script res://tools/net_loopback.gd -- seconds=180 lag=50 loss=0.05   # NET LOOPBACK OK (websocket: over WebSocket)
 godot --headless --path godot --script res://tools/mode_check.gd      # MODE CHECK OK (co-op, deathmatch; quick: check_fixes's part)
-godot --headless --path godot --script res://tools/tactical_check.gd -- rounds=3   # TACTICAL CHECK OK (the 5v5 modes, ten bots, every map)
+godot --headless --path godot --script res://tools/tactical_check.gd -- rounds=3   # TACTICAL CHECK OK (the 5v5 modes, ten bots, every map; rules=shotguns etc.)
 godot --headless --path godot --script res://tools/gun_sheet.gd   # the 5v5 guns' numbers side by side (md=<file>)
 godot --headless --path godot --script res://tools/map_timing.gd   # 5v5 maps: run times to sites, bots' routes and holds checked (strict)
 godot --headless --path godot --script res://tools/net_showdown_check.gd   # NET SHOWDOWN OK (online 5v5 lobby to lobby; lag= loss= seconds=)
@@ -1063,6 +1063,16 @@ what a networking pass still needs).
   no errors; prints bandwidth each way, snapshot and input sizes, lag and the
   host's costs. Its quick part (ENet 6 s with 40 ms, jitter and 5% loss;
   WebSocket 2 s) is in check_fixes.
+- **Store rules** (`TacticalShop.RULES`, the mode feature's `store_rules`, a
+  `Modes.HOST_SETTINGS` key): ANY GUNS, SHOTGUNS ONLY, PISTOL PARTY, SNIPER
+  DUEL, ECO WAR (nothing over 1500), BIG MONEY (16000 every round). A rule
+  limits the kinds sold (`by_rules`, inside `allowed`, so the store, the buy
+  check and the bots all follow it), the dearest item, and the cash a round
+  starts with (`rule_cash`: `cash` exact, `least` a floor so the rules' guns
+  are in reach). Bots whose usual buy is not for sale take the dearest gun
+  that is (`rule_pick`). The lobby's RULES row, the picker's RULES row,
+  `--rules=`; `tactical_check.gd -- rules=<id>` checks nobody holds a gun the
+  rules do not sell and that the bots buy the ones they do.
 - **TAG TEAM 2V2** is search and destroy two a side (`Modes.TAGTEAM_MAPS`,
   `TAGTEAM_PLAYERS`, `TAGTEAM_OPTIONS`: first to 9, 1:30 rounds, 15 s buy;
   `Modes.is_tag_team`), not a mode of its own: everything 5v5 applies. Its

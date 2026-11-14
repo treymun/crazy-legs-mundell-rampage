@@ -37,7 +37,9 @@ const SHOP_NAMES := ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=",
 
 ## The title's 5V5 SHOWDOWN picker: its rows (mode, map, match, START), the
 ## match lengths (rounds to win), and what each map and mode is.
-const PICKER_ROWS := 6
+const PICKER_ROWS := 7
+## The picker's LET 'ER RIP row (the online rows after it).
+const PICKER_GO := 4
 ## A 5v5 player's figure, as tall as the hit box (Modes.player_in_line: 1.08).
 const PLAYER_HEIGHT := 1.14
 const MATCH_LENGTHS := [4, 7]
@@ -693,7 +695,9 @@ static func _say(game, text: String) -> void:
 
 
 ## The title's 5V5 SHOWDOWN picker: mode, map, match length, START.
-static func draw_picker(c: Canvas, menu: Menu, row: int, mode: int, map: int, long: int) -> void:
+static func draw_picker(
+	c: Canvas, menu: Menu, row: int, mode: int, map: int, long: int, rules := 0
+) -> void:
 	menu.draw_sheet(c, "SHOWDOWN")
 	var mode_id := String(PICKER_MODES[posmod(mode, PICKER_MODES.size())])
 	var maps := picker_maps(mode)
@@ -708,18 +712,19 @@ static func draw_picker(c: Canvas, menu: Menu, row: int, mode: int, map: int, lo
 		["MODE", title],
 		["MAP", String(MAP_TITLES.get(map_id, map_id.to_upper()))],
 		["MATCH", "FIRST TO %d ROUNDS" % rounds],
+		["RULES", String(TacticalShop.RULE_NAMES[posmod(rules, TacticalShop.RULE_NAMES.size())])],
 		["", "LET 'ER RIP"],
 		["ONLINE", "HOST A LOBBY"],
 		["ONLINE", "JOIN A LOBBY"],
 	]
 	for i in rows.size():
-		var y := 44 + i * 14 + (4 if i >= 3 else 0) + (6 if i >= 4 else 0)
+		var y := 40 + i * 13 + (4 if i >= PICKER_GO else 0) + (6 if i > PICKER_GO else 0)
 		var here := i == posmod(row, PICKER_ROWS)
 		if here:
-			c.fill_rect(19, y - 2, 282, 13 if i != 3 else 17, Canvas.rgb(82, 49, 31))
+			c.fill_rect(19, y - 2, 282, 13 if i != PICKER_GO else 17, Canvas.rgb(82, 49, 31))
 			Menu.shell(c, 22, y + 2)
 		var ink := HUD.AMBER if here else HUD.INK
-		if i >= 4:
+		if i > PICKER_GO:
 			HUD.text(c, String(rows[i][0]), 36, y, "body", Menu.FADED)
 			HUD.text(c, String(rows[i][1]), 196, y, "body", ink, true)
 		elif String(rows[i][0]) != "":
@@ -738,7 +743,7 @@ static func draw_picker(c: Canvas, menu: Menu, row: int, mode: int, map: int, lo
 			if mode_id == "tagteam"
 			else "YOU AND FOUR BOTS AGAINST FIVE. B BUYS IN THE FREEZE."
 		)
-		if posmod(row, PICKER_ROWS) < 4
+		if posmod(row, PICKER_ROWS) <= PICKER_GO
 		else "PLAY WITH FRIENDS ANYWHERE: HOST, OR JOIN BY CODE."
 	)
 	HUD.text(c, blurb, 160, 170, "mini", HUD.DIM, true)

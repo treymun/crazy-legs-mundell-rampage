@@ -273,13 +273,13 @@ func _key_showdown(code: int) -> void:
 		var step := -1 if code == KEY_UP or code == KEY_W else 1
 		showdown_row = posmod(showdown_row + step, rows)
 		sound.play("menu_move")
-	elif accept and showdown_row == 3:
+	elif accept and showdown_row == TacticalScreens.PICKER_GO:
 		start_showdown()
 		if state == "play":
 			block_fire = true
-	elif accept and showdown_row >= 4:
-		open_net_form(showdown_row == 4)
-	elif showdown_row >= 3:
+	elif accept and showdown_row > TacticalScreens.PICKER_GO:
+		open_net_form(showdown_row == TacticalScreens.PICKER_GO + 1)
+	elif showdown_row >= TacticalScreens.PICKER_GO:
 		pass
 	elif accept or code in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]:
 		var step := -1 if code == KEY_LEFT or code == KEY_A else 1
@@ -295,6 +295,8 @@ func _key_showdown(code: int) -> void:
 				)
 			2:
 				showdown_long = posmod(showdown_long + step, 2)
+			3:
+				showdown_rules = posmod(showdown_rules + step, TacticalShop.RULE_IDS.size())
 		sound.play("menu_move")
 
 

@@ -35,6 +35,12 @@ Everyone needs the same version of the game.
 
 **KICK** in the lobby: pick the player with LEFT and RIGHT, ENTER twice.
 
+The match settings include **RULES**: ANY GUNS, SHOTGUNS ONLY (at least
+$2000 each round), PISTOL PARTY, SNIPER DUEL (at least $6000), ECO WAR
+(nothing over $1500) and BIG MONEY ($16000 every round). The store, and the
+bots, sell and buy only what the rules allow. The title's 5V5 SHOWDOWN has
+the same RULES row.
+
 ## Joining
 
 1. Title, **5V5 SHOWDOWN**, **ONLINE: JOIN A LOBBY**.

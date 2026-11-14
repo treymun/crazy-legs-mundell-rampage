@@ -62,6 +62,22 @@ const ITEMS := [
 	["shine_cocktail", "SHINE COCKTAIL", 400, Weapons.SHINE_COCKTAIL, 0, 1, "THROWN", ""],
 	["firecracker_can", "FIRECRACKER CAN", 50, Weapons.FIRECRACKER_CAN, 0, 1, "THROWN", ""],
 ]
+## The store's rules (a lobby's RULES, the picker's): which kinds of item
+## are sold ("kinds", ITEMS' seventh column), the dearest item sold ("most"),
+## everyone's cash at every round's start ("cash") or the least they start a
+## round with ("least": the rules' guns are always within reach).
+const RULES := {
+	"any": {},
+	"shotguns": {"kinds": ["SHOTGUN", "GEAR", "THROWN"], "least": 2000},
+	"pistols": {"kinds": ["PISTOL", "GEAR"]},
+	"snipers": {"kinds": ["SNIPER", "GEAR", "THROWN"], "least": 6000},
+	"eco": {"most": 1500},
+	"big_money": {"cash": MAX_MONEY},
+}
+const RULE_IDS := ["any", "shotguns", "pistols", "snipers", "eco", "big_money"]
+const RULE_NAMES := [
+	"ANY GUNS", "SHOTGUNS ONLY", "PISTOL PARTY", "SNIPER DUEL", "ECO WAR", "BIG MONEY"
+]
 ## Each side's pistol at the start of a round: the outlaws' .38, the
 ## deputies' issue .45 ([gun, rounds loaded, rounds spare]).
 const SIDE_PISTOL := [[Weapons.REVOLVER, 6, 36], [Weapons.COUNTY45, 8, 40]]
@@ -233,8 +249,45 @@ static func kill_reward(weapon: int) -> int:
 	return int(KILL_REWARD.get(weapon, KILL_DEFAULT))
 
 
-## Whether `p` may buy item `row` at all (its side), ignoring the money.
+## Whether the match's rules sell item `row` at all.
+static func by_rules(st, row: Array) -> bool:
+	var rule: Dictionary = RULES.get(String(st.store_rules), {})
+	if rule.has("kinds") and not (rule["kinds"] as Array).has(String(row[6])):
+		return false
+	return int(row[2]) <= int(rule.get("most", MAX_MONEY))
+
+
+## `cash` at a round's start under the match's rules.
+static func rule_cash(st, cash: int) -> int:
+	var rule: Dictionary = RULES.get(String(st.store_rules), {})
+	if rule.has("cash"):
+		return int(rule["cash"])
+	return maxi(cash, int(rule.get("least", 0)))
+
+
+## The dearest gun the rules sell `p` that `cash` buys and `p` lacks ("" none):
+## a bot's buy when its usual one is not for sale.
+static func rule_pick(game, st, p: Player, cash: int) -> String:
+	var best := ""
+	var price := -1
+	for row: Array in ITEMS:
+		var kind := String(row[6])
+		if int(row[3]) < 0 or kind == "THROWN" or kind == "GEAR":
+			continue
+		if not allowed(game, st, p, row) or owned_fully(st, p, row):
+			continue
+		var cost := price_for(st, p, row)
+		if cost <= cash and cost > price:
+			best = String(row[0])
+			price = cost
+	return best
+
+
+## Whether `p` may buy item `row` at all (the rules, its side), ignoring the
+## money.
 static func allowed(game, st, p: Player, row: Array) -> bool:
+	if not by_rules(st, row):
+		return false
 	var who := String(row[7])
 	if who == "defense":
 		return Modes.mode_of(game) == Modes.BOMB and TacticalMode.defends(st, p)
@@ -299,6 +352,8 @@ static func why_not(game, st, p: Player, id: String) -> String:
 		return "NOT FOR SALE"
 	if not TacticalMode.can_buy(game, st, p):
 		return "BUY TIME'S OVER" if p.health > 0 else "YOU'RE OUT"
+	if not by_rules(st, row):
+		return "NOT IN THESE RULES"
 	if not allowed(game, st, p, row):
 		return "DEPUTIES ONLY"
 	if owned_fully(st, p, row):

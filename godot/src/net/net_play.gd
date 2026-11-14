@@ -63,6 +63,7 @@ const MATCH_ROWS := [
 		["grainyard", "holler", "salvage", "pumpngo", "pineacres", "landing"],
 		["GRAIN CO-OP", "DISTILLERY", "SALVAGE", "2V2 PUMP & GO", "2V2 PINE ACRES", "2V2 LANDING"]
 	],
+	["store_rules", "RULES", TacticalShop.RULE_IDS, TacticalShop.RULE_NAMES],
 	["rounds", "ROUNDS TO WIN", [3, 4, 5, 7, 9, 10], ["3", "4", "5", "7", "9", "10"]],
 	["team_size", "TEAM SIZE", [1, 2, 3, 4, 5], ["1V1", "2V2", "3V3", "4V4", "5V5"]],
 	["bots", "BOTS FILL", [true, false], ["ON", "OFF"]],
@@ -105,6 +106,7 @@ const DEFAULTS := {
 	"buy_seconds": 20.0,
 	"freeze_seconds": 6.0,
 	"start_money": 800,
+	"store_rules": "any",
 }
 const TEAM_NAMES := ["HOGS", "GATORS"]
 

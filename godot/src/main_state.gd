@@ -251,6 +251,8 @@ var showdown_row := 0
 var showdown_mode := 0
 var showdown_map := 0
 var showdown_long := 1
+## The picker's RULES (TacticalShop.RULE_IDS).
+var showdown_rules := 0
 var showdown_on := false
 ## Online play (src/net/net_play.gd, docs/online.md): the lobby or match this
 ## machine is in (null: none), lobbies closing (polled until their goodbye is
@@ -461,6 +463,8 @@ func _parse_smoke() -> void:
 			mode_options["frag_limit"] = maxi(1, int(text.substr(13)))
 		elif text.begins_with("--time-limit="):
 			mode_options["time_limit"] = maxf(10.0, float(text.substr(13)))
+		elif text.begins_with("--rules="):
+			mode_options["store_rules"] = text.substr(8)
 		elif text.begins_with("--rounds="):
 			mode_options["rounds"] = clampi(int(text.substr(9)), 1, 16)
 		elif text.begins_with("--level="):
@@ -1308,7 +1312,7 @@ func render() -> void:
 		render_credits()
 	elif state == "showdown":
 		TacticalScreens.draw_picker(
-			canvas, menu, showdown_row, showdown_mode, showdown_map, showdown_long
+			canvas, menu, showdown_row, showdown_mode, showdown_map, showdown_long, showdown_rules
 		)
 	elif state == "nethost":
 		LobbyScreens.draw_host_form(canvas, menu, net_form, net_row, net_note, menu_clock)

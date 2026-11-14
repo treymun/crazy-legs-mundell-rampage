@@ -24,7 +24,9 @@ const JOIN_FORM := [
 ]
 const FIELD_MOST := 21
 ## The lobby's settings in its two columns.
-const LEFT_KEYS := ["mode", "map", "rounds", "team_size", "bots", "bot_skill", "friendly_fire"]
+const LEFT_KEYS := [
+	"mode", "map", "store_rules", "rounds", "team_size", "bots", "bot_skill", "friendly_fire"
+]
 const RIGHT_KEYS := [
 	"round_seconds",
 	"buy_seconds",

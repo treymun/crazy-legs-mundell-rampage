@@ -84,6 +84,9 @@ var start_money := 800
 var friendly_fire := false
 var bot_skill := -1
 var bots := true
+## The store's rules (TacticalShop.RULES): "any", "shotguns", "pistols",
+## "snipers", "eco", "big_money".
+var store_rules := "any"
 ## Each slot's team when a lobby picked them (empty: HOGS the even slots),
 ## and each slot's name (empty: P1.. or a bot's county name).
 var teams: Array = []

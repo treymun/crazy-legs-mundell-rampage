@@ -251,6 +251,8 @@ func begin_round(game, st) -> void:
 		for p: Player in game.players:
 			p.health = 0
 		swapped = true
+	for i in st.money.size():
+		st.money[i] = TacticalShop.rule_cash(st, int(st.money[i]))
 	var taken := [0, 0]
 	for p: Player in game.players:
 		var survived := p.health > 0

@@ -238,7 +238,11 @@ func _shop(game, st, p: Player) -> void:
 	elif cash >= 1200 and behind < 2 and style in ["sniper", "close"]:
 		wants = ["hogleg" if outlaw else "star357"]
 	# Otherwise less than a rifle: save for the next round (the loss bonus
-	# grows).
+	# grows). Under rules that sell none of those, the dearest gun they do.
+	if String(st.store_rules) != "any" and not has_long:
+		var pick := TacticalShop.rule_pick(game, st, p, cash)
+		if pick != "" and not wants.has(pick):
+			wants.insert(0, pick)
 	# Spare cash on throwables: the attack smoke and flash, the defence fire.
 	if not half_start:
 		if TacticalMode.attacks(game, st, p):

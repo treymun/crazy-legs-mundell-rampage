@@ -179,6 +179,7 @@ const HOST_SETTINGS := [
 	"friendly_fire",
 	"bot_skill",
 	"bots",
+	"store_rules",
 	"teams",
 	"names",
 ]

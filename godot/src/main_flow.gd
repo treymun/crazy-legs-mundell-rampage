@@ -142,6 +142,9 @@ func start_showdown() -> void:
 		mode_options = Modes.TAGTEAM_OPTIONS.duplicate()
 	mode_options["arena"] = String(maps[posmod(showdown_map, maps.size())])
 	mode_options["rounds"] = TacticalScreens.picker_rounds(showdown_mode, showdown_long)
+	mode_options["store_rules"] = String(
+		TacticalShop.RULE_IDS[posmod(showdown_rules, TacticalShop.RULE_IDS.size())]
+	)
 	showdown_on = true
 	sound.play("menu_accept")
 	start_match()

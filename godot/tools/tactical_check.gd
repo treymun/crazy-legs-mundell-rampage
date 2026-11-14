@@ -3,7 +3,7 @@
 ##
 ##   Godot --headless --path <project> --script res://tools/tactical_check.gd
 ##       [-- maps=grainyard,holler,salvage] [modes=bomb,hostage] [rounds=3]
-##       [minutes=<cap of play per match>] [verbose]
+##       [minutes=<cap of play per match>] [verbose] [rules=shotguns]
 ##
 ## Every match on every map and mode is played by TacticalBot in all ten
 ## slots, as a real game ticks (120 a second), to its end or the cap. Each
@@ -12,7 +12,8 @@
 ## a round that outlasts its clock by more than a few seconds, or a map/mode
 ## where every round ran out of time (bots that never meet). The economy is
 ## checked too: nobody's cash ever outside 0..16000, and a round's payout
-## matching the rules.
+## matching the rules. With rules= (TacticalShop.RULES) nobody ever holds a
+## gun those rules do not sell, and the bots buy the guns they do.
 extends SceneTree
 
 const STEP := 1.0 / 120.0
@@ -25,6 +26,7 @@ var side_wins := {}
 var plants := {}
 var deaths := {}
 var deaths_dir := ""
+var rules := "any"
 
 
 func _init() -> void:
@@ -53,6 +55,8 @@ func _run() -> void:
 			minutes = float(arg.substr(8))
 		elif arg == "verbose":
 			verbose = true
+		elif arg.begins_with("rules="):
+			rules = arg.substr(6)
 		elif arg.begins_with("deaths="):
 			deaths_dir = arg.substr(7)
 	var errors := CrashLog.tally()
@@ -87,7 +91,7 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 	print("== %s  %s  first to %d" % [map, mode, rounds])
 	var g: Game = main.make_game(map)
 	g.configure({"difficulty": 1})
-	var options := {"arena": map, "rounds": rounds}
+	var options := {"arena": map, "rounds": rounds, "store_rules": rules}
 	var count := 10
 	if Modes.TAGTEAM_MAPS.has(map):
 		# TAG TEAM 2V2: two a side by its rules (the length as asked).
@@ -106,6 +110,8 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 	var reasons := {}
 	var bad_place := false
 	var cash_ok := true
+	var outside_rules := ""
+	var rule_guns := 0
 	var ticks := int(minutes * 60.0 / STEP)
 	var t0 := Time.get_ticks_msec()
 	var before: Array = []
@@ -138,6 +144,18 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 		for cash in st.money:
 			if int(cash) < 0 or int(cash) > TacticalShop.MAX_MONEY:
 				cash_ok = false
+		if rules != "any" and i % 120 == 0:
+			for p: Player in g.players:
+				for row: Array in TacticalShop.ITEMS:
+					var gun := int(row[3])
+					if gun < 0 or not p.armory.owned[gun] or Weapons.THROWN_GUNS.has(gun):
+						continue
+					if gun == Weapons.DYNAMITE:
+						continue
+					if not TacticalShop.by_rules(st, row):
+						outside_rules = "%s holds %s" % [p.name, row[0]]
+					elif String(row[6]) != "PISTOL" or rules == "pistols":
+						rule_guns += 1
 		if st.clouds.size() > int(was_counts[0]):
 			used["smoke"] += 1
 		if st.fires.size() > int(was_counts[1]):
@@ -274,6 +292,13 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 	_check(bool(st.match_over), tag + ": the match finishes")
 	_check(not bad_place, tag + ": every place is a number")
 	_check(cash_ok, tag + ": cash stays within 0..16000")
+	if rules != "any":
+		_check(
+			outside_rules == "", tag + ": nobody holds a gun the rules don't sell " + outside_rules
+		)
+		_check(
+			rule_guns > 0 or rules == "eco", tag + ": the bots buy the rules' guns (%d)" % rule_guns
+		)
 	_check(worst_over < 3.0, tag + ": no round outlasts its clock (worst %+.1fs)" % worst_over)
 	_check(seen == 0 or timeouts < seen, tag + ": not every round runs out of time")
 
