@@ -88,6 +88,17 @@ static func _v(p: Array) -> Vector2:
 
 static func _district(o: Dictionary, ctx: Dictionary) -> int:
 	var name := String(o.get("district", ""))
+	if name != "" and not ctx["districts"].has(name):
+		ctx["issues"].append(
+			_issue(
+				"no_district",
+				String(o.get("id", "")),
+				(
+					"no district %s (here: %s)"
+					% [name, ", ".join(PackedStringArray(ctx["districts"].keys()))]
+				)
+			)
+		)
 	return int(ctx["districts"].get(name, 0))
 
 

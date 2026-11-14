@@ -21,7 +21,7 @@ const ID := "_geometry_check"
 const DECK := 1.6
 
 var failures: Array = []
-var out_dir := ""
+static var out_dir := ""
 
 
 func _init() -> void:
@@ -85,14 +85,8 @@ func _run() -> void:
 	await process_frame
 	main.set_process(false)
 	main.state = "title"
-	LevelData.preview[ID] = level()
-	_queries(main)
-	_walking(main)
-	_shooting(main)
-	_nav(main)
-	_views(main)
-	_saves(main)
-	LevelData.preview.erase(ID)
+	run(main, _check)
+	preload("res://tools/map_check.gd").run(main, _check)
 	print("")
 	print("GEOMETRY CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
 	main.queue_free()
@@ -100,7 +94,20 @@ func _run() -> void:
 	quit(1 if not failures.is_empty() else 0)
 
 
-func _game(main) -> Game:
+## The checks, for tools/check_fixes.gd too.
+static func run(main, check: Callable) -> void:
+	print("LEVEL FORMAT 2: DECKS, STAIRS, RAMPS, THIN WALLS, NAV BETWEEN FLOORS")
+	LevelData.preview[ID] = level()
+	_queries(main, check)
+	_walking(main, check)
+	_shooting(main, check)
+	_nav(main, check)
+	_views(main, check)
+	_saves(main, check)
+	LevelData.preview.erase(ID)
+
+
+static func _game(main) -> Game:
 	var g: Game = main.make_game(ID)
 	g.configure({})
 	g.cheats.god = true
@@ -110,37 +117,41 @@ func _game(main) -> Game:
 	return g
 
 
-func _queries(main) -> void:
+static func _queries(main, check: Callable) -> void:
 	print("queries")
 	var g := _game(main)
 	var w: LevelData = g.world
-	_check(w.format == 2 and w.geo != null, "the level is format 2 with geometry")
-	_check(is_equal_approx(w.floor_under(11, 6, .5), 0.0), "under the deck the floor is the ground")
-	_check(is_equal_approx(w.floor_under(11, 6, 2.0), DECK), "on the deck the floor is the deck")
-	_check(
+	check.call(w.format == 2 and w.geo != null, "the level is format 2 with geometry")
+	check.call(
+		is_equal_approx(w.floor_under(11, 6, .5), 0.0), "under the deck the floor is the ground"
+	)
+	check.call(
+		is_equal_approx(w.floor_under(11, 6, 2.0), DECK), "on the deck the floor is the deck"
+	)
+	check.call(
 		is_equal_approx(w.roof_over(11, 6, 0.0), DECK - .15),
 		"under the deck its underside is overhead"
 	)
-	_check(w.roof_over(11, 6, DECK) == 0.0, "on the deck the sky is overhead")
-	_check(w.blocked(18.0, 8.0, .2), "the thin wall stops a body")
-	_check(not w.blocked(18.0, 3.5, .2), "its doorway does not")
-	_check(not w.visible(16.5, 8.0, 19.5, 8.0, .95, .95), "the wall stops a look")
-	_check(w.visible(16.5, 3.5, 19.5, 3.5, .95, .95), "a look through the doorway")
-	_check(w.visible(16.5, 10.5, 19.5, 10.5, 1.3, 1.3), "a look through the window")
-	_check(not w.visible(16.5, 10.5, 19.5, 10.5, .5, .5), "not under its sill")
-	_check(w.visible(11, 3.0, 11, 5.0, DECK + .95, DECK + .95), "a look over the rail")
-	_check(not w.visible(11, 2.0, 11, 6.0, 1.5, 1.5), "not through the deck's edge")
-	_check(w.visible(11, 2.0, 11, 6.0, 1.0, 1.0), "but under it")
-	_check(w.visible(9.0, 6.0, 13.0, 6.0, .95, .95), "a look along the passage under the deck")
-	_check(not w.visible(11, 6.0, 11, 6.2, 1.2, 2.0), "not up through the deck")
-	_check(w.blocked(4.0, 12.0, .2), "the angled wall stops a body")
-	_check(
+	check.call(w.roof_over(11, 6, DECK) == 0.0, "on the deck the sky is overhead")
+	check.call(w.blocked(18.0, 8.0, .2), "the thin wall stops a body")
+	check.call(not w.blocked(18.0, 3.5, .2), "its doorway does not")
+	check.call(not w.visible(16.5, 8.0, 19.5, 8.0, .95, .95), "the wall stops a look")
+	check.call(w.visible(16.5, 3.5, 19.5, 3.5, .95, .95), "a look through the doorway")
+	check.call(w.visible(16.5, 10.5, 19.5, 10.5, 1.3, 1.3), "a look through the window")
+	check.call(not w.visible(16.5, 10.5, 19.5, 10.5, .5, .5), "not under its sill")
+	check.call(w.visible(11, 3.0, 11, 5.0, DECK + .95, DECK + .95), "a look over the rail")
+	check.call(not w.visible(11, 2.0, 11, 6.0, 1.5, 1.5), "not through the deck's edge")
+	check.call(w.visible(11, 2.0, 11, 6.0, 1.0, 1.0), "but under it")
+	check.call(w.visible(9.0, 6.0, 13.0, 6.0, .95, .95), "a look along the passage under the deck")
+	check.call(not w.visible(11, 6.0, 11, 6.2, 1.2, 2.0), "not up through the deck")
+	check.call(w.blocked(4.0, 12.0, .2), "the angled wall stops a body")
+	check.call(
 		is_equal_approx(w.floor_under(12.7, 10.0, 2.0), DECK * .5), "half way up the ramp is .8 up"
 	)
 
 
 ## Walk the player with forward held toward `goal` for up to `seconds`.
-func _walk(g: Game, goal: Vector2, seconds: float, crouch := false) -> void:
+static func _walk(g: Game, goal: Vector2, seconds: float, crouch := false) -> void:
 	var c := Game.Controls.new()
 	c.forward = 1.0
 	c.crouch = crouch
@@ -153,49 +164,49 @@ func _walk(g: Game, goal: Vector2, seconds: float, crouch := false) -> void:
 	g.tick(DT, Game.Controls.new())
 
 
-func _settle(g: Game, seconds: float) -> void:
+static func _settle(g: Game, seconds: float) -> void:
 	for _k in int(seconds * 60.0):
 		g.tick(DT, Game.Controls.new())
 
 
-func _walking(main) -> void:
+static func _walking(main, check: Callable) -> void:
 	print("walking")
 	var g := _game(main)
 	var p := g.player
 	p.x = 6.5
 	p.y = 6.5
 	_walk(g, Vector2(16.0, 6.5), 6.0)
-	_check(p.x > 15.5, "walked east under the deck (x %.2f)" % p.x)
-	_check(absf(g.world.stand(p)) < .01, "and stayed on the ground (%.2f)" % g.world.stand(p))
+	check.call(p.x > 15.5, "walked east under the deck (x %.2f)" % p.x)
+	check.call(absf(g.world.stand(p)) < .01, "and stayed on the ground (%.2f)" % g.world.stand(p))
 	# Up the stairs: from their foot at x 3.5 along y 4.6 onto the deck.
 	p.x = 3.0
 	p.y = 4.6
 	p.floor_z = 0.0
 	_walk(g, Vector2(10.0, 4.8), 6.0)
 	_settle(g, .5)
-	_check(
+	check.call(
 		absf(g.world.stand(p) - DECK) < .01,
 		"climbed the stairs onto the deck (%.2f)" % g.world.stand(p)
 	)
-	_check(absf(p.eye - (DECK + .95)) < .06, "the eye is over the deck (%.2f)" % p.eye)
+	check.call(absf(p.eye - (DECK + .95)) < .06, "the eye is over the deck (%.2f)" % p.eye)
 	# Off the open east edge: falls to the ground.
 	_walk(g, Vector2(15.5, 6.0), 4.0)
 	_settle(g, 1.5)
-	_check(p.x > 14.2, "walked off the deck's east edge (x %.2f)" % p.x)
-	_check(absf(g.world.stand(p)) < .01 and p.air < .01, "and fell to the ground")
+	check.call(p.x > 14.2, "walked off the deck's east edge (x %.2f)" % p.x)
+	check.call(absf(g.world.stand(p)) < .01 and p.air < .01, "and fell to the ground")
 	# Not north past the rail: from the deck toward y 2.
 	p.x = 11.0
 	p.y = 5.0
 	p.floor_z = DECK
 	p.air = 0.0
 	_walk(g, Vector2(11.0, 2.0), 2.0)
-	_check(p.y > 4.0 and absf(g.world.stand(p) - DECK) < .01, "the rail held (y %.2f)" % p.y)
+	check.call(p.y > 4.0 and absf(g.world.stand(p) - DECK) < .01, "the rail held (y %.2f)" % p.y)
 	# Up the ramp from the south.
 	p.x = 12.7
 	p.y = 13.0
 	p.floor_z = 0.0
 	_walk(g, Vector2(12.7, 6.0), 6.0)
-	_check(
+	check.call(
 		absf(g.world.stand(p) - DECK) < .01,
 		"walked up the ramp onto the deck (%.2f)" % g.world.stand(p)
 	)
@@ -204,19 +215,19 @@ func _walking(main) -> void:
 	p.y = 8.0
 	p.floor_z = 0.0
 	_walk(g, Vector2(20.0, 8.0), 3.0)
-	_check(p.x < 18.0, "kept out of the thin wall (x %.2f)" % p.x)
+	check.call(p.x < 18.0, "kept out of the thin wall (x %.2f)" % p.x)
 	p.x = 16.5
 	p.y = 3.5
 	_walk(g, Vector2(20.0, 3.5), 3.0)
-	_check(p.x > 19.5, "through its doorway (x %.2f)" % p.x)
+	check.call(p.x > 19.5, "through its doorway (x %.2f)" % p.x)
 	# The crawlspace (.7 of headroom): not walked into standing.
 	p.x = 19.0
 	p.y = 11.0
 	_walk(g, Vector2(21.5, 11.0), 3.0)
-	_check(p.x < 20.0, "too low to walk under (x %.2f)" % p.x)
+	check.call(p.x < 20.0, "too low to walk under (x %.2f)" % p.x)
 
 
-func _shooting(main) -> void:
+static func _shooting(main, check: Callable) -> void:
 	print("shooting")
 	var g := _game(main)
 	var p := g.player
@@ -234,7 +245,7 @@ func _shooting(main) -> void:
 	var d := e.x - p.x
 	var slope := (g.world.stand(e) + e.height * .5 - p.eye) / d
 	g.hitscan(0.0, slope, 20.0, 30.0, 0.0)
-	_check(e.hp < hp, "a shot from the deck past its edge hits a hand on the ground")
+	check.call(e.hp < hp, "a shot from the deck past its edge hits a hand on the ground")
 	# Now under the deck: a shot straight down does not reach it.
 	e.x = 11.0
 	e.y = 6.0
@@ -243,30 +254,34 @@ func _shooting(main) -> void:
 	d = e.x - p.x
 	slope = (g.world.stand(e) + e.height * .5 - p.eye) / d
 	g.hitscan(0.0, slope, 20.0, 30.0, 0.0)
-	_check(is_equal_approx(e.hp, hp), "the deck stops a shot down at a hand under it")
-	_check(
+	check.call(is_equal_approx(e.hp, hp), "the deck stops a shot down at a hand under it")
+	check.call(
 		absf(g.world.stand(e)) < .01 and absf(g.world.stand(p) - DECK) < .01,
 		"each stands on their own floor"
 	)
 
 
-func _nav(main) -> void:
+static func _nav(main, check: Callable) -> void:
 	print("nav")
 	var g := _game(main)
 	var w: LevelData = g.world
 	var f := FlowField.new(w)
-	_check(f.graph != null and f.graph.count > w.width * w.height, "the nav graph has deck nodes")
+	check.call(
+		f.graph != null and f.graph.count > w.width * w.height, "the nav graph has deck nodes"
+	)
 	var under := f.graph.node_at(11.5, 6.5, w.width, w.height, 0.0)
 	var on := f.graph.node_at(11.5, 6.5, w.width, w.height, DECK)
-	_check(under != on and under == 6 * w.width + 11, "the deck and the floor under it are apart")
+	check.call(
+		under != on and under == 6 * w.width + 11, "the deck and the floor under it are apart"
+	)
 	f.reach = 100000
 	f.update(11.5, 6.5, 0.0, DECK)
 	var from_ground := f.distance(10.5, 12.5, 0.0)
-	_check(from_ground < FlowField.FAR, "the ground reaches the deck (%d steps)" % from_ground)
+	check.call(from_ground < FlowField.FAR, "the ground reaches the deck (%d steps)" % from_ground)
 	var below := f.distance(11.5, 6.5, 0.0)
-	_check(below > 4 and below < FlowField.FAR, "the spot under it is a walk away (%d)" % below)
+	check.call(below > 4 and below < FlowField.FAR, "the spot under it is a walk away (%d)" % below)
 	var lead := f.heading(11.5, 6.5, 0.0)
-	_check(not is_nan(lead), "and the way leads off")
+	check.call(not is_nan(lead), "and the way leads off")
 	# Walk a hand from under the deck to the player on it.
 	var e: Enemy = g.enemies[0]
 	e.x = 10.5
@@ -289,15 +304,15 @@ func _nav(main) -> void:
 		at = Vector2(f.graph.cell[m] % w.width + .5, f.graph.cell[m] / w.width + .5)
 		z = f.graph.z[m]
 		path.append(at)
-	_check(not path.is_empty() and absf(z - DECK) < .05, "the steps lead up onto the deck")
+	check.call(not path.is_empty() and absf(z - DECK) < .05, "the steps lead up onto the deck")
 	var by_stairs := false
 	for q: Vector2 in path:
 		if q.x < 8.0 or q.y > 8.0:
 			by_stairs = true
-	_check(by_stairs, "by the stairs or the ramp, not straight up")
+	check.call(by_stairs, "by the stairs or the ramp, not straight up")
 
 
-func _views(main) -> void:
+static func _views(main, check: Callable) -> void:
 	print("views")
 	var g := _game(main)
 	var p := g.player
@@ -328,13 +343,13 @@ func _views(main) -> void:
 			for x in range(0, 320, 5):
 				if image.get_pixel(x, y).get_luminance() > .02:
 					lit += 1
-		_check(lit > 400, "the software view draws %s (%d lit samples)" % [view[0], lit])
+		check.call(lit > 400, "the software view draws %s (%d lit samples)" % [view[0], lit])
 		if out_dir != "":
 			DirAccess.make_dir_recursive_absolute(out_dir)
 			image.save_png("%s/geometry_%s.png" % [out_dir, view[0]])
 
 
-func _saves(main) -> void:
+static func _saves(main, check: Callable) -> void:
 	print("saves")
 	var g := _game(main)
 	var p := g.player
@@ -351,7 +366,7 @@ func _saves(main) -> void:
 	var doc: Dictionary = SessionStore.snapshot(g)
 	var h: Game = SessionStore.restore_onto(doc, main.make_game(ID))
 	var ok := h != null
-	_check(ok, "a save of the level loads (%s)" % SessionStore.last_error)
+	check.call(ok, "a save of the level loads (%s)" % SessionStore.last_error)
 	if ok:
-		_check(absf(h.world.stand(h.player) - DECK) < .01, "the player is on the deck again")
-		_check(absf(h.world.stand(h.enemies[0]) - DECK) < .01, "and so is the hand")
+		check.call(absf(h.world.stand(h.player) - DECK) < .01, "the player is on the deck again")
+		check.call(absf(h.world.stand(h.enemies[0]) - DECK) < .01, "and so is the hand")

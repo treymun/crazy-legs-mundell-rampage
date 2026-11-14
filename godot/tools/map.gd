@@ -46,8 +46,6 @@ const Playtest := preload("res://tools/map/map_playtest.gd")
 const Catalog := preload("res://tools/map/map_catalog.gd")
 const Import := preload("res://tools/map/map_import.gd")
 
-const BUILT := "res://maps/built.json"
-
 var args: Array = []
 var opts := {}
 var quiet := false
@@ -320,15 +318,6 @@ func _validate() -> int:
 	return 1 if errors > 0 else 0
 
 
-static func _hash(text: String) -> String:
-	return text.sha256_text()
-
-
-func _built_hashes() -> Dictionary:
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(BUILT))
-	return parsed if parsed is Dictionary else {}
-
-
 func _build() -> int:
 	var map_id := _need_id()
 	if map_id == "":
@@ -344,44 +333,23 @@ func _build() -> int:
 		return 1
 	var built: Dictionary = loaded[1]
 	var level: Dictionary = built["level"]
-	var text := LevelEdit._json(level)
-	var path := LevelEdit.path_of(map_id)
-	result["path"] = path
-	var hashes := _built_hashes()
-	var old := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
-	if old != "" and hashes.has(map_id) and _hash(old) != String(hashes[map_id]):
-		if not opts.has("force"):
-			result["error"] = (
-				(
-					"%s was changed since it was last built from its source (the editor, F2 or level_edit.gd): "
-					% path
-				)
-				+ (
-					"put those changes into maps/%s.map.json, or build with force (a copy is kept)"
-					% map_id
-				)
+	var wrote := Edit.write_level(map_id, level, opts)
+	result.merge(wrote)
+	if wrote.has("error"):
+		say(
+			(
+				"REFUSED " + String(wrote["error"])
+				if int(wrote["exit"]) == 4
+				else "ERROR " + String(wrote["error"])
 			)
-			say("REFUSED " + result["error"])
-			return 4
-	if old == text:
-		say("%s is already up to date" % path)
-		result["changed"] = false
-		return 0
-	result["changed"] = true
-	if opts.has("dry"):
-		say("dry: would write %s (%d bytes, was %d)" % [path, text.length(), old.length()])
-		return 0
-	if old != "":
-		Edit.keep(map_id, "data", old)
-	if not LevelEdit.write(map_id, level):
-		result["error"] = "could not write " + path
-		return 3
-	hashes[map_id] = _hash(FileAccess.get_file_as_string(path))
-	var f := FileAccess.open(ProjectSettings.globalize_path(BUILT), FileAccess.WRITE)
-	if f != null:
-		f.store_string(JSON.stringify(hashes, "  ", true) + "\n")
-		f.close()
-	say("wrote %s" % path)
+		)
+		return int(wrote["exit"])
+	if not bool(wrote.get("changed", false)):
+		say("%s is already up to date" % wrote["path"])
+	elif wrote.has("dry"):
+		say("dry: would write %s" % wrote["path"])
+	else:
+		say("wrote %s" % wrote["path"])
 	if opts.has("map"):
 		var lv := LevelData.from_dict(level, assets)
 		Render.render(doc, built, lv, String(opts["map"]).get_base_dir(), ["spawns", "objects"], 8)

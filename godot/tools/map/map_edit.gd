@@ -7,11 +7,10 @@
 extends RefCounted
 
 const Source := preload("res://tools/map/map_source.gd")
-const HISTORY := "res://maps/.history"
 
 
 static func _dir(map_id: String) -> String:
-	return ProjectSettings.globalize_path("%s/%s" % [HISTORY, map_id])
+	return ProjectSettings.globalize_path("%s/.history/%s" % [Source.dir, map_id])
 
 
 ## Keep a copy of `text` (kind "source" or "data") before it is written over.
@@ -431,3 +430,54 @@ static func describe(changes: Dictionary) -> Array:
 			"~ %s: %s -> %s" % [key, Source.compact(top[key][0]), Source.compact(top[key][1])]
 		)
 	return lines
+
+
+## Write a built level to data/<id>.json (Source.data_dir): refused (exit 4)
+## when that file was changed since the last build (built.json keeps each
+## file's hash) unless `force`; the old file kept first. {exit, path,
+## changed, error?}.
+static func write_level(map_id: String, level: Dictionary, opts: Dictionary) -> Dictionary:
+	var text := LevelEdit._json(level)
+	var path := "%s/%s.json" % [Source.data_dir, map_id]
+	var built := "%s/built.json" % Source.dir
+	var parsed = (
+		JSON.parse_string(FileAccess.get_file_as_string(built))
+		if FileAccess.file_exists(built)
+		else {}
+	)
+	var hashes: Dictionary = parsed if parsed is Dictionary else {}
+	var old := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
+	if old != "" and hashes.has(map_id) and old.sha256_text() != String(hashes[map_id]):
+		if not opts.has("force"):
+			return {
+				"exit": 4,
+				"path": path,
+				"error":
+				(
+					(
+						"%s was changed since it was last built (the editor, F2 or level_edit.gd): "
+						% path
+					)
+					+ (
+						"put those changes into %s, or build with force (a copy is kept)"
+						% Source.path_of(map_id)
+					)
+				)
+			}
+	if old == text:
+		return {"exit": 0, "path": path, "changed": false}
+	if opts.has("dry"):
+		return {"exit": 0, "path": path, "changed": true, "dry": true}
+	if old != "":
+		keep(map_id, "data", old)
+	var f := FileAccess.open(ProjectSettings.globalize_path(path), FileAccess.WRITE)
+	if f == null:
+		return {"exit": 3, "path": path, "error": "could not write " + path}
+	f.store_string(text)
+	f.close()
+	hashes[map_id] = text.sha256_text()
+	var h := FileAccess.open(ProjectSettings.globalize_path(built), FileAccess.WRITE)
+	if h != null:
+		h.store_line(JSON.stringify(hashes, "  ", true))
+		h.close()
+	return {"exit": 0, "path": path, "changed": true}

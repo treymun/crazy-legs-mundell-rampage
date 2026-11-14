@@ -132,12 +132,21 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 		)
 	var objects: Array = []
 	var used_downs := {}
+	var tops := 0
 	var n := 0
+	var ground := float(opts.get("ground", 0.0))
+	# A face down at the ground is the bottom of something standing on it.
+	downs = downs.filter(func(t: Tri): return t.a.z > ground + .01)
 	for group: Array in _groups(
 		ups, func(t: Tri): return snappedf((t.a.z + t.b.z + t.c.z) / 3.0, .01)
 	):
 		var z := snappedf((group[0] as Tri).a.z, .001)
 		for piece: Dictionary in _footprints(group):
+			var r: Array = piece["rect"]
+			if minf(float(r[2]) - float(r[0]), float(r[3]) - float(r[1])) < .45:
+				# Too narrow to stand on: the top of a wall, which its pieces draw.
+				tops += 1
+				continue
 			var thick := -1.0
 			for k in downs.size():
 				var d: Tri = downs[k]
@@ -210,7 +219,7 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 			if not (piece["cuts"] as Array).is_empty():
 				o["cuts"] = piece["cuts"]
 			objects.append(o)
-	var wall_objects := _walls(walls, prefix)
+	var wall_objects := _drop_edges(_walls(walls, prefix), objects)
 	objects.append_array(wall_objects)
 	# Ramps keep their slope as a sloped block: map them onto ramp's fields.
 	for o: Dictionary in objects:
@@ -241,6 +250,8 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 			]
 		)
 	)
+	if tops > 0:
+		summary.append("%d face(s) up too narrow to stand on left to the walls' tops" % tops)
 	for i: Dictionary in issues:
 		summary.append("WARNING " + String(i["message"]))
 	if opts.has("dry"):
@@ -271,6 +282,42 @@ static func run(map_id: String, file: String, opts: Dictionary, assets: Assets) 
 		"issues": issues,
 		"objects": objects.size()
 	}
+
+
+## Walls that are only a floor's own edge (a box's sides): the floor draws its
+## edges itself, so they are left out.
+static func _drop_edges(walls: Array, floors: Array) -> Array:
+	var out: Array = []
+	for w: Dictionary in walls:
+		var mid := (Vector2(w["a"][0], w["a"][1]) + Vector2(w["b"][0], w["b"][1])) * .5
+		var edge := false
+		for f: Dictionary in floors:
+			if not f.has("rect") or not f.has("top"):
+				continue
+			var r: Array = f["rect"]
+			var top := float(f["top"])
+			var bottom := top - float(f.get("thick", top))
+			if float(w["z0"]) < bottom - .02 or float(w["z1"]) > top + .02:
+				continue
+			var inside := (
+				mid.x > float(r[0]) - .12
+				and mid.x < float(r[2]) + .12
+				and mid.y > float(r[1]) - .12
+				and mid.y < float(r[3]) + .12
+			)
+			var near_side := (
+				minf(
+					minf(absf(mid.x - float(r[0])), absf(mid.x - float(r[2]))),
+					minf(absf(mid.y - float(r[1])), absf(mid.y - float(r[3])))
+				)
+				< .12
+			)
+			if inside and near_side:
+				edge = true
+				break
+		if not edge:
+			out.append(w)
+	return out
 
 
 ## A sloped block as a ramp: rising toward its steepest way along x or y.
@@ -558,8 +605,8 @@ static func _walls(tris: Array, prefix: String) -> Array:
 				continue
 			var q: Dictionary = planes[k2]
 			if (q["n"] as Vector2).dot(p["n"]) < -.999:
-				# Back to back: n . x = d and -n . x = d2, so the gap is -(d + d2).
-				var gap := -(float(p["d"]) + float(q["d"]))
+				# Back to back: n . x = d on one face, -n . x = d2 on the other: d + d2 apart.
+				var gap := float(p["d"]) + float(q["d"])
 				if gap > .02 and gap < .6:
 					thick = gap
 					offset = -gap * .5

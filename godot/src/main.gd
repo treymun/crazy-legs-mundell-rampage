@@ -158,6 +158,9 @@ func _play_at() -> void:
 	p.y = float(at[1])
 	if at.size() > 2:
 		p.angle = float(at[2])
+	if at.size() > 3:
+		# A floor to start on (level format 2: a deck, the Maps screen's floor).
+		p.floor_z = game.world.floor_under(p.x, p.y, float(at[3]) + .05)
 	p.eye = .95 + game.world.stand(p)
 
 

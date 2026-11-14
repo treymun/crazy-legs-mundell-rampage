@@ -170,6 +170,10 @@ func _load(id: String) -> void:
 	selected = -1
 	_trigger_text.text = ""
 	_note("%s: %dx%d" % [id, int(level.get("width", 0)), int(level.get("height", 0))])
+	if FileAccess.file_exists("res://maps/%s.map.json" % id):
+		# Built from a map source: edit that (the Maps screen); a save here
+		# makes the next build of it stop rather than lose it.
+		_note("%s is built from maps/%s.map.json: edit it in the Maps screen" % [id, id])
 	_map.queue_redraw()
 
 

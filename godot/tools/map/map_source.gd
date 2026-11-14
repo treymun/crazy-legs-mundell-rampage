@@ -18,6 +18,10 @@ const SCHEMA := "clmr-map"
 const VERSION := 1
 const ID_PATTERN := "^[a-z][a-z0-9_]*$"
 const MAPS_DIR := "res://maps"
+## Where sources, their kept copies and built.json live (a check points it
+## at a scratch folder); built levels go to `data_dir`.
+static var dir := MAPS_DIR
+static var data_dir := "res://data"
 
 ## type -> {"grid": changes cells, "req": required keys, "opt": optional keys
 ## with their defaults, "doc": what it is}. The JSON Schema
@@ -349,7 +353,7 @@ const POINT_KEYS := ["at", "a", "b", "cell"]
 
 
 static func path_of(map_id: String) -> String:
-	return "%s/%s.map.json" % [MAPS_DIR, map_id]
+	return "%s/%s.map.json" % [dir, map_id]
 
 
 static func exists(map_id: String) -> bool:
@@ -377,6 +381,16 @@ static func blank(map_id: String, w: int, h: int) -> Dictionary:
 static func read(map_id: String, errors: Array = []) -> Dictionary:
 	var path := path_of(map_id)
 	if not FileAccess.file_exists(path):
+		if ResourceLoader.exists("res://tools/levels/%s_plan.gd" % map_id):
+			# A level built from its plan alone: read as a source over that plan
+			# with no objects of its own (an edit writes it out as a file).
+			return {
+				"schema": SCHEMA,
+				"version": VERSION,
+				"id": map_id,
+				"base": {"plan": map_id},
+				"objects": []
+			}
 		errors.append({"code": "no_source", "message": "no map source at " + path})
 		return {}
 	var text := FileAccess.get_file_as_string(path)
@@ -399,7 +413,7 @@ static func read(map_id: String, errors: Array = []) -> Dictionary:
 ## Write a source back: two-space indent, keys in the order they were, one
 ## object a line where it fits (a diff then shows the object that changed).
 static func write(map_id: String, doc: Dictionary) -> bool:
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(MAPS_DIR))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
 	var file := FileAccess.open(ProjectSettings.globalize_path(path_of(map_id)), FileAccess.WRITE)
 	if file == null:
 		return false
@@ -731,8 +745,10 @@ static func _check_values(
 				"map.gd -- catalog lists the pickups"
 			)
 		)
+	# Over a plan (whole false) the districts are the plan's, named as it names them.
 	if (
-		o.has("district")
+		whole
+		and o.has("district")
 		and String(o["district"]) != ""
 		and not districts.has(String(o["district"]))
 	):

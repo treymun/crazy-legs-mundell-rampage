@@ -49,6 +49,7 @@ static func _thumb(img: Image, size := THUMB) -> Image:
 	var h := img.get_height()
 	var k := float(size) / maxf(w, h)
 	var t := img.duplicate() as Image
+	t.convert(Image.FORMAT_RGBA8)
 	t.resize(maxi(1, int(w * k)), maxi(1, int(h * k)), Image.INTERPOLATE_NEAREST)
 	var out := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	out.fill(Color(0, 0, 0, 0))

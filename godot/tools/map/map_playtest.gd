@@ -161,6 +161,9 @@ static func run(
 ## Walk the player from a to b ([x, y, floor]): the result's fields as run() says.
 static func walk(g: Game, a: Array, b: Array, seconds: float, tick_us: Array) -> Dictionary:
 	var w := g.world
+	for d: LevelData.Door in w.doors:
+		d.opened = true
+		d.progress = 1.0
 	var p := g.player
 	p.x = a[0]
 	p.y = a[1]

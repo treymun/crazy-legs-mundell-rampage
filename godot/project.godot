@@ -54,4 +54,4 @@ gdscript/warnings/unsafe_method_access=0
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/clmr_levels/plugin.cfg")
+enabled=PackedStringArray("res://addons/clmr_levels/plugin.cfg", "res://addons/clmr_maps/plugin.cfg")
