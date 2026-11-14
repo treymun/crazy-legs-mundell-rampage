@@ -109,8 +109,14 @@ jobs:
       - name: Draw every viewpoint both ways in a real window
         run: |
           mkdir -p "$RUNNER_TEMP/views"
-          xvfb-run -a -s "-screen 0 1280x800x24"             godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 --             --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views" 2>&1 | tee window.log
+          xvfb-run -a -s "-screen 0 1280x800x24"             godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 --             --view2d --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views" 2>&1 | tee window.log
           if grep -E "SCRIPT ERROR|Parse Error|SHADER ERROR" window.log; then exit 1; fi
+      - name: The 3D view draws every viewpoint
+        run: |
+          mkdir -p "$RUNNER_TEMP/views3d"
+          xvfb-run -a -s "-screen 0 1280x800x24"             godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 --             --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views3d" 2>&1 | tee window3d.log
+          if grep -E "SCRIPT ERROR|Parse Error|SHADER ERROR" window3d.log; then exit 1; fi
+          test -s "$RUNNER_TEMP/views3d/hickston_01_0_3d.png"
       - name: Without its lights the shader view matches the software fallback
         run: |
           godot --headless --path godot --script res://tools/compare_views.gd -- "$RUNNER_TEMP/views"
@@ -122,13 +128,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: views
-          path: ${{ runner.temp }}/views
+          path: |
+            ${{ runner.temp }}/views
+            ${{ runner.temp }}/views3d
           if-no-files-found: ignore
 
   windows:
     name: Windows EXE
     needs: checks
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    # The 3D rewrite's branch builds the EXE and APK too, as run artifacts only
+    # (no release, no site: those stay main's and tags').
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/godot-3d' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -190,7 +200,9 @@ jobs:
   android:
     name: Android APK
     needs: checks
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    # The 3D rewrite's branch builds the EXE and APK too, as run artifacts only
+    # (no release, no site: those stay main's and tags').
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/godot-3d' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
