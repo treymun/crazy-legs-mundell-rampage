@@ -42,6 +42,9 @@ BOSS_PHASES.update({"maw": [(2, "maw", "")], "maw_bare": [(3, "maw", "bare_")]})
 WOUND = 0
 KIND = ""
 LAST_J = None
+# A body at rest with its head taken off (`<kind>_down_headless`, frames "headless";
+# src/gore_extras.gd throws the head): the head is not drawn and a stump is.
+NOHEAD = False
 
 
 # ---------------------------------------------------------------- materials
@@ -422,6 +425,9 @@ def skeleton(S, frame):
     roll = 0. if dead else S.get("roll", {}).get(frame, S.get("roll", {}).get("any", 0.))
     J["torso"] = Tm = T(pel) @ R(0, 0, twist) @ R(lean, roll, 0)
     J["head"] = Tm @ T((0, S["head_fwd"], S["torso_len"] + S["neck"])) @ R(*head) @ Matrix.Scale(S.get("head_scale", 1.), 4)
+    J["neck"] = Tm @ Vector((0, S["head_fwd"] * .5, S["torso_len"] + S["neck"] * .35))
+    if NOHEAD:
+        J["head"] = J["head"] @ Matrix.Scale(.0001, 4)
     for side, tag in ((-1, "R"), (1, "L")):
         hip = pel + Vector((side * S["hip_w"], 0, 0))
         step = walk * side
@@ -2621,6 +2627,27 @@ def clear():
     bpy.data.batch_remove([me for me in meshes if me.users == 0])
 
 
+def stump():
+    """The neck of a body whose head was taken off: a wet stump with a bone in it."""
+    if LAST_J is None:
+        return
+    S, J = LAST_J
+    hi, lo = blood_mats()
+    Tm = J["torso"]
+    top = Tm @ Vector((0, S["head_fwd"], S["torso_len"] + S["neck"]))
+    up = (Tm.to_3x3() @ Vector((0, 0, 1))).normalized()
+    limb(top - up * .09, top + up * .02, .06, .055, lo)
+    ball(top + up * .025, (.06, .06, .026), hi)
+    ball(top + up * .04, (.017, .017, .016), mat(226, 214, 190, .5, grime=.1))
+    # Run out on the ground past the neck (the body lies on its back: the
+    # ground is the model's y = depth).
+    floor_y = S["depth"] - .004
+    for k, (dx, dz, rx, rz) in enumerate(
+        ((0, .07, .17, .12), (.1, .17, .08, .06), (-.08, .14, .08, .06), (.03, .25, .05, .04))
+    ):
+        ball(Vector((top.x + dx, floor_y, top.z + dz)), (rx, .006, rz), hi if k % 2 else lo)
+
+
 def frames_for(extra):
     walk = ["w0", "w1", "w2", "w3"]
     stems = [0, *walk, "aim", "fire", "pain", "recover", *["die_%d" % k for k in range(5)], "down", *extra]
@@ -2661,7 +2688,7 @@ def jobs_for(kind, wanted):
 
 
 def main():
-    global DAMAGE, WOUND, KIND, LAST_J
+    global DAMAGE, WOUND, KIND, LAST_J, NOHEAD
     scene, camera = stage()
     os.makedirs(OUT, exist_ok=True)
     meta = {}
@@ -2671,7 +2698,9 @@ def main():
         scale = S["px"] / height * SS
         wanted = list(own) if own else frames_for(extra)
         jobs = jobs_for(kind, wanted)
-        if FRAMES != "all":
+        if FRAMES == "headless":
+            jobs = [("down", "%s_down_headless" % kind, 0, 0)]
+        elif FRAMES != "all":
             pick = FRAMES.split(",")
             jobs = [j for j in jobs if stem_of(j[0]) in pick or j[1][len(kind) + 1:] in pick or j[1] in pick]
         meta[kind] = {"size": [round(width * S["px"] / height), S["px"]], "walk": not own}
@@ -2680,6 +2709,7 @@ def main():
         for item, name, damage, wound in jobs:
             clear()
             DAMAGE, WOUND = damage, wound
+            NOHEAD = name.endswith("_down_headless")
             yaw = 0.
             frame = item
             if isinstance(item, tuple):
@@ -2689,6 +2719,8 @@ def main():
             make(frame)
             if WOUND:
                 wound_marks(kind, frame)
+            if NOHEAD:
+                stump()
             root = R(0, 0, yaw)
             pitch = math.radians(4)
             w, h = width, height
@@ -2705,12 +2737,16 @@ def main():
                 pitch = math.radians(26)
                 # A tall boss lies longer than the usual frame: it may widen it and slide it headward.
                 w, h = S.get("down_frame", (2.9, 1.5))
+                if NOHEAD:
+                    w += .8  # room for the stump and what ran out of it
             ROOT.matrix_basis = root
             scene.render.resolution_x = round(w * scale)
             scene.render.resolution_y = round(h * scale)
             camera.data.ortho_scale = max(w, h)
             framed = frame != "down" or own or upright
             look = Vector((0, 0, h / 2 - .04)) if framed else Vector((S.get("down_x", 0.), 0, .25))
+            if NOHEAD and not framed:
+                look.x -= .4
             back = Vector((0, -math.cos(pitch), math.sin(pitch)))
             camera.location = look + back * 12
             camera.rotation_euler = (math.pi / 2 - pitch, 0, 0)

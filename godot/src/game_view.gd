@@ -343,6 +343,8 @@ func sprites() -> Array:
 					continue
 		var slot := pooled(0.0, 0.0, "", 1.0, 0.0)
 		var sprite = enemy.sprite(observer, relieved, clock, slot)
+		if sprite != null and not enemy.alive and gore_fx.headless.has(enemy):
+			GoreExtras.headless_cel(self, sprite)
 		if sprite != null:
 			sprite.z += world.floor_under(sprite.x, sprite.y, world.stand(enemy) + .3)
 			sprites.append(sprite)
@@ -1164,6 +1166,7 @@ func automap(c: Canvas) -> void:
 	_map_labels(c)
 	_map_goal(c)
 	_map_player(c)
+	MapKey.draw(c, MAP_X + 1, MAP_Y + MAP_H - 1)  # what the marks mean
 	c.line(MAP_X, MAP_Y + MAP_H + 3, MAP_X + MAP_W - 1, MAP_Y + MAP_H + 3, Canvas.rgb(120, 87, 59))
 	HUD.text(
 		c,

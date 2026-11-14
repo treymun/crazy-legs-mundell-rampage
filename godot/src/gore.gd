@@ -86,6 +86,9 @@ var _splat_clock := -1.0
 ## until, next, green, height], and the boot prints the player has left in them.
 var pools: Array = []
 var spurts: Array = []
+## Bodies whose head was taken off (GoreExtras.limb): game_view.gd shows
+## their `<kind>_down_headless` cel once they are down.
+var headless := {}
 var bloody := 0
 var bloody_green := false
 var walked := 0.0
@@ -122,6 +125,14 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 	if not game.gore:
 		return
 	var kind := "plasma" if green else "gore"
+	var hand = game.player
+	if (
+		hand != null
+		and game.acting_local()
+		and hand.armory.shot_age < .5
+		and Vector2(hand.x - x, hand.y - y).length() < 2.6
+	):
+		MeleeBlood.bloody(hand.armory, hand.armory.active, amount, green)
 	# A big hit throws more, and lays a long streak along the shot.
 	if amount >= 28.0:
 		GoreExtras.streak(self, x, y, ax, ay, amount, green)

@@ -127,9 +127,20 @@ const MINI := {
 ## style -> [x scale, pixel height]
 const STYLES := {"mini": [1, 5], "body": [1, 7], "menu": [1, 9], "heading": [2, 14]}
 
+## SMALL TEXT CLEAR: the 5-pixel style is drawn and measured in the 7-pixel
+## letters (main_state.gd sets it from the setting).
+static var clear_small := false
+
 
 static func style_of(name: String) -> Array:
+	if name == "mini" and clear_small:
+		return STYLES["body"]
 	return STYLES.get(name, STYLES["body"])
+
+
+## Whether `style` is drawn in the 5-pixel letters.
+static func is_mini(style: String) -> bool:
+	return style == "mini" and not clear_small
 
 
 ## Returns [rows:Array[int], width:int] for one character.
@@ -162,7 +173,7 @@ static func _bitlen(value: int) -> int:
 
 static func text_width(text: String, style := "body") -> int:
 	var sx: int = style_of(style)[0]
-	var mini := style == "mini"
+	var mini := is_mini(style)
 	var total := 0
 	for c in text.to_upper():
 		total += int(glyph(c, mini)[1]) + 1

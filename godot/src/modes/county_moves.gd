@@ -128,6 +128,20 @@ static func hit_after(
 		if push > 0 and e.alive:
 			e.stun = maxf(e.stun, .35)
 			shove(game, e, float(CountyData.upgrade("crowd_control").get("per", .35)) * push)
+	# The side guns' own: rivets through, steam's stun and scald, sour milk.
+	var through := CountyBuild.value(f, gun, "hot_rivets")
+	if through > 0.0:
+		_pierce(game, e, d, ax, ay, slope, amount * through, gun)
+	var hold := CountyBuild.value(f, gun, "overpressure") + CountyBuild.value(f, gun, "sour_milk")
+	if hold > 0.0 and e.alive:
+		e.stun = maxf(e.stun, hold)
+		e.windup = 0.0
+	var scald := CountyBuild.value(f, gun, "scald")
+	if scald > 0.0:
+		for other: Enemy in game.enemies:
+			if other != e and other.alive and other.hostile:
+				if Vector2(other.x - e.x, other.y - e.y).length() < 1.2:
+					other.hurt(amount * scald, game, false, false, null, String(Weapons.NAMES[gun]))
 	if (
 		CountyBuild.has(f, "buckshot_breaker")
 		and String(Weapons.FIRING[gun].get("fire", "")) == "pellets"
@@ -252,6 +266,20 @@ static func killed(game, f, e: Enemy) -> void:
 		if int(f.chain_left.get(origin, 0)) > 0:
 			f.chain_left[origin] = int(f.chain_left[origin]) - 1
 			f.chains.append([e.x, e.y, game.world.stand(e) + .3, f.run_time + .14, origin])
+	# ARC BOLT: an arm gun kill arcs to the nearest varmint near it.
+	var arc := CountyBuild.value(f, Weapons.ARMGUN, "arc_bolt")
+	if arc > 0.0 and String(e.killed_with) == "arm_bolt":
+		var best: Enemy = null
+		var near := 4.0
+		for other: Enemy in game.enemies:
+			if other != e and other.alive and other.hostile:
+				var dd := Vector2(other.x - e.x, other.y - e.y).length()
+				if dd < near and game.world.visible(e.x, e.y, other.x, other.y):
+					near = dd
+					best = other
+		if best != null:
+			best.hurt(best.max_hp * arc, game, false, false, null, "armgun")
+			game.burst(best.x, best.y, game.world.stand(best) + .8, "plasma", 6, 1.6)
 	var gun := Weapons.NAMES.find(String(e.killed_with))
 	if (
 		CountyBuild.has(f, "last_stand")
@@ -291,10 +319,11 @@ static func tick(game, f, dt: float) -> void:
 			# Never to 0 here: the armory's own tick finishes the reload.
 			a.reload = maxf(.0001, a.reload - dt * (1.0 / share - 1.0))
 	for shot: GameState.Shot in game.shots:
-		if shot.uid == 0 and not shot.enemy and shot.slot == p.slot and shot.damage > 0:
+		if shot.uid == 0 and not shot.enemy and shot.slot == p.slot:
 			var gun := gun_of_shot(String(shot.kind))
 			if gun >= 0 and not f.scaled.has(shot.get_instance_id()):
 				shot.damage = roundi(shot.damage * CountyBuild.damage_scale(f, gun))
+				shot.bounces += roundi(CountyBuild.value(f, gun, "extra_bounce"))
 				f.scaled[shot.get_instance_id()] = true
 	if not f.scaled.is_empty() and int(f.run_time) != int(f.run_time - dt):
 		f.scaled.clear()

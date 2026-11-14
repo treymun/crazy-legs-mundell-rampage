@@ -529,6 +529,7 @@ func _process(delta: float) -> void:
 		console.tick(delta)
 	if net != null or not net_old.is_empty() or browser != null:
 		_net_frame()
+	CountyScreens.board_frame(self)
 	dt *= time_scale
 	if state == "play" and game != null:
 		if not focused or (console != null and console.open):
@@ -549,10 +550,12 @@ func _process(delta: float) -> void:
 	sound.tick_score(dt)
 	var aimed := _net_aim()
 	render()
+	if waiting_play != null and canvas.gpu:
+		# A browser still fetching the map: say so, and how far it has come.
+		var pack := String(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
+		HUD.banner(canvas, "FETCHING THE MAP... %d%%" % roundi(packs.progress(pack) * 100.0), 88)
 	if not aimed.is_empty():
-		var me: Player = aimed[0]
-		me.angle = aimed[1]
-		me.pitch = aimed[2]
+		NetPredict.restore(aimed[0], aimed[1])
 	_auto_detail(dt, (Time.get_ticks_usec() - work_began) / 1000.0)
 	mouse_rel = Vector2.ZERO
 
@@ -879,11 +882,12 @@ func _net_aim() -> Array:
 	var me: Player = game.players[slot]
 	if game.local_player != me or me.health <= 0 or game.showing_tally:
 		return []
-	var aim := net.client_sync.unplayed_aim() + Vector2(net_turn, net_look)
-	var kept := [me, me.angle, me.pitch]
-	me.angle = fposmod(me.angle + aim.x, TAU)
-	me.pitch = clampf(me.pitch + aim.y, -53.0, 53.0)
-	return kept
+	# Walk on with the inputs the host has not played into the copy yet
+	# (net_predict.gd), then turn by the mouse not sent yet.
+	var kept := NetPredict.lead(game, me, net.client_sync.unplayed_inputs())
+	me.angle = fposmod(me.angle + net_turn, TAU)
+	me.pitch = clampf(me.pitch + net_look, -53.0, 53.0)
+	return [me, kept]
 
 
 ## --host-online / --join-online: straight into a lobby.

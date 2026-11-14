@@ -146,6 +146,11 @@ static func loopback(main, check: Callable, opts: Dictionary) -> Dictionary:
 	var two_from := Vector2(game.players[1].x, game.players[1].y)
 	var walked := 0.0
 	var wall := Time.get_ticks_msec()
+	# Where player two is: on the host, in the client's copy, and as the
+	# client draws it (net_predict.gd), tick by tick.
+	var host_at: Array = []
+	var copy_at: Array = []
+	var lead_at: Array = []
 	for t in ticks:
 		var now := t * 1000.0 / 60.0
 		var mine := Game.Controls.new()
@@ -174,6 +179,13 @@ static func loopback(main, check: Callable, opts: Dictionary) -> Dictionary:
 		if client.me() != null:
 			client.game.focus(client.me())
 			client_bot.moved(client.game)
+			client.game.focus(client.game.local_player)
+			var mine2: Player = client.me()
+			copy_at.append(Vector2(mine2.x, mine2.y))
+			var kept := NetPredict.lead(client.game, mine2, client.unplayed_inputs())
+			lead_at.append(Vector2(mine2.x, mine2.y))
+			NetPredict.restore(mine2, kept)
+			host_at.append(Vector2(two.x, two.y))
 		for seq in client.rebuilt.keys():
 			var theirs = wholes.get(seq)
 			if theirs != null:
@@ -243,6 +255,13 @@ static func loopback(main, check: Callable, opts: Dictionary) -> Dictionary:
 				stats["delta"],
 				stats["input"]
 			]
+		)
+	)
+	stats["lead"] = _lead_error(host_at, copy_at, lead_at)
+	print(
+		(
+			"    own player drawn %d ticks off the host's path (%.3f apart), %d without (%.3f)"
+			% [stats["lead"][2], stats["lead"][3], stats["lead"][0], stats["lead"][1]]
 		)
 	)
 	var lags := client.lag_samples.duplicate()
@@ -325,3 +344,28 @@ static func _spread(sizes: PackedInt32Array) -> String:
 	return (
 		"%d / %d / %d" % [sorted[sorted.size() / 2], sorted[int(sorted.size() * .95)], sorted[-1]]
 	)
+
+
+## How far behind the host's path the client's own player is drawn: the
+## shift in ticks (k) that best lines the drawn places up with the host's,
+## and the mean distance left at that shift, without and with the prediction
+## ([k, distance, k, distance]). The host plays an input a one-way trip after
+## it is sent, so a copy that waits for it lags by more than a round trip
+## (k well under 0) while the prediction shows it at once (k at or past 0).
+static func _lead_error(host_at: Array, copy_at: Array, lead_at: Array) -> Array:
+	var out := []
+	for drawn: Array in [copy_at, lead_at]:
+		var best := INF
+		var best_k := 0
+		for k in range(-60, 61):
+			var sum := 0.0
+			var count := 0
+			for i in drawn.size():
+				if i + k >= 0 and i + k < host_at.size():
+					sum += (drawn[i] as Vector2).distance_to(host_at[i + k])
+					count += 1
+			if count > 0 and sum / count < best:
+				best = sum / count
+				best_k = k
+		out.append_array([best_k, best if best < INF else 0.0])
+	return out

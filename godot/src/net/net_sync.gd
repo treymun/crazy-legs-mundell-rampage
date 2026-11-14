@@ -443,6 +443,17 @@ class Client:
 				out.y += bytes.decode_half(6)
 		return out
 
+	## Our inputs the copy has not played yet, oldest first (the same ones as
+	## unplayed_aim): what net_predict.gd walks our player on with.
+	func unplayed_inputs() -> Array:
+		var played := input_ack - maxi(0, input_ack_tick - game_tick) if input_ack >= 0 else -1
+		var out: Array = []
+		for n in range(maxi(played + 1, input_seq - SENT_KEEP), input_seq):
+			var bytes: PackedByteArray = sent.get(n, PackedByteArray())
+			if bytes.size() >= NetWire.CONTROL_BYTES:
+				out.append(NetWire.unpack_controls(bytes))
+		return out
+
 	func _snap(msg: Dictionary) -> void:
 		if msg.is_empty():
 			return

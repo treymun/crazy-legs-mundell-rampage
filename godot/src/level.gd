@@ -1235,6 +1235,14 @@ func deep_at(x: float, y: float) -> bool:
 	return floor_tile[int(y) * width + int(x)] == deep_tile
 
 
+## A deck (a walkable slab) stands over the deep water at (x, y).
+func over_deep(x: float, y: float) -> bool:
+	if geo == null or x < 0.0 or y < 0.0 or x >= width or y >= height:
+		return false
+	var c := int(y) * width + int(x)
+	return geo.floor_at(x, y, 1e6, ground[c], true) > ground[c] + LevelGeometry.STEP
+
+
 func _can_walk(body, x: float, y: float, radius: float, occupied) -> bool:
 	if geo != null:
 		# Format 2: the 3D test everywhere (the grid's own below differs from it

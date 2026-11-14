@@ -137,7 +137,7 @@ static func tick(game, f, dt: float) -> void:
 		kept.append(orb)
 	f.orbs = kept
 	if took > 0:
-		game.sound.play("pickup", .5)
+		game.sound.play("county_xp", .55)
 	if (
 		f.orbs.size() > int(x.get("merge_over", 70))
 		and int(f.run_time * 2.0) != int((f.run_time - dt) * 2.0)

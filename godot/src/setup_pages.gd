@@ -155,6 +155,13 @@ static func build() -> Array:
 					["NORMAL", "TALL", "LARGE"],
 					"SIZE OF NOTICES, PROMPTS, CAPTIONS AND ONE-LINERS"
 				),
+				SessionStore.choices(
+					"SMALL TEXT",
+					"small_text",
+					0,
+					["PIXEL", "CLEAR"],
+					"CLEAR DRAWS THE TINIEST TEXT IN THE BIGGER LETTERS EVERYWHERE"
+				),
 				SessionStore.toggle(
 					"FRAME COUNTER",
 					"show_fps",

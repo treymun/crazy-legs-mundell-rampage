@@ -11,8 +11,10 @@
 ## the server's game); the results come up and everyone is back in the lobby
 ## on their own. ALICE leaves and BOB runs it; BOB kicks CARL; BOB starts
 ## alone and leaves, and the empty lobby ends the match and has its own
-## settings again. Closing the server tells everyone. Fails on any script or
-## engine error.
+## settings again. Closing the server tells everyone. BOB plays it all over
+## the lobby's WebSocket side (the browser build's way in; ws here, wss on the
+## real server), and a COUNTY RUN daily board knock is answered over it too.
+## Fails on any script or engine error.
 extends SceneTree
 
 const STEP := NetSync.STEP
@@ -26,6 +28,7 @@ var bots := {}
 ## The COUNTY SERVERS list being asked (net_browser.gd), polled with the rest.
 var browser: NetBrowser = null
 var seconds := 25.0
+var ws_port := 0
 
 
 func _init() -> void:
@@ -113,8 +116,11 @@ func _wait(what: Callable, most := 400) -> bool:
 	return what.call()
 
 
-func _join(name: String, password := "hogs") -> NetPlay:
-	var net := NetPlay.join_lobby("127.0.0.1:%d" % server.rooms[0].net.port, name, password)
+func _join(name: String, password := "hogs", over_ws := false) -> NetPlay:
+	var where := "127.0.0.1:%d" % server.rooms[0].net.port
+	if over_ws:
+		where = "ws://127.0.0.1:%d" % ws_port
+	var net := NetPlay.join_lobby(where, name, password)
 	net.make_match = _make
 	nets.append(net)
 	return net
@@ -129,6 +135,7 @@ func _play() -> void:
 			[
 				{
 					"port": port + k,
+					"ws_port": port + k + 3000,
 					"lobby_name": "TEST LOBBY",
 					"password": "hogs",
 					"map": "pineacres",
@@ -140,7 +147,8 @@ func _play() -> void:
 			]
 		}
 		server = LobbyServer.new(config, {"difficulty": 1})
-		if not server.rooms.is_empty():
+		ws_port = port + k + 3000
+		if not server.rooms.is_empty() and server.rooms[0].net.session.also != null:
 			break
 		server.free()
 		server = null
@@ -186,9 +194,13 @@ func _play() -> void:
 	_wait(func() -> bool: return wrong.phase == "closed")
 	_check(wrong.reason == "WRONG PASSWORD", "a wrong password is turned away (%s)" % wrong.reason)
 	nets.erase(wrong)
-	var bob := _join("bob")
+	var bob := _join("bob", "hogs", true)
 	_wait(func() -> bool: return bob.phase == "lobby" and lobby.players.size() == 2)
-	_check(bob.phase == "lobby" and not bob.is_admin(), "BOB joins and does not run it")
+	_check(
+		bob.phase == "lobby" and not bob.is_admin(),
+		"BOB joins over the WebSocket side (the browser's way in) and does not run it"
+	)
+	_board_over_ws()
 	bob.set_setting("rounds", 10)
 	bob.ask({"set": {"rounds": 10}})
 	alice.ask({"set": {"password": "", "lobby_name": "MINE", "rounds": 2}})
@@ -341,3 +353,40 @@ func _play() -> void:
 		dave.reason == "THE SERVER IS RESTARTING",
 		"closing the server tells everyone (%s)" % dave.reason
 	)
+
+
+## A COUNTY RUN daily board knock over the lobby's WebSocket side: the run
+## posted comes back on the board (the server's file kept in the cache).
+func _board_over_ws() -> void:
+	var kept := CountyBoard.store
+	CountyBoard.store = OS.get_cache_dir().path_join("clmr-net-server-board.json")
+	if FileAccess.file_exists(CountyBoard.store):
+		DirAccess.remove_absolute(CountyBoard.store)
+	var s := NetSession.join("ws://127.0.0.1:%d" % ws_port, 0, NetSession.Transport.WEBSOCKET)
+	var sent := false
+	var heard := {}
+	var version := String(ProjectSettings.get_setting("application/config/version", ""))
+	var ask := {
+		"map": "county_bayou",
+		"day": CountyBoard.today(),
+		"post": ["BOB", 61.5, 4, 22],
+		"version": version,
+	}
+	for i in 400:
+		_frame()
+		for packet: Array in s.poll(now):
+			var bytes: PackedByteArray = packet[1]
+			if not bytes.is_empty() and bytes[0] == NetWire.BOARD:
+				heard = NetWire.info_of(bytes)
+		if not sent and s.connected():
+			s.send(NetSession.HOST_ID, NetSession.CH_RELIABLE, NetWire.message(NetWire.BOARD, ask))
+			sent = true
+		if not heard.is_empty():
+			break
+	s.close()
+	var rows: Array = heard.get("rows", [])
+	_check(
+		rows.size() == 1 and String(rows[0][0]) == "BOB" and float(rows[0][1]) == 61.5,
+		"a daily board post over the WebSocket comes back on the board (%s)" % [rows]
+	)
+	CountyBoard.store = kept

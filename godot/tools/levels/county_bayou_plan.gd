@@ -60,10 +60,29 @@ func causeways() -> void:
 	planks(79, 35, 84, 36)
 
 
-## Two raised boardwalks over the open shallows, stairs at each end.
+## Two raised boardwalks over the open shallows, stairs at each end, and
+## four raised crossings over the deep water (a deck over deep water is dry
+## ground: level_geometry.gd can_walk).
 func boardwalks() -> void:
 	_boardwalk("high_walk", 12, 44, 84)
 	_boardwalk("east_walk", 100, 121, 69)
+	_crossing("west_crossing", 22, 37, 42)
+	_crossing("island_north", 66, 27, 30)
+	_crossing("island_south", 65, 43, 46)
+	_crossing("east_crossing", 108, 37, 42)
+
+
+## A raised walk two cells wide over the deep rows y0..y1 at column x, stairs
+## up from the dry ground at each end.
+func _crossing(id: String, x: int, y0: int, y1: int) -> void:
+	var top := .8
+	Kit.clear_fixtures(b, x, y0 - 3, x + 1, y1 + 3)
+	Kit.clear_things(b, x - 1, y0 - 3, x + 2, y1 + 3)
+	Geo.bridge(b, id, [x, y0, x + 2, y1 + 1], top, {"tile": "bayou_planks", "edge": "bayou_planks"})
+	var north := float(b.ground[b.at(x, y0 - 4)])
+	var south := float(b.ground[b.at(x, y1 + 4)])
+	Geo.stairs(b, id + "_n", [x, y0 - 3, x + 2, y0], north, top, "s", {"tile": "bayou_planks"})
+	Geo.stairs(b, id + "_s", [x, y1 + 1, x + 2, y1 + 4], south, top, "n", {"tile": "bayou_planks"})
 
 
 ## A boardwalk from x0 to x1 two cells wide from row y, stairs up from the
@@ -99,3 +118,5 @@ func landmarks() -> void:
 	b.label("ISLAND CAUSEWAY", 81, 34)
 	b.label("HIGH WALK", 28, 83)
 	b.label("EAST WALK", 110, 68)
+	b.label("WEST CROSSING", 23, 36)
+	b.label("EAST CROSSING", 109, 36)

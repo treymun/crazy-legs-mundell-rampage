@@ -387,132 +387,7 @@ var last_controls: Game.Controls = null
 
 
 func _parse_smoke() -> void:
-	for arg in OS.get_cmdline_user_args():
-		var text := String(arg)
-		if text.begins_with("--smoke-frames="):
-			smoke_frames = int(text.substr(15))
-		elif text.begins_with("--smoke-marker="):
-			smoke_marker = text.substr(15)
-		elif text.begins_with("--smoke-level="):
-			smoke_level = text.substr(14)
-		elif text.begins_with("--smoke-shot="):
-			smoke_shot = text.substr(13)
-		elif text.begins_with("--view-shot="):
-			view_shot = text.substr(12)
-		elif text == "--cpu-look":
-			cpu_look = true
-		elif text == "--cpu-view":
-			cpu_view = true
-		elif text == "--cpu-walls":
-			# The band threads work out every wall span again (render_state.gd gpu_walls).
-			RenderState.wall_walk = false
-		elif text == "--cpu-canvas":
-			cpu_canvas = true
-		elif text == "--launch-check":
-			launch_check = true
-			view_check_report = true
-		elif text == "--view-check":
-			view_check_report = true
-		elif text == "--view-broken":
-			view_check_report = true
-			view_broken = true
-		elif text.begins_with("--view-tour="):
-			view_tour = text.substr(12)
-		elif text.begins_with("--view-out="):
-			view_out = text.substr(11)
-		elif text.begins_with("--view-bench="):
-			view_bench = int(text.substr(13))
-		elif text.begins_with("--play-bench="):
-			play_bench = int(text.substr(13))
-			view_bench = -1
-		elif text == "--demo":
-			demo = true
-		elif text == "--showcase":
-			showcase = true
-		elif text.begins_with("--showcase="):
-			showcase = true
-			showcase_only = int(text.substr(11))
-		elif text.begins_with("--dev="):
-			dev_commands = text.substr(6)
-		elif text == "--rematch-all":
-			# Every boss on the rematch board (from the project folder only).
-			BossRematch.unlock_all = DevConsole.available()
-		elif text.begins_with("--play-at="):
-			play_at = text.substr(10)
-		elif text == "--server":
-			server_level = "hickston"
-		elif text.begins_with("--server="):
-			server_level = text.substr(9)
-		elif text.begins_with("--server-players="):
-			server_players = clampi(int(text.substr(17)), 1, 16)
-		elif text.begins_with("--server-ticks="):
-			server_ticks = int(text.substr(15))
-		elif text.begins_with("--server-report="):
-			server_report = maxf(.5, float(text.substr(16)))
-		elif text.begins_with("--lobby-server="):
-			lobby_server = text.substr(15)
-		elif text.begins_with("--server-difficulty="):
-			server_difficulty = clampi(int(text.substr(20)), 0, 3)
-		elif text == "--mode=tagteam":
-			mode_name = Modes.BOMB
-			tag_team_arg = true
-		elif text.begins_with("--mode="):
-			mode_name = text.substr(7) if Modes.NAMES.has(text.substr(7)) else ""
-		elif text.begins_with("--players="):
-			mode_players = clampi(int(text.substr(10)), 1, Modes.MAX_PLAYERS)
-		elif text.begins_with("--arena="):
-			mode_options["arena"] = text.substr(8)
-		elif text.begins_with("--frag-limit="):
-			mode_options["frag_limit"] = maxi(1, int(text.substr(13)))
-		elif text.begins_with("--time-limit="):
-			mode_options["time_limit"] = maxf(10.0, float(text.substr(13)))
-		elif text.begins_with("--rules="):
-			mode_options["store_rules"] = text.substr(8)
-		elif text.begins_with("--rounds="):
-			mode_options["rounds"] = clampi(int(text.substr(9)), 1, 16)
-		elif text.begins_with("--level="):
-			mode_level = text.substr(8)
-		elif text == "--host-online" or text.begins_with("--host-online="):
-			online_args["host"] = int(text.substr(14)) if text.length() > 14 else NetSession.PORT
-		elif text.begins_with("--join-online="):
-			online_args["join"] = text.substr(14)
-		elif text.begins_with("--online-name="):
-			online_args["name"] = text.substr(14)
-		elif text.begins_with("--online-password="):
-			online_args["password"] = text.substr(18)
-		elif text.begins_with("--online-start="):
-			online_args["start"] = int(text.substr(15))
-		elif text.begins_with("--online-map="):
-			online_args["map"] = text.substr(13)
-		elif text == "--online-bot":
-			online_args["bot"] = true
-		elif text.begins_with("--smoke-screen="):
-			# A front-end screen instead of a level: title, setup, controls,
-			# credits, replays or slots; "setup:3" opens the fourth settings page
-			# ("setup:3:9" picks its tenth row), "title:4" the fifth title entry.
-			smoke_screen = text.substr(15)
-	if Modes.TACTICAL.has(mode_name):
-		# A 5v5 mode: five a side unless --players says, on a 5v5 map; on a
-		# TAG TEAM map (or --tag-team) two a side by its rules.
-		var arena := String(mode_options.get("arena", ""))
-		if tag_team_arg or Modes.TAGTEAM_MAPS.has(arena):
-			mode_name = Modes.BOMB
-			if not Modes.TAGTEAM_MAPS.has(arena):
-				mode_options["arena"] = Modes.TAGTEAM_MAPS[0]
-			for key: String in Modes.TAGTEAM_OPTIONS:
-				if not mode_options.has(key):
-					mode_options[key] = Modes.TAGTEAM_OPTIONS[key]
-			if mode_players < 2:
-				mode_players = Modes.TAGTEAM_PLAYERS
-		if mode_players < 2:
-			mode_players = Modes.MAX_PLAYERS
-		if not (
-			Modes.SHOWDOWN_MAPS.has(String(mode_options.get("arena", "")))
-			or Modes.TAGTEAM_MAPS.has(String(mode_options.get("arena", "")))
-		):
-			mode_options["arena"] = Modes.SHOWDOWN_MAPS[0]
-	smoke = smoke_frames > 0
-	focused = true
+	LaunchArgs.parse_smoke(self)
 
 
 # ------------------------------------------------------------- presentation
@@ -790,6 +665,7 @@ func apply_options() -> void:
 	apply_master()
 	Effects.enabled = int(options.get("lights", 1)) != 0
 	HUD.text_style = ["body", "menu", "heading"][clampi(int(options.get("text_size", 0)), 0, 2)]
+	PixelType.clear_small = int(options.get("small_text", 0)) != 0
 	if int(options.get("tilt_aim", 0)) != 0:
 		TiltAim.enable()
 	if int(options.get("touch_layout", 0)) == 2:

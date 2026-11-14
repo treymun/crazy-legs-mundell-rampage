@@ -222,7 +222,12 @@ static func join_lobby(where: String, my_name: String, password := "") -> NetPla
 	var target := parse_address(where)
 	if target.is_empty():
 		return null
-	var s := NetSession.join(String(target["host"]), int(target["port"]))
+	var s: NetSession = null
+	if where.contains("://"):
+		# A lobby server's WebSocket (the browser build: wss://host:443).
+		s = NetSession.join(where, 0, NetSession.Transport.WEBSOCKET)
+	else:
+		s = NetSession.join(String(target["host"]), int(target["port"]))
 	if s == null:
 		return null
 	var net := NetPlay.new()
@@ -413,6 +418,8 @@ func _host_message(from: int, kind: int, info: Dictionary) -> void:
 			_hello(from, info)
 		NetWire.INFO:
 			_info(from)
+		NetWire.BOARD:
+			_board(from, info)
 		NetWire.ASK:
 			var p := player_of(from)
 			if p.is_empty():
@@ -481,6 +488,17 @@ func _info(from: int) -> void:
 	if not player_of(from).is_empty():
 		return
 	session.send(from, NetSession.CH_RELIABLE, NetWire.message(NetWire.INFO, summary()))
+	session.poll(_now)
+	_drop_later(from)
+
+
+## A COUNTY RUN daily board knock: the board back, then goodbye.
+func _board(from: int, info: Dictionary) -> void:
+	_waiting_hello.erase(from)
+	if not player_of(from).is_empty():
+		return
+	var reply := NetWire.message(NetWire.BOARD, CountyBoard.answer(info))
+	session.send(from, NetSession.CH_RELIABLE, reply)
 	session.poll(_now)
 	_drop_later(from)
 
@@ -1034,6 +1052,13 @@ static func parse_address(text: String) -> Dictionary:
 	var t := text.strip_edges()
 	if t == "":
 		return {}
+	if t.begins_with("ws://") or t.begins_with("wss://"):
+		var rest := t.get_slice("://", 1)
+		var at := rest.rfind(":")
+		return {
+			"host": rest.substr(0, at) if at > 0 else rest,
+			"port": rest.substr(at + 1).to_int() if at > 0 else 443
+		}
 	var code := from_code(t)
 	if not code.is_empty():
 		return code

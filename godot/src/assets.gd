@@ -10,7 +10,17 @@ const TILE_BYTES := TILE_W * TILE_H * 3
 ## cowbell clank of a kill (game_world.gd struck()), far-off thunder rolling
 ## (features/weather.gd), a spent case tinking on the ground
 ## (features/debris.gd) and the thud of the tally's stamps (hud.gd).
-const MADE_CUES := ["hit_tick", "kill_tick", "thunder", "casing_tink", "stamp_thud", "pin_clack"]
+const MADE_CUES := [
+	"hit_tick",
+	"kill_tick",
+	"thunder",
+	"casing_tink",
+	"stamp_thud",
+	"pin_clack",
+	"county_xp",
+	"county_level",
+	"county_milestone",
+]
 ## Enemies only one chapter has: their pictures live in that chapter's file,
 ## which the browser build fetches after it starts (tools/make_packs.gd puts
 ## it in the chapter's pack with its music) and main_flow.gd play() waits for.
@@ -318,7 +328,16 @@ func has_cue(name: String) -> bool:
 ## tink, or a rubber stamp's thud, as 16-bit samples.
 func _made_cue(name: String) -> AudioStreamWAV:
 	var length: float = (
-		{"kill_tick": .20, "thunder": 3.2, "casing_tink": .16, "stamp_thud": .22, "pin_clack": .12}
+		{
+			"kill_tick": .20,
+			"thunder": 3.2,
+			"casing_tink": .16,
+			"stamp_thud": .22,
+			"pin_clack": .12,
+			"county_xp": .14,
+			"county_level": .7,
+			"county_milestone": 1.6,
+		}
 		. get(name, .045)
 	)
 	var frames := int(sfx_rate * length)
@@ -358,6 +377,8 @@ func _made_cue(name: String) -> AudioStreamWAV:
 					(sin(TAU * 1180.0 * t) * .5 + sin(TAU * 2390.0 * t) * .3) * exp(-t * 55.0) * .6
 				)
 				v += sin(TAU * 640.0 * t) * exp(-t * 30.0) * .25 + hiss * exp(-t * 900.0) * .5
+			"county_xp", "county_level", "county_milestone":
+				v = _county_cue(name, t, hiss)
 			_:
 				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
 				v += hiss * exp(-t * 600.0) * .5
@@ -367,6 +388,53 @@ func _made_cue(name: String) -> AudioStreamWAV:
 	stream.mix_rate = sfx_rate
 	stream.data = raw
 	return stream
+
+
+## COUNTY RUN's own cues: a bottle cap's clink for XP, a three-note banjo
+## pluck for a level up, a run up the neck and a held chord for a milestone.
+static func _county_cue(name: String, t: float, hiss: float) -> float:
+	match name:
+		"county_xp":
+			return (
+				(
+					(sin(TAU * 2640.0 * t) * .5 + sin(TAU * 3960.0 * t * (1.0 + t)) * .3)
+					* exp(-t * 30.0)
+					* .5
+				)
+				+ hiss * exp(-t * 400.0) * .3
+			)
+		"county_level":
+			var v := 0.0
+			for k in 3:
+				v += _pluck(t - k * .11, [392.0, 494.0, 587.0][k])
+			return v * .45
+		_:
+			var v := 0.0
+			var notes := [392.0, 440.0, 494.0, 587.0, 659.0, 784.0]
+			for k in notes.size():
+				v += _pluck(t - k * .07, notes[k]) * .8
+			var hold := t - .5
+			if hold > 0.0:
+				var swell := minf(1.0, hold * 6.0) * exp(-hold * 1.6)
+				var wob := 1.0 + .004 * sin(TAU * 5.5 * hold)
+				for f: float in [392.0, 494.0, 587.0]:
+					v += sin(TAU * f * wob * hold) * .22 * swell
+			return v * .4
+
+
+## A plucked string from its onset (silent before): bright, then mellowing.
+static func _pluck(t: float, f: float) -> float:
+	if t < 0.0:
+		return 0.0
+	var env := exp(-t * 7.0) * minf(1.0, t * 800.0)
+	return (
+		(
+			sin(TAU * f * t)
+			+ .5 * sin(TAU * 2.0 * f * t) * exp(-t * 10.0)
+			+ .25 * sin(TAU * 3.0 * f * t) * exp(-t * 16.0)
+		)
+		* env
+	)
 
 
 ## Ambience, the jukebox, the fuse and the saw motor all loop in the reference.

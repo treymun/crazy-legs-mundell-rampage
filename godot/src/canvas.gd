@@ -941,7 +941,7 @@ func label(
 ) -> Rect2i:
 	var sx: int = PixelType.style_of(style)[0]
 	var height: int = PixelType.style_of(style)[1]
-	var mini := style == "mini"
+	var mini := PixelType.is_mini(style)
 	var width := PixelType.text_width(text, style)
 	var px := x
 	if center:

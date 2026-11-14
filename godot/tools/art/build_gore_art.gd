@@ -13,6 +13,7 @@
 ##   mark_oil_N / fx_oil_N       a robot's oil on the floor and the walls
 ##   mark_streak_<blood|acid>_N  blood thrown along the floor (laid along the shot)
 ##   mark_print_<blood|acid>     a boot print walked out of a pool
+##   mark_pool_<blood|acid>_N    the pool under a body: dark, wet, a shine on it
 ## Then run tools/pack_assets.gd. out= writes somewhere else instead (to compare).
 extends SceneTree
 
@@ -90,6 +91,11 @@ func _init() -> void:
 			count += 1
 		boot_print(pair[0]).save(out.path_join("mark_print_%s.png" % pair[1]))
 		count += 1
+		for k in 3:
+			wet_pool(pair[0], 600 + k + (100 if pair[0] else 0)).save(
+				out.path_join("mark_pool_%s_%d.png" % [pair[1], k])
+			)
+			count += 1
 	print("gore art: %d sprites in %s" % [count, out])
 	quit()
 
@@ -437,4 +443,31 @@ func boot_print(alien: bool) -> Paint.Sheet:
 	var out := im.resized(size, size)
 	for i in size * size:
 		out.data[i * 4 + 3] = 220 if out.data[i * 4 + 3] >= 110 else 0
+	return out
+
+
+## The pool under a body: nearly black in the middle, the colour coming
+## through at the rim, and a pale shine where the light catches it.
+func wet_pool(alien: bool, seed: int) -> Paint.Sheet:
+	var rim := SLIME if alien else Color8(150, 20, 18)
+	var deep := Color8(20, 46, 16) if alien else Color8(46, 4, 6)
+	var shine := Color8(200, 255, 190) if alien else Color8(255, 150, 140)
+	var size := 64
+	var s := float(size * U)
+	var im := Paint.Sheet.new(size * U, size * U)
+	var local := RandomNumberGenerator.new()
+	local.seed = seed
+	blob(im, s * .5, s * .5, s * local.randf_range(.36, .42), rim, 8, .2)
+	blob(im, s * .5, s * .5, s * local.randf_range(.28, .33), deep, 7, .18)
+	Paint.arc(im, s * .28, s * .26, s * .62, s * .56, 200, 260, shine, U * 3)
+	for _k in 7:
+		var a := local.randf_range(0, TAU)
+		var r := local.randf_range(.38, .47)
+		var rr := s * local.randf_range(.015, .035)
+		var x := s * (.5 + cos(a) * r)
+		var y := s * (.5 + sin(a) * r)
+		Paint.ellipse(im, x - rr, y - rr, x + rr, y + rr, rim)
+	var out := im.resized(size, size)
+	for i in size * size:
+		out.data[i * 4 + 3] = 255 if out.data[i * 4 + 3] >= 110 else 0
 	return out

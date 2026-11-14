@@ -34,8 +34,14 @@ const MTU_SAFE := 1200
 ## about 16), for the bandwidth a report gives besides the payload.
 const HEADER_BYTES := 44
 const PATIENCE_MS := 15000
+## A lobby server's WebSocket players (the browser) come through `also`, their
+## ids raised past the 31 bits either transport hands out, so they never meet.
+const ALSO_IDS := 1 << 32
 
 var peer: MultiplayerPeer = null
+## A second session merged into this one (an always-open lobby's WebSocket
+## side, for the browser build): its peers are this one's past ALSO_IDS.
+var also: NetSession = null
 var transport := Transport.ENET
 var hosting := false
 ## Test conditions on what this side sends.
@@ -61,7 +67,9 @@ var _dice := RandomNumberGenerator.new()
 
 
 ## Listens on `port` for up to `max_clients`; null when the port is taken.
-static func host(port := PORT, kind := Transport.ENET, max_clients := 3, bind := "*") -> NetSession:
+static func host(
+	port := PORT, kind := Transport.ENET, max_clients := 3, bind := "*", tls: TLSOptions = null
+) -> NetSession:
 	var s := NetSession.new()
 	s.transport = kind
 	s.hosting = true
@@ -73,7 +81,7 @@ static func host(port := PORT, kind := Transport.ENET, max_clients := 3, bind :=
 		s.peer = enet
 	else:
 		var ws := _websocket()
-		err = ws.create_server(port, bind)
+		err = ws.create_server(port, bind, tls)
 		s.peer = ws
 	if err != OK:
 		return null
@@ -93,7 +101,9 @@ static func join(address: String, port := PORT, kind := Transport.ENET) -> NetSe
 		s.peer = enet
 	else:
 		var ws := _websocket()
-		err = ws.create_client("ws://%s:%d" % [address, port])
+		# A whole address ("wss://host:443": the browser build to a lobby server).
+		var url := address if address.contains("://") else "ws://%s:%d" % [address, port]
+		err = ws.create_client(url)
 		s.peer = ws
 	if err != OK:
 		return null
@@ -140,12 +150,21 @@ func take_events() -> Array:
 	var out := [joined.duplicate(), left.duplicate()]
 	joined.clear()
 	left.clear()
+	if also != null:
+		var more := also.take_events()
+		for i in 2:
+			for id: int in more[i]:
+				out[i].append(id + ALSO_IDS)
 	return out
 
 
 ## Sends `bytes` to peer `to` (0: everyone) on `channel`: CH_RELIABLE is
 ## reliable, the others unreliable unless the packet is over MTU_SAFE.
 func send(to: int, channel: int, bytes: PackedByteArray) -> void:
+	if also != null and (to == 0 or to >= ALSO_IDS):
+		also.send(maxi(0, to - ALSO_IDS), channel, bytes)
+		if to != 0:
+			return
 	if peer == null:
 		return
 	# A WebSocket is TCP underneath: everything arrives, in order.
@@ -208,11 +227,17 @@ func poll(now_ms: float) -> Array:
 		received += bytes.size()
 		received_packets += 1
 		out.append([from, bytes])
+	if also != null:
+		for packet: Array in also.poll(now_ms):
+			out.append([int(packet[0]) + ALSO_IDS, packet[1]])
 	return out
 
 
 ## Lets one peer go (the host turning a client away or kicking it).
 func drop(id: int) -> void:
+	if also != null and id >= ALSO_IDS:
+		also.drop(id - ALSO_IDS)
+		return
 	# (A server list's knock may have hung up first: only a peer still here.)
 	if peer != null and hosting and _peers.has(id):
 		peer.disconnect_peer(id)
@@ -220,6 +245,9 @@ func drop(id: int) -> void:
 
 
 func close() -> void:
+	if also != null:
+		also.close()
+		also = null
 	if peer != null:
 		peer.close()
 		peer = null

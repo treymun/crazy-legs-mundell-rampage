@@ -11,6 +11,8 @@ Environment=HOME=/opt/clmr
 # Line-buffered, so each line reaches the journal as it is printed.
 ExecStart=/usr/bin/stdbuf -oL /opt/clmr/clmr_server.x86_64 --headless -- --lobby-server=/opt/clmr/lobbies.json
 Restart=always
+# The browser's wss lobby listens on 443 (lobbies.json ws_port).
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 RestartSec=5
 NoNewPrivileges=true
 ProtectSystem=strict

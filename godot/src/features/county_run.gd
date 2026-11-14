@@ -12,6 +12,9 @@ extends GameFeature
 
 var on := false
 var map_id := ""
+## The day of a DAILY RUN ("2026-11-14": everyone's dice that day; county_board.gd),
+## "" for an ordinary run.
+var daily := ""
 ## Seconds survived: the score. It stops while a choice is on screen (the
 ## whole world does: CountyMode.holds).
 var run_time := 0.0

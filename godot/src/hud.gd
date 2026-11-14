@@ -27,6 +27,8 @@ var plate := PackedByteArray()
 ## The same plate headed for the 5v5 modes (VEST and THROWN where the
 ## campaign's KEYS and YER STUFF go).
 var plate_5v5 := PackedByteArray()
+## And for COUNTY RUN (VEST and LEVEL; the gun slots where GUT and DRUNK go).
+var plate_county := PackedByteArray()
 var plate_w := 320
 var plate_h := 44
 var icons := {}
@@ -52,6 +54,7 @@ func _init(p_assets: Assets) -> void:
 	var bare := plate.duplicate()
 	plate = _headed(bare, ["KEYS", "YER STUFF"])
 	plate_5v5 = _headed(bare, ["VEST", "THROWN"])
+	plate_county = _headed(bare, ["VEST", "LEVEL"])
 	_build_ammo_icons()
 
 
@@ -785,7 +788,9 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			snappedf(game.player.drunk, .25),
 			game.inventory_slot,
 			game.inventory.get(item, 0),
-			TacticalScreens.bar_state(game) if Modes.is_tactical(game) else []
+			TacticalScreens.bar_state(game) if Modes.is_tactical(game) else [],
+			county_bar_state(game),
+			PixelType.clear_small
 		]
 	)
 	var head := Renderer.VIEW * Canvas.WIDTH * 3
@@ -823,9 +828,11 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 
 func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	var team_bar: Array = TacticalScreens.bar_state(game) if Modes.is_tactical(game) else []
-	_blit_rgb(
-		c, plate_5v5 if not team_bar.is_empty() else plate, plate_w, plate_h, 0, Renderer.VIEW
-	)
+	var county = CountyMode.run(game)
+	var shown := plate_5v5 if not team_bar.is_empty() else plate
+	if county != null:
+		shown = plate_county
+	_blit_rgb(c, shown, plate_w, plate_h, 0, Renderer.VIEW)
 	ammo_rail(c, armory)
 	var slot := armory.active
 	var amount := "-"
@@ -851,6 +858,9 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		text(c, "RELOAD", 77, Renderer.VIEW + 36, "mini", AMBER, true, false)
 	if not team_bar.is_empty():
 		_draw_team_bar(c, game, team_bar)
+		return
+	if county != null:
+		_draw_county_bar(c, game, county)
 		return
 	for i in 2:
 		var name := "key_brass" if i == 0 else "key_steel"
@@ -954,6 +964,82 @@ func _draw_team_bar(c: Canvas, game: Game, s: Array) -> void:
 		)
 	var thrown := int(s[4])
 	text(c, str(thrown), 292, Renderer.VIEW + 24, "body", AMBER if thrown else INK, true, true)
+
+
+## What COUNTY RUN's part of the bar shows (its key: drawn again only when
+## one of these changes). [] outside a run.
+static func county_bar_state(game) -> Array:
+	var f = CountyMode.run(game)
+	if f == null:
+		return []
+	var need := CountyData.xp_to_next(f.level)
+	return [f.slots.duplicate(), int(f.armor), f.level, roundi(30.0 * f.xp / maxf(1.0, need))]
+
+
+## COUNTY RUN's part of the status bar: the armor in the third box, the face,
+## the three gun slots (the one in hand lit, each with its rounds) where the
+## gut and drunk meters go, and the level with its XP in the pocket.
+func _draw_county_bar(c: Canvas, game: Game, f) -> void:
+	var armor := int(f.armor)
+	text(
+		c,
+		str(armor) if armor > 0 else "NONE",
+		115,
+		Renderer.VIEW + 24,
+		"body",
+		AMBER if armor > 0 else Color8(150, 110, 80),
+		true,
+		true
+	)
+	_draw_face(c, game.face_name())
+	var a: Weapons.Armory = game.armory
+	for i in 3:
+		var gun := int(f.slots[i]) if i < f.slots.size() else -1
+		var r := Rect2i(173, Renderer.VIEW + 6 + i * 11, 96, 10)
+		var on := gun >= 0 and gun == a.active
+		LobbyScreens.box(
+			c,
+			r,
+			LobbyScreens.LIT if on else LobbyScreens.PLAIN,
+			CountyScreens.GOLD if on else LobbyScreens.EDGE
+		)
+		var ink := CountyScreens.GOLD if on else DIM
+		text(c, str(i + 1), r.position.x + 3, r.position.y + 2, "mini", ink)
+		if gun < 0:
+			text(c, "EMPTY", r.position.x + 11, r.position.y + 2, "mini", Menu.FADED)
+			continue
+		text(
+			c,
+			CountyData.short_name(gun).substr(0, 10),
+			r.position.x + 11,
+			r.position.y + 2,
+			"mini",
+			INK if on else LobbyScreens.SOFT
+		)
+		if CountyData.kind_of(gun) == CountyData.MELEE:
+			continue
+		var rounds := (
+			str(a.reserve[gun])
+			if Weapons.CAPACITY[gun] == 0
+			else "%d/%d" % [a.loaded[gun], a.reserve[gun]]
+		)
+		var dry: bool = a.loaded[gun] + a.reserve[gun] == 0
+		text(
+			c,
+			rounds,
+			r.end.x - 3,
+			r.position.y + 2,
+			"mini",
+			LOW if dry else AMBER,
+			false,
+			true,
+			true
+		)
+	text(c, str(f.level), 292, Renderer.VIEW + 22, "heading", AMBER, true, true)
+	var need := CountyData.xp_to_next(f.level)
+	var fill := clampi(roundi(30.0 * f.xp / maxf(1.0, need)), 0, 30)
+	c.fill_rect(277, Renderer.VIEW + 36, 30, 3, CountyScreens.XP_BACK)
+	c.fill_rect(277, Renderer.VIEW + 36, fill, 3, CountyScreens.XP_FILL)
 
 
 func _draw_face(c: Canvas, face_name: String) -> void:

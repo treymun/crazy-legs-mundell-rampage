@@ -42,6 +42,9 @@ static var build_open := false
 static var over_row := 0
 static var _shown := ""
 static var _shown_at := 0
+## The picker's DAILY RUN switch, and the board heard from the server.
+static var daily := false
+static var board: CountyBoard = null
 
 
 ## True while the run puts something over the view that takes taps (cards,
@@ -109,15 +112,16 @@ static func draw_over(c: Canvas, game) -> void:
 
 static func draw_maps(c: Canvas, menu: Menu) -> void:
 	menu.draw_sheet(c, "COUNTY RUN")
-	HUD.text(
-		c,
-		"SURVIVE AS LONG AS YOU CAN. EVERY TENTH LEVEL IS A BIG ONE.",
-		160,
-		33,
-		"mini",
-		LobbyScreens.SOFT,
-		true
+	# The DAILY RUN switch (T, or a tap): the day's dice, the same for everyone.
+	var switch := Rect2i(14, 30, 292, 10)
+	LobbyScreens.box(c, switch, LobbyScreens.LIT if daily else LobbyScreens.PLAIN)
+	var line := (
+		"DAILY RUN %s: TODAY'S DICE, SAME FOR EVERYONE (T)" % CountyBoard.today()
+		if daily
+		else "SURVIVE AS LONG AS YOU CAN.  T: DAILY RUN, ONE BOARD FOR EVERYONE"
 	)
+	HUD.text(c, line, 160, 32, "mini", GOLD if daily else LobbyScreens.SOFT, true)
+	LobbyScreens.zone(switch, "daily", 0)
 	var maps := CountyData.maps()
 	for i in maps.size():
 		var m: Dictionary = maps[i]
@@ -132,6 +136,10 @@ static func draw_maps(c: Canvas, menu: Menu) -> void:
 		var lines := PixelType.wrap(String(m.get("blurb", "")), 268, "mini")
 		for k in mini(2, lines.size()):
 			HUD.text(c, lines[k], 33, y + 15 + k * 7, "mini", LobbyScreens.SOFT)
+		if daily:
+			_daily_line(c, String(m.get("id", "")), y + 30)
+			LobbyScreens.zone(r, "map", i)
+			continue
 		var best := CountyRecords.best(String(m.get("id", "")))
 		var record := "NO RUNS YET"
 		if not best.is_empty():
@@ -164,59 +172,10 @@ static func draw_hud(c: Canvas, game, f) -> void:
 	c.fill_rect(0, VIEW - 3, 320, 3, XP_BACK)
 	c.fill_rect(0, VIEW - 3, fill, 3, XP_FILL)
 	c.fill_rect(0, VIEW - 3, 320, 1, Color(0, 0, 0))
-	var a: Weapons.Armory = game.armory
-	for i in f.slots.size():
-		var gun := int(f.slots[i])
-		var r := Rect2i(2 + i * 50, VIEW - 16, 48, 12)
-		var on := gun >= 0 and gun == a.active
-		LobbyScreens.box(
-			c, r, LobbyScreens.LIT if on else LobbyScreens.PLAIN, GOLD if on else LobbyScreens.EDGE
-		)
-		HUD.text(
-			c,
-			"%d" % (i + 1),
-			r.position.x + 2,
-			r.position.y + 3,
-			"mini",
-			GOLD if on else Menu.FADED
-		)
-		if gun < 0:
-			HUD.text(c, "EMPTY", r.position.x + 8, r.position.y + 3, "mini", Menu.FADED)
-			continue
-		HUD.text(
-			c,
-			CountyData.short_name(gun).substr(0, 9),
-			r.position.x + 8,
-			r.position.y + 3,
-			"mini",
-			HUD.INK if on else LobbyScreens.SOFT
-		)
-		var ammo := ""
-		if CountyData.kind_of(gun) != CountyData.MELEE:
-			ammo = (
-				"%d" % a.reserve[gun]
-				if Weapons.CAPACITY[gun] == 0
-				else "%d/%d" % [a.loaded[gun], a.reserve[gun]]
-			)
-		var low: bool = (
-			CountyData.kind_of(gun) != CountyData.MELEE and a.loaded[gun] + a.reserve[gun] == 0
-		)
-		HUD.text(
-			c,
-			ammo,
-			r.end.x - 2,
-			r.position.y - 6,
-			"mini",
-			HUD.LOW if low else HUD.AMBER,
-			false,
-			true,
-			true
-		)
-	var right := "LV %d   %s" % [f.level, CountyRecords.clock_text(f.run_time)]
+	# The gun slots, armor and level are on the status bar (hud.gd).
+	var right := CountyRecords.clock_text(f.run_time)
 	HUD.text(c, right, 317, VIEW - 13, "body", HUD.INK, false, true, true)
 	var bits: Array = []
-	if f.armor >= 1.0:
-		bits.append("ARMOR %d" % int(f.armor))
 	if CountyBuild.has(f, "mudslide"):
 		var wait: float = f.dash_ready - game.clock
 		bits.append("SLIDE READY" if wait <= 0.0 else "SLIDE %.0fS" % ceilf(wait))
@@ -287,19 +246,22 @@ static func draw_cards(c: Canvas, game, f) -> void:
 		HUD.text(c, "MILESTONE! LEVEL %d" % int(entry[0]), 160, 5 + drop, "heading", GOLD, true)
 	else:
 		HUD.text(c, "LEVEL %d!" % int(entry[0]), 160, 4 + drop, "heading", HUD.AMBER, true)
-	var note := "PICK A BIG ONE." if big else "PICK ONE."
+	var note := "PICK A BIG ONE." if big else "PICK ONE. THE CLOCK IS STOPPED."
 	if f.pending.size() > 1:
-		note += (
-			"  %d MORE CHOICE%s AFTER THIS."
-			% [f.pending.size() - 1, "S" if f.pending.size() > 2 else ""]
-		)
-	HUD.text(c, note, 160, 21 if not big else 26, "mini", LobbyScreens.SOFT, true)
+		note = "PICK ONE (%d MORE AFTER THIS)." % (f.pending.size() - 1)
 	if f.tips and not big:
 		var tips: Array = CountyData.all().get("tips", [])
 		if not tips.is_empty():
-			HUD.text(
-				c, "TIP: " + String(tips[f.level % tips.size()]), 160, 142 - 9, "mini", GOLD, true
-			)
+			note = "TIP: " + String(tips[f.level % tips.size()])
+	HUD.text(
+		c,
+		note,
+		160,
+		21 if not big else 26,
+		"mini",
+		GOLD if note.begins_with("TIP") else LobbyScreens.SOFT,
+		true
+	)
 	for i in f.offer.size():
 		_card(
 			c,
@@ -315,10 +277,12 @@ static func draw_cards(c: Canvas, game, f) -> void:
 			big
 		)
 	LobbyScreens.button(c, Rect2i(5, 143, 52, 11), "BUILD", false, "build")
-	var hint := "1-3 OR TAP A CARD" if armed() else "..."
-	HUD.text(c, hint + "   B BUILD", 190, 146, "mini", Menu.FADED, true)
-	var timer := "THE CLOCK IS STOPPED"
-	HUD.text(c, timer, 315, 146, "mini", Menu.FADED, false, true, true)
+	# The card under the cursor in full, beside BUILD.
+	var here: int = clampi(card_row, 0, f.offer.size() - 1)
+	var d := CountyBuild.describe(game, f, f.offer[here])
+	var lines := PixelType.wrap(String(d.get("detail", "")), 254, "mini")
+	for k in mini(2, lines.size()):
+		HUD.text(c, lines[k], 62, 142 + k * 7, "mini", HUD.INK)
 
 
 static func _card(c: Canvas, game, f, i: int, r: Rect2i, big: bool) -> void:
@@ -334,45 +298,45 @@ static func _card(c: Canvas, game, f, i: int, r: Rect2i, big: bool) -> void:
 	var strip: Color = STRIPS.get(String(card["type"]), STRIPS["upgrade"])
 	c.fill_rect(r.position.x + 1, r.position.y + 1, r.size.x - 2, 9, strip)
 	HUD.text(c, "%d" % (i + 1), r.position.x + 3, r.position.y + 3, "mini", GOLD)
-	HUD.text(
-		c, String(d["for"]).substr(0, 22), r.position.x + 10, r.position.y + 3, "mini", HUD.INK
-	)
+	HUD.text(c, String(d.get("badge", "")), r.position.x + 10, r.position.y + 3, "mini", HUD.INK)
 	var x := r.position.x + 4
 	var y := r.position.y + 13
 	var width := r.size.x - 8
-	var title := PixelType.wrap(String(d["title"]), width, "body")
-	for line in title.slice(0, 2):
+	for line in PixelType.wrap(String(d["title"]), width, "body").slice(0, 2):
 		HUD.text(c, line, x, y, "body", GOLD if big else HUD.AMBER)
 		y += 9
-	if String(d["rank"]) != "":
-		HUD.text(c, String(d["rank"]), x, y, "mini", Menu.FADED)
-		y += 7
+	# Rank pips: held gold, this one green, the rest empty.
+	var pips: Array = d.get("pips", [0, 0])
+	if int(pips[1]) > 0:
+		for k in int(pips[1]):
+			var px := x + k * 9
+			var ink := (
+				GOLD
+				if k < int(pips[0])
+				else (LobbyScreens.GREEN if k == int(pips[0]) else Menu.DIM)
+			)
+			c.fill_rect(px, y + 1, 7, 5, Color(0, 0, 0))
+			if k <= int(pips[0]):
+				c.fill_rect(px + 1, y + 2, 5, 3, ink)
+			else:
+				c.fill_rect(px + 1, y + 2, 5, 3, LobbyScreens.PLAIN)
+		y += 9
 	y += 2
-	# What it does in the bigger letters; what it does now (a rank held) small.
-	var first := true
-	# Too long for the big letters with room left for the tradeoff: small.
-	var main_text := String(d["lines"][0]) if not d["lines"].is_empty() else ""
-	var roomy := PixelType.wrap(main_text, width, "body").size() <= 5
-	for text: String in d["lines"]:
-		var style := "body" if first and roomy else "mini"
-		for line in PixelType.wrap(text, width, style):
-			if y > r.end.y - 24:
-				break
-			HUD.text(c, line, x, y, style, HUD.INK if first else Menu.FADED)
-			y += 9 if style == "body" else 7
-		y += 2
-		first = false
-	if String(d["trade"]) != "":
-		for line in PixelType.wrap(String(d["trade"]), width, "mini"):
-			if y > r.end.y - 16:
-				break
-			HUD.text(c, line, x, y, "mini", HUD.LOW_HOT)
+	# What changes, in big letters.
+	for line in PixelType.wrap(String(d.get("big", "")), width, "body").slice(0, 5):
+		HUD.text(c, line, x, y, "body", HUD.INK)
+		y += 9
+	if String(card["type"]) == "weapon":
+		HUD.text(
+			c, String(d["lines"][1]).replace("COMES WITH ", "AMMO "), x, y + 1, "mini", Menu.FADED
+		)
+		y += 8
+	var trade := String(d.get("small_trade", ""))
+	if trade != "":
+		for line in PixelType.wrap(trade, width, "mini").slice(0, 2):
+			HUD.text(c, line, x, y + 2, "mini", HUD.LOW_HOT)
 			y += 7
-	var lasts := PixelType.wrap(String(d["lasts"]), width, "mini")
-	var ly := r.end.y - 3 - 7 * lasts.size()
-	for line in lasts:
-		HUD.text(c, line, x, ly, "mini", LobbyScreens.GREEN)
-		ly += 7
+	HUD.text(c, String(d.get("tag", "")), x, r.end.y - 10, "mini", LobbyScreens.GREEN)
 	LobbyScreens.zone(r, "card", i)
 
 
@@ -496,7 +460,7 @@ static func _build_lines(c: Canvas, f, y: int, bottom: int) -> int:
 # ------------------------------------------------------------------ the end
 
 
-static func draw_end(c: Canvas, _game, f) -> void:
+static func draw_end(c: Canvas, game, f) -> void:
 	var r: Dictionary = f.result
 	c.fill_rect(0, 0, 320, VIEW, WOOD)
 	c.fill_rect(0, 3, 320, 20, RIBBON)
@@ -558,13 +522,89 @@ static func draw_end(c: Canvas, _game, f) -> void:
 		if y > 128:
 			break
 		var line := "%s: %s" % [row[0], row[1]]
-		for part in PixelType.wrap(line, 300, "mini"):
+		for part in PixelType.wrap(line, 200 if String(f.daily) != "" else 300, "mini"):
 			if y > 128:
 				break
 			HUD.text(c, part, 10, y, "mini", HUD.INK)
 			y += 7
+	if String(game.features["county"].daily) != "":
+		_daily_end(c, r)
 	var labels := ["RETRY", "MAPS", "TITLE"]
 	var ids := ["retry", "maps", "title"]
 	for i in 3:
 		LobbyScreens.button(c, Rect2i(18 + i * 100, 137, 84, 15), labels[i], i == over_row, ids[i])
 	HUD.text(c, "ENTER RETRY   M MAPS   ESC TITLE", 160, 130, "mini", Menu.FADED, true)
+
+
+# ------------------------------------------------------------------ daily run
+
+
+static func toggle_daily() -> void:
+	daily = not daily
+	if daily:
+		for map_id: String in CountyData.MAP_IDS:
+			_board().fetch(map_id)
+
+
+static func _board() -> CountyBoard:
+	if board == null:
+		board = CountyBoard.new()
+	return board
+
+
+## Every frame (main.gd): the board's knocks, and a finished daily run posted
+## once (never from a tool, which must not knock on the real server).
+static func board_frame(main) -> void:
+	if board != null and board.busy():
+		board.poll(Time.get_ticks_msec())
+	var f = CountyMode.run(main.game) if main.game != null else null
+	if f == null or not f.over or String(f.daily) == "" or f.result.has("posted"):
+		return
+	f.result["posted"] = true
+	var loop := Engine.get_main_loop()
+	if loop != null and loop.get_script() != null and not CountyBoard.local:
+		return
+	var name := String(NetPlay.remembered().get("name", main.options.get("player_name", "MUNDELL")))
+	f.result["name"] = name
+	_board().post(name, f.result, String(f.daily))
+
+
+## A map's row on the picker with DAILY RUN on: the day's best three.
+static func _daily_line(c: Canvas, map_id: String, y: int) -> void:
+	var rows: Array = _board().boards.get(map_id, [])
+	var text := "ASKING THE SERVER..." if _board().busy() else "NOBODY HAS RUN IT TODAY. BE FIRST."
+	if not rows.is_empty():
+		var parts: Array = []
+		for i in mini(3, rows.size()):
+			parts.append(
+				"%d %s %s" % [i + 1, rows[i][0], CountyRecords.clock_text(float(rows[i][1]))]
+			)
+		text = "TODAY: " + "   ".join(PackedStringArray(parts))
+	HUD.text(c, text, 33, y, "mini", GOLD if not rows.is_empty() else Menu.FADED)
+
+
+## The end of a daily run: the day's board for the map, this run marked.
+static func _daily_end(c: Canvas, r: Dictionary) -> void:
+	var map_id := String(r.get("map", ""))
+	var rows: Array = _board().boards.get(map_id, [])
+	var x := 214
+	HUD.text(c, "TODAY'S BOARD", x, 65, "mini", GOLD)
+	if rows.is_empty():
+		HUD.text(c, "SENDING..." if _board().busy() else "NO ANSWER", x, 73, "mini", Menu.FADED)
+		return
+	var mine := _board().rank_of(map_id, String(r.get("name", "")), float(r.get("time", 0.0)))
+	for i in rows.size():
+		var row: Array = rows[i]
+		var ink := GOLD if i + 1 == mine else HUD.INK
+		HUD.text(c, "%d %s" % [i + 1, String(row[0]).substr(0, 10)], x, 73 + i * 8, "mini", ink)
+		HUD.text(
+			c,
+			CountyRecords.clock_text(float(row[1])),
+			312,
+			73 + i * 8,
+			"mini",
+			ink,
+			false,
+			true,
+			true
+		)

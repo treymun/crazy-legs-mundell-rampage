@@ -74,6 +74,10 @@ static func run(main, check: Callable, seconds := QUICK_SECONDS) -> void:
 	_abilities(main, check)
 	_spawns(main, check)
 	_routes(main, check)
+	_crossing(main, check)
+	_daily(main, check)
+	_steer(main, check)
+	_melee_blood(check)
 	_campaign_untouched(main, check)
 	for map_id: String in CountyData.MAP_IDS:
 		_play(main, check, map_id, seconds)
@@ -843,6 +847,189 @@ static func _routes(main, check: Callable) -> void:
 				% [map_id, came.size(), born.size()]
 			)
 		)
+
+
+## A boardwalk over deep water is walked across; nobody steps off it into
+## the deep.
+static func _crossing(main, check: Callable) -> void:
+	var g := made(main, "county_bayou")
+	var p: Player = g.player
+	g.cheats.god = true
+	Modes.place(g, p, 23.0, 34.3, PI / 2)
+	var go := Game.Controls.new()
+	go.forward = 1.0
+	for k in 60 * 5:
+		g.tick(STEP, go)
+	check.call(
+		p.y > 43.5, "the bayou's west crossing is walked over the deep water (to y %.1f)" % p.y
+	)
+	Modes.place(g, p, 23.0, 39.5, 0.0)
+	p.eye = .8 + .95
+	p.floor_z = .8
+	g.tick(STEP, Game.Controls.new())
+	var side := Game.Controls.new()
+	side.forward = 1.0
+	for k in 60 * 2:
+		g.tick(STEP, side)
+	check.call(p.x < 24.2, "and nobody steps off it into the deep (x %.1f)" % p.x)
+
+
+## A DAILY RUN: the day's dice are everyone's (two runs of a map that day
+## spawn alike, another day differs), and the server's board keeps a name's
+## best run, best first, refuses another version and an old day.
+static func _daily(main, check: Callable) -> void:
+	var day := CountyBoard.today()
+	var spawned: Array = []
+	for d: String in [day, day, "2001-01-01"]:
+		var g := made(main, "county_hickston")
+		g.rng.set_state(CountyBoard.seed_for(d, "county_hickston"))
+		g.features["county"].daily = d
+		g.features["county"].next_spawn = 0.0
+		g.cheats.god = true
+		for k in 60 * 12:
+			g.tick(STEP, Game.Controls.new())
+		var places: Array = []
+		for e: Enemy in g.enemies:
+			places.append(Vector2(snappedf(e.x, .01), snappedf(e.y, .01)))
+		spawned.append(places)
+	check.call(
+		spawned[0] == spawned[1] and not spawned[0].is_empty(),
+		"two daily runs of a map the same day spawn alike (%d hands)" % spawned[0].size()
+	)
+	check.call(spawned[0] != spawned[2], "and another day's dice differ")
+	var kept := CountyBoard.store
+	CountyBoard.store = OS.get_cache_dir().path_join("clmr-county-check/board.json")
+	if FileAccess.file_exists(CountyBoard.store):
+		DirAccess.remove_absolute(CountyBoard.store)
+	var version := String(ProjectSettings.get_setting("application/config/version", ""))
+	var post := func(name: String, time: float, v: String, on_day: String) -> Dictionary:
+		return (
+			CountyBoard
+			. answer(
+				{
+					"map": "county_quarry",
+					"day": on_day,
+					"post": [name, time, 5, 40],
+					"version": v,
+				}
+			)
+		)
+	post.call("BOB", 120.0, version, day)
+	post.call("SUE", 300.0, version, day)
+	post.call("BOB", 90.0, version, day)
+	post.call("BOB", 200.0, version, day)
+	post.call("CHEAT", 999.0, "0.0.0", day)
+	post.call("OLD", 999.0, version, "2001-01-01")
+	var rows: Array = CountyBoard.answer({"map": "county_quarry", "day": day})["rows"]
+	var names: Array = rows.map(func(r: Array) -> String: return String(r[0]))
+	(
+		check
+		. call(
+			names == ["SUE", "BOB"] and float(rows[1][1]) == 200.0,
+			(
+				"the daily board keeps each name's best, best first, and refuses another version or day (%s)"
+				% [names]
+			)
+		)
+	)
+	var b := CountyBoard.new()
+	CountyBoard.local = true
+	b.fetch("county_quarry")
+	CountyBoard.local = false
+	check.call(
+		(
+			b.boards.get("county_quarry", []).size() == 2
+			and b.rank_of("county_quarry", "BOB", 200.0) == 2
+		),
+		"and the game hears it back and finds its run on it"
+	)
+	CountyBoard.store = kept
+
+
+## Deep water on the line to the player: a hand that cannot swim walks round
+## by the flow field (deep_steer.gd), and one that can see a dry way still
+## comes straight.
+static func _steer(main, check: Callable) -> void:
+	var g := made(main, "county_bayou")
+	var w: LevelData = g.world
+	var p: Player = g.player
+	# A column with deep water (no deck) between dry ground north and south.
+	var at := Vector3i(-1, -1, -1)
+	for x in range(2, w.width - 2):
+		for y in range(4, w.height - 4):
+			var cx := x + .5
+			if not w.deep_at(cx, y + .5) or w.over_deep(cx, y + .5):
+				continue
+			var north := y
+			while north > 0 and w.deep_at(cx, north + .5):
+				north -= 1
+			var south := y
+			while south < w.height - 1 and w.deep_at(cx, south + .5):
+				south += 1
+			if north > 0 and south < w.height - 1 and not w.blocked(cx, north + .5):
+				if not w.blocked(cx, south + .5):
+					at = Vector3i(x, north, south)
+					break
+		if at.x >= 0:
+			break
+	if at.x < 0:
+		check.call(false, "the bayou has deep water between dry banks")
+		return
+	Modes.place(g, p, at.x + .5, at.z + .5, 0.0)
+	var e := Enemy.new("billy", at.x + .5, at.y + .5)
+	var crossing := DeepSteer.across(g, e, p)
+	e.y = at.z + .5
+	e.x = at.x + 1.5
+	var dry := not DeepSteer.across(g, e, p)
+	e.swims = true
+	e.x = at.x + .5
+	e.y = at.y + .5
+	var swimmer := not DeepSteer.across(g, e, p)
+	check.call(
+		crossing and dry and swimmer,
+		(
+			(
+				"a hand across deep water goes round (%s), one on dry ground comes"
+				+ " straight (%s), a gator swims (%s)"
+			)
+			% [crossing, dry, swimmer]
+		)
+	)
+
+
+## Blood on the crowbar: a close hit wets it, a pistol never, and the wet cel
+## is redder at its tip than the clean one.
+static func _melee_blood(check: Callable) -> void:
+	var a := Weapons.Armory.new()
+	MeleeBlood.bloody(a, Weapons.CROWBAR, 30.0, false)
+	MeleeBlood.bloody(a, Weapons.REVOLVER, 30.0, false)
+	var wet := MeleeBlood.stage(a, Weapons.CROWBAR)
+	check.call(
+		wet >= 1 and MeleeBlood.stage(a, Weapons.REVOLVER) == 0,
+		"a crowbar hit wets the crowbar (stage %d), never a pistol" % wet
+	)
+	var im := Image.load_from_file(
+		ProjectSettings.globalize_path("res://../assets/art/gun_crowbar_idle.png")
+	)
+	if im == null:
+		return
+	im.convert(Image.FORMAT_RGBA8)
+	var clean := {"w": im.get_width(), "h": im.get_height(), "data": im.get_data()}
+	var red := func(d: Dictionary) -> int:
+		var n := 0
+		var data: PackedByteArray = d["data"]
+		for i in range(0, data.size(), 4):
+			if data[i + 3] > 128 and data[i] > data[i + 1] + 50:
+				n += 1
+		return n
+	var smeared := MeleeBlood.smear(clean, 3, false)
+	check.call(
+		int(red.call(smeared)) > int(red.call(clean)) + 40,
+		(
+			"and the wet crowbar is drawn bloody (%d red pixels, clean %d)"
+			% [red.call(smeared), red.call(clean)]
+		)
+	)
 
 
 ## The campaign is untouched: no mode, the hooks hand back what they get.

@@ -16,7 +16,7 @@ const LIMB_HIT := 44.0
 const SPURT := 1.3
 const SPURT_EVERY := .07
 ## A pool's size by the body's, and how fast it spreads (units a second).
-const POOL_SIZE := .42
+const POOL_SIZE := .5
 const POOL_GROW := .16
 ## Boot prints after stepping in blood, one every PRINT_STEP walked.
 const PRINTS := 7
@@ -39,7 +39,7 @@ static func pool(gore, e: Enemy) -> void:
 		return
 	var green := Enemy.GREEN_GIBS.has(e.kind) or Enemy.PLASMA.has(e.kind)
 	var image := (
-		("mark_oil_%d" if metal(e) else "mark_acid_%d" if green else "mark_blood_%d")
+		("mark_oil_%d" if metal(e) else "mark_pool_acid_%d" if green else "mark_pool_blood_%d")
 		% (gore.dice.randi() % 3)
 	)
 	var target: float = (
@@ -84,6 +84,10 @@ static func limb(gore, e: Enemy) -> void:
 	if part == "":
 		return
 	var green := Enemy.GREEN_GIBS.has(e.kind)
+	if part == "head":
+		if gore.headless.size() > 300:
+			gore.headless.clear()
+		gore.headless[e] = true
 	var floor_z: float = gore.game.world.stand(e)
 	var away := atan2(e.y - e.killed_from.y, e.x - e.killed_from.x)
 	var high := {"head": .92, "arm": .62, "hand": .55, "boot": .15}
@@ -256,7 +260,7 @@ static func prints(gore) -> void:
 			continue
 		if Vector2(mark.x, mark.y).distance_to(here) < mark.reach * .55 and mark.reach > .2:
 			gore.bloody = PRINTS
-			gore.bloody_green = mark.image.begins_with("mark_acid")
+			gore.bloody_green = mark.image.contains("acid")
 			if mark.image.begins_with("mark_oil"):
 				gore.bloody = 0
 			break
@@ -287,3 +291,14 @@ static func prints(gore) -> void:
 	if gore.blood_marks.size() > gore.BLOOD_CAP:
 		gore.blood_marks.pop_front()
 	gore.bloody -= 1
+
+
+## A body that lost its head lies headless once it is down (the cel
+## `<kind>_down_headless`, tools/art/build_enemy_actors.gd frames=headless).
+static func headless_cel(game, sprite) -> void:
+	var image := String(sprite.image)
+	if not image.ends_with("_down"):
+		return
+	var name := image + "_headless"
+	if game.art.has_art(name):
+		sprite.image = name

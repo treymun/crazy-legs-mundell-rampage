@@ -109,7 +109,12 @@ static func reach_scale(f, gun: int) -> float:
 ## The most rounds `gun` carries (DEEP POCKETS, the rifle's FIELD MAGAZINE).
 static func reserve_cap(f, gun: int) -> int:
 	var most := float(Weapons.MAX_RESERVE[gun])
-	most *= 1.0 + perk_value(f, "deep_pockets") + value(f, gun, "field_magazine")
+	most *= (
+		1.0
+		+ perk_value(f, "deep_pockets")
+		+ value(f, gun, "field_magazine")
+		+ value(f, gun, "big_pouch")
+	)
 	return roundi(most)
 
 
@@ -466,7 +471,7 @@ static func take(game, f, c: Dictionary, slot := -1) -> void:
 					rank(f, gun, id)
 				]
 			)
-			if id == "field_magazine":
+			if id == "field_magazine" or id == "big_pouch":
 				give_ammo(game, f, gun, reserve_cap(f, gun))
 		"weapon":
 			# An open slot is always the one filled; a swap only when all are full.
@@ -591,7 +596,52 @@ static func describe(game, f, c: Dictionary) -> Dictionary:
 					else "LASTS: THE WHOLE RUN"
 				)
 			)
+	_short(game, f, c, out)
 	return out
+
+
+## The short card (county_screens.gd): a badge, rank pips [held, most], one
+## big line of what changes, a short downside and how long it lasts; every
+## word of the long text goes to the details bar.
+static func _short(game, f, c: Dictionary, out: Dictionary) -> void:
+	var gun := int(c["gun"])
+	var id := String(c["id"])
+	var spec := {}
+	var held := 0
+	var most := 0
+	match String(c["type"]):
+		"upgrade":
+			spec = CountyData.upgrade(id)
+			held = rank(f, gun, id)
+			most = int(spec.get("ranks", 1))
+			out["badge"] = "UPGRADE " + CountyData.short_name(gun)
+		"weapon":
+			out["badge"] = "NEW GUN"
+			out["big"] = String(CountyData.weapon(gun).get("plays", ""))
+			out["small_trade"] = "" if open_slot(f) >= 0 else "SWAPS OUT A GUN"
+		"perk":
+			spec = CountyData.perk(id)
+			var supply := bool(spec.get("supply", false))
+			out["badge"] = "SUPPLIES" if supply else "PERK"
+			if not supply:
+				held = perk_rank(f, id)
+				most = int(spec.get("ranks", 1))
+		"milestone":
+			spec = CountyData.milestone(id)
+			out["badge"] = "MILESTONE"
+	if not spec.is_empty():
+		var at := held + 1 if most > 0 else 1
+		var target := supply_target(game, f) if id == "supply_grab" else gun
+		out["big"] = CountyData.fill(
+			String(spec.get("short", spec.get("text", ""))), spec, at, target
+		)
+		out["small_trade"] = String(spec.get("short_trade", ""))
+	out["pips"] = [held, most]
+	var detail: Array = (out["lines"] as Array).duplicate()
+	if String(out["trade"]) != "":
+		detail.append(String(out["trade"]))
+	out["detail"] = " ".join(detail)
+	out["tag"] = String(out["lasts"]).trim_prefix("LASTS: ")
 
 
 ## Lines for the build screen: the slots with their upgrades, then the perks

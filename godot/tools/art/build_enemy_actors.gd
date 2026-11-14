@@ -83,6 +83,7 @@ func _init() -> void:
 	var out := Paint.repo("assets/art")
 	var raw := Paint.repo("_preview/enemies/raw")
 	var grain_wish := -1.0
+	var frames := "all"
 	for arg in OS.get_cmdline_user_args():
 		var text := String(arg)
 		if text.begins_with("kinds="):
@@ -93,6 +94,8 @@ func _init() -> void:
 			out = text.substr(4)
 		elif text.begins_with("raw="):
 			raw = text.substr(4)
+		elif text.begins_with("frames="):
+			frames = text.substr(7)
 		elif text.begins_with("grain="):
 			grain_wish = float(text.substr(6))
 	DirAccess.make_dir_recursive_absolute(raw)
@@ -107,7 +110,7 @@ func _init() -> void:
 				"--",
 				raw,
 				",".join(kinds),
-				"all",
+				frames,
 				str(SUPERSAMPLE)
 			]
 		)
@@ -131,7 +134,7 @@ func _init() -> void:
 			var stem := file.get_basename()
 			var image := Paint.Sheet.load_png(raw.path_join(file))
 			var target := Vector2i(int(size[0]), int(size[1]))
-			if stem.ends_with("_down"):
+			if stem.ends_with("_down") or stem.ends_with("_down_headless"):
 				image = image.cropped(image.bbox(127))
 				# Halves round to even, as Python's round() did for the cels in use.
 				target = Vector2i(

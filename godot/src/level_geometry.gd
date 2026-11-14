@@ -699,13 +699,15 @@ func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
 		tall = CROUCH
 	if blocked_body(lv, x, y, radius, feet, tall, not clear):
 		return false
-	if (
-		lv.deep_tile >= 0
-		and lv.deep_at(x, y)
-		and not lv.deep_at(body.x, body.y)
-		and not body.get("swims")
-	):
-		return false
+	# Deep water: nobody walks into it from dry ground, but a deck over it is
+	# dry ground (a boardwalk over the swamp); and nobody steps off one into it.
+	if lv.deep_tile >= 0 and lv.deep_at(x, y) and not body.get("swims"):
+		var dry_here: bool = not lv.deep_at(body.x, body.y) or floor_z > lv.ground[here] + STEP
+		var dry_there: bool = (
+			not clear and floor_at(x, y, feet, lv.ground[c], true) > lv.ground[c] + STEP
+		)
+		if dry_here and not dry_there:
+			return false
 	if occupied != null and occupied.call(x, y):
 		return false
 	if clear:

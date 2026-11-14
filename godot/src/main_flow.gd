@@ -158,7 +158,7 @@ func start_match() -> void:
 
 ## COUNTY RUN on map `map_id` (src/modes/county_mode.gd): a fresh run, one
 ## player, never the campaign and never saved.
-func start_county(map_id: String) -> void:
+func start_county(map_id: String, daily := "") -> void:
 	mode_name = Modes.COUNTY
 	mode_players = 1
 	mode_options = {}
@@ -169,6 +169,10 @@ func start_county(map_id: String) -> void:
 	var run: Game = waiting_play if waiting_play != null else game
 	if run != null:
 		run.rng.set_state(int(Time.get_unix_time_from_system() * 1000.0) & 0x7FFFFFFFFFFF)
+		if daily != "":
+			# A DAILY RUN: the day's dice for this map, the same for everyone.
+			run.rng.set_state(CountyBoard.seed_for(daily, map_id))
+			run.features["county"].daily = daily
 		CountySpawner.spots(run)  # worked out while the map comes up, not mid-fight
 
 
@@ -879,17 +883,17 @@ func open_net_form(hosting: bool) -> void:
 	sound.play("menu_accept")
 
 
-const WEB_NOTE := "ONLINE NEEDS THE DESKTOP OR ANDROID GAME FOR NOW."
+const WEB_NOTE := "HOSTING AND JOIN CODES NEED THE DESKTOP GAME. PLAY ONLINE WORKS HERE."
 
 
 ## The picker's COUNTY SERVERS: the always-open lobbies, live (net_browser.gd).
 func open_servers() -> void:
 	var last := NetPlay.remembered()
 	close_servers()
-	# The browser build cannot reach them (no ENet): the list shows none.
-	browser = NetBrowser.new([] if web else NetBrowser.listed())
+	# The browser build reaches them over their secure WebSockets (net_browser.gd).
+	browser = NetBrowser.new(NetBrowser.listed())
 	browser.name = String(last.get("name", options.get("player_name", "MUNDELL")))
-	net_note = WEB_NOTE if web else ""
+	net_note = ""
 	state = "servers"
 	sound.play("menu_accept")
 
@@ -956,7 +960,7 @@ func net_open_lobby() -> void:
 
 ## JOIN on the JOIN ONLINE form.
 func net_join() -> void:
-	if web:
+	if web and not String(net_form["address"]).contains("://"):
 		net_note = WEB_NOTE
 		sound.play("empty")
 		return

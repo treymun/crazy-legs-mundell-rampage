@@ -90,7 +90,7 @@ static func gain(game, f, amount: int) -> void:
 		var big := false
 		for entry: Array in f.pending:
 			big = big or bool(entry[1])
-		game.sound.play("victory" if big else "fair_score", .9)
+		game.sound.play("county_milestone" if big else "county_level", .9)
 		Modes.say(
 			game,
 			("LEVEL %d!" % f.level) if came == 1 else "LEVEL %d! (%d LEVELS)" % [f.level, came],

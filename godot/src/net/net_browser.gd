@@ -38,6 +38,7 @@ func _init(list := listed()) -> void:
 						"name": String(entry.get("name", "SERVER")),
 						"address": String(entry.get("address", "")),
 						"port": int(entry.get("port", NetSession.PORT)),
+						"wss": String(entry.get("wss", "")),
 						"state": "asking",
 						"info": {},
 						"ping": 0.0,
@@ -93,7 +94,14 @@ func close() -> void:
 func _knock(s: Dictionary) -> void:
 	s["asked_at"] = _now
 	s["sent_at"] = -1.0
-	s["session"] = NetSession.join(String(s["address"]), int(s["port"]))
+	if OS.has_feature("web"):
+		# The browser has no ENet: the server's secure WebSocket, if it has one.
+		var wss := String(s["wss"])
+		s["session"] = (
+			NetSession.join(wss, 0, NetSession.Transport.WEBSOCKET) if wss != "" else null
+		)
+	else:
+		s["session"] = NetSession.join(String(s["address"]), int(s["port"]))
 	if s["session"] == null:
 		s["state"] = "silent"
 
@@ -108,6 +116,8 @@ func _hang_up(s: Dictionary) -> void:
 ## "address:port" of server `i`, for NetPlay.join_lobby.
 func address_of(i: int) -> String:
 	var s: Dictionary = servers[i]
+	if OS.has_feature("web") and String(s["wss"]) != "":
+		return String(s["wss"])
 	return "%s:%d" % [s["address"], int(s["port"])]
 
 

@@ -78,97 +78,12 @@ static func _static_init() -> void:
 
 ## Read the tuned values and definitions; Tuning.watch() calls it again after a change.
 static func load_tuning() -> void:
-	var path := Tuning.ENEMIES
-	var cfg := Tuning.file(path)
-	DEATH_TIME = Tuning.value(path, "death_time")
-	VOICE_TAKES = Tuning.value(path, "voice_takes")
-	DEATH_ONLY = Tuning.value(path, "death_only_voices")
-	LUCKY_CHANCE = float(Tuning.value(path, "lucky_chance"))
-	DEFS = {}
-	for kind in Tuning.sections(path):
-		DEFS[kind] = _definition(cfg, kind, 0)
-	KINDS = {}
-	RECOVERY_TIMES = {}
-	LUNGES = {}
-	REACH = {}
-	WINDUP = {}
-	COMFORT = {}
-	BOSS_TITLES = {}
-	SIGNATURES = {}
-	TELLS = {}
-	VOICES = {}
-	AWAKE = {}
-	TURN_CELS = []
-	FIDGET_CELS = []
-	CREATURE_FALLS = []
-	SHELL_ACTORS = []
-	TOOL_ACTORS = []
-	LOSS_RESPONDERS = []
-	RANGED = []
-	PLASMA = []
-	GREEN_GIBS = []
-	var keyed := {
-		"recovery_times": RECOVERY_TIMES,
-		"lunges": LUNGES,
-		"reach": REACH,
-		"windup": WINDUP,
-		"comfort": COMFORT,
-		"title": BOSS_TITLES,
-		"signature": SIGNATURES,
-		"tell": TELLS,
-		"voice": VOICES,
-		"alert": AWAKE,
-	}
-	for kind: String in DEFS:
-		var d: Dictionary = DEFS[kind]
-		KINDS[kind] = [d["hp"], d["speed"], d["radius"], d["height"], d["hostile"]]
-		for key: String in keyed:
-			if d.has(key):
-				keyed[key][kind] = d[key]
-		var cels := String(d.get("cels", ""))
-		if cels == "turn":
-			TURN_CELS.append(kind)
-		elif cels == "tumble":
-			CREATURE_FALLS.append(kind)
-		if d.get("fidget", false):
-			FIDGET_CELS.append(kind)
-		if d.get("struck", "") == "shell":
-			SHELL_ACTORS.append(kind)
-		elif d.get("struck", "") == "tool":
-			TOOL_ACTORS.append(kind)
-		if d.get("answers_losses", false):
-			LOSS_RESPONDERS.append(kind)
-		if d.get("ranged", false):
-			RANGED.append(kind)
-		if d.get("blood", "") == "plasma":
-			PLASMA.append(kind)
-		if d.get("green_gibs", false):
-			GREEN_GIBS.append(kind)
-	TURNS = {}
-	FIDGETS = {}
-	FALLS = {}
-	for kind: String in TURN_CELS:
-		TURNS[kind] = true
-	for kind: String in FIDGET_CELS:
-		FIDGETS[kind] = true
-	for kind: String in CREATURE_FALLS:
-		FALLS[kind] = true
-	_cels = {}
-	Variants.tables()
+	EnemyTuning.load_tuning()
 
 
 ## A section's values over those of the kind it names as its brain.
 static func _definition(cfg: ConfigFile, kind: String, depth: int) -> Dictionary:
-	var d := {}
-	if cfg.has_section_key(kind, "brain") and depth < 4:
-		var brain_kind := String(cfg.get_value(kind, "brain"))
-		if cfg.has_section(brain_kind) and brain_kind != kind:
-			d = _definition(cfg, brain_kind, depth + 1)
-			d["brain"] = String(d.get("brain", brain_kind))
-	for key in cfg.get_section_keys(kind):
-		if key != "brain":
-			d[key] = cfg.get_value(kind, key)
-	return d
+	return EnemyTuning.definition(cfg, kind, depth)
 
 
 var kind := ""
@@ -917,8 +832,10 @@ func tick(dt: float, game) -> void:
 	var goal: float = COMFORT[kind]
 	var approach := atan2(ty2 - y, tx2 - x)
 	var strafe := PI / 2.0 if (attacks + int(pose / 1.45) + int(y)) % 2 else -PI / 2.0
+	# Deep water on the straight line (deep_steer.gd): go round by the flow field.
+	var water := can_see and DeepSteer.across(game, self, p)
 	var lost: bool = not can_see or game.world.geo != null and game.world.apart(self, p)
-	if hunting and lost and game.clock < hunt_until and game.flow != null:
+	if (water or hunting and lost and game.clock < hunt_until) and game.flow != null:
 		# Out of sight: come round by the open floor, not straight at the wall.
 		var lead: float = game.flow.heading(x, y, floor_z)
 		if not is_nan(lead):

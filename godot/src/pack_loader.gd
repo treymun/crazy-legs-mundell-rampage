@@ -38,6 +38,16 @@ func _ready() -> void:
 	_next()
 
 
+## How far `pack` has come down, 0..1 (1 once it is mounted).
+func progress(pack: String) -> float:
+	if loaded.has(pack):
+		return 1.0
+	if _busy == pack and manifest.has(pack):
+		var total := float(manifest[pack].get("size", 1))
+		return clampf(float(_http.get_downloaded_bytes()) / maxf(1.0, total), 0.0, .99)
+	return 0.0
+
+
 ## Fetch this pack next (a chapter has just started).
 func want_first(pack: String) -> void:
 	var at := queue.find(pack)

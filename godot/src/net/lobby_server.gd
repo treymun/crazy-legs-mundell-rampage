@@ -8,7 +8,10 @@
 ##
 ## The config (JSON): {"bind": "*", "lobbies": [{"port": 47197, "lobby_name":
 ## "5V5 SEARCH & DESTROY", "mode": "bomb", "map": "grainyard", ...}, ...]},
-## each lobby's keys any of NetPlay.DEFAULTS. Prints a line for everyone who
+## each lobby's keys any of NetPlay.DEFAULTS. A lobby's "ws_port" also takes
+## the browser build over a WebSocket on that TCP port, secured (wss) with the
+## config's "tls_cert" and "tls_key" files when both load (a browser page on
+## https may only open wss). Prints a line for everyone who
 ## comes and goes, each match, and every STATUS_EVERY seconds how busy it is.
 class_name LobbyServer
 extends Node
@@ -52,6 +55,7 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 	sim = sim_options
 	art = Assets.new()
 	var bind := String(config.get("bind", "*"))
+	var tls := _tls(config)
 	most_matches = int(config.get("most_matches", MOST_MATCHES))
 	for entry in config.get("lobbies", []):
 		if not entry is Dictionary:
@@ -59,10 +63,21 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 		var lobby := (entry as Dictionary).duplicate()
 		var port := int(lobby.get("port", NetSession.PORT))
 		lobby.erase("port")
+		var ws_port := int(lobby.get("ws_port", 0))
+		lobby.erase("ws_port")
 		var net := NetPlay.serve_lobby(port, lobby, bind)
 		if net == null:
 			_failed = "PORT %d IS TAKEN" % port
 			continue
+		if ws_port > 0:
+			var ws := NetSession.host(
+				ws_port, NetSession.Transport.WEBSOCKET, Modes.MAX_PLAYERS + 6, bind, tls
+			)
+			if ws == null:
+				_failed = "PORT %d (WEBSOCKET) IS TAKEN" % ws_port
+			else:
+				net.session.also = ws
+				_log("  and %s on TCP %d" % ["WSS" if tls != null else "WS", ws_port])
 		net.make_match = _make
 		net.may_start = _may_start
 		net.sim_options = sim
@@ -75,6 +90,20 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 				% [net.settings["lobby_name"], port, net.settings["mode"], net.settings["map"]]
 			)
 		)
+
+
+## The config's certificate for wss (null: none, or it would not load).
+static func _tls(config: Dictionary) -> TLSOptions:
+	var cert_path := String(config.get("tls_cert", ""))
+	var key_path := String(config.get("tls_key", ""))
+	if cert_path == "" or key_path == "":
+		return null
+	var cert := X509Certificate.new()
+	var key := CryptoKey.new()
+	if cert.load(cert_path) != OK or key.load(key_path) != OK:
+		print("TLS: cannot read %s or %s; the WebSocket side is plain" % [cert_path, key_path])
+		return null
+	return TLSOptions.server(key, cert)
 
 
 ## "" when another match may start, else why not.

@@ -1,9 +1,12 @@
 {
 	"bind": "*",
 	"most_matches": 2,
+	"tls_cert": "/etc/clmr/tls/fullchain.pem",
+	"tls_key": "/etc/clmr/tls/privkey.pem",
 	"lobbies": [
 		{
 			"port": 47197,
+			"ws_port": 443,
 			"lobby_name": "COUNTY LOBBY 1",
 			"mode": "bomb",
 			"map": "grainyard",
@@ -12,6 +15,7 @@
 		},
 		{
 			"port": 47198,
+			"ws_port": 8443,
 			"lobby_name": "COUNTY LOBBY 2",
 			"mode": "tagteam",
 			"map": "pumpngo",

@@ -26,6 +26,9 @@ static func key_maps(main, code: int) -> void:
 		_go(main)
 	elif code in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
 		_go(main)
+	elif code == KEY_T:
+		CountyScreens.toggle_daily()
+		main.sound.play("menu_move")
 
 
 static func _go(main) -> void:
@@ -33,7 +36,10 @@ static func _go(main) -> void:
 	if maps.is_empty():
 		return
 	main.sound.play("menu_accept")
-	main.start_county(String(maps[posmod(CountyScreens.map_row, maps.size())]["id"]))
+	main.start_county(
+		String(maps[posmod(CountyScreens.map_row, maps.size())]["id"]),
+		CountyBoard.today() if CountyScreens.daily else ""
+	)
 
 
 # ------------------------------------------------------------------ play
@@ -190,7 +196,9 @@ static func _end_action(main, game, which: int) -> void:
 	match which:
 		0:
 			main.sound.play("menu_accept")
-			main.start_county(map_id)
+			main.start_county(
+				map_id, CountyBoard.today() if String(game.features["county"].daily) != "" else ""
+			)
 		1:
 			main.open_county(true)
 		_:
@@ -214,6 +222,9 @@ static func tap(main, at: Vector2i) -> bool:
 		elif id == "map":
 			CountyScreens.map_row = arg
 			_go(main)
+		elif id == "daily":
+			CountyScreens.toggle_daily()
+			main.sound.play("menu_move")
 		return true
 	var game = main.game
 	var f = CountyMode.run(game)

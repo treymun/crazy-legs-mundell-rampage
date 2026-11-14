@@ -1,5 +1,6 @@
 ## Teaching by doing. The first time something comes up (the first step, the
-## first enemy, the first bad wound, a third gun, a while without the map) one
+## first enemy, the first bad wound, a third gun, the first food in the
+## pockets, a full gut, the first drink taking hold, a while without the map) one
 ## line says which key, as the player has bound it, or which touch button does
 ## what about it; then never again on this profile. Shown only in real play
 ## (main_flow.gd turns Game.lessons on) and with TOOLTIPS / OBJECTIVES on, and
@@ -80,6 +81,34 @@ static func tick(game) -> void:
 					"NUMBER KEYS, %s AND %s CHANGE GUNS." % [key("prev_weapon"), key("next_weapon")]
 				)
 			)
+		)
+		return
+	if not taught.has("pockets") and _has_food(game):
+		_teach(
+			game,
+			"pockets",
+			(
+				"FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. TAP ONE TO HAVE IT."
+				if touch
+				else (
+					"FOOD AND DRINK GO IN YER STUFF, BOTTOM RIGHT. %s PICKS ONE, %s HAS IT."
+					% [key("next_item"), key("use_item")]
+				)
+			)
+		)
+		return
+	if not taught.has("gut") and p.gut >= 66.0:
+		_teach(
+			game,
+			"gut",
+			"YER GUT'S FULL: A BIT SLOWER, AND THE COUNTY SPOTS YA SOONER. IT EMPTIES AS YOU GO."
+		)
+		return
+	if not taught.has("drunk") and p.drunk >= 38.0:
+		_teach(
+			game,
+			"drunk",
+			"A LITTLE DRINK TAKES THE EDGE OFF HITS. TOO MUCH AND THE WORLD WOBBLES. IT WEARS OFF."
 		)
 		return
 	if not taught.has("map") and game.clock > 50.0 and game.objective_target() != null:
