@@ -37,7 +37,7 @@ carry `floor_z`; FlowField walks a nav graph with a node per floor over a cell.
   - [x] speedway, hub: reviewed, unchanged (reasons in the handoff)
 - [x] check_all, save fixtures (v8 + *_layoutN), picture and GPU references rewritten; CI green
 - [x] first_minutes whole on every changed chapter (all finish; bayou needed two nav fixes)
-- [x] Performance (bench.gd, --view-bench) old vs new: geometry levels tick 5-12% slower, shader view +5% (handoff "Performance")
+- [x] Performance (bench.gd, --view-bench) old vs new: geometry levels tick 10-23% slower, shader view +5% (handoff "Performance")
 - [x] REMASTER_HANDOFF.md
 
 ## Known issues found (not caused here)

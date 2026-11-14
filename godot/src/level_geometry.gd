@@ -635,8 +635,11 @@ func _fixture_in(lv, x: float, y: float, r: float, feet: float, tall: float) -> 
 
 ## blocked() for a body at its own height (format 2): what static_blocked()
 ## asks, doors and panes and locked gates too, the grid's solid cells as
-## blocked() has them.
-func blocked_body(lv, x: float, y: float, r: float, feet: float, tall: float) -> bool:
+## blocked() has them. `pieces` false: the caller knows no slab or segment is
+## within reach.
+func blocked_body(
+	lv, x: float, y: float, r: float, feet: float, tall: float, pieces := true
+) -> bool:
 	for step in 4:
 		var ix := int(x + (-r if step < 2 else r))
 		var iy := int(y + (-r if step % 2 == 0 else r))
@@ -655,17 +658,38 @@ func blocked_body(lv, x: float, y: float, r: float, feet: float, tall: float) ->
 		for door in lv.near_doors.get(Vector2i(int(x), int(y)), NOTHING):
 			if (door as LevelData.Door).blocks(x, y, r):
 				return true
-	return blocks(x, y, r, feet + STEP, feet + tall)
+	return pieces and blocks(x, y, r, feet + STEP, feet + tall)
 
 
 func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
 	var player: bool = not (body is Enemy) and ("air" in body)
 	var air: float = float(body.air) if player else 0.0
+	var here: int = lv.cell(body.x, body.y)
+	var c: int = lv.cell(x, y)
+	# Nothing of the geometry within reach of either end (cells are marked out
+	# to PAD): support, the floor and the ceiling are the grid's own and no
+	# piece can block, so those calls are left out. The same answers.
+	var clear: bool = (
+		radius < PAD
+		and body.x >= 0.0
+		and body.y >= 0.0
+		and x >= 0.0
+		and y >= 0.0
+		and body.x < width
+		and body.y < height
+		and x < width
+		and y < height
+		and cells[here] == 0
+		and cells[c] == 0
+	)
 	# The floor it stands on now, worked out again: something that moved it
 	# without walking (a bridge, a shove, a script) leaves floor_z behind, and
 	# the grid's own steps are measured from the cell it is in, as ever.
-	var here: int = lv.cell(body.x, body.y)
-	var floor_z := support(body.x, body.y, radius, float(body.floor_z), lv.ground[here])
+	var floor_z: float = (
+		lv.ground[here]
+		if clear
+		else support(body.x, body.y, radius, float(body.floor_z), lv.ground[here])
+	)
 	body.floor_z = floor_z
 	var feet := floor_z + air
 	var tall: float = BODY
@@ -673,7 +697,7 @@ func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
 		tall = minf(BODY, maxf(.4, float(body.height)))
 	elif player and body.crouched:
 		tall = CROUCH
-	if blocked_body(lv, x, y, radius, feet, tall):
+	if blocked_body(lv, x, y, radius, feet, tall, not clear):
 		return false
 	if (
 		lv.deep_tile >= 0
@@ -684,7 +708,11 @@ func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
 		return false
 	if occupied != null and occupied.call(x, y):
 		return false
-	var c: int = lv.cell(x, y)
+	if clear:
+		var flat: float = lv.ground[c]
+		if player and flat - floor_z > STEP + air + .001:
+			return false
+		return _roof(lv, c, flat) - flat >= CROUCH
 	var under := floor_at(x, y, feet, lv.ground[c], true)
 	if player and under - floor_z > STEP + air + .001:
 		return false

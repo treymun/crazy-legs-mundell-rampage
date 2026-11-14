@@ -367,25 +367,29 @@ rounds each:
 | old 2 | 0.55 / 1.55 ms | 2.00 / 7.45 ms | 392 |
 | new 2 | 0.62 / 1.50 ms | 1.97 / 6.92 ms | 387 |
 
-Those bench rounds were before the last fast path (the deck crossing test in
-`visible()` skipped in cells with no geometry). With the final code, the idle
-tick alone (900 ticks at 60 Hz, three alternating rounds, ms):
+Those bench rounds were before the last changes to the fast paths. With the
+final code, the idle tick alone (900 ticks at 60 Hz, three alternating
+rounds, ms):
 
 | level | old | new |
 | --- | --- | --- |
-| hickston (hay loft) | 0.53 to 0.57 | 0.60 to 0.65 |
-| bayou (stilt house) | 0.58 to 0.65 | 0.61 to 0.65 |
-| mothership (gantry ramp) | 0.44 to 0.49 | 0.49 to 0.52 |
-| speedway (format 1, unchanged) | 0.42 to 0.46 | 0.43 |
+| hickston (hay loft) | 0.52 to 0.53 | 0.64 to 0.65 |
+| bayou (stilt house) | 0.56 to 0.70 | 0.62 |
+| mothership (gantry ramp) | 0.43 to 0.44 | 0.51 to 0.52 |
+| speedway (format 1, unchanged) | 0.41 to 0.42 | 0.41 to 0.42 |
 
-So a level with geometry ticks about 5 to 12% slower (0.03 to 0.07 ms a
-tick), a format-1 level the same. In Hickston with geometry against the same
-level with `geo` removed: stand 1.1 us vs 0.27, can_walk 2.4 vs 1.6, a sight
-line 35 vs 33 us, a whole flow-field walk 2.0 vs 1.75 ms (the deck nodes).
-What made it cheap: `stand()`/`floor_under()` read the grid directly on a
-format-1 level; `LevelGeometry.clear_at` lets movement, support, ceilings and
-sight lines take the old grid path in any cell no slab or segment touches;
-enemies test "on another floor" only when the level has geometry.
+So a level with geometry ticks about 10 to 23% slower (0.06 to 0.12 ms a
+tick, against a 16 ms frame), a format-1 level the same. What made it
+cheaper than the first version (+25 to 40%): `stand()`/`floor_under()` read
+the grid directly on a format-1 level; `LevelGeometry.cells` marks the cells
+any slab or segment reaches (out to PAD), and the support, floor, ceiling,
+sight-line crossing and walk queries skip the geometry in cells it does not
+reach; enemies test "on another floor" only when the level has geometry. All
+exact: the three geometry chapters' whole playthroughs come out the same to
+the tick and the kill. A shortcut that walked with the grid's own test away
+from the geometry was tried and dropped: it differs from the 3D test by
+fixture heights (over the bayou's water) and changed play. The rest is the
+nav graph (a whole flow walk 2.0 ms against 1.75 in Hickston) and calls.
 
 Window `--view-bench=300` (1280x800, every chapter): shader view 2.82 ms
 (355 fps) old, 2.96 ms (338 fps) new; the software fallback 38.4 vs 41.9 ms.
