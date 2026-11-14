@@ -1,0 +1,35 @@
+{
+ "text": "Junior, get your ass out here",
+ "words": [
+  {
+   "text": "Junior,",
+   "start": 0.08,
+   "end": 0.5
+  },
+  {
+   "text": "get",
+   "start": 0.64,
+   "end": 0.86
+  },
+  {
+   "text": "your",
+   "start": 0.92,
+   "end": 1.08
+  },
+  {
+   "text": "ass",
+   "start": 1.2,
+   "end": 1.44
+  },
+  {
+   "text": "out",
+   "start": 1.56,
+   "end": 1.74
+  },
+  {
+   "text": "here",
+   "start": 1.8,
+   "end": 2.1
+  }
+ ]
+}

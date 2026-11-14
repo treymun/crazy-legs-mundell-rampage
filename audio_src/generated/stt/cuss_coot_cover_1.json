@@ -1,0 +1,30 @@
+{
+ "text": "Hit the dirt, damn it!",
+ "words": [
+  {
+   "text": "Hit",
+   "start": 0.06,
+   "end": 0.26
+  },
+  {
+   "text": "the",
+   "start": 0.32,
+   "end": 0.44
+  },
+  {
+   "text": "dirt,",
+   "start": 0.56,
+   "end": 0.78
+  },
+  {
+   "text": "damn",
+   "start": 0.96,
+   "end": 1.2
+  },
+  {
+   "text": "it!",
+   "start": 1.26,
+   "end": 1.38
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "text": "My damn back",
+ "words": [
+  {
+   "text": "My",
+   "start": 0.08,
+   "end": 0.22
+  },
+  {
+   "text": "damn",
+   "start": 0.34,
+   "end": 0.64
+  },
+  {
+   "text": "back",
+   "start": 0.78,
+   "end": 1.14
+  }
+ ]
+}

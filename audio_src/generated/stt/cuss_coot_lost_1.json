@@ -1,0 +1,35 @@
+{
+ "text": "My eyes ain't worth a damn",
+ "words": [
+  {
+   "text": "My",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "eyes",
+   "start": 0.32,
+   "end": 0.58
+  },
+  {
+   "text": "ain't",
+   "start": 0.62,
+   "end": 0.84
+  },
+  {
+   "text": "worth",
+   "start": 0.88,
+   "end": 1.1
+  },
+  {
+   "text": "a",
+   "start": 1.16,
+   "end": 1.22
+  },
+  {
+   "text": "damn",
+   "start": 1.32,
+   "end": 1.72
+  }
+ ]
+}

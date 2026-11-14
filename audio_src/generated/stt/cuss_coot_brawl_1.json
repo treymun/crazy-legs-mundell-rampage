@@ -1,0 +1,30 @@
+{
+ "text": "I'll whoop your ass, boy",
+ "words": [
+  {
+   "text": "I'll",
+   "start": 0.12,
+   "end": 0.28
+  },
+  {
+   "text": "whoop",
+   "start": 0.32,
+   "end": 0.58
+  },
+  {
+   "text": "your",
+   "start": 0.62,
+   "end": 0.74
+  },
+  {
+   "text": "ass,",
+   "start": 0.84,
+   "end": 1.12
+  },
+  {
+   "text": "boy",
+   "start": 1.24,
+   "end": 1.58
+  }
+ ]
+}

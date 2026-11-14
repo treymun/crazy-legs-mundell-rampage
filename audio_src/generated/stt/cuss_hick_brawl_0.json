@@ -1,0 +1,30 @@
+{
+ "text": "You shot me, you bastard!",
+ "words": [
+  {
+   "text": "You",
+   "start": 0.1,
+   "end": 0.26
+  },
+  {
+   "text": "shot",
+   "start": 0.44,
+   "end": 0.78
+  },
+  {
+   "text": "me,",
+   "start": 0.84,
+   "end": 1.0
+  },
+  {
+   "text": "you",
+   "start": 1.1,
+   "end": 1.22
+  },
+  {
+   "text": "bastard!",
+   "start": 1.38,
+   "end": 1.94
+  }
+ ]
+}

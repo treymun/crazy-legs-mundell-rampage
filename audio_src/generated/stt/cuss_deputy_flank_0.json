@@ -1,0 +1,30 @@
+{
+ "text": "Flanking left, cover my ass",
+ "words": [
+  {
+   "text": "Flanking",
+   "start": 0.04,
+   "end": 0.42
+  },
+  {
+   "text": "left,",
+   "start": 0.5,
+   "end": 0.78
+  },
+  {
+   "text": "cover",
+   "start": 0.94,
+   "end": 1.26
+  },
+  {
+   "text": "my",
+   "start": 1.3,
+   "end": 1.54
+  },
+  {
+   "text": "ass",
+   "start": 1.68,
+   "end": 1.98
+  }
+ ]
+}

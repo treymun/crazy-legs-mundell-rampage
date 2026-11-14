@@ -1,0 +1,45 @@
+{
+ "text": "Back in my day, this crap was free",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "in",
+   "start": 0.32,
+   "end": 0.44
+  },
+  {
+   "text": "my",
+   "start": 0.48,
+   "end": 0.7
+  },
+  {
+   "text": "day,",
+   "start": 0.8,
+   "end": 1.04
+  },
+  {
+   "text": "this",
+   "start": 1.16,
+   "end": 1.38
+  },
+  {
+   "text": "crap",
+   "start": 1.42,
+   "end": 1.76
+  },
+  {
+   "text": "was",
+   "start": 1.8,
+   "end": 2.02
+  },
+  {
+   "text": "free",
+   "start": 2.06,
+   "end": 2.46
+  }
+ ]
+}

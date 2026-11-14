@@ -1,0 +1,35 @@
+{
+ "text": "Cutting around back. Cover my ass",
+ "words": [
+  {
+   "text": "Cutting",
+   "start": 0.06,
+   "end": 0.3
+  },
+  {
+   "text": "around",
+   "start": 0.34,
+   "end": 0.6
+  },
+  {
+   "text": "back.",
+   "start": 0.64,
+   "end": 0.86
+  },
+  {
+   "text": "Cover",
+   "start": 0.98,
+   "end": 1.2
+  },
+  {
+   "text": "my",
+   "start": 1.24,
+   "end": 1.4
+  },
+  {
+   "text": "ass",
+   "start": 1.5,
+   "end": 1.88
+  }
+ ]
+}

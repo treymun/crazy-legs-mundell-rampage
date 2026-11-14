@@ -1,0 +1,30 @@
+{
+ "text": "Scan the sector, damn it!",
+ "words": [
+  {
+   "text": "Scan",
+   "start": 0.04,
+   "end": 0.3
+  },
+  {
+   "text": "the",
+   "start": 0.36,
+   "end": 0.42
+  },
+  {
+   "text": "sector,",
+   "start": 0.54,
+   "end": 0.96
+  },
+  {
+   "text": "damn",
+   "start": 1.14,
+   "end": 1.36
+  },
+  {
+   "text": "it!",
+   "start": 1.42,
+   "end": 1.66
+  }
+ ]
+}

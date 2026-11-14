@@ -1,0 +1,35 @@
+{
+ "text": "Back to the saucer. Haul ass",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "to",
+   "start": 0.3,
+   "end": 0.38
+  },
+  {
+   "text": "the",
+   "start": 0.42,
+   "end": 0.48
+  },
+  {
+   "text": "saucer.",
+   "start": 0.56,
+   "end": 1.14
+  },
+  {
+   "text": "Haul",
+   "start": 1.3,
+   "end": 1.58
+  },
+  {
+   "text": "ass",
+   "start": 1.68,
+   "end": 2.1
+  }
+ ]
+}

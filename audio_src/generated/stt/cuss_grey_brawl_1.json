@@ -1,0 +1,40 @@
+{
+ "text": "You will be probed for that, bastard!",
+ "words": [
+  {
+   "text": "You",
+   "start": 0.06,
+   "end": 0.16
+  },
+  {
+   "text": "will",
+   "start": 0.22,
+   "end": 0.36
+  },
+  {
+   "text": "be",
+   "start": 0.4,
+   "end": 0.48
+  },
+  {
+   "text": "probed",
+   "start": 0.6,
+   "end": 0.94
+  },
+  {
+   "text": "for",
+   "start": 1.0,
+   "end": 1.12
+  },
+  {
+   "text": "that,",
+   "start": 1.18,
+   "end": 1.34
+  },
+  {
+   "text": "bastard!",
+   "start": 1.5,
+   "end": 2.22
+  }
+ ]
+}

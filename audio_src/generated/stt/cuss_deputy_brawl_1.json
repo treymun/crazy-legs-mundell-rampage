@@ -1,0 +1,25 @@
+{
+ "text": "That's assault, you jackass",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.08,
+   "end": 0.28
+  },
+  {
+   "text": "assault,",
+   "start": 0.36,
+   "end": 0.8
+  },
+  {
+   "text": "you",
+   "start": 0.96,
+   "end": 0.98
+  },
+  {
+   "text": "jackass",
+   "start": 1.2,
+   "end": 1.96
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "text": "Retreat, damn it. Move, old knees",
+ "words": [
+  {
+   "text": "Retreat,",
+   "start": 0.1,
+   "end": 0.58
+  },
+  {
+   "text": "damn",
+   "start": 0.7,
+   "end": 0.96
+  },
+  {
+   "text": "it.",
+   "start": 1.0,
+   "end": 1.1
+  },
+  {
+   "text": "Move,",
+   "start": 1.18,
+   "end": 1.46
+  },
+  {
+   "text": "old",
+   "start": 1.56,
+   "end": 1.72
+  },
+  {
+   "text": "knees",
+   "start": 1.78,
+   "end": 2.34
+  }
+ ]
+}

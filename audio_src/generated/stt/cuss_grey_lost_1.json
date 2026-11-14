@@ -1,0 +1,35 @@
+{
+ "text": "Where the hell is the specimen?",
+ "words": [
+  {
+   "text": "Where",
+   "start": 0.08,
+   "end": 0.32
+  },
+  {
+   "text": "the",
+   "start": 0.4,
+   "end": 0.58
+  },
+  {
+   "text": "hell",
+   "start": 0.68,
+   "end": 0.88
+  },
+  {
+   "text": "is",
+   "start": 0.96,
+   "end": 1.08
+  },
+  {
+   "text": "the",
+   "start": 1.18,
+   "end": 1.3
+  },
+  {
+   "text": "specimen?",
+   "start": 1.4,
+   "end": 2.28
+  }
+ ]
+}

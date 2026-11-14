@@ -451,6 +451,24 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   difficulty and prints the damage taken. The bot (`bot_pilot.gd`) steps
   back onto the route from a nook it does not cover and backs off a last
   threat it is pressed against but cannot see (Boggs wedged in a gap).
+- **CHATTER, the cuss pack** (setting `chatter`: OFF 0, CLEAN 1, CUSSIN' 2,
+  the owner's default; `game.chatter`, a VIEW field; `src/cuss_lines.gd`).
+  `data/tuning/cuss_lines.json` is the one list (the voice tools read it too):
+  original crude lines, never slurs, hate, sex or real people, the cuss words
+  *starred*. The hands mix them with their old barks (`enemy_barks.gd`,
+  `CUSS_SHARE`), Mundell says his aloud in his own voice where a line is made
+  (`Barks._spoken`/`_speak`; his old wisecracks stay on screen otherwise), and
+  in the 5v5/2v2 the bots crow over kills, a bad hit, the plant, the defuse
+  and a round won (`enemy_barks.gd _tactical`, a looks feature: a bot is a
+  player this machine does not drive and the lobby did not name). CLEAN plays
+  each line's `_clean` copy, built by `audio_build.py` (spec `how="bleep"`)
+  from the transcript's word times with a duck call or a horn over each
+  starred word, and captions them as #@!%. A lobby's CHATTER row caps every
+  player's (`main_flow.gd net_match_game`). The transcript check reads the
+  county's spellings (`audio_build.py DIALECT`, `canon`); `CUSS_HEARD` where it
+  hears a clear line sideways. A cue not made yet is simply not said.
+  `tools/chatter_check.gd` (in check_fixes) holds it with an ear that has
+  every cue. 117 lines, about 1,700 credits with retakes and Mundell's voice.
 - **Boss fights share a framework** (`src/boss_kit.gd`, `features/boss_fight.gd`,
   `src/bosses/`). Each of the eight bosses (a `title` in enemies.cfg) has a
   `BossMoves` file (`bosses/boss_moves.gd`: `fight_start`, `phase_changed`,

@@ -1,0 +1,35 @@
+{
+ "text": "She's planted, damn it. Cover me",
+ "words": [
+  {
+   "text": "She's",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "planted,",
+   "start": 0.3,
+   "end": 0.64
+  },
+  {
+   "text": "damn",
+   "start": 0.74,
+   "end": 0.92
+  },
+  {
+   "text": "it.",
+   "start": 0.96,
+   "end": 1.06
+  },
+  {
+   "text": "Cover",
+   "start": 1.1,
+   "end": 1.38
+  },
+  {
+   "text": "me",
+   "start": 1.46,
+   "end": 1.64
+  }
+ ]
+}

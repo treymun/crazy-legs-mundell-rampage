@@ -1,0 +1,25 @@
+{
+ "text": "This cow is crap",
+ "words": [
+  {
+   "text": "This",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "cow",
+   "start": 0.4,
+   "end": 0.74
+  },
+  {
+   "text": "is",
+   "start": 0.84,
+   "end": 1.02
+  },
+  {
+   "text": "crap",
+   "start": 1.16,
+   "end": 1.74
+  }
+ ]
+}

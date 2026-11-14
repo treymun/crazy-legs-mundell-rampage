@@ -1,0 +1,35 @@
+{
+ "text": "Coming round the barn, you bastard",
+ "words": [
+  {
+   "text": "Coming",
+   "start": 0.08,
+   "end": 0.38
+  },
+  {
+   "text": "round",
+   "start": 0.46,
+   "end": 0.74
+  },
+  {
+   "text": "the",
+   "start": 0.78,
+   "end": 0.84
+  },
+  {
+   "text": "barn,",
+   "start": 0.96,
+   "end": 1.38
+  },
+  {
+   "text": "you",
+   "start": 1.46,
+   "end": 1.58
+  },
+  {
+   "text": "bastard",
+   "start": 1.76,
+   "end": 2.34
+  }
+ ]
+}

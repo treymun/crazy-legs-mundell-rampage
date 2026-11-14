@@ -1,0 +1,20 @@
+{
+ "text": "Holy shit! Intruder!",
+ "words": [
+  {
+   "text": "Holy",
+   "start": 0.22,
+   "end": 0.46
+  },
+  {
+   "text": "shit!",
+   "start": 0.54,
+   "end": 0.8
+  },
+  {
+   "text": "Intruder!",
+   "start": 0.92,
+   "end": 1.58
+  }
+ ]
+}

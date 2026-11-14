@@ -116,7 +116,7 @@
 			],
 			"cover": [
 				"My *damn* back!",
-				"Duck, *dammit*!"
+				"Hit the dirt, *dammit*!"
 			],
 			"brawl": [
 				"Watch where yer shootin', *dumbass*!",
@@ -238,7 +238,7 @@
 		},
 		"deputy": {
 			"kill": [
-				"Suspect down, *dumbass*.",
+				"That's one down, *dumbass*.",
 				"Stay down, ya *sumbitch*!"
 			],
 			"defuse": [

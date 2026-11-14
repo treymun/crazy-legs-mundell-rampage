@@ -1,0 +1,25 @@
+{
+ "text": "Stay down, you sumbitch!",
+ "words": [
+  {
+   "text": "Stay",
+   "start": 0.04,
+   "end": 0.28
+  },
+  {
+   "text": "down,",
+   "start": 0.36,
+   "end": 0.64
+  },
+  {
+   "text": "you",
+   "start": 0.7,
+   "end": 0.78
+  },
+  {
+   "text": "sumbitch!",
+   "start": 0.9,
+   "end": 1.52
+  }
+ ]
+}

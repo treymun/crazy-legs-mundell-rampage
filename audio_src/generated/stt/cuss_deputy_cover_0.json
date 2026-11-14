@@ -1,0 +1,25 @@
+{
+ "text": "Get down, damn it!",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.04,
+   "end": 0.22
+  },
+  {
+   "text": "down,",
+   "start": 0.36,
+   "end": 0.78
+  },
+  {
+   "text": "damn",
+   "start": 0.92,
+   "end": 1.16
+  },
+  {
+   "text": "it!",
+   "start": 1.2,
+   "end": 1.26
+  }
+ ]
+}

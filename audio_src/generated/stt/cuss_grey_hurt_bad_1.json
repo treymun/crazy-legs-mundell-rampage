@@ -1,0 +1,35 @@
+{
+ "text": "Son of a bitch, my antenna!",
+ "words": [
+  {
+   "text": "Son",
+   "start": 0.04,
+   "end": 0.24
+  },
+  {
+   "text": "of",
+   "start": 0.28,
+   "end": 0.36
+  },
+  {
+   "text": "a",
+   "start": 0.44,
+   "end": 0.48
+  },
+  {
+   "text": "bitch,",
+   "start": 0.64,
+   "end": 0.9
+  },
+  {
+   "text": "my",
+   "start": 1.04,
+   "end": 1.28
+  },
+  {
+   "text": "antenna!",
+   "start": 1.36,
+   "end": 2.04
+  }
+ ]
+}

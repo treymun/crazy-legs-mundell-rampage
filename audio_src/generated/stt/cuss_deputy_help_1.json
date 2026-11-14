@@ -1,0 +1,25 @@
+{
+ "text": "Send backup, damn it!",
+ "words": [
+  {
+   "text": "Send",
+   "start": 0.04,
+   "end": 0.28
+  },
+  {
+   "text": "backup,",
+   "start": 0.5,
+   "end": 1.02
+  },
+  {
+   "text": "damn",
+   "start": 1.18,
+   "end": 1.4
+  },
+  {
+   "text": "it!",
+   "start": 1.46,
+   "end": 1.58
+  }
+ ]
+}

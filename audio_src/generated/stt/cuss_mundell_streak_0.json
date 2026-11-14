@@ -1,0 +1,30 @@
+{
+ "text": "Yeah, who's next, damn it?",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.06,
+   "end": 0.2
+  },
+  {
+   "text": "who's",
+   "start": 0.28,
+   "end": 0.52
+  },
+  {
+   "text": "next,",
+   "start": 0.6,
+   "end": 0.98
+  },
+  {
+   "text": "damn",
+   "start": 1.1,
+   "end": 1.36
+  },
+  {
+   "text": "it?",
+   "start": 1.42,
+   "end": 1.52
+  }
+ ]
+}

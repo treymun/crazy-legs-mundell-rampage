@@ -1,0 +1,20 @@
+{
+ "text": "Eat shit, varmint!",
+ "words": [
+  {
+   "text": "Eat",
+   "start": 0.1,
+   "end": 0.42
+  },
+  {
+   "text": "shit,",
+   "start": 0.5,
+   "end": 0.84
+  },
+  {
+   "text": "varmint!",
+   "start": 0.96,
+   "end": 1.92
+  }
+ ]
+}

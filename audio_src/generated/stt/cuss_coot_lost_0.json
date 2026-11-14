@@ -1,0 +1,30 @@
+{
+ "text": "Damn it, where'd he skedaddle?",
+ "words": [
+  {
+   "text": "Damn",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "it,",
+   "start": 0.34,
+   "end": 0.42
+  },
+  {
+   "text": "where'd",
+   "start": 0.54,
+   "end": 0.86
+  },
+  {
+   "text": "he",
+   "start": 0.92,
+   "end": 1.02
+  },
+  {
+   "text": "skedaddle?",
+   "start": 1.12,
+   "end": 1.88
+  }
+ ]
+}

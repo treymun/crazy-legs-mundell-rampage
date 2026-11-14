@@ -1,0 +1,30 @@
+{
+ "text": "Yeah, I'm drunker than hell",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.0,
+   "end": 0.16
+  },
+  {
+   "text": "I'm",
+   "start": 0.38,
+   "end": 0.48
+  },
+  {
+   "text": "drunker",
+   "start": 0.62,
+   "end": 1.16
+  },
+  {
+   "text": "than",
+   "start": 1.2,
+   "end": 1.32
+  },
+  {
+   "text": "hell",
+   "start": 1.44,
+   "end": 2.08
+  }
+ ]
+}

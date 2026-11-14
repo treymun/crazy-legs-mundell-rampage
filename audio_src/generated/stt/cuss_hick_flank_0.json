@@ -1,0 +1,40 @@
+{
+ "text": "I'll go around and kick his ass",
+ "words": [
+  {
+   "text": "I'll",
+   "start": 0.14,
+   "end": 0.28
+  },
+  {
+   "text": "go",
+   "start": 0.34,
+   "end": 0.42
+  },
+  {
+   "text": "around",
+   "start": 0.46,
+   "end": 0.64
+  },
+  {
+   "text": "and",
+   "start": 0.66,
+   "end": 0.72
+  },
+  {
+   "text": "kick",
+   "start": 0.8,
+   "end": 0.94
+  },
+  {
+   "text": "his",
+   "start": 0.98,
+   "end": 1.08
+  },
+  {
+   "text": "ass",
+   "start": 1.18,
+   "end": 1.5
+  }
+ ]
+}

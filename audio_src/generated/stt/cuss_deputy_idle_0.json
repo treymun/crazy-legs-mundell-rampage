@@ -1,0 +1,30 @@
+{
+ "text": "This coffee tastes like crap",
+ "words": [
+  {
+   "text": "This",
+   "start": 0.08,
+   "end": 0.28
+  },
+  {
+   "text": "coffee",
+   "start": 0.34,
+   "end": 0.68
+  },
+  {
+   "text": "tastes",
+   "start": 0.8,
+   "end": 1.08
+  },
+  {
+   "text": "like",
+   "start": 1.12,
+   "end": 1.34
+  },
+  {
+   "text": "crap",
+   "start": 1.38,
+   "end": 1.78
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Yeah, there's that sumbitch",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.1,
+   "end": 0.22
+  },
+  {
+   "text": "there's",
+   "start": 0.32,
+   "end": 0.56
+  },
+  {
+   "text": "that",
+   "start": 0.62,
+   "end": 0.72
+  },
+  {
+   "text": "sumbitch",
+   "start": 0.86,
+   "end": 1.52
+  }
+ ]
+}

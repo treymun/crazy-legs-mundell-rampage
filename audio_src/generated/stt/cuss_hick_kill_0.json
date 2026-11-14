@@ -1,0 +1,40 @@
+{
+ "text": "Ah, a dirt nap for you, dumbass",
+ "words": [
+  {
+   "text": "Ah,",
+   "start": 0.0,
+   "end": 0.24
+  },
+  {
+   "text": "a",
+   "start": 0.24,
+   "end": 0.26
+  },
+  {
+   "text": "dirt",
+   "start": 0.4,
+   "end": 0.62
+  },
+  {
+   "text": "nap",
+   "start": 0.68,
+   "end": 0.94
+  },
+  {
+   "text": "for",
+   "start": 1.0,
+   "end": 1.16
+  },
+  {
+   "text": "you,",
+   "start": 1.24,
+   "end": 1.32
+  },
+  {
+   "text": "dumbass",
+   "start": 1.42,
+   "end": 2.1
+  }
+ ]
+}

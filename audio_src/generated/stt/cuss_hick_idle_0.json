@@ -1,0 +1,30 @@
+{
+ "text": "This beer's warm as piss",
+ "words": [
+  {
+   "text": "This",
+   "start": 0.08,
+   "end": 0.26
+  },
+  {
+   "text": "beer's",
+   "start": 0.3,
+   "end": 0.56
+  },
+  {
+   "text": "warm",
+   "start": 0.64,
+   "end": 0.92
+  },
+  {
+   "text": "as",
+   "start": 0.96,
+   "end": 1.06
+  },
+  {
+   "text": "piss",
+   "start": 1.16,
+   "end": 1.56
+  }
+ ]
+}

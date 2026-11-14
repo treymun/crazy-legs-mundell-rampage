@@ -1,0 +1,25 @@
+{
+ "text": "Hull breach, damn it!",
+ "words": [
+  {
+   "text": "Hull",
+   "start": 0.06,
+   "end": 0.18
+  },
+  {
+   "text": "breach,",
+   "start": 0.24,
+   "end": 0.48
+  },
+  {
+   "text": "damn",
+   "start": 0.56,
+   "end": 0.76
+  },
+  {
+   "text": "it!",
+   "start": 0.8,
+   "end": 0.94
+  }
+ ]
+}

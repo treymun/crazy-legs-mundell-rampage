@@ -1,0 +1,25 @@
+{
+ "text": "Oh, hell, I'm leaking",
+ "words": [
+  {
+   "text": "Oh,",
+   "start": 0.18,
+   "end": 0.44
+  },
+  {
+   "text": "hell,",
+   "start": 0.56,
+   "end": 0.8
+  },
+  {
+   "text": "I'm",
+   "start": 0.98,
+   "end": 1.1
+  },
+  {
+   "text": "leaking",
+   "start": 1.16,
+   "end": 1.76
+  }
+ ]
+}

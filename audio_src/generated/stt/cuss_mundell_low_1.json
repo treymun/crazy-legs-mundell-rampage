@@ -1,0 +1,35 @@
+{
+ "text": "Somebody get me a damn snack",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.04,
+   "end": 0.68
+  },
+  {
+   "text": "get",
+   "start": 0.78,
+   "end": 0.94
+  },
+  {
+   "text": "me",
+   "start": 0.98,
+   "end": 1.08
+  },
+  {
+   "text": "a",
+   "start": 1.16,
+   "end": 1.18
+  },
+  {
+   "text": "damn",
+   "start": 1.28,
+   "end": 1.66
+  },
+  {
+   "text": "snack",
+   "start": 1.78,
+   "end": 2.4
+  }
+ ]
+}

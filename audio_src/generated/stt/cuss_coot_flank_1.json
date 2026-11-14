@@ -1,0 +1,35 @@
+{
+ "text": "I'll sneak up on your ass",
+ "words": [
+  {
+   "text": "I'll",
+   "start": 0.1,
+   "end": 0.28
+  },
+  {
+   "text": "sneak",
+   "start": 0.36,
+   "end": 0.66
+  },
+  {
+   "text": "up",
+   "start": 0.74,
+   "end": 0.9
+  },
+  {
+   "text": "on",
+   "start": 0.98,
+   "end": 1.14
+  },
+  {
+   "text": "your",
+   "start": 1.18,
+   "end": 1.32
+  },
+  {
+   "text": "ass",
+   "start": 1.44,
+   "end": 1.84
+  }
+ ]
+}

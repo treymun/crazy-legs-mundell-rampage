@@ -1,0 +1,35 @@
+{
+ "text": "I will sneak behind his ass",
+ "words": [
+  {
+   "text": "I",
+   "start": 0.1,
+   "end": 0.14
+  },
+  {
+   "text": "will",
+   "start": 0.18,
+   "end": 0.3
+  },
+  {
+   "text": "sneak",
+   "start": 0.34,
+   "end": 0.58
+  },
+  {
+   "text": "behind",
+   "start": 0.62,
+   "end": 0.94
+  },
+  {
+   "text": "his",
+   "start": 0.96,
+   "end": 1.14
+  },
+  {
+   "text": "ass",
+   "start": 1.22,
+   "end": 1.6
+  }
+ ]
+}

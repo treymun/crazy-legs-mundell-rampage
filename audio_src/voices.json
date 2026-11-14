@@ -68,5 +68,10 @@
   "id": "jpg4PVS8DA8UHcqqE8kq",
   "description": "A small B-movie grey alien speaking in a high, buzzing, nasal monotone with a slight electronic warble, comically officious and fussy. Close, dry studio recording.",
   "preview": "audio_src/generated/voice_design/grey.mp3"
+ },
+ "mundell": {
+  "id": "jGcF20nQLzIgnZUK6MUL",
+  "description": "A wiry, wild-eyed Southern country man in his thirties, the hero of a rowdy shoot-'em-up: a twangy, raspy, quick-talking hillbilly voice, cocky, gleeful and a little unhinged, with a thick Arkansas accent. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/mundell.mp3"
  }
 }

@@ -1,0 +1,35 @@
+{
+ "text": "Son of a bitch, that's smart",
+ "words": [
+  {
+   "text": "Son",
+   "start": 0.08,
+   "end": 0.24
+  },
+  {
+   "text": "of",
+   "start": 0.28,
+   "end": 0.34
+  },
+  {
+   "text": "a",
+   "start": 0.4,
+   "end": 0.42
+  },
+  {
+   "text": "bitch,",
+   "start": 0.52,
+   "end": 0.74
+  },
+  {
+   "text": "that's",
+   "start": 0.84,
+   "end": 1.06
+  },
+  {
+   "text": "smart",
+   "start": 1.1,
+   "end": 1.46
+  }
+ ]
+}

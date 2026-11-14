@@ -1,0 +1,30 @@
+{
+ "text": "The damn hooman has vanished",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.0,
+   "end": 0.18
+  },
+  {
+   "text": "damn",
+   "start": 0.26,
+   "end": 0.5
+  },
+  {
+   "text": "hooman",
+   "start": 0.6,
+   "end": 0.96
+  },
+  {
+   "text": "has",
+   "start": 1.06,
+   "end": 1.28
+  },
+  {
+   "text": "vanished",
+   "start": 1.38,
+   "end": 1.9
+  }
+ ]
+}

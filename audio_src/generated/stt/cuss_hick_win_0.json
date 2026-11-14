@@ -1,0 +1,20 @@
+{
+ "text": "Hell yeah, boys!",
+ "words": [
+  {
+   "text": "Hell",
+   "start": 0.04,
+   "end": 0.22
+  },
+  {
+   "text": "yeah,",
+   "start": 0.3,
+   "end": 0.5
+  },
+  {
+   "text": "boys!",
+   "start": 0.64,
+   "end": 1.02
+  }
+ ]
+}

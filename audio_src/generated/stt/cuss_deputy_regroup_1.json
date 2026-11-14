@@ -1,0 +1,30 @@
+{
+ "text": "Just pull back. Haul ass",
+ "words": [
+  {
+   "text": "Just",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "pull",
+   "start": 0.38,
+   "end": 0.54
+  },
+  {
+   "text": "back.",
+   "start": 0.64,
+   "end": 0.92
+  },
+  {
+   "text": "Haul",
+   "start": 1.06,
+   "end": 1.3
+  },
+  {
+   "text": "ass",
+   "start": 1.4,
+   "end": 1.68
+  }
+ ]
+}

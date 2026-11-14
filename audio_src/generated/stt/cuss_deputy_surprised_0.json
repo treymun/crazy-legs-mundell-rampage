@@ -1,0 +1,15 @@
+{
+ "text": "Holy crap!",
+ "words": [
+  {
+   "text": "Holy",
+   "start": 0.06,
+   "end": 0.34
+  },
+  {
+   "text": "crap!",
+   "start": 0.48,
+   "end": 0.98
+  }
+ ]
+}

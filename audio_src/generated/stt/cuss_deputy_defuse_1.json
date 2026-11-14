@@ -1,0 +1,25 @@
+{
+ "text": "Fuses cut, damn it!",
+ "words": [
+  {
+   "text": "Fuses",
+   "start": 0.02,
+   "end": 0.5
+  },
+  {
+   "text": "cut,",
+   "start": 0.66,
+   "end": 0.86
+  },
+  {
+   "text": "damn",
+   "start": 1.08,
+   "end": 1.32
+  },
+  {
+   "text": "it!",
+   "start": 1.36,
+   "end": 1.5
+  }
+ ]
+}

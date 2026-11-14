@@ -1,0 +1,25 @@
+{
+ "text": "I'm hit, damn it!",
+ "words": [
+  {
+   "text": "I'm",
+   "start": 0.08,
+   "end": 0.2
+  },
+  {
+   "text": "hit,",
+   "start": 0.26,
+   "end": 0.46
+  },
+  {
+   "text": "damn",
+   "start": 0.58,
+   "end": 0.84
+  },
+  {
+   "text": "it!",
+   "start": 0.88,
+   "end": 0.98
+  }
+ ]
+}

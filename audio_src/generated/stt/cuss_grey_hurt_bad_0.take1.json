@@ -1,0 +1,25 @@
+{
+ "text": "No breach, damn it!",
+ "words": [
+  {
+   "text": "No",
+   "start": 0.04,
+   "end": 0.2
+  },
+  {
+   "text": "breach,",
+   "start": 0.3,
+   "end": 0.66
+  },
+  {
+   "text": "damn",
+   "start": 0.76,
+   "end": 0.96
+  },
+  {
+   "text": "it!",
+   "start": 1.02,
+   "end": 1.24
+  }
+ ]
+}

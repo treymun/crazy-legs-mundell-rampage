@@ -1,0 +1,35 @@
+{
+ "text": "Get out here, you chicken shit",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "out",
+   "start": 0.34,
+   "end": 0.5
+  },
+  {
+   "text": "here,",
+   "start": 0.54,
+   "end": 0.7
+  },
+  {
+   "text": "you",
+   "start": 0.78,
+   "end": 0.86
+  },
+  {
+   "text": "chicken",
+   "start": 0.96,
+   "end": 1.28
+  },
+  {
+   "text": "shit",
+   "start": 1.38,
+   "end": 1.68
+  }
+ ]
+}

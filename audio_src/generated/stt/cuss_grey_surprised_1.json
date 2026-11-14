@@ -1,0 +1,30 @@
+{
+ "text": "Hey, yo, what the hell?",
+ "words": [
+  {
+   "text": "Hey,",
+   "start": 0.02,
+   "end": 0.2
+  },
+  {
+   "text": "yo,",
+   "start": 0.28,
+   "end": 0.42
+  },
+  {
+   "text": "what",
+   "start": 0.6,
+   "end": 0.96
+  },
+  {
+   "text": "the",
+   "start": 1.06,
+   "end": 1.3
+  },
+  {
+   "text": "hell?",
+   "start": 1.48,
+   "end": 2.08
+  }
+ ]
+}

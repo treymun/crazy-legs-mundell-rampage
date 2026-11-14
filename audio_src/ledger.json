@@ -19077,14 +19077,5323 @@
    "bytes": 46436
   },
   {
-   "id": "reconcile@2026-11-13T08:48:36",
+   "id": "voice_design/mundell#1",
+   "kind": "voice_design",
+   "name": "mundell",
+   "params": {
+    "description": "A wiry, wild-eyed Southern country man in his thirties, the hero of a rowdy shoot-'em-up: a twangy, raspy, quick-talking hillbilly voice, cocky, gleeful and a little unhinged, with a thick Arkansas accent. Close, dry studio recording.",
+    "text": "Well hot dang, look at this mess. Somebody done stole my cow, shot up my truck and drank every last jar in the cellar. Reckon I'll just have to go and get it all back myself."
+   },
+   "hash": "c213e0f2153e",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-13T19:55:45",
+   "actual": 522,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/mundell.mp3",
+   "bytes": 332948
+  },
+  {
+   "id": "tts/cuss_hick_spot_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_spot_0",
+   "params": {
+    "text": "There's that sumbitch!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9a1b48640237",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-13T19:57:20",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_spot_0.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/cuss_hick_lost_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_lost_0",
+   "params": {
+    "text": "Where the hell did he go?",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "31c772a8a79e",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-13T19:57:21",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_lost_0.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/cuss_hick_spot_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_spot_1",
+   "params": {
+    "text": "Light his ass up, boys!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "601784832669",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-13T19:57:21",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_spot_1.mp3",
+   "bytes": 39540
+  },
+  {
+   "id": "tts/cuss_hick_lost_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_lost_1",
+   "params": {
+    "text": "Dammit, I lost him!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b6deed3d20c8",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T19:57:21",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_lost_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_hick_search_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_search_0",
+   "params": {
+    "text": "Git out here, ya chickenshit!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a5cc06a0840a",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:22",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_search_0.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/cuss_hick_search_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_search_1",
+   "params": {
+    "text": "I can smell ya, ya dumbass.",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1e4c5b32ac6c",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:22",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_search_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_hick_help_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_help_0",
+   "params": {
+    "text": "Bubba, git yer ass out here!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e12857e4e409",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:22",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_help_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_hick_help_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_help_1",
+   "params": {
+    "text": "Earl! Quit pissin' and help!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e7dd80ec3a90",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:22",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_help_1.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/cuss_hick_flank_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_flank_0",
+   "params": {
+    "text": "I'll go round and kick his ass!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "dababdb331e9",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-13T19:57:23",
+   "actual": 31,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_flank_0.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/cuss_hick_flank_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_flank_1",
+   "params": {
+    "text": "Cuttin' round back, cover my ass!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f8704331021e",
+   "reserved": 59,
+   "status": "settled",
+   "started": "2026-11-13T19:57:23",
+   "actual": 33,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_flank_1.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/cuss_hick_cover_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_cover_0",
+   "params": {
+    "text": "Git down, dumbass!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "04a4bdb71696",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T19:57:23",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_cover_0.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "tts/cuss_hick_cover_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_cover_1",
+   "params": {
+    "text": "Keep yer damn head down!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "159101b949cf",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-13T19:57:23",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_cover_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_hick_brawl_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_brawl_0",
+   "params": {
+    "text": "You shot me, ya bastard!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "99a3f8531c21",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-13T19:57:24",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_brawl_0.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/cuss_hick_brawl_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_brawl_1",
+   "params": {
+    "text": "Watch it, ya jackass!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "edc31fcca88f",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T19:57:24",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_brawl_1.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/cuss_hick_idle_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_idle_0",
+   "params": {
+    "text": "This beer's warm as piss.",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "db4a6c7e4adb",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-13T19:57:24",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_idle_0.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/cuss_hick_idle_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_idle_1",
+   "params": {
+    "text": "Ain't shit on TV.",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d4f8249f8000",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-13T19:57:24",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_idle_1.mp3",
+   "bytes": 33897
+  },
+  {
+   "id": "tts/cuss_hick_surprised_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_surprised_0",
+   "params": {
+    "text": "Holy shit!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2215b68ca44b",
+   "reserved": 32,
+   "status": "settled",
+   "started": "2026-11-13T19:57:24",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_surprised_0.mp3",
+   "bytes": 23866
+  },
+  {
+   "id": "tts/cuss_hick_surprised_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_surprised_1",
+   "params": {
+    "text": "What the hell?!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "dbcb5f8651e3",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-13T19:57:24",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_surprised_1.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/cuss_hick_hurt_bad_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_hurt_bad_0",
+   "params": {
+    "text": "Aw hell, I'm leakin'!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "62c4d1a33443",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T19:57:24",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_hurt_bad_0.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/cuss_hick_hurt_bad_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_hurt_bad_1",
+   "params": {
+    "text": "Son of a bitch, that smarts!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "fa6e8ba12c8b",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:24",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_hurt_bad_1.mp3",
+   "bytes": 39540
+  },
+  {
+   "id": "tts/cuss_hick_regroup_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_regroup_0",
+   "params": {
+    "text": "Run, dammit, run!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7128500b5ffb",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-13T19:57:25",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_regroup_0.mp3",
+   "bytes": 33897
+  },
+  {
+   "id": "tts/cuss_hick_regroup_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_regroup_1",
+   "params": {
+    "text": "Haul ass, boys!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "801f963bb583",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-13T19:57:25",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_regroup_1.mp3",
+   "bytes": 30763
+  },
+  {
+   "id": "tts/cuss_deputy_spot_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_spot_0",
+   "params": {
+    "text": "Freeze, ya sumbitch!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "604979459c79",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:25",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_spot_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/cuss_deputy_spot_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_spot_1",
+   "params": {
+    "text": "Hands up, dumbass!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "12e16b420ecf",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T19:57:25",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_spot_1.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/cuss_deputy_lost_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_lost_0",
+   "params": {
+    "text": "Dammit, lost visual.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2d630bd757f0",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:26",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_lost_0.mp3",
+   "bytes": 39540
+  },
+  {
+   "id": "tts/cuss_deputy_lost_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_lost_1",
+   "params": {
+    "text": "Where the hell'd he go?",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7da74185b814",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-13T19:57:26",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_lost_1.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/cuss_deputy_search_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_search_0",
+   "params": {
+    "text": "Come on out, jackass. You're surrounded.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "dd5c6b0d2515",
+   "reserved": 68,
+   "status": "settled",
+   "started": "2026-11-13T19:57:26",
+   "actual": 40,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_search_0.mp3",
+   "bytes": 61483
+  },
+  {
+   "id": "tts/cuss_deputy_search_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_search_1",
+   "params": {
+    "text": "Spread out and find that bastard.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "04a16b068c6a",
+   "reserved": 59,
+   "status": "settled",
+   "started": "2026-11-13T19:57:27",
+   "actual": 33,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_search_1.mp3",
+   "bytes": 57094
+  },
+  {
+   "id": "tts/cuss_deputy_help_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_help_0",
+   "params": {
+    "text": "Git yer ass over here, Deputy!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bb2bb089993c",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-13T19:57:27",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_help_0.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/cuss_deputy_help_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_help_1",
+   "params": {
+    "text": "Send backup, dammit!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f1ab96ed5c0f",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:27",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_help_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_deputy_flank_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_flank_0",
+   "params": {
+    "text": "Flankin' left, cover my ass!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d9528585c64a",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:27",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_flank_0.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/cuss_deputy_flank_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_flank_1",
+   "params": {
+    "text": "Goin' round to bust his ass!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "88b83319eb80",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:28",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_flank_1.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/cuss_deputy_cover_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_cover_0",
+   "params": {
+    "text": "Git down, dammit!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b2b325e076d8",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-13T19:57:28",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_cover_0.mp3",
+   "bytes": 36405
+  },
+  {
+   "id": "tts/cuss_deputy_cover_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_cover_1",
+   "params": {
+    "text": "Takin' cover! Shit!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b303103fc2a5",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T19:57:28",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_cover_1.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/cuss_deputy_brawl_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_brawl_0",
+   "params": {
+    "text": "You shot a deputy, ya dumbass!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1f4a45e9f70e",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-13T19:57:28",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_brawl_0.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/cuss_deputy_brawl_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_brawl_1",
+   "params": {
+    "text": "That's assault, ya jackass!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "feb0180d42c5",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:28",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_brawl_1.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/cuss_deputy_idle_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_idle_0",
+   "params": {
+    "text": "This coffee tastes like crap.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f681fe19073c",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:28",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_idle_0.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/cuss_deputy_idle_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_idle_1",
+   "params": {
+    "text": "Outta donuts again, dammit.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2b7db861b41b",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:28",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_idle_1.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/cuss_deputy_surprised_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_surprised_0",
+   "params": {
+    "text": "Holy crap!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7174171cd3b8",
+   "reserved": 32,
+   "status": "settled",
+   "started": "2026-11-13T19:57:28",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_surprised_0.mp3",
+   "bytes": 29509
+  },
+  {
+   "id": "tts/cuss_deputy_surprised_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_surprised_1",
+   "params": {
+    "text": "What in the hell?!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0a70bf6025b8",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T19:57:29",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_surprised_1.mp3",
+   "bytes": 29509
+  },
+  {
+   "id": "tts/cuss_deputy_hurt_bad_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_hurt_bad_0",
+   "params": {
+    "text": "Shit! Man down!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "acdfe94c0dc2",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-13T19:57:29",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_hurt_bad_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/cuss_deputy_hurt_bad_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_hurt_bad_1",
+   "params": {
+    "text": "I'm hit, dammit!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8275d9745d6f",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-13T19:57:29",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_hurt_bad_1.mp3",
+   "bytes": 29509
+  },
+  {
+   "id": "tts/cuss_deputy_regroup_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_regroup_0",
+   "params": {
+    "text": "Back to the cruiser, dammit!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7eb4fb2fbb5a",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:29",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_regroup_0.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/cuss_deputy_regroup_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_regroup_1",
+   "params": {
+    "text": "Pull back! Haul ass!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6add1e89097d",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:30",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_regroup_1.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/cuss_coot_spot_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_spot_0",
+   "params": {
+    "text": "Git off my land, ya sumbitch!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "60b8457ae1c5",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:30",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_spot_0.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/cuss_coot_spot_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_spot_1",
+   "params": {
+    "text": "I see ya, ya mangy bastard!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a18cd08c9f47",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:30",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_spot_1.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/cuss_coot_lost_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_lost_0",
+   "params": {
+    "text": "Dammit, where'd he skedaddle?",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "128b146bb9a6",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:30",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_lost_0.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/cuss_coot_lost_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_lost_1",
+   "params": {
+    "text": "My eyes ain't worth a damn.",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "019a6087c5ca",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:30",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_lost_1.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/cuss_coot_search_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_search_0",
+   "params": {
+    "text": "Come on out, ya yella jackass.",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5f203b8cc703",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-13T19:57:31",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_search_0.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/cuss_coot_search_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_search_1",
+   "params": {
+    "text": "I'll find ya, ya little shit.",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0484e6af7701",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:31",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_search_1.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/cuss_coot_help_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_help_0",
+   "params": {
+    "text": "Junior, git yer ass out here!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1cb470bfe9e8",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:31",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_help_0.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/cuss_coot_help_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_help_1",
+   "params": {
+    "text": "Ma! Bring the damn shotgun!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "39bc435dcdba",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:31",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_help_1.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/cuss_coot_flank_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_flank_0",
+   "params": {
+    "text": "Comin' round the barn, ya bastard!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "395abae2d8f3",
+   "reserved": 60,
+   "status": "settled",
+   "started": "2026-11-13T19:57:32",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_flank_0.mp3",
+   "bytes": 59602
+  },
+  {
+   "id": "tts/cuss_coot_flank_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_flank_1",
+   "params": {
+    "text": "I'll sneak up on yer ass!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6681d2a2b73b",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-13T19:57:32",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_flank_1.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/cuss_coot_cover_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_cover_0",
+   "params": {
+    "text": "My damn back!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c6d7bebf19b8",
+   "reserved": 35,
+   "status": "settled",
+   "started": "2026-11-13T19:57:32",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_cover_0.mp3",
+   "bytes": 31390
+  },
+  {
+   "id": "tts/cuss_coot_cover_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_cover_1",
+   "params": {
+    "text": "Duck, dammit!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "88198c008816",
+   "reserved": 35,
+   "status": "settled",
+   "started": "2026-11-13T19:57:32",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_cover_1.mp3",
+   "bytes": 27001
+  },
+  {
+   "id": "tts/cuss_coot_brawl_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_brawl_0",
+   "params": {
+    "text": "Watch where yer shootin', dumbass!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7c8a97165841",
+   "reserved": 60,
+   "status": "settled",
+   "started": "2026-11-13T19:57:32",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_brawl_0.mp3",
+   "bytes": 65244
+  },
+  {
+   "id": "tts/cuss_coot_brawl_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_brawl_1",
+   "params": {
+    "text": "I'll whup yer ass, boy!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "951243c1285e",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-13T19:57:33",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_brawl_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_coot_idle_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_idle_0",
+   "params": {
+    "text": "Back in my day this crap was free.",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "652631b581b4",
+   "reserved": 60,
+   "status": "settled",
+   "started": "2026-11-13T19:57:33",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_idle_0.mp3",
+   "bytes": 65244
+  },
+  {
+   "id": "tts/cuss_coot_idle_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_idle_1",
+   "params": {
+    "text": "Where'd I put my damn teeth?",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "93a7e1928279",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:33",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_idle_1.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/cuss_coot_surprised_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_surprised_0",
+   "params": {
+    "text": "Lord have mercy! Shit!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7aa6fe4d9f4a",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-13T19:57:33",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_surprised_0.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/cuss_coot_surprised_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_surprised_1",
+   "params": {
+    "text": "Well, hell's bells!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "3c78e90dd1fa",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T19:57:33",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_surprised_1.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/cuss_coot_hurt_bad_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_hurt_bad_0",
+   "params": {
+    "text": "Aw hell, my hip!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "071dd34ba8be",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-13T19:57:33",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_hurt_bad_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_coot_hurt_bad_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_hurt_bad_1",
+   "params": {
+    "text": "Dammit, I'm too old for this!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2d3cbcabec26",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:33",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_hurt_bad_1.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/cuss_coot_regroup_0#1",
+   "kind": "tts",
+   "name": "cuss_coot_regroup_0",
+   "params": {
+    "text": "Retreat, dammit! Move, ol' knees!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "edbd4ec69773",
+   "reserved": 59,
+   "status": "settled",
+   "started": "2026-11-13T19:57:34",
+   "actual": 33,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_regroup_0.mp3",
+   "bytes": 61483
+  },
+  {
+   "id": "tts/cuss_coot_regroup_1#1",
+   "kind": "tts",
+   "name": "cuss_coot_regroup_1",
+   "params": {
+    "text": "Haul yer ass back to the porch!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8d37ebd14b77",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-13T19:57:34",
+   "actual": 31,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_regroup_1.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/cuss_grey_spot_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_spot_0",
+   "params": {
+    "text": "Earthling dumbass detected.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ef79a521aaf8",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:34",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_spot_0.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/cuss_grey_spot_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_spot_1",
+   "params": {
+    "text": "There is the hooman bastard!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9a852ae4ef35",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:34",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_spot_1.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/cuss_grey_lost_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_lost_0",
+   "params": {
+    "text": "The damn hooman has vanished.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "974b45ca6a5e",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:35",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_lost_0.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/cuss_grey_lost_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_lost_1",
+   "params": {
+    "text": "Where the hell is the specimen?",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "31bc6fbe054f",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-13T19:57:35",
+   "actual": 31,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_lost_1.mp3",
+   "bytes": 61483
+  },
+  {
+   "id": "tts/cuss_grey_search_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_search_0",
+   "params": {
+    "text": "Come out, jackass. The probe is ready.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d941d368cb6e",
+   "reserved": 65,
+   "status": "settled",
+   "started": "2026-11-13T19:57:35",
+   "actual": 38,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_search_0.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "tts/cuss_grey_search_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_search_1",
+   "params": {
+    "text": "Scan the sector, dammit.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "3e1cfb4db2e7",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-13T19:57:35",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_search_1.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/cuss_grey_help_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_help_0",
+   "params": {
+    "text": "Send reinforcements, dammit!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1b56396cf356",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:35",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_help_0.mp3",
+   "bytes": 46436
+  },
+  {
+   "id": "tts/cuss_grey_help_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_help_1",
+   "params": {
+    "text": "Zorp! Move your ass!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "48e3224ba89f",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:36",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_help_1.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "tts/cuss_grey_flank_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_flank_0",
+   "params": {
+    "text": "Encircle the bastard!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c3ae85c35d46",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T19:57:36",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_flank_0.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/cuss_grey_flank_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_flank_1",
+   "params": {
+    "text": "I will sneak behind his ass.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "29842eb075a9",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-13T19:57:36",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_flank_1.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/cuss_grey_cover_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_cover_0",
+   "params": {
+    "text": "Shields up, dammit!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "428292a1f860",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T19:57:36",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_cover_0.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/cuss_grey_cover_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_cover_1",
+   "params": {
+    "text": "Duck, you dumbass!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7df2826c1213",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T19:57:37",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_cover_1.mp3",
+   "bytes": 32643
+  },
+  {
+   "id": "tts/cuss_grey_brawl_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_brawl_0",
+   "params": {
+    "text": "Friendly fire, you jackass!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cadb68c1d272",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:37",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_brawl_0.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/cuss_grey_brawl_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_brawl_1",
+   "params": {
+    "text": "You will be probed for that, bastard!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ac9ad41de8ac",
+   "reserved": 64,
+   "status": "settled",
+   "started": "2026-11-13T19:57:37",
+   "actual": 37,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_brawl_1.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/cuss_grey_idle_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_idle_0",
+   "params": {
+    "text": "This cow is crap.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7a8f6311d5ef",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-13T19:57:37",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_idle_0.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/cuss_grey_idle_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_idle_1",
+   "params": {
+    "text": "Earth television is shit.",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6f508d0a76dc",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-13T19:57:37",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_idle_1.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/cuss_grey_surprised_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_surprised_0",
+   "params": {
+    "text": "Holy shit! Intruder!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c4c0e6d564dc",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:38",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_surprised_0.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/cuss_grey_surprised_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_surprised_1",
+   "params": {
+    "text": "What the hell?!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "aa0208d29c66",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-13T19:57:38",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_surprised_1.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/cuss_grey_hurt_bad_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_hurt_bad_0",
+   "params": {
+    "text": "Hull breach, dammit!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2b2b01b3672f",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:38",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_hurt_bad_0.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/cuss_grey_hurt_bad_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_hurt_bad_1",
+   "params": {
+    "text": "Son of a bitch, my antenna!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "75400b40ebb5",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-13T19:57:38",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_hurt_bad_1.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/cuss_grey_regroup_0#1",
+   "kind": "tts",
+   "name": "cuss_grey_regroup_0",
+   "params": {
+    "text": "Back to the saucer! Haul ass!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "466984f684e3",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:38",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_regroup_0.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/cuss_grey_regroup_1#1",
+   "kind": "tts",
+   "name": "cuss_grey_regroup_1",
+   "params": {
+    "text": "Retreat, dammit!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7a53390d5dd9",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-13T19:57:38",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_regroup_1.mp3",
+   "bytes": 33897
+  },
+  {
+   "id": "tts/cuss_mundell_kill_0#1",
+   "kind": "tts",
+   "name": "cuss_mundell_kill_0",
+   "params": {
+    "text": "Eat shit, varmint.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "3fe4a29e4a73",
+   "reserved": 41,
+   "status": "settled",
+   "started": "2026-11-13T19:57:39",
+   "actual": 18,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_kill_0.mp3",
+   "bytes": 53959
+  },
+  {
+   "id": "tts/cuss_mundell_kill_1#1",
+   "kind": "tts",
+   "name": "cuss_mundell_kill_1",
+   "params": {
+    "text": "Hell yeah!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "afab5b843306",
+   "reserved": 32,
+   "status": "settled",
+   "started": "2026-11-13T19:57:39",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_kill_1.mp3",
+   "bytes": 35151
+  },
+  {
+   "id": "tts/cuss_mundell_kill_2#1",
+   "kind": "tts",
+   "name": "cuss_mundell_kill_2",
+   "params": {
+    "text": "Go to hell, Cletus.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ad2a8803a4e8",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T19:57:39",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_kill_2.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/cuss_mundell_streak_0#1",
+   "kind": "tts",
+   "name": "cuss_mundell_streak_0",
+   "params": {
+    "text": "Who's next, dammit?",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "29cc97a54040",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T19:57:39",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_streak_0.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/cuss_mundell_streak_1#1",
+   "kind": "tts",
+   "name": "cuss_mundell_streak_1",
+   "params": {
+    "text": "Line up, ya sumbitches!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "338ceea3a732",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-13T19:57:40",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_streak_1.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/cuss_mundell_hurt_0#1",
+   "kind": "tts",
+   "name": "cuss_mundell_hurt_0",
+   "params": {
+    "text": "Ow! You sumbitch!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b113f815ac99",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-13T19:57:40",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_hurt_0.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "tts/cuss_mundell_hurt_1#1",
+   "kind": "tts",
+   "name": "cuss_mundell_hurt_1",
+   "params": {
+    "text": "That hurt like hell!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6599f7eb3e69",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:40",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_hurt_1.mp3",
+   "bytes": 63990
+  },
+  {
+   "id": "tts/cuss_mundell_low_0#1",
+   "kind": "tts",
+   "name": "cuss_mundell_low_0",
+   "params": {
+    "text": "Aw shit, I'm seein' the light.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e338cf6bb152",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-13T19:57:40",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_low_0.mp3",
+   "bytes": 57094
+  },
+  {
+   "id": "tts/cuss_mundell_low_1#1",
+   "kind": "tts",
+   "name": "cuss_mundell_low_1",
+   "params": {
+    "text": "Somebody git me a damn snack.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8a4e511fef28",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:41",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_low_1.mp3",
+   "bytes": 63990
+  },
+  {
+   "id": "tts/cuss_mundell_empty_0#1",
+   "kind": "tts",
+   "name": "cuss_mundell_empty_0",
+   "params": {
+    "text": "Click? Aw, shit.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "04b35f65640b",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-13T19:57:41",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_empty_0.mp3",
+   "bytes": 53959
+  },
+  {
+   "id": "tts/cuss_mundell_empty_1#1",
+   "kind": "tts",
+   "name": "cuss_mundell_empty_1",
+   "params": {
+    "text": "Outta shells, dammit!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "720ed4c4f890",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T19:57:41",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_empty_1.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/cuss_mundell_drunk_0#1",
+   "kind": "tts",
+   "name": "cuss_mundell_drunk_0",
+   "params": {
+    "text": "Who moved the damn barn?",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "659878705b27",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-13T19:57:41",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_drunk_0.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/cuss_mundell_drunk_1#1",
+   "kind": "tts",
+   "name": "cuss_mundell_drunk_1",
+   "params": {
+    "text": "I'm drunker'n hell.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "79f5d2bfc2f5",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T19:57:41",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_drunk_1.mp3",
+   "bytes": 66498
+  },
+  {
+   "id": "tts/cuss_mundell_secret_0#1",
+   "kind": "tts",
+   "name": "cuss_mundell_secret_0",
+   "params": {
+    "text": "Well, hot damn!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "4121b1eda5fb",
+   "reserved": 38,
+   "status": "settled",
+   "started": "2026-11-13T19:57:41",
+   "actual": 15,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_secret_0.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/cuss_mundell_secret_1#1",
+   "kind": "tts",
+   "name": "cuss_mundell_secret_1",
+   "params": {
+    "text": "Looky here, ya sumbitch!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "afc30fec9e16",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-13T19:57:42",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_secret_1.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/cuss_mundell_pickup_weapon_0#1",
+   "kind": "tts",
+   "name": "cuss_mundell_pickup_weapon_0",
+   "params": {
+    "text": "Oh hell yes.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1970886676a5",
+   "reserved": 34,
+   "status": "settled",
+   "started": "2026-11-13T19:57:42",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_pickup_weapon_0.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/cuss_mundell_pickup_weapon_1#1",
+   "kind": "tts",
+   "name": "cuss_mundell_pickup_weapon_1",
+   "params": {
+    "text": "Come to pappy, ya purty bastard.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a9872011ccd7",
+   "reserved": 58,
+   "status": "settled",
+   "started": "2026-11-13T19:57:42",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_pickup_weapon_1.mp3",
+   "bytes": 69633
+  },
+  {
+   "id": "tts/cuss_hick_kill_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_kill_0",
+   "params": {
+    "text": "Dirt nap for you, dumbass!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "28a41d9bebd1",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-13T19:57:42",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_kill_0.mp3",
+   "bytes": 41421
+  },
+  {
+   "id": "tts/cuss_hick_kill_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_kill_1",
+   "params": {
+    "text": "That's what ya get, sumbitch!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ea81107406c9",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-13T19:57:42",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_kill_1.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/cuss_hick_plant_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_plant_0",
+   "params": {
+    "text": "Bomb's down! Haul ass!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "871138c3b39a",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-13T19:57:42",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_plant_0.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/cuss_hick_plant_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_plant_1",
+   "params": {
+    "text": "She's planted, dammit, cover me!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cbf557b1a034",
+   "reserved": 58,
+   "status": "settled",
+   "started": "2026-11-13T19:57:43",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_plant_1.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/cuss_hick_win_0#1",
+   "kind": "tts",
+   "name": "cuss_hick_win_0",
+   "params": {
+    "text": "Hell yeah, boys!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "222452567804",
+   "reserved": 39,
+   "status": "settled",
+   "started": "2026-11-13T19:57:43",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_win_0.mp3",
+   "bytes": 29509
+  },
+  {
+   "id": "tts/cuss_hick_win_1#1",
+   "kind": "tts",
+   "name": "cuss_hick_win_1",
+   "params": {
+    "text": "Eat shit, deputies!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "75861589a92f",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T19:57:43",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_win_1.mp3",
+   "bytes": 31390
+  },
+  {
+   "id": "tts/cuss_deputy_kill_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_kill_0",
+   "params": {
+    "text": "Suspect down, dumbass.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f3c4f48ee1ff",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-13T19:57:43",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_kill_0.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/cuss_deputy_kill_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_kill_1",
+   "params": {
+    "text": "Stay down, ya sumbitch!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7ad420373652",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-13T19:57:44",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_kill_1.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/cuss_deputy_defuse_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_defuse_0",
+   "params": {
+    "text": "Cuttin' the damn wire!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f87bb82e3afc",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-13T19:57:44",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_defuse_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_deputy_defuse_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_defuse_1",
+   "params": {
+    "text": "Fuse is cut, dammit!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "76a0f901cc08",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T19:57:44",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_defuse_1.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/cuss_deputy_win_0#1",
+   "kind": "tts",
+   "name": "cuss_deputy_win_0",
+   "params": {
+    "text": "Book 'em, dammit!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6a4611dae7a0",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-13T19:57:44",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_win_0.mp3",
+   "bytes": 27001
+  },
+  {
+   "id": "tts/cuss_deputy_win_1#1",
+   "kind": "tts",
+   "name": "cuss_deputy_win_1",
+   "params": {
+    "text": "Law wins, ya jackasses!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f3011540b23a",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-13T19:57:45",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_win_1.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "stt/cuss_hick_spot_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_spot_1",
+   "params": {
+    "file": "cuss_hick_spot_1.mp3",
+    "bytes": 39540
+   },
+   "hash": "cec1b8157084",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_spot_1.json",
+   "bytes": 354
+  },
+  {
+   "id": "stt/cuss_hick_lost_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_lost_0",
+   "params": {
+    "file": "cuss_hick_lost_0.mp3",
+    "bytes": 41421
+   },
+   "hash": "aa06118f62f5",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_lost_0.json",
+   "bytes": 485
+  },
+  {
+   "id": "stt/cuss_hick_spot_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_spot_0",
+   "params": {
+    "file": "cuss_hick_spot_0.mp3",
+    "bytes": 40794
+   },
+   "hash": "3c8ff6d4ce3e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_spot_0.json",
+   "bytes": 308
+  },
+  {
+   "id": "stt/cuss_hick_lost_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_lost_1",
+   "params": {
+    "file": "cuss_hick_lost_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "1a4bf678bedf",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_lost_1.json",
+   "bytes": 411
+  },
+  {
+   "id": "stt/cuss_hick_search_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_search_0",
+   "params": {
+    "file": "cuss_hick_search_0.mp3",
+    "bytes": 45182
+   },
+   "hash": "973bea570655",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_search_0.json",
+   "bytes": 425
+  },
+  {
+   "id": "stt/cuss_hick_search_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_search_1",
+   "params": {
+    "file": "cuss_hick_search_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "c60f483382cc",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_search_1.json",
+   "bytes": 419
+  },
+  {
+   "id": "stt/cuss_hick_help_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_help_0",
+   "params": {
+    "file": "cuss_hick_help_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "b7cb1ef08f57",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_help_0.json",
+   "bytes": 420
+  },
+  {
+   "id": "stt/cuss_hick_help_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_help_1",
+   "params": {
+    "file": "cuss_hick_help_1.mp3",
+    "bytes": 38286
+   },
+   "hash": "e21c5238780c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_help_1.json",
+   "bytes": 365
+  },
+  {
+   "id": "stt/cuss_hick_flank_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_flank_0",
+   "params": {
+    "file": "cuss_hick_flank_0.mp3",
+    "bytes": 40794
+   },
+   "hash": "1aef787f1348",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_flank_0.json",
+   "bytes": 483
+  },
+  {
+   "id": "stt/cuss_hick_flank_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_flank_1",
+   "params": {
+    "file": "cuss_hick_flank_1.mp3",
+    "bytes": 50825
+   },
+   "hash": "98118a5c1294",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_flank_1.json",
+   "bytes": 428
+  },
+  {
+   "id": "stt/cuss_hick_cover_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_cover_0",
+   "params": {
+    "file": "cuss_hick_cover_0.mp3",
+    "bytes": 37032
+   },
+   "hash": "295e36fc228b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_cover_0.json",
+   "bytes": 234
+  },
+  {
+   "id": "stt/cuss_hick_cover_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_cover_1",
+   "params": {
+    "file": "cuss_hick_cover_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "ee2c5cf5825c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_cover_1.json",
+   "bytes": 356
+  },
+  {
+   "id": "stt/cuss_hick_brawl_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_brawl_0",
+   "params": {
+    "file": "cuss_hick_brawl_0.mp3",
+    "bytes": 51452
+   },
+   "hash": "164c4891d00c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_brawl_0.json",
+   "bytes": 358
+  },
+  {
+   "id": "stt/cuss_hick_brawl_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_brawl_1",
+   "params": {
+    "file": "cuss_hick_brawl_1.mp3",
+    "bytes": 40794
+   },
+   "hash": "0be65d3927cb",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_brawl_1.json",
+   "bytes": 298
+  },
+  {
+   "id": "stt/cuss_hick_idle_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_idle_0",
+   "params": {
+    "file": "cuss_hick_idle_0.mp3",
+    "bytes": 40794
+   },
+   "hash": "d7e849d492aa",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_idle_0.json",
+   "bytes": 358
+  },
+  {
+   "id": "stt/cuss_hick_idle_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_idle_1",
+   "params": {
+    "file": "cuss_hick_idle_1.mp3",
+    "bytes": 33897
+   },
+   "hash": "88f7ad8cf8c0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_idle_1.json",
+   "bytes": 286
+  },
+  {
+   "id": "stt/cuss_hick_surprised_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_surprised_0",
+   "params": {
+    "file": "cuss_hick_surprised_0.mp3",
+    "bytes": 23866
+   },
+   "hash": "fef634a9939f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_surprised_0.json",
+   "bytes": 163
+  },
+  {
+   "id": "stt/cuss_hick_surprised_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_surprised_1",
+   "params": {
+    "file": "cuss_hick_surprised_1.mp3",
+    "bytes": 35151
+   },
+   "hash": "d3eca6683104",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_surprised_1.json",
+   "bytes": 286
+  },
+  {
+   "id": "stt/cuss_hick_hurt_bad_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_hurt_bad_0",
+   "params": {
+    "file": "cuss_hick_hurt_bad_0.mp3",
+    "bytes": 46436
+   },
+   "hash": "ef957d9d2faf",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_hurt_bad_0.json",
+   "bytes": 295
+  },
+  {
+   "id": "stt/cuss_hick_hurt_bad_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_hurt_bad_1",
+   "params": {
+    "file": "cuss_hick_hurt_bad_1.mp3",
+    "bytes": 39540
+   },
+   "hash": "712f6a3aeea1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_hurt_bad_1.json",
+   "bytes": 421
+  },
+  {
+   "id": "stt/cuss_hick_regroup_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_regroup_0",
+   "params": {
+    "file": "cuss_hick_regroup_0.mp3",
+    "bytes": 33897
+   },
+   "hash": "eeb600cdcaa3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_regroup_0.json",
+   "bytes": 290
+  },
+  {
+   "id": "stt/cuss_hick_regroup_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_regroup_1",
+   "params": {
+    "file": "cuss_hick_regroup_1.mp3",
+    "bytes": 30763
+   },
+   "hash": "97eebc9a651f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_regroup_1.json",
+   "bytes": 227
+  },
+  {
+   "id": "stt/cuss_deputy_spot_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_spot_0",
+   "params": {
+    "file": "cuss_deputy_spot_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "74bede88b924",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_spot_0.json",
+   "bytes": 416
+  },
+  {
+   "id": "stt/cuss_deputy_spot_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_spot_1",
+   "params": {
+    "file": "cuss_deputy_spot_1.mp3",
+    "bytes": 40794
+   },
+   "hash": "2017bcf18e1c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_spot_1.json",
+   "bytes": 234
+  },
+  {
+   "id": "stt/cuss_deputy_lost_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_lost_0",
+   "params": {
+    "file": "cuss_deputy_lost_0.mp3",
+    "bytes": 39540
+   },
+   "hash": "4bd8eef8e4c3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_lost_0.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/cuss_deputy_lost_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_lost_1",
+   "params": {
+    "file": "cuss_deputy_lost_1.mp3",
+    "bytes": 45182
+   },
+   "hash": "e529e371c25f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_lost_1.json",
+   "bytes": 417
+  },
+  {
+   "id": "stt/cuss_deputy_search_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_search_0",
+   "params": {
+    "file": "cuss_deputy_search_0.mp3",
+    "bytes": 61483
+   },
+   "hash": "f594ad02f6fe",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_search_0.json",
+   "bytes": 443
+  },
+  {
+   "id": "stt/cuss_deputy_search_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_search_1",
+   "params": {
+    "file": "cuss_deputy_search_1.mp3",
+    "bytes": 57094
+   },
+   "hash": "8f381b61133b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_search_1.json",
+   "bytes": 428
+  },
+  {
+   "id": "stt/cuss_deputy_help_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_help_0",
+   "params": {
+    "file": "cuss_deputy_help_0.mp3",
+    "bytes": 52705
+   },
+   "hash": "091cd8186cc3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_help_0.json",
+   "bytes": 424
+  },
+  {
+   "id": "stt/cuss_deputy_help_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_help_1",
+   "params": {
+    "file": "cuss_deputy_help_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "8b3299428309",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_help_1.json",
+   "bytes": 295
+  },
+  {
+   "id": "stt/cuss_deputy_flank_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_flank_0",
+   "params": {
+    "file": "cuss_deputy_flank_0.mp3",
+    "bytes": 50825
+   },
+   "hash": "6424d54e542d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_flank_0.json",
+   "bytes": 363
+  },
+  {
+   "id": "stt/cuss_deputy_flank_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_flank_1",
+   "params": {
+    "file": "cuss_deputy_flank_1.mp3",
+    "bytes": 47063
+   },
+   "hash": "8450966a00f2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_flank_1.json",
+   "bytes": 419
+  },
+  {
+   "id": "stt/cuss_deputy_cover_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_cover_0",
+   "params": {
+    "file": "cuss_deputy_cover_0.mp3",
+    "bytes": 36405
+   },
+   "hash": "0cdb383bf6c1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_cover_0.json",
+   "bytes": 290
+  },
+  {
+   "id": "stt/cuss_deputy_cover_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_cover_1",
+   "params": {
+    "file": "cuss_deputy_cover_1.mp3",
+    "bytes": 40794
+   },
+   "hash": "1463ecd660dd",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_cover_1.json",
+   "bytes": 233
+  },
+  {
+   "id": "stt/cuss_deputy_brawl_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_brawl_0",
+   "params": {
+    "file": "cuss_deputy_brawl_0.mp3",
+    "bytes": 55213
+   },
+   "hash": "b047493cd84e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_brawl_0.json",
+   "bytes": 426
+  },
+  {
+   "id": "stt/cuss_deputy_brawl_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_brawl_1",
+   "params": {
+    "file": "cuss_deputy_brawl_1.mp3",
+    "bytes": 51452
+   },
+   "hash": "8e79dc6e6350",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_brawl_1.json",
+   "bytes": 307
+  },
+  {
+   "id": "stt/cuss_deputy_idle_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_idle_0",
+   "params": {
+    "file": "cuss_deputy_idle_0.mp3",
+    "bytes": 46436
+   },
+   "hash": "7fb9822b809f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_idle_0.json",
+   "bytes": 366
+  },
+  {
+   "id": "stt/cuss_deputy_idle_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_idle_1",
+   "params": {
+    "file": "cuss_deputy_idle_1.mp3",
+    "bytes": 43928
+   },
+   "hash": "af31478bb2ea",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_idle_1.json",
+   "bytes": 419
+  },
+  {
+   "id": "stt/cuss_deputy_surprised_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_surprised_0",
+   "params": {
+    "file": "cuss_deputy_surprised_0.mp3",
+    "bytes": 29509
+   },
+   "hash": "36527d839a31",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_surprised_0.json",
+   "bytes": 163
+  },
+  {
+   "id": "stt/cuss_deputy_surprised_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_surprised_1",
+   "params": {
+    "file": "cuss_deputy_surprised_1.mp3",
+    "bytes": 29509
+   },
+   "hash": "2ad050133991",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_surprised_1.json",
+   "bytes": 287
+  },
+  {
+   "id": "stt/cuss_deputy_hurt_bad_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_hurt_bad_0",
+   "params": {
+    "file": "cuss_deputy_hurt_bad_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "3a20a4b1efbc",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_hurt_bad_0.json",
+   "bytes": 223
+  },
+  {
+   "id": "stt/cuss_deputy_hurt_bad_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_hurt_bad_1",
+   "params": {
+    "file": "cuss_deputy_hurt_bad_1.mp3",
+    "bytes": 29509
+   },
+   "hash": "c60cb4f86bdf",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_hurt_bad_1.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/cuss_deputy_regroup_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_regroup_0",
+   "params": {
+    "file": "cuss_deputy_regroup_0.mp3",
+    "bytes": 38286
+   },
+   "hash": "fad5f12ea7eb",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_regroup_0.json",
+   "bytes": 422
+  },
+  {
+   "id": "stt/cuss_deputy_regroup_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_regroup_1",
+   "params": {
+    "file": "cuss_deputy_regroup_1.mp3",
+    "bytes": 45182
+   },
+   "hash": "f80e6666a801",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_regroup_1.json",
+   "bytes": 357
+  },
+  {
+   "id": "stt/cuss_coot_spot_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_spot_0",
+   "params": {
+    "file": "cuss_coot_spot_0.mp3",
+    "bytes": 58348
+   },
+   "hash": "a63492c492c0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_spot_0.json",
+   "bytes": 423
+  },
+  {
+   "id": "stt/cuss_coot_spot_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_spot_1",
+   "params": {
+    "file": "cuss_coot_spot_1.mp3",
+    "bytes": 52705
+   },
+   "hash": "cab9ca72ab03",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_spot_1.json",
+   "bytes": 421
+  },
+  {
+   "id": "stt/cuss_coot_lost_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_lost_0",
+   "params": {
+    "file": "cuss_coot_lost_0.mp3",
+    "bytes": 49571
+   },
+   "hash": "4f3fccfd5dd7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_lost_0.json",
+   "bytes": 371
+  },
+  {
+   "id": "stt/cuss_coot_lost_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_lost_1",
+   "params": {
+    "file": "cuss_coot_lost_1.mp3",
+    "bytes": 46436
+   },
+   "hash": "22e953eaffdf",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_lost_1.json",
+   "bytes": 418
+  },
+  {
+   "id": "stt/cuss_coot_search_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_search_0",
+   "params": {
+    "file": "cuss_coot_search_0.mp3",
+    "bytes": 58348
+   },
+   "hash": "935402f48a67",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_search_0.json",
+   "bytes": 429
+  },
+  {
+   "id": "stt/cuss_coot_search_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_search_1",
+   "params": {
+    "file": "cuss_coot_search_1.mp3",
+    "bytes": 47063
+   },
+   "hash": "ff10f5d170d8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_search_1.json",
+   "bytes": 424
+  },
+  {
+   "id": "stt/cuss_coot_help_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_help_0",
+   "params": {
+    "file": "cuss_coot_help_0.mp3",
+    "bytes": 55213
+   },
+   "hash": "947a1446a143",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_help_0.json",
+   "bytes": 421
+  },
+  {
+   "id": "stt/cuss_coot_help_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_help_1",
+   "params": {
+    "file": "cuss_coot_help_1.mp3",
+    "bytes": 56467
+   },
+   "hash": "c7cd65a90ada",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_help_1.json",
+   "bytes": 362
+  },
+  {
+   "id": "stt/cuss_coot_flank_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_flank_0",
+   "params": {
+    "file": "cuss_coot_flank_0.mp3",
+    "bytes": 59602
+   },
+   "hash": "7c92c4b31dab",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_flank_0.json",
+   "bytes": 435
+  },
+  {
+   "id": "stt/cuss_coot_flank_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_flank_1",
+   "params": {
+    "file": "cuss_coot_flank_1.mp3",
+    "bytes": 48317
+   },
+   "hash": "d2f3b74f898b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_flank_1.json",
+   "bytes": 415
+  },
+  {
+   "id": "stt/cuss_coot_cover_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_cover_0",
+   "params": {
+    "file": "cuss_coot_cover_0.mp3",
+    "bytes": 31390
+   },
+   "hash": "ad7686de4f05",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_cover_0.json",
+   "bytes": 223
+  },
+  {
+   "id": "stt/cuss_coot_cover_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_cover_1",
+   "params": {
+    "file": "cuss_coot_cover_1.mp3",
+    "bytes": 27001
+   },
+   "hash": "c4cc55ef1e3c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_cover_1.json",
+   "bytes": 222
+  },
+  {
+   "id": "stt/cuss_coot_brawl_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_brawl_0",
+   "params": {
+    "file": "cuss_coot_brawl_0.mp3",
+    "bytes": 65244
+   },
+   "hash": "ad387d97b548",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_brawl_0.json",
+   "bytes": 380
+  },
+  {
+   "id": "stt/cuss_coot_brawl_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_brawl_1",
+   "params": {
+    "file": "cuss_coot_brawl_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "a524aa0c4b8a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_brawl_1.json",
+   "bytes": 359
+  },
+  {
+   "id": "stt/cuss_coot_idle_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_idle_0",
+   "params": {
+    "file": "cuss_coot_idle_0.mp3",
+    "bytes": 65244
+   },
+   "hash": "0c6dd1a39c0d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_idle_0.json",
+   "bytes": 544
+  },
+  {
+   "id": "stt/cuss_coot_idle_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_idle_1",
+   "params": {
+    "file": "cuss_coot_idle_1.mp3",
+    "bytes": 46436
+   },
+   "hash": "5c54645d2fe7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:19",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_idle_1.json",
+   "bytes": 419
+  },
+  {
+   "id": "stt/cuss_coot_surprised_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_surprised_0",
+   "params": {
+    "file": "cuss_coot_surprised_0.mp3",
+    "bytes": 46436
+   },
+   "hash": "8a6b1ed2cc5a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_surprised_0.json",
+   "bytes": 298
+  },
+  {
+   "id": "stt/cuss_coot_surprised_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_surprised_1",
+   "params": {
+    "file": "cuss_coot_surprised_1.mp3",
+    "bytes": 46436
+   },
+   "hash": "70e687c3f1e9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_surprised_1.json",
+   "bytes": 233
+  },
+  {
+   "id": "stt/cuss_coot_hurt_bad_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_hurt_bad_0",
+   "params": {
+    "file": "cuss_coot_hurt_bad_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "deaac0d55be8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_hurt_bad_0.json",
+   "bytes": 286
+  },
+  {
+   "id": "stt/cuss_coot_hurt_bad_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_hurt_bad_1",
+   "params": {
+    "file": "cuss_coot_hurt_bad_1.mp3",
+    "bytes": 48317
+   },
+   "hash": "eb5a4ca2028a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:20",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_hurt_bad_1.json",
+   "bytes": 478
+  },
+  {
+   "id": "stt/cuss_coot_regroup_0#1",
+   "kind": "stt",
+   "name": "cuss_coot_regroup_0",
+   "params": {
+    "file": "cuss_coot_regroup_0.mp3",
+    "bytes": 61483
+   },
+   "hash": "7ab788710114",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:21",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_regroup_0.json",
+   "bytes": 429
+  },
+  {
+   "id": "stt/cuss_coot_regroup_1#1",
+   "kind": "stt",
+   "name": "cuss_coot_regroup_1",
+   "params": {
+    "file": "cuss_coot_regroup_1.mp3",
+    "bytes": 58348
+   },
+   "hash": "cf34551c0759",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:21",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_regroup_1.json",
+   "bytes": 483
+  },
+  {
+   "id": "stt/cuss_grey_spot_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_spot_0",
+   "params": {
+    "file": "cuss_grey_spot_0.mp3",
+    "bytes": 51452
+   },
+   "hash": "145c7d95ca70",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:21",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_spot_0.json",
+   "bytes": 251
+  },
+  {
+   "id": "stt/cuss_grey_spot_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_spot_1",
+   "params": {
+    "file": "cuss_grey_spot_1.mp3",
+    "bytes": 51452
+   },
+   "hash": "bd4a0ab77b3a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:21",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_spot_1.json",
+   "bytes": 365
+  },
+  {
+   "id": "stt/cuss_grey_lost_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_lost_0",
+   "params": {
+    "file": "cuss_grey_lost_0.mp3",
+    "bytes": 48317
+   },
+   "hash": "928cf40194e1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:22",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_lost_0.json",
+   "bytes": 363
+  },
+  {
+   "id": "stt/cuss_grey_lost_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_lost_1",
+   "params": {
+    "file": "cuss_grey_lost_1.mp3",
+    "bytes": 61483
+   },
+   "hash": "91118678b5c9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:22",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_lost_1.json",
+   "bytes": 426
+  },
+  {
+   "id": "stt/cuss_grey_search_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_search_0",
+   "params": {
+    "file": "cuss_grey_search_0.mp3",
+    "bytes": 60856
+   },
+   "hash": "7d30ec2fa58b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:22",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_search_0.json",
+   "bytes": 493
+  },
+  {
+   "id": "stt/cuss_grey_search_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_search_1",
+   "params": {
+    "file": "cuss_grey_search_1.mp3",
+    "bytes": 43928
+   },
+   "hash": "054950d1f857",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:22",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_search_1.json",
+   "bytes": 360
+  },
+  {
+   "id": "stt/cuss_grey_help_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_help_0",
+   "params": {
+    "file": "cuss_grey_help_0.mp3",
+    "bytes": 46436
+   },
+   "hash": "50d5b74de618",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:22",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_help_0.json",
+   "bytes": 312
+  },
+  {
+   "id": "stt/cuss_grey_help_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_help_1",
+   "params": {
+    "file": "cuss_grey_help_1.mp3",
+    "bytes": 38286
+   },
+   "hash": "3cf4f3f18d67",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:22",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_help_1.json",
+   "bytes": 296
+  },
+  {
+   "id": "stt/cuss_grey_flank_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_flank_0",
+   "params": {
+    "file": "cuss_grey_flank_0.mp3",
+    "bytes": 43928
+   },
+   "hash": "5c07d9efe34f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:23",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_flank_0.json",
+   "bytes": 240
+  },
+  {
+   "id": "stt/cuss_grey_flank_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_flank_1",
+   "params": {
+    "file": "cuss_grey_flank_1.mp3",
+    "bytes": 43928
+   },
+   "hash": "564f9aff5ef1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:23",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_flank_1.json",
+   "bytes": 418
+  },
+  {
+   "id": "stt/cuss_grey_cover_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_cover_0",
+   "params": {
+    "file": "cuss_grey_cover_0.mp3",
+    "bytes": 41421
+   },
+   "hash": "730e8bda855b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:23",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_cover_0.json",
+   "bytes": 359
+  },
+  {
+   "id": "stt/cuss_grey_cover_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_cover_1",
+   "params": {
+    "file": "cuss_grey_cover_1.mp3",
+    "bytes": 32643
+   },
+   "hash": "8223c9f9cb16",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:23",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_cover_1.json",
+   "bytes": 235
+  },
+  {
+   "id": "stt/cuss_grey_brawl_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_brawl_0",
+   "params": {
+    "file": "cuss_grey_brawl_0.mp3",
+    "bytes": 55213
+   },
+   "hash": "b49e19e59472",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:23",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_brawl_0.json",
+   "bytes": 305
+  },
+  {
+   "id": "stt/cuss_grey_brawl_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_brawl_1",
+   "params": {
+    "file": "cuss_grey_brawl_1.mp3",
+    "bytes": 58348
+   },
+   "hash": "d22bc96a94d3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:23",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_brawl_1.json",
+   "bytes": 493
+  },
+  {
+   "id": "stt/cuss_grey_idle_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_idle_0",
+   "params": {
+    "file": "cuss_grey_idle_0.mp3",
+    "bytes": 45182
+   },
+   "hash": "686176f2a643",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:24",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_idle_0.json",
+   "bytes": 286
+  },
+  {
+   "id": "stt/cuss_grey_idle_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_idle_1",
+   "params": {
+    "file": "cuss_grey_idle_1.mp3",
+    "bytes": 41421
+   },
+   "hash": "fc642be44633",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:24",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_idle_1.json",
+   "bytes": 303
+  },
+  {
+   "id": "stt/cuss_grey_surprised_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_surprised_0",
+   "params": {
+    "file": "cuss_grey_surprised_0.mp3",
+    "bytes": 45182
+   },
+   "hash": "4c9761c533a4",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:24",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_surprised_0.json",
+   "bytes": 238
+  },
+  {
+   "id": "stt/cuss_grey_surprised_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_surprised_1",
+   "params": {
+    "file": "cuss_grey_surprised_1.mp3",
+    "bytes": 58348
+   },
+   "hash": "a6b6b9e0545b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:24",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_surprised_1.json",
+   "bytes": 354
+  },
+  {
+   "id": "stt/cuss_grey_hurt_bad_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_hurt_bad_0",
+   "params": {
+    "file": "cuss_grey_hurt_bad_0.mp3",
+    "bytes": 35151
+   },
+   "hash": "600a76d10106",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:25",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_hurt_bad_0.json",
+   "bytes": 291
+  },
+  {
+   "id": "stt/cuss_grey_hurt_bad_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_hurt_bad_1",
+   "params": {
+    "file": "cuss_grey_hurt_bad_1.mp3",
+    "bytes": 55213
+   },
+   "hash": "58f10ffb8ba6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:25",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_hurt_bad_1.json",
+   "bytes": 420
+  },
+  {
+   "id": "stt/cuss_grey_regroup_0#1",
+   "kind": "stt",
+   "name": "cuss_grey_regroup_0",
+   "params": {
+    "file": "cuss_grey_regroup_0.mp3",
+    "bytes": 55213
+   },
+   "hash": "92d6617f80f4",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:25",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_regroup_0.json",
+   "bytes": 420
+  },
+  {
+   "id": "stt/cuss_grey_regroup_1#1",
+   "kind": "stt",
+   "name": "cuss_grey_regroup_1",
+   "params": {
+    "file": "cuss_grey_regroup_1.mp3",
+    "bytes": 33897
+   },
+   "hash": "996f86536994",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:25",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_regroup_1.json",
+   "bytes": 231
+  },
+  {
+   "id": "stt/cuss_mundell_kill_0#1",
+   "kind": "stt",
+   "name": "cuss_mundell_kill_0",
+   "params": {
+    "file": "cuss_mundell_kill_0.mp3",
+    "bytes": 53959
+   },
+   "hash": "6ed0b0ddfea8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:25",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_kill_0.json",
+   "bytes": 233
+  },
+  {
+   "id": "stt/cuss_mundell_kill_1#1",
+   "kind": "stt",
+   "name": "cuss_mundell_kill_1",
+   "params": {
+    "file": "cuss_mundell_kill_1.mp3",
+    "bytes": 35151
+   },
+   "hash": "9c39a63db99a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:25",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_kill_1.json",
+   "bytes": 162
+  },
+  {
+   "id": "stt/cuss_mundell_kill_2#1",
+   "kind": "stt",
+   "name": "cuss_mundell_kill_2",
+   "params": {
+    "file": "cuss_mundell_kill_2.mp3",
+    "bytes": 49571
+   },
+   "hash": "dc6768233011",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:26",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_kill_2.json",
+   "bytes": 358
+  },
+  {
+   "id": "stt/cuss_mundell_streak_0#1",
+   "kind": "stt",
+   "name": "cuss_mundell_streak_0",
+   "params": {
+    "file": "cuss_mundell_streak_0.mp3",
+    "bytes": 45182
+   },
+   "hash": "d1c880dedf90",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:26",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_streak_0.json",
+   "bytes": 360
+  },
+  {
+   "id": "stt/cuss_mundell_streak_1#1",
+   "kind": "stt",
+   "name": "cuss_mundell_streak_1",
+   "params": {
+    "file": "cuss_mundell_streak_1.mp3",
+    "bytes": 49571
+   },
+   "hash": "647182dbd1c2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:26",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_streak_1.json",
+   "bytes": 357
+  },
+  {
+   "id": "stt/cuss_mundell_hurt_0#1",
+   "kind": "stt",
+   "name": "cuss_mundell_hurt_0",
+   "params": {
+    "file": "cuss_mundell_hurt_0.mp3",
+    "bytes": 49571
+   },
+   "hash": "81badb45f797",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:26",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_hurt_0.json",
+   "bytes": 296
+  },
+  {
+   "id": "stt/cuss_mundell_hurt_1#1",
+   "kind": "stt",
+   "name": "cuss_mundell_hurt_1",
+   "params": {
+    "file": "cuss_mundell_hurt_1.mp3",
+    "bytes": 63990
+   },
+   "hash": "bf8db6cdd603",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:27",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_hurt_1.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/cuss_mundell_low_0#1",
+   "kind": "stt",
+   "name": "cuss_mundell_low_0",
+   "params": {
+    "file": "cuss_mundell_low_0.mp3",
+    "bytes": 57094
+   },
+   "hash": "2abfb38205d0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:27",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_low_0.json",
+   "bytes": 423
+  },
+  {
+   "id": "stt/cuss_mundell_low_1#1",
+   "kind": "stt",
+   "name": "cuss_mundell_low_1",
+   "params": {
+    "file": "cuss_mundell_low_1.mp3",
+    "bytes": 63990
+   },
+   "hash": "dd0b36bfa5ea",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:27",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_low_1.json",
+   "bytes": 422
+  },
+  {
+   "id": "stt/cuss_mundell_empty_0#1",
+   "kind": "stt",
+   "name": "cuss_mundell_empty_0",
+   "params": {
+    "file": "cuss_mundell_empty_0.mp3",
+    "bytes": 53959
+   },
+   "hash": "d23febc9cc13",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:27",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_empty_0.json",
+   "bytes": 226
+  },
+  {
+   "id": "stt/cuss_mundell_empty_1#1",
+   "kind": "stt",
+   "name": "cuss_mundell_empty_1",
+   "params": {
+    "file": "cuss_mundell_empty_1.mp3",
+    "bytes": 48317
+   },
+   "hash": "112a9222c533",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:27",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_empty_1.json",
+   "bytes": 355
+  },
+  {
+   "id": "stt/cuss_mundell_drunk_0#1",
+   "kind": "stt",
+   "name": "cuss_mundell_drunk_0",
+   "params": {
+    "file": "cuss_mundell_drunk_0.mp3",
+    "bytes": 58348
+   },
+   "hash": "128eb8b8b9a4",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:28",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_drunk_0.json",
+   "bytes": 356
+  },
+  {
+   "id": "stt/cuss_mundell_drunk_1#1",
+   "kind": "stt",
+   "name": "cuss_mundell_drunk_1",
+   "params": {
+    "file": "cuss_mundell_drunk_1.mp3",
+    "bytes": 66498
+   },
+   "hash": "8be72d3a2bb8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:28",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_drunk_1.json",
+   "bytes": 363
+  },
+  {
+   "id": "stt/cuss_mundell_secret_0#1",
+   "kind": "stt",
+   "name": "cuss_mundell_secret_0",
+   "params": {
+    "file": "cuss_mundell_secret_0.mp3",
+    "bytes": 41421
+   },
+   "hash": "d698eabefcc2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:28",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_secret_0.json",
+   "bytes": 226
+  },
+  {
+   "id": "stt/cuss_mundell_secret_1#1",
+   "kind": "stt",
+   "name": "cuss_mundell_secret_1",
+   "params": {
+    "file": "cuss_mundell_secret_1.mp3",
+    "bytes": 55213
+   },
+   "hash": "23760b455984",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:28",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_secret_1.json",
+   "bytes": 305
+  },
+  {
+   "id": "stt/cuss_mundell_pickup_weapon_0#1",
+   "kind": "stt",
+   "name": "cuss_mundell_pickup_weapon_0",
+   "params": {
+    "file": "cuss_mundell_pickup_weapon_0.mp3",
+    "bytes": 41421
+   },
+   "hash": "d579999ff9b9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:28",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_pickup_weapon_0.json",
+   "bytes": 220
+  },
+  {
+   "id": "stt/cuss_mundell_pickup_weapon_1#1",
+   "kind": "stt",
+   "name": "cuss_mundell_pickup_weapon_1",
+   "params": {
+    "file": "cuss_mundell_pickup_weapon_1.mp3",
+    "bytes": 69633
+   },
+   "hash": "254e9c262ca7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:29",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_pickup_weapon_1.json",
+   "bytes": 430
+  },
+  {
+   "id": "stt/cuss_hick_kill_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_kill_0",
+   "params": {
+    "file": "cuss_hick_kill_0.mp3",
+    "bytes": 41421
+   },
+   "hash": "553b5f8df2ef",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:29",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_kill_0.json",
+   "bytes": 362
+  },
+  {
+   "id": "stt/cuss_hick_kill_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_kill_1",
+   "params": {
+    "file": "cuss_hick_kill_1.mp3",
+    "bytes": 45182
+   },
+   "hash": "bc0f0b0c1f4b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:29",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_kill_1.json",
+   "bytes": 364
+  },
+  {
+   "id": "stt/cuss_hick_plant_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_plant_0",
+   "params": {
+    "file": "cuss_hick_plant_0.mp3",
+    "bytes": 48317
+   },
+   "hash": "5eecdace1395",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:29",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_plant_0.json",
+   "bytes": 358
+  },
+  {
+   "id": "stt/cuss_hick_plant_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_plant_1",
+   "params": {
+    "file": "cuss_hick_plant_1.mp3",
+    "bytes": 43928
+   },
+   "hash": "d39ad6013d27",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:30",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_plant_1.json",
+   "bytes": 429
+  },
+  {
+   "id": "stt/cuss_hick_win_0#1",
+   "kind": "stt",
+   "name": "cuss_hick_win_0",
+   "params": {
+    "file": "cuss_hick_win_0.mp3",
+    "bytes": 29509
+   },
+   "hash": "a8f4e8daf056",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:30",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_win_0.json",
+   "bytes": 229
+  },
+  {
+   "id": "stt/cuss_hick_win_1#1",
+   "kind": "stt",
+   "name": "cuss_hick_win_1",
+   "params": {
+    "file": "cuss_hick_win_1.mp3",
+    "bytes": 31390
+   },
+   "hash": "ae34d1802669",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:30",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_win_1.json",
+   "bytes": 234
+  },
+  {
+   "id": "stt/cuss_deputy_kill_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_kill_0",
+   "params": {
+    "file": "cuss_deputy_kill_0.mp3",
+    "bytes": 47063
+   },
+   "hash": "ae9eb6ab4d3d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:30",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_kill_0.json",
+   "bytes": 302
+  },
+  {
+   "id": "stt/cuss_deputy_kill_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_kill_1",
+   "params": {
+    "file": "cuss_deputy_kill_1.mp3",
+    "bytes": 40794
+   },
+   "hash": "c7f9bc11db6e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:30",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_kill_1.json",
+   "bytes": 301
+  },
+  {
+   "id": "stt/cuss_deputy_defuse_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_defuse_0",
+   "params": {
+    "file": "cuss_deputy_defuse_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "de8dbf02bed5",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:30",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_defuse_0.json",
+   "bytes": 297
+  },
+  {
+   "id": "stt/cuss_deputy_defuse_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_defuse_1",
+   "params": {
+    "file": "cuss_deputy_defuse_1.mp3",
+    "bytes": 40794
+   },
+   "hash": "f821019329b0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:31",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_defuse_1.json",
+   "bytes": 291
+  },
+  {
+   "id": "stt/cuss_deputy_win_0#1",
+   "kind": "stt",
+   "name": "cuss_deputy_win_0",
+   "params": {
+    "file": "cuss_deputy_win_0.mp3",
+    "bytes": 27001
+   },
+   "hash": "d69f3c1d787b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:31",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_win_0.json",
+   "bytes": 289
+  },
+  {
+   "id": "stt/cuss_deputy_win_1#1",
+   "kind": "stt",
+   "name": "cuss_deputy_win_1",
+   "params": {
+    "file": "cuss_deputy_win_1.mp3",
+    "bytes": 47063
+   },
+   "hash": "df85c9b0ea93",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T19:59:31",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_win_1.json",
+   "bytes": 300
+  },
+  {
+   "id": "tts/cuss_deputy_kill_0#2",
+   "kind": "tts",
+   "name": "cuss_deputy_kill_0",
+   "params": {
+    "text": "Suspect down, dumbass.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f3c4f48ee1ff",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-13T20:05:30",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_kill_0.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/cuss_grey_cover_0#2",
+   "kind": "tts",
+   "name": "cuss_grey_cover_0",
+   "params": {
+    "text": "Shields up, dammit!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "428292a1f860",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-13T20:05:34",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_cover_0.mp3",
+   "bytes": 33897
+  },
+  {
+   "id": "tts/cuss_grey_hurt_bad_0#2",
+   "kind": "tts",
+   "name": "cuss_grey_hurt_bad_0",
+   "params": {
+    "text": "Hull breach, dammit!",
+    "voice_id": "jpg4PVS8DA8UHcqqE8kq",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2b2b01b3672f",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-13T20:05:34",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_grey_hurt_bad_0.mp3",
+   "bytes": 26374
+  },
+  {
+   "id": "tts/cuss_coot_cover_1#2",
+   "kind": "tts",
+   "name": "cuss_coot_cover_1",
+   "params": {
+    "text": "Duck, dammit!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "88198c008816",
+   "reserved": 35,
+   "status": "settled",
+   "started": "2026-11-13T20:05:34",
+   "actual": 13,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_cover_1.mp3",
+   "bytes": 27001
+  },
+  {
+   "id": "tts/cuss_hick_kill_0#2",
+   "kind": "tts",
+   "name": "cuss_hick_kill_0",
+   "params": {
+    "text": "Dirt nap for you, dumbass!",
+    "voice_id": "C4DubgctdO20yg477kAN",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "28a41d9bebd1",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-13T20:05:36",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_hick_kill_0.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/cuss_mundell_drunk_0#2",
+   "kind": "tts",
+   "name": "cuss_mundell_drunk_0",
+   "params": {
+    "text": "Who moved the damn barn?",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "659878705b27",
+   "reserved": 48,
+   "status": "settled",
+   "started": "2026-11-13T20:05:36",
+   "actual": 24,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_drunk_0.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/cuss_mundell_streak_1#2",
+   "kind": "tts",
+   "name": "cuss_mundell_streak_1",
+   "params": {
+    "text": "Line up, ya sumbitches!",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "338ceea3a732",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-13T20:05:36",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_mundell_streak_1.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "stt/cuss_coot_cover_1#2",
+   "kind": "stt",
+   "name": "cuss_coot_cover_1",
+   "params": {
+    "file": "cuss_coot_cover_1.mp3",
+    "bytes": 27001
+   },
+   "hash": "c4cc55ef1e3c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:06:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_cover_1.json",
+   "bytes": 220
+  },
+  {
+   "id": "stt/cuss_deputy_kill_0#2",
+   "kind": "stt",
+   "name": "cuss_deputy_kill_0",
+   "params": {
+    "file": "cuss_deputy_kill_0.mp3",
+    "bytes": 43928
+   },
+   "hash": "60394ebfdd54",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:06:52",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_kill_0.json",
+   "bytes": 365
+  },
+  {
+   "id": "stt/cuss_grey_cover_0#2",
+   "kind": "stt",
+   "name": "cuss_grey_cover_0",
+   "params": {
+    "file": "cuss_grey_cover_0.mp3",
+    "bytes": 33897
+   },
+   "hash": "a24f50d04a19",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:06:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_cover_0.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/cuss_grey_hurt_bad_0#2",
+   "kind": "stt",
+   "name": "cuss_grey_hurt_bad_0",
+   "params": {
+    "file": "cuss_grey_hurt_bad_0.mp3",
+    "bytes": 26374
+   },
+   "hash": "7a480601ca2a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:06:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_grey_hurt_bad_0.json",
+   "bytes": 296
+  },
+  {
+   "id": "stt/cuss_hick_kill_0#2",
+   "kind": "stt",
+   "name": "cuss_hick_kill_0",
+   "params": {
+    "file": "cuss_hick_kill_0.mp3",
+    "bytes": 56467
+   },
+   "hash": "ec9611e99f6e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:06:55",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_hick_kill_0.json",
+   "bytes": 481
+  },
+  {
+   "id": "stt/cuss_mundell_drunk_0#2",
+   "kind": "stt",
+   "name": "cuss_mundell_drunk_0",
+   "params": {
+    "file": "cuss_mundell_drunk_0.mp3",
+    "bytes": 55213
+   },
+   "hash": "46d67c358f68",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:06:55",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_drunk_0.json",
+   "bytes": 358
+  },
+  {
+   "id": "stt/cuss_mundell_streak_1#2",
+   "kind": "stt",
+   "name": "cuss_mundell_streak_1",
+   "params": {
+    "file": "cuss_mundell_streak_1.mp3",
+    "bytes": 51452
+   },
+   "hash": "780c62057eda",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:06:56",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_mundell_streak_1.json",
+   "bytes": 301
+  },
+  {
+   "id": "tts/cuss_deputy_kill_0#3",
+   "kind": "tts",
+   "name": "cuss_deputy_kill_0",
+   "params": {
+    "text": "That's one down, dumbass.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f7743c43b93d",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-13T20:07:14",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_deputy_kill_0.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "tts/cuss_coot_cover_1#3",
+   "kind": "tts",
+   "name": "cuss_coot_cover_1",
+   "params": {
+    "text": "Hit the dirt, dammit!",
+    "voice_id": "uVPm1kovFPX5yudBSJwZ",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b238479d6a07",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-13T20:07:17",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_coot_cover_1.mp3",
+   "bytes": 38286
+  },
+  {
+   "id": "reconcile@2026-11-13T20:08:19",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -10468,
+   "actual": -13786,
    "basis": "account",
-   "balance_after": 68561
+   "balance_after": 70206
+  },
+  {
+   "id": "stt/cuss_coot_cover_1#3",
+   "kind": "stt",
+   "name": "cuss_coot_cover_1",
+   "params": {
+    "file": "cuss_coot_cover_1.mp3",
+    "bytes": 38286
+   },
+   "hash": "48a812deb19b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:08:21",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_coot_cover_1.json",
+   "bytes": 354
+  },
+  {
+   "id": "stt/cuss_deputy_kill_0#3",
+   "kind": "stt",
+   "name": "cuss_deputy_kill_0",
+   "params": {
+    "file": "cuss_deputy_kill_0.mp3",
+    "bytes": 42674
+   },
+   "hash": "f2017506ea8a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-13T20:08:21",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_deputy_kill_0.json",
+   "bytes": 303
   }
  ],
  "anchor": {
@@ -19092,7 +24401,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-13T08:48:36",
-  "account_drop": 63838
+  "when": "2026-11-13T20:08:19",
+  "account_drop": 65483
  }
 }

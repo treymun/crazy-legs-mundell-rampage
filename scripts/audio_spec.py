@@ -974,21 +974,31 @@ CUSS_MUNDELL = _CUSS["mundell"]
 CUSS_TACTICAL = _CUSS["tactical"]
 
 
-def _cuss(text, who):
+# How a cuss line's transcript writes what was said, where it hears the
+# county's way of saying it sideways (the words are there).
+CUSS_HEARD = {
+    "cuss_coot_brawl_0": "Watch where you're shootin', dumbass!",
+    "cuss_hick_hurt_bad_1": "Son of a bitch, that's smart!",
+    "cuss_grey_help_1": "Sharp! Move your ass!",
+    "cuss_mundell_drunk_0": "Who moved the damn barns?",
+}
+
+
+def _cuss(name, text, who):
     words = re.findall(r"\*([^*]+)\*", text)
     plain = text.replace("*", "")
-    say = plain.replace("hooman", "human") if who == "grey" else plain
+    say = CUSS_HEARD.get(name, plain)
     return V(plain, who, bleep=words, **({"heard": say} if say != plain else {}))
 
 
-add("voice", **{f"cuss_{who}_{moment}_{n}": _cuss(text, who)
+add("voice", **{f"cuss_{who}_{moment}_{n}": _cuss(f"cuss_{who}_{moment}_{n}", text, who)
                 for who, moments in CUSS.items()
                 for moment, lines in moments.items()
                 for n, text in enumerate(lines)})
-add("voice", **{f"cuss_mundell_{moment}_{n}": _cuss(text, "mundell")
+add("voice", **{f"cuss_mundell_{moment}_{n}": _cuss(f"cuss_mundell_{moment}_{n}", text, "mundell")
                 for moment, lines in CUSS_MUNDELL.items()
                 for n, text in enumerate(lines)})
-add("voice", **{f"cuss_{who}_{moment}_{n}": _cuss(text, who)
+add("voice", **{f"cuss_{who}_{moment}_{n}": _cuss(f"cuss_{who}_{moment}_{n}", text, who)
                 for who, moments in CUSS_TACTICAL.items()
                 for moment, lines in moments.items()
                 for n, text in enumerate(lines)})

@@ -1,0 +1,35 @@
+{
+ "text": "Spread out and find that bastard",
+ "words": [
+  {
+   "text": "Spread",
+   "start": 0.14,
+   "end": 0.38
+  },
+  {
+   "text": "out",
+   "start": 0.5,
+   "end": 0.68
+  },
+  {
+   "text": "and",
+   "start": 0.72,
+   "end": 0.8
+  },
+  {
+   "text": "find",
+   "start": 0.98,
+   "end": 1.28
+  },
+  {
+   "text": "that",
+   "start": 1.32,
+   "end": 1.44
+  },
+  {
+   "text": "bastard",
+   "start": 1.68,
+   "end": 2.2
+  }
+ ]
+}

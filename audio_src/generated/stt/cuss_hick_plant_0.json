@@ -1,0 +1,30 @@
+{
+ "text": "Ah, bombs down. Haul ass",
+ "words": [
+  {
+   "text": "Ah,",
+   "start": 0.12,
+   "end": 0.2
+  },
+  {
+   "text": "bombs",
+   "start": 0.32,
+   "end": 0.68
+  },
+  {
+   "text": "down.",
+   "start": 0.72,
+   "end": 1.06
+  },
+  {
+   "text": "Haul",
+   "start": 1.14,
+   "end": 1.38
+  },
+  {
+   "text": "ass",
+   "start": 1.48,
+   "end": 1.84
+  }
+ ]
+}

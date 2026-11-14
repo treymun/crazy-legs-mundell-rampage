@@ -325,6 +325,40 @@ def speaker(x: np.ndarray, kind: str) -> np.ndarray:
     return band(x, box["lo"], box["hi"])
 
 
+# The county's spellings in the captions and what a transcript writes for them;
+# both sides are put in these words before they are compared (canon).
+DIALECT = {
+    "ya": "you", "yer": "your", "git": "get", "outta": "out of", "yella": "yellow", "whup": "whoop",
+    "looky": "lookie", "ol'": "old", "round": "around", "aw": "oh", "ah": "oh", "ow": "oh",
+    "drunker'n": "drunker than", "chickenshit": "chicken shit", "dammit": "damn it",
+    "sumbitch": "son of a bitch", "sumbitches": "sons of bitches", "hooman": "human",
+    "fuses": "fuse is", "'em": "them",
+}
+
+
+def canon(text: str) -> list[str]:
+    """`text` as plain words with the county's spellings put the transcript's way."""
+    out = []
+    for raw in text.lower().split():
+        word = "".join(ch for ch in raw if ch.isalnum() or ch == "'").strip("'") if raw != "'em" else raw
+        if raw.rstrip(".,!?;:").endswith("in'"):
+            word = raw.rstrip(".,!?;:")[:-3] + "ing"
+        if not word:
+            continue
+        for part in DIALECT.get(word, DIALECT.get(raw.strip(".,!?;:"), word)).split():
+            out.append(part.replace("'", ""))
+    return out
+
+
+def _heard_words(heard: dict) -> list[tuple[str, float, float]]:
+    """The transcript's words in canon, each with its source word's times."""
+    out = []
+    for w in heard["words"]:
+        for part in canon(w["text"]):
+            out.append((part, float(w["start"]), float(w["end"])))
+    return out
+
+
 def spoken(name: str, caption: str) -> tuple[float, float] | str:
     """Where the caption's words sit in the recording, from its transcript.
 
@@ -337,9 +371,8 @@ def spoken(name: str, caption: str) -> tuple[float, float] | str:
     if not path.is_file():
         return "no transcript (run audio_produce.py --transcribe)"
     heard = json.loads(path.read_text(encoding="utf-8"))
-    plain = lambda text: "".join(ch for ch in text.lower() if ch.isalpha() or ch == "'")
-    want = [plain(word) for word in caption.split()]
-    words = [(plain(w["text"]), w["start"], w["end"]) for w in heard["words"]]
+    want = canon(caption)
+    words = _heard_words(heard)
     for i in range(len(words) - len(want) + 1):
         if [w[0] for w in words[i: i + len(want)]] == want:
             return words[i][1], words[i + len(want) - 1][2]
@@ -356,17 +389,20 @@ def bleep_times(name: str, words: list[str], within: tuple[float, float]) -> lis
     path = GEN / "stt" / f"{name}.json"
     if not path.is_file() or not words:
         return []
-    heard = json.loads(path.read_text(encoding="utf-8"))
-    plain = lambda text: "".join(ch for ch in text.lower() if ch.isalpha() or ch == "'")
-    wanted = [plain(w) for w in words]
+    heard = _heard_words(json.loads(path.read_text(encoding="utf-8")))
     out = []
-    for w in heard["words"]:
-        said = plain(w["text"])
-        if within[0] - .01 <= w["start"] <= within[1] + .01 and any(
-                said == want or said.startswith(want) or want.startswith(said) and len(said) > 2
-                for want in wanted):
-            out.append((float(w["start"]), float(w["end"])))
-    return out
+    for word in words:
+        want = canon(word)
+        for i in range(len(heard) - len(want) + 1):
+            run = heard[i: i + len(want)]
+            said = [w[0] for w in run]
+            # "hell'd", "damn's": the word with a contraction on the end.
+            close = said[:-1] == want[:-1] and said[-1].startswith(want[-1]) and len(said[-1]) - len(want[-1]) <= 2
+            if (said == want or close) and within[0] - .01 <= run[0][1] <= within[1] + .01:
+                span = (run[0][1], run[-1][2])
+                if span not in out:
+                    out.append(span)
+    return sorted(out)
 
 
 def cover_sound(n: int, kind: str) -> np.ndarray:
@@ -396,9 +432,16 @@ def bleeped(x: np.ndarray, spans: list[tuple[int, int]], kind: str) -> np.ndarra
     """`x` with every span covered by `kind`, as loud as the words it covers."""
     out = x.copy()
     whole = float(np.sqrt(np.mean(x ** 2)) + 1e-9)
+    tail = int(.14 * RATE)
+    if spans and max(e for _s, e in spans) + int(.025 * RATE) >= len(x):
+        # The line ends on the cuss word: room for the cover to ring out.
+        out = np.concatenate([out, np.zeros(tail)])
+        x = np.concatenate([x, np.zeros(tail)])
     for s, e in spans:
         s = max(0, s - int(.012 * RATE))
         e = min(len(x), e + int(.025 * RATE))
+        if e >= len(x) - tail // 2:
+            e = len(x) - int(.01 * RATE)
         if e - s < int(.05 * RATE):
             e = min(len(x), s + int(.05 * RATE))
         part = x[s:e]
@@ -410,6 +453,12 @@ def bleeped(x: np.ndarray, spans: list[tuple[int, int]], kind: str) -> np.ndarra
         if fade > 0:
             ramp[:fade] = np.linspace(0, 1, fade)
             ramp[-fade:] = np.linspace(1, 0, fade)
+        if e >= len(x) - tail:
+            # Ringing out: the cover dies away instead of stopping dead.
+            dies = min(e - s, int(.06 * RATE))
+            ramp[-dies:] = np.linspace(1, 0, dies) ** 2
+            out[s:e] = cover * ramp
+            continue
         out[s:e] = part * (1 - ramp) + cover * ramp
     peak = float(np.max(np.abs(out)) + 1e-9)
     return out * min(1.0, .97 / peak)

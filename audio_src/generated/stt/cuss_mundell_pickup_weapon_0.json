@@ -1,0 +1,20 @@
+{
+ "text": "Oh, hell yes",
+ "words": [
+  {
+   "text": "Oh,",
+   "start": 0.1,
+   "end": 0.4
+  },
+  {
+   "text": "hell",
+   "start": 0.58,
+   "end": 0.9
+  },
+  {
+   "text": "yes",
+   "start": 1.02,
+   "end": 1.52
+  }
+ ]
+}

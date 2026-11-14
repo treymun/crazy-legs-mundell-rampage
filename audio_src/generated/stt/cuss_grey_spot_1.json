@@ -1,0 +1,30 @@
+{
+ "text": "There is the hooman bastard!",
+ "words": [
+  {
+   "text": "There",
+   "start": 0.08,
+   "end": 0.28
+  },
+  {
+   "text": "is",
+   "start": 0.34,
+   "end": 0.48
+  },
+  {
+   "text": "the",
+   "start": 0.52,
+   "end": 0.66
+  },
+  {
+   "text": "hooman",
+   "start": 0.7,
+   "end": 1.12
+  },
+  {
+   "text": "bastard!",
+   "start": 1.24,
+   "end": 2.0
+  }
+ ]
+}

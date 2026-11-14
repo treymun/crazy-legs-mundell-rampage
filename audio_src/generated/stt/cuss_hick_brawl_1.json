@@ -1,0 +1,25 @@
+{
+ "text": "Watch it, you jackass!",
+ "words": [
+  {
+   "text": "Watch",
+   "start": 0.12,
+   "end": 0.38
+  },
+  {
+   "text": "it,",
+   "start": 0.42,
+   "end": 0.48
+  },
+  {
+   "text": "you",
+   "start": 0.58,
+   "end": 0.64
+  },
+  {
+   "text": "jackass!",
+   "start": 0.78,
+   "end": 1.5
+  }
+ ]
+}

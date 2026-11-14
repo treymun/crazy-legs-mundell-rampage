@@ -1,0 +1,20 @@
+{
+ "text": "God damn it",
+ "words": [
+  {
+   "text": "God",
+   "start": 0.04,
+   "end": 0.36
+  },
+  {
+   "text": "damn",
+   "start": 0.5,
+   "end": 0.76
+  },
+  {
+   "text": "it",
+   "start": 0.82,
+   "end": 0.94
+  }
+ ]
+}

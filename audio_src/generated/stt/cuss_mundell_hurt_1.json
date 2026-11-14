@@ -1,0 +1,25 @@
+{
+ "text": "That hurt like hell!",
+ "words": [
+  {
+   "text": "That",
+   "start": 0.08,
+   "end": 0.5
+  },
+  {
+   "text": "hurt",
+   "start": 0.58,
+   "end": 1.04
+  },
+  {
+   "text": "like",
+   "start": 1.12,
+   "end": 1.52
+  },
+  {
+   "text": "hell!",
+   "start": 1.58,
+   "end": 2.08
+  }
+ ]
+}

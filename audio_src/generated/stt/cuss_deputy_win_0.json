@@ -1,0 +1,25 @@
+{
+ "text": "Book 'em, damn it!",
+ "words": [
+  {
+   "text": "Book",
+   "start": 0.04,
+   "end": 0.28
+  },
+  {
+   "text": "'em,",
+   "start": 0.3,
+   "end": 0.42
+  },
+  {
+   "text": "damn",
+   "start": 0.52,
+   "end": 0.8
+  },
+  {
+   "text": "it!",
+   "start": 0.86,
+   "end": 0.92
+  }
+ ]
+}

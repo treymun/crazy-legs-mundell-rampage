@@ -1,0 +1,40 @@
+{
+ "text": "Come out, jackass. The probe is ready",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.04,
+   "end": 0.2
+  },
+  {
+   "text": "out,",
+   "start": 0.3,
+   "end": 0.46
+  },
+  {
+   "text": "jackass.",
+   "start": 0.58,
+   "end": 1.16
+  },
+  {
+   "text": "The",
+   "start": 1.28,
+   "end": 1.38
+  },
+  {
+   "text": "probe",
+   "start": 1.42,
+   "end": 1.7
+  },
+  {
+   "text": "is",
+   "start": 1.76,
+   "end": 1.88
+  },
+  {
+   "text": "ready",
+   "start": 1.94,
+   "end": 2.3
+  }
+ ]
+}

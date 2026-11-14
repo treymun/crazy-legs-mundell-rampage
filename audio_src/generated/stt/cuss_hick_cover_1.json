@@ -1,0 +1,30 @@
+{
+ "text": "Keep your damn head down",
+ "words": [
+  {
+   "text": "Keep",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "your",
+   "start": 0.34,
+   "end": 0.42
+  },
+  {
+   "text": "damn",
+   "start": 0.5,
+   "end": 0.78
+  },
+  {
+   "text": "head",
+   "start": 0.84,
+   "end": 1.1
+  },
+  {
+   "text": "down",
+   "start": 1.16,
+   "end": 1.6
+  }
+ ]
+}

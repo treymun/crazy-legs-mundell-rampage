@@ -1,0 +1,30 @@
+{
+ "text": "That's what you get, sumbitch",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.1,
+   "end": 0.4
+  },
+  {
+   "text": "what",
+   "start": 0.44,
+   "end": 0.58
+  },
+  {
+   "text": "you",
+   "start": 0.64,
+   "end": 0.72
+  },
+  {
+   "text": "get,",
+   "start": 0.8,
+   "end": 1.0
+  },
+  {
+   "text": "sumbitch",
+   "start": 1.08,
+   "end": 1.7
+  }
+ ]
+}

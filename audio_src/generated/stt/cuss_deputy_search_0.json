@@ -1,0 +1,35 @@
+{
+ "text": "Come on out, jackass. You're surrounded",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.04,
+   "end": 0.22
+  },
+  {
+   "text": "on",
+   "start": 0.3,
+   "end": 0.5
+  },
+  {
+   "text": "out,",
+   "start": 0.58,
+   "end": 0.74
+  },
+  {
+   "text": "jackass.",
+   "start": 0.94,
+   "end": 1.56
+  },
+  {
+   "text": "You're",
+   "start": 1.64,
+   "end": 1.78
+  },
+  {
+   "text": "surrounded",
+   "start": 1.84,
+   "end": 2.38
+  }
+ ]
+}

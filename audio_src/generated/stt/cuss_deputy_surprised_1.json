@@ -1,0 +1,25 @@
+{
+ "text": "What in the hell?",
+ "words": [
+  {
+   "text": "What",
+   "start": 0.08,
+   "end": 0.2
+  },
+  {
+   "text": "in",
+   "start": 0.26,
+   "end": 0.36
+  },
+  {
+   "text": "the",
+   "start": 0.4,
+   "end": 0.54
+  },
+  {
+   "text": "hell?",
+   "start": 0.64,
+   "end": 1.02
+  }
+ ]
+}

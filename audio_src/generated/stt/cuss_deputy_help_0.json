@@ -1,0 +1,35 @@
+{
+ "text": "Get your ass over here, deputy",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.06,
+   "end": 0.2
+  },
+  {
+   "text": "your",
+   "start": 0.3,
+   "end": 0.54
+  },
+  {
+   "text": "ass",
+   "start": 0.64,
+   "end": 0.88
+  },
+  {
+   "text": "over",
+   "start": 0.98,
+   "end": 1.18
+  },
+  {
+   "text": "here,",
+   "start": 1.24,
+   "end": 1.4
+  },
+  {
+   "text": "deputy",
+   "start": 1.56,
+   "end": 1.92
+  }
+ ]
+}

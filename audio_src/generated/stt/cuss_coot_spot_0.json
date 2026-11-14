@@ -1,0 +1,35 @@
+{
+ "text": "Get off my land, you sumbitch",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.06,
+   "end": 0.22
+  },
+  {
+   "text": "off",
+   "start": 0.32,
+   "end": 0.48
+  },
+  {
+   "text": "my",
+   "start": 0.6,
+   "end": 0.84
+  },
+  {
+   "text": "land,",
+   "start": 0.96,
+   "end": 1.26
+  },
+  {
+   "text": "you",
+   "start": 1.34,
+   "end": 1.42
+  },
+  {
+   "text": "sumbitch",
+   "start": 1.62,
+   "end": 2.3
+  }
+ ]
+}

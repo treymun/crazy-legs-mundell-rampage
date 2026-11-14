@@ -1,0 +1,35 @@
+{
+ "text": "Come on out, you yellow jackass",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "on",
+   "start": 0.38,
+   "end": 0.58
+  },
+  {
+   "text": "out,",
+   "start": 0.68,
+   "end": 0.82
+  },
+  {
+   "text": "you",
+   "start": 0.94,
+   "end": 1.04
+  },
+  {
+   "text": "yellow",
+   "start": 1.12,
+   "end": 1.42
+  },
+  {
+   "text": "jackass",
+   "start": 1.56,
+   "end": 2.26
+  }
+ ]
+}

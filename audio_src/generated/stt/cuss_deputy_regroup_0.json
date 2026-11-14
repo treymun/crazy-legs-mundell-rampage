@@ -1,0 +1,35 @@
+{
+ "text": "Back to the cruiser, damn it",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "to",
+   "start": 0.34,
+   "end": 0.42
+  },
+  {
+   "text": "the",
+   "start": 0.46,
+   "end": 0.52
+  },
+  {
+   "text": "cruiser,",
+   "start": 0.6,
+   "end": 0.98
+  },
+  {
+   "text": "damn",
+   "start": 1.08,
+   "end": 1.32
+  },
+  {
+   "text": "it",
+   "start": 1.36,
+   "end": 1.46
+  }
+ ]
+}

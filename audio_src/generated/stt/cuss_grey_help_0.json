@@ -1,0 +1,25 @@
+{
+ "text": "Send reinforcements, damn it!",
+ "words": [
+  {
+   "text": "Send",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "reinforcements,",
+   "start": 0.36,
+   "end": 1.16
+  },
+  {
+   "text": "damn",
+   "start": 1.26,
+   "end": 1.44
+  },
+  {
+   "text": "it!",
+   "start": 1.52,
+   "end": 1.7
+  }
+ ]
+}

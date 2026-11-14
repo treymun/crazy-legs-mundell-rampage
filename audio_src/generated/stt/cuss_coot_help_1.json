@@ -1,0 +1,30 @@
+{
+ "text": "Ma, bring the damn shotgun",
+ "words": [
+  {
+   "text": "Ma,",
+   "start": 0.08,
+   "end": 0.32
+  },
+  {
+   "text": "bring",
+   "start": 0.54,
+   "end": 0.8
+  },
+  {
+   "text": "the",
+   "start": 0.86,
+   "end": 0.94
+  },
+  {
+   "text": "damn",
+   "start": 1.06,
+   "end": 1.32
+  },
+  {
+   "text": "shotgun",
+   "start": 1.44,
+   "end": 2.14
+  }
+ ]
+}

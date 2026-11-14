@@ -1,0 +1,40 @@
+{
+ "text": "Yeah, where the hell did he go?",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.06,
+   "end": 0.22
+  },
+  {
+   "text": "where",
+   "start": 0.34,
+   "end": 0.48
+  },
+  {
+   "text": "the",
+   "start": 0.54,
+   "end": 0.64
+  },
+  {
+   "text": "hell",
+   "start": 0.68,
+   "end": 0.84
+  },
+  {
+   "text": "did",
+   "start": 0.92,
+   "end": 1.02
+  },
+  {
+   "text": "he",
+   "start": 1.04,
+   "end": 1.12
+  },
+  {
+   "text": "go?",
+   "start": 1.22,
+   "end": 1.58
+  }
+ ]
+}
