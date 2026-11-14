@@ -1,4 +1,28 @@
-﻿# 2.0.0-dev.8 changes
+# 2.0.0-dev.40 changes
+
+## Online
+- **COUNTY SERVERS**: two always-open lobbies on the county's own server, listed live in the game (mode, map, players, lobby or match, ping). Pick one and press ENTER: no host, no join code, no router setup.
+- Nobody hosts an always-open lobby: the first one in runs it (mode, map, rules, start, kick), the next in line when they leave; bots fill the teams; after a match everyone is back in the lobby on their own; an empty lobby goes back to its own settings.
+- Each lobby switches between SEARCH AND DESTROY, HOSTAGE RESCUE and TAG TEAM 2V2 (the map and team size follow).
+- Online play is lighter on the host: snapshots now come from the game's change tracker (about a sixth of the work), so a full 5v5 takes 15-20% of a small server core.
+
+## Rules and chatter
+- **RULES** for 5v5 and 2v2 (online and against bots): ANY GUNS, SHOTGUNS ONLY, PISTOL PARTY, SNIPER DUEL, ECO WAR, BIG MONEY. The bots buy by them too.
+- **CHATTER** setting (CUSSIN', CLEAN, OFF): the county's hands cuss you out in their own voices, the 5v5 bots crow over kills, plants and wins, and Mundell talks: every one of his wisecracks is voiced now, plus lines for boss fights, stations, keys, headshots and chapter starts. CLEAN puts a duck call or a horn over the cussing. A lobby can hold everyone to CLEAN or OFF.
+
+## Menus
+- MULTIPLAYER on the title: PLAY ONLINE, PLAY VS BOTS, HOST A GAME, JOIN WITH A CODE.
+- Every multiplayer screen works by touch and mouse (Android and the browser included), with BACK buttons and the phone's keyboard for names and codes. A setting changes with one click; its < > step either way.
+- The 5v5 store is one big panel (guns and gear side by side) you buy from with a click; the gun never fires while it is open. On a phone a BUY button opens it.
+- Easier-to-read text on the menus.
+
+## Levels and the engine
+- The level engine has walkable upper floors (rooms over rooms, passages underneath), sloped ramps, stairs, thin and angled walls with openings cut to size, rails and low cover; shots, sight, grenades, bots and both renderers agree on them. Old saves load (save version 8).
+- Remastered: Hickston's feed barn has a real hay loft; the fair's derby bleachers are stepped rows; a plank footbridge crosses the sawmill's log pond; the quarry's benches are joined by sloped haul ramps; the bayou's preacher's shack stands high on stilts up a gangway; the Mothership's tractor bay has a grating ramp. A chapter whose map changed starts over from a save made in it (guns and health kept).
+- The firing range: all 30 guns racked, all eight bosses in the corral, every hand in the bullpen, a deer stand, and a bowling lane with real pin physics and ten-frame scoring.
+- A new demonstration map, Mundell Feed & Seed, and map authoring tools for AI agents (`MAP_AUTHORING.md`).
+
+# 2.0.0-dev.8 changes
 
 ## Browser build
 - The opening street is now a safe start: nobody opens fire while the player is still standing at the level entrance with no enemy roused. Stepping out (or firing) starts the ambush as before, so a new browser player can read the controls instead of dying to the road sentry within the first half minute.
