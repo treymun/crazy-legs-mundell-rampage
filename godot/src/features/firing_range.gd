@@ -36,6 +36,20 @@ const GUN_NOTES := [
 	"LOBBED, AND IT GOES UP BIG. TRY THE POWDER PIT.",
 	"{dmg} OF BEEF AND A BLAST. DON'T ASK WHERE THE COWS COME FROM. TRY THE POWDER PIT.",
 	"A HOSE OF MILK, {dmg} A SQUIRT. SOAKED FOLKS SLOW DOWN AND SLIP. TRY THE SOAK TANK.",
+	"THE OUTLAWS' BOLT-ACTION: {dmg} A ROUND. RIGHT CLICK SCOPES IN. THE RIFLE RANGE.",
+	"BELT-FED, {dmg} A ROUND. HOLD IT DOWN AND MOW. TRY THE BULLPEN.",
+	"THE DEPUTIES' SIDEARM: {dmg} A SHOT, TRUE OUT TO {range} YDS. TIN CAN ALLEY.",
+	"A HEAVY .357: {dmg} A SHOT, SLOW AND SURE. TIN CAN ALLEY.",
+	"THE OUTLAWS' .44: {dmg} A SHOT AND A KICK LIKE A MULE. TIN CAN ALLEY.",
+	"A PUMP GUN, PELLETS OF {pellet}. NONE PAST {range} YDS. THE PELLET PATCH.",
+	"A DRUM OF .45, {dmg} A ROUND. HOSE THE BULLPEN.",
+	"A TIN SUBGUN, {dmg} A ROUND, CHEAP AND QUICK. TRY THE BULLPEN.",
+	"AN AUTOMATIC RIFLE: {dmg} A ROUND OUT TO {range} YDS. THE RIFLE RANGE.",
+	"SEMI-AUTO WITH A SCOPE: {dmg} A ROUND. RIGHT CLICK SCOPES IN. THE RIFLE RANGE.",
+	"A JAR OF LIGHTNING: IT BLINDS WHOEVER'S LOOKING AT IT. TRY THE BULLPEN.",
+	"SMOKE: NOBODY SEES THROUGH IT, THE HANDS NEITHER. TRY THE BULLPEN.",
+	"BURSTS ON WHAT IT HITS AND THE GROUND BURNS. TRY THE POWDER PIT.",
+	"IT SOUNDS LIKE GUNFIRE: THE HANDS GO LOOK. TRY THE BULLPEN.",
 ]
 ## What the hands it watches are up to, worst first: [field test, words].
 const DOINGS := {
@@ -84,6 +98,9 @@ var cans_down := {}
 var say_next := 0.0
 ## The PA's "range is hot" has been said this visit.
 var range_hot := false
+## The next tough guy and oddball their levers turn out.
+var tough_next := 0
+var variant_next := 0
 
 
 func id() -> String:
@@ -334,11 +351,19 @@ func _take(i: int) -> void:
 
 
 ## Can this kind be drawn here? A browser build fetches a chapter's own
-## critters after it starts.
+## critters after it starts; a variant or tough guy wears its base kind's.
 func _ready_kind(kind: String) -> bool:
+	var kinds := [kind]
+	var def: Dictionary = Enemy.DEFS.get(kind, {})
+	for key in ["art", "brain"]:
+		var base := String(def.get(key, ""))
+		if base != "":
+			kinds.append(base)
+			kinds.append(String(Enemy.DEFS.get(base, {}).get("brain", "")))
 	for level_id: String in Assets.CHAPTER_KINDS:
-		if kind in Assets.CHAPTER_KINDS[level_id] and not game.art.chapter_ready(level_id):
-			return false
+		for k: String in kinds:
+			if k in Assets.CHAPTER_KINDS[level_id] and not game.art.chapter_ready(level_id):
+				return false
 	return true
 
 
@@ -365,6 +390,12 @@ func _pen(kind: String) -> void:
 			_spawn(String(row[0]), door + Vector2(-.6 * int(row[1]), .4), "bullpen", bool(row[2]))
 		say("A SQUAD. WATCH THE HURT ONES RUN FOR THE LOAFERS.", 3.0)
 		return
+	if kind == "tough":
+		kind = String(L.TOUGH_KINDS[tough_next % L.TOUGH_KINDS.size()])
+		tough_next += 1
+	elif kind == "variant":
+		kind = String(L.VARIANT_KINDS[variant_next % L.VARIANT_KINDS.size()])
+		variant_next += 1
 	if not _ready_kind(kind):
 		say("THAT CRITTER'S STILL ON THE TRUCK. TRY AGAIN IN A MINUTE.", 2.5)
 		return
@@ -384,10 +415,13 @@ func _boss(kind: String) -> void:
 	if not _ready_kind(kind):
 		say("THAT ONE'S STILL ON THE TRUCK. TRY AGAIN IN A MINUTE.", 2.5)
 		return
-	var foe: Enemy = _spawn(kind, L.BOSS_DOOR, "corral", true)
+	# The Swamp King's airboat comes in on the pond; the rest by the gate.
+	var door := L.POND_DOOR if kind == "swamp_king" else L.BOSS_DOOR
+	var foe: Enemy = _spawn(kind, door, "corral", true)
 	if foe != null:
 		game.finale = foe
-		say(String(L.NAMES.get(kind, kind)) + " IS LOOSE IN THE CORRAL.", 2.4)
+		var where := " IS ON THE POND." if kind == "swamp_king" else " IS LOOSE IN THE CORRAL."
+		say(String(L.NAMES.get(kind, kind)) + where, 2.4)
 
 
 func _spawn(kind: String, at: Vector2, home: String, awake: bool) -> Enemy:
@@ -429,10 +463,21 @@ func _count(home: String) -> int:
 func _clear(home: String) -> void:
 	var keep_e: Array = []
 	var keep_id: Array = []
+	var zone: Array = L.STATIONS[home]["lane"] if L.STATIONS.has(home) else []
 	for i in game.enemies.size():
 		var foe: Enemy = game.enemies[i]
 		var w = watched.get(foe)
-		if w != null and String(w["station"]) == home:
+		# A boss's backup and Maw's younguns are nobody's: the corral's are its.
+		var stray := (
+			w == null
+			and home == "corral"
+			and not zone.is_empty()
+			and foe.x >= float(zone[0])
+			and foe.x < float(zone[2]) + 1.0
+			and foe.y >= float(zone[1])
+			and foe.y < float(zone[3]) + 1.0
+		)
+		if (w != null and String(w["station"]) == home) or stray:
 			watched.erase(foe)
 			if game.finale == foe:
 				game.finale = null

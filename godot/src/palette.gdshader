@@ -111,12 +111,17 @@ uniform sampler2D tiles_tex : filter_nearest, repeat_disable;
 uniform int sky_row = 1024;
 uniform int cells_row = 1140;
 // The plane table (plane()): row 0 floor heights nearest
-// first (height, first cap, cap count), row 1 roof heights, row 2 cap
-// rectangles, row 3 cap tiles, row 4 tints, and from row 5 each cell's light.
+// first (height, first cap, cap count), row 1 roof heights (the same), row 2
+// cap rectangles, row 3 cap tiles, row 4 tints, rows 5 and 6 each cap's two
+// cut lines (nx, ny, c: inside where nx x + ny y <= c), rows 7 to 11 the
+// sloped surfaces (plane, box, tile and tint, two cut lines; level format 2),
+// and from LIGHT_ROW each cell's light.
+const int LIGHT_ROW = 12;
 uniform ivec2 map_size = ivec2(1);
 uniform int floor_count = 0;
 uniform int roof_count = 0;
 uniform int tint_count = 1;
+uniform int slope_count = 0;
 // The camera, as the renderer used it.
 uniform vec3 eye = vec3(0.0);
 uniform vec2 fwd = vec2(1.0, 0.0);
@@ -464,7 +469,14 @@ vec3 water_over(vec3 colour, vec2 at, float t, float sy, int column, float deep,
 // (1e9 when there is none) and its lit colour, 0-255. With effects_on, `surf`
 // says how its relief slopes (x, y along the map, texel steps) and how glossy
 // it is (z: water, puddles, wet ground); `column` is the pixel's.
-float plane_at(vec2 dir, float sy, int column, out vec3 colour, out vec3 surf) {
+// Whether `at` is inside cap k's two cut lines (rows 5 and 6).
+bool cap_cut(int k, vec2 at) {
+	vec4 a = plane(ivec2(k, 5));
+	vec4 b = plane(ivec2(k, 6));
+	return a.x * at.x + a.y * at.y <= a.z && b.x * at.x + b.y * at.y <= b.z;
+}
+
+float flat_plane_at(vec2 dir, float sy, int column, out vec3 colour, out vec3 surf) {
 	colour = vec3(0.0);
 	surf = vec3(0.0);
 	bool overhead = sy < 0.0;
@@ -496,14 +508,14 @@ float plane_at(vec2 dir, float sy, int column, out vec3 colour, out vec3 surf) {
 			if (byte_of(here.r) == i) {
 				tile = byte_of(here.b);
 			}
-			int first = int(entry.g + 0.5);
-			int last = first + int(entry.b + 0.5);
-			for (int k = first; k < last; k++) {
-				vec4 box = plane(ivec2(k, 2));
-				if (at.x >= box.x && at.x <= box.z && at.y >= box.y && at.y <= box.w) {
-					tile = int(floor(plane(ivec2(k, 3)).r + 0.5));
-					break;
-				}
+		}
+		int first = int(entry.g + 0.5);
+		int last = first + int(entry.b + 0.5);
+		for (int k = first; k < last; k++) {
+			vec4 box = plane(ivec2(k, 2));
+			if (at.x >= box.x && at.x <= box.z && at.y >= box.y && at.y <= box.w && cap_cut(k, at)) {
+				tile = int(floor(plane(ivec2(k, 3)).r + 0.5));
+				break;
 			}
 		}
 		if (tile < 0 || tile >= 255) {
@@ -532,7 +544,7 @@ float plane_at(vec2 dir, float sy, int column, out vec3 colour, out vec3 surf) {
 		}
 		vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
 		vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
-		float raw = (plane(cell + ivec2(0, 5)).r * (overhead ? 0.77 : 0.94) + flash_light) / (1.0 + 0.102 * t);
+		float raw = (plane(cell + ivec2(0, LIGHT_ROW)).r * (overhead ? 0.77 : 0.94) + flash_light) / (1.0 + 0.102 * t);
 		float lit = max(float(min(int(max(raw, 0.19) * 32.0 + 0.5), 96)) / 32.0, glow_of(fetched));
 		if (effects_on && anim_count > 0) {
 			lit *= anim_light(tile);
@@ -570,6 +582,55 @@ float plane_at(vec2 dir, float sy, int column, out vec3 colour, out vec3 surf) {
 		return t;
 	}
 	return 1e9;
+}
+
+// The nearest floor or ceiling along this pixel's ray (flat_plane_at), or a
+// sloped surface nearer than it (level format 2: a ramp's top, a sloped
+// underside; drawn plain, without the weather's or the water's touches). The
+// ray's height falls by sy / focal per unit along it, so it meets the plane
+// z = z0 + gx (x - x0) + gy (y - y0) where
+//   t = (eye.z - plane at the eye) / (sy / focal + gx dir.x + gy dir.y).
+float plane_at(vec2 dir, float sy, int column, out vec3 colour, out vec3 surf) {
+	float t = flat_plane_at(dir, sy, column, colour, surf);
+	for (int i = 0; i < slope_count; i++) {
+		vec4 pl = plane(ivec2(i, 7));
+		vec4 box = plane(ivec2(i, 8));
+		float num = eye.z - (pl.x + pl.y * (eye.x - box.x) + pl.z * (eye.y - box.y));
+		float den = sy / focal + pl.y * dir.x + pl.z * dir.y;
+		if (num * pl.w <= 0.0 || den * pl.w <= 1e-6) {
+			continue;
+		}
+		float ts = num / den;
+		if (ts < 0.015 || ts > 80.0 || ts >= t) {
+			continue;
+		}
+		vec2 at = eye.xy + ts * dir;
+		if (at.x < box.x || at.x > box.z || at.y < box.y || at.y > box.w) {
+			continue;
+		}
+		vec4 a = plane(ivec2(i, 10));
+		vec4 b = plane(ivec2(i, 11));
+		if (a.x * at.x + a.y * at.y > a.z || b.x * at.x + b.y * at.y > b.z) {
+			continue;
+		}
+		ivec2 cell = ivec2(at);
+		if (cell.x < 0 || cell.y < 0 || cell.x >= map_size.x || cell.y >= map_size.y) {
+			continue;
+		}
+		vec4 info = plane(ivec2(i, 9));
+		int tile = int(floor(info.r + 0.5));
+		int pu = int(at.x * 128.0) & 127;
+		int pv = int(at.y * 128.0) & 127;
+		vec4 fetched = texelFetch(tiles_tex, ivec2((tile % 16) * 128 + pu, (tile / 16) * 128 + pv), 0);
+		vec3 texel = floor(fetched.rgb * 255.0 + 0.5);
+		float raw = (plane(cell + ivec2(0, LIGHT_ROW)).r * (pl.w > 0.0 ? 0.94 : 0.77) + flash_light) / (1.0 + 0.102 * ts);
+		float lit = max(float(min(int(max(raw, 0.19) * 32.0 + 0.5), 96)) / 32.0, glow_of(fetched));
+		vec3 tint = plane(ivec2(min(int(info.g + 0.5), tint_count - 1), 4)).rgb;
+		colour = clamp(floor(texel * lit * tint), 0.0, 255.0);
+		surf = vec3(0.0);
+		t = ts;
+	}
+	return t;
 }
 
 // Byte i of the stream in `colours` (from stream_row).

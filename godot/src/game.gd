@@ -24,6 +24,10 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 		art.cue(cue)
 	# Player one (src/players.gd): the local and acting player.
 	Players.join(self, float(level.spawn[0]), float(level.spawn[1]), float(level.spawn[2]))
+	if level.geo != null and level.spawn.size() > 3:
+		# Format 2: the spawn's floor (a deck over the ground, say).
+		player.floor_z = level.floor_under(player.x, player.y, float(level.spawn[3]) + .05)
+		player.eye = .95 + player.floor_z
 
 	for i in level.enemies.size():
 		var spec: Dictionary = level.enemies[i]
@@ -33,6 +37,8 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 		)
 		foe.uid = take_uid()
 		foe.flank = .42 if i % 2 else -.42
+		if level.geo != null:
+			foe.floor_z = level.floor_under(foe.x, foe.y, float(spec.get("z", 0.0)) + .05)
 		enemies.append(foe)
 	var held := Triggers.held_back(level)
 	for i in enemies.size():
@@ -106,7 +112,8 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 
 	for spec in level.pickups:
 		var name := String(spec[0])
-		add_pickup(String(ALIAS.get(name, name)), float(spec[1]), float(spec[2]))
+		var lift := float(spec[3]) if spec.size() > 3 else NAN
+		add_pickup(String(ALIAS.get(name, name)), float(spec[1]), float(spec[2]), lift)
 
 	for point in level.fuel_drums:
 		drums[Vector2(float(point[0]), float(point[1]))] = 18
@@ -223,7 +230,7 @@ func tick(dt: float, controls) -> void:
 		)
 	)
 	if players.size() == 1:
-		player.flow.update(player.x, player.y, clock)
+		player.flow.update(player.x, player.y, clock, world.stand(player))
 	else:
 		# Walked when first needed (focus()): an enemy after them, a trigger...
 		flow_walks.clear()
@@ -366,9 +373,9 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 		if p.air == 0.0:
 			p.vertical_speed = 0.0
 			landed = true
-	var ground: float = world.elevation(p.x, p.y)
+	var ground: float = world.stand(p)
 	var eye := (.68 if p.crouched else .95) + ground + p.air
-	var roof: float = world.roof[world.cell(p.x, p.y)]
+	var roof: float = world.roof_over(p.x, p.y, ground)
 	if roof != 0.0 and eye > roof - .22:
 		eye = roof - .22
 		p.vertical_speed = minf(0.0, p.vertical_speed)

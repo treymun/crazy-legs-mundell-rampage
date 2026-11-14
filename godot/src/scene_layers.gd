@@ -23,6 +23,8 @@ var _art_blank: Image
 var _atlas: Image
 var _sky_row := 0
 var _cells_row := 0
+## The plane table's rows before the light map (palette.gdshader LIGHT_ROW).
+const LIGHT_ROW := 12
 var _plane_table := PackedFloat32Array()
 var _plane_width := 0
 var _renderer: Renderer = null
@@ -148,6 +150,8 @@ func _load_level(renderer: Renderer) -> void:
 		cells[o + 3] = above if above >= 0 and above < 255 else 255
 		areas[o] = clampi(level.area[i], 0, tint_count - 1)
 		areas[o + 1] = 255 if level.roof[i] <= level.ground[i] + .01 else 0
+		if level.geo != null and level.geo.covered(i % lw + .5, i / lw + .5, level.ground[i]):
+			areas[o + 1] = 0
 		areas[o + 3] = 255
 	cells.append_array(areas)
 	var cell_bands := Image.create_from_data(lw, lh * 2, false, Image.FORMAT_RGBA8, cells)
@@ -155,12 +159,14 @@ func _load_level(renderer: Renderer) -> void:
 	var cap_total := 0
 	for h in floors:
 		cap_total += (level.caps.get(h, []) as Array).size()
+	for h in roofs:
+		cap_total += (level.roof_caps.get(h, []) as Array).size()
 	var width := maxi(maxi(64, cap_total), maxi(maxi(floors.size(), roofs.size()), tint_count))
-	# The cells' light goes under the five table rows (_light), so the table is
+	# The cells' light goes under the table's rows (_light), so the table is
 	# at least as wide as the map.
-	width = maxi(width, lw)
+	width = maxi(maxi(width, lw), level.slopes.size())
 	var table := PackedFloat32Array()
-	table.resize(width * 5 * 4)
+	table.resize(width * LIGHT_ROW * 4)
 	table.fill(0.0)
 	var next_cap := 0
 	for i in floors.size():
@@ -168,16 +174,22 @@ func _load_level(renderer: Renderer) -> void:
 		table[i * 4] = float(floors[i])
 		table[i * 4 + 1] = next_cap
 		table[i * 4 + 2] = caps_here.size()
-		for cap: Array in caps_here:
-			var box := (width * 2 + next_cap) * 4
-			table[box] = float(cap[0])
-			table[box + 1] = float(cap[1])
-			table[box + 2] = float(cap[2])
-			table[box + 3] = float(cap[3])
-			table[(width * 3 + next_cap) * 4] = float(cap[4])
-			next_cap += 1
+		next_cap = _put_caps(table, width, caps_here, next_cap)
 	for i in roofs.size():
+		var over: Array = level.roof_caps.get(roofs[i], [])
 		table[(width + i) * 4] = float(roofs[i])
+		table[(width + i) * 4 + 1] = next_cap
+		table[(width + i) * 4 + 2] = over.size()
+		next_cap = _put_caps(table, width, over, next_cap)
+	for i in level.slopes.size():
+		# Format 2's sloped surfaces: plane, box, tile and tint, two cut lines.
+		var row: Array = level.slopes[i]
+		for k in 4:
+			table[(width * 7 + i) * 4 + k] = float(row[k])
+			table[(width * 8 + i) * 4 + k] = float(row[4 + k])
+		table[(width * 9 + i) * 4] = float(row[8])
+		table[(width * 9 + i) * 4 + 1] = float(row[10])
+		_put_cuts(table, width, 10, i, row, 11)
 	for i in tint_count:
 		var o := (width * 4 + i) * 4
 		table[o] = renderer.tints[i * 3]
@@ -207,6 +219,7 @@ func _load_level(renderer: Renderer) -> void:
 	_set_param("floor_count", floors.size())
 	_set_param("roof_count", roofs.size())
 	_set_param("tint_count", tint_count)
+	_set_param("slope_count", level.slopes.size())
 	_set_param("hub_runoff", renderer.tile_hub_runoff)
 	_set_param("hub_patch", renderer.tile_hub_patch)
 	_set_param("hub_wall", renderer.tile_hub_wall)
@@ -412,16 +425,47 @@ func _sprites(r: Renderer) -> void:
 	_set_param("sprite_count", r.gpu_spr_n if r.gpu_sprites else 0)
 
 
-## The level's light map, under the plane table's five rows.
+## The level's light map, under the plane table's rows (LIGHT_ROW).
 func _light(level: LevelData) -> void:
 	var lw := level.width
 	var lh := level.height
 	var floats := _plane_table.duplicate()
-	floats.resize(_plane_width * (5 + lh) * 4)
+	floats.resize(_plane_width * (LIGHT_ROW + lh) * 4)
 	for y in lh:
 		for x in lw:
-			floats[((5 + y) * _plane_width + x) * 4] = level.light[y * lw + x]
-	_put("planes", _plane_width, 5 + lh, Image.FORMAT_RGBAF, floats.to_byte_array())
+			floats[((LIGHT_ROW + y) * _plane_width + x) * 4] = level.light[y * lw + x]
+	_put("planes", _plane_width, LIGHT_ROW + lh, Image.FORMAT_RGBAF, floats.to_byte_array())
+
+
+## Caps into the plane table from `next` on: rectangle (row 2), tile (row 3),
+## cut lines (rows 5 and 6). Returns the next free place.
+static func _put_caps(table: PackedFloat32Array, width: int, caps: Array, next: int) -> int:
+	for cap: Array in caps:
+		var box := (width * 2 + next) * 4
+		table[box] = float(cap[0])
+		table[box + 1] = float(cap[1])
+		table[box + 2] = float(cap[2])
+		table[box + 3] = float(cap[3])
+		table[(width * 3 + next) * 4] = float(cap[4])
+		_put_cuts(table, width, 5, next, cap, 5)
+		next += 1
+	return next
+
+
+## Two cut lines of `row` (from `from`, triples) into table rows `at` and at + 1,
+## place i; a line not given never cuts (0 x + 0 y <= 1e9).
+static func _put_cuts(
+	table: PackedFloat32Array, width: int, at: int, i: int, row: Array, from: int
+) -> void:
+	for k in 2:
+		var o := (width * (at + k) + i) * 4
+		var c := from + k * 3
+		if c + 2 < row.size():
+			table[o] = float(row[c])
+			table[o + 1] = float(row[c + 1])
+			table[o + 2] = float(row[c + 2])
+		else:
+			table[o + 2] = 1e9
 
 
 ## One texel a tile (as wide as the atlas): r how much it is water (effects.cfg

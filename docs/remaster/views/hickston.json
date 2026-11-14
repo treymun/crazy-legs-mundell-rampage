@@ -1,0 +1,6 @@
+[
+  {"tag": "barn_floor_to_loft", "at": [53.5, 16.5, 0], "angle": -140, "pitch": 6},
+  {"tag": "loft_stairs", "at": [48.0, 17.5, 0], "angle": -95, "pitch": 8},
+  {"tag": "under_the_loft", "at": [47.5, 8.0, 0], "angle": -160, "pitch": 0},
+  {"tag": "from_the_loft", "at": [46.0, 8.6, 1.55], "angle": 40, "pitch": -14}
+]

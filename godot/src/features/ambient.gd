@@ -87,7 +87,7 @@ func _flock(p) -> void:
 		crow.crow = true
 		crow.x = start.x + dice.randf_range(-1.2, 1.2)
 		crow.y = start.y + dice.randf_range(-1.2, 1.2)
-		crow.z = game.world.elevation(p.x, p.y) + dice.randf_range(3.2, 4.6)
+		crow.z = game.world.stand(p) + dice.randf_range(3.2, 4.6)
 		var speed := dice.randf_range(2.6, 3.4)
 		crow.vx = cos(heading) * speed
 		crow.vy = sin(heading) * speed

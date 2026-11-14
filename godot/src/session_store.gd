@@ -12,7 +12,7 @@ extends RefCounted
 ## step to save_upgrade.gd that turns a save of the version before into this
 ## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
 ## keeps real saves of each version (tools/saves/) and checks they still do.
-const VERSION := 7
+const VERSION := 8
 const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"
@@ -90,7 +90,8 @@ const PLAYER_FIELDS := [
 	"jump_held",
 	"vx",
 	"vy",
-	"crouched"
+	"crouched",
+	"floor_z"
 ]
 const ENEMY_FIELDS := [
 	"kind",
@@ -109,7 +110,8 @@ const ENEMY_FIELDS := [
 	"dormant",
 	"windup",
 	"attacks",
-	"target"
+	"target",
+	"floor_z"
 ]
 const AI_FIELDS := [
 	"route_slot", "patrol_pause", "recovery", "chase_turn", "see_time", "player_seen", "last_stride"
@@ -405,11 +407,14 @@ static func snapshot(game: Game) -> Dictionary:
 
 
 ## The pickups as a save keeps them: [name, x, y] (the stable id each has in
-## play is handed out again when they load).
+## play is handed out again when they load), and the floor one lies on when it
+## is a deck (level format 2).
 static func _pickup_rows(game: Game) -> Array:
 	var rows: Array = []
 	for entry: Array in game.pickups:
 		rows.append([entry[0], entry[1], entry[2]])
+		if entry.size() > 4:
+			rows[rows.size() - 1].append(entry[4])
 	return rows
 
 
@@ -1234,11 +1239,13 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 		return _fail_at(929)
 	game.pickups = []
 	for row in pickups:
-		if not (row is Array) or row.size() != 3:
+		if not (row is Array) or (row.size() != 3 and row.size() != 4):
 			return _fail_at(933)
 		if not _valid_position(w, row[1], row[2]):
 			return _fail_at(935)
-		game.add_pickup(String(row[0]), float(row[1]), float(row[2]))
+		game.add_pickup(
+			String(row[0]), float(row[1]), float(row[2]), float(row[3]) if row.size() > 3 else NAN
+		)
 
 	var visited = doc.get("visited", [])
 	if not (visited is Array):

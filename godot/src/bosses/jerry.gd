@@ -107,7 +107,7 @@ func act(e: Enemy, game, name: String) -> void:
 		var f = arena(game)
 		var p = game.player
 		if f != null:
-			var eye: float = game.world.elevation(e.x, e.y) + .5
+			var eye: float = game.world.stand(e) + .5
 			f.lob(
 				e.x + cos(e.angle) * .6,
 				e.y + sin(e.angle) * .6,
@@ -142,11 +142,11 @@ func _charge(e: Enemy, game, dt: float) -> void:
 		f.knock_tyres(e.x, e.y, 1.3)
 	var pieces = game.features.get("breakables")
 	if pieces != null:
-		var i: int = pieces.touch(e.x, e.y, game.world.elevation(e.x, e.y) + .6, e.radius)
+		var i: int = pieces.touch(e.x, e.y, game.world.stand(e) + .6, e.radius)
 		if i >= 0:
 			pieces.strike(i, 200.0, cos(e.angle), sin(e.angle))
 	if int(e.pose * 8.0) % 2 == 0:
-		game.burst(e.x, e.y, game.world.elevation(e.x, e.y) + .1, "dust", 2, .8)
+		game.burst(e.x, e.y, game.world.stand(e) + .1, "dust", 2, .8)
 	var p = game.player
 	if Vector2(p.x - e.x, p.y - e.y).length() < e.radius + .42 and p.air < .5:
 		game.damage(BLITZ_HIT, [e.x, e.y], "SACKED")
@@ -202,7 +202,7 @@ func telegraph(e: Enemy, game) -> Array:
 		e.y - sin(line) * .4,
 		"fx_puff_%d" % (int(game.clock * 10.0) % 4),
 		.5,
-		game.world.elevation(e.x, e.y)
+		game.world.stand(e)
 	)
 	dig.translucent = true
 	out.append(dig)
@@ -214,7 +214,7 @@ func looks(e: Enemy, game) -> Array:
 	if game.clock >= float(e.get_meta("bell_until", -1.0)):
 		return out
 	# Stars round his helmet.
-	var top: float = game.world.elevation(e.x, e.y) + e.height * e.variant + .05
+	var top: float = game.world.stand(e) + e.height * e.variant + .05
 	for k in 3:
 		var a: float = game.clock * 6.0 + k * TAU / 3.0
 		var star := Renderer.Sprite.new(

@@ -1,0 +1,2 @@
+feedstore: 0 error(s), 0 warning(s)
+MAP-RESULT {"command":"validate","errors":0,"exit":0,"issues":[],"ok":true,"warnings":0}

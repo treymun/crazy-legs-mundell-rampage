@@ -226,7 +226,7 @@ static func build(make_game: Callable, kind: String) -> Game:
 		p.y = spot.y
 	p.angle = atan2(boss.y - p.y, boss.x - p.x)
 	p.pitch = 0.0
-	p.eye = g.world.elevation(p.x, p.y) + .95
+	p.eye = g.world.stand(p) + .95
 	g.district = int(g.world.area[g.world.cell(p.x, p.y)])
 	boss.dormant = false
 	boss.hp = boss.max_hp

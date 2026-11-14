@@ -64,7 +64,7 @@ static func _setup(main, gun: int, from: Vector2, angle: float, at: Vector2) -> 
 	p.y = from.y
 	p.angle = angle
 	p.pitch = 0.0
-	p.eye = .95 + game.world.elevation(p.x, p.y)
+	p.eye = .95 + game.world.stand(p)
 	game.armory.owned[gun] = true
 	game.armory.active = gun
 	return [game, hand]

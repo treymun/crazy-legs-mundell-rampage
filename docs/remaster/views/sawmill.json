@@ -1,0 +1,5 @@
+[
+  {"tag": "pond_bridge_from_west", "at": [27.0, 38.2, 0], "angle": 0, "pitch": 8},
+  {"tag": "on_the_bridge", "at": [44.0, 38.25, 1.4], "angle": 0, "pitch": -6},
+  {"tag": "under_the_bridge", "at": [50.0, 43.5, 0], "angle": -90, "pitch": 12}
+]

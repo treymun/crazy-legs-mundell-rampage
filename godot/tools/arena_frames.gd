@@ -91,7 +91,7 @@ func _arena(kind: String) -> void:
 		return
 	var p := g.player
 	var door := Vector2(p.x, p.y)
-	var top: float = g.world.elevation(e.x, e.y) + e.height * .7
+	var top: float = g.world.stand(e) + e.height * .7
 	# Walking in: from the door, the boss across the arena, not yet awake.
 	e.alerted = false
 	e.cooldown = 99.0

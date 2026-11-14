@@ -79,5 +79,5 @@ static func _wave_in(e: Enemy, game) -> bool:
 
 ## A huffer down, however it happened: the bottle on his back goes.
 static func huffer_down(e: Enemy, game) -> void:
-	var z: float = game.world.elevation(e.x, e.y) + .7
+	var z: float = game.world.stand(e) + .7
 	game.explode(GameState.Shot.new(e.x, e.y, z, 0.0, 0.0, 0.0, "nitro", 0.0, true, 0))

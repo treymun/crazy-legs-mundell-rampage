@@ -1,0 +1,3 @@
+~ partition.tile: "plaster" -> "brick"
+wrote res://maps/feedstore.map.json (the old one kept as 2026-11-13_203616_source_00.json)
+MAP-RESULT {"backup":"C:/Users/treym/Downloads/CrazyLegs-Geometry-Remaster/godot/maps/.history/feedstore/2026-11-13_203616_source_00.json","changes":{"changed":{"partition":{"tile":["plaster","brick"]}}},"command":"material","exit":0,"ok":true,"summary":["~ partition.tile: \"plaster\" -> \"brick\"","wrote res://maps/feedstore.map.json (the old one kept as 2026-11-13_203616_source_00.json)"]}

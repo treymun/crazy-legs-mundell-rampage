@@ -146,11 +146,14 @@ static func _door(main, check: Callable) -> void:
 	g.ticked.emit(STEP)
 	g.enemies.clear()
 	var p := g.player
+	# Open floor north of the armory's store wall (the spawn faces it).
+	p.y = 66.5
+	p.angle = -PI / 2.0
 	var at := Vector2(p.x + cos(p.angle) * 5.0, p.y + sin(p.angle) * 5.0)
 	var deputy := Enemy.new("shield_deputy", at.x, at.y, p.angle + PI)
 	g.enemies.append(deputy)
 	p.pitch = 0.0
-	p.eye = .95 + g.world.elevation(p.x, p.y)
+	p.eye = .95 + g.world.stand(p)
 	var keeper = g.features["variants"]
 	var full := deputy.hp
 	g.hitscan(p.angle, 0.0, 20.0, 20.0, 0.0)

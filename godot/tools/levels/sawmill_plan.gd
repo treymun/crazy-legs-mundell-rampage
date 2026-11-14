@@ -10,6 +10,7 @@
 extends RefCounted
 
 const Builder := preload("res://tools/levels/level_builder.gd")
+const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
 const H := 86
 
@@ -38,7 +39,7 @@ func make() -> Builder:
 		"ending": '"CLOCK OUT. LEAVE THE BOOTS OUTSIDE."',
 		"score": "mill_score",
 		"ambience": "mill",
-		"layout": 4,
+		"layout": 5,
 		"sky": "mill_sky",
 		"control_name": "SLUICE FEED AND DRY-KILN BELT",
 		"objective_side_tasks": ["brake"],
@@ -171,6 +172,28 @@ func log_pond() -> void:
 		var y := 33.5 + k * 4.0
 		b.fixture(61.43, y - .06, 61.57, y + .06, 1.0, "mill_log", "mill_log", -.24)
 		b.fixture(66.43, y - .06, 66.57, y + .06, 1.0, "mill_log", "mill_log", -.24)
+	# The log bridge (level format 2): a plank footbridge on log trestles over
+	# the pond from the west yard to the main boardwalk, stairs at each end,
+	# railed; wade under it, or shoot down from it.
+	var deck := {"tile": "porch", "under": "joists", "edge": "mill_log", "thick": .2, "area": pond}
+	deck["rail"] = {"tile": "stockyard"}
+	Geo.bridge(b, "pond_bridge", [36.0, 37.5, 62.0, 39.0], 1.4, deck)
+	var steps := {"tile": "porch", "edge": "mill_log", "area": pond}
+	Geo.stairs(b, "pond_bridge_west", [30.4, 37.5, 36.0, 39.0], 0.0, 1.4, "e", steps)
+	Geo.stairs(b, "pond_bridge_east", [62.0, 37.5, 65.2, 39.0], 0.0, 1.4, "w", steps)
+	for x in [42.0, 49.0, 56.0]:
+		# Trestle legs down to the water.
+		for y in [37.62, 38.88]:
+			var at := Vector2(x, y)
+			Geo.wall(
+				b,
+				"trestle_%d_%d" % [int(x), int(y * 10)],
+				at,
+				at + Vector2(.01, 0),
+				-.24,
+				1.2,
+				{"thick": .2, "tile": "mill_log"}
+			)
 	# Logs afloat, pilings, the boom chain.
 	for c in [
 		[42.0, 36.0],

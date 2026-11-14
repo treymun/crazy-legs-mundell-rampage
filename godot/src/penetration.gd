@@ -123,7 +123,7 @@ static func behind(
 		if absf(dx * ay - dy * ax) >= enemy.radius + spread:
 			continue
 		var z: float = p.eye + d * slope
-		var feet: float = enemy.z + world.elevation(enemy.x, enemy.y)
+		var feet: float = enemy.z + world.stand(enemy)
 		if z <= feet - .10 or z >= feet + enemy.height + .10:
 			continue
 		if not world.visible(ex, ey, enemy.x, enemy.y, ez, z):

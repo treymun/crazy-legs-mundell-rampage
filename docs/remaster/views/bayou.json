@@ -1,0 +1,5 @@
+[
+  {"tag": "preacher_gangway", "at": [63.5, 62.0, 0], "angle": 50, "pitch": 6},
+  {"tag": "under_the_gangway", "at": [66.5, 68.5, -0.24], "angle": -80, "pitch": 14},
+  {"tag": "from_the_doorway", "at": [69.0, 65.1, 1.2], "angle": 180, "pitch": -10}
+]

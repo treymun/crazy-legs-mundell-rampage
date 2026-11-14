@@ -30,7 +30,7 @@ func phase_changed(e: Enemy, game, phase: int) -> void:
 func weak_spot(e: Enemy, game, hit: Vector3, _from: Vector2, how: String) -> float:
 	if how == "blast" or how == "energy":
 		return 1.0
-	var up: float = (hit.z - game.world.elevation(e.x, e.y)) / maxf(.5, e.height * e.variant)
+	var up: float = (hit.z - game.world.stand(e)) / maxf(.5, e.height * e.variant)
 	if up > .84:
 		return CURLERS
 	if e.boss_phase >= 3 and up > .38 and up < .62:
@@ -43,7 +43,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, _from: Vector2, how: String) -> flo
 func looks(e: Enemy, game) -> Array:
 	var out: Array = []
 	var p = game.player
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	var tall := e.height * e.variant
 	var toward := atan2(p.y - e.y, p.x - e.x)
 	var frame := int(game.clock * 10.0)
@@ -75,7 +75,7 @@ func looks(e: Enemy, game) -> Array:
 
 ## Her curlers pop off as she goes down.
 func dying(e: Enemy, game) -> void:
-	var top: float = game.world.elevation(e.x, e.y) + e.height * e.variant * .9
+	var top: float = game.world.stand(e) + e.height * e.variant * .9
 	for k in 3:
 		var a := k * TAU / 3.0
 		game.blasts.append(

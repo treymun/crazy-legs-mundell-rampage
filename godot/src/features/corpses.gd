@@ -182,7 +182,7 @@ func _push(e: Enemy, vx: float, vy: float, vz: float) -> Body:
 		body.feel = _feel
 		body.x = e.x
 		body.y = e.y
-		body.z = game.world.elevation(e.x, e.y) + e.toss
+		body.z = game.world.stand(e) + e.toss
 		moving.append(body)
 		if moving.size() > MOVING_MAX:
 			_settle(moving[0])
@@ -237,7 +237,7 @@ func _move(dt: float) -> void:
 		for _k in 2:
 			var vx := b.vx
 			var vy := b.vy
-			var air: bool = b.z > game.world.elevation(b.x, b.y) + .02
+			var air: bool = b.z > game.world.floor_under(b.x, b.y, b.z + .05) + .02
 			var hit := Tumble.step(game.world, b, b.feel, dt * .5)
 			if hit & Tumble.WALL and b.crash and breaks != null:
 				var run := Vector2(vx, vy).length()
@@ -264,7 +264,7 @@ func _move(dt: float) -> void:
 		e.x = b.x
 		e.y = b.y
 		# Its height over the ground: thrown, or lying on a counter it landed on.
-		e.toss = maxf(0.0, b.z - game.world.elevation(b.x, b.y))
+		e.toss = maxf(0.0, b.z - game.world.floor_under(b.x, b.y, b.z + .05))
 		if b.rest:
 			_settle(b)
 			still.append(b)

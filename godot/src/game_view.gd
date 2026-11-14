@@ -15,7 +15,7 @@ func reflection() -> Variant:
 	if p.motion > .15 and p.air == 0.0:
 		stride = int(round(sin(p.walk_phase)))
 	var height := 1.24 if p.crouched else 1.65
-	var feet: float = world.elevation(p.x, p.y) + p.air
+	var feet: float = world.stand(p) + p.air
 	var out := Renderer.Sprite.new(p.x, p.y, "player_%s_%d" % [heading, stride], height, feet)
 	out.flip = facing < 0.0 and direction < 4
 	return out
@@ -344,7 +344,7 @@ func sprites() -> Array:
 		var slot := pooled(0.0, 0.0, "", 1.0, 0.0)
 		var sprite = enemy.sprite(observer, relieved, clock, slot)
 		if sprite != null:
-			sprite.z += world.elevation(sprite.x, sprite.y)
+			sprite.z += world.floor_under(sprite.x, sprite.y, world.stand(enemy) + .3)
 			sprites.append(sprite)
 		else:
 			sprite_pool_n -= 1
@@ -369,7 +369,8 @@ func sprites() -> Array:
 				):
 					continue
 		var hover := .06 + sin(clock * 3.5 + x) * .035
-		sprites.append(pooled(x, y, "item_" + String(entry[0]), .33, world.elevation(x, y) + hover))
+		var lies: float = entry[4] if entry.size() > 4 else world.elevation(x, y)
+		sprites.append(pooled(x, y, "item_" + String(entry[0]), .33, lies + hover))
 	for shot: Shot in shots:
 		if (
 			shot.enemy

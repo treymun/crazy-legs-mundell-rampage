@@ -115,7 +115,7 @@ static func _shot(g: Game, e: Enemy, at: Vector2, up: float, aside := 0.0) -> fl
 	e.y = at.y
 	var p := g.player
 	var d := Vector2(e.x - p.x, e.y - p.y).length()
-	var z: float = g.world.elevation(e.x, e.y) + e.z + e.height * e.variant * up
+	var z: float = g.world.stand(e) + e.z + e.height * e.variant * up
 	var angle := atan2(e.y - p.y, e.x - p.x) + atan2(aside, d)
 	e.hp = 500.0
 	e.stun = 0.0
@@ -189,7 +189,7 @@ static func _zones(main, check: Callable) -> void:
 	g.clock += .5
 	var p := g.player
 	var d := Vector2(e.x - p.x, e.y - p.y).length()
-	var top: float = g.world.elevation(e.x, e.y) + e.height * e.variant * .9
+	var top: float = g.world.stand(e) + e.height * e.variant * .9
 	g.hitscan(atan2(e.y - p.y, e.x - p.x), (top - p.eye) / d, round, 20.0, 0.0)
 	check.call(not e.alive and reads.pops() == 1, "a head shot that kills pops")
 	# Buckshot: per pellet on the head a little more, the load stays a load.
@@ -209,14 +209,14 @@ static func _zones(main, check: Callable) -> void:
 	var hand := _only(g2, "billy")
 	_face_off(g2, hand, _open_spot(g2), 2.0)
 	var from := hand.x
-	g2.hit_point = Vector3(hand.x, hand.y, g2.world.elevation(hand.x, hand.y) + 1.0)
+	g2.hit_point = Vector3(hand.x, hand.y, g2.world.stand(hand) + 1.0)
 	g2.hit_from = Vector2(g2.player.x, g2.player.y)
 	hand.hurt(8.0, g2, false, false, null, "revolver")
 	var small := hand.x - from
 	hand.x = from
 	hand.hp = 500.0
 	g2.clock += 1.0
-	g2.hit_point = Vector3(hand.x, hand.y, g2.world.elevation(hand.x, hand.y) + 1.0)
+	g2.hit_point = Vector3(hand.x, hand.y, g2.world.stand(hand) + 1.0)
 	hand.hurt(64.0, g2, false, false, null, "rifle")
 	var big := hand.x - from
 	check.call(

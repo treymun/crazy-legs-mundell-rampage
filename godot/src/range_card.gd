@@ -111,10 +111,23 @@ static func readouts(f) -> Array:
 					out.append("LAST: " + t.gallery_last)
 			out.append("BEST THIS VISIT %d" % t.gallery_best)
 		"bowling":
-			out.append("PINS STANDING %d OF 10" % (t.pins.size() - t.pins_down()))
-			out.append("STRIKES %d  SPARES %d" % [t.strikes, t.spares])
-			if t.last_roll != "":
-				out.append([t.last_roll, GOOD])
+			var bowl = t.bowling
+			out.append(
+				(
+					"FRAME %d  BALL %d  SCORE %d"
+					% [mini(10, bowl.frame + 1), bowl.ball + 1, bowl.score()]
+				)
+			)
+			out.append("PINS STANDING %d OF 10" % bowl.standing())
+			if bowl.frame > 0 or bowl.ball > 0:
+				out.append("SHEET  " + bowl.sheet_text())
+			out.append(
+				"STRIKES %d  SPARES %d  BEST GAME %d" % [bowl.strikes, bowl.spares, bowl.best_game]
+			)
+			if bowl.last_roll != "":
+				out.append([bowl.last_roll, GOOD])
+			else:
+				out.append("TURN AS YOU LET GO TO HOOK IT")
 		"soak":
 			out.append_array(_critters(f, "soak", true))
 			out.append("SLIPS IN THE MILK %d" % f.slips)

@@ -82,7 +82,7 @@ func hitscan(
 		var dy := enemy.y - p.y
 		var d := dx * ax + dy * ay
 		var z := p.eye + d * slope
-		var feet: float = enemy.z + world.elevation(enemy.x, enemy.y)
+		var feet: float = enemy.z + world.stand(enemy)
 		if (
 			0.0 < d
 			and d < near
@@ -326,6 +326,10 @@ func _wall_distance(ax: float, ay: float, slope: float, max_range: float) -> flo
 		var roof_z: float = world.roof[cell]
 		if z < world.ground[cell] or (0.0 < roof_z and roof_z < z) or world.blocked(x, y, .024, z):
 			return (i - .7) * max_range / steps
+		if world.geo != null:
+			var back: float = (i - 1) * max_range / steps
+			if world.crosses(p.x + ax * back, p.y + ay * back, p.eye + back * slope, x, y, z):
+				return (i - .7) * max_range / steps
 	return max_range
 
 
@@ -350,7 +354,7 @@ func assisted_aim(angle: float, slope: float) -> Array:
 		var error := absf(fposmod(yaw - angle + PI, TAU) - PI)
 		if error > threshold:
 			continue
-		var target: float = world.elevation(e.x, e.y) + e.z + e.height * .58
+		var target: float = world.stand(e) + e.z + e.height * .58
 		var vertical := (target - p.eye) / distance
 		if absf(vertical - slope) > .19:
 			continue
@@ -386,7 +390,7 @@ func sights_on_enemy() -> bool:
 		var error := absf(fposmod(atan2(dy, dx) - angle + PI, TAU) - PI)
 		if error > maxf(.06, (e.radius + .05) / distance):
 			continue
-		var target: float = world.elevation(e.x, e.y) + e.z + e.height * .58
+		var target: float = world.stand(e) + e.z + e.height * .58
 		if absf((target - p.eye) / distance - slope) > .2:
 			continue
 		if world.visible(p.x, p.y, e.x, e.y, p.eye, target):
@@ -625,10 +629,19 @@ func move_shot(shot: Shot, dt: float) -> bool:
 			if pane != null:
 				shatter(pane, z)
 				wall = world.blocked(x, y, .045, z)
-		var roof: float = world.roof[int(y) * world.width + int(x)] if not wall else 0.0
-		var plane: bool = (
-			not wall and (z < world.elevation(x, y) + .045 or (0.0 < roof and roof <= z + .045))
-		)
+		var roof := 0.0
+		var low := 0.0
+		if world.geo == null:
+			roof = world.roof[int(y) * world.width + int(x)] if not wall else 0.0
+			low = world.elevation(x, y)
+		else:
+			# Format 2: the floor and the ceiling round where it was (a deck's top
+			# or underside is a floor or a ceiling to it, not a wall).
+			low = world.floor_under(x, y, shot.z)
+			roof = world.roof_over(x, y, shot.z)
+			if wall and (z < low + .045 or (0.0 < roof and roof <= z + .045)):
+				wall = false
+		var plane: bool = not wall and (z < low + .045 or (0.0 < roof and roof <= z + .045))
 		if wall or plane:
 			if tnt and (shot.bounces <= 0 or (plane and absf(shot.vz) < .77 and not wall)):
 				shot.vx = 0.0
@@ -764,7 +777,7 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 	for enemy: Enemy in enemies:
 		if not enemy.alive or enemy.brain == "bessie":
 			continue
-		var dz: float = z - enemy.z - world.elevation(enemy.x, enemy.y)
+		var dz: float = z - enemy.z - world.stand(enemy)
 		if (
 			-.07 < dz
 			and dz < enemy.height + .05
@@ -808,7 +821,7 @@ func _county_in_the_way(shot: Shot, x: float, y: float, z: float) -> Enemy:
 			continue
 		if absf(e.x - x) > .6 or absf(e.y - y) > .6:
 			continue
-		var feet: float = world.elevation(e.x, e.y) + e.z
+		var feet: float = world.stand(e) + e.z
 		if (
 			(e.x - x) * (e.x - x) + (e.y - y) * (e.y - y) < e.radius * e.radius
 			and feet < z
@@ -977,7 +990,7 @@ func ground_marks() -> Array:
 						Renderer.GroundMark.new(
 							enemy.x + cos(bearing) * length / 2.0,
 							enemy.y + sin(bearing) * length / 2.0,
-							world.elevation(enemy.x, enemy.y) + .003,
+							world.stand(enemy) + .003,
 							bearing,
 							length / 2.0,
 							.22,
@@ -1027,7 +1040,7 @@ func ground_marks() -> Array:
 			Renderer.GroundMark.new(
 				enemy.x,
 				enemy.y,
-				world.elevation(enemy.x, enemy.y) + .003,
+				world.stand(enemy) + .003,
 				enemy.angle,
 				radius * 1.24,
 				radius,

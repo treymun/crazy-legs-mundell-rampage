@@ -291,10 +291,10 @@ func _gibs() -> void:
 	var at := _spot(g, e.x, e.y, 2.6)
 	if at == Vector2.INF:
 		return
-	_stand(g, at.x, at.y, e.x, e.y, g.world.elevation(e.x, e.y) + .2)
+	_stand(g, at.x, at.y, e.x, e.y, g.world.stand(e) + .2)
 	_ticks(g, 20)
 	await _snap("gibs_0")
-	g.explode(Game.Shot.new(e.x, e.y, g.world.elevation(e.x, e.y) + .3, 0, 0, 0, "tnt"))
+	g.explode(Game.Shot.new(e.x, e.y, g.world.stand(e) + .3, 0, 0, 0, "tnt"))
 	await _row(g, "gibs_blast", [4, 6, 8, 12, 20, 40])
 
 
@@ -516,7 +516,7 @@ func _headshot() -> void:
 		return
 	e.hp = 20.0
 	e.angle = atan2(at.y - e.y, at.x - e.x)
-	var top: float = g.world.elevation(e.x, e.y) + e.height * e.variant * .9
+	var top: float = g.world.stand(e) + e.height * e.variant * .9
 	_stand(g, at.x, at.y, e.x, e.y, top)
 	_arm(g, Weapons.REVOLVER)
 	_ticks(g, 20)
@@ -589,16 +589,16 @@ func _cow_throw() -> void:
 	var e: Enemy = g.enemies[target]
 	e.cooldown = 99.0
 	e.hp = 40.0
-	_stand(g, at.x, at.y, e.x, e.y, g.world.elevation(e.x, e.y) + .7)
+	_stand(g, at.x, at.y, e.x, e.y, g.world.stand(e) + .7)
 	_arm(g, Weapons.COW)
 	_ticks(g, 20)
-	_stand(g, at.x, at.y, e.x, e.y, g.world.elevation(e.x, e.y) + .7)
+	_stand(g, at.x, at.y, e.x, e.y, g.world.stand(e) + .7)
 	_ticks(g, 1, true)
 	var waited := 0
 	while e.alive and waited < 90:
 		_ticks(g, 1)
 		waited += 1
-	_stand(g, at.x, at.y, e.x, e.y, g.world.elevation(e.x, e.y) + 1.2)
+	_stand(g, at.x, at.y, e.x, e.y, g.world.stand(e) + 1.2)
 	await _row(g, "cow_throw", [6, 8, 10, 12, 30])
 
 

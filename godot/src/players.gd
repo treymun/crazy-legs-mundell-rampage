@@ -43,7 +43,8 @@ const SIGHT := 14.0
 static func join(game, x: float, y: float, angle: float) -> Player:
 	var p := Player.new(x, y, angle)
 	p.slot = game.players.size()
-	p.eye += game.world.elevation(x, y)
+	p.floor_z = game.world.elevation(x, y)
+	p.eye += p.floor_z
 	p.armory = Weapons.Armory.new()
 	var first: Player = null if game.players.is_empty() else game.players[0]
 	for name: String in SHARED:
@@ -157,7 +158,7 @@ static func _nearest_seen(game, e: Enemy) -> Player:
 	near.sort_custom(
 		func(a: Array, b: Array) -> bool: return a[0] < b[0] or a[0] == b[0] and a[1] < b[1]
 	)
-	var eye: float = game.world.elevation(e.x, e.y) + e.z + minf(.92, e.height * .72)
+	var eye: float = game.world.stand(e) + e.z + minf(.92, e.height * .72)
 	for row: Array in near:
 		var p: Player = row[2]
 		if game.world.visible(e.x, e.y, p.x, p.y, eye, p.eye):

@@ -19,6 +19,7 @@
 extends RefCounted
 
 const Builder := preload("res://tools/levels/level_builder.gd")
+const Geo := preload("res://tools/levels/geo_kit.gd")
 const Cast := preload("res://tools/levels/bayou_cast.gd")
 const W := 128
 const H := 92
@@ -58,7 +59,7 @@ func make() -> Builder:
 		"ending": '"NO WAKE ZONE, MY FOOT."',
 		"score": "bayou_score",
 		"ambience": "bayou",
-		"layout": 2,
+		"layout": 3,
 		"sky": "bayou_sky",
 		"control_name": "BRIDGES: BOIL YARD GENERATOR, CANNERY BREAKER",
 		"extraction":
@@ -466,12 +467,28 @@ func stilt_row() -> void:
 	stand("outboard_stand", 53.5, 66.5, .4)
 	box(48.2, 66.4, 51.0, 67.2, .9, "wood", "counter_top")
 	b.prop("lamp", 51.5, 64.5)
-	# The preacher's shack, up high: the catwalk climbs to it a step at a time.
-	shack(68, 62, 75, 68, "stilt", .72, "bayou_shack", {"windows": 3, "lit": .8})
-	door(68, 65, true, "e", .72, "preacher-door")
-	walk(65, 65, 65, 65, "stilt", .24)
-	walk(66, 65, 66, 65, "stilt", .48)
-	walk(67, 65, 67, 65, "stilt", .72)
+	# The preacher's shack, up high on its stilts: a plank gangway climbs to
+	# it over the water from the spine (level format 2: a slope walked under
+	# at its high end).
+	var high := 1.2
+	shack(68, 62, 75, 68, "stilt", high, "bayou_shack", {"windows": 3, "lit": .8})
+	door(68, 65, true, "e", high, "preacher-door")
+	var plank := {"tile": "bayou_planks", "edge": "bayou_stilts", "under": "bayou_planks"}
+	plank["thick"] = .15
+	plank["area"] = d["stilt"]
+	Geo.ramp(b, "preacher_gangway", [65.0, 64.55, 68.0, 65.75], 0.0, high, "e", plank)
+	for x in [66.0, 67.2]:
+		# Stilts under it.
+		var at := Vector2(x, 65.15)
+		Geo.wall(
+			b,
+			"gangway_stilt_%d" % int(x * 10),
+			at,
+			at + Vector2(.01, 0),
+			-.3,
+			high * (x - 65.0) / 3.0 - .15,
+			{"thick": .14, "tile": "bayou_stilts"}
+		)
 	box(73.4, 63.2, 74.6, 64.6, .9, "wood", "counter_top")
 	b.prop("lamp", 71.5, 65.5)
 	# The outhouse at the end of its own pier, as it should be.

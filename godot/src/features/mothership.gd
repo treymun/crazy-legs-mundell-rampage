@@ -16,12 +16,16 @@
 ## round the player all the way to the escape outhouse.
 ##
 ## The level gives the pods' places (boss_decoys); the middle of the chamber and
-## its reach come from them. The ship's coloured lights come from the glowing
-## boards the plan put up (LIGHTS). Saved: whether she has fallen. Her phase
+## its reach come from them. On the firing range she is let out into the
+## corral by a lever: the fight runs there from the corral's own pods
+## (range_layout.gd MAW_PODS), without the ship to come apart after. The
+## ship's coloured lights come from the glowing boards the plan put up
+## (LIGHTS). Saved: whether she has fallen. Her phase
 ## follows her health; the crew she called are the posse feature's to keep.
 extends GameFeature
 
 const LEVEL := "mothership"
+const RANGE := preload("res://src/range_layout.gd")
 const BOSS := "maw"
 const TRACK := "boss_mothership"
 ## Her picks, phase by phase, taken in turn by her attack count.
@@ -120,6 +124,8 @@ var said := 0
 var music_check := 0.0
 ## Beam emitters' places and heights: each throws a column of light to the deck.
 var emitters: Array = []
+## On the firing range: Maw comes and goes by the corral's levers.
+var on_range := false
 
 
 func id() -> String:
@@ -127,12 +133,28 @@ func id() -> String:
 
 
 func attach() -> void:
+	if game.level != null and game.level.id == RANGE.ID:
+		on_range = true
+		pods = RANGE.MAW_PODS.duplicate()
+		_take_pods()
+		game.ticked.connect(_tick)
+		game.enemy_killed.connect(_killed)
+		return
 	if game.level.id != LEVEL:
 		return
 	for e: Enemy in game.wave:
 		if e.kind == BOSS:
 			maw = e
 	pods = game.world.boss_decoys.duplicate()
+	_take_pods()
+	_light_the_ship()
+	game.ticked.connect(_tick)
+	game.station_done.connect(_station)
+	game.enemy_killed.connect(_killed)
+
+
+## The middle of her chamber and her reach, from the pods round it.
+func _take_pods() -> void:
 	if not pods.is_empty():
 		var sum := Vector2.ZERO
 		for p: Vector2 in pods:
@@ -143,13 +165,31 @@ func attach() -> void:
 			reach = minf(reach, center.distance_to(p) - 1.2)
 	elif maw != null:
 		center = Vector2(maw.x, maw.y)
-	_light_the_ship()
-	game.ticked.connect(_tick)
-	game.station_done.connect(_station)
-	game.enemy_killed.connect(_killed)
+
+
+## The range: a Maw let out into the corral is the one fought; gone (cleared,
+## or down and her fall done), the fight forgets her.
+func _range_maw() -> void:
+	if maw != null and not maw in game.enemies:
+		maw = null
+	if maw == null:
+		for e: Enemy in game.enemies:
+			if e.kind == BOSS and e.alive:
+				maw = e
+				phase = 1
+				phase_at = -10.0
+				pending = ""
+				winding = false
+				rings.clear()
+				cracks.clear()
+				pins.clear()
+				fallen_at = -1.0
+				break
 
 
 func save() -> Dictionary:
+	if on_range:
+		return {}
 	return {"fallen": true} if fallen_at >= 0.0 else {}
 
 
@@ -221,10 +261,15 @@ func _station(station_id: String) -> void:
 
 
 func _tick(dt: float) -> void:
+	if on_range:
+		_range_maw()
 	if maw == null:
 		return
 	if fallen_at >= 0.0:
-		_coming_apart()
+		if on_range:
+			maw = null
+		else:
+			_coming_apart()
 		return
 	if not _fighting():
 		return
@@ -265,7 +310,7 @@ func _new_phase(to: int) -> void:
 	game.hitstop = maxf(game.hitstop, .15)
 	game.shake = minf(1.0, game.shake + .7)
 	game.blast_flash = maxf(game.blast_flash, .5)
-	var floor_z: float = game.world.elevation(maw.x, maw.y)
+	var floor_z: float = game.world.stand(maw)
 	game.burst(maw.x, maw.y, floor_z + maw.height * .6, "spark", 24, 2.6)
 	if to == 2:
 		game.message("MAW GLORB IS FIGHTIN' MAD! HER HOUSECOAT'S ON FIRE!", 3.0)
@@ -334,7 +379,7 @@ func maw_attack(enemy: Enemy, direction: float) -> void:
 			_call_crew()
 			game.sound_at(cue("call_warn"), maw.x, maw.y, 1.0)
 		"curlers":
-			var top: float = game.world.elevation(maw.x, maw.y) + maw.height * .9
+			var top: float = game.world.stand(maw) + maw.height * .9
 			game.burst(maw.x, maw.y, top, "plasma", 12, 2.2)
 			game.sound_at(cue("sweep"), maw.x, maw.y, .8)
 		_:
@@ -392,7 +437,7 @@ func _pins() -> void:
 func _sweep(direction: float) -> void:
 	var count: int = [5, 7, 9][phase - 1]
 	var spread := .95
-	var floor_z: float = game.world.elevation(maw.x, maw.y)
+	var floor_z: float = game.world.stand(maw)
 	var z := floor_z + maw.height * .62
 	var p = game.player
 	var gap := maxf(1.0, Vector2(p.x - maw.x, p.y - maw.y).length())
@@ -418,7 +463,7 @@ func _sweep(direction: float) -> void:
 func _stomp() -> void:
 	rings.append([maw.x, maw.y, game.clock, false])
 	game.shake = minf(1.0, game.shake + .6)
-	var floor_z: float = game.world.elevation(maw.x, maw.y)
+	var floor_z: float = game.world.stand(maw)
 	game.burst(maw.x, maw.y, floor_z + .1, "dust", 22, 3.0)
 	game.sound_at(cue("stomp"), maw.x, maw.y, 1.0)
 
@@ -591,7 +636,7 @@ func _coming_apart() -> void:
 		game.shake = minf(1.0, game.shake + .35)
 		game.sound_at(cue("quake"), p.x + 3.0, p.y - 2.0, .7)
 		var roof: float = game.world.roof[game.world.cell(p.x, p.y)]
-		var top: float = roof - .2 if roof > 0.0 else game.world.elevation(p.x, p.y) + 2.5
+		var top: float = roof - .2 if roof > 0.0 else game.world.stand(p) + 2.5
 		game.burst(p.x + .8, p.y + .6, top, "dust", 8, .8)
 		game.burst(p.x - .7, p.y + .4, top, "spark", 5, .9)
 
@@ -677,7 +722,7 @@ func _lanes(toward: float) -> Array:
 				Renderer.GroundMark.new(
 					mx,
 					my,
-					game.world.elevation(maw.x, maw.y) + .004,
+					game.world.stand(maw) + .004,
 					bearing,
 					(length - maw.radius) / 2.0,
 					.2,
@@ -694,7 +739,7 @@ func sprites() -> Array:
 	for e: Vector3 in emitters:
 		if game.in_view(e.x, e.y, 1.5):
 			var beam := Renderer.Sprite.new(
-				e.x, e.y, "fx_beam_column", e.z + .1, game.world.elevation(e.x, e.y)
+				e.x, e.y, "fx_beam_column", e.z + .1, game.world.stand(e)
 			)
 			beam.translucent = true
 			beam.glow = true
@@ -702,7 +747,7 @@ func sprites() -> Array:
 	var frame := int(game.clock * 10.0) % 4
 	# The housecoat burning, all through phase two.
 	if _fighting() and phase == 2:
-		var floor_z: float = game.world.elevation(maw.x, maw.y)
+		var floor_z: float = game.world.stand(maw)
 		for k in 7:
 			var a: float = k * 1.9 + game.clock * .6
 			var x := maw.x + cos(a) * maw.radius * .5

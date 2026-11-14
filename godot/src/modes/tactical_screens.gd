@@ -142,7 +142,7 @@ static func ink_for(st, p: Player) -> Color:
 static func player_sprite(game, q: Player, me: Player):
 	var st = Modes.feature(game)
 	var kind := "billy" if st == null or TacticalMode.side_of(st, q) == 0 else "yard_deputy"
-	var floor_z: float = game.world.elevation(q.x, q.y)
+	var floor_z: float = game.world.stand(q)
 	if q.health <= 0:
 		var down = game.pooled(q.x, q.y, kind + "_down", PLAYER_HEIGHT * .3, floor_z - .07)
 		down.body = true
@@ -461,7 +461,7 @@ static func _mate_tags(c: Canvas, game, st, me: Player) -> void:
 	var bomb = st.bomb if String(st.mode) == Modes.BOMB else {}
 	for entry: Array in mates:
 		var q: Player = entry[1]
-		var head: float = game.world.elevation(q.x, q.y) + q.air + 1.14
+		var head: float = game.world.stand(q) + q.air + 1.14
 		var at: Vector3 = game.to_canvas(q.x, q.y, head)
 		if at.z <= 0.0 or at.x < 6.0 or at.x > Renderer.WIDTH - 6.0 or at.y < 10.0:
 			continue

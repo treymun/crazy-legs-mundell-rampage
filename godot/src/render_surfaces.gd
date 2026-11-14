@@ -839,6 +839,8 @@ func _wall_band(band_a: int, band_b: int) -> void:
 func _plane_band(a: int, b: int) -> void:
 	_plane_layer(level.roof_boxes, true, 0, split, a, b)
 	_plane_layer(level.floor_boxes, false, split, vh, a, b)
+	if not level.slopes.is_empty():
+		_slope_layer(a, b)
 
 
 func _plane_layer(boxes: Array, overhead: bool, row0: int, row1: int, a: int, b: int) -> void:
@@ -926,7 +928,7 @@ func _plane_layer(boxes: Array, overhead: bool, row0: int, row1: int, a: int, b:
 				high = r
 		if high < low:
 			continue
-		var caps_here: Array = level.caps.get(h, [])
+		var caps_here: Array = (level.roof_caps if overhead else level.caps).get(h, [])
 		var flows: Array = []
 		for f in level.moving_floors.get(h, []):
 			flows.append([int(f[0]), (int(time * float(f[1]))) & 127])
@@ -992,14 +994,25 @@ func _plane_layer(boxes: Array, overhead: bool, row0: int, row1: int, a: int, b:
 					if overhead:
 						if roof_[ci] == h:
 							tile = ceil_tile_[ci]
-					else:
-						if ground_[ci] == h:
-							tile = floor_tile_[ci]
-						if has_caps:
-							for cap in caps_here:
-								if wx >= cap[0] and wx <= cap[2] and wy >= cap[1] and wy <= cap[3]:
-									tile = int(cap[4])
-									break
+					elif ground_[ci] == h:
+						tile = floor_tile_[ci]
+					if has_caps:
+						for cap: Array in caps_here:
+							if wx >= cap[0] and wx <= cap[2] and wy >= cap[1] and wy <= cap[3]:
+								# A cut corner (format 2's angled decks): inside every line.
+								var k := 5
+								var cn := cap.size()
+								while k + 2 < cn:
+									if (
+										float(cap[k]) * wx + float(cap[k + 1]) * wy
+										> float(cap[k + 2])
+									):
+										break
+									k += 3
+								if k + 2 < cn:
+									continue
+								tile = int(cap[4])
+								break
 					if tile >= 0:
 						# light_at() and shade_step() inlined: the reference clamps the
 						# quotient first, so distant surfaces stop at .19.
@@ -1069,3 +1082,138 @@ func _pane_wash() -> void:
 			out[o] = clampi(int(out[o] * .67 + pane_rgb[o] * .33), 0, 255)
 			out[o + 1] = clampi(int(out[o + 1] * .78 + pane_rgb[o + 1] * .33), 0, 255)
 			out[o + 2] = clampi(int(out[o + 2] * .82 + pane_rgb[o + 2] * .33), 0, 255)
+
+
+# ------------------------------------------------------------ slopes
+## Format 2's sloped surfaces (a ramp's top, a sloped underside): each pixel's
+## ray meets the surface's plane z = z0 + gx (x - x0) + gy (y - y0) at
+##   t = (cz - plane at the eye) / (row / focal + gx dx + gy dy),
+## kept where it lands inside the footprint and nearer than what is drawn.
+## Rows and columns are bounded by the footprint's box projected.
+func _slope_layer(a: int, b: int) -> void:
+	var w := out_w
+	var lx0 := a - col0
+	var tiles_ := tiles
+	var out_ := out
+	var dep_ := dep
+	var gls_ := gls
+	var shade_ := shade_rows
+	var light_ := level.light
+	var tints_ := tints
+	var tint_max := tints_.size() / 3 - 1
+	var dir_x_ := dir_x
+	var dir_y_ := dir_y
+	var rows_ := sy_rows
+	var lw := level.width
+	var lh := level.height
+	var inv_focal := 1.0 / focal
+	for row: Array in level.slopes:
+		var z0: float = row[0]
+		var gx: float = row[1]
+		var gy: float = row[2]
+		var side: float = row[3]
+		var x0: float = row[4]
+		var y0: float = row[5]
+		var x1: float = row[6]
+		var y1: float = row[7]
+		var tile: int = row[8]
+		var cn := row.size()
+		var num := cz - (z0 + gx * (cx - x0) + gy * (cy - y0))
+		if num * side <= 0.0:
+			continue
+		# The box's corners on screen: the columns and rows it can cover.
+		var c_lo := float(b)
+		var c_hi := float(a)
+		var r_lo := float(vh)
+		var r_hi := 0.0
+		var whole := false
+		for k in 8:
+			var px := x0 if k & 1 == 0 else x1
+			var py := y0 if k & 2 == 0 else y1
+			var pz := z0 + gx * (px - x0) + gy * (py - y0) + (.0 if k & 4 == 0 else .001)
+			var ddx := px - cx
+			var ddy := py - cy
+			var d := ddx * fx + ddy * fy
+			if d <= .05:
+				whole = true
+				break
+			var col := vw / 2.0 + (ddx * rx + ddy * ry) / d * focal
+			c_lo = minf(c_lo, col)
+			c_hi = maxf(c_hi, col)
+			var rr := (cz - pz) / d * focal
+			r_lo = minf(r_lo, rr)
+			r_hi = maxf(r_hi, rr)
+		var i0 := 0
+		var i1 := b - a
+		var row0 := 0
+		var row1 := vh
+		if not whole:
+			i0 = clampi(int(floorf(c_lo)) - 2 - a, 0, b - a)
+			i1 = clampi(int(ceilf(c_hi)) + 3 - a, 0, b - a)
+			if i1 <= i0:
+				continue
+			# Rows by their offset from the horizon (sy_rows): any row whose
+			# offset lies within the corners' span, padded.
+			var lo_off := r_lo - 2.0
+			var hi_off := r_hi + 2.0
+			row0 = vh
+			row1 = 0
+			for r in vh:
+				if rows_[r] >= lo_off and rows_[r] <= hi_off:
+					row0 = mini(row0, r)
+					row1 = maxi(row1, r + 1)
+			if row1 <= row0:
+				continue
+		var lit_scale := .94 if side > 0.0 else .77
+		var tile_base := tile * TILE_BYTES
+		for r in range(row0, row1):
+			var k_row := rows_[r] * inv_focal
+			var drow := r * w + lx0
+			for i in range(i0, i1):
+				var dxv := dir_x_[a + i]
+				var dyv := dir_y_[a + i]
+				var den := k_row + gx * dxv + gy * dyv
+				if den * side <= 1e-6:
+					continue
+				var t := num / den
+				if t < .015 or t > 80.0:
+					continue
+				var gi := drow + i
+				if t >= dep_[gi]:
+					continue
+				var wx := cx + t * dxv
+				var wy := cy + t * dyv
+				if wx < x0 or wx > x1 or wy < y0 or wy > y1:
+					continue
+				var k := 11
+				while k + 2 < cn:
+					if float(row[k]) * wx + float(row[k + 1]) * wy > float(row[k + 2]):
+						break
+					k += 3
+				if k + 2 < cn:
+					continue
+				var ix := int(wx)
+				var iy := int(wy)
+				if ix < 0 or iy < 0 or ix >= lw or iy >= lh:
+					continue
+				var ci := iy * lw + ix
+				var raw := (light_[ci] * lit_scale + flash) / (1.0 + .102 * t)
+				var shade := raw if raw > .19 else .19
+				var step := int(shade * 32.0 + .5)
+				if step > SHADE_STEPS - 1:
+					step = SHADE_STEPS - 1
+				var ti: int = row[10]
+				if ti < 0:
+					ti = 0
+				elif ti > tint_max:
+					ti = tint_max
+				var sbase := (ti * PROFILE_COUNT + step) * SHADE_ROW
+				var pu := int(wx * 128.0) & 127
+				var pv := int(wy * 128.0) & 127
+				var si := tile_base + pv * TILE_W * 3 + pu * 3
+				var oi := gi * 3
+				out_[oi] = shade_[sbase + tiles_[si] * 3]
+				out_[oi + 1] = shade_[sbase + tiles_[si + 1] * 3 + 1]
+				out_[oi + 2] = shade_[sbase + tiles_[si + 2] * 3 + 2]
+				dep_[gi] = t
+				gls_[gi] = 0

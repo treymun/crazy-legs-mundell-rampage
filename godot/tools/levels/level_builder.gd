@@ -37,6 +37,9 @@ var doors: Array = []
 var fixtures: Array = []
 var caps := {}
 var extra_walls: Array = []
+## Level format 2's pieces (tools/levels/geo_kit.gd adds them; finish() writes
+## them as the level's geometry block, src/level_geometry.gd).
+var geometry := {"slabs": [], "segments": [], "ceilings": []}
 var pane_tiles: Array = []
 var enemies: Array = []
 var patrols := {}
@@ -456,8 +459,11 @@ func enemy(kind: String, x: float, y: float, name := "", route := []) -> void:
 		patrols[str(enemies.size() - 1)] = route
 
 
-func pickup(name: String, x: float, y: float) -> void:
+func pickup(name: String, x: float, y: float, z := 0.0) -> void:
 	pickups.append([name, snappedf(x, .01), snappedf(y, .01)])
+	if z > 0.0:
+		# On a deck (level format 2): the floor it lies on.
+		pickups[pickups.size() - 1].append(snappedf(z, .001))
 
 
 ## Something that reacts when shot or kicked (cans, a TV, a toilet, a window).
@@ -1174,6 +1180,14 @@ func finish(spawn: Array) -> Dictionary:
 	if meta.has("tactical"):
 		# A 5v5 map's spawns, sites, hostages and bot routes (tactical_mode.gd).
 		out["tactical"] = meta["tactical"]
+	var pieces := 0
+	for kind: String in geometry:
+		pieces += (geometry[kind] as Array).size()
+	if pieces > 0:
+		out["format"] = LevelData.FORMAT
+		var block := {"version": LevelGeometry.VERSION}
+		block.merge(geometry)
+		out["geometry"] = block
 	LevelEdit.refresh_heights(out)
 	var roofs := {}
 	for v in roof:
@@ -1243,11 +1257,15 @@ func problems(spawn: Array) -> Array:
 							)
 						)
 	# Everything that matters can be walked to from the start (doors open,
-	# steps up of a step's height at most).
+	# steps up of a step's height at most). With geometry (decks walked on and
+	# under) the grid cannot say: tools/map.gd -- validate walks the nav graph.
 	var reached := _reach_from(int(spawn[0]), int(spawn[1]))
+	var decks := false
+	for s: Dictionary in geometry["slabs"]:
+		decks = decks or float(s.get("thick", -1.0)) >= 0.0
 	for spot: Array in spots:
 		var cell := Vector2i(int(spot[1]), int(spot[2]))
-		if spot.size() > 3 and bool(spot[3]):
+		if (spot.size() > 3 and bool(spot[3])) or decks:
 			continue
 		if inside(cell.x, cell.y) and int(solid[at(cell.x, cell.y)]) < 0 and not reached.has(cell):
 			var near := false
@@ -1297,6 +1315,27 @@ func _cell_blocked(x: int, y: int) -> bool:
 	return false
 
 
+## A cell's floor at its middle: its ground, or a solid slab's top over it
+## (level format 2: a ramp, a tread, a block). Decks over it are not floors here.
+func _floor_of(c: Vector2i) -> float:
+	return maxf(float(ground[at(c.x, c.y)]), _slab_top(c))
+
+
+func _slab_top(c: Vector2i) -> float:
+	var best := -1e9
+	var x := c.x + .5
+	var y := c.y + .5
+	for s: Dictionary in geometry["slabs"]:
+		if float(s.get("thick", -1.0)) >= 0.0:
+			continue
+		if x < float(s["x0"]) or x > float(s["x1"]) or y < float(s["y0"]) or y > float(s["y1"]):
+			continue
+		var top := float(s["top"]) + float(s.get("gx", 0.0)) * (x - float(s["x0"]))
+		top += float(s.get("gy", 0.0)) * (y - float(s["y0"]))
+		best = maxf(best, top)
+	return best
+
+
 ## The cells a player can walk to from (x, y): through doors, up steps no
 ## higher than a step (down anything), round anything standing in a cell.
 func _reach_from(x: int, y: int) -> Dictionary:
@@ -1315,7 +1354,9 @@ func _reach_from(x: int, y: int) -> Dictionary:
 				continue
 			if _cell_blocked(n.x, n.y) and not door_cells.has(n):
 				continue
-			if float(ground[at(n.x, n.y)]) - float(ground[at(c.x, c.y)]) > .25:
+			var up := _floor_of(n) - _floor_of(c)
+			# A step, or the next tread or stretch of a ramp (geometry).
+			if up > (.6 if _slab_top(n) > -1e8 else .25):
 				continue
 			seen[n] = true
 			todo.append(n)

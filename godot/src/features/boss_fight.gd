@@ -295,7 +295,7 @@ func _killed(e: Enemy) -> void:
 
 ## Looks only: chunks, sparks and dust thrown wide, what lies near thrown again.
 func _blast(e: Enemy) -> void:
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	var mid: float = floor_z + e.z + e.height * .5
 	if game.gore and e.brain != "derby_champ":
 		game.gore_fx.burst(e)
@@ -442,7 +442,7 @@ func sprites() -> Array:
 func _damage(e: Enemy) -> Array:
 	var out: Array = []
 	var p = game.player
-	var floor_z: float = game.world.elevation(e.x, e.y) + e.z
+	var floor_z: float = game.world.stand(e) + e.z
 	var toward := atan2(p.y - e.y, p.x - e.x)
 	var tall: float = e.height * e.variant
 	var wisps := 3 if e.boss_phase == 2 else 5

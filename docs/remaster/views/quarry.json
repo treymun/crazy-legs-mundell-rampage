@@ -1,0 +1,5 @@
+[
+  {"tag": "haul_ramp_low", "at": [31.5, 30.5, 0.72], "angle": -90, "pitch": 6},
+  {"tag": "haul_ramp_mid", "at": [9.5, 21.5, 1.2], "angle": -90, "pitch": 6},
+  {"tag": "terraces_from_top", "at": [31.5, 6.5, 2.16], "angle": 100, "pitch": -12}
+]

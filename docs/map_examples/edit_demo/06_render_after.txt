@@ -1,0 +1,4 @@
+wrote C:/Users/treym/Downloads/CrazyLegs-Geometry-Remaster/docs/map_examples/edit_demo/after/feedstore_plan.png
+wrote C:/Users/treym/Downloads/CrazyLegs-Geometry-Remaster/docs/map_examples/edit_demo/after/feedstore_floor0_z0_0.png
+wrote C:/Users/treym/Downloads/CrazyLegs-Geometry-Remaster/docs/map_examples/edit_demo/after/feedstore_floor1_z1_7.png
+MAP-RESULT {"command":"render","errors":0,"exit":0,"issues":[],"ok":true,"pictures":["C:/Users/treym/Downloads/CrazyLegs-Geometry-Remaster/docs/map_examples/edit_demo/after/feedstore_plan.png","C:/Users/treym/Downloads/CrazyLegs-Geometry-Remaster/docs/map_examples/edit_demo/after/feedstore_floor0_z0_0.png","C:/Users/treym/Downloads/CrazyLegs-Geometry-Remaster/docs/map_examples/edit_demo/after/feedstore_floor1_z1_7.png"],"warnings":0}

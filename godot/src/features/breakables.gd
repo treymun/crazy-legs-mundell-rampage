@@ -305,7 +305,7 @@ func ray(
 		if d <= 0.0 or d >= ray_d or absf(dx * ay - dy * ax) >= p.radius + spread:
 			continue
 		var z := eye + d * slope
-		var foot: float = game.world.elevation(p.x, p.y) + p.z
+		var foot: float = game.world.stand(p) + p.z
 		if z < foot - .05 or z > foot + p.height + .05:
 			continue
 		if game.world.visible(px, py, p.x, p.y, eye, z):
@@ -320,7 +320,7 @@ func touch(x: float, y: float, z: float, reach: float) -> int:
 		var p: Piece = pieces[i]
 		if p.broken or absf(p.x - x) > reach + p.radius or absf(p.y - y) > reach + p.radius:
 			continue
-		var foot: float = game.world.elevation(p.x, p.y) + p.z
+		var foot: float = game.world.stand(p) + p.z
 		if (
 			Vector2(p.x - x, p.y - y).length() < reach + p.radius * .7
 			and z > foot - .05
@@ -341,7 +341,7 @@ func strike(i: int, amount: float, ax: float, ay: float) -> void:
 		_break(p, ax, ay, FUSE_SHOT)
 		return
 	var stuff := String(p.spec.get("stuff", "wood"))
-	var z: float = game.world.elevation(p.x, p.y) + p.z + p.height * .5
+	var z: float = game.world.stand(p) + p.z + p.height * .5
 	game.burst(p.x, p.y, z, String(SPECKS.get(stuff, "spark")), 3, .7)
 	# A load of buckshot is one knock, not ten.
 	if game.clock >= _chip_next:
@@ -359,7 +359,7 @@ func blast(x: float, y: float, z: float, radius: float, strength: float, energy:
 			continue
 		var d := Vector2(p.x - x, p.y - y).length()
 		# Seen at its middle: a low base (its own, a neighbour's) does not shield it.
-		var mid: float = game.world.elevation(p.x, p.y) + p.z + p.height * .5
+		var mid: float = game.world.stand(p) + p.z + p.height * .5
 		if d < radius + p.radius * .5 and game.world.visible(x, y, p.x, p.y, z, mid):
 			var hurt := strength * maxf(0.0, 1.0 - d / (radius + .3)) * (.5 if energy else 1.0)
 			p.hp -= hurt
@@ -491,7 +491,7 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 	if cook and p.spec.has("blast"):
 		game.sound_at("fuse_short", p.x, p.y, .7)
 	var stuff := String(p.spec.get("stuff", "wood"))
-	var z: float = game.world.elevation(p.x, p.y) + p.z + p.height * .5
+	var z: float = game.world.stand(p) + p.z + p.height * .5
 	# A row going at once is one crash, not one each.
 	var loud: bool = game.clock >= _crash_next
 	if loud:
@@ -592,7 +592,7 @@ func _tick(dt: float) -> void:
 			var shot := Game.Shot.new(
 				p.x,
 				p.y,
-				game.world.elevation(p.x, p.y) + p.z + p.height * .45,
+				game.world.stand(p) + p.z + p.height * .45,
 				0.0,
 				0.0,
 				0.0,

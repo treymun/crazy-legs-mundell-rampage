@@ -60,7 +60,7 @@ static func soak(
 		return amount
 	if game.clock - enemy.struck_at > .14:
 		game.sound_at(cue(game, "tailgate_clang", "ricochet"), enemy.x, enemy.y, .7)
-	var floor_z: float = game.world.elevation(enemy.x, enemy.y)
+	var floor_z: float = game.world.stand(enemy)
 	game.burst(
 		enemy.x + cos(toward) * .4, enemy.y + sin(toward) * .4, floor_z + 1.0, "spark", 3, 1.1
 	)

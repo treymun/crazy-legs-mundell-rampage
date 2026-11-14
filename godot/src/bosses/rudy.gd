@@ -83,7 +83,7 @@ func act(e: Enemy, game, name: String) -> void:
 	elif name == "balloons":
 		var f = arena(game)
 		if f != null:
-			var floor_z: float = game.world.elevation(e.x, e.y)
+			var floor_z: float = game.world.stand(e)
 			for side: float in [-1.0, 1.0]:
 				var a := e.angle + side * 1.2
 				f.balloon(
@@ -111,7 +111,7 @@ func _bearings(e: Enemy, turn: float) -> Array:
 
 
 func _ring(e: Enemy, game, turn: float) -> void:
-	var eye: float = game.world.elevation(e.x, e.y) + 1.05
+	var eye: float = game.world.stand(e) + 1.05
 	for a: float in _bearings(e, turn):
 		game.launch(
 			e.x + cos(a) * .45, e.y + sin(a) * .45, eye, a, 6.2, "rudy_horn", 0.0, true, 8, 1.5
@@ -185,7 +185,7 @@ func looks(e: Enemy, game) -> Array:
 	if e.boss_phase < 3 and own(e) != "finale":
 		return []
 	# The horns glowing hot.
-	var top: float = game.world.elevation(e.x, e.y) + e.height * .86
+	var top: float = game.world.stand(e) + e.height * .86
 	var out: Array = []
 	for side: float in [-1.0, 1.0]:
 		var a := e.angle + side * PI / 2.0
@@ -203,4 +203,4 @@ func looks(e: Enemy, game) -> Array:
 
 func dying(e: Enemy, game) -> void:
 	e.remove_meta("wave2_at")
-	game.burst(e.x, e.y, game.world.elevation(e.x, e.y) + 1.2, "spark", 16, 2.2)
+	game.burst(e.x, e.y, game.world.stand(e) + 1.2, "spark", 16, 2.2)

@@ -52,6 +52,24 @@ const GUNS := [
 	["COW LAUNCHER", "WHEEL"],
 	["TEAT GUN", "WHEEL"],
 ]
+## The 5v5 store's guns and throwables that came after (weapons.cfg order
+## from 16), painted after everything else so the rest come out as before.
+const GUNS_LATER := [
+	["HOG HUNTER", "WHEEL"],
+	["CORN MOWER", "WHEEL"],
+	["COUNTY .45", "WHEEL"],
+	["STAR .357", "WHEEL"],
+	["HOGLEG .44", "WHEEL"],
+	["RIOT PUMP", "WHEEL"],
+	["SQUAD TOMMY", "WHEEL"],
+	["GREASE GUN", "WHEEL"],
+	["PATROL BAR", "WHEEL"],
+	["MARKSMAN", "WHEEL"],
+	["FLASH JAR", "WHEEL"],
+	["SMUDGE POT", "WHEEL"],
+	["COCKTAIL", "WHEEL"],
+	["FIRECRACKERS", "WHEEL"],
+]
 ## Lever plates: [id, name].
 const PLATES := [
 	["billy", "BILLY"],
@@ -85,6 +103,29 @@ const PLATES := [
 	["pins", "RACK THE PINS"],
 	["cans", "STAND CANS UP"],
 ]
+## The store wall's two header boards (painted last, as GUNS_LATER).
+const HEADS_LATER := [
+	["outlaws", "OUTLAWS' GUNS", "5V5 SHOWDOWN", "planks_red"],
+	["deputies", "DEPUTIES' GUNS", "5V5 SHOWDOWN", "tin_blue"],
+]
+## Lever plates for what came after (painted last, as GUNS_LATER).
+const PLATES_LATER := [
+	["swamp_king", "THE SWAMP KING"],
+	["derby_champ", "BUMPER BOGGS"],
+	["maw", "MAW GLORB"],
+	["gator", "GATOR"],
+	["noodler", "NOODLER"],
+	["chum_tosser", "CHUM TOSSER"],
+	["pit_mechanic", "PIT MECHANIC"],
+	["tire_roller", "TIRE ROLLER"],
+	["nitro_huffer", "NITRO HUFFER"],
+	["flagman", "FLAGMAN"],
+	["drone", "DRONE"],
+	["probe", "PROBE"],
+	["tin_guard", "TIN GUARD"],
+	["tough", "A TOUGH GUY"],
+	["variant", "AN ODDBALL"],
+]
 const YARDS := [3, 5, 6, 9, 10, 12, 15, 20, 25, 30, 35]
 
 var rng := RandomNumberGenerator.new()
@@ -110,6 +151,13 @@ func _init() -> void:
 	made["range_display"] = display_board()
 	made["range_gallery_back"] = gallery_back()
 	made["range_bowling_mask"] = bowling_mask()
+	for i in GUNS_LATER.size():
+		var later: Array = GUNS_LATER[i]
+		made["range_plaque_%d" % (GUNS.size() + i)] = plaque(String(later[0]), String(later[1]))
+	for row: Array in HEADS_LATER:
+		made["range_head_" + String(row[0])] = head(String(row[1]), String(row[2]), String(row[3]))
+	for row: Array in PLATES_LATER:
+		made["range_plate_" + String(row[0])] = plate(String(row[1]))
 	for name: String in made:
 		var sheet: Paint.Sheet = made[name]
 		sheet.save(out.path_join(name + ".png"))

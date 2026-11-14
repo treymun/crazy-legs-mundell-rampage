@@ -4,7 +4,9 @@
 ##   godot --headless --path godot --script res://tools/levels/build_level.gd
 ##       -- hickston [map=<png>] [dry]
 ##
-## The plan is tools/levels/<id>_plan.gd: a script with build(b) that lays the
+## A level with a map source (godot/maps/<id>.map.json, MAP_AUTHORING.md) is
+## built from that: its base plan, then its objects. Otherwise
+## the plan is tools/levels/<id>_plan.gd: a script with build(b) that lays the
 ## level out on a LevelBuilder (level_builder.gd) and returns the spawn
 ## [x, y, angle]. dry: check and draw it without writing the level. The map
 ## picture: floors in their tiles' colours, walls dark, enemies red, pickups
@@ -13,6 +15,8 @@
 extends SceneTree
 
 const Builder := preload("res://tools/levels/level_builder.gd")
+const MapSource := preload("res://tools/map/map_source.gd")
+const MapCompile := preload("res://tools/map/map_compile.gd")
 const SCALE := 8
 
 
@@ -30,14 +34,35 @@ func _init() -> void:
 			map_path = String(arg).substr(4)
 		elif arg == "dry":
 			dry = true
-	var plan = load("res://tools/levels/%s_plan.gd" % level_id).new()
-	var b = plan.make()
-	var spawn: Array = plan.build(b)
-	b.mount_signs()
-	var problems: Array = b.problems(spawn)
+	var b
+	var spawn: Array
+	var problems: Array
+	var level: Dictionary
+	if MapSource.exists(level_id):
+		# A map source (godot/maps/<id>.map.json) is this level's source: its
+		# plan (base) and the objects over it, as tools/map.gd builds them.
+		var built := MapCompile.compile(MapSource.read(level_id))
+		if (built["level"] as Dictionary).is_empty():
+			for issue: Dictionary in built["issues"]:
+				print("PROBLEM ", issue["message"])
+			quit(1)
+			return
+		b = built["builder"]
+		spawn = built["spawn"]
+		problems = built["problems"]
+		for issue: Dictionary in built["issues"]:
+			problems.append("%s: %s" % [issue["object"], issue["message"]])
+		level = built["level"]
+		print("built from ", MapSource.path_of(level_id), " (map.gd -- validate checks it further)")
+	else:
+		var plan = load("res://tools/levels/%s_plan.gd" % level_id).new()
+		b = plan.make()
+		spawn = plan.build(b)
+		b.mount_signs()
+		problems = b.problems(spawn)
+		level = b.finish(spawn)
 	for p in problems:
 		print("PROBLEM ", p)
-	var level: Dictionary = b.finish(spawn)
 	print(
 		(
 			"%s: %dx%d, %d walls, %d doors, %d enemies, %d pickups, %d props, %d boards"

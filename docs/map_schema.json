@@ -1,0 +1,1795 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/treymun/crazy-legs-mundell-rampage/docs/map_schema.json",
+  "title": "Crazy Legs Mundell Rampage map source (clmr-map version 1)",
+  "description": "godot/maps/<id>.map.json. 1 map unit = 1 cell; x east, y south, z up; eye .95, door 1.85, step .245, body .2 round, 1.12 tall. From tools/map.gd -- schema.",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "id",
+    "objects"
+  ],
+  "properties": {
+    "schema": {
+      "const": "clmr-map"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "base": {
+      "type": "object",
+      "required": [
+        "plan"
+      ],
+      "properties": {
+        "plan": {
+          "type": "string"
+        }
+      },
+      "description": "build on tools/levels/<plan>_plan.gd; then size/districts come from it"
+    },
+    "size": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 4,
+        "maximum": 256
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "border": {
+      "type": "string",
+      "description": "the tile of the solid cells round everything"
+    },
+    "meta": {
+      "type": "object",
+      "description": "title, sky, score, ambience, intro, heading, layout (bump layout when the map changes: old saves start the chapter over)"
+    },
+    "districts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tint": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "spawn": {
+      "type": "object",
+      "required": [
+        "at"
+      ],
+      "properties": {
+        "at": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 3
+        },
+        "angle": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      }
+    },
+    "playtest": {
+      "type": "object",
+      "properties": {
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "from",
+              "to"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "from": {},
+              "to": {},
+              "seconds": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "enemies": {
+          "type": "boolean"
+        },
+        "perf": {
+          "type": "boolean"
+        }
+      }
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "title": "yard",
+            "description": "Open ground under the sky over whole cells.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "floor"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "yard"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "floor": {
+                "type": "string"
+              },
+              "district": {
+                "type": "string"
+              },
+              "ground": {
+                "type": "number"
+              },
+              "light": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "room",
+            "description": "Open floor under a roof `roof` high (cells); walls come from solid cells round it.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "floor"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "room"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "floor": {
+                "type": "string"
+              },
+              "district": {
+                "type": "string"
+              },
+              "roof": {
+                "type": "number"
+              },
+              "ground": {
+                "type": "number"
+              },
+              "light": {
+                "type": "number"
+              },
+              "ceiling": {
+                "type": "string"
+              },
+              "skin": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "building",
+            "description": "A ring of wall cells round a room; cut doors with `door`.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "building"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "district": {
+                "type": "string"
+              },
+              "wall": {
+                "type": "string"
+              },
+              "roof": {
+                "type": "number"
+              },
+              "floor": {
+                "type": "string"
+              },
+              "windows": {
+                "type": "number"
+              },
+              "ceiling": {
+                "type": "string"
+              },
+              "light": {
+                "type": "number"
+              },
+              "parapet": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "solid",
+            "description": "Solid cells: a wall, hedge, rock or fence `top` high.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "tile"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "solid"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "top": {
+                "type": "number"
+              },
+              "band": {
+                "type": "boolean"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "fence",
+            "description": "A fence of solid cells (breakable where breakables.cfg says).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "fence"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "top": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "paint",
+            "description": "A floor tile over cells (a path, a rug, mud).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "floor"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "paint"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "floor": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "raise",
+            "description": "Cells' ground raised (or sunk) to `ground` (a step up needs <= .245).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "ground"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "raise"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "ground": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "light",
+            "description": "A pool of lamp light on the cells round `at`.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "light"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "reach": {
+                "type": "number"
+              },
+              "amount": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "door",
+            "description": "A door in a wall cell (a grid door: 1 cell wide, 1.85 high).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "cell"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "door"
+              },
+              "cell": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "vertical": {
+                "type": "boolean"
+              },
+              "from": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "style": {
+                "type": "string"
+              },
+              "secret": {
+                "type": "boolean"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "opened": {
+                "type": "boolean"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "gap",
+            "description": "An open doorway in a wall cell, no door.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "cell",
+              "from"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "gap"
+              },
+              "cell": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "from": {
+                "enum": [
+                  "n",
+                  "e",
+                  "s",
+                  "w"
+                ]
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "pane",
+            "description": "A breakable glass pane across a cell.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "cell"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "pane"
+              },
+              "cell": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "deck",
+            "description": "A floor walked on and under (a loft, a landing, a catwalk), `thick` thick.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "top"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "deck"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "top": {
+                "type": "number"
+              },
+              "thick": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "under": {
+                "type": "string"
+              },
+              "edge": {
+                "type": "string"
+              },
+              "cuts": {
+                "type": "array",
+                "maxItems": 2,
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "description": "lines [nx, ny, c]: inside where nx*x + ny*y <= c"
+              },
+              "light": {
+                "type": "number"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "block",
+            "description": "A solid block standing on the ground (a plinth, a dock, a stage), walked on.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "top"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "block"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "top": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "edge": {
+                "type": "string"
+              },
+              "cuts": {
+                "type": "array",
+                "maxItems": 2,
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "description": "lines [nx, ny, c]: inside where nx*x + ny*y <= c"
+              },
+              "light": {
+                "type": "number"
+              },
+              "district": {
+                "type": "string"
+              },
+              "walk": {
+                "type": "boolean"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "ramp",
+            "description": "A slope from z `from` up to `to` toward n/e/s/w (solid to the ground unless `thick`).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "from",
+              "to",
+              "toward"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "ramp"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "from": {
+                "type": "number"
+              },
+              "to": {
+                "type": "number"
+              },
+              "toward": {
+                "enum": [
+                  "n",
+                  "e",
+                  "s",
+                  "w"
+                ]
+              },
+              "tile": {
+                "type": "string"
+              },
+              "edge": {
+                "type": "string"
+              },
+              "thick": {
+                "type": "number"
+              },
+              "under": {
+                "type": "string"
+              },
+              "light": {
+                "type": "number"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "stairs",
+            "description": "Stairs from `from` up to `to` toward n/e/s/w, treads `rise` high at most.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "from",
+              "to",
+              "toward"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "stairs"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "from": {
+                "type": "number"
+              },
+              "to": {
+                "type": "number"
+              },
+              "toward": {
+                "enum": [
+                  "n",
+                  "e",
+                  "s",
+                  "w"
+                ]
+              },
+              "tile": {
+                "type": "string"
+              },
+              "edge": {
+                "type": "string"
+              },
+              "rise": {
+                "type": "number"
+              },
+              "thick": {
+                "type": "number"
+              },
+              "light": {
+                "type": "number"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "wall",
+            "description": "A free wall a to b; `openings` [{id, at, width, sill, head}] cut doors and windows.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "a",
+              "b"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "wall"
+              },
+              "a": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "b": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "z0": {
+                "type": "number"
+              },
+              "z1": {
+                "type": "number"
+              },
+              "thick": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "openings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "at"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "at": {
+                      "type": "number"
+                    },
+                    "width": {
+                      "type": "number"
+                    },
+                    "sill": {
+                      "type": "number"
+                    },
+                    "head": {
+                      "type": "number"
+                    }
+                  }
+                }
+              },
+              "light": {
+                "type": "number"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "rail",
+            "description": "A rail standing on z: stops bodies, not looks or shots.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "a",
+              "b"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "rail"
+              },
+              "a": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "b": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "z": {
+                "type": "number"
+              },
+              "height": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "cover",
+            "description": "Low solid cover a to b: stops bodies, looks and shots under its top.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "a",
+              "b"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "cover"
+              },
+              "a": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "b": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "z": {
+                "type": "number"
+              },
+              "height": {
+                "type": "number"
+              },
+              "thick": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "balcony",
+            "description": "A deck railed on the `open` sides (n, e, s, w); `gaps` [[side, from, to]].",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "top",
+              "open"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "balcony"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "top": {
+                "type": "number"
+              },
+              "open": {
+                "type": "string"
+              },
+              "thick": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "under": {
+                "type": "string"
+              },
+              "edge": {
+                "type": "string"
+              },
+              "gaps": {
+                "type": "array",
+                "items": {
+                  "type": "array"
+                }
+              },
+              "rail_tile": {
+                "type": "string"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "bridge",
+            "description": "A deck across a gap at `top`, railed along its long sides; walk under it.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "top"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "bridge"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "top": {
+                "type": "number"
+              },
+              "thick": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "under": {
+                "type": "string"
+              },
+              "edge": {
+                "type": "string"
+              },
+              "rail_tile": {
+                "type": "string"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "ceiling",
+            "description": "A flat surface overhead (an overhang, a porch roof, an upper room's ceiling).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "z"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "ceiling"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "z": {
+                "type": "number"
+              },
+              "tile": {
+                "type": "string"
+              },
+              "cuts": {
+                "type": "array",
+                "maxItems": 2,
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "description": "lines [nx, ny, c]: inside where nx*x + ny*y <= c"
+              },
+              "light": {
+                "type": "number"
+              },
+              "district": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "room_poly",
+            "description": "A room of any outline, a wall on each edge; `openings` [[edge, {at, width}]].",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "points",
+              "floor"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "room_poly"
+              },
+              "points": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "minItems": 2
+              },
+              "floor": {
+                "type": "string"
+              },
+              "district": {
+                "type": "string"
+              },
+              "roof": {
+                "type": "number"
+              },
+              "wall": {
+                "type": "string"
+              },
+              "thick": {
+                "type": "number"
+              },
+              "openings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "at"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "at": {
+                      "type": "number"
+                    },
+                    "width": {
+                      "type": "number"
+                    },
+                    "sill": {
+                      "type": "number"
+                    },
+                    "head": {
+                      "type": "number"
+                    }
+                  }
+                }
+              },
+              "light": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "corridor",
+            "description": "A roofed passage `width` cells wide along a path of cell centres (straight legs, n/s/e/w).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "points",
+              "floor"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "corridor"
+              },
+              "points": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 3
+                },
+                "minItems": 2
+              },
+              "floor": {
+                "type": "string"
+              },
+              "width": {
+                "type": "number"
+              },
+              "district": {
+                "type": "string"
+              },
+              "roof": {
+                "type": "number"
+              },
+              "light": {
+                "type": "number"
+              },
+              "ceiling": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "fixture",
+            "description": "A box of furniture (a counter, a crate stack): stops bodies; not walked on.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "rect",
+              "top"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "fixture"
+              },
+              "rect": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x0, y0, x1, y1] map units, x1 y1 exclusive"
+              },
+              "top": {
+                "type": "number"
+              },
+              "side": {
+                "type": "string"
+              },
+              "cap": {
+                "type": "string"
+              },
+              "bottom": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "prop",
+            "description": "A modelled prop (town_props.json names) standing at `at`.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "name",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "prop"
+              },
+              "name": {
+                "type": "string"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "z": {
+                "type": "number"
+              },
+              "angle": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "sign",
+            "description": "A flat picture standing at `at` (a sign, a board).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "image",
+              "at",
+              "height"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "sign"
+              },
+              "image": {
+                "type": "string"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "height": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              },
+              "glow": {
+                "type": "boolean"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "enemy",
+            "description": "A hand of `kind` (enemies.cfg) standing at `at`, on the floor at or under z.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "kind",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "enemy"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "z": {
+                "type": "number"
+              },
+              "route": {
+                "type": "array"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "pickup",
+            "description": "A pickup lying at `at`.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "name",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "pickup"
+              },
+              "name": {
+                "type": "string"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "station",
+            "description": "An objective: a quest station used at `at`; `opens` door cells; `prop` a town_quest_<name>.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at",
+              "label"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "station"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "label": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "requires": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "opens": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "prop": {
+                "type": "string"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "exit",
+            "description": "The level's exit (extraction) at `at`, open once `shutdown` is done.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at",
+              "label"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "exit"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "label": {
+                "type": "string"
+              },
+              "shutdown": {
+                "type": "string"
+              },
+              "z": {
+                "type": "number"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "spawn_point",
+            "description": "A named place a player or bot can start a playtest from (and a versus spawn).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "spawn_point"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              },
+              "z": {
+                "type": "number"
+              },
+              "angle": {
+                "type": "number"
+              },
+              "team": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "label",
+            "description": "A name on the automap.",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "text",
+              "at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "label"
+              },
+              "text": {
+                "type": "string"
+              },
+              "at": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 3
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "allow_overlap",
+            "description": "Says two or more objects overlap on purpose (validate stops calling it an error).",
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "objects",
+              "reason"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "type": {
+                "const": "allow_overlap"
+              },
+              "objects": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "^_": {}
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "patternProperties": {
+    "^_": {}
+  },
+  "additionalProperties": false
+}

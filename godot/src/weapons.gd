@@ -537,7 +537,7 @@ class Armory:
 			var speed := float(how["shot_speed"])
 			var reach := float(how.get("shot_reach", .23))
 			var base: float = (
-				game.world.elevation(player.x, player.y)
+				game.world.stand(player)
 				if String(how.get("shot_from", "eye")) == "floor"
 				else player.eye
 			)

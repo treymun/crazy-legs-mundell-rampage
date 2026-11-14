@@ -42,7 +42,7 @@ func off_facing(e: Enemy, from: Vector2) -> float:
 
 ## Where on its body a hit struck, 0 at its feet and 1 at the top of its head.
 func body_height(e: Enemy, game, hit: Vector3) -> float:
-	var feet: float = game.world.elevation(e.x, e.y) + e.z
+	var feet: float = game.world.stand(e) + e.z
 	return (hit.z - feet) / maxf(.1, e.height * e.variant)
 
 
@@ -100,7 +100,7 @@ func due(e: Enemy, game, key: String) -> bool:
 ## The player seen from the boss, eye to eye.
 func sees_player(e: Enemy, game) -> bool:
 	var p = game.player
-	var eye: float = game.world.elevation(e.x, e.y) + minf(.92, e.height * .72)
+	var eye: float = game.world.stand(e) + minf(.92, e.height * .72)
 	return game.world.visible(e.x, e.y, p.x, p.y, eye, p.eye)
 
 

@@ -1,0 +1,4 @@
+~ partition.a: [10, 5.4] -> [10, 6.4]
+~ partition.b: [10, 11] -> [10, 12]
+dry: nothing written
+MAP-RESULT {"changes":{"changed":{"partition":{"a":[[10.0,5.4],[10.0,6.4]],"b":[[10.0,11.0],[10.0,12.0]]}}},"command":"move","exit":0,"ok":true,"summary":["~ partition.a: [10, 5.4] -> [10, 6.4]","~ partition.b: [10, 11] -> [10, 12]","dry: nothing written"]}

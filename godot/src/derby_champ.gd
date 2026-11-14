@@ -46,7 +46,7 @@ static func tick(e: Enemy, dt: float, game) -> void:
 	var dy: float = p.y - e.y
 	var distance := sqrt(dx * dx + dy * dy)
 	var toward := atan2(dy, dx)
-	var eye: float = game.world.elevation(e.x, e.y) + 1.1
+	var eye: float = game.world.stand(e) + 1.1
 	var sees: bool = distance < 18.0 and game.world.visible(e.x, e.y, p.x, p.y, eye, p.eye)
 	if not e.alerted:
 		if sees and distance < 12.0 and game.spawn_grace <= 0.0:
@@ -179,7 +179,7 @@ static func _charge(e: Enemy, s: Dictionary, dt: float, game) -> void:
 		game.burst(
 			e.x - cos(heading) * .9,
 			e.y - sin(heading) * .9,
-			game.world.elevation(e.x, e.y) + .2,
+			game.world.stand(e) + .2,
 			"dust",
 			2,
 			.9
@@ -201,7 +201,7 @@ static func _crash(e: Enemy, s: Dictionary, game, heading: float) -> void:
 	game.shake = minf(1.0, game.shake + maxf(0.0, .7 - near / 18.0))
 	var fx := e.x + cos(heading) * (e.radius + .1)
 	var fy := e.y + sin(heading) * (e.radius + .1)
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	game.burst(fx, fy, floor_z + .6, "spark", 18, 2.4)
 	game.burst(fx, fy, floor_z + .4, "dust", 12, 1.8)
 	game.sound_at("derby_champ_crash", fx, fy, 1.0)
@@ -235,7 +235,7 @@ static func _crash(e: Enemy, s: Dictionary, game, heading: float) -> void:
 
 static func _spit(e: Enemy, s: Dictionary, game) -> void:
 	var heading := float(s["heading"])
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	for off: float in _fan(e):
 		var a := heading + off
 		var sx := e.x + cos(a) * (e.radius + .15)
@@ -267,7 +267,7 @@ static func marks(e: Enemy, game) -> Array:
 	elif mode == "spit":
 		for off: float in _fan(e):
 			lanes.append([float(s["heading"]) + off, 7.0, .2])
-	var floor_z: float = game.world.elevation(e.x, e.y) + .003
+	var floor_z: float = game.world.stand(e) + .003
 	for lane: Array in lanes:
 		var bearing: float = lane[0]
 		var length := 0.0
@@ -303,7 +303,7 @@ static func tell(e: Enemy) -> String:
 
 ## Down: the car goes up.
 static func falls(e: Enemy, game) -> void:
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	game.explode(
 		GameState.Shot.new(e.x, e.y, floor_z + .6, 0.0, 0.0, 0.0, "derby_blast", 0.0, true, 0)
 	)

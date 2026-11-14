@@ -265,7 +265,7 @@ static func _jug(e: Enemy, game, direction: float, distance: float, eye: float) 
 	var p = game.player
 	var flight := minf(1.32, maxf(.48, distance / 6.1))
 	var throw := maxf(.45, (distance - .34) / flight)
-	var target_z: float = game.world.elevation(p.x, p.y)
+	var target_z: float = game.world.stand(p)
 	var sx := e.x + cos(direction) * .34
 	var sy := e.y + sin(direction) * .34
 	if game.world.blocked(sx, sy, .045, eye):
@@ -315,7 +315,7 @@ static func soak(
 	keeper.tear(e, amount)
 	if game.clock - e.struck_at > .14:
 		game.sound_at(ShipAliens.cue(game, "tailgate_clang", "ricochet"), e.x, e.y, .7)
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	game.burst(e.x + cos(toward) * .36, e.y + sin(toward) * .36, floor_z + .7, "spark", 3, 1.1)
 	return amount * DOOR_LEAK
 

@@ -72,6 +72,8 @@ static func enemies(b: Builder) -> void:
 	b.enemy("clone", 58.5, 16.5, "barn-clone-b")
 	b.enemy("clone", 46.5, 13.0, "barn-clone-c")
 	b.enemy("alien", 44.5, 4.5, "loft-alien")
+	# Up in the hay loft (hickston_plan.gd LOFT, layout 4).
+	b.enemies[b.enemies.size() - 1]["z"] = 1.55
 	b.enemy("chicken", 54.0, 8.0, "barn-chicken")
 	b.enemy("chicken", 62.0, 5.0, "barn-chicken-b")
 	b.enemy("billy", 44.0, 18.5, "tack-billy")
@@ -202,8 +204,8 @@ static func pickups(b: Builder) -> void:
 		# The barn.
 		["teat_gun", 42.6, 19.4],
 		["milk_ammo", 46.6, 19.6],
-		["shells", 42.6, 4.6],
-		["rinds", 47.4, 7.6],
+		["shells", 42.6, 4.6, 1.55],
+		["rinds", 47.4, 7.6, 1.55],
 		["rifle_ammo", 62.6, 9.0],
 		["beer", 58.6, 21.0],
 		["saw_ammo", 50.0, 17.6],
@@ -235,7 +237,7 @@ static func pickups(b: Builder) -> void:
 		["dynamite", 118.6, 20.0],
 		["beer", 141.0, 16.2],
 	]:
-		b.pickup(String(p[0]), float(p[1]), float(p[2]))
+		b.pickup(String(p[0]), float(p[1]), float(p[2]), float(p[3]) if p.size() > 3 else 0.0)
 
 
 static func set_pieces(b: Builder) -> void:

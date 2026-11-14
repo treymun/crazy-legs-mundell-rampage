@@ -10,7 +10,7 @@ const TILE_BYTES := TILE_W * TILE_H * 3
 ## cowbell clank of a kill (game_world.gd struck()), far-off thunder rolling
 ## (features/weather.gd), a spent case tinking on the ground
 ## (features/debris.gd) and the thud of the tally's stamps (hud.gd).
-const MADE_CUES := ["hit_tick", "kill_tick", "thunder", "casing_tink", "stamp_thud"]
+const MADE_CUES := ["hit_tick", "kill_tick", "thunder", "casing_tink", "stamp_thud", "pin_clack"]
 ## Enemies only one chapter has: their pictures live in that chapter's file,
 ## which the browser build fetches after it starts (tools/make_packs.gd puts
 ## it in the chapter's pack with its music) and main_flow.gd play() waits for.
@@ -316,7 +316,8 @@ func has_cue(name: String) -> bool:
 ## tink, or a rubber stamp's thud, as 16-bit samples.
 func _made_cue(name: String) -> AudioStreamWAV:
 	var length: float = (
-		{"kill_tick": .20, "thunder": 3.2, "casing_tink": .16, "stamp_thud": .22}.get(name, .045)
+		{"kill_tick": .20, "thunder": 3.2, "casing_tink": .16, "stamp_thud": .22, "pin_clack": .12}
+		. get(name, .045)
 	)
 	var frames := int(sfx_rate * length)
 	var raw := PackedByteArray()
@@ -349,6 +350,12 @@ func _made_cue(name: String) -> AudioStreamWAV:
 					sin(TAU * (90.0 - t * 120.0) * t) * exp(-t * 20.0) * .8
 					+ hiss * exp(-t * 90.0) * .6
 				)
+			"pin_clack":
+				# Hard maple on maple: a hollow knock, two body modes and a click.
+				v = (
+					(sin(TAU * 1180.0 * t) * .5 + sin(TAU * 2390.0 * t) * .3) * exp(-t * 55.0) * .6
+				)
+				v += sin(TAU * 640.0 * t) * exp(-t * 30.0) * .25 + hiss * exp(-t * 900.0) * .5
 			_:
 				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
 				v += hiss * exp(-t * 600.0) * .5

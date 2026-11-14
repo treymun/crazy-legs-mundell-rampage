@@ -14,6 +14,7 @@
 extends RefCounted
 
 const Builder := preload("res://tools/levels/level_builder.gd")
+const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
 const H := 86
 ## The still house's steam outlets (the baron's pressure ports), and its pipes
@@ -64,7 +65,7 @@ func make() -> Builder:
 		"ending": '"WEIGHT INCLUDES CONTENTS AND DEBTS."',
 		"score": "quarry_score",
 		"ambience": "quarry",
-		"layout": 4,
+		"layout": 5,
 		"sky": "quarry_sky",
 		"control_name": "QUARRY FEEDS ISOLATED",
 		"extraction":
@@ -307,13 +308,15 @@ func chalk_terraces() -> void:
 	b.raise(4, 16, 36, 23, 1.2)
 	b.raise(4, 8, 36, 15, 1.68)
 	b.raise(4, 2, 36, 7, 2.16)
-	# A ramp cell between each bench and the one above it.
-	b.raise(30, 24, 32, 24, .96)
-	b.raise(8, 16, 10, 16, 1.44)
-	b.raise(30, 8, 32, 8, 1.92)
+	# A haul ramp between each bench and the one above it (level format 2: a
+	# true slope, three cells wide, where a half-step cell used to be).
 	b.raise(18, 33, 20, 33, .6)
 	b.paint(4, 2, 36, 32, "quarry_dust")
 	b.paint(18, 2, 22, 32, "quarry_face")
+	var haul := {"tile": "track_dirt", "edge": "quarry_face", "area": terraces}
+	Geo.ramp(b, "haul_ramp_low", [30, 24, 33, 26], .72, 1.2, "n", haul)
+	Geo.ramp(b, "haul_ramp_mid", [8, 16, 11, 18], 1.2, 1.68, "n", haul)
+	Geo.ramp(b, "haul_ramp_top", [30, 8, 33, 10], 1.68, 2.16, "n", haul)
 	b.board("wing_quarry_terrace", 33.0, 31.4, .8)
 	for p in [Vector2(10.5, 28.5), Vector2(26.5, 20.5), Vector2(14.5, 12.5), Vector2(30.5, 4.5)]:
 		b.town("boulder_b" if int(p.x) % 2 else "boulder_a", p.x, p.y, {"solid": .4})

@@ -66,7 +66,7 @@ func _nitro_ready(e: Enemy, dt: float, game) -> bool:
 	if e.cooldown > dt * float(game.sharpness):
 		return false
 	var p = game.player
-	var eye: float = game.world.elevation(e.x, e.y) + 1.1
+	var eye: float = game.world.stand(e) + 1.1
 	return (
 		Vector2(p.x - e.x, p.y - e.y).length() < 18.0
 		and game.world.visible(e.x, e.y, p.x, p.y, eye, p.eye)
@@ -148,7 +148,7 @@ func _nitro(e: Enemy, dt: float, game) -> void:
 	_ram(e, run, game, heading)
 	var want := NITRO_SPEED * dt
 	var moved := e.advance(dt, game, heading, NITRO_SPEED / maxf(.1, e.speed))
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	if int(game.clock * 8.0) % 2 == 0:
 		game.burst(e.x - cos(heading) * .9, e.y - sin(heading) * .9, floor_z + .2, "dust", 2, 1.0)
 	if Vector2(e.x, e.y).distance_to(end) > .45 and moved >= want * .35:
@@ -237,7 +237,7 @@ func telegraph(e: Enemy, game) -> Array:
 	var run: Dictionary = e.get_meta("nitro")
 	var legs: Array = run["legs"]
 	var at: Vector2 = Vector2(e.x, e.y) if bool(run.get("going", false)) else run["from"]
-	var z: float = game.world.elevation(e.x, e.y) + .004
+	var z: float = game.world.stand(e) + .004
 	for k in range(int(run["leg"]), legs.size()):
 		var end: Vector2 = legs[k]
 		var mid := (at + end) * .5
@@ -259,7 +259,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 	var toward_shooter := atan2(from.y - e.y, from.x - e.x)
 	if absf(Enemy.angle_delta(toward_shooter, e.angle)) > FRONT:
 		return 1.0
-	var up: float = (hit.z - game.world.elevation(e.x, e.y)) / maxf(.5, e.height)
+	var up: float = (hit.z - game.world.stand(e)) / maxf(.5, e.height)
 	return WEAK if up > .03 and up < .42 else 1.0
 
 
@@ -267,7 +267,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 ## his last phase and while he lights it.
 func looks(e: Enemy, game) -> Array:
 	var out: Array = []
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	var frame := int(game.clock * 10.0)
 	if e.boss_phase >= 2:
 		var front := Vector2(e.x + cos(e.angle) * .55, e.y + sin(e.angle) * .55)
@@ -294,7 +294,7 @@ func looks(e: Enemy, game) -> Array:
 
 
 func dying(e: Enemy, game) -> void:
-	var z: float = game.world.elevation(e.x, e.y)
+	var z: float = game.world.stand(e)
 	var fight = game.features.get("boss_fight")
 	if fight != null:
 		fight.sparks(e.x, e.y, z + .6, "chips", 18, 3.4)

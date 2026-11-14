@@ -95,7 +95,7 @@ func tear(e: Enemy, amount: float) -> void:
 		return
 	fallen.append([e.x + cos(e.angle) * .45, e.y + sin(e.angle) * .45, e.angle, game.clock])
 	game.sound_at(ShipAliens.cue(game, "tailgate_clang", "ricochet"), e.x, e.y, 1.0)
-	var floor_z: float = game.world.elevation(e.x, e.y)
+	var floor_z: float = game.world.stand(e)
 	game.burst(e.x + cos(e.angle) * .4, e.y + sin(e.angle) * .4, floor_z + .6, "spark", 12, 1.6)
 	e.stun = maxf(e.stun, .5)
 	e.flinch = maxf(e.flinch, .4)

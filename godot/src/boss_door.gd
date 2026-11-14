@@ -79,7 +79,7 @@ static func restore(make_game: Callable, current) -> Game:
 	p.vertical_speed = 0.0
 	p.pitch = 0.0
 	p.crouched = false
-	p.eye = loaded.world.elevation(p.x, p.y) + .95
+	p.eye = loaded.world.stand(p) + .95
 	var boss := BossFight.of_kind(loaded, String(feature.fight_kind))
 	if boss != null:
 		boss.hp = boss.max_hp

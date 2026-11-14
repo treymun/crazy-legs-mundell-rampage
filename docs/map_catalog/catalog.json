@@ -1,0 +1,8932 @@
+{
+ "generated_by": "godot --headless --path godot --script res://tools/map.gd -- catalog",
+ "units": "1 map unit = 1 cell; eye .95 over a floor; door 1.85; step .245; body radius .2, height 1.12",
+ "components": [
+  {
+   "id": "yard",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "rect",
+    "floor"
+   ],
+   "optional": {
+    "district": "",
+    "ground": 0.0,
+    "light": 0.97
+   },
+   "doc": "Open ground under the sky over whole cells.",
+   "example": {
+    "id": "example_yard",
+    "type": "yard",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "floor": "dirt"
+   }
+  },
+  {
+   "id": "room",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "rect",
+    "floor"
+   ],
+   "optional": {
+    "district": "",
+    "roof": 2.2,
+    "ground": 0.0,
+    "light": 0.78,
+    "ceiling": "ceiling",
+    "skin": ""
+   },
+   "doc": "Open floor under a roof `roof` high (cells); walls come from solid cells round it.",
+   "example": {
+    "id": "example_room",
+    "type": "room",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "floor": "dirt"
+   }
+  },
+  {
+   "id": "building",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "rect"
+   ],
+   "optional": {
+    "district": "",
+    "wall": "brick",
+    "roof": 2.2,
+    "floor": "wood",
+    "windows": 0,
+    "ceiling": "ceiling",
+    "light": 0.74,
+    "parapet": 0.28
+   },
+   "doc": "A ring of wall cells round a room; cut doors with `door`.",
+   "example": {
+    "id": "example_building",
+    "type": "building",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ]
+   }
+  },
+  {
+   "id": "solid",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "rect",
+    "tile"
+   ],
+   "optional": {
+    "top": 2.0,
+    "band": false
+   },
+   "doc": "Solid cells: a wall, hedge, rock or fence `top` high.",
+   "example": {
+    "id": "example_solid",
+    "type": "solid",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "tile": "plaster"
+   }
+  },
+  {
+   "id": "fence",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "rect"
+   ],
+   "optional": {
+    "tile": "stockyard",
+    "top": 1.24
+   },
+   "doc": "A fence of solid cells (breakable where breakables.cfg says).",
+   "example": {
+    "id": "example_fence",
+    "type": "fence",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ]
+   }
+  },
+  {
+   "id": "paint",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "rect",
+    "floor"
+   ],
+   "optional": {},
+   "doc": "A floor tile over cells (a path, a rug, mud).",
+   "example": {
+    "id": "example_paint",
+    "type": "paint",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "floor": "dirt"
+   }
+  },
+  {
+   "id": "raise",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "rect",
+    "ground"
+   ],
+   "optional": {},
+   "doc": "Cells' ground raised (or sunk) to `ground` (a step up needs <= .245).",
+   "example": {
+    "id": "example_raise",
+    "type": "raise",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "ground": 0.2
+   }
+  },
+  {
+   "id": "light",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "reach": 4.0,
+    "amount": 0.25
+   },
+   "doc": "A pool of lamp light on the cells round `at`.",
+   "example": {
+    "id": "example_light",
+    "type": "light",
+    "at": [
+     6.5,
+     5.5
+    ]
+   }
+  },
+  {
+   "id": "door",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "cell"
+   ],
+   "optional": {
+    "vertical": false,
+    "from": "",
+    "key": "",
+    "style": "hinge",
+    "secret": false,
+    "tile": "door",
+    "opened": false
+   },
+   "doc": "A door in a wall cell (a grid door: 1 cell wide, 1.85 high).",
+   "example": {
+    "id": "example_door",
+    "type": "door",
+    "cell": [
+     6,
+     4
+    ]
+   }
+  },
+  {
+   "id": "gap",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "cell",
+    "from"
+   ],
+   "optional": {},
+   "doc": "An open doorway in a wall cell, no door.",
+   "example": {
+    "id": "example_gap",
+    "type": "gap",
+    "cell": [
+     6,
+     4
+    ],
+    "from": "s"
+   }
+  },
+  {
+   "id": "pane",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "cell"
+   ],
+   "optional": {},
+   "doc": "A breakable glass pane across a cell.",
+   "example": {
+    "id": "example_pane",
+    "type": "pane",
+    "cell": [
+     6,
+     4
+    ]
+   }
+  },
+  {
+   "id": "deck",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "top"
+   ],
+   "optional": {
+    "thick": 0.15,
+    "tile": "porch",
+    "under": "ceiling",
+    "edge": "",
+    "cuts": [],
+    "light": 0.85,
+    "district": ""
+   },
+   "doc": "A floor walked on and under (a loft, a landing, a catwalk), `thick` thick.",
+   "example": {
+    "id": "example_deck",
+    "type": "deck",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "top": 1.6
+   }
+  },
+  {
+   "id": "block",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "top"
+   ],
+   "optional": {
+    "tile": "porch",
+    "edge": "",
+    "cuts": [],
+    "light": 0.85,
+    "district": "",
+    "walk": true
+   },
+   "doc": "A solid block standing on the ground (a plinth, a dock, a stage), walked on.",
+   "example": {
+    "id": "example_block",
+    "type": "block",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "top": 1.6
+   }
+  },
+  {
+   "id": "ramp",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "from",
+    "to",
+    "toward"
+   ],
+   "optional": {
+    "tile": "porch",
+    "edge": "",
+    "thick": -1.0,
+    "under": "ceiling",
+    "light": 0.85,
+    "district": ""
+   },
+   "doc": "A slope from z `from` up to `to` toward n/e/s/w (solid to the ground unless `thick`).",
+   "example": {
+    "id": "example_ramp",
+    "type": "ramp",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "from": 0.0,
+    "to": 1.6,
+    "toward": "e"
+   }
+  },
+  {
+   "id": "stairs",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "from",
+    "to",
+    "toward"
+   ],
+   "optional": {
+    "tile": "porch",
+    "edge": "",
+    "rise": 0.2,
+    "thick": -1.0,
+    "light": 0.85,
+    "district": ""
+   },
+   "doc": "Stairs from `from` up to `to` toward n/e/s/w, treads `rise` high at most.",
+   "example": {
+    "id": "example_stairs",
+    "type": "stairs",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "from": 0.0,
+    "to": 1.6,
+    "toward": "e"
+   }
+  },
+  {
+   "id": "wall",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "a",
+    "b"
+   ],
+   "optional": {
+    "z0": 0.0,
+    "z1": 2.2,
+    "thick": 0.12,
+    "tile": "plaster",
+    "openings": [],
+    "light": 0.85,
+    "district": ""
+   },
+   "doc": "A free wall a to b; `openings` [{id, at, width, sill, head}] cut doors and windows.",
+   "example": {
+    "id": "example_wall",
+    "type": "wall",
+    "a": [
+     4,
+     4
+    ],
+    "b": [
+     10,
+     4
+    ],
+    "openings": [
+     {
+      "id": "front_door",
+      "at": 2.5,
+      "width": 1.0
+     },
+     {
+      "id": "front_window",
+      "at": 4.5,
+      "width": 1.0,
+      "sill": 0.9,
+      "head": 1.7
+     }
+    ]
+   }
+  },
+  {
+   "id": "rail",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "a",
+    "b"
+   ],
+   "optional": {
+    "z": 0.0,
+    "height": 0.95,
+    "tile": "stockyard",
+    "district": ""
+   },
+   "doc": "A rail standing on z: stops bodies, not looks or shots.",
+   "example": {
+    "id": "example_rail",
+    "type": "rail",
+    "a": [
+     4,
+     4
+    ],
+    "b": [
+     10,
+     4
+    ]
+   }
+  },
+  {
+   "id": "cover",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "a",
+    "b"
+   ],
+   "optional": {
+    "z": 0.0,
+    "height": 1.0,
+    "thick": 0.3,
+    "tile": "crate_side",
+    "district": ""
+   },
+   "doc": "Low solid cover a to b: stops bodies, looks and shots under its top.",
+   "example": {
+    "id": "example_cover",
+    "type": "cover",
+    "a": [
+     4,
+     4
+    ],
+    "b": [
+     10,
+     4
+    ]
+   }
+  },
+  {
+   "id": "balcony",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "top",
+    "open"
+   ],
+   "optional": {
+    "thick": 0.15,
+    "tile": "porch",
+    "under": "ceiling",
+    "edge": "",
+    "gaps": [],
+    "rail_tile": "stockyard",
+    "district": ""
+   },
+   "doc": "A deck railed on the `open` sides (n, e, s, w); `gaps` [[side, from, to]].",
+   "example": {
+    "id": "example_balcony",
+    "type": "balcony",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "top": 1.6,
+    "open": "s"
+   }
+  },
+  {
+   "id": "bridge",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "top"
+   ],
+   "optional": {
+    "thick": 0.2,
+    "tile": "bayou_planks",
+    "under": "bayou_planks",
+    "edge": "",
+    "rail_tile": "stockyard",
+    "district": ""
+   },
+   "doc": "A deck across a gap at `top`, railed along its long sides; walk under it.",
+   "example": {
+    "id": "example_bridge",
+    "type": "bridge",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "top": 1.6
+   }
+  },
+  {
+   "id": "ceiling",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "z"
+   ],
+   "optional": {
+    "tile": "ceiling",
+    "cuts": [],
+    "light": 0.8,
+    "district": ""
+   },
+   "doc": "A flat surface overhead (an overhang, a porch roof, an upper room's ceiling).",
+   "example": {
+    "id": "example_ceiling",
+    "type": "ceiling",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "z": 2.4
+   }
+  },
+  {
+   "id": "room_poly",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "points",
+    "floor"
+   ],
+   "optional": {
+    "district": "",
+    "roof": 2.2,
+    "wall": "plaster",
+    "thick": 0.16,
+    "openings": [],
+    "light": 0.78
+   },
+   "doc": "A room of any outline, a wall on each edge; `openings` [[edge, {at, width}]].",
+   "example": {
+    "id": "example_room_poly",
+    "type": "room_poly",
+    "points": [
+     [
+      4,
+      4
+     ],
+     [
+      10,
+      4
+     ],
+     [
+      12,
+      8
+     ],
+     [
+      4,
+      8
+     ]
+    ],
+    "floor": "dirt"
+   }
+  },
+  {
+   "id": "corridor",
+   "kind": "component",
+   "changes_cells": true,
+   "required": [
+    "points",
+    "floor"
+   ],
+   "optional": {
+    "width": 2,
+    "district": "",
+    "roof": 2.2,
+    "light": 0.78,
+    "ceiling": "ceiling"
+   },
+   "doc": "A roofed passage `width` cells wide along a path of cell centres (straight legs, n/s/e/w).",
+   "example": {
+    "id": "example_corridor",
+    "type": "corridor",
+    "points": [
+     [
+      4,
+      5
+     ],
+     [
+      12,
+      5
+     ]
+    ],
+    "floor": "dirt"
+   }
+  },
+  {
+   "id": "fixture",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "rect",
+    "top"
+   ],
+   "optional": {
+    "side": "counter",
+    "cap": "counter_top",
+    "bottom": 0.0
+   },
+   "doc": "A box of furniture (a counter, a crate stack): stops bodies; not walked on.",
+   "example": {
+    "id": "example_fixture",
+    "type": "fixture",
+    "rect": [
+     4,
+     4,
+     8,
+     7
+    ],
+    "top": 1.6
+   }
+  },
+  {
+   "id": "prop",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "name",
+    "at"
+   ],
+   "optional": {
+    "z": 0.0,
+    "angle": 0.0
+   },
+   "doc": "A modelled prop (town_props.json names) standing at `at`.",
+   "example": {
+    "id": "example_prop",
+    "type": "prop",
+    "name": "outhouse",
+    "at": [
+     6.5,
+     5.5
+    ]
+   }
+  },
+  {
+   "id": "sign",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "image",
+    "at",
+    "height"
+   ],
+   "optional": {
+    "z": 0.0,
+    "glow": false
+   },
+   "doc": "A flat picture standing at `at` (a sign, a board).",
+   "example": {
+    "id": "example_sign",
+    "type": "sign",
+    "image": "wanted",
+    "at": [
+     6.5,
+     5.5
+    ],
+    "height": 1.0
+   }
+  },
+  {
+   "id": "enemy",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "kind",
+    "at"
+   ],
+   "optional": {
+    "z": 0.0,
+    "route": []
+   },
+   "doc": "A hand of `kind` (enemies.cfg) standing at `at`, on the floor at or under z.",
+   "example": {
+    "id": "example_enemy",
+    "type": "enemy",
+    "kind": "billy",
+    "at": [
+     6.5,
+     5.5
+    ]
+   }
+  },
+  {
+   "id": "pickup",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "name",
+    "at"
+   ],
+   "optional": {
+    "z": 0.0
+   },
+   "doc": "A pickup lying at `at`.",
+   "example": {
+    "id": "example_pickup",
+    "type": "pickup",
+    "name": "shells",
+    "at": [
+     6.5,
+     5.5
+    ]
+   }
+  },
+  {
+   "id": "station",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "at",
+    "label"
+   ],
+   "optional": {
+    "message": "",
+    "requires": [],
+    "opens": [],
+    "prop": "",
+    "z": 0.0
+   },
+   "doc": "An objective: a quest station used at `at`; `opens` door cells; `prop` a town_quest_<name>.",
+   "example": {
+    "id": "example_station",
+    "type": "station",
+    "at": [
+     6.5,
+     5.5
+    ],
+    "label": "THROW THE RELAY"
+   }
+  },
+  {
+   "id": "exit",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "at",
+    "label"
+   ],
+   "optional": {
+    "shutdown": "",
+    "z": 0.0
+   },
+   "doc": "The level's exit (extraction) at `at`, open once `shutdown` is done.",
+   "example": {
+    "id": "example_exit",
+    "type": "exit",
+    "at": [
+     6.5,
+     5.5
+    ],
+    "label": "THROW THE RELAY"
+   }
+  },
+  {
+   "id": "spawn_point",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "at"
+   ],
+   "optional": {
+    "z": 0.0,
+    "angle": 0.0,
+    "team": ""
+   },
+   "doc": "A named place a player or bot can start a playtest from (and a versus spawn).",
+   "example": {
+    "id": "example_spawn_point",
+    "type": "spawn_point",
+    "at": [
+     6.5,
+     5.5
+    ]
+   }
+  },
+  {
+   "id": "label",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "text",
+    "at"
+   ],
+   "optional": {},
+   "doc": "A name on the automap.",
+   "example": {
+    "id": "example_label",
+    "type": "label",
+    "text": "FEED STORE",
+    "at": [
+     6.5,
+     5.5
+    ]
+   }
+  },
+  {
+   "id": "allow_overlap",
+   "kind": "component",
+   "changes_cells": false,
+   "required": [
+    "objects",
+    "reason"
+   ],
+   "optional": {},
+   "doc": "Says two or more objects overlap on purpose (validate stops calling it an error).",
+   "example": {
+    "id": "example_allow_overlap",
+    "type": "allow_overlap",
+    "objects": [
+     "a_deck",
+     "a_wall"
+    ],
+    "reason": "the wall stands on the deck's edge on purpose"
+   }
+  }
+ ],
+ "tiles": [
+  {
+   "id": "wood",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "wood"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_wood.png"
+  },
+  {
+   "id": "barn",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "barn",
+    "barn_win",
+    "barn_lit",
+    "barn_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_barn.png"
+  },
+  {
+   "id": "tin",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "tin",
+    "tin_win",
+    "tin_lit",
+    "tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tin.png"
+  },
+  {
+   "id": "brick",
+   "kind": "tile",
+   "strikes_as": "brick",
+   "footstep": "gravel",
+   "variants": [
+    "brick",
+    "brick_win",
+    "brick_lit",
+    "brick_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_brick.png"
+  },
+  {
+   "id": "plaster",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "plaster",
+    "plaster_win",
+    "plaster_lit",
+    "plaster_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_plaster.png"
+  },
+  {
+   "id": "tile",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "tile"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tile.png"
+  },
+  {
+   "id": "mirror",
+   "kind": "tile",
+   "strikes_as": "glass",
+   "footstep": "gravel",
+   "variants": [
+    "mirror"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mirror.png"
+  },
+  {
+   "id": "floor_tile",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "tile",
+   "variants": [
+    "floor_tile"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_floor_tile.png"
+  },
+  {
+   "id": "concrete",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "tile",
+   "variants": [
+    "concrete"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_concrete.png"
+  },
+  {
+   "id": "dirt",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "mud",
+   "variants": [
+    "dirt"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_dirt.png"
+  },
+  {
+   "id": "tracks",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "mud",
+   "variants": [
+    "tracks"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tracks.png"
+  },
+  {
+   "id": "grass",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "grass",
+   "variants": [
+    "grass"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_grass.png"
+  },
+  {
+   "id": "asphalt",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "asphalt"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_asphalt.png"
+  },
+  {
+   "id": "road",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "road"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_road.png"
+  },
+  {
+   "id": "door",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "door"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_door.png"
+  },
+  {
+   "id": "gate",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "gate"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_gate.png"
+  },
+  {
+   "id": "liquor",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "liquor"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_liquor.png"
+  },
+  {
+   "id": "eat",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "eat"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_eat.png"
+  },
+  {
+   "id": "restroom",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "restroom"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_restroom.png"
+  },
+  {
+   "id": "barnsign",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "barnsign"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_barnsign.png"
+  },
+  {
+   "id": "warning",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "warning"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_warning.png"
+  },
+  {
+   "id": "wanted",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "wanted"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_wanted.png"
+  },
+  {
+   "id": "crack",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "crack"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_crack.png"
+  },
+  {
+   "id": "ship",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship.png"
+  },
+  {
+   "id": "ceiling",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "ceiling"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ceiling.png"
+  },
+  {
+   "id": "joists",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "joists"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_joists.png"
+  },
+  {
+   "id": "tavern",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "tavern"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tavern.png"
+  },
+  {
+   "id": "shelves",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "shelves"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_shelves.png"
+  },
+  {
+   "id": "fascia",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "fascia"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fascia.png"
+  },
+  {
+   "id": "window",
+   "kind": "tile",
+   "strikes_as": "glass",
+   "footstep": "gravel",
+   "variants": [
+    "window"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_window.png"
+  },
+  {
+   "id": "cinder",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "cinder",
+    "cinder_win",
+    "cinder_lit",
+    "cinder_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cinder.png"
+  },
+  {
+   "id": "porch",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "wood",
+   "variants": [
+    "porch"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_porch.png"
+  },
+  {
+   "id": "counter",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "counter"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_counter.png"
+  },
+  {
+   "id": "counter_top",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "counter_top"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_counter_top.png"
+  },
+  {
+   "id": "crate_side",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "crate_side"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_crate_side.png"
+  },
+  {
+   "id": "steel_mesh",
+   "kind": "tile",
+   "strikes_as": "mesh",
+   "footstep": "gravel",
+   "variants": [
+    "steel_mesh"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_steel_mesh.png"
+  },
+  {
+   "id": "shoulder",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "mud",
+   "variants": [
+    "shoulder"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_shoulder.png"
+  },
+  {
+   "id": "gravel",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "gravel"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_gravel.png"
+  },
+  {
+   "id": "stockyard",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "stockyard"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_stockyard.png"
+  },
+  {
+   "id": "trailer",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "trailer",
+    "trailer_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_trailer.png"
+  },
+  {
+   "id": "trailer_window",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "trailer_window"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_trailer_window.png"
+  },
+  {
+   "id": "service",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "service"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_service.png"
+  },
+  {
+   "id": "dispatch",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "dispatch"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_dispatch.png"
+  },
+  {
+   "id": "feed",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "feed"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_feed.png"
+  },
+  {
+   "id": "orchard",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "grass",
+   "variants": [
+    "orchard"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_orchard.png"
+  },
+  {
+   "id": "bleachers",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bleachers"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bleachers.png"
+  },
+  {
+   "id": "creek",
+   "kind": "tile",
+   "strikes_as": "water",
+   "footstep": "water",
+   "variants": [
+    "creek"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_creek.png"
+  },
+  {
+   "id": "office_wall",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "office_wall",
+    "office_wall_win",
+    "office_wall_lit",
+    "office_wall_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_office_wall.png"
+  },
+  {
+   "id": "glazing",
+   "kind": "tile",
+   "strikes_as": "glass",
+   "footstep": "gravel",
+   "variants": [
+    "glazing"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_glazing.png"
+  },
+  {
+   "id": "powder_panel",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "powder_panel"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_powder_panel.png"
+  },
+  {
+   "id": "stanky_marquee",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "stanky_marquee"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_stanky_marquee.png"
+  },
+  {
+   "id": "feed_marquee",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "feed_marquee"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_feed_marquee.png"
+  },
+  {
+   "id": "cable",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "cable"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cable.png"
+  },
+  {
+   "id": "oil_asphalt",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "oil_asphalt"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_oil_asphalt.png"
+  },
+  {
+   "id": "hedgerow",
+   "kind": "tile",
+   "strikes_as": "brush",
+   "footstep": "gravel",
+   "variants": [
+    "hedgerow"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_hedgerow.png"
+  },
+  {
+   "id": "fair_booth",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "fair_booth",
+    "fair_booth_win",
+    "fair_booth_lit",
+    "fair_booth_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_booth.png"
+  },
+  {
+   "id": "fair_iron",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "fair_iron",
+    "fair_iron_win",
+    "fair_iron_lit",
+    "fair_iron_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_iron.png"
+  },
+  {
+   "id": "fair_gravel",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "fair_gravel"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_gravel.png"
+  },
+  {
+   "id": "fair_gate",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "fair_gate"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_gate.png"
+  },
+  {
+   "id": "fair_prize",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "fair_prize"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_prize.png"
+  },
+  {
+   "id": "mill_tin",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "mill_tin",
+    "mill_tin_win",
+    "mill_tin_lit",
+    "mill_tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_tin.png"
+  },
+  {
+   "id": "mill_water",
+   "kind": "tile",
+   "strikes_as": "water",
+   "footstep": "water",
+   "variants": [
+    "mill_water"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_water.png"
+  },
+  {
+   "id": "mill_log",
+   "kind": "tile",
+   "strikes_as": "timber",
+   "footstep": "gravel",
+   "variants": [
+    "mill_log"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_log.png"
+  },
+  {
+   "id": "mill_oil",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "mill_oil"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_oil.png"
+  },
+  {
+   "id": "mill_pump",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "mill_pump"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_pump.png"
+  },
+  {
+   "id": "mill_grit",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "mill_grit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_grit.png"
+  },
+  {
+   "id": "route_hickston",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_hickston"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_hickston.png"
+  },
+  {
+   "id": "route_fair",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_fair"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_fair.png"
+  },
+  {
+   "id": "route_sawmill",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_sawmill"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_sawmill.png"
+  },
+  {
+   "id": "route_quarry",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_quarry"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_quarry.png"
+  },
+  {
+   "id": "route_hub",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_hub"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_hub.png"
+  },
+  {
+   "id": "route_closed",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_closed"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_closed.png"
+  },
+  {
+   "id": "quarry_face",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_face"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_face.png"
+  },
+  {
+   "id": "quarry_dust",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_dust"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_dust.png"
+  },
+  {
+   "id": "quarry_iron",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_iron",
+    "quarry_iron_win",
+    "quarry_iron_lit",
+    "quarry_iron_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_iron.png"
+  },
+  {
+   "id": "quarry_copper",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_copper"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_copper.png"
+  },
+  {
+   "id": "quarry_shed",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_shed",
+    "quarry_shed_win",
+    "quarry_shed_lit",
+    "quarry_shed_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_shed.png"
+  },
+  {
+   "id": "feed_wash",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "feed_wash"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_feed_wash.png"
+  },
+  {
+   "id": "fair_marquee",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "fair_marquee"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_marquee.png"
+  },
+  {
+   "id": "route_threshold",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_threshold"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_threshold.png"
+  },
+  {
+   "id": "hub_patch",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "hub_patch"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_hub_patch.png"
+  },
+  {
+   "id": "hub_service_wall",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "hub_service_wall",
+    "hub_service_wall_win",
+    "hub_service_wall_lit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_hub_service_wall.png"
+  },
+  {
+   "id": "hub_runoff",
+   "kind": "tile",
+   "strikes_as": "water",
+   "footstep": "gravel",
+   "variants": [
+    "hub_runoff"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_hub_runoff.png"
+  },
+  {
+   "id": "hub_screen",
+   "kind": "tile",
+   "strikes_as": "glass",
+   "footstep": "gravel",
+   "variants": [
+    "hub_screen"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_hub_screen.png"
+  },
+  {
+   "id": "hub_tank_shell",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "hub_tank_shell"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_hub_tank_shell.png"
+  },
+  {
+   "id": "detail_wall_bar_wainscot",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_bar_wainscot"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_bar_wainscot.png"
+  },
+  {
+   "id": "detail_wall_garage_courses",
+   "kind": "tile",
+   "strikes_as": "brick",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_garage_courses"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_garage_courses.png"
+  },
+  {
+   "id": "detail_wall_feed_pen_boards",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_feed_pen_boards"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_feed_pen_boards.png"
+  },
+  {
+   "id": "detail_wall_raffle_stripes",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_raffle_stripes"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_raffle_stripes.png"
+  },
+  {
+   "id": "detail_wall_prize_skirting",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_prize_skirting"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_prize_skirting.png"
+  },
+  {
+   "id": "detail_wall_kiln_patches",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_kiln_patches"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_kiln_patches.png"
+  },
+  {
+   "id": "detail_wall_rain_sheets",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_rain_sheets"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_rain_sheets.png"
+  },
+  {
+   "id": "detail_wall_chalk_cut",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_chalk_cut"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_chalk_cut.png"
+  },
+  {
+   "id": "detail_wall_copper_seams",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_copper_seams"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_copper_seams.png"
+  },
+  {
+   "id": "detail_wall_shed_repair",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_shed_repair"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_shed_repair.png"
+  },
+  {
+   "id": "detail_wall_approach_fence",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "detail_wall_approach_fence"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_detail_wall_approach_fence.png"
+  },
+  {
+   "id": "barn_win",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "barn",
+    "barn_win",
+    "barn_lit",
+    "barn_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_barn_win.png"
+  },
+  {
+   "id": "barn_lit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "barn",
+    "barn_win",
+    "barn_lit",
+    "barn_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_barn_lit.png"
+  },
+  {
+   "id": "tin_win",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "tin",
+    "tin_win",
+    "tin_lit",
+    "tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tin_win.png"
+  },
+  {
+   "id": "tin_lit",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "tin",
+    "tin_win",
+    "tin_lit",
+    "tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tin_lit.png"
+  },
+  {
+   "id": "brick_win",
+   "kind": "tile",
+   "strikes_as": "brick",
+   "footstep": "gravel",
+   "variants": [
+    "brick",
+    "brick_win",
+    "brick_lit",
+    "brick_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_brick_win.png"
+  },
+  {
+   "id": "brick_lit",
+   "kind": "tile",
+   "strikes_as": "brick",
+   "footstep": "gravel",
+   "variants": [
+    "brick",
+    "brick_win",
+    "brick_lit",
+    "brick_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_brick_lit.png"
+  },
+  {
+   "id": "plaster_win",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "plaster",
+    "plaster_win",
+    "plaster_lit",
+    "plaster_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_plaster_win.png"
+  },
+  {
+   "id": "plaster_lit",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "plaster",
+    "plaster_win",
+    "plaster_lit",
+    "plaster_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_plaster_lit.png"
+  },
+  {
+   "id": "cinder_win",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "cinder",
+    "cinder_win",
+    "cinder_lit",
+    "cinder_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cinder_win.png"
+  },
+  {
+   "id": "cinder_lit",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "cinder",
+    "cinder_win",
+    "cinder_lit",
+    "cinder_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cinder_lit.png"
+  },
+  {
+   "id": "office_wall_win",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "office_wall",
+    "office_wall_win",
+    "office_wall_lit",
+    "office_wall_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_office_wall_win.png"
+  },
+  {
+   "id": "office_wall_lit",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "office_wall",
+    "office_wall_win",
+    "office_wall_lit",
+    "office_wall_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_office_wall_lit.png"
+  },
+  {
+   "id": "fair_booth_win",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "fair_booth",
+    "fair_booth_win",
+    "fair_booth_lit",
+    "fair_booth_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_booth_win.png"
+  },
+  {
+   "id": "fair_booth_lit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "fair_booth",
+    "fair_booth_win",
+    "fair_booth_lit",
+    "fair_booth_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_booth_lit.png"
+  },
+  {
+   "id": "fair_iron_win",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "fair_iron",
+    "fair_iron_win",
+    "fair_iron_lit",
+    "fair_iron_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_iron_win.png"
+  },
+  {
+   "id": "fair_iron_lit",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "fair_iron",
+    "fair_iron_win",
+    "fair_iron_lit",
+    "fair_iron_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_iron_lit.png"
+  },
+  {
+   "id": "mill_tin_win",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "mill_tin",
+    "mill_tin_win",
+    "mill_tin_lit",
+    "mill_tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_tin_win.png"
+  },
+  {
+   "id": "mill_tin_lit",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "mill_tin",
+    "mill_tin_win",
+    "mill_tin_lit",
+    "mill_tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_tin_lit.png"
+  },
+  {
+   "id": "quarry_iron_win",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_iron",
+    "quarry_iron_win",
+    "quarry_iron_lit",
+    "quarry_iron_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_iron_win.png"
+  },
+  {
+   "id": "quarry_iron_lit",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_iron",
+    "quarry_iron_win",
+    "quarry_iron_lit",
+    "quarry_iron_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_iron_lit.png"
+  },
+  {
+   "id": "quarry_shed_win",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_shed",
+    "quarry_shed_win",
+    "quarry_shed_lit",
+    "quarry_shed_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_shed_win.png"
+  },
+  {
+   "id": "quarry_shed_lit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_shed",
+    "quarry_shed_win",
+    "quarry_shed_lit",
+    "quarry_shed_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_shed_lit.png"
+  },
+  {
+   "id": "hub_service_wall_win",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "hub_service_wall",
+    "hub_service_wall_win",
+    "hub_service_wall_lit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_hub_service_wall_win.png"
+  },
+  {
+   "id": "hub_service_wall_lit",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "hub_service_wall",
+    "hub_service_wall_win",
+    "hub_service_wall_lit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_hub_service_wall_lit.png"
+  },
+  {
+   "id": "trim_foundation",
+   "kind": "tile",
+   "strikes_as": "brick",
+   "footstep": "gravel",
+   "variants": [
+    "trim_foundation"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_trim_foundation.png"
+  },
+  {
+   "id": "trim_eave",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "trim_eave"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_trim_eave.png"
+  },
+  {
+   "id": "corn",
+   "kind": "tile",
+   "strikes_as": "brush",
+   "footstep": "gravel",
+   "variants": [
+    "corn"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_corn.png"
+  },
+  {
+   "id": "track_dirt",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "mud",
+   "variants": [
+    "track_dirt"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_track_dirt.png"
+  },
+  {
+   "id": "track_chalk",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "mud",
+   "variants": [
+    "track_chalk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_track_chalk.png"
+  },
+  {
+   "id": "derby_mud",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "mud",
+   "variants": [
+    "derby_mud"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_derby_mud.png"
+  },
+  {
+   "id": "junk_ground",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "junk_ground"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_junk_ground.png"
+  },
+  {
+   "id": "diner_checker",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "tile",
+   "variants": [
+    "diner_checker"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_diner_checker.png"
+  },
+  {
+   "id": "crash_wall",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "crash_wall"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_crash_wall.png"
+  },
+  {
+   "id": "tire_wall",
+   "kind": "tile",
+   "strikes_as": "rubber",
+   "footstep": "gravel",
+   "variants": [
+    "tire_wall"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tire_wall.png"
+  },
+  {
+   "id": "junk_stack",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "junk_stack"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_junk_stack.png"
+  },
+  {
+   "id": "garage_door",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "garage_door"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_garage_door.png"
+  },
+  {
+   "id": "grandstand_riser",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "grandstand_riser"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_grandstand_riser.png"
+  },
+  {
+   "id": "speedway_marquee",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "speedway_marquee"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_speedway_marquee.png"
+  },
+  {
+   "id": "diner_steel",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "diner_steel",
+    "diner_steel_win",
+    "diner_steel_lit",
+    "diner_steel_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_diner_steel.png"
+  },
+  {
+   "id": "diner_steel_win",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "diner_steel",
+    "diner_steel_win",
+    "diner_steel_lit",
+    "diner_steel_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_diner_steel_win.png"
+  },
+  {
+   "id": "diner_steel_lit",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "diner_steel",
+    "diner_steel_win",
+    "diner_steel_lit",
+    "diner_steel_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_diner_steel_lit.png"
+  },
+  {
+   "id": "checker_band",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "checker_band"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_checker_band.png"
+  },
+  {
+   "id": "bayou_water",
+   "kind": "tile",
+   "strikes_as": "water",
+   "footstep": "water",
+   "variants": [
+    "bayou_water"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_water.png"
+  },
+  {
+   "id": "bayou_deep",
+   "kind": "tile",
+   "strikes_as": "water",
+   "footstep": "water",
+   "variants": [
+    "bayou_deep"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_deep.png"
+  },
+  {
+   "id": "bayou_planks",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "wood",
+   "variants": [
+    "bayou_planks"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_planks.png"
+  },
+  {
+   "id": "bayou_mud",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "mud",
+   "variants": [
+    "bayou_mud"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_mud.png"
+  },
+  {
+   "id": "bayou_marsh",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "grass",
+   "variants": [
+    "bayou_marsh"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_marsh.png"
+  },
+  {
+   "id": "bayou_stilts",
+   "kind": "tile",
+   "strikes_as": "timber",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_stilts"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_stilts.png"
+  },
+  {
+   "id": "bayou_bank",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_bank"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_bank.png"
+  },
+  {
+   "id": "bayou_cypress",
+   "kind": "tile",
+   "strikes_as": "timber",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_cypress"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_cypress.png"
+  },
+  {
+   "id": "bayou_tin",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_tin",
+    "bayou_tin_win",
+    "bayou_tin_lit",
+    "bayou_tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_tin.png"
+  },
+  {
+   "id": "bayou_shack",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_shack",
+    "bayou_shack_win",
+    "bayou_shack_lit",
+    "bayou_shack_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_shack.png"
+  },
+  {
+   "id": "bayou_cannery",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_cannery",
+    "bayou_cannery_win",
+    "bayou_cannery_lit",
+    "bayou_cannery_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_cannery.png"
+  },
+  {
+   "id": "bayou_juke",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_juke"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_juke.png"
+  },
+  {
+   "id": "bayou_pen",
+   "kind": "tile",
+   "strikes_as": "mesh",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_pen"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_pen.png"
+  },
+  {
+   "id": "bayou_reeds",
+   "kind": "tile",
+   "strikes_as": "brush",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_reeds"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_reeds.png"
+  },
+  {
+   "id": "bayou_bridge",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_bridge"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_bridge.png"
+  },
+  {
+   "id": "bayou_juke_marquee",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_juke_marquee"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_juke_marquee.png"
+  },
+  {
+   "id": "bayou_bait_neon",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_bait_neon"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_bait_neon.png"
+  },
+  {
+   "id": "bayou_tin_win",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_tin",
+    "bayou_tin_win",
+    "bayou_tin_lit",
+    "bayou_tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_tin_win.png"
+  },
+  {
+   "id": "bayou_tin_lit",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_tin",
+    "bayou_tin_win",
+    "bayou_tin_lit",
+    "bayou_tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_tin_lit.png"
+  },
+  {
+   "id": "bayou_shack_win",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_shack",
+    "bayou_shack_win",
+    "bayou_shack_lit",
+    "bayou_shack_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_shack_win.png"
+  },
+  {
+   "id": "bayou_shack_lit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_shack",
+    "bayou_shack_win",
+    "bayou_shack_lit",
+    "bayou_shack_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_shack_lit.png"
+  },
+  {
+   "id": "bayou_cannery_win",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_cannery",
+    "bayou_cannery_win",
+    "bayou_cannery_lit",
+    "bayou_cannery_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_cannery_win.png"
+  },
+  {
+   "id": "bayou_cannery_lit",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_cannery",
+    "bayou_cannery_win",
+    "bayou_cannery_lit",
+    "bayou_cannery_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_cannery_lit.png"
+  },
+  {
+   "id": "ship_hull",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_hull"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_hull.png"
+  },
+  {
+   "id": "ship_tin",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "ship_tin"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_tin.png"
+  },
+  {
+   "id": "ship_rib",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_rib"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_rib.png"
+  },
+  {
+   "id": "ship_panel",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_panel"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_panel.png"
+  },
+  {
+   "id": "ship_core",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_core"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_core.png"
+  },
+  {
+   "id": "ship_screen",
+   "kind": "tile",
+   "strikes_as": "glass",
+   "footstep": "gravel",
+   "variants": [
+    "ship_screen"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_screen.png"
+  },
+  {
+   "id": "ship_deck",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "tile",
+   "variants": [
+    "ship_deck"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_deck.png"
+  },
+  {
+   "id": "ship_grate",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "tile",
+   "variants": [
+    "ship_grate"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_grate.png"
+  },
+  {
+   "id": "ship_ceiling",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_ceiling"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_ceiling.png"
+  },
+  {
+   "id": "ship_door",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_door"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_door.png"
+  },
+  {
+   "id": "ship_beam",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_beam"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_beam.png"
+  },
+  {
+   "id": "ship_edge",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_edge"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_edge.png"
+  },
+  {
+   "id": "ship_pod",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_pod"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_pod.png"
+  },
+  {
+   "id": "ship_vat",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "ship_vat"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_vat.png"
+  },
+  {
+   "id": "ship_lino",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "tile",
+   "variants": [
+    "ship_lino"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_ship_lino.png"
+  },
+  {
+   "id": "route_bayou",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_bayou"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_bayou.png"
+  },
+  {
+   "id": "route_speedway",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_speedway"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_speedway.png"
+  },
+  {
+   "id": "route_mothership",
+   "kind": "tile",
+   "strikes_as": "dirt",
+   "footstep": "gravel",
+   "variants": [
+    "route_mothership"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_route_mothership.png"
+  },
+  {
+   "id": "barn_brk",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "barn",
+    "barn_win",
+    "barn_lit",
+    "barn_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_barn_brk.png"
+  },
+  {
+   "id": "tin_brk",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "tin",
+    "tin_win",
+    "tin_lit",
+    "tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_tin_brk.png"
+  },
+  {
+   "id": "brick_brk",
+   "kind": "tile",
+   "strikes_as": "brick",
+   "footstep": "gravel",
+   "variants": [
+    "brick",
+    "brick_win",
+    "brick_lit",
+    "brick_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_brick_brk.png"
+  },
+  {
+   "id": "plaster_brk",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "plaster",
+    "plaster_win",
+    "plaster_lit",
+    "plaster_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_plaster_brk.png"
+  },
+  {
+   "id": "cinder_brk",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "cinder",
+    "cinder_win",
+    "cinder_lit",
+    "cinder_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_cinder_brk.png"
+  },
+  {
+   "id": "office_wall_brk",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "office_wall",
+    "office_wall_win",
+    "office_wall_lit",
+    "office_wall_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_office_wall_brk.png"
+  },
+  {
+   "id": "fair_booth_brk",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "fair_booth",
+    "fair_booth_win",
+    "fair_booth_lit",
+    "fair_booth_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_booth_brk.png"
+  },
+  {
+   "id": "fair_iron_brk",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "fair_iron",
+    "fair_iron_win",
+    "fair_iron_lit",
+    "fair_iron_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_fair_iron_brk.png"
+  },
+  {
+   "id": "mill_tin_brk",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "mill_tin",
+    "mill_tin_win",
+    "mill_tin_lit",
+    "mill_tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_mill_tin_brk.png"
+  },
+  {
+   "id": "quarry_iron_brk",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_iron",
+    "quarry_iron_win",
+    "quarry_iron_lit",
+    "quarry_iron_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_iron_brk.png"
+  },
+  {
+   "id": "quarry_shed_brk",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "quarry_shed",
+    "quarry_shed_win",
+    "quarry_shed_lit",
+    "quarry_shed_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_quarry_shed_brk.png"
+  },
+  {
+   "id": "bayou_tin_brk",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_tin",
+    "bayou_tin_win",
+    "bayou_tin_lit",
+    "bayou_tin_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_tin_brk.png"
+  },
+  {
+   "id": "bayou_shack_brk",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_shack",
+    "bayou_shack_win",
+    "bayou_shack_lit",
+    "bayou_shack_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_shack_brk.png"
+  },
+  {
+   "id": "bayou_cannery_brk",
+   "kind": "tile",
+   "strikes_as": "stone",
+   "footstep": "gravel",
+   "variants": [
+    "bayou_cannery",
+    "bayou_cannery_win",
+    "bayou_cannery_lit",
+    "bayou_cannery_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_bayou_cannery_brk.png"
+  },
+  {
+   "id": "diner_steel_brk",
+   "kind": "tile",
+   "strikes_as": "steel",
+   "footstep": "gravel",
+   "variants": [
+    "diner_steel",
+    "diner_steel_win",
+    "diner_steel_lit",
+    "diner_steel_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_diner_steel_brk.png"
+  },
+  {
+   "id": "trailer_brk",
+   "kind": "tile",
+   "strikes_as": "tin",
+   "footstep": "gravel",
+   "variants": [
+    "trailer",
+    "trailer_brk"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_trailer_brk.png"
+  },
+  {
+   "id": "stockyard_hit",
+   "kind": "tile",
+   "strikes_as": "wood",
+   "footstep": "gravel",
+   "variants": [
+    "stockyard_hit"
+   ],
+   "use": "floor, wall, edge, under, ceiling: any tile",
+   "thumb": "thumbs/tile_stockyard_hit.png"
+  }
+ ],
+ "props": [
+  {
+   "id": "airboat",
+   "kind": "prop",
+   "width": 3.21,
+   "height": 2.11,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_airboat",
+    "type": "prop",
+    "name": "airboat",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_airboat.png"
+  },
+  {
+   "id": "alien_console",
+   "kind": "prop",
+   "width": 1.35,
+   "height": 1.53,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_alien_console",
+    "type": "prop",
+    "name": "alien_console",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_alien_console.png"
+  },
+  {
+   "id": "alien_crate",
+   "kind": "prop",
+   "width": 1.23,
+   "height": 0.85,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_alien_crate",
+    "type": "prop",
+    "name": "alien_crate",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_alien_crate.png"
+  },
+  {
+   "id": "alien_crate_broken",
+   "kind": "prop",
+   "width": 1.8,
+   "height": 0.85,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_alien_crate_broken",
+    "type": "prop",
+    "name": "alien_crate_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_alien_crate_broken.png"
+  },
+  {
+   "id": "axe_stump",
+   "kind": "prop",
+   "width": 0.72,
+   "height": 1.18,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_axe_stump",
+    "type": "prop",
+    "name": "axe_stump",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_axe_stump.png"
+  },
+  {
+   "id": "bait_cooler_rack",
+   "kind": "prop",
+   "width": 1.25,
+   "height": 2.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_bait_cooler_rack",
+    "type": "prop",
+    "name": "bait_cooler_rack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_bait_cooler_rack.png"
+  },
+  {
+   "id": "bait_tank",
+   "kind": "prop",
+   "width": 1.95,
+   "height": 1.93,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_bait_tank",
+    "type": "prop",
+    "name": "bait_tank",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_bait_tank.png"
+  },
+  {
+   "id": "balloons",
+   "kind": "prop",
+   "width": 1.1,
+   "height": 1.99,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_balloons",
+    "type": "prop",
+    "name": "balloons",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_balloons.png"
+  },
+  {
+   "id": "balloons_broken",
+   "kind": "prop",
+   "width": 0.75,
+   "height": 1.95,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_balloons_broken",
+    "type": "prop",
+    "name": "balloons_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_balloons_broken.png"
+  },
+  {
+   "id": "barrel_broken",
+   "kind": "prop",
+   "width": 1.62,
+   "height": 0.67,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_barrel_broken",
+    "type": "prop",
+    "name": "barrel_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_barrel_broken.png"
+  },
+  {
+   "id": "bathtub",
+   "kind": "prop",
+   "width": 1.44,
+   "height": 0.78,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_bathtub",
+    "type": "prop",
+    "name": "bathtub",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_bathtub.png"
+  },
+  {
+   "id": "beam_emitter",
+   "kind": "prop",
+   "width": 1.8,
+   "height": 0.88,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_beam_emitter",
+    "type": "prop",
+    "name": "beam_emitter",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_beam_emitter.png"
+  },
+  {
+   "id": "belt_conveyor",
+   "kind": "prop",
+   "width": 3.54,
+   "height": 1.74,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_belt_conveyor",
+    "type": "prop",
+    "name": "belt_conveyor",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_belt_conveyor.png"
+  },
+  {
+   "id": "boil_pot",
+   "kind": "prop",
+   "width": 1.45,
+   "height": 1.85,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_boil_pot",
+    "type": "prop",
+    "name": "boil_pot",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_boil_pot.png"
+  },
+  {
+   "id": "boil_table",
+   "kind": "prop",
+   "width": 2.09,
+   "height": 1.15,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_boil_table",
+    "type": "prop",
+    "name": "boil_table",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_boil_table.png"
+  },
+  {
+   "id": "boulder_a",
+   "kind": "prop",
+   "width": 1.67,
+   "height": 1.18,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_boulder_a",
+    "type": "prop",
+    "name": "boulder_a",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_boulder_a.png"
+  },
+  {
+   "id": "boulder_b",
+   "kind": "prop",
+   "width": 1.0,
+   "height": 1.18,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_boulder_b",
+    "type": "prop",
+    "name": "boulder_b",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_boulder_b.png"
+  },
+  {
+   "id": "bunk",
+   "kind": "prop",
+   "width": 1.98,
+   "height": 1.9,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_bunk",
+    "type": "prop",
+    "name": "bunk",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_bunk.png"
+  },
+  {
+   "id": "burn_barrel",
+   "kind": "prop",
+   "width": 0.62,
+   "height": 1.4,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_burn_barrel",
+    "type": "prop",
+    "name": "burn_barrel",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_burn_barrel.png"
+  },
+  {
+   "id": "cable_spool",
+   "kind": "prop",
+   "width": 1.23,
+   "height": 1.24,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cable_spool",
+    "type": "prop",
+    "name": "cable_spool",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cable_spool.png"
+  },
+  {
+   "id": "camp_chairs",
+   "kind": "prop",
+   "width": 1.54,
+   "height": 1.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_camp_chairs",
+    "type": "prop",
+    "name": "camp_chairs",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_camp_chairs.png"
+  },
+  {
+   "id": "canned_ham",
+   "kind": "prop",
+   "width": 3.29,
+   "height": 1.58,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_canned_ham",
+    "type": "prop",
+    "name": "canned_ham",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_canned_ham.png"
+  },
+  {
+   "id": "captain_chair",
+   "kind": "prop",
+   "width": 1.49,
+   "height": 1.58,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_captain_chair",
+    "type": "prop",
+    "name": "captain_chair",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_captain_chair.png"
+  },
+  {
+   "id": "car_crusher",
+   "kind": "prop",
+   "width": 3.63,
+   "height": 3.01,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_car_crusher",
+    "type": "prop",
+    "name": "car_crusher",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_car_crusher.png"
+  },
+  {
+   "id": "carousel_horse",
+   "kind": "prop",
+   "width": 1.05,
+   "height": 2.19,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_carousel_horse",
+    "type": "prop",
+    "name": "carousel_horse",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_carousel_horse.png"
+  },
+  {
+   "id": "chicken_coop",
+   "kind": "prop",
+   "width": 1.73,
+   "height": 1.6,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_chicken_coop",
+    "type": "prop",
+    "name": "chicken_coop",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_chicken_coop.png"
+  },
+  {
+   "id": "cooler",
+   "kind": "prop",
+   "width": 0.85,
+   "height": 0.63,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cooler",
+    "type": "prop",
+    "name": "cooler",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cooler.png"
+  },
+  {
+   "id": "cooler_broken",
+   "kind": "prop",
+   "width": 1.27,
+   "height": 0.62,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cooler_broken",
+    "type": "prop",
+    "name": "cooler_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cooler_broken.png"
+  },
+  {
+   "id": "copper_vat",
+   "kind": "prop",
+   "width": 1.74,
+   "height": 2.25,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_copper_vat",
+    "type": "prop",
+    "name": "copper_vat",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_copper_vat.png"
+  },
+  {
+   "id": "corn_tray",
+   "kind": "prop",
+   "width": 1.48,
+   "height": 2.2,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_corn_tray",
+    "type": "prop",
+    "name": "corn_tray",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_corn_tray.png"
+  },
+  {
+   "id": "cotton_candy",
+   "kind": "prop",
+   "width": 1.3,
+   "height": 1.93,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cotton_candy",
+    "type": "prop",
+    "name": "cotton_candy",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cotton_candy.png"
+  },
+  {
+   "id": "cow_tube",
+   "kind": "prop",
+   "width": 1.32,
+   "height": 2.74,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cow_tube",
+    "type": "prop",
+    "name": "cow_tube",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cow_tube.png"
+  },
+  {
+   "id": "cow_tube_broken",
+   "kind": "prop",
+   "width": 2.0,
+   "height": 2.82,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cow_tube_broken",
+    "type": "prop",
+    "name": "cow_tube_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cow_tube_broken.png"
+  },
+  {
+   "id": "crane_hook",
+   "kind": "prop",
+   "width": 4.06,
+   "height": 3.49,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_crane_hook",
+    "type": "prop",
+    "name": "crane_hook",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_crane_hook.png"
+  },
+  {
+   "id": "crate_broken",
+   "kind": "prop",
+   "width": 1.72,
+   "height": 0.76,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_crate_broken",
+    "type": "prop",
+    "name": "crate_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_crate_broken.png"
+  },
+  {
+   "id": "crawfish_traps",
+   "kind": "prop",
+   "width": 1.28,
+   "height": 1.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_crawfish_traps",
+    "type": "prop",
+    "name": "crawfish_traps",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_crawfish_traps.png"
+  },
+  {
+   "id": "crushed_stack",
+   "kind": "prop",
+   "width": 2.4,
+   "height": 1.39,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_crushed_stack",
+    "type": "prop",
+    "name": "crushed_stack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_crushed_stack.png"
+  },
+  {
+   "id": "crusher",
+   "kind": "prop",
+   "width": 2.29,
+   "height": 2.63,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_crusher",
+    "type": "prop",
+    "name": "crusher",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_crusher.png"
+  },
+  {
+   "id": "cypress",
+   "kind": "prop",
+   "width": 2.31,
+   "height": 4.78,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cypress",
+    "type": "prop",
+    "name": "cypress",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cypress.png"
+  },
+  {
+   "id": "cypress_b",
+   "kind": "prop",
+   "width": 1.76,
+   "height": 3.63,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cypress_b",
+    "type": "prop",
+    "name": "cypress_b",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cypress_b.png"
+  },
+  {
+   "id": "cypress_knees",
+   "kind": "prop",
+   "width": 1.08,
+   "height": 0.82,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_cypress_knees",
+    "type": "prop",
+    "name": "cypress_knees",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_cypress_knees.png"
+  },
+  {
+   "id": "dead_snag",
+   "kind": "prop",
+   "width": 1.49,
+   "height": 3.15,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_dead_snag",
+    "type": "prop",
+    "name": "dead_snag",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_dead_snag.png"
+  },
+  {
+   "id": "deer_target",
+   "kind": "prop",
+   "width": 1.15,
+   "height": 1.42,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_deer_target",
+    "type": "prop",
+    "name": "deer_target",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_deer_target.png"
+  },
+  {
+   "id": "derby_car",
+   "kind": "prop",
+   "width": 2.41,
+   "height": 1.28,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_derby_car",
+    "type": "prop",
+    "name": "derby_car",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_derby_car.png"
+  },
+  {
+   "id": "dish",
+   "kind": "prop",
+   "width": 1.13,
+   "height": 1.47,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_dish",
+    "type": "prop",
+    "name": "dish",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_dish.png"
+  },
+  {
+   "id": "doghouse",
+   "kind": "prop",
+   "width": 1.54,
+   "height": 1.1,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_doghouse",
+    "type": "prop",
+    "name": "doghouse",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_doghouse.png"
+  },
+  {
+   "id": "drill_rig",
+   "kind": "prop",
+   "width": 1.89,
+   "height": 3.28,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_drill_rig",
+    "type": "prop",
+    "name": "drill_rig",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_drill_rig.png"
+  },
+  {
+   "id": "dump_truck",
+   "kind": "prop",
+   "width": 2.49,
+   "height": 2.03,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_dump_truck",
+    "type": "prop",
+    "name": "dump_truck",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_dump_truck.png"
+  },
+  {
+   "id": "engine_hoist",
+   "kind": "prop",
+   "width": 1.81,
+   "height": 2.3,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_engine_hoist",
+    "type": "prop",
+    "name": "engine_hoist",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_engine_hoist.png"
+  },
+  {
+   "id": "engine_stand",
+   "kind": "prop",
+   "width": 0.99,
+   "height": 1.2,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_engine_stand",
+    "type": "prop",
+    "name": "engine_stand",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_engine_stand.png"
+  },
+  {
+   "id": "escape_outhouse",
+   "kind": "prop",
+   "width": 1.65,
+   "height": 2.99,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_escape_outhouse",
+    "type": "prop",
+    "name": "escape_outhouse",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_escape_outhouse.png"
+  },
+  {
+   "id": "ferris_wheel",
+   "kind": "prop",
+   "width": 4.25,
+   "height": 5.83,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_ferris_wheel",
+    "type": "prop",
+    "name": "ferris_wheel",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_ferris_wheel.png"
+  },
+  {
+   "id": "flag_stand",
+   "kind": "prop",
+   "width": 2.04,
+   "height": 3.47,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_flag_stand",
+    "type": "prop",
+    "name": "flag_stand",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_flag_stand.png"
+  },
+  {
+   "id": "flamingo",
+   "kind": "prop",
+   "width": 0.51,
+   "height": 1.02,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_flamingo",
+    "type": "prop",
+    "name": "flamingo",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_flamingo.png"
+  },
+  {
+   "id": "flamingo_broken",
+   "kind": "prop",
+   "width": 1.01,
+   "height": 0.28,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_flamingo_broken",
+    "type": "prop",
+    "name": "flamingo_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_flamingo_broken.png"
+  },
+  {
+   "id": "floodlight_tower",
+   "kind": "prop",
+   "width": 1.47,
+   "height": 7.31,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_floodlight_tower",
+    "type": "prop",
+    "name": "floodlight_tower",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_floodlight_tower.png"
+  },
+  {
+   "id": "forklift",
+   "kind": "prop",
+   "width": 2.19,
+   "height": 1.88,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_forklift",
+    "type": "prop",
+    "name": "forklift",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_forklift.png"
+  },
+  {
+   "id": "fridge",
+   "kind": "prop",
+   "width": 1.0,
+   "height": 1.64,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_fridge",
+    "type": "prop",
+    "name": "fridge",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_fridge.png"
+  },
+  {
+   "id": "fuel_drum_burst",
+   "kind": "prop",
+   "width": 1.31,
+   "height": 0.92,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_fuel_drum_burst",
+    "type": "prop",
+    "name": "fuel_drum_burst",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_fuel_drum_burst.png"
+  },
+  {
+   "id": "fuel_pump",
+   "kind": "prop",
+   "width": 0.83,
+   "height": 2.0,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_fuel_pump",
+    "type": "prop",
+    "name": "fuel_pump",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_fuel_pump.png"
+  },
+  {
+   "id": "fuel_tank",
+   "kind": "prop",
+   "width": 2.5,
+   "height": 2.36,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_fuel_tank",
+    "type": "prop",
+    "name": "fuel_tank",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_fuel_tank.png"
+  },
+  {
+   "id": "gas_cans",
+   "kind": "prop",
+   "width": 0.68,
+   "height": 0.5,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_gas_cans",
+    "type": "prop",
+    "name": "gas_cans",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_gas_cans.png"
+  },
+  {
+   "id": "gas_cans_broken",
+   "kind": "prop",
+   "width": 1.0,
+   "height": 0.48,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_gas_cans_broken",
+    "type": "prop",
+    "name": "gas_cans_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_gas_cans_broken.png"
+  },
+  {
+   "id": "gator_hide",
+   "kind": "prop",
+   "width": 2.23,
+   "height": 1.8,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_gator_hide",
+    "type": "prop",
+    "name": "gator_hide",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_gator_hide.png"
+  },
+  {
+   "id": "generator",
+   "kind": "prop",
+   "width": 1.75,
+   "height": 1.48,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_generator",
+    "type": "prop",
+    "name": "generator",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_generator.png"
+  },
+  {
+   "id": "giant_gator",
+   "kind": "prop",
+   "width": 4.8,
+   "height": 1.32,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_giant_gator",
+    "type": "prop",
+    "name": "giant_gator",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_giant_gator.png"
+  },
+  {
+   "id": "giant_hog",
+   "kind": "prop",
+   "width": 2.99,
+   "height": 2.42,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_giant_hog",
+    "type": "prop",
+    "name": "giant_hog",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_giant_hog.png"
+  },
+  {
+   "id": "grill",
+   "kind": "prop",
+   "width": 1.09,
+   "height": 1.42,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_grill",
+    "type": "prop",
+    "name": "grill",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_grill.png"
+  },
+  {
+   "id": "hay_wagon",
+   "kind": "prop",
+   "width": 2.05,
+   "height": 1.43,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_hay_wagon",
+    "type": "prop",
+    "name": "hay_wagon",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_hay_wagon.png"
+  },
+  {
+   "id": "headrig",
+   "kind": "prop",
+   "width": 3.95,
+   "height": 2.14,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_headrig",
+    "type": "prop",
+    "name": "headrig",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_headrig.png"
+  },
+  {
+   "id": "heron",
+   "kind": "prop",
+   "width": 0.85,
+   "height": 1.32,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_heron",
+    "type": "prop",
+    "name": "heron",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_heron.png"
+  },
+  {
+   "id": "high_striker",
+   "kind": "prop",
+   "width": 0.8,
+   "height": 3.28,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_high_striker",
+    "type": "prop",
+    "name": "high_striker",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_high_striker.png"
+  },
+  {
+   "id": "hubcap_board",
+   "kind": "prop",
+   "width": 1.84,
+   "height": 1.0,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_hubcap_board",
+    "type": "prop",
+    "name": "hubcap_board",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_hubcap_board.png"
+  },
+  {
+   "id": "hung_pickup",
+   "kind": "prop",
+   "width": 2.43,
+   "height": 1.85,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_hung_pickup",
+    "type": "prop",
+    "name": "hung_pickup",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_hung_pickup.png"
+  },
+  {
+   "id": "ice_chest",
+   "kind": "prop",
+   "width": 0.94,
+   "height": 0.67,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_ice_chest",
+    "type": "prop",
+    "name": "ice_chest",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_ice_chest.png"
+  },
+  {
+   "id": "ice_chest_broken",
+   "kind": "prop",
+   "width": 1.38,
+   "height": 0.64,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_ice_chest_broken",
+    "type": "prop",
+    "name": "ice_chest_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_ice_chest_broken.png"
+  },
+  {
+   "id": "jug_stack",
+   "kind": "prop",
+   "width": 1.08,
+   "height": 0.73,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_jug_stack",
+    "type": "prop",
+    "name": "jug_stack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_jug_stack.png"
+  },
+  {
+   "id": "jug_stack_broken",
+   "kind": "prop",
+   "width": 1.11,
+   "height": 0.64,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_jug_stack_broken",
+    "type": "prop",
+    "name": "jug_stack_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_jug_stack_broken.png"
+  },
+  {
+   "id": "jukebox_rig",
+   "kind": "prop",
+   "width": 1.7,
+   "height": 2.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_jukebox_rig",
+    "type": "prop",
+    "name": "jukebox_rig",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_jukebox_rig.png"
+  },
+  {
+   "id": "lantern_post",
+   "kind": "prop",
+   "width": 0.45,
+   "height": 1.6,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_lantern_post",
+    "type": "prop",
+    "name": "lantern_post",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_lantern_post.png"
+  },
+  {
+   "id": "laundry",
+   "kind": "prop",
+   "width": 2.6,
+   "height": 0.93,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_laundry",
+    "type": "prop",
+    "name": "laundry",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_laundry.png"
+  },
+  {
+   "id": "log_loader",
+   "kind": "prop",
+   "width": 3.7,
+   "height": 2.58,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_log_loader",
+    "type": "prop",
+    "name": "log_loader",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_log_loader.png"
+  },
+  {
+   "id": "log_pile",
+   "kind": "prop",
+   "width": 2.75,
+   "height": 1.49,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_log_pile",
+    "type": "prop",
+    "name": "log_pile",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_log_pile.png"
+  },
+  {
+   "id": "lumber_cart",
+   "kind": "prop",
+   "width": 1.94,
+   "height": 1.21,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_lumber_cart",
+    "type": "prop",
+    "name": "lumber_cart",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_lumber_cart.png"
+  },
+  {
+   "id": "lumber_stack",
+   "kind": "prop",
+   "width": 2.48,
+   "height": 1.07,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_lumber_stack",
+    "type": "prop",
+    "name": "lumber_stack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_lumber_stack.png"
+  },
+  {
+   "id": "magnet_crane",
+   "kind": "prop",
+   "width": 4.53,
+   "height": 5.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_magnet_crane",
+    "type": "prop",
+    "name": "magnet_crane",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_magnet_crane.png"
+  },
+  {
+   "id": "mailbox_row",
+   "kind": "prop",
+   "width": 1.13,
+   "height": 1.19,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_mailbox_row",
+    "type": "prop",
+    "name": "mailbox_row",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_mailbox_row.png"
+  },
+  {
+   "id": "mailbox_row_broken",
+   "kind": "prop",
+   "width": 1.42,
+   "height": 1.2,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_mailbox_row_broken",
+    "type": "prop",
+    "name": "mailbox_row_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_mailbox_row_broken.png"
+  },
+  {
+   "id": "marina_pump",
+   "kind": "prop",
+   "width": 0.71,
+   "height": 1.87,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_marina_pump",
+    "type": "prop",
+    "name": "marina_pump",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_marina_pump.png"
+  },
+  {
+   "id": "mash_barrel",
+   "kind": "prop",
+   "width": 1.63,
+   "height": 1.63,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_mash_barrel",
+    "type": "prop",
+    "name": "mash_barrel",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_mash_barrel.png"
+  },
+  {
+   "id": "mash_barrel_broken",
+   "kind": "prop",
+   "width": 2.0,
+   "height": 1.02,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_mash_barrel_broken",
+    "type": "prop",
+    "name": "mash_barrel_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_mash_barrel_broken.png"
+  },
+  {
+   "id": "mine_cart",
+   "kind": "prop",
+   "width": 2.43,
+   "height": 1.14,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_mine_cart",
+    "type": "prop",
+    "name": "mine_cart",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_mine_cart.png"
+  },
+  {
+   "id": "monster_truck",
+   "kind": "prop",
+   "width": 3.13,
+   "height": 2.71,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_monster_truck",
+    "type": "prop",
+    "name": "monster_truck",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_monster_truck.png"
+  },
+  {
+   "id": "net_rack",
+   "kind": "prop",
+   "width": 1.79,
+   "height": 2.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_net_rack",
+    "type": "prop",
+    "name": "net_rack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_net_rack.png"
+  },
+  {
+   "id": "nitro_rack",
+   "kind": "prop",
+   "width": 0.93,
+   "height": 1.29,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_nitro_rack",
+    "type": "prop",
+    "name": "nitro_rack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_nitro_rack.png"
+  },
+  {
+   "id": "nitro_rack_broken",
+   "kind": "prop",
+   "width": 1.06,
+   "height": 1.37,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_nitro_rack_broken",
+    "type": "prop",
+    "name": "nitro_rack_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_nitro_rack_broken.png"
+  },
+  {
+   "id": "outboard_stand",
+   "kind": "prop",
+   "width": 1.05,
+   "height": 1.21,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_outboard_stand",
+    "type": "prop",
+    "name": "outboard_stand",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_outboard_stand.png"
+  },
+  {
+   "id": "outhouse",
+   "kind": "prop",
+   "width": 1.51,
+   "height": 2.4,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_outhouse",
+    "type": "prop",
+    "name": "outhouse",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_outhouse.png"
+  },
+  {
+   "id": "pa_horns",
+   "kind": "prop",
+   "width": 1.25,
+   "height": 3.29,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_pa_horns",
+    "type": "prop",
+    "name": "pa_horns",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_pa_horns.png"
+  },
+  {
+   "id": "pallet_stack",
+   "kind": "prop",
+   "width": 1.42,
+   "height": 0.85,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_pallet_stack",
+    "type": "prop",
+    "name": "pallet_stack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_pallet_stack.png"
+  },
+  {
+   "id": "pallet_stack_broken",
+   "kind": "prop",
+   "width": 1.97,
+   "height": 0.52,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_pallet_stack_broken",
+    "type": "prop",
+    "name": "pallet_stack_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_pallet_stack_broken.png"
+  },
+  {
+   "id": "picnic_table",
+   "kind": "prop",
+   "width": 1.96,
+   "height": 1.0,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_picnic_table",
+    "type": "prop",
+    "name": "picnic_table",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_picnic_table.png"
+  },
+  {
+   "id": "pirogue",
+   "kind": "prop",
+   "width": 2.21,
+   "height": 0.4,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_pirogue",
+    "type": "prop",
+    "name": "pirogue",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_pirogue.png"
+  },
+  {
+   "id": "pod",
+   "kind": "prop",
+   "width": 1.35,
+   "height": 2.15,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_pod",
+    "type": "prop",
+    "name": "pod",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_pod.png"
+  },
+  {
+   "id": "porch_couch",
+   "kind": "prop",
+   "width": 1.78,
+   "height": 1.08,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_porch_couch",
+    "type": "prop",
+    "name": "porch_couch",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_porch_couch.png"
+  },
+  {
+   "id": "port_a_john",
+   "kind": "prop",
+   "width": 1.35,
+   "height": 2.38,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_port_a_john",
+    "type": "prop",
+    "name": "port_a_john",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_port_a_john.png"
+  },
+  {
+   "id": "powder_shelf",
+   "kind": "prop",
+   "width": 1.78,
+   "height": 2.25,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_powder_shelf",
+    "type": "prop",
+    "name": "powder_shelf",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_powder_shelf.png"
+  },
+  {
+   "id": "prize_bear",
+   "kind": "prop",
+   "width": 1.0,
+   "height": 1.44,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_prize_bear",
+    "type": "prop",
+    "name": "prize_bear",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_prize_bear.png"
+  },
+  {
+   "id": "prize_bear_broken",
+   "kind": "prop",
+   "width": 1.64,
+   "height": 0.93,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_prize_bear_broken",
+    "type": "prop",
+    "name": "prize_bear_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_prize_bear_broken.png"
+  },
+  {
+   "id": "probe_rack",
+   "kind": "prop",
+   "width": 1.7,
+   "height": 1.1,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_probe_rack",
+    "type": "prop",
+    "name": "probe_rack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_probe_rack.png"
+  },
+  {
+   "id": "probe_table",
+   "kind": "prop",
+   "width": 1.98,
+   "height": 2.06,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_probe_table",
+    "type": "prop",
+    "name": "probe_table",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_probe_table.png"
+  },
+  {
+   "id": "propane_tank",
+   "kind": "prop",
+   "width": 1.79,
+   "height": 1.21,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_propane_tank",
+    "type": "prop",
+    "name": "propane_tank",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_propane_tank.png"
+  },
+  {
+   "id": "propane_tank_broken",
+   "kind": "prop",
+   "width": 1.78,
+   "height": 1.27,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_propane_tank_broken",
+    "type": "prop",
+    "name": "propane_tank_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_propane_tank_broken.png"
+  },
+  {
+   "id": "pylon",
+   "kind": "prop",
+   "width": 0.44,
+   "height": 1.55,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_pylon",
+    "type": "prop",
+    "name": "pylon",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_pylon.png"
+  },
+  {
+   "id": "quest_bell_off",
+   "kind": "prop",
+   "width": 1.02,
+   "height": 1.49,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_bell_off",
+    "type": "prop",
+    "name": "quest_bell_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_bell_off.png"
+  },
+  {
+   "id": "quest_bell_on",
+   "kind": "prop",
+   "width": 1.02,
+   "height": 1.49,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_bell_on",
+    "type": "prop",
+    "name": "quest_bell_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_bell_on.png"
+  },
+  {
+   "id": "quest_bolt_off",
+   "kind": "prop",
+   "width": 0.84,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_bolt_off",
+    "type": "prop",
+    "name": "quest_bolt_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_bolt_off.png"
+  },
+  {
+   "id": "quest_bolt_on",
+   "kind": "prop",
+   "width": 0.84,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_bolt_on",
+    "type": "prop",
+    "name": "quest_bolt_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_bolt_on.png"
+  },
+  {
+   "id": "quest_brake_off",
+   "kind": "prop",
+   "width": 1.16,
+   "height": 1.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_brake_off",
+    "type": "prop",
+    "name": "quest_brake_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_brake_off.png"
+  },
+  {
+   "id": "quest_brake_on",
+   "kind": "prop",
+   "width": 1.16,
+   "height": 1.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_brake_on",
+    "type": "prop",
+    "name": "quest_brake_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_brake_on.png"
+  },
+  {
+   "id": "quest_condenser_off",
+   "kind": "prop",
+   "width": 0.72,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_condenser_off",
+    "type": "prop",
+    "name": "quest_condenser_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_condenser_off.png"
+  },
+  {
+   "id": "quest_condenser_on",
+   "kind": "prop",
+   "width": 0.72,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_condenser_on",
+    "type": "prop",
+    "name": "quest_condenser_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_condenser_on.png"
+  },
+  {
+   "id": "quest_estop_off",
+   "kind": "prop",
+   "width": 0.57,
+   "height": 1.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_estop_off",
+    "type": "prop",
+    "name": "quest_estop_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_estop_off.png"
+  },
+  {
+   "id": "quest_estop_on",
+   "kind": "prop",
+   "width": 0.57,
+   "height": 1.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_estop_on",
+    "type": "prop",
+    "name": "quest_estop_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_estop_on.png"
+  },
+  {
+   "id": "quest_exit_fair_off",
+   "kind": "prop",
+   "width": 1.13,
+   "height": 1.68,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_exit_fair_off",
+    "type": "prop",
+    "name": "quest_exit_fair_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_exit_fair_off.png"
+  },
+  {
+   "id": "quest_exit_fair_on",
+   "kind": "prop",
+   "width": 1.13,
+   "height": 1.68,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_exit_fair_on",
+    "type": "prop",
+    "name": "quest_exit_fair_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_exit_fair_on.png"
+  },
+  {
+   "id": "quest_exit_flag_off",
+   "kind": "prop",
+   "width": 0.84,
+   "height": 1.7,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_exit_flag_off",
+    "type": "prop",
+    "name": "quest_exit_flag_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_exit_flag_off.png"
+  },
+  {
+   "id": "quest_exit_flag_on",
+   "kind": "prop",
+   "width": 0.84,
+   "height": 1.7,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_exit_flag_on",
+    "type": "prop",
+    "name": "quest_exit_flag_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_exit_flag_on.png"
+  },
+  {
+   "id": "quest_exit_off",
+   "kind": "prop",
+   "width": 1.13,
+   "height": 1.68,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_exit_off",
+    "type": "prop",
+    "name": "quest_exit_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_exit_off.png"
+  },
+  {
+   "id": "quest_exit_on",
+   "kind": "prop",
+   "width": 1.13,
+   "height": 1.68,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_exit_on",
+    "type": "prop",
+    "name": "quest_exit_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_exit_on.png"
+  },
+  {
+   "id": "quest_flag_off",
+   "kind": "prop",
+   "width": 0.69,
+   "height": 1.39,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_flag_off",
+    "type": "prop",
+    "name": "quest_flag_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_flag_off.png"
+  },
+  {
+   "id": "quest_flag_on",
+   "kind": "prop",
+   "width": 0.69,
+   "height": 1.39,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_flag_on",
+    "type": "prop",
+    "name": "quest_flag_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_flag_on.png"
+  },
+  {
+   "id": "quest_fuel_drum_off",
+   "kind": "prop",
+   "width": 1.12,
+   "height": 1.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_fuel_drum_off",
+    "type": "prop",
+    "name": "quest_fuel_drum_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_fuel_drum_off.png"
+  },
+  {
+   "id": "quest_fuel_drum_on",
+   "kind": "prop",
+   "width": 1.12,
+   "height": 1.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_fuel_drum_on",
+    "type": "prop",
+    "name": "quest_fuel_drum_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_fuel_drum_on.png"
+  },
+  {
+   "id": "quest_fuel_dump_off",
+   "kind": "prop",
+   "width": 0.69,
+   "height": 1.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_fuel_dump_off",
+    "type": "prop",
+    "name": "quest_fuel_dump_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_fuel_dump_off.png"
+  },
+  {
+   "id": "quest_fuel_dump_on",
+   "kind": "prop",
+   "width": 0.69,
+   "height": 1.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_fuel_dump_on",
+    "type": "prop",
+    "name": "quest_fuel_dump_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_fuel_dump_on.png"
+  },
+  {
+   "id": "quest_generator_off",
+   "kind": "prop",
+   "width": 1.16,
+   "height": 1.39,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_generator_off",
+    "type": "prop",
+    "name": "quest_generator_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_generator_off.png"
+  },
+  {
+   "id": "quest_generator_on",
+   "kind": "prop",
+   "width": 1.16,
+   "height": 1.39,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_generator_on",
+    "type": "prop",
+    "name": "quest_generator_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_generator_on.png"
+  },
+  {
+   "id": "quest_ignition_off",
+   "kind": "prop",
+   "width": 0.45,
+   "height": 1.29,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ignition_off",
+    "type": "prop",
+    "name": "quest_ignition_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ignition_off.png"
+  },
+  {
+   "id": "quest_ignition_on",
+   "kind": "prop",
+   "width": 0.45,
+   "height": 1.29,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ignition_on",
+    "type": "prop",
+    "name": "quest_ignition_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ignition_on.png"
+  },
+  {
+   "id": "quest_latch_off",
+   "kind": "prop",
+   "width": 1.32,
+   "height": 1.17,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_latch_off",
+    "type": "prop",
+    "name": "quest_latch_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_latch_off.png"
+  },
+  {
+   "id": "quest_latch_on",
+   "kind": "prop",
+   "width": 1.32,
+   "height": 1.17,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_latch_on",
+    "type": "prop",
+    "name": "quest_latch_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_latch_on.png"
+  },
+  {
+   "id": "quest_pa_rig_off",
+   "kind": "prop",
+   "width": 0.86,
+   "height": 1.53,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_pa_rig_off",
+    "type": "prop",
+    "name": "quest_pa_rig_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_pa_rig_off.png"
+  },
+  {
+   "id": "quest_pa_rig_on",
+   "kind": "prop",
+   "width": 0.86,
+   "height": 1.53,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_pa_rig_on",
+    "type": "prop",
+    "name": "quest_pa_rig_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_pa_rig_on.png"
+  },
+  {
+   "id": "quest_patchbay_off",
+   "kind": "prop",
+   "width": 0.67,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_patchbay_off",
+    "type": "prop",
+    "name": "quest_patchbay_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_patchbay_off.png"
+  },
+  {
+   "id": "quest_patchbay_on",
+   "kind": "prop",
+   "width": 0.67,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_patchbay_on",
+    "type": "prop",
+    "name": "quest_patchbay_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_patchbay_on.png"
+  },
+  {
+   "id": "quest_relay_off",
+   "kind": "prop",
+   "width": 0.77,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_relay_off",
+    "type": "prop",
+    "name": "quest_relay_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_relay_off.png"
+  },
+  {
+   "id": "quest_relay_on",
+   "kind": "prop",
+   "width": 0.77,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_relay_on",
+    "type": "prop",
+    "name": "quest_relay_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_relay_on.png"
+  },
+  {
+   "id": "quest_ship_drain_off",
+   "kind": "prop",
+   "width": 0.57,
+   "height": 1.36,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ship_drain_off",
+    "type": "prop",
+    "name": "quest_ship_drain_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ship_drain_off.png"
+  },
+  {
+   "id": "quest_ship_drain_on",
+   "kind": "prop",
+   "width": 0.57,
+   "height": 1.36,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ship_drain_on",
+    "type": "prop",
+    "name": "quest_ship_drain_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ship_drain_on.png"
+  },
+  {
+   "id": "quest_ship_drive_off",
+   "kind": "prop",
+   "width": 0.78,
+   "height": 1.37,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ship_drive_off",
+    "type": "prop",
+    "name": "quest_ship_drive_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ship_drive_off.png"
+  },
+  {
+   "id": "quest_ship_drive_on",
+   "kind": "prop",
+   "width": 0.78,
+   "height": 1.37,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ship_drive_on",
+    "type": "prop",
+    "name": "quest_ship_drive_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ship_drive_on.png"
+  },
+  {
+   "id": "quest_ship_iris_off",
+   "kind": "prop",
+   "width": 0.72,
+   "height": 1.15,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ship_iris_off",
+    "type": "prop",
+    "name": "quest_ship_iris_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ship_iris_off.png"
+  },
+  {
+   "id": "quest_ship_iris_on",
+   "kind": "prop",
+   "width": 0.72,
+   "height": 1.15,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ship_iris_on",
+    "type": "prop",
+    "name": "quest_ship_iris_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ship_iris_on.png"
+  },
+  {
+   "id": "quest_ship_launch_off",
+   "kind": "prop",
+   "width": 0.66,
+   "height": 1.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ship_launch_off",
+    "type": "prop",
+    "name": "quest_ship_launch_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ship_launch_off.png"
+  },
+  {
+   "id": "quest_ship_launch_on",
+   "kind": "prop",
+   "width": 0.66,
+   "height": 1.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_ship_launch_on",
+    "type": "prop",
+    "name": "quest_ship_launch_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_ship_launch_on.png"
+  },
+  {
+   "id": "quest_switch_bayou_off",
+   "kind": "prop",
+   "width": 0.61,
+   "height": 1.36,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_switch_bayou_off",
+    "type": "prop",
+    "name": "quest_switch_bayou_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_switch_bayou_off.png"
+  },
+  {
+   "id": "quest_switch_bayou_on",
+   "kind": "prop",
+   "width": 0.61,
+   "height": 1.36,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_switch_bayou_on",
+    "type": "prop",
+    "name": "quest_switch_bayou_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_switch_bayou_on.png"
+  },
+  {
+   "id": "quest_switch_fair_off",
+   "kind": "prop",
+   "width": 0.63,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_switch_fair_off",
+    "type": "prop",
+    "name": "quest_switch_fair_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_switch_fair_off.png"
+  },
+  {
+   "id": "quest_switch_fair_on",
+   "kind": "prop",
+   "width": 0.63,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_switch_fair_on",
+    "type": "prop",
+    "name": "quest_switch_fair_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_switch_fair_on.png"
+  },
+  {
+   "id": "quest_switch_off",
+   "kind": "prop",
+   "width": 0.63,
+   "height": 1.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_switch_off",
+    "type": "prop",
+    "name": "quest_switch_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_switch_off.png"
+  },
+  {
+   "id": "quest_switch_on",
+   "kind": "prop",
+   "width": 0.63,
+   "height": 1.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_switch_on",
+    "type": "prop",
+    "name": "quest_switch_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_switch_on.png"
+  },
+  {
+   "id": "quest_switch_speedway_off",
+   "kind": "prop",
+   "width": 0.63,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_switch_speedway_off",
+    "type": "prop",
+    "name": "quest_switch_speedway_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_switch_speedway_off.png"
+  },
+  {
+   "id": "quest_switch_speedway_on",
+   "kind": "prop",
+   "width": 0.63,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_switch_speedway_on",
+    "type": "prop",
+    "name": "quest_switch_speedway_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_switch_speedway_on.png"
+  },
+  {
+   "id": "quest_valve_off",
+   "kind": "prop",
+   "width": 0.7,
+   "height": 1.22,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_valve_off",
+    "type": "prop",
+    "name": "quest_valve_off",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_valve_off.png"
+  },
+  {
+   "id": "quest_valve_on",
+   "kind": "prop",
+   "width": 0.7,
+   "height": 1.22,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_quest_valve_on",
+    "type": "prop",
+    "name": "quest_valve_on",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_quest_valve_on.png"
+  },
+  {
+   "id": "race_car_0",
+   "kind": "prop",
+   "width": 1.21,
+   "height": 1.09,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_race_car_0",
+    "type": "prop",
+    "name": "race_car_0",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_race_car_0.png"
+  },
+  {
+   "id": "race_car_1",
+   "kind": "prop",
+   "width": 2.47,
+   "height": 1.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_race_car_1",
+    "type": "prop",
+    "name": "race_car_1",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_race_car_1.png"
+  },
+  {
+   "id": "race_car_2",
+   "kind": "prop",
+   "width": 2.59,
+   "height": 1.02,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_race_car_2",
+    "type": "prop",
+    "name": "race_car_2",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_race_car_2.png"
+  },
+  {
+   "id": "race_car_3",
+   "kind": "prop",
+   "width": 2.47,
+   "height": 1.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_race_car_3",
+    "type": "prop",
+    "name": "race_car_3",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_race_car_3.png"
+  },
+  {
+   "id": "race_car_4",
+   "kind": "prop",
+   "width": 1.21,
+   "height": 1.0,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_race_car_4",
+    "type": "prop",
+    "name": "race_car_4",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_race_car_4.png"
+  },
+  {
+   "id": "race_car_5",
+   "kind": "prop",
+   "width": 2.47,
+   "height": 1.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_race_car_5",
+    "type": "prop",
+    "name": "race_car_5",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_race_car_5.png"
+  },
+  {
+   "id": "race_car_6",
+   "kind": "prop",
+   "width": 2.59,
+   "height": 1.02,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_race_car_6",
+    "type": "prop",
+    "name": "race_car_6",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_race_car_6.png"
+  },
+  {
+   "id": "race_car_7",
+   "kind": "prop",
+   "width": 2.47,
+   "height": 1.12,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_race_car_7",
+    "type": "prop",
+    "name": "race_car_7",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_race_car_7.png"
+  },
+  {
+   "id": "range_ammo_crate",
+   "kind": "prop",
+   "width": 1.02,
+   "height": 0.81,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_ammo_crate",
+    "type": "prop",
+    "name": "range_ammo_crate",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_ammo_crate.png"
+  },
+  {
+   "id": "range_ammo_crate_broken",
+   "kind": "prop",
+   "width": 1.79,
+   "height": 0.51,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_ammo_crate_broken",
+    "type": "prop",
+    "name": "range_ammo_crate_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_ammo_crate_broken.png"
+  },
+  {
+   "id": "range_bench",
+   "kind": "prop",
+   "width": 1.52,
+   "height": 1.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_bench",
+    "type": "prop",
+    "name": "range_bench",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_bench.png"
+  },
+  {
+   "id": "range_cow_target",
+   "kind": "prop",
+   "width": 1.64,
+   "height": 1.3,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_cow_target",
+    "type": "prop",
+    "name": "range_cow_target",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_cow_target.png"
+  },
+  {
+   "id": "range_duck",
+   "kind": "prop",
+   "width": 0.72,
+   "height": 0.56,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_duck",
+    "type": "prop",
+    "name": "range_duck",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_duck.png"
+  },
+  {
+   "id": "range_dummy",
+   "kind": "prop",
+   "width": 1.28,
+   "height": 1.72,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_dummy",
+    "type": "prop",
+    "name": "range_dummy",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_dummy.png"
+  },
+  {
+   "id": "range_floodlight",
+   "kind": "prop",
+   "width": 1.2,
+   "height": 4.39,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_floodlight",
+    "type": "prop",
+    "name": "range_floodlight",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_floodlight.png"
+  },
+  {
+   "id": "range_gong",
+   "kind": "prop",
+   "width": 1.38,
+   "height": 1.53,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_gong",
+    "type": "prop",
+    "name": "range_gong",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_gong.png"
+  },
+  {
+   "id": "range_gun_rack",
+   "kind": "prop",
+   "width": 1.56,
+   "height": 1.68,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_gun_rack",
+    "type": "prop",
+    "name": "range_gun_rack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_gun_rack.png"
+  },
+  {
+   "id": "range_hay_bale",
+   "kind": "prop",
+   "width": 1.13,
+   "height": 1.0,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_hay_bale",
+    "type": "prop",
+    "name": "range_hay_bale",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_hay_bale.png"
+  },
+  {
+   "id": "range_hay_bale_broken",
+   "kind": "prop",
+   "width": 1.5,
+   "height": 0.64,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_hay_bale_broken",
+    "type": "prop",
+    "name": "range_hay_bale_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_hay_bale_broken.png"
+  },
+  {
+   "id": "range_lever",
+   "kind": "prop",
+   "width": 0.43,
+   "height": 1.41,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_lever",
+    "type": "prop",
+    "name": "range_lever",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_lever.png"
+  },
+  {
+   "id": "range_loudspeaker",
+   "kind": "prop",
+   "width": 1.01,
+   "height": 4.07,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_loudspeaker",
+    "type": "prop",
+    "name": "range_loudspeaker",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_loudspeaker.png"
+  },
+  {
+   "id": "range_pin",
+   "kind": "prop",
+   "width": 0.13,
+   "height": 0.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin",
+    "type": "prop",
+    "name": "range_pin",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin.png"
+  },
+  {
+   "id": "range_pin_down",
+   "kind": "prop",
+   "width": 0.36,
+   "height": 0.14,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_pin_down",
+    "type": "prop",
+    "name": "range_pin_down",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_pin_down.png"
+  },
+  {
+   "id": "range_sandbags",
+   "kind": "prop",
+   "width": 1.58,
+   "height": 0.71,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_sandbags",
+    "type": "prop",
+    "name": "range_sandbags",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_sandbags.png"
+  },
+  {
+   "id": "range_scoreboard",
+   "kind": "prop",
+   "width": 1.9,
+   "height": 2.4,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_scoreboard",
+    "type": "prop",
+    "name": "range_scoreboard",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_scoreboard.png"
+  },
+  {
+   "id": "range_target",
+   "kind": "prop",
+   "width": 1.04,
+   "height": 1.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_range_target",
+    "type": "prop",
+    "name": "range_target",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_range_target.png"
+  },
+  {
+   "id": "rock_chute",
+   "kind": "prop",
+   "width": 3.06,
+   "height": 2.91,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_rock_chute",
+    "type": "prop",
+    "name": "rock_chute",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_rock_chute.png"
+  },
+  {
+   "id": "rocker",
+   "kind": "prop",
+   "width": 1.02,
+   "height": 1.19,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_rocker",
+    "type": "prop",
+    "name": "rocker",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_rocker.png"
+  },
+  {
+   "id": "safe_open",
+   "kind": "prop",
+   "width": 1.12,
+   "height": 0.93,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_safe_open",
+    "type": "prop",
+    "name": "safe_open",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_safe_open.png"
+  },
+  {
+   "id": "saucer_wreck",
+   "kind": "prop",
+   "width": 4.25,
+   "height": 1.79,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_saucer_wreck",
+    "type": "prop",
+    "name": "saucer_wreck",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_saucer_wreck.png"
+  },
+  {
+   "id": "saw_blade",
+   "kind": "prop",
+   "width": 1.98,
+   "height": 2.34,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_saw_blade",
+    "type": "prop",
+    "name": "saw_blade",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_saw_blade.png"
+  },
+  {
+   "id": "sawdust_pile",
+   "kind": "prop",
+   "width": 2.0,
+   "height": 0.95,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_sawdust_pile",
+    "type": "prop",
+    "name": "sawdust_pile",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_sawdust_pile.png"
+  },
+  {
+   "id": "scarecrow",
+   "kind": "prop",
+   "width": 1.5,
+   "height": 2.1,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_scarecrow",
+    "type": "prop",
+    "name": "scarecrow",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_scarecrow.png"
+  },
+  {
+   "id": "school_bus",
+   "kind": "prop",
+   "width": 5.97,
+   "height": 2.09,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_school_bus",
+    "type": "prop",
+    "name": "school_bus",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_school_bus.png"
+  },
+  {
+   "id": "searchlight",
+   "kind": "prop",
+   "width": 0.95,
+   "height": 1.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_searchlight",
+    "type": "prop",
+    "name": "searchlight",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_searchlight.png"
+  },
+  {
+   "id": "semi_tractor",
+   "kind": "prop",
+   "width": 3.29,
+   "height": 3.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_semi_tractor",
+    "type": "prop",
+    "name": "semi_tractor",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_semi_tractor.png"
+  },
+  {
+   "id": "shine_tank",
+   "kind": "prop",
+   "width": 1.93,
+   "height": 1.81,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_shine_tank",
+    "type": "prop",
+    "name": "shine_tank",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_shine_tank.png"
+  },
+  {
+   "id": "ship_engine",
+   "kind": "prop",
+   "width": 1.95,
+   "height": 2.7,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_ship_engine",
+    "type": "prop",
+    "name": "ship_engine",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_ship_engine.png"
+  },
+  {
+   "id": "skiff",
+   "kind": "prop",
+   "width": 3.49,
+   "height": 0.93,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_skiff",
+    "type": "prop",
+    "name": "skiff",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_skiff.png"
+  },
+  {
+   "id": "skull_post",
+   "kind": "prop",
+   "width": 0.68,
+   "height": 1.37,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_skull_post",
+    "type": "prop",
+    "name": "skull_post",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_skull_post.png"
+  },
+  {
+   "id": "sorting_table",
+   "kind": "prop",
+   "width": 2.75,
+   "height": 1.23,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_sorting_table",
+    "type": "prop",
+    "name": "sorting_table",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_sorting_table.png"
+  },
+  {
+   "id": "specimen_jar",
+   "kind": "prop",
+   "width": 0.54,
+   "height": 1.35,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_specimen_jar",
+    "type": "prop",
+    "name": "specimen_jar",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_specimen_jar.png"
+  },
+  {
+   "id": "specimen_jar_broken",
+   "kind": "prop",
+   "width": 0.99,
+   "height": 1.16,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_specimen_jar_broken",
+    "type": "prop",
+    "name": "specimen_jar_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_specimen_jar_broken.png"
+  },
+  {
+   "id": "still",
+   "kind": "prop",
+   "width": 1.49,
+   "height": 1.3,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_still",
+    "type": "prop",
+    "name": "still",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_still.png"
+  },
+  {
+   "id": "stock_car",
+   "kind": "prop",
+   "width": 2.71,
+   "height": 1.05,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_stock_car",
+    "type": "prop",
+    "name": "stock_car",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_stock_car.png"
+  },
+  {
+   "id": "stock_car_b",
+   "kind": "prop",
+   "width": 2.49,
+   "height": 1.14,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_stock_car_b",
+    "type": "prop",
+    "name": "stock_car_b",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_stock_car_b.png"
+  },
+  {
+   "id": "stone_blocks",
+   "kind": "prop",
+   "width": 2.51,
+   "height": 1.88,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_stone_blocks",
+    "type": "prop",
+    "name": "stone_blocks",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_stone_blocks.png"
+  },
+  {
+   "id": "stone_sledge",
+   "kind": "prop",
+   "width": 2.75,
+   "height": 1.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_stone_sledge",
+    "type": "prop",
+    "name": "stone_sledge",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_stone_sledge.png"
+  },
+  {
+   "id": "strongbox",
+   "kind": "prop",
+   "width": 0.72,
+   "height": 0.61,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_strongbox",
+    "type": "prop",
+    "name": "strongbox",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_strongbox.png"
+  },
+  {
+   "id": "tire_pile",
+   "kind": "prop",
+   "width": 1.92,
+   "height": 1.23,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tire_pile",
+    "type": "prop",
+    "name": "tire_pile",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tire_pile.png"
+  },
+  {
+   "id": "tire_stack",
+   "kind": "prop",
+   "width": 0.75,
+   "height": 0.89,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tire_stack",
+    "type": "prop",
+    "name": "tire_stack",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tire_stack.png"
+  },
+  {
+   "id": "tnt_crate",
+   "kind": "prop",
+   "width": 0.99,
+   "height": 0.9,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tnt_crate",
+    "type": "prop",
+    "name": "tnt_crate",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tnt_crate.png"
+  },
+  {
+   "id": "tnt_crate_broken",
+   "kind": "prop",
+   "width": 1.54,
+   "height": 0.53,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tnt_crate_broken",
+    "type": "prop",
+    "name": "tnt_crate_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tnt_crate_broken.png"
+  },
+  {
+   "id": "tombstone_a",
+   "kind": "prop",
+   "width": 0.54,
+   "height": 0.77,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tombstone_a",
+    "type": "prop",
+    "name": "tombstone_a",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tombstone_a.png"
+  },
+  {
+   "id": "tombstone_b",
+   "kind": "prop",
+   "width": 0.52,
+   "height": 0.85,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tombstone_b",
+    "type": "prop",
+    "name": "tombstone_b",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tombstone_b.png"
+  },
+  {
+   "id": "tombstone_c",
+   "kind": "prop",
+   "width": 0.61,
+   "height": 0.65,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tombstone_c",
+    "type": "prop",
+    "name": "tombstone_c",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tombstone_c.png"
+  },
+  {
+   "id": "tool_chest",
+   "kind": "prop",
+   "width": 0.98,
+   "height": 1.33,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tool_chest",
+    "type": "prop",
+    "name": "tool_chest",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tool_chest.png"
+  },
+  {
+   "id": "tow_truck",
+   "kind": "prop",
+   "width": 3.19,
+   "height": 1.9,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tow_truck",
+    "type": "prop",
+    "name": "tow_truck",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tow_truck.png"
+  },
+  {
+   "id": "tractor",
+   "kind": "prop",
+   "width": 2.09,
+   "height": 2.08,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_tractor",
+    "type": "prop",
+    "name": "tractor",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_tractor.png"
+  },
+  {
+   "id": "trophy",
+   "kind": "prop",
+   "width": 0.81,
+   "height": 1.46,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_trophy",
+    "type": "prop",
+    "name": "trophy",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_trophy.png"
+  },
+  {
+   "id": "trophy_gnome",
+   "kind": "prop",
+   "width": 0.89,
+   "height": 1.6,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_trophy_gnome",
+    "type": "prop",
+    "name": "trophy_gnome",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_trophy_gnome.png"
+  },
+  {
+   "id": "truck_blocks",
+   "kind": "prop",
+   "width": 2.13,
+   "height": 1.49,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_truck_blocks",
+    "type": "prop",
+    "name": "truck_blocks",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_truck_blocks.png"
+  },
+  {
+   "id": "warning_barrel",
+   "kind": "prop",
+   "width": 0.61,
+   "height": 0.98,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_warning_barrel",
+    "type": "prop",
+    "name": "warning_barrel",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_warning_barrel.png"
+  },
+  {
+   "id": "warning_barrel_broken",
+   "kind": "prop",
+   "width": 1.29,
+   "height": 0.66,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_warning_barrel_broken",
+    "type": "prop",
+    "name": "warning_barrel_broken",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_warning_barrel_broken.png"
+  },
+  {
+   "id": "washer",
+   "kind": "prop",
+   "width": 0.95,
+   "height": 1.16,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_washer",
+    "type": "prop",
+    "name": "washer",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_washer.png"
+  },
+  {
+   "id": "wheelbarrow",
+   "kind": "prop",
+   "width": 1.14,
+   "height": 0.74,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_wheelbarrow",
+    "type": "prop",
+    "name": "wheelbarrow",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_wheelbarrow.png"
+  },
+  {
+   "id": "wreck_pickup",
+   "kind": "prop",
+   "width": 2.08,
+   "height": 1.39,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_wreck_pickup",
+    "type": "prop",
+    "name": "wreck_pickup",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_wreck_pickup.png"
+  },
+  {
+   "id": "wreck_sedan",
+   "kind": "prop",
+   "width": 2.13,
+   "height": 1.28,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_wreck_sedan",
+    "type": "prop",
+    "name": "wreck_sedan",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_wreck_sedan.png"
+  },
+  {
+   "id": "wrecked_derby",
+   "kind": "prop",
+   "width": 2.2,
+   "height": 1.43,
+   "collision": "none unless the plan gives it a base (prop objects stand free; add a fixture to block)",
+   "example": {
+    "id": "my_wrecked_derby",
+    "type": "prop",
+    "name": "wrecked_derby",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/prop_wrecked_derby.png"
+  },
+  {
+   "id": "barrel",
+   "kind": "flat prop",
+   "height": 1.04,
+   "collision": "none",
+   "example": {
+    "id": "my_barrel",
+    "type": "prop",
+    "name": "barrel",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_barrel.png"
+  },
+  {
+   "id": "hay",
+   "kind": "flat prop",
+   "height": 0.91,
+   "collision": "none",
+   "example": {
+    "id": "my_hay",
+    "type": "prop",
+    "name": "hay",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_hay.png"
+  },
+  {
+   "id": "pump",
+   "kind": "flat prop",
+   "height": 1.43,
+   "collision": "none",
+   "example": {
+    "id": "my_pump",
+    "type": "prop",
+    "name": "pump",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_pump.png"
+  },
+  {
+   "id": "pump_b",
+   "kind": "flat prop",
+   "height": 1.43,
+   "collision": "none",
+   "example": {
+    "id": "my_pump_b",
+    "type": "prop",
+    "name": "pump_b",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_pump_b.png"
+  },
+  {
+   "id": "sink",
+   "kind": "flat prop",
+   "height": 0.89,
+   "collision": "none",
+   "example": {
+    "id": "my_sink",
+    "type": "prop",
+    "name": "sink",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_sink.png"
+  },
+  {
+   "id": "crate",
+   "kind": "flat prop",
+   "height": 0.75,
+   "collision": "none",
+   "example": {
+    "id": "my_crate",
+    "type": "prop",
+    "name": "crate",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_crate.png"
+  },
+  {
+   "id": "jukebox",
+   "kind": "flat prop",
+   "height": 1.45,
+   "collision": "none",
+   "example": {
+    "id": "my_jukebox",
+    "type": "prop",
+    "name": "jukebox",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_jukebox.png"
+  },
+  {
+   "id": "lamp",
+   "kind": "flat prop",
+   "height": 0.24,
+   "collision": "none",
+   "example": {
+    "id": "my_lamp",
+    "type": "prop",
+    "name": "lamp",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_lamp.png"
+  },
+  {
+   "id": "tree",
+   "kind": "flat prop",
+   "height": 3.65,
+   "collision": "none",
+   "example": {
+    "id": "my_tree",
+    "type": "prop",
+    "name": "tree",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_tree.png"
+  },
+  {
+   "id": "tree_b",
+   "kind": "flat prop",
+   "height": 3.65,
+   "collision": "none",
+   "example": {
+    "id": "my_tree_b",
+    "type": "prop",
+    "name": "tree_b",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_tree_b.png"
+  },
+  {
+   "id": "utilitypole",
+   "kind": "flat prop",
+   "height": 3.85,
+   "collision": "none",
+   "example": {
+    "id": "my_utilitypole",
+    "type": "prop",
+    "name": "utilitypole",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_utilitypole.png"
+  },
+  {
+   "id": "pickup_truck",
+   "kind": "flat prop",
+   "height": 1.31,
+   "collision": "none",
+   "example": {
+    "id": "my_pickup_truck",
+    "type": "prop",
+    "name": "pickup_truck",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_pickup_truck.png"
+  },
+  {
+   "id": "pickup_truck_b",
+   "kind": "flat prop",
+   "height": 1.2,
+   "collision": "none",
+   "example": {
+    "id": "my_pickup_truck_b",
+    "type": "prop",
+    "name": "pickup_truck_b",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_pickup_truck_b.png"
+  },
+  {
+   "id": "roadsign",
+   "kind": "flat prop",
+   "height": 1.67,
+   "collision": "none",
+   "example": {
+    "id": "my_roadsign",
+    "type": "prop",
+    "name": "roadsign",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_roadsign.png"
+  },
+  {
+   "id": "bleacher_sign",
+   "kind": "flat prop",
+   "height": 1.58,
+   "collision": "none",
+   "example": {
+    "id": "my_bleacher_sign",
+    "type": "prop",
+    "name": "bleacher_sign",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_bleacher_sign.png"
+  },
+  {
+   "id": "mailbox",
+   "kind": "flat prop",
+   "height": 1.18,
+   "collision": "none",
+   "example": {
+    "id": "my_mailbox",
+    "type": "prop",
+    "name": "mailbox",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_mailbox.png"
+  },
+  {
+   "id": "tire",
+   "kind": "flat prop",
+   "height": 0.4,
+   "collision": "none",
+   "example": {
+    "id": "my_tire",
+    "type": "prop",
+    "name": "tire",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_tire.png"
+  },
+  {
+   "id": "windmill",
+   "kind": "flat prop",
+   "height": 4.65,
+   "collision": "none",
+   "example": {
+    "id": "my_windmill",
+    "type": "prop",
+    "name": "windmill",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_windmill.png"
+  },
+  {
+   "id": "silo",
+   "kind": "flat prop",
+   "height": 3.78,
+   "collision": "none",
+   "example": {
+    "id": "my_silo",
+    "type": "prop",
+    "name": "silo",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_silo.png"
+  },
+  {
+   "id": "reeds",
+   "kind": "flat prop",
+   "height": 0.58,
+   "collision": "none",
+   "example": {
+    "id": "my_reeds",
+    "type": "prop",
+    "name": "reeds",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_reeds.png"
+  },
+  {
+   "id": "water_tower",
+   "kind": "flat prop",
+   "height": 5.1,
+   "collision": "none",
+   "example": {
+    "id": "my_water_tower",
+    "type": "prop",
+    "name": "water_tower",
+    "at": [
+     10.5,
+     8.5
+    ]
+   },
+   "thumb": "thumbs/flat_water_tower.png"
+  }
+ ],
+ "enemies": [
+  {
+   "id": "clone",
+   "kind": "enemy",
+   "brain": "clone",
+   "health": 60,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_clone",
+    "type": "enemy",
+    "kind": "clone",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_clone.png"
+  },
+  {
+   "id": "billy",
+   "kind": "enemy",
+   "brain": "billy",
+   "health": 70,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_billy",
+    "type": "enemy",
+    "kind": "billy",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_billy.png"
+  },
+  {
+   "id": "coot",
+   "kind": "enemy",
+   "brain": "coot",
+   "health": 53,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_coot",
+    "type": "enemy",
+    "kind": "coot",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_coot.png"
+  },
+  {
+   "id": "skeeter",
+   "kind": "enemy",
+   "brain": "skeeter",
+   "health": 36,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_skeeter",
+    "type": "enemy",
+    "kind": "skeeter",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_skeeter.png"
+  },
+  {
+   "id": "alien",
+   "kind": "enemy",
+   "brain": "alien",
+   "health": 91,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_alien",
+    "type": "enemy",
+    "kind": "alien",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_alien.png"
+  },
+  {
+   "id": "saucer",
+   "kind": "enemy",
+   "brain": "saucer",
+   "health": 75,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_saucer",
+    "type": "enemy",
+    "kind": "saucer",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_saucer.png"
+  },
+  {
+   "id": "boss",
+   "kind": "enemy",
+   "brain": "boss",
+   "health": 1300,
+   "boss": true,
+   "swims": false,
+   "example": {
+    "id": "a_boss",
+    "type": "enemy",
+    "kind": "boss",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_boss.png"
+  },
+  {
+   "id": "jerry",
+   "kind": "enemy",
+   "brain": "jerry",
+   "health": 1150,
+   "boss": true,
+   "swims": false,
+   "example": {
+    "id": "a_jerry",
+    "type": "enemy",
+    "kind": "jerry",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_jerry.png"
+  },
+  {
+   "id": "barker",
+   "kind": "enemy",
+   "brain": "barker",
+   "health": 80,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_barker",
+    "type": "enemy",
+    "kind": "barker",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_barker.png"
+  },
+  {
+   "id": "crawler",
+   "kind": "enemy",
+   "brain": "crawler",
+   "health": 34,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_crawler",
+    "type": "enemy",
+    "kind": "crawler",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_crawler.png"
+  },
+  {
+   "id": "millhand",
+   "kind": "enemy",
+   "brain": "millhand",
+   "health": 98,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_millhand",
+    "type": "enemy",
+    "kind": "millhand",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_millhand.png"
+  },
+  {
+   "id": "lantern",
+   "kind": "enemy",
+   "brain": "lantern",
+   "health": 69,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_lantern",
+    "type": "enemy",
+    "kind": "lantern",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_lantern.png"
+  },
+  {
+   "id": "boilerback",
+   "kind": "enemy",
+   "brain": "boilerback",
+   "health": 99,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_boilerback",
+    "type": "enemy",
+    "kind": "boilerback",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_boilerback.png"
+  },
+  {
+   "id": "chalk_spitter",
+   "kind": "enemy",
+   "brain": "chalk_spitter",
+   "health": 52,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_chalk_spitter",
+    "type": "enemy",
+    "kind": "chalk_spitter",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_chalk_spitter.png"
+  },
+  {
+   "id": "yard_deputy",
+   "kind": "enemy",
+   "brain": "yard_deputy",
+   "health": 64,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_yard_deputy",
+    "type": "enemy",
+    "kind": "yard_deputy",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_yard_deputy.png"
+  },
+  {
+   "id": "bottle_tosser",
+   "kind": "enemy",
+   "brain": "bottle_tosser",
+   "health": 51,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_bottle_tosser",
+    "type": "enemy",
+    "kind": "bottle_tosser",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_bottle_tosser.png"
+  },
+  {
+   "id": "chain_hand",
+   "kind": "enemy",
+   "brain": "chain_hand",
+   "health": 78,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_chain_hand",
+    "type": "enemy",
+    "kind": "chain_hand",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_chain_hand.png"
+  },
+  {
+   "id": "valve_rat",
+   "kind": "enemy",
+   "brain": "valve_rat",
+   "health": 63,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_valve_rat",
+    "type": "enemy",
+    "kind": "valve_rat",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_valve_rat.png"
+  },
+  {
+   "id": "rudy",
+   "kind": "enemy",
+   "brain": "rudy",
+   "health": 1250,
+   "boss": true,
+   "swims": false,
+   "example": {
+    "id": "a_rudy",
+    "type": "enemy",
+    "kind": "rudy",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_rudy.png"
+  },
+  {
+   "id": "foreman",
+   "kind": "enemy",
+   "brain": "foreman",
+   "health": 1000,
+   "boss": true,
+   "swims": false,
+   "example": {
+    "id": "a_foreman",
+    "type": "enemy",
+    "kind": "foreman",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_foreman.png"
+  },
+  {
+   "id": "baron",
+   "kind": "enemy",
+   "brain": "baron",
+   "health": 1300,
+   "boss": true,
+   "swims": false,
+   "example": {
+    "id": "a_baron",
+    "type": "enemy",
+    "kind": "baron",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_baron.png"
+  },
+  {
+   "id": "drone",
+   "kind": "enemy",
+   "brain": "millhand",
+   "health": 46,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_drone",
+    "type": "enemy",
+    "kind": "drone",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_drone.png"
+  },
+  {
+   "id": "tin_guard",
+   "kind": "enemy",
+   "brain": "alien",
+   "health": 185,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tin_guard",
+    "type": "enemy",
+    "kind": "tin_guard",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tin_guard.png"
+  },
+  {
+   "id": "probe",
+   "kind": "enemy",
+   "brain": "saucer",
+   "health": 58,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_probe",
+    "type": "enemy",
+    "kind": "probe",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_probe.png"
+  },
+  {
+   "id": "maw",
+   "kind": "enemy",
+   "brain": "maw",
+   "health": 2400,
+   "boss": true,
+   "swims": false,
+   "example": {
+    "id": "a_maw",
+    "type": "enemy",
+    "kind": "maw",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_maw.png"
+  },
+  {
+   "id": "chicken",
+   "kind": "enemy",
+   "brain": "chicken",
+   "health": 11,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_chicken",
+    "type": "enemy",
+    "kind": "chicken",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_chicken.png"
+  },
+  {
+   "id": "pig",
+   "kind": "enemy",
+   "brain": "pig",
+   "health": 22,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_pig",
+    "type": "enemy",
+    "kind": "pig",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_pig.png"
+  },
+  {
+   "id": "bessie",
+   "kind": "enemy",
+   "brain": "bessie",
+   "health": 100,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_bessie",
+    "type": "enemy",
+    "kind": "bessie",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_bessie.png"
+  },
+  {
+   "id": "noodler",
+   "kind": "enemy",
+   "brain": "millhand",
+   "health": 118,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_noodler",
+    "type": "enemy",
+    "kind": "noodler",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_noodler.png"
+  },
+  {
+   "id": "chum_tosser",
+   "kind": "enemy",
+   "brain": "bottle_tosser",
+   "health": 58,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_chum_tosser",
+    "type": "enemy",
+    "kind": "chum_tosser",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_chum_tosser.png"
+  },
+  {
+   "id": "gator",
+   "kind": "enemy",
+   "brain": "crawler",
+   "health": 82,
+   "boss": false,
+   "swims": true,
+   "example": {
+    "id": "a_gator",
+    "type": "enemy",
+    "kind": "gator",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_gator.png"
+  },
+  {
+   "id": "swamp_king",
+   "kind": "enemy",
+   "brain": "swamp_king",
+   "health": 1900,
+   "boss": true,
+   "swims": true,
+   "example": {
+    "id": "a_swamp_king",
+    "type": "enemy",
+    "kind": "swamp_king",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_swamp_king.png"
+  },
+  {
+   "id": "pit_mechanic",
+   "kind": "enemy",
+   "brain": "bottle_tosser",
+   "health": 62,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_pit_mechanic",
+    "type": "enemy",
+    "kind": "pit_mechanic",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_pit_mechanic.png"
+  },
+  {
+   "id": "tire_roller",
+   "kind": "enemy",
+   "brain": "valve_rat",
+   "health": 118,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tire_roller",
+    "type": "enemy",
+    "kind": "tire_roller",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tire_roller.png"
+  },
+  {
+   "id": "nitro_huffer",
+   "kind": "enemy",
+   "brain": "nitro_huffer",
+   "health": 40,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_nitro_huffer",
+    "type": "enemy",
+    "kind": "nitro_huffer",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_nitro_huffer.png"
+  },
+  {
+   "id": "flagman",
+   "kind": "enemy",
+   "brain": "flagman",
+   "health": 56,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_flagman",
+    "type": "enemy",
+    "kind": "flagman",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_flagman.png"
+  },
+  {
+   "id": "derby_champ",
+   "kind": "enemy",
+   "brain": "derby_champ",
+   "health": 1250,
+   "boss": true,
+   "swims": false,
+   "example": {
+    "id": "a_derby_champ",
+    "type": "enemy",
+    "kind": "derby_champ",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_derby_champ.png"
+  },
+  {
+   "id": "big_billy",
+   "kind": "enemy",
+   "brain": "billy",
+   "health": 150,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_big_billy",
+    "type": "enemy",
+    "kind": "big_billy",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_big_billy.png"
+  },
+  {
+   "id": "drunk_coot",
+   "kind": "enemy",
+   "brain": "coot",
+   "health": 82,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_drunk_coot",
+    "type": "enemy",
+    "kind": "drunk_coot",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_drunk_coot.png"
+  },
+  {
+   "id": "shield_deputy",
+   "kind": "enemy",
+   "brain": "yard_deputy",
+   "health": 70,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_shield_deputy",
+    "type": "enemy",
+    "kind": "shield_deputy",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_shield_deputy.png"
+  },
+  {
+   "id": "tough_earl",
+   "kind": "enemy",
+   "brain": "billy",
+   "health": 270,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tough_earl",
+    "type": "enemy",
+    "kind": "tough_earl",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tough_earl.png"
+  },
+  {
+   "id": "tough_clem",
+   "kind": "enemy",
+   "brain": "barker",
+   "health": 230,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tough_clem",
+    "type": "enemy",
+    "kind": "tough_clem",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tough_clem.png"
+  },
+  {
+   "id": "tough_tom",
+   "kind": "enemy",
+   "brain": "millhand",
+   "health": 280,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tough_tom",
+    "type": "enemy",
+    "kind": "tough_tom",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tough_tom.png"
+  },
+  {
+   "id": "tough_bubba",
+   "kind": "enemy",
+   "brain": "boilerback",
+   "health": 290,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tough_bubba",
+    "type": "enemy",
+    "kind": "tough_bubba",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tough_bubba.png"
+  },
+  {
+   "id": "tough_chuck",
+   "kind": "enemy",
+   "brain": "bottle_tosser",
+   "health": 190,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tough_chuck",
+    "type": "enemy",
+    "kind": "tough_chuck",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tough_chuck.png"
+  },
+  {
+   "id": "tough_pete",
+   "kind": "enemy",
+   "brain": "bottle_tosser",
+   "health": 200,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tough_pete",
+    "type": "enemy",
+    "kind": "tough_pete",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tough_pete.png"
+  },
+  {
+   "id": "tough_zorgo",
+   "kind": "enemy",
+   "brain": "alien",
+   "health": 300,
+   "boss": false,
+   "swims": false,
+   "example": {
+    "id": "a_tough_zorgo",
+    "type": "enemy",
+    "kind": "tough_zorgo",
+    "at": [
+     12.5,
+     9.5
+    ]
+   },
+   "thumb": "thumbs/enemy_tough_zorgo.png"
+  }
+ ],
+ "pickups": [
+  {
+   "id": "arm_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_arm_ammo",
+    "type": "pickup",
+    "name": "arm_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_arm_ammo.png"
+  },
+  {
+   "id": "armgun",
+   "kind": "pickup",
+   "example": {
+    "id": "some_armgun",
+    "type": "pickup",
+    "name": "armgun",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_armgun.png"
+  },
+  {
+   "id": "beer",
+   "kind": "pickup",
+   "example": {
+    "id": "some_beer",
+    "type": "pickup",
+    "name": "beer",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_beer.png"
+  },
+  {
+   "id": "bottle_launcher",
+   "kind": "pickup",
+   "example": {
+    "id": "some_bottle_launcher",
+    "type": "pickup",
+    "name": "bottle_launcher",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_bottle_launcher.png"
+  },
+  {
+   "id": "bowling_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_bowling_ammo",
+    "type": "pickup",
+    "name": "bowling_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_bowling_ammo.png"
+  },
+  {
+   "id": "bowling_ball",
+   "kind": "pickup",
+   "example": {
+    "id": "some_bowling_ball",
+    "type": "pickup",
+    "name": "bowling_ball",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_bowling_ball.png"
+  },
+  {
+   "id": "bullets",
+   "kind": "pickup",
+   "example": {
+    "id": "some_bullets",
+    "type": "pickup",
+    "name": "bullets",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_bullets.png"
+  },
+  {
+   "id": "cow_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_cow_ammo",
+    "type": "pickup",
+    "name": "cow_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_cow_ammo.png"
+  },
+  {
+   "id": "cow_launcher",
+   "kind": "pickup",
+   "example": {
+    "id": "some_cow_launcher",
+    "type": "pickup",
+    "name": "cow_launcher",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_cow_launcher.png"
+  },
+  {
+   "id": "cowpie",
+   "kind": "pickup",
+   "example": {
+    "id": "some_cowpie",
+    "type": "pickup",
+    "name": "cowpie",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_cowpie.png"
+  },
+  {
+   "id": "crossbow",
+   "kind": "pickup",
+   "example": {
+    "id": "some_crossbow",
+    "type": "pickup",
+    "name": "crossbow",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_crossbow.png"
+  },
+  {
+   "id": "crowbar",
+   "kind": "pickup",
+   "example": {
+    "id": "some_crowbar",
+    "type": "pickup",
+    "name": "crowbar",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_crowbar.png"
+  },
+  {
+   "id": "dynamite",
+   "kind": "pickup",
+   "example": {
+    "id": "some_dynamite",
+    "type": "pickup",
+    "name": "dynamite",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_dynamite.png"
+  },
+  {
+   "id": "keg_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_keg_ammo",
+    "type": "pickup",
+    "name": "keg_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_keg_ammo.png"
+  },
+  {
+   "id": "key_brass",
+   "kind": "pickup",
+   "example": {
+    "id": "some_key_brass",
+    "type": "pickup",
+    "name": "key_brass",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_key_brass.png"
+  },
+  {
+   "id": "key_steel",
+   "kind": "pickup",
+   "example": {
+    "id": "some_key_steel",
+    "type": "pickup",
+    "name": "key_steel",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_key_steel.png"
+  },
+  {
+   "id": "milk_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_milk_ammo",
+    "type": "pickup",
+    "name": "milk_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_milk_ammo.png"
+  },
+  {
+   "id": "moonshine",
+   "kind": "pickup",
+   "example": {
+    "id": "some_moonshine",
+    "type": "pickup",
+    "name": "moonshine",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_moonshine.png"
+  },
+  {
+   "id": "pa_patch",
+   "kind": "pickup",
+   "example": {
+    "id": "some_pa_patch",
+    "type": "pickup",
+    "name": "pa_patch",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_pa_patch.png"
+  },
+  {
+   "id": "powder_keg",
+   "kind": "pickup",
+   "example": {
+    "id": "some_powder_keg",
+    "type": "pickup",
+    "name": "powder_keg",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_powder_keg.png"
+  },
+  {
+   "id": "pressure_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_pressure_ammo",
+    "type": "pickup",
+    "name": "pressure_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_pressure_ammo.png"
+  },
+  {
+   "id": "pressure_gun",
+   "kind": "pickup",
+   "example": {
+    "id": "some_pressure_gun",
+    "type": "pickup",
+    "name": "pressure_gun",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_pressure_gun.png"
+  },
+  {
+   "id": "revolver",
+   "kind": "pickup",
+   "example": {
+    "id": "some_revolver",
+    "type": "pickup",
+    "name": "revolver",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_revolver.png"
+  },
+  {
+   "id": "rifle",
+   "kind": "pickup",
+   "example": {
+    "id": "some_rifle",
+    "type": "pickup",
+    "name": "rifle",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_rifle.png"
+  },
+  {
+   "id": "rifle_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_rifle_ammo",
+    "type": "pickup",
+    "name": "rifle_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_rifle_ammo.png"
+  },
+  {
+   "id": "rinds",
+   "kind": "pickup",
+   "example": {
+    "id": "some_rinds",
+    "type": "pickup",
+    "name": "rinds",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_rinds.png"
+  },
+  {
+   "id": "ripsaw",
+   "kind": "pickup",
+   "example": {
+    "id": "some_ripsaw",
+    "type": "pickup",
+    "name": "ripsaw",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_ripsaw.png"
+  },
+  {
+   "id": "rivet_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_rivet_ammo",
+    "type": "pickup",
+    "name": "rivet_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_rivet_ammo.png"
+  },
+  {
+   "id": "riveter",
+   "kind": "pickup",
+   "example": {
+    "id": "some_riveter",
+    "type": "pickup",
+    "name": "riveter",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_riveter.png"
+  },
+  {
+   "id": "rocket_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_rocket_ammo",
+    "type": "pickup",
+    "name": "rocket_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_rocket_ammo.png"
+  },
+  {
+   "id": "saw_ammo",
+   "kind": "pickup",
+   "example": {
+    "id": "some_saw_ammo",
+    "type": "pickup",
+    "name": "saw_ammo",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_saw_ammo.png"
+  },
+  {
+   "id": "shells",
+   "kind": "pickup",
+   "example": {
+    "id": "some_shells",
+    "type": "pickup",
+    "name": "shells",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_shells.png"
+  },
+  {
+   "id": "shotgun",
+   "kind": "pickup",
+   "example": {
+    "id": "some_shotgun",
+    "type": "pickup",
+    "name": "shotgun",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_shotgun.png"
+  },
+  {
+   "id": "slingblade",
+   "kind": "pickup",
+   "example": {
+    "id": "some_slingblade",
+    "type": "pickup",
+    "name": "slingblade",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_slingblade.png"
+  },
+  {
+   "id": "teat_gun",
+   "kind": "pickup",
+   "example": {
+    "id": "some_teat_gun",
+    "type": "pickup",
+    "name": "teat_gun",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_teat_gun.png"
+  },
+  {
+   "id": "tnt",
+   "kind": "pickup",
+   "example": {
+    "id": "some_tnt",
+    "type": "pickup",
+    "name": "tnt",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_tnt.png"
+  },
+  {
+   "id": "whiskey",
+   "kind": "pickup",
+   "example": {
+    "id": "some_whiskey",
+    "type": "pickup",
+    "name": "whiskey",
+    "at": [
+     6.5,
+     4.5
+    ]
+   },
+   "thumb": "thumbs/pickup_whiskey.png"
+  }
+ ]
+}

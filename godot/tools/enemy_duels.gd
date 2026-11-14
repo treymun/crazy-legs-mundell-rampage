@@ -165,7 +165,7 @@ func _duel(
 	for e: Enemy in g.enemies:
 		if e != foe:
 			e.alive = false
-	p.eye = .95 + g.world.elevation(p.x, p.y)
+	p.eye = .95 + g.world.stand(p)
 	p.angle = atan2(foe.y - p.y, foe.x - p.x)
 	var slot := Weapons.NAMES.find(gun)
 	if slot >= 0:

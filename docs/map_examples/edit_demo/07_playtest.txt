@@ -1,0 +1,11 @@
+ok   spawn_to_loft: reached in 6.9 s, 26.1 walked, 33 nav steps
+ok   spawn_to_dock: reached in 5.3 s, 20.1 walked, 24 nav steps
+ok   spawn_to_chute_lever: reached in 7.3 s, 27.7 walked, 34 nav steps
+ok   spawn_to_road_exit: reached in 6.2 s, 23.6 walked, 28 nav steps
+ok   spawn_to_loft_shells: reached in 7.0 s, 26.6 walked, 33 nav steps
+ok   spawn_to_office_beer: reached in 6.5 s, 24.8 walked, 31 nav steps
+ok   spawn_to_sp_yard: reached in 5.8 s, 21.9 walked, 25 nav steps
+ok   spawn_to_sp_dock: reached in 5.3 s, 20.0 walked, 25 nav steps
+ok   spawn_to_sp_loft: reached in 7.0 s, 26.3 walked, 33 nav steps
+PLAYTEST OK
+MAP-RESULT {"command":"playtest","exit":0,"ok":true,"passed":true,"routes":[{"end":[12.11,5.93,1.7],"from":[3.5,18.5,0.0],"id":"spawn_to_loft","reached":true,"seconds":6.9,"short":0.4,"steps":33,"stuck":[],"to":[12.5,6.0,1.7],"walked":26.05},{"end":[19.49,10.42,0.9],"from":[3.5,18.5,0.0],"id":"spawn_to_dock","reached":true,"seconds":5.3,"short":0.42,"steps":24,"stuck":[],"to":[19.5,10.0,0.9],"walked":20.11},{"end":[13.98,5.24,1.7],"from":[3.5,18.5,0.0],"id":"spawn_to_chute_lever","reached":true,"seconds":7.33,"short":0.4,"steps":34,"stuck":[],"to":[14.3,5.0,1.7],"walked":27.72},{"end":[25.08,12.51,0.0],"from":[3.5,18.5,0.0],"id":"spawn_to_road_exit","reached":true,"seconds":6.18,"short":0.42,"steps":28,"stuck":[],"to":[25.5,12.5,0.0],"walked":23.59},{"end":[11.2,6.96,1.7],"from":[3.5,18.5,0.0],"id":"spawn_to_loft_shells","reached":true,"seconds":7.03,"short":0.39,"steps":33,"stuck":[],"to":[11.0,7.3,1.7],"walked":26.56},{"end":[19.61,4.51,0.0],"from":[3.5,18.5,0.0],"id":"spawn_to_office_beer","reached":true,"seconds":6.53,"short":0.39,"steps":31,"stuck":[],"to":[20.0,4.5,0.0],"walked":24.82},{"end":[24.09,18.48,0.0],"from":[3.5,18.5,0.0],"id":"spawn_to_sp_yard","reached":true,"seconds":5.75,"short":0.41,"steps":25,"stuck":[],"to":[24.5,18.5,0.0],"walked":21.95},{"end":[20.22,10.84,0.9],"from":[3.5,18.5,0.0],"id":"spawn_to_sp_dock","reached":true,"seconds":5.27,"short":0.44,"steps":25,"stuck":[],"to":[20.5,10.5,0.9],"walked":19.98},{"end":[12.17,6.23,1.7],"from":[3.5,18.5,0.0],"id":"spawn_to_sp_loft","reached":true,"seconds":6.95,"short":0.43,"steps":33,"stuck":[],"to":[12.5,6.5,1.7],"walked":26.25}]}

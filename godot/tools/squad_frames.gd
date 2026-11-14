@@ -123,11 +123,11 @@ func _activities() -> void:
 			var away: float = (m.focus - m.spot).angle()
 			var at := _spot_near(g, e.x, e.y, away, 3.2)
 			g.spawn_grace = 99.0
-			_stand(g, at, e.x, e.y, g.world.elevation(e.x, e.y) + e.height * .6)
+			_stand(g, at, e.x, e.y, g.world.stand(e) + e.height * .6)
 			for frame in 2:
 				_ticks(g, 50 + frame * 35)
 				g.spawn_grace = 99.0
-				_stand(g, at, e.x, e.y, g.world.elevation(e.x, e.y) + e.height * .6)
+				_stand(g, at, e.x, e.y, g.world.stand(e) + e.height * .6)
 				await _snap("activity_%s_%s_%d" % [m.activity, level_id, frame])
 			if shown.size() >= 10:
 				return
@@ -209,8 +209,8 @@ func _toughs() -> void:
 				continue
 			g.spawn_grace = 99.0
 			var at := _spot_near(g, e.x, e.y, e.angle, 3.4)
-			_stand(g, at, e.x, e.y, g.world.elevation(e.x, e.y) + e.height * .55)
+			_stand(g, at, e.x, e.y, g.world.stand(e) + e.height * .55)
 			_ticks(g, 1)
-			_stand(g, at, e.x, e.y, g.world.elevation(e.x, e.y) + e.height * .55)
+			_stand(g, at, e.x, e.y, g.world.stand(e) + e.height * .55)
 			await _snap("tough_%s" % e.kind)
 			break

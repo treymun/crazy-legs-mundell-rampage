@@ -286,7 +286,7 @@ static func stand_up(game, p: Player, health: int) -> void:
 	p.revive = 0.0
 	p.air = 0.0
 	p.vertical_speed = 0.0
-	p.eye = game.world.elevation(p.x, p.y) + .95
+	p.eye = game.world.stand(p) + .95
 
 
 ## A notice for this machine's player, whoever is acting.
@@ -455,7 +455,7 @@ static func player_in_line(game, ax: float, ay: float, slope: float, spread: flo
 		var dy := q.y - me.y
 		var d := dx * ax + dy * ay
 		var z := me.eye + d * slope
-		var feet: float = game.world.elevation(q.x, q.y) + q.air
+		var feet: float = game.world.stand(q) + q.air
 		var top := feet + (.8 if q.crouched else 1.08)
 		if (
 			0.0 < d
@@ -517,7 +517,7 @@ static func shot_strikes(game, shot, x: float, y: float, z: float) -> bool:
 	for q: Player in game.players:
 		if q == thrower or q.health <= 0:
 			continue
-		var feet: float = game.world.elevation(q.x, q.y) + q.air
+		var feet: float = game.world.stand(q) + q.air
 		if (
 			Vector2(q.x - x, q.y - y).length() < GameState.PLAYER_RADIUS + .1
 			and feet - .05 < z
