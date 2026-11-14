@@ -93,7 +93,7 @@ No slurs, hate, sexual content, real people, or the F-word.
 - I'll sneak up on yer *ass*!
 **cover**
 - My *damn* back!
-- Duck, *dammit*!
+- Hit the dirt, *dammit*!
 **brawl**
 - Watch where yer shootin', *dumbass*!
 - I'll whup yer *ass*, boy!
@@ -187,7 +187,7 @@ No slurs, hate, sexual content, real people, or the F-word.
 
 ### DEPUTY
 **kill**
-- Suspect down, *dumbass*.
+- That's one down, *dumbass*.
 - Stay down, ya *sumbitch*!
 **defuse**
 - Cuttin' the *damn* wire!
@@ -207,3 +207,12 @@ No slurs, hate, sexual content, real people, or the F-word.
 | Cap asked for (room for retakes of lines that come out wrong) | **6,500** |
 
 Credits left now: 36,162 of the 100,000 ceiling. After this: at least 29,662 left.
+
+## As made (2026-11-14)
+
+Approved by the owner (cap 6,500). Spent 1,669 credits: Mundell's voice, 117
+lines, their transcripts, nine retakes (one take came out with a word the pack
+never uses; it was retaken and checked), two lines reworded after two bad
+takes each ("Duck, dammit!" and "Suspect down, dumbass." became the lines
+above). Every CLEAN copy covers every starred word. Nobody has listened to
+them yet: the agent side cannot hear audio.
