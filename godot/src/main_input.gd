@@ -268,7 +268,8 @@ func _key_showdown(code: int) -> void:
 	var accept := code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE
 	var rows := TacticalScreens.PICKER_ROWS
 	if code == KEY_ESCAPE:
-		back_to_title()
+		state = "multi"
+		sound.play("menu_back")
 	elif code == KEY_UP or code == KEY_DOWN or code == KEY_W or code == KEY_S:
 		var step := -1 if code == KEY_UP or code == KEY_W else 1
 		showdown_row = posmod(showdown_row + step, rows)
@@ -277,10 +278,6 @@ func _key_showdown(code: int) -> void:
 		start_showdown()
 		if state == "play":
 			block_fire = true
-	elif accept and showdown_row == TacticalScreens.PICKER_GO + 1:
-		open_servers()
-	elif accept and showdown_row > TacticalScreens.PICKER_GO:
-		open_net_form(showdown_row == TacticalScreens.PICKER_GO + 2)
 	elif showdown_row >= TacticalScreens.PICKER_GO:
 		pass
 	elif accept or code in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]:
@@ -714,7 +711,9 @@ func _drag(position: Vector2) -> void:
 func hover(position: Vector2) -> void:
 	var at := picture_point(position)
 	var part := ""
-	if at.x >= 0 and state == "title":
+	if at.x >= 0 and OnlineInput.SCREENS.has(state):
+		OnlineInput.hover(self, at)
+	elif at.x >= 0 and state == "title":
 		var index := Menu.title_hit(entries(), at.x, at.y)
 		if index >= 0 and index != selection:
 			selection = index
@@ -761,6 +760,10 @@ func click(position: Vector2, button: int) -> void:
 		return
 	var x := at.x
 	var y := at.y
+	if OnlineInput.SCREENS.has(state):
+		if button == MOUSE_BUTTON_LEFT:
+			OnlineInput.tap(self, at)
+		return
 	if state == "title" and button == MOUSE_BUTTON_LEFT:
 		var index := Menu.title_hit(entries(), x, y)
 		if index >= 0:
@@ -987,6 +990,14 @@ func _touch_actions() -> void:
 		crouch_latched = not crouch_latched
 	duck_held = touch.crouch
 	var tapped = touch.consume_tap()
+	if tapped != null and state == "play" and net != null:
+		var hit := LobbyScreens.zone_at(picture_point(tapped))
+		if not hit.is_empty() and String(hit[0]) in ["yes", "no", "lobby_now"]:
+			key(KEY_ESCAPE if String(hit[0]) == "no" else KEY_ENTER)
+			tapped = null
+	if tapped != null and state == "play" and game != null and Modes.is_tactical(game):
+		if TacticalScreens.tap(game, picture_point(tapped)):
+			tapped = null
 	if tapped != null and state == "play" and game != null and game.map:
 		# A tap on the open map steps the zoom in, then back out to the whole level.
 		game.map_zoom = (game.map_zoom + 1) % 4
@@ -1136,6 +1147,12 @@ func _key_online(code: int) -> bool:
 	if state == "servers":
 		_key_servers(code)
 		return true
+	if state == "multi":
+		OnlineInput.key_hub(self, code)
+		return true
+	if state == "lobbyset":
+		OnlineInput.key_all(self, code)
+		return true
 	if state == "lobby":
 		_key_lobby(code)
 		return true
@@ -1171,7 +1188,7 @@ func _key_online(code: int) -> bool:
 func _key_servers(code: int) -> void:
 	if code == KEY_ESCAPE or browser == null:
 		close_servers()
-		state = "showdown"
+		state = "multi"
 		sound.play("menu_back")
 		return
 	var count := 1 + browser.servers.size()
@@ -1241,7 +1258,7 @@ func _key_net_form(code: int) -> void:
 	var field := String(row[0])
 	var accept := code == KEY_ENTER or code == KEY_KP_ENTER
 	if code == KEY_ESCAPE:
-		state = "showdown"
+		state = "multi"
 		net_note = ""
 		sound.play("menu_back")
 	elif code == KEY_UP or code == KEY_DOWN or code == KEY_TAB:
@@ -1331,6 +1348,10 @@ func _lobby_change(row: String, step: int, accept: bool) -> void:
 				net_kick_armed = false
 			else:
 				net_kick_armed = true
+		"more":
+			if accept:
+				LobbyScreens.all_row = 0
+				state = "lobbyset"
 		"start":
 			if not accept:
 				return

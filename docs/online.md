@@ -1,12 +1,12 @@
 # Playing 5v5 online
 
-The 5V5 SHOWDOWN can be played with friends on other networks: one person
+The 5v5 and 2v2 modes can be played with friends on other networks: one person
 hosts a lobby, the others join it, and the empty places fill with bots.
 Everyone needs the same version of the game.
 
 ## Hosting
 
-1. Title, **5V5 SHOWDOWN**, **ONLINE: HOST A LOBBY**.
+1. Title, **MULTIPLAYER**, **HOST A GAME**.
 2. Fill in your name, the lobby's name and a password (leave it empty for an
    open lobby). The port is 47197 unless you change it. Leave **ASK THE
    ROUTER** on.
@@ -38,12 +38,12 @@ Everyone needs the same version of the game.
 The match settings include **RULES**: ANY GUNS, SHOTGUNS ONLY (at least
 $2000 each round), PISTOL PARTY, SNIPER DUEL (at least $6000), ECO WAR
 (nothing over $1500) and BIG MONEY ($16000 every round). The store, and the
-bots, sell and buy only what the rules allow. The title's 5V5 SHOWDOWN has
+bots, sell and buy only what the rules allow. MULTIPLAYER's PLAY VS BOTS has
 the same RULES row.
 
 ## Joining
 
-1. Title, **5V5 SHOWDOWN**, **ONLINE: JOIN A LOBBY**.
+1. Title, **MULTIPLAYER**, **JOIN WITH A CODE**.
 2. Your name, then the host's **join code** or **address**: `203.0.113.7`,
    `203.0.113.7:47197`, a VPN address like `100.101.102.103`, or a name.
    CTRL+V pastes. Then the password if the lobby has one.
@@ -57,7 +57,7 @@ team with fewer people, straight away.
 
 ## County servers (no code needed)
 
-5V5 SHOWDOWN, then **COUNTY SERVERS**: the always-open lobbies listed live
+Title, **MULTIPLAYER**, **PLAY ONLINE**: the always-open lobbies listed live
 (mode, map, how many are in, in the lobby or a match on, ping). Type your
 name once at the top, pick one, press ENTER: you are in its lobby. R asks
 again; a server that is down shows NOT ANSWERING, one on another version says

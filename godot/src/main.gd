@@ -512,6 +512,8 @@ func _process(delta: float) -> void:
 			settle_display(false)
 	var pad := read_pad(dt)
 	var fingers := touch.state()
+	TacticalScreens.touch_on = touch.showing
+	OnlineInput.settle(self)
 	if state == "play" and game != null:
 		_touch_actions()
 		_watch_pointer_lock()

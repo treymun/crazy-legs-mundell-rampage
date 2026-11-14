@@ -1,6 +1,6 @@
 # 5V5 Showdown
 
-Five a side, round by round, with a buy menu and money. Pick **5V5 SHOWDOWN**
+Five a side, round by round, with a buy menu and money. Pick **MULTIPLAYER**, then **PLAY VS BOTS**
 on the title screen, choose the mode, the map and the match length, and go.
 You and four bots against five bots. The bots follow the game's DIFFICULTY.
 
@@ -161,7 +161,7 @@ barn.
 ## Tag Team 2v2
 
 Search and destroy two a side on its own small maps, one bomb site each (the
-title's 5V5 SHOWDOWN, MODE: TAG TEAM 2V2; online, pick a 2V2 map in the
+title's MULTIPLAYER, PLAY VS BOTS, MODE: TAG TEAM 2V2; online, pick a 2V2 map in the
 lobby and the format follows; `--mode=tagteam [--arena=pineacres]` from the
 command line). First to 9 of 16 rounds (sides swap after 8; a short match is
 first to 5), 1:30 rounds, 15 seconds to buy, the same store, money, guns and

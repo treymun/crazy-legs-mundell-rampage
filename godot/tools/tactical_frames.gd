@@ -38,7 +38,7 @@ func _run() -> void:
 	main.touring = true
 	Effects.enabled = true
 	main.state = "title"
-	main.selection = main.entries().find("5V5 SHOWDOWN")
+	main.selection = main.entries().find("MULTIPLAYER")
 	main.render()
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw

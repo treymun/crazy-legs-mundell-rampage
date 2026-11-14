@@ -59,6 +59,8 @@ jobs:
         run: godot --headless --path godot --script res://tools/net_showdown_check.gd
       - name: Always-open lobby on a server
         run: godot --headless --path godot --script res://tools/net_server_check.gd
+      - name: Menus by touch
+        run: godot --headless --path godot --script res://tools/menu_touch_check.gd
       - name: Saves from earlier versions still load
         run: godot --headless --path godot --script res://tools/save_fixtures.gd
       - name: Level editing keeps the walls right

@@ -243,6 +243,8 @@ const MENU_STATES := [
 	"netjoin",
 	"lobby",
 	"servers",
+	"multi",
+	"lobbyset",
 ]
 ## The title's 5V5 SHOWDOWN picker (TacticalScreens.draw_picker): the row the
 ## cursor is on, the mode, map and match length picked, and whether the game
@@ -610,7 +612,7 @@ func entries() -> PackedStringArray:
 			"REPLAY LEVEL",
 			"LEAVE RANGE" if in_range() else "FIRING RANGE",
 			"LEAVE REMATCH" if in_rematch() else "BOSS REMATCH",
-			"5V5 SHOWDOWN",
+			"MULTIPLAYER",
 			"SAVE SLOTS",
 			"SETUP",
 			"CONTROLS",
@@ -1278,6 +1280,7 @@ func _start_overlay() -> void:
 
 
 func render() -> void:
+	LobbyScreens.clear_zones()
 	canvas.layer = false
 	canvas.base_set = false
 	if canvas.gpu:
@@ -1315,14 +1318,8 @@ func render() -> void:
 		TacticalScreens.draw_picker(
 			canvas, menu, showdown_row, showdown_mode, showdown_map, showdown_long, showdown_rules
 		)
-	elif state == "nethost":
-		LobbyScreens.draw_host_form(canvas, menu, net_form, net_row, net_note, menu_clock)
-	elif state == "netjoin":
-		LobbyScreens.draw_join_form(canvas, menu, net_form, net_row, net_note, menu_clock)
-	elif state == "servers":
-		LobbyScreens.draw_servers(canvas, menu, browser, net_note, menu_clock)
-	elif state == "lobby":
-		LobbyScreens.draw_lobby(canvas, menu, net, lobby_row, net_note, net_kick, net_kick_armed)
+	elif LobbyScreens.draw_screen(self):
+		pass
 	elif state == "rematch":
 		BossRematch.draw_board(
 			canvas,

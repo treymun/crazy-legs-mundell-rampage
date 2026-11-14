@@ -35,7 +35,7 @@ const BLURBS := {
 	"FIRING RANGE": "EVERY GUN, ALL THE AMMO. GO LEARN 'EM.",
 	"LEAVE RANGE": "BACK TO THE TITLE. THE RANGE KEEPS NO SCORE.",
 	"BOSS REMATCH": "EVERY BOSS YOU BEAT, AGAIN, ON THE CLOCK.",
-	"5V5 SHOWDOWN": "FIVE A SIDE. PLANT IT OR SPRING 'EM.",
+	"MULTIPLAYER": "ONLINE, WITH FRIENDS OR AGAINST THE BOTS.",
 	"LEAVE REMATCH": "BACK TO THE TITLE. NOTHING THERE IS KEPT.",
 	"SAVE SLOTS": "FOUR NAMED SAVES, APART FROM QUICKSAVE.",
 	"SETUP": "TUNE THE MOUSE, SCREEN, SOUND AND KEYS.",
@@ -79,7 +79,7 @@ const NEXT_RUN := {
 }
 
 const PAINT := Color(236 / 255.0, 220 / 255.0, 186 / 255.0)
-const FADED := Color(176 / 255.0, 150 / 255.0, 112 / 255.0)
+const FADED := Color(196 / 255.0, 170 / 255.0, 128 / 255.0)
 const RUST := Color(150 / 255.0, 66 / 255.0, 30 / 255.0)
 const RUST_HOT := Color(196 / 255.0, 96 / 255.0, 40 / 255.0)
 const RUST_DEEP := Color(92 / 255.0, 38 / 255.0, 18 / 255.0)
@@ -210,7 +210,7 @@ static func title_items(entries: PackedStringArray) -> Array:
 			var column := 1 if OFFICE_IDS.has(id) else 0
 			# The showdown sits under the left column's entries while there is
 			# room (it comes last of them), else heads the right one.
-			if id == "5V5 SHOWDOWN" and counts[0] >= 5:
+			if id == "MULTIPLAYER" and counts[0] >= 5:
 				column = 1
 			item["column"] = column
 			item["row"] = counts[column]

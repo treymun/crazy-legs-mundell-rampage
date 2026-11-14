@@ -443,8 +443,9 @@ func menu_action() -> void:
 		mode_name = ""
 		mode_players = 1
 		mode_options = {}
-	if entry == "5V5 SHOWDOWN":
-		state = "showdown"
+	if entry == "MULTIPLAYER":
+		state = "multi"
+		net_note = ""
 		sound.play("menu_accept")
 		return
 	if entry == "LEAVE RANGE":

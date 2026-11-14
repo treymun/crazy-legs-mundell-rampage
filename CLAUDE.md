@@ -1178,8 +1178,24 @@ what a networking pass still needs).
   5v5, which took a full match on the one-core VPS from 40% to about 15-20%.
   net_loopback compares the client's rebuilt snapshots with the host's game
   as it stood (`wholes`), not with what the host sent.
-  `tools/net_server_check.gd` holds it. **COUNTY SERVERS** (the picker's row
-  after LET 'ER RIP, `PICKER_GO + 1`; state "servers", `main.browser`,
+  `tools/net_server_check.gd` holds it. **The multiplayer menus**: the title's
+  MULTIPLAYER (state "multi", `LobbyScreens.draw_hub`, `OnlineInput.key_hub`)
+  has four big choices: PLAY ONLINE (the server list), PLAY VS BOTS (the
+  picker, state "showdown"), HOST A GAME, JOIN WITH A CODE; the lobby shows
+  its main settings (`LOBBY_KEYS`) and ALL SETTINGS is its own page (state
+  "lobbyset", `ALL_KEYS`, `OnlineInput.key_all`). **Every one of them works
+  by touch and mouse**: each draw notes where a tap lands
+  (`LobbyScreens.zones`, `zone`/`button`, cleared each `render()`) and
+  `OnlineInput.tap` turns a tap into the key it stands for (`main.key`), so
+  the keys stay the rules; a tap on a text field raises the phone's keyboard
+  (`OnlineInput.keyboard`, `settle`). In a 5v5 round on a touch screen a BUY
+  plate shows in the buy time (`TacticalScreens.touch_on`, `BUY_PLATE`) and
+  the store's tabs and rows take taps (`TacticalScreens.tap`, from
+  `_touch_actions`), as do an online match's YES / NO and results.
+  `tools/menu_touch_check.gd` (check_all, CI) taps through them all as touch
+  events. Menu text: the readable 7-pixel font where it fits, `SOFT` for
+  second lines, `Menu.FADED` a little brighter. **COUNTY SERVERS** (PLAY
+  ONLINE; state "servers", `main.browser`,
   `LobbyScreens.draw_servers`): `NetBrowser` lists
   `data/tuning/servers.json` and asks each every `ASK_EVERY` seconds with an
   INFO knock (connect, `NetWire.INFO`, `NetPlay.summary()` back, hang up;
@@ -1301,7 +1317,8 @@ every single-player check are as before).
   layouts each built for both modes; a plan's `meta["tactical"]` (level JSON
   `tactical`, `LevelData.tactical`) holds `attack_spawns`, `defend_spawns`,
   `sites`, `hostages`, `rescue`, the bots' `routes` and `holds`. The title's
-  5V5 SHOWDOWN picks mode, map and length (`main_state.gd showdown_*`); the
+  MULTIPLAYER's PLAY VS BOTS (state "showdown") picks mode, map, length and
+  rules (`main_state.gd showdown_*`); the
   command line is `--mode=bomb|hostage [--arena=holler] [--rounds=7]`.
   Ten guns were added for it, at the end of weapons.cfg (so saves and number
   keys keep the old order), each side with its own pistol, shotgun, SMG,
@@ -1368,7 +1385,7 @@ every single-player check are as before).
   a kill feed outside the 5v5 modes; a lying-down picture for a player
   who is down (the standing one, squat); spawn points from the plans outside
   the 5v5 maps (only worked out); versus pickups other than the level's own;
-  the title menu's only mode entry is 5V5 SHOWDOWN (the rest command line
+  the title menu's only mode entry is MULTIPLAYER (the rest command line
   only). A save or snapshot taken while player
   one is down does not load (SessionStore refuses a player at 0; the
   quicksave is refused then anyway). The co-op boss checkpoint's retry with

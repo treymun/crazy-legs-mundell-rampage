@@ -37,8 +37,8 @@ const SHOP_NAMES := ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=",
 
 ## The title's 5V5 SHOWDOWN picker: its rows (mode, map, match, START), the
 ## match lengths (rounds to win), and what each map and mode is.
-const PICKER_ROWS := 8
-## The picker's LET 'ER RIP row (the online rows after it).
+const PICKER_ROWS := 5
+## The picker's LET 'ER RIP row (the last).
 const PICKER_GO := 4
 ## A 5v5 player's figure, as tall as the hit box (Modes.player_in_line: 1.08).
 const PLAYER_HEIGHT := 1.14
@@ -84,6 +84,10 @@ static func picker_rounds(mode: int, long: int) -> int:
 ## The buy menu (this machine's): open, the row the cursor is on, the last
 ## word it had (NOT ENOUGH CASH...) and until when.
 static var open := false
+## The touch overlay is up (main.gd): a BUY plate to tap in the buy time.
+static var touch_on := false
+## Where the BUY plate sits.
+const BUY_PLATE := Rect2i(4, 22, 52, 14)
 static var cursor := 0
 ## The store's page: 0 the guns, 1 gear and throwables (LEFT and RIGHT).
 static var page := 0
@@ -239,9 +243,35 @@ static func draw_view(c: Canvas, game, st) -> void:
 		var left := maxi(1, int(ceil(float(st.phase_until) - game.clock)))
 		HUD.text(c, str(left), 160, 50, "heading", HUD.AMBER, true)
 		if not open:
-			HUD.text(c, "B  BUY MENU", 160, 66, "body", HUD.INK, true)
+			HUD.text(c, "TAP BUY" if touch_on else "B  BUY MENU", 160, 66, "body", HUD.INK, true)
 	if open:
 		draw_shop(c, game, st)
+	elif touch_on and me.slot == human and TacticalMode.can_buy(game, st, me):
+		LobbyScreens.button(c, BUY_PLATE, "BUY", true, "buy")
+
+
+## A tap while a 5v5 round is on (main_input.gd _touch_actions): the BUY
+## plate, the store's tabs and rows, or outside an open store (closes it).
+## True when the tap was the store's.
+static func tap(game, at: Vector2i) -> bool:
+	var hit := LobbyScreens.zone_at(at)
+	var id := String(hit[0]) if not hit.is_empty() else ""
+	match id:
+		"buy":
+			return key(game, KEY_B)
+		"tab":
+			page = int(hit[1])
+			cursor = 0
+			return true
+		"item":
+			cursor = int(hit[1])
+			return key(game, KEY_ENTER)
+		"shop":
+			return true
+	if open:
+		open = false
+		return true
+	return false
 
 
 ## The score, the clock, the alive pips and the cash across the top.
@@ -554,6 +584,7 @@ static func _round_banner(c: Canvas, _game, st) -> void:
 static func draw_shop(c: Canvas, game, st) -> void:
 	var me: Player = game.local_player
 	HUD.panel(c, 4, 22, 164, 132, PLATE)
+	LobbyScreens.zone(Rect2i(4, 22, 164, 132), "shop")
 	var left := int(ceil(TacticalMode.buy_left(game, st)))
 	HUD.text(c, "GENERAL STORE", 10, 25, "body", HUD.AMBER)
 	HUD.text(c, "%d" % int(st.money[me.slot]), 162, 25, "body", GREEN, false, true, true)
@@ -562,6 +593,7 @@ static func draw_shop(c: Canvas, game, st) -> void:
 		var tab_x := 10 + k * 60
 		var on := k == page
 		c.fill_rect(tab_x, 35, 56, 8, Canvas.rgb(82, 49, 31) if on else Canvas.rgb(44, 30, 24))
+		LobbyScreens.zone(Rect2i(tab_x, 33, 56, 12), "tab", k)
 		HUD.text(
 			c,
 			["GUNS", "GEAR + THROWN"][k],
@@ -575,23 +607,26 @@ static func draw_shop(c: Canvas, game, st) -> void:
 	var rows := TacticalShop.page_rows(game, st, me, page)
 	for i in rows.size():
 		var row: Array = rows[i]
-		var y := 47 + i * 7
+		var y := 47 + i * 9
 		var allowed := TacticalShop.allowed(game, st, me, row)
 		var price := TacticalShop.price_for(st, me, row)
 		var have := TacticalShop.owned_fully(st, me, row)
 		var cash := int(st.money[me.slot]) >= price
 		var ink := HUD.INK if allowed and cash and not have else GREY
 		if i == cursor:
-			c.fill_rect(7, y - 1, 158, 7, Canvas.rgb(82, 49, 31))
-		HUD.text(c, SHOP_NAMES[i], 10, y, "mini", HUD.AMBER)
-		HUD.text(c, String(row[1]), 19, y, "mini", ink)
-		HUD.text(c, String(row[6]), 132, y, "mini", HUD.DIM, false, false, true)
+			c.fill_rect(7, y - 1, 158, 9, Canvas.rgb(82, 49, 31))
+		LobbyScreens.zone(Rect2i(7, y - 1, 158, 9), "item", i)
+		HUD.text(c, SHOP_NAMES[i], 10, y + 1, "mini", HUD.AMBER)
+		var named := HUD.text(c, String(row[1]), 17, y, "body", ink)
+		var kind := String(row[6])
+		if named.end.x + 4 < 134 - PixelType.text_width(kind, "mini"):
+			HUD.text(c, kind, 134, y + 1, "mini", HUD.DIM, false, false, true)
 		var tail := "GOT" if have else "%d" % price
-		HUD.text(c, tail, 162, y, "mini", ink, false, false, true)
+		HUD.text(c, tail, 162, y, "body", ink, false, false, true)
 	var foot := "BUY TIME %d" % left if left > 0 else "BUY TIME'S OVER"
 	if note_until > game.clock:
 		foot = note
-	HUD.text(c, foot, 86, 145, "mini", HUD.AMBER, true)
+	HUD.text(c, foot, 86, 143, "body", HUD.AMBER, true)
 
 
 ## A key while the game is a 5v5 one: true when it was the shop's.
@@ -695,10 +730,13 @@ static func _say(game, text: String) -> void:
 
 
 ## The title's 5V5 SHOWDOWN picker: mode, map, match length, START.
+## PLAY VS BOTS: mode, map, match length, rules and LET 'ER RIP. A value row
+## steps with LEFT and RIGHT or a tap on its arrows (a tap on the picked row:
+## the next value); the taps are noted in LobbyScreens.zones.
 static func draw_picker(
 	c: Canvas, menu: Menu, row: int, mode: int, map: int, long: int, rules := 0
 ) -> void:
-	menu.draw_sheet(c, "SHOWDOWN")
+	menu.draw_sheet(c, "PLAY VS BOTS")
 	var mode_id := String(PICKER_MODES[posmod(mode, PICKER_MODES.size())])
 	var maps := picker_maps(mode)
 	var map_id := String(maps[posmod(map, maps.size())])
@@ -713,46 +751,41 @@ static func draw_picker(
 		["MAP", String(MAP_TITLES.get(map_id, map_id.to_upper()))],
 		["MATCH", "FIRST TO %d ROUNDS" % rounds],
 		["RULES", String(TacticalShop.RULE_NAMES[posmod(rules, TacticalShop.RULE_NAMES.size())])],
-		["", "LET 'ER RIP"],
-		["ONLINE", "COUNTY SERVERS"],
-		["ONLINE", "HOST A LOBBY"],
-		["ONLINE", "JOIN A LOBBY"],
 	]
+	var picked := posmod(row, PICKER_ROWS)
 	for i in rows.size():
-		var y := 38 + i * 12 + (4 if i >= PICKER_GO else 0) + (6 if i > PICKER_GO else 0)
-		var here := i == posmod(row, PICKER_ROWS)
-		if here:
-			c.fill_rect(19, y - 2, 282, 13 if i != PICKER_GO else 17, Canvas.rgb(82, 49, 31))
-			Menu.shell(c, 22, y + 2)
+		var y := 42 + i * 16
+		var here := i == picked
 		var ink := HUD.AMBER if here else HUD.INK
-		if i > PICKER_GO:
-			HUD.text(c, String(rows[i][0]), 36, y, "body", Menu.FADED)
-			HUD.text(c, String(rows[i][1]), 196, y, "body", ink, true)
-		elif String(rows[i][0]) != "":
-			HUD.text(c, String(rows[i][0]), 36, y, "body", Menu.FADED)
-			var value := String(rows[i][1])
-			HUD.text(c, ("<  %s  >" % value) if here else value, 196, y, "body", ink, true)
-		else:
-			HUD.text(c, String(rows[i][1]), 160, y - 1, "heading", ink, true)
+		if here:
+			c.fill_rect(19, y - 3, 282, 14, LobbyScreens.LIT)
+			Menu.shell(c, 22, y + 1)
+		HUD.text(c, String(rows[i][0]), 36, y, "body", Menu.FADED)
+		HUD.text(c, String(rows[i][1]), 196, y, "body", ink, true)
+		HUD.text(c, "<", 112, y, "body", ink if here else Menu.DIM)
+		HUD.text(c, ">", 278, y, "body", ink if here else Menu.DIM)
+		LobbyScreens.zone(Rect2i(19, y - 3, 282, 14), "row", i)
+		LobbyScreens.zone(Rect2i(100, y - 3, 32, 14), "left", i)
+		LobbyScreens.zone(Rect2i(264, y - 3, 37, 14), "right", i)
+	var go := picked == PICKER_GO
+	LobbyScreens.button(c, Rect2i(70, 107, 180, 20), "", go, "go", PICKER_GO)
+	HUD.text(c, "LET 'ER RIP", 160, 110, "heading", HUD.AMBER if go else HUD.INK, true)
 	var lines: Array = MAP_LINES.get(map_id, ["", ""])
-	HUD.text(c, String(MODE_LINES.get(mode_id, "")), 160, 148, "mini", HUD.AMBER, true)
-	HUD.text(c, String(lines[0]), 160, 155, "mini", HUD.INK, true)
-	HUD.text(c, String(lines[1]), 160, 162, "mini", HUD.INK, true)
+	_fit(c, String(MODE_LINES.get(mode_id, "")), 133, HUD.AMBER)
+	_fit(c, String(lines[0]), 143, HUD.INK)
+	_fit(c, String(lines[1]), 152, HUD.INK)
 	var blurb := (
-		(
-			"YOU AND A BOT AGAINST TWO. B BUYS IN THE FREEZE."
-			if mode_id == "tagteam"
-			else "YOU AND FOUR BOTS AGAINST FIVE. B BUYS IN THE FREEZE."
-		)
-		if posmod(row, PICKER_ROWS) <= PICKER_GO
-		else (
-			"THE COUNTY'S OWN SERVERS: ALWAYS OPEN. PICK ONE AND GO."
-			if posmod(row, PICKER_ROWS) == PICKER_GO + 1
-			else "PLAY WITH FRIENDS ANYWHERE: HOST, OR JOIN BY CODE."
-		)
+		"YOU AND A BOT AGAINST TWO." if mode_id == "tagteam" else "YOU AND FOUR BOTS AGAINST FIVE."
 	)
-	HUD.text(c, blurb, 160, 171, "mini", HUD.DIM, true)
-	HUD.text(c, "ARROWS PICK   ENTER PLAYS   ESC BACK", 124, 181, "mini", HUD.INK, true)
+	_fit(c, blurb, 163, LobbyScreens.SOFT)
+	LobbyScreens.footer(c, "ARROWS PICK   ENTER PLAYS   ESC BACK")
+	LobbyScreens.back_button(c)
+
+
+## A line in the readable font where it fits the sheet, else the small one.
+static func _fit(c: Canvas, text: String, y: int, ink: Color) -> void:
+	var style := "body" if PixelType.text_width(text, "body") <= 280 else "mini"
+	HUD.text(c, text, 160, y, style, ink, true)
 
 
 # ------------------------------------------------------------ down
