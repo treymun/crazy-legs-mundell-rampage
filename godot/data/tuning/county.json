@@ -59,6 +59,7 @@
 			"elites": ["tough_chuck", "noodler", "big_billy"]
 		}
 	],
+	"tips": ["ONE CARD IS ALWAYS FOR THE GUN IN YOUR HAND.", "1-3 PICK A SLOT. THE WHEEL CYCLES YOUR GUNS.", "XP WON'T COME THROUGH A WALL. GO GET IT.", "EVERY TENTH LEVEL IS A MILESTONE: THREE BIG PICKS.", "A LULL IS THE TIME TO RELOAD AND SWEEP UP XP.", "ELITES DROP A PILE OF XP. THEY'RE MARKED GOLD.", "B SHOWS YOUR BUILD. THE WORLD WAITS."],
 	"xp": {
 		"_about": "XP to go from level L to L+1: first + step*(L-1) + curve*(L-1)^2. Each kill drops max health / per_hp XP (at least 1), elites times elite_times.",
 		"first": 6,

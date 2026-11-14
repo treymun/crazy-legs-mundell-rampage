@@ -14,6 +14,10 @@ const TAU_ := 6.283185307179586
 const FACE := Color(0.15686275, 0.11372549, 0.09019608)
 const EDGE := Color(0.55294118, 0.4, 0.25490196)
 const DROP := Color(0.08627451, 0.0627451, 0.05098039)
+## Where text's dark outline is drawn round each letter (label() with shadow).
+const OUTLINE: Array[Vector2i] = [
+	Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1), Vector2i(1, 1)
+]
 const UNDERLINE := Color(0.30980393, 0.20784314, 0.14901961)
 
 var pixels := PackedByteArray()
@@ -946,9 +950,18 @@ func label(
 		px = x - width
 	var rect := Rect2i(px, y, width, height)
 	if shadow:
-		_draw_glyphs(
-			text, rect.position.x + 1, rect.position.y + 1, sx, height, mini, PixelType.SHADE
-		)
+		# A dark outline all round and the drop below it, so text reads over
+		# the busy view as well as on a plain panel.
+		for off: Vector2i in OUTLINE:
+			_draw_glyphs(
+				text,
+				rect.position.x + off.x,
+				rect.position.y + off.y,
+				sx,
+				height,
+				mini,
+				PixelType.SHADE
+			)
 	_draw_glyphs(text, rect.position.x, rect.position.y, sx, height, mini, color)
 	return rect
 

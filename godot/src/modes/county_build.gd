@@ -537,7 +537,7 @@ static func describe(game, f, c: Dictionary) -> Dictionary:
 			if now != "":
 				out["lines"].append(now)
 			out["trade"] = CountyData.fill(String(spec.get("trade", "")), spec, next, gun)
-			out["lasts"] = "LASTS WHILE YOU CARRY THIS GUN"
+			out["lasts"] = "LASTS: WHILE CARRIED"
 		"weapon":
 			var spec := CountyData.weapon(gun)
 			out["title"] = CountyData.gun_name(gun)
@@ -547,7 +547,7 @@ static func describe(game, f, c: Dictionary) -> Dictionary:
 			out["trade"] = (
 				"FILLS AN EMPTY SLOT" if slot >= 0 else "SLOTS FULL: PICK ONE TO SWAP OUT"
 			)
-			out["lasts"] = "FOR THE REST OF THE RUN"
+			out["lasts"] = "LASTS: THE WHOLE RUN"
 		"perk":
 			var spec := CountyData.perk(id)
 			var supply := bool(spec.get("supply", false))
@@ -561,7 +561,7 @@ static func describe(game, f, c: Dictionary) -> Dictionary:
 				CountyData.fill(String(spec.get("text", "")), spec, 1 if supply else next, target)
 			]
 			out["trade"] = String(spec.get("trade", ""))
-			out["lasts"] = "RIGHT NOW" if supply else "THE WHOLE RUN, WHATEVER YOU CARRY"
+			out["lasts"] = "LASTS: RIGHT NOW" if supply else "LASTS: THE WHOLE RUN"
 		"milestone":
 			var spec := CountyData.milestone(id)
 			var next := milestone_rank(f, id) + 1
@@ -577,18 +577,18 @@ static func describe(game, f, c: Dictionary) -> Dictionary:
 			)
 			var needs := String(spec.get("needs", ""))
 			if Weapons.NAMES.has(needs):
-				out["for"] += ": " + CountyData.gun_name(Weapons.NAMES.find(needs))
+				out["for"] = "CHANGES " + CountyData.short_name(Weapons.NAMES.find(needs))
 			out["lines"] = [
 				CountyData.fill(String(spec.get("text", "")), spec, next, game.armory.active)
 			]
 			out["trade"] = String(spec.get("trade", ""))
 			out["lasts"] = (
-				"RIGHT NOW"
+				"LASTS: RIGHT NOW"
 				if id == "big_haul" or id == "double_down"
 				else (
-					"LASTS WHILE YOU CARRY IT"
+					"LASTS: WITH THAT GUN"
 					if String(spec.get("kind", "")) == "weapon"
-					else "THE WHOLE RUN"
+					else "LASTS: THE WHOLE RUN"
 				)
 			)
 	return out

@@ -86,6 +86,12 @@ var over := false
 var result := {}
 ## The build screen is up mid-fight (county_input.gd): the world holds.
 var paused := false
+## The end screen's extra numbers: elites downed, damage taken, the best
+## streak of hits; and whether the cards show tips (a player's first runs).
+var elites_down := 0
+var hurt := 0.0
+var best_streak := 0
+var tips := false
 
 
 func id() -> String:

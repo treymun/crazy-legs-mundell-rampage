@@ -1,5 +1,6 @@
 ## Gore: chunks thrown by an overkill, blood leaving a wound, and the pools and
-## splats it leaves on floors and walls.
+## splats it leaves on floors and walls (more of it in gore_extras.gd: pools
+## that spread, limbs off, robot scrap, charred chunks, streaks, boot prints).
 ##
 ## None of this draws from the game's own dice: the simulation stays in step
 ## with the reference whether gore is on or off.
@@ -24,6 +25,8 @@ class Gib:
 	var drip := 0.0
 	## How far it has rolled along the ground (it turns over as it goes).
 	var roll := 0.0
+	## Scrap off a robot: no blood where it lands or rolls.
+	var metal := false
 
 
 ## Dust or sparks where a bullet struck.
@@ -37,10 +40,10 @@ class Puff:
 
 ## Gore keeps fixed-size rings: the oldest chunk, pool or splat is reused, so a
 ## long fight never grows these lists or stalls on freeing them.
-const GIB_CAP := 64
+const GIB_CAP := 80
 const PUFF_CAP := 20
-const BLOOD_CAP := 96
-const SPLAT_CAP := 32
+const BLOOD_CAP := 140
+const SPLAT_CAP := 48
 const GIB_PARTS := [
 	"head",
 	"arm",
@@ -79,6 +82,15 @@ var blood_marks: Array = []
 var walls: Array = []
 var dice := RandomNumberGenerator.new()
 var _splat_clock := -1.0
+## gore_extras.gd's: pools spreading [mark, size], stumps spurting [enemy,
+## until, next, green, height], and the boot prints the player has left in them.
+var pools: Array = []
+var spurts: Array = []
+var bloody := 0
+var bloody_green := false
+var walked := 0.0
+var last_at := Vector2.INF
+var foot := false
 ## How each size of chunk moves (tumble.gd), made once.
 var _feels := {}
 var game: Game
@@ -110,7 +122,10 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 	if not game.gore:
 		return
 	var kind := "plasma" if green else "gore"
-	for _i in clampi(int(amount / 9.0), 2, 7):
+	# A big hit throws more, and lays a long streak along the shot.
+	if amount >= 28.0:
+		GoreExtras.streak(self, x, y, ax, ay, amount, green)
+	for _i in clampi(int(amount / 9.0), 2, 7 if amount < 40.0 else 11):
 		if game.specks.size() >= 170:
 			break
 		var push := dice.randf_range(.7, 2.6)
@@ -148,10 +163,26 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 
 ## An overkill: the body comes apart instead of falling over.
 func burst(enemy: Enemy) -> void:
+	if GoreExtras.metal(enemy):
+		GoreExtras.scrap(self, enemy)
+		return
 	var green := Enemy.GREEN_GIBS.has(enemy.kind)
 	var floor_z: float = game.world.stand(enemy)
 	var away := atan2(enemy.y - game.player.y, enemy.x - game.player.x)
 	var prefix := "gib_a_" if green else "gib_"
+	# A blast chars half of what it throws and leaves soot with the blood.
+	var charred := enemy.killed_by == "blast" and not green
+	if charred:
+		var soot := Renderer.GroundMark.new(
+			enemy.x,
+			enemy.y,
+			floor_z + .003,
+			dice.randf() * TAU,
+			.6,
+			.6,
+			"mark_scorch_%d" % (dice.randi() % 3)
+		)
+		blood_marks.append(soot)
 	for part: String in GIB_PARTS:
 		var g := Gib.new()
 		var angle := away + dice.randf_range(-1.5, 1.5)
@@ -163,6 +194,8 @@ func burst(enemy: Enemy) -> void:
 		g.vy = sin(angle) * speed
 		g.vz = dice.randf_range(1.4, 3.6)
 		g.image = prefix + part
+		if charred and dice.randf() < .5:
+			g.image = "gib_c_" + part
 		g.size = float(GIB_SIZES[part])
 		g.flip = dice.randf() < .5
 		g.green = green
@@ -200,10 +233,17 @@ func burst(enemy: Enemy) -> void:
 func bleed_out(enemy: Enemy, green: bool) -> void:
 	if not game.gore:
 		return
-	_stain(enemy.x, enemy.y, dice.randf_range(.26, .36), green)
+	# The pool spreads where the body comes to rest (settled()); here the
+	# drops as it falls, and a limb or the head a heavy hit took off.
+	GoreExtras.limb(self, enemy)
 	for _i in 2:
 		var a := dice.randf() * TAU
 		_stain(enemy.x + cos(a) * .3, enemy.y + sin(a) * .3, dice.randf_range(.10, .18), green)
+
+
+## A body came to rest (features/corpses.gd): its pool spreads there.
+func settled(enemy: Enemy) -> void:
+	GoreExtras.pool(self, enemy)
 
 
 ## Dust or sparks where a bullet lands.
@@ -235,6 +275,9 @@ func draw_lens(c: Canvas) -> void:
 
 
 func tick(dt: float) -> void:
+	GoreExtras.grow(self, dt)
+	GoreExtras.spurt(self)
+	GoreExtras.prints(self)
 	for puff: Puff in puffs:
 		puff.age += dt
 	while not puffs.is_empty() and puffs[0].age > .34:
@@ -249,7 +292,7 @@ func tick(dt: float) -> void:
 			continue
 		# A chunk in the air leaves a line of drops behind it.
 		g.drip -= dt
-		if g.vz != 0.0 and g.drip <= 0.0 and game.specks.size() < 170:
+		if g.vz != 0.0 and g.drip <= 0.0 and game.specks.size() < 170 and not g.metal:
 			g.drip = .09
 			game.specks.append(
 				Game.Speck.new(
@@ -271,18 +314,24 @@ func tick(dt: float) -> void:
 		if hit & Tumble.RESTED:
 			g.rest = true
 		if hit & Tumble.FLOOR:
-			_stain(g.x, g.y, dice.randf_range(.09, .18), g.green)
+			if not g.metal:
+				_stain(g.x, g.y, dice.randf_range(.09, .18), g.green)
 			if game.clock - _splat_clock > .11:
 				_splat_clock = game.clock
-				game.sound_at("gib_splat", g.x, g.y, .55)
-		elif hit & Tumble.WALL and game.clock - _splat_clock > .11:
-			_splat_clock = game.clock
-			game.sound_at("gib_splat", g.x, g.y, .35)
+				game.sound_at("metal_down" if g.metal else "gib_splat", g.x, g.y, .45)
+		elif hit & Tumble.WALL:
+			GoreExtras.wall_splat(self, g)
+			if game.clock - _splat_clock > .11:
+				_splat_clock = game.clock
+				game.sound_at("metal_down" if g.metal else "gib_splat", g.x, g.y, .35)
 		if g.vz == 0.0:
 			var was := int(g.roll / .22)
 			g.roll += Vector2(g.x - ox, g.y - oy).length()
 			if int(g.roll / .22) != was:
 				g.flip = not g.flip
+				# A chunk rolling smears a trail behind it.
+				if not g.metal and g.roll < 2.0:
+					_stain(g.x, g.y, dice.randf_range(.05, .08), g.green)
 	if not gibs.is_empty() and gibs[0].rest and gibs[0].age > 45.0:
 		gibs.pop_front()
 

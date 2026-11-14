@@ -39,6 +39,7 @@ static func drop(game, f, e: Enemy) -> void:
 		z = game.world.floor_under(at.x, at.y, z + .3)
 	var value := xp_for(game, f, e)
 	if f.elite_ids.has(e.get_instance_id()):
+		f.elites_down += 1
 		# An elite throws its XP about in a few piles.
 		var piles := 4
 		for k in piles:
@@ -239,15 +240,11 @@ static func sprites(game, f) -> Array:
 			s.glow = true
 			out.append(s)
 		else:
-			out.append(
-				game.pooled(
-					x,
-					y,
-					"item_bullets" if kind == "ammo" else "item_rinds",
-					.33,
-					float(orb[2]) + .06
-				)
+			var s: Renderer.Sprite = game.pooled(
+				x, y, "item_bullets" if kind == "ammo" else "item_rinds", .33, float(orb[2]) + bob
 			)
+			s.glow = true  # supplies stand out in the dark like the XP
+			out.append(s)
 	return out
 
 

@@ -95,6 +95,7 @@ static func hit_after(
 	if first:
 		f.shot_hit = true
 		f.streak += 1
+		f.best_streak = maxi(f.best_streak, f.streak)
 		if e.max_hp >= TOUGH:
 			if f.called_uid == e.get_instance_id():
 				f.called_hits += 1

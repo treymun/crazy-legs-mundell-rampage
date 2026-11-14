@@ -213,6 +213,7 @@ func shove(x: float, y: float, reach: float, power: float) -> void:
 
 func _settle(b: Body) -> void:
 	b.rest = true
+	game.gore_fx.settled(b.enemy)  # its pool spreads where it lies
 
 
 func _tick(dt: float) -> void:

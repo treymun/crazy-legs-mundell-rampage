@@ -86,6 +86,14 @@ func _boardwalk(id: String, x0: int, x1: int, y: int) -> void:
 
 
 func landmarks() -> void:
+	# Lamps at the causeways' ends; a camp on the mud flat where a run starts.
+	for at: Vector2 in [
+		Vector2(40.4, 34.6), Vector2(47.4, 34.6), Vector2(78.4, 34.6), Vector2(85.6, 34.6)
+	]:
+		b.town("lantern_post", at.x, at.y)
+	b.town("burn_barrel", 27.5, 9.5)
+	b.town("camp_chairs", 26.0, 10.8)
+	b.label("MUD FLAT CAMP", 26, 8)
 	b.label("WEST PLANKS", 30, 39)
 	b.label("ISLAND CAUSEWAY", 43, 34)
 	b.label("ISLAND CAUSEWAY", 81, 34)

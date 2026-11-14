@@ -8,6 +8,11 @@
 ##   gib_<part> / gib_a_<part>   chunks thrown by an overkill (human / alien)
 ##   fx_blood_N / fx_acid_N      splats for walls
 ##   mark_blood_N / mark_acid_N  pools and drops for the floor
+##   gib_m_<part>                scrap off a robot (bolt, gear, plate, spring, pipe)
+##   gib_c_<part>                a chunk charred by a blast
+##   mark_oil_N / fx_oil_N       a robot's oil on the floor and the walls
+##   mark_streak_<blood|acid>_N  blood thrown along the floor (laid along the shot)
+##   mark_print_<blood|acid>     a boot print walked out of a pool
 ## Then run tools/pack_assets.gd. out= writes somewhere else instead (to compare).
 extends SceneTree
 
@@ -32,6 +37,13 @@ const SIZES := {
 	"gut": 30
 }
 const PARTS := ["arm", "boot", "rib", "eye", "meat", "chunk", "organ", "head", "hand", "gut"]
+## Scrap off a robot, and how big each is drawn.
+const SCRAP := {"bolt": 14, "gear": 22, "plate": 28, "spring": 20, "pipe": 30}
+const STEEL := Color8(150, 154, 160)
+const STEEL_DARK := Color8(70, 74, 82)
+const RUST := Color8(150, 76, 34)
+const OIL := Color8(36, 30, 26)
+const OIL_DEEP := Color8(14, 12, 10)
 
 var rng := RandomNumberGenerator.new()
 
@@ -60,6 +72,24 @@ func _init() -> void:
 				out.path_join("mark_%s_%d.png" % [pair[1], k])
 			)
 			count += 1
+	for part: String in SCRAP:
+		scrap(part).save(out.path_join("gib_m_%s.png" % part))
+		count += 1
+	for part: String in PARTS:
+		charred(gib(part, false)).save(out.path_join("gib_c_%s.png" % part))
+		count += 1
+	for k in 3:
+		splat_in(OIL, OIL_DEEP, true, 300 + k).save(out.path_join("mark_oil_%d.png" % k))
+		splat_in(OIL, OIL_DEEP, false, 320 + k).save(out.path_join("fx_oil_%d.png" % k))
+		count += 2
+	for pair in [[false, "blood"], [true, "acid"]]:
+		for k in 2:
+			streak(pair[0], 400 + k + (100 if pair[0] else 0)).save(
+				out.path_join("mark_streak_%s_%d.png" % [pair[1], k])
+			)
+			count += 1
+		boot_print(pair[0]).save(out.path_join("mark_print_%s.png" % pair[1]))
+		count += 1
 	print("gore art: %d sprites in %s" % [count, out])
 	quit()
 
@@ -269,4 +299,142 @@ func splat(alien: bool, pool: bool, seed: int) -> Paint.Sheet:
 		for k in 3:
 			out.data[o + k] = clampi(int(out.data[o + k] + grit[i]), 0, 255)
 		out.data[o + 3] = 255 if out.data[o + 3] >= 110 else 0
+	return out
+
+
+## A piece of scrap off a robot, steel with rust and grease on it.
+func scrap(part: String) -> Paint.Sheet:
+	var size: int = SCRAP[part]
+	var s := float(size * U)
+	var im := Paint.Sheet.new(size * U, size * U)
+	match part:
+		"bolt":
+			Paint.rounded_rect(im, s * .2, s * .2, s * .5, s * .5, U * 2, STEEL)
+			Paint.line2(im, s * .4, s * .4, s * .86, s * .86, STEEL_DARK, U * 5)
+			for k in 4:
+				var t := .5 + k * .1
+				Paint.line2(
+					im, s * (t - .04), s * (t + .04), s * (t + .04), s * (t - .04), STEEL, U
+				)
+		"gear":
+			for k in 10:
+				var a := k * TAU / 10.0
+				Paint.ellipse(
+					im,
+					s * (.5 + cos(a) * .36) - U * 3,
+					s * (.5 + sin(a) * .36) - U * 3,
+					s * (.5 + cos(a) * .36) + U * 3,
+					s * (.5 + sin(a) * .36) + U * 3,
+					STEEL
+				)
+			Paint.ellipse(im, s * .17, s * .17, s * .83, s * .83, STEEL)
+			Paint.ellipse(im, s * .38, s * .38, s * .62, s * .62, STEEL_DARK)
+			blob(im, s * .66, s * .3, s * .1, RUST, 5, .4)
+		"plate":
+			var pts := PackedVector2Array(
+				[
+					Vector2(s * .1, s * .3),
+					Vector2(s * .7, s * .1),
+					Vector2(s * .92, s * .5),
+					Vector2(s * .6, s * .62),
+					Vector2(s * .72, s * .9),
+					Vector2(s * .18, s * .82)
+				]
+			)
+			Paint.polygon(im, pts, STEEL_DARK)
+			for k in 3:
+				var x := s * (.28 + k * .2)
+				Paint.ellipse(im, x - U * 2, s * .4 - U * 2, x + U * 2, s * .4 + U * 2, STEEL)
+			blob(im, s * .3, s * .7, s * .12, RUST, 5, .4)
+		"spring":
+			var pts := PackedVector2Array()
+			for k in 25:
+				var t := k / 24.0
+				pts.append(Vector2(s * (.15 + .7 * t), s * (.5 + .3 * sin(t * TAU * 3.0))))
+			Paint.line(im, pts, STEEL_DARK, U * 4, true)
+			Paint.line(im, pts, STEEL, U * 2, true)
+		"pipe":
+			Paint.line2(im, s * .14, s * .7, s * .86, s * .3, STEEL_DARK, U * 9)
+			Paint.line2(im, s * .14, s * .7, s * .86, s * .3, STEEL, U * 6)
+			Paint.ellipse(im, s * .76, s * .2, s * .96, s * .4, OIL_DEEP)
+			blob(im, s * .3, s * .62, s * .1, RUST, 5, .4)
+	shade(im)
+	return finish(im, size)
+
+
+## A chunk as a blast leaves it: blackened, a cinder still glowing here and there.
+func charred(small: Paint.Sheet) -> Paint.Sheet:
+	var n := small.w * small.h
+	for i in n:
+		var o := i * 4
+		if small.data[o + 3] == 0:
+			continue
+		var lum := (small.data[o] + small.data[o + 1] + small.data[o + 2]) / 3.0
+		var dark := lum * .32
+		small.data[o] = clampi(int(dark + 18 + small.data[o] * .1), 0, 255)
+		small.data[o + 1] = clampi(int(dark + 10), 0, 255)
+		small.data[o + 2] = clampi(int(dark + 6), 0, 255)
+		if rng.randf() < .05:
+			small.data[o] = 236
+			small.data[o + 1] = 120 + rng.randi() % 60
+			small.data[o + 2] = 30
+	return small
+
+
+## splat() in any two colours (a robot's oil).
+func splat_in(wet: Color, deep: Color, pool: bool, seed: int) -> Paint.Sheet:
+	var made := splat(false, pool, seed)
+	var red_wet := Color8(140, 22, 20)
+	for i in made.w * made.h:
+		var o := i * 4
+		if made.data[o + 3] == 0:
+			continue
+		# How far toward the wet red the pixel is, and the same in the new colours.
+		var t := clampf(float(made.data[o]) / float(red_wet.r8), 0.0, 1.0)
+		var c := deep.lerp(wet, t)
+		made.data[o] = c.r8
+		made.data[o + 1] = c.g8
+		made.data[o + 2] = c.b8
+	return made
+
+
+## Blood thrown along the floor: drops drawn out into a long tear, wide end
+## toward the hit (the game lays it along the shot).
+func streak(alien: bool, seed: int) -> Paint.Sheet:
+	var wet := SLIME if alien else Color8(140, 22, 20)
+	var deep := SLIME_DARK if alien else Color8(84, 10, 12)
+	var size := 48
+	var s := float(size * U)
+	var im := Paint.Sheet.new(size * U, size * U)
+	var local := RandomNumberGenerator.new()
+	local.seed = seed
+	for k in 6:
+		var y := s * (.5 + local.randf_range(-.08, .08))
+		var x0 := s * local.randf_range(.08, .3)
+		var x1 := s * local.randf_range(.6, .95)
+		var w := s * local.randf_range(.02, .05)
+		Paint.line2(im, x0, y, x1, y + local.randf_range(-.06, .06) * s, deep, maxf(U, w))
+		Paint.ellipse(
+			im, x0 - w * 1.6, y - w * 1.6, x0 + w * 1.6, y + w * 1.6, wet if k % 2 else deep
+		)
+	var out := im.resized(size, size)
+	for i in size * size:
+		out.data[i * 4 + 3] = 255 if out.data[i * 4 + 3] >= 110 else 0
+	return out
+
+
+## A boot print: sole and heel, wet in the middle, lighter at the toe.
+func boot_print(alien: bool) -> Paint.Sheet:
+	var deep := SLIME_DARK if alien else Color8(96, 12, 12)
+	var size := 24
+	var s := float(size * U)
+	var im := Paint.Sheet.new(size * U, size * U)
+	Paint.ellipse(im, s * .3, s * .08, s * .7, s * .56, deep)
+	Paint.ellipse(im, s * .34, s * .62, s * .66, s * .92, deep)
+	for k in 4:
+		var y := s * (.16 + k * .1)
+		Paint.rect(im, s * .32, y, s * .68, y + U * 1.5, Color(0, 0, 0, 0))
+	var out := im.resized(size, size)
+	for i in size * size:
+		out.data[i * 4 + 3] = 220 if out.data[i * 4 + 3] >= 110 else 0
 	return out

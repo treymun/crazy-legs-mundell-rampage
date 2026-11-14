@@ -37,8 +37,12 @@ testing it and adding to it. The code's own notes are in `CLAUDE.md`
   General perks and milestones always stay.
 - The county keeps coming: more and tougher with the minutes, an elite now and
   then, a short lull every minute and a half. Ammo and food drop sometimes.
+- Elites wear a gold ELITE tag and a health bar; the HUD counts down a lull
+  and warns when an elite is coming. Tips show on the cards in your first
+  three runs (county.json `tips`).
 - When you die: survival time, the map's personal best, highest level,
-  kills and your final build; RETRY, MAPS or TITLE.
+  kills, elites, XP, damage taken, best streak and your final build; RETRY,
+  MAPS or TITLE.
 
 **Controls** (as in the campaign): **1-3** pick a slot, the **wheel** or
 `;` `'` (and the NEXT button on a phone) cycle carried guns, **R** reload,

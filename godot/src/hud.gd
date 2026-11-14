@@ -10,7 +10,7 @@ extends RefCounted
 const INK := Color(250 / 255.0, 232 / 255.0, 193 / 255.0)
 const SHADE := Color(27 / 255.0, 19 / 255.0, 15 / 255.0)
 const AMBER := Color(251 / 255.0, 183 / 255.0, 98 / 255.0)
-const DIM := Color(163 / 255.0, 134 / 255.0, 99 / 255.0)
+const DIM := Color(188 / 255.0, 160 / 255.0, 122 / 255.0)
 const LOW := Color(238 / 255.0, 89 / 255.0, 52 / 255.0)
 const LOW_HOT := Color(255 / 255.0, 113 / 255.0, 64 / 255.0)
 

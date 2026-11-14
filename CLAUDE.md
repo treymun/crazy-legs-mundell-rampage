@@ -781,6 +781,24 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   spawn, give, god, tp, time, trigger, reload, stats, and overlays (`show map`:
   walls, enemies by state with the hunting ones' paths, triggers, lights;
   `show fps`). `DevConsole.run()` takes the same text from scripts.
+- **More gore** (dev.43, `src/gore_extras.gd`, called from `gore.gd`; looks
+  only, gore.gd's own dice): a pool spreads under a body once it settles
+  (`features/corpses.gd _settle` -> `Gore.settled`; not on water); a hit of
+  `LIMB_HIT` or more to the arms, legs or head of a body that falls whole
+  throws that piece and the stump spurts (`spurts`); `HitZones.METAL` kinds
+  burst into scrap (`gib_m_*`) and oil (`mark_oil_*`), a blast's kill into
+  half charred chunks (`gib_c_*`) with soot; big hits lay a streak
+  (`mark_streak_*`) along the shot; rolling chunks smear, chunks hitting a
+  wall splat on it; the local player walks bloody boot prints
+  (`mark_print_*`) out of a pool. Caps: 80 chunks, 140 floor marks, 48 wall
+  splats. The new pictures are `tools/art/build_gore_art.gd`'s (it rewrites
+  the older gore pictures slightly differently: put those back after a run).
+- **Text has an outline** (dev.43, `Canvas.OUTLINE`): `label()` with
+  `shadow` draws the dark shade on every side and the drop below, so text
+  reads over the view; `HUD.DIM`, `Menu.DIM` and `Menu.FADED` are brighter.
+  Changing how text draws changes every picture reference (picture_check
+  `update`; a window tour, then `compare_views.gd -- <dir> update`).
+
 - **Layers only call down.** In those chains a function may call functions of
   its own layer or the layers below it; calling up is a parse error. New
   fields go in the bottom layer (`game_state.gd`, `render_state.gd`,
@@ -1496,3 +1514,9 @@ upgrades and milestone abilities.
   times; `tools/county_frames.gd -- out=<dir>` (a window) takes pictures of
   every screen; `tools/county_probe.gd` is a quick look; `tools/county_bot.gd`
   is the bot they share.
+- **dev.43 polish**: elites wear an ELITE tag and a health bar
+  (`CountyScreens._elite_tags`), the HUD counts a lull and warns of an elite,
+  the cards' heading drops in, tips (county.json `tips`) show for a player's
+  first three runs (`f.tips`), the end adds elites, XP, damage and the best
+  streak (`f.elites_down`, `f.hurt`, `f.best_streak`), supplies glow, and
+  the maps have lamps at the new gates and crossings and burn barrels.

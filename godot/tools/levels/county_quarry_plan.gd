@@ -85,6 +85,10 @@ func catwalk() -> void:
 
 
 func landmarks() -> void:
+	b.town("lantern_post", 91.5, 68.6)
+	b.town("lantern_post", 35.4, 61.5)
+	b.town("lantern_post", 38.5, 68.6)
+	b.town("burn_barrel", 70.5, 78.5)
 	b.label("CATWALK", 110, 43)
 	b.label("WEST RAMP", 38, 64)
 	b.label("PIT GATE", 94, 67)

@@ -82,7 +82,7 @@ const NEXT_RUN := {
 }
 
 const PAINT := Color(236 / 255.0, 220 / 255.0, 186 / 255.0)
-const FADED := Color(196 / 255.0, 170 / 255.0, 128 / 255.0)
+const FADED := Color(216 / 255.0, 192 / 255.0, 148 / 255.0)
 const RUST := Color(150 / 255.0, 66 / 255.0, 30 / 255.0)
 const RUST_HOT := Color(196 / 255.0, 96 / 255.0, 40 / 255.0)
 const RUST_DEEP := Color(92 / 255.0, 38 / 255.0, 18 / 255.0)
@@ -95,7 +95,7 @@ const BRASS_LO := Color(118 / 255.0, 86 / 255.0, 44 / 255.0)
 const WOOD_A := Color(34 / 255.0, 24 / 255.0, 19 / 255.0)
 const WOOD_B := Color(41 / 255.0, 29 / 255.0, 23 / 255.0)
 const WELL := Color(17 / 255.0, 12 / 255.0, 9 / 255.0)
-const DIM := Color(108 / 255.0, 80 / 255.0, 58 / 255.0)
+const DIM := Color(148 / 255.0, 116 / 255.0, 86 / 255.0)
 const LAMP_ON := Color(150 / 255.0, 226 / 255.0, 96 / 255.0)
 const LAMP_ON_HI := Color(228 / 255.0, 255 / 255.0, 196 / 255.0)
 const LAMP_OFF := Color(112 / 255.0, 36 / 255.0, 28 / 255.0)

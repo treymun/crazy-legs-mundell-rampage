@@ -1,3 +1,31 @@
+# 2.0.0-dev.43 changes
+
+## Gore
+- Bodies bleed out: a pool spreads under each body once it comes to rest.
+- A heavy hit to an arm, a leg or the head takes it off: the piece flies and the stump spurts a moment.
+- Robots (the Mothership's tin guards and drones) come apart in bolts, gears, plates, springs and pipe, and leave oil, not blood.
+- A blast kill throws charred, smoking chunks and leaves soot with the blood.
+- Big hits throw long streaks of blood along the floor; chunks smear a trail as they roll and splat on the walls they hit.
+- Walk through a pool and you leave bloody boot prints for a few steps.
+- More blood and chunks stay on the ground at once in long fights.
+
+## Text
+- Every bit of text has a dark outline all round it, so it reads over the game view, not just on menus.
+- Second lines, hints and greyed-out entries are brighter on every menu and the HUD.
+- County Run's reward cards use bigger letters for what each card does.
+
+## County Run
+- Elites wear a gold ELITE tag and a health bar.
+- The HUD counts down a lull and warns when an elite is coming.
+- The level-up heading drops in; a milestone's ribbon flashes gold.
+- Tips on the cards for your first three runs.
+- The end of a run adds elites downed, XP collected, damage taken and your best streak of hits.
+- Ammo and food drops glow so they are easy to spot.
+- Lamps at every new gate and crossing, burn barrels on the open ground, and a camp on Gator Bayou's mud flat, where a run there starts.
+
+## Browser (2.0.0-dev.42)
+- Chapter downloads mount again in the browser: the Quarry, Gator Bayou and the campaign chapters after Hickston load instead of waiting forever.
+
 # 2.0.0-dev.41 changes
 
 ## COUNTY RUN

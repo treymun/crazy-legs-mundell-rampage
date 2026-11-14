@@ -9,9 +9,9 @@ class_name CountyScreens
 extends RefCounted
 
 const VIEW := Renderer.VIEW
-const CARD_Y := 31
+const CARD_Y := 28
 const CARD_W := 102
-const CARD_H := 109
+const CARD_H := 113
 const CARD_GAP := 4
 const WOOD := Color(30 / 255.0, 21 / 255.0, 16 / 255.0)
 const WOOD_HI := Color(46 / 255.0, 32 / 255.0, 24 / 255.0)
@@ -158,6 +158,7 @@ static func draw_maps(c: Canvas, menu: Menu) -> void:
 static func draw_hud(c: Canvas, game, f) -> void:
 	if game.player.health <= 0 or game.map:
 		return
+	_elite_tags(c, game, f)
 	var need := CountyData.xp_to_next(f.level)
 	var fill := clampi(roundi(320.0 * float(f.xp) / maxf(1.0, float(need))), 0, 320)
 	c.fill_rect(0, VIEW - 3, 320, 3, XP_BACK)
@@ -229,11 +230,40 @@ static func draw_hud(c: Canvas, game, f) -> void:
 		bits.append("CHARGED")
 	elif f.streak >= 2:
 		bits.append("STREAK %d" % f.streak)
+	if f.run_time < f.lull_until:
+		bits.append("LULL %ds" % ceili(f.lull_until - f.run_time))
+	elif f.next_elite - f.run_time < 5.0:
+		bits.append("ELITE COMIN'")
 	if not bits.is_empty():
 		HUD.text(c, "  ".join(bits), 317, VIEW - 21, "mini", GOLD, false, true, true)
 
 
 # ------------------------------------------------------------------ cards
+
+
+## A gold ELITE and a health bar over each elite in sight.
+static func _elite_tags(c: Canvas, game, f) -> void:
+	if f.elite_ids.is_empty():
+		return
+	var p: Player = game.player
+	for e: Enemy in game.enemies:
+		if not e.alive or not f.elite_ids.has(e.get_instance_id()):
+			continue
+		if Vector2(e.x - p.x, e.y - p.y).length() > 24.0:
+			continue
+		var top: float = game.world.stand(e) + e.z + e.height + .25
+		if not game.world.visible(p.x, p.y, e.x, e.y, p.eye, top - .3):
+			continue
+		var at: Vector3 = game.to_canvas(e.x, e.y, top)
+		if at.z <= 0.0 or at.x < 10 or at.x > 310 or at.y < 6 or at.y > VIEW - 20:
+			continue
+		var x := int(at.x)
+		var y := int(at.y)
+		HUD.text(c, "ELITE", x, y - 9, "mini", GOLD, true)
+		var w := 20
+		var share := clampf(e.hp / maxf(1.0, e.max_hp), 0.0, 1.0)
+		c.fill_rect(x - w / 2 - 1, y - 2, w + 2, 4, Color(0, 0, 0))
+		c.fill_rect(x - w / 2, y - 1, roundi(w * share), 2, HUD.LOW_HOT)
 
 
 static func _backdrop(c: Canvas, big: bool) -> void:
@@ -246,13 +276,17 @@ static func draw_cards(c: Canvas, game, f) -> void:
 	var entry: Array = f.pending[0]
 	var big := bool(entry[1])
 	_backdrop(c, big)
+	# The heading drops in as the cards come up; a milestone's ribbon flashes.
+	var age := (Time.get_ticks_msec() - _shown_at) / 1000.0
+	var drop := roundi(maxf(0.0, 1.0 - age / .22) * -24.0)
 	if big:
-		c.fill_rect(0, 3, 320, 22, RIBBON)
-		c.fill_rect(0, 3, 320, 1, GOLD)
-		c.fill_rect(0, 24, 320, 1, GOLD)
-		HUD.text(c, "MILESTONE! LEVEL %d" % int(entry[0]), 160, 5, "heading", GOLD, true)
+		var flash := age < .6 and int(age * 10.0) % 2 == 0
+		c.fill_rect(0, 3 + drop, 320, 22, GOLD_LO if flash else RIBBON)
+		c.fill_rect(0, 3 + drop, 320, 1, GOLD)
+		c.fill_rect(0, 24 + drop, 320, 1, GOLD)
+		HUD.text(c, "MILESTONE! LEVEL %d" % int(entry[0]), 160, 5 + drop, "heading", GOLD, true)
 	else:
-		HUD.text(c, "LEVEL %d!" % int(entry[0]), 160, 4, "heading", HUD.AMBER, true)
+		HUD.text(c, "LEVEL %d!" % int(entry[0]), 160, 4 + drop, "heading", HUD.AMBER, true)
 	var note := "PICK A BIG ONE." if big else "PICK ONE."
 	if f.pending.size() > 1:
 		note += (
@@ -260,6 +294,12 @@ static func draw_cards(c: Canvas, game, f) -> void:
 			% [f.pending.size() - 1, "S" if f.pending.size() > 2 else ""]
 		)
 	HUD.text(c, note, 160, 21 if not big else 26, "mini", LobbyScreens.SOFT, true)
+	if f.tips and not big:
+		var tips: Array = CountyData.all().get("tips", [])
+		if not tips.is_empty():
+			HUD.text(
+				c, "TIP: " + String(tips[f.level % tips.size()]), 160, 142 - 9, "mini", GOLD, true
+			)
 	for i in f.offer.size():
 		_card(
 			c,
@@ -308,13 +348,20 @@ static func _card(c: Canvas, game, f, i: int, r: Rect2i, big: bool) -> void:
 		HUD.text(c, String(d["rank"]), x, y, "mini", Menu.FADED)
 		y += 7
 	y += 2
+	# What it does in the bigger letters; what it does now (a rank held) small.
+	var first := true
+	# Too long for the big letters with room left for the tradeoff: small.
+	var main_text := String(d["lines"][0]) if not d["lines"].is_empty() else ""
+	var roomy := PixelType.wrap(main_text, width, "body").size() <= 5
 	for text: String in d["lines"]:
-		for line in PixelType.wrap(text, width, "mini"):
+		var style := "body" if first and roomy else "mini"
+		for line in PixelType.wrap(text, width, style):
 			if y > r.end.y - 24:
 				break
-			HUD.text(c, line, x, y, "mini", HUD.INK)
-			y += 7
+			HUD.text(c, line, x, y, style, HUD.INK if first else Menu.FADED)
+			y += 9 if style == "body" else 7
 		y += 2
+		first = false
 	if String(d["trade"]) != "":
 		for line in PixelType.wrap(String(d["trade"]), width, "mini"):
 			if y > r.end.y - 16:
@@ -488,8 +535,25 @@ static func draw_end(c: Canvas, _game, f) -> void:
 		HUD.AMBER,
 		true
 	)
-	HUD.text(c, "FINAL BUILD", 10, 56, "mini", Menu.FADED)
-	var y := 63
+	HUD.text(
+		c,
+		(
+			"ELITES %d   XP %d   DAMAGE TAKEN %d   BEST STREAK %d"
+			% [
+				int(r.get("elites", 0)),
+				int(r.get("xp", 0)),
+				int(r.get("hurt", 0)),
+				int(r.get("streak", 0))
+			]
+		),
+		160,
+		56,
+		"mini",
+		LobbyScreens.SOFT,
+		true
+	)
+	HUD.text(c, "FINAL BUILD", 10, 65, "mini", Menu.FADED)
+	var y := 72
 	for row: Array in r.get("build", []):
 		if y > 128:
 			break

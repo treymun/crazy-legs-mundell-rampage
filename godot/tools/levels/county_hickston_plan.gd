@@ -85,6 +85,18 @@ func footbridge() -> void:
 
 
 func landmarks() -> void:
+	# Lamps at each new way through, and burn barrels on the open ground.
+	for at: Vector2 in [
+		Vector2(12.5, 63.4),
+		Vector2(96.5, 16.5),
+		Vector2(106.4, 23.4),
+		Vector2(111.6, 23.4),
+		Vector2(105.4, 48.4),
+		Vector2(110.6, 48.4)
+	]:
+		b.town("lantern_post", at.x, at.y)
+	b.town("burn_barrel", 50.5, 68.5)
+	b.town("burn_barrel", 94.5, 30.5)
 	b.label("FOOTBRIDGE", 60, 50)
 	b.label("CREEK RUN", 6, 60)
 	b.label("RODEO GATE", 108, 21)

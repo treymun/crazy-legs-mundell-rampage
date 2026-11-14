@@ -48,6 +48,11 @@ func start(game, _st) -> void:
 	for item in HUD.ITEMS:
 		game.inventory[item] = 0
 	CountySpawner.begin(game, f)
+	# Tips on the cards for a player's first three runs (any map).
+	var runs := 0
+	for rec in CountyRecords.read().values():
+		runs += int(rec.get("runs", 0)) if rec is Dictionary else 0
+	f.tips = runs < 3
 	game.spawn_grace = 0.0
 	Modes.say(
 		game, "%s. SURVIVE." % String(CountyData.map(f.map_id).get("title", "COUNTY RUN")), 3.0
@@ -129,6 +134,10 @@ func downed(game, _st, p: Player, _by: int) -> void:
 		"level": f.level,
 		"kills": game.kills,
 		"build": CountyBuild.summary(f),
+		"elites": f.elites_down,
+		"xp": f.xp_total,
+		"hurt": roundi(f.hurt),
+		"streak": f.best_streak,
 	}
 	f.result["best_before"] = CountyRecords.finish(f.result)
 	p.down_at = game.clock
@@ -180,6 +189,7 @@ func incoming(game, p: Player, amount: float, _cause: String) -> float:
 	if amount >= float(p.health) and CountyBuild.has(f, "second_wind") and not f.second_wind_used:
 		CountyMoves.second_wind(game, f, p)
 		return 0.0
+	f.hurt += minf(amount, float(p.health))
 	return amount
 
 
