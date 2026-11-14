@@ -72,6 +72,13 @@ func _check(ok: bool, text: String) -> void:
 	print("  ok   " if ok else "  FAIL ", text)
 	if not ok:
 		failures.append(text)
+		_note(text)
+
+
+## A CI annotation (readable without the run's logs).
+func _note(text: String) -> void:
+	if OS.get_environment("GITHUB_ACTIONS") != "":
+		print("::error title=%s::%s" % [get_script().resource_path.get_file(), text])
 
 
 func _make(info: Dictionary) -> Game:
@@ -158,16 +165,16 @@ func _play() -> void:
 	var lobby: NetPlay = server.rooms[0].net
 	_check(lobby.county(), "a county map makes it a COUNTY RUN co-op lobby")
 	var alice := _join("alice", false)
-	_wait(func() -> bool: return alice.phase == "lobby" and alice.is_admin())
+	_wait(func() -> bool: return alice.phase == "lobby" and alice.is_admin(), 3000)
 	var bob := _join("bob", true)
-	_wait(func() -> bool: return bob.phase == "lobby" and lobby.players.size() == 2)
+	_wait(func() -> bool: return bob.phase == "lobby" and lobby.players.size() == 2, 3000)
 	_check(
 		alice.is_admin() and bob.phase == "lobby", "ALICE (ENet) runs it, BOB came in by WebSocket"
 	)
 	bob.ask({"ready": true})
-	_wait(func() -> bool: return bool(alice.player_of(bob.my_id).get("ready", false)))
+	_wait(func() -> bool: return bool(alice.player_of(bob.my_id).get("ready", false)), 3000)
 	var why := alice.start_match()
-	_wait(func() -> bool: return alice.client_ready() and bob.client_ready())
+	_wait(func() -> bool: return alice.client_ready() and bob.client_ready(), 3000)
 	_check(
 		lobby.phase == "match" and alice.client_ready() and bob.client_ready(),
 		"ALICE starts the run (%s), both copies have it" % (why if why != "" else "ok")
@@ -190,6 +197,8 @@ func _play() -> void:
 	var picked: int = f.picks.size()
 	var before := [alice.client_sync.mismatches, bob.client_sync.mismatches]
 	CountyMode.gain(g, f, CountyData.xp_to_next(f.level) + CountyData.xp_to_next(f.level + 1))
+	# The world holds until the leader's two picks come in through her controls.
+	_wait(func() -> bool: return f.pending.is_empty(), 4000)
 	_wait(func() -> bool: return f.run_time >= seconds, int(seconds / STEP) + 4000)
 	var up := 0
 	for e: Enemy in g.enemies:
@@ -262,6 +271,20 @@ func _play() -> void:
 					cs.checks,
 					cs.mismatches,
 					"" if cs.first_mismatch == "" else ": " + cs.first_mismatch
+				]
+			)
+		)
+	if not failures.is_empty():
+		_note(
+			(
+				"level %d, picks %d, pending %d; mismatches before %s, now %d and %d"
+				% [
+					f.level,
+					f.picks.size(),
+					f.pending.size(),
+					before,
+					alice.client_sync.mismatches,
+					bob.client_sync.mismatches
 				]
 			)
 		)

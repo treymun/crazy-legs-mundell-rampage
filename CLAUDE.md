@@ -793,7 +793,7 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   (`mark_print_*`) out of a pool. Caps: 80 chunks, 140 floor marks, 48 wall
   splats. The new pictures are `tools/art/build_gore_art.gd`'s (it rewrites
   the older gore pictures slightly differently: put those back after a run).
-- **Headless bodies and wet blades** (dev.44): a head taken off
+- **Headless bodies and wet blades** (dev.45): a head taken off
   (`GoreExtras.limb`) marks the body in `gore.headless` and game_view shows
   `<kind>_down_headless` once it is down (`GoreExtras.headless_cel`); those
   cels are Blender's (`build_enemy_actors.gd -- kinds=... frames=headless`:
@@ -801,10 +801,10 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   copy only the new files). `src/melee_blood.gd` wets the crowbar and sling
   blade after close hits (stages by gun rack, dried over `LASTS`), drawn as
   its own cached copy of the graded cel in weapons.gd.
-- **Deep water and steering** (dev.44, `src/deep_steer.gd`): a hand that
+- **Deep water and steering** (dev.45, `src/deep_steer.gd`): a hand that
   cannot swim and sees the player across deep water (no deck) follows the
   flow field; `LevelData.over_deep` is a deck over the water.
-- **SMALL TEXT** (dev.44, setting `small_text`): `PixelType.clear_small`
+- **SMALL TEXT** (dev.45, setting `small_text`): `PixelType.clear_small`
   draws and measures the 5-pixel style in the 7-pixel letters.
 - **Text has an outline** (dev.43, `Canvas.OUTLINE`): `label()` with
   `shadow` draws the dark shade on every side and the drop below, so text
@@ -1418,12 +1418,12 @@ every single-player check are as before).
   longer) holds the rules; `tools/mode_frames.gd -- out=<dir>` (a window)
   takes pictures of the partner tags, the revive, the down screen, a
   deathmatch and both results screens (`docs/modes/`).
-- **Client prediction** (dev.44, `src/net/net_predict.gd`): a client draws
+- **Client prediction** (dev.45, `src/net/net_predict.gd`): a client draws
   its own player walked on with the inputs the host has not played into its
   copy (`NetSync.Client.unplayed_inputs`, the walking sums of `_step_body`),
   put back after the frame (`main.gd _net_aim`); `net_loopback.gd` prints how
   many ticks off the host's path the drawn player is with and without it.
-- **The browser online** (dev.44): a lobby server's lobby with `ws_port` also
+- **The browser online** (dev.45): a lobby server's lobby with `ws_port` also
   takes WebSocket players (`NetSession.also`, ids past `ALSO_IDS`), wss with
   the config's `tls_cert`/`tls_key` (server/setup.sh copies Let's Encrypt's
   certificate to /etc/clmr/tls on renewal; IONOS's own firewall passes 443 and
@@ -1537,7 +1537,7 @@ upgrades and milestone abilities.
   times; `tools/county_frames.gd -- out=<dir>` (a window) takes pictures of
   every screen; `tools/county_probe.gd` is a quick look; `tools/county_bot.gd`
   is the bot they share.
-- **Co-op (dev.44, `src/modes/county_coop.gd`)**: two to four players, one
+- **Co-op (dev.45, `src/modes/county_coop.gd`)**: two to four players, one
   party build (the same slots, ranks and perks; each player's own rounds and
   health; `share()` puts a card's guns and rounds in every armory), the
   party's XP, the first player up picks (`leader`), downs revived by a partner
@@ -1557,14 +1557,14 @@ upgrades and milestone abilities.
   `Shot.county_scaled`) are fields, never keyed by instance id (a client's
   copy has other ids). `tools/county_net_check.gd` (check_all, CI) plays a
   party of two over ENet and WebSocket against a lobby server.
-- **DAILY RUN (dev.44, `src/modes/county_board.gd`)**: T on the picker; the
+- **DAILY RUN (dev.45, `src/modes/county_board.gd`)**: T on the picker; the
   day's (UTC) dice for the map (`seed_for`), `f.daily`. Its end posts to the
   first server in servers.json and the picker asks for each map's board: a
   BOARD knock (NetWire.BOARD) on the lobby's port, answered by `answer()` from
   `county-board.json` on the server (the last 7 days; a name's best counts; a
   wrong version or an old day is refused). Posting happens in the front end
   (`CountyScreens.board_frame`), never from a tool.
-- **dev.44 HUD and cards**: the status bar is the run's own (`hud.gd
+- **dev.45 HUD and cards**: the status bar is the run's own (`hud.gd
   _draw_county_bar`, `plate_county`: VEST, slots, LEVEL with XP); the cards
   are `county.json`'s `short` words (`CountyBuild.describe` badge, pips, big,
   small_trade, detail).

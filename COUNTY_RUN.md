@@ -21,7 +21,7 @@ testing it and adding to it. The code's own notes are in `CLAUDE.md`
 
   In the Godot editor, open `godot/project.godot` and press Play.
 
-## Co-op and the daily run (dev.44)
+## Co-op and the daily run (dev.45)
 
 - **Co-op, online, two to four**: in a lobby (HOST A GAME, or PLAY ONLINE's
   county servers) pick a County Run map: MODE turns to COUNTY RUN CO-OP.

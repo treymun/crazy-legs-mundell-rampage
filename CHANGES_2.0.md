@@ -1,4 +1,4 @@
-# 2.0.0-dev.44 changes
+# 2.0.0-dev.45 changes
 
 ## County Run
 - **Co-op County Run online, two to four players**: pick a County Run map in any lobby (the always-open COUNTY SERVERS too) and MODE becomes COUNTY RUN CO-OP. The party shares one build (everyone carries the same three guns, upgrades and perks, each with their own rounds and health) and one XP bar; the first player up picks the cards while the world holds for everyone. A downed player is stood up by a partner holding USE beside them, or comes back beside a partner after 25 seconds; the run ends when everyone is down. The horde grows with the party.
