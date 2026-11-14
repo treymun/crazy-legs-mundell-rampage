@@ -213,9 +213,10 @@ func poll(now_ms: float) -> Array:
 
 ## Lets one peer go (the host turning a client away or kicking it).
 func drop(id: int) -> void:
-	if peer != null and hosting:
+	# (A server list's knock may have hung up first: only a peer still here.)
+	if peer != null and hosting and _peers.has(id):
 		peer.disconnect_peer(id)
-		_peers.erase(id)
+	_peers.erase(id)
 
 
 func close() -> void:
