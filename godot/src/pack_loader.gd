@@ -27,6 +27,10 @@ func _ready() -> void:
 	_base = str(JavaScriptBridge.eval("new URL('.', document.baseURI).href", true))
 	DirAccess.make_dir_recursive_absolute(STORE)
 	_http = HTTPRequest.new()
+	# The browser unzips what GitHub Pages sends gzipped (the manifest and the
+	# packs both) before Godot sees it; asking for gzip made Godot unzip it
+	# again, fail, and never mount a pack.
+	_http.accept_gzip = false
 	add_child(_http)
 	_http.request_completed.connect(_done)
 	_manifest_due = true
