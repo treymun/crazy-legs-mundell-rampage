@@ -132,10 +132,10 @@ func attach() -> void:
 	_find()
 	# The pictures a break shows, read now rather than in the middle of a fight.
 	for p: Piece in pieces:
-		game.renderer.sprite_art(String(p.spec["broken"]))
+		game.art.art(String(p.spec["broken"]))
 	for stuff: String in BIT_SIZE:
 		for n in 2:
-			game.renderer.sprite_art("fx_brk_%s_%d" % [stuff, n])
+			game.art.art("fx_brk_%s_%d" % [stuff, n])
 	game.ticked.connect(_tick)
 
 
@@ -183,7 +183,7 @@ func _find() -> void:
 		p.board = board
 		p.sprite = row[5]
 		p.height = board.height if board != null else p.sprite.height
-		var art: Dictionary = game.renderer.sprite_art(image)
+		var art: Dictionary = game.art.art(image)
 		var wide := p.height * float(art["w"]) / maxf(1.0, float(art["h"]))
 		p.radius = clampf(wide * (.5 if bool(spec.get("sign", false)) else .4), .12, 1.2)
 		p.hp = float(spec.get("hp", 1.0))
@@ -435,7 +435,7 @@ func _widen(s: Renderer.Sprite) -> void:
 	var index: int = game.fixed_sprites.find(s)
 	if index < 0:
 		return
-	var art: Dictionary = game.renderer.sprite_art(s.image)
+	var art: Dictionary = game.art.art(s.image)
 	var half := s.height * float(art["w"]) / maxf(1.0, float(art["h"])) * .5
 	for b in game.fixed_blocks.size():
 		var block: Array = game.fixed_blocks[b]
@@ -519,10 +519,10 @@ func _chip_cue(p: Piece) -> String:
 ## How tall a broken picture stands: a modelled prop's at the scale the whole
 ## one was stood (both are rendered 60 pixels to the unit), a sign's as it was.
 func _tall(broken: String, whole_height: float, whole: String) -> float:
-	var art: Dictionary = game.renderer.sprite_art(broken)
+	var art: Dictionary = game.art.art(broken)
 	var own := float(art["h"]) / 60.0
 	if whole.begins_with("town_"):
-		var was: Dictionary = game.renderer.sprite_art(whole)
+		var was: Dictionary = game.art.art(whole)
 		return whole_height * float(art["h"]) / maxf(1.0, float(was["h"]))
 	if whole != "" and not whole.begins_with("prop_"):
 		return whole_height

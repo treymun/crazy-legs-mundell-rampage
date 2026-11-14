@@ -225,7 +225,9 @@ static func wall_splat(gore, g: Gore.Gib) -> void:
 		return
 	var ax := g.vx / speed
 	var ay := g.vy / speed
-	var mark = gore.game.renderer.wall_mark(g.x - ax * .3, g.y - ay * .3, g.z, ax, ay, 0.0, .6)
+	var mark = WallHits.wall_mark(
+		gore.game.world, g.x - ax * .3, g.y - ay * .3, g.z, ax, ay, 0.0, .6
+	)
 	if mark == null:
 		return
 	mark.image = "fx_%s_%d" % ["acid" if g.green else "blood", gore.dice.randi() % 4]

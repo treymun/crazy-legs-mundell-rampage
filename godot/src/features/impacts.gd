@@ -187,8 +187,15 @@ func _pierced(entry: Vector3, exit: Vector3, _struck: String) -> void:
 	var ay := way.y / flat
 	var slope := way.z / flat
 	var back := .35
-	var mark = game.renderer.wall_mark(
-		exit.x - ax * back, exit.y - ay * back, exit.z - slope * back, ax, ay, slope, back
+	var mark = WallHits.wall_mark(
+		game.world,
+		exit.x - ax * back,
+		exit.y - ay * back,
+		exit.z - slope * back,
+		ax,
+		ay,
+		slope,
+		back
 	)
 	if mark != null and mark.tile >= 0:
 		kind = Materials.of_tile(game.world, mark.tile)
@@ -262,7 +269,7 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 	found.sort_custom(func(m, n): return float(m[0]) < float(n[0]))
 	for k in mini(2, found.size()):
 		var hit: Array = found[k]
-		var mark = game.renderer.wall_mark(x, y, at_z, hit[1], hit[2], 0.0, hit[0])
+		var mark = WallHits.wall_mark(game.world, x, y, at_z, hit[1], hit[2], 0.0, hit[0])
 		if mark == null:
 			continue
 		var picture := "fx_scorch_wall_%d" % dice.randi_range(0, 1)

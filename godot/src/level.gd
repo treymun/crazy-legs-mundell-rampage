@@ -772,7 +772,7 @@ func _tight_boxes(bounds: Dictionary, grid: PackedFloat32Array, capped: Dictiona
 ## walls are split at its row 33 into the road's and the hub's.
 func _merge_runs() -> void:
 	var tiled := {}
-	for name: String in RenderState.TILED:
+	for name: String in LevelTiles.TILED:
 		if tile_index.has(name):
 			tiled[int(tile_index[name])] = true
 	var out := PackedFloat32Array()
@@ -1006,7 +1006,7 @@ func walls_on(ax: float, ay: float, bx: float, by: float) -> PackedInt32Array:
 ## solid cell beside it shows a face toward it, as the builder would have made
 ## it (LevelEdit.implied_walls), in `faces`' tile for its own when listed. The
 ## pieces taken out are the cell's own (never merged: a broken fence's tile is
-## not one of RenderState.TILED); the rest keep their order and the new faces
+## not one of LevelTiles.TILED); the rest keep their order and the new faces
 ## go after them. Not for the Crossroads' split wall lists.
 func open_cell(cx: int, cy: int, faces: Dictionary) -> void:
 	if not road_and_hub.is_empty():

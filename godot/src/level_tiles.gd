@@ -3,6 +3,40 @@
 class_name LevelTiles
 extends RefCounted
 
+## Plain wall materials that repeat up and along a wall at a fixed size (128
+## texels a unit along, 1.28 units a repeat from z 1.96) instead of being
+## stretched over the wall, as Build tiles them. Tiles composed for a whole
+## wall (signs, doors, fences, banded sheds) are not listed and stretch. A
+## window tile of one of these (`<name>_win`, `_lit`, `_brk`) is the window
+## laid over the repeating wall between WINDOW_SILL and WINDOW_HEAD.
+const TILED: Array[String] = [
+	"wood",
+	"barn",
+	"tin",
+	"brick",
+	"plaster",
+	"cinder",
+	"office_wall",
+	"quarry_face",
+	"hedgerow",
+	"tile",
+	"quarry_shed",
+	"mill_log",
+	"fascia"
+]
+const WINDOW_SILL := 1.0
+const WINDOW_HEAD := 1.68
+
+
+## True for a window band over a repeating wall (`<TILED name>_win`, `_lit`,
+## `_brk`): the window shows only between WINDOW_SILL and WINDOW_HEAD.
+static func window_band(name: String) -> bool:
+	for end: String in ["_win", "_lit", "_brk"]:
+		if name.ends_with(end):
+			return TILED.has(name.substr(0, name.length() - 4))
+	return false
+
+
 ## engine.IMPACT_MATERIAL: detail-wall tiles report their base surface.
 const DETAIL_BASES := {
 	"bar_wainscot": "tavern",

@@ -1,17 +1,20 @@
 ## Every headless check at once, in parallel, with one table at the end.
 ##
-##   godot --headless --path godot --script res://tools/check_all.gd [-- lint] [fast]
+##   godot --headless --path godot --script res://tools/check_all.gd [-- lint] [fast] [quick]
 ##
 ## Each check runs in its own Godot process with its own scratch profile
 ## (APPDATA), so none of them touches your saves or another check's files.
 ## lint also runs gdformat --check and gdlint from the repo's .venv; fast
-## leaves out the campaign walkthrough, the pictures and the quest reach. Exits 1 if anything
+## leaves out the campaign walkthrough, the pictures and the quest reach; quick
+## runs only QUICK (a minute or two: the set to run after every change, the
+## whole set at the end of a piece of work). Exits 1 if anything
 ## failed, and prints the end of each failing check's output.
 extends SceneTree
 
 ## [script, the line that says it passed]
 const CHECKS := [
 	["check_shader", "SHADER OK"],
+	["view3d_check", "VIEW3D CHECK OK"],
 	["verify_assets", "ASSETS OK"],
 	["check_fixes", "PARITY FIXES OK"],
 	["save_fixtures", "OLD SAVES OK"],
@@ -26,6 +29,14 @@ const CHECKS := [
 	["county_net_check", "COUNTY NET CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "picture_check", "quest_reach"]
+const QUICK := [
+	"check_shader",
+	"view3d_check",
+	"verify_assets",
+	"save_fixtures",
+	"level_edit_check",
+	"menu_touch_check"
+]
 
 
 func _init() -> void:
@@ -38,6 +49,8 @@ func _init() -> void:
 	var jobs: Array = []
 	for check: Array in CHECKS:
 		if args.has("fast") and String(check[0]) in SLOW:
+			continue
+		if args.has("quick") and not String(check[0]) in QUICK:
 			continue
 		var profile := scratch.path_join(String(check[0]))
 		DirAccess.make_dir_recursive_absolute(profile)

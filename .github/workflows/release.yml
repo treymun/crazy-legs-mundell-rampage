@@ -53,6 +53,8 @@ jobs:
           test -s "$RUNNER_TEMP/art/fx_fire_0.png" && test -s "$RUNNER_TEMP/art/menu_board.png"
       - name: Assets and levels load
         run: godot --headless --path godot --script res://tools/verify_assets.gd
+      - name: Every level's 3D mesh builds, every prop model loads
+        run: godot --headless --path godot --script res://tools/view3d_check.gd
       - name: Parity regression checks
         run: godot --headless --path godot --script res://tools/check_fixes.gd
       - name: Online 5v5, lobby to lobby

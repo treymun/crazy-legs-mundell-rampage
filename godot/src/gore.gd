@@ -160,7 +160,7 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 	var d := .25
 	while d < 1.9:
 		if game.world.blocked(x + ax * d, y + ay * d, .02):
-			var mark = game.renderer.wall_mark(x, y, z, ax, ay, 0.0, d)
+			var mark = WallHits.wall_mark(game.world, x, y, z, ax, ay, 0.0, d)
 			if mark != null:
 				mark.image = "fx_%s_%d" % ["acid" if green else "blood", dice.randi() % 4]
 				mark.radius = dice.randf_range(.17, .30)

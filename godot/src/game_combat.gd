@@ -199,7 +199,7 @@ func hitscan(
 				var mark = (
 					null
 					if surface_tile != null
-					else renderer.wall_mark(p.x, p.y, p.eye, ax, ay, slope, d)
+					else WallHits.wall_mark(world, p.x, p.y, p.eye, ax, ay, slope, d)
 				)
 				# A window shot out or a fence knocked about (features/wall_breaks.gd);
 				# a shot in through a window's glass leaves no hole on it.

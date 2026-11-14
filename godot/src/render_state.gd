@@ -123,25 +123,11 @@ var use_threads := true
 ## Tiles composed for a whole wall (signs, doors, fences, banded sheds) are not
 ## in this list and still stretch. A window tile in one of these materials is
 ## the window laid over the repeating wall at a fixed height.
-const TILED := [
-	"wood",
-	"barn",
-	"tin",
-	"brick",
-	"plaster",
-	"cinder",
-	"office_wall",
-	"quarry_face",
-	"hedgerow",
-	"tile",
-	"quarry_shed",
-	"mill_log",
-	"fascia"
-]
+const TILED := LevelTiles.TILED
 const TILE_ROWS_PER_UNIT := 100.0
 const TILE_ANCHOR := 1.96
-const WINDOW_SILL := 1.0
-const WINDOW_HEAD := 1.68
+const WINDOW_SILL := LevelTiles.WINDOW_SILL
+const WINDOW_HEAD := LevelTiles.WINDOW_HEAD
 var wall_tiling := true
 var tile_mode := PackedByteArray()
 var tile_base := PackedInt32Array()
@@ -757,50 +743,4 @@ func body_offset(name: String, data: PackedByteArray, w: int, h: int, height: in
 ## Mirrors engine.Renderer.wall_mark(): find the drawn wall face a hitscan hit
 ## and return the impact decal for it (null when nothing lines up).
 func wall_mark(x: float, y: float, z: float, ax: float, ay: float, slope: float, distance: float):
-	var w := level.walls
-	var n := level.wall_count
-	var best := -1
-	var best_error := INF
-	var best_t := 0.0
-	for i in n:
-		var o := i * WALL_STRIDE
-		var ex := w[o + 2] - w[o]
-		var ey := w[o + 3] - w[o + 1]
-		var rx := w[o] - x
-		var ry := w[o + 1] - y
-		var den := ax * ey - ay * ex
-		if absf(den) < 1e-6:
-			continue
-		var t := (rx * ey - ry * ex) / den
-		var u := (rx * ay - ry * ax) / den
-		if not (absf(t - distance) < .19 and t > .14 and u >= 0.0 and u <= 1.0):
-			continue
-		var height := z + t * slope
-		if height <= w[o + 6] + .02 or height >= w[o + 7] - .02:
-			continue
-		if int(w[o + 4]) == level.tile_id("mirror"):
-			continue
-		var error := absf(t - distance)
-		if error < best_error:
-			best = i
-			best_error = error
-			best_t = t
-	if best < 0:
-		return null
-	var o := best * WALL_STRIDE
-	var ox := w[o + 2] - w[o]
-	var oy := w[o + 3] - w[o + 1]
-	var length := sqrt(ox * ox + oy * oy)
-	var material := level.impact_surface(int(w[o + 4]))
-	var kind := "stone" if material == "plaster" or material == "dirt" else material
-	var mark := WallMark.new()
-	mark.x = x + ax * best_t
-	mark.y = y + ay * best_t
-	mark.z = z + best_t * slope
-	mark.ux = ox / length
-	mark.uy = oy / length
-	mark.image = "fx_hole_" + kind
-	mark.radius = .051 if kind == "metal" else .060
-	mark.material = material
-	mark.tile = int(w[o + 4])
-	return mark
+	return WallHits.wall_mark(level, x, y, z, ax, ay, slope, distance)

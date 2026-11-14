@@ -110,7 +110,7 @@ func attach() -> void:
 	_find_windows()
 	_find_fences(cfg)
 	for f: Fence in fences.values():
-		game.renderer.sprite_art(String(f.spec.get("broken", "")))
+		game.art.art(String(f.spec.get("broken", "")))
 
 
 static func _section(cfg: ConfigFile, name: String) -> Dictionary:
@@ -158,9 +158,12 @@ func _find_windows() -> void:
 		face.shot = int(shot_of[tile])
 		var bottom: float = world.walls[o + 6]
 		var top: float = world.walls[o + 7]
-		if game.renderer.tile_mode[tile] == 2:
-			face.low = RenderState.WINDOW_SILL
-			face.high = RenderState.WINDOW_HEAD
+		if (
+			LevelTiles.window_band(String(world.tile_names[tile]))
+			and world.tile_id(String(world.tile_names[tile]).left(-4)) >= 0
+		):
+			face.low = LevelTiles.WINDOW_SILL
+			face.high = LevelTiles.WINDOW_HEAD
 		else:
 			face.low = top - DOWN.y * (top - bottom)
 			face.high = top - DOWN.x * (top - bottom)
@@ -184,7 +187,7 @@ func _find_fences(cfg: ConfigFile) -> void:
 		var tile := world.tile_id(name)
 		var hit := world.tile_id(String(spec.get("hit", "")))
 		# A merged run would not come apart a cell at a time.
-		if tile < 0 or hit < 0 or RenderState.TILED.has(name):
+		if tile < 0 or hit < 0 or LevelTiles.TILED.has(name):
 			continue
 		if not game.art.has_art(String(spec.get("broken", ""))):
 			continue
@@ -606,7 +609,7 @@ func _break_through(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 ## The picture standing in a gap: a cell wide, from the ground, one a side.
 func _stand_gap(f: Fence) -> void:
 	var image := String(f.spec.get("broken", ""))
-	var art: Dictionary = game.renderer.sprite_art(image)
+	var art: Dictionary = game.art.art(image)
 	var tall := minf(f.top, float(art["h"]) / maxf(1.0, float(art["w"])))
 	var world: LevelData = game.world
 	var ground := world.ground[f.cell.y * world.width + f.cell.x]

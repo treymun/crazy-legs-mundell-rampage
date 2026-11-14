@@ -23,23 +23,6 @@ const KIND_MIRROR := 6
 const KIND_FLOOR := 8
 const KIND_ROOF := 9
 
-## Plain wall materials that repeat at a fixed size (RenderState.TILED).
-const TILED: Array[String] = [
-	"wood",
-	"barn",
-	"tin",
-	"brick",
-	"plaster",
-	"cinder",
-	"office_wall",
-	"quarry_face",
-	"hedgerow",
-	"tile",
-	"quarry_shed",
-	"mill_log",
-	"fascia"
-]
-
 
 ## One growing set of arrays (a chunk's opaque or glazing surface).
 class Part:
@@ -106,7 +89,7 @@ func _init(p_level: LevelData) -> void:
 		var tile_name := String(names[i])
 		tile_base[i] = i
 		tile_mode[i] = 0
-		if TILED.has(tile_name):
+		if LevelTiles.TILED.has(tile_name):
 			tile_mode[i] = 1
 		elif (
 			tile_name.ends_with("_win")
@@ -114,7 +97,7 @@ func _init(p_level: LevelData) -> void:
 			or tile_name.ends_with("_brk")
 		):
 			var plain := tile_name.substr(0, tile_name.length() - 4)
-			if TILED.has(plain) and level.tile_id(plain) >= 0:
+			if LevelTiles.TILED.has(plain) and level.tile_id(plain) >= 0:
 				tile_mode[i] = 2
 				tile_base[i] = level.tile_id(plain)
 	_tile_liquor = level.tile_id("liquor")

@@ -27,6 +27,7 @@ var world_material: ShaderMaterial
 var glass_material: ShaderMaterial
 var sky_material: ShaderMaterial
 var sprites: SpriteLayer3D
+var props: PropLayer3D
 var tiles: ViewTiles
 var _root: Node3D
 var _chunks: Node3D
@@ -92,6 +93,8 @@ func _init(assets: Assets) -> void:
 	_root.add_child(_moving)
 	sprites = SpriteLayer3D.new(assets)
 	_root.add_child(sprites)
+	props = PropLayer3D.new(PropModels.new(assets))
+	_root.add_child(props)
 	_sky = MeshInstance3D.new()
 	var plane := QuadMesh.new()
 	plane.size = Vector2(4000.0, 4000.0)
@@ -167,7 +170,21 @@ func frame(game: Game) -> void:
 	_place_camera(x, y, z, angle, view["horizon"], r.focal, vh)
 	var mirror := not is_nan(level.mirror_x)
 	_mirror(mirror, level, x, y, z, angle, view["horizon"], r.focal, Vector2i(vw, vh))
-	sprites.show_sprites(view["sprites"], level, Vector3(x, y, z), angle, mirror)
+	# Sprites whose picture has a mesh are stood up as props; the rest stay
+	# pictures.
+	var pictures: Array = []
+	var modelled: Array = []
+	for item: Variant in view["sprites"]:
+		var s := item as Renderer.Sprite
+		if s != null and props.models.name_of(s.image) != "":
+			modelled.append(s)
+		else:
+			pictures.append(item)
+	for m: ShaderMaterial in props.show_props(modelled, level):
+		_materials.append(m)
+		for key: String in _params:
+			m.set_shader_parameter(key, _params[key])
+	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
 	if mirror:
 		sprites.show_reflection(view.get("reflection") as Renderer.Sprite, level, angle)
 	sprites.show_marks(view["marks"], view["ground"], Vector3(x, y, z), angle)
