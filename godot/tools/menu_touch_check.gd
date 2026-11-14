@@ -65,12 +65,14 @@ func _tap(p: Vector2i) -> void:
 
 ## Draws the screen (its taps are noted as it draws), then taps the middle of
 ## the place noted as `id` (and `arg`). False when the screen has no such place.
-func _tap_zone(id: String, arg := -1) -> bool:
+func _tap_zone(id: String, arg := -99) -> bool:
 	main.render()
 	for z: Array in LobbyScreens.zones:
-		if String(z[1]) == id and (arg < 0 or int(z[2]) == arg):
+		if String(z[1]) == id and (arg == -99 or int(z[2]) == arg):
 			var r: Rect2i = z[0]
-			_tap(r.position + r.size / 2)
+			# A row: on its value, right of the middle (where a < may sit).
+			var x := r.size.x * 3 / 4 if id == "row" else r.size.x / 2
+			_tap(r.position + Vector2i(x, r.size.y / 2))
 			return true
 	return false
 
@@ -94,13 +96,9 @@ func _menus() -> void:
 	var mode_was: int = main.showdown_mode
 	_tap_zone("right", 0)
 	_check(main.showdown_mode != mode_was, "MODE's arrow changes the mode")
-	_tap_zone("row", 2)
 	var long_was: int = main.showdown_long
 	_tap_zone("row", 2)
-	_check(
-		main.showdown_row == 2 and main.showdown_long != long_was,
-		"a tap picks MATCH, a second tap changes it"
-	)
+	_check(main.showdown_row == 2 and main.showdown_long != long_was, "one tap on MATCH changes it")
 	_tap_zone("back")
 	_check(main.state == "multi", "BACK goes back to MULTIPLAYER")
 	_tap_zone("row", 0)
@@ -131,21 +129,23 @@ func _lobby() -> void:
 	main._net_ready(net)
 	_check(main.state == "lobby", "a hosted lobby")
 	var mode_was := String(net.settings["mode"])
-	_tap_zone("mode")
-	_tap_zone("mode")
-	_check(String(net.settings["mode"]) != mode_was, "MODE: a tap picks it, a second changes it")
+	_tap_zone("mode", 1)
+	_check(String(net.settings["mode"]) != mode_was, "MODE: one click changes it")
+	_tap_zone("mode", -1)
+	_check(String(net.settings["mode"]) == mode_was, "and its < steps it back")
 	var team_was := int(net.player_of(net.my_id)["team"])
 	_tap_zone("team")
 	_check(int(net.player_of(net.my_id)["team"]) != team_was, "TEAM changes the team")
 	_tap_zone("more")
 	_check(main.state == "lobbyset", "ALL SETTINGS opens the whole list")
-	_tap_zone("row", 3)
 	var rounds_was := int(net.settings["rounds"])
-	_tap_zone("right")
+	_tap_zone("row", 3)
 	_check(
 		LobbyScreens.all_row == 3 and int(net.settings["rounds"]) != rounds_was,
-		"a row and > change ROUNDS TO WIN"
+		"one click on ROUNDS TO WIN changes it"
 	)
+	_tap_zone("dec", 3)
+	_check(int(net.settings["rounds"]) == rounds_was, "and its < steps it back")
 	_tap_zone("back")
 	_check(main.state == "lobby", "DONE goes back to the lobby")
 	_tap_zone("back")
@@ -179,16 +179,50 @@ func _store() -> void:
 		_finger(row[0].position + row[0].size / 2)
 	_check(not TacticalScreens.pending_buys.is_empty(), "tapping a row buys it")
 	main.render()
-	_finger(Vector2i(250, 100))
+	_finger(Vector2i(318, 100))
 	_check(not TacticalScreens.open, "a tap outside the store closes it")
+	print("\nTHE 5V5 STORE WITH A MOUSE")
 	TacticalScreens.touch_on = false
+	TacticalScreens.pending_buys.clear()
+	main.key(KEY_B)
+	main._shop_pointer()
+	_check(
+		TacticalScreens.open and TacticalScreens.mouse_free,
+		"B opens the store and lets the pointer go"
+	)
+	main.render()
+	var gear := _find("item", 100)
+	if not gear.is_empty():
+		var at: Vector2i = gear[0].position + gear[0].size / 2
+		var rect: Rect2 = main.viewport_rect()
+		var where := rect.position + (Vector2(at) + Vector2(.5, .5)) * rect.size / Vector2(320, 200)
+		var moved := InputEventMouseMotion.new()
+		moved.position = where
+		main._input(moved)
+		_check(
+			TacticalScreens.page == 1 and TacticalScreens.cursor == 0,
+			"pointing at the vest picks it"
+		)
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = true
+		click.position = where
+		main._input(click)
+	_check(not TacticalScreens.pending_buys.is_empty(), "a click buys it")
+	_check(main.block_fire, "and the click does not fire the gun")
+	main.key(KEY_B)
+	main._shop_pointer()
+	_check(
+		not TacticalScreens.open and not TacticalScreens.mouse_free,
+		"B shuts it and aiming takes the pointer back"
+	)
 	main.game = null
 	main.state = "title"
 
 
-func _find(id: String, arg := -1) -> Array:
+func _find(id: String, arg := -99) -> Array:
 	for z: Array in LobbyScreens.zones:
-		if String(z[1]) == id and (arg < 0 or int(z[2]) == arg):
+		if String(z[1]) == id and (arg == -99 or int(z[2]) == arg):
 			return [z[0]]
 	return []
 

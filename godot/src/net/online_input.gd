@@ -65,14 +65,13 @@ static func tap(main, at: Vector2i) -> void:
 			else:
 				keyboard(true, String(main.net_form.get(String(row[0]), "")))
 		"lobby":
-			_tap_lobby(main, id)
+			_tap_lobby(main, id, arg)
 		"lobbyset":
-			if id == "left" or id == "right":
-				main.key(KEY_LEFT if id == "left" else KEY_RIGHT)
-			elif LobbyScreens.all_row == arg:
-				main.key(KEY_RIGHT)
+			# A click on a setting (or its >) is its next value, < the last.
+			LobbyScreens.all_row = arg
+			if main.net != null and main.net.is_admin():
+				main.key(KEY_LEFT if id == "dec" else KEY_RIGHT)
 			else:
-				LobbyScreens.all_row = arg
 				main.sound.play("menu_move")
 
 
@@ -83,11 +82,9 @@ static func _tap_picker(main, id: String, arg: int) -> void:
 	elif id == "left" or id == "right":
 		main.showdown_row = arg
 		main.key(KEY_LEFT if id == "left" else KEY_RIGHT)
-	elif int(main.showdown_row) == arg:
-		main.key(KEY_RIGHT)  # a tap on the picked row: its next value
 	else:
 		main.showdown_row = arg
-		main.sound.play("menu_move")
+		main.key(KEY_RIGHT)  # a click on a row: its next value
 
 
 static func _tap_servers(main, id: String, arg: int) -> void:
@@ -105,7 +102,7 @@ static func _tap_servers(main, id: String, arg: int) -> void:
 		main.key(KEY_R)
 
 
-static func _tap_lobby(main, id: String) -> void:
+static func _tap_lobby(main, id: String, arg: int) -> void:
 	var list := LobbyScreens.rows(main.net)
 	if id == "kick_left" or id == "kick_right":
 		main.lobby_row = list.find("kick")
@@ -114,12 +111,12 @@ static func _tap_lobby(main, id: String) -> void:
 	var i := list.find(id)
 	if i < 0:
 		return
-	var was := posmod(int(main.lobby_row), list.size())
 	main.lobby_row = i
-	if was == i or id in ["team", "ready", "kick", "start", "more"]:
-		main.key(KEY_ENTER)
+	if LobbyScreens.LOBBY_KEYS.has(id):
+		# A setting: a click is its next value, its < the last.
+		main.key(KEY_LEFT if arg < 0 else KEY_RIGHT)
 	else:
-		main.sound.play("menu_move")
+		main.key(KEY_ENTER)
 
 
 ## The pointer over a row picks it (no action until a click).
@@ -154,7 +151,7 @@ static func hover(main, at: Vector2i) -> void:
 			if moved:
 				main.lobby_row = i
 		"lobbyset":
-			moved = id == "row" and LobbyScreens.all_row != arg
+			moved = id in ["row", "dec", "inc"] and LobbyScreens.all_row != arg
 			if moved:
 				LobbyScreens.all_row = arg
 	if moved:

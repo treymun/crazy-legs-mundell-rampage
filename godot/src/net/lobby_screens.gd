@@ -61,8 +61,6 @@ const LIT := Color(82 / 255.0, 49 / 255.0, 31 / 255.0)
 const PLAIN := Color(34 / 255.0, 23 / 255.0, 17 / 255.0)
 const EDGE := Color(141 / 255.0, 102 / 255.0, 65 / 255.0)
 const REFRESH := Rect2i(14, 177, 70, 13)
-const STEP_DOWN := Rect2i(14, 177, 30, 13)
-const STEP_UP := Rect2i(48, 177, 30, 13)
 
 ## Where a tap lands this frame: [rect, id, arg] in drawing order (the last
 ## one drawn on top). Cleared by main_state.gd render() each frame.
@@ -471,7 +469,7 @@ static func draw_lobby(
 		_note(c, note, 167)
 	elif why != "":
 		_note(c, why, 167, RED if cursor == "start" else SOFT)
-	footer(c, "ARROWS PICK   ENTER CHANGES" if net.is_admin() else "ENTER: TEAM, READY")
+	footer(c, "CLICK A SETTING TO CHANGE IT" if net.is_admin() else "PICK A TEAM, THEN READY")
 	back_button(c, "CLOSE" if net.role == NetPlay.Role.HOST else "LEAVE")
 
 
@@ -533,12 +531,14 @@ static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 	var admin := net.is_admin()
 	for i in LOBBY_KEYS.size():
 		var key := String(LOBBY_KEYS[i])
+		# MODE, MAP and RULES (the long values) wide on the left; BOTS, SKILL.
 		var col := 0 if i < 3 else 1
-		var x0 := 20 + col * 144
+		var x0 := 20 if col == 0 else 182
+		var w := 158 if col == 0 else 118
 		var y := 120 + (i % 3) * 11
 		var here := admin and key == cursor
 		if here:
-			c.fill_rect(x0 - 2, y - 2, 140, 11, LIT)
+			c.fill_rect(x0 - 2, y - 2, w, 11, LIT)
 		var row := setting_row(key)
 		var label := String(row[1]).replace("BOT SKILL", "SKILL").replace("BOTS FILL", "BOTS")
 		HUD.text(c, label, x0, y, "body", Menu.FADED)
@@ -547,10 +547,19 @@ static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 			value = _map_name(net.settings.get(key))
 		elif key == "mode":
 			value = _mode_name(net.settings.get(key))
-		HUD.text(c, value, x0 + 136, y, "body", HUD.AMBER if here else HUD.INK, false, true, true)
-		if admin:
-			zone(Rect2i(x0 - 2, y - 2, 140, 11), key)
-	button(c, Rect2i(162, 140, 140, 11), "ALL SETTINGS", cursor == "more", "more")
+		var ink := HUD.AMBER if here else HUD.INK
+		if not admin:
+			HUD.text(c, value, x0 + w - 4, y, "body", ink, false, true, true)
+			continue
+		# Whoever runs it: a click on the value is the next one, the arrows
+		# step either way.
+		HUD.text(c, value, x0 + 39 + (w - 51) / 2, y, "body", ink, true)
+		HUD.text(c, "<", x0 + 36, y, "body", SOFT)
+		HUD.text(c, ">", x0 + w - 8, y, "body", SOFT)
+		zone(Rect2i(x0 - 2, y - 2, w, 11), key, 1)
+		zone(Rect2i(x0 + 32, y - 2, 13, 11), key, -1)
+		zone(Rect2i(x0 + w - 13, y - 2, 13, 11), key, 1)
+	button(c, Rect2i(180, 140, 122, 11), "ALL SETTINGS", cursor == "more", "more")
 
 
 static func _actions(c: Canvas, net: NetPlay, cursor: String, kick_at: int, armed: bool) -> void:
@@ -608,10 +617,16 @@ static func draw_all_settings(c: Canvas, menu: Menu, net: NetPlay, note: String)
 		var row := setting_row(key)
 		HUD.text(c, String(row[1]), 30, y, "body", Menu.FADED)
 		var value := value_name(key, net.settings.get(key))
-		if here and admin:
-			value = "<  %s  >" % value
-		HUD.text(c, value, 294, y, "body", HUD.AMBER if here else HUD.INK, false, true, true)
+		var ink := HUD.AMBER if here else HUD.INK
 		zone(Rect2i(19, y - 2, 282, 11), "row", i)
+		if not admin:
+			HUD.text(c, value, 294, y, "body", ink, false, true, true)
+			continue
+		HUD.text(c, value, 234, y, "body", ink, true)
+		HUD.text(c, "<", 168, y, "body", SOFT)
+		HUD.text(c, ">", 294, y, "body", SOFT)
+		zone(Rect2i(160, y - 2, 20, 11), "dec", i)
+		zone(Rect2i(286, y - 2, 15, 11), "inc", i)
 	if first > 0:
 		HUD.text(c, "MORE ABOVE", 300, 30, "mini", SOFT, false, true, true)
 	if first + ALL_SHOWN < ALL_KEYS.size():
@@ -619,10 +634,7 @@ static func draw_all_settings(c: Canvas, menu: Menu, net: NetPlay, note: String)
 	_note(
 		c, note if note != "" else ("" if admin else "ONLY %s CHANGES THESE." % _runner(net)), 167
 	)
-	if admin:
-		button(c, STEP_DOWN, "<", false, "left")
-		button(c, STEP_UP, ">", false, "right")
-	footer(c, "ARROWS CHANGE   ESC BACK" if admin else "ESC BACK")
+	footer(c, "CLICK A SETTING TO CHANGE IT" if admin else "ESC BACK")
 	back_button(c, "DONE")
 
 

@@ -526,6 +526,8 @@ func _input(event: InputEvent) -> void:
 		var moved := event as InputEventMouseMotion
 		if state == "play" and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			mouse_rel += moved.relative
+		elif state == "play" and TacticalScreens.open:
+			TacticalScreens.hover(picture_point(moved.position))
 		elif state != "play":
 			pointer = moved.position
 			if drag_mode != "" and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -582,6 +584,10 @@ func _input(event: InputEvent) -> void:
 			block_fire = true
 		if state != "play":
 			click(button.position, button.button_index)
+		elif TacticalScreens.open and game != null and button.button_index == MOUSE_BUTTON_LEFT:
+			# The open store: a click buys what it is on (outside it: shut).
+			TacticalScreens.tap(game, picture_point(button.position))
+			block_fire = true
 		elif (
 			state == "play"
 			and button.button_index == MOUSE_BUTTON_MIDDLE
@@ -1111,6 +1117,11 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		)
 		and not block_fire
 	)
+	if TacticalScreens.open:
+		# Shopping: a click is for the store, never the gun.
+		controls.fire = false
+		controls.alt_fire = false
+		block_fire = true
 	if (
 		touch.active
 		and not controls.fire

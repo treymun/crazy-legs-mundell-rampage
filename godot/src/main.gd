@@ -514,6 +514,7 @@ func _process(delta: float) -> void:
 	var fingers := touch.state()
 	TacticalScreens.touch_on = touch.showing
 	OnlineInput.settle(self)
+	_shop_pointer()
 	if state == "play" and game != null:
 		_touch_actions()
 		_watch_pointer_lock()
@@ -752,6 +753,19 @@ func _watch_level() -> void:
 
 
 # -------------------------------------------------------------------- online
+
+
+## The 5v5 store open on a desktop lets the pointer go, to point and click;
+## shut, aiming takes it back. It shuts by itself when the buy time ends.
+func _shop_pointer() -> void:
+	if state == "play" and game != null:
+		TacticalScreens.settle(game)
+	var free := state == "play" and TacticalScreens.open and not mobile
+	if free == TacticalScreens.mouse_free:
+		return
+	TacticalScreens.mouse_free = free
+	if state == "play" and game != null and not game.showing_tally and not game.defeated():
+		grab(not free)
 
 
 ## Every frame while online (src/net/net_play.gd): what came in, who came and

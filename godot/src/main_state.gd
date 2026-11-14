@@ -1351,6 +1351,8 @@ func render() -> void:
 		# The shader's camera, lights and weather go over while the bands draw.
 		game.scene_hook = layers.early.bind(game) if game.layered else Callable()
 		game.draw(canvas, int(options["crosshair"]), true)
+		if TacticalScreens.open and Modes.is_tactical(game) and not game.showing_tally:
+			TacticalScreens.draw_shop(canvas, game, Modes.feature(game))
 		if net != null and state == "play":
 			LobbyScreens.draw_match(canvas, net, game, net_leave)
 		if int(options.get("show_fps", 0)) != 0 and not touring:

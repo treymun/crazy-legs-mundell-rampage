@@ -86,6 +86,8 @@ static func picker_rounds(mode: int, long: int) -> int:
 static var open := false
 ## The touch overlay is up (main.gd): a BUY plate to tap in the buy time.
 static var touch_on := false
+## The pointer is let go for the open store (main.gd), to point and click.
+static var mouse_free := false
 ## Where the BUY plate sits.
 const BUY_PLATE := Rect2i(4, 22, 52, 14)
 static var cursor := 0
@@ -244,14 +246,13 @@ static func draw_view(c: Canvas, game, st) -> void:
 		HUD.text(c, str(left), 160, 50, "heading", HUD.AMBER, true)
 		if not open:
 			HUD.text(c, "TAP BUY" if touch_on else "B  BUY MENU", 160, 66, "body", HUD.INK, true)
-	if open:
-		draw_shop(c, game, st)
-	elif touch_on and me.slot == human and TacticalMode.can_buy(game, st, me):
+	# (The open store is drawn over everything, gun and HUD too: main_state.gd.)
+	if not open and touch_on and me.slot == human and TacticalMode.can_buy(game, st, me):
 		LobbyScreens.button(c, BUY_PLATE, "BUY", true, "buy")
 
 
 ## A tap while a 5v5 round is on (main_input.gd _touch_actions): the BUY
-## plate, the store's tabs and rows, or outside an open store (closes it).
+## plate, the store's items and X, or outside an open store (closes it).
 ## True when the tap was the store's.
 static func tap(game, at: Vector2i) -> bool:
 	var hit := LobbyScreens.zone_at(at)
@@ -259,13 +260,13 @@ static func tap(game, at: Vector2i) -> bool:
 	match id:
 		"buy":
 			return key(game, KEY_B)
-		"tab":
-			page = int(hit[1])
-			cursor = 0
-			return true
 		"item":
-			cursor = int(hit[1])
+			page = int(hit[1]) / 100
+			cursor = int(hit[1]) % 100
 			return key(game, KEY_ENTER)
+		"close":
+			open = false
+			return true
 		"shop":
 			return true
 	if open:
@@ -580,53 +581,79 @@ static func _round_banner(c: Canvas, _game, st) -> void:
 # -------------------------------------------------------------- the shop
 
 
-## The buy menu: every item with its key, price and whether it can be had.
+## The buy menu: one big store, the guns on the left and the gear and
+## throwables on the right, every item's price and whether it can be had.
+## Point and click (the pointer is let go while it is open, main.gd) or tap
+## an item to buy it; the keys still work: LEFT and RIGHT pick a side, UP and
+## DOWN an item, ENTER or its number buys, B or ESC shuts it.
 static func draw_shop(c: Canvas, game, st) -> void:
 	var me: Player = game.local_player
-	HUD.panel(c, 4, 22, 164, 132, PLATE)
-	LobbyScreens.zone(Rect2i(4, 22, 164, 132), "shop")
+	var panel := Rect2i(8, 16, 304, 140)
+	HUD.panel(c, panel.position.x, panel.position.y, panel.size.x, panel.size.y, PLATE)
+	LobbyScreens.zone(panel, "shop")
 	var left := int(ceil(TacticalMode.buy_left(game, st)))
-	HUD.text(c, "GENERAL STORE", 10, 25, "body", HUD.AMBER)
-	HUD.text(c, "%d" % int(st.money[me.slot]), 162, 25, "body", GREEN, false, true, true)
-	# The two pages' tabs: the one shown lit.
-	for k in 2:
-		var tab_x := 10 + k * 60
-		var on := k == page
-		c.fill_rect(tab_x, 35, 56, 8, Canvas.rgb(82, 49, 31) if on else Canvas.rgb(44, 30, 24))
-		LobbyScreens.zone(Rect2i(tab_x, 33, 56, 12), "tab", k)
+	HUD.text(c, "GENERAL STORE", 14, 20, "body", HUD.AMBER)
+	var time := "BUY TIME %d" % left if left > 0 else "BUY TIME'S OVER"
+	HUD.text(c, time, 160, 20, "body", HUD.INK, true)
+	HUD.text(c, "CASH %d" % int(st.money[me.slot]), 290, 20, "body", GREEN, false, true, true)
+	LobbyScreens.button(c, Rect2i(294, 18, 15, 11), "X", false, "close")
+	for side in 2:
+		var x0 := 12 + side * 150
+		var focused := side == page
 		HUD.text(
 			c,
-			["GUNS", "GEAR + THROWN"][k],
-			tab_x + 28,
-			36,
-			"mini",
-			HUD.AMBER if on else HUD.DIM,
-			true
+			["GUNS", "GEAR + THROWN"][side],
+			x0 + 3,
+			33,
+			"body",
+			HUD.AMBER if focused else LobbyScreens.SOFT
 		)
-	HUD.text(c, "< >", 162, 36, "mini", HUD.DIM, false, false, true)
-	var rows := TacticalShop.page_rows(game, st, me, page)
-	for i in rows.size():
-		var row: Array = rows[i]
-		var y := 47 + i * 9
-		var allowed := TacticalShop.allowed(game, st, me, row)
-		var price := TacticalShop.price_for(st, me, row)
-		var have := TacticalShop.owned_fully(st, me, row)
-		var cash := int(st.money[me.slot]) >= price
-		var ink := HUD.INK if allowed and cash and not have else GREY
-		if i == cursor:
-			c.fill_rect(7, y - 1, 158, 9, Canvas.rgb(82, 49, 31))
-		LobbyScreens.zone(Rect2i(7, y - 1, 158, 9), "item", i)
-		HUD.text(c, SHOP_NAMES[i], 10, y + 1, "mini", HUD.AMBER)
-		var named := HUD.text(c, String(row[1]), 17, y, "body", ink)
-		var kind := String(row[6])
-		if named.end.x + 4 < 134 - PixelType.text_width(kind, "mini"):
-			HUD.text(c, kind, 134, y + 1, "mini", HUD.DIM, false, false, true)
-		var tail := "GOT" if have else "%d" % price
-		HUD.text(c, tail, 162, y, "body", ink, false, false, true)
-	var foot := "BUY TIME %d" % left if left > 0 else "BUY TIME'S OVER"
+		c.fill_rect(x0, 41, 146, 1, Canvas.rgb(110, 80, 52))
+		var rows := TacticalShop.page_rows(game, st, me, side)
+		for i in rows.size():
+			var row: Array = rows[i]
+			var y := 45 + i * 10
+			var allowed := TacticalShop.allowed(game, st, me, row)
+			var price := TacticalShop.price_for(st, me, row)
+			var have := TacticalShop.owned_fully(st, me, row)
+			var cash := int(st.money[me.slot]) >= price
+			var ink := HUD.INK if allowed and cash and not have else GREY
+			var spot := Rect2i(x0, y - 2, 146, 10)
+			if focused and i == cursor:
+				c.fill_rect(
+					spot.position.x, spot.position.y, spot.size.x, spot.size.y, LobbyScreens.LIT
+				)
+			if focused and i < SHOP_NAMES.size():
+				HUD.text(c, SHOP_NAMES[i], x0 + 2, y + 1, "mini", HUD.AMBER)
+			HUD.text(c, String(row[1]), x0 + 10, y, "body", ink)
+			var tail := "GOT" if have else "%d" % price
+			HUD.text(c, tail, x0 + 144, y, "body", GREEN if have else ink, false, false, true)
+			LobbyScreens.zone(spot, "item", side * 100 + i)
+	var foot := "CLICK OR TAP TO BUY.  B CLOSES."
+	var ink_foot := LobbyScreens.SOFT
 	if note_until > game.clock:
 		foot = note
-	HUD.text(c, foot, 86, 143, "body", HUD.AMBER, true)
+		ink_foot = HUD.AMBER
+	HUD.text(c, foot, 160, 146, "body", ink_foot, true)
+
+
+## The store's item under the pointer becomes the picked one.
+static func hover(at: Vector2i) -> void:
+	var hit := LobbyScreens.zone_at(at)
+	if not hit.is_empty() and String(hit[0]) == "item":
+		page = int(hit[1]) / 100
+		cursor = int(hit[1]) % 100
+
+
+## The store shuts when the buy time is over or this machine's player is out
+## (main.gd, every frame).
+static func settle(game) -> void:
+	if not open:
+		return
+	var st = Modes.feature(game)
+	var me: Player = game.local_player
+	if st == null or me.slot != human or not TacticalMode.can_buy(game, st, me):
+		open = false
 
 
 ## A key while the game is a 5v5 one: true when it was the shop's.

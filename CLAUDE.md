@@ -1188,10 +1188,17 @@ what a networking pass still needs).
   (`LobbyScreens.zones`, `zone`/`button`, cleared each `render()`) and
   `OnlineInput.tap` turns a tap into the key it stands for (`main.key`), so
   the keys stay the rules; a tap on a text field raises the phone's keyboard
-  (`OnlineInput.keyboard`, `settle`). In a 5v5 round on a touch screen a BUY
-  plate shows in the buy time (`TacticalScreens.touch_on`, `BUY_PLATE`) and
-  the store's tabs and rows take taps (`TacticalScreens.tap`, from
-  `_touch_actions`), as do an online match's YES / NO and results.
+  (`OnlineInput.keyboard`, `settle`). A setting changes with one click: its
+  value is the next one, its < > step either way (the lobby's main settings,
+  ALL SETTINGS, PLAY VS BOTS). **The 5v5 store** (`TacticalScreens.draw_shop`)
+  is one big panel, guns left and gear and throwables right, drawn by
+  main_state.gd over the gun and HUD; open on a desktop it lets the pointer
+  go (`main.gd _shop_pointer`, `TacticalScreens.mouse_free`, `hover`) so an
+  item is bought with a click, the gun never fires while it is open (main_input
+  `_controls`), and it shuts itself when the buy time ends (`settle`). On a
+  touch screen a BUY plate shows in the buy time (`TacticalScreens.touch_on`,
+  `BUY_PLATE`); taps buy (`TacticalScreens.tap`, from `_touch_actions`), as
+  an online match's YES / NO and results take taps.
   `tools/menu_touch_check.gd` (check_all, CI) taps through them all as touch
   events. Menu text: the readable 7-pixel font where it fits, `SOFT` for
   second lines, `Menu.FADED` a little brighter. **COUNTY SERVERS** (PLAY
