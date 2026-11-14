@@ -169,6 +169,7 @@ func start_county(map_id: String) -> void:
 	var run: Game = waiting_play if waiting_play != null else game
 	if run != null:
 		run.rng.set_state(int(Time.get_unix_time_from_system() * 1000.0) & 0x7FFFFFFFFFFF)
+		CountySpawner.spots(run)  # worked out while the map comes up, not mid-fight
 
 
 ## The COUNTY RUN map picker (state "county"); from a finished run the run

@@ -65,7 +65,7 @@ static func spots(game) -> Array:
 			continue
 		if w.surface_sound(int(w.floor_tile[w.cell(x, y)])) == "water":
 			continue
-		if w.deep_at(x, y):
+		if w.deep_at(x, y) or _by_deep(w, x, y):
 			continue
 		out.append(Vector2(x, y))
 	_spots[key] = out
@@ -256,12 +256,23 @@ static func spot(game, _f) -> Variant:
 		var floor_z: float = game.world.elevation(at.x, at.y)
 		if game.world.visible(p.x, p.y, at.x, at.y, p.eye, floor_z + .9):
 			continue
-		if fallback == null:
-			fallback = at
+		if _by_deep(w, at.x, at.y):
+			continue
 		var steps: int = game.flow.distance(at.x, at.y) if game.flow != null else FlowField.FAR
 		if steps <= most:
 			return at
+		if fallback == null and steps < FlowField.FAR:
+			fallback = at
 	return fallback
+
+
+## A cell beside deep water (the hands' steering presses into it there).
+static func _by_deep(w: LevelData, x: float, y: float) -> bool:
+	for dy in [-1, 0, 1]:
+		for dx in [-1, 0, 1]:
+			if w.deep_at(x + dx, y + dy):
+				return true
+	return false
 
 
 static func _beside(game, at: Vector2, k: int) -> Vector2:
@@ -269,7 +280,11 @@ static func _beside(game, at: Vector2, k: int) -> Vector2:
 		var a := k * 2.1 + .4
 		var x := at.x + cos(a) * reach
 		var y := at.y + sin(a) * reach
-		if not game.world.blocked(x, y, .32):
+		if (
+			not game.world.blocked(x, y, .32)
+			and not _by_deep(game.world, x, y)
+			and reached(game, x, y)
+		):
 			return Vector2(x, y)
 	return at
 
@@ -287,7 +302,14 @@ static func _keep_hunting(game, f) -> void:
 		if not e.alerted:
 			e.wake(game, p.x, p.y)
 		e.hunt_until = maxf(e.hunt_until, game.clock + 9.0)
+		# Further off, it heads for the next cell along the flow field
+		# rather than straight at the player: one that sees the player across
+		# deep water or a fence would walk into it and stand there.
 		e.target = [p.x, p.y]
+		if game.flow != null and Vector2(e.x - p.x, e.y - p.y).length() > 5.0:
+			var way: Vector2 = game.flow.waypoint(e.x, e.y, 1, [], e.floor_z)
+			if way != Vector2(e.x, e.y):
+				e.target = [way.x, way.y]
 		var w: Array = f.watch.get(key, [e.x, e.y, f.run_time, f.run_time])
 		if Vector2(e.x, e.y).distance_to(Vector2(float(w[0]), float(w[1]))) > .8:
 			w[0] = e.x
@@ -298,7 +320,15 @@ static func _keep_hunting(game, f) -> void:
 		f.watch[key] = w
 		var gone := Vector2(e.x, e.y).distance_to(Vector2(p.x, p.y)) > far
 		var stuck: bool = f.run_time - float(w[2]) > after
-		if (gone or stuck) and f.run_time - float(w[3]) > after * .5 and not e.player_seen:
+		var unseen: bool = f.run_time - float(w[3]) > after * .5 and not e.player_seen
+		# One that sees the player but has stood stuck far longer, out of its
+		# reach and out of the view (a bank of deep water between them) goes too.
+		var wedged: bool = (
+			f.run_time - float(w[2]) > after * 1.5
+			and Vector2(e.x - p.x, e.y - p.y).length() > float(Enemy.REACH.get(e.kind, 2.0)) + 2.0
+			and (not _ahead(p, e.x, e.y) or f.run_time - float(w[2]) > after * 2.5)
+		)
+		if (gone or stuck) and (unseen or wedged):
 			var at = spot(game, f)
 			if at != null:
 				e.x = at.x
@@ -308,6 +338,15 @@ static func _keep_hunting(game, f) -> void:
 				e.retreat = null
 				e.cover = null
 				f.watch[key] = [e.x, e.y, f.run_time, f.run_time]
+
+
+## Whether (x, y) is within 60 degrees of where `p` faces (play's own test of
+## "in front of the player", never the renderer's, which only looks).
+static func _ahead(p: Player, x: float, y: float) -> bool:
+	var to := Vector2(x - p.x, y - p.y)
+	if to.length() < .01:
+		return true
+	return to.normalized().dot(Vector2(cos(p.angle), sin(p.angle))) > .5
 
 
 ## Bodies past `corpses_kept` go, oldest first (a long run would otherwise

@@ -41,7 +41,7 @@ func build(_b) -> Array:
 	causeways()
 	boardwalks()
 	landmarks()
-	return [50.5, 36.5, 0.0]
+	return [24.5, 11.5, 0.0]
 
 
 ## Planks laid over the deep water, at the shallows' height.

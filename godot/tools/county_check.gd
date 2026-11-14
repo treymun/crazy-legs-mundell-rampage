@@ -73,6 +73,7 @@ static func run(main, check: Callable, seconds := QUICK_SECONDS) -> void:
 	_hold(main, check)
 	_abilities(main, check)
 	_spawns(main, check)
+	_routes(main, check)
 	_campaign_untouched(main, check)
 	for map_id: String in CountyData.MAP_IDS:
 		_play(main, check, map_id, seconds)
@@ -775,6 +776,72 @@ static func _spawns(main, check: Callable) -> void:
 		check.call(
 			CountySpawner.spots(g).size() > 1500,
 			"%s: a big map (%d open cells to spawn on)" % [map_id, CountySpawner.spots(g).size()]
+		)
+
+
+## The routes: hands spawned round a player who stands still and never shoots
+## walk all the way to them within a minute (in sight eight steps off, or right
+## up close; the bayou's wade round the deep water is the slowest).
+static func _routes(main, check: Callable) -> void:
+	for map_id: String in CountyData.MAP_IDS:
+		var g := made(main, map_id)
+		var f = g.features["county"]
+		var p: Player = g.player
+		g.cheats.god = true
+		var born := {}
+		for k in 14:
+			var at = CountySpawner.spot(g, f)
+			if at != null:
+				var e := CountySpawner.spawn(
+					g, f, "billy" if k % 2 == 0 else "coot", at.x, at.y, false
+				)
+				born[e.get_instance_id()] = e
+		var came := {}
+		var ticks := 0
+		while ticks < 60 * 60 and came.size() < born.size():
+			g.tick(STEP, Game.Controls.new())
+			ticks += 1
+			for key: int in born:
+				var e: Enemy = born[key]
+				if came.has(key):
+					continue
+				var d := Vector2(e.x - p.x, e.y - p.y).length()
+				var sees: bool = (
+					d < 8.0 and g.world.visible(e.x, e.y, p.x, p.y, g.world.stand(e) + .9, p.eye)
+				)
+				if d < 3.0 or sees:
+					came[key] = ticks / 60.0
+		for key: int in born:
+			if not came.has(key):
+				var e: Enemy = born[key]
+				print(
+					(
+						"      not there: %s at %.1f, %.1f, %.1f steps off, %d by the field, swims %s"
+						% [
+							e.kind,
+							e.x,
+							e.y,
+							Vector2(e.x - p.x, e.y - p.y).length(),
+							g.flow.distance(e.x, e.y),
+							e.swims
+						]
+					)
+				)
+		var times: Array = came.values()
+		times.sort()
+		var median := float(times[times.size() / 2]) if not times.is_empty() else -1.0
+		print(
+			(
+				"    %s: %d of %d hands reached the player, median %.0fs"
+				% [map_id, came.size(), born.size(), median]
+			)
+		)
+		check.call(
+			born.size() >= 10 and came.size() >= born.size() * .85,
+			(
+				"%s: hands spawned out of sight walk to a player who stands still (%d of %d)"
+				% [map_id, came.size(), born.size()]
+			)
 		)
 
 
