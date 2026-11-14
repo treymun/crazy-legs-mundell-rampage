@@ -176,7 +176,7 @@ func log_pond() -> void:
 	# the pond from the west yard to the main boardwalk, stairs at each end,
 	# railed; wade under it, or shoot down from it.
 	var deck := {"tile": "porch", "under": "joists", "edge": "mill_log", "thick": .2, "area": pond}
-	deck["rail"] = {"tile": "mill_log"}
+	deck["rail"] = {"tile": "stockyard"}
 	Geo.bridge(b, "pond_bridge", [36.0, 37.5, 62.0, 39.0], 1.4, deck)
 	var steps := {"tile": "porch", "edge": "mill_log", "area": pond}
 	Geo.stairs(b, "pond_bridge_west", [30.4, 37.5, 36.0, 39.0], 0.0, 1.4, "e", steps)

@@ -335,12 +335,20 @@ func armory() -> void:
 	b.board("range_title", 48.0, 58.93, 1.25, {"z": 2.75, "plane": PI, "glow": true})
 	b.board("range_rules", 43.4, 58.94, .8, {"z": .7, "plane": PI})
 	b.board("range_head_armory", 48.0, 60.06, .62, {"z": 2.0, "plane": 0.0})
-	# Every gun on the walls, its plaque under it, and the station to take it.
+	# Every gun on the walls, its plaque under it, and the station to take it:
+	# every gun that has its pictures (the 5v5 guns and throwables have none yet,
+	# so the range as shipped racks the first sixteen; their racks come with
+	# their art, assets/art/item_<gun>.png).
 	for i in Weapons.COUNT:
 		var spot: Array = L.rack(i)
 		var face := Vector2(-sin(float(spot[2])), cos(float(spot[2])))
 		var at := Vector2(float(spot[0]), float(spot[1]))
 		var gun := String(Weapons.NAMES[i])
+		var art := ProjectSettings.globalize_path("res://").path_join(
+			"../assets/art/item_%s.png" % gun
+		)
+		if not FileAccess.file_exists(art.simplify_path()):
+			continue
 		b.board("range_display", at.x, at.y, .78, {"z": .92, "plane": spot[2]})
 		var held := at + face * .04
 		b.board("item_" + gun, held.x, held.y, .56, {"z": 1.0, "plane": spot[2]})

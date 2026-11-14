@@ -287,6 +287,25 @@ on any level: `map new hickston base=hickston`, then add, validate, render,
 playtest and build. When a level's map changes, bump its `layout` (old saves
 then start that chapter over with their kit).
 
+## Worked example: Mundell Feed & Seed
+
+`docs/map_examples/feedstore_build.sh` makes the demonstration map from
+nothing with the commands above (new, top, add, validate, build), and
+`docs/map_examples/feedstore_edit_demo.sh` does a targeted-edit round on it,
+keeping each step's output in `docs/map_examples/edit_demo/`: a dry run, a
+doorway moved along its wall (`resize ... opening=stock_door at=3.1`), a
+material swapped in one object, validation, plans before and after,
+a playtest, the history, then two undos that leave the source byte for byte
+as it was. `docs/map_examples/feedstore_views.json` holds viewpoints for
+`map shot`.
+
+The first draft of it had two mistakes the tools caught, worth knowing:
+the stairs' foot stood against the store's west wall (only the side of the
+staircase could be reached, where the second tread is already too high:
+`stairs_foot`), and the office doorway was centred on a cell's edge (the nav
+graph passes cell middle to cell middle: `off_grid_opening`). Moving the
+stairs one cell east and the doorway half a cell fixed both.
+
 ## Limitations
 
 - Walls are upright and floors flat or a planar slope: no slanted walls,

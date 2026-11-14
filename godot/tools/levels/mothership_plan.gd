@@ -1,4 +1,4 @@
-## The Mothership (chapter 7, the last; layout 2): the ship that sent the
+## The Mothership (chapter 7, the last; layout 3): the ship that sent the
 ## Alien Sheriff, every room of it indoors, riveted, patched with county tin
 ## and stuffed with what the greys hauled up. Round the middle the core, a tall
 ## round chamber under the tractor-beam column where Maw Glorb waits on her
@@ -18,6 +18,7 @@
 extends RefCounted
 
 const Builder := preload("res://tools/levels/level_builder.gd")
+const Geo := preload("res://tools/levels/geo_kit.gd")
 const Cast := preload("res://tools/levels/mothership_cast.gd")
 const W := 128
 const H := 100
@@ -66,7 +67,7 @@ func make() -> Builder:
 		"ending": '"TELL YER MAW SHE CAN KEEP THE BUS."',
 		"score": "mothership_score",
 		"ambience": "mothership",
-		"layout": 2,
+		"layout": 3,
 		"sky": "sky",
 		"control_name": "SHIP'S GUTS SCRAMBLED",
 		"extraction": {"x": 70.5, "y": 92.5, "label": "RIDE THE OUTHOUSE HOME", "shutdown": "iris"},
@@ -312,8 +313,16 @@ func tractor_bay() -> void:
 	b.paint(62, 90, 66, 94, "ship_grate")
 	# The gantry up the east wall, its ramp at the north end, and the booth over
 	# the bay's south-east corner.
-	for k in 6:
-		b.raise(80, 74 + k, 82, 74 + k, .24 + k * .24)
+	# (Level format 2: the ramp a true slope of grating, where six steps were.)
+	Geo.ramp(
+		b,
+		"gantry_ramp",
+		[80, 74, 83, 80],
+		0.0,
+		1.44,
+		"s",
+		{"tile": "ship_grate", "edge": "ship_edge", "area": bay}
+	)
 	b.raise(80, 80, 82, 96, 1.44)
 	b.raise(76, 93, 79, 96, 1.44)
 	b.paint(80, 74, 82, 96, "ship_grate")

@@ -1,0 +1,4 @@
+[
+  {"tag": "gantry_ramp", "at": [75.5, 75.5, 0], "angle": 60, "pitch": 6},
+  {"tag": "down_the_ramp", "at": [81.5, 80.5, 1.44], "angle": -90, "pitch": -10}
+]
