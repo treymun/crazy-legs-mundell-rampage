@@ -20,7 +20,7 @@ const MOST_STEPS := 8
 ## Matches on at once at most (the config's "most_matches"): one 5v5 with
 ## nine bots is about 15-20% of a small VPS core (40% before NetSync's
 ## snapshots came from NetTrack).
-const MOST_MATCHES := 3
+const MOST_MATCHES := 2
 ## Frames a second while every lobby waits, and while a match is on.
 const IDLE_FPS := 20
 const MATCH_FPS := 120

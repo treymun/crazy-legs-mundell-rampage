@@ -1157,7 +1157,11 @@ what a networking pass still needs).
   `kick`/`back`, checked by `allowed_value`, never `SERVER_ONLY` keys), the
   next in line when they leave; results go back to the lobby after
   `BACK_AFTER` (`tally_at`, `back_in()`), an emptied lobby ends its match and
-  takes `base_settings` back; server lines reach every lobby screen with the
+  takes `base_settings` back; MODE includes TAG TEAM 2V2 (`tagteam`,
+  `play_mode()` makes it search and destroy; picking it or a 2v2 map moves
+  the lobby to the other's map and format, `_mode_fits_map`), and a new
+  online mode goes on that row; `server/lobbies.json` has two lobbies;
+  server lines reach every lobby screen with the
   next LOBBY (`_tell`). One process runs every lobby with TacticalBot pilots on
   host games (`Game.new(..., true)`, which client copies match exactly), at
   most `most_matches` at once (`may_start`). **NetSync.Host's snapshots come

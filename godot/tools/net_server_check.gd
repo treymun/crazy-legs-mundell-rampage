@@ -257,6 +257,29 @@ func _play() -> void:
 	var dave := _join("dave")
 	_wait(func() -> bool: return dave.phase == "lobby" and dave.is_admin())
 	_check(dave.is_admin(), "the next one in runs it")
+	_check(
+		String(lobby.settings["mode"]) == "tagteam",
+		"a lobby on a 2v2 map is TAG TEAM 2V2 (%s)" % lobby.settings["mode"]
+	)
+	dave.set_setting("mode", Modes.HOSTAGE)
+	_wait(func() -> bool: return String(lobby.settings["mode"]) == Modes.HOSTAGE)
+	_check(
+		(
+			Modes.SHOWDOWN_MAPS.has(String(lobby.settings["map"]))
+			and int(lobby.settings["team_size"]) == 5
+			and int(dave.settings["team_size"]) == 5
+		),
+		"the admin switches it to 5v5 HOSTAGE RESCUE: a 5v5 map and five a side"
+	)
+	dave.set_setting("mode", "tagteam")
+	_wait(func() -> bool: return String(lobby.settings["mode"]) == "tagteam")
+	_check(
+		(
+			Modes.TAGTEAM_MAPS.has(String(lobby.settings["map"]))
+			and int(lobby.settings["team_size"]) == 2
+		),
+		"and back to TAG TEAM 2V2: a 2v2 map and two a side"
+	)
 	# As close_all() does, but with everyone polled while the goodbye goes out.
 	lobby.leave("THE SERVER IS RESTARTING")
 	_wait(func() -> bool: return dave.phase == "closed", 60)

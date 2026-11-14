@@ -57,7 +57,13 @@ const LOBBY_ROWS := [
 	["chatter", "CHATTER", [2, 1, 0], ["EACH'S OWN", "CLEAN AT MOST", "OFF"]],
 ]
 const MATCH_ROWS := [
-	["mode", "MODE", ["bomb", "hostage"], ["SEARCH AND DESTROY", "HOSTAGE RESCUE"]],
+	# The lobby's game modes (a new online mode goes here and in play_mode()).
+	[
+		"mode",
+		"MODE",
+		["bomb", "hostage", "tagteam"],
+		["SEARCH AND DESTROY", "HOSTAGE RESCUE", "TAG TEAM 2V2"]
+	],
 	[
 		"map",
 		"MAP",
@@ -199,6 +205,12 @@ static func serve_lobby(at_port: int, lobby := {}, bind := "*") -> NetPlay:
 	net.my_id = NetSession.HOST_ID
 	net.phase = "lobby"
 	net.settings.merge(lobby, true)
+	if (
+		String(net.settings["mode"]) == "tagteam"
+		and not Modes.TAGTEAM_MAPS.has(net.settings["map"])
+	):
+		net.settings["map"] = Modes.TAGTEAM_MAPS[0]
+	net._mode_fits_map()
 	net.base_settings = net.settings.duplicate()
 	return net
 
@@ -640,19 +652,41 @@ func set_setting(key: String, value) -> void:
 		return
 	var was_tag := Modes.TAGTEAM_MAPS.has(String(settings.get("map", "")))
 	settings[key] = value
-	if key == "map" and Modes.TAGTEAM_MAPS.has(String(value)) != was_tag:
+	var tag := was_tag
+	if key == "map":
+		tag = Modes.TAGTEAM_MAPS.has(String(value))
+	elif key == "mode":
+		# TAG TEAM 2V2 onto a 2v2 map, a 5v5 mode onto a 5v5 map.
+		tag = String(value) == "tagteam"
+		if tag != was_tag:
+			settings["map"] = Modes.TAGTEAM_MAPS[0] if tag else Modes.SHOWDOWN_MAPS[0]
+	if tag != was_tag:
 		# Onto a TAG TEAM map: its format (two a side, first to 9, short
 		# rounds); back onto a 5v5 map: the 5v5's.
-		var tag := Modes.TAGTEAM_MAPS.has(String(value))
 		settings["team_size"] = 2 if tag else 5
-		settings["mode"] = Modes.BOMB if tag else settings["mode"]
 		settings["rounds"] = 9 if tag else 7
 		settings["round_seconds"] = 90.0 if tag else 0.0
 		settings["buy_seconds"] = 15.0 if tag else 20.0
+	_mode_fits_map()
 	if key == "pick_teams" and not bool(value):
 		for p: Dictionary in players:
 			p["team"] = -1
 	send_lobby()
+
+
+## The mode a lobby's MODE plays by (Modes): TAG TEAM 2V2 is search and
+## destroy two a side.
+static func play_mode(id: String) -> String:
+	return Modes.BOMB if id == "tagteam" else id
+
+
+## MODE as the map makes it: TAG TEAM 2V2 on a 2v2 map, never on a 5v5 one.
+func _mode_fits_map() -> void:
+	var tag := Modes.TAGTEAM_MAPS.has(String(settings.get("map", "")))
+	if tag:
+		settings["mode"] = "tagteam"
+	elif String(settings.get("mode", "")) == "tagteam":
+		settings["mode"] = Modes.BOMB
 
 
 ## Is everyone ready and are the teams playable? "" when it can start.
@@ -727,7 +761,7 @@ func start_match() -> String:
 				names.append("")
 	var info := {
 		"level": String(settings["map"]),
-		"mode": String(settings["mode"]),
+		"mode": play_mode(String(settings["mode"])),
 		"count": teams.size(),
 		"options": match_options(teams, names),
 		"slots": slot_of,

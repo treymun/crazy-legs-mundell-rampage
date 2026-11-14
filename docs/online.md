@@ -69,8 +69,11 @@ address and port (or join code) and its password if it has one.
   once); when every person has left a match it ends.
 - An empty lobby goes back to its own settings. The lobby's name and
   password are the server's: the admin cannot change them.
-- The server runs three matches at once at most (`most_matches`); a START
-  past that is told to wait. One 5v5 with nine bots is about 15-20% of a
+- Two lobbies (COUNTY LOBBY 1 on UDP 47197, 2 on 47198), each a match at a
+  time; whoever runs one switches its MODE between SEARCH AND DESTROY,
+  HOSTAGE RESCUE and TAG TEAM 2V2 (which moves it to a map and format that
+  fit), and an empty lobby goes back to its own. `most_matches` (2) caps
+  matches across the server; a START past that is told to wait. One 5v5 with nine bots is about 15-20% of a
   one-core VPS.
 - Players need the same version as the server: update the server with each
   release.
@@ -82,7 +85,7 @@ on the owner's PC, with the server's SSH key in `~/.ssh/clmr_oracle`) exports
 the "Linux Server" preset, copies it with the config and runs `setup.sh` on
 the server: a `clmr` user, `/opt/clmr`, the `clmr-lobbies` systemd service
 (restarts on a crash, starts at boot, its log in `journalctl -u
-clmr-lobbies`), the firewall (SSH and UDP 47197-47199) and SSH by key only.
+clmr-lobbies`), the firewall (SSH and UDP 47197-47198) and SSH by key only.
 Run the same command to update it. Locally:
 
 ```

@@ -1,10 +1,10 @@
 {
 	"bind": "*",
-	"most_matches": 3,
+	"most_matches": 2,
 	"lobbies": [
 		{
 			"port": 47197,
-			"lobby_name": "5V5 SEARCH & DESTROY",
+			"lobby_name": "COUNTY LOBBY 1",
 			"mode": "bomb",
 			"map": "grainyard",
 			"team_size": 5,
@@ -12,16 +12,8 @@
 		},
 		{
 			"port": 47198,
-			"lobby_name": "5V5 HOSTAGE RESCUE",
-			"mode": "hostage",
-			"map": "holler",
-			"team_size": 5,
-			"rounds": 7
-		},
-		{
-			"port": 47199,
-			"lobby_name": "2V2 TAG TEAM",
-			"mode": "bomb",
+			"lobby_name": "COUNTY LOBBY 2",
+			"mode": "tagteam",
 			"map": "pumpngo",
 			"team_size": 2,
 			"rounds": 9,

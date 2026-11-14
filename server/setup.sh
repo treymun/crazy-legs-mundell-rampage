@@ -13,10 +13,11 @@ chown -R clmr:clmr /opt/clmr
 install -m 644 "$src/clmr-lobbies.service" /etc/systemd/system/clmr-lobbies.service
 systemctl daemon-reload
 systemctl enable clmr-lobbies >/dev/null
-# Firewall: SSH and the three lobbies' UDP ports only.
+# Firewall: SSH and the two lobbies' UDP ports only.
 if ! command -v ufw >/dev/null; then apt-get install -y ufw >/dev/null; fi
 ufw allow 22/tcp >/dev/null
-ufw allow 47197:47199/udp >/dev/null
+ufw delete allow 47197:47199/udp >/dev/null 2>&1 || true
+ufw allow 47197:47198/udp >/dev/null
 ufw --force enable >/dev/null
 # SSH: keys only (the owner's key is installed; root logs in with it).
 cat > /etc/ssh/sshd_config.d/10-keys-only.conf <<'CONF'
