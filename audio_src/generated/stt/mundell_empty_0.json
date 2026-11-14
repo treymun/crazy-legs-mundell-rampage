@@ -1,0 +1,20 @@
+{
+ "text": "Click! Well, shucks!",
+ "words": [
+  {
+   "text": "Click!",
+   "start": 0.2,
+   "end": 0.76
+  },
+  {
+   "text": "Well,",
+   "start": 0.84,
+   "end": 1.22
+  },
+  {
+   "text": "shucks!",
+   "start": 1.36,
+   "end": 1.96
+  }
+ ]
+}

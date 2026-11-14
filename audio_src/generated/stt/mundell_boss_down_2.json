@@ -1,0 +1,35 @@
+{
+ "text": "Somebody hose that off the floor",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.2,
+   "end": 0.9
+  },
+  {
+   "text": "hose",
+   "start": 1.0,
+   "end": 1.4
+  },
+  {
+   "text": "that",
+   "start": 1.46,
+   "end": 1.74
+  },
+  {
+   "text": "off",
+   "start": 1.84,
+   "end": 2.06
+  },
+  {
+   "text": "the",
+   "start": 2.1,
+   "end": 2.18
+  },
+  {
+   "text": "floor",
+   "start": 2.36,
+   "end": 2.9
+  }
+ ]
+}

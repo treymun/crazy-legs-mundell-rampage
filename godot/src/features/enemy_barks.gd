@@ -115,6 +115,7 @@ var _own := {}
 var _health := {}
 var _bomb := ""
 var _phase := ""
+var _started := false
 
 
 func id() -> String:
@@ -127,6 +128,12 @@ func attach() -> void:
 		game.connect("enemy_bark", _bark)
 	if game.has_signal("ticked"):
 		game.connect("ticked", _tactical)
+		game.connect("ticked", _chapter_start)
+	# Mundell has his say at a boss fight's start and its end (Barks).
+	if game.has_signal("boss_intro"):
+		game.connect("boss_intro", func(_e) -> void: _mundell("boss"))
+	if game.has_signal("boss_down"):
+		game.connect("boss_down", func(_e, _s) -> void: _mundell("boss_down"))
 
 
 ## The voice `e` talks in, or "".
@@ -170,6 +177,25 @@ func _bark(e, moment: String) -> void:
 	if gap <= CAPTIONED and game.clock >= game.caption_until:
 		game.caption = said
 		game.caption_until = game.clock + 1.5
+
+
+# ------------------------------------------------------------------ Mundell
+
+
+## Mundell says his piece for `moment` (Barks: only while the local player is
+## the one acting, so a partner's moment is not his to crow over).
+func _mundell(moment: String) -> void:
+	if game.barks != null:
+		game.barks.say(game, moment, true)
+
+
+## A couple of seconds into a chapter, Mundell sizes it up.
+func _chapter_start(_dt: float) -> void:
+	if _started or game.clock < 2.0:
+		return
+	_started = true
+	if Campaign.ORDER.has(game.level.id) and game.players.size() == 1:
+		_mundell("start")
 
 
 # ------------------------------------------------------------------ 5v5 bots

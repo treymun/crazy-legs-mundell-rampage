@@ -1,0 +1,25 @@
+{
+ "text": "There, damn thing's fixed",
+ "words": [
+  {
+   "text": "There,",
+   "start": 0.2,
+   "end": 0.48
+  },
+  {
+   "text": "damn",
+   "start": 0.6,
+   "end": 0.94
+  },
+  {
+   "text": "thing's",
+   "start": 1.02,
+   "end": 1.4
+  },
+  {
+   "text": "fixed",
+   "start": 1.5,
+   "end": 1.88
+  }
+ ]
+}

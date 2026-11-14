@@ -219,6 +219,33 @@
 		"pickup_weapon": [
 			"Oh *hell* yes.",
 			"Come to pappy, ya purty *bastard*."
+		],
+		"reload": [
+			"Reload, *dammit*!"
+		],
+		"pickup_food": [
+			"*Damn*, that's good eatin'."
+		],
+		"boss": [
+			"Come get some, ya big *bastard*.",
+			"Well, ain't you one ugly *sumbitch*."
+		],
+		"boss_down": [
+			"Hot *damn*, he's done!",
+			"Eat *shit* and die, big'un."
+		],
+		"headshot": [
+			"Blew his *damn* head clean off!"
+		],
+		"station": [
+			"There, *damn* thing's fixed."
+		],
+		"key": [
+			"Now where's the *damn* lock?"
+		],
+		"start": [
+			"Let's go kick some *ass*.",
+			"Time to raise some *hell*."
 		]
 	},
 	"tactical": {

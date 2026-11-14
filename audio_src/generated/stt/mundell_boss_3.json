@@ -1,0 +1,35 @@
+{
+ "text": "I've wrestled hogs meaner than you",
+ "words": [
+  {
+   "text": "I've",
+   "start": 0.26,
+   "end": 0.48
+  },
+  {
+   "text": "wrestled",
+   "start": 0.5,
+   "end": 1.02
+  },
+  {
+   "text": "hogs",
+   "start": 1.1,
+   "end": 1.66
+  },
+  {
+   "text": "meaner",
+   "start": 1.78,
+   "end": 2.12
+  },
+  {
+   "text": "than",
+   "start": 2.12,
+   "end": 2.24
+  },
+  {
+   "text": "you",
+   "start": 2.36,
+   "end": 2.64
+  }
+ ]
+}

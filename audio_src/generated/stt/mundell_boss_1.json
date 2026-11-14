@@ -1,0 +1,35 @@
+{
+ "text": "You're gonna need a bigger porch!",
+ "words": [
+  {
+   "text": "You're",
+   "start": 0.1,
+   "end": 0.58
+  },
+  {
+   "text": "gonna",
+   "start": 0.72,
+   "end": 1.12
+  },
+  {
+   "text": "need",
+   "start": 1.18,
+   "end": 1.44
+  },
+  {
+   "text": "a",
+   "start": 1.52,
+   "end": 1.56
+  },
+  {
+   "text": "bigger",
+   "start": 1.74,
+   "end": 2.1
+  },
+  {
+   "text": "porch!",
+   "start": 2.26,
+   "end": 2.92
+  }
+ ]
+}

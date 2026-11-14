@@ -1,0 +1,15 @@
+{
+ "text": "I'm salty",
+ "words": [
+  {
+   "text": "I'm",
+   "start": 0.12,
+   "end": 0.38
+  },
+  {
+   "text": "salty",
+   "start": 0.52,
+   "end": 1.1
+  }
+ ]
+}

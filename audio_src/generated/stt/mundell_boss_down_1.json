@@ -1,0 +1,25 @@
+{
+ "text": "Who's the boss now?",
+ "words": [
+  {
+   "text": "Who's",
+   "start": 0.18,
+   "end": 0.42
+  },
+  {
+   "text": "the",
+   "start": 0.46,
+   "end": 0.52
+  },
+  {
+   "text": "boss",
+   "start": 0.6,
+   "end": 0.96
+  },
+  {
+   "text": "now?",
+   "start": 1.06,
+   "end": 1.6
+  }
+ ]
+}

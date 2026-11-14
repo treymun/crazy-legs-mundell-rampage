@@ -1,0 +1,25 @@
+{
+ "text": "Oh, you purty thing",
+ "words": [
+  {
+   "text": "Oh,",
+   "start": 0.12,
+   "end": 0.26
+  },
+  {
+   "text": "you",
+   "start": 0.38,
+   "end": 0.48
+  },
+  {
+   "text": "purty",
+   "start": 0.64,
+   "end": 1.02
+  },
+  {
+   "text": "thing",
+   "start": 1.18,
+   "end": 1.56
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+ "text": "Yeah, that's one less varmint",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.04,
+   "end": 0.22
+  },
+  {
+   "text": "that's",
+   "start": 0.32,
+   "end": 0.58
+  },
+  {
+   "text": "one",
+   "start": 0.64,
+   "end": 0.88
+  },
+  {
+   "text": "less",
+   "start": 0.96,
+   "end": 1.24
+  },
+  {
+   "text": "varmint",
+   "start": 1.36,
+   "end": 1.88
+  }
+ ]
+}

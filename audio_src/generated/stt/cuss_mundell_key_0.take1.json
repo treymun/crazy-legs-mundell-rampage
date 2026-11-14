@@ -1,0 +1,30 @@
+{
+ "text": "Now, where's the damn locks?",
+ "words": [
+  {
+   "text": "Now,",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "where's",
+   "start": 0.38,
+   "end": 0.72
+  },
+  {
+   "text": "the",
+   "start": 0.78,
+   "end": 0.86
+  },
+  {
+   "text": "damn",
+   "start": 0.94,
+   "end": 1.26
+  },
+  {
+   "text": "locks?",
+   "start": 1.36,
+   "end": 1.8
+  }
+ ]
+}

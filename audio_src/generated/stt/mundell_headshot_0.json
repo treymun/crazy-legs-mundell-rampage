@@ -1,0 +1,25 @@
+{
+ "text": "Right between the eyes!",
+ "words": [
+  {
+   "text": "Right",
+   "start": 0.2,
+   "end": 0.46
+  },
+  {
+   "text": "between",
+   "start": 0.5,
+   "end": 1.02
+  },
+  {
+   "text": "the",
+   "start": 1.06,
+   "end": 1.18
+  },
+  {
+   "text": "eyes!",
+   "start": 1.26,
+   "end": 1.8
+  }
+ ]
+}

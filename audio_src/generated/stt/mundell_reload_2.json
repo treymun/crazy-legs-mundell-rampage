@@ -1,0 +1,25 @@
+{
+ "text": "Come on, come on!",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.18,
+   "end": 0.64
+  },
+  {
+   "text": "on,",
+   "start": 0.74,
+   "end": 1.12
+  },
+  {
+   "text": "come",
+   "start": 1.24,
+   "end": 1.7
+  },
+  {
+   "text": "on!",
+   "start": 1.8,
+   "end": 2.3
+  }
+ ]
+}

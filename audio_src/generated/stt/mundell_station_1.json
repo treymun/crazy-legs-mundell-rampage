@@ -1,0 +1,20 @@
+{
+ "text": "Fixed it, sorta",
+ "words": [
+  {
+   "text": "Fixed",
+   "start": 0.04,
+   "end": 0.5
+  },
+  {
+   "text": "it,",
+   "start": 0.64,
+   "end": 1.06
+  },
+  {
+   "text": "sorta",
+   "start": 1.32,
+   "end": 1.98
+  }
+ ]
+}

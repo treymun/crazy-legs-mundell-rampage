@@ -1,0 +1,30 @@
+{
+ "text": "I'm just getting warmed up",
+ "words": [
+  {
+   "text": "I'm",
+   "start": 0.2,
+   "end": 0.3
+  },
+  {
+   "text": "just",
+   "start": 0.36,
+   "end": 0.54
+  },
+  {
+   "text": "getting",
+   "start": 0.6,
+   "end": 0.86
+  },
+  {
+   "text": "warmed",
+   "start": 0.92,
+   "end": 1.32
+  },
+  {
+   "text": "up",
+   "start": 1.5,
+   "end": 1.76
+  }
+ ]
+}

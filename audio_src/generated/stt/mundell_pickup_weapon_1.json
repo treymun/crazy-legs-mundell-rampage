@@ -1,0 +1,20 @@
+{
+ "text": "Come to Pappy!",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.2,
+   "end": 0.48
+  },
+  {
+   "text": "to",
+   "start": 0.54,
+   "end": 0.76
+  },
+  {
+   "text": "Pappy!",
+   "start": 0.86,
+   "end": 1.54
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Uh, hold my beer",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.1,
+   "end": 0.18
+  },
+  {
+   "text": "hold",
+   "start": 0.28,
+   "end": 0.56
+  },
+  {
+   "text": "my",
+   "start": 0.62,
+   "end": 0.84
+  },
+  {
+   "text": "beer",
+   "start": 0.98,
+   "end": 1.34
+  }
+ ]
+}

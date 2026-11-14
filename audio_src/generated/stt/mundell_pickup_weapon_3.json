@@ -1,0 +1,15 @@
+{
+ "text": "Hot diggity!",
+ "words": [
+  {
+   "text": "Hot",
+   "start": 0.18,
+   "end": 0.46
+  },
+  {
+   "text": "diggity!",
+   "start": 0.54,
+   "end": 1.06
+  }
+ ]
+}

@@ -981,6 +981,7 @@ CUSS_HEARD = {
     "cuss_hick_hurt_bad_1": "Son of a bitch, that's smart!",
     "cuss_grey_help_1": "Sharp! Move your ass!",
     "cuss_mundell_drunk_0": "Who moved the damn barns?",
+    "cuss_mundell_boss_down_1": "Eat shit and die, big gun.",
 }
 
 
@@ -1001,6 +1002,23 @@ add("voice", **{f"cuss_mundell_{moment}_{n}": _cuss(f"cuss_mundell_{moment}_{n}"
 add("voice", **{f"cuss_{who}_{moment}_{n}": _cuss(f"cuss_{who}_{moment}_{n}", text, who)
                 for who, moments in CUSS_TACTICAL.items()
                 for moment, lines in moments.items()
+                for n, text in enumerate(lines)})
+# Mundell's own clean lines (godot/data/tuning/mundell_lines.json), in the same
+# voice and settings as his cuss lines so he always sounds like himself.
+_MUNDELL = _json.loads((_Path(__file__).resolve().parent.parent / "godot" / "data" / "tuning"
+                        / "mundell_lines.json").read_text(encoding="utf-8"))["lines"]
+# Where his transcript hears a clear line sideways (the hiccup, his drawl).
+MUNDELL_HEARD = {
+    "mundell_drunk_0": "Nick, who moved the barn?",
+    "mundell_start_3": "Somebody's fixin' to get learnt.",
+    "mundell_station_3": "Mama, I'd be proud.",
+    "mundell_pickup_food_1": "Um, salty.",
+    "mundell_streak_2": "It's Rampage Times!",
+}
+add("voice", **{f"mundell_{moment}_{n}": V(text, "mundell", **(
+                    {"heard": MUNDELL_HEARD[f"mundell_{moment}_{n}"]}
+                    if f"mundell_{moment}_{n}" in MUNDELL_HEARD else {}))
+                for moment, lines in _MUNDELL.items()
                 for n, text in enumerate(lines)})
 # Each cuss line's CLEAN copy: the cuss words under a duck call or a horn, by turns.
 add("voice", **{f"{name}_clean": D(name, "bleep", **{"with": "duck" if i % 2 == 0 else "horn"})

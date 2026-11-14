@@ -1,0 +1,30 @@
+{
+ "text": "Don't mess with the legs",
+ "words": [
+  {
+   "text": "Don't",
+   "start": 0.2,
+   "end": 0.38
+  },
+  {
+   "text": "mess",
+   "start": 0.42,
+   "end": 0.68
+  },
+  {
+   "text": "with",
+   "start": 0.72,
+   "end": 0.84
+  },
+  {
+   "text": "the",
+   "start": 0.88,
+   "end": 0.96
+  },
+  {
+   "text": "legs",
+   "start": 1.02,
+   "end": 1.6
+  }
+ ]
+}

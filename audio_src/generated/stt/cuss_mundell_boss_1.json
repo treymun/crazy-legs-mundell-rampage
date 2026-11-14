@@ -1,0 +1,35 @@
+{
+ "text": "Well, ain't you one ugly sumbitch?",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.06,
+   "end": 0.44
+  },
+  {
+   "text": "ain't",
+   "start": 0.56,
+   "end": 0.82
+  },
+  {
+   "text": "you",
+   "start": 0.9,
+   "end": 1.04
+  },
+  {
+   "text": "one",
+   "start": 1.18,
+   "end": 1.42
+  },
+  {
+   "text": "ugly",
+   "start": 1.58,
+   "end": 1.94
+  },
+  {
+   "text": "sumbitch?",
+   "start": 2.1,
+   "end": 2.84
+  }
+ ]
+}

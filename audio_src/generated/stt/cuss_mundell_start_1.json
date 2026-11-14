@@ -1,0 +1,30 @@
+{
+ "text": "Time to raise some hell!",
+ "words": [
+  {
+   "text": "Time",
+   "start": 0.2,
+   "end": 0.52
+  },
+  {
+   "text": "to",
+   "start": 0.56,
+   "end": 0.64
+  },
+  {
+   "text": "raise",
+   "start": 0.72,
+   "end": 1.08
+  },
+  {
+   "text": "some",
+   "start": 1.14,
+   "end": 1.38
+  },
+  {
+   "text": "hell!",
+   "start": 1.46,
+   "end": 1.86
+  }
+ ]
+}

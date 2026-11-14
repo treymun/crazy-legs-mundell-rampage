@@ -1,0 +1,25 @@
+{
+ "text": "Let's get her done!",
+ "words": [
+  {
+   "text": "Let's",
+   "start": 0.16,
+   "end": 0.56
+  },
+  {
+   "text": "get",
+   "start": 0.62,
+   "end": 0.82
+  },
+  {
+   "text": "her",
+   "start": 0.86,
+   "end": 0.96
+  },
+  {
+   "text": "done!",
+   "start": 1.06,
+   "end": 1.64
+  }
+ ]
+}

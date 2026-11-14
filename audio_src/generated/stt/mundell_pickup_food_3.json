@@ -1,0 +1,20 @@
+{
+ "text": "Wash it down",
+ "words": [
+  {
+   "text": "Wash",
+   "start": 0.2,
+   "end": 0.6
+  },
+  {
+   "text": "it",
+   "start": 0.72,
+   "end": 0.86
+  },
+  {
+   "text": "down",
+   "start": 0.94,
+   "end": 1.56
+  }
+ ]
+}

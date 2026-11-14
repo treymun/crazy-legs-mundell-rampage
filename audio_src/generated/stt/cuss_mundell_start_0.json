@@ -1,0 +1,30 @@
+{
+ "text": "Let's go kick some ass",
+ "words": [
+  {
+   "text": "Let's",
+   "start": 0.1,
+   "end": 0.46
+  },
+  {
+   "text": "go",
+   "start": 0.52,
+   "end": 0.72
+  },
+  {
+   "text": "kick",
+   "start": 0.86,
+   "end": 1.1
+  },
+  {
+   "text": "some",
+   "start": 1.22,
+   "end": 1.44
+  },
+  {
+   "text": "ass",
+   "start": 1.52,
+   "end": 2.06
+  }
+ ]
+}

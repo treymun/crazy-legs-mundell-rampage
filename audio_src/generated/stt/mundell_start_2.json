@@ -1,0 +1,25 @@
+{
+ "text": "Time to clean house",
+ "words": [
+  {
+   "text": "Time",
+   "start": 0.22,
+   "end": 0.54
+  },
+  {
+   "text": "to",
+   "start": 0.58,
+   "end": 0.7
+  },
+  {
+   "text": "clean",
+   "start": 0.74,
+   "end": 1.04
+  },
+  {
+   "text": "house",
+   "start": 1.12,
+   "end": 1.62
+  }
+ ]
+}

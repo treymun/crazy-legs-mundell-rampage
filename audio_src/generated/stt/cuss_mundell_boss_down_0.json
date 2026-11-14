@@ -1,0 +1,25 @@
+{
+ "text": "Hot damn, he's done!",
+ "words": [
+  {
+   "text": "Hot",
+   "start": 0.18,
+   "end": 0.46
+  },
+  {
+   "text": "damn,",
+   "start": 0.62,
+   "end": 1.16
+  },
+  {
+   "text": "he's",
+   "start": 1.22,
+   "end": 1.46
+  },
+  {
+   "text": "done!",
+   "start": 1.52,
+   "end": 2.12
+  }
+ ]
+}

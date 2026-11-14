@@ -332,7 +332,8 @@ DIALECT = {
     "looky": "lookie", "ol'": "old", "round": "around", "aw": "oh", "ah": "oh", "ow": "oh",
     "drunker'n": "drunker than", "chickenshit": "chicken shit", "dammit": "damn it",
     "sumbitch": "son of a bitch", "sumbitches": "sons of bitches", "hooman": "human",
-    "fuses": "fuse is", "'em": "them",
+    "fuses": "fuse is", "'em": "them", "big'un": "big un", "wrassled": "wrestled",
+    "meaner'n": "meaner than", "fer": "for", "should've": "should have", "'er": "her",
 }
 
 

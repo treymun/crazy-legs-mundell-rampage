@@ -1,0 +1,25 @@
+{
+ "text": "That hits the spot!",
+ "words": [
+  {
+   "text": "That",
+   "start": 0.2,
+   "end": 0.64
+  },
+  {
+   "text": "hits",
+   "start": 0.7,
+   "end": 1.02
+  },
+  {
+   "text": "the",
+   "start": 1.12,
+   "end": 1.3
+  },
+  {
+   "text": "spot!",
+   "start": 1.42,
+   "end": 1.98
+  }
+ ]
+}

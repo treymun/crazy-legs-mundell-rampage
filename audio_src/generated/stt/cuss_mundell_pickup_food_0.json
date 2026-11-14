@@ -1,0 +1,25 @@
+{
+ "text": "Damn, that's good eating!",
+ "words": [
+  {
+   "text": "Damn,",
+   "start": 0.16,
+   "end": 0.7
+  },
+  {
+   "text": "that's",
+   "start": 0.78,
+   "end": 1.1
+  },
+  {
+   "text": "good",
+   "start": 1.16,
+   "end": 1.42
+  },
+  {
+   "text": "eating!",
+   "start": 1.46,
+   "end": 1.76
+  }
+ ]
+}

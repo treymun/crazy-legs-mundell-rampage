@@ -1,0 +1,25 @@
+{
+ "text": "Keys, now we're cooking!",
+ "words": [
+  {
+   "text": "Keys,",
+   "start": 0.2,
+   "end": 0.78
+  },
+  {
+   "text": "now",
+   "start": 0.92,
+   "end": 1.22
+  },
+  {
+   "text": "we're",
+   "start": 1.32,
+   "end": 1.58
+  },
+  {
+   "text": "cooking!",
+   "start": 1.64,
+   "end": 2.12
+  }
+ ]
+}

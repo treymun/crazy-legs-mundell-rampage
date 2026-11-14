@@ -1,0 +1,25 @@
+{
+ "text": "Not in my county!",
+ "words": [
+  {
+   "text": "Not",
+   "start": 0.18,
+   "end": 0.62
+  },
+  {
+   "text": "in",
+   "start": 0.68,
+   "end": 0.8
+  },
+  {
+   "text": "my",
+   "start": 0.86,
+   "end": 1.12
+  },
+  {
+   "text": "county!",
+   "start": 1.3,
+   "end": 1.86
+  }
+ ]
+}

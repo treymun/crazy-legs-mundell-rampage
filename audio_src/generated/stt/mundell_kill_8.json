@@ -1,0 +1,25 @@
+{
+ "text": "God bless your heart",
+ "words": [
+  {
+   "text": "God",
+   "start": 0.06,
+   "end": 0.3
+  },
+  {
+   "text": "bless",
+   "start": 0.38,
+   "end": 0.94
+  },
+  {
+   "text": "your",
+   "start": 1.02,
+   "end": 1.28
+  },
+  {
+   "text": "heart",
+   "start": 1.38,
+   "end": 2.28
+  }
+ ]
+}

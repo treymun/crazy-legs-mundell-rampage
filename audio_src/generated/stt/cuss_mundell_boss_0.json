@@ -1,0 +1,35 @@
+{
+ "text": "Come get some, you big bastard",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.04,
+   "end": 0.36
+  },
+  {
+   "text": "get",
+   "start": 0.46,
+   "end": 0.76
+  },
+  {
+   "text": "some,",
+   "start": 0.84,
+   "end": 1.2
+  },
+  {
+   "text": "you",
+   "start": 1.26,
+   "end": 1.36
+  },
+  {
+   "text": "big",
+   "start": 1.44,
+   "end": 1.72
+  },
+  {
+   "text": "bastard",
+   "start": 1.84,
+   "end": 2.44
+  }
+ ]
+}

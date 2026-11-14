@@ -301,6 +301,7 @@ func collect(name: String) -> bool:
 		message("PA PATCH LEAD. TAKE IT TO THE BACKSTAGE BOOTH.", 3.0)
 	elif name.begins_with("key_"):
 		keys[name] = true
+		barks.say(self, "key", true)
 		message(
 			(
 				"BRASS KEY - OPEN THE BARN."
@@ -485,7 +486,7 @@ func enemy_down(enemy: Enemy) -> void:
 	kills += 1
 	enemy_killed.emit(enemy)
 	if enemy.hostile:
-		barks.kill(self)
+		barks.kill(self, enemy.last_zone == "head")
 	if not Enemy.BOSS_TITLES.has(enemy.kind):
 		for actor: Enemy in enemies:
 			if (
@@ -991,6 +992,7 @@ func activate_station(station: LevelData.Station) -> void:
 			return
 	stations_done[station.id] = true
 	station_done.emit(station.id)
+	barks.say(self, "station")
 	set_station_lights(station)
 	for door: LevelData.Door in world.doors:
 		var point := Vector2i(door.x, door.y)

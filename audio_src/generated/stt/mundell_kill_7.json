@@ -1,0 +1,25 @@
+{
+ "text": "Fixing to be fertilizer",
+ "words": [
+  {
+   "text": "Fixing",
+   "start": 0.04,
+   "end": 0.64
+  },
+  {
+   "text": "to",
+   "start": 0.68,
+   "end": 0.82
+  },
+  {
+   "text": "be",
+   "start": 0.88,
+   "end": 1.06
+  },
+  {
+   "text": "fertilizer",
+   "start": 1.26,
+   "end": 2.28
+  }
+ ]
+}

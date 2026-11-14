@@ -1,0 +1,30 @@
+{
+ "text": "And now we're talking, son",
+ "words": [
+  {
+   "text": "And",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "now",
+   "start": 0.18,
+   "end": 0.68
+  },
+  {
+   "text": "we're",
+   "start": 0.82,
+   "end": 1.26
+  },
+  {
+   "text": "talking,",
+   "start": 1.32,
+   "end": 1.92
+  },
+  {
+   "text": "son",
+   "start": 2.1,
+   "end": 2.44
+  }
+ ]
+}

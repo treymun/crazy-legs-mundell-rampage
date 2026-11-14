@@ -1,0 +1,25 @@
+{
+ "text": "Need me a snack!",
+ "words": [
+  {
+   "text": "Need",
+   "start": 0.18,
+   "end": 0.36
+  },
+  {
+   "text": "me",
+   "start": 0.4,
+   "end": 0.52
+  },
+  {
+   "text": "a",
+   "start": 0.58,
+   "end": 0.64
+  },
+  {
+   "text": "snack!",
+   "start": 0.74,
+   "end": 1.5
+  }
+ ]
+}

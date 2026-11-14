@@ -1,0 +1,30 @@
+{
+ "text": "Smells like trouble and pig",
+ "words": [
+  {
+   "text": "Smells",
+   "start": 0.14,
+   "end": 0.76
+  },
+  {
+   "text": "like",
+   "start": 0.86,
+   "end": 1.1
+  },
+  {
+   "text": "trouble",
+   "start": 1.28,
+   "end": 1.72
+  },
+  {
+   "text": "and",
+   "start": 1.78,
+   "end": 1.88
+  },
+  {
+   "text": "pig",
+   "start": 2.0,
+   "end": 2.44
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Mama, I'd be proud",
+ "words": [
+  {
+   "text": "Mama,",
+   "start": 0.18,
+   "end": 0.54
+  },
+  {
+   "text": "I'd",
+   "start": 0.84,
+   "end": 1.1
+  },
+  {
+   "text": "be",
+   "start": 1.16,
+   "end": 1.36
+  },
+  {
+   "text": "proud",
+   "start": 1.56,
+   "end": 2.24
+  }
+ ]
+}

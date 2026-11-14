@@ -1,0 +1,30 @@
+{
+ "text": "That's gonna leave a mark",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.22,
+   "end": 0.7
+  },
+  {
+   "text": "gonna",
+   "start": 0.76,
+   "end": 1.14
+  },
+  {
+   "text": "leave",
+   "start": 1.18,
+   "end": 1.46
+  },
+  {
+   "text": "a",
+   "start": 1.52,
+   "end": 1.6
+  },
+  {
+   "text": "mark",
+   "start": 1.68,
+   "end": 2.3
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Fix the damn thing",
+ "words": [
+  {
+   "text": "Fix",
+   "start": 0.0,
+   "end": 0.34
+  },
+  {
+   "text": "the",
+   "start": 0.44,
+   "end": 0.56
+  },
+  {
+   "text": "damn",
+   "start": 0.64,
+   "end": 1.02
+  },
+  {
+   "text": "thing",
+   "start": 1.14,
+   "end": 1.56
+  }
+ ]
+}

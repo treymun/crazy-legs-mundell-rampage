@@ -1,0 +1,20 @@
+{
+ "text": "That'll do nicely",
+ "words": [
+  {
+   "text": "That'll",
+   "start": 0.18,
+   "end": 0.64
+  },
+  {
+   "text": "do",
+   "start": 0.74,
+   "end": 0.92
+  },
+  {
+   "text": "nicely",
+   "start": 1.0,
+   "end": 1.64
+  }
+ ]
+}

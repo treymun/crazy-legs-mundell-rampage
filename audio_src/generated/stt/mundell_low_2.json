@@ -1,0 +1,25 @@
+{
+ "text": "Too mean to die!",
+ "words": [
+  {
+   "text": "Too",
+   "start": 0.2,
+   "end": 0.34
+  },
+  {
+   "text": "mean",
+   "start": 0.44,
+   "end": 0.7
+  },
+  {
+   "text": "to",
+   "start": 0.76,
+   "end": 0.84
+  },
+  {
+   "text": "die!",
+   "start": 0.94,
+   "end": 1.44
+  }
+ ]
+}

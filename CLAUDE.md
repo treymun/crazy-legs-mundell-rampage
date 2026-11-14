@@ -456,8 +456,14 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   `data/tuning/cuss_lines.json` is the one list (the voice tools read it too):
   original crude lines, never slurs, hate, sex or real people, the cuss words
   *starred*. The hands mix them with their old barks (`enemy_barks.gd`,
-  `CUSS_SHARE`), Mundell says his aloud in his own voice where a line is made
-  (`Barks._spoken`/`_speak`; his old wisecracks stay on screen otherwise), and
+  `CUSS_SHARE`), Mundell speaks in his own voice (ElevenLabs "mundell", every
+  line at the same settings): all his wisecracks (`data/tuning/mundell_lines.json`,
+  cues `mundell_<moment>_<n>`, the same words as `Barks.LINES` in capitals;
+  chatter_check holds them together) mixed with his cuss lines (`Barks._spoken`/
+  `_speak`, `CUSS_SHARE`), and new moments: a boss fight's start and end
+  (`boss_intro`/`boss_down` through enemy_barks), a station done, a key, a
+  headshot (`Barks.kill(game, head)`), a chapter's start; with CHATTER OFF his
+  wisecracks are on screen only, as before; and
   in the 5v5/2v2 the bots crow over kills, a bad hit, the plant, the defuse
   and a round won (`enemy_barks.gd _tactical`, a looks feature: a bot is a
   player this machine does not drive and the lobby did not name). CLEAN plays
@@ -468,7 +474,8 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   county's spellings (`audio_build.py DIALECT`, `canon`); `CUSS_HEARD` where it
   hears a clear line sideways. A cue not made yet is simply not said.
   `tools/chatter_check.gd` (in check_fixes) holds it with an ear that has
-  every cue. 117 lines, about 1,700 credits with retakes and Mundell's voice.
+  every cue. 128 cuss lines and 67 of Mundell's, about 4,600 credits with
+  retakes and his voice.
 - **Boss fights share a framework** (`src/boss_kit.gd`, `features/boss_fight.gd`,
   `src/bosses/`). Each of the eight bosses (a `title` in enemies.cfg) has a
   `BossMoves` file (`bosses/boss_moves.gd`: `fight_start`, `phase_changed`,

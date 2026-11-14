@@ -1,0 +1,20 @@
+{
+ "text": "Feed the beast!",
+ "words": [
+  {
+   "text": "Feed",
+   "start": 0.18,
+   "end": 0.58
+  },
+  {
+   "text": "the",
+   "start": 0.62,
+   "end": 0.7
+  },
+  {
+   "text": "beast!",
+   "start": 0.82,
+   "end": 1.32
+  }
+ ]
+}

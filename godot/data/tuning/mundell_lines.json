@@ -1,0 +1,104 @@
+{
+	"_about": "Mundell's own lines (game_state.gd Barks, the PLAYER ONE-LINERS moments), spoken in his voice when CHATTER is on (CLEAN or CUSSIN'); on screen in capitals. Read by scripts/audio_spec.py (cues mundell_<moment>_<n>) and src/game_state.gd. His crude ones are in cuss_lines.json. All original.",
+	"lines": {
+		"kill": [
+			"That's one less varmint.",
+			"Yee-haw!",
+			"Back to the dirt, son.",
+			"Don't mess with the Legs.",
+			"Should've stayed home.",
+			"That'll learn ya.",
+			"Somebody call the undertaker.",
+			"Fixin' to be fertilizer.",
+			"Bless your heart.",
+			"Hold my beer.",
+			"Not in my county.",
+			"That's gonna leave a mark."
+		],
+		"streak": [
+			"Who's next?",
+			"I'm just gettin' warmed up.",
+			"It's rampage time!",
+			"Line up, boys."
+		],
+		"pickup_weapon": [
+			"Now we're talkin'.",
+			"Come to pappy.",
+			"That'll do nicely.",
+			"Hot diggity.",
+			"Oh, you purty thing."
+		],
+		"pickup_food": [
+			"Good eatin'.",
+			"Mmm, salty.",
+			"That hits the spot.",
+			"Wash it down."
+		],
+		"hurt": [
+			"Ow! That stung.",
+			"Why, I oughta...",
+			"You'll pay fer that.",
+			"Right in the overalls!"
+		],
+		"low": [
+			"I'm seein' the light...",
+			"Need me a snack.",
+			"Too mean to die.",
+			"Somebody get Mama."
+		],
+		"reload": [
+			"Lock and load.",
+			"Another round.",
+			"Come on, come on...",
+			"Feed the beast."
+		],
+		"empty": [
+			"Click. Well, shucks.",
+			"Out of shells!"
+		],
+		"drunk": [
+			"Hic! Who moved the barn?",
+			"The ground's movin'.",
+			"I see two of ya."
+		],
+		"secret": [
+			"Well, looky here.",
+			"Now that's a secret."
+		],
+		"boss": [
+			"Well, ain't you a big ugly one.",
+			"You're gonna need a bigger porch.",
+			"Let's dance, big'un.",
+			"I've wrassled hogs meaner'n you."
+		],
+		"boss_down": [
+			"And stay down!",
+			"Who's the boss now?",
+			"Somebody hose that off the floor.",
+			"Biggest varmint I ever bagged."
+		],
+		"station": [
+			"That oughta do it.",
+			"Fixed it. Sorta.",
+			"Done and done.",
+			"Mama'd be proud."
+		],
+		"key": [
+			"Now somethin' round here opens.",
+			"Keys! Now we're cookin'.",
+			"Well now. Bet it fits somethin'."
+		],
+		"headshot": [
+			"Right between the eyes.",
+			"Didn't need that head anyhow.",
+			"Clean off!",
+			"Bullseye, Bubba."
+		],
+		"start": [
+			"Let's git 'er done.",
+			"Smells like trouble. And pig.",
+			"Time to clean house.",
+			"Somebody's fixin' to get learned."
+		]
+	}
+}

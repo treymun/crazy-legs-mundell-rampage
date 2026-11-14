@@ -1,0 +1,35 @@
+{
+ "text": "Yeah, honey, bet it fits something",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.08,
+   "end": 0.22
+  },
+  {
+   "text": "honey,",
+   "start": 0.3,
+   "end": 0.6
+  },
+  {
+   "text": "bet",
+   "start": 0.72,
+   "end": 0.88
+  },
+  {
+   "text": "it",
+   "start": 0.92,
+   "end": 1.0
+  },
+  {
+   "text": "fits",
+   "start": 1.1,
+   "end": 1.38
+  },
+  {
+   "text": "something",
+   "start": 1.44,
+   "end": 1.96
+  }
+ ]
+}

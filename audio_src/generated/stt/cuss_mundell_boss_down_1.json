@@ -1,0 +1,35 @@
+{
+ "text": "Eat shit and die, big gun",
+ "words": [
+  {
+   "text": "Eat",
+   "start": 0.08,
+   "end": 0.22
+  },
+  {
+   "text": "shit",
+   "start": 0.3,
+   "end": 0.52
+  },
+  {
+   "text": "and",
+   "start": 0.56,
+   "end": 0.66
+  },
+  {
+   "text": "die,",
+   "start": 0.74,
+   "end": 1.1
+  },
+  {
+   "text": "big",
+   "start": 1.24,
+   "end": 1.38
+  },
+  {
+   "text": "gun",
+   "start": 1.44,
+   "end": 1.68
+  }
+ ]
+}

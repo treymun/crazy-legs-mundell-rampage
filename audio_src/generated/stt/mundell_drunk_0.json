@@ -1,0 +1,30 @@
+{
+ "text": "Nick, who moved the barn?",
+ "words": [
+  {
+   "text": "Nick,",
+   "start": 0.04,
+   "end": 0.36
+  },
+  {
+   "text": "who",
+   "start": 0.44,
+   "end": 0.58
+  },
+  {
+   "text": "moved",
+   "start": 0.66,
+   "end": 0.96
+  },
+  {
+   "text": "the",
+   "start": 1.0,
+   "end": 1.06
+  },
+  {
+   "text": "barn?",
+   "start": 1.16,
+   "end": 1.66
+  }
+ ]
+}

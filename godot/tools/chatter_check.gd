@@ -151,31 +151,64 @@ static func _mundell(main, check: Callable) -> void:
 	var g: Game = made[0]
 	var ear: Ear = made[1]
 	g.barks.enabled = true
-	g.chatter = CussLines.CUSSIN
-	g.barks.say(g, "kill", true)
+	var same := true
+	var spoken := Game.Barks.spoken_lines()
+	for moment: String in Game.Barks.LINES:
+		var said: Array = spoken.get(moment, [])
+		var shown: Array = Game.Barks.LINES[moment]
+		same = same and said.size() == shown.size()
+		for i in mini(said.size(), shown.size()):
+			same = same and String(said[i]).to_upper() == String(shown[i])
 	check.call(
-		ear.played.size() == 1 and String(ear.played[0]).begins_with("cuss_mundell_kill_"),
-		"Mundell says a kill line aloud (%s)" % [ear.played]
+		same and spoken.size() == Game.Barks.LINES.size(),
+		"every one of Mundell's wisecracks is spoken as it is shown"
 	)
-	check.call(not g.barks.text.contains("#"), "and the caption says it as said")
-	g.chatter = CussLines.CLEAN
+	var heard := {}
+	for chatter in [CussLines.CUSSIN, CussLines.CLEAN]:
+		g.chatter = chatter
+		ear.played.clear()
+		var shown: Array = []
+		for i in 40:
+			g.barks.say(g, "kill", true)
+			shown.append(g.barks.text)
+		heard[chatter] = [ear.played.duplicate(), shown]
+	var cussin: Array = heard[CussLines.CUSSIN][0]
+	var cuss := cussin.filter(func(c: String) -> bool: return c.begins_with("cuss_mundell_kill_"))
+	var plain := cussin.filter(func(c: String) -> bool: return c.begins_with("mundell_kill_"))
+	check.call(
+		cussin.size() == 40 and cuss.size() > 5 and plain.size() > 5,
+		(
+			"CUSSIN': Mundell says every kill line aloud, cussin' and not (%d and %d)"
+			% [cuss.size(), plain.size()]
+		)
+	)
+	var clean: Array = heard[CussLines.CLEAN][0]
+	check.call(
+		(
+			clean
+			. filter(func(c: String) -> bool: return c.begins_with("cuss_"))
+			. all(func(c: String) -> bool: return c.ends_with("_clean"))
+		),
+		"CLEAN: only his quacked-over copies of the cussin' ones"
+	)
+	check.call(
+		(heard[CussLines.CLEAN][1] as Array).any(func(t: String) -> bool: return t.contains("#")),
+		"CLEAN: their captions show grawlix"
+	)
 	ear.played.clear()
-	g.barks.say(g, "hurt", true)
+	g.chatter = CussLines.CUSSIN
+	g.barks.next_any = 0.0
+	g.barks.last_at = {}
+	g.barks.kill(g, true)
 	check.call(
-		ear.played.size() == 1 and String(ear.played[0]).ends_with("_clean"),
-		"CLEAN: Mundell's quacked-over copy"
-	)
-	check.call(
-		g.barks.text.contains("#"), "CLEAN: his caption shows grawlix (" + g.barks.text + ")"
+		ear.played.size() == 1 and String(ear.played[0]).contains("headshot"),
+		"a headshot gets its own line (%s)" % [ear.played]
 	)
 	g.chatter = CussLines.OFF
 	ear.played.clear()
 	g.barks.say(g, "kill", true)
 	check.call(
-		(
-			ear.played.filter(func(c: String) -> bool: return c.begins_with("cuss_")).is_empty()
-			and Game.Barks.LINES["kill"].has(g.barks.text)
-		),
+		ear.played.is_empty() and Game.Barks.LINES["kill"].has(g.barks.text),
 		"OFF: his old wisecracks, on the screen only"
 	)
 

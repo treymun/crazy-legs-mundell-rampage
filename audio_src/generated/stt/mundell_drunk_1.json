@@ -1,0 +1,20 @@
+{
+ "text": "The ground's moving!",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.2,
+   "end": 0.26
+  },
+  {
+   "text": "ground's",
+   "start": 0.36,
+   "end": 0.98
+  },
+  {
+   "text": "moving!",
+   "start": 1.04,
+   "end": 1.74
+  }
+ ]
+}

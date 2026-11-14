@@ -1,0 +1,20 @@
+{
+ "text": "A rampage times!",
+ "words": [
+  {
+   "text": "A",
+   "start": 0.1,
+   "end": 0.26
+  },
+  {
+   "text": "rampage",
+   "start": 0.38,
+   "end": 1.2
+  },
+  {
+   "text": "times!",
+   "start": 1.32,
+   "end": 1.88
+  }
+ ]
+}

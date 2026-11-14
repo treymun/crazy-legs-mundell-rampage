@@ -1,0 +1,25 @@
+{
+ "text": "Should have stayed home",
+ "words": [
+  {
+   "text": "Should",
+   "start": 0.18,
+   "end": 0.44
+  },
+  {
+   "text": "have",
+   "start": 0.48,
+   "end": 0.56
+  },
+  {
+   "text": "stayed",
+   "start": 0.74,
+   "end": 1.14
+  },
+  {
+   "text": "home",
+   "start": 1.24,
+   "end": 1.8
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "text": "Ow, that stunk",
+ "words": [
+  {
+   "text": "Ow,",
+   "start": 0.28,
+   "end": 0.52
+  },
+  {
+   "text": "that",
+   "start": 0.72,
+   "end": 1.02
+  },
+  {
+   "text": "stunk",
+   "start": 1.24,
+   "end": 1.78
+  }
+ ]
+}

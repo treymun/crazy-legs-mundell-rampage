@@ -1,0 +1,35 @@
+{
+ "text": "Yeah, back to the dirt, son",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.06,
+   "end": 0.2
+  },
+  {
+   "text": "back",
+   "start": 0.3,
+   "end": 0.56
+  },
+  {
+   "text": "to",
+   "start": 0.62,
+   "end": 0.72
+  },
+  {
+   "text": "the",
+   "start": 0.76,
+   "end": 0.84
+  },
+  {
+   "text": "dirt,",
+   "start": 0.96,
+   "end": 1.36
+  },
+  {
+   "text": "son",
+   "start": 1.5,
+   "end": 1.98
+  }
+ ]
+}

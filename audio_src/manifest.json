@@ -32086,6 +32086,534 @@
    },
    "validation": "ok"
   },
+  "cuss_mundell_reload_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_reload_0.mp3",
+   "prompt": "Reload, dammit!",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/cuss_mundell_reload_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.28
+    ],
+    "cuss_at": [
+     [
+      0.74,
+      1.28
+     ]
+    ],
+    "natural_seconds": 1.418,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.418
+   },
+   "measured": {
+    "seconds": 1.39,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0027,
+    "onset_ms": 0.0,
+    "centroid_hz": 1371,
+    "end_db": -141.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_pickup_food_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_pickup_food_0.mp3",
+   "prompt": "Damn, that's good eatin'.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/cuss_mundell_pickup_food_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.76
+    ],
+    "cuss_at": [
+     [
+      0.16,
+      0.7
+     ]
+    ],
+    "natural_seconds": 1.649,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.649
+   },
+   "measured": {
+    "seconds": 1.649,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0027,
+    "onset_ms": 5.6,
+    "centroid_hz": 1611,
+    "end_db": -134.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_boss_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_boss_0.mp3",
+   "prompt": "Come get some, ya big bastard.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/cuss_mundell_boss_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     2.44
+    ],
+    "cuss_at": [
+     [
+      1.84,
+      2.44
+     ]
+    ],
+    "natural_seconds": 2.511,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.511
+   },
+   "measured": {
+    "seconds": 2.511,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0033,
+    "onset_ms": 19.8,
+    "centroid_hz": 1629,
+    "end_db": -164.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_boss_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_boss_1.mp3",
+   "prompt": "Well, ain't you one ugly sumbitch.",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/cuss_mundell_boss_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.84
+    ],
+    "cuss_at": [
+     [
+      2.1,
+      2.84
+     ]
+    ],
+    "natural_seconds": 2.899,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.899
+   },
+   "measured": {
+    "seconds": 2.899,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0042,
+    "onset_ms": 4.4,
+    "centroid_hz": 1638,
+    "end_db": -165.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_boss_down_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_boss_down_0.mp3",
+   "prompt": "Hot damn, he's done!",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/cuss_mundell_boss_down_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.12
+    ],
+    "cuss_at": [
+     [
+      0.62,
+      1.16
+     ]
+    ],
+    "natural_seconds": 2.089,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.089
+   },
+   "measured": {
+    "seconds": 2.089,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.006,
+    "onset_ms": 5.2,
+    "centroid_hz": 1588,
+    "end_db": -166.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_boss_down_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_boss_down_1.mp3",
+   "prompt": "Eat shit and die, big'un.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/cuss_mundell_boss_down_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.68
+    ],
+    "cuss_at": [
+     [
+      0.3,
+      0.52
+     ]
+    ],
+    "natural_seconds": 1.77,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.77
+   },
+   "measured": {
+    "seconds": 1.77,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0045,
+    "onset_ms": 2.6,
+    "centroid_hz": 1591,
+    "end_db": -160.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_headshot_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_headshot_0.mp3",
+   "prompt": "Blew his damn head clean off!",
+   "credits": 58,
+   "destination": "audio_src/final/sfx/cuss_mundell_headshot_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.18
+    ],
+    "cuss_at": [
+     [
+      0.6,
+      1.0
+     ]
+    ],
+    "natural_seconds": 2.102,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.102
+   },
+   "measured": {
+    "seconds": 2.102,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0014,
+    "onset_ms": 10.8,
+    "centroid_hz": 1568,
+    "end_db": -158.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_station_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_station_0.mp3",
+   "prompt": "There, damn thing's fixed.",
+   "credits": 68,
+   "destination": "audio_src/final/sfx/cuss_mundell_station_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.88
+    ],
+    "cuss_at": [
+     [
+      0.6,
+      0.94
+     ]
+    ],
+    "natural_seconds": 1.804,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.804
+   },
+   "measured": {
+    "seconds": 1.804,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 14.9,
+    "centroid_hz": 2143,
+    "end_db": -157.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_key_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_key_0.mp3",
+   "prompt": "Now where's the damn lock?",
+   "credits": 52,
+   "destination": "audio_src/final/sfx/cuss_mundell_key_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.32,
+     1.92
+    ],
+    "cuss_at": [
+     [
+      0.98,
+      1.32
+     ]
+    ],
+    "natural_seconds": 1.552,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.552
+   },
+   "measured": {
+    "seconds": 1.552,
+    "peak_db": -0.8,
+    "loud_db": -9.5,
+    "dc": 0.0,
+    "onset_ms": 37.2,
+    "centroid_hz": 1666,
+    "end_db": -154.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_start_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_start_0.mp3",
+   "prompt": "Let's go kick some ass.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/cuss_mundell_start_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.06
+    ],
+    "cuss_at": [
+     [
+      1.52,
+      2.06
+     ]
+    ],
+    "natural_seconds": 2.111,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.111
+   },
+   "measured": {
+    "seconds": 2.111,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0006,
+    "onset_ms": 0.0,
+    "centroid_hz": 1594,
+    "end_db": -151.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_start_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_mundell_start_1.mp3",
+   "prompt": "Time to raise some hell.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/cuss_mundell_start_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.86
+    ],
+    "cuss_at": [
+     [
+      1.46,
+      1.86
+     ]
+    ],
+    "natural_seconds": 1.764,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.764
+   },
+   "measured": {
+    "seconds": 1.764,
+    "peak_db": -0.8,
+    "loud_db": -9.2,
+    "dc": 0.0,
+    "onset_ms": 35.3,
+    "centroid_hz": 1657,
+    "end_db": -160.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "cuss_hick_kill_0": {
    "purpose": "new cue",
    "refs": [],
@@ -32658,6 +33186,2820 @@
     "onset_ms": 13.7,
     "centroid_hz": 1669,
     "end_db": -141.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_0.mp3",
+   "prompt": "That's one less varmint.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/mundell_kill_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.32,
+     1.88
+    ],
+    "natural_seconds": 1.815,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.815
+   },
+   "measured": {
+    "seconds": 1.75,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 13.1,
+    "centroid_hz": 1343,
+    "end_db": -115.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_1.mp3",
+   "prompt": "Yee-haw!",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_kill_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     0.96
+    ],
+    "natural_seconds": 1.089,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.089
+   },
+   "measured": {
+    "seconds": 1.082,
+    "peak_db": -0.8,
+    "loud_db": -10.3,
+    "dc": 0.0,
+    "onset_ms": 11.2,
+    "centroid_hz": 1763,
+    "end_db": -131.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_2.mp3",
+   "prompt": "Back to the dirt, son.",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/mundell_kill_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.3,
+     1.98
+    ],
+    "natural_seconds": 1.816,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.816
+   },
+   "measured": {
+    "seconds": 1.816,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0006,
+    "onset_ms": 29.3,
+    "centroid_hz": 1410,
+    "end_db": -143.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_3.mp3",
+   "prompt": "Don't mess with the Legs.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/mundell_kill_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.6
+    ],
+    "natural_seconds": 1.518,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.518
+   },
+   "measured": {
+    "seconds": 1.518,
+    "peak_db": -0.8,
+    "loud_db": -6.4,
+    "dc": 0.0135,
+    "onset_ms": 6.5,
+    "centroid_hz": 1543,
+    "end_db": -155.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_4": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_4.mp3",
+   "prompt": "Should've stayed home.",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/mundell_kill_4.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.8
+    ],
+    "natural_seconds": 1.645,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.645
+   },
+   "measured": {
+    "seconds": 1.645,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0026,
+    "onset_ms": 25.2,
+    "centroid_hz": 1741,
+    "end_db": -129.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_5": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_5.mp3",
+   "prompt": "That'll learn ya.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/mundell_kill_5.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.4,
+     1.88
+    ],
+    "natural_seconds": 1.74,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.74
+   },
+   "measured": {
+    "seconds": 1.67,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 1.3,
+    "centroid_hz": 1692,
+    "end_db": -94.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_6": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_6.mp3",
+   "prompt": "Somebody call the undertaker.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/mundell_kill_6.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     2.02
+    ],
+    "natural_seconds": 1.987,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.987
+   },
+   "measured": {
+    "seconds": 1.987,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0007,
+    "onset_ms": 14.4,
+    "centroid_hz": 1454,
+    "end_db": -134.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_7": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_7.mp3",
+   "prompt": "Fixin' to be fertilizer.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/mundell_kill_7.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     2.28
+    ],
+    "natural_seconds": 2.324,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.324
+   },
+   "measured": {
+    "seconds": 2.324,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 13.1,
+    "centroid_hz": 1688,
+    "end_db": -135.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_8": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_8.mp3",
+   "prompt": "Bless your heart.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/mundell_kill_8.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.38,
+     2.28
+    ],
+    "natural_seconds": 1.907,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.907
+   },
+   "measured": {
+    "seconds": 1.907,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0007,
+    "onset_ms": 43.0,
+    "centroid_hz": 1506,
+    "end_db": -158.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_9": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_9.mp3",
+   "prompt": "Hold my beer.",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/mundell_kill_9.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.28,
+     1.34
+    ],
+    "natural_seconds": 1.174,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.174
+   },
+   "measured": {
+    "seconds": 1.174,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0004,
+    "onset_ms": 0.1,
+    "centroid_hz": 1737,
+    "end_db": -132.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_10": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_10.mp3",
+   "prompt": "Not in my county.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/mundell_kill_10.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.86
+    ],
+    "natural_seconds": 1.783,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.783
+   },
+   "measured": {
+    "seconds": 1.783,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.0028,
+    "onset_ms": 40.1,
+    "centroid_hz": 1661,
+    "end_db": -126.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_kill_11": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_kill_11.mp3",
+   "prompt": "That's gonna leave a mark.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/mundell_kill_11.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.3
+    ],
+    "natural_seconds": 2.032,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.032
+   },
+   "measured": {
+    "seconds": 2.032,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.003,
+    "onset_ms": 19.9,
+    "centroid_hz": 1780,
+    "end_db": -150.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_streak_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_streak_0.mp3",
+   "prompt": "Who's next?",
+   "credits": 11,
+   "destination": "audio_src/final/sfx/mundell_streak_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     0.96
+    ],
+    "natural_seconds": 0.885,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.885
+   },
+   "measured": {
+    "seconds": 0.885,
+    "peak_db": -0.8,
+    "loud_db": -10.1,
+    "dc": 0.0,
+    "onset_ms": 9.3,
+    "centroid_hz": 1884,
+    "end_db": -149.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_streak_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_streak_1.mp3",
+   "prompt": "I'm just gettin' warmed up.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/mundell_streak_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.76
+    ],
+    "natural_seconds": 1.557,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.557
+   },
+   "measured": {
+    "seconds": 1.557,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0016,
+    "onset_ms": 1.5,
+    "centroid_hz": 1437,
+    "end_db": -155.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_streak_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_streak_2.mp3",
+   "prompt": "It's rampage time!",
+   "credits": 44,
+   "destination": "audio_src/final/sfx/mundell_streak_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     2.26
+    ],
+    "natural_seconds": 2.249,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.249
+   },
+   "measured": {
+    "seconds": 2.249,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0024,
+    "onset_ms": 0.0,
+    "centroid_hz": 1801,
+    "end_db": -161.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_streak_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_streak_3.mp3",
+   "prompt": "Line up, boys.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/mundell_streak_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.5
+    ],
+    "natural_seconds": 1.6,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.6
+   },
+   "measured": {
+    "seconds": 1.6,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0002,
+    "onset_ms": 6.5,
+    "centroid_hz": 1429,
+    "end_db": -149.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_weapon_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_weapon_0.mp3",
+   "prompt": "Now we're talkin'.",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/mundell_pickup_weapon_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.92
+    ],
+    "natural_seconds": 1.858,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.858
+   },
+   "measured": {
+    "seconds": 1.858,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.005,
+    "onset_ms": 37.4,
+    "centroid_hz": 1274,
+    "end_db": -126.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_weapon_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_weapon_1.mp3",
+   "prompt": "Come to pappy.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/mundell_pickup_weapon_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.54
+    ],
+    "natural_seconds": 1.415,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.415
+   },
+   "measured": {
+    "seconds": 1.415,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0109,
+    "onset_ms": 32.1,
+    "centroid_hz": 1469,
+    "end_db": -124.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_weapon_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_weapon_2.mp3",
+   "prompt": "That'll do nicely.",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/mundell_pickup_weapon_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.64
+    ],
+    "natural_seconds": 1.505,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.505
+   },
+   "measured": {
+    "seconds": 1.505,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0004,
+    "onset_ms": 17.6,
+    "centroid_hz": 1769,
+    "end_db": -121.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_weapon_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_weapon_3.mp3",
+   "prompt": "Hot diggity.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/mundell_pickup_weapon_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.06
+    ],
+    "natural_seconds": 1.032,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.032
+   },
+   "measured": {
+    "seconds": 1.032,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0002,
+    "onset_ms": 7.5,
+    "centroid_hz": 1464,
+    "end_db": -114.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_weapon_4": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_weapon_4.mp3",
+   "prompt": "Oh, you purty thing.",
+   "credits": 40,
+   "destination": "audio_src/final/sfx/mundell_pickup_weapon_4.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.56
+    ],
+    "natural_seconds": 1.528,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.528
+   },
+   "measured": {
+    "seconds": 1.528,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.008,
+    "onset_ms": 0.0,
+    "centroid_hz": 1597,
+    "end_db": -133.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_food_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_food_0.mp3",
+   "prompt": "Good eatin'.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/mundell_pickup_food_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     0.92
+    ],
+    "natural_seconds": 0.854,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.854
+   },
+   "measured": {
+    "seconds": 0.854,
+    "peak_db": -0.8,
+    "loud_db": -9.4,
+    "dc": 0.0,
+    "onset_ms": 23.8,
+    "centroid_hz": 2427,
+    "end_db": -117.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_food_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_food_1.mp3",
+   "prompt": "Mmm, salty.",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/mundell_pickup_food_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.28
+    ],
+    "natural_seconds": 1.244,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.244
+   },
+   "measured": {
+    "seconds": 1.244,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0059,
+    "onset_ms": 0.0,
+    "centroid_hz": 1386,
+    "end_db": -128.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_food_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_food_2.mp3",
+   "prompt": "That hits the spot.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_pickup_food_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.98
+    ],
+    "natural_seconds": 1.81,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.81
+   },
+   "measured": {
+    "seconds": 1.81,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0,
+    "onset_ms": 7.7,
+    "centroid_hz": 1648,
+    "end_db": -123.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_pickup_food_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_food_3.mp3",
+   "prompt": "Wash it down.",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/mundell_pickup_food_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.56
+    ],
+    "natural_seconds": 1.598,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.598
+   },
+   "measured": {
+    "seconds": 1.53,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0032,
+    "onset_ms": 4.2,
+    "centroid_hz": 1800,
+    "end_db": -100.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hurt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hurt_0.mp3",
+   "prompt": "Ow! That stung.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/mundell_hurt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.14,
+     1.52
+    ],
+    "natural_seconds": 1.553,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.553
+   },
+   "measured": {
+    "seconds": 1.553,
+    "peak_db": -0.8,
+    "loud_db": -10.1,
+    "dc": 0.0,
+    "onset_ms": 0.7,
+    "centroid_hz": 1716,
+    "end_db": -145.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hurt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hurt_1.mp3",
+   "prompt": "Why, I oughta...",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_hurt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     1.46
+    ],
+    "natural_seconds": 1.453,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.453
+   },
+   "measured": {
+    "seconds": 1.428,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0041,
+    "onset_ms": 30.1,
+    "centroid_hz": 1582,
+    "end_db": -121.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hurt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hurt_2.mp3",
+   "prompt": "You'll pay fer that.",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/mundell_hurt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     1.98
+    ],
+    "natural_seconds": 1.726,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.726
+   },
+   "measured": {
+    "seconds": 1.726,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0036,
+    "onset_ms": 0.0,
+    "centroid_hz": 1562,
+    "end_db": -150.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hurt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hurt_3.mp3",
+   "prompt": "Right in the overalls!",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/mundell_hurt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.06
+    ],
+    "natural_seconds": 2.1,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.1
+   },
+   "measured": {
+    "seconds": 2.1,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0035,
+    "onset_ms": 0.0,
+    "centroid_hz": 1189,
+    "end_db": -161.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_low_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_low_0.mp3",
+   "prompt": "I'm seein' the light...",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/mundell_low_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.3,
+     1.84
+    ],
+    "natural_seconds": 1.528,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.528
+   },
+   "measured": {
+    "seconds": 1.528,
+    "peak_db": -0.8,
+    "loud_db": -9.6,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1866,
+    "end_db": -152.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_low_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_low_1.mp3",
+   "prompt": "Need me a snack.",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/mundell_low_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.5
+    ],
+    "natural_seconds": 1.371,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.371
+   },
+   "measured": {
+    "seconds": 1.371,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0093,
+    "onset_ms": 12.9,
+    "centroid_hz": 1681,
+    "end_db": -114.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_low_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_low_2.mp3",
+   "prompt": "Too mean to die.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_low_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.44
+    ],
+    "natural_seconds": 1.365,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.365
+   },
+   "measured": {
+    "seconds": 1.365,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0109,
+    "onset_ms": 7.7,
+    "centroid_hz": 1754,
+    "end_db": -149.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_low_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_low_3.mp3",
+   "prompt": "Somebody get Mama.",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/mundell_low_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     2.0
+    ],
+    "natural_seconds": 1.972,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.972
+   },
+   "measured": {
+    "seconds": 1.972,
+    "peak_db": -0.8,
+    "loud_db": -9.2,
+    "dc": 0.0,
+    "onset_ms": 81.6,
+    "centroid_hz": 1770,
+    "end_db": -132.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_reload_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_reload_0.mp3",
+   "prompt": "Lock and load.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/mundell_reload_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.9
+    ],
+    "natural_seconds": 1.703,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.703
+   },
+   "measured": {
+    "seconds": 1.703,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0055,
+    "onset_ms": 0.0,
+    "centroid_hz": 1674,
+    "end_db": -123.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_reload_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_reload_1.mp3",
+   "prompt": "Another round.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/mundell_reload_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.64
+    ],
+    "natural_seconds": 1.406,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.406
+   },
+   "measured": {
+    "seconds": 1.406,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0034,
+    "onset_ms": 4.2,
+    "centroid_hz": 1651,
+    "end_db": -129.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_reload_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_reload_2.mp3",
+   "prompt": "Come on, come on...",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_reload_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.3
+    ],
+    "natural_seconds": 2.009,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.009
+   },
+   "measured": {
+    "seconds": 2.009,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0039,
+    "onset_ms": 13.3,
+    "centroid_hz": 1697,
+    "end_db": -129.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_reload_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_reload_3.mp3",
+   "prompt": "Feed the beast.",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/mundell_reload_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.32
+    ],
+    "natural_seconds": 0.95,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.95
+   },
+   "measured": {
+    "seconds": 0.95,
+    "peak_db": -0.8,
+    "loud_db": -9.9,
+    "dc": 0.0,
+    "onset_ms": 20.8,
+    "centroid_hz": 2325,
+    "end_db": -113.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_empty_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_empty_0.mp3",
+   "prompt": "Click. Well, shucks.",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/mundell_empty_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.96
+    ],
+    "natural_seconds": 1.853,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.853
+   },
+   "measured": {
+    "seconds": 1.853,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 51.6,
+    "centroid_hz": 1439,
+    "end_db": -116.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_empty_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_empty_1.mp3",
+   "prompt": "Out of shells!",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/mundell_empty_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.6
+    ],
+    "natural_seconds": 1.362,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.362
+   },
+   "measured": {
+    "seconds": 1.362,
+    "peak_db": -0.8,
+    "loud_db": -9.9,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1611,
+    "end_db": -142.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_drunk_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_drunk_0.mp3",
+   "prompt": "Hic! Who moved the barn?",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/mundell_drunk_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.66
+    ],
+    "natural_seconds": 1.682,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.682
+   },
+   "measured": {
+    "seconds": 1.682,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0,
+    "onset_ms": 6.8,
+    "centroid_hz": 1679,
+    "end_db": -142.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_drunk_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_drunk_1.mp3",
+   "prompt": "The ground's movin'.",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/mundell_drunk_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.74
+    ],
+    "natural_seconds": 1.752,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.752
+   },
+   "measured": {
+    "seconds": 1.687,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0034,
+    "onset_ms": 11.0,
+    "centroid_hz": 1666,
+    "end_db": -107.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_drunk_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_drunk_2.mp3",
+   "prompt": "I see two of ya.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_drunk_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.74
+    ],
+    "natural_seconds": 1.648,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.648
+   },
+   "measured": {
+    "seconds": 1.648,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0026,
+    "onset_ms": 0.0,
+    "centroid_hz": 1457,
+    "end_db": -136.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_secret_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_secret_0.mp3",
+   "prompt": "Well, looky here.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/mundell_secret_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.42
+    ],
+    "natural_seconds": 1.466,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.466
+   },
+   "measured": {
+    "seconds": 1.466,
+    "peak_db": -0.8,
+    "loud_db": -9.4,
+    "dc": 0.0001,
+    "onset_ms": 0.8,
+    "centroid_hz": 1548,
+    "end_db": -134.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_secret_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_secret_1.mp3",
+   "prompt": "Now that's a secret.",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/mundell_secret_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.82
+    ],
+    "natural_seconds": 1.628,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.628
+   },
+   "measured": {
+    "seconds": 1.628,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.002,
+    "onset_ms": 27.5,
+    "centroid_hz": 1627,
+    "end_db": -151.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_boss_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_boss_0.mp3",
+   "prompt": "Well, ain't you a big ugly one.",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/mundell_boss_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.82
+    ],
+    "natural_seconds": 2.771,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.771
+   },
+   "measured": {
+    "seconds": 2.771,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0006,
+    "onset_ms": 0.0,
+    "centroid_hz": 1510,
+    "end_db": -167.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_boss_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_boss_1.mp3",
+   "prompt": "You're gonna need a bigger porch.",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/mundell_boss_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.92
+    ],
+    "natural_seconds": 2.758,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.758
+   },
+   "measured": {
+    "seconds": 2.758,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0026,
+    "onset_ms": 6.3,
+    "centroid_hz": 1819,
+    "end_db": -142.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_boss_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_boss_2.mp3",
+   "prompt": "Let's dance, big'un.",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/mundell_boss_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.86
+    ],
+    "natural_seconds": 1.764,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.764
+   },
+   "measured": {
+    "seconds": 1.764,
+    "peak_db": -0.8,
+    "loud_db": -9.8,
+    "dc": 0.0,
+    "onset_ms": 15.1,
+    "centroid_hz": 1898,
+    "end_db": -167.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_boss_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_boss_3.mp3",
+   "prompt": "I've wrassled hogs meaner'n you.",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/mundell_boss_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.26,
+     2.64
+    ],
+    "natural_seconds": 2.534,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.534
+   },
+   "measured": {
+    "seconds": 2.534,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0012,
+    "onset_ms": 0.0,
+    "centroid_hz": 1363,
+    "end_db": -150.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_boss_down_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_boss_down_0.mp3",
+   "prompt": "And stay down!",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/mundell_boss_down_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.64
+    ],
+    "natural_seconds": 1.608,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.608
+   },
+   "measured": {
+    "seconds": 1.608,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0,
+    "onset_ms": 0.3,
+    "centroid_hz": 1616,
+    "end_db": -122.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_boss_down_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_boss_down_1.mp3",
+   "prompt": "Who's the boss now?",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_boss_down_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.6
+    ],
+    "natural_seconds": 1.477,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.477
+   },
+   "measured": {
+    "seconds": 1.477,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0026,
+    "onset_ms": 4.2,
+    "centroid_hz": 1392,
+    "end_db": -134.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_boss_down_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_boss_down_2.mp3",
+   "prompt": "Somebody hose that off the floor.",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/mundell_boss_down_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.9
+    ],
+    "natural_seconds": 2.778,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.778
+   },
+   "measured": {
+    "seconds": 2.778,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0013,
+    "onset_ms": 75.0,
+    "centroid_hz": 1521,
+    "end_db": -131.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_boss_down_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_boss_down_3.mp3",
+   "prompt": "Biggest varmint I ever bagged.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/mundell_boss_down_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.42
+    ],
+    "natural_seconds": 2.482,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.482
+   },
+   "measured": {
+    "seconds": 2.482,
+    "peak_db": -0.8,
+    "loud_db": -9.2,
+    "dc": 0.0,
+    "onset_ms": 15.6,
+    "centroid_hz": 1634,
+    "end_db": -172.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_station_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_station_0.mp3",
+   "prompt": "That oughta do it.",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/mundell_station_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.3,
+     1.6
+    ],
+    "natural_seconds": 1.458,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.458
+   },
+   "measured": {
+    "seconds": 1.458,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0017,
+    "onset_ms": 16.7,
+    "centroid_hz": 1455,
+    "end_db": -154.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_station_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_station_1.mp3",
+   "prompt": "Fixed it. Sorta.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_station_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.98
+    ],
+    "natural_seconds": 2.168,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.168
+   },
+   "measured": {
+    "seconds": 2.106,
+    "peak_db": -0.8,
+    "loud_db": -10.0,
+    "dc": 0.0,
+    "onset_ms": 25.2,
+    "centroid_hz": 1536,
+    "end_db": -118.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_station_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_station_2.mp3",
+   "prompt": "Done and done.",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/mundell_station_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.34,
+     1.54
+    ],
+    "natural_seconds": 1.267,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.267
+   },
+   "measured": {
+    "seconds": 1.267,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0021,
+    "onset_ms": 18.7,
+    "centroid_hz": 1869,
+    "end_db": -120.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_station_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_station_3.mp3",
+   "prompt": "Mama'd be proud.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_station_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.24
+    ],
+    "natural_seconds": 2.054,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.054
+   },
+   "measured": {
+    "seconds": 2.054,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0045,
+    "onset_ms": 0.0,
+    "centroid_hz": 1920,
+    "end_db": -128.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_key_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_key_0.mp3",
+   "prompt": "Now somethin' round here opens.",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/mundell_key_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.36
+    ],
+    "natural_seconds": 2.429,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.429
+   },
+   "measured": {
+    "seconds": 2.429,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0008,
+    "onset_ms": 6.5,
+    "centroid_hz": 1459,
+    "end_db": -178.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_key_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_key_1.mp3",
+   "prompt": "Keys! Now we're cookin'.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/mundell_key_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.12
+    ],
+    "natural_seconds": 1.965,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.965
+   },
+   "measured": {
+    "seconds": 1.965,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.0004,
+    "onset_ms": 4.8,
+    "centroid_hz": 1672,
+    "end_db": -128.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_key_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_key_2.mp3",
+   "prompt": "Well now. Bet it fits somethin'.",
+   "credits": 90,
+   "destination": "audio_src/final/sfx/mundell_key_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.24
+    ],
+    "natural_seconds": 2.242,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.242
+   },
+   "measured": {
+    "seconds": 2.242,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0024,
+    "onset_ms": 2.2,
+    "centroid_hz": 1760,
+    "end_db": -140.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_headshot_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_headshot_0.mp3",
+   "prompt": "Right between the eyes.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/mundell_headshot_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.8
+    ],
+    "natural_seconds": 1.812,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.812
+   },
+   "measured": {
+    "seconds": 1.79,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 10.3,
+    "centroid_hz": 2053,
+    "end_db": -160.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_headshot_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_headshot_1.mp3",
+   "prompt": "Didn't need that head anyhow.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/mundell_headshot_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.88
+    ],
+    "natural_seconds": 1.85,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.85
+   },
+   "measured": {
+    "seconds": 1.835,
+    "peak_db": -0.8,
+    "loud_db": -9.2,
+    "dc": 0.0,
+    "onset_ms": 5.0,
+    "centroid_hz": 1695,
+    "end_db": -151.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_headshot_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_headshot_2.mp3",
+   "prompt": "Clean off!",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/mundell_headshot_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     1.12
+    ],
+    "natural_seconds": 0.81,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.81
+   },
+   "measured": {
+    "seconds": 0.81,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0,
+    "onset_ms": 39.4,
+    "centroid_hz": 1824,
+    "end_db": -112.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_headshot_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_headshot_3.mp3",
+   "prompt": "Bullseye, Bubba.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_headshot_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.38,
+     1.92
+    ],
+    "natural_seconds": 1.8,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.8
+   },
+   "measured": {
+    "seconds": 1.73,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0009,
+    "onset_ms": 53.4,
+    "centroid_hz": 1615,
+    "end_db": -100.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_start_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_start_0.mp3",
+   "prompt": "Let's git 'er done.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_start_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.64
+    ],
+    "natural_seconds": 1.48,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.48
+   },
+   "measured": {
+    "seconds": 1.48,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0016,
+    "onset_ms": 15.7,
+    "centroid_hz": 1794,
+    "end_db": -125.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_start_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_start_1.mp3",
+   "prompt": "Smells like trouble. And pig.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/mundell_start_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.14,
+     2.44
+    ],
+    "natural_seconds": 2.291,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.291
+   },
+   "measured": {
+    "seconds": 2.291,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0018,
+    "onset_ms": 56.6,
+    "centroid_hz": 1454,
+    "end_db": -141.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_start_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_start_2.mp3",
+   "prompt": "Time to clean house.",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/mundell_start_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     1.62
+    ],
+    "natural_seconds": 1.524,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.524
+   },
+   "measured": {
+    "seconds": 1.524,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0001,
+    "onset_ms": 5.4,
+    "centroid_hz": 2069,
+    "end_db": -159.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_start_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_start_3.mp3",
+   "prompt": "Somebody's fixin' to get learned.",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/mundell_start_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.8
+    ],
+    "natural_seconds": 2.861,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.861
+   },
+   "measured": {
+    "seconds": 2.861,
+    "peak_db": -0.8,
+    "loud_db": -9.2,
+    "dc": 0.0,
+    "onset_ms": 60.7,
+    "centroid_hz": 1893,
+    "end_db": -173.4,
     "problems": []
    },
    "validation": "ok"
@@ -36262,6 +39604,150 @@
    },
    "validation": "ok"
   },
+  "cuss_mundell_boss_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_boss_0",
+   "source": "audio_src/generated/tts/cuss_mundell_boss_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_boss_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_boss_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.511,
+    "peak_db": -0.3,
+    "loud_db": -8.8,
+    "dc": 0.0045,
+    "onset_ms": 20.1,
+    "centroid_hz": 1595,
+    "end_db": -167.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_boss_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_boss_1",
+   "source": "audio_src/generated/tts/cuss_mundell_boss_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_boss_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_boss_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 2.899,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0036,
+    "onset_ms": 4.4,
+    "centroid_hz": 1589,
+    "end_db": -165.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_boss_down_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_boss_down_0",
+   "source": "audio_src/generated/tts/cuss_mundell_boss_down_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_boss_down_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_boss_down_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.089,
+    "peak_db": -0.3,
+    "loud_db": -9.3,
+    "dc": 0.0056,
+    "onset_ms": 20.5,
+    "centroid_hz": 1272,
+    "end_db": -169.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_boss_down_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_boss_down_1",
+   "source": "audio_src/generated/tts/cuss_mundell_boss_down_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_boss_down_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_boss_down_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.77,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0036,
+    "onset_ms": 2.6,
+    "centroid_hz": 1548,
+    "end_db": -160.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "cuss_mundell_drunk_0_clean": {
    "purpose": "new cue",
    "refs": [],
@@ -36406,6 +39892,42 @@
    },
    "validation": "ok"
   },
+  "cuss_mundell_headshot_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_headshot_0",
+   "source": "audio_src/generated/tts/cuss_mundell_headshot_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_headshot_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_headshot_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.102,
+    "peak_db": -0.3,
+    "loud_db": -9.3,
+    "dc": 0.0005,
+    "onset_ms": 12.2,
+    "centroid_hz": 1433,
+    "end_db": -162.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "cuss_mundell_hurt_0_clean": {
    "purpose": "new cue",
    "refs": [],
@@ -36428,15 +39950,15 @@
      "fade": 0.06,
      "level": -3.0
     },
-    "derived": "cuss_mundell_hurt_0 with 1 word(s) under a duck"
+    "derived": "cuss_mundell_hurt_0 with 1 word(s) under a horn"
    },
    "measured": {
     "seconds": 1.652,
-    "peak_db": -1.1,
-    "loud_db": -10.1,
+    "peak_db": -2.8,
+    "loud_db": -11.3,
     "dc": 0.0,
     "onset_ms": 0.0,
-    "centroid_hz": 1205,
+    "centroid_hz": 729,
     "end_db": -161.1,
     "problems": []
    },
@@ -36464,16 +39986,52 @@
      "fade": 0.06,
      "level": -3.0
     },
-    "derived": "cuss_mundell_hurt_1 with 1 word(s) under a horn"
+    "derived": "cuss_mundell_hurt_1 with 1 word(s) under a duck"
    },
    "measured": {
     "seconds": 2.101,
+    "peak_db": -0.3,
+    "loud_db": -9.3,
+    "dc": 0.0128,
+    "onset_ms": 32.1,
+    "centroid_hz": 1529,
+    "end_db": -141.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_key_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_key_0",
+   "source": "audio_src/generated/tts/cuss_mundell_key_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_key_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_key_0 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.552,
     "peak_db": -0.8,
-    "loud_db": -5.3,
-    "dc": 0.0126,
-    "onset_ms": 11.7,
-    "centroid_hz": 1508,
-    "end_db": -136.8,
+    "loud_db": -9.5,
+    "dc": 0.0,
+    "onset_ms": 37.2,
+    "centroid_hz": 865,
+    "end_db": -154.5,
     "problems": []
    },
    "validation": "ok"
@@ -36658,6 +40216,42 @@
    },
    "validation": "ok"
   },
+  "cuss_mundell_pickup_food_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_pickup_food_0",
+   "source": "audio_src/generated/tts/cuss_mundell_pickup_food_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_pickup_food_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_pickup_food_0 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.649,
+    "peak_db": -0.9,
+    "loud_db": -6.4,
+    "dc": 0.002,
+    "onset_ms": 4.8,
+    "centroid_hz": 1362,
+    "end_db": -134.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "cuss_mundell_pickup_weapon_0_clean": {
    "purpose": "new cue",
    "refs": [],
@@ -36680,16 +40274,16 @@
      "fade": 0.06,
      "level": -3.0
     },
-    "derived": "cuss_mundell_pickup_weapon_0 with 1 word(s) under a horn"
+    "derived": "cuss_mundell_pickup_weapon_0 with 1 word(s) under a duck"
    },
    "measured": {
     "seconds": 1.565,
-    "peak_db": -3.2,
-    "loud_db": -10.9,
+    "peak_db": -0.3,
+    "loud_db": -9.3,
     "dc": 0.0,
     "onset_ms": 0.0,
-    "centroid_hz": 816,
-    "end_db": -158.6,
+    "centroid_hz": 1253,
+    "end_db": -160.2,
     "problems": []
    },
    "validation": "ok"
@@ -36716,16 +40310,52 @@
      "fade": 0.06,
      "level": -3.0
     },
-    "derived": "cuss_mundell_pickup_weapon_1 with 1 word(s) under a duck"
+    "derived": "cuss_mundell_pickup_weapon_1 with 1 word(s) under a horn"
    },
    "measured": {
     "seconds": 2.572,
-    "peak_db": -0.3,
-    "loud_db": -9.2,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
     "dc": 0.0033,
-    "onset_ms": 33.6,
-    "centroid_hz": 1406,
-    "end_db": -156.8,
+    "onset_ms": 7.8,
+    "centroid_hz": 1325,
+    "end_db": -153.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_reload_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_reload_0",
+   "source": "audio_src/generated/tts/cuss_mundell_reload_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_reload_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_reload_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 1.39,
+    "peak_db": -0.3,
+    "loud_db": -9.0,
+    "dc": 0.0036,
+    "onset_ms": 0.0,
+    "centroid_hz": 1148,
+    "end_db": -144.4,
     "problems": []
    },
    "validation": "ok"
@@ -36802,6 +40432,114 @@
    },
    "validation": "ok"
   },
+  "cuss_mundell_start_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_start_0",
+   "source": "audio_src/generated/tts/cuss_mundell_start_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_start_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_start_0 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 2.111,
+    "peak_db": -0.9,
+    "loud_db": -6.0,
+    "dc": 0.0005,
+    "onset_ms": 0.0,
+    "centroid_hz": 1441,
+    "end_db": -151.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_start_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_start_1",
+   "source": "audio_src/generated/tts/cuss_mundell_start_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_start_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_start_1 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 1.764,
+    "peak_db": -0.6,
+    "loud_db": -9.2,
+    "dc": 0.0,
+    "onset_ms": 35.3,
+    "centroid_hz": 1616,
+    "end_db": -160.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_mundell_station_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_mundell_station_0",
+   "source": "audio_src/generated/tts/cuss_mundell_station_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_mundell_station_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_mundell_station_0 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.804,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 14.9,
+    "centroid_hz": 1380,
+    "end_db": -157.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "cuss_mundell_streak_0_clean": {
    "purpose": "new cue",
    "refs": [],
@@ -36824,16 +40562,16 @@
      "fade": 0.06,
      "level": -3.0
     },
-    "derived": "cuss_mundell_streak_0 with 1 word(s) under a horn"
+    "derived": "cuss_mundell_streak_0 with 1 word(s) under a duck"
    },
    "measured": {
     "seconds": 1.354,
-    "peak_db": -0.8,
-    "loud_db": -6.4,
+    "peak_db": -0.3,
+    "loud_db": -8.9,
     "dc": 0.0034,
     "onset_ms": 0.0,
-    "centroid_hz": 1446,
-    "end_db": -145.6,
+    "centroid_hz": 1530,
+    "end_db": -148.2,
     "problems": []
    },
    "validation": "ok"
@@ -36860,15 +40598,15 @@
      "fade": 0.06,
      "level": -3.0
     },
-    "derived": "cuss_mundell_streak_1 with 1 word(s) under a duck"
+    "derived": "cuss_mundell_streak_1 with 1 word(s) under a horn"
    },
    "measured": {
     "seconds": 1.966,
-    "peak_db": -0.3,
-    "loud_db": -8.1,
+    "peak_db": -1.3,
+    "loud_db": -6.6,
     "dc": 0.0022,
-    "onset_ms": 8.0,
-    "centroid_hz": 1279,
+    "onset_ms": 7.1,
+    "centroid_hz": 905,
     "end_db": -180.0,
     "problems": []
    },
@@ -38006,6 +41744,17 @@
   "cuss_mundell_secret_1",
   "cuss_mundell_pickup_weapon_0",
   "cuss_mundell_pickup_weapon_1",
+  "cuss_mundell_reload_0",
+  "cuss_mundell_pickup_food_0",
+  "cuss_mundell_boss_0",
+  "cuss_mundell_boss_1",
+  "cuss_mundell_boss_down_0",
+  "cuss_mundell_boss_down_1",
+  "cuss_mundell_headshot_0",
+  "cuss_mundell_station_0",
+  "cuss_mundell_key_0",
+  "cuss_mundell_start_0",
+  "cuss_mundell_start_1",
   "cuss_hick_kill_0",
   "cuss_hick_kill_1",
   "cuss_hick_plant_0",
@@ -38018,6 +41767,73 @@
   "cuss_deputy_defuse_1",
   "cuss_deputy_win_0",
   "cuss_deputy_win_1",
+  "mundell_kill_0",
+  "mundell_kill_1",
+  "mundell_kill_2",
+  "mundell_kill_3",
+  "mundell_kill_4",
+  "mundell_kill_5",
+  "mundell_kill_6",
+  "mundell_kill_7",
+  "mundell_kill_8",
+  "mundell_kill_9",
+  "mundell_kill_10",
+  "mundell_kill_11",
+  "mundell_streak_0",
+  "mundell_streak_1",
+  "mundell_streak_2",
+  "mundell_streak_3",
+  "mundell_pickup_weapon_0",
+  "mundell_pickup_weapon_1",
+  "mundell_pickup_weapon_2",
+  "mundell_pickup_weapon_3",
+  "mundell_pickup_weapon_4",
+  "mundell_pickup_food_0",
+  "mundell_pickup_food_1",
+  "mundell_pickup_food_2",
+  "mundell_pickup_food_3",
+  "mundell_hurt_0",
+  "mundell_hurt_1",
+  "mundell_hurt_2",
+  "mundell_hurt_3",
+  "mundell_low_0",
+  "mundell_low_1",
+  "mundell_low_2",
+  "mundell_low_3",
+  "mundell_reload_0",
+  "mundell_reload_1",
+  "mundell_reload_2",
+  "mundell_reload_3",
+  "mundell_empty_0",
+  "mundell_empty_1",
+  "mundell_drunk_0",
+  "mundell_drunk_1",
+  "mundell_drunk_2",
+  "mundell_secret_0",
+  "mundell_secret_1",
+  "mundell_boss_0",
+  "mundell_boss_1",
+  "mundell_boss_2",
+  "mundell_boss_3",
+  "mundell_boss_down_0",
+  "mundell_boss_down_1",
+  "mundell_boss_down_2",
+  "mundell_boss_down_3",
+  "mundell_station_0",
+  "mundell_station_1",
+  "mundell_station_2",
+  "mundell_station_3",
+  "mundell_key_0",
+  "mundell_key_1",
+  "mundell_key_2",
+  "mundell_headshot_0",
+  "mundell_headshot_1",
+  "mundell_headshot_2",
+  "mundell_headshot_3",
+  "mundell_start_0",
+  "mundell_start_1",
+  "mundell_start_2",
+  "mundell_start_3",
   "cuss_coot_brawl_0_clean",
   "cuss_coot_brawl_1_clean",
   "cuss_coot_cover_0_clean",
@@ -38118,21 +41934,32 @@
   "cuss_hick_surprised_1_clean",
   "cuss_hick_win_0_clean",
   "cuss_hick_win_1_clean",
+  "cuss_mundell_boss_0_clean",
+  "cuss_mundell_boss_1_clean",
+  "cuss_mundell_boss_down_0_clean",
+  "cuss_mundell_boss_down_1_clean",
   "cuss_mundell_drunk_0_clean",
   "cuss_mundell_drunk_1_clean",
   "cuss_mundell_empty_0_clean",
   "cuss_mundell_empty_1_clean",
+  "cuss_mundell_headshot_0_clean",
   "cuss_mundell_hurt_0_clean",
   "cuss_mundell_hurt_1_clean",
+  "cuss_mundell_key_0_clean",
   "cuss_mundell_kill_0_clean",
   "cuss_mundell_kill_1_clean",
   "cuss_mundell_kill_2_clean",
   "cuss_mundell_low_0_clean",
   "cuss_mundell_low_1_clean",
+  "cuss_mundell_pickup_food_0_clean",
   "cuss_mundell_pickup_weapon_0_clean",
   "cuss_mundell_pickup_weapon_1_clean",
+  "cuss_mundell_reload_0_clean",
   "cuss_mundell_secret_0_clean",
   "cuss_mundell_secret_1_clean",
+  "cuss_mundell_start_0_clean",
+  "cuss_mundell_start_1_clean",
+  "cuss_mundell_station_0_clean",
   "cuss_mundell_streak_0_clean",
   "cuss_mundell_streak_1_clean"
  ]
