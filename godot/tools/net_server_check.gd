@@ -69,6 +69,9 @@ func _check(ok: bool, text: String) -> void:
 	print("  ok   " if ok else "  FAIL ", text)
 	if not ok:
 		failures.append(text)
+		if OS.get_environment("GITHUB_ACTIONS") != "":
+			# A CI annotation: readable without the run's logs.
+			print("::error title=%s::%s" % [get_script().resource_path.get_file(), text])
 
 
 ## A client's copy of a match, as the front end makes it.
