@@ -327,3 +327,8 @@ stairs one cell east and the doorway half a cell fixed both.
 - The automap draws decks' edges as walls, all floors at once.
 - Enemies climb grid steps of any height (as they always did) but not slabs
   higher than a step.
+- Sight lines asked without heights (some AI tests: cover, brawls, the bots'
+  "can I see it") keep the old flat test: furniture blocks them whatever its
+  height, a deck overhead does not, a stair or a wall does.
+- Bots and enemies do not cut a corner a post stands on (the nav graph), and
+  the flow field's reach is 44 steps on levels with geometry (26 elsewhere).

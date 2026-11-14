@@ -1132,11 +1132,9 @@ func pane_at(x: float, y: float, z = null, radius := 0.0):
 
 ## Mirrors TileMap.visible(): a stepped line-of-sight test.
 func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> bool:
-	if geo != null and z == null:
-		# No heights given: eyes over the ground at both ends (a point off the
-		# map, a crow calling from past the edge, over the nearest cell's).
-		z = _ground_near(x, y) + .9
-		zz = _ground_near(xx, yy) + .9
+	# No heights given (z null): the flat test it always was, furniture in the
+	# way whatever its height; geometry stops it where it stands in a body's
+	# way (blocked(): a deck overhead does not, a stair or a wall does).
 	var distance := sqrt((xx - x) * (xx - x) + (yy - y) * (yy - y))
 	var n := maxi(1, int(ceil(distance * 9.0)))
 	# With no panes and no locked gates, a step whose four corners are open floor
@@ -1445,10 +1443,6 @@ func goal_floor(at: Vector2) -> float:
 	if extraction != null and Vector2(extraction.x, extraction.y).distance_to(at) < .01:
 		return extraction.z
 	return NAN
-
-
-func _ground_near(x: float, y: float) -> float:
-	return ground[clampi(int(y), 0, height - 1) * width + clampi(int(x), 0, width - 1)]
 
 
 func _cell_near(x: float, y: float) -> int:

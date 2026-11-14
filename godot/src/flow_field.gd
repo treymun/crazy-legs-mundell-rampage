@@ -300,10 +300,25 @@ func downhill_node(n: int) -> int:
 			to = m
 	for e in range(graph.dfirst[n], graph.dfirst[n + 1]):
 		var m := graph.dedges[e]
-		if steps[m] < best:
+		if steps[m] < best and _sides_open(n, m):
 			best = steps[m]
 			to = m
 	return to
+
+
+## A diagonal step from n to m only where both cells beside it are reached
+## too (as downhill() asks of the grid): never across a corner of wall or water.
+func _sides_open(n: int, m: int) -> bool:
+	var sides := 0
+	for e in range(graph.first[n], graph.first[n + 1]):
+		var a := graph.edges[e]
+		if steps[a] >= FAR:
+			continue
+		for e2 in range(graph.first[a], graph.first[a + 1]):
+			if graph.edges[e2] == m:
+				sides += 1
+				break
+	return sides >= 2
 
 
 ## The centre of the cell `hops` steps downhill from x, y (x, y itself when it

@@ -647,7 +647,12 @@ func blocked_body(lv, x: float, y: float, r: float, feet: float, tall: float) ->
 func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
 	var player: bool = not (body is Enemy) and ("air" in body)
 	var air: float = float(body.air) if player else 0.0
-	var floor_z: float = float(body.floor_z)
+	# The floor it stands on now, worked out again: something that moved it
+	# without walking (a bridge, a shove, a script) leaves floor_z behind, and
+	# the grid's own steps are measured from the cell it is in, as ever.
+	var here: int = lv.cell(body.x, body.y)
+	var floor_z := support(body.x, body.y, radius, float(body.floor_z), lv.ground[here])
+	body.floor_z = floor_z
 	var feet := floor_z + air
 	var tall: float = BODY
 	if body is Enemy:
@@ -822,6 +827,16 @@ func nav(lv) -> NavGraph:
 				if absi(cm % width - c % width) != 1 or absi(cm / width - c / width) != 1:
 					continue
 				if found.has(m):
+					continue
+				# Never past the corner the two cells share when something stands
+				# on it (a porch post on a cell corner): a body cutting the corner
+				# would wedge on it.
+				var corner := Vector2(
+					(c % width + cm % width + 1) * .5, (c / width + cm / width + 1) * .5
+				)
+				if static_blocked(
+					lv, corner.x, corner.y, NAV_BODY * .6, minf(g.z[n], g.z[m]), BODY
+				):
 					continue
 				for b in near:
 					if b != a and g.cell[b] != g.cell[a] and g.around(b).has(m):

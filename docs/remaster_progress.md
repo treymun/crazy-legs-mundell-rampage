@@ -32,20 +32,19 @@ carry `floor_z`; FlowField walks a nav graph with a node per floor over a cell.
   - [x] sawmill (5): log pond bridge on trestles
   - [x] quarry (5): sloped haul ramps between the benches
   - [x] bayou (3): preacher's stilt house + gangway
-  - [~] mothership (3): gantry ramp as a slope (plan edited, not built yet)
-  - [ ] grainyard: a raised vantage (if balance holds)
-  - [ ] holler, salvage, pumpngo, pineacres, landing: review; likely unchanged
-  - [ ] speedway: likely unchanged (already banked oval, stepped stands, booth)
-  - [ ] hub: likely unchanged (a hub of gates; flat on purpose)
-- [ ] After each batch: check_all, save_fixtures make + expected.json,
-      picture_check update (hickston_05_0 sees the barn), GPU refs (window tour)
+  - [x] mothership (3): gantry ramp as a slope
+  - [x] grainyard, holler, salvage, pumpngo, pineacres, landing: reviewed, unchanged (reasons in the handoff); map_timing and tactical_check identical to dev.39
+  - [x] speedway, hub: reviewed, unchanged (reasons in the handoff)
+- [x] check_all, save fixtures (v8 + *_layoutN), picture and GPU references rewritten; CI green
+- [x] first_minutes whole on every changed chapter (all finish; bayou needed two nav fixes)
 - [ ] Performance (bench.gd, --view-bench) old vs new
-- [ ] REMASTER_HANDOFF.md
+- [~] REMASTER_HANDOFF.md (results and performance to fill)
 
 ## Known issues found (not caused here)
 
-- range: the 5v5 guns' wall pictures (item_hunter.., range_plaque_16..29) do
-  not exist in assets/art; the builder reports them (28 problems), the boards
-  show nothing in game. Pre-existing since dev.38.
+- range: the 5v5 guns' and throwables' wall pictures (item_hunter..,
+  range_plaque_16..29) do not exist in assets/art, and the shipped range.json
+  predates their racks. The plan now racks only guns with pictures (the range
+  as shipped, 16 racks); the other 14 racks appear when that art is made.
 - Two clones running check_all at once share OS cache files: boss rematch
   checks can fail (passes alone).

@@ -1,0 +1,4 @@
+undo: back to before material plaster brick
+~ partition.tile: "brick" -> "plaster"
+wrote res://maps/feedstore.map.json (what it replaced kept as 2026-11-13_203630_redo_00.json)
+MAP-RESULT {"changes":{"changed":{"partition":{"tile":["brick","plaster"]}}},"command":"undo","exit":0,"ok":true,"summary":["undo: back to before material plaster brick","~ partition.tile: \"brick\" -> \"plaster\"","wrote res://maps/feedstore.map.json (what it replaced kept as 2026-11-13_203630_redo_00.json)"]}

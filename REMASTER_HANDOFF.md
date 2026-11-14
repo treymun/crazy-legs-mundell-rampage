@@ -9,8 +9,6 @@ Read with: `MAP_AUTHORING.md` (the workflow and every command),
 `docs/remaster_progress.md` (the running notes), `docs/map_schema.json`,
 `docs/map_catalog/catalog.md`.
 
-<!-- RESULTS -->
-
 ## 1. Architecture: extend the 2.5D engine, not a Godot 3D path
 
 **Audit.** The look is the custom renderer: the software view
@@ -157,4 +155,132 @@ over with their guns, rounds, health and pockets).
 | Pump-n-Go, Pine Acres, Landing (2v2) | 1 (unchanged) | none | Small, tight two-a-side maps built round one site; height there would create spots one side cannot answer. | tactical_check (see results) |
 | Mundell Feed & Seed (new) | 1 | the demonstration map (section 3) | | section 3 |
 
-<!-- MORE -->
+## 5. Launch, edit, rebuild, test
+
+```bash
+GODOT="C:/Users/treym/OneDrive/Desktop/Tools/Godot_v4.7.2-stable_win64_console.exe"
+"$GODOT" --headless --path godot --import                   # once after checkout (new class_name scripts)
+"$GODOT" --headless --path godot --script res://tools/pack_assets.gd
+map() { "$GODOT" --headless --path godot --script res://tools/map.gd -- "$@"; }
+```
+
+- Play a map: `"$GODOT" --path godot -- --play-at=<id>:x,y,angle,z` (z: the
+  floor to start on), or the campaign as usual.
+- Edit a map source: `map add/move/resize/set/material/remove/rename/top`, or
+  the Godot editor's **Maps** screen; a plan-built level: its plan
+  (`godot/tools/levels/<id>_plan.gd`, with `geo_kit.gd`), or a map source
+  over it (`map new <id> base=<id>`).
+- Rebuild: `map build <id>` (a map source) or
+  `"$GODOT" --headless --path godot --script res://tools/levels/build_level.gd -- <id>`
+  (a plan, or a map source when there is one).
+- Check a map: `map validate <id>`, `map render <id> overlay=nav,unreachable,collision`,
+  `map shot <id> views=...`, `map playtest <id> perf enemies`.
+- Whole project: `"$GODOT" --headless --path godot --script res://tools/check_all.gd -- lint`
+  (this clone has no .venv: lint was run with the other clone's
+  `.venv\Scripts\gdformat` / `gdlint` over `src tools addons`).
+- After changing a map that a reference view sees: `picture_check.gd -- update`,
+  and the graphics-card references from a window tour
+  (`--view-tour=res://tools/picture_views.json --view-out=<dir>`, then copy the
+  changed `<tag>_fx.png` to `tools/pictures_gpu/<tag>.png`, or
+  `compare_views.gd -- <dir> update`).
+
+## 6. Save compatibility
+
+- Save **version 8** (was 7): adds `floor_z` for the player and each enemy;
+  a pickup lying on a deck keeps its floor as a fourth number. `save_upgrade.gd`
+  turns a version 7 save into 8 (every floor the ground: no level had
+  geometry before), so every older save still loads (4 to 7 fixtures pass).
+- Changed maps bumped their layout: hickston 4, fair 4, sawmill 5, quarry 5,
+  bayou 3, mothership 3, range 2. A save of an older layout loads at that
+  chapter's start with its kit (the existing mechanism); a finished chapter of
+  an older layout stays finished.
+- Fixtures: the v8 saves made before the remaster are kept as
+  `tools/saves/v8_*_layoutN.json` (expected at the chapter start, like the v7
+  ones of the old layouts); fresh v8 fixtures of the new layouts were made.
+  `save_fixtures.gd`: OLD SAVES OK.
+- Settings: none added. Snapshots: `floor_z` travels by reflection; no
+  snapshot version change was needed (`net_check` passes).
+
+## 7. Merging with `combat-overhaul`
+
+Shared files this branch touched, all small:
+
+| file | change |
+| --- | --- |
+| `godot/src/main.gd` | `--view-tour` and `--play-at` take a floor (z): two short additions |
+| `godot/src/main_state.gd` | two `elevation(p.x, p.y)` -> `stand(p)` lines |
+| `godot/src/modes/modes.gd` | two `elevation(q.x, q.y)` -> `stand(q)` lines |
+| `godot/tools/check_fixes.gd` | two lines at the end: `geometry_check.gd` and `map_check.gd` |
+| `godot/project.godot` | the Maps editor plugin added to `[editor_plugins] enabled` |
+| `godot/src/session_store.gd`, `save_upgrade.gd` | save version 8 (field lists, the 7 -> 8 step) |
+| `godot/tools/saves/*` | fixtures and expected.json |
+
+Not touched: `src/net/*`, `main_input.gd`, `setup_pages.gd`,
+`tactical_shop.gd`, `tools/check_all.gd`, `.github/workflows/release.yml`,
+`export_presets.cfg`, audio.
+
+Watch for:
+- **Save version**: this branch is 8. If `combat-overhaul` also bumped
+  `SessionStore.VERSION`, renumber one side's step (keep both steps in order),
+  and re-run `save_fixtures.gd -- make` after the merge.
+- **Many one-line `world.stand(...)` edits** across `src/` (every actor
+  height lookup; about 130 lines across src/): a conflict there is
+  resolved by keeping `stand(<body>)`; it equals `elevation()` on every level
+  without geometry.
+- `enemies.gd`, `game_world.gd`, `level.gd` are near the 1500-line limit
+  (1500, 1497, 1462 lines here): new lines from the other side may need a split.
+- The other branch's new Linux server and lobby code runs the same game
+  code, so format 2 levels need nothing more there; a server and its players
+  must run the same build (the lobby already refuses another version).
+- After merging: `--import`, `pack_assets`, `check_all -- lint`, a window
+  tour + `compare_views refs`, `tactical_check`, `net_server_check` (theirs).
+- **Two clones running checks at once** share OS cache files (boss
+  checkpoint and rematch files): a boss-rematch check can fail spuriously;
+  it passes run alone.
+
+## 8. Problems found and fixed on the way
+
+Found by the tools while building and remastering, each fixed in the engine
+or the tools (not worked round in a map):
+
+- A roof value of 0 means the open sky, also over a sunken floor: the first
+  geometry code read it as a ceiling at 0 and made the sawmill's pond (-.24)
+  a crawlspace (found by the pond bridge's wade-under playtest).
+- A body half off a ledge stood on the floor below and was then stuck in the
+  ledge's side (enemies stepping off the demo's dock): bodies now stand on a
+  ledge until their footprint is clear (`LevelGeometry.support`).
+- A steep sight line could step over a deck thinner than one step: a hand
+  under the loft "saw" the player on it and stood under them (`crosses` in
+  `visible()`).
+- A hand that sees the player on another floor walked straight at them;
+  now it follows the nav graph round to the stairs (`LevelData.apart`).
+- The flow field's reach (26 steps) was too short for routes up stairs; 44
+  on levels with geometry.
+- A diagonal nav step was allowed past a corner of deep water (the bayou bot
+  stuck at the hoist bridge; first_minutes found it): both side cells must be
+  reached, as the old grid rule had it.
+- A diagonal nav step could cut a corner that a post stands on (the range's
+  porch posts along the firing line): two deathmatch bots wedged there and
+  never met (mode_check found it). The nav graph leaves out a diagonal past
+  an occupied corner.
+- A body moved without walking kept its old floor (`can_walk` now works the
+  floor out again first).
+- Sight lines given no heights (bots, cover finding, brawls) keep the old
+  flat test (furniture in the way whatever its height); a first version gave
+  them eye heights, which changed what bots saw and stalled the bayou bot
+  at the end.
+- The builder's grid reach check could not see decks or slopes: on levels
+  with geometry the validator's nav check decides, and it now checks every
+  hand, pickup, station and exit of the built level (not only a source's
+  objects).
+- `world.stand()` was first reached by a bulk edit on some variables that are
+  points, not bodies; it now falls back to `elevation()` for anything that is
+  not a player or an enemy.
+- The range plan could not reproduce the shipped range (it racked 30 guns,
+  14 without pictures); it now racks the guns with pictures.
+
+## 9. Results
+
+<!-- RESULTS -->
+
+
