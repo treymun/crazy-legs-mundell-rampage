@@ -6,6 +6,7 @@ uniform sampler2DArray art : filter_nearest, repeat_disable;
 const int FLIP = 1;
 const int GLOW = 4;
 const int BODY = 8;
+const int BOARD = 16;
 
 varying flat vec4 data;
 varying flat vec4 tone;
@@ -14,11 +15,26 @@ varying vec3 map_p;
 void vertex() {
 	data = INSTANCE_CUSTOM;
 	tone = COLOR;
-	vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	vec3 w;
+	if ((int(data.w + 0.5) & BOARD) != 0) {
+		w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	} else {
+		// A billboard stands parallel to the plane of whichever camera draws it
+		// (the eye's, or the mirror's), as the old renderer's sprites did.
+		vec3 right = normalize(vec3(INV_VIEW_MATRIX[0].x, 0.0, INV_VIEW_MATRIX[0].z));
+		float width = length(MODEL_MATRIX[0].xyz);
+		float height = length(MODEL_MATRIX[1].xyz);
+		w = MODEL_MATRIX[3].xyz + right * (VERTEX.x * width) + vec3(0.0, VERTEX.y * height, 0.0);
+	}
 	map_p = vec3(w.x, w.z, w.y);
+	VERTEX = (VIEW_MATRIX * vec4(w, 1.0)).xyz;
+	NORMAL = vec3(0.0, 0.0, 1.0);
 }
 
 void fragment() {
+	if (mirror_clipped(map_p, CAMERA_VISIBLE_LAYERS)) {
+		discard;
+	}
 	int flags = int(data.w + 0.5) & 255;
 	float hurt = floor((data.w + 0.5) / 256.0) / 100.0;
 	vec2 uv = UV;

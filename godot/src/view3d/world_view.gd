@@ -13,6 +13,13 @@ extends Node
 
 const NEAR := .02
 const FAR := 160.0
+## Render layers: the world (1), the player's reflection (2, the mirror's
+## camera only), the sky behind the eye's camera (3), and the bit that tells
+## the shaders they draw the mirror's pass (view_light.gdshaderinc).
+const LAYER_WORLD := 1
+const LAYER_REFLECTION := 2
+const LAYER_SKY := 4
+const LAYER_MIRROR := 1 << 19
 
 var viewport: SubViewport
 var camera: Camera3D
@@ -34,6 +41,9 @@ var _cells: ImageTexture
 var _anim_tiles := {}
 var _params := {}
 var _materials: Array[ShaderMaterial] = []
+var _rain: Array[MeshInstance3D] = []
+var _mirror_view: SubViewport
+var _mirror_camera: Camera3D
 
 
 func _init(assets: Assets) -> void:
@@ -58,6 +68,7 @@ func _init(assets: Assets) -> void:
 	camera.near = NEAR
 	camera.far = FAR
 	camera.current = true
+	camera.cull_mask = LAYER_WORLD | LAYER_SKY
 	_root.add_child(camera)
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_COLOR
@@ -88,8 +99,31 @@ func _init(assets: Assets) -> void:
 	_sky.material_override = sky_material
 	_sky.position = Vector3(0.0, 0.0, -(FAR - 1.0))
 	_sky.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_sky.layers = LAYER_SKY
 	camera.add_child(_sky)
+	# The rain's three layers of streaks, nearest first (rain.gdshader).
+	var rain_shader: Shader = load("res://src/view3d/rain.gdshader")
+	var rain_materials: Array[ShaderMaterial] = []
+	for k in 3:
+		var depth: float = [1.3, 2.8, 6.0][k]
+		var rain_material := ShaderMaterial.new()
+		rain_material.shader = rain_shader
+		rain_material.set_shader_parameter("layer_k", k)
+		rain_material.render_priority = 10 - k
+		var sheet := MeshInstance3D.new()
+		var quad := QuadMesh.new()
+		quad.size = Vector2(depth * 6.0, depth * 6.0)
+		sheet.mesh = quad
+		sheet.material_override = rain_material
+		sheet.position = Vector3(0.0, 0.0, -depth)
+		sheet.layers = LAYER_SKY
+		sheet.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		sheet.visible = false
+		camera.add_child(sheet)
+		_rain.append(sheet)
+		rain_materials.append(rain_material)
 	_materials = [world_material, glass_material, sky_material]
+	_materials.append_array(rain_materials)
 	_materials.append_array(sprites.materials())
 	_share("tiles", tiles.tiles)
 	_share("tile_info_tex", tiles.info)
@@ -131,8 +165,13 @@ func frame(game: Game) -> void:
 	var at_hub: bool = not level.road_and_hub.is_empty() and y > 33.0
 	_build(level, at_hub)
 	_place_camera(x, y, z, angle, view["horizon"], r.focal, vh)
-	sprites.show_sprites(view["sprites"], level, Vector3(x, y, z), angle)
-	_uniforms(game, view, r, Vector3(x, y, z), angle)
+	var mirror := not is_nan(level.mirror_x)
+	_mirror(mirror, level, x, y, z, angle, view["horizon"], r.focal, Vector2i(vw, vh))
+	sprites.show_sprites(view["sprites"], level, Vector3(x, y, z), angle, mirror)
+	if mirror:
+		sprites.show_reflection(view.get("reflection") as Renderer.Sprite, level, angle)
+	sprites.show_marks(view["marks"], view["ground"], Vector3(x, y, z), angle)
+	_uniforms(game, view, r, Vector3(x, y, z), angle, at_hub)
 
 
 func _place_camera(
@@ -143,6 +182,52 @@ func _place_camera(
 	camera.transform = Transform3D(Basis(Vector3.UP, -angle - PI * .5), Vector3(x, z, y))
 	var size := NEAR * vh / focal
 	camera.set_frustum(size, Vector2(0.0, (horizon - vh * .5) * NEAR / focal), NEAR, FAR)
+
+
+## The mirror's picture: the room seen from the eye mirrored in the line
+## x = mirror_x, looking along PI - angle (the old renderer's mirror pass);
+## the mirror's tile shows it flipped.
+func _mirror(
+	on: bool,
+	level: LevelData,
+	x: float,
+	y: float,
+	z: float,
+	angle: float,
+	horizon: float,
+	focal: float,
+	size: Vector2i
+) -> void:
+	_share("mirror_on", on)
+	if not on:
+		if _mirror_view != null:
+			_mirror_view.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		return
+	if _mirror_view == null:
+		_mirror_view = SubViewport.new()
+		_mirror_view.world_3d = viewport.find_world_3d()
+		_mirror_view.transparent_bg = false
+		_mirror_view.msaa_3d = Viewport.MSAA_DISABLED
+		add_child(_mirror_view)
+		_mirror_camera = Camera3D.new()
+		_mirror_camera.projection = Camera3D.PROJECTION_FRUSTUM
+		_mirror_camera.keep_aspect = Camera3D.KEEP_HEIGHT
+		_mirror_camera.cull_mask = LAYER_WORLD | LAYER_REFLECTION | LAYER_MIRROR
+		_mirror_camera.current = true
+		_mirror_view.add_child(_mirror_camera)
+		_share("mirror_tex", _mirror_view.get_texture())
+	_mirror_view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	if _mirror_view.size != size:
+		_mirror_view.size = size
+	_share("mirror_x", level.mirror_x)
+	var turn := PI - angle
+	_mirror_camera.transform = Transform3D(
+		Basis(Vector3.UP, -turn - PI * .5), Vector3(2.0 * level.mirror_x - x, z, y)
+	)
+	var tall := NEAR * size.y / focal
+	_mirror_camera.set_frustum(
+		tall, Vector2(0.0, (horizon - size.y * .5) * NEAR / focal), NEAR, FAR
+	)
 
 
 ## (Re)build the level's meshes when the level, its walls, its light or
@@ -173,7 +258,7 @@ func _build(level: LevelData, at_hub: bool) -> void:
 		var sky_image := Image.create_from_data(
 			int(sky["w"]), int(sky["h"]), false, Image.FORMAT_RGB8, sky["data"]
 		)
-		sky_material.set_shader_parameter("sky_tex", ImageTexture.create_from_image(sky_image))
+		_share("sky_tex", ImageTexture.create_from_image(sky_image))
 		_anim_tiles = {}
 		for i in level.wall_count:
 			_anim_tiles[int(level.walls[i * LevelData.WALL_STRIDE + 4])] = true
@@ -208,7 +293,9 @@ static func _cell_image(level: LevelData) -> Image:
 	return Image.create_from_data(lw, lh, false, Image.FORMAT_RGBA8, bytes)
 
 
-func _uniforms(game: Game, view: Dictionary, r: Renderer, cam: Vector3, angle: float) -> void:
+func _uniforms(
+	game: Game, view: Dictionary, r: Renderer, cam: Vector3, angle: float, at_hub: bool
+) -> void:
 	_share("eye", cam)
 	_share("flash", float(view["flash"]))
 	var phase := r.time - floorf(r.time / 6.1) * 6.1
@@ -225,11 +312,29 @@ func _uniforms(game: Game, view: Dictionary, r: Renderer, cam: Vector3, angle: f
 				found += 1
 	_share("flow_tile", flow_tile)
 	_share("flow_shift", flow_shift)
-	sky_material.set_shader_parameter("view_angle", fmod(angle, TAU * 512.0))
-	sky_material.set_shader_parameter("horizon", float(view["horizon"]))
-	sky_material.set_shader_parameter("focal", r.focal)
-	sky_material.set_shader_parameter("view_size", Vector2(r.vw, r.vh))
-	sky_material.set_shader_parameter("res_up", r.res_up)
+	_share("view_angle", fmod(angle, TAU * 512.0))
+	_share("horizon", float(view["horizon"]))
+	_share("focal", r.focal)
+	_share("view_size", Vector2(r.vw, r.vh))
+	_share("res_up", r.res_up)
+	# The Crossroads' tower shadow and runoff (render_state.gd _prepare_hub).
+	var motion := r.world_motion
+	var hub := at_hub and _level.tile_id("hub_patch") >= 0
+	_share("hub_fx", hub)
+	if hub:
+		var still := motion == 2
+		var gust := 0.0 if still else sin(r.time * .83) * (.13 if motion == 0 else .045)
+		_share("hub_runoff", _level.tile_id("hub_runoff"))
+		_share("hub_patch", _level.tile_id("hub_patch"))
+		_share("hub_wall", _level.tile_id("hub_service_wall"))
+		_share("shadow_still", still)
+		_share("shadow_gust", gust)
+		_share("shadow_lx", 1.15 + gust)
+		_share("shadow_ly", .73 + gust * .32)
+		_share(
+			"water_drift",
+			fposmod((0.0 if still else r.time) * (1.9 if motion == 0 else .72), TAU * 1000.0)
+		)
 	_effects(game)
 
 
@@ -239,6 +344,8 @@ func _effects(game: Game) -> void:
 	var on := Effects.enabled
 	_share("effects_on", on)
 	if not on:
+		for sheet: MeshInstance3D in _rain:
+			sheet.visible = false
 		_share("light_count", 0)
 		_share("lightning", 0.0)
 		_share("rain", 0.0)
@@ -274,18 +381,28 @@ func _effects(game: Game) -> void:
 	)
 	var tone: Color = Effects.mood(id, "grade", Color(1, 1, 1))
 	_share("grade", Vector3(tone.r, tone.g, tone.b))
-	sky_material.set_shader_parameter(
-		"sky_drift", fposmod(game.clock * float(Effects.mood(id, "clouds", 0.0)), 1.0)
-	)
+	_share("sky_drift", fposmod(game.clock * float(Effects.mood(id, "clouds", 0.0)), 1.0))
 	_share("lightning", game.lightning)
 	var motion: float = [1.0, .4, 0.0][clampi(game.renderer.world_motion, 0, 2)]
 	_share("motion", motion)
 	var weather: Variant = game.features.get("weather")
-	_share("rain", float(weather.rain) if weather != null else 0.0)
+	var raining: float = float(weather.rain) if weather != null else 0.0
+	_share("rain", raining)
+	for sheet: MeshInstance3D in _rain:
+		sheet.visible = raining > 0.0 and motion > 0.0
 	_share("wet", float(weather.wet) if weather != null else 0.0)
 	if weather != null:
 		_share("flash_dir", weather.flash_dir)
 	_share("fog_banks", float(Effects.mood(id, "fog_banks", 0.0)))
+	var water: Variant = game.features.get("water")
+	var shown: Array = water.shown(game.player.x, game.player.y) if water != null else []
+	var rings := PackedVector4Array()
+	rings.resize(16)
+	for i in mini(shown.size(), 16):
+		var w: Array = shown[i]
+		rings[i] = Vector4(w[0], w[1], w[2], w[3])
+	_share("ring_count", mini(shown.size(), 16))
+	_share("rings", rings)
 	var anims := PackedVector4Array()
 	anims.resize(Effects.MAX_ANIMS)
 	var count := 0

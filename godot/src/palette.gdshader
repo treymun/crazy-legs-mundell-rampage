@@ -1212,7 +1212,11 @@ vec3 picture_at(ivec2 px, ivec2 fine, vec3 frame) {
 		if (haze_count > 0) {
 			fine.x = clamp(fine.x + haze_shift(fine), 0, 320 * view_mul - 1);
 		}
-		under = floor(texelFetch(view3d_tex, fine, 0).rgb * 255.0 + 0.5);
+		// The view's picture is 320x156 (LOW 160x78, HD 640x312): each screen
+		// pixel takes the one it covers.
+		vec2 picture = vec2(textureSize(view3d_tex, 0));
+		ivec2 at = ivec2((vec2(fine) + 0.5) * picture / vec2(320.0 * float(view_mul), 156.0 * float(view_mul)));
+		under = floor(texelFetch(view3d_tex, at, 0).rgb * 255.0 + 0.5);
 	} else if (scene_on && px.y < 156) {
 		if (haze_count > 0) {
 			fine.x = clamp(fine.x + haze_shift(fine), 0, 320 * view_mul - 1);

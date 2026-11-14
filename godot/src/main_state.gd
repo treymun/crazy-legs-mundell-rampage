@@ -1296,6 +1296,13 @@ func _frame_3d() -> void:
 		world_view.frame(game)
 		palette_material.set_shader_parameter("view_mul", 2 if game.renderer.detail < 0 else 1)
 		palette_material.set_shader_parameter("haze_count", 0)
+		palette_material.set_shader_parameter("drunk", game.drunk_k)
+		if game.drunk_k > 0.0:
+			var ghost := int(2 + 4 * game.drunk_k)
+			palette_material.set_shader_parameter("drunk_phase", fposmod(game.clock * 3.1, TAU))
+			palette_material.set_shader_parameter(
+				"drunk_ghost", -ghost if sin(game.clock * 1.7) <= 0.0 else ghost
+			)
 	if world_view != null:
 		world_view.viewport.render_target_update_mode = (
 			SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED

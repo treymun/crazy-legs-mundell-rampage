@@ -5,6 +5,6 @@
 // sprites at 1.1; the area's tint; a hit washes the lit colour toward hot
 // white. Translucent sprites blend by their alpha (sprite_blend material).
 shader_type spatial;
-render_mode unshaded, cull_disabled, shadows_disabled, fog_disabled;
+render_mode unshaded, cull_disabled, shadows_disabled, fog_disabled, skip_vertex_transform;
 
 #include "res://src/view3d/sprite_body.gdshaderinc"

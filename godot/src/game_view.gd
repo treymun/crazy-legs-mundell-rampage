@@ -650,6 +650,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			"sprites": listed,
 			"marks": marks_list,
 			"ground": marks,
+			"reflection": reflection(),
 		}
 		c.begin_layer()
 	else:

@@ -11,12 +11,17 @@ const FLOATS := 20
 const FLIP := 1
 const GLOW := 4
 const BODY := 8
+const BOARD := 16
 
 var art: Texture2DArray
 var solid: MultiMeshInstance3D
 var clear: MultiMeshInstance3D
+var marks: MultiMeshInstance3D
+## The player's reflection: on its own layer, which only the mirror's camera sees.
+var reflection: MultiMeshInstance3D
 var solid_material: ShaderMaterial
 var clear_material: ShaderMaterial
+var mark_material: ShaderMaterial
 var _assets: Assets
 var _slot_of := {}
 var _slot_name: Array[String] = []
@@ -47,12 +52,19 @@ func _init(assets: Assets) -> void:
 	clear_material.shader = load("res://src/view3d/sprite_clear.gdshader")
 	clear_material.set_shader_parameter("art", art)
 	clear_material.render_priority = 1
+	mark_material = ShaderMaterial.new()
+	mark_material.shader = load("res://src/view3d/mark.gdshader")
+	mark_material.set_shader_parameter("art", art)
+	mark_material.render_priority = 0
 	solid = _layer(solid_material)
 	clear = _layer(clear_material)
+	marks = _layer(mark_material)
+	reflection = _layer(solid_material)
+	reflection.layers = 2
 
 
 func materials() -> Array[ShaderMaterial]:
-	return [solid_material, clear_material]
+	return [solid_material, clear_material, mark_material]
 
 
 func _layer(material: ShaderMaterial) -> MultiMeshInstance3D:
@@ -145,16 +157,16 @@ func _drop_of(name: String) -> float:
 	return drop
 
 
-## Lay out this frame's sprites. `eye` is the camera (x, y, z, angle).
-func show_sprites(sprites: Array, level: LevelData, cam: Vector3, angle: float) -> void:
+## Lay out this frame's sprites as seen from `cam` looking along `angle`.
+## `everywhere` keeps the ones behind the eye too (a mirror may show them).
+func show_sprites(
+	sprites: Array, level: LevelData, cam: Vector3, angle: float, everywhere := false
+) -> void:
 	_frame += 1
 	var fx := cos(angle)
 	var fy := sin(angle)
-	var right := Vector3(-fy, 0.0, fx)
 	var solid_buf := PackedFloat32Array()
 	var clear_buf := PackedFloat32Array()
-	var tints := level.tints
-	var tint_max := maxi(0, tints.size() / 3 - 1)
 	for item: Variant in sprites:
 		var s := item as Renderer.Sprite
 		if s == null or s.image == "":
@@ -164,67 +176,175 @@ func show_sprites(sprites: Array, level: LevelData, cam: Vector3, angle: float) 
 		var ahead := dx * fx + dy * fy
 		var limit := 51.0 if s.height > 2.7 else 32.0
 		var board := not is_nan(s.plane)
-		if not board and (ahead <= .13 or ahead >= limit):
-			continue
-		if board:
-			var side := dx * sin(s.plane) - dy * cos(s.plane)
-			if side <= .02 or ahead >= limit:
+		if not everywhere:
+			if not board and (ahead <= .13 or ahead >= limit):
 				continue
-		var slot := _slot(s.image)
-		var size := _slot_size[slot]
-		var a := _assets.art(s.image)
-		var width := s.height * float(a["w"]) / maxf(1.0, float(a["h"]))
-		var axis := right
-		if board:
-			axis = Vector3(cos(s.plane), 0.0, sin(s.plane))
-		var z := s.z
-		if s.body:
-			z -= s.height * _drop_of(s.image)
-		var c := level.cell(
-			clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01)
-		)
-		var area := 1 if s.glow else level.area[c]
-		var ti := clampi(area, 0, tint_max) * 3
-		var tint := Color(1, 1, 1)
-		if tints.size() >= 3:
-			tint = Color(tints[ti], tints[ti + 1], tints[ti + 2])
-		var flags := (FLIP if s.flip else 0) | (GLOW if s.glow else 0) | (BODY if s.body else 0)
-		var hurt := 0
-		if s.hurt > 0.0:
-			hurt = int(minf(.46, s.hurt / .18 * .44) * 100.0)
-		var bx := axis * width
-		var by := Vector3(0.0, s.height, 0.0)
-		var bz := bx.cross(by).normalized()
-		var row := PackedFloat32Array(
-			[
-				bx.x,
-				by.x,
-				bz.x,
-				s.x,
-				bx.y,
-				by.y,
-				bz.y,
-				z,
-				bx.z,
-				by.z,
-				bz.z,
-				s.y,
-				tint.r,
-				tint.g,
-				tint.b,
-				level.light[c],
-				float(slot),
-				float(size.x),
-				float(size.y),
-				float(flags + hurt * 256)
-			]
-		)
+			if board and ahead >= limit:
+				continue
+		if board and dx * sin(s.plane) - dy * cos(s.plane) <= .02 and not everywhere:
+			continue
 		if s.translucent:
-			clear_buf.append_array(row)
+			clear_buf.append_array(_row(s, level, angle))
 		else:
-			solid_buf.append_array(row)
+			solid_buf.append_array(_row(s, level, angle))
 	_fill(solid, solid_buf)
 	_fill(clear, clear_buf)
+
+
+## The player as the mirror shows them (only the mirror's camera sees it).
+func show_reflection(sprite: Renderer.Sprite, level: LevelData, angle: float) -> void:
+	var buf := PackedFloat32Array()
+	if sprite != null and sprite.image != "":
+		buf = _row(sprite, level, angle)
+	_fill(reflection, buf)
+
+
+## One instance's 20 numbers: its transform (a billboard's width along the
+## view's right, a board's along its own axis), its tint and light, its art
+## slot and size, its flags and hit wash.
+func _row(s: Renderer.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
+	var board := not is_nan(s.plane)
+	var slot := _slot(s.image)
+	var size := _slot_size[slot]
+	var a := _assets.art(s.image)
+	var width := s.height * float(a["w"]) / maxf(1.0, float(a["h"]))
+	var axis := Vector3(-sin(angle), 0.0, cos(angle))
+	if board:
+		axis = Vector3(cos(s.plane), 0.0, sin(s.plane))
+	var z := s.z
+	if s.body:
+		z -= s.height * _drop_of(s.image)
+	var c := level.cell(clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01))
+	var tints := level.tints
+	var area := 1 if s.glow else level.area[c]
+	var ti := clampi(area, 0, maxi(0, tints.size() / 3 - 1)) * 3
+	var tint := Color(1, 1, 1)
+	if tints.size() >= 3:
+		tint = Color(tints[ti], tints[ti + 1], tints[ti + 2])
+	var flags := (
+		(FLIP if s.flip else 0)
+		| (GLOW if s.glow else 0)
+		| (BODY if s.body else 0)
+		| (BOARD if board else 0)
+	)
+	var hurt := 0
+	if s.hurt > 0.0:
+		hurt = int(minf(.46, s.hurt / .18 * .44) * 100.0)
+	var bx := axis * width
+	var by := Vector3(0.0, s.height, 0.0)
+	var bz := bx.cross(by).normalized()
+	return PackedFloat32Array(
+		[
+			bx.x,
+			by.x,
+			bz.x,
+			s.x,
+			bx.y,
+			by.y,
+			bz.y,
+			z,
+			bx.z,
+			by.z,
+			bz.z,
+			s.y,
+			tint.r,
+			tint.g,
+			tint.b,
+			level.light[c],
+			float(slot),
+			float(size.x),
+			float(size.y),
+			float(flags + hurt * 256)
+		]
+	)
+
+
+## Lay out this frame's wall marks (Renderer.WallMark: a square of half side
+## `radius` on the wall along (ux, uy)) and ground marks (Renderer.GroundMark:
+## a rectangle at z, `reach` along `angle` and `width` across, both halves),
+## as far as the old renderer drew them (15 and 26 cells).
+func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> void:
+	var fx := cos(angle)
+	var fy := sin(angle)
+	var buf := PackedFloat32Array()
+	for item: Variant in walls:
+		var m := item as Renderer.WallMark
+		if m == null:
+			continue
+		var d := (m.x - cam.x) * fx + (m.y - cam.y) * fy
+		if d <= .19 or d >= 15.0:
+			continue
+		var slot := _slot(m.image)
+		var size := _slot_size[slot]
+		var bx := Vector3(m.ux, 0.0, m.uy) * (2.0 * m.radius)
+		var by := Vector3(0.0, 2.0 * m.radius, 0.0)
+		var bz := Vector3(-m.uy, 0.0, m.ux)
+		buf.append_array(
+			PackedFloat32Array(
+				[
+					bx.x,
+					by.x,
+					bz.x,
+					m.x,
+					bx.y,
+					by.y,
+					bz.y,
+					m.z - m.radius,
+					bx.z,
+					by.z,
+					bz.z,
+					m.y,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					float(slot),
+					float(size.x),
+					float(size.y),
+					0.0
+				]
+			)
+		)
+	for item: Variant in grounds:
+		var g := item as Renderer.GroundMark
+		if g == null or cam.z <= g.z + .015:
+			continue
+		if Vector2(g.x - cam.x, g.y - cam.y).length() > 26.0:
+			continue
+		var slot := _slot(g.image)
+		var size := _slot_size[slot]
+		var dir := Vector3(cos(g.angle), 0.0, sin(g.angle))
+		var across := Vector3(-sin(g.angle), 0.0, cos(g.angle))
+		var bx := dir * (2.0 * g.reach)
+		var by := across * (-2.0 * g.width)
+		var at := Vector3(g.x, g.z, g.y) + across * g.width
+		buf.append_array(
+			PackedFloat32Array(
+				[
+					bx.x,
+					by.x,
+					0.0,
+					at.x,
+					bx.y,
+					by.y,
+					1.0,
+					at.y,
+					bx.z,
+					by.z,
+					0.0,
+					at.z,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					float(slot),
+					float(size.x),
+					float(size.y),
+					1.0
+				]
+			)
+		)
+	_fill(marks, buf)
 
 
 static func _fill(node: MultiMeshInstance3D, buf: PackedFloat32Array) -> void:
