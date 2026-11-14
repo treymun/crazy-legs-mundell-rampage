@@ -23,6 +23,8 @@ var main: Control
 var now := 0.0
 var nets: Array = []
 var bots := {}
+## The COUNTY SERVERS list being asked (net_browser.gd), polled with the rest.
+var browser: NetBrowser = null
 var seconds := 25.0
 
 
@@ -79,6 +81,8 @@ func _make(info: Dictionary) -> Game:
 func _frame() -> void:
 	now += STEP * 1000.0
 	server.frame(now, STEP)
+	if browser != null:
+		browser.poll(now)
 	for net: NetPlay in nets:
 		net.poll(now)
 		if net.phase != "match" or net.role != NetPlay.Role.CLIENT:
@@ -149,6 +153,32 @@ func _play() -> void:
 		alice.phase == "lobby" and alice.is_admin() and lobby.players.size() == 1,
 		"ALICE joins first and runs the lobby (no host player in it)"
 	)
+	browser = NetBrowser.new(
+		[
+			{"name": "TEST", "address": "127.0.0.1", "port": lobby.port},
+			{"name": "NOBODY", "address": "127.0.0.1", "port": (lobby.port + 7) % 65535 + 1}
+		]
+	)
+	var asked := func() -> bool:
+		return browser.servers.all(func(s: Dictionary) -> bool: return s["state"] != "asking")
+	_wait(asked, int(NetBrowser.WAIT / STEP) + 120)
+	var seen: Dictionary = browser.servers[0]["info"]
+	_check(
+		(
+			browser.servers[0]["state"] == "up"
+			and seen.get("lobby_name") == "TEST LOBBY"
+			and int(seen.get("players", 0)) == 1
+			and seen.get("phase") == "lobby"
+			and seen.get("admin") == "ALICE"
+			and browser.why_not_join(0) == ""
+		),
+		"the server list sees the lobby live: name, ALICE in it running it (%s)" % [seen]
+	)
+	_check(
+		browser.servers[1]["state"] == "silent" and browser.why_not_join(1) != "",
+		"a server that does not answer shows as not answering"
+	)
+	_check(lobby.players.size() == 1, "asking does not put anyone in the lobby")
 	var wrong := _join("eve", "pigs")
 	_wait(func() -> bool: return wrong.phase == "closed")
 	_check(wrong.reason == "WRONG PASSWORD", "a wrong password is turned away (%s)" % wrong.reason)
@@ -193,6 +223,27 @@ func _play() -> void:
 	_check(why == "", "ALICE starts the match %s" % why)
 	_wait(func() -> bool: return alice.client_ready() and bob.client_ready())
 	_check(lobby.phase == "match" and bob.client_ready(), "the match is on, both copies have it")
+	browser.refresh()
+	_wait(
+		func() -> bool: return browser.servers[0]["info"].get("phase") == "match",
+		int(NetBrowser.WAIT / STEP) + 120
+	)
+	_check(
+		(
+			browser.servers[0]["info"].get("phase") == "match"
+			and int(browser.servers[0]["info"].get("players", 0)) == 2
+		),
+		"the list shows the match on with two in it"
+	)
+	var walk_in := NetPlay.join_lobby(browser.address_of(0), "zed", "hogs")
+	walk_in.make_match = _make
+	nets.append(walk_in)
+	_wait(func() -> bool: return walk_in.phase == "match")
+	_check(walk_in.phase == "match", "joining from the list during a match takes over a bot")
+	walk_in.leave()
+	_wait(func() -> bool: return lobby.players.size() == 2 and server.rooms[0].pilots.size() == 2)
+	browser.close()
+	browser = null
 	var g := lobby.match_game()
 	_check(
 		g != null and g.players.size() == 4 and server.rooms[0].pilots.size() == 2,

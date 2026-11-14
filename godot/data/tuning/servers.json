@@ -1,0 +1,7 @@
+{
+	"_about": "The COUNTY SERVERS list (src/net/net_browser.gd): the always-open lobbies the game shows and joins with one key. server/lobbies.json is what runs on them.",
+	"servers": [
+		{"name": "COUNTY LOBBY 1", "address": "66.179.95.117", "port": 47197},
+		{"name": "COUNTY LOBBY 2", "address": "66.179.95.117", "port": 47198}
+	]
+}

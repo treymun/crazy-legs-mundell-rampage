@@ -277,8 +277,10 @@ func _key_showdown(code: int) -> void:
 		start_showdown()
 		if state == "play":
 			block_fire = true
+	elif accept and showdown_row == TacticalScreens.PICKER_GO + 1:
+		open_servers()
 	elif accept and showdown_row > TacticalScreens.PICKER_GO:
-		open_net_form(showdown_row == TacticalScreens.PICKER_GO + 1)
+		open_net_form(showdown_row == TacticalScreens.PICKER_GO + 2)
 	elif showdown_row >= TacticalScreens.PICKER_GO:
 		pass
 	elif accept or code in [KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D]:
@@ -497,6 +499,8 @@ func _input(event: InputEvent) -> void:
 				return
 			if (state == "nethost" or state == "netjoin") and _net_type(key_event):
 				return
+			if state == "servers" and _server_type(key_event):
+				return
 			var code := key_event.keycode
 			if state == "play" and binding_action == "":
 				# Play's key handler speaks in default keys (key_bindings.gd).
@@ -599,7 +603,7 @@ func _repeats(code: int) -> bool:
 		return false
 	if state == "slots" and slot_stage == "edit":
 		return code == KEY_BACKSPACE
-	if state == "nethost" or state == "netjoin":
+	if state == "nethost" or state == "netjoin" or state == "servers":
 		return code in [KEY_BACKSPACE, KEY_UP, KEY_DOWN]
 	return code in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_W, KEY_S, KEY_A, KEY_D]
 
@@ -1129,6 +1133,9 @@ func _key_online(code: int) -> bool:
 	if state == "nethost" or state == "netjoin":
 		_key_net_form(code)
 		return true
+	if state == "servers":
+		_key_servers(code)
+		return true
 	if state == "lobby":
 		_key_lobby(code)
 		return true
@@ -1157,6 +1164,46 @@ func _key_online(code: int) -> bool:
 		net_leave = true
 		return true
 	return false
+
+
+## The COUNTY SERVERS list: up and down pick, ENTER joins, R asks again,
+## ESC goes back; typing writes your name (row 0).
+func _key_servers(code: int) -> void:
+	if code == KEY_ESCAPE or browser == null:
+		close_servers()
+		state = "showdown"
+		sound.play("menu_back")
+		return
+	var count := 1 + browser.servers.size()
+	var accept := code == KEY_ENTER or code == KEY_KP_ENTER
+	if code in [KEY_UP, KEY_DOWN, KEY_TAB]:
+		browser.row = posmod(browser.row + (-1 if code == KEY_UP else 1), count)
+		sound.play("menu_move")
+	elif code == KEY_BACKSPACE and browser.row == 0:
+		browser.name = browser.name.substr(0, maxi(0, browser.name.length() - 1))
+	elif code == KEY_R and browser.row != 0:
+		browser.refresh()
+		net_note = "ASKING THE SERVERS..."
+	elif accept and browser.row == 0:
+		browser.row = mini(1, count - 1)
+		sound.play("menu_move")
+	elif accept:
+		join_server(browser.row - 1)
+
+
+## A letter of your name typed on the servers list (row 0). True when taken.
+func _server_type(event: InputEventKey) -> bool:
+	if browser == null or browser.row != 0:
+		return false
+	if event.ctrl_pressed and event.keycode == KEY_V:
+		browser.name += DisplayServer.clipboard_get().strip_edges()
+	elif not event.ctrl_pressed and event.unicode >= 32 and event.unicode < 127:
+		browser.name += String.chr(event.unicode)
+	else:
+		return false
+	browser.name = browser.name.substr(0, NetPlay.MAX_NAME)
+	net_note = ""
+	return true
 
 
 func _net_form_rows() -> Array:

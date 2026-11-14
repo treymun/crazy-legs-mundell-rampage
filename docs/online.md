@@ -55,6 +55,16 @@ the same RULES row.
 With LATE JOIN on, someone who joins during a match takes over a bot on the
 team with fewer people, straight away.
 
+## County servers (no code needed)
+
+5V5 SHOWDOWN, then **COUNTY SERVERS**: the always-open lobbies listed live
+(mode, map, how many are in, in the lobby or a match on, ping). Type your
+name once at the top, pick one, press ENTER: you are in its lobby. R asks
+again; a server that is down shows NOT ANSWERING, one on another version says
+so. The list is `godot/data/tuning/servers.json` (name, address, port); the
+game asks each server with an INFO knock on its own port (`NetWire.INFO`,
+`NetPlay.summary`, `src/net/net_browser.gd`), so no other port needs opening.
+
 ## Always-open lobbies (a server)
 
 A small Linux server can keep lobbies open all the time, so nobody hosts

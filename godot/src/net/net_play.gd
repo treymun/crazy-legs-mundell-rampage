@@ -68,7 +68,7 @@ const MATCH_ROWS := [
 		"map",
 		"MAP",
 		["grainyard", "holler", "salvage", "pumpngo", "pineacres", "landing"],
-		["GRAIN CO-OP", "DISTILLERY", "SALVAGE", "2V2 PUMP & GO", "2V2 PINE ACRES", "2V2 LANDING"]
+		["GRAIN CO-OP", "DISTILLERY", "SALVAGE", "2V2 PUMP 'N GO", "2V2 PINE ACRES", "2V2 LANDING"]
 	],
 	["store_rules", "RULES", TacticalShop.RULE_IDS, TacticalShop.RULE_NAMES],
 	["rounds", "ROUNDS TO WIN", [3, 4, 5, 7, 9, 10], ["3", "4", "5", "7", "9", "10"]],
@@ -194,7 +194,8 @@ static func host_lobby(
 ## An always-open lobby on `at_port` with no host player (null: the port is
 ## taken). `lobby` overrides DEFAULTS and is what it goes back to when empty.
 static func serve_lobby(at_port: int, lobby := {}, bind := "*") -> NetPlay:
-	var s := NetSession.host(at_port, NetSession.Transport.ENET, Modes.MAX_PLAYERS, bind)
+	# Room for a few server lists asking at once besides a full lobby.
+	var s := NetSession.host(at_port, NetSession.Transport.ENET, Modes.MAX_PLAYERS + 6, bind)
 	if s == null:
 		return null
 	var net := NetPlay.new()
@@ -410,6 +411,8 @@ func _host_message(from: int, kind: int, info: Dictionary) -> void:
 	match kind:
 		NetWire.HELLO:
 			_hello(from, info)
+		NetWire.INFO:
+			_info(from)
 		NetWire.ASK:
 			var p := player_of(from)
 			if p.is_empty():
@@ -470,6 +473,35 @@ func _tell(line: String) -> void:
 	news.append(line)
 	if dedicated:
 		_told.append(line)
+
+
+## A server list asking what this lobby is doing: the answer, then goodbye.
+func _info(from: int) -> void:
+	_waiting_hello.erase(from)
+	if not player_of(from).is_empty():
+		return
+	session.send(from, NetSession.CH_RELIABLE, NetWire.message(NetWire.INFO, summary()))
+	session.poll(_now)
+	_drop_later(from)
+
+
+## What a server list shows of this lobby.
+func summary() -> Dictionary:
+	var version := String(ProjectSettings.get_setting("application/config/version", ""))
+	var boss := player_of(admin_of())
+	return {
+		"lobby_name": settings["lobby_name"],
+		"mode": settings["mode"],
+		"map": settings["map"],
+		"players": players.size(),
+		"max_players": settings["max_players"],
+		"team_size": settings["team_size"],
+		"phase": phase,
+		"late_join": settings["late_join"],
+		"locked": String(settings.get("password", "")) != "",
+		"admin": String(boss.get("name", "")),
+		"version": version,
+	}
 
 
 func _hello(from: int, info: Dictionary) -> void:

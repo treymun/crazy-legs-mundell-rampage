@@ -1178,7 +1178,13 @@ what a networking pass still needs).
   5v5, which took a full match on the one-core VPS from 40% to about 15-20%.
   net_loopback compares the client's rebuilt snapshots with the host's game
   as it stood (`wholes`), not with what the host sent.
-  `tools/net_server_check.gd` holds it.
+  `tools/net_server_check.gd` holds it. **COUNTY SERVERS** (the picker's row
+  after LET 'ER RIP, `PICKER_GO + 1`; state "servers", `main.browser`,
+  `LobbyScreens.draw_servers`): `NetBrowser` lists
+  `data/tuning/servers.json` and asks each every `ASK_EVERY` seconds with an
+  INFO knock (connect, `NetWire.INFO`, `NetPlay.summary()` back, hang up;
+  `_info` never seats anyone; a served lobby has 6 spare ENet peers for
+  them); ENTER joins through `net_join` like the JOIN form.
   breaks or the posse); per-player stats (chapter stats and the tally are
   the local player's) and a kill feed; the steam scald list is keyed by
   hazard instance id (not carried). Respawn, bodies blocking, area attacks

@@ -847,6 +847,41 @@ func open_net_form(hosting: bool) -> void:
 const WEB_NOTE := "ONLINE NEEDS THE DESKTOP OR ANDROID GAME FOR NOW."
 
 
+## The picker's COUNTY SERVERS: the always-open lobbies, live (net_browser.gd).
+func open_servers() -> void:
+	var last := NetPlay.remembered()
+	close_servers()
+	# The browser build cannot reach them (no ENet): the list shows none.
+	browser = NetBrowser.new([] if web else NetBrowser.listed())
+	browser.name = String(last.get("name", options.get("player_name", "MUNDELL")))
+	net_note = WEB_NOTE if web else ""
+	state = "servers"
+	sound.play("menu_accept")
+
+
+func close_servers() -> void:
+	if browser != null:
+		browser.close()
+	browser = null
+
+
+## ENTER on a server: straight into its lobby.
+func join_server(i: int) -> void:
+	if browser == null or i < 0 or i >= browser.servers.size():
+		return
+	var why := browser.why_not_join(i)
+	if why != "":
+		net_note = why
+		sound.play("empty")
+		return
+	var name := NetPlay.clean_name(browser.name)
+	net_form = {"name": name, "address": browser.address_of(i), "password": ""}
+	close_servers()
+	net_join()
+	if net == null:
+		open_servers()
+
+
 ## OPEN THE LOBBY on the HOST ONLINE form.
 func net_open_lobby() -> void:
 	if web:

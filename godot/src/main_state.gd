@@ -242,6 +242,7 @@ const MENU_STATES := [
 	"nethost",
 	"netjoin",
 	"lobby",
+	"servers",
 ]
 ## The title's 5V5 SHOWDOWN picker (TacticalScreens.draw_picker): the row the
 ## cursor is on, the mode, map and match length picked, and whether the game
@@ -251,8 +252,8 @@ var showdown_row := 0
 var showdown_mode := 0
 var showdown_map := 0
 var showdown_long := 1
-## The picker's RULES (TacticalShop.RULE_IDS).
-var showdown_rules := 0
+var showdown_rules := 0  # the picker's RULES (TacticalShop.RULE_IDS)
+var browser: NetBrowser = null  # the COUNTY SERVERS list while it is shown
 var showdown_on := false
 ## Online play (src/net/net_play.gd, docs/online.md): the lobby or match this
 ## machine is in (null: none), lobbies closing (polled until their goodbye is
@@ -1318,6 +1319,8 @@ func render() -> void:
 		LobbyScreens.draw_host_form(canvas, menu, net_form, net_row, net_note, menu_clock)
 	elif state == "netjoin":
 		LobbyScreens.draw_join_form(canvas, menu, net_form, net_row, net_note, menu_clock)
+	elif state == "servers":
+		LobbyScreens.draw_servers(canvas, menu, browser, net_note, menu_clock)
 	elif state == "lobby":
 		LobbyScreens.draw_lobby(canvas, menu, net, lobby_row, net_note, net_kick, net_kick_armed)
 	elif state == "rematch":

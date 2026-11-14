@@ -328,7 +328,8 @@ class Barks:
 			"NOT IN MY COUNTY.",
 			"THAT'S GONNA LEAVE A MARK."
 		],
-		"streak": ["WHO'S NEXT?", "I'M JUST GETTIN' WARMED UP.", "IT'S RAMPAGE TIME!", "LINE UP, BOYS."],
+		"streak":
+		["WHO'S NEXT?", "I'M JUST GETTIN' WARMED UP.", "IT'S RAMPAGE TIME!", "LINE UP, BOYS."],
 		"pickup_weapon":
 		[
 			"NOW WE'RE TALKIN'.",

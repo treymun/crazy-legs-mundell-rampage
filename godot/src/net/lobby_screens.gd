@@ -132,6 +132,77 @@ static func draw_join_form(
 	)
 
 
+# ------------------------------------------------------------------ servers
+
+
+## The COUNTY SERVERS list (net_browser.gd): your name, then each server live
+## (row 0 the name, 1.. the servers).
+static func draw_servers(
+	c: Canvas, menu: Menu, browser: NetBrowser, note: String, clock: float
+) -> void:
+	menu.draw_sheet(c, "COUNTY SERVERS")
+	if browser == null:
+		return
+	var at := browser.row
+	var blink := fmod(clock, .8) < .5
+	var here := at == 0
+	if here:
+		c.fill_rect(19, 38, 282, 14, Canvas.rgb(82, 49, 31))
+		Menu.shell(c, 22, 42)
+	HUD.text(c, "YOUR NAME", 36, 41, "body", Menu.FADED)
+	c.fill_rect(134, 39, 160, 11, Canvas.rgb(30, 20, 14))
+	var shown := browser.name + ("_" if here and blink else "")
+	HUD.text(c, shown, 138, 41, "body", HUD.AMBER if here else HUD.INK)
+	var list: Array = browser.servers
+	if list.is_empty():
+		HUD.text(c, "NO SERVERS LISTED", 160, 90, "body", HUD.DIM, true)
+	for i in list.size():
+		var s: Dictionary = list[i]
+		var y := 62 + i * 30
+		var picked := at == i + 1
+		if picked:
+			c.fill_rect(19, y - 3, 282, 27, Canvas.rgb(82, 49, 31))
+			Menu.shell(c, 22, y + 2)
+		var info: Dictionary = s["info"]
+		var title := String(info.get("lobby_name", s["name"]))
+		HUD.text(c, title, 36, y, "body", HUD.AMBER if picked else HUD.INK)
+		var state := String(s["state"])
+		var line := "ASKING..."
+		var ink := HUD.DIM
+		if state == "silent":
+			line = "NOT ANSWERING"
+			ink = RED
+		elif state == "up":
+			var count := "%d/%d" % [int(info.get("players", 0)), int(info.get("max_players", 10))]
+			HUD.text(c, count, 296, y, "body", HUD.AMBER if picked else HUD.INK, false, true, true)
+			var doing := "MATCH ON" if String(info.get("phase", "")) == "match" else "IN THE LOBBY"
+			line = (
+				"%s  %s   %s   %d MS"
+				% [
+					value_name("mode", info.get("mode")),
+					value_name("map", info.get("map")),
+					doing,
+					roundi(float(s["ping"]))
+				]
+			)
+			ink = GREEN if browser.why_not_join(i) == "" else HUD.AMBER
+		HUD.text(c, line, 36, y + 11, "mini", ink)
+	var y2 := 62 + list.size() * 30 + 4
+	if note != "":
+		HUD.text(c, note, 160, y2, "mini", HUD.AMBER, true)
+	HUD.text(
+		c,
+		"ALWAYS OPEN. THE FIRST ONE IN RUNS IT: MODE, MAP, START.",
+		160,
+		172,
+		"mini",
+		HUD.DIM,
+		true
+	)
+	var keys := "ENTER JOINS   TYPE YOUR NAME   R ASKS AGAIN   ESC BACK"
+	HUD.text(c, keys, 160, 186, "mini", HUD.INK, true)
+
+
 # ------------------------------------------------------------------ the lobby
 
 

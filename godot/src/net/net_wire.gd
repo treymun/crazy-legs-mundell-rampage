@@ -38,6 +38,8 @@ const ASK := 6
 const START := 7
 const BACK := 8
 const BYE := 9
+## A server list's knock (net_browser.gd) and the lobby's answer (NetPlay.summary).
+const INFO := 10
 const NO_BASE := 0xFFFFFFFF
 const CONTROL_BYTES := 14
 ## Inputs carried again in each INPUTS packet until confirmed.

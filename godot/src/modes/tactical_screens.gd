@@ -37,7 +37,7 @@ const SHOP_NAMES := ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=",
 
 ## The title's 5V5 SHOWDOWN picker: its rows (mode, map, match, START), the
 ## match lengths (rounds to win), and what each map and mode is.
-const PICKER_ROWS := 7
+const PICKER_ROWS := 8
 ## The picker's LET 'ER RIP row (the online rows after it).
 const PICKER_GO := 4
 ## A 5v5 player's figure, as tall as the hit box (Modes.player_in_line: 1.08).
@@ -714,11 +714,12 @@ static func draw_picker(
 		["MATCH", "FIRST TO %d ROUNDS" % rounds],
 		["RULES", String(TacticalShop.RULE_NAMES[posmod(rules, TacticalShop.RULE_NAMES.size())])],
 		["", "LET 'ER RIP"],
+		["ONLINE", "COUNTY SERVERS"],
 		["ONLINE", "HOST A LOBBY"],
 		["ONLINE", "JOIN A LOBBY"],
 	]
 	for i in rows.size():
-		var y := 40 + i * 13 + (4 if i >= PICKER_GO else 0) + (6 if i > PICKER_GO else 0)
+		var y := 38 + i * 12 + (4 if i >= PICKER_GO else 0) + (6 if i > PICKER_GO else 0)
 		var here := i == posmod(row, PICKER_ROWS)
 		if here:
 			c.fill_rect(19, y - 2, 282, 13 if i != PICKER_GO else 17, Canvas.rgb(82, 49, 31))
@@ -734,9 +735,9 @@ static func draw_picker(
 		else:
 			HUD.text(c, String(rows[i][1]), 160, y - 1, "heading", ink, true)
 	var lines: Array = MAP_LINES.get(map_id, ["", ""])
-	HUD.text(c, String(MODE_LINES.get(mode_id, "")), 160, 145, "mini", HUD.AMBER, true)
-	HUD.text(c, String(lines[0]), 160, 153, "mini", HUD.INK, true)
-	HUD.text(c, String(lines[1]), 160, 160, "mini", HUD.INK, true)
+	HUD.text(c, String(MODE_LINES.get(mode_id, "")), 160, 148, "mini", HUD.AMBER, true)
+	HUD.text(c, String(lines[0]), 160, 155, "mini", HUD.INK, true)
+	HUD.text(c, String(lines[1]), 160, 162, "mini", HUD.INK, true)
 	var blurb := (
 		(
 			"YOU AND A BOT AGAINST TWO. B BUYS IN THE FREEZE."
@@ -744,9 +745,13 @@ static func draw_picker(
 			else "YOU AND FOUR BOTS AGAINST FIVE. B BUYS IN THE FREEZE."
 		)
 		if posmod(row, PICKER_ROWS) <= PICKER_GO
-		else "PLAY WITH FRIENDS ANYWHERE: HOST, OR JOIN BY CODE."
+		else (
+			"THE COUNTY'S OWN SERVERS: ALWAYS OPEN. PICK ONE AND GO."
+			if posmod(row, PICKER_ROWS) == PICKER_GO + 1
+			else "PLAY WITH FRIENDS ANYWHERE: HOST, OR JOIN BY CODE."
+		)
 	)
-	HUD.text(c, blurb, 160, 170, "mini", HUD.DIM, true)
+	HUD.text(c, blurb, 160, 171, "mini", HUD.DIM, true)
 	HUD.text(c, "ARROWS PICK   ENTER PLAYS   ESC BACK", 124, 181, "mini", HUD.INK, true)
 
 

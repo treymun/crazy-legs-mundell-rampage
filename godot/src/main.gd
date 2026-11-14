@@ -520,7 +520,7 @@ func _process(delta: float) -> void:
 
 	if console != null:
 		console.tick(delta)
-	if net != null or not net_old.is_empty():
+	if net != null or not net_old.is_empty() or browser != null:
 		_net_frame()
 	dt *= time_scale
 	if state == "play" and game != null:
@@ -756,6 +756,8 @@ func _watch_level() -> void:
 ## went, a match beginning or ending, the lobby gone.
 func _net_frame() -> void:
 	var now := float(Time.get_ticks_msec())
+	if browser != null:
+		browser.poll(now)
 	for old: NetPlay in net_old.duplicate():
 		old.poll(now)
 		if old.finished():
