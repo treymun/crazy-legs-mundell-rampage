@@ -104,8 +104,15 @@ class Host:
 	var tick := 0
 	var snap_every := 3
 	var seq := -1
-	## seq -> [tick, snapshot]
+	## seq -> [tick, snapshot], or [tick, what changed since the seq before]
+	## when `tracked`.
 	var history := {}
+	## Each snapshot's changes found by NetTrack (it looks only at what moved:
+	## about a sixth of a whole capture and diff for a 5v5) and merged from a
+	## client's base; a whole capture only for a client with none. Off: every
+	## snapshot captured whole and diffed against the client's base.
+	var tracked := true
+	var track: NetTrack = null
 	## tick -> the inputs every player played on it (NetWire.tick_row)
 	var played := {}
 	## peer id -> Remote
@@ -180,6 +187,19 @@ class Host:
 		played.erase(tick - MAX_ECHO * 2)
 		if tick % snap_every == 0:
 			_send_snapshots()
+
+	## What changed from snapshot `base` to this one (null: send it whole).
+	func _change_since(base: int, now: Dictionary):
+		if not tracked:
+			return GameSnapshot.delta(history[base][1], now)
+		var merged = {}
+		for s in range(base + 1, seq + 1):
+			if not history.has(s):
+				return null
+			merged = GameSnapshot.merge(merged, history[s][1])
+			if merged == null:
+				return null
+		return merged
 
 	func _next_input(r: Remote) -> PackedByteArray:
 		if r.waiting.size() > MAX_WAITING:
@@ -256,10 +276,17 @@ class Host:
 
 	func _send_snapshots() -> void:
 		var t0 := Time.get_ticks_usec()
-		var now := NetSync.capture(game)
+		var now := {}
+		if not tracked:
+			now = NetSync.capture(game)
+			history[seq + 1] = [tick, now]
+		elif track == null:
+			track = NetTrack.new(game)
+			history[seq + 1] = [tick, {}]
+		else:
+			history[seq + 1] = [tick, track.changes()]
 		capture_us += Time.get_ticks_usec() - t0
 		seq += 1
-		history[seq] = [tick, now]
 		history.erase(seq - KEEP)
 		var by_base := {}
 		for r: Remote in remotes.values():
@@ -270,11 +297,12 @@ class Host:
 				continue
 			if not by_base.has(base):
 				t0 = Time.get_ticks_usec()
-				var payload := (
-					GameSnapshot.to_bytes(now)
-					if base < 0
-					else GameSnapshot.to_bytes(GameSnapshot.delta(history[base][1], now))
-				)
+				var change = _change_since(base, now) if base >= 0 else null
+				if change == null:
+					if now.is_empty():
+						now = GameSnapshot.capture(game)
+					base = -1
+				var payload := GameSnapshot.to_bytes(now if change == null else change)
 				delta_us += Time.get_ticks_usec() - t0
 				(sizes_full if base < 0 else sizes_delta).append(payload.size())
 				by_base[base] = payload

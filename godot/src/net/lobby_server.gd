@@ -18,8 +18,9 @@ const STATUS_EVERY := 300.0
 ## Ticks played in one frame at most (a stall is not caught up past this).
 const MOST_STEPS := 8
 ## Matches on at once at most (the config's "most_matches"): one 5v5 with
-## nine bots is about 40% of a small VPS core.
-const MOST_MATCHES := 2
+## nine bots is about 15-20% of a small VPS core (40% before NetSync's
+## snapshots came from NetTrack).
+const MOST_MATCHES := 3
 ## Frames a second while every lobby waits, and while a match is on.
 const IDLE_FPS := 20
 const MATCH_FPS := 120
@@ -202,8 +203,18 @@ func _make(info: Dictionary) -> Game:
 	return made
 
 
+## The process's resident memory in MB (Linux; else Godot's own count, which
+## a release build leaves at 0).
+static func memory_mb() -> float:
+	if FileAccess.file_exists("/proc/self/status"):
+		for line in FileAccess.get_file_as_string("/proc/self/status").split("\n"):
+			if line.begins_with("VmRSS:"):
+				return float(line.get_slice(":", 1).strip_edges().get_slice(" ", 0)) / 1024.0
+	return OS.get_static_memory_usage() / 1048576.0
+
+
 func _status() -> void:
-	var mem := OS.get_static_memory_usage() / 1048576.0
+	var mem := memory_mb()
 	var parts: PackedStringArray = []
 	for room in rooms:
 		var n := room.net

@@ -69,8 +69,8 @@ address and port (or join code) and its password if it has one.
   once); when every person has left a match it ends.
 - An empty lobby goes back to its own settings. The lobby's name and
   password are the server's: the admin cannot change them.
-- The server runs two matches at once at most (`most_matches`); a START in
-  a third lobby is told to wait. One 5v5 with nine bots is about 40% of a
+- The server runs three matches at once at most (`most_matches`); a START
+  past that is told to wait. One 5v5 with nine bots is about 15-20% of a
   one-core VPS.
 - Players need the same version as the server: update the server with each
   release.

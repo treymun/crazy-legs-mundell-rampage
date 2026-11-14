@@ -1160,9 +1160,13 @@ what a networking pass still needs).
   takes `base_settings` back; server lines reach every lobby screen with the
   next LOBBY (`_tell`). One process runs every lobby with TacticalBot pilots on
   host games (`Game.new(..., true)`, which client copies match exactly), at
-  most `most_matches` at once (`may_start`). The snapshots are most of the
-  server's cost (capture + diff: about 1.5 of 2.3 ms a tick for a 5v5 with
-  nine bots); switching NetSync to NetTrack's deltas is the way to halve it.
+  most `most_matches` at once (`may_start`). **NetSync.Host's snapshots come
+  from NetTrack** (`tracked`, `track`, `_change_since`: each snapshot's
+  changes logged in `history`, merged from a client's base; a whole capture
+  only for a client with none): about a sixth of a capture and diff for a
+  5v5, which took a full match on the one-core VPS from 40% to about 15-20%.
+  net_loopback compares the client's rebuilt snapshots with the host's game
+  as it stood (`wholes`), not with what the host sent.
   `tools/net_server_check.gd` holds it.
   breaks or the posse); per-player stats (chapter stats and the tally are
   the local player's) and a kill feed; the steam scald list is keyed by

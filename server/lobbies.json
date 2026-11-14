@@ -1,6 +1,6 @@
 {
 	"bind": "*",
-	"most_matches": 2,
+	"most_matches": 3,
 	"lobbies": [
 		{
 			"port": 47197,

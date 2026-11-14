@@ -142,6 +142,7 @@ static func loopback(main, check: Callable, opts: Dictionary) -> Dictionary:
 	var ticks := int(float(opts.get("seconds", 10.0)) * 60.0)
 	var compared := 0
 	var differ := ""
+	var wholes := {}
 	var two_from := Vector2(game.players[1].x, game.players[1].y)
 	var walked := 0.0
 	var wall := Time.get_ticks_msec()
@@ -157,7 +158,12 @@ static func loopback(main, check: Callable, opts: Dictionary) -> Dictionary:
 		game.focus(p1)
 		var own := host_bot.steer(game)
 		game.focus(game.local_player)
+		var seq_was := host.seq
 		host.step(now, {0: own})
+		if host.seq != seq_was:
+			# The host's game as it stood for that snapshot (the host keeps only
+			# what changed): what the client must rebuild.
+			wholes[host.seq] = NetSync.capture(game)
 		game.focus(p1)
 		host_bot.moved(game)
 		game.focus(game.local_player)
@@ -169,15 +175,16 @@ static func loopback(main, check: Callable, opts: Dictionary) -> Dictionary:
 			client.game.focus(client.me())
 			client_bot.moved(client.game)
 		for seq in client.rebuilt.keys():
-			var theirs = host.history.get(seq)
+			var theirs = wholes.get(seq)
 			if theirs != null:
 				compared += 1
-				if differ == "" and not GameSnapshot.same(theirs[1], client.rebuilt[seq]):
+				if differ == "" and not GameSnapshot.same(theirs, client.rebuilt[seq]):
 					differ = (
 						"snapshot %d: %s"
-						% [seq, GameSnapshot.first_difference(theirs[1], client.rebuilt[seq])]
+						% [seq, GameSnapshot.first_difference(theirs, client.rebuilt[seq])]
 					)
 			client.rebuilt.erase(seq)
+			wholes.erase(seq - 64)
 	# What is still on its way (the client's copy checked once more at the end).
 	for k in 30:
 		var now := (ticks + k) * 1000.0 / 60.0
