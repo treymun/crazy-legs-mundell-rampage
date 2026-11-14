@@ -734,7 +734,10 @@ func aim_points(device) -> Array:
 		near_art = "note"
 	elif device is Array:
 		near_art = String(device[0])
-	var points: Array = [Vector3(at.x, at.y, world.elevation(at.x, at.y) + lift)]
+	var base := world.elevation(at.x, at.y)
+	if (device is LevelData.Station or device is LevelData.Extraction) and not is_nan(device.z):
+		base = device.z
+	var points: Array = [Vector3(at.x, at.y, base + lift)]
 	for board: LevelData.Billboard in world.billboards:
 		var d := Vector2(board.x, board.y).distance_to(at)
 		var mine := signal_name != "" and board.signal_name == signal_name and d < 3.5
@@ -752,7 +755,7 @@ func aim_points(device) -> Array:
 			var q := Vector2(float(spec[1]), float(spec[2]))
 			if String(spec[0]) == near_art and q.distance_to(at) < 1.5:
 				var h := float(PROP_HEIGHTS.get(near_art, 1.0))
-				points.append(Vector3(q.x, q.y, world.stand(q) + h * .5))
+				points.append(Vector3(q.x, q.y, world.elevation(q.x, q.y) + h * .5))
 	aim_cache[key] = points
 	return points
 
@@ -1464,6 +1467,8 @@ func objective_target() -> Variant:
 func objective_route(target: Vector2, target_z := NAN) -> Array:
 	if route == null:
 		return [target, -1]
+	if is_nan(target_z) and world.geo != null:
+		target_z = world.goal_floor(target)
 	var opened := 0
 	for door: LevelData.Door in world.doors:
 		if door.opened:

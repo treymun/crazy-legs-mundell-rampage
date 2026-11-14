@@ -72,6 +72,8 @@ class Station:
 	var hidden := false
 	var action := "use"
 	var held := ""
+	## The floor it is used from (format 2: on a deck); NAN the ground.
+	var z := NAN
 
 
 ## Mirrors campaign.Extraction.
@@ -80,6 +82,7 @@ class Extraction:
 	var y := 0.0
 	var label := ""
 	var shutdown := ""
+	var z := NAN
 
 
 ## Mirrors campaign.Billboard.
@@ -487,6 +490,7 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 		station.hidden = bool(s.get("hidden", false))
 		station.action = String(s.get("action", "use"))
 		station.held = String(s.get("held", ""))
+		station.z = float(s["z"]) if s.has("z") else NAN
 		lv.stations.append(station)
 
 	lv.control_name = String(j.get("control_name", ""))
@@ -510,6 +514,7 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 		exit.y = float(j["extraction"]["y"])
 		exit.label = String(j["extraction"]["label"])
 		exit.shutdown = String(j["extraction"]["shutdown"])
+		exit.z = float(j["extraction"].get("z", NAN))
 		lv.extraction = exit
 	for clue in j.get("hub_clues", []):
 		lv.hub_clues.append(
@@ -1386,9 +1391,11 @@ func _take_geometry(block) -> void:
 	slopes = parts["slopes"]
 
 
-## The floor under a body (its feet when it is not in the air).
+## The floor under a body (its feet when it is not in the air). Anything
+## that is not a body with a floor (a point, a piece of scenery) gets the
+## cell's ground, as elevation() gives it.
 func stand(body) -> float:
-	if geo == null:
+	if geo == null or not (body is Player or body is Enemy):
 		return elevation(body.x, body.y)
 	var c := cell(body.x, body.y)
 	return geo.floor_at(body.x, body.y, float(body.floor_z), ground[c], true)
@@ -1417,3 +1424,14 @@ func roof_over(x: float, y: float, z: float) -> float:
 ## through a deck's top or underside.
 func crosses(x0: float, y0: float, z0: float, x1: float, y1: float, z1: float) -> bool:
 	return geo != null and geo.crosses(x0, y0, z0, x1, y1, z1)
+
+
+## The floor a station or the exit at `at` is used from (format 2: NAN when
+## it is on the ground or nothing stands there).
+func goal_floor(at: Vector2) -> float:
+	for s: Station in stations:
+		if Vector2(s.x, s.y).distance_to(at) < .01:
+			return s.z
+	if extraction != null and Vector2(extraction.x, extraction.y).distance_to(at) < .01:
+		return extraction.z
+	return NAN

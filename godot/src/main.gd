@@ -191,6 +191,7 @@ func _view_tour() -> void:
 		p.x = float(shot["x"])
 		p.y = float(shot["y"])
 		p.angle = float(shot["angle"])
+		p.floor_z = game.world.floor_under(p.x, p.y, float(shot.get("z", 0.0)) + .05)
 		p.eye = .95 + game.world.stand(p)
 		p.pitch = float(shot.get("pitch", 0.0))
 		p.drunk = float(shot.get("drunk", 0.0))
