@@ -13,6 +13,7 @@ extends RefCounted
 
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Cast := preload("res://tools/levels/hickston_cast.gd")
+const Loft := preload("res://tools/levels/hickston_loft.gd")
 const W := 150
 const H := 78
 
@@ -53,7 +54,7 @@ func make() -> Builder:
 		"ending": '"NEXT TIME, TAKE THE TRACTOR."',
 		"score": "music",
 		"rescue": true,
-		"layout": 3,
+		"layout": 4,
 		"sky": "sky",
 	}
 	return b
@@ -798,14 +799,8 @@ func feed_barn() -> void:
 	b.door(40, 15, true, {"from": "e", "id": "barn-west"})
 	b.door(66, 12, true, {"from": "w", "id": "barn-east"})
 	b.yard(67, 12, 67, 12, "dirt", lots)
-	# The hay loft at the back: a platform up two steps.
-	b.raise(41, 2, 48, 8, .48)
-	b.raise(41, 9, 48, 9, .24)
-	b.paint(41, 2, 48, 9, "porch")
-	for p in [Vector2(42.0, 2.8), Vector2(43.2, 2.7), Vector2(44.4, 2.9), Vector2(46.8, 3.0)]:
-		b.board("prop_hay", p.x, p.y, .92, {"z": .48})
-	hay_bale(45.6, 5.4)
-	hay_bale(42.4, 6.8)
+	# The hay loft at the back (hickston_loft.gd).
+	Loft.build(b, barn)
 	# Cattle stalls down the east side.
 	for y in [3.5, 7.5, 11.5, 15.5, 19.5]:
 		b.fixture(60.6, y - .06, 65.9, y + .06, 1.25, "wood", "counter_top")

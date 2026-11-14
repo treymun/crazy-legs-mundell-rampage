@@ -8,6 +8,8 @@ class_name FlowField
 extends RefCounted
 
 const RADIUS := 26
+## The reach on a level with geometry (format 2).
+const GEO_RADIUS := 44
 const FAR := 1 << 20
 ## How wide a body the open floor has to fit.
 const BODY := .2
@@ -65,6 +67,8 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 	if world.geo != null:
 		graph = world.geo.nav(world) if floor_from == null else floor_from.graph
 		nodes = graph.count
+		# Ways up and down (stairs, ramps) are longer than the flat way across.
+		reach = GEO_RADIUS
 	steps.resize(nodes)
 	steps.fill(FAR)
 	_next.resize(nodes)

@@ -232,9 +232,7 @@ static func _things(
 				)
 			)
 		elif s[3] in ["spawn", "spawn_point", "enemy"]:
-			var over := minf(
-				lv.geo.ceiling_at(at.x, at.y, feet), lv.roof[c] if lv.roof[c] > feet + .01 else INF
-			)
+			var over := minf(lv.geo.ceiling_at(at.x, at.y, feet), LevelGeometry._roof(lv, c, feet))
 			if over - feet < LevelGeometry.BODY:
 				out.append(
 					issue(
@@ -375,20 +373,17 @@ static func _reach(
 	var sz := float(spawn[3]) if spawn.size() > 3 else 0.0
 	field.update(spawn[0], spawn[1], 0.0, lv.floor_under(spawn[0], spawn[1], sz + .05))
 	var g := field.graph
-	for o in doc.get("objects", []):
-		if not (o is Dictionary) or not o.has("at"):
-			continue
-		var type := String(o.get("type", ""))
-		if not (type in ["enemy", "pickup", "station", "exit", "spawn_point"]):
-			continue
-		var at: Array = o["at"]
-		var feet := lv.floor_under(float(at[0]), float(at[1]), float(o.get("z", 0.0)) + .05)
-		var d := field.distance(float(at[0]), float(at[1]), feet)
+	for spot: Array in _spots(doc, built["level"]):
+		var type: String = spot[0]
+		var oid: String = spot[1]
+		var at := Vector2(spot[2], spot[3])
+		var feet := lv.floor_under(at.x, at.y, float(spot[4]) + .05)
+		var d := field.distance(at.x, at.y, feet)
 		if d >= FlowField.FAR:
 			# A station or pickup is used from beside it: any neighbour reached will do.
 			var near := false
 			for n: Vector2i in FlowField.NEIGHBOURS:
-				if field.distance(float(at[0]) + n.x, float(at[1]) + n.y, feet) < FlowField.FAR:
+				if field.distance(at.x + n.x, at.y + n.y, feet) < FlowField.FAR:
 					near = true
 			if near and type != "spawn_point":
 				continue
@@ -397,12 +392,9 @@ static func _reach(
 				issue(
 					sev,
 					"unreachable",
-					String(o["id"]),
-					[float(at[0]), float(at[1]), feet],
-					(
-						"%s %s cannot be walked to from the spawn (every door opened)"
-						% [type, o["id"]]
-					),
+					oid,
+					[at.x, at.y, feet],
+					"%s %s cannot be walked to from the spawn (every door opened)" % [type, oid],
 					"a ramp or stairs to its floor, or move it"
 				)
 			)
@@ -513,6 +505,43 @@ static func _reach(
 						"enemy %s sees the spawn from %.1f away" % [o["id"], e.distance_to(s)]
 					)
 				)
+
+
+## Everything the spawn should reach, from the built level (so a plan's own
+## things count, not only the source's objects): [type, id, x, y, floor z].
+static func _spots(doc: Dictionary, level: Dictionary) -> Array:
+	var out: Array = []
+	for e: Dictionary in level.get("enemies", []):
+		var swims := bool(Enemy.DEFS.get(String(e["kind"]), {}).get("swims", false))
+		if not swims and Enemy.DEFS.get(String(e["kind"]), {}).get("hostile", true):
+			out.append(
+				["enemy", String(e["id"]), float(e["x"]), float(e["y"]), float(e.get("z", 0.0))]
+			)
+	for k in (level.get("pickups", []) as Array).size():
+		var p: Array = level["pickups"][k]
+		var z := float(p[3]) if p.size() > 3 else 0.0
+		out.append(
+			["pickup", "pickup %s at %.1f,%.1f" % [p[0], p[1], p[2]], float(p[1]), float(p[2]), z]
+		)
+	for st: Dictionary in level.get("stations", []):
+		out.append(
+			["station", String(st["id"]), float(st["x"]), float(st["y"]), float(st.get("z", 0.0))]
+		)
+	var exit = level.get("extraction")
+	if exit is Dictionary:
+		out.append(["exit", "exit", float(exit["x"]), float(exit["y"]), float(exit.get("z", 0.0))])
+	for o in doc.get("objects", []):
+		if o is Dictionary and String(o.get("type", "")) == "spawn_point":
+			out.append(
+				[
+					"spawn_point",
+					String(o["id"]),
+					float(o["at"][0]),
+					float(o["at"][1]),
+					float(o.get("z", 0.0))
+				]
+			)
+	return out
 
 
 ## The middle of the cell just past a ramp's or stairs' low end (top false) or high end.

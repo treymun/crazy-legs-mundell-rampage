@@ -332,6 +332,19 @@ func floor_at(x: float, y: float, z: float, ground: float, open: bool) -> float:
 	return best
 
 
+## The floor holding up a body of radius r with its feet at `feet`: the floor
+## under its middle, or a floor at most as high as its feet under any part of
+## it (a body half off a deck's edge still stands on the deck until it is clear
+## of it, then falls).
+func support(x: float, y: float, r: float, feet: float, ground: float) -> float:
+	var best := floor_at(x, y, feet, ground, true)
+	for k in 4:
+		var px := x + (r if k & 1 else -r)
+		var py := y + (r if k & 2 else -r)
+		best = maxf(best, floor_at(px, py, feet - STEP, -1e9, false))
+	return best
+
+
 ## The lowest surface overhead of a point at z (a slab's underside, a
 ## ceiling): INF when nothing of the geometry is over it.
 func ceiling_at(x: float, y: float, z: float) -> float:
@@ -656,18 +669,18 @@ func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
 	var under := floor_at(x, y, feet, lv.ground[c], true)
 	if player and under - floor_z > STEP + air + .001:
 		return false
-	var over := minf(ceiling_at(x, y, under), lv.roof[c] if lv.roof[c] > under + .01 else INF)
+	var over := minf(ceiling_at(x, y, under), _roof(lv, c, under))
 	return over - under >= CROUCH
 
 
 ## After a move (format 2): the floor under the body now. A player who walked
 ## off an edge is in the air above the lower floor and falls; one who stepped
 ## up stands on the higher one.
-func settle(lv, body) -> void:
+func settle(lv, body, radius := .2) -> void:
 	var c: int = lv.cell(body.x, body.y)
 	var player: bool = not (body is Enemy) and ("air" in body)
 	var feet: float = float(body.floor_z) + (float(body.air) if player else 0.0)
-	var under := floor_at(body.x, body.y, feet, lv.ground[c], true)
+	var under := support(body.x, body.y, radius, feet, lv.ground[c])
 	if player:
 		body.air = maxf(0.0, feet - under)
 	body.floor_z = under
@@ -864,5 +877,6 @@ func _walks(lv, g: NavGraph, n: int, m: int) -> bool:
 
 
 static func _roof(lv, c: int, feet: float) -> float:
+	# A roof of 0 is the open sky (a sunken floor's too: the pond).
 	var r: float = lv.roof[c]
-	return r if r > feet + .01 else INF
+	return r if r != 0.0 and r > feet + .01 else INF

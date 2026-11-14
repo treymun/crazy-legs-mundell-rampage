@@ -1,0 +1,5 @@
+[
+  {"tag": "stand_from_gate", "at": [64.5, 68.5, 0], "angle": -25, "pitch": 6},
+  {"tag": "stand_stairs", "at": [70.0, 73.5, 0], "angle": -90, "pitch": 10},
+  {"tag": "from_the_stand", "at": [70.0, 63.5, 1.8], "angle": 20, "pitch": -12}
+]

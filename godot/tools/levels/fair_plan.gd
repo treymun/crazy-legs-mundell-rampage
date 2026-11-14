@@ -11,6 +11,7 @@
 extends RefCounted
 
 const Builder := preload("res://tools/levels/level_builder.gd")
+const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
 const H := 86
 
@@ -40,7 +41,7 @@ func make() -> Builder:
 		"ending": '"NO REFUNDS AFTER THE ABDUCTION."',
 		"score": "fair_score",
 		"ambience": "fair",
-		"layout": 3,
+		"layout": 4,
 		"sky": "fair_sky",
 		"control_name": "CONCESSION AND BACKSTAGE PA",
 		"objective_side_tasks": ["bell"],
@@ -730,10 +731,12 @@ func derby_arena() -> void:
 	b.yard(107, 43, 126, 71, "dirt", derby)
 	b.yard(106, 55, 106, 58, "tracks", derby)
 	b.fence(108, 71, 126, 71, 1.6, "fair_iron")
-	# Bleachers round the ring, a concrete rail, wrecks in the mud.
-	b.fixture(108.2, 44.0, 109.4, 70.0, .8, "bleachers", "bleachers")
-	b.fixture(124.6, 44.0, 125.8, 70.0, .8, "bleachers", "bleachers")
-	b.fixture(111.0, 69.0, 123.0, 70.4, .8, "bleachers", "bleachers")
+	# Bleachers round the ring (level format 2: rows a step apart, climbed for
+	# a look over the wrecks), a concrete rail, wrecks in the mud.
+	var rows := {"tile": "bleachers", "edge": "grandstand_riser", "rise": .24, "area": derby}
+	Geo.stairs(b, "derby_stands_w", [108.2, 44.0, 109.4, 70.0], 0.0, .96, "w", rows)
+	Geo.stairs(b, "derby_stands_e", [124.6, 44.0, 125.8, 70.0], 0.0, .96, "e", rows)
+	Geo.stairs(b, "derby_stands_s", [111.0, 69.0, 123.0, 70.4], 0.0, .96, "s", rows)
 	b.fence(111, 46, 122, 46, .9, "concrete")
 	b.yard(115, 46, 117, 46, "dirt", derby)
 	for c in [

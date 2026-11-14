@@ -1133,8 +1133,10 @@ func pane_at(x: float, y: float, z = null, radius := 0.0):
 ## Mirrors TileMap.visible(): a stepped line-of-sight test.
 func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> bool:
 	if geo != null and z == null:
-		z = elevation(x, y) + .9
-		zz = elevation(xx, yy) + .9
+		# No heights given: eyes over the ground at both ends (a point off the
+		# map, a crow calling from past the edge, over the nearest cell's).
+		z = _ground_near(x, y) + .9
+		zz = _ground_near(xx, yy) + .9
 	var distance := sqrt((xx - x) * (xx - x) + (yy - y) * (yy - y))
 	var n := maxi(1, int(ceil(distance * 9.0)))
 	# With no panes and no locked gates, a step whose four corners are open floor
@@ -1177,6 +1179,12 @@ func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> b
 			wz = float(z) + (float(zz) - float(z)) * t
 		if blocked(sx, sy, .023, wz):
 			return false
+		if geo != null and wz != null:
+			# A steep look can step over a deck thinner than one step climbs.
+			var bt := float(i - 1) / float(n)
+			var bz := float(z) + (float(zz) - float(z)) * bt
+			if geo.crosses(x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, float(wz)):
+				return false
 		i += 1
 	return true
 
@@ -1218,7 +1226,7 @@ func move(body, dx: float, dy: float, radius: float, occupied = null) -> void:
 	if _can_walk(body, body.x, start_y + dy, radius, occupied):
 		body.y += dy
 	if geo != null:
-		geo.settle(self, body)
+		geo.settle(self, body, radius)
 
 
 ## Gator Bayou's deep channels: nobody wades in (a body already in one may
@@ -1397,25 +1405,27 @@ func _take_geometry(block) -> void:
 func stand(body) -> float:
 	if geo == null or not (body is Player or body is Enemy):
 		return elevation(body.x, body.y)
-	var c := cell(body.x, body.y)
-	return geo.floor_at(body.x, body.y, float(body.floor_z), ground[c], true)
+	var c := _cell_near(body.x, body.y)
+	var r: float = body.radius if body is Enemy else .2
+	return geo.support(body.x, body.y, r, float(body.floor_z), ground[c])
 
 
 ## The highest floor at (x, y) at or below z (the cell's ground without geometry).
 func floor_under(x: float, y: float, z: float) -> float:
 	if geo == null:
 		return elevation(x, y)
-	var c := cell(x, y)
+	var c := _cell_near(x, y)
 	return geo.floor_at(x, y, z - LevelGeometry.STEP, ground[c], true)
 
 
 ## The lowest surface over (x, y, z), or 0 when the sky is over it (the
 ## cell's roof without geometry).
 func roof_over(x: float, y: float, z: float) -> float:
-	var c := cell(x, y)
+	var c := _cell_near(x, y)
 	if geo == null:
 		return roof[c]
-	var r := roof[c] if roof[c] > z + .01 else INF
+	# A roof of 0 is the open sky (as everywhere else reads it).
+	var r := roof[c] if roof[c] != 0.0 and roof[c] > z + .01 else INF
 	r = minf(r, geo.ceiling_at(x, y, z))
 	return 0.0 if r == INF else r
 
@@ -1435,3 +1445,18 @@ func goal_floor(at: Vector2) -> float:
 	if extraction != null and Vector2(extraction.x, extraction.y).distance_to(at) < .01:
 		return extraction.z
 	return NAN
+
+
+func _ground_near(x: float, y: float) -> float:
+	return ground[clampi(int(y), 0, height - 1) * width + clampi(int(x), 0, width - 1)]
+
+
+func _cell_near(x: float, y: float) -> int:
+	return clampi(int(y), 0, height - 1) * width + clampi(int(x), 0, width - 1)
+
+
+## Whether two bodies stand on floors a step can't join (format 2: one on a
+## deck, one under it): a hand that sees the player up there walks the nav
+## graph round to the stairs rather than straight at them.
+func apart(a, b) -> bool:
+	return geo != null and absf(stand(a) - stand(b)) > .45

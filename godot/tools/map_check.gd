@@ -21,7 +21,9 @@
 ## - the editor's Maps screen opens a source and saves it back unchanged,
 ##   then adds, moves and edits objects (one undo step each), keeps keys it
 ##   does not know, and builds a level that loads;
-## - a bot walks the demo map from the spawn up to the loft's lever.
+## - a bot walks the demo map from the spawn up to the loft's lever, and hands
+##   woken under the loft, on the dock and in the yard all come up to a player
+##   standing on it.
 extends RefCounted
 
 const Source := preload("res://tools/map/map_source.gd")
@@ -70,6 +72,7 @@ static func run(main, check: Callable) -> void:
 	Source.dir = kept_dir
 	Source.data_dir = kept_data
 	_playtest(main, demo, check)
+	climbers(main, demo, check)
 
 
 static func _names(assets: Assets) -> Dictionary:
@@ -505,3 +508,43 @@ static func _editor(main, demo: Dictionary, check: Callable) -> void:
 	)
 	check.call(lv != null and lv.geo != null, "Build writes a level that loads with its geometry")
 	panel.queue_free()
+
+
+## Hands woken under the loft, on the dock and in the yard all come to the
+## player standing on the loft: round by the stairs, not stuck under it.
+static func climbers(main, demo: Dictionary, check: Callable) -> void:
+	var built := Compile.compile(demo)
+	LevelData.preview["feedstore"] = built["level"]
+	for who in ["stock_billy", "dock_billy", "yard_billy"]:
+		var g: Game = main.make_game("feedstore")
+		g.configure({})
+		g.cheats.god = true
+		g.spawn_grace = 0.0
+		var p := g.player
+		p.x = 12.5
+		p.y = 5.0
+		p.floor_z = 1.7
+		p.eye = 2.65
+		for d: LevelData.Door in g.world.doors:
+			d.opened = true
+			d.progress = 1.0
+		var e: Enemy = null
+		for i in g.enemies.size():
+			if g.enemy_ids[i] == who:
+				e = g.enemies[i]
+			else:
+				g.enemies[i].dormant = true
+		e.wake(g, p.x, p.y)
+		e.hunt_until = 1e9
+		var reached := -1.0
+		var idle := Game.Controls.new()
+		for k in 60 * 40:
+			g.tick(1.0 / 60.0, idle)
+			p.health = 100
+			if g.world.stand(e) > 1.6 and Vector2(e.x, e.y).distance_to(Vector2(p.x, p.y)) < 2.5:
+				reached = k / 60.0
+				break
+		check.call(
+			reached >= 0.0, "%s comes up to the player on the loft (%.1f s)" % [who, reached]
+		)
+	LevelData.preview.erase("feedstore")

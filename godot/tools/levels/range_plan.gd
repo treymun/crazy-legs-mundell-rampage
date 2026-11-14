@@ -11,6 +11,7 @@
 extends RefCounted
 
 const Builder := preload("res://tools/levels/level_builder.gd")
+const Geo := preload("res://tools/levels/geo_kit.gd")
 const L := preload("res://src/range_layout.gd")
 const W := 100
 const H := 78
@@ -29,7 +30,7 @@ func make() -> Builder:
 		"intro": "MUNDELL'S PROVING GROUNDS. EVERY GUN, ALL THE AMMO. PAUSE TO LEAVE.",
 		"score": "music",
 		"ambience": "range",
-		"layout": 1,
+		"layout": 2,
 		"sky": "sky",
 		"pressure_ports": L.PRESSURE_PORTS,
 		"boss_decoys": L.BOSS_DECOYS,
@@ -400,6 +401,7 @@ func bullpen() -> void:
 	for p in [Vector2(77.5, 67.5), Vector2(84.5, 74.5), Vector2(89.5, 66.5), Vector2(71.5, 72.5)]:
 		b.bale(p.x, p.y)
 	b.car(84.0, 68.0, true)
+	hunting_stand()
 	b.town("range_sandbags", 72.5, 62.4)
 	b.town("range_sandbags", 94.5, 74.6)
 	b.town("range_scoreboard", 63.6, 75.6)
@@ -407,6 +409,48 @@ func bullpen() -> void:
 	floodlight(97.4, 59.6, 9.0, .2)
 	floodlight(97.4, 75.4, 9.0, .2)
 	floodlight(67.6, 75.4, 9.0, .2)
+
+
+## A deer stand by the bullpen gate (level format 2): a plank deck 1.8 up on
+## posts, railed but for the top of its stairs, the stairs coming up from the
+## south. Shoot down at the locals from it; they come up the stairs after you,
+## or round under it.
+func hunting_stand() -> void:
+	var top := 1.8
+	Geo.balcony(
+		b,
+		"stand",
+		[68.2, 62.6, 71.8, 66.0],
+		top,
+		"nwe",
+		{"tile": "porch", "under": "joists", "edge": "barn", "rail": {"tile": "stockyard"}}
+	)
+	# The south rail, open where the stairs come up.
+	Geo.rail(b, "stand_rail_s", Vector2(68.2, 65.94), Vector2(69.0, 65.94), top)
+	Geo.rail(b, "stand_rail_s2", Vector2(71.0, 65.94), Vector2(71.8, 65.94), top)
+	Geo.stairs(
+		b,
+		"stand_stairs",
+		[69.0, 66.0, 71.0, 70.2],
+		0.0,
+		top,
+		"n",
+		{"tile": "porch", "edge": "barn"}
+	)
+	# Its four posts (thin walls, so nothing under the deck blocks a cell).
+	for at: Vector2 in [
+		Vector2(68.35, 62.75), Vector2(71.65, 62.75), Vector2(68.35, 65.85), Vector2(71.65, 65.85)
+	]:
+		Geo.wall(
+			b,
+			"stand_post_%d_%d" % [int(at.x), int(at.y)],
+			at,
+			at + Vector2(.01, 0),
+			0.0,
+			top - .15,
+			{"thick": .16, "tile": "barn"}
+		)
+	b.board("range_plaque_3", 70.0, 70.6, .22, {"z": .3, "plane": 0.0})
 
 
 ## Set pieces that tie it together: the PA, flags, the range-is-hot sign.

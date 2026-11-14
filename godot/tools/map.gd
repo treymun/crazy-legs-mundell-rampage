@@ -11,7 +11,8 @@
 ##   render <id> [out=<dir>] [overlay=nav,collision,spawns,objects,unreachable]
 ##          [floor=<z>] [scale=<px>]          plans from above, one a floor
 ##   shot <id> out=<dir> [at=x,y[,z]] [angle=<deg>] [pitch=<deg>] [views=<json>]
-##                                           the game's own view from places
+##          [level=<level json>]             the game's own view from places (level=:
+##                                           an older build as it is, for a before)
 ##   playtest <id> [scenario=<json>] [seconds=<s>] [perf]   bots walk routes
 ##   move <id> <object> by=dx,dy[,dz] | to=x,y
 ##   resize <id> <object> rect=x0,y0,x1,y1 | opening=<id> width=<w> | top=<z>
@@ -391,11 +392,21 @@ func _shot() -> int:
 	var map_id := _need_id()
 	if map_id == "":
 		return 2
-	var loaded := _load(map_id)
-	var built: Dictionary = loaded[1]
-	if built.is_empty():
-		_report(loaded[2])
-		return 1
+	var built := {}
+	if opts.has("level"):
+		# A level file as it is (an older build, for a before picture).
+		var parsed = JSON.parse_string(FileAccess.get_file_as_string(String(opts["level"])))
+		if not (parsed is Dictionary):
+			result["error"] = "level=%s is not a level file" % opts["level"]
+			return 3
+		var sp: Array = parsed["spawn"]
+		built = {"level": parsed, "spawn": sp}
+	else:
+		var loaded := _load(map_id)
+		built = loaded[1]
+		if built.is_empty():
+			_report(loaded[2])
+			return 1
 	var views: Array = []
 	if opts.has("views"):
 		var parsed = JSON.parse_string(FileAccess.get_file_as_string(String(opts["views"])))
