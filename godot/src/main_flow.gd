@@ -1027,7 +1027,8 @@ func _net_ready(opened: NetPlay) -> void:
 		"live_props",
 		"smart_hands",
 		"weather",
-		"county_storm"
+		"county_storm",
+		"boss_wrecks"
 	]:
 		if options.has(key):
 			sim[key] = options[key]

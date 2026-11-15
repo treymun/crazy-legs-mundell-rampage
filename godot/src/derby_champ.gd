@@ -159,7 +159,11 @@ static func _charge(e: Enemy, s: Dictionary, dt: float, game: Game) -> void:
 	var hit: bool = s["hit"]
 	if not hit and ahead > -.2 and ahead < e.radius + .7 and side < e.radius + .3:
 		s["hit"] = true
-		game.damage(MAD_RAM_DAMAGE if e.enraged else RAM_DAMAGE, [e.x, e.y], "RAMMED")
+		var rammed := MAD_RAM_DAMAGE if e.enraged else RAM_DAMAGE
+		if BossGearFeature.lost(game, e, "ram"):
+			# The push-bar ram shot off (features/boss_gear.gd): a bare bumper.
+			rammed = roundi(rammed * BossGearFeature.RAMLESS)
+		game.damage(rammed, [e.x, e.y], "RAMMED")
 		var off := 1.0 if px * sin(heading) - py * cos(heading) < 0.0 else -1.0
 		var throw_angle := heading + off * PI / 2.0
 		game.move_actor(p, cos(throw_angle) * 1.1, sin(throw_angle) * 1.1, GameState.PLAYER_RADIUS)

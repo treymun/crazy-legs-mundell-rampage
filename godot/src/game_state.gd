@@ -978,6 +978,10 @@ var shake_scale := 1.0
 ## DIFFICULTY setting gives. Kept for the session (every Game shares it).
 static var adapt := 1.0
 var adaptive := true
+## BOSS ARENAS WRECK (setting): the boss arenas come apart as the fights go on
+## (features/arena_wreck.gd) and gear can be shot off the bosses
+## (features/boss_gear.gd); off, the arenas and bosses stay as they were.
+var boss_wrecks := true
 ## The touch overlay is in use (main.gd sets it): aim help reaches further.
 var touch_aim := false
 ## TOUCH AUTO FIRE (game_combat.gd sights_on_enemy): its last answer. The
@@ -1275,3 +1279,49 @@ static func _prop_heights() -> Dictionary:
 			var h: float = cfg.get_value("heights", key)
 			out[key] = h
 	return out
+
+
+## Apply the look + tone passes (game_view.gd's look pass) to rows [y0, y1)
+## of `src`, writing them into `dst` starting at its row 0. Both buffers are
+## row-aligned to `y0`.
+func _look_rows(dst: PackedByteArray, src: PackedByteArray, y0: int, y1: int) -> void:
+	var grain := art.grain
+	var grit_r := _grit_r
+	var grit_g := _grit_g
+	var grit_b := _grit_b
+	var dither := _dither
+	var tone: Variant = _look_tone
+	var gain := _look_gain
+	var blast_add := _look_blast
+	var frame_index := _look_frame
+	# Yields: the reference runs look_pass over (0,0,WIDTH,VIEW) and then the
+	# brightness grade over the same rectangle, so folding the two passes
+	# together here produces identical pixels for half the memory traffic.
+	var dst_row := 0
+	var y := y0
+	while y < y1:
+		var i := y * WIDTH
+		var o := dst_row
+		var so := i * 3
+		var gx := frame_index * VIEW + y
+		var x := 0
+		while x < WIDTH:
+			var add := float(int(grain[gx]) - 2) + blast_add + dither[i]
+			var r := clampi(int(float(src[so]) * (grit_r[i] * gain) + add), 0, 255)
+			var g := clampi(int(float(src[so + 1]) * (grit_g[i] * gain) + add), 0, 255)
+			var b := clampi(int(float(src[so + 2]) * (grit_b[i] * gain) + add), 0, 255)
+			if tone != null:
+				dst[o] = tone[r]
+				dst[o + 1] = tone[g]
+				dst[o + 2] = tone[b]
+			else:
+				dst[o] = r
+				dst[o + 1] = g
+				dst[o + 2] = b
+			gx += GRAIN_STRIDE
+			i += 1
+			o += 3
+			so += 3
+			x += 1
+		dst_row += WIDTH * 3
+		y += 1

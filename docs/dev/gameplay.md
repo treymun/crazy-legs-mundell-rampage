@@ -26,6 +26,8 @@ level builder in [levels.md](levels.md).
   is the newest, under PLAY). Settings are not part of a save, so a
   default, choices, hint); `tools/check_fixes.gd` counts them (61 now;
   WEATHER and COUNTY STORM are the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (60 now; BOSS
+  ARENAS WRECK is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and

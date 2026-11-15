@@ -84,11 +84,11 @@ def _fingerprint(ob):
 def _build(kind, frame, wound, damage):
     """Pose and dress one frame; the parts placed, in order, with their prints
     and where each sits (ROOT included)."""
-    global DAMAGE, WOUND, KIND, LAST_J, NOHEAD
+    global DAMAGE, WOUND, KIND, LAST_J, NOHEAD, GEAR
     make, S, extra, own = ACTORS[kind]
     clear()
     RECORD.clear()
-    DAMAGE, WOUND, KIND, LAST_J, NOHEAD = damage, wound, kind, None, False
+    DAMAGE, WOUND, KIND, LAST_J, NOHEAD, GEAR = damage, wound, kind, None, False, ""
     make(frame)
     if wound:
         wound_marks(kind, frame)
@@ -398,11 +398,14 @@ def export(kind, meta):
     for frame, wound, name in frames[1:]:
         tracks.append(_match(rest, places[(frame, wound)], _root_for(S, frame, own)))
     # Bones: parts whose motion from the rest frame is the same in every frame.
+    # A boss's gear (enemy_actors.py gear()) is a bone of its own, so the game
+    # can shoot it off (src/features/boss_gear.gd).
     clusters = {}
     order = []
     for i, (ob, fp, w0) in enumerate(rest):
         inv = w0.inverted()
-        key = []
+        tag = ob.get("gear", "")
+        key = [("gear", tag)] if tag else []
         for t in range(len(frames)):
             w = tracks[t][i]
             if w is None:
@@ -435,12 +438,17 @@ def export(kind, meta):
                 return False
         return True
 
+    def _gear(key):
+        return key[0][1] if key and key[0][0] == "gear" else ""
+
     for key in list(order):
         members = clusters[key]
-        if not all(_round(i) for i in members):
+        if _gear(key) or not all(_round(i) for i in members):
             continue
         for other in order:
             if other == key or other not in clusters or all(_round(i) for i in clusters[other]):
+                continue
+            if _gear(other):
                 continue
             if all(_carries(other, i) for i in members):
                 clusters[other].extend(members)
@@ -509,6 +517,8 @@ def export(kind, meta):
         # The looks carry the dusk stage's light (the game adds only a turn's shade).
         "lit": True,
         "labels": {"b%d" % b: _label(c, skeleton) for b, c in enumerate(centres)},
+        # A boss's gear bones: bone -> the gear's name.
+        "gear": {"b%d" % b: _gear(key) for b, key in enumerate(order) if _gear(key)},
         # The cels' canvas (map units): the game draws a kind enemies.cfg
         # height tall for this canvas height, so a model is scaled by the same.
         "canvas": [S["canvas"][0], S["canvas"][1]],

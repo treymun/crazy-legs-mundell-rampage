@@ -67,10 +67,13 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 		var place := Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))
 		var key := "%s@%s" % [s.image, place]
 		# A thing on the move (thrown, held: features/carry.gd) keeps its model
-		# by what it is, stood again each frame, tumbling by its turn.
-		var loose := s.who != null
+		# by what it is, stood again each frame, tumbling by its turn; a prop a
+		# boss arena flings or topples (View.Sprite.track) likewise.
+		var loose := s.who != null and s.track == ""
 		if loose:
 			key = "%s#%d" % [s.image, s.who.get_instance_id()]
+		elif s.track != "":
+			key = "%s#%s" % [s.image, s.track]
 		seen[key] = true
 		var node: PropView = _shown.get(key)
 		if node != null and loose:
@@ -103,6 +106,9 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			if loose:
 				node.tumble(s.x, s.y, s.z, SolidLayer3D.godot_basis(s.turn), level, size, tall)
 				continue
+		if s.track != "":
+			node.carry(s.x, s.y, s.z, SolidLayer3D.godot_basis(s.turn))
+			continue
 		node.lean(s.tilt)
 	for key: String in _shown.keys():
 		if not seen.has(key):

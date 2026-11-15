@@ -66,6 +66,7 @@ func configure(options: Dictionary) -> void:
 	weather_feel = [1.0, .5, 0.0][clampi(feel, 0, 2)]
 	storm_on = options.get("county_storm", 1)
 	adaptive = options.get("adaptive", 1)
+	boss_wrecks = options.get("boss_wrecks", 1)
 	var cussing: int = options.get("chatter", CussLines.CUSSIN)
 	chatter = clampi(cussing, 0, 2)
 	var fov: int = options.get("fov", 0)

@@ -96,6 +96,7 @@ class Billboard:
 	var glow := false
 	var plane := NAN
 	var back := ""
+	var hidden := false  # not drawn: features/arena_wreck.gd draws it on the move
 
 
 ## Mirrors level_hickston.Portal (a hub gate or the road gate).
@@ -214,6 +215,7 @@ var door_cells := {}
 var walls_version := 0
 var solid_version := 0
 var retiled := PackedVector2Array()
+var boards_version := 0  # bumped when a board is hidden or shown (relisted)
 ## The fixed wall pieces by their edge (walls_on()), made when first asked.
 var _edge_index := {}
 var doors: Array[Door] = []

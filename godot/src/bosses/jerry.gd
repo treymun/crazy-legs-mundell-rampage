@@ -187,7 +187,8 @@ func weak_spot(e: Enemy, game: Game, hit: Vector3, _from: Vector2, how: String) 
 	if up < KNEE_LINE:
 		return KNEES
 	if up > HELMET_LINE:
-		return guarded(e, HELMET)
+		# Shot off (features/boss_gear.gd), the helmet guards nothing.
+		return guarded(e, 1.0 if BossGearFeature.lost(game, e, "helmet") else HELMET)
 	return guarded(e, 1.0)
 
 

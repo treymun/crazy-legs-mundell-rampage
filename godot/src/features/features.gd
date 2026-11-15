@@ -42,6 +42,8 @@ const ALL := [
 	preload("res://src/features/boss_rematch.gd"),
 	preload("res://src/features/boss_arena.gd"),
 	preload("res://src/features/boss_arenas.gd"),
+	preload("res://src/features/arena_wreck.gd"),
+	preload("res://src/features/boss_gear.gd"),
 	preload("res://src/features/hit_reads.gd"),
 	preload("res://src/features/critters.gd"),
 	preload("res://src/features/variants_feature.gd"),

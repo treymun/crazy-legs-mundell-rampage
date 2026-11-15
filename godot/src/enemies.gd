@@ -398,7 +398,7 @@ func hurt(
 	var champion := BOSS_TITLES.has(kind)
 	if champion and by == null:
 		# A boss's weak spot (or armour) where the player's hit struck.
-		amount *= BossKit.weak(self, game as Game, how)
+		amount *= BossKit.weak(self, game as Game, how, amount)
 	game.hit_point = Vector3.INF
 	var from_x: float = game.player.x if by == null else by.x
 	var from_y: float = game.player.y if by == null else by.y

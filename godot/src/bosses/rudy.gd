@@ -109,7 +109,13 @@ func _bearings(e: Enemy, turn: float) -> Array:
 
 func _ring(e: Enemy, game: Game, turn: float) -> void:
 	var eye: float = game.world.stand(e) + 1.05
-	for a: float in _bearings(e, turn):
+	# His shoulder horns shot off (features/boss_gear.gd): half the ring.
+	var hornless := BossGearFeature.lost(game, e, "horns")
+	var bearings := _bearings(e, turn)
+	for k in bearings.size():
+		if hornless and k % 2 == 1:
+			continue
+		var a: float = bearings[k]
 		game.launch(
 			e.x + cos(a) * .45, e.y + sin(a) * .45, eye, a, 6.2, "rudy_horn", 0.0, true, 8, 1.5
 		)
@@ -162,7 +168,7 @@ func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -
 		return 1.0
 	var up := body_height(e, game, hit)
 	var off := off_facing(e, from)
-	if up > .68 and (e.windup > 0.0 or e.volley > 0):
+	if up > .68 and (e.windup > 0.0 or e.volley > 0) and not BossGearFeature.lost(game, e, "horns"):
 		return HORNS
 	if up > .2 and up < .48 and off < 1.3:
 		return DRUM

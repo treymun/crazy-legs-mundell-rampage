@@ -27,7 +27,8 @@ func _ready() -> void:
 			"adaptive",
 			"smart_hands",
 			"weather",
-			"county_storm"
+			"county_storm",
+			"boss_wrecks"
 		]:
 			if plain.has(key):
 				sim[key] = plain[key]

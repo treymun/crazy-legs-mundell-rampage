@@ -45,6 +45,16 @@ LAST_J = None
 # A body at rest with its head taken off (`<kind>_down_headless`, frames "headless";
 # src/gore_extras.gd throws the head): the head is not drawn and a stump is.
 NOHEAD = False
+# A boss's gear that can be shot off in the 3D view (src/features/boss_gear.gd):
+# every part placed while it is set is tagged with it, and export_actors.py
+# gives those parts a bone of their own ("gear" in actors.json). Set it with
+# gear("hat") before the hat's parts and gear("") after; the cels ignore it.
+GEAR = ""
+
+
+def gear(name):
+    global GEAR
+    GEAR = name
 
 
 # ---------------------------------------------------------------- materials
@@ -263,6 +273,8 @@ def place(bm, matrix, material, smooth=True):
     bpy.context.scene.collection.objects.link(ob)
     ob.parent = ROOT
     ob.matrix_basis = matrix
+    if GEAR:
+        ob["gear"] = GEAR
     return ob
 
 
@@ -980,10 +992,12 @@ def boss(frame):
     limb((0, .215, .10), (0, .22, -.52), .008, .008, duster_dark, Tm, caps=False)
     ball((0, .07, .60), (.16, .08, .085), duster, Tm)
     # the tin star, points balled
+    gear("badge")
     star((.17, -.205, .45), .092, gold, Tm)
     for i in range(5):
         a = i * math.tau / 5
         ball((.17 + math.sin(a) * .092, -.212, .45 + math.cos(a) * .092), .015, gold, Tm)
+    gear("")
     limb((0, 0, .58), (0, -.015, .80), .05, .042, grey, Tm)
     # the great grey dome, black almond eyes with a green fire in them
     ball((0, .03, .07), (.20, .215, .20), grey, Hm)
@@ -1008,6 +1022,7 @@ def boss(frame):
         limb(knee, tip, .013, .01, grey, Hm)
         ball(tip, .04, glow, Hm)
     Hat = Hm @ T((0, .01, .13 - .015 * hurt)) @ R(-.05 - .07 * hurt, 0, .05 + .1 * hurt)
+    gear("hat")
     ball((0, 0, 0), (.46, .42, .022), felt, Hat)
     if hurt:
         # a bullet hole through the crown, a scorch on the brim; beaten, the crown caves
@@ -1025,6 +1040,7 @@ def boss(frame):
     ball((0, .01, .252), (.03, .15, .03), felt_dark, Hat)
     limb((0, 0, .012), (0, 0, .062), .198, .195, band, Hat, caps=False, seg=28)
     star((0, -.2, .037), .046, gold, Hat)
+    gear("")
     # ray pistol
     hold = {"ready": ((-.38, -.14, 1.0), (.0, -.75, -.65)), "aim": ((-.46, -.52, 1.46), (.5, -1, -.03)),
             "fire": ((-.46, -.47, 1.52), (.5, -1, .2)), "recover": ((-.31, -.42, 1.28), (.1, -.9, -.35)),
@@ -1146,6 +1162,7 @@ def jerry(frame):
     ball((0, -.162, -.10), (.062, .022, .036 if wide else .018), MOUTH(), Hm)
     box((0, -.18, -.09 + (.006 if wide else 0)), (.085, .012, .016), TOOTH(), Hm)
     # the helmet: gold shell, red stripe, a taped crack, a dent, the cage knocked crooked
+    gear("helmet")
     ball((0, .03, .07), (.185, .195, .155), shell, Hm)
     ball((0, .09, -.03), (.16, .12, .13), shell, Hm)
     ball((0, .03, .07), (.036, .207, .166), jersey, Hm)
@@ -1164,6 +1181,7 @@ def jerry(frame):
     limb((.05, -.20, -.175), (-.08, -.15, -.23), .012, .012, cage, Hm)
     limb((.012, -.216, -.07), (.03, -.20, -.18), .012, .012, cage, Hm)
     limb((.15, -.04, -.10), (.13, -.08, -.26), .01, .01, BLACK(), Hm)
+    gear("")
     # the sack of balls over his left shoulder
     ball((.22, .31, .46), (.22, .18, .30), net, Tm)
     balls = (((.16, .33, .78), (.4, .2, 1)), ((.31, .29, .74), (-.5, .3, .8)),
@@ -1304,6 +1322,7 @@ def rudy(frame):
     ball((.07, .31, .46), .026, BLACK(), Tm)
     for s in (-1, 1):
         limb((s * .14, .29, .06), (s * .16, .29, .74), .018, .018, iron, Tm)
+        gear("horns")
         base = Vector((s * .16, .28, .74))
         aim = Vector((s * .64, -.3, .66)).normalized()
         if DAMAGE and s < 0:
@@ -1318,6 +1337,7 @@ def rudy(frame):
         disc(wb + wa * .007, wa, .155, .006, horn_in)
         if frame == "fire":
             ring(wb + wa * .1, wa, .2, .011, mat(255, 226, 110, emit=2.2), n=22)
+        gear("")
     limb((-.14, .29, .74), (.14, .29, .74), .018, .018, iron, Tm)
     # head: greasy curls, a manic stare, a gold-toothed grin and a cigar
     ball((0, 0, 0), (.14, .15, .155), skin, Hm)
@@ -1344,6 +1364,7 @@ def rudy(frame):
     # a battered top hat with a chaser of bulbs round the band and a ticket in it;
     # knocked back on his head, then its crown stove in and folded over
     Hat = Hm @ T((0, .02 * DAMAGE, .115)) @ R(.05 - .12 * DAMAGE, .12 + .08 * DAMAGE, 0)
+    gear("tophat")
     ball((0, 0, 0), (.22, .22, .016), black, Hat)
     limb((0, 0, 0), (0, 0, .17), .138, .148, black, Hat, caps=False, seg=28)
     if DAMAGE == 2:
@@ -1367,6 +1388,7 @@ def rudy(frame):
         ball((math.sin(a) * .152, -math.cos(a) * .152, .042), .012 if broke else .02, lit if on else unlit, Hat)
     if DAMAGE == 2 and not J["dead"]:
         sparks(Hat @ Vector((.15, -.06, .05)), (.5, -.5, .4), 5, .16)
+    gear("")
     # megaphone and cane
     hold = {"ready": ((-.36, -.22, 1.04), (-.3, -.6, .75)), "aim": ((-.11, -.24, 1.47), (-.36, -.93, -.04)),
             "fire": ((-.11, -.22, 1.50), (-.36, -.93, .06)), "recover": ((-.27, -.31, 1.26), (-.3, -.8, .4)),
@@ -1505,6 +1527,7 @@ def foreman(frame):
         ball((-.155, -.244, -.117), .019, mat(255, 120, 50, emit=2.0), Hm)
     limb((-.14, -.07, .05), (-.15, .07, .03), .01, .01, mat(226, 190, 60, .7), Hm)
     # hard hat: a dome with a ridge, a lamp, a sticker and a dent
+    gear("hardhat")
     ball((0, 0, .085), (.165, .18, .135), hat, Hm)
     ball((0, 0, .06), (.20, .215, .017), hat, Hm)
     ball((0, -.16, .066), (.14, .10, .017), hat, Hm, (-.10, 0, 0))
@@ -1522,6 +1545,7 @@ def foreman(frame):
               Hm, BLACK(), .008 + .004 * DAMAGE)
     else:
         disc(c + n * .02, n, .034, .01, mat(255, 236, 170, emit=2.2 if hot else 1.2))
+    gear("")
     # the buzz saw arm and the axe
     arm_t = {"ready": ((-.46, -.36, -.40), (0, -.8, -.6)), "aim": ((-.42, -.52, -.12), (.15, -1, .1)),
              "fire": ((-.36, -.62, -.10), (.2, -1, 0)), "recover": ((-.44, -.46, -.25), (.1, -.9, -.3)),
@@ -1696,10 +1720,12 @@ def baron(frame):
     wide = frame in ("pain", "fire") or J["dead"]
     ball((0, -.15, -.125), (.05, .02, .03 if wide else .014), MOUTH(), Hm)
     box((-.02, -.165, -.118), (.018, .01, .016), BRASS(), Hm)
+    gear("monocle")
     ring((-.058, -.168, .04), (0, 1, 0), .036, .008, BRASS(), n=14, M=Hm)
     limb(Hm @ Vector((-.09, -.17, .02)), Tm @ Vector((-.14, -.36, .50)), .005, .005, BRASS())
     # a soot-black top hat with a copper band, a gauge and a vent of its own
     Hat = Hm @ T((0, .02, .10)) @ R(-.04, .10, 0)
+    gear("tophat")
     ball((0, 0, 0), (.22, .23, .018), hat_c, Hat)
     for s in (-1, 1):
         ball((s * .185, 0, .03), (.06, .19, .016), hat_c, Hat, (0, -s * .6, 0))
@@ -1715,6 +1741,7 @@ def baron(frame):
     disc(hc + hn * .01, hn, .03, .02, mat(214, 206, 180, .5, grime=.2))
     limb((.06, .02, .33), (.065, .02, .41), .026, .03, copper, Hat, caps=False)
     ring((.065, .02, .41), (0, 0, 1), .03, .008, BRASS(), n=10, M=Hat)
+    gear("")
     # steam hose and the jug
     hold_t = {"ready": ((-.50, -.30, -.44), (.1, -.8, -.5)), "aim": ((-.44, -.52, -.18), (.3, -1, 0)),
               "fire": ((-.42, -.58, -.15), (.3, -1, .05)), "recover": ((-.46, -.46, -.28), (.2, -.9, -.3)),

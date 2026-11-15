@@ -227,6 +227,7 @@ def swamp_king(frame):
             ball((s * .69, -1.25 + k * .28, .32 + bob), .022, BRASS(), B)
     box((0, .1, .29 + bob), (1.2, 1.6, .04), mat(*GREY_WOOD_A, .9, grime=.5), B)
     # the bow shield: a steel plate painted into a grin
+    gear("shield")
     box((0, -.95, .62 + bob), (1.25, .07, .62), steel, B)
     box((0, -.99, .62 + bob), (1.1, .02, .26), red, B)
     for k in range(8):
@@ -236,6 +237,7 @@ def swamp_king(frame):
     for s in (-1, 1):
         ball((s * .42, -1.0, .86 + bob), (.08, .02, .06), mat(220, 196, 60, .3, emit=.6 if hot else 0.), B)
         ball((s * .42, -1.01, .86 + bob), (.02, .01, .05), BLACK(), B)
+    gear("")
     # engine, exhaust and the caged prop behind him
     box((0, .95, .62 + bob), (.6, .5, .5), dark, B)
     box((0, .95, .9 + bob), (.5, .4, .1), red, B)
@@ -299,12 +301,14 @@ def swamp_king(frame):
     Tm, Hm = J["torso"], J["head"]
     tin = mat(200, 168, 70, .35, .85, grime=.45)
     crown = Hm @ T((.02 * DAMAGE, .0, .15 - .01 * DAMAGE)) @ R(-.08 * DAMAGE, .22 * DAMAGE, 0)
+    gear("crown")
     limb(crown @ Vector((0, 0, 0)), crown @ Vector((0, 0, .07)), .135, .14, tin, caps=False, seg=24)
     for k in range(7):
         a = k * math.tau / 7
         p = crown @ Vector((math.sin(a) * .135, -math.cos(a) * .135, .06))
         limb(p, p + Vector((0, 0, .1)), .03, .004, tin, caps=False, seg=5)
         ball(crown @ Vector((math.sin(a) * .14, -math.cos(a) * .14, .03)), .016, mat(*((170, 30, 30) if k % 2 else (40, 120, 60)), .3, grime=0))
+    gear("")
     for s in (-1, 1):
         ball(Hm @ Vector((s * .135, 0, .01)), (.04, .06, .065), red)
     limb(Hm @ Vector((-.13, 0, .06)), Hm @ Vector((.13, 0, .06)), .012, .012, dark)

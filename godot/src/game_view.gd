@@ -28,6 +28,7 @@ func _fixed_key() -> Array:
 		drums.keys().hash() if drums.size() < 64 else drums.size(),
 		gallery != null,
 		props.size(),
+		world.boards_version,
 	]
 
 
@@ -35,6 +36,8 @@ func _list_fixed() -> void:
 	# The Crossroads is its own level (data/hub.json): everything in it shows.
 	var sprites: Array = props.duplicate()
 	for board: LevelData.Billboard in world.billboards:
+		if board.hidden:
+			continue  # taken over by a boss arena's wreck (features/arena_wreck.gd)
 		var image := board.image
 		if board.signal_name == "legacy-key":
 			if legacy_key_route:
@@ -659,6 +662,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		"marks": marks_list,
 		"ground": marks,
 		"reflection": reflection(),
+		"gear_lost": BossGearFeature.lost_of(me),
 	}
 	c.begin_layer()
 	var t2 := Time.get_ticks_usec()
@@ -1064,51 +1068,6 @@ func _look_worker(src: PackedByteArray, slot: int) -> PackedByteArray:
 	part.resize((y1 - y0) * WIDTH * 3)
 	_look_rows(part, src, y0, y1)
 	return part
-
-
-## Apply the look + tone passes to rows [y0, y1) of `src`, writing them into
-## `dst` starting at its row 0. Both buffers are row-aligned to `y0`.
-func _look_rows(dst: PackedByteArray, src: PackedByteArray, y0: int, y1: int) -> void:
-	var grain := art.grain
-	var grit_r := _grit_r
-	var grit_g := _grit_g
-	var grit_b := _grit_b
-	var dither := _dither
-	var tone: Variant = _look_tone
-	var gain := _look_gain
-	var blast_add := _look_blast
-	var frame_index := _look_frame
-	# Yields: the reference runs look_pass over (0,0,WIDTH,VIEW) and then the
-	# brightness grade over the same rectangle, so folding the two passes
-	# together here produces identical pixels for half the memory traffic.
-	var dst_row := 0
-	var y := y0
-	while y < y1:
-		var i := y * WIDTH
-		var o := dst_row
-		var so := i * 3
-		var gx := frame_index * VIEW + y
-		var x := 0
-		while x < WIDTH:
-			var add := float(int(grain[gx]) - 2) + blast_add + dither[i]
-			var r := clampi(int(float(src[so]) * (grit_r[i] * gain) + add), 0, 255)
-			var g := clampi(int(float(src[so + 1]) * (grit_g[i] * gain) + add), 0, 255)
-			var b := clampi(int(float(src[so + 2]) * (grit_b[i] * gain) + add), 0, 255)
-			if tone != null:
-				dst[o] = tone[r]
-				dst[o + 1] = tone[g]
-				dst[o + 2] = tone[b]
-			else:
-				dst[o] = r
-				dst[o + 1] = g
-				dst[o + 2] = b
-			gx += GRAIN_STRIDE
-			i += 1
-			o += 3
-			so += 3
-			x += 1
-		dst_row += WIDTH * 3
-		y += 1
 
 
 func _grade_view(c: Canvas) -> void:

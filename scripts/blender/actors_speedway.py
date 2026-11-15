@@ -385,9 +385,12 @@ def _derby_car(frame):
         # sprung by a blast, then blown up and flapping
         hood_open = max(hood_open, (0., .07, .34)[DAMAGE])
     hinge = Vector((0, -.32, .79 - crumple))
+    gear("hood")
     box((0, -.37, -.0), (1.28, .74, .05), primer, M @ T(hinge) @ R(-hood_open, 0, 0))
+    gear("trunk")
     box((0, .95, .80 - crumple), (1.28, .48, .05), primer, M)
     box((0, 1.19, .46), (1.42, .08, .14), chrome, M)
+    gear("")
     for s in (-1, 1):
         box((s * .5, 1.2, .64), (.2, .04, .08), mat(200, 30, 26, emit=.6 if frame == "aim" else .2), M)
     # The grille and headlights, and rust where the paint gave up.
@@ -416,12 +419,14 @@ def _derby_car(frame):
     # Crude flames up the hood and down both sides, and the double-nought on the doors.
     if burn < 3:
         hood_m = M @ T(hinge) @ R(-hood_open, 0, 0)
+        gear("hood")
         for k, x in enumerate((-.45, -.18, .1, .38)):
             ang = (-.25, .1, -.1, .22)[k]
             u = (hood_m.to_3x3() @ Vector((math.sin(ang), 1, 0))).normalized()
             n = (hood_m.to_3x3() @ Vector((0, 0, 1))).normalized()
             _tongue(hood_m @ Vector((x, -.7, .03)), u, n, n.cross(u).normalized(), .5 + .1 * (k % 2), .07,
                     red, orange)
+        gear("")
         for s in (-1, 1):
             n = (M.to_3x3() @ Vector((s, 0, 0))).normalized()
             for k, z in enumerate((.52, .64, .74)):
@@ -502,6 +507,7 @@ def _derby_car(frame):
     # The push-bar ram: I-beams, spikes, the steer horns over it.
     bent = R(0, -.03 * DAMAGE, .05 * burn + .05 * DAMAGE)
     ram = M @ bent
+    gear("ram")
     for z in (.44, .76):
         box((0, -1.25, z), (1.62, .05, .1), hazard if burn < 3 else steel, ram)
         box((0, -1.22, z), (1.62, .04, .1), steel, ram)
@@ -519,6 +525,7 @@ def _derby_car(frame):
         for k, (a, b) in enumerate(zip(pts, pts[1:])):
             limb(ram @ a, ram @ b, .046 - .012 * k, .034 - .012 * k,
                  mat(70, 50, 34, .7) if k == 2 else ivory)
+    gear("")
 
     # What each frame adds: dust when it revs or lurches, sparks and steam when hurt, fire as it dies.
     if frame in ("aim", "wind", "fire"):

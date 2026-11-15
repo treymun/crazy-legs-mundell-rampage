@@ -232,11 +232,15 @@ func frame(game: Game) -> void:
 	var slabbed: Array = []
 	var solid: Array = []
 	var wrecked: Array = []
+	var gear: Array = []
 	var listed: Array = view["sprites"]
 	for item: Variant in listed:
 		var s: View.Sprite = item if item is View.Sprite else null
 		if s != null and WreckLayer3D.takes(s):
 			wrecked.append(s)
+		elif s != null and s.gear != "" and s.who is Enemy:
+			if not cels:
+				gear.append(s)
 		elif s != null and SolidLayer3D.takes(s):
 			solid.append(s)
 		elif s != null and not cels and s.who is Enemy and actors.takes(s, s.who as Enemy):
@@ -249,7 +253,9 @@ func frame(game: Game) -> void:
 			pictures.append(item)
 	var fresh := props.show_props(modelled, level)
 	fresh.append_array(wrecks.show_wrecks(wrecked, level))
-	fresh.append_array(actors.show_actors(acting, level, game.clock, game.gore_fx.lost))
+	var gear_lost: Dictionary = view.get("gear_lost", {})
+	fresh.append_array(actors.show_actors(acting, level, game.clock, game.gore_fx.lost, gear_lost))
+	fresh.append_array(actors.show_gear(gear, level))
 	# The player in the mirror: their model when they have one, else their picture.
 	var reflection: View.Sprite = null
 	if mirror:

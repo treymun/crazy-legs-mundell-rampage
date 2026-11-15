@@ -145,12 +145,18 @@ static func tick(e: Enemy, dt: float, game: Game) -> bool:
 
 
 ## How much the player's hit on a boss counts (Enemy.hurt, before the damage
-## is taken): its weak_spot() at game.hit_point; 1 when the point is not known.
-static func weak(e: Enemy, game: Game, how: String) -> float:
+## is taken): its weak_spot() at game.hit_point, times what the gear it
+## struck makes of it (features/boss_gear.gd: armour soaks while it is on, a
+## spot it bared counts more; the hit's `amount` wears the gear); 1 when the
+## point is not known.
+static func weak(e: Enemy, game: Game, how: String, amount := 0.0) -> float:
 	var hit: Vector3 = game.hit_point
 	if hit == Vector3.INF:
 		return 1.0
 	var times := maxf(0.0, moves(e.kind).weak_spot(e, game, hit, game.hit_from, how))
+	var gear: BossGearFeature = game.features.get("boss_gear")
+	if gear != null:
+		times *= gear.struck(e, hit, game.hit_from, amount)
 	if times > 1.0:
 		_weak_feedback(e, game, hit)
 	return times

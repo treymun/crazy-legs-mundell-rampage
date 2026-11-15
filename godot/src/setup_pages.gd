@@ -300,6 +300,15 @@ static func build() -> Array:
 					1,
 					"EASES OFF A LITTLE AFTER EACH DEATH, PUSHES BACK WHEN YOU FINISH IN GOOD SHAPE"
 				),
+				(
+					SessionStore
+					. toggle(
+						"BOSS ARENAS WRECK",
+						"boss_wrecks",
+						1,
+						"BOSSES TEAR UP THEIR ARENAS AND YOU CAN SHOOT THEIR GEAR OFF. OFF: CLASSIC FIGHTS"
+					)
+				),
 				SessionStore.choices(
 					"NEXT RUN SUPPLIES",
 					"supply_rule",

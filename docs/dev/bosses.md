@@ -127,6 +127,58 @@ times (`boss_rematch_check.gd -- bot`, now with `diff=` and `runs=`) set
 their PAR. Maw's own fight is described in
 [gameplay.md](gameplay.md#levels-in-play) (the Mothership).
 
+## The arenas wreck and the gear comes off
+
+BOSS ARENAS WRECK (setting, on by default, PLAY; `game.boss_wrecks`, carried
+like DIFFICULTY): off, the fights are as before.
+
+- **The arenas come apart** (`features/arena_wreck.gd`, bosses.cfg
+  `[arena_wreck]`). Each boss has steps that fire as its health falls past
+  their `at` (the phase lines .5 and .2 among them; Maw's two thirds), some
+  again every few of its attacks (`every`). `topple`: a prop the level
+  stands there shakes over its painted lane, goes over along it, flattens
+  whoever is in the lane (the boss twice as hard, a stun: lure him) and lies
+  as cover (a row of low boxes, `LevelData.add_volume`; bodies and shots
+  stop at them); its own base leaves the way. `fall`: a hanging lamp lets go
+  over a closing ring and lies where it lands. `scatter`: the props named
+  near the boss are flung (Tumble) and land elsewhere as cover. `wave`: a
+  ring rolls across the water from him, shoving and wetting whoever it meets.
+  `blowout`: the windows round a spot blow out (`wall_breaks.blast`). By
+  arena: the rodeo's searchlight, then the saucer's pylons; the Hogs'
+  generator, grill, then the scoreboard; the big top's rigging lamps and
+  searchlights; the saw floor's shop lamps, the engine hoist and the belt
+  conveyor; the still house's lamps, windows and the two copper vats; the
+  lagoon's lantern posts (the stilts going), the waves and the dead snag; the
+  bowl's crushed stacks and wrecks (each few of his attacks) and the last
+  floodlight tower; the core's pods. The props are drawn as their models on
+  the move (`View.Sprite.track`); a board taken over is
+  `LevelData.Billboard.hidden`, a lamp a `game.props` sprite taken away.
+  Play: no dice, carried (SIM_FEATURES) and a fact (FACT_FEATURES: restore
+  puts the cover, the hidden boards and the lamps right). The boss
+  checkpoint's retry calls `reset()` (`BossDoor.at_door`); a rematch is a
+  fresh game. `tools/wreck_lanes.gd` lists the open ways each prop can go
+  over.
+- **Gear shot off** (`features/boss_gear.gd`, bosses.cfg `[boss_gear]`): a
+  hit where a piece sits (a band of the boss's height, front, back or any
+  side) wears it by its damage (`BossKit.weak` asks `struck`); worn it soaks
+  that hit by `armour`, worn out it flies off as a piece of the model,
+  tumbles and lies on the floor, and a hit there counts `bare`. Some come off
+  by themselves (`falls`: the derby truck sheds hood, trunk lid and ram as he
+  is beaten). What changes: Jerry's helmet stops guarding (head 1.3x), Rudy's
+  shoulder horns off end their weak spot and halve his finale ring, the
+  foreman's hard hat and the King's bow shield soak until gone, Boggs's rams
+  bite `ramless` (.6) once the ram is off; hats, the tin star, the monocle,
+  the crown and Maw's curlers and glasses fly for the fun of it. Carried and
+  saved; the checkpoint's retry puts every piece back.
+- `tools/arena_wreck_check.gd` (in check_fixes) holds both for all eight;
+  `tools/wreck_frames.gd` (a window) takes pictures of each step and of the
+  gear coming off. In `docs/godot3d/features/F/` each sheet is a step read
+  left to right, then down (before, its warning, going over, lying as
+  cover: the Baron's vats, a saucer pylon, Jerry's scoreboard, a lagoon
+  lantern post, a core pod, the derby wrecks flung) or the gear (on,
+  flying, off, each piece lying: the sheriff's hat and star, Boggs's
+  panels).
+
 ## The bosses' art wears the fight
 
 `src/boss_looks.gd`, called from `Enemy.sprite()` for bosses only.

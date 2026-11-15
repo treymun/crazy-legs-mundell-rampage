@@ -217,6 +217,18 @@ func lose(lost: Array) -> void:
 					skeleton.set_bone_pose_scale(i, Vector3(.001, .001, .001))
 
 
+## Leave off the gear the boss lost (features/boss_gear.gd: a hat, a badge,
+## armour plates), each gear's bones shrunk away as a lost limb's are. After
+## each pose.
+func lose_gear(names: Array) -> void:
+	for name: String in names:
+		for bone: String in models.gear_bones(kind, name):
+			for skeleton in _skeletons:
+				var i := skeleton.find_bone(bone)
+				if i >= 0:
+					skeleton.set_bone_pose_scale(i, Vector3(.001, .001, .001))
+
+
 ## [frame name, look, tint] from a sprite's picture name: `<stem>[_p2|_p3|
 ## _hurt][_<heading>]_<frame>[~r.g.b]`.
 static func pose_of(image: String, stem: String) -> Array:

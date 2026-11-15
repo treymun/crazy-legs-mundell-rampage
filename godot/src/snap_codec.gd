@@ -58,6 +58,11 @@ const SKIP_FIELDS := {
 	],
 	"stills": ["_cfg", "_images"],
 	"vehicles": ["_looks"],
+	# A boss arena's wreck: its steps and their bosses (the level makes them
+	# the same everywhere), the lamps it took (sprites, to put back), when the
+	# next water ring shows, how a flung prop moves; the gear's feels.
+	"arena_wreck": ["steps", "foes", "_taken", "_ring_next", "_fly_feel"],
+	"boss_gear": ["_feels"],
 	# Looks kept in a simulation feature: the specks' own dice (how many a
 	# hit throws hangs on the specks already about, which are never carried)
 	# and when HEADSHOT! was last called (this machine's callouts).
