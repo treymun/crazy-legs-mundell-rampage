@@ -10,6 +10,8 @@
 class_name CountyMoves
 extends RefCounted
 
+const CountyRun := preload("res://src/features/county_run.gd")
+
 ## A varmint this tough or tougher counts for HEAVY HAND and CALLED SHOT.
 static var TOUGH: float = ModeData.get_value("county_moves", "tough")
 ## Seconds after a crowd thins that BREAKAWAY still counts it as escaped.
@@ -25,7 +27,8 @@ static func gun_of_shot(kind: String) -> int:
 
 
 static func _streak_gun(gun: int) -> bool:
-	return String(Weapons.FIRING[gun].get("fire", "")) == "hitscan"
+	var how: Dictionary = Weapons.FIRING[gun]
+	return str(how.get("fire", "")) == "hitscan"
 
 
 # ------------------------------------------------------------------ shots
@@ -33,7 +36,7 @@ static func _streak_gun(gun: int) -> bool:
 
 ## A shot just went (before its pellets or round fly): the time to the next,
 ## the streak's bookkeeping, EXTRA BUCK's pellets, STEADY STOCK's climb.
-static func fired(game, f, gun: int) -> void:
+static func fired(game: Game, f: CountyRun, gun: int) -> void:
 	var a: Weapons.Armory = game.armory
 	a.cooldown *= CountyBuild.fire_scale(f, gun, game.clock < f.guard_until)
 	if _streak_gun(gun):
@@ -43,7 +46,7 @@ static func fired(game, f, gun: int) -> void:
 		f.pitch_before = game.player.pitch
 	var how: Dictionary = Weapons.FIRING[gun]
 	var extra := CountyBuild.extra_pellets(f, gun) * maxi(1, a.last_spent)
-	if extra > 0 and String(how.get("fire", "")) == "pellets":
+	if extra > 0 and str(how.get("fire", "")) == "pellets":
 		var p: Player = game.player
 		var aim: float = p.view_angle()
 		var slope: float = (p.pitch + p.sway) / View.base_focal
@@ -52,43 +55,42 @@ static func fired(game, f, gun: int) -> void:
 		for k in extra:
 			var dx: float = game.rng.randf_range(-spread.x, spread.x)
 			var dy: float = game.rng.randf_range(-spread.y, spread.y)
-			game.hitscan(
-				aim + dx,
-				slope + dy,
-				int(how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)),
-				tuned[1],
-				float(how["width"]),
-				false
-			)
+			var pellet: int = how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)
+			var reach: float = tuned[1]
+			var width: float = how["width"]
+			game.hitscan(aim + dx, slope + dy, pellet, reach, width, false)
 
 
 ## A player's hit about to land on `e`, `d` cells off: what it does now.
-static func hit_amount(game, f, e: Enemy, amount: float, d: float) -> float:
+static func hit_amount(game: Game, f: CountyRun, e: Enemy, amount: float, d: float) -> float:
 	var gun: int = game.armory.active
 	amount *= CountyBuild.damage_scale(f, gun)
 	var choke := CountyBuild.rank(f, gun, "tight_choke")
 	if choke > 0 and d >= 3.0 and d <= 9.0:
-		amount *= 1.0 + float(CountyData.upgrade("tight_choke").get("bonus", .12)) * choke
+		var bonus: float = CountyData.upgrade("tight_choke").get("bonus", .12)
+		amount *= 1.0 + bonus * choke
 	var eye := CountyBuild.rank(f, gun, "deadeye")
 	if eye > 0:
 		var spec := CountyData.upgrade("deadeye")
-		amount *= 1.0 + float(spec.get("per", .06)) * eye * mini(f.streak, int(spec.get("most", 5)))
+		var per: float = spec.get("per", .06)
+		var most: int = spec.get("most", 5)
+		amount *= 1.0 + per * eye * mini(f.streak, most)
 	var called := CountyBuild.rank(f, gun, "called_shot")
 	if called > 0 and e.max_hp >= TOUGH and e.uid != 0 and f.called_uid == e.uid:
 		var spec := CountyData.upgrade("called_shot")
-		amount *= (
-			1.0
-			+ float(spec.get("per", .05)) * called * mini(f.called_hits, int(spec.get("most", 8)))
-		)
+		var per: float = spec.get("per", .05)
+		var most: int = spec.get("most", 8)
+		amount *= 1.0 + per * called * mini(f.called_hits, most)
 	if gun == Weapons.REVOLVER and f.six_ready and CountyBuild.has(f, "six_shooter"):
-		amount *= float(CountyData.milestone("six_shooter").get("times", 2.0))
+		var times: float = CountyData.milestone("six_shooter").get("times", 2.0)
+		amount *= times
 	return amount
 
 
 ## After a player's hit landed on `e` (d cells along ax, ay): the streaks
 ## count it, and it goes through, swings wide or shoves as the build says.
 static func hit_after(
-	game, f, e: Enemy, amount: float, d: float, ax: float, ay: float, slope: float
+	game: Game, f: CountyRun, e: Enemy, amount: float, d: float, ax: float, ay: float, slope: float
 ) -> void:
 	var gun: int = game.armory.active
 	var first: bool = f.shot_gun == gun and not f.shot_hit
@@ -109,15 +111,18 @@ static func hit_after(
 				_pierce(game, e, d, ax, ay, slope, amount, gun)
 			else:
 				f.six_hits += 1
-				if f.six_hits >= int(CountyData.milestone("six_shooter").get("hits", 4)):
+				var hits: int = CountyData.milestone("six_shooter").get("hits", 4)
+				if f.six_hits >= hits:
 					f.six_ready = true
 					game.sound.play("rev_lock", .9)
 					Modes.say(game, "SHOWDOWN CHARGED.", 1.0)
 	var heavy := CountyBuild.rank(f, gun, "heavy_hand")
 	if heavy > 0 and e.alive and e.max_hp >= TOUGH:
 		var spec := CountyData.upgrade("heavy_hand")
-		if d <= float(spec.get("reach", 5.0)):
-			e.stun = maxf(e.stun, float(spec.get("per", .2)) * heavy)
+		var reach: float = spec.get("reach", 5.0)
+		if d <= reach:
+			var per: float = spec.get("per", .2)
+			e.stun = maxf(e.stun, per * heavy)
 			e.windup = 0.0
 			shove(game, e, .3)
 	if CountyData.kind_of(gun) == CountyData.MELEE:
@@ -127,7 +132,8 @@ static func hit_after(
 		var push := CountyBuild.rank(f, gun, "crowd_control")
 		if push > 0 and e.alive:
 			e.stun = maxf(e.stun, .35)
-			shove(game, e, float(CountyData.upgrade("crowd_control").get("per", .35)) * push)
+			var per: float = CountyData.upgrade("crowd_control").get("per", .35)
+			shove(game, e, per * push)
 	# The side guns' own: rivets through, steam's stun and scald, sour milk.
 	var through := CountyBuild.value(f, gun, "hot_rivets")
 	if through > 0.0:
@@ -141,17 +147,15 @@ static func hit_after(
 		for other: Enemy in game.enemies:
 			if other != e and other.alive and other.hostile:
 				if Vector2(other.x - e.x, other.y - e.y).length() < 1.2:
-					other.hurt(amount * scald, game, false, false, null, String(Weapons.NAMES[gun]))
-	if (
-		CountyBuild.has(f, "buckshot_breaker")
-		and String(Weapons.FIRING[gun].get("fire", "")) == "pellets"
-	):
-		var share := float(CountyData.milestone("buckshot_breaker").get("share", .55))
+					other.hurt(amount * scald, game, false, false, null, str(Weapons.NAMES[gun]))
+	var how: Dictionary = Weapons.FIRING[gun]
+	if CountyBuild.has(f, "buckshot_breaker") and str(how.get("fire", "")) == "pellets":
+		var share: float = CountyData.milestone("buckshot_breaker").get("share", .55)
 		_pierce(game, e, d, ax, ay, slope, amount * share, gun)
 
 
 ## Pushes `e` `reach` cells straight away from the player (walls stop it).
-static func shove(game, e: Enemy, reach: float) -> void:
+static func shove(game: Game, e: Enemy, reach: float) -> void:
 	var p: Player = game.player
 	var away := atan2(e.y - p.y, e.x - p.x)
 	var steps := maxi(1, ceili(reach / .2))
@@ -162,11 +166,12 @@ static func shove(game, e: Enemy, reach: float) -> void:
 ## The next varmint along the shot past `first` (seen, within the gun's
 ## range) takes `amount`.
 static func _pierce(
-	game, first: Enemy, d: float, ax: float, ay: float, slope: float, amount: float, gun: int
+	game: Game, first: Enemy, d: float, ax: float, ay: float, slope: float, amount: float, gun: int
 ) -> void:
 	var p: Player = game.player
-	var reach := float(Weapons.FIRING[gun].get("range", 20.0))
-	var width := float(Weapons.FIRING[gun].get("width", .05))
+	var how: Dictionary = Weapons.FIRING[gun]
+	var reach: float = how.get("range", 20.0)
+	var width: float = how.get("width", .05)
 	var best: Enemy = null
 	var near := reach
 	for e: Enemy in game.enemies:
@@ -188,16 +193,18 @@ static func _pierce(
 			best = e
 			near = along
 	if best != null:
-		best.hurt(amount, game, false, false, null, String(Weapons.NAMES[gun]))
+		best.hurt(amount, game, false, false, null, str(Weapons.NAMES[gun]))
 		game.burst(best.x, best.y, p.eye + near * slope, "gore", 3, 1.0)
 
 
-static func _swing_wide(game, f, struck: Enemy, amount: float, count: int, gun: int) -> void:
+static func _swing_wide(
+	game: Game, f: CountyRun, struck: Enemy, amount: float, count: int, gun: int
+) -> void:
 	var p: Player = game.player
-	var share := float(CountyData.upgrade("wide_swing").get("share", .7))
-	var reach := (
-		float(Weapons.FIRING[gun].get("melee_range", 1.65)) * CountyBuild.reach_scale(f, gun) + .4
-	)
+	var share: float = CountyData.upgrade("wide_swing").get("share", .7)
+	var how: Dictionary = Weapons.FIRING[gun]
+	var melee_range: float = how.get("melee_range", 1.65)
+	var reach := melee_range * CountyBuild.reach_scale(f, gun) + .4
 	var fx := cos(p.view_angle())
 	var fy := sin(p.view_angle())
 	var near: Array = []
@@ -213,18 +220,24 @@ static func _swing_wide(game, f, struck: Enemy, amount: float, count: int, gun: 
 			continue
 		if game.world.visible(p.x, p.y, e.x, e.y):
 			near.append([d, e])
-	near.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+	near.sort_custom(
+		func(a: Array, b: Array) -> bool:
+			var a_d: float = a[0]
+			var b_d: float = b[0]
+			return a_d < b_d
+	)
 	for k in mini(count, near.size()):
 		var e: Enemy = near[k][1]
-		e.hurt(amount * share, game, false, false, null, String(Weapons.NAMES[gun]))
+		e.hurt(amount * share, game, false, false, null, str(Weapons.NAMES[gun]))
 		var push := CountyBuild.rank(f, gun, "crowd_control")
 		if push > 0 and e.alive:
-			shove(game, e, float(CountyData.upgrade("crowd_control").get("per", .35)) * push)
+			var per: float = CountyData.upgrade("crowd_control").get("per", .35)
+			shove(game, e, per * push)
 
 
 ## One of the player's blasts going off: a fresh shot gets CHAIN REACTION's
 ## allowance, a follow-up blast spends its shot's.
-static func blast_began(f, kind: String) -> void:
+static func blast_began(f: CountyRun, kind: String) -> void:
 	if kind == CHAIN:
 		f.blast_origin = f.chain_origin
 		return
@@ -232,10 +245,13 @@ static func blast_began(f, kind: String) -> void:
 	f.blast_origin = f.chain_serial
 	if f.chain_left.size() > 64:
 		f.chain_left.clear()
-	f.chain_left[f.blast_origin] = int(CountyData.milestone("chain_reaction").get("most", 3))
+	var most: int = CountyData.milestone("chain_reaction").get("most", 3)
+	f.chain_left[f.blast_origin] = most
 
 
-static func blast_tuning(_game, f, shot, radius: float, strength: float) -> Array:
+static func blast_tuning(
+	_game: Game, f: CountyRun, shot: GameState.Shot, radius: float, strength: float
+) -> Array:
 	var gun := gun_of_shot(String(shot.kind))
 	if gun < 0:
 		return [radius, strength, 0.0, 0.0]
@@ -243,18 +259,15 @@ static func blast_tuning(_game, f, shot, radius: float, strength: float) -> Arra
 	strength *= CountyBuild.damage_scale(f, gun)
 	var shaped := CountyBuild.rank(f, gun, "shaped_charge")
 	var spec := CountyData.upgrade("shaped_charge")
-	return [
-		radius,
-		strength,
-		float(spec.get("per", .25)) * shaped,
-		float(spec.get("edge", .06)) * shaped
-	]
+	var per: float = spec.get("per", .25)
+	var edge: float = spec.get("edge", .06)
+	return [radius, strength, per * shaped, edge * shaped]
 
 
 # ------------------------------------------------------------------ kills
 
 
-static func killed(game, f, e: Enemy) -> void:
+static func killed(game: Game, f: CountyRun, e: Enemy) -> void:
 	if not e.hostile:
 		return
 	CountyOrbs.drop(game, f, e)
@@ -263,8 +276,10 @@ static func killed(game, f, e: Enemy) -> void:
 		return
 	if CountyBuild.has(f, "chain_reaction") and e.killed_by == "blast" and f.blast_mine:
 		var origin: int = f.blast_origin
-		if int(f.chain_left.get(origin, 0)) > 0:
-			f.chain_left[origin] = int(f.chain_left[origin]) - 1
+		var chain_left: int = f.chain_left.get(origin, 0)
+		if chain_left > 0:
+			var left: int = f.chain_left[origin]
+			f.chain_left[origin] = left - 1
 			f.chains.append([e.x, e.y, game.world.stand(e) + .3, f.run_time + .14, origin])
 	# ARC BOLT: an arm gun kill arcs to the nearest varmint near it.
 	var arc := CountyBuild.value(f, Weapons.ARMGUN, "arc_bolt")
@@ -287,7 +302,8 @@ static func killed(game, f, e: Enemy) -> void:
 		and CountyData.kind_of(gun) == CountyData.MELEE
 	):
 		var was: bool = game.clock < f.guard_until
-		f.guard_until = game.clock + float(CountyData.milestone("last_stand").get("seconds", 3.5))
+		var seconds: float = CountyData.milestone("last_stand").get("seconds", 3.5)
+		f.guard_until = game.clock + seconds
 		if not was:
 			Modes.say(game, "LAST STAND!", 1.0)
 
@@ -295,14 +311,14 @@ static func killed(game, f, e: Enemy) -> void:
 # ------------------------------------------------------------------ every tick
 
 
-static func tick(game, f, dt: float) -> void:
+static func tick(game: Game, f: CountyRun, dt: float) -> void:
 	streaks(f)
 	hands(game, f, dt)
 	world(game, f, dt)
 
 
 ## The shot just fired missed: the streaks start over.
-static func streaks(f) -> void:
+static func streaks(f: CountyRun) -> void:
 	if f.shot_gun >= 0:
 		if not f.shot_hit:
 			# A miss: the streaks start over.
@@ -316,7 +332,7 @@ static func streaks(f) -> void:
 
 ## The acting player's part of a tick: STEADY STOCK, QUICK HANDS, their shots'
 ## damage, their MUDSLIDE, BREAKAWAY.
-static func hands(game, f, dt: float) -> void:
+static func hands(game: Game, f: CountyRun, dt: float) -> void:
 	var a: Weapons.Armory = game.armory
 	var p: Player = game.player
 	var steady := CountyBuild.value(f, a.active, "steady_stock")
@@ -343,19 +359,20 @@ static func hands(game, f, dt: float) -> void:
 
 
 ## The world's part: CHAIN REACTION's blasts going off.
-static func world(game, f, _dt: float) -> void:
+static func world(game: Game, f: CountyRun, _dt: float) -> void:
 	if not f.chains.is_empty():
 		var left: Array = []
 		for c: Array in f.chains:
-			if f.run_time < float(c[3]):
+			var at: float = c[3]
+			if f.run_time < at:
 				left.append(c)
 				continue
-			f.chain_origin = int(c[4])
-			game.explode(
-				GameState.Shot.new(
-					float(c[0]), float(c[1]), float(c[2]), 0.0, 0.0, 0.0, CHAIN, 0.0, false, 0
-				)
-			)
+			var origin: int = c[4]
+			f.chain_origin = origin
+			var cx: float = c[0]
+			var cy: float = c[1]
+			var cz: float = c[2]
+			game.explode(GameState.Shot.new(cx, cy, cz, 0.0, 0.0, 0.0, CHAIN, 0.0, false, 0))
 			f.chain_origin = 0
 		f.chains = left
 
@@ -365,12 +382,13 @@ static func world(game, f, _dt: float) -> void:
 
 ## SECOND WIND: the hit that would have killed `p` leaves them at its health,
 ## everything near is thrown back and a moment of grace follows.
-static func second_wind(game, f, p: Player) -> void:
+static func second_wind(game: Game, f: CountyRun, p: Player) -> void:
 	var spec := CountyData.milestone("second_wind")
 	f.second_wind_used = true
-	p.health = maxi(p.health, int(spec.get("health", 50)))
+	var health: int = spec.get("health", 50)
+	p.health = maxi(p.health, health)
 	f.safe_until = game.clock + 1.0
-	var reach := float(spec.get("reach", 3.5))
+	var reach: float = spec.get("reach", 3.5)
 	for e: Enemy in game.enemies:
 		if e.alive and e.hostile and Vector2(e.x - p.x, e.y - p.y).length() < reach:
 			e.stun = maxf(e.stun, .8)
@@ -382,7 +400,7 @@ static func second_wind(game, f, p: Player) -> void:
 
 
 ## MUDSLIDE on USE: true when it went.
-static func dash(game, f) -> bool:
+static func dash(game: Game, f: CountyRun) -> bool:
 	if not CountyBuild.has(f, "mudslide") or game.player.health <= 0:
 		return false
 	if game.clock < f.dash_ready:
@@ -393,18 +411,20 @@ static func dash(game, f) -> bool:
 	f.dash_left = SLIDE
 	var moving := Vector2(p.vx, p.vy)
 	f.dash_angle = moving.angle() if moving.length() > .4 else p.view_angle()
-	f.dash_ready = game.clock + float(CountyData.milestone("mudslide").get("cooldown", 6.0))
+	var cooldown: float = CountyData.milestone("mudslide").get("cooldown", 6.0)
+	f.dash_ready = game.clock + cooldown
 	game.sound.play("step_mud_0", 1.0)
 	return true
 
 
-static func _slide(game, f, dt: float) -> void:
+static func _slide(game: Game, f: CountyRun, dt: float) -> void:
 	if f.dash_left <= 0.0:
 		return
 	var p: Player = game.player
 	var step := minf(f.dash_left, dt)
 	f.dash_left -= step
-	var dist := float(CountyData.milestone("mudslide").get("distance", 4.2)) * step / SLIDE
+	var distance: float = CountyData.milestone("mudslide").get("distance", 4.2)
+	var dist := distance * step / SLIDE
 	var ux := cos(f.dash_angle)
 	var uy := sin(f.dash_angle)
 	for e: Enemy in game.enemies:
@@ -426,7 +446,7 @@ static func _slide(game, f, dt: float) -> void:
 		game.move_actor(p, ux * dist / steps, uy * dist / steps, GameState.PLAYER_RADIUS)
 
 
-static func _breakaway(game, f) -> void:
+static func _breakaway(game: Game, f: CountyRun) -> void:
 	if not CountyBuild.has(f, "breakaway"):
 		return
 	var spec := CountyData.milestone("breakaway")
@@ -441,11 +461,14 @@ static func _breakaway(game, f) -> void:
 			close += 1
 		if d < 4.5:
 			near += 1
-	if close >= int(spec.get("crowd", 4)):
+	var crowd: int = spec.get("crowd", 4)
+	if close >= crowd:
 		f.crowd_at = game.clock
 	elif near == 0 and game.clock - f.crowd_at < ESCAPE and game.clock >= f.burst_ready:
-		f.burst_until = game.clock + float(spec.get("seconds", 3.0))
-		f.burst_ready = game.clock + float(spec.get("cooldown", 15.0))
+		var seconds: float = spec.get("seconds", 3.0)
+		var cooldown: float = spec.get("cooldown", 15.0)
+		f.burst_until = game.clock + seconds
+		f.burst_ready = game.clock + cooldown
 		f.crowd_at = -10.0
 		game.sound.play("whistle", .9)
 		Modes.say(game, "BREAKAWAY!", 1.2)

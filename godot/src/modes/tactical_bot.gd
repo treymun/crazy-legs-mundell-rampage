@@ -24,6 +24,8 @@
 class_name TacticalBot
 extends RefCounted
 
+const ModeFeature := preload("res://src/features/mode_feature.gd")
+
 const LOOK_EVERY := .15
 const SIGHT := 34.0
 const TURN := .11
@@ -89,10 +91,10 @@ func _init(p_slot := 0) -> void:
 # ------------------------------------------------------------------- tick
 
 
-func steer(game) -> Game.Controls:
+func steer(game: Game) -> Game.Controls:
 	var c := Game.Controls.new()
 	var p: Player = game.player
-	var st = Modes.feature(game)
+	var st: ModeFeature = Modes.feature(game)
 	if st == null or not Modes.TACTICAL.has(String(st.mode)) or p.health <= 0:
 		return c
 	if int(st.round_no) != round_seen:
@@ -101,7 +103,8 @@ func steer(game) -> Game.Controls:
 		_shop(game, st, p)
 		shopped = int(st.round_no)
 	if not buys.is_empty():
-		c.buy = int(buys.pop_front())
+		var index: int = buys.pop_front()
+		c.buy = index
 	if throw_gun >= 0 and String(st.phase) == "live":
 		if _throw(game, p, c):
 			return c
@@ -126,15 +129,15 @@ func steer(game) -> Game.Controls:
 	return c
 
 
-static func _skill(game) -> int:
-	var st = Modes.feature(game)
+static func _skill(game: Game) -> int:
+	var st: ModeFeature = Modes.feature(game)
 	if st != null and int(st.bot_skill) >= 0:
 		return clampi(int(st.bot_skill), 0, 3)
 	return clampi(int(game.difficulty), 0, 3)
 
 
 ## Called after the tick (main.gd _tick_party): nothing to settle.
-func moved(_game) -> void:
+func moved(_game: Game) -> void:
 	pass
 
 
@@ -142,20 +145,22 @@ func moved(_game) -> void:
 
 
 ## The team's site this round: the same answer for every bot on it.
-static func plan_site(game, st) -> String:
-	var sites = game.world.tactical.get("sites", {})
-	var names: Array = sites.keys() if sites is Dictionary else []
+static func plan_site(game: Game, st: ModeFeature) -> String:
+	var sites: Variant = game.world.tactical.get("sites", {})
+	var names: Array = []
+	if sites is Dictionary:
+		var by_name: Dictionary = sites
+		names = by_name.keys()
 	names.sort()
 	if names.is_empty():
 		return ""
-	var h := absi(
-		hash(String(game.level.id)) + int(st.round_no) * 2654435761 + int(st.wins[0]) * 31
-	)
-	return String(names[(h >> 3) % names.size()])
+	var wins: int = st.wins[0]
+	var h := absi(hash(String(game.level.id)) + int(st.round_no) * 2654435761 + wins * 31)
+	return str(names[(h >> 3) % names.size()])
 
 
 ## Where this bot is among its team's players (0..4, by slot).
-static func team_index(game, p: Player) -> int:
+static func team_index(game: Game, p: Player) -> int:
 	var k := 0
 	for q: Player in game.players:
 		if q == p:
@@ -165,7 +170,7 @@ static func team_index(game, p: Player) -> int:
 	return k
 
 
-func _plan(game, st, p: Player) -> void:
+func _plan(game: Game, st: ModeFeature, p: Player) -> void:
 	round_seen = int(st.round_no)
 	foe = null
 	stuck = 0.0
@@ -181,28 +186,38 @@ func _plan(game, st, p: Player) -> void:
 		var site := plan_site(game, st)
 		var other := "B" if site == "A" else "A"
 		lurking = k == 4 and String(st.mode) == Modes.BOMB
-		var routes = plan.get("routes", {}).get(other if lurking else site, [])
-		if routes is Array and not routes.is_empty():
-			route = (routes[k % routes.size()] as Array).duplicate()
+		var by_site: Dictionary = plan.get("routes", {})
+		var found: Variant = by_site.get(other if lurking else site, [])
+		var routes: Array = found if found is Array else []
+		if not routes.is_empty():
+			var chosen: Array = routes[k % routes.size()]
+			route = chosen.duplicate()
 		stage_leg = _stage_for(game, plan, site)
 	else:
 		hold = _hold_for(plan, k)
 
 
 static func _hold_for(plan: Dictionary, k: int) -> Vector3:
-	var holds = plan.get("holds", {})
-	if not holds is Dictionary:
+	var found: Variant = plan.get("holds", {})
+	if not found is Dictionary:
 		return Vector3.INF
+	var holds: Dictionary = found
 	var key := "A" if k < 2 else ("B" if k < 4 else "mid")
-	var rows = holds.get(key, [])
-	if not rows is Array or rows.is_empty():
+	var listed: Variant = holds.get(key, [])
+	if not listed is Array:
+		return Vector3.INF
+	var rows: Array = listed
+	if rows.is_empty():
 		return Vector3.INF
 	var row: Array = rows[(k % 2) % rows.size()]
-	return Vector3(float(row[0]), float(row[1]), float(row[2]))
+	var hx: float = row[0]
+	var hy: float = row[1]
+	var facing: float = row[2]
+	return Vector3(hx, hy, facing)
 
 
-func _shop(game, st, p: Player) -> void:
-	var cash := int(st.money[p.slot])
+func _shop(game: Game, st: ModeFeature, p: Player) -> void:
+	var cash: int = st.money[p.slot]
 	var has_long := false
 	for gun: int in TacticalShop.LONG_GUNS:
 		if p.armory.owned[gun]:
@@ -210,11 +225,13 @@ func _shop(game, st, p: Player) -> void:
 	var half_start := int(st.round_no) == 1 or int(st.round_no) == int(st.rounds_to_win)
 	var outlaw := TacticalMode.side_of(st, p) == 0
 	var team: int = p.team
-	var behind := int(st.losses_in_row[team]) if team < st.losses_in_row.size() else 0
+	var behind := 0
+	if team < st.losses_in_row.size():
+		behind = st.losses_in_row[team]
 	var wants: Array = []
 	# Each bot has its way (STYLES): most carry a rifle, one is the team's
 	# sniper, one likes an SMG when money is short, one a shotgun up close.
-	var style := String(STYLES[slot % STYLES.size()])
+	var style := str(STYLES[slot % STYLES.size()])
 	if has_long:
 		wants = ["vest_hat", "vest"]
 	elif half_start:
@@ -270,7 +287,7 @@ func _shop(game, st, p: Player) -> void:
 
 
 ## The best gun in hand, reloaded when dry.
-func _arm(_game, p: Player, c: Game.Controls) -> void:
+func _arm(_game: Game, p: Player, c: Game.Controls) -> void:
 	var a: Weapons.Armory = p.armory
 	var want := TacticalShop.best_gun(p)
 	if a.active != want and a.switch <= 0.0 and a.fuse <= 0.0:
@@ -285,7 +302,7 @@ func _arm(_game, p: Player, c: Game.Controls) -> void:
 
 ## Every LOOK_EVERY seconds the nearest foe in sight (the one it has kept on
 ## between looks); a foe seen on a site is called to the team.
-func _look(game, st, p: Player) -> void:
+func _look(game: Game, st: ModeFeature, p: Player) -> void:
 	if foe != null:
 		if foe.health <= 0 or not _sees(game, p, foe):
 			foe_lost_at = game.clock
@@ -313,7 +330,7 @@ func _look(game, st, p: Player) -> void:
 		_call(game, st, p.team, best)
 
 
-func _sees(game, p: Player, q: Player) -> bool:
+func _sees(game: Game, p: Player, q: Player) -> bool:
 	var d := Vector2(q.x - p.x, q.y - p.y).length()
 	if d > SIGHT:
 		return false
@@ -326,13 +343,15 @@ func _sees(game, p: Player, q: Player) -> bool:
 	return game.world.visible(p.x, p.y, q.x, q.y, p.eye, q.eye - .1)
 
 
-static func _call(game, _st, team: int, seen: Player) -> void:
+static func _call(game: Game, _st: ModeFeature, team: int, seen: Player) -> void:
 	var at := BombMode.site_at(game, seen.x, seen.y)
 	if at == "":
-		var sites = game.world.tactical.get("sites", {})
+		var sites: Variant = game.world.tactical.get("sites", {})
 		if sites is Dictionary:
-			for name: String in sites:
-				var centre := TacticalMode.box_centre(sites[name])
+			var by_name: Dictionary = sites
+			for name: String in by_name:
+				var box: Array = by_name[name]
+				var centre := TacticalMode.box_centre(box)
 				if centre.distance_to(Vector2(seen.x, seen.y)) < 7.0:
 					at = name
 	if at == "":
@@ -343,7 +362,7 @@ static func _call(game, _st, team: int, seen: Player) -> void:
 	calls[key][team][at] = game.clock
 
 
-static func called(game, team: int) -> String:
+static func called(game: Game, team: int) -> String:
 	var key: int = game.get_instance_id()
 	if not calls.has(key):
 		return ""
@@ -351,7 +370,7 @@ static func called(game, team: int) -> String:
 	var latest := -1.0
 	var mine: Dictionary = calls[key][team]
 	for site: String in mine:
-		var when := float(mine[site])
+		var when: float = mine[site]
 		if game.clock - when < CALL_FOR and when > latest:
 			latest = when
 			best = site
@@ -363,16 +382,18 @@ static func called(game, team: int) -> String:
 
 ## Where to go now (INF: stay where it is), with the objective's own presses
 ## held in the controls.
-func _goal(game, st, p: Player, c: Game.Controls) -> Vector2:
+func _goal(game: Game, st: ModeFeature, p: Player, c: Game.Controls) -> Vector2:
 	if String(st.mode) == Modes.BOMB:
 		return _bomb_goal(game, st, p, c)
 	return _hostage_goal(game, st, p, c)
 
 
-func _bomb_goal(game, st, p: Player, c: Game.Controls) -> Vector2:
+func _bomb_goal(game: Game, st: ModeFeature, p: Player, c: Game.Controls) -> Vector2:
 	var bomb: Dictionary = st.bomb
-	var state := String(bomb.get("state", ""))
-	var at := Vector2(float(bomb.get("x", 0.0)), float(bomb.get("y", 0.0)))
+	var state := str(bomb.get("state", ""))
+	var bomb_x: float = bomb.get("x", 0.0)
+	var bomb_y: float = bomb.get("y", 0.0)
+	var at := Vector2(bomb_x, bomb_y)
 	var plan: Dictionary = game.world.tactical
 	if TacticalMode.attacks(game, st, p):
 		if state == "dropped" and _nearest_to(game, p, at):
@@ -380,10 +401,18 @@ func _bomb_goal(game, st, p: Player, c: Game.Controls) -> Vector2:
 		if state == "planted":
 			var guard := at + Vector2(cos(slot * 1.7), sin(slot * 1.7)) * 3.0
 			return guard if not game.world.blocked(guard.x, guard.y, .3) else at
-		var carrying := state == "carried" and int(bomb["slot"]) == p.slot
+		var carrying := false
+		if state == "carried":
+			var holder: int = bomb["slot"]
+			carrying = holder == p.slot
 		var site := plan_site(game, st)
-		var box = plan.get("sites", {}).get(site, [])
-		var centre := TacticalMode.box_centre(box) if box is Array and box.size() >= 4 else at
+		var sites_by: Dictionary = plan.get("sites", {})
+		var box: Variant = sites_by.get(site, [])
+		var centre := at
+		if box is Array:
+			var corners: Array = box
+			if corners.size() >= 4:
+				centre = TacticalMode.box_centre(corners)
 		if lurking and game.clock - float(st.live_from) > LURK_UNTIL:
 			# The lurk is over: straight across to the team's site.
 			lurking = false
@@ -402,7 +431,8 @@ func _bomb_goal(game, st, p: Player, c: Game.Controls) -> Vector2:
 	if state == "planted":
 		if _nearest_to(game, p, at) or Vector2(p.x, p.y).distance_to(at) < 2.0:
 			if Vector2(p.x, p.y).distance_to(at) < BombMode.DEFUSE_REACH * .8:
-				var left: float = BombMode.BOMB_TIMER - (game.clock - float(bomb["planted_at"]))
+				var planted_at: float = bomb["planted_at"]
+				var left: float = BombMode.BOMB_TIMER - (game.clock - planted_at)
 				if foe == null or left < BombMode.defuse_time(st, p) + 1.0:
 					c.hold = true
 					return Vector2.INF
@@ -412,23 +442,29 @@ func _bomb_goal(game, st, p: Player, c: Game.Controls) -> Vector2:
 	# A call brings help from the other site; with one site (TAG TEAM 2V2)
 	# both are already on it, and leaving a hold for the site's middle only
 	# walks them into the open.
-	var sites = plan.get("sites", {})
-	var one_site: bool = sites is Dictionary and sites.size() == 1
+	var sites: Variant = plan.get("sites", {})
+	var one_site := false
+	if sites is Dictionary:
+		var by_name: Dictionary = sites
+		one_site = by_name.size() == 1
 	if heard != "" and not one_site and team_index(game, p) != (0 if heard == "B" else 2):
-		var box = plan.get("sites", {}).get(heard, [])
-		if box is Array and box.size() >= 4:
-			return TacticalMode.box_centre(box)
+		var sites_by: Dictionary = plan.get("sites", {})
+		var box: Variant = sites_by.get(heard, [])
+		if box is Array:
+			var corners: Array = box
+			if corners.size() >= 4:
+				return TacticalMode.box_centre(corners)
 	return Vector2(hold.x, hold.y) if hold != Vector3.INF else Vector2.INF
 
 
-func _hostage_goal(game, st, p: Player, c: Game.Controls) -> Vector2:
+func _hostage_goal(game: Game, st: ModeFeature, p: Player, c: Game.Controls) -> Vector2:
 	var box := HostageMode.nearest_rescue(game, p.x, p.y)
 	var carried_by: Player = null
 	var mine := -1
 	for i in st.hostages.size():
 		var h: Array = st.hostages[i]
-		if String(h[2]) == "carried":
-			var s := int(h[3])
+		if str(h[2]) == "carried":
+			var s: int = h[3]
 			if s == p.slot:
 				mine = i
 			elif s >= 0 and s < game.players.size():
@@ -441,9 +477,11 @@ func _hostage_goal(game, st, p: Player, c: Game.Controls) -> Vector2:
 		var near := INF
 		var best := Vector2.INF
 		for h: Array in st.hostages:
-			if String(h[2]) != "free":
+			if str(h[2]) != "free":
 				continue
-			var at := Vector2(float(h[0]), float(h[1]))
+			var hx: float = h[0]
+			var hy: float = h[1]
+			var at := Vector2(hx, hy)
 			var d := at.distance_to(Vector2(p.x, p.y))
 			if d < near:
 				near = d
@@ -465,11 +503,17 @@ func _hostage_goal(game, st, p: Player, c: Game.Controls) -> Vector2:
 ## The next point of the route, moving on as each is reached. An attacker
 ## stops at the last point before the site (its route's next to last) until
 ## the team is gathered there, then they go in together (_released).
-func _route_goal(game, p: Player) -> Vector2:
+func _route_goal(game: Game, p: Player) -> Vector2:
 	while leg < route.size():
-		var at := Vector2(float(route[leg][0]), float(route[leg][1]))
+		var point: Array = route[leg]
+		var px: float = point[0]
+		var py: float = point[1]
+		var at := Vector2(px, py)
 		if stage_leg >= 0 and leg > stage_leg and not lurking:
-			var wait := Vector2(float(route[stage_leg][0]), float(route[stage_leg][1]))
+			var stage: Array = route[stage_leg]
+			var sx: float = stage[0]
+			var sy: float = stage[1]
+			var wait := Vector2(sx, sy)
 			if not _released(game, p, wait):
 				return wait
 		if at.distance_to(Vector2(p.x, p.y)) > ARRIVE:
@@ -481,18 +525,27 @@ func _route_goal(game, p: Player) -> Vector2:
 ## Where on the route the team gathers: the point before the site itself,
 ## or the one before that when the site's holds can see it (a doorway), so
 ## they wait out of the defenders' sight but not far back; -1 with no route.
-func _stage_for(game, plan: Dictionary, site: String) -> int:
+func _stage_for(game: Game, plan: Dictionary, site: String) -> int:
 	if route.size() < 2:
 		return -1
-	var holds: Array = plan.get("holds", {}).get(site, [])
-	var last := Vector2(float(route[-2][0]), float(route[-2][1]))
+	var holds_by: Dictionary = plan.get("holds", {})
+	var holds: Array = holds_by.get(site, [])
+	var before: Array = route[-2]
+	var last_x: float = before[0]
+	var last_y: float = before[1]
+	var last := Vector2(last_x, last_y)
 	for i in range(route.size() - 2, maxi(-1, route.size() - 4), -1):
-		var at := Vector2(float(route[i][0]), float(route[i][1]))
+		var point: Array = route[i]
+		var px: float = point[0]
+		var py: float = point[1]
+		var at := Vector2(px, py)
 		if at.distance_to(last) > STAGE_BACK:
 			break  # too far back to gather: the point before the site it is
 		var seen := false
 		for h: Array in holds:
-			if game.world.visible(float(h[0]), float(h[1]), at.x, at.y):
+			var hx: float = h[0]
+			var hy: float = h[1]
+			if game.world.visible(hx, hy, at.x, at.y):
 				seen = true
 				break
 		if not seen:
@@ -504,33 +557,36 @@ func _stage_for(game, plan: Dictionary, site: String) -> int:
 ## `wait`; the team goes when all but one of those up (lurker aside) are
 ## gathered, when a gathered one has a foe in sight, or STAGE_MOST seconds
 ## into the round.
-func _released(game, p: Player, wait: Vector2) -> bool:
-	var st = Modes.feature(game)
+func _released(game: Game, p: Player, wait: Vector2) -> bool:
+	var st: ModeFeature = Modes.feature(game)
 	if st == null or not TacticalMode.attacks(game, st, p):
 		return true
 	var key := "%d|%d" % [game.get_instance_id(), int(st.round_no)]
 	if not staged.has(key):
 		staged = {key: {"go": false, "here": {}}}  # one round's gathering at a time
 	var team: Dictionary = staged[key]
-	if bool(team["go"]):
+	var gone: bool = team["go"]
+	if gone:
 		return true
+	var gathered: Dictionary = team["here"]
 	if Vector2(p.x, p.y).distance_to(wait) < ARRIVE * 1.6:
-		team["here"][p.slot] = true
+		gathered[p.slot] = true
 	var up := 0
 	var here := 0
 	for q: Player in game.players:
 		if q.team == p.team and q.health > 0 and team_index(game, q) != 4:
 			up += 1
-			if team["here"].has(q.slot):
+			if gathered.has(q.slot):
 				here += 1
-	var seen: bool = foe != null and team["here"].has(p.slot)
+	var seen: bool = foe != null and gathered.has(p.slot)
 	if here >= maxi(1, up - 1) or seen or game.clock - float(st.live_from) > STAGE_MOST:
 		team["go"] = true
-	return bool(team["go"])
+	var go: bool = team["go"]
+	return go
 
 
 ## Whether `p` is the nearest of its team up to `at`.
-static func _nearest_to(game, p: Player, at: Vector2) -> bool:
+static func _nearest_to(game: Game, p: Player, at: Vector2) -> bool:
 	var mine := at.distance_to(Vector2(p.x, p.y))
 	for q: Player in game.players:
 		if q != p and q.team == p.team and q.health > 0:
@@ -541,19 +597,21 @@ static func _nearest_to(game, p: Player, at: Vector2) -> bool:
 
 ## Which way to face standing still: the hold's own way, else toward the
 ## middle of the map.
-func _face_angle(game, _st, p: Player) -> float:
+func _face_angle(game: Game, _st: ModeFeature, p: Player) -> float:
 	if hold != Vector3.INF and Vector2(hold.x, hold.y).distance_to(Vector2(p.x, p.y)) < 2.0:
 		return hold.z
 	if not route.is_empty():
 		var at: Array = route[mini(leg, route.size() - 1)]
-		return atan2(float(at[1]) - p.y, float(at[0]) - p.x)
+		var ax: float = at[0]
+		var ay: float = at[1]
+		return atan2(ay - p.y, ax - p.x)
 	return atan2(game.world.height * .5 - p.y, game.world.width * .5 - p.x)
 
 
 # ---------------------------------------------------------------- moving
 
 
-func _walk(game, p: Player, c: Game.Controls, goal: Vector2) -> void:
+func _walk(game: Game, p: Player, c: Game.Controls, goal: Vector2) -> void:
 	c.look = clampf(-p.pitch * .2, -2.0, 2.0)
 	if goal == Vector2.INF:
 		c.turn = clampf(Enemy.angle_delta(_face_angle(game, null, p), p.angle), -TURN, TURN)
@@ -584,17 +642,19 @@ func _walk(game, p: Player, c: Game.Controls, goal: Vector2) -> void:
 ## An attacker on its last leg onto a site: the nearest of the map's holds
 ## (where defenders wait) it could see from here, to have its gun on as it
 ## goes in. INF when there is none, or it is not going in.
-func _corner_to_check(game, p: Player) -> Vector2:
+func _corner_to_check(game: Game, p: Player) -> Vector2:
 	if route.is_empty() or leg != route.size() - 1 or lurking:
 		return Vector2.INF
-	var st = Modes.feature(game)
+	var st: ModeFeature = Modes.feature(game)
 	if st == null or not TacticalMode.attacks(game, st, p):
 		return Vector2.INF
 	var best := Vector2.INF
 	var near := 18.0
 	for key: String in game.world.tactical.get("holds", {}):
 		for h: Array in game.world.tactical["holds"][key]:
-			var at := Vector2(float(h[0]), float(h[1]))
+			var hx: float = h[0]
+			var hy: float = h[1]
+			var at := Vector2(hx, hy)
 			var d := at.distance_to(Vector2(p.x, p.y))
 			if d < near and d > 2.0 and game.world.visible(p.x, p.y, at.x, at.y):
 				near = d
@@ -602,7 +662,7 @@ func _corner_to_check(game, p: Player) -> Vector2:
 	return best
 
 
-static func _heading(game, p: Player, goal: Vector2) -> float:
+static func _heading(game: Game, p: Player, goal: Vector2) -> float:
 	var direct := atan2(goal.y - p.y, goal.x - p.x)
 	if goal.distance_to(Vector2(p.x, p.y)) < 1.2:
 		return direct
@@ -612,7 +672,7 @@ static func _heading(game, p: Player, goal: Vector2) -> float:
 
 
 ## Turn onto the foe with a settling aim, strafe, and fire on target.
-func _fight(game, _st, p: Player, c: Game.Controls, goal: Vector2) -> void:
+func _fight(game: Game, _st: ModeFeature, p: Player, c: Game.Controls, goal: Vector2) -> void:
 	var dx := foe.x - p.x
 	var dy := foe.y - p.y
 	var d := maxf(.4, sqrt(dx * dx + dy * dy))
@@ -637,7 +697,9 @@ func _fight(game, _st, p: Player, c: Game.Controls, goal: Vector2) -> void:
 	var reach := TacticalShop.reach(p.armory.active)
 	# A scoped gun: the scope up for a foe past arm's length, down up close
 	# (ALT FIRE puts it up and down on a fresh press).
-	var scopes := bool(Weapons.FIRING[p.armory.active].get("scope", 0.0))
+	var how: Dictionary = Weapons.FIRING[p.armory.active]
+	var scope: float = how.get("scope", 0.0)
+	var scopes := bool(scope)
 	var want_scope := scopes and d > 6.0
 	if want_scope != p.scoped and not p.alt_held and p.armory.switch <= 0.0:
 		c.alt_fire = true
@@ -658,7 +720,8 @@ func _fight(game, _st, p: Player, c: Game.Controls, goal: Vector2) -> void:
 		# Out of reach: attackers close in, a defender keeps to its spot and
 		# lets them come.
 		c.fire = false
-		if TacticalMode.attacks(game, Modes.feature(game), p) or hold == Vector3.INF:
+		var mode_state: ModeFeature = Modes.feature(game)
+		if TacticalMode.attacks(game, mode_state, p) or hold == Vector3.INF:
 			c.forward = 1.0
 			c.running = true
 			c.strafe *= .3
@@ -673,7 +736,7 @@ func _fight(game, _st, p: Player, c: Game.Controls, goal: Vector2) -> void:
 
 ## Hops and side-steps out of a spot it is wedged in; a waypoint it cannot
 ## reach for a while is skipped.
-func _unstick(game, p: Player, c: Game.Controls) -> void:
+func _unstick(game: Game, p: Player, c: Game.Controls) -> void:
 	var here := Vector2(p.x, p.y)
 	var trying := absf(c.forward) > .1 or absf(c.strafe) > .1
 	if trying and here.distance_to(last_spot) < .012:
@@ -696,7 +759,7 @@ func _unstick(game, p: Player, c: Game.Controls) -> void:
 ## When to throw: an attacker coming up to its site smokes off the defenders'
 ## spot, then flashes into the site; a defender with a firebomb throws it at
 ## attackers pushing in.
-func _plan_throw(game, st, p: Player) -> void:
+func _plan_throw(game: Game, st: ModeFeature, p: Player) -> void:
 	if throw_gun >= 0:
 		return
 	var a: Weapons.Armory = p.armory
@@ -705,20 +768,27 @@ func _plan_throw(game, st, p: Player) -> void:
 		if route.is_empty() or leg != route.size() - 1:
 			return
 		var site := plan_site(game, st)
-		var box = plan.get("sites", {}).get(site, [])
-		if not box is Array or box.size() < 4:
+		var sites_by: Dictionary = plan.get("sites", {})
+		var found: Variant = sites_by.get(site, [])
+		if not found is Array:
+			return
+		var box: Array = found
+		if box.size() < 4:
 			return
 		var centre := TacticalMode.box_centre(box)
-		var holds = plan.get("holds", {}).get(site, [])
+		var holds_by: Dictionary = plan.get("holds", {})
+		var holds: Variant = holds_by.get(site, [])
 		if (
 			a.owned[Weapons.SMUDGE_POT]
 			and a.reserve[Weapons.SMUDGE_POT] > 0
 			and not thrown.has(Weapons.SMUDGE_POT)
 		):
-			if holds is Array and not holds.is_empty():
-				_start_throw(
-					game, Weapons.SMUDGE_POT, Vector2(float(holds[0][0]), float(holds[0][1]))
-				)
+			var spots: Array = holds if holds is Array else []
+			if not spots.is_empty():
+				var spot: Array = spots[0]
+				var sx: float = spot[0]
+				var sy: float = spot[1]
+				_start_throw(game, Weapons.SMUDGE_POT, Vector2(sx, sy))
 				return
 		if (
 			a.owned[Weapons.FLASH_JAR]
@@ -732,7 +802,7 @@ func _plan_throw(game, st, p: Player) -> void:
 			_start_throw(game, Weapons.SHINE_COCKTAIL, Vector2(foe.x, foe.y))
 
 
-func _start_throw(game, gun: int, at: Vector2) -> void:
+func _start_throw(game: Game, gun: int, at: Vector2) -> void:
 	throw_gun = gun
 	throw_at = at
 	throw_until = game.clock + 2.5
@@ -740,7 +810,7 @@ func _start_throw(game, gun: int, at: Vector2) -> void:
 
 ## A throw under way: take the throwable up, turn on the spot, lift the aim
 ## for the distance, let fly. True while it is still under way.
-func _throw(game, p: Player, c: Game.Controls) -> bool:
+func _throw(game: Game, p: Player, c: Game.Controls) -> bool:
 	var a: Weapons.Armory = p.armory
 	if game.clock > throw_until or a.reserve[throw_gun] <= 0 or not a.owned[throw_gun]:
 		thrown[throw_gun] = true

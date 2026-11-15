@@ -18,6 +18,8 @@
 class_name TacticalShop
 extends RefCounted
 
+const ModeFeature := preload("res://src/features/mode_feature.gd")
+
 ## Everything below the code's own lists comes from data/tuning/store.cfg
 ## (_load), so the store and the money are balanced there, not here.
 const DATA := "res://data/tuning/store.cfg"
@@ -121,20 +123,20 @@ static func _load() -> bool:
 		return false
 	var guns := Tuning.sections(Tuning.WEAPONS)
 	var e := "economy"
-	START_MONEY = int(cfg.get_value(e, "start_money", START_MONEY))
-	MAX_MONEY = int(cfg.get_value(e, "max_money", MAX_MONEY))
-	WIN_REWARD = int(cfg.get_value(e, "win_reward", WIN_REWARD))
-	OBJECTIVE_REWARD = int(cfg.get_value(e, "objective_reward", OBJECTIVE_REWARD))
-	LOSS_BASE = int(cfg.get_value(e, "loss_base", LOSS_BASE))
-	LOSS_STEP = int(cfg.get_value(e, "loss_step", LOSS_STEP))
-	LOSS_MAX = int(cfg.get_value(e, "loss_max", LOSS_MAX))
-	PLANT_TEAM_BONUS = int(cfg.get_value(e, "plant_team_bonus", PLANT_TEAM_BONUS))
-	PLANT_REWARD = int(cfg.get_value(e, "plant_reward", PLANT_REWARD))
-	DEFUSE_REWARD = int(cfg.get_value(e, "defuse_reward", DEFUSE_REWARD))
-	HOSTAGE_TAKE_REWARD = int(cfg.get_value(e, "hostage_take_reward", HOSTAGE_TAKE_REWARD))
-	RESCUE_REWARD = int(cfg.get_value(e, "rescue_reward", RESCUE_REWARD))
-	VEST = int(cfg.get_value(e, "vest", VEST))
-	KILL_DEFAULT = int(cfg.get_value(e, "kill_default", KILL_DEFAULT))
+	START_MONEY = cfg.get_value(e, "start_money", START_MONEY)
+	MAX_MONEY = cfg.get_value(e, "max_money", MAX_MONEY)
+	WIN_REWARD = cfg.get_value(e, "win_reward", WIN_REWARD)
+	OBJECTIVE_REWARD = cfg.get_value(e, "objective_reward", OBJECTIVE_REWARD)
+	LOSS_BASE = cfg.get_value(e, "loss_base", LOSS_BASE)
+	LOSS_STEP = cfg.get_value(e, "loss_step", LOSS_STEP)
+	LOSS_MAX = cfg.get_value(e, "loss_max", LOSS_MAX)
+	PLANT_TEAM_BONUS = cfg.get_value(e, "plant_team_bonus", PLANT_TEAM_BONUS)
+	PLANT_REWARD = cfg.get_value(e, "plant_reward", PLANT_REWARD)
+	DEFUSE_REWARD = cfg.get_value(e, "defuse_reward", DEFUSE_REWARD)
+	HOSTAGE_TAKE_REWARD = cfg.get_value(e, "hostage_take_reward", HOSTAGE_TAKE_REWARD)
+	RESCUE_REWARD = cfg.get_value(e, "rescue_reward", RESCUE_REWARD)
+	VEST = cfg.get_value(e, "vest", VEST)
+	KILL_DEFAULT = cfg.get_value(e, "kill_default", KILL_DEFAULT)
 	ITEMS = []
 	RULES = {}
 	RULE_IDS = []
@@ -145,19 +147,23 @@ static func _load() -> bool:
 	FALLOFF = {}
 	for section: String in cfg.get_sections():
 		if section.begins_with("item."):
-			var gun_name := String(cfg.get_value(section, "gun", ""))
+			var gun_name := str(cfg.get_value(section, "gun", ""))
+			var label := str(cfg.get_value(section, "label", ""))
+			var price: int = cfg.get_value(section, "price", 0)
+			var loaded: int = cfg.get_value(section, "loaded", 0)
+			var reserve: int = cfg.get_value(section, "reserve", 0)
 			(
 				ITEMS
 				. append(
 					[
 						section.substr(5),
-						String(cfg.get_value(section, "label", "")),
-						int(cfg.get_value(section, "price", 0)),
+						label,
+						price,
 						guns.find(gun_name) if gun_name != "" else -1,
-						int(cfg.get_value(section, "loaded", 0)),
-						int(cfg.get_value(section, "reserve", 0)),
-						String(cfg.get_value(section, "group", "")),
-						String(cfg.get_value(section, "who", "")),
+						loaded,
+						reserve,
+						str(cfg.get_value(section, "group", "")),
+						str(cfg.get_value(section, "who", "")),
 					]
 				)
 			)
@@ -169,33 +175,36 @@ static func _load() -> bool:
 					rule[key] = cfg.get_value(section, key)
 			RULES[id] = rule
 			RULE_IDS.append(id)
-			RULE_NAMES.append(String(cfg.get_value(section, "name", id.to_upper())))
+			RULE_NAMES.append(str(cfg.get_value(section, "name", id.to_upper())))
 		elif section.begins_with("hit."):
 			var gun := guns.find(section.substr(4))
 			if gun < 0:
 				push_error("%s: no gun called %s" % [DATA, section.substr(4)])
 				continue
 			if cfg.has_section_key(section, "kill"):
-				KILL_REWARD[gun] = int(cfg.get_value(section, "kill"))
+				var kill: int = cfg.get_value(section, "kill")
+				KILL_REWARD[gun] = kill
 			if cfg.has_section_key(section, "damage"):
 				DAMAGE[gun] = cfg.get_value(section, "damage")
 			if cfg.has_section_key(section, "reach"):
-				REACH[gun] = float(cfg.get_value(section, "reach"))
+				var gun_reach: float = cfg.get_value(section, "reach")
+				REACH[gun] = gun_reach
 			if cfg.has_section_key(section, "falloff"):
 				FALLOFF[gun] = cfg.get_value(section, "falloff")
 	DAMAGE_DEFAULT = cfg.get_value("hit", "damage_default", DAMAGE_DEFAULT)
-	HEAD_FROM = float(cfg.get_value("hit", "head_from", HEAD_FROM))
+	HEAD_FROM = cfg.get_value("hit", "head_from", HEAD_FROM)
 	BLAST_SCALE = {}
 	for key: String in cfg.get_section_keys("blast"):
+		var scale: float = cfg.get_value("blast", key)
 		if key == "default":
-			BLAST_DEFAULT = float(cfg.get_value("blast", key))
+			BLAST_DEFAULT = scale
 		elif key == "through":
-			BLAST_THROUGH = float(cfg.get_value("blast", key))
+			BLAST_THROUGH = scale
 		else:
-			BLAST_SCALE[key] = float(cfg.get_value("blast", key))
+			BLAST_SCALE[key] = scale
 	MOVE_SPREAD = {}
 	for key: String in cfg.get_section_keys("spread"):
-		var value := float(cfg.get_value("spread", key))
+		var value: float = cfg.get_value("spread", key)
 		match key:
 			"still_below":
 				STILL_BELOW = value
@@ -214,55 +223,63 @@ static func _load() -> bool:
 
 static func item(id: String) -> Array:
 	for row: Array in ITEMS:
-		if String(row[0]) == id:
+		if str(row[0]) == id:
 			return row
 	return []
 
 
 static func kill_reward(weapon: int) -> int:
-	return int(KILL_REWARD.get(weapon, KILL_DEFAULT))
+	var reward: int = KILL_REWARD.get(weapon, KILL_DEFAULT)
+	return reward
 
 
 ## Whether the match's rules sell item `row` at all.
-static func by_rules(st, row: Array) -> bool:
+static func by_rules(st: ModeFeature, row: Array) -> bool:
 	var rule: Dictionary = RULES.get(String(st.store_rules), {})
-	if rule.has("kinds") and not (rule["kinds"] as Array).has(String(row[6])):
-		return false
-	return int(row[2]) <= int(rule.get("most", MAX_MONEY))
+	if rule.has("kinds"):
+		var kinds: Array = rule["kinds"]
+		if not kinds.has(str(row[6])):
+			return false
+	var price: int = row[2]
+	var most: int = rule.get("most", MAX_MONEY)
+	return price <= most
 
 
 ## `cash` at a round's start under the match's rules.
-static func rule_cash(st, cash: int) -> int:
+static func rule_cash(st: ModeFeature, cash: int) -> int:
 	var rule: Dictionary = RULES.get(String(st.store_rules), {})
 	if rule.has("cash"):
-		return int(rule["cash"])
-	return maxi(cash, int(rule.get("least", 0)))
+		var fixed: int = rule["cash"]
+		return fixed
+	var least: int = rule.get("least", 0)
+	return maxi(cash, least)
 
 
 ## The dearest gun the rules sell `p` that `cash` buys and `p` lacks ("" none):
 ## a bot's buy when its usual one is not for sale.
-static func rule_pick(game, st, p: Player, cash: int) -> String:
+static func rule_pick(game: Game, st: ModeFeature, p: Player, cash: int) -> String:
 	var best := ""
 	var price := -1
 	for row: Array in ITEMS:
-		var kind := String(row[6])
-		if int(row[3]) < 0 or kind == "THROWN" or kind == "GEAR":
+		var kind := str(row[6])
+		var gun: int = row[3]
+		if gun < 0 or kind == "THROWN" or kind == "GEAR":
 			continue
 		if not allowed(game, st, p, row) or owned_fully(st, p, row):
 			continue
 		var cost := price_for(st, p, row)
 		if cost <= cash and cost > price:
-			best = String(row[0])
+			best = str(row[0])
 			price = cost
 	return best
 
 
 ## Whether `p` may buy item `row` at all (the rules, its side), ignoring the
 ## money.
-static func allowed(game, st, p: Player, row: Array) -> bool:
+static func allowed(game: Game, st: ModeFeature, p: Player, row: Array) -> bool:
 	if not by_rules(st, row):
 		return false
-	var who := String(row[7])
+	var who := str(row[7])
 	if who == "defense":
 		return Modes.mode_of(game) == Modes.BOMB and TacticalMode.defends(st, p)
 	if who == "outlaws":
@@ -273,7 +290,7 @@ static func allowed(game, st, p: Player, row: Array) -> bool:
 
 
 ## The rows `p`'s side sees in the store, in order.
-static func menu(game, st, p: Player) -> Array:
+static func menu(game: Game, st: ModeFeature, p: Player) -> Array:
 	var rows: Array = []
 	for row: Array in ITEMS:
 		if allowed(game, st, p, row):
@@ -282,45 +299,56 @@ static func menu(game, st, p: Player) -> Array:
 
 
 ## Whether `p` already has all of item `row` there is to have.
-static func owned_fully(st, p: Player, row: Array) -> bool:
-	var id := String(row[0])
+static func owned_fully(st: ModeFeature, p: Player, row: Array) -> bool:
+	var id := str(row[0])
 	var a: Weapons.Armory = p.armory
 	match id:
 		"vest":
-			return float(st.armor[p.slot]) >= VEST
+			var armor: float = st.armor[p.slot]
+			return armor >= VEST
 		"vest_hat":
-			return float(st.armor[p.slot]) >= VEST and bool(st.helmet[p.slot])
+			var armor: float = st.armor[p.slot]
+			var helmet: bool = st.helmet[p.slot]
+			return armor >= VEST and helmet
 		"snips":
-			return bool(st.snips[p.slot])
+			var snips: bool = st.snips[p.slot]
+			return snips
 		"dynamite":
 			return a.owned[Weapons.DYNAMITE] and a.reserve[Weapons.CROSSBOW] >= MAX_STICKS
-	var gun := int(row[3])
+	var gun: int = row[3]
 	if Weapons.THROWN_GUNS.has(gun):
-		return a.owned[gun] and a.reserve[gun] >= int(Weapons.MAX_RESERVE[gun])
-	return a.owned[gun] and a.reserve[gun] >= int(row[5]) and a.loaded[gun] >= int(row[4])
+		var most: int = Weapons.MAX_RESERVE[gun]
+		return a.owned[gun] and a.reserve[gun] >= most
+	var reserve: int = row[5]
+	var loaded: int = row[4]
+	return a.owned[gun] and a.reserve[gun] >= reserve and a.loaded[gun] >= loaded
 
 
 ## What the item costs `p` now: a hard hat alone when the vest is whole.
-static func price_for(st, p: Player, row: Array) -> int:
-	if String(row[0]) == "vest_hat" and float(st.armor[p.slot]) >= VEST:
-		return 350
-	return int(row[2])
+static func price_for(st: ModeFeature, p: Player, row: Array) -> int:
+	if str(row[0]) == "vest_hat":
+		var armor: float = st.armor[p.slot]
+		if armor >= VEST:
+			return 350
+	var price: int = row[2]
+	return price
 
 
 ## Buys item `id` for `p`: "" when it was bought, else why not (for the HUD).
-static func buy(game, st, p: Player, id: String) -> String:
+static func buy(game: Game, st: ModeFeature, p: Player, id: String) -> String:
 	var said := why_not(game, st, p, id)
 	if said != "":
 		return said
 	var row := item(id)
-	st.money[p.slot] = int(st.money[p.slot]) - price_for(st, p, row)
+	var money: int = st.money[p.slot]
+	st.money[p.slot] = money - price_for(st, p, row)
 	give(st, p, row)
 	return ""
 
 
 ## Why `p` may not buy item `id` now ("" when they may): the store's every
 ## rule, without buying (the menu asks first, then sends the buy).
-static func why_not(game, st, p: Player, id: String) -> String:
+static func why_not(game: Game, st: ModeFeature, p: Player, id: String) -> String:
 	var row := item(id)
 	if row.is_empty():
 		return "NOT FOR SALE"
@@ -332,9 +360,10 @@ static func why_not(game, st, p: Player, id: String) -> String:
 		return "DEPUTIES ONLY"
 	if owned_fully(st, p, row):
 		return "ALREADY GOT IT"
-	if String(row[6]) == "THROWN" and thrown_count(p) >= MAX_THROWN:
+	if str(row[6]) == "THROWN" and thrown_count(p) >= MAX_THROWN:
 		return "HANDS FULL"
-	if int(st.money[p.slot]) < price_for(st, p, row):
+	var money: int = st.money[p.slot]
+	if money < price_for(st, p, row):
 		return "NOT ENOUGH CASH"
 	return ""
 
@@ -342,14 +371,14 @@ static func why_not(game, st, p: Player, id: String) -> String:
 ## Item `id`'s place in ITEMS (Controls.buy), or -1.
 static func index_of(id: String) -> int:
 	for i in ITEMS.size():
-		if String(ITEMS[i][0]) == id:
+		if str(ITEMS[i][0]) == id:
 			return i
 	return -1
 
 
 ## Puts item `row` in `p`'s hands (no money changes hands here).
-static func give(st, p: Player, row: Array) -> void:
-	var id := String(row[0])
+static func give(st: ModeFeature, p: Player, row: Array) -> void:
+	var id := str(row[0])
 	var a: Weapons.Armory = p.armory
 	match id:
 		"vest":
@@ -366,10 +395,11 @@ static func give(st, p: Player, row: Array) -> void:
 			a.owned[Weapons.DYNAMITE] = true
 			a.reserve[Weapons.CROSSBOW] = mini(MAX_STICKS, a.reserve[Weapons.CROSSBOW] + 1)
 			return
-	var gun := int(row[3])
+	var gun: int = row[3]
 	if Weapons.THROWN_GUNS.has(gun):
 		a.owned[gun] = true
-		a.reserve[gun] = mini(int(Weapons.MAX_RESERVE[gun]), a.reserve[gun] + 1)
+		var most: int = Weapons.MAX_RESERVE[gun]
+		a.reserve[gun] = mini(most, a.reserve[gun] + 1)
 		return
 	if LONG_GUNS.has(gun):
 		for other: int in LONG_GUNS:
@@ -378,8 +408,10 @@ static func give(st, p: Player, row: Array) -> void:
 				a.loaded[other] = 0
 				a.reserve[other] = 0
 	a.owned[gun] = true
-	a.loaded[gun] = int(row[4])
-	a.reserve[gun] = int(row[5])
+	var loaded: int = row[4]
+	var reserve: int = row[5]
+	a.loaded[gun] = loaded
+	a.reserve[gun] = reserve
 	a.active = gun
 	a.reload = 0.0
 	a.switch = .2
@@ -390,13 +422,15 @@ static func give(st, p: Player, row: Array) -> void:
 static func base_kit(p: Player, side := 0) -> void:
 	var a: Weapons.Armory = p.armory
 	var pistol: Array = SIDE_PISTOL[clampi(side, 0, 1)]
-	var gun := int(pistol[0])
+	var gun: int = pistol[0]
 	for i in Weapons.COUNT:
 		a.owned[i] = i == Weapons.CROWBAR or i == gun
 		a.loaded[i] = 0
 		a.reserve[i] = 0
-	a.loaded[gun] = int(pistol[1])
-	a.reserve[gun] = int(pistol[2])
+	var loaded: int = pistol[1]
+	var reserve: int = pistol[2]
+	a.loaded[gun] = loaded
+	a.reserve[gun] = reserve
 	a.active = gun
 	settle(a)
 
@@ -406,17 +440,21 @@ static func base_kit(p: Player, side := 0) -> void:
 static func top_up(p: Player, side := 0) -> void:
 	var a: Weapons.Armory = p.armory
 	var pistol: Array = SIDE_PISTOL[clampi(side, 0, 1)]
-	var own := int(pistol[0])
+	var own: int = pistol[0]
 	a.owned[Weapons.CROWBAR] = true
 	a.owned[own] = true
-	a.loaded[own] = int(pistol[1])
-	a.reserve[own] = maxi(a.reserve[own], int(pistol[2]))
+	var own_loaded: int = pistol[1]
+	var own_spare: int = pistol[2]
+	a.loaded[own] = own_loaded
+	a.reserve[own] = maxi(a.reserve[own], own_spare)
 	for row: Array in ITEMS:
-		var gun := int(row[3])
+		var gun: int = row[3]
 		if gun < 0 or gun == Weapons.DYNAMITE or Weapons.THROWN_GUNS.has(gun) or not a.owned[gun]:
 			continue
-		a.loaded[gun] = maxi(a.loaded[gun], int(row[4]))
-		a.reserve[gun] = maxi(a.reserve[gun], int(row[5]))
+		var loaded: int = row[4]
+		var reserve: int = row[5]
+		a.loaded[gun] = maxi(a.loaded[gun], loaded)
+		a.reserve[gun] = maxi(a.reserve[gun], reserve)
 	if not a.owned[a.active]:
 		a.active = own
 	settle(a)
@@ -436,12 +474,15 @@ static func reach(gun: int) -> float:
 	if gun < 0 or gun >= Weapons.FIRING.size():
 		return 0.0
 	if REACH.has(gun):
-		return float(REACH[gun])
+		var gun_reach: float = REACH[gun]
+		return gun_reach
 	var how: Dictionary = Weapons.FIRING[gun]
 	if how.has("range"):
-		return float(how["range"])
+		var shot_range: float = how["range"]
+		return shot_range
 	if how.has("melee_range"):
-		return float(how["melee_range"])
+		var melee_range: float = how["melee_range"]
+		return melee_range
 	return 40.0
 
 
@@ -469,7 +510,8 @@ static func gun_for(p: Player, distance: float) -> int:
 static func sweet(gun: int) -> float:
 	if FALLOFF.has(gun):
 		var f: Array = FALLOFF[gun]
-		return lerpf(float(f[0]), reach(gun), .4)
+		var full: float = f[0]
+		return lerpf(full, reach(gun), .4)
 	return reach(gun)
 
 
@@ -478,22 +520,24 @@ static func falloff(gun: int, distance: float) -> float:
 	if not FALLOFF.has(gun):
 		return 1.0
 	var f: Array = FALLOFF[gun]
-	var full := float(f[0])
+	var full: float = f[0]
 	if distance <= full:
 		return 1.0
 	var end := maxf(full + .01, reach(gun))
-	return lerpf(1.0, float(f[1]), clampf((distance - full) / (end - full), 0.0, 1.0))
+	var left: float = f[1]
+	return lerpf(1.0, left, clampf((distance - full) / (end - full), 0.0, 1.0))
 
 
 ## A gun's kind in the store ("RIFLE", "PISTOL"...; the kit pistols too).
 static func kind_of(gun: int) -> String:
 	if _kinds.is_empty():
 		for row: Array in ITEMS:
-			if int(row[3]) >= 0:
-				_kinds[int(row[3])] = String(row[6])
+			var row_gun: int = row[3]
+			if row_gun >= 0:
+				_kinds[row_gun] = str(row[6])
 		_kinds[Weapons.REVOLVER] = "PISTOL"
 		_kinds[Weapons.COUNTY45] = "PISTOL"
-	return String(_kinds.get(gun, ""))
+	return str(_kinds.get(gun, ""))
 
 
 static var _kinds := {}
@@ -542,9 +586,9 @@ static func thrown_count(p: Player) -> int:
 
 
 ## The rows of one page of `p`'s store (0 the guns, 1 gear and throwables).
-static func page_rows(game, st, p: Player, page: int) -> Array:
+static func page_rows(game: Game, st: ModeFeature, p: Player, page: int) -> Array:
 	var rows: Array = []
 	for row: Array in menu(game, st, p):
-		if (page == 1) == GEAR_GROUPS.has(String(row[6])):
+		if (page == 1) == GEAR_GROUPS.has(str(row[6])):
 			rows.append(row)
 	return rows

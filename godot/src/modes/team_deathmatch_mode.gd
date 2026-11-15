@@ -17,17 +17,17 @@ func title() -> String:
 	return "TEAM DEATHMATCH"
 
 
-func joined(_game, _st, p: Player) -> void:
+func joined(_game: Game, _st: ModeFeature, p: Player) -> void:
 	p.team = p.slot % 2
 
 
-func hurt_scale(_game, attacker: Player, victim: Player, _blast: bool) -> float:
+func hurt_scale(_game: Game, attacker: Player, victim: Player, _blast: bool) -> float:
 	if attacker == victim:
 		return 1.0
 	return 0.0 if attacker.team == victim.team else 1.0
 
 
-func team_score(game, team: int) -> int:
+func team_score(game: Game, team: int) -> int:
 	var sum := 0
 	for p: Player in game.players:
 		if p.team == team:
@@ -35,11 +35,11 @@ func team_score(game, team: int) -> int:
 	return sum
 
 
-func leader_score(game) -> int:
+func leader_score(game: Game) -> int:
 	return maxi(team_score(game, 0), team_score(game, 1))
 
 
-func winner(game) -> String:
+func winner(game: Game) -> String:
 	var red := team_score(game, 0)
 	var blue := team_score(game, 1)
-	return "TIE" if red == blue else String(TEAMS[0 if red > blue else 1])
+	return "TIE" if red == blue else str(TEAMS[0 if red > blue else 1])

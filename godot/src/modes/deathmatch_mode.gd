@@ -32,26 +32,31 @@ func bullets_hit_players() -> bool:
 	return true
 
 
-func hurt_scale(_game, _attacker: Player, _victim: Player, _blast: bool) -> float:
+func hurt_scale(_game: Game, _attacker: Player, _victim: Player, _blast: bool) -> float:
 	return 1.0
 
 
-func start(game, st) -> void:
+func start(game: Game, st: ModeFeature) -> void:
 	Modes.clear_enemies(game)
-	var kind := String(Modes.arena_of(st.arena)[1])
+	var kind := str(Modes.arena_of(st.arena)[1])
 	st.spawns = Modes.spawn_points(game, Modes.arena_box(game, kind), 12)
 	st.pickup_spots = []
 	for entry: Array in game.pickups:
-		var name := String(entry[0])
+		var name := str(entry[0])
 		if not name.begins_with("key_") and not GameState.TASK_ITEMS.has(name):
-			st.pickup_spots.append([name, float(entry[1]), float(entry[2])])
+			var ex: float = entry[1]
+			var ey: float = entry[2]
+			st.pickup_spots.append([name, ex, ey])
 	st.pickups_back = []
 	var spots: Array = st.spawns
 	for p: Player in game.players:
 		var spot: Array = (
 			spots[p.slot % spots.size()] if not spots.is_empty() else Modes.far_spawn(game, st, p)
 		)
-		Modes.place(game, p, float(spot[0]), float(spot[1]), float(spot[2]))
+		var sx: float = spot[0]
+		var sy: float = spot[1]
+		var sa: float = spot[2]
+		Modes.place(game, p, sx, sy, sa)
 		Modes.give_kit(p)
 		p.health = 100
 		p.frags = 0
@@ -64,7 +69,7 @@ func title() -> String:
 	return "DEATHMATCH"
 
 
-func tick(game, st, _dt: float) -> void:
+func tick(game: Game, st: ModeFeature, _dt: float) -> void:
 	if st.match_over:
 		return
 	for p: Player in game.players:
@@ -82,35 +87,36 @@ func tick(game, st, _dt: float) -> void:
 
 
 ## Taken pickups come back where they lay.
-func _pickups_back(game, st) -> void:
+func _pickups_back(game: Game, st: ModeFeature) -> void:
 	var waiting: Array = st.pickups_back
 	for spot: Array in st.pickup_spots:
+		var sx: float = spot[1]
+		var sy: float = spot[2]
 		var lying := false
 		for entry: Array in game.pickups:
-			if (
-				String(entry[0]) == String(spot[0])
-				and absf(float(entry[1]) - float(spot[1])) < .01
-				and absf(float(entry[2]) - float(spot[2])) < .01
-			):
+			var ex: float = entry[1]
+			var ey: float = entry[2]
+			if str(entry[0]) == str(spot[0]) and absf(ex - sx) < .01 and absf(ey - sy) < .01:
 				lying = true
 				break
 		var queued := -1
 		for k in waiting.size():
 			var w: Array = waiting[k]
-			if (
-				absf(float(w[1]) - float(spot[1])) < .01
-				and absf(float(w[2]) - float(spot[2])) < .01
-			):
+			var wx: float = w[1]
+			var wy: float = w[2]
+			if absf(wx - sx) < .01 and absf(wy - sy) < .01:
 				queued = k
 		if lying or queued >= 0:
-			if queued >= 0 and game.clock >= float(waiting[queued][3]):
-				game.add_pickup(String(spot[0]), float(spot[1]), float(spot[2]))
-				waiting.remove_at(queued)
+			if queued >= 0:
+				var back_at: float = waiting[queued][3]
+				if game.clock >= back_at:
+					game.add_pickup(str(spot[0]), sx, sy)
+					waiting.remove_at(queued)
 			continue
 		waiting.append([spot[0], spot[1], spot[2], game.clock + PICKUP_BACK])
 
 
-func downed(game, _st, p: Player, by: int) -> void:
+func downed(game: Game, _st: ModeFeature, p: Player, by: int) -> void:
 	p.deaths += 1
 	if by >= 0 and by != p.slot and by < game.players.size():
 		var killer: Player = game.players[by]
@@ -125,25 +131,28 @@ func downed(game, _st, p: Player, by: int) -> void:
 			Modes.say(game, "%s CASHED OUT." % Modes.tag(p))
 
 
-func respawn(game, st, p: Player) -> void:
+func respawn(game: Game, st: ModeFeature, p: Player) -> void:
 	var spot := Modes.far_spawn(game, st, p)
-	Modes.place(game, p, float(spot[0]), float(spot[1]), float(spot[2]))
+	var sx: float = spot[0]
+	var sy: float = spot[1]
+	var sa: float = spot[2]
+	Modes.place(game, p, sx, sy, sa)
 	Modes.give_kit(p)
 	Modes.stand_up(game, p, 100)
 	p.downed_by = -1
 
 
 ## Versus is never lost: a match ends on its limits (over()).
-func defeated(_game, _st) -> bool:
+func defeated(_game: Game, _st: ModeFeature) -> bool:
 	return false
 
 
-func over(_game, st) -> bool:
+func over(_game: Game, st: ModeFeature) -> bool:
 	return st.match_over
 
 
 ## The best score (frags here; a team's in team deathmatch).
-func leader_score(game) -> int:
+func leader_score(game: Game) -> int:
 	var best := -999
 	for p: Player in game.players:
 		best = maxi(best, p.frags)
@@ -152,7 +161,7 @@ func leader_score(game) -> int:
 
 ## [label, frags, deaths] per player, the most frags first (ties: fewer
 ## deaths, then the lower slot).
-func scores(game, _st) -> Array:
+func scores(game: Game, _st: ModeFeature) -> Array:
 	var order: Array = game.players.duplicate()
 	order.sort_custom(
 		func(a: Player, b: Player) -> bool:
@@ -169,8 +178,11 @@ func scores(game, _st) -> Array:
 
 
 ## Who won, for the ribbon: "P1", "RED", or "TIE".
-func winner(game) -> String:
+func winner(game: Game) -> String:
 	var rows := scores(game, null)
-	if rows.size() > 1 and int(rows[0][1]) == int(rows[1][1]):
-		return "TIE"
-	return String(rows[0][0]) if not rows.is_empty() else "TIE"
+	if rows.size() > 1:
+		var first: int = rows[0][1]
+		var second: int = rows[1][1]
+		if first == second:
+			return "TIE"
+	return str(rows[0][0]) if not rows.is_empty() else "TIE"

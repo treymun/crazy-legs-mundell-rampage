@@ -29,13 +29,13 @@ static func path() -> String:
 static func read() -> Dictionary:
 	if not FileAccess.file_exists(path()):
 		return {}
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path()))
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path()))
 	return parsed if parsed is Dictionary else {}
 
 
 static func best(map_id: String) -> Dictionary:
 	var all := read()
-	var out = all.get(map_id, {})
+	var out: Variant = all.get(map_id, {})
 	return out if out is Dictionary else {}
 
 
@@ -43,16 +43,22 @@ static func best(map_id: String) -> Dictionary:
 ## the map's record as it stood before (for the end screen's PERSONAL BEST).
 static func finish(result: Dictionary) -> Dictionary:
 	var all := read()
-	var map_id := String(result.get("map", ""))
-	var was = all.get(map_id, {})
-	if not was is Dictionary:
-		was = {}
+	var map_id := str(result.get("map", ""))
+	var found: Variant = all.get(map_id, {})
+	var was: Dictionary = found if found is Dictionary else {}
 	var before: Dictionary = was.duplicate()
 	var now: Dictionary = was.duplicate()
-	now["time"] = maxf(float(was.get("time", 0.0)), float(result.get("time", 0.0)))
-	now["level"] = maxi(int(was.get("level", 0)), int(result.get("level", 1)))
-	now["kills"] = maxi(int(was.get("kills", 0)), int(result.get("kills", 0)))
-	now["runs"] = int(was.get("runs", 0)) + 1
+	var was_time: float = was.get("time", 0.0)
+	var run_time: float = result.get("time", 0.0)
+	now["time"] = maxf(was_time, run_time)
+	var was_level: int = was.get("level", 0)
+	var run_level: int = result.get("level", 1)
+	now["level"] = maxi(was_level, run_level)
+	var was_kills: int = was.get("kills", 0)
+	var run_kills: int = result.get("kills", 0)
+	now["kills"] = maxi(was_kills, run_kills)
+	var was_runs: int = was.get("runs", 0)
+	now["runs"] = was_runs + 1
 	all[map_id] = now
 	DirAccess.make_dir_recursive_absolute(folder())
 	var file := FileAccess.open(path(), FileAccess.WRITE)
