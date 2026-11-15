@@ -36,6 +36,11 @@ const SKIP_FIELDS := {
 	"Weapons.Armory": ["boxes"],
 	"wall_breaks": ["by_cell", "win", "_faces", "_loose", "gaps"],
 	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty"],
+	# Looks kept in a simulation feature: the specks' own dice (how many a
+	# hit throws hangs on the specks already about, which are never carried)
+	# and when HEADSHOT! was last called (this machine's callouts).
+	"critters": ["speck_dice"],
+	"hit_reads": ["speck_dice", "_call_at"],
 }
 ## Classes of which a snapshot carries only these fields: things a level
 ## makes the same on every machine (a window, a fence cell, a breakable

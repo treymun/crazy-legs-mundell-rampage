@@ -96,7 +96,10 @@ map means:
 3. Fix the old fixtures' expected positions in `tools/saves/expected.json`.
 
 A save whose doors or enemies no longer match its level (changed without a new
-layout) restarts the chapter too, rather than failing to load. The hub is never
+layout) restarts the chapter too, rather than failing to load. A rebuild that
+only changes how things look (a wall's or fixture's texture, where a board
+hangs) keeps the layout: a save holds none of it, and a new layout would send
+every player of that chapter back to its start for nothing. The hub is never
 saved, so a new hub layout needs no save fixtures.
 
 ## Editing a level by hand

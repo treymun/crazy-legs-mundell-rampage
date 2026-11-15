@@ -244,7 +244,8 @@ func concession_alley() -> void:
 			"n",
 			{"sign": signs[3 - k], "skin": "detail_wall_prize_skirting"}
 		)
-	b.board("detail_soda_fountain", 20.5, 55.0, .5, {"z": .95})
+	# On the first stand's serving counter (it hung in the air mid-stand).
+	b.board("detail_soda_fountain", 20.5, 57.5, .5, {"z": .95})
 	for p in [Vector2(24.5, 60.5), Vector2(32.5, 61.5), Vector2(40.5, 60.5)]:
 		b.town("picnic_table", p.x, p.y, {"solid": .4})
 	b.town("cotton_candy", 46.5, 58.5, {"solid": .4})
@@ -614,12 +615,12 @@ func sideshows() -> void:
 	b.fence(108, 42, 126, 42, 1.6, "fair_iron")
 	b.yard(116, 42, 118, 42, "tracks", sideshow)
 	# Tents along both sides: the two-headed hog, the rope man, the saucer pilot.
-	b.booth(
-		108, 30, 114, 36, sideshow, "e", {"sign": "wing_fair_double_hog", "skin": "fair_marquee"}
-	)
-	b.booth(108, 20, 114, 26, sideshow, "e", {"sign": "wing_fair_sideshow", "skin": "fair_marquee"})
-	b.booth(120, 22, 126, 28, sideshow, "w", {"sign": "wing_fair_rope", "skin": "fair_marquee"})
-	b.booth(120, 32, 126, 38, sideshow, "w", {"sign": "wing_fair_sideshow", "skin": "fair_marquee"})
+	# (Their insides take the booth's own boards: the PRIZE PAVILION sign as
+	# their skin hung it, stretched, on every inside wall.)
+	b.booth(108, 30, 114, 36, sideshow, "e", {"sign": "wing_fair_double_hog"})
+	b.booth(108, 20, 114, 26, sideshow, "e", {"sign": "wing_fair_sideshow"})
+	b.booth(120, 22, 126, 28, sideshow, "w", {"sign": "wing_fair_rope"})
+	b.booth(120, 32, 126, 38, sideshow, "w", {"sign": "wing_fair_sideshow"})
 	b.town("giant_hog", 110.0, 32.4, {"scale": .55})
 	b.town("carousel_horse", 123.0, 25.0, {"scale": .8})
 	# The PA shed: where the patch lead goes in.

@@ -81,9 +81,7 @@ func _init() -> void:
 	OS.set_environment("APPDATA", kept_appdata)
 	var lint := []
 	if args.has("lint"):
-		var venv := (
-			ProjectSettings.globalize_path("res://").path_join("../.venv/Scripts").simplify_path()
-		)
+		var venv := _venv()
 		for tool in ["gdformat", "gdlint"]:
 			var output := []
 			var tool_args := (
@@ -139,6 +137,19 @@ func _init() -> void:
 
 
 ## The last lines of a check's output, without the engine's exit noise.
+## The repo's .venv/Scripts: beside the project, or further up (a git
+## worktree under .claude/worktrees has none of its own and shares the
+## main checkout's).
+func _venv() -> String:
+	var dir := ProjectSettings.globalize_path("res://").simplify_path()
+	for _i in 8:
+		dir = dir.get_base_dir()
+		var scripts := dir.path_join(".venv/Scripts")
+		if FileAccess.file_exists(scripts.path_join("gdformat.exe")):
+			return scripts
+	return ProjectSettings.globalize_path("res://").path_join("../.venv/Scripts").simplify_path()
+
+
 func _tail(text: String, count: int) -> String:
 	var lines := PackedStringArray()
 	for line in text.split("\n"):

@@ -386,7 +386,7 @@ func stankys_bar() -> void:
 	b.room(30, 38, 35, 41, "concrete", supply, {"roof": 2.25, "skin": "shelves", "light": .62})
 	b.room(37, 38, 38, 41, "concrete", supply, {"roof": 2.25, "skin": "crate_side", "light": .5})
 	b.wall(36, 38, 36, 41, "shelves", 2.53)
-	b.room(30, 43, 38, 46, "tile", restroom, {"roof": 2.25, "skin": "restroom", "light": .76})
+	b.room(30, 43, 38, 46, "tile", restroom, {"roof": 2.25, "skin": "tile", "light": .76})
 	b.room(40, 31, 52, 35, "floor_tile", kitchen, {"roof": 2.25, "skin": "cinder", "light": .8})
 	# The facade on Main Street: the bar's signs and windows.
 	b.wall(53, 33, 53, 33, "tavern", 2.53)
@@ -397,6 +397,9 @@ func stankys_bar() -> void:
 	b.panel(54.04, 46.6, 54.04, 35.6, "stanky_marquee", 2.24, 2.8, 1.21)
 	b.set_skin(34, 31, 34, 31, "dispatch")
 	b.set_skin(30, 44, 30, 45, "mirror")
+	# One GENTS / WASH UP sign, on the wall by the sink (the sign tile as the
+	# whole room's skin hung it on every wall and stall).
+	b.set_skin(31, 46, 31, 46, "restroom")
 	b.wall(29, 44, 29, 45, "mirror", 2.53)
 	b.set_skin(28, 44, 28, 45, "wood")
 	b.meta["mirror"] = [30, 44, 30, 46]
@@ -459,8 +462,8 @@ func stankys_bar() -> void:
 	b.fixture(30.2, 38.1, 34.0, 38.8, 1.4, "shelves", "counter_top")
 	b.board("prop_crate", 31.0, 41.0, .72)
 	b.board("prop_barrel", 35.2, 41.3, 1.03)
-	b.fixture(33.4, 43.1, 33.6, 45.2, 1.6, "restroom", "counter_top")
-	b.fixture(35.6, 43.1, 35.8, 45.2, 1.6, "restroom", "counter_top")
+	b.fixture(33.4, 43.1, 33.6, 45.2, 1.6, "plaster", "counter_top")
+	b.fixture(35.6, 43.1, 35.8, 45.2, 1.6, "plaster", "counter_top")
 	b.react("toilet", 34.6, 43.5, .82, {"id": "stall-1"})
 	b.react("toilet", 36.8, 43.5, .82, {"id": "stall-2"})
 	b.prop("sink", 30.45, 45.6)

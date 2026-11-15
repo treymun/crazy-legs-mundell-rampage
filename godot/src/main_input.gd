@@ -65,7 +65,7 @@ func _on_focus_lost() -> void:
 
 
 func _on_focus_gained() -> void:
-	if smoke:
+	if smoke or touring:
 		return
 	focused = true
 	block_fire = true
