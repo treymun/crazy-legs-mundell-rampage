@@ -1184,6 +1184,8 @@ func pooled(px: float, py: float, image: String, h: float, pz: float) -> View.Sp
 		s.spin = 0.0
 		s.solid = ""
 		s.pose = Basis.IDENTITY
+		s.tilt = 0.0
+		s.lying = false
 		return s
 	var made := View.Sprite.new(px, py, image, h, pz)
 	sprite_pool.append(made)

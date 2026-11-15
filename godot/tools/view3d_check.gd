@@ -65,7 +65,7 @@ func _init() -> void:
 			_fail("actor %s: its model cannot pose (no animation)" % kind)
 		view.free()
 	print("%d actor models" % actors.kinds.size())
-	_check_pickups(assets)
+	_check_slabs(assets)
 	if _failed.is_empty():
 		print("VIEW3D CHECK OK")
 		quit(0)
@@ -95,34 +95,38 @@ func _check_surface(id: String, arrays: Array, tile_count: int) -> int:
 	return index.size() / 3
 
 
-## Every pickup picture (item_*) makes its slab (PickupModels): sane numbers,
-## and from the front the size and place of the picture's solid pixels, as the
-## sprite showed them (one unit is the picture's height).
-func _check_pickups(assets: Assets) -> void:
-	var models := PickupModels.new(assets)
+## Every slab picture (SlabModels: the item_* pickups, the loose things, the
+## range targets) makes its slab: sane numbers, and from the front the size
+## and place of the picture's solid pixels, as the sprite showed them (one
+## unit is the picture's height); a picture with a part (a gong's plate) and
+## its part together.
+func _check_slabs(assets: Assets) -> void:
+	var models := SlabModels.new(assets)
 	var names: Array[String] = []
+	var counts := {}
 	for name: String in assets.art_index:
-		if PickupModels.is_pickup(name):
+		var kind := SlabModels.family(name)
+		if kind != SlabModels.NONE:
 			names.append(name)
+			counts[kind] = int(counts.get(kind, 0)) + 1
 	names.sort()
 	var tris := 0
 	for name in names:
 		var mesh := models.mesh(name)
 		if mesh == null:
-			_fail("pickup %s: no mesh" % name)
+			_fail("slab %s: no mesh" % name)
 			continue
-		var arrays := mesh.surface_get_arrays(0)
-		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-		var index: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
-		for v in verts:
-			if not (is_finite(v.x) and is_finite(v.y) and is_finite(v.z)):
-				_fail("pickup %s: a vertex is not a number" % name)
-				break
-		for i in index:
-			if i < 0 or i >= verts.size():
-				_fail("pickup %s: an index past the vertices" % name)
-				break
-		tris += index.size() / 3
+		tris += _check_slab_numbers(name, mesh)
+		var aabb := mesh.get_aabb()
+		if SlabModels.PARTS.has(name):
+			var part := models.mesh(name + SlabModels.PART)
+			if part == null:
+				_fail("slab %s: no part" % name)
+				continue
+			tris += _check_slab_numbers(name + SlabModels.PART, part)
+			aabb = aabb.merge(part.get_aabb())
+			if is_nan(models.pivot(name)) or models.pivot(name) < part.get_aabb().end.y - .001:
+				_fail("slab %s: its part hangs from below its top" % name)
 		var a := assets.art(name)
 		var w: int = a["w"]
 		var h: int = a["h"]
@@ -130,10 +134,9 @@ func _check_pickups(assets: Assets) -> void:
 		var box := Rect2i()
 		for y in h:
 			for x in w:
-				if data[(y * w + x) * 4 + 3] > PickupModels.SOLID:
+				if data[(y * w + x) * 4 + 3] > SlabModels.SOLID:
 					var pixel := Rect2i(x, y, 1, 1)
 					box = pixel if box.size == Vector2i.ZERO else box.merge(pixel)
-		var aabb := mesh.get_aabb()
 		var want := Vector3(box.size.x, box.size.y, 0.0) / h
 		if (
 			absf(aabb.size.x - want.x) > .001
@@ -141,12 +144,40 @@ func _check_pickups(assets: Assets) -> void:
 			or absf(aabb.end.y - float(h - box.position.y) / h) > .001
 			or absf(aabb.get_center().x) > .001
 		):
-			_fail("pickup %s: the slab is not the picture's size and place" % name)
-		if aabb.size.z <= 0.0 or aabb.size.z > aabb.size.x + .001:
-			_fail("pickup %s: the slab is %.3f thick" % [name, aabb.size.z])
-	if names.is_empty():
-		_fail("no pickup pictures (item_*)")
-	print("%d pickup meshes, %d triangles" % [names.size(), tris])
+			_fail("slab %s: the slab is not the picture's size and place" % name)
+		if aabb.size.z <= 0.0 or aabb.size.z > maxf(aabb.size.x, aabb.size.y) + .001:
+			_fail("slab %s: the slab is %.3f thick" % [name, aabb.size.z])
+	for kind: int in [SlabModels.PICKUP, SlabModels.LOOSE, SlabModels.TARGET]:
+		if int(counts.get(kind, 0)) == 0:
+			_fail("no slab pictures of family %d" % kind)
+	print(
+		(
+			"%d slab meshes (%d pickups, %d loose, %d targets), %d triangles"
+			% [
+				names.size(),
+				int(counts.get(SlabModels.PICKUP, 0)),
+				int(counts.get(SlabModels.LOOSE, 0)),
+				int(counts.get(SlabModels.TARGET, 0)),
+				tris
+			]
+		)
+	)
+
+
+## Finite vertices and indices inside them; the mesh's triangles.
+func _check_slab_numbers(name: String, mesh: ArrayMesh) -> int:
+	var arrays := mesh.surface_get_arrays(0)
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var index: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	for v in verts:
+		if not (is_finite(v.x) and is_finite(v.y) and is_finite(v.z)):
+			_fail("slab %s: a vertex is not a number" % name)
+			break
+	for i in index:
+		if i < 0 or i >= verts.size():
+			_fail("slab %s: an index past the vertices" % name)
+			break
+	return index.size() / 3
 
 
 func _fail(line: String) -> void:

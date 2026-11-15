@@ -10,6 +10,18 @@ const L := preload("res://src/range_layout.gd")
 const Bowling := preload("res://src/range_bowling.gd")
 ## Inches in a map cell, for groupings (a cell is about a yard).
 const INCHES := 36.0
+## Seconds a gallery mover stays down once hit.
+const DOWN_TIME := 1.1
+## How the targets move when hit, in the 3D view (View.Sprite.tilt, radians;
+## looks only): a gong's plate swings from its bar (SWING radians of swing a
+## second of the hit left, REACH of lean a second), a dummy rocks on its post,
+## a gallery mover wobbles on its stick and goes over flat in MOVER_FALL s.
+const GONG_SWING := 9.0
+const GONG_REACH := .7
+const ROCK_SWING := 16.0
+const ROCK_REACH := .35
+const MOVER_WOBBLE := .06
+const MOVER_FALL := .12
 
 var dice := RandomNumberGenerator.new()
 ## Each: {id, station, kind, x, y, hits, spin (seconds left), last [gun, damage,
@@ -297,7 +309,7 @@ func start_gallery(game: Game) -> void:
 
 
 func _gallery_hit(game: Game, m: Dictionary) -> void:
-	m["down_until"] = game.clock + 1.1
+	m["down_until"] = game.clock + DOWN_TIME
 	var row: Array = L.GALLERY_ROWS[m["row"]]
 	var mx: float = m["x"]
 	var row_y: float = row[0]
@@ -363,15 +375,21 @@ func sprites(game: Game) -> Array:
 		var spec_height: float = spec[1]
 		var sprite := View.Sprite.new(x, ty, str(spec[0]), spec_height, game.world.elevation(x, ty))
 		var kind := str(t["kind"])
-		if kind == "cow":
+		# The lanes' boards, gongs and cows face the firing line (south, +y);
+		# a dummy stands as a prop does, facing the open.
+		if kind != "dummy":
 			sprite.plane = 0.0
 		if spin > 0.0:
 			if kind == "board" or kind == "cow":
 				# Hit: it spins on its stand, slowing.
 				sprite.plane = spin * spin * 14.0
+			elif kind == "gong":
+				# The plate swings back from its bar and comes again (the 3D
+				# view's tilt; a billboard stays still).
+				sprite.tilt = sin(spin * GONG_SWING) * spin * GONG_REACH
 			else:
-				# A gong swings, a dummy rocks.
-				sprite.x = x + sin(spin * 22.0) * spin * .12
+				# A dummy rocks on its post.
+				sprite.tilt = sin(spin * ROCK_SWING) * spin * ROCK_REACH
 		out.append(sprite)
 	var eye: Player = game.local_player
 	out.append_array(bowling.sprites(game, Vector2(eye.x, eye.y)))
@@ -380,7 +398,7 @@ func sprites(game: Game) -> Array:
 		var down_until: float = m["down_until"]
 		var mx: float = m["x"]
 		var row_y: float = row[0]
-		if game.clock < down_until or not game.in_view(mx, row_y, .5):
+		if not game.in_view(mx, row_y, .5):
 			continue
 		var row_size: float = row[3]
 		var row_lift: float = row[1]
@@ -388,6 +406,14 @@ func sprites(game: Game) -> Array:
 		s.plane = 0.0
 		var dir: float = m["dir"]
 		s.flip = dir < 0.0
+		# On its stick it wobbles as it rides (less with EASY ON THE EYES, none
+		# when STILL); knocked down it goes over flat backwards and pops up
+		# again. Both are the 3D view's tilt.
+		var calm: float = [1.0, .4, 0.0][clampi(game.view.world_motion, 0, 2)]
+		s.tilt = sin(game.clock * 7.0 + mx * 3.0) * MOVER_WOBBLE * calm
+		if game.clock < down_until:
+			var over := minf(game.clock - (down_until - DOWN_TIME), down_until - game.clock)
+			s.tilt = PI * .5 * clampf(over / MOVER_FALL, 0.0, 1.0)
 		out.append(s)
 	return out
 

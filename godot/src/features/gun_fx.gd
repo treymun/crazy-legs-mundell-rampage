@@ -19,6 +19,10 @@
 extends GameFeature
 
 const MAX_BITS := 150
+## What the 3D view draws as tumbling slabs (sprites(); SlabModels LOOSE).
+const TUMBLES := {
+	"chunk": true, "splinter": true, "grit_brick": true, "grit_stone": true, "clod": true
+}
 const MAX_BOOMS := 6
 const MAX_HITS := 20
 ## Seconds a fireball takes to burn through its eight frames.
@@ -566,6 +570,12 @@ func sprites() -> Array:
 		var s: View.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = glow
 		s.translucent = translucent
+		if TUMBLES.has(bit.kind):
+			# The 3D view tumbles it in the air, by where it is (nothing kept),
+			# and lays it flat on the floor.
+			s.lying = bit.rest or bit.vz == 0.0
+			if not s.lying:
+				s.spin = (bit.x * 3.7 - bit.y * 2.9 + bit.z * 5.3) * .3 / maxf(.03, bit.size)
 		out.append(s)
 	for hit: Array in hits:
 		var hx: float = hit[0]

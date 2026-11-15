@@ -108,7 +108,7 @@ static func _quad() -> ArrayMesh:
 
 
 ## The art slot showing `name` this frame (call after show_sprites) and its
-## picture's size in the slot: for the pickups' meshes (PickupLayer3D).
+## picture's size in the slot: for the slabs' meshes (SlabLayer3D).
 func slot(name: String) -> int:
 	return _slot(name)
 

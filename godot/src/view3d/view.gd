@@ -50,6 +50,13 @@ class Sprite:
 	## of the picture, standing at (x, y, z) turned by `pose` (map axes, z up).
 	var solid := ""
 	var pose := Basis.IDENTITY
+	## A slab's lean back about its foot, away from its front (radians; the
+	## 3D view's range targets: a duck knocked flat, a gong's plate swinging
+	## from its bar, a dummy rocking). Billboards ignore it.
+	var tilt := 0.0
+	## A loose thing on its floor, rolling or at rest: the 3D view lays its
+	## slab flat (SlabLayer3D). Billboards ignore it.
+	var lying := false
 
 	func _init(px := 0.0, py := 0.0, img := "", h := 1.0, pz := 0.0) -> void:
 		x = px

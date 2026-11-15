@@ -11,6 +11,8 @@ extends Node3D
 @export var prop := ""
 
 var _meshes: Array[MeshInstance3D] = []
+var _turn := 0.0
+var _lean := 0.0
 
 
 ## Give every part of the model `material`; the prop shows to `reach` cells.
@@ -25,6 +27,8 @@ func setup(material: ShaderMaterial, reach: float) -> void:
 
 ## Stand at map (x, y), feet at z, turned `turn` about up, lit by `level`.
 func stand(x: float, y: float, z: float, turn: float, level: LevelData) -> void:
+	_turn = turn
+	_lean = 0.0
 	transform = Transform3D(Basis(Vector3.UP, turn), Vector3(x, z, y))
 	var c := level.cell(clampf(x, 0.0, level.width - .01), clampf(y, 0.0, level.height - .01))
 	var ti := clampi(level.area[c], 0, maxi(0, level.tints.size() / 3 - 1)) * 3
@@ -33,3 +37,12 @@ func stand(x: float, y: float, z: float, turn: float, level: LevelData) -> void:
 		tone = Color(level.tints[ti], level.tints[ti + 1], level.tints[ti + 2], level.light[c])
 	for mesh in _meshes:
 		mesh.set_instance_shader_parameter("tone", tone)
+
+
+## Lean back about its feet by `tilt` radians, away from its front (a range
+## dummy rocking on its post: View.Sprite.tilt).
+func lean(tilt: float) -> void:
+	if tilt == _lean:
+		return
+	_lean = tilt
+	basis = Basis(Vector3.UP, _turn) * Basis(Vector3.RIGHT, -tilt)

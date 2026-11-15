@@ -29,7 +29,7 @@ var world_material: ShaderMaterial
 var glass_material: ShaderMaterial
 var sky_material: ShaderMaterial
 var sprites: SpriteLayer3D
-var pickups: PickupLayer3D
+var slabs: SlabLayer3D
 var solids: SolidLayer3D
 var props: PropLayer3D
 var actors: ActorLayer3D
@@ -100,8 +100,8 @@ func _init(assets: Assets) -> void:
 	_root.add_child(_moving)
 	sprites = SpriteLayer3D.new(assets)
 	_root.add_child(sprites)
-	pickups = PickupLayer3D.new(PickupModels.new(assets), sprites)
-	_root.add_child(pickups)
+	slabs = SlabLayer3D.new(SlabModels.new(assets), sprites)
+	_root.add_child(slabs)
 	solids = SolidLayer3D.new()
 	_root.add_child(solids)
 	props = PropLayer3D.new(PropModels.new(assets))
@@ -141,7 +141,7 @@ func _init(assets: Assets) -> void:
 	_materials = [world_material, glass_material, sky_material]
 	_materials.append_array(rain_materials)
 	_materials.append_array(sprites.materials())
-	_materials.append(pickups.material)
+	_materials.append(slabs.material)
 	_materials.append(solids.material)
 	_share("tiles", tiles.tiles)
 	_share("tile_info_tex", tiles.info)
@@ -188,11 +188,12 @@ func frame(game: Game) -> void:
 	var mirror := not is_nan(level.mirror_x)
 	_mirror(mirror, level, x, y, z, angle, horizon, r.focal, Vector2i(vw, vh))
 	# Sprites whose picture has a mesh are stood up as props, enemies with a
-	# model as actors, pickups as slabs; the rest stay pictures.
+	# model as actors, pickups, loose things and range targets as slabs; the
+	# rest stay pictures.
 	var pictures: Array = []
 	var modelled: Array = []
 	var acting: Array = []
-	var picked: Array = []
+	var slabbed: Array = []
 	var solid: Array = []
 	var listed: Array = view["sprites"]
 	for item: Variant in listed:
@@ -203,8 +204,8 @@ func frame(game: Game) -> void:
 			acting.append(s)
 		elif s != null and props.models.name_of(s.image) != "":
 			modelled.append(s)
-		elif s != null and pickups.takes(s):
-			picked.append(s)
+		elif s != null and slabs.takes(s):
+			slabbed.append(s)
 		else:
 			pictures.append(item)
 	var fresh := props.show_props(modelled, level)
@@ -214,7 +215,7 @@ func frame(game: Game) -> void:
 		for key: String in _params:
 			m.set_shader_parameter(key, _params[key])
 	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
-	pickups.show_pickups(picked, level, Vector3(x, y, z), angle, game.clock, r.world_motion, mirror)
+	slabs.show_slabs(slabbed, level, Vector3(x, y, z), angle, game.clock, r.world_motion, mirror)
 	solids.show_solids(solid, level, Vector3(x, y, z), angle, mirror)
 	if mirror:
 		var reflection: View.Sprite = view.get("reflection")

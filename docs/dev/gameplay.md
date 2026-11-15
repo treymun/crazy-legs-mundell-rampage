@@ -403,8 +403,12 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   its floor). Gibs keep `spin`/`spin_rate` (fast for small ones, most of it
   lost at each bounce, turning with the run on the ground, flat at rest);
   brass flips end over end and drops flat; breakables' and weapon_fx chips
-  work theirs out from where they are (nothing kept, so play's bits carry
-  nothing new).
+  and hit_reads' hats and dropped guns work theirs out from where they are
+  (nothing kept, so play's bits carry nothing new). The 3D view draws all of
+  these as slabs that tumble in 3D from that spin and lie flat on the floor
+  (`View.Sprite.lying`, set by each feature: at rest or rolling with no fall);
+  see [view3d.md](view3d.md#slabs-pickups-loose-things-range-targets). The
+  firing range's targets lean by `View.Sprite.tilt` (range_targets.gd).
 - **The eye**: `feel.gd _plant` drops the 3D eye up to `STEP_DROP` (.018) as
   each boot comes down (sharp at the footfall, nothing in the air, standing
   or with VIEW BOB off), on top of the old horizon bob; the landing dip is as

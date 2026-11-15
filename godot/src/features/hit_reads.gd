@@ -272,5 +272,10 @@ func sprites() -> Array:
 		var name := b.image if b.owner != null else "%s_%d" % [b.image, cel]
 		var s: View.Sprite = game.pooled(b.x, b.y, name, b.size, b.z)
 		s.flip = b.flip
+		# The 3D view tumbles it in the air, by where it is (nothing kept), and
+		# lays it flat where it lies.
+		s.lying = b.rest or (b.owner == null and b.vz == 0.0)
+		if not s.lying:
+			s.spin = (b.x * 3.7 - b.y * 2.9 + b.z * 5.3) * .3 / maxf(.03, b.size)
 		out.append(s)
 	return out

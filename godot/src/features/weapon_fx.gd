@@ -661,6 +661,9 @@ func sprites() -> Array:
 			# Turning over in the air, by where it is (nothing kept): the smaller
 			# the faster.
 			s.spin = (bit.x * 3.7 - bit.y * 2.9 + bit.z * 5.3) * .3 / maxf(.03, bit.size)
+		elif TUMBLES.has(bit.kind):
+			# On the floor: the 3D view lays it flat.
+			s.lying = true
 		out.append(s)
 	return out
 
