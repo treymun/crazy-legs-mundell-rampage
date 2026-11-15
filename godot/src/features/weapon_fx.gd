@@ -24,6 +24,10 @@ const JET_SPEED := 34.0
 const JET_LIFE := .32
 ## The milk's drops, their size in the world (cells across).
 const MILK_DROP := .021
+## What turns over as it flies (sprites()).
+const TUMBLES := {
+	"chip": true, "clod": true, "splinter": true, "grit_brick": true, "grit_stone": true
+}
 ## The two teat tips, from the muzzle point (between them), on the canvas.
 const TEATS := [Vector2(-14.6, -2.4), Vector2(3.7, -18.3)]
 
@@ -295,7 +299,7 @@ func _milk(end: Vector3, struck: String) -> void:
 				[
 					px + dice.randf_range(-.08, .08),
 					py + dice.randf_range(-.08, .08),
-					game.world.elevation(px, py) + .005,
+					Tumble.floor_at(game.world, px, py, back.z) + .005,
 					dice.randf_range(0, TAU),
 					dice.randf_range(.22, .36),
 					dice.randi_range(0, 2),
@@ -311,7 +315,8 @@ func _milk(end: Vector3, struck: String) -> void:
 
 func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 	var at := Vector3(x, y, z)
-	var floor_z: float = game.world.elevation(x, y)
+	# The floor the blast was over (a loft's boards, a ramp, the ground).
+	var floor_z: float = game.world.floor_under(x, y, z)
 	if energy:
 		for _k in 14:
 			var mote := _bit("mote", at, _scatter(2.6, 1.2), dice.randf_range(.4, .75), .045)
@@ -349,6 +354,7 @@ func _tick(dt: float) -> void:
 	_soaked(dt)
 	_bosses()
 	var wind: Vector2 = Effects.DEBRIS.get("wind_" + game.level.id, Vector2.ZERO)
+	var world: LevelData = game.world
 	var kept: Array = []
 	for bit: Bit in bits:
 		bit.age += dt
@@ -385,14 +391,24 @@ func _tick(dt: float) -> void:
 					kept.append(wisp)
 		var nx := bit.x + bit.vx * dt
 		var ny := bit.y + bit.vy * dt
-		if game.world.blocked(nx, ny, .02):
+		# Walls, furniture and deck edges at its own height (a chip flying
+		# over a counter clears it).
+		if world.blocked(nx, ny, .02, bit.z):
 			bit.vx *= -.3
 			bit.vy *= -.3
 		else:
 			bit.x = nx
 			bit.y = ny
+		var was := bit.z
 		bit.z += bit.vz * dt
-		var floor_z: float = game.world.elevation(bit.x, bit.y)
+		if bit.vz > 0.0:
+			# Off a ceiling or a deck's underside, not up through it.
+			var roof: float = world.roof_over(bit.x, bit.y, was)
+			if roof > 0.0 and bit.z > roof - .02:
+				bit.z = maxf(was, roof - .02)
+				bit.vz *= -.3
+		# The floor under where it was: a fast fall never passes through a deck.
+		var floor_z: float = Tumble.floor_at(world, bit.x, bit.y, was)
 		if bit.z <= floor_z:
 			bit.z = floor_z
 			match bit.kind:
@@ -566,7 +582,7 @@ func _shed(shot: GameState.Shot) -> float:
 			mote.gravity = -.4
 			return .022
 		"bowling":
-			var floor_z: float = game.world.elevation(shot.x, shot.y)
+			var floor_z: float = game.world.floor_under(shot.x, shot.y, shot.z)
 			if shot.z - floor_z < .4 and Vector2(shot.vx, shot.vy).length() > 1.0:
 				var dust := _bit(
 					"dust", Vector3(shot.x, shot.y, floor_z + .05), Vector3(0, 0, .15), .55, .16
@@ -641,6 +657,10 @@ func sprites() -> Array:
 		var s: View.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = glow
 		s.translucent = translucent
+		if not bit.rest and bit.vz != 0.0 and TUMBLES.has(bit.kind):
+			# Turning over in the air, by where it is (nothing kept): the smaller
+			# the faster.
+			s.spin = (bit.x * 3.7 - bit.y * 2.9 + bit.z * 5.3) * .3 / maxf(.03, bit.size)
 		out.append(s)
 	return out
 

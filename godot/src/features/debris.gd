@@ -5,9 +5,14 @@
 ## never saved, never in the way. Lifetimes are effects.cfg [debris]; the
 ## scorches stay a long while (scorch_cap of them), the oldest fading first,
 ## and the smoke goes off on the level's wind (wind_<level>).
+##
+## Brass and hulls move as loose things do (tumble.gd): they land on the floor
+## really under them (a loft, a stair, a ramp), tink and bounce lower each
+## time, glance off walls and furniture, turn over end on end in the air, roll
+## a little and down a slope, and lie still. Embers and smoke stop at floors
+## and ceilings; a scorch lies on the surface the blast was over.
 extends GameFeature
 
-const GRAVITY := 9.0
 const MAX_BITS := 90
 ## Seconds a scorch takes to fade out once its time is up.
 const FADE := 2.5
@@ -15,24 +20,27 @@ const FADE := 2.5
 
 ## One piece of debris in the air or on the ground.
 class Bit:
-	var x := 0.0
-	var y := 0.0
-	var z := 0.0
-	var vx := 0.0
-	var vy := 0.0
-	var vz := 0.0
+	extends Tumble.Body
 	var age := 0.0
 	var life := 1.0
 	var kind := "casing"
-	var rest := false
 	var size := .05
+	## Turned over (View.Sprite.spin) and how fast it turns in the air.
+	var spin := 0.0
+	var spin_rate := 0.0
 
 
 var dice := RandomNumberGenerator.new()
 var bits: Array = []
-## [x, y, z, angle, size, frame, made at, fading since (below 0: not yet)]
+## [x, y, z, angle, size, frame, made at, fading since (below 0: not yet),
+## the ground mark laid for it]
 var scorches: Array = []
 var _trail_next := 0.0
+## How brass and hulls move (effects.cfg [debris] case_*), made at attach.
+var _case_feel: Tumble.Feel
+var _hull_feel: Tumble.Feel
+## The resting bit _tick() asks next whether it still has a floor under it.
+var _wake_at := 0
 
 
 func id() -> String:
@@ -41,6 +49,8 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = 1987
+	_case_feel = _make_feel("case", .02, .42, 1.4)
+	_hull_feel = _make_feel("hull", .03, .3, 2.2)
 	game.events.shot_fired.connect(_fired)
 	game.events.gun_reloading.connect(_reloading)
 	game.events.exploded.connect(_exploded)
@@ -50,6 +60,22 @@ func attach() -> void:
 func _life(key: String, fallback: float) -> float:
 	var life: float = Effects.DEBRIS.get(key, fallback)
 	return life
+
+
+## A shell's feel from effects.cfg [debris] <kind>_bounce, _drag, _wall: a
+## light, hard thing that tinks and bounces, rolls a little and lies still.
+func _make_feel(kind: String, radius: float, bounce: float, drag: float) -> Tumble.Feel:
+	var feel := Tumble.Feel.new(
+		radius,
+		_life(kind + "_wall", .45),
+		_life(kind + "_bounce", bounce),
+		_life(kind + "_drag", drag)
+	)
+	feel.grip = .55
+	feel.hard = 1.1
+	feel.pull = .85
+	feel.climb = .04
+	return feel
 
 
 ## Out of the gun's right side, tumbling.
@@ -63,11 +89,21 @@ func _eject(kind: String, count: int, spread := 1.0) -> void:
 		bit.x = p.x + cos(a) * .25 - sin(a) * .12
 		bit.y = p.y + sin(a) * .25 + cos(a) * .12
 		bit.z = p.eye - .22
+		if game.world.blocked(bit.x, bit.y, .03, bit.z):
+			# Hard against a wall: out of the gun beside the shooter instead.
+			bit.x = p.x
+			bit.y = p.y
 		var out := dice.randf_range(.9, 1.6) * spread
 		bit.vx = -sin(a) * out + cos(a) * dice.randf_range(-.3, .4)
 		bit.vy = cos(a) * out + sin(a) * dice.randf_range(-.3, .4)
 		bit.vz = dice.randf_range(1.2, 2.2)
 		bit.life = _life("case_life", 7.0)
+		# Brass flips end over end out of the port, a hull lazier.
+		var turn := (
+			dice.randf_range(14.0, 22.0) if kind == "casing" else dice.randf_range(8.0, 12.0)
+		)
+		bit.spin_rate = turn if dice.randf() < .5 else -turn
+		bit.spin = dice.randf_range(0.0, TAU)
 		_add(bit)
 
 
@@ -107,20 +143,15 @@ func _reloading(gun: int) -> void:
 func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 	if energy:
 		return
-	var floor_z: float = game.world.elevation(x, y)
+	# The floor the blast was over: a loft's boards, a ramp, the ground.
+	var floor_z: float = Tumble.floor_at(game.world, x, y, z)
 	if z - floor_z < 1.2:
-		scorches.append(
-			[
-				x,
-				y,
-				floor_z + .004,
-				dice.randf_range(0, TAU),
-				dice.randf_range(.75, 1.05),
-				dice.randi_range(0, 2),
-				game.clock,
-				-1.0
-			]
-		)
+		var turn := dice.randf_range(0, TAU)
+		var size := dice.randf_range(.75, 1.05)
+		var look := dice.randi_range(0, 2)
+		var mark := View.GroundMark.new(x, y, 0.0, turn, size, size, "mark_scorch_%d" % look)
+		Tumble.lay(game.world, mark, z)
+		scorches.append([x, y, mark.z, turn, size, look, game.clock, -1.0, mark])
 	var embers: int = Effects.DEBRIS.get("embers", 7)
 	for k in embers:
 		var ember := Bit.new()
@@ -149,7 +180,9 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 
 func _tick(dt: float) -> void:
 	var wind: Vector2 = Effects.DEBRIS.get("wind_" + game.level.id, Vector2.ZERO)
+	var world: LevelData = game.world
 	var kept: Array = []
+	_wake_one()
 	for bit: Bit in bits:
 		bit.age += dt
 		if bit.age >= bit.life:
@@ -157,40 +190,77 @@ func _tick(dt: float) -> void:
 		kept.append(bit)
 		if bit.rest:
 			continue
-		match bit.kind:
-			"ember":
-				# Floats up, drifts, burns out.
-				bit.vz -= .4 * dt
-				bit.vx *= 1.0 - dt
-				bit.vy *= 1.0 - dt
-			"smoke":
-				bit.size += dt * .35
-				bit.vx += (wind.x - bit.vx) * minf(1.0, dt * 1.5)
-				bit.vy += (wind.y - bit.vy) * minf(1.0, dt * 1.5)
-			_:
-				bit.vz -= GRAVITY * dt
+		if bit.kind == "casing" or bit.kind == "hull":
+			_shell(bit, dt)
+			continue
+		if bit.kind == "ember":
+			# Floats up, drifts, burns out.
+			bit.vz -= .4 * dt
+			bit.vx *= 1.0 - dt
+			bit.vy *= 1.0 - dt
+		else:
+			bit.size += dt * .35
+			bit.vx += (wind.x - bit.vx) * minf(1.0, dt * 1.5)
+			bit.vy += (wind.y - bit.vy) * minf(1.0, dt * 1.5)
 		var nx := bit.x + bit.vx * dt
 		var ny := bit.y + bit.vy * dt
-		if game.world.blocked(nx, ny, .02):
+		if world.blocked(nx, ny, .02, bit.z):
 			bit.vx *= -.4
 			bit.vy *= -.4
 		else:
 			bit.x = nx
 			bit.y = ny
+		var was := bit.z
 		bit.z += bit.vz * dt
-		var floor_z: float = game.world.elevation(bit.x, bit.y)
-		if bit.z <= floor_z and (bit.kind == "casing" or bit.kind == "hull"):
+		# Under a ceiling or a deck it spreads along it; it never sinks into a floor.
+		var roof: float = world.roof_over(bit.x, bit.y, was)
+		if roof > 0.0 and bit.z > roof - bit.size * .5:
+			bit.z = maxf(was, roof - bit.size * .5)
+			bit.vz = minf(bit.vz, 0.0)
+		var floor_z: float = world.floor_under(bit.x, bit.y, was)
+		if bit.z < floor_z:
 			bit.z = floor_z
-			if bit.vz < -1.2:
-				bit.vz *= -.35
-				bit.vx *= .5
-				bit.vy *= .5
-				game.sound_at("casing_tink", bit.x, bit.y, .22 if bit.kind == "casing" else .12)
-			else:
-				bit.rest = true
+			bit.vz = maxf(bit.vz, 0.0)
 	bits = kept
 	_age_scorches()
 	_trails()
+
+
+## A casing or a hull: it falls, tinks off the floor and bounces lower each
+## time, glances off walls, turns over in the air, rolls and lies still.
+func _shell(bit: Bit, dt: float) -> void:
+	var casing := bit.kind == "casing"
+	var ox := bit.x
+	var oy := bit.y
+	var hit := Tumble.step(game.world, bit, _case_feel if casing else _hull_feel, dt)
+	if hit & Tumble.FLOOR:
+		bit.spin_rate *= -.5
+		game.sound_at("casing_tink", bit.x, bit.y, .22 if casing else .12)
+	elif hit & Tumble.WALL:
+		bit.spin_rate *= -.7
+	if hit & Tumble.RESTED:
+		bit.rest = true
+		# It lies along the floor (the pictures lie flat), one end or the other.
+		bit.spin = roundf(bit.spin / PI) * PI
+	elif bit.vz == 0.0:
+		# Rolling about its length on the floor: it drops flat and rolls on,
+		# a little wobble with the run.
+		var run := Vector2(bit.x - ox, bit.y - oy).length()
+		var flat := roundf(bit.spin / PI) * PI
+		bit.spin = lerpf(bit.spin, flat, minf(1.0, dt * 14.0)) + sin(bit.age * 40.0) * run * 2.0
+	else:
+		bit.spin += bit.spin_rate * dt
+
+
+## One resting shell a tick is asked whether it still has a floor under it.
+func _wake_one() -> void:
+	if bits.is_empty():
+		return
+	_wake_at = (_wake_at + 1) % bits.size()
+	var bit: Bit = bits[_wake_at]
+	if bit.rest and (bit.kind == "casing" or bit.kind == "hull"):
+		if Tumble.unsupported(game.world, bit, _case_feel):
+			bit.rest = false
 
 
 ## Past the cap or their life the oldest scorches fade out, then go.
@@ -231,7 +301,8 @@ func _trails() -> void:
 				e.x + dice.randf_range(-.1, .1),
 				e.y + dice.randf_range(-.1, .1),
 				dice.randf_range(.04, .08),
-				Enemy.PLASMA.has(e.kind)
+				Enemy.PLASMA.has(e.kind),
+				game.world.stand(e) + .3
 			)
 
 
@@ -255,6 +326,7 @@ func sprites() -> Array:
 		var s: View.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = bit.kind == "ember"
 		s.translucent = bit.kind == "smoke"
+		s.spin = bit.spin
 		out.append(s)
 	return out
 
@@ -271,8 +343,8 @@ func ground_marks() -> Array:
 			var fading_at: float = s[7]
 			if fading_at >= 0.0:
 				picture = game.art.faded_art(picture, 1.0 - (game.clock - fading_at) / FADE)
-			var sz: float = s[2]
-			var turn: float = s[3]
-			var size: float = s[4]
-			out.append(View.GroundMark.new(sx, sy, sz, turn, size, size, picture))
+			# The mark laid when it was made (on the deck or the ramp it is on).
+			var mark: View.GroundMark = s[8]
+			mark.image = picture
+			out.append(mark)
 	return out

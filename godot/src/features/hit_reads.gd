@@ -191,7 +191,9 @@ func drop_arm(e: Enemy, held: String, spot: Vector2) -> void:
 	b.size = drop_size
 	b.owner = e
 	b.start = Vector3(e.x, e.y, game.world.stand(e) + e.z + e.height * .5)
-	b.land = Vector3(spot.x, spot.y, game.world.elevation(spot.x, spot.y))
+	# On the floor at the spot as seen from the hand (a loft's boards, not the
+	# yard under them).
+	b.land = Vector3(spot.x, spot.y, Tumble.floor_at(game.world, spot.x, spot.y, b.start.z))
 	b.x = b.start.x
 	b.y = b.start.y
 	b.z = b.start.z

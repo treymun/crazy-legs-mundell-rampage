@@ -8,6 +8,9 @@
 ## And how hits land (only=hits for just these): a head shot (the hat off, the
 ## pop), buckshot throwing a hand through a window, the cow launcher's throw,
 ## a body floating in the bayou, chickens scattering at a shot.
+## And loose things on the level's real 3D shape (only=loft for just these): a
+## revolver's brass, a burst hand and a blast up on hickston's hay loft and on
+## the feed store's dock ramp (all of it should lie on the boards, the ramp).
 ## Each is a row of frames, <effect>_<n>.png, in out=<dir>.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
@@ -43,6 +46,14 @@ func _run() -> void:
 	# The boss's entrance is pictured (a tool gets none otherwise).
 	BossKit.tool_intros = true
 	var args := OS.get_cmdline_user_args()
+	if args.has("only=loft"):
+		await _loft()
+		await _ramp()
+		print("physics frames written to ", out)
+		main.queue_free()
+		await process_frame
+		quit()
+		return
 	if args.has("only=hits"):
 		await _hits()
 		print("physics frames written to ", out)
@@ -296,6 +307,79 @@ func _gibs() -> void:
 	await _snap("gibs_0")
 	g.explode(Game.Shot.new(e.x, e.y, g.world.stand(e) + .3, 0, 0, 0, "tnt"))
 	await _row(g, "gibs_blast", [4, 6, 8, 12, 20, 40])
+
+
+## Up on a deck (only=loft: hickston's hay loft): a revolver's brass dumped
+## there, a hand burst there and a blast beside it. The brass, the gibs, the
+## blood and the scorch should all lie on the loft's boards.
+func _loft() -> void:
+	var g := _level("hickston")
+	var loft: LevelGeometry.Slab = null
+	for s: LevelGeometry.Slab in g.world.geo.slabs:
+		if s.id == "hay_loft":
+			loft = s
+	if loft == null:
+		return
+	var top := loft.top
+	var at := Vector2(loft.x0 + 4.2, loft.y1 - 1.0)
+	var mark := Vector2(loft.x0 + 2.4, loft.y0 + 3.4)
+	await _on_deck(g, at, mark, top, "loft")
+
+
+## On a ramp (only=loft: the feed store's dock ramp): the same, on the slope.
+func _ramp() -> void:
+	var g := _level("feedstore")
+	var ramp: LevelGeometry.Slab = null
+	for s: LevelGeometry.Slab in g.world.geo.slabs:
+		if s.sloped():
+			ramp = s
+	if ramp == null:
+		return
+	var mark := Vector2((ramp.x0 + ramp.x1) * .5, (ramp.y0 + ramp.y1) * .5)
+	# At its foot looking up it (downhill is against its slope).
+	var down := Vector2(-ramp.gx, -ramp.gy).normalized()
+	var at := mark + down * 3.2
+	if g.world.blocked(at.x, at.y, .3):
+		at = _spot(g, mark.x, mark.y, 2.6)
+	if at == Vector2.INF:
+		return
+	await _on_deck(g, at, mark, ramp.top_at(mark.x, mark.y), "ramp")
+
+
+## Stand on the floor at `at` (its height `top` when on a deck) looking at
+## `mark` on it; dump brass and burst a hand at `mark`, a blast beside it.
+func _on_deck(g: Game, at: Vector2, mark: Vector2, top: float, name: String) -> void:
+	var p := g.player
+	var feet := g.world.floor_under(at.x, at.y, top + .3)
+	p.floor_z = feet
+	_stand(g, at.x, at.y, mark.x, mark.y, top)
+	p.eye = feet + .95
+	p.pitch = clampf((top - p.eye) / at.distance_to(mark) * View.base_focal, -50.0, 50.0)
+	_ticks(g, 4)
+	await _snap("%s_0" % name)
+	var e: Enemy = null
+	for one: Enemy in g.enemies:
+		if one.hostile and not Enemy.BOSS_TITLES.has(one.kind) and not HitZones.METAL.has(one.kind):
+			e = one
+			break
+	e.x = mark.x
+	e.y = mark.y
+	e.floor_z = top
+	g.gore_fx.burst(e)
+	e.x = 1.5
+	e.y = 1.5
+	g.events.exploded.emit(mark.x - .9, mark.y + .6, top + .3, false)
+	# The brass out of the gun as if fired from beside the mark.
+	var keep := Vector3(p.x, p.y, p.eye)
+	p.x = mark.x + .6
+	p.y = mark.y - .4
+	p.eye = top + .95
+	for _k in 3:
+		g.events.gun_reloading.emit(Weapons.REVOLVER)
+	p.x = keep.x
+	p.y = keep.y
+	p.eye = keep.z
+	await _row(g, name, [3, 9, 120])
 
 
 ## A stick of dynamite left at the edge of a step rolls down it.

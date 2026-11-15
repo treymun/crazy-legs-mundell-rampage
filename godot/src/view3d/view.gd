@@ -43,6 +43,9 @@ class Sprite:
 	var plane := NAN
 	var hurt := 0.0
 	var who: Object = null
+	## How far a billboard is turned over in the view's plane (radians, about
+	## its middle; a gib or a chunk tumbling through the air). 0: upright.
+	var spin := 0.0
 
 	func _init(px := 0.0, py := 0.0, img := "", h := 1.0, pz := 0.0) -> void:
 		x = px
@@ -77,6 +80,10 @@ class GroundMark:
 	var reach := 1.0
 	var width := 1.0
 	var image := ""
+	## The floor's rise per unit along x and y under it (a mark on a ramp lies
+	## on the ramp): 0 on the flat.
+	var gx := 0.0
+	var gy := 0.0
 
 	func _init(px := 0.0, py := 0.0, pz := 0.0, pa := 0.0, pr := 1.0, pw := 1.0, img := "") -> void:
 		x = px

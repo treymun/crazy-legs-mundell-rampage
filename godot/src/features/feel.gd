@@ -3,7 +3,9 @@
 ## and springs home after a shot (each gun's recoil, retreat, view_rise, settle
 ## and spring_damp in weapons.cfg), dips when the player lands (the view drops
 ## with it), and a blow staggers the view away from where it came from and
-## shoves the gun. Looks only: no dice, never saved, the aim never moves.
+## shoves the gun; walking, the eye settles a touch as each boot comes down (a
+## real drop of the 3D eye, with the old horizon bob). Looks only: no dice,
+## never saved, the aim never moves.
 ##
 ## VIEW BOB scales the sway and the landing (off: none); SCREEN SHAKE scales
 ## the blows (off: none). The kick of a shot is the gun's own and always shows.
@@ -17,6 +19,8 @@ const SETTLE_K := 1.41
 ## How far (cells) the eye drops on a full landing and on the heaviest blow.
 const LAND_DROP := .05
 const HIT_DROP := .035
+## How far (cells) the eye settles as a boot comes down at a full walk.
+const STEP_DROP := .018
 ## The heaviest blow's jolt: the view's turn (radians) and tilt (pixels), and
 ## the gun's shove (pixels).
 const HIT_YAW := .045
@@ -119,7 +123,17 @@ func _tick(dt: float) -> void:
 	var back_k: float = back if back != null else 0
 	var rise_k: float = rise if rise != null else 0
 	p.weapon_lag = sway + jolt + Vector2(kick * back_k, -kick * rise_k)
-	game.view_kick = view
+	game.view_kick = view + Vector3(0.0, 0.0, _plant(p, bob))
+
+
+## The eye settling a touch as each boot comes down (the steps are at whole
+## turns of walk_phase / PI, as the footstep sounds are), sharp at the plant and
+## gone mid-stride; nothing in the air, standing still or with VIEW BOB off.
+func _plant(p: Player, bob: float) -> float:
+	if p.air > 0.0 or p.health <= 0 or bob <= 0.0:
+		return 0.0
+	var lift := 1.0 - absf(sin(p.walk_phase))
+	return lift * lift * p.motion * STEP_DROP * bob
 
 
 ## A blow of `amount`: the view turns and tilts away from where it came from

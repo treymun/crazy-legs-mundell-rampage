@@ -53,6 +53,7 @@ godot --headless --path godot --script res://tools/check_fixes.gd     # PARITY F
 godot --headless --path godot --script res://tools/bot_campaign.gd    # CAMPAIGN WALKTHROUGH OK
 godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVES OK (-- make: add saves of the new version)
 godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
+godot --headless --path godot --script res://tools/physics_check.gd   # PHYSICS OK (loose things on decks, ramps, stairs, walls; levels=a,b)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)

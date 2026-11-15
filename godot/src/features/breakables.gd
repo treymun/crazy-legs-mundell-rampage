@@ -571,6 +571,8 @@ func _throw(x: float, y: float, z: float, stuff: String, count: int, ax: float, 
 			b.x = x
 			b.y = y
 		b.z = z + dice.randf_range(-.15, .15)
+		# Never thrown from inside the floor (a deck's boards, a stair).
+		b.z = maxf(b.z, Tumble.floor_at(game.world, b.x, b.y, z + .2))
 		var a := dice.randf() * TAU
 		var speed := dice.randf_range(.6, 2.2)
 		b.vx = cos(a) * speed + ax * dice.randf_range(.5, 2.0)
@@ -625,6 +627,14 @@ func _tick(dt: float) -> void:
 			)
 			shot.owner = -1
 			game.explode(shot)
+	if not bits.is_empty():
+		# One resting bit a tick (by the clock: the same on every machine) is
+		# asked whether it still lies on something; if what held it up broke, it
+		# falls again.
+		var waking: Bit = bits[int(game.clock * 60.0) % bits.size()]
+		if waking.rest and Tumble.unsupported(game.world, waking, _feel(waking.image)):
+			waking.rest = false
+			_resting_dirty = true
 	for b: Bit in bits:
 		if b.rest:
 			continue
@@ -656,6 +666,11 @@ func sprites() -> Array:
 		if not b.rest and game.in_view(b.x, b.y, b.size + .2):
 			var s: View.Sprite = game.pooled(b.x, b.y, b.image, b.size, b.z)
 			s.flip = b.flip
+			if b.vz != 0.0:
+				# In the air it turns over as it goes, faster the smaller it is:
+				# worked out from where it is (looks only, nothing kept).
+				var turn := (b.x * 3.7 - b.y * 2.9 + b.z * 5.3) * .35 / maxf(.03, b.size)
+				s.spin = -turn if b.flip else turn
 			out.append(s)
 	for w: Array in wrecks:
 		var wx: float = w[0]

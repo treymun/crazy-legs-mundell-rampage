@@ -48,6 +48,8 @@ static func pool(gore: Gore, e: Enemy) -> void:
 	var mark := View.GroundMark.new(
 		e.x, e.y, w.stand(e) + .005, gore.dice.randf() * TAU, .06, .06, image
 	)
+	# On what it lies on: a loft's boards, a ramp (tilted with it), the ground.
+	Tumble.lay(w, mark, w.stand(e) + e.toss + .1, .005)
 	gore.blood_marks.append(mark)
 	if gore.blood_marks.size() > gore.BLOOD_CAP:
 		gore.blood_marks.pop_front()
@@ -109,6 +111,7 @@ static func limb(gore: Gore, e: Enemy) -> void:
 	g.image = ("gib_a_" if green else "gib_") + part
 	g.size = Gore.GIB_SIZES[part]
 	g.green = green
+	g.spin_rate = gore.spin_rate(g.size)
 	gore.gibs.append(g)
 	while gore.gibs.size() > gore.GIB_CAP:
 		gore.gibs.pop_front()
@@ -171,29 +174,34 @@ static func scrap(gore: Gore, e: Enemy) -> void:
 		g.size = SCRAP_SIZES[part]
 		g.flip = gore.dice.randf() < .5
 		g.metal = true
+		g.spin_rate = gore.spin_rate(g.size)
 		gore.gibs.append(g)
 	while gore.gibs.size() > gore.GIB_CAP:
 		gore.gibs.pop_front()
 	for k in 3:
 		var a: float = gore.dice.randf() * TAU
 		var r: float = gore.dice.randf_range(0.0, .8)
-		oil(gore, e.x + cos(a) * r, e.y + sin(a) * r, gore.dice.randf_range(.18, .4))
+		oil(gore, e.x + cos(a) * r, e.y + sin(a) * r, gore.dice.randf_range(.18, .4), floor_z + .3)
 	game.burst(e.x, e.y, floor_z + e.height * .5, "spark", 18, 3.0)
 	game.sound_at("metal_down", e.x, e.y, .95)
 
 
-static func oil(gore: Gore, x: float, y: float, radius: float) -> void:
+static func oil(gore: Gore, x: float, y: float, radius: float, from_z: float) -> void:
 	if gore.game.world.blocked(x, y):
 		return
 	gore.blood_marks.append(
-		View.GroundMark.new(
-			x,
-			y,
-			gore.game.world.elevation(x, y) + .004,
-			gore.dice.randf() * TAU,
-			radius,
-			radius,
-			"mark_oil_%d" % (gore.dice.randi() % 3)
+		Tumble.lay(
+			gore.game.world,
+			View.GroundMark.new(
+				x,
+				y,
+				0.0,
+				gore.dice.randf() * TAU,
+				radius,
+				radius,
+				"mark_oil_%d" % (gore.dice.randi() % 3)
+			),
+			from_z
 		)
 	)
 	if gore.blood_marks.size() > gore.BLOOD_CAP:
@@ -202,7 +210,7 @@ static func oil(gore: Gore, x: float, y: float, radius: float) -> void:
 
 ## A streak of blood thrown along (ax, ay) from a big hit.
 static func streak(
-	gore: Gore, x: float, y: float, ax: float, ay: float, amount: float, green: bool
+	gore: Gore, x: float, y: float, ax: float, ay: float, amount: float, green: bool, from_z: float
 ) -> void:
 	var reach: float = gore.dice.randf_range(.6, 1.4)
 	var at := Vector2(x + ax * reach, y + ay * reach)
@@ -210,14 +218,18 @@ static func streak(
 		return
 	var length := clampf(amount * .018, .45, 1.1)
 	gore.blood_marks.append(
-		View.GroundMark.new(
-			at.x,
-			at.y,
-			gore.game.world.elevation(at.x, at.y) + .004,
-			atan2(ay, ax),
-			length,
-			length * .4,
-			"mark_streak_%s_%d" % ["acid" if green else "blood", gore.dice.randi() % 2]
+		Tumble.lay(
+			gore.game.world,
+			View.GroundMark.new(
+				at.x,
+				at.y,
+				0.0,
+				atan2(ay, ax),
+				length,
+				length * .4,
+				"mark_streak_%s_%d" % ["acid" if green else "blood", gore.dice.randi() % 2]
+			),
+			from_z
 		)
 	)
 	if gore.blood_marks.size() > gore.BLOOD_CAP:
@@ -240,7 +252,9 @@ static func wall_splat(gore: Gore, g: Gore.Gib) -> void:
 		return
 	mark.image = "fx_%s_%d" % ["acid" if g.green else "blood", gore.dice.randi() % 4]
 	mark.radius = gore.dice.randf_range(.1, .2)
-	mark.z = clampf(g.z, .1, 1.8)
+	# Where it struck, never below the floor it flew over (a loft's, a deck's).
+	var floor_z: float = gore.game.world.floor_under(g.x, g.y, g.z)
+	mark.z = clampf(g.z, floor_z + mark.radius, floor_z + 1.8)
 	gore.walls.append(mark)
 	if gore.walls.size() > gore.SPLAT_CAP:
 		gore.walls.pop_front()
@@ -288,14 +302,18 @@ static func prints(gore: Gore) -> void:
 		return
 	var size := .16 * (.6 + .4 * float(gore.bloody) / PRINTS)
 	gore.blood_marks.append(
-		View.GroundMark.new(
-			x,
-			y,
-			game.world.stand(p) + .004,
-			heading + PI / 2.0,
-			size,
-			size,
-			"mark_print_%s" % ("acid" if gore.bloody_green else "blood")
+		Tumble.lay(
+			game.world,
+			View.GroundMark.new(
+				x,
+				y,
+				0.0,
+				heading + PI / 2.0,
+				size,
+				size,
+				"mark_print_%s" % ("acid" if gore.bloody_green else "blood")
+			),
+			game.world.stand(p) + .1
 		)
 	)
 	if gore.blood_marks.size() > gore.BLOOD_CAP:
