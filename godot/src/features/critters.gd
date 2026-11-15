@@ -35,6 +35,9 @@ const THRASH := .6
 const SPECK_CAP := 170
 
 var dice := RandomNumberGenerator.new()
+## The feathers', mud's and splashes' dice: looks only, never carried
+## (SnapCodec SKIP_FIELDS); `dice` is the flaps' and hops'.
+var speck_dice := RandomNumberGenerator.new()
 ## Animals in the air: enemy -> its rise (cells a second).
 var _hops := {}
 ## Hurt hogs charging: enemy -> until when.
@@ -51,6 +54,7 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 1313
+	speck_dice.seed = hash(game.level.id) + 1314
 	game.events.shot_fired.connect(_fired)
 	game.events.exploded.connect(_blast)
 	game.events.ticked.connect(_tick)
@@ -108,8 +112,8 @@ func _spatter(e: Enemy, kind: String, count: int) -> void:
 	for _i in count:
 		if game.specks.size() >= SPECK_CAP:
 			return
-		var a := dice.randf() * TAU
-		var v := dice.randf_range(.3, 1.3)
+		var a := speck_dice.randf() * TAU
+		var v := speck_dice.randf_range(.3, 1.3)
 		game.specks.append(
 			GameState.Speck.new(
 				e.x,
@@ -117,8 +121,8 @@ func _spatter(e: Enemy, kind: String, count: int) -> void:
 				z,
 				cos(a) * v,
 				sin(a) * v,
-				dice.randf_range(.4, 1.8),
-				dice.randf_range(.35, .9),
+				speck_dice.randf_range(.4, 1.8),
+				speck_dice.randf_range(.35, .9),
 				kind
 			)
 		)
@@ -214,7 +218,7 @@ func _tick(dt: float) -> void:
 				continue
 			# Rolling side to side in the water.
 			e.face_left = int((thrash_until - game.clock) * 14.0) % 2 == 0
-			if dice.randf() < dt * 14.0:
+			if speck_dice.randf() < dt * 14.0:
 				_spatter(e, "splash", 2)
 		for e: Enemy in done:
 			_thrashing.erase(e)

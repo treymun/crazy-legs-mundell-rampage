@@ -41,7 +41,9 @@ func _on_back() -> void:
 
 
 func _on_focus_lost() -> void:
-	if smoke:
+	# (A view tour or bench goes on in the background: another window taking
+	# focus must not drop it to the title halfway through its pictures.)
+	if smoke or touring:
 		return
 	if Time.get_ticks_msec() < focus_grace:
 		return
@@ -64,7 +66,7 @@ func _on_focus_lost() -> void:
 
 
 func _on_focus_gained() -> void:
-	if smoke:
+	if smoke or touring:
 		return
 	focused = true
 	block_fire = true

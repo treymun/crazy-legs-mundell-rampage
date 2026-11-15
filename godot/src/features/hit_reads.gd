@@ -59,6 +59,9 @@ class Bit:
 
 
 var dice := RandomNumberGenerator.new()
+## The specks' and sparks' dice: looks only, never carried (SnapCodec
+## SKIP_FIELDS), so a copy whose specks differ still throws its hats alike.
+var speck_dice := RandomNumberGenerator.new()
 var bits: Array = []
 var _feel := Tumble.Feel.new(.05, .35, .32, 3.2)
 var _sound_next := 0.0
@@ -72,6 +75,7 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 4021
+	speck_dice.seed = hash(game.level.id) + 4022
 	_feel.grip = .5
 	_feel.hard = 1.4
 	game.events.ticked.connect(_tick)
@@ -117,7 +121,7 @@ func _cue(e: Enemy, amount: float, head: bool) -> String:
 	return "gib_splat" if game.gore else "body_thud"
 
 
-## Sparks off the feature's own dice (no game.rng).
+## Sparks off the feature's own speck dice (no game.rng).
 func sparks(x: float, y: float, z: float, count: int, speed: float) -> void:
 	_specks(x, y, z, "spark", count, speed, 0.0)
 
@@ -128,8 +132,8 @@ func _specks(
 	for _i in count:
 		if game.specks.size() >= SPECK_CAP:
 			return
-		var a := dice.randf() * TAU
-		var v := dice.randf_range(.24, speed)
+		var a := speck_dice.randf() * TAU
+		var v := speck_dice.randf_range(.24, speed)
 		game.specks.append(
 			GameState.Speck.new(
 				x,
@@ -137,8 +141,8 @@ func _specks(
 				z,
 				cos(a) * v,
 				sin(a) * v,
-				up + dice.randf_range(.2, speed * 1.3),
-				dice.randf_range(.18, .6),
+				up + speck_dice.randf_range(.2, speed * 1.3),
+				speck_dice.randf_range(.18, .6),
 				kind
 			)
 		)

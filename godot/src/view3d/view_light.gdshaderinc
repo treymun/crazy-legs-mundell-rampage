@@ -60,6 +60,8 @@ const float RELIEF_FAR = 10.0;
 const float RELIEF_K = 1.5;
 const float RELIEF_SKY = 0.45;
 const float POOL_REACH = 0.36;
+// Sky rows over which the panorama's top fades into its zenith (sky_at).
+const float ZENITH_FADE = 10.0;
 const vec3 SKY_LIGHT = vec3(-0.33, -0.42, 0.85);
 
 float hash12(vec2 p) {
@@ -85,16 +87,34 @@ float luma(vec3 c) {
 }
 
 // The sky in view column `column`, sy rows below the horizon (negative above).
+// The panorama's top as one colour: its second row's mean (eight columns).
+vec3 sky_zenith() {
+	vec3 sum = vec3(0.0);
+	for (int i = 0; i < 8; i++) {
+		sum += texelFetch(sky_tex, ivec2(i * 64 + 32, 1), 0).rgb;
+	}
+	return sum * (255.0 / 8.0);
+}
+
 vec3 sky_at(int column, float sy) {
 	float ray = (float(column) + 0.5 - view_size.x * 0.5) / focal;
 	int sx = int((view_angle + atan(ray)) * 81.48733086305042) & 511;
-	int sr = clamp(int(93.0 + sy * res_up * 0.95), 0, 115);
+	float row = 93.0 + sy * res_up * 0.95;
+	int sr = clamp(int(row), 0, 115);
+	// Looking well up runs past the panorama's top row: fade into the zenith
+	// from its fourth row over ZENITH_FADE rows, rather than smear the top row
+	// up the view in streaks.
+	float over = clamp((4.0 - row) / ZENITH_FADE, 0.0, 1.0);
 	if (!effects_on) {
-		return texelFetch(sky_tex, ivec2(sx, sr), 0).rgb * 255.0;
+		vec3 flat_sky = texelFetch(sky_tex, ivec2(sx, sr), 0).rgb * 255.0;
+		return over > 0.0 ? mix(flat_sky, sky_zenith(), over) : flat_sky;
 	}
 	float lift = clamp(1.0 - float(sr) / 88.0, 0.0, 1.0);
 	sx = (sx + int(sky_drift * 512.0 * lift)) & 511;
 	vec3 sky = texelFetch(sky_tex, ivec2(sx, sr), 0).rgb * 255.0;
+	if (over > 0.0) {
+		sky = mix(sky, sky_zenith(), over);
+	}
 	return min(sky * (1.0 + lightning * 1.8 * (0.4 + lift)) + vec3(18.0, 20.0, 30.0) * lightning, vec3(255.0));
 }
 

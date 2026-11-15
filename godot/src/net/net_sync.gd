@@ -342,6 +342,8 @@ class Client:
 	const KEEP := 32
 	## Inputs remembered after they are confirmed (the view's prediction).
 	const SENT_KEEP := 120
+	## Partings kept in mismatch_log.
+	const MISMATCH_LOG := 6
 
 	var session: NetSession
 	## level id -> a fresh Game for it (configured as the host's).
@@ -374,6 +376,8 @@ class Client:
 	var checks := 0
 	var mismatches := 0
 	var first_mismatch := ""
+	## Where each parting was (the first MISMATCH_LOG), for a check's report.
+	var mismatch_log: Array[String] = []
 	## Snapshots as rebuilt here, seq -> snapshot, for a test to hold against
 	## the host's (keep_rebuilt).
 	var keep_rebuilt := false
@@ -563,6 +567,8 @@ class Client:
 				mismatches += 1
 				if first_mismatch == "":
 					first_mismatch = "tick %d: %s" % [tick, where]
+				if mismatch_log.size() < MISMATCH_LOG:
+					mismatch_log.append("tick %d: %s" % [tick, where])
 				if REBUILD_RUNNING:
 					_rebuild(false)
 					return false

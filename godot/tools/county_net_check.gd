@@ -200,6 +200,9 @@ func _play() -> void:
 	# The world holds until the leader's two picks come in through her controls.
 	_wait(func() -> bool: return f.pending.is_empty(), 4000)
 	_wait(func() -> bool: return f.run_time >= seconds, int(seconds / STEP) + 4000)
+	# A level the bots earned on that last tick is still on offer: the leader
+	# picks it before the picks are counted.
+	_wait(func() -> bool: return f.pending.is_empty(), 4000)
 	var up := 0
 	for e: Enemy in g.enemies:
 		if e.alive and e.hostile:
@@ -270,7 +273,7 @@ func _play() -> void:
 					net._my_name,
 					cs.checks,
 					cs.mismatches,
-					"" if cs.first_mismatch == "" else ": " + cs.first_mismatch
+					"" if cs.mismatch_log.is_empty() else ": " + "; ".join(cs.mismatch_log)
 				]
 			)
 		)

@@ -104,6 +104,10 @@ const SIM_FIELDS := [
 	"aim_assist",
 	"touch_aim",
 	"lessons",
+	# When any hand may bark next (squad.gd bark): it decides whether a hand's
+	# own Mind.bark_next is set, which is carried, so it is carried too (a
+	# client's copy rebuilt after it ran on alone kept its own and parted).
+	"bark_next",
 ]
 ## Each player's own (Player carries them; these Game names only point at the
 ## acting player's): carried under "players".
@@ -223,7 +227,6 @@ const VIEW_FIELDS := [
 	"sights_next",
 	"sights_last",
 	"trigger_lights",
-	"bark_next",
 	"hit_point",
 	"hit_from",
 	"blast_kind",

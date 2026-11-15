@@ -118,6 +118,16 @@ a save keeps them). `game.events`, `game.view` and `game.view_frame` are VIEW fi
 kept for exact single-player play: the HIT FEEDBACK setting decides the
 hitstop, footstep splashes spend `game.rng`, `cheats.god` is the game's.
 
+A carried field must never be decided by one that is not: a client's copy
+that is put back on a snapshot keeps its own presentation, so anything
+carried that read it parts the copies again (county_net_check found three).
+`game.bark_next` decides whether a hand's own `Mind.bark_next` is set, so it
+is a SIM field; a simulation feature's looks keep their own dice that the
+snapshot skips (`SnapCodec.SKIP_FIELDS`: the specks of `hit_reads` and
+`critters`, whose count hangs on the specks already about), and what follows
+this machine's callouts (`hit_reads._call_at`, after the BARKS setting and
+`callout_until`) is skipped too.
+
 ### Stable ids
 
 Players by slot; enemies, shots and pickups by a uid from `game.take_uid()` in
