@@ -63,7 +63,7 @@ static func strip(b, id: String, title: String, intro: String) -> void:
 	b.meta["heading"] = ["COUNTY RUN", title]
 	b.meta["intro"] = intro
 	b.meta["ending"] = ""
-	b.meta["layout"] = 1
+	b.meta["layout"] = 2
 
 
 ## Cells x0..x1, y0..y1 (both inside) opened up like the cell `like`: its

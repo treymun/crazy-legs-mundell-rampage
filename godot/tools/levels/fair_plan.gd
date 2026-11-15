@@ -10,6 +10,8 @@
 ## Built by tools/levels/build_level.gd -- fair.
 extends RefCounted
 
+const Climb := preload("res://tools/levels/climb_kit.gd")
+const Climbs := preload("res://tools/levels/climbs.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
@@ -41,7 +43,7 @@ func make() -> Builder:
 		"ending": '"NO REFUNDS AFTER THE ABDUCTION."',
 		"score": "fair_score",
 		"ambience": "fair",
-		"layout": 4,
+		"layout": 5,
 		"sky": "fair_sky",
 		"control_name": "CONCESSION AND BACKSTAGE PA",
 		"objective_side_tasks": ["bell"],
@@ -86,6 +88,7 @@ func build(_b) -> Array:
 	cast()
 	detail()
 	polish()
+	Climbs.fair(b)
 	return [64.5, 81.5, -PI / 2]
 
 
@@ -550,7 +553,14 @@ func freight_lot() -> void:
 		[96.0, 30.0, 102.0, 32.4],
 		[96.0, 36.0, 104.0, 38.4]
 	]:
-		b.fixture(c[0], c[1], c[2], c[3], 2.2, "fair_iron", "tin")
+		# Solid blocks walked on top (v3.2.0: climbs.gd puts ladders and planks on them).
+		Climb.block(
+			b,
+			"container_%d_%d" % [int(c[0]), int(c[1])],
+			c,
+			2.2,
+			{"tile": "tin", "edge": "fair_iron", "area": freight}
+		)
 	b.board("wing_fair_freight", 88.06, 29.2, .9, {"z": 1.2, "plane": -PI / 2})
 	b.board("detail_freight_cartons", 95.94, 31.2, .56, {"z": .5, "plane": PI / 2})
 	for p in [

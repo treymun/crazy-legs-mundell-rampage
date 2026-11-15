@@ -56,6 +56,7 @@ func configure(options: Dictionary) -> void:
 	flash_scale = [1.0, .32, 0.0][clampi(flashes, 0, 2)]
 	gore = options.get("gore", 1)
 	aim_assist = options.get("aim_assist", 0)
+	smart_hands = options.get("smart_hands", 1)
 	hit_feedback = options.get("hit_feedback", 1)
 	adaptive = options.get("adaptive", 1)
 	var cussing: int = options.get("chatter", CussLines.CUSSIN)

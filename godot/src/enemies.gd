@@ -200,6 +200,14 @@ var hatless := false
 var hop := 0.0
 ## Its floor on a level with geometry (format 2), read by LevelData.stand().
 var floor_z := 0.0
+## Climbing (src/climbing.gd): the ladder it is on (-1 none) and which way,
+## how high over floor_z it is on it or falling off an edge, how fast it
+## falls, and the floor it stood on last tick.
+var ladder := -1
+var climb_up := true
+var climb_z := 0.0
+var fall := 0.0
+var last_floor := 0.0
 ## A hand's part in the squad and its idle activity (Squad.Mind, src/squad.gd).
 var mind: Squad.Mind = null
 ## Its stable id for snapshots (game.take_uid(); 0 until its first tick ends).
@@ -217,6 +225,8 @@ var alive: bool:
 
 var z: float:
 	get:
+		if climb_z > 0.0:
+			return climb_z
 		if hop > 0.0:
 			return hop
 		if sunk > 0.0:
@@ -298,7 +308,7 @@ func find_cover(game: GameWorld) -> Variant:
 func take_cover(game: GameWorld) -> void:
 	if game.clock < cover_ready or fetching != null or grudge != null:
 		return
-	var found: Variant = find_cover(game)
+	var found: Variant = HandTactics.cover(self, game)
 	if found != null:
 		var spot: Vector2 = found
 		cover = [spot.x, spot.y, game.clock + game.rng.uniform(1.3, 2.4)]
@@ -700,6 +710,8 @@ func tick(dt: float, game: Game) -> void:
 			volley -= 1
 			volley_timer += .078
 		return
+	if Climbing.enemy_step(self, dt, game):
+		return
 	var p: Player = game.player
 	var dx: float = p.x - x
 	var dy: float = p.y - y
@@ -762,6 +774,9 @@ func tick(dt: float, game: Game) -> void:
 			patrol(dt, game)
 		return
 
+	if HandTactics.step(self, dt, game, can_see, distance):
+		# A ladder, a door kicked in, a peek out of cover (src/hand_tactics.gd).
+		return
 	var attack_range: float = REACH[kind]
 	if windup > 0.0:
 		var mark: Array = aim_mark if aim_mark != null else [p.x, p.y, p.eye]
@@ -793,7 +808,7 @@ func tick(dt: float, game: Game) -> void:
 			):
 				attack(game, aimed, sqrt(pow(tx - x, 2) + pow(ty - y, 2)), eye, tz)
 				recovery = recovery_time(brain == "baron" and game.relief_open())
-				if RANGED.has(kind) and tactical() and game.rng.random() < .3:
+				if RANGED.has(kind) and tactical() and game.rng.random() < HandTactics.duck(game):
 					# A shot off, then down behind something before the reply.
 					take_cover(game)
 			else:

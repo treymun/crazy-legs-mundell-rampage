@@ -102,6 +102,7 @@ const SIM_FIELDS := [
 	"hit_feedback",
 	"adaptive",
 	"aim_assist",
+	"smart_hands",
 	"touch_aim",
 	"lessons",
 	# When any hand may bark next (squad.gd bark): it decides whether a hand's

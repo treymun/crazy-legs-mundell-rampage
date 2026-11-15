@@ -150,9 +150,44 @@ class Ceiling:
 		return true
 
 
+## A ladder (src/climbing.gd climbs it): leaning on a face at (x, y), climbed
+## facing (dx, dy) from the floor at z0 up to the floor at z1 beyond the face.
+## Seen as rails and rungs (render_parts); it stops nothing.
+class Ladder:
+	var id := ""
+	var x := 0.0
+	var y := 0.0
+	var dx := 0.0
+	var dy := -1.0
+	var z0 := 0.0
+	var z1 := 2.0
+	var tile := -1
+	var light := .85
+	var area := 0
+
+	## Where a climber stands at its foot (FOOT out from the face).
+	func foot() -> Vector2:
+		return Vector2(x - dx * FOOT, y - dy * FOOT)
+
+	## Where a climber steps off at the top (TOP in over the floor beyond).
+	func top() -> Vector2:
+		return Vector2(x + dx * TOP, y + dy * TOP)
+
+
+## A climber stands this far out from the face a ladder leans on, and steps
+## off this far in at the top.
+const FOOT := .36
+const TOP := .5
+## Rungs are this far apart (a climb's footsteps fall on them).
+const RUNG := .3
+const LADDER_DIRS := {
+	"n": Vector2(0, -1), "s": Vector2(0, 1), "e": Vector2(1, 0), "w": Vector2(-1, 0)
+}
+
 var slabs: Array[Slab] = []
 var segments: Array[Segment] = []
 var ceilings: Array[Ceiling] = []
+var ladders: Array[Ladder] = []
 ## Every slab edge render_parts() made: Vector4(ax, ay, bx, by) -> its tile (the
 ## 3D view lays a stretched material along a stair's side by the metre).
 var slab_edges := {}
@@ -251,6 +286,26 @@ static func from_json(
 		c.light = s.get("light", .8)
 		c.area = s.get("area", 0)
 		g.ceilings.append(c)
+	for s: Dictionary in data.get("ladders", []):
+		var lad := Ladder.new()
+		lad.id = str(s.get("id", "ladder%d" % g.ladders.size()))
+		lad.x = s["x"]
+		lad.y = s["y"]
+		var way: Vector2 = LADDER_DIRS.get(str(s.get("dir", "n")), Vector2.ZERO)
+		if way == Vector2.ZERO:
+			errors.append("%s: ladder dir is n, e, s or w" % lad.id)
+			continue
+		lad.dx = way.x
+		lad.dy = way.y
+		lad.z0 = s.get("z0", 0.0)
+		lad.z1 = s["z1"]
+		lad.tile = _tile(tile_index, s.get("tile", "porch"), errors, lad.id)
+		lad.light = s.get("light", .85)
+		lad.area = s.get("area", 0)
+		if lad.z1 <= lad.z0 + STEP:
+			errors.append("%s: ladder climbs nothing" % lad.id)
+			continue
+		g.ladders.append(lad)
 	g._build_index()
 	return g
 
@@ -595,7 +650,49 @@ func render_parts(ground: Callable) -> Dictionary:
 			roof_caps[key] = []
 		var at_key: Array = roof_caps[key]
 		at_key.append(row)
+	for lad in ladders:
+		walls.append_array(ladder_rows(lad))
 	return {"walls": walls, "caps": caps, "roof_caps": roof_caps, "slopes": slopes}
+
+
+## A ladder's pieces as wall rows: two square rails from its floor to a
+## hand-hold over the top, and a rung every RUNG up to the top.
+static func ladder_rows(lad: Ladder) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	var d := Vector2(lad.dx, lad.dy)
+	var side := Vector2(-d.y, d.x)
+	var base := Vector2(lad.x, lad.y) - d * .07
+	var half := .025
+	for s: float in [-1.0, 1.0]:
+		var mid := base + side * (.22 * s)
+		var c: Array[Vector2] = [
+			mid - d * half - side * half,
+			mid + d * half - side * half,
+			mid + d * half + side * half,
+			mid - d * half + side * half
+		]
+		for i in 4:
+			var p: Vector2 = c[i]
+			var q: Vector2 = c[(i + 1) % 4]
+			out.append_array(
+				PackedFloat32Array(
+					[p.x, p.y, q.x, q.y, lad.tile, lad.light, lad.z0, lad.z1 + .8, lad.area]
+				)
+			)
+	var a := base - side * .22
+	var b := base + side * .22
+	var z := lad.z0 + .26
+	while z < lad.z1 + .6:
+		for k: float in [-half, half]:
+			var pa := a + d * k
+			var pb := b + d * k
+			out.append_array(
+				PackedFloat32Array(
+					[pa.x, pa.y, pb.x, pb.y, lad.tile, lad.light * .9, z, z + .045, lad.area]
+				)
+			)
+		z += RUNG
+	return out
 
 
 func _add_cap(into: Dictionary, z: float, s: Slab, tile: int) -> void:
@@ -721,6 +818,11 @@ func can_walk(
 	if en != null:
 		en.floor_z = floor_z
 	else:
+		if player and floor_z < was_z - STEP:
+			# Off an edge on the last step: as high as ever, now over the
+			# lower floor, so they fall the rest (and a running jump carries).
+			air += was_z - floor_z
+			pl.air = air
 		pl.floor_z = floor_z
 	var feet := floor_z + air
 	var tall: float = BODY
@@ -797,6 +899,10 @@ class NavGraph:
 	var dedges := PackedInt32Array()
 	## cell -> the deck nodes over it (a cell's own node is the cell).
 	var over := {}
+	## Ladders: each one's foot and top node (-1, -1 when it joins nothing),
+	## and n * count + m -> the ladder joining n and m (both ways).
+	var ladder_ends: Array[Vector2i] = []
+	var links := {}
 
 	## The node a body at (x, y) with feet at z stands on (NAN: the cell's own).
 	func node_at(x: float, y: float, w: int, h: int, feet: float) -> int:
@@ -891,6 +997,14 @@ func nav(lv: LevelData) -> NavGraph:
 				elif _walks(lv, g, n, m) and _walks(lv, g, m, n):
 					lists[n].append(m)
 					lists[m].append(n)
+	for i in ladders.size():
+		var ends := ladder_nodes(g, ladders[i])
+		g.ladder_ends.append(ends)
+		if ends.x >= 0 and not lists[ends.x].has(ends.y):
+			lists[ends.x].append(ends.y)
+			lists[ends.y].append(ends.x)
+			g.links[ends.x * g.count + ends.y] = i
+			g.links[ends.y * g.count + ends.x] = i
 	g.first.resize(g.count + 1)
 	var total := 0
 	for n in g.count:
@@ -908,7 +1022,11 @@ func nav(lv: LevelData) -> NavGraph:
 		var c := g.cell[n]
 		var near := g.around(n)
 		for a in near:
+			if g.links.has(n * g.count + a):
+				continue
 			for m in g.around(a):
+				if g.links.has(a * g.count + m):
+					continue
 				var cm := g.cell[m]
 				if absi(cm % width - c % width) != 1 or absi(cm / width - c / width) != 1:
 					continue
@@ -936,6 +1054,20 @@ func nav(lv: LevelData) -> NavGraph:
 		g.dedges.append_array(dlists[n])
 	_nav = g
 	return g
+
+
+## A ladder's foot and top nodes in g ((-1, -1): its foot or its top is not a
+## place to stand, or the floor there is not the ladder's).
+func ladder_nodes(g: NavGraph, lad: Ladder) -> Vector2i:
+	var f := lad.foot()
+	var t := lad.top()
+	var a := g.node_at(f.x, f.y, width, height, lad.z0 + .1)
+	var b := g.node_at(t.x, t.y, width, height, lad.z1 + .1)
+	if a < 0 or b < 0 or a == b:
+		return Vector2i(-1, -1)
+	if absf(g.z[a] - lad.z0) > .3 or absf(g.z[b] - lad.z1) > .3:
+		return Vector2i(-1, -1)
+	return Vector2i(a, b)
 
 
 ## Whether node n's middle is somewhere a body can stand (FlowField's open

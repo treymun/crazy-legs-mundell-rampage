@@ -25,6 +25,16 @@ var jump_held := false
 var vx := 0.0
 var vy := 0.0
 var crouched := false
+## Climbing (src/climbing.gd): the level's ladder it is on (-1 none), and a
+## move under way (a pull-up onto a ledge, a step on or off a ladder's top)
+## from climb_from to climb_to over climb_time seconds, climb_t of them gone,
+## onto the ladder climb_then after it (-1: stood on the floor there).
+var ladder := -1
+var climb_time := 0.0
+var climb_t := 0.0
+var climb_from := Vector3.ZERO
+var climb_to := Vector3.ZERO
+var climb_then := -1
 ## How far the gun is off its place in screen pixels: behind a turn, away from
 ## a strafe, down on landing, kicked back by a shot, jolted by a hit
 ## (features/feel.gd's springs work it out; never saved).

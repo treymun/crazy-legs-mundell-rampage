@@ -25,6 +25,7 @@ failed.
 | `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads (a station's with both looks, every quest picture modelled); every slab (pickups, loose things, range targets) builds at its picture's size |
 | `verify_assets` | ASSETS OK | yes | assets and levels load; chapter-only kinds really are one chapter's; pending music noted |
 | `check_fixes` | PARITY FIXES OK | | the parity regression checks and the quick parts of many others (below) |
+| `climb_check` | CLIMB CHECK OK | yes | every chapter has ladders, each joined foot to top in the nav graph; a ladder takes the player up and down, JUMP lets go; pull-ups onto a chest-high stack and from it onto a roof, not onto one too high; a hand comes up a ladder to the player on a lookout and drops off it to get at them below; a hand under fire ducks out of sight, peeks out, fires and goes back; a hand kicks a door open (not EASY or CLASSIC); the same run twice comes out the same |
 | `physics_check` | PHYSICS OK | yes | gibs, brass, chunks and bodies dropped on decks, ramps and stairs and thrown at walls rest on a surface, never inside anything; the loose-things features on a loft ([gameplay.md](gameplay.md#loose-things-on-the-real-3d-shape-v300-remaster)) |
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
 | `level_edit_check` | LEVEL EDIT OK | yes | level editing keeps the walls right |
@@ -38,7 +39,7 @@ failed.
 
 ### What check_fixes runs
 
-Besides its own parity checks (including the settings count, 59 now, and the
+Besides its own parity checks (including the settings count, 60 now, and the
 fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
 `chatter_check`, `boss_check`, `arena_check`, `break_check`, `feel_check`
 (penetration), `weather_check`, the quick parts of `net_check` (determinism),

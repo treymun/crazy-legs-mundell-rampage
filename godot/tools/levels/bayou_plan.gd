@@ -18,6 +18,7 @@
 ## are in bayou_cast.gd.
 extends RefCounted
 
+const Climbs := preload("res://tools/levels/climbs.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const Cast := preload("res://tools/levels/bayou_cast.gd")
@@ -59,7 +60,7 @@ func make() -> Builder:
 		"ending": '"NO WAKE ZONE, MY FOOT."',
 		"score": "bayou_score",
 		"ambience": "bayou",
-		"layout": 3,
+		"layout": 4,
 		"sky": "bayou_sky",
 		"control_name": "BRIDGES: BOIL YARD GENERATOR, CANNERY BREAKER",
 		"extraction":
@@ -110,6 +111,7 @@ func build(_b) -> Array:
 	Cast.pickups(b)
 	Cast.set_pieces(b)
 	posts()
+	Climbs.bayou(b)
 	return [64.5, 87.5, -PI / 2]
 
 

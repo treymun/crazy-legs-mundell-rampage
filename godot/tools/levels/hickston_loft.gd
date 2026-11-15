@@ -28,7 +28,7 @@ static func build(b, barn: int) -> void:
 				"edge": "barn",
 				"light": .62,
 				"area": barn,
-				"gaps": [["s", 6.0, 7.7]],
+				"gaps": [["s", 6.0, 7.7], ["e", 4.22, 4.98]],
 				"rail": {"tile": "stockyard"},
 			}
 		)
@@ -42,6 +42,8 @@ static func build(b, barn: int) -> void:
 		"n",
 		{"tile": "porch", "edge": "barn", "area": barn}
 	)
+	# A ladder up its east side too (v3.2.0): a second way up and down.
+	Geo.ladder(b, "loft_ladder", 49.0, 6.6, "w", 0.0, LOFT, {"tile": "wood", "area": barn})
 	for at: Vector2 in [Vector2(44.95, 9.45), Vector2(48.85, 5.0), Vector2(48.85, 2.2)]:
 		# Posts under its open edges.
 		Geo.wall(

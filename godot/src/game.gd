@@ -364,6 +364,50 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 	p.drift = sin(clock * 2.3) * pow(intoxication, 2.0) * .12
 	p.angle = fposmod(p.angle + controls.turn, TAU)
 	p.pitch = maxf(-53.0, minf(53.0, p.pitch + controls.look))
+	var ox := p.x
+	var oy := p.y
+	var landed := false
+	if Climbing.player_step(self, p, controls, dt):
+		# On a ladder or pulling up onto a ledge (src/climbing.gd).
+		p.jump_held = controls.jump
+	else:
+		landed = _walk(p, controls, dt)
+	var ground: float = world.stand(p)
+	var eye := (.68 if p.crouched else .95) + ground + p.air
+	var roof: float = world.roof_over(p.x, p.y, ground)
+	if roof != 0.0 and eye > roof - .22:
+		eye = roof - .22
+		p.vertical_speed = minf(0.0, p.vertical_speed)
+	p.eye += (eye - p.eye) * minf(1.0, dt * 17.0)
+	p.motion = minf(
+		1.0, sqrt((p.x - ox) * (p.x - ox) + (p.y - oy) * (p.y - oy)) / maxf(dt * 2.0, .0001)
+	)
+	if p.air == 0.0:
+		p.walk_phase += (
+			dt * 11.0 * p.motion * (1.25 if controls.running else .80 if p.crouched else 1.0)
+		)
+	p.bob = sin(p.walk_phase * 2.0) * p.motion * (0.0 if p.air else 1.9) * bob_scale
+	if local and not host:
+		# The gun's weight, its kick and the view's jolts: features/feel.gd.
+		feel_turn = controls.turn
+		feel_landed = landed
+		_surroundings(p, roof)
+	var step := int(p.walk_phase / PI)
+	if landed or step != p.step_number:
+		var surface: String = world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)]))
+		sound.play(
+			"step_%s_%d" % [surface, step % 2], .77 if landed else .31 if controls.crouch else .55
+		)
+		if surface == "water":
+			burst(p.x, p.y, ground + .16, "splash", 5 if landed else 3, .52)
+		p.step_number = step
+	if local and not host:
+		visited[Vector2i(int(p.x), int(p.y))] = true
+
+
+## The walk, the jump and the fall of a player's body for one step; true when
+## they landed.
+func _walk(p: Player, controls: Controls, dt: float) -> bool:
 	var forward: float = controls.forward
 	var strafe: float = controls.strafe + (sin(clock * 4.0) * .39 if p.drunk > 82.0 else 0.0)
 	var magnitude := maxf(1.0, sqrt(forward * forward + strafe * strafe))
@@ -401,37 +445,7 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 		if p.air == 0.0:
 			p.vertical_speed = 0.0
 			landed = true
-	var ground: float = world.stand(p)
-	var eye := (.68 if p.crouched else .95) + ground + p.air
-	var roof: float = world.roof_over(p.x, p.y, ground)
-	if roof != 0.0 and eye > roof - .22:
-		eye = roof - .22
-		p.vertical_speed = minf(0.0, p.vertical_speed)
-	p.eye += (eye - p.eye) * minf(1.0, dt * 17.0)
-	p.motion = minf(
-		1.0, sqrt((p.x - ox) * (p.x - ox) + (p.y - oy) * (p.y - oy)) / maxf(dt * 2.0, .0001)
-	)
-	if p.air == 0.0:
-		p.walk_phase += (
-			dt * 11.0 * p.motion * (1.25 if controls.running else .80 if p.crouched else 1.0)
-		)
-	p.bob = sin(p.walk_phase * 2.0) * p.motion * (0.0 if p.air else 1.9) * bob_scale
-	if local and not host:
-		# The gun's weight, its kick and the view's jolts: features/feel.gd.
-		feel_turn = controls.turn
-		feel_landed = landed
-		_surroundings(p, roof)
-	var step := int(p.walk_phase / PI)
-	if landed or step != p.step_number:
-		var surface: String = world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)]))
-		sound.play(
-			"step_%s_%d" % [surface, step % 2], .77 if landed else .31 if controls.crouch else .55
-		)
-		if surface == "water":
-			burst(p.x, p.y, ground + .16, "splash", 5 if landed else 3, .52)
-		p.step_number = step
-	if local and not host:
-		visited[Vector2i(int(p.x), int(p.y))] = true
+	return landed
 
 
 ## The local player's surroundings: the room's sound and reverb, the jukebox's

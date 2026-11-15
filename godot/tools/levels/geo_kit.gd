@@ -318,3 +318,26 @@ static func room_poly(
 			wall(b, "%s_wall%d" % [id, i], poly[i], poly[(i + 1) % poly.size()], 0.0, top, opts)
 		)
 	return walls
+
+
+## A ladder leaning on a face at (x, y) (the face's own line: a deck's or a
+## block's edge), climbed facing `dir` (n, e, s, w) from the floor at z0 to
+## the floor at z1 beyond the face; o: tile, light, area. src/climbing.gd
+## climbs it; LevelGeometry draws its rails and rungs and joins its foot and
+## top in the nav graph, so the hands take it too.
+static func ladder(
+	b, id: String, x: float, y: float, dir: String, z0: float, z1: float, o := {}
+) -> Dictionary:
+	var lad := {
+		"id": id,
+		"x": _r(x),
+		"y": _r(y),
+		"dir": dir,
+		"z0": _r(z0),
+		"z1": _r(z1),
+		"tile": String(o.get("tile", "porch")),
+		"light": snappedf(float(o.get("light", .85)), .0001),
+		"area": int(o.get("area", 0)),
+	}
+	b.geometry["ladders"].append(lad)
+	return lad
