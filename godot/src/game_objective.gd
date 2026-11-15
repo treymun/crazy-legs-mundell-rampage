@@ -3,7 +3,7 @@ class_name GameObjective
 extends RefCounted
 
 
-static func objective_target(g) -> Variant:
+static func objective_target(g: Game) -> Variant:
 	if g.in_hub or g.revisiting:
 		return null
 	if not g.level.rescue:
@@ -18,11 +18,11 @@ static func objective_target(g) -> Variant:
 		if shutdown == null:
 			return null
 		var primary: Array = []
-		for key in shutdown.requires:
+		for key: Variant in shutdown.requires:
 			if not g.world.objective_side_tasks.has(key):
-				primary.append(String(key))
+				primary.append(str(key))
 		var pending: Array = []
-		for key in primary:
+		for key: String in primary:
 			if not g.stations_done.has(key):
 				pending.append(key)
 		if pending.size() == 1:
@@ -81,17 +81,22 @@ static func objective_target(g) -> Variant:
 	# Hickston: the same steps objective() names. The pin used to point at the
 	# sheriff from the start, through the locked barn, while the words said to
 	# fetch the brass key.
-	var boss_up: bool = g.boss != null and g.boss.alive
-	var jerry_up: bool = g.jerry != null and g.jerry.alive
+	var boss: Enemy = g.boss
+	var jerry: Enemy = g.jerry
+	var bessie: Enemy = g.bessie
+	var boss_up: bool = boss != null and boss.alive
+	var jerry_up: bool = jerry != null and jerry.alive
 	if not boss_up and not jerry_up:
-		return Vector2(g.bessie.x, g.bessie.y) if g.bessie != null and g.bessie.hp > 0.0 else null
-	if jerry_up and not g.jerry.dormant:
-		return Vector2(g.jerry.x, g.jerry.y)
+		return Vector2(bessie.x, bessie.y) if bessie != null and bessie.hp > 0.0 else null
+	if jerry_up and not jerry.dormant:
+		return Vector2(jerry.x, jerry.y)
 	if not g.keys.has("key_steel"):
 		var wanted := "key_steel" if g.keys.has("key_brass") else "key_brass"
 		for entry: Array in g.pickups:
-			if String(entry[0]) == wanted:
-				return Vector2(float(entry[1]), float(entry[2]))
+			if str(entry[0]) == wanted:
+				var entry_x: float = entry[1]
+				var entry_y: float = entry[2]
+				return Vector2(entry_x, entry_y)
 	if boss_up:
-		return Vector2(g.boss.x, g.boss.y)
-	return Vector2(g.jerry.x, g.jerry.y)
+		return Vector2(boss.x, boss.y)
+	return Vector2(jerry.x, jerry.y)

@@ -83,7 +83,8 @@ static func zone(rect: Rect2i, id: String, arg := 0) -> void:
 ## [id, arg] of what a tap at `p` hits ([] nothing).
 static func zone_at(p: Vector2i) -> Array:
 	for i in range(zones.size() - 1, -1, -1):
-		if (zones[i][0] as Rect2i).has_point(p):
+		var rect: Rect2i = zones[i][0]
+		if rect.has_point(p):
 			return [zones[i][1], zones[i][2]]
 	return []
 
@@ -124,10 +125,10 @@ static func _note(c: Canvas, text: String, y: int, ink := HUD.AMBER) -> void:
 
 ## The multiplayer screen `main` is on (main_state.gd render()); false when
 ## its state is none of them.
-static func draw_screen(main) -> bool:
+static func draw_screen(main: MainState) -> bool:
 	var c: Canvas = main.canvas
 	var menu: Menu = main.menu
-	match String(main.state):
+	match str(main.state):
 		"multi":
 			draw_hub(c, menu, main.net_note)
 		"nethost":
@@ -160,8 +161,8 @@ static func draw_hub(c: Canvas, menu: Menu, note: String) -> void:
 		box(c, r, LIT if here else PLAIN)
 		if here:
 			Menu.shell(c, 25, y + 11)
-		HUD.text(c, String(HUB[i][1]), 160, y + 3, "heading", HUD.AMBER if here else HUD.INK, true)
-		HUD.text(c, String(HUB[i][2]), 160, y + 20, "body", SOFT, true)
+		HUD.text(c, str(HUB[i][1]), 160, y + 3, "heading", HUD.AMBER if here else HUD.INK, true)
+		HUD.text(c, str(HUB[i][2]), 160, y + 20, "body", SOFT, true)
 		zone(r, "row", i)
 	_note(c, note, 171)
 	footer(c, "ARROWS PICK   ENTER GOES   ESC BACK")
@@ -173,9 +174,9 @@ static func draw_hub(c: Canvas, menu: Menu, note: String) -> void:
 
 ## A form's field as typed (password as dots, the caret on the row being typed).
 static func field_text(row: Array, form: Dictionary, here: bool, blink: bool) -> String:
-	var key := String(row[0])
-	var kind := String(row[2])
-	var value := String(form.get(key, ""))
+	var key := str(row[0])
+	var kind := str(row[2])
+	var value := str(form.get(key, ""))
 	if kind == "secret":
 		value = ".".repeat(value.length()) if value != "" else ("NONE" if not here else "")
 	value = value.to_upper()
@@ -201,14 +202,14 @@ static func draw_form(
 		var row: Array = rows[i]
 		var y := 44 + i * 17
 		var here := i == posmod(at, rows.size())
-		if String(row[2]) == "go":
+		if str(row[2]) == "go":
 			button(c, Rect2i(70, y - 2, 180, 18), "", here, "row", i)
-			HUD.text(c, String(row[1]), 160, y, "heading", HUD.AMBER if here else HUD.INK, true)
+			HUD.text(c, str(row[1]), 160, y, "heading", HUD.AMBER if here else HUD.INK, true)
 			continue
 		if here:
 			c.fill_rect(19, y - 2, 282, 14, LIT)
 			Menu.shell(c, 22, y + 2)
-		HUD.text(c, String(row[1]), 36, y + 1, "body", Menu.FADED)
+		HUD.text(c, str(row[1]), 36, y + 1, "body", Menu.FADED)
 		c.fill_rect(134, y - 1, 160, 11, Canvas.rgb(30, 20, 14))
 		HUD.text(
 			c,
@@ -222,7 +223,7 @@ static func draw_form(
 	var y2 := 44 + rows.size() * 17 + 10
 	_note(c, note, y2)
 	for k in help.size():
-		HUD.text(c, String(help[k]), 160, y2 + 12 + k * 9, "body", SOFT, true)
+		HUD.text(c, str(help[k]), 160, y2 + 12 + k * 9, "body", SOFT, true)
 	footer(c, "TYPE   ENTER NEXT   ESC BACK")
 	back_button(c)
 
@@ -300,13 +301,13 @@ static func draw_servers(
 		var info: Dictionary = s["info"]
 		HUD.text(
 			c,
-			String(info.get("lobby_name", s["name"])),
+			str(info.get("lobby_name", s["name"])),
 			34,
 			y,
 			"body",
 			HUD.AMBER if picked else HUD.INK
 		)
-		var state := String(s["state"])
+		var state := str(s["state"])
 		var what := "ASKING..."
 		var how := ""
 		var ink := SOFT
@@ -314,14 +315,17 @@ static func draw_servers(
 			what = "NOT ANSWERING"
 			ink = RED
 		elif state == "up":
-			var count := "%d/%d" % [int(info.get("players", 0)), int(info.get("max_players", 10))]
+			var players: int = info.get("players", 0)
+			var max_players: int = info.get("max_players", 10)
+			var count := "%d/%d" % [players, max_players]
 			HUD.text(c, count, 294, y, "body", HUD.AMBER if picked else HUD.INK, false, true, true)
 			what = "%s - %s" % [_mode_name(info.get("mode")), _map_name(info.get("map"))]
+			var ping: float = s["ping"]
 			how = (
 				"%s   %d MS"
 				% [
-					"MATCH ON" if String(info.get("phase", "")) == "match" else "IN THE LOBBY",
-					roundi(float(s["ping"]))
+					"MATCH ON" if str(info.get("phase", "")) == "match" else "IN THE LOBBY",
+					roundi(ping)
 				]
 			)
 			ink = GREEN if browser.why_not_join(i) == "" else HUD.AMBER
@@ -334,11 +338,11 @@ static func draw_servers(
 	back_button(c)
 
 
-static func _mode_name(id) -> String:
+static func _mode_name(id: Variant) -> String:
 	return value_name("mode", id).replace("SEARCH AND DESTROY", "SEARCH & DESTROY")
 
 
-static func _map_name(id) -> String:
+static func _map_name(id: Variant) -> String:
 	return value_name("map", id).trim_prefix("2V2 ")
 
 
@@ -356,36 +360,41 @@ static func rows(net: NetPlay) -> Array:
 
 ## The others in the lobby (whom the kick row walks through).
 static func others(net: NetPlay) -> Array:
-	return net.players.filter(func(p: Dictionary) -> bool: return int(p["id"]) != net.my_id)
+	return net.players.filter(
+		func(p: Dictionary) -> bool:
+			var pid: int = p["id"]
+			return pid != net.my_id
+	)
 
 
 ## The name of whoever runs the lobby ("" nobody).
 static func admin_name(net: NetPlay) -> String:
 	var p := net.player_of(net.admin_of())
-	return String(p.get("name", ""))
+	return str(p.get("name", ""))
 
 
 static func setting_row(key: String) -> Array:
 	for row: Array in NetPlay.MATCH_ROWS + NetPlay.LOBBY_ROWS:
-		if String(row[0]) == key:
+		if str(row[0]) == key:
 			return row
 	return []
 
 
-static func value_name(key: String, value) -> String:
+static func value_name(key: String, value: Variant) -> String:
 	var row := setting_row(key)
 	if row.is_empty():
 		return str(value)
-	var at := (row[2] as Array).find(value)
+	var values: Array = row[2]
+	var at := values.find(value)
 	if at < 0:
-		for i in (row[2] as Array).size():
+		for i in values.size():
 			if str(row[2][i]) == str(value):
 				at = i
-	return String(row[3][at]) if at >= 0 else str(value)
+	return str(row[3][at]) if at >= 0 else str(value)
 
 
 ## The next (step 1) or last (-1) value of a setting.
-static func stepped(key: String, value, step: int):
+static func stepped(key: String, value: Variant, step: int) -> Variant:
 	var row := setting_row(key)
 	if row.is_empty():
 		return value
@@ -402,7 +411,8 @@ static func stepped(key: String, value, step: int):
 static func reach_lines(net: NetPlay) -> Array:
 	if net.role != NetPlay.Role.HOST:
 		var second := ""
-		if bool(net.settings.get("dedicated", false)):
+		var dedicated: bool = net.settings.get("dedicated", false)
+		if dedicated:
 			second = (
 				"ALWAYS-OPEN LOBBY. YOU RUN IT."
 				if net.is_admin()
@@ -452,16 +462,17 @@ static func draw_lobby(
 		back_button(c, "GIVE UP")
 		return
 	var s := net.settings
-	var title := String(s.get("lobby_name", "LOBBY"))
-	if bool(s.get("locked", false)) or String(s.get("password", "")) != "":
+	var title := str(s.get("lobby_name", "LOBBY"))
+	var locked: bool = s.get("locked", false)
+	if locked or str(s.get("password", "")) != "":
 		title += "  (PASSWORD)"
 	HUD.text(c, title, 160, 32, "body", HUD.AMBER, true)
 	var reach := reach_lines(net)
-	HUD.text(c, String(reach[0]), 160, 42, "mini", HUD.INK, true)
-	HUD.text(c, String(reach[1]), 160, 49, "mini", SOFT, true)
+	HUD.text(c, str(reach[0]), 160, 42, "mini", HUD.INK, true)
+	HUD.text(c, str(reach[1]), 160, 49, "mini", SOFT, true)
 	_teams(c, net)
 	var list := rows(net)
-	var cursor := String(list[posmod(at, list.size())])
+	var cursor := str(list[posmod(at, list.size())])
 	_main_settings(c, net, cursor)
 	_actions(c, net, cursor, kick_at, armed)
 	var why := net.why_not_start() if net.is_admin() else ""
@@ -476,7 +487,7 @@ static func draw_lobby(
 ## Both teams as the match would line them up (a player who did not pick goes
 ## where the host's balance puts them, marked ?).
 static func _teams(c: Canvas, net: NetPlay) -> void:
-	var size := int(net.settings.get("team_size", 5))
+	var size: int = net.settings.get("team_size", 5)
 	var shown := [0, 0]
 	for t in 2:
 		var ink := Color8(232, 160, 96) if t == 0 else Color8(126, 196, 120)
@@ -484,25 +495,28 @@ static func _teams(c: Canvas, net: NetPlay) -> void:
 			c, "%s  (%dV%d)" % [NetPlay.TEAM_NAMES[t], size, size], 22 + t * 144, 57, "body", ink
 		)
 	for p: Dictionary in net.players:
-		var side := clampi(int(p.get("side", p.get("team", 0))), 0, 1)
-		var row := int(shown[side])
+		var side_raw: int = p.get("side", p.get("team", 0))
+		var side := clampi(side_raw, 0, 1)
+		var row: int = shown[side]
 		shown[side] += 1
 		if row >= 5:
 			continue
 		var x := 22 + side * 144
 		var y := 67 + row * 9
-		var me := int(p["id"]) == net.my_id
-		var label := String(p["name"]) + (" ?" if int(p.get("team", -1)) < 0 else "")
+		var pid: int = p["id"]
+		var me := pid == net.my_id
+		var picked_team: int = p.get("team", -1)
+		var label := str(p["name"]) + (" ?" if picked_team < 0 else "")
 		var drawn := HUD.text(c, label, x, y, "body", HUD.AMBER if me else HUD.INK)
 		var tag := ""
-		var served := bool(net.settings.get("dedicated", net.dedicated))
-		if int(p["id"]) == NetSession.HOST_ID and not served:
+		var served: bool = net.settings.get("dedicated", net.dedicated)
+		if pid == NetSession.HOST_ID and not served:
 			tag = "HOST"
-		elif served and int(p["id"]) == net.admin_of():
+		elif served and pid == net.admin_of():
 			tag = "ADMIN"
 		if tag != "":
 			HUD.text(c, tag, drawn.end.x + 4, y + 1, "mini", SOFT)
-		var ready := bool(p.get("ready", false))
+		var ready: bool = p.get("ready", false)
 		HUD.text(
 			c,
 			"OK" if ready else "...",
@@ -516,13 +530,15 @@ static func _teams(c: Canvas, net: NetPlay) -> void:
 		)
 	for t in 2:
 		var x := 22 + t * 144
-		var extra := int(shown[t]) - 5
+		var shown_t: int = shown[t]
+		var extra := shown_t - 5
+		var bots_on: bool = net.settings.get("bots", true)
 		if extra > 0:
 			HUD.text(c, "+%d MORE" % extra, x, 112, "mini", SOFT)
-		elif bool(net.settings.get("bots", true)):
-			var bots := size - mini(int(shown[t]), size)
+		elif bots_on:
+			var bots := size - mini(shown_t, size)
 			if bots > 0:
-				var y := 67 + int(shown[t]) * 9
+				var y := 67 + shown_t * 9
 				HUD.text(c, "+ %d BOT%s" % [bots, "" if bots == 1 else "S"], x, y, "body", Menu.DIM)
 
 
@@ -530,7 +546,7 @@ static func _teams(c: Canvas, net: NetPlay) -> void:
 static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 	var admin := net.is_admin()
 	for i in LOBBY_KEYS.size():
-		var key := String(LOBBY_KEYS[i])
+		var key := str(LOBBY_KEYS[i])
 		# MODE, MAP and RULES (the long values) wide on the left; BOTS, SKILL.
 		var col := 0 if i < 3 else 1
 		var x0 := 20 if col == 0 else 182
@@ -540,7 +556,7 @@ static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 		if here:
 			c.fill_rect(x0 - 2, y - 2, w, 11, LIT)
 		var row := setting_row(key)
-		var label := String(row[1]).replace("BOT SKILL", "SKILL").replace("BOTS FILL", "BOTS")
+		var label := str(row[1]).replace("BOT SKILL", "SKILL").replace("BOTS FILL", "BOTS")
 		HUD.text(c, label, x0, y, "body", Menu.FADED)
 		var value := value_name(key, net.settings.get(key))
 		if key == "map":
@@ -565,16 +581,17 @@ static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 static func _actions(c: Canvas, net: NetPlay, cursor: String, kick_at: int, armed: bool) -> void:
 	var y := 153
 	var me := net.player_of(net.my_id)
-	var team := int(me.get("team", -1))
-	var team_name := "ANY" if team < 0 else String(NetPlay.TEAM_NAMES[team])
-	if not bool(net.settings.get("pick_teams", true)):
+	var team: int = me.get("team", -1)
+	var team_name := "ANY" if team < 0 else str(NetPlay.TEAM_NAMES[team])
+	var pick_teams: bool = net.settings.get("pick_teams", true)
+	if not pick_teams:
 		team_name = "BALANCED"
 	button(c, Rect2i(14, y, 96, 12), "TEAM: %s" % team_name, cursor == "team", "team")
 	if net.is_admin():
 		var rest := others(net)
 		var who := "NOBODY"
 		if not rest.is_empty():
-			who = String(rest[posmod(kick_at, rest.size())]["name"])
+			who = str(rest[posmod(kick_at, rest.size())]["name"])
 		var kick := ("SURE? KICK %s" % who) if armed else "KICK %s" % who
 		button(c, Rect2i(114, y, 100, 12), kick, cursor == "kick", "kick", 0, rest.is_empty())
 		if rest.size() > 1:
@@ -586,7 +603,7 @@ static func _actions(c: Canvas, net: NetPlay, cursor: String, kick_at: int, arme
 		var why := net.why_not_start()
 		button(c, Rect2i(218, y, 88, 12), "START!", cursor == "start", "start", 0, why != "")
 	else:
-		var ready := bool(me.get("ready", false))
+		var ready: bool = me.get("ready", false)
 		button(
 			c,
 			Rect2i(114, y, 192, 12),
@@ -609,13 +626,13 @@ static func draw_all_settings(c: Canvas, menu: Menu, net: NetPlay, note: String)
 	var first := clampi(all_row - ALL_SHOWN / 2, 0, ALL_KEYS.size() - ALL_SHOWN)
 	for k in ALL_SHOWN:
 		var i := first + k
-		var key := String(ALL_KEYS[i])
+		var key := str(ALL_KEYS[i])
 		var y := 36 + k * 11
 		var here := i == all_row
 		if here:
 			c.fill_rect(19, y - 2, 282, 11, LIT)
 		var row := setting_row(key)
-		HUD.text(c, String(row[1]), 30, y, "body", Menu.FADED)
+		HUD.text(c, str(row[1]), 30, y, "body", Menu.FADED)
 		var value := value_name(key, net.settings.get(key))
 		var ink := HUD.AMBER if here else HUD.INK
 		zone(Rect2i(19, y - 2, 282, 11), "row", i)
@@ -639,7 +656,8 @@ static func draw_all_settings(c: Canvas, menu: Menu, net: NetPlay, note: String)
 
 
 static func _runner(net: NetPlay) -> String:
-	if bool(net.settings.get("dedicated", false)):
+	var dedicated: bool = net.settings.get("dedicated", false)
+	if dedicated:
 		var who := admin_name(net)
 		return who if who != "" else "WHOEVER RUNS THE LOBBY"
 	return "THE HOST"
@@ -649,7 +667,7 @@ static func _runner(net: NetPlay) -> String:
 
 
 ## Over a match: waiting for the host, the ping, the results, asking to leave.
-static func draw_match(c: Canvas, net: NetPlay, game, leave_asked: bool) -> void:
+static func draw_match(c: Canvas, net: NetPlay, game: Game, leave_asked: bool) -> void:
 	if net.role == NetPlay.Role.CLIENT:
 		if not net.client_ready():
 			c.fill_rect(60, 84, 200, 24, Canvas.rgb(20, 13, 9))

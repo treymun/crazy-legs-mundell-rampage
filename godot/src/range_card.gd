@@ -8,6 +8,7 @@ extends RefCounted
 
 const L := preload("res://src/range_layout.gd")
 const Targets := preload("res://src/range_targets.gd")
+const FiringRange := preload("res://src/features/firing_range.gd")
 const X := 4
 const Y := 18
 const W := 150
@@ -17,8 +18,8 @@ const READ := Color(250 / 255.0, 214 / 255.0, 150 / 255.0)
 const GOOD := Color(160 / 255.0, 236 / 255.0, 120 / 255.0)
 
 
-static func draw(c: Canvas, f) -> void:
-	var game = f.game
+static func draw(c: Canvas, f: FiringRange) -> void:
+	var game: Game = f.game
 	var info: Dictionary = L.STATIONS[f.station]
 	var talking: bool = game.message_until > game.clock
 	# Under the notice banner while one is up, and short.
@@ -30,7 +31,7 @@ static func draw(c: Canvas, f) -> void:
 	var readings: Array = readouts(f)
 	var height := 14 + teach.size() * 7 + readings.size() * 7 + (3 if not teach.is_empty() else 0)
 	HUD.panel(c, X, top, W, height, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
-	HUD.text(c, String(info["title"]), X + 5, top + 3, "body", HUD.AMBER)
+	HUD.text(c, str(info["title"]), X + 5, top + 3, "body", HUD.AMBER)
 	var y := top + 13
 	for line: String in teach:
 		HUD.text(c, line, X + 5, y, "mini", HUD.INK, false, false)
@@ -38,13 +39,15 @@ static func draw(c: Canvas, f) -> void:
 	if not teach.is_empty():
 		c.fill_rect(X + 5, y, W - 10, 1, Color(110 / 255.0, 80 / 255.0, 54 / 255.0))
 		y += 3
-	for row in readings:
-		var text := String(row[0]) if row is Array else String(row)
+	for row: Variant in readings:
+		var text := str(row[0]) if row is Array else str(row)
 		var colour: Color = row[1] if row is Array else READ
 		HUD.text(c, text, X + 5, y, "mini", colour, false, false)
-		if row is Array and row.size() > 2:
+		var parts: Array = row if row is Array else []
+		if row is Array and parts.size() > 2:
 			# A bar: how soaked, how much health is left.
-			var share := clampf(float(row[2]), 0.0, 1.0)
+			var bar: float = parts[2]
+			var share := clampf(bar, 0.0, 1.0)
 			c.fill_rect(X + W - 34, y + 1, 28, 3, Color(.2, .14, .1))
 			c.fill_rect(X + W - 34, y + 1, int(28 * share), 3, colour)
 		y += 7
@@ -52,45 +55,36 @@ static func draw(c: Canvas, f) -> void:
 
 ## The station's measurements as lines (a line may be [text, colour] or
 ## [text, colour, bar share]).
-static func readouts(f) -> Array:
-	var game = f.game
-	var t = f.targets
+static func readouts(f: FiringRange) -> Array:
+	var game: Game = f.game
+	var t := f.targets
 	var out: Array = []
 	match String(f.station):
 		"cans":
 			var up := 0
 			for can: Array in L.CANS:
-				if not game.scenery_spent.has(String(can[0])):
+				if not game.scenery_spent.has(str(can[0])):
 					up += 1
 			out.append("CANS STANDING %d OF %d" % [up, L.CANS.size()])
 			for target: Dictionary in _targets_of(t, "cans"):
+				var yards := _yards(game, target)
+				var hits: int = target["hits"]
 				out.append(
-					(
-						"%d YD BOARD  %d HITS  GROUP %d IN"
-						% [_yards(game, target), int(target["hits"]), Targets.grouping(target)]
-					)
+					"%d YD BOARD  %d HITS  GROUP %d IN" % [yards, hits, Targets.grouping(target)]
 				)
 		"pellets":
 			var parts := PackedStringArray()
 			for target: Dictionary in _targets_of(t, "pellets"):
-				parts.append(
-					(
-						"%d YD %d"
-						% [
-							int(String(target["id"]).get_slice("-", 1)),
-							int(f.pellet_blast.get(target["id"], 0))
-						]
-					)
-				)
+				var pellets: int = f.pellet_blast.get(target["id"], 0)
+				parts.append("%d YD %d" % [int(str(target["id"]).get_slice("-", 1)), pellets])
 			out.append("LAST BLAST, PELLETS ON EACH BOARD:")
 			out.append([" ".join(parts), GOOD])
 			out.append("ONE BARREL 10, BOTH 20")
 		"rifle":
 			var parts2 := PackedStringArray()
 			for target: Dictionary in _targets_of(t, "rifle"):
-				parts2.append(
-					"%s:%d" % [String(target["id"]).get_slice("-", 1), int(target["hits"])]
-				)
+				var gong_hits: int = target["hits"]
+				parts2.append("%s:%d" % [str(target["id"]).get_slice("-", 1), gong_hits])
 			out.append("GONG HITS  " + " ".join(parts2))
 			out.append(["BARREL HEAT %d%%" % roundi(game.armory.rifle_heat * 100.0), _heat(game)])
 		"gallery":
@@ -111,7 +105,7 @@ static func readouts(f) -> Array:
 					out.append("LAST: " + t.gallery_last)
 			out.append("BEST THIS VISIT %d" % t.gallery_best)
 		"bowling":
-			var bowl = t.bowling
+			var bowl := t.bowling
 			out.append(
 				(
 					"FRAME %d  BALL %d  SCORE %d"
@@ -156,36 +150,41 @@ static func readouts(f) -> Array:
 			if out.is_empty():
 				out.append("PULL A LEVER ON THE FENCE")
 			if not f.kills.is_empty():
-				out.append([String(f.kills[0]), GOOD])
+				out.append([str(f.kills[0]), GOOD])
 		"armory":
 			var guns: Array = f.damage_by_gun.keys()
-			guns.sort_custom(func(a, b): return f.damage_by_gun[a] > f.damage_by_gun[b])
+			guns.sort_custom(
+				func(a: Variant, b: Variant) -> bool: return f.damage_by_gun[a] > f.damage_by_gun[b]
+			)
 			out.append("SHOTS FIRED THIS VISIT %d" % f.shots_fired)
 			if guns.is_empty():
 				out.append("NO DAMAGE DEALT YET")
 			for k in mini(3, guns.size()):
-				out.append("%s %d" % [String(guns[k]), roundi(float(f.damage_by_gun[guns[k]]))])
+				var dealt: float = f.damage_by_gun[guns[k]]
+				out.append("%s %d" % [str(guns[k]), roundi(dealt)])
 	if game.clock < f.reach_until and String(f.station) in ["cans", "rifle", "pellets", "special"]:
 		out.append([f.reach_note, GOOD])
 	return out
 
 
-static func _targets_of(t, station: String) -> Array:
+static func _targets_of(t: Targets, station: String) -> Array:
 	var out: Array = []
 	for target: Dictionary in t.targets:
-		if String(target["station"]) == station:
+		if str(target["station"]) == station:
 			out.append(target)
 	return out
 
 
 ## The station's target hit last.
-static func _latest(t, station: String) -> Dictionary:
+static func _latest(t: Targets, station: String) -> Dictionary:
 	var best := {}
 	var most := 0.0
 	for target: Dictionary in _targets_of(t, station):
-		if target["dps"].is_empty():
+		var dps: Array = target["dps"]
+		if dps.is_empty():
 			continue
-		var at := float(target["dps"][target["dps"].size() - 1][0])
+		var newest: Array = dps[dps.size() - 1]
+		var at: float = newest[0]
 		if at > most:
 			most = at
 			best = target
@@ -196,28 +195,33 @@ static func _hit_line(target: Dictionary) -> String:
 	var last: Array = target["last"]
 	if last.is_empty():
 		return ""
-	var gun := String(Weapons.LABELS[int(last[0])]).get_slice(" [", 0)
-	if float(last[1]) < 0.0:
-		return "BLAST AT %d YDS" % roundi(float(last[2]))
-	return "%s %d A HIT AT %d YDS" % [gun, roundi(float(last[1])), roundi(float(last[2]))]
+	var gun_index: int = last[0]
+	var gun := str(Weapons.LABELS[gun_index]).get_slice(" [", 0)
+	var dealt: float = last[1]
+	var yards: float = last[2]
+	if dealt < 0.0:
+		return "BLAST AT %d YDS" % roundi(yards)
+	return "%s %d A HIT AT %d YDS" % [gun, roundi(dealt), roundi(yards)]
 
 
-static func _yards(game, target: Dictionary) -> int:
-	return roundi(Vector2(target["x"] - game.player.x, target["y"] - game.player.y).length())
+static func _yards(game: Game, target: Dictionary) -> int:
+	var tx: float = target["x"]
+	var ty: float = target["y"]
+	return roundi(Vector2(tx - game.player.x, ty - game.player.y).length())
 
 
-static func _heat(game) -> Color:
+static func _heat(game: Game) -> Color:
 	return HUD.LOW if game.armory.rifle_heat > .6 else READ
 
 
 ## The critters a station turned out: name, health or soak, what they are doing.
-static func _critters(f, station: String, soak: bool) -> Array:
+static func _critters(f: FiringRange, station: String, soak: bool) -> Array:
 	var out: Array = []
 	for foe: Enemy in f.watched:
 		var w: Dictionary = f.watched[foe]
-		if String(w["station"]) != station or not foe.alive:
+		if str(w["station"]) != station or not foe.alive:
 			continue
-		var name := String(L.NAMES.get(foe.kind, foe.kind.to_upper()))
+		var name := str(L.NAMES.get(foe.kind, foe.kind.to_upper()))
 		var doing: String = f.doing_words(foe)
 		if soak:
 			out.append(

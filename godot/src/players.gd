@@ -40,7 +40,7 @@ const SIGHT := 14.0
 ## slot, guns and pockets of its own (or the party's, by SHARED), a flow field
 ## and, past the first, a voice placed where it stands. The first is player
 ## one, the local and acting player. game.flow must exist for the second on.
-static func join(game, x: float, y: float, angle: float) -> Player:
+static func join(game: Game, x: float, y: float, angle: float) -> Player:
 	var p := Player.new(x, y, angle)
 	p.slot = game.players.size()
 	p.floor_z = game.world.elevation(x, y)
@@ -48,10 +48,11 @@ static func join(game, x: float, y: float, angle: float) -> Player:
 	p.armory = Weapons.Armory.new()
 	var first: Player = null if game.players.is_empty() else game.players[0]
 	for name: String in SHARED:
-		if first != null and bool(SHARED[name]):
+		var shared: bool = SHARED[name]
+		if first != null and shared:
 			p.set(name, first.get(name))
 		elif name == "inventory":
-			for item in HUD.ITEMS:
+			for item: String in HUD.ITEMS:
 				p.inventory[item] = 0
 			p.inventory["rinds"] = 1
 	game.players.append(p)
@@ -72,8 +73,9 @@ static func join(game, x: float, y: float, angle: float) -> Player:
 
 ## Sets the acting player's Dictionary `name` (a save loading, a loadout):
 ## every player holding the shared one gets the new one.
-static func store(game, name: String, value: Dictionary) -> void:
-	if bool(SHARED.get(name, false)):
+static func store(game: Game, name: String, value: Dictionary) -> void:
+	var shared: bool = SHARED.get(name, false)
+	if shared:
 		for p: Player in game.players:
 			p.set(name, value)
 	else:
@@ -81,7 +83,7 @@ static func store(game, name: String, value: Dictionary) -> void:
 
 
 ## Makes `p` the one this machine shows and hears.
-static func set_local(game, p: Player) -> void:
+static func set_local(game: Game, p: Player) -> void:
 	game.local_player = p
 	game.focus(p)
 	for each: Player in game.players:
@@ -91,7 +93,7 @@ static func set_local(game, p: Player) -> void:
 			each.voice = PlayerVoice.new(game, each)
 
 
-static func anyone_alive(game) -> bool:
+static func anyone_alive(game: Game) -> bool:
 	for p: Player in game.players:
 		if p.health > 0:
 			return true
@@ -103,7 +105,7 @@ static func anyone_alive(game) -> bool:
 ## seconds; then a player who hurt it within SPITE, else the nearest it can
 ## see, else the one nearest where it last heard something, else the nearest
 ## alive. No dice: ties go to the lower slot, so every machine agrees.
-static func hunted(game, e: Enemy) -> Player:
+static func hunted(game: Game, e: Enemy) -> Player:
 	var keep: Player = e.hunted
 	if keep != null and keep.health > 0 and game.clock < e.hunted_until:
 		return keep
@@ -114,7 +116,10 @@ static func hunted(game, e: Enemy) -> Player:
 	if pick == null:
 		pick = _nearest_seen(game, e)
 	if pick == null and e.heard != null:
-		pick = nearest(game, float(e.heard[0]), float(e.heard[1]))
+		var heard: Array = e.heard
+		var hx: float = heard[0]
+		var hy: float = heard[1]
+		pick = nearest(game, hx, hy)
 	if pick == null:
 		pick = nearest(game, e.x, e.y)
 	if pick == null:
@@ -124,7 +129,7 @@ static func hunted(game, e: Enemy) -> Player:
 
 
 ## The nearest player alive to (x, y), or null when everyone is down.
-static func nearest(game, x: float, y: float) -> Player:
+static func nearest(game: Game, x: float, y: float) -> Player:
 	var best: Player = null
 	var gap := INF
 	for p: Player in game.players:
@@ -142,7 +147,7 @@ static func nearest(game, x: float, y: float) -> Player:
 ## nearest first and the first one seen is the answer, so a far one is only
 ## looked at when every nearer one is hidden; with one player alive there is
 ## no choice to make and no line is drawn.
-static func _nearest_seen(game, e: Enemy) -> Player:
+static func _nearest_seen(game: Game, e: Enemy) -> Player:
 	var near: Array = []
 	var alive := 0
 	for p: Player in game.players:
@@ -169,15 +174,16 @@ static func _nearest_seen(game, e: Enemy) -> Player:
 ## The controls for each slot this tick from what tick() was handed: one
 ## Controls is the local player's (everyone else stands idle), a Dictionary
 ## maps slot -> Controls (a slot left out stands idle).
-static func controls_by_slot(game, given, idle) -> Array:
+static func controls_by_slot(game: Game, given: Variant, idle: GameState.Controls) -> Array:
 	if game.players.size() == 1 and not (given is Dictionary):
 		return [given]
 	var out: Array = []
 	out.resize(game.players.size())
 	for p: Player in game.players:
-		var c = null
+		var c: Variant = null
 		if given is Dictionary:
-			c = given.get(p.slot)
+			var by_slot: Dictionary = given
+			c = by_slot.get(p.slot)
 		elif p == game.local_player:
 			c = given
 		out[p.slot] = c if c != null else idle

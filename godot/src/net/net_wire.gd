@@ -54,7 +54,7 @@ const MAX_REWIND := 255
 # ------------------------------------------------------------------ controls
 
 
-static func pack_controls(c) -> PackedByteArray:
+static func pack_controls(c: Game.Controls) -> PackedByteArray:
 	var out := PackedByteArray()
 	out.resize(CONTROL_BYTES)
 	out.encode_half(0, c.forward)
@@ -98,7 +98,7 @@ static func unpack_controls(bytes: PackedByteArray, at := 0) -> Game.Controls:
 
 
 ## Controls as they come out of the wire (what every copy of the game plays).
-static func quantized(c) -> Game.Controls:
+static func quantized(c: Game.Controls) -> Game.Controls:
 	return unpack_controls(pack_controls(c))
 
 
@@ -122,12 +122,12 @@ static func held_only(bytes: PackedByteArray) -> PackedByteArray:
 static func merged(skipped: PackedByteArray, later: PackedByteArray) -> PackedByteArray:
 	var out := later.duplicate()
 	out[8] = out[8] | (skipped[8] & (32 | 128))
-	for at in [9, 10, 12]:
+	for at: int in [9, 10, 12]:
 		if out.decode_s8(at) < 0 and skipped.decode_s8(at) >= 0:
 			out.encode_s8(at, skipped.decode_s8(at))
 	if out.decode_s8(11) == 0:
 		out.encode_s8(11, skipped.decode_s8(11))
-	for at in [4, 6]:
+	for at: int in [4, 6]:
 		out.encode_half(at, out.decode_half(at) + skipped.decode_half(at))
 	return out
 
@@ -163,7 +163,7 @@ static func message(kind: int, info: Dictionary) -> PackedByteArray:
 static func info_of(bytes: PackedByteArray) -> Dictionary:
 	if bytes.size() < 2:
 		return {}
-	var info = bytes_to_var(bytes.slice(1))
+	var info: Variant = bytes_to_var(bytes.slice(1))
 	return info if info is Dictionary else {}
 
 
@@ -217,7 +217,8 @@ static func snap(
 	out.encode_u32(9, tick)
 	out.encode_u32(13, input_ack & 0xFFFFFFFF)
 	var ticks: Array = echo[1] if echo.size() > 1 else []
-	out.encode_u32(17, int(echo[0]) if echo.size() > 0 else 0)
+	var echo_seq: int = echo[0] if echo.size() > 0 else 0
+	out.encode_u32(17, echo_seq)
 	out[21] = ticks.size()
 	for row: PackedByteArray in ticks:
 		out.append(row.size() / (CONTROL_BYTES + 1))
@@ -263,7 +264,9 @@ static func tick_row(by_slot: Dictionary) -> PackedByteArray:
 	var out := PackedByteArray()
 	var slots := by_slot.keys()
 	slots.sort()
-	for slot in slots:
-		out.append(int(slot))
-		out.append_array(by_slot[slot])
+	for slot: Variant in slots:
+		var slot_n: int = slot
+		var row: PackedByteArray = by_slot[slot]
+		out.append(slot_n)
+		out.append_array(row)
 	return out

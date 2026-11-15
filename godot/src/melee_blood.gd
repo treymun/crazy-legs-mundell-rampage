@@ -20,7 +20,7 @@ static var _wet := {}
 
 
 ## A melee hit drew blood.
-static func bloody(armory, gun: int, damage: float, green: bool) -> void:
+static func bloody(armory: Weapons.Armory, gun: int, damage: float, green: bool) -> void:
 	if not GUNS.has(gun) or armory == null:
 		return
 	var id: int = armory.get_instance_id()
@@ -28,28 +28,36 @@ static func bloody(armory, gun: int, damage: float, green: bool) -> void:
 		_wet.clear()
 	var guns: Dictionary = _wet.get(id, {})
 	var now := Time.get_ticks_msec()
-	var wet := minf(3.0, _left(guns.get(gun, []), now) + maxf(.6, damage * PER_DAMAGE))
+	var row: Array = guns.get(gun, [])
+	var wet := minf(3.0, _left(row, now) + maxf(.6, damage * PER_DAMAGE))
 	guns[gun] = [wet, now, green]
 	_wet[id] = guns
 
 
 ## How wet `gun` is now: 0 (clean) to 3.
-static func stage(armory, gun: int) -> int:
+static func stage(armory: Weapons.Armory, gun: int) -> int:
 	if not GUNS.has(gun):
 		return 0
 	var guns: Dictionary = _wet.get(armory.get_instance_id(), {})
-	return ceili(_left(guns.get(gun, []), Time.get_ticks_msec()))
+	var row: Array = guns.get(gun, [])
+	return ceili(_left(row, Time.get_ticks_msec()))
 
 
-static func green(armory, gun: int) -> bool:
-	var row: Array = _wet.get(armory.get_instance_id(), {}).get(gun, [])
-	return row.size() > 2 and bool(row[2])
+static func green(armory: Weapons.Armory, gun: int) -> bool:
+	var guns: Dictionary = _wet.get(armory.get_instance_id(), {})
+	var row: Array = guns.get(gun, [])
+	if row.size() <= 2:
+		return false
+	var is_green: bool = row[2]
+	return is_green
 
 
 static func _left(row: Array, now: int) -> float:
 	if row.is_empty():
 		return 0.0
-	return maxf(0.0, float(row[0]) - (now - int(row[1])) / 1000.0 / LASTS * 3.0)
+	var wet: float = row[0]
+	var when: int = row[1]
+	return maxf(0.0, wet - (now - when) / 1000.0 / LASTS * 3.0)
 
 
 ## A copy of the graded cel `image` with the end away from the hand wet:
@@ -58,7 +66,8 @@ static func _left(row: Array, now: int) -> float:
 static func smear(image: Dictionary, wet: int, is_green: bool) -> Dictionary:
 	var w: int = image["w"]
 	var h: int = image["h"]
-	var data: PackedByteArray = (image["data"] as PackedByteArray).duplicate()
+	var source: PackedByteArray = image["data"]
+	var data: PackedByteArray = source.duplicate()
 	var colors: Array = GREEN if is_green else RED
 	# The cel's opaque box, so the tip is measured on the weapon, not the frame.
 	var x0 := w

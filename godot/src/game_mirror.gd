@@ -37,16 +37,18 @@ func take(bytes: PackedByteArray) -> bool:
 
 
 func take_data(data: Dictionary) -> bool:
-	var tick := int(data.get("tick", -1))
+	var tick: int = data.get("tick", -1)
 	if tick < 0 or tick <= acked and acked >= 0 and data.has("d"):
 		return false
 	if data.has("full"):
-		if not GameSnapshot.apply(game, data["full"]):
+		var whole: Dictionary = data["full"]
+		if not GameSnapshot.apply(game, whole):
 			return false
 		full = data["full"]
 		acked = tick
 		return true
-	if not data.has("d") or int(data.get("base", -2)) != acked:
+	var base: int = data.get("base", -2)
+	if not data.has("d") or base != acked:
 		return false
 	var change: Dictionary = data["d"]
 	full = GameSnapshot.patch_into(full, change)

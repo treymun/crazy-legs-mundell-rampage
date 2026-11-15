@@ -294,20 +294,20 @@ static func info(level_id: String) -> Dictionary:
 
 
 static func title_of(level_id: String) -> String:
-	return String(info(level_id).get("title", level_id.to_upper()))
+	return str(info(level_id).get("title", level_id.to_upper()))
 
 
 static func heading_of(level_id: String) -> PackedStringArray:
 	var out := PackedStringArray()
-	for line in info(level_id).get("heading", []):
-		out.append(String(line))
+	for line: Variant in info(level_id).get("heading", []):
+		out.append(str(line))
 	return out
 
 
 static func districts_of(level_id: String) -> PackedStringArray:
 	var out := PackedStringArray()
-	for line in info(level_id).get("districts", []):
-		out.append(String(line))
+	for line: Variant in info(level_id).get("districts", []):
+		out.append(str(line))
 	return out
 
 
@@ -317,19 +317,20 @@ static func map_labels(level_id: String) -> Array:
 
 
 static func ending_of(level_id: String) -> String:
-	return String(info(level_id).get("ending", ""))
+	return str(info(level_id).get("ending", ""))
 
 
 static func score_of(level_id: String) -> String:
-	return String(info(level_id).get("score", "music"))
+	return str(info(level_id).get("score", "music"))
 
 
 static func ambience_of(level_id: String) -> String:
-	return String(info(level_id).get("ambience", ""))
+	return str(info(level_id).get("ambience", ""))
 
 
 static func is_rescue(level_id: String) -> bool:
-	return bool(info(level_id).get("rescue", false))
+	var rescue: bool = info(level_id).get("rescue", false)
+	return rescue
 
 
 ## Next map in campaign order, or "" after the last one.

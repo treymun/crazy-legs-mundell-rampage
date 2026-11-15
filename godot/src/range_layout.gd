@@ -405,7 +405,8 @@ static func pins() -> Array:
 static func pen_lever(i: int) -> Vector2:
 	if i < PEN_NORTH:
 		return Vector2(PEN_LEVER_X + i * PEN_LEVER_STEP, PEN_LEVER_Y)
-	return Vector2(PEN_WEST_X, PEN_WEST_Y[i - PEN_NORTH])
+	var west_y: float = PEN_WEST_Y[i - PEN_NORTH]
+	return Vector2(PEN_WEST_X, west_y)
 
 
 ## Which way a pen lever faces (its plate toward the player at it).
@@ -416,11 +417,10 @@ static func pen_facing(i: int) -> float:
 static func station_at(x: float, y: float) -> String:
 	for id: String in STATIONS:
 		var r: Array = STATIONS[id]["zone"]
-		if (
-			x >= float(r[0])
-			and x < float(r[2]) + 1.0
-			and y >= float(r[1])
-			and y < float(r[3]) + 1.0
-		):
+		var x0: float = r[0]
+		var y0: float = r[1]
+		var x1: float = r[2]
+		var y1: float = r[3]
+		if x >= x0 and x < x1 + 1.0 and y >= y0 and y < y1 + 1.0:
 			return id
 	return ""

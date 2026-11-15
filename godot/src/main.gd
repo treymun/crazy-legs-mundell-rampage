@@ -6,6 +6,8 @@
 ## display.gdshader, which is the Godot equivalent of period_palette.apply().
 extends MainInput
 
+const WeatherFeature := preload("res://src/features/weather.gd")
+
 
 func _ready() -> void:
 	_parse_smoke()
@@ -112,21 +114,16 @@ func _ready() -> void:
 	unlocked = SessionStore.unlocks("")
 	hub_findings = SessionStore.road_notes("")
 	apply_options()
+	var window_mode: int = options["window_mode"]
 	if mobile and not web:
 		# A phone is always fullscreen. The reference stretched the picture to
 		# the whole panel there; this build letterboxes it unless the player
 		# picks FULLSCREEN (FILL) in setup.
 		fullscreen = true
-		fullscreen_mode = 1 if int(options["window_mode"]) == 1 else 2
-	elif (
-		int(options["window_mode"]) != 0
-		and not smoke
-		and not web
-		and view_tour == ""
-		and view_bench == 0
-	):
+		fullscreen_mode = 1 if window_mode == 1 else 2
+	elif window_mode != 0 and not smoke and not web and view_tour == "" and view_bench == 0:
 		# A browser only grants fullscreen from a click or key, never at boot.
-		change_window_mode(int(options["window_mode"]))
+		change_window_mode(window_mode)
 	_apply_view()
 
 	if online_args.has("host") or online_args.has("join"):
@@ -180,10 +177,10 @@ func _play_at() -> void:
 func _view_tour() -> void:
 	touring = true
 	await get_tree().process_frame
-	var shots = JSON.parse_string(FileAccess.get_file_as_string(view_tour))
+	var shots: Variant = JSON.parse_string(FileAccess.get_file_as_string(view_tour))
 	var loaded := ""
 	for shot: Dictionary in shots:
-		var level_id := String(shot["level"])
+		var level_id := str(shot["level"])
 		if level_id != loaded or game == null or shot.has("done") or shot.has("unlock"):
 			# The Crossroads as players get it, its gates locked by the profile
 			# (open_hub); "unlock" opens them all. "done" sets every station
@@ -196,46 +193,60 @@ func _view_tour() -> void:
 			if shot.has("unlock"):
 				game.world.locked_gates = []
 			if shot.has("done"):
-				var listed = shot["done"]
+				var listed: Variant = shot["done"]
+				var listed_ids: Array = []
+				if listed is Array:
+					listed_ids = listed
 				for station: LevelData.Station in game.world.stations:
-					if not (listed is Array) or listed.has(station.id):
+					if not (listed is Array) or listed_ids.has(station.id):
 						game.stations_done[station.id] = true
 				if not (listed is Array):
 					for member: Enemy in game.wave:
 						member.alive = false
 		var p := game.player
-		p.x = float(shot["x"])
-		p.y = float(shot["y"])
-		p.angle = float(shot["angle"])
-		p.floor_z = game.world.floor_under(p.x, p.y, float(shot.get("z", 0.0)) + .05)
+		var shot_x: float = shot["x"]
+		var shot_y: float = shot["y"]
+		var shot_angle: float = shot["angle"]
+		var shot_z: float = shot.get("z", 0.0)
+		var shot_pitch: float = shot.get("pitch", 0.0)
+		var shot_drunk: float = shot.get("drunk", 0.0)
+		p.x = shot_x
+		p.y = shot_y
+		p.angle = shot_angle
+		p.floor_z = game.world.floor_under(p.x, p.y, shot_z + .05)
 		p.eye = .95 + game.world.stand(p)
-		p.pitch = float(shot.get("pitch", 0.0))
-		p.drunk = float(shot.get("drunk", 0.0))
+		p.pitch = shot_pitch
+		p.drunk = shot_drunk
 		p.sway = 0.0
 		game.message_until = 0.0
 		game.district_until = 0.0
 		# A viewpoint may hold a notice or the place name up (the objective pin
 		# hangs under them).
 		if shot.has("notice"):
-			game.message(String(shot["notice"]), 99.0)
+			game.message(str(shot["notice"]), 99.0)
 		if shot.has("district"):
 			game.district = int(game.world.area[game.world.cell(p.x, p.y)])
 			game.district_until = game.clock + 99.0
 		# A viewpoint may open the map, at a zoom (game_view.gd MAP_ZOOMS).
-		game.map = bool(shot.get("map", false))
-		game.map_zoom = int(shot.get("map_zoom", 2))
-		var armed := bool(shot.get("weapon", false))
+		var map_on: bool = shot.get("map", false)
+		var map_zoom: int = shot.get("map_zoom", 2)
+		game.map = map_on
+		game.map_zoom = map_zoom
+		var armed: bool = shot.get("weapon", false)
 		game.armory.holstered = not armed
 		game.armory.lower = 0.0 if armed else 1.0
 		if shot.has("detail"):
-			game.view.set_detail(int(shot["detail"]))
-		if shot.has("gun") and game.armory.active != int(shot["gun"]):
+			var shot_detail: int = shot["detail"]
+			game.view.set_detail(shot_detail)
+		var shot_gun: int = shot.get("gun", -1)
+		if shot.has("gun") and game.armory.active != shot_gun:
 			# A viewpoint of one gun firing: given it, loaded, in hand (viewpoints
 			# after it with the same gun go on firing it, frame by frame).
-			var g := int(shot["gun"])
-			var arms = game.armory
+			var g := shot_gun
+			var arms := game.armory
+			var most: int = Weapons.MAX_RESERVE[g]
 			arms.owned[g] = true
-			arms.reserve[g] = maxi(Weapons.MAX_RESERVE[g], 1)
+			arms.reserve[g] = maxi(most, 1)
 			arms.loaded[g] = Weapons.CAPACITY[g]
 			arms.active = g
 			arms.switch = 0.0
@@ -243,19 +254,23 @@ func _view_tour() -> void:
 			arms.reload = 0.0
 		if shot.has("ticks"):
 			var held := Game.Controls.new()
-			held.fire = bool(shot.get("fire", false))
-			held.forward = float(shot.get("forward", 0.0))
-			for i in int(shot["ticks"]):
+			var fire: bool = shot.get("fire", false)
+			var forward: float = shot.get("forward", 0.0)
+			var ticks: int = shot["ticks"]
+			held.fire = fire
+			held.forward = forward
+			for i in ticks:
 				game.tick(1.0 / 60.0, held)
 		if shot.has("actors"):
 			_tour_actors(shot)
 		if shot.has("rain"):
 			# A viewpoint in the weather: rain this hard, the ground this wet, a
 			# lightning flash (features/weather.gd hold()).
-			var rain := float(shot["rain"])
-			game.features["weather"].hold(
-				rain, float(shot.get("wet", rain)), float(shot.get("lightning", 0.0))
-			)
+			var rain: float = shot["rain"]
+			var wet: float = shot.get("wet", rain)
+			var lightning: float = shot.get("lightning", 0.0)
+			var weather: WeatherFeature = game.features["weather"]
+			weather.hold(rain, wet, lightning)
 		# fx: the 3D view as players see it (lights and glows); gpu: the same
 		# without them.
 		for mode: String in ["fx", "gpu"]:
@@ -264,11 +279,11 @@ func _view_tour() -> void:
 			await RenderingServer.frame_post_draw
 			await RenderingServer.frame_post_draw
 			get_viewport().get_texture().get_image().save_png(
-				"%s/%s_%s.png" % [view_out, String(shot["tag"]), mode]
+				"%s/%s_%s.png" % [view_out, str(shot["tag"]), mode]
 			)
 			if world_view != null and mode == "fx":
 				world_view.viewport.get_texture().get_image().save_png(
-					"%s/%s_3d.png" % [view_out, String(shot["tag"])]
+					"%s/%s_3d.png" % [view_out, str(shot["tag"])]
 				)
 	get_tree().quit()
 
@@ -282,19 +297,21 @@ func _tour_actors(shot: Dictionary) -> void:
 	for e: Enemy in game.enemies:
 		e.dormant = true
 	for spec: Dictionary in shot["actors"]:
-		var ahead := float(spec.get("ahead", 3.0))
-		var side := float(spec.get("side", 0.0))
+		var ahead: float = spec.get("ahead", 3.0)
+		var side: float = spec.get("side", 0.0)
+		var turn: float = spec.get("turn", 0.0)
 		var x := p.x + cos(p.angle) * ahead - sin(p.angle) * side
 		var y := p.y + sin(p.angle) * ahead + cos(p.angle) * side
-		var facing := atan2(p.y - y, p.x - x) + float(spec.get("turn", 0.0))
-		var foe := Enemy.new(String(spec["kind"]), x, y, facing)
+		var facing := atan2(p.y - y, p.x - x) + turn
+		var foe := Enemy.new(str(spec["kind"]), x, y, facing)
 		game.enemies.append(foe)
 		game.enemy_ids.append("tour-%d" % game.enemies.size())
 		foe.alerted = true
-		var state := String(spec.get("state", "idle"))
+		var state := str(spec.get("state", "idle"))
 		match state:
 			"walk", "hurt":
-				foe.gait = float(spec.get("gait", 0.0))
+				var gait: float = spec.get("gait", 0.0)
+				foe.gait = gait
 				foe.pose = 1.0
 				foe.last_stride = 1.0
 				if state == "hurt":
@@ -305,7 +322,8 @@ func _tour_actors(shot: Dictionary) -> void:
 				foe.flinch = 1.0
 			"dying":
 				foe.hp = 0.0
-				foe.died_at = game.clock - Enemy.DEATH_TIME * float(spec.get("fallen", .5))
+				var fallen: float = spec.get("fallen", .5)
+				foe.died_at = game.clock - Enemy.DEATH_TIME * fallen
 			"down":
 				foe.hp = 0.0
 				foe.died_at = game.clock - 30.0
@@ -321,7 +339,9 @@ func _view_bench() -> void:
 	var rid := get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(rid, true)
 	var totals := {"gpu": 0.0}
-	for level_id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
+	for level_id: String in [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"
+	]:
 		var line := "%-9s" % level_id
 		for mode: String in ["gpu"]:
 			start(level_id)
@@ -354,7 +374,8 @@ func _view_bench() -> void:
 				drawing += t2 - t1
 				parts[0] += t1 - t0
 				for k in 5:
-					parts[k + 1] += float(game.stage_ms[k]) * 1000.0
+					var stage: float = game.stage_ms[k]
+					parts[k + 1] += stage * 1000.0
 				parts[6] += layers_us
 				await get_tree().process_frame
 				parts[7] += Time.get_ticks_usec() - t2
@@ -429,23 +450,25 @@ func _play_bench() -> void:
 	Engine.max_fps = 0
 	await get_tree().process_frame
 	var pilot_script: GDScript = load("res://tools/bot_pilot.gd")
-	for level_id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
+	for level_id: String in [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"
+	]:
 		start(level_id)
 		Engine.max_fps = 0
 		game.cheats.god = true
-		var pilot = pilot_script.new()
-		pilot.whole = true
+		var pilot: RefCounted = pilot_script.new()
+		pilot.set("whole", true)
 		var frames := PackedFloat64Array()
 		var slowest: Array = []
 		var last := Time.get_ticks_usec()
 		for i in play_bench * 60:
 			var t0 := Time.get_ticks_usec()
-			game.tick(1.0 / 60.0, pilot.steer(game))
+			game.tick(1.0 / 60.0, pilot.call("steer", game))
 			var t1 := Time.get_ticks_usec()
 			render()
 			var t2 := Time.get_ticks_usec()
 			await get_tree().process_frame
-			pilot.moved(game)
+			pilot.call("moved", game)
 			var now := Time.get_ticks_usec()
 			var ms := (now - last) / 1000.0
 			last = now
@@ -456,7 +479,7 @@ func _play_bench() -> void:
 			if game.won:
 				break
 		frames.sort()
-		slowest.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
+		slowest.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
 		var n := frames.size()
 		print(
 			(
@@ -471,7 +494,7 @@ func _play_bench() -> void:
 				]
 			)
 		)
-		for row in slowest.slice(0, 6):
+		for row: Array in slowest.slice(0, 6):
 			print("    %.2f ms at %.1f s (tick %.2f, draw %.2f)" % [row[0], row[1], row[2], row[3]])
 	get_tree().quit()
 
@@ -495,7 +518,7 @@ func _process(delta: float) -> void:
 	if waiting_play != null and art.chapter_ready(waiting_play.level.id):
 		play(waiting_play)
 	if game != null:
-		packs.want_first(String(CHAPTER_PACKS.get(CountyData.base_of(game.level.id), "")))
+		packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(game.level.id), "")))
 		_watch_level()
 	# The engine paces frames to the FRAME LIMIT option (apply_options sets
 	# Engine.max_fps), which is what the reference's clock.tick() does. A
@@ -524,7 +547,8 @@ func _process(delta: float) -> void:
 	# An iris opening on each new screen, a cartoon's wipe; none with SCENERY
 	# MOTION on STATIC.
 	var opening := 1.0
-	if int(options.get("world_motion", 0)) != 2 and not smoke and not touring:
+	var world_motion: int = options.get("world_motion", 0)
+	if world_motion != 2 and not smoke and not touring:
 		opening = clampf(screen_age / .32, 0.0, 1.0)
 		opening = opening * opening * (3.0 - 2.0 * opening)
 	var wipe := fade.material as ShaderMaterial
@@ -535,8 +559,10 @@ func _process(delta: float) -> void:
 		if reset_armed <= 0.0 and state == "setup":
 			menu_note = ""
 	if not display_trial.is_empty():
-		display_trial["left"] = float(display_trial["left"]) - dt
-		if float(display_trial["left"]) <= 0.0 or state != "setup":
+		var trial_left: float = display_trial["left"]
+		display_trial["left"] = trial_left - dt
+		trial_left = display_trial["left"]
+		if trial_left <= 0.0 or state != "setup":
 			settle_display(false)
 	var pad := read_pad(dt)
 	var fingers := touch.state()
@@ -576,10 +602,12 @@ func _process(delta: float) -> void:
 	render()
 	if waiting_play != null and canvas.gpu:
 		# A browser still fetching the map: say so, and how far it has come.
-		var pack := String(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
+		var pack := str(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
 		HUD.banner(canvas, "FETCHING THE MAP... %d%%" % roundi(packs.progress(pack) * 100.0), 88)
 	if not aimed.is_empty():
-		NetPredict.restore(aimed[0], aimed[1])
+		var aimed_player: Player = aimed[0]
+		var aimed_kept: Dictionary = aimed[1]
+		NetPredict.restore(aimed_player, aimed_kept)
 	_auto_detail(dt, (Time.get_ticks_usec() - work_began) / 1000.0)
 	mouse_rel = Vector2.ZERO
 
@@ -602,7 +630,8 @@ func _process(delta: float) -> void:
 ## wait for the screen) keeps going past most of the frame's time, and back at
 ## full size once there is plenty of room again.
 func _auto_detail(dt: float, spent: float) -> void:
-	if game == null or state != "play" or int(options.get("detail", 0)) != 2:
+	var detail: int = options.get("detail", 0)
+	if game == null or state != "play" or detail != 2:
 		return
 	var budget := frame_interval() * 1000.0
 	work_ms = lerpf(work_ms, spent, minf(1.0, dt * 4.0))
@@ -619,8 +648,13 @@ func _auto_detail(dt: float, spent: float) -> void:
 
 func _demo(dt: float) -> void:
 	demo_clock += dt
-	while demo_step < DEMO_KEYS.size() and demo_clock >= float(DEMO_KEYS[demo_step][0]):
-		key(int(DEMO_KEYS[demo_step][1]))
+	while demo_step < DEMO_KEYS.size():
+		var demo_key: Array = DEMO_KEYS[demo_step]
+		var key_at: float = demo_key[0]
+		if not (demo_clock >= key_at):
+			break
+		var code: int = demo_key[1]
+		key(code)
 		demo_step += 1
 	if demo_clock > 45.0:
 		get_tree().quit()
@@ -731,7 +765,8 @@ func _follow_view() -> void:
 		)
 		if not order.is_empty():
 			var at := order.find(watched)
-			Players.set_local(game, order[(at + 1) % order.size()])
+			var next_up: Player = order[(at + 1) % order.size()]
+			Players.set_local(game, next_up)
 			return
 	if watched != me and watched.health > 0 and watched.team == me.team:
 		return
@@ -755,17 +790,17 @@ func _tick_party(mine: Game.Controls) -> void:
 		own = TacticalScreens.human
 	var given := {own: mine}
 	for p: Player in game.players:
-		var pilot = pilots.get(p.slot)
+		var pilot: Object = pilots.get(p.slot)
 		if pilot != null and p.slot != own and p.health > 0:
 			game.focus(p)
-			given[p.slot] = pilot.steer(game)
+			given[p.slot] = pilot.call("steer", game)
 	game.focus(game.local_player)
 	game.tick(SIM_STEP, given)
 	for p: Player in game.players:
-		var pilot = pilots.get(p.slot)
+		var pilot: Object = pilots.get(p.slot)
 		if pilot != null and p.slot != own:
 			game.focus(p)
-			pilot.moved(game)
+			pilot.call("moved", game)
 	game.focus(game.local_player)
 
 
@@ -827,13 +862,16 @@ func _net_frame() -> void:
 		elif change.has("lobby"):
 			net_to_lobby()
 		elif change.has("bot") and net.role == NetPlay.Role.HOST:
-			pilots[int(change["bot"])] = TacticalBot.new(int(change["bot"]))
+			var bot: int = change["bot"]
+			pilots[bot] = TacticalBot.new(bot)
 		elif change.has("human"):
-			pilots.erase(int(change["human"]))
+			var human: int = change["human"]
+			pilots.erase(human)
 	if net.phase == "closed":
 		net_closed()
 		return
-	if int(online_args.get("start", 0)) > 0 and net.phase == "lobby":
+	var start_with: int = online_args.get("start", 0)
+	if start_with > 0 and net.phase == "lobby":
 		_online_autostart()
 
 
@@ -879,14 +917,14 @@ func _net_host_tick(mine: Game.Controls) -> void:
 		return
 	var own := {TacticalScreens.human: mine}
 	for p: Player in target.players:
-		var pilot = pilots.get(p.slot)
+		var pilot: TacticalBot = pilots.get(p.slot)
 		if pilot != null and p.slot != TacticalScreens.human and p.health > 0:
 			target.focus(p)
 			own[p.slot] = pilot.steer(target)
 	target.focus(target.local_player)
 	net.host_tick(own)
 	for p: Player in target.players:
-		var pilot = pilots.get(p.slot)
+		var pilot: TacticalBot = pilots.get(p.slot)
 		if pilot != null and p.slot != TacticalScreens.human:
 			target.focus(p)
 			pilot.moved(target)
@@ -917,28 +955,30 @@ func _net_aim() -> Array:
 
 ## --host-online / --join-online: straight into a lobby.
 func _online_from_args() -> void:
-	var name := String(online_args.get("name", "MUNDELL"))
+	var name := str(online_args.get("name", "MUNDELL"))
 	if online_args.has("host"):
+		var port: int = online_args["host"]
 		net_form = {
 			"name": name,
 			"lobby_name": "%s'S LOBBY" % NetPlay.clean_name(name),
-			"password": String(online_args.get("password", "")),
-			"port": str(int(online_args["host"])),
+			"password": str(online_args.get("password", "")),
+			"port": str(port),
 			"router": not online_args.has("start"),
 		}
 		net_open_lobby()
 		if net != null and online_args.has("map"):
-			net.set_setting("map", String(online_args["map"]))
+			net.set_setting("map", str(online_args["map"]))
 	else:
 		net_form = {
 			"name": name,
-			"address": String(online_args["join"]),
-			"password": String(online_args.get("password", "")),
+			"address": str(online_args["join"]),
+			"password": str(online_args.get("password", "")),
 		}
 		net_join()
 	if net == null:
 		menu_note = net_note
-	if bool(online_args.get("bot", false)) and DevConsole.available():
+	var with_bot: bool = online_args.get("bot", false)
+	if with_bot and DevConsole.available():
 		online_pilot = true  # a TacticalBot made per match, for the slot played
 
 
@@ -946,21 +986,19 @@ func _online_from_args() -> void:
 ## always-open lobby's admin) starts the match once that many are in.
 func _online_autostart() -> void:
 	var me := net.player_of(net.my_id)
+	var start_at: int = online_args["start"]
 	if net.role == NetPlay.Role.CLIENT:
-		if (
-			not me.is_empty()
-			and not bool(me.get("ready", false))
-			and Engine.get_frames_drawn() % 30 == 0
-		):
+		var is_ready: bool = me.get("ready", false)
+		if not me.is_empty() and not is_ready and Engine.get_frames_drawn() % 30 == 0:
 			net.ask({"ready": true})
 		elif (
 			net.is_admin()
-			and net.players.size() >= int(online_args["start"])
+			and net.players.size() >= start_at
 			and Engine.get_frames_drawn() % 60 == 0
 			and net.why_not_start() == ""
 		):
 			net.start_match()  # an always-open lobby's admin starts it
-	elif net.players.size() >= int(online_args["start"]) and net.why_not_start() == "":
+	elif net.players.size() >= start_at and net.why_not_start() == "":
 		net.start_match()
 
 
@@ -976,6 +1014,7 @@ func _online_pilot_controls(mine: Game.Controls) -> Game.Controls:
 	if me.health <= 0 or (net.role == NetPlay.Role.CLIENT and not net.client_ready()):
 		return Game.Controls.new()
 	target.focus(me)
-	var c: Game.Controls = online_pilot.steer(target)
+	var bot: TacticalBot = online_pilot
+	var c: Game.Controls = bot.steer(target)
 	target.focus(target.local_player)
 	return c

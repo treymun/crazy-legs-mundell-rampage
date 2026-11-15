@@ -54,16 +54,17 @@ var _failed := ""
 func _init(config: Dictionary, sim_options := {}) -> void:
 	sim = sim_options
 	art = Assets.new()
-	var bind := String(config.get("bind", "*"))
+	var bind := str(config.get("bind", "*"))
 	var tls := _tls(config)
-	most_matches = int(config.get("most_matches", MOST_MATCHES))
-	for entry in config.get("lobbies", []):
+	most_matches = config.get("most_matches", MOST_MATCHES)
+	for entry: Variant in config.get("lobbies", []):
 		if not entry is Dictionary:
 			continue
-		var lobby := (entry as Dictionary).duplicate()
-		var port := int(lobby.get("port", NetSession.PORT))
+		var entry_dict: Dictionary = entry
+		var lobby := entry_dict.duplicate()
+		var port: int = lobby.get("port", NetSession.PORT)
 		lobby.erase("port")
-		var ws_port := int(lobby.get("ws_port", 0))
+		var ws_port: int = lobby.get("ws_port", 0)
 		lobby.erase("ws_port")
 		var net := NetPlay.serve_lobby(port, lobby, bind)
 		if net == null:
@@ -94,8 +95,8 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 
 ## The config's certificate for wss (null: none, or it would not load).
 static func _tls(config: Dictionary) -> TLSOptions:
-	var cert_path := String(config.get("tls_cert", ""))
-	var key_path := String(config.get("tls_key", ""))
+	var cert_path := str(config.get("tls_cert", ""))
+	var key_path := str(config.get("tls_key", ""))
 	if cert_path == "" or key_path == "":
 		return null
 	var cert := X509Certificate.new()
@@ -118,7 +119,7 @@ func _may_start() -> String:
 static func read_config(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return {}
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 	return parsed if parsed is Dictionary else {}
 
 
@@ -185,9 +186,11 @@ func _poll(room: Room, now: float) -> void:
 			room.pilots.clear()
 			_log("%s: BACK TO THE LOBBY" % net.settings["lobby_name"])
 		elif change.has("bot"):
-			room.pilots[int(change["bot"])] = TacticalBot.new(int(change["bot"]))
+			var bot: int = change["bot"]
+			room.pilots[bot] = TacticalBot.new(bot)
 		elif change.has("human"):
-			room.pilots.erase(int(change["human"]))
+			var human: int = change["human"]
+			room.pilots.erase(human)
 
 
 ## A frame's ticks of a room's match at the network's rate: the bots' controls
@@ -205,12 +208,14 @@ func _play(room: Room, delta: float) -> void:
 			var p: Player = g.players[slot]
 			if p.health > 0:
 				g.focus(p)
-				own[slot] = room.pilots[slot].steer(g)
+				var pilot: TacticalBot = room.pilots[slot]
+				own[slot] = pilot.steer(g)
 		g.focus(g.local_player)
 		room.net.host_tick(own)
 		for slot: int in room.pilots:
 			g.focus(g.players[slot])
-			room.pilots[slot].moved(g)
+			var pilot: TacticalBot = room.pilots[slot]
+			pilot.moved(g)
 		g.focus(g.local_player)
 		var spent := Time.get_ticks_usec() - t0
 		room.ticks += 1
@@ -221,14 +226,17 @@ func _play(room: Room, delta: float) -> void:
 ## A match's game, as every client makes its copy (main_flow.gd
 ## net_match_game), on a host game: no looks, no sound, nothing drawn.
 func _make(info: Dictionary) -> Game:
-	var level := String(info["level"])
+	var level := str(info["level"])
 	if not FileAccess.file_exists("res://data/%s.json" % level):
 		return null
 	var made := Game.new(art, null, QuietSound.new(), level, true)
 	var opts := sim.duplicate()
-	opts.merge(info.get("sim", {}), true)
+	var info_sim: Dictionary = info.get("sim", {})
+	opts.merge(info_sim, true)
 	made.configure(opts)
-	Modes.setup(made, String(info["mode"]), int(info["count"]), info["options"])
+	var count: int = info["count"]
+	var options: Dictionary = info["options"]
+	Modes.setup(made, str(info["mode"]), count, options)
 	return made
 
 

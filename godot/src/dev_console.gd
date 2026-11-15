@@ -25,10 +25,11 @@ const HELP := (
 	"GOD  GIVE <GUN|ALL>  AMMO  HEAL  SPAWN <KIND> [N]  KILLALL  TP <X> <Y>  WHERE  "
 	+ "TIME <SCALE>  TRIGGER <ID>  RELOAD  LEVEL <ID>  STATS  REMATCH  SHOW MAP|FPS|OFF"
 )
+const ChapterStatsFeature := preload("res://src/features/chapter_stats.gd")
 const MAP_CELL := 4
 const MAP_REACH := 15
 
-var main
+var main: MainFlow
 var open := false
 var line := ""
 var last := ""
@@ -38,7 +39,7 @@ var show_fps := false
 var frames := PackedFloat32Array()
 
 
-func _init(owner) -> void:
+func _init(owner: MainFlow) -> void:
 	main = owner
 
 
@@ -136,7 +137,7 @@ func run(command: String) -> String:
 		"give":
 			var name := words[1] if words.size() > 1 else "all"
 			for i in Weapons.COUNT:
-				if name == "all" or String(Weapons.NAMES[i]) == name:
+				if name == "all" or str(Weapons.NAMES[i]) == name:
 					game.armory.pickup(i, game)
 					game.armory.reserve[i] = Weapons.MAX_RESERVE[i]
 					if name != "all":
@@ -183,14 +184,15 @@ func run(command: String) -> String:
 			return _say("%s at %.2f, %.2f facing %.2f" % [game.level.id, p.x, p.y, p.angle])
 		"trigger":
 			for trigger: Dictionary in game.level.triggers:
-				if words.size() > 1 and String(trigger["id"]) == words[1]:
-					game.triggers_fired[String(trigger["id"])] = true
+				if words.size() > 1 and str(trigger["id"]) == words[1]:
+					game.triggers_fired[str(trigger["id"])] = true
 					for action: Dictionary in trigger.get("do", []):
 						Triggers.run(game, action)
 					return _say("ran " + words[1])
 			return _say("no trigger " + (words[1] if words.size() > 1 else ""))
 		"stats":
-			return _say(game.features["stats"].report())
+			var stats: ChapterStatsFeature = game.features["stats"]
+			return _say(stats.report())
 		"reload":
 			main.reload_level_in_place()
 			return _say("level reloaded")
@@ -252,20 +254,28 @@ func _draw_map(c: Canvas, game: Game) -> void:
 	var inside := func(at: Vector2i) -> bool:
 		return at.x >= left and at.y >= top and at.x < left + size and at.y < top + size
 	for trigger: Dictionary in game.level.triggers:
-		var box = trigger.get("when", {}).get("area")
+		var when: Dictionary = trigger.get("when", {})
+		var box: Variant = when.get("area")
 		if box is Array:
-			var a: Vector2i = to_map.call(float(box[0]), float(box[1]))
-			var b: Vector2i = to_map.call(float(box[2]), float(box[3]))
+			var area: Array = box
+			var x0: float = area[0]
+			var y0: float = area[1]
+			var x1: float = area[2]
+			var y1: float = area[3]
+			var a: Vector2i = to_map.call(x0, y0)
+			var b: Vector2i = to_map.call(x1, y1)
 			for x in range(maxi(a.x, left), mini(b.x, left + size)):
-				for y in [a.y, b.y]:
+				for y: int in [a.y, b.y]:
 					if inside.call(Vector2i(x, y)):
 						c.set_pixel(x, y, 240, 160, 40)
 			for y in range(maxi(a.y, top), mini(b.y, top + size)):
-				for x in [a.x, b.x]:
+				for x: int in [a.x, b.x]:
 					if inside.call(Vector2i(x, y)):
 						c.set_pixel(x, y, 240, 160, 40)
 	for light: Array in game.effect_lights():
-		var at: Vector2i = to_map.call(float(light[0]), float(light[1]))
+		var light_x: float = light[0]
+		var light_y: float = light[1]
+		var at: Vector2i = to_map.call(light_x, light_y)
 		if inside.call(at):
 			c.fill_rect(at.x - 1, at.y - 1, 3, 3, Color(1, .9, .4))
 	for e: Enemy in game.enemies:

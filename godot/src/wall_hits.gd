@@ -17,7 +17,7 @@ static func wall_mark(
 	ay: float,
 	slope: float,
 	distance: float
-):
+) -> View.WallMark:
 	var w := level.walls
 	var n := level.wall_count
 	var best := -1

@@ -39,15 +39,17 @@ var counted := {}
 func _init() -> void:
 	dice.seed = 1997
 	for row: Array in L.TARGETS:
+		var row_x: float = row[3]
+		var row_y: float = row[4]
 		(
 			targets
 			. append(
 				{
-					"id": String(row[0]),
-					"station": String(row[1]),
-					"kind": String(row[2]),
-					"x": float(row[3]),
-					"y": float(row[4]),
+					"id": str(row[0]),
+					"station": str(row[1]),
+					"kind": str(row[2]),
+					"x": row_x,
+					"y": row_y,
 					"hits": 0,
 					"spin": 0.0,
 					"last": [],
@@ -114,35 +116,43 @@ static func crossing(
 
 ## A bullet, pellet, swing or squirt from `s` that ended at `e`: the nearest
 ## target it crossed takes it. Returns what was hit ({} for nothing).
-func trace(game, s: Vector3, e: Vector3, gun: int, damage: float) -> Dictionary:
+func trace(game: Game, s: Vector3, e: Vector3, gun: int, damage: float) -> Dictionary:
 	var best := {}
 	var best_t := 9.0
 	var miss := 0.0
 	for t: Dictionary in targets:
 		var spec: Array = L.TARGET_KINDS[t["kind"]]
-		var floor_z: float = game.world.elevation(t["x"], t["y"])
-		var hit := crossing(
-			s, e, t["x"], t["y"], floor_z + float(spec[3]), float(spec[4]), float(spec[2])
-		)
+		var tx: float = t["x"]
+		var ty: float = t["y"]
+		var floor_z: float = game.world.elevation(tx, ty)
+		var spec_reach: float = spec[2]
+		var spec_lift: float = spec[3]
+		var spec_half: float = spec[4]
+		var hit := crossing(s, e, tx, ty, floor_z + spec_lift, spec_half, spec_reach)
 		if hit.x >= 0.0 and hit.x < best_t:
 			best_t = hit.x
 			best = t
 			miss = hit.y
 	for m: Dictionary in movers:
-		if game.clock < float(m["down_until"]):
+		var down_until: float = m["down_until"]
+		if game.clock < down_until:
 			continue
 		var row: Array = L.GALLERY_ROWS[m["row"]]
-		var size := float(row[3])
-		var floor_z2: float = game.world.elevation(m["x"], row[0])
+		var size: float = row[3]
+		var mx: float = m["x"]
+		var row_y: float = row[0]
+		var row_lift: float = row[1]
+		var floor_z2: float = game.world.elevation(mx, row_y)
 		var hit2 := crossing(
-			s, e, m["x"], float(row[0]), floor_z2 + float(row[1]) + size * .5, size * .5, size * .45
+			s, e, mx, row_y, floor_z2 + row_lift + size * .5, size * .5, size * .45
 		)
 		if hit2.x >= 0.0 and hit2.x < best_t:
 			best_t = hit2.x
 			best = m
 	var pin_hit := bowling.shot_at(s, e, crossing)
-	if not pin_hit.is_empty() and float(pin_hit["t"]) < best_t:
-		best_t = float(pin_hit["t"])
+	var pin_t: float = pin_hit.get("t", 0.0)
+	if not pin_hit.is_empty() and pin_t < best_t:
+		best_t = pin_t
 		best = {"pin": pin_hit["pin"]}
 	if best.is_empty():
 		return {}
@@ -151,14 +161,18 @@ func trace(game, s: Vector3, e: Vector3, gun: int, damage: float) -> Dictionary:
 		_gallery_hit(game, best)
 		return {"gallery": true}
 	if best.has("pin"):
-		bowling.shot_knock(game, best["pin"], Vector2(e.x - s.x, e.y - s.y), damage)
+		var pin: Dictionary = best["pin"]
+		bowling.shot_knock(game, pin, Vector2(e.x - s.x, e.y - s.y), damage)
 		return {"pin": true}
 	_struck(game, best, gun, damage, distance, miss)
 	return best
 
 
-func _struck(game, t: Dictionary, gun: int, damage: float, distance: float, miss: float) -> void:
-	t["hits"] = int(t["hits"]) + 1
+func _struck(
+	game: Game, t: Dictionary, gun: int, damage: float, distance: float, miss: float
+) -> void:
+	var hits: int = t["hits"]
+	t["hits"] = hits + 1
 	t["spin"] = .7
 	t["last"] = [gun, damage, distance, miss]
 	var offsets: Array = t["offsets"]
@@ -167,12 +181,18 @@ func _struck(game, t: Dictionary, gun: int, damage: float, distance: float, miss
 		offsets.pop_front()
 	var dps: Array = t["dps"]
 	dps.append([game.clock, damage])
-	while not dps.is_empty() and game.clock - float(dps[0][0]) > 3.0:
+	while not dps.is_empty():
+		var oldest: Array = dps[0]
+		var oldest_at: float = oldest[0]
+		if not (game.clock - oldest_at > 3.0):
+			break
 		dps.pop_front()
-	var cue := "range_gong" if String(t["kind"]) == "gong" else "range_board_hit"
-	if String(t["kind"]) == "dummy":
+	var cue := "range_gong" if str(t["kind"]) == "gong" else "range_board_hit"
+	if str(t["kind"]) == "dummy":
 		cue = "range_dummy_thwack"
-	game.sound_at(cue, t["x"], t["y"], .55)
+	var tx: float = t["x"]
+	var ty: float = t["y"]
+	game.sound_at(cue, tx, ty, .55)
 
 
 ## The group a target's last shots made: the average miss, in inches.
@@ -189,27 +209,32 @@ static func grouping(t: Dictionary) -> int:
 static func dps(t: Dictionary, now: float) -> int:
 	var total := 0.0
 	for row: Array in t["dps"]:
-		if now - float(row[0]) <= 3.0:
-			total += float(row[1])
+		var at: float = row[0]
+		if now - at <= 3.0:
+			var amount: float = row[1]
+			total += amount
 	return roundi(total / 3.0)
 
 
 ## A blast at (x, y): every target near it spins, pins within reach fall.
-func blast(game, x: float, y: float) -> void:
+func blast(game: Game, x: float, y: float) -> void:
 	for t: Dictionary in targets:
-		var d := Vector2(t["x"] - x, t["y"] - y).length()
+		var tx: float = t["x"]
+		var ty: float = t["y"]
+		var d := Vector2(tx - x, ty - y).length()
 		if d < 2.6:
 			t["spin"] = 1.2
-			t["hits"] = int(t["hits"]) + 1
+			var hits: int = t["hits"]
+			t["hits"] = hits + 1
 			t["last"] = [game.armory.active, -1.0, d, 0.0]
 	bowling.blast(game, x, y)
 
 
 ## Projectiles in flight: a bowling ball takes pins, anything else that
 ## would burst bursts on a target, a blade sails through it.
-func shots(game, dt: float) -> void:
+func shots(game: Game, dt: float) -> void:
 	var burst: Array = []
-	for shot in game.shots:
+	for shot: GameState.Shot in game.shots:
 		if shot.enemy:
 			continue
 		var key: int = shot.get_instance_id()
@@ -221,27 +246,37 @@ func shots(game, dt: float) -> void:
 				bowling.roll_ball(game, shot, dt)
 		for t: Dictionary in targets:
 			var spec: Array = L.TARGET_KINDS[t["kind"]]
-			var floor_z: float = game.world.elevation(t["x"], t["y"])
+			var tx: float = t["x"]
+			var ty: float = t["y"]
+			var floor_z: float = game.world.elevation(tx, ty)
+			var spec_reach: float = spec[2]
+			var spec_lift: float = spec[3]
+			var spec_half: float = spec[4]
 			if (
-				Vector2(t["x"] - shot.x, t["y"] - shot.y).length() < float(spec[2]) + .12
-				and absf(shot.z - floor_z - float(spec[3])) < float(spec[4]) + .1
+				Vector2(tx - shot.x, ty - shot.y).length() < spec_reach + .12
+				and absf(shot.z - floor_z - spec_lift) < spec_half + .1
 				and not counted.has([key, t["id"]])
 			):
 				counted[[key, t["id"]]] = true
-				var distance := Vector2(t["x"] - game.player.x, t["y"] - game.player.y).length()
+				var distance := Vector2(tx - game.player.x, ty - game.player.y).length()
 				_struck(game, t, game.armory.active, float(shot.damage), distance, 0.0)
 				if Shots.explodes(shot.kind) and shot.kind != "tnt":
 					burst.append(shot)
 		for m: Dictionary in movers:
-			if game.clock < float(m["down_until"]):
+			var down_until: float = m["down_until"]
+			if game.clock < down_until:
 				continue
 			var row: Array = L.GALLERY_ROWS[m["row"]]
+			var mx: float = m["x"]
+			var row_y: float = row[0]
+			var row_lift: float = row[1]
+			var row_size: float = row[3]
 			if (
-				Vector2(m["x"] - shot.x, float(row[0]) - shot.y).length() < .3
-				and absf(shot.z - float(row[1]) - float(row[3]) * .5) < .4
+				Vector2(mx - shot.x, row_y - shot.y).length() < .3
+				and absf(shot.z - row_lift - row_size * .5) < .4
 			):
 				_gallery_hit(game, m)
-	for shot in burst:
+	for shot: GameState.Shot in burst:
 		game.finish_shot(shot)
 		game.shots.erase(shot)
 	if counted.size() > 400:
@@ -251,7 +286,7 @@ func shots(game, dt: float) -> void:
 # ------------------------------------------------------------------- gallery
 
 
-func start_gallery(game) -> void:
+func start_gallery(game: Game) -> void:
 	gallery_on = true
 	gallery_clock = 0.0
 	gallery_score = 0
@@ -263,16 +298,19 @@ func start_gallery(game) -> void:
 	game.sound.play("menu_accept")
 
 
-func _gallery_hit(game, m: Dictionary) -> void:
+func _gallery_hit(game: Game, m: Dictionary) -> void:
 	m["down_until"] = game.clock + 1.1
 	var row: Array = L.GALLERY_ROWS[m["row"]]
-	game.sound_at("range_gallery_ding", m["x"], row[0], .5)
+	var mx: float = m["x"]
+	var row_y: float = row[0]
+	game.sound_at("range_gallery_ding", mx, row_y, .5)
 	if gallery_on:
 		gallery_hits += 1
-		gallery_score += int(row[4])
+		var points: int = row[4]
+		gallery_score += points
 
 
-func tick_gallery(game, dt: float) -> void:
+func tick_gallery(game: Game, dt: float) -> void:
 	var pace := 1.0 if gallery_on else .35
 	if gallery_on:
 		gallery_clock += dt
@@ -280,11 +318,15 @@ func tick_gallery(game, dt: float) -> void:
 		pace += gallery_clock / L.GALLERY_TIME * .8
 	for m: Dictionary in movers:
 		var row: Array = L.GALLERY_ROWS[m["row"]]
-		m["x"] = float(m["x"]) + float(m["dir"]) * float(row[5]) * pace * dt
-		if float(m["x"]) > L.GALLERY_X[1]:
+		var mx: float = m["x"]
+		var dir: float = m["dir"]
+		var row_speed: float = row[5]
+		m["x"] = mx + dir * row_speed * pace * dt
+		var moved: float = m["x"]
+		if moved > L.GALLERY_X[1]:
 			m["x"] = L.GALLERY_X[1]
 			m["dir"] = -1.0
-		elif float(m["x"]) < L.GALLERY_X[0]:
+		elif moved < L.GALLERY_X[0]:
 			m["x"] = L.GALLERY_X[0]
 			m["dir"] = 1.0
 	if gallery_on and gallery_clock >= L.GALLERY_TIME:
@@ -310,18 +352,19 @@ func tick_gallery(game, dt: float) -> void:
 # ------------------------------------------------------------------- drawing
 
 
-func sprites(game) -> Array:
+func sprites(game: Game) -> Array:
 	var out: Array = []
 	for t: Dictionary in targets:
-		if not game.in_view(t["x"], t["y"], 1.0):
+		var tx: float = t["x"]
+		var ty: float = t["y"]
+		if not game.in_view(tx, ty, 1.0):
 			continue
 		var spec: Array = L.TARGET_KINDS[t["kind"]]
-		var x := float(t["x"])
-		var spin := float(t["spin"])
-		var sprite := View.Sprite.new(
-			x, t["y"], String(spec[0]), float(spec[1]), game.world.elevation(x, t["y"])
-		)
-		var kind := String(t["kind"])
+		var x := tx
+		var spin: float = t["spin"]
+		var spec_height: float = spec[1]
+		var sprite := View.Sprite.new(x, ty, str(spec[0]), spec_height, game.world.elevation(x, ty))
+		var kind := str(t["kind"])
 		if kind == "cow":
 			sprite.plane = 0.0
 		if spin > 0.0:
@@ -336,19 +379,26 @@ func sprites(game) -> Array:
 	out.append_array(bowling.sprites(game, Vector2(eye.x, eye.y)))
 	for m: Dictionary in movers:
 		var row: Array = L.GALLERY_ROWS[m["row"]]
-		if game.clock < float(m["down_until"]) or not game.in_view(m["x"], row[0], .5):
+		var down_until: float = m["down_until"]
+		var mx: float = m["x"]
+		var row_y: float = row[0]
+		if game.clock < down_until or not game.in_view(mx, row_y, .5):
 			continue
-		var s := View.Sprite.new(m["x"], row[0], String(row[2]), float(row[3]), float(row[1]))
+		var row_size: float = row[3]
+		var row_lift: float = row[1]
+		var s := View.Sprite.new(mx, row_y, str(row[2]), row_size, row_lift)
 		s.plane = 0.0
-		s.flip = float(m["dir"]) < 0.0
+		var dir: float = m["dir"]
+		s.flip = dir < 0.0
 		out.append(s)
 	return out
 
 
-func tick(game, dt: float) -> void:
+func tick(game: Game, dt: float) -> void:
 	for t: Dictionary in targets:
-		if float(t["spin"]) > 0.0:
-			t["spin"] = maxf(0.0, float(t["spin"]) - dt)
+		var spin: float = t["spin"]
+		if spin > 0.0:
+			t["spin"] = maxf(0.0, spin - dt)
 	bowling.tick(game, dt)
 	tick_gallery(game, dt)
 	var turn := wrapf(game.player.angle - last_angle, -PI, PI) / maxf(dt, .001)

@@ -153,8 +153,9 @@ func take_events() -> Array:
 	if also != null:
 		var more := also.take_events()
 		for i in 2:
+			var dst: Array = out[i]
 			for id: int in more[i]:
-				out[i].append(id + ALSO_IDS)
+				dst.append(id + ALSO_IDS)
 	return out
 
 
@@ -184,7 +185,8 @@ func send(to: int, channel: int, bytes: PackedByteArray) -> void:
 	var due := _now + lag_ms + _dice.randf() * jitter_ms
 	if reliable:
 		# Reliable packets keep their order whatever the jitter.
-		due = maxf(due, float(_last_due.get(channel, 0.0)))
+		var last_due: float = _last_due.get(channel, 0.0)
+		due = maxf(due, last_due)
 		_last_due[channel] = due
 	_queue.append([due, to, channel, reliable, bytes])
 
@@ -212,8 +214,13 @@ func poll(now_ms: float) -> Array:
 	if not _queue.is_empty():
 		var keep: Array = []
 		for item: Array in _queue:
-			if float(item[0]) <= now_ms:
-				_put(int(item[1]), int(item[2]), bool(item[3]), item[4])
+			var due: float = item[0]
+			if due <= now_ms:
+				var to: int = item[1]
+				var channel: int = item[2]
+				var reliable: bool = item[3]
+				var bytes: PackedByteArray = item[4]
+				_put(to, channel, reliable, bytes)
 			else:
 				keep.append(item)
 		_queue = keep
@@ -229,7 +236,8 @@ func poll(now_ms: float) -> Array:
 		out.append([from, bytes])
 	if also != null:
 		for packet: Array in also.poll(now_ms):
-			out.append([int(packet[0]) + ALSO_IDS, packet[1]])
+			var from: int = packet[0]
+			out.append([from + ALSO_IDS, packet[1]])
 	return out
 
 

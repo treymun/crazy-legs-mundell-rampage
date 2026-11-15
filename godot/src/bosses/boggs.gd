@@ -14,6 +14,10 @@
 ##   HOG WILD     OIL FIRE: his charges leave burning oil down the lane.
 extends BossMoves
 
+const BossArenasFeature := preload("res://src/features/boss_arenas.gd")
+const BossFightFeature := preload("res://src/features/boss_fight.gd")
+const BreakablesFeature := preload("res://src/features/breakables.gd")
+
 static var NITRO_WINDUP: float = BossData.get_value("boggs", "nitro_windup")
 static var NITRO_SPEED: float = BossData.get_value("boggs", "nitro_speed")
 static var NITRO_LEGS: int = BossData.get_value("boggs", "nitro_legs")
@@ -34,14 +38,14 @@ func stagger_rest(_e: Enemy) -> float:
 	return 6.0
 
 
-func phase_changed(e: Enemy, game, phase: int) -> void:
+func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 3:
-		var arenas = game.features.get("boss_arenas")
+		var arenas: BossArenasFeature = game.features.get("boss_arenas")
 		if arenas != null:
 			arenas.turn(e)
 
 
-func tick(e: Enemy, dt: float, game) -> bool:
+func tick(e: Enemy, dt: float, game: Game) -> bool:
 	if hog_wild(game):
 		_oil(e, game)
 	if e.has_meta("nitro"):
@@ -55,17 +59,17 @@ func tick(e: Enemy, dt: float, game) -> bool:
 
 func _mode(e: Enemy) -> String:
 	var s: Dictionary = DerbyChamp.state.get(e.get_instance_id(), {})
-	return String(s.get("mode", "roam")) if s.get("who") == e else "roam"
+	return str(s.get("mode", "roam")) if s.get("who") == e else "roam"
 
 
-func _nitro_ready(e: Enemy, dt: float, game) -> bool:
+func _nitro_ready(e: Enemy, dt: float, game: Game) -> bool:
 	if e.boss_phase < 3 or not e.alerted or e.stun > 0.0 or e.recovery > .1:
 		return false
 	if _mode(e) != "roam" or e.attacks % 2 != 1:
 		return false
 	if e.cooldown > dt * float(game.sharpness):
 		return false
-	var p = game.player
+	var p: Player = game.player
 	var eye: float = game.world.stand(e) + 1.1
 	return (
 		Vector2(p.x - e.x, p.y - e.y).length() < 18.0
@@ -74,14 +78,15 @@ func _nitro_ready(e: Enemy, dt: float, game) -> bool:
 
 
 ## NITRO RAM: the run worked out and painted, the wind-up, then down it.
-func _start_nitro(e: Enemy, game) -> void:
-	var p = game.player
+func _start_nitro(e: Enemy, game: Game) -> void:
+	var p: Player = game.player
 	var heading := atan2(p.y - e.y, p.x - e.x)
 	var legs := legs_from(e, game, heading)
 	if legs.is_empty():
 		e.attacks += 1
 		return
-	e.windup = NITRO_WINDUP * float(PACE[clampi(game.difficulty, 0, 3)])
+	var pace: float = PACE[clampi(game.difficulty, 0, 3)]
+	e.windup = NITRO_WINDUP * pace
 	e.aim_mark = null
 	e.angle = heading
 	e.face_left = cos(heading) < -.24
@@ -93,7 +98,7 @@ func _start_nitro(e: Enemy, game) -> void:
 
 ## The run's legs from where he stands along `heading`: as far as the bowl
 ## lets him, then off whatever stops him, NITRO_LEGS times at most.
-static func legs_from(e: Enemy, game, heading: float) -> Array:
+static func legs_from(e: Enemy, game: Game, heading: float) -> Array:
 	var out: Array = []
 	var at := Vector2(e.x, e.y)
 	var dir := Vector2(cos(heading), sin(heading))
@@ -124,9 +129,10 @@ static func legs_from(e: Enemy, game, heading: float) -> Array:
 	return out
 
 
-func _nitro(e: Enemy, dt: float, game) -> void:
+func _nitro(e: Enemy, dt: float, game: Game) -> void:
 	var run: Dictionary = e.get_meta("nitro")
-	if not bool(run.get("going", false)):
+	var going: bool = run.get("going", false)
+	if not going:
 		e.windup = maxf(0.0, e.windup - dt)
 		if e.stun > .3:
 			# Knocked out of it before he lit it.
@@ -140,7 +146,7 @@ func _nitro(e: Enemy, dt: float, game) -> void:
 	# Keep the run painted while he is on it (BossMoves.telegraph needs a wind-up).
 	e.windup = .01
 	var legs: Array = run["legs"]
-	var leg := int(run["leg"])
+	var leg: int = run["leg"]
 	var end: Vector2 = legs[leg]
 	var heading := atan2(end.y - e.y, end.x - e.x)
 	e.angle = heading
@@ -158,7 +164,7 @@ func _nitro(e: Enemy, dt: float, game) -> void:
 	var fy := e.y + sin(heading) * (e.radius + .1)
 	game.burst(fx, fy, floor_z + .6, "spark", 14, 2.4)
 	game.sound_at("derby_champ_crash", fx, fy, .9)
-	var pieces = game.features.get("breakables")
+	var pieces: BreakablesFeature = game.features.get("breakables")
 	if pieces != null:
 		pieces.blast(fx, fy, floor_z + .4, 1.1, 50.0, false)
 	game.shake = minf(1.0, game.shake + .25)
@@ -169,13 +175,14 @@ func _nitro(e: Enemy, dt: float, game) -> void:
 
 
 ## The player (or one of the county's) in the way of the run.
-func _ram(e: Enemy, run: Dictionary, game, heading: float) -> void:
-	var p = game.player
+func _ram(e: Enemy, run: Dictionary, game: Game, heading: float) -> void:
+	var p: Player = game.player
 	var px: float = p.x - e.x
 	var py: float = p.y - e.y
 	var ahead := px * cos(heading) + py * sin(heading)
 	var side := absf(px * sin(heading) - py * cos(heading))
-	if not bool(run["hit"]) and ahead > -.2 and ahead < e.radius + .8 and side < e.radius + .35:
+	var hit: bool = run["hit"]
+	if not hit and ahead > -.2 and ahead < e.radius + .8 and side < e.radius + .35:
 		run["hit"] = true
 		game.damage(NITRO_DAMAGE, [e.x, e.y], "NITRO RAM")
 		var off := 1.0 if px * sin(heading) - py * cos(heading) < 0.0 else -1.0
@@ -194,7 +201,7 @@ func _ram(e: Enemy, run: Dictionary, game, heading: float) -> void:
 				other.hurt(60.0, game, false, false, e)
 
 
-func _end_nitro(e: Enemy, game, stalled: bool) -> void:
+func _end_nitro(e: Enemy, game: Game, stalled: bool) -> void:
 	e.remove_meta("nitro")
 	e.remove_meta("tell")
 	e.windup = 0.0
@@ -214,8 +221,10 @@ func _end_nitro(e: Enemy, game, stalled: bool) -> void:
 
 
 ## HOG WILD: a charge leaves burning oil down its lane.
-func _oil(e: Enemy, game) -> void:
-	if _mode(e) != "charge" and not bool(e.get_meta("nitro", {}).get("going", false)):
+func _oil(e: Enemy, game: Game) -> void:
+	var nitro: Dictionary = e.get_meta("nitro", {})
+	var going: bool = nitro.get("going", false)
+	if _mode(e) != "charge" and not going:
 		e.remove_meta("oil_at")
 		return
 	var last: Vector2 = e.get_meta("oil_at", Vector2(e.x, e.y))
@@ -225,20 +234,22 @@ func _oil(e: Enemy, game) -> void:
 	if last.distance_to(Vector2(e.x, e.y)) < 1.4:
 		return
 	e.set_meta("oil_at", Vector2(e.x, e.y))
-	var arenas = game.features.get("boss_arenas")
+	var arenas: BossArenasFeature = game.features.get("boss_arenas")
 	if arenas != null:
 		arenas.burn(last.x, last.y)
 
 
-func telegraph(e: Enemy, game) -> Array:
+func telegraph(e: Enemy, game: Game) -> Array:
 	var out: Array = []
 	if not e.has_meta("nitro"):
 		return out
 	var run: Dictionary = e.get_meta("nitro")
 	var legs: Array = run["legs"]
-	var at: Vector2 = Vector2(e.x, e.y) if bool(run.get("going", false)) else run["from"]
+	var going: bool = run.get("going", false)
+	var at: Vector2 = Vector2(e.x, e.y) if going else run["from"]
 	var z: float = game.world.stand(e) + .004
-	for k in range(int(run["leg"]), legs.size()):
+	var first: int = run["leg"]
+	for k in range(first, legs.size()):
 		var end: Vector2 = legs[k]
 		var mid := (at + end) * .5
 		var half := at.distance_to(end) * .5
@@ -253,7 +264,7 @@ func telegraph(e: Enemy, game) -> Array:
 
 
 ## The radiator: hit from in front of the car, low.
-func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> float:
+func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -> float:
 	if how == "blast" or how == "energy" or how == "fire" or how == "steam":
 		return 1.0
 	var toward_shooter := atan2(from.y - e.y, from.x - e.x)
@@ -265,7 +276,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 
 ## The radiator steaming once he is mad, the nitro burning out the back in
 ## his last phase and while he lights it.
-func looks(e: Enemy, game) -> Array:
+func looks(e: Enemy, game: Game) -> Array:
 	var out: Array = []
 	var floor_z: float = game.world.stand(e)
 	var frame := int(game.clock * 10.0)
@@ -293,9 +304,9 @@ func looks(e: Enemy, game) -> Array:
 	return out
 
 
-func dying(e: Enemy, game) -> void:
+func dying(e: Enemy, game: Game) -> void:
 	var z: float = game.world.stand(e)
-	var fight = game.features.get("boss_fight")
+	var fight: BossFightFeature = game.features.get("boss_fight")
 	if fight != null:
 		fight.sparks(e.x, e.y, z + .6, "chips", 18, 3.4)
 		fight.sparks(e.x, e.y, z + .3, "dust", 20, 2.4)

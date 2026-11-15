@@ -62,13 +62,13 @@ static func lane(e: Enemy, world: LevelData, bearing: float) -> float:
 
 
 ## True when it took the whole tick (an airboat mid-run, the boat turning home).
-static func tick(e: Enemy, dt: float, game) -> bool:
+static func tick(e: Enemy, dt: float, game: Game) -> bool:
 	var world: LevelData = game.world
 	if not e.swims and world.sky != SKY:
 		return false
 	var deep := world.deep_at(e.x, e.y)
 	var wet := deep or world.surface_sound(int(world.floor_tile[world.cell(e.x, e.y)])) == "water"
-	var base := float(Enemy.KINDS[e.kind][1])
+	var base: float = Enemy.KINDS[e.kind][1]
 	if is_king(e):
 		return _king(e, dt, game, wet)
 	var want := 0.0
@@ -82,9 +82,11 @@ static func tick(e: Enemy, dt: float, game) -> bool:
 		e.speed = base * (.8 if wet else 1.0)
 		if wet:
 			want = .22
-			if bool(spec.get("lurks", false)) and not e.alerted:
+			var lurks: bool = spec.get("lurks", false)
+			if lurks and not e.alerted:
 				want = e.height * .8
-		if bool(spec.get("calls_gators", false)) and e.alerted and not e.has_meta("called"):
+		var calls_gators: bool = spec.get("calls_gators", false)
+		if calls_gators and e.alerted and not e.has_meta("called"):
 			e.set_meta("called", true)
 			if call_gators(game, e.x, e.y, 13.0) > 0:
 				game.message("CHUM'S IN THE WATER! GATORS COMIN'.", 2.4)
@@ -103,8 +105,8 @@ static func tick(e: Enemy, dt: float, game) -> bool:
 
 
 ## Every gator within `reach` that has not seen the player yet comes for them.
-static func call_gators(game, x: float, y: float, reach: float) -> int:
-	var p = game.player
+static func call_gators(game: Game, x: float, y: float, reach: float) -> int:
+	var p: Player = game.player
 	var woke := 0
 	for other: Enemy in game.enemies:
 		if not other.swims or is_king(other) or not other.alive or other.alerted:
@@ -116,11 +118,12 @@ static func call_gators(game, x: float, y: float, reach: float) -> int:
 	return woke
 
 
-static func _king(e: Enemy, dt: float, game, wet: bool) -> bool:
+static func _king(e: Enemy, dt: float, game: Game, wet: bool) -> bool:
 	if not e.has_meta("home"):
 		e.set_meta("home", Vector2(e.x, e.y))
 	e.sunk = 0.0
-	e.speed = float(Enemy.KINDS[e.kind][1]) * (1.25 if e.enraged else 1.0)
+	var base: float = Enemy.KINDS[e.kind][1]
+	e.speed = base * (1.25 if e.enraged else 1.0)
 	# An airboat keeps to the water: a step onto planks or a bank is taken back.
 	if wet:
 		e.set_meta("wet_at", Vector2(e.x, e.y))
@@ -129,7 +132,8 @@ static func _king(e: Enemy, dt: float, game, wet: bool) -> bool:
 		e.x = back.x
 		e.y = back.y
 	if e.has_meta("run"):
-		_run(e, dt, game, e.get_meta("run"), wet)
+		var run: Array = e.get_meta("run")
+		_run(e, dt, game, run, wet)
 		return true
 	if e.stun > 0.0 or e.windup > 0.0 or not e.alerted:
 		return false
@@ -138,7 +142,7 @@ static func _king(e: Enemy, dt: float, game, wet: bool) -> bool:
 		e.follow(dt, game, atan2(home.y - e.y, home.x - e.x), 1.1)
 		return true
 	# Too close in to the bank to get up speed: swing out to line up the next run.
-	var p = game.player
+	var p: Player = game.player
 	if Vector2(p.x - e.x, p.y - e.y).length() < 5.0 and e.cooldown > -1.0:
 		var away := atan2(e.y - p.y, e.x - p.x) + (.5 if int(e.pose / 2.0) % 2 else -.5)
 		e.follow(dt, game, away, .9)
@@ -147,8 +151,8 @@ static func _king(e: Enemy, dt: float, game, wet: bool) -> bool:
 
 
 ## One tick of an airboat run: [heading, cells left, hit yet, second of a pair].
-static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
-	var p = game.player
+static func _run(e: Enemy, dt: float, game: Game, run: Array, wet: bool) -> void:
+	var p: Player = game.player
 	var heading: float = run[0]
 	var step := RUN_SPEED * (1.15 if e.enraged else 1.0) * dt
 	var ox := e.x
@@ -161,7 +165,9 @@ static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
 	e.face_left = cos(heading) < 0.0
 	e.gait += moved * 6.0
 	e.last_stride = e.pose
-	run[1] = float(run[1]) - moved
+	var left: float = run[1]
+	left -= moved
+	run[1] = left
 	if wet and fmod(e.pose, .12) < dt:
 		game.burst(
 			e.x - cos(heading) * .9,
@@ -172,7 +178,8 @@ static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
 			1.6
 		)
 	var gap := Vector2(p.x - e.x, p.y - e.y).length()
-	if not bool(run[2]) and gap < e.radius + .6 and p.air < .5:
+	var hit: bool = run[2]
+	if not hit and gap < e.radius + .6 and p.air < .5:
 		run[2] = true
 		game.damage(RUN_DAMAGE, [e.x, e.y], "AIRBOAT")
 		game.shake = minf(1.0, game.shake + .5)
@@ -181,12 +188,14 @@ static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
 		)
 		game.move_actor(p, cos(side) * .7, sin(side) * .7, GameState.PLAYER_RADIUS)
 		game.sound_at("king_ram", e.x, e.y, 1.0)
-	if moved >= step * .35 and float(run[1]) > 0.0:
+	if moved >= step * .35 and left > 0.0:
 		return
 	e.remove_meta("run")
 	e.recovery = .55
 	e.cooldown = .8 if e.enraged else 1.3
-	if moved < step * .35 and not bool(run[2]):
+	hit = run[2]
+	var second: bool = run[3]
+	if moved < step * .35 and not hit:
 		# Run up on a piling or a bank: it sits there a breath, wide open.
 		e.stun = 1.4
 		e.flinch = .5
@@ -194,7 +203,7 @@ static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
 		game.burst(e.x, e.y, game.world.stand(e) + .4, "dust", 14, 1.8)
 		game.sound_at("king_beached", e.x, e.y, 1.0)
 		game.message("HE BEACHED IT! LIGHT HIM UP!", 2.0)
-	elif e.enraged and not bool(run[3]) and e.stun <= 0.0:
+	elif e.enraged and not second and e.stun <= 0.0:
 		# Fightin' mad: straight round and back at you.
 		e.set_meta("pair", true)
 		e.windup = .6
@@ -203,7 +212,7 @@ static func _run(e: Enemy, dt: float, game, run: Array, wet: bool) -> void:
 
 
 ## True when it made this attack itself (the king's runs and punt gun).
-static func attack(e: Enemy, game, direction: float, distance: float, eye: float) -> bool:
+static func attack(e: Enemy, game: Game, direction: float, distance: float, eye: float) -> bool:
 	if not is_king(e):
 		return false
 	if runs_on(e, e.attacks, game.world, direction, distance):

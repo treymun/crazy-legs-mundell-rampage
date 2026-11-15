@@ -10,6 +10,8 @@
 class_name BossDoor
 extends RefCounted
 
+const BossCheckpointFeature := preload("res://src/features/boss_checkpoint.gd")
+
 
 static func folder() -> String:
 	var loop := Engine.get_main_loop()
@@ -22,7 +24,7 @@ static func path(level_id: String, replay: bool) -> String:
 	return folder().path_join("boss-checkpoint-%s%s.json" % [level_id, "-replay" if replay else ""])
 
 
-static func write(game) -> bool:
+static func write(game: Game) -> bool:
 	return SessionStore.save(game, path(game.level.id, game.replay))
 
 
@@ -50,29 +52,39 @@ static func token_on_file(level_id: String, replay: bool, kind: String) -> Strin
 	var file := path(level_id, replay)
 	if not FileAccess.file_exists(file):
 		return ""
-	var doc = JSON.parse_string(FileAccess.get_file_as_string(file))
-	if not (doc is Dictionary) or String(doc.get("level", "")) != level_id:
+	var doc: Variant = JSON.parse_string(FileAccess.get_file_as_string(file))
+	if not (doc is Dictionary):
 		return ""
-	var state = doc.get("features", {}).get("boss_checkpoint", {})
-	if not (state is Dictionary) or not (state.get("taken", {}) is Dictionary):
+	var sheet: Dictionary = doc
+	if str(sheet.get("level", "")) != level_id:
 		return ""
-	return String(state["taken"].get(kind, ""))
+	var features: Dictionary = sheet.get("features", {})
+	var state: Variant = features.get("boss_checkpoint", {})
+	if not (state is Dictionary):
+		return ""
+	var box: Dictionary = state
+	if not (box.get("taken", {}) is Dictionary):
+		return ""
+	var taken: Dictionary = box["taken"]
+	return str(taken.get(kind, ""))
 
 
 ## The fight again: the checkpoint loaded, the player at the door, the boss
 ## whole, nothing in the air. Null when the file is gone or no longer loads.
-static func restore(make_game: Callable, current) -> Game:
+static func restore(make_game: Callable, current: Game) -> Game:
 	var loaded := SessionStore.read(
 		path(current.level.id, current.replay), make_game, current.replay, current.level.id
 	)
 	if loaded == null:
 		return null
-	var feature = loaded.features.get("boss_checkpoint")
+	var feature: BossCheckpointFeature = loaded.features.get("boss_checkpoint")
 	if feature == null or feature.door.size() < 3:
 		return null
 	var p := loaded.player
-	p.x = float(feature.door[0])
-	p.y = float(feature.door[1])
+	var door_x: float = feature.door[0]
+	var door_y: float = feature.door[1]
+	p.x = door_x
+	p.y = door_y
 	p.vx = 0.0
 	p.vy = 0.0
 	p.air = 0.0
@@ -91,7 +103,8 @@ static func restore(make_game: Callable, current) -> Game:
 		boss.target = [p.x, p.y]
 		p.angle = atan2(boss.y - p.y, boss.x - p.x)
 	else:
-		p.angle = float(feature.door[2])
+		var door_angle: float = feature.door[2]
+		p.angle = door_angle
 	loaded.shots.clear()
 	loaded.hazards.clear()
 	loaded.blasts.clear()

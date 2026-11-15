@@ -14,6 +14,8 @@
 class_name DerbyChamp
 extends RefCounted
 
+const BreakablesFeature := preload("res://src/features/breakables.gd")
+
 static var CHARGE_SPEED: float = BossData.get_value("derby_champ", "charge_speed")
 static var MAD_SPEED: float = BossData.get_value("derby_champ", "mad_speed")
 static var CHARGE_TIME: float = BossData.get_value("derby_champ", "charge_time")
@@ -39,9 +41,9 @@ static func _state(e: Enemy) -> Dictionary:
 	return s
 
 
-static func tick(e: Enemy, dt: float, game) -> void:
+static func tick(e: Enemy, dt: float, game: Game) -> void:
 	var s := _state(e)
-	var p = game.player
+	var p: Player = game.player
 	var dx: float = p.x - e.x
 	var dy: float = p.y - e.y
 	var distance := sqrt(dx * dx + dy * dy)
@@ -53,7 +55,7 @@ static func tick(e: Enemy, dt: float, game) -> void:
 			e.wake(game, p.x, p.y)
 		return
 	e.cooldown -= dt * float(game.sharpness)
-	var mode := String(s["mode"])
+	var mode: String = s["mode"]
 	if e.stun > .5 and (mode == "aim" or mode == "spit"):
 		# Knocked out of it (fightin' mad, a heavy hit): start over.
 		s["mode"] = "roam"
@@ -65,7 +67,8 @@ static func tick(e: Enemy, dt: float, game) -> void:
 			e.windup = maxf(0.0, e.windup - dt)
 			if e.windup > LOCK:
 				s["heading"] = toward
-			e.angle = float(s["heading"])
+			var aim_heading: float = s["heading"]
+			e.angle = aim_heading
 			e.face_left = cos(e.angle) < -.24
 			e.aim_mark = [e.x + cos(e.angle) * 4.0, e.y + sin(e.angle) * 4.0, p.eye]
 			if e.windup <= 0.0:
@@ -79,8 +82,9 @@ static func tick(e: Enemy, dt: float, game) -> void:
 			_charge(e, s, dt, game)
 		"stall":
 			if e.recovery <= 0.0:
-				if int(s["again"]) > 0 and e.enraged:
-					s["again"] = int(s["again"]) - 1
+				var again: int = s["again"]
+				if again > 0 and e.enraged:
+					s["again"] = again - 1
 					_start_aim(e, s, game, .55)
 				else:
 					s["mode"] = "roam"
@@ -89,7 +93,8 @@ static func tick(e: Enemy, dt: float, game) -> void:
 			e.windup = maxf(0.0, e.windup - dt)
 			if e.windup > LOCK:
 				s["heading"] = toward
-			e.angle = float(s["heading"])
+			var spit_heading: float = s["heading"]
+			e.angle = spit_heading
 			e.aim_mark = [p.x, p.y, p.eye]
 			if e.windup <= 0.0:
 				_spit(e, s, game)
@@ -97,18 +102,19 @@ static func tick(e: Enemy, dt: float, game) -> void:
 			_roam(e, s, dt, game, distance, toward, sees)
 
 
-static func _start_aim(e: Enemy, s: Dictionary, game, windup := -1.0) -> void:
+static func _start_aim(e: Enemy, s: Dictionary, game: Game, windup := -1.0) -> void:
 	s["mode"] = "aim"
-	e.windup = float(Enemy.WINDUP[e.kind][0]) * (.82 if e.enraged else 1.0)
+	var base: float = Enemy.WINDUP[e.kind][0]
+	e.windup = base * (.82 if e.enraged else 1.0)
 	if windup > 0.0:
 		e.windup = windup
 	s["heading"] = atan2(game.player.y - e.y, game.player.x - e.x)
 	e.aim_mark = [game.player.x, game.player.y, game.player.eye]
-	game.sound_at(String(Enemy.WINDUP[e.kind][1]), e.x, e.y, .9)
+	game.sound_at(str(Enemy.WINDUP[e.kind][1]), e.x, e.y, .9)
 
 
 static func _roam(
-	e: Enemy, s: Dictionary, dt: float, game, distance: float, toward: float, sees: bool
+	e: Enemy, s: Dictionary, dt: float, game: Game, distance: float, toward: float, sees: bool
 ) -> void:
 	e.windup = 0.0
 	e.aim_mark = null
@@ -141,16 +147,17 @@ static func _roam(
 	e.follow(dt, game, want, 1.5 if e.enraged else 1.25)
 
 
-static func _charge(e: Enemy, s: Dictionary, dt: float, game) -> void:
-	var heading := float(s["heading"])
+static func _charge(e: Enemy, s: Dictionary, dt: float, game: Game) -> void:
+	var heading: float = s["heading"]
 	var speed := MAD_SPEED if e.enraged else CHARGE_SPEED
-	var p = game.player
+	var p: Player = game.player
 	# The player in the way: run down and thrown off the lane.
 	var px: float = p.x - e.x
 	var py: float = p.y - e.y
 	var ahead := px * cos(heading) + py * sin(heading)
 	var side := absf(px * sin(heading) - py * cos(heading))
-	if not bool(s["hit"]) and ahead > -.2 and ahead < e.radius + .7 and side < e.radius + .3:
+	var hit: bool = s["hit"]
+	if not hit and ahead > -.2 and ahead < e.radius + .7 and side < e.radius + .3:
 		s["hit"] = true
 		game.damage(MAD_RAM_DAMAGE if e.enraged else RAM_DAMAGE, [e.x, e.y], "RAMMED")
 		var off := 1.0 if px * sin(heading) - py * cos(heading) < 0.0 else -1.0
@@ -174,7 +181,9 @@ static func _charge(e: Enemy, s: Dictionary, dt: float, game) -> void:
 				)
 	var want := speed * dt
 	var moved := e.advance(dt, game, heading, speed / maxf(.1, e.speed))
-	s["left"] = float(s["left"]) - dt
+	var left: float = s["left"]
+	left -= dt
+	s["left"] = left
 	if int(game.clock * 6.0) % 2 == 0:
 		game.burst(
 			e.x - cos(heading) * .9,
@@ -186,14 +195,14 @@ static func _charge(e: Enemy, s: Dictionary, dt: float, game) -> void:
 		)
 	if moved < want * .35:
 		_crash(e, s, game, heading)
-	elif float(s["left"]) <= 0.0:
+	elif left <= 0.0:
 		s["mode"] = "roam"
 		e.cooldown = .8
 		e.recovery = .35
 
 
 ## A charge that ends in a wall, a stack of tyres or a wreck.
-static func _crash(e: Enemy, s: Dictionary, game, heading: float) -> void:
+static func _crash(e: Enemy, s: Dictionary, game: Game, heading: float) -> void:
 	s["mode"] = "stall"
 	e.recovery = .7 if e.enraged else 1.35
 	e.stun = maxf(e.stun, .2)
@@ -207,7 +216,7 @@ static func _crash(e: Enemy, s: Dictionary, game, heading: float) -> void:
 	game.sound_at("derby_champ_crash", fx, fy, 1.0)
 	game.disturb(fx, fy, 6.0)
 	# Into the pit crew's nitro or gas cans: they go up, on him as well.
-	var pieces = game.features.get("breakables")
+	var pieces: BreakablesFeature = game.features.get("breakables")
 	if pieces != null:
 		pieces.blast(fx, fy, floor_z + .4, 1.1, 50.0, false)
 	if e.enraged:
@@ -233,8 +242,8 @@ static func _crash(e: Enemy, s: Dictionary, game, heading: float) -> void:
 			)
 
 
-static func _spit(e: Enemy, s: Dictionary, game) -> void:
-	var heading := float(s["heading"])
+static func _spit(e: Enemy, s: Dictionary, game: Game) -> void:
+	var heading: float = s["heading"]
 	var floor_z: float = game.world.stand(e)
 	for off: float in _fan(e):
 		var a := heading + off
@@ -257,21 +266,24 @@ static func _fan(e: Enemy) -> Array:
 
 ## The windup's warning on the ground: the lane he will charge down, or the
 ## fan his tyres will roll along.
-static func marks(e: Enemy, game) -> Array:
+static func marks(e: Enemy, game: Game) -> Array:
 	var s := _state(e)
 	var out: Array = []
-	var mode := String(s["mode"])
+	var mode: String = s["mode"]
+	var heading: float = s["heading"]
 	var lanes: Array = []
 	if mode == "aim":
-		lanes = [[float(s["heading"]), 16.0, e.radius]]
+		lanes = [[heading, 16.0, e.radius]]
 	elif mode == "spit":
 		for off: float in _fan(e):
-			lanes.append([float(s["heading"]) + off, 7.0, .2])
+			lanes.append([heading + off, 7.0, .2])
 	var floor_z: float = game.world.stand(e) + .003
 	for lane: Array in lanes:
 		var bearing: float = lane[0]
+		var reach: float = lane[1]
+		var width: float = lane[2]
 		var length := 0.0
-		while length < float(lane[1]):
+		while length < reach:
 			var step := length + .32
 			if game.world.blocked(e.x + cos(bearing) * step, e.y + sin(bearing) * step, .03):
 				break
@@ -284,7 +296,7 @@ static func marks(e: Enemy, game) -> Array:
 					floor_z,
 					bearing,
 					length / 2.0,
-					float(lane[2]),
+					width,
 					"mark_lane"
 				)
 			)
@@ -293,7 +305,7 @@ static func marks(e: Enemy, game) -> Array:
 
 ## The boss bar's word for what is coming.
 static func tell(e: Enemy) -> String:
-	var mode := String(_state(e)["mode"])
+	var mode: String = _state(e)["mode"]
 	if mode == "spit":
 		return "SPARE TYRES"
 	if mode == "stall":
@@ -302,7 +314,7 @@ static func tell(e: Enemy) -> String:
 
 
 ## Down: the car goes up.
-static func falls(e: Enemy, game) -> void:
+static func falls(e: Enemy, game: Game) -> void:
 	var floor_z: float = game.world.stand(e)
 	game.explode(
 		GameState.Shot.new(e.x, e.y, floor_z + .6, 0.0, 0.0, 0.0, "derby_blast", 0.0, true, 0)
