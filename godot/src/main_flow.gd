@@ -720,6 +720,8 @@ func change_setting(value: int) -> void:
 	menu_note = ""
 	if item.key == "crouch":
 		crouch_latched = false
+	if item.key == "quality":
+		_quality_picked()
 	if item.key == "menu_music":
 		menu_music()
 	if item.key == "window_mode":
@@ -747,6 +749,24 @@ func change_setting(value: int) -> void:
 		menu_note = "%s: %s. APPLIED AND SAVED." % [item.label, item.format_value(now)]
 		if item.key == "detail":
 			menu_note = _detail_note(now)
+
+
+## QUALITY picked: a tier sets VIEW DETAIL, DRAW DISTANCE and LIGHTS AND GLOW
+## (core/quality.gd); AUTO measures this machine again in the next play.
+func _quality_picked() -> void:
+	var quality: int = options["quality"]
+	if quality > 0:
+		options.merge(Quality.preset(quality - 1), true)
+		menu_note = (
+			"QUALITY %s: DETAIL, DISTANCE, LIGHTS AND PHYSICS SET. APPLIED AND SAVED."
+			% Quality.NAMES[quality - 1]
+		)
+		return
+	quality_measured = -1
+	Quality.save_measured(-1)
+	quality_first = true
+	quality_meter = Quality.Meter.new(mobile)
+	menu_note = "QUALITY AUTO: MEASURED IN THE FIRST SECONDS OF PLAY. SAVED."
 
 
 ## What each VIEW DETAIL draws, once it is picked.

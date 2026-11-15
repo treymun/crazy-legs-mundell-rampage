@@ -25,6 +25,9 @@ uniform float gain = 1.0;
 uniform float blast = 0.0;
 uniform int grain_frame = 0;
 uniform int hurt = 0;
+// PHOTO MODE's filters on the view (photo_mode.gd FILTERS; FILM is the look
+// pass): 2 TINTYPE, 3 DUSK, 4 MOONLIGHT. Still ends in the palette.
+uniform int photo_filter = 0;
 const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
 
 uniform bool overlay_on = false;
@@ -109,6 +112,23 @@ void fragment() {
 	ivec3 q = ivec3(clamp(c, 0.0, 1.0) * 255.0 + 0.5);
 	if (px.y < 156 && hurt > 0) {
 		q = (ivec3(131, 27, 17) * hurt + q * (255 - hurt)) / 255;
+	}
+	if (px.y < 156 && photo_filter > 1) {
+		vec3 v = vec3(q);
+		float lum = dot(v, vec3(0.30, 0.59, 0.11));
+		if (photo_filter == 2) {
+			// TINTYPE: brown and cream, the corners burnt dark.
+			vec2 n = (vec2(px) / vec2(319.0, 155.0) - 0.5) * 2.0;
+			float vignette = 1.0 - 0.30 * pow(length(n) / 1.4142, 2.0);
+			v = vec3(lum * 1.10 + 10.0, lum * 0.95 + 5.0, lum * 0.72) * vignette;
+		} else if (photo_filter == 3) {
+			// DUSK: the sun low and orange.
+			v = v * vec3(1.12, 0.90, 0.70) + vec3(12.0, 4.0, 0.0);
+		} else {
+			// MOONLIGHT: cold and blue.
+			v = mix(v, vec3(lum * 0.55, lum * 0.75, lum * 1.05), 0.75) * 0.85;
+		}
+		q = ivec3(clamp(v, 0.0, 255.0) + 0.5);
 	}
 	if (px.y < 156 && (look || tone_on)) {
 		vec3 v = vec3(q);

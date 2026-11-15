@@ -56,6 +56,7 @@ godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL 
 godot --headless --path godot --script res://tools/physics_check.gd   # PHYSICS OK (loose things on decks, ramps, stairs, walls; levels=a,b)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
+godot --headless --path godot --script res://tools/camera_check.gd     # CAMERA CHECK OK (photo mode, kill cam, quality, HUD on Controls)
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)
 godot --headless --path godot --script res://tools/multi_bots.gd -- players=1,2,4 seconds=60   # MULTI BOTS OK (whole: to the end; mortal; diff=)
 godot --headless --path godot --script res://tools/net_loopback.gd -- seconds=180 lag=50 loss=0.05   # NET LOOPBACK OK (websocket: over WebSocket)
@@ -95,6 +96,7 @@ godot --path godot ... --script res://tools/mode_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/tactical_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/county_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/range_frames.gd
+godot --path godot ... --script res://tools/camera_frames.gd -- out=<dir>   # the HUD (full, MINIMAL, 5v5, County Run), PHOTO MODE's filters and a saved picture, the KILL CAM
 godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bowling lane: a spread of rolls, what stands, the tick's cost
 ```
 

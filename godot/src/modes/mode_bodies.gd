@@ -119,6 +119,26 @@ static func hit_at(game: Game, q: Player) -> float:
 	return at
 
 
+## Player q as the world would see them, Mundell's model (the picture where
+## there is none): the mirror's reflection, and the player in view of PHOTO
+## MODE's free camera.
+static func player_sprite(game: Game, q: Player) -> View.Sprite:
+	var facing := fposmod(TAU - q.angle, TAU) - PI
+	var direction := mini(4, int(absf(facing) / (PI / 4.0) + .5))
+	var heading: String = ["front", "quarter", "side", "away", "back"][direction]
+	var stride := 0
+	if q.motion > .15 and q.air == 0.0:
+		stride = roundi(sin(q.walk_phase))
+	var height := 1.24 if q.crouched else 1.65
+	var feet: float = game.world.stand(q) + q.air
+	var out := View.Sprite.new(q.x, q.y, "player_%s_%d" % [heading, stride], height, feet)
+	out.flip = facing < 0.0 and direction < 4
+	watch(game)
+	out.who = for_player(game, q, PLAYER_KIND, height)
+	out.pose = player_pose(game, q, PLAYER_KIND)
+	return out
+
+
 ## The frame player q's model shows (View.Sprite.pose), named like a picture
 ## of `kind`: falling then down when out, else firing, flinching from a hit,
 ## aiming (scoped or just fired), walking (ActorView runs the walk on their

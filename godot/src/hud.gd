@@ -767,8 +767,12 @@ func _pin_plate(c: Canvas, x: int, py: int, label: String) -> void:
 ## view and is drawn every frame.
 var _bar := PackedByteArray()
 var _bar_key := 0
+var _texture_key := 0
 var _bar_texture: ImageTexture
 var _bar_scratch: Canvas
+var _plate_textures := {}
+## The status bar's rows as last drawn for the texture (RGB8, 320x44).
+var bar_rows: Image
 
 ## The health shown, ticking toward the real one at TICK_RATE a second of play.
 const TICK_RATE := 45.0
@@ -776,8 +780,45 @@ var _shown_health := -1.0
 var _shown_for: Game = null
 var _shown_clock := 0.0
 
+## With a window the HUD's Control nodes (ui/hud/hud_layer.gd) show the
+## status bar and the objective pin: draw() then only notes the game and
+## guns they show this frame (`shown_game`, cleared by the front end before
+## each draw). HUD MINIMAL (`minimal`) leaves the ammo rail, the face, the
+## campaign's gut and drunk meters and the pin off.
+var controls := false
+var minimal := false
+var shown_game: Game = null
+var shown_armory: Weapons.Armory = null
+
 
 func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
+	_tick_health(game)
+	if c.gpu and controls:
+		shown_game = game
+		shown_armory = armory
+		return
+	var head := View.VIEW * Canvas.WIDTH * 3
+	if c.gpu:
+		# Drawn in software only when it changes, then shown as one texture.
+		c.gpu_texture(
+			bar_texture(game, armory), 0, View.VIEW, Canvas.WIDTH, Canvas.HEIGHT - View.VIEW
+		)
+	else:
+		var key := _bar_state(game, armory)
+		if key == _bar_key and _bar.size() == c.pixels.size() - head:
+			var joined := c.pixels.slice(0, head)
+			joined.append_array(_bar)
+			c.pixels = joined
+		else:
+			_draw_bar(c, game, armory)
+			_bar = c.pixels.slice(head)
+			_bar_key = key
+	if game.hints and not game.map and not minimal:
+		objective_pin(c, game, game.pin_top)
+
+
+## The health shown ticks toward the real one once a frame.
+func _tick_health(game: Game) -> void:
 	var real := maxi(0, game.player.health)
 	if game != _shown_for or _shown_health < 0.0:
 		_shown_for = game
@@ -787,9 +828,13 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			_shown_health, real, maxf(0.0, game.clock - _shown_clock) * TICK_RATE
 		)
 	_shown_clock = game.clock
+
+
+## What the status bar shows, as one number: drawn again only when it moves.
+func _bar_state(game: Game, armory: Weapons.Armory) -> int:
 	var health := roundi(_shown_health)
 	var item: String = ITEMS[game.inventory_slot]
-	var key := hash(
+	return hash(
 		[
 			armory.active,
 			armory.owned,
@@ -807,50 +852,68 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			game.inventory.get(item, 0),
 			TacticalScreens.bar_state(game) if Modes.is_tactical(game) else [],
 			county_bar_state(game),
-			PixelType.clear_small
+			PixelType.clear_small,
+			minimal
 		]
 	)
-	var head := View.VIEW * Canvas.WIDTH * 3
-	if c.gpu:
-		# Drawn in software only when it changes, then shown as one texture.
-		if key != _bar_key or _bar_texture == null:
-			if _bar_scratch == null:
-				_bar_scratch = Canvas.new()
-			var scratch := _bar_scratch
-			_draw_bar(scratch, game, armory)
-			var rows := Image.create_from_data(
-				Canvas.WIDTH,
-				Canvas.HEIGHT - View.VIEW,
-				false,
-				Image.FORMAT_RGB8,
-				scratch.pixels.slice(head)
-			)
-			if _bar_texture == null:
-				_bar_texture = ImageTexture.create_from_image(rows)
-			else:
-				_bar_texture.update(rows)
-			_bar_key = key
-		c.gpu_texture(_bar_texture, 0, View.VIEW, Canvas.WIDTH, Canvas.HEIGHT - View.VIEW)
-	elif key == _bar_key and _bar.size() == c.pixels.size() - head:
-		var joined := c.pixels.slice(0, head)
-		joined.append_array(_bar)
-		c.pixels = joined
-	else:
-		_draw_bar(c, game, armory)
-		_bar = c.pixels.slice(head)
-		_bar_key = key
-	if game.hints and not game.map:
-		objective_pin(c, game, game.pin_top)
+
+
+## The status bar's 320x44 rows as one texture, drawn in software (the same
+## pixels as headless) only when what it shows changes.
+func bar_texture(game: Game, armory: Weapons.Armory) -> ImageTexture:
+	var key := _bar_state(game, armory)
+	if key != _texture_key or _bar_texture == null:
+		if _bar_scratch == null:
+			_bar_scratch = Canvas.new()
+		var scratch := _bar_scratch
+		_draw_bar(scratch, game, armory)
+		var rows := Image.create_from_data(
+			Canvas.WIDTH,
+			Canvas.HEIGHT - View.VIEW,
+			false,
+			Image.FORMAT_RGB8,
+			scratch.pixels.slice(View.VIEW * Canvas.WIDTH * 3)
+		)
+		if _bar_texture == null:
+			_bar_texture = ImageTexture.create_from_image(rows)
+		else:
+			_bar_texture.update(rows)
+		bar_rows = rows
+		_texture_key = key
+	return _bar_texture
+
+
+## The bare plate under the status bar for this game's mode (campaign, 5v5 or
+## COUNTY RUN), headed, as a texture.
+func plate_texture(game: Game) -> ImageTexture:
+	var shown := _plate_for(game)
+	var key := 0 if shown == plate else (1 if shown == plate_5v5 else 2)
+	var made: ImageTexture = _plate_textures.get(key)
+	if made == null:
+		made = ImageTexture.create_from_image(plate_image(game))
+		_plate_textures[key] = made
+	return made
+
+
+## The bare plate for this game's mode as an RGB8 image.
+func plate_image(game: Game) -> Image:
+	return Image.create_from_data(plate_w, plate_h, false, Image.FORMAT_RGB8, _plate_for(game))
+
+
+func _plate_for(game: Game) -> PackedByteArray:
+	if CountyMode.run(game) != null:
+		return plate_county
+	if Modes.is_tactical(game) and not TacticalScreens.bar_state(game).is_empty():
+		return plate_5v5
+	return plate
 
 
 func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	var team_bar: Array = TacticalScreens.bar_state(game) if Modes.is_tactical(game) else []
 	var county: CountyRunFeature = CountyMode.run(game)
-	var shown := plate_5v5 if not team_bar.is_empty() else plate
-	if county != null:
-		shown = plate_county
-	_blit_rgb(c, shown, plate_w, plate_h, 0, View.VIEW)
-	ammo_rail(c, armory)
+	_blit_rgb(c, _plate_for(game), plate_w, plate_h, 0, View.VIEW)
+	if not minimal:
+		ammo_rail(c, armory)
 	var slot := armory.active
 	var amount := "-"
 	if slot == Weapons.DYNAMITE:
@@ -887,7 +950,11 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		else:
 			c.circle(cx, cy, 2, Color(68 / 255.0, 53 / 255.0, 43 / 255.0), false)
 			c.line(cx, cy, cx, cy + 4, Color(68 / 255.0, 53 / 255.0, 43 / 255.0))
-	_draw_face(c, game.face_name())
+	if not minimal:
+		_draw_face(c, game.face_name())
+	if minimal:
+		_draw_pocket(c, game)
+		return
 	if game.hud_style:
 		gauge(c, 176, View.VIEW + 10, "GUT", game.player.gut)
 		gauge(c, 222, View.VIEW + 10, "DRUNK", game.player.drunk)
@@ -916,6 +983,11 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 				Color(182 / 255.0, 60 / 255.0, 46 / 255.0)
 			]
 		)
+	_draw_pocket(c, game)
+
+
+## The campaign's pocket: the item picked, how many, its short name.
+func _draw_pocket(c: Canvas, game: Game) -> void:
 	var active: String = ITEMS[game.inventory_slot]
 	blit_icon(c, active, 13, 13, 283, View.VIEW + 27)
 	var count: int = game.inventory.get(active, 0)
@@ -951,7 +1023,8 @@ func _draw_team_bar(c: Canvas, game: Game, s: Array) -> void:
 	var hat: bool = s[1]
 	if hat:
 		text(c, "+HAT", 115, View.VIEW + 35, "mini", AMBER, true, false)
-	_draw_face(c, game.face_name())
+	if not minimal:
+		_draw_face(c, game.face_name())
 	var side_ink: Color = s[6]
 	text(c, str(s[5]), 222, View.VIEW + 10, "body", side_ink, true, true)
 	text(c, str(s[7]), 222, View.VIEW + 21, "mini", INK, true, false)
@@ -1003,7 +1076,8 @@ func _draw_county_bar(c: Canvas, game: Game, f: CountyRunFeature) -> void:
 		true,
 		true
 	)
-	_draw_face(c, game.face_name())
+	if not minimal:
+		_draw_face(c, game.face_name())
 	var a: Weapons.Armory = game.armory
 	for i in 3:
 		var gun := -1

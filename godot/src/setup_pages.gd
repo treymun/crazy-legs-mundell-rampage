@@ -17,7 +17,7 @@ const HEADERS := {
 		"aim_assist": "AIM AND GUNS",
 		"barks": "ON THE SCREEN",
 	},
-	"VIEW": {"detail": "PICTURE", "world_motion": "EASY ON THE EYES"},
+	"VIEW": {"quality": "PICTURE", "world_motion": "EASY ON THE EYES"},
 	"KEYS":
 	{
 		"key_forward": "MOVING",
@@ -140,6 +140,13 @@ static func build() -> Array:
 					0,
 					["METERS", "DIALS"],
 					"GAUGE STYLE FOR THE GUT AND DRUNK METERS"
+				),
+				SessionStore.choices(
+					"HUD",
+					"hud_mode",
+					0,
+					["FULL", "MINIMAL"],
+					"MINIMAL KEEPS HEALTH, AMMO AND THE POCKET; NO FACE, METERS OR OBJECTIVE PIN"
 				),
 				SessionStore.choices(
 					"WEAPON POSITION",
@@ -312,6 +319,13 @@ static func build() -> Array:
 					1,
 					"CROSSHAIR MARKS AND A KNOCK ON HITS, A CLANK AND A BEAT OF PAUSE ON KILLS"
 				),
+				SessionStore.choices(
+					"KILL CAM",
+					"kill_cam",
+					1,
+					["OFF", "BOSSES", "BOSSES AND AREAS"],
+					"A SHORT REPLAY OF THE KILL FROM ANOTHER ANGLE. ANY KEY SKIPS. NEVER ONLINE."
+				),
 				SessionStore.toggle(
 					"AUTO SWITCH ON PICKUP",
 					"auto_switch",
@@ -339,6 +353,16 @@ static func build() -> Array:
 		[
 			"VIEW",
 			[
+				(
+					SessionStore
+					. choices(
+						"QUALITY",
+						"quality",
+						0,
+						["AUTO", "LOW", "MEDIUM", "HIGH"],
+						"SETS DETAIL, DRAW DISTANCE, LIGHTS AND PHYSICS AT ONCE. AUTO MEASURES THIS MACHINE ONCE."
+					)
+				),
 				(
 					SessionStore
 					. choices(

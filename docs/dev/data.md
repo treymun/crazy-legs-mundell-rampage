@@ -31,6 +31,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short` | `county_data.gd` |
 | `cuss_lines.json` | the cuss pack (the voice tools read it too) | `src/cuss_lines.gd` |
 | `mundell_lines.json` | Mundell's wisecracks | `Barks` |
+| `camera.cfg` | PHOTO MODE's camera and pictures `[photo]`, the KILL CAM's sampling, replay and camera `[kill_cam]`, QUALITY AUTO's measurement `[quality]` | `PhotoMode`, `KillCam`, `Quality` (static vars, read at start) |
 | `servers.json` | the county servers the browser lists (`wss` for the browser build) | `NetBrowser` |
 
 ## Loaders

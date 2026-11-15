@@ -1,9 +1,46 @@
 # Menus and the HUD
 
-The menu screens are Godot Controls in `godot/src/ui/`. The HUD still draws
-with the Canvas helpers on the Godot 2D canvas (not Controls); see
-[gameplay.md](gameplay.md#the-automap-canvas-and-sprites) for the two
-canvases.
+The menu screens are Godot Controls in `godot/src/ui/`, and so is the play
+HUD's status bar and objective pin (`src/ui/hud/`, below). The notices,
+prompts, callouts, boss bars, the range card, the 5v5 store and COUNTY RUN's
+cards still draw with the Canvas helpers on the Godot 2D canvas, over the
+HUD's Controls; see [gameplay.md](gameplay.md#the-automap-canvas-and-sprites)
+for the two canvases.
+
+## The HUD on Controls
+
+`HudLayer` (`src/ui/hud/hud_layer.gd`) is a 320x200 Control in the overlay
+viewport, the overlay's first child: under the canvas's own drawing (the
+`Node2D` painter) and under `UiRoot`. `main_state.gd _start_overlay` makes it
+and sets `hud.controls`; a headless run (no overlay) has none and `HUD.draw`
+draws the bar on the software canvas as before.
+
+- **StatusBar** at (0, 156), 320x44: a `Plate` TextureRect (the bare plate of
+  the mode, `HUD.plate_texture`: campaign, 5v5 or COUNTY RUN headings) under
+  one TextureRect per part (`HudLayer.BOXES`: `rail`, `rail_end`, `health`,
+  `ammo`, `third` (keys or vest), `face`, `gauges` (the gut and drunk
+  meters, the 5v5 side and gear, COUNTY RUN's gun slots; the bar's whole
+  height), `pocket`). Each box is an `AtlasTexture` of its rectangle of
+  `HUD.bar_texture()`, which `_draw_bar` draws in software only when what the
+  bar shows changes (`_bar_state`), so the bar is the old picture pixel for
+  pixel.
+- **ObjectivePin** (`HudPin`, a `Painted`, repainted every frame) draws
+  `HUD.objective_pin` at `game.pin_top`.
+- Each frame `render()` clears `hud.shown_game`; `HUD.draw` (reached at the
+  end of `game_view.gd _draw`) only notes the game and guns when
+  `hud.controls` is set; `hud_layer.show_frame()` then shows that frame's HUD
+  or hides it (menus, the tally, PHOTO MODE and the KILL CAM draw none).
+- **HUD MINIMAL** (DISPLAY, `hud_mode`; `hud.minimal`): the rail, the face and
+  the campaign's meters are left off (their boxes hidden, the plate showing
+  through; the software bar skips drawing them), and the pin; the 5v5 side
+  and COUNTY RUN's gun slots stay.
+- **Scaling:** the overlay is the 320x200 picture, scaled to the window by
+  the display shader with whole, crisp pixels (INTEGER 8:5 keeps every pixel
+  the same size) inside the phone's safe area, so the HUD scales with the
+  picture on a phone and on a big screen.
+- `tools/camera_check.gd` composes the bar from the boxes over the plate
+  (`HudLayer.composed()`) and holds it to `HUD.draw`'s software rows for the
+  campaign, a 5v5 round and COUNTY RUN, full and MINIMAL.
 
 ## The parts
 

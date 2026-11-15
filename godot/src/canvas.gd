@@ -52,6 +52,8 @@ var base_set := false
 ## where the player stands); white leaves them as drawn.
 var view_tint := Color(1, 1, 1)
 var _items: Array[RID] = []
+## Each item's clipping parent while it is a view item (RID() for none).
+var _clips: Array[RID] = []
 var _item_kinds := PackedInt32Array()
 var _items_used := 0
 var _item := RID()
@@ -68,7 +70,11 @@ static var _glyphs := {}
 func gpu_free() -> void:
 	for item in _items:
 		RenderingServer.free_rid(item)
+	for clip in _clips:
+		if clip != RID():
+			RenderingServer.free_rid(clip)
 	_items.clear()
+	_clips.clear()
 	_item_kinds.clear()
 	_items_used = 0
 
@@ -90,6 +96,7 @@ func gpu_item(kind: int) -> void:
 		RenderingServer.canvas_item_set_parent(made, gpu_parent)
 		_items.append(made)
 		_item_kinds.append(-1)
+		_clips.append(RID())
 	var item := _items[_items_used]
 	if _item_kinds[_items_used] != kind:
 		_item_kinds[_items_used] = kind
@@ -105,11 +112,23 @@ func gpu_item(kind: int) -> void:
 			_add_material.shader = shader
 		RenderingServer.canvas_item_set_material(item, _add_material.get_rid() if adds else RID())
 		var clipped := kind == ITEM_NORMAL_VIEW or kind == ITEM_ADD_VIEW
-		RenderingServer.canvas_item_set_clip(item, clipped)
-		RenderingServer.canvas_item_set_custom_rect(item, clipped, Rect2(0, 0, WIDTH, 156))
+		# A canvas item's clip holds its children, not its own commands: a
+		# view item draws inside a parent of its own clipped to the view rows,
+		# so nothing of the gun spills onto the status bar's rows (the HUD's
+		# Controls are under this canvas).
+		if clipped and _clips[_items_used] == RID():
+			var clip := RenderingServer.canvas_item_create()
+			RenderingServer.canvas_item_set_parent(clip, gpu_parent)
+			RenderingServer.canvas_item_set_clip(clip, true)
+			RenderingServer.canvas_item_set_custom_rect(clip, true, Rect2(0, 0, WIDTH, 156))
+			_clips[_items_used] = clip
+		RenderingServer.canvas_item_set_parent(item, _clips[_items_used] if clipped else gpu_parent)
 	RenderingServer.canvas_item_set_modulate(
 		item, view_tint if kind == ITEM_NORMAL_VIEW else Color(1, 1, 1)
 	)
+	var held := _clips[_items_used]
+	if held != RID():
+		RenderingServer.canvas_item_set_draw_index(held, _items_used)
 	RenderingServer.canvas_item_set_draw_index(item, _items_used)
 	_items_used += 1
 	_item = item

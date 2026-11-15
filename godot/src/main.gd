@@ -110,7 +110,9 @@ func _ready() -> void:
 
 	# A view tour draws with the default settings, never this machine's own
 	# (its references must match CI's, which has no profile).
+	quality_first = not SessionStore.settings_saved()
 	options = SessionStore.settings("" if view_tour == "" else "res://no_settings.json")
+	_start_quality()
 	unlocked = SessionStore.unlocks("")
 	hub_findings = SessionStore.road_notes("")
 	apply_options()
@@ -586,8 +588,15 @@ func _process(delta: float) -> void:
 		_net_frame()
 	CountyScreens.board_frame(self)
 	dt *= time_scale
+	# With more than one player every copy steps physics alike (core/quality.gd).
+	Quality.shared = net != null or (game != null and game.players.size() > 1)
 	if state == "play" and game != null:
-		if not focused or (console != null and console.open):
+		if photo.on:
+			# PHOTO MODE: the game holds still while the camera flies.
+			photo.frame(self, dt, _controls(dt, pad, fingers))
+		elif kill_cam.playing or kill_cam.start(self):
+			kill_cam.frame(self, dt)  # the replay: the game holds still
+		elif not focused or (console != null and console.open):
 			var neutral := Game.Controls.new()
 			neutral.fire = game.armory.fuse > 0.0
 			advance(dt, neutral)
@@ -613,7 +622,9 @@ func _process(delta: float) -> void:
 		var aimed_player: Player = aimed[0]
 		var aimed_kept: Dictionary = aimed[1]
 		NetPredict.restore(aimed_player, aimed_kept)
-	_auto_detail(dt, (Time.get_ticks_usec() - work_began) / 1000.0)
+	var spent := (Time.get_ticks_usec() - work_began) / 1000.0
+	_auto_detail(dt, spent)
+	_measure_quality(dt, spent)
 	mouse_rel = Vector2.ZERO
 
 	if smoke_frames > 0:
@@ -649,6 +660,43 @@ func _auto_detail(dt: float, spent: float) -> void:
 		detail_strain = 0.0
 		View.auto_low = not low
 		game.view.set_detail(1 if View.auto_low else 0)
+
+
+## QUALITY AUTO: the tier this machine measured before, or a measurement in
+## the first seconds of play (in a real window only; tools, tours, benches
+## and smoke runs never measure or write it).
+func _start_quality() -> void:
+	var tool_run := Engine.get_main_loop().get_script() != null
+	quality_measured = -1 if tool_run else Quality.load_measured()
+	var quality: int = options.get("quality", 0)
+	var plain_run := view_tour == "" and view_bench == 0 and play_bench == 0 and not smoke
+	if quality == 0 and quality_measured < 0 and not tool_run and plain_run and gpu_ready:
+		quality_meter = Quality.Meter.new(mobile)
+
+
+## Feed AUTO's measurement a frame of play: its own work, plus however late
+## the frame came (a graphics card holding it up), and once it has seen
+## enough keep the tier; on a first run it also sets the picture settings.
+func _measure_quality(dt: float, spent: float) -> void:
+	if quality_meter == null or game == null or state != "play" or not game.view3d:
+		return
+	if photo.on or kill_cam.playing:
+		return
+	var late := maxf(0.0, dt * 1000.0 - frame_interval() * 1000.0 * 1.1)
+	var tier := quality_meter.add(dt, spent + late)
+	if tier < 0:
+		return
+	quality_meter = null
+	quality_measured = tier
+	Quality.save_measured(tier)
+	var quality: int = options.get("quality", 0)
+	if quality == 0 and quality_first:
+		options.merge(Quality.preset(tier), true)
+		persist_options()
+		notice(
+			"QUALITY AUTO: %s ON THIS MACHINE. SETUP, VIEW CHANGES IT." % Quality.NAMES[tier], 3.0
+		)
+	apply_options()
 
 
 func _demo(dt: float) -> void:

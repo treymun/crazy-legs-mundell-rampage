@@ -56,8 +56,13 @@ detail: [view3d.md](view3d.md).
 
 `canvas.gd` draws shapes and text; with a window the calls become Godot 2D
 canvas commands (`Canvas.gpu`), headless they draw in software. `hud.gd`
-draws the HUD with it. The menu screens are Controls under `UiRoot`
-(`src/ui/`). See [ui.md](ui.md) and
+draws the HUD with it; with a window its status bar and objective pin are
+Controls (`HudLayer`, `src/ui/hud/`) under the canvas. The menu screens are
+Controls under `UiRoot` (`src/ui/`). PHOTO MODE (`photo_mode.gd`) and the
+KILL CAM (`kill_cam.gd`) are the front end's, drawing the view from cameras of
+their own while the game holds still; QUALITY's tiers and the physics detail
+are `Quality` (`src/core/quality.gd`). See [ui.md](ui.md),
+[view3d.md](view3d.md#photo-mode-and-the-kill-cam) and
 [gameplay.md](gameplay.md#the-automap-canvas-and-sprites).
 
 ## GameEvents

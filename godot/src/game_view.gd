@@ -7,23 +7,8 @@ extends GameCombat
 func reflection() -> Variant:
 	if is_nan(world.mirror_x):
 		return null
-	var p := player
-	var facing := fposmod(TAU - p.angle, TAU) - PI
-	var direction := mini(4, int(absf(facing) / (PI / 4.0) + .5))
-	var heading: String = ["front", "quarter", "side", "away", "back"][direction]
-	var stride := 0
-	if p.motion > .15 and p.air == 0.0:
-		stride = roundi(sin(p.walk_phase))
-	var height := 1.24 if p.crouched else 1.65
-	var feet: float = world.stand(p) + p.air
-	var out := View.Sprite.new(p.x, p.y, "player_%s_%d" % [heading, stride], height, feet)
-	out.flip = facing < 0.0 and direction < 4
-	# The 3D view shows Mundell's model in the mirror (the picture without it).
 	var me: Game = self as Object
-	ModeBodies.watch(me)
-	out.who = ModeBodies.for_player(me, p, ModeBodies.PLAYER_KIND, height)
-	out.pose = ModeBodies.player_pose(me, p, ModeBodies.PLAYER_KIND)
-	return out
+	return ModeBodies.player_sprite(me, player)
 
 
 # ------------------------------------------------------------------ sprites
@@ -627,12 +612,16 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		view.set_detail(-1)
 	var t0 := Time.get_ticks_usec()
 	var eye := p.as_render_player()
-	var trauma := shake * shake * shake_scale
+	# PHOTO MODE: the free camera's eye, steady, with the player in view.
+	var posing := not eye_override.is_empty()
+	if posing:
+		eye = eye_override.duplicate()
+	var trauma := 0.0 if posing else shake * shake * shake_scale
 	if trauma > .001:
 		# The view shakes, the gun does not: a jolt of yaw and of horizon.
 		eye["view_angle"] += (sin(clock * 71.0) + sin(clock * 43.0 + 1.3)) * .009 * trauma
 		eye["pitch"] += (sin(clock * 59.0 + .7) + sin(clock * 37.0)) * 2.4 * trauma
-	if p.health > 0:
+	if p.health > 0 and not posing:
 		# The springs' jolts (features/feel.gd): a landing, a blow.
 		eye["view_angle"] += view_kick.x
 		eye["pitch"] += view_kick.y
@@ -645,6 +634,8 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		marks_list = marks_list + gore_fx.walls
 	marks_list = marks_list + Features.wall_marks(me)
 	var listed: Array = sprites()
+	if posing:
+		listed.append(ModeBodies.player_sprite(me, p))
 	var t1 := Time.get_ticks_usec()
 	# What the 3D view (view3d/world_view.gd) draws this frame: it reads this
 	# after the draw. Headless nothing draws the world; the canvas is a layer
@@ -677,7 +668,13 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	if c.gpu:
 		c.gpu_item(Canvas.ITEM_NORMAL)
 	c.view_tint = gun_light() if c.gpu and Effects.enabled else Color(1, 1, 1)
-	if not scoped and p.health > 0 and not in_hub and (weapon_view != 2 or armory.fuse > 0.0):
+	if (
+		not scoped
+		and not posing
+		and p.health > 0
+		and not in_hub
+		and (weapon_view != 2 or armory.fuse > 0.0)
+	):
 		weapon.draw(
 			c.pixels,
 			art,
@@ -723,6 +720,8 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		(t4 - t3) / 1000.0,
 		0.0
 	]
+	if posing:
+		return  # PHOTO MODE draws its own strip (photo_mode.gd): no gun, sights or HUD
 	if p.health > 0:
 		var tint := crosshair_tint
 		if crosshair == 2:

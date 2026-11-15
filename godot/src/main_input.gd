@@ -91,6 +91,13 @@ func key(code: int, shift := false) -> void:
 	if binding_action != "":
 		_bind_key(code)
 		return
+	if kill_cam.playing:
+		kill_cam.stop(self)  # any key skips the KILL CAM
+		return
+	if photo.key(self, code):
+		return
+	if code == KEY_P and state == "play" and photo.enter(self):
+		return
 	if _key_online(code):
 		return
 	if state == "slots":
@@ -446,6 +453,11 @@ static func _global_key(code: int) -> bool:
 func _input(event: InputEvent) -> void:
 	if ui != null and ui.handles(state) and _to_screen(event):
 		return
+	if kill_cam.playing and (event is InputEventMouseButton or event is InputEventScreenTouch):
+		if event.is_pressed():
+			kill_cam.stop(self)  # a click or a tap skips the KILL CAM
+			block_fire = true
+		return
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
 		if (
@@ -527,7 +539,9 @@ func _input(event: InputEvent) -> void:
 			button.button_index == MOUSE_BUTTON_WHEEL_UP
 			or button.button_index == MOUSE_BUTTON_WHEEL_DOWN
 		):
-			if (
+			if state == "play" and photo.on:
+				photo.next_filter(self, 1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1)
+			elif (
 				state == "play"
 				and game != null
 				and game.player.health > 0
@@ -806,6 +820,9 @@ func read_pad(dt: float) -> Dictionary:
 			pressed[index] = true
 			input_device = "pad"
 		pad_down[index] = down
+	if pressed.has(JOY_BUTTON_Y) and state == "title" and game != null and photo.enter(self):
+		grab(true)  # Y on the pause screen: PHOTO MODE
+		return idle
 	var before := state
 	for pair: Array in _pad_bindings():
 		var button: int = pair[0]
@@ -902,9 +919,24 @@ func _pad_menu(device: int, dt: float, settled: bool) -> void:
 ## use and next weapon if play survived it. The consumables and the tap that
 ## answers the tally and death screens are this build's additions.
 func _touch_actions() -> void:
+	if photo.on:
+		# PHOTO MODE: MENU back, NEXT the filter, USE hides the strip.
+		if touch.consume("menu"):
+			photo.leave(self)
+		if touch.consume("next"):
+			photo.next_filter(self, 1)
+		if touch.consume("use"):
+			photo.bare = not photo.bare
+		for role: String in ["rinds", "beer", "shine", "map", "photo"]:
+			touch.consume(role)
+		touch.consume_tap()
+		return
 	if touch.consume("menu"):
 		key(KEY_ESCAPE)
 	if state != "play" or game == null:
+		return
+	if touch.consume("photo"):
+		photo.enter(self)
 		return
 	if touch.consume("use"):
 		key(KEY_E)
@@ -1056,6 +1088,7 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		block_fire = true
 	if (
 		touch.active
+		and not photo.on
 		and not controls.fire
 		and not block_fire
 		and _option_on("auto_fire", 1)

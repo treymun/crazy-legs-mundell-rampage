@@ -44,6 +44,81 @@ look (grain, dither, vignette) works on the view's own grid, so HD keeps its
 detail under it; HIGH is the 320 grid. (HD cost about 1.5x the frame in the old
 shader view; not re-measured in the 3D view.)
 
+### QUALITY: the tiers
+
+QUALITY (VIEW page, `quality`: AUTO, LOW, MEDIUM, HIGH; `src/core/quality.gd`)
+picks VIEW DETAIL, DRAW DISTANCE, LIGHTS AND GLOW and the physics detail at
+once:
+
+| Tier | VIEW DETAIL | DRAW DISTANCE | LIGHTS AND GLOW | physics |
+| --- | --- | --- | --- | --- |
+| LOW | LOW | NEAR | off | LOW (half the steps) |
+| MEDIUM | AUTO | NEAR | on | MEDIUM (two thirds) |
+| HIGH | AUTO | FAR | on | HIGH (all; the old defaults) |
+
+- A tier picked in setup sets the three settings (`main_flow.gd
+  _quality_picked`); each can still be changed afterwards.
+- AUTO measures once, in a real window only (never tools, tours, benches or
+  smoke runs): `Quality.Meter` takes the frame's own work plus however late
+  the frame came, for `measure` seconds after `settle` seconds of play
+  (`camera.cfg [quality]`), and picks HIGH under `high_ms`, MEDIUM under
+  `medium_ms`, else LOW; a phone or tablet never above `phone_top` (MEDIUM).
+  The tier is kept in `user://quality.json` (`Quality.save_measured`, which a
+  tool never writes); on a first run (no settings saved before) it also sets
+  the three settings and says so. Picking AUTO again measures again.
+- **`Quality.physics`** (0 LOW, 1 MEDIUM, 2 HIGH) is the one number other
+  systems read; `Quality.steps(full)` cuts a solver's steps to it (the bowling
+  pins' `STEPS`, `range_bowling.gd`). `Quality.level()` is HIGH whenever
+  `Quality.shared` (more than one player, or online; main.gd sets it each
+  frame), so every copy of a networked game steps alike; a host or a tool
+  that never sets it is HIGH.
+- FRAME COUNTER (DISPLAY, `show_fps`) shows the frames per second.
+
+## PHOTO MODE and the KILL CAM
+
+Both draw the 3D view from a camera of their own while the front end does
+not tick the game, so nothing of play moves (`tools/camera_check.gd` holds
+the game's snapshot, clock and view frame the same).
+
+**PHOTO MODE** (`src/photo_mode.gd`; P in play, Y on a pad's pause screen,
+PHOTO on a touch screen; single player): the camera starts at the player's
+eye and flies by `main_input.gd _controls()` (keys and mouse, the pad's
+sticks, the touch stick and a drag; jump and crouch up and down, run
+faster), sliding along walls, off floors and ceilings and within `reach` of
+the player (`camera.cfg [photo]`). `game.eye_override` (a VIEW field) is the
+eye `game_view.gd _draw` uses: no shake, the sprites culled to it, the player
+added as Mundell (`ModeBodies.player_sprite`), and no gun, sights, prompts or
+HUD. The strip in the status bar's rows names the filter and the buttons
+(H, a pad's Y or USE hides it). Filters: PLAIN, FILM (the film look's pass),
+and the display shader's `photo_filter` TINTYPE, DUSK, MOONLIGHT (view rows
+only, before the palette, so every picture stays in the 256 colours). ENTER,
+F12, a click, RT or FIRE saves: the display shader draws the view rows again
+into a SubViewport `scale` times 320x156 (filter and all), written to
+Pictures/Crazy Legs Mundell Rampage on a computer, else `user://photos`; the
+browser build downloads it (`JavaScriptBridge.download_buffer`); headless it
+is the software canvas's view rows. ESC, P or MENU leaves.
+
+**KILL CAM** (`src/kill_cam.gd`; PLAY page `kill_cam`: OFF, BOSSES (the
+default), BOSSES AND AREAS; never online or with more than one player):
+
+- While play runs it samples `game.view_frame` `rate` times a second of game
+  clock, `keep` seconds of it: copies of the moving sprites (the level's
+  fixed sprites are taken as they stand when it plays) and each body's pose
+  (kind, heading, gait, height, when it died). In BOSSES it samples only while
+  a boss is up and awake. It listens to `enemy_killed` and only notes a kill:
+  a boss, or (BOSSES AND AREAS) the last of `fight` kills in `fight_time`
+  seconds with no foe awake within `area` cells.
+- It starts once `game.slowmo`, `hitstop` and `boss_hold` are all over and
+  `delay` more seconds have played: a finishing shot's slow motion that uses
+  `game.slowmo` runs first, then the replay.
+- The replay shows `before` seconds ahead of the kill to `after` past it at
+  `pace`, from a camera `distance` from the body and `height` over its floor,
+  swinging `swing` radians round it, placed off the player's line where its
+  whole swing is clear of walls. Bodies are stand-in Enemies of its own
+  (poses smoothed between samples, falls timed against the frozen clock);
+  black bars carry KILL CAM and how to skip. Any key, click, tap or pad
+  button skips it. Lost limbs are not shown in the replay.
+
 ## How a frame gets drawn
 
 1. `game_view.gd` builds `game.view_frame` each draw: `{eye, horizon, flash,

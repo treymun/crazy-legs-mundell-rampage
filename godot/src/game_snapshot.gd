@@ -237,6 +237,7 @@ const VIEW_FIELDS := [
 	"feel_turn",
 	"feel_landed",
 	"view_eye",
+	"eye_override",
 	"lightning",
 	"callout",
 	"callout_until",

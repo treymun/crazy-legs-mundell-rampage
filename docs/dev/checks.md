@@ -33,12 +33,13 @@ failed.
 | `net_showdown_check` | NET SHOWDOWN OK | | online 5v5, host plus three clients, lobby to lobby (`lag= loss= seconds=`) |
 | `net_server_check` | NET SERVER OK | | an always-open lobby with no host player |
 | `menu_touch_check` | MENU TOUCH OK | yes | taps through every menu, the 5v5 store, the County Run screens as touch events |
+| `camera_check` | CAMERA CHECK OK | yes | the QUALITY tiers (pick, presets, AUTO's meter, physics steps); the HUD's Control boxes compose to `HUD.draw`'s bar pixel for pixel (campaign, 5v5, County Run, full and MINIMAL); PHOTO MODE in and out, flying, the player in view, a filter, a picture saved; the KILL CAM noted, sampled, replayed with stand-ins and skipped; play's snapshot unchanged by either |
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
 | `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server |
 
 ### What check_fixes runs
 
-Besides its own parity checks (including the settings count, 59 now, and the
+Besides its own parity checks (including the settings count, 62 now, and the
 fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
 `chatter_check`, `boss_check`, `arena_check`, `break_check`, `feel_check`
 (penetration), `weather_check`, the quick parts of `net_check` (determinism),
@@ -69,7 +70,8 @@ fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
   errors; runs the art tools `build_fx_art`, `build_building_tiles`,
   `build_menu_art`, `build_gore_art` into a scratch folder; then
   `verify_assets`, `view3d_check`, `check_fixes`, `net_showdown_check`,
-  `net_server_check`, `menu_touch_check`, `county_check -- seconds=45`,
+  `net_server_check`, `menu_touch_check`, `camera_check`,
+  `county_check -- seconds=45`,
   `county_net_check -- seconds=30`, `save_fixtures`, `level_edit_check`,
   `physics_check`,
   `quest_reach`, `bot_campaign`, and a headless frame time (`bench.gd`).

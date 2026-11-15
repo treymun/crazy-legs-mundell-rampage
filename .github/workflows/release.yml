@@ -63,6 +63,8 @@ jobs:
         run: godot --headless --path godot --script res://tools/net_server_check.gd
       - name: Menus by touch
         run: godot --headless --path godot --script res://tools/menu_touch_check.gd
+      - name: Photo mode, kill cam, quality tiers, the HUD on Controls
+        run: godot --headless --path godot --script res://tools/camera_check.gd
       - name: County Run (rules, the three maps, a death and a retry on each)
         run: godot --headless --path godot --script res://tools/county_check.gd -- seconds=45
       - name: County Run co-op online

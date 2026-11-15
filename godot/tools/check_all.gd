@@ -25,6 +25,7 @@ const CHECKS := [
 	["net_showdown_check", "NET SHOWDOWN OK"],
 	["net_server_check", "NET SERVER OK"],
 	["menu_touch_check", "MENU TOUCH OK"],
+	["camera_check", "CAMERA CHECK OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK"],
 ]
@@ -36,6 +37,7 @@ const QUICK := [
 	"save_fixtures",
 	"level_edit_check",
 	"menu_touch_check",
+	"camera_check",
 	"physics_check",
 ]
 

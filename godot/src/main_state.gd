@@ -157,6 +157,18 @@ var ui: UiRoot
 ## and --cpu-canvas, which keeps the canvas in software.
 var overlay: SubViewport
 var cpu_canvas := false
+## The play HUD's Control nodes in the overlay (ui/hud/hud_layer.gd; none
+## headless, where the HUD draws on the canvas), PHOTO MODE and the KILL CAM
+## (photo_mode.gd, kill_cam.gd).
+var hud_layer: HudLayer
+var photo := PhotoMode.new()
+var kill_cam := KillCam.new()
+## QUALITY (core/quality.gd): the tier AUTO measured on this machine (-1 not
+## yet), its measurement while it runs, and whether it may set the picture
+## settings when done (only on a first run: no settings saved before).
+var quality_measured := -1
+var quality_meter: Quality.Meter = null
+var quality_first := false
 ## The browser build's chapter music, fetched after start (pack_loader.gd).
 var packs: PackLoader
 ## The in-game level editor (level_editor.gd; only from the project folder),
@@ -655,6 +667,12 @@ func apply_options() -> void:
 	HUD.text_style = ["body", "menu", "heading"][clampi(text_size, 0, 2)]
 	var small_text: int = options.get("small_text", 0)
 	PixelType.clear_small = small_text != 0
+	var hud_mode: int = options.get("hud_mode", 0)
+	hud.minimal = hud_mode == 1
+	var kill_mode: int = options.get("kill_cam", KillCam.BOSSES)
+	kill_cam.mode = kill_mode
+	var quality: int = options.get("quality", 0)
+	Quality.physics = Quality.tier_of(quality, quality_measured, mobile)
 	var tilt_aim: int = options.get("tilt_aim", 0)
 	if tilt_aim != 0:
 		TiltAim.enable()
@@ -911,6 +929,8 @@ func title_hint() -> String:
 	if input_device == "touch":
 		return "TAP A SIGN TO PICK IT"
 	if input_device == "pad":
+		if PhotoMode.allowed(self):
+			return "D-PAD MOVE / A PICK / B BACK / Y PHOTO"
 		return "STICK OR D-PAD MOVE / A PICK / B BACK"
 	return "ARROWS MOVE / ENTER SELECT"
 
@@ -1067,6 +1087,10 @@ func _start_overlay() -> void:
 	overlay.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
 	overlay.snap_2d_transforms_to_pixel = true
 	add_child(overlay)
+	# The HUD's Control nodes first, under everything the canvas draws.
+	hud_layer = HudLayer.new(hud)
+	overlay.add_child(hud_layer)
+	hud.controls = true
 	var painter := Node2D.new()
 	overlay.add_child(painter)
 	canvas.gpu = true
@@ -1083,6 +1107,7 @@ func render() -> void:
 		canvas.gpu_begin()
 	if game != null:
 		game.scene_live = false
+	hud.shown_game = null
 	# The menus' little motions follow SCENERY MOTION, SCREEN FLASH and LAMP FLICKER.
 	var flashes: int = options.get("flashes", 0)
 	var flicker: int = options.get("flicker", 1)
@@ -1102,8 +1127,13 @@ func render() -> void:
 		game.layered = gpu_look and canvas.gpu
 		game.view3d = game.layered
 		var crosshair: int = options["crosshair"]
-		game.draw(canvas, crosshair, true)
-		_frame_3d()
+		if kill_cam.playing:
+			kill_cam.draw(self)  # the replay from its own camera, no HUD
+		else:
+			game.draw(canvas, crosshair, true)
+			_frame_3d()
+			kill_cam.record(self)
+			photo.draw(self)
 		if TacticalScreens.open and Modes.is_tactical(game) and not game.showing_tally:
 			TacticalScreens.draw_shop(canvas, game, Modes.feature(game))
 		CountyScreens.draw_over(canvas, game)  # a COUNTY RUN's HUD, cards and end
@@ -1130,6 +1160,9 @@ func render() -> void:
 	else:
 		canvas.clear(0, 0, 0)
 	_look_uniforms()
+	photo.uniforms(self)
+	if hud_layer != null:
+		hud_layer.show_frame()
 
 	if canvas.pixels.size() != WIDTH * HEIGHT * 3:
 		canvas.resize(WIDTH, HEIGHT)
@@ -1140,6 +1173,11 @@ func render() -> void:
 	if canvas.gpu:
 		palette_material.set_shader_parameter("base_on", canvas.base_set)
 	_apply_view()
+
+
+## Hand game.view_frame to the 3D view now (the KILL CAM's replay frames).
+func show_view() -> void:
+	_frame_3d()
 
 
 ## Hand this frame to the 3D view (made the first time it is wanted) and tell

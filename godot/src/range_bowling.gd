@@ -44,7 +44,7 @@ const AMONG := 1.4
 ## pit it is gone (and no longer moved) below FELL.
 const COUNTS := .62
 const FELL := -.18
-## Steps a tick for the pins (their knocks are quick).
+## Steps a tick for the pins (their knocks are quick), at HIGH physics detail.
 const STEPS := 6
 ## Seconds: the pins must lie still this long to be counted; the longest a ball
 ## is waited on; from the count to the sweep or a fresh rack.
@@ -332,8 +332,10 @@ func _solve(game: Game, bodies: Array, held: Array, shot: GameState.Shot, dt: fl
 		ball_body.inv_m = 1.0 / BALL_MASS
 		ball_body.p = Vector3(shot.x - shot.vx * dt, shot.y - shot.vy * dt, BALL_R)
 		ball_body.v = Vector3(shot.vx, shot.vy, 0.0)
-	var h := dt / STEPS
-	for _k in STEPS:
+	# Fewer steps at a lower physics detail (QUALITY, core/quality.gd).
+	var steps := Quality.steps(STEPS)
+	var h := dt / steps
+	for _k in steps:
 		sim.step(bodies, ball_body, h)
 	for i in bodies.size():
 		var b: P.Body = bodies[i]

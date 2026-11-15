@@ -1032,6 +1032,10 @@ var feel_landed := false
 ## The eye the view was drawn from this frame, shake and all (game_view.gd
 ## to_canvas() projects the world onto the canvas with it).
 var view_eye := {}
+## PHOTO MODE (photo_mode.gd): the free camera's eye the view is drawn from
+## while it is up (keys as Player.as_render_player() gives them), else empty.
+## Looks only: the game is paused meanwhile, and the player stands in view.
+var eye_override := {}
 ## A lightning flash this moment, 0 to 1 (features/weather.gd; the shader).
 var lightning := 0.0
 ## A kill streak's call across the screen (features/callouts.gd).

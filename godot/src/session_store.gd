@@ -616,6 +616,11 @@ static func settings(path := "") -> Dictionary:
 	return out
 
 
+## Whether this profile has saved settings (false on a first run).
+static func settings_saved() -> bool:
+	return FileAccess.file_exists(_path(SETTINGS_FILE))
+
+
 static func save_settings(path: String, values: Dictionary) -> bool:
 	return _write_atomic(_resolve(path, SETTINGS_FILE), JSON.stringify(values, "", false))
 
