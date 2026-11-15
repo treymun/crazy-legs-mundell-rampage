@@ -19,8 +19,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (59 now; DRAW
-  DISTANCE is the newest, under VIEW). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (60 now; LIVE PROPS
+  AND FIRE is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -38,7 +38,8 @@ listens stays the same on every machine. They include `level_started`,
 (where each hitscan shot, pellet, swing or squirt ended and what it struck),
 `pierced`, `boss_intro`, `boss_phase`, `boss_staggered`, `boss_weak_hit`,
 `boss_down`, `blood_sprayed`, `enemy_gibbed`, `enemy_bled_out`,
-`wall_struck` and `blast_shoved`. `game.events` is a VIEW field in
+`wall_struck`, `blast_shoved`, `prop_struck` and `prop_broken` (a breakable
+shot or broken). `game.events` is a VIEW field in
 `GameSnapshot`.
 
 A new piece of play goes in `src/features/` as a `GameFeature` (see
@@ -420,6 +421,63 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   features on hickston's hay loft (brass, scorch, a burst's gibs and blood, a
   chunk left over nothing, a thrown body, the same throw twice).
   `tools/physics_frames.gd -- only=loft` pictures it in a window.
+
+### Picking things up, fire that spreads, the stills
+
+Three SIM features (carried in snapshots), behind LIVE PROPS AND FIRE (PLAY,
+`live_props`, on by default; a net match takes the host's), off in the
+Crossroads and the versus and 5v5 modes (`allowed()`).
+
+- **`features/carry.gd`** (`data/tuning/carry.cfg`). The things are every
+  breakables piece and every board `[thing.<picture>]` names that stands
+  loose (no lit board, no quest prop, no base shared or parting floor, at
+  most `tallest`). USE (`game.gd interact()`, only when nothing else
+  answers it) takes one up: the gun holsters and the thing's own 3D model is
+  held low before the eye, small and close (`_held_sprite`, `HELD_*`).
+  `game.gd _step_hands` hands FIRE and ALT FIRE to `hands()` while one is
+  held: FIRE throws (speed by weight, the view's tilt adds lift), ALT FIRE or
+  USE sets it down. In the air it is a `Tumble.Body`; what it touches takes
+  `hit` x weight x speed (`hurt(..., "thrown")`, `[reaction] thrown` in
+  hits.cfg) and a shove, a breakable it strikes is struck, and a hard landing
+  breaks a breakable (`land`): a propane tank goes up. At rest it stands
+  there again (`_settle`), and can be taken up again. Brutes (`[brutes]`)
+  now and then take up one near them, hold it over their heads and lob it at
+  whoever they hunt (game.rng). A breakable piece is moved by breakables'
+  `lift()`/`set_down()` (a lifted piece waits off the map); a board is moved
+  here. `version` counts changes; each machine's `_reconcile()` puts boards,
+  props, bases and the fixed sprites in step with the things (a client after
+  a snapshot too). A thing in flight is a pooled sprite with `who` set:
+  `PropLayer3D` keeps its model by `who` and turns it by `View.Sprite.turn`
+  (`PropView.tumble`) instead of making a new one each frame.
+- **`features/fire.gd`** (`data/tuning/fire.cfg`). Each cell's fuel is worked
+  out once from its floor tile (`[floors]`; a walkable slab's own tile up on
+  it) and the props on it (`[props]`). `ignite()` lights a cell for as long
+  as its fuel lasts (`patch` on bare ground, never water or a wall); a
+  burning cell tries a random neighbour every `spread_every` (game.rng) by
+  that one's catch, same floor height only, so it runs over hay, planks and
+  decks and stops at stone, dirt and water. Bounded: `cap` cells at once and
+  a `budget` of cells per fire (a blast, a cocktail, a spray adds to it);
+  idle with nothing burning or spilled. Every `bite_every` players, enemies
+  (`hurt(..., "fire")`) and breakables in a burning cell are burned (a TNT
+  crate goes up); a body there burns longer, once. Burnt out, a cell with
+  fuel is `charred` (a `mark_scorch` ground mark) and never burns again.
+  Blasts of the `lights` kinds light their reach (`game_combat.gd explode()`
+  sets `blast_kind` while `exploded` is announced); the mode feature's shine
+  cocktail fires light their cell; puddles of shine (`spill()`, from broken
+  jugs, mash barrels and stills: `[spills]`, via `GameEvents.prop_broken`)
+  catch from a neighbour or a burn barrel. Rain (the level's effects.cfg
+  rain, the share of its showers) burns fire out faster under the sky. Quest
+  props never burn (they never break) and nothing it does shuts a way.
+- **`features/stills.gd`** (`[stills]` in fire.cfg; `[town_still]`,
+  `[town_copper_vat]`, `[town_shine_tank]` in breakables.cfg; `[still]` in
+  shots.cfg). A still is a breakable; `GameEvents.prop_struck` (a shot that
+  does not break it) starts a jet from the holed pipe back toward the shot,
+  which lights and spills along its arc and burns whoever is in it. Broken,
+  it scatters copper bits (breakables' `scatter`) and goes up as a `still`
+  blast, which lights fire and spills its shine.
+- `tools/live_props_check.gd` (quick, CI) holds all of it;
+  `tools/live_props_frames.gd -- out=<dir>` pictures it in a window
+  (`docs/godot3d/features/b/`).
 
 ### The bowling lane's pins (second remaster)
 

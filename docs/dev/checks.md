@@ -26,6 +26,7 @@ failed.
 | `verify_assets` | ASSETS OK | yes | assets and levels load; chapter-only kinds really are one chapter's; pending music noted |
 | `check_fixes` | PARITY FIXES OK | | the parity regression checks and the quick parts of many others (below) |
 | `physics_check` | PHYSICS OK | yes | gibs, brass, chunks and bodies dropped on decks, ramps and stairs and thrown at walls rest on a surface, never inside anything; the loose-things features on a loft ([gameplay.md](gameplay.md#loose-things-on-the-real-3d-shape-v300-remaster)) |
+| `live_props_check` | LIVE PROPS OK | yes | things taken up, held, thrown (a hand hurt and shoved, a propane tank breaking and going up, jugs spilling shine, a brute heaving a tank), set down and saved; fire spreading over hay, never onto stone or dirt, burning out, the same twice, sooner in rain; a still spraying and going up; a snapshot carrying a throw and a fire on tick for tick; all of it off with LIVE PROPS AND FIRE off ([gameplay.md](gameplay.md#picking-things-up-fire-that-spreads-the-stills)) |
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
 | `level_edit_check` | LEVEL EDIT OK | yes | level editing keeps the walls right |
 | `quest_reach` | QUEST REACH OK | | every quest prop, gate and item can be used from where it is seen, and never through a wall (slow; `tour=<json>` for pictures of each prop) |
@@ -71,7 +72,7 @@ fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
   `verify_assets`, `view3d_check`, `check_fixes`, `net_showdown_check`,
   `net_server_check`, `menu_touch_check`, `county_check -- seconds=45`,
   `county_net_check -- seconds=30`, `save_fixtures`, `level_edit_check`,
-  `physics_check`,
+  `physics_check`, `live_props_check`,
   `quest_reach`, `bot_campaign`, and a headless frame time (`bench.gd`).
 - **window** (after checks): Xvfb and Mesa's software OpenGL
   (`--rendering-driver opengl3`) tour the 3D view through

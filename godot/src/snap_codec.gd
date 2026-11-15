@@ -36,6 +36,27 @@ const SKIP_FIELDS := {
 	"Weapons.Armory": ["boxes"],
 	"wall_breaks": ["by_cell", "win", "_faces", "_loose", "gaps"],
 	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty"],
+	# What the level makes the same everywhere (tuning, what each cell has to
+	# burn), this machine's view of it (what it last put in step, the held
+	# picture, the marks) and a furniture base each machine frees itself.
+	"carry": ["_shown_version", "_cfg", "_specs", "_feels", "_brutes", "_bk"],
+	"carry.Thing": ["base"],
+	"fire":
+	[
+		"_cfg",
+		"_fuel",
+		"_catch",
+		"_z",
+		"_rain",
+		"_lights",
+		"_spills",
+		"_at",
+		"_seen",
+		"_marks",
+		"_crackle_at",
+		"_barrels"
+	],
+	"stills": ["_cfg", "_images"],
 	# Looks kept in a simulation feature: the specks' own dice (how many a
 	# hit throws hangs on the specks already about, which are never carried)
 	# and when HEADSHOT! was last called (this machine's callouts).

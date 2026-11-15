@@ -321,6 +321,12 @@ static func build() -> Array:
 				SessionStore.toggle(
 					"RELOAD ON EMPTY", "auto_reload", 1, "FIRING AN EMPTY GUN STARTS RELOADING"
 				),
+				SessionStore.toggle(
+					"LIVE PROPS AND FIRE",
+					"live_props",
+					1,
+					"USE PICKS UP LOOSE THINGS TO THROW; FIRE SPREADS. OFF: THE OLD STILL SCENERY"
+				),
 				SessionStore.toggle("PLAYER ONE-LINERS", "barks", 1, "SHOW THE HERO'S WISECRACKS"),
 				SessionStore.toggle(
 					"BLOOD PARTICLES", "gore", 1, "SHOW BLOOD PARTICLES WHEN ENEMIES ARE HIT"

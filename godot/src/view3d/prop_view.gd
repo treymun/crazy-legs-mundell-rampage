@@ -50,6 +50,18 @@ func stand(x: float, y: float, z: float, turn: float, level: LevelData, size := 
 		mesh.set_instance_shader_parameter("tone", tone)
 
 
+## Turned by `turn` (Godot's axes) about its middle, its feet at z when it
+## stands upright: a thing thrown and tumbling (features/carry.gd). `tall` is
+## the model's own height.
+func tumble(
+	x: float, y: float, z: float, turn: Basis, level: LevelData, size: float, tall: float
+) -> void:
+	stand(x, y, z, _turn, level, size)
+	var b := (turn * Basis(Vector3.UP, _turn)).scaled(Vector3.ONE * size)
+	var middle := Vector3(x, z + tall * size * .5, y)
+	transform = Transform3D(b, middle - b * Vector3(0.0, tall * .5, 0.0))
+
+
 ## Lean back about its feet by `tilt` radians, away from its front (a range
 ## dummy rocking on its post: View.Sprite.tilt).
 func lean(tilt: float) -> void:

@@ -480,7 +480,11 @@ func explode(shot: Shot) -> void:
 	var duck_by: float = spec["duck"]
 	duck = maxf(duck, duck_by)
 	blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
+	# Listeners may ask what went up (features/fire.gd lights what a keg reaches).
+	var was_kind := blast_kind
+	blast_kind = shot.kind
 	events.exploded.emit(x, y, z, energy)
+	blast_kind = was_kind
 	sound_at(str(spec["cue"]), x, y)
 	burst(x, y, z, "plasma" if energy else "spark", 12 if energy else 23, 2.2 if energy else 3.3)
 	burst(x, y, z, "dust", 6 if energy else 16, 2.3)

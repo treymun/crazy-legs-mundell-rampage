@@ -56,6 +56,13 @@ signal enemy_bled_out(enemy: Enemy, plasma: bool)
 signal wall_struck(x: float, y: float, z: float, surface: String)
 ## A blast shoved what lies loose within `reach` of (x, y) (Gore: chunks fly).
 signal blast_shoved(x: float, y: float, reach: float, power: float)
+## A breakable (features/breakables.gd) took a shot, a swing or fire that did
+## not break it yet, going along (ax, ay); and one broke (both by its whole
+## picture and where it stands). The moonshine stills spray from a shot pipe
+## and spilled shine pools where a jug or a mash barrel broke (features/stills.gd,
+## features/fire.gd).
+signal prop_struck(image: String, x: float, y: float, z: float, ax: float, ay: float)
+signal prop_broken(image: String, x: float, y: float, z: float)
 ## A boss went fightin' mad at half health (enemies.gd _enrage).
 signal boss_enraged(enemy: Enemy)
 ## The boss fights (boss_kit.gd, features/boss_fight.gd, src/bosses/): a

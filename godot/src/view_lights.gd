@@ -177,6 +177,9 @@ static func _prop_lights(g: GameView) -> Array:
 		)
 	var out: Array = []
 	for board: LevelData.Billboard in _prop_boards:
+		# A still broken (features/stills.gd) shows its burst shell: no fire box.
+		if not Effects.PROP_LIGHTS.has(board.image):
+			continue
 		if absf(board.x - p.x) < 14.0 and absf(board.y - p.y) < 14.0:
 			var source: String = Effects.PROP_LIGHTS[board.image]
 			var spec: Dictionary = Effects.LIGHTS[source]

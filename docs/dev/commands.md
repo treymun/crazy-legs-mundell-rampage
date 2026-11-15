@@ -54,6 +54,7 @@ godot --headless --path godot --script res://tools/bot_campaign.gd    # CAMPAIGN
 godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVES OK (-- make: add saves of the new version)
 godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
 godot --headless --path godot --script res://tools/physics_check.gd   # PHYSICS OK (loose things on decks, ramps, stairs, walls; levels=a,b)
+godot --headless --path godot --script res://tools/live_props_check.gd # LIVE PROPS OK (pick up and throw, spreading fire, the stills)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)
@@ -88,6 +89,7 @@ godot --path godot -- --rematch-all              # open every boss rematch
 
 ```
 godot --path godot ... --script res://tools/physics_frames.gd [-- only=hits|boss]
+godot --path godot ... --script res://tools/live_props_frames.gd -- out=<dir>  # a thing held, thrown, landed; a brute; hay burning; a still
 godot --path godot ... --script res://tools/arena_frames.gd        # the first four boss arenas (docs/boss_arenas/)
 godot --path godot ... --script res://tools/arena_frames_late.gd   # the last four
 godot --path godot ... --script res://tools/squad_frames.gd
