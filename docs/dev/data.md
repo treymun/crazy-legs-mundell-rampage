@@ -21,7 +21,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `enemies.cfg` | enemy health, speed, reach, voice, boss `title` and drops; variants (`brain=`, `art=`, `height`, `tint`) | `enemies.gd`, `variants.gd` |
 | `shots.cfg` | each shot's fall, size, glow and blast; `rolls` | the shots, breakables |
 | `effects.cfg` | lights and glows (`[light.*]`), a level's mood (`[level.<id>]`), `[anim.<tile>]`, `[debris]`, `[water]`, `[relief]`, `[puddles]` | `Effects`, `view_lights.gd`, the 3D view |
-| `breakables.cfg` | what breaks, its broken picture, hp, bits, cues, blast; `[windows]`, `[fence.<tile>]`, `never` | `features/breakables.gd`, `wall_breaks.gd` |
+| `breakables.cfg` | what breaks, its broken picture, hp, bits, cues, blast, `pieces` (how it comes apart), `gone`, `never`; `[pieces]` (how many pieces lie about); `[windows]`, `[fence.<tile>]` | `features/breakables.gd`, `wall_breaks.gd`, `wreckage.gd` |
 | `store.cfg` | the 5v5 store, economy and pvp: `[economy]`, `[item.*]`, `[rules.*]`, `[hit.*]`, `[hit]`, `[blast]`, `[spread]` | `src/modes/tactical_shop.gd` |
 | `difficulty.cfg` | every number that changes with DIFFICULTY, one array each in the order EASY, NORMAL, HARD, HOG WILD: `[player]`, `[hands]`, `[bosses]`, `[bots]` | `Difficulty` (`src/core/difficulty.gd`) |
 | `hits.cfg` | how hits land: `[head]`, `[zones]`, `[reaction]`, `[reaction.store]`, `[ammo]`; keys are what `hurt()` is told did it | `HitData` (`src/core/hit_data.gd`), `hit_zones.gd`, `enemies.gd` |

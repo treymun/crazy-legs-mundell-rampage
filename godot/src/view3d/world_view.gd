@@ -32,6 +32,7 @@ var sprites: SpriteLayer3D
 var slabs: SlabLayer3D
 var solids: SolidLayer3D
 var props: PropLayer3D
+var wrecks: WreckLayer3D
 var actors: ActorLayer3D
 var tiles: ViewTiles
 var _root: Node3D
@@ -47,6 +48,10 @@ var _assets: Assets
 var _level: LevelData
 var _builder: LevelMesh
 var _built_key: Array = []
+## The level's chunks by key, and how many of its retiled wall pieces
+## (LevelData.retiled) they show.
+var _chunk_nodes := {}
+var _retiled_seen := 0
 var _moving_rows := PackedFloat32Array()
 var _cells: ImageTexture
 var _anim_tiles := {}
@@ -109,6 +114,8 @@ func _init(assets: Assets) -> void:
 	_root.add_child(solids)
 	props = PropLayer3D.new(PropModels.new(assets))
 	_root.add_child(props)
+	wrecks = WreckLayer3D.new(assets)
+	_root.add_child(wrecks)
 	actors = ActorLayer3D.new(ActorModels.new(assets))
 	_root.add_child(actors)
 	_sky = MeshInstance3D.new()
@@ -198,10 +205,13 @@ func frame(game: Game) -> void:
 	var acting: Array = []
 	var slabbed: Array = []
 	var solid: Array = []
+	var wrecked: Array = []
 	var listed: Array = view["sprites"]
 	for item: Variant in listed:
 		var s: View.Sprite = item if item is View.Sprite else null
-		if s != null and SolidLayer3D.takes(s):
+		if s != null and WreckLayer3D.takes(s):
+			wrecked.append(s)
+		elif s != null and SolidLayer3D.takes(s):
 			solid.append(s)
 		elif s != null and not cels and s.who is Enemy and actors.takes(s, s.who as Enemy):
 			acting.append(s)
@@ -212,6 +222,7 @@ func frame(game: Game) -> void:
 		else:
 			pictures.append(item)
 	var fresh := props.show_props(modelled, level)
+	fresh.append_array(wrecks.show_wrecks(wrecked, level))
 	fresh.append_array(actors.show_actors(acting, level, game.clock, game.gore_fx.lost))
 	# The player in the mirror: their model when they have one, else their picture.
 	var reflection: View.Sprite = null
@@ -307,17 +318,12 @@ func _build(level: LevelData, at_hub: bool) -> void:
 		_builder = LevelMesh.new(level)
 		for child in _chunks.get_children():
 			child.queue_free()
+		_chunk_nodes.clear()
+		_retiled_seen = level.retiled.size()
 		var parts := _builder.build_static(level.active_base(at_hub))
 		for k: Vector2i in parts:
-			var node := MeshInstance3D.new()
-			node.mesh = parts[k]
-			node.material_override = null
-			node.set_surface_override_material(0, world_material)
-			var chunk: ArrayMesh = parts[k]
-			if chunk.get_surface_count() > 1:
-				node.set_surface_override_material(1, glass_material)
-			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			_chunks.add_child(node)
+			var built: ArrayMesh = parts[k]
+			_chunk_node(k, built)
 		_moving_rows = PackedFloat32Array([NAN])
 		_cells = ImageTexture.create_from_image(_cell_image(level))
 		_share("cells_tex", _cells)
@@ -333,6 +339,29 @@ func _build(level: LevelData, at_hub: bool) -> void:
 			_anim_tiles[int(level.walls[i * LevelData.WALL_STRIDE + 4])] = true
 		for t in level.floor_tile:
 			_anim_tiles[t] = true
+	if level.retiled.size() > _retiled_seen:
+		# A window shot out, a fence shot about: only its chunks again.
+		var only := {}
+		for i in range(_retiled_seen, level.retiled.size()):
+			var at := level.retiled[i]
+			for corner: Vector2 in [
+				Vector2(-.6, -.6), Vector2(.6, -.6), Vector2(-.6, .6), Vector2(.6, .6)
+			]:
+				var near := at + corner
+				var chunk := Vector2i(
+					floori(near.x / LevelMesh.CHUNK), floori(near.y / LevelMesh.CHUNK)
+				)
+				only[chunk] = true
+		_retiled_seen = level.retiled.size()
+		var parts := _builder.build_static(level.active_base(at_hub), only)
+		for k: Vector2i in only:
+			var old: MeshInstance3D = _chunk_nodes.get(k)
+			if old != null:
+				old.queue_free()
+				_chunk_nodes.erase(k)
+			if parts.has(k):
+				var remade: ArrayMesh = parts[k]
+				_chunk_node(k, remade)
 	var active := level.active_walls(at_hub)
 	var base_size := level.active_base(at_hub).size()
 	var rows := active.slice(base_size)
@@ -344,6 +373,18 @@ func _build(level: LevelData, at_hub: bool) -> void:
 			_moving.set_surface_override_material(0, world_material)
 			if mesh.get_surface_count() > 1:
 				_moving.set_surface_override_material(1, glass_material)
+
+
+func _chunk_node(k: Vector2i, chunk: ArrayMesh) -> void:
+	var node := MeshInstance3D.new()
+	node.mesh = chunk
+	node.material_override = null
+	node.set_surface_override_material(0, world_material)
+	if chunk.get_surface_count() > 1:
+		node.set_surface_override_material(1, glass_material)
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_chunks.add_child(node)
+	_chunk_nodes[k] = node
 
 
 ## Each cell: g 255 under the open sky (the weather's test).

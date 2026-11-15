@@ -88,6 +88,10 @@ var _hub := false
 var _edge_stretched := {}
 ## chunk key -> [opaque Part, glazing Part]
 var _chunks := {}
+## build_static(only): the chunks being built again (empty: all of them);
+## the rest goes in _waste.
+var _only := {}
+var _waste := Part.new()
 
 
 func _init(p_level: LevelData) -> void:
@@ -126,8 +130,9 @@ func _init(p_level: LevelData) -> void:
 ## The level's fixed geometry: base walls (LevelData.active_base), floors,
 ## roofs, caps and slopes. Returns chunk key (Vector2i) -> ArrayMesh, whose
 ## surface 0 is opaque and surface 1 (when present) the window glazing.
-func build_static(base_walls: PackedFloat32Array) -> Dictionary:
+func build_static(base_walls: PackedFloat32Array, only := {}) -> Dictionary:
 	_chunks = {}
+	_only = only
 	add_walls(base_walls)
 	_add_floors()
 	for h: float in level.caps:
@@ -145,6 +150,7 @@ func build_static(base_walls: PackedFloat32Array) -> Dictionary:
 ## (null when there is nothing).
 func build_walls(rows: PackedFloat32Array) -> ArrayMesh:
 	_chunks = {}
+	_only = {}
 	add_walls(rows)
 	var opaque := Part.new()
 	var glazing := Part.new()
@@ -196,11 +202,36 @@ func _finish() -> Dictionary:
 
 func _part(x: float, y: float, glass: bool) -> Part:
 	var key := Vector2i(floori(x / CHUNK), floori(y / CHUNK))
+	if not _only.is_empty() and not _only.has(key):
+		# A chunk not being built again: what goes in it is thrown away.
+		_waste.verts.clear()
+		_waste.normals.clear()
+		_waste.uvs.clear()
+		_waste.custom0.clear()
+		_waste.custom1.clear()
+		_waste.index.clear()
+		return _waste
 	var parts: Array = _chunks.get(key, [])
 	if parts.is_empty():
 		parts = [Part.new(), Part.new()]
 		_chunks[key] = parts
 	return parts[1] if glass else parts[0]
+
+
+## Whether what goes at (x, y) is in a chunk not being built (build_static's
+## `only`), and whether all of a box is.
+func _skip(x: float, y: float) -> bool:
+	return not _only.is_empty() and not _only.has(Vector2i(floori(x / CHUNK), floori(y / CHUNK)))
+
+
+func _skip_box(x0: float, y0: float, x1: float, y1: float) -> bool:
+	if _only.is_empty():
+		return false
+	for key: Vector2i in _only:
+		var lo := Vector2(key.x * CHUNK, key.y * CHUNK)
+		if x1 >= lo.x and x0 < lo.x + CHUNK and y1 >= lo.y and y0 < lo.y + CHUNK:
+			return false
+	return true
 
 
 func _tint(area: int) -> Color:
@@ -225,7 +256,7 @@ func add_walls(rows: PackedFloat32Array) -> void:
 		var bottom := rows[o + 6]
 		var top := rows[o + 7]
 		var area := int(rows[o + 8])
-		if top <= bottom:
+		if top <= bottom or _skip((ax + bx) * .5, (ay + by) * .5):
 			continue
 		var length := Vector2(bx - ax, by - ay).length()
 		if length < .0005:
@@ -286,8 +317,13 @@ func _add_floors() -> void:
 	var h := level.height
 	for overhead: bool in [false, true]:
 		for y in h:
+			if _skip_box(0.0, y + .5, w, y + .5):
+				continue
 			var x := 0
 			while x < w:
+				if _skip(x + .5, y + .5):
+					x = (x / CHUNK + 1) * CHUNK
+					continue
 				var c := y * w + x
 				var height_here := level.roof[c] if overhead else level.ground[c]
 				var tile := level.ceiling_tile[c] if overhead else level.floor_tile[c]
@@ -419,6 +455,8 @@ func _add_cap(cap: Array, h: float, overhead: bool) -> void:
 	var x1: float = cap[2]
 	var y1: float = cap[3]
 	var tile: int = cap[4]
+	if _skip_box(x0, y0, x1, y1):
+		return
 	var poly := _cut(x0, y0, x1, y1, cap.slice(5))
 	var mid := Vector2((x0 + x1) * .5, (y0 + y1) * .5)
 	var c := level.cell(clampf(mid.x, 0, level.width - .01), clampf(mid.y, 0, level.height - .01))
@@ -438,5 +476,7 @@ func _add_slope(row: Array) -> void:
 	var tile: int = row[8]
 	var light: float = row[9]
 	var area: int = row[10]
+	if _skip_box(minf(x0, x1), minf(y0, y1), maxf(x0, x1), maxf(y0, y1)):
+		return
 	var poly := _cut(x0, y0, x1, y1, row.slice(11))
 	_polygon(poly, z0, Vector2(gx, gy), Vector2(x0, y0), tile, light, area, side < 0.0)

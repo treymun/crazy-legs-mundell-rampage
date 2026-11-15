@@ -14,7 +14,10 @@
 ## a shot or a blast did (strike(), blast()) and leaves a burst drum's shell
 ## with it (wreck()). What is broken, the bits and the shells are saved in the
 ## feature's block. Its dice only set how the bits fly; what breaks and what
-## goes up follows the shots alone.
+## goes up follows the shots alone. A piece `gone` in the tuning leaves
+## nothing standing (its picture ""); one with `never` holding the level's id
+## never breaks there. Its real 3D pieces (`pieces`) are features/wreckage.gd's
+## (looks only), which watches `pieces` for ones newly broken.
 extends GameFeature
 
 const PATH := "res://data/tuning/breakables.cfg"
@@ -132,7 +135,8 @@ func attach() -> void:
 	_find()
 	# The pictures a break shows, read now rather than in the middle of a fight.
 	for p: Piece in pieces:
-		game.art.art(str(p.spec["broken"]))
+		if str(p.spec["broken"]) != "":
+			game.art.art(str(p.spec["broken"]))
 	for stuff: String in BIT_SIZE:
 		for n in 2:
 			game.art.art("fx_brk_%s_%d" % [stuff, n])
@@ -145,7 +149,14 @@ func _spec(image: String) -> Dictionary:
 	var out := {}
 	for key: String in _cfg.get_section_keys(image):
 		out[key] = _cfg.get_value(image, key)
-	if not game.art.has_art(str(out.get("broken", ""))):
+	var never: Array = out.get("never", [])
+	if never.has(game.world.id):
+		return {}
+	# Gone: nothing is left standing where it broke (its pieces are all of it:
+	# features/wreckage.gd).
+	if out.get("gone", false):
+		out["broken"] = ""
+	elif not game.art.has_art(str(out.get("broken", ""))):
 		return {}
 	return out
 
@@ -442,7 +453,7 @@ func _shown(p: Piece) -> View.Sprite:
 ## Make sure the block a fixed sprite is in reaches over it, wider or moved.
 func _widen(s: View.Sprite) -> void:
 	var index: int = game.fixed_sprites.find(s)
-	if index < 0:
+	if index < 0 or s.image == "":
 		return
 	var art: Dictionary = game.art.art(s.image)
 	var art_w: float = art["w"]
@@ -481,7 +492,8 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 	p.broken = true
 	net_version += 1
 	var broken := str(p.spec["broken"])
-	var tall := _tall(broken, p.height, p.image)
+	# A piece that is gone shows nothing ("" is drawn by no layer of the view).
+	var tall := _tall(broken, p.height, p.image) if broken != "" else p.height
 	var shown := _shown(p)
 	if p.board != null:
 		p.board.image = broken

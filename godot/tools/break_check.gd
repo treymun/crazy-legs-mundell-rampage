@@ -64,7 +64,10 @@ static func run(main, check: Callable) -> void:
 	var pictures := true
 	for section in cfg.get_sections():
 		# The windows' broken pictures are tiles (wall_break_check.gd holds them).
-		if section == "all" or section == "windows":
+		# [pieces] is the debris cap; a `gone` one leaves no picture at all.
+		if section == "all" or section == "windows" or section == "pieces":
+			continue
+		if cfg.get_value(section, "gone", false):
 			continue
 		if not main.art.has_art(String(cfg.get_value(section, "broken", ""))):
 			pictures = false

@@ -321,6 +321,7 @@ const LOOKS_FEATURES := [
 	"boss_voices",
 	"enemy_barks",
 	"boss_checkpoint",
+	"wreckage",
 ]
 
 

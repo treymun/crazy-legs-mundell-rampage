@@ -209,10 +209,11 @@ var slopes: Array = []
 var door_cells := {}
 ## Bumped when the fixed wall list changes shape (open_cell(): a fence cell
 ## broken through), so the renderer puts it in map blocks again; and when a
-## cell opens, so the automap is drawn again. Both stay 0 until something
-## breaks, and nothing else reads the list differently.
+## cell opens, so the automap is drawn again (0 until something breaks). A
+## piece shown with another tile adds its start to `retiled` (set_wall_tile).
 var walls_version := 0
 var solid_version := 0
+var retiled := PackedVector2Array()
 ## The fixed wall pieces by their edge (walls_on()), made when first asked.
 var _edge_index := {}
 var doors: Array[Door] = []
@@ -986,9 +987,10 @@ func drop_volume(volume: PackedFloat32Array) -> void:
 
 
 ## Show `tile` on fixed wall piece i (a window shot out, a fence shot about:
-## features/wall_breaks.gd). Nothing else about the piece changes.
+## features/wall_breaks.gd); `retiled` keeps where, for the 3D view.
 func set_wall_tile(i: int, tile: int) -> void:
 	walls[i * WALL_STRIDE + 4] = float(tile)
+	retiled.append(Vector2(walls[i * WALL_STRIDE], walls[i * WALL_STRIDE + 1]))
 	_active_key = []
 
 

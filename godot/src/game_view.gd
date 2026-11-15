@@ -151,6 +151,8 @@ func _blocks_of(list: Array) -> Array:
 		var reach := 0.0
 		for i in places:
 			var s: View.Sprite = list[i]
+			if s.image == "":
+				continue  # a breakable gone to pieces (breakables.gd `gone`)
 			var art: Dictionary = self.art.art(s.image)
 			var half := s.height * _view_num(art["w"]) / maxf(1.0, _view_num(art["h"])) * .5
 			reach = maxf(reach, Vector2(s.x - mx, s.y - my).length() + half + .3)
