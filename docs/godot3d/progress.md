@@ -9,13 +9,13 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
 | Stage | State |
 | --- | --- |
 | 1 Survey and plan | done |
-| 2 World in 3D | mostly done (see below) |
-| 3 Animated 3D enemies | in progress |
-| 4 Gore and effects in 3D | not started |
-| 5 Every map and mode, then the switch | not started |
-| 6 Menus and HUD on Godot UI | not started |
-| 7 Content as data | mostly done |
-| 8 Docs | not started |
+| 2 World in 3D | done |
+| 3 Animated 3D enemies | done; final model pass in progress |
+| 4 Gore and effects in 3D | done as billboards and decals (gibs, blood, marks), limbs off the models |
+| 5 Every map and mode, then the switch | done: software renderer retired |
+| 6 Menus and HUD on Godot UI | menus done (screen objects); HUD still canvas-drawn |
+| 7 Content as data | done except the bosses' inline literals |
+| 8 Docs | done (CLAUDE.md core + docs/dev/) |
 
 ## Log
 
@@ -77,6 +77,32 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
 - Typing census (warnings as errors in a scratch copy): ~10.9k in src/
   (3.7k constructor args from Variants, 2.2k unsafe method calls, 1.5k+
   argument types, 1.1k untyped params, 0.7k untyped vars, 0.35k loop vars).
+
+### 2026-11-14 (evening)
+- The switch: software renderer, palette.gdshader, scene_layers and the
+  picture tools retired; `View` replaces `Renderer` for play; display.gdshader
+  is the picture. CI's window job tours the 3D view (compare_3d against
+  tools/pictures_3d). Full check_all: ALL CHECKS OK (426 s).
+- DRAW DISTANCE (AUTO/FAR/NEAR; AUTO is NEAR 64 cells on phones); the
+  browser keeps its detail without threads. Headless server runs with no
+  GPU (`--server`, net_server_check OK).
+- Menus: every state is a UiScreen (buttons with focus for title, replays,
+  rematch, controls, credits; tap zones through a Control for online, 5v5
+  picker, County Run; setup and slots keep their key rules). UiTheme.
+- Props and actors as scenes (scenes/props, scenes/actors: PropView,
+  ActorView). Billboard prop heights and bot buying styles into data.
+- Docs: CLAUDE.md 138 lines; docs/dev/ (14 files incl. how_to_add.md).
+- Boards are one-sided as in the old renderer (a sign's back no longer
+  hides its front).
+- Actor looks: baked four ways round with each texel weighted by how it
+  faced the camera (back and side views now match the cels); missed bake
+  texels (a fifth of each texture: inner arms, thighs, undersides) rebaked
+  with longer rays, then from the body itself (no more black patches on
+  fallen bodies); fallen bodies lit like their cels. Baking on the GPU
+  (about 1 minute a kind).
+- Static typing: six parallel batches (10.9k errors); modes and features
+  merged; view3d, ui, core typed by hand.
+- Compare sheets: docs/godot3d/compare/<level>.png, actors/actors_NN.png.
 
 ## Next
 

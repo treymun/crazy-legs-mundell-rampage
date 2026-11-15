@@ -37,8 +37,7 @@ func _init() -> void:
 		)
 		# Blender's own report lines (each kind, the bake's missed texels).
 		for chunk: Variant in said:
-			for line in str(chunk).split("
-"):
+			for line in str(chunk).split("\n"):
 				if line.begins_with("ACTOR"):
 					print(line)
 		if code != 0:

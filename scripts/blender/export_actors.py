@@ -166,7 +166,7 @@ def _bake(ob, image, sources=None):
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.samples = 8
-    scene.cycles.device = "CPU"
+    # The device the stage chose (the graphics card when Cycles has one).
     bpy.ops.object.select_all(action="DESELECT")
     if sources:
         for s in sources:
@@ -227,7 +227,27 @@ def _bake(ob, image, sources=None):
                 far = far.reshape(-1, 4)
                 px[missed, :3] = far[missed, :3]
                 still = inside & (px[:, :3].sum(axis=1) < .003)
-                print("ACTOR BAKE turn %d: %d texels missed, %d after longer rays" % (angle, int(missed.sum()), int(still.sum())))
+                if still.any():
+                    # What no ray finds (a surface inside another part, or one
+                    # the decimation moved far): the body baked onto itself,
+                    # its own materials (their colours; a pattern may sit a
+                    # little differently).
+                    bpy.ops.object.bake(
+                        type="COMBINED",
+                        pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
+                        margin=4,
+                        use_clear=True,
+                        use_selected_to_active=False,
+                    )
+                    own = numpy.empty(len(image.pixels), dtype=numpy.float32)
+                    image.pixels.foreach_get(own)
+                    own = own.reshape(-1, 4)
+                    px[still, :3] = own[still, :3]
+                left = inside & (px[:, :3].sum(axis=1) < .003)
+                print(
+                    "ACTOR BAKE turn %d: %d texels missed, %d after longer rays, %d after its own"
+                    % (angle, int(missed.sum()), int(still.sum()), int(left.sum()))
+                )
         # The texel's normal turned with the body, toward the camera (-y).
         c = math.cos(math.radians(angle))
         sn = math.sin(math.radians(angle))
