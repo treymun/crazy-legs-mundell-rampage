@@ -350,6 +350,7 @@ func strike(i: int, amount: float, ax: float, ay: float) -> void:
 		return
 	var stuff := str(p.spec.get("stuff", "wood"))
 	var z: float = game.world.stand(p) + p.z + p.height * .5
+	game.events.prop_struck.emit(p.image, p.x, p.y, z, ax, ay)
 	game.burst(p.x, p.y, z, str(SPECKS.get(stuff, "spark")), 3, .7)
 	# A load of buckshot is one knock, not ten.
 	if game.clock >= _chip_next:
@@ -463,6 +464,41 @@ func _widen(s: View.Sprite) -> void:
 			return
 
 
+## A loose piece picked up (features/carry.gd): off the map till it is set
+## down again (nothing finds it there), its base out of the way. Its board
+## or prop shows nothing meanwhile (carry.gd says so to the view).
+func lift(i: int) -> void:
+	var p: Piece = pieces[i]
+	if not p.base.is_empty():
+		var base := p.base
+		p.base = PackedFloat32Array()
+		for q: Piece in p.shares:
+			q.shares.erase(p)
+		p.shares.clear()
+		_free(base)
+	p.x = -64.0
+	p.y = -64.0
+	net_version += 1
+
+
+## A lifted piece standing again at (x, y), its foot `z` over the ground
+## there (thrown and come to rest, or put down).
+func set_down(i: int, x: float, y: float, z: float) -> void:
+	var p: Piece = pieces[i]
+	p.z = maxf(0.0, z)
+	_place(p, x, y)
+	if p.board != null:
+		p.board.z = p.z
+
+
+## Whether piece i stands loose where a hand could take it up (on the
+## ground or a top, in nobody's way or alone on its own low base).
+func liftable(i: int) -> bool:
+	var p: Piece = pieces[i]
+	var is_sign: bool = p.spec.get("sign", false)
+	return not p.broken and not is_sign and p.shares.is_empty() and p.x > -32.0
+
+
 ## A fuel drum that went up (game_combat.gd drum_hit()): its burst shell stays.
 func wreck(x: float, y: float, image: String) -> void:
 	if not game.art.has_art(image):
@@ -507,6 +543,7 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 		game.sound_at("fuse_short", p.x, p.y, .7)
 	var stuff := str(p.spec.get("stuff", "wood"))
 	var z: float = game.world.stand(p) + p.z + p.height * .5
+	game.events.prop_broken.emit(p.image, p.x, p.y, z)
 	var sign: bool = p.spec.get("sign", false)
 	# A row going at once is one crash, not one each.
 	var loud: bool = game.clock >= _crash_next

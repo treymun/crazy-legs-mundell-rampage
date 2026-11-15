@@ -8,6 +8,9 @@ extends GameView
 
 ## The mode feature's script (it has no class_name), to type features["mode"].
 const ModeFeatureScript := preload("res://src/features/mode_feature.gd")
+## Picking things up and throwing them, and the fire that spreads.
+const CarryScript := preload("res://src/features/carry.gd")
+const FireScript := preload("res://src/features/fire.gd")
 
 
 ## `p_host`: an authoritative host's game (game_host.gd), with no presentation.
@@ -653,6 +656,12 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 				remaining.append(entry)
 		pickups = remaining
 	armory.tick(dt, self)
+	# A thing held up in both hands (features/carry.gd): FIRE throws it, ALT
+	# FIRE sets it down, the gun stays down.
+	var carry: CarryScript = features.get("carry")
+	if carry != null and carry.hands(p, controls.fire, controls.alt_fire):
+		p.alt_held = controls.alt_fire
+		return
 	# A scoped gun's ALT FIRE puts the scope up and down instead of firing;
 	# a reload or another gun takes it down.
 	var alt: bool = controls.alt_fire
@@ -673,5 +682,42 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 		armory.fire(self, alt)
 	else:
 		armory.release_dynamite(self)
+
+
+## USE also takes up a loose thing, or sets down the one held
+## (features/carry.gd), when nothing else answers it.
+func interact() -> void:
+	var carry: CarryScript = features.get("carry")
+	if (
+		carry != null
+		and not showing_tally
+		and player.health > 0
+		and boss_hold <= 0.0
+		and carry.allowed()
+		and carry.use()
+	):
+		return
+	super()
+
+
+func use_prompt() -> String:
+	var shown := super()
+	var carry: CarryScript = features.get("carry")
+	if carry != null and carry.allowed():
+		return carry.prompt(shown)
+	return shown
+
+
+## LIVE PROPS AND FIRE (setup_pages.gd): off, nothing is taken up and fire
+## burns only where it lands, as before.
+func configure(options: Dictionary) -> void:
+	super(options)
+	var live: int = options.get("live_props", 1)
+	var carry: CarryScript = features.get("carry")
+	if carry != null:
+		carry.on = live == 1
+	var fire: FireScript = features.get("fire")
+	if fire != null:
+		fire.on = live == 1
 
 # --------------------------------------------------------------- reflection

@@ -98,7 +98,7 @@ looks (art.md#props).
 ## A setting
 
 1. Add a row to `src/setup_pages.gd`: label, key, default, choices, hint.
-2. Bump the settings count in `tools/check_fixes.gd` (64 now).
+2. Bump the settings count in `tools/check_fixes.gd` (65 now).
 3. Settings are not part of a save: no save version.
 
 ## A menu screen

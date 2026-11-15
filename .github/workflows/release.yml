@@ -75,6 +75,8 @@ jobs:
         run: godot --headless --path godot --script res://tools/level_edit_check.gd
       - name: Loose things rest on decks, ramps and stairs, never in walls
         run: godot --headless --path godot --script res://tools/physics_check.gd
+      - name: Things picked up and thrown, fire that spreads, the stills
+        run: godot --headless --path godot --script res://tools/live_props_check.gd
       - name: Every quest prop and item can be used from where it is seen
         run: godot --headless --path godot --script res://tools/quest_reach.gd
       - name: Campaign walkthrough
