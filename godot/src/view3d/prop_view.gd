@@ -13,6 +13,7 @@ extends Node3D
 var _meshes: Array[MeshInstance3D] = []
 var _turn := 0.0
 var _lean := 0.0
+var _size := 1.0
 
 
 ## Give every part of the model `material`; the prop shows to `reach` cells.
@@ -25,11 +26,21 @@ func setup(material: ShaderMaterial, reach: float) -> void:
 		_meshes.append(mesh)
 
 
-## Stand at map (x, y), feet at z, turned `turn` about up, lit by `level`.
-func stand(x: float, y: float, z: float, turn: float, level: LevelData) -> void:
+## Show one look of a model that holds several (a quest station's mesh
+## nodes `look_off` and `look_on`): the one named, every other hidden. A
+## model without looks shows whole.
+func show_look(look: String) -> void:
+	for child in find_children("look_*", "Node3D", true, false):
+		(child as Node3D).visible = child.name == "look_" + look
+
+
+## Stand at map (x, y), feet at z, turned `turn` about up and `size` times its
+## own size, lit by `level`.
+func stand(x: float, y: float, z: float, turn: float, level: LevelData, size := 1.0) -> void:
 	_turn = turn
 	_lean = 0.0
-	transform = Transform3D(Basis(Vector3.UP, turn), Vector3(x, z, y))
+	_size = size
+	transform = Transform3D(Basis(Vector3.UP, turn).scaled(Vector3.ONE * size), Vector3(x, z, y))
 	var c := level.cell(clampf(x, 0.0, level.width - .01), clampf(y, 0.0, level.height - .01))
 	var ti := clampi(level.area[c], 0, maxi(0, level.tints.size() / 3 - 1)) * 3
 	var tone := Color(1, 1, 1, level.light[c])
@@ -45,4 +56,4 @@ func lean(tilt: float) -> void:
 	if tilt == _lean:
 		return
 	_lean = tilt
-	basis = Basis(Vector3.UP, _turn) * Basis(Vector3.RIGHT, -tilt)
+	basis = (Basis(Vector3.UP, _turn) * Basis(Vector3.RIGHT, -tilt)).scaled(Vector3.ONE * _size)

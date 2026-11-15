@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_vus7d"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_brake.glb" id="2_af1vd"]
+
+[node name="QuestBrake" type="Node3D" unique_id=1342454345]
+script = ExtResource("1_vus7d")
+prop = "quest_brake"
+
+[node name="Model" type="Node3D" parent="." unique_id=2020811222 instance=ExtResource("2_af1vd")]

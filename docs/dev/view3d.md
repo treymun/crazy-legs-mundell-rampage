@@ -116,13 +116,29 @@ for what feeds them.
 
 ## Props
 
-Each prop placed with `town()` shows as a `PropView` scene
-(`scenes/props/<name>.tscn`) over its baked glTF model. 194 props. The
-pipeline that makes them is in [art.md](art.md#props). A light with `props` in
-effects.cfg rides every prop with that picture.
+Each prop placed with `town()` (and every quest station) shows as a
+`PropView` scene (`scenes/props/<name>.tscn`) over its baked glTF model: 227
+models for 253 of the 257 `town_*` pictures (the range's four targets stay
+pictures). The pipeline that makes them is in [art.md](art.md#props). A light
+with `props` in effects.cfg rides every prop with that picture.
+
+A sprite shown taller or shorter than its picture was drawn (the level's
+`height` against `town_props.json`, kept in meshes.json) stands its model
+scaled to match (`PropModels.scale_of`), as the billboard was: the
+speedway's booth PA rig is half size, Hickston's range scoreboard 1.5x.
+
+A quest station's two pictures (`town_quest_<name>_off`, `_on`) are one
+model with two looks (`look_off`, `look_on`); `PropView.show_look` shows the
+one the picture names, so a station switches look where it stands.
 
 A prop's facing is worked out once for where it stands (the most open way),
-unless its sprite sets `plane`: then the model turns by `-plane`. A moving
+unless its sprite sets `plane`: then the model turns by `-plane`. A quest
+prop's sprite sets `face` (`game_combat.gd _station_face`): the way to its
+station's (or the exit's) own point, where it is used from; the model turns
+so that from there it shows the three-quarter view its picture had
+(`PropLayer3D.PICTURE_TURN`). Where that point is the prop's own spot it
+takes the most open way. Only looks: where the player aims and what USE
+reaches are the same as before (`quest_reach`). A moving
 prop (the speedway's lap cars, `race_laps.gd`) sets `plane` from its heading,
 so it faces where it runs; it is stood again each frame it moves.
 
@@ -237,9 +253,11 @@ The pipeline is in [art.md](art.md#actors).
 ## Checks
 
 - `tools/view3d_check.gd` builds every level's mesh headless, loads every
-  prop and actor scene and builds every slab (pickups, loose things, range
-  targets; a gong with its plate), holding its front to the picture's size
-  and place (VIEW3D CHECK OK; in check_all and CI).
+  prop and actor scene (a station's with both looks; every
+  `town_quest_*` picture must have its model) and builds every slab
+  (pickups, loose things, range targets; a gong with its plate), holding its
+  front to the picture's size and place (VIEW3D CHECK OK; in check_all and
+  CI).
 - `tools/check_shader.gd` counts textures (SHADER OK).
 - `tools/compare_3d.gd` holds a window tour's pictures against
   `tools/pictures_3d/` ([checks.md](checks.md#picture-references)).

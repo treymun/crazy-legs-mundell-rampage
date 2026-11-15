@@ -52,7 +52,15 @@ func _init() -> void:
 		if not shown is PropView:
 			_fail("prop %s: no scene (tools/art/build_prop_scenes.gd)" % name)
 		if shown != null:
+			# A quest station's one model holds both its looks.
+			if not shown.find_children("look_*", "Node3D", true, false).is_empty():
+				for look in PropModels.LOOKS:
+					if shown.find_children("look_" + look, "Node3D", true, false).is_empty():
+						_fail("prop %s: no look_%s in its model" % [name, look])
 			shown.free()
+	for art_name: String in assets.art_index:
+		if art_name.begins_with("town_quest_") and models.name_of(art_name) == "":
+			_fail("quest station %s: no model (tools/art/build_prop_meshes.gd)" % art_name)
 	print("%d triangles in %d levels, %d prop models" % [total, ids.size(), models.sizes.size()])
 	var actors := ActorModels.new(assets)
 	for kind: String in actors.kinds:

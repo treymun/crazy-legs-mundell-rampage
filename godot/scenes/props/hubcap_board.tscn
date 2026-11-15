@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_pm7tq"]
+[ext_resource type="PackedScene" path="res://assets3d/props/hubcap_board.glb" id="2_8wt8r"]
+
+[node name="HubcapBoard" type="Node3D" unique_id=107343601]
+script = ExtResource("1_pm7tq")
+prop = "hubcap_board"
+
+[node name="Model" type="Node3D" parent="." unique_id=1938456838 instance=ExtResource("2_8wt8r")]

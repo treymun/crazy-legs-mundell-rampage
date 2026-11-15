@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_oer6w"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_generator.glb" id="2_m71tb"]
+
+[node name="QuestGenerator" type="Node3D" unique_id=710730916]
+script = ExtResource("1_oer6w")
+prop = "quest_generator"
+
+[node name="Model" type="Node3D" parent="." unique_id=45259153 instance=ExtResource("2_m71tb")]

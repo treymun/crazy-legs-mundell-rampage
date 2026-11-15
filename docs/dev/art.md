@@ -44,7 +44,8 @@ side: control boxes on posts with a throw lever, the relay cabinet, brake,
 bell, exit signal posts, valves, the bayou's generator and ignition, the
 speedway's fuel dump and flags, the Mothership's consoles. Each station is
 `town_quest_<name>_off` (lamp lit, lever up) and `_on` (lamp dark, green
-pilot, lever thrown and tagged), cropped to one frame; the keys and the PA
+pilot, lever thrown and tagged), cropped to one frame (the 3D view draws
+both as one model: [Props](#props)); the keys and the PA
 patch lead are rendered pickups; and, painted, Hickston's pen sign, the
 locked gate's barricade, the Crossroads' later gate boards and markers, the
 fingerpost's arms and the beam pad's order: signs, not stations.
@@ -79,11 +80,15 @@ colours must look right and match the cels before a model counts as done.
 ### Props
 
 1. `scripts/blender/export_meshes.py` bakes each prop (a COMBINED light bake
-   under the dusk stage) to glTF.
+   under the dusk stage) to glTF, its lowest point on the ground (the sprite
+   was cropped to it). Libraries: `town_props.py`, `props_range.py`,
+   `quest_props.py` (the stations) and `painted_boards.py` (signs whose face
+   is a 2D tool's picture, given a tin body: `line_sign`).
 2. `tools/art/build_prop_meshes.gd [-- names=outhouse,tractor] [no-render]`
    grades (`Paint.photo_grade`) and digitizes each texture to the palette
    (`assets/art/mesh_<name>.png`, packed with the rest of the art) and writes
-   `godot/assets3d/props/<name>.glb` plus `meshes.json` (sizes, read by
+   `godot/assets3d/props/<name>.glb` plus `meshes.json` ([width, depth,
+   height, texture size, the height its picture was drawn at], read by
    `view3d/prop_models.gd`).
 3. `tools/pack_assets.gd`, then `--import`.
 4. `tools/art/build_prop_scenes.gd [-- names=a,b]` writes
@@ -92,7 +97,29 @@ colours must look right and match the cels before a model counts as done.
    a flame); it keeps those when the tool runs again only if the prop is
    skipped (`names=`).
 
-There are 194 props.
+There are 227 models for 253 of the 257 `town_*` pictures; the range's four
+targets (`range_target`, `_gong`, `_cow_target`, `_duck`) stay pictures
+(`KEEP_FLAT` in export_meshes.py).
+
+- **Quest stations** (after v3.0.0): each station is ONE model,
+  `quest_<name>`, holding both looks as mesh nodes `look_off` (to do: lamp
+  lit, lever up) and `look_on` (done: lamp dark, green pilot, lever thrown
+  and tagged), baked side by side into one texture and shrunk by
+  quest_props.py's SCALE as their pictures were. Both pictures
+  (`town_quest_<name>_off`, `_on`) stand for it (`PropModels.name_of`,
+  `look_of`); PropView shows the look the picture names.
+- **Faithful bakes**: the stations and the props drawn flat before (FLAT:
+  laundry, the powder shelf, hubcap board, gator hide, probe rack, range
+  scoreboard, line sign) bake their materials' shine too and keep each
+  part's own object coordinates for its patterns (attribute `part_co`), so
+  hazard stripes, planks and grime fall as in the sprite render; at 160
+  texels a unit (512 px for most). The props modelled before kept their
+  v3.0.0 bake (64 a unit, no shine, the joined mesh's coordinates).
+- `tools/art/prop_sheet.gd -- names=a,b out=<png> [ppu=96]` (a window) lays
+  each model's old picture beside the model from the front, the picture's
+  three-quarter view, the side, the back and the back three-quarters; a
+  station gets a row per look. The sheets are in
+  `docs/godot3d/remaster2/props/` with in-game before/after pictures.
 
 ### Actors
 

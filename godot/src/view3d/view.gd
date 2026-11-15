@@ -41,6 +41,10 @@ class Sprite:
 	var translucent := false
 	var body := false
 	var plane := NAN
+	## Which way a modelled prop faces when it is not a board (radians: its
+	## front toward map (sin face, cos face)); NAN: the view picks the most
+	## open way. A quest prop faces where its station is used from.
+	var face := NAN
 	var hurt := 0.0
 	var who: Object = null
 	## How far a billboard is turned over in the view's plane (radians, about

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_r72ws"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_patchbay.glb" id="2_ovfps"]
+
+[node name="QuestPatchbay" type="Node3D" unique_id=2137157755]
+script = ExtResource("1_r72ws")
+prop = "quest_patchbay"
+
+[node name="Model" type="Node3D" parent="." unique_id=2122781962 instance=ExtResource("2_ovfps")]

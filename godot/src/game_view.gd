@@ -60,6 +60,8 @@ func _list_fixed() -> void:
 		var spr := View.Sprite.new(board.x, board.y, image, board.height, z)
 		spr.glow = board.glow
 		spr.plane = board.plane
+		if board.signal_name != "":
+			spr.face = _station_face(board)
 		sprites.append(spr)
 		if board.back != "":
 			var back := View.Sprite.new(board.x, board.y, board.back, board.height, z)

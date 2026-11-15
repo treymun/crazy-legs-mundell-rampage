@@ -1134,4 +1134,25 @@ func tick_exchanges(combat: bool) -> void:
 			exchange_next = caption_until + 8.0
 		break
 
+
+## Which way a quest prop's model faces: toward where its station (or the
+## exit) is used from, the point in front of it; NAN when that point is the
+## prop's own spot or not near it (the view picks the most open way). Looks
+## only: where the player aims and what USE reaches do not change.
+func _station_face(board: LevelData.Billboard) -> float:
+	var at := Vector2(NAN, NAN)
+	if board.signal_name == "exit":
+		var exit: LevelData.Extraction = world.extraction
+		if exit != null:
+			at = Vector2(exit.x, exit.y)
+	else:
+		for station: LevelData.Station in world.stations:
+			if station.id == board.signal_name:
+				at = Vector2(station.x, station.y)
+				break
+	var off := at - Vector2(board.x, board.y)
+	if is_nan(off.x) or off.length() < .3 or off.length() > 3.5:
+		return NAN
+	return atan2(off.x, off.y)
+
 # --------------------------------------------------------------------- tick
