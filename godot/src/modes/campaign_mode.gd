@@ -14,5 +14,5 @@ func bodies_block() -> bool:
 	return false
 
 
-func hurt_scale(_game, _attacker: Player, _victim: Player, _blast: bool) -> float:
+func hurt_scale(_game: Game, _attacker: Player, _victim: Player, _blast: bool) -> float:
 	return 1.0

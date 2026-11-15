@@ -14,7 +14,7 @@ static var _floor: FlowField = null
 
 
 ## The field walked from the cell under (x, y) (null when that is off the map).
-static func field(game, x: float, y: float) -> FlowField:
+static func field(game: Game, x: float, y: float) -> FlowField:
 	var world: LevelData = game.world
 	var key := "%s|%d|%d" % [world.id, world.solid_version, world.get_instance_id()]
 	if key != _key:

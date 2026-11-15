@@ -17,6 +17,8 @@
 class_name Modes
 extends RefCounted
 
+const ModeFeature := preload("res://src/features/mode_feature.gd")
+
 const CAMPAIGN := "campaign"
 const COOP := "coop"
 const DEATHMATCH := "deathmatch"
@@ -115,12 +117,12 @@ static func rules_for(name: String) -> GameMode:
 
 
 ## A 5v5 round mode played two a side (TAG TEAM 2V2).
-static func is_tag_team(game) -> bool:
+static func is_tag_team(game: Game) -> bool:
 	return is_tactical(game) and game.players.size() <= TAGTEAM_PLAYERS
 
 
 ## The game's mode feature (null only before its features are attached).
-static func feature(game):
+static func feature(game: Game) -> ModeFeature:
 	return game.features.get("mode")
 
 
@@ -128,17 +130,19 @@ static func feature(game):
 ## weapons.cfg's spread (scope_spread with the scope up, more as heat_spread
 ## builds) and range, and in the 5v5 modes the rules' say over them
 ## (shot_tuning; the campaign never asks the rules).
-static func shot_spread(game, p: Player, gun: int, how: Dictionary, heat: float) -> Array:
+static func shot_spread(game: Game, p: Player, gun: int, how: Dictionary, heat: float) -> Array:
 	var spread: Vector2 = how.get("spread", Vector2.ZERO)
 	if p.scoped and how.has("scope_spread"):
 		spread = how["scope_spread"]
 	if how.has("heat_spread"):
-		spread += Vector2.ONE * float(how["heat_spread"]) * heat
-	return shot_tuning(game, p, gun, spread, float(how["range"]))
+		var heat_spread: float = how["heat_spread"]
+		spread += Vector2.ONE * heat_spread * heat
+	var reach: float = how["range"]
+	return shot_tuning(game, p, gun, spread, reach)
 
 
-static func shot_tuning(game, p: Player, gun: int, spread: Vector2, reach: float) -> Array:
-	var st = game.features.get("mode")
+static func shot_tuning(game: Game, p: Player, gun: int, spread: Vector2, reach: float) -> Array:
+	var st: ModeFeature = game.features.get("mode")
 	if st == null or not (TACTICAL.has(String(st.mode)) or String(st.mode) == COUNTY):
 		return [spread, reach]
 	return rules(game).shot_tuning(game, p, gun, spread, reach)
@@ -146,77 +150,77 @@ static func shot_tuning(game, p: Player, gun: int, spread: Vector2, reach: float
 
 ## The rules of a game under a mode, or null in the campaign (whose play the
 ## hooks below never touch: each hands back what it was given).
-static func _played(game) -> GameMode:
-	var st = game.features.get("mode")
+static func _played(game: Game) -> GameMode:
+	var st: ModeFeature = game.features.get("mode")
 	if st == null or String(st.mode) == CAMPAIGN:
 		return null
 	return rules_for(String(st.mode))
 
 
 ## The world holds still this tick (COUNTY RUN: a choice on screen).
-static func holds(game) -> bool:
+static func holds(game: Game) -> bool:
 	var r := _played(game)
 	return r != null and r.holds(game)
 
 
-static func move_scale(game, p: Player) -> float:
+static func move_scale(game: Game, p: Player) -> float:
 	var r := _played(game)
 	return 1.0 if r == null else r.move_scale(game, p)
 
 
-static func incoming(game, p: Player, amount: float, cause: String) -> float:
+static func incoming(game: Game, p: Player, amount: float, cause: String) -> float:
 	var r := _played(game)
 	return amount if r == null else r.incoming(game, p, amount, cause)
 
 
-static func hit_reach(game, reach: float) -> float:
+static func hit_reach(game: Game, reach: float) -> float:
 	var r := _played(game)
 	return reach if r == null else r.hit_reach(game, reach)
 
 
-static func hit_amount(game, e: Enemy, amount: float, d: float) -> float:
+static func hit_amount(game: Game, e: Enemy, amount: float, d: float) -> float:
 	var r := _played(game)
 	return amount if r == null else r.hit_amount(game, e, amount, d)
 
 
 static func hit_after(
-	game, e: Enemy, amount: float, d: float, ax: float, ay: float, slope: float
+	game: Game, e: Enemy, amount: float, d: float, ax: float, ay: float, slope: float
 ) -> void:
 	var r := _played(game)
 	if r != null:
 		r.hit_after(game, e, amount, d, ax, ay, slope)
 
 
-static func blast_tuning(game, shot, radius: float, strength: float) -> Array:
+static func blast_tuning(game: Game, shot: GameState.Shot, radius: float, strength: float) -> Array:
 	var r := _played(game)
 	return (
 		[radius, strength, 0.0, 0.0] if r == null else r.blast_tuning(game, shot, radius, strength)
 	)
 
 
-static func rules(game) -> GameMode:
-	var st = feature(game)
+static func rules(game: Game) -> GameMode:
+	var st := feature(game)
 	return rules_for(CAMPAIGN if st == null else String(st.mode))
 
 
-static func mode_of(game) -> String:
-	var st = feature(game)
+static func mode_of(game: Game) -> String:
+	var st := feature(game)
 	return CAMPAIGN if st == null else String(st.mode)
 
 
-static func is_versus(game) -> bool:
+static func is_versus(game: Game) -> bool:
 	return rules(game).versus()
 
 
 ## A 5v5 round mode (search and destroy, hostage rescue).
-static func is_tactical(game) -> bool:
+static func is_tactical(game: Game) -> bool:
 	return TACTICAL.has(mode_of(game))
 
 
 static func tag(p: Player) -> String:
 	if p.name != "":
 		return p.name
-	return String(TAGS[p.slot % TAGS.size()])
+	return str(TAGS[p.slot % TAGS.size()])
 
 
 static func color(p: Player) -> Color:
@@ -243,15 +247,18 @@ const HOST_SETTINGS := [
 ]
 
 
-static func setup(game, name: String, count: int, options := {}) -> void:
-	var st = feature(game)
+static func setup(game: Game, name: String, count: int, options := {}) -> void:
+	var st := feature(game)
 	if st == null or not NAMES.has(name):
 		return
 	st.mode = name
-	st.arena = String(options.get("arena", ""))
-	st.frag_limit = int(options.get("frag_limit", st.frag_limit))
-	st.time_limit = float(options.get("time_limit", st.time_limit))
-	st.rounds_to_win = clampi(int(options.get("rounds", st.rounds_to_win)), 1, 16)
+	st.arena = str(options.get("arena", ""))
+	var frag_limit: int = options.get("frag_limit", st.frag_limit)
+	st.frag_limit = frag_limit
+	var time_limit: float = options.get("time_limit", st.time_limit)
+	st.time_limit = time_limit
+	var rounds: int = options.get("rounds", st.rounds_to_win)
+	st.rounds_to_win = clampi(rounds, 1, 16)
 	# An online lobby's match settings (the 5v5 modes read them).
 	for key: String in HOST_SETTINGS:
 		if options.has(key):
@@ -269,13 +276,13 @@ static func setup(game, name: String, count: int, options := {}) -> void:
 		join_beside(game, game.players[0])
 	for p: Player in game.players:
 		p.team = p.slot % 2
-		if p.slot < st.names.size() and String(st.names[p.slot]) != "":
-			p.name = String(st.names[p.slot])
+		if p.slot < st.names.size() and str(st.names[p.slot]) != "":
+			p.name = str(st.names[p.slot])
 		rules_for(name).joined(game, st, p)
 
 
 ## A new player standing beside `anchor`, facing as they do.
-static func join_beside(game, anchor: Player) -> Player:
+static func join_beside(game: Game, anchor: Player) -> Player:
 	var at := open_spot_near(game, anchor.x, anchor.y)
 	var p := Players.join(game, at.x, at.y, anchor.angle)
 	game.focus(game.local_player)
@@ -300,7 +307,7 @@ static func carry(from: Player, to: Player) -> void:
 ## Co-op: every partner more than a few steps from player one (a retried boss
 ## fight puts player one at the door; a save is loaded) comes to their side,
 ## on their feet.
-static func gather(game) -> void:
+static func gather(game: Game) -> void:
 	var lead: Player = game.players[0]
 	for p: Player in game.players:
 		if p == lead:
@@ -314,7 +321,7 @@ static func gather(game) -> void:
 
 ## Open floor a body fits on near (x, y), seen from there and clear of every
 ## player up, or (x, y) itself when there is none.
-static func open_spot_near(game, x: float, y: float) -> Vector2:
+static func open_spot_near(game: Game, x: float, y: float) -> Vector2:
 	var w: LevelData = game.world
 	for reach: float in [1.0, 1.5, 2.1, 2.8]:
 		for k in 8:
@@ -332,7 +339,7 @@ static func open_spot_near(game, x: float, y: float) -> Vector2:
 
 
 ## Stands `p` at (x, y) facing `angle`, still, eye at the floor's height.
-static func place(game, p: Player, x: float, y: float, angle: float) -> void:
+static func place(game: Game, p: Player, x: float, y: float, angle: float) -> void:
 	p.x = x
 	p.y = y
 	p.angle = angle
@@ -346,7 +353,7 @@ static func place(game, p: Player, x: float, y: float, angle: float) -> void:
 
 
 ## Back on their feet with `health`, the down and the revive forgotten.
-static func stand_up(game, p: Player, health: int) -> void:
+static func stand_up(game: Game, p: Player, health: int) -> void:
 	p.health = health
 	p.down_at = -1.0
 	p.revive = 0.0
@@ -356,7 +363,7 @@ static func stand_up(game, p: Player, health: int) -> void:
 
 
 ## A notice for this machine's player, whoever is acting.
-static func say(game, text: String, seconds := 2.6) -> void:
+static func say(game: Game, text: String, seconds := 2.6) -> void:
 	game.notice = text
 	game.message_until = game.clock + seconds
 
@@ -372,21 +379,31 @@ static func arena_of(name: String) -> Array:
 	return [level_id, parts[1] if parts.size() > 1 else ""]
 
 
-static func arena_box(game, kind: String) -> Rect2i:
+static func arena_box(game: Game, kind: String) -> Rect2i:
 	if kind == "":
 		return Rect2i()
-	var spec = game.world.boss_arena.get(kind, {})
-	var box = spec.get("box") if spec is Dictionary else null
-	if not (box is Array) or box.size() < 4:
+	var spec: Variant = game.world.boss_arena.get(kind, {})
+	var box: Variant = null
+	if spec is Dictionary:
+		var spec_dict: Dictionary = spec
+		box = spec_dict.get("box")
+	if not (box is Array):
 		return Rect2i()
-	return Rect2i(int(box[0]), int(box[1]), int(box[2]) - int(box[0]), int(box[3]) - int(box[1]))
+	var b: Array = box
+	if b.size() < 4:
+		return Rect2i()
+	var x0: int = b[0]
+	var y0: int = b[1]
+	var x1: int = b[2]
+	var y1: int = b[3]
+	return Rect2i(x0, y0, x1 - x0, y1 - y0)
 
 
 ## Up to `want` spawn points for versus: open, dry cells with room round them
 ## (nothing within .45), that walk to one another, inside `box` (the whole
 ## level when empty), spread out: each next one the farthest from those taken
 ## (the first nearest the middle). [x, y, facing the middle].
-static func spawn_points(game, box: Rect2i, want := 12) -> Array:
+static func spawn_points(game: Game, box: Rect2i, want := 12) -> Array:
 	var w: LevelData = game.world
 	var area := box if box.size != Vector2i.ZERO else Rect2i(0, 0, w.width, w.height)
 	area = area.intersection(Rect2i(0, 0, w.width, w.height))
@@ -454,18 +471,23 @@ static func spawn_points(game, box: Rect2i, want := 12) -> Array:
 
 
 ## The spawn point farthest from every other player up (ties: the first).
-static func far_spawn(game, st, p: Player) -> Array:
+static func far_spawn(game: Game, st: ModeFeature, p: Player) -> Array:
 	var spots: Array = st.spawns
 	if spots.is_empty():
 		var s: Array = game.level.spawn
-		return [float(s[0]), float(s[1]), float(s[2])]
+		var sx: float = s[0]
+		var sy: float = s[1]
+		var sa: float = s[2]
+		return [sx, sy, sa]
 	var best: Array = spots[0]
 	var far := -1.0
 	for spot: Array in spots:
 		var near := INF
 		for q: Player in game.players:
 			if q != p and q.health > 0:
-				near = minf(near, Vector2(q.x, q.y).distance_squared_to(Vector2(spot[0], spot[1])))
+				var spot_x: float = spot[0]
+				var spot_y: float = spot[1]
+				near = minf(near, Vector2(q.x, q.y).distance_squared_to(Vector2(spot_x, spot_y)))
 		if near > far:
 			far = near
 			best = spot
@@ -473,7 +495,7 @@ static func far_spawn(game, st, p: Player) -> Array:
 
 
 ## Every enemy gone (versus): the level's own, its waves and partners.
-static func clear_enemies(game) -> void:
+static func clear_enemies(game: Game) -> void:
 	game.enemies.clear()
 	game.enemy_ids.clear()
 	game.wave.clear()
@@ -510,7 +532,9 @@ static func give_kit(p: Player) -> void:
 ## The nearest player (not the acting one, up, one a hit of theirs can land
 ## on) along the acting player's shot, nearer than `near`: [player, distance]
 ## or [] (game_combat.gd hitscan, when the mode lets bullets hit players).
-static func player_in_line(game, ax: float, ay: float, slope: float, spread: float, near: float):
+static func player_in_line(
+	game: Game, ax: float, ay: float, slope: float, spread: float, near: float
+) -> Array:
 	var me: Player = game.player
 	var r := rules(game)
 	var out: Array = []
@@ -542,7 +566,7 @@ static func player_in_line(game, ax: float, ay: float, slope: float, spread: flo
 ## shooter (frags), with blood and the crosshair's mark. `height` is where on
 ## the body it struck (0 the feet, 1 the top of the head; -1 not known).
 static func player_hit(
-	game, victim: Player, amount: float, cause := "SHOT", height := -1.0
+	game: Game, victim: Player, amount: float, cause := "SHOT", height := -1.0
 ) -> void:
 	var me: Player = game.player
 	if victim.health <= 0:
@@ -558,8 +582,10 @@ static func player_hit(
 ## A blast's bite on player `p` (game_combat.gd explode): a player's own blast
 ## or a partner's as the mode says, blamed on its thrower; anything else (an
 ## enemy's, a fuel drum's) in full, as always.
-static func blast_hit(game, shot, p: Player, amount: int, cause: String) -> void:
-	var st = feature(game)
+static func blast_hit(
+	game: Game, shot: GameState.Shot, p: Player, amount: int, cause: String
+) -> void:
+	var st := feature(game)
 	var thrown: bool = not shot.enemy and shot.kind != "fuel" and shot.owner != -1
 	if st == null or String(st.mode) == CAMPAIGN or not thrown or shot.slot >= game.players.size():
 		game.damage(amount, [shot.x, shot.y], cause, p)
@@ -576,7 +602,7 @@ static func blast_hit(game, shot, p: Player, amount: int, cause: String) -> void
 ## A player's shot in flight striking another player's body (game_combat.gd
 ## _hits, when the mode lets bullets hit players): true when it did (the shot
 ## is finished there; one that blows up does).
-static func shot_strikes(game, shot, x: float, y: float, z: float) -> bool:
+static func shot_strikes(game: Game, shot: GameState.Shot, x: float, y: float, z: float) -> bool:
 	if not rules(game).bullets_hit_players() or shot.slot >= game.players.size():
 		return false
 	var thrower: Player = game.players[shot.slot]
@@ -630,9 +656,9 @@ static func shot_weapon(kind: String) -> int:
 
 
 static func _blamed(
-	game, slot: int, victim: Player, amount: float, at: Array, cause: String
+	game: Game, slot: int, victim: Player, amount: float, at: Array, cause: String
 ) -> void:
-	var st = feature(game)
+	var st := feature(game)
 	if st != null:
 		st.blame = slot
 	game.damage(amount, at, cause, victim)

@@ -13,23 +13,25 @@
 class_name CountyMode
 extends GameMode
 
+const CountyRun := preload("res://src/features/county_run.gd")
+
 
 func id() -> String:
 	return Modes.COUNTY
 
 
 ## The county feature of a game in a run (null otherwise).
-static func run(game):
-	var f = game.features.get("county") if game != null else null
+static func run(game: Game) -> CountyRun:
+	var f: CountyRun = game.features.get("county") if game != null else null
 	return f if f != null and f.on else null
 
 
-static func active(game) -> bool:
+static func active(game: Game) -> bool:
 	return game != null and Modes.mode_of(game) == Modes.COUNTY
 
 
-func start(game, _st) -> void:
-	var f = game.features["county"]
+func start(game: Game, _st: ModeFeature) -> void:
+	var f: CountyRun = game.features["county"]
 	Modes.clear_enemies(game)
 	game.pickups.clear()
 	game.supply_rule = 2
@@ -48,26 +50,27 @@ func start(game, _st) -> void:
 		game.focus(p, p != game.local_player)
 		CountyBuild.start_kit(game, f)
 		p.health = int(CountyData.number("start", "health", 100))
-		for item in HUD.ITEMS:
+		for item: String in HUD.ITEMS:
 			game.inventory[item] = 0
 	game.focus(acting)
 	CountySpawner.begin(game, f)
 	# Tips on the cards for a player's first three runs (any map).
 	var runs := 0
-	for rec in CountyRecords.read().values():
-		runs += int(rec.get("runs", 0)) if rec is Dictionary else 0
+	for rec: Variant in CountyRecords.read().values():
+		if rec is Dictionary:
+			var record: Dictionary = rec
+			var rec_runs: int = record.get("runs", 0)
+			runs += rec_runs
 	# (A party's run: no tips, read from this machine's records, so every
 	# machine of an online run holds the same.)
 	f.tips = runs < 3 and not CountyCoop.party(game)
 	game.spawn_grace = 0.0
-	Modes.say(
-		game, "%s. SURVIVE." % String(CountyData.map(f.map_id).get("title", "COUNTY RUN")), 3.0
-	)
+	Modes.say(game, "%s. SURVIVE." % str(CountyData.map(f.map_id).get("title", "COUNTY RUN")), 3.0)
 
 
 ## Every tick of a run (the county feature's): the clock, the spawner, XP
 ## and supplies, the abilities, then the next choice when a level came.
-static func step(game, f, dt: float) -> void:
+static func step(game: Game, f: CountyRun, dt: float) -> void:
 	f.run_time += dt
 	if not game.pickups.is_empty():
 		# The level's and the hands' own drops are the run's own supplies now.
@@ -79,12 +82,13 @@ static func step(game, f, dt: float) -> void:
 		CountyOrbs.tick(game, f, dt)
 		CountyMoves.tick(game, f, dt)
 	if not f.pending.is_empty() and f.offer.is_empty():
-		f.offer = CountyBuild.offers(game, f, f.pending[0])
+		var next: Array = f.pending[0]
+		f.offer = CountyBuild.offers(game, f, next)
 
 
 ## Gains `amount` XP: level ups queue a choice each, in order (every tenth a
 ## milestone), the gun in hand remembered.
-static func gain(game, f, amount: int) -> void:
+static func gain(game: Game, f: CountyRun, amount: int) -> void:
 	f.xp += amount
 	f.xp_total += amount
 	var came := 0
@@ -95,10 +99,12 @@ static func gain(game, f, amount: int) -> void:
 		f.pending.append([f.level, f.level % 10 == 0, game.armory.active])
 	if came > 0:
 		if f.offer.is_empty():
-			f.offer = CountyBuild.offers(game, f, f.pending[0])
+			var next: Array = f.pending[0]
+			f.offer = CountyBuild.offers(game, f, next)
 		var big := false
 		for entry: Array in f.pending:
-			big = big or bool(entry[1])
+			var milestone: bool = entry[1]
+			big = big or milestone
 		game.sound.play("county_milestone" if big else "county_level", .9)
 		Modes.say(
 			game,
@@ -109,12 +115,12 @@ static func gain(game, f, amount: int) -> void:
 
 ## The player picks card `index` of the offer (slot: where a weapon goes when
 ## every slot is full; -1 the open one). False when that is not possible.
-static func choose(game, index: int, slot := -1) -> bool:
-	var f = run(game)
+static func choose(game: Game, index: int, slot := -1) -> bool:
+	var f := run(game)
 	if f == null or f.offer.is_empty() or index < 0 or index >= f.offer.size():
 		return false
 	var c: Dictionary = f.offer[index]
-	if String(c["type"]) == "weapon" and CountyBuild.open_slot(f) < 0 and slot < 0:
+	if str(c["type"]) == "weapon" and CountyBuild.open_slot(f) < 0 and slot < 0:
 		return false
 	CountyBuild.take(game, f, c, slot)
 	if CountyCoop.party(game):
@@ -122,26 +128,27 @@ static func choose(game, index: int, slot := -1) -> bool:
 	f.pending.pop_front()
 	f.offer = []
 	if not f.pending.is_empty():
-		f.offer = CountyBuild.offers(game, f, f.pending[0])
-	game.sound.play("weapon_pickup" if String(c["type"]) == "weapon" else "menu_accept", .8)
+		var next: Array = f.pending[0]
+		f.offer = CountyBuild.offers(game, f, next)
+	game.sound.play("weapon_pickup" if str(c["type"]) == "weapon" else "menu_accept", .8)
 	return true
 
 
 ## A party's cards come in the leader's controls (county_coop.gd).
-func hold_controls(game, _st, by_slot: Array) -> Array:
-	var f = run(game)
+func hold_controls(game: Game, _st: ModeFeature, by_slot: Array) -> Array:
+	var f := run(game)
 	if f != null and CountyCoop.party(game):
 		CountyCoop.picks(game, f, by_slot)
 	return by_slot
 
 
-func holds(game) -> bool:
-	var f = run(game)
+func holds(game: Game) -> bool:
+	var f := run(game)
 	return f != null and (not f.pending.is_empty() or f.paused) and not f.over
 
 
-func downed(game, _st, p: Player, _by: int) -> void:
-	var f = run(game)
+func downed(game: Game, _st: ModeFeature, p: Player, _by: int) -> void:
+	var f := run(game)
 	if f == null or f.over:
 		return
 	if CountyCoop.party(game) and Players.anyone_alive(game):
@@ -174,40 +181,40 @@ func downed(game, _st, p: Player, _by: int) -> void:
 
 
 ## USE: MUDSLIDE when the run has it.
-func use(game) -> bool:
-	var f = run(game)
+func use(game: Game) -> bool:
+	var f := run(game)
 	return f != null and CountyMoves.dash(game, f)
 
 
-func use_prompt(_game) -> String:
+func use_prompt(_game: Game) -> String:
 	return ""
 
 
-func move_scale(game, _p: Player) -> float:
-	var f = run(game)
+func move_scale(game: Game, _p: Player) -> float:
+	var f := run(game)
 	if f == null:
 		return 1.0
 	var scale := 1.0 + CountyBuild.perk_value(f, "good_boots")
 	if game.clock < f.burst_until:
-		scale += float(CountyData.milestone("breakaway").get("speed", .3))
+		var speed: float = CountyData.milestone("breakaway").get("speed", .3)
+		scale += speed
 	return scale
 
 
 ## A hit on the player as it lands: SECOND WIND, LAST STAND's guard, THICK
 ## HIDE and IRON GUT, then GRIT ARMOR takes what it can.
-func incoming(game, p: Player, amount: float, _cause: String) -> float:
-	var f = run(game)
+func incoming(game: Game, p: Player, amount: float, _cause: String) -> float:
+	var f := run(game)
 	if f == null or f.over:
 		return amount
 	if game.clock < f.safe_until:
 		return 0.0
 	var share := 1.0 - CountyBuild.perk_value(f, "thick_hide")
-	share -= (
-		float(CountyData.milestone("iron_gut").get("per", .1))
-		* CountyBuild.milestone_rank(f, "iron_gut")
-	)
+	var gut_per: float = CountyData.milestone("iron_gut").get("per", .1)
+	share -= gut_per * CountyBuild.milestone_rank(f, "iron_gut")
 	if game.clock < f.guard_until:
-		share *= 1.0 - float(CountyData.milestone("last_stand").get("guard", .5))
+		var guard: float = CountyData.milestone("last_stand").get("guard", .5)
+		share *= 1.0 - guard
 	amount *= maxf(.2, share)
 	if f.armor > 0.0:
 		var soaked := minf(f.armor, amount)
@@ -220,36 +227,38 @@ func incoming(game, p: Player, amount: float, _cause: String) -> float:
 	return amount
 
 
-func shot_tuning(game, _p: Player, gun: int, spread: Vector2, reach: float) -> Array:
-	var f = run(game)
+func shot_tuning(game: Game, _p: Player, gun: int, spread: Vector2, reach: float) -> Array:
+	var f := run(game)
 	if f == null:
 		return [spread, reach]
 	return [spread * CountyBuild.spread_scale(f, gun), reach]
 
 
-func hit_reach(game, reach: float) -> float:
-	var f = run(game)
+func hit_reach(game: Game, reach: float) -> float:
+	var f := run(game)
 	var gun: int = game.armory.active
 	if f == null or CountyData.kind_of(gun) != CountyData.MELEE:
 		return reach
 	return reach * CountyBuild.reach_scale(f, gun)
 
 
-func hit_amount(game, e: Enemy, amount: float, d: float) -> float:
-	var f = run(game)
+func hit_amount(game: Game, e: Enemy, amount: float, d: float) -> float:
+	var f := run(game)
 	return amount if f == null else CountyMoves.hit_amount(game, f, e, amount, d)
 
 
-func hit_after(game, e: Enemy, amount: float, d: float, ax: float, ay: float, slope: float) -> void:
-	var f = run(game)
+func hit_after(
+	game: Game, e: Enemy, amount: float, d: float, ax: float, ay: float, slope: float
+) -> void:
+	var f := run(game)
 	if f != null:
 		CountyMoves.hit_after(game, f, e, amount, d, ax, ay, slope)
 
 
 ## A blast's reach, strength and the share added near its middle, for the
 ## player's own explosives (PACKED CHARGE, SHAPED CHARGE, HOT LOADS).
-func blast_tuning(game, shot, radius: float, strength: float) -> Array:
-	var f = run(game)
+func blast_tuning(game: Game, shot: GameState.Shot, radius: float, strength: float) -> Array:
+	var f := run(game)
 	if f == null:
 		return [radius, strength, 0.0, 0.0]
 	# Whose blast this is, for CHAIN REACTION's kills (county_moves.gd).
@@ -262,8 +271,10 @@ func blast_tuning(game, shot, radius: float, strength: float) -> Array:
 
 
 ## The player's own blast on themselves: BLAST PADDING.
-func blast_damage(game, thrower: Player, victim: Player, amount: float, kind: String) -> float:
-	var f = run(game)
+func blast_damage(
+	game: Game, thrower: Player, victim: Player, amount: float, kind: String
+) -> float:
+	var f := run(game)
 	if f == null or thrower != victim:
 		return amount
 	var gun := CountyMoves.gun_of_shot(kind)

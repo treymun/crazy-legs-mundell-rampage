@@ -11,6 +11,8 @@
 class_name CountySpawner
 extends RefCounted
 
+const CountyRun := preload("res://src/features/county_run.gd")
+
 ## How many open spots are tried for one spawn.
 static var TRIES: int = ModeData.get_value("county_spawner", "tries")
 ## Spots worked out at the start, kept here per level (the cells don't move),
@@ -19,11 +21,13 @@ static var _spots := {}
 static var _reach := {}
 
 
-static func begin(game, f) -> void:
+static func begin(game: Game, f: CountyRun) -> void:
 	var s := CountyData.section("spawn")
 	f.next_spawn = 1.5
-	f.next_elite = float(s.get("elite_from", 80.0))
-	f.next_lull = float(s.get("lull_every", 95.0))
+	var elite_from: float = s.get("elite_from", 80.0)
+	f.next_elite = elite_from
+	var lull_every: float = s.get("lull_every", 95.0)
+	f.next_lull = lull_every
 	f.lull_until = -1.0
 	f.spawned = 0
 	f.elites = 0
@@ -32,7 +36,7 @@ static func begin(game, f) -> void:
 
 ## The open, dry ground a body fits on that walks to the player's start
 ## (each cell's middle), worked out once for a level.
-static func spots(game) -> Array:
+static func spots(game: Game) -> Array:
 	var w: LevelData = game.world
 	# (By level only: a window shot out or a fence knocked down changes little.)
 	var key := String(game.level.id)
@@ -72,37 +76,40 @@ static func spots(game) -> Array:
 
 
 ## A whole number 0..n-1 off the game's dice.
-static func roll(game, n: int) -> int:
+static func roll(game: Game, n: int) -> int:
 	return clampi(int(game.rng.random() * n), 0, maxi(0, n - 1))
 
 
 ## Whether cell (x, y) walks to the player's start (worked out with spots()).
-static func reached(game, x: float, y: float) -> bool:
+static func reached(game: Game, x: float, y: float) -> bool:
 	spots(game)
 	var key := String(game.level.id)
-	return (_reach.get(key, {}) as Dictionary).has(Vector2i(int(x), int(y)))
+	var reach: Dictionary = _reach.get(key, {})
+	return reach.has(Vector2i(int(x), int(y)))
 
 
-static func minutes(f) -> float:
+static func minutes(f: CountyRun) -> float:
 	return f.run_time / 60.0
 
 
 ## How many county hands may be up at once now.
-static func cap(f) -> int:
+static func cap(f: CountyRun) -> int:
 	var s := CountyData.section("spawn")
-	var most := roundi(
-		float(s.get("cap_start", 12)) + float(s.get("cap_per_minute", 2.4)) * minutes(f)
-	)
-	return roundi(mini(int(s.get("cap_most", 38)), most) * _pressure(f))
+	var cap_start: float = s.get("cap_start", 12)
+	var cap_per_minute: float = s.get("cap_per_minute", 2.4)
+	var most := roundi(cap_start + cap_per_minute * minutes(f))
+	var cap_most: int = s.get("cap_most", 38)
+	return roundi(mini(cap_most, most) * _pressure(f))
 
 
 ## The map's own pressure (county.json maps "pressure"): the cap and the rate
 ## times this (the bayou's shallows slow the player, so it eases off a little).
-static func _pressure(f) -> float:
-	return float(CountyData.map(f.map_id).get("pressure", 1.0))
+static func _pressure(f: CountyRun) -> float:
+	var pressure: float = CountyData.map(f.map_id).get("pressure", 1.0)
+	return pressure
 
 
-static func alive(game) -> int:
+static func alive(game: Game) -> int:
 	var n := 0
 	for e: Enemy in game.enemies:
 		if e.hostile and e.hp > 0.0:
@@ -110,12 +117,14 @@ static func alive(game) -> int:
 	return n
 
 
-static func tick(game, f, _dt: float) -> void:
+static func tick(game: Game, f: CountyRun, _dt: float) -> void:
 	var s := CountyData.section("spawn")
 	var t: float = f.run_time
 	if t >= f.next_lull:
-		f.lull_until = t + float(s.get("lull_for", 11.0))
-		f.next_lull = t + float(s.get("lull_every", 95.0))
+		var lull_for: float = s.get("lull_for", 11.0)
+		f.lull_until = t + lull_for
+		var lull_every: float = s.get("lull_every", 95.0)
+		f.next_lull = t + lull_every
 		Modes.say(game, "A LULL. RELOAD AND GRAB THAT XP.", 2.4)
 	_keep_hunting(game, f)
 	_prune(game, f)
@@ -123,22 +132,25 @@ static func tick(game, f, _dt: float) -> void:
 		return
 	var most := roundi(cap(f) * CountyCoop.cap_scale(game))
 	if t >= f.next_elite and alive(game) < most + 2:
-		f.next_elite = t + float(s.get("elite_every", 52.0))
+		var elite_every: float = s.get("elite_every", 52.0)
+		f.next_elite = t + elite_every
 		_elite(game, f)
 	if t < f.next_spawn:
 		return
-	var every := maxf(
-		float(s.get("every_least", .42)),
-		float(s.get("every_start", 2.3)) + float(s.get("every_per_minute", -.16)) * minutes(f)
-	)
+	var every_least: float = s.get("every_least", .42)
+	var every_start: float = s.get("every_start", 2.3)
+	var every_per_minute: float = s.get("every_per_minute", -.16)
+	var every := maxf(every_least, every_start + every_per_minute * minutes(f))
 	f.next_spawn = t + every / maxf(.2, _pressure(f)) / CountyCoop.cap_scale(game)
 	var room := most - alive(game)
 	if room <= 0:
 		return
-	var group := mini(room, 1 + roll(game, maxi(1, int(s.get("group_most", 3)))))
-	var at = spot(game, f)
-	if at == null:
+	var group_most: int = s.get("group_most", 3)
+	var group := mini(room, 1 + roll(game, maxi(1, group_most)))
+	var found: Variant = spot(game, f)
+	if found == null:
 		return
+	var at: Vector2 = found
 	for k in group:
 		var kind := pick_kind(game, f)
 		var place: Vector2 = at if k == 0 else _beside(game, at, k)
@@ -146,52 +158,54 @@ static func tick(game, f, _dt: float) -> void:
 
 
 ## A kind from the map's pool, weighted, among those due by now.
-static func pick_kind(game, f) -> String:
+static func pick_kind(game: Game, f: CountyRun) -> String:
 	var pool: Array = CountyData.map(f.map_id).get("pool", [["billy", 0, 1]])
 	var due: Array = []
 	var total := 0.0
 	var m := minutes(f)
-	for row in pool:
-		if (
-			row is Array
-			and row.size() >= 3
-			and float(row[1]) <= m
-			and Enemy.DEFS.has(String(row[0]))
-		):
+	for row: Variant in pool:
+		if not row is Array:
+			continue
+		var entry: Array = row
+		if entry.size() < 3:
+			continue
+		var due_from: float = entry[1]
+		if due_from <= m and Enemy.DEFS.has(str(entry[0])):
 			# The heavier ones come on stronger as the minutes pass.
-			var weight := float(row[2]) * (1.0 + maxf(0.0, m - float(row[1])) * .06)
-			due.append([String(row[0]), weight])
+			var base_weight: float = entry[2]
+			var weight := base_weight * (1.0 + maxf(0.0, m - due_from) * .06)
+			due.append([str(entry[0]), weight])
 			total += weight
 	if due.is_empty():
 		return "billy"
 	var roll: float = game.rng.random() * total
 	for row: Array in due:
-		roll -= float(row[1])
+		var weight: float = row[1]
+		roll -= weight
 		if roll <= 0.0:
-			return String(row[0])
-	return String(due[0][0])
+			return str(row[0])
+	return str(due[0][0])
 
 
-static func _elite(game, f) -> void:
+static func _elite(game: Game, f: CountyRun) -> void:
 	var kinds: Array = CountyData.map(f.map_id).get("elites", ["big_billy"])
 	var ok: Array = []
-	for k in kinds:
-		if Enemy.DEFS.has(String(k)):
-			ok.append(String(k))
+	for k: Variant in kinds:
+		if Enemy.DEFS.has(str(k)):
+			ok.append(str(k))
 	if ok.is_empty():
 		return
-	var at = spot(game, f)
-	if at == null:
+	var found: Variant = spot(game, f)
+	if found == null:
 		return
-	var kind := String(ok[f.elites % ok.size()])
+	var at: Vector2 = found
+	var kind := str(ok[f.elites % ok.size()])
 	var e := spawn(game, f, kind, at.x, at.y, true)
 	f.elites += 1
+	var def: Dictionary = Enemy.DEFS[kind]
 	Modes.say(
 		game,
-		(
-			"ELITE COMIN': %s"
-			% String(Enemy.DEFS[kind].get("tough_title", kind.to_upper().replace("_", " ")))
-		),
+		"ELITE COMIN': %s" % str(def.get("tough_title", kind.to_upper().replace("_", " "))),
 		2.6
 	)
 	game.sound.play("whistle", .8)
@@ -200,19 +214,16 @@ static func _elite(game, f) -> void:
 
 ## A county hand comes in at (x, y), hunting the player. An elite has its
 ## health raised and drops more XP (county_orbs.gd reads `elite`).
-static func spawn(game, f, kind: String, x: float, y: float, elite: bool) -> Enemy:
+static func spawn(game: Game, f: CountyRun, kind: String, x: float, y: float, elite: bool) -> Enemy:
 	var p: Player = game.player
 	var e := Enemy.new(kind, x, y, atan2(p.y - y, p.x - x))
 	var s := CountyData.section("spawn")
 	var m := minutes(f)
-	var tough := (
-		1.0
-		+ (
-			maxf(0.0, m - float(s.get("health_from_minute", 5.0)))
-			* float(s.get("health_per_minute", .045))
-		)
-	)
-	tough = minf(float(s.get("health_most", 2.2)), tough)
+	var health_from_minute: float = s.get("health_from_minute", 5.0)
+	var health_per_minute: float = s.get("health_per_minute", .045)
+	var tough := 1.0 + maxf(0.0, m - health_from_minute) * health_per_minute
+	var health_most: float = s.get("health_most", 2.2)
+	tough = minf(health_most, tough)
 	if elite:
 		tough *= 1.6
 	tough *= CountyCoop.tough_scale(game)
@@ -233,16 +244,16 @@ static func spawn(game, f, kind: String, x: float, y: float, elite: bool) -> Ene
 ## Where the next one comes in: a spot `near`..`far` off, out of sight, that
 ## the flow field walks to the player within `steps_most`; failing that, one
 ## out of sight anywhere in the band; null when there is none.
-static func spot(game, _f) -> Variant:
+static func spot(game: Game, _f: CountyRun) -> Variant:
 	var s := CountyData.section("spawn")
 	var list := spots(game)
 	if list.is_empty():
 		return null
 	var p: Player = game.player
-	var near := float(s.get("near", 11.0))
-	var far := float(s.get("far", 26.0))
-	var most := int(s.get("steps_most", 40))
-	var fallback = null
+	var near: float = s.get("near", 11.0)
+	var far: float = s.get("far", 26.0)
+	var most: int = s.get("steps_most", 40)
+	var fallback: Variant = null
 	var w: LevelData = game.world
 	for k in TRIES:
 		# A cell in the ring round the player, then the tests.
@@ -269,14 +280,14 @@ static func spot(game, _f) -> Variant:
 
 ## A cell beside deep water (the hands' steering presses into it there).
 static func _by_deep(w: LevelData, x: float, y: float) -> bool:
-	for dy in [-1, 0, 1]:
-		for dx in [-1, 0, 1]:
+	for dy: int in [-1, 0, 1]:
+		for dx: int in [-1, 0, 1]:
 			if w.deep_at(x + dx, y + dy):
 				return true
 	return false
 
 
-static func _beside(game, at: Vector2, k: int) -> Vector2:
+static func _beside(game: Game, at: Vector2, k: int) -> Vector2:
 	for reach: float in [.9, 1.4]:
 		var a := k * 2.1 + .4
 		var x := at.x + cos(a) * reach
@@ -292,7 +303,7 @@ static func _beside(game, at: Vector2, k: int) -> Vector2:
 
 ## Every county hand stays on the hunt; one far off or stuck out of sight for
 ## a while comes back in nearer.
-static func _keep_hunting(game, f) -> void:
+static func _keep_hunting(game: Game, f: CountyRun) -> void:
 	var p: Player = game.player
 	var party := CountyCoop.party(game)
 	var after := float(CountyData.number("spawn", "recycle_after", 9.0))
@@ -318,7 +329,9 @@ static func _keep_hunting(game, f) -> void:
 		var w: Array = e.county_watch
 		if w.is_empty():
 			w = [e.x, e.y, f.run_time, f.run_time]
-		if Vector2(e.x, e.y).distance_to(Vector2(float(w[0]), float(w[1]))) > .8:
+		var watch_x: float = w[0]
+		var watch_y: float = w[1]
+		if Vector2(e.x, e.y).distance_to(Vector2(watch_x, watch_y)) > .8:
 			w[0] = e.x
 			w[1] = e.y
 			w[2] = f.run_time
@@ -326,18 +339,22 @@ static func _keep_hunting(game, f) -> void:
 			w[3] = f.run_time
 		e.county_watch = w
 		var gone := Vector2(e.x, e.y).distance_to(Vector2(p.x, p.y)) > far
-		var stuck: bool = f.run_time - float(w[2]) > after
-		var unseen: bool = f.run_time - float(w[3]) > after * .5 and not e.player_seen
+		var still_since: float = w[2]
+		var seen_at: float = w[3]
+		var stuck: bool = f.run_time - still_since > after
+		var unseen: bool = f.run_time - seen_at > after * .5 and not e.player_seen
 		# One that sees the player but has stood stuck far longer, out of its
 		# reach and out of the view (a bank of deep water between them) goes too.
+		var reach: float = Enemy.REACH.get(e.kind, 2.0)
 		var wedged: bool = (
-			f.run_time - float(w[2]) > after * 1.5
-			and Vector2(e.x - p.x, e.y - p.y).length() > float(Enemy.REACH.get(e.kind, 2.0)) + 2.0
-			and (not _ahead(p, e.x, e.y) or f.run_time - float(w[2]) > after * 2.5)
+			f.run_time - still_since > after * 1.5
+			and Vector2(e.x - p.x, e.y - p.y).length() > reach + 2.0
+			and (not _ahead(p, e.x, e.y) or f.run_time - still_since > after * 2.5)
 		)
 		if (gone or stuck) and (unseen or wedged):
-			var at = spot(game, f)
-			if at != null:
+			var found: Variant = spot(game, f)
+			if found != null:
+				var at: Vector2 = found
 				e.x = at.x
 				e.y = at.y
 				e.floor_z = game.world.elevation(at.x, at.y)
@@ -358,7 +375,7 @@ static func _ahead(p: Player, x: float, y: float) -> bool:
 
 ## Bodies past `corpses_kept` go, oldest first (a long run would otherwise
 ## carry thousands of them through every loop over the enemies).
-static func _prune(game, _f) -> void:
+static func _prune(game: Game, _f: CountyRun) -> void:
 	var kept := int(CountyData.number("spawn", "corpses_kept", 36))
 	var dead: Array = []
 	for e: Enemy in game.enemies:

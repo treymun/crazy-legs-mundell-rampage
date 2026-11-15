@@ -14,6 +14,8 @@
 class_name CountyCoop
 extends RefCounted
 
+const CountyRun := preload("res://src/features/county_run.gd")
+
 ## The spawner's cap and rate, and each hand's health, a player past the first.
 static var CAP_PER: float = ModeData.get_value("county_coop", "cap_per", .5)
 static var TOUGH_PER: float = ModeData.get_value("county_coop", "tough_per", .35)
@@ -24,12 +26,12 @@ static var RESPAWN_HEALTH: int = ModeData.get_value("county_coop", "respawn_heal
 static var MOST: int = ModeData.get_value("county_coop", "most", 4)
 
 
-static func party(game) -> bool:
+static func party(game: Game) -> bool:
 	return game.players.size() > 1
 
 
 ## The first player up by slot (null: nobody): they pick the cards.
-static func leader(game) -> Player:
+static func leader(game: Game) -> Player:
 	for p: Player in game.players:
 		if p.health > 0:
 			return p
@@ -37,16 +39,16 @@ static func leader(game) -> Player:
 
 
 ## The horde's size and toughness for the party.
-static func cap_scale(game) -> float:
+static func cap_scale(game: Game) -> float:
 	return 1.0 + CAP_PER * (game.players.size() - 1)
 
 
-static func tough_scale(game) -> float:
+static func tough_scale(game: Game) -> float:
 	return 1.0 + TOUGH_PER * (game.players.size() - 1)
 
 
 ## A tick of a party's run (CountyMode.step's, with more than one player).
-static func step(game, f, dt: float) -> void:
+static func step(game: Game, f: CountyRun, dt: float) -> void:
 	var up: Array = []
 	for p: Player in game.players:
 		if p.health > 0:
@@ -68,7 +70,7 @@ static func step(game, f, dt: float) -> void:
 
 ## Downed players: revived by a partner holding USE beside them, or back
 ## beside a partner after a while.
-static func _downs(game, f, dt: float) -> void:
+static func _downs(game: Game, f: CountyRun, dt: float) -> void:
 	for p: Player in game.players:
 		if p.health > 0:
 			if p.down_at >= 0.0:
@@ -99,7 +101,7 @@ static func _downs(game, f, dt: float) -> void:
 ## Everyone's armory holds the party's slots: a gun the party took comes in
 ## loaded with its starting rounds, a gun let go leaves, and the card's own
 ## rounds or health reach every partner (`c`, the card taken; {} at the start).
-static func share(game, f, c: Dictionary, taker: Player) -> void:
+static func share(game: Game, f: CountyRun, c: Dictionary, taker: Player) -> void:
 	var own: bool = game.own_step
 	var acting: Player = game.player
 	for q: Player in game.players:
@@ -116,26 +118,26 @@ static func share(game, f, c: Dictionary, taker: Player) -> void:
 				a.loaded[gun] = 0
 				a.reserve[gun] = 0
 		if not a.owned[a.active]:
-			var first := (
-				int(CountyBuild.carried(f)[0]) if not CountyBuild.carried(f).is_empty() else 0
-			)
+			var first := 0
+			if not CountyBuild.carried(f).is_empty():
+				first = CountyBuild.carried(f)[0]
 			a.active = first
 			a.select(first, game)
-		var id := String(c.get("id", ""))
-		match String(c.get("type", "")):
+		var id := str(c.get("id", ""))
+		match str(c.get("type", "")):
 			"upgrade":
 				if id == "field_magazine" or id == "big_pouch":
-					CountyBuild.give_ammo(
-						game, f, int(c["gun"]), CountyBuild.reserve_cap(f, int(c["gun"]))
-					)
+					var card_gun: int = c["gun"]
+					CountyBuild.give_ammo(game, f, card_gun, CountyBuild.reserve_cap(f, card_gun))
 			"perk":
 				var spec := CountyData.perk(id)
 				if id == "patch_up":
-					q.health = mini(100, q.health + int(spec.get("per", 40)))
+					var heal: int = spec.get("per", 40)
+					q.health = mini(100, q.health + heal)
 				elif id == "supply_grab":
 					var target := CountyBuild.supply_target(game, f)
 					if target >= 0:
-						var share_of := float(spec.get("per", .6))
+						var share_of: float = spec.get("per", .6)
 						CountyBuild.give_ammo(
 							game, f, target, roundi(CountyBuild.reserve_cap(f, target) * share_of)
 						)
@@ -156,7 +158,7 @@ static func encode(index: int, slot := -1) -> int:
 
 ## Before a held tick (CountyMode.hold_controls): the leader's card, if
 ## their controls carry one.
-static func picks(game, f, by_slot: Array) -> void:
+static func picks(game: Game, f: CountyRun, by_slot: Array) -> void:
 	if f.pending.is_empty() or f.over:
 		return
 	var who := leader(game)

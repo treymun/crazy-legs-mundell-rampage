@@ -8,6 +8,8 @@
 class_name ModeScreens
 extends RefCounted
 
+const ModeFeature := preload("res://src/features/mode_feature.gd")
+
 const HEADINGS := ["_front", "_quarter", "_side", "_away", "_back"]
 const RED := Color8(238, 89, 52)
 const GREEN := Color8(120, 210, 90)
@@ -15,7 +17,7 @@ const PLATE := Color8(30, 21, 17)
 
 
 ## The other players' pictures for this frame (pooled sprites).
-static func sprites(game) -> Array:
+static func sprites(game: Game) -> Array:
 	var out: Array = []
 	var me: Player = game.local_player
 	for q: Player in game.players:
@@ -33,9 +35,10 @@ static func sprites(game) -> Array:
 		if Modes.is_tactical(game):
 			image = game.art.tinted_art(base, TacticalScreens.tint_for(game, q))
 		elif q.slot != 0:
-			image = game.art.tinted_art(base, Modes.TINTS[q.slot % Modes.TINTS.size()])
+			var tint: Array = Modes.TINTS[q.slot % Modes.TINTS.size()]
+			image = game.art.tinted_art(base, tint)
 		var floor_z: float = game.world.stand(q)
-		var spr = game.pooled(q.x, q.y, image, 1.02 if q.health > 0 else .5, floor_z + q.air)
+		var spr := game.pooled(q.x, q.y, image, 1.02 if q.health > 0 else .5, floor_z + q.air)
 		spr.flip = relative < 0.0 and direction < 4
 		spr.body = true
 		out.append(spr)
@@ -44,7 +47,7 @@ static func sprites(game) -> Array:
 
 ## Over the view, under the gun: each partner's tag and health, the revive
 ## prompt, versus's frags and clock.
-static func draw_view(c: Canvas, game, st) -> void:
+static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 	var me: Player = game.local_player
 	for q: Player in game.players:
 		if q != me:
@@ -55,18 +58,23 @@ static func draw_view(c: Canvas, game, st) -> void:
 			HUD.text(c, "REVIVING " + Modes.tag(down), 12, 116, "mini", GREEN)
 			_bar(c, 12, 125, 60, down.revive / CoopMode.REVIVE_TIME, GREEN)
 	if Modes.rules_for(String(st.mode)).versus() and not bool(st.match_over):
-		var left := maxi(0, int(ceil(float(st.time_limit) - game.clock)))
-		var rules = Modes.rules_for(String(st.mode))
+		var left := maxi(0, ceili(float(st.time_limit) - game.clock))
+		var rules := Modes.rules_for(String(st.mode))
+		var lead := 0
+		if rules is TacticalMode:
+			lead = (rules as TacticalMode).leader_score(game)
+		else:
+			lead = (rules as DeathmatchMode).leader_score(game)
 		var text := (
 			"FRAGS %d  LEAD %d/%d  %d:%02d"
-			% [me.frags, rules.leader_score(game), int(st.frag_limit), left / 60, left % 60]
+			% [me.frags, lead, int(st.frag_limit), left / 60, left % 60]
 		)
 		HUD.text(c, text, 316, 12, "mini", HUD.AMBER, false, true, true)
 
 
 ## The use prompt over a partner down beside this machine's player (co-op;
 ## game_world.gd use_prompt shows it where the other prompts go), or "".
-static func revive_prompt(game) -> String:
+static func revive_prompt(game: Game) -> String:
 	var me: Player = game.local_player
 	if me.health <= 0 or Modes.mode_of(game) != Modes.COOP:
 		return ""
@@ -78,7 +86,7 @@ static func revive_prompt(game) -> String:
 
 ## One partner's tag and health bar over their head, or at the view's edge
 ## (with an arrow) when they are behind or out of sight.
-static func _tag(c: Canvas, game, me: Player, q: Player) -> void:
+static func _tag(c: Canvas, game: Game, me: Player, q: Player) -> void:
 	var head: float = game.world.stand(q) + q.air + (1.14 if q.health > 0 else .6)
 	var at: Vector3 = game.to_canvas(q.x, q.y, head)
 	var seen: bool = (
@@ -116,8 +124,8 @@ static func _bar(c: Canvas, x: int, y: int, w: int, part: float, tone: Color) ->
 
 ## This machine's player is down but the game goes on (a partner is up, or a
 ## respawn is coming): what happened and what comes next.
-static func draw_down(c: Canvas, game) -> void:
-	var st = Modes.feature(game)
+static func draw_down(c: Canvas, game: Game) -> void:
+	var st := Modes.feature(game)
 	var me: Player = game.local_player
 	var mode := Modes.mode_of(game)
 	if Modes.TACTICAL.has(mode):
@@ -127,7 +135,7 @@ static func draw_down(c: Canvas, game) -> void:
 	var since: float = game.clock - me.down_at if me.down_at >= 0.0 else 0.0
 	if mode == Modes.COOP:
 		HUD.text(c, "YOU'RE DOWN", 160, 58, "heading", HUD.INK, true)
-		var back := maxi(0, int(ceil(CoopMode.RESPAWN_AFTER - since)))
+		var back := maxi(0, ceili(CoopMode.RESPAWN_AFTER - since))
 		var line := "A PARTNER CAN HOLD %s OVER YOU" % game.use_key
 		if me.revive > 0.0:
 			line = "YOUR PARTNER IS GETTING YOU UP"
@@ -141,7 +149,7 @@ static func draw_down(c: Canvas, game) -> void:
 	if by >= 0 and by != me.slot and by < game.players.size():
 		heading = "FRAGGED BY " + Modes.tag(game.players[by])
 	HUD.text(c, heading, 160, 58, "heading", HUD.INK, true)
-	var back := maxi(0, int(ceil(DeathmatchMode.RESPAWN_DELAY - since)))
+	var back := maxi(0, ceili(DeathmatchMode.RESPAWN_DELAY - since))
 	HUD.text(c, "BACK IN %d" % back, 160, 78, "body", HUD.AMBER, true)
 	if st != null:
 		HUD.text(c, "FRAGS %d  DEATHS %d" % [me.frags, me.deaths], 160, 89, "body", HUD.INK, true)
@@ -149,21 +157,26 @@ static func draw_down(c: Canvas, game) -> void:
 
 ## The versus results, in the chapter tally's county-fair look: true when it
 ## drew them (hud.gd intermission asks first).
-static func results(c: Canvas, game) -> bool:
-	var st = Modes.feature(game)
+static func results(c: Canvas, game: Game) -> bool:
+	var st := Modes.feature(game)
 	if st == null or not bool(st.match_over):
 		return false
-	var rules = Modes.rules_for(String(st.mode))
+	var rules := Modes.rules_for(String(st.mode))
 	if not rules.versus():
 		return false
 	if Modes.TACTICAL.has(String(st.mode)):
 		TacticalScreens.results(c, game, st)
 		return true
+	# The other versus modes: deathmatch and team deathmatch.
+	var match_rules := rules as DeathmatchMode
 	var art: Dictionary = game.art.art("title_backdrop")
-	c.blit_rgba(art["data"], art["w"], art["h"], 0, 0, "art|title_backdrop")
+	var art_data: PackedByteArray = art["data"]
+	var art_w: int = art["w"]
+	var art_h: int = art["h"]
+	c.blit_rgba(art_data, art_w, art_h, 0, 0, "art|title_backdrop")
 	HUD.panel(c, 10, 9, 211, 177)
 	HUD.text(c, "COUNTY FAIR", 21, 20, "heading", HUD.AMBER)
-	HUD.text(c, rules.title(), 21, 38, "heading", HUD.AMBER)
+	HUD.text(c, match_rules.title(), 21, 38, "heading", HUD.AMBER)
 	var place: String = game.level.title if game.level.title != "" else game.level.id.to_upper()
 	var minutes := int(st.over_clock) / 60
 	var seconds := int(st.over_clock) % 60
@@ -173,8 +186,10 @@ static func results(c: Canvas, game) -> bool:
 	HUD.text(c, "DEATHS", 202, 76, "mini", HUD.DIM, false, true, true)
 	var rows: Array = rules.scores(game, st)
 	if String(st.mode) == Modes.TEAM:
+		var team_rules := rules as TeamDeathmatchMode
 		var named := [
-			["RED", rules.team_score(game, 0), -1, -1], ["BLUE", rules.team_score(game, 1), -1, -1]
+			["RED", team_rules.team_score(game, 0), -1, -1],
+			["BLUE", team_rules.team_score(game, 1), -1, -1]
 		]
 		rows = named + rows
 	# The 5v5 modes list twelve rows: two teams and ten players, packed tighter.
@@ -185,17 +200,18 @@ static func results(c: Canvas, game) -> bool:
 		var row: Array = rows[i]
 		var y := 84 + i * step
 		c.fill_rect(21, y, 187, step - 1, PLATE)
-		var slot := int(row[3])
+		var slot: int = row[3]
 		var tone: Color = Modes.COLORS[slot % Modes.COLORS.size()] if slot >= 0 else HUD.AMBER
-		var name := String(row[0])
+		var name := str(row[0])
 		if slot >= 0 and slot == game.local_player.slot:
 			name += "  (YOU)"
 		var lift := 1 if many else 2
 		HUD.text(c, name, 26, y + lift, style, tone)
 		HUD.text(c, str(row[1]), 168, y + lift, style, HUD.AMBER, false, true, true)
-		if int(row[2]) >= 0:
+		var deaths: int = row[2]
+		if deaths >= 0:
 			HUD.text(c, str(row[2]), 202, y + lift, style, HUD.INK, false, true, true)
-	_ribbon(c, rules.winner(game))
+	_ribbon(c, match_rules.winner(game))
 	HUD.text(c, "ENTER  ANOTHER ROUND  /  ESC TITLE", 22, 172, "body", HUD.INK)
 	return true
 
@@ -210,6 +226,6 @@ static func _ribbon(c: Canvas, word: String) -> void:
 	c.fill_rect(230, 87, 80, 1, gold)
 	HUD.text(c, "WINNER" if word != "TIE" else "DEAD EVEN", 270, 61, "mini", gold, true)
 	HUD.text(c, word, 270, 72, "body", HUD.INK, true)
-	for x in [248, 288]:
+	for x: int in [248, 288]:
 		c.fill_rect(x, 90, 8, 14, blue)
 		c.fill_rect(x + 2, 104, 4, 3, blue)
