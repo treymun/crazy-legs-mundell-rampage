@@ -195,7 +195,7 @@ func frame(game: Game) -> void:
 	var listed: Array = view["sprites"]
 	for item: Variant in listed:
 		var s: View.Sprite = item if item is View.Sprite else null
-		if s != null and not cels and s.who is Enemy and actors.kind_of(s.who as Enemy) != "":
+		if s != null and not cels and s.who is Enemy and actors.takes(s, s.who as Enemy):
 			acting.append(s)
 		elif s != null and props.models.name_of(s.image) != "":
 			modelled.append(s)

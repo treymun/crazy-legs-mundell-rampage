@@ -22,6 +22,21 @@ func kind_of(e: Enemy) -> String:
 	return stem if models.has(stem) else ""
 
 
+## Whether enemy `e`'s sprite `s` is drawn as its model. A kind whose body at
+## rest is a build of its own that the model's parts cannot make (fit.json
+## "down_cel": the derby champ's burnt-out wreck, the swamp king's sunk boat)
+## keeps its cel for that.
+func takes(s: View.Sprite, e: Enemy) -> bool:
+	var kind := kind_of(e)
+	if kind == "":
+		return false
+	var info: Dictionary = models.kinds[kind]
+	var own_cel: bool = info.get("down_cel", false)
+	if own_cel and ActorView.pose_of(s.image, Variants.stem(e.kind))[0] == "down":
+		return false
+	return true
+
+
 ## Show these sprites (each an enemy's, with a model) and no others. Returns
 ## the materials first used this frame (the view hands them its numbers).
 func show_actors(

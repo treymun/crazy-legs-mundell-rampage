@@ -180,10 +180,13 @@ Each enemy and boss with a model shows as an `ActorView` scene
   models were 5 to 30% darker than their cels, measured old against new on a
   dry dusk tour; the bake's light and crease shade), `scale` sizes it (the
   derby champ .85: his truck's near end comes much closer to the eye than
-  the billboard cel through its middle did), and `min_px` (the crawler, 1)
+  the billboard cel through its middle did), and `min_px` (the crawler, 1.5)
   pushes every surface out along its normal by half that many of the view's
   pixels at its distance (nothing up close), so thin legs keep about a pixel
-  at range as the cel's lines did.
+  at range as the cel's lines did. `down_cel` keeps the old cel for the body
+  at rest where that is a build of its own the model's parts cannot make
+  (the derby champ's burnt-out wreck, the swamp king's sunk boat, the Maw):
+  `ActorLayer3D.takes()`.
 - Bodies that are not enemies can wear a model through a stand-in Enemy that
   only the view reads: the 5v5 players and hostages (`ModeBodies`,
   [modes.md](modes.md#rounds)). Co-op and deathmatch partners are still the
