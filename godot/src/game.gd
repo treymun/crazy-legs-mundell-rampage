@@ -6,9 +6,14 @@
 class_name Game
 extends GameView
 
+## The mode feature's script (it has no class_name), to type features["mode"].
+const ModeFeatureScript := preload("res://src/features/mode_feature.gd")
+
 
 ## `p_host`: an authoritative host's game (game_host.gd), with no presentation.
-func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host := false) -> void:
+func _init(
+	p_art: Assets, p_hud: HUD, p_sound: Variant, level_id := "hickston", p_host := false
+) -> void:
 	host = p_host
 	gore_fx = Gore.new(self)
 	art = p_art
@@ -31,14 +36,15 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 
 	for i in level.enemies.size():
 		var spec: Dictionary = level.enemies[i]
-		enemy_ids.append(String(spec["id"]))
-		var foe := Enemy.new(
-			String(spec["kind"]), float(spec["x"]), float(spec["y"]), fmod(i * 2.3, TAU)
-		)
+		enemy_ids.append(str(spec["id"]))
+		var spec_x: float = spec["x"]
+		var spec_y: float = spec["y"]
+		var foe := Enemy.new(str(spec["kind"]), spec_x, spec_y, fmod(i * 2.3, TAU))
 		foe.uid = take_uid()
 		foe.flank = .42 if i % 2 else -.42
 		if level.geo != null:
-			foe.floor_z = level.floor_under(foe.x, foe.y, float(spec.get("z", 0.0)) + .05)
+			var spec_z: float = spec.get("z", 0.0)
+			foe.floor_z = level.floor_under(foe.x, foe.y, spec_z + .05)
 		enemies.append(foe)
 	var held := Triggers.held_back(level)
 	for i in enemies.size():
@@ -54,10 +60,12 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 	var by_id := {}
 	for i in enemy_ids.size():
 		by_id[enemy_ids[i]] = enemies[i]
-	for pair in level.partners:
-		if by_id.has(String(pair[0])) and by_id.has(String(pair[1])):
-			partners[by_id[pair[0]].get_instance_id()] = [by_id[pair[1]], int(pair[2])]
-	for key in level.patrols:
+	for pair: Array in level.partners:
+		if by_id.has(str(pair[0])) and by_id.has(str(pair[1])):
+			var lead: Enemy = by_id[pair[0]]
+			var pair_n: int = pair[2]
+			partners[lead.get_instance_id()] = [by_id[pair[1]], pair_n]
+	for key: int in level.patrols:
 		var index := int(key)
 		if index < 0 or index >= enemies.size():
 			continue
@@ -66,8 +74,11 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 		enemy.route = route
 		enemy.patrol_pause = .32 + fmod(index * .73, 1.85)
 		if not route.is_empty():
-			enemy.angle = atan2(float(route[0][1]) - enemy.y, float(route[0][0]) - enemy.x)
-	for index in level.reinforcements:
+			var first: Array = route[0]
+			var first_x: float = first[0]
+			var first_y: float = first[1]
+			enemy.angle = atan2(first_y - enemy.y, first_x - enemy.x)
+	for index: int in level.reinforcements:
 		if int(index) >= 0 and int(index) < enemies.size():
 			wave.append(enemies[int(index)])
 	for enemy: Enemy in wave:
@@ -90,33 +101,36 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 		if jerry != null:
 			jerry.dormant = true
 
-	for spec in level.props:
-		var name := String(spec[0])
-		var x := float(spec[1])
-		var y := float(spec[2])
+	for spec: Array in level.props:
+		var name := str(spec[0])
+		var x: float = spec[1]
+		var y: float = spec[2]
 		var idx := int(y) * level.width + int(x)
 		var z := world.elevation(x, y)
 		if name == "lamp":
 			z = level.roof[idx] - .25
+		var prop_height: float = PROP_HEIGHTS[name]
 		var spr := View.Sprite.new(
-			x,
-			y,
-			"prop_" + name + ("_0" if name == "windmill" else ""),
-			float(PROP_HEIGHTS[name]),
-			z
+			x, y, "prop_" + name + ("_0" if name == "windmill" else ""), prop_height, z
 		)
 		spr.glow = name == "lamp"
 		if name == "roadsign" or name == "bleacher_sign":
 			spr.plane = 0.0
 		props.append(spr)
 
-	for spec in level.pickups:
-		var name := String(spec[0])
-		var lift := float(spec[3]) if spec.size() > 3 else NAN
-		add_pickup(String(ALIAS.get(name, name)), float(spec[1]), float(spec[2]), lift)
+	for spec: Array in level.pickups:
+		var name := str(spec[0])
+		var lift := NAN
+		if spec.size() > 3:
+			lift = spec[3]
+		var pick_x: float = spec[1]
+		var pick_y: float = spec[2]
+		add_pickup(str(ALIAS.get(name, name)), pick_x, pick_y, lift)
 
-	for point in level.fuel_drums:
-		drums[Vector2(float(point[0]), float(point[1]))] = 18
+	for point: Array in level.fuel_drums:
+		var drum_x: float = point[0]
+		var drum_y: float = point[1]
+		drums[Vector2(drum_x, drum_y)] = 18
 
 	for door: LevelData.Door in level.doors:
 		if door.secret:
@@ -151,11 +165,11 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 ## `controls` is one Controls for the local player (anyone else stands idle)
 ## or a Dictionary of slot -> Controls (src/players.gd). With one player this
 ## is the game as it always was, step for step and die for die.
-func tick(dt: float, controls) -> void:
+func tick(dt: float, controls: Variant) -> void:
 	var by_slot := Players.controls_by_slot(self, controls, _idle)
 	if players.size() > 1:
 		# The mode's say over what each player may do this tick (src/modes/).
-		var mst = features.get("mode")
+		var mst: ModeFeatureScript = features.get("mode")
 		if mst != null and mst.mode != Modes.CAMPAIGN:
 			by_slot = mst.rules().hold_controls(self, mst, by_slot)
 	var mine: Controls = by_slot[local_player.slot]
@@ -198,7 +212,8 @@ func tick(dt: float, controls) -> void:
 	for q: Player in players:
 		if q.health > 0:
 			focus(q, true)
-			_step_body(q, by_slot[q.slot], dt)
+			var body_controls: Controls = by_slot[q.slot]
+			_step_body(q, body_controls, dt)
 	body_cells_on = false
 	focus(local_player)
 	if in_hub:
@@ -214,11 +229,12 @@ func tick(dt: float, controls) -> void:
 	for q: Player in players:
 		if q.health > 0:
 			focus(q, true)
-			var back: int = by_slot[q.slot].rewind
+			var hand_controls: Controls = by_slot[q.slot]
+			var back: int = hand_controls.rewind
 			if back > 0 and players.size() > 1:
-				_rewound_hands(q, by_slot[q.slot], dt, back)
+				_rewound_hands(q, hand_controls, dt, back)
 			else:
-				_step_hands(q, by_slot[q.slot], dt)
+				_step_hands(q, hand_controls, dt)
 	focus(local_player)
 	sound.set_fuse(armory.fuse != 0.0)
 	sound.set_tool(
@@ -239,7 +255,7 @@ func tick(dt: float, controls) -> void:
 		for q: Player in players:
 			q.flow_due = q.health > 0
 	dangers.clear()
-	for shot in shots:
+	for shot: Shot in shots:
 		if shot.kind == "tnt":
 			# The player's, or one a hand lobbed to flush them out (squad.gd).
 			dangers.append(Vector3(shot.x, shot.y, 3.1))
@@ -299,7 +315,8 @@ func _bucket_bodies() -> void:
 		if enemy.hostile and enemy.alive:
 			var key := Vector2i(floori(enemy.x), floori(enemy.y))
 			if body_cells.has(key):
-				body_cells[key].append(enemy)
+				var cell_bodies: Array = body_cells[key]
+				cell_bodies.append(enemy)
 			else:
 				body_cells[key] = [enemy]
 	body_cells_on = true
@@ -315,7 +332,7 @@ func name_new() -> void:
 		if enemy.uid == 0:
 			enemy.uid = take_uid()
 	_named_enemies = enemies.size()
-	for shot in shots:
+	for shot: Shot in shots:
 		if shot.uid == 0:
 			shot.uid = take_uid()
 
@@ -439,17 +456,17 @@ func _surroundings(p: Player, roof: float) -> void:
 		if not art.has_cue("amb_" + ambience):
 			# Until the bayou's own beds are made: the plain yard and room.
 			ambience = ""
-	var recovery = level.recovery_room
+	var recovery: Variant = level.recovery_room
 	if recovery != null and ambience != "quarry_after" and ambience != "fair_after":
-		if (
-			float(recovery[0]) <= p.x
-			and p.x <= float(recovery[2])
-			and float(recovery[1]) <= p.y
-			and p.y <= float(recovery[3])
-		):
-			ambience = String(recovery[4])
+		var rec: Array = recovery
+		var rec_x0: float = rec[0]
+		var rec_y0: float = rec[1]
+		var rec_x1: float = rec[2]
+		var rec_y1: float = rec[3]
+		if rec_x0 <= p.x and p.x <= rec_x1 and rec_y0 <= p.y and p.y <= rec_y1:
+			ambience = str(rec[4])
 	var room: String = ambience
-	var area_sound := String(level.area_sounds.get(area, ""))
+	var area_sound := str(level.area_sounds.get(area, ""))
 	if room == "":
 		room = area_sound if area_sound != "" else "room" if roof != 0.0 else "yard"
 	sound.set_room(room)
@@ -471,12 +488,17 @@ func _surroundings(p: Player, roof: float) -> void:
 		for device: Array in level.devices:
 			if device[0] == "jukebox":
 				radio = device
+		var radio_x := 0.0
+		var radio_y := 0.0
+		if jukebox_on and not radio.is_empty():
+			radio_x = radio[1]
+			radio_y = radio[2]
 		if (
 			jukebox_on
 			and not radio.is_empty()
-			and Vector2(p.x - float(radio[1]), p.y - float(radio[2])).length() < 11.0
+			and Vector2(p.x - radio_x, p.y - radio_y).length() < 11.0
 		):
-			var place := sound_position(float(radio[1]), float(radio[2]), .60)
+			var place := sound_position(radio_x, radio_y, .60)
 			sound.set_radio(true, place.x, place.y)
 		else:
 			sound.set_radio(false)
@@ -486,10 +508,10 @@ func _surroundings(p: Player, roof: float) -> void:
 	if clock >= amb_clock:
 		amb_clock = clock + 5.9
 		if not world.distant_cues.is_empty():
-			for cue_row in world.distant_cues:
+			for cue_row: Array in world.distant_cues:
 				var cx: float = cue_row[0]
 				var cy: float = cue_row[1]
-				var cue := String(cue_row[2])
+				var cue := str(cue_row[2])
 				if sqrt((p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy)) >= 10.0:
 					continue
 				if (
@@ -516,7 +538,7 @@ func _surroundings(p: Player, roof: float) -> void:
 					message("PA: WINNERS MUST FEED THEIR PRIZES.", 3.5)
 				sound_at(cue, cx, cy, .55)
 		elif level.area_cues.has(area) and roof == 0.0:
-			sound.play(String(level.area_cues[area]), .24, .7 if int(clock) % 2 else -.64)
+			sound.play(str(level.area_cues[area]), .24, .7 if int(clock) % 2 else -.64)
 
 
 ## Rooms that open their secret door once the player walks in.
@@ -525,7 +547,11 @@ func _discover(p: Player) -> void:
 	var iy := int(p.y)
 	for point: Vector2i in world.discovery_rooms:
 		var span: Array = world.discovery_rooms[point]
-		if int(span[0]) <= ix and ix <= int(span[2]) and int(span[1]) <= iy and iy <= int(span[3]):
+		var span_x0: int = span[0]
+		var span_y0: int = span[1]
+		var span_x1: int = span[2]
+		var span_y1: int = span[3]
+		if span_x0 <= ix and ix <= span_x1 and span_y0 <= iy and iy <= span_y1:
 			for door: LevelData.Door in world.doors:
 				if door.x == point.x and door.y == point.y:
 					if not door.discovered:
@@ -587,7 +613,7 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 	if controls.reload:
 		armory.start_reload(self)
 	if controls.buy >= 0:
-		var mode_state = features.get("mode")
+		var mode_state: ModeFeatureScript = features.get("mode")
 		if mode_state != null and mode_state.mode != Modes.CAMPAIGN:
 			mode_state.rules().buy(self, mode_state, p, controls.buy)
 	if controls.item >= 0:
@@ -598,23 +624,26 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 	p.holding = controls.use or controls.hold
 	# reaches_pickup()'s first test written out: most ticks nothing is near.
 	var near := false
-	for entry in pickups:
-		var gx: float = float(entry[1]) - p.x
-		var gy: float = float(entry[2]) - p.y
+	for entry: Array in pickups:
+		var entry_x: float = entry[1]
+		var entry_y: float = entry[2]
+		var gx: float = entry_x - p.x
+		var gy: float = entry_y - p.y
 		if gx * gx + gy * gy < .62 * .62:
 			near = true
 			break
 	if near:
 		var remaining: Array = []
-		for entry in pickups:
-			if not reaches_pickup(entry) or not collect(String(entry[0])):
+		for entry: Array in pickups:
+			if not reaches_pickup(entry) or not collect(str(entry[0])):
 				remaining.append(entry)
 		pickups = remaining
 	armory.tick(dt, self)
 	# A scoped gun's ALT FIRE puts the scope up and down instead of firing;
 	# a reload or another gun takes it down.
 	var alt: bool = controls.alt_fire
-	if Weapons.FIRING[armory.active].has("scope"):
+	var firing: Dictionary = Weapons.FIRING[armory.active]
+	if firing.has("scope"):
 		if alt and not p.alt_held and armory.reload <= 0.0:
 			p.scoped = not p.scoped
 		if armory.reload > 0.0 or armory.switch > 0.0:

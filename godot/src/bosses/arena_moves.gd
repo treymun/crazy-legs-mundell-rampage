@@ -5,6 +5,8 @@
 ## their weak spots. State lives on the enemy (set_meta), as BossMoves asks.
 extends BossMoves
 
+const BossArenaFeature := preload("res://src/features/boss_arena.gd")
+
 ## How much longer it shrugs off another stagger once it is plum desperate:
 ## the last of its health goes at the player, not on its heels.
 static var DESPERATE_REST: float = BossData.get_value("arena_moves", "desperate_rest")
@@ -26,12 +28,12 @@ func guarded(e: Enemy, times: float) -> float:
 
 
 ## The arena feature, or null.
-func arena(game):
+func arena(game: Game) -> BossArenaFeature:
 	return game.features.get("boss_arena")
 
 
 ## Its fight is on: alive, awake, not held back, the world not frozen.
-func fighting(e: Enemy, game) -> bool:
+func fighting(e: Enemy, game: Game) -> bool:
 	return e.alive and e.alerted and not e.dormant and game.boss_hold <= 0.0
 
 
@@ -41,30 +43,30 @@ func off_facing(e: Enemy, from: Vector2) -> float:
 
 
 ## Where on its body a hit struck, 0 at its feet and 1 at the top of its head.
-func body_height(e: Enemy, game, hit: Vector3) -> float:
+func body_height(e: Enemy, game: Game, hit: Vector3) -> float:
 	var feet: float = game.world.stand(e) + e.z
 	return (hit.z - feet) / maxf(.1, e.height * e.variant)
 
 
 ## The name of its own wind-up under way ("" for none).
 func own(e: Enemy) -> String:
-	return String(e.get_meta("own", ""))
+	return str(e.get_meta("own", ""))
 
 
 ## Start a wind-up of its own: `secs` in its aim pose, then act(e, game, name).
 ## `mark` is where the shared ring closes in (null: none).
-func begin_own(e: Enemy, game, name: String, secs: float, mark = null) -> void:
+func begin_own(e: Enemy, game: Game, name: String, secs: float, mark: Variant = null) -> void:
 	e.set_meta("own", name)
 	e.windup = secs
 	e.aim_mark = mark
-	var p = game.player
+	var p: Player = game.player
 	e.angle = atan2(p.y - e.y, p.x - e.x)
 	e.face_left = cos(e.angle) < -.24
 
 
 ## Its own wind-up's tick: true while it holds the boss (the brain waits). A
 ## stun or a stagger (which zeroes the wind-up) calls it off.
-func run_own(e: Enemy, game, dt: float) -> bool:
+func run_own(e: Enemy, game: Game, dt: float) -> bool:
 	var name := own(e)
 	if name == "":
 		return false
@@ -83,7 +85,7 @@ func run_own(e: Enemy, game, dt: float) -> bool:
 
 
 ## What its own wind-up does when it runs out (each boss its own).
-func act(_e: Enemy, _game, _name: String) -> void:
+func act(_e: Enemy, _game: Game, _name: String) -> void:
 	pass
 
 
@@ -93,19 +95,20 @@ func ready(e: Enemy) -> bool:
 
 
 ## A timer kept on the boss: true once the clock passes it (unset: never).
-func due(e: Enemy, game, key: String) -> bool:
-	return game.clock >= float(e.get_meta(key, INF))
+func due(e: Enemy, game: Game, key: String) -> bool:
+	var at: float = e.get_meta(key, INF)
+	return game.clock >= at
 
 
 ## The player seen from the boss, eye to eye.
-func sees_player(e: Enemy, game) -> bool:
-	var p = game.player
+func sees_player(e: Enemy, game: Game) -> bool:
+	var p: Player = game.player
 	var eye: float = game.world.stand(e) + minf(.92, e.height * .72)
 	return game.world.visible(e.x, e.y, p.x, p.y, eye, p.eye)
 
 
 ## Say something once a fight (the meta key remembers).
-func say_once(e: Enemy, game, key: String, text: String, secs := 2.4) -> void:
+func say_once(e: Enemy, game: Game, key: String, text: String, secs := 2.4) -> void:
 	if e.has_meta(key):
 		return
 	e.set_meta(key, true)
@@ -113,7 +116,9 @@ func say_once(e: Enemy, game, key: String, text: String, secs := 2.4) -> void:
 
 
 ## Lane marks along a bearing from (x, y), `length` long (a charge, a cut).
-func lane_marks(game, x: float, y: float, bearing: float, length: float, width := .3) -> Array:
+func lane_marks(
+	game: Game, x: float, y: float, bearing: float, length: float, width := .3
+) -> Array:
 	var out: Array = []
 	var w: LevelData = game.world
 	var reach := 0.0

@@ -26,11 +26,11 @@ static var FINALE_SHOTS: int = BossData.get_value("rudy", "finale_shots")
 static var BALLOONS_EVERY: int = BossData.get_value("rudy", "balloons_every")
 
 
-func fight_start(e: Enemy, _game) -> void:
+func fight_start(e: Enemy, _game: Game) -> void:
 	e.set_meta("balloons_after", e.attacks + BALLOONS_EVERY)
 
 
-func phase_changed(e: Enemy, game, phase: int) -> void:
+func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 2:
 		e.set_meta("stack_at", game.clock + 2.0)
 	elif phase == 3:
@@ -40,10 +40,10 @@ func phase_changed(e: Enemy, game, phase: int) -> void:
 		game.sound.play("crowd_cheer", .8)
 
 
-func tick(e: Enemy, dt: float, game) -> bool:
+func tick(e: Enemy, dt: float, game: Game) -> bool:
 	if not fighting(e, game):
 		return false
-	var f = arena(game)
+	var f: BossArenaFeature = arena(game)
 	if f != null and e.boss_phase >= 2:
 		_stacks(e, game, f)
 		if e.boss_phase >= 3:
@@ -63,25 +63,22 @@ func tick(e: Enemy, dt: float, game) -> bool:
 		game.sound_at("rudy_warn", e.x, e.y, 1.0)
 		say_once(e, game, "finale_told", "HE'S BLOWIN' EVERY WHICH WAY! FIND THE GAP!")
 		return true
-	if (
-		hog_wild(game)
-		and e.boss_phase >= 2
-		and e.attacks >= int(e.get_meta("balloons_after", 1 << 30))
-	):
+	var balloons_after: int = e.get_meta("balloons_after", 1 << 30)
+	if hog_wild(game) and e.boss_phase >= 2 and e.attacks >= balloons_after:
 		e.set_meta("balloons_after", e.attacks + BALLOONS_EVERY)
 		begin_own(e, game, "balloons", .5)
 		return true
 	return false
 
 
-func act(e: Enemy, game, name: String) -> void:
+func act(e: Enemy, game: Game, name: String) -> void:
 	if name == "finale":
 		_ring(e, game, 0.0)
 		e.set_meta("wave2_at", game.clock + .5)
 		e.recovery = .9
 		e.cooldown = maxf(e.cooldown, 1.4)
 	elif name == "balloons":
-		var f = arena(game)
+		var f: BossArenaFeature = arena(game)
 		if f != null:
 			var floor_z: float = game.world.stand(e)
 			for side: float in [-1.0, 1.0]:
@@ -102,7 +99,7 @@ func act(e: Enemy, game, name: String) -> void:
 ## The bearings of the finale's ring, `turn` of a step round.
 func _bearings(e: Enemy, turn: float) -> Array:
 	var out: Array = []
-	var gap := int(e.get_meta("finale_gap", 0))
+	var gap: int = e.get_meta("finale_gap", 0)
 	for k in FINALE_SHOTS:
 		if k == gap or k == (gap + 1) % FINALE_SHOTS or k == (gap + 2) % FINALE_SHOTS:
 			continue
@@ -110,7 +107,7 @@ func _bearings(e: Enemy, turn: float) -> Array:
 	return out
 
 
-func _ring(e: Enemy, game, turn: float) -> void:
+func _ring(e: Enemy, game: Game, turn: float) -> void:
 	var eye: float = game.world.stand(e) + 1.05
 	for a: float in _bearings(e, turn):
 		game.launch(
@@ -121,7 +118,7 @@ func _ring(e: Enemy, game, turn: float) -> void:
 
 
 ## The horn stacks round the ring: the next in turn fires its lane at the player.
-func _stacks(e: Enemy, game, f) -> void:
+func _stacks(e: Enemy, game: Game, f: BossArenaFeature) -> void:
 	if not due(e, game, "stack_at"):
 		return
 	var every := STACK_DESPERATE if e.boss_phase >= 3 else STACK_MAD
@@ -129,12 +126,12 @@ func _stacks(e: Enemy, game, f) -> void:
 	var stacks: Array = f.spec("rudy").get("horns", [])
 	if stacks.is_empty():
 		return
-	var p = game.player
-	var turn := int(e.get_meta("stack_turn", 0))
+	var p: Player = game.player
+	var turn: int = e.get_meta("stack_turn", 0)
 	for tries in stacks.size():
 		var s: Array = stacks[(turn + tries) % stacks.size()]
-		var sx := float(s[0])
-		var sy := float(s[1])
+		var sx: float = s[0]
+		var sy: float = s[1]
 		var d := Vector2(p.x - sx, p.y - sy).length()
 		if d > 15.0 or not game.world.visible(sx, sy, p.x, p.y):
 			continue
@@ -146,12 +143,12 @@ func _stacks(e: Enemy, game, f) -> void:
 
 
 ## Phase three: two spotlights sweeping the ring.
-func _spotlights(f, game) -> void:
-	var ring = f.spec("rudy").get("ring")
+func _spotlights(f: BossArenaFeature, game: Game) -> void:
+	var ring: Variant = f.spec("rudy").get("ring")
 	if not (ring is Array):
 		return
-	var cx := float(ring[0])
-	var cy := float(ring[1])
+	var cx: float = ring[0]
+	var cy: float = ring[1]
 	for k in 2:
 		var a: float = game.clock * (.9 if k == 0 else -.7) + k * PI
 		var x := cx + cos(a) * 4.0
@@ -160,7 +157,7 @@ func _spotlights(f, game) -> void:
 		f.light(x, y, game.world.elevation(x, y) + 1.6, 3.4, tint, 1.3)
 
 
-func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> float:
+func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -> float:
 	if how == "blast" or how == "energy" or how == "fire":
 		return 1.0
 	var up := body_height(e, game, hit)
@@ -172,7 +169,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 	return guarded(e, 1.0)
 
 
-func telegraph(e: Enemy, game) -> Array:
+func telegraph(e: Enemy, game: Game) -> Array:
 	if own(e) != "finale":
 		return []
 	var out: Array = []
@@ -181,7 +178,7 @@ func telegraph(e: Enemy, game) -> Array:
 	return out
 
 
-func looks(e: Enemy, game) -> Array:
+func looks(e: Enemy, game: Game) -> Array:
 	if e.boss_phase < 3 and own(e) != "finale":
 		return []
 	# The horns glowing hot.
@@ -201,6 +198,6 @@ func looks(e: Enemy, game) -> Array:
 	return out
 
 
-func dying(e: Enemy, game) -> void:
+func dying(e: Enemy, game: Game) -> void:
 	e.remove_meta("wave2_at")
 	game.burst(e.x, e.y, game.world.stand(e) + 1.2, "spark", 16, 2.2)

@@ -24,21 +24,26 @@ var _now := 0.0
 static func listed() -> Array:
 	if not FileAccess.file_exists(LIST):
 		return []
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(LIST))
-	return parsed.get("servers", []) if parsed is Dictionary else []
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(LIST))
+	if not parsed is Dictionary:
+		return []
+	var doc: Dictionary = parsed
+	return doc.get("servers", [])
 
 
 func _init(list := listed()) -> void:
-	for entry in list:
+	for entry: Variant in list:
 		if entry is Dictionary:
+			var e: Dictionary = entry
+			var port: int = e.get("port", NetSession.PORT)
 			(
 				servers
 				. append(
 					{
-						"name": String(entry.get("name", "SERVER")),
-						"address": String(entry.get("address", "")),
-						"port": int(entry.get("port", NetSession.PORT)),
-						"wss": String(entry.get("wss", "")),
+						"name": str(e.get("name", "SERVER")),
+						"address": str(e.get("address", "")),
+						"port": port,
+						"wss": str(e.get("wss", "")),
 						"state": "asking",
 						"info": {},
 						"ping": 0.0,
@@ -55,12 +60,14 @@ func poll(now_ms: float) -> void:
 	_now = now_ms
 	for s: Dictionary in servers:
 		var session: NetSession = s["session"]
+		var asked_at: float = s["asked_at"]
 		if session == null:
-			if now_ms - float(s["asked_at"]) >= ASK_EVERY * 1000.0:
+			if now_ms - asked_at >= ASK_EVERY * 1000.0:
 				_knock(s)
 			continue
 		var packets := session.poll(now_ms)
-		if float(s["sent_at"]) < 0.0 and session.connected():
+		var sent_at: float = s["sent_at"]
+		if sent_at < 0.0 and session.connected():
 			session.send(
 				NetSession.HOST_ID, NetSession.CH_RELIABLE, NetWire.message(NetWire.INFO, {})
 			)
@@ -69,11 +76,12 @@ func poll(now_ms: float) -> void:
 			var bytes: PackedByteArray = packet[1]
 			if not bytes.is_empty() and bytes[0] == NetWire.INFO:
 				s["info"] = NetWire.info_of(bytes)
-				s["ping"] = now_ms - float(s["sent_at"])
+				var sent_at_now: float = s["sent_at"]
+				s["ping"] = now_ms - sent_at_now
 				s["state"] = "up"
 				_hang_up(s)
 				break
-		if s["session"] != null and now_ms - float(s["asked_at"]) > WAIT * 1000.0:
+		if s["session"] != null and now_ms - asked_at > WAIT * 1000.0:
 			s["state"] = "silent"
 			s["info"] = {}
 			_hang_up(s)
@@ -96,12 +104,13 @@ func _knock(s: Dictionary) -> void:
 	s["sent_at"] = -1.0
 	if OS.has_feature("web"):
 		# The browser has no ENet: the server's secure WebSocket, if it has one.
-		var wss := String(s["wss"])
+		var wss := str(s["wss"])
 		s["session"] = (
 			NetSession.join(wss, 0, NetSession.Transport.WEBSOCKET) if wss != "" else null
 		)
 	else:
-		s["session"] = NetSession.join(String(s["address"]), int(s["port"]))
+		var port: int = s["port"]
+		s["session"] = NetSession.join(str(s["address"]), port)
 	if s["session"] == null:
 		s["state"] = "silent"
 
@@ -116,22 +125,26 @@ func _hang_up(s: Dictionary) -> void:
 ## "address:port" of server `i`, for NetPlay.join_lobby.
 func address_of(i: int) -> String:
 	var s: Dictionary = servers[i]
-	if OS.has_feature("web") and String(s["wss"]) != "":
-		return String(s["wss"])
-	return "%s:%d" % [s["address"], int(s["port"])]
+	if OS.has_feature("web") and str(s["wss"]) != "":
+		return str(s["wss"])
+	var port: int = s["port"]
+	return "%s:%d" % [s["address"], port]
 
 
 ## Why server `i` cannot be joined now ("" when it can).
 func why_not_join(i: int) -> String:
 	var s: Dictionary = servers[i]
 	var info: Dictionary = s["info"]
-	if String(s["state"]) != "up":
+	if str(s["state"]) != "up":
 		return "THAT SERVER ISN'T ANSWERING. TRY AGAIN IN A BIT."
-	var version := String(ProjectSettings.get_setting("application/config/version", ""))
-	if String(info.get("version", version)) != version:
+	var version := str(ProjectSettings.get_setting("application/config/version", ""))
+	if str(info.get("version", version)) != version:
 		return "THAT SERVER RUNS %s. YOU RUN %s." % [info.get("version", "?"), version]
-	if int(info.get("players", 0)) >= int(info.get("max_players", 10)):
+	var players: int = info.get("players", 0)
+	var max_players: int = info.get("max_players", 10)
+	if players >= max_players:
 		return "THAT SERVER IS FULL."
-	if String(info.get("phase", "")) == "match" and not bool(info.get("late_join", true)):
+	var late_join: bool = info.get("late_join", true)
+	if str(info.get("phase", "")) == "match" and not late_join:
 		return "A MATCH IS ON THERE (NO LATE JOIN)."
 	return ""

@@ -29,12 +29,12 @@ static var RING_EVERY: int = BossData.get_value("sheriff", "ring_every")
 static var RING_SHOTS: int = BossData.get_value("sheriff", "ring_shots")
 
 
-func fight_start(e: Enemy, _game) -> void:
+func fight_start(e: Enemy, _game: Game) -> void:
 	e.set_meta("vent_after", e.attacks + VENT_EVERY + 1)
 	e.set_meta("ring_after", e.attacks + RING_EVERY)
 
 
-func phase_changed(e: Enemy, game, phase: int) -> void:
+func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 2:
 		e.set_meta("vent_after", e.attacks + 1)
 	if phase != 3:
@@ -42,26 +42,27 @@ func phase_changed(e: Enemy, game, phase: int) -> void:
 	e.set_meta("strike_at", game.clock + 1.4)
 	game.message("THE SAUCER'S REACTOR IS GOIN' CRITICAL!", 2.6)
 	game.sound_at("saucer_charge", e.x, e.y, 1.0)
-	var f = arena(game)
-	var wreck = f.spec("boss").get("wreck") if f != null else null
+	var f: BossArenaFeature = arena(game)
+	var wreck: Variant = f.spec("boss").get("wreck") if f != null else null
 	if wreck is Array:
-		var wx := float(wreck[0])
-		var wy := float(wreck[1])
+		var wx: float = wreck[0]
+		var wy: float = wreck[1]
 		for k in 9:
 			var a := k * TAU / 9.0
 			f.fire(wx + cos(a) * 2.7, wy + sin(a) * 2.3, .75, 60.0)
 		game.burst(wx, wy, game.world.elevation(wx, wy) + 1.2, "plasma", 24, 2.6)
 
 
-func tick(e: Enemy, dt: float, game) -> bool:
+func tick(e: Enemy, dt: float, game: Game) -> bool:
 	if not fighting(e, game):
 		return false
-	var f = arena(game)
+	var f: BossArenaFeature = arena(game)
 	if f != null and e.boss_phase >= 3:
 		_reactor(f, game)
-	if game.clock < float(e.get_meta("vent_until", -1.0)):
+	var vent_until: float = e.get_meta("vent_until", -1.0)
+	if game.clock < vent_until:
 		# Venting: back turned, the pack hissing.
-		var p = game.player
+		var p: Player = game.player
 		e.angle = atan2(e.y - p.y, e.x - p.x)
 		e.windup = 0.0
 		e.aim_mark = null
@@ -79,10 +80,12 @@ func tick(e: Enemy, dt: float, game) -> bool:
 		begin_own(e, game, "strike", STRIKE_CALL)
 		game.sound_at("saucer_charge", e.x, e.y, .9)
 		return true
-	if e.boss_phase >= 2 and e.attacks >= int(e.get_meta("vent_after", 1 << 30)):
+	var vent_after: int = e.get_meta("vent_after", 1 << 30)
+	if e.boss_phase >= 2 and e.attacks >= vent_after:
 		_vent(e, game)
 		return true
-	if hog_wild(game) and e.boss_phase >= 2 and e.attacks >= int(e.get_meta("ring_after", 1 << 30)):
+	var ring_after: int = e.get_meta("ring_after", 1 << 30)
+	if hog_wild(game) and e.boss_phase >= 2 and e.attacks >= ring_after:
 		e.set_meta("ring_after", e.attacks + RING_EVERY)
 		begin_own(e, game, "ring", .8, [e.x, e.y, 1.0])
 		game.sound_at("sheriff_siren", e.x, e.y, 1.0)
@@ -90,7 +93,7 @@ func tick(e: Enemy, dt: float, game) -> bool:
 	return false
 
 
-func act(e: Enemy, game, name: String) -> void:
+func act(e: Enemy, game: Game, name: String) -> void:
 	if name == "strike":
 		_call_strike(e, game)
 		# The call overheats the pack: he vents right after.
@@ -103,7 +106,7 @@ func act(e: Enemy, game, name: String) -> void:
 
 
 ## The pack overheats: back turned for VENT seconds.
-func _vent(e: Enemy, game) -> void:
+func _vent(e: Enemy, game: Game) -> void:
 	e.set_meta("vent_until", game.clock + VENT)
 	e.set_meta("vent_after", e.attacks + VENT_EVERY)
 	e.cooldown = maxf(e.cooldown, VENT + .4)
@@ -114,11 +117,11 @@ func _vent(e: Enemy, game) -> void:
 
 ## Rings close on the player's spot (and where they are headed) and round it,
 ## then the bolts come down.
-func _call_strike(e: Enemy, game) -> void:
-	var f = arena(game)
+func _call_strike(e: Enemy, game: Game) -> void:
+	var f: BossArenaFeature = arena(game)
 	if f == null:
 		return
-	var p = game.player
+	var p: Player = game.player
 	var lead := Vector2(p.x + p.vx * .55, p.y + p.vy * .55)
 	var spots: Array = [Vector2(p.x, p.y)]
 	if lead.distance_to(Vector2(p.x, p.y)) > .6:
@@ -140,7 +143,7 @@ func _call_strike(e: Enemy, game) -> void:
 
 
 ## HOG WILD: bolts every way at once, a gap left on one side.
-func _ring(e: Enemy, game) -> void:
+func _ring(e: Enemy, game: Game) -> void:
 	var eye: float = game.world.stand(e) + e.height * .55
 	var gap := int(game.rng.random() * RING_SHOTS)
 	for k in RING_SHOTS:
@@ -164,18 +167,18 @@ func _ring(e: Enemy, game) -> void:
 
 
 ## The wreck's reactor in phase three: a red pulse over the pen.
-func _reactor(f, game) -> void:
-	var wreck = f.spec("boss").get("wreck")
+func _reactor(f: BossArenaFeature, game: Game) -> void:
+	var wreck: Variant = f.spec("boss").get("wreck")
 	if not (wreck is Array):
 		return
-	var wx := float(wreck[0])
-	var wy := float(wreck[1])
+	var wx: float = wreck[0]
+	var wy: float = wreck[1]
 	var beat := .5 + .5 * sin(game.clock * 5.0)
 	f.light(wx, wy, game.world.elevation(wx, wy) + 1.4, 7.5, Color(1, .25, .18), .6 + 1.0 * beat)
 
 
 ## Where the pack is: on his back, high.
-func _pack(e: Enemy, game) -> Vector3:
+func _pack(e: Enemy, game: Game) -> Vector3:
 	var floor_z: float = game.world.stand(e)
 	return Vector3(
 		e.x - cos(e.angle) * (e.radius * .6),
@@ -184,7 +187,7 @@ func _pack(e: Enemy, game) -> Vector3:
 	)
 
 
-func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> float:
+func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -> float:
 	if how == "blast" or how == "energy" or how == "fire":
 		return 1.0
 	var off := off_facing(e, from)
@@ -195,7 +198,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 	return guarded(e, 1.0)
 
 
-func telegraph(e: Enemy, game) -> Array:
+func telegraph(e: Enemy, game: Game) -> Array:
 	if own(e) == "strike":
 		# Arms up to the sky: a column of light over him.
 		var col := View.Sprite.new(
@@ -207,9 +210,10 @@ func telegraph(e: Enemy, game) -> Array:
 	return []
 
 
-func looks(e: Enemy, game) -> Array:
+func looks(e: Enemy, game: Game) -> Array:
 	var out: Array = []
-	var venting: bool = game.clock < float(e.get_meta("vent_until", -1.0))
+	var vent_until: float = e.get_meta("vent_until", -1.0)
+	var venting: bool = game.clock < vent_until
 	if not venting and e.boss_phase < 3:
 		return out
 	var pack := _pack(e, game)
@@ -234,7 +238,7 @@ func looks(e: Enemy, game) -> Array:
 	return out
 
 
-func dying(e: Enemy, game) -> void:
+func dying(e: Enemy, game: Game) -> void:
 	# The pack goes with him: a green flash, sparks, smoke.
 	var pack := _pack(e, game)
 	game.burst(pack.x, pack.y, pack.z, "plasma", 20, 2.4)

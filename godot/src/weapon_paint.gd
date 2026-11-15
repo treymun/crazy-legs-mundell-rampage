@@ -7,7 +7,7 @@ static func blit_rgba(frame: PackedByteArray, image: Dictionary, x: int, y: int)
 	var w: int = image["w"]
 	var h: int = image["h"]
 	var data: PackedByteArray = image["data"]
-	var spans = image.get("spans")
+	var spans: Variant = image.get("spans")
 	var cv := Weapons.covering
 	var cover := Weapons.cover
 	if spans == null:

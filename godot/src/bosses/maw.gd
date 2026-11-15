@@ -14,20 +14,23 @@
 ##                player stood when it first landed (features/mothership.gd).
 extends BossMoves
 
+const BossArenasFeature := preload("res://src/features/boss_arenas.gd")
+const BossFightFeature := preload("res://src/features/boss_fight.gd")
+
 static var CURLERS: float = BossData.get_value("maw", "curlers")
 static var GIRDLE: float = BossData.get_value("maw", "girdle")
 
 
-func phase_changed(e: Enemy, game, phase: int) -> void:
+func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 3:
-		var arenas = game.features.get("boss_arenas")
+		var arenas: BossArenasFeature = game.features.get("boss_arenas")
 		if arenas != null:
 			arenas.turn(e)
 
 
 ## The curlers piled on top of her head, and in her last phase the power cells
 ## round her middle: height on her, not a pixel of her picture.
-func weak_spot(e: Enemy, game, hit: Vector3, _from: Vector2, how: String) -> float:
+func weak_spot(e: Enemy, game: Game, hit: Vector3, _from: Vector2, how: String) -> float:
 	if how == "blast" or how == "energy":
 		return 1.0
 	var up: float = (hit.z - game.world.stand(e)) / maxf(.5, e.height * e.variant)
@@ -40,9 +43,9 @@ func weak_spot(e: Enemy, game, hit: Vector3, _from: Vector2, how: String) -> flo
 
 ## Her curlers glowing hot; the power cells round her middle sparking once the
 ## housecoat is gone.
-func looks(e: Enemy, game) -> Array:
+func looks(e: Enemy, game: Game) -> Array:
 	var out: Array = []
-	var p = game.player
+	var p: Player = game.player
 	var floor_z: float = game.world.stand(e)
 	var tall := e.height * e.variant
 	var toward := atan2(p.y - e.y, p.x - e.x)
@@ -74,13 +77,13 @@ func looks(e: Enemy, game) -> Array:
 
 
 ## Her curlers pop off as she goes down.
-func dying(e: Enemy, game) -> void:
+func dying(e: Enemy, game: Game) -> void:
 	var top: float = game.world.stand(e) + e.height * e.variant * .9
 	for k in 3:
 		var a := k * TAU / 3.0
 		game.blasts.append(
 			GameState.Blast.new(e.x + cos(a) * .6, e.y + sin(a) * .6, top + k * .2, "energy")
 		)
-	var fight = game.features.get("boss_fight")
+	var fight: BossFightFeature = game.features.get("boss_fight")
 	if fight != null:
 		fight.sparks(e.x, e.y, top, "plasma", 24, 3.0)

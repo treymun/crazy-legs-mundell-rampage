@@ -17,6 +17,9 @@
 class_name BaronMoves
 extends BossMoves
 
+const BossArenasFeature := preload("res://src/features/boss_arenas.gd")
+const BossFightFeature := preload("res://src/features/boss_fight.gd")
+
 static var RAIN_WINDUP: float = BossData.get_value("baron", "rain_windup")
 static var RAIN_DAMAGE: int = BossData.get_value("baron", "rain_damage")
 static var RAIN_RADIUS: float = BossData.get_value("baron", "rain_radius")
@@ -46,21 +49,22 @@ func stagger_rest(_e: Enemy) -> float:
 	return 6.0
 
 
-func phase_changed(e: Enemy, game, phase: int) -> void:
+func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 3:
-		var arenas = game.features.get("boss_arenas")
+		var arenas: BossArenasFeature = game.features.get("boss_arenas")
 		if arenas != null:
 			arenas.turn(e)
 
 
-func tick(e: Enemy, dt: float, game) -> bool:
+func tick(e: Enemy, dt: float, game: Game) -> bool:
 	if e.windup <= 0.0 and not e.has_meta("rain"):
 		_pick_outlets(e, game)
-	var paced := int(e.get_meta("paced", 0))
+	var paced: int = e.get_meta("paced", 0)
 	if e.attacks != paced:
 		# He comes again quicker than the hands do, quicker still as he weakens.
 		e.set_meta("paced", e.attacks)
-		e.cooldown *= float(COOLDOWN[clampi(e.boss_phase - 1, 0, 2)])
+		var cool: float = COOLDOWN[clampi(e.boss_phase - 1, 0, 2)]
+		e.cooldown *= cool
 	if hog_wild(game):
 		_blowdown(e, game)
 	if e.has_meta("rain"):
@@ -77,11 +81,11 @@ func tick(e: Enemy, dt: float, game) -> bool:
 
 ## The outlets for his next steam attack: the ones nearest the player now
 ## (fixed once he winds up: the marks are where it will blow).
-func _pick_outlets(e: Enemy, game) -> void:
+func _pick_outlets(e: Enemy, game: Game) -> void:
 	var ports: Array = game.world.pressure_ports
 	if ports.is_empty():
 		return
-	var p = game.player
+	var p: Player = game.player
 	var order := ports.duplicate()
 	order.sort_custom(
 		func(a: Vector2, b: Vector2) -> bool:
@@ -93,25 +97,26 @@ func _pick_outlets(e: Enemy, game) -> void:
 	e.set_meta("ports", order.slice(0, 3))
 
 
-func _rain_ready(e: Enemy, dt: float, game) -> bool:
+func _rain_ready(e: Enemy, dt: float, game: Game) -> bool:
 	if e.boss_phase < 3 or not e.alerted or e.windup > 0.0 or e.stun > 0.0:
 		return false
 	if e.cooldown > dt * float(game.sharpness) or e.recovery > .17 or e.attacks % 2 != 0:
 		return false
-	var p = game.player
-	return e.player_seen and Vector2(p.x - e.x, p.y - e.y).length() <= float(Enemy.REACH[e.kind])
+	var p: Player = game.player
+	var reach: float = Enemy.REACH[e.kind]
+	return e.player_seen and Vector2(p.x - e.x, p.y - e.y).length() <= reach
 
 
 ## COPPER RAIN: the safety valve goes and the copper comes down round the player.
-func _rain(e: Enemy, game) -> void:
-	var p = game.player
+func _rain(e: Enemy, game: Game) -> void:
+	var p: Player = game.player
 	var pace: float = PACE[clampi(game.difficulty, 0, 3)]
 	e.windup = RAIN_WINDUP * pace
 	e.aim_mark = null
 	e.angle = atan2(p.y - e.y, p.x - e.x)
 	e.set_meta("rain", true)
 	e.set_meta("tell", "COPPER RAIN")
-	var arenas = game.features.get("boss_arenas")
+	var arenas: BossArenasFeature = game.features.get("boss_arenas")
 	var turn := e.attacks * .7
 	var spots: Array = [Vector2(p.x, p.y)]
 	for k in 4:
@@ -131,7 +136,7 @@ func _rain(e: Enemy, game) -> void:
 	game.burst(e.x, e.y, floor_z + e.height * .9, "spark", 10, 2.4)
 
 
-func _rain_done(e: Enemy, game) -> void:
+func _rain_done(e: Enemy, game: Game) -> void:
 	e.remove_meta("rain")
 	e.remove_meta("tell")
 	e.windup = 0.0
@@ -143,8 +148,8 @@ func _rain_done(e: Enemy, game) -> void:
 
 ## HOG WILD's blowdown: an outlet attack just went; every third one, the rest
 ## of the house's outlets go too, a beat later (their warning shows).
-func _blowdown(e: Enemy, game) -> void:
-	var seen := int(e.get_meta("seen_attacks", e.attacks))
+func _blowdown(e: Enemy, game: Game) -> void:
+	var seen: int = e.get_meta("seen_attacks", e.attacks)
 	e.set_meta("seen_attacks", e.attacks)
 	if e.attacks == seen or e.has_meta("rain"):
 		return
@@ -160,7 +165,7 @@ func _blowdown(e: Enemy, game) -> void:
 
 
 ## The boiler on his back: hit from behind him at body height.
-func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> float:
+func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -> float:
 	if how == "blast" or how == "energy" or how == "steam" or how == "fire":
 		return 1.0
 	var toward_shooter := atan2(from.y - e.y, from.x - e.x)
@@ -171,7 +176,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 
 
 ## The boiler on his back venting harder as he weakens; red-hot in phase 3.
-func looks(e: Enemy, game) -> Array:
+func looks(e: Enemy, game: Game) -> Array:
 	var out: Array = []
 	if e.boss_phase < 2 and not e.has_meta("rain"):
 		return out
@@ -203,12 +208,12 @@ func looks(e: Enemy, game) -> Array:
 
 
 ## His boiler goes as he falls: a roar of steam and copper.
-func dying(e: Enemy, game) -> void:
+func dying(e: Enemy, game: Game) -> void:
 	var floor_z: float = game.world.stand(e)
 	game.blasts.append(GameState.Blast.new(e.x, e.y, floor_z + e.height * .7, "fire"))
 	game.sound_at("boiler_release", e.x, e.y, 1.0)
 	game.sound_at("pressure_vent", e.x, e.y, 1.0)
-	var fight = game.features.get("boss_fight")
+	var fight: BossFightFeature = game.features.get("boss_fight")
 	if fight != null:
 		fight.sparks(e.x, e.y, floor_z + e.height * .8, "dust", 24, 2.6)
 		fight.sparks(e.x, e.y, floor_z + e.height * .6, "chips", 14, 3.0)

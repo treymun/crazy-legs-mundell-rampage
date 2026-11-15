@@ -115,7 +115,7 @@ func delta_since(acked: int) -> PackedByteArray:
 	var t0 := Time.get_ticks_usec()
 	_look()
 	var out := PackedByteArray()
-	var merged = _since(acked)
+	var merged: Variant = _since(acked)
 	if merged == null:
 		out = snapshot()
 	else:
@@ -127,14 +127,17 @@ func delta_since(acked: int) -> PackedByteArray:
 ## The delta since `acked` as a Dictionary, or null when it cannot be made: a
 ## base the host no longer remembers (every tick a client can hold is one the
 ## host looked at: snapshot() and delta_since() look first).
-func _since(acked: int):
+func _since(acked: int) -> Variant:
 	if acked < _base_tick or acked > tick:
 		return null
-	var merged = {}
+	var merged: Variant = {}
 	for row: Array in _log:
-		if int(row[0]) <= acked:
+		var row_tick: int = row[0]
+		if row_tick <= acked:
 			continue
-		merged = GameSnapshot.merge(merged, row[1])
+		var so_far: Dictionary = merged
+		var row_change: Dictionary = row[1]
+		merged = GameSnapshot.merge(so_far, row_change)
 		if merged == null:
 			return null
 	return merged
@@ -147,6 +150,10 @@ func _look() -> void:
 	var change := track.changes()
 	_log.append([tick, change])
 	_looked_at = tick
-	while not _log.is_empty() and int(_log[0][0]) < tick - HISTORY:
-		_base_tick = int(_log[0][0])
+	while not _log.is_empty():
+		var oldest: Array = _log[0]
+		var oldest_tick: int = oldest[0]
+		if oldest_tick >= tick - HISTORY:
+			break
+		_base_tick = oldest_tick
 		_log.pop_front()

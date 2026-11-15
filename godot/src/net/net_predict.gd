@@ -26,7 +26,8 @@ static func lead(game: Game, me: Player, inputs: Array) -> Dictionary:
 		kept[field] = me.get(field)
 	var dt := NetSync.STEP
 	for i in range(maxi(0, inputs.size() - MOST), inputs.size()):
-		_step(game, me, inputs[i], dt)
+		var controls: Game.Controls = inputs[i]
+		_step(game, me, controls, dt)
 	return kept
 
 

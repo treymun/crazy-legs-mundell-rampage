@@ -464,5 +464,8 @@ static func build() -> Array:
 static func _key_settings() -> Array:
 	var rows: Array = []
 	for entry: Array in KeyBindings.ACTIONS:
-		rows.append(SessionStore.KeySetting.new(entry[0], entry[1], entry[2]))
+		var action: String = entry[0]
+		var label: String = entry[1]
+		var key: int = entry[2]
+		rows.append(SessionStore.KeySetting.new(action, label, key))
 	return rows

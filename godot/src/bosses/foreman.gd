@@ -26,24 +26,25 @@ static var DRUM_EVERY: int = BossData.get_value("foreman", "drum_every")
 static var DRUM_SPEED: float = BossData.get_value("foreman", "drum_speed")
 
 
-func fight_start(e: Enemy, game) -> void:
+func fight_start(e: Enemy, game: Game) -> void:
 	e.set_meta("carriage_at", game.clock + 4.0)
 	e.set_meta("drum_after", e.attacks + DRUM_EVERY)
 
 
-func phase_changed(e: Enemy, game, phase: int) -> void:
+func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase != 3:
 		return
 	e.set_meta("cut_at", game.clock + .9)
-	e.set_meta("carriage_at", minf(float(e.get_meta("carriage_at", INF)), game.clock + 2.0))
+	var carriage_at: float = e.get_meta("carriage_at", INF)
+	e.set_meta("carriage_at", minf(carriage_at, game.clock + 2.0))
 	game.message("THE SAW'S SPEEDIN' UP! MIND THE TRACK!", 2.6)
 	game.sound_at("saw_motor", e.x, e.y, 1.0)
 
 
-func tick(e: Enemy, dt: float, game) -> bool:
+func tick(e: Enemy, dt: float, game: Game) -> bool:
 	if not fighting(e, game):
 		return false
-	var f = arena(game)
+	var f: BossArenaFeature = arena(game)
 	if f != null and due(e, game, "carriage_at"):
 		var every: float = CARRIAGE[clampi(e.boss_phase, 1, 3)] * (.8 if hog_wild(game) else 1.0)
 		e.set_meta("carriage_at", game.clock + every)
@@ -61,19 +62,15 @@ func tick(e: Enemy, dt: float, game) -> bool:
 		game.sound_at("foreman_warn", e.x, e.y, 1.0)
 		say_once(e, game, "cut_told", "THE BIG CUT! THEM BLADES BOUNCE!")
 		return true
-	if (
-		hog_wild(game)
-		and e.boss_phase >= 2
-		and e.attacks >= int(e.get_meta("drum_after", 1 << 30))
-		and sees_player(e, game)
-	):
+	var drum_after: int = e.get_meta("drum_after", 1 << 30)
+	if hog_wild(game) and e.boss_phase >= 2 and e.attacks >= drum_after and sees_player(e, game):
 		e.set_meta("drum_after", e.attacks + DRUM_EVERY)
 		begin_own(e, game, "drum", .55)
 		return true
 	return false
 
 
-func act(e: Enemy, game, name: String) -> void:
+func act(e: Enemy, game: Game, name: String) -> void:
 	if name == "cut":
 		var floor_z: float = game.world.stand(e)
 		for off: float in CUT_FAN:
@@ -101,7 +98,7 @@ func act(e: Enemy, game, name: String) -> void:
 		e.recovery = .7
 		e.cooldown = maxf(e.cooldown, 1.2)
 	elif name == "drum":
-		var f = arena(game)
+		var f: BossArenaFeature = arena(game)
 		if f != null:
 			var a := e.angle
 			var sx2 := e.x + cos(a) * (e.radius + .5)
@@ -126,19 +123,19 @@ func act(e: Enemy, game, name: String) -> void:
 
 
 ## The head saw at the end of the track throwing sparks, faster now.
-func _head_saw(f, game) -> void:
-	var saw = f.spec("foreman").get("head_saw")
+func _head_saw(f: BossArenaFeature, game: Game) -> void:
+	var saw: Variant = f.spec("foreman").get("head_saw")
 	if not (saw is Array):
 		return
-	var x := float(saw[0])
-	var y := float(saw[1])
+	var x: float = saw[0]
+	var y: float = saw[1]
 	var beat := .6 + .4 * sin(game.clock * 31.0)
 	f.light(x, y, game.world.elevation(x, y) + 1.0, 3.0, Color(1, .7, .35), beat)
 	if fmod(game.clock, .25) < .02:
 		game.burst(x, y, game.world.elevation(x, y) + .9, "spark", 3, 1.8)
 
 
-func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> float:
+func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -> float:
 	if how == "blast" or how == "energy" or how == "fire":
 		return 1.0
 	var off := off_facing(e, from)
@@ -149,7 +146,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 	return guarded(e, 1.0)
 
 
-func telegraph(e: Enemy, game) -> Array:
+func telegraph(e: Enemy, game: Game) -> Array:
 	if own(e) != "cut":
 		return []
 	var out: Array = []
@@ -158,7 +155,7 @@ func telegraph(e: Enemy, game) -> Array:
 	return out
 
 
-func looks(e: Enemy, game) -> Array:
+func looks(e: Enemy, game: Game) -> Array:
 	if e.boss_phase < 3:
 		return []
 	# The rig on his back smoking and spitting sparks.
@@ -174,6 +171,6 @@ func looks(e: Enemy, game) -> Array:
 	return [spark]
 
 
-func dying(e: Enemy, game) -> void:
+func dying(e: Enemy, game: Game) -> void:
 	game.burst(e.x, e.y, game.world.stand(e) + 1.3, "spark", 18, 2.4)
 	game.sound_at("saw_bounce", e.x, e.y, 1.0)

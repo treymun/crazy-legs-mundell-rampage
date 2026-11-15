@@ -7,7 +7,7 @@
 class_name PlayerVoice
 extends RefCounted
 
-var game
+var game: Game
 var who: Player
 var effects_gain := 1.0
 var footstep_gain := 1.0
@@ -17,7 +17,7 @@ var ambient_gain := 1.0
 var radio_gain := 0.0
 
 
-func _init(p_game, p_who: Player) -> void:
+func _init(p_game: Game, p_who: Player) -> void:
 	game = p_game
 	who = p_who
 
@@ -52,7 +52,7 @@ func stop_voice() -> void:
 	pass
 
 
-func set_room(_room_name) -> void:
+func set_room(_room_name: Variant) -> void:
 	pass
 
 

@@ -27,8 +27,8 @@ static func keyboard(show: bool, text := "") -> void:
 
 
 ## The keyboard goes away when its screen does (main.gd, every frame).
-static func settle(main) -> void:
-	if keyboard_up and not TYPED.has(String(main.state)):
+static func settle(main: MainInput) -> void:
+	if keyboard_up and not TYPED.has(main.state):
 		keyboard(false)
 
 
@@ -36,17 +36,17 @@ static func settle(main) -> void:
 
 
 ## A tap or left click at `at` (the 320x200 picture's own pixels).
-static func tap(main, at: Vector2i) -> void:
+static func tap(main: MainInput, at: Vector2i) -> void:
 	var hit := LobbyScreens.zone_at(at)
 	if hit.is_empty():
 		return
-	var id := String(hit[0])
-	var arg := int(hit[1])
+	var id := str(hit[0])
+	var arg: int = hit[1]
 	keyboard(false)
 	if id == "back":
 		main.key(KEY_ESCAPE)
 		return
-	match String(main.state):
+	match main.state:
 		"multi":
 			LobbyScreens.hub_row = arg
 			main.key(KEY_ENTER)
@@ -60,10 +60,10 @@ static func tap(main, at: Vector2i) -> void:
 				LobbyScreens.HOST_FORM if main.state == "nethost" else LobbyScreens.JOIN_FORM
 			)
 			var row: Array = rows[clampi(arg, 0, rows.size() - 1)]
-			if String(row[2]) == "go":
+			if str(row[2]) == "go":
 				main.key(KEY_ENTER)
 			else:
-				keyboard(true, String(main.net_form.get(String(row[0]), "")))
+				keyboard(true, str(main.net_form.get(str(row[0]), "")))
 		"lobby":
 			_tap_lobby(main, id, arg)
 		"lobbyset":
@@ -75,7 +75,7 @@ static func tap(main, at: Vector2i) -> void:
 				main.sound.play("menu_move")
 
 
-static func _tap_picker(main, id: String, arg: int) -> void:
+static func _tap_picker(main: MainInput, id: String, arg: int) -> void:
 	if id == "go":
 		main.showdown_row = TacticalScreens.PICKER_GO
 		main.key(KEY_ENTER)
@@ -87,7 +87,7 @@ static func _tap_picker(main, id: String, arg: int) -> void:
 		main.key(KEY_RIGHT)  # a click on a row: its next value
 
 
-static func _tap_servers(main, id: String, arg: int) -> void:
+static func _tap_servers(main: MainInput, id: String, arg: int) -> void:
 	var b: NetBrowser = main.browser
 	if b == null:
 		return
@@ -102,7 +102,7 @@ static func _tap_servers(main, id: String, arg: int) -> void:
 		main.key(KEY_R)
 
 
-static func _tap_lobby(main, id: String, arg: int) -> void:
+static func _tap_lobby(main: MainInput, id: String, arg: int) -> void:
 	var list := LobbyScreens.rows(main.net)
 	if id == "kick_left" or id == "kick_right":
 		main.lobby_row = list.find("kick")
@@ -120,20 +120,20 @@ static func _tap_lobby(main, id: String, arg: int) -> void:
 
 
 ## The pointer over a row picks it (no action until a click).
-static func hover(main, at: Vector2i) -> void:
+static func hover(main: MainInput, at: Vector2i) -> void:
 	var hit := LobbyScreens.zone_at(at)
 	if hit.is_empty():
 		return
-	var id := String(hit[0])
-	var arg := int(hit[1])
+	var id := str(hit[0])
+	var arg: int = hit[1]
 	var moved := false
-	match String(main.state):
+	match main.state:
 		"multi":
 			moved = id == "row" and LobbyScreens.hub_row != arg
 			if moved:
 				LobbyScreens.hub_row = arg
 		"showdown":
-			moved = id in ["row", "left", "right", "go"] and int(main.showdown_row) != arg
+			moved = id in ["row", "left", "right", "go"] and main.showdown_row != arg
 			if moved:
 				main.showdown_row = arg
 		"servers":
@@ -142,12 +142,12 @@ static func hover(main, at: Vector2i) -> void:
 			if moved:
 				b.row = arg + 1
 		"nethost", "netjoin":
-			moved = id == "row" and int(main.net_row) != arg
+			moved = id == "row" and main.net_row != arg
 			if moved:
 				main.net_row = arg
 		"lobby":
 			var i := LobbyScreens.rows(main.net).find(id)
-			moved = i >= 0 and int(main.lobby_row) != i
+			moved = i >= 0 and main.lobby_row != i
 			if moved:
 				main.lobby_row = i
 		"lobbyset":
@@ -162,7 +162,7 @@ static func hover(main, at: Vector2i) -> void:
 
 
 ## MULTIPLAYER: up and down pick, ENTER goes, ESC back to the title.
-static func key_hub(main, code: int) -> void:
+static func key_hub(main: MainInput, code: int) -> void:
 	var n := LobbyScreens.HUB.size()
 	if code == KEY_ESCAPE:
 		main.back_to_title()
@@ -171,7 +171,7 @@ static func key_hub(main, code: int) -> void:
 		LobbyScreens.hub_row = posmod(LobbyScreens.hub_row + step, n)
 		main.sound.play("menu_move")
 	elif code in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
-		match String(LobbyScreens.HUB[posmod(LobbyScreens.hub_row, n)][0]):
+		match str(LobbyScreens.HUB[posmod(LobbyScreens.hub_row, n)][0]):
 			"servers":
 				main.open_servers()
 			"bots":
@@ -186,7 +186,7 @@ static func key_hub(main, code: int) -> void:
 
 ## ALL SETTINGS: up and down pick, left and right (ENTER: the next value)
 ## change it for whoever runs the lobby, ESC back to the lobby.
-static func key_all(main, code: int) -> void:
+static func key_all(main: MainInput, code: int) -> void:
 	var net: NetPlay = main.net
 	var n := LobbyScreens.ALL_KEYS.size()
 	if code == KEY_ESCAPE or net == null:
@@ -209,6 +209,8 @@ static func key_all(main, code: int) -> void:
 	if not net.is_admin():
 		main.sound.play("empty")
 		return
-	var key := String(LobbyScreens.ALL_KEYS[posmod(LobbyScreens.all_row, n)])
-	net.set_setting(key, LobbyScreens.stepped(key, net.settings.get(key), change))
+	var key := str(LobbyScreens.ALL_KEYS[posmod(LobbyScreens.all_row, n)])
+	var current: Variant = net.settings.get(key)
+	var next_value: Variant = LobbyScreens.stepped(key, current, change)
+	net.set_setting(key, next_value)
 	main.sound.play("menu_move")

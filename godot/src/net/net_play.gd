@@ -32,6 +32,9 @@ extends RefCounted
 
 enum Role { NONE, HOST, CLIENT }
 
+## COUNTY RUN's feature (features/county_run.gd has no class_name).
+const CountyRunScript := preload("res://src/features/county_run.gd")
+
 ## The host's snapshots: every this many ticks (30 a second).
 const SNAP_EVERY := 2
 ## Seconds a client is given to say HELLO, and to reach a host.
@@ -147,10 +150,7 @@ static func serve_lobby(at_port: int, lobby := {}, bind := "*") -> NetPlay:
 	net.my_id = NetSession.HOST_ID
 	net.phase = "lobby"
 	net.settings.merge(lobby, true)
-	if (
-		String(net.settings["mode"]) == "tagteam"
-		and not Modes.TAGTEAM_MAPS.has(net.settings["map"])
-	):
+	if str(net.settings["mode"]) == "tagteam" and not Modes.TAGTEAM_MAPS.has(net.settings["map"]):
 		net.settings["map"] = Modes.TAGTEAM_MAPS[0]
 	net._mode_fits_map()
 	net.base_settings = net.settings.duplicate()
@@ -168,14 +168,15 @@ static func join_lobby(where: String, my_name: String, password := "") -> NetPla
 		# A lobby server's WebSocket (the browser build: wss://host:443).
 		s = NetSession.join(where, 0, NetSession.Transport.WEBSOCKET)
 	else:
-		s = NetSession.join(String(target["host"]), int(target["port"]))
+		var target_port: int = target["port"]
+		s = NetSession.join(str(target["host"]), target_port)
 	if s == null:
 		return null
 	var net := NetPlay.new()
 	net.role = Role.CLIENT
 	net.session = s
-	net.address = String(target["host"])
-	net.port = int(target["port"])
+	net.address = str(target["host"])
+	net.port = target["port"]
 	net.phase = "connecting"
 	net._my_name = clean_name(my_name)
 	net.settings.erase("password")
@@ -262,8 +263,9 @@ func poll(now_ms: float) -> void:
 			_waiting_hello[id] = now_ms
 		for id: int in events[1]:
 			_gone(id)
-		for id in _waiting_hello.keys():
-			if now_ms - float(_waiting_hello[id]) > HELLO_WAIT * 1000.0:
+		for id: int in _waiting_hello.keys():
+			var hello_at: float = _waiting_hello[id]
+			if now_ms - hello_at > HELLO_WAIT * 1000.0:
 				_waiting_hello.erase(id)
 				_drop(id, "SAID NOTHING")
 	var inputs: Array = []
@@ -278,7 +280,8 @@ func poll(now_ms: float) -> void:
 		elif kind == NetWire.SNAP:
 			snaps.append(packet)
 		elif role == Role.HOST:
-			_host_message(int(packet[0]), kind, NetWire.info_of(bytes))
+			var from: int = packet[0]
+			_host_message(from, kind, NetWire.info_of(bytes))
 		else:
 			_client_message(kind, NetWire.info_of(bytes))
 		if session == null:
@@ -299,7 +302,7 @@ func poll(now_ms: float) -> void:
 ## everyone back BACK_AFTER seconds later.
 func _watch_tally() -> void:
 	var g := match_game()
-	var run = CountyMode.run(g)
+	var run: CountyRunScript = CountyMode.run(g)
 	if g == null or not (g.showing_tally or (run != null and run.over)):
 		return
 	if tally_at < 0.0:
@@ -311,7 +314,8 @@ func _watch_tally() -> void:
 ## Whole seconds until an always-open lobby's results end (-1: not showing,
 ## or a lobby with a host).
 func back_in() -> int:
-	if tally_at < 0.0 or not bool(settings.get("dedicated", dedicated)):
+	var served: bool = settings.get("dedicated", dedicated)
+	if tally_at < 0.0 or not served:
 		return -1
 	return maxi(0, ceili(BACK_AFTER - (_now - tally_at) / 1000.0))
 
@@ -321,7 +325,7 @@ func _connecting() -> void:
 		_opened_at = _now
 	if session.connected():
 		phase = "hello"
-		var version := String(ProjectSettings.get_setting("application/config/version", ""))
+		var version := str(ProjectSettings.get_setting("application/config/version", ""))
 		session.send(
 			NetSession.HOST_ID,
 			NetSession.CH_RELIABLE,
@@ -367,14 +371,17 @@ func _host_message(from: int, kind: int, info: Dictionary) -> void:
 			if p.is_empty():
 				return
 			if info.has("name"):
-				var was := String(p["name"])
-				p["name"] = unique_name(clean_name(String(info["name"])), from)
+				var was := str(p["name"])
+				p["name"] = unique_name(clean_name(str(info["name"])), from)
 				if was != p["name"]:
 					_tell("%s IS NOW %s" % [was, p["name"]])
-			if info.has("team") and bool(settings["pick_teams"]):
-				p["team"] = clampi(int(info["team"]), -1, 1)
+			var pick_teams: bool = settings["pick_teams"]
+			if info.has("team") and pick_teams:
+				var team: int = info["team"]
+				p["team"] = clampi(team, -1, 1)
 			if info.has("ready"):
-				p["ready"] = bool(info["ready"])
+				var ready: bool = info["ready"]
+				p["ready"] = ready
 			if dedicated and from == admin_id:
 				_admin_asks(info)
 			send_lobby()
@@ -386,31 +393,35 @@ func _host_message(from: int, kind: int, info: Dictionary) -> void:
 ## What an always-open lobby's admin asked for: settings, START, a kick,
 ## everyone back from the results.
 func _admin_asks(info: Dictionary) -> void:
-	var wanted = info.get("set", {})
+	var wanted: Variant = info.get("set", {})
 	if wanted is Dictionary and phase == "lobby":
-		for key: String in (wanted as Dictionary).keys():
-			var value = allowed_value(key, wanted[key])
+		var wanted_dict: Dictionary = wanted
+		for key: String in wanted_dict.keys():
+			var value: Variant = allowed_value(key, wanted_dict[key])
 			if value != null:
 				set_setting(key, value)
 	if info.has("kick"):
-		kick(int(info["kick"]))
-	if bool(info.get("start", false)) and phase == "lobby":
+		var kick_id: int = info["kick"]
+		kick(kick_id)
+	var start: bool = info.get("start", false)
+	if start and phase == "lobby":
 		var why := start_match()
 		if why != "":
 			_tell(why)
-	if bool(info.get("back", false)) and phase == "match" and tally_at >= 0.0:
+	var back: bool = info.get("back", false)
+	if back and phase == "match" and tally_at >= 0.0:
 		back_to_lobby()
 
 
 ## `value` as one of setting `key`'s own values (null: not a setting the
 ## admin may change, or not one of its values).
-static func allowed_value(key: String, value):
+static func allowed_value(key: String, value: Variant) -> Variant:
 	if SERVER_ONLY.has(key):
 		return null
 	for row: Array in MATCH_ROWS + LOBBY_ROWS:
-		if String(row[0]) != key:
+		if str(row[0]) != key:
 			continue
-		for v in row[2]:
+		for v: Variant in row[2]:
 			if str(v) == str(value):
 				return v
 	return null
@@ -447,7 +458,7 @@ func _board(from: int, info: Dictionary) -> void:
 
 ## What a server list shows of this lobby.
 func summary() -> Dictionary:
-	var version := String(ProjectSettings.get_setting("application/config/version", ""))
+	var version := str(ProjectSettings.get_setting("application/config/version", ""))
 	var boss := player_of(admin_of())
 	return {
 		"lobby_name": settings["lobby_name"],
@@ -458,8 +469,8 @@ func summary() -> Dictionary:
 		"team_size": settings["team_size"],
 		"phase": phase,
 		"late_join": settings["late_join"],
-		"locked": String(settings.get("password", "")) != "",
-		"admin": String(boss.get("name", "")),
+		"locked": str(settings.get("password", "")) != "",
+		"admin": str(boss.get("name", "")),
 		"version": version,
 	}
 
@@ -468,30 +479,31 @@ func _hello(from: int, info: Dictionary) -> void:
 	_waiting_hello.erase(from)
 	if not player_of(from).is_empty():
 		return
-	var version := String(ProjectSettings.get_setting("application/config/version", ""))
+	var version := str(ProjectSettings.get_setting("application/config/version", ""))
 	var refused := ""
 	var who := "THE SERVER" if dedicated else "THE HOST"
-	if int(info.get("protocol", 0)) != NetWire.PROTOCOL:
+	var protocol: int = info.get("protocol", 0)
+	var max_players: int = settings["max_players"]
+	var late_join: bool = settings["late_join"]
+	if protocol != NetWire.PROTOCOL:
 		refused = "%s RUNS ANOTHER VERSION (%s)" % [who, version]
-	elif String(info.get("version", "")) != version:
-		refused = "%s RUNS %s, YOU RUN %s" % [who, version, String(info.get("version", "?"))]
+	elif str(info.get("version", "")) != version:
+		refused = "%s RUNS %s, YOU RUN %s" % [who, version, str(info.get("version", "?"))]
 	elif (
-		String(settings["password"]) != ""
-		and String(info.get("password", "")) != String(settings["password"])
+		str(settings["password"]) != ""
+		and str(info.get("password", "")) != str(settings["password"])
 	):
 		refused = "WRONG PASSWORD"
-	elif players.size() >= int(settings["max_players"]):
+	elif players.size() >= max_players:
 		refused = "THE LOBBY IS FULL"
-	elif phase == "match" and (not bool(settings["late_join"]) or _bot_slot_for() < 0):
-		refused = (
-			"A MATCH IS UNDER WAY" + ("" if bool(settings["late_join"]) else " (NO LATE JOIN)")
-		)
+	elif phase == "match" and (not late_join or _bot_slot_for() < 0):
+		refused = "A MATCH IS UNDER WAY" + ("" if late_join else " (NO LATE JOIN)")
 	if refused != "":
 		session.send(from, NetSession.CH_RELIABLE, NetWire.welcome({"refused": refused}))
 		session.poll(_now)
 		_drop_later(from)
 		return
-	var name := unique_name(clean_name(String(info.get("name", "PLAYER"))), from)
+	var name := unique_name(clean_name(str(info.get("name", "PLAYER"))), from)
 	var p := {"id": from, "name": name, "team": -1, "ready": false}
 	players.append(p)
 	_tell("%s JOINED" % name)
@@ -529,7 +541,8 @@ func _gone(id: int) -> void:
 		host_sync.drop_remote(id)
 		# (COUNTY RUN co-op: nobody takes their place; they stand where they were.)
 		if p.has("slot") and not county():
-			changes.append({"bot": int(p["slot"]), "name": String(p["name"])})
+			var slot: int = p["slot"]
+			changes.append({"bot": slot, "name": str(p["name"])})
 	if dedicated:
 		_after_leaving(id)
 	send_lobby()
@@ -539,7 +552,7 @@ func _gone(id: int) -> void:
 ## nobody left the match ends and the lobby has its own settings again.
 func _after_leaving(id: int) -> void:
 	if id == admin_id:
-		admin_id = int(players[0]["id"]) if not players.is_empty() else 0
+		admin_id = players[0]["id"] if not players.is_empty() else 0
 		if admin_id != 0:
 			_tell("%s RUNS THE LOBBY" % players[0]["name"])
 	if not players.is_empty():
@@ -558,7 +571,7 @@ func _drop(id: int, _why: String) -> void:
 
 ## A refused client is let go once its refusal has had time to get there.
 func _drop_later(id: int) -> void:
-	Engine.get_main_loop().create_timer(1.0).timeout.connect(
+	(Engine.get_main_loop() as SceneTree).create_timer(1.0).timeout.connect(
 		func() -> void:
 			if session != null and player_of(id).is_empty():
 				session.drop(id)
@@ -583,7 +596,8 @@ func kick(id: int) -> void:
 
 func player_of(id: int) -> Dictionary:
 	for p: Dictionary in players:
-		if int(p["id"]) == id:
+		var pid: int = p["id"]
+		if pid == id:
 			return p
 	return {}
 
@@ -591,12 +605,13 @@ func player_of(id: int) -> Dictionary:
 ## What every lobby screen shows: the settings (no password) and the players.
 func lobby_info() -> Dictionary:
 	var shown := settings.duplicate()
-	shown["locked"] = String(settings["password"]) != ""
+	shown["locked"] = str(settings["password"]) != ""
 	shown.erase("password")
 	var list: Array = []
 	var plan := team_plan()
 	for p: Dictionary in players:
-		p["side"] = int(plan[p["id"]])
+		var side: int = plan[p["id"]]
+		p["side"] = side
 		list.append(
 			{
 				"id": p["id"],
@@ -626,31 +641,33 @@ func send_lobby() -> void:
 func is_admin() -> bool:
 	if role == Role.HOST:
 		return not dedicated
-	return role == Role.CLIENT and my_id != 0 and int(settings.get("admin", -1)) == my_id
+	var admin: int = settings.get("admin", -1)
+	return role == Role.CLIENT and my_id != 0 and admin == my_id
 
 
 ## The id of whoever runs the lobby (0: nobody).
 func admin_of() -> int:
 	if role == Role.HOST:
 		return admin_id if dedicated else NetSession.HOST_ID
-	return int(settings.get("admin", 0))
+	var admin: int = settings.get("admin", 0)
+	return admin
 
 
 ## A host setting changed (lobby_screens.gd): every lobby hears.
-func set_setting(key: String, value) -> void:
+func set_setting(key: String, value: Variant) -> void:
 	if role == Role.CLIENT and is_admin():
 		ask({"set": {key: value}})
 		return
 	if role != Role.HOST:
 		return
-	var was_tag := Modes.TAGTEAM_MAPS.has(String(settings.get("map", "")))
+	var was_tag := Modes.TAGTEAM_MAPS.has(str(settings.get("map", "")))
 	settings[key] = value
 	var tag := was_tag
 	if key == "map":
-		tag = Modes.TAGTEAM_MAPS.has(String(value))
+		tag = Modes.TAGTEAM_MAPS.has(str(value))
 	elif key == "mode":
 		# TAG TEAM 2V2 onto a 2v2 map, a 5v5 mode onto a 5v5 map.
-		tag = String(value) == "tagteam"
+		tag = str(value) == "tagteam"
 		if tag != was_tag:
 			settings["map"] = Modes.TAGTEAM_MAPS[0] if tag else Modes.SHOWDOWN_MAPS[0]
 	if tag != was_tag:
@@ -661,9 +678,11 @@ func set_setting(key: String, value) -> void:
 		settings["round_seconds"] = 90.0 if tag else 0.0
 		settings["buy_seconds"] = 15.0 if tag else 20.0
 	_mode_fits_map()
-	if key == "pick_teams" and not bool(value):
-		for p: Dictionary in players:
-			p["team"] = -1
+	if key == "pick_teams":
+		var picking: bool = value
+		if not picking:
+			for p: Dictionary in players:
+				p["team"] = -1
 	send_lobby()
 
 
@@ -671,7 +690,7 @@ func set_setting(key: String, value) -> void:
 ## destroy two a side.
 ## A COUNTY RUN co-op lobby (MODE, or a county map).
 func county() -> bool:
-	return String(settings.get("mode", "")) == Modes.COUNTY
+	return str(settings.get("mode", "")) == Modes.COUNTY
 
 
 static func play_mode(id: String) -> String:
@@ -680,7 +699,7 @@ static func play_mode(id: String) -> String:
 
 ## MODE as the map makes it: TAG TEAM 2V2 on a 2v2 map, never on a 5v5 one.
 func _mode_fits_map() -> void:
-	var map := String(settings.get("map", ""))
+	var map := str(settings.get("map", ""))
 	# COUNTY RUN co-op on its own maps, and only there.
 	if CountyData.MAP_IDS.has(map):
 		settings["mode"] = Modes.COUNTY
@@ -690,7 +709,7 @@ func _mode_fits_map() -> void:
 	var tag := Modes.TAGTEAM_MAPS.has(map)
 	if tag:
 		settings["mode"] = "tagteam"
-	elif String(settings.get("mode", "")) == "tagteam":
+	elif str(settings.get("mode", "")) == "tagteam":
 		settings["mode"] = Modes.BOMB
 
 
@@ -701,27 +720,30 @@ func why_not_start() -> String:
 	if county():
 		var boss_id := admin_of()
 		for p: Dictionary in players:
-			if not bool(p["ready"]) and int(p["id"]) != boss_id:
+			var ready: bool = p["ready"]
+			var pid: int = p["id"]
+			if not ready and pid != boss_id:
 				return "WAITING ON %s" % p["name"]
 		if players.size() > CountyCoop.MOST:
 			return "COUNTY RUN TAKES %d AT MOST" % CountyCoop.MOST
 		return ""
-	var size := int(settings["team_size"])
+	var size: int = settings["team_size"]
 	var plan := team_plan()
 	var count := [0, 0]
 	var boss := admin_of()
 	for p: Dictionary in players:
-		count[int(plan[p["id"]])] += 1
-		if not bool(p["ready"]) and int(p["id"]) != boss:
+		var side: int = plan[p["id"]]
+		count[side] += 1
+		var ready: bool = p["ready"]
+		var pid: int = p["id"]
+		if not ready and pid != boss:
 			return "WAITING ON %s" % p["name"]
 	if count[0] > size or count[1] > size:
 		return "TOO MANY ON A TEAM FOR %dV%d" % [size, size]
-	if not bool(settings["bots"]) and (count[0] == 0 or count[1] == 0):
+	var bots: bool = settings["bots"]
+	if not bots and (count[0] == 0 or count[1] == 0):
 		return "BOTH TEAMS NEED A PLAYER (OR BOTS ON)"
-	if (
-		String(settings["mode"]) == Modes.HOSTAGE
-		and Modes.TAGTEAM_MAPS.has(String(settings["map"]))
-	):
+	if str(settings["mode"]) == Modes.HOSTAGE and Modes.TAGTEAM_MAPS.has(str(settings["map"])):
 		return "NO HOSTAGES ON A 2V2 MAP: SEARCH AND DESTROY"
 	return ""
 
@@ -731,8 +753,9 @@ func team_plan() -> Dictionary:
 	var out := {}
 	var count := [0, 0]
 	for p: Dictionary in players:
-		var t := int(p["team"])
-		if t >= 0 and bool(settings["pick_teams"]):
+		var t: int = p["team"]
+		var pick_teams: bool = settings["pick_teams"]
+		if t >= 0 and pick_teams:
 			out[p["id"]] = t
 			count[t] += 1
 	for p: Dictionary in players:
@@ -753,10 +776,10 @@ func start_match() -> String:
 		return not_yet
 	var why := why_not_start()
 	if why == "" and may_start.is_valid():
-		why = String(may_start.call())
+		why = str(may_start.call())
 	if why != "":
 		return why
-	var size := int(settings["team_size"])
+	var size: int = settings["team_size"]
 	var plan := team_plan()
 	var teams: Array = []
 	var names: Array = []
@@ -765,16 +788,18 @@ func start_match() -> String:
 	for p: Dictionary in players:
 		slot_of[p["id"]] = teams.size()
 		p["slot"] = teams.size()
-		teams.append(int(plan[p["id"]]))
-		names.append(String(p["name"]))
-	if bool(settings["bots"]) and not county():
+		var team: int = plan[p["id"]]
+		teams.append(team)
+		names.append(str(p["name"]))
+	var bots: bool = settings["bots"]
+	if bots and not county():
 		for t in 2:
 			while teams.count(t) < size:
 				teams.append(t)
 				names.append("")
 	var info := {
-		"level": String(settings["map"]),
-		"mode": play_mode(String(settings["mode"])),
+		"level": str(settings["map"]),
+		"mode": play_mode(str(settings["mode"])),
 		"count": teams.size(),
 		"options": match_options(teams, names),
 		"slots": slot_of,
@@ -789,10 +814,12 @@ func start_match() -> String:
 	tally_at = -1.0
 	host_sync = NetSync.Host.new(session, game, func() -> int: return -1, SNAP_EVERY)
 	for p: Dictionary in players:
-		p["ready"] = int(p["id"]) == NetSession.HOST_ID
-		if int(p["id"]) != NetSession.HOST_ID:
-			host_sync.add_remote(int(p["id"]), int(p["slot"]))
-			_send_start(int(p["id"]), int(p["slot"]))
+		var pid: int = p["id"]
+		p["ready"] = pid == NetSession.HOST_ID
+		if pid != NetSession.HOST_ID:
+			var slot: int = p["slot"]
+			host_sync.add_remote(pid, slot)
+			_send_start(pid, slot)
 	phase = "match"
 	changes.append({"started": true})
 	send_lobby()
@@ -800,9 +827,10 @@ func start_match() -> String:
 
 
 func match_options(teams: Array, names: Array) -> Dictionary:
+	var rounds: int = settings["rounds"]
 	var out := {
-		"arena": String(settings["map"]),
-		"rounds": int(settings["rounds"]),
+		"arena": str(settings["map"]),
+		"rounds": rounds,
 		"teams": teams,
 		"names": names,
 	}
@@ -816,9 +844,10 @@ func _send_start(id: int, slot: int) -> void:
 	var info := match_info.duplicate()
 	info.erase("slots")
 	info["slot"] = slot
-	info["options"] = match_options(
-		match_info["options"]["teams"], _names_now(match_info["options"]["names"])
-	)
+	var options: Dictionary = match_info["options"]
+	var teams: Array = options["teams"]
+	var names: Array = options["names"]
+	info["options"] = match_options(teams, _names_now(names))
 	session.send(id, NetSession.CH_RELIABLE, NetWire.message(NetWire.START, info))
 
 
@@ -839,10 +868,11 @@ func _seat_late(p: Dictionary) -> void:
 	p["slot"] = slot
 	p["ready"] = true
 	var q: Player = host_sync.game.players[slot]
-	q.name = String(p["name"])
-	host_sync.add_remote(int(p["id"]), slot)
-	_send_start(int(p["id"]), slot)
-	changes.append({"human": slot, "name": String(p["name"])})
+	q.name = str(p["name"])
+	var pid: int = p["id"]
+	host_sync.add_remote(pid, slot)
+	_send_start(pid, slot)
+	changes.append({"human": slot, "name": str(p["name"])})
 	_tell("%s TAKES OVER FROM A BOT" % p["name"])
 
 
@@ -853,9 +883,10 @@ func _bot_slot_for() -> int:
 	var taken := {}
 	var people := [0, 0]
 	for p: Dictionary in players:
-		if p.has("slot") and int(p["slot"]) >= 0:
-			taken[int(p["slot"])] = true
-			people[host_sync.game.players[int(p["slot"])].team] += 1
+		var slot: int = p.get("slot", -1)
+		if p.has("slot") and slot >= 0:
+			taken[slot] = true
+			people[host_sync.game.players[slot].team] += 1
 	var best := -1
 	for q: Player in host_sync.game.players:
 		if taken.has(q.slot):
@@ -873,7 +904,8 @@ func bot_slots() -> Array:
 	var taken := {}
 	for p: Dictionary in players:
 		if p.has("slot"):
-			taken[int(p["slot"])] = true
+			var slot: int = p["slot"]
+			taken[slot] = true
 	for q: Player in host_sync.game.players:
 		if not taken.has(q.slot):
 			out.append(q.slot)
@@ -899,7 +931,8 @@ func back_to_lobby() -> void:
 	phase = "lobby"
 	for p: Dictionary in players:
 		p.erase("slot")
-		p["ready"] = int(p["id"]) == NetSession.HOST_ID
+		var pid: int = p["id"]
+		p["ready"] = pid == NetSession.HOST_ID
 	session.send(0, NetSession.CH_RELIABLE, NetWire.message(NetWire.BACK, {}))
 	changes.append({"lobby": true})
 	send_lobby()
@@ -912,11 +945,12 @@ func _client_message(kind: int, info: Dictionary) -> void:
 	match kind:
 		NetWire.WELCOME:
 			if info.has("refused"):
-				_close(String(info["refused"]))
+				_close(str(info["refused"]))
 				return
-			my_id = int(info.get("id", session.id()))
+			my_id = info.get("id", session.id())
 			phase = "lobby"
-			_take_lobby(info.get("lobby", {}))
+			var lobby: Dictionary = info.get("lobby", {})
+			_take_lobby(lobby)
 		NetWire.LOBBY:
 			_take_lobby(info)
 		NetWire.START:
@@ -928,7 +962,7 @@ func _client_message(kind: int, info: Dictionary) -> void:
 			phase = "lobby"
 			changes.append({"lobby": true})
 		NetWire.BYE:
-			_close(String(info.get("why", "THE HOST CLOSED THE LOBBY")))
+			_close(str(info.get("why", "THE HOST CLOSED THE LOBBY")))
 
 
 func _take_lobby(info: Dictionary) -> void:
@@ -937,8 +971,8 @@ func _take_lobby(info: Dictionary) -> void:
 	var shown: Dictionary = info.get("settings", {})
 	settings.merge(shown, true)
 	players = info.get("players", [])
-	for line in info.get("news", []):
-		news.append(String(line))
+	for line: Variant in info.get("news", []):
+		news.append(str(line))
 
 
 ## What this player wants (lobby_screens.gd): name, team, ready.
@@ -956,8 +990,8 @@ func _start(info: Dictionary) -> void:
 		_close("THE MAP WOULD NOT LOAD")
 		return
 	client_sync = NetSync.Client.new(session, func(_id: String) -> Game: return null)
-	client_sync.slot = int(info["slot"])
-	client_sync.level = String(info["level"])
+	client_sync.slot = info["slot"]
+	client_sync.level = str(info["level"])
 	client_sync.game = game
 	phase = "match"
 	changes.append({"started": true})
@@ -1116,7 +1150,7 @@ static func local_addresses() -> PackedStringArray:
 static func remembered() -> Dictionary:
 	if not FileAccess.file_exists(REMEMBER):
 		return {}
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(REMEMBER))
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(REMEMBER))
 	return parsed if parsed is Dictionary else {}
 
 

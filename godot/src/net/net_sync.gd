@@ -58,11 +58,13 @@ static func comparable(data: Dictionary) -> Dictionary:
 	if not data.has("save"):
 		return data
 	var out := data.duplicate()
-	var save: Dictionary = (data["save"] as Dictionary).duplicate()
+	var save_in: Dictionary = data["save"]
+	var save: Dictionary = save_in.duplicate()
 	for name: String in LOCAL_ONLY + GameSnapshot.VIEW_FIELDS:
 		save.erase(name)
 	if save.get("game") is Dictionary:
-		var fields: Dictionary = (save["game"] as Dictionary).duplicate()
+		var fields_in: Dictionary = save["game"]
+		var fields: Dictionary = fields_in.duplicate()
 		for name: String in LOCAL_ONLY + GameSnapshot.VIEW_FIELDS:
 			fields.erase(name)
 		save["game"] = fields
@@ -148,9 +150,10 @@ class Host:
 	func take(packets: Array) -> void:
 		for packet: Array in packets:
 			var bytes: PackedByteArray = packet[1]
-			var from := int(packet[0])
+			var from: int = packet[0]
 			if not bytes.is_empty() and bytes[0] == NetWire.INPUTS and remotes.has(from):
-				_inputs(remotes[from], NetWire.read_inputs(bytes))
+				var r: Remote = remotes[from]
+				_inputs(r, NetWire.read_inputs(bytes))
 
 	## A client playing `slot` from now on (seated by a lobby, not a HELLO).
 	func add_remote(id: int, slot: int) -> void:
@@ -167,8 +170,9 @@ class Host:
 	func play(own: Dictionary) -> void:
 		var given := {}
 		var rows := {}
-		for slot in own:
-			var bytes := NetWire.pack_controls(own[slot])
+		for slot: Variant in own:
+			var controls: Game.Controls = own[slot]
+			var bytes := NetWire.pack_controls(controls)
 			rows[slot] = bytes
 			given[slot] = NetWire.unpack_controls(bytes)
 		for r: Remote in remotes.values():
@@ -189,16 +193,19 @@ class Host:
 			_send_snapshots()
 
 	## What changed from snapshot `base` to this one (null: send it whole).
-	func _change_since(base: int, now: Dictionary):
+	func _change_since(base: int, now: Dictionary) -> Variant:
 		if not tracked:
-			return GameSnapshot.delta(history[base][1], now)
-		var merged = {}
+			var base_snap: Dictionary = history[base][1]
+			return GameSnapshot.delta(base_snap, now)
+		var merged := {}
 		for s in range(base + 1, seq + 1):
 			if not history.has(s):
 				return null
-			merged = GameSnapshot.merge(merged, history[s][1])
-			if merged == null:
+			var change: Dictionary = history[s][1]
+			var next: Variant = GameSnapshot.merge(merged, change)
+			if next == null:
 				return null
+			merged = next
 		return merged
 
 	func _next_input(r: Remote) -> PackedByteArray:
@@ -212,7 +219,8 @@ class Host:
 				r.waiting.erase(r.next)
 				r.next += 1
 				if r.waiting.has(r.next):
-					r.waiting[r.next] = NetWire.merged(dropped, r.waiting[r.next])
+					var later: PackedByteArray = r.waiting[r.next]
+					r.waiting[r.next] = NetWire.merged(dropped, later)
 				r.skipped += 1
 		if r.waiting.has(r.next):
 			r.last = r.waiting[r.next]
@@ -230,14 +238,15 @@ class Host:
 		for id: int in events[1]:
 			remotes.erase(id)
 		for packet: Array in packets:
-			var from := int(packet[0])
+			var from: int = packet[0]
 			var bytes: PackedByteArray = packet[1]
 			if bytes.is_empty():
 				continue
 			if bytes[0] == NetWire.HELLO:
 				_hello(from, NetWire.info_of(bytes))
 			elif bytes[0] == NetWire.INPUTS and remotes.has(from):
-				_inputs(remotes[from], NetWire.read_inputs(bytes))
+				var r: Remote = remotes[from]
+				_inputs(r, NetWire.read_inputs(bytes))
 
 	func _hello(from: int, info: Dictionary) -> void:
 		if remotes.has(from):
@@ -248,7 +257,8 @@ class Host:
 			"tick_hz": roundi(1.0 / STEP),
 			"snap_hz": roundi(1.0 / STEP / snap_every),
 		}
-		if int(info.get("protocol", 0)) != NetWire.PROTOCOL:
+		var protocol: int = info.get("protocol", 0)
+		if protocol != NetWire.PROTOCOL:
 			reply["refused"] = "protocol %s, host has %d" % [info.get("protocol"), NetWire.PROTOCOL]
 		else:
 			var slot: int = seat.call()
@@ -262,11 +272,12 @@ class Host:
 	func _inputs(r: Remote, msg: Dictionary) -> void:
 		if msg.is_empty():
 			return
-		r.acked = maxi(r.acked, int(msg["ack"]))
-		var view := int(msg.get("view_tick", -1))
+		var ack: int = msg["ack"]
+		r.acked = maxi(r.acked, ack)
+		var view: int = msg.get("view_tick", -1)
 		if view > r.view_tick and view <= tick:
 			r.view_tick = view
-		var first := int(msg["first"])
+		var first: int = msg["first"]
 		var list: Array = msg["list"]
 		if r.next < 0:
 			r.next = first
@@ -297,24 +308,26 @@ class Host:
 				continue
 			if not by_base.has(base):
 				t0 = Time.get_ticks_usec()
-				var change = _change_since(base, now) if base >= 0 else null
+				var change: Variant = _change_since(base, now) if base >= 0 else null
 				if change == null:
 					if now.is_empty():
 						now = GameSnapshot.capture(game)
 					base = -1
-				var payload := GameSnapshot.to_bytes(now if change == null else change)
+				var to_send: Dictionary = now if change == null else change
+				var payload := GameSnapshot.to_bytes(to_send)
 				delta_us += Time.get_ticks_usec() - t0
 				(sizes_full if base < 0 else sizes_delta).append(payload.size())
 				by_base[base] = payload
 			if base < 0:
 				r.full_at = tick
-			var since: int = tick if base < 0 else int(history[base][0])
+			var since: int = tick if base < 0 else history[base][0]
 			var first := maxi(since + 1, tick - MAX_ECHO + 1)
 			var rows: Array = []
 			for t in range(first, tick + 1):
 				rows.append(played.get(t, PackedByteArray()))
+			var snap_bytes: PackedByteArray = by_base[base]
 			var packet := NetWire.snap(
-				seq, base, tick, r.next - 1 if r.next > 0 else -1, [first, rows], by_base[base]
+				seq, base, tick, r.next - 1 if r.next > 0 else -1, [first, rows], snap_bytes
 			)
 			session.send(r.id, NetSession.CH_SNAPS, packet)
 
@@ -375,7 +388,7 @@ class Client:
 		session.send(
 			NetSession.HOST_ID,
 			NetSession.CH_RELIABLE,
-			NetWire.hello(String(ProjectSettings.get_setting("application/config/version", "")))
+			NetWire.hello(str(ProjectSettings.get_setting("application/config/version", "")))
 		)
 
 	## Reads what came in and brings the copy up to the newest snapshot.
@@ -393,9 +406,9 @@ class Client:
 				continue
 			if bytes[0] == NetWire.WELCOME:
 				var info := NetWire.info_of(bytes)
-				refused = String(info.get("refused", ""))
-				slot = int(info.get("slot", -1))
-				level = String(info.get("level", ""))
+				refused = str(info.get("refused", ""))
+				slot = info.get("slot", -1)
+				level = str(info.get("level", ""))
 			elif bytes[0] == NetWire.SNAP:
 				_snap(NetWire.read_snap(bytes))
 
@@ -457,37 +470,42 @@ class Client:
 	func _snap(msg: Dictionary) -> void:
 		if msg.is_empty():
 			return
-		var seq := int(msg["seq"])
+		var seq: int = msg["seq"]
 		if seq <= latest:
 			stale += 1
 			return
-		var base := int(msg["base"])
+		var base: int = msg["base"]
 		var data := {}
 		if base < 0:
-			data = GameSnapshot.from_bytes(msg["payload"])
+			var payload: PackedByteArray = msg["payload"]
+			data = GameSnapshot.from_bytes(payload)
 		elif snaps.has(base):
-			data = GameSnapshot.patch(snaps[base][1], GameSnapshot.from_bytes(msg["payload"]))
+			var base_data: Dictionary = snaps[base][1]
+			var payload: PackedByteArray = msg["payload"]
+			data = GameSnapshot.patch(base_data, GameSnapshot.from_bytes(payload))
 		else:
 			no_base += 1
 			return
-		var tick := int(msg["tick"])
+		var tick: int = msg["tick"]
 		snaps[seq] = [tick, data]
 		snaps.erase(seq - KEEP)
 		if keep_rebuilt:
 			rebuilt[seq] = data
 		latest = seq
 		latest_tick = tick
-		var ack := int(msg["input_ack"])
+		var ack: int = msg["input_ack"]
 		if ack >= 0:
 			input_ack = ack
 			input_ack_tick = tick
 			if sent_at.has(ack):
-				lag_samples.append(_now - float(sent_at[ack]))
-			for n in unacked.keys():
-				if int(n) <= ack:
+				var at_ms: float = sent_at[ack]
+				lag_samples.append(_now - at_ms)
+			for n: Variant in unacked.keys():
+				var n_seq: int = n
+				if n_seq <= ack:
 					unacked.erase(n)
 					sent_at.erase(n)
-		var first := int(msg["echo_first"])
+		var first: int = msg["echo_first"]
 		var rows: Array = msg["echo"]
 		for i in rows.size():
 			if not echo.has(first + i) and first + i > game_tick:
@@ -509,15 +527,18 @@ class Client:
 		var steps := 0
 		while game_tick < latest_tick - behind and steps < most:
 			steps += 1
-			var row = echo.get(game_tick + 1)
-			if row == null or (row as Dictionary).is_empty():
+			var row: Variant = echo.get(game_tick + 1)
+			var row_dict: Dictionary = {} if row == null else row
+			if row_dict.is_empty():
 				# The inputs for the next tick never came (lost past the
 				# redundancy): start again from the newest snapshot.
 				_rebuild()
 				return
 			var given := {}
-			for s in row:
-				given[int(s)] = NetWire.unpack_controls(row[s])
+			for s: Variant in row_dict:
+				var s_slot: int = s
+				var s_bytes: PackedByteArray = row_dict[s]
+				given[s_slot] = NetWire.unpack_controls(s_bytes)
 			game.tick(STEP, given)
 			echo.erase(game_tick)
 			game_tick += 1
@@ -528,13 +549,15 @@ class Client:
 	## Compares the copy with the snapshot of the tick it is at, if one is
 	## kept; false when they parted (the copy is then put back on the newest).
 	func _check_at(tick: int) -> bool:
-		for seq in snaps:
-			if int(snaps[seq][0]) != tick:
+		for seq: Variant in snaps:
+			var seq_tick: int = snaps[seq][0]
+			if seq_tick != tick:
 				continue
 			checked_at = tick
 			checks += 1
+			var seq_data: Dictionary = snaps[seq][1]
 			var where := GameSnapshot.first_difference(
-				NetSync.comparable(snaps[seq][1]), NetSync.comparable(NetSync.capture(game))
+				NetSync.comparable(seq_data), NetSync.comparable(NetSync.capture(game))
 			)
 			if where != "":
 				mismatches += 1
@@ -559,8 +582,9 @@ class Client:
 		rebuilds += 1
 		game_tick = latest_tick
 		rebuilt_at = latest_tick
-		for t in echo.keys():
-			if int(t) <= game_tick:
+		for t: Variant in echo.keys():
+			var t_tick: int = t
+			if t_tick <= game_tick:
 				echo.erase(t)
 		_after_apply()
 		if check:

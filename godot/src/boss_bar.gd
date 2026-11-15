@@ -6,17 +6,19 @@ class_name BossBar
 extends RefCounted
 
 
-static func draw(game, c: Canvas, y: int) -> int:
-	var p = game.player
-	var finale = game.finale
-	var jerry = game.jerry
-	var boss = finale if finale != null else (jerry if jerry != null and jerry.alive else game.boss)
+static func draw(game: Game, c: Canvas, y: int) -> int:
+	var p: Player = game.player
+	var finale: Enemy = game.finale
+	var jerry: Enemy = game.jerry
+	var boss: Enemy = (
+		finale if finale != null else (jerry if jerry != null and jerry.alive else game.boss)
+	)
 	if boss == null:
 		return y
 	var in_finale: bool = BossFight.in_arena_at(game, boss, p.x, p.y)
 	if not in_finale or not boss.alive or not boss.alerted or game.in_hub:
 		return y
-	var tell: String = String(
+	var tell: String = str(
 		Enemy.TELLS.get(boss.kind, "PLASMA CHARGE" if boss == game.boss else "WHISTLE")
 	)
 	if boss.brain == "baron" and not BaronMoves.outlets_next(boss.attacks, boss.enraged):
@@ -28,13 +30,15 @@ static func draw(game, c: Canvas, y: int) -> int:
 	if boss.brain == "derby_champ":
 		tell = DerbyChamp.tell(boss)
 	if BayouBrains.is_king(boss) and boss.aim_mark != null:
-		var toward := atan2(boss.aim_mark[1] - boss.y, boss.aim_mark[0] - boss.x)
+		var mark_x: float = boss.aim_mark[0]
+		var mark_y: float = boss.aim_mark[1]
+		var toward := atan2(mark_y - boss.y, mark_x - boss.x)
 		var reach: float = Vector2(p.x - boss.x, p.y - boss.y).length()
 		var run := BayouBrains.runs_on(boss, boss.attacks + 1, game.world, toward, reach)
 		tell = "AIRBOAT RUN" if run else "PUNT GUN"
 	if boss.has_meta("tell"):
 		# An attack of its own moves (src/bosses/) names itself.
-		tell = String(boss.get_meta("tell"))
+		tell = str(boss.get_meta("tell"))
 	tell = ShipAliens.tell(game, boss, tell)
 	var phase: String = tell if boss.windup > 0.0 else "RECOVERING" if boss.recovery > .16 else ""
 	if boss.brain == "derby_champ" and phase == "RECOVERING":
@@ -62,14 +66,14 @@ static func draw(game, c: Canvas, y: int) -> int:
 	var fill := Canvas.rgb(236, 143, 69) if boss.windup > 0.0 else Canvas.rgb(204, 77, 47)
 	if reeling:
 		fill = Canvas.rgb(255, 238, 200)
-	c.fill_rect(199, y + 12, int(round(110.0 * boss.hp / boss.max_hp)), 4, fill)
+	c.fill_rect(199, y + 12, int(roundf(110.0 * boss.hp / boss.max_hp)), 4, fill)
 	if phase != "":
 		HUD.text(c, phase, 253, y + 19, "mini", Canvas.rgb(249, 194, 124), true, false)
 	return y + (27 if phase != "" else 20) + 2
 
 
 static func title(kind: String) -> String:
-	return String(
+	return str(
 		(
 			{
 				"boss": "ALIEN SHERIFF",
@@ -78,6 +82,6 @@ static func title(kind: String) -> String:
 				"foreman": "SPLINTER FOREMAN",
 				"baron": "COPPER BARON"
 			}
-			. get(kind, String(Enemy.BOSS_TITLES.get(kind, "BOSS")))
+			. get(kind, str(Enemy.BOSS_TITLES.get(kind, "BOSS")))
 		)
 	)

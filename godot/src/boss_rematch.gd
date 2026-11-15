@@ -39,6 +39,9 @@ const SHUT := {"derby_champ": [Vector2i(89, 56)], "maw": [Vector2i(64, 62)]}
 ## What the framework's boss reinforcements (game.boss_backup) are set to in a
 ## rematch; null leaves the framework's own default.
 const BACKUP = null
+const BossRematchFeature := preload("res://src/features/boss_rematch.gd")
+const PosseFeature := preload("res://src/features/posse.gd")
+
 ## The board on screen: its first row and each row's height.
 static var TOP: int = BossData.get_value("boss_rematch", "top")
 static var ROW: int = BossData.get_value("boss_rematch", "row")
@@ -66,20 +69,27 @@ static func profile() -> Dictionary:
 	var raw := FileAccess.get_file_as_bytes(file)
 	if raw.size() > 4096:
 		return out
-	var doc = JSON.parse_string(raw.get_string_from_utf8())
+	var doc: Variant = JSON.parse_string(raw.get_string_from_utf8())
 	if not (doc is Dictionary):
 		return out
-	var bests = doc.get("bests", {})
+	var sheet: Dictionary = doc
+	var bests: Variant = sheet.get("bests", {})
 	if bests is Dictionary:
-		for kind in bests:
-			var t = bests[kind]
-			if BOSSES.has(String(kind)) and (t is float or t is int) and float(t) > 0.0:
-				out["bests"][String(kind)] = float(t)
-	var beaten = doc.get("beaten", [])
+		var times: Dictionary = bests
+		var out_bests: Dictionary = out["bests"]
+		for kind: Variant in times:
+			var t: Variant = times[kind]
+			if BOSSES.has(str(kind)) and (t is float or t is int):
+				var seconds: float = t
+				if seconds > 0.0:
+					out_bests[str(kind)] = seconds
+	var beaten: Variant = sheet.get("beaten", [])
 	if beaten is Array:
-		for level_id in beaten:
-			if Campaign.ORDER.has(String(level_id)):
-				out["beaten"].append(String(level_id))
+		var chapters: Array = beaten
+		var out_beaten: Array = out["beaten"]
+		for level_id: Variant in chapters:
+			if Campaign.ORDER.has(str(level_id)):
+				out_beaten.append(str(level_id))
 	return out
 
 
@@ -88,13 +98,16 @@ static func _write(doc: Dictionary) -> bool:
 
 
 static func best(kind: String) -> float:
-	return float(profile()["bests"].get(kind, 0.0))
+	var bests: Dictionary = profile()["bests"]
+	var t: float = bests.get(kind, 0.0)
+	return t
 
 
 ## Keep a time if it is the boss's best; true when it is.
 static func record(kind: String, seconds: float) -> bool:
 	var doc := profile()
-	var old := float(doc["bests"].get(kind, 0.0))
+	var bests: Dictionary = doc["bests"]
+	var old: float = bests.get(kind, 0.0)
 	if old > 0.0 and old <= seconds:
 		return false
 	doc["bests"][kind] = snappedf(seconds, .01)
@@ -104,14 +117,16 @@ static func record(kind: String, seconds: float) -> bool:
 
 static func mark_beaten(level_id: String) -> void:
 	var doc := profile()
-	if not Campaign.ORDER.has(level_id) or doc["beaten"].has(level_id):
+	var done: Array = doc["beaten"]
+	if not Campaign.ORDER.has(level_id) or done.has(level_id):
 		return
-	doc["beaten"].append(level_id)
+	done.append(level_id)
 	_write(doc)
 
 
 static func beaten(level_id: String, unlocked: Dictionary, doc: Dictionary) -> bool:
-	if doc["beaten"].has(level_id):
+	var done: Array = doc["beaten"]
+	if done.has(level_id):
 		return true
 	var following := Campaign.next_level(level_id)
 	if following != "":
@@ -120,12 +135,14 @@ static func beaten(level_id: String, unlocked: Dictionary, doc: Dictionary) -> b
 	var entry := SessionStore.data_directory().path_join(SessionStore.ENTRY_FILE)
 	if not FileAccess.file_exists(entry):
 		return false
-	var saved = JSON.parse_string(FileAccess.get_file_as_string(entry))
-	return (
-		saved is Dictionary
-		and String(saved.get("level", "")) == level_id
-		and saved.get("game", {}).get("won", false) == true
-	)
+	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(entry))
+	if not (saved is Dictionary):
+		return false
+	var sheet: Dictionary = saved
+	if str(sheet.get("level", "")) != level_id:
+		return false
+	var game_doc: Dictionary = sheet.get("game", {})
+	return game_doc.get("won", false) == true
 
 
 ## Which bosses are on the board: kind -> true.
@@ -134,7 +151,7 @@ static func available(unlocked: Dictionary) -> Dictionary:
 	var out := {}
 	var known := {}
 	for kind: String in BOSSES:
-		var level_id := String(LEVEL_OF[kind])
+		var level_id: String = LEVEL_OF[kind]
 		if not known.has(level_id):
 			known[level_id] = unlock_all or beaten(level_id, unlocked, doc)
 		if known[level_id]:
@@ -142,10 +159,10 @@ static func available(unlocked: Dictionary) -> Dictionary:
 	return out
 
 
-static func active(game) -> bool:
+static func active(game: Game) -> bool:
 	if game == null:
 		return false
-	var feature = game.features.get("boss_rematch")
+	var feature: BossRematchFeature = game.features.get("boss_rematch")
 	return feature != null and feature.active
 
 
@@ -154,7 +171,7 @@ static func title(kind: String) -> String:
 
 
 static func ribbon(kind: String, seconds: float) -> String:
-	var par := float(PAR.get(kind, 60.0))
+	var par: float = PAR.get(kind, 60.0)
 	if seconds <= par:
 		return "BLUE"
 	if seconds <= par * RED_SHARE:
@@ -173,14 +190,14 @@ static func clock_text(seconds: float) -> String:
 ## The chapter set for a rematch with `kind`, the player at the entrance; null
 ## when the chapter has no such boss.
 static func build(make_game: Callable, kind: String) -> Game:
-	var level_id := String(LEVEL_OF.get(kind, ""))
+	var level_id: String = LEVEL_OF.get(kind, "")
 	if level_id == "":
 		return null
 	var g: Game = make_game.call(level_id)
 	var boss := BossFight.of_kind(g, kind)
 	if boss == null:
 		return null
-	var feature = g.features["boss_rematch"]
+	var feature: BossRematchFeature = g.features["boss_rematch"]
 	feature.active = true
 	feature.kind = kind
 	_prune(g, boss)
@@ -193,11 +210,12 @@ static func build(make_game: Callable, kind: String) -> Game:
 			door.opened = true
 			door.progress = 1.0
 	_arm(g, level_id)
-	var spot = entrance(g, boss)
+	var spot: Variant = entrance(g, boss)
 	var p := g.player
 	if spot != null:
-		p.x = spot.x
-		p.y = spot.y
+		var at: Vector2 = spot
+		p.x = at.x
+		p.y = at.y
 	p.angle = atan2(boss.y - p.y, boss.x - p.x)
 	p.pitch = 0.0
 	p.eye = g.world.stand(p) + .95
@@ -229,14 +247,17 @@ static func _prune(g: Game, boss: Enemy) -> void:
 		if i < g.enemy_ids.size():
 			g.enemy_ids.remove_at(i)
 	g.wave = g.wave.filter(func(e: Enemy) -> bool: return not gone.has(e))
-	for key in g.partners.keys():
+	for key: Variant in g.partners.keys():
 		var pair: Array = g.partners[key]
-		if gone.has(pair[0]) or not g.enemies.any(func(e): return e.get_instance_id() == key):
+		if (
+			gone.has(pair[0])
+			or not g.enemies.any(func(e: Enemy) -> bool: return e.get_instance_id() == key)
+		):
 			g.partners.erase(key)
 	for name: String in ["boss", "jerry", "finale"]:
 		if gone.has(g.get(name)):
 			g.set(name, null)
-	var posse = g.features.get("posse")
+	var posse: PosseFeature = g.features.get("posse")
 	if posse != null and "spawned" in posse:
 		posse.spawned = true
 	g.total_kills = 0
@@ -253,8 +274,8 @@ static func _finish_stations(g: Game) -> void:
 		moved = false
 		for station: LevelData.Station in left.duplicate():
 			var ready := true
-			for key in station.requires:
-				ready = ready and g.stations_done.has(String(key))
+			for key: Variant in station.requires:
+				ready = ready and g.stations_done.has(str(key))
 			if ready:
 				g.activate_station(station)
 				left.erase(station)
@@ -290,7 +311,7 @@ static func entrance(g: Game, boss: Enemy) -> Variant:
 		for cell: Vector2i in path:
 			if field.distance(cell.x + .5, cell.y + .5) <= DOOR_STEPS and fits(g, cell):
 				return Vector2(cell.x + .5, cell.y + .5)
-	var best = null
+	var best: Variant = null
 	var near := INF
 	for cy in g.world.height:
 		for cx in g.world.width:
@@ -371,14 +392,14 @@ static func draw_board(
 			c.fill_rect(19, y, 282, ROW - 1, Canvas.rgb(33, 23, 19))
 		var ink := HUD.AMBER if here else (HUD.INK if ready else Menu.DIM)
 		HUD.text(c, title(kind), 36, y + 1, "body", ink)
-		var chapter := Campaign.title_of(String(LEVEL_OF[kind]))
+		var chapter := Campaign.title_of(str(LEVEL_OF[kind]))
 		HUD.text(
 			c, chapter if ready else "BEAT " + chapter, 36, y + 9, "mini", Menu.FADED, false, false
 		)
 		if not ready:
 			HUD.text(c, "LOCKED", 296, y + 4, "body", Menu.DIM, false, true, true)
 			continue
-		var t := float(bests.get(kind, 0.0))
+		var t: float = bests.get(kind, 0.0)
 		if t <= 0.0:
 			HUD.text(c, "NO TIME YET", 296, y + 4, "mini", Menu.FADED, false, false, true)
 			continue
@@ -388,7 +409,7 @@ static func draw_board(
 	var line := note
 	if line == "":
 		var kind: String = BOSSES[posmod(pick, BOSSES.size())]
-		var par := float(PAR[kind])
+		var par: float = PAR[kind]
 		line = ("BLUE %s  RED %s  WHITE ANY WIN" % [clock_text(par), clock_text(par * RED_SHARE)])
 	HUD.text(c, line, 160, TOP + ROW * BOSSES.size() + 3, "body", HUD.AMBER, true)
 	HUD.text(c, guide, 124, 181, "mini", HUD.INK, true)
@@ -417,8 +438,8 @@ static func draw_result(
 	c: Canvas, menu: Menu, result: Dictionary, guide: String, hover: String
 ) -> void:
 	menu.draw_sheet(c, "REMATCH")
-	var kind := String(result.get("kind", "boss"))
-	var seconds := float(result.get("seconds", 0.0))
+	var kind := str(result.get("kind", "boss"))
+	var seconds: float = result.get("seconds", 0.0)
 	var word := ribbon(kind, seconds)
 	HUD.panel(c, 24, 38, 180, 118, Canvas.rgb(40, 29, 23))
 	HUD.text(c, title(kind), 34, 46, "heading", HUD.AMBER)
@@ -429,9 +450,9 @@ static func draw_result(
 	HUD.text(c, clock_text(seconds), 188, 84, "body", HUD.AMBER, false, true, true)
 	c.fill_rect(34, 98, 160, 15, Canvas.rgb(30, 21, 17))
 	HUD.text(c, "BEST", 39, 102, "body", HUD.INK)
-	var best_t := float(result.get("best", seconds))
+	var best_t: float = result.get("best", seconds)
 	HUD.text(c, clock_text(best_t), 188, 102, "body", HUD.AMBER, false, true, true)
-	var par := float(PAR.get(kind, 60.0))
+	var par: float = PAR.get(kind, 60.0)
 	HUD.text(
 		c,
 		"BLUE %s  RED %s" % [clock_text(par), clock_text(par * RED_SHARE)],
@@ -442,7 +463,8 @@ static func draw_result(
 		false,
 		false
 	)
-	if bool(result.get("fresh", false)):
+	var fresh: bool = result.get("fresh", false)
+	if fresh:
 		HUD.text(c, "A NEW BEST. THE COUNTY TAKES NOTE.", 34, 134, "body", HUD.AMBER)
 	else:
 		HUD.text(c, "THE OLD BEST STANDS.", 34, 134, "body", HUD.INK)

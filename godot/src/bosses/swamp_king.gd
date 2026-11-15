@@ -15,6 +15,10 @@
 ##                gun turned on the player straight off, no wind-up.
 extends BossMoves
 
+const BossArenasFeature := preload("res://src/features/boss_arenas.gd")
+const BossFightFeature := preload("res://src/features/boss_fight.gd")
+const BreakablesFeature := preload("res://src/features/breakables.gd")
+
 static var DYNAMITE_WINDUP: float = BossData.get_value("swamp_king", "dynamite_windup")
 static var DYNAMITE_RADIUS: float = BossData.get_value("swamp_king", "dynamite_radius")
 ## How far off his heading a shot must come from to strike the engine cage.
@@ -31,16 +35,17 @@ func stagger_rest(_e: Enemy) -> float:
 	return 6.0
 
 
-func phase_changed(e: Enemy, game, phase: int) -> void:
+func phase_changed(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 3:
-		var arenas = game.features.get("boss_arenas")
+		var arenas: BossArenasFeature = game.features.get("boss_arenas")
 		if arenas != null:
 			arenas.turn(e)
 
 
-func tick(e: Enemy, dt: float, game) -> bool:
+func tick(e: Enemy, dt: float, game: Game) -> bool:
 	var running := e.has_meta("run")
-	if bool(e.get_meta("was_running", false)) and not running:
+	var was_running: bool = e.get_meta("was_running", false)
+	if was_running and not running:
 		_run_over(e, game)
 	e.set_meta("was_running", running)
 	if e.has_meta("dynamite"):
@@ -57,21 +62,21 @@ func tick(e: Enemy, dt: float, game) -> bool:
 
 ## A run just ended: beached against something that goes up, it goes up; on
 ## HOG WILD, one finished on the water ends in a broadside.
-func _run_over(e: Enemy, game) -> void:
+func _run_over(e: Enemy, game: Game) -> void:
 	var bow := Vector2(e.x + cos(e.angle) * (e.radius + .4), e.y + sin(e.angle) * (e.radius + .4))
 	if e.stun > .5:
 		var z: float = game.world.elevation(bow.x, bow.y)
-		for point in game.drums.keys():
+		for point: Vector2 in game.drums.keys():
 			var vec: Vector2 = point
 			if vec.distance_to(bow) < 1.6:
 				game.drum_hit(vec, 40)
-		var pieces = game.features.get("breakables")
+		var pieces: BreakablesFeature = game.features.get("breakables")
 		if pieces != null:
 			pieces.blast(bow.x, bow.y, z + .4, 1.3, 40.0, false)
 		return
 	if not hog_wild(game) or not e.alive:
 		return
-	var p = game.player
+	var p: Player = game.player
 	var toward := atan2(p.y - e.y, p.x - e.x)
 	var gap := Vector2(p.x - e.x, p.y - e.y).length()
 	if gap > 11.0 or not game.world.visible(e.x, e.y, p.x, p.y):
@@ -89,26 +94,28 @@ func _run_over(e: Enemy, game) -> void:
 	game.message("BROADSIDE!", 1.2)
 
 
-func _dynamite_ready(e: Enemy, dt: float, game) -> bool:
+func _dynamite_ready(e: Enemy, dt: float, game: Game) -> bool:
 	if e.boss_phase < 3 or not e.alerted or e.windup > 0.0 or e.stun > 0.0:
 		return false
 	if e.has_meta("run") or e.recovery > .17 or e.attacks % 3 != 2:
 		return false
 	if e.cooldown > dt * float(game.sharpness):
 		return false
-	var p = game.player
+	var p: Player = game.player
 	var gap := Vector2(p.x - e.x, p.y - e.y).length()
-	return gap <= float(Enemy.REACH[e.kind]) + 2.0 and game.world.visible(e.x, e.y, p.x, p.y)
+	var reach: float = Enemy.REACH[e.kind]
+	return gap <= reach + 2.0 and game.world.visible(e.x, e.y, p.x, p.y)
 
 
 ## DYNAMITE: he sits the boat and lobs three lit sticks round the player.
-func _dynamite(e: Enemy, game) -> void:
-	var p = game.player
-	e.windup = DYNAMITE_WINDUP * float(PACE[clampi(game.difficulty, 0, 3)])
+func _dynamite(e: Enemy, game: Game) -> void:
+	var p: Player = game.player
+	var pace: float = PACE[clampi(game.difficulty, 0, 3)]
+	e.windup = DYNAMITE_WINDUP * pace
 	e.aim_mark = null
 	e.set_meta("dynamite", true)
 	e.set_meta("tell", "DYNAMITE!")
-	var arenas = game.features.get("boss_arenas")
+	var arenas: BossArenasFeature = game.features.get("boss_arenas")
 	var toward := atan2(p.y - e.y, p.x - e.x)
 	var side := Vector2(-sin(toward), cos(toward))
 	var spots: Array = [
@@ -124,17 +131,18 @@ func _dynamite(e: Enemy, game) -> void:
 	game.sound_at("fuse_hiss", e.x, e.y, .9)
 
 
-func _thrown(e: Enemy, game) -> void:
+func _thrown(e: Enemy, game: Game) -> void:
 	e.remove_meta("dynamite")
 	e.remove_meta("tell")
 	e.windup = 0.0
 	e.attacks += 1
-	e.cooldown = 1.2 * float(PACE[clampi(game.difficulty, 0, 3)])
+	var pace: float = PACE[clampi(game.difficulty, 0, 3)]
+	e.cooldown = 1.2 * pace
 	e.recovery = .5
 
 
 ## The engine in its cage at the stern: hit from behind the boat, cage high.
-func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> float:
+func weak_spot(e: Enemy, game: Game, hit: Vector3, from: Vector2, how: String) -> float:
 	if how == "blast" or how == "energy" or how == "fire" or how == "steam":
 		return 1.0
 	var toward_shooter := atan2(from.y - e.y, from.x - e.x)
@@ -145,7 +153,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 
 
 ## Fuel burning off his stern once the tank is holed; a sputter before that.
-func looks(e: Enemy, game) -> Array:
+func looks(e: Enemy, game: Game) -> Array:
 	var out: Array = []
 	if e.boss_phase < 3:
 		return out
@@ -165,7 +173,7 @@ func looks(e: Enemy, game) -> Array:
 
 
 ## His crate of dynamite goes with the boat: blasts strung across the water.
-func dying(e: Enemy, game) -> void:
+func dying(e: Enemy, game: Game) -> void:
 	var z: float = game.world.stand(e)
 	for k in 3:
 		var a := e.angle + k * 2.1
@@ -173,6 +181,6 @@ func dying(e: Enemy, game) -> void:
 			GameState.Blast.new(e.x + cos(a) * .9, e.y + sin(a) * .9, z + .5 + k * .3, "fire")
 		)
 	game.sound_at("king_ram", e.x, e.y, 1.0)
-	var fight = game.features.get("boss_fight")
+	var fight: BossFightFeature = game.features.get("boss_fight")
 	if fight != null:
 		fight.sparks(e.x, e.y, z + .4, "splash", 30, 3.2)

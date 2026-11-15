@@ -7,25 +7,28 @@ extends RefCounted
 
 ## A save document brought up to VERSION, or null when it is too old, from a
 ## newer build, or not a save. Retained chapters are upgraded with it.
-static func upgrade(doc) -> Variant:
-	if not (doc is Dictionary):
+static func upgrade(given: Variant) -> Variant:
+	if not (given is Dictionary):
 		return null
-	var version := int(doc.get("version", 0))
+	var doc: Dictionary = given
+	var version: int = doc.get("version", 0)
 	if version < SessionStore.OLDEST_VERSION or version > SessionStore.VERSION:
 		return null
 	while version < SessionStore.VERSION:
-		doc = _upgrade_step(version, doc)
-		if doc == null:
+		var stepped: Variant = _upgrade_step(version, doc)
+		if stepped == null:
 			return null
+		doc = stepped
 		version += 1
 		doc["version"] = version
-	var retained = doc.get("retained")
+	var retained: Variant = doc.get("retained")
 	if retained is Dictionary:
-		for key in retained:
-			var chapter = upgrade(retained[key])
+		var chapters: Dictionary = retained
+		for key: Variant in chapters:
+			var chapter: Variant = upgrade(chapters[key])
 			if chapter == null:
 				return null
-			retained[key] = chapter
+			chapters[key] = chapter
 	return doc
 
 
@@ -41,9 +44,12 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 		5:
 			# Version 6 keeps each feature's state in one block; the triggers'
 			# list moved into it.
-			var fired = doc.get("triggers", [])
+			var fired: Variant = doc.get("triggers", [])
 			doc.erase("triggers")
-			var kept: bool = fired is Array and not fired.is_empty()
+			var kept := false
+			if fired is Array:
+				var fired_list: Array = fired
+				kept = not fired_list.is_empty()
 			doc["features"] = {"triggers": {"fired": fired}} if kept else {}
 			return doc
 		6:
@@ -56,14 +62,17 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 			# Version 8 keeps the floor each body stands on (level format 2:
 			# a deck over the ground). No level had geometry before it, so
 			# every floor was the ground (never read without geometry).
-			var player = doc.get("player")
+			var player: Variant = doc.get("player")
 			if player is Dictionary:
-				player["floor_z"] = 0.0
-			var enemies = doc.get("enemies")
+				var player_doc: Dictionary = player
+				player_doc["floor_z"] = 0.0
+			var enemies: Variant = doc.get("enemies")
 			if enemies is Dictionary:
-				for key in enemies:
-					if enemies[key] is Dictionary:
-						enemies[key]["floor_z"] = 0.0
+				var bodies: Dictionary = enemies
+				for key: Variant in bodies:
+					if bodies[key] is Dictionary:
+						var body: Dictionary = bodies[key]
+						body["floor_z"] = 0.0
 			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
