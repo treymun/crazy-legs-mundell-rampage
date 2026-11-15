@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_1xtme"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/drunk_coot.glb" id="2_wn325"]
+
+[node name="DrunkCoot" type="Node3D" unique_id=643473557]
+script = ExtResource("1_1xtme")
+kind = "drunk_coot"
+
+[node name="Model" type="Node3D" parent="." unique_id=1233768322 instance=ExtResource("2_wn325")]

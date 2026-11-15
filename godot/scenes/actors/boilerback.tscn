@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_i8t8s"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/boilerback.glb" id="2_3brgu"]
+
+[node name="Boilerback" type="Node3D" unique_id=87932172]
+script = ExtResource("1_i8t8s")
+kind = "boilerback"
+
+[node name="Model" type="Node3D" parent="." unique_id=170814689 instance=ExtResource("2_3brgu")]

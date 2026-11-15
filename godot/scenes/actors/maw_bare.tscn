@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_28y5j"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/maw_bare.glb" id="2_ek25x"]
+
+[node name="MawBare" type="Node3D" unique_id=290600289]
+script = ExtResource("1_28y5j")
+kind = "maw_bare"
+
+[node name="Model" type="Node3D" parent="." unique_id=437587640 instance=ExtResource("2_ek25x")]

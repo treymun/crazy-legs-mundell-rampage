@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_0vipp"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/crawler.glb" id="2_lkrh0"]
+
+[node name="Crawler" type="Node3D" unique_id=1354688]
+script = ExtResource("1_0vipp")
+kind = "crawler"
+
+[node name="Model" type="Node3D" parent="." unique_id=1603731007 instance=ExtResource("2_lkrh0")]

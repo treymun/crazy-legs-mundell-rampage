@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_lijy1"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/tire_roller.glb" id="2_sbdpm"]
+
+[node name="TireRoller" type="Node3D" unique_id=687941708]
+script = ExtResource("1_lijy1")
+kind = "tire_roller"
+
+[node name="Model" type="Node3D" parent="." unique_id=1749144257 instance=ExtResource("2_sbdpm")]

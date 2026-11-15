@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_675rr"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/drone.glb" id="2_27rbr"]
+
+[node name="Drone" type="Node3D" unique_id=1736898035]
+script = ExtResource("1_675rr")
+kind = "drone"
+
+[node name="Model" type="Node3D" parent="." unique_id=609935433 instance=ExtResource("2_27rbr")]

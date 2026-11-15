@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_owv17"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/shield_deputy.glb" id="2_s1xu3"]
+
+[node name="ShieldDeputy" type="Node3D" unique_id=1789912254]
+script = ExtResource("1_owv17")
+kind = "shield_deputy"
+
+[node name="Model" type="Node3D" parent="." unique_id=1285346015 instance=ExtResource("2_s1xu3")]

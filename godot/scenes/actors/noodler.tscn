@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_cdt51"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/noodler.glb" id="2_hg2mg"]
+
+[node name="Noodler" type="Node3D" unique_id=1223319685]
+script = ExtResource("1_cdt51")
+kind = "noodler"
+
+[node name="Model" type="Node3D" parent="." unique_id=2074129580 instance=ExtResource("2_hg2mg")]

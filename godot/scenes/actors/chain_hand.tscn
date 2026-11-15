@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_5m4bo"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/chain_hand.glb" id="2_flv3m"]
+
+[node name="ChainHand" type="Node3D" unique_id=288766143]
+script = ExtResource("1_5m4bo")
+kind = "chain_hand"
+
+[node name="Model" type="Node3D" parent="." unique_id=746412668 instance=ExtResource("2_flv3m")]

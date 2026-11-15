@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_ajtnm"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/billy.glb" id="2_y0u83"]
+
+[node name="Billy" type="Node3D" unique_id=957559224]
+script = ExtResource("1_ajtnm")
+kind = "billy"
+
+[node name="Model" type="Node3D" parent="." unique_id=1114420951 instance=ExtResource("2_y0u83")]

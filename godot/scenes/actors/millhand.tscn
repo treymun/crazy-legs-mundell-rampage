@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/actor_view.gd" id="1_q1mpy"]
+[ext_resource type="PackedScene" path="res://assets3d/actors/millhand.glb" id="2_63i4n"]
+
+[node name="Millhand" type="Node3D" unique_id=93428507]
+script = ExtResource("1_q1mpy")
+kind = "millhand"
+
+[node name="Model" type="Node3D" parent="." unique_id=2028479335 instance=ExtResource("2_63i4n")]
