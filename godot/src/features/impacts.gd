@@ -89,7 +89,8 @@ func _traced(end: Vector3, struck: String) -> void:
 	var kind: String = game.impact_kind
 	if not (gun == Weapons.SHOTGUN and _pellets > PELLET_BITS):
 		_chips(end - dir * .05, kind, -dir, gun)
-	var floor_z: float = game.world.elevation(end.x, end.y)
+	# Into the floor it struck: a deck's boards, a stair, a ramp, the ground.
+	var floor_z: float = Tumble.floor_at(game.world, end.x, end.y, end.z + .1)
 	if end.z < floor_z + .1 and _marks_gun(gun):
 		_pock(end, kind)
 	_adopt_holes()
@@ -243,15 +244,8 @@ func _pock(at: Vector3, kind: String) -> void:
 	if picture == "" or game.world.blocked(at.x, at.y):
 		return
 	var size := .07 if kind == "dirt" else .05
-	var mark := View.GroundMark.new(
-		at.x,
-		at.y,
-		game.world.elevation(at.x, at.y) + .004,
-		dice.randf_range(0, TAU),
-		size,
-		size,
-		picture
-	)
+	var mark := View.GroundMark.new(at.x, at.y, 0.0, dice.randf_range(0, TAU), size, size, picture)
+	Tumble.lay(game.world, mark, at.z + .1)
 	pocks.append([mark, picture, game.clock, -1.0])
 
 
@@ -260,7 +254,8 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 	if energy:
 		return
 	var world: LevelData = game.world
-	var floor_z: float = world.elevation(x, y)
+	# Up the wall from the floor the blast was over (a loft's, not the yard's).
+	var floor_z: float = world.floor_under(x, y, z)
 	var at_z := floor_z + clampf(z - floor_z, .3, 1.1)
 	var found: Array = []
 	var turn := dice.randf_range(0, TAU)
@@ -401,7 +396,8 @@ func _run_for(splat: View.WallMark) -> View.WallMark:
 	var image := splat.image
 	if not (image.begins_with("fx_blood") or image.begins_with("fx_acid")):
 		return null
-	var floor_z: float = game.world.elevation(splat.x, splat.y)
+	# It runs down as far as the floor under the splat (a deck's, a loft's).
+	var floor_z: float = game.world.floor_under(splat.x, splat.y, splat.z)
 	var reach: float = minf(splat.radius * 1.15, (splat.z - floor_z) * .5)
 	if reach < .1:
 		return null

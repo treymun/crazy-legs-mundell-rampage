@@ -357,6 +357,66 @@ through `build_town_props.gd`; signs' `<name>_shot` and the bits `fx_brk_*`:
   `docs/physics_audio.md`. `tools/break_check.gd` (in check_fixes) and
   `tools/physics_frames.gd` (window pictures of each effect) cover it.
 
+### Loose things on the real 3D shape (v3.0.0 remaster)
+
+The 3D world has decks, stair slabs, ramps, ceilings and deck undersides
+(`LevelGeometry`), and everything loose now keys off them, not the cell
+ground (`LevelData.elevation()` is only the ground under a deck: never use it
+for something that can be up on one; use `floor_under(x, y, z)` or
+`Tumble.floor_at(world, x, y, z, r)`, which adds furniture tops).
+
+- **`tumble.gd`** (shared by play and looks): the floor and the roof are
+  looked for from where a body was *before* the step's fall or rise (a fast
+  drop never sinks through a deck or a counter top, a fast rise never comes up
+  through an underside: `roof_over`, not the cell's roof); the landing floor
+  is the highest under any part of the body's radius (a gib against a crate's
+  side or a deck's edge sits on it, never half inside); `slope(world, x, y, z)`
+  is the walkable slab's own slope under the body (a flat deck over sloping
+  ground pulls nothing; a ramp pulls down its fall), the cells' steps only on
+  the ground; down a slope a grounded body keeps to it instead of hopping; a
+  roof stops the body's top, not its middle; a body almost still holds while
+  the pull is at most `HOLD` (1.15) times its drag, so nothing creeps down a
+  gentle ramp for ever without resting. `Tumble.unsupported()` tells a resting
+  body whose support was broken away (gore, debris and breakables ask one a
+  tick; corpses ask each lifted body once a second, `_look_for_unheld`).
+  `Tumble.lay(world, mark, from_z)` puts a ground mark on the floor under it
+  (deck, stair, counter, ground) and tilts it with a ramp (`GroundMark.gx/gy`,
+  drawn tilted by `sprite_layer.gd show_marks`).
+- **Play is changed, the same everywhere.** Corpses, breakables' bits, hit
+  reads' dropped guns and the player's dynamite and bowling balls are play
+  (SIM_FEATURES, game.rng-free arithmetic): their paths differ from dev.45's
+  where the shape matters (decks, ramps, ceilings, furniture edges) but stay
+  identical across machines (`net_check`). Nothing new is carried or saved
+  (breakables picks its resting bit to ask by `game.clock`, not a counter).
+- **Looks**: brass and hulls (`features/debris.gd`) are tumble bodies now
+  (effects.cfg `[debris] case_*`/`hull_*` bounce, wall, drag): they land on
+  the loft they were dumped on, tink and bounce lower, glance off walls, roll
+  and slide down ramps; embers and smoke stop at floors and ceilings; scorches,
+  blood drops, pools, streaks, oil, boot prints, pocks, enemy shadows and milk
+  puddles lie on the surface they were over; wall splats and blood runs count
+  up from the floor under them (a loft's), not from 0; specks die on the
+  floor under them instead of sinking to z 0; `weapon_fx` chips test walls at
+  their own height and land on decks.
+- **Spin**: `View.Sprite.spin` turns a billboard about its middle in the
+  view's plane, in 32 steps (packed into the flags word: flags + 256 x hurt +
+  65536 x step; `sprite_body.gdshaderinc` lifts it so no corner dips under
+  its floor). Gibs keep `spin`/`spin_rate` (fast for small ones, most of it
+  lost at each bounce, turning with the run on the ground, flat at rest);
+  brass flips end over end and drops flat; breakables' and weapon_fx chips
+  work theirs out from where they are (nothing kept, so play's bits carry
+  nothing new).
+- **The eye**: `feel.gd _plant` drops the 3D eye up to `STEP_DROP` (.018) as
+  each boot comes down (sharp at the footfall, nothing in the air, standing
+  or with VIEW BOB off), on top of the old horizon bob; the landing dip is as
+  before. Movement numbers are untouched.
+- `tools/physics_check.gd` (in check_all, quick too) drops a gib, an eye, a
+  casing, a chunk and a body on decks, ramps and stair slabs of six levels
+  (slow and fast), flings them up under decks, throws them at walls, and
+  checks they rest on a surface within .03, never inside anything; then the
+  features on hickston's hay loft (brass, scorch, a burst's gibs and blood, a
+  chunk left over nothing, a thrown body, the same throw twice).
+  `tools/physics_frames.gd -- only=loft` pictures it in a window.
+
 ### Walls break too
 
 `features/wall_breaks.gd`, breakables.cfg `[windows]` and `[fence.<tile>]`.

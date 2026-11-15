@@ -17,6 +17,7 @@ const CHECKS := [
 	["view3d_check", "VIEW3D CHECK OK"],
 	["verify_assets", "ASSETS OK"],
 	["check_fixes", "PARITY FIXES OK"],
+	["physics_check", "PHYSICS OK"],
 	["save_fixtures", "OLD SAVES OK"],
 	["level_edit_check", "LEVEL EDIT OK"],
 	["quest_reach", "QUEST REACH OK"],
@@ -34,7 +35,8 @@ const QUICK := [
 	"verify_assets",
 	"save_fixtures",
 	"level_edit_check",
-	"menu_touch_check"
+	"menu_touch_check",
+	"physics_check",
 ]
 
 

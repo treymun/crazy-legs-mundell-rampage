@@ -12,6 +12,10 @@ const FLIP := 1
 const GLOW := 4
 const BODY := 8
 const BOARD := 16
+## The flags' word also holds the hurt wash (x 256) and a billboard's turn
+## (x SPIN_ONE, in SPINS steps): sprite_body.gdshaderinc's numbers.
+const SPIN_ONE := 65536
+const SPINS := 32
 
 var art: Texture2DArray
 var solid: MultiMeshInstance3D
@@ -253,6 +257,10 @@ func _row(s: View.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
 	var hurt := 0
 	if s.hurt > 0.0:
 		hurt = int(minf(.46, s.hurt / .18 * .44) * 100.0)
+	# A billboard turned over: SPINS steps of a turn (sprite_body.gdshaderinc).
+	var spin := 0
+	if s.spin != 0.0 and not board:
+		spin = posmod(roundi(s.spin / TAU * SPINS), SPINS)
 	var bx := axis * width
 	var by := Vector3(0.0, s.height, 0.0)
 	var bz := bx.cross(by).normalized()
@@ -277,7 +285,7 @@ func _row(s: View.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
 			float(slot),
 			float(size.x),
 			float(size.y),
-			float(flags + hurt * 256)
+			float(flags + hurt * 256 + spin * SPIN_ONE)
 		]
 	)
 
@@ -343,6 +351,11 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 		var bx := dir * (2.0 * g.reach)
 		var by := across * (-2.0 * g.width)
 		var at := Vector3(g.x, g.z, g.y) + across * g.width
+		if g.gx != 0.0 or g.gy != 0.0:
+			# On a slope: the rectangle tilted onto it (Godot y is up, z is map y).
+			bx.y = g.gx * bx.x + g.gy * bx.z
+			by.y = g.gx * by.x + g.gy * by.z
+			at.y += g.gx * (at.x - g.x) + g.gy * (at.z - g.y)
 		buf.append_array(
 			PackedFloat32Array(
 				[

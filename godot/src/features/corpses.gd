@@ -234,6 +234,7 @@ func _tick(dt: float) -> void:
 	if game.clock >= _look_next:
 		_look_next = game.clock + FLOAT_LOOK
 		_look_for_floaters()
+		_look_for_unheld()
 	if not floating.is_empty():
 		_bob()
 
@@ -284,6 +285,22 @@ func _move(dt: float) -> void:
 			# Thrown again: it floats again wherever it comes to rest.
 			_floats.erase(b.enemy)
 			floating = floating.filter(func(f: Array) -> bool: return f[0] != b.enemy)
+
+
+## A body lying up on something (a crate, a counter top) that has since been
+## broken away falls again, rather than lying on air.
+func _look_for_unheld() -> void:
+	for e: Enemy in game.enemies:
+		if e.alive or e.dormant or e.toss <= .02 or _floats.has(e) or _still(e):
+			continue
+		var lying := false
+		for b: Body in moving:
+			lying = lying or b.enemy == e
+		if lying:
+			continue
+		var z: float = game.world.stand(e) + e.toss
+		if Tumble.floor_at(game.world, e.x, e.y, z, _feel.radius) < z - .03:
+			_push(e, 0.0, 0.0, 0.0)
 
 
 ## Bodies lying still in water (shallow or deep) start to float.

@@ -882,13 +882,18 @@ func update_shots(dt: float) -> void:
 		shots = filtered
 	for speck: Speck in specks:
 		speck.life -= dt
+		var was := speck.z
 		speck.z += speck.vz * dt
 		speck.vz -= dt * 6.0
 		var x: float = speck.x + speck.vx * dt
 		var y: float = speck.y + speck.vy * dt
-		if not world.blocked(x, y):
+		if not world.blocked(x, y, 0.0, speck.z):
 			speck.x = x
 			speck.y = y
+		# A drop that reaches the floor under it (a deck, a stair, raised
+		# ground) is gone there, never sinking through it.
+		if speck.vz < 0.0 and speck.z < world.floor_under(speck.x, speck.y, was):
+			speck.life = 0.0
 	var alive_specks: Array = []
 	for speck: Speck in specks:
 		if speck.life > 0.0 and speck.z >= -.05:
@@ -1061,15 +1066,15 @@ func ground_marks() -> Array:
 	for i in mini(6, nearby.size()):
 		var enemy: Enemy = nearby[i][1]
 		var radius := enemy.radius * (1.03 if enemy.z <= .02 else 1.28)
+		# On what it stands on, tilted with a ramp so it never cuts into it.
 		marks.append(
-			View.GroundMark.new(
-				enemy.x,
-				enemy.y,
-				world.stand(enemy) + .003,
-				enemy.angle,
-				radius * 1.24,
-				radius,
-				"fx_shadow"
+			Tumble.lay(
+				world,
+				View.GroundMark.new(
+					enemy.x, enemy.y, 0.0, enemy.angle, radius * 1.24, radius, "fx_shadow"
+				),
+				world.stand(enemy) + .1,
+				.003
 			)
 		)
 	return marks

@@ -9,6 +9,9 @@ const int FLIP = 1;
 const int GLOW = 4;
 const int BODY = 8;
 const int BOARD = 16;
+// The flags' word: flags + 256 x hurt (0..100) + SPIN_ONE x the turn (0..SPINS-1).
+const int SPIN_ONE = 65536;
+const int SPINS = 32;
 
 varying flat vec4 data;
 varying flat vec4 tone;
@@ -48,7 +51,20 @@ void vertex() {
 		vec3 right = normalize(vec3(INV_VIEW_MATRIX[0].x, 0.0, INV_VIEW_MATRIX[0].z));
 		float width = length(MODEL_MATRIX[0].xyz);
 		float height = length(MODEL_MATRIX[1].xyz);
-		w = MODEL_MATRIX[3].xyz + right * (VERTEX.x * width) + vec3(0.0, VERTEX.y * height, 0.0);
+		int spin = int(data.w + 0.5) / SPIN_ONE;
+		if (spin == 0) {
+			w = MODEL_MATRIX[3].xyz + right * (VERTEX.x * width) + vec3(0.0, VERTEX.y * height, 0.0);
+		} else {
+			// A chunk turning over in the view's plane, in SPINS steps, about
+			// its middle, lifted so no corner dips under the floor it stands on.
+			float a = float(spin) * TAU / float(SPINS);
+			float c = cos(a);
+			float s = sin(a);
+			vec2 p = vec2(VERTEX.x * width, (VERTEX.y - 0.5) * height);
+			vec2 r = vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+			float lift = 0.5 * (abs(width * s) + abs(height * c));
+			w = MODEL_MATRIX[3].xyz + right * r.x + vec3(0.0, lift + r.y, 0.0);
+		}
 	}
 #endif
 	map_p = vec3(w.x, w.z, w.y);
@@ -61,7 +77,7 @@ void fragment() {
 		discard;
 	}
 	int flags = int(data.w + 0.5) & 255;
-	float hurt = floor((data.w + 0.5) / 256.0) / 100.0;
+	float hurt = float((int(data.w + 0.5) / 256) & 255) / 100.0;
 	vec2 uv = UV;
 	if ((flags & FLIP) != 0) {
 		uv.x = 1.0 - uv.x;

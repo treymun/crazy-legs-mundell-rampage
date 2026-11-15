@@ -27,6 +27,10 @@ class Gib:
 	var roll := 0.0
 	## Scrap off a robot: no blood where it lands or rolls.
 	var metal := false
+	## How far it has turned over (View.Sprite.spin) and how fast it turns in
+	## the air (radians a second); on the ground it turns as it rolls.
+	var spin := 0.0
+	var spin_rate := 0.0
 
 
 ## Dust or sparks where a bullet struck.
@@ -100,6 +104,8 @@ var last_at := Vector2.INF
 var foot := false
 ## How each size of chunk moves (tumble.gd), made once.
 var _feels := {}
+## The resting chunk _wake_one() looks at next.
+var _wake_at := 0
 var game: Game
 
 
@@ -117,13 +123,17 @@ func _init(owner: Game) -> void:
 	owner.events.blast_shoved.connect(shove)
 
 
-func _stain(x: float, y: float, radius: float, green: bool) -> void:
+## A drop of blood landing at (x, y) from height `from_z`: on the floor under
+## it there (a deck, a stair, a ramp tilted with it, the ground).
+func _stain(x: float, y: float, radius: float, green: bool, from_z: float) -> void:
 	if game.world.blocked(x, y):
 		return
 	var image := "mark_%s_%d" % ["acid" if green else "blood", dice.randi() % 3]
 	blood_marks.append(
-		View.GroundMark.new(
-			x, y, game.world.elevation(x, y) + .004, dice.randf() * TAU, radius, radius, image
+		Tumble.lay(
+			game.world,
+			View.GroundMark.new(x, y, 0.0, dice.randf() * TAU, radius, radius, image),
+			from_z
 		)
 	)
 	if blood_marks.size() > BLOOD_CAP:
@@ -146,7 +156,7 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 		MeleeBlood.bloody(hand.armory, hand.armory.active, amount, green)
 	# A big hit throws more, and lays a long streak along the shot.
 	if amount >= 28.0:
-		GoreExtras.streak(self, x, y, ax, ay, amount, green)
+		GoreExtras.streak(self, x, y, ax, ay, amount, green, z)
 	for _i in clampi(int(amount / 9.0), 2, 7 if amount < 40.0 else 11):
 		if game.specks.size() >= 170:
 			break
@@ -167,15 +177,18 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 	if amount >= 12.0:
 		var reach := dice.randf_range(.25, .95)
 		var radius := dice.randf_range(.10, .10 + minf(.2, amount * .004))
-		_stain(x + ax * reach, y + ay * reach, radius, green)
+		_stain(x + ax * reach, y + ay * reach, radius, green, z)
 	var d := .25
 	while d < 1.9:
-		if game.world.blocked(x + ax * d, y + ay * d, .02):
+		if game.world.blocked(x + ax * d, y + ay * d, .02, z):
 			var mark: Variant = WallHits.wall_mark(game.world, x, y, z, ax, ay, 0.0, d)
 			if mark != null:
 				mark.image = "fx_%s_%d" % ["acid" if green else "blood", dice.randi() % 4]
 				mark.radius = dice.randf_range(.17, .30)
-				mark.z = clampf(z + dice.randf_range(-.25, .15), .25, 1.7)
+				# Up the wall from the floor it stands on (a loft, a deck), not
+				# from the ground under it.
+				var floor_z: float = game.world.floor_under(x, y, z)
+				mark.z = clampf(z + dice.randf_range(-.25, .15), floor_z + .25, floor_z + 1.7)
 				walls.append(mark)
 				if walls.size() > SPLAT_CAP:
 					walls.pop_front()
@@ -204,7 +217,7 @@ func burst(enemy: Enemy) -> void:
 			.6,
 			"mark_scorch_%d" % (dice.randi() % 3)
 		)
-		blood_marks.append(soot)
+		blood_marks.append(Tumble.lay(game.world, soot, floor_z + .2, .003))
 	for part: String in GIB_PARTS:
 		var g := Gib.new()
 		var angle := away + dice.randf_range(-1.5, 1.5)
@@ -221,14 +234,21 @@ func burst(enemy: Enemy) -> void:
 		g.size = GIB_SIZES[part]
 		g.flip = dice.randf() < .5
 		g.green = green
+		g.spin_rate = spin_rate(g.size)
 		gibs.append(g)
 	while gibs.size() > GIB_CAP:
 		gibs.pop_front()
-	_stain(enemy.x, enemy.y, .42, green)
+	_stain(enemy.x, enemy.y, .42, green, floor_z + .3)
 	for _i in 5:
 		var a := dice.randf() * TAU
 		var r := dice.randf_range(.3, 1.1)
-		_stain(enemy.x + cos(a) * r, enemy.y + sin(a) * r, dice.randf_range(.12, .26), green)
+		_stain(
+			enemy.x + cos(a) * r,
+			enemy.y + sin(a) * r,
+			dice.randf_range(.12, .26),
+			green,
+			floor_z + .3
+		)
 	for k in 4:
 		var a := away + (k - 1.5) * .8
 		spray(enemy.x, enemy.y, floor_z + enemy.height * .55, cos(a), sin(a), 40.0, green)
@@ -258,9 +278,12 @@ func bleed_out(enemy: Enemy, green: bool) -> void:
 	# The pool spreads where the body comes to rest (settled()); here the
 	# drops as it falls, and a limb or the head a heavy hit took off.
 	GoreExtras.limb(self, enemy)
+	var from_z: float = game.world.stand(enemy) + .3
 	for _i in 2:
 		var a := dice.randf() * TAU
-		_stain(enemy.x + cos(a) * .3, enemy.y + sin(a) * .3, dice.randf_range(.10, .18), green)
+		_stain(
+			enemy.x + cos(a) * .3, enemy.y + sin(a) * .3, dice.randf_range(.10, .18), green, from_z
+		)
 
 
 ## A body came to rest (features/corpses.gd): its pool spreads there.
@@ -311,6 +334,7 @@ func tick(dt: float) -> void:
 		drop[3] = drop_age + dt
 	while not lens.is_empty() and lens[0][3] > 2.8:
 		lens.pop_front()
+	_wake_one()
 	for g: Gib in gibs:
 		if g.rest:
 			g.age += dt
@@ -338,27 +362,57 @@ func tick(dt: float) -> void:
 		var hit := Tumble.step(game.world, g, _feel(g.size), dt)
 		if hit & Tumble.RESTED:
 			g.rest = true
+			# It comes to lie flat, one way up or the other.
+			g.spin = roundf(g.spin / PI) * PI
 		if hit & Tumble.FLOOR:
+			# Each bounce takes the most of its spin.
+			g.spin_rate *= -.45
 			if not g.metal:
-				_stain(g.x, g.y, dice.randf_range(.09, .18), g.green)
+				_stain(g.x, g.y, dice.randf_range(.09, .18), g.green, g.z + .05)
 			if game.clock - _splat_clock > .11:
 				_splat_clock = game.clock
 				game.sound_at("metal_down" if g.metal else "gib_splat", g.x, g.y, .45)
 		elif hit & Tumble.WALL:
 			GoreExtras.wall_splat(self, g)
+			g.spin_rate *= -.6
 			if game.clock - _splat_clock > .11:
 				_splat_clock = game.clock
 				game.sound_at("metal_down" if g.metal else "gib_splat", g.x, g.y, .35)
+		if g.rest:
+			continue
 		if g.vz == 0.0:
+			# On the ground it turns over as it rolls (by its run, not the air's spin).
+			var run := Vector2(g.x - ox, g.y - oy).length()
 			var was := int(g.roll / .22)
-			g.roll += Vector2(g.x - ox, g.y - oy).length()
+			g.roll += run
+			g.spin += run / maxf(.05, g.size * .5) * signf(g.spin_rate + .001)
 			if int(g.roll / .22) != was:
-				g.flip = not g.flip
 				# A chunk rolling smears a trail behind it.
 				if not g.metal and g.roll < 2.0:
-					_stain(g.x, g.y, dice.randf_range(.05, .08), g.green)
+					_stain(g.x, g.y, dice.randf_range(.05, .08), g.green, g.z + .05)
+		else:
+			g.spin += g.spin_rate * dt
 	if not gibs.is_empty() and gibs[0].rest and gibs[0].age > 45.0:
 		gibs.pop_front()
+
+
+## One resting chunk a tick is asked whether it still has something under it
+## (the crate it lay on shot away): if not, it falls again.
+func _wake_one() -> void:
+	if gibs.is_empty():
+		return
+	_wake_at = (_wake_at + 1) % gibs.size()
+	var g: Gib = gibs[_wake_at]
+	if g.rest and Tumble.unsupported(game.world, g, _feel(g.size)):
+		g.rest = false
+		g.age = 0.0
+
+
+## How fast a chunk thrown off turns over in the air: small ones fastest,
+## either way round (radians a second).
+func spin_rate(size: float) -> float:
+	var rate := (6.0 + 1.2 / maxf(.05, size)) * dice.randf_range(.75, 1.25)
+	return rate if dice.randf() < .5 else -rate
 
 
 ## How a chunk its size moves: small ones bounce more and roll further.
