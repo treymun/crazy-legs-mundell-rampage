@@ -243,8 +243,14 @@ static func packer(names: Array[StringName]) -> GDScript:
 	for name: StringName in names:
 		reads.append("o." + String(name))
 	var script := GDScript.new()
+	# It reads whatever fields the class has, by name: the project's typing
+	# warnings (errors here) stay off inside it.
 	script.source_code = (
-		"extends RefCounted\n\n\nstatic func pack(o, into: Array) -> void:\n\tinto.append_array([%s])\n"
+		(
+			'@warning_ignore_start("untyped_declaration", "unsafe_property_access")\n'
+			+ "extends RefCounted\n\n\nstatic func pack(o: Object, into: Array) -> void:\n"
+			+ "\tinto.append_array([%s])\n"
+		)
 		% ", ".join(reads)
 	)
 	var made: GDScript = script if script.reload() == OK else null

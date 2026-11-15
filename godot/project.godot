@@ -52,9 +52,15 @@ pointing/emulate_mouse_from_touch=false
 
 [debug]
 
-gdscript/warnings/untyped_declaration=0
-gdscript/warnings/unsafe_property_access=0
-gdscript/warnings/unsafe_method_access=0
+gdscript/warnings/directory_rules={
+"res://addons": 0,
+"res://tools": 0
+}
+gdscript/warnings/untyped_declaration=2
+gdscript/warnings/unsafe_property_access=2
+gdscript/warnings/unsafe_method_access=2
+gdscript/warnings/unsafe_cast=2
+gdscript/warnings/unsafe_call_argument=2
 
 [editor_plugins]
 

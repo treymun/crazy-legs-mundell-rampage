@@ -2,16 +2,12 @@
 ## game, its enemies and its features make on game.sound or game.speaker is
 ## answered and does nothing. Nobody listens to a host.
 class_name QuietSound
-extends RefCounted
+extends GameSound
 
 var effects_gain := 0.0
 var footstep_gain := 0.0
-var voice_gain := 0.0
-var music_gain := 0.0
 var ambient_gain := 0.0
 var radio_gain := 0.0
-var score := ""
-var score_lift := 1.0
 var reverb_on := false
 
 

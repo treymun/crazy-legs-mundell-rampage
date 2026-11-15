@@ -113,7 +113,7 @@ func _boss_music() -> void:
 	var track := str(Sound.BOSSES.get(score, ""))
 	if track == "" or (game.finale != null and OWN_MUSIC.has(game.finale.kind)):
 		return
-	var now := String(game.sound.score)
+	var now := game.sound.score
 	if boss_fight and now == score:
 		game.sound.set_score(track)
 	elif not boss_fight and now == track:

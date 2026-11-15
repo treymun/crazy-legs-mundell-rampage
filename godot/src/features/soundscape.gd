@@ -58,7 +58,7 @@ func attach() -> void:
 
 
 func _tick(_dt: float) -> void:
-	var sound: Sound = game.sound
+	var sound: Sound = game.sound.node() if game.sound != null else null
 	if sound == null:
 		return
 	_rain(sound)

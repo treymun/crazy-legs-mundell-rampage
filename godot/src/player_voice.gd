@@ -5,19 +5,19 @@
 ## machine does with sound (the fuse hiss, the room's reverb, the music, the
 ## radio, stings) does nothing. Presentation only: never changes play.
 class_name PlayerVoice
-extends RefCounted
+extends GameSound
 
 var game: Game
 var who: Player
 var effects_gain := 1.0
 var footstep_gain := 1.0
-var voice_gain := .8
-var music_gain := .5
 var ambient_gain := 1.0
 var radio_gain := 0.0
 
 
 func _init(p_game: Game, p_who: Player) -> void:
+	_voice = .8
+	_music = .5
 	game = p_game
 	who = p_who
 
@@ -31,7 +31,7 @@ func play(name: String, volume := 1.0, _pan := 0.0, _cutoff := Sound.OPEN_CUTOFF
 	game.speaker.play(name, place.x, place.y, game.sound_cutoff(who.x, who.y))
 
 
-func play_voice(name: String, volume: float, _pan: float) -> float:
+func play_voice(name: String, volume := 1.0, _pan := 0.0) -> float:
 	var place: Vector2 = game.sound_position(who.x, who.y, volume)
 	return game.speaker.play_voice(name, place.x, place.y)
 

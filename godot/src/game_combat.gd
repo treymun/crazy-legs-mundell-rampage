@@ -1023,7 +1023,7 @@ func ground_marks() -> Array:
 						)
 					)
 		elif enemy.brain == "derby_champ":
-			marks.append_array(DerbyChamp.marks(enemy, self))
+			marks.append_array(DerbyChamp.marks(enemy, (self as Object) as Game))
 		elif enemy.brain == "foreman":
 			var direction := atan2(my - enemy.y, mx - enemy.x)
 			for lane: Array in enemy.saw_lanes(direction, enemy.attacks + 1):

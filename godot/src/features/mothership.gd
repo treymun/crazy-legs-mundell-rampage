@@ -239,7 +239,7 @@ func _tick(dt: float) -> void:
 		return
 	if game.clock >= music_check and game.sound != null:
 		music_check = game.clock + 1.0
-		if String(game.sound.score) != TRACK:
+		if game.sound.score != TRACK:
 			game.sound.set_score(TRACK)
 	# In her own chamber she always knows where the player is: round the beam
 	# column she comes the long way, on the flow field, rather than waiting.

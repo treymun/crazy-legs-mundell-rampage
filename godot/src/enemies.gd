@@ -343,7 +343,7 @@ func wake(game: GameWorld, px: float, py: float) -> void:
 		hunt_until = maxf(hunt_until, game.clock + 6.0)
 	if not alerted:
 		if mind != null:
-			Squad.startled(self, game)
+			Squad.startled(self, game as Game)
 		alerted = true
 		cooldown = maxf(.65, cooldown)
 		if hostile and kind != "boss" and kind != "jerry":
@@ -376,9 +376,9 @@ func hurt(
 ) -> void:
 	if not alive or brain == "bessie":
 		return
-	amount = ShipAliens.soak(self, amount, game, how, explosive_hit, pressure, by)
+	amount = ShipAliens.soak(self, amount, game as Game, how, explosive_hit, pressure, by)
 	# Head, body, arms or legs, where the player's hit struck (hit_zones.gd).
-	amount *= HitZones.strike(self, game, how, by)
+	amount *= HitZones.strike(self, game as Game, how, by)
 	var champion := BOSS_TITLES.has(kind)
 	if champion and by == null:
 		# A boss's weak spot (or armour) where the player's hit struck.
@@ -468,7 +468,7 @@ func hurt(
 			cooldown = .65 if interrupt else .32
 	var base: float = game.world.stand(self)
 	var burst_kind := "plasma" if PLASMA.has(kind) else "gore"
-	HitZones.splash(self, game, x, y, base + z + .56 * height, burst_kind)
+	HitZones.splash(self, game as Game, x, y, base + z + .56 * height, burst_kind)
 	if hostile and not HitZones.metal(self):
 		var from := atan2(y - from_y, x - from_x)
 		game.events.blood_sprayed.emit(
@@ -479,14 +479,14 @@ func hurt(
 	)
 	if by == null:
 		game.struck(amount, hostile and not alive, champion)
-	HitZones.land(self, game, amount, by)
+	HitZones.land(self, game as Game, amount, by)
 	if alive:
 		if hostile and amount >= 14.0 and not was_stunned and not interrupt:
 			game.sound_at(voice_cue("pain", material), x, y, .47)
 		return
 	# A blast that only just finishes one, or the cow launcher, throws it
 	# whole (hit_zones.gd); the specks below are thrown as ever.
-	var whole := explosive_hit and not HitZones.blast_gibs(self, game)
+	var whole := explosive_hit and not HitZones.blast_gibs(self, game as Game)
 	explosive = explosive_hit and not whole
 	died_at = game.clock
 	killed_by = "blast" if explosive_hit else how
@@ -501,7 +501,10 @@ func hurt(
 		and kind != "saucer"
 		and not whole
 		and (
-			explosive_hit or HitZones.overkill(self, game, how) or how == "blade" or how == "ripsaw"
+			explosive_hit
+			or HitZones.overkill(self, game as Game, how)
+			or how == "blade"
+			or how == "ripsaw"
 		)
 	):
 		explosive = true
@@ -523,7 +526,7 @@ func hurt(
 			_boss_falls(game, base)
 		game.enemy_down(self)
 		if brain == "nitro_huffer":
-			SpeedwayHands.huffer_down(self, game)
+			SpeedwayHands.huffer_down(self, game as Game)
 	else:
 		game.sound_at("chicken" if brain == "chicken" else "pig", x, y, .9)
 		game.burst(
@@ -917,7 +920,7 @@ func _boss_falls(game: GameWorld, base: float) -> void:
 	game.burst(x, y, base + height * .6, "spark", 30, 3.2)
 	game.burst(x, y, base + height * .5, "plasma" if PLASMA.has(kind) else "gore", 26, 2.6)
 	if brain == "derby_champ":
-		DerbyChamp.falls(self, game)
+		DerbyChamp.falls(self, game as Game)
 	if game.barks.enabled:
 		game.callout = "BOSS DOWN!"
 		game.callout_until = game.clock + 2.2
@@ -1030,13 +1033,13 @@ func attack(
 	game: GameCombat, direction: float, distance: float, eye: float, aim_z: Variant = null
 ) -> void:
 	attacks += 1
-	if SpeedwayHands.attack(self, game, direction, distance, eye, aim_z):
+	if SpeedwayHands.attack(self, game as Game, direction, distance, eye, aim_z):
 		return
-	if BayouBrains.attack(self, game, direction, distance, eye):
+	if BayouBrains.attack(self, game as Game, direction, distance, eye):
 		return
-	if ShipAliens.attack(self, game, direction, distance, eye, aim_z):
+	if ShipAliens.attack(self, game as Game, direction, distance, eye, aim_z):
 		return
-	if Variants.attack(self, game, direction, distance, eye):
+	if Variants.attack(self, game as Game, direction, distance, eye):
 		return
 	if SIGNATURES.has(kind):
 		signature_attack(game, direction, distance, eye, aim_z)

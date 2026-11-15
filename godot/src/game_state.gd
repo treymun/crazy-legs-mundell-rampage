@@ -680,10 +680,10 @@ var art: Assets
 var hud: HUD
 ## What the game's sounds play through: the speaker (Sound) while the acting
 ## player is the local one, that player's PlayerVoice otherwise (focus()).
-var sound: Variant = null
+var sound: GameSound = null
 ## This machine's Sound itself: sound_at() places a sound for the local
 ## player's ears through it whoever is acting.
-var speaker: Variant = null
+var speaker: GameSound = null
 
 var level: LevelData
 var world: LevelData
@@ -713,17 +713,17 @@ var inventory: Dictionary:
 	get:
 		return player.inventory
 	set(value):
-		Players.store(self, "inventory", value)
+		Players.store((self as Object) as Game, "inventory", value)
 var keys: Dictionary:
 	get:
 		return player.keys
 	set(value):
-		Players.store(self, "keys", value)
+		Players.store((self as Object) as Game, "keys", value)
 var task_items: Dictionary:
 	get:
 		return player.task_items
 	set(value):
-		Players.store(self, "task_items", value)
+		Players.store((self as Object) as Game, "task_items", value)
 var inventory_slot: int:
 	get:
 		return player.inventory_slot
@@ -1145,7 +1145,7 @@ func defeated() -> bool:
 	var rules: ModeFeature = features.get("mode")
 	if rules != null:
 		return rules.defeated()
-	return not Players.anyone_alive(self)
+	return not Players.anyone_alive((self as Object) as Game)
 
 
 ## The next stable entity id (an enemy, a shot, a pickup).

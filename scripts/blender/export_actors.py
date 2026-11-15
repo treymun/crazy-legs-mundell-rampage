@@ -231,7 +231,10 @@ def _bake(ob, image, sources=None):
                     # What no ray finds (a surface inside another part, or one
                     # the decimation moved far): the body baked onto itself,
                     # its own materials (their colours; a pattern may sit a
-                    # little differently).
+                    # little differently). Only the body is selected for it:
+                    # the parts have no unwrap of their own.
+                    for part in sources:
+                        part.select_set(False)
                     bpy.ops.object.bake(
                         type="COMBINED",
                         pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
@@ -239,6 +242,10 @@ def _bake(ob, image, sources=None):
                         use_clear=True,
                         use_selected_to_active=False,
                     )
+                    for part in sources:
+                        part.select_set(True)
+                    ob.select_set(True)
+                    bpy.context.view_layer.objects.active = ob
                     own = numpy.empty(len(image.pixels), dtype=numpy.float32)
                     image.pixels.foreach_get(own)
                     own = own.reshape(-1, 4)
@@ -581,4 +588,12 @@ def run():
         json.dump(meta, open(meta_path, "w"), indent=1, sort_keys=True)
 
 
-run()
+try:
+    run()
+except Exception:
+    # Blender exits 0 after a script's error; the build tool must know.
+    import traceback
+
+    traceback.print_exc()
+    sys.stdout.flush()
+    os._exit(1)

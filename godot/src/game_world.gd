@@ -411,7 +411,8 @@ func use_item(slot := -1) -> void:
 		sprint = 7.0
 		text = "THAT'LL PUT HAIR ON THE TRACTOR."
 		state = "SPEED UP"
-	sound.play(["crunch", "gulp", "moonshine", "whiskey_glug", "cowpie_pick"][i])
+	var cue: String = ["crunch", "gulp", "moonshine", "whiskey_glug", "cowpie_pick"][i]
+	sound.play(cue)
 	message(text)
 	var change := "+%d HP" % (p.health - health) if p.health > health else ""
 	var bits: Array = []

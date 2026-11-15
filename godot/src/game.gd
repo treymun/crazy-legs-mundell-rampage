@@ -18,8 +18,16 @@ func _init(
 	gore_fx = Gore.new(self)
 	art = p_art
 	hud = p_hud
-	sound = p_sound
-	speaker = p_sound
+	# This machine's Sound is wrapped as the game's GameSound; a host's
+	# QuietSound already is one.
+	var heard: GameSound = null
+	if p_sound is GameSound:
+		heard = p_sound
+	elif p_sound is Sound:
+		var node: Sound = p_sound
+		heard = SoundLink.new(node)
+	sound = heard
+	speaker = heard
 	level = LevelData.load_level(level_id, art)
 	world = level
 	view = View.new(art, level)
