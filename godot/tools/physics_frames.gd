@@ -54,6 +54,19 @@ func _run() -> void:
 		await process_frame
 		quit()
 		return
+	# only=break: the things that come apart in pieces (barrel, window, fence,
+	# a picnic table, a crate stack blown up).
+	if args.has("only=break"):
+		await _barrel()
+		await _window()
+		await _fence()
+		await _table()
+		await _chain()
+		print("physics frames written to ", out)
+		main.queue_free()
+		await process_frame
+		quit()
+		return
 	if args.has("only=hits"):
 		await _hits()
 		print("physics frames written to ", out)
@@ -213,6 +226,28 @@ func _barrel() -> void:
 		await _snap("barrel_0")
 		_ticks(g, 1, true)
 		await _row(g, "barrel_shot", [2, 4, 6, 10, 20, 40])
+		return
+
+
+## A picnic table taken apart by two loads of buckshot: its top's planks and
+## its legs fly and lie about (features/wreckage.gd).
+func _table() -> void:
+	var g := _level("hickston")
+	for at_table: Vector2 in _boards(g, "town_picnic_table"):
+		var at := _spot(g, at_table.x, at_table.y, 2.6)
+		if at == Vector2.INF:
+			continue
+		var tz := g.world.elevation(at_table.x, at_table.y) + .45
+		_stand(g, at.x, at.y, at_table.x, at_table.y, tz)
+		_arm(g, Weapons.SHOTGUN)
+		_ticks(g, 20)
+		await _snap("table_0")
+		_ticks(g, 1, true)
+		_ticks(g, 50)
+		_stand(g, at.x, at.y, at_table.x, at_table.y, tz)
+		_arm(g, Weapons.SHOTGUN)
+		_ticks(g, 1, true)
+		await _row(g, "table_shot", [3, 6, 10, 20, 60])
 		return
 
 

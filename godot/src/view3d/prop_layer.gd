@@ -7,10 +7,8 @@
 class_name PropLayer3D
 extends Node3D
 
-## How far the old pictures turned a model from face on (scripts/blender:
-## -28 degrees): a prop that faces where it is used from is turned so, and
-## from there is seen as its picture showed it.
-const PICTURE_TURN := deg_to_rad(28.0)
+## How far the old pictures turned a model from face on (PropModels.facing).
+const PICTURE_TURN := PropModels.PICTURE_TURN
 
 var models: PropModels
 var _shader: Shader
@@ -114,37 +112,15 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 	return fresh
 
 
-## Which way a prop faces: a board keeps its own axis, a quest prop turns to
-## show where it is used from (`face`) the view its picture had; anything
-## else turns its front (the model's +Z, map +y) toward the most open of
-## eight ways.
+## Which way a prop faces (PropModels.facing), kept for where it stands so a
+## broken prop faces as the whole one did.
 func _turn(s: View.Sprite, level: LevelData, place: Vector3) -> float:
-	if not is_nan(s.plane):
-		return -s.plane
-	if not is_nan(s.face):
-		return s.face - PICTURE_TURN
+	if not is_nan(s.plane) or not is_nan(s.face):
+		return PropModels.facing(level, s.x, s.y, s.plane, s.face)
 	var key := Vector2(place.x, place.y)
 	if _facing.has(key):
 		var faced: float = _facing[key]
 		return faced
-	var best := 0.0
-	var best_open := -1.0
-	for k in 8:
-		var a := k * PI / 4.0
-		var dx := sin(a)
-		var dy := cos(a)
-		var open := 0.0
-		while open < 3.0:
-			var x := s.x + dx * (open + .5)
-			var y := s.y + dy * (open + .5)
-			if x < 0 or y < 0 or x >= level.width or y >= level.height:
-				break
-			if level.solid[level.cell(x, y)] >= 0:
-				break
-			open += .25
-		# Straight ways win a tie (the sprites were drawn square to the street).
-		if open > best_open + (.01 if k % 2 == 0 else .3):
-			best_open = open
-			best = a
+	var best := PropModels.facing(level, s.x, s.y, s.plane, s.face)
 	_facing[key] = best
 	return best

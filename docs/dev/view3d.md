@@ -148,7 +148,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | Piece | File | What it does |
 | --- | --- | --- |
 | `WorldView3D` | `world_view.gd` | the SubViewport, camera, sky, layers; rebuilds the level mesh when `walls_version` or `light_version` moves |
-| `LevelMesh` | `level_mesh.gd` | walls, floors, caps and slopes in 16x16 chunks; per-vertex CUSTOM0 tint + light, CUSTOM1 tile/kind |
+| `LevelMesh` | `level_mesh.gd` | walls, floors, caps and slopes in 16x16 chunks; per-vertex CUSTOM0 tint + light, CUSTOM1 tile/kind; `build_static(base, only)` builds only some chunks (a wall piece retiled: `LevelData.retiled`) |
 | `ViewTiles` | `view_tiles.gd` | the tiles as a Texture2DArray, plus a row of tile info (water, relief, puddles) |
 | world shaders | `world.gdshader`, `world_glass.gdshader`, `world_body.gdshaderinc` | solid vs see-through variants of one body via `#define` |
 | light include | `view_light.gdshaderinc` | lights, fog, grade, rain, wet, water rings, relief, anim lights, mirror clip, `photo_grade`, `to_output` |
@@ -158,7 +158,8 @@ Headless runs draw no world, only the canvas. The renderer is
 | rain | `rain.gdshader` | three camera-hung layers |
 | slabs | `SlabLayer3D`, `SlabModels`, `slab.gdshader` | pickups, loose things (brass, gibs, bits) and range targets as pixel slabs (MultiMesh per mesh) |
 | solids | `SolidLayer3D`, `solid.gdshader` | sprites with `solid` set (bowling pins, the bowling ball) as real meshes turned by their own `turn` |
-| props | `PropLayer3D`, `PropView`, `prop_models.gd`, `prop.gdshader` | modelled props |
+| props | `PropLayer3D`, `PropView`, `prop_models.gd`, `prop.gdshader` | modelled props (`PropModels.facing`: which way one stands) |
+| wrecks | `WreckLayer3D`, `wreck.gdshader` | broken scenery's real pieces (sprites with `solid` "~<key>#<piece>", cut by `src/wreck_cuts.gd`: [gameplay.md](gameplay.md#in-real-pieces-of-themselves)) |
 | actors | `ActorLayer3D`, `ActorView`, `actor_models.gd`, `actor.gdshader` | rigged enemies and bosses |
 | heat | `HeatHaze` | heat shimmer boxes, handed to the display shader |
 | mirror | second camera | draws the reflection on cull layer bit `1 << 19` (`LAYER_MIRROR`) |

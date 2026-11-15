@@ -338,6 +338,7 @@ const LOOKS_FEATURES := [
 	"enemy_barks",
 	"boss_checkpoint",
 	"trophy_shack",
+	"wreckage",
 ]
 
 

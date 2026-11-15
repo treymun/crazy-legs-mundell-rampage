@@ -56,6 +56,7 @@ godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL 
 godot --headless --path godot --script res://tools/physics_check.gd   # PHYSICS OK (loose things on decks, ramps, stairs, walls; levels=a,b)
 godot --headless --path godot --script res://tools/live_props_check.gd # LIVE PROPS OK (pick up and throw, spreading fire, the stills)
 godot --headless --path godot --script res://tools/vehicle_check.gd    # VEHICLES OK (get in, drive, bump, run down, get out)
+godot --headless --path godot --script res://tools/wreck_check.gd     # WRECK CHECK OK (broken scenery in real pieces; levels=a,b)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
 godot --headless --path godot --script res://tools/camera_check.gd     # CAMERA CHECK OK (photo mode, kill cam, quality, HUD on Controls)
@@ -92,6 +93,7 @@ godot --path godot -- --rematch-all              # open every boss rematch
 ```
 godot --path godot ... --script res://tools/physics_frames.gd [-- only=hits|boss]
 godot --path godot ... --script res://tools/live_props_frames.gd -- out=<dir>  # a thing held, thrown, landed; a brute; hay burning; a still
+godot --path godot ... --script res://tools/physics_frames.gd [-- only=hits|boss|break]
 godot --path godot ... --script res://tools/arena_frames.gd        # the first four boss arenas (docs/boss_arenas/)
 godot --path godot ... --script res://tools/arena_frames_late.gd   # the last four
 godot --path godot ... --script res://tools/vehicle_frames.gd -- out=<dir> [only=car]   # the vehicles parked, from the seat, driving, a wreck (docs/godot3d/features/D/)

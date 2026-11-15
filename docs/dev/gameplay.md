@@ -729,6 +729,90 @@ path adds its sprites.
   with nothing on them may open; the rest get shot about but hold.
 - `tools/wall_break_check.gd` holds it (every level's cells opened at once).
   The Crossroads breaks nothing.
+- A swapped tile (`LevelData.set_wall_tile`: a window shot out, a fence shot
+  about) adds the piece's start to `LevelData.retiled`; the 3D view builds
+  only the chunks round it again (`LevelMesh.build_static(base, only)`, a few
+  milliseconds; the whole level is 70 to 150). Before this the 3D view kept
+  showing the whole window.
+
+### In real pieces of themselves
+
+`features/wreckage.gd` (looks only: LOOKS_FEATURES, own dice, never carried,
+saved or in anyone's way), `src/wreck_cuts.gd`, `src/wreck_physics.gd`,
+`view3d/wreck_layer.gd`. Broken scenery comes apart in real 3D pieces of
+itself on the chapters, the County Run maps and the hub (none on the 5v5
+and 2v2 maps: breakables.cfg `[pieces] never`):
+
+- **What comes apart how** is each breakable's `pieces` (breakables.cfg):
+  `boards:n` (crates, coolers, the TNT and ammo crates, the alien crate, the
+  outhouse's walls and roof: each side of the model in n boards), `staves:n`
+  (the mash barrel and the hazard drum: staves round its axis, its lids, two
+  hoops, the rest in chunks), `grid:a,b,c` (jugs, jars, the cow tube, the
+  bear, balloons, mailboxes, propane, gas cans, hay), `table:n` (the picnic
+  table: its top in planks, its legs and benches below), `planks:c,r,t` (a
+  picture: the yard's `prop_barrel` in staves, `prop_crate` in boards, a
+  sign's paint, `pieces_most` 3). Windows (`[windows] pieces`, `shards:n`)
+  throw their glass in panes of two shards; a stockyard fence cell
+  (`fence:n,v...`) throws `pieces_shot` boards off the side it was shot from
+  when shot about and its boards and rails when it breaks through.
+- **The pieces are the thing's own look.** `WreckCuts.parts(key)` cuts a
+  prop's baked model (assets3d/props, its first mesh) with real clipping
+  (each triangle cut by the cell's planes; a shell gets an inside face set in
+  by `SHELL` so it has a thickness) and keeps its UVs, so a piece is drawn
+  with the prop's own baked texture; a picture or a tile becomes boxes with
+  that part of the picture on their faces. A key is cut once (all of a
+  level's at its start, in `attach`: the cow tube, 5,400 triangles, is the
+  slowest at about 80 ms) and kept for the process.
+- **New breakables**: `town_picnic_table`, `town_camp_chairs` and
+  `town_outhouse` break (`gone`: no broken picture, nothing stands where it
+  was, its base opens the way as a crate's does; `never` on the versus maps).
+  This is play (they stop shots, take hp and free their cells, the same on
+  every machine); the pieces are not.
+- **Physics** (`WreckPhysics`): each piece a box with a quaternion, slide and
+  spin, mass and moments from its size; contacts are its corners (and points
+  along a long stick) against the floor under it (`Tumble.floor_at`, so
+  decks, stairs, ramps and furniture tops), roofs, walls, furniture sides
+  and steps higher than `LEDGE` (`solid()`, pushed out along the shortest of
+  x or y), and other pieces (the axis two boxes overlap least, so a plank on
+  a plank is pushed up); sequential impulses, `PASSES` passes, speculative
+  contacts (`MARGIN` plus its speed) so a fall never passes through a deck,
+  penetration pushed out after (pieces from one another first, then from
+  the level by the deepest contact each way, so a pile never squeezes one
+  into the floor). Pieces of one break pass through each other for `APART`.
+  A piece sleeps when it has been slow `SLEEP_AFTER`, has gone nowhere for
+  `HELD_AFTER`, or has been awake and slow `LONGEST`; going to sleep it is
+  lifted out of any floor and wall it is a little way into. Asleep it costs
+  nothing; one resting piece a tick is asked whether it still lies on
+  something (once until it is knocked again), blasts (`blast_shoved`) throw
+  what lies about and this machine's player kicks pieces walking through.
+  A body over plain level ground every way it reaches skips the level's
+  questions (`_plain_under`, the open yard).
+- **How it is found**: the feature watches breakables' pieces, the windows
+  and the fence cells (by their `net_version`) for ones newly broken, so a
+  client's mirror throws pieces too; what is broken at the start, from a save
+  or a snapshot put on (`restore`) throws nothing. A break throws away from a
+  blast that went off near it in the last `BLAST_TIME`, else along the line
+  from this machine's player (looks only).
+- **Cost**: `[pieces] most` (48, `most_phone` 20) lie about at most; past it
+  the oldest shrink away in `fade` and stop moving. More than `CROWD` (20)
+  awake takes one physics step a tick instead of `steps` (2). Idle (all
+  asleep) a tick costs about 15 us; breaking everything on hickston at once
+  (48 pieces in the air) peaked near 9 ms a tick headless on a busy desktop,
+  a single crate about 1 to 2 ms for a second. TODO: `Quality.physics` /
+  `Quality.steps` when the phone tiers land (track I); a phone takes
+  `most_phone` until then.
+- **Drawn** by `WreckLayer3D`: a sprite with `solid` "~<key>#<piece>" is that
+  piece's mesh (made once from the cut), a MeshInstance3D a piece shown
+  (kept for the next piece after), `wreck.gdshader` (prop.gdshader's light
+  with the source's texture; a picture's clear texels discarded), lit in its
+  cell as a prop is.
+- `tools/wreck_check.gd` (check_all, quick too; CI) breaks every kind with
+  `pieces`, a few windows and fence cells on seven levels and checks pieces
+  fly, all come to rest within 15 s on a floor within .03 and never inside
+  anything, nothing on the versus maps, the cap, a save throws nothing and
+  the idle cost; `tools/physics_frames.gd -- only=break` pictures the
+  barrel, window, fence, picnic table and hazard drums
+  (`docs/godot3d/features/C/`, before and after).
 
 ### Materials and penetration
 

@@ -209,10 +209,11 @@ var slopes: Array = []
 var door_cells := {}
 ## Bumped when the fixed wall list changes shape (open_cell(): a fence cell
 ## broken through), so the renderer puts it in map blocks again; and when a
-## cell opens, so the automap is drawn again. Both stay 0 until something
-## breaks, and nothing else reads the list differently.
+## cell opens, so the automap is drawn again (0 until something breaks). A
+## piece shown with another tile adds its start to `retiled` (set_wall_tile).
 var walls_version := 0
 var solid_version := 0
+var retiled := PackedVector2Array()
 ## The fixed wall pieces by their edge (walls_on()), made when first asked.
 var _edge_index := {}
 var doors: Array[Door] = []
@@ -988,9 +989,10 @@ func drop_volume(volume: PackedFloat32Array) -> void:
 
 
 ## Show `tile` on fixed wall piece i (a window shot out, a fence shot about:
-## features/wall_breaks.gd). Nothing else about the piece changes.
+## features/wall_breaks.gd); `retiled` keeps where, for the 3D view.
 func set_wall_tile(i: int, tile: int) -> void:
 	walls[i * WALL_STRIDE + 4] = float(tile)
+	retiled.append(Vector2(walls[i * WALL_STRIDE], walls[i * WALL_STRIDE + 1]))
 	_active_key = []
 
 
@@ -1138,91 +1140,11 @@ func pane_at(x: float, y: float, z: Variant = null, radius := 0.0) -> Variant:
 	return null
 
 
-## Mirrors TileMap.visible(): a stepped line-of-sight test.
+## Mirrors TileMap.visible(): a stepped line-of-sight test (level_sight.gd).
 func visible(
 	x: float, y: float, xx: float, yy: float, z: Variant = null, zz: Variant = null
 ) -> bool:
-	# No heights given (z null): the flat test it always was, furniture in the
-	# way whatever its height; geometry stops it where it stands in a body's
-	# way (blocked(): a deck overhead does not, a stair or a wall does).
-	var distance := sqrt((xx - x) * (xx - x) + (yy - y) * (yy - y))
-	var n := maxi(1, ceili(distance * 9.0))
-	# With no panes and no locked gates, a step whose four corners are open floor
-	# and whose cell neither index lists is clear, as blocked() would find: those
-	# steps (most of them) are tested here without the call.
-	var plain := (
-		pane_tiles.is_empty() and locked_gates.is_empty() and index_cells.size() == width * height
-	)
-	var fast := plain and clear_cells.size() == width * height
-	var i := 1
-	while i < n:
-		var t := float(i) / float(n)
-		var sx := x + (xx - x) * t
-		var sy := y + (yy - y) * t
-		if fast and sx >= 0.0 and sy >= 0.0:
-			var cx := int(sx)
-			var cy := int(sy)
-			if cx < width and cy < height and clear_cells[cy * width + cx] != 0:
-				i = _past_cell(x, y, xx, yy, n, i, cx, cy)
-				continue
-		if plain:
-			var ax := int(sx + -.023)
-			var bx := int(sx + .023)
-			var ay := int(sy + -.023)
-			var by := int(sy + .023)
-			if ax < 0 or ay < 0 or bx >= width or by >= height:
-				return false
-			if (
-				solid[ay * width + ax] >= 0
-				or solid[by * width + ax] >= 0
-				or solid[ay * width + bx] >= 0
-				or solid[by * width + bx] >= 0
-			):
-				return false
-			if index_cells[int(sy) * width + int(sx)] == 0:
-				i += 1
-				continue
-		var wz: Variant = null
-		if z != null:
-			wz = _float(z) + (_float(zz) - _float(z)) * t
-		if blocked(sx, sy, .023, wz):
-			return false
-		if geo != null and wz != null and geo.cells[int(sy) * width + int(sx)] != 0:
-			# A steep look can step over a deck thinner than one step climbs.
-			var bt := float(i - 1) / float(n)
-			var bz := _float(z) + (_float(zz) - _float(z)) * bt
-			if geo.crosses(x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, _float(wz)):
-				return false
-		i += 1
-	return true
-
-
-## The first of a sight line's n steps after step i (in clear cell cx, cy) that
-## is outside that cell, or n. Worked out from where the line crosses the
-## cell's sides, then checked with the steps' own sums: the step before it must
-## be in the cell, and since the steps only ever move one way, so is every step
-## between.
-func _past_cell(x: float, y: float, xx: float, yy: float, n: int, i: int, cx: int, cy: int) -> int:
-	var j := n
-	var dx := xx - x
-	var dy := yy - y
-	if dx > 0.0:
-		j = mini(j, ceili((float(cx + 1) - x) / dx * n))
-	elif dx < 0.0:
-		j = mini(j, ceili((float(cx) - x) / dx * n))
-	if dy > 0.0:
-		j = mini(j, ceili((float(cy + 1) - y) / dy * n))
-	elif dy < 0.0:
-		j = mini(j, ceili((float(cy) - y) / dy * n))
-	j = clampi(j, i + 1, n)
-	while j - 1 > i:
-		var t := float(j - 1) / float(n)
-		var sx := x + (xx - x) * t
-		var sy := y + (yy - y) * t
-		if sx >= 0.0 and sy >= 0.0 and int(sx) == cx and int(sy) == cy:
-			break
-		j -= 1
-	return j
+	return LevelSight.visible(self, x, y, xx, yy, z, zz)
 
 
 ## Mirrors TileMap.move(): axis-separated with a step-height limit.

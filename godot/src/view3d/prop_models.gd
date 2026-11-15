@@ -11,6 +11,10 @@ const SCENES := "res://scenes/props"
 ## The looks a quest station's one model holds (mesh nodes `look_off`,
 ## `look_on`), named by its pictures' endings: town_quest_<name>_off / _on.
 const LOOKS: Array[String] = ["off", "on"]
+## How far the old pictures turned a model from face on (scripts/blender:
+## -28 degrees): a prop that faces where it is used from is turned so, and
+## from there is seen as its picture showed it.
+const PICTURE_TURN := deg_to_rad(28.0)
 
 ## name -> [width, depth, height, texture size, picture height]: the last,
 ## how tall its picture town_<name> was drawn (a sprite shown at another
@@ -71,6 +75,39 @@ func scale_of(name: String, height: float) -> float:
 	if drawn <= 0.0 or absf(height - drawn) < .02:
 		return 1.0
 	return height / drawn
+
+
+## Which way a prop standing at (x, y) faces (radians about up, the model's
+## +Z, map +y, turned by it): a board keeps its own axis (`plane`), a quest
+## prop turns to show where it is used from (`face`) the view its picture
+## had; anything else turns its front toward the most open of eight ways.
+## The 3D view stands props so (PropLayer3D), and features/wreckage.gd
+## throws a broken prop's pieces from where they stood.
+static func facing(level: LevelData, x0: float, y0: float, plane := NAN, face := NAN) -> float:
+	if not is_nan(plane):
+		return -plane
+	if not is_nan(face):
+		return face - PICTURE_TURN
+	var best := 0.0
+	var best_open := -1.0
+	for k in 8:
+		var a := k * PI / 4.0
+		var dx := sin(a)
+		var dy := cos(a)
+		var open := 0.0
+		while open < 3.0:
+			var x := x0 + dx * (open + .5)
+			var y := y0 + dy * (open + .5)
+			if x < 0 or y < 0 or x >= level.width or y >= level.height:
+				break
+			if level.solid[level.cell(x, y)] >= 0:
+				break
+			open += .25
+		# Straight ways win a tie (the sprites were drawn square to the street).
+		if open > best_open + (.01 if k % 2 == 0 else .3):
+			best_open = open
+			best = a
+	return best
 
 
 ## The prop's scene (a PropView), or null when it has none.

@@ -29,6 +29,7 @@ const ALL := [
 	preload("res://src/features/carry.gd"),
 	preload("res://src/features/fire.gd"),
 	preload("res://src/features/stills.gd"),
+	preload("res://src/features/wreckage.gd"),
 	preload("res://src/features/water.gd"),
 	preload("res://src/features/impacts.gd"),
 	preload("res://src/features/dust.gd"),
@@ -74,6 +75,7 @@ const LOOKS := [
 	"enemy_barks",
 	"boss_checkpoint",
 	"trophy_shack",
+	"wreckage",
 ]
 
 
