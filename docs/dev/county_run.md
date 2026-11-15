@@ -104,6 +104,29 @@ past `corpses_kept` go (oldest first). The spawn spots and reached cells are
 worked out once per level (by id: a broken window must not redo a whole-map
 walk mid-fight; that was a 40 ms tick).
 
+## The storm front
+
+After v3.1.0 (track H), `src/modes/county_storm.gd`: a storm sweeps across the
+map as the run goes on. Its state is the county feature's `storm_*` (plain
+values and its own dice, seeded at the start from the run's rng state and
+the map: a DAILY RUN's storm is everyone's, a party's the same on every
+machine). The safe ground starts as the whole map (round the middle of the
+spawner's reached spots); the first stage closes at county.json `storm.first`
+seconds, later ones `every` after the last held, each called `warn` seconds
+ahead on the HUD ("STORM FRONT 0:25"), closing over `close` seconds to
+`radii[stage]` of the whole radius (never below `least`), the new ring's
+middle a reached spot inside the last. Outside it a player takes
+`hurt[stage]` a second and the wind shoves them round the wall and a little
+back in; near the wall it throws boards, tin and hay (`storm_bits`, the break
+bits' pictures) that hurt (`bit_damage`). It builds the climate's rain and
+wind (`climate.storm`). Shown: the HUD line and a small ring map in the top
+right (`CountyStorm.draw_hud`), the ring on the automap (`draw_map`) and a dark
+wall of rain in the 3D view (`world_view.gd _storm`, `storm_wall.gdshader`).
+COUNTY STORM (setting, `game.storm_on`, a sim option carried online) leaves
+it out; a DAILY RUN always has it. `tools/climate_check.gd` checks the stages,
+the hurt and the push, the setting and the daily storm; the cards, XP and
+spawner are untouched.
+
 ## The maps
 
 Plans over the chapters (`tools/levels/county_hickston_plan.gd`,

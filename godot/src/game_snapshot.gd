@@ -106,6 +106,10 @@ const SIM_FIELDS := [
 	"aim_assist",
 	"smart_hands",
 	"touch_aim",
+	"weather_feel",
+	"storm_on",
+	"mud",
+	"wind",
 	"lessons",
 	# When any hand may bark next (squad.gd bark): it decides whether a hand's
 	# own Mind.bark_next is set, which is carried, so it is carried too (a
@@ -307,6 +311,7 @@ const SIM_FEATURES := [
 	"boss_arenas",
 	"hit_reads",
 	"critters",
+	"climate",
 	"variants",
 	"squad",
 	"mode",

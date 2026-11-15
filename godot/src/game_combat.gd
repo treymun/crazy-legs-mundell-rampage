@@ -659,6 +659,10 @@ func move_shot(shot: Shot, dt: float) -> bool:
 		var y := shot.y + shot.vy * dt
 		var z := shot.z + shot.vz * dt
 		shot.vz -= dt * gravity
+		if gravity > 0.0:
+			# A thrown thing drifts on the wind (features/climate.gd).
+			shot.vx += wind.x * dt
+			shot.vy += wind.y * dt
 		var wall := world.blocked(x, y, .045, z)
 		if wall and not shot.enemy and not tnt:
 			var pane: Variant = world.pane_at(x, y, z, .045)
@@ -760,6 +764,10 @@ func _shot_finds_player(x: float, y: float, z: float) -> Player:
 ## till it slows, coming off two walls on the way. False: the ball is done.
 func _roll(shot: Shot, dt: float, tnt: bool) -> bool:
 	var before := Vector2(shot.x, shot.y)
+	if tnt and shot.vz != 0.0:
+		# A stick in the air drifts on the wind (features/climate.gd).
+		shot.vx += wind.x * dt
+		shot.vy += wind.y * dt
 	var hit := Tumble.step(world, shot, Tumble.shot_feel(shot.kind), dt)
 	shot.travelled += before.distance_to(Vector2(shot.x, shot.y))
 	if tnt:

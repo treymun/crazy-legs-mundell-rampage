@@ -13,7 +13,7 @@
 		"y": 81.5
 	},
 	"v4_hickston_fight.json": {
-		"alive": 86.0,
+		"alive": 89.0,
 		"health": 78.0,
 		"kills": 0.0,
 		"level": "hickston",
@@ -60,7 +60,7 @@
 		"y": 81.5
 	},
 	"v5_hickston_fight.json": {
-		"alive": 86.0,
+		"alive": 89.0,
 		"health": 92.0,
 		"kills": 0.0,
 		"level": "hickston",
@@ -107,7 +107,7 @@
 		"y": 81.5
 	},
 	"v6_hickston_fight.json": {
-		"alive": 86.0,
+		"alive": 89.0,
 		"health": 92.0,
 		"kills": 0.0,
 		"level": "hickston",
@@ -167,7 +167,7 @@
 		"y": 81.5
 	},
 	"v7_hickston_fight.json": {
-		"alive": 86.0,
+		"alive": 89.0,
 		"health": 100.0,
 		"kills": 0.0,
 		"level": "hickston",
@@ -178,7 +178,7 @@
 		"y": 69.5
 	},
 	"v7_hickston_fight_layout2.json": {
-		"alive": 86.0,
+		"alive": 89.0,
 		"health": 100.0,
 		"kills": 0.0,
 		"level": "hickston",
@@ -318,19 +318,32 @@
 		"x": 64.5,
 		"y": 81.5
 	},
+	"v8_fair_carrying_hickston_layout5.json": {
+		"alive": 48.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"level": "fair",
+		"replay": false,
+		"reserve": 30.0,
+		"retained": [
+			"hickston"
+		],
+		"x": 66.212,
+		"y": 78.968
+	},
 	"v8_hickston_fight.json": {
-		"alive": 86,
+		"alive": 89,
 		"health": 100.0,
 		"kills": 0,
 		"level": "hickston",
 		"replay": false,
 		"reserve": 24,
 		"retained": [],
-		"x": 9.376,
-		"y": 74.246
+		"x": 9.448,
+		"y": 73.889
 	},
 	"v8_hickston_fight_layout3.json": {
-		"alive": 86.0,
+		"alive": 89.0,
 		"health": 100.0,
 		"kills": 0.0,
 		"level": "hickston",
@@ -341,7 +354,18 @@
 		"y": 69.5
 	},
 	"v8_hickston_fight_layout4.json": {
-		"alive": 86.0,
+		"alive": 89.0,
+		"health": 100.0,
+		"kills": 0.0,
+		"level": "hickston",
+		"replay": false,
+		"reserve": 24.0,
+		"retained": [],
+		"x": 7.5,
+		"y": 69.5
+	},
+	"v8_hickston_fight_layout5.json": {
+		"alive": 89.0,
 		"health": 100.0,
 		"kills": 0.0,
 		"level": "hickston",
@@ -426,8 +450,8 @@
 		"replay": false,
 		"reserve": 30,
 		"retained": [],
-		"x": 64.956,
-		"y": 79.999
+		"x": 64.913,
+		"y": 80.137
 	},
 	"v8_sawmill_slot_layout4.json": {
 		"alive": 44.0,

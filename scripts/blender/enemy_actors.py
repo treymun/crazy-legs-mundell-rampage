@@ -2670,6 +2670,9 @@ def jobs_for(kind, wanted):
     falls beaten (its last phase's damage) and repeats its living cels for each phase
     set; a regular adds its wind-up and a hurt copy of every living cel
     (`<kind>_hurt_<stem>`: no falls, no fidget)."""
+    if kind in globals().get("PLAIN_KINDS", ()):
+        # Livestock (actors_farm.py): only the cels listed, no wind-up, no hurt copies.
+        return [(item, "%s_%s" % (kind, stem_of(item)), 0, 0) for item in wanted]
     wanted = list(wanted) + ["wind"]
     if kind not in BOSS_PHASES:
         out = [(item, "%s_%s" % (kind, stem_of(item)), 0, 0) for item in wanted]

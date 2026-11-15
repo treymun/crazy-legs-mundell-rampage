@@ -24,6 +24,8 @@ level builder in [levels.md](levels.md).
 
   default, choices, hint); `tools/check_fixes.gd` counts them (60 now; HANDS
   is the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (61 now;
+  WEATHER and COUNTY STORM are the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -267,6 +269,33 @@ is there for the art). `features/critters.gd`: chickens and hogs run from
 shots, blasts and a running player (chickens flap: `Enemy.hop`), a hurt hog
 charges (5), a hit gator thrashes, a blast shoves Bessie. Not saved (seconds
 long). `tools/hit_check.gd` (in check_fixes); `physics_frames.gd only=hits`.
+
+**Critters with physics** (after v3.1.0, track H; all play, the feature's
+carried `dice`, never `game.rng`; at most `ACTIVE_MOST` bodies flying or
+falling, nothing moves that was not set off):
+
+- A scared chicken flaps up and **glides** off (`_glides`: its run in the air,
+  the fall slowed by `GLIDE_FALL`, stopped by a wall).
+- A hog **charges** when hurt and, `SPOOK_CHARGE` of the time, when a shot or a
+  runner spooks it; its butt **knocks the player flat** (`Player.knocked`:
+  `KNOCKED` seconds with no walk or jump, the eye at .3 and the horizon up,
+  `game.gd _step_body`). `_charging` keeps the player's slot, never the acting
+  player.
+- A cow or the mule stands still for a player within `PLACID` (no shying),
+  so a cow can be walked up to and the mule's rump stays put.
+- The **mule** (enemies.cfg `[mule]`) kicks whoever stands within
+  `KICK_REACH` behind it (its rump to them: `Enemy.angle`): a wind-up showing
+  `mule_kick` (`Enemy.held_cel`), then `MULE_KICK` and a knockdown.
+- A **cow** (`[cow]`) tips at USE beside her (`critters.tip`, called from
+  `game_world.gd interact()` before the use targets): a rigid fall about her
+  hooves (`TIP_PULL` times the sine of her lean, one bounce), lying `TIPPED_FOR`
+  seconds on her `cow_down` cel (`Enemy.squash`, `Enemy.DOWN_SHARE`), then up.
+- Their cels: `scripts/blender/actors_farm.py` (cels only, like the chicken
+  and hogs; `build_enemy_actors.gd -- kinds=cow,mule`). Two cows and the mule
+  graze hickston's orchard (layout 5). The mule brays (`mule_bray`, made in
+  `assets.gd`).
+- `tools/climate_check.gd` (in check_fixes) plays each; `tools/climate_frames.gd`
+  (a window) pictures them.
 
 ### Squads, idle life and variants
 
@@ -828,6 +857,22 @@ chapel path at Hickston. Only the campaign and co-op have them
   `fog_banks`, `heat` spots, crows, fireflies; `[anim.<tile>]` makes a sign
   buzz or pulse. All of it is drawn by the 3D view's shaders
   (`view_light.gdshaderinc`), behind LIGHTS AND GLOW.
+- **Weather you can feel** (after v3.1.0, track H): `features/climate.gd`,
+  a simulation feature (carried; its own seeded dice), keeps the rain and the
+  wet (the showers' spells, once weather.gd's), the puddles' water `pool`
+  (gathers while it rains, `pool_grow`; dries slowly), the mud (`muddy()`) and
+  the wind (the level's `[debris] wind_<id>`, stronger in rain and in gusts).
+  Each tick it sets `game.mud` and `game.wind` (SIM_FIELDS), scaled by the
+  WEATHER setting (`game.weather_feel`: FULL 1, LIGHT .5, OFF 0). `Mud.pace`
+  (`src/mud.gd`, effects.cfg `[mud]` floors, `mud_slow`) slows the player
+  (`_step_body`) and every hand and animal (`Enemy.advance`); a thrown thing
+  with gravity drifts on `game.wind` (`move_shot`, and a stick of dynamite in
+  the air in `_roll`). weather.gd (looks) mirrors the climate for the view,
+  lays boot, hoof, claw and tyre prints in the mud (`mark_<kind>_mud`,
+  `tools/art/build_weather_art.gd`; `track()` for anything with wheels) and
+  hands the wind to the dust and the 3D view; with WEATHER OFF the looks stay.
+  The numbers are effects.cfg `[climate]`. County Run's storm front adds its
+  own rain and wind (`climate.storm`).
 - **Weather, water, relief and shimmer** (3D view shaders only, behind LIGHTS
   AND GLOW, `effects_on`): `features/weather.gd` keeps `rain` and `wet`
   (puddles on `[puddles]` floors, a sheen on walls under the sky, streaks over

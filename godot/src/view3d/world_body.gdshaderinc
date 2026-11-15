@@ -177,7 +177,10 @@ void fragment() {
 				// Wet ground darkens; where it lies low it holds a puddle.
 				vec2 q = floor(map_p.xy * 10.0) / 10.0;
 				float low = 0.5 + 0.25 * sin(q.x * 1.7 + sin(q.y * 1.3) * 1.8) + 0.25 * sin(q.y * 2.3 + sin(q.x * 0.9) * 2.1);
-				if (info.b > 0.0 && low > 1.0 - wet * info.b * 0.34) {
+				// A long storm's water spreads them: more, bigger puddles, even
+				// on ground that holds little (grass).
+				float gather = max(info.b, 0.5 * pool);
+				if (info.b > 0.0 && low > 1.0 - wet * gather * (0.34 + 0.36 * pool)) {
 					colour = water_over(colour * 0.5, map_p.xy, t, sy, column, 0.85, lit, tm);
 					gloss = 1.0;
 					done = true;

@@ -383,7 +383,8 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 		wake_nearby(5.7, p.x, p.y)
 	if p.drunk > 62.0:
 		barks.say(self, "drunk")
-	p.sway = sin(clock * 3.15) * intoxication * 11.0
+	p.sway = sin(clock * 3.15) * intoxication * 11.0 + p.knocked * 16.0
+	p.knocked = maxf(0.0, p.knocked - dt)
 	p.drift = sin(clock * 2.3) * pow(intoxication, 2.0) * .12
 	p.angle = fposmod(p.angle + controls.turn, TAU)
 	p.pitch = maxf(-53.0, minf(53.0, p.pitch + controls.look))
@@ -396,7 +397,7 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 	else:
 		landed = _walk(p, controls, dt)
 	var ground: float = world.stand(p)
-	var eye := (.68 if p.crouched else .95) + ground + p.air
+	var eye := (.3 if p.knocked > 0.0 else .68 if p.crouched else .95) + ground + p.air
 	var roof: float = world.roof_over(p.x, p.y, ground)
 	if roof != 0.0 and eye > roof - .22:
 		eye = roof - .22
@@ -438,12 +439,14 @@ func _walk(p: Player, controls: Controls, dt: float) -> bool:
 		(3.85 if controls.running else 2.75) * (1.42 if p.sprint else 1.0) / magnitude
 	)
 	speed *= 1.0 - maxf(0.0, p.gut - 65.0) * .004 - maxf(0.0, p.drunk - 70.0) * .004
-	speed *= Modes.move_scale(self, p)
+	speed *= Modes.move_scale(self, p) * Mud.pace(self, p.x, p.y)
 	if world.surface_sound(int(world.floor_tile[world.cell(p.x, p.y)])) == "water":
 		speed *= .69
 	p.crouched = controls.crouch and p.air <= .01
 	if p.crouched:
 		speed *= .51
+	if p.knocked > 0.0:
+		speed = 0.0
 	var vx := cos(p.view_angle())
 	var vy := sin(p.view_angle())
 	var ox := p.x
@@ -458,7 +461,13 @@ func _walk(p: Player, controls: Controls, dt: float) -> bool:
 		p.vx = 0.0
 	if p.y == oy and absf(p.vy) > .02:
 		p.vy = 0.0
-	if controls.jump and not p.jump_held and p.air == 0.0 and not controls.crouch:
+	if (
+		controls.jump
+		and not p.jump_held
+		and p.air == 0.0
+		and not controls.crouch
+		and p.knocked <= 0.0
+	):
 		p.vertical_speed = 2.7
 	p.jump_held = controls.jump
 	var landed := false

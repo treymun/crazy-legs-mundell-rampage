@@ -20,7 +20,14 @@ func _ready() -> void:
 		var sim := {}
 		var plain := SessionStore.defaults()
 		for key: String in [
-			"difficulty", "gore", "aim_assist", "hit_feedback", "adaptive", "smart_hands"
+			"difficulty",
+			"gore",
+			"aim_assist",
+			"hit_feedback",
+			"adaptive",
+			"smart_hands",
+			"weather",
+			"county_storm"
 		]:
 			if plain.has(key):
 				sim[key] = plain[key]

@@ -1186,6 +1186,8 @@ func automap(c: Canvas) -> void:
 				false
 			)
 	_map_labels(c)
+	var me: Game = self as Object
+	CountyStorm.draw_map(c, me)
 	_map_goal(c)
 	_map_player(c)
 	MapKey.draw(c, MAP_X + 1, MAP_Y + MAP_H - 1)  # what the marks mean
@@ -1205,7 +1207,6 @@ func automap(c: Canvas) -> void:
 		else "SECRETS %d/%d" % [secrets, total_secrets]
 	)
 	var keys := "   /   TAP TO ZOOM" if touch_aim else "   /   PGUP PGDN ZOOM   /   TAB CLOSE"
-	var me: Game = self as Object
 	if Modes.is_tactical(me):
 		var sites: Dictionary = world.tactical.get("sites", {})
 		tally = "SITE A MARKED" if sites.size() == 1 else "SITES A AND B MARKED"

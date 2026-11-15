@@ -55,7 +55,7 @@ func make() -> Builder:
 		"ending": '"NEXT TIME, TAKE THE TRACTOR."',
 		"score": "music",
 		"rescue": true,
-		"layout": 5,
+		"layout": 6,
 		"sky": "sky",
 		# A riding mower on the chapel path by the graveyard (features/vehicles.gd).
 		"vehicles": [["mower", 79.0, 59.5, 0.0]],

@@ -33,6 +33,13 @@ static var RAGDOLL := {}
 static var WATER := {}
 static var RELIEF := {}
 static var PUDDLES := {}
+## The weather that changes play (features/climate.gd): [mud] tile -> 0..1
+## (how muddy the floor gets in the wet, slowing what walks it), [sway] prop
+## picture -> how far the wind sways it in the 3D view (below 0: it hangs from
+## its top and swings), [climate] the numbers (mud, puddles, wind, gusts).
+static var MUD := {}
+static var SWAY := {}
+static var CLIMATE := {}
 ## image name -> light source: the props a light stands on ([light.*] props).
 static var PROP_LIGHTS := {}
 ## The shader takes this many moving tiles at once: those the level draws
@@ -64,8 +71,19 @@ static func load_tuning() -> void:
 	WATER = {}
 	RELIEF = {}
 	PUDDLES = {}
+	MUD = {}
+	SWAY = {}
+	CLIMATE = {}
 	PROP_LIGHTS = {}
-	var tables := {"water": WATER, "relief": RELIEF, "puddles": PUDDLES, "glow": GLOW}
+	var tables := {
+		"water": WATER,
+		"relief": RELIEF,
+		"puddles": PUDDLES,
+		"glow": GLOW,
+		"mud": MUD,
+		"sway": SWAY,
+		"climate": CLIMATE,
+	}
 	for section in cfg.get_sections():
 		var values := {}
 		for key in cfg.get_section_keys(section):

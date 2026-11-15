@@ -20,7 +20,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `weapons.cfg` | fire rates, damage, reloads, how each gun fires (hitscan, pellets, projectile, melee), sits in view and sounds; `flash_art`/`flash_size`, `penetrate`/`penetrate_damage`, `scope`/`scope_spread`, `thrown` | `weapons.gd` |
 | `enemies.cfg` | enemy health, speed, reach, voice, boss `title` and drops; variants (`brain=`, `art=`, `height`, `tint`) | `enemies.gd`, `variants.gd` |
 | `shots.cfg` | each shot's fall, size, glow and blast; `rolls` | the shots, breakables |
-| `effects.cfg` | lights and glows (`[light.*]`), a level's mood (`[level.<id>]`), `[anim.<tile>]`, `[debris]`, `[water]`, `[relief]`, `[puddles]` | `Effects`, `view_lights.gd`, the 3D view |
+| `effects.cfg` | lights and glows (`[light.*]`), a level's mood (`[level.<id>]`), `[anim.<tile>]`, `[debris]`, `[water]`, `[relief]`, `[puddles]`, `[mud]`, `[sway]`, `[climate]` (the weather that changes play) | `Effects`, `view_lights.gd`, the 3D view |
 | `breakables.cfg` | what breaks, its broken picture, hp, bits, cues, blast; `[windows]`, `[fence.<tile>]`, `never` | `features/breakables.gd`, `wall_breaks.gd` |
 | `carry.cfg` | what a hand can take up and throw (`[thing.<picture>]`: weight, label, cue), a throw's speed, hit and shove, a hard landing, the brutes who throw things back (`[brutes]`) | `features/carry.gd` |
 | `fire.cfg` | fire that spreads: the cap and budget, how often it spreads and bites, rain, the blasts that light things, puddles of shine, the floors and props that burn (`[floors]`, `[props]`: seconds, catch), what spills shine (`[spills]`), the stills' spray (`[stills]`) | `features/fire.gd`, `features/stills.gd` |
@@ -31,7 +31,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `modes.cfg` | the modes' rules: `[versus]`, `[coop]` (with the scaling table), `[deathmatch]`, `[tactical]`, `[bomb]`, `[hostage]`, `[tagteam]`, County Run (`[county_cards]`, `[county_coop]`, `[county_moves]`, `[county_orbs]`, `[county_spawner]`), `[tactical_utility]` (throwables), `[squad]`, `[squad_feature]`, `[idle_life]`, `[climbing]` (ladders, pull-ups, hands falling), `[hand_tactics]` (reload, peek, kick), `[hit_zones]`, `[tactical_bot]` | `ModeData` (`src/core/mode_data.gd`) |
 | `bosses.cfg` | the boss scripts' numbers, one section per script (`[boss_kit]`, ...) | `BossData` (`src/core/boss_data.gd`) |
 | `lobby.cfg` | the online lobby's rows and defaults: each row is [key, label, values, names]; a new online mode goes in the mode row (and `NetPlay.play_mode()`) | `src/net/net_play.gd` |
-| `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short` | `county_data.gd` |
+| `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short`, the storm front (`storm`) | `county_data.gd` |
 | `cuss_lines.json` | the cuss pack (the voice tools read it too) | `src/cuss_lines.gd` |
 | `mundell_lines.json` | Mundell's wisecracks | `Barks` |
 | `camera.cfg` | PHOTO MODE's camera and pictures `[photo]`, the KILL CAM's sampling, replay and camera `[kill_cam]`, QUALITY AUTO's measurement `[quality]` | `PhotoMode`, `KillCam`, `Quality` (static vars, read at start) |

@@ -98,6 +98,21 @@
 		"supply_chance": 0.075,
 		"food_chance": 0.05
 	},
+	"storm": {
+		"_about": "The storm front (src/modes/county_storm.gd; COUNTY STORM setting, always on in a DAILY RUN). The first stage closes in at `first` seconds of the run, each later one `every` seconds after the last held; each is called `warn` seconds ahead and closes over `close` seconds to radii[stage] of the whole map's radius (never below `least` cells). Outside, hurt[stage] health a second and a shove of `push` cells a second; near the wall (within bit_reach) a board, tin or hay piece every bit_every seconds (quicker each stage), bit_damage a hit, at most bits_most in the air.",
+		"first": 120.0,
+		"every": 150.0,
+		"warn": 30.0,
+		"close": 30.0,
+		"radii": [0.72, 0.52, 0.38, 0.28, 0.2],
+		"least": 9.0,
+		"hurt": [3, 4, 6, 8, 10],
+		"push": 0.9,
+		"bit_every": 1.4,
+		"bit_reach": 9.0,
+		"bit_damage": 9.0,
+		"bits_most": 14
+	},
 	"start": {
 		"weapons": ["revolver", "crowbar"],
 		"active": "revolver",

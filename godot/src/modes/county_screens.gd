@@ -199,6 +199,7 @@ static func draw_hud(c: Canvas, game: Game, f: CountyRun) -> void:
 		bits.append("ELITE COMIN'")
 	if not bits.is_empty():
 		HUD.text(c, "  ".join(bits), 317, VIEW - 21, "mini", GOLD, false, true, true)
+	CountyStorm.draw_hud(c, game, f)
 
 
 # ------------------------------------------------------------------ cards

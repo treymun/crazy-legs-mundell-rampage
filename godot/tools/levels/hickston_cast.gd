@@ -44,6 +44,11 @@ static func enemies(b: Builder) -> void:
 	b.enemy("pig", 16.5, 9.5, "orchard-pig")
 	b.enemy("alien", 20.5, 4.5, "orchard-alien")
 	b.enemy("chicken", 22.0, 17.0, "orchard-chicken")
+	# The orchard's livestock (layout 5, features/critters.gd): two cows to
+	# tip, a mule that kicks whoever walks behind it.
+	b.enemy("cow", 13.5, 14.5, "orchard-cow")
+	b.enemy("cow", 19.5, 19.5, "orchard-cow-b")
+	b.enemy("mule", 11.5, 6.5, "orchard-mule")
 	# The lane.
 	b.enemy("clone", 30.5, 26.0, "lane-clone", [[30.5, 26.0], [44.5, 26.0]])
 	b.enemy("alien", 70.5, 25.5, "lane-alien")

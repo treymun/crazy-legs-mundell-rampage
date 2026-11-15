@@ -92,6 +92,29 @@ var elites_down := 0
 var hurt := 0.0
 var best_streak := 0
 var tips := false
+## The storm front (county_storm.gd): on in this run; its own dice (seeded
+## from the run's: a DAILY RUN's storm is everyone's); the stage reached; the
+## safe ground now (its middle and radius) and the whole map's; where the
+## wall closes from and to (x, y, radius) between which run times (-1: it
+## holds); when the next stage closes in and whether it was called; the way
+## its wind blows; what it throws ([x, y, z, vx, vy, vz, picture, age]); when
+## the next piece comes and the next hurt lands.
+var storm_on := false
+var storm_dice := RandomNumberGenerator.new()
+var storm_stage := 0
+var storm_at := Vector2.ZERO
+var storm_home := Vector2.ZERO
+var storm_r := 0.0
+var storm_full := 0.0
+var storm_from := Vector3.ZERO
+var storm_to := Vector3.ZERO
+var storm_moving := Vector2(-1.0, -1.0)
+var storm_next := 0.0
+var storm_warned := false
+var storm_dice_angle := 0.0
+var storm_bits: Array = []
+var storm_bit_next := 0.0
+var storm_hurt_next := 0.0
 
 
 func id() -> String:
@@ -99,6 +122,8 @@ func id() -> String:
 
 
 func attach() -> void:
+	# A fixed seed until a run's storm takes its own (county_storm.gd begin).
+	storm_dice.seed = 1997
 	game.events.ticked.connect(_tick)
 	game.events.shot_fired.connect(_fired)
 	game.events.enemy_killed.connect(_killed)
@@ -120,7 +145,12 @@ func _killed(e: Enemy) -> void:
 
 
 func sprites() -> Array:
-	return CountyOrbs.sprites(game, self) if on else []
+	if not on:
+		return []
+	var out: Array = CountyOrbs.sprites(game, self)
+	if not storm_bits.is_empty():
+		out.append_array(CountyStorm.sprites(game, self))
+	return out
 
 
 func draw_view(c: Canvas) -> void:

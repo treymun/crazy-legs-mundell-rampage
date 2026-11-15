@@ -115,6 +115,11 @@ func _fired(gun: int) -> void:
 
 
 func _tick(dt: float) -> void:
+	var weather: Object = game.features.get("weather")
+	if weather != null:
+		# The smoke and dust go with the climate's wind and its gusts.
+		var blow: Vector2 = weather.get("wind")
+		wind = blow
 	_boots()
 	_race_dust()
 	_embers()

@@ -41,6 +41,14 @@ func _material(name: String) -> ShaderMaterial:
 		m = ShaderMaterial.new()
 		m.shader = _shader
 		m.set_shader_parameter("baked", models.texture(name))
+		# The wind sways it (effects.cfg [sway]; view_light's wind_now).
+		var sway: float = Effects.SWAY.get(name, 0.0)
+		if sway != 0.0 and models.sizes.has(name):
+			var dims: Array = models.sizes[name]
+			var wide: float = dims[0]
+			var tall: float = dims[2]
+			m.set_shader_parameter("sway_k", sway)
+			m.set_shader_parameter("sway_size", Vector2(tall, wide))
 		_materials[name] = m
 	return m
 

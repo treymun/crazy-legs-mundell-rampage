@@ -31,7 +31,10 @@ void fragment() {
 	float speed = k == 0 ? 330.0 : (k == 1 ? 250.0 : 180.0);
 	float seg_len = len * 3.5;
 	float v = q.y - anim_time * speed;
-	float u = q.x + turn + v * 0.18;
+	// Slanted by the wind across the view (features/climate.gd).
+	vec2 right = vec2(-sin(view_angle), cos(view_angle));
+	float slant = 0.18 + clamp(dot(wind_now.xy, right) * 0.3, -0.45, 0.45);
+	float u = q.x + turn + v * slant;
 	float col = mod(floor(u / cw), floor(6.2831853 * f320 / cw));
 	float seg = floor(v / seg_len);
 	float h = hash12(vec2(col, seg) + float(k) * 41.0);

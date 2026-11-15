@@ -245,8 +245,8 @@ func _run() -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 66 + KeyBindings.ACTIONS.size(),
-		"all 66 settings and every control's key are on a page"
+		seen.size() == 68 + KeyBindings.ACTIONS.size(),
+		"all 68 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
 	var kept := true
@@ -603,6 +603,8 @@ func _run() -> void:
 	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
 	# The rain, the water's rings, the lamps' pools and the shimmer.
 	preload("res://tools/weather_check.gd").run(main, check)
+	# Weather you can feel, County Run's storm front, the critters' physics.
+	preload("res://tools/climate_check.gd").run(main, check)
 	_quest_props(main)
 
 	# Things that break, bodies and bits that move, blasts that throw and chain.
