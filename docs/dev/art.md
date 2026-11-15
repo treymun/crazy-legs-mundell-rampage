@@ -29,6 +29,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_impact_art` | holes, blood runs, wall scorches, splinters, grit and glints (features/impacts.gd) |
 | `build_world_fx` | brass, hulls, embers, ground scorches, crows, fireflies |
 | `build_county_art` | County Run's XP bottle caps `county_xp_<tier>_<n>` |
+| `build_weather_art` | prints in the mud: `mark_boot_mud`, `mark_hoof_mud`, `mark_claw_mud`, `mark_tyre_mud` |
 | `build_item_art` | the armory's wall pictures of guns with no pickup picture (`item_<name>`, via `item_pictures.py`) |
 | `build_range_signs` | the firing range's signs |
 | `enemy_sheet` | `-- dirs=<old>,<new>` lays cels side by side (`docs/enemy_art/`) |

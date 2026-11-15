@@ -959,6 +959,16 @@ var flash_scale := 1.0
 var gore := true
 var aim_assist := 0
 var hit_feedback := true
+## WEATHER (setting): how much the weather changes play, FULL 1, LIGHT .5,
+## OFF 0 (features/climate.gd); how it looks stays whatever it is. COUNTY
+## STORM: County Run's storm front closes in (src/modes/county_storm.gd).
+var weather_feel := 1.0
+var storm_on := true
+## The mud underfoot (0 to 1) and the wind (cells a second a second on a
+## thrown thing) play reads this tick: features/climate.gd sets them, scaled
+## by weather_feel; Mud.pace slows a body on a muddy floor.
+var mud := 0.0
+var wind := Vector2.ZERO
 var shake_scale := 1.0
 ## ADAPTIVE DIFFICULTY: incoming damage eases after each death and stiffens
 ## after a chapter finished in good health, between .78 and 1.15 of what the

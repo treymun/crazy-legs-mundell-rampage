@@ -36,6 +36,8 @@ static var FALLS := {}
 static var _cels := {}
 const WALK_CELS := ["w0", "w1", "w2", "w3"]
 const HEADINGS := ["", "_quarter", "_side", "_away", "_back"]
+## How tall a fallen body's cel stands against the living one's.
+const DOWN_SHARE := {"derby_champ": .45, "cow": .51, "mule": .38}
 ## Whose voice a kind has when it is hurt or killed; the rest use the material cues.
 static var VOICES := {}
 static var VOICE_TAKES := {}
@@ -198,6 +200,10 @@ var hatless := false
 ## A critter's hop off the ground (features/critters.gd: a chicken flapping
 ## off, a cow bowled up by a blast).
 var hop := 0.0
+## An animal's own picture for now ("" none: a mule's kick, a tipped cow's
+## fall) and its height's share (a cow going over), critters.gd.
+var held_cel := ""
+var squash := 1.0
 ## Its floor on a level with geometry (format 2), read by LevelData.stand().
 var floor_z := 0.0
 ## A hand's part in the squad and its idle activity (Squad.Mind, src/squad.gd).
@@ -528,7 +534,7 @@ func hurt(
 		if brain == "nitro_huffer":
 			SpeedwayHands.huffer_down(self, game as Game)
 	else:
-		game.sound_at("chicken" if brain == "chicken" else "pig", x, y, .9)
+		game.sound_at(animal_voice(brain), x, y, .9)
 		game.burst(
 			x,
 			y,
@@ -555,6 +561,7 @@ func advance(dt: float, game: GameWorld, direction: float, pace := 1.0) -> float
 			return 0.0
 	if Variants.STUMBLE.has(kind):
 		direction += Variants.wobble(self)
+	pace *= Mud.pace(game, x, y)
 	game.move_actor(
 		self, cos(direction) * speed * dt * pace, sin(direction) * speed * dt * pace, radius
 	)
@@ -1381,7 +1388,7 @@ func sprite(
 			out.z = z + toss
 			return out
 		out.image = Variants.look(self, cel_name(worn, "down"))
-		out.height = height * (.45 if brain == "derby_champ" else .25)
+		out.height = height * DOWN_SHARE.get(brain, .25)
 		out.z = toss - .07
 		return out
 	var turns := TURNS.has(kind)
@@ -1429,14 +1436,14 @@ func sprite(
 		and fmod(pose + x * .37 + y * .13, 5.2) > 4.68
 	):
 		frame = "fidget"
-	var look := cel_name(stem, frame)
+	var look := cel_name(stem, frame) if held_cel == "" else held_cel
 	var boss := BOSS_TITLES.has(kind)
 	if boss:
 		look = BossLooks.cel(self, look)
 	elif hostile:
 		look = EnemyLooks.cel(self, look)
 	out.image = Variants.look(self, look)
-	out.height = height * variant
+	out.height = height * variant * squash
 	out.z = z
 	out.body = hostile
 	out.hurt = hit_flash
@@ -1444,6 +1451,11 @@ func sprite(
 		# A boss winding up glows in a quickening beat (boss_kit.gd).
 		out.hurt = maxf(hit_flash, BossKit.pulse(self))
 	return out
+
+
+## An animal's cry (a chicken, a hog, a cow, the mule).
+static func animal_voice(of: String) -> String:
+	return {"chicken": "chicken", "cow": "cow_moo", "mule": "mule_bray"}.get(of, "pig")
 
 
 ## "<stem>_<frame>", made once per pair.

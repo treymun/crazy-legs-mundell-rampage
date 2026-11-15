@@ -19,7 +19,15 @@ func _ready() -> void:
 		var config := LobbyServer.read_config(lobby_server)
 		var sim := {}
 		var plain := SessionStore.defaults()
-		for key: String in ["difficulty", "gore", "aim_assist", "hit_feedback", "adaptive"]:
+		for key: String in [
+			"difficulty",
+			"gore",
+			"aim_assist",
+			"hit_feedback",
+			"adaptive",
+			"weather",
+			"county_storm"
+		]:
 			if plain.has(key):
 				sim[key] = plain[key]
 		add_child(LobbyServer.new(config, sim))

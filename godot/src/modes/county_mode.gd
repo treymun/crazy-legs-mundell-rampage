@@ -54,6 +54,7 @@ func start(game: Game, _st: ModeFeature) -> void:
 			game.inventory[item] = 0
 	game.focus(acting)
 	CountySpawner.begin(game, f)
+	CountyStorm.begin(game, f)
 	# Tips on the cards for a player's first three runs (any map).
 	var runs := 0
 	for rec: Variant in CountyRecords.read().values():
@@ -75,6 +76,7 @@ static func step(game: Game, f: CountyRun, dt: float) -> void:
 	if not game.pickups.is_empty():
 		# The level's and the hands' own drops are the run's own supplies now.
 		game.pickups.clear()
+	CountyStorm.tick(game, f, dt)
 	if CountyCoop.party(game):
 		CountyCoop.step(game, f, dt)
 	else:

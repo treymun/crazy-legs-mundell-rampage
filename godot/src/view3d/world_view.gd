@@ -15,6 +15,7 @@ const NEAR := .02
 const FAR := 160.0
 const WeatherFeature := preload("res://src/features/weather.gd")
 const WaterFeature := preload("res://src/features/water.gd")
+const CountyRun := preload("res://src/features/county_run.gd")
 ## Render layers: the world (1), the player's reflection (2, the mirror's
 ## camera only), the sky behind the eye's camera (3), and the bit that tells
 ## the shaders they draw the mirror's pass (view_light.gdshaderinc).
@@ -53,6 +54,9 @@ var _anim_tiles := {}
 var _params := {}
 var _materials: Array[ShaderMaterial] = []
 var _rain: Array[MeshInstance3D] = []
+## County Run's storm front: a wall round the safe ground (storm_wall.gdshader).
+var _storm_wall: MeshInstance3D
+var _storm_material: ShaderMaterial
 var _mirror_view: SubViewport
 var _mirror_camera: Camera3D
 
@@ -141,7 +145,24 @@ func _init(assets: Assets) -> void:
 		camera.add_child(sheet)
 		_rain.append(sheet)
 		rain_materials.append(rain_material)
-	_materials = [world_material, glass_material, sky_material]
+	_storm_material = ShaderMaterial.new()
+	_storm_material.shader = load("res://src/view3d/storm_wall.gdshader")
+	_storm_material.render_priority = 5
+	var tube := CylinderMesh.new()
+	tube.top_radius = 1.0
+	tube.bottom_radius = 1.0
+	tube.height = 1.0
+	tube.cap_top = false
+	tube.cap_bottom = false
+	tube.radial_segments = 96
+	tube.rings = 1
+	_storm_wall = MeshInstance3D.new()
+	_storm_wall.mesh = tube
+	_storm_wall.material_override = _storm_material
+	_storm_wall.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_storm_wall.visible = false
+	_root.add_child(_storm_wall)
+	_materials = [world_material, glass_material, sky_material, _storm_material]
 	_materials.append_array(rain_materials)
 	_materials.append_array(sprites.materials())
 	_materials.append(slabs.material)
@@ -408,6 +429,23 @@ func _uniforms(
 			fposmod((0.0 if still else r.time) * (1.9 if motion == 0 else .72), TAU * 1000.0)
 		)
 	_effects(game)
+	_storm(game)
+
+
+## County Run's storm front: its wall stood round the safe ground, as tall as
+## the weather, sized to the ring (county_storm.gd).
+func _storm(game: Game) -> void:
+	var f: CountyRun = game.features.get("county")
+	var on := f != null and f.on and f.storm_on and (f.storm_stage > 0 or f.storm_warned)
+	_storm_wall.visible = on
+	if not on:
+		return
+	var low := -3.0
+	var tall := 16.0
+	_storm_wall.position = Vector3(f.storm_at.x, low + tall * .5, f.storm_at.y)
+	_storm_wall.scale = Vector3(f.storm_r, tall, f.storm_r)
+	_share("storm_r", f.storm_r)
+	_share("storm_k", CountyStorm.strength(f))
 
 
 ## LIGHTS AND GLOW: this frame's lights, the level's mood, weather and moving
@@ -415,6 +453,10 @@ func _uniforms(
 func _effects(game: Game) -> void:
 	var on := Effects.enabled
 	_share("effects_on", on)
+	# The wind sways the props whatever LIGHTS AND GLOW (SCENERY MOTION stills it).
+	var weather: WeatherFeature = game.features.get("weather")
+	if weather != null:
+		_share("wind_now", Vector3(weather.wind.x, weather.wind.y, weather.gusting))
 	if not on:
 		for sheet: MeshInstance3D in _rain:
 			sheet.visible = false
@@ -460,12 +502,12 @@ func _effects(game: Game) -> void:
 	_share("lightning", game.lightning)
 	var motion: float = [1.0, .4, 0.0][clampi(game.view.world_motion, 0, 2)]
 	_share("motion", motion)
-	var weather: WeatherFeature = game.features.get("weather")
 	var raining: float = weather.rain if weather != null else 0.0
 	_share("rain", raining)
 	for sheet: MeshInstance3D in _rain:
 		sheet.visible = raining > 0.0 and motion > 0.0
 	_share("wet", weather.wet if weather != null else 0.0)
+	_share("pool", weather.pool if weather != null else 0.0)
 	if weather != null:
 		_share("flash_dir", weather.flash_dir)
 	var banks: float = Effects.mood(id, "fog_banks", 0.0)

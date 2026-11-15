@@ -54,7 +54,7 @@ func make() -> Builder:
 		"ending": '"NEXT TIME, TAKE THE TRACTOR."',
 		"score": "music",
 		"rescue": true,
-		"layout": 4,
+		"layout": 5,
 		"sky": "sky",
 	}
 	return b

@@ -69,6 +69,9 @@ var holding := false
 ## has got reviving them (seconds of REVIVE_TIME).
 var down_at := -1.0
 var revive := 0.0
+## Seconds left lying knocked flat (a hog's charge, a mule's kick:
+## features/critters.gd): no walking or jumping, the eye low.
+var knocked := 0.0
 ## Versus: frags (a kill of another player +1, a fall to the world or your
 ## own blast -1), deaths, and the team (team deathmatch: 0 red, 1 blue).
 var frags := 0

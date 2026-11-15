@@ -312,6 +312,22 @@ static func build() -> Array:
 					1,
 					"CROSSHAIR MARKS AND A KNOCK ON HITS, A CLANK AND A BEAT OF PAUSE ON KILLS"
 				),
+				SessionStore.choices(
+					"WEATHER",
+					"weather",
+					0,
+					["FULL", "LIGHT", "OFF"],
+					"MUD SLOWS YOU AND THE VARMINTS, WIND PUSHES WHAT YOU THROW. OFF: LOOKS ONLY."
+				),
+				(
+					SessionStore
+					. toggle(
+						"COUNTY STORM",
+						"county_storm",
+						1,
+						"COUNTY RUN: A STORM FRONT CLOSES THE MAP IN STAGES. THE DAILY RUN ALWAYS HAS IT."
+					)
+				),
 				SessionStore.toggle(
 					"AUTO SWITCH ON PICKUP",
 					"auto_switch",

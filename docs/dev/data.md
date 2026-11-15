@@ -20,7 +20,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `weapons.cfg` | fire rates, damage, reloads, how each gun fires (hitscan, pellets, projectile, melee), sits in view and sounds; `flash_art`/`flash_size`, `penetrate`/`penetrate_damage`, `scope`/`scope_spread`, `thrown` | `weapons.gd` |
 | `enemies.cfg` | enemy health, speed, reach, voice, boss `title` and drops; variants (`brain=`, `art=`, `height`, `tint`) | `enemies.gd`, `variants.gd` |
 | `shots.cfg` | each shot's fall, size, glow and blast; `rolls` | the shots, breakables |
-| `effects.cfg` | lights and glows (`[light.*]`), a level's mood (`[level.<id>]`), `[anim.<tile>]`, `[debris]`, `[water]`, `[relief]`, `[puddles]` | `Effects`, `view_lights.gd`, the 3D view |
+| `effects.cfg` | lights and glows (`[light.*]`), a level's mood (`[level.<id>]`), `[anim.<tile>]`, `[debris]`, `[water]`, `[relief]`, `[puddles]`, `[mud]`, `[sway]`, `[climate]` (the weather that changes play) | `Effects`, `view_lights.gd`, the 3D view |
 | `breakables.cfg` | what breaks, its broken picture, hp, bits, cues, blast; `[windows]`, `[fence.<tile>]`, `never` | `features/breakables.gd`, `wall_breaks.gd` |
 | `store.cfg` | the 5v5 store, economy and pvp: `[economy]`, `[item.*]`, `[rules.*]`, `[hit.*]`, `[hit]`, `[blast]`, `[spread]` | `src/modes/tactical_shop.gd` |
 | `difficulty.cfg` | every number that changes with DIFFICULTY, one array each in the order EASY, NORMAL, HARD, HOG WILD: `[player]`, `[hands]`, `[bosses]`, `[bots]` | `Difficulty` (`src/core/difficulty.gd`) |
@@ -28,7 +28,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `modes.cfg` | the modes' rules: `[versus]`, `[coop]` (with the scaling table), `[deathmatch]`, `[tactical]`, `[bomb]`, `[hostage]`, `[tagteam]`, County Run (`[county_cards]`, `[county_coop]`, `[county_moves]`, `[county_orbs]`, `[county_spawner]`), `[tactical_utility]` (throwables), `[squad]`, `[squad_feature]`, `[idle_life]`, `[hit_zones]`, `[tactical_bot]` | `ModeData` (`src/core/mode_data.gd`) |
 | `bosses.cfg` | the boss scripts' numbers, one section per script (`[boss_kit]`, ...) | `BossData` (`src/core/boss_data.gd`) |
 | `lobby.cfg` | the online lobby's rows and defaults: each row is [key, label, values, names]; a new online mode goes in the mode row (and `NetPlay.play_mode()`) | `src/net/net_play.gd` |
-| `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short` | `county_data.gd` |
+| `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short`, the storm front (`storm`) | `county_data.gd` |
 | `cuss_lines.json` | the cuss pack (the voice tools read it too) | `src/cuss_lines.gd` |
 | `mundell_lines.json` | Mundell's wisecracks | `Barks` |
 | `servers.json` | the county servers the browser lists (`wss` for the browser build) | `NetBrowser` |

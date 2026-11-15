@@ -57,6 +57,9 @@ func configure(options: Dictionary) -> void:
 	gore = options.get("gore", 1)
 	aim_assist = options.get("aim_assist", 0)
 	hit_feedback = options.get("hit_feedback", 1)
+	var feel: int = options.get("weather", 0)
+	weather_feel = [1.0, .5, 0.0][clampi(feel, 0, 2)]
+	storm_on = options.get("county_storm", 1)
 	adaptive = options.get("adaptive", 1)
 	var cussing: int = options.get("chatter", CussLines.CUSSIN)
 	chatter = clampi(cussing, 0, 2)
@@ -222,7 +225,7 @@ func disturb(x: float, y: float, radius: float, z: Variant = null) -> void:
 		var ready: float = clock + .22 + sqrt(dx * dx + dy * dy) * .035
 		actor.heard = [x, y, ready, clock + (2.6 if actor.hostile else 1.05)]
 		if not actor.hostile:
-			sound_at("chicken" if actor.brain == "chicken" else "pig", actor.x, actor.y, .43)
+			sound_at(Enemy.animal_voice(actor.brain), actor.x, actor.y, .43)
 
 
 # ----------------------------------------------------------------- damage
@@ -953,6 +956,9 @@ func interact() -> void:
 				hub_findings[str(clue[0])] = true
 				sound.play("menu_accept", .55)
 		return
+	var critters: Object = features.get("critters")
+	if critters != null and critters.call("tip", player):
+		return  # a cow tipped over (features/critters.gd)
 	var found: Variant = use_target()
 	if found == null:
 		return

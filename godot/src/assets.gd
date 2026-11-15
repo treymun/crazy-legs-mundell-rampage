@@ -20,6 +20,7 @@ const MADE_CUES := [
 	"county_xp",
 	"county_level",
 	"county_milestone",
+	"mule_bray",
 ]
 ## Enemies only one chapter has: their pictures live in that chapter's file,
 ## which the browser build fetches after it starts (tools/make_packs.gd puts
@@ -350,6 +351,7 @@ func _made_cue(name: String) -> AudioStreamWAV:
 			"county_xp": .14,
 			"county_level": .7,
 			"county_milestone": 1.6,
+			"mule_bray": 1.3,
 		}
 		. get(name, .045)
 	)
@@ -392,6 +394,8 @@ func _made_cue(name: String) -> AudioStreamWAV:
 				v += sin(TAU * 640.0 * t) * exp(-t * 30.0) * .25 + hiss * exp(-t * 900.0) * .5
 			"county_xp", "county_level", "county_milestone":
 				v = _county_cue(name, t, hiss)
+			"mule_bray":
+				v = _bray(t, hiss)
 			_:
 				v = sin(TAU * 1380.0 * t) * exp(-t * 120.0) * .6
 				v += hiss * exp(-t * 600.0) * .5
@@ -434,6 +438,21 @@ static func _county_cue(name: String, t: float, hiss: float) -> float:
 				for f: float in [392.0, 494.0, 587.0]:
 					v += sin(TAU * f * wob * hold) * .22 * swell
 			return v * .4
+
+
+## The mule (features/critters.gd): hee-haw twice, a reedy high hee drawn in
+## and a low honking haw blown out, rough with breath.
+static func _bray(t: float, hiss: float) -> float:
+	if t >= 1.24:
+		return 0.0
+	var beat := fmod(t, .62)
+	var hee := beat < .26
+	var f := 820.0 + 110.0 * sin(beat * 14.0) if hee else 310.0 - (beat - .26) * 90.0
+	var span := (beat / .26) if hee else (beat - .26) / .36
+	var env := sin(PI * clampf(span, 0.0, 1.0))
+	var saw := fposmod(f * t, 1.0) * 2.0 - 1.0
+	var reed := saw * .55 + sin(TAU * f * 2.0 * t) * .2 + hiss * (.35 if hee else .15)
+	return reed * env * .5
 
 
 ## A plucked string from its onset (silent before): bright, then mellowing.

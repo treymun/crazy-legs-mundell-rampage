@@ -290,6 +290,17 @@ godot --path godot --audio-driver Dummy --resolution 1280x800 -- --view-tour=res
 godot --path godot --audio-driver Dummy --resolution 1280x800 -- --view-bench=300
 ```
 
+**Weather you can feel** (track H): `view_light.gdshaderinc` takes `pool`
+(the puddles' water: more and bigger puddles, `world_body.gdshaderinc`, and
+denser rain rings) and `wind_now` (the climate's wind, xy, and its gusting,
+z). `rain.gdshader` slants the streaks with the wind across the view;
+`prop.gdshader` sways the props effects.cfg `[sway]` names (`sway_k`, set per
+model by `prop_layer.gd` with the model's height and width): trees, flags
+and scarecrows bend from the ground, laundry, a hanging sign or a crane hook
+swing from their top (the posts at the ends stay), stilled by SCENERY MOTION.
+County Run's storm front is an open cylinder round the safe ground
+(`world_view.gd _storm`, `storm_wall.gdshader`: see-through, its own shader).
+
 A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
 `wet`, `lightning`, `actors` (to show the 3D models), `cels` (true: enemies
 drawn as their old cels instead, for old-against-new sheets) and `motion`

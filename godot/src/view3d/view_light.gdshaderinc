@@ -17,6 +17,11 @@ uniform float lightning = 0.0;
 uniform vec2 flash_dir = vec2(0.6, -0.8);
 uniform float rain = 0.0;
 uniform float wet = 0.0;
+// The puddles' water (0 to 1: more and bigger the longer it rains) and the
+// wind (features/climate.gd): xy the way it blows (cells a second), z how
+// hard it gusts (1 calm).
+uniform float pool = 0.0;
+uniform vec3 wind_now = vec3(0.0, 0.0, 1.0);
 uniform float fog_banks = 0.0;
 uniform float motion = 1.0;
 uniform float anim_time = 0.0;
@@ -153,7 +158,7 @@ float rain_rings(vec2 at, float tm) {
 	float beat = tm * 1.5 + phase;
 	float cycle = floor(beat);
 	float h = hash12(g + cycle * 3.71);
-	if (h > rain * 0.8) {
+	if (h > rain * (0.8 + 0.2 * pool)) {
 		return 0.0;
 	}
 	float age = fract(beat);
