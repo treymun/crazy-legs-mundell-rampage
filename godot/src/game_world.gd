@@ -58,6 +58,7 @@ func configure(options: Dictionary) -> void:
 	finish_slowmo = options.get("finish_slowmo", 1)
 	View.ragdolls = options.get("ragdolls", 1)
 	aim_assist = options.get("aim_assist", 0)
+	smart_hands = options.get("smart_hands", 1)
 	hit_feedback = options.get("hit_feedback", 1)
 	adaptive = options.get("adaptive", 1)
 	var cussing: int = options.get("chatter", CussLines.CUSSIN)

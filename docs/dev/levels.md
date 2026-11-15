@@ -63,6 +63,27 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
   deck over it: a lamp on a walk over water or a pit takes the walk's top
   minus that ground.
 
+### Places to climb
+
+Since v3.2.0 every chapter has height to climb (`climbs.gd`, one function a
+chapter, called at the end of its plan's build(); the County Run maps built
+on a chapter get them too). `climb_kit.gd` builds them on geo_kit: `block()`
+(solid to the ground, walked on top: a shed's flat roof, a stack, a
+container, a rig's box trailer), `shed()` (a block with a ladder, rails on
+the sides named), `tower()` (a deck on corner posts, railed but at its
+ladder, an optional tin roof: deer stands, lookouts, a water tower's walk),
+`catwalk()` (a railed walk along a wall with a ladder at one end) and
+`ladder_on()`; `Geo.ladder()` is the ladder itself (`x, y` on the face it
+leans on, `dir` the way it is climbed, `z0` to `z1`). Rules: put a ladder's
+face on a cell line, so its foot and its top are in different cells (the nav
+graph joins those; `climb_check` fails on one that joins nothing); keep a
+block a chest-high pull-up (at most 1.15) or give it a ladder; same-height
+blocks a jump apart want a gap of 1.6 at most; stand none in a way through,
+a quest prop's reach, the fair's gallery or midway, the hub's shack, the
+speedway's track or the multiplayer maps. A pickup or an enemy up top takes
+the floor's height (`b.pickup(..., z)`, the enemy's `z`: `climbs.gd
+_lift`).
+
 ### Building one
 
 `build_level.gd -- <id> map=<png>` writes `data/<id>.json` and a top-down

@@ -15,6 +15,8 @@
 ## pieces and dressing are in speedway_cast.gd.
 extends RefCounted
 
+const Climbs := preload("res://tools/levels/climbs.gd")
+const Climb := preload("res://tools/levels/climb_kit.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Cast := preload("res://tools/levels/speedway_cast.gd")
 const W := 150
@@ -68,7 +70,7 @@ func make() -> Builder:
 		# The far-off crowd of the range maps until the speedway has a bed of its
 		# own (docs/dev/audio.md): race night, not the yard's crickets.
 		"ambience": "range",
-		"layout": 2,
+		"layout": 3,
 		"sky": "speedway_sky",
 		"control_name": "FIX THE FIX: FUEL, CRUSHER, PA",
 		"extraction":
@@ -109,6 +111,7 @@ func build(_b) -> Array:
 	tow_lot()
 	var cast := Cast.new()
 	cast.dress(self)
+	Climbs.speedway(b)
 	return [12.0, 100.5, -PI / 2]
 
 
@@ -400,8 +403,16 @@ func diner_lot() -> void:
 ## The haulers' lot west of the oval: the teams' rigs nose to tail, their
 ## campers, and the busted fence through to turn 3.
 func haulers_lot() -> void:
-	for r in [[4, 6, 16, 8], [4, 16, 16, 18], [4, 28, 16, 30], [4, 38, 16, 40]]:
-		b.fixture(r[0] + .1, r[1] + .6, r[2] + .9, r[3] + .4, 2.7, "trailer", "trailer")
+	for k in 4:
+		var r: Array = [[4, 6, 16, 8], [4, 16, 16, 18], [4, 28, 16, 30], [4, 38, 16, 40]][k]
+		var box := [r[0] + .1, r[1] + .6, r[2] + .9, r[3] + .4]
+		if k < 2:
+			# Walked on top (v3.2.0): climbs.gd puts a ladder up each.
+			Climb.block(
+				b, "rig_%d" % k, box, 2.7, {"tile": "trailer", "edge": "trailer", "area": haulers}
+			)
+		else:
+			b.fixture(box[0], box[1], box[2], box[3], 2.7, "trailer", "trailer")
 	for p in [Vector2(18.5, 7.5), Vector2(18.5, 17.5), Vector2(18.5, 29.5), Vector2(18.5, 39.5)]:
 		b.town("semi_tractor", p.x, p.y, {"solid": .45})
 	for p in [

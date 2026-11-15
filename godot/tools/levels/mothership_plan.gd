@@ -17,6 +17,7 @@
 ## the things in each room are mothership_cast.gd.
 extends RefCounted
 
+const Climbs := preload("res://tools/levels/climbs.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const Cast := preload("res://tools/levels/mothership_cast.gd")
@@ -67,7 +68,7 @@ func make() -> Builder:
 		"ending": '"TELL YER MAW SHE CAN KEEP THE BUS."',
 		"score": "mothership_score",
 		"ambience": "mothership",
-		"layout": 3,
+		"layout": 4,
 		"sky": "sky",
 		"control_name": "SHIP'S GUTS SCRAMBLED",
 		"extraction": {"x": 70.5, "y": 92.5, "label": "RIDE THE OUTHOUSE HOME", "shutdown": "iris"},
@@ -107,6 +108,7 @@ func build(_b) -> Array:
 	Cast.dress(self)
 	Cast.set_pieces(b)
 	labels()
+	Climbs.mothership(b)
 	return [64.5, 92.5, -PI / 2]
 
 

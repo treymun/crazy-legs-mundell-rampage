@@ -43,7 +43,7 @@ var caps := {}
 var extra_walls: Array = []
 ## Level format 2's pieces (tools/levels/geo_kit.gd adds them; finish() writes
 ## them as the level's geometry block, src/level_geometry.gd).
-var geometry := {"slabs": [], "segments": [], "ceilings": []}
+var geometry := {"slabs": [], "segments": [], "ceilings": [], "ladders": []}
 var pane_tiles: Array = []
 var enemies: Array = []
 var patrols := {}
@@ -1382,8 +1382,23 @@ func _reach_from(x: int, y: int) -> Dictionary:
 	var door_cells := {}
 	for d: Dictionary in doors:
 		door_cells[Vector2i(int(d["x"]), int(d["y"]))] = true
+	# A ladder joins the cell at its foot and the one at its top, both ways.
+	var climbs := {}
+	for lad: Dictionary in geometry["ladders"]:
+		var way: Vector2 = LevelGeometry.LADDER_DIRS[String(lad["dir"])]
+		var at := Vector2(float(lad["x"]), float(lad["y"]))
+		var foot := at - way * LevelGeometry.FOOT
+		var top := at + way * LevelGeometry.TOP
+		var a := Vector2i(int(foot.x), int(foot.y))
+		var b := Vector2i(int(top.x), int(top.y))
+		climbs[a] = (climbs.get(a, []) as Array) + [b]
+		climbs[b] = (climbs.get(b, []) as Array) + [a]
 	while not todo.is_empty():
 		var c: Vector2i = todo.pop_back()
+		for up: Vector2i in climbs.get(c, []):
+			if not seen.has(up):
+				seen[up] = true
+				todo.append(up)
 		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 			var n: Vector2i = c + d
 			if seen.has(n) or not inside(n.x, n.y):

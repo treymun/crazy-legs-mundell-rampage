@@ -67,6 +67,20 @@ class Mind:
 	var was_fetching := false
 	var was_brawling := false
 	var said_hurt := false
+	## Smarter hands (src/hand_tactics.gd): attacks counted and since its last
+	## reload, till when it reloads, the cover spot it peeks out of and the
+	## spot it peeks from (INF: none), when it may look for a peek again and to
+	## which side, and a kick at a door: when it lands, which door, the next look.
+	var seen_attacks := 0
+	var since_reload := 0
+	var reload_until := 0.0
+	var cover_home := Vector2.INF
+	var peek_to := Vector2.INF
+	var peek_next := 0.0
+	var peek_side := 1.0
+	var kick_at := 0.0
+	var kick_door := Vector2i(-1, -1)
+	var kick_next := 0.0
 
 
 ## One of the county's hands the squad has a part for.

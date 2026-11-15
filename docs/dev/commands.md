@@ -94,6 +94,7 @@ godot --path godot ... --script res://tools/live_props_frames.gd -- out=<dir>  #
 godot --path godot ... --script res://tools/arena_frames.gd        # the first four boss arenas (docs/boss_arenas/)
 godot --path godot ... --script res://tools/arena_frames_late.gd   # the last four
 godot --path godot ... --script res://tools/squad_frames.gd
+godot --path godot ... --script res://tools/climb_frames.gd -- out=<dir>   # ladders in every chapter, a climb, a pull-up, a hand on a ladder
 godot --path godot ... --script res://tools/mode_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/tactical_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/county_frames.gd -- out=<dir>

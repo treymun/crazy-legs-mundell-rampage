@@ -287,6 +287,13 @@ static func build() -> Array:
 					["EASY", "NORMAL", "HARD", "HOG WILD"],
 					"HARD: SHARPER HANDS, A BIGGER POSSE, LESS AMMO. HOG WILD: ALL THAT AND MORE."
 				),
+				SessionStore.choices(
+					"HANDS",
+					"smart_hands",
+					1,
+					["CLASSIC", "SMART"],
+					"SMART: THEY DUCK BEHIND THINGS, PEEK, RELOAD, KICK DOORS AND DROP OFF ROOFS"
+				),
 				SessionStore.toggle(
 					"ADAPTIVE DIFFICULTY",
 					"adaptive",

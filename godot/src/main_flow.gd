@@ -1019,7 +1019,7 @@ func _net_ready(opened: NetPlay) -> void:
 	net.make_match = net_match_game
 	var sim := {}
 	for key: String in [
-		"difficulty", "gore", "aim_assist", "hit_feedback", "adaptive", "live_props"
+		"difficulty", "gore", "aim_assist", "hit_feedback", "adaptive", "live_props", "smart_hands"
 	]:
 		if options.has(key):
 			sim[key] = options[key]

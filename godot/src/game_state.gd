@@ -958,6 +958,9 @@ var tone_live := false
 var flash_scale := 1.0
 var gore := true
 var aim_assist := 0
+## HANDS: 1 SMART (cover behind things, peeks, reloads, kicked doors, drops
+## off roofs: src/hand_tactics.gd), 0 CLASSIC.
+var smart_hands := 1
 var hit_feedback := true
 var shake_scale := 1.0
 ## ADAPTIVE DIFFICULTY: incoming damage eases after each death and stiffens

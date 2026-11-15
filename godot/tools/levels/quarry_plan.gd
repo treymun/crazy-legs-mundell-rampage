@@ -13,6 +13,7 @@
 ## Built by tools/levels/build_level.gd -- quarry.
 extends RefCounted
 
+const Climbs := preload("res://tools/levels/climbs.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
@@ -65,7 +66,7 @@ func make() -> Builder:
 		"ending": '"WEIGHT INCLUDES CONTENTS AND DEBTS."',
 		"score": "quarry_score",
 		"ambience": "quarry",
-		"layout": 5,
+		"layout": 6,
 		"sky": "quarry_sky",
 		"control_name": "QUARRY FEEDS ISOLATED",
 		"extraction":
@@ -107,6 +108,7 @@ func build(_b) -> Array:
 	polish()
 	dress()
 	lintels()
+	Climbs.quarry(b)
 	return [64.5, 81.5, -PI / 2]
 
 

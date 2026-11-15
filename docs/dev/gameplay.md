@@ -21,6 +21,9 @@ level builder in [levels.md](levels.md).
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
   default, choices, hint); `tools/check_fixes.gd` counts them (60 now; LIVE PROPS
   AND FIRE is the newest, under PLAY). Settings are not part of a save, so a
+
+  default, choices, hint); `tools/check_fixes.gd` counts them (60 now; HANDS
+  is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -173,6 +176,25 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   the pin and the enemies plan paths without heights, so keep a ramp beside
   any drop on the way. `first_minutes.gd -- <id> whole` hops when stuck and
   shoots a station that is struck (the mill's belt).
+- **Ladders and ledges** (v3.2.0, `src/climbing.gd`; numbers in modes.cfg
+  `[climbing]`). A ladder is a level's `LevelGeometry.Ladder` (the plan's
+  geometry block, `ladders`; drawn as rails and rungs by `ladder_rows`, it
+  stops nothing). Walking into its foot facing it puts the player on it
+  (`Player.ladder`): FORWARD climbs, BACK goes down (turned away from it the
+  other way round), JUMP lets go; over the top they step off onto the floor
+  beyond, and walking off that floor's edge at its top takes it down. JUMP
+  and FORWARD at a ledge up to `mantle_max` (1.15) over the floor they stood
+  or jumped from pulls them up onto it. Both are a timed move
+  (`Player.climb_*`, carried online); `game.gd _step_body` leaves out the
+  walk, the jump and the fall while one is under way. The nav graph joins a
+  ladder's foot and top (`NavGraph.ladder_ends`, `links`; no diagonals
+  through it), so the flow fields, the objective pin and the hands go by it,
+  and `level_builder.gd _reach_from` counts it. A hand where its flow field
+  leads up or down one takes it (`Climbing.hand_takes_ladder`; every
+  setting), climbs it at `hand_ladder_speed`, steps off; a hand that walks
+  off an edge more than `DROP` (.5) falls (`Enemy.climb_z`, `fall`) and
+  lands winded. Plans build the places to climb with
+  `tools/levels/climb_kit.gd` from `climbs.gd` ([levels.md](levels.md#places-to-climb)).
 - **The objective pin** leads to a station's carried item first while it lies
   somewhere (the fair's PA patch lead). The fair's tin rooster booth is where
   its level puts it (`gallery` in the JSON: the stand; targets 3.58 east).
@@ -272,6 +294,26 @@ New code lives outside `enemies.gd`, which only has small hooks: `mind`,
   last-seen spot (`SEARCH` s), then `alerted` goes off. EASY does none of the
   squad moves. No new sight lines but the flush's one; dice from `game.rng`;
   nothing saved.
+- **Smarter hands** (v3.2.0, `src/hand_tactics.gd`; setting HANDS: SMART,
+  the default, or CLASSIC; `game.smart_hands`, a SIM field, a lobby's sim
+  option). One hook in `Enemy.tick` (`HandTactics.step`, before it attacks
+  or chases) and two one-line ones (`take_cover` asks `HandTactics.cover`, the
+  duck after a shot asks `HandTactics.duck`). On NORMAL and up with SMART:
+  cover is a spot hidden from the player right behind something solid where
+  one is near (else Enemy.find_cover's kind); a ranged hand ducks after a shot
+  more often (`duck_chance`), reloads after `magazine` shots (`[hand_tactics]
+  reload`, a `reload` cue) and ducks to do it; in cover and ready it steps out
+  to the side where it sees the player (`peek_wait`, `peek_out`), fires, and
+  goes back to the same spot (`Mind.cover_home`); a closed door between it and
+  where it last saw the player, within 1.4, it kicks open (`kick_doors`; not
+  a locked, secret, powder, remote door or a hatch: `toggle_door`); up a roof
+  or a loft over the player, close, with the way down long (or a brawler who
+  sees them), it walks off the edge toward them (`drop_max`). EASY and
+  CLASSIC fight as before but for ladders (or a roof would be a safe spot).
+  Numbers by difficulty in difficulty.cfg `[hands]`. Dice only from
+  `game.rng` (the classic duck's roll is the same one roll); the Mind holds
+  it, nothing saved. Flipping tables and knocking crates over for cover is not
+  done (a prop's model and box would have to change in play).
 - **Barks** for voices: `game.enemy_bark(e, moment)` (spot, lost, search,
   help, flank, cover, brawl, idle, surprised, hurt_bad, regroup), throttled
   per hand (3.5 s), per moment (`MOMENT_GAP`) and overall (.7 s).

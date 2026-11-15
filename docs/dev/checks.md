@@ -27,6 +27,7 @@ failed.
 | `check_fixes` | PARITY FIXES OK | | the parity regression checks and the quick parts of many others (below) |
 | `physics_check` | PHYSICS OK | yes | gibs, brass, chunks and bodies dropped on decks, ramps and stairs and thrown at walls rest on a surface, never inside anything; the loose-things features on a loft ([gameplay.md](gameplay.md#loose-things-on-the-real-3d-shape-v300-remaster)); ragdolls lie on decks, treads, ramps and past a rail and sleep, slow-mo finishers start on the last kill and never with company (`physics_ragdolls.gd`) |
 | `live_props_check` | LIVE PROPS OK | yes | things taken up, held, thrown (a hand hurt and shoved, a propane tank breaking and going up, jugs spilling shine, a brute heaving a tank), set down and saved; fire spreading over hay, never onto stone or dirt, burning out, the same twice, sooner in rain; a still spraying and going up; a snapshot carrying a throw and a fire on tick for tick; all of it off with LIVE PROPS AND FIRE off ([gameplay.md](gameplay.md#picking-things-up-fire-that-spreads-the-stills)) |
+| `climb_check` | CLIMB CHECK OK | yes | every chapter has ladders, each joined foot to top in the nav graph; a ladder takes the player up and down, JUMP lets go; pull-ups onto a chest-high stack and from it onto a roof, not onto one too high; a hand comes up a ladder to the player on a lookout and drops off it to get at them below; a hand under fire ducks out of sight, peeks out, fires and goes back; a hand kicks a door open (not EASY or CLASSIC); the same run twice comes out the same |
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
 | `level_edit_check` | LEVEL EDIT OK | yes | level editing keeps the walls right |
 | `quest_reach` | QUEST REACH OK | | every quest prop, gate and item can be used from where it is seen, and never through a wall (slow; `tour=<json>` for pictures of each prop) |
@@ -40,7 +41,7 @@ failed.
 
 ### What check_fixes runs
 
-Besides its own parity checks (including the settings count, 62 now, and the
+Besides its own parity checks (including the settings count, 66 now, and the
 fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
 `chatter_check`, `boss_check`, `arena_check`, `break_check`, `feel_check`
 (penetration), `weather_check`, the quick parts of `net_check` (determinism),

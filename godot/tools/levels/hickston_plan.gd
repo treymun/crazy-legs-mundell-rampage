@@ -11,6 +11,7 @@
 ## Built by tools/levels/build_level.gd -- hickston.
 extends RefCounted
 
+const Climbs := preload("res://tools/levels/climbs.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Cast := preload("res://tools/levels/hickston_cast.gd")
 const Loft := preload("res://tools/levels/hickston_loft.gd")
@@ -54,7 +55,7 @@ func make() -> Builder:
 		"ending": '"NEXT TIME, TAKE THE TRACTOR."',
 		"score": "music",
 		"rescue": true,
-		"layout": 4,
+		"layout": 5,
 		"sky": "sky",
 	}
 	return b
@@ -85,6 +86,7 @@ func build(_b) -> Array:
 	more_detail()
 	story()
 	polish()
+	Climbs.hickston(b)
 	return [7.5, 69.5, 0.0]
 
 
