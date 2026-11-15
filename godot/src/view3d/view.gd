@@ -65,6 +65,16 @@ class Sprite:
 	## A loose thing on its floor, rolling or at rest: the 3D view lays its
 	## slab flat (SlabLayer3D). Billboards ignore it.
 	var lying := false
+	## A modelled prop on the move (a boss arena's wreck: a floodlight tower
+	## toppling, a lamp coming down, a crate flung): a name the prop keeps
+	## while it moves, so the 3D view moves one model instead of making one at
+	## each new place; it stands at (x, y, z) turned by `turn` (map axes, z up)
+	## about its foot. "": a prop standing where the level put it.
+	var track := ""
+	## A boss's gear shot off (features/boss_gear.gd): the gear's name, drawn
+	## as that part of `who`'s model (ActorLayer3D) with its middle at (x, y,
+	## z), turned by `turn`.
+	var gear := ""
 
 	func _init(px := 0.0, py := 0.0, img := "", h := 1.0, pz := 0.0) -> void:
 		x = px

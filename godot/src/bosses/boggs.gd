@@ -184,7 +184,10 @@ func _ram(e: Enemy, run: Dictionary, game: Game, heading: float) -> void:
 	var hit: bool = run["hit"]
 	if not hit and ahead > -.2 and ahead < e.radius + .8 and side < e.radius + .35:
 		run["hit"] = true
-		game.damage(NITRO_DAMAGE, [e.x, e.y], "NITRO RAM")
+		var rammed: float = NITRO_DAMAGE
+		if BossGearFeature.lost(game, e, "ram"):
+			rammed *= BossGearFeature.RAMLESS
+		game.damage(rammed, [e.x, e.y], "NITRO RAM")
 		var off := 1.0 if px * sin(heading) - py * cos(heading) < 0.0 else -1.0
 		var throw := heading + off * PI / 2.0
 		game.move_actor(p, cos(throw) * 1.3, sin(throw) * 1.3, GameState.PLAYER_RADIUS)

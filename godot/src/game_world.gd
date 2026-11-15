@@ -58,6 +58,7 @@ func configure(options: Dictionary) -> void:
 	aim_assist = options.get("aim_assist", 0)
 	hit_feedback = options.get("hit_feedback", 1)
 	adaptive = options.get("adaptive", 1)
+	boss_wrecks = options.get("boss_wrecks", 1)
 	var cussing: int = options.get("chatter", CussLines.CUSSIN)
 	chatter = clampi(cussing, 0, 2)
 	var fov: int = options.get("fov", 0)

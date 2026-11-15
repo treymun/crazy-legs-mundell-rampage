@@ -77,6 +77,12 @@ static func restore(make_game: Callable, current: Game) -> Game:
 	)
 	if loaded == null:
 		return null
+	return at_door(loaded)
+
+
+## A checkpoint's game, just loaded, made ready to retry: the boss whole, its
+## arena as the level made it, the player at the door. Null when it has no door.
+static func at_door(loaded: Game) -> Game:
 	var feature: BossCheckpointFeature = loaded.features.get("boss_checkpoint")
 	if feature == null or feature.door.size() < 3:
 		return null
@@ -105,6 +111,13 @@ static func restore(make_game: Callable, current: Game) -> Game:
 	else:
 		var door_angle: float = feature.door[2]
 		p.angle = door_angle
+	# The arena as the level made it, and every piece of the boss's gear on.
+	var wreck: ArenaWreckFeature = loaded.features.get("arena_wreck")
+	if wreck != null:
+		wreck.reset()
+	var gear: BossGearFeature = loaded.features.get("boss_gear")
+	if gear != null:
+		gear.reset()
 	loaded.shots.clear()
 	loaded.hazards.clear()
 	loaded.blasts.clear()

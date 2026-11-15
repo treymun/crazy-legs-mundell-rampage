@@ -245,8 +245,8 @@ func _run() -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 59 + KeyBindings.ACTIONS.size(),
-		"all 59 settings and every control's key are on a page"
+		seen.size() == 60 + KeyBindings.ACTIONS.size(),
+		"all 60 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
 	var kept := true
@@ -629,6 +629,8 @@ func _run() -> void:
 	preload("res://tools/boss_check.gd").run(main, check)
 	# The sheriff's, Jerry's, Rudy's and the foreman's arenas and moves.
 	preload("res://tools/arena_check.gd").run(main, check)
+	# The arenas wreck as the fights go on; the bosses' gear shot off.
+	preload("res://tools/arena_wreck_check.gd").run(main, check)
 	# Squads, idle life, the tougher variants and each chapter's tough guy.
 	preload("res://tools/squad_check.gd").run(main, check)
 	# CHATTER: the cuss pack's lines for the hands, Mundell and the 5v5 bots.

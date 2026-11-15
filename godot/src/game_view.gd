@@ -43,6 +43,7 @@ func _fixed_key() -> Array:
 		drums.keys().hash() if drums.size() < 64 else drums.size(),
 		gallery != null,
 		props.size(),
+		world.boards_version,
 	]
 
 
@@ -50,6 +51,8 @@ func _list_fixed() -> void:
 	# The Crossroads is its own level (data/hub.json): everything in it shows.
 	var sprites: Array = props.duplicate()
 	for board: LevelData.Billboard in world.billboards:
+		if board.hidden:
+			continue  # taken over by a boss arena's wreck (features/arena_wreck.gd)
 		var image := board.image
 		if board.signal_name == "legacy-key":
 			if legacy_key_route:
@@ -661,6 +664,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		"marks": marks_list,
 		"ground": marks,
 		"reflection": reflection(),
+		"gear_lost": BossGearFeature.lost_of(me),
 	}
 	c.begin_layer()
 	var t2 := Time.get_ticks_usec()

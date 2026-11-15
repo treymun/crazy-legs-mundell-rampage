@@ -188,8 +188,10 @@ def maw(frame, bare=False):
         box((.42, -.56, -.02), (.12, .03, .14), WHITE(), Tm, (0, 0, .2))
     else:
         # The girdle: tin hoops riveted round her, cells glowing in it.
+        gear("plates")
         for z, r in ((-.05, .64), (.2, .66), (.45, .7), (.7, .66)):
             ball((0, -.03, z), (r, r * .78, .07), tin, Tm)
+        gear("")
         for k in range(8):
             a = -2.2 + k * .63
             limb((math.sin(a) * .62, -math.cos(a) * .5, .28), (math.sin(a) * .62, -math.cos(a) * .5, .4), .05, .05, cell, Tm)
@@ -205,6 +207,7 @@ def maw(frame, bare=False):
     ball((0, -.165, -.15), (.04, .016, .016 if frame not in ("pain", "fire") else .03), mat(196, 30, 40, .4), Hm)
     if not bare:
         frames_c = mat(240, 120, 200, .4, .3, grime=.1)
+        gear("glasses")
         for s in (-1, 1):
             ring(Hm @ Vector((s * .09, -.19, 0)), Hm.to_3x3() @ Vector((0, 1, 0)), .07, .008, frames_c, n=14)
             limb((s * .15, -.19, .02), (s * .2, -.2, .07), .01, .006, frames_c, Hm)
@@ -212,6 +215,7 @@ def maw(frame, bare=False):
         limb((-.16, -.19, -.01), (0, -.24, -.3), .004, .004, frames_c, Hm)
         limb((0, -.24, -.3), (.16, -.19, -.01), .004, .004, frames_c, Hm)
         # Curlers: soup cans and pink rollers round the crown under a hairnet.
+        gear("curlers")
         for k in range(9):
             a = k / 9 * math.pi * 1.6 - math.pi * .8
             at = Vector((math.sin(a) * .17, .06 + math.cos(a) * .08, .2 + .05 * math.cos(a)))
@@ -224,6 +228,7 @@ def maw(frame, bare=False):
                 at = Vector((.34, -.12, .36))  # and one flies off
             limb(at + Vector((-.05, 0, 0)), at + Vector((.05, 0, 0)), .05, .05, roll, Hm)
         ring(Hm @ Vector((0, .04, .17)), Hm.to_3x3() @ Vector((0, 0, 1)), .2, .006, mat(80, 60, 50, .9, grime=0), n=20)
+        gear("")
     else:
         for k in range(5):
             a = k * 1.3

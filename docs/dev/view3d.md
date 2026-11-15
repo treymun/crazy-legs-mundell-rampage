@@ -131,6 +131,12 @@ A quest station's two pictures (`town_quest_<name>_off`, `_on`) are one
 model with two looks (`look_off`, `look_on`); `PropView.show_look` shows the
 one the picture names, so a station switches look where it stands.
 
+A prop on the move (`View.Sprite.track`, a name it keeps: a boss arena's
+wreck, `features/arena_wreck.gd`) is one model stood again each frame at the
+sprite's place, turned the way it first stood and then by `turn` (map axes)
+about its feet (`PropView.carry`): a floodlight tower going over, a vat on
+its side, a wreck flung across the bowl.
+
 A prop's facing is worked out once for where it stands (the most open way),
 unless its sprite sets `plane`: then the model turns by `-plane`. A quest
 prop's sprite sets `face` (`game_combat.gd _station_face`): the way to its
@@ -240,7 +246,13 @@ Each enemy and boss with a model shows as an `ActorView` scene
 - ActorView poses from the sprite name the game would have shown: walk
   interpolated on gait, falls on time since death.
 - The look (plain, hurt, p2, p3) is picked by health and boss phase.
-- Lost limbs are left off (`Gore.lost`).
+- Lost limbs are left off (`Gore.lost`), and a boss's gear shot off
+  (`features/boss_gear.gd`, the frame's `gear_lost`; `ActorView.lose_gear`
+  shrinks the gear's bones, actors.json "gear"). The piece itself is a
+  `View.Sprite` with `gear` (and `who` the boss): `ActorLayer3D.show_gear`
+  draws it as a mesh cut from the model's rest frame
+  (`ActorModels.gear_mesh`, the triangles bound to the gear's bones), at the
+  boss's size, turned by `turn`, with the boss's look.
 - Bones are labelled head, arm_r, arm_l, leg_r, leg_l, body.
 - A picture name's `~r.g.b` tint (`Assets.tinted_art`) tints the model too.
 - A body falling and at rest is drawn flatter, down to `FLAT` (.5) of its

@@ -41,7 +41,7 @@ extends RefCounted
 const VERSION := 2
 ## Features whose save() is how the level's walls and floor are put back (a
 ## piece broken leaves its base, a fence shot through opens its cell).
-const FACT_FEATURES := ["breakables", "wall_breaks"]
+const FACT_FEATURES := ["breakables", "wall_breaks", "arena_wreck"]
 ## The game's simulation state: carried and put back.
 const SIM_FIELDS := [
 	"clock",
@@ -101,6 +101,7 @@ const SIM_FIELDS := [
 	"incoming",
 	"hit_feedback",
 	"adaptive",
+	"boss_wrecks",
 	"aim_assist",
 	"touch_aim",
 	"lessons",
@@ -295,6 +296,8 @@ const SIM_FEATURES := [
 	"boss_rematch",
 	"boss_arena",
 	"boss_arenas",
+	"arena_wreck",
+	"boss_gear",
 	"hit_reads",
 	"critters",
 	"variants",

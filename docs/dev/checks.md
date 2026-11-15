@@ -38,9 +38,10 @@ failed.
 
 ### What check_fixes runs
 
-Besides its own parity checks (including the settings count, 59 now, and the
+Besides its own parity checks (including the settings count, 60 now, and the
 fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
-`chatter_check`, `boss_check`, `arena_check`, `break_check`, `feel_check`
+`chatter_check`, `boss_check`, `arena_check`, `arena_wreck_check` (the arenas
+coming apart and the bosses' gear shot off), `break_check`, `feel_check`
 (penetration), `weather_check`, the quick parts of `net_check` (determinism),
 `multi_bots` (Hickston with four for 12 s, the bayou with two for 6 s),
 `net_loopback` (ENet 6 s with 40 ms, jitter and 5% loss; WebSocket 2 s),

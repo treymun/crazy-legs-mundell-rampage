@@ -60,6 +60,9 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 		var name := models.name_of(s.image)
 		var place := Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))
 		var key := "%s@%s" % [s.image, place]
+		if s.track != "":
+			# A prop on the move: one model, stood again each frame.
+			key = "%s#%s" % [s.image, s.track]
 		seen[key] = true
 		var node: PropView = _shown.get(key)
 		if node == null:
@@ -81,6 +84,9 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			node.stand(s.x, s.y, s.z, _turn(s, level, place), level, size)
 			add_child(node)
 			_shown[key] = node
+		if s.track != "":
+			node.carry(s.x, s.y, s.z, SolidLayer3D.godot_basis(s.turn))
+			continue
 		node.lean(s.tilt)
 	for key: String in _shown.keys():
 		if not seen.has(key):

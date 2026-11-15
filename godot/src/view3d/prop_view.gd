@@ -50,6 +50,15 @@ func stand(x: float, y: float, z: float, turn: float, level: LevelData, size := 
 		mesh.set_instance_shader_parameter("tone", tone)
 
 
+## Moved to map (x, y), feet at z, still turned the way it first stood and
+## then by `tumble` (Godot axes) about its feet: a prop on the move
+## (View.Sprite.track). Its light stays the cell's it was first stood in.
+func carry(x: float, y: float, z: float, tumble: Basis) -> void:
+	transform = Transform3D(
+		(tumble * Basis(Vector3.UP, _turn)).scaled(Vector3.ONE * _size), Vector3(x, z, y)
+	)
+
+
 ## Lean back about its feet by `tilt` radians, away from its front (a range
 ## dummy rocking on its post: View.Sprite.tilt).
 func lean(tilt: float) -> void:

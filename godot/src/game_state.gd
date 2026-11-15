@@ -965,6 +965,10 @@ var shake_scale := 1.0
 ## DIFFICULTY setting gives. Kept for the session (every Game shares it).
 static var adapt := 1.0
 var adaptive := true
+## BOSS ARENAS WRECK (setting): the boss arenas come apart as the fights go on
+## (features/arena_wreck.gd) and gear can be shot off the bosses
+## (features/boss_gear.gd); off, the arenas and bosses stay as they were.
+var boss_wrecks := true
 ## The touch overlay is in use (main.gd sets it): aim help reaches further.
 var touch_aim := false
 ## TOUCH AUTO FIRE (game_combat.gd sights_on_enemy): its last answer. The

@@ -170,6 +170,15 @@ targets (`range_target`, `_gong`, `_cow_target`, `_duck`) stay pictures
      texels. Only kinds baked since have it (the baron).
    - Looks are 512² (`TEXTURE`); `FINE` kinds bake 1024² (the baron), with
      fewer samples a texel.
+   - A boss's gear (`enemy_actors.py gear("hat")` before its parts,
+     `gear("")` after; the cels ignore it) gets bones of its own, never
+     merged with the body's, listed in `actors.json` "gear" (bone -> name):
+     the sheriff's hat and tin star, Jerry's helmet, Rudy's horns and top hat,
+     the foreman's hard hat, the Baron's top hat and monocle, the Swamp King's
+     crown and bow shield, Boggs's hood, trunk lid and ram, Maw's curlers and
+     glasses (her bare model's girdle plates too, which the 3D view does not
+     draw). `features/boss_gear.gd` shoots them off; `tools/gear_fit.gd`
+     prints where each sits for bosses.cfg. Added with a `rig-only` run.
 2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]
    [rig-only] [raw=<dir>]` grades and digitizes
    (`assets/art/actor3d_<kind>[_<look>].png`) and writes
