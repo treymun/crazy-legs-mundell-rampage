@@ -1,16 +1,16 @@
 ## The air shimmering over hot things the eye can see (fires, grills, the
 ## still, burning fuel): up to four boxes of the view for the display shader's
-## haze_shift (palette.gdshader), worked out from the 3D view's eye the way
+## haze_shift (the old view shader), worked out from the 3D view's eye the way
 ## SceneLayers did for the old view. Each box is its centre column, base row,
 ## half width and height in view pixels; `sway` how far it moves.
 class_name HeatHaze
 extends RefCounted
 
 
-## Set palette.gdshader's haze_count, haze_box and haze_amp for this frame.
+## Set the old view shader's haze_count, haze_box and haze_amp for this frame.
 static func apply(material: ShaderMaterial, game: Game) -> void:
 	var view: Dictionary = game.view_frame
-	var r: Renderer = game.renderer
+	var r: View = game.view
 	var motion: float = [1.0, .4, 0.0][clampi(r.world_motion, 0, 2)]
 	var boxes := PackedVector4Array()
 	var sway := PackedFloat32Array()

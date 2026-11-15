@@ -16,7 +16,7 @@ func reflection() -> Variant:
 		stride = int(round(sin(p.walk_phase)))
 	var height := 1.24 if p.crouched else 1.65
 	var feet: float = world.stand(p) + p.air
-	var out := Renderer.Sprite.new(p.x, p.y, "player_%s_%d" % [heading, stride], height, feet)
+	var out := View.Sprite.new(p.x, p.y, "player_%s_%d" % [heading, stride], height, feet)
 	out.flip = facing < 0.0 and direction < 4
 	return out
 
@@ -57,41 +57,41 @@ func _list_fixed() -> void:
 			)
 			image += "_on" if active else "_off"
 		var z: float = world.elevation(board.x, board.y) + board.z
-		var spr := Renderer.Sprite.new(board.x, board.y, image, board.height, z)
+		var spr := View.Sprite.new(board.x, board.y, image, board.height, z)
 		spr.glow = board.glow
 		spr.plane = board.plane
 		sprites.append(spr)
 		if board.back != "":
-			var back := Renderer.Sprite.new(board.x, board.y, board.back, board.height, z)
+			var back := View.Sprite.new(board.x, board.y, board.back, board.height, z)
 			back.plane = board.plane + PI
 			sprites.append(back)
 	for point in drums.keys():
 		var vec: Vector2 = point
 		sprites.append(
-			Renderer.Sprite.new(vec.x, vec.y, "prop_fuel", 1.04, world.elevation(vec.x, vec.y))
+			View.Sprite.new(vec.x, vec.y, "prop_fuel", 1.04, world.elevation(vec.x, vec.y))
 		)
 	fixed_windmills.clear()
-	for sprite: Renderer.Sprite in sprites:
+	for sprite: View.Sprite in sprites:
 		if sprite.image.begins_with("prop_windmill_"):
 			fixed_windmills.append(sprite)
 	fixed_sprites = sprites
 	var late: Array = []
 	if not in_hub:
 		for note: LevelData.Note in level.notes:
-			var note_sprite := Renderer.Sprite.new(
+			var note_sprite := View.Sprite.new(
 				note.x, note.y, "county_note", .23, world.elevation(note.x, note.y) + .90
 			)
 			note_sprite.plane = note.plane
 			fixed_sprites.append(note_sprite)
 		if gallery != null:
-			var gallery_sign := Renderer.Sprite.new(25.95, 32.72, "county_gallery_sign", .51, 1.03)
+			var gallery_sign := View.Sprite.new(25.95, 32.72, "county_gallery_sign", .51, 1.03)
 			gallery_sign.plane = 0.0
 			fixed_sprites.append(gallery_sign)
-			var backstop := Renderer.Sprite.new(29.90, 33.48, "county_gallery_backstop", 1.49, .19)
+			var backstop := View.Sprite.new(29.90, 33.48, "county_gallery_backstop", 1.49, .19)
 			backstop.plane = PI / 2.0
 			fixed_sprites.append(backstop)
 		for room: LevelData.Interior in level.interior_art:
-			var room_sprite := Renderer.Sprite.new(
+			var room_sprite := View.Sprite.new(
 				room.x,
 				room.y,
 				"county_room_" + room.art,
@@ -103,7 +103,7 @@ func _list_fixed() -> void:
 		for prop: LevelData.Scenery in world.scenery:
 			var state := "spent" if scenery_used(prop) else "whole"
 			late.append(
-				Renderer.Sprite.new(
+				View.Sprite.new(
 					prop.x,
 					prop.y,
 					"scenery_%s_%s" % [prop.kind, state],
@@ -131,7 +131,7 @@ const SPRITE_BLOCK := 6.0
 func _blocks_of(list: Array) -> Array:
 	var by_key := {}
 	for i in list.size():
-		var s: Renderer.Sprite = list[i]
+		var s: View.Sprite = list[i]
 		var key := Vector2i(floori(s.x / SPRITE_BLOCK), floori(s.y / SPRITE_BLOCK))
 		var places: PackedInt32Array = by_key.get(key, PackedInt32Array())
 		places.append(i)
@@ -143,8 +143,8 @@ func _blocks_of(list: Array) -> Array:
 		var my := (key.y + .5) * SPRITE_BLOCK
 		var reach := 0.0
 		for i in places:
-			var s: Renderer.Sprite = list[i]
-			var art: Dictionary = renderer.sprite_art(s.image)
+			var s: View.Sprite = list[i]
+			var art: Dictionary = self.art.art(s.image)
 			var half := s.height * float(art["w"]) / maxf(1.0, float(art["h"])) * .5
 			reach = maxf(reach, Vector2(s.x - mx, s.y - my).length() + half + .3)
 		blocks.append([mx, my, reach, places])
@@ -204,7 +204,7 @@ func _aim_view() -> void:
 			view_eye["y"],
 			cos(angle),
 			sin(angle),
-			renderer.vw * .5 / renderer.focal + .02,
+			view.vw * .5 / view.focal + .02,
 			edge,
 			2.0 * edge - float(view_eye["x"]) if not is_nan(edge) else 0.0
 		]
@@ -246,7 +246,7 @@ func sprites() -> Array:
 	var mill := (
 		"prop_windmill_%d" % (int(clock * 5.0) % 3) if not fixed_windmills.is_empty() else ""
 	)
-	for sprite: Renderer.Sprite in fixed_windmills:
+	for sprite: View.Sprite in fixed_windmills:
 		sprite.image = mill
 	var sprites: Array = _seen(fixed_sprites, fixed_blocks, fixed_cull)
 	if in_hub:
@@ -265,7 +265,7 @@ func sprites() -> Array:
 			var tag := pooled(29.67 + shift.x, 44.12 + shift.y, prop, .31 if trunk else .24, .83)
 			tag.plane = 0.0
 			sprites.append(tag)
-		var detail: int = renderer.world_motion
+		var detail: int = view.world_motion
 		var motion_speed: float = [1.0, .32, 0.0][detail]
 		var dust_rows: Array = [
 			[30.40, 46.85, 1.46, .19], [30.48, 45.95, 1.64, .28], [30.73, 44.95, 1.48, .37]
@@ -483,14 +483,14 @@ func to_canvas(x: float, y: float, z: float) -> Vector3:
 	if ahead < .12:
 		return Vector3(0, 0, -1)
 	var horizon: float = (
-		Renderer.VIEW / 2.0
+		View.VIEW / 2.0
 		+ float(view_eye["pitch"])
 		+ float(view_eye["bob"])
 		+ float(view_eye["sway"])
 	)
-	var focal := Renderer.base_focal
+	var focal := View.base_focal
 	return Vector3(
-		Renderer.WIDTH / 2.0 + (dy * fx - dx * fy) / ahead * focal,
+		View.WIDTH / 2.0 + (dy * fx - dx * fy) / ahead * focal,
 		horizon - (z - float(view_eye["eye"])) / ahead * focal,
 		ahead
 	)
@@ -577,14 +577,6 @@ func feedback(c: Canvas) -> void:
 
 func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 	_draw(c, crosshair, grade)
-	if _render_open:
-		# The band threads drew the view while the weapon and HUD were painted.
-		_render_open = false
-		if scene_hook.is_valid():
-			scene_hook.call()
-		var began := Time.get_ticks_usec()
-		renderer.render_end()
-		stage_ms[1] += (Time.get_ticks_usec() - began) / 1000.0
 
 
 func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
@@ -602,20 +594,17 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	var practice := gallery != null and gallery.active
 	var weapon = gallery.pistol if practice else armory
 	var flash: float = (weapon.flash * 4.0 + blast_flash * .85) * flash_scale
-	renderer.time = clock
-	renderer.layered = layered and gpu_look
-	Effects.rich = renderer.layered and Effects.enabled
+	view.time = clock
+	view.layered = layered and gpu_look
+	Effects.rich = view.layered and Effects.enabled
 	Scope.focal(self, p)
-	if renderer.detail < 0 and (not renderer.layered or renderer.hd_held):
-		# HD is the display shader's: the software view draws at HIGH (as does
-		# the frame the start-up check looks at), and the next frame the shader
-		# composes is HD again.
-		renderer.set_detail(0, true)
-	elif renderer.hd_wanted and renderer.detail == 0 and renderer.layered and not renderer.hd_held:
-		renderer.set_detail(-1)
+	if view.detail < 0 and not view.layered:
+		# HD is the 3D view's: without one the view keeps HIGH and the wish,
+		# and the next frame drawn with a window is HD again.
+		view.set_detail(0, true)
+	elif view.hd_wanted and view.detail == 0 and view.layered:
+		view.set_detail(-1)
 	var t0 := Time.get_ticks_usec()
-	# The renderer sorts out the wall segments on a band thread while the
-	# sprites and marks are listed here.
 	var eye := p.as_render_player()
 	var trauma := shake * shake * shake_scale
 	if trauma > .001:
@@ -627,8 +616,6 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		eye["view_angle"] += view_kick.x
 		eye["pitch"] += view_kick.y
 		eye["eye"] -= view_kick.z
-	if not view3d:
-		renderer.frame_begin(eye, flash)
 	view_eye = eye
 	var listing := Time.get_ticks_usec()
 	var marks: Array = ground_marks()
@@ -638,38 +625,23 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	marks_list = marks_list + Features.wall_marks(self)
 	var listed: Array = sprites()
 	var t1 := Time.get_ticks_usec()
-	if view3d:
-		# The 3D view (view3d/world_view.gd) reads this after the draw.
-		view_frame = {
-			"eye": eye,
-			"horizon":
-			(
-				(VIEW / 2.0 + float(eye["pitch"]) + float(eye["bob"]) + float(eye["sway"]))
-				/ renderer.res_up
-			),
-			"flash": flash,
-			"sprites": listed,
-			"marks": marks_list,
-			"ground": marks,
-			"reflection": reflection(),
-		}
-		c.begin_layer()
-	else:
-		renderer.frame_sprites(listed, reflection(), marks_list, marks)
-	if view3d:
-		pass
-	elif renderer.layered:
-		# The display shader composes the view from the renderer's layers; the
-		# weapon and the HUD are painted on an empty layer that goes over it,
-		# and that happens here while the band threads are still drawing.
-		c.begin_layer()
-		scene_live = true
-		_render_open = true
-	else:
-		# render_end() hands back a private copy so the HUD, weapon and grade passes
-		# can composite into it while the renderer keeps its own band buffers untouched.
-		c.pixels = renderer.render_end()
-		c.base_set = true
+	# What the 3D view (view3d/world_view.gd) draws this frame: it reads this
+	# after the draw. Headless nothing draws the world; the canvas is a layer
+	# over an empty view either way.
+	view_frame = {
+		"eye": eye,
+		"horizon":
+		(
+			(VIEW / 2.0 + float(eye["pitch"]) + float(eye["bob"]) + float(eye["sway"]))
+			/ view.res_up
+		),
+		"flash": flash,
+		"sprites": listed,
+		"marks": marks_list,
+		"ground": marks,
+		"reflection": reflection(),
+	}
+	c.begin_layer()
 	var t2 := Time.get_ticks_usec()
 	# What the features draw over the view (tracers, the milk, sparks), under the gun.
 	c.view_tint = Color(1, 1, 1)
@@ -857,7 +829,7 @@ func _use_mark(c: Canvas) -> void:
 	var at := to_canvas(use_aim.x, use_aim.y, use_aim.z)
 	if at.z <= 0.0:
 		return
-	var half := int(clampf(.2 / at.z * Renderer.base_focal, 5, 16))
+	var half := int(clampf(.2 / at.z * View.base_focal, 5, 16))
 	var cx := int(at.x)
 	var cy := int(at.y)
 	if cx < half or cx > WIDTH - half or cy < half + 2 or cy > VIEW - half:

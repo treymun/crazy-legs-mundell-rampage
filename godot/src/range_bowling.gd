@@ -797,7 +797,7 @@ func sprites(game, eye: Vector2) -> Array:
 		if String(pin["gone"]) == "gutter":
 			floor_z -= .06
 		if a < .2:
-			out.append(Renderer.Sprite.new(base.x, base.y, "town_range_pin", .5, floor_z))
+			out.append(View.Sprite.new(base.x, base.y, "town_range_pin", .5, floor_z))
 			continue
 		var t := Vector2(pin["tx"], pin["ty"]) / a
 		var k := 1 if a < .62 else 2 if a < 1.25 else 3
@@ -817,7 +817,7 @@ func sprites(game, eye: Vector2) -> Array:
 		var tall: float = float(TALL[k]) + float(TALL_YAW[k]) * sin(yaw)
 		# The picture's middle sits over the middle of the pin's body.
 		var mid := (base + head(pin)) * .5
-		var sprite := Renderer.Sprite.new(mid.x, mid.y, name, tall, floor_z)
+		var sprite := View.Sprite.new(mid.x, mid.y, name, tall, floor_z)
 		sprite.flip = flip
 		out.append(sprite)
 	return out

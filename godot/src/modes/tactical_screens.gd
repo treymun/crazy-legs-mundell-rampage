@@ -439,9 +439,9 @@ static func _spread_marks(c: Canvas, game, me: Player) -> void:
 	if not String(how.get("fire", "")) in ["hitscan", "pellets"]:
 		return
 	var spread: Vector2 = Modes.shot_spread(game, me, gun, how, me.armory.rifle_heat)[0]
-	var gap := clampi(roundi(tan(spread.x) * Renderer.base_focal), 2, 40)
+	var gap := clampi(roundi(tan(spread.x) * View.base_focal), 2, 40)
 	var ink: Color = game.crosshair_tint
-	var mid := Renderer.VIEW / 2
+	var mid := View.VIEW / 2
 	c.fill_rect(160 - gap - 3, mid, 3, 1, ink)
 	c.fill_rect(161 + gap, mid, 3, 1, ink)
 	c.fill_rect(160, mid - gap - 3, 1, 3, ink)
@@ -463,9 +463,9 @@ static func _mate_tags(c: Canvas, game, st, me: Player) -> void:
 		var q: Player = entry[1]
 		var head: float = game.world.stand(q) + q.air + 1.14
 		var at: Vector3 = game.to_canvas(q.x, q.y, head)
-		if at.z <= 0.0 or at.x < 6.0 or at.x > Renderer.WIDTH - 6.0 or at.y < 10.0:
+		if at.z <= 0.0 or at.x < 6.0 or at.x > View.WIDTH - 6.0 or at.y < 10.0:
 			continue
-		if at.y > Renderer.VIEW - 6.0:
+		if at.y > View.VIEW - 6.0:
 			continue
 		var ink := ink_for(st, q)
 		var seen: bool = (
@@ -527,9 +527,9 @@ static func _tag_at(
 ) -> void:
 	var top: float = game.world.elevation(x, y) + z
 	var at: Vector3 = game.to_canvas(x, y, top)
-	if at.z <= 0.0 or at.x < 8.0 or at.x > Renderer.WIDTH - 8.0 or at.y < 10.0:
+	if at.z <= 0.0 or at.x < 8.0 or at.x > View.WIDTH - 8.0 or at.y < 10.0:
 		return
-	if at.y > Renderer.VIEW - 8.0:
+	if at.y > View.VIEW - 8.0:
 		return
 	if sight and not game.world.visible(me.x, me.y, x, y, me.eye, top - .3):
 		return

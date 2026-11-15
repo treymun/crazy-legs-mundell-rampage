@@ -49,9 +49,7 @@ func _run() -> void:
 			# --view-bench times whole frames in a real window.
 			game.layered = game.gpu_look and not args.has("classic")
 			if args.has("low"):
-				game.renderer.set_detail(1)
-			if args.has("single"):
-				game.renderer.use_threads = false
+				game.view.set_detail(1)
 			var p := game.player
 			var controls := Game.Controls.new()
 			if scene == "fight":
@@ -93,7 +91,8 @@ func _run() -> void:
 					continue  # caches warming
 				tick.append((t1 - t0) / 1000.0)
 				draw.append((t2 - t1) / 1000.0)
-				scene_only.append(game.renderer.last_render_ms)
+				# The world is the graphics card's now (main.gd --view-bench times it).
+				scene_only.append(0.0)
 				for k in 5:
 					stages[k] += float(game.stage_ms[k]) / (frames - 20)
 			print(

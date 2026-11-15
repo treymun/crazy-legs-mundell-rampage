@@ -156,7 +156,7 @@ func looks(e: Enemy, game) -> Array:
 			e.x - cos(e.angle) * (.55 + k * .35) + sin(e.angle) * (k - .5) * .4,
 			e.y - sin(e.angle) * (.55 + k * .35) - cos(e.angle) * (k - .5) * .4
 		)
-		var fire := Renderer.Sprite.new(
+		var fire := View.Sprite.new(
 			back.x, back.y, "fx_fire_%d" % ((frame + k * 2) % 4), .8 - k * .2, floor_z + .35
 		)
 		fire.glow = true

@@ -336,7 +336,7 @@ func sprites() -> Array:
 			"smoking":
 				var puff := fmod(t, 4.6) - 3.9
 				if puff > 0.0:
-					var s: Renderer.Sprite = game.pooled(
+					var s: View.Sprite = game.pooled(
 						e.x + cos(e.angle) * .2,
 						e.y + sin(e.angle) * .2,
 						"fx_smoke_%d" % mini(3, int(puff * 6.0)),
@@ -349,7 +349,7 @@ func sprites() -> Array:
 				var spark := fmod(t, 2.6 if m.activity == "probing" else 3.1)
 				if spark > 1.3 and spark < 1.75:
 					var at: Vector2 = Vector2(e.x, e.y).lerp(m.focus, .6)
-					var glint: Renderer.Sprite = game.pooled(
+					var glint: View.Sprite = game.pooled(
 						at.x, at.y, "fx_sparks_%d" % (int(t * 12.0) % 3), .22, floor_z + .45
 					)
 					glint.glow = true

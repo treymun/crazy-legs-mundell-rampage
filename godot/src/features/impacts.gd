@@ -235,7 +235,7 @@ func _pock(at: Vector3, kind: String) -> void:
 	if picture == "" or game.world.blocked(at.x, at.y):
 		return
 	var size := .07 if kind == "dirt" else .05
-	var mark := Renderer.GroundMark.new(
+	var mark := View.GroundMark.new(
 		at.x,
 		at.y,
 		game.world.elevation(at.x, at.y) + .004,
@@ -378,7 +378,7 @@ func _run_for(splat) -> Variant:
 	var reach: float = minf(float(splat.radius) * 1.15, (splat.z - floor_z) * .5)
 	if reach < .1:
 		return null
-	var run := Renderer.WallMark.new()
+	var run := View.WallMark.new()
 	run.x = splat.x
 	run.y = splat.y
 	run.ux = splat.ux
@@ -409,7 +409,7 @@ func ground_marks() -> Array:
 		return out
 	var p = game.player
 	for row: Array in pocks:
-		var m: Renderer.GroundMark = row[0]
+		var m: View.GroundMark = row[0]
 		if (m.x - p.x) * (m.x - p.x) + (m.y - p.y) * (m.y - p.y) < 144.0:
 			out.append(m)
 	return out

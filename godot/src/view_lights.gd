@@ -1,7 +1,7 @@
 ## The graphics-card view's lights for one frame (effects.cfg), worked out from
 ## a Game: the gun's flash, blasts, glowing shots, lamps, the props a light
 ## stands on, keys, quest lamps and trigger lights; and the hot ones whose air
-## shimmers (palette.gdshader haze). Moved out of game_view.gd, which calls in
+## shimmers (display.gdshader haze). Moved out of game_view.gd, which calls in
 ## here from effect_lights(), gun_light() and heat_sources().
 class_name ViewLights
 extends RefCounted
@@ -66,7 +66,7 @@ static func _gather(g: GameView) -> Array:
 		g.lamp_boards = g.world.billboards.filter(
 			func(board): return board.glow and board.image in ["hub_lamp", "town_floodlight_tower"]
 		)
-	for spr: Renderer.Sprite in g.lamp_props:
+	for spr: View.Sprite in g.lamp_props:
 		if absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
 			found.append(Effects.light("lamp", spr.x, spr.y, spr.z, 1.0, g.clock))
 	# Street lamps pool their light on the ground; the keys glint where they lie.
@@ -98,7 +98,7 @@ static func effect_lights(g: GameView) -> Array:
 
 
 ## The nearest hot sources within 14 cells, at most `most`: [x, y, z, width]
-## (palette.gdshader haze), with the level's own heat spots (effects.cfg heat:
+## (display.gdshader haze), with the level's own heat spots (effects.cfg heat:
 ## Vector4(x, y, z, width)).
 static func heat_sources(g: GameView, most: int) -> Array:
 	var p := g.player

@@ -21,14 +21,13 @@ const CHECKS := [
 	["level_edit_check", "LEVEL EDIT OK"],
 	["quest_reach", "QUEST REACH OK"],
 	["bot_campaign", "CAMPAIGN WALKTHROUGH OK"],
-	["picture_check", "PICTURES OK"],
 	["net_showdown_check", "NET SHOWDOWN OK"],
 	["net_server_check", "NET SERVER OK"],
 	["menu_touch_check", "MENU TOUCH OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK"],
 ]
-const SLOW := ["bot_campaign", "picture_check", "quest_reach"]
+const SLOW := ["bot_campaign", "quest_reach"]
 const QUICK := [
 	"check_shader",
 	"view3d_check",

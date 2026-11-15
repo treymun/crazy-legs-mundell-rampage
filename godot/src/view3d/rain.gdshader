@@ -1,4 +1,4 @@
-// Rain falling past the eye (palette.gdshader rain_over): three layers of
+// Rain falling past the eye (the old view shader rain_over): three layers of
 // streaks, hung in front of the camera at 1.3, 2.8 and 6 units (world_view.gd),
 // so whatever stands nearer than a layer hides it. A streak shows only where
 // the sky is open over its layer; turning carries the rain with the world.

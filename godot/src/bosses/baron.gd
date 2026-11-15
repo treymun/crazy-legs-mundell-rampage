@@ -180,7 +180,7 @@ func looks(e: Enemy, game) -> Array:
 	var puffs := 2 if e.boss_phase < 3 else 4
 	for k in puffs:
 		var age := fposmod(game.clock * 1.4 + float(k) / puffs, 1.0)
-		var s := Renderer.Sprite.new(
+		var s := View.Sprite.new(
 			back.x + sin(game.clock * 3.0 + k) * .1,
 			back.y + cos(game.clock * 2.6 + k) * .1,
 			"fx_steam_%d" % mini(3, int(age * 4.0)),
@@ -190,7 +190,7 @@ func looks(e: Enemy, game) -> Array:
 		s.translucent = true
 		out.append(s)
 	if e.boss_phase >= 3 or e.has_meta("rain"):
-		var glow := Renderer.Sprite.new(
+		var glow := View.Sprite.new(
 			back.x,
 			back.y,
 			"fx_sparks_%d" % (int(game.clock * 12.0) % 3),

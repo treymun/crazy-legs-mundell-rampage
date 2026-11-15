@@ -318,7 +318,7 @@ func sprites(game) -> Array:
 		var spec: Array = L.TARGET_KINDS[t["kind"]]
 		var x := float(t["x"])
 		var spin := float(t["spin"])
-		var sprite := Renderer.Sprite.new(
+		var sprite := View.Sprite.new(
 			x, t["y"], String(spec[0]), float(spec[1]), game.world.elevation(x, t["y"])
 		)
 		var kind := String(t["kind"])
@@ -338,7 +338,7 @@ func sprites(game) -> Array:
 		var row: Array = L.GALLERY_ROWS[m["row"]]
 		if game.clock < float(m["down_until"]) or not game.in_view(m["x"], row[0], .5):
 			continue
-		var s := Renderer.Sprite.new(m["x"], row[0], String(row[2]), float(row[3]), float(row[1]))
+		var s := View.Sprite.new(m["x"], row[0], String(row[2]), float(row[3]), float(row[1]))
 		s.plane = 0.0
 		s.flip = float(m["dir"]) < 0.0
 		out.append(s)

@@ -372,7 +372,7 @@ func ground_marks() -> Array:
 		if _rings(e):
 			out.append_array(_ring(e))
 		for thing in BossKit.moves(e.kind).telegraph(e, game):
-			if thing is Renderer.GroundMark:
+			if thing is View.GroundMark:
 				out.append(thing)
 	return out
 
@@ -403,11 +403,11 @@ func _ring(e: Enemy) -> Array:
 		if w.blocked(x, y, .05):
 			continue
 		out.append(
-			Renderer.GroundMark.new(x, y, w.elevation(x, y) + .005, a, dot, dot, "mark_warning")
+			View.GroundMark.new(x, y, w.elevation(x, y) + .005, a, dot, dot, "mark_warning")
 		)
 	var fill := .12 + .42 * t
 	out.append(
-		Renderer.GroundMark.new(mx, my, w.elevation(mx, my) + .006, 0.0, fill, fill, "mark_slam")
+		View.GroundMark.new(mx, my, w.elevation(mx, my) + .006, 0.0, fill, fill, "mark_slam")
 	)
 	return out
 
@@ -420,7 +420,7 @@ func sprites() -> Array:
 		var moves := BossKit.moves(e.kind)
 		if e.windup > 0.0:
 			for thing in moves.telegraph(e, game):
-				if thing is Renderer.Sprite:
+				if thing is View.Sprite:
 					out.append(thing)
 		if e.boss_phase >= 2:
 			out.append_array(_damage(e))
@@ -442,7 +442,7 @@ func _damage(e: Enemy) -> Array:
 		var age := fposmod(game.clock * .55 + float(k) / wisps + base, 1.0)
 		var a := toward + (k - (wisps - 1) * .5) * .55
 		var drift := age * .3
-		var wisp := Renderer.Sprite.new(
+		var wisp := View.Sprite.new(
 			e.x + cos(a) * (e.radius + .05) + cos(a + 1.4) * drift,
 			e.y + sin(a) * (e.radius + .05) + sin(a + 1.4) * drift,
 			"fx_smoke_%d" % mini(3, int(age * 4.0)),
@@ -455,7 +455,7 @@ func _damage(e: Enemy) -> Array:
 	if e.boss_phase >= 3:
 		for k in 3:
 			var a: float = toward + sin(game.clock * 2.3 + k * 2.1) * .9
-			var spark := Renderer.Sprite.new(
+			var spark := View.Sprite.new(
 				e.x + cos(a) * (e.radius + .08),
 				e.y + sin(a) * (e.radius + .08),
 				"fx_sparks_%d" % ((int(game.clock * 12.0) + k * 2) % 3),

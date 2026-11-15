@@ -101,7 +101,7 @@ func _stand(g: Game, x: float, y: float, tx: float, ty: float, tz: float) -> voi
 	p.angle = atan2(ty - y, tx - x)
 	p.eye = .95 + g.world.elevation(x, y)
 	var d := Vector2(tx - x, ty - y).length()
-	p.pitch = clampf((tz - p.eye) / maxf(d, .1) * Renderer.base_focal, -50.0, 50.0)
+	p.pitch = clampf((tz - p.eye) / maxf(d, .1) * View.base_focal, -50.0, 50.0)
 	p.vx = 0.0
 	p.vy = 0.0
 
@@ -159,7 +159,7 @@ func _spot(g: Game, x: float, y: float, far: float, away := Vector2.ZERO) -> Vec
 ## Nothing standing between a and b to hide the view (a post, a tree).
 func _clear(g: Game, a: Vector2, b: Vector2) -> bool:
 	var things: Array = []
-	for s: Renderer.Sprite in g.props:
+	for s: View.Sprite in g.props:
 		things.append(Vector2(s.x, s.y))
 	for board: LevelData.Billboard in g.world.billboards:
 		things.append(Vector2(board.x, board.y))
@@ -190,7 +190,7 @@ func _boards(g: Game, image: String) -> Array:
 ## A barrel shot with the sawed-off at a few paces.
 func _barrel() -> void:
 	var g := _level("hickston")
-	for s: Renderer.Sprite in g.props:
+	for s: View.Sprite in g.props:
 		if s.image != "prop_barrel" or not _yard(g, s.x, s.y):
 			continue
 		var at := _spot(g, s.x, s.y, 2.4)
@@ -328,13 +328,13 @@ func _dynamite() -> void:
 ## A blast among a broken crate's bits, a body and loose barrels throws them.
 func _blast() -> void:
 	var g := _level("hickston")
-	for s: Renderer.Sprite in g.props:
+	for s: View.Sprite in g.props:
 		if s.image != "prop_barrel":
 			continue
 		if not _yard(g, s.x, s.y):
 			continue
 		var others := 0
-		for t: Renderer.Sprite in g.props:
+		for t: View.Sprite in g.props:
 			if t != s and t.image == "prop_barrel" and Vector2(t.x - s.x, t.y - s.y).length() < 2.6:
 				others += 1
 		if others < 1:

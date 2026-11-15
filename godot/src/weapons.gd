@@ -321,7 +321,7 @@ class Armory:
 			var damage: int = table[1 if game.sprint else 0]
 			var reached: bool = game.hitscan(
 				p.view_angle(),
-				(p.pitch + p.sway) / Renderer.base_focal,
+				(p.pitch + p.sway) / View.base_focal,
 				damage,
 				float(how["melee_range"]),
 				float(how["melee_width"])
@@ -474,7 +474,7 @@ class Armory:
 				game.sound.play(cue)
 		var player = game.player
 		var aim: float = player.view_angle()
-		var slope: float = (player.pitch + player.sway) / Renderer.base_focal
+		var slope: float = (player.pitch + player.sway) / View.base_focal
 		var how: Dictionary = Weapons.FIRING[i]
 		if bool(how.get("assist", false)):
 			var assisted: Array = game.assisted_aim(aim, slope)
@@ -670,7 +670,7 @@ class Armory:
 			)
 		)
 		var y := (
-			float(Renderer.VIEW - Weapons.GUN_H + offset)
+			float(View.VIEW - Weapons.GUN_H + offset)
 			+ roundf(
 				(
 					(absf(cos(player.walk_phase)) * 5.2 - 2.2) * gait
@@ -682,7 +682,7 @@ class Armory:
 				)
 			)
 		)
-		y = maxf(y, float(Renderer.VIEW - Weapons.GUN_H - Weapons.HOLD_FLOOR))
+		y = maxf(y, float(View.VIEW - Weapons.GUN_H - Weapons.HOLD_FLOOR))
 		var nudge: Vector2 = Weapons.VIEW_SHIFT.get(i, Vector2.ZERO)
 		x += nudge.x
 		y += nudge.y
@@ -1177,15 +1177,15 @@ class Armory:
 			var ty := y + row
 			if ty < 0 or first[row] < 0:
 				continue
-			if ty >= Renderer.VIEW:
+			if ty >= View.VIEW:
 				break
 			var run: PackedByteArray = covers[row]
 			var left := x + first[row]
 			var skip := maxi(0, -left)
-			var stop := mini(run.size(), Renderer.WIDTH - left)
+			var stop := mini(run.size(), View.WIDTH - left)
 			if skip >= stop:
 				continue
-			var at := ty * Renderer.WIDTH + left + skip
+			var at := ty * View.WIDTH + left + skip
 			out.append_array(pix.slice(done * 3, at * 3))
 			out.append_array((colours[row] as PackedByteArray).slice(skip * 3, stop * 3))
 			out_cover.append_array(cov.slice(done, at))
@@ -1227,18 +1227,18 @@ class Armory:
 			return
 		for ty in th:
 			var gy := y + ty
-			if gy < 0 or gy >= Renderer.VIEW:
+			if gy < 0 or gy >= View.VIEW:
 				continue
 			var sy := clampi(ty * h / th, 0, h - 1)
 			for tx in tw:
 				var gx := x + tx
-				if gx < 0 or gx >= Renderer.WIDTH:
+				if gx < 0 or gx >= View.WIDTH:
 					continue
 				var sp := (sy * w + clampi(tx * w / tw, 0, w - 1)) * 4
 				var a := data[sp + 3] * alpha / 255
 				if a == 0:
 					continue
-				var o := (gy * Renderer.WIDTH + gx) * 3
+				var o := (gy * View.WIDTH + gx) * 3
 				if Weapons.under:
 					# What is already painted here (the gun) is in front of the flash.
 					a = a * (255 - Weapons.cover[o / 3]) / 255
@@ -1271,12 +1271,12 @@ class Armory:
 		for ty in th:
 			var sy := clampi(ty * h / th, 0, h - 1)
 			var gy := y + ty
-			if gy < 0 or gy >= Renderer.VIEW:
+			if gy < 0 or gy >= View.VIEW:
 				continue
 			for tx in tw:
 				var sx := clampi(tx * w / tw, 0, w - 1)
 				var gx := x + tx
-				if gx < 0 or gx >= Renderer.WIDTH:
+				if gx < 0 or gx >= View.WIDTH:
 					continue
 				var sp := (sy * w + sx) * 4
 				var a := data[sp + 3]
@@ -1284,7 +1284,7 @@ class Armory:
 					continue
 				if alpha < 255:
 					a = a * alpha / 255
-				var o := (gy * Renderer.WIDTH + gx) * 3
+				var o := (gy * View.WIDTH + gx) * 3
 				if Weapons.under:
 					# Behind what is already painted: only what shows past it.
 					var front := Weapons.cover[o / 3]
@@ -1319,14 +1319,14 @@ class Armory:
 					)
 
 	static func _set_pixel(frame: PackedByteArray, x: int, y: int, c: Color) -> void:
-		if x < 0 or y < 0 or x >= Renderer.WIDTH or y >= Renderer.VIEW:
+		if x < 0 or y < 0 or x >= View.WIDTH or y >= View.VIEW:
 			return
 		if Weapons.painter != null:
 			Weapons.painter.set_pixel(
 				x, y, roundi(c.r * 255.0), roundi(c.g * 255.0), roundi(c.b * 255.0)
 			)
 			return
-		var o := (y * Renderer.WIDTH + x) * 3
+		var o := (y * View.WIDTH + x) * 3
 		frame[o] = roundi(c.r * 255.0)
 		frame[o + 1] = roundi(c.g * 255.0)
 		frame[o + 2] = roundi(c.b * 255.0)
@@ -1340,14 +1340,14 @@ class Armory:
 		if Weapons.painter != null:
 			var x0 := maxi(0, x)
 			var y0 := maxi(0, y)
-			var x1 := mini(Renderer.WIDTH, x + w)
-			var y1 := mini(Renderer.VIEW, y + h)
+			var x1 := mini(View.WIDTH, x + w)
+			var y1 := mini(View.VIEW, y + h)
 			if x0 < x1 and y0 < y1:
 				Weapons.painter.fill_rect(x0, y0, x1 - x0, y1 - y0, Color8(r, g, b))
 			return
-		for yy in range(maxi(0, y), mini(Renderer.VIEW, y + h)):
-			for xx in range(maxi(0, x), mini(Renderer.WIDTH, x + w)):
-				var o := (yy * Renderer.WIDTH + xx) * 3
+		for yy in range(maxi(0, y), mini(View.VIEW, y + h)):
+			for xx in range(maxi(0, x), mini(View.WIDTH, x + w)):
+				var o := (yy * View.WIDTH + xx) * 3
 				if Weapons.under:
 					var k := 255 - Weapons.cover[o / 3]
 					frame[o] = mini(255, frame[o] + r * k / 255)
@@ -1376,10 +1376,10 @@ class Armory:
 		while true:
 			if width <= 1:
 				if Weapons.painter != null:
-					if x0 >= 0 and y0 >= 0 and x0 < Renderer.WIDTH and y0 < Renderer.VIEW:
+					if x0 >= 0 and y0 >= 0 and x0 < View.WIDTH and y0 < View.VIEW:
 						Weapons.painter.set_pixel(x0, y0, r, g, b)
-				elif x0 >= 0 and y0 >= 0 and x0 < Renderer.WIDTH and y0 < Renderer.VIEW:
-					var o := (y0 * Renderer.WIDTH + x0) * 3
+				elif x0 >= 0 and y0 >= 0 and x0 < View.WIDTH and y0 < View.VIEW:
+					var o := (y0 * View.WIDTH + x0) * 3
 					if Weapons.under:
 						var k := 255 - Weapons.cover[o / 3]
 						frame[o] = mini(255, frame[o] + r * k / 255)

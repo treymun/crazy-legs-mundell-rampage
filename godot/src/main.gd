@@ -3,7 +3,7 @@
 ## accumulator and all keyboard/mouse/gamepad input.
 ##
 ## The 320x200 RGB frame is uploaded to a TextureRect and graded by
-## palette.gdshader, which is the Godot equivalent of period_palette.apply().
+## display.gdshader, which is the Godot equivalent of period_palette.apply().
 extends MainInput
 
 
@@ -70,12 +70,11 @@ func _ready() -> void:
 	add_child(view)
 
 	palette_material = ShaderMaterial.new()
-	palette_material.shader = load("res://src/palette.gdshader")
+	palette_material.shader = load("res://src/display.gdshader")
 	_grain_tone(PackedByteArray())
 	if art.grain.size() == 936 * WIDTH:
 		gpu_ready = DisplayServer.get_name() != "headless"
 	palette_material.set_shader_parameter("post_tex", frame_texture)
-	layers = SceneLayers.new(palette_material, art)
 	view.material = palette_material
 	_start_overlay()
 	ui = UiRoot.new(self, overlay)
@@ -229,7 +228,7 @@ func _view_tour() -> void:
 		game.armory.holstered = not armed
 		game.armory.lower = 0.0 if armed else 1.0
 		if shot.has("detail"):
-			game.renderer.set_detail(int(shot["detail"]))
+			game.view.set_detail(int(shot["detail"]))
 		if shot.has("gun") and game.armory.active != int(shot["gun"]):
 			# A viewpoint of one gun firing: given it, loaded, in hand (viewpoints
 			# after it with the same gun go on firing it, frame by frame).
@@ -257,10 +256,9 @@ func _view_tour() -> void:
 			game.features["weather"].hold(
 				rain, float(shot.get("wet", rain)), float(shot.get("lightning", 0.0))
 			)
-		# fx: the shader view as players see it (lights and glows); gpu: the same
-		# without them, to hold against the software view (cpu).
-		for mode in ["fx", "gpu", "cpu"]:
-			cpu_view = mode == "cpu"
+		# fx: the 3D view as players see it (lights and glows); gpu: the same
+		# without them.
+		for mode: String in ["fx", "gpu"]:
 			Effects.enabled = mode == "fx"
 			render()
 			await RenderingServer.frame_post_draw
@@ -322,13 +320,12 @@ func _view_bench() -> void:
 	# which the frame time hides while the main thread is the slower side).
 	var rid := get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(rid, true)
-	var totals := {"cpu": 0.0, "gpu": 0.0}
+	var totals := {"gpu": 0.0}
 	for level_id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
 		var line := "%-9s" % level_id
-		for mode in ["cpu", "gpu"]:
+		for mode: String in ["gpu"]:
 			start(level_id)
 			Engine.max_fps = 0
-			cpu_view = mode == "cpu"
 			var held := Game.Controls.new()
 			held.turn = .3
 			held.fire = true
@@ -402,16 +399,7 @@ func _view_bench() -> void:
 			)
 		print(line)
 	print(
-		(
-			"WINDOW    software view %.2f ms (%.0f fps)   shader view %.2f ms (%.0f fps)   x%.2f"
-			% [
-				totals["cpu"] / 7.0,
-				7000.0 / totals["cpu"],
-				totals["gpu"] / 7.0,
-				7000.0 / totals["gpu"],
-				totals["cpu"] / totals["gpu"]
-			]
-		)
+		"WINDOW    3D view %.2f ms (%.0f fps)" % [totals["gpu"] / 7.0, 7000.0 / totals["gpu"]]
 	)
 	get_tree().quit()
 
@@ -427,11 +415,10 @@ func _launch_check(delta: float) -> void:
 	elif state == "play" and game != null and launch_clock > LAUNCH_CHECK_SECONDS:
 		print(
 			(
-				"LAUNCH CHECK: view_check %d  graphics-card view %s  HD %s  window %s  mode %d"
+				"LAUNCH CHECK: 3D view %s  HD %s  window %s  mode %d"
 				% [
-					view_check,
-					game.layered and not cpu_view,
-					game.renderer.detail < 0,
+					game.view3d,
+					game.view.detail < 0,
 					get_window().size,
 					get_window().mode
 				]
@@ -452,7 +439,6 @@ func _play_bench() -> void:
 	for level_id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
 		start(level_id)
 		Engine.max_fps = 0
-		cpu_view = false
 		game.cheats.god = true
 		var pilot = pilot_script.new()
 		pilot.whole = true
@@ -627,15 +613,15 @@ func _auto_detail(dt: float, spent: float) -> void:
 		return
 	var budget := frame_interval() * 1000.0
 	work_ms = lerpf(work_ms, spent, minf(1.0, dt * 4.0))
-	var low := Renderer.auto_low
+	var low := View.auto_low
 	if (not low and work_ms > budget * .85) or (low and work_ms < budget * .3):
 		detail_strain += dt
 	else:
 		detail_strain = 0.0
 	if detail_strain > (1.5 if not low else 5.0):
 		detail_strain = 0.0
-		Renderer.auto_low = not low
-		game.renderer.set_detail(1 if Renderer.auto_low else 0)
+		View.auto_low = not low
+		game.view.set_detail(1 if View.auto_low else 0)
 
 
 func _demo(dt: float) -> void:
@@ -920,8 +906,8 @@ func _net_host_tick(mine: Game.Controls) -> void:
 func _net_aim() -> Array:
 	if net == null or net.role != NetPlay.Role.CLIENT or state != "play" or game == null:
 		return []
-	if not net.client_ready() or _view_checking or _view_unchecked():
-		return []  # the start-up check draws this frame again later, as it stands
+	if not net.client_ready():
+		return []
 	var slot := net.my_slot()
 	if slot < 0 or slot >= game.players.size():
 		return []

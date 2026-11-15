@@ -250,7 +250,7 @@ static func _marks(main, check: Callable) -> void:
 	var impacts = game.features["impacts"]
 	var cap := int(Effects.DEBRIS.get("hole_cap", 64))
 	for k in cap + 20:
-		var m := Renderer.WallMark.new()
+		var m := View.WallMark.new()
 		m.x = 20.0
 		m.y = 40.0 + k * .02
 		m.z = 1.0

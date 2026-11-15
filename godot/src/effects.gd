@@ -1,7 +1,7 @@
 ## Lights and glows as data (data/tuning/effects.cfg): which sources light up
 ## the world around them, in what colour and how far, and which tiles glow.
 ## Game.effect_lights() lists this frame's lights from them, scene_layers.gd
-## hands them to palette.gdshader, and bakes the glows into the tile atlas.
+## hands them to display.gdshader, and bakes the glows into the tile atlas.
 ## Only the graphics-card view draws them (CLAUDE.md: one renderer).
 class_name Effects
 extends RefCounted
@@ -10,7 +10,7 @@ const PATH := "res://data/tuning/effects.cfg"
 ## As many lights as the shader takes in one frame; the nearest win.
 const MAX_LIGHTS := 16
 ## Bits of a light's flags (its seventh value): it pools on the ground under
-## it, and the air above it shimmers (palette.gdshader light_flags, haze).
+## it, and the air above it shimmers (display.gdshader light_flags, haze).
 const POOL := 1
 const HOT := 2
 

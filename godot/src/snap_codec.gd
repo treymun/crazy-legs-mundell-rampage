@@ -24,9 +24,9 @@ extends RefCounted
 const SKIP := {"@skip": 1}
 ## Classes a snapshot never carries (presentation).
 const VIEW_CLASSES := [
-	"Renderer.Sprite",
-	"Renderer.GroundMark",
-	"Renderer.WallMark",
+	"View.Sprite",
+	"View.GroundMark",
+	"View.WallMark",
 	"PlayerVoice",
 	"Sound",
 	"HUD",
@@ -280,7 +280,7 @@ func _encode_object(o: Object, depth: int):
 		return {"@rng": [o.seed, o.state]}
 	if o is FlowField:
 		return encode_flow(o)
-	if o is Renderer.Sprite or o is Renderer.GroundMark or o is Renderer.WallMark:
+	if o is View.Sprite or o is View.GroundMark or o is View.WallMark:
 		return SKIP
 	if script == null or not (o is RefCounted) or depth > DEPTH:
 		return SKIP
@@ -459,7 +459,7 @@ static func _register_all() -> void:
 		"Weapons": Weapons,
 		"Squad": Squad,
 		"LevelData": LevelData,
-		"Renderer": Renderer,
+		"View": View,
 		"Tumble": Tumble,
 		"PlayerVoice": PlayerVoice,
 		"Sound": Sound,
@@ -473,9 +473,9 @@ static func _register_all() -> void:
 		"LevelData.Door",
 		"LevelData.Station",
 		"LevelData.Scenery",
-		"Renderer.Sprite",
-		"Renderer.GroundMark",
-		"Renderer.WallMark",
+		"View.Sprite",
+		"View.GroundMark",
+		"View.WallMark",
 	]
 	for script: Script in _by_script:
 		var key: String = _by_script[script]

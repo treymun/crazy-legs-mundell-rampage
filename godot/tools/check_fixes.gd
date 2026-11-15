@@ -62,24 +62,6 @@ func _run() -> void:
 		"non-halves round normally"
 	)
 
-	print("\nCROSSROADS SURFACES (were missing from the renderer)")
-	check(not Renderer.screen_hole(3, 60), "screen frame is solid")
-	check(not Renderer.screen_hole(50, 30), "screen centre post is solid")
-	check(not Renderer.screen_hole(20, 110), "boarded repair is solid")
-	check(Renderer.screen_hole(30, 25), "open mesh is see-through")
-	main.start("hickston")
-	var hub_renderer: Renderer = main.game.renderer
-	hub_renderer.world_motion = 0
-	hub_renderer.time = 0.0
-	hub_renderer._prepare_hub(true)
-	check(hub_renderer.hub_fx, "effects switch on in the hub half of the map")
-	check(
-		hub_renderer.tower_shadow(23.45, 47.95, 0.0) < 0.7, "tank shadow darkens the service road"
-	)
-	check(hub_renderer.tower_shadow(12.0, 46.5, 0.0) == 1.0, "road away from the tower is unshaded")
-	hub_renderer._prepare_hub(false)
-	check(not hub_renderer.hub_fx, "effects stay off on the Hickston side")
-
 	print("\nCOPPER BARON PIPE OUTLETS (was a type error: no steam, no cooldown)")
 	main.start("quarry")
 	var quarry: Game = main.game

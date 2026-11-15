@@ -163,7 +163,7 @@ func looks(e: Enemy, game) -> Array:
 		return []
 	# The rig on his back smoking and spitting sparks.
 	var floor_z: float = game.world.stand(e)
-	var spark := Renderer.Sprite.new(
+	var spark := View.Sprite.new(
 		e.x - cos(e.angle) * e.radius * .7,
 		e.y - sin(e.angle) * e.radius * .7,
 		"fx_sparks_%d" % (int(game.clock * 13.0) % 3),

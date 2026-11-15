@@ -189,7 +189,7 @@ func looks(e: Enemy, game) -> Array:
 	var out: Array = []
 	for side: float in [-1.0, 1.0]:
 		var a := e.angle + side * PI / 2.0
-		var glint := Renderer.Sprite.new(
+		var glint := View.Sprite.new(
 			e.x + cos(a) * .3,
 			e.y + sin(a) * .3,
 			"fx_glint_%d" % (int(game.clock * 8.0) % 2),

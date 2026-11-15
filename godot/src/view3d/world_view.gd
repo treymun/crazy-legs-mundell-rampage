@@ -3,7 +3,7 @@
 ## by a camera that reproduces the old renderer's projection (an off-axis
 ## frustum: looking up and down shifts the horizon, as in the Build engine,
 ## so aim, crosshair and every screen overlay stay true). The display shader
-## (palette.gdshader, view3d_on) lays the weapon/HUD layer and the look pass
+## (the old view shader, view3d_on) lays the weapon/HUD layer and the look pass
 ## over its picture.
 ##
 ## Read-only toward play: it reads the game's level, camera and sprite list
@@ -154,7 +154,7 @@ func frame(game: Game) -> void:
 	var view: Dictionary = game.view_frame
 	if view.is_empty():
 		return
-	var r: Renderer = game.renderer
+	var r: View = game.view
 	var level: LevelData = game.level
 	var vw: int = r.vw
 	var vh: int = r.vh
@@ -179,7 +179,7 @@ func frame(game: Game) -> void:
 	var modelled: Array = []
 	var acting: Array = []
 	for item: Variant in view["sprites"]:
-		var s := item as Renderer.Sprite
+		var s := item as View.Sprite
 		if s != null and s.who is Enemy and actors.kind_of(s.who as Enemy) != "":
 			acting.append(s)
 		elif s != null and props.models.name_of(s.image) != "":
@@ -194,7 +194,7 @@ func frame(game: Game) -> void:
 			m.set_shader_parameter(key, _params[key])
 	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
 	if mirror:
-		sprites.show_reflection(view.get("reflection") as Renderer.Sprite, level, angle)
+		sprites.show_reflection(view.get("reflection") as View.Sprite, level, angle)
 	sprites.show_marks(view["marks"], view["ground"], Vector3(x, y, z), angle)
 	_uniforms(game, view, r, Vector3(x, y, z), angle, at_hub)
 
@@ -319,7 +319,7 @@ static func _cell_image(level: LevelData) -> Image:
 
 
 func _uniforms(
-	game: Game, view: Dictionary, r: Renderer, cam: Vector3, angle: float, at_hub: bool
+	game: Game, view: Dictionary, r: View, cam: Vector3, angle: float, at_hub: bool
 ) -> void:
 	_share("eye", cam)
 	_share("flash", float(view["flash"]))
@@ -408,7 +408,7 @@ func _effects(game: Game) -> void:
 	_share("grade", Vector3(tone.r, tone.g, tone.b))
 	_share("sky_drift", fposmod(game.clock * float(Effects.mood(id, "clouds", 0.0)), 1.0))
 	_share("lightning", game.lightning)
-	var motion: float = [1.0, .4, 0.0][clampi(game.renderer.world_motion, 0, 2)]
+	var motion: float = [1.0, .4, 0.0][clampi(game.view.world_motion, 0, 2)]
 	_share("motion", motion)
 	var weather: Variant = game.features.get("weather")
 	var raining: float = float(weather.rain) if weather != null else 0.0

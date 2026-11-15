@@ -13,18 +13,18 @@ static func blit_rgba(frame: PackedByteArray, image: Dictionary, x: int, y: int)
 	if spans == null:
 		for yy in h:
 			var ty := y + yy
-			if ty < 0 or ty >= Renderer.VIEW:
+			if ty < 0 or ty >= View.VIEW:
 				continue
 			var row := yy * w * 4
 			for xx in w:
 				var tx := x + xx
-				if tx < 0 or tx >= Renderer.WIDTH:
+				if tx < 0 or tx >= View.WIDTH:
 					continue
 				var sp := row + xx * 4
 				var a := data[sp + 3]
 				if a == 0:
 					continue
-				var o := (ty * Renderer.WIDTH + tx) * 3
+				var o := (ty * View.WIDTH + tx) * 3
 				if cv:
 					var p := o / 3
 					cover[p] = (255 if a == 255 else cover[p] + (((255 - cover[p]) * a + 255) >> 8))
@@ -49,7 +49,7 @@ static func blit_rgba(frame: PackedByteArray, image: Dictionary, x: int, y: int)
 					)
 		return
 	var ty0 := maxi(y, 0)
-	var ty1 := mini(y + h, Renderer.VIEW)
+	var ty1 := mini(y + h, View.VIEW)
 	for yy in range(ty0 - y, ty1 - y):
 		var first: int = spans[yy * 2]
 		if first < 0:
@@ -58,8 +58,8 @@ static func blit_rgba(frame: PackedByteArray, image: Dictionary, x: int, y: int)
 		var ty := y + yy
 		var row := yy * w * 4
 		var x0 := maxi(x + first, 0)
-		var x1 := mini(x + last, Renderer.WIDTH - 1)
-		var o := (ty * Renderer.WIDTH + x0) * 3
+		var x1 := mini(x + last, View.WIDTH - 1)
+		var o := (ty * View.WIDTH + x0) * 3
 		var sp := row + (x0 - x) * 4
 		for tx in range(x0, x1 + 1):
 			var a := data[sp + 3]

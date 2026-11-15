@@ -1139,7 +1139,7 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		mouse_rel.x * .0034 * sensitivity + turn + float(pad["turn"]) + float(fingers["turn"])
 	)
 	# A scope up (scope.gd) slows the turn by its zoom, so aim keeps its feel.
-	controls.turn *= Renderer.fov_focal / maxf(1.0, Renderer.base_focal)
+	controls.turn *= View.fov_focal / maxf(1.0, View.base_focal)
 	var invert := 1.0 if int(options["invert"]) != 0 else -1.0
 	var vertical := float(options["vertical"]) / 100.0
 	controls.look = (
@@ -1154,7 +1154,7 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		if tilt > 0:
 			var rate := TiltAim.rates() * (.8 if tilt == 1 else 1.6) * dt
 			controls.turn += rate.x
-			controls.look += rate.y * Renderer.base_focal
+			controls.look += rate.y * View.base_focal
 	controls.fire = (
 		(
 			Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)

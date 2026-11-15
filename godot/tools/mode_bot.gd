@@ -97,7 +97,7 @@ func _hunt(game: Game) -> Game.Controls:
 	if seen:
 		var target: float = game.world.elevation(best.x, best.y) + best.air + .62
 		var slope := (target - p.eye) / maxf(.5, near)
-		c.look = clampf(slope * Renderer.base_focal - p.pitch, -3.0, 3.0)
+		c.look = clampf(slope * View.base_focal - p.pitch, -3.0, 3.0)
 		c.fire = absf(turn) < .07
 		c.forward = .6 if near > 5.0 else (-.4 if near < 2.0 else 0.0)
 		c.strafe = 1.0 if fmod(game.clock + p.slot * 1.3, 2.4) < 1.2 else -1.0

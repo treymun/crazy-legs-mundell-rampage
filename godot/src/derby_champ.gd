@@ -278,7 +278,7 @@ static func marks(e: Enemy, game) -> Array:
 			length = step
 		if length > .6:
 			out.append(
-				Renderer.GroundMark.new(
+				View.GroundMark.new(
 					e.x + cos(bearing) * length / 2.0,
 					e.y + sin(bearing) * length / 2.0,
 					floor_z,

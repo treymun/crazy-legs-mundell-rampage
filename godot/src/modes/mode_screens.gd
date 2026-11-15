@@ -84,9 +84,9 @@ static func _tag(c: Canvas, game, me: Player, q: Player) -> void:
 	var seen: bool = (
 		at.z > 0.0
 		and at.x > 8.0
-		and at.x < Renderer.WIDTH - 8.0
+		and at.x < View.WIDTH - 8.0
 		and at.y > 6.0
-		and at.y < Renderer.VIEW - 6.0
+		and at.y < View.VIEW - 6.0
 		and game.world.visible(me.x, me.y, q.x, q.y, me.eye, head - .3)
 	)
 	var tone := Modes.color(q)
@@ -98,8 +98,8 @@ static func _tag(c: Canvas, game, me: Player, q: Player) -> void:
 	if not seen:
 		var rel := Enemy.angle_delta(atan2(q.y - me.y, q.x - me.x), me.view_angle())
 		var side := clampf(rel / (PI * .5), -1.0, 1.0)
-		x = clampi(int(160.0 + side * 148.0), 12, Renderer.WIDTH - 12)
-		y = Renderer.VIEW - 24
+		x = clampi(int(160.0 + side * 148.0), 12, View.WIDTH - 12)
+		y = View.VIEW - 24
 		label = ("<" if rel < 0.0 else ">") + label if absf(rel) > .55 else label
 	HUD.text(c, label, x, y, "mini", tone, true)
 	_bar(c, x - 10, y + 8, 20, float(maxi(0, q.health)) / 100.0, tone)

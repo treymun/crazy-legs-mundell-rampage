@@ -1,6 +1,6 @@
 ## A rifle scope (weapons.cfg `scope`, Player.scoped): while this machine's
 ## player has one up the view closes in by its zoom (the renderer's focal
-## length; aiming works its slopes out from the same Renderer.base_focal, so
+## length; aiming works its slopes out from the same View.base_focal, so
 ## the crosshair stays true), the gun is not drawn and the view is masked to
 ## a round glass with a cross-hair. Presentation only: the scope's play (its
 ## tight spread, ALT FIRE putting it up) is the game's own (game.gd, weapons.gd).
@@ -22,16 +22,16 @@ static func focal(game, p: Player) -> void:
 	var zoom := 1.0
 	if p.scoped and p.health > 0:
 		zoom = float(Weapons.FIRING[game.armory.active].get("scope", 1.0))
-	var want := Renderer.fov_focal * zoom
-	if absf(want - Renderer.base_focal) > .01:
-		Renderer.base_focal = want
-		game.renderer.set_detail(game.renderer.detail, true)
+	var want := View.fov_focal * zoom
+	if absf(want - View.base_focal) > .01:
+		View.base_focal = want
+		game.view.set_detail(game.view.detail, true)
 
 
 ## The scope's black surround, its rim and cross-hair, over the view.
 static func mask(c: Canvas) -> void:
-	var w := Renderer.WIDTH
-	var h := Renderer.VIEW
+	var w := View.WIDTH
+	var h := View.VIEW
 	if _mask.is_empty():
 		_mask.resize(w * h * 4)
 		var cx := w * .5

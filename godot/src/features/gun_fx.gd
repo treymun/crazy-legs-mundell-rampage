@@ -542,7 +542,7 @@ func sprites() -> Array:
 				glow = flash
 			"drop":
 				name = "fx_glint_0"
-		var s: Renderer.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
+		var s: View.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = glow
 		s.translucent = translucent
 		out.append(s)
@@ -554,7 +554,7 @@ func sprites() -> Array:
 		var art := String(hit[4])
 		var frame := mini(2, int(age / HIT_LIFE * 3.0))
 		var tall := 1.5 if art == "water" else 1.0
-		var s: Renderer.Sprite = game.pooled(
+		var s: View.Sprite = game.pooled(
 			hit[0], hit[1], "fx_hit_%s_%d" % [art, frame], size * tall, float(hit[2]) - size * .5
 		)
 		s.glow = art == "metal" or art == "glass"
@@ -583,12 +583,12 @@ func _boom_sprites(out: Array) -> void:
 		var frame := mini(7, int(pow(t, .8) * 8.0))
 		var size := (.95 + 1.7 * sqrt(t)) * scale
 		var z := maxf(.02, float(boom[2]) - size * .42 + age * .55)
-		var ball: Renderer.Sprite = game.pooled(boom[0], boom[1], "fx_boom_%d" % frame, size, z)
+		var ball: View.Sprite = game.pooled(boom[0], boom[1], "fx_boom_%d" % frame, size, z)
 		ball.glow = frame < 5
 		ball.translucent = frame >= 5
 		out.append(ball)
 		if age < .1 and not bool(boom[5]):
-			var flash: Renderer.Sprite = game.pooled(
+			var flash: View.Sprite = game.pooled(
 				boom[0], boom[1], "fx_boomflash_%d" % (0 if age < .05 else 1), 2.1, z - .3
 			)
 			flash.glow = true
@@ -603,7 +603,7 @@ func ground_marks() -> Array:
 		var t: float = (game.clock - float(ring[3])) / SHOCK_LIFE
 		var reach := .5 + 2.2 * sqrt(t)
 		out.append(
-			Renderer.GroundMark.new(
+			View.GroundMark.new(
 				ring[0],
 				ring[1],
 				ring[2],
@@ -629,7 +629,7 @@ func draw_view(c: Canvas) -> void:
 		)
 		if a.z < 0.0 or b.z < 0.0:
 			continue
-		if a.y >= Renderer.VIEW or b.y >= Renderer.VIEW or a.x < 0 or a.x >= Renderer.WIDTH:
+		if a.y >= View.VIEW or b.y >= View.VIEW or a.x < 0 or a.x >= View.WIDTH:
 			continue
 		var heat := 1.0 - bit.age / bit.life
 		var colour := (

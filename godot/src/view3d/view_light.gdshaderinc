@@ -1,5 +1,5 @@
 // The 3D view's shared lighting: the old renderer's distance shading and,
-// with LIGHTS AND GLOW (effects_on), palette.gdshader's surface_light (the
+// with LIGHTS AND GLOW (effects_on), the old view shader's surface_light (the
 // frame's lights with relief and pools, the level's grade and fog, the rain's
 // wet sheen, the lightning). Points are in MAP terms: (x east, y south, z up),
 // which is Godot's (x, z, y). Colours are 0-255.
@@ -142,7 +142,7 @@ float rain_rings(vec2 at, float tm) {
 	return band > 0.0 ? (1.0 - age) * (band > 0.5 ? 0.9 : 0.45) : 0.0;
 }
 
-// A water floor or a puddle over the floor's lit colour (palette.gdshader
+// A water floor or a puddle over the floor's lit colour (the old view shader
 // water_over): a broken reflection of the sky, glints, wading and rain rings.
 vec3 water_over(vec3 colour, vec2 at, float t, float sy, int column, float deep, float light, float tm) {
 	vec2 q = floor(at * 16.0) / 16.0;
@@ -298,7 +298,7 @@ float fog_bank(vec3 p, float reach, float t) {
 	return fog_banks * smoothstep(0.56, 0.9, roll) * low * smoothstep(3.0, 9.0, reach);
 }
 
-// palette.gdshader surface_light(): kind 0 a floor or ceiling, 1 a wall, 2 a
+// the old view shader surface_light(): kind 0 a floor or ceiling, 1 a wall, 2 a
 // sprite. t is the distance ahead (the old renderer's `nearest`).
 vec3 surface_light(vec3 base, vec3 p, float t, vec3 nf, vec3 tu, vec3 tv, vec2 bump, float gloss, int kind) {
 	vec3 nb = (bump.x != 0.0 || bump.y != 0.0) ? normalize(nf - bump.x * tu - bump.y * tv) : nf;

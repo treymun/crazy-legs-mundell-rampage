@@ -18,23 +18,10 @@ static func parse_smoke(m) -> void:
 			m.view_shot = text.substr(12)
 		elif text == "--cpu-look":
 			m.cpu_look = true
-		elif text == "--cpu-view":
-			m.cpu_view = true
-		elif text == "--view2d":
-			m.view3d_on = false
-		elif text == "--cpu-walls":
-			# The band threads work out every wall span again (render_state.gd gpu_walls).
-			RenderState.wall_walk = false
 		elif text == "--cpu-canvas":
 			m.cpu_canvas = true
 		elif text == "--launch-check":
 			m.launch_check = true
-			m.view_check_report = true
-		elif text == "--view-check":
-			m.view_check_report = true
-		elif text == "--view-broken":
-			m.view_check_report = true
-			m.view_broken = true
 		elif text.begins_with("--view-tour="):
 			m.view_tour = text.substr(12)
 		elif text.begins_with("--view-out="):

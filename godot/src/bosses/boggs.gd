@@ -244,7 +244,7 @@ func telegraph(e: Enemy, game) -> Array:
 		var half := at.distance_to(end) * .5
 		if half > .3:
 			out.append(
-				Renderer.GroundMark.new(
+				View.GroundMark.new(
 					mid.x, mid.y, z, (end - at).angle(), half, e.radius, "mark_lane"
 				)
 			)
@@ -272,7 +272,7 @@ func looks(e: Enemy, game) -> Array:
 	if e.boss_phase >= 2:
 		var front := Vector2(e.x + cos(e.angle) * .55, e.y + sin(e.angle) * .55)
 		var age := fposmod(game.clock * 1.6, 1.0)
-		var steam := Renderer.Sprite.new(
+		var steam := View.Sprite.new(
 			front.x, front.y, "fx_steam_%d" % mini(3, int(age * 4.0)), .4 + age * .4, floor_z + .5
 		)
 		steam.translucent = true
@@ -285,7 +285,7 @@ func looks(e: Enemy, game) -> Array:
 				e.x - cos(e.angle) * .75 - sin(e.angle) * side,
 				e.y - sin(e.angle) * .75 + cos(e.angle) * side
 			)
-			var fire := Renderer.Sprite.new(
+			var fire := View.Sprite.new(
 				back.x, back.y, "fx_fire_%d" % ((frame + k * 2) % 4), .5 * big + .2, floor_z + .25
 			)
 			fire.glow = true

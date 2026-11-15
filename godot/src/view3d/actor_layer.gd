@@ -1,5 +1,5 @@
 ## The enemies and bosses of the 3D view that have a rigged model
-## (ActorModels): each sprite the game lists for an enemy (Renderer.Sprite
+## (ActorModels): each sprite the game lists for an enemy (View.Sprite
 ## `who`) is drawn as that enemy's model instead, facing the enemy's own
 ## heading, in the pose its sprite would show (the same frame: idle, a walk
 ## beat, aim, wind-up, fire, pain, recover, fidget, a step of its fall, down)
@@ -35,7 +35,7 @@ func show_actors(
 	var fresh: Array[ShaderMaterial] = []
 	var seen := {}
 	for item: Variant in sprites:
-		var s := item as Renderer.Sprite
+		var s := item as View.Sprite
 		var e := s.who as Enemy
 		var kind := kind_of(e)
 		var id := e.get_instance_id()
@@ -90,7 +90,7 @@ func _make(kind: String, fresh: Array[ShaderMaterial]) -> Array:
 
 ## Stand the model where the sprite stands, turned to the enemy's heading, in
 ## the sprite's frame and look.
-func _place(entry: Array, s: Renderer.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
+func _place(entry: Array, s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	var node: Node3D = entry[0]
 	var player: AnimationPlayer = entry[1]
 	var kind: String = entry[3]

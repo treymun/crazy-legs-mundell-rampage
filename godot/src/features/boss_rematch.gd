@@ -94,4 +94,4 @@ func draw_view(c: Canvas) -> void:
 		return
 	var text := BossRematch.clock_text(seconds())
 	var colour := HUD.AMBER if fell >= 0.0 else (HUD.INK if began >= 0.0 else Menu.FADED)
-	HUD.text(c, text, 5, Renderer.VIEW - 11, "body", colour)
+	HUD.text(c, text, 5, View.VIEW - 11, "body", colour)

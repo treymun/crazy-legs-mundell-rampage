@@ -198,7 +198,7 @@ func weak_spot(e: Enemy, game, hit: Vector3, from: Vector2, how: String) -> floa
 func telegraph(e: Enemy, game) -> Array:
 	if own(e) == "strike":
 		# Arms up to the sky: a column of light over him.
-		var col := Renderer.Sprite.new(
+		var col := View.Sprite.new(
 			e.x, e.y, "fx_beam_column", 3.0, game.world.stand(e) + e.height * .8
 		)
 		col.glow = true
@@ -216,7 +216,7 @@ func looks(e: Enemy, game) -> Array:
 	if venting:
 		for k in 3:
 			var age := fposmod(game.clock * 1.6 + k / 3.0, 1.0)
-			var puff := Renderer.Sprite.new(
+			var puff := View.Sprite.new(
 				pack.x - cos(e.angle) * age * .3,
 				pack.y - sin(e.angle) * age * .3,
 				"fx_steam_%d" % mini(3, int(age * 4.0)),
@@ -226,7 +226,7 @@ func looks(e: Enemy, game) -> Array:
 			puff.translucent = true
 			out.append(puff)
 	if e.boss_phase >= 3:
-		var spark := Renderer.Sprite.new(
+		var spark := View.Sprite.new(
 			pack.x, pack.y, "fx_sparks_%d" % (int(game.clock * 15.0) % 3), .45, pack.z
 		)
 		spark.glow = true

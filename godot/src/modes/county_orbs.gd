@@ -234,13 +234,13 @@ static func sprites(game, f) -> Array:
 			var value := int(orb[3])
 			var tier := 2 if value >= GOLD else 1 if value >= SILVER else 0
 			var frame := int(t * 8.0 + x * 3.0) % 4
-			var s: Renderer.Sprite = game.pooled(
+			var s: View.Sprite = game.pooled(
 				x, y, "county_xp_%d_%d" % [tier, frame], .2 + tier * .05, float(orb[2]) + bob
 			)
 			s.glow = true
 			out.append(s)
 		else:
-			var s: Renderer.Sprite = game.pooled(
+			var s: View.Sprite = game.pooled(
 				x, y, "item_bullets" if kind == "ammo" else "item_rinds", .33, float(orb[2]) + bob
 			)
 			s.glow = true  # supplies stand out in the dark like the XP
@@ -256,7 +256,7 @@ static func draw_pops(c: Canvas, game, f) -> void:
 		var at: Vector3 = game.to_canvas(
 			float(pop[0]), float(pop[1]), float(pop[2]) + .45 + age * .6
 		)
-		if at.z <= 0.0 or at.x < 4 or at.x > 316 or at.y < 4 or at.y > Renderer.VIEW - 8:
+		if at.z <= 0.0 or at.x < 4 or at.x > 316 or at.y < 4 or at.y > View.VIEW - 8:
 			continue
 		var ink := HUD.AMBER if left > POP * .4 else HUD.DIM
 		HUD.text(c, String(pop[4]), int(at.x), int(at.y), "mini", ink, true)

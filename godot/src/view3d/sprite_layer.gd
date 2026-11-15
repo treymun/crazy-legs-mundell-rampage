@@ -1,4 +1,4 @@
-## The frame's sprites (Renderer.Sprite, from Game.sprites()) in the 3D view:
+## The frame's sprites (View.Sprite, from Game.sprites()) in the 3D view:
 ## one MultiMesh for the solid ones, one for the see-through ones (smoke,
 ## blasts, mist) drawn in list order. Pictures live in a texture array of
 ## SLOTS slots, kept by name, the least recently used given up for a new one.
@@ -168,7 +168,7 @@ func show_sprites(
 	var solid_buf := PackedFloat32Array()
 	var clear_buf := PackedFloat32Array()
 	for item: Variant in sprites:
-		var s := item as Renderer.Sprite
+		var s := item as View.Sprite
 		if s == null or s.image == "":
 			continue
 		var dx := s.x - cam.x
@@ -192,7 +192,7 @@ func show_sprites(
 
 
 ## The player as the mirror shows them (only the mirror's camera sees it).
-func show_reflection(sprite: Renderer.Sprite, level: LevelData, angle: float) -> void:
+func show_reflection(sprite: View.Sprite, level: LevelData, angle: float) -> void:
 	var buf := PackedFloat32Array()
 	if sprite != null and sprite.image != "":
 		buf = _row(sprite, level, angle)
@@ -202,7 +202,7 @@ func show_reflection(sprite: Renderer.Sprite, level: LevelData, angle: float) ->
 ## One instance's 20 numbers: its transform (a billboard's width along the
 ## view's right, a board's along its own axis), its tint and light, its art
 ## slot and size, its flags and hit wash.
-func _row(s: Renderer.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
+func _row(s: View.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
 	var board := not is_nan(s.plane)
 	var slot := _slot(s.image)
 	var size := _slot_size[slot]
@@ -259,8 +259,8 @@ func _row(s: Renderer.Sprite, level: LevelData, angle: float) -> PackedFloat32Ar
 	)
 
 
-## Lay out this frame's wall marks (Renderer.WallMark: a square of half side
-## `radius` on the wall along (ux, uy)) and ground marks (Renderer.GroundMark:
+## Lay out this frame's wall marks (View.WallMark: a square of half side
+## `radius` on the wall along (ux, uy)) and ground marks (View.GroundMark:
 ## a rectangle at z, `reach` along `angle` and `width` across, both halves),
 ## as far as the old renderer drew them (15 and 26 cells).
 func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> void:
@@ -268,7 +268,7 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 	var fy := sin(angle)
 	var buf := PackedFloat32Array()
 	for item: Variant in walls:
-		var m := item as Renderer.WallMark
+		var m := item as View.WallMark
 		if m == null:
 			continue
 		var d := (m.x - cam.x) * fx + (m.y - cam.y) * fy
@@ -306,7 +306,7 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 			)
 		)
 	for item: Variant in grounds:
-		var g := item as Renderer.GroundMark
+		var g := item as View.GroundMark
 		if g == null or cam.z <= g.z + .015:
 			continue
 		if Vector2(g.x - cam.x, g.y - cam.y).length() > 26.0:

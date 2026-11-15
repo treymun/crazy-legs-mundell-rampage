@@ -108,7 +108,7 @@ func _look(g: Game, at: Vector3) -> void:
 	p.angle = atan2(at.y - p.y, at.x - p.x)
 	var d := Vector2(at.x - p.x, at.y - p.y).length()
 	var top: float = g.world.elevation(at.x, at.y) + at.z
-	p.pitch = clampf((top - p.eye) / maxf(d, .1) * Renderer.base_focal, -40.0, 40.0)
+	p.pitch = clampf((top - p.eye) / maxf(d, .1) * View.base_focal, -40.0, 40.0)
 
 
 func _ticks(g: Game, n: int) -> void:

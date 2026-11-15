@@ -69,7 +69,7 @@ class Piece:
 	var hp := 1.0
 	var broken := false
 	var board: LevelData.Billboard = null
-	var sprite: Renderer.Sprite = null
+	var sprite: View.Sprite = null
 	## The furniture under it that blocks the way (empty: in nobody's way), and
 	## the others that stand on the same.
 	var base := PackedFloat32Array()
@@ -84,7 +84,7 @@ class Bit:
 	var flip := false
 	var roll := 0.0
 	## Its picture once it lies still (made once, drawn from then on).
-	var sprite: Renderer.Sprite = null
+	var sprite: View.Sprite = null
 
 
 ## A side of a block of bits lying still, in cells: a frame asks the view about
@@ -159,7 +159,7 @@ func _find() -> void:
 	var standing: Array = []
 	for board: LevelData.Billboard in world.billboards:
 		standing.append([board.image, board.x, board.y, board.z, board, null])
-	for sprite: Renderer.Sprite in game.props:
+	for sprite: View.Sprite in game.props:
 		standing.append([sprite.image, sprite.x, sprite.y, 0.0, null, sprite])
 	var by_base := {}
 	for row: Array in standing:
@@ -417,10 +417,10 @@ func _place(p: Piece, x: float, y: float) -> void:
 ## The sprite the view draws for a piece out of the fixed sprites
 ## (game_view.gd lists them once and again only when what they show changes:
 ## a piece changes its own in place, so nothing is listed again).
-func _shown(p: Piece) -> Renderer.Sprite:
+func _shown(p: Piece) -> View.Sprite:
 	if p.sprite != null:
 		return p.sprite
-	for s: Renderer.Sprite in game.fixed_sprites:
+	for s: View.Sprite in game.fixed_sprites:
 		if (
 			s.image == p.board.image
 			and absf(s.x - p.board.x) < .001
@@ -431,7 +431,7 @@ func _shown(p: Piece) -> Renderer.Sprite:
 
 
 ## Make sure the block a fixed sprite is in reaches over it, wider or moved.
-func _widen(s: Renderer.Sprite) -> void:
+func _widen(s: View.Sprite) -> void:
 	var index: int = game.fixed_sprites.find(s)
 	if index < 0:
 		return
@@ -628,7 +628,7 @@ func sprites() -> Array:
 			out.append_array(block[3])
 	for b: Bit in bits:
 		if not b.rest and game.in_view(b.x, b.y, b.size + .2):
-			var s: Renderer.Sprite = game.pooled(b.x, b.y, b.image, b.size, b.z)
+			var s: View.Sprite = game.pooled(b.x, b.y, b.image, b.size, b.z)
 			s.flip = b.flip
 			out.append(s)
 	for w: Array in wrecks:
@@ -646,7 +646,7 @@ func _sort_resting() -> void:
 		if not b.rest:
 			continue
 		if b.sprite == null:
-			b.sprite = Renderer.Sprite.new(b.x, b.y, b.image, b.size, b.z)
+			b.sprite = View.Sprite.new(b.x, b.y, b.image, b.size, b.z)
 			b.sprite.flip = b.flip
 		b.sprite.x = b.x
 		b.sprite.y = b.y
@@ -660,7 +660,7 @@ func _sort_resting() -> void:
 		var mx := (key.x + .5) * BLOCK
 		var my := (key.y + .5) * BLOCK
 		var reach := 0.0
-		for s: Renderer.Sprite in by_key[key]:
+		for s: View.Sprite in by_key[key]:
 			reach = maxf(reach, Vector2(s.x - mx, s.y - my).length() + s.height + .3)
 		_resting.append([mx, my, reach, by_key[key]])
 

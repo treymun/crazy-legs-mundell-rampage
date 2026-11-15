@@ -53,7 +53,7 @@ func ground_marks() -> Array:
 				var reach := Vector2(float(mark[0]) - e.x, float(mark[1]) - e.y).length()
 				var at := Vector2(e.x + cos(bearing) * reach, e.y + sin(bearing) * reach)
 				out.append(
-					Renderer.GroundMark.new(
+					View.GroundMark.new(
 						at.x,
 						at.y,
 						game.world.elevation(at.x, at.y) + .003,
@@ -76,7 +76,7 @@ func _lane(e: Enemy, bearing: float) -> Array:
 		var ox := -sin(bearing) * side
 		var oy := cos(bearing) * side
 		out.append(
-			Renderer.GroundMark.new(
+			View.GroundMark.new(
 				e.x + ox + cos(bearing) * length / 2.0,
 				e.y + oy + sin(bearing) * length / 2.0,
 				game.world.stand(e) + .003,

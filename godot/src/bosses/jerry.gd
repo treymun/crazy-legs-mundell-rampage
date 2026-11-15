@@ -197,7 +197,7 @@ func telegraph(e: Enemy, game) -> Array:
 	var line := float(e.get_meta("blitz_line", e.angle))
 	var out := lane_marks(game, e.x, e.y, line, BLITZ_REACH, .55)
 	# Dust kicked up where he digs in.
-	var dig := Renderer.Sprite.new(
+	var dig := View.Sprite.new(
 		e.x - cos(line) * .4,
 		e.y - sin(line) * .4,
 		"fx_puff_%d" % (int(game.clock * 10.0) % 4),
@@ -217,7 +217,7 @@ func looks(e: Enemy, game) -> Array:
 	var top: float = game.world.stand(e) + e.height * e.variant + .05
 	for k in 3:
 		var a: float = game.clock * 6.0 + k * TAU / 3.0
-		var star := Renderer.Sprite.new(
+		var star := View.Sprite.new(
 			e.x + cos(a) * .32, e.y + sin(a) * .32, "fx_glint_%d" % (k % 2), .18, top
 		)
 		star.glow = true

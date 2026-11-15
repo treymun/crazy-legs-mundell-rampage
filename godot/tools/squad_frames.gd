@@ -85,7 +85,7 @@ func _stand(g: Game, at: Vector2, tx: float, ty: float, tz: float) -> void:
 	p.angle = atan2(ty - at.y, tx - at.x)
 	p.eye = .95 + g.world.elevation(at.x, at.y)
 	var d := Vector2(tx - at.x, ty - at.y).length()
-	p.pitch = clampf((tz - p.eye) / maxf(d, .1) * Renderer.base_focal, -50.0, 50.0)
+	p.pitch = clampf((tz - p.eye) / maxf(d, .1) * View.base_focal, -50.0, 50.0)
 	p.vx = 0.0
 	p.vy = 0.0
 

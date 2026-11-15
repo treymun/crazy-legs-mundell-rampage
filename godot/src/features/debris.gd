@@ -246,7 +246,7 @@ func sprites() -> Array:
 				name = "fx_ember_%d" % (int(bit.age * 9.0) % 2)
 			"smoke":
 				name = "fx_smoke_%d" % mini(3, int(bit.age / bit.life * 4.0))
-		var s: Renderer.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
+		var s: View.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = bit.kind == "ember"
 		s.translucent = bit.kind == "smoke"
 		out.append(s)
@@ -264,5 +264,5 @@ func ground_marks() -> Array:
 			var picture := "mark_scorch_%d" % int(s[5])
 			if float(s[7]) >= 0.0:
 				picture = game.art.faded_art(picture, 1.0 - (game.clock - float(s[7])) / FADE)
-			out.append(Renderer.GroundMark.new(s[0], s[1], s[2], s[3], s[4], s[4], picture))
+			out.append(View.GroundMark.new(s[0], s[1], s[2], s[3], s[4], s[4], picture))
 	return out

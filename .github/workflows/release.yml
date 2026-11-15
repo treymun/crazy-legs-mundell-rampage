@@ -75,10 +75,6 @@ jobs:
         run: godot --headless --path godot --script res://tools/quest_reach.gd
       - name: Campaign walkthrough
         run: godot --headless --path godot --script res://tools/bot_campaign.gd
-      - name: Pictures match their references
-        run: |
-          godot --headless --path godot --script res://tools/picture_check.gd --             "out=$RUNNER_TEMP/pictures" annotate 2>&1 | tee pictures.log
-          grep -q "PICTURES OK" pictures.log
       - name: Frame time
         run: |
           # A shared runner is slow and noisy: this only catches a big slowdown.
@@ -87,16 +83,8 @@ jobs:
           godot --headless --path godot --script res://tools/bench.gd -- 120 max=60 2>&1 | tee bench.log
           grep -q "SPEED OK" bench.log
           { echo '### Frame time (headless, CPU side only)'; echo '```'; grep -E "fps|OK|SLOW" bench.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-      - name: Keep the picture check's renders
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pictures
-          path: ${{ runner.temp }}/pictures
-          if-no-files-found: ignore
-
   window:
-    name: Shader view matches the software view
+    name: The 3D view draws every viewpoint
     needs: checks
     runs-on: ubuntu-latest
     steps:
@@ -106,31 +94,22 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 > /dev/null
-      - name: Draw every viewpoint both ways in a real window
-        run: |
-          mkdir -p "$RUNNER_TEMP/views"
-          xvfb-run -a -s "-screen 0 1280x800x24"             godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 --             --view2d --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views" 2>&1 | tee window.log
-          if grep -E "SCRIPT ERROR|Parse Error|SHADER ERROR" window.log; then exit 1; fi
       - name: The 3D view draws every viewpoint
         run: |
           mkdir -p "$RUNNER_TEMP/views3d"
           xvfb-run -a -s "-screen 0 1280x800x24"             godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 --             --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views3d" 2>&1 | tee window3d.log
           if grep -E "SCRIPT ERROR|Parse Error|SHADER ERROR" window3d.log; then exit 1; fi
           test -s "$RUNNER_TEMP/views3d/hickston_01_0_3d.png"
-      - name: Without its lights the shader view matches the software fallback
+      - name: The 3D view matches its references
         run: |
-          godot --headless --path godot --script res://tools/compare_views.gd -- "$RUNNER_TEMP/views"
-      - name: The shader view matches its references
-        run: |
-          godot --headless --path godot --script res://tools/compare_views.gd -- "$RUNNER_TEMP/views" refs
+          godot --headless --path godot --script res://tools/compare_3d.gd -- "$RUNNER_TEMP/views3d" 2>&1 | tee compare3d.log
+          grep -q "PICTURES 3D OK" compare3d.log
       - name: Keep the frames
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: views
-          path: |
-            ${{ runner.temp }}/views
-            ${{ runner.temp }}/views3d
+          path: ${{ runner.temp }}/views3d
           if-no-files-found: ignore
 
   windows:

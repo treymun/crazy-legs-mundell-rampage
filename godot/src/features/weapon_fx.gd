@@ -625,7 +625,7 @@ func sprites() -> Array:
 				var flash := int(bit.age * 11.0 + bit.size * 131.0) % 5 == 0
 				name = "fx_glint_%d" % (1 if flash else 0)
 				glow = flash
-		var s: Renderer.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
+		var s: View.Sprite = game.pooled(bit.x, bit.y, name, bit.size, bit.z)
 		s.glow = glow
 		s.translucent = translucent
 		out.append(s)
@@ -641,14 +641,14 @@ func _along(muzzle: Vector2, mark: Vector2, far: float, u: float) -> Vector2:
 
 
 func _inside(at: Vector2) -> bool:
-	return at.x >= 0.0 and at.y >= 0.0 and at.x < Renderer.WIDTH and at.y < Renderer.VIEW
+	return at.x >= 0.0 and at.y >= 0.0 and at.x < View.WIDTH and at.y < View.VIEW
 
 
 func _segment(c: Canvas, a: Vector2, b: Vector2, colour: Color, width := 1, fast := false) -> void:
 	if not _inside(a) and not _inside(b):
 		return
 	# Cut it at the bottom of the view (the status bar is below).
-	var floor_y := Renderer.VIEW - 1.0
+	var floor_y := View.VIEW - 1.0
 	if a.y > floor_y:
 		a = b.lerp(a, (floor_y - b.y) / maxf(.001, a.y - b.y))
 	elif b.y > floor_y:
@@ -668,7 +668,7 @@ func draw_view(c: Canvas) -> void:
 		jets.clear()
 	var muzzle: Vector2 = Weapons.muzzle_at
 	if muzzle.x < 0.0:
-		muzzle = Vector2(Renderer.WIDTH * .62, Renderer.VIEW * .8)
+		muzzle = Vector2(View.WIDTH * .62, View.VIEW * .8)
 	_draw_streaks(c, muzzle)
 	_draw_milk(c, muzzle)
 	_draw_jets(c, muzzle)
@@ -770,7 +770,7 @@ func _draw_milk(c: Canvas, muzzle: Vector2) -> void:
 	var light: float = game.world.light[game.world.cell(p.x, p.y)]
 	var shade := clampf(.62 + .45 * light, .55, 1.0)
 	var tone := clampi(int(shade * 4.0), 0, 4)
-	var focal := Renderer.base_focal
+	var focal := View.base_focal
 	for k in squirts.size():
 		var squirt: Array = squirts[k]
 		var born: float = squirt[0]
@@ -832,7 +832,7 @@ func _draw_jets(c: Canvas, muzzle: Vector2) -> void:
 	var light: float = game.world.light[game.world.cell(p.x, p.y)]
 	var shade := clampf(.6 + .45 * light, .55, 1.0)
 	var tone := clampi(int(shade * 4.0), 0, 4)
-	var focal := Renderer.base_focal
+	var focal := View.base_focal
 	var frame := int(game.clock * 30.0)
 	for jet: Array in jets:
 		var age: float = game.clock - float(jet[0])
@@ -968,7 +968,7 @@ func ground_marks() -> Array:
 		var dy: float = float(pool[1]) - p.y
 		if dx * dx + dy * dy < 144.0:
 			out.append(
-				Renderer.GroundMark.new(
+				View.GroundMark.new(
 					pool[0],
 					pool[1],
 					pool[2],

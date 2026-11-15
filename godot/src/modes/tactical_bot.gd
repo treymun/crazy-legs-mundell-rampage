@@ -626,7 +626,7 @@ func _fight(game, _st, p: Player, c: Game.Controls, goal: Vector2) -> void:
 	c.turn = clampf(turn, -TURN, TURN)
 	var target: float = game.world.stand(foe) + foe.air + .7
 	var slope := (target - p.eye) / d
-	c.look = clampf(slope * Renderer.base_focal - p.pitch, -3.0, 3.0)
+	c.look = clampf(slope * View.base_focal - p.pitch, -3.0, 3.0)
 	# On target as it means to aim (the wobble in that): some shots go wide.
 	var on := absf(Enemy.angle_delta(want, p.angle)) < maxf(.03, atan(.22 / d))
 	var reaction: float = REACTION[skill]

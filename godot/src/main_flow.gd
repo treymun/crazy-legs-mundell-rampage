@@ -737,7 +737,7 @@ func change_setting(value: int) -> void:
 func _detail_note(detail: int) -> String:
 	if web and not OS.has_feature("threads") and detail != 1:
 		return "VIEW DETAIL SAVED, BUT THIS BROWSER DRAWS LOW: IT RUNS THE VIEW ON ONE CORE."
-	if detail == 3 and (cpu_view or not gpu_ready):
+	if detail == 3 and not gpu_ready:
 		return "VIEW DETAIL HD SAVED. HD NEEDS THE GRAPHICS-CARD VIEW, WHICH IS OFF HERE: HIGH."
 	var said: Array[String] = [
 		"VIEW DETAIL HIGH: 320 PIXELS WIDE, AS THE GAME WAS MADE.",

@@ -1313,10 +1313,10 @@ func recovery_time(relieved := false) -> float:
 
 ## What it looks like this frame. `into` (a sprite fresh from Game.pooled(),
 ## every field at its default) is filled in and handed back instead of a new one.
-func sprite(observer = null, relieved := false, now := -1.0, into: Renderer.Sprite = null):
+func sprite(observer = null, relieved := false, now := -1.0, into: View.Sprite = null):
 	if dormant:
 		return null
-	var out := into if into != null else Renderer.Sprite.new()
+	var out := into if into != null else View.Sprite.new()
 	out.x = x
 	out.y = y
 	out.flip = face_left

@@ -282,7 +282,7 @@ func _may_open(f: Fence) -> bool:
 	for b: LevelData.Billboard in world.billboards:
 		if box.has_point(Vector2(b.x, b.y)):
 			return false
-	for s: Renderer.Sprite in game.props:
+	for s: View.Sprite in game.props:
 		if box.has_point(Vector2(s.x, s.y)):
 			return false
 	for v: PackedFloat32Array in world.collision_volumes:
@@ -615,7 +615,7 @@ func _stand_gap(f: Fence) -> void:
 	var ground := world.ground[f.cell.y * world.width + f.cell.x]
 	var facing := 0.0 if f.along_x else PI * .5
 	for k in 2:
-		var s := Renderer.Sprite.new(f.cell.x + .5, f.cell.y + .5, image, tall, ground)
+		var s := View.Sprite.new(f.cell.x + .5, f.cell.y + .5, image, tall, ground)
 		s.plane = facing + PI * k
 		gaps.append(s)
 
@@ -653,7 +653,7 @@ func _noise(spec: Dictionary, at: Vector2, _z: float) -> void:
 ## cell round `middle`), from `low` to `high`.
 func _drop_marks(middle: Vector2, normal: Vector2, low: float, high: float) -> void:
 	var kept: Array = []
-	for mark: Renderer.WallMark in game.wall_marks:
+	for mark: View.WallMark in game.wall_marks:
 		var off := Vector2(mark.x, mark.y) - middle
 		var on := mark.z >= low - .05 and mark.z <= high + .05
 		if normal == Vector2.ZERO:
@@ -668,7 +668,7 @@ func _drop_marks(middle: Vector2, normal: Vector2, low: float, high: float) -> v
 
 func sprites() -> Array:
 	var out: Array = []
-	for s: Renderer.Sprite in gaps:
+	for s: View.Sprite in gaps:
 		if game.in_view(s.x, s.y, .8):
 			out.append(s)
 	return out

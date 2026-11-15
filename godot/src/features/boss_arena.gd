@@ -865,7 +865,7 @@ func _floods(kind: String, on: bool) -> void:
 		for s in spots:
 			if absf(board.x - float(s[0])) < .3 and absf(board.y - float(s[1])) < .3:
 				board.glow = on
-				for spr: Renderer.Sprite in game.fixed_sprites:
+				for spr: View.Sprite in game.fixed_sprites:
 					if spr.image == board.image and absf(spr.x - board.x) < .01:
 						if absf(spr.y - board.y) < .01:
 							spr.glow = on
@@ -889,7 +889,7 @@ func sprites() -> Array:
 		var n := 2 if f.r > .8 else 1
 		for k in n:
 			var a := k * PI + f.x
-			var spr := Renderer.Sprite.new(
+			var spr := View.Sprite.new(
 				f.x + cos(a) * f.r * .3 * (n - 1),
 				f.y + sin(a) * f.r * .3 * (n - 1),
 				"fx_fire_%d" % ((int(game.clock * 10.0) + k * 2 + int(f.x * 3.0)) % 4),
@@ -903,24 +903,24 @@ func sprites() -> Array:
 		if left < .3 and game.in_view(s.x, s.y, 1.0):
 			# The bolt coming down.
 			var floor2: float = game.world.elevation(s.x, s.y)
-			var col := Renderer.Sprite.new(s.x, s.y, "fx_beam_column", 3.2, floor2 + left * 8.0)
+			var col := View.Sprite.new(s.x, s.y, "fx_beam_column", 3.2, floor2 + left * 8.0)
 			col.glow = true
 			col.translucent = true
 			out.append(col)
 	for l: Lob in lobs:
 		if game.in_view(l.x, l.y, .6):
-			var spr2 := Renderer.Sprite.new(l.x, l.y, l.image, l.size, l.z - l.size * .5)
+			var spr2 := View.Sprite.new(l.x, l.y, l.image, l.size, l.z - l.size * .5)
 			spr2.glow = not l.drift
 			out.append(spr2)
 			if l.kind == "pigskin_bomb":
-				var lit := Renderer.Sprite.new(
+				var lit := View.Sprite.new(
 					l.x, l.y, "fx_fire_%d" % (int(game.clock * 12.0) % 4), .3, l.z
 				)
 				lit.glow = true
 				out.append(lit)
 	for r: Roller in rollers:
 		if game.in_view(r.x, r.y, r.size):
-			var spr3 := Renderer.Sprite.new(r.x, r.y, r.image, r.size, r.z - r.feel.radius)
+			var spr3 := View.Sprite.new(r.x, r.y, r.image, r.size, r.z - r.feel.radius)
 			spr3.flip = int(r.spin) % 2 == 0
 			out.append(spr3)
 	out.append_array(_carriage_sprites())
@@ -936,12 +936,12 @@ func _carriage_sprites() -> Array:
 		return []
 	var out: Array = []
 	var floor_z: float = game.world.elevation(carriage_x, y)
-	var cart := Renderer.Sprite.new(carriage_x, y, "town_headrig", 1.6, floor_z)
+	var cart := View.Sprite.new(carriage_x, y, "town_headrig", 1.6, floor_z)
 	cart.flip = carriage_dir > 0.0
 	out.append(cart)
 	if carriage_moving():
 		for k in 2:
-			var spark := Renderer.Sprite.new(
+			var spark := View.Sprite.new(
 				carriage_x - carriage_dir * (.9 + k * .3),
 				y + (k - .5) * .5,
 				"fx_sparks_%d" % ((int(game.clock * 14.0) + k) % 3),
@@ -958,7 +958,7 @@ func ground_marks() -> Array:
 	var w: LevelData = game.world
 	for f: Fire in fires:
 		out.append(
-			Renderer.GroundMark.new(
+			View.GroundMark.new(
 				f.x, f.y, w.elevation(f.x, f.y) + .004, f.x, f.r * 1.1, f.r * 1.1, "mark_scorch_0"
 			)
 		)
@@ -971,20 +971,20 @@ func ground_marks() -> Array:
 			var y := s.y + sin(a) * r
 			if not w.blocked(x, y, .05):
 				out.append(
-					Renderer.GroundMark.new(
+					View.GroundMark.new(
 						x, y, w.elevation(x, y) + .005, a, .2, .2, "mark_warning"
 					)
 				)
 		var fill := .2 + .9 * t
 		out.append(
-			Renderer.GroundMark.new(
+			View.GroundMark.new(
 				s.x, s.y, w.elevation(s.x, s.y) + .006, 0.0, fill, fill, "mark_slam"
 			)
 		)
 	for l: Lane in lanes:
 		var half := l.length * .5
 		out.append(
-			Renderer.GroundMark.new(
+			View.GroundMark.new(
 				l.x + cos(l.angle) * half,
 				l.y + sin(l.angle) * half,
 				w.elevation(l.x, l.y) + .004,
@@ -1002,7 +1002,7 @@ func ground_marks() -> Array:
 		var y2 := float(track[2])
 		if int(game.clock * 6.0) % 2 == 0:
 			out.append(
-				Renderer.GroundMark.new(
+				View.GroundMark.new(
 					(x0 + x1) * .5,
 					y2,
 					w.elevation(x0, y2) + .004,

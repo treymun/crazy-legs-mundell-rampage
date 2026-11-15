@@ -625,7 +625,7 @@ class Gallery:
 
 	func sprite(game):
 		var t: Vector3 = TARGETS[index] + Vector3(offset.x, offset.y, 0.0)
-		var out := Renderer.Sprite.new(
+		var out := View.Sprite.new(
 			t.x,
 			t.y,
 			"county_gallery_target",
@@ -674,7 +674,7 @@ class Gallery:
 		var ax := cos(p.view_angle())
 		var ay := sin(p.view_angle())
 		var reach: float = dx * ax + dy * ay
-		var hit_z: float = p.eye + reach * (p.pitch + p.sway) / Renderer.base_focal
+		var hit_z: float = p.eye + reach * (p.pitch + p.sway) / View.base_focal
 		if (
 			reach > 0.0
 			and absf(dx * ay - dy * ax) < RADIUS
@@ -710,7 +710,7 @@ var speaker = null
 
 var level: LevelData
 var world: LevelData
-var renderer: Renderer
+var view: View
 
 # ----------------------------------------------------------------- players
 # src/players.gd says how this works (the multiplayer foundation, CLAUDE.md).
@@ -956,7 +956,7 @@ var bob_scale := 1.0
 ## 0 = automatic (one band per core, capped at 16). Set by the options screen.
 var look_bands := 0
 ## With gpu_look the grain, vignette, wash and brightness table are applied by
-## palette.gdshader instead of in draw(); main.gd turns it on when there is a
+## display.gdshader instead of in draw(); main.gd turns it on when there is a
 ## window. look_live / tone_live say which of them this frame wants.
 var gpu_look := false
 ## With `layered` (and gpu_look) the display shader also draws the sky, floors
@@ -1083,10 +1083,6 @@ var showing_tally: bool:
 
 # -------------------------------------------------------------- configure
 
-var _render_open := false
-## Called (by main_state.gd: scene_layers.gd early()) once the gun and HUD are
-## painted and before the draw waits for the renderer's bands.
-var scene_hook := Callable()
 
 ## rampage2.look_pass tables: wash tint, vignette and ordered dither.
 var _grit_r := PackedFloat32Array()
@@ -1187,11 +1183,11 @@ func acting_local() -> bool:
 	return player == local_player
 
 
-## A sprite for this frame's list from the pool, as Renderer.Sprite.new()
+## A sprite for this frame's list from the pool, as View.Sprite.new()
 ## would make it (every other field at its default).
-func pooled(px: float, py: float, image: String, h: float, pz: float) -> Renderer.Sprite:
+func pooled(px: float, py: float, image: String, h: float, pz: float) -> View.Sprite:
 	if sprite_pool_n < sprite_pool.size():
-		var s: Renderer.Sprite = sprite_pool[sprite_pool_n]
+		var s: View.Sprite = sprite_pool[sprite_pool_n]
 		sprite_pool_n += 1
 		s.x = px
 		s.y = py
@@ -1206,7 +1202,7 @@ func pooled(px: float, py: float, image: String, h: float, pz: float) -> Rendere
 		s.hurt = 0.0
 		s.who = null
 		return s
-	var made := Renderer.Sprite.new(px, py, image, h, pz)
+	var made := View.Sprite.new(px, py, image, h, pz)
 	sprite_pool.append(made)
 	sprite_pool_n += 1
 	return made

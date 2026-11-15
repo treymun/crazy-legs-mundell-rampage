@@ -274,8 +274,8 @@ static func draw_flash(c: Canvas, game) -> void:
 	if white <= .02:
 		return
 	var level := clampi(roundi(white * 10.0), 1, 10)
-	var w := Renderer.WIDTH
-	var h := Renderer.VIEW
+	var w := View.WIDTH
+	var h := View.VIEW
 	if not _whites.has(level):
 		var data := PackedByteArray()
 		data.resize(w * h * 4)

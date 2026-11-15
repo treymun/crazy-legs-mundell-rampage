@@ -148,13 +148,7 @@ var tone_sent = null
 ## True when the display shader does the view's look pass (a real window).
 var gpu_look := false
 var gpu_ready := false
-## The display shader also composes the game view (sky, floors, ceilings and
-## the renderer's layers); see scene_layers.gd. --cpu-view keeps it in software.
-var layers: SceneLayers
-var cpu_view := false
-## The 3D view (view3d/world_view.gd) draws the game, with a window; --view2d
-## keeps the old renderer for comparison pictures.
-var view3d_on := true
+## The 3D view (view3d/world_view.gd): made the first time play is drawn with a window.
 var world_view: WorldView3D
 ## The menu screens built from Control nodes (src/ui/): a state with a screen
 ## there is drawn and driven by it, not by render() and key().
@@ -191,23 +185,6 @@ const CHAPTER_PACKS := {
 	"speedway": "music_speedway",
 	"mothership": "music_mothership",
 }
-## The first time the shader composes the view it is checked, at a grid of
-## points, against the software picture of the same frame (_check_view). A
-## graphics driver the shader does not suit would show a picture that does not
-## match, and the view then stays in software for the session.
-## 0 not checked yet, 1 matched, -1 did not.
-var view_check := 0
-var _view_checking := false
-## The start-up check's tries: frames judged blank (the shader's picture not
-## up yet), and mismatches in a row. Only two real mismatches running drop
-## the session to software; after VIEW_TRIES blank frames it keeps the
-## graphics-card view.
-var _view_blank := 0
-var _view_misses := 0
-const VIEW_TRIES := 90
-## --view-check prints the result of that check, and --view-broken makes the
-## shader's picture wrong on purpose, to see the fallback work.
-var view_check_report := false
 ## --launch-check: a player's launch in any build, the exported game too: the
 ## settings' window mode, then a chapter, and after LAUNCH_CHECK_SECONDS of play
 ## one line saying whether the view is the graphics card's and HD is on; then
@@ -215,7 +192,6 @@ var view_check_report := false
 var launch_check := false
 var launch_clock := 0.0
 const LAUNCH_CHECK_SECONDS := 4.0
-var view_broken := false
 ## --view-tour=<shots.json> --view-out=<dir>: for every viewpoint in the list
 ## save the window twice, composed by the shader (<tag>_gpu.png) and in software
 ## (<tag>_cpu.png), from the same instant. For checking one against the other.
@@ -720,7 +696,7 @@ func _char_for(code: int) -> int:
 
 
 ## period_palette.apply() on the CPU: the screen gets the 256-colour grade from
-## palette.gdshader, but a saved screenshot has to carry it in its pixels, as
+## display.gdshader, but a saved screenshot has to carry it in its pixels, as
 ## the reference's does.
 func palettised(source: PackedByteArray) -> PackedByteArray:
 	var lut := art.palette
@@ -853,7 +829,6 @@ func _exit_tree() -> void:
 		crash_log.close()
 		crash_log = null
 	Weapons.Armory.settle()
-	Renderer.stop_crew()
 	if canvas != null:
 		canvas.gpu_free()
 
@@ -864,7 +839,7 @@ func _save_view() -> void:
 	get_tree().quit()
 
 
-## Hand this frame's look to the display shader (see palette.gdshader).
+## Hand this frame's look to the display shader (see display.gdshader).
 func _look_uniforms() -> void:
 	var playing := gpu_look and game != null and state not in MENU_STATES
 	var look_on := playing and game.look_live
@@ -892,7 +867,7 @@ func _look_uniforms() -> void:
 
 
 ## The palette table, the grain frames and the brightness table, as one
-## texture (the shader may only sample so many): see palette.gdshader `looks`.
+## texture (the shader may only sample so many): see display.gdshader `looks`.
 func _grain_tone(table: PackedByteArray) -> void:
 	var looks := Image.create_empty(936, 128 + WIDTH + 1, false, Image.FORMAT_RGB8)
 	looks.blit_rect(
@@ -1172,7 +1147,6 @@ func render() -> void:
 		canvas.gpu_begin()
 	if game != null:
 		game.scene_live = false
-	var checking := false
 	# The menus' little motions follow SCENERY MOTION, SCREEN FLASH and LAMP FLICKER.
 	var steady := int(options.get("flashes", 0)) != 0 or int(options.get("flicker", 1)) == 0
 	menu.clock = menu_clock
@@ -1223,21 +1197,10 @@ func render() -> void:
 	elif game != null:
 		gpu_look = gpu_ready and not cpu_look and (not smoke or view_shot != "")
 		game.gpu_look = gpu_look
-		# One renderer: with a window the shader composes the view, always (the
-		# software view is the fallback when the driver check fails, cpu_look).
-		game.layered = gpu_look and canvas.gpu and not cpu_view
-		game.view3d = view3d_on and game.layered
-		# The frame the start-up check judges (_check_view) is drawn as the
-		# software view draws it: at HIGH (render_state.gd hd_held) and without
-		# lights, glows, fog and grade, which only the shader has (with them a
-		# moody level like Hickston failed the check and kept the whole session
-		# in software). The frame after is drawn as set.
-		checking = _view_unchecked()
-		game.renderer.hd_held = checking
-		if checking:
-			Effects.enabled = false
-		# The shader's camera, lights and weather go over while the bands draw.
-		game.scene_hook = layers.early.bind(game) if game.layered else Callable()
+		# With a window the 3D view draws the world (view3d/world_view.gd); a
+		# headless run draws no world at all, only the canvas.
+		game.layered = gpu_look and canvas.gpu
+		game.view3d = game.layered
 		game.draw(canvas, int(options["crosshair"]), true)
 		_frame_3d()
 		if TacticalScreens.open and Modes.is_tactical(game) and not game.showing_tally:
@@ -1274,18 +1237,6 @@ func render() -> void:
 		frame_texture.update(frame_image)
 	if canvas.gpu:
 		palette_material.set_shader_parameter("base_on", canvas.base_set)
-	if game != null and game.scene_live and canvas.layer:
-		var handed := Time.get_ticks_usec()
-		layers.frame(game, canvas)
-		layers_us = Time.get_ticks_usec() - handed
-		if view_broken:
-			palette_material.set_shader_parameter("scene_on", false)
-		if checking and not _view_checking:
-			_check_view()
-	else:
-		layers.off()
-	if checking:
-		Effects.enabled = int(options.get("lights", 1)) != 0
 	_apply_view()
 
 
@@ -1299,7 +1250,9 @@ func _frame_3d() -> void:
 			add_child(world_view)
 			palette_material.set_shader_parameter("view3d_tex", world_view.texture())
 		world_view.frame(game)
-		palette_material.set_shader_parameter("view_mul", 2 if game.renderer.detail < 0 else 1)
+		palette_material.set_shader_parameter("view_mul", 2 if game.view.detail < 0 else 1)
+		palette_material.set_shader_parameter("view_div", 1 << maxi(game.view.detail, 0))
+		palette_material.set_shader_parameter("anim_time", fposmod(game.clock, 3600.0))
 		HeatHaze.apply(palette_material, game)
 		palette_material.set_shader_parameter("drunk", game.drunk_k)
 		if game.drunk_k > 0.0:
@@ -1315,99 +1268,4 @@ func _frame_3d() -> void:
 	palette_material.set_shader_parameter("view3d_on", on)
 
 
-## The start-up check of the shader's picture is still to come (_check_view).
-func _view_unchecked() -> bool:
-	if view_check != 0 or touring or state != "play" or game == null or game.view3d:
-		return false
-	if game.clock < .35:
-		return false
-	var rect := view.get_global_rect()
-	return rect.size.x >= WIDTH and rect.size.y >= HEIGHT
 
-
-func _check_view() -> void:
-	var rect := view.get_global_rect()
-	if rect.size.x < WIDTH or rect.size.y < HEIGHT:
-		return
-	_view_checking = true
-	await RenderingServer.frame_post_draw
-	_view_checking = false
-	if game == null or state != "play" or not game.scene_live:
-		return
-	var shown := get_viewport().get_texture().get_image()
-	if shown == null or shown.is_empty():
-		return
-	# The same frame again, in software.
-	var whole := Canvas.new()
-	game.gpu_look = false
-	game.layered = false
-	game.draw(whole, int(options["crosshair"]), true)
-	game.gpu_look = gpu_look
-	var want := whole.pixels
-	var lut := art.palette
-	var tried := 0
-	var off := 0
-	var lit := 0
-	# The grab is the window's own pixels; the view's rect is in its units.
-	var seen := get_viewport().get_visible_rect().size
-	var scale := Vector2(
-		shown.get_width() / maxf(1.0, seen.x), shown.get_height() / maxf(1.0, seen.y)
-	)
-	for gy in 10:
-		for gx in 14:
-			var px := 30 + gx * 20
-			var py := 10 + gy * 13
-			var sx := int((rect.position.x + (px + .5) / WIDTH * rect.size.x) * scale.x)
-			var sy := int((rect.position.y + (py + .5) / HEIGHT * rect.size.y) * scale.y)
-			if sx < 0 or sy < 0 or sx >= shown.get_width() or sy >= shown.get_height():
-				continue
-			var o := (py * WIDTH + px) * 3
-			var code := (
-				(((want[o] * 31 + 127) / 255) << 10)
-				| (((want[o + 1] * 31 + 127) / 255) << 5)
-				| ((want[o + 2] * 31 + 127) / 255)
-			)
-			var c := shown.get_pixel(sx, sy)
-			if c.r + c.g + c.b > .06:
-				lit += 1
-			var apart := (
-				absf(c.r * 255.0 - lut[code * 3])
-				+ absf(c.g * 255.0 - lut[code * 3 + 1])
-				+ absf(c.b * 255.0 - lut[code * 3 + 2])
-			)
-			tried += 1
-			if apart > 36.0:
-				off += 1
-	if tried < 40:
-		return
-	if lit * 10 < tried:
-		# A blank grab: the shader's picture is not up yet (a level's first
-		# frames, a window still settling). Not a verdict: look again later,
-		# and after enough blank frames trust the graphics card.
-		_view_blank += 1
-		if view_check_report:
-			print("view check: blank frame %d (%d of %d points lit)" % [_view_blank, lit, tried])
-		if _view_blank >= VIEW_TRIES:
-			view_check = 1
-		return
-	if off * 3 > tried:
-		_view_misses += 1
-		if view_check_report:
-			print("view check: %d of %d points differ (miss %d)" % [off, tried, _view_misses])
-		if _view_misses < 2:
-			return
-	view_check = 1 if off * 3 <= tried else -1
-	if view_check_report:
-		print("view check: %d of %d points differ" % [off, tried])
-		# Both pictures, for a look at what differed (the report is a tool's).
-		var dump := OS.get_cache_dir().path_join("view_check")
-		shown.save_png(dump + "_shown.png")
-		Image.create_from_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, want).save_png(
-			dump + "_software.png"
-		)
-		print("view check pictures: %s_*.png  rect %s  image %s" % [dump, rect, shown.get_size()])
-	if view_check < 0:
-		cpu_view = true
-		print(
-			"The shader's view does not match the software picture; keeping the view in software."
-		)

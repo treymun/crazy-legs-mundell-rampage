@@ -390,7 +390,7 @@ func ammo_rail(c: Canvas, armory: Weapons.Armory) -> void:
 				]
 			)
 		):
-			c.fill_rect(x, Renderer.VIEW + 1, 39, 6, Color(51 / 255.0, 33 / 255.0, 25 / 255.0))
+			c.fill_rect(x, View.VIEW + 1, 39, 6, Color(51 / 255.0, 33 / 255.0, 25 / 255.0))
 			var token := "9"
 			match armory.active:
 				Weapons.ROCKET:
@@ -412,33 +412,33 @@ func ammo_rail(c: Canvas, armory: Weapons.Armory) -> void:
 				token = "2" if TacticalShop.SIDEARMS.has(armory.active) else "1"
 				if Weapons.THROWN_GUNS.has(armory.active):
 					token = "4"
-			text(c, token, x + 8, Renderer.VIEW + 1, "body", AMBER, true, false)
+			text(c, token, x + 8, View.VIEW + 1, "body", AMBER, true, false)
 			var value := (
 				"-" if armory.active == Weapons.SLING else str(armory.reserve[armory.active])
 			)
 			if Weapons.CAPACITY[armory.active] > 0:
 				# A gun with a magazine (the machine gun's belt, the deer rifle's five).
 				value = "%d/%d" % [armory.loaded[armory.active], armory.reserve[armory.active]]
-			text(c, value, x + 25, Renderer.VIEW + 1, "body", INK, true, false)
+			text(c, value, x + 25, View.VIEW + 1, "body", INK, true, false)
 			continue
 		if armory.active == slot:
 			c.line(
 				x,
-				Renderer.VIEW + 7,
+				View.VIEW + 7,
 				mini(314, x + 39),
-				Renderer.VIEW + 7,
+				View.VIEW + 7,
 				Color(189 / 255.0, 132 / 255.0, 79 / 255.0)
 			)
-			c.fill_rect(x, Renderer.VIEW + 1, 39, 6, Color(51 / 255.0, 33 / 255.0, 25 / 255.0))
+			c.fill_rect(x, View.VIEW + 1, 39, 6, Color(51 / 255.0, 33 / 255.0, 25 / 255.0))
 		if armory.owned[slot]:
-			c.blit_rgba(ammo_rgba[i], 12, 6, x + 8 - 6, Renderer.VIEW + 4 - 3)
+			c.blit_rgba(ammo_rgba[i], 12, 6, x + 8 - 6, View.VIEW + 4 - 3)
 		var pool := Weapons.CROSSBOW if slot == Weapons.DYNAMITE else slot
 		var value2 := str(armory.reserve[pool]) if armory.owned[slot] else "-"
 		text(
 			c,
 			value2,
 			x + 25,
-			Renderer.VIEW + 1,
+			View.VIEW + 1,
 			"body",
 			INK if armory.owned[slot] else DIM,
 			true,
@@ -793,7 +793,7 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			PixelType.clear_small
 		]
 	)
-	var head := Renderer.VIEW * Canvas.WIDTH * 3
+	var head := View.VIEW * Canvas.WIDTH * 3
 	if c.gpu:
 		# Drawn in software only when it changes, then shown as one texture.
 		if key != _bar_key or _bar_texture == null:
@@ -803,7 +803,7 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			_draw_bar(scratch, game, armory)
 			var rows := Image.create_from_data(
 				Canvas.WIDTH,
-				Canvas.HEIGHT - Renderer.VIEW,
+				Canvas.HEIGHT - View.VIEW,
 				false,
 				Image.FORMAT_RGB8,
 				scratch.pixels.slice(head)
@@ -813,7 +813,7 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			else:
 				_bar_texture.update(rows)
 			_bar_key = key
-		c.gpu_texture(_bar_texture, 0, Renderer.VIEW, Canvas.WIDTH, Canvas.HEIGHT - Renderer.VIEW)
+		c.gpu_texture(_bar_texture, 0, View.VIEW, Canvas.WIDTH, Canvas.HEIGHT - View.VIEW)
 	elif key == _bar_key and _bar.size() == c.pixels.size() - head:
 		var joined := c.pixels.slice(0, head)
 		joined.append_array(_bar)
@@ -832,7 +832,7 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	var shown := plate_5v5 if not team_bar.is_empty() else plate
 	if county != null:
 		shown = plate_county
-	_blit_rgb(c, shown, plate_w, plate_h, 0, Renderer.VIEW)
+	_blit_rgb(c, shown, plate_w, plate_h, 0, View.VIEW)
 	ammo_rail(c, armory)
 	var slot := armory.active
 	var amount := "-"
@@ -843,19 +843,19 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	elif slot not in [Weapons.CROWBAR, Weapons.SLING]:
 		amount = str(armory.loaded[slot])
 	var health := roundi(_shown_health) if _shown_for == game else maxi(0, game.player.health)
-	number(c, str(health), 29, Renderer.VIEW + 23, health <= 25)
+	number(c, str(health), 29, View.VIEW + 23, health <= 25)
 	if health <= 25 and int(game.clock * 3) % 2 == 0:
 		c.line(
 			14,
-			Renderer.VIEW + 37,
+			View.VIEW + 37,
 			44,
-			Renderer.VIEW + 37,
+			View.VIEW + 37,
 			Color(214 / 255.0, 74 / 255.0, 48 / 255.0),
 			2
 		)
-	number(c, amount, 77, Renderer.VIEW + 23, amount == "0")
+	number(c, amount, 77, View.VIEW + 23, amount == "0")
 	if Weapons.CAPACITY[slot] > 0 and armory.loaded[slot] == 0 and armory.reserve[slot] > 0:
-		text(c, "RELOAD", 77, Renderer.VIEW + 36, "mini", AMBER, true, false)
+		text(c, "RELOAD", 77, View.VIEW + 36, "mini", AMBER, true, false)
 	if not team_bar.is_empty():
 		_draw_team_bar(c, game, team_bar)
 		return
@@ -865,7 +865,7 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	for i in 2:
 		var name := "key_brass" if i == 0 else "key_steel"
 		var cx := 111 + 8 * i
-		var cy := Renderer.VIEW + 28 + 3 * i
+		var cy := View.VIEW + 28 + 3 * i
 		if game.keys.has(name):
 			var image := icon(name, 9, 12)
 			c.blit_rgba(
@@ -881,13 +881,13 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			c.line(cx, cy, cx, cy + 4, Color(68 / 255.0, 53 / 255.0, 43 / 255.0))
 	_draw_face(c, game.face_name())
 	if game.hud_style:
-		gauge(c, 176, Renderer.VIEW + 10, "GUT", game.player.gut)
-		gauge(c, 222, Renderer.VIEW + 10, "DRUNK", game.player.drunk)
+		gauge(c, 176, View.VIEW + 10, "GUT", game.player.gut)
+		gauge(c, 222, View.VIEW + 10, "DRUNK", game.player.drunk)
 	else:
 		meter(
 			c,
 			176,
-			Renderer.VIEW + 12,
+			View.VIEW + 12,
 			"GUT",
 			game.player.gut,
 			[
@@ -899,7 +899,7 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		meter(
 			c,
 			176,
-			Renderer.VIEW + 27,
+			View.VIEW + 27,
 			"DRUNK",
 			game.player.drunk,
 			[
@@ -909,19 +909,19 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 			]
 		)
 	var active: String = ITEMS[game.inventory_slot]
-	blit_icon(c, active, 13, 13, 283, Renderer.VIEW + 27)
+	blit_icon(c, active, 13, 13, 283, View.VIEW + 27)
 	var count: int = game.inventory.get(active, 0)
 	text(
 		c,
 		str(count),
 		300,
-		Renderer.VIEW + 24,
+		View.VIEW + 24,
 		"body",
 		AMBER if count else Color(191 / 255.0, 161 / 255.0, 119 / 255.0),
 		true,
 		true
 	)
-	text(c, SHORT_LABELS[game.inventory_slot], 291, Renderer.VIEW + 34, "mini", INK, true, false)
+	text(c, SHORT_LABELS[game.inventory_slot], 291, View.VIEW + 34, "mini", INK, true, false)
 
 
 ## The 5v5 modes' part of the status bar: the vest in the third box (a hard
@@ -934,17 +934,17 @@ func _draw_team_bar(c: Canvas, game: Game, s: Array) -> void:
 		c,
 		str(vest) if vest > 0 else "NONE",
 		115,
-		Renderer.VIEW + 24,
+		View.VIEW + 24,
 		"body",
 		AMBER if vest > 0 else Color8(150, 110, 80),
 		true,
 		true
 	)
 	if bool(s[1]):
-		text(c, "+HAT", 115, Renderer.VIEW + 35, "mini", AMBER, true, false)
+		text(c, "+HAT", 115, View.VIEW + 35, "mini", AMBER, true, false)
 	_draw_face(c, game.face_name())
-	text(c, String(s[5]), 222, Renderer.VIEW + 10, "body", s[6], true, true)
-	text(c, String(s[7]), 222, Renderer.VIEW + 21, "mini", INK, true, false)
+	text(c, String(s[5]), 222, View.VIEW + 10, "body", s[6], true, true)
+	text(c, String(s[7]), 222, View.VIEW + 21, "mini", INK, true, false)
 	var gear: Array = []
 	if bool(s[3]):
 		gear.append("BOMB")
@@ -956,14 +956,14 @@ func _draw_team_bar(c: Canvas, game: Game, s: Array) -> void:
 			c,
 			"  ".join(PackedStringArray(gear)),
 			222,
-			Renderer.VIEW + 30,
+			View.VIEW + 30,
 			"mini",
 			Color8(255, 96, 60) if flash else AMBER,
 			true,
 			false
 		)
 	var thrown := int(s[4])
-	text(c, str(thrown), 292, Renderer.VIEW + 24, "body", AMBER if thrown else INK, true, true)
+	text(c, str(thrown), 292, View.VIEW + 24, "body", AMBER if thrown else INK, true, true)
 
 
 ## What COUNTY RUN's part of the bar shows (its key: drawn again only when
@@ -985,7 +985,7 @@ func _draw_county_bar(c: Canvas, game: Game, f) -> void:
 		c,
 		str(armor) if armor > 0 else "NONE",
 		115,
-		Renderer.VIEW + 24,
+		View.VIEW + 24,
 		"body",
 		AMBER if armor > 0 else Color8(150, 110, 80),
 		true,
@@ -995,7 +995,7 @@ func _draw_county_bar(c: Canvas, game: Game, f) -> void:
 	var a: Weapons.Armory = game.armory
 	for i in 3:
 		var gun := int(f.slots[i]) if i < f.slots.size() else -1
-		var r := Rect2i(173, Renderer.VIEW + 6 + i * 11, 96, 10)
+		var r := Rect2i(173, View.VIEW + 6 + i * 11, 96, 10)
 		var on := gun >= 0 and gun == a.active
 		LobbyScreens.box(
 			c,
@@ -1035,11 +1035,11 @@ func _draw_county_bar(c: Canvas, game: Game, f) -> void:
 			true,
 			true
 		)
-	text(c, str(f.level), 292, Renderer.VIEW + 22, "heading", AMBER, true, true)
+	text(c, str(f.level), 292, View.VIEW + 22, "heading", AMBER, true, true)
 	var need := CountyData.xp_to_next(f.level)
 	var fill := clampi(roundi(30.0 * f.xp / maxf(1.0, need)), 0, 30)
-	c.fill_rect(277, Renderer.VIEW + 36, 30, 3, CountyScreens.XP_BACK)
-	c.fill_rect(277, Renderer.VIEW + 36, fill, 3, CountyScreens.XP_FILL)
+	c.fill_rect(277, View.VIEW + 36, 30, 3, CountyScreens.XP_BACK)
+	c.fill_rect(277, View.VIEW + 36, fill, 3, CountyScreens.XP_FILL)
 
 
 func _draw_face(c: Canvas, face_name: String) -> void:
@@ -1080,7 +1080,7 @@ func _draw_face(c: Canvas, face_name: String) -> void:
 			int(scaled["w"]),
 			int(scaled["h"]),
 			129 + int(scaled["x"]),
-			Renderer.VIEW + 7 + int(scaled["y"]),
+			View.VIEW + 7 + int(scaled["y"]),
 			"face|" + face_name
 		)
 

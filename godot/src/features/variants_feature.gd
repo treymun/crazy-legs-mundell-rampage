@@ -123,7 +123,7 @@ func sprites() -> Array:
 		var a := e.angle + (1.35 if aside else 0.0)
 		var x := e.x + cos(a) * (e.radius + .1)
 		var y := e.y + sin(a) * (e.radius + .1)
-		var door := Renderer.Sprite.new(
+		var door := View.Sprite.new(
 			x, y, Variants.DOOR_PICTURE, .82, game.world.elevation(x, y) + .1
 		)
 		door.plane = a - PI * .5
@@ -135,7 +135,7 @@ func sprites() -> Array:
 		kept.append(row)
 		if not game.in_view(float(row[0]), float(row[1]), 1.0):
 			continue
-		var lying := Renderer.Sprite.new(
+		var lying := View.Sprite.new(
 			float(row[0]),
 			float(row[1]),
 			Variants.DOOR_PICTURE,

@@ -35,7 +35,7 @@ func attach() -> void:
 
 
 func _motion() -> int:
-	return int(game.renderer.world_motion)
+	return int(game.view.world_motion)
 
 
 func _tick(dt: float) -> void:
@@ -116,7 +116,7 @@ func sprites() -> Array:
 	var out: Array = []
 	for m: Mote in motes:
 		if m.crow:
-			var crow: Renderer.Sprite = game.pooled(
+			var crow: View.Sprite = game.pooled(
 				m.x, m.y, "fx_crow_%d" % (int(m.age * 5.0 + m.phase) % 2), .32, m.z
 			)
 			crow.flip = m.vx < 0.0
@@ -124,7 +124,7 @@ func sprites() -> Array:
 		else:
 			# Lit a moment, dark a while.
 			var lit := fmod(m.age * .9 + m.phase, 2.4) < .7
-			var fly: Renderer.Sprite = game.pooled(
+			var fly: View.Sprite = game.pooled(
 				m.x, m.y, "fx_firefly_%d" % (0 if lit else 1), .035, m.z
 			)
 			fly.glow = lit

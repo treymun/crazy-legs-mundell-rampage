@@ -29,7 +29,7 @@ func steer(game: Game) -> Game.Controls:
 		c.turn = clampf(turn, -.14, .14)
 		var top: float = game.world.stand(foe) + foe.z + foe.height * .55
 		var gap := Vector2(foe.x - p.x, foe.y - p.y).length()
-		c.look = clampf((top - p.eye) / maxf(.5, gap) * Renderer.base_focal - p.pitch, -3.0, 3.0)
+		c.look = clampf((top - p.eye) / maxf(.5, gap) * View.base_focal - p.pitch, -3.0, 3.0)
 		var reach := 1.9 if melee else 30.0
 		c.fire = absf(turn) < .09 and gap < reach
 		c.alt_fire = a.active == Weapons.SHOTGUN and gap < 3.0 and absf(turn) < .09

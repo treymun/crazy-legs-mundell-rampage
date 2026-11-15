@@ -132,7 +132,7 @@ func _stand(g: Game, x: float, y: float, tx: float, ty: float, tz: float) -> voi
 	p.angle = atan2(ty - y, tx - x)
 	p.eye = .95 + g.world.elevation(x, y)
 	var d := Vector2(tx - x, ty - y).length()
-	p.pitch = clampf((tz - p.eye) / maxf(d, .1) * Renderer.base_focal, -50.0, 50.0)
+	p.pitch = clampf((tz - p.eye) / maxf(d, .1) * View.base_focal, -50.0, 50.0)
 	p.vx = 0.0
 	p.vy = 0.0
 	p.sway = 0.0
@@ -161,7 +161,7 @@ func _ticks(g: Game, n: int, fire := false) -> void:
 ## Nothing standing between a and b to hide the view (a post, a tree).
 func _clear(g: Game, a: Vector2, b: Vector2) -> bool:
 	var things: Array = []
-	for s: Renderer.Sprite in g.props:
+	for s: View.Sprite in g.props:
 		things.append(Vector2(s.x, s.y))
 	for board: LevelData.Billboard in g.world.billboards:
 		things.append(Vector2(board.x, board.y))

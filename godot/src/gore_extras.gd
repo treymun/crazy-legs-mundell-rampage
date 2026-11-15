@@ -45,7 +45,7 @@ static func pool(gore, e: Enemy) -> void:
 	var target: float = (
 		POOL_SIZE * clampf(e.radius / .3, .7, 1.6) * gore.dice.randf_range(.85, 1.15)
 	)
-	var mark := Renderer.GroundMark.new(
+	var mark := View.GroundMark.new(
 		e.x, e.y, w.stand(e) + .005, gore.dice.randf() * TAU, .06, .06, image
 	)
 	gore.blood_marks.append(mark)
@@ -60,7 +60,7 @@ static func grow(gore, dt: float) -> void:
 		return
 	var left: Array = []
 	for p: Array in gore.pools:
-		var mark: Renderer.GroundMark = p[0]
+		var mark: View.GroundMark = p[0]
 		mark.reach = minf(float(p[1]), mark.reach + POOL_GROW * dt)
 		mark.width = mark.reach
 		if mark.reach < float(p[1]):
@@ -182,7 +182,7 @@ static func oil(gore, x: float, y: float, radius: float) -> void:
 	if gore.game.world.blocked(x, y):
 		return
 	gore.blood_marks.append(
-		Renderer.GroundMark.new(
+		View.GroundMark.new(
 			x,
 			y,
 			gore.game.world.elevation(x, y) + .004,
@@ -206,7 +206,7 @@ static func streak(
 		return
 	var length := clampf(amount * .018, .45, 1.1)
 	gore.blood_marks.append(
-		Renderer.GroundMark.new(
+		View.GroundMark.new(
 			at.x,
 			at.y,
 			gore.game.world.elevation(at.x, at.y) + .004,
@@ -261,7 +261,7 @@ static func prints(gore) -> void:
 		return
 	# Standing in a pool: the boots take it up.
 	for i in range(gore.blood_marks.size() - 1, maxi(-1, gore.blood_marks.size() - 40), -1):
-		var mark: Renderer.GroundMark = gore.blood_marks[i]
+		var mark: View.GroundMark = gore.blood_marks[i]
 		if mark.image.begins_with("mark_print") or mark.image.begins_with("mark_streak"):
 			continue
 		if Vector2(mark.x, mark.y).distance_to(here) < mark.reach * .55 and mark.reach > .2:
@@ -284,7 +284,7 @@ static func prints(gore) -> void:
 		return
 	var size := .16 * (.6 + .4 * float(gore.bloody) / PRINTS)
 	gore.blood_marks.append(
-		Renderer.GroundMark.new(
+		View.GroundMark.new(
 			x,
 			y,
 			game.world.stand(p) + .004,

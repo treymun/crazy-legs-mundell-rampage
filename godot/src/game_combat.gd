@@ -385,7 +385,7 @@ func sights_on_enemy() -> bool:
 		return false
 	var p := player
 	var angle := p.view_angle()
-	var slope := (p.pitch + p.sway) / Renderer.base_focal
+	var slope := (p.pitch + p.sway) / View.base_focal
 	for e: Enemy in enemies:
 		if not e.hostile or not e.alive:
 			continue
@@ -933,7 +933,7 @@ func ground_marks() -> Array:
 		for row in world.dress_marks:
 			var image := String(row[6])
 			dress_list.append(
-				Renderer.GroundMark.new(
+				View.GroundMark.new(
 					float(row[0]),
 					float(row[1]),
 					float(row[2]),
@@ -952,7 +952,7 @@ func ground_marks() -> Array:
 		var reach := dress_at[i * 3 + 2]
 		if (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y) < reach * reach:
 			marks.append(dress_list[i])
-	for stain: Renderer.GroundMark in gore_fx.blood_marks:
+	for stain: View.GroundMark in gore_fx.blood_marks:
 		if (stain.x - p.x) * (stain.x - p.x) + (stain.y - p.y) * (stain.y - p.y) < 81.0:
 			marks.append(stain)
 	marks.append_array(Features.ground_marks(self))
@@ -994,7 +994,7 @@ func ground_marks() -> Array:
 					length = step
 				if length > .6:
 					marks.append(
-						Renderer.GroundMark.new(
+						View.GroundMark.new(
 							enemy.x + cos(bearing) * length / 2.0,
 							enemy.y + sin(bearing) * length / 2.0,
 							world.stand(enemy) + .003,
@@ -1022,7 +1022,7 @@ func ground_marks() -> Array:
 					var hx := sx + cos(bearing) * length / 2.0
 					var hy := sy + sin(bearing) * length / 2.0
 					marks.append(
-						Renderer.GroundMark.new(
+						View.GroundMark.new(
 							hx,
 							hy,
 							world.elevation(sx, sy) + .003,
@@ -1044,7 +1044,7 @@ func ground_marks() -> Array:
 		var enemy: Enemy = nearby[i][1]
 		var radius := enemy.radius * (1.03 if enemy.z <= .02 else 1.28)
 		marks.append(
-			Renderer.GroundMark.new(
+			View.GroundMark.new(
 				enemy.x,
 				enemy.y,
 				world.stand(enemy) + .003,
@@ -1057,8 +1057,8 @@ func ground_marks() -> Array:
 	return marks
 
 
-func _spot(x: float, y: float, radius: float, kind: String) -> Renderer.GroundMark:
-	return Renderer.GroundMark.new(
+func _spot(x: float, y: float, radius: float, kind: String) -> View.GroundMark:
+	return View.GroundMark.new(
 		x, y, world.elevation(x, y) + .003, 0.0, radius, radius, "mark_" + kind
 	)
 

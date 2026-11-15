@@ -49,7 +49,7 @@ func looks(e: Enemy, game) -> Array:
 	var frame := int(game.clock * 10.0)
 	for k in 3:
 		var a := toward + (k - 1) * .5
-		var glint := Renderer.Sprite.new(
+		var glint := View.Sprite.new(
 			e.x + cos(a) * e.radius * .35,
 			e.y + sin(a) * e.radius * .35,
 			"fx_sparks_%d" % ((frame + k) % 3),
@@ -61,7 +61,7 @@ func looks(e: Enemy, game) -> Array:
 	if e.boss_phase >= 3:
 		for k in 4:
 			var a := toward + (k - 1.5) * .45 + sin(game.clock * 3.0) * .1
-			var cell := Renderer.Sprite.new(
+			var cell := View.Sprite.new(
 				e.x + cos(a) * (e.radius + .05),
 				e.y + sin(a) * (e.radius + .05),
 				"fx_energy_%d" % ((frame + k) % 4),

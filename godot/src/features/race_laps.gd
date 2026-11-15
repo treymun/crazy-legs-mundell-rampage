@@ -159,7 +159,7 @@ func sprites() -> Array:
 		var toward_eye := atan2(p.y - at.y, p.x - at.x)
 		var turn := Enemy.angle_delta(toward_eye, heading)
 		var k := posmod(roundi(turn / (PI / 4.0)), 8)
-		var spr := Renderer.Sprite.new(
+		var spr := View.Sprite.new(
 			at.x, at.y, "town_race_car_%d" % k, 1.05, game.world.elevation(at.x, at.y)
 		)
 		spr.body = true
@@ -181,7 +181,7 @@ func ground_marks() -> Array:
 		if Vector2(p.x - at.x, p.y - at.y).length() > 16.0:
 			continue
 		out.append(
-			Renderer.GroundMark.new(
+			View.GroundMark.new(
 				at.x,
 				at.y,
 				game.world.elevation(at.x, at.y) + .003,

@@ -266,7 +266,7 @@ func sprites() -> Array:
 				name = "fx_puff_%d" % step
 			"ember":
 				name = "fx_ember_%d" % (int(m.age * 9.0 + m.size * 400.0) % 2)
-		var s: Renderer.Sprite = game.pooled(m.x, m.y, name, m.size, m.z)
+		var s: View.Sprite = game.pooled(m.x, m.y, name, m.size, m.z)
 		s.glow = m.kind == "ember"
 		s.translucent = m.kind != "ember"
 		out.append(s)

@@ -48,8 +48,8 @@ func configure(options: Dictionary) -> void:
 	hit_feedback = bool(options.get("hit_feedback", 1))
 	adaptive = bool(options.get("adaptive", 1))
 	chatter = clampi(int(options.get("chatter", CussLines.CUSSIN)), 0, 2)
-	Renderer.fov_focal = Renderer.FOCAL_FOR[clampi(int(options.get("fov", 0)), 0, 3)]
-	Renderer.base_focal = Renderer.fov_focal
+	View.fov_focal = View.FOCAL_FOR[clampi(int(options.get("fov", 0)), 0, 3)]
+	View.base_focal = View.fov_focal
 	shake_scale = [0.0, .5, 1.0][clampi(int(options.get("shake", 2)), 0, 2)]
 	district_labels = bool(options.get("district_labels", 1))
 	hints = bool(options.get("hints", 1))
@@ -61,19 +61,18 @@ func configure(options: Dictionary) -> void:
 		Color8(240, 64, 48),
 		Color8(255, 255, 255)
 	][clampi(int(options.get("crosshair_color", 0)), 0, 4)]
-	renderer.world_motion = int(options.get("world_motion", 0))
+	view.world_motion = int(options.get("world_motion", 0))
 	weapon_view = int(options.get("weapon_view", 0))
 	voice_captions = bool(options.get("voice_captions", 1))
 	bullet_marks = bool(options.get("bullet_marks", 1))
 	retro_look = bool(options.get("film_look", 0))
-	renderer.wall_tiling = bool(options.get("wall_tiling", 1))
 	# A browser without threads draws every band on one core: it gets LOW whatever the setting.
 	var unthreaded := OS.has_feature("web") and not OS.has_feature("threads")
 	var detail := int(options.get("detail", 0))
-	if unthreaded or detail == 1 or (detail == 2 and Renderer.auto_low):
-		renderer.set_detail(1)
+	if unthreaded or detail == 1 or (detail == 2 and View.auto_low):
+		view.set_detail(1)
 	else:
-		renderer.set_detail(-1 if detail == 3 else 0)
+		view.set_detail(-1 if detail == 3 else 0)
 	flicker = bool(options.get("flicker", 1))
 	armory.auto_switch = bool(options.get("auto_switch", 1))
 	armory.auto_reload = bool(options.get("auto_reload", 1))

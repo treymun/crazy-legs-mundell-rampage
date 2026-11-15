@@ -662,8 +662,8 @@ func ground_marks() -> Array:
 	return out
 
 
-func _spot(x: float, y: float, r: float, image: String) -> Renderer.GroundMark:
-	return Renderer.GroundMark.new(x, y, game.world.elevation(x, y) + .004, 0.0, r, r, image)
+func _spot(x: float, y: float, r: float, image: String) -> View.GroundMark:
+	return View.GroundMark.new(x, y, game.world.elevation(x, y) + .004, 0.0, r, r, image)
 
 
 ## The hair dryer's fan, marked as lanes along the deck.
@@ -682,7 +682,7 @@ func _lanes(toward: float) -> Array:
 			var mx := maw.x + cos(bearing) * (length + maw.radius) / 2.0
 			var my := maw.y + sin(bearing) * (length + maw.radius) / 2.0
 			out.append(
-				Renderer.GroundMark.new(
+				View.GroundMark.new(
 					mx,
 					my,
 					game.world.stand(maw) + .004,
@@ -701,7 +701,7 @@ func sprites() -> Array:
 	var out: Array = []
 	for e: Vector3 in emitters:
 		if game.in_view(e.x, e.y, 1.5):
-			var beam := Renderer.Sprite.new(
+			var beam := View.Sprite.new(
 				e.x, e.y, "fx_beam_column", e.z + .1, game.world.stand(e)
 			)
 			beam.translucent = true
@@ -716,7 +716,7 @@ func sprites() -> Array:
 			var x := maw.x + cos(a) * maw.radius * .5
 			var y := maw.y + sin(a) * maw.radius * .5
 			if game.in_view(x, y, 1.5):
-				var fire := Renderer.Sprite.new(
+				var fire := View.Sprite.new(
 					x, y, "fx_fire_%d" % ((frame + k) % 4), 1.5, floor_z + .9 + k * .42
 				)
 				fire.glow = true
@@ -726,7 +726,7 @@ func sprites() -> Array:
 		if game.in_view(at.x, at.y, 1.5):
 			var floor_z: float = game.world.elevation(at.x, at.y)
 			var roof: float = game.world.roof[game.world.cell(at.x, at.y)]
-			var column := Renderer.Sprite.new(
+			var column := View.Sprite.new(
 				at.x, at.y, "fx_beam_column", maxf(2.0, roof - floor_z), floor_z
 			)
 			column.translucent = true
@@ -738,7 +738,7 @@ func sprites() -> Array:
 			var pod: Vector2 = pods[k]
 			var spot := pod.lerp(center, .35)
 			if game.in_view(spot.x, spot.y, 1.0):
-				var fire := Renderer.Sprite.new(
+				var fire := View.Sprite.new(
 					spot.x,
 					spot.y,
 					"fx_fire_%d" % ((frame + k) % 4),

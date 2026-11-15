@@ -50,7 +50,7 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 		_shown.clear()
 	var seen := {}
 	for item: Variant in sprites:
-		var s := item as Renderer.Sprite
+		var s := item as View.Sprite
 		var name := models.name_of(s.image)
 		var place := Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))
 		var key := "%s@%s" % [s.image, place]
@@ -92,7 +92,7 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 
 ## Which way a prop faces: a board keeps its own axis; anything else turns
 ## its front (the model's +Z, map +y) toward the most open of eight ways.
-func _turn(s: Renderer.Sprite, level: LevelData, place: Vector3) -> float:
+func _turn(s: View.Sprite, level: LevelData, place: Vector3) -> float:
 	if not is_nan(s.plane):
 		return -s.plane
 	var key := Vector2(place.x, place.y)

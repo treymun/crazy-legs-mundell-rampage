@@ -124,7 +124,7 @@ func lane_marks(game, x: float, y: float, bearing: float, length: float, width :
 		reach = step
 	if reach > .5:
 		out.append(
-			Renderer.GroundMark.new(
+			View.GroundMark.new(
 				x + cos(bearing) * reach * .5,
 				y + sin(bearing) * reach * .5,
 				w.elevation(x, y) + .004,

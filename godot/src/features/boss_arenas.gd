@@ -485,7 +485,7 @@ func ground_marks() -> Array:
 				var mx := float(j[0]) + cos(a) * half
 				var my := float(j[1]) + sin(a) * half
 				out.append(
-					Renderer.GroundMark.new(
+					View.GroundMark.new(
 						mx,
 						my,
 						game.world.elevation(mx, my) + .004,
@@ -534,8 +534,8 @@ func _closing(d: Array) -> Array:
 	return out
 
 
-func _spot(x: float, y: float, r: float, image: String) -> Renderer.GroundMark:
-	return Renderer.GroundMark.new(x, y, game.world.elevation(x, y) + .005, 0.0, r, r, image)
+func _spot(x: float, y: float, r: float, image: String) -> View.GroundMark:
+	return View.GroundMark.new(x, y, game.world.elevation(x, y) + .005, 0.0, r, r, image)
 
 
 func sprites() -> Array:
@@ -551,7 +551,7 @@ func sprites() -> Array:
 		if age < SLICK_CATCH or not game.in_view(float(s[0]), float(s[1]), 1.0):
 			continue
 		var fade := clampf((SLICK_LIFE - age) / 1.5, .3, 1.0)
-		var fire := Renderer.Sprite.new(
+		var fire := View.Sprite.new(
 			float(s[0]),
 			float(s[1]),
 			"fx_fire_%d" % ((frame + int(float(s[0]) * 3.0)) % 4),
@@ -578,7 +578,7 @@ func sprites() -> Array:
 					var y := float(j[1]) + sin(a) * along
 					if not game.in_view(x, y, 1.0):
 						continue
-					var s := Renderer.Sprite.new(
+					var s := View.Sprite.new(
 						x,
 						y,
 						"fx_steam_%d" % ((frame + i + k) % 4),
@@ -593,7 +593,7 @@ func sprites() -> Array:
 				var y := float(spot[1])
 				if game.in_view(x, y, 1.0):
 					for k in 2:
-						var fire := Renderer.Sprite.new(
+						var fire := View.Sprite.new(
 							x + (k - .5) * .5,
 							y,
 							"fx_fire_%d" % ((frame + k * 2) % 4),
@@ -608,7 +608,7 @@ func sprites() -> Array:
 				var beat := .5 + .5 * sin(game.clock * (6.0 + 8.0 * pulse_warning()))
 				for k in 3:
 					var a: float = game.clock * 2.0 + k * TAU / 3.0
-					var spark := Renderer.Sprite.new(
+					var spark := View.Sprite.new(
 						c.x + cos(a) * .75,
 						c.y + sin(a) * .75,
 						"fx_energy_%d" % ((frame + k) % 4),
@@ -633,7 +633,7 @@ func _valves() -> Array:
 		var floor_z: float = game.world.elevation(x, y)
 		for n in 2:
 			var age := fposmod(game.clock * .7 + k * .37 + n * .5, 1.0)
-			var s := Renderer.Sprite.new(
+			var s := View.Sprite.new(
 				x + sin(game.clock * 1.3 + k + n) * .15 * age,
 				y + cos(game.clock * 1.1 + k) * .15 * age,
 				"fx_steam_%d" % mini(3, int(age * 4.0)),
@@ -658,6 +658,6 @@ func _falling(d: Array, frame: int) -> Array:
 		image = "fx_energy_%d" % (frame % 4)
 	elif String(d[0]) == "steam":
 		image = "fx_valve_slug"
-	var s := Renderer.Sprite.new(x, y, image, .35, game.world.elevation(x, y) + left * 6.0)
+	var s := View.Sprite.new(x, y, image, .35, game.world.elevation(x, y) + left * 6.0)
 	s.glow = String(d[0]) != "tnt"
 	return [s]

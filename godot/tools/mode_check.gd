@@ -448,7 +448,7 @@ static func _facing(g: Game) -> void:
 	Modes.place(g, b, far.x, far.y, 0.0)
 	a.angle = atan2(b.y - a.y, b.x - a.x)
 	a.pitch = (b.eye - .35 - a.eye) / maxf(.5, Vector2(b.x - a.x, b.y - a.y).length())
-	a.pitch *= Renderer.base_focal
+	a.pitch *= View.base_focal
 
 
 ## p1 fires on p2 until p2 is down (or `limit` ticks).

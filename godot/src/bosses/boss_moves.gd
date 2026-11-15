@@ -45,8 +45,8 @@ func weak_spot(_e: Enemy, _game, _hit: Vector3, _from: Vector2, _how: String) ->
 	return 1.0
 
 
-## Extra warnings while it winds up (e.windup > 0): Renderer.GroundMark and
-## Renderer.Sprite, mixed; the shared ring at its aim point and the pulse on
+## Extra warnings while it winds up (e.windup > 0): View.GroundMark and
+## View.Sprite, mixed; the shared ring at its aim point and the pulse on
 ## its sprite are already drawn.
 func telegraph(_e: Enemy, _game) -> Array:
 	return []

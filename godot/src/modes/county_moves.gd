@@ -46,7 +46,7 @@ static func fired(game, f, gun: int) -> void:
 	if extra > 0 and String(how.get("fire", "")) == "pellets":
 		var p: Player = game.player
 		var aim: float = p.view_angle()
-		var slope: float = (p.pitch + p.sway) / Renderer.base_focal
+		var slope: float = (p.pitch + p.sway) / View.base_focal
 		var tuned := Modes.shot_spread(game, p, gun, how, 0.0)
 		var spread: Vector2 = tuned[0]
 		for k in extra:

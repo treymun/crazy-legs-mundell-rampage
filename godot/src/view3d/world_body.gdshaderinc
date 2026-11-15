@@ -1,6 +1,6 @@
 // The body of world.gdshader and world_glass.gdshader (GLASS: see-through).
 // The level's walls, floors and roofs (level_mesh.gd) as the old renderer
-// drew them, then palette.gdshader's touches with LIGHTS AND GLOW: water that
+// drew them, then the old view shader's touches with LIGHTS AND GLOW: water that
 // sways and mirrors the sky, puddles on wet ground, relief, the lights, grade
 // and fog. The Crossroads' runoff and the water tower's shadow.
 #include "res://src/view3d/view_light.gdshaderinc"

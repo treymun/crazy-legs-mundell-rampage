@@ -337,7 +337,7 @@ func _target(g: Game, t: Array, field: FlowField) -> void:
 		_used(g, best, angle)
 		var eye := g.world.elevation(best.x, best.y) + .95
 		var pitch := clampf(
-			(seen.z - eye) / maxf(.4, best.distance_to(middle)) * Renderer.base_focal, -40.0, 40.0
+			(seen.z - eye) / maxf(.4, best.distance_to(middle)) * View.base_focal, -40.0, 40.0
 		)
 		var prompt: String = g.gate_prompt()
 		if prompt == "" and not g.in_hub:

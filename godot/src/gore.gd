@@ -122,7 +122,7 @@ func _stain(x: float, y: float, radius: float, green: bool) -> void:
 		return
 	var image := "mark_%s_%d" % ["acid" if green else "blood", dice.randi() % 3]
 	blood_marks.append(
-		Renderer.GroundMark.new(
+		View.GroundMark.new(
 			x, y, game.world.elevation(x, y) + .004, dice.randf() * TAU, radius, radius, image
 		)
 	)
@@ -195,7 +195,7 @@ func burst(enemy: Enemy) -> void:
 	# A blast chars half of what it throws and leaves soot with the blood.
 	var charred := enemy.killed_by == "blast" and not green
 	if charred:
-		var soot := Renderer.GroundMark.new(
+		var soot := View.GroundMark.new(
 			enemy.x,
 			enemy.y,
 			floor_z + .003,
@@ -290,7 +290,7 @@ func draw_lens(c: Canvas) -> void:
 		var color := Canvas.rgb(70, 150, 50) if drop[4] else Canvas.rgb(132, 16, 16)
 		var x := int(drop[0])
 		var y := int(float(drop[1]) + age * age * 9.0)
-		if y < Renderer.VIEW - radius - 1:
+		if y < View.VIEW - radius - 1:
 			c.circle(x, y, radius, color, true)
 			if radius > 2:
 				c.fill_rect(x - 1, y - radius - int(age * 8.0), 2, int(age * 8.0), color)

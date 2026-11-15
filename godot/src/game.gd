@@ -17,7 +17,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 	speaker = p_sound
 	level = LevelData.load_level(level_id, art)
 	world = level
-	renderer = Renderer.new(art, level)
+	view = View.new(art, level)
 	# The sounds made in code (thunder alone is 30-odd ms of work) are made
 	# while the level loads, not the moment one first plays.
 	for cue: String in [] if host else Assets.MADE_CUES:
@@ -98,7 +98,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 		var z := world.elevation(x, y)
 		if name == "lamp":
 			z = level.roof[idx] - .25
-		var spr := Renderer.Sprite.new(
+		var spr := View.Sprite.new(
 			x,
 			y,
 			"prop_" + name + ("_0" if name == "windmill" else ""),

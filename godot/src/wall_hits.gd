@@ -1,6 +1,6 @@
 ## Where a straight line from (x, y, z) along (ax, ay), rising `slope` a unit,
 ## meets a wall face about `distance` away: the hole it leaves (a
-## Renderer.WallMark with the wall's tile and material), or null. Pure
+## View.WallMark with the wall's tile and material), or null. Pure
 ## geometry over the level's wall rows: play asks it (hitscan's material, a
 ## round through a wall, blood on a wall), so it lives beside the level, not
 ## in any view.
@@ -54,7 +54,7 @@ static func wall_mark(
 	var length := sqrt(ox * ox + oy * oy)
 	var material := level.impact_surface(int(w[o + 4]))
 	var kind := "stone" if material == "plaster" or material == "dirt" else material
-	var mark := Renderer.WallMark.new()
+	var mark := View.WallMark.new()
 	mark.x = x + ax * best_t
 	mark.y = y + ay * best_t
 	mark.z = z + best_t * slope

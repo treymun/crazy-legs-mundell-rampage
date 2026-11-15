@@ -42,7 +42,7 @@ func tally_rows() -> Array:
 	return []
 
 
-## Sprites it adds to the view this frame (Renderer.Sprite).
+## Sprites it adds to the view this frame (View.Sprite).
 func sprites() -> Array:
 	return []
 
@@ -53,12 +53,12 @@ func draw_view(_c: Canvas) -> void:
 	pass
 
 
-## Marks it lays on the floors this frame (Renderer.GroundMark).
+## Marks it lays on the floors this frame (View.GroundMark).
 func ground_marks() -> Array:
 	return []
 
 
-## Marks it lays on the walls this frame (Renderer.WallMark, as
+## Marks it lays on the walls this frame (View.WallMark, as
 ## Renderer.wall_mark() finds them): scorches, blood running down.
 func wall_marks() -> Array:
 	return []

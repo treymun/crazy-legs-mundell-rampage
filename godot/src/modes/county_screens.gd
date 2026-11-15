@@ -8,7 +8,7 @@
 class_name CountyScreens
 extends RefCounted
 
-const VIEW := Renderer.VIEW
+const VIEW := View.VIEW
 const CARD_Y := 28
 const CARD_W := 102
 const CARD_H := 113
