@@ -24,8 +24,8 @@ the sound in `audio_src/` by the Python tools in `scripts/`. The detail is in
 - **Never run `git clean` or delete untracked files.**
 - Work on branch `combat-overhaul`; `main` is fast-forwarded to it when the
   owner says to publish. A `v*` tag publishes the EXE, installer and APK.
-  Ask before publishing. (The 3D rewrite is on branch `godot-3d`: CI builds
-  its EXE and APK as run artifacts only, with no release and no site.)
+  Ask before publishing. Since v3.0.0 the 3D rewrite (once branch
+  `godot-3d`) is the main line; `godot-3d` is kept only as history.
 - Say plainly what was not checked. Nobody on the agent side can listen to
   the audio, play the game by hand, or try it on a phone.
 
@@ -69,8 +69,8 @@ godot --headless --path godot --script res://tools/compare_3d.gd -- <dir>   # ag
 godot --path godot --audio-driver Dummy --resolution 1280x800 -- --view-bench=300
 
 # Version; publish (ask the owner first)
-godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
-godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
+godot --headless --path godot --script res://tools/version.gd -- 3.0.N
+godot --headless --path godot --script res://tools/release.gd -- 3.0.N
 ```
 
 ## Never forget

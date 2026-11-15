@@ -154,9 +154,9 @@ once.
 ## Version and publishing
 
 ```
-godot --headless --path godot --script res://tools/version.gd -- 2.0.0-dev.N
+godot --headless --path godot --script res://tools/version.gd -- 3.0.N
 
 # Publish (ask the owner first): stamps, commits, pushes, waits for CI, moves
 # main, tags, then checks the site and the release's three files
-godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
+godot --headless --path godot --script res://tools/release.gd -- 3.0.N
 ```
