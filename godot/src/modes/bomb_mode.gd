@@ -38,31 +38,35 @@ func objective_title() -> String:
 
 
 func round_time() -> float:
-	return float(ModeData.get_value("bomb", "round_seconds", 105.0))
+	var seconds: float = ModeData.get_value("bomb", "round_seconds", 105.0)
+	return seconds
 
 
-func attack_team(st) -> int:
+func attack_team(st: ModeFeature) -> int:
 	return int(st.outlaws)
 
 
 ## The site under (x, y): "A", "B" or "".
-static func site_at(game, x: float, y: float) -> String:
-	var sites = game.world.tactical.get("sites", {})
-	if not sites is Dictionary:
+static func site_at(game: Game, x: float, y: float) -> String:
+	var found: Variant = game.world.tactical.get("sites", {})
+	if not found is Dictionary:
 		return ""
+	var sites: Dictionary = found
 	for name: String in sites:
-		if TacticalMode.in_box(sites[name], x, y):
+		var box: Array = sites[name]
+		if TacticalMode.in_box(box, x, y):
 			return name
 	return ""
 
 
-func clock_left(game, st) -> float:
-	if String(st.phase) == "live" and String(st.bomb.get("state", "")) == "planted":
-		return maxf(0.0, BOMB_TIMER - (game.clock - float(st.bomb["planted_at"])))
+func clock_left(game: Game, st: ModeFeature) -> float:
+	if String(st.phase) == "live" and str(st.bomb.get("state", "")) == "planted":
+		var planted_at: float = st.bomb["planted_at"]
+		return maxf(0.0, BOMB_TIMER - (game.clock - planted_at))
 	return super.clock_left(game, st)
 
 
-func reset_objective(game, st) -> void:
+func reset_objective(game: Game, st: ModeFeature) -> void:
 	var outlaws: Array = []
 	for p: Player in game.players:
 		if p.team == attack_team(st):
@@ -73,7 +77,8 @@ func reset_objective(game, st) -> void:
 		else null
 	)
 	if carrier != null and carrier == game.local_player:
-		var where := "A" if game.world.tactical.get("sites", {}).size() == 1 else "A OR B"
+		var sites: Dictionary = game.world.tactical.get("sites", {})
+		var where := "A" if sites.size() == 1 else "A OR B"
 		Modes.say(
 			game, "YOU HAVE THE SHINE BOMB. PLANT IT ON %s." % where, float(st.freeze_seconds)
 		)
@@ -91,16 +96,18 @@ func reset_objective(game, st) -> void:
 	}
 
 
-func objective_tick(game, st, dt: float) -> void:
+func objective_tick(game: Game, st: ModeFeature, dt: float) -> void:
 	var bomb: Dictionary = st.bomb
-	match String(bomb["state"]):
+	match str(bomb["state"]):
 		"carried":
 			_carry(game, st, bomb, dt)
 		"dropped":
 			for p: Player in game.players:
 				if p.health <= 0 or p.team != attack_team(st):
 					continue
-				var gap := Vector2(float(bomb["x"]) - p.x, float(bomb["y"]) - p.y).length()
+				var bomb_x: float = bomb["x"]
+				var bomb_y: float = bomb["y"]
+				var gap := Vector2(bomb_x - p.x, bomb_y - p.y).length()
 				if gap < PICK_UP_REACH:
 					bomb["state"] = "carried"
 					bomb["slot"] = p.slot
@@ -110,15 +117,14 @@ func objective_tick(game, st, dt: float) -> void:
 		"planted":
 			_beep(game, bomb)
 			_defuse(game, st, bomb, dt)
-			if (
-				String(bomb["state"]) == "planted"
-				and game.clock - float(bomb["planted_at"]) >= BOMB_TIMER
-			):
-				_blow(game, st, bomb)
+			if str(bomb["state"]) == "planted":
+				var planted_at: float = bomb["planted_at"]
+				if game.clock - planted_at >= BOMB_TIMER:
+					_blow(game, st, bomb)
 
 
-func _carry(game, st, bomb: Dictionary, dt: float) -> void:
-	var slot := int(bomb["slot"])
+func _carry(game: Game, st: ModeFeature, bomb: Dictionary, dt: float) -> void:
+	var slot: int = bomb["slot"]
 	var p: Player = game.players[slot] if slot >= 0 and slot < game.players.size() else null
 	if p == null or p.health <= 0:
 		bomb["state"] = "dropped"
@@ -130,8 +136,10 @@ func _carry(game, st, bomb: Dictionary, dt: float) -> void:
 	if site == "" or not p.holding or p.air > .01:
 		bomb["plant"] = 0.0
 		return
-	bomb["plant"] = float(bomb["plant"]) + dt
-	if float(bomb["plant"]) < PLANT_TIME:
+	var plant: float = bomb["plant"]
+	bomb["plant"] = plant + dt
+	var planted_for: float = bomb["plant"]
+	if planted_for < PLANT_TIME:
 		return
 	bomb["state"] = "planted"
 	bomb["site"] = site
@@ -145,10 +153,12 @@ func _carry(game, st, bomb: Dictionary, dt: float) -> void:
 	bomb["beep_at"] = game.clock + 1.0
 
 
-func _defuse(game, st, bomb: Dictionary, dt: float) -> void:
-	var at := Vector2(float(bomb["x"]), float(bomb["y"]))
+func _defuse(game: Game, st: ModeFeature, bomb: Dictionary, dt: float) -> void:
+	var bomb_x: float = bomb["x"]
+	var bomb_y: float = bomb["y"]
+	var at := Vector2(bomb_x, bomb_y)
 	var who: Player = null
-	var current := int(bomb["defuser"])
+	var current: int = bomb["defuser"]
 	for p: Player in game.players:
 		if p.health <= 0 or p.team == attack_team(st) or not p.holding or p.air > .01:
 			continue
@@ -164,8 +174,10 @@ func _defuse(game, st, bomb: Dictionary, dt: float) -> void:
 	if who.slot != current:
 		bomb["defuse"] = 0.0
 		bomb["defuser"] = who.slot
-	bomb["defuse"] = float(bomb["defuse"]) + dt
-	if float(bomb["defuse"]) >= defuse_time(st, who):
+	var cut: float = bomb["defuse"]
+	bomb["defuse"] = cut + dt
+	var cut_for: float = bomb["defuse"]
+	if cut_for >= defuse_time(st, who):
 		bomb["state"] = "defused"
 		TacticalMode.pay(st, who, TacticalShop.DEFUSE_REWARD)
 		game.sound_at("fuse_cut", at.x, at.y)
@@ -173,25 +185,28 @@ func _defuse(game, st, bomb: Dictionary, dt: float) -> void:
 
 
 ## The bomb's beep, faster as its time runs out (once a second to 8 a second).
-static func _beep(game, bomb: Dictionary) -> void:
-	if game.clock < float(bomb.get("beep_at", 0.0)):
+static func _beep(game: Game, bomb: Dictionary) -> void:
+	var beep_at: float = bomb.get("beep_at", 0.0)
+	if game.clock < beep_at:
 		return
-	var left := clampf(
-		(BOMB_TIMER - (game.clock - float(bomb["planted_at"]))) / BOMB_TIMER, 0.0, 1.0
-	)
+	var planted_at: float = bomb["planted_at"]
+	var left := clampf((BOMB_TIMER - (game.clock - planted_at)) / BOMB_TIMER, 0.0, 1.0)
 	bomb["beep_at"] = game.clock + lerpf(.12, 1.0, left * left)
-	game.sound_at("bomb_beep", float(bomb["x"]), float(bomb["y"]), .8)
+	var bomb_x: float = bomb["x"]
+	var bomb_y: float = bomb["y"]
+	game.sound_at("bomb_beep", bomb_x, bomb_y, .8)
 
 
-static func defuse_time(st, p: Player) -> float:
-	return SNIPS_TIME if bool(st.snips[p.slot]) else DEFUSE_TIME
+static func defuse_time(st: ModeFeature, p: Player) -> float:
+	var has_snips: bool = st.snips[p.slot]
+	return SNIPS_TIME if has_snips else DEFUSE_TIME
 
 
 ## The bomb goes up: a big blast, everyone near it hurt by how near.
-func _blow(game, st, bomb: Dictionary) -> void:
+func _blow(game: Game, st: ModeFeature, bomb: Dictionary) -> void:
 	bomb["state"] = "blown"
-	var x := float(bomb["x"])
-	var y := float(bomb["y"])
+	var x: float = bomb["x"]
+	var y: float = bomb["y"]
 	var z: float = game.world.elevation(x, y) + .3
 	for k in 5:
 		var a := k * TAU / 5.0
@@ -217,10 +232,10 @@ func _blow(game, st, bomb: Dictionary) -> void:
 	end_round(game, st, attack_team(st), "BOMB")
 
 
-func round_check(game, st) -> Array:
+func round_check(game: Game, st: ModeFeature) -> Array:
 	var attack := attack_team(st)
 	var defend := 1 - attack
-	var planted := String(st.bomb.get("state", "")) == "planted"
+	var planted := str(st.bomb.get("state", "")) == "planted"
 	if TacticalMode.alive(game, defend) == 0:
 		return [attack, "WIPE"]
 	if planted:
@@ -232,45 +247,58 @@ func round_check(game, st) -> Array:
 	return []
 
 
-func dropped(_game, st, p: Player) -> void:
+func dropped(_game: Game, st: ModeFeature, p: Player) -> void:
 	var bomb: Dictionary = st.bomb
-	if String(bomb.get("state", "")) == "carried" and int(bomb["slot"]) == p.slot:
-		bomb["state"] = "dropped"
-		bomb["x"] = p.x
-		bomb["y"] = p.y
-		bomb["plant"] = 0.0
-	if int(bomb.get("defuser", -1)) == p.slot:
+	if str(bomb.get("state", "")) == "carried":
+		var carrier: int = bomb["slot"]
+		if carrier == p.slot:
+			bomb["state"] = "dropped"
+			bomb["x"] = p.x
+			bomb["y"] = p.y
+			bomb["plant"] = 0.0
+	var defuser: int = bomb.get("defuser", -1)
+	if defuser == p.slot:
 		bomb["defuser"] = -1
 		bomb["defuse"] = 0.0
 
 
-func busy_with_objective(st, p: Player) -> bool:
+func busy_with_objective(st: ModeFeature, p: Player) -> bool:
 	var bomb: Dictionary = st.bomb
 	if bomb.is_empty():
 		return false
-	if String(bomb["state"]) == "carried" and int(bomb["slot"]) == p.slot:
-		return float(bomb["plant"]) > 0.0
-	return int(bomb["defuser"]) == p.slot and float(bomb["defuse"]) > 0.0
+	if str(bomb["state"]) == "carried":
+		var carrier: int = bomb["slot"]
+		if carrier == p.slot:
+			var plant: float = bomb["plant"]
+			return plant > 0.0
+	var defuser: int = bomb["defuser"]
+	if defuser != p.slot:
+		return false
+	var cut: float = bomb["defuse"]
+	return cut > 0.0
 
 
-func use_prompt(game) -> String:
-	var st = Modes.feature(game)
+func use_prompt(game: Game) -> String:
+	var st := Modes.feature(game)
 	var me: Player = game.player
 	if st == null or me.health <= 0 or String(st.phase) != "live":
 		return ""
 	var bomb: Dictionary = st.bomb
-	var state := String(bomb.get("state", ""))
-	if state == "carried" and int(bomb["slot"]) == me.slot:
+	var state := str(bomb.get("state", ""))
+	var carrier: int = bomb["slot"] if state == "carried" else -1
+	if state == "carried" and carrier == me.slot:
 		var site := site_at(game, me.x, me.y)
 		if site != "":
 			return "HOLD %s  PLANT ON %s" % [game.use_key, site]
 	elif state == "planted" and me.team != attack_team(st):
-		var gap := Vector2(float(bomb["x"]) - me.x, float(bomb["y"]) - me.y).length()
+		var bomb_x: float = bomb["x"]
+		var bomb_y: float = bomb["y"]
+		var gap := Vector2(bomb_x - me.x, bomb_y - me.y).length()
 		if gap <= DEFUSE_REACH:
 			return "HOLD %s  CUT THE FUSE" % game.use_key
 	return ""
 
 
 ## Planting and cutting are held, not pressed: a press only shows the prompt.
-func use(game) -> bool:
+func use(game: Game) -> bool:
 	return use_prompt(game) != ""

@@ -40,9 +40,9 @@ static func scale_for(count: int) -> Array:
 	return SCALE[clampi(count, 1, Modes.MAX_PLAYERS)]
 
 
-func start(game, st) -> void:
+func start(game: Game, st: ModeFeature) -> void:
 	var table := scale_for(game.players.size())
-	var step := int(table[2])
+	var step: int = table[2]
 	if step > 0:
 		var count := 0
 		for i in mini(game.enemy_ids.size(), game.enemies.size()):
@@ -65,7 +65,7 @@ func start(game, st) -> void:
 
 ## Health scaled on every enemy that has come along since the last look (the
 ## level's own and the extras at the start; a boss's backup, Maw's crew).
-static func scale_new(game, st) -> void:
+static func scale_new(game: Game, st: ModeFeature) -> void:
 	if st.scaled_upto >= game.enemies.size():
 		return
 	var table := scale_for(game.players.size())
@@ -73,7 +73,9 @@ static func scale_new(game, st) -> void:
 		var e: Enemy = game.enemies[i]
 		if not e.hostile:
 			continue
-		var times := float(table[1]) if Enemy.BOSS_TITLES.has(e.kind) else float(table[0])
+		var boss_times: float = table[1]
+		var other_times: float = table[0]
+		var times := boss_times if Enemy.BOSS_TITLES.has(e.kind) else other_times
 		e.max_hp *= times
 		e.hp *= times
 	st.scaled_upto = game.enemies.size()
@@ -81,15 +83,17 @@ static func scale_new(game, st) -> void:
 
 ## A save brought the enemies back with their scaled health but their kind's
 ## own top: scale the top again (st.scaled_upto of them were scaled).
-static func rescale_loaded(game, st, count: int) -> void:
+static func rescale_loaded(game: Game, st: ModeFeature, count: int) -> void:
 	var table := scale_for(count)
 	for i in mini(st.scaled_upto, game.enemies.size()):
 		var e: Enemy = game.enemies[i]
 		if e.hostile:
-			e.max_hp *= float(table[1]) if Enemy.BOSS_TITLES.has(e.kind) else float(table[0])
+			var boss_times: float = table[1]
+			var other_times: float = table[0]
+			e.max_hp *= boss_times if Enemy.BOSS_TITLES.has(e.kind) else other_times
 
 
-func _beside(game, anchor: Enemy) -> Vector2:
+func _beside(game: Game, anchor: Enemy) -> Vector2:
 	for reach: float in [1.1, 1.6, 2.2]:
 		for k in 8:
 			var a := k * TAU / 8.0 + .9
@@ -100,7 +104,7 @@ func _beside(game, anchor: Enemy) -> Vector2:
 	return Vector2(INF, INF)
 
 
-func tick(game, st, dt: float) -> void:
+func tick(game: Game, st: ModeFeature, dt: float) -> void:
 	scale_new(game, st)
 	for p: Player in game.players:
 		if p.health > 0:
@@ -122,7 +126,7 @@ func tick(game, st, dt: float) -> void:
 
 
 ## A partner up, within reach and holding USE over the downed player `p`.
-static func _helper(game, p: Player) -> Player:
+static func _helper(game: Game, p: Player) -> Player:
 	for q: Player in game.players:
 		if q == p or q.health <= 0 or not q.holding:
 			continue
@@ -132,7 +136,7 @@ static func _helper(game, p: Player) -> Player:
 
 
 ## The partner up nearest `p` (null when nobody is), for a revive prompt.
-static func downed_near(game, p: Player) -> Player:
+static func downed_near(game: Game, p: Player) -> Player:
 	var best: Player = null
 	var gap := REVIVE_REACH * 2.0
 	for q: Player in game.players:
@@ -145,7 +149,7 @@ static func downed_near(game, p: Player) -> Player:
 	return best
 
 
-func _revived(game, st, p: Player, helper: Player) -> void:
+func _revived(game: Game, st: ModeFeature, p: Player, helper: Player) -> void:
 	Modes.stand_up(game, p, REVIVE_HEALTH)
 	st.revives += 1
 	game.sound_at("key_pickup", p.x, p.y, .8)
@@ -155,14 +159,14 @@ func _revived(game, st, p: Player, helper: Player) -> void:
 		Modes.say(game, "%s IS BACK ON THEIR FEET." % Modes.tag(p))
 
 
-func downed(game, _st, p: Player, _by: int) -> void:
+func downed(game: Game, _st: ModeFeature, p: Player, _by: int) -> void:
 	if not Players.anyone_alive(game):
 		return
 	if p != game.local_player:
 		Modes.say(game, "%s IS DOWN! HOLD %s BESIDE THEM." % [Modes.tag(p), game.use_key], 3.0)
 
 
-func respawn(game, _st, p: Player) -> void:
+func respawn(game: Game, _st: ModeFeature, p: Player) -> void:
 	var near := Players.nearest(game, p.x, p.y)
 	if near == null:
 		return
@@ -173,15 +177,15 @@ func respawn(game, _st, p: Player) -> void:
 		Modes.say(game, "BACK IN IT BESIDE %s." % Modes.tag(near))
 
 
-func hurt_scale(_game, attacker: Player, victim: Player, blast: bool) -> float:
+func hurt_scale(_game: Game, attacker: Player, victim: Player, blast: bool) -> float:
 	if attacker == victim:
 		return 1.0
 	return FRIENDLY_BLAST if blast else 0.0
 
 
 ## The toucher got a gun or rounds: every other player up gets the same.
-func pickup(game, _st, name: String) -> void:
-	name = String(GameState.ALIAS.get(name, name))
+func pickup(game: Game, _st: ModeFeature, name: String) -> void:
+	name = str(GameState.ALIAS.get(name, name))
 	var gun := Weapons.NAMES.find(name)
 	if gun < 0 and not GameState.AMMO.has(name):
 		return
@@ -195,18 +199,19 @@ func pickup(game, _st, name: String) -> void:
 			q.armory.pickup(gun, game)
 		else:
 			var entry: Array = GameState.AMMO[name]
-			var amount := int(entry[1])
+			var amount: int = entry[1]
 			if game.supply_rule == 1:
-				amount = maxi(1, int(round(amount * .70)))
-			amount = maxi(1, int(round(amount * game.ammo_scale)))
-			q.armory.add_ammo(int(entry[0]), amount)
+				amount = maxi(1, roundi(amount * .70))
+			amount = maxi(1, roundi(amount * game.ammo_scale))
+			var ammo_gun: int = entry[0]
+			q.armory.add_ammo(ammo_gun, amount)
 			if name == "dynamite":
 				q.armory.owned[Weapons.DYNAMITE] = true
 	game.focus(taker, own)
 
 
 ## The chapter is won: anyone down comes along, on their feet.
-func won(game, _st) -> void:
+func won(game: Game, _st: ModeFeature) -> void:
 	for p: Player in game.players:
 		if p.health <= 0:
 			Modes.stand_up(game, p, REVIVE_HEALTH)

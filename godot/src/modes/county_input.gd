@@ -8,12 +8,14 @@
 class_name CountyInput
 extends RefCounted
 
+const CountyRun := preload("res://src/features/county_run.gd")
+
 const NUMBERS := [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9]
 
 # ------------------------------------------------------------------ picker
 
 
-static func key_maps(main, code: int) -> void:
+static func key_maps(main: MainInput, code: int) -> void:
 	var n := CountyData.maps().size()
 	if code == KEY_ESCAPE:
 		main.back_to_title()
@@ -31,13 +33,13 @@ static func key_maps(main, code: int) -> void:
 		main.sound.play("menu_move")
 
 
-static func _go(main) -> void:
+static func _go(main: MainInput) -> void:
 	var maps := CountyData.maps()
 	if maps.is_empty():
 		return
 	main.sound.play("menu_accept")
 	main.start_county(
-		String(maps[posmod(CountyScreens.map_row, maps.size())]["id"]),
+		str(maps[posmod(CountyScreens.map_row, maps.size())]["id"]),
 		CountyBoard.today() if CountyScreens.daily else ""
 	)
 
@@ -47,8 +49,8 @@ static func _go(main) -> void:
 
 ## A key in play during a run: true when it was the run's (the game's own
 ## handler goes on otherwise).
-static func key_play(main, game, code: int) -> bool:
-	var f = CountyMode.run(game)
+static func key_play(main: MainInput, game: Game, code: int) -> bool:
+	var f := CountyMode.run(game)
 	if f == null:
 		return false
 	if f.over:
@@ -62,12 +64,14 @@ static func key_play(main, game, code: int) -> bool:
 		return _key_cards(main, game, f, code)
 	if code in NUMBERS:
 		var i := NUMBERS.find(code)
-		if i < f.slots.size() and int(f.slots[i]) >= 0:
-			if main.net != null:
-				# Online: the gun goes with the next controls (never the copy itself).
-				TacticalScreens.pending_weapon = int(f.slots[i])
-			else:
-				game.armory.select(int(f.slots[i]), game)
+		if i < f.slots.size():
+			var slot_gun: int = f.slots[i]
+			if slot_gun >= 0:
+				if main.net != null:
+					# Online: the gun goes with the next controls (never the copy itself).
+					TacticalScreens.pending_weapon = slot_gun
+				else:
+					game.armory.select(slot_gun, game)
 		return true
 	if main.net != null:
 		if code == KEY_R:
@@ -86,22 +90,22 @@ static func key_play(main, game, code: int) -> bool:
 	return false
 
 
-static func open_build(game) -> void:
+static func open_build(game: Game) -> void:
 	CountyScreens.build_open = true
-	var f = CountyMode.run(game)
+	var f := CountyMode.run(game)
 	# A party's world never holds for one player's look at the build.
 	if f != null and not CountyCoop.party(game):
 		f.paused = true
 
 
-static func close_build(game) -> void:
+static func close_build(game: Game) -> void:
 	CountyScreens.build_open = false
-	var f = CountyMode.run(game)
+	var f := CountyMode.run(game)
 	if f != null:
 		f.paused = false
 
 
-static func _key_cards(main, game, f, code: int) -> bool:
+static func _key_cards(main: MainInput, game: Game, f: CountyRun, code: int) -> bool:
 	if code == KEY_ESCAPE:
 		if CountyScreens.swapping >= 0:
 			cancel_swap(main)
@@ -137,13 +141,13 @@ static func _key_cards(main, game, f, code: int) -> bool:
 
 
 ## Whether this machine's player picks the cards (a party: its leader).
-static func picks_here(game) -> bool:
+static func picks_here(game: Game) -> bool:
 	return not CountyCoop.party(game) or CountyCoop.leader(game) == game.local_player
 
 
 ## Card `i` (and the slot for a swap) chosen: straight in, or online with
 ## the next controls (county_coop.gd picks).
-static func _choose(main, game, i: int, slot := -1) -> bool:
+static func _choose(main: MainInput, game: Game, i: int, slot := -1) -> bool:
 	if main.net != null:
 		CountyScreens.pending_pick = CountyCoop.encode(i, slot)
 		return true
@@ -151,13 +155,13 @@ static func _choose(main, game, i: int, slot := -1) -> bool:
 
 
 ## Card `i` taken: a weapon with every slot full asks which to swap out.
-static func take(main, game, i: int) -> void:
-	var f = CountyMode.run(game)
+static func take(main: MainInput, game: Game, i: int) -> void:
+	var f := CountyMode.run(game)
 	if f == null or i < 0 or i >= f.offer.size() or not picks_here(game):
 		return
 	CountyScreens.card_row = i
 	var card: Dictionary = f.offer[i]
-	if String(card["type"]) == "weapon" and CountyBuild.open_slot(f) < 0:
+	if str(card["type"]) == "weapon" and CountyBuild.open_slot(f) < 0:
 		CountyScreens.swapping = i
 		CountyScreens.swap_slot = -1
 		main.sound.play("menu_accept")
@@ -166,7 +170,7 @@ static func take(main, game, i: int) -> void:
 		CountyScreens.card_row = 0
 
 
-static func pick_slot(main, game, slot: int) -> void:
+static func pick_slot(main: MainInput, game: Game, slot: int) -> void:
 	if CountyScreens.swap_slot == slot:
 		confirm_swap(main, game)
 		return
@@ -174,7 +178,7 @@ static func pick_slot(main, game, slot: int) -> void:
 	main.sound.play("menu_move")
 
 
-static func confirm_swap(main, game) -> void:
+static func confirm_swap(main: MainInput, game: Game) -> void:
 	var i := CountyScreens.swapping
 	var slot := CountyScreens.swap_slot
 	if i < 0 or slot < 0:
@@ -188,13 +192,13 @@ static func confirm_swap(main, game) -> void:
 
 
 ## Back to the same three cards, nothing taken.
-static func cancel_swap(main) -> void:
+static func cancel_swap(main: MainInput) -> void:
 	CountyScreens.swapping = -1
 	CountyScreens.swap_slot = -1
 	main.sound.play("menu_back")
 
 
-static func _key_end(main, game, code: int) -> bool:
+static func _key_end(main: MainInput, game: Game, code: int) -> bool:
 	match code:
 		KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_R:
 			if code == KEY_SPACE or code == KEY_ENTER or code == KEY_KP_ENTER:
@@ -216,7 +220,7 @@ static func _key_end(main, game, code: int) -> bool:
 
 
 ## The end's buttons: 0 retry the map, 1 the map picker, 2 the title.
-static func _end_action(main, game, which: int) -> void:
+static func _end_action(main: MainInput, game: Game, which: int) -> void:
 	var map_id := String(game.level.id)
 	CountyScreens.reset()
 	if main.net != null:
@@ -231,9 +235,8 @@ static func _end_action(main, game, which: int) -> void:
 	match which:
 		0:
 			main.sound.play("menu_accept")
-			main.start_county(
-				map_id, CountyBoard.today() if String(game.features["county"].daily) != "" else ""
-			)
+			var county: CountyRun = game.features["county"]
+			main.start_county(map_id, CountyBoard.today() if String(county.daily) != "" else "")
 		1:
 			main.open_county(true)
 		_:
@@ -245,12 +248,12 @@ static func _end_action(main, game, which: int) -> void:
 
 ## A tap or left click at `at` on the picker or over a run. True when it hit
 ## one of the run's places.
-static func tap(main, at: Vector2i) -> bool:
+static func tap(main: MainInput, at: Vector2i) -> bool:
 	var hit := LobbyScreens.zone_at(at)
 	if hit.is_empty():
 		return false
-	var id := String(hit[0])
-	var arg := int(hit[1])
+	var id := str(hit[0])
+	var arg: int = hit[1]
 	if String(main.state) == "county":
 		if id == "back":
 			main.key(KEY_ESCAPE)
@@ -261,8 +264,8 @@ static func tap(main, at: Vector2i) -> bool:
 			CountyScreens.toggle_daily()
 			main.sound.play("menu_move")
 		return true
-	var game = main.game
-	var f = CountyMode.run(game)
+	var game := main.game
+	var f := CountyMode.run(game)
 	if f == null:
 		return false
 	match id:
@@ -292,12 +295,12 @@ static func tap(main, at: Vector2i) -> bool:
 
 
 ## The pointer over a card, a slot, a map or an end button picks it.
-static func hover(main, at: Vector2i) -> void:
+static func hover(main: MainInput, at: Vector2i) -> void:
 	var hit := LobbyScreens.zone_at(at)
 	if hit.is_empty():
 		return
-	var id := String(hit[0])
-	var arg := int(hit[1])
+	var id := str(hit[0])
+	var arg: int = hit[1]
 	var moved := false
 	if id == "map" and CountyScreens.map_row != arg:
 		CountyScreens.map_row = arg

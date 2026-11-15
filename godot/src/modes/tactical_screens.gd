@@ -10,6 +10,8 @@
 class_name TacticalScreens
 extends RefCounted
 
+const ModeFeature := preload("res://src/features/mode_feature.gd")
+
 const OUTLAW_TINT := [1.3, .82, .66]
 const DEPUTY_TINT := [.7, .92, 1.3]
 const OUTLAW_INK := Color8(240, 120, 84)
@@ -78,7 +80,8 @@ static func picker_maps(mode: int) -> Array:
 
 static func picker_rounds(mode: int, long: int) -> int:
 	var lengths: Array = TAG_LENGTHS if posmod(mode, PICKER_MODES.size()) == 2 else MATCH_LENGTHS
-	return int(lengths[posmod(long, lengths.size())])
+	var rounds: int = lengths[posmod(long, lengths.size())]
+	return rounds
 
 
 ## The buy menu (this machine's): open, the row the cursor is on, the last
@@ -130,7 +133,7 @@ static func reset() -> void:
 	note_until = 0.0
 
 
-static func ink_for(st, p: Player) -> Color:
+static func ink_for(st: ModeFeature, p: Player) -> Color:
 	return OUTLAW_INK if TacticalMode.side_of(st, p) == 0 else DEPUTY_INK
 
 
@@ -139,12 +142,12 @@ static func ink_for(st, p: Player) -> Color:
 ## and walk cel), at the height of a player's hit box (the head drawn where a
 ## shot counts as the head); aiming and firing face on, hurt cels under half
 ## health, crouched lower, laid out when down.
-static func player_sprite(game, q: Player, me: Player):
-	var st = Modes.feature(game)
+static func player_sprite(game: Game, q: Player, me: Player) -> View.Sprite:
+	var st := Modes.feature(game)
 	var kind := "billy" if st == null or TacticalMode.side_of(st, q) == 0 else "yard_deputy"
 	var floor_z: float = game.world.stand(q)
 	if q.health <= 0:
-		var down = game.pooled(q.x, q.y, kind + "_down", PLAYER_HEIGHT * .3, floor_z - .07)
+		var down := game.pooled(q.x, q.y, kind + "_down", PLAYER_HEIGHT * .3, floor_z - .07)
 		down.body = true
 		return down
 	var bearing := atan2(me.y - q.y, me.x - q.x)
@@ -164,15 +167,15 @@ static func player_sprite(game, q: Player, me: Player):
 	if not game.art.has_art(image):
 		image = "%s%s_%s" % [kind, Enemy.HEADINGS[direction], "0"]
 	var tall := PLAYER_HEIGHT * (.78 if q.crouched else 1.0)
-	var spr = game.pooled(q.x, q.y, image, tall, floor_z + q.air)
+	var spr := game.pooled(q.x, q.y, image, tall, floor_z + q.air)
 	spr.flip = relative < 0.0 and direction < 4
 	spr.body = true
 	return spr
 
 
 ## The tint of a player's pictures: by the side they play this half.
-static func tint_for(game, p: Player) -> Array:
-	var st = Modes.feature(game)
+static func tint_for(game: Game, p: Player) -> Array:
+	var st := Modes.feature(game)
 	if st == null:
 		return Modes.TINTS[p.slot % Modes.TINTS.size()]
 	return OUTLAW_TINT if TacticalMode.side_of(st, p) == 0 else DEPUTY_TINT
@@ -182,27 +185,27 @@ static func tint_for(game, p: Player) -> Array:
 
 
 ## The hostages and the shine bomb (pooled sprites).
-static func sprites(game, st) -> Array:
+static func sprites(game: Game, st: ModeFeature) -> Array:
 	var out: Array = []
 	var art: Assets = game.art
 	if String(st.mode) == Modes.HOSTAGE:
 		for hostage: Array in st.hostages:
-			if String(hostage[2]) == "rescued":
+			if str(hostage[2]) == "rescued":
 				continue
-			var x := float(hostage[0])
-			var y := float(hostage[1])
+			var x: float = hostage[0]
+			var y: float = hostage[1]
 			if not game.in_view(x, y, 1.0):
 				continue
 			var image := "coot_0" if art.art_index.has("coot_0") else "player_front_0"
 			image = art.tinted_art(image, [1.25, 1.2, .85])
-			var spr = game.pooled(x, y, image, .98, game.world.elevation(x, y))
+			var spr := game.pooled(x, y, image, .98, game.world.elevation(x, y))
 			spr.body = true
 			out.append(spr)
 	elif String(st.mode) == Modes.BOMB and st.bomb is Dictionary and not st.bomb.is_empty():
-		var state := String(st.bomb["state"])
+		var state := str(st.bomb["state"])
 		if state in ["dropped", "planted", "defused"]:
-			var x := float(st.bomb["x"])
-			var y := float(st.bomb["y"])
+			var x: float = st.bomb["x"]
+			var y: float = st.bomb["y"]
 			if game.in_view(x, y, 1.0) and art.art_index.has("town_tnt_crate"):
 				var high := .42 if state != "dropped" else .32
 				out.append(game.pooled(x, y, "town_tnt_crate", high, game.world.elevation(x, y)))
@@ -213,7 +216,7 @@ static func sprites(game, st) -> Array:
 
 
 ## Over the view, under the gun.
-static func draw_view(c: Canvas, game, st) -> void:
+static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 	var me: Player = game.local_player
 	if st.money.size() < game.players.size() or String(st.phase) == "":
 		return  # not begun (an online copy before the host's first snapshot)
@@ -242,7 +245,7 @@ static func draw_view(c: Canvas, game, st) -> void:
 	if String(st.phase) == "post":
 		_round_banner(c, game, st)
 	elif String(st.phase) == "freeze":
-		var left := maxi(1, int(ceil(float(st.phase_until) - game.clock)))
+		var left := maxi(1, ceili(float(st.phase_until) - game.clock))
 		HUD.text(c, str(left), 160, 50, "heading", HUD.AMBER, true)
 		if not open:
 			HUD.text(c, "TAP BUY" if touch_on else "B  BUY MENU", 160, 66, "body", HUD.INK, true)
@@ -254,15 +257,16 @@ static func draw_view(c: Canvas, game, st) -> void:
 ## A tap while a 5v5 round is on (main_input.gd _touch_actions): the BUY
 ## plate, the store's items and X, or outside an open store (closes it).
 ## True when the tap was the store's.
-static func tap(game, at: Vector2i) -> bool:
+static func tap(game: Game, at: Vector2i) -> bool:
 	var hit := LobbyScreens.zone_at(at)
-	var id := String(hit[0]) if not hit.is_empty() else ""
+	var id := str(hit[0]) if not hit.is_empty() else ""
 	match id:
 		"buy":
 			return key(game, KEY_B)
 		"item":
-			page = int(hit[1]) / 100
-			cursor = int(hit[1]) % 100
+			var item: int = hit[1]
+			page = item / 100
+			cursor = item % 100
 			return key(game, KEY_ENTER)
 		"close":
 			open = false
@@ -276,19 +280,21 @@ static func tap(game, at: Vector2i) -> bool:
 
 
 ## The score, the clock, the alive pips and the cash across the top.
-static func _top_strip(c: Canvas, game, st, rules: TacticalMode, me: Player) -> void:
+static func _top_strip(
+	c: Canvas, game: Game, st: ModeFeature, rules: TacticalMode, me: Player
+) -> void:
 	var w: Array = st.wins
-	var left := int(ceil(rules.clock_left(game, st)))
-	var planted: bool = (
-		String(st.mode) == Modes.BOMB and String(st.bomb.get("state", "")) == "planted"
-	)
+	var left := ceili(rules.clock_left(game, st))
+	var planted: bool = str(st.mode) == Modes.BOMB and str(st.bomb.get("state", "")) == "planted"
 	c.fill_rect(86, 0, 148, 9, PLATE)
 	var my_team := me.team
 	var foe_team := 1 - my_team
 	var mine_ink := ink_for(st, me)
 	var foe_ink := DEPUTY_INK if TacticalMode.side_of(st, me) == 0 else OUTLAW_INK
-	HUD.text(c, str(int(w[my_team])), 94, 1, "mini", mine_ink, true)
-	HUD.text(c, str(int(w[foe_team])), 226, 1, "mini", foe_ink, true)
+	var my_wins: int = w[my_team]
+	var foe_wins: int = w[foe_team]
+	HUD.text(c, str(my_wins), 94, 1, "mini", mine_ink, true)
+	HUD.text(c, str(foe_wins), 226, 1, "mini", foe_ink, true)
 	var clock_ink := Color8(255, 90, 60) if planted else HUD.INK
 	var clock := "%d:%02d" % [left / 60, left % 60]
 	if planted:
@@ -296,7 +302,8 @@ static func _top_strip(c: Canvas, game, st, rules: TacticalMode, me: Player) -> 
 	HUD.text(c, clock, 160, 1, "mini", clock_ink, true)
 	_pips(c, game, my_team, 120, mine_ink, false)
 	_pips(c, game, foe_team, 200, foe_ink, true)
-	HUD.text(c, "CASH %d" % int(st.money[me.slot]), 4, 1, "body", GREEN)
+	var money: int = st.money[me.slot]
+	HUD.text(c, "CASH %d" % money, 4, 1, "body", GREEN)
 	HUD.text(
 		c, "ROUND %d/%d" % [int(st.round_no), TacticalMode.max_rounds(st)], 4, 11, "mini", HUD.DIM
 	)
@@ -306,22 +313,24 @@ static func _top_strip(c: Canvas, game, st, rules: TacticalMode, me: Player) -> 
 ## where the campaign's keys, gut and pockets go): [vest, hard hat, snips,
 ## carrying the bomb, throwables, side name, its ink, the side's goal]; []
 ## before the match has begun.
-static func bar_state(game) -> Array:
-	var st = Modes.feature(game)
+static func bar_state(game: Game) -> Array:
+	var st := Modes.feature(game)
 	var me: Player = game.local_player
 	if st == null or st.money.size() <= me.slot or String(st.phase) == "":
 		return []
-	var bomb = st.bomb if String(st.mode) == Modes.BOMB else {}
-	var carrying: bool = (
-		bomb is Dictionary
-		and String(bomb.get("state", "")) == "carried"
-		and int(bomb.get("slot", -1)) == me.slot
-	)
+	var bomb: Dictionary = st.bomb if String(st.mode) == Modes.BOMB else {}
+	var carrying := false
+	if str(bomb.get("state", "")) == "carried":
+		var carrier: int = bomb.get("slot", -1)
+		carrying = carrier == me.slot
 	var rules := Modes.rules(game) as TacticalMode
+	var vest: float = st.armor[me.slot]
+	var hat: bool = st.helmet[me.slot]
+	var has_snips: bool = st.snips[me.slot]
 	return [
-		roundi(float(st.armor[me.slot])),
-		bool(st.helmet[me.slot]),
-		bool(st.snips[me.slot]),
+		roundi(vest),
+		hat,
+		has_snips,
 		carrying,
 		TacticalShop.thrown_count(me),
 		TacticalMode.side_name(st, me),
@@ -335,19 +344,22 @@ static func bar_state(game) -> Array:
 ## the team's colour that took it, lettered by how (Blown, Defused, Wiped
 ## out, Time, Rescue). `footer` is what ENTER and ESC do (online: the lobby's
 ## own line goes there instead).
-static func results(c: Canvas, game, st) -> void:
+static func results(c: Canvas, game: Game, st: ModeFeature) -> void:
 	var art: Dictionary = game.art.art("title_backdrop")
-	c.blit_rgba(art["data"], art["w"], art["h"], 0, 0, "art|title_backdrop")
+	var art_data: PackedByteArray = art["data"]
+	var art_w: int = art["w"]
+	var art_h: int = art["h"]
+	c.blit_rgba(art_data, art_w, art_h, 0, 0, "art|title_backdrop")
 	HUD.panel(c, 8, 6, 304, 186)
 	var mode_name := "SEARCH & DESTROY" if String(st.mode) == Modes.BOMB else "HOSTAGE RESCUE"
 	if Modes.is_tag_team(game):
 		mode_name = "TAG TEAM 2V2"
-	var place: String = String(MAP_TITLES.get(game.level.id, game.level.id.to_upper()))
+	var place: String = str(MAP_TITLES.get(game.level.id, game.level.id.to_upper()))
 	HUD.text(c, "%s  -  %s" % [place, mode_name], 160, 12, "mini", HUD.DIM, true)
 	var w: Array = st.wins
-	var a := int(w[0])
-	var b := int(w[1])
-	var team_ink := [Color8(232, 160, 96), Color8(126, 196, 120)]
+	var a: int = w[0]
+	var b: int = w[1]
+	var team_ink: Array[Color] = [Color8(232, 160, 96), Color8(126, 196, 120)]
 	HUD.text(c, TacticalMode.TEAM_NAMES[0], 74, 22, "heading", team_ink[0], true)
 	HUD.text(c, TacticalMode.TEAM_NAMES[1], 246, 22, "heading", team_ink[1], true)
 	HUD.text(c, "%d - %d" % [a, b], 160, 22, "heading", HUD.AMBER, true)
@@ -394,8 +406,8 @@ static func results(c: Canvas, game, st) -> void:
 	var size := 10 if rounds.size() <= 26 else 8
 	var x := 160 - rounds.size() * size / 2
 	for row: Array in rounds:
-		var t := int(row[0])
-		var how := String(row[1])
+		var t: int = row[0]
+		var how := str(row[1])
 		c.fill_rect(x, 121, size - 1, 11, team_ink[t] if t >= 0 and t < 2 else HUD.DIM)
 		var letter := how.substr(0, 1) if how != "" else "?"
 		HUD.text(c, letter, x + (size - 1) / 2, 124, "mini", PLATE, true, false)
@@ -408,7 +420,7 @@ static func results(c: Canvas, game, st) -> void:
 
 
 ## A team's five pips: lit for each one up.
-static func _pips(c: Canvas, game, team: int, x: int, ink: Color, rightward: bool) -> void:
+static func _pips(c: Canvas, game: Game, team: int, x: int, ink: Color, rightward: bool) -> void:
 	var k := 0
 	for p: Player in game.players:
 		if p.team != team:
@@ -418,12 +430,12 @@ static func _pips(c: Canvas, game, team: int, x: int, ink: Color, rightward: boo
 		k += 1
 
 
-static func _feed(c: Canvas, _game, st) -> void:
+static func _feed(c: Canvas, _game: Game, st: ModeFeature) -> void:
 	var y := 2
 	for row: Array in st.feed:
-		var team := int(row[2])
+		var team: int = row[2]
 		var ink := OUTLAW_INK if team == int(st.outlaws) else DEPUTY_INK
-		HUD.text(c, String(row[0]), 316, y, "mini", ink, false, true, true)
+		HUD.text(c, str(row[0]), 316, y, "mini", ink, false, true, true)
 		y += 7
 
 
@@ -431,12 +443,12 @@ static func _feed(c: Canvas, _game, st) -> void:
 ## Four short ticks round the crosshair as far out as the gun's shots can
 ## stray now: they open up on the move, in the air and as a spray climbs,
 ## and close in standing still or crouched (TacticalMode.shot_tuning).
-static func _spread_marks(c: Canvas, game, me: Player) -> void:
+static func _spread_marks(c: Canvas, game: Game, me: Player) -> void:
 	if me.slot != human or me.health <= 0:
 		return
 	var gun: int = me.armory.active
 	var how: Dictionary = Weapons.FIRING[gun]
-	if not String(how.get("fire", "")) in ["hitscan", "pellets"]:
+	if not str(how.get("fire", "")) in ["hitscan", "pellets"]:
 		return
 	var spread: Vector2 = Modes.shot_spread(game, me, gun, how, me.armory.rifle_heat)[0]
 	var gap := clampi(roundi(tan(spread.x) * View.base_focal), 2, 40)
@@ -451,14 +463,14 @@ static func _spread_marks(c: Canvas, game, me: Player) -> void:
 ## Teammates' names over their heads: the nearest first, each moved up
 ## clear of the ones already drawn (or left out when there is no room); one
 ## out of sight and far off is only a mark.
-static func _mate_tags(c: Canvas, game, st, me: Player) -> void:
+static func _mate_tags(c: Canvas, game: Game, st: ModeFeature, me: Player) -> void:
 	var mates: Array = []
 	for q: Player in game.players:
 		if q != me and q.team == me.team and q.health > 0:
 			mates.append([Vector2(q.x - me.x, q.y - me.y).length(), q])
 	mates.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	var taken: Array[Rect2i] = []
-	var bomb = st.bomb if String(st.mode) == Modes.BOMB else {}
+	var bomb: Dictionary = st.bomb if String(st.mode) == Modes.BOMB else {}
 	for entry: Array in mates:
 		var q: Player = entry[1]
 		var head: float = game.world.stand(q) + q.air + 1.14
@@ -468,15 +480,15 @@ static func _mate_tags(c: Canvas, game, st, me: Player) -> void:
 		if at.y > View.VIEW - 6.0:
 			continue
 		var ink := ink_for(st, q)
-		var seen: bool = (
-			float(entry[0]) < 12.0 or game.world.visible(me.x, me.y, q.x, q.y, me.eye, head)
-		)
+		var dist: float = entry[0]
+		var seen: bool = dist < 12.0 or game.world.visible(me.x, me.y, q.x, q.y, me.eye, head)
 		if not seen:
 			c.fill_rect(int(at.x) - 1, int(at.y) - 6, 3, 3, ink)
 			continue
 		var label := Modes.tag(q)
-		if bomb is Dictionary and String(bomb.get("state", "")) == "carried":
-			if int(bomb["slot"]) == q.slot:
+		if bomb is Dictionary and str(bomb.get("state", "")) == "carried":
+			var carrier: int = bomb["slot"]
+			if carrier == q.slot:
 				label += " BOMB"
 		var w := PixelType.text_width(label, "mini")
 		var y := int(at.y) - 10
@@ -492,16 +504,18 @@ static func _mate_tags(c: Canvas, game, st, me: Player) -> void:
 
 
 ## The sites' letters, the planted bomb and the hostages, where they are.
-static func _objective_tags(c: Canvas, game, st, me: Player) -> void:
-	var sites = game.world.tactical.get("sites", {})
-	if String(st.mode) == Modes.BOMB and sites is Dictionary:
+static func _objective_tags(c: Canvas, game: Game, st: ModeFeature, me: Player) -> void:
+	var found: Variant = game.world.tactical.get("sites", {})
+	if String(st.mode) == Modes.BOMB and found is Dictionary:
+		var sites: Dictionary = found
 		for name: String in sites:
-			var centre := TacticalMode.box_centre(sites[name])
+			var box: Array = sites[name]
+			var centre := TacticalMode.box_centre(box)
 			_tag_at(c, game, me, centre.x, centre.y, 1.6, name, HUD.AMBER, false)
 		var bomb: Dictionary = st.bomb
-		var state := String(bomb.get("state", ""))
-		var x := float(bomb.get("x", 0.0))
-		var y := float(bomb.get("y", 0.0))
+		var state := str(bomb.get("state", ""))
+		var x: float = bomb.get("x", 0.0)
+		var y: float = bomb.get("y", 0.0)
 		if state == "planted":
 			var beat := int(game.clock * 4.0) % 2 == 0
 			var ink := Color8(255, 80, 50) if beat else HUD.AMBER
@@ -510,12 +524,14 @@ static func _objective_tags(c: Canvas, game, st, me: Player) -> void:
 			_tag_at(c, game, me, x, y, .6, "BOMB HERE", HUD.AMBER, false)
 	elif String(st.mode) == Modes.HOSTAGE:
 		for hostage: Array in st.hostages:
-			var state := String(hostage[2])
+			var state := str(hostage[2])
 			if state == "rescued":
 				continue
 			var ink := GREEN if state == "free" else HUD.AMBER
 			var word := "HOSTAGE" if state == "free" else "CARRIED"
-			_tag_at(c, game, me, float(hostage[0]), float(hostage[1]), 1.15, word, ink, true)
+			var hostage_x: float = hostage[0]
+			var hostage_y: float = hostage[1]
+			_tag_at(c, game, me, hostage_x, hostage_y, 1.15, word, ink, true)
 		if TacticalMode.attacks(game, st, me):
 			for box: Array in HostageMode.rescue_boxes(game):
 				var centre := TacticalMode.box_centre(box)
@@ -523,7 +539,15 @@ static func _objective_tags(c: Canvas, game, st, me: Player) -> void:
 
 
 static func _tag_at(
-	c: Canvas, game, me: Player, x: float, y: float, z: float, word: String, ink: Color, sight: bool
+	c: Canvas,
+	game: Game,
+	me: Player,
+	x: float,
+	y: float,
+	z: float,
+	word: String,
+	ink: Color,
+	sight: bool
 ) -> void:
 	var top: float = game.world.elevation(x, y) + z
 	var at: Vector3 = game.to_canvas(x, y, top)
@@ -537,20 +561,34 @@ static func _tag_at(
 
 
 ## The plant and fuse bars, for this machine's player or anyone they watch.
-static func _bars(c: Canvas, _game, st, me: Player) -> void:
+static func _bars(c: Canvas, _game: Game, st: ModeFeature, me: Player) -> void:
 	if String(st.mode) != Modes.BOMB or me.health <= 0:
 		return
 	var bomb: Dictionary = st.bomb
 	if bomb.is_empty():
 		return
-	var state := String(bomb["state"])
-	if state == "carried" and int(bomb["slot"]) == me.slot and float(bomb["plant"]) > 0.0:
+	var state := str(bomb["state"])
+	var planting := false
+	if state == "carried":
+		var carrier: int = bomb["slot"]
+		if carrier == me.slot:
+			var plant: float = bomb["plant"]
+			planting = plant > 0.0
+	var cutting := false
+	if not planting and state == "planted":
+		var defuser: int = bomb["defuser"]
+		if defuser == me.slot:
+			var cut: float = bomb["defuse"]
+			cutting = cut > 0.0
+	if planting:
+		var plant_done: float = bomb["plant"]
 		HUD.text(c, "PLANTING", 160, 102, "body", HUD.AMBER, true)
-		_bar(c, 110, 112, 100, float(bomb["plant"]) / BombMode.PLANT_TIME, HUD.AMBER)
-	elif state == "planted" and int(bomb["defuser"]) == me.slot and float(bomb["defuse"]) > 0.0:
+		_bar(c, 110, 112, 100, plant_done / BombMode.PLANT_TIME, HUD.AMBER)
+	elif cutting:
 		var whole := BombMode.defuse_time(st, me)
+		var cut_done: float = bomb["defuse"]
 		HUD.text(c, "CUTTING THE FUSE", 160, 102, "body", GREEN, true)
-		_bar(c, 110, 112, 100, float(bomb["defuse"]) / whole, GREEN)
+		_bar(c, 110, 112, 100, cut_done / whole, GREEN)
 
 
 static func _bar(c: Canvas, x: int, y: int, w: int, part: float, tone: Color) -> void:
@@ -561,7 +599,7 @@ static func _bar(c: Canvas, x: int, y: int, w: int, part: float, tone: Color) ->
 
 
 ## Who took the round, in the post-round seconds.
-static func _round_banner(c: Canvas, _game, st) -> void:
+static func _round_banner(c: Canvas, _game: Game, st: ModeFeature) -> void:
 	var team := int(st.round_winner)
 	if team < 0:
 		return
@@ -571,9 +609,10 @@ static func _round_banner(c: Canvas, _game, st) -> void:
 	var line := "%s TAKE THE ROUND" % TacticalMode.SIDE_NAMES[side]
 	HUD.text(c, line, 160, 45, "heading", ink, true)
 	var w: Array = st.wins
+	var wins_0: int = w[0]
+	var wins_1: int = w[1]
 	var score := (
-		"%s %d  -  %d %s"
-		% [TacticalMode.TEAM_NAMES[0], int(w[0]), int(w[1]), TacticalMode.TEAM_NAMES[1]]
+		"%s %d  -  %d %s" % [TacticalMode.TEAM_NAMES[0], wins_0, wins_1, TacticalMode.TEAM_NAMES[1]]
 	)
 	HUD.text(c, score, 160, 62, "body", HUD.INK, true)
 
@@ -586,28 +625,23 @@ static func _round_banner(c: Canvas, _game, st) -> void:
 ## Point and click (the pointer is let go while it is open, main.gd) or tap
 ## an item to buy it; the keys still work: LEFT and RIGHT pick a side, UP and
 ## DOWN an item, ENTER or its number buys, B or ESC shuts it.
-static func draw_shop(c: Canvas, game, st) -> void:
+static func draw_shop(c: Canvas, game: Game, st: ModeFeature) -> void:
 	var me: Player = game.local_player
 	var panel := Rect2i(8, 16, 304, 140)
 	HUD.panel(c, panel.position.x, panel.position.y, panel.size.x, panel.size.y, PLATE)
 	LobbyScreens.zone(panel, "shop")
-	var left := int(ceil(TacticalMode.buy_left(game, st)))
+	var left := ceili(TacticalMode.buy_left(game, st))
 	HUD.text(c, "GENERAL STORE", 14, 20, "body", HUD.AMBER)
 	var time := "BUY TIME %d" % left if left > 0 else "BUY TIME'S OVER"
 	HUD.text(c, time, 160, 20, "body", HUD.INK, true)
-	HUD.text(c, "CASH %d" % int(st.money[me.slot]), 290, 20, "body", GREEN, false, true, true)
+	var money: int = st.money[me.slot]
+	HUD.text(c, "CASH %d" % money, 290, 20, "body", GREEN, false, true, true)
 	LobbyScreens.button(c, Rect2i(294, 18, 15, 11), "X", false, "close")
 	for side in 2:
 		var x0 := 12 + side * 150
 		var focused := side == page
-		HUD.text(
-			c,
-			["GUNS", "GEAR + THROWN"][side],
-			x0 + 3,
-			33,
-			"body",
-			HUD.AMBER if focused else LobbyScreens.SOFT
-		)
+		var heading: String = ["GUNS", "GEAR + THROWN"][side]
+		HUD.text(c, heading, x0 + 3, 33, "body", HUD.AMBER if focused else LobbyScreens.SOFT)
 		c.fill_rect(x0, 41, 146, 1, Canvas.rgb(110, 80, 52))
 		var rows := TacticalShop.page_rows(game, st, me, side)
 		for i in rows.size():
@@ -616,7 +650,8 @@ static func draw_shop(c: Canvas, game, st) -> void:
 			var allowed := TacticalShop.allowed(game, st, me, row)
 			var price := TacticalShop.price_for(st, me, row)
 			var have := TacticalShop.owned_fully(st, me, row)
-			var cash := int(st.money[me.slot]) >= price
+			var money_now: int = st.money[me.slot]
+			var cash := money_now >= price
 			var ink := HUD.INK if allowed and cash and not have else GREY
 			var spot := Rect2i(x0, y - 2, 146, 10)
 			if focused and i == cursor:
@@ -624,8 +659,8 @@ static func draw_shop(c: Canvas, game, st) -> void:
 					spot.position.x, spot.position.y, spot.size.x, spot.size.y, LobbyScreens.LIT
 				)
 			if focused and i < SHOP_NAMES.size():
-				HUD.text(c, SHOP_NAMES[i], x0 + 2, y + 1, "mini", HUD.AMBER)
-			HUD.text(c, String(row[1]), x0 + 10, y, "body", ink)
+				HUD.text(c, str(SHOP_NAMES[i]), x0 + 2, y + 1, "mini", HUD.AMBER)
+			HUD.text(c, str(row[1]), x0 + 10, y, "body", ink)
 			var tail := "GOT" if have else "%d" % price
 			HUD.text(c, tail, x0 + 144, y, "body", GREEN if have else ink, false, false, true)
 			LobbyScreens.zone(spot, "item", side * 100 + i)
@@ -640,25 +675,26 @@ static func draw_shop(c: Canvas, game, st) -> void:
 ## The store's item under the pointer becomes the picked one.
 static func hover(at: Vector2i) -> void:
 	var hit := LobbyScreens.zone_at(at)
-	if not hit.is_empty() and String(hit[0]) == "item":
-		page = int(hit[1]) / 100
-		cursor = int(hit[1]) % 100
+	if not hit.is_empty() and str(hit[0]) == "item":
+		var item: int = hit[1]
+		page = item / 100
+		cursor = item % 100
 
 
 ## The store shuts when the buy time is over or this machine's player is out
 ## (main.gd, every frame).
-static func settle(game) -> void:
+static func settle(game: Game) -> void:
 	if not open:
 		return
-	var st = Modes.feature(game)
+	var st := Modes.feature(game)
 	var me: Player = game.local_player
 	if st == null or me.slot != human or not TacticalMode.can_buy(game, st, me):
 		open = false
 
 
 ## A key while the game is a 5v5 one: true when it was the shop's.
-static func key(game, code: int) -> bool:
-	var st = Modes.feature(game)
+static func key(game: Game, code: int) -> bool:
+	var st := Modes.feature(game)
 	if st == null or not Modes.TACTICAL.has(String(st.mode)):
 		return false
 	var me: Player = game.local_player
@@ -698,11 +734,11 @@ static func key(game, code: int) -> bool:
 	if pick < 0 or pick >= rows.size():
 		return false
 	cursor = pick
-	var said := TacticalShop.why_not(game, st, me, String(rows[pick][0]))
+	var said := TacticalShop.why_not(game, st, me, str(rows[pick][0]))
 	if said == "":
-		pending_buys.append(TacticalShop.index_of(String(rows[pick][0])))
+		pending_buys.append(TacticalShop.index_of(str(rows[pick][0])))
 		game.sound.play("weapon_pickup", .7)
-		_say(game, "BOUGHT " + String(rows[pick][1]))
+		_say(game, "BOUGHT " + str(rows[pick][1]))
 	else:
 		game.sound.play("menu_back", .5)
 		_say(game, said)
@@ -711,7 +747,7 @@ static func key(game, code: int) -> bool:
 
 ## The 5v5 modes' gun keys, as the round shooters have them: 1 the long gun,
 ## 2 the sidearm (again: the other sidearm), 3 the crowbar, 4 dynamite.
-static func _slot_key(_game, me: Player, code: int) -> bool:
+static func _slot_key(_game: Game, me: Player, code: int) -> bool:
 	if code < KEY_1 or code > KEY_4 or me.slot != human or me.health <= 0:
 		return false
 	var a: Weapons.Armory = me.armory
@@ -730,7 +766,7 @@ static func _slot_key(_game, me: Player, code: int) -> bool:
 					held.append(gun)
 			if not held.is_empty():
 				var at := held.find(a.active)
-				want = int(held[(at + 1) % held.size()]) if at >= 0 else int(held[0])
+				want = held[(at + 1) % held.size()] if at >= 0 else held[0]
 		KEY_3:
 			want = Weapons.CROWBAR
 		KEY_4:
@@ -742,13 +778,13 @@ static func _slot_key(_game, me: Player, code: int) -> bool:
 					held.append(gun)
 			if not held.is_empty():
 				var at := held.find(a.active)
-				want = int(held[(at + 1) % held.size()]) if at >= 0 else int(held[0])
+				want = held[(at + 1) % held.size()] if at >= 0 else held[0]
 	if want >= 0 and a.owned[want]:
 		pending_weapon = want
 	return true
 
 
-static func _say(game, text: String) -> void:
+static func _say(game: Game, text: String) -> void:
 	note = text
 	note_until = game.clock + 1.6
 
@@ -764,9 +800,9 @@ static func draw_picker(
 	c: Canvas, menu: Menu, row: int, mode: int, map: int, long: int, rules := 0
 ) -> void:
 	menu.draw_sheet(c, "PLAY VS BOTS")
-	var mode_id := String(PICKER_MODES[posmod(mode, PICKER_MODES.size())])
+	var mode_id := str(PICKER_MODES[posmod(mode, PICKER_MODES.size())])
 	var maps := picker_maps(mode)
-	var map_id := String(maps[posmod(map, maps.size())])
+	var map_id := str(maps[posmod(map, maps.size())])
 	var rounds := picker_rounds(mode, long)
 	var title := (
 		"SEARCH & DESTROY"
@@ -775,9 +811,9 @@ static func draw_picker(
 	)
 	var rows := [
 		["MODE", title],
-		["MAP", String(MAP_TITLES.get(map_id, map_id.to_upper()))],
+		["MAP", str(MAP_TITLES.get(map_id, map_id.to_upper()))],
 		["MATCH", "FIRST TO %d ROUNDS" % rounds],
-		["RULES", String(TacticalShop.RULE_NAMES[posmod(rules, TacticalShop.RULE_NAMES.size())])],
+		["RULES", str(TacticalShop.RULE_NAMES[posmod(rules, TacticalShop.RULE_NAMES.size())])],
 	]
 	var picked := posmod(row, PICKER_ROWS)
 	for i in rows.size():
@@ -787,8 +823,8 @@ static func draw_picker(
 		if here:
 			c.fill_rect(19, y - 3, 282, 14, LobbyScreens.LIT)
 			Menu.shell(c, 22, y + 1)
-		HUD.text(c, String(rows[i][0]), 36, y, "body", Menu.FADED)
-		HUD.text(c, String(rows[i][1]), 196, y, "body", ink, true)
+		HUD.text(c, str(rows[i][0]), 36, y, "body", Menu.FADED)
+		HUD.text(c, str(rows[i][1]), 196, y, "body", ink, true)
 		HUD.text(c, "<", 112, y, "body", ink if here else Menu.DIM)
 		HUD.text(c, ">", 278, y, "body", ink if here else Menu.DIM)
 		LobbyScreens.zone(Rect2i(19, y - 3, 282, 14), "row", i)
@@ -798,9 +834,9 @@ static func draw_picker(
 	LobbyScreens.button(c, Rect2i(70, 107, 180, 20), "", go, "go", PICKER_GO)
 	HUD.text(c, "LET 'ER RIP", 160, 110, "heading", HUD.AMBER if go else HUD.INK, true)
 	var lines: Array = MAP_LINES.get(map_id, ["", ""])
-	_fit(c, String(MODE_LINES.get(mode_id, "")), 133, HUD.AMBER)
-	_fit(c, String(lines[0]), 143, HUD.INK)
-	_fit(c, String(lines[1]), 152, HUD.INK)
+	_fit(c, str(MODE_LINES.get(mode_id, "")), 133, HUD.AMBER)
+	_fit(c, str(lines[0]), 143, HUD.INK)
+	_fit(c, str(lines[1]), 152, HUD.INK)
 	var blurb := (
 		"YOU AND A BOT AGAINST TWO." if mode_id == "tagteam" else "YOU AND FOUR BOTS AGAINST FIVE."
 	)
@@ -820,8 +856,8 @@ static func _fit(c: Canvas, text: String, y: int, ink: Color) -> void:
 
 ## This machine's player is out and nobody on their team is left to watch:
 ## the scoreboard.
-static func draw_down(c: Canvas, game) -> void:
-	var st = Modes.feature(game)
+static func draw_down(c: Canvas, game: Game) -> void:
+	var st := Modes.feature(game)
 	if st == null:
 		return
 	draw_board(c, game, st, "YOU'RE OUT", "THE ROUND GOES ON WITHOUT YOU")
@@ -829,7 +865,9 @@ static func draw_down(c: Canvas, game) -> void:
 
 
 ## Both teams' players, their frags and deaths, under a heading.
-static func draw_board(c: Canvas, game, st, heading: String, line: String) -> void:
+static func draw_board(
+	c: Canvas, game: Game, st: ModeFeature, heading: String, line: String
+) -> void:
 	HUD.panel(c, 40, 22, 240, 126, PLATE)
 	HUD.text(c, heading, 160, 26, "heading", HUD.INK, true)
 	HUD.text(c, line, 160, 42, "mini", HUD.AMBER, true)
@@ -842,13 +880,9 @@ static func draw_board(c: Canvas, game, st, heading: String, line: String) -> vo
 				break
 		var ink := HUD.INK if any == null else ink_for(st, any)
 		var side := "" if any == null else " " + TacticalMode.side_name(st, any)
+		var team_wins: int = st.wins[team]
 		HUD.text(
-			c,
-			"%s %d%s" % [TacticalMode.TEAM_NAMES[team], int(st.wins[team]), side],
-			x,
-			52,
-			"mini",
-			ink
+			c, "%s %d%s" % [TacticalMode.TEAM_NAMES[team], team_wins, side], x, 52, "mini", ink
 		)
 		var y := 61
 		for p: Player in game.players:
@@ -858,7 +892,8 @@ static func draw_board(c: Canvas, game, st, heading: String, line: String) -> vo
 			HUD.text(c, name, x, y, "mini", HUD.INK if p.health > 0 else GREY)
 			HUD.text(c, "%d/%d" % [p.frags, p.deaths], x + 60, y, "mini", HUD.DIM)
 			if p.team == game.local_player.team:
-				var cash := "%d" % int(st.money[p.slot])
+				var money: int = st.money[p.slot]
+				var cash := "%d" % money
 				HUD.text(c, cash, x + 104, y, "mini", GREEN, false, false, true)
 			y += 8
 
@@ -868,7 +903,7 @@ static func draw_board(c: Canvas, game, st, heading: String, line: String) -> vo
 
 ## A key in play (the store shut): the gun keys, reload, USE, the scoreboard
 ## (TAB, held) and the map (M); pocket items are not for a round.
-static func _play_key(game, me: Player, code: int) -> bool:
+static func _play_key(game: Game, me: Player, code: int) -> bool:
 	if code == KEY_TAB:
 		return true  # held for the scoreboard (draw_view asks)
 	if code == KEY_M:
@@ -914,7 +949,7 @@ static func _play_key(game, me: Player, code: int) -> bool:
 ## The next controls of this machine's player get what was asked for since
 ## the last tick: one buy at a time, the gun, the reload, USE, the cycle.
 static func take_pending(c: Game.Controls) -> void:
-	c.buy = int(pending_buys.pop_front()) if not pending_buys.is_empty() else -1
+	c.buy = pending_buys.pop_front() if not pending_buys.is_empty() else -1
 	c.weapon = pending_weapon
 	c.reload = pending_reload
 	# Once each: a frame of several ticks hands them to the first only.
@@ -927,8 +962,10 @@ static func take_pending(c: Game.Controls) -> void:
 
 
 ## "+300" floating under the cash for a moment when it goes up.
-static func _cash_gain(c: Canvas, game, st, me: Player) -> void:
-	var cash := int(st.money[me.slot]) if me.slot < st.money.size() else 0
+static func _cash_gain(c: Canvas, game: Game, st: ModeFeature, me: Player) -> void:
+	var cash := 0
+	if me.slot < st.money.size():
+		cash = st.money[me.slot]
 	if _cash_seen >= 0 and cash > _cash_seen:
 		_gain = cash - _cash_seen
 		_gain_until = game.clock + 1.6
@@ -939,11 +976,13 @@ static func _cash_gain(c: Canvas, game, st, me: Player) -> void:
 
 
 ## Who downed this machine's player, with what.
-static func _killed_line(c: Canvas, st, y: int) -> void:
-	var row = st.killed_by.get(human)
-	if not row is Array:
+static func _killed_line(c: Canvas, st: ModeFeature, y: int) -> void:
+	var found: Variant = st.killed_by.get(human)
+	if not found is Array:
 		return
-	var line := "DOWNED BY %s  %s" % [String(row[0]), String(row[1])]
-	if bool(row[2]):
+	var row: Array = found
+	var line := "DOWNED BY %s  %s" % [str(row[0]), str(row[1])]
+	var head: bool = row[2]
+	if head:
 		line += "  HEADSHOT"
 	HUD.text(c, line, 160, y, "mini", OUTLAW_INK, true)
