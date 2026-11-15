@@ -121,7 +121,28 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
   bosses busy up close (512 texture), co-op partners still flat cels, HUD
   not on Controls.
 
-### Second polish pass: actor leftovers
+### 2026-11-15: second polish pass (v3.1.0)
+- Bowling lane: the pins are 3D rigid bodies (range_pin_physics.gd: a real
+  pin's profile as spheres on its foot ring, sequential impulses, sleep),
+  the ball solved with them; pins and ball drawn as 3D meshes (SolidLayer3D);
+  the gutters and pit sunk (range layout 4). bowl_lab.gd tunes it.
+- Slabs (SlabLayer3D, was PickupLayer3D): loose things (brass, gibs, bits,
+  hats, dropped guns) tumble and lie flat; range targets swing and spin.
+- Every prop 3D: 33 new models for the last 59 prop pictures, quest
+  stations one model with their off and on looks, facing their use point.
+- Mundell as a 3D model for every other player (co-op, DM, team DM, County
+  Run co-op, online, the mirror).
+- Floating parts after kills (almost every kind): actor animations imported
+  at 30 fps resampled their 24 fps keys; fixed for every kind and checked
+  (view3d_check). death_frames.gd pictures deaths close up.
+- QA sweep: county_net_check's flake (bark_next and specks' dice; the check
+  now lists every mismatch), the restroom's GENTS tiles, the fair's tent
+  sign, the soda fountain, a pickup in the footbridge stairs, the sky's top
+  row; tours keep drawing when another window takes focus.
+- Pictures: docs/godot3d/remaster2/ (bowling, slabs, props, mundell, qa,
+  actors). check_all lint ALL CHECKS OK.
+
+#### Actor leftovers (detail)
 - Big Billy's fall specks: actors imported at 30 fps resampled their 24 fps
   keys (a part shrunk away came back half-grown in mid-air); now 24 fps,
   LINEAR keys, near-print matching (parts no longer vanish for a fall or a
