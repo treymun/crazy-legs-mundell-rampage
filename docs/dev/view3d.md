@@ -79,6 +79,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | marks | `mark.gdshader` | wall and ground decals |
 | rain | `rain.gdshader` | three camera-hung layers |
 | pickups | `PickupLayer3D`, `PickupModels`, `pickup.gdshader` | `item_*` sprites as pixel slabs (MultiMesh per picture) |
+| solids | `SolidLayer3D`, `solid.gdshader` | sprites with `solid` set (bowling pins, the bowling ball) as real meshes turned by their own `pose` |
 | props | `PropLayer3D`, `PropView`, `prop_models.gd`, `prop.gdshader` | modelled props |
 | actors | `ActorLayer3D`, `ActorView`, `actor_models.gd`, `actor.gdshader` | rigged enemies and bosses |
 | heat | `HeatHaze` | heat shimmer boxes, handed to the display shader |
@@ -124,6 +125,21 @@ A prop's facing is worked out once for where it stands (the most open way),
 unless its sprite sets `plane`: then the model turns by `-plane`. A moving
 prop (the speedway's lap cars, `race_laps.gd`) sets `plane` from its heading,
 so it faces where it runs; it is stood again each frame it moves.
+
+## Solid bodies
+
+A `View.Sprite` with `solid` set ("pin", "ball") is drawn by
+`SolidLayer3D` as a mesh standing at the sprite's (x, y, z), turned by its
+`pose` (a `Basis` in map axes, z up; `godot_basis` swaps to Godot's y up).
+The meshes are built in code at start: a pin turned on a lathe from a real
+pin's profile with its two red neck stripes (drawn `CHUNK` 1.12 stouter, as
+the old picture was), a ball with three finger holes and a swirl. Faces
+carry their material in UV.x; `solid.gdshader` colours them from its
+`PAINT` table, shades the round sides in three steps of a key light from
+above and lights, fogs and palettes them as the sprites are. The range's
+pins come from `range_bowling.gd`'s `sprites` (pose from each pin's
+quaternion); a bowling ball shot anywhere is drawn so by `Shots.ball_look`
+(rolled by its `travelled` about the line across its way).
 
 ## Pickups
 

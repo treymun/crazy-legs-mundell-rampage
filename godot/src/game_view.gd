@@ -409,6 +409,8 @@ func sprites() -> Array:
 			var size := Shots.size(shot.kind, shot.enemy)
 			var shot_sprite := pooled(shot.x, shot.y, "fx_" + name, size, shot.z)
 			shot_sprite.glow = Shots.glows(shot.kind)
+			if shot.kind == "bowling":
+				Shots.ball_look(shot_sprite, shot)
 			sprites.append(shot_sprite)
 	sprites.append_array(Features.sprites(me))
 	for fx_speck: Speck in specks:

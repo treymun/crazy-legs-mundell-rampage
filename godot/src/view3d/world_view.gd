@@ -30,6 +30,7 @@ var glass_material: ShaderMaterial
 var sky_material: ShaderMaterial
 var sprites: SpriteLayer3D
 var pickups: PickupLayer3D
+var solids: SolidLayer3D
 var props: PropLayer3D
 var actors: ActorLayer3D
 var tiles: ViewTiles
@@ -101,6 +102,8 @@ func _init(assets: Assets) -> void:
 	_root.add_child(sprites)
 	pickups = PickupLayer3D.new(PickupModels.new(assets), sprites)
 	_root.add_child(pickups)
+	solids = SolidLayer3D.new()
+	_root.add_child(solids)
 	props = PropLayer3D.new(PropModels.new(assets))
 	_root.add_child(props)
 	actors = ActorLayer3D.new(ActorModels.new(assets))
@@ -139,6 +142,7 @@ func _init(assets: Assets) -> void:
 	_materials.append_array(rain_materials)
 	_materials.append_array(sprites.materials())
 	_materials.append(pickups.material)
+	_materials.append(solids.material)
 	_share("tiles", tiles.tiles)
 	_share("tile_info_tex", tiles.info)
 
@@ -189,10 +193,13 @@ func frame(game: Game) -> void:
 	var modelled: Array = []
 	var acting: Array = []
 	var picked: Array = []
+	var solid: Array = []
 	var listed: Array = view["sprites"]
 	for item: Variant in listed:
 		var s: View.Sprite = item if item is View.Sprite else null
-		if s != null and s.who is Enemy and actors.kind_of(s.who as Enemy) != "":
+		if s != null and SolidLayer3D.takes(s):
+			solid.append(s)
+		elif s != null and s.who is Enemy and actors.kind_of(s.who as Enemy) != "":
 			acting.append(s)
 		elif s != null and props.models.name_of(s.image) != "":
 			modelled.append(s)
@@ -208,6 +215,7 @@ func frame(game: Game) -> void:
 			m.set_shader_parameter(key, _params[key])
 	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
 	pickups.show_pickups(picked, level, Vector3(x, y, z), angle, game.clock, r.world_motion, mirror)
+	solids.show_solids(solid, level, Vector3(x, y, z), angle, mirror)
 	if mirror:
 		var reflection: View.Sprite = view.get("reflection")
 		sprites.show_reflection(reflection, level, angle)

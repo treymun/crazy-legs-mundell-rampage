@@ -232,7 +232,7 @@ func blast(game: Game, x: float, y: float) -> void:
 
 ## Projectiles in flight: a bowling ball takes pins, anything else that
 ## would burst bursts on a target, a blade sails through it.
-func shots(game: Game, dt: float) -> void:
+func shots(game: Game) -> void:
 	var burst: Array = []
 	for shot: GameState.Shot in game.shots:
 		if shot.enemy:
@@ -242,8 +242,6 @@ func shots(game: Game, dt: float) -> void:
 			if shot.uid > last_ball:
 				last_ball = shot.uid
 				bowling.thrown(shot, turn_rate)
-			if shot.uid == bowling.ball_uid:
-				bowling.roll_ball(game, shot, dt)
 		for t: Dictionary in targets:
 			var spec: Array = L.TARGET_KINDS[t["kind"]]
 			var tx: float = t["x"]
@@ -404,4 +402,4 @@ func tick(game: Game, dt: float) -> void:
 	var turn := wrapf(game.player.angle - last_angle, -PI, PI) / maxf(dt, .001)
 	turn_rate += (turn - turn_rate) * minf(1.0, dt * 10.0)
 	last_angle = game.player.angle
-	shots(game, dt)
+	shots(game)

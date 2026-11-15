@@ -46,6 +46,10 @@ class Sprite:
 	## How far a billboard is turned over in the view's plane (radians, about
 	## its middle; a gib or a chunk tumbling through the air). 0: upright.
 	var spin := 0.0
+	## A solid body drawn as a 3D mesh (SolidLayer3D: "pin", "ball") instead
+	## of the picture, standing at (x, y, z) turned by `pose` (map axes, z up).
+	var solid := ""
+	var pose := Basis.IDENTITY
 
 	func _init(px := 0.0, py := 0.0, img := "", h := 1.0, pz := 0.0) -> void:
 		x = px

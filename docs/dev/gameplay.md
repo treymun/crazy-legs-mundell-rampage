@@ -417,6 +417,26 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   chunk left over nothing, a thrown body, the same throw twice).
   `tools/physics_frames.gd -- only=loft` pictures it in a window.
 
+### The bowling lane's pins (second remaster)
+
+The Bowl-O-Rama's ten pins are rigid bodies in three dimensions
+(`src/range_pin_physics.gd`, played by `src/range_bowling.gd`): each a
+centre of mass, a quaternion, a slide and a spin, with a pin's mass and
+moments. The shape is six spheres up a real pin's profile and the six-point
+ring of its foot, so a pin rocks back short of about ten degrees and goes
+over past it because its centre of mass leaves its foot. Contacts (deck,
+gutter channels, kickbacks, the cushion, pin on pin, ball on pin) are solved
+by sequential impulses with friction and bounce, `STEPS` small steps a tick
+and `PASSES` passes, penetration pushed out after; still pins sleep and cost
+nothing until knocked. While the ball is among the pins (`AMONG`) its roll
+for the tick is solved again with them from where it was, so it gives up
+momentum and deflects. The level has real gutter channels and a sunken pit
+(`range_plan.gd`'s `bowling()`; `floor_at` must match it). A pin's state is
+plain numbers in its dictionary (`KEYS`), so snapshots carry it. A roll is
+counted once every standing pin sleeps and the deadwood is slower than
+`DEADWOOD`. Tune with `tools/bowl_lab.gd` (rolls a spread of lines, prints
+what stands and the tick's cost); `range_check.gd` checks the lane.
+
 ### Walls break too
 
 `features/wall_breaks.gd`, breakables.cfg `[windows]` and `[fence.<tile>]`.

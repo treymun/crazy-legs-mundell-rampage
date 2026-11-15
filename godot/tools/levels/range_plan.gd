@@ -32,7 +32,7 @@ func make() -> Builder:
 		"intro": "MUNDELL'S PROVING GROUNDS. EVERY GUN, ALL THE AMMO. PAUSE TO LEAVE.",
 		"score": "music",
 		"ambience": "range",
-		"layout": 3,
+		"layout": 4,
 		"sky": "sky",
 		"pressure_ports": L.PRESSURE_PORTS,
 		"boss_decoys": L.BOSS_DECOYS,
@@ -205,6 +205,12 @@ func bowling() -> void:
 	b.paint(45, 33, 47, 50, "porch")
 	b.paint(44, 33, 44, 50, "concrete")
 	b.paint(48, 33, 48, 50, "concrete")
+	# The gutters are channels and the pit behind the deck is sunk, so a pin
+	# goes over the edge and down out of sight (range_bowling.gd's GUTTER, PIT).
+	b.raise(44, 36, 44, 50, -.06)
+	b.raise(48, 36, 48, 50, -.06)
+	b.raise(44, 33, 48, 35, -.22)
+	b.paint(44, 33, 48, 35, "concrete")
 	header("bowling", 46.5)
 	b.board("range_bowling_mask", 46.5, 33.06, .9, {"z": .75, "plane": 0.0})
 	b.fixture(43.15, 38.0, 43.65, 49.0, .35, "tin", "tin")

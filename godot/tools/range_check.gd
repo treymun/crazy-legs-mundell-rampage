@@ -41,15 +41,15 @@ func _run() -> void:
 
 
 ## The lane: balls rolled at the pins knock them down by the pins' own
-## knocks, a ball in the gutter takes none, the pins stay on the deck or go
-## into the pit or a gutter, and the sheet scores as bowling does.
+## knocks (3D bodies: range_pin_physics.gd), a ball in the pocket strikes, a
+## ball in the gutter takes none, the pins stay on the deck or go into the
+## pit or a gutter, a pin stood alone stays up, and the sheet scores as
+## bowling does.
 static func _bowling(g: Game, feature, check: Callable) -> void:
 	var bowl = feature.targets.bowling
 	var roll := func(x: float, angle: float, turn := 0.0) -> int:
 		bowl.sweep_at = -1.0
-		bowl.rack()
-		bowl.frames[bowl.frame].clear()
-		bowl.ball = 0
+		bowl.new_game()
 		var p := g.player
 		p.x = x
 		p.y = 50.2
@@ -64,9 +64,30 @@ static func _bowling(g: Game, feature, check: Callable) -> void:
 		return bowl.pins_down()
 	var straight: int = roll.call(46.5, -PI / 2.0)
 	check.call(
-		straight >= 5,
+		straight >= 8,
 		"a ball down the middle takes the head pin and most of the rack (%d)" % straight
 	)
+	# A racked pin left alone stands: it neither drifts nor falls.
+	bowl.new_game()
+	for i in 120:
+		bowl.tick(g, 1.0 / 60.0)
+	var still: bool = bowl.standing() == 10
+	for pin: Dictionary in bowl.pins:
+		still = still and float(pin["awake"]) == 0.0 and bowl.lean(pin) < .001
+	check.call(still, "a rack left alone stands still")
+	# A nudge rocks a pin and it settles back up; a shove puts it over.
+	bowl.new_game()
+	var head: Dictionary = bowl.pins[0]
+	bowl._knock(head, Vector3(0.0, -.12, 0.0), .3)
+	for i in 240:
+		bowl.tick(g, 1.0 / 60.0)
+	var rocked: bool = not bowl.is_down(head) and float(head["awake"]) == 0.0
+	bowl.new_game()
+	head = bowl.pins[0]
+	bowl._knock(head, Vector3(0.0, -.9, 0.0), .3)
+	for i in 240:
+		bowl.tick(g, 1.0 / 60.0)
+	check.call(rocked and bowl.is_down(head), "a nudged pin rocks back up, a shoved one goes over")
 	var brooklyn: int = roll.call(46.3, -PI / 2.0)
 	var pocket: int = roll.call(46.62, -PI / 2.0)
 	check.call(
@@ -93,8 +114,10 @@ static func _bowling(g: Game, feature, check: Callable) -> void:
 			and is_finite(y)
 			and x > 43.9
 			and x < 49.1
-			and y > 33.5
+			and y > 33.0
 			and y < 50.0
+			and float(pin["z"]) > -.4
+			and float(pin["z"]) < 2.0
 		)
 	check.call(sane, "the pins stay on the lane, in its pit or its gutters")
 	# The sheet: a perfect game, all spares, a frame of nines, an open game.

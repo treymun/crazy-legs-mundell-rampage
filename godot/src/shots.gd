@@ -61,3 +61,19 @@ static func blast(kind: String) -> Dictionary:
 ## A kind's own section ({} for a kind without one).
 static func _kind(kind: String) -> Dictionary:
 	return KINDS.get(kind, {})
+
+
+## A bowling ball drawn as a solid ball (SolidLayer3D) on the floor, turned
+## over by how far it has rolled about the line across its way; each ball
+## starts turned its own way (its uid), so the finger holes come round.
+static func ball_look(s: View.Sprite, shot: GameState.Shot) -> void:
+	const RADIUS := .118
+	const LIFT := .22
+	s.solid = "ball"
+	s.z = shot.z - LIFT + RADIUS
+	var start := Basis.from_euler(Vector3(shot.uid * 1.7, shot.uid * 2.3, shot.uid * .9))
+	var across := Vector3(-shot.vy, shot.vx, 0.0)
+	if across.length_squared() > 1e-6:
+		s.pose = Basis(across.normalized(), shot.travelled / RADIUS) * start
+	else:
+		s.pose = start

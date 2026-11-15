@@ -41,7 +41,8 @@ func _on_back() -> void:
 
 
 func _on_focus_lost() -> void:
-	if smoke:
+	# A smoke run or a picture tour plays on while the desktop is used.
+	if smoke or touring:
 		return
 	if Time.get_ticks_msec() < focus_grace:
 		return
