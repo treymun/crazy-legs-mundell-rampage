@@ -125,8 +125,15 @@ There are 194 props.
      this, a third of Big Billy's parts (his belly among them) vanished for
      his fall, and a boot for one walk beat.
    - A part missing from a key (the gun once he is dead) is shrunk where it
-     is in the nearest key it is blended with (walk beats, fall steps), never
-     where it stood, so it cannot fly up while it shrinks. Keys are LINEAR.
+     is in the nearest key it is blended with (walk beats, fall steps), or,
+     missing from all of them, shrunk into the body's biggest bone; never
+     left where it stood, so nothing hangs in the air over a corpse. Keys
+     are LINEAR. A frame of other parts altogether (the derby champ's wreck)
+     holds the rest where the frame before had them.
+   - `view3d_check` fails a kind with a part (shrunk or not) higher than
+     half its height (or half a metre) at the key "down", or a part partway
+     shrunk at any key (both were in every v3.0.0 kind: County Run's
+     floating bits after kills).
    - The unwrap (`_unwrap`): smart project, then the islands packed by their
      shapes with a gap of `GAP` (.002 of the texture). With smart project's
      own .01 gap a boss's hundreds of rivets, each cut in several islands,

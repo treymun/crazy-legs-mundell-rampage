@@ -16,7 +16,7 @@
 	"drunk_coot": {"light": 1.15},
 	"flagman": {"light": 1.1},
 	"foreman": {"light": 1.2},
-	"jerry": {"light": 1.2},
+	"jerry": {"light": 1.15},
 	"maw": {"light": 1.15, "down_cel": true},
 	"maw_bare": {"light": 1.15, "down_cel": true},
 	"millhand": {"light": 1.15},

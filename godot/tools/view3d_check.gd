@@ -63,6 +63,8 @@ func _init() -> void:
 			continue
 		if not view.setup(actors):
 			_fail("actor %s: its model cannot pose (no animation)" % kind)
+		else:
+			_check_rest(kind, view, actors.kinds[kind])
 		view.free()
 		# Imported at the action's own 24 keys a second: at Godot's 30 the
 		# keys are resampled between and a part shrunk away in one key
@@ -162,6 +164,48 @@ func _check_pickups(assets: Assets) -> void:
 	if names.is_empty():
 		_fail("no pickup pictures (item_*)")
 	print("%d pickup meshes, %d triangles" % [names.size(), tris])
+
+
+## A body that fell must lie: at the key "down" no part (one shrunk away too:
+## it rides the body) sits higher than DOWN_HIGH of the standing height or half
+## a metre (the floating bits after a kill; a dead crawler's legs stand up as
+## in its cel), and at no key is a part partway shrunk (a key sampled between,
+## as at Godot's 30 fps). A kind whose body at rest is its own cel (fit.json
+## "down_cel") or that stays up (a flyer, no "down") is left out.
+const DOWN_HIGH := .5
+
+
+func _check_rest(kind: String, view: ActorView, info: Dictionary) -> void:
+	var players := view.find_children("*", "AnimationPlayer", true, false)
+	var player := players[0] as AnimationPlayer
+	var anim := player.get_animation(player.get_animation_list()[0])
+	var frames: Dictionary = info["frames"]
+	var height: float = info["height"]
+	var own_cel: bool = info.get("down_cel", false)
+	var high := 0
+	var partial := 0
+	for name: String in frames:
+		var key: float = frames[name]
+		var t := key * ActorModels.KEY_TIME
+		for track in anim.get_track_count():
+			if anim.track_get_type(track) != Animation.TYPE_SCALE_3D:
+				continue
+			var size := anim.scale_track_interpolate(track, t).x
+			if size > .02 and size < .6:
+				partial += 1
+			if name != "down" or own_cel:
+				continue
+			var path := anim.track_get_path(track)
+			var spot := anim.find_track(path, Animation.TYPE_POSITION_3D)
+			if (
+				spot >= 0
+				and anim.position_track_interpolate(spot, t).y > maxf(height * DOWN_HIGH, .5)
+			):
+				high += 1
+	if high > 0:
+		_fail("actor %s: %d parts still up at rest (down)" % [kind, high])
+	if partial > 0:
+		_fail("actor %s: %d parts partway shrunk at keys" % [kind, partial])
 
 
 func _fail(line: String) -> void:

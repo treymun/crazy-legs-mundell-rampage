@@ -655,6 +655,11 @@ def _rig(kind, body, frames, order, clusters, centres, tracks, rest):
         # keeps a few wheels of his truck) holds the rest where the frame
         # before it had them, whole, rather than leaving a few parts.
         held = sum(w is not None for w in tracks[t]) < len(rest) / 2
+        # The body's own motion in this frame (the bone with the most parts
+        # that is in it): a part missing from every frame it is blended
+        # with shrinks inside the body as it falls, not where it stood.
+        present = [k for k in order if tracks[t][clusters[k][0]] is not None]
+        main = max(present, key=lambda k: len(clusters[k])) if present else None
         for b, key in enumerate(order):
             i = clusters[key][0]
             pb = rig.pose.bones["b%d" % b]
@@ -663,7 +668,7 @@ def _rig(kind, body, frames, order, clusters, centres, tracks, rest):
             if w is None:
                 # Gone from this frame: shrunk where it is in the nearest
                 # frame it is blended with (so it never flies off to where
-                # it stood while it shrinks), else where it stands.
+                # it stood while it shrinks), else moved with the body.
                 near = None
                 chain = _chain(name)
                 for u in sorted(range(len(frames)), key=lambda u: abs(u - t)):
@@ -673,6 +678,12 @@ def _rig(kind, body, frames, order, clusters, centres, tracks, rest):
                 c = centres[b]
                 if near is not None and held:
                     d = near
+                elif near is None and main is not None:
+                    # Shrunk into the middle of that bone (a gun held out
+                    # front would swing up over a body lying on its back).
+                    j = clusters[main][0]
+                    at = tracks[t][j] @ rest[j][2].inverted() @ centres[order.index(main)]
+                    d = Matrix.Translation(at) @ Matrix.Diagonal((1e-4, 1e-4, 1e-4, 1)) @ Matrix.Translation(-c)
                 else:
                     near = near or Matrix.Identity(4)
                     d = near @ Matrix.Translation(c) @ Matrix.Diagonal((1e-4, 1e-4, 1e-4, 1)) @ Matrix.Translation(-c)
