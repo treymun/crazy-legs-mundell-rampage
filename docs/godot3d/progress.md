@@ -104,6 +104,23 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
   merged; view3d, ui, core typed by hand.
 - Compare sheets: docs/godot3d/compare/<level>.png, actors/actors_NN.png.
 
+### 2026-11-15 (night): finishing and the v3.0.0 remaster
+- Actors re-baked (all 38, GPU, four turns, weighted); committed with their
+  scenes. A third of each texture was pure-black missed texels (black specks
+  on faces); build_actor_meshes now fills them from their neighbours.
+- 3D picture references for CI (tools/pictures_3d, 72 pictures).
+- Remaster, five tracks merged (pictures in docs/godot3d/remaster/):
+  pickups as 3D pixel slabs; maps (stair/deck/ramp sides, car boxes hidden,
+  lamps on raised walks, moods for ten maps); physics on the real floors
+  (tumble.gd, physics_check.gd); audio (hearing through walls and floors,
+  more takes, loudness outliers 68 -> 43; no ElevenLabs spend: no key in the
+  session); modes (3D bodies in 5v5, team colours, race cars).
+- check_all lint: every check OK after a hearing fix (sounds off the map).
+- Bench (RTX 5070 Ti laptop): 3.6 ms a frame on average (277 fps).
+- Known: Big Billy's fall specks, crawler legs thin, derby champ large, big
+  bosses busy up close (512 texture), co-op partners still flat cels, HUD
+  not on Controls.
+
 ## Next
 
 - **Owner's standing request (2026-11-14): the 3D models must look damn good
