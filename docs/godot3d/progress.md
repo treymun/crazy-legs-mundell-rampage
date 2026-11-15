@@ -121,6 +121,24 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
   bosses busy up close (512 texture), co-op partners still flat cels, HUD
   not on Controls.
 
+### 2026-11-15: feature pass (v3.2.0)
+- Ten tracks merged (pictures in docs/godot3d/features/): ragdolls and
+  slow-mo finishers; picking up and throwing props, spreading fire, the
+  moonshine stills; breakable scenery in 3D pieces; drivable vehicles
+  (airboat, stock car, mower); smarter hands and climbing in every chapter;
+  bosses wrecking their arenas and gear shot off; range games, the range
+  board, the fair gallery 2.0, the hub trophy shack; weather (puddles, mud,
+  wind), the County Run storm, critters with physics; photo mode, kill cam,
+  quality tiers, the HUD on Controls; multiplayer lag (net_lag.gd numbers in
+  multiplayer.md), 5v5 boarded cover, round MVP.
+- Merge notes: level.gd's sight test moved to level_sight.gd, game_view's
+  look rows to game_state.gd (file limit); arena_wreck's save is empty when
+  nothing is wrecked (a 5v5 round start); the bowling meshes' winding fixed;
+  hickston layout 6 (ladders, mower, cows), older hickston saves load with
+  the three animals counted. Settings: 69.
+- check_all lint: all OK but net_server_check once under load (OK 4 of 4
+  alone).
+
 ### 2026-11-15: second polish pass (v3.1.0)
 - Bowling lane: the pins are 3D rigid bodies (range_pin_physics.gd: a real
   pin's profile as spheres on its foot ring, sequential impulses, sleep),
