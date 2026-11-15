@@ -19,9 +19,9 @@ static func tick(game: Game) -> void:
 		return
 	if not _loaded:
 		_loaded = true
-		var parsed: Variant = JSON.parse_string(
-			FileAccess.get_file_as_string(FILE) if FileAccess.file_exists(FILE) else ""
-		)
+		# A new profile has no file: parsing "" would print an error.
+		var text := FileAccess.get_file_as_string(FILE) if FileAccess.file_exists(FILE) else ""
+		var parsed: Variant = JSON.parse_string(text) if text != "" else null
 		taught = parsed if parsed is Dictionary else {}
 	var p: Player = game.player
 	var touch: bool = game.touch_aim

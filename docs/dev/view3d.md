@@ -115,6 +115,11 @@ Each prop placed with `town()` shows as a `PropView` scene
 pipeline that makes them is in [art.md](art.md#props). A light with `props` in
 effects.cfg rides every prop with that picture.
 
+A prop's facing is worked out once for where it stands (the most open way),
+unless its sprite sets `plane`: then the model turns by `-plane`. A moving
+prop (the speedway's lap cars, `race_laps.gd`) sets `plane` from its heading,
+so it faces where it runs; it is stood again each frame it moves.
+
 ## Pickups
 
 Every sprite showing an `item_*` picture (guns, ammo, beer, rinds, keys,
@@ -161,6 +166,11 @@ Each enemy and boss with a model shows as an `ActorView` scene
 - The look (plain, hurt, p2, p3) is picked by health and boss phase.
 - Lost limbs are left off (`Gore.lost`).
 - Bones are labelled head, arm_r, arm_l, leg_r, leg_l, body.
+- A picture name's `~r.g.b` tint (`Assets.tinted_art`) tints the model too.
+- Bodies that are not enemies can wear a model through a stand-in Enemy that
+  only the view reads: the 5v5 players and hostages (`ModeBodies`,
+  [modes.md](modes.md#rounds)). Co-op and deathmatch partners are still the
+  player's cels: there is no model of the player.
 
 The pipeline is in [art.md](art.md#actors).
 
