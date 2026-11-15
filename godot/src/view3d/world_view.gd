@@ -38,6 +38,9 @@ var _root: Node3D
 var _chunks: Node3D
 ## How far this frame draws (View.draw_far).
 var game_far := FAR
+## A view tour's "cels": enemies drawn as their old cels, not their models
+## (the old pictures beside the new, for comparison sheets).
+static var cels := false
 var _moving: MeshInstance3D
 var _sky: MeshInstance3D
 var _assets: Assets
@@ -200,7 +203,7 @@ func frame(game: Game) -> void:
 		var s: View.Sprite = item if item is View.Sprite else null
 		if s != null and SolidLayer3D.takes(s):
 			solid.append(s)
-		elif s != null and s.who is Enemy and actors.kind_of(s.who as Enemy) != "":
+		elif s != null and not cels and s.who is Enemy and actors.takes(s, s.who as Enemy):
 			acting.append(s)
 		elif s != null and props.models.name_of(s.image) != "":
 			modelled.append(s)

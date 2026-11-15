@@ -243,6 +243,21 @@ Each enemy and boss with a model shows as an `ActorView` scene
 - Lost limbs are left off (`Gore.lost`).
 - Bones are labelled head, arm_r, arm_l, leg_r, leg_l, body.
 - A picture name's `~r.g.b` tint (`Assets.tinted_art`) tints the model too.
+- A body falling and at rest is drawn flatter, down to `FLAT` (.5) of its
+  height at rest: its cel was a flat picture a quarter of the body's height,
+  and the whole body lying belly and boots up read as a heap.
+- `assets3d/actors/fit.json` (by hand; merged into actors.json's entries by
+  `ActorModels`) fits a kind to its cels: `light` multiplies its looks (the
+  models were 5 to 30% darker than their cels, measured old against new on a
+  dry dusk tour; the bake's light and crease shade), `scale` sizes it (the
+  derby champ .85: his truck's near end comes much closer to the eye than
+  the billboard cel through its middle did), and `min_px` (the crawler, 1.5)
+  pushes every surface out along its normal by half that many of the view's
+  pixels at its distance (nothing up close), so thin legs keep about a pixel
+  at range as the cel's lines did. `down_cel` keeps the old cel for the body
+  at rest where that is a build of its own the model's parts cannot make
+  (the derby champ's burnt-out wreck, the swamp king's sunk boat, the Maw):
+  `ActorLayer3D.takes()`.
 - Bodies that are not enemies can wear a model through a stand-in Enemy that
   only the view reads: the 5v5 players and hostages (`ModeBodies`,
   [modes.md](modes.md#rounds)), and every other player outside the 5v5
@@ -276,8 +291,10 @@ godot --path godot --audio-driver Dummy --resolution 1280x800 -- --view-bench=30
 ```
 
 A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
-`wet`, `lightning`, `actors` (to show the 3D models) and `motion` (EASY ON
-THE EYES: 0 full, the default, 1 reduced, 2 still).
+`wet`, `lightning`, `actors` (to show the 3D models), `cels` (true: enemies
+drawn as their old cels instead, for old-against-new sheets) and `motion`
+(EASY ON THE EYES: 0 full, the default, 1 reduced, 2 still). A tour or bench
+keeps drawing when its window loses the focus.
 
 ## User folder
 

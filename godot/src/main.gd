@@ -266,6 +266,8 @@ func _view_tour() -> void:
 				game.tick(1.0 / 60.0, held)
 		if shot.has("actors"):
 			_tour_actors(shot)
+		var cels: bool = shot.get("cels", false)
+		WorldView3D.cels = cels
 		if shot.has("rain"):
 			# A viewpoint in the weather: rain this hard, the ground this wet, a
 			# lightning flash (features/weather.gd hold()).

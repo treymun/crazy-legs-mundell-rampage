@@ -121,6 +121,18 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
   bosses busy up close (512 texture), co-op partners still flat cels, HUD
   not on Controls.
 
+### Second polish pass: actor leftovers
+- Big Billy's fall specks: actors imported at 30 fps resampled their 24 fps
+  keys (a part shrunk away came back half-grown in mid-air); now 24 fps,
+  LINEAR keys, near-print matching (parts no longer vanish for a fall or a
+  walk beat), gone parts shrink in place. Every kind re-rigged (rig-only,
+  unwrap carried over), the baron re-baked.
+- Unwrap packed by shape (the baron's islands covered 3% of his texture,
+  now about half) and the baron at 1024.
+- fit.json: per-kind light (models were 5-30% darker than their cels),
+  derby champ .85, crawler legs at least about a pixel; bodies at rest drawn
+  half height. Pictures: docs/godot3d/remaster2/actors/.
+
 ## Next
 
 - **Owner's standing request (2026-11-14): the 3D models must look damn good

@@ -12,7 +12,8 @@ const SCENES := "res://scenes/actors"
 const KEY_TIME := 1.0 / 24.0
 const LOOKS: Array[String] = ["", "hurt", "p2", "p3"]
 
-## kind -> {frames: {name: key}, height, textures: [...], ...}
+## kind -> {frames: {name: key}, height, textures: [...], ...}, with fit.json's
+## numbers for the kind merged in.
 var kinds: Dictionary = {}
 var _scenes: Dictionary = {}
 var _materials: Dictionary = {}
@@ -28,6 +29,22 @@ func _init(assets: Assets) -> void:
 		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 		if data is Dictionary:
 			kinds = data
+	# How each model is fitted to its old cels, by hand (actors.json is
+	# written by tools/art/build_actor_meshes.gd): "scale" (its size against
+	# the cel), "min_px" (no part thinner than that many of the view's
+	# pixels), "light" (its looks' brightness against the cel's).
+	var fit_path := FOLDER.path_join("fit.json")
+	if FileAccess.file_exists(fit_path):
+		var fit: Variant = JSON.parse_string(FileAccess.get_file_as_string(fit_path))
+		if fit is Dictionary:
+			var fits: Dictionary = fit
+			for kind: String in fits:
+				var info: Variant = kinds.get(kind)
+				var own: Variant = fits[kind]
+				if info is Dictionary and own is Dictionary:
+					var entry: Dictionary = info
+					var numbers: Dictionary = own
+					entry.merge(numbers, true)
 
 
 func has(kind: String) -> bool:
@@ -74,6 +91,10 @@ func material(kind: String) -> ShaderMaterial:
 	var info: Dictionary = kinds[kind]
 	var lit: bool = info.get("lit", false)
 	m.set_shader_parameter("baked_light", lit)
+	var min_px: float = info.get("min_px", 0.0)
+	m.set_shader_parameter("min_px", min_px)
+	var light: float = info.get("light", 1.0)
+	m.set_shader_parameter("light", light)
 	_materials[kind] = m
 	return m
 
