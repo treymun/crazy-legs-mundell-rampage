@@ -5,15 +5,36 @@
 class_name ActorLayer3D
 extends Node3D
 
+## Ragdolls kept for bodies out of sight (the oldest let go first).
+const KEEP_DOLLS := 64
+
 var models: ActorModels
 ## enemy instance id -> ActorView
 var _shown: Dictionary = {}
+## enemy instance id -> the Ragdoll of a body out of sight
+var _dolls: Dictionary = {}
 ## The player's reflection (only the mirror's camera sees it), or null.
 var _mirrored: ActorView
 
 
 func _init(p_models: ActorModels) -> void:
 	models = p_models
+
+
+## Find the ragdoll rigs of the kinds among `enemies` now (a level's first
+## frame) rather than at a first kill (a few hundredths of a second each).
+func prepare(enemies: Array) -> void:
+	for e: Enemy in enemies:
+		var kind := kind_of(e)
+		if kind == "" or Enemy.BOSS_TITLES.has(e.kind) or RagdollRig.has(kind):
+			continue
+		var info: Dictionary = models.kinds[kind]
+		var packed := models.scene(kind)
+		if not info.get("ragdoll", true) or packed == null:
+			continue
+		var view := packed.instantiate()
+		RagdollRig.of(kind, view, info)
+		view.free()
 
 
 ## The model kind an enemy is drawn with ("" when none).
@@ -46,6 +67,9 @@ func show_actors(
 ) -> Array[ShaderMaterial]:
 	var fresh: Array[ShaderMaterial] = []
 	var seen := {}
+	var most: int = Effects.RAGDOLL.get("budget", 40)
+	# Fewer limb steps a frame on a low physics tier (src/core/quality.gd).
+	Ragdoll.budget = Quality.steps(most)
 	for s: View.Sprite in sprites:
 		var e := s.who as Enemy
 		var kind := kind_of(e)
@@ -60,12 +84,20 @@ func show_actors(
 			if view == null:
 				continue
 			_shown[id] = view
+			# A body back in sight lies as its ragdoll left it.
+			if not e.alive:
+				view.doll = _dolls.get(id)
+			_dolls.erase(id)
 		view.show_as(s, e, level, clock)
 		var gone: Array = lost.get(e, [])
 		view.lose(gone)
 	for id: int in _shown.keys():
 		if not seen.has(id):
 			var old: ActorView = _shown[id]
+			if old.doll != null:
+				_dolls[id] = old.doll
+				if _dolls.size() > KEEP_DOLLS:
+					_dolls.erase(_dolls.keys()[0])
 			old.queue_free()
 			_shown.erase(id)
 	return fresh

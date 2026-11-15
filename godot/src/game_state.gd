@@ -1012,6 +1012,12 @@ var boss_hold_armed := false
 ## Slow motion as a boss falls: real seconds of it left; the world goes at
 ## SLOWMO_PACE meanwhile, the player and the gun at full speed.
 var slowmo := 0.0
+## A finishing shot's slow motion (features/finishers.gd) eases: its whole
+## length (0: the boss's, at SLOWMO_PACE throughout) and how slow it gets.
+var slowmo_for := 0.0
+var slowmo_pace := .35
+## SLOW-MO FINISHERS (a setting): the last kill of a fight slows the world.
+var finish_slowmo := true
 ## With more than one player: where every player stood on each of the last
 ## REWIND_KEEP ticks, newest last (x, y, crouched per slot), so a shot can be
 ## judged against what its shooter saw online (Controls.rewind). Worked out
@@ -1019,6 +1025,8 @@ var slowmo := 0.0
 var place_log: Array[PackedFloat32Array] = []
 const REWIND_KEEP := 40
 const SLOWMO_PACE := .35
+const FINISH_IN := .12
+const FINISH_OUT := .45
 ## What the last shot to strike a wall, floor or roof met (materials.gd kinds:
 ## wood, tin, steel, brick, glass...), set just before `traced` says so.
 var impact_kind := ""
@@ -1147,6 +1155,22 @@ func _walk_flow(p: Player) -> void:
 ## Whether this game is lost (the death screen): the mode's rules say
 ## (src/modes/). The campaign and co-op: nobody is up; versus never (a match
 ## ends on its limits).
+## How fast the world goes in slow motion now: a boss's fall at SLOWMO_PACE
+## throughout; a finishing shot's eases in over its first FINISH_IN of its
+## length, holds at slowmo_pace and eases back over its last FINISH_OUT.
+func slow_pace() -> float:
+	if slowmo <= 0.0:
+		return 1.0
+	if slowmo_for <= 0.0 or slowmo > slowmo_for + .001:
+		return SLOWMO_PACE
+	var gone := slowmo_for - slowmo
+	var w := minf(
+		smoothstep(0.0, slowmo_for * FINISH_IN, gone),
+		smoothstep(0.0, slowmo_for * FINISH_OUT, slowmo)
+	)
+	return lerpf(1.0, slowmo_pace, w)
+
+
 func defeated() -> bool:
 	const ModeFeature := preload("res://src/features/mode_feature.gd")
 	var rules: ModeFeature = features.get("mode")

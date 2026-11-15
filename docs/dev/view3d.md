@@ -321,9 +321,18 @@ Each enemy and boss with a model shows as an `ActorView` scene
 - Lost limbs are left off (`Gore.lost`).
 - Bones are labelled head, arm_r, arm_l, leg_r, leg_l, body.
 - A picture name's `~r.g.b` tint (`Assets.tinted_art`) tints the model too.
-- A body falling and at rest is drawn flatter, down to `FLAT` (.5) of its
-  height at rest: its cel was a flat picture a quarter of the body's height,
-  and the whole body lying belly and boots up read as a heap.
+- A dead body of a kind with a ragdoll rig (`RagdollRig`, not a boss, not
+  fit.json `"ragdoll": false`, RAGDOLLS on) is posed from its ragdoll
+  (`src/ragdoll.gd`): started from the pose it died in (or the model's own
+  "down" when first seen long dead, settled at once), thrown by the kill,
+  stepped as the view draws (`advance`, capped by effects.cfg `[ragdoll]
+  budget` across all of them) and each part turned with its segment
+  (`RagdollRig.pose`); the model is not flattened and its AnimationPlayer
+  is not sought. `ActorLayer3D` keeps a body's ragdoll while it is out of
+  sight (`KEEP_DOLLS`). See [gameplay.md](gameplay.md#ragdolls-and-finishing-shots-v320).
+- Otherwise a body falling and at rest is drawn flatter, down to `FLAT` (.5)
+  of its height at rest: its cel was a flat picture a quarter of the body's
+  height, and the whole body lying belly and boots up read as a heap.
 - `assets3d/actors/fit.json` (by hand; merged into actors.json's entries by
   `ActorModels`) fits a kind to its cels: `light` multiplies its looks (the
   models were 5 to 30% darker than their cels, measured old against new on a

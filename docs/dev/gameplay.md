@@ -421,6 +421,67 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   chunk left over nothing, a thrown body, the same throw twice).
   `tools/physics_frames.gd -- only=loft` pictures it in a window.
 
+### Ragdolls and finishing shots (v3.2.0)
+
+- **Where a body lies is play** (`features/corpses.gd`, as before): the kill
+  throws it (`_throw`), tumble.gd moves it. New: a rail (a geometry segment
+  with `sight` false, which tumble.gd lets loose things through) stops a
+  thrown body (`_rails`), unless it comes faster than `OVER_SPEED` and the
+  rail's top is under `OVER_TOP` over it: then it tips over, slowed and
+  lifted, off the loft or walkway. A body come to rest with its middle over
+  a drop of more than `EDGE_DROP` (held only by a lip) is pushed off it
+  (`_off_edge`, at most `EDGE_TRIES` times). Arithmetic only: `net_check`
+  holds it.
+- **How it flops is looks** (`src/ragdoll.gd`, driven by the 3D view's
+  `ActorView`, its own dice): fifteen balls (`view3d/ragdoll_rig.gd`: hips,
+  shoulders, belly, back, head, elbows, hands, knees, feet) held by links
+  (the torso rigid, each limb half a stick, knees fold only forwards and
+  elbows only back, ranges for the neck and hips, no limb in the torso),
+  Verlet steps of 1/60 s, three passes, friction on the floor, asleep (no
+  steps at all) once still for `SLEEP_AFTER`. The world is tumble.gd's: each
+  ball on the highest floor under it (`Tumble.floor_at`: decks, treads,
+  ramps, counters), under roofs, never into a wall, a slab's side or a rail
+  (a rail play's body went over lifts the ball over its bar; a ball come
+  down on a bar rolls off on the body's side). Open floor with nothing near
+  (`_plain`) skips the wall tests. It follows play's body: that body's move
+  is given to every ball each step (and not kept as their speed), the torso
+  is pulled back within `SLACK` of it, and while the body is up (thrown,
+  floating) the torso is carried at its height. The kill's throw (effects.cfg
+  `[ragdoll]`, by `killed_by`; "head" for a head shot, "shotgun_near" at arm's
+  length) sends the shoulders, hips and feet along the shot at their own
+  speeds (a shotgun throws it back over its heels, a head shot buckles the
+  knees and drops it). `budget` caps every ragdoll's steps in a frame.
+- **Which bodies**: every kind whose labelled parts stand on two legs gets a
+  rig (`RagdollRig.ok`). Bosses keep their scripted falls (their falls are
+  set pieces), and fit.json `"ragdoll": false` keeps big Billy's (his thigh
+  part swings up through his belly) and the millhand's (his saw stands up
+  off him); kinds without legs (gator, crawler, drone saucers, the derby
+  champ's truck, the swamp king's boat, the Maw, lanterns, valve rats,
+  boilerbacks) as ever. RAGDOLLS (a setting, `View.ragdolls`) off brings the
+  old falls back. Lost limbs stay off (`Gore.lost`), the parts the dead body
+  loses (the gun) shrink away as the fall starts.
+- **Slow-mo finishers** (`features/finishers.gd`, play): the kill of an
+  alerted hand that leaves nobody of the county's hands within hits.cfg
+  `[finisher] reach` (and none alerted within twice that) sets
+  `game.slowmo` for `length` real seconds at `pace`, eased in and out
+  (`game_state.gd slow_pace`, `slowmo_for`, `slowmo_pace`), at most once in
+  `rest` seconds. A boss's fall keeps its own (boss_fight.gd, a constant
+  `SLOWMO_PACE`). SLOW-MO FINISHERS off (`game.finish_slowmo`, a view field)
+  stops both while alone; never with a second player, on a host, in the hub
+  or in a mode other than the campaign and County Run (`Finishers.allowed`).
+- Checks: `physics_check` (its ragdoll part is `tools/physics_ragdolls.gd`):
+  every legged kind shot down lies with no part over half its height and
+  none sunk past `SINK` (view3d_check's "no part up at down", for ragdolls);
+  bodies dropped, shot and blasted on decks, stair treads and ramps of four
+  levels and on hickston's hay loft lie on the floor under them, never
+  inside anything, the torso by play's body, and sleep (no step in two more
+  seconds); thrown hard at the loft's rail a body goes over and lies below,
+  softly it stays up; the last of two kills starts the slow motion (the
+  first not), it eases to `pace` and ends; never with the setting off, two
+  players or on a host. `tools/death_frames.gd` pictures falls in a window
+  (every tick drawn; `classic` for the scripted falls). Pictures:
+  `docs/godot3d/features/a/`.
+
 ### The bowling lane's pins (second remaster)
 
 The Bowl-O-Rama's ten pins are rigid bodies in three dimensions

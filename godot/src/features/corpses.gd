@@ -58,6 +58,19 @@ const BLAST_RUN := 3.2
 const BLAST_LIFT := 3.4
 const COW_RUN := 3.6
 const COW_LIFT := 6.4
+## A rail stops a body (as tall as RAIL_TALL lying low and thrown) unless it
+## comes faster than OVER_SPEED and the rail's top is under OVER_TOP over the
+## body: then it tips over, keeping OVER_KEEP of its run and lifted OVER_LIFT.
+const RAIL_TALL := 1.0
+const OVER_SPEED := 2.2
+const OVER_TOP := 1.1
+const OVER_KEEP := .6
+const OVER_LIFT := 1.2
+## A body resting with its middle over a drop of more than EDGE_DROP slides
+## off the lip that holds it at EDGE_PUSH.
+const EDGE_DROP := .3
+const EDGE_PUSH := .9
+const EDGE_TRIES := 8
 ## Bodies moving at once; the slowest settle first when more fall.
 const MOVING_MAX := 24
 ## A body floating: how high it bobs and how fast, the rings it leaves.
@@ -77,6 +90,8 @@ class Body:
 	## Whether it breaks a window or fence it is thrown into, and moos landing.
 	var crash := false
 	var moo := false
+	## Times it has been pushed off a lip (_off_edge).
+	var slid := 0
 
 
 var moving: Array = []
@@ -249,6 +264,7 @@ func _move(dt: float) -> void:
 			var vx := b.vx
 			var vy := b.vy
 			var air: bool = b.z > game.world.floor_under(b.x, b.y, b.z + .05) + .02
+			_rails(b, dt * .5)
 			var hit := Tumble.step(game.world, b, b.feel, dt * .5)
 			if hit & Tumble.WALL and b.crash and breaks != null:
 				var run := Vector2(vx, vy).length()
@@ -270,6 +286,8 @@ func _move(dt: float) -> void:
 				b.moo = false
 				game.sound_at("cow_moo", b.x, b.y, .8)
 			if hit & Tumble.RESTED:
+				if _off_edge(b):
+					continue
 				b.rest = true
 				break
 		e.x = b.x
@@ -285,6 +303,66 @@ func _move(dt: float) -> void:
 			# Thrown again: it floats again wherever it comes to rest.
 			_floats.erase(b.enemy)
 			floating = floating.filter(func(f: Array) -> bool: return f[0] != b.enemy)
+
+
+## A body come to rest with its middle over a drop (held up only by the lip
+## of a deck, a stair or a walkway past a rail) slides off it: it is given a
+## push away from what holds it. True when it was pushed.
+func _off_edge(b: Body) -> bool:
+	var world := game.world
+	var r := b.feel.radius
+	if b.slid >= EDGE_TRIES or world.floor_under(b.x, b.y, b.z + .05) >= b.z - EDGE_DROP:
+		return false
+	var away := Vector2.ZERO
+	for k in 4:
+		var corner := Vector2(r if k & 1 else -r, r if k & 2 else -r)
+		if Tumble.floor_at(world, b.x + corner.x, b.y + corner.y, b.z) < b.z - EDGE_DROP:
+			away += corner
+	if away == Vector2.ZERO:
+		return false
+	b.slid += 1
+	away = away.normalized() * EDGE_PUSH
+	b.vx = away.x
+	b.vy = away.y
+	b.vz = -.01
+	return true
+
+
+## A rail (a free wall that lets sight by: tumble.gd lets loose things
+## through) stops a body thrown into it, unless it comes fast enough and the
+## rail is low enough to tip it over head first: then on it goes, slowed and
+## lifted, over the edge of a loft or a walkway.
+func _rails(b: Body, h: float) -> void:
+	var world := game.world
+	if world.geo == null or world.geo.clear_at(b.x, b.y):
+		return
+	var nx := b.x + b.vx * h
+	var ny := b.y + b.vy * h
+	for item: Variant in world.geo.near_items(b.x, b.y):
+		if not (item is LevelGeometry.Segment):
+			continue
+		var s: LevelGeometry.Segment = item
+		if s.sight or s.z0 >= b.z + RAIL_TALL or s.z1 <= b.z:
+			continue
+		var reach := b.feel.radius + s.half
+		if s.dist2(nx, ny) >= reach * reach or s.dist2(b.x, b.y) < reach * reach:
+			continue
+		var run := Vector2(b.vx, b.vy)
+		if run.length() > OVER_SPEED and s.z1 - b.z < OVER_TOP:
+			b.vx *= OVER_KEEP
+			b.vy *= OVER_KEEP
+			b.vz = maxf(b.vz, OVER_LIFT)
+			return
+		var along := Vector2(s.bx - s.ax, s.by - s.ay).normalized()
+		var n := Vector2(-along.y, along.x)
+		if n.dot(Vector2(b.x - s.ax, b.y - s.ay)) < 0.0:
+			n = -n
+		var into := run.dot(n)
+		if into < 0.0:
+			run -= n * into * (1.0 + b.feel.wall)
+			b.vx = run.x
+			b.vy = run.y
+		return
 
 
 ## A body lying up on something (a crate, a counter top) that has since been

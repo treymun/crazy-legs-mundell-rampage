@@ -5,12 +5,30 @@
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/death_frames.gd -- out=<dir> [level=hickston] [gun=shotgun]
+##       [classic] [places]
+##
+## places: buckshot at arm's length down the feed store's loft stairs and over the
+## hay loft's rail instead. classic: the scripted falls (RAGDOLLS off).
 ##
 ## Point APPDATA at a scratch folder: it runs the game with the profile there.
 extends SceneTree
 
 const AFTER := [3, 8, 16, 30, 60, 120]
+## Kinds `places` pictures (the first on the level), each with a ragdoll.
+const HANDS := [
+	"coot",
+	"yard_deputy",
+	"clone",
+	"flagman",
+	"noodler",
+	"billy",
+	"chain_hand",
+	"pit_mechanic",
+	"barker"
+]
 var probe := false
+## The scripted falls of before the ragdolls (RAGDOLLS off).
+var classic := false
 
 var main
 var out := ""
@@ -29,6 +47,8 @@ func _run() -> void:
 			out = a.substr(4)
 		elif a.begins_with("level="):
 			level = a.substr(6)
+		elif a == "classic":
+			classic = true
 		elif a == "probe":
 			probe = true
 		elif a.begins_with("gun="):
@@ -39,6 +59,32 @@ func _run() -> void:
 	await process_frame
 	main.touring = true
 	Effects.enabled = true
+	if OS.get_cmdline_user_args().has("places"):
+		# Buckshot at arm's length on a loft: down the feed store's stairs,
+		# over the hay loft's rail.
+		await _place(
+			"feedstore",
+			Vector2(10.9, 4.6),
+			1.7,
+			Vector2(12.4, 4.6),
+			Vector2(5.0, 7.5),
+			0.0,
+			"stairs"
+		)
+		await _place(
+			"hickston",
+			Vector2(44.0, 8.6),
+			1.55,
+			Vector2(44.0, 7.2),
+			Vector2(41.5, 13.5),
+			0.0,
+			"rail"
+		)
+		print("death frames written to ", out)
+		main.queue_free()
+		await process_frame
+		quit()
+		return
 	main.start(level)
 	var g: Game = main.game
 	var seen := {}
@@ -57,7 +103,8 @@ func _run() -> void:
 			continue
 		_stand(g, at.x, at.y, e.x, e.y, g.world.stand(e) + .4)
 		_ticks(g, 10)
-		e.hurt(400.0, g, false, false, null, gun)
+		# A killing shot, not an overkill (that takes the body apart).
+		e.hurt(e.hp + 4.0, g, false, false, null, gun)
 		var n := 0
 		for t: int in AFTER:
 			_ticks(g, t - (0 if n == 0 else AFTER[n - 1]))
@@ -87,6 +134,52 @@ func _run() -> void:
 	quit()
 
 
+## A hand at `at` on a floor `top` high shot down with buckshot fired from
+## `shot`, watched by the player at `cam` on a floor `cam_top` high
+## (<name>_<n>.png).
+func _place(
+	level_id: String,
+	at: Vector2,
+	top: float,
+	shot: Vector2,
+	cam: Vector2,
+	cam_top: float,
+	name: String
+) -> void:
+	var keep := -1
+	main.start(level_id)
+	for i in main.game.enemies.size():
+		var one: Enemy = main.game.enemies[i]
+		if one.hostile and Variants.stem(one.kind) in HANDS:
+			keep = i
+			break
+	if keep < 0:
+		print("no hand to picture on ", level_id)
+		return
+	var g := _level(level_id, [keep])
+	g.spawn_grace = 99.0
+	var e: Enemy = g.enemies[keep]
+	e.x = at.x
+	e.y = at.y
+	e.floor_z = top
+	e.angle = atan2(shot.y - at.y, shot.x - at.x)
+	e.alerted = false
+	g.player.floor_z = cam_top
+	_stand(g, cam.x, cam.y, at.x, at.y, top + .5)
+	_lift(g, cam_top, at.x, at.y, top + .5)
+	_ticks(g, 2)
+	e.hurt(e.hp + 4.0, g, false, false, null, "shotgun")
+	e.killed_from = shot
+	var n := 0
+	for t: int in AFTER:
+		_ticks(g, t - (0 if n == 0 else AFTER[n - 1]))
+		var z: float = g.world.floor_under(e.x, e.y, g.world.stand(e) + .3) + e.toss + .2
+		_stand(g, cam.x, cam.y, e.x, e.y, z)
+		_lift(g, cam_top, e.x, e.y, z)
+		await _snap("%s_%d" % [name, t])
+		n += 1
+
+
 func _snap(name: String) -> void:
 	if main.game != null:
 		main.game.message_until = 0.0
@@ -100,6 +193,8 @@ func _snap(name: String) -> void:
 ## A level with nobody about (or only `keep`), the player unhurt.
 func _level(level_id: String, keep: Array = []) -> Game:
 	main.start(level_id)
+	if classic:
+		View.ragdolls = false
 	var g: Game = main.game
 	g.cheats.god = true
 	g.lessons = false
@@ -130,6 +225,9 @@ func _ticks(g: Game, n: int, fire := false) -> void:
 	for i in n:
 		held.fire = fire and i == 0
 		g.tick(1.0 / 60.0, held)
+		# Drawn every tick, as in play (the 3D view steps its ragdolls as it draws).
+		if not probe:
+			main.render()
 
 
 ## A spot `far` from (x, y) on open floor at its height, that sees it.
@@ -166,3 +264,11 @@ func _clear(g: Game, a: Vector2, b: Vector2) -> bool:
 		if on.distance_to(q) < .45 and q.distance_to(b) > .6 and q.distance_to(a) > .3:
 			return false
 	return true
+
+
+## The player's eye on a floor `top` high, looking at (tx, ty, tz).
+func _lift(g: Game, top: float, tx: float, ty: float, tz: float) -> void:
+	var p := g.player
+	p.eye = top + .95
+	var d := Vector2(tx - p.x, ty - p.y).length()
+	p.pitch = clampf((tz - p.eye) / maxf(d, .1) * View.base_focal, -50.0, 50.0)

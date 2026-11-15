@@ -55,6 +55,8 @@ func configure(options: Dictionary) -> void:
 	var flashes: int = options.get("flashes", 0)
 	flash_scale = [1.0, .32, 0.0][clampi(flashes, 0, 2)]
 	gore = options.get("gore", 1)
+	finish_slowmo = options.get("finish_slowmo", 1)
+	View.ragdolls = options.get("ragdolls", 1)
 	aim_assist = options.get("aim_assist", 0)
 	hit_feedback = options.get("hit_feedback", 1)
 	adaptive = options.get("adaptive", 1)

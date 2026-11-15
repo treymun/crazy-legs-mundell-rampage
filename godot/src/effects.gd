@@ -25,6 +25,8 @@ static var LEVELS := {}
 static var ANIMS := {}
 ## [debris]: how long the leavings of a fight last
 static var DEBRIS := {}
+## [ragdoll]: how a kill throws a dead body's limbs (src/ragdoll.gd)
+static var RAGDOLL := {}
 ## tile name -> 0..1: [water] (ripples and a broken reflection), [relief]
 ## (raised where a texel is brighter than its neighbours) and [puddles] (floors
 ## that gather puddles in the rain).
@@ -58,6 +60,7 @@ static func load_tuning() -> void:
 	LEVELS = {}
 	ANIMS = {}
 	DEBRIS = {}
+	RAGDOLL = {}
 	WATER = {}
 	RELIEF = {}
 	PUDDLES = {}
@@ -73,6 +76,8 @@ static func load_tuning() -> void:
 			ANIMS[section.substr(5)] = values
 		elif section == "debris":
 			DEBRIS = values
+		elif section == "ragdoll":
+			RAGDOLL = values
 		elif tables.has(section):
 			var table: Dictionary = tables[section]
 			for key: String in values:
