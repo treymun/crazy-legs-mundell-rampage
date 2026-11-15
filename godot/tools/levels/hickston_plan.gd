@@ -57,6 +57,8 @@ func make() -> Builder:
 		"rescue": true,
 		"layout": 5,
 		"sky": "sky",
+		# A riding mower on the chapel path by the graveyard (features/vehicles.gd).
+		"vehicles": [["mower", 79.0, 59.5, 0.0]],
 	}
 	return b
 

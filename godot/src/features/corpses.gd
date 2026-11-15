@@ -155,7 +155,9 @@ func _throw(e: Enemy) -> void:
 		speed = minf(POINT_BLANK_MOST, POINT_BLANK_KNOCK + POINT_BLANK_PER * e.struck_sum)
 		lift = 1.5
 		crash = true
-	elif how == "blast" or how == "energy":
+	elif how == "blast" or how == "energy" or how == "roadkill":
+		# (roadkill: run down by a vehicle, features/vehicles.gd; blast_at is
+		# set behind the body along the vehicle's way.)
 		if e.blast_at != Vector2.INF:
 			from = e.blast_at
 		if e.killed_with == "cow":

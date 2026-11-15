@@ -17,6 +17,7 @@ const ALL := [
 	preload("res://src/features/fight_music.gd"),
 	preload("res://src/features/boss_fight.gd"),
 	preload("res://src/features/race_laps.gd"),
+	preload("res://src/features/vehicles.gd"),
 	preload("res://src/features/firing_range.gd"),
 	preload("res://src/features/bayou_feature.gd"),
 	preload("res://src/features/mothership.gd"),

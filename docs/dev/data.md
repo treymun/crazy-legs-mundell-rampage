@@ -24,6 +24,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `breakables.cfg` | what breaks, its broken picture, hp, bits, cues, blast; `[windows]`, `[fence.<tile>]`, `never` | `features/breakables.gd`, `wall_breaks.gd` |
 | `carry.cfg` | what a hand can take up and throw (`[thing.<picture>]`: weight, label, cue), a throw's speed, hit and shove, a hard landing, the brutes who throw things back (`[brutes]`) | `features/carry.gd` |
 | `fire.cfg` | fire that spreads: the cap and budget, how often it spreads and bites, rain, the blasts that light things, puddles of shine, the floors and props that burn (`[floors]`, `[props]`: seconds, catch), what spills shine (`[spills]`), the stills' spray (`[stills]`) | `features/fire.gd`, `features/stills.gd` |
+| `vehicles.cfg` | each vehicle kind: its model, hull, speeds, grip, step, floors, health, soak, seats, eye, ram and blade; `[all]` bumps, wrecks, dodging, blasts | `vehicle_drive.gd`, `features/vehicles.gd` |
 | `store.cfg` | the 5v5 store, economy and pvp: `[economy]`, `[item.*]`, `[rules.*]`, `[hit.*]`, `[hit]`, `[blast]`, `[spread]` | `src/modes/tactical_shop.gd` |
 | `difficulty.cfg` | every number that changes with DIFFICULTY, one array each in the order EASY, NORMAL, HARD, HOG WILD: `[player]`, `[hands]`, `[bosses]`, `[bots]` | `Difficulty` (`src/core/difficulty.gd`) |
 | `hits.cfg` | how hits land: `[head]`, `[zones]`, `[reaction]`, `[reaction.store]`, `[ammo]`; keys are what `hurt()` is told did it | `HitData` (`src/core/hit_data.gd`), `hit_zones.gd`, `enemies.gd` |

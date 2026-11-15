@@ -64,6 +64,10 @@ rounds and pockets each player's own.
   hit now), Maw's rolling pin, stomp rings (`ring[3]` player one, bits of
   `ring[4]` the rest) and loose beam (`beam_hurt`), arena fire, rollers, the
   log carriage, steam jets and core pulses (already per player).
+- Vehicles (`features/vehicles.gd`, [gameplay.md](gameplay.md#vehicles)) are
+  the campaign's and co-op's only: a partner rides along in the airboat's
+  second seat. Versus, the 5v5 and County Run have none, so nothing online
+  drives (a seated client's prediction leads only its aim).
 
 ### Scaling
 

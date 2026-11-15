@@ -27,6 +27,7 @@ const STORY_META := [
 	"devices",
 	"boss_decoys",
 	"lap_cars",
+	"vehicles",
 	"tactical",
 	"gallery",
 	"hub_gates",

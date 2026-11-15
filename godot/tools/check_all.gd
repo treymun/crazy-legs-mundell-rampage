@@ -20,6 +20,7 @@ const CHECKS := [
 	["physics_check", "PHYSICS OK"],
 	["live_props_check", "LIVE PROPS OK"],
 	["climb_check", "CLIMB CHECK OK"],
+	["vehicle_check", "VEHICLES OK"],
 	["save_fixtures", "OLD SAVES OK"],
 	["level_edit_check", "LEVEL EDIT OK"],
 	["quest_reach", "QUEST REACH OK"],
@@ -48,6 +49,7 @@ const QUICK := [
 	"climb_check",
 	"games_check",
 	"cover_check",
+	"vehicle_check",
 ]
 
 

@@ -730,6 +730,73 @@ path adds its sprites.
   landing, SCREEN SHAKE the blows, off means none. Sounds it wants are in
   `docs/feel_audio.md`.
 
+## Vehicles
+
+`features/vehicles.gd` (the feature), `src/vehicle_drive.gd` (the driving
+sums, the `Spec` and `Ride` classes), `src/vehicle_looks.gd` (the car's dash
+and wheel), numbers in `data/tuning/vehicles.cfg`. A level's `"vehicles"`
+list places them (`[kind, x, y, heading]`, level_builder from the plan's
+`meta`): the airboat moored by Gator Bayou's dock walk, a stock car on the
+speedway's pit row, a riding mower (the tractor model at half size) on the
+chapel path at Hickston. Only the campaign and co-op have them
+(`active()`); County Run's maps strip them (`county_kit.gd STORY_META`).
+
+- **In and out**: USE beside a hull (within `reach`, roughly facing it)
+  takes the driver's seat, or the next seat (the airboat seats two: a co-op
+  partner rides along and shoots); the prompt says DRIVE THE <NAME> / RIDE
+  ALONG / BURNT OUT, and GET OUT while it stands. USE while seated gets out
+  beside it (left, right, behind, front, a little further each way), never
+  into deep water, a wall or another hull ("NOWHERE TO STEP OFF HERE").
+  Hooks: `game_world.gd` interact/use_prompt, `game.gd _step_body` (a seated
+  player is driven, not walked) and `_step_hands` (the car's hands are on the
+  wheel: no firing, the gun holstered), `damage()` (the vehicle soaks its
+  `soak` share of what hurts the people in it), `net_predict.gd` (a seated
+  client predicts only its aim).
+- **Driving** (`VehicleDrive.throttle`/`move`): FORWARD/BACK throttle, brake
+  and reverse; it steers toward where the driver looks (mouse, pad, touch:
+  the same on every control set) or straight from STRAFE (the eye then turns
+  with it); not toward the look while firing, so a shot to the side holds
+  the course; JUMP is the handbrake (the car slides). Grip wears away the
+  slide across its heading (the airboat slides most; its prop turns it on the
+  throttle standing still). The hull is three circles along it tested with
+  `geo.blocked_body` (walls, furniture, closed doors, decks) and `floor_at`:
+  a step taller than its `step` stops it (the car climbs the banked turns'
+  .12 steps, never a stair); `floors` lists the only floors it runs on (the
+  airboat: bayou water, deep water, marsh, mud), `slow_floors` slow it
+  (the car off the asphalt and track). A blocked step slides along the wall
+  and bounces back (`BOUNCE`); harder than `bump_from` it dents, and a
+  fence or window in the way takes the knock a thrown body gives it
+  (`wall_breaks.crash`). A ride wedged already may drive out.
+- **Bodies**: a hand inside its hull at `ram_from` or more is run down for
+  `ram` x speed, `how` "roadkill" (corpses.gd throws it as a blast throws a
+  body, from behind it along the way it went: `Enemy.blast_at`); a boss takes
+  a third and stops it dead. The mower's `blade` cuts what it runs over every
+  `BLADE_EVERY` ("mower"). Anything else in the hull is put out of it, and
+  players on foot too. Hands ahead of a vehicle faster than `dodge_from` step
+  aside, one in `dodge_skip` (by uid) holds and shoots (the squads already aim
+  at its driver). The breakables in front are struck (`breakables.touch` /
+  `strike`): the mower cuts flamingos and crates.
+- **Hurt and wrecked**: bumps, run-overs, its soak share and every blast near
+  it (`blast_reach`, `blast_damage`, from `events.exploded`) take its `hp`; it
+  smokes under half, burns under a quarter; at 0 everyone in it is thrown out
+  (`eject_damage`, "WRECK") and it blows (`wreck_blast`, a shots.cfg blast)
+  and burns `burn` seconds, then stays a burnt-out wreck.
+- **The speedway's lap timer**: the car on the lap cars' racing line counts
+  the turn round its middle; a whole turn is a lap (LAP n, the time, the
+  best); off the line by `LINE_REACH` it starts again. The time and best are
+  on screen with the speed (MPH) and the rig's health.
+- **Play and looks**: each Ride is plain numbers, no dice, carried by
+  snapshots (`snap_codec.gd` knows `VehicleDrive.Ride`) and saved in the
+  features block (place, heading, health, wreck, seats; restore gets {} from
+  older saves, so no save version, and adding a level's list changed no map,
+  so no layout). Skid marks, the mown stripe and the clippings are `_looks`
+  (skipped by snapshots); smoke and flames come from the clock; the car's
+  own model is left out of its driver's view (the dash and wheel instead).
+  Sounds reuse cues: `airboat_wake`, `lap_car_pass`, `saw_motor`, `crunch`,
+  `lap_car_hit`, `tire_roll`, `mower`.
+- **Checks**: `tools/vehicle_check.gd` (in check_all, quick too);
+  `tools/vehicle_frames.gd` takes window pictures (`docs/godot3d/features/D/`).
+
 ## Gore
 
 - **More gore** (dev.43, `src/gore_extras.gd`, called from `gore.gd`; looks
