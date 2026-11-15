@@ -29,9 +29,10 @@ static func ammo() -> Dictionary:
 	var out := {}
 	for key: String in section("ammo"):
 		var row: Array = value("ammo", key, [])
-		var gun := guns.find(String(row[0]))
+		var gun := guns.find(str(row[0]))
 		if gun < 0:
 			push_error("%s: [ammo] %s names no gun %s" % [DATA, key, row[0]])
 			continue
-		out[key] = [gun, int(row[1])]
+		var rounds: int = row[1]
+		out[key] = [gun, rounds]
 	return out

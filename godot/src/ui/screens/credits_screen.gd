@@ -53,8 +53,8 @@ func draw_back(c: Canvas) -> void:
 	for i in BLOCKS.size():
 		var block: Array = BLOCKS[i]
 		var y := 44 + i * 41
-		HUD.text(c, String(block[0]), 25, y, "body", HUD.AMBER)
+		HUD.text(c, str(block[0]), 25, y, "body", HUD.AMBER)
 		var lines: Array = block[1]
 		for j in lines.size():
-			HUD.text(c, String(lines[j]), 25, y + 13 + j * 10, "body", HUD.INK)
+			HUD.text(c, str(lines[j]), 25, y + 13 + j * 10, "body", HUD.INK)
 	Menu.plate_button(c, Menu.BACK, "BACK", _back.is_hovered())

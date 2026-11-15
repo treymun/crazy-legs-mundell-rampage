@@ -42,7 +42,8 @@ func scene(name: String) -> PackedScene:
 		var path := SCENES.path_join(name + ".tscn")
 		cached = load(path) if ResourceLoader.exists(path) else null
 		_scenes[name] = cached
-	return cached as PackedScene
+	var packed: PackedScene = cached
+	return packed
 
 
 func mesh(name: String) -> Mesh:
@@ -74,9 +75,10 @@ func texture(name: String) -> ImageTexture:
 	if cached != null:
 		return cached
 	var a := _assets.art("mesh_" + name)
-	var image := Image.create_from_data(
-		int(a["w"]), int(a["h"]), false, Image.FORMAT_RGBA8, a["data"]
-	)
+	var w: int = a["w"]
+	var h: int = a["h"]
+	var data: PackedByteArray = a["data"]
+	var image := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, data)
 	var tex := ImageTexture.create_from_image(image)
 	_textures[name] = tex
 	return tex

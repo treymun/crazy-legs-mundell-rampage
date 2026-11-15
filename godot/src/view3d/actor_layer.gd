@@ -29,8 +29,7 @@ func show_actors(
 ) -> Array[ShaderMaterial]:
 	var fresh: Array[ShaderMaterial] = []
 	var seen := {}
-	for item: Variant in sprites:
-		var s := item as View.Sprite
+	for s: View.Sprite in sprites:
 		var e := s.who as Enemy
 		var kind := kind_of(e)
 		var id := e.get_instance_id()
@@ -45,10 +44,12 @@ func show_actors(
 				continue
 			_shown[id] = view
 		view.show_as(s, e, level, clock)
-		view.lose(lost.get(e, []))
+		var gone: Array = lost.get(e, [])
+		view.lose(gone)
 	for id: int in _shown.keys():
 		if not seen.has(id):
-			(_shown[id] as ActorView).queue_free()
+			var old: ActorView = _shown[id]
+			old.queue_free()
 			_shown.erase(id)
 	return fresh
 

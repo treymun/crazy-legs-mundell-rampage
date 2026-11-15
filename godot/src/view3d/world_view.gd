@@ -13,6 +13,8 @@ extends Node
 
 const NEAR := .02
 const FAR := 160.0
+const WeatherFeature := preload("res://src/features/weather.gd")
+const WaterFeature := preload("res://src/features/water.gd")
 ## Render layers: the world (1), the player's reflection (2, the mirror's
 ## camera only), the sky behind the eye's camera (3), and the bit that tells
 ## the shaders they draw the mirror's pass (view_light.gdshaderinc).
@@ -173,16 +175,18 @@ func frame(game: Game) -> void:
 	var at_hub: bool = not level.road_and_hub.is_empty() and y > 33.0
 	_build(level, at_hub)
 	game_far = r.draw_far
-	_place_camera(x, y, z, angle, view["horizon"], r.focal, vh)
+	var horizon: float = view["horizon"]
+	_place_camera(x, y, z, angle, horizon, r.focal, vh)
 	var mirror := not is_nan(level.mirror_x)
-	_mirror(mirror, level, x, y, z, angle, view["horizon"], r.focal, Vector2i(vw, vh))
+	_mirror(mirror, level, x, y, z, angle, horizon, r.focal, Vector2i(vw, vh))
 	# Sprites whose picture has a mesh are stood up as props; the rest stay
 	# pictures.
 	var pictures: Array = []
 	var modelled: Array = []
 	var acting: Array = []
-	for item: Variant in view["sprites"]:
-		var s := item as View.Sprite
+	var listed: Array = view["sprites"]
+	for item: Variant in listed:
+		var s: View.Sprite = item if item is View.Sprite else null
 		if s != null and s.who is Enemy and actors.kind_of(s.who as Enemy) != "":
 			acting.append(s)
 		elif s != null and props.models.name_of(s.image) != "":
@@ -197,8 +201,11 @@ func frame(game: Game) -> void:
 			m.set_shader_parameter(key, _params[key])
 	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
 	if mirror:
-		sprites.show_reflection(view.get("reflection") as View.Sprite, level, angle)
-	sprites.show_marks(view["marks"], view["ground"], Vector3(x, y, z), angle)
+		var reflection: View.Sprite = view.get("reflection")
+		sprites.show_reflection(reflection, level, angle)
+	var marks: Array = view["marks"]
+	var ground: Array = view["ground"]
+	sprites.show_marks(marks, ground, Vector3(x, y, z), angle)
 	_uniforms(game, view, r, Vector3(x, y, z), angle, at_hub)
 
 
@@ -276,7 +283,8 @@ func _build(level: LevelData, at_hub: bool) -> void:
 			node.mesh = parts[k]
 			node.material_override = null
 			node.set_surface_override_material(0, world_material)
-			if (parts[k] as ArrayMesh).get_surface_count() > 1:
+			var chunk: ArrayMesh = parts[k]
+			if chunk.get_surface_count() > 1:
 				node.set_surface_override_material(1, glass_material)
 			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			_chunks.add_child(node)
@@ -285,9 +293,10 @@ func _build(level: LevelData, at_hub: bool) -> void:
 		_share("cells_tex", _cells)
 		_share("map_size", Vector2i(level.width, level.height))
 		var sky := _assets.sky(level.sky)
-		var sky_image := Image.create_from_data(
-			int(sky["w"]), int(sky["h"]), false, Image.FORMAT_RGB8, sky["data"]
-		)
+		var sky_w: int = sky["w"]
+		var sky_h: int = sky["h"]
+		var sky_data: PackedByteArray = sky["data"]
+		var sky_image := Image.create_from_data(sky_w, sky_h, false, Image.FORMAT_RGB8, sky_data)
 		_share("sky_tex", ImageTexture.create_from_image(sky_image))
 		_anim_tiles = {}
 		for i in level.wall_count:
@@ -327,7 +336,8 @@ func _uniforms(
 	game: Game, view: Dictionary, r: View, cam: Vector3, angle: float, at_hub: bool
 ) -> void:
 	_share("eye", cam)
-	_share("flash", float(view["flash"]))
+	var flash: float = view["flash"]
+	_share("flash", flash)
 	var phase := r.time - floorf(r.time / 6.1) * 6.1
 	_share("liquor_flicker", phase > .87 and phase < 1.02)
 	var flow_tile := PackedInt32Array([-1, -1])
@@ -335,15 +345,17 @@ func _uniforms(
 	var found := 0
 	for h: float in _level.moving_floors:
 		for f: Array in _level.moving_floors[h]:
-			var tile := int(f[0])
+			var tile: int = f[0]
+			var speed: float = f[1]
 			if found < 2 and not flow_tile.has(tile):
 				flow_tile[found] = tile
-				flow_shift[found] = int(r.time * float(f[1])) & 127
+				flow_shift[found] = int(r.time * speed) & 127
 				found += 1
 	_share("flow_tile", flow_tile)
 	_share("flow_shift", flow_shift)
 	_share("view_angle", fmod(angle, TAU * 512.0))
-	_share("horizon", float(view["horizon"]))
+	var horizon: float = view["horizon"]
+	_share("horizon", horizon)
 	_share("focal", r.focal)
 	_share("view_size", Vector2(r.vw, r.vh))
 	_share("res_up", r.res_up)
@@ -391,9 +403,15 @@ func _effects(game: Game) -> void:
 	for i in mini(found.size(), Effects.MAX_LIGHTS):
 		var l: Array = found[i]
 		var c: Color = l[4]
-		at[i] = Vector4(l[0], l[1], l[2], l[3])
-		tint[i] = Vector4(c.r, c.g, c.b, l[5])
-		flags[i] = int(l[6]) if l.size() > 6 else 0
+		var lx: float = l[0]
+		var ly: float = l[1]
+		var lz: float = l[2]
+		var reach: float = l[3]
+		var power: float = l[5]
+		at[i] = Vector4(lx, ly, lz, reach)
+		tint[i] = Vector4(c.r, c.g, c.b, power)
+		var light_flags: int = l[6] if l.size() > 6 else 0
+		flags[i] = light_flags
 	_share("light_count", mini(found.size(), Effects.MAX_LIGHTS))
 	_share("light_pos", at)
 	_share("light_col", tint)
@@ -401,36 +419,38 @@ func _effects(game: Game) -> void:
 	var id := game.level.id
 	var fog: Color = Effects.mood(id, "fog", Color(0, 0, 0))
 	_share("fog_color", Vector3(fog.r, fog.g, fog.b))
-	_share(
-		"fog_range",
-		Vector3(
-			float(Effects.mood(id, "fog_start", 1000.0)),
-			float(Effects.mood(id, "fog_full", 2000.0)),
-			float(Effects.mood(id, "fog_most", 0.0))
-		)
-	)
+	var fog_start: float = Effects.mood(id, "fog_start", 1000.0)
+	var fog_full: float = Effects.mood(id, "fog_full", 2000.0)
+	var fog_most: float = Effects.mood(id, "fog_most", 0.0)
+	_share("fog_range", Vector3(fog_start, fog_full, fog_most))
 	var tone: Color = Effects.mood(id, "grade", Color(1, 1, 1))
 	_share("grade", Vector3(tone.r, tone.g, tone.b))
-	_share("sky_drift", fposmod(game.clock * float(Effects.mood(id, "clouds", 0.0)), 1.0))
+	var clouds: float = Effects.mood(id, "clouds", 0.0)
+	_share("sky_drift", fposmod(game.clock * clouds, 1.0))
 	_share("lightning", game.lightning)
 	var motion: float = [1.0, .4, 0.0][clampi(game.view.world_motion, 0, 2)]
 	_share("motion", motion)
-	var weather: Variant = game.features.get("weather")
-	var raining: float = float(weather.rain) if weather != null else 0.0
+	var weather: WeatherFeature = game.features.get("weather")
+	var raining: float = weather.rain if weather != null else 0.0
 	_share("rain", raining)
 	for sheet: MeshInstance3D in _rain:
 		sheet.visible = raining > 0.0 and motion > 0.0
-	_share("wet", float(weather.wet) if weather != null else 0.0)
+	_share("wet", weather.wet if weather != null else 0.0)
 	if weather != null:
 		_share("flash_dir", weather.flash_dir)
-	_share("fog_banks", float(Effects.mood(id, "fog_banks", 0.0)))
-	var water: Variant = game.features.get("water")
+	var banks: float = Effects.mood(id, "fog_banks", 0.0)
+	_share("fog_banks", banks)
+	var water: WaterFeature = game.features.get("water")
 	var shown: Array = water.shown(game.player.x, game.player.y) if water != null else []
 	var rings := PackedVector4Array()
 	rings.resize(16)
 	for i in mini(shown.size(), 16):
 		var w: Array = shown[i]
-		rings[i] = Vector4(w[0], w[1], w[2], w[3])
+		var wx: float = w[0]
+		var wy: float = w[1]
+		var wr: float = w[2]
+		var wk: float = w[3]
+		rings[i] = Vector4(wx, wy, wr, wk)
 	_share("ring_count", mini(shown.size(), 16))
 	_share("rings", rings)
 	var anims := PackedVector4Array()
@@ -439,15 +459,14 @@ func _effects(game: Game) -> void:
 	for tile_name: String in Effects.ANIMS:
 		if count >= Effects.MAX_ANIMS or not _assets.tile_index.has(tile_name):
 			continue
-		var tile := int(_assets.tile_index[tile_name])
+		var tile: int = _assets.tile_index[tile_name]
 		if not _anim_tiles.has(tile):
 			continue
 		var a: Dictionary = Effects.ANIMS[tile_name]
+		var rate: float = a.get("rate", 8.0)
+		var depth: float = a.get("depth", .05)
 		anims[count] = Vector4(
-			tile,
-			0.0 if String(a.get("mode", "neon")) == "neon" else 1.0,
-			float(a.get("rate", 8.0)),
-			float(a.get("depth", .05))
+			tile, 0.0 if str(a.get("mode", "neon")) == "neon" else 1.0, rate, depth
 		)
 		count += 1
 	_share("anim_count", count)

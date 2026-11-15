@@ -77,7 +77,8 @@ func screen_for(state: String) -> UiScreen:
 		return null
 	var screen: UiScreen = _screens.get(state)
 	if screen == null:
-		screen = (SCREENS[state] as GDScript).new()
+		var script: GDScript = SCREENS[state]
+		screen = script.new()
 		screen.visible = false
 		_screens[state] = screen
 		add_child(screen)

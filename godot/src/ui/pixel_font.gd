@@ -38,7 +38,7 @@ static func of(style: String) -> FontFile:
 		for yi in n:
 			var top := yi * height / n
 			var bottom := (yi + 1) * height / n
-			var bits := int(rows[yi])
+			var bits: int = rows[yi]
 			for col in w:
 				if bits & (1 << (w - col - 1)):
 					for yy in range(top, bottom):

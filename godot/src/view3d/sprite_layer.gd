@@ -115,9 +115,10 @@ func _slot(name: String) -> int:
 		if _slot_name[slot] != "":
 			_slot_of.erase(_slot_name[slot])
 		var a := _assets.art(name)
-		var w := int(a["w"])
-		var h := int(a["h"])
-		var image := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, a["data"])
+		var w: int = a["w"]
+		var h: int = a["h"]
+		var pixels: PackedByteArray = a["data"]
+		var image := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, pixels)
 		if w > SLOT_SIZE or h > SLOT_SIZE:
 			var k := float(SLOT_SIZE) / maxf(w, h)
 			w = maxi(1, int(w * k))
@@ -138,10 +139,11 @@ func _slot(name: String) -> int:
 func _drop_of(name: String) -> float:
 	var cached: Variant = _drop.get(name)
 	if cached != null:
-		return float(cached)
+		var known: float = cached
+		return known
 	var a := _assets.art(name)
-	var w := int(a["w"])
-	var h := int(a["h"])
+	var w: int = a["w"]
+	var h: int = a["h"]
 	var data: PackedByteArray = a["data"]
 	var last := -1
 	for y in range(h - 1, -1, -1):
@@ -168,8 +170,10 @@ func show_sprites(
 	var solid_buf := PackedFloat32Array()
 	var clear_buf := PackedFloat32Array()
 	for item: Variant in sprites:
-		var s := item as View.Sprite
-		if s == null or s.image == "":
+		if not item is View.Sprite:
+			continue
+		var s: View.Sprite = item
+		if s.image == "":
 			continue
 		var dx := s.x - cam.x
 		var dy := s.y - cam.y
@@ -207,7 +211,9 @@ func _row(s: View.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
 	var slot := _slot(s.image)
 	var size := _slot_size[slot]
 	var a := _assets.art(s.image)
-	var width := s.height * float(a["w"]) / maxf(1.0, float(a["h"]))
+	var art_w: float = a["w"]
+	var art_h: float = a["h"]
+	var width := s.height * art_w / maxf(1.0, art_h)
 	var axis := Vector3(-sin(angle), 0.0, cos(angle))
 	if board:
 		axis = Vector3(cos(s.plane), 0.0, sin(s.plane))
@@ -268,9 +274,9 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 	var fy := sin(angle)
 	var buf := PackedFloat32Array()
 	for item: Variant in walls:
-		var m := item as View.WallMark
-		if m == null:
+		if not item is View.WallMark:
 			continue
+		var m: View.WallMark = item
 		var d := (m.x - cam.x) * fx + (m.y - cam.y) * fy
 		if d <= .19 or d >= 15.0:
 			continue
@@ -306,8 +312,10 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 			)
 		)
 	for item: Variant in grounds:
-		var g := item as View.GroundMark
-		if g == null or cam.z <= g.z + .015:
+		if not item is View.GroundMark:
+			continue
+		var g: View.GroundMark = item
+		if cam.z <= g.z + .015:
 			continue
 		if Vector2(g.x - cam.x, g.y - cam.y).length() > 26.0:
 			continue

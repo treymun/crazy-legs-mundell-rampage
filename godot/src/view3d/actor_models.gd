@@ -45,14 +45,18 @@ func scene(kind: String) -> PackedScene:
 		var path := SCENES.path_join(kind + ".tscn")
 		cached = load(path) if ResourceLoader.exists(path) else null
 		_scenes[kind] = cached
-	return cached as PackedScene
+	var packed: PackedScene = cached
+	return packed
 
 
 ## The time in the action of frame `name` (null when the kind has none).
 func key_time(kind: String, name: String) -> Variant:
 	var frames: Dictionary = kinds[kind]["frames"]
 	var key: Variant = frames.get(name)
-	return null if key == null else float(key) * KEY_TIME
+	if key == null:
+		return null
+	var at: float = key
+	return at * KEY_TIME
 
 
 ## The kind's material: its looks bound, ready for per-model numbers.
@@ -67,7 +71,9 @@ func material(kind: String) -> ShaderMaterial:
 		var name := "actor3d_" + kind + ("" if look == "" else "_" + look)
 		var tex := _texture(name) if _assets.has_art(name) else plain
 		m.set_shader_parameter("look_" + ("plain" if look == "" else look), tex)
-	m.set_shader_parameter("baked_light", bool(kinds[kind].get("lit", false)))
+	var info: Dictionary = kinds[kind]
+	var lit: bool = info.get("lit", false)
+	m.set_shader_parameter("baked_light", lit)
 	_materials[kind] = m
 	return m
 
@@ -81,6 +87,9 @@ func materials() -> Array[ShaderMaterial]:
 
 func _texture(name: String) -> ImageTexture:
 	var a := _assets.art(name)
+	var w: int = a["w"]
+	var h: int = a["h"]
+	var data: PackedByteArray = a["data"]
 	return ImageTexture.create_from_image(
-		Image.create_from_data(int(a["w"]), int(a["h"]), false, Image.FORMAT_RGBA8, a["data"])
+		Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, data)
 	)

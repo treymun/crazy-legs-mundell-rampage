@@ -136,8 +136,11 @@ func build_walls(rows: PackedFloat32Array) -> ArrayMesh:
 	var opaque := Part.new()
 	var glazing := Part.new()
 	for key: Vector2i in _chunks:
-		_append(opaque, _chunks[key][0])
-		_append(glazing, _chunks[key][1])
+		var pair: Array = _chunks[key]
+		var solid: Part = pair[0]
+		var glass: Part = pair[1]
+		_append(opaque, solid)
+		_append(glazing, glass)
 	if opaque.empty() and glazing.empty():
 		return null
 	_chunks = {Vector2i.ZERO: [opaque, glazing]}
@@ -251,7 +254,7 @@ func add_walls(rows: PackedFloat32Array) -> void:
 func _add_floors() -> void:
 	var w := level.width
 	var h := level.height
-	for overhead in [false, true]:
+	for overhead: bool in [false, true]:
 		for y in h:
 			var x := 0
 			while x < w:
@@ -362,9 +365,9 @@ static func _cut(x0: float, y0: float, x1: float, y1: float, cuts: Array) -> Pac
 	)
 	var k := 0
 	while k + 2 < cuts.size():
-		var nx := float(cuts[k])
-		var ny := float(cuts[k + 1])
-		var c := float(cuts[k + 2])
+		var nx: float = cuts[k]
+		var ny: float = cuts[k + 1]
+		var c: float = cuts[k + 2]
 		var out := PackedVector2Array()
 		for i in poly.size():
 			var a := poly[i]
@@ -381,26 +384,29 @@ static func _cut(x0: float, y0: float, x1: float, y1: float, cuts: Array) -> Pac
 
 
 func _add_cap(cap: Array, h: float, overhead: bool) -> void:
-	var poly := _cut(float(cap[0]), float(cap[1]), float(cap[2]), float(cap[3]), cap.slice(5))
-	var mid := Vector2((float(cap[0]) + float(cap[2])) * .5, (float(cap[1]) + float(cap[3])) * .5)
+	var x0: float = cap[0]
+	var y0: float = cap[1]
+	var x1: float = cap[2]
+	var y1: float = cap[3]
+	var tile: int = cap[4]
+	var poly := _cut(x0, y0, x1, y1, cap.slice(5))
+	var mid := Vector2((x0 + x1) * .5, (y0 + y1) * .5)
 	var c := level.cell(clampf(mid.x, 0, level.width - .01), clampf(mid.y, 0, level.height - .01))
-	_polygon(
-		poly, h, Vector2.ZERO, Vector2.ZERO, int(cap[4]), level.light[c], level.area[c], overhead
-	)
+	_polygon(poly, h, Vector2.ZERO, Vector2.ZERO, tile, level.light[c], level.area[c], overhead)
 
 
 ## [z0, gx, gy, side, x0, y0, x1, y1, tile, light, area, cuts...]
 func _add_slope(row: Array) -> void:
-	var x0 := float(row[4])
-	var y0 := float(row[5])
-	var poly := _cut(x0, y0, float(row[6]), float(row[7]), row.slice(11))
-	_polygon(
-		poly,
-		float(row[0]),
-		Vector2(float(row[1]), float(row[2])),
-		Vector2(x0, y0),
-		int(row[8]),
-		float(row[9]),
-		int(row[10]),
-		float(row[3]) < 0.0
-	)
+	var z0: float = row[0]
+	var gx: float = row[1]
+	var gy: float = row[2]
+	var side: float = row[3]
+	var x0: float = row[4]
+	var y0: float = row[5]
+	var x1: float = row[6]
+	var y1: float = row[7]
+	var tile: int = row[8]
+	var light: float = row[9]
+	var area: int = row[10]
+	var poly := _cut(x0, y0, x1, y1, row.slice(11))
+	_polygon(poly, z0, Vector2(gx, gy), Vector2(x0, y0), tile, light, area, side < 0.0)

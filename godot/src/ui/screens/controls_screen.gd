@@ -74,7 +74,7 @@ func draw_back(c: Canvas) -> void:
 		c.fill_rect(20 + j * TAB, 32, TAB - 2, 13, Menu.RUST if on else Canvas.rgb(48, 34, 26))
 		HUD.text(
 			c,
-			String(PAGES[j][0]),
+			str(PAGES[j][0]),
 			19 + j * TAB + TAB / 2,
 			35,
 			"body",
@@ -87,8 +87,8 @@ func draw_back(c: Canvas) -> void:
 		var y := 51 + i * 12
 		if i % 2 == 0:
 			c.fill_rect(19, y - 2, 282, 12, Canvas.rgb(33, 23, 19))
-		HUD.text(c, String(row[0]), 24, y, "menu", HUD.INK)
-		HUD.text(c, String(row[1]), 136, y, "menu", Canvas.rgb(232, 213, 178))
+		HUD.text(c, str(row[0]), 24, y, "menu", HUD.INK)
+		HUD.text(c, str(row[1]), 136, y, "menu", Canvas.rgb(232, 213, 178))
 	var other := (
 		"LB RB  OTHER CONTROLLERS"
 		if main.input_device == "pad"

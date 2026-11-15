@@ -49,8 +49,7 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			node.queue_free()
 		_shown.clear()
 	var seen := {}
-	for item: Variant in sprites:
-		var s := item as View.Sprite
+	for s: View.Sprite in sprites:
 		var name := models.name_of(s.image)
 		var place := Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))
 		var key := "%s@%s" % [s.image, place]
@@ -67,14 +66,16 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			var material := _material(name)
 			if _materials.size() > had:
 				fresh.append(material)
-			var tall: float = float((models.sizes[name] as Array)[2])
+			var dims: Array = models.sizes[name]
+			var tall: float = dims[2]
 			node.setup(material, 51.0 if tall > 2.7 else 32.0)
 			node.stand(s.x, s.y, s.z, _turn(s, level, place), level)
 			add_child(node)
 			_shown[key] = node
 	for key: String in _shown.keys():
 		if not seen.has(key):
-			(_shown[key] as PropView).queue_free()
+			var old: PropView = _shown[key]
+			old.queue_free()
 			_shown.erase(key)
 	return fresh
 
@@ -86,7 +87,8 @@ func _turn(s: View.Sprite, level: LevelData, place: Vector3) -> float:
 		return -s.plane
 	var key := Vector2(place.x, place.y)
 	if _facing.has(key):
-		return float(_facing[key])
+		var faced: float = _facing[key]
+		return faced
 	var best := 0.0
 	var best_open := -1.0
 	for k in 8:

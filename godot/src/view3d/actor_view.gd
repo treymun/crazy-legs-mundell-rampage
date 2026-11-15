@@ -52,8 +52,10 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	var tint: Color = pose[2]
 	var z := s.z + (.07 if frame == "down" else 0.0)
 	var turn := PI * .5 - e.angle
-	var canvas: Array = models.kinds[kind].get("canvas", [1.0, e.height])
-	var size := e.height * e.variant / maxf(.1, float(canvas[1]))
+	var info: Dictionary = models.kinds[kind]
+	var canvas: Array = info.get("canvas", [1.0, e.height])
+	var tall: float = canvas[1]
+	var size := e.height * e.variant / maxf(.1, tall)
 	transform = Transform3D(
 		Basis(Vector3.UP, turn).scaled(Vector3(size, size, size)), Vector3(s.x, z, s.y)
 	)
@@ -81,10 +83,11 @@ func lose(lost: Array) -> void:
 	if piece == "head":
 		want = "head"
 	elif piece == "arm" or piece == "hand":
-		want = "arm_" + String(lost[1])
+		want = "arm_" + str(lost[1])
 	if want == "":
 		return
-	var labels: Dictionary = models.kinds[kind].get("labels", {})
+	var info: Dictionary = models.kinds[kind]
+	var labels: Dictionary = info.get("labels", {})
 	for skeleton in _skeletons:
 		for bone: String in labels:
 			if labels[bone] == want:
@@ -135,15 +138,18 @@ func _time(frame: String, look: int, e: Enemy, clock: float) -> float:
 		var last: Variant = models.key_time(kind, hurt + "w4")
 		if first != null and last != null:
 			var beat := fposmod(e.gait / (PI * .5), 4.0)
-			return float(first) + beat * ActorModels.KEY_TIME
+			var walk_at: float = first
+			return walk_at + beat * ActorModels.KEY_TIME
 	if frame.begins_with("die_"):
 		var first: Variant = models.key_time(kind, "die_0")
 		if first != null:
 			var span := Enemy.DEATH_TIME
 			var step := clampf((clock - e.died_at) / span * 5.0, 0.0, 5.0)
-			return float(first) + step * ActorModels.KEY_TIME
+			var fall_at: float = first
+			return fall_at + step * ActorModels.KEY_TIME
 	for name: String in [hurt + frame, frame, hurt + "0", "0"]:
 		var t: Variant = models.key_time(kind, name)
 		if t != null:
-			return float(t)
+			var key_at: float = t
+			return key_at
 	return 0.0

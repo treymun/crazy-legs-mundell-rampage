@@ -16,7 +16,7 @@ func open(m: MainInput) -> void:
 		var index := i
 		var b := add_button(
 			Rect2i(19, BossRematch.TOP + i * BossRematch.ROW, 282, BossRematch.ROW),
-			String(BossRematch.BOSSES[i]),
+			str(BossRematch.BOSSES[i]),
 			Callable(),
 			_fight.bind(index)
 		)
@@ -41,7 +41,7 @@ func _picked(index: int) -> void:
 func _fight(index: int) -> void:
 	main.rematch_pick = index
 	main.sound.play("menu_accept")
-	main.start_rematch(String(BossRematch.BOSSES[index]))
+	main.start_rematch(str(BossRematch.BOSSES[index]))
 	if main.state == "play":
 		main.block_fire = true
 

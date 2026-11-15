@@ -43,7 +43,7 @@ func refresh() -> void:
 	for name: String in Effects.GLOW:
 		if not _assets.tile_index.has(name):
 			continue
-		var tile := int(_assets.tile_index[name])
+		var tile: int = _assets.tile_index[name]
 		var spec: Vector2 = Effects.GLOW[name]
 		var alpha := clampi(255 - int(roundf(spec.y * 255.0)), 0, 254)
 		var data := _plain[tile].get_data()
@@ -71,8 +71,8 @@ func _info_row() -> Image:
 		for name: String in table:
 			if not _assets.tile_index.has(name):
 				continue
-			var tile := int(_assets.tile_index[name])
-			var value := float(table[name])
+			var tile: int = _assets.tile_index[name]
+			var value: float = table[name]
 			if tile < count:
 				bytes[tile * 4 + k] = (
 					clampi(128 + int(roundf(value * 127.0)), 1, 255)

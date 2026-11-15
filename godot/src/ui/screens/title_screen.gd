@@ -27,9 +27,10 @@ func _build() -> void:
 	for i in items.size():
 		var item: Dictionary = items[i]
 		var index := i
+		var rect: Rect2i = item["rect"]
 		var b := add_button(
-			item["rect"],
-			String(item["id"]),
+			rect,
+			str(item["id"]),
 			func(c: Canvas, active: bool) -> void: main.menu.draw_title_item(c, item, active),
 			func() -> void: _press(index)
 		)
@@ -74,9 +75,10 @@ func draw_back(c: Canvas) -> void:
 	if main.entries() != _entries:
 		# An entry came or went (a quicksave was made, a game paused).
 		_build()
-	var steady := (
-		int(main.options.get("flashes", 0)) != 0 or int(main.options.get("flicker", 1)) == 0
-	)
+	var flashes: int = main.options.get("flashes", 0)
+	var flicker: int = main.options.get("flicker", 1)
+	var steady := flashes != 0 or flicker == 0
+	var motion: int = main.options.get("world_motion", 0)
 	main.menu.draw_title(
 		c,
 		_entries,
@@ -84,7 +86,7 @@ func draw_back(c: Canvas) -> void:
 		main.menu_note,
 		main.title_hint(),
 		main.menu_clock,
-		int(main.options.get("world_motion", 0)),
+		motion,
 		steady,
 		true
 	)

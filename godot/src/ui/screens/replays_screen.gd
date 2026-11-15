@@ -18,7 +18,10 @@ func open(m: MainInput) -> void:
 	for i in Campaign.ORDER.size():
 		var index := i
 		var b := add_button(
-			Rect2i(19, TOP + i * ROW, 282, ROW), Campaign.ORDER[i], Callable(), _play.bind(index)
+			Rect2i(19, TOP + i * ROW, 282, ROW),
+			str(Campaign.ORDER[i]),
+			Callable(),
+			_play.bind(index)
 		)
 		b.focus_entered.connect(_picked.bind(index))
 		rows.append(b)

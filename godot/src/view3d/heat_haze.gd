@@ -32,19 +32,24 @@ static func apply(material: ShaderMaterial, game: Game) -> void:
 		var angle: float = eye["view_angle"]
 		var fx := cos(angle)
 		var fy := sin(angle)
-		var dx := float(s[0]) - cx
-		var dy := float(s[1]) - cy
+		var sx: float = s[0]
+		var sy: float = s[1]
+		var sz: float = s[2]
+		var reach: float = s[3]
+		var dx := sx - cx
+		var dy := sy - cy
 		var depth := dx * fx + dy * fy
 		if depth < .6 or depth > 14.0:
 			continue
 		var column := r.vw * .5 + (-dx * fy + dy * fx) / depth * r.focal
-		var half := float(s[3]) / depth * r.focal
+		var half := reach / depth * r.focal
 		if column + half < 0.0 or column - half > r.vw:
 			continue
-		if not _clear(game.world, cx, cy, float(s[0]), float(s[1])):
+		if not _clear(game.world, cx, cy, sx, sy):
 			continue
-		var base: float = float(view["horizon"]) + (cz - float(s[2])) / depth * r.focal
-		boxes[count] = Vector4(column, base, half, float(s[3]) * 3.2 / depth * r.focal)
+		var horizon: float = view["horizon"]
+		var base: float = horizon + (cz - sz) / depth * r.focal
+		boxes[count] = Vector4(column, base, half, reach * 3.2 / depth * r.focal)
 		sway[count] = (1.6 - depth * .07) * motion * (2.0 if r.detail < 0 else 1.0)
 		count += 1
 	material.set_shader_parameter("haze_count", count)
