@@ -60,7 +60,7 @@ const TINTS := [
 ]
 ## A player's hit on another counts this much of what it does to the county's
 ## hands (a revolver round 36 -> 18: about six to drop someone).
-const PVP_SCALE := .5
+static var PVP_SCALE: float = ModeData.get_value("versus", "pvp_scale", .5)
 ## Versus arenas: <level> or <level>:<boss kind> (that boss's arena box).
 const ARENAS := [
 	"range",
@@ -82,8 +82,12 @@ const SHOWDOWN_MAPS := ["grainyard", "holler", "salvage"]
 ## bomb site each (tools/levels/pumpngo_plan.gd, pineacres, landing): first to
 ## 9 of 16 rounds, 1:30 rounds, a shorter buy time.
 const TAGTEAM_MAPS := ["pumpngo", "pineacres", "landing"]
-const TAGTEAM_PLAYERS := 4
-const TAGTEAM_OPTIONS := {"rounds": 9, "round_seconds": 90.0, "buy_seconds": 15.0}
+static var TAGTEAM_PLAYERS: int = ModeData.get_value("tagteam", "players", 4)
+static var TAGTEAM_OPTIONS: Dictionary = {
+	"rounds": ModeData.get_value("tagteam", "rounds", 9),
+	"round_seconds": ModeData.get_value("tagteam", "round_seconds", 90.0),
+	"buy_seconds": ModeData.get_value("tagteam", "buy_seconds", 15.0),
+}
 
 static var _made := {}
 

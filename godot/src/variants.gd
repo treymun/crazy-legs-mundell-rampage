@@ -28,7 +28,7 @@ extends RefCounted
 ## Every how-many-th of a level's regulars of a kind with a variant becomes
 ## it, by difficulty: EASY none, NORMAL one in nine, HARD one in five, HOG
 ## WILD one in three.
-const EVERY := [0, 9, 5, 3]
+static var EVERY: Array = Difficulty.table("hands", "variant_every")
 ## How far round from its front (radians either side) a shot meets the door,
 ## and how much of a stopped shot gets through it.
 const DOOR_ARC := 1.15

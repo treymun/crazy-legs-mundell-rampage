@@ -15,14 +15,14 @@
 class_name BombMode
 extends TacticalMode
 
-const PLANT_TIME := 2.6
-const BOMB_TIMER := 35.0
-const DEFUSE_TIME := 7.0
-const SNIPS_TIME := 3.5
-const DEFUSE_REACH := 1.25
-const PICK_UP_REACH := .75
-const BLAST_RADIUS := 10.0
-const BLAST_HEART := 420.0
+static var PLANT_TIME: float = ModeData.get_value("bomb", "plant_time", 2.6)
+static var BOMB_TIMER: float = ModeData.get_value("bomb", "bomb_timer", 35.0)
+static var DEFUSE_TIME: float = ModeData.get_value("bomb", "defuse_time", 7.0)
+static var SNIPS_TIME: float = ModeData.get_value("bomb", "snips_time", 3.5)
+static var DEFUSE_REACH: float = ModeData.get_value("bomb", "defuse_reach", 1.25)
+static var PICK_UP_REACH: float = ModeData.get_value("bomb", "pick_up_reach", .75)
+static var BLAST_RADIUS: float = ModeData.get_value("bomb", "blast_radius", 10.0)
+static var BLAST_HEART: float = ModeData.get_value("bomb", "blast_heart", 420.0)
 
 
 func id() -> String:
@@ -38,7 +38,7 @@ func objective_title() -> String:
 
 
 func round_time() -> float:
-	return 105.0
+	return float(ModeData.get_value("bomb", "round_seconds", 105.0))
 
 
 func attack_team(st) -> int:

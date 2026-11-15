@@ -14,10 +14,10 @@
 class_name DeathmatchMode
 extends GameMode
 
-const RESPAWN_DELAY := 3.0
-const PICKUP_BACK := 20.0
-const FRAG_LIMIT := 10
-const TIME_LIMIT := 300.0
+static var RESPAWN_DELAY: float = ModeData.get_value("deathmatch", "respawn_delay", 3.0)
+static var PICKUP_BACK: float = ModeData.get_value("deathmatch", "pickup_back", 20.0)
+static var FRAG_LIMIT: int = ModeData.get_value("deathmatch", "frag_limit", 10)
+static var TIME_LIMIT: float = ModeData.get_value("deathmatch", "time_limit", 300.0)
 
 
 func id() -> String:

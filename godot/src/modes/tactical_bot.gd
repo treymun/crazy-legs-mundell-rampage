@@ -30,9 +30,9 @@ const TURN := .11
 ## By the game's DIFFICULTY (EASY..HOG WILD): seconds from first sight to the
 ## first shot, how far the first aim is off (radians, settling away), and how
 ## much the aim keeps wandering while it fires.
-const REACTION := [.5, .34, .26, .19]
-const AIM_ERROR := [.14, .09, .07, .05]
-const WOBBLE := [.05, .03, .02, .012]
+static var REACTION: Array = Difficulty.table("bots", "reaction")
+static var AIM_ERROR: Array = Difficulty.table("bots", "aim_error")
+static var WOBBLE: Array = Difficulty.table("bots", "wobble")
 const ARRIVE := 1.4
 const LURK_UNTIL := 22.0
 const CALL_FOR := 7.0

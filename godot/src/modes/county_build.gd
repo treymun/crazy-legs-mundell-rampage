@@ -8,9 +8,9 @@ extends RefCounted
 
 ## How the spare slots of an ordinary level up are drawn: weights of an
 ## upgrade for another carried gun, a new weapon and a perk.
-const WEIGHTS := {"upgrade": 5.0, "weapon": 2.2, "perk": 2.6}
+static var WEIGHTS: Dictionary = ModeData.get_value("county_cards", "weights", {})
 ## A full set of slots still sees a weapon card this often (the swap).
-const SWAP_CHANCE := .3
+static var SWAP_CHANCE: float = ModeData.get_value("county_cards", "swap_chance", .3)
 
 # ------------------------------------------------------------------ ranks
 

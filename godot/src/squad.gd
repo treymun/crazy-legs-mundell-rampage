@@ -22,9 +22,9 @@ class_name Squad
 extends RefCounted
 
 ## Seconds a hand searches before it gives up, by difficulty.
-const SEARCH := [6.0, 9.0, 13.0, 17.0]
+static var SEARCH: Array = Difficulty.table("hands", "search")
 ## The stun of a hand hit from behind while it noticed nothing, by difficulty.
-const SNEAK_STUN := [1.6, 1.3, 1.0, .8]
+static var SNEAK_STUN: Array = Difficulty.table("hands", "sneak_stun")
 ## How far round the player (radians) a flanker swings before it closes in.
 const FLANK_SWING := 1.4
 ## Seconds between one bark of a moment and the next (any hand), and between

@@ -29,7 +29,7 @@ extends GameFeature
 const SLOWMO := 1.0
 ## How many come at each phase change, EASY .. HOG WILD, and how far off the
 ## player's facing (radians) a spot in plain view must be to count as unseen.
-const BACKUP := [2, 3, 3, 4]
+static var BACKUP: Array = Difficulty.table("bosses", "backup")
 const BEHIND := 1.25
 ## The fewest and most pickups in a fallen boss's shower.
 const LOOT := [4, 6]

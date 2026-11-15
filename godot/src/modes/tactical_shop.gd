@@ -18,66 +18,31 @@
 class_name TacticalShop
 extends RefCounted
 
-const START_MONEY := 800
-const MAX_MONEY := 16000
-const WIN_REWARD := 3250
-const OBJECTIVE_REWARD := 3500
-const LOSS_BASE := 1400
-const LOSS_STEP := 500
-const LOSS_MAX := 3400
-const PLANT_TEAM_BONUS := 800
-const PLANT_REWARD := 300
-const DEFUSE_REWARD := 300
-const HOSTAGE_TAKE_REWARD := 150
-const RESCUE_REWARD := 1000
-const VEST := 100
-
+## Everything below the code's own lists comes from data/tuning/store.cfg
+## (_load), so the store and the money are balanced there, not here.
+const DATA := "res://data/tuning/store.cfg"
+static var START_MONEY := 800
+static var MAX_MONEY := 16000
+static var WIN_REWARD := 3250
+static var OBJECTIVE_REWARD := 3500
+static var LOSS_BASE := 1400
+static var LOSS_STEP := 500
+static var LOSS_MAX := 3400
+static var PLANT_TEAM_BONUS := 800
+static var PLANT_REWARD := 300
+static var DEFUSE_REWARD := 300
+static var HOSTAGE_TAKE_REWARD := 150
+static var RESCUE_REWARD := 1000
+static var VEST := 100
 ## [id, label, price, gun (-1: gear), loaded, reserve, group, who may buy it]:
 ## who "" anyone, "outlaws" or "deputies" only the side that plays them this
-## half (each has its own pistol, shotgun, sprayer, sniper and machine gun),
-## "defense" only the deputies in search and destroy. The menu shows a side
-## only its own and the shared rows, in this order.
-const ITEMS := [
-	["hogleg", "HOGLEG .44", 700, Weapons.HOGLEG, 6, 30, "PISTOL", "outlaws"],
-	["star357", "STAR .357", 700, Weapons.STAR357, 6, 30, "PISTOL", "deputies"],
-	["sawed_off", "SAWED-OFF", 1100, Weapons.SHOTGUN, 2, 24, "SHOTGUN", "outlaws"],
-	["riot_pump", "RIOT PUMP", 1300, Weapons.RIOT_PUMP, 6, 24, "SHOTGUN", "deputies"],
-	["grease_gun", "GREASE GUN", 1200, Weapons.GREASE_GUN, 30, 120, "SMG", "outlaws"],
-	["tommy", "SQUAD TOMMY", 1500, Weapons.TOMMY, 50, 150, "SMG", "deputies"],
-	["riveter", "MILL RIVETER", 1350, Weapons.RIVETER, 0, 60, "SPRAYER", "outlaws"],
-	["teat_gun", "TEAT GUN", 1050, Weapons.TEAT, 0, 150, "SPRAYER", "outlaws"],
-	["rifle", "RANCH RIFLE", 2700, Weapons.RIFLE, 0, 90, "RIFLE", ""],
-	["arm_gun", "ALIEN ARM GUN", 2500, Weapons.ARMGUN, 0, 45, "RIFLE", ""],
-	["hunter", "HOG HUNTER .30-06", 4750, Weapons.HUNTER, 5, 20, "SNIPER", "outlaws"],
-	["marksman", "COUNTY MARKSMAN", 5000, Weapons.MARKSMAN, 10, 30, "SNIPER", "deputies"],
-	["mower", "CORN MOWER", 5200, Weapons.MOWER, 100, 200, "MACHINE GUN", "outlaws"],
-	["patrol_bar", "PATROL BAR", 5000, Weapons.PATROL_BAR, 60, 180, "MACHINE GUN", "deputies"],
-	["rockets", "BOTTLE ROCKETS", 4200, Weapons.ROCKET, 0, 3, "HEAVY", ""],
-	["vest", "TIN VEST", 650, -1, 0, 0, "GEAR", ""],
-	["vest_hat", "VEST + HARD HAT", 1000, -1, 0, 0, "GEAR", ""],
-	["snips", "WIRE SNIPS", 400, -1, 0, 0, "GEAR", "defense"],
-	["dynamite", "DYNAMITE (HE)", 300, Weapons.DYNAMITE, 0, 1, "THROWN", ""],
-	["flash_jar", "FLASH JAR", 200, Weapons.FLASH_JAR, 0, 1, "THROWN", ""],
-	["smudge_pot", "SMUDGE POT (SMOKE)", 300, Weapons.SMUDGE_POT, 0, 1, "THROWN", ""],
-	["shine_cocktail", "SHINE COCKTAIL", 400, Weapons.SHINE_COCKTAIL, 0, 1, "THROWN", ""],
-	["firecracker_can", "FIRECRACKER CAN", 50, Weapons.FIRECRACKER_CAN, 0, 1, "THROWN", ""],
-]
-## The store's rules (a lobby's RULES, the picker's): which kinds of item
-## are sold ("kinds", ITEMS' seventh column), the dearest item sold ("most"),
-## everyone's cash at every round's start ("cash") or the least they start a
-## round with ("least": the rules' guns are always within reach).
-const RULES := {
-	"any": {},
-	"shotguns": {"kinds": ["SHOTGUN", "GEAR", "THROWN"], "least": 2000},
-	"pistols": {"kinds": ["PISTOL", "GEAR"]},
-	"snipers": {"kinds": ["SNIPER", "GEAR", "THROWN"], "least": 6000},
-	"eco": {"most": 1500},
-	"big_money": {"cash": MAX_MONEY},
-}
-const RULE_IDS := ["any", "shotguns", "pistols", "snipers", "eco", "big_money"]
-const RULE_NAMES := [
-	"ANY GUNS", "SHOTGUNS ONLY", "PISTOL PARTY", "SNIPER DUEL", "ECO WAR", "BIG MONEY"
-]
+## half, "defense" only the deputies in search and destroy (store.cfg
+## [item.*], in menu order).
+static var ITEMS: Array = []
+## The store's rules by id ({kinds, most, cash, least}; store.cfg [rules.*]).
+static var RULES: Dictionary = {}
+static var RULE_IDS: Array = []
+static var RULE_NAMES: Array = []
 ## Each side's pistol at the start of a round: the outlaws' .38, the
 ## deputies' issue .45 ([gun, rounds loaded, rounds spare]).
 const SIDE_PISTOL := [[Weapons.REVOLVER, 6, 36], [Weapons.COUNTY45, 8, 40]]
@@ -120,122 +85,131 @@ const THROWABLES := [
 ]
 ## The store's pages: the guns, then gear and throwables.
 const GEAR_GROUPS := ["GEAR", "THROWN"]
-## What a kill pays, by the gun in the killer's hands.
-const KILL_REWARD := {
-	Weapons.CROWBAR: 1500,
-	Weapons.SLING: 1500,
-	Weapons.REVOLVER: 300,
-	Weapons.PRESSURE: 300,
-	Weapons.SHOTGUN: 900,
-	Weapons.TEAT: 600,
-	Weapons.RIVETER: 600,
-	Weapons.RIPSAW: 600,
-	Weapons.RIFLE: 300,
-	Weapons.ARMGUN: 300,
-	Weapons.ROCKET: 300,
-	Weapons.DYNAMITE: 300,
-	Weapons.HUNTER: 100,
-	Weapons.MOWER: 300,
-	Weapons.MARKSMAN: 300,
-	Weapons.PATROL_BAR: 300,
-	Weapons.RIOT_PUMP: 900,
-	Weapons.TOMMY: 600,
-	Weapons.GREASE_GUN: 600,
-	Weapons.COUNTY45: 300,
-	Weapons.STAR357: 300,
-	Weapons.HOGLEG: 300,
-}
-const KILL_DEFAULT := 300
+## What a kill pays, by the gun in the killer's hands (store.cfg [hit.*] kill).
+static var KILL_REWARD: Dictionary = {}
+static var KILL_DEFAULT := 300
 ## A gun's hit on another player: [times what it does to a hand, the part a
-## vest lets through to health, times on the head]. Tuned so that, against a
-## player with 100 health: the .38 takes three to the body or one to an
-## unprotected head (the issue .45 four, but holds eight and fires faster); the HOGLEG .44
-## one to the head even through a hard hat, the quicker STAR .357 two; the
-## ranch rifle four (five through a vest) or a head and a bit through a hard
-## hat; a sawed-off barrel up close drops anyone;
-## a crowbar takes two; the Hog Hunter drops anyone with one to the body (120,
-## 108 through a vest); the Corn Mower four (five through a vest).
-const DAMAGE := {
-	Weapons.CROWBAR: [1.25, .85, 1.0],
-	Weapons.SLING: [1.0, .85, 1.0],
-	Weapons.REVOLVER: [1.05, .66, 3.2],
-	Weapons.SHOTGUN: [1.17, .7, 1.25],
-	Weapons.RIFLE: [1.43, .78, 3.0],
-	Weapons.RIPSAW: [1.1, .7, 1.5],
-	Weapons.ARMGUN: [.68, .8, 2.5],
-	Weapons.RIVETER: [.81, .6, 2.5],
-	Weapons.PRESSURE: [1.18, .6, 2.0],
-	Weapons.TEAT: [1.0, .5, 2.0],
-	Weapons.ROCKET: [.5, .8, 1.0],
-	Weapons.HUNTER: [.86, .9, 2.0],
-	Weapons.MOWER: [1.15, .8, 2.2],
-	Weapons.MARKSMAN: [1.0, .85, 2.5],
-	Weapons.PATROL_BAR: [1.1, .8, 2.2],
-	Weapons.RIOT_PUMP: [1.1, .7, 1.25],
-	Weapons.TOMMY: [1.2, .6, 2.5],
-	Weapons.GREASE_GUN: [1.1, .6, 2.5],
-	Weapons.COUNTY45: [1.0, .55, 3.0],
-	Weapons.STAR357: [1.0, .7, 2.5],
-	Weapons.HOGLEG: [1.0, .7, 2.6],
-}
-const DAMAGE_DEFAULT := [1.0, .7, 1.0]
-## A blast on another player, by the shot's kind: times what the level's
-## blast does to a player (dynamite 30 -> 96 at its heart), and the part a
-## vest lets through. The alien arm gun's little burst stays little.
-const BLAST_SCALE := {"tnt": 3.2, "bottle_rocket": 3.0, "bolt": 3.0, "arm_bolt": .6}
-const BLAST_DEFAULT := 2.0
-const BLAST_THROUGH := .6
+## vest lets through to health, times on the head] (store.cfg [hit.*] damage).
+static var DAMAGE: Dictionary = {}
+static var DAMAGE_DEFAULT: Array = [1.0, .7, 1.0]
+## A blast on another player, by the shot's kind, and the part a vest lets
+## through (store.cfg [blast]).
+static var BLAST_SCALE: Dictionary = {}
+static var BLAST_DEFAULT := 2.0
+static var BLAST_THROUGH := .6
 ## Where a hit counts as the head (0 the feet, 1 the top of the head).
-const HEAD_FROM := .8
-## Accuracy on the move: the spread (radians, each way) a gun of each kind
-## gains at a full run, from nothing at STILL_BELOW cells a second; more in
-## the air; less crouched and still. A scoped sniper rifle gains SCOPED_MOVE
-## times its kind's (a scope is for standing still).
-const MOVE_SPREAD := {
-	"PISTOL": .028,
-	"SMG": .02,
-	"SHOTGUN": .02,
-	"SPRAYER": .015,
-	"RIFLE": .05,
-	"MACHINE GUN": .065,
-	"SNIPER": .07,
-	"HEAVY": 0.0,
-}
-const STILL_BELOW := .9
-const RUN_SPEED := 3.85
-const AIR_SPREAD := .08
-const SCOPED_MOVE := 1.6
-const CROUCH_SCALE := .7
-## How far a gun reaches in the 5v5 modes where its own reach is short for
-## these maps, and where its damage starts to fall off and what is left at
-## that reach ([full damage out to, the share left at the end]). Past its
-## reach a shot does nothing, as everywhere.
-const REACH := {
-	Weapons.REVOLVER: 34.0,
-	Weapons.COUNTY45: 34.0,
-	Weapons.STAR357: 38.0,
-	Weapons.HOGLEG: 38.0,
-	Weapons.GREASE_GUN: 30.0,
-	Weapons.TOMMY: 32.0,
-	Weapons.RIVETER: 22.0,
-	Weapons.RIFLE: 44.0,
-	Weapons.MOWER: 44.0,
-	Weapons.PATROL_BAR: 44.0,
-}
-const FALLOFF := {
-	Weapons.REVOLVER: [16.0, .55],
-	Weapons.COUNTY45: [16.0, .55],
-	Weapons.STAR357: [20.0, .6],
-	Weapons.HOGLEG: [18.0, .6],
-	Weapons.GREASE_GUN: [11.0, .5],
-	Weapons.TOMMY: [12.0, .5],
-	Weapons.RIVETER: [10.0, .55],
-	Weapons.RIFLE: [26.0, .75],
-	Weapons.MOWER: [24.0, .7],
-	Weapons.PATROL_BAR: [24.0, .7],
-	Weapons.SHOTGUN: [5.0, .45],
-	Weapons.RIOT_PUMP: [6.0, .45],
-}
+static var HEAD_FROM := .8
+## Accuracy on the move, by kind of gun (store.cfg [spread]).
+static var MOVE_SPREAD: Dictionary = {}
+static var STILL_BELOW := .9
+static var RUN_SPEED := 3.85
+static var AIR_SPREAD := .08
+static var SCOPED_MOVE := 1.6
+static var CROUCH_SCALE := .7
+## How far a gun reaches in these maps, and its falloff [full damage out to,
+## the share left at reach] (store.cfg [hit.*] reach, falloff).
+static var REACH: Dictionary = {}
+static var FALLOFF: Dictionary = {}
+static var _loaded := _load()
+
+
+## Read data/tuning/store.cfg into the tables above.
+static func _load() -> bool:
+	var cfg := ConfigFile.new()
+	if cfg.load(DATA) != OK:
+		push_error("cannot read " + DATA)
+		return false
+	var guns := Tuning.sections(Tuning.WEAPONS)
+	var e := "economy"
+	START_MONEY = int(cfg.get_value(e, "start_money", START_MONEY))
+	MAX_MONEY = int(cfg.get_value(e, "max_money", MAX_MONEY))
+	WIN_REWARD = int(cfg.get_value(e, "win_reward", WIN_REWARD))
+	OBJECTIVE_REWARD = int(cfg.get_value(e, "objective_reward", OBJECTIVE_REWARD))
+	LOSS_BASE = int(cfg.get_value(e, "loss_base", LOSS_BASE))
+	LOSS_STEP = int(cfg.get_value(e, "loss_step", LOSS_STEP))
+	LOSS_MAX = int(cfg.get_value(e, "loss_max", LOSS_MAX))
+	PLANT_TEAM_BONUS = int(cfg.get_value(e, "plant_team_bonus", PLANT_TEAM_BONUS))
+	PLANT_REWARD = int(cfg.get_value(e, "plant_reward", PLANT_REWARD))
+	DEFUSE_REWARD = int(cfg.get_value(e, "defuse_reward", DEFUSE_REWARD))
+	HOSTAGE_TAKE_REWARD = int(cfg.get_value(e, "hostage_take_reward", HOSTAGE_TAKE_REWARD))
+	RESCUE_REWARD = int(cfg.get_value(e, "rescue_reward", RESCUE_REWARD))
+	VEST = int(cfg.get_value(e, "vest", VEST))
+	KILL_DEFAULT = int(cfg.get_value(e, "kill_default", KILL_DEFAULT))
+	ITEMS = []
+	RULES = {}
+	RULE_IDS = []
+	RULE_NAMES = []
+	KILL_REWARD = {}
+	DAMAGE = {}
+	REACH = {}
+	FALLOFF = {}
+	for section: String in cfg.get_sections():
+		if section.begins_with("item."):
+			var gun_name := String(cfg.get_value(section, "gun", ""))
+			(
+				ITEMS
+				. append(
+					[
+						section.substr(5),
+						String(cfg.get_value(section, "label", "")),
+						int(cfg.get_value(section, "price", 0)),
+						guns.find(gun_name) if gun_name != "" else -1,
+						int(cfg.get_value(section, "loaded", 0)),
+						int(cfg.get_value(section, "reserve", 0)),
+						String(cfg.get_value(section, "group", "")),
+						String(cfg.get_value(section, "who", "")),
+					]
+				)
+			)
+		elif section.begins_with("rules."):
+			var id := section.substr(6)
+			var rule := {}
+			for key: String in ["kinds", "most", "cash", "least"]:
+				if cfg.has_section_key(section, key):
+					rule[key] = cfg.get_value(section, key)
+			RULES[id] = rule
+			RULE_IDS.append(id)
+			RULE_NAMES.append(String(cfg.get_value(section, "name", id.to_upper())))
+		elif section.begins_with("hit."):
+			var gun := guns.find(section.substr(4))
+			if gun < 0:
+				push_error("%s: no gun called %s" % [DATA, section.substr(4)])
+				continue
+			if cfg.has_section_key(section, "kill"):
+				KILL_REWARD[gun] = int(cfg.get_value(section, "kill"))
+			if cfg.has_section_key(section, "damage"):
+				DAMAGE[gun] = cfg.get_value(section, "damage")
+			if cfg.has_section_key(section, "reach"):
+				REACH[gun] = float(cfg.get_value(section, "reach"))
+			if cfg.has_section_key(section, "falloff"):
+				FALLOFF[gun] = cfg.get_value(section, "falloff")
+	DAMAGE_DEFAULT = cfg.get_value("hit", "damage_default", DAMAGE_DEFAULT)
+	HEAD_FROM = float(cfg.get_value("hit", "head_from", HEAD_FROM))
+	BLAST_SCALE = {}
+	for key: String in cfg.get_section_keys("blast"):
+		if key == "default":
+			BLAST_DEFAULT = float(cfg.get_value("blast", key))
+		elif key == "through":
+			BLAST_THROUGH = float(cfg.get_value("blast", key))
+		else:
+			BLAST_SCALE[key] = float(cfg.get_value("blast", key))
+	MOVE_SPREAD = {}
+	for key: String in cfg.get_section_keys("spread"):
+		var value := float(cfg.get_value("spread", key))
+		match key:
+			"still_below":
+				STILL_BELOW = value
+			"run_speed":
+				RUN_SPEED = value
+			"air":
+				AIR_SPREAD = value
+			"scoped":
+				SCOPED_MOVE = value
+			"crouch":
+				CROUCH_SCALE = value
+			_:
+				MOVE_SPREAD[key.replace("_", " ")] = value
+	return true
 
 
 static func item(id: String) -> Array:

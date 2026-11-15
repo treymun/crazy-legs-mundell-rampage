@@ -14,17 +14,17 @@ extends GameFeature
 const SQUAD_STEP := .4
 ## How far out a shot is heard, as a share of the gun's own noise (the hands
 ## that can see it are woken by Weapons as before), by difficulty.
-const HEARING := [.75, 1.1, 1.35, 1.6]
+static var HEARING: Array = Difficulty.table("hands", "hearing")
 ## A squad: the alerted hands within this of the player.
 const NEAR := 18.0
 ## Flankers out at once; the chance one is sent at a step and the wait
 ## after; pressing in likewise; a throw's wait; by difficulty.
-const FLANKERS := [0, 1, 1, 2]
-const FLANK_CHANCE := [0.0, .4, .7, .95]
-const FLANK_WAIT := [0.0, 7.0, 4.5, 2.5]
-const PRESS_CHANCE := [0.0, .3, .6, .85]
-const PRESS_WAIT := [0.0, 5.0, 3.5, 2.5]
-const FLUSH_WAIT := [0.0, 14.0, 10.0, 7.0]
+static var FLANKERS: Array = Difficulty.table("hands", "flankers")
+static var FLANK_CHANCE: Array = Difficulty.table("hands", "flank_chance")
+static var FLANK_WAIT: Array = Difficulty.table("hands", "flank_wait")
+static var PRESS_CHANCE: Array = Difficulty.table("hands", "press_chance")
+static var PRESS_WAIT: Array = Difficulty.table("hands", "press_wait")
+static var FLUSH_WAIT: Array = Difficulty.table("hands", "flush_wait")
 ## Seconds unseen before a throw flushes the player, and its wind-up.
 const GONE_TO_GROUND := 2.5
 const FLUSH_WINDUP := .85

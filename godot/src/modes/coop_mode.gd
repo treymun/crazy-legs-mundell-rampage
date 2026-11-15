@@ -21,20 +21,15 @@
 class_name CoopMode
 extends GameMode
 
-const REVIVE_REACH := 1.3
-const REVIVE_TIME := 3.0
-const REVIVE_HEALTH := 35
-const RESPAWN_AFTER := 20.0
-const RESPAWN_HEALTH := 50
-const FRIENDLY_BLAST := .5
+static var REVIVE_REACH: float = ModeData.get_value("coop", "revive_reach", 1.3)
+static var REVIVE_TIME: float = ModeData.get_value("coop", "revive_time", 3.0)
+static var REVIVE_HEALTH: int = ModeData.get_value("coop", "revive_health", 35)
+static var RESPAWN_AFTER: float = ModeData.get_value("coop", "respawn_after", 20.0)
+static var RESPAWN_HEALTH: int = ModeData.get_value("coop", "respawn_health", 50)
+static var FRIENDLY_BLAST: float = ModeData.get_value("coop", "friendly_blast", .5)
 ## players -> [hands' health x, bosses' health x, a partner beside every n-th
 ## hand about at the start (0: none)].
-const SCALE := {
-	1: [1.0, 1.0, 0],
-	2: [1.25, 1.6, 3],
-	3: [1.5, 2.2, 2],
-	4: [1.75, 2.8, 1],
-}
+static var SCALE: Dictionary = ModeData.get_value("coop", "scale", {})
 
 
 func id() -> String:

@@ -71,21 +71,7 @@ const PICKUP_NAMES := {
 const ALIAS := {"riveter": "bowling_ball", "pressure_gun": "cow_launcher"}
 const TASK_ITEMS := ["pa_patch"]
 
-const AMMO := {
-	"bullets": [Weapons.REVOLVER, 11],
-	"shells": [Weapons.SHOTGUN, 10],
-	"dynamite": [Weapons.CROSSBOW, 6],
-	"rifle_ammo": [Weapons.RIFLE, 24],
-	"saw_ammo": [Weapons.RIPSAW, 5],
-	"arm_ammo": [Weapons.ARMGUN, 9],
-	"rocket_ammo": [Weapons.ROCKET, 4],
-	"rivet_ammo": [Weapons.BOWLING, 2],
-	"pressure_ammo": [Weapons.COW, 2],
-	"milk_ammo": [Weapons.TEAT, 40],
-	"bowling_ammo": [Weapons.BOWLING, 2],
-	"keg_ammo": [Weapons.KEG, 1],
-	"cow_ammo": [Weapons.COW, 1],
-}
+static var AMMO: Dictionary = HitData.ammo()
 
 const HUB_DISPATCH := [
 	[

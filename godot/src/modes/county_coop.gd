@@ -15,13 +15,13 @@ class_name CountyCoop
 extends RefCounted
 
 ## The spawner's cap and rate, and each hand's health, a player past the first.
-const CAP_PER := .5
-const TOUGH_PER := .35
+static var CAP_PER: float = ModeData.get_value("county_coop", "cap_per", .5)
+static var TOUGH_PER: float = ModeData.get_value("county_coop", "tough_per", .35)
 ## Down this long with nobody helping: back beside a partner.
-const RESPAWN_AFTER := 25.0
-const RESPAWN_HEALTH := 50
+static var RESPAWN_AFTER: float = ModeData.get_value("county_coop", "respawn_after", 25.0)
+static var RESPAWN_HEALTH: int = ModeData.get_value("county_coop", "respawn_health", 50)
 ## The most in a party.
-const MOST := 4
+static var MOST: int = ModeData.get_value("county_coop", "most", 4)
 
 
 static func party(game) -> bool:

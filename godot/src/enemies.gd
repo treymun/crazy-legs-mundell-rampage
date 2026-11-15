@@ -57,19 +57,7 @@ static var hunting := true
 ## bullet or a swing, the shot's kind for what flies): [shove in cells, stun
 ## seconds, flinch seconds]. Champions take a quarter. The sawed-off's shove
 ## is per pellet, so a full load at close range throws a body back.
-const REACTIONS := {
-	"shotgun": [.075, 0.0, 0.0],
-	"revolver": [.12, .16, 0.0],
-	"rifle": [.04, .1, 0.0],
-	"riveter": [.08, .38, .3],
-	"pressure_gun": [.32, 0.0, .35],
-	"crowbar": [.28, .3, 0.0],
-	"slingblade": [.42, .4, 0.0],
-	"bowling": [.9, .9, .4],
-	"blade": [.15, .2, 0.0],
-	"ripsaw": [.06, .12, 0.0],
-	"energy": [.05, .3, .25],
-}
+static var REACTIONS: Dictionary = HitData.section("reaction")
 
 
 static func _static_init() -> void:

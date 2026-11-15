@@ -27,16 +27,16 @@
 class_name TacticalMode
 extends GameMode
 
-const ROUNDS_TO_WIN := 7
-const FREEZE := 6.0
-const BUY_WINDOW := 20.0
+static var ROUNDS_TO_WIN: int = ModeData.get_value("tactical", "rounds_to_win", 7)
+static var FREEZE: float = ModeData.get_value("tactical", "freeze", 6.0)
+static var BUY_WINDOW: float = ModeData.get_value("tactical", "buy_window", 20.0)
 ## A teammate's hit with FRIENDLY FIRE on: this much of it lands.
-const FRIENDLY_SHARE := .4
-const BUY_REACH := 7.5
-const POST := 5.0
+static var FRIENDLY_SHARE: float = ModeData.get_value("tactical", "friendly_share", .4)
+static var BUY_REACH: float = ModeData.get_value("tactical", "buy_reach", 7.5)
+static var POST: float = ModeData.get_value("tactical", "post", 5.0)
 const TEAM_NAMES := ["HOGS", "GATORS"]
 const SIDE_NAMES := ["OUTLAWS", "DEPUTIES"]
-const FEED_SECONDS := 5.0
+static var FEED_SECONDS: float = ModeData.get_value("tactical", "feed_seconds", 5.0)
 ## What the 5v5 bots are called, handed out by slot.
 const BOT_NAMES := [
 	"BUBBA",
@@ -69,7 +69,7 @@ func bodies_block() -> bool:
 
 ## The round's length once it is live (seconds).
 func round_time() -> float:
-	return 105.0
+	return float(ModeData.get_value("tactical", "round_seconds", 105.0))
 
 
 ## Which team goes for the objective this half.

@@ -56,7 +56,7 @@ const LOBBY_ROWS := [
 	["pick_teams", "TEAMS", [true, false], ["PLAYERS PICK", "HOST BALANCES"]],
 	["chatter", "CHATTER", [2, 1, 0], ["EACH'S OWN", "CLEAN AT MOST", "OFF"]],
 ]
-const MATCH_ROWS := [
+static var MATCH_ROWS: Array = [
 	# The lobby's game modes (a new online mode goes here and in play_mode()).
 	[
 		"mode",

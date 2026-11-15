@@ -10,8 +10,8 @@
 class_name HostageMode
 extends TacticalMode
 
-const CARRY_REACH := 1.5
-const CARRY_GAP := .55
+static var CARRY_REACH: float = ModeData.get_value("hostage", "carry_reach", 1.5)
+static var CARRY_GAP: float = ModeData.get_value("hostage", "carry_gap", .55)
 
 
 func id() -> String:
@@ -23,7 +23,7 @@ func title() -> String:
 
 
 func round_time() -> float:
-	return 115.0
+	return float(ModeData.get_value("hostage", "round_seconds", 115.0))
 
 
 ## The deputies go in.
