@@ -238,6 +238,9 @@ func _view_tour() -> void:
 		if shot.has("detail"):
 			var shot_detail: int = shot["detail"]
 			game.view.set_detail(shot_detail)
+		# A viewpoint may set EASY ON THE EYES (0 full, 1 reduced, 2 still).
+		var shot_motion: int = shot.get("motion", 0)
+		game.view.world_motion = shot_motion
 		var shot_gun: int = shot.get("gun", -1)
 		if shot.has("gun") and game.armory.active != shot_gun:
 			# A viewpoint of one gun firing: given it, loaded, in hand (viewpoints

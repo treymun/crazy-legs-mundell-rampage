@@ -65,6 +65,7 @@ func _init() -> void:
 			_fail("actor %s: its model cannot pose (no animation)" % kind)
 		view.free()
 	print("%d actor models" % actors.kinds.size())
+	_check_pickups(assets)
 	if _failed.is_empty():
 		print("VIEW3D CHECK OK")
 		quit(0)
@@ -92,6 +93,60 @@ func _check_surface(id: String, arrays: Array, tile_count: int) -> int:
 			_fail("%s: an index past the vertices" % id)
 			break
 	return index.size() / 3
+
+
+## Every pickup picture (item_*) makes its slab (PickupModels): sane numbers,
+## and from the front the size and place of the picture's solid pixels, as the
+## sprite showed them (one unit is the picture's height).
+func _check_pickups(assets: Assets) -> void:
+	var models := PickupModels.new(assets)
+	var names: Array[String] = []
+	for name: String in assets.art_index:
+		if PickupModels.is_pickup(name):
+			names.append(name)
+	names.sort()
+	var tris := 0
+	for name in names:
+		var mesh := models.mesh(name)
+		if mesh == null:
+			_fail("pickup %s: no mesh" % name)
+			continue
+		var arrays := mesh.surface_get_arrays(0)
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var index: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		for v in verts:
+			if not (is_finite(v.x) and is_finite(v.y) and is_finite(v.z)):
+				_fail("pickup %s: a vertex is not a number" % name)
+				break
+		for i in index:
+			if i < 0 or i >= verts.size():
+				_fail("pickup %s: an index past the vertices" % name)
+				break
+		tris += index.size() / 3
+		var a := assets.art(name)
+		var w: int = a["w"]
+		var h: int = a["h"]
+		var data: PackedByteArray = a["data"]
+		var box := Rect2i()
+		for y in h:
+			for x in w:
+				if data[(y * w + x) * 4 + 3] > PickupModels.SOLID:
+					var pixel := Rect2i(x, y, 1, 1)
+					box = pixel if box.size == Vector2i.ZERO else box.merge(pixel)
+		var aabb := mesh.get_aabb()
+		var want := Vector3(box.size.x, box.size.y, 0.0) / h
+		if (
+			absf(aabb.size.x - want.x) > .001
+			or absf(aabb.size.y - want.y) > .001
+			or absf(aabb.end.y - float(h - box.position.y) / h) > .001
+			or absf(aabb.get_center().x) > .001
+		):
+			_fail("pickup %s: the slab is not the picture's size and place" % name)
+		if aabb.size.z <= 0.0 or aabb.size.z > aabb.size.x + .001:
+			_fail("pickup %s: the slab is %.3f thick" % [name, aabb.size.z])
+	if names.is_empty():
+		_fail("no pickup pictures (item_*)")
+	print("%d pickup meshes, %d triangles" % [names.size(), tris])
 
 
 func _fail(line: String) -> void:

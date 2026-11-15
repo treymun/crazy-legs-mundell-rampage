@@ -359,6 +359,8 @@ func sprites() -> Array:
 			sprites.append(sprite)
 		else:
 			sprite_pool_n -= 1
+	# A pickup bobs (looks only); EASY ON THE EYES calms it (STILL: none).
+	var bob: float = [.035, .014, 0.0][clampi(view.world_motion, 0, 2)]
 	for entry: Array in pickups:
 		var x: float = entry[1]
 		var y: float = entry[2]
@@ -379,7 +381,7 @@ func sprites() -> Array:
 					and absf(dy * fx + dx * fy) < (d + 1.0) * k + 1.0
 				):
 					continue
-		var hover := .06 + sin(clock * 3.5 + x) * .035
+		var hover := .06 + sin(clock * 3.5 + x) * bob
 		var lies: float = entry[4] if entry.size() > 4 else world.elevation(x, y)
 		sprites.append(pooled(x, y, "item_" + str(entry[0]), .33, lies + hover))
 	for shot: Shot in shots:
