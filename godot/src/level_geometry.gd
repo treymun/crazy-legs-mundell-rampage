@@ -167,38 +167,41 @@ var _nav: NavGraph = null
 ## Reads a level's geometry block (null when it has none). Problems found are
 ## appended to `errors` as "<id>: <what>" (LevelData pushes them as errors).
 static func from_json(
-	block, w: int, h: int, tile_index: Dictionary, errors: Array = []
+	block: Variant, w: int, h: int, tile_index: Dictionary, errors: Array = []
 ) -> LevelGeometry:
-	if not (block is Dictionary) or (block as Dictionary).is_empty():
+	if not (block is Dictionary):
+		return null
+	var data: Dictionary = block
+	if data.is_empty():
 		return null
 	var g := LevelGeometry.new()
 	g.width = w
 	g.height = h
-	var version := int(block.get("version", 1))
+	var version: int = data.get("version", 1)
 	if version > VERSION:
 		errors.append(
 			"geometry: version %d is newer than this build reads (%d)" % [version, VERSION]
 		)
 		return null
-	for s: Dictionary in block.get("slabs", []):
+	for s: Dictionary in data.get("slabs", []):
 		var slab := Slab.new()
-		slab.id = String(s.get("id", "slab%d" % g.slabs.size()))
-		slab.kind = String(s.get("kind", "deck"))
-		slab.x0 = float(s["x0"])
-		slab.y0 = float(s["y0"])
-		slab.x1 = float(s["x1"])
-		slab.y1 = float(s["y1"])
+		slab.id = str(s.get("id", "slab%d" % g.slabs.size()))
+		slab.kind = str(s.get("kind", "deck"))
+		slab.x0 = s["x0"]
+		slab.y0 = s["y0"]
+		slab.x1 = s["x1"]
+		slab.y1 = s["y1"]
 		slab.cuts = _cuts(s.get("cuts", []))
-		slab.top = float(s["top"])
-		slab.gx = float(s.get("gx", 0.0))
-		slab.gy = float(s.get("gy", 0.0))
-		slab.thick = float(s.get("thick", -1.0))
+		slab.top = s["top"]
+		slab.gx = s.get("gx", 0.0)
+		slab.gy = s.get("gy", 0.0)
+		slab.thick = s.get("thick", -1.0)
 		slab.tile = _tile(tile_index, s.get("tile", "porch"), errors, slab.id)
 		slab.under = _tile(tile_index, s.get("under", "ceiling"), errors, slab.id)
 		slab.edge = _tile(tile_index, s.get("edge", s.get("tile", "porch")), errors, slab.id)
-		slab.light = float(s.get("light", .9))
-		slab.area = int(s.get("area", 0))
-		slab.walk = bool(s.get("walk", true))
+		slab.light = s.get("light", .9)
+		slab.area = s.get("area", 0)
+		slab.walk = s.get("walk", true)
 		if slab.x1 <= slab.x0 or slab.y1 <= slab.y0:
 			errors.append(
 				(
@@ -210,66 +213,70 @@ static func from_json(
 		if absf(slab.gx) > STEEPEST or absf(slab.gy) > STEEPEST:
 			errors.append("%s: slope steeper than %s" % [slab.id, STEEPEST])
 		g.slabs.append(slab)
-	for s: Dictionary in block.get("segments", []):
+	for s: Dictionary in data.get("segments", []):
 		var seg := Segment.new()
-		seg.id = String(s.get("id", "seg%d" % g.segments.size()))
+		seg.id = str(s.get("id", "seg%d" % g.segments.size()))
 		var a: Array = s["a"]
 		var b: Array = s["b"]
-		seg.ax = float(a[0])
-		seg.ay = float(a[1])
-		seg.bx = float(b[0])
-		seg.by = float(b[1])
-		seg.z0 = float(s.get("z0", 0.0))
-		seg.z1 = float(s.get("z1", 2.0))
-		seg.half = maxf(THINNEST, float(s.get("thick", .12))) * .5
+		seg.ax = a[0]
+		seg.ay = a[1]
+		seg.bx = b[0]
+		seg.by = b[1]
+		seg.z0 = s.get("z0", 0.0)
+		seg.z1 = s.get("z1", 2.0)
+		var thick: float = s.get("thick", .12)
+		seg.half = maxf(THINNEST, thick) * .5
 		seg.tile = _tile(tile_index, s.get("tile", "plaster"), errors, seg.id)
-		seg.light = float(s.get("light", .9))
-		seg.area = int(s.get("area", 0))
-		seg.sight = bool(s.get("sight", true))
-		seg.shots = bool(s.get("shots", seg.sight))
+		seg.light = s.get("light", .9)
+		seg.area = s.get("area", 0)
+		seg.sight = s.get("sight", true)
+		seg.shots = s.get("shots", seg.sight)
 		if seg.z1 <= seg.z0:
 			errors.append("%s: segment has no height" % seg.id)
 			continue
 		g.segments.append(seg)
-	for s: Dictionary in block.get("ceilings", []):
+	for s: Dictionary in data.get("ceilings", []):
 		var c := Ceiling.new()
-		c.id = String(s.get("id", "ceiling%d" % g.ceilings.size()))
-		c.x0 = float(s["x0"])
-		c.y0 = float(s["y0"])
-		c.x1 = float(s["x1"])
-		c.y1 = float(s["y1"])
+		c.id = str(s.get("id", "ceiling%d" % g.ceilings.size()))
+		c.x0 = s["x0"]
+		c.y0 = s["y0"]
+		c.x1 = s["x1"]
+		c.y1 = s["y1"]
 		c.cuts = _cuts(s.get("cuts", []))
-		c.z = float(s["z"])
+		c.z = s["z"]
 		c.tile = _tile(tile_index, s.get("tile", "ceiling"), errors, c.id)
-		c.light = float(s.get("light", .8))
-		c.area = int(s.get("area", 0))
+		c.light = s.get("light", .8)
+		c.area = s.get("area", 0)
 		g.ceilings.append(c)
 	g._build_index()
 	return g
 
 
-static func _cuts(list) -> PackedFloat32Array:
+static func _cuts(list: Variant) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
-	for c in list:
-		var nx := float(c[0])
-		var ny := float(c[1])
+	for c: Variant in list:
+		var nx: float = c[0]
+		var ny: float = c[1]
 		var length := sqrt(nx * nx + ny * ny)
 		if length < 1e-6:
 			continue
 		out.append(nx / length)
 		out.append(ny / length)
-		out.append(float(c[2]) / length)
+		var d: float = c[2]
+		out.append(d / length)
 	return out
 
 
-static func _tile(tile_index: Dictionary, name, errors: Array, owner: String) -> int:
+static func _tile(tile_index: Dictionary, name: Variant, errors: Array, owner: String) -> int:
 	if name is float or name is int:
-		return int(name)
-	var key := String(name)
+		var number: int = name
+		return number
+	var key := str(name)
 	if not tile_index.has(key):
 		errors.append("%s: no tile named %s" % [owner, key])
 		return 0
-	return int(tile_index[key])
+	var at: int = tile_index[key]
+	return at
 
 
 func _build_index() -> void:
@@ -296,13 +303,16 @@ func _build_index() -> void:
 		_put(_over, c.x0, c.y0, c.x1, c.y1, c, true)
 
 
-func _put(into: Dictionary, x0: float, y0: float, x1: float, y1: float, item, mark: bool) -> void:
+func _put(
+	into: Dictionary, x0: float, y0: float, x1: float, y1: float, item: RefCounted, mark: bool
+) -> void:
 	for cy in range(maxi(0, floori(y0)), mini(height - 1, floori(y1)) + 1):
 		for cx in range(maxi(0, floori(x0)), mini(width - 1, floori(x1)) + 1):
 			var key := cy * width + cx
 			if not into.has(key):
 				into[key] = []
-			into[key].append(item)
+			var list: Array = into[key]
+			list.append(item)
 			if mark:
 				cells[key] = 1
 
@@ -333,7 +343,7 @@ func clear_at(x: float, y: float) -> bool:
 ## the feet. -1e9 when there is none.
 func floor_at(x: float, y: float, z: float, ground: float, open: bool) -> float:
 	var best := ground if open else -1e9
-	for item in near_items(x, y):
+	for item: Variant in near_items(x, y):
 		if item is Slab:
 			var s: Slab = item
 			if not s.walk or not s.inside(x, y):
@@ -365,7 +375,7 @@ func ceiling_at(x: float, y: float, z: float) -> float:
 	var best := INF
 	if x < 0.0 or y < 0.0 or x >= width or y >= height or cells[int(y) * width + int(x)] == 0:
 		return best
-	for item in _over.get(int(y) * width + int(x), NOTHING):
+	for item: Variant in _over.get(int(y) * width + int(x), NOTHING):
 		if item is Slab:
 			var s: Slab = item
 			if s.inside(x, y):
@@ -382,7 +392,7 @@ func ceiling_at(x: float, y: float, z: float) -> float:
 ## Whether a body of radius r at (x, y) spanning lo..hi meets a slab or a
 ## segment.
 func blocks(x: float, y: float, r: float, lo: float, hi: float) -> bool:
-	for item in near_items(x, y):
+	for item: Variant in near_items(x, y):
 		if item is Slab:
 			var s: Slab = item
 			if not s.near(x, y, r):
@@ -406,7 +416,7 @@ func blocks(x: float, y: float, r: float, lo: float, hi: float) -> bool:
 ## Whether the point (x, y, z) is inside something that stops sight (`shots`
 ## false) or shots (`shots` true), grown by r across.
 func solid_point(x: float, y: float, z: float, r: float, shots: bool) -> bool:
-	for item in near_items(x, y):
+	for item: Variant in near_items(x, y):
 		if item is Slab:
 			var s: Slab = item
 			if s.near(x, y, r) and z <= s.top_at(x, y) and z >= s.bottom_at(x, y):
@@ -424,7 +434,7 @@ func solid_point(x: float, y: float, z: float, r: float, shots: bool) -> bool:
 ## slab's top or underside between its ends (a step longer than a deck is
 ## thick could jump it).
 func crosses(x0: float, y0: float, z0: float, x1: float, y1: float, z1: float) -> bool:
-	for item in near_items(x1, y1):
+	for item: Variant in near_items(x1, y1):
 		if not (item is Slab):
 			continue
 		var s: Slab = item
@@ -441,11 +451,15 @@ func crosses(x0: float, y0: float, z0: float, x1: float, y1: float, z1: float) -
 
 ## Whether any slab is a floor over (x, y) (the shader's weather: no rain under it).
 func covered(x: float, y: float, ground: float) -> bool:
-	for item in _over.get(int(y) * width + int(x), NOTHING):
-		if item is Slab and (item as Slab).inside(x, y) and (item as Slab).bottom_at(x, y) > ground:
-			return true
-		if item is Ceiling and (item as Ceiling).inside(x, y):
-			return true
+	for item: Variant in _over.get(int(y) * width + int(x), NOTHING):
+		if item is Slab:
+			var s: Slab = item
+			if s.inside(x, y) and s.bottom_at(x, y) > ground:
+				return true
+		if item is Ceiling:
+			var c: Ceiling = item
+			if c.inside(x, y):
+				return true
 	return false
 
 
@@ -513,7 +527,7 @@ func render_parts(ground: Callable) -> Dictionary:
 			var strips := 1
 			if s.sloped():
 				var rise := absf(s.top_at(b.x, b.y) - s.top_at(a.x, a.y))
-				strips = clampi(int(ceil(rise / .1)), 1, 64)
+				strips = clampi(int(ceilf(rise / .1)), 1, 64)
 			for k in strips:
 				var p := a.lerp(b, float(k) / strips)
 				var q := a.lerp(b, float(k + 1) / strips)
@@ -523,7 +537,7 @@ func render_parts(ground: Callable) -> Dictionary:
 					top = maxf(s.top_at(p.x, p.y), s.top_at(q.x, q.y))
 				var bottom := s.bottom_at(mid.x, mid.y)
 				if s.thick < 0.0:
-					bottom = float(ground.call(mid.x, mid.y))
+					bottom = ground.call(mid.x, mid.y)
 				if top - bottom < .005:
 					continue
 				walls.append_array(
@@ -541,7 +555,7 @@ func render_parts(ground: Callable) -> Dictionary:
 		# A thick wall: its two faces, its ends and (when low) its top.
 		var d := Vector2(g.bx - g.ax, g.by - g.ay) / length
 		var n := Vector2(-d.y, d.x) * g.half
-		var c := [
+		var c: Array[Vector2] = [
 			Vector2(g.ax, g.ay) - n,
 			Vector2(g.bx, g.by) - n,
 			Vector2(g.bx, g.by) + n,
@@ -567,14 +581,16 @@ func render_parts(ground: Callable) -> Dictionary:
 				for sign: float in [1.0, -1.0]:
 					var nn := Vector2(-d.y, d.x) * sign
 					row.append_array([nn.x, nn.y, nn.dot(Vector2(g.ax, g.ay)) + g.half])
-			caps[key].append(row)
+			var at_key: Array = caps[key]
+			at_key.append(row)
 	for c in ceilings:
 		var row := [c.x0, c.y0, c.x1, c.y1, c.tile]
 		row.append_array(Array(c.cuts))
 		var key := snappedf(c.z, .001)
 		if not roof_caps.has(key):
 			roof_caps[key] = []
-		roof_caps[key].append(row)
+		var at_key: Array = roof_caps[key]
+		at_key.append(row)
 	return {"walls": walls, "caps": caps, "roof_caps": roof_caps, "slopes": slopes}
 
 
@@ -584,7 +600,8 @@ func _add_cap(into: Dictionary, z: float, s: Slab, tile: int) -> void:
 		into[key] = []
 	var row := [s.x0, s.y0, s.x1, s.y1, tile]
 	row.append_array(Array(s.cuts))
-	into[key].append(row)
+	var at_key: Array = into[key]
+	at_key.append(row)
 
 
 func _slope_row(s: Slab, z0: float, side: float, tile: int) -> Array:
@@ -599,7 +616,7 @@ func _slope_row(s: Slab, z0: float, side: float, tile: int) -> Array:
 ## What never moves, for a body of radius r with its feet at `feet`, `tall`
 ## high: the grid's solid cells (not a door's), furniture at its height, the
 ## geometry. The nav graph's test.
-func static_blocked(lv, x: float, y: float, r: float, feet: float, tall: float) -> bool:
+func static_blocked(lv: LevelData, x: float, y: float, r: float, feet: float, tall: float) -> bool:
 	for step in 4:
 		var ix := int(x + (-r if step < 2 else r))
 		var iy := int(y + (-r if step % 2 == 0 else r))
@@ -613,13 +630,13 @@ func static_blocked(lv, x: float, y: float, r: float, feet: float, tall: float) 
 	return blocks(x, y, r, feet + STEP, feet + tall)
 
 
-func _fixture_in(lv, x: float, y: float, r: float, feet: float, tall: float) -> bool:
+func _fixture_in(lv: LevelData, x: float, y: float, r: float, feet: float, tall: float) -> bool:
 	var list: Array = (
 		lv.near_fixtures.get(Vector2i(int(x), int(y)), NOTHING)
 		if r <= lv.index_radius
 		else lv.collision_volumes
 	)
-	for fixture in list:
+	for fixture: Variant in list:
 		var f: PackedFloat32Array = fixture
 		if (
 			f[0] - r < x
@@ -638,7 +655,7 @@ func _fixture_in(lv, x: float, y: float, r: float, feet: float, tall: float) -> 
 ## blocked() has them. `pieces` false: the caller knows no slab or segment is
 ## within reach.
 func blocked_body(
-	lv, x: float, y: float, r: float, feet: float, tall: float, pieces := true
+	lv: LevelData, x: float, y: float, r: float, feet: float, tall: float, pieces := true
 ) -> bool:
 	for step in 4:
 		var ix := int(x + (-r if step < 2 else r))
@@ -655,28 +672,36 @@ func blocked_body(
 	if _fixture_in(lv, x, y, r, feet, tall):
 		return true
 	if feet < 1.85:
-		for door in lv.near_doors.get(Vector2i(int(x), int(y)), NOTHING):
-			if (door as LevelData.Door).blocks(x, y, r):
+		for door: LevelData.Door in lv.near_doors.get(Vector2i(int(x), int(y)), NOTHING):
+			if door.blocks(x, y, r):
 				return true
 	return pieces and blocks(x, y, r, feet + STEP, feet + tall)
 
 
-func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
-	var player: bool = not (body is Enemy) and ("air" in body)
-	var air: float = float(body.air) if player else 0.0
-	var here: int = lv.cell(body.x, body.y)
+## `body` is an Enemy or a Player (game_world.gd move_actor).
+func can_walk(
+	lv: LevelData, body: Variant, x: float, y: float, radius: float, occupied: Variant
+) -> bool:
+	var obj: Object = body
+	var en := obj as Enemy
+	var pl := obj as Player
+	var player: bool = not (obj is Enemy) and ("air" in obj)
+	var air: float = pl.air if player else 0.0
+	var bx: float = en.x if en != null else pl.x
+	var by: float = en.y if en != null else pl.y
+	var here: int = lv.cell(bx, by)
 	var c: int = lv.cell(x, y)
 	# Nothing of the geometry within reach of either end (cells are marked out
 	# to PAD): support, the floor and the ceiling are the grid's own and no
 	# piece can block, so those calls are left out. The same answers.
 	var clear: bool = (
 		radius < PAD
-		and body.x >= 0.0
-		and body.y >= 0.0
+		and bx >= 0.0
+		and by >= 0.0
 		and x >= 0.0
 		and y >= 0.0
-		and body.x < width
-		and body.y < height
+		and bx < width
+		and by < height
 		and x < width
 		and y < height
 		and cells[here] == 0
@@ -685,31 +710,35 @@ func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
 	# The floor it stands on now, worked out again: something that moved it
 	# without walking (a bridge, a shove, a script) leaves floor_z behind, and
 	# the grid's own steps are measured from the cell it is in, as ever.
+	var was_z: float = en.floor_z if en != null else pl.floor_z
 	var floor_z: float = (
-		lv.ground[here]
-		if clear
-		else support(body.x, body.y, radius, float(body.floor_z), lv.ground[here])
+		lv.ground[here] if clear else support(bx, by, radius, was_z, lv.ground[here])
 	)
-	body.floor_z = floor_z
+	if en != null:
+		en.floor_z = floor_z
+	else:
+		pl.floor_z = floor_z
 	var feet := floor_z + air
 	var tall: float = BODY
-	if body is Enemy:
-		tall = minf(BODY, maxf(.4, float(body.height)))
-	elif player and body.crouched:
+	if obj is Enemy:
+		tall = minf(BODY, maxf(.4, en.height))
+	elif player and pl.crouched:
 		tall = CROUCH
 	if blocked_body(lv, x, y, radius, feet, tall, not clear):
 		return false
 	# Deep water: nobody walks into it from dry ground, but a deck over it is
 	# dry ground (a boardwalk over the swamp); and nobody steps off one into it.
-	if lv.deep_tile >= 0 and lv.deep_at(x, y) and not body.get("swims"):
-		var dry_here: bool = not lv.deep_at(body.x, body.y) or floor_z > lv.ground[here] + STEP
+	if lv.deep_tile >= 0 and lv.deep_at(x, y) and not obj.get("swims"):
+		var dry_here: bool = not lv.deep_at(bx, by) or floor_z > lv.ground[here] + STEP
 		var dry_there: bool = (
 			not clear and floor_at(x, y, feet, lv.ground[c], true) > lv.ground[c] + STEP
 		)
 		if dry_here and not dry_there:
 			return false
-	if occupied != null and occupied.call(x, y):
-		return false
+	if occupied != null:
+		var check: Callable = occupied
+		if check.call(x, y):
+			return false
 	if clear:
 		var flat: float = lv.ground[c]
 		if player and flat - floor_z > STEP + air + .001:
@@ -725,14 +754,23 @@ func can_walk(lv, body, x: float, y: float, radius: float, occupied) -> bool:
 ## After a move (format 2): the floor under the body now. A player who walked
 ## off an edge is in the air above the lower floor and falls; one who stepped
 ## up stands on the higher one.
-func settle(lv, body, radius := .2) -> void:
-	var c: int = lv.cell(body.x, body.y)
-	var player: bool = not (body is Enemy) and ("air" in body)
-	var feet: float = float(body.floor_z) + (float(body.air) if player else 0.0)
-	var under := support(body.x, body.y, radius, feet, lv.ground[c])
+func settle(lv: LevelData, body: Variant, radius := .2) -> void:
+	var obj: Object = body
+	var en := obj as Enemy
+	var pl := obj as Player
+	var bx: float = en.x if en != null else pl.x
+	var by: float = en.y if en != null else pl.y
+	var c: int = lv.cell(bx, by)
+	var player: bool = not (obj is Enemy) and ("air" in obj)
+	var was_z: float = en.floor_z if en != null else pl.floor_z
+	var feet: float = was_z + (pl.air if player else 0.0)
+	var under := support(bx, by, radius, feet, lv.ground[c])
 	if player:
-		body.air = maxf(0.0, feet - under)
-	body.floor_z = under
+		pl.air = maxf(0.0, feet - under)
+	if en != null:
+		en.floor_z = under
+	else:
+		pl.floor_z = under
 
 
 # ------------------------------------------------------------------- nav
@@ -777,7 +815,7 @@ class NavGraph:
 
 
 ## The nav graph, built when first asked (FlowField).
-func nav(lv) -> NavGraph:
+func nav(lv: LevelData) -> NavGraph:
 	if _nav != null:
 		return _nav
 	var g := NavGraph.new()
@@ -820,7 +858,7 @@ func nav(lv) -> NavGraph:
 	g.z.append_array(extra_z)
 	g.count = g.cell.size()
 	var orth: Array = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
-	var lists: Array = []
+	var lists: Array[PackedInt32Array] = []
 	lists.resize(g.count)
 	for n in g.count:
 		lists[n] = PackedInt32Array()
@@ -853,14 +891,14 @@ func nav(lv) -> NavGraph:
 	var total := 0
 	for n in g.count:
 		g.first[n] = total
-		total += (lists[n] as PackedInt32Array).size()
+		total += lists[n].size()
 	g.first[g.count] = total
 	for n in g.count:
 		g.edges.append_array(lists[n])
 	# Diagonals: n to m when each side cell leads from n to m.
 	g.dfirst.resize(g.count + 1)
 	var dtotal := 0
-	var dlists: Array = []
+	var dlists: Array[PackedInt32Array] = []
 	for n in g.count:
 		var found := PackedInt32Array()
 		var c := g.cell[n]
@@ -898,7 +936,7 @@ func nav(lv) -> NavGraph:
 
 ## Whether node n's middle is somewhere a body can stand (FlowField's open
 ## floor on a level with geometry; doors and panes are FlowField's to ask).
-func stands(lv, g: NavGraph, n: int) -> bool:
+func stands(lv: LevelData, g: NavGraph, n: int) -> bool:
 	var c := g.cell[n]
 	var x := c % width + .5
 	var y := c / width + .5
@@ -911,7 +949,7 @@ func stands(lv, g: NavGraph, n: int) -> bool:
 ## Whether a body walks from node n's middle to node m's (sub-stepped: the
 ## enemies' rule, the grid's own steps free, slabs at most STEP up, nothing in
 ## the way at the body's height, headroom for a crouch).
-func _walks(lv, g: NavGraph, n: int, m: int) -> bool:
+func _walks(lv: LevelData, g: NavGraph, n: int, m: int) -> bool:
 	var a := g.cell[n]
 	var b := g.cell[m]
 	var ax := a % width + .5
@@ -935,7 +973,7 @@ func _walks(lv, g: NavGraph, n: int, m: int) -> bool:
 	return absf(feet - g.z[m]) < .06
 
 
-static func _roof(lv, c: int, feet: float) -> float:
+static func _roof(lv: LevelData, c: int, feet: float) -> float:
 	# A roof of 0 is the open sky (a sunken floor's too: the pond).
 	var r: float = lv.roof[c]
 	return r if r != 0.0 and r > feet + .01 else INF

@@ -31,7 +31,7 @@ static func metal(e: Enemy) -> bool:
 
 
 ## A pool spreading under `e` where its body came to rest.
-static func pool(gore, e: Enemy) -> void:
+static func pool(gore: Gore, e: Enemy) -> void:
 	if not gore.game.gore or not e.hostile or e.explosive or Enemy.BOSS_TITLES.has(e.kind):
 		return
 	var w: LevelData = gore.game.world
@@ -55,22 +55,23 @@ static func pool(gore, e: Enemy) -> void:
 
 
 ## The pools still spreading.
-static func grow(gore, dt: float) -> void:
+static func grow(gore: Gore, dt: float) -> void:
 	if gore.pools.is_empty():
 		return
 	var left: Array = []
 	for p: Array in gore.pools:
 		var mark: View.GroundMark = p[0]
-		mark.reach = minf(float(p[1]), mark.reach + POOL_GROW * dt)
+		var full: float = p[1]
+		mark.reach = minf(full, mark.reach + POOL_GROW * dt)
 		mark.width = mark.reach
-		if mark.reach < float(p[1]):
+		if mark.reach < full:
 			left.append(p)
 	gore.pools = left
 
 
 ## A body that fell whole after a heavy hit to a limb or the head: that piece
 ## flies off and the stump spurts.
-static func limb(gore, e: Enemy) -> void:
+static func limb(gore: Gore, e: Enemy) -> void:
 	if not gore.game.gore or metal(e) or e.struck_sum < LIMB_HIT:
 		return
 	var part := ""
@@ -95,43 +96,46 @@ static func limb(gore, e: Enemy) -> void:
 	var floor_z: float = gore.game.world.stand(e)
 	var away := atan2(e.y - e.killed_from.y, e.x - e.killed_from.x)
 	var high := {"head": .92, "arm": .62, "hand": .55, "boot": .15}
+	var lift: float = high[part]
 	var g := Gore.Gib.new()
 	g.x = e.x
 	g.y = e.y
-	g.z = floor_z + e.height * float(high[part])
+	g.z = floor_z + e.height * lift
 	var speed: float = gore.dice.randf_range(1.6, 3.0)
 	var angle: float = away + gore.dice.randf_range(-.6, .6)
 	g.vx = cos(angle) * speed
 	g.vy = sin(angle) * speed
 	g.vz = gore.dice.randf_range(1.8, 3.2)
 	g.image = ("gib_a_" if green else "gib_") + part
-	g.size = float(Gore.GIB_SIZES[part])
+	g.size = Gore.GIB_SIZES[part]
 	g.green = green
 	gore.gibs.append(g)
 	while gore.gibs.size() > gore.GIB_CAP:
 		gore.gibs.pop_front()
-	gore.spurts.append(
-		[e, gore.game.clock + SPURT, 0.0, green, floor_z + e.height * float(high[part])]
-	)
+	gore.spurts.append([e, gore.game.clock + SPURT, 0.0, green, floor_z + e.height * lift])
 	gore.game.sound_at("gib_splat", e.x, e.y, .8)
 
 
 ## Stumps spurting.
-static func spurt(gore) -> void:
+static func spurt(gore: Gore) -> void:
 	if gore.spurts.is_empty():
 		return
-	var game = gore.game
+	var game: Game = gore.game
 	var left: Array = []
 	for s: Array in gore.spurts:
 		var e: Enemy = s[0]
-		if game.clock >= float(s[1]):
+		var until: float = s[1]
+		if game.clock >= until:
 			continue
 		left.append(s)
-		if game.clock < float(s[2]) or game.specks.size() >= 170:
+		var next_at: float = s[2]
+		if game.clock < next_at or game.specks.size() >= 170:
 			continue
 		s[2] = game.clock + SPURT_EVERY
-		var fade: float = (float(s[1]) - game.clock) / SPURT
-		var z := lerpf(game.world.stand(e) + .2, float(s[4]), fade)
+		var fade: float = (until - game.clock) / SPURT
+		var top: float = s[4]
+		var z := lerpf(game.world.stand(e) + .2, top, fade)
+		var green: bool = s[3]
 		var a: float = gore.dice.randf() * TAU
 		game.specks.append(
 			Game.Speck.new(
@@ -142,15 +146,15 @@ static func spurt(gore) -> void:
 				sin(a) * .6,
 				gore.dice.randf_range(1.2, 2.4) * fade + .3,
 				gore.dice.randf_range(.25, .5),
-				"plasma" if bool(s[3]) else "gore"
+				"plasma" if green else "gore"
 			)
 		)
 	gore.spurts = left
 
 
 ## A robot coming apart: scrap and a slick of oil instead of meat.
-static func scrap(gore, e: Enemy) -> void:
-	var game = gore.game
+static func scrap(gore: Gore, e: Enemy) -> void:
+	var game: Game = gore.game
 	var floor_z: float = game.world.stand(e)
 	var away := atan2(e.y - game.player.y, e.x - game.player.x)
 	for part: String in SCRAP_PARTS:
@@ -164,7 +168,7 @@ static func scrap(gore, e: Enemy) -> void:
 		g.vy = sin(angle) * speed
 		g.vz = gore.dice.randf_range(1.6, 3.8)
 		g.image = "gib_m_" + part
-		g.size = float(SCRAP_SIZES[part])
+		g.size = SCRAP_SIZES[part]
 		g.flip = gore.dice.randf() < .5
 		g.metal = true
 		gore.gibs.append(g)
@@ -178,7 +182,7 @@ static func scrap(gore, e: Enemy) -> void:
 	game.sound_at("metal_down", e.x, e.y, .95)
 
 
-static func oil(gore, x: float, y: float, radius: float) -> void:
+static func oil(gore: Gore, x: float, y: float, radius: float) -> void:
 	if gore.game.world.blocked(x, y):
 		return
 	gore.blood_marks.append(
@@ -198,7 +202,7 @@ static func oil(gore, x: float, y: float, radius: float) -> void:
 
 ## A streak of blood thrown along (ax, ay) from a big hit.
 static func streak(
-	gore, x: float, y: float, ax: float, ay: float, amount: float, green: bool
+	gore: Gore, x: float, y: float, ax: float, ay: float, amount: float, green: bool
 ) -> void:
 	var reach: float = gore.dice.randf_range(.6, 1.4)
 	var at := Vector2(x + ax * reach, y + ay * reach)
@@ -221,7 +225,7 @@ static func streak(
 
 
 ## A chunk flying into a wall splats on it.
-static func wall_splat(gore, g: Gore.Gib) -> void:
+static func wall_splat(gore: Gore, g: Gore.Gib) -> void:
 	if g.metal:
 		return
 	var speed := Vector2(g.vx, g.vy).length()
@@ -229,7 +233,7 @@ static func wall_splat(gore, g: Gore.Gib) -> void:
 		return
 	var ax := g.vx / speed
 	var ay := g.vy / speed
-	var mark = WallHits.wall_mark(
+	var mark: View.WallMark = WallHits.wall_mark(
 		gore.game.world, g.x - ax * .3, g.y - ay * .3, g.z, ax, ay, 0.0, .6
 	)
 	if mark == null:
@@ -243,8 +247,8 @@ static func wall_splat(gore, g: Gore.Gib) -> void:
 
 
 ## The player walks out of a pool leaving boot prints.
-static func prints(gore) -> void:
-	var game = gore.game
+static func prints(gore: Gore) -> void:
+	var game: Game = gore.game
 	if not game.gore:
 		return
 	var p: Player = game.local_player
@@ -301,8 +305,8 @@ static func prints(gore) -> void:
 
 ## A body that lost its head lies headless once it is down (the cel
 ## `<kind>_down_headless`, tools/art/build_enemy_actors.gd frames=headless).
-static func headless_cel(game, sprite) -> void:
-	var image := String(sprite.image)
+static func headless_cel(game: GameState, sprite: Variant) -> void:
+	var image := str(sprite.image)
 	if not image.ends_with("_down"):
 		return
 	var name := image + "_headless"

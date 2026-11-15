@@ -177,7 +177,7 @@ class Setting:
 
 	func format_value(value: int) -> String:
 		if not choices.is_empty():
-			return String(choices[clampi(value - low, 0, choices.size() - 1)])
+			return str(choices[clampi(value - low, 0, choices.size() - 1)])
 		return "%d%%" % value
 
 	func adjust(value: int, direction: int) -> int:
@@ -286,7 +286,7 @@ static func _resolve(path: String, name: String) -> String:
 # -------------------------------------------------------------- serialising
 
 
-static func _selected(obj, keys: Array) -> Dictionary:
+static func _selected(obj: Object, keys: Array) -> Dictionary:
 	var out := {}
 	for key: String in keys:
 		out[key] = obj.get(key)
@@ -301,7 +301,7 @@ static func snapshot(game: Game) -> Dictionary:
 	var ai := {}
 	var reactions := {}
 	for i in game.enemy_ids.size():
-		var key := String(game.enemy_ids[i])
+		var key := str(game.enemy_ids[i])
 		var enemy: Enemy = game.enemies[i]
 		enemies[key] = _selected(enemy, ENEMY_FIELDS)
 		var row := _selected(enemy, AI_FIELDS + COMBAT_FIELDS)
@@ -364,7 +364,7 @@ static func snapshot(game: Game) -> Dictionary:
 		)
 	var drums: Array = []
 	for point: Vector2 in game.drums:
-		drums.append([point.x, point.y, int(game.drums[point])])
+		drums.append([point.x, point.y, _int(game.drums[point])])
 	var visited: Array = []
 	for cell: Vector2i in game.visited:
 		visited.append([cell.x, cell.y])
@@ -412,9 +412,10 @@ static func snapshot(game: Game) -> Dictionary:
 static func _pickup_rows(game: Game) -> Array:
 	var rows: Array = []
 	for entry: Array in game.pickups:
-		rows.append([entry[0], entry[1], entry[2]])
+		var row: Array = [entry[0], entry[1], entry[2]]
+		rows.append(row)
 		if entry.size() > 4:
-			rows[rows.size() - 1].append(entry[4])
+			row.append(entry[4])
 	return rows
 
 
@@ -455,14 +456,15 @@ static func _write_atomic(path: String, text: String) -> bool:
 	return true
 
 
-static func save(game: Game, path: String, manual = null) -> bool:
+static func save(game: Game, path: String, manual: Variant = null) -> bool:
 	var doc := snapshot(game)
 	if not game.retained.is_empty():
 		var retained := {}
-		for key in game.retained:
-			var chapter = game.retained[key]
+		for key: Variant in game.retained:
+			var chapter: Variant = game.retained[key]
 			if chapter is Game:
-				retained[String(key)] = snapshot(chapter)
+				var chapter_game: Game = chapter
+				retained[str(key)] = snapshot(chapter_game)
 		if not retained.is_empty():
 			doc["retained"] = retained
 	if manual is Dictionary:
@@ -474,11 +476,11 @@ static func save(game: Game, path: String, manual = null) -> bool:
 ## read its own files, so plain JSON floats are fine.
 
 
-static func slot_directory(replay_level = null) -> String:
+static func slot_directory(replay_level: Variant = null) -> String:
 	var root := _path("save-slots")
-	if replay_level == null or String(replay_level) == "":
+	if replay_level == null or str(replay_level) == "":
 		return root.path_join("campaign")
-	return root.path_join("replay").path_join(String(replay_level))
+	return root.path_join("replay").path_join(str(replay_level))
 
 
 static func slot_label(text: String) -> String:
@@ -499,49 +501,62 @@ static func _sha256(raw: PackedByteArray) -> String:
 
 ## Returns [fingerprint, meta] exactly like the Python helper; an empty
 ## fingerprint means "unreadable or incompatible", null meta means "empty".
-static func slot_metadata(path: String, replay_level = null) -> Array:
+static func slot_metadata(path: String, replay_level: Variant = null) -> Array:
 	if not FileAccess.file_exists(path):
 		return [null, null]
 	var raw := FileAccess.get_file_as_bytes(path)
 	if raw.size() > MAX_BYTES:
 		return ["", null]
 	var fingerprint := _sha256(raw)
-	var doc = SaveUpgrade.upgrade(JSON.parse_string(raw.get_string_from_utf8()))
-	if doc == null:
+	var doc := _upgraded(JSON.parse_string(raw.get_string_from_utf8()))
+	if doc.is_empty():
 		return ["", null]
-	if not Campaign.ORDER.has(String(doc.get("level", ""))):
+	if not Campaign.ORDER.has(str(doc.get("level", ""))):
 		return ["", null]
 	var campaign: Dictionary = doc.get("campaign", {})
 	# The menu passes "" for the campaign's own slots; Python tests truthiness,
 	# so None and "" both mean "not a replay".
-	var replaying := replay_level != null and String(replay_level) != ""
-	if bool(campaign.get("replay", false)) != replaying:
+	var replaying := replay_level != null and str(replay_level) != ""
+	if _bool(campaign.get("replay", false)) != replaying:
 		return ["", null]
-	if replaying and String(doc["level"]) != String(replay_level):
+	if replaying and str(doc["level"]) != str(replay_level):
 		return ["", null]
-	var meta = doc.get("manual")
+	var meta: Variant = doc.get("manual")
 	if not (meta is Dictionary):
 		return ["", null]
-	var name := String(meta.get("label", ""))
+	var manual: Dictionary = meta
+	var name := str(manual.get("label", ""))
 	if name != slot_label(name).strip_edges() or name == "":
 		return ["", null]
-	var goal := String(meta.get("objective", ""))
-	var stamp := String(meta.get("timestamp", ""))
+	var goal := str(manual.get("objective", ""))
+	var stamp := str(manual.get("timestamp", ""))
 	if goal.length() > 100 or stamp.length() > 32:
 		return ["", null]
-	return [fingerprint, [name, String(doc["level"]), goal, stamp.replace("T", " ").substr(0, 16)]]
+	return [fingerprint, [name, str(doc["level"]), goal, stamp.replace("T", " ").substr(0, 16)]]
 
 
-static func save_named(game: Game, path: String, name: String, fingerprint) -> bool:
+## SaveUpgrade.upgrade() of a parsed file, {} where it gives null (it gives
+## null for anything but a dictionary, and a save is never an empty one).
+static func _upgraded(parsed: Variant) -> Dictionary:
+	if not (parsed is Dictionary):
+		return {}
+	var parsed_doc: Dictionary = parsed
+	var doc: Variant = SaveUpgrade.upgrade(parsed_doc)
+	if doc == null:
+		return {}
+	return doc
+
+
+static func save_named(game: Game, path: String, name: String, fingerprint: Variant) -> bool:
 	var clean := slot_label(name).strip_edges()
-	if clean == "" or (fingerprint is String and String(fingerprint) == ""):
+	if clean == "" or (fingerprint is String and str(fingerprint) == ""):
 		return false
 	# Python passes None for "this slot was empty when the menu read it".
 	var exists := FileAccess.file_exists(path)
 	if exists:
 		if (
 			not (fingerprint is String)
-			or _sha256(FileAccess.get_file_as_bytes(path)) != String(fingerprint)
+			or _sha256(FileAccess.get_file_as_bytes(path)) != str(fingerprint)
 		):
 			return false
 	elif fingerprint != null:
@@ -566,12 +581,12 @@ static func _local_iso_stamp() -> String:
 	return (
 		"%04d-%02d-%02dT%02d:%02d:%02d%s%02d:%02d"
 		% [
-			int(tz["year"]),
-			int(tz["month"]),
-			int(tz["day"]),
-			int(tz["hour"]),
-			int(tz["minute"]),
-			int(tz["second"]),
+			_int(tz["year"]),
+			_int(tz["month"]),
+			_int(tz["day"]),
+			_int(tz["hour"]),
+			_int(tz["minute"]),
+			_int(tz["second"]),
 			sign,
 			offset / 60,
 			offset % 60
@@ -586,16 +601,16 @@ static func settings(path := "") -> Dictionary:
 		var raw := FileAccess.get_file_as_bytes(target)
 		if raw.size() > 4096:
 			raw = raw.slice(0, 4096)
-		var parsed = JSON.parse_string(raw.get_string_from_utf8())
+		var parsed: Variant = JSON.parse_string(raw.get_string_from_utf8())
 		if parsed is Dictionary:
 			values = parsed
-	if not values.has("window_mode") and int(values.get("startup_fullscreen", 0)) == 1:
+	if not values.has("window_mode") and _int(values.get("startup_fullscreen", 0)) == 1:
 		values["window_mode"] = 1
 	var out := {}
 	for item: Setting in options_list():
-		var value = values.get(item.key)
+		var value: Variant = values.get(item.key)
 		if typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT:
-			out[item.key] = clampi(int(value), item.low, item.high)
+			out[item.key] = clampi(_int(value), item.low, item.high)
 		else:
 			out[item.key] = item.default_value
 	return out
@@ -612,10 +627,11 @@ static func unlocks(path := "") -> Dictionary:
 		var raw := FileAccess.get_file_as_bytes(target)
 		if raw.size() > 4096:
 			raw = raw.slice(0, 4096)
-		var parsed = JSON.parse_string(raw.get_string_from_utf8())
+		var parsed: Variant = JSON.parse_string(raw.get_string_from_utf8())
 		if parsed is Array:
-			for level_id in Campaign.ORDER.slice(1):
-				if not parsed.has(level_id):
+			var listed: Array = parsed
+			for level_id: String in Campaign.ORDER.slice(1):
+				if not listed.has(level_id):
 					break
 				result[level_id] = true
 	return result
@@ -623,7 +639,7 @@ static func unlocks(path := "") -> Dictionary:
 
 static func save_unlocks(path: String, unlocked: Dictionary) -> bool:
 	var rows: Array = []
-	for level_id in Campaign.ORDER:
+	for level_id: String in Campaign.ORDER:
 		if unlocked.has(level_id):
 			rows.append(level_id)
 	return _write_atomic(_resolve(path, UNLOCKS_FILE), JSON.stringify(rows, "", false))
@@ -636,9 +652,9 @@ static func road_notes(path := "") -> Dictionary:
 		var raw := FileAccess.get_file_as_bytes(target)
 		if raw.size() > 1024:
 			raw = raw.slice(0, 1024)
-		var parsed = JSON.parse_string(raw.get_string_from_utf8())
+		var parsed: Variant = JSON.parse_string(raw.get_string_from_utf8())
 		if parsed is Array:
-			for key in parsed:
+			for key: Variant in parsed:
 				if key == "ledger" or key == "survey":
 					out[key] = true
 	return out
@@ -653,23 +669,46 @@ static func save_notes(path: String, notes: Dictionary) -> bool:
 # ------------------------------------------------------------- validation
 
 
-static func _number(value) -> bool:
+static func _number(value: Variant) -> bool:
 	return (
 		(typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT)
-		and is_finite(float(value))
-		and absf(float(value)) <= 1e7
+		and is_finite(_float(value))
+		and absf(_float(value)) <= 1e7
 	)
 
 
-static func _assign(obj, key: String, value) -> bool:
-	var before = obj.get(key)
+## int(), float() and bool() of a value read from a file, which may hold
+## anything: text reads as int() and float() read it; anything else converts
+## as a typed variable converts it, which is how those constructors convert it.
+static func _int(value: Variant) -> int:
+	if value is String:
+		var text: String = value
+		return int(text)
+	var out: int = value
+	return out
+
+
+static func _float(value: Variant) -> float:
+	if value is String:
+		var text: String = value
+		return float(text)
+	var out: float = value
+	return out
+
+
+static func _bool(value: Variant) -> bool:
+	var out: bool = value
+	return out
+
+
+static func _assign(obj: Object, key: String, value: Variant) -> bool:
+	var before: Variant = obj.get(key)
 	if before == null:
 		if value != null:
-			if not (
-				value is Array and value.size() == 2 and _number(value[0]) and _number(value[1])
-			):
+			var pair: Array = value if value is Array else []
+			if not (value is Array and pair.size() == 2 and _number(pair[0]) and _number(pair[1])):
 				return false
-			obj.set(key, [float(value[0]), float(value[1])])
+			obj.set(key, [_float(pair[0]), _float(pair[1])])
 		return true
 	match typeof(before):
 		TYPE_BOOL:
@@ -677,108 +716,121 @@ static func _assign(obj, key: String, value) -> bool:
 				return false
 			obj.set(key, value)
 		TYPE_STRING:
-			if typeof(value) != TYPE_STRING or String(value).length() > 128:
+			if typeof(value) != TYPE_STRING or str(value).length() > 128:
 				return false
 			obj.set(key, value)
 		TYPE_INT:
 			if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
 				return false
-			if not _number(value) or float(value) != floor(float(value)):
+			if not _number(value) or _float(value) != floor(_float(value)):
 				return false
-			obj.set(key, int(value))
+			obj.set(key, _int(value))
 		TYPE_FLOAT:
 			if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
 				return false
 			if not _number(value):
 				return false
-			obj.set(key, float(value))
+			obj.set(key, _float(value))
 		TYPE_ARRAY:
 			# GDScript's typed arrays (Array[bool], Array[int]) reject obj.set()
 			# with an untyped Array, so refill the existing array in place.
 			var live: Array = before
-			if not (value is Array) or value.size() != live.size():
+			var items: Array = value if value is Array else []
+			if not (value is Array) or items.size() != live.size():
 				return false
 			var want_bool := key == "owned"
-			for item in value:
+			for item: Variant in items:
 				if want_bool:
 					if typeof(item) != TYPE_BOOL:
 						return false
 				else:
 					if typeof(item) != TYPE_INT and typeof(item) != TYPE_FLOAT:
 						return false
-					if float(item) != floor(float(item)):
+					if _float(item) != floor(_float(item)):
 						return false
 			live.clear()
-			for item in value:
-				live.append(item if want_bool else int(item))
+			for item: Variant in items:
+				live.append(item if want_bool else _int(item))
 		_:
 			return false
 	return true
 
 
-static func _restore_fields(obj, values, keys: Array) -> bool:
+static func _restore_fields(obj: Object, values: Variant, keys: Array) -> bool:
 	if not (values is Dictionary):
 		last_error = "fields not a dictionary"
 		return false
+	var fields: Dictionary = values
 	for key: String in keys:
-		if not values.has(key):
+		if not fields.has(key):
 			last_error = "missing field " + key
 			return false
-		if not _assign(obj, key, values[key]):
+		if not _assign(obj, key, fields[key]):
 			last_error = (
 				"bad field %s (%s=%s)"
-				% [key, type_string(typeof(values[key])), str(values[key]).substr(0, 40)]
+				% [key, type_string(typeof(fields[key])), str(fields[key]).substr(0, 40)]
 			)
 			return false
 	return true
 
 
-static func _valid_position(world: LevelData, x, y) -> bool:
+static func _valid_position(world: LevelData, x: Variant, y: Variant) -> bool:
 	return (
 		_number(x)
 		and _number(y)
-		and float(x) >= 0.0
-		and float(y) >= 0.0
-		and float(x) < float(world.width)
-		and float(y) < float(world.height)
+		and _float(x) >= 0.0
+		and _float(y) >= 0.0
+		and _float(x) < float(world.width)
+		and _float(y) < float(world.height)
 	)
 
 
-static func _restore_list(rows, factory: Callable, kinds: Array, cap: int) -> Array:
-	if not (rows is Array) or rows.size() > cap:
+## How many a saved list holds, as its size() counts them.
+static func _count(rows: Variant) -> int:
+	if rows is Dictionary:
+		var table: Dictionary = rows
+		return table.size()
+	var list: Array = rows
+	return list.size()
+
+
+static func _restore_list(rows: Variant, factory: Callable, kinds: Array, cap: int) -> Array:
+	if not (rows is Array) or _count(rows) > cap:
 		return []
 	var out: Array = []
-	for row in rows:
+	for row: Variant in rows:
 		if not (row is Dictionary):
 			return []
-		if not kinds.has(String(row.get("kind", ""))):
+		var fields: Dictionary = row
+		if not kinds.has(str(fields.get("kind", ""))):
 			return []
-		var obj = factory.call()
-		for key in row:
+		var obj: Object = factory.call()
+		for key: String in fields:
 			if key == "kind":
-				obj.set("kind", String(row[key]))
+				obj.set("kind", str(fields[key]))
 			elif key == "enemy" or key == "resting":
-				if typeof(row[key]) != TYPE_BOOL:
+				if typeof(fields[key]) != TYPE_BOOL:
 					return []
-				obj.set(key, row[key])
+				obj.set(key, fields[key])
 			else:
-				if typeof(row[key]) != TYPE_INT and typeof(row[key]) != TYPE_FLOAT:
+				if typeof(fields[key]) != TYPE_INT and typeof(fields[key]) != TYPE_FLOAT:
 					return []
-				obj.set(key, float(row[key]))
+				obj.set(key, _float(fields[key]))
 		out.append(obj)
 	return out
 
 
-static func _validate_kit(kit) -> bool:
+static func _validate_kit(kit: Variant) -> bool:
 	if not (kit is Dictionary):
 		return false
+	var fields: Dictionary = kit
 	var needed := ["health", "owned", "loaded", "reserve", "active", "inventory", "slot"]
-	for key in needed:
-		if not kit.has(key):
+	for key: String in needed:
+		if not fields.has(key):
 			return false
-	var owned: Array = kit["owned"]
-	var loaded: Array = kit["loaded"]
-	var reserve: Array = kit["reserve"]
+	var owned: Array = fields["owned"]
+	var loaded: Array = fields["loaded"]
+	var reserve: Array = fields["reserve"]
 	# A save from before a gun was added has fewer: the rest start empty.
 	if (
 		owned.size() > Weapons.COUNT
@@ -787,26 +839,26 @@ static func _validate_kit(kit) -> bool:
 		or owned.size() < 1
 	):
 		return false
-	if typeof(kit["health"]) != TYPE_INT and typeof(kit["health"]) != TYPE_FLOAT:
+	if typeof(fields["health"]) != TYPE_INT and typeof(fields["health"]) != TYPE_FLOAT:
 		return false
-	if not (int(kit["health"]) >= 1 and int(kit["health"]) <= 100):
+	if not (_int(fields["health"]) >= 1 and _int(fields["health"]) <= 100):
 		return false
 	if not owned[0]:
 		return false
-	if not owned[int(kit["active"])]:
+	if not owned[_int(fields["active"])]:
 		return false
 	for i in owned.size():
-		if int(loaded[i]) < 0 or int(loaded[i]) > Weapons.SAVED_CAPACITY[i]:
+		if _int(loaded[i]) < 0 or _int(loaded[i]) > Weapons.SAVED_CAPACITY[i]:
 			return false
-		if int(reserve[i]) < 0 or int(reserve[i]) > Weapons.MAX_RESERVE[i]:
+		if _int(reserve[i]) < 0 or _int(reserve[i]) > Weapons.MAX_RESERVE[i]:
 			return false
-	var inventory: Dictionary = kit["inventory"]
+	var inventory: Dictionary = fields["inventory"]
 	if inventory.size() != HUD.ITEMS.size():
 		return false
-	for name in HUD.ITEMS:
+	for name: String in HUD.ITEMS:
 		if not inventory.has(name):
 			return false
-		var amount := int(inventory[name])
+		var amount := _int(inventory[name])
 		if amount < 0 or amount > 5:
 			return false
 	return true
@@ -817,7 +869,10 @@ static func _validate_kit(kit) -> bool:
 
 ## Returns a restored Game or null (with a warning) when the file is unusable.
 static func read(
-	path: String, make_game: Callable, expected_replay = null, expected_level = null
+	path: String,
+	make_game: Callable,
+	expected_replay: Variant = null,
+	expected_level: Variant = null
 ) -> Game:
 	if not FileAccess.file_exists(path):
 		return _fail_at(646)
@@ -825,12 +880,12 @@ static func read(
 	if raw.size() > MAX_BYTES:
 		push_warning("checkpoint too large")
 		return _fail_at(650)
-	var parsed = JSON.parse_string(raw.get_string_from_utf8())
+	var parsed: Variant = JSON.parse_string(raw.get_string_from_utf8())
 	if not (parsed is Dictionary):
 		push_warning("checkpoint is not an object")
 		return _fail_at(654)
-	var doc = SaveUpgrade.upgrade(parsed)
-	if doc == null:
+	var doc := _upgraded(parsed)
+	if doc.is_empty():
 		push_warning("unsupported checkpoint version")
 		return _fail_at(657)
 	var game := restore(doc, make_game, expected_replay)
@@ -838,31 +893,33 @@ static func read(
 		return _fail_at(660)
 	if (
 		expected_level != null
-		and String(expected_level) != ""
-		and game.level.id != String(expected_level)
+		and str(expected_level) != ""
+		and game.level.id != str(expected_level)
 	):
 		return _fail_at(662)
-	var retained = doc.get("retained", {})
+	var retained: Variant = doc.get("retained", {})
 	if retained is Dictionary and not game.replay:
 		var previous: Array = []
 		var index := Campaign.ORDER.find(game.level.id)
 		if index > 0:
 			previous = Campaign.ORDER.slice(0, index)
-		for key in retained:
-			if not previous.has(String(key)):
+		for key: Variant in retained:
+			if not previous.has(str(key)):
 				return _fail_at(671)
-			var chapter_doc = retained[key]
+			var chapter_doc: Variant = retained[key]
 			if not (chapter_doc is Dictionary):
 				return _fail_at(674)
-			if int(chapter_doc.get("version", 0)) != VERSION:
+			var chapter_fields: Dictionary = chapter_doc
+			if _int(chapter_fields.get("version", 0)) != VERSION:
 				return _fail_at(676)  # upgrade() brought every chapter up to VERSION
-			if String(chapter_doc.get("level", "")) != String(key):
+			if str(chapter_fields.get("level", "")) != str(key):
 				return _fail_at(678)
-			var chapter := restore(chapter_doc, make_game, false)
+			var chapter := restore(chapter_fields, make_game, false)
 			if chapter != null and chapter.layout_restarted:
 				# A finished chapter whose level has been rebuilt since: it
 				# stays finished, its new map cleared.
-				var finished = chapter_doc.get("game", {}).get("won", false)
+				var chapter_game: Dictionary = chapter_fields.get("game", {})
+				var finished: Variant = chapter_game.get("won", false)
 				chapter.won = finished is bool and finished
 				for enemy: Enemy in chapter.enemies:
 					if enemy.hostile:
@@ -870,36 +927,36 @@ static func read(
 				chapter.kills = chapter.total_kills
 			if chapter == null or not chapter.won:
 				return _fail_at(681)
-			game.retained[String(key)] = chapter
+			game.retained[str(key)] = chapter
 	return game
 
 
-static func restore(doc: Dictionary, make_game: Callable, expected_replay = null) -> Game:
-	var level_id := String(doc.get("level", ""))
+static func restore(doc: Dictionary, make_game: Callable, expected_replay: Variant = null) -> Game:
+	var level_id := str(doc.get("level", ""))
 	if not Campaign.ORDER.has(level_id):
 		return _fail_at(689)
 	var game: Game = make_game.call(level_id)
 	if game == null or game.level.id != level_id:
 		return _fail_at(692)
-	if int(doc.get("layout", 1)) != game.level.layout:
+	if _int(doc.get("layout", 1)) != game.level.layout:
 		return _restart(doc, game, expected_replay)
 	return restore_onto(doc, game, expected_replay)
 
 
 ## restore() onto `game`, a Game just made for the save's level and layout
 ## (GameSnapshot.apply uses it): the game back, or null when the save is bad.
-static func restore_onto(doc: Dictionary, game: Game, expected_replay = null) -> Game:
+static func restore_onto(doc: Dictionary, game: Game, expected_replay: Variant = null) -> Game:
 	var w := game.world
 	if not _restore_fields(game, doc.get("game", {}), GAME_FIELDS):
 		return _fail_at(695)
-	var reward = doc.get("county_gallery", false)
+	var reward: Variant = doc.get("county_gallery", false)
 	if typeof(reward) != TYPE_BOOL:
 		return _fail_at(698)
 	if game.gallery != null:
 		game.gallery.rewarded = reward
 	elif reward:
 		return _fail_at(702)
-	var supplies := int(doc.get("county_supplies", 0))
+	var supplies := _int(doc.get("county_supplies", 0))
 	if supplies < 0 or supplies > 2:
 		return _fail_at(705)
 	game.supply_rule = supplies
@@ -928,15 +985,18 @@ static func restore_onto(doc: Dictionary, game: Game, expected_replay = null) ->
 
 ## The guns as saved: a save from before a gun existed has it empty.
 static func _restore_armory(game: Game, doc: Dictionary) -> bool:
-	var armory_doc = doc.get("armory", {})
+	var armory_doc: Variant = doc.get("armory", {})
 	if armory_doc is Dictionary:
-		armory_doc = armory_doc.duplicate(true)
-		for key in ["owned", "loaded", "reserve"]:
-			var saved = armory_doc.get(key)
-			if saved is Array and saved.size() < Weapons.COUNT:
+		var fields: Dictionary = armory_doc
+		fields = fields.duplicate(true)
+		armory_doc = fields
+		for key: String in ["owned", "loaded", "reserve"]:
+			var saved: Variant = fields.get(key)
+			var list: Array = saved if saved is Array else []
+			if saved is Array and list.size() < Weapons.COUNT:
 				# Saved before a gun was added: the new ones start empty.
-				for k in Weapons.COUNT - saved.size():
-					saved.append(false if key == "owned" else 0)
+				for k in Weapons.COUNT - list.size():
+					list.append(false if key == "owned" else 0)
 	if not _restore_fields(game.armory, armory_doc, ARM_FIELDS):
 		_fail_at(710)
 		return false
@@ -963,23 +1023,25 @@ static func _check_armory(game: Game) -> bool:
 ## A save of a level that has been rebuilt since (its layout is older): the
 ## chapter starts over on the new map, with the guns, ammunition, health and
 ## pockets as saved and the campaign so far. Keys and the map's state go.
-static func _restart(doc: Dictionary, game: Game, expected_replay) -> Game:
-	var supplies := int(doc.get("county_supplies", 0))
+static func _restart(doc: Dictionary, game: Game, expected_replay: Variant) -> Game:
+	var supplies := _int(doc.get("county_supplies", 0))
 	if supplies < 0 or supplies > 2:
 		return _fail_at(705)
 	game.supply_rule = supplies
-	var health = doc.get("player", {}).get("health")
-	if not _number(health) or int(health) <= 0 or int(health) > 100:
+	var player_doc: Dictionary = doc.get("player", {})
+	var health: Variant = player_doc.get("health")
+	if not _number(health) or _int(health) <= 0 or _int(health) > 100:
 		return _fail_at(712)
-	game.player.health = int(health)
+	game.player.health = _int(health)
 	if not _restore_armory(game, doc) or not _check_armory(game):
 		return null
 	if not _restore_campaign(doc, game, expected_replay):
 		return null
 	if not _restore_inventory(doc, game):
 		return null
-	var slot = doc.get("game", {}).get("inventory_slot", 0)
-	game.inventory_slot = clampi(int(slot) if _number(slot) else 0, 0, HUD.ITEMS.size() - 1)
+	var game_doc: Dictionary = doc.get("game", {})
+	var slot: Variant = game_doc.get("inventory_slot", 0)
+	game.inventory_slot = clampi(_int(slot) if _number(slot) else 0, 0, HUD.ITEMS.size() - 1)
 	game.music_bookmark = null
 	game.layout_restarted = true
 	game.message("%s HAS BEEN REBUILT. THE CHAPTER STARTS OVER." % game.level.title, 5.0)
@@ -987,13 +1049,13 @@ static func _restart(doc: Dictionary, game: Game, expected_replay) -> Game:
 	return game
 
 
-static func _restore_campaign(doc: Dictionary, game: Game, expected_replay) -> bool:
+static func _restore_campaign(doc: Dictionary, game: Game, expected_replay: Variant) -> bool:
 	var campaign: Dictionary = doc.get("campaign", {})
 	if typeof(campaign.get("replay", false)) != TYPE_BOOL:
 		_fail_at(813)
 		return false
 	game.replay = campaign["replay"]
-	if expected_replay != null and game.replay != bool(expected_replay):
+	if expected_replay != null and game.replay != _bool(expected_replay):
 		_fail_at(816)
 		return false
 	if not _validate_kit(campaign.get("entry")):
@@ -1003,38 +1065,39 @@ static func _restore_campaign(doc: Dictionary, game: Game, expected_replay) -> b
 			return false
 	else:
 		game.entry = _normalise_kit(campaign["entry"])
-	var history = campaign.get("history", [])
+	var history: Variant = campaign.get("history", [])
 	if not (history is Array):
 		_fail_at(825)
 		return false
 	var expected_history := 0 if game.replay else Campaign.ORDER.find(game.level.id)
-	if history.size() != expected_history:
+	if _count(history) != expected_history:
 		_fail_at(828)
 		return false
 	var clean_history: Array = []
-	for row in history:
-		if not (row is Array) or row.size() != 6:
+	for row: Variant in history:
+		if not (row is Array) or _count(row) != 6:
 			_fail_at(832)
 			return false
-		var clean: Array = [String(row[0])]
+		var clean: Array = [str(row[0])]
 		for k in range(1, 6):
-			clean.append(int(row[k]))
+			clean.append(_int(row[k]))
 		clean_history.append(clean)
 	game.history = clean_history
 	return true
 
 
 static func _restore_inventory(doc: Dictionary, game: Game) -> bool:
-	var inventory = doc.get("inventory", {})
-	if not (inventory is Dictionary) or inventory.size() != HUD.ITEMS.size():
+	var inventory: Variant = doc.get("inventory", {})
+	if not (inventory is Dictionary) or _count(inventory) != HUD.ITEMS.size():
 		_fail_at(899)
 		return false
+	var items: Dictionary = inventory
 	game.inventory = {}
-	for name in HUD.ITEMS:
-		if not inventory.has(name):
+	for name: String in HUD.ITEMS:
+		if not items.has(name):
 			_fail_at(903)
 			return false
-		var amount := int(inventory[name])
+		var amount := _int(items[name])
 		if amount < 0 or amount > 5:
 			_fail_at(906)
 			return false
@@ -1042,10 +1105,10 @@ static func _restore_inventory(doc: Dictionary, game: Game) -> bool:
 	return true
 
 
-static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
+static func _restore_rest(doc: Dictionary, game: Game, expected_replay: Variant) -> Game:
 	var w := game.world
 	# doors
-	var doors_doc = doc.get("doors", {})
+	var doors_doc: Variant = doc.get("doors", {})
 	if not (doors_doc is Dictionary):
 		return _fail_at(736)
 	var expected_doors := {}
@@ -1054,9 +1117,9 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 	# Doors or enemies that no longer match the level's: it was changed since
 	# without a new layout number. The chapter starts over rather than the save
 	# being lost.
-	if doors_doc.size() != expected_doors.size():
+	if _count(doors_doc) != expected_doors.size():
 		return _restart(doc, game, expected_replay)
-	for key in doors_doc:
+	for key: Variant in doors_doc:
 		if not expected_doors.has(key):
 			return _restart(doc, game, expected_replay)
 		var door: LevelData.Door = expected_doors[key]
@@ -1066,19 +1129,21 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 			return _fail_at(749)
 
 	# enemies
-	var enemies_doc = doc.get("enemies", {})
-	var ai_doc = doc.get("ai", {})
+	var enemies_doc: Variant = doc.get("enemies", {})
+	var ai_doc: Variant = doc.get("ai", {})
 	if not (enemies_doc is Dictionary) or not (ai_doc is Dictionary):
 		return _fail_at(755)
+	var enemy_rows: Dictionary = enemies_doc
+	var ai_rows: Dictionary = ai_doc
 	# The level's own enemies (a bigger posse is the posse feature's to restore).
 	var own := game.enemy_ids.size()
-	if enemies_doc.size() != own or ai_doc.size() != own:
+	if enemy_rows.size() != own or ai_rows.size() != own:
 		return _restart(doc, game, expected_replay)
 	var seen := {}
 	for i in game.enemy_ids.size():
-		var key := String(game.enemy_ids[i])
+		var key := str(game.enemy_ids[i])
 		var enemy: Enemy = game.enemies[i]
-		if not enemies_doc.has(key) or not ai_doc.has(key):
+		if not enemy_rows.has(key) or not ai_rows.has(key):
 			return _restart(doc, game, expected_replay)
 		seen[key] = true
 		if not _restore_fields(enemy, enemies_doc[key], ENEMY_FIELDS):
@@ -1094,17 +1159,17 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 			return _fail_at(775)
 		if enemy.pressure_guard < 0.0 or enemy.pressure_guard > 1.75:
 			return _fail_at(777)
-		var aim = ai.get("aim")
+		var aim: Variant = ai.get("aim")
 		if aim == null:
 			enemy.aim_mark = null
 		elif (
 			aim is Array
-			and aim.size() == 3
+			and _count(aim) == 3
 			and _number(aim[0])
 			and _number(aim[1])
 			and _number(aim[2])
 		):
-			enemy.aim_mark = [float(aim[0]), float(aim[1]), float(aim[2])]
+			enemy.aim_mark = [_float(aim[0]), _float(aim[1]), _float(aim[2])]
 		else:
 			return _fail_at(784)
 		if enemy.windup > 0.0 and enemy.aim_mark == null:
@@ -1113,15 +1178,15 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 		return _fail_at(788)
 
 	# reactions
-	var reactions = doc.get("county_reactions", {})
+	var reactions: Variant = doc.get("county_reactions", {})
 	if not (reactions is Dictionary):
 		return _fail_at(793)
-	for key in reactions:
-		var index := game.enemy_ids.find(String(key))
+	for key: Variant in reactions:
+		var index := game.enemy_ids.find(str(key))
 		if index < 0:
 			return _fail_at(797)
-		var row = reactions[key]
-		if not (row is Array) or row.size() != 3 or typeof(row[2]) != TYPE_BOOL:
+		var row: Variant = reactions[key]
+		if not (row is Array) or _count(row) != 3 or typeof(row[2]) != TYPE_BOOL:
 			return _fail_at(800)
 		var enemy: Enemy = game.enemies[index]
 		enemy.heard = _state(row[0], 4, w, game.clock)
@@ -1142,135 +1207,149 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 
 	# The features (src/features/) each take back their own state, or start
 	# afresh when the save has none for them.
-	Features.restore_all(game, doc.get("features", {}))
+	var saved_features: Variant = doc.get("features", {})
+	# (restore_all takes anything but a dictionary as {})
+	var features_doc: Dictionary = saved_features if saved_features is Dictionary else {}
+	Features.restore_all(game, features_doc)
 
 	# task state
-	var stations = doc.get("stations", [])
+	var stations: Variant = doc.get("stations", [])
 	if not (stations is Array):
 		return _fail_at(842)
 	game.stations_done = {}
-	for name in stations:
+	for name: Variant in stations:
 		if typeof(name) != TYPE_STRING:
 			return _fail_at(846)
-		game.stations_done[String(name)] = true
+		game.stations_done[str(name)] = true
 	var known_stations := {}
 	for station: LevelData.Station in w.stations:
 		known_stations[station.id] = true
-	for name in game.stations_done:
+	for name: Variant in game.stations_done:
 		if not known_stations.has(name):
 			return _fail_at(849)
 	for station: LevelData.Station in w.stations:
 		if game.stations_done.has(station.id):
-			for required in station.requires:
-				if not game.stations_done.has(String(required)):
+			for required: Variant in station.requires:
+				if not game.stations_done.has(str(required)):
 					return _fail_at(852)
 			# A finished station keeps its sectors lit after a load, as it does
 			# in the reference (session_store.py re-applies the +0.26).
 			game.set_station_lights(station)
-	var tasks = doc.get("tasks", [])
-	var scenery = doc.get("scenery", [])
-	var heard = doc.get("heard", [])
-	for row in [tasks, scenery, heard]:
+	var tasks: Variant = doc.get("tasks", [])
+	var scenery: Variant = doc.get("scenery", [])
+	var heard: Variant = doc.get("heard", [])
+	for row: Variant in [tasks, scenery, heard]:
 		if not (row is Array):
 			return _fail_at(858)
 	game.task_items = {}
-	for name in tasks:
-		game.task_items[String(name)] = true
+	for name: Variant in tasks:
+		game.task_items[str(name)] = true
 	game.scenery_spent = {}
-	for name in scenery:
-		game.scenery_spent[String(name)] = true
+	for name: Variant in scenery:
+		game.scenery_spent[str(name)] = true
 	game.heard_exchanges = {}
-	for name in heard:
-		game.heard_exchanges[String(name)] = true
-	var turns = doc.get("valve_turns", {})
+	for name: Variant in heard:
+		game.heard_exchanges[str(name)] = true
+	var turns: Variant = doc.get("valve_turns", {})
 	if not (turns is Dictionary):
 		return _fail_at(870)
 	game.valve_turns = {}
-	for key in turns:
-		game.valve_turns[String(key)] = int(turns[key])
+	for key: Variant in turns:
+		game.valve_turns[str(key)] = _int(turns[key])
 
 	# entities
-	var shot_rows = doc.get("shots", [])
-	var speck_rows = doc.get("specks", [])
-	var blast_rows = doc.get("blasts", [])
-	var hazard_rows = doc.get("hazards", [])
-	game.shots = _restore_list(shot_rows, func(): return Game.Shot.new(), SHOT_KINDS, 240)
-	if game.shots.size() != shot_rows.size():
+	var shot_rows: Variant = doc.get("shots", [])
+	var speck_rows: Variant = doc.get("specks", [])
+	var blast_rows: Variant = doc.get("blasts", [])
+	var hazard_rows: Variant = doc.get("hazards", [])
+	game.shots = _restore_list(
+		shot_rows, func() -> Game.Shot: return Game.Shot.new(), SHOT_KINDS, 240
+	)
+	if game.shots.size() != _count(shot_rows):
 		return _fail_at(882)
-	game.specks = _restore_list(speck_rows, func(): return Game.Speck.new(), SPECK_KINDS, 4000)
-	if game.specks.size() != speck_rows.size():
+	game.specks = _restore_list(
+		speck_rows, func() -> Game.Speck: return Game.Speck.new(), SPECK_KINDS, 4000
+	)
+	if game.specks.size() != _count(speck_rows):
 		return _fail_at(885)
-	game.blasts = _restore_list(blast_rows, func(): return Game.Blast.new(), ["energy", "fire"], 80)
-	if game.blasts.size() != blast_rows.size():
+	game.blasts = _restore_list(
+		blast_rows, func() -> Game.Blast: return Game.Blast.new(), ["energy", "fire"], 80
+	)
+	if game.blasts.size() != _count(blast_rows):
 		return _fail_at(888)
 	game.hazards = _restore_list(
-		hazard_rows, func(): return Game.Hazard.new(), ["steam", "chalk"], 7
+		hazard_rows, func() -> Game.Hazard: return Game.Hazard.new(), ["steam", "chalk"], 7
 	)
-	if game.hazards.size() != hazard_rows.size():
+	if game.hazards.size() != _count(hazard_rows):
 		return _fail_at(891)
-	for row in [game.shots, game.specks, game.blasts]:
-		for obj in row:
-			if not _valid_position(w, obj.x, obj.y):
-				return _fail_at(895)
+	for shot: Game.Shot in game.shots:
+		if not _valid_position(w, shot.x, shot.y):
+			return _fail_at(895)
+	for speck: Game.Speck in game.specks:
+		if not _valid_position(w, speck.x, speck.y):
+			return _fail_at(895)
+	for blast: Game.Blast in game.blasts:
+		if not _valid_position(w, blast.x, blast.y):
+			return _fail_at(895)
 
 	if not _restore_inventory(doc, game):
 		return null
 
-	var key_rows = doc.get("keys", [])
+	var key_rows: Variant = doc.get("keys", [])
 	if not (key_rows is Array):
 		return _fail_at(911)
 	game.keys = {}
-	for key in key_rows:
+	for key: Variant in key_rows:
 		if key != "key_brass" and key != "key_steel":
 			return _fail_at(915)
-		game.keys[String(key)] = true
+		game.keys[str(key)] = true
 
-	var drums = doc.get("drums", [])
+	var drums: Variant = doc.get("drums", [])
 	if not (drums is Array):
 		return _fail_at(920)
 	game.drums = {}
-	for row in drums:
-		if not (row is Array) or row.size() != 3:
+	for row: Variant in drums:
+		if not (row is Array) or _count(row) != 3:
 			return _fail_at(924)
-		game.drums[Vector2(float(row[0]), float(row[1]))] = int(row[2])
+		game.drums[Vector2(_float(row[0]), _float(row[1]))] = _int(row[2])
 
-	var pickups = doc.get("pickups", [])
+	var pickups: Variant = doc.get("pickups", [])
 	if not (pickups is Array):
 		return _fail_at(929)
 	game.pickups = []
-	for row in pickups:
-		if not (row is Array) or (row.size() != 3 and row.size() != 4):
+	for row: Variant in pickups:
+		if not (row is Array) or (_count(row) != 3 and _count(row) != 4):
 			return _fail_at(933)
 		if not _valid_position(w, row[1], row[2]):
 			return _fail_at(935)
 		game.add_pickup(
-			String(row[0]), float(row[1]), float(row[2]), float(row[3]) if row.size() > 3 else NAN
+			str(row[0]), _float(row[1]), _float(row[2]), _float(row[3]) if _count(row) > 3 else NAN
 		)
 
-	var visited = doc.get("visited", [])
+	var visited: Variant = doc.get("visited", [])
 	if not (visited is Array):
 		return _fail_at(940)
 	game.visited = {}
-	for row in visited:
-		if not (row is Array) or row.size() != 2:
+	for row: Variant in visited:
+		if not (row is Array) or _count(row) != 2:
 			return _fail_at(944)
 		if not _valid_position(w, row[0], row[1]):
 			return _fail_at(946)
-		game.visited[Vector2i(int(row[0]), int(row[1]))] = true
+		game.visited[Vector2i(_int(row[0]), _int(row[1]))] = true
 
-	var panes = doc.get("panes", [])
+	var panes: Variant = doc.get("panes", [])
 	if not (panes is Array):
 		return _fail_at(951)
 	w.broken_panes = {}
-	for row in panes:
-		if not (row is Array) or row.size() != 2:
+	for row: Variant in panes:
+		if not (row is Array) or _count(row) != 2:
 			return _fail_at(955)
-		w.broken_panes[Vector2i(int(row[0]), int(row[1]))] = true
+		w.broken_panes[Vector2i(_int(row[0]), _int(row[1]))] = true
 
-	var rng_value = doc.get("rng", null)
+	var rng_value: Variant = doc.get("rng", null)
 	if typeof(rng_value) != TYPE_INT and typeof(rng_value) != TYPE_FLOAT:
 		return _fail_at(960)
-	game.rng.set_state(int(rng_value))
+	game.rng.set_state(_int(rng_value))
 
 	# The loading-area wave is awake only once its shutdown station is done.
 	if w.extraction != null:
@@ -1292,16 +1371,16 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay) -> Game:
 ## A saved reaction is [x, y, time...] or null. As in the reference, the point
 ## must be a valid position and every time must lie between 0 and the saved
 ## clock plus three seconds.
-static func _state(value, length: int, world: LevelData, clock: float):
+static func _state(value: Variant, length: int, world: LevelData, clock: float) -> Variant:
 	if value == null:
 		return null
-	if not (value is Array) or value.size() != length:
+	if not (value is Array) or _count(value) != length:
 		return _fail_at(984)
 	var out: Array = []
-	for item in value:
+	for item: Variant in value:
 		if typeof(item) != TYPE_INT and typeof(item) != TYPE_FLOAT:
 			return _fail_at(988)
-		out.append(float(item))
+		out.append(_float(item))
 	if not _valid_position(world, out[0], out[1]):
 		return _fail_at(991)
 	for i in range(2, out.size()):
@@ -1310,28 +1389,29 @@ static func _state(value, length: int, world: LevelData, clock: float):
 	return out
 
 
-static func _normalise_kit(kit) -> Dictionary:
+static func _normalise_kit(kit: Variant) -> Dictionary:
 	if not (kit is Dictionary):
 		return {}
-	var out := {"health": int(kit.get("health", 100))}
+	var fields: Dictionary = kit
+	var out := {"health": _int(fields.get("health", 100))}
 	var owned: Array = []
 	var loaded: Array = []
 	var reserve: Array = []
-	var src_owned: Array = kit.get("owned", [])
-	var src_loaded: Array = kit.get("loaded", [])
-	var src_reserve: Array = kit.get("reserve", [])
+	var src_owned: Array = fields.get("owned", [])
+	var src_loaded: Array = fields.get("loaded", [])
+	var src_reserve: Array = fields.get("reserve", [])
 	for i in Weapons.COUNT:
-		owned.append(bool(src_owned[i]) if i < src_owned.size() else i == Weapons.CROWBAR)
-		loaded.append(int(src_loaded[i]) if i < src_loaded.size() else 0)
-		reserve.append(int(src_reserve[i]) if i < src_reserve.size() else 0)
+		owned.append(_bool(src_owned[i]) if i < src_owned.size() else i == Weapons.CROWBAR)
+		loaded.append(_int(src_loaded[i]) if i < src_loaded.size() else 0)
+		reserve.append(_int(src_reserve[i]) if i < src_reserve.size() else 0)
 	out["owned"] = owned
 	out["loaded"] = loaded
 	out["reserve"] = reserve
-	out["active"] = int(kit.get("active", 1))
-	var inventory: Dictionary = kit.get("inventory", {})
+	out["active"] = _int(fields.get("active", 1))
+	var inventory: Dictionary = fields.get("inventory", {})
 	var clean_inv := {}
-	for name in HUD.ITEMS:
-		clean_inv[name] = int(inventory.get(name, 0))
+	for name: String in HUD.ITEMS:
+		clean_inv[name] = _int(inventory.get(name, 0))
 	out["inventory"] = clean_inv
-	out["slot"] = int(kit.get("slot", 0))
+	out["slot"] = _int(fields.get("slot", 0))
 	return out

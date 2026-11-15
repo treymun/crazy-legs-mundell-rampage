@@ -59,7 +59,7 @@ var step_number := 0
 var next_belch := 0.0
 ## Heard from: what the acting player's own sounds play through when this is
 ## not the local player (player_voice.gd places them where this player stands).
-var voice = null
+var voice: RefCounted = null
 
 # What the game modes keep on each player (src/modes/; CLAUDE.md "Modes").
 

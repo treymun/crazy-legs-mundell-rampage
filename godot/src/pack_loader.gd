@@ -43,7 +43,8 @@ func progress(pack: String) -> float:
 	if loaded.has(pack):
 		return 1.0
 	if _busy == pack and manifest.has(pack):
-		var total := float(manifest[pack].get("size", 1))
+		var entry: Dictionary = manifest[pack]
+		var total: float = entry.get("size", 1)
 		return clampf(float(_http.get_downloaded_bytes()) / maxf(1.0, total), 0.0, .99)
 	return 0.0
 
@@ -79,10 +80,11 @@ func _next() -> void:
 	while not queue.is_empty():
 		var name: String = queue.pop_front()
 		var entry: Dictionary = manifest[name]
-		var file := String(entry["file"])
+		var file := str(entry["file"])
 		var kept := STORE.path_join(file)
 		var handle := FileAccess.open(kept, FileAccess.READ)
-		if handle != null and handle.get_length() == int(entry.get("size", -1)):
+		var size: int = entry.get("size", -1)
+		if handle != null and handle.get_length() == size:
 			# Fetched on an earlier visit.
 			handle.close()
 			_mount(name)
@@ -103,7 +105,7 @@ func _done(result: int, code: int, _headers: PackedStringArray, body: PackedByte
 	_busy = ""
 	var ok := result == HTTPRequest.RESULT_SUCCESS and code == 200
 	if name == MANIFEST:
-		var parsed = JSON.parse_string(body.get_string_from_utf8()) if ok else null
+		var parsed: Variant = JSON.parse_string(body.get_string_from_utf8()) if ok else null
 		if not (parsed is Dictionary):
 			# A site without packs yet, or no network: try again shortly.
 			_retry(MANIFEST)
@@ -115,8 +117,9 @@ func _done(result: int, code: int, _headers: PackedStringArray, body: PackedByte
 		_next()
 		return
 	var entry: Dictionary = manifest[name]
-	var kept := STORE.path_join(String(entry["file"]))
-	if not ok or body.size() != int(entry.get("size", -1)):
+	var kept := STORE.path_join(str(entry["file"]))
+	var size: int = entry.get("size", -1)
+	if not ok or body.size() != size:
 		_retry(name)
 		return
 	var handle := FileAccess.open(kept, FileAccess.WRITE)
@@ -142,7 +145,7 @@ func _retry(name: String) -> void:
 
 
 func _mount(name: String) -> void:
-	var path := STORE.path_join(String(manifest[name]["file"]))
+	var path := STORE.path_join(str(manifest[name]["file"]))
 	if ProjectSettings.load_resource_pack(path, false):
 		loaded[name] = true
 		print("music pack ready: ", name)
@@ -154,7 +157,7 @@ func _mount(name: String) -> void:
 func _forget_old() -> void:
 	var wanted := {}
 	for pack: String in manifest:
-		wanted[String(manifest[pack]["file"])] = true
+		wanted[str(manifest[pack]["file"])] = true
 	for file in DirAccess.get_files_at(STORE):
 		if not wanted.has(file):
 			DirAccess.remove_absolute(STORE.path_join(file))

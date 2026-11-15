@@ -6,6 +6,13 @@ extends MainFlow
 
 ## pad_dir while a direction held from before must be let go first.
 const PAD_WAIT := Vector2i(2, 2)
+const BossCheckpointFeature := preload("res://src/features/boss_checkpoint.gd")
+
+
+## A switch setting is on (not 0); `fallback` when it may be missing.
+func _option_on(key: String, fallback: Variant = null) -> bool:
+	var value: int = options[key] if fallback == null else options.get(key, fallback)
+	return value != 0
 
 
 func _notification(what: int) -> void:
@@ -46,7 +53,8 @@ func _on_focus_lost() -> void:
 	if state == "play" and game != null:
 		game.player.vx = 0.0
 		game.player.vy = 0.0
-		if not game.showing_tally and bool(options["focus_pause"]):
+		var focus_pause: bool = options["focus_pause"]
+		if not game.showing_tally and focus_pause:
 			state = "title"
 			selection = 0
 			sound.pause_world()
@@ -62,7 +70,8 @@ func _on_focus_gained() -> void:
 	block_fire = true
 	apply_master()
 	if state != "play":
-		sound.pause_score(int(options.get("menu_music", 1)) == 0)
+		var menu_on: int = options.get("menu_music", 1)
+		sound.pause_score(menu_on == 0)
 	if state == "play" and game != null:
 		grab(not game.showing_tally and not game.defeated())
 
@@ -185,7 +194,8 @@ func _screenshot() -> void:
 		var was_look := game.gpu_look
 		game.gpu_look = false
 		game.layered = false
-		game.draw(whole, int(options["crosshair"]), true)
+		var crosshair: int = options["crosshair"]
+		game.draw(whole, crosshair, true)
 		game.gpu_look = was_look
 		picture = whole.pixels
 	image.set_data(WIDTH, HEIGHT, false, Image.FORMAT_RGB8, palettised(picture))
@@ -292,10 +302,11 @@ func _key_play(code: int) -> void:
 			continue_campaign()
 	elif target.defeated():
 		var enter := code == KEY_ENTER or code == KEY_KP_ENTER
-		var checkpoint = target.features.get("boss_checkpoint")
+		var checkpoint: BossCheckpointFeature = target.features.get("boss_checkpoint")
 		if in_rematch():
 			if enter:
-				start_rematch(String(target.features["boss_rematch"].kind), false)
+				var fight: BossRematchFeature = target.features["boss_rematch"]
+				start_rematch(fight.kind, false)
 		elif checkpoint != null and checkpoint.offered() and not target.revisiting:
 			# RETRY THE FIGHT (features/boss_checkpoint.gd); RELOAD's key the
 			# chapter's start, as Enter was.
@@ -348,17 +359,15 @@ func _key_play(code: int) -> void:
 		or code == KEY_BACKSLASH
 		or code == KEY_QUOTELEFT
 	):
-		var slot := int(
-			(
-				{
-					KEY_0: Weapons.ROCKET,
-					KEY_MINUS: Weapons.BOWLING,
-					KEY_EQUAL: Weapons.KEG,
-					KEY_BACKSLASH: Weapons.COW,
-					KEY_QUOTELEFT: Weapons.TEAT
-				}
-				. get(code, Weapons.ROCKET)
-			)
+		var slot: int = (
+			{
+				KEY_0: Weapons.ROCKET,
+				KEY_MINUS: Weapons.BOWLING,
+				KEY_EQUAL: Weapons.KEG,
+				KEY_BACKSLASH: Weapons.COW,
+				KEY_QUOTELEFT: Weapons.TEAT
+			}
+			. get(code, Weapons.ROCKET)
 		)
 		target.armory.select(slot, target)
 	elif code == KEY_SEMICOLON or code == KEY_APOSTROPHE:
@@ -378,10 +387,12 @@ func _key_play(code: int) -> void:
 	elif code == KEY_HOME:
 		target.player.pitch = 0.0
 	elif code == KEY_CAPSLOCK:
-		options["autorun"] = 0 if int(options["autorun"]) != 0 else 1
+		var autorun: int = options["autorun"]
+		options["autorun"] = 0 if autorun != 0 else 1
 		persist_options()
-		notice("ALWAYS RUN ON" if int(options["autorun"]) != 0 else "ALWAYS RUN OFF", 1.3)
-	elif code == KEY_Z and int(options["crouch"]) != 0:
+		autorun = options["autorun"]
+		notice("ALWAYS RUN ON" if autorun != 0 else "ALWAYS RUN OFF", 1.3)
+	elif code == KEY_Z and _option_on("crouch"):
 		crouch_latched = not crouch_latched
 	elif code == KEY_Y:
 		sound.play("yee_haw")
@@ -612,12 +623,10 @@ func _touch_menu(finger: InputEventScreenTouch) -> void:
 		var at := picture_point(finger.position)
 		if at.x >= 0 and display_trial.is_empty() and binding_action == "":
 			var hit := Menu.setup_hit(at.x, at.y, option_page, option_scroll)
-			var on_bar := (
-				String(hit["kind"]) == "row"
-				and bool(hit["bar"])
-				and int(hit["index"]) == option_slot
-			)
-			if on_bar or String(hit["kind"]) == "track":
+			var hit_bar: bool = hit["bar"]
+			var hit_index: int = hit["index"]
+			var on_bar := str(hit["kind"]) == "row" and hit_bar and hit_index == option_slot
+			if on_bar or str(hit["kind"]) == "track":
 				drag_mode = "bar" if on_bar else "track"
 				_drag(finger.position)
 	elif touch_down:
@@ -677,12 +686,13 @@ func hover(position: Vector2) -> void:
 				part = "keep" if at.x < 160 else "undo"
 		else:
 			var hit := Menu.setup_hit(at.x, at.y, option_page, option_scroll)
-			var kind := String(hit["kind"])
+			var kind := str(hit["kind"])
+			var index: int = hit["index"]
 			if kind == "row" and binding_action == "":
-				if int(hit["index"]) != option_slot:
-					setup_select(int(hit["index"]))
+				if index != option_slot:
+					setup_select(index)
 			elif kind == "tab":
-				part = "tab%d" % int(hit["index"])
+				part = "tab%d" % index
 			elif kind in ["back", "reset", "up", "down"]:
 				part = kind
 	elif at.x >= 0:
@@ -736,20 +746,24 @@ func _click_setup(x: int, y: int, button: int) -> void:
 		_bind_key(KEY_ESCAPE)  # a click while a row waits for its key keeps the old one
 		return
 	var hit := Menu.setup_hit(x, y, option_page, option_scroll)
-	var kind := String(hit["kind"])
-	if kind == "tab" and int(hit["index"]) != option_page:
-		setup_page(int(hit["index"]) - option_page)
+	var kind := str(hit["kind"])
+	var index: int = hit["index"]
+	var bar: bool = hit["bar"]
+	var direction: int = hit["direction"]
+	var share: float = hit["share"]
+	if kind == "tab" and index != option_page:
+		setup_page(index - option_page)
 	elif kind == "row":
-		var again := int(hit["index"]) == option_slot
-		setup_select(int(hit["index"]))
+		var again := index == option_slot
+		setup_select(index)
 		var item: SessionStore.Setting = option_items()[option_slot]
 		if item is SessionStore.KeySetting:
 			_key_setup(KEY_ENTER, false)
-		elif bool(hit["bar"]) and button == MOUSE_BUTTON_LEFT:
+		elif bar and button == MOUSE_BUTTON_LEFT:
 			drag_mode = "bar"
 			change_setting(Menu.bar_value(item, x))
-		elif int(hit["direction"]) != 0:
-			adjust_setting(-1 if button == MOUSE_BUTTON_RIGHT else int(hit["direction"]))
+		elif direction != 0:
+			adjust_setting(-1 if button == MOUSE_BUTTON_RIGHT else direction)
 		elif again and Menu.is_toggle(item):
 			adjust_setting(1)  # a second click on a switch's name flips it
 	elif kind == "up" or kind == "down":
@@ -757,7 +771,7 @@ func _click_setup(x: int, y: int, button: int) -> void:
 		sound.play("menu_move")
 	elif kind == "track" and button == MOUSE_BUTTON_LEFT:
 		drag_mode = "track"
-		setup_scroll_to(Menu.scroll_at(option_page, float(hit["share"])))
+		setup_scroll_to(Menu.scroll_at(option_page, share))
 	elif kind == "reset":
 		reset_page()
 	elif kind == "back":
@@ -780,20 +794,23 @@ func read_pad(dt: float) -> Dictionary:
 	if pads.is_empty():
 		pad_down.clear()
 		return idle
-	var device := int(pads[0])
+	var device: int = pads[0]
 	# Every button is edge-tracked every frame, so one held across a state
 	# change (Start pausing the game) is not read as a fresh press in the menu.
 	var pressed := {}
 	for index in JOY_BUTTON_SDL_MAX:
 		var down := Input.is_joy_button_pressed(device, index)
-		if down and not bool(pad_down.get(index, false)):
+		var was_down: bool = pad_down.get(index, false)
+		if down and not was_down:
 			pressed[index] = true
 			input_device = "pad"
 		pad_down[index] = down
 	var before := state
 	for pair: Array in _pad_bindings():
-		if pressed.has(int(pair[0])) and int(pair[1]) != KEY_NONE:
-			key(int(pair[1]))
+		var button: int = pair[0]
+		var bound: int = pair[1]
+		if pressed.has(button) and bound != KEY_NONE:
+			key(bound)
 			if state != before:
 				break
 	if state != "play":
@@ -805,8 +822,10 @@ func read_pad(dt: float) -> Dictionary:
 	var forward := -_deadzone(Input.get_joy_axis(device, JOY_AXIS_LEFT_Y))
 	var strafe := _deadzone(Input.get_joy_axis(device, JOY_AXIS_LEFT_X))
 	# PAD LOOK SPEED and INVERT PAD Y (100 and off: the stick as it always was).
-	var speed := float(options.get("pad_look", 100)) / 100.0
-	var flip := -1.0 if int(options.get("pad_invert", 0)) != 0 else 1.0
+	var pad_look: float = options.get("pad_look", 100)
+	var speed := pad_look / 100.0
+	var pad_invert: int = options.get("pad_invert", 0)
+	var flip := -1.0 if pad_invert != 0 else 1.0
 	var turn := _deadzone(Input.get_joy_axis(device, JOY_AXIS_RIGHT_X)) * dt * 2.6 * speed
 	var look := -_deadzone(Input.get_joy_axis(device, JOY_AXIS_RIGHT_Y)) * dt * 55.0 * speed * flip
 	# The reference fires when the raw trigger axis (-1 at rest) passes 0: half
@@ -891,22 +910,24 @@ func _touch_actions() -> void:
 	if touch.consume("next") and not game.in_hub:
 		game.armory.cycle(1, game)
 	for pair: Array in [["rinds", KEY_C], ["beer", KEY_B], ["shine", KEY_M]]:
-		if touch.consume(String(pair[0])) and state == "play":
-			key(int(pair[1]))
+		if touch.consume(str(pair[0])) and state == "play":
+			var bound: int = pair[1]
+			key(bound)
 	if touch.consume("map"):
 		game.map = not game.map
 	# With CROUCH set to TOGGLE the DUCK button flips the latch, like the Z key.
-	if int(options["crouch"]) != 0 and touch.crouch and not duck_held:
+	if _option_on("crouch") and touch.crouch and not duck_held:
 		crouch_latched = not crouch_latched
 	duck_held = touch.crouch
-	var tapped = touch.consume_tap()
+	var tapped: Variant = touch.consume_tap()
+	var tap_at: Vector2 = Vector2.ZERO if tapped == null else tapped
 	if tapped != null and state == "play" and net != null:
-		var hit := LobbyScreens.zone_at(picture_point(tapped))
-		if not hit.is_empty() and String(hit[0]) in ["yes", "no", "lobby_now"]:
-			key(KEY_ESCAPE if String(hit[0]) == "no" else KEY_ENTER)
+		var hit := LobbyScreens.zone_at(picture_point(tap_at))
+		if not hit.is_empty() and str(hit[0]) in ["yes", "no", "lobby_now"]:
+			key(KEY_ESCAPE if str(hit[0]) == "no" else KEY_ENTER)
 			tapped = null
 	if tapped != null and state == "play" and game != null and Modes.is_tactical(game):
-		if TacticalScreens.tap(game, picture_point(tapped)):
+		if TacticalScreens.tap(game, picture_point(tap_at)):
 			tapped = null
 	if tapped != null and state == "play" and game != null and game.map:
 		# A tap on the open map steps the zoom in, then back out to the whole level.
@@ -919,8 +940,8 @@ func _touch_actions() -> void:
 	):
 		# With a boss checkpoint the death screen's second line (TAP HERE) is
 		# the chapter's start, the rest of the screen RETRY THE FIGHT.
-		var checkpoint = game.features.get("boss_checkpoint")
-		var lower: bool = picture_point(tapped).y >= 90
+		var checkpoint: BossCheckpointFeature = game.features.get("boss_checkpoint")
+		var lower: bool = picture_point(tap_at).y >= 90
 		if game.defeated() and lower and checkpoint != null and checkpoint.offered():
 			key(KEY_R)
 		else:
@@ -952,7 +973,8 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		)
 	):
 		block_fire = false
-	var sensitivity := float(options["sensitivity"]) / 100.0
+	var sensitivity_option: float = options["sensitivity"]
+	var sensitivity := sensitivity_option / 100.0
 	var arrows := (
 		(1.0 if KeyBindings.held("turn_right") else 0.0)
 		- (1.0 if KeyBindings.held("turn_left") else 0.0)
@@ -972,53 +994,58 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		* dt
 		* 55.0
 	)
-	var sprint := (int(options["autorun"]) != 0) != KeyBindings.held("run")
+	var sprint := _option_on("autorun") != KeyBindings.held("run")
+	var pad_forward: float = pad["forward"]
+	var finger_forward: float = fingers["forward"]
 	controls.forward = clampf(
 		(
 			(1.0 if KeyBindings.held("forward") else 0.0)
 			- (1.0 if KeyBindings.held("back") else 0.0)
-			+ float(pad["forward"])
-			+ float(fingers["forward"])
+			+ pad_forward
+			+ finger_forward
 		),
 		-1.0,
 		1.0
 	)
-	controls.strafe = clampf(strafe + float(pad["strafe"]) + float(fingers["strafe"]), -1.0, 1.0)
-	controls.turn = (
-		mouse_rel.x * .0034 * sensitivity + turn + float(pad["turn"]) + float(fingers["turn"])
-	)
+	var pad_strafe: float = pad["strafe"]
+	var finger_strafe: float = fingers["strafe"]
+	controls.strafe = clampf(strafe + pad_strafe + finger_strafe, -1.0, 1.0)
+	var pad_turn: float = pad["turn"]
+	var finger_turn: float = fingers["turn"]
+	controls.turn = mouse_rel.x * .0034 * sensitivity + turn + pad_turn + finger_turn
 	# A scope up (scope.gd) slows the turn by its zoom, so aim keeps its feel.
 	controls.turn *= View.fov_focal / maxf(1.0, View.base_focal)
-	var invert := 1.0 if int(options["invert"]) != 0 else -1.0
-	var vertical := float(options["vertical"]) / 100.0
+	var invert := 1.0 if _option_on("invert") else -1.0
+	var vertical_option: float = options["vertical"]
+	var vertical := vertical_option / 100.0
+	var pad_look: float = pad["look"]
+	var finger_look: float = fingers["look"]
 	controls.look = (
-		mouse_rel.y * .24 * vertical * invert
-		+ look
-		+ float(pad["look"])
-		+ float(fingers["look"]) * vertical * invert
+		mouse_rel.y * .24 * vertical * invert + look + pad_look + finger_look * vertical * invert
 	)
-	controls.running = sprint or bool(pad["run"])
+	var pad_run: bool = pad["run"]
+	controls.running = sprint or pad_run
 	if touch.active:
-		var tilt := int(options.get("tilt_aim", 0))
+		var tilt: int = options.get("tilt_aim", 0)
 		if tilt > 0:
 			var rate := TiltAim.rates() * (.8 if tilt == 1 else 1.6) * dt
 			controls.turn += rate.x
 			controls.look += rate.y * View.base_focal
+	var pad_fire: bool = pad["fire"]
+	var finger_fire: bool = fingers["fire"]
 	controls.fire = (
 		(
 			Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 			or KeyBindings.held("fire_key")
-			or bool(pad["fire"])
-			or bool(fingers["fire"])
+			or pad_fire
+			or finger_fire
 		)
 		and not block_fire
 	)
+	var pad_alt: bool = pad["alt"]
+	var finger_alt: bool = fingers["alt"]
 	controls.alt_fire = (
-		(
-			Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
-			or bool(pad["alt"])
-			or bool(fingers["alt"])
-		)
+		(Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) or pad_alt or finger_alt)
 		and not block_fire
 	)
 	if TacticalScreens.open:
@@ -1030,22 +1057,25 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 		touch.active
 		and not controls.fire
 		and not block_fire
-		and int(options.get("auto_fire", 1)) != 0
+		and _option_on("auto_fire", 1)
 		and game.sights_on_enemy()
 	):
 		# TOUCH AUTO FIRE: a straight-shooting gun fires at a foe in the sights.
 		controls.fire = true
-	controls.jump = KeyBindings.held("jump") or bool(pad["jump"]) or bool(fingers["jump"])
+	var pad_jump: bool = pad["jump"]
+	var finger_jump: bool = fingers["jump"]
+	controls.jump = KeyBindings.held("jump") or pad_jump or finger_jump
 	# USE held down: reviving a partner in co-op (src/modes/).
-	controls.hold = KeyBindings.held("use") or bool(pad.get("use", false))
+	var pad_use: bool = pad.get("use", false)
+	controls.hold = KeyBindings.held("use") or pad_use
 	# As the reference: a toggle setting reads only the latch, a hold setting
 	# only what is held (keyboard, pad B, or the overlay's DUCK button).
-	if int(options["crouch"]) != 0:
+	if _option_on("crouch"):
 		controls.crouch = crouch_latched
 	else:
-		controls.crouch = (
-			KeyBindings.held("crouch") or bool(pad["crouch"]) or bool(fingers["crouch"])
-		)
+		var pad_crouch: bool = pad["crouch"]
+		var finger_crouch: bool = fingers["crouch"]
+		controls.crouch = KeyBindings.held("crouch") or pad_crouch or finger_crouch
 	return controls
 
 
@@ -1146,11 +1176,11 @@ func _net_form_rows() -> Array:
 func _net_type(event: InputEventKey) -> bool:
 	var rows := _net_form_rows()
 	var row: Array = rows[posmod(net_row, rows.size())]
-	var kind := String(row[2])
+	var kind := str(row[2])
 	if kind != "text" and kind != "secret" and kind != "digits":
 		return false
-	var field := String(row[0])
-	var value := String(net_form.get(field, ""))
+	var field := str(row[0])
+	var value := str(net_form.get(field, ""))
 	if event.ctrl_pressed and event.keycode == KEY_V:
 		value += DisplayServer.clipboard_get().strip_edges()
 	elif not event.ctrl_pressed and event.unicode >= 32 and event.unicode < 127:
@@ -1169,8 +1199,8 @@ func _net_type(event: InputEventKey) -> bool:
 func _key_net_form(code: int) -> void:
 	var rows := _net_form_rows()
 	var row: Array = rows[posmod(net_row, rows.size())]
-	var kind := String(row[2])
-	var field := String(row[0])
+	var kind := str(row[2])
+	var field := str(row[0])
 	var accept := code == KEY_ENTER or code == KEY_KP_ENTER
 	if code == KEY_ESCAPE:
 		state = "multi"
@@ -1186,10 +1216,11 @@ func _key_net_form(code: int) -> void:
 		net_row = posmod(net_row + step, rows.size())
 		sound.play("menu_move")
 	elif code == KEY_BACKSPACE and kind in ["text", "secret", "digits"]:
-		var value := String(net_form.get(field, ""))
+		var value := str(net_form.get(field, ""))
 		net_form[field] = value.substr(0, maxi(0, value.length() - 1))
 	elif kind == "toggle" and (accept or code in [KEY_LEFT, KEY_RIGHT, KEY_SPACE]):
-		net_form[field] = not bool(net_form.get(field, true))
+		var was_on: bool = net_form.get(field, true)
+		net_form[field] = not was_on
 		sound.play("menu_move")
 	elif accept and kind == "go":
 		if state == "nethost":
@@ -1210,7 +1241,7 @@ func _key_lobby(code: int) -> void:
 			net_quit()
 		return
 	var list := LobbyScreens.rows(net)
-	var row := String(list[posmod(lobby_row, list.size())])
+	var row := str(list[posmod(lobby_row, list.size())])
 	var host := net.role == NetPlay.Role.HOST
 	var accept := code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE
 	if not (accept and row == "kick"):
@@ -1221,12 +1252,12 @@ func _key_lobby(code: int) -> void:
 		sound.play("menu_back")
 	elif code == KEY_C and host:
 		var lines := LobbyScreens.reach_lines(net)
-		var at := String(lines[0]).find("JOIN CODE ")
+		var at := str(lines[0]).find("JOIN CODE ")
 		if at >= 0:
-			DisplayServer.clipboard_set(String(lines[0]).substr(at + 10, 11))
+			DisplayServer.clipboard_set(str(lines[0]).substr(at + 10, 11))
 			net_note = "JOIN CODE COPIED. SEND IT TO YOUR FRIENDS."
 		else:
-			net_note = "NO JOIN CODE YET: " + String(lines[0])
+			net_note = "NO JOIN CODE YET: " + str(lines[0])
 	elif code in [KEY_UP, KEY_DOWN, KEY_W, KEY_S]:
 		var step := -1 if code == KEY_UP or code == KEY_W else 1
 		lobby_row = posmod(lobby_row + step, list.size())
@@ -1241,17 +1272,20 @@ func _lobby_change(row: String, step: int, accept: bool) -> void:
 	var host := net.role == NetPlay.Role.HOST
 	match row:
 		"team":
-			if not bool(net.settings.get("pick_teams", true)):
+			var pick_teams: bool = net.settings.get("pick_teams", true)
+			if not pick_teams:
 				net_note = "THE HOST BALANCES THE TEAMS."
 				return
-			var team := posmod(int(me.get("team", -1)) + 1 + step, 3) - 1
+			var my_team: int = me.get("team", -1)
+			var team := posmod(my_team + 1 + step, 3) - 1
 			if host:
 				me["team"] = team
 				net.send_lobby()
 			else:
 				net.ask({"team": team})
 		"ready":
-			net.ask({"ready": not bool(me.get("ready", false))})
+			var is_ready: bool = me.get("ready", false)
+			net.ask({"ready": not is_ready})
 		"kick":
 			var others := LobbyScreens.others(net)
 			if others.is_empty():
@@ -1259,7 +1293,8 @@ func _lobby_change(row: String, step: int, accept: bool) -> void:
 			if not accept:
 				net_kick = posmod(net_kick + step, others.size())
 			elif net_kick_armed:
-				net.kick(int(others[posmod(net_kick, others.size())]["id"]))
+				var kick_id: int = others[posmod(net_kick, others.size())]["id"]
+				net.kick(kick_id)
 				net_kick_armed = false
 			else:
 				net_kick_armed = true

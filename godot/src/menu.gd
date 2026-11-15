@@ -16,7 +16,7 @@ const BOARD := Rect2i(6, 84, 180, 114)
 const PRIMARY := Rect2i(12, 96, 168, 19)
 ## The barn lamp's shade, bolted over the board's top right.
 const LAMP_X := 158
-const COLUMN_X := [12, 98]
+const COLUMN_X: Array[int] = [12, 98]
 const COLUMN_W := 82
 const ROWS_Y := 125
 const ROW_H := 11
@@ -106,7 +106,7 @@ const HULL_LO := Color(108 / 255.0, 22 / 255.0, 18 / 255.0)
 const BULB_ON := Color(255 / 255.0, 226 / 255.0, 140 / 255.0)
 const BULB_OFF := Color(112 / 255.0, 60 / 255.0, 28 / 255.0)
 ## The county-fair string of lights over every sub-screen.
-const FESTOON_POSTS := [10, 85, 160, 235, 310]
+const FESTOON_POSTS: Array[int] = [10, 85, 160, 235, 310]
 const FESTOON_COLOURS := [
 	Color(232 / 255.0, 72 / 255.0, 52 / 255.0),
 	Color(255 / 255.0, 194 / 255.0, 84 / 255.0),
@@ -133,7 +133,10 @@ func _init(p_art: Assets) -> void:
 
 func _blit(c: Canvas, name: String, x: int, y: int) -> void:
 	var sheet := art.art(name)
-	c.blit_rgba(sheet["data"], int(sheet["w"]), int(sheet["h"]), x, y, "art|" + name)
+	var data: PackedByteArray = sheet["data"]
+	var w: int = sheet["w"]
+	var h: int = sheet["h"]
+	c.blit_rgba(data, w, h, x, y, "art|" + name)
 
 
 static func _hline(c: Canvas, x: int, y: int, w: int, colour: Color) -> void:
@@ -208,9 +211,9 @@ static func title_items(entries: PackedStringArray) -> Array:
 	for id: String in entries:
 		left += 1 if id != primary and not OFFICE_IDS.has(id) and id != "MULTIPLAYER" else 0
 	var row_h := ROW_H if left <= 6 else ROW_TIGHT
-	var counts := [0, 0]
+	var counts: Array[int] = [0, 0]
 	for id: String in entries:
-		var item := {"id": id, "label": String(LABELS.get(id, id)), "primary": id == primary}
+		var item := {"id": id, "label": str(LABELS.get(id, id)), "primary": id == primary}
 		if id == primary:
 			item["rect"] = PRIMARY
 			item["column"] = -1
@@ -235,7 +238,8 @@ static func title_items(entries: PackedStringArray) -> Array:
 static func title_hit(entries: PackedStringArray, x: int, y: int) -> int:
 	var items := title_items(entries)
 	for i in items.size():
-		if (items[i]["rect"] as Rect2i).has_point(Vector2i(x, y)):
+		var rect: Rect2i = items[i]["rect"]
+		if rect.has_point(Vector2i(x, y)):
 			return i
 	return -1
 
@@ -251,14 +255,18 @@ static func title_move(entries: PackedStringArray, index: int, dx: int, dy: int)
 		return posmod(index + dy, items.size())
 	var here: Dictionary = items[index]
 	# Left only leaves the right column, right only the left one.
-	if int(here["column"]) < 0 or int(here["column"]) == (1 if dx > 0 else 0):
+	var column: int = here["column"]
+	if column < 0 or column == (1 if dx > 0 else 0):
 		return index
 	var best := index
 	var gap := 99
+	var here_row: int = here["row"]
 	for i in items.size():
 		var other: Dictionary = items[i]
-		if int(other["column"]) >= 0 and int(other["column"]) != int(here["column"]):
-			var distance := absi(int(other["row"]) - int(here["row"]))
+		var other_column: int = other["column"]
+		if other_column >= 0 and other_column != column:
+			var other_row: int = other["row"]
+			var distance := absi(other_row - here_row)
 			if distance < gap:
 				gap = distance
 				best = i
@@ -315,7 +323,7 @@ func draw_title(
 	for i in items.size():
 		var item: Dictionary = items[i]
 		if i == selection:
-			selected_id = String(item["id"])
+			selected_id = str(item["id"])
 		if not skip_items:
 			draw_title_item(c, item, i == selection)
 	# Under the board: what the entry is for, then how to drive the menu. A
@@ -323,15 +331,16 @@ func draw_title(
 	# down to where the second line was: the entry's line alone, lower.
 	var deepest := 0
 	for item: Dictionary in items:
-		deepest = maxi(deepest, int(item["row"]) + 1)
+		var row: int = item["row"]
+		deepest = maxi(deepest, row + 1)
 	var foot := 181 if deepest <= 5 else ROWS_Y + (ROW_H if deepest <= 6 else ROW_TIGHT) * deepest
 	_hline(c, 12, foot, 168, Color(52 / 255.0, 36 / 255.0, 24 / 255.0))
 	_hline(c, 12, foot + 1, 168, Color(120 / 255.0, 88 / 255.0, 58 / 255.0))
-	var first := note if note != "" else String(BLURBS.get(selected_id, ""))
+	var first := note if note != "" else str(BLURBS.get(selected_id, ""))
 	HUD.text(c, first, 96, foot + 3, "mini", HUD.AMBER if note != "" else BRIGHT, true, true)
 	if deepest <= 5:
 		HUD.text(c, hint, 96, 191, "mini", FADED, true, false)
-	var version := String(ProjectSettings.get_setting("application/config/version", ""))
+	var version := str(ProjectSettings.get_setting("application/config/version", ""))
 	if version != "":
 		HUD.text(c, "V" + version.to_upper(), 317, 193, "mini", FADED, false, true, true)
 
@@ -340,9 +349,10 @@ func draw_title(
 ## title screen's buttons paint themselves with it).
 func draw_title_item(c: Canvas, item: Dictionary, active: bool) -> void:
 	var rect: Rect2i = item["rect"]
-	if bool(item["primary"]):
+	var primary: bool = item["primary"]
+	if primary:
 		_plate(c, rect, active)
-		var label := String(item["label"])
+		var label := str(item["label"])
 		var style := (
 			"heading" if PixelType.text_width(label, "heading") < rect.size.x - 24 else "menu"
 		)
@@ -364,7 +374,7 @@ func draw_title_item(c: Canvas, item: Dictionary, active: bool) -> void:
 		shell(c, rect.position.x + 1 + _nudge(), rect.position.y + 3)
 	HUD.text(
 		c,
-		String(item["label"]),
+		str(item["label"]),
 		rect.position.x + 14,
 		rect.position.y + 2,
 		"body",
@@ -451,8 +461,10 @@ func _fireflies(c: Canvas) -> void:
 	for i in FIREFLIES.size():
 		var spot: Array = FIREFLIES[i]
 		var t := clock * pace + i * 1.7
-		var x := int(spot[0]) + int(roundf(sin(t * .7 + i) * 9.0))
-		var y := int(spot[1]) + int(roundf(sin(t * 1.1 + i * 2.3) * 5.0))
+		var spot_x: int = spot[0]
+		var spot_y: int = spot[1]
+		var x := spot_x + int(roundf(sin(t * .7 + i) * 9.0))
+		var y := spot_y + int(roundf(sin(t * 1.1 + i * 2.3) * 5.0))
 		var glow := .7 if steady else clampf(sin(t * 1.9 + i) * 1.6, 0.0, 1.0)
 		if glow < .08:
 			continue
@@ -540,10 +552,10 @@ static func plate_button(c: Canvas, rect: Rect2i, label: String, hot := false) -
 ## Each tab is as wide as its name plus an even share of what is left over.
 static func tab_rect(index: int, count: int) -> Rect2i:
 	var pages := SessionStore.setup_pages()
-	var widths: Array = []
+	var widths: Array[int] = []
 	var total := 0
 	for i in count:
-		var name := String(pages[i][0]) if count == pages.size() else ""
+		var name := str(pages[i][0]) if count == pages.size() else ""
 		var w := PixelType.text_width(name) + 8
 		widths.append(w)
 		total += w
@@ -565,26 +577,30 @@ static func lines(page: int) -> Array:
 	var pages := SessionStore.setup_pages()
 	var out: Array = []
 	if page >= 0 and page < pages.size():
-		var heads: Dictionary = SetupPages.HEADERS.get(String(pages[page][0]), {})
+		var heads: Dictionary = SetupPages.HEADERS.get(str(pages[page][0]), {})
 		var items: Array = pages[page][1]
 		for slot in items.size():
-			var key := (items[slot] as SessionStore.Setting).key
+			var setting: SessionStore.Setting = items[slot]
+			var key := setting.key
 			if heads.has(key):
-				out.append(["head", String(heads[key])])
+				out.append(["head", str(heads[key])])
 			out.append(["row", slot])
 	_line_cache[page] = out
 	return out
 
 
 static func line_height(line: Array) -> int:
-	return HEAD_H if String(line[0]) == "head" else SET_ROW
+	return HEAD_H if str(line[0]) == "head" else SET_ROW
 
 
 static func line_of(page: int, slot: int) -> int:
 	var all := lines(page)
 	for i in all.size():
-		if String(all[i][0]) == "row" and int(all[i][1]) == slot:
-			return i
+		var line: Array = all[i]
+		if str(line[0]) == "row":
+			var line_slot: int = line[1]
+			if line_slot == slot:
+				return i
 	return 0
 
 
@@ -595,11 +611,12 @@ static func shown_end(page: int, scroll: int) -> int:
 	var room := LIST.size.y
 	var i := maxi(0, scroll)
 	while i < all.size():
-		room -= line_height(all[i])
+		var line: Array = all[i]
+		room -= line_height(line)
 		if room < 0:
 			break
 		i += 1
-	if i < all.size() and i - 1 > scroll and String(all[i - 1][0]) == "head":
+	if i < all.size() and i - 1 > scroll and str(all[i - 1][0]) == "head":
 		i -= 1
 	return i
 
@@ -617,7 +634,7 @@ static func max_scroll(page: int) -> int:
 static func scroll_for(page: int, slot: int, scroll: int) -> int:
 	var all := lines(page)
 	var at := line_of(page, slot)
-	var top := at - 1 if at > 0 and String(all[at - 1][0]) == "head" else at
+	var top := at - 1 if at > 0 and str(all[at - 1][0]) == "head" else at
 	scroll = mini(scroll, top)
 	while at >= shown_end(page, scroll) and scroll < at:
 		scroll += 1
@@ -630,13 +647,14 @@ static func scroll_for(page: int, slot: int, scroll: int) -> int:
 ## it does not count as shown.
 static func slot_in_view(page: int, slot: int, scroll: int) -> int:
 	var all := lines(page)
-	var rows: Array = []
+	var rows: Array[int] = []
 	for i in range(scroll, shown_end(page, scroll)):
-		if String(all[i][0]) != "row":
+		if str(all[i][0]) != "row":
 			continue
-		if i == scroll and i > 0 and String(all[i - 1][0]) == "head":
+		if i == scroll and i > 0 and str(all[i - 1][0]) == "head":
 			continue
-		rows.append(int(all[i][1]))
+		var row_slot: int = all[i][1]
+		rows.append(row_slot)
 	if rows.is_empty() or rows.has(slot):
 		return slot
 	return int(rows[0]) if slot < int(rows[0]) else int(rows[rows.size() - 1])
@@ -648,9 +666,11 @@ static func shown_rows(page: int, scroll: int) -> Array:
 	var out: Array = []
 	var y := LIST.position.y
 	for i in range(maxi(0, scroll), shown_end(page, scroll)):
-		if String(all[i][0]) == "row":
-			out.append([int(all[i][1]), y])
-		y += line_height(all[i])
+		var line: Array = all[i]
+		if str(line[0]) == "row":
+			var row_slot: int = line[1]
+			out.append([row_slot, y])
+		y += line_height(line)
 	return out
 
 
@@ -658,8 +678,10 @@ static func shown_rows(page: int, scroll: int) -> Array:
 ## empty rectangle when it is off screen.
 static func row_rect(page: int, slot: int, scroll: int) -> Rect2i:
 	for pair: Array in shown_rows(page, scroll):
-		if int(pair[0]) == slot:
-			return Rect2i(LIST.position.x, int(pair[1]), LIST.size.x, SET_ROW)
+		var pair_slot: int = pair[0]
+		if pair_slot == slot:
+			var pair_y: int = pair[1]
+			return Rect2i(LIST.position.x, pair_y, LIST.size.x, SET_ROW)
 	return Rect2i()
 
 
@@ -681,7 +703,8 @@ static func thumb_rect(page: int, scroll: int) -> Rect2i:
 	var furthest := 0
 	var last := max_scroll(page)
 	for i in all.size():
-		var h := line_height(all[i])
+		var line: Array = all[i]
+		var h := line_height(line)
 		total += h
 		if i < scroll:
 			before += h
@@ -699,7 +722,7 @@ static func scroll_at(page: int, share: float) -> int:
 
 
 ## A level setting's bar: [left x, segment width, segments].
-static func bar_shape(item: SessionStore.Setting) -> Array:
+static func bar_shape(item: SessionStore.Setting) -> Array[int]:
 	var steps := maxi(1, (item.high - item.low) / maxi(1, item.step))
 	var seg := maxi(1, (BAR_W - (steps - 1)) / steps)
 	var span := steps * seg + steps - 1
@@ -756,11 +779,13 @@ static func setup_hit(x: int, y: int, page: int, scroll: int) -> Dictionary:
 		return hit
 	var items: Array = pages[page][1]
 	for pair: Array in shown_rows(page, scroll):
-		if y < int(pair[1]) or y >= int(pair[1]) + SET_ROW:
+		var pair_y: int = pair[1]
+		if y < pair_y or y >= pair_y + SET_ROW:
 			continue
-		var item: SessionStore.Setting = items[int(pair[0])]
+		var pair_slot: int = pair[0]
+		var item: SessionStore.Setting = items[pair_slot]
 		hit["kind"] = "row"
-		hit["index"] = int(pair[0])
+		hit["index"] = pair_slot
 		if x >= VALUE_X - 2:
 			hit["direction"] = -1 if x < VALUE_MID else 1
 			if is_bar(item):
@@ -778,7 +803,7 @@ static func setup_hit(x: int, y: int, page: int, scroll: int) -> Dictionary:
 
 
 static func is_toggle(item: SessionStore.Setting) -> bool:
-	return item.choices.size() == 2 and String(item.choices[0]) == "OFF"
+	return item.choices.size() == 2 and str(item.choices[0]) == "OFF"
 
 
 ## The settings screen. `hover` names what the pointer is over ("back",
@@ -810,11 +835,12 @@ func draw_setup(
 	var y := LIST.position.y
 	for i in range(scroll, shown_end(page, scroll)):
 		var line: Array = all[i]
-		if String(line[0]) == "head":
-			_heading(c, String(line[1]), y)
+		if str(line[0]) == "head":
+			_heading(c, str(line[1]), y)
 		else:
-			var index := int(line[1])
-			_row(c, items[index], index, y, index == slot, options, binding)
+			var index: int = line[1]
+			var row_item: SessionStore.Setting = items[index]
+			_row(c, row_item, index, y, index == slot, options, binding)
 		y += line_height(line)
 	if shown_end(page, scroll) < all.size() and LIST.end.y - y >= 7:
 		# Room left under the last row: say there is more below.
@@ -862,7 +888,7 @@ func _tabs(c: Canvas, pages: Array, page: int, hover: String) -> void:
 			_hline(c, x + 1, TABS_Y + 2, w - 2, face.lightened(.18))
 		HUD.text(
 			c,
-			String(pages[j][0]),
+			str(pages[j][0]),
 			x + w / 2,
 			TABS_Y + (3 if on else 4),
 			"body",
@@ -900,7 +926,8 @@ func _row(
 		_hline(c, x, y + SET_ROW - 1, w, RUST_DEEP)
 		shell(c, x + 3 + _nudge(), y + 3)
 	HUD.text(c, item.label, x + LABEL_X - LIST.position.x, y + 2, "body", BRIGHT if on else PAINT)
-	_control(c, item, int(options.get(item.key, item.default_value)), y, on, binding)
+	var value: int = options.get(item.key, item.default_value)
+	_control(c, item, value, y, on, binding)
 
 
 ## The right-hand side of a row: a segmented bar for a level, a lamp for on
@@ -968,7 +995,8 @@ func _scrollbar(c: Canvas, page: int, scroll: int, hover: String) -> void:
 	var bottom := scroll < max_scroll(page)
 	for pair: Array in [[SCROLL_UP, top, "up"], [SCROLL_DOWN, bottom, "down"]]:
 		var rect: Rect2i = pair[0]
-		var hot := hover == String(pair[2]) and bool(pair[1])
+		var shown: bool = pair[1]
+		var hot := hover == str(pair[2]) and shown
 		c.fill_rect(rect.position.x, rect.position.y, rect.size.x, rect.size.y, DARK)
 		c.fill_rect(
 			rect.position.x + 1,
@@ -977,12 +1005,12 @@ func _scrollbar(c: Canvas, page: int, scroll: int, hover: String) -> void:
 			rect.size.y - 2,
 			RUST_HOT if hot else Color(70 / 255.0, 46 / 255.0, 30 / 255.0)
 		)
-		var ink := BRIGHT if bool(pair[1]) else DIM
+		var ink := BRIGHT if shown else DIM
 		var mid := rect.position.x + rect.size.x / 2
 		for d in 3:
 			var row := (
 				rect.position.y + 3 + d
-				if String(pair[2]) == "up"
+				if str(pair[2]) == "up"
 				else rect.position.y + rect.size.y - 4 - d
 			)
 			_hline(c, mid - d, row, d * 2 + 1, ink)
@@ -1029,7 +1057,7 @@ func _hint(c: Canvas, item: SessionStore.Setting, note: String, slot: int, count
 			true
 		)
 	var bottom := r.end.y - 6
-	var applies := String(NEXT_RUN.get(item.key, "CHANGES RIGHT AWAY"))
+	var applies := str(NEXT_RUN.get(item.key, "CHANGES RIGHT AWAY"))
 	if item is SessionStore.KeySetting:
 		applies = "ENTER OR CLICK, THEN THE NEW KEY"
 	HUD.text(

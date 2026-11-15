@@ -28,20 +28,19 @@ static func cel(e: Enemy, name: String) -> String:
 		_rows = {}
 	if _index_size == 0:
 		return name
-	var by_kind = _rows.get(e.kind)
-	if by_kind == null:
-		by_kind = {}
-		_rows[e.kind] = by_kind
-	var row = by_kind.get(name)
-	if row == null:
-		row = _row(e.kind, name)
-		by_kind[name] = row
+	if not _rows.has(e.kind):
+		_rows[e.kind] = {}
+	var by_kind: Dictionary = _rows[e.kind]
+	if not by_kind.has(name):
+		by_kind[name] = _row(e.kind, name)
+	var row: Array = by_kind[name]
 	if row.is_empty():
 		return name
 	var id := e.get_instance_id()
 	var wind := false
 	if row[0]:
-		var full := maxf(float(_wound.get(id, 0.0)), e.windup)
+		var was: float = _wound.get(id, 0.0)
+		var full := maxf(was, e.windup)
 		_wound[id] = full
 		wind = e.windup > full * WIND_SHARE and row[3] != ""
 	elif e.windup <= 0.0 and not _wound.is_empty():

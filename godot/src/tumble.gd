@@ -115,7 +115,7 @@ static func _sample(world: LevelData, x: float, y: float, here: float) -> float:
 ## furniture it is over and above (a counter, a crate stack).
 static func floor_at(world: LevelData, x: float, y: float, z: float) -> float:
 	var out := world.floor_under(x, y, z + .05)
-	for fixture in world.near_fixtures.get(Vector2i(int(x), int(y)), []):
+	for fixture: Variant in world.near_fixtures.get(Vector2i(int(x), int(y)), []):
 		var f: PackedFloat32Array = fixture
 		if f[0] < x and x < f[2] and f[1] < y and y < f[3] and f[4] <= z + .05 and f[4] > out:
 			out = f[4]
@@ -132,67 +132,87 @@ static func blocks(world: LevelData, x: float, y: float, z: float, feel: Feel) -
 
 ## Move `b` for dt. Returns WALL and FLOOR when it struck them hard enough to
 ## be heard, RESTED when it came to rest this step (the caller marks it so).
-static func step(world: LevelData, b, feel: Feel, dt: float) -> int:
+static func step(world: LevelData, b: Variant, feel: Feel, dt: float) -> int:
+	# Typed copies of the body's numbers (b is any body with these fields: a
+	# Body, a shot, a roller), written back before each return.
+	var x: float = b.x
+	var y: float = b.y
+	var z: float = b.z
+	var vx: float = b.vx
+	var vy: float = b.vy
+	var vz: float = b.vz
 	var out := 0
-	var under := floor_at(world, b.x, b.y, b.z - feel.lift) + feel.lift
-	var grounded: bool = b.z <= under + .005 and b.vz <= 0.0
+	var under := floor_at(world, x, y, z - feel.lift) + feel.lift
+	var grounded: bool = z <= under + .005 and vz <= 0.0
 	if grounded:
-		b.z = under
-		b.vz = 0.0
-		var down := slope(world, b.x, b.y) * feel.gravity * feel.pull
-		b.vx += down.x * dt
-		b.vy += down.y * dt
-		var speed: float = sqrt(b.vx * b.vx + b.vy * b.vy)
+		z = under
+		vz = 0.0
+		var down := slope(world, x, y) * feel.gravity * feel.pull
+		vx += down.x * dt
+		vy += down.y * dt
+		var speed: float = sqrt(vx * vx + vy * vy)
 		if speed > 0.0:
 			var left := maxf(0.0, speed - feel.drag * dt) / speed
-			b.vx *= left
-			b.vy *= left
+			vx *= left
+			vy *= left
 		if speed < .06 and down.length() <= feel.drag * .9:
-			b.vx = 0.0
-			b.vy = 0.0
+			vx = 0.0
+			vy = 0.0
+			_put(b, x, y, z, vx, vy, vz)
 			return RESTED
 	else:
-		b.vz -= feel.gravity * dt
-	var nx: float = b.x + b.vx * dt
-	if blocks(world, nx, b.y, b.z, feel):
-		if absf(b.vx) > .8:
+		vz -= feel.gravity * dt
+	var nx: float = x + vx * dt
+	if blocks(world, nx, y, z, feel):
+		if absf(vx) > .8:
 			out |= WALL
-		b.vx = -b.vx * feel.wall
-		b.vy *= .85
+		vx = -vx * feel.wall
+		vy *= .85
 	else:
-		b.x = nx
-	var ny: float = b.y + b.vy * dt
-	if blocks(world, b.x, ny, b.z, feel):
-		if absf(b.vy) > .8:
+		x = nx
+	var ny: float = y + vy * dt
+	if blocks(world, x, ny, z, feel):
+		if absf(vy) > .8:
 			out |= WALL
-		b.vy = -b.vy * feel.wall
-		b.vx *= .85
+		vy = -vy * feel.wall
+		vx *= .85
 	else:
-		b.y = ny
+		y = ny
 	if grounded:
 		# Off the edge of a step or a ledge, it falls from here.
-		var below := floor_at(world, b.x, b.y, b.z - feel.lift) + feel.lift
-		if below < b.z - .02:
-			b.vz = -.01
+		var below := floor_at(world, x, y, z - feel.lift) + feel.lift
+		if below < z - .02:
+			vz = -.01
 		else:
-			b.z = below
+			z = below
+		_put(b, x, y, z, vx, vy, vz)
 		return out
-	b.z += b.vz * dt
-	var roof: float = world.roof[world.cell(b.x, b.y)]
-	if roof > 0.0 and b.z > roof - feel.radius and b.vz > 0.0:
-		b.z = roof - feel.radius
-		b.vz = -b.vz * feel.bounce
-	var land := floor_at(world, b.x, b.y, b.z - feel.lift) + feel.lift
-	if b.z <= land:
-		b.z = land
-		if b.vz < -feel.hard:
+	z += vz * dt
+	var roof: float = world.roof[world.cell(x, y)]
+	if roof > 0.0 and z > roof - feel.radius and vz > 0.0:
+		z = roof - feel.radius
+		vz = -vz * feel.bounce
+	var land := floor_at(world, x, y, z - feel.lift) + feel.lift
+	if z <= land:
+		z = land
+		if vz < -feel.hard:
 			out |= FLOOR
-			b.vz = -b.vz * feel.bounce
-			b.vx *= feel.grip
-			b.vy *= feel.grip
+			vz = -vz * feel.bounce
+			vx *= feel.grip
+			vy *= feel.grip
 		else:
-			b.vz = 0.0
+			vz = 0.0
+	_put(b, x, y, z, vx, vy, vz)
 	return out
+
+
+static func _put(b: Variant, x: float, y: float, z: float, vx: float, vy: float, vz: float) -> void:
+	b.x = x
+	b.y = y
+	b.z = z
+	b.vx = vx
+	b.vy = vy
+	b.vz = vz
 
 
 ## A push away from (x, y) out to `reach`, strongest at the middle: the shove

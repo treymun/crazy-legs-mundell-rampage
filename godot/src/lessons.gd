@@ -14,16 +14,16 @@ static var taught := {}
 static var _loaded := false
 
 
-static func tick(game) -> void:
+static func tick(game: Game) -> void:
 	if not game.lessons or not game.hints or game.in_hub or game.message_until > game.clock:
 		return
 	if not _loaded:
 		_loaded = true
-		var parsed = JSON.parse_string(
+		var parsed: Variant = JSON.parse_string(
 			FileAccess.get_file_as_string(FILE) if FileAccess.file_exists(FILE) else ""
 		)
 		taught = parsed if parsed is Dictionary else {}
-	var p = game.player
+	var p: Player = game.player
 	var touch: bool = game.touch_aim
 	if not taught.has("move") and game.clock > 1.2:
 		_teach(
@@ -132,7 +132,7 @@ static func key(action: String) -> String:
 	return "?"
 
 
-static func _teach(game, id: String, text: String) -> void:
+static func _teach(game: Game, id: String, text: String) -> void:
 	taught[id] = true
 	game.message(text, 4.5)
 	var file := FileAccess.open(FILE, FileAccess.WRITE)
@@ -140,21 +140,22 @@ static func _teach(game, id: String, text: String) -> void:
 		file.store_string(JSON.stringify(taught))
 
 
-static func _threat_in_view(game) -> bool:
+static func _threat_in_view(game: Game) -> bool:
 	for e: Enemy in game.enemies:
 		if e.alive and e.hostile and e.alerted and e.player_seen:
 			return true
 	return false
 
 
-static func _has_food(game) -> bool:
+static func _has_food(game: Game) -> bool:
 	for name: String in HUD.ITEMS:
-		if int(game.inventory.get(name, 0)) > 0:
+		var have: int = game.inventory.get(name, 0)
+		if have > 0:
 			return true
 	return false
 
 
-static func _guns(game) -> int:
+static func _guns(game: Game) -> int:
 	var count := 0
 	for owned: bool in game.armory.owned:
 		if owned:

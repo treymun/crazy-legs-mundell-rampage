@@ -17,7 +17,7 @@ const MOST := 1.6
 ## if the gun in hand can get through, it goes on and hurts the first hostile
 ## or beast it meets within `max_range`. Returns true when one was hit.
 static func pierce(
-	game,
+	game: GameWorld,
 	ax: float,
 	ay: float,
 	slope: float,
@@ -29,13 +29,13 @@ static func pierce(
 ) -> bool:
 	var gun: int = game.armory.active
 	var how: Dictionary = Weapons.FIRING[gun]
-	var power := float(how.get("penetrate", 0.0))
+	var power: float = how.get("penetrate", 0.0)
 	if power <= 0.0:
 		return false
 	var through := crossing(game.world, game.player, ax, ay, slope, d_block, power, max_range)
 	if through.is_empty():
 		return false
-	var p = game.player
+	var p: Player = game.player
 	var entry: float = through[0]
 	var exit_d: float = through[1]
 	var at_exit := Vector3(p.x + ax * exit_d, p.y + ay * exit_d, p.eye + exit_d * slope)
@@ -48,14 +48,8 @@ static func pierce(
 	var reach: float = (target.x - p.x) * ax + (target.y - p.y) * ay
 	game.hit_point = Vector3(p.x + ax * reach, p.y + ay * reach, p.eye + reach * slope)
 	game.hit_from = Vector2(p.x, p.y)
-	target.hurt(
-		amount * float(how.get("penetrate_damage", .6)),
-		game,
-		false,
-		pressure,
-		null,
-		String(Weapons.NAMES[gun])
-	)
+	var share: float = how.get("penetrate_damage", .6)
+	target.hurt(amount * share, game, false, pressure, null, str(Weapons.NAMES[gun]))
 	return true
 
 
@@ -64,7 +58,7 @@ static func pierce(
 ## (too thick, too hard, the floor, the map's edge, out of range).
 static func crossing(
 	world: LevelData,
-	p,
+	p: Player,
 	ax: float,
 	ay: float,
 	slope: float,
@@ -103,9 +97,15 @@ static func crossing(
 ## The first hostile (or beast) along the shot past `from` that the round can
 ## reach unblocked from there.
 static func behind(
-	game, ax: float, ay: float, slope: float, from: float, max_range: float, spread: float
+	game: GameWorld,
+	ax: float,
+	ay: float,
+	slope: float,
+	from: float,
+	max_range: float,
+	spread: float
 ) -> Enemy:
-	var p = game.player
+	var p: Player = game.player
 	var world: LevelData = game.world
 	var ex: float = p.x + ax * from
 	var ey: float = p.y + ay * from

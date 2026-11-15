@@ -16,11 +16,13 @@ const LOW_HOT := Color(255 / 255.0, 113 / 255.0, 64 / 255.0)
 
 const ITEMS := ["rinds", "beer", "moonshine", "whiskey", "cowpie"]
 const ITEM_LABELS := ["PORK RINDS", "BEER", "MOONSHINE", "WHISKEY", "COW PIE"]
-const SHORT_LABELS := ["RINDS", "BEER", "SHINE", "WHSKY", "PIE"]
+const SHORT_LABELS: Array[String] = ["RINDS", "BEER", "SHINE", "WHSKY", "PIE"]
 ## BELT weapon order: revolver, shotgun, crossbow, rifle, ripsaw, armgun, tnt
 const BELT := [1, 2, 3, 4, 5, 6, 7]
 const TITLE_FIRST := 101
 const TITLE_ROW := 9
+const CountyRunFeature := preload("res://src/features/county_run.gd")
+const TallyFeature := preload("res://src/features/tally.gd")
 
 var assets: Assets
 var plate := PackedByteArray()
@@ -42,8 +44,8 @@ var dial_cache := {}
 func _init(p_assets: Assets) -> void:
 	assets = p_assets
 	var art := assets.art("status_panel")
-	plate_w = int(art["w"])
-	plate_h = int(art["h"])
+	plate_w = art["w"]
+	plate_h = art["h"]
 	plate.resize(plate_w * plate_h * 3)
 	var data: PackedByteArray = art["data"]
 	for i in plate_w * plate_h:
@@ -69,9 +71,9 @@ func _headed(bare: PackedByteArray, third: Array) -> PackedByteArray:
 		[third[0], 115, 13, "body"],
 		[third[1], 292, 14, "mini"]
 	]:
-		scratch.label(
-			String(entry[0]), int(entry[1]), int(entry[2]), String(entry[3]), INK, true, true
-		)
+		var lx: int = entry[1]
+		var ly: int = entry[2]
+		scratch.label(str(entry[0]), lx, ly, str(entry[3]), INK, true, true)
 	return scratch.pixels
 
 
@@ -112,18 +114,21 @@ static func banner(c: Canvas, value: String, top: int, limit := 288, color := IN
 	var key := [value, top, limit, color, style]
 	if c.gpu:
 		return _banner_texture(c, key, value, top, limit, color)
-	var kept = _banners.get(key)
+	var kept: Variant = _banners.get(key)
 	if kept != null:
-		_paste(c, kept)
-		return int(kept["bottom"])
+		var block: Dictionary = kept
+		_paste(c, block)
+		var bottom: int = block["bottom"]
+		return bottom
 	var lines := PixelType.wrap(value, limit - 14, style)
 	if lines.is_empty():
 		return top
 	var widest := 0
-	for line in lines:
+	for line: String in lines:
 		widest = maxi(widest, PixelType.text_width(line, style))
 	var width := widest + 14
-	var line_h := int(PixelType.style_of(style)[1]) + 3
+	var style_h: int = PixelType.style_of(style)[1]
+	var line_h := style_h + 3
 	var height := line_h * lines.size() + 4
 	var middle := Canvas.WIDTH / 2
 	panel(
@@ -168,17 +173,18 @@ static var text_style := "body"
 static func _banner_texture(
 	c: Canvas, key: Array, value: String, top: int, limit: int, color: Color
 ) -> int:
-	var kept = _banner_textures.get(key)
+	var kept: Variant = _banner_textures.get(key)
 	if kept == null:
 		var style := text_style
 		var lines := PixelType.wrap(value, limit - 14, style)
 		if lines.is_empty():
 			return top
 		var widest := 0
-		for line in lines:
+		for line: String in lines:
 			widest = maxi(widest, PixelType.text_width(line, style))
 		var width := widest + 14
-		var line_h := int(PixelType.style_of(style)[1]) + 3
+		var style_h: int = PixelType.style_of(style)[1]
+		var line_h := style_h + 3
 		var height := line_h * lines.size() + 4
 		var plate := Canvas.new(width + 1, height + 2)
 		plate.enable_mask()
@@ -208,8 +214,14 @@ static func _banner_texture(
 			)
 		}
 		_banner_textures[key] = kept
-	c.gpu_texture(kept["texture"], int(kept["x"]), top, int(kept["w"]), int(kept["h"]))
-	return int(kept["bottom"])
+	var shown: Dictionary = kept
+	var texture: Texture2D = shown["texture"]
+	var kx: int = shown["x"]
+	var kw: int = shown["w"]
+	var kh: int = shown["h"]
+	c.gpu_texture(texture, kx, top, kw, kh)
+	var bottom: int = shown["bottom"]
+	return bottom
 
 
 ## Lay a kept block of pixels back into the frame with whole-row copies.
@@ -271,8 +283,8 @@ func _scaled(art: Dictionary, box_w: int, box_h: int) -> Dictionary:
 	var cw := x1 - x0 + 1
 	var ch := y1 - y0 + 1
 	var scale := minf(float(box_w) / cw, float(box_h) / ch)
-	var tw := maxi(1, int(round(cw * scale)))
-	var th := maxi(1, int(round(ch * scale)))
+	var tw := maxi(1, int(roundf(cw * scale)))
+	var th := maxi(1, int(roundf(ch * scale)))
 	var sub := _crop(data, w, x0, y0, cw, ch)
 	var out := SmoothScale.rgba(sub, cw, ch, tw, th)
 	return {"w": tw, "h": th, "data": out}
@@ -295,7 +307,7 @@ static func _crop(
 
 func icon(name: String, box_w: int, box_h: int) -> Dictionary:
 	var key := "%s|%d|%d" % [name, box_w, box_h]
-	var cached = icons.get(key)
+	var cached: Variant = icons.get(key)
 	if cached != null:
 		return cached
 	var art := assets.art("item_" + name)
@@ -308,7 +320,8 @@ func blit_icon(c: Canvas, name: String, box_w: int, box_h: int, cx: int, cy: int
 	var image := icon(name, box_w, box_h)
 	var w: int = image["w"]
 	var h: int = image["h"]
-	c.blit_rgba(image["data"], w, h, cx - w / 2, cy - h / 2, "icon|%s|%d|%d" % [name, box_w, box_h])
+	var data: PackedByteArray = image["data"]
+	c.blit_rgba(data, w, h, cx - w / 2, cy - h / 2, "icon|%s|%d|%d" % [name, box_w, box_h])
 
 
 ## Port of HUD.make_ammo_icons(): seven 12x6 cartridge tokens.
@@ -323,7 +336,7 @@ func _build_ammo_icons() -> void:
 		var c := Canvas.new(12, 6)
 		c.enable_mask()
 		ammo_icons.append(c)
-	for i in [0, 3]:
+	for i: int in [0, 3]:
 		var c: Canvas = ammo_icons[i]
 		c.fill_rect(1, 2, 6, 3, brass)
 		c.line(1, 2, 6, 2, Color(210 / 255.0, 180 / 255.0, 123 / 255.0))
@@ -331,7 +344,7 @@ func _build_ammo_icons() -> void:
 		c.polygon([Vector2(7, 2), Vector2(9, 2), Vector2(11, 3), Vector2(9, 4), Vector2(7, 4)], tip)
 		if i == 3:
 			c.line(3, 1, 9, 1, lead)
-	for i in [1, 2, 6]:
+	for i: int in [1, 2, 6]:
 		var c: Canvas = ammo_icons[i]
 		c.fill_rect(2, 2, 8, 3, red)
 		c.line(1, 2, 1, 4, brass if i == 1 else silver)
@@ -345,7 +358,7 @@ func _build_ammo_icons() -> void:
 	c4.line(3, 1, 8, 1, silver)
 	c4.set_pixel(6, 3, 45, 39, 32)
 	var c5: Canvas = ammo_icons[5]
-	for x in [2, 5, 8]:
+	for x: int in [2, 5, 8]:
 		c5.fill_rect(x, 1, 2, 4, green)
 		c5.set_pixel(x, 1, 185, 174, 145)
 	ammo_rgba.clear()
@@ -514,7 +527,7 @@ func gauge(c: Canvas, x: int, y: int, caption: String, value: float) -> void:
 	c.round_rect(x + 5, y + 3, 34, 20, 5, Color(50 / 255.0, 43 / 255.0, 37 / 255.0))
 	c.ellipse(x + 6, y + 4, 32, 21, Color(189 / 255.0, 172 / 255.0, 132 / 255.0))
 	c.fill_rect(x + 5, y + 17, 34, 6, Color(50 / 255.0, 43 / 255.0, 37 / 255.0))
-	var colors: Array = [
+	var colors: Array[Color] = [
 		Color(167 / 255.0, 152 / 255.0, 57 / 255.0),
 		Color(109 / 255.0, 139 / 255.0, 68 / 255.0),
 		Color(163 / 255.0, 68 / 255.0, 48 / 255.0)
@@ -548,18 +561,18 @@ func gauge(c: Canvas, x: int, y: int, caption: String, value: float) -> void:
 			Color(69 / 255.0, 59 / 255.0, 42 / 255.0)
 		)
 	text(c, caption, x + 22, y + 19, "mini", INK, true, false)
-	for v in [3, 40]:
+	for v: int in [3, 40]:
 		c.circle(x + v, y + 22, 2, Color(72 / 255.0, 57 / 255.0, 42 / 255.0))
 		c.set_pixel(x + v - 1, y + 21, 170, 149, 102)
 	var a3 := deg_to_rad(153.0 - 126.0 * clampf(value, 0.0, 100.0) / 100.0)
 	var cx := x + 22
 	var cy := y + 17
-	var ex := cx + int(round(cos(a3) * 16.0))
-	var ey := cy - int(round(sin(a3) * 12.0))
+	var ex := cx + int(roundf(cos(a3) * 16.0))
+	var ey := cy - int(roundf(sin(a3) * 12.0))
 	c.line(cx, cy, ex, ey, Color(68 / 255.0, 45 / 255.0, 34 / 255.0), 2)
 	c.line(cx, cy, ex, ey, Color(235 / 255.0, 194 / 255.0, 116 / 255.0))
 	c.circle(cx, cy, 2, Color(102 / 255.0, 84 / 255.0, 57 / 255.0))
-	var lamps: Array = [
+	var lamps: Array[Color] = [
 		Color(162 / 255.0, 141 / 255.0, 66 / 255.0),
 		Color(127 / 255.0, 145 / 255.0, 68 / 255.0),
 		Color(184 / 255.0, 108 / 255.0, 55 / 255.0),
@@ -583,7 +596,7 @@ static func _tri(c: Canvas, p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, 
 
 
 static func _ring(ox: int, oy: int, a: float, radius: float) -> Vector2:
-	return Vector2(ox + 22.0 + round(cos(a) * radius), oy + 17.0 - round(sin(a) * radius * .80))
+	return Vector2(ox + 22.0 + roundf(cos(a) * radius), oy + 17.0 - roundf(sin(a) * radius * .80))
 
 
 ## Copy an RGB8 image into the canvas (the dials are drawn on transparent masks
@@ -623,9 +636,10 @@ static func _blit_rgb(c: Canvas, src: PackedByteArray, w: int, h: int, x: int, y
 ## up (`top`), so it is never hidden by them. Ahead it points down at the
 ## way; past the side of the view it lies at the edge pointing round.
 func objective_pin(c: Canvas, game: Game, top := 5) -> void:
-	var target = game.objective_target()
-	if target == null:
+	var found: Variant = game.objective_target()
+	if found == null:
 		return
+	var target: Vector2 = found
 	var p: Player = game.player
 	var dx: float = target[0] - p.x
 	var dy: float = target[1] - p.y
@@ -634,11 +648,12 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 		return
 	# Point along the walk there, and count its steps, not the crow's flight.
 	var way: Array = game.objective_route(target)
-	if int(way[1]) >= 0:
+	var steps: int = way[1]
+	if steps >= 0:
 		var lead: Vector2 = way[0]
 		dx = lead.x - p.x
 		dy = lead.y - p.y
-		distance = float(way[1])
+		distance = float(steps)
 	var rel := fposmod(atan2(dy, dx) - p.view_angle() + PI, TAU) - PI
 	# Ahead across the middle of the view; anything past about seventy degrees
 	# waits at the edge, turned to point the way round.
@@ -654,7 +669,8 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 		var arrow := _pin_texture("arrow|%d" % shape, PIN_BOX, PIN_BOX, rel, "")
 		c.gpu_texture(arrow, x - PIN_X, y - PIN_Y, PIN_BOX, PIN_BOX)
 		var w := PixelType.text_width(label, "mini") + 10
-		var h := int(PixelType.style_of("mini")[1]) + 4
+		var style_h: int = PixelType.style_of("mini")[1]
+		var h := style_h + 4
 		var plate := _pin_texture("plate|" + label, w + 1, h + 2, rel, label)
 		c.gpu_texture(plate, x - w / 2, y + 14, w + 1, h + 2)
 		return
@@ -735,7 +751,8 @@ func _pin_arrow(c: Canvas, x: int, y: int, rel: float) -> void:
 func _pin_plate(c: Canvas, x: int, py: int, label: String) -> void:
 	var shine := Canvas.rgb(244, 194, 116)
 	var w := PixelType.text_width(label, "mini") + 10
-	var h := int(PixelType.style_of("mini")[1]) + 4
+	var style_h: int = PixelType.style_of("mini")[1]
+	var h := style_h + 4
 	var px := x - w / 2
 	c.panel(px, py, w, h, Canvas.rgb(40, 29, 23), Canvas.rgb(141, 102, 65))
 	c.set_pixel(px + 2, py + h / 2, 196, 168, 120)
@@ -828,7 +845,7 @@ func draw(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 
 func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	var team_bar: Array = TacticalScreens.bar_state(game) if Modes.is_tactical(game) else []
-	var county = CountyMode.run(game)
+	var county: CountyRunFeature = CountyMode.run(game)
 	var shown := plate_5v5 if not team_bar.is_empty() else plate
 	if county != null:
 		shown = plate_county
@@ -863,14 +880,10 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 		var cy := View.VIEW + 28 + 3 * i
 		if game.keys.has(name):
 			var image := icon(name, 9, 12)
-			c.blit_rgba(
-				image["data"],
-				image["w"],
-				image["h"],
-				cx - image["w"] / 2,
-				cy - image["h"] / 2,
-				"icon|%s|9|12" % name
-			)
+			var data: PackedByteArray = image["data"]
+			var iw: int = image["w"]
+			var ih: int = image["h"]
+			c.blit_rgba(data, iw, ih, cx - iw / 2, cy - ih / 2, "icon|%s|9|12" % name)
 		else:
 			c.circle(cx, cy, 2, Color(68 / 255.0, 53 / 255.0, 43 / 255.0), false)
 			c.line(cx, cy, cx, cy + 4, Color(68 / 255.0, 53 / 255.0, 43 / 255.0))
@@ -924,7 +937,7 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 ## (snips, the bomb) where the gut and drunk meters go, the throwables in the
 ## pocket.
 func _draw_team_bar(c: Canvas, game: Game, s: Array) -> void:
-	var vest := int(s[0])
+	var vest: int = s[0]
 	text(
 		c,
 		str(vest) if vest > 0 else "NONE",
@@ -935,17 +948,21 @@ func _draw_team_bar(c: Canvas, game: Game, s: Array) -> void:
 		true,
 		true
 	)
-	if bool(s[1]):
+	var hat: bool = s[1]
+	if hat:
 		text(c, "+HAT", 115, View.VIEW + 35, "mini", AMBER, true, false)
 	_draw_face(c, game.face_name())
-	text(c, String(s[5]), 222, View.VIEW + 10, "body", s[6], true, true)
-	text(c, String(s[7]), 222, View.VIEW + 21, "mini", INK, true, false)
+	var side_ink: Color = s[6]
+	text(c, str(s[5]), 222, View.VIEW + 10, "body", side_ink, true, true)
+	text(c, str(s[7]), 222, View.VIEW + 21, "mini", INK, true, false)
 	var gear: Array = []
-	if bool(s[3]):
+	var bomb: bool = s[3]
+	var snips: bool = s[2]
+	if bomb:
 		gear.append("BOMB")
-	if bool(s[2]):
+	if snips:
 		gear.append("SNIPS")
-	var flash := bool(s[3]) and int(game.clock * 2.0) % 2 == 0
+	var flash := bomb and int(game.clock * 2.0) % 2 == 0
 	if not gear.is_empty():
 		text(
 			c,
@@ -957,14 +974,14 @@ func _draw_team_bar(c: Canvas, game: Game, s: Array) -> void:
 			true,
 			false
 		)
-	var thrown := int(s[4])
+	var thrown: int = s[4]
 	text(c, str(thrown), 292, View.VIEW + 24, "body", AMBER if thrown else INK, true, true)
 
 
 ## What COUNTY RUN's part of the bar shows (its key: drawn again only when
 ## one of these changes). [] outside a run.
-static func county_bar_state(game) -> Array:
-	var f = CountyMode.run(game)
+static func county_bar_state(game: Game) -> Array:
+	var f: CountyRunFeature = CountyMode.run(game)
 	if f == null:
 		return []
 	var need := CountyData.xp_to_next(f.level)
@@ -974,7 +991,7 @@ static func county_bar_state(game) -> Array:
 ## COUNTY RUN's part of the status bar: the armor in the third box, the face,
 ## the three gun slots (the one in hand lit, each with its rounds) where the
 ## gut and drunk meters go, and the level with its XP in the pocket.
-func _draw_county_bar(c: Canvas, game: Game, f) -> void:
+func _draw_county_bar(c: Canvas, game: Game, f: CountyRunFeature) -> void:
 	var armor := int(f.armor)
 	text(
 		c,
@@ -989,7 +1006,9 @@ func _draw_county_bar(c: Canvas, game: Game, f) -> void:
 	_draw_face(c, game.face_name())
 	var a: Weapons.Armory = game.armory
 	for i in 3:
-		var gun := int(f.slots[i]) if i < f.slots.size() else -1
+		var gun := -1
+		if i < f.slots.size():
+			gun = f.slots[i]
 		var r := Rect2i(173, View.VIEW + 6 + i * 11, 96, 10)
 		var on := gun >= 0 and gun == a.active
 		LobbyScreens.box(
@@ -1059,7 +1078,7 @@ func _draw_face(c: Canvas, face_name: String) -> void:
 		if x1 >= x0 and y1 >= y0:
 			var cw := x1 - x0 + 1
 			var ch := y1 - y0 + 1
-			var tw := maxi(1, int(round(cw * 35.0 / ch)))
+			var tw := maxi(1, int(roundf(cw * 35.0 / ch)))
 			var sub := _crop(data, w, x0, y0, cw, ch)
 			scaled = {
 				"w": tw,
@@ -1069,15 +1088,13 @@ func _draw_face(c: Canvas, face_name: String) -> void:
 				"y": 18 - 35 / 2
 			}
 		face_cache[face_name] = scaled
-	if int(scaled["w"]) > 0:
-		c.blit_rgba(
-			scaled["data"],
-			int(scaled["w"]),
-			int(scaled["h"]),
-			129 + int(scaled["x"]),
-			View.VIEW + 7 + int(scaled["y"]),
-			"face|" + face_name
-		)
+	var sw: int = scaled["w"]
+	if sw > 0:
+		var pix: PackedByteArray = scaled["data"]
+		var sh: int = scaled["h"]
+		var sx: int = scaled["x"]
+		var sy: int = scaled["y"]
+		c.blit_rgba(pix, sw, sh, 129 + sx, View.VIEW + 7 + sy, "face|" + face_name)
 
 
 # ---------------------------------------------------------------- menus
@@ -1121,7 +1138,7 @@ func intermission(c: Canvas, game: Game) -> void:
 		return
 	_blit_art(c, "title_backdrop", 0, 0)
 	panel(c, 10, 9, 211, 177)
-	var ys := [20, 38]
+	var ys: Array[int] = [20, 38]
 	for i in mini(2, game.level.heading.size()):
 		text(c, game.level.heading[i], 21, ys[i], "heading", AMBER)
 	text(c, game.level.title, 21, 61, "body", INK)
@@ -1139,13 +1156,13 @@ func intermission(c: Canvas, game: Game) -> void:
 	var gap: int = [18, 18, 18, 18, 16, 13, 12][rows.size()]
 	var bar := mini(15, gap - 1)
 	# The rows come down one at a time with a thud, then the ribbon (tally.gd).
-	var show = game.features.get("tally")
+	var show: TallyFeature = game.features.get("tally")
 	var shown: int = show.rows_shown(rows.size()) if show != null else rows.size() + 1
 	for i in mini(shown, rows.size()):
 		var y := 79 + i * gap
 		c.fill_rect(21, y, 187, bar, Color(30 / 255.0, 21 / 255.0, 17 / 255.0))
-		text(c, String(rows[i][0]), 26, y + int((bar - 7) / 2.0), "body", INK)
-		text(c, String(rows[i][1]), 202, y + int((bar - 7) / 2.0), "body", AMBER, false, true, true)
+		text(c, str(rows[i][0]), 26, y + int((bar - 7) / 2.0), "body", INK)
+		text(c, str(rows[i][1]), 202, y + int((bar - 7) / 2.0), "body", AMBER, false, true, true)
 	var ending_y: int = [142, 142, 142, 142, 146, 149, 152][rows.size()]
 	text(c, game.level.ending, 22, ending_y, "body", AMBER)
 	if show != null and shown > rows.size():
@@ -1169,7 +1186,7 @@ func _ribbon(c: Canvas, word: String) -> void:
 	text(c, "RANKED", 270, 61, "mini", gold, true)
 	text(c, word, 270, 72, "body", INK, true)
 	# The ribbon's two tails.
-	for x in [248, 288]:
+	for x: int in [248, 288]:
 		c.fill_rect(x, 90, 8, 14, red)
 		c.fill_rect(x + 2, 104, 4, 3, red)
 
@@ -1183,4 +1200,7 @@ func campaign_report(c: Canvas, game: Game) -> void:
 
 func _blit_art(c: Canvas, name: String, x: int, y: int) -> void:
 	var art := assets.art(name)
-	c.blit_rgba(art["data"], art["w"], art["h"], x, y, "art|" + name)
+	var data: PackedByteArray = art["data"]
+	var w: int = art["w"]
+	var h: int = art["h"]
+	c.blit_rgba(data, w, h, x, y, "art|" + name)

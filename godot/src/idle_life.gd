@@ -23,10 +23,12 @@ static var NOTICE: Dictionary = ModeData.get_value("idle_life", "notice")
 
 
 ## Everything in the level an activity can be about: [name, place].
-static func things(game) -> Array:
+static func things(game: Game) -> Array:
 	var out: Array = []
-	for p in game.level.props:
-		out.append([String(p[0]), Vector2(float(p[1]), float(p[2]))])
+	for p: Array in game.level.props:
+		var px: float = p[1]
+		var py: float = p[2]
+		out.append([str(p[0]), Vector2(px, py)])
 	for b: LevelData.Billboard in game.level.billboards:
 		out.append([b.image, Vector2(b.x, b.y)])
 	for s: LevelData.Scenery in game.world.scenery:
@@ -38,16 +40,17 @@ static func things(game) -> Array:
 ## before it notices anything, from `about` (things()): [activity, the
 ## thing's place] or [] for nothing. Aliens probe a critter (a pig, a
 ## chicken) or their specimens.
-static func pick(game, e: Enemy, at: Vector2, index: int, about: Array) -> Array:
+static func pick(game: Game, e: Enemy, at: Vector2, index: int, about: Array) -> Array:
 	var best := ""
 	var best_at := Vector2.INF
 	var near := REACH * REACH
 	var alien := Enemy.PLASMA.has(e.kind)
 	for row: Array in about:
-		var d := at.distance_squared_to(row[1])
+		var place: Vector2 = row[1]
+		var d := at.distance_squared_to(place)
 		if d >= near:
 			continue
-		var what := _activity(String(row[0]))
+		var what := _activity(str(row[0]))
 		if what == "" or (what == "probing" and not alien):
 			continue
 		near = d
@@ -73,29 +76,29 @@ static func _activity(name: String) -> String:
 	for row: Array in BY_THINGS:
 		for piece: String in row[1]:
 			if name.contains(piece):
-				return String(row[0])
+				return str(row[0])
 	return ""
 
 
 ## The share of its notice range a busy hand keeps.
-static func notice(e: Enemy, game) -> float:
-	var m = e.mind
+static func notice(e: Enemy, game: Game) -> float:
+	var m: Squad.Mind = e.mind
 	if m.activity == "" or not at_it(e):
 		return 1.0
-	var keep := float(NOTICE.get(m.activity, 1.0))
+	var keep: float = NOTICE.get(m.activity, 1.0)
 	return lerpf(keep, 1.0, float(game.difficulty) * .2)
 
 
 static func at_it(e: Enemy) -> bool:
-	var m = e.mind
+	var m: Squad.Mind = e.mind
 	return absf(e.x - m.spot.x) < .5 and absf(e.y - m.spot.y) < .5
 
 
 ## Its activity this tick (it has one and has noticed nothing): back to its
 ## place if it wandered (an investigation), then facing the thing, swaying,
 ## the feeder pacing a step and back. False when it has none.
-static func act(e: Enemy, dt: float, game) -> bool:
-	var m = e.mind
+static func act(e: Enemy, dt: float, game: Game) -> bool:
+	var m: Squad.Mind = e.mind
 	if m.activity == "":
 		return false
 	var t: float = e.pose + m.phase
@@ -123,11 +126,13 @@ static func act(e: Enemy, dt: float, game) -> bool:
 
 ## The cel its activity shows now, seen from `observer` (only when it faces
 ## them: the cels are drawn from the front), or 0 for its plain standing cel.
-static func frame(e: Enemy, observer) -> Variant:
-	var m = e.mind
+static func frame(e: Enemy, observer: Variant) -> Variant:
+	var m: Squad.Mind = e.mind
 	if m.activity == "" or not at_it(e) or observer == null:
 		return 0
-	var bearing := atan2(float(observer[1]) - e.y, float(observer[0]) - e.x)
+	var ox: float = observer[0]
+	var oy: float = observer[1]
+	var bearing := atan2(oy - e.y, ox - e.x)
 	if absf(Enemy.angle_delta(bearing, e.angle)) > PI / 3.0:
 		return 0
 	var t: float = e.pose + m.phase

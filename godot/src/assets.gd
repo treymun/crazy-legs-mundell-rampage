@@ -86,8 +86,8 @@ var _music_cache: Dictionary = {}
 func _init() -> void:
 	var idx := _json("res://data/index.json")
 	tile_names = PackedStringArray()
-	for name in idx.get("tiles", []):
-		tile_names.append(String(name))
+	for name: Variant in idx.get("tiles", []):
+		tile_names.append(str(name))
 	tile_index = {}
 	for i in tile_names.size():
 		tile_index[tile_names[i]] = i
@@ -106,8 +106,8 @@ func _init() -> void:
 	_art_file = FileAccess.open("res://assets_gen/art.bin", FileAccess.READ)
 
 	var sfx := _json("res://assets_gen/sfx_index.json")
-	sfx_rate = int(sfx.get("rate", 22050))
-	sfx_qoa = String(sfx.get("codec", "")) == "qoa"
+	sfx_rate = sfx.get("rate", 22050)
+	sfx_qoa = str(sfx.get("codec", "")) == "qoa"
 	sfx_index = sfx.get("cues", {})
 	_sfx_file = FileAccess.open("res://assets_gen/sfx.bin", FileAccess.READ)
 
@@ -138,12 +138,13 @@ static func _json(path: String) -> Dictionary:
 	if text.is_empty():
 		push_error("missing json " + path)
 		return {}
-	var parsed = JSON.parse_string(text)
+	var parsed: Variant = JSON.parse_string(text)
 	return parsed if parsed is Dictionary else {}
 
 
 func tile(name: String) -> int:
-	return int(tile_index.get(name, 0))
+	var at: int = tile_index.get(name, 0)
+	return at
 
 
 ## Which chapter file a picture belongs in ("" for art.bin).
@@ -158,24 +159,25 @@ static func art_home(name: String) -> String:
 ## True when every picture this level needs is here (a browser build may still
 ## be fetching a chapter's pack).
 func chapter_ready(level_id: String) -> bool:
-	var file_name := String(CHAPTER_ART.get(level_id, ""))
+	var file_name := str(CHAPTER_ART.get(level_id, ""))
 	return file_name == "" or FileAccess.file_exists("res://assets_gen/" + file_name)
 
 
 ## Returns {w, h, data:PackedByteArray} with RGBA8 pixels.
 func art(name: String) -> Dictionary:
-	var cached = _art_cache.get(name)
+	var cached: Variant = _art_cache.get(name)
 	if cached != null:
 		return cached
-	var info = art_index.get(name)
+	var found: Variant = art_index.get(name)
 	var blank := {"w": 1, "h": 1, "data": PackedByteArray([0, 0, 0, 0])}
-	if info == null:
+	if found == null:
 		push_warning("missing art " + name)
 		_art_cache[name] = blank
 		return blank
+	var info: Dictionary = found
 	var source := _art_file
 	if info.has("file"):
-		var file_name := String(info["file"])
+		var file_name := str(info["file"])
 		source = _art_files.get(file_name)
 		if source == null:
 			source = FileAccess.open("res://assets_gen/" + file_name, FileAccess.READ)
@@ -183,11 +185,13 @@ func art(name: String) -> Dictionary:
 				# Not fetched yet: blank for now, and asked again next time.
 				return blank
 			_art_files[file_name] = source
-	source.seek(int(info["offset"]))
-	var w := int(info["w"])
-	var h := int(info["h"])
+	var offset: int = info["offset"]
+	source.seek(offset)
+	var w: int = info["w"]
+	var h: int = info["h"]
 	# Each image is stored deflated (tools/pack_assets.gd) and inflated on first use.
-	var packed := source.get_buffer(int(info["size"]))
+	var size: int = info["size"]
+	var packed := source.get_buffer(size)
 	var data := packed.decompress(w * h * 4, FileAccess.COMPRESSION_DEFLATE)
 	var result := {"w": w, "h": h, "data": data}
 	_art_cache[name] = result
@@ -208,7 +212,8 @@ func faded_art(base: String, keep: float) -> String:
 	var name := "%s~%d" % [base, step]
 	if not _art_cache.has(name):
 		var whole := art(base)
-		var data: PackedByteArray = whole["data"].duplicate()
+		var pixels: PackedByteArray = whole["data"]
+		var data := pixels.duplicate()
 		for i in range(3, data.size(), 4):
 			data[i] = data[i] * step / 8
 		_art_cache[name] = {"w": whole["w"], "h": whole["h"], "data": data}
@@ -219,13 +224,14 @@ func faded_art(base: String, keep: float) -> String:
 ## b]), made the first time it is asked for: a chapter's tough guy
 ## (src/variants.gd).
 func tinted_art(base: String, tint: Array) -> String:
-	var name := "%s~%d.%d.%d" % [base, int(tint[0] * 100), int(tint[1] * 100), int(tint[2] * 100)]
+	var r: float = tint[0]
+	var g: float = tint[1]
+	var b: float = tint[2]
+	var name := "%s~%d.%d.%d" % [base, int(r * 100), int(g * 100), int(b * 100)]
 	if not _art_cache.has(name):
 		var whole := art(base)
-		var data: PackedByteArray = whole["data"].duplicate()
-		var r := float(tint[0])
-		var g := float(tint[1])
-		var b := float(tint[2])
+		var pixels: PackedByteArray = whole["data"]
+		var data := pixels.duplicate()
 		for i in range(0, data.size(), 4):
 			data[i] = mini(255, int(data[i] * r))
 			data[i + 1] = mini(255, int(data[i + 1] * g))
@@ -242,36 +248,40 @@ func put_art(name: String, w: int, h: int, data: PackedByteArray) -> void:
 
 ## Returns {w, h, data:RGB8} for one of the 512x116 panoramas.
 func sky(name: String) -> Dictionary:
-	var info = sky_index.get(name)
-	if info == null:
-		info = sky_index.get("sky")
+	var found: Variant = sky_index.get(name)
+	if found == null:
+		found = sky_index.get("sky")
 		name = "sky"
-	if info == null:
+	if found == null:
 		return {"w": 1, "h": 1, "data": PackedByteArray([0, 0, 0])}
-	var w := int(info["w"])
-	var h := int(info["h"])
-	var offset := int(info["offset"])
+	var info: Dictionary = found
+	var w: int = info["w"]
+	var h: int = info["h"]
+	var offset: int = info["offset"]
 	return {"w": w, "h": h, "name": name, "data": sky_blob.slice(offset, offset + w * h * 3)}
 
 
 func cue(name: String) -> AudioStreamWAV:
-	var cached = _sfx_cache.get(name)
+	var cached: Variant = _sfx_cache.get(name)
 	if cached != null:
 		return cached
-	var info = sfx_index.get(name)
-	if info == null:
+	var found: Variant = sfx_index.get(name)
+	if found == null:
 		if name in MADE_CUES:
 			_sfx_cache[name] = _made_cue(name)
 			return _sfx_cache[name]
 		return null
-	_sfx_file.seek(int(info["offset"]))
-	var frames := int(info["frames"])
+	var info: Dictionary = found
+	var offset: int = info["offset"]
+	_sfx_file.seek(offset)
+	var frames: int = info["frames"]
 	var stream := AudioStreamWAV.new()
 	stream.mix_rate = sfx_rate
 	stream.stereo = false
 	if sfx_qoa:
 		stream.format = AudioStreamWAV.FORMAT_QOA
-		stream.data = _sfx_file.get_buffer(int(info["size"]))
+		var size: int = info["size"]
+		stream.data = _sfx_file.get_buffer(size)
 	else:
 		stream.format = AudioStreamWAV.FORMAT_16_BITS
 		stream.data = _sfx_file.get_buffer(frames * 2)
@@ -280,13 +290,14 @@ func cue(name: String) -> AudioStreamWAV:
 
 
 func track(name: String) -> AudioStreamOggVorbis:
-	var cached = _music_cache.get(name)
+	var cached: Variant = _music_cache.get(name)
 	if cached != null:
 		return cached
-	var info = music_index.get(name)
-	if info == null:
+	var found: Variant = music_index.get(name)
+	if found == null:
 		return null
-	var file_name := String(info.get("file", "music.bin"))
+	var info: Dictionary = found
+	var file_name := str(info.get("file", "music.bin"))
 	var handle: FileAccess = _music_files.get(file_name)
 	if handle == null:
 		var path := "res://assets_gen/" + file_name
@@ -296,8 +307,10 @@ func track(name: String) -> AudioStreamOggVorbis:
 		if handle == null:
 			return null
 		_music_files[file_name] = handle
-	handle.seek(int(info["offset"]))
-	var raw := handle.get_buffer(int(info["length"]))
+	var offset: int = info["offset"]
+	handle.seek(offset)
+	var length: int = info["length"]
+	var raw := handle.get_buffer(length)
 	var stream := AudioStreamOggVorbis.load_from_buffer(raw)
 	if stream == null:
 		push_warning("bad ogg " + name)
@@ -405,12 +418,13 @@ static func _county_cue(name: String, t: float, hiss: float) -> float:
 			)
 		"county_level":
 			var v := 0.0
+			var chord: Array[float] = [392.0, 494.0, 587.0]
 			for k in 3:
-				v += _pluck(t - k * .11, [392.0, 494.0, 587.0][k])
+				v += _pluck(t - k * .11, chord[k])
 			return v * .45
 		_:
 			var v := 0.0
-			var notes := [392.0, 440.0, 494.0, 587.0, 659.0, 784.0]
+			var notes: Array[float] = [392.0, 440.0, 494.0, 587.0, 659.0, 784.0]
 			for k in notes.size():
 				v += _pluck(t - k * .07, notes[k]) * .8
 			var hold := t - .5

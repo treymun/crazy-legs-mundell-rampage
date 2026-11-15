@@ -58,7 +58,7 @@ static var tool_intros := false
 
 
 ## Whether a boss's entrance may hold this game: real play only.
-static func intros_on(game) -> bool:
+static func intros_on(game: Game) -> bool:
 	# The entrance holds the whole world: a single-player nicety only.
 	if not game.lessons or game.players.size() > 1:
 		return false
@@ -72,11 +72,12 @@ static func is_boss(e: Enemy) -> bool:
 
 ## The one BossMoves for a kind (plain BossMoves when it has no file).
 static func moves(kind: String) -> BossMoves:
-	var found = _made.get(kind)
+	var found: BossMoves = _made.get(kind)
 	if found == null:
-		var script = MOVES.get(kind)
+		var script: GDScript = MOVES.get(kind)
 		if script == null and Enemy.DEFS.has(kind):
-			script = MOVES.get(String(Enemy.DEFS[kind].get("brain", kind)))
+			var def: Dictionary = Enemy.DEFS[kind]
+			script = MOVES.get(str(def.get("brain", kind)))
 		found = script.new() if script != null else BossMoves.new()
 		_made[kind] = found
 	return found
@@ -92,7 +93,7 @@ static func set_moves(kind: String, other: BossMoves) -> void:
 
 
 static func title(e: Enemy) -> String:
-	return String(Enemy.BOSS_TITLES.get(e.kind, "BOSS"))
+	return str(Enemy.BOSS_TITLES.get(e.kind, "BOSS"))
 
 
 ## The phase its health puts it in: 1, 2 under half, 3 under a fifth; Maw's
@@ -109,8 +110,8 @@ static func phase_of(e: Enemy) -> int:
 ## Whether the player is in the boss's arena (the boss bar shows, the boss
 ## loop plays, its entrance can start): within ARENA of it, or anywhere in
 ## the arena Hickston gives the sheriff and Jerry (BossFight.in_arena_at).
-static func in_arena(game, e: Enemy) -> bool:
-	var p = game.player
+static func in_arena(game: Game, e: Enemy) -> bool:
+	var p: Player = game.player
 	if (
 		game.level.rescue
 		and (e == game.boss or e == game.jerry)
@@ -123,10 +124,10 @@ static func in_arena(game, e: Enemy) -> bool:
 ## Whether anyone up is in the boss's arena (its fight begins for the whole
 ## party when the first of them walks in; the bar and the loop stay the local
 ## player's own, in_arena).
-static func party_in_arena(game, e: Enemy) -> bool:
+static func party_in_arena(game: Game, e: Enemy) -> bool:
 	if game.players.size() == 1:
 		return in_arena(game, e)
-	var was = game.player
+	var was: Player = game.player
 	var found := false
 	for q: Player in game.players:
 		if q.health > 0:
@@ -139,13 +140,13 @@ static func party_in_arena(game, e: Enemy) -> bool:
 
 
 ## Enemy.tick's hook: true when the boss's own moves took the tick.
-static func tick(e: Enemy, dt: float, game) -> bool:
+static func tick(e: Enemy, dt: float, game: Game) -> bool:
 	return moves(e.kind).tick(e, dt, game)
 
 
 ## How much the player's hit on a boss counts (Enemy.hurt, before the damage
 ## is taken): its weak_spot() at game.hit_point; 1 when the point is not known.
-static func weak(e: Enemy, game, how: String) -> float:
+static func weak(e: Enemy, game: Game, how: String) -> float:
 	var hit: Vector3 = game.hit_point
 	if hit == Vector3.INF:
 		return 1.0
@@ -155,14 +156,16 @@ static func weak(e: Enemy, game, how: String) -> float:
 	return times
 
 
-static func _weak_feedback(e: Enemy, game, hit: Vector3) -> void:
+static func _weak_feedback(e: Enemy, game: Game, hit: Vector3) -> void:
 	_sparks(game, hit.x, hit.y, hit.z, "spark", 7, 2.6)
 	# Once an instant (a load of buckshot is ten hits), then a call now and then.
-	if game.clock - float(e.get_meta("weak_at", -10.0)) > .12:
+	var weak_at: float = e.get_meta("weak_at", -10.0)
+	if game.clock - weak_at > .12:
 		e.set_meta("weak_at", game.clock)
 		game.sound_at("ricochet_tin", hit.x, hit.y, .8)
 		game.events.boss_weak_hit.emit(e)
-	if game.clock - float(e.get_meta("weak_call", -100.0)) >= WEAK_CALL_GAP:
+	var weak_call: float = e.get_meta("weak_call", -100.0)
+	if game.clock - weak_call >= WEAK_CALL_GAP:
 		e.set_meta("weak_call", game.clock)
 		if game.barks.enabled:
 			game.callout = "WEAK SPOT!"
@@ -171,7 +174,7 @@ static func _weak_feedback(e: Enemy, game, hit: Vector3) -> void:
 
 ## A big hit (Enemy.hurt, after the stun it gives): stumbles back from where it
 ## came, its wind-up cancelled, the bar flashes. True when it staggered.
-static func stagger(e: Enemy, game, from_x: float, from_y: float) -> bool:
+static func stagger(e: Enemy, game: Game, from_x: float, from_y: float) -> bool:
 	var m := moves(e.kind)
 	if e.struck_sum < m.stagger_hit(e) or game.clock < e.stagger_ready:
 		return false
@@ -207,26 +210,26 @@ static func stagger(e: Enemy, game, from_x: float, from_y: float) -> bool:
 
 
 ## Enemy.hurt's check after each hit: each phase it has newly reached, once.
-static func phase_check(e: Enemy, game) -> void:
+static func phase_check(e: Enemy, game: Game) -> void:
 	var now := phase_of(e)
 	while e.boss_phase < now:
 		e.boss_phase += 1
 		_new_phase(e, game, e.boss_phase)
 
 
-static func _new_phase(e: Enemy, game, phase: int) -> void:
+static func _new_phase(e: Enemy, game: Game, phase: int) -> void:
 	if phase == 3 and e.brain != "maw":
 		_desperate(e, game)
-	var fight = game.features.get("boss_fight")
+	var fight: Object = game.features.get("boss_fight")
 	if fight != null and phase >= 2 and game.boss_backup and e.brain != "maw":
 		# Maw hollers for her own (features/mothership.gd).
-		fight.backup(e, phase)
+		fight.call("backup", e, phase)
 	moves(e.kind).phase_changed(e, game, phase)
 	game.events.boss_phase.emit(e, phase)
 
 
 ## Under a fifth of its health: a holler, a stagger, sparks, and the last of it.
-static func _desperate(e: Enemy, game) -> void:
+static func _desperate(e: Enemy, game: Game) -> void:
 	e.desperate_at = game.clock
 	e.stun = maxf(e.stun, .7)
 	e.windup = 0.0
@@ -251,11 +254,11 @@ static func pulse(e: Enemy) -> float:
 
 ## Looks-only sparks off the feature's own dice (no game.rng).
 static func _sparks(
-	game, x: float, y: float, z: float, kind: String, count: int, speed: float
+	game: Game, x: float, y: float, z: float, kind: String, count: int, speed: float
 ) -> void:
-	var fight = game.features.get("boss_fight")
+	var fight: Object = game.features.get("boss_fight")
 	if fight != null:
-		fight.sparks(x, y, z, kind, count, speed)
+		fight.call("sparks", x, y, z, kind, count, speed)
 
 
 # ------------------------------------------------------------------ entrance
@@ -264,8 +267,8 @@ static func _sparks(
 ## One tick of a boss's entrance (game.gd tick, instead of the world's): the
 ## world holds, the view eases round to the boss, and a fresh press of fire or
 ## jump (or use: game_world.gd interact) ends it.
-static func hold(game, dt: float, controls) -> void:
-	var p = game.player
+static func hold(game: Game, dt: float, controls: Game.Controls) -> void:
+	var p: Player = game.player
 	game.boss_hold = maxf(0.0, game.boss_hold - dt)
 	var pressed: bool = controls.fire or controls.alt_fire or controls.jump
 	if not pressed:
@@ -285,7 +288,7 @@ static func hold(game, dt: float, controls) -> void:
 
 ## The name coming down over the view (game_view.gd, over the world and the
 ## gun): a fair ribbon across the screen, the title slammed on it.
-static func draw_intro(game, c: Canvas) -> void:
+static func draw_intro(game: GameView, c: Canvas) -> void:
 	var e: Enemy = game.boss_hold_of
 	if game.boss_hold <= 0.0 or e == null:
 		return

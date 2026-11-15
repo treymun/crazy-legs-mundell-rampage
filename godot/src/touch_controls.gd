@@ -53,7 +53,7 @@ var alt := false
 var jump := false
 var crouch := false
 var counts := {}
-var tap = null
+var tap: Variant = null
 var stick_center := Vector2.ZERO
 var stick_radius := 1.0
 var buttons: Array = []
@@ -134,15 +134,18 @@ func _load_custom() -> void:
 	custom = {}
 	if not FileAccess.file_exists(LAYOUT_FILE):
 		return
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(LAYOUT_FILE))
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(LAYOUT_FILE))
 	if not parsed is Dictionary:
 		return
-	for role in parsed:
-		var pair = parsed[role]
-		if (role == "stick" or LABELS.has(role)) and pair is Array and pair.size() == 2:
-			custom[String(role)] = Vector2(
-				clampf(float(pair[0]), .03, .97), clampf(float(pair[1]), .03, .97)
-			)
+	var table: Dictionary = parsed
+	for role: Variant in table:
+		var pair: Variant = table[role]
+		if (role == "stick" or LABELS.has(role)) and pair is Array:
+			var two: Array = pair
+			if two.size() == 2:
+				var px: float = two[0]
+				var py: float = two[1]
+				custom[str(role)] = Vector2(clampf(px, .03, .97), clampf(py, .03, .97))
 
 
 func _save_custom() -> void:
@@ -193,19 +196,22 @@ func _edit_touch(event: InputEventScreenTouch) -> void:
 
 
 func _edit_drag(event: InputEventScreenDrag) -> void:
-	var role = _moving.get(event.index)
+	var role: Variant = _moving.get(event.index)
 	if role == null:
 		return
 	var at := (event.position - area.position) / area.size
-	custom[String(role)] = Vector2(clampf(at.x, .03, .97), clampf(at.y, .03, .97))
+	custom[str(role)] = Vector2(clampf(at.x, .03, .97), clampf(at.y, .03, .97))
 	layout(area, true)
 	queue_redraw()
 
 
 func _hit_button(pos: Vector2) -> String:
 	for button: Array in buttons:
-		if pos.distance_to(button[1]) <= float(button[2]):
-			return String(button[0])
+		var center: Vector2 = button[1]
+		var radius: float = button[2]
+		if pos.distance_to(center) <= radius:
+			var name_: String = button[0]
+			return name_
 	return ""
 
 
@@ -239,16 +245,21 @@ func touch(event: InputEventScreenTouch) -> void:
 			if hit != "":
 				role = hit
 				if TAPPED.has(hit):
-					counts[hit] = int(counts.get(hit, 0)) + 1
+					var had: int = counts.get(hit, 0)
+					counts[hit] = had + 1
 			elif pos.x > area.position.x + area.size.x * .42:
 				role = "drag"
 		fingers[event.index] = {"role": role, "start": pos, "last": pos, "time": clock}
 	else:
-		var state = fingers.get(event.index)
+		var found: Variant = fingers.get(event.index)
 		fingers.erase(event.index)
-		if state != null:
-			var moved: float = (state["last"] as Vector2).distance_to(state["start"])
-			if moved <= area.size.x * TAP_SLOP and clock - float(state["time"]) <= TAP_TIME:
+		if found != null:
+			var state: Dictionary = found
+			var last: Vector2 = state["last"]
+			var start: Vector2 = state["start"]
+			var moved: float = last.distance_to(start)
+			var began: float = state["time"]
+			if moved <= area.size.x * TAP_SLOP and clock - began <= TAP_TIME:
 				tap = state["start"]
 			if state["role"] == "stick" and not _held("stick"):
 				stick = Vector2.ZERO
@@ -259,9 +270,10 @@ func drag(event: InputEventScreenDrag) -> void:
 	if editing:
 		_edit_drag(event)
 		return
-	var state = fingers.get(event.index)
-	if state == null:
+	var found: Variant = fingers.get(event.index)
+	if found == null:
 		return
+	var state: Dictionary = found
 	if state["role"] == "stick":
 		stick = _stick(event.position)
 	elif state["role"] == "drag":
@@ -321,13 +333,14 @@ func state() -> Dictionary:
 
 
 func consume(role: String) -> bool:
-	var value := int(counts.get(role, 0)) > 0
+	var had: int = counts.get(role, 0)
+	var value := had > 0
 	counts[role] = 0
 	return value
 
 
-func consume_tap():
-	var value = tap
+func consume_tap() -> Variant:
+	var value: Variant = tap
 	tap = null
 	return value
 
@@ -355,15 +368,15 @@ func _draw() -> void:
 	for state: Dictionary in fingers.values():
 		pressed[state["role"]] = true
 	for button: Array in buttons:
-		var role := String(button[0])
+		var role: String = button[0]
 		var center: Vector2 = button[1]
-		var radius := float(button[2])
+		var radius: float = button[2]
 		var hot := pressed.has(role)
 		var fill := Color8(232, 182, 96, 148) if hot else Color8(29, 24, 20, 108)
 		var edge := Color8(255, 226, 160, 210) if hot else Color8(231, 197, 138, 128)
 		draw_circle(center, radius, fill)
 		draw_arc(center, radius, 0.0, TAU, 48, edge, 2.0, true)
-		var label := String(LABELS[role])
+		var label: String = LABELS[role]
 		var size := font_size if radius >= font_size * 1.9 else maxi(9, int(radius * .52))
 		var extent := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size)
 		var ink := Color8(255, 242, 214, 230 if hot else 180)
@@ -403,7 +416,7 @@ func _draw_editing(font: Font) -> void:
 		var box: Rect2 = pair[0]
 		draw_rect(box, Color8(64, 42, 28, 220))
 		draw_rect(box, Color8(255, 226, 160, 230), false, 2.0)
-		var word := String(pair[1])
+		var word: String = pair[1]
 		var extent := font.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 		draw_string(
 			font,
