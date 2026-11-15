@@ -219,7 +219,7 @@ static func pool_fed(slot: int) -> bool:
 static func muzzle_anchors() -> Dictionary:
 	if _anchors.is_empty():
 		var raw := FileAccess.get_file_as_string("res://assets_gen/weapon_anchors.json")
-		var parsed = JSON.parse_string(raw)
+		var parsed: Variant = JSON.parse_string(raw)
 		_anchors = parsed if parsed is Dictionary else {}
 	return _anchors
 
@@ -276,13 +276,14 @@ class Armory:
 			reserve.append(30 if i == Weapons.REVOLVER else 0)
 		active = start_slot
 
-	func tick(dt: float, game) -> void:
+	func tick(dt: float, game: GameState) -> void:
 		for slot in Weapons.COUNT:
 			if loaded[slot] > Weapons.CAPACITY[slot]:
 				# An older save's magazine: put the rounds back in the pool.
 				var extra: int = loaded[slot] - Weapons.CAPACITY[slot]
 				loaded[slot] = Weapons.CAPACITY[slot]
-				reserve[slot] = mini(Weapons.MAX_RESERVE[slot], reserve[slot] + extra)
+				var most: int = Weapons.MAX_RESERVE[slot]
+				reserve[slot] = mini(most, reserve[slot] + extra)
 		cooldown = maxf(0.0, cooldown - dt)
 		recoil = maxf(0.0, recoil - 5.2 * dt)
 		flash = maxf(0.0, flash - dt)
@@ -300,31 +301,29 @@ class Armory:
 				var cycle_cues: Array = Weapons.RELOAD_AUDIO[active]
 				var cycle_beats: Array = Weapons.RELOAD_BEATS[active]
 				for k in 3:
-					if was < float(cycle_beats[k]) and now >= float(cycle_beats[k]):
-						game.sound.play(String(cycle_cues[k]), .78)
+					if was < cycle_beats[k] and now >= cycle_beats[k]:
+						game.sound.play(str(cycle_cues[k]), .78)
 		if fuse > 0.0:
 			fuse -= dt
 			if fuse <= 0.0:
 				fuse = 0.0
 				cooldown = Weapons.FIRE_TIME[Weapons.DYNAMITE]
 				shot_age = 0.0
-				game.throw_dynamite(0.0)
+				(game as GameCombat).throw_dynamite(0.0)
 		var how: Dictionary = Weapons.FIRING[active]
-		if (
-			String(how.get("fire", "")) == "melee"
-			and swing_hit
-			and shot_age >= float(how["swing_at"])
-		):
+		if str(how.get("fire", "")) == "melee" and swing_hit and shot_age >= how["swing_at"]:
 			swing_hit = false
-			var p = game.player
+			var p: Player = game.player
 			var table: Array = Weapons.MELEE[active]
 			var damage: int = table[1 if game.sprint else 0]
-			var reached: bool = game.hitscan(
+			var melee_range: float = how["melee_range"]
+			var melee_width: float = how["melee_width"]
+			var reached: bool = (game as GameCombat).hitscan(
 				p.view_angle(),
 				(p.pitch + p.sway) / View.base_focal,
 				damage,
-				float(how["melee_range"]),
-				float(how["melee_width"])
+				melee_range,
+				melee_width
 			)
 			if reached:
 				game.sound.play(
@@ -333,22 +332,24 @@ class Armory:
 		rifle_heat = maxf(0.0, rifle_heat - dt * 1.8)
 		lower = maxf(0.0, minf(1.0, lower + dt * (5.5 if holstered else -5.5)))
 		if reload > 0.0:
-			var before: float = 1.0 - reload / float(Weapons.RELOAD_TIME[active])
+			var reload_time: float = Weapons.RELOAD_TIME[active]
+			var before: float = 1.0 - reload / reload_time
 			reload -= dt
-			var progress: float = 1.0 - reload / float(Weapons.RELOAD_TIME[active])
+			var progress: float = 1.0 - reload / reload_time
 			var cues: Array = Weapons.RELOAD_AUDIO.get(active, ["eject", "load", "close"])
 			var beats: Array = Weapons.RELOAD_BEATS[active]
 			for k in 3:
-				if before < float(beats[k]) and progress >= float(beats[k]):
-					game.sound.play(String(cues[k]), .78)
+				if before < beats[k] and progress >= beats[k]:
+					game.sound.play(str(cues[k]), .78)
 			if reload <= 0.0:
 				var i := active
-				var count: int = mini(Weapons.CAPACITY[i] - loaded[i], reserve[i])
+				var cap: int = Weapons.CAPACITY[i]
+				var count: int = mini(cap - loaded[i], reserve[i])
 				loaded[i] += count
 				reserve[i] -= count
 				reload = 0.0
 
-	func select(slot: int, game) -> void:
+	func select(slot: int, game: GameWorld) -> void:
 		if slot != active and owned[slot]:
 			if fuse > 0.0:
 				game.message("THROW THAT STICK FIRST!", .85)
@@ -364,46 +365,48 @@ class Armory:
 			tnt_latched = false
 			holstered = false
 			switch = .23
-			game.sound.play("equip_" + String(Weapons.NAMES[slot]), .61)
-			game.message(String(Weapons.LABELS[slot]), .95)
+			game.sound.play("equip_" + str(Weapons.NAMES[slot]), .61)
+			game.message(str(Weapons.LABELS[slot]), .95)
 		elif not owned[slot]:
 			game.message("YOU AIN'T GOT THAT ONE.", .85)
 
-	func pickup(slot: int, game) -> bool:
+	func pickup(slot: int, game: GameWorld) -> bool:
 		var fresh := not owned[slot]
 		owned[slot] = true
-		add_ammo(slot, Weapons.PICKUP_RESERVE[slot])
+		var amount: int = Weapons.PICKUP_RESERVE[slot]
+		add_ammo(slot, amount)
 		if fresh:
 			loaded[slot] = Weapons.CAPACITY[slot]
 			if auto_switch:
 				select(slot, game)
 			else:
-				game.message(String(Weapons.LABELS[slot]), 1.35)
+				game.message(str(Weapons.LABELS[slot]), 1.35)
 		return fresh
 
 	func add_ammo(slot: int, amount: int) -> bool:
 		var old := reserve[slot]
-		reserve[slot] = mini(Weapons.MAX_RESERVE[slot], old + amount)
+		var most: int = Weapons.MAX_RESERVE[slot]
+		reserve[slot] = mini(most, old + amount)
 		return reserve[slot] > old
 
-	func cycle(direction: int, game) -> void:
+	func cycle(direction: int, game: GameWorld) -> void:
 		for offset in range(1, Weapons.COUNT):
 			var slot := posmod(active + offset * direction, Weapons.COUNT)
 			if owned[slot]:
 				select(slot, game)
 				return
 
-	func start_reload(game) -> bool:
+	func start_reload(game: GameState) -> bool:
 		var i := active
 		if Weapons.CAPACITY[i] and reload <= 0.0 and reserve[i] and loaded[i] < Weapons.CAPACITY[i]:
 			reload = Weapons.RELOAD_TIME[i]
 			grinding = false
-			game.sound.play(String(Weapons.OPEN_AUDIO[i]), .85)
+			game.sound.play(str(Weapons.OPEN_AUDIO[i]), .85)
 			game.events.gun_reloading.emit(i)
 			return true
 		return false
 
-	func fire(game, both := false) -> void:
+	func fire(game: Game, both := false) -> void:
 		var i := active
 		if holstered:
 			holstered = false
@@ -430,7 +433,7 @@ class Armory:
 			var started: bool = not pool and auto_reload and start_reload(game)
 			if not started and empty == 0.0:
 				empty = .34
-				game.sound.play("dry_" + String(Weapons.NAMES[i]))
+				game.sound.play("dry_" + str(Weapons.NAMES[i]))
 				game.message("DRY AS A BONE.", .7)
 				game.barks.say(game, "empty")
 			return
@@ -452,7 +455,8 @@ class Armory:
 		flash = (.10 if spent == 2 else .072) if i in Weapons.MUZZLE_GUNS else 0.0
 		grinding = grind
 		last_spent = spent
-		game.shake = minf(1.0, game.shake + float(Weapons.SHAKE.get(i, 0.0)) * maxf(1, spent))
+		var shake_by: float = Weapons.SHAKE.get(i, 0.0)
+		game.shake = minf(1.0, game.shake + shake_by * maxf(1, spent))
 		game.events.shot_fired.emit(i)
 		shot_age = 0.0
 		if pool:
@@ -466,22 +470,23 @@ class Armory:
 		elif i == Weapons.RIVETER and spent == 2:
 			cue = "riveter_pair"
 		else:
-			cue = String(Weapons.NAMES[i])
+			cue = str(Weapons.NAMES[i])
 		if not grind:
 			if i in Weapons.MUZZLE_GUNS and i != Weapons.ARMGUN:
 				game.report(cue)
 			else:
 				game.sound.play(cue)
-		var player = game.player
+		var player: Player = game.player
 		var aim: float = player.view_angle()
 		var slope: float = (player.pitch + player.sway) / View.base_focal
 		var how: Dictionary = Weapons.FIRING[i]
-		if bool(how.get("assist", false)):
+		if how.get("assist", false):
 			var assisted: Array = game.assisted_aim(aim, slope)
 			aim = assisted[0]
 			slope = assisted[1]
-		game.wake_nearby(Weapons.SHOT_NOISE[i], player.x, player.y)
-		var mode := String(how.get("fire", ""))
+		var noise: float = Weapons.SHOT_NOISE[i]
+		game.wake_nearby(noise, player.x, player.y)
+		var mode := str(how.get("fire", ""))
 		if grind:
 			game.hitscan(aim, slope, Weapons.GRIND_DAMAGE, 1.45, .36)
 		elif mode == "melee":
@@ -489,9 +494,14 @@ class Armory:
 		elif mode == "hitscan":
 			var tuned := Modes.shot_spread(game, player, i, how, rifle_heat)
 			var spread: Vector2 = tuned[0]
+			var reach: float = tuned[1]
+			var amount: float = Weapons.DAMAGE.get(i, 0)
+			var width: float = how["width"]
+			var pressure: bool = how.get("pressure", false)
 			var offsets: Array = [0.0]
 			if spent == 2 and how.has("pair_spread"):
-				offsets = [-float(how["pair_spread"]), float(how["pair_spread"])]
+				var pair_spread: float = how["pair_spread"]
+				offsets = [-pair_spread, pair_spread]
 			for offset: float in offsets:
 				var yaw := aim + offset
 				var tilt := slope
@@ -499,66 +509,52 @@ class Armory:
 					yaw += game.rng.randf_range(-spread.x, spread.x)
 				if spread.y > 0.0:
 					tilt += game.rng.randf_range(-spread.y, spread.y)
-				game.hitscan(
-					yaw,
-					tilt,
-					Weapons.DAMAGE.get(i, 0),
-					tuned[1],
-					float(how["width"]),
-					true,
-					bool(how.get("pressure", false))
-				)
+				game.hitscan(yaw, tilt, amount, reach, width, true, pressure)
 			if how.has("climb"):
-				player.pitch = minf(
-					53.0,
-					(
-						player.pitch
-						+ float(how["climb"])
-						+ rifle_heat * float(how.get("climb_heat", 0.0))
-					)
-				)
-				rifle_heat = minf(1.0, rifle_heat + float(how.get("heat_gain", 0.0)))
+				var climb: float = how["climb"]
+				var climb_heat: float = how.get("climb_heat", 0.0)
+				var heat_gain: float = how.get("heat_gain", 0.0)
+				player.pitch = minf(53.0, player.pitch + climb + rifle_heat * climb_heat)
+				rifle_heat = minf(1.0, rifle_heat + heat_gain)
 		elif mode == "pellets":
 			var tuned := Modes.shot_spread(game, player, i, how, 0.0)
 			var spread: Vector2 = tuned[0]
-			var sparks := int(how.get("spark_pellets", 0))
-			for pellet in int(how.get("pellets", Weapons.SHOTGUN_PELLETS)) * spent:
+			var sparks: int = how.get("spark_pellets", 0)
+			var pellets: int = how.get("pellets", Weapons.SHOTGUN_PELLETS)
+			var pellet_damage: int = how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)
+			var reach: float = tuned[1]
+			var width: float = how["width"]
+			for pellet in pellets * spent:
 				var dx: float = game.rng.randf_range(-spread.x, spread.x)
 				var dy: float = game.rng.randf_range(-spread.y, spread.y)
-				game.hitscan(
-					aim + dx,
-					slope + dy,
-					int(how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)),
-					tuned[1],
-					float(how["width"]),
-					pellet < sparks
-				)
+				game.hitscan(aim + dx, slope + dy, pellet_damage, reach, width, pellet < sparks)
 		elif mode == "projectile":
-			var speed := float(how["shot_speed"])
-			var reach := float(how.get("shot_reach", .23))
+			var speed: float = how["shot_speed"]
+			var reach: float = how.get("shot_reach", .23)
 			var base: float = (
 				game.world.stand(player)
-				if String(how.get("shot_from", "eye")) == "floor"
+				if str(how.get("shot_from", "eye")) == "floor"
 				else player.eye
 			)
+			var height: float = how.get("shot_height", 0.0)
+			var lift: float = how.get("shot_lift", 0.0)
+			var aimed: bool = how.get("shot_aimed", true)
+			var damage: int = Weapons.DAMAGE.get(i, 0)
+			var life: float = how.get("shot_life", -1.0)
 			game.launch(
 				player.x + cos(aim) * reach,
 				player.y + sin(aim) * reach,
-				base + float(how.get("shot_height", 0.0)),
+				base + height,
 				aim,
 				speed,
-				String(how["shot"]),
-				(
-					(slope * speed + float(how.get("shot_lift", 0.0)))
-					if bool(how.get("shot_aimed", true))
-					else 0.0
-				),
+				str(how["shot"]),
+				(slope * speed + lift) if aimed else 0.0,
 				false,
-				Weapons.DAMAGE.get(i, 0),
-				float(how.get("shot_life", -1.0))
+				damage,
+				life
 			)
 
-	func release_dynamite(game) -> void:
+	func release_dynamite(game: Game) -> void:
 		if fuse > 0.0:
 			game.throw_dynamite(fuse)
 			fuse = 0.0
@@ -571,11 +567,12 @@ class Armory:
 
 	func pose() -> String:
 		if reload > 0.0:
-			var progress: float = 1.0 - reload / float(Weapons.RELOAD_TIME[active])
+			var reload_time: float = Weapons.RELOAD_TIME[active]
+			var progress: float = 1.0 - reload / reload_time
 			var beats: Array = Weapons.RELOAD_BEATS[active]
 			var index := 0
-			for beat in beats:
-				if progress >= float(beat):
+			for beat: float in beats:
+				if progress >= beat:
 					index += 1
 			var pose_name: String = Weapons.RELOAD_POSES[index]
 			if (
@@ -621,19 +618,20 @@ class Armory:
 		elif active == Weapons.RIPSAW and grinding and shot_age < .19:
 			return "grind_hot" if int(shot_age * 40) % 2 else "grind"
 		elif (
-			shot_age < float(Weapons.KICK_HOLD[active])
+			shot_age < Weapons.KICK_HOLD[active]
 			or (active in [Weapons.CROSSBOW, Weapons.RIPSAW] and not reserve[active])
 		):
 			return "kick"
-		elif active in Weapons.CYCLE_GUNS and shot_age < float(Weapons.FIRE_TIME[active]):
+		elif active in Weapons.CYCLE_GUNS and shot_age < Weapons.FIRE_TIME[active]:
 			if not reserve[active]:
 				return "open"
-			var hold := float(Weapons.KICK_HOLD[active])
-			var span := float(Weapons.FIRE_TIME[active]) - hold
+			var hold: float = Weapons.KICK_HOLD[active]
+			var fire_time: float = Weapons.FIRE_TIME[active]
+			var span := fire_time - hold
 			var cycle := (shot_age - hold) / span
 			var stage := 0
-			for beat in Weapons.RELOAD_BEATS[active]:
-				if cycle >= float(beat):
+			for beat: float in Weapons.RELOAD_BEATS[active]:
+				if cycle >= beat:
 					stage += 1
 			return Weapons.RELOAD_POSES[stage]
 		elif (
@@ -651,12 +649,14 @@ class Armory:
 	## Where the gun in hand is held on the view this frame: walking, the raise,
 	## a reload's sway, the lowered view, and (player.weapon_lag, from
 	## features/feel.gd's springs) its weight, its kick and its jolts.
-	func _hold(player, bob: float, offset: int) -> Vector2:
+	func _hold(player: Player, bob: float, offset: int) -> Vector2:
 		var i := active
 		var gait: float = player.motion * (0.35 if player.air else 1.0) * bob
 		var lift_amt := minf(1.0, switch / .23)
-		lift_amt = lift_amt * lift_amt * (3.0 - 2.0 * lift_amt) * float(Weapons.RAISE_DEPTH[i])
-		var reload_sway := sin(PI * reload / Weapons.RELOAD_TIME[i]) if reload else 0.0
+		var depth: float = Weapons.RAISE_DEPTH[i]
+		lift_amt = lift_amt * lift_amt * (3.0 - 2.0 * lift_amt) * depth
+		var reload_time: float = Weapons.RELOAD_TIME[i]
+		var reload_sway := sin(PI * reload / reload_time) if reload else 0.0
 		if i in Weapons.CYCLE_GUNS and reserve[i] > 0:
 			var cycle_span: float = Weapons.FIRE_TIME[i]
 			if shot_age < cycle_span:
@@ -690,24 +690,26 @@ class Armory:
 
 	## Works out where the muzzle of the gun in hand is on the view now, before
 	## it is drawn, for what is drawn under it (weapon_fx.gd draw_view).
-	func place_muzzle(player, bob: float, offset: int) -> void:
+	func place_muzzle(player: Player, bob: float, offset: int) -> void:
 		var i := active
 		if not i in Weapons.MUZZLE_GUNS:
 			return
-		var s: float = float(Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE))
+		var s: float = Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE)
 		var held := _hold(player, bob, offset)
-		var anchor := Vector3i(Weapons.MUZZLES[i])
-		var table: Dictionary = Weapons.muzzle_anchors().get(String(Weapons.NAMES[i]), {})
+		var anchor: Vector3i = Weapons.MUZZLES[i]
+		var table: Dictionary = Weapons.muzzle_anchors().get(str(Weapons.NAMES[i]), {})
 		var pose_name := pose()
 		if table.has(pose_name):
 			var pair: Array = table[pose_name]
-			anchor = Vector3i(int(round(float(pair[0]))), int(round(float(pair[1]))), anchor.z)
+			var px: float = pair[0]
+			var py: float = pair[1]
+			anchor = Vector3i(roundi(px), roundi(py), anchor.z)
 		Weapons.muzzle_at = Weapons.view_point(held.x, held.y, float(anchor.x), float(anchor.y), s)
 
 	func draw(
 		frame: PackedByteArray,
 		assets: Assets,
-		player,
+		player: Player,
 		light: float,
 		bob: float,
 		flashes: float,
@@ -731,10 +733,10 @@ class Armory:
 			canvas.gpu_item(Canvas.ITEM_NORMAL_VIEW)
 		var i := active
 		var pose_name := pose()
-		var s: float = float(Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE))
+		var s: float = Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE)
 		var name := "gun_%s_%s" % [Weapons.NAMES[i], pose_name]
-		var level := clampi(int(round((.68 + .38 * light + flash * flashes * 1.6) * 16)), 11, 18)
-		_warm(assets, clampi(int(round((.68 + .38 * light) * 16)), 11, 18))
+		var level := clampi(roundi((.68 + .38 * light + flash * flashes * 1.6) * 16), 11, 18)
+		_warm(assets, clampi(roundi((.68 + .38 * light) * 16), 11, 18))
 		var key := name + "|" + str(level)
 		# Blood on the crowbar or sling blade (melee_blood.gd): its own cached copy.
 		var wet := MeleeBlood.stage(self, i)
@@ -754,8 +756,8 @@ class Armory:
 		var held := _hold(player, bob, offset)
 		var x := held.x
 		var y := held.y
-		var bx := int(round(x + Weapons.VIEW_PIVOT.x * (1.0 - s)))
-		var by := int(round(y + Weapons.VIEW_PIVOT.y * (1.0 - s) + Weapons.VIEW_SINK))
+		var bx := roundi(x + Weapons.VIEW_PIVOT.x * (1.0 - s))
+		var by := roundi(y + Weapons.VIEW_PIVOT.y * (1.0 - s) + Weapons.VIEW_SINK)
 		var source: String = Weapons.NAMES[i]
 		var rim: Dictionary = rim_cache.get(key, {})
 		if rim.is_empty():
@@ -772,14 +774,16 @@ class Armory:
 			Weapons.under = true
 
 		if i in Weapons.MUZZLE_GUNS and shot_age < .62 and lower < .2 and reload == 0.0:
-			var anchor := Vector3i(Weapons.MUZZLES[i])
+			var anchor: Vector3i = Weapons.MUZZLES[i]
 			var table: Dictionary = Weapons.muzzle_anchors().get(source, {})
 			if table.has(pose_name):
 				var pair: Array = table[pose_name]
-				anchor = Vector3i(int(round(float(pair[0]))), int(round(float(pair[1]))), anchor.z)
+				var px: float = pair[0]
+				var py: float = pair[1]
+				anchor = Vector3i(roundi(px), roundi(py), anchor.z)
 			var style: Array = Weapons.MUZZLE_STYLE[i]
-			var prefix := String(style[0])
-			var smoke_scale := float(style[2])
+			var prefix := str(style[0])
+			var smoke_scale: float = style[2]
 			Weapons.muzzle_at = Weapons.view_point(x, y, float(anchor.x), float(anchor.y), s)
 			if flash > 0.0 and flashes > 0.0:
 				GunFlash.draw(
@@ -799,7 +803,7 @@ class Armory:
 				# Smoke leaves the muzzle, rises, spreads and thins over half a second.
 				var drift := shot_age - .048
 				var index2 := clampi(int(drift * 9.0), 0, 3)
-				var size2 := int(round((20.0 + drift * 60.0) * smoke_scale))
+				var size2 := roundi((20.0 + drift * 60.0) * smoke_scale)
 				var cloud_name := "fx_%s_%d" % ["steam" if prefix == "steam" else "smoke", index2]
 				var cloud := assets.art(cloud_name)
 				var spot := Weapons.view_point(
@@ -825,13 +829,15 @@ class Armory:
 			# Rim first, one pixel high, then the cel: two cached textures.
 			var rim_w: int = rim["w"]
 			var rim_h: int = rim["h"]
+			var rim_data: PackedByteArray = rim["data"]
 			canvas.gpu_texture(
-				Canvas.texture("gunrim|" + key, rim["data"], rim_w, rim_h), bx, by - 1, rim_w, rim_h
+				Canvas.texture("gunrim|" + key, rim_data, rim_w, rim_h), bx, by - 1, rim_w, rim_h
 			)
 			var cel_w: int = image["w"]
 			var cel_h: int = image["h"]
+			var cel_data: PackedByteArray = image["data"]
 			canvas.gpu_texture(
-				Canvas.texture("gun|" + key, image["data"], cel_w, cel_h), bx, by, cel_w, cel_h
+				Canvas.texture("gun|" + key, cel_data, cel_w, cel_h), bx, by, cel_w, cel_h
 			)
 		elif not lay:
 			# Rim first, one pixel high, then the cel.
@@ -841,8 +847,8 @@ class Armory:
 		if i == Weapons.RIPSAW and grinding and flashes > 0.0 and shot_age < .135 and lower < .2:
 			var anchors: Dictionary = Weapons.muzzle_anchors().get(source, {})
 			var centre: Array = anchors.get(pose_name, [155.0, 79.0])
-			var ax := float(centre[0])
-			var ay := float(centre[1])
+			var ax: float = centre[0]
+			var ay: float = centre[1]
 			var origin := Weapons.view_point(x, y, ax, ay, s)
 			for spark in 6:
 				var spread := (spark - 2.5) * 4.0
@@ -858,7 +864,7 @@ class Armory:
 				)
 		if i == Weapons.DYNAMITE and fuse > 0.0 and lower < .25:
 			var spot2 := Weapons.view_point(x, y, 144.0, 137.0, s)
-			var width := maxi(1, int(round(32.0 * fuse / Weapons.DYNAMITE_FUSE * s)))
+			var width := maxi(1, roundi(32.0 * fuse / Weapons.DYNAMITE_FUSE * s))
 			_fill(
 				frame,
 				int(roundf(spot2.x)),
@@ -885,7 +891,9 @@ class Armory:
 			var t := shot_age - .016
 			var table2: Dictionary = Weapons.muzzle_anchors().get("rifle", {})
 			var origin_pair: Array = table2.get("case", [208.0, 97.0])
-			var origin2 := Weapons.view_point(x, y, float(origin_pair[0]), float(origin_pair[1]), s)
+			var case_x: float = origin_pair[0]
+			var case_y: float = origin_pair[1]
+			var origin2 := Weapons.view_point(x, y, case_x, case_y, s)
 			var ccx := origin2.x + t * 337.0 * s
 			var ccy := origin2.y - t * 244.0 * s + 980.0 * s * t * t
 			var angle := t * 61.0 - .6
@@ -934,7 +942,7 @@ class Armory:
 			graded.clear()
 			rim_cache.clear()
 			composed.clear()
-		var s: float = float(Weapons.VIEW_SCALES.get(active, Weapons.VIEW_SCALE))
+		var s: float = Weapons.VIEW_SCALES.get(active, Weapons.VIEW_SCALE)
 		_warm_thread = Thread.new()
 		# A static function of the class, not this armory's: a new game can free
 		# this armory while the thread still runs, and a call bound to a freed
@@ -953,7 +961,10 @@ class Armory:
 		var out := {}
 		var own_boxes := {}
 		for job: Array in jobs:
-			var image := _grade_cel(own_boxes, job[1], job[0], s, job[2])
+			var art: Dictionary = job[1]
+			var name: String = job[0]
+			var level: int = job[2]
+			var image := _grade_cel(own_boxes, art, name, s, level)
 			var rim := _rim(image)
 			out[job[3]] = [image, rim, _compose(image, rim)]
 		return out
@@ -1002,8 +1013,8 @@ class Armory:
 		var w: int = art["w"]
 		var h: int = art["h"]
 		var data: PackedByteArray = art["data"]
-		var tw := int(round(Weapons.GUN_W * s))
-		var th := int(round(Weapons.GUN_H * s))
+		var tw := roundi(Weapons.GUN_W * s)
+		var th := roundi(Weapons.GUN_H * s)
 		var spans := PackedInt32Array()
 		spans.resize(th * 2)
 		spans.fill(-1)
@@ -1040,11 +1051,11 @@ class Armory:
 					crop[o + 2] = 4
 				i += 4
 				o += 4
-		var sw := clampi(int(round(cw * s)), 1, tw)
-		var sh := clampi(int(round(ch * s)), 1, th)
+		var sw := clampi(roundi(cw * s), 1, tw)
+		var sh := clampi(roundi(ch * s), 1, th)
 		var small := SmoothScale.rgba(crop, cw, ch, sw, sh)
-		var ox := clampi(int(round(box.position.x * s)), 0, tw - sw)
-		var oy := clampi(int(round(box.position.y * s)), 0, th - sh)
+		var ox := clampi(roundi(box.position.x * s), 0, tw - sw)
+		var oy := clampi(roundi(box.position.y * s), 0, th - sh)
 		var left := PackedByteArray()
 		left.resize(ox * 4)
 		var right := PackedByteArray()
@@ -1187,7 +1198,8 @@ class Armory:
 				continue
 			var at := ty * View.WIDTH + left + skip
 			out.append_array(pix.slice(done * 3, at * 3))
-			out.append_array((colours[row] as PackedByteArray).slice(skip * 3, stop * 3))
+			var hue: PackedByteArray = colours[row]
+			out.append_array(hue.slice(skip * 3, stop * 3))
 			out_cover.append_array(cov.slice(done, at))
 			out_cover.append_array(run.slice(skip, stop))
 			done = at + stop - skip

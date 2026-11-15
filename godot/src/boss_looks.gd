@@ -27,7 +27,8 @@ static func cel(e: Enemy, name: String) -> String:
 	var rest := name.substr(e.kind.length() + 1)
 	if rest == "aim" or rest.ends_with("_aim"):
 		var id := e.get_instance_id()
-		var full := maxf(float(_wound.get(id, 0.0)), e.windup)
+		var was: float = _wound.get(id, 0.0)
+		var full := maxf(was, e.windup)
 		_wound[id] = full
 		var wind := rest.trim_suffix("aim") + "wind"
 		if e.windup > full * WIND_SHARE and Assets.shared_index.has(e.kind + "_" + wind):
@@ -35,7 +36,8 @@ static func cel(e: Enemy, name: String) -> String:
 	elif e.windup <= 0.0:
 		_wound.erase(e.get_instance_id())
 	var left := e.hp / maxf(1.0, e.max_hp)
-	var phase := 3 if left <= P3_AT else 2 if left <= float(P2_AT_KIND.get(e.kind, P2_AT)) else 1
+	var p2_at: float = P2_AT_KIND.get(e.kind, P2_AT)
+	var phase := 3 if left <= P3_AT else 2 if left <= p2_at else 1
 	for p in range(phase, 1, -1):
 		var worn := "%s_p%d_%s" % [e.kind, p, rest]
 		if Assets.shared_index.has(worn):

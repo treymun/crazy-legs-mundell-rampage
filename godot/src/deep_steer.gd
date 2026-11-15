@@ -11,8 +11,8 @@ extends RefCounted
 const STEP := .5
 
 
-static func across(game, e, p) -> bool:
-	var w = game.world
+static func across(game: GameWorld, e: Enemy, p: Player) -> bool:
+	var w: LevelData = game.world
 	if w.deep_tile < 0 or e.swims or p == null:
 		return false
 	var dx: float = p.x - e.x

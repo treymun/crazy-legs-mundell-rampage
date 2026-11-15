@@ -3,13 +3,20 @@
 class_name MainFlow
 extends MainState
 
+const BossRematchFeature := preload("res://src/features/boss_rematch.gd")
+
 
 func start(
-	level_id := "hickston", kit = null, history: Array = [], replay := false, supply_rule = null
+	level_id := "hickston",
+	kit: Variant = null,
+	history: Array = [],
+	replay := false,
+	supply_rule: Variant = null
 ) -> void:
 	menu_note = ""
 	var fresh := make_game(level_id)
-	fresh.supply_rule = int(options["supply_rule"]) if supply_rule == null else int(supply_rule)
+	var rule: int = options["supply_rule"] if supply_rule == null else supply_rule
+	fresh.supply_rule = rule
 	fresh.replay = replay
 	fresh.history = history
 	if replay and kit == null and level_id != "hickston":
@@ -32,17 +39,20 @@ func start(
 			}
 			. get(level_id, [Weapons.ROCKET, 3])
 		)
-		var new_weapon := int(bonus[0])
+		var new_weapon: int = bonus[0]
 		fresh.armory.owned[new_weapon] = true
 		fresh.armory.loaded[new_weapon] = Weapons.CAPACITY[new_weapon]
-		fresh.armory.reserve[new_weapon] = int(bonus[1])
+		var bonus_rounds: int = bonus[1]
+		fresh.armory.reserve[new_weapon] = bonus_rounds
 		for extra: Array in [[Weapons.TEAT, 60], [Weapons.KEG, 2]]:
-			var slot := int(extra[0])
+			var slot: int = extra[0]
 			fresh.armory.owned[slot] = true
 			fresh.armory.loaded[slot] = Weapons.CAPACITY[slot]
-			fresh.armory.reserve[slot] = int(extra[1])
+			var extra_rounds: int = extra[1]
+			fresh.armory.reserve[slot] = extra_rounds
 	if kit != null:
-		fresh.apply_loadout(kit)
+		var loadout: Dictionary = kit
+		fresh.apply_loadout(loadout)
 	fresh.entry = fresh.loadout()
 	play(fresh)
 
@@ -50,7 +60,7 @@ func start(
 func play(target: Game) -> void:
 	if not art.chapter_ready(target.level.id):
 		waiting_play = target
-		packs.want_first(String(CHAPTER_PACKS.get(CountyData.base_of(target.level.id), "")))
+		packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(target.level.id), "")))
 		notice("FETCHING THE CHAPTER. A MOMENT...", 4.0)
 		return
 	waiting_play = null
@@ -79,7 +89,8 @@ func play(target: Game) -> void:
 		BossDoor.clear_others(target.level.id, target.replay)
 	target.configure(options if net == null else _net_options(net.match_info))
 	target.tone = tone_table
-	crouch_latched = target.player.crouched and int(options["crouch"]) != 0
+	var crouch_option: int = options["crouch"]
+	crouch_latched = target.player.crouched and crouch_option != 0
 	sound.pause_world()
 	play_music()
 	state = "play"
@@ -114,20 +125,21 @@ func _take_mode(target: Game) -> void:
 			for slot: int in net.bot_slots():
 				pilots[slot] = TacticalBot.new(slot)
 			return
-		target.local_player.name = String(options.get("player_name", "MUNDELL"))
+		target.local_player.name = str(options.get("player_name", "MUNDELL"))
 		for p: Player in target.players:
 			if p != target.local_player:
 				pilots[p.slot] = TacticalBot.new(p.slot)
 		return
 	if target.players.size() < 2 or not DevConsole.available():
 		return
-	var script = load("res://tools/mode_bot.gd") if FileAccess.file_exists(BOT) else null
+	var script: GDScript = load("res://tools/mode_bot.gd") if FileAccess.file_exists(BOT) else null
 	if script == null:
 		return
 	for p: Player in target.players:
 		if p != target.local_player:
-			var pilot = script.new()
-			pilot.as_controls = true
+			# tools/mode_bot.gd has no class_name (tools stay out of exports).
+			var pilot: Object = script.new()
+			pilot.set("as_controls", true)
 			pilots[p.slot] = pilot
 
 
@@ -135,15 +147,15 @@ func _take_mode(target: Game) -> void:
 ## and four bots against five.
 func start_showdown() -> void:
 	var tag := posmod(showdown_mode, TacticalScreens.PICKER_MODES.size()) == 2
-	mode_name = Modes.BOMB if tag else String(Modes.TACTICAL[posmod(showdown_mode, 2)])
+	mode_name = Modes.BOMB if tag else str(Modes.TACTICAL[posmod(showdown_mode, 2)])
 	mode_players = Modes.TAGTEAM_PLAYERS if tag else Modes.MAX_PLAYERS
 	var maps := TacticalScreens.picker_maps(showdown_mode)
 	mode_options = {}
 	if tag:
 		mode_options = Modes.TAGTEAM_OPTIONS.duplicate()
-	mode_options["arena"] = String(maps[posmod(showdown_map, maps.size())])
+	mode_options["arena"] = str(maps[posmod(showdown_map, maps.size())])
 	mode_options["rounds"] = TacticalScreens.picker_rounds(showdown_mode, showdown_long)
-	mode_options["store_rules"] = String(
+	mode_options["store_rules"] = str(
 		TacticalShop.RULE_IDS[posmod(showdown_rules, TacticalShop.RULE_IDS.size())]
 	)
 	showdown_on = true
@@ -153,7 +165,7 @@ func start_showdown() -> void:
 
 ## Starts the versus match --mode asked for, in its arena (Modes.ARENAS).
 func start_match() -> void:
-	start(String(Modes.arena_of(String(mode_options.get("arena", "range")))[0]))
+	start(str(Modes.arena_of(str(mode_options.get("arena", "range")))[0]))
 
 
 ## COUNTY RUN on map `map_id` (src/modes/county_mode.gd): a fresh run, one
@@ -188,7 +200,7 @@ func open_county(from_run := false) -> void:
 	sound.play("menu_accept")
 
 
-func open_hub(origin = null, message := "") -> void:
+func open_hub(origin: Game = null, message := "") -> void:
 	if origin != null and not origin.in_hub:
 		hub_origin = origin
 		if not origin.replay and campaign_run != null:
@@ -249,7 +261,7 @@ func travel(destination: String) -> void:
 		if campaign_run.level.id == destination:
 			chapter = campaign_run
 		elif campaign_run.retained.has(destination):
-			var held = campaign_run.retained[destination]
+			var held: Variant = campaign_run.retained[destination]
 			if held is Game:
 				chapter = held
 	if origin != null and origin.replay and origin.level.id == destination and not origin.won:
@@ -269,12 +281,12 @@ func travel(destination: String) -> void:
 
 func bookmark_campaign_audio(target: Game) -> void:
 	var chapters: Array = [target]
-	for key in target.retained:
-		var chapter = target.retained[key]
+	for key: Variant in target.retained:
+		var chapter: Variant = target.retained[key]
 		if chapter is Game:
 			chapters.append(chapter)
 	for chapter: Game in chapters:
-		var bookmark = sound.bookmark_score(chapter.level.score)
+		var bookmark: Variant = sound.bookmark_score(chapter.level.score)
 		if bookmark != null:
 			chapter.music_bookmark = bookmark
 
@@ -286,8 +298,8 @@ func write_campaign(target: Game, path: String) -> bool:
 
 func restore_campaign_audio(target: Game) -> void:
 	var chapters: Array = [target]
-	for key in target.retained:
-		var chapter = target.retained[key]
+	for key: Variant in target.retained:
+		var chapter: Variant = target.retained[key]
 		if chapter is Game:
 			chapters.append(chapter)
 	for chapter: Game in chapters:
@@ -341,11 +353,12 @@ func continue_campaign() -> void:
 	unlocked[following] = true
 	var message := "GATE OPEN: " + Campaign.title_of(following)
 	var merged := SessionStore.unlocks("")
-	for key in merged:
+	for key: Variant in merged:
 		unlocked[key] = true
 	if not SessionStore.save_unlocks("", unlocked):
 		message = "GATE OPEN. UNLOCK COULD NOT BE SAVED."
-	if int(options["classic"]) != 0:
+	var classic: int = options["classic"]
+	if classic != 0:
 		notice(message, 1.8)
 		return
 	open_hub(game, message)
@@ -393,7 +406,7 @@ func open_rematch_board() -> void:
 func start_rematch(kind: String, board := true) -> void:
 	if board and not rematch_open.has(kind):
 		sound.play("empty")
-		menu_note = "BEAT %s TO GET A REMATCH." % Campaign.title_of(BossRematch.LEVEL_OF[kind])
+		menu_note = "BEAT %s TO GET A REMATCH." % Campaign.title_of(str(BossRematch.LEVEL_OF[kind]))
 		return
 	var fight := BossRematch.build(make_game, kind)
 	if fight == null:
@@ -416,8 +429,8 @@ func leave_rematch() -> void:
 
 ## The boss fell a moment ago: the time, its ribbon, the best kept.
 func finish_rematch() -> void:
-	var fight = game.features["boss_rematch"]
-	var kind := String(fight.kind)
+	var fight: BossRematchFeature = game.features["boss_rematch"]
+	var kind := fight.kind
 	var seconds: float = fight.seconds()
 	var fresh := BossRematch.record(kind, seconds)
 	rematch_result = {
@@ -436,8 +449,10 @@ func finish_rematch() -> void:
 
 ## Each frame in play: a rematch whose boss fell a moment ago ends.
 func watch_rematch() -> void:
-	if state == "play" and in_rematch() and game.features["boss_rematch"].finished():
-		finish_rematch()
+	if state == "play" and in_rematch():
+		var fight: BossRematchFeature = game.features["boss_rematch"]
+		if fight.finished():
+			finish_rematch()
 
 
 ## The death screen's RETRY THE FIGHT: the boss checkpoint loaded, the player
@@ -569,7 +584,7 @@ func load_game() -> void:
 
 
 func load_checkpoint(
-	slot: String, replay: bool, level = null, label := "QUICKSAVE LOADED."
+	slot: String, replay: bool, level: Variant = null, label := "QUICKSAVE LOADED."
 ) -> void:
 	var loaded := SessionStore.read(slot, make_game, replay, level)
 	if loaded == null:
@@ -606,12 +621,13 @@ func slot_commit() -> void:
 		menu_note = "A LIVE LEVEL WITHOUT A LIT FUSE IS REQUIRED."
 		return
 	var entry: Array = slots[slot_index]
-	var path := String(entry[0])
-	var digest = entry[1]
-	var meta = entry[2]
+	var path := str(entry[0])
+	var digest: Variant = entry[1]
+	var meta: Variant = entry[2]
 	var name := slot_name.strip_edges()
 	if name == "":
-		name = String(meta[0]) if meta != null else "SLOT %d" % (slot_index + 1)
+		var info: Array = [] if meta == null else meta
+		name = str(info[0]) if meta != null else "SLOT %d" % (slot_index + 1)
 	bookmark_campaign_audio(source)
 	if not SessionStore.save_named(source, path, name, digest):
 		menu_note = "SAVE FAILED OR SLOT CHANGED. FILE PRESERVED."
@@ -664,15 +680,13 @@ func key_slots(code: int) -> void:
 		sound.play("menu_move")
 	elif code == KEY_ENTER or code == KEY_KP_ENTER:
 		var entry: Array = slots[slot_index]
-		var digest = entry[1]
-		var meta = entry[2]
-		if digest is String and String(digest) == "":
+		var digest: Variant = entry[1]
+		var meta: Variant = entry[2]
+		if digest is String and str(digest) == "":
 			menu_note = "UNREADABLE OR INCOMPATIBLE SLOT. FILE PRESERVED."
 		elif slot_mode == "load":
 			if meta != null:
-				load_checkpoint(
-					String(entry[0]), slot_replay != "", slot_replay, "NAMED SAVE LOADED."
-				)
+				load_checkpoint(str(entry[0]), slot_replay != "", slot_replay, "NAMED SAVE LOADED.")
 			else:
 				menu_note = "THAT SLOT IS EMPTY."
 		elif slot_source() != null:
@@ -686,7 +700,8 @@ func key_slots(code: int) -> void:
 
 func adjust_setting(direction: int) -> void:
 	var item: SessionStore.Setting = option_items()[option_slot]
-	change_setting(item.adjust(int(options[item.key]), direction))
+	var current: int = options[item.key]
+	change_setting(item.adjust(current, direction))
 
 
 ## Give the picked setting a value: a step from the arrows, or a point on a
@@ -694,9 +709,10 @@ func adjust_setting(direction: int) -> void:
 func change_setting(value: int) -> void:
 	var items := option_items()
 	var item: SessionStore.Setting = items[option_slot]
-	var before := int(options[item.key])
+	var before: int = options[item.key]
 	options[item.key] = clampi(value, item.low, item.high)
-	if int(options[item.key]) == before:
+	var after: int = options[item.key]
+	if after == before:
 		if drag_mode == "":
 			sound.play("empty")  # already at the end of its range
 		return
@@ -707,11 +723,12 @@ func change_setting(value: int) -> void:
 	if item.key == "menu_music":
 		menu_music()
 	if item.key == "window_mode":
-		change_window_mode(int(options["window_mode"]))
+		var window_mode: int = options["window_mode"]
+		change_window_mode(window_mode)
 	if (item.key == "window_mode" or item.key == "aspect") and not smoke:
 		# A display change is on trial until it is confirmed, so a mode that
 		# cannot be read is never the one that gets saved.
-		if display_trial.is_empty() or String(display_trial["key"]) != item.key:
+		if display_trial.is_empty() or str(display_trial["key"]) != item.key:
 			display_trial = {"key": item.key, "previous": before, "left": 10.0}
 		else:
 			display_trial["left"] = 10.0
@@ -720,17 +737,16 @@ func change_setting(value: int) -> void:
 		return
 	apply_options()
 	if AUDIO_PREVIEW.has(item.key):
-		sound.preview(String(AUDIO_PREVIEW[item.key]))
+		sound.preview(str(AUDIO_PREVIEW[item.key]))
 	else:
 		sound.play("menu_move")
 	persist_options()
 	if menu_note == "":
+		var now: int = options[item.key]
 		# Said where the hint goes: it took, and it is kept for next time.
-		menu_note = (
-			"%s: %s. APPLIED AND SAVED." % [item.label, item.format_value(options[item.key])]
-		)
+		menu_note = "%s: %s. APPLIED AND SAVED." % [item.label, item.format_value(now)]
 		if item.key == "detail":
-			menu_note = _detail_note(int(options[item.key]))
+			menu_note = _detail_note(now)
 
 
 ## What each VIEW DETAIL draws, once it is picked.
@@ -750,11 +766,13 @@ func _detail_note(detail: int) -> String:
 func settle_display(keep: bool) -> void:
 	if display_trial.is_empty():
 		return
-	var key := String(display_trial["key"])
+	var key := str(display_trial["key"])
 	if not keep:
-		options[key] = int(display_trial["previous"])
+		var previous: int = display_trial["previous"]
+		options[key] = previous
 		if key == "window_mode":
-			change_window_mode(int(options[key]))
+			var window_mode: int = options[key]
+			change_window_mode(window_mode)
 		apply_options()
 		menu_note = "DISPLAY CHANGE UNDONE."
 	display_trial = {}
@@ -764,14 +782,14 @@ func settle_display(keep: bool) -> void:
 
 ## Reset only the page on screen, and only on the second press.
 func reset_page() -> void:
-	var page_name := String(SessionStore.setup_pages()[option_page][0])
+	var page_name := str(SessionStore.setup_pages()[option_page][0])
 	if reset_armed <= 0.0:
 		reset_armed = 3.0
 		menu_note = "RESET THE %s PAGE TO DEFAULTS? PRESS AGAIN." % page_name
 		sound.play("menu_move")
 		return
 	reset_armed = 0.0
-	for raw in option_items():
+	for raw: SessionStore.Setting in option_items():
 		var item: SessionStore.Setting = raw
 		options[item.key] = item.default_value
 		if item.key == "window_mode" and fullscreen and not mobile:
@@ -866,14 +884,17 @@ func reload_level_in_place() -> void:
 ## The HOST ONLINE (or JOIN ONLINE) form, filled from what was used last.
 func open_net_form(hosting: bool) -> void:
 	var last := NetPlay.remembered()
-	var name := String(last.get("name", options.get("player_name", "MUNDELL")))
+	var name := str(last.get("name", options.get("player_name", "MUNDELL")))
+	var port_v: Variant = last.get("port", NetSession.PORT)
+	var last_port: int = str(port_v).to_int() if port_v is String else port_v
+	var router: bool = last.get("router", true)
 	net_form = {
 		"name": name,
-		"lobby_name": String(last.get("lobby_name", "%s'S LOBBY" % NetPlay.clean_name(name))),
+		"lobby_name": str(last.get("lobby_name", "%s'S LOBBY" % NetPlay.clean_name(name))),
 		"password": "",
-		"port": str(int(last.get("port", NetSession.PORT))),
-		"router": bool(last.get("router", true)),
-		"address": String(last.get("address", "")),
+		"port": str(last_port),
+		"router": router,
+		"address": str(last.get("address", "")),
 	}
 	net_row = 0
 	net_note = WEB_NOTE if web else ""
@@ -890,7 +911,7 @@ func open_servers() -> void:
 	close_servers()
 	# The browser build reaches them over their secure WebSockets (net_browser.gd).
 	browser = NetBrowser.new(NetBrowser.listed())
-	browser.name = String(last.get("name", options.get("player_name", "MUNDELL")))
+	browser.name = str(last.get("name", options.get("player_name", "MUNDELL")))
 	net_note = ""
 	state = "servers"
 	sound.play("menu_accept")
@@ -925,18 +946,17 @@ func net_open_lobby() -> void:
 		net_note = WEB_NOTE
 		sound.play("empty")
 		return
-	var port := String(net_form["port"]).to_int()
+	var port := str(net_form["port"]).to_int()
 	if port < 1024 or port > 65535:
 		net_note = "A PORT FROM 1024 TO 65535, PLEASE."
 		sound.play("empty")
 		return
 	var lobby := {
-		"lobby_name": NetPlay.clean_name(String(net_form["lobby_name"]), 22),
-		"password": String(net_form["password"]),
+		"lobby_name": NetPlay.clean_name(str(net_form["lobby_name"]), 22),
+		"password": str(net_form["password"]),
 	}
-	var opened := NetPlay.host_lobby(
-		port, String(net_form["name"]), lobby, bool(net_form["router"])
-	)
+	var router: bool = net_form["router"]
+	var opened := NetPlay.host_lobby(port, str(net_form["name"]), lobby, router)
 	if opened == null:
 		net_note = "PORT %d IS TAKEN. IS ANOTHER COPY HOSTING?" % port
 		sound.play("empty")
@@ -958,12 +978,12 @@ func net_open_lobby() -> void:
 
 ## JOIN on the JOIN ONLINE form.
 func net_join() -> void:
-	if web and not String(net_form["address"]).contains("://"):
+	if web and not str(net_form["address"]).contains("://"):
 		net_note = WEB_NOTE
 		sound.play("empty")
 		return
 	var joined := NetPlay.join_lobby(
-		String(net_form["address"]), String(net_form["name"]), String(net_form["password"])
+		str(net_form["address"]), str(net_form["name"]), str(net_form["password"])
 	)
 	if joined == null:
 		net_note = "THAT CODE OR ADDRESS WON'T DO."
@@ -993,26 +1013,31 @@ func _net_ready(opened: NetPlay) -> void:
 ## The game a match is played on (NetPlay.make_match): the map, the host's
 ## play settings and the lobby's match on it; a client's view on its slot.
 func net_match_game(info: Dictionary) -> Game:
-	var made: Game = make_game(String(info["level"]))
+	var made: Game = make_game(str(info["level"]))
 	if made == null:
 		return null
 	made.configure(_net_options(info))
 	if info.has("seed"):
-		made.rng.set_state(int(info["seed"]))
-	Modes.setup(made, String(info["mode"]), int(info["count"]), info["options"])
-	var slot := int(info.get("slot", 0))
+		var match_seed: int = info["seed"]
+		made.rng.set_state(match_seed)
+	var count: int = info["count"]
+	var match_options: Dictionary = info["options"]
+	Modes.setup(made, str(info["mode"]), count, match_options)
+	var slot: int = info.get("slot", 0)
 	if slot > 0 and slot < made.players.size():
 		Players.set_local(made, made.players[slot])
 	if net != null:
 		# The lobby's CHATTER caps each player's own (presentation only).
-		made.chatter = mini(made.chatter, int(net.settings.get("chatter", CussLines.CUSSIN)))
+		var chatter_cap: int = net.settings.get("chatter", CussLines.CUSSIN)
+		made.chatter = mini(made.chatter, chatter_cap)
 	return made
 
 
 ## This machine's settings with the host's play settings over them.
 func _net_options(info: Dictionary) -> Dictionary:
 	var out := options.duplicate()
-	out.merge(info.get("sim", {}), true)
+	var sim: Dictionary = info.get("sim", {})
+	out.merge(sim, true)
 	return out
 
 

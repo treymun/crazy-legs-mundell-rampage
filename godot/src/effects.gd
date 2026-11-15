@@ -94,26 +94,31 @@ static func load_tuning() -> void:
 				d[key] = values[key]
 			var source := section.substr(6)
 			LIGHTS[source] = d
-			for image in d["props"]:
-				PROP_LIGHTS[String(image)] = source
+			for image: Variant in d["props"]:
+				PROP_LIGHTS[str(image)] = source
 	version += 1
 
 
 ## A level's mood value, or `fallback` for a level effects.cfg does not name.
-static func mood(level_id: String, key: String, fallback):
-	return LEVELS.get(level_id, {}).get(key, fallback)
+static func mood(level_id: String, key: String, fallback: Variant) -> Variant:
+	var values: Dictionary = LEVELS.get(level_id, {})
+	return values.get(key, fallback)
 
 
 ## One light of `source` at x, y, z, its strength scaled by `scale` (fading,
 ## a flash dying away): [x, y, z, radius, Color, strength, flags, heat], or
 ## null; heat is how wide the air above it shimmers, in cells (`hot`: true is
 ## .4). A source of strength 0 only shimmers: it is no light in the shader.
-static func light(source: String, x: float, y: float, z: float, scale := 1.0, clock := 0.0):
-	var d = LIGHTS.get(source)
-	if d == null or scale <= 0.0:
+static func light(
+	source: String, x: float, y: float, z: float, scale := 1.0, clock := 0.0
+) -> Variant:
+	var found: Variant = LIGHTS.get(source)
+	if found == null or scale <= 0.0:
 		return null
-	var strength: float = float(d["strength"]) * scale
-	var waver := float(d["flicker"])
+	var d: Dictionary = found
+	var base: float = d["strength"]
+	var strength: float = base * scale
+	var waver: float = d["flicker"]
 	if waver > 0.0:
 		# A steady pattern per light, not a dice roll: replays look the same.
 		strength *= 1.0 - waver * (.5 + .5 * sin(clock * 23.0 + x * 7.1 + y * 3.3))
@@ -121,6 +126,8 @@ static func light(source: String, x: float, y: float, z: float, scale := 1.0, cl
 	if typeof(d["hot"]) == TYPE_BOOL:
 		heat = .4 if d["hot"] else 0.0
 	else:
-		heat = float(d["hot"])
-	var flags := (POOL if bool(d["pool"]) else 0) | (HOT if heat > 0.0 else 0)
-	return [x, y, z, float(d["radius"]), d["color"], strength, flags, heat]
+		heat = d["hot"]
+	var pool: bool = d["pool"]
+	var radius: float = d["radius"]
+	var flags := (POOL if pool else 0) | (HOT if heat > 0.0 else 0)
+	return [x, y, z, radius, d["color"], strength, flags, heat]

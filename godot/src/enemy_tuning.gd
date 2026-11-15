@@ -6,10 +6,10 @@ extends RefCounted
 static func definition(cfg: ConfigFile, kind: String, depth: int) -> Dictionary:
 	var d := {}
 	if cfg.has_section_key(kind, "brain") and depth < 4:
-		var brain_kind := String(cfg.get_value(kind, "brain"))
+		var brain_kind := str(cfg.get_value(kind, "brain"))
 		if cfg.has_section(brain_kind) and brain_kind != kind:
 			d = definition(cfg, brain_kind, depth + 1)
-			d["brain"] = String(d.get("brain", brain_kind))
+			d["brain"] = str(d.get("brain", brain_kind))
 	for key in cfg.get_section_keys(kind):
 		if key != "brain":
 			d[key] = cfg.get_value(kind, key)
@@ -23,7 +23,7 @@ static func load_tuning() -> void:
 	Enemy.DEATH_TIME = Tuning.value(path, "death_time")
 	Enemy.VOICE_TAKES = Tuning.value(path, "voice_takes")
 	Enemy.DEATH_ONLY = Tuning.value(path, "death_only_voices")
-	Enemy.LUCKY_CHANCE = float(Tuning.value(path, "lucky_chance"))
+	Enemy.LUCKY_CHANCE = Tuning.value(path, "lucky_chance")
 	Enemy.DEFS = {}
 	for kind in Tuning.sections(path):
 		Enemy.DEFS[kind] = definition(cfg, kind, 0)
@@ -65,7 +65,7 @@ static func load_tuning() -> void:
 		for key: String in keyed:
 			if d.has(key):
 				keyed[key][kind] = d[key]
-		var cels := String(d.get("cels", ""))
+		var cels := str(d.get("cels", ""))
 		if cels == "turn":
 			Enemy.TURN_CELS.append(kind)
 		elif cels == "tumble":

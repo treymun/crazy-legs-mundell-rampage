@@ -143,8 +143,8 @@ var pending_look := 0.0
 var mouse_rel := Vector2.ZERO
 var pending_dt := 0.0
 
-var tone_table = null
-var tone_sent = null
+var tone_table: Variant = null
+var tone_sent: Variant = null
 ## True when the display shader does the view's look pass (a real window).
 var gpu_look := false
 var gpu_ready := false
@@ -267,7 +267,7 @@ var net_look := 0.0
 var online_args := {}
 ## --mode=tagteam: the 2v2 format (Modes.TAGTEAM_*).
 var tag_team_arg := false
-var online_pilot = null
+var online_pilot: Variant = null
 
 var pad_down := {}
 
@@ -408,7 +408,7 @@ func safe_rect() -> Rect2:
 func viewport_rect() -> Rect2:
 	var fill := fullscreen and fullscreen_mode == 1
 	var bounds := Rect2(Vector2.ZERO, get_viewport_rect().size) if fill else safe_rect()
-	var style := int(options.get("aspect", 0))
+	var style: int = options.get("aspect", 0)
 	var target := presentation_size(int(bounds.size.x), int(bounds.size.y), style, fill)
 	# Whole pixels, as the reference's integer division gives: a half-pixel
 	# origin makes nearest-neighbour rows uneven.
@@ -528,7 +528,7 @@ func make_game(level_id := "hickston") -> Game:
 
 func face_into_level(target: Game) -> void:
 	var p := target.player
-	var gate = target.world.return_gate
+	var gate: LevelData.Gate = target.world.return_gate
 	if gate == null:
 		return
 	if absf(p.x - gate.x) < gate.width * 0.5 and absf(p.y - gate.y) < 3.0:
@@ -549,17 +549,18 @@ func face_into_level(target: Game) -> void:
 ## MENU MUSIC off holds it paused.
 func menu_music() -> void:
 	sound.set_score("title")
-	sound.pause_score(int(options.get("menu_music", 1)) == 0)
+	var menu_on: int = options.get("menu_music", 1)
+	sound.pause_score(menu_on == 0)
 
 
 ## MASTER VOLUME on the mixer's last bus, silent while another window has the
 ## focus when MUTE IN BACKGROUND is on.
 func apply_master() -> void:
-	var level := float(options.get("master", 100)) / 100.0
+	var master: float = options.get("master", 100)
+	var level := master / 100.0
 	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(level, .001)))
-	AudioServer.set_bus_mute(
-		0, level <= 0.0 or (int(options.get("bg_mute", 0)) != 0 and not focused)
-	)
+	var bg_mute: int = options.get("bg_mute", 0)
+	AudioServer.set_bus_mute(0, level <= 0.0 or (bg_mute != 0 and not focused))
 
 
 ## Back to whatever the game in progress should be playing.
@@ -634,30 +635,39 @@ func option_items() -> Array:
 
 func apply_options() -> void:
 	KeyBindings.register(options)
-	sound.set_levels(
-		float(options["effects"]) / 100.0,
-		float(options["music"]) / 100.0,
-		float(options["ambience"]) / 100.0,
-		int(options["stereo"])
-	)
-	sound.footstep_gain = float(options["footsteps"]) / 100.0
-	sound.reverb_on = int(options.get("reverb", 1)) != 0
+	var effects_level: float = options["effects"]
+	var music_level: float = options["music"]
+	var ambience_level: float = options["ambience"]
+	var stereo: int = options["stereo"]
+	sound.set_levels(effects_level / 100.0, music_level / 100.0, ambience_level / 100.0, stereo)
+	var footsteps: float = options["footsteps"]
+	sound.footstep_gain = footsteps / 100.0
+	var reverb: int = options.get("reverb", 1)
+	sound.reverb_on = reverb != 0
 	if not sound.reverb_on:
 		sound.set_space("")
-	sound.voice_gain = float(options["voice_volume"]) / 100.0
+	var voice_volume: float = options["voice_volume"]
+	sound.voice_gain = voice_volume / 100.0
 	apply_master()
-	Effects.enabled = int(options.get("lights", 1)) != 0
-	HUD.text_style = ["body", "menu", "heading"][clampi(int(options.get("text_size", 0)), 0, 2)]
-	PixelType.clear_small = int(options.get("small_text", 0)) != 0
-	if int(options.get("tilt_aim", 0)) != 0:
+	var lights: int = options.get("lights", 1)
+	Effects.enabled = lights != 0
+	var text_size: int = options.get("text_size", 0)
+	HUD.text_style = ["body", "menu", "heading"][clampi(text_size, 0, 2)]
+	var small_text: int = options.get("small_text", 0)
+	PixelType.clear_small = small_text != 0
+	var tilt_aim: int = options.get("tilt_aim", 0)
+	if tilt_aim != 0:
 		TiltAim.enable()
-	if int(options.get("touch_layout", 0)) == 2:
+	var touch_layout: int = options.get("touch_layout", 0)
+	if touch_layout == 2:
 		# MOVE THEM is a doing, not a state: it opens the editor and reads MY LAYOUT.
 		options["touch_layout"] = 1
 		touch.start_editing()
-	touch.use_custom = int(options.get("touch_layout", 0)) == 1
+	touch_layout = options.get("touch_layout", 0)
+	touch.use_custom = touch_layout == 1
 	touch.layout(touch.area, true)
-	_build_tone(int(options["brightness"]))
+	var brightness: int = options["brightness"]
+	_build_tone(brightness)
 	# Smoke runs count frames, not seconds: leave them uncapped.
 	Engine.max_fps = 0 if smoke or web else roundi(1.0 / frame_interval())
 	if game != null:
@@ -666,7 +676,9 @@ func apply_options() -> void:
 
 
 func frame_interval() -> float:
-	return 1.0 / float([30, 60, 120, 144, 240][clampi(int(options.get("frame_limit", 1)), 0, 4)])
+	var limit: int = options.get("frame_limit", 1)
+	var rate: int = [30, 60, 120, 144, 240][clampi(limit, 0, 4)]
+	return 1.0 / float(rate)
 
 
 func _build_tone(level: int) -> void:
@@ -676,7 +688,7 @@ func _build_tone(level: int) -> void:
 	var table := PackedByteArray()
 	table.resize(256)
 	for i in 256:
-		table[i] = clampi(int(round(pow(float(i) / 255.0, 100.0 / float(level)) * 255.0)), 0, 255)
+		table[i] = clampi(roundi(pow(float(i) / 255.0, 100.0 / float(level)) * 255.0), 0, 255)
 	tone_table = table
 
 
@@ -769,7 +781,8 @@ func _pad_bindings() -> Array:
 
 ## PAD DEADZONE: how far a stick moves before it counts.
 func _deadzone(value: float) -> float:
-	var dead: float = [.10, .18, .28][clampi(int(options.get("pad_deadzone", 1)), 0, 2)]
+	var pad_dead: int = options.get("pad_deadzone", 1)
+	var dead: float = [.10, .18, .28][clampi(pad_dead, 0, 2)]
 	return 0.0 if absf(value) < dead else value
 
 
@@ -849,13 +862,16 @@ func _look_uniforms() -> void:
 	palette_material.set_shader_parameter("tone_on", tone_on)
 	if look_on:
 		var w: Array = Game.WASH.get(game.level.id, [255, 255, 255, 0])
-		var amount := float(w[3])
+		var amount: float = w[3]
+		var wr: float = w[0]
+		var wg: float = w[1]
+		var wb: float = w[2]
 		palette_material.set_shader_parameter(
 			"wash",
 			Vector3(
-				1.0 - amount + float(w[0]) / 255.0 * amount,
-				1.0 - amount + float(w[1]) / 255.0 * amount,
-				1.0 - amount + float(w[2]) / 255.0 * amount
+				1.0 - amount + wr / 255.0 * amount,
+				1.0 - amount + wg / 255.0 * amount,
+				1.0 - amount + wb / 255.0 * amount
 			)
 		)
 		palette_material.set_shader_parameter("gain", game._look_gain)
@@ -863,7 +879,8 @@ func _look_uniforms() -> void:
 		palette_material.set_shader_parameter("grain_frame", game._look_frame)
 	if tone_on and tone_table != tone_sent:
 		tone_sent = tone_table
-		_grain_tone(tone_table)
+		var table: PackedByteArray = tone_table
+		_grain_tone(table)
 
 
 ## The palette table, the grain frames and the brightness table, as one
@@ -905,7 +922,8 @@ func use_button() -> String:
 		return "USE"
 	if input_device == "pad":
 		return "Y"
-	return KeyBindings.key_name(int(options.get(KeyBindings.option_key("use"), KEY_E)))
+	var use_key: int = options.get(KeyBindings.option_key("use"), KEY_E)
+	return KeyBindings.key_name(use_key)
 
 
 ## The rematch board's and result's line on how to drive them.
@@ -931,7 +949,8 @@ func render_setup() -> void:
 	option_scroll = Menu.scroll_for(option_page, option_slot, option_scroll)
 	var confirm := ""
 	if not display_trial.is_empty():
-		var left := int(ceilf(float(display_trial["left"])))
+		var trial_left: float = display_trial["left"]
+		var left := int(ceilf(trial_left))
 		if input_device == "touch":
 			confirm = "TAP KEEP OR UNDO  (%d)" % left
 		elif input_device == "pad":
@@ -957,52 +976,54 @@ func render_slots() -> void:
 	var kind := "REPLAY" if slot_replay != "" else "CAMPAIGN"
 	menu_panel(kind + " SAVE SLOTS")
 	for pair: Array in [["save", 23], ["load", 161]]:
-		var mode := String(pair[0])
-		var x := int(pair[1])
+		var mode := str(pair[0])
+		var x: int = pair[1]
 		canvas.fill_rect(
 			x, 35, 135, 13, Canvas.rgb(96, 58, 34) if slot_mode == mode else Canvas.rgb(53, 37, 29)
 		)
 		HUD.text(canvas, mode.to_upper(), x + 67, 38, "body", HUD.INK, true)
 	for i in slots.size():
 		var entry: Array = slots[i]
-		var digest = entry[1]
-		var meta = entry[2]
+		var digest: Variant = entry[1]
+		var meta: Variant = entry[2]
 		var y := SLOT_TOP + i * SLOT_ROW
 		var active := slot_index == i
 		canvas.fill_rect(
 			23, y, 273, SLOT_ROW - 2, Canvas.rgb(75, 48, 32) if active else Canvas.rgb(39, 28, 22)
 		)
-		var label := "FILE UNREADABLE" if (digest is String and String(digest) == "") else "EMPTY"
+		var label := "FILE UNREADABLE" if (digest is String and str(digest) == "") else "EMPTY"
 		var level := ""
 		var stamp := ""
 		if meta != null:
-			label = String(meta[0])
-			level = String(meta[1]).to_upper()
-			stamp = String(meta[3])
+			var info: Array = meta
+			label = str(info[0])
+			level = str(info[1]).to_upper()
+			stamp = str(info[3])
 		HUD.text(
 			canvas, "%d  %s" % [i + 1, label], 28, y + 4, "body", HUD.AMBER if active else HUD.INK
 		)
 		HUD.text(canvas, level, 291, y + 4, "body", HUD.INK, false, true, true)
 		HUD.text(canvas, stamp, 28, y + 14, "mini", HUD.INK, false, false)
-	var selected = slots[slot_index][2]
+	var selected: Variant = slots[slot_index][2]
+	var picked: Array = [] if selected == null else selected
 	var lines: Array = []
 	var guide := "TAB SAVE / LOAD   ENTER SELECT   ESC BACK"
 	if slot_stage == "edit":
-		var fallback := ("SLOT %d" % (slot_index + 1)) if selected == null else String(selected[0])
+		var fallback := ("SLOT %d" % (slot_index + 1)) if selected == null else str(picked[0])
 		lines = ["NAME  " + (slot_name if slot_name != "" else fallback) + "_"]
 		guide = "ENTER CONTINUE / ESC CANCEL"
 	elif slot_stage == "overwrite":
-		lines = ["REPLACE " + String(selected[0]) + "?"]
+		lines = ["REPLACE " + str(picked[0]) + "?"]
 		guide = "ENTER OVERWRITE / ESC KEEP SAVE"
 	else:
 		var text := menu_note
 		if text == "":
-			text = "QUICKSAVE IS SEPARATE." if selected == null else String(selected[2])
+			text = "QUICKSAVE IS SEPARATE." if selected == null else str(picked[2])
 		var wrapped := PixelType.wrap(text, 270)
 		for i in mini(2, wrapped.size()):
 			lines.append(wrapped[i])
 	for i in lines.size():
-		HUD.text(canvas, String(lines[i]), 160, 153 + i * 9, "body", HUD.AMBER, true)
+		HUD.text(canvas, str(lines[i]), 160, 153 + i * 9, "body", HUD.AMBER, true)
 	HUD.text(canvas, guide, 132, 181, "mini", HUD.INK, true)
 	if slot_stage == "choose":
 		Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
@@ -1010,7 +1031,10 @@ func render_slots() -> void:
 
 func _blit_art(name: String, x: int, y: int) -> void:
 	var sheet := art.art(name)
-	canvas.blit_rgba(sheet["data"], int(sheet["w"]), int(sheet["h"]), x, y, "art|" + name)
+	var data: PackedByteArray = sheet["data"]
+	var w: int = sheet["w"]
+	var h: int = sheet["h"]
+	canvas.blit_rgba(data, w, h, x, y, "art|" + name)
 
 
 func _write_marker() -> void:
@@ -1060,9 +1084,12 @@ func render() -> void:
 	if game != null:
 		game.scene_live = false
 	# The menus' little motions follow SCENERY MOTION, SCREEN FLASH and LAMP FLICKER.
-	var steady := int(options.get("flashes", 0)) != 0 or int(options.get("flicker", 1)) == 0
+	var flashes: int = options.get("flashes", 0)
+	var flicker: int = options.get("flicker", 1)
+	var steady := flashes != 0 or flicker == 0
 	menu.clock = menu_clock
-	menu.motion = int(options.get("world_motion", 0))
+	var world_motion: int = options.get("world_motion", 0)
+	menu.motion = world_motion
 	menu.steady = steady
 	if ui != null and ui.show_state(state):
 		# Every menu is a screen of its own (src/ui/screens/).
@@ -1074,14 +1101,16 @@ func render() -> void:
 		# headless run draws no world at all, only the canvas.
 		game.layered = gpu_look and canvas.gpu
 		game.view3d = game.layered
-		game.draw(canvas, int(options["crosshair"]), true)
+		var crosshair: int = options["crosshair"]
+		game.draw(canvas, crosshair, true)
 		_frame_3d()
 		if TacticalScreens.open and Modes.is_tactical(game) and not game.showing_tally:
 			TacticalScreens.draw_shop(canvas, game, Modes.feature(game))
 		CountyScreens.draw_over(canvas, game)  # a COUNTY RUN's HUD, cards and end
 		if net != null and state == "play":
 			LobbyScreens.draw_match(canvas, net, game, net_leave)
-		if int(options.get("show_fps", 0)) != 0 and not touring:
+		var show_fps: int = options.get("show_fps", 0)
+		if show_fps != 0 and not touring:
 			# FRAME COUNTER: frames per second, top right, over the view.
 			HUD.text(
 				canvas,

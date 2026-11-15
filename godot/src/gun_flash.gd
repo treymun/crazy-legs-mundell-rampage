@@ -26,17 +26,17 @@ static func draw(
 ) -> void:
 	var x := at.x
 	var y := at.y
-	var prefix := String(style[0])
-	var aspect := float(style[1])
+	var prefix := str(style[0])
+	var aspect: float = style[1]
 	if Effects.rich and Weapons.painter != null and Weapons.FLASH_ART.has(i):
 		_rich(frame, assets, i, anchor, s, at, shot_age, last_spent, aspect, flashes, count)
 		return
 	var index := mini(3, int(shot_age * 48))
-	var size := int(round((float(anchor.z) * 1.4 + (10.0 if last_spent == 2 else 0.0)) * s))
+	var size := roundi((float(anchor.z) * 1.4 + (10.0 if last_spent == 2 else 0.0)) * s)
 	var flash_name := "fx_%s_%d" % [prefix, index]
 	var flash_art := assets.art(flash_name)
 	var fw := size
-	var fh := int(round(size * aspect))
+	var fh := roundi(size * aspect)
 	var front := Weapons.view_point(x, y, float(anchor.x), float(anchor.y), s)
 	var fc := Vector2(roundf(front.x - 3.0 * s), roundf(front.y - 2.0 * s))
 	# The flash adds its light to the picture instead of covering it.
@@ -65,7 +65,7 @@ static func draw(
 				Color8(255, 220, 130) if k % 2 else Color8(255, 150, 60)
 			)
 	if i == Weapons.SHOTGUN and last_spent == 2:
-		var twin_size := int(round(size * .76))
+		var twin_size := roundi(size * .76)
 		var twin_name := "fx_%s_%d" % [prefix, mini(3, index + 1)]
 		var twin := assets.art(twin_name)
 		Weapons.Armory._blit_glow(
@@ -93,12 +93,13 @@ static func _rich(
 	flashes: float,
 	count: int
 ) -> void:
-	var look := String(Weapons.FLASH_ART[i])
-	var grow := float(Weapons.FLASH_SIZE.get(i, 1.6))
+	var look := str(Weapons.FLASH_ART[i])
+	var grow: float = Weapons.FLASH_SIZE.get(i, 1.6)
 	var step := mini(2, int(shot_age * 40.0))
 	var shape := count % 2
 	var base := (float(anchor.z) * 1.4 + (10.0 if last_spent == 2 else 0.0)) * s
-	var fw := roundi(base * grow * [1.0, .9, .75][step])
+	var shrink: float = [1.0, .9, .75][step]
+	var fw := roundi(base * grow * shrink)
 	# The pictures carry their own shape: squashed only a little by the old aspect.
 	var fh := roundi(fw * lerpf(1.0, aspect, .4))
 	var front := Weapons.view_point(at.x, at.y, float(anchor.x), float(anchor.y), s)

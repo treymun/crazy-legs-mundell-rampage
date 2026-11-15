@@ -21,5 +21,6 @@ static func draw(c: Canvas, x: int, y: int) -> void:
 	for k in ROWS.size():
 		var row: Array = ROWS[k]
 		var ry := y - h + 3 + k * 7
-		c.fill_rect(x + 3, ry, 4, 4, row[0])
-		HUD.text(c, String(row[1]), x + 10, ry, "mini", HUD.INK, false, false)
+		var ink: Color = row[0]
+		c.fill_rect(x + 3, ry, 4, 4, ink)
+		HUD.text(c, str(row[1]), x + 10, ry, "mini", HUD.INK, false, false)

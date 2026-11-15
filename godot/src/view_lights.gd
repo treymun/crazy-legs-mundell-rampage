@@ -34,7 +34,7 @@ static func _gather(g: GameView) -> Array:
 	if g.armory.flash > 0.0:
 		var aim := p.view_angle()
 		# Each gun's own flash where effects.cfg has one ([light.muzzle_<gun>]).
-		var own := "muzzle_" + String(Weapons.NAMES[g.armory.active])
+		var own := "muzzle_" + str(Weapons.NAMES[g.armory.active])
 		found.append(
 			Effects.light(
 				own if Effects.LIGHTS.has(own) else "muzzle",
@@ -48,23 +48,28 @@ static func _gather(g: GameView) -> Array:
 		var source := "blast_energy" if blast.kind == "energy" else "blast_fire"
 		if blast.kind != "energy" and blast.kind != "fire":
 			continue
-		var life := float(Effects.LIGHTS.get(source, {}).get("life", .64))
+		var spec: Dictionary = Effects.LIGHTS.get(source, {})
+		var life: float = spec.get("life", .64)
 		found.append(
 			Effects.light(source, blast.x, blast.y, blast.z, 1.0 - blast.age / maxf(life, .01))
 		)
 	# A blast's first flash and its fireball's afterglow (features/gun_fx.gd).
-	var gun_fx = g.features.get("gun_fx")
+	var gun_fx: Object = g.features.get("gun_fx")
 	if gun_fx != null:
-		found.append_array(gun_fx.lights())
-	for shot in g.shots:
+		var more: Array = gun_fx.call("lights")
+		found.append_array(more)
+	for shot: GameState.Shot in g.shots:
 		if Effects.LIGHTS.has("shot_" + String(shot.kind)):
 			found.append(Effects.light("shot_" + String(shot.kind), shot.x, shot.y, shot.z))
 	var lamps_key := Vector2i(g.world.get_instance_id(), g.props.size())
 	if lamps_key != g.lamps_of:
 		g.lamps_of = lamps_key
-		g.lamp_props = g.props.filter(func(spr): return spr.image == "prop_lamp")
+		g.lamp_props = g.props.filter(
+			func(spr: View.Sprite) -> bool: return spr.image == "prop_lamp"
+		)
 		g.lamp_boards = g.world.billboards.filter(
-			func(board): return board.glow and board.image in ["hub_lamp", "town_floodlight_tower"]
+			func(board: LevelData.Billboard) -> bool:
+				return board.glow and board.image in ["hub_lamp", "town_floodlight_tower"]
 		)
 	for spr: View.Sprite in g.lamp_props:
 		if absf(spr.x - p.x) < 12.0 and absf(spr.y - p.y) < 12.0:
@@ -77,24 +82,27 @@ static func _gather(g: GameView) -> Array:
 	found.append_array(_prop_lights(g))
 	found.append_array(_boat_engines(g))
 	for entry: Array in g.pickups:
-		var item := String(entry[0])
+		var item := str(entry[0])
 		var quest := item.begins_with("key_") or GameState.TASK_ITEMS.has(item)
-		if quest and absf(float(entry[1]) - p.x) < 10.0:
-			if absf(float(entry[2]) - p.y) < 10.0:
-				var x := float(entry[1])
-				var y := float(entry[2])
+		var x: float = entry[1]
+		if quest and absf(x - p.x) < 10.0:
+			var y: float = entry[2]
+			if absf(y - p.y) < 10.0:
 				found.append(Effects.light(item, x, y, g.world.elevation(x, y) + .4, 1.0, g.clock))
 	found.append_array(g._quest_lights())
 	for l: Array in g.trigger_lights:
-		if g.clock < float(l[6]):
+		var until: float = l[6]
+		if g.clock < until:
 			found.append([l[0], l[1], l[2], l[3], l[4], l[5], 0, 0.0])
-	return found.filter(func(l): return l != null)
+	return found.filter(func(l: Variant) -> bool: return l != null)
 
 
 ## The nearest Effects.MAX_LIGHTS lights that give light (a hot source of
 ## strength 0 only shimmers).
 static func effect_lights(g: GameView) -> Array:
-	return _nearest(g, gather(g).filter(func(l): return float(l[5]) > 0.0), Effects.MAX_LIGHTS)
+	return _nearest(
+		g, gather(g).filter(func(l: Array) -> bool: return l[5] > 0.0), Effects.MAX_LIGHTS
+	)
 
 
 ## The nearest hot sources within 14 cells, at most `most`: [x, y, z, width]
@@ -104,15 +112,20 @@ static func heat_sources(g: GameView, most: int) -> Array:
 	var p := g.player
 	var hot: Array = []
 	for l: Array in gather(g):
-		if (int(l[6]) & Effects.HOT) != 0:
+		var flags: int = l[6]
+		if (flags & Effects.HOT) != 0:
 			hot.append([l[0], l[1], l[8] if l.size() > 8 else l[2], l[7]])
-	for spot in Effects.mood(g.level.id, "heat", []):
+	for spot: Vector4 in Effects.mood(g.level.id, "heat", []):
 		var s: Vector4 = spot
 		hot.append([s.x, s.y, s.z, s.w])
 	var near: Array = []
 	for l: Array in _nearest(g, hot, most):
-		if absf(float(l[0]) - p.x) < 14.0 and absf(float(l[1]) - p.y) < 14.0:
-			near.append([float(l[0]), float(l[1]), float(l[2]), float(l[3])])
+		var lx: float = l[0]
+		var ly: float = l[1]
+		if absf(lx - p.x) < 14.0 and absf(ly - p.y) < 14.0:
+			var lz: float = l[2]
+			var width: float = l[3]
+			near.append([lx, ly, lz, width])
 	return near
 
 
@@ -123,13 +136,16 @@ static func gun_light(g: GameView) -> Color:
 	var p := g.player
 	var sum := Vector3.ONE
 	for l: Array in effect_lights(g):
+		var lx: float = l[0]
+		var ly: float = l[1]
+		var lz: float = l[2]
+		var radius: float = l[3]
 		var reach := clampf(
-			1.0 - Vector3(p.x, p.y, p.eye).distance_to(Vector3(l[0], l[1], l[2])) / float(l[3]),
-			0,
-			1
+			1.0 - Vector3(p.x, p.y, p.eye).distance_to(Vector3(lx, ly, lz)) / radius, 0, 1
 		)
 		var c: Color = l[4]
-		sum += Vector3(c.r, c.g, c.b) * float(l[5]) * reach * reach
+		var strength: float = l[5]
+		sum += Vector3(c.r, c.g, c.b) * strength * reach * reach
 	var tone: Color = Effects.mood(g.level.id, "grade", Color(1, 1, 1))
 	sum *= Vector3(tone.r, tone.g, tone.b) * (1.0 + g.lightning * .5)
 	return Color(minf(sum.x, 1.8), minf(sum.y, 1.8), minf(sum.z, 1.8))
@@ -142,7 +158,7 @@ static func _nearest(g: GameView, found: Array, most: int) -> Array:
 		var dx: float = l[0] - p.x
 		var dy: float = l[1] - p.y
 		lights.append([dx * dx + dy * dy, l])
-	lights.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
+	lights.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	var out: Array = []
 	for i in mini(most, lights.size()):
 		out.append(lights[i][1])
@@ -157,7 +173,7 @@ static func _prop_lights(g: GameView) -> Array:
 	if _props_of != g.world.get_instance_id():
 		_props_of = g.world.get_instance_id()
 		_prop_boards = g.world.billboards.filter(
-			func(board): return Effects.PROP_LIGHTS.has(board.image)
+			func(board: LevelData.Billboard) -> bool: return Effects.PROP_LIGHTS.has(board.image)
 		)
 	var out: Array = []
 	for board: LevelData.Billboard in _prop_boards:
@@ -165,12 +181,15 @@ static func _prop_lights(g: GameView) -> Array:
 			var source: String = Effects.PROP_LIGHTS[board.image]
 			var spec: Dictionary = Effects.LIGHTS[source]
 			var base := g.world.elevation(board.x, board.y) + board.z
-			var l = Effects.light(
-				source, board.x, board.y, base + board.height * float(spec["at"]), 1.0, g.clock
+			var at: float = spec["at"]
+			var l: Variant = Effects.light(
+				source, board.x, board.y, base + board.height * at, 1.0, g.clock
 			)
 			if l != null:
 				# The shimmer starts where the fire is (heat_at), whatever the light's height.
-				l.append(base + board.height * float(spec.get("heat_at", spec["at"])))
+				var heat_at: float = spec.get("heat_at", spec["at"])
+				var lit: Array = l
+				lit.append(base + board.height * heat_at)
 				out.append(l)
 	return out
 

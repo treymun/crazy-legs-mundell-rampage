@@ -4,6 +4,10 @@
 class_name GameCombat
 extends GameWorld
 
+const BreakablesFeature := preload("res://src/features/breakables.gd")
+const WallBreaksFeature := preload("res://src/features/wall_breaks.gd")
+const CorpsesFeature := preload("res://src/features/corpses.gd")
+
 
 func launch(
 	x: float,
@@ -71,8 +75,9 @@ func hitscan(
 	pressure := false
 ) -> bool:
 	var p := player
+	var me: Game = self as Object
 	# A mode's say over a swing's reach (COUNTY RUN's LONG REACH).
-	max_range = Modes.hit_reach(self, max_range)
+	max_range = Modes.hit_reach(me, max_range)
 	var ax := cos(angle)
 	var ay := sin(angle)
 	var best: Enemy = null
@@ -97,13 +102,13 @@ func hitscan(
 			near = d
 	# Another player in the way, when the mode lets bullets hit players (src/modes/).
 	var mate: Array = []
-	if players.size() > 1 and Modes.rules(self).bullets_hit_players():
-		mate = Modes.player_in_line(self, ax, ay, slope, spread, near)
+	if players.size() > 1 and Modes.rules(me).bullets_hit_players():
+		mate = Modes.player_in_line(me, ax, ay, slope, spread, near)
 		if not mate.is_empty():
 			near = mate[1]
 			best = null
-	var drum = null
-	for point in drums.keys():
+	var drum: Variant = null
+	for point: Vector2 in drums.keys():
 		var vec: Vector2 = point
 		var dx := vec.x - p.x
 		var dy := vec.y - p.y
@@ -120,7 +125,7 @@ func hitscan(
 		):
 			drum = vec
 			near = d
-	var scenery = null
+	var scenery: LevelData.Scenery = null
 	for prop: LevelData.Scenery in world.scenery:
 		if scenery_used(prop):
 			continue
@@ -139,7 +144,7 @@ func hitscan(
 		):
 			scenery = prop
 			near = d
-	var pieces = features.get("breakables")
+	var pieces: BreakablesFeature = features.get("breakables")
 	if pieces != null and pieces.ray(p.x, p.y, p.eye, ax, ay, slope, near, spread) >= 0:
 		near = pieces.ray_d
 		_traced(ax, ay, slope, near, "thing")
@@ -151,11 +156,14 @@ func hitscan(
 		return true
 	if drum != null:
 		_traced(ax, ay, slope, near, "thing")
-		drum_hit(drum, amount)
+		var drum_at: Vector2 = drum
+		drum_hit(drum_at, amount)
 		return true
 	if not mate.is_empty():
 		_traced(ax, ay, slope, near, "enemy")
-		Modes.player_hit(self, mate[0], amount, "SHOT", float(mate[2]))
+		var victim: Player = mate[0]
+		var height_at: float = mate[2]
+		Modes.player_hit(me, victim, amount, "SHOT", height_at)
 		return true
 	if best != null:
 		_traced(ax, ay, slope, near, "enemy")
@@ -163,9 +171,9 @@ func hitscan(
 		hit_point = Vector3(p.x + ax * near, p.y + ay * near, p.eye + near * slope)
 		hit_from = Vector2(p.x, p.y)
 		# A mode's upgrades on the hit and after it (COUNTY RUN; nothing elsewhere).
-		amount = Modes.hit_amount(self, best, amount, near)
-		best.hurt(amount, self, false, pressure, null, String(Weapons.NAMES[armory.active]))
-		Modes.hit_after(self, best, amount, near, ax, ay, slope)
+		amount = Modes.hit_amount(me, best, amount, near)
+		best.hurt(amount, self, false, pressure, null, str(Weapons.NAMES[armory.active]))
+		Modes.hit_after(me, best, amount, near, ax, ay, slope)
 		return true
 	if not spark:
 		var reach := _wall_distance(ax, ay, slope, max_range)
@@ -174,7 +182,7 @@ func hitscan(
 			_strike_wall(ax, ay, slope, reach + .7 * max_range / ceilf(max_range / .21), amount)
 	if spark:
 		var ended := false
-		var steps := int(ceil(max_range / .105))
+		var steps := int(ceilf(max_range / .105))
 		for i in range(1, steps + 1):
 			var d: float = i * max_range / steps
 			var x := p.x + ax * d
@@ -185,25 +193,26 @@ func hitscan(
 			var cell := iy * world.width + ix
 			var floor_z: float = world.ground[cell]
 			var roof_z: float = world.roof[cell]
-			var surface_tile = null
+			var surface_tile: Variant = null
 			if z < floor_z:
 				surface_tile = int(world.floor_tile[cell])
 			elif 0.0 < roof_z and roof_z < z:
 				surface_tile = int(world.ceiling_tile[cell])
 			if surface_tile != null or world.blocked(x, y, .024, z):
-				var pane = world.pane_at(x, y, z, .025)
+				var pane: Variant = world.pane_at(x, y, z, .025)
 				if pane != null:
 					_traced(ax, ay, slope, d, "glass")
-					shatter(pane, z)
+					var pane_cell: Vector2i = pane
+					shatter(pane_cell, z)
 					return true
-				var mark = (
+				var mark: View.WallMark = (
 					null
 					if surface_tile != null
 					else WallHits.wall_mark(world, p.x, p.y, p.eye, ax, ay, slope, d)
 				)
 				# A window shot out or a fence knocked about (features/wall_breaks.gd);
 				# a shot in through a window's glass leaves no hole on it.
-				var breaks = features.get("wall_breaks")
+				var breaks: WallBreaksFeature = features.get("wall_breaks")
 				if (
 					surface_tile == null
 					and breaks != null
@@ -244,8 +253,8 @@ func hitscan(
 				_traced(ax, ay, slope, hit_d, "wall:" + surface)
 				ended = true
 				if specks.size() < 144:
-					var particle := String(Materials.SPECKS.get(kind, "chips"))
-					var pspeed := float(
+					var particle := str(Materials.SPECKS.get(kind, "chips"))
+					var pspeed: float = (
 						{"wood": .64, "metal": 1.21, "plaster": .53, "dirt": .48}.get(surface, .64)
 					)
 					burst(
@@ -273,7 +282,7 @@ func hitscan(
 					and clock >= wall_sound
 				):
 					wall_sound = clock + .08
-					var cue := String(Materials.CUES.get(kind, "impact_wood"))
+					var cue := str(Materials.CUES.get(kind, "impact_wood"))
 					if armory.active == Weapons.RIVETER:
 						cue = "impact_rivet"
 					elif armory.active == Weapons.PRESSURE:
@@ -301,7 +310,7 @@ func _traced(ax: float, ay: float, slope: float, d: float, struck: String) -> vo
 ## A shot that chips nothing (the pellets past a load's first few) still
 ## breaks what it met at `d` along it, if that was a wall (wall_breaks.gd).
 func _strike_wall(ax: float, ay: float, slope: float, d: float, amount: float) -> void:
-	var breaks = features.get("wall_breaks")
+	var breaks: WallBreaksFeature = features.get("wall_breaks")
 	if breaks == null:
 		return
 	var p := player
@@ -321,7 +330,7 @@ func _strike_wall(ax: float, ay: float, slope: float, d: float, amount: float) -
 ## it (max_range when nothing does), for the look of a shot that chips nothing.
 func _wall_distance(ax: float, ay: float, slope: float, max_range: float) -> float:
 	var p := player
-	var steps := int(ceil(max_range / .21))
+	var steps := int(ceilf(max_range / .21))
 	for i in range(1, steps + 1):
 		var d: float = i * max_range / steps
 		var x := p.x + ax * d
@@ -348,7 +357,7 @@ func assisted_aim(angle: float, slope: float) -> Array:
 	var p := player
 	var threshold := .075 if touch_aim else .047 if mode == 2 else .025
 	var best := INF
-	var correction = null
+	var correction: Variant = null
 	for e: Enemy in enemies:
 		if not e.hostile or not e.alive:
 			continue
@@ -381,7 +390,9 @@ func sights_on_enemy() -> bool:
 	sights_next = clock + .1
 	sights_last = false
 	var gun := armory.active
-	if armory.holstered or not bool(Weapons.FIRING[gun].get("auto_fire", false)):
+	var firing: Dictionary = Weapons.FIRING[gun]
+	var auto_fire: bool = firing.get("auto_fire", false)
+	if armory.holstered or not auto_fire:
 		return false
 	var p := player
 	var angle := p.view_angle()
@@ -421,13 +432,15 @@ func shatter(pane: Vector2i, z := .99) -> void:
 func drum_hit(point: Vector2, amount: float) -> void:
 	if not drums.has(point):
 		return
-	drums[point] = int(drums[point]) - int(amount)
+	var had: int = drums[point]
+	drums[point] = had - int(amount)
 	var x := point.x
 	var y := point.y
 	var z: float = world.elevation(x, y) + .57
-	if int(drums[point]) <= 0:
+	var left: int = drums[point]
+	if left <= 0:
 		drums.erase(point)
-		var pieces = features.get("breakables")
+		var pieces: BreakablesFeature = features.get("breakables")
 		if pieces != null:
 			pieces.wreck(x, y, "town_fuel_drum_burst")
 		explode(Shot.new(x, y, z, 0.0, 0.0, 0.0, "fuel", 0.0, false, 0))
@@ -437,36 +450,42 @@ func drum_hit(point: Vector2, amount: float) -> void:
 
 
 func explode(shot: Shot) -> void:
+	var me: Game = self as Object
 	if TacticalUtility.KINDS.has(shot.kind):
-		TacticalUtility.burst(self, shot)  # a flash, smoke, fire or a decoy
+		TacticalUtility.burst(me, shot)  # a flash, smoke, fire or a decoy
 		return
 	var x := shot.x
 	var y := shot.y
 	var z := maxf(.07, shot.z)
 	# Every number of the blast is its kind's (shots.cfg).
 	var spec := Shots.blast(shot.kind)
-	var energy := bool(spec["energy"])
-	var radius := float(spec["radius"])
-	var strength := float(spec["strength"])
+	var energy: bool = spec["energy"]
+	var radius: float = spec["radius"]
+	var strength: float = spec["strength"]
 	if strength <= 0.0:
 		strength = float(shot.damage)
 	# A mode's say over the player's blasts (COUNTY RUN's charges; else as is).
-	var tuned := Modes.blast_tuning(self, shot, radius, strength)
+	var tuned := Modes.blast_tuning(me, shot, radius, strength)
 	radius = tuned[0]
 	strength = tuned[1]
+	var middle_share: float = tuned[2]
+	var edge_share: float = tuned[3]
 	if spec.has("also_sound"):
-		sound_at(String(spec["also_sound"]), x, y, .9)
-	blast_flash = maxf(blast_flash, float(spec["flash"]))
+		sound_at(str(spec["also_sound"]), x, y, .9)
+	var flash: float = spec["flash"]
+	blast_flash = maxf(blast_flash, flash)
 	var ear := local_player
 	var near := sqrt((ear.x - x) * (ear.x - x) + (ear.y - y) * (ear.y - y))
 	shake = minf(1.0, shake + maxf(0.0, 1.0 - near / 9.0) * (.45 if energy else .9))
-	duck = maxf(duck, float(spec["duck"]))
+	var duck_by: float = spec["duck"]
+	duck = maxf(duck, duck_by)
 	blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
 	events.exploded.emit(x, y, z, energy)
-	sound_at(String(spec["cue"]), x, y)
+	sound_at(str(spec["cue"]), x, y)
 	burst(x, y, z, "plasma" if energy else "spark", 12 if energy else 23, 2.2 if energy else 3.3)
 	burst(x, y, z, "dust", 6 if energy else 16, 2.3)
-	wake_nearby(float(spec["wake"]), x, y)
+	var wake: float = spec["wake"]
+	wake_nearby(wake, x, y)
 	if not energy:
 		disturb(x, y, 3.5, z)
 	blast_kind = shot.kind
@@ -476,8 +495,8 @@ func explode(shot: Shot) -> void:
 			hit_point = Vector3(x, y, z)
 			hit_from = Vector2(player.x, player.y)
 			var bite := strength * (1.0 - distance / (radius + .3))
-			if float(tuned[2]) > 0.0:
-				bite *= 1.0 + float(tuned[2]) if distance < radius * .45 else 1.0 - float(tuned[3])
+			if middle_share > 0.0:
+				bite *= 1.0 + middle_share if distance < radius * .45 else 1.0 - edge_share
 			enemy.hurt(
 				maxi(1, int(bite)), self, not energy, false, null, "energy" if energy else "blast"
 			)
@@ -494,29 +513,31 @@ func explode(shot: Shot) -> void:
 	for p: Player in players:
 		var distance := sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y))
 		if distance < radius * .75 and world.visible(x, y, p.x, p.y):
+			var most: float = spec["player_damage"]
 			Modes.blast_hit(
-				self,
+				me,
 				shot,
 				p,
-				maxi(2, int(float(spec["player_damage"]) * (1.0 - distance / (radius * .75)))),
+				maxi(2, int(most * (1.0 - distance / (radius * .75)))),
 				"BLAST" if shot.enemy or shot.kind == "fuel" or shot.owner == -1 else "BACKBLAST"
 			)
 	if not energy:
 		for pane in world.pane_tiles:
 			if sqrt(pow(float(pane.x) + .5 - x, 2) + pow(float(pane.y) + .5 - y, 2)) < 2.0:
 				shatter(pane)
-		for point in drums.keys():
+		for point: Vector2 in drums.keys():
 			var vec: Vector2 = point
 			if (
 				sqrt(pow(vec.x - x, 2) + pow(vec.y - y, 2)) < 2.2
 				and world.visible(x, y, vec.x, vec.y)
 			):
 				drum_hit(vec, 20)
+		var opens_secrets: bool = spec["opens_secrets"]
 		for door: LevelData.Door in world.doors:
 			var centre := door.center()
 			if (
 				(level.rescue or door.blast_only)
-				and bool(spec["opens_secrets"])
+				and opens_secrets
 				and door.secret
 				and not door.opened
 				and sqrt(pow(centre.x - x, 2) + pow(centre.y - y, 2)) < 1.27
@@ -532,14 +553,14 @@ func _blast_shoves(
 	shot: Shot, x: float, y: float, z: float, radius: float, strength: float, energy: bool
 ) -> void:
 	var power := 2.5 if energy else 4.5
-	var pieces = features.get("breakables")
+	var pieces: BreakablesFeature = features.get("breakables")
 	if pieces != null:
 		pieces.blast(x, y, z, radius, strength, energy)
-	var breaks = features.get("wall_breaks")
+	var breaks: WallBreaksFeature = features.get("wall_breaks")
 	if breaks != null:
 		breaks.blast(x, y, z, radius, strength, energy)
 	events.blast_shoved.emit(x, y, radius * 1.4, power)
-	var bodies = features.get("corpses")
+	var bodies: CorpsesFeature = features.get("corpses")
 	if bodies != null:
 		bodies.shove(x, y, radius * 1.3, power * .75)
 	for other: Shot in shots:
@@ -568,9 +589,11 @@ func hit_scenery(prop: LevelData.Scenery) -> void:
 		disturb(prop.x, prop.y, 5.2, height)
 	if world.ruptures.has(prop.id):
 		var rupture: Array = world.ruptures[prop.id]
-		add_hazard("steam", float(rupture[0]), float(rupture[1]), .48, .66, 2.20, 8)
-		sound_at("pressure_vent", float(rupture[0]), float(rupture[1]), .52)
-		message(String(rupture[2]), 2.2)
+		var rx: float = rupture[0]
+		var ry: float = rupture[1]
+		add_hazard("steam", rx, ry, .48, .66, 2.20, 8)
+		sound_at("pressure_vent", rx, ry, .52)
+		message(str(rupture[2]), 2.2)
 	burst(prop.x, prop.y, height, particle, count, 1.1)
 	if not prop.opens.is_empty():
 		for door: LevelData.Door in world.doors:
@@ -610,7 +633,7 @@ func finish_shot(shot: Shot) -> void:
 func move_shot(shot: Shot, dt: float) -> bool:
 	# Small swept steps catch narrow doors, shallow floors and fast enemies.
 	var distance: float = sqrt(shot.vx * shot.vx + shot.vy * shot.vy + shot.vz * shot.vz) * dt
-	var steps := maxi(1, int(ceil(distance / .09)))
+	var steps := maxi(1, int(ceilf(distance / .09)))
 	dt /= steps
 	var gravity := Shots.gravity(shot.kind)
 	var tnt := shot.kind == "tnt" or Shots.rolls(shot.kind)
@@ -634,9 +657,10 @@ func move_shot(shot: Shot, dt: float) -> bool:
 		shot.vz -= dt * gravity
 		var wall := world.blocked(x, y, .045, z)
 		if wall and not shot.enemy and not tnt:
-			var pane = world.pane_at(x, y, z, .045)
+			var pane: Variant = world.pane_at(x, y, z, .045)
 			if pane != null:
-				shatter(pane, z)
+				var pane_cell: Vector2i = pane
+				shatter(pane_cell, z)
 				wall = world.blocked(x, y, .045, z)
 		var roof := 0.0
 		var low := 0.0
@@ -701,14 +725,9 @@ func move_shot(shot: Shot, dt: float) -> bool:
 			# A stray from one of the county's catching another of them.
 			var struck := _county_in_the_way(shot, x, y, z)
 			if struck != null:
-				var thrower = instance_from_id(shot.owner)
-				struck.hurt(
-					float(shot.damage) * .8,
-					self,
-					false,
-					false,
-					thrower if thrower is Enemy else null
-				)
+				var thrower: Variant = instance_from_id(shot.owner)
+				var by: Enemy = thrower if thrower is Enemy else null
+				struck.hurt(float(shot.damage) * .8, self, false, false, by)
 				finish_shot(shot)
 				return false
 		if shot.enemy or tnt:
@@ -760,8 +779,8 @@ func _roll(shot: Shot, dt: float, tnt: bool) -> bool:
 ## What a player's shot strikes where it is now: a drum, something that
 ## breaks, an enemy. False when it is used up there.
 func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
-	var drum = null
-	for point in drums.keys():
+	var drum: Variant = null
+	for point: Vector2 in drums.keys():
 		var vec: Vector2 = point
 		if (
 			sqrt(pow(vec.x - x, 2) + pow(vec.y - y, 2)) < .27
@@ -771,9 +790,10 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 			drum = vec
 			break
 	if drum != null:
-		drum_hit(drum, 25)
+		var drum_at: Vector2 = drum
+		drum_hit(drum_at, 25)
 		return false
-	var pieces = features.get("breakables")
+	var pieces: BreakablesFeature = features.get("breakables")
 	var piece: int = -1 if pieces == null else pieces.touch(x, y, z, .22)
 	if piece >= 0:
 		pieces.strike(piece, float(maxi(shot.damage, 25)), shot.vx, shot.vy)
@@ -817,7 +837,8 @@ func _hits(shot: Shot, x: float, y: float, z: float) -> bool:
 				finish_shot(shot)
 			return false
 	# Another player's body, when the mode lets shots hit players (src/modes/).
-	if players.size() > 1 and Modes.shot_strikes(self, shot, x, y, z):
+	var me: Game = self as Object
+	if players.size() > 1 and Modes.shot_strikes(me, shot, x, y, z):
 		return false
 	return true
 
@@ -841,7 +862,7 @@ func _county_in_the_way(shot: Shot, x: float, y: float, z: float) -> Enemy:
 func update_shots(dt: float) -> void:
 	var kept: Array = []
 	var many := players.size() > 1
-	for shot in shots:
+	for shot: Shot in shots:
 		if many:
 			# A player's shot hits, blasts and scores for the player who threw it.
 			if shot.enemy:
@@ -855,11 +876,11 @@ func update_shots(dt: float) -> void:
 	shots = kept
 	if finale != null and not finale.alive:
 		var filtered: Array = []
-		for shot in shots:
+		for shot: Shot in shots:
 			if shot.kind != "foreman_cut" and shot.kind != "rudy_horn":
 				filtered.append(shot)
 		shots = filtered
-	for speck in specks:
+	for speck: Speck in specks:
 		speck.life -= dt
 		speck.z += speck.vz * dt
 		speck.vz -= dt * 6.0
@@ -869,15 +890,15 @@ func update_shots(dt: float) -> void:
 			speck.x = x
 			speck.y = y
 	var alive_specks: Array = []
-	for speck in specks:
+	for speck: Speck in specks:
 		if speck.life > 0.0 and speck.z >= -.05:
 			alive_specks.append(speck)
 	specks = alive_specks
 	gore_fx.tick(dt)
-	for blast in blasts:
+	for blast: Blast in blasts:
 		blast.age += dt
 	var alive_blasts: Array = []
-	for blast in blasts:
+	for blast: Blast in blasts:
 		if blast.age < .64:
 			alive_blasts.append(blast)
 	blasts = alive_blasts
@@ -930,21 +951,17 @@ func ground_marks() -> Array:
 		dress_of = world
 		dress_list = []
 		dress_at = PackedFloat64Array()
-		for row in world.dress_marks:
-			var image := String(row[6])
-			dress_list.append(
-				View.GroundMark.new(
-					float(row[0]),
-					float(row[1]),
-					float(row[2]),
-					float(row[3]),
-					float(row[4]),
-					float(row[5]),
-					image
-				)
-			)
-			dress_at.append(float(row[0]))
-			dress_at.append(float(row[1]))
+		for row: Array in world.dress_marks:
+			var image := str(row[6])
+			var r0: float = row[0]
+			var r1: float = row[1]
+			var r2: float = row[2]
+			var r3: float = row[3]
+			var r4: float = row[4]
+			var r5: float = row[5]
+			dress_list.append(View.GroundMark.new(r0, r1, r2, r3, r4, r5, image))
+			dress_at.append(r0)
+			dress_at.append(r1)
 			dress_at.append(14.0 if image == "fx_shadow" else 9.49)
 	for i in dress_list.size():
 		var x := dress_at[i * 3]
@@ -955,7 +972,8 @@ func ground_marks() -> Array:
 	for stain: View.GroundMark in gore_fx.blood_marks:
 		if (stain.x - p.x) * (stain.x - p.x) + (stain.y - p.y) * (stain.y - p.y) < 81.0:
 			marks.append(stain)
-	marks.append_array(Features.ground_marks(self))
+	var me: Game = self as Object
+	marks.append_array(Features.ground_marks(me))
 	if in_hub:
 		return marks
 	for hazard: Hazard in hazards:
@@ -1008,7 +1026,7 @@ func ground_marks() -> Array:
 			marks.append_array(DerbyChamp.marks(enemy, self))
 		elif enemy.brain == "foreman":
 			var direction := atan2(my - enemy.y, mx - enemy.x)
-			for lane in enemy.saw_lanes(direction, enemy.attacks + 1):
+			for lane: Array in enemy.saw_lanes(direction, enemy.attacks + 1):
 				var sx: float = lane[0]
 				var sy: float = lane[1]
 				var bearing: float = lane[2]
@@ -1039,7 +1057,7 @@ func ground_marks() -> Array:
 		var distance: float = (enemy.x - p.x) * (enemy.x - p.x) + (enemy.y - p.y) * (enemy.y - p.y)
 		if distance < 64.0:
 			nearby.append([distance, enemy])
-	nearby.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
+	nearby.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	for i in mini(6, nearby.size()):
 		var enemy: Enemy = nearby[i][1]
 		var radius := enemy.radius * (1.03 if enemy.z <= .02 else 1.28)
@@ -1079,10 +1097,10 @@ func tick_exchanges(combat: bool) -> void:
 	if clock < exchange_next:
 		return
 	exchange_next = clock + .55
-	var pending = exchange_pending
+	var pending: LevelData.Exchange = exchange_pending
 	exchange_pending = null
 	var pool: Array = [pending] if pending != null else exchanges
-	for exchange in pool:
+	for exchange: LevelData.Exchange in pool:
 		if (
 			stations_done.has(exchange.stop_at)
 			or (pending == null and heard_exchanges.has(exchange.id))
@@ -1101,7 +1119,7 @@ func tick_exchanges(combat: bool) -> void:
 		var index := 0 if pending == null else 1
 		var place := sound_position(exchange.x, exchange.y, .74, false)
 		var length: float = sound.play_voice("talk_%s_%d" % [exchange.id, index], place.x, place.y)
-		caption = String(exchange.lines[index])
+		caption = str(exchange.lines[index])
 		caption_until = clock + maxf(1.35, length + .15)
 		if pending == null:
 			heard_exchanges[exchange.id] = true
