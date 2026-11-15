@@ -73,10 +73,10 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = 2001
-	game.shot_fired.connect(_fired)
-	game.traced.connect(_traced)
-	game.exploded.connect(_exploded)
-	game.ticked.connect(_tick)
+	game.events.shot_fired.connect(_fired)
+	game.events.traced.connect(_traced)
+	game.events.exploded.connect(_exploded)
+	game.events.ticked.connect(_tick)
 
 
 func _add(bit: Bit) -> Bit:

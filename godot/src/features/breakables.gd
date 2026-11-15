@@ -136,7 +136,7 @@ func attach() -> void:
 	for stuff: String in BIT_SIZE:
 		for n in 2:
 			game.art.art("fx_brk_%s_%d" % [stuff, n])
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 
 
 func _spec(image: String) -> Dictionary:

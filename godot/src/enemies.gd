@@ -472,7 +472,7 @@ func hurt(
 	HitZones.splash(self, game, x, y, base + z + .56 * height, burst_kind)
 	if hostile and not HitZones.metal(self):
 		var from := atan2(y - from_y, x - from_x)
-		game.gore_fx.spray(
+		game.events.blood_sprayed.emit(
 			x, y, base + z + .56 * height, cos(from), sin(from), amount, burst_kind == "plasma"
 		)
 	var material := (
@@ -506,9 +506,9 @@ func hurt(
 		)
 	):
 		explosive = true
-		game.gore_fx.burst(self)
+		game.events.enemy_gibbed.emit(self)
 	elif hostile and not explosive and kind != "skeeter" and kind != "saucer":
-		game.gore_fx.bleed_out(self, burst_kind == "plasma")
+		game.events.enemy_bled_out.emit(self, burst_kind == "plasma")
 	game.burst(
 		x,
 		y,
@@ -900,7 +900,7 @@ func _enrage(game) -> void:
 	game.shake = minf(1.0, game.shake + .6)
 	var base: float = game.world.stand(self)
 	game.burst(x, y, base + height * .7, "spark", 16, 2.2)
-	game.boss_enraged.emit(self)
+	game.events.boss_enraged.emit(self)
 
 
 ## A boss going down: the world holds its breath, the ground shakes, it hollers.

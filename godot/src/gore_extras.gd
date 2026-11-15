@@ -84,6 +84,10 @@ static func limb(gore, e: Enemy) -> void:
 	if part == "":
 		return
 	var green := Enemy.GREEN_GIBS.has(e.kind)
+	if gore.lost.size() > 300:
+		gore.lost.clear()
+	# Which side: the body's own id, so the dice stay as they were.
+	gore.lost[e] = [part, "r" if e.uid % 2 == 0 else "l"]
 	if part == "head":
 		if gore.headless.size() > 300:
 			gore.headless.clear()

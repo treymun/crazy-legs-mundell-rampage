@@ -137,8 +137,8 @@ func attach() -> void:
 		on_range = true
 		pods = RANGE.MAW_PODS.duplicate()
 		_take_pods()
-		game.ticked.connect(_tick)
-		game.enemy_killed.connect(_killed)
+		game.events.ticked.connect(_tick)
+		game.events.enemy_killed.connect(_killed)
 		return
 	if game.level.id != LEVEL:
 		return
@@ -148,9 +148,9 @@ func attach() -> void:
 	pods = game.world.boss_decoys.duplicate()
 	_take_pods()
 	_light_the_ship()
-	game.ticked.connect(_tick)
-	game.station_done.connect(_station)
-	game.enemy_killed.connect(_killed)
+	game.events.ticked.connect(_tick)
+	game.events.station_done.connect(_station)
+	game.events.enemy_killed.connect(_killed)
 
 
 ## The middle of her chamber and her reach, from the pods round it.
@@ -315,7 +315,7 @@ func _new_phase(to: int) -> void:
 	if to == 2:
 		game.message("MAW GLORB IS FIGHTIN' MAD! HER HOUSECOAT'S ON FIRE!", 3.0)
 		game.sound_at(cue("rage"), maw.x, maw.y, 1.0)
-		game.boss_enraged.emit(maw)
+		game.events.boss_enraged.emit(maw)
 	else:
 		game.message("THE HOUSECOAT'S GONE. THAT'S A GIRDLE OF POWER CELLS.", 3.2)
 		game.sound_at(cue("bare"), maw.x, maw.y, 1.0)
@@ -619,7 +619,7 @@ func _coming_apart() -> void:
 		if not game.world.blocked(x, y, .1):
 			var z: float = game.world.elevation(x, y) + .6 + fmod(k * .53, 1.0) * 2.0
 			game.blasts.append(GameState.Blast.new(x, y, z, "fire"))
-			game.exploded.emit(x, y, z, false)
+			game.events.exploded.emit(x, y, z, false)
 			game.burst(x, y, z, "spark", 14, 3.0)
 			game.sound_at("explosion", x, y, .8)
 			game.shake = minf(1.0, game.shake + .35)

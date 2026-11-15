@@ -16,7 +16,7 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.enemy_killed.connect(_killed)
+	game.events.enemy_killed.connect(_killed)
 
 
 func _killed(enemy: Enemy) -> void:

@@ -8,7 +8,7 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 
 
 func _tick(_dt: float) -> void:

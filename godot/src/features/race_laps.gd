@@ -41,8 +41,8 @@ func attach() -> void:
 	var count := int(spec.get("cars", 1))
 	for k in count:
 		cars.append([total * k / count, float(spec.get("speed", 8.0)), 0.0, float(k)])
-	game.ticked.connect(_tick)
-	game.station_done.connect(_station)
+	game.events.ticked.connect(_tick)
+	game.events.station_done.connect(_station)
 
 
 func save() -> Dictionary:

@@ -95,7 +95,7 @@ static func _penetration(main, check: Callable) -> void:
 	)
 	var before := hand.hp
 	var pierced: Array = []
-	game.pierced.connect(func(_a, _b, struck): pierced.append(struck))
+	game.events.pierced.connect(func(_a, _b, struck): pierced.append(struck))
 	var hit := _shoot(game)
 	var lost := before - hand.hp
 	# The same round straight into a hand this side of the baffle.
@@ -152,7 +152,7 @@ static func _penetration(main, check: Callable) -> void:
 static func _ticks(game: Game, count: int) -> void:
 	for _k in count:
 		game.clock += DT
-		game.ticked.emit(DT)
+		game.events.ticked.emit(DT)
 
 
 static func _springs(main, check: Callable) -> void:
@@ -275,7 +275,7 @@ static func _marks(main, check: Callable) -> void:
 	_ticks(game, 120)
 	check.call(game.wall_marks.is_empty(), "and in time every hole fades away")
 	# A blast by the baffle scorches it; blood thrown at it runs down.
-	game.exploded.emit(19.4, 45.5, .4, false)
+	game.events.exploded.emit(19.4, 45.5, .4, false)
 	check.call(not impacts.scorches.is_empty(), "a blast beside a wall scorches it")
 	game.gore_fx.spray(18.8, 45.5, 1.2, 1.0, 0.0, 40.0, false)
 	_ticks(game, 1)
@@ -292,7 +292,7 @@ static func _marks(main, check: Callable) -> void:
 	check.call(impacts.ground_marks().is_empty(), "BULLET MARKS off: no pocks or scorches drawn")
 	game.configure({})
 	for k in 60:
-		game.exploded.emit(19.4, 30.0 + k * .3, .4, false)
+		game.events.exploded.emit(19.4, 30.0 + k * .3, .4, false)
 	_ticks(game, 200)
 	check.call(
 		impacts.scorches.size() <= int(Effects.DEBRIS.get("wall_scorch_cap", 10)),

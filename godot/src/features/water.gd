@@ -33,8 +33,8 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 77
-	game.ticked.connect(_tick)
-	game.exploded.connect(_blast)
+	game.events.ticked.connect(_tick)
+	game.events.exploded.connect(_blast)
 
 
 ## Water at the point: a floor [water] names, or a puddle-floor under the sky

@@ -1,0 +1,131 @@
+## What the game knows of its view: the picture's size and focal length (the
+## old renderer's projection, which aiming, the crosshair and every screen
+## overlay still use), the VIEW DETAIL and motion settings, and the things it
+## hands the 3D view to draw (View.Sprite, View.WallMark, View.GroundMark).
+## Nothing here draws: view3d/world_view.gd does, from these.
+class_name View
+extends RefCounted
+
+## The canvas (HUD, menus, weapon) and the view's part of it.
+const WIDTH := 320
+const VIEW := 156
+const HEIGHT := 200
+const FOCAL := 230.0
+## FIELD OF VIEW: the focal length for 70 (the view the game was drawn for),
+## 80, 90 and 100 degrees across. base_focal is the one in use; aiming
+## (weapons.gd, game_state.gd) works its slopes out with it too.
+const FOCAL_FOR := [230.0, 190.7, 160.0, 134.3]
+static var base_focal := FOCAL
+## The FIELD OF VIEW setting's focal; base_focal is this times a scope's
+## zoom while this machine's player has one up (scope.gd).
+static var fov_focal := FOCAL
+## VIEW DETAIL AUTO has dropped to LOW (main.gd _auto_detail); kept for the
+## session so the next level starts where the last one settled.
+static var auto_low := false
+
+
+## A picture standing in the world: x, y on the map, z its feet, `height` tall
+## (width from the picture's own shape). plane NaN faces the camera; an angle
+## is a board fixed along it, seen from one side. body: an actor's picture
+## (dropped by its empty bottom rows, never darker than a body's floor).
+## translucent: blended (smoke, mist). hurt: a hit's wash. who: the enemy it
+## shows (the 3D view draws that enemy's model when there is one).
+class Sprite:
+	var x := 0.0
+	var y := 0.0
+	var image := ""
+	var height := 1.0
+	var z := 0.0
+	var glow := false
+	var flip := false
+	var translucent := false
+	var body := false
+	var plane := NAN
+	var hurt := 0.0
+	var who: Object = null
+
+	func _init(px := 0.0, py := 0.0, img := "", h := 1.0, pz := 0.0) -> void:
+		x = px
+		y = py
+		image = img
+		height = h
+		z = pz
+
+
+## A mark on a wall face: its middle (x, y, z), the wall's direction (ux,
+## uy), half its side, the picture, the material struck and the wall's tile.
+class WallMark:
+	var x := 0.0
+	var y := 0.0
+	var z := 0.0
+	var ux := 0.0
+	var uy := 0.0
+	var image := ""
+	var radius := .06
+	var material := "wood"
+	## The drawn face's tile (-1 when not from a wall): what the hole looks like.
+	var tile := -1
+
+
+## A mark on the ground: a rectangle at z, `reach` along `angle` and `width`
+## across (both halves).
+class GroundMark:
+	var x := 0.0
+	var y := 0.0
+	var z := 0.0
+	var angle := 0.0
+	var reach := 1.0
+	var width := 1.0
+	var image := ""
+
+	func _init(px := 0.0, py := 0.0, pz := 0.0, pa := 0.0, pr := 1.0, pw := 1.0, img := "") -> void:
+		x = px
+		y = py
+		z = pz
+		angle = pa
+		reach = pr
+		width = pw
+		image = img
+
+
+var level: LevelData
+var assets: Assets
+## The size the view is drawn at: HIGH 320x156, LOW half that each way, HD
+## twice (the 3D view's picture); the canvas is 320x200 whatever.
+var vw := WIDTH
+var vh := VIEW
+var focal := FOCAL
+var detail := 0
+var res_up := 1.0
+## VIEW DETAIL HD was chosen (kept while a frame is drawn at HIGH).
+var hd_wanted := false
+var hd_held := false
+## SCENERY MOTION: 0 full, 1 gentle, 2 still (the water, the shimmer, the rain).
+var world_motion := 0
+## The game's clock, for what moves in the view (signs, floors that run).
+var time := 0.0
+## The graphics card draws the view (a window); off in tools and the server.
+var layered := false
+
+
+func _init(p_assets: Assets, p_level: LevelData) -> void:
+	assets = p_assets
+	level = p_level
+	set_detail(0)
+
+
+## Choose HIGH (0), LOW (1) or HD (-1) view detail.
+func set_detail(level_of_detail: int, keep_wish := false) -> void:
+	detail = clampi(level_of_detail, -1, 1)
+	if not keep_wish:
+		hd_wanted = detail < 0
+	vw = WIDTH * 2 if detail < 0 else WIDTH >> detail
+	vh = VIEW * 2 if detail < 0 else VIEW >> detail
+	focal = base_focal * vw / WIDTH
+	res_up = float(VIEW) / vh
+
+
+## The level's district tints, three floats a district.
+var tints: PackedFloat32Array:
+	get:
+		return level.tints

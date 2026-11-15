@@ -78,7 +78,7 @@ func _play(art: Assets, hud: HUD, id: String) -> float:
 	game.cheats.god = whole
 	# Every hit the bot takes, whatever its health does after (food, god mode).
 	var taken_sum := [0.0]
-	game.player_hurt.connect(func(amount: float, _cause: String): taken_sum[0] += amount)
+	game.events.player_hurt.connect(func(amount: float, _cause: String): taken_sum[0] += amount)
 	var seen := -1.0
 	var landed := -1.0
 	var taken := -1.0

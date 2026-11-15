@@ -1,0 +1,686 @@
+[
+ {
+  "level": "bayou",
+  "tag": "bayou_0",
+  "x": 64.5,
+  "y": 87.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "bayou",
+  "tag": "bayou_1",
+  "x": 64.5,
+  "y": 87.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "bayou",
+  "tag": "bayou_2",
+  "x": 64.5,
+  "y": 87.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "bayou",
+  "tag": "bayou_3",
+  "x": 64.5,
+  "y": 87.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_bayou",
+  "tag": "county_bayou_0",
+  "x": 24.5,
+  "y": 11.5,
+  "angle": 0.0,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "county_bayou",
+  "tag": "county_bayou_1",
+  "x": 24.5,
+  "y": 11.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_bayou",
+  "tag": "county_bayou_2",
+  "x": 24.5,
+  "y": 11.5,
+  "angle": 3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_bayou",
+  "tag": "county_bayou_3",
+  "x": 24.5,
+  "y": 11.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_hickston",
+  "tag": "county_hickston_0",
+  "x": 60.5,
+  "y": 40.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "county_hickston",
+  "tag": "county_hickston_1",
+  "x": 60.5,
+  "y": 40.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_hickston",
+  "tag": "county_hickston_2",
+  "x": 60.5,
+  "y": 40.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_hickston",
+  "tag": "county_hickston_3",
+  "x": 60.5,
+  "y": 40.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_quarry",
+  "tag": "county_quarry_0",
+  "x": 62.5,
+  "y": 46.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "county_quarry",
+  "tag": "county_quarry_1",
+  "x": 62.5,
+  "y": 46.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_quarry",
+  "tag": "county_quarry_2",
+  "x": 62.5,
+  "y": 46.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "county_quarry",
+  "tag": "county_quarry_3",
+  "x": 62.5,
+  "y": 46.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "fair",
+  "tag": "fair_0",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "fair",
+  "tag": "fair_1",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "fair",
+  "tag": "fair_2",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "fair",
+  "tag": "fair_3",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "feedstore",
+  "tag": "feedstore_0",
+  "x": 3.5,
+  "y": 18.5,
+  "angle": -0.6981,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "feedstore",
+  "tag": "feedstore_1",
+  "x": 3.5,
+  "y": 18.5,
+  "angle": 0.8727,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "feedstore",
+  "tag": "feedstore_2",
+  "x": 3.5,
+  "y": 18.5,
+  "angle": 2.4435,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "feedstore",
+  "tag": "feedstore_3",
+  "x": 3.5,
+  "y": 18.5,
+  "angle": -2.2689,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "grainyard",
+  "tag": "grainyard_0",
+  "x": 5.5,
+  "y": 27.5,
+  "angle": 0.0,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "grainyard",
+  "tag": "grainyard_1",
+  "x": 5.5,
+  "y": 27.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "grainyard",
+  "tag": "grainyard_2",
+  "x": 5.5,
+  "y": 27.5,
+  "angle": 3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "grainyard",
+  "tag": "grainyard_3",
+  "x": 5.5,
+  "y": 27.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "hickston",
+  "tag": "hickston_0",
+  "x": 7.5,
+  "y": 69.5,
+  "angle": 0.0,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "hickston",
+  "tag": "hickston_1",
+  "x": 7.5,
+  "y": 69.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "hickston",
+  "tag": "hickston_2",
+  "x": 7.5,
+  "y": 69.5,
+  "angle": 3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "hickston",
+  "tag": "hickston_3",
+  "x": 7.5,
+  "y": 69.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "holler",
+  "tag": "holler_0",
+  "x": 26.5,
+  "y": 58.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "holler",
+  "tag": "holler_1",
+  "x": 26.5,
+  "y": 58.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "holler",
+  "tag": "holler_2",
+  "x": 26.5,
+  "y": 58.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "holler",
+  "tag": "holler_3",
+  "x": 26.5,
+  "y": 58.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "hub",
+  "tag": "hub_0",
+  "x": 44.0,
+  "y": 59.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "hub",
+  "tag": "hub_1",
+  "x": 44.0,
+  "y": 59.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "hub",
+  "tag": "hub_2",
+  "x": 44.0,
+  "y": 59.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "hub",
+  "tag": "hub_3",
+  "x": 44.0,
+  "y": 59.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "landing",
+  "tag": "landing_0",
+  "x": 5.5,
+  "y": 5.0,
+  "angle": 0.0,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "landing",
+  "tag": "landing_1",
+  "x": 5.5,
+  "y": 5.0,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "landing",
+  "tag": "landing_2",
+  "x": 5.5,
+  "y": 5.0,
+  "angle": 3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "landing",
+  "tag": "landing_3",
+  "x": 5.5,
+  "y": 5.0,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "mothership",
+  "tag": "mothership_0",
+  "x": 64.5,
+  "y": 92.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "mothership",
+  "tag": "mothership_1",
+  "x": 64.5,
+  "y": 92.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "mothership",
+  "tag": "mothership_2",
+  "x": 64.5,
+  "y": 92.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "mothership",
+  "tag": "mothership_3",
+  "x": 64.5,
+  "y": 92.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "pineacres",
+  "tag": "pineacres_0",
+  "x": 18.5,
+  "y": 29.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "pineacres",
+  "tag": "pineacres_1",
+  "x": 18.5,
+  "y": 29.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "pineacres",
+  "tag": "pineacres_2",
+  "x": 18.5,
+  "y": 29.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "pineacres",
+  "tag": "pineacres_3",
+  "x": 18.5,
+  "y": 29.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "pumpngo",
+  "tag": "pumpngo_0",
+  "x": 4.5,
+  "y": 15.0,
+  "angle": 0.0,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "pumpngo",
+  "tag": "pumpngo_1",
+  "x": 4.5,
+  "y": 15.0,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "pumpngo",
+  "tag": "pumpngo_2",
+  "x": 4.5,
+  "y": 15.0,
+  "angle": 3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "pumpngo",
+  "tag": "pumpngo_3",
+  "x": 4.5,
+  "y": 15.0,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "quarry",
+  "tag": "quarry_0",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "quarry",
+  "tag": "quarry_1",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "quarry",
+  "tag": "quarry_2",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "quarry",
+  "tag": "quarry_3",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "range",
+  "tag": "range_0",
+  "x": 48.0,
+  "y": 70.0,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "range",
+  "tag": "range_1",
+  "x": 48.0,
+  "y": 70.0,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "range",
+  "tag": "range_2",
+  "x": 48.0,
+  "y": 70.0,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "range",
+  "tag": "range_3",
+  "x": 48.0,
+  "y": 70.0,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "salvage",
+  "tag": "salvage_0",
+  "x": 55.5,
+  "y": 23.5,
+  "angle": 3.1416,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "salvage",
+  "tag": "salvage_1",
+  "x": 55.5,
+  "y": 23.5,
+  "angle": 4.7124,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "salvage",
+  "tag": "salvage_2",
+  "x": 55.5,
+  "y": 23.5,
+  "angle": 6.2832,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "salvage",
+  "tag": "salvage_3",
+  "x": 55.5,
+  "y": 23.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "sawmill",
+  "tag": "sawmill_0",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "sawmill",
+  "tag": "sawmill_1",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "sawmill",
+  "tag": "sawmill_2",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "sawmill",
+  "tag": "sawmill_3",
+  "x": 64.5,
+  "y": 81.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "speedway",
+  "tag": "speedway_0",
+  "x": 12.0,
+  "y": 100.5,
+  "angle": -1.5708,
+  "pitch": 6.0,
+  "weapon": true
+ },
+ {
+  "level": "speedway",
+  "tag": "speedway_1",
+  "x": 12.0,
+  "y": 100.5,
+  "angle": -0.0,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "speedway",
+  "tag": "speedway_2",
+  "x": 12.0,
+  "y": 100.5,
+  "angle": 1.5708,
+  "pitch": 6.0,
+  "weapon": false
+ },
+ {
+  "level": "speedway",
+  "tag": "speedway_3",
+  "x": 12.0,
+  "y": 100.5,
+  "angle": -3.1416,
+  "pitch": 6.0,
+  "weapon": false
+ }
+]

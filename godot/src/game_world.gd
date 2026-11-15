@@ -231,7 +231,7 @@ func damage(amount: float, source = null, cause := "HIT", who: Player = null) ->
 	)
 	amount = Modes.incoming(self, p, amount, cause)  # a mode's armour (COUNTY RUN)
 	p.health = maxi(0, p.health - int(amount))
-	player_hurt.emit(amount, cause)
+	events.player_hurt.emit(amount, cause)
 	if p.health == 0 and adapting:
 		adapt = maxf(.78, adapt - .07)
 	if gallery != null and gallery.active and gallery.slot == p.slot:
@@ -257,7 +257,7 @@ func damage(amount: float, source = null, cause := "HIT", who: Player = null) ->
 ## One of the player's hits landed (Enemy.hurt): mark the crosshair, tick, and
 ## hold the world still a moment on a kill or a heavy blow.
 func struck(amount: float, killed: bool, champion: bool) -> void:
-	hit_landed.emit(amount, killed)
+	events.hit_landed.emit(amount, killed)
 	# The crosshair's mark is the local player's; the world's hold the one
 	# player's game feel (it would stop everyone).
 	if not hit_feedback or not acting_local():
@@ -339,7 +339,7 @@ func collect(name: String) -> bool:
 		),
 		.8
 	)
-	pickup_taken.emit(name)
+	events.pickup_taken.emit(name)
 	return true
 
 
@@ -489,7 +489,7 @@ func reopen_paths(x0: float, y0: float, x1: float, y1: float) -> void:
 
 func enemy_down(enemy: Enemy) -> void:
 	kills += 1
-	enemy_killed.emit(enemy)
+	events.enemy_killed.emit(enemy)
 	if enemy.hostile:
 		barks.kill(self, enemy.last_zone == "head")
 	if not Enemy.BOSS_TITLES.has(enemy.kind):
@@ -1005,7 +1005,7 @@ func activate_station(station: LevelData.Station) -> void:
 			sound.play("empty")
 			return
 	stations_done[station.id] = true
-	station_done.emit(station.id)
+	events.station_done.emit(station.id)
 	barks.say(self, "station")
 	set_station_lights(station)
 	for door: LevelData.Door in world.doors:
@@ -1143,7 +1143,7 @@ func _lamp_at(device) -> Vector3:
 func finish_level(cue: String) -> void:
 	if not won:
 		won = true
-		level_won.emit()
+		events.level_won.emit()
 		if adaptive and player.health >= 60 and not replay:
 			adapt = minf(1.15, adapt + .05)
 		shots.clear()

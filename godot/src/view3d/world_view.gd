@@ -28,6 +28,7 @@ var glass_material: ShaderMaterial
 var sky_material: ShaderMaterial
 var sprites: SpriteLayer3D
 var props: PropLayer3D
+var actors: ActorLayer3D
 var tiles: ViewTiles
 var _root: Node3D
 var _chunks: Node3D
@@ -95,6 +96,8 @@ func _init(assets: Assets) -> void:
 	_root.add_child(sprites)
 	props = PropLayer3D.new(PropModels.new(assets))
 	_root.add_child(props)
+	actors = ActorLayer3D.new(ActorModels.new(assets))
+	_root.add_child(actors)
 	_sky = MeshInstance3D.new()
 	var plane := QuadMesh.new()
 	plane.size = Vector2(4000.0, 4000.0)
@@ -174,13 +177,18 @@ func frame(game: Game) -> void:
 	# pictures.
 	var pictures: Array = []
 	var modelled: Array = []
+	var acting: Array = []
 	for item: Variant in view["sprites"]:
 		var s := item as Renderer.Sprite
-		if s != null and props.models.name_of(s.image) != "":
+		if s != null and s.who is Enemy and actors.kind_of(s.who as Enemy) != "":
+			acting.append(s)
+		elif s != null and props.models.name_of(s.image) != "":
 			modelled.append(s)
 		else:
 			pictures.append(item)
-	for m: ShaderMaterial in props.show_props(modelled, level):
+	var fresh := props.show_props(modelled, level)
+	fresh.append_array(actors.show_actors(acting, level, game.clock, game.gore_fx.lost))
+	for m: ShaderMaterial in fresh:
 		_materials.append(m)
 		for key: String in _params:
 			m.set_shader_parameter(key, _params[key])

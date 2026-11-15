@@ -55,7 +55,7 @@ static func _game(main, level_id: String) -> Game:
 static func _ticks(g: Game, seconds: float) -> void:
 	for _k in int(seconds * 60.0):
 		g.update_shots(1.0 / 60.0)
-		g.ticked.emit(1.0 / 60.0)
+		g.events.ticked.emit(1.0 / 60.0)
 
 
 static func run(main, check: Callable) -> void:
@@ -210,7 +210,7 @@ static func _chain(main, check: Callable) -> void:
 				):
 					continue
 				var booms := [0]
-				g.exploded.connect(func(_x, _y, _z, _e) -> void: booms[0] += 1)
+				g.events.exploded.connect(func(_x, _y, _z, _e) -> void: booms[0] += 1)
 				br.strike(br.pieces.find(a), 999.0, 1.0, 0.0)
 				_ticks(g, 1.5)
 				check.call(
@@ -285,7 +285,7 @@ static func _bodies(main, check: Callable) -> void:
 	body.hurt(40.0, g, false, false, null, "shotgun")
 	var clear := true
 	for _k in 120:
-		g.ticked.emit(1.0 / 60.0)
+		g.events.ticked.emit(1.0 / 60.0)
 		clear = clear and not g.world.blocked(body.x, body.y, .2)
 	check.call(
 		body.x > start + .05 and clear,
@@ -304,7 +304,7 @@ static func _bodies(main, check: Callable) -> void:
 		e.hp = 30.0
 		e.hurt(40.0, g2, false, false, null, "revolver" if k == 0 else "shotgun")
 		for _j in 120:
-			g2.ticked.emit(1.0 / 60.0)
+			g2.events.ticked.emit(1.0 / 60.0)
 		gaps.append(absf(e.x - open.x))
 	check.call(
 		gaps[1] > gaps[0] * 1.5 and gaps[0] > .05,

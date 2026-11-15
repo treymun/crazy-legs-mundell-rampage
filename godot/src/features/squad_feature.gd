@@ -47,9 +47,9 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.ticked.connect(_tick)
-	game.shot_fired.connect(_heard)
-	game.enemy_killed.connect(_fell)
+	game.events.ticked.connect(_tick)
+	game.events.shot_fired.connect(_heard)
+	game.events.enemy_killed.connect(_fell)
 
 
 func _tick(_dt: float) -> void:

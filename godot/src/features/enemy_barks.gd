@@ -125,15 +125,15 @@ func id() -> String:
 func attach() -> void:
 	dice.seed = 6263
 	if game.has_signal("enemy_bark"):
-		game.connect("enemy_bark", _bark)
+		game.events.connect("enemy_bark", _bark)
 	if game.has_signal("ticked"):
-		game.connect("ticked", _tactical)
-		game.connect("ticked", _chapter_start)
+		game.events.connect("ticked", _tactical)
+		game.events.connect("ticked", _chapter_start)
 	# Mundell has his say at a boss fight's start and its end (Barks).
 	if game.has_signal("boss_intro"):
-		game.connect("boss_intro", func(_e) -> void: _mundell("boss"))
+		game.events.connect("boss_intro", func(_e) -> void: _mundell("boss"))
 	if game.has_signal("boss_down"):
-		game.connect("boss_down", func(_e, _s) -> void: _mundell("boss_down"))
+		game.events.connect("boss_down", func(_e, _s) -> void: _mundell("boss_down"))
 
 
 ## The voice `e` talks in, or "".

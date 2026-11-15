@@ -72,8 +72,8 @@ func attach() -> void:
 	for e: Enemy in game.enemies:
 		if BossKit.is_boss(e):
 			bosses.append(e)
-	game.ticked.connect(_tick)
-	game.enemy_killed.connect(_killed)
+	game.events.ticked.connect(_tick)
+	game.events.enemy_killed.connect(_killed)
 
 
 func save() -> Dictionary:
@@ -161,7 +161,7 @@ func _begin(e: Enemy) -> void:
 		game.boss_hold_armed = false
 		game.shake = minf(1.0, game.shake + .3)
 		game.sound.play("stamp_thud", 1.0)
-	game.boss_intro.emit(e)
+	game.events.boss_intro.emit(e)
 
 
 ## Looks-only specks thrown from (x, y, z), off this feature's dice.
@@ -290,7 +290,7 @@ func _killed(e: Enemy) -> void:
 		# The chapter's last boss and Jerry have their stings (game_world.gd).
 		game.sound.play("crowd_cheer", .8)
 	BossKit.moves(e.kind).dying(e, game)
-	game.boss_down.emit(e, float(down.get(e.kind, 0.0)))
+	game.events.boss_down.emit(e, float(down.get(e.kind, 0.0)))
 
 
 ## Looks only: chunks, sparks and dust thrown wide, what lies near thrown again.
@@ -298,11 +298,11 @@ func _blast(e: Enemy) -> void:
 	var floor_z: float = game.world.stand(e)
 	var mid: float = floor_z + e.z + e.height * .5
 	if game.gore and e.brain != "derby_champ":
-		game.gore_fx.burst(e)
+		game.events.enemy_gibbed.emit(e)
 	sparks(e.x, e.y, mid, "spark", 26, 3.2)
 	sparks(e.x, e.y, floor_z + .2, "dust", 18, 2.4)
 	sparks(e.x, e.y, mid, "chips", 12, 2.8)
-	game.gore_fx.shove(e.x, e.y, 3.5, 4.5)
+	game.events.blast_shoved.emit(e.x, e.y, 3.5, 4.5)
 	var bodies = game.features.get("corpses")
 	if bodies != null:
 		bodies.shove(e.x, e.y, 3.5, 3.4)

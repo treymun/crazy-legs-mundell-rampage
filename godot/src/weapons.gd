@@ -399,7 +399,7 @@ class Armory:
 			reload = Weapons.RELOAD_TIME[i]
 			grinding = false
 			game.sound.play(String(Weapons.OPEN_AUDIO[i]), .85)
-			game.gun_reloading.emit(i)
+			game.events.gun_reloading.emit(i)
 			return true
 		return false
 
@@ -453,7 +453,7 @@ class Armory:
 		grinding = grind
 		last_spent = spent
 		game.shake = minf(1.0, game.shake + float(Weapons.SHAKE.get(i, 0.0)) * maxf(1, spent))
-		game.shot_fired.emit(i)
+		game.events.shot_fired.emit(i)
 		shot_age = 0.0
 		if pool:
 			reserve[i] -= spent

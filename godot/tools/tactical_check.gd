@@ -117,7 +117,7 @@ func _match(main, map: String, mode: String, rounds: int, minutes: float, verbos
 	var before: Array = []
 	var events: Array = []
 	var shots := {}
-	g.shot_fired.connect(
+	g.events.shot_fired.connect(
 		func(_gun: int) -> void: shots[g.player.slot] = int(shots.get(g.player.slot, 0)) + 1
 	)
 	var last_objective := ""

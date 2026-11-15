@@ -11,8 +11,8 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.boss_enraged.connect(_mad)
-	game.enemy_killed.connect(_down)
+	game.events.boss_enraged.connect(_mad)
+	game.events.enemy_killed.connect(_down)
 
 
 func _mad(enemy: Enemy) -> void:

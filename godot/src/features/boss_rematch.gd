@@ -22,10 +22,10 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.ticked.connect(_tick)
-	game.enemy_killed.connect(_killed)
-	game.level_won.connect(_won)
-	game.boss_intro.connect(fight_began)
+	game.events.ticked.connect(_tick)
+	game.events.enemy_killed.connect(_killed)
+	game.events.level_won.connect(_won)
+	game.events.boss_intro.connect(fight_began)
 
 
 func _tick(_dt: float) -> void:

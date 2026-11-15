@@ -41,10 +41,10 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = 1987
-	game.shot_fired.connect(_fired)
-	game.gun_reloading.connect(_reloading)
-	game.exploded.connect(_exploded)
-	game.ticked.connect(_tick)
+	game.events.shot_fired.connect(_fired)
+	game.events.gun_reloading.connect(_reloading)
+	game.events.exploded.connect(_exploded)
+	game.events.ticked.connect(_tick)
 
 
 func _life(key: String, fallback: float) -> float:

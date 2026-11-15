@@ -1012,22 +1012,9 @@ var lessons := false
 ## Lights level triggers have put up (triggers.gd): [x, y, z, radius, Color,
 ## strength, until].
 var trigger_lights: Array = []
-## What happens in play, announced for the features (src/features/) to listen
-## to, instead of each feature being written into the code that does it.
-signal enemy_killed(enemy: Enemy)
-signal player_hurt(amount: float, cause: String)
-signal pickup_taken(name: String)
-signal station_done(station_id: String)
-signal shot_fired(gun: int)
-signal hit_landed(amount: float, killed: bool)
-signal level_won
-signal ticked(dt: float)
-signal exploded(x: float, y: float, z: float, energy: bool)
-signal gun_reloading(gun: int)
-## One of the county's hands has something to say (src/squad.gd, throttled):
-## "spot", "lost", "search", "help", "flank", "cover", "brawl", "idle",
-## "surprised", "hurt_bad", "regroup". When each may next be heard ("" any).
-signal enemy_bark(e: Enemy, moment: String)
+## What happens in play, announced for the features, modes and the 3D view
+## to listen to (src/core/game_events.gd).
+var events := GameEvents.new()
 var bark_next := {}
 ## DIFFICULTY (0 EASY .. 3 HOG WILD), how sharp the county's hands are (their
 ## attack recovery, how far they notice, how true they shoot), and how much of
@@ -1035,18 +1022,6 @@ var bark_next := {}
 var difficulty := 1
 var sharpness := 1.0
 var ammo_scale := 1.0
-## A boss went fightin' mad at half health (enemies.gd _enrage).
-signal boss_enraged(enemy: Enemy)
-## The boss fights (boss_kit.gd, features/boss_fight.gd, src/bosses/): a
-## boss's fight began (its entrance), it reached a new phase (2 under half
-## health, 3 under a fifth; Maw Glorb by her own), one instant's hits
-## staggered it, a hit found its weak spot, and it fell `seconds` after its
-## fight began (0 when it never began).
-signal boss_intro(enemy: Enemy)
-signal boss_phase(enemy: Enemy, phase: int)
-signal boss_staggered(enemy: Enemy)
-signal boss_weak_hit(enemy: Enemy)
-signal boss_down(enemy: Enemy, seconds: float)
 ## Where the player's hit about to hurt someone struck (a bullet or pellet on
 ## the body, a shot where it touched, a blast's middle) and where the player
 ## stood, set just before hurt(); hurt() asks a boss's weak spot with it and
@@ -1078,16 +1053,9 @@ var slowmo := 0.0
 var place_log: Array[PackedFloat32Array] = []
 const REWIND_KEEP := 40
 const SLOWMO_PACE := .35
-## A hitscan shot (a bullet, a pellet, a swing, the milk) ended at `end`:
-## struck is "enemy", "thing" (a drum or scenery), "glass", "wall:<surface>"
-## (wood, metal, plaster, dirt) or "air" (nothing within its range).
-signal traced(end: Vector3, struck: String)
 ## What the last shot to strike a wall, floor or roof met (materials.gd kinds:
 ## wood, tin, steel, brick, glass...), set just before `traced` says so.
 var impact_kind := ""
-## A strong round went through a thin wall (penetration.gd): where it went in
-## and came out; struck is "enemy" when it hurt someone behind, else "air".
-signal pierced(entry: Vector3, exit: Vector3, struck: String)
 ## The view's kick this frame, from features/feel.gd: yaw (radians), pitch
 ## (screen pixels) and how far the eye drops (cells). Never moves the aim.
 var view_kick := Vector3.ZERO
@@ -1250,6 +1218,7 @@ func pooled(px: float, py: float, image: String, h: float, pz: float) -> Rendere
 		s.body = false
 		s.plane = NAN
 		s.hurt = 0.0
+		s.who = null
 		return s
 	var made := Renderer.Sprite.new(px, py, image, h, pz)
 	sprite_pool.append(made)

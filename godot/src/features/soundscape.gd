@@ -50,7 +50,7 @@ func attach() -> void:
 	for spot in Effects.mood(game.level.id, "heat", []):
 		if game.level.id == "mothership" and spot is Vector4:
 			_sources.append([spot.x, spot.y, "core_thrum"])
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 
 
 func _tick(_dt: float) -> void:

@@ -74,7 +74,7 @@ func attach() -> void:
 	dice.seed = hash(game.level.id) + 4021
 	_feel.grip = .5
 	_feel.hard = 1.4
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 
 
 ## How many heads popped this game (tools read it).

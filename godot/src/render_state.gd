@@ -58,6 +58,8 @@ class Sprite:
 	var body := false
 	var plane := NAN
 	var hurt := 0.0
+	## The enemy this sprite shows (the 3D view draws its model instead).
+	var who: Object = null
 
 	func _init(px := 0.0, py := 0.0, img := "", h := 1.0, pz := 0.0) -> void:
 		x = px

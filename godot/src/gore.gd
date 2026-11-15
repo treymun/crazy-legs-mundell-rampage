@@ -89,6 +89,10 @@ var spurts: Array = []
 ## Bodies whose head was taken off (GoreExtras.limb): game_view.gd shows
 ## their `<kind>_down_headless` cel once they are down.
 var headless := {}
+## Bodies that lost a limb (GoreExtras.limb): enemy -> [piece, side], the
+## piece "head", "arm", "hand" or "boot", the side "r" or "l". The 3D view
+## leaves that limb off the body's model (view3d/actor_layer.gd).
+var lost := {}
 var bloody := 0
 var bloody_green := false
 var walked := 0.0
@@ -104,6 +108,13 @@ func _init(owner: Game) -> void:
 	# A fixed seed: a new RandomNumberGenerator starts from a random one, and the
 	# same fight should splash the same way every time it is replayed or tested.
 	dice.seed = 1997
+	# Gore listens first (before any feature): the same moment the old direct
+	# calls had, so nothing about play or the dice moves.
+	owner.events.blood_sprayed.connect(spray)
+	owner.events.enemy_gibbed.connect(burst)
+	owner.events.enemy_bled_out.connect(bleed_out)
+	owner.events.wall_struck.connect(impact)
+	owner.events.blast_shoved.connect(shove)
 
 
 func _stain(x: float, y: float, radius: float, green: bool) -> void:

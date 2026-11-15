@@ -199,7 +199,7 @@ func _blow(game, st, bomb: Dictionary) -> void:
 		var bx := x + cos(a) * r
 		var by := y + sin(a) * r
 		game.blasts.append(Game.Blast.new(bx, by, z + .2 * k, "fire"))
-		game.exploded.emit(bx, by, z, false)
+		game.events.exploded.emit(bx, by, z, false)
 	game.sound_at("explosion", x, y)
 	game.burst(x, y, z, "spark", 40, 4.0)
 	game.burst(x, y, z, "dust", 30, 3.0)

@@ -256,7 +256,9 @@ func hitscan(
 						3,
 						float(pspeed)
 					)
-					gore_fx.impact(x, y, maxf(.04, minf(1.8, p.eye + hit_d * slope)), surface)
+					events.wall_struck.emit(
+						x, y, maxf(.04, minf(1.8, p.eye + hit_d * slope)), surface
+					)
 				if (
 					(
 						armory.active == Weapons.REVOLVER
@@ -293,7 +295,7 @@ func hitscan(
 
 func _traced(ax: float, ay: float, slope: float, d: float, struck: String) -> void:
 	var p := player
-	traced.emit(Vector3(p.x + ax * d, p.y + ay * d, p.eye + d * slope), struck)
+	events.traced.emit(Vector3(p.x + ax * d, p.y + ay * d, p.eye + d * slope), struck)
 
 
 ## A shot that chips nothing (the pellets past a load's first few) still
@@ -460,7 +462,7 @@ func explode(shot: Shot) -> void:
 	shake = minf(1.0, shake + maxf(0.0, 1.0 - near / 9.0) * (.45 if energy else .9))
 	duck = maxf(duck, float(spec["duck"]))
 	blasts.append(Blast.new(x, y, z, "energy" if energy else "fire"))
-	exploded.emit(x, y, z, energy)
+	events.exploded.emit(x, y, z, energy)
 	sound_at(String(spec["cue"]), x, y)
 	burst(x, y, z, "plasma" if energy else "spark", 12 if energy else 23, 2.2 if energy else 3.3)
 	burst(x, y, z, "dust", 6 if energy else 16, 2.3)
@@ -536,7 +538,7 @@ func _blast_shoves(
 	var breaks = features.get("wall_breaks")
 	if breaks != null:
 		breaks.blast(x, y, z, radius, strength, energy)
-	gore_fx.shove(x, y, radius * 1.4, power)
+	events.blast_shoved.emit(x, y, radius * 1.4, power)
 	var bodies = features.get("corpses")
 	if bodies != null:
 		bodies.shove(x, y, radius * 1.3, power * .75)

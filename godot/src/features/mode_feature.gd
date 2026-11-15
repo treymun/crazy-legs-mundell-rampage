@@ -102,10 +102,10 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.ticked.connect(_tick)
-	game.player_hurt.connect(_hurt)
-	game.pickup_taken.connect(_picked)
-	game.level_won.connect(_won)
+	game.events.ticked.connect(_tick)
+	game.events.player_hurt.connect(_hurt)
+	game.events.pickup_taken.connect(_picked)
+	game.events.level_won.connect(_won)
 
 
 func rules() -> GameMode:

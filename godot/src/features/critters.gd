@@ -49,9 +49,9 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 1313
-	game.shot_fired.connect(_fired)
-	game.exploded.connect(_blast)
-	game.ticked.connect(_tick)
+	game.events.shot_fired.connect(_fired)
+	game.events.exploded.connect(_blast)
+	game.events.ticked.connect(_tick)
 
 
 ## How many animals have been sent running (tools read it).

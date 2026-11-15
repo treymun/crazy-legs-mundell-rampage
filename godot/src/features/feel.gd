@@ -47,8 +47,8 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.player_hurt.connect(_hurt)
-	game.ticked.connect(_tick)
+	game.events.player_hurt.connect(_hurt)
+	game.events.ticked.connect(_tick)
 
 
 func _hurt(amount: float, _cause: String) -> void:

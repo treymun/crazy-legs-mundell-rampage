@@ -429,7 +429,7 @@ static func _shotgun_fight(main, upgrade: String, how: String) -> int:
 		g.armory.switch = 0.0
 		g.armory.loaded[Weapons.SHOTGUN] = 2
 		g.armory.fire(g)
-		g.ticked.emit(STEP)
+		g.events.ticked.emit(STEP)
 		for e: Enemy in g.enemies:
 			total += int(5000.0 - e.hp)
 	return total

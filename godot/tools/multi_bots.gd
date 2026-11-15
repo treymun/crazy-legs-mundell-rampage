@@ -141,8 +141,10 @@ static func play(main, check: Callable, level: String, count: int, opts: Diction
 	var longest := _zeros(count)
 	var in_wall := _zeros(count)
 	var hunted := _zeros(count)
-	a.enemy_killed.connect(func(_e: Enemy) -> void: kills[a.player.slot] += 1)
-	a.player_hurt.connect(func(amount: float, _c: String) -> void: hurt[a.player.slot] += amount)
+	a.events.enemy_killed.connect(func(_e: Enemy) -> void: kills[a.player.slot] += 1)
+	a.events.player_hurt.connect(
+		func(amount: float, _c: String) -> void: hurt[a.player.slot] += amount
+	)
 	var alive := []
 	var last := []
 	var still := _zeros(count)

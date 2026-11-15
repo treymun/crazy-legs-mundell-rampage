@@ -143,6 +143,7 @@ func _init(p_art: Assets, p_hud: HUD, p_sound, level_id := "hickston", p_host :=
 	_build_grit()
 	Features.attach_all(self)
 	message(level.introduction, 5.0)
+	events.level_started.emit(level.id)
 
 
 ## One step of the game (Game.tick of the reference): each player's controls,
@@ -269,7 +270,7 @@ func tick(dt: float, controls) -> void:
 		update_hazards(wdt)
 	if host:
 		# Nobody to hear the county talk.
-		ticked.emit(wdt)
+		events.ticked.emit(wdt)
 		name_new()
 		return
 	var p := player
@@ -286,7 +287,7 @@ func tick(dt: float, controls) -> void:
 				combat = true
 				break
 	tick_exchanges(combat)
-	ticked.emit(wdt)
+	events.ticked.emit(wdt)
 	name_new()
 
 

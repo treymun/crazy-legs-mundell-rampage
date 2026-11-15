@@ -42,9 +42,9 @@ static func pierce(
 	var at_entry := Vector3(p.x + ax * entry, p.y + ay * entry, p.eye + entry * slope)
 	var target := behind(game, ax, ay, slope, exit_d, max_range, spread)
 	if target == null:
-		game.pierced.emit(at_entry, at_exit, "air")
+		game.events.pierced.emit(at_entry, at_exit, "air")
 		return false
-	game.pierced.emit(at_entry, at_exit, "enemy")
+	game.events.pierced.emit(at_entry, at_exit, "enemy")
 	var reach: float = (target.x - p.x) * ax + (target.y - p.y) * ay
 	game.hit_point = Vector3(p.x + ax * reach, p.y + ay * reach, p.eye + reach * slope)
 	game.hit_from = Vector2(p.x, p.y)

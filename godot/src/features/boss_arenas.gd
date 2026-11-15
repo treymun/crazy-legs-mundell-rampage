@@ -111,7 +111,7 @@ func attach() -> void:
 				INF
 			]
 		)
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 
 
 func restore(_state: Dictionary) -> void:

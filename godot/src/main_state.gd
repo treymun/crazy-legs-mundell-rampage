@@ -1295,7 +1295,7 @@ func _frame_3d() -> void:
 			palette_material.set_shader_parameter("view3d_tex", world_view.texture())
 		world_view.frame(game)
 		palette_material.set_shader_parameter("view_mul", 2 if game.renderer.detail < 0 else 1)
-		palette_material.set_shader_parameter("haze_count", 0)
+		HeatHaze.apply(palette_material, game)
 		palette_material.set_shader_parameter("drunk", game.drunk_k)
 		if game.drunk_k > 0.0:
 			var ghost := int(2 + 4 * game.drunk_k)

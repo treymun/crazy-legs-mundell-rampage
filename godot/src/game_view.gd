@@ -347,6 +347,7 @@ func sprites() -> Array:
 			GoreExtras.headless_cel(self, sprite)
 		if sprite != null:
 			sprite.z += world.floor_under(sprite.x, sprite.y, world.stand(enemy) + .3)
+			sprite.who = enemy
 			sprites.append(sprite)
 		else:
 			sprite_pool_n -= 1

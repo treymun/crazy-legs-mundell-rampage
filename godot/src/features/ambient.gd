@@ -31,7 +31,7 @@ func id() -> String:
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 7
 	next_flock = dice.randf_range(4.0, 12.0)
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 
 
 func _motion() -> int:

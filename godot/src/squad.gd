@@ -98,7 +98,7 @@ static func bark(e: Enemy, game, moment: String) -> void:
 	game.bark_next[""] = now + ANY_GAP
 	if m != null:
 		m.bark_next = now + OWN_GAP
-	game.enemy_bark.emit(e, moment)
+	game.events.enemy_bark.emit(e, moment)
 
 
 ## Every tick of a hand: the barks for what it took up on its own (ducking

@@ -183,6 +183,7 @@ const VIEW_FIELDS := [
 	"hit_tick_next",
 	"shake",
 	"gore_fx",
+	"events",
 	"wall_marks",
 	"wall_sound",
 	"map",

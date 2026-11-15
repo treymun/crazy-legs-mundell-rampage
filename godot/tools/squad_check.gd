@@ -80,9 +80,9 @@ static func _variants(main, check: Callable) -> void:
 		var n := 0
 		for level_id: String in CHAPTERS:
 			var g := _game(main, level_id, diff)
-			g.ticked.emit(STEP)
+			g.events.ticked.emit(STEP)
 			var again := _game(main, level_id, diff)
-			again.ticked.emit(STEP)
+			again.events.ticked.emit(STEP)
 			same = same and _kinds(g) == _kinds(again)
 			for e: Enemy in g.enemies:
 				if Variants.VARIANT_OF.values().has(e.kind):
@@ -98,7 +98,7 @@ static func _variants(main, check: Callable) -> void:
 	check.call(toughs == CHAPTERS.size(), "every chapter has its tough guy (%d)" % toughs)
 	# A save keeps the kinds, and a load sets each variant up as its kind.
 	var g := _game(main, "hickston", 3)
-	g.ticked.emit(STEP)
+	g.events.ticked.emit(STEP)
 	var big: Enemy = null
 	for e: Enemy in g.enemies:
 		if e.kind == "big_billy":
@@ -119,7 +119,7 @@ static func _variants(main, check: Callable) -> void:
 		"a save loads to the same kinds, each set up as its kind"
 	)
 	if back != null:
-		back.ticked.emit(STEP)
+		back.events.ticked.emit(STEP)
 		check.call(_kinds(back) == _kinds(g), "a loaded game is never swapped again")
 	# The art: a variant wears its regular's pictures until its own are packed.
 	var worn := Variants.stem("big_billy")
@@ -143,7 +143,7 @@ static func _variants(main, check: Callable) -> void:
 ## A shield deputy on the range, facing the player down the lane.
 static func _door(main, check: Callable) -> void:
 	var g := _game(main, "range", 1)
-	g.ticked.emit(STEP)
+	g.events.ticked.emit(STEP)
 	g.enemies.clear()
 	var p := g.player
 	# Open floor north of the armory's store wall (the spawn faces it).
@@ -186,7 +186,7 @@ static func _activities(main, check: Callable) -> void:
 	var per: Array = []
 	for level_id: String in CHAPTERS:
 		var g := _game(main, level_id, 1)
-		g.ticked.emit(STEP)
+		g.events.ticked.emit(STEP)
 		var n := 0
 		for e: Enemy in g.enemies:
 			if e.mind != null and e.mind.activity != "":
@@ -204,7 +204,7 @@ static func _activities(main, check: Callable) -> void:
 static func _sneak(main, check: Callable) -> void:
 	for from_behind: bool in [true, false]:
 		var g := _game(main, "hickston", 1)
-		g.ticked.emit(STEP)
+		g.events.ticked.emit(STEP)
 		var busy: Enemy = null
 		for e: Enemy in g.enemies:
 			if e.mind != null and e.mind.activity != "" and e.alive and not e.alerted:
@@ -215,7 +215,7 @@ static func _sneak(main, check: Callable) -> void:
 		p.x = busy.x + cos(a) * 1.5
 		p.y = busy.y + sin(a) * 1.5
 		var moments: Array = []
-		g.enemy_bark.connect(func(_e, moment: String): moments.append(moment))
+		g.events.enemy_bark.connect(func(_e, moment: String): moments.append(moment))
 		busy.hurt(5.0, g)
 		if from_behind:
 			check.call(
@@ -229,7 +229,7 @@ static func _sneak(main, check: Callable) -> void:
 ## A hand round a corner, out of sight, hears a shot and comes to look.
 static func _investigate(main, check: Callable) -> void:
 	var g := _game(main, "hickston", 1)
-	g.ticked.emit(STEP)
+	g.events.ticked.emit(STEP)
 	var p := g.player
 	# A hand, and a spot for the player 6 to 9 cells off it, round a corner
 	# from it but within the flow field's reach.
@@ -256,7 +256,7 @@ static func _investigate(main, check: Callable) -> void:
 		check.call(false, "a hand out of sight near the start to hear a shot")
 		return
 	var was := Vector2(ear.x - p.x, ear.y - p.y).length()
-	g.shot_fired.emit(Weapons.NAMES.find("revolver"))
+	g.events.shot_fired.emit(Weapons.NAMES.find("revolver"))
 	check.call(ear.mind.investigate != null, "a shot heard round a corner sends a hand to look")
 	var still := Game.Controls.new()
 	for i in 240:
@@ -268,7 +268,7 @@ static func _investigate(main, check: Callable) -> void:
 ## An alerted hand whose hunt runs out: it searches, then gives up.
 static func _search(main, check: Callable) -> void:
 	var g := _game(main, "range", 1)
-	g.ticked.emit(STEP)
+	g.events.ticked.emit(STEP)
 	g.enemies.clear()
 	var p := g.player
 	var hand := Enemy.new("billy", p.x + 8.0, p.y)
@@ -281,7 +281,7 @@ static func _search(main, check: Callable) -> void:
 	p.x = 2.5
 	p.y = 2.5
 	var moments: Array = []
-	g.enemy_bark.connect(func(_e, moment: String): moments.append(moment))
+	g.events.enemy_bark.connect(func(_e, moment: String): moments.append(moment))
 	var searched := false
 	var gave_up := -1.0
 	for i in 60 * 20:
@@ -314,7 +314,7 @@ static func _flank(main, check: Callable) -> void:
 	var sent := []
 	for diff: int in [0, 3]:
 		var g := _game(main, "range", diff)
-		g.ticked.emit(STEP)
+		g.events.ticked.emit(STEP)
 		g.enemies.clear()
 		var p := g.player
 		var hands: Array = []

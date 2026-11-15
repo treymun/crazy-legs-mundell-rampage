@@ -39,7 +39,7 @@ func id() -> String:
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 51
 	next_flash = 12.0 + dice.randf_range(0.0, 20.0)
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 	# A storm chapter starts in its storm, the ground already soaked; showers
 	# start dry, the first spell a little way in.
 	var hard := rain_strength()

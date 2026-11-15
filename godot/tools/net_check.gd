@@ -241,12 +241,12 @@ static func _two_players(main, check: Callable, id: String, ticks: int) -> void:
 	_enemy_for_two(main, check, id)
 	var hurt := [0.0]
 	var took := [0]
-	a.player_hurt.connect(
+	a.events.player_hurt.connect(
 		func(amount: float, _cause: String) -> void:
 			if a.player == p2:
 				hurt[0] += amount
 	)
-	a.pickup_taken.connect(
+	a.events.pickup_taken.connect(
 		func(_name: String) -> void:
 			if a.player == p2:
 				took[0] += 1

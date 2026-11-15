@@ -151,9 +151,9 @@ func attach() -> void:
 	if track is Array:
 		# Parked at the east end of its track, by the conveyor.
 		carriage_x = float(track[1])
-	game.ticked.connect(_tick)
-	game.exploded.connect(_exploded)
-	game.traced.connect(_shot_traced)
+	game.events.ticked.connect(_tick)
+	game.events.exploded.connect(_exploded)
+	game.events.traced.connect(_shot_traced)
 
 
 ## The level's notes on a kind's arena ({} when it has none).

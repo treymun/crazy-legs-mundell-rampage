@@ -44,7 +44,7 @@ func _check(ok: bool, text: String) -> void:
 static func _pass(g: Game, seconds: float) -> void:
 	for i in int(seconds * 60.0):
 		g.clock += 1.0 / 60.0
-		g.ticked.emit(1.0 / 60.0)
+		g.events.ticked.emit(1.0 / 60.0)
 
 
 static func run(main, check: Callable) -> void:
@@ -162,7 +162,7 @@ static func _rings(main, check: Callable) -> void:
 		_pass(g, 1.0 / 60.0)
 	check.call(water.rings.size() >= 3, "the airboat leaves a wake (%d rings)" % water.rings.size())
 	water.rings.clear()
-	g.exploded.emit(wet_cell.x, wet_cell.y, .2, false)
+	g.events.exploded.emit(wet_cell.x, wet_cell.y, .2, false)
 	check.call(water.rings.size() >= 1, "a blast in the water rings it")
 
 

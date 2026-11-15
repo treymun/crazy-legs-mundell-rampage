@@ -113,13 +113,13 @@ func attach() -> void:
 		return
 	targets = Targets.new()
 	_kit()
-	game.ticked.connect(_tick)
-	game.traced.connect(_traced)
-	game.shot_fired.connect(_fired)
-	game.exploded.connect(_exploded)
-	game.station_done.connect(_station)
-	game.player_hurt.connect(_hurt)
-	game.enemy_killed.connect(_killed)
+	game.events.ticked.connect(_tick)
+	game.events.traced.connect(_traced)
+	game.events.shot_fired.connect(_fired)
+	game.events.exploded.connect(_exploded)
+	game.events.station_done.connect(_station)
+	game.events.player_hurt.connect(_hurt)
+	game.events.enemy_killed.connect(_killed)
 
 
 ## Every gun, loaded, and as much for it as it carries.

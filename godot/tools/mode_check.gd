@@ -168,7 +168,7 @@ static func _coop_play(main, check: Callable, level: String, seconds: float) -> 
 	var bots := [Bot.new(), Bot.new()]
 	var hurt := {0: 0.0, 1: 0.0}
 	var downs: Array = []
-	g.player_hurt.connect(
+	g.events.player_hurt.connect(
 		func(amount: float, cause: String) -> void:
 			hurt[g.player.slot] = float(hurt[g.player.slot]) + amount
 			if g.player.health <= 0:

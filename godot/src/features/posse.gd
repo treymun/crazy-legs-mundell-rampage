@@ -31,7 +31,7 @@ func attach() -> void:
 	if game.level.id != "hub":
 		# The Crossroads never ticks its features and never keeps a count.
 		game.total_kills += ROOM
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 
 
 func _tick(_dt: float) -> void:

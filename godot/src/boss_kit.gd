@@ -170,7 +170,7 @@ static func _weak_feedback(e: Enemy, game, hit: Vector3) -> void:
 	if game.clock - float(e.get_meta("weak_at", -10.0)) > .12:
 		e.set_meta("weak_at", game.clock)
 		game.sound_at("ricochet_tin", hit.x, hit.y, .8)
-		game.boss_weak_hit.emit(e)
+		game.events.boss_weak_hit.emit(e)
 	if game.clock - float(e.get_meta("weak_call", -100.0)) >= WEAK_CALL_GAP:
 		e.set_meta("weak_call", game.clock)
 		if game.barks.enabled:
@@ -211,7 +211,7 @@ static func stagger(e: Enemy, game, from_x: float, from_y: float) -> bool:
 	e.aim_mark = null
 	e.cooldown = maxf(e.cooldown, .8)
 	game.shake = minf(1.0, game.shake + .25)
-	game.boss_staggered.emit(e)
+	game.events.boss_staggered.emit(e)
 	return true
 
 
@@ -231,7 +231,7 @@ static func _new_phase(e: Enemy, game, phase: int) -> void:
 		# Maw hollers for her own (features/mothership.gd).
 		fight.backup(e, phase)
 	moves(e.kind).phase_changed(e, game, phase)
-	game.boss_phase.emit(e, phase)
+	game.events.boss_phase.emit(e, phase)
 
 
 ## Under a fifth of its health: a holler, a stagger, sparks, and the last of it.

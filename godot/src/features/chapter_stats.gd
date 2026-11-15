@@ -20,12 +20,12 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.shot_fired.connect(_fired)
-	game.hit_landed.connect(_hit)
-	game.player_hurt.connect(
+	game.events.shot_fired.connect(_fired)
+	game.events.hit_landed.connect(_hit)
+	game.events.player_hurt.connect(
 		func(amount: float, _cause: String) -> void: hurt += amount if game.acting_local() else 0.0
 	)
-	game.enemy_killed.connect(_killed)
+	game.events.enemy_killed.connect(_killed)
 
 
 func _fired(_gun: int) -> void:

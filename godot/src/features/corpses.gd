@@ -104,7 +104,7 @@ func attach() -> void:
 		feel.pull = 1.0
 		feel.hard = 1.6
 	_slick.pull = 1.2
-	game.ticked.connect(_tick)
+	game.events.ticked.connect(_tick)
 
 
 ## How many windows and fences bodies have been thrown into (tools read it).

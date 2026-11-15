@@ -531,13 +531,13 @@ func _run() -> void:
 	var eventful: Game = main.make_game("hickston")
 	eventful.configure({})
 	var heard := []
-	eventful.enemy_killed.connect(func(e: Enemy) -> void: heard.append(e.kind))
+	eventful.events.enemy_killed.connect(func(e: Enemy) -> void: heard.append(e.kind))
 	var target: Enemy = null
 	for e: Enemy in eventful.enemies:
 		if e.hostile and not Enemy.BOSS_TITLES.has(e.kind):
 			target = e
 			break
-	eventful.shot_fired.emit(Weapons.REVOLVER)
+	eventful.events.shot_fired.emit(Weapons.REVOLVER)
 	target.hurt(9999.0, eventful)
 	var stats = eventful.features["stats"]
 	check(heard == [target.kind], "a kill is announced to whoever listens")
@@ -590,7 +590,7 @@ func _run() -> void:
 	print("POLISH")
 	var fx_game: Game = main.make_game("hickston")
 	fx_game.configure({})
-	fx_game.exploded.emit(fx_game.player.x + 2.0, fx_game.player.y, .3, false)
+	fx_game.events.exploded.emit(fx_game.player.x + 2.0, fx_game.player.y, .3, false)
 	var debris = fx_game.features["debris"]
 	check(
 		(
@@ -600,7 +600,7 @@ func _run() -> void:
 		),
 		"a blast leaves a scorch, embers and smoke"
 	)
-	fx_game.gun_reloading.emit(Weapons.REVOLVER)
+	fx_game.events.gun_reloading.emit(Weapons.REVOLVER)
 	check(debris.sprites().size() > 6, "a revolver reload dumps its brass")
 	var sweep: Array = []
 	for e: Enemy in fx_game.enemies:
@@ -617,7 +617,7 @@ func _run() -> void:
 	stormy.replay = true
 	var weather = stormy.features["weather"]
 	weather.next_flash = 0.0
-	stormy.ticked.emit(1.0 / 60.0)
+	stormy.events.ticked.emit(1.0 / 60.0)
 	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
 	# The rain, the water's rings, the lamps' pools and the shimmer.
 	preload("res://tools/weather_check.gd").run(main, check)
@@ -1172,7 +1172,7 @@ func _mothership(main) -> void:
 	ship.player.y = 41.5
 	ship.player.angle = PI / 2
 	maw.hurt(maw.max_hp * .4, ship)
-	ship.ticked.emit(1.0 / 60.0)
+	ship.events.ticked.emit(1.0 / 60.0)
 	check(fight.phase == 2 and maw.enraged, "two thirds down she is fightin' mad (phase two)")
 	check(fight.beam_count() > 0, "the tractor beam comes loose in phase two")
 	maw.windup = 0.0
@@ -1181,7 +1181,7 @@ func _mothership(main) -> void:
 	maw.windup = .5
 	maw.aim_mark = [ship.player.x, ship.player.y, ship.player.eye]
 	fight.winding = false
-	ship.ticked.emit(1.0 / 60.0)
+	ship.events.ticked.emit(1.0 / 60.0)
 	check(fight.pending != "", "her wind-up picks an attack (%s)" % fight.pending)
 	check(fight.ground_marks().size() > 0, "and marks the floor for it")
 	var crew_before := ship.enemies.size()
@@ -1189,7 +1189,7 @@ func _mothership(main) -> void:
 	fight._call_crew()
 	check(ship.enemies.size() > crew_before, "her holler brings crew out of the pods")
 	maw.hurt(maw.hp - maw.max_hp * .2, ship)
-	ship.ticked.emit(1.0 / 60.0)
+	ship.events.ticked.emit(1.0 / 60.0)
 	check(fight.phase == 3, "a third left she is out of the housecoat (phase three)")
 	check(ShipAliens.skin(maw) == "_bare", "and drawn in her second set of pictures")
 	maw.hurt(99999.0, ship)
@@ -1237,12 +1237,12 @@ func _boss_music(main) -> void:
 		foe.alerted = true
 		g.player.x = foe.x + 3.0
 		g.player.y = foe.y if foe == g.finale else 6.0
-		g.ticked.emit(.2)
+		g.events.ticked.emit(.2)
 		check(String(g.sound.score) == track, "%s's boss fight plays %s" % [id, track])
 		foe.hp = 0.0
 		if g.jerry != null:
 			g.jerry.hp = 0.0
-		g.ticked.emit(.2)
+		g.events.ticked.emit(.2)
 		check(String(g.sound.score) == g.level.score, "%s's score is back when it falls" % id)
 
 

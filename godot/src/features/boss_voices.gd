@@ -103,7 +103,7 @@ func attach() -> void:
 	for wired: Array in [["boss_intro", _intro], ["boss_phase", _phase], ["boss_down", _down]]:
 		if game.has_signal(String(wired[0])):
 			game.connect(String(wired[0]), wired[1])
-	game.player_hurt.connect(_hurt)
+	game.events.player_hurt.connect(_hurt)
 
 
 ## Says one of `e`'s lines (a MOMENTS index) from where it stands.

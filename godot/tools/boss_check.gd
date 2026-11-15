@@ -56,7 +56,7 @@ static func _fight(main, level_id: String, difficulty := 1, gap := 6.0) -> Game:
 	var g: Game = main.make_game(level_id)
 	g.configure({"difficulty": difficulty})
 	g.spawn_grace = 0.0
-	g.ticked.emit(1.0 / 60.0)
+	g.events.ticked.emit(1.0 / 60.0)
 	var foe := boss_of(g)
 	if foe == null:
 		return g
@@ -121,7 +121,7 @@ static func _phases(main, check: Callable) -> void:
 	var g := _fight(main, "hickston")
 	var e := boss_of(g)
 	var heard: Array = []
-	g.boss_phase.connect(func(_who: Enemy, phase: int) -> void: heard.append(phase))
+	g.events.boss_phase.connect(func(_who: Enemy, phase: int) -> void: heard.append(phase))
 	e.hp = e.max_hp * .51
 	e.hurt(1.0, g)
 	var first := e.boss_phase
@@ -160,7 +160,7 @@ static func _stagger(main, check: Callable) -> void:
 	var g := _fight(main, "hickston", 1, 4.0)
 	var e: Enemy = g.boss
 	var heard: Array = []
-	g.boss_staggered.connect(func(who: Enemy) -> void: heard.append(who))
+	g.events.boss_staggered.connect(func(who: Enemy) -> void: heard.append(who))
 	var hit := BossKit.moves(e.kind).stagger_hit(e)
 	var rest := BossKit.moves(e.kind).stagger_rest(e)
 	e.windup = .5
@@ -201,7 +201,7 @@ static func _weak_spot(main, check: Callable) -> void:
 	var g := _fight(main, "quarry")
 	var e := boss_of(g)
 	var weak: Array = []
-	g.boss_weak_hit.connect(func(who: Enemy) -> void: weak.append(who))
+	g.events.boss_weak_hit.connect(func(who: Enemy) -> void: weak.append(who))
 	var hp := e.hp
 	g.hit_point = Vector3(e.x, e.y, 1.0)
 	e.hurt(10.0, g)
@@ -311,7 +311,7 @@ static func _backup(main, check: Callable) -> void:
 static func _entrance(main, check: Callable) -> void:
 	var tool := _fight(main, "fair")
 	var intros: Array = []
-	tool.boss_intro.connect(func(who: Enemy) -> void: intros.append(who))
+	tool.events.boss_intro.connect(func(who: Enemy) -> void: intros.append(who))
 	_ticks(tool, .1)
 	check.call(
 		tool.boss_hold == 0.0 and intros.size() == 1,
@@ -329,7 +329,7 @@ static func _entrance(main, check: Callable) -> void:
 	var play := _fight(main, "hickston")
 	play.lessons = true
 	var met: Array = []
-	play.boss_intro.connect(func(who: Enemy) -> void: met.append(who))
+	play.events.boss_intro.connect(func(who: Enemy) -> void: met.append(who))
 	_ticks(play, 1.0 / 60.0)
 	var held := play.boss_hold > 0.0
 	var clock := play.clock
@@ -355,7 +355,7 @@ static func _entrance(main, check: Callable) -> void:
 	var twice: Array = []
 	if back != null:
 		back.lessons = true
-		back.boss_intro.connect(func(who: Enemy) -> void: twice.append(who))
+		back.events.boss_intro.connect(func(who: Enemy) -> void: twice.append(who))
 		var boss := boss_of(back)
 		boss.dormant = false
 		boss.alerted = true
@@ -371,7 +371,7 @@ static func _fall(main, check: Callable) -> void:
 	var g := _fight(main, "sawmill")
 	var e := boss_of(g)
 	var downs: Array = []
-	g.boss_down.connect(func(_who: Enemy, seconds: float) -> void: downs.append(seconds))
+	g.events.boss_down.connect(func(_who: Enemy, seconds: float) -> void: downs.append(seconds))
 	_ticks(g, .5)
 	var loot := g.pickups.size()
 	e.hurt(e.hp + 1.0, g)
@@ -407,10 +407,10 @@ static func _fall(main, check: Callable) -> void:
 	var lift := _fight(main, "quarry")
 	var foe := boss_of(lift)
 	foe.boss_phase = 3
-	lift.ticked.emit(.2)
+	lift.events.ticked.emit(.2)
 	check.call(
 		is_equal_approx(lift.sound.score_lift, 1.06), "the boss loop lifts in the last phase"
 	)
 	foe.hp = 0.0
-	lift.ticked.emit(.2)
+	lift.events.ticked.emit(.2)
 	check.call(is_equal_approx(lift.sound.score_lift, 1.0), "and settles when it falls")

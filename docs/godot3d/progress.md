@@ -10,7 +10,7 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
 | --- | --- |
 | 1 Survey and plan | done |
 | 2 World in 3D | mostly done (see below) |
-| 3 Animated 3D enemies | not started |
+| 3 Animated 3D enemies | in progress |
 | 4 Gore and effects in 3D | not started |
 | 5 Every map and mode, then the switch | not started |
 | 6 Menus and HUD on Godot UI | not started |
@@ -44,6 +44,25 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
 - Test build: Windows EXE exported to Downloads\CrazyLegs-3D-Test (own
   profile folder, `Crazy Legs Mundell Rampage 3D`). APK: no Android SDK/JDK
   on this PC; the branch's CI now builds it as an artifact.
+
+- Stage 3 started: `scripts/blender/export_actors.py` rigs every actor from
+  enemy_actors.py's own per-frame build (parts recorded in `place()`, matched
+  across frames by shape, moved rigidly; parts moving together become one
+  bone; round joint balls merge into the limb that carries them), keys each
+  frame (idle, walk w0-w3 + w4 loop key, aim, wind, fire, pain, recover,
+  extras, die_0-4, down; hurt limping frames), labels bones head/arms/legs,
+  decimates to ~8k faces, bakes plain/hurt/boss-phase albedo onto one
+  unwrap. `tools/art/build_actor_meshes.gd` commits textures to the palette.
+  `ActorLayer3D` draws each enemy as its model in the pose its sprite would
+  show (walk and fall interpolated), facing its heading, scaled by height /
+  canvas; `actor.gdshader` lights it with the cels' dusk stage relative to
+  the camera, a dark rim, then the old sprite light formula.
+- Gore: `Gore.lost` records a thrown limb (side from the enemy uid, no dice);
+  the model leaves that limb off.
+- Event hub: `src/core/game_events.gd` (`game.events`) carries every game
+  signal (19, plus level_started); 58 files moved onto it.
+- Tour viewpoints take `actors` (kind, ahead, side, turn, state) for
+  side-by-side pictures of the 3D actors.
 
 ## Next
 

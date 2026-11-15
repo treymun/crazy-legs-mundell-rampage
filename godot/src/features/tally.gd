@@ -20,7 +20,7 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.level_won.connect(func() -> void: won_at = Time.get_ticks_msec())
+	game.events.level_won.connect(func() -> void: won_at = Time.get_ticks_msec())
 
 
 ## How many rows are down by now (all of them when there is no show running),

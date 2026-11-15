@@ -61,7 +61,7 @@ static func _ticks(g: Game, seconds: float, actors := false) -> void:
 			for e: Enemy in g.enemies:
 				e.tick(DT, g)
 		g.update_shots(DT)
-		g.ticked.emit(DT)
+		g.events.ticked.emit(DT)
 
 
 ## The first of a kind, every other enemy put to sleep out of the way.
@@ -248,7 +248,7 @@ static func _arms(main, check: Callable) -> void:
 	for _k in 360:
 		g.clock += DT
 		e.tick(DT, g)
-		g.ticked.emit(DT)
+		g.events.ticked.emit(DT)
 		if Vector2(e.x, e.y).distance_to(lies) < .3:
 			reached = true
 		if e.disarmed_until < 0.0:
@@ -342,7 +342,7 @@ static func _throws(main, check: Callable) -> void:
 	var highest := 0.0
 	for _k in 90:
 		g3.clock += DT
-		g3.ticked.emit(DT)
+		g3.events.ticked.emit(DT)
 		highest = maxf(highest, cowed.toss)
 	check.call(
 		not cowed.alive and not cowed.explosive and highest > .8,
@@ -395,7 +395,7 @@ static func _floating(main, check: Callable) -> void:
 	var high := -9.0
 	for _k in 120:
 		g.clock += DT
-		g.ticked.emit(DT)
+		g.events.ticked.emit(DT)
 		low = minf(low, e.toss)
 		high = maxf(high, e.toss)
 	check.call(
@@ -412,12 +412,12 @@ static func _critters(main, check: Callable) -> void:
 	hen.y = at.y
 	g.player.x = at.x - 3.0
 	g.player.y = at.y
-	g.shot_fired.emit(Weapons.REVOLVER)
+	g.events.shot_fired.emit(Weapons.REVOLVER)
 	var flapped := 0.0
 	for _k in 60:
 		g.clock += DT
 		hen.tick(DT, g)
-		g.ticked.emit(DT)
+		g.events.ticked.emit(DT)
 		flapped = maxf(flapped, hen.hop)
 	check.call(
 		g.features["critters"].scattered() >= 1 and flapped > .1 and hen.x > at.x + .3,
@@ -440,7 +440,7 @@ static func _critters(main, check: Callable) -> void:
 	for _k in 150:
 		g2.clock += DT
 		hog.tick(DT, g2)
-		g2.ticked.emit(DT)
+		g2.events.ticked.emit(DT)
 	check.call(
 		hog.alive and charged and g2.player.health < health,
 		"a hurt hog charges the player and butts them (%d)" % (health - g2.player.health)
@@ -460,7 +460,7 @@ static func _critters(main, check: Callable) -> void:
 	var up := 0.0
 	for _k in 30:
 		g3.clock += DT
-		g3.ticked.emit(DT)
+		g3.events.ticked.emit(DT)
 		up = maxf(up, cow.hop)
 	check.call(
 		cow.alive and Vector2(cow.x, cow.y).distance_to(was) > .1 and up > .05,
@@ -482,7 +482,7 @@ static func _critters(main, check: Callable) -> void:
 	var facing := gator.face_left
 	for _k in 30:
 		g4.clock += DT
-		g4.ticked.emit(DT)
+		g4.events.ticked.emit(DT)
 		if gator.face_left != facing:
 			turns += 1
 			facing = gator.face_left

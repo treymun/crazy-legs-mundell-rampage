@@ -40,11 +40,11 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = 1949
-	game.shot_fired.connect(_fired)
-	game.traced.connect(_traced)
-	game.pierced.connect(_pierced)
-	game.exploded.connect(_exploded)
-	game.ticked.connect(_tick)
+	game.events.shot_fired.connect(_fired)
+	game.events.traced.connect(_traced)
+	game.events.pierced.connect(_pierced)
+	game.events.exploded.connect(_exploded)
+	game.events.ticked.connect(_tick)
 
 
 func _cap(key: String, fallback: float) -> float:

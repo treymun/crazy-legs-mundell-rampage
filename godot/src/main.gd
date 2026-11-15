@@ -247,6 +247,8 @@ func _view_tour() -> void:
 			held.forward = float(shot.get("forward", 0.0))
 			for i in int(shot["ticks"]):
 				game.tick(1.0 / 60.0, held)
+		if shot.has("actors"):
+			_tour_actors(shot)
 		if shot.has("rain"):
 			# A viewpoint in the weather: rain this hard, the ground this wet, a
 			# lightning flash (features/weather.gd hold()).
@@ -270,6 +272,44 @@ func _view_tour() -> void:
 					"%s/%s_3d.png" % [view_out, String(shot["tag"])]
 				)
 	get_tree().quit()
+
+
+## A viewpoint's own cast (the 3D actors' pictures): the level's enemies put
+## to sleep, and each listed one stood `ahead` and `side` of the eye, turned
+## `turn` from facing it, in `state`: idle, walk (at `gait`), aim, pain, hurt
+## (under half health, walking), dying (`fallen` of the way down) or down.
+func _tour_actors(shot: Dictionary) -> void:
+	var p := game.player
+	for e: Enemy in game.enemies:
+		e.dormant = true
+	for spec: Dictionary in shot["actors"]:
+		var ahead := float(spec.get("ahead", 3.0))
+		var side := float(spec.get("side", 0.0))
+		var x := p.x + cos(p.angle) * ahead - sin(p.angle) * side
+		var y := p.y + sin(p.angle) * ahead + cos(p.angle) * side
+		var facing := atan2(p.y - y, p.x - x) + float(spec.get("turn", 0.0))
+		var foe := Enemy.new(String(spec["kind"]), x, y, facing)
+		game.enemies.append(foe)
+		game.enemy_ids.append("tour-%d" % game.enemies.size())
+		foe.alerted = true
+		var state := String(spec.get("state", "idle"))
+		match state:
+			"walk", "hurt":
+				foe.gait = float(spec.get("gait", 0.0))
+				foe.pose = 1.0
+				foe.last_stride = 1.0
+				if state == "hurt":
+					foe.hp = foe.max_hp * .3
+			"aim":
+				foe.windup = 1.0
+			"pain":
+				foe.flinch = 1.0
+			"dying":
+				foe.hp = 0.0
+				foe.died_at = game.clock - Enemy.DEATH_TIME * float(spec.get("fallen", .5))
+			"down":
+				foe.hp = 0.0
+				foe.died_at = game.clock - 30.0
 
 
 func _view_bench() -> void:
