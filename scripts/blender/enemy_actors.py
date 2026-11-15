@@ -1963,7 +1963,7 @@ def body(Tm, S, C, J):
     L, sw, g = S["torso_len"], S["sw"], S["gut"]
     skin = mat(*C.get("skin", (186, 122, 92)), .75, grime=.42)
     plaid = C.get("plaid")
-    shirt = mat(*C["shirt"], .9, plaid=3.6 if plaid else 0.)
+    shirt = mat(*C["shirt"], .9, plaid=3.6 / C.get("plaid_size", 1.) if plaid else 0.)
     pants = mat(*C["pants"], .92)
     front = -(.17 + .03 * g)
     ball((0, 0, .02), (sw * .82, .17 + .05 * g, .16), pants, Tm)

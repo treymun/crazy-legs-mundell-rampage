@@ -43,6 +43,10 @@ class Sprite:
 	var plane := NAN
 	var hurt := 0.0
 	var who: Object = null
+	## The model's frame when it is not the picture's (`<kind>[_hurt]_<frame>`,
+	## read like a picture name by ActorView): a player body drawn with another
+	## kind's model than its pictures (ModeBodies.player_pose). "": the picture's.
+	var pose := ""
 	## How far a billboard is turned over in the view's plane (radians, about
 	## its middle; a gib or a chunk tumbling through the air). 0: upright.
 	var spin := 0.0

@@ -205,6 +205,17 @@ func frame(game: Game) -> void:
 			pictures.append(item)
 	var fresh := props.show_props(modelled, level)
 	fresh.append_array(actors.show_actors(acting, level, game.clock, game.gore_fx.lost))
+	# The player in the mirror: their model when they have one, else their picture.
+	var reflection: View.Sprite = null
+	if mirror:
+		reflection = view.get("reflection")
+	fresh.append_array(actors.show_reflection(reflection, level, game.clock, LAYER_REFLECTION))
+	if (
+		reflection != null
+		and reflection.who is Enemy
+		and actors.kind_of(reflection.who as Enemy) != ""
+	):
+		reflection = null
 	for m: ShaderMaterial in fresh:
 		_materials.append(m)
 		for key: String in _params:
@@ -212,7 +223,6 @@ func frame(game: Game) -> void:
 	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
 	pickups.show_pickups(picked, level, Vector3(x, y, z), angle, game.clock, r.world_motion, mirror)
 	if mirror:
-		var reflection: View.Sprite = view.get("reflection")
 		sprites.show_reflection(reflection, level, angle)
 	var marks: Array = view["marks"]
 	var ground: Array = view["ground"]

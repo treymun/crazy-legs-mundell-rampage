@@ -18,14 +18,17 @@ const PLATE := Color8(30, 21, 17)
 ## Team deathmatch: RED's and BLUE's tint on the pictures and ink on the tags.
 const TEAM_TINTS := [[1.3, .76, .66], [.68, .88, 1.32]]
 const TEAM_INKS := [Color8(244, 104, 84), Color8(110, 184, 255)]
+## How tall a partner's picture stands (map units), the model too.
+const PARTNER_HEIGHT := 1.02
 
 
-## The other players' pictures for this frame (pooled sprites).
+## The other players' pictures for this frame (pooled sprites). The 3D view
+## draws each as Mundell's model (ModeBodies: walking, aiming, firing, hurt,
+## falling), tinted as the picture is; the picture is what shows without it.
 static func sprites(game: Game) -> Array:
 	var out: Array = []
 	var me: Player = game.local_player
-	if Modes.is_tactical(game):
-		ModeBodies.watch(game)
+	ModeBodies.watch(game)
 	for q: Player in game.players:
 		if q == me or not game.in_view(q.x, q.y, 1.0):
 			continue
@@ -45,9 +48,15 @@ static func sprites(game: Game) -> Array:
 			var tint: Array = Modes.TINTS[q.slot % Modes.TINTS.size()]
 			image = game.art.tinted_art(base, tint)
 		var floor_z: float = game.world.stand(q)
-		var spr := game.pooled(q.x, q.y, image, 1.02 if q.health > 0 else .5, floor_z + q.air)
+		var spr := game.pooled(
+			q.x, q.y, image, PARTNER_HEIGHT if q.health > 0 else .5, floor_z + q.air
+		)
 		spr.flip = relative < 0.0 and direction < 4
 		spr.body = true
+		var kind := ModeBodies.PLAYER_KIND
+		var tall := PARTNER_HEIGHT * (.8 if q.crouched and q.health > 0 else 1.0)
+		spr.who = ModeBodies.for_player(game, q, kind, tall)
+		spr.pose = ModeBodies.player_pose(game, q, kind)
 		out.append(spr)
 	return out
 
