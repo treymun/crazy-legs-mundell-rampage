@@ -101,7 +101,10 @@ func _boardwalk(id: String, x0: int, x1: int, y: int) -> void:
 	Geo.stairs(
 		b, id + "_east", [x1, y, x1 + 3, y + 2], east_foot, WALK, "w", {"tile": "bayou_planks"}
 	)
-	b.town("lantern_post", (x0 + x1) * .5, y + .25, {"z": WALK})
+	# A board's z counts up from its cell's ground (the water under the walk).
+	var lamp := Vector2((x0 + x1) * .5, y + .25)
+	var under := float(b.ground[b.at(int(lamp.x), int(lamp.y))])
+	b.town("lantern_post", lamp.x, lamp.y, {"z": WALK - under})
 
 
 func landmarks() -> void:

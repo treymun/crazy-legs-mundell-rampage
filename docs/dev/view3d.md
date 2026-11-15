@@ -107,6 +107,11 @@ for what feeds them.
   list and changes nothing; a host game draws nothing at all.
 - **Guns in hand stay 2D cels** over the 3D view (`weapons.gd`), drawn on the
   canvas layer.
+- **Slab edges repeat.** A stair's, deck's or ramp's side
+  (`LevelGeometry.slab_edges`) in a stretched material is laid along by the
+  metre from a point fixed on its line (`LevelMesh`), so each tread does not
+  squeeze the whole tile into its own height; `EDGE_STRETCHED` keeps the
+  ones drawn per piece (the grandstand riser).
 
 ## Props
 

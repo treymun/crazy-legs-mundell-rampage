@@ -99,7 +99,7 @@ func west() -> void:
 	b.yard(2, 7, 7, 25, "asphalt", d["shoulder"])
 	b.paint(2, 7, 3, 25, "shoulder")
 	b.prop("pickup_truck", 6.5, 8.5)
-	b.fixture(5.8, 8.1, 7.2, 8.9, .3, "mill_tin", "tin")
+	b.volume(5.8, 8.1, 7.2, 8.9, .3, "mill_tin", "tin")
 	b.prop("roadsign", 2.5, 21.5)
 	b.town("tire_pile", 2.5, 7.5, {"solid": .34})
 	b.streetlamp(3.5, 24.5, 4.4)

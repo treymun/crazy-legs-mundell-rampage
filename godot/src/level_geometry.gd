@@ -153,6 +153,9 @@ class Ceiling:
 var slabs: Array[Slab] = []
 var segments: Array[Segment] = []
 var ceilings: Array[Ceiling] = []
+## Every slab edge render_parts() made: Vector4(ax, ay, bx, by) -> its tile (the
+## 3D view lays a stretched material along a stair's side by the metre).
+var slab_edges := {}
 var width := 0
 var height := 0
 ## cell -> Array of the slabs and segments within PAD of it.
@@ -543,6 +546,7 @@ func render_parts(ground: Callable) -> Dictionary:
 				walls.append_array(
 					PackedFloat32Array([p.x, p.y, q.x, q.y, s.edge, s.light, bottom, top, s.area])
 				)
+				slab_edges[Vector4(p.x, p.y, q.x, q.y)] = s.edge
 	for g in segments:
 		var length := Vector2(g.bx - g.ax, g.by - g.ay).length()
 		if length < .001:
