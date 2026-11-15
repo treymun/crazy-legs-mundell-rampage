@@ -9,6 +9,8 @@
 ## feature's own dice. Nothing saved: it all lasts a second or two.
 extends GameFeature
 
+const Water := preload("res://src/features/water.gd")
+
 ## How far a shot (at most its noise) and a blast send them running, how
 ## long they run, and how near a running player must come.
 const SHOT_REACH := 9.0
@@ -68,8 +70,9 @@ func _animal(e: Enemy) -> bool:
 
 
 func _fired(gun: int) -> void:
-	var p = game.player
-	scatter(p.x, p.y, minf(SHOT_REACH, float(Weapons.SHOT_NOISE[gun])))
+	var p := game.player
+	var noise: float = Weapons.SHOT_NOISE[gun]
+	scatter(p.x, p.y, minf(SHOT_REACH, noise))
 
 
 ## Every animal within `reach` of (x, y) runs from it a moment; chickens flap.
@@ -161,7 +164,7 @@ func struck(e: Enemy) -> void:
 		_thrashing[e] = game.clock + THRASH
 		game.sound_at("wade_splash", e.x, e.y, .8)
 		_spatter(e, "splash", 10)
-		var water = game.features.get("water")
+		var water: Water = game.features.get("water")
 		if water != null:
 			water.ring(e.x, e.y, 1.0)
 
@@ -171,8 +174,9 @@ func struck(e: Enemy) -> void:
 func steer(e: Enemy, dt: float) -> bool:
 	if not _charging.has(e):
 		return false
-	var p = game.player
-	if game.clock >= float(_charging[e]) or p.health <= 0:
+	var p := game.player
+	var charge_until: float = _charging[e]
+	if game.clock >= charge_until or p.health <= 0:
 		_charging.erase(e)
 		return false
 	var gap := Vector2(p.x - e.x, p.y - e.y)
@@ -204,11 +208,12 @@ func _tick(dt: float) -> void:
 	if not _thrashing.is_empty():
 		var done: Array = []
 		for e: Enemy in _thrashing:
-			if game.clock >= float(_thrashing[e]):
+			var thrash_until: float = _thrashing[e]
+			if game.clock >= thrash_until:
 				done.append(e)
 				continue
 			# Rolling side to side in the water.
-			e.face_left = int((float(_thrashing[e]) - game.clock) * 14.0) % 2 == 0
+			e.face_left = int((thrash_until - game.clock) * 14.0) % 2 == 0
 			if dice.randf() < dt * 14.0:
 				_spatter(e, "splash", 2)
 		for e: Enemy in done:

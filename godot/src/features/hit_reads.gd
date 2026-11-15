@@ -110,7 +110,7 @@ func landed(e: Enemy, amount: float) -> void:
 func _cue(e: Enemy, amount: float, head: bool) -> String:
 	if HitZones.metal(e):
 		return "tailgate_clang" if amount >= 30.0 else "ricochet_tin"
-	if head and String(HATS.get(e.kind, "")) == "helmet":
+	if head and str(HATS.get(e.kind, "")) == "helmet":
 		return "ricochet"
 	if Enemy.SHELL_ACTORS.has(e.kind):
 		return "impact_rubber"
@@ -151,7 +151,7 @@ func _pop(e: Enemy, z: float, metal: bool) -> void:
 	var kind := "spark" if metal else "plasma" if Enemy.PLASMA.has(e.kind) else "gore"
 	if kind != "gore" or game.gore:
 		_specks(e.x, e.y, z, kind, 14, 1.4, 1.2)
-	var helmet := String(HATS.get(e.kind, "")) == "helmet"
+	var helmet := str(HATS.get(e.kind, "")) == "helmet"
 	game.sound_at("ricochet" if helmet or metal else "skeeter_pop", e.x, e.y, .75)
 	if (
 		game.barks.enabled
@@ -165,10 +165,11 @@ func _pop(e: Enemy, z: float, metal: bool) -> void:
 
 ## The hat comes off the top of its head and tumbles away from the gun.
 func _hat_off(e: Enemy, top: float) -> void:
-	var hat := String(HATS[e.kind])
+	var hat := str(HATS[e.kind])
 	var b := Bit.new()
 	b.image = "fx_hat_" + hat
-	b.size = float(HAT_SIZE.get(hat, CAP_SIZE))
+	var hat_size: float = HAT_SIZE.get(hat, CAP_SIZE)
+	b.size = hat_size
 	var away := atan2(e.y - game.hit_from.y, e.x - game.hit_from.x) + dice.randf_range(-.5, .5)
 	var speed := dice.randf_range(1.1, 2.1)
 	b.x = e.x
@@ -186,7 +187,8 @@ func _hat_off(e: Enemy, top: float) -> void:
 func drop_arm(e: Enemy, held: String, spot: Vector2) -> void:
 	var b := Bit.new()
 	b.image = "fx_drop_" + held
-	b.size = float(DROP_SIZE.get(held, .07))
+	var drop_size: float = DROP_SIZE.get(held, .07)
+	b.size = drop_size
 	b.owner = e
 	b.start = Vector3(e.x, e.y, game.world.stand(e) + e.z + e.height * .5)
 	b.land = Vector3(spot.x, spot.y, game.world.elevation(spot.x, spot.y))

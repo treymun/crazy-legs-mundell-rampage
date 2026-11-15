@@ -60,13 +60,14 @@ func _hurt(amount: float, _cause: String) -> void:
 func _tick(dt: float) -> void:
 	if dt <= 0.0:
 		return
-	var p = game.player
-	var arms = game.armory
+	var p := game.player
+	var arms := game.armory
 	var cfg: Dictionary = Weapons.SWAY
 	var bob: float = game.bob_scale
 	var shake: float = game.shake_scale
-	var w_sway := TAU * float(cfg.get("hz", 5.5))
-	var z_sway := float(cfg.get("damp", .5))
+	var hz: float = cfg.get("hz", 5.5)
+	var w_sway := TAU * hz
+	var z_sway: float = cfg.get("damp", .5)
 	var gun: int = arms.active
 	if gun != _gun:
 		_gun = gun
@@ -74,39 +75,34 @@ func _tick(dt: float) -> void:
 		kick_v = 0.0
 	elif arms.shot_age < _age:
 		# A shot, a throw or a swing: the gun jumps back and springs home.
-		kick = maxf(kick, 0.0) * .5 + float(arms.recoil)
+		var recoil: float = arms.recoil
+		kick = maxf(kick, 0.0) * .5 + recoil
 		kick_v = 0.0
 	_age = arms.shot_age
 	# The sway's aim: behind a turn and away from a strafe, as far as the limit.
-	var limit := float(cfg.get("limit", 10.0))
+	var limit: float = cfg.get("limit", 10.0)
 	var side_speed: float = -sin(p.angle) * p.vx + cos(p.angle) * p.vy
+	var turn_k: float = cfg.get("turn", 4.0)
+	var strafe_k: float = cfg.get("strafe", 1.4)
 	var want := Vector2(
-		(
-			clampf(
-				(
-					-game.feel_turn / dt * float(cfg.get("turn", 4.0))
-					- side_speed * float(cfg.get("strafe", 1.4))
-				),
-				-limit,
-				limit
-			)
-			* bob
-		),
-		0.0
+		clampf(-game.feel_turn / dt * turn_k - side_speed * strafe_k, -limit, limit) * bob, 0.0
 	)
 	if game.feel_landed:
 		if _fall < -2.0:
 			game.sound.play("land_thump", clampf(-_fall / 5.0, .35, .9))
 		var hard := clampf(-_fall / 2.7, .4, 1.6) * bob
-		sway_v.y += float(cfg.get("land", 6.0)) * hard * w_sway * PUSH
+		var land_k: float = cfg.get("land", 6.0)
+		sway_v.y += land_k * hard * w_sway * PUSH
 		view_v.z += LAND_DROP * hard * w_sway * PUSH
 	_fall = p.vertical_speed
 	if _blow > 0.0:
 		_staggered(_blow, shake, w_sway)
 		_blow = 0.0
-	var settle = Weapons.SETTLE[gun]
-	var w_kick := TAU * SETTLE_K / maxf(.05, float(settle if settle != null else .2))
-	var z_kick := float(Weapons.FIRING[gun].get("spring_damp", cfg.get("spring_damp", .42)))
+	var settle: Variant = Weapons.SETTLE[gun]
+	var settle_time: float = settle if settle != null else .2
+	var w_kick := TAU * SETTLE_K / maxf(.05, settle_time)
+	var firing: Dictionary = Weapons.FIRING[gun]
+	var z_kick: float = firing.get("spring_damp", cfg.get("spring_damp", .42))
 	var n := maxi(1, ceili(dt / STEP))
 	var h := dt / n
 	for _k in n:
@@ -118,15 +114,11 @@ func _tick(dt: float) -> void:
 		view += view_v * h
 		kick_v += (-w_kick * w_kick * kick - 2.0 * z_kick * w_kick * kick_v) * h
 		kick += kick_v * h
-	var back = Weapons.RETREAT[gun]
-	var rise = Weapons.VIEW_RISE[gun]
-	p.weapon_lag = (
-		sway
-		+ jolt
-		+ Vector2(
-			kick * float(back if back != null else 0), -kick * float(rise if rise != null else 0)
-		)
-	)
+	var back: Variant = Weapons.RETREAT[gun]
+	var rise: Variant = Weapons.VIEW_RISE[gun]
+	var back_k: float = back if back != null else 0
+	var rise_k: float = rise if rise != null else 0
+	p.weapon_lag = sway + jolt + Vector2(kick * back_k, -kick * rise_k)
 	game.view_kick = view
 
 
@@ -138,9 +130,10 @@ func _staggered(amount: float, shake: float, w: float) -> void:
 	if heavy <= 0.0:
 		return
 	var turn := PI
-	var feedback = game.damage_feedback
+	var feedback: Variant = game.damage_feedback
 	if feedback != null and feedback[0] != null:
-		turn = fposmod(float(feedback[0]) - game.player.view_angle() + PI, TAU) - PI
+		var from_angle: float = feedback[0]
+		turn = fposmod(from_angle - game.player.view_angle() + PI, TAU) - PI
 	else:
 		# From nowhere in particular (a fall, steam underfoot): a sag, no turn.
 		turn = PI * .5 if int(game.clock * 10.0) % 2 else -PI * .5

@@ -53,17 +53,21 @@ func save() -> Dictionary:
 
 
 func restore(state: Dictionary) -> void:
-	var kept = state.get("taken", {})
+	var kept: Variant = state.get("taken", {})
 	taken = {}
 	if kept is Dictionary:
-		for key in kept:
-			taken[String(key)] = String(kept[key])
-	var spot = state.get("door", [])
+		var kept_tokens: Dictionary = kept
+		for key: Variant in kept_tokens:
+			taken[str(key)] = str(kept_tokens[key])
+	var spot: Variant = state.get("door", [])
 	door = []
-	if spot is Array and spot.size() >= 3:
-		for value in spot.slice(0, 3):
-			door.append(float(value))
-	fight_kind = String(state.get("kind", ""))
+	if spot is Array:
+		var spot_list: Array = spot
+		if spot_list.size() >= 3:
+			for value: Variant in spot_list.slice(0, 3):
+				var coord: float = value
+				door.append(coord)
+	fight_kind = str(state.get("kind", ""))
 
 
 func eligible() -> bool:
@@ -80,7 +84,7 @@ func _tick(dt: float) -> void:
 	if scan_left > 0.0 or not eligible():
 		return
 	scan_left = SCAN
-	var p = game.player
+	var p := game.player
 	if p.health <= 0:
 		pending_since = -1.0
 		return
@@ -103,15 +107,20 @@ func fight_began(foe: Enemy) -> void:
 	if not eligible() or taken.has(foe.kind) or pending_since >= 0.0:
 		return
 	fight_kind = foe.kind
-	var p = game.player
+	var p := game.player
 	var spot: Array = []
 	for i in range(samples.size() - 1, -1, -1):
 		var sample: Array = samples[i]
-		if BossFight.clear_of(game, foe, float(sample[0]), float(sample[1])):
+		var sample_x: float = sample[0]
+		var sample_y: float = sample[1]
+		if BossFight.clear_of(game, foe, sample_x, sample_y):
 			spot = sample
 			break
 	if not spot.is_empty():
-		door = [float(spot[0]), float(spot[1]), float(spot[2])]
+		var door_x: float = spot[0]
+		var door_y: float = spot[1]
+		var door_angle: float = spot[2]
+		door = [door_x, door_y, door_angle]
 	elif door.is_empty():
 		# Woken with the player already inside (a station beside the boss): the
 		# door is where they stood then.
@@ -122,7 +131,7 @@ func fight_began(foe: Enemy) -> void:
 
 ## A beat after the fight began, once nothing of the player's is in the air.
 func _settle() -> void:
-	var p = game.player
+	var p := game.player
 	var calm: bool = p.air == 0.0 and p.vertical_speed == 0.0
 	if game.armory.fuse > 0.0 or (not calm and game.clock - pending_since < SETTLE):
 		return
@@ -151,7 +160,7 @@ func offered() -> bool:
 			and boss != null
 			and (
 				BossDoor.token_on_file(game.level.id, game.replay, fight_kind)
-				== String(taken[fight_kind])
+				== str(taken[fight_kind])
 			)
 		)
 		offer = 1 if yes else 0
@@ -175,7 +184,9 @@ func death_lines() -> Array:
 
 ## The key RELOAD is on (play keys arrive as their default, KEY_R).
 static func reload_key() -> String:
-	for code in KeyBindings._translate:
-		if int(KeyBindings._translate[code]) == KEY_R:
-			return KeyBindings.key_name(int(code))
+	for code: Variant in KeyBindings._translate:
+		var bound: int = KeyBindings._translate[code]
+		if bound == KEY_R:
+			var key_code: int = code
+			return KeyBindings.key_name(key_code)
 	return "R"

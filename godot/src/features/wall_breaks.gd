@@ -26,6 +26,7 @@
 ## block; a save from before it restores with nothing broken.
 extends GameFeature
 
+const Breakables := preload("res://src/features/breakables.gd")
 const PATH := "res://data/tuning/breakables.cfg"
 ## strike()'s answers: nothing here to break, or the shot went in through a
 ## window's glass (now or already gone), so it leaves no hole on it.
@@ -105,18 +106,19 @@ func attach() -> void:
 	var cfg := Tuning.file(PATH)
 	win = _section(cfg, "windows")
 	var world: LevelData = game.world
-	if (win.get("never", []) as Array).has(world.id) or not world.road_and_hub.is_empty():
+	var never: Array = win.get("never", [])
+	if never.has(world.id) or not world.road_and_hub.is_empty():
 		return
 	_find_windows()
 	_find_fences(cfg)
 	for f: Fence in fences.values():
-		game.art.art(String(f.spec.get("broken", "")))
+		game.art.art(str(f.spec.get("broken", "")))
 
 
 static func _section(cfg: ConfigFile, name: String) -> Dictionary:
 	var out := {}
 	if cfg.has_section(name):
-		for key in cfg.get_section_keys(name):
+		for key: String in cfg.get_section_keys(name):
 			out[key] = cfg.get_value(name, key)
 	return out
 
@@ -155,7 +157,7 @@ func _find_windows() -> void:
 		if world.solid[face.cell.y * world.width + face.cell.x] < 0:
 			continue
 		face.whole = tile
-		face.shot = int(shot_of[tile])
+		face.shot = shot_of[tile]
 		var bottom: float = world.walls[o + 6]
 		var top: float = world.walls[o + 7]
 		if (
@@ -170,26 +172,28 @@ func _find_windows() -> void:
 		windows.append(face)
 		if not by_cell.has(face.cell):
 			by_cell[face.cell] = []
-		by_cell[face.cell].append(face)
+		var in_cell: Array = by_cell[face.cell]
+		in_cell.append(face)
 
 
 ## Every fence cell, and which of them may open.
 func _find_fences(cfg: ConfigFile) -> void:
 	var world: LevelData = game.world
 	var specs := {}
-	for section in cfg.get_sections():
-		if not String(section).begins_with("fence."):
+	for section: String in cfg.get_sections():
+		if not section.begins_with("fence."):
 			continue
-		var name := String(section).substr(6)
+		var name := section.substr(6)
 		var spec := _section(cfg, section)
-		if (spec.get("never", []) as Array).has(world.id):
+		var never: Array = spec.get("never", [])
+		if never.has(world.id):
 			continue  # a level whose fences hold (the 5v5 maps: no new lanes mid-match)
 		var tile := world.tile_id(name)
-		var hit := world.tile_id(String(spec.get("hit", "")))
+		var hit := world.tile_id(str(spec.get("hit", "")))
 		# A merged run would not come apart a cell at a time.
 		if tile < 0 or hit < 0 or LevelTiles.TILED.has(name):
 			continue
-		if not game.art.has_art(String(spec.get("broken", ""))):
+		if not game.art.has_art(str(spec.get("broken", ""))):
 			continue
 		specs[tile] = spec
 		_faces[tile] = hit
@@ -204,9 +208,9 @@ func _find_fences(cfg: ConfigFile) -> void:
 			var f := Fence.new()
 			f.cell = Vector2i(cx, cy)
 			f.tile = tile
-			f.hit_tile = int(_faces[tile])
+			f.hit_tile = _faces[tile]
 			f.spec = specs[tile]
-			f.most = float(f.spec.get("hp", 100.0))
+			f.most = f.spec.get("hp", 100.0)
 			f.hp = f.most
 			f.top = world.wall_height[cy * w + cx]
 			# Along its own fence first, else along whatever it meets.
@@ -247,7 +251,9 @@ func _rule() -> void:
 		var found := -1
 		var one := true
 		for e: Array in LevelEdit.EDGES:
-			var n := Vector2i(f.cell.x + int(e[0]), f.cell.y + int(e[1]))
+			var ex: int = e[0]
+			var ey: int = e[1]
+			var n := Vector2i(f.cell.x + ex, f.cell.y + ey)
 			var at := label[n.y * w + n.x]
 			if at < 0:
 				continue
@@ -273,7 +279,9 @@ func _may_open(f: Fence) -> bool:
 	if world.roof[c] > 0.0:
 		return false
 	for e: Array in LevelEdit.EDGES:
-		var n := (cy + int(e[1])) * w + cx + int(e[0])
+		var ex: int = e[0]
+		var ey: int = e[1]
+		var n := (cy + ey) * w + cx + ex
 		if world.solid[n] >= 0:
 			continue
 		if world.roof[n] > 0.0 or absf(world.ground[n] - world.ground[c]) > .001:
@@ -314,13 +322,14 @@ func _loose_pieces() -> void:
 		var key := Vector2i(floori(mid.x), floori(mid.y))
 		if not _loose.has(key):
 			_loose[key] = []
-		_loose[key].append(Vector3(mid.x, mid.y, world.walls[o + 6]))
+		var in_cell: Array = _loose[key]
+		in_cell.append(Vector3(mid.x, mid.y, world.walls[o + 6]))
 
 
 ## Each open cell's stretch of floor (-1: closed): the cells a body fits in,
 ## joined side to side, through doors only where the player can simply walk
 ## through (and window panes, which break).
-static func regions(g) -> PackedInt32Array:
+static func regions(g: Game) -> PackedInt32Array:
 	var world: LevelData = g.world
 	var w := world.width
 	var h := world.height
@@ -332,10 +341,14 @@ static func regions(g) -> PackedInt32Array:
 		for p: Vector2i in prop.opens:
 			locked[p] = true
 	for trigger: Dictionary in world.triggers:
-		for action in trigger.get("do", []):
-			if action is Dictionary and action.has("open"):
-				var p: Array = action["open"]
-				locked[Vector2i(int(p[0]), int(p[1]))] = true
+		for action: Variant in trigger.get("do", []):
+			if action is Dictionary:
+				var act: Dictionary = action
+				if act.has("open"):
+					var p: Array = act["open"]
+					var px: int = p[0]
+					var py: int = p[1]
+					locked[Vector2i(px, py)] = true
 	var doors := {}
 	for door: LevelData.Door in world.doors:
 		var at := Vector2i(door.x, door.y)
@@ -404,7 +417,7 @@ func strike(x: float, y: float, z: float, ax: float, ay: float, amount: float) -
 	var cell := _cell_at(x, y)
 	if cell.x < 0:
 		return NONE
-	var p = game.player
+	var p := game.player
 	for face: WindowFace in by_cell.get(cell, []):
 		var n := face.normal()
 		if n.x * ax + n.y * ay >= 0.0:
@@ -483,7 +496,7 @@ func _cell_at(x: float, y: float) -> Vector2i:
 ## reaches take its damage by how near.
 func blast(x: float, y: float, z: float, radius: float, strength: float, energy: bool) -> void:
 	var world: LevelData = game.world
-	var reach := float(win.get("blast_reach", 2.4))
+	var reach: float = win.get("blast_reach", 2.4)
 	for face: WindowFace in windows:
 		if face.broken:
 			continue
@@ -537,11 +550,14 @@ func _break_window(face: WindowFace, quiet: bool) -> void:
 	var z := (face.low + face.high) * .5
 	_drop_marks(face.middle(), n, face.low, face.high)
 	_noise(win, at, z)
-	var pieces = game.features.get("breakables")
+	var pieces: Breakables = game.features.get("breakables")
 	if pieces != null:
-		pieces.scatter(at.x, at.y, z, "glass", int(win.get("bits", 7)), n.x * .6, n.y * .6)
-	game.burst(at.x, at.y, z, "glass", int(win.get("specks", 14)), 1.8)
-	game.disturb(at.x, at.y, float(win.get("heard", 6.8)), z)
+		var bits: int = win.get("bits", 7)
+		pieces.scatter(at.x, at.y, z, "glass", bits, n.x * .6, n.y * .6)
+	var specks: int = win.get("specks", 14)
+	game.burst(at.x, at.y, z, "glass", specks, 1.8)
+	var heard: float = win.get("heard", 6.8)
+	game.disturb(at.x, at.y, heard, z)
 
 
 ## A fence cell takes `amount`: shot about past `damaged` of its hp, broken
@@ -553,7 +569,8 @@ func _knock(f: Fence, amount: float, ax: float, ay: float) -> void:
 	f.hp -= amount
 	if not f.opens:
 		f.hp = maxf(f.hp, 1.0)
-	if f.stage == 0 and f.hp <= f.most * float(f.spec.get("damaged", .6)):
+	var damaged: float = f.spec.get("damaged", .6)
+	if f.stage == 0 and f.hp <= f.most * damaged:
 		_shoot_about(f, false, ax, ay)
 	if f.hp <= 0.0:
 		_break_through(f, false, ax, ay)
@@ -572,10 +589,10 @@ func _shoot_about(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 		return
 	var at := _front(f, ax, ay)
 	var z := world.ground[f.cell.y * world.width + f.cell.x] + f.top * .55
-	game.sound_at(String(f.spec.get("chip", "impact_wood")), at.x, at.y, .7)
-	var pieces = game.features.get("breakables")
+	game.sound_at(str(f.spec.get("chip", "impact_wood")), at.x, at.y, .7)
+	var pieces: Breakables = game.features.get("breakables")
 	if pieces != null:
-		pieces.scatter(at.x, at.y, z, String(f.spec.get("stuff", "wood")), 3, -ax * .4, -ay * .4)
+		pieces.scatter(at.x, at.y, z, str(f.spec.get("stuff", "wood")), 3, -ax * .4, -ay * .4)
 
 
 func _break_through(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
@@ -598,19 +615,23 @@ func _break_through(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 	_drop_marks(Vector2(cx + .5, cy + .5), Vector2.ZERO, ground - 1.0, ground + f.top + 1.0)
 	var at := Vector2(cx + .5, cy + .5)
 	_noise(f.spec, at, z)
-	var pieces = game.features.get("breakables")
-	var stuff := String(f.spec.get("stuff", "wood"))
+	var pieces: Breakables = game.features.get("breakables")
+	var stuff := str(f.spec.get("stuff", "wood"))
 	if pieces != null:
-		pieces.scatter(at.x, at.y, z, stuff, int(f.spec.get("bits", 9)), ax, ay)
+		var bits: int = f.spec.get("bits", 9)
+		pieces.scatter(at.x, at.y, z, stuff, bits, ax, ay)
 	game.burst(at.x, at.y, z, "chips", 10, 1.4)
-	game.disturb(at.x, at.y, float(f.spec.get("heard", 5.0)), z)
+	var heard: float = f.spec.get("heard", 5.0)
+	game.disturb(at.x, at.y, heard, z)
 
 
 ## The picture standing in a gap: a cell wide, from the ground, one a side.
 func _stand_gap(f: Fence) -> void:
-	var image := String(f.spec.get("broken", ""))
+	var image := str(f.spec.get("broken", ""))
 	var art: Dictionary = game.art.art(image)
-	var tall := minf(f.top, float(art["h"]) / maxf(1.0, float(art["w"])))
+	var art_h: float = art["h"]
+	var art_w: float = art["w"]
+	var tall := minf(f.top, art_h / maxf(1.0, art_w))
 	var world: LevelData = game.world
 	var ground := world.ground[f.cell.y * world.width + f.cell.x]
 	var facing := 0.0 if f.along_x else PI * .5
@@ -622,7 +643,11 @@ func _stand_gap(f: Fence) -> void:
 
 ## The cell's own face toward neighbour e (LevelEdit.EDGES): [ax, ay, bx, by].
 static func _own_edge(cell: Vector2i, e: Array) -> Vector4:
-	return Vector4(cell.x + int(e[2]), cell.y + int(e[3]), cell.x + int(e[4]), cell.y + int(e[5]))
+	var ax: int = e[2]
+	var ay: int = e[3]
+	var bx: int = e[4]
+	var by: int = e[5]
+	return Vector4(cell.x + ax, cell.y + ay, cell.x + bx, cell.y + by)
 
 
 ## A point just out in front of the fence cell, toward whoever shot it.
@@ -643,9 +668,9 @@ func _noise(spec: Dictionary, at: Vector2, _z: float) -> void:
 	if game.clock < _crash_next:
 		return
 	_crash_next = game.clock + .05
-	game.sound_at(String(spec.get("cue", "glass_break")), at.x, at.y, .9)
+	game.sound_at(str(spec.get("cue", "glass_break")), at.x, at.y, .9)
 	if spec.has("cue2"):
-		game.sound_at(String(spec["cue2"]), at.x, at.y, .6)
+		game.sound_at(str(spec["cue2"]), at.x, at.y, .6)
 
 
 ## Holes and scorches on a face or a cell that is no longer there to hold
@@ -699,24 +724,35 @@ func restore(state: Dictionary) -> void:
 	var by_edge := {}
 	for face: WindowFace in windows:
 		by_edge[face.edge] = face
-	for row in state.get("windows", []):
-		if not (row is Array) or row.size() != 4:
+	for item: Variant in state.get("windows", []):
+		if not (item is Array):
 			continue
-		var face: WindowFace = by_edge.get(
-			Vector4(float(row[0]), float(row[1]), float(row[2]), float(row[3]))
-		)
+		var row: Array = item
+		if row.size() != 4:
+			continue
+		var ax: float = row[0]
+		var ay: float = row[1]
+		var bx: float = row[2]
+		var by: float = row[3]
+		var face: WindowFace = by_edge.get(Vector4(ax, ay, bx, by))
 		if face != null and not face.broken:
 			_break_window(face, true)
-	for row in state.get("fences", []):
-		if not (row is Array) or row.size() != 4:
+	for item: Variant in state.get("fences", []):
+		if not (item is Array):
 			continue
-		var f: Fence = fences.get(Vector2i(int(row[0]), int(row[1])))
-		var stage := int(row[2])
+		var row: Array = item
+		if row.size() != 4:
+			continue
+		var cx: int = row[0]
+		var cy: int = row[1]
+		var f: Fence = fences.get(Vector2i(cx, cy))
+		var stage: int = row[2]
 		# A fence shot about already goes on only to broken through (a
 		# snapshot put onto a game already running: game_snapshot.gd).
 		if f == null or (f.stage != 0 and f.stage >= stage):
 			continue
-		f.hp = clampf(float(row[3]), 0.0, f.most)
+		var hp: float = row[3]
+		f.hp = clampf(hp, 0.0, f.most)
 		net_version += 1
 		if stage >= 2 and f.opens:
 			_break_through(f, true)

@@ -6,6 +6,8 @@
 ## Its own dice; nothing to save (a ring lasts a second and a half).
 extends GameFeature
 
+const Weather := preload("res://src/features/weather.gd")
+
 ## A ring: [x, y, born (game.clock), size]. The shader takes MAX_SHOWN of
 ## the nearest; LIFE seconds each.
 const MAX_RINGS := 32
@@ -58,7 +60,7 @@ func wet_at(x: float, y: float) -> bool:
 		return true
 	if kind == 0:
 		return false
-	var weather = game.features.get("weather")
+	var weather: Weather = game.features.get("weather")
 	var open: bool = world.roof[i] <= world.ground[i] + .01
 	return weather != null and weather.wet > .35 and open
 
@@ -79,12 +81,20 @@ func _sort_tiles(world: LevelData) -> void:
 func shown(px: float, py: float) -> Array:
 	var near: Array = []
 	for r: Array in rings:
-		var age: float = game.clock - float(r[2])
+		var born: float = r[2]
+		var age: float = game.clock - born
 		if age >= 0.0 and age < LIFE:
-			var dx := float(r[0]) - px
-			var dy := float(r[1]) - py
+			var rx: float = r[0]
+			var ry: float = r[1]
+			var dx := rx - px
+			var dy := ry - py
 			near.append([dx * dx + dy * dy, [r[0], r[1], age, r[3]]])
-	near.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
+	near.sort_custom(
+		func(a: Array, b: Array) -> bool:
+			var da: float = a[0]
+			var db: float = b[0]
+			return da < db
+	)
 	var out: Array = []
 	for i in mini(MAX_SHOWN, near.size()):
 		out.append(near[i][1])
@@ -98,9 +108,13 @@ func ring(x: float, y: float, size: float) -> void:
 
 
 func _tick(_dt: float) -> void:
-	while not rings.is_empty() and game.clock - float(rings[0][2]) >= LIFE:
+	while not rings.is_empty():
+		var oldest: Array = rings[0]
+		var born: float = oldest[2]
+		if game.clock - born < LIFE:
+			break
 		rings.pop_front()
-	var p = game.player
+	var p := game.player
 	var seen := {}
 	if p.air <= .05:
 		_wade(0, p.x, p.y, 1.0, false)
@@ -119,7 +133,7 @@ func _tick(_dt: float) -> void:
 	# Every key seen but the player's (0, not while in the air) is in _bodies
 	# now, so any other is stale only when there are more than that.
 	if _bodies.size() > seen.size() - (0 if _bodies.has(0) else 1):
-		for key in _bodies.keys():
+		for key: Variant in _bodies.keys():
 			if not seen.has(key):
 				_bodies.erase(key)
 
@@ -127,20 +141,26 @@ func _tick(_dt: float) -> void:
 ## A wading body: a ring each stride, a splash stepping in, drips standing.
 func _wade(key: int, x: float, y: float, size: float, enemy: bool) -> void:
 	var wet := wet_at(x, y)
-	var known = _bodies.get(key)
+	var known: Variant = _bodies.get(key)
 	var b: Array = known if known != null else [x, y, 0.0, wet, game.clock + 1.0]
-	var moved := Vector2(x - float(b[0]), y - float(b[1])).length()
+	var bx: float = b[0]
+	var by: float = b[1]
+	var moved := Vector2(x - bx, y - by).length()
 	if wet:
-		if not bool(b[3]) and moved > 0.0:
+		var was_wet: bool = b[3]
+		var drip_at: float = b[4]
+		if not was_wet and moved > 0.0:
 			ring(x, y, size * 1.6)
 			game.sound_at("wade_splash", x, y, .45 if enemy else .7)
 			b[2] = 0.0
 		elif moved > .001:
-			b[2] = float(b[2]) + moved
-			if float(b[2]) >= STRIDE:
+			var stride: float = b[2]
+			stride += moved
+			b[2] = stride
+			if stride >= STRIDE:
 				b[2] = 0.0
 				ring(x, y, size)
-		elif game.clock >= float(b[4]):
+		elif game.clock >= drip_at:
 			var a := dice.randf_range(0.0, TAU)
 			var off := dice.randf_range(.08, .22)
 			ring(x + cos(a) * off, y + sin(a) * off, size * .4)
@@ -156,10 +176,13 @@ func _wade(key: int, x: float, y: float, size: float, enemy: bool) -> void:
 ## A body that swims: rings dropped behind it as it goes, two to the sides
 ## behind a boat (`spread`), which spread into a wake.
 func _wake(key: int, e: Enemy, size: float, spread: float) -> void:
-	var known = _bodies.get(key)
+	var known: Variant = _bodies.get(key)
 	var b: Array = known if known != null else [e.x, e.y, 0.0, false, 0.0]
-	var moved := Vector2(e.x - float(b[0]), e.y - float(b[1])).length()
-	b[2] = float(b[2]) + moved
+	var bx: float = b[0]
+	var by: float = b[1]
+	var moved := Vector2(e.x - bx, e.y - by).length()
+	var trail: float = b[2]
+	b[2] = trail + moved
 	if b[2] >= WAKE and wet_at(e.x, e.y):
 		b[2] = 0.0
 		var back := Vector2(-cos(e.angle), -sin(e.angle))

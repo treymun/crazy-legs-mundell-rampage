@@ -3,6 +3,7 @@
 ## intermission draws it). Time here is real time: play stops at the tally.
 extends GameFeature
 
+const ChapterStats := preload("res://src/features/chapter_stats.gd")
 const ROW_GAP := 380
 const RIBBONS := [
 	[.9, "BLUE RIBBON"],
@@ -41,10 +42,11 @@ func ribbon() -> String:
 	var secrets := (
 		float(game.secrets) / maxf(1.0, game.total_secrets) if game.total_secrets > 0 else 1.0
 	)
-	var stats = game.features.get("stats")
+	var stats: ChapterStats = game.features.get("stats")
 	var aim: float = stats.accuracy() / 100.0 if stats != null and stats.shots > 0 else .5
 	var score := kills * .55 + secrets * .25 + aim * .2
 	for pair: Array in RIBBONS:
-		if score >= float(pair[0]):
-			return String(pair[1])
+		var least: float = pair[0]
+		if score >= least:
+			return str(pair[1])
 	return "CITY SLICKER"

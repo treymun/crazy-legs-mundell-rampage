@@ -101,14 +101,16 @@ func id() -> String:
 func attach() -> void:
 	dice.seed = 4471
 	for wired: Array in [["boss_intro", _intro], ["boss_phase", _phase], ["boss_down", _down]]:
-		if game.has_signal(String(wired[0])):
-			game.connect(String(wired[0]), wired[1])
+		var signal_name := str(wired[0])
+		var handler: Callable = wired[1]
+		if game.has_signal(signal_name):
+			game.connect(signal_name, handler)
 	game.events.player_hurt.connect(_hurt)
 
 
 ## Says one of `e`'s lines (a MOMENTS index) from where it stands.
 func say(e: Enemy, moment: int) -> void:
-	var who := String(SPEAKERS.get(e.kind, ""))
+	var who := str(SPEAKERS.get(e.kind, ""))
 	if who == "" or game.sound == null:
 		return
 	var cue := "boss_%s_%s" % [who, MOMENTS[moment]]
@@ -116,23 +118,23 @@ func say(e: Enemy, moment: int) -> void:
 		return
 	var place: Vector2 = game.sound_position(e.x, e.y, 1.3, false)
 	var length: float = game.sound.play_voice(cue, maxf(.45, place.x), place.y)
-	game.caption = String(LINES[who][moment])
+	game.caption = str(LINES[who][moment])
 	game.caption_until = game.clock + maxf(1.4, length + .2)
 	_taunt_next = maxf(_taunt_next, game.clock + 3.0)
 
 
-func _intro(e) -> void:
+func _intro(e: Enemy) -> void:
 	_boss = e
 	say(e, 0)
 
 
-func _phase(e, phase: int) -> void:
+func _phase(e: Enemy, phase: int) -> void:
 	_boss = e
 	if phase >= 3:
 		say(e, 3)
 
 
-func _down(e, _seconds = 0.0) -> void:
+func _down(e: Enemy, _seconds: float = 0.0) -> void:
 	say(e, 4)
 	if e == _boss:
 		_boss = null

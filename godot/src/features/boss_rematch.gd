@@ -41,7 +41,7 @@ func _tick(_dt: float) -> void:
 	# In its arena, or within ARENA of it (the sheriff stands below the half of
 	# the pen the boss bar counts).
 	var foe := BossFight.awake(game)
-	var p = game.player
+	var p := game.player
 	if foe != null and foe.kind == kind and not BossFight.clear_of(game, foe, p.x, p.y):
 		fight_began(foe)
 

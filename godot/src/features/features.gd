@@ -68,7 +68,7 @@ const LOOKS := [
 ]
 
 
-static func attach_all(game) -> void:
+static func attach_all(game: Game) -> void:
 	for script: GDScript in ALL:
 		if game.host and LOOKS.has(script.resource_path.get_file().get_basename()):
 			continue
@@ -76,51 +76,59 @@ static func attach_all(game) -> void:
 		game.features[feature.id()] = feature
 
 
-static func save_all(game) -> Dictionary:
+static func save_all(game: Game) -> Dictionary:
 	var out := {}
 	for key: String in game.features:
-		var state: Dictionary = game.features[key].save()
+		var feature: GameFeature = game.features[key]
+		var state: Dictionary = feature.save()
 		if not state.is_empty():
 			out[key] = state
 	return out
 
 
-static func restore_all(game, saved) -> void:
+static func restore_all(game: Game, saved: Variant) -> void:
 	var states: Dictionary = saved if saved is Dictionary else {}
 	for key: String in game.features:
-		var state = states.get(key, {})
-		game.features[key].restore(state if state is Dictionary else {})
+		var state: Variant = states.get(key, {})
+		var feature: GameFeature = game.features[key]
+		var given: Dictionary = state if state is Dictionary else {}
+		feature.restore(given)
 
 
-static func sprites(game) -> Array:
+static func sprites(game: Game) -> Array:
 	var out: Array = []
 	for key: String in game.features:
-		out.append_array(game.features[key].sprites())
+		var feature: GameFeature = game.features[key]
+		out.append_array(feature.sprites())
 	return out
 
 
 ## Drawing over the view, under the gun (game_view.gd), on the 320-wide canvas.
-static func draw_view(game, c: Canvas) -> void:
+static func draw_view(game: Game, c: Canvas) -> void:
 	for key: String in game.features:
-		game.features[key].draw_view(c)
+		var feature: GameFeature = game.features[key]
+		feature.draw_view(c)
 
 
-static func ground_marks(game) -> Array:
+static func ground_marks(game: Game) -> Array:
 	var out: Array = []
 	for key: String in game.features:
-		out.append_array(game.features[key].ground_marks())
+		var feature: GameFeature = game.features[key]
+		out.append_array(feature.ground_marks())
 	return out
 
 
-static func wall_marks(game) -> Array:
+static func wall_marks(game: Game) -> Array:
 	var out: Array = []
 	for key: String in game.features:
-		out.append_array(game.features[key].wall_marks())
+		var feature: GameFeature = game.features[key]
+		out.append_array(feature.wall_marks())
 	return out
 
 
-static func tally_rows(game) -> Array:
+static func tally_rows(game: Game) -> Array:
 	var rows: Array = []
 	for key: String in game.features:
-		rows.append_array(game.features[key].tally_rows())
+		var feature: GameFeature = game.features[key]
+		rows.append_array(feature.tally_rows())
 	return rows

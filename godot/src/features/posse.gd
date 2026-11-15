@@ -53,9 +53,10 @@ func _tick(_dt: float) -> void:
 		count += 1
 		if count % step != 0:
 			continue
-		var spot = _beside(anchor)
-		if spot == null:
+		var found: Variant = _beside(anchor)
+		if found == null:
 			continue
+		var spot: Vector2 = found
 		var partner := Enemy.new(anchor.kind, spot.x, spot.y, anchor.angle + .6)
 		partner.flank = -anchor.flank
 		game.enemies.append(partner)
@@ -88,13 +89,19 @@ func save() -> Dictionary:
 
 
 func restore(state: Dictionary) -> void:
-	if not bool(state.get("spawned", false)):
+	var was_spawned: bool = state.get("spawned", false)
+	if not was_spawned:
 		return
 	spawned = true
-	for row in state.get("partners", []):
-		if not row is Dictionary or not Enemy.DEFS.has(String(row.get("kind", ""))):
+	for item: Variant in state.get("partners", []):
+		if not item is Dictionary:
 			continue
-		var e := Enemy.new(String(row["kind"]), float(row["x"]), float(row["y"]))
+		var row: Dictionary = item
+		if not Enemy.DEFS.has(str(row.get("kind", ""))):
+			continue
+		var row_x: float = row["x"]
+		var row_y: float = row["y"]
+		var e := Enemy.new(str(row["kind"]), row_x, row_y)
 		for key: String in KEPT:
 			if row.has(key) and key != "kind":
 				e.set(key, row[key])

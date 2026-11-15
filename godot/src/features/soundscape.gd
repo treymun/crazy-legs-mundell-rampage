@@ -5,6 +5,9 @@
 ## nothing is saved and play never changes.
 extends GameFeature
 
+const Weather := preload("res://src/features/weather.gd")
+const Water := preload("res://src/features/water.gd")
+
 ## Picture -> the loop it makes.
 const SOURCES := {
 	"town_burn_barrel": "fire_crackle",
@@ -46,10 +49,11 @@ func id() -> String:
 func attach() -> void:
 	for board: LevelData.Billboard in game.world.billboards:
 		if SOURCES.has(board.image):
-			_sources.append([board.x, board.y, String(SOURCES[board.image])])
-	for spot in Effects.mood(game.level.id, "heat", []):
+			_sources.append([board.x, board.y, str(SOURCES[board.image])])
+	for spot: Variant in Effects.mood(game.level.id, "heat", []):
 		if game.level.id == "mothership" and spot is Vector4:
-			_sources.append([spot.x, spot.y, "core_thrum"])
+			var heat: Vector4 = spot
+			_sources.append([heat.x, heat.y, "core_thrum"])
 	game.events.ticked.connect(_tick)
 
 
@@ -63,9 +67,9 @@ func _tick(_dt: float) -> void:
 
 
 func _rain(sound: Sound) -> void:
-	var weather = game.features.get("weather")
-	var hard: float = 0.0 if weather == null else float(weather.rain)
-	var p = game.player
+	var weather: Weather = game.features.get("weather")
+	var hard: float = 0.0 if weather == null else weather.rain
+	var p := game.player
 	var cell: int = int(p.y) * game.level.width + int(p.x)
 	var roofed: bool = game.world.roof[cell] != 0.0
 	sound.set_bed(
@@ -79,14 +83,16 @@ func _rain(sound: Sound) -> void:
 
 
 func _nearest(sound: Sound) -> void:
-	var p = game.player
+	var p := game.player
 	if game.clock >= _look_at:
 		_look_at = game.clock + LOOK
 		_near = []
 		var best := REACH * REACH
 		for s: Array in _sources:
-			var dx: float = float(s[0]) - p.x
-			var dy: float = float(s[1]) - p.y
+			var sx: float = s[0]
+			var sy: float = s[1]
+			var dx: float = sx - p.x
+			var dy: float = sy - p.y
 			var d := dx * dx + dy * dy
 			if d < best:
 				best = d
@@ -100,18 +106,13 @@ func _nearest(sound: Sound) -> void:
 	var distance := Vector2(x - p.x, y - p.y).length()
 	# Faded to nothing at the edge of its reach, so it never pops on or off.
 	var edge := clampf((REACH - distance) / 2.0, 0.0, 1.0)
-	var cue := String(_near[2])
-	sound.set_bed(
-		Sound.BED_NEAR,
-		cue,
-		place.x * edge * float(GAIN.get(cue, 1.0)),
-		place.y,
-		game.sound_cutoff(x, y)
-	)
+	var cue := str(_near[2])
+	var gain: float = GAIN.get(cue, 1.0)
+	sound.set_bed(Sound.BED_NEAR, cue, place.x * edge * gain, place.y, game.sound_cutoff(x, y))
 
 
 func _wake(sound: Sound) -> void:
-	var water = game.features.get("water")
+	var water: Water = game.features.get("water")
 	if not is_same(_kings_in, game.enemies) or _kings_of != game.enemies.size():
 		# The swamp kings, found again only when the list changes.
 		_kings_in = game.enemies

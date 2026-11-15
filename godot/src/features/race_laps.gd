@@ -28,8 +28,10 @@ func attach() -> void:
 	spec = game.level.lap_cars
 	if spec.is_empty() or game.in_hub:
 		return
-	for point in spec.get("path", []):
-		path.append(Vector2(float(point[0]), float(point[1])))
+	for point: Variant in spec.get("path", []):
+		var px: float = point[0]
+		var py: float = point[1]
+		path.append(Vector2(px, py))
 	if path.size() < 3:
 		path = PackedVector2Array()
 		return
@@ -38,9 +40,10 @@ func attach() -> void:
 	for i in range(1, path.size()):
 		total += path[i].distance_to(path[i - 1])
 		lengths.append(total)
-	var count := int(spec.get("cars", 1))
+	var count: int = spec.get("cars", 1)
+	var speed: float = spec.get("speed", 8.0)
 	for k in count:
-		cars.append([total * k / count, float(spec.get("speed", 8.0)), 0.0, float(k)])
+		cars.append([total * k / count, speed, 0.0, float(k)])
 	game.events.ticked.connect(_tick)
 	game.events.station_done.connect(_station)
 
@@ -50,22 +53,24 @@ func save() -> Dictionary:
 		return {}
 	var along: Array = []
 	for car: Array in cars:
-		along.append(snappedf(float(car[0]), .01))
+		var car_along: float = car[0]
+		along.append(snappedf(car_along, .01))
 	return {"along": along, "dry": dry}
 
 
 func restore(state: Dictionary) -> void:
 	var along: Array = state.get("along", [])
 	for k in mini(along.size(), cars.size()):
-		cars[k][0] = float(along[k])
-	dry = bool(state.get("dry", false))
+		var saved_along: float = along[k]
+		cars[k][0] = saved_along
+	dry = state.get("dry", false)
 	if dry:
 		for car: Array in cars:
 			car[1] = 0.0
 
 
 func _station(station_id: String) -> void:
-	if station_id == String(spec.get("stop_at", "")) and not dry:
+	if station_id == str(spec.get("stop_at", "")) and not dry:
 		dry = true
 		game.message("THE CARS ARE COUGHING. THEY'RE RUNNING DRY.", 3.0)
 
@@ -86,20 +91,25 @@ func _at(d: float) -> Array:
 func _tick(dt: float) -> void:
 	if game.revisiting or game.won:
 		return
-	if game.stations_done.has(String(spec.get("stop_at", ""))):
+	if game.stations_done.has(str(spec.get("stop_at", ""))):
 		dry = true
-	var p = game.player
+	var p := game.player
 	for car: Array in cars:
+		var speed: float = car[1]
 		if dry:
-			car[1] = maxf(0.0, float(car[1]) - dt * 3.0)
-		if float(car[1]) <= 0.0:
+			speed = maxf(0.0, speed - dt * 3.0)
+			car[1] = speed
+		if speed <= 0.0:
 			continue
-		car[0] = fposmod(float(car[0]) + float(car[1]) * dt, total)
-		var where: Array = _at(float(car[0]))
+		var car_along: float = car[0]
+		car_along = fposmod(car_along + speed * dt, total)
+		car[0] = car_along
+		var where: Array = _at(car_along)
 		var at: Vector2 = where[0]
 		var heading: float = where[1]
 		var gap := Vector2(p.x - at.x, p.y - at.y).length()
-		if gap < 12.0 and game.clock >= float(car[3]):
+		var pass_at: float = car[3]
+		if gap < 12.0 and game.clock >= pass_at:
 			car[3] = game.clock + 2.2
 			game.sound_at("lap_car_pass", at.x, at.y, .9)
 		# Every player on the track is run down, each with their own second
@@ -113,14 +123,12 @@ func _tick(dt: float) -> void:
 				car.resize(at_k + 1)
 				for k in range(was, at_k + 1):
 					car[k] = 0.0
-			if (
-				near < REACH + GameState.PLAYER_RADIUS
-				and q.air < .5
-				and game.clock >= float(car[at_k])
-			):
+			var hit_at: float = car[at_k]
+			if near < REACH + GameState.PLAYER_RADIUS and q.air < .5 and game.clock >= hit_at:
 				car[at_k] = game.clock + 1.0
 				game.focus(q)
-				game.damage(float(spec.get("damage", 30)), [at.x, at.y], "RUN DOWN")
+				var hurt: float = spec.get("damage", 30)
+				game.damage(hurt, [at.x, at.y], "RUN DOWN")
 				var side := (
 					-1.0 if (q.x - at.x) * sin(heading) - (q.y - at.y) * cos(heading) > 0.0 else 1.0
 				)
@@ -137,7 +145,7 @@ func _tick(dt: float) -> void:
 				if Vector2(e.x - at.x, e.y - at.y).length() < REACH + e.radius:
 					# hurt() blames the acting player: the nearest, the same on
 					# every machine (not whoever is local here).
-					var near_e = Players.nearest(game, e.x, e.y)
+					var near_e: Player = Players.nearest(game, e.x, e.y)
 					game.focus(near_e if near_e != null else game.players[0])
 					e.hurt(80.0, game, true, false, null, "car")
 					game.focus(game.local_player)
@@ -149,9 +157,10 @@ func sprites() -> Array:
 	var out: Array = []
 	if cars.is_empty() or game.revisiting:
 		return out
-	var p = game.player
+	var p := game.player
 	for car: Array in cars:
-		var where: Array = _at(float(car[0]))
+		var car_along: float = car[0]
+		var where: Array = _at(car_along)
 		var at: Vector2 = where[0]
 		if not game.in_view(at.x, at.y, 1.6):
 			continue
@@ -172,23 +181,20 @@ func ground_marks() -> Array:
 	var out: Array = []
 	if cars.is_empty() or game.revisiting:
 		return out
-	var p = game.player
+	var p := game.player
 	for car: Array in cars:
-		if float(car[1]) < 1.0:
+		var speed: float = car[1]
+		if speed < 1.0:
 			continue
-		var ahead: Array = _at(float(car[0]) + 2.2)
+		var car_along: float = car[0]
+		var ahead: Array = _at(car_along + 2.2)
 		var at: Vector2 = ahead[0]
 		if Vector2(p.x - at.x, p.y - at.y).length() > 16.0:
 			continue
+		var heading: float = ahead[1]
 		out.append(
 			View.GroundMark.new(
-				at.x,
-				at.y,
-				game.world.elevation(at.x, at.y) + .003,
-				float(ahead[1]),
-				1.6,
-				.45,
-				"mark_lane"
+				at.x, at.y, game.world.elevation(at.x, at.y) + .003, heading, 1.6, .45, "mark_lane"
 			)
 		)
 	return out

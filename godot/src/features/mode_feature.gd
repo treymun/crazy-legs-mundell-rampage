@@ -186,33 +186,34 @@ func save() -> Dictionary:
 
 
 func restore(state: Dictionary) -> void:
-	if not Modes.NAMES.has(String(state.get("mode", ""))):
+	if not Modes.NAMES.has(str(state.get("mode", ""))):
 		return
-	mode = String(state["mode"])
-	started = bool(state.get("started", false))
-	scaled_upto = int(state.get("scaled_upto", 0))
-	frag_limit = int(state.get("frag_limit", frag_limit))
-	time_limit = float(state.get("time_limit", time_limit))
-	arena = String(state.get("arena", ""))
-	revives = int(state.get("revives", 0))
+	mode = str(state["mode"])
+	started = state.get("started", false)
+	scaled_upto = state.get("scaled_upto", 0)
+	frag_limit = state.get("frag_limit", frag_limit)
+	time_limit = state.get("time_limit", time_limit)
+	arena = str(state.get("arena", ""))
+	revives = state.get("revives", 0)
 	var rows: Array = state.get("players", []) if state.get("players") is Array else []
 	for i in mini(rows.size(), Modes.MAX_PLAYERS):
-		var row = rows[i]
-		if not row is Dictionary:
+		if not rows[i] is Dictionary:
 			continue
+		var row: Dictionary = rows[i]
 		if i >= game.players.size():
-			var x := float(row.get("x", game.players[0].x))
-			var y := float(row.get("y", game.players[0].y))
+			var x: float = row.get("x", game.players[0].x)
+			var y: float = row.get("y", game.players[0].y)
 			if not SessionStore._valid_position(game.world, x, y):
 				var at := Modes.open_spot_near(game, game.players[0].x, game.players[0].y)
 				x = at.x
 				y = at.y
-			Players.join(game, x, y, float(row.get("angle", 0.0)))
+			var angle: float = row.get("angle", 0.0)
+			Players.join(game, x, y, angle)
 			game.focus(game.local_player)
 		var p: Player = game.players[i]
-		p.frags = int(row.get("frags", 0))
-		p.deaths = int(row.get("deaths", 0))
-		p.team = int(row.get("team", p.slot % 2))
+		p.frags = row.get("frags", 0)
+		p.deaths = row.get("deaths", 0)
+		p.team = row.get("team", p.slot % 2)
 		if i > 0:
 			_kit(p, row)
 	if mode == Modes.COOP:
@@ -221,21 +222,29 @@ func restore(state: Dictionary) -> void:
 
 ## A partner's health, guns and pockets from their row of a save.
 func _kit(p: Player, row: Dictionary) -> void:
-	p.health = clampi(int(row.get("health", 100)), 0, 100)
+	var health: int = row.get("health", 100)
+	p.health = clampi(health, 0, 100)
 	var owned: Array = row.get("owned", [])
 	var loaded: Array = row.get("loaded", [])
 	var reserve: Array = row.get("reserve", [])
 	for k in mini(Weapons.COUNT, mini(owned.size(), mini(loaded.size(), reserve.size()))):
-		p.armory.owned[k] = bool(owned[k])
-		p.armory.loaded[k] = clampi(int(loaded[k]), 0, Weapons.CAPACITY[k])
-		p.armory.reserve[k] = clampi(int(reserve[k]), 0, Weapons.MAX_RESERVE[k])
-	var active := int(row.get("active", p.armory.active))
+		var has_gun: bool = owned[k]
+		var in_gun: int = loaded[k]
+		var spare: int = reserve[k]
+		var capacity: int = Weapons.CAPACITY[k]
+		var most_spare: int = Weapons.MAX_RESERVE[k]
+		p.armory.owned[k] = has_gun
+		p.armory.loaded[k] = clampi(in_gun, 0, capacity)
+		p.armory.reserve[k] = clampi(spare, 0, most_spare)
+	var active: int = row.get("active", p.armory.active)
 	if active >= 0 and active < Weapons.COUNT and p.armory.owned[active]:
 		p.armory.active = active
-	var pockets = row.get("inventory", {})
+	var pockets: Variant = row.get("inventory", {})
 	if pockets is Dictionary:
-		for item in HUD.ITEMS:
-			p.inventory[item] = clampi(int(pockets.get(item, p.inventory.get(item, 0))), 0, 5)
+		var saved_pockets: Dictionary = pockets
+		for item: String in HUD.ITEMS:
+			var count: int = saved_pockets.get(item, p.inventory.get(item, 0))
+			p.inventory[item] = clampi(count, 0, 5)
 
 
 func sprites() -> Array:

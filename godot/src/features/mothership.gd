@@ -26,6 +26,7 @@ extends GameFeature
 
 static var LEVEL: String = BossData.get_value("mothership", "level")
 const RANGE := preload("res://src/range_layout.gd")
+const BossArenas := preload("res://src/features/boss_arenas.gd")
 static var BOSS: String = BossData.get_value("mothership", "boss")
 static var TRACK: String = BossData.get_value("mothership", "track")
 ## Her picks, phase by phase, taken in turn by her attack count.
@@ -159,19 +160,21 @@ func save() -> Dictionary:
 func restore(state: Dictionary) -> void:
 	if maw == null:
 		return
-	if bool(state.get("fallen", false)) or maw.hp <= 0.0:
+	var was_fallen: bool = state.get("fallen", false)
+	if was_fallen or maw.hp <= 0.0:
 		# Down already: no second fall, only the ship still shaking.
 		fallen_at = game.clock - 60.0
 		blasts_done = 99
 		said = 9
 	phase = _phase_of()
 	maw.enraged = phase >= 2
-	maw.speed = float(Enemy.KINDS[BOSS][1]) * (1.2 if phase == 3 else 1.0)
+	var speed: float = Enemy.KINDS[BOSS][1]
+	maw.speed = speed * (1.2 if phase == 3 else 1.0)
 
 
 func cue(key: String) -> String:
 	var pair: Array = CUES[key]
-	return ShipAliens.cue(game, String(pair[0]), String(pair[1]))
+	return ShipAliens.cue(game, str(pair[0]), str(pair[1]))
 
 
 # ------------------------------------------------------------------ the ship
@@ -183,20 +186,18 @@ func _light_the_ship() -> void:
 	for board: LevelData.Billboard in game.world.billboards:
 		if board.image == "town_beam_emitter":
 			emitters.append(Vector3(board.x, board.y, board.z))
-		var spec = LIGHTS.get(board.image)
-		if spec == null:
+		var found: Variant = LIGHTS.get(board.image)
+		if found == null:
 			continue
+		var spec: Array = found
 		var top: float = game.world.elevation(board.x, board.y) + board.z + board.height * .6
+		var radius: float = spec[3]
+		var red: float = spec[0]
+		var green: float = spec[1]
+		var blue: float = spec[2]
+		var strength: float = spec[4]
 		game.trigger_lights.append(
-			[
-				board.x,
-				board.y,
-				top,
-				float(spec[3]),
-				Color(float(spec[0]), float(spec[1]), float(spec[2])),
-				float(spec[4]),
-				INF
-			]
+			[board.x, board.y, top, radius, Color(red, green, blue), strength, INF]
 		)
 
 
@@ -256,7 +257,11 @@ func _tick(dt: float) -> void:
 	_rings(dt)
 	_beams(dt)
 	_pins()
-	cracks = cracks.filter(func(c: Array) -> bool: return game.clock - float(c[3]) < 1.2)
+	cracks = cracks.filter(
+		func(c: Array) -> bool:
+			var at: float = c[3]
+			return game.clock - at < 1.2
+	)
 
 
 ## Half way through a phase change she staggers, hollers, and the floor jumps.
@@ -268,7 +273,8 @@ func _new_phase(to: int) -> void:
 	maw.stun = maxf(maw.stun, 1.1)
 	maw.windup = 0.0
 	maw.aim_mark = null
-	maw.cooldown = maxf(maw.cooldown, 1.5 * PACE[game.difficulty])
+	var pace: float = PACE[game.difficulty]
+	maw.cooldown = maxf(maw.cooldown, 1.5 * pace)
 	pending = ""
 	game.hitstop = maxf(game.hitstop, .15)
 	game.shake = minf(1.0, game.shake + .7)
@@ -282,7 +288,8 @@ func _new_phase(to: int) -> void:
 	else:
 		game.message("THE HOUSECOAT'S GONE. THAT'S A GIRDLE OF POWER CELLS.", 3.2)
 		game.sound_at(cue("bare"), maw.x, maw.y, 1.0)
-		maw.speed = float(Enemy.KINDS[BOSS][1]) * 1.2
+		var speed: float = Enemy.KINDS[BOSS][1]
+		maw.speed = speed * 1.2
 		game.burst(maw.x, maw.y, floor_z + maw.height * .5, "powder", 20, 2.2)
 	_call_crew()
 
@@ -290,7 +297,7 @@ func _new_phase(to: int) -> void:
 ## Her wind-up started (enemies.gd set it): pick the attack, time its wind-up.
 func _wind_up() -> void:
 	var list: Array = PATTERN[phase]
-	pending = String(list[maw.attacks % list.size()])
+	pending = str(list[maw.attacks % list.size()])
 	var p: Player = maw.hunted if maw.hunted != null else game.player
 	var gap := Vector2(p.x - maw.x, p.y - maw.y).length()
 	if pending == "slam" and gap > 6.5:
@@ -299,7 +306,8 @@ func _wind_up() -> void:
 		pending = "sweep"
 	elif pending == "call" and _crew_alive() >= CREW_CAP[game.difficulty]:
 		pending = "sweep" if maw.attacks % 2 else "slam" if gap <= 6.5 else "sweep"
-	maw.windup = float(WINDUP[pending]) * PACE[game.difficulty] * (.85 if phase == 3 else 1.0)
+	var windup: float = WINDUP[pending]
+	maw.windup = windup * PACE[game.difficulty] * (.85 if phase == 3 else 1.0)
 	maw.aim_mark = [p.x, p.y, p.eye]
 	if pending == "curlers":
 		_curlers()
@@ -311,7 +319,7 @@ func _wind_up() -> void:
 ## HOT CURLERS: she pulls them out of her hair and throws; each comes down on
 ## a marked spot round the player (features/boss_arenas.gd drops them).
 func _curlers() -> void:
-	var arenas = game.features.get("boss_arenas")
+	var arenas: BossArenas = game.features.get("boss_arenas")
 	if arenas == null:
 		return
 	var p: Player = maw.hunted if maw.hunted != null else game.player
@@ -347,22 +355,24 @@ func maw_attack(enemy: Enemy, direction: float) -> void:
 			game.sound_at(cue("sweep"), maw.x, maw.y, .8)
 		_:
 			_sweep(direction)
-	maw.cooldown = float(COOLDOWN[what]) * PACE[game.difficulty] * (.8 if phase == 3 else 1.0)
+	var cooldown: float = COOLDOWN[what]
+	maw.cooldown = cooldown * PACE[game.difficulty] * (.8 if phase == 3 else 1.0)
 	pending = ""
 
 
 func _hurt(amount: float, x: float, y: float, cause: String, who: Player = null) -> void:
-	game.damage(maxf(1.0, roundf(amount * HARM[game.difficulty])), [x, y], cause, who)
+	var harm: float = HARM[game.difficulty]
+	game.damage(maxf(1.0, roundf(amount * harm)), [x, y], cause, who)
 
 
 ## The rolling pin comes down where the player stood when she raised it, on
 ## everyone standing under it.
 func _slam() -> void:
 	var mark: Array = maw.aim_mark if maw.aim_mark != null else [game.player.x, game.player.y]
-	var x := float(mark[0])
-	var y := float(mark[1])
+	var x: float = mark[0]
+	var y: float = mark[1]
 	var wide: float = SLAM_REACH[phase - 1]
-	var p = game.player
+	var p := game.player
 	for q: Player in game.players:
 		if Vector2(q.x - x, q.y - y).length() < wide and q.air < .3:
 			_hurt(24.0, x, y, "ROLLIN' PIN", q)
@@ -378,7 +388,7 @@ func _slam() -> void:
 	if phase == 3 and game.difficulty >= 2:
 		rings.append([x, y, game.clock, false])
 	# HOG WILD: the pin comes down again where the player stands now.
-	if BossKit.moves(BOSS).hog_wild(game) and not bool(mark.size() > 3 and mark[3]):
+	if BossKit.moves(BOSS).hog_wild(game) and not (mark.size() > 3 and mark[3]):
 		pins.append([p.x, p.y, game.clock + PIN_AGAIN])
 
 
@@ -386,12 +396,15 @@ func _slam() -> void:
 func _pins() -> void:
 	var going: Array = []
 	for pin: Array in pins:
-		if game.clock >= float(pin[2]):
+		var lands_at: float = pin[2]
+		if game.clock >= lands_at:
 			going.append(pin)
 	for pin: Array in going:
 		pins.erase(pin)
-		var keep = maw.aim_mark
-		maw.aim_mark = [float(pin[0]), float(pin[1]), 0.0, true]
+		var keep: Variant = maw.aim_mark
+		var pin_x: float = pin[0]
+		var pin_y: float = pin[1]
+		maw.aim_mark = [pin_x, pin_y, 0.0, true]
 		_slam()
 		maw.aim_mark = keep
 
@@ -402,8 +415,9 @@ func _sweep(direction: float) -> void:
 	var spread := .95
 	var floor_z: float = game.world.stand(maw)
 	var z := floor_z + maw.height * .62
-	var p = game.player
+	var p := game.player
 	var gap := maxf(1.0, Vector2(p.x - maw.x, p.y - maw.y).length())
+	var harm: float = HARM[game.difficulty]
 	for i in count:
 		var theta := direction + (float(i) / (count - 1) - .5) * spread
 		game.launch(
@@ -415,7 +429,7 @@ func _sweep(direction: float) -> void:
 			"lantern_bolt",
 			(p.eye - z) / (gap / 5.8),
 			true,
-			int(roundf(9.0 * HARM[game.difficulty])),
+			int(roundf(9.0 * harm)),
 			-1.0,
 			maw.get_instance_id()
 		)
@@ -435,17 +449,20 @@ func _stomp() -> void:
 func _rings(_dt: float) -> void:
 	var kept: Array = []
 	for ring: Array in rings:
-		var r: float = (game.clock - float(ring[2])) * RING_SPEED + .6
+		var born: float = ring[2]
+		var r: float = (game.clock - born) * RING_SPEED + .6
 		if r > reach + 3.0:
 			continue
 		kept.append(ring)
+		var ring_x: float = ring[0]
+		var ring_y: float = ring[1]
 		for q: Player in game.players:
 			if _ring_struck(ring, q):
 				continue
-			var d := Vector2(q.x - float(ring[0]), q.y - float(ring[1])).length()
+			var d := Vector2(q.x - ring_x, q.y - ring_y).length()
 			if absf(d - r) < .45 and q.air < .22:
 				_ring_mark(ring, q)
-				_hurt(16.0, float(ring[0]), float(ring[1]), "STOMP", q)
+				_hurt(16.0, ring_x, ring_y, "STOMP", q)
 				if q == game.local_player:
 					game.shake = minf(1.0, game.shake + .4)
 	rings = kept
@@ -453,8 +470,12 @@ func _rings(_dt: float) -> void:
 
 func _ring_struck(ring: Array, q: Player) -> bool:
 	if q.slot == 0:
-		return bool(ring[3])
-	return ring.size() > 4 and int(ring[4]) & (1 << q.slot) != 0
+		var struck: bool = ring[3]
+		return struck
+	if ring.size() <= 4:
+		return false
+	var bits: int = ring[4]
+	return bits & (1 << q.slot) != 0
 
 
 func _ring_mark(ring: Array, q: Player) -> void:
@@ -463,7 +484,8 @@ func _ring_mark(ring: Array, q: Player) -> void:
 		return
 	if ring.size() < 5:
 		ring.append(0)
-	ring[4] = int(ring[4]) | (1 << q.slot)
+	var bits: int = ring[4]
+	ring[4] = bits | (1 << q.slot)
 
 
 ## Where beam `k` of `count` is on the deck now: wandering loops round the chamber.
@@ -477,7 +499,8 @@ func beam_at(k: int) -> Vector2:
 func beam_count() -> int:
 	if phase < 2 or not _fighting():
 		return 0
-	return int(BEAMS[game.difficulty][phase - 2])
+	var beams: int = BEAMS[game.difficulty][phase - 2]
+	return beams
 
 
 ## The tractor beam loose on the floor: it drags whoever it touches and burns.
@@ -495,7 +518,8 @@ func _beams(dt: float) -> void:
 			game.move_actor(p, pull.x, pull.y, GameState.PLAYER_RADIUS)
 			if p != was:
 				game.focus(was)
-			var last := beam_hurt_at if p.slot == 0 else float(beam_hurt.get(p.slot, -10.0))
+			var other_at: float = beam_hurt.get(p.slot, -10.0)
+			var last := beam_hurt_at if p.slot == 0 else other_at
 			if game.clock - last > .7:
 				if p.slot == 0:
 					beam_hurt_at = game.clock
@@ -527,8 +551,9 @@ func _call_crew() -> void:
 		if made >= mini(room, want):
 			break
 		var pod: Vector2 = pods[(maw.attacks + i * 3) % pods.size()]
-		var kind := String(kinds[made % kinds.size()])
-		if game.world.blocked(pod.x, pod.y, float(Enemy.KINDS[kind][2]) + .05):
+		var kind := str(kinds[made % kinds.size()])
+		var radius: float = Enemy.KINDS[kind][2]
+		if game.world.blocked(pod.x, pod.y, radius + .05):
 			continue
 		if Vector2(p.x - pod.x, p.y - pod.y).length() < 2.5:
 			continue
@@ -595,7 +620,7 @@ func _coming_apart() -> void:
 		game.message("GET TO THE ESCAPE OUTHOUSE!", 4.0)
 	if since > 5.0 and game.clock >= next_quake and not game.won:
 		next_quake = game.clock + 2.6
-		var p = game.player
+		var p := game.player
 		game.shake = minf(1.0, game.shake + .35)
 		game.sound_at(cue("quake"), p.x + 3.0, p.y - 2.0, .7)
 		var roof: float = game.world.roof[game.world.cell(p.x, p.y)]
@@ -608,12 +633,12 @@ func _coming_apart() -> void:
 
 
 func tell_of() -> String:
-	return String(TELLS.get(pending, "ROLLIN' PIN"))
+	return str(TELLS.get(pending, "ROLLIN' PIN"))
 
 
 func phase_line(fallback: String) -> String:
 	if game.clock - phase_at < 2.2 and phase >= 2:
-		return String(PHASE_LINES[phase])
+		return str(PHASE_LINES[phase])
 	return fallback
 
 
@@ -624,21 +649,26 @@ func ground_marks() -> Array:
 	if maw == null:
 		return []
 	var out: Array = []
+	var slam_reach: float = SLAM_REACH[phase - 1]
 	for c: Array in cracks:
-		out.append(_spot(float(c[0]), float(c[1]), float(c[2]) * .8, "mark_slam"))
+		var cx: float = c[0]
+		var cy: float = c[1]
+		var wide: float = c[2]
+		out.append(_spot(cx, cy, wide * .8, "mark_slam"))
 	for pin: Array in pins:
-		var t := clampf(1.0 - (float(pin[2]) - game.clock) / PIN_AGAIN, 0.0, 1.0)
-		out.append(
-			_spot(float(pin[0]), float(pin[1]), SLAM_REACH[phase - 1] * (.4 + .6 * t), "mark_slam")
-		)
-		out.append(_spot(float(pin[0]), float(pin[1]), SLAM_REACH[phase - 1], "mark_warning"))
+		var pin_x: float = pin[0]
+		var pin_y: float = pin[1]
+		var lands_at: float = pin[2]
+		var t := clampf(1.0 - (lands_at - game.clock) / PIN_AGAIN, 0.0, 1.0)
+		out.append(_spot(pin_x, pin_y, slam_reach * (.4 + .6 * t), "mark_slam"))
+		out.append(_spot(pin_x, pin_y, slam_reach, "mark_warning"))
 	if _fighting() and maw.windup > 0.0 and maw.aim_mark != null:
 		var mark: Array = maw.aim_mark
+		var mark_x: float = mark[0]
+		var mark_y: float = mark[1]
 		match pending:
 			"slam":
-				out.append(
-					_spot(float(mark[0]), float(mark[1]), SLAM_REACH[phase - 1], "mark_slam")
-				)
+				out.append(_spot(mark_x, mark_y, slam_reach, "mark_slam"))
 			"stomp":
 				for k in 24:
 					var a := k * TAU / 24.0
@@ -646,14 +676,17 @@ func ground_marks() -> Array:
 						_spot(maw.x + cos(a) * 2.3, maw.y + sin(a) * 2.3, .32, "mark_warning")
 					)
 			"sweep":
-				out.append_array(_lanes(atan2(float(mark[1]) - maw.y, float(mark[0]) - maw.x)))
+				out.append_array(_lanes(atan2(mark_y - maw.y, mark_x - maw.x)))
 	for ring: Array in rings:
-		var r: float = (game.clock - float(ring[2])) * RING_SPEED + .6
+		var born: float = ring[2]
+		var r: float = (game.clock - born) * RING_SPEED + .6
 		var dots := int(clampf(r * 4.0, 12.0, 44.0))
+		var ring_x: float = ring[0]
+		var ring_y: float = ring[1]
 		for k in dots:
 			var a := k * TAU / dots
-			var x := float(ring[0]) + cos(a) * r
-			var y := float(ring[1]) + sin(a) * r
+			var x := ring_x + cos(a) * r
+			var y := ring_y + sin(a) * r
 			if not game.world.blocked(x, y, .05) and game.in_view(x, y, .5):
 				out.append(_spot(x, y, .34, "mark_slam"))
 	for k in beam_count():

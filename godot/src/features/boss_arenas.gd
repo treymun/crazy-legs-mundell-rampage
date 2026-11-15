@@ -23,6 +23,8 @@
 ## pulses are a moment's. Looks spark off boss_fight's dice, never the game's rng.
 extends GameFeature
 
+const BossFightFeature := preload("res://src/features/boss_fight.gd")
+
 static var BOSSES: Dictionary = BossData.get_value("boss_arenas", "bosses")
 ## Burst pipes: seconds a cycle, then how long each part of it lasts.
 static var JET_CYCLE: float = BossData.get_value("boss_arenas", "jet_cycle")
@@ -88,27 +90,27 @@ func attach() -> void:
 			boss = e
 	if boss == null:
 		return
-	for spot in arena.get("floods", []):
+	for spot: Array in arena.get("floods", []):
+		var spot_x: float = spot[0]
+		var spot_y: float = spot[1]
 		for board: LevelData.Billboard in game.world.billboards:
 			if (
 				board.image == "town_floodlight_tower"
-				and absf(board.x - float(spot[0])) < .6
-				and absf(board.y - float(spot[1])) < .6
+				and absf(board.x - spot_x) < .6
+				and absf(board.y - spot_y) < .6
 			):
 				flood_boards.append(board)
-	for l in arena.get("lights", []):
+	for l: Array in arena.get("lights", []):
 		var c: Array = l[4]
-		game.trigger_lights.append(
-			[
-				float(l[0]),
-				float(l[1]),
-				float(l[2]),
-				float(l[3]),
-				Color(float(c[0]), float(c[1]), float(c[2])),
-				float(l[5]),
-				INF
-			]
-		)
+		var lx: float = l[0]
+		var ly: float = l[1]
+		var lz: float = l[2]
+		var radius: float = l[3]
+		var red: float = c[0]
+		var green: float = c[1]
+		var blue: float = c[2]
+		var strength: float = l[5]
+		game.trigger_lights.append([lx, ly, lz, radius, Color(red, green, blue), strength, INF])
 	game.events.ticked.connect(_tick)
 
 
@@ -180,7 +182,8 @@ func _tick(_dt: float) -> void:
 func _drops() -> void:
 	var going: Array = []
 	for d: Array in drops:
-		if game.clock >= float(d[3]):
+		var lands_at: float = d[3]
+		if game.clock >= lands_at:
 			going.append(d)
 	for d: Array in going:
 		drops.erase(d)
@@ -188,14 +191,15 @@ func _drops() -> void:
 
 
 func _land(d: Array) -> void:
-	var kind := String(d[0])
-	var x := float(d[1])
-	var y := float(d[2])
-	var r := float(d[5])
+	var kind := str(d[0])
+	var x: float = d[1]
+	var y: float = d[2]
+	var r: float = d[5]
 	var z: float = game.world.elevation(x, y)
 	match kind:
 		"steam":
-			game.add_hazard("steam", x, y, r, 0.0, 1.1, int(d[6]))
+			var hurt: int = d[6]
+			game.add_hazard("steam", x, y, r, 0.0, 1.1, hurt)
 			_sparks(x, y, z + .3, "spark", 8, 2.2)
 			_sparks(x, y, z + .2, "dust", 6, 1.2)
 			game.sound_at("pressure_vent", x, y, .7)
@@ -267,22 +271,29 @@ func _jets() -> void:
 			var mine := key + ("p" if p.slot == 0 else "p%d" % p.slot)
 			if not jet_hit.has(mine) and _in_lane(j, p.x, p.y, .45) and p.air < .4:
 				jet_hit[mine] = true
-				game.damage(JET_HURT, [float(j[0]), float(j[1])], "STEAM", p)
+				var from_x: float = j[0]
+				var from_y: float = j[1]
+				game.damage(JET_HURT, [from_x, from_y], "STEAM", p)
 		if not jet_hit.has(key + "b") and _in_lane(j, boss.x, boss.y, boss.radius):
 			jet_hit[key + "b"] = true
 			_burn(JET_SCALD, "steam")
 		if fmod(game.clock, .3) < .02:
-			game.sound_at("pressure_vent", float(j[0]), float(j[1]), .45)
+			var jx: float = j[0]
+			var jy: float = j[1]
+			game.sound_at("pressure_vent", jx, jy, .45)
 	if jet_hit.size() > 64:
 		jet_hit.clear()
 
 
 func _in_lane(j: Array, x: float, y: float, reach: float) -> bool:
-	var a := float(j[2])
-	var dx := x - float(j[0])
-	var dy := y - float(j[1])
+	var a: float = j[2]
+	var jx: float = j[0]
+	var jy: float = j[1]
+	var length: float = j[3]
+	var dx := x - jx
+	var dy := y - jy
 	var along := dx * cos(a) + dy * sin(a)
-	return along > -.2 and along < float(j[3]) and absf(dx * sin(a) - dy * cos(a)) < .55 + reach
+	return along > -.2 and along < length and absf(dx * sin(a) - dy * cos(a)) < .55 + reach
 
 
 # ------------------------------------------------------------------ the bayou
@@ -311,13 +322,16 @@ func burn(x: float, y: float) -> void:
 func _burning() -> void:
 	var kept: Array = []
 	for s: Array in slicks:
-		var age: float = game.clock - float(s[2])
+		var dropped_at: float = s[2]
+		var age: float = game.clock - dropped_at
 		if age > SLICK_LIFE:
 			continue
 		kept.append(s)
 		if age < SLICK_CATCH:
 			continue
-		var at := Vector2(float(s[0]), float(s[1]))
+		var sx: float = s[0]
+		var sy: float = s[1]
+		var at := Vector2(sx, sy)
 		# A bite each for everyone standing in it: s[3] is player one's last,
 		# s[4 + slot] another player's (added when first needed).
 		for p: Player in game.players:
@@ -327,18 +341,20 @@ func _burning() -> void:
 				s.resize(at_k + 1)
 				for k in range(was, at_k + 1):
 					s[k] = -10.0
+			var bit_at: float = s[at_k]
 			if (
 				at.distance_to(Vector2(p.x, p.y)) < SLICK_R
 				and p.air < .3
-				and game.clock - float(s[at_k]) > .7
+				and game.clock - bit_at > .7
 			):
 				s[at_k] = game.clock
 				game.damage(SLICK_HURT, [at.x, at.y], "BURNED", p)
+		var boss_bit_at: float = s[4]
 		if (
 			boss.alive
 			and age > SLICK_CATCH + .5
 			and at.distance_to(Vector2(boss.x, boss.y)) < SLICK_R + boss.radius * .6
-			and game.clock - float(s[4]) > 1.0
+			and game.clock - boss_bit_at > 1.0
 		):
 			s[4] = game.clock
 			_burn(SLICK_BURN, "fire")
@@ -385,15 +401,17 @@ func _blow_flood(k: int, quiet: bool) -> void:
 func _pulses() -> void:
 	var c := _core()
 	if boss.alive and pulse_next > 0.0 and game.clock >= pulse_next:
-		pulse_next = game.clock + float(PULSE_EVERY[clampi(game.difficulty, 0, 3)])
+		var every: float = PULSE_EVERY[clampi(game.difficulty, 0, 3)]
+		pulse_next = game.clock + every
 		pulses.append([game.clock, false, false])
 		game.shake = minf(1.0, game.shake + .35)
 		game.blast_flash = maxf(game.blast_flash, .2)
 		game.sound_at(ShipAliens.cue(game, "ship_quake", "distant_quarry_blast"), c.x, c.y, .9)
-	var reach := float(arena.get("core_reach", 11.0))
+	var reach: float = arena.get("core_reach", 11.0)
 	var kept: Array = []
 	for pulse: Array in pulses:
-		var r: float = (game.clock - float(pulse[0])) * PULSE_SPEED + 1.0
+		var born: float = pulse[0]
+		var r: float = (game.clock - born) * PULSE_SPEED + 1.0
 		if r > reach + 1.0:
 			continue
 		kept.append(pulse)
@@ -401,21 +419,28 @@ func _pulses() -> void:
 		for p: Player in game.players:
 			var bit := 1 << p.slot
 			var dp := Vector2(p.x, p.y).distance_to(c)
-			if not (int(pulse[1]) & bit) and absf(dp - r) < .45 and p.air < .22:
-				var struck: int = int(pulse[1]) | bit
+			var marks: Variant = pulse[1]
+			var hit_bits: int = (1 if marks else 0) if marks is bool else marks
+			if not (hit_bits & bit) and absf(dp - r) < .45 and p.air < .22:
+				var struck: int = hit_bits | bit
 				pulse[1] = true if struck == 1 else struck
 				game.damage(PULSE_HURT, [c.x, c.y], "CORE PULSE", p)
 		var db := Vector2(boss.x, boss.y).distance_to(c)
-		if not bool(pulse[2]) and absf(db - r) < boss.radius:
+		var boss_struck: bool = pulse[2]
+		if not boss_struck and absf(db - r) < boss.radius:
 			pulse[2] = true
 			_burn(PULSE_BURN, "energy")
 	pulses = kept
 
 
 func _core() -> Vector2:
-	var at = arena.get("core", null)
-	if at is Array and at.size() >= 2:
-		return Vector2(float(at[0]), float(at[1]))
+	var found: Variant = arena.get("core", null)
+	if found is Array:
+		var at: Array = found
+		if at.size() >= 2:
+			var cx: float = at[0]
+			var cy: float = at[1]
+			return Vector2(cx, cy)
 	return Vector2(boss.x, boss.y)
 
 
@@ -431,10 +456,12 @@ func pulse_warning() -> float:
 ## The arena's alarm lamps, beating red.
 func _alarm(colour: Color, strength: float) -> void:
 	if alarm_lights.is_empty():
-		for spot in arena.get("alarms", []):
-			var l := [
-				float(spot[0]), float(spot[1]), float(spot[2]), float(spot[3]), colour, 0.0, INF
-			]
+		for spot: Array in arena.get("alarms", []):
+			var ax: float = spot[0]
+			var ay: float = spot[1]
+			var az: float = spot[2]
+			var radius: float = spot[3]
+			var l := [ax, ay, az, radius, colour, 0.0, INF]
 			alarm_lights.append(l)
 			game.trigger_lights.append(l)
 	var beat := .5 + .5 * sin(game.clock * 6.0)
@@ -456,7 +483,7 @@ func _lights_off() -> void:
 
 
 func _sparks(x: float, y: float, z: float, kind: String, count: int, speed: float) -> void:
-	var fight = game.features.get("boss_fight")
+	var fight: BossFightFeature = game.features.get("boss_fight")
 	if fight != null:
 		fight.sparks(x, y, z, kind, count, speed)
 
@@ -468,8 +495,10 @@ func ground_marks() -> Array:
 	for d: Array in drops:
 		out.append_array(_closing(d))
 	for s: Array in slicks:
-		if game.in_view(float(s[0]), float(s[1]), 1.0):
-			out.append(_spot(float(s[0]), float(s[1]), SLICK_R, "mark_scorch_1"))
+		var sx: float = s[0]
+		var sy: float = s[1]
+		if game.in_view(sx, sy, 1.0):
+			out.append(_spot(sx, sy, SLICK_R, "mark_scorch_1"))
 	if not third():
 		return out
 	match level_id:
@@ -480,10 +509,13 @@ func ground_marks() -> Array:
 				if state == 0:
 					continue
 				var j: Array = jets[k]
-				var a := float(j[2])
-				var half := float(j[3]) * .5
-				var mx := float(j[0]) + cos(a) * half
-				var my := float(j[1]) + sin(a) * half
+				var a: float = j[2]
+				var length: float = j[3]
+				var half := length * .5
+				var jx: float = j[0]
+				var jy: float = j[1]
+				var mx := jx + cos(a) * half
+				var my := jy + sin(a) * half
 				out.append(
 					View.GroundMark.new(
 						mx,
@@ -504,7 +536,8 @@ func ground_marks() -> Array:
 					var r := 2.4 - warn * .9
 					out.append(_spot(c.x + cos(a) * r, c.y + sin(a) * r, .24, "mark_warning"))
 			for pulse: Array in pulses:
-				var r: float = (game.clock - float(pulse[0])) * PULSE_SPEED + 1.0
+				var born: float = pulse[0]
+				var r: float = (game.clock - born) * PULSE_SPEED + 1.0
 				var dots := int(clampf(r * 4.0, 12.0, 48.0))
 				for k in dots:
 					var a := k * TAU / dots
@@ -518,19 +551,22 @@ func ground_marks() -> Array:
 ## A drop's warning: marks closing in on the spot, its middle filling.
 func _closing(d: Array) -> Array:
 	var out: Array = []
-	var x := float(d[1])
-	var y := float(d[2])
+	var x: float = d[1]
+	var y: float = d[2]
 	if not game.in_view(x, y, 2.0):
 		return out
-	var t := clampf(1.0 - (float(d[3]) - game.clock) / maxf(.05, float(d[4])), 0.0, 1.0)
-	var r := lerpf(float(d[5]) + .7, float(d[5]) * .6, t)
+	var lands_at: float = d[3]
+	var fuse: float = d[4]
+	var radius: float = d[5]
+	var t := clampf(1.0 - (lands_at - game.clock) / maxf(.05, fuse), 0.0, 1.0)
+	var r := lerpf(radius + .7, radius * .6, t)
 	for k in 10:
 		var a := k * TAU / 10.0 + t * 1.3
 		var px := x + cos(a) * r
 		var py := y + sin(a) * r
 		if not game.world.blocked(px, py, .05):
 			out.append(_spot(px, py, .15 + .05 * t, "mark_warning"))
-	out.append(_spot(x, y, .15 + float(d[5]) * .6 * t, "mark_slam"))
+	out.append(_spot(x, y, .15 + radius * .6 * t, "mark_slam"))
 	return out
 
 
@@ -547,16 +583,19 @@ func sprites() -> Array:
 		out.append_array(_falling(d, frame))
 	out.append_array(_valves())
 	for s: Array in slicks:
-		var age: float = game.clock - float(s[2])
-		if age < SLICK_CATCH or not game.in_view(float(s[0]), float(s[1]), 1.0):
+		var dropped_at: float = s[2]
+		var age: float = game.clock - dropped_at
+		var sx: float = s[0]
+		var sy: float = s[1]
+		if age < SLICK_CATCH or not game.in_view(sx, sy, 1.0):
 			continue
 		var fade := clampf((SLICK_LIFE - age) / 1.5, .3, 1.0)
 		var fire := View.Sprite.new(
-			float(s[0]),
-			float(s[1]),
-			"fx_fire_%d" % ((frame + int(float(s[0]) * 3.0)) % 4),
+			sx,
+			sy,
+			"fx_fire_%d" % ((frame + int(sx * 3.0)) % 4),
 			.75 * fade,
-			game.world.elevation(float(s[0]), float(s[1])) - .05
+			game.world.elevation(sx, sy) - .05
 		)
 		fire.glow = true
 		out.append(fire)
@@ -569,13 +608,16 @@ func sprites() -> Array:
 				if jet_state(k) != 2:
 					continue
 				var j: Array = jets[k]
-				var a := float(j[2])
-				var length := float(j[3])
+				var a: float = j[2]
+				var length: float = j[3]
+				var jx: float = j[0]
+				var jy: float = j[1]
+				var rise: float = j[4]
 				var n := int(length / .9)
 				for i in n:
 					var along := (i + .5) * length / n
-					var x := float(j[0]) + cos(a) * along
-					var y := float(j[1]) + sin(a) * along
+					var x := jx + cos(a) * along
+					var y := jy + sin(a) * along
 					if not game.in_view(x, y, 1.0):
 						continue
 					var s := View.Sprite.new(
@@ -583,14 +625,14 @@ func sprites() -> Array:
 						y,
 						"fx_steam_%d" % ((frame + i + k) % 4),
 						.7 + along / length * .5,
-						game.world.elevation(x, y) + float(j[4]) * (1.0 - along / length) + .1
+						game.world.elevation(x, y) + rise * (1.0 - along / length) + .1
 					)
 					s.translucent = true
 					out.append(s)
 		"speedway":
-			for spot in arena.get("fires", []):
-				var x := float(spot[0])
-				var y := float(spot[1])
+			for spot: Array in arena.get("fires", []):
+				var x: float = spot[0]
+				var y: float = spot[1]
 				if game.in_view(x, y, 1.0):
 					for k in 2:
 						var fire := View.Sprite.new(
@@ -626,8 +668,9 @@ func _valves() -> Array:
 	var spots: Array = arena.get("steam", [])
 	for k in spots.size():
 		var v: Array = spots[k]
-		var x := float(v[0])
-		var y := float(v[1])
+		var x: float = v[0]
+		var y: float = v[1]
+		var rise: float = v[2]
 		if not game.in_view(x, y, 1.2):
 			continue
 		var floor_z: float = game.world.elevation(x, y)
@@ -638,7 +681,7 @@ func _valves() -> Array:
 				y + cos(game.clock * 1.1 + k) * .15 * age,
 				"fx_steam_%d" % mini(3, int(age * 4.0)),
 				.5 + age * .9,
-				floor_z + float(v[2]) + age * 1.1
+				floor_z + rise + age * 1.1
 			)
 			s.translucent = true
 			out.append(s)
@@ -648,16 +691,18 @@ func _valves() -> Array:
 ## What is coming down on a drop's spot: a lit stick, a red-hot curler, a
 ## copper slug, falling the last part of its way.
 func _falling(d: Array, frame: int) -> Array:
-	var x := float(d[1])
-	var y := float(d[2])
-	var left: float = float(d[3]) - game.clock
+	var x: float = d[1]
+	var y: float = d[2]
+	var lands_at: float = d[3]
+	var left: float = lands_at - game.clock
 	if left > .45 or not game.in_view(x, y, 1.0):
 		return []
+	var kind := str(d[0])
 	var image := "fx_tnt_%d" % (frame % 3)
-	if String(d[0]) == "curler":
+	if kind == "curler":
 		image = "fx_energy_%d" % (frame % 4)
-	elif String(d[0]) == "steam":
+	elif kind == "steam":
 		image = "fx_valve_slug"
 	var s := View.Sprite.new(x, y, image, .35, game.world.elevation(x, y) + left * 6.0)
-	s.glow = String(d[0]) != "tnt"
+	s.glow = kind != "tnt"
 	return [s]

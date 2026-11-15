@@ -48,12 +48,13 @@ func attach() -> void:
 
 
 func _life(key: String, fallback: float) -> float:
-	return float(Effects.DEBRIS.get(key, fallback))
+	var life: float = Effects.DEBRIS.get(key, fallback)
+	return life
 
 
 ## Out of the gun's right side, tumbling.
 func _eject(kind: String, count: int, spread := 1.0) -> void:
-	var p = game.player
+	var p := game.player
 	var a: float = p.view_angle()
 	for k in count:
 		var bit := Bit.new()
@@ -120,7 +121,8 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 				-1.0
 			]
 		)
-	for k in int(Effects.DEBRIS.get("embers", 7)):
+	var embers: int = Effects.DEBRIS.get("embers", 7)
+	for k in embers:
 		var ember := Bit.new()
 		ember.kind = "ember"
 		ember.x = x
@@ -132,7 +134,8 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 		ember.life = _life("ember_life", 1.6) * dice.randf_range(.6, 1.1)
 		ember.size = .045
 		_add(ember)
-	for k in int(Effects.DEBRIS.get("smoke_puffs", 3)):
+	var puffs: int = Effects.DEBRIS.get("smoke_puffs", 3)
+	for k in puffs:
 		var smoke := Bit.new()
 		smoke.kind = "smoke"
 		smoke.x = x + dice.randf_range(-.4, .4)
@@ -197,9 +200,12 @@ func _age_scorches() -> void:
 	var k := 0
 	while k < scorches.size():
 		var s: Array = scorches[k]
-		if float(s[7]) < 0.0 and (k < over or game.clock - float(s[6]) > life):
+		var fading_at: float = s[7]
+		var laid_at: float = s[6]
+		if fading_at < 0.0 and (k < over or game.clock - laid_at > life):
 			s[7] = game.clock
-		if float(s[7]) >= 0.0 and game.clock - float(s[7]) > FADE:
+			fading_at = game.clock
+		if fading_at >= 0.0 and game.clock - fading_at > FADE:
 			scorches.remove_at(k)
 			over -= 1
 			continue
@@ -231,7 +237,7 @@ func _trails() -> void:
 
 func sprites() -> Array:
 	var out: Array = []
-	var p = game.player
+	var p := game.player
 	for bit: Bit in bits:
 		# Brass just out of the gun is at the lens: a blur filling the view's edge.
 		if (bit.x - p.x) * (bit.x - p.x) + (bit.y - p.y) * (bit.y - p.y) < .36:
@@ -255,14 +261,18 @@ func sprites() -> Array:
 
 func ground_marks() -> Array:
 	var out: Array = []
-	var p = game.player
+	var p := game.player
 	for s: Array in scorches:
-		if (
-			(float(s[0]) - p.x) * (float(s[0]) - p.x) + (float(s[1]) - p.y) * (float(s[1]) - p.y)
-			< 100.0
-		):
-			var picture := "mark_scorch_%d" % int(s[5])
-			if float(s[7]) >= 0.0:
-				picture = game.art.faded_art(picture, 1.0 - (game.clock - float(s[7])) / FADE)
-			out.append(View.GroundMark.new(s[0], s[1], s[2], s[3], s[4], s[4], picture))
+		var sx: float = s[0]
+		var sy: float = s[1]
+		if (sx - p.x) * (sx - p.x) + (sy - p.y) * (sy - p.y) < 100.0:
+			var look: int = s[5]
+			var picture := "mark_scorch_%d" % look
+			var fading_at: float = s[7]
+			if fading_at >= 0.0:
+				picture = game.art.faded_art(picture, 1.0 - (game.clock - fading_at) / FADE)
+			var sz: float = s[2]
+			var turn: float = s[3]
+			var size: float = s[4]
+			out.append(View.GroundMark.new(sx, sy, sz, turn, size, size, picture))
 	return out

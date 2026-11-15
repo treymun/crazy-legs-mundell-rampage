@@ -53,12 +53,14 @@ func attach() -> void:
 func rain_strength() -> float:
 	if game.in_hub:
 		return 0.0
-	return clampf(float(Effects.mood(game.level.id, "rain", 0.0)), 0.0, 1.0)
+	var most: float = Effects.mood(game.level.id, "rain", 0.0)
+	return clampf(most, 0.0, 1.0)
 
 
 ## The share of the time it rains, for a level whose rain comes in spells.
 func showers() -> float:
-	return clampf(float(Effects.mood(game.level.id, "showers", 0.0)), 0.0, 1.0)
+	var share: float = Effects.mood(game.level.id, "showers", 0.0)
+	return clampf(share, 0.0, 1.0)
 
 
 ## A view tour's weather: rain this hard, the ground this wet, a flash.
@@ -73,7 +75,7 @@ func _tick(dt: float) -> void:
 	if held:
 		return
 	_rain(dt)
-	var rate := float(Effects.mood(game.level.id, "lightning", 0.0))
+	var rate: float = Effects.mood(game.level.id, "lightning", 0.0)
 	if rate <= 0.0 or game.in_hub or game.flash_scale <= 0.0 or not Effects.enabled:
 		game.lightning = 0.0
 		return

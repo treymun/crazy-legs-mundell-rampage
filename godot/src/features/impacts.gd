@@ -13,6 +13,8 @@
 ## wall scorches; GORE off: no blood to run.
 extends GameFeature
 
+const WeaponFx := preload("res://src/features/weapon_fx.gd")
+
 ## Seconds a mark takes to fade out once its time is up.
 const FADE := 1.6
 ## Seconds blood takes to run its length down a wall, and its six stages.
@@ -48,10 +50,11 @@ func attach() -> void:
 
 
 func _cap(key: String, fallback: float) -> float:
-	return float(Effects.DEBRIS.get(key, fallback))
+	var cap: float = Effects.DEBRIS.get(key, fallback)
+	return cap
 
 
-func _fx():
+func _fx() -> WeaponFx:
 	return game.features.get("weapon_fx")
 
 
@@ -64,12 +67,13 @@ func _fired(_gun: int) -> void:
 
 func _traced(end: Vector3, struck: String) -> void:
 	var gun: int = game.armory.active
-	var mode := String(Weapons.FIRING[gun].get("fire", ""))
+	var firing: Dictionary = Weapons.FIRING[gun]
+	var mode := str(firing.get("fire", ""))
 	if mode != "hitscan" and mode != "pellets":
 		return
 	if gun == Weapons.PRESSURE or gun == Weapons.TEAT:
 		return
-	var p = game.player
+	var p := game.player
 	var dir := (end - Vector3(p.x, p.y, p.eye)).normalized()
 	if struck == "glass":
 		# A pane going: chips of it everywhere, glinting where they land.
@@ -94,13 +98,14 @@ func _traced(end: Vector3, struck: String) -> void:
 ## What flies off `kind` at `at`, thrown back along `out` (toward the gun for a
 ## hit, on through for a round coming out the far side).
 func _chips(at: Vector3, kind: String, out: Vector3, gun: int) -> void:
-	var fx = _fx()
+	var fx := _fx()
 	if fx == null:
 		return
 	match kind:
 		"tin", "steel", "mesh":
 			if gun != Weapons.RIVETER:
-				fx.sparks(at, {"tin": 4, "steel": 6, "mesh": 2}[kind], 2.4)
+				var count: int = {"tin": 4, "steel": 6, "mesh": 2}[kind]
+				fx.sparks(at, count, 2.4)
 		"wood", "timber":
 			for _k in 3:
 				var v: Vector3 = fx.scatter(1.5, 1.6) + out * 1.3
@@ -129,17 +134,19 @@ func _chips(at: Vector3, kind: String, out: Vector3, gun: int) -> void:
 
 
 func _bit(kind: String, at: Vector3, v: Vector3, life: float, size: float, gravity: float) -> void:
-	var fx = _fx()
+	var fx := _fx()
 	if fx != null:
 		fx.spawn(kind, at, v, life, size, gravity)
 
 
 ## A puff of dust off what was struck, rolling out a little and hanging.
 func _puff(at: Vector3, out: Vector3, size: float, life: float, kind := "dust") -> void:
-	var fx = _fx()
+	var fx := _fx()
 	if fx == null:
 		return
-	var puff = fx.spawn(kind, at + out * .04, out * .5 + Vector3(0, 0, .15), life, size)
+	var puff: WeaponFx.Bit = fx.spawn(
+		kind, at + out * .04, out * .5 + Vector3(0, 0, .15), life, size
+	)
 	puff.grow = size * 3.0
 
 
@@ -187,7 +194,7 @@ func _pierced(entry: Vector3, exit: Vector3, _struck: String) -> void:
 	var ay := way.y / flat
 	var slope := way.z / flat
 	var back := .35
-	var mark = WallHits.wall_mark(
+	var mark: View.WallMark = WallHits.wall_mark(
 		game.world,
 		exit.x - ax * back,
 		exit.y - ay * back,
@@ -213,14 +220,15 @@ func _pierced(entry: Vector3, exit: Vector3, _struck: String) -> void:
 func _adopt_holes() -> void:
 	var marks: Array = game.wall_marks
 	for k in range(marks.size() - 1, -1, -1):
-		var key: int = marks[k].get_instance_id()
+		var mark: View.WallMark = marks[k]
+		var key: int = mark.get_instance_id()
 		if _holes.has(key):
 			break
-		_holes[key] = [marks[k].image, game.clock, -1.0]
+		_holes[key] = [mark.image, game.clock, -1.0]
 	if _holes.size() > marks.size() + 24:
 		# Some went without us (the game's own safety cap): forget them.
 		var live := {}
-		for m in marks:
+		for m: View.WallMark in marks:
 			var key: int = m.get_instance_id()
 			if _holes.has(key):
 				live[key] = _holes[key]
@@ -266,15 +274,25 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 				found.append([d, ax, ay])
 				break
 			d += .1
-	found.sort_custom(func(m, n): return float(m[0]) < float(n[0]))
+	found.sort_custom(
+		func(m: Array, n: Array) -> bool:
+			var dm: float = m[0]
+			var dn: float = n[0]
+			return dm < dn
+	)
 	for k in mini(2, found.size()):
 		var hit: Array = found[k]
-		var mark = WallHits.wall_mark(game.world, x, y, at_z, hit[1], hit[2], 0.0, hit[0])
+		var hit_d: float = hit[0]
+		var hit_x: float = hit[1]
+		var hit_y: float = hit[2]
+		var mark: View.WallMark = WallHits.wall_mark(
+			game.world, x, y, at_z, hit_x, hit_y, 0.0, hit_d
+		)
 		if mark == null:
 			continue
 		var picture := "fx_scorch_wall_%d" % dice.randi_range(0, 1)
 		mark.image = picture
-		mark.radius = dice.randf_range(.42, .58) * (1.2 - float(hit[0]) * .3)
+		mark.radius = dice.randf_range(.42, .58) * (1.2 - hit_d * .3)
 		mark.z = maxf(at_z, floor_z + mark.radius * .8)
 		scorches.append([mark, picture, game.clock, -1.0])
 
@@ -294,19 +312,23 @@ func _age_holes() -> void:
 	var life := _cap("hole_life", 300.0)
 	var gone: Array = []
 	for k in marks.size():
-		var m = marks[k]
-		var meta = _holes.get(m.get_instance_id())
-		if meta == null:
+		var m: View.WallMark = marks[k]
+		var found: Variant = _holes.get(m.get_instance_id())
+		if found == null:
 			continue
-		if float(meta[2]) < 0.0 and (k < over or game.clock - float(meta[1]) > life):
+		var meta: Array = found
+		var fading: float = meta[2]
+		var made: float = meta[1]
+		if fading < 0.0 and (k < over or game.clock - made > life):
 			meta[2] = game.clock
-		if float(meta[2]) >= 0.0:
-			var keep: float = 1.0 - (game.clock - float(meta[2])) / FADE
+			fading = game.clock
+		if fading >= 0.0:
+			var keep: float = 1.0 - (game.clock - fading) / FADE
 			if keep <= 0.0:
 				gone.append(m)
 			else:
-				m.image = game.art.faded_art(String(meta[0]), keep)
-	for m in gone:
+				m.image = game.art.faded_art(str(meta[0]), keep)
+	for m: View.WallMark in gone:
 		marks.erase(m)
 		_holes.erase(m.get_instance_id())
 
@@ -319,15 +341,18 @@ func _age_list(list: Array, cap: int, life: float) -> void:
 	var k := 0
 	while k < list.size():
 		var row: Array = list[k]
-		if float(row[3]) < 0.0 and (k < over or game.clock - float(row[2]) > life):
+		var fading: float = row[3]
+		var made: float = row[2]
+		if fading < 0.0 and (k < over or game.clock - made > life):
 			row[3] = game.clock
-		if float(row[3]) >= 0.0:
-			var keep: float = 1.0 - (game.clock - float(row[3])) / FADE
+			fading = game.clock
+		if fading >= 0.0:
+			var keep: float = 1.0 - (game.clock - fading) / FADE
 			if keep <= 0.0:
 				list.remove_at(k)
 				over -= 1
 				continue
-			row[0].image = game.art.faded_art(String(row[1]), keep)
+			row[0].image = game.art.faded_art(str(row[1]), keep)
 		k += 1
 
 
@@ -336,9 +361,9 @@ func _age_list(list: Array, cap: int, life: float) -> void:
 func _bleed() -> void:
 	var walls: Array = game.gore_fx.walls
 	var live := {}
-	for splat in walls:
+	for splat: View.WallMark in walls:
 		var key: int = splat.get_instance_id()
-		var row = _splats.get(key)
+		var row: Variant = _splats.get(key)
 		if row == null:
 			row = [splat, splat.image, game.clock, -1.0, _run_for(splat)]
 		live[key] = row
@@ -346,36 +371,38 @@ func _bleed() -> void:
 	var over := walls.size() - int(_cap("splat_keep", 26))
 	var gone: Array = []
 	for k in walls.size():
-		var row: Array = _splats[walls[k].get_instance_id()]
-		if float(row[3]) < 0.0 and k < over:
+		var splat: View.WallMark = walls[k]
+		var row: Array = _splats[splat.get_instance_id()]
+		var fading: float = row[3]
+		if fading < 0.0 and k < over:
 			row[3] = game.clock
+			fading = game.clock
 		var keep := 1.0
-		if float(row[3]) >= 0.0:
-			keep = 1.0 - (game.clock - float(row[3])) / FADE
+		if fading >= 0.0:
+			keep = 1.0 - (game.clock - fading) / FADE
 			if keep <= 0.0:
-				gone.append(walls[k])
+				gone.append(splat)
 				continue
-			walls[k].image = game.art.faded_art(String(row[1]), keep)
-		var run = row[4]
+			splat.image = game.art.faded_art(str(row[1]), keep)
+		var run: View.WallMark = row[4]
 		if run != null:
-			var stage := mini(
-				RUN_FRAMES - 1, int((game.clock - float(row[2])) / RUN_TIME * RUN_FRAMES)
-			)
-			var acid := String(row[1]).begins_with("fx_acid")
+			var made: float = row[2]
+			var stage := mini(RUN_FRAMES - 1, int((game.clock - made) / RUN_TIME * RUN_FRAMES))
+			var acid := str(row[1]).begins_with("fx_acid")
 			var picture := "fx_%srun_%d" % ["acid" if acid else "blood", stage]
 			run.image = game.art.faded_art(picture, keep) if keep < 1.0 else picture
-	for splat in gone:
+	for splat: View.WallMark in gone:
 		walls.erase(splat)
 		_splats.erase(splat.get_instance_id())
 
 
 ## The run of blood below a splat, high enough up a wall to run at all.
-func _run_for(splat) -> Variant:
-	var image := String(splat.image)
+func _run_for(splat: View.WallMark) -> View.WallMark:
+	var image := splat.image
 	if not (image.begins_with("fx_blood") or image.begins_with("fx_acid")):
 		return null
 	var floor_z: float = game.world.elevation(splat.x, splat.y)
-	var reach: float = minf(float(splat.radius) * 1.15, (splat.z - floor_z) * .5)
+	var reach: float = minf(splat.radius * 1.15, (splat.z - floor_z) * .5)
 	if reach < .1:
 		return null
 	var run := View.WallMark.new()
@@ -396,8 +423,8 @@ func wall_marks() -> Array:
 		for row: Array in scorches:
 			_marks_out.append(row[0])
 	if game.gore:
-		for key in _splats:
-			var run = _splats[key][4]
+		for key: int in _splats:
+			var run: View.WallMark = _splats[key][4]
 			if run != null:
 				_marks_out.append(run)
 	return _marks_out
@@ -407,7 +434,7 @@ func ground_marks() -> Array:
 	var out: Array = []
 	if not game.bullet_marks:
 		return out
-	var p = game.player
+	var p := game.player
 	for row: Array in pocks:
 		var m: View.GroundMark = row[0]
 		if (m.x - p.x) * (m.x - p.x) + (m.y - p.y) * (m.y - p.y) < 144.0:

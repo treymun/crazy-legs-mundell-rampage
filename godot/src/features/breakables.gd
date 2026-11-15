@@ -126,13 +126,13 @@ func id() -> String:
 func attach() -> void:
 	dice.seed = 2024
 	_cfg = Tuning.file(PATH)
-	bits_max = int(_cfg.get_value("all", "bits_max", 150))
-	shove_reach = float(_cfg.get_value("all", "shove_reach", 1.6))
-	shove_most = float(_cfg.get_value("all", "shove_most", .45))
+	bits_max = _cfg.get_value("all", "bits_max", 150)
+	shove_reach = _cfg.get_value("all", "shove_reach", 1.6)
+	shove_most = _cfg.get_value("all", "shove_most", .45)
 	_find()
 	# The pictures a break shows, read now rather than in the middle of a fight.
 	for p: Piece in pieces:
-		game.art.art(String(p.spec["broken"]))
+		game.art.art(str(p.spec["broken"]))
 	for stuff: String in BIT_SIZE:
 		for n in 2:
 			game.art.art("fx_brk_%s_%d" % [stuff, n])
@@ -143,9 +143,9 @@ func _spec(image: String) -> Dictionary:
 	if image == "all" or not _cfg.has_section(image):
 		return {}
 	var out := {}
-	for key in _cfg.get_section_keys(image):
+	for key: String in _cfg.get_section_keys(image):
 		out[key] = _cfg.get_value(image, key)
-	if not game.art.has_art(String(out.get("broken", ""))):
+	if not game.art.has_art(str(out.get("broken", ""))):
 		return {}
 	return out
 
@@ -163,30 +163,37 @@ func _find() -> void:
 		standing.append([sprite.image, sprite.x, sprite.y, 0.0, null, sprite])
 	var by_base := {}
 	for row: Array in standing:
-		var image := String(row[0])
+		var image := str(row[0])
 		var spec := _spec(image)
 		var board: LevelData.Billboard = row[4]
-		var base := _base_under(float(row[1]), float(row[2]), float(row[3]))
+		var row_x: float = row[1]
+		var row_y: float = row[2]
+		var row_z: float = row[3]
+		var base := _base_under(row_x, row_y, row_z)
 		if not base.is_empty():
 			var key := str(base)
 			if not by_base.has(key):
 				by_base[key] = []
-			by_base[key].append(not spec.is_empty())
+			var on_base: Array = by_base[key]
+			on_base.append(not spec.is_empty())
 		if spec.is_empty() or (board != null and (board.signal_name != "" or board.glow)):
 			continue
 		var p := Piece.new()
 		p.image = image
 		p.spec = spec
-		p.x = float(row[1])
-		p.y = float(row[2])
-		p.z = float(row[3])
+		p.x = row_x
+		p.y = row_y
+		p.z = row_z
 		p.board = board
 		p.sprite = row[5]
 		p.height = board.height if board != null else p.sprite.height
 		var art: Dictionary = game.art.art(image)
-		var wide := p.height * float(art["w"]) / maxf(1.0, float(art["h"]))
-		p.radius = clampf(wide * (.5 if bool(spec.get("sign", false)) else .4), .12, 1.2)
-		p.hp = float(spec.get("hp", 1.0))
+		var art_w: float = art["w"]
+		var art_h: float = art["h"]
+		var wide := p.height * art_w / maxf(1.0, art_h)
+		var is_sign: bool = spec.get("sign", false)
+		p.radius = clampf(wide * (.5 if is_sign else .4), .12, 1.2)
+		p.hp = spec.get("hp", 1.0)
 		p.base = base
 		p.id = "%s@%.2f,%.2f" % [image, p.x, p.y]
 		pieces.append(p)
@@ -195,7 +202,8 @@ func _find() -> void:
 		if not p.base.is_empty():
 			# Sharing its base with something that never breaks, or the only
 			# thing between two stretches of floor: it stays whole.
-			if (by_base[str(p.base)] as Array).has(false) or _parts_floor(p.base):
+			var on_base: Array = by_base[str(p.base)]
+			if on_base.has(false) or _parts_floor(p.base):
 				continue
 		kept.append(p)
 	pieces = kept
@@ -213,7 +221,7 @@ func _find() -> void:
 func _base_under(x: float, y: float, z: float) -> PackedFloat32Array:
 	if z > .05:
 		return PackedFloat32Array()
-	for fixture in game.world.near_fixtures.get(Vector2i(int(x), int(y)), []):
+	for fixture: Variant in game.world.near_fixtures.get(Vector2i(int(x), int(y)), []):
 		var f: PackedFloat32Array = fixture
 		if (
 			f[0] <= x
@@ -340,9 +348,9 @@ func strike(i: int, amount: float, ax: float, ay: float) -> void:
 	if p.hp <= 0.0:
 		_break(p, ax, ay, FUSE_SHOT)
 		return
-	var stuff := String(p.spec.get("stuff", "wood"))
+	var stuff := str(p.spec.get("stuff", "wood"))
 	var z: float = game.world.stand(p) + p.z + p.height * .5
-	game.burst(p.x, p.y, z, String(SPECKS.get(stuff, "spark")), 3, .7)
+	game.burst(p.x, p.y, z, str(SPECKS.get(stuff, "spark")), 3, .7)
 	# A load of buckshot is one knock, not ten.
 	if game.clock >= _chip_next:
 		_chip_next = game.clock + .08
@@ -385,7 +393,8 @@ func blast(x: float, y: float, z: float, radius: float, strength: float, energy:
 
 ## Whether a blast can push it: standing on the ground, in nobody's way.
 func _loose(p: Piece) -> bool:
-	return p.base.is_empty() and p.z <= .05 and not bool(p.spec.get("sign", false))
+	var is_sign: bool = p.spec.get("sign", false)
+	return p.base.is_empty() and p.z <= .05 and not is_sign
 
 
 func _push(p: Piece, x: float, y: float, far: float) -> void:
@@ -436,12 +445,18 @@ func _widen(s: View.Sprite) -> void:
 	if index < 0:
 		return
 	var art: Dictionary = game.art.art(s.image)
-	var half := s.height * float(art["w"]) / maxf(1.0, float(art["h"])) * .5
+	var art_w: float = art["w"]
+	var art_h: float = art["h"]
+	var half := s.height * art_w / maxf(1.0, art_h) * .5
 	for b in game.fixed_blocks.size():
 		var block: Array = game.fixed_blocks[b]
-		if (block[3] as PackedInt32Array).has(index):
-			var far := Vector2(s.x - float(block[0]), s.y - float(block[1])).length() + half + .3
-			block[2] = maxf(float(block[2]), far)
+		var listed: PackedInt32Array = block[3]
+		if listed.has(index):
+			var block_x: float = block[0]
+			var block_y: float = block[1]
+			var block_reach: float = block[2]
+			var far := Vector2(s.x - block_x, s.y - block_y).length() + half + .3
+			block[2] = maxf(block_reach, far)
 			# game_view.gd _seen() reads the reach from fixed_cull.
 			if game.fixed_cull.size() > b * 3 + 2:
 				game.fixed_cull[b * 3 + 2] = block[2]
@@ -465,7 +480,7 @@ func wreck(x: float, y: float, image: String) -> void:
 func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook := true) -> void:
 	p.broken = true
 	net_version += 1
-	var broken := String(p.spec["broken"])
+	var broken := str(p.spec["broken"])
 	var tall := _tall(broken, p.height, p.image)
 	var shown := _shown(p)
 	if p.board != null:
@@ -490,19 +505,20 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 		return
 	if cook and p.spec.has("blast"):
 		game.sound_at("fuse_short", p.x, p.y, .7)
-	var stuff := String(p.spec.get("stuff", "wood"))
+	var stuff := str(p.spec.get("stuff", "wood"))
 	var z: float = game.world.stand(p) + p.z + p.height * .5
+	var sign: bool = p.spec.get("sign", false)
 	# A row going at once is one crash, not one each.
 	var loud: bool = game.clock >= _crash_next
 	if loud:
 		_crash_next = game.clock + .05
-		var crash := "sign_shot" if bool(p.spec.get("sign", false)) else "impact_wood"
-		game.sound_at(String(p.spec.get("cue", crash)), p.x, p.y, .8)
+		var crash := "sign_shot" if sign else "impact_wood"
+		game.sound_at(str(p.spec.get("cue", crash)), p.x, p.y, .8)
 	if loud and p.spec.has("cue2"):
-		game.sound_at(String(p.spec["cue2"]), p.x, p.y, .6)
-	var sign := bool(p.spec.get("sign", false))
-	_throw(p.x, p.y, z, stuff, 2 if sign else int(p.spec.get("bits", 6)), ax, ay)
-	game.burst(p.x, p.y, z, String(SPECKS.get(stuff, "spark")), 4 if sign else 9, 1.2)
+		game.sound_at(str(p.spec["cue2"]), p.x, p.y, .6)
+	var bit_count: int = p.spec.get("bits", 6)
+	_throw(p.x, p.y, z, stuff, 2 if sign else bit_count, ax, ay)
+	game.burst(p.x, p.y, z, str(SPECKS.get(stuff, "spark")), 4 if sign else 9, 1.2)
 	# Breaking things is loud: whoever is near and can see it comes to look.
 	game.disturb(p.x, p.y, 4.5, z)
 
@@ -510,20 +526,23 @@ func _break(p: Piece, ax: float, ay: float, fuse: float, quiet := false, cook :=
 ## The knock of a shot that does not break it yet.
 func _chip_cue(p: Piece) -> String:
 	if p.spec.has("chip"):
-		return String(p.spec["chip"])
-	if bool(p.spec.get("sign", false)):
+		return str(p.spec["chip"])
+	var is_sign: bool = p.spec.get("sign", false)
+	if is_sign:
 		return "sign_shot"
-	return String(p.spec.get("cue", "impact_wood"))
+	return str(p.spec.get("cue", "impact_wood"))
 
 
 ## How tall a broken picture stands: a modelled prop's at the scale the whole
 ## one was stood (both are rendered 60 pixels to the unit), a sign's as it was.
 func _tall(broken: String, whole_height: float, whole: String) -> float:
 	var art: Dictionary = game.art.art(broken)
-	var own := float(art["h"]) / 60.0
+	var art_h: float = art["h"]
+	var own := art_h / 60.0
 	if whole.begins_with("town_"):
 		var was: Dictionary = game.art.art(whole)
-		return whole_height * float(art["h"]) / maxf(1.0, float(was["h"]))
+		var was_h: float = was["h"]
+		return whole_height * art_h / maxf(1.0, was_h)
 	if whole != "" and not whole.begins_with("prop_"):
 		return whole_height
 	return own
@@ -543,7 +562,7 @@ func scatter(x: float, y: float, z: float, stuff: String, count: int, ax: float,
 
 
 func _throw(x: float, y: float, z: float, stuff: String, count: int, ax: float, ay: float) -> void:
-	var size := float(BIT_SIZE.get(stuff, .07))
+	var size: float = BIT_SIZE.get(stuff, .07)
 	for k in count:
 		var b := Bit.new()
 		b.x = x + dice.randf_range(-.12, .12)
@@ -583,12 +602,15 @@ func _tick(dt: float) -> void:
 	if not cooking.is_empty():
 		var going: Array = []
 		for c: Array in cooking:
-			c[1] = float(c[1]) - dt
-			if float(c[1]) <= 0.0:
+			var left: float = c[1]
+			left -= dt
+			c[1] = left
+			if left <= 0.0:
 				going.append(c)
 		for c: Array in going:
 			cooking.erase(c)
-			var p: Piece = pieces[int(c[0])]
+			var at: int = c[0]
+			var p: Piece = pieces[at]
 			var shot := Game.Shot.new(
 				p.x,
 				p.y,
@@ -596,7 +618,7 @@ func _tick(dt: float) -> void:
 				0.0,
 				0.0,
 				0.0,
-				String(p.spec["blast"]),
+				str(p.spec["blast"]),
 				0.0,
 				false,
 				0
@@ -624,18 +646,23 @@ func sprites() -> Array:
 	if _resting_dirty:
 		_sort_resting()
 	for block: Array in _resting:
-		if game.in_view(block[0], block[1], block[2]):
-			out.append_array(block[3])
+		var block_x: float = block[0]
+		var block_y: float = block[1]
+		var block_reach: float = block[2]
+		if game.in_view(block_x, block_y, block_reach):
+			var in_block: Array = block[3]
+			out.append_array(in_block)
 	for b: Bit in bits:
 		if not b.rest and game.in_view(b.x, b.y, b.size + .2):
 			var s: View.Sprite = game.pooled(b.x, b.y, b.image, b.size, b.z)
 			s.flip = b.flip
 			out.append(s)
 	for w: Array in wrecks:
-		if game.in_view(float(w[0]), float(w[1]), 1.2):
-			out.append(
-				game.pooled(w[0], w[1], String(w[2]), w[3], game.world.elevation(w[0], w[1]))
-			)
+		var wx: float = w[0]
+		var wy: float = w[1]
+		if game.in_view(wx, wy, 1.2):
+			var tall: float = w[3]
+			out.append(game.pooled(wx, wy, str(w[2]), tall, game.world.elevation(wx, wy)))
 	return out
 
 
@@ -654,7 +681,8 @@ func _sort_resting() -> void:
 		var key := Vector2i(floori(b.x / BLOCK), floori(b.y / BLOCK))
 		if not by_key.has(key):
 			by_key[key] = []
-		by_key[key].append(b.sprite)
+		var in_block: Array = by_key[key]
+		in_block.append(b.sprite)
 	_resting.clear()
 	for key: Vector2i in by_key:
 		var mx := (key.x + .5) * BLOCK
@@ -678,7 +706,10 @@ func save() -> Dictionary:
 			moved.append([p.id, snappedf(p.x, .01), snappedf(p.y, .01)])
 	var cook: Array = []
 	for c: Array in cooking:
-		cook.append([(pieces[int(c[0])] as Piece).id, snappedf(float(c[1]), .01)])
+		var at: int = c[0]
+		var cooked: Piece = pieces[at]
+		var left: float = c[1]
+		cook.append([cooked.id, snappedf(left, .01)])
 	var lying: Array = []
 	for b: Bit in bits:
 		lying.append([snappedf(b.x, .01), snappedf(b.y, .01), snappedf(b.z, .01), b.image])
@@ -698,36 +729,52 @@ func restore(state: Dictionary) -> void:
 	for p: Piece in pieces:
 		by_id[p.id] = p
 	var cook := {}
-	for row in state.get("cooking", []):
-		if row is Array and row.size() == 2:
-			cook[String(row[0])] = float(row[1])
-	for key in state.get("broken", []):
-		var p: Piece = by_id.get(String(key))
+	for item: Variant in state.get("cooking", []):
+		if item is Array:
+			var row: Array = item
+			if row.size() == 2:
+				var left: float = row[1]
+				cook[str(row[0])] = left
+	for key: Variant in state.get("broken", []):
+		var p: Piece = by_id.get(str(key))
 		if p == null or p.broken:
 			continue
 		# Broken before the save: its picture and its freed cell, but no noise,
 		# no bits (those come back below) and no blast unless it was going up.
-		_break(p, 0.0, 0.0, float(cook.get(p.id, 0.0)), true, cook.has(p.id))
-	for row in state.get("moved", []):
-		if row is Array and row.size() == 3 and by_id.has(String(row[0])):
-			_place(by_id[String(row[0])], float(row[1]), float(row[2]))
+		var fuse: float = cook.get(p.id, 0.0)
+		_break(p, 0.0, 0.0, fuse, true, cook.has(p.id))
+	for item: Variant in state.get("moved", []):
+		if item is Array:
+			var row: Array = item
+			if row.size() == 3 and by_id.has(str(row[0])):
+				var moved: Piece = by_id[str(row[0])]
+				var to_x: float = row[1]
+				var to_y: float = row[2]
+				_place(moved, to_x, to_y)
 	# Listed again with what was broken and moved before the save.
 	game.fixed_sprites_key = []
 	bits.clear()
-	for row in state.get("bits", []):
-		if row is Array and row.size() == 4 and game.art.has_art(String(row[3])):
-			var b := Bit.new()
-			b.x = float(row[0])
-			b.y = float(row[1])
-			b.z = float(row[2])
-			b.image = String(row[3])
-			for stuff: String in BIT_SIZE:
-				if b.image.contains("_%s_" % stuff):
-					b.size = float(BIT_SIZE[stuff])
-			b.rest = true
-			bits.append(b)
+	for item: Variant in state.get("bits", []):
+		if item is Array:
+			var row: Array = item
+			if row.size() == 4 and game.art.has_art(str(row[3])):
+				var b := Bit.new()
+				b.x = row[0]
+				b.y = row[1]
+				b.z = row[2]
+				b.image = str(row[3])
+				for stuff: String in BIT_SIZE:
+					if b.image.contains("_%s_" % stuff):
+						b.size = BIT_SIZE[stuff]
+				b.rest = true
+				bits.append(b)
 	_resting_dirty = true
 	wrecks.clear()
-	for row in state.get("wrecks", []):
-		if row is Array and row.size() == 4 and game.art.has_art(String(row[2])):
-			wrecks.append([float(row[0]), float(row[1]), String(row[2]), float(row[3])])
+	for item: Variant in state.get("wrecks", []):
+		if item is Array:
+			var row: Array = item
+			if row.size() == 4 and game.art.has_art(str(row[2])):
+				var wx: float = row[0]
+				var wy: float = row[1]
+				var tall: float = row[3]
+				wrecks.append([wx, wy, str(row[2]), tall])
