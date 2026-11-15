@@ -104,6 +104,10 @@ func _find(game: Game, x: float, y: float) -> void:
 ## (on one floor with them unless there is no floor that high).
 func _source_floor(game: Game, x: float, y: float) -> float:
 	var world := game.world
+	# Ambient sounds (a flock overhead) may sit off the map: hear them from
+	# its nearest edge.
+	x = clampf(x, 0.0, world.width - .001)
+	y = clampf(y, 0.0, world.height - .001)
 	if world.geo == null:
 		return world.elevation(x, y)
 	var body: Variant = _body_at(game, x, y)
