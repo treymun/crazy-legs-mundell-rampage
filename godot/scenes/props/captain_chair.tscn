@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_hpta6"]
+[ext_resource type="PackedScene" path="res://assets3d/props/captain_chair.glb" id="2_7s5f5"]
+
+[node name="CaptainChair" type="Node3D" unique_id=2135035588]
+script = ExtResource("1_hpta6")
+prop = "captain_chair"
+
+[node name="Model" type="Node3D" parent="." unique_id=1648222688 instance=ExtResource("2_7s5f5")]

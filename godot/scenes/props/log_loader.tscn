@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_fi7nl"]
+[ext_resource type="PackedScene" path="res://assets3d/props/log_loader.glb" id="2_ubtdu"]
+
+[node name="LogLoader" type="Node3D" unique_id=1256186815]
+script = ExtResource("1_fi7nl")
+prop = "log_loader"
+
+[node name="Model" type="Node3D" parent="." unique_id=119046787 instance=ExtResource("2_ubtdu")]

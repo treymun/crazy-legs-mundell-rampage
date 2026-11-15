@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_1ct0v"]
+[ext_resource type="PackedScene" path="res://assets3d/props/burn_barrel.glb" id="2_6k8pu"]
+
+[node name="BurnBarrel" type="Node3D" unique_id=1971543332]
+script = ExtResource("1_1ct0v")
+prop = "burn_barrel"
+
+[node name="Model" type="Node3D" parent="." unique_id=1714296739 instance=ExtResource("2_6k8pu")]

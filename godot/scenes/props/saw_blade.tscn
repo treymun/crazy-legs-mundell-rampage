@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_m1uy8"]
+[ext_resource type="PackedScene" path="res://assets3d/props/saw_blade.glb" id="2_va3f8"]
+
+[node name="SawBlade" type="Node3D" unique_id=1095308089]
+script = ExtResource("1_m1uy8")
+prop = "saw_blade"
+
+[node name="Model" type="Node3D" parent="." unique_id=1780023307 instance=ExtResource("2_va3f8")]

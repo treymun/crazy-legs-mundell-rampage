@@ -20,29 +20,7 @@ const GALLERY_TARGETS := [
 	Vector3(29.54, 33.15, 1.32)
 ]
 
-const PROP_HEIGHTS := {
-	"barrel": 1.04,
-	"hay": .91,
-	"pump": 1.43,
-	"pump_b": 1.43,
-	"sink": .89,
-	"crate": .75,
-	"jukebox": 1.45,
-	"lamp": .24,
-	"tree": 3.65,
-	"tree_b": 3.65,
-	"utilitypole": 3.85,
-	"pickup_truck": 1.31,
-	"pickup_truck_b": 1.20,
-	"roadsign": 1.67,
-	"bleacher_sign": 1.58,
-	"mailbox": 1.18,
-	"tire": .40,
-	"windmill": 4.65,
-	"silo": 3.78,
-	"reeds": .58,
-	"water_tower": 5.1,
-}
+static var PROP_HEIGHTS: Dictionary = _prop_heights()
 
 const PICKUP_NAMES := {
 	"key_brass": "BRASS BARN KEY",
@@ -1083,7 +1061,6 @@ var showing_tally: bool:
 
 # -------------------------------------------------------------- configure
 
-
 ## rampage2.look_pass tables: wash tint, vignette and ordered dither.
 var _grit_r := PackedFloat32Array()
 var _grit_g := PackedFloat32Array()
@@ -1237,3 +1214,13 @@ class Controls:
 	## Online: how many ticks back the host judged this player's shots (what
 	## their screen showed; 0 now). Set by the host, carried to every copy.
 	var rewind := 0
+
+
+## The billboard props' heights (data/tuning/props.cfg [heights]).
+static func _prop_heights() -> Dictionary:
+	var cfg := Tuning.file("res://data/tuning/props.cfg")
+	var out := {}
+	if cfg.has_section("heights"):
+		for key in cfg.get_section_keys("heights"):
+			out[key] = float(cfg.get_value("heights", key))
+	return out

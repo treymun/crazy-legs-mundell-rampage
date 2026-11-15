@@ -971,9 +971,7 @@ func ground_marks() -> Array:
 			var y := s.y + sin(a) * r
 			if not w.blocked(x, y, .05):
 				out.append(
-					View.GroundMark.new(
-						x, y, w.elevation(x, y) + .005, a, .2, .2, "mark_warning"
-					)
+					View.GroundMark.new(x, y, w.elevation(x, y) + .005, a, .2, .2, "mark_warning")
 				)
 		var fill := .2 + .9 * t
 		out.append(

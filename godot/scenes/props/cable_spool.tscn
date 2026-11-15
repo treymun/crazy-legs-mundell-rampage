@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_8c6jo"]
+[ext_resource type="PackedScene" path="res://assets3d/props/cable_spool.glb" id="2_3kco4"]
+
+[node name="CableSpool" type="Node3D" unique_id=626709704]
+script = ExtResource("1_8c6jo")
+prop = "cable_spool"
+
+[node name="Model" type="Node3D" parent="." unique_id=1424315269 instance=ExtResource("2_3kco4")]

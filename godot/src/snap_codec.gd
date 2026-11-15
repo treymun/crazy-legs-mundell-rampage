@@ -24,13 +24,7 @@ extends RefCounted
 const SKIP := {"@skip": 1}
 ## Classes a snapshot never carries (presentation).
 const VIEW_CLASSES := [
-	"View.Sprite",
-	"View.GroundMark",
-	"View.WallMark",
-	"PlayerVoice",
-	"Sound",
-	"HUD",
-	"QuietSound"
+	"View.Sprite", "View.GroundMark", "View.WallMark", "PlayerVoice", "Sound", "HUD", "QuietSound"
 ]
 ## Fields of a class a snapshot leaves out: worked out from others (Enemy
 ## alive, z), presentation (a player's voice and gun sway), wiring, or what

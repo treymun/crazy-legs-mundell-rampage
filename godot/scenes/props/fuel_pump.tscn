@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_fpq6f"]
+[ext_resource type="PackedScene" path="res://assets3d/props/fuel_pump.glb" id="2_6o23e"]
+
+[node name="FuelPump" type="Node3D" unique_id=1038474730]
+script = ExtResource("1_fpq6f")
+prop = "fuel_pump"
+
+[node name="Model" type="Node3D" parent="." unique_id=98697493 instance=ExtResource("2_6o23e")]

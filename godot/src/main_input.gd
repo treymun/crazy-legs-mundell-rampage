@@ -68,7 +68,7 @@ func _on_focus_gained() -> void:
 
 
 func key(code: int, shift := false) -> void:
-	if ui != null and ui.handles(state) and not _global_key(code):
+	if ui != null and ui.takes_keys(state) and not _global_key(code):
 		# A screen of Control nodes: the key goes to it as a press and release.
 		ui.show_state(state)
 		for down: bool in [true, false]:
@@ -124,34 +124,11 @@ func key(code: int, shift := false) -> void:
 	if state == "setup":
 		_key_setup(code, shift)
 		return
-	if state == "controls" or state == "credits":
-		if (
-			state == "controls"
-			and code in [KEY_LEFT, KEY_RIGHT, KEY_TAB, KEY_PAGEUP, KEY_PAGEDOWN, KEY_A, KEY_D]
-		):
-			var back := code == KEY_LEFT or code == KEY_PAGEUP or code == KEY_A
-			controls_page = posmod(
-				controls_page + (-1 if back or (code == KEY_TAB and shift) else 1),
-				CONTROL_PAGES.size()
-			)
-			sound.play("menu_move")
-		elif code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_ESCAPE or code == KEY_SPACE:
-			back_to_title()
-		return
-	if state == "replays":
-		_key_replays(code)
-		return
-	if state == "rematch" or state == "rematch_done":
-		_key_rematch(code)
-		return
 	if state == "showdown":
 		_key_showdown(code)
 		return
 	if state == "county":
 		CountyInput.key_maps(self, code)
-		return
-	if state == "title":
-		_key_title(code)
 		return
 	_key_play(code)
 
@@ -256,25 +233,6 @@ func _key_setup(code: int, shift: bool) -> void:
 		back_to_title()
 
 
-func _key_replays(code: int) -> void:
-	if code == KEY_ESCAPE:
-		back_to_title()
-	elif code == KEY_UP or code == KEY_DOWN or code == KEY_W or code == KEY_S:
-		var step := -1 if code == KEY_UP or code == KEY_W else 1
-		var count := Campaign.ORDER.size()
-		if key_echo and replay_selection + step != posmod(replay_selection + step, count):
-			return
-		replay_selection = posmod(replay_selection + step, count)
-		sound.play("menu_move")
-	elif code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
-		var level_id: String = Campaign.ORDER[replay_selection]
-		if unlocked.has(level_id):
-			start(level_id, null, [], true, null)
-		else:
-			sound.play("empty")
-			menu_note = "CONTINUE THE CAMPAIGN TO UNLOCK."
-
-
 ## The 5V5 SHOWDOWN picker: up and down pick a row, left and right (or ENTER)
 ## change it, ENTER on START plays, ESC goes back.
 func _key_showdown(code: int) -> void:
@@ -310,62 +268,6 @@ func _key_showdown(code: int) -> void:
 			3:
 				showdown_rules = posmod(showdown_rules + step, TacticalShop.RULE_IDS.size())
 		sound.play("menu_move")
-
-
-## The rematch board (pick a boss, fight) and the result after (to the board).
-func _key_rematch(code: int) -> void:
-	var accept := code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE
-	if state == "rematch_done":
-		if accept:
-			sound.play("menu_accept")
-			open_rematch_board()
-		elif code == KEY_ESCAPE:
-			back_to_title()
-		return
-	var count := BossRematch.BOSSES.size()
-	if code == KEY_ESCAPE:
-		back_to_title()
-	elif code == KEY_UP or code == KEY_DOWN or code == KEY_W or code == KEY_S:
-		var step := -1 if code == KEY_UP or code == KEY_W else 1
-		if key_echo and rematch_pick + step != posmod(rematch_pick + step, count):
-			return
-		rematch_pick = posmod(rematch_pick + step, count)
-		menu_note = ""
-		sound.play("menu_move")
-	elif accept:
-		sound.play("menu_accept")
-		start_rematch(String(BossRematch.BOSSES[rematch_pick]))
-		if state == "play":
-			block_fire = true
-
-
-func _key_title(code: int) -> void:
-	var rows := entries()
-	var step := Vector2i.ZERO
-	if code == KEY_UP or code == KEY_W:
-		step.y = -1
-	elif code == KEY_DOWN or code == KEY_S:
-		step.y = 1
-	elif code == KEY_LEFT or code == KEY_A:
-		step.x = -1
-	elif code == KEY_RIGHT or code == KEY_D:
-		step.x = 1
-	if step != Vector2i.ZERO:
-		var next := Menu.title_move(rows, selection, step.x, step.y)
-		if key_echo and step.y != 0 and (next - posmod(selection, rows.size())) * step.y < 0:
-			return  # a held key stops at the ends instead of wrapping round
-		if next != posmod(selection, rows.size()):
-			selection = next
-			menu_note = ""
-			sound.play("menu_move")
-	elif code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
-		sound.play("menu_accept")
-		menu_action()
-	elif code == KEY_ESCAPE and game != null:
-		state = "play"
-		sound.play("menu_back")
-		play_music()
-		grab(not game.showing_tally and not game.defeated())
 
 
 func _key_play(code: int) -> void:
@@ -489,29 +391,48 @@ func _key_play(code: int) -> void:
 
 
 ## The keys that work on every screen: fullscreen, music, saves, screenshot.
+## An event on a menu screen (src/ui/screens/): true when the screen took it.
+## Keys go to a screen that takes them (else the state's handler below, as
+## for a pad, which drives menus through read_pad -> _pad_menu -> key()), the
+## pointer and touch to a screen that takes them.
+func _to_screen(event: InputEvent) -> bool:
+	ui.show_state(state)
+	if event is InputEventKey:
+		if not ui.takes_keys(state):
+			return false
+		if (event as InputEventKey).pressed:
+			input_device = "keys"
+			var code := (event as InputEventKey).keycode
+			if _global_key(code) and not (event as InputEventKey).echo:
+				key(code)
+				return true
+		ui.take(event)
+		return true
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		input_device = "pad"
+		return true
+	if not (
+		event is InputEventMouse or event is InputEventScreenTouch or event is InputEventScreenDrag
+	):
+		return false
+	if not ui.takes_pointer(state):
+		return false
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		input_device = "touch"
+	elif event is InputEventMouseButton:
+		input_device = "keys"
+	if event is InputEventMouseMotion:
+		pointer = (event as InputEventMouseMotion).position
+	ui.take(event)
+	return true
+
+
 static func _global_key(code: int) -> bool:
 	return code in [KEY_F11, KEY_F4, KEY_F5, KEY_F2, KEY_F6, KEY_F3, KEY_F9, KEY_F12]
 
 
 func _input(event: InputEvent) -> void:
-	if ui != null and ui.handles(state):
-		ui.show_state(state)
-		if event is InputEventKey and (event as InputEventKey).pressed:
-			input_device = "keys"
-			var code := (event as InputEventKey).keycode
-			if _global_key(code) and not (event as InputEventKey).echo:
-				key(code)
-				return
-		elif event is InputEventScreenTouch or event is InputEventScreenDrag:
-			input_device = "touch"
-		elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
-			# A pad drives menus through read_pad -> _pad_menu -> key() (its
-			# repeat and stick timing), which hands the keys to the screen.
-			input_device = "pad"
-			return
-		elif event is InputEventMouseButton:
-			input_device = "keys"
-		ui.take(event)
+	if ui != null and ui.handles(state) and _to_screen(event):
 		return
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
@@ -667,29 +588,9 @@ func _wheel(step: int, position: Vector2) -> void:
 		if display_trial.is_empty() and binding_action == "":
 			setup_scroll_to(option_scroll + step)
 			hover(position)
-	elif state == "title":
-		var rows := entries()
-		var next := Menu.title_move(rows, selection, 0, step)
-		if (next - posmod(selection, rows.size())) * step > 0:
-			selection = next
-			menu_note = ""
-			sound.play("menu_move")
-	elif state == "replays":
-		var next_replay := clampi(replay_selection + step, 0, Campaign.ORDER.size() - 1)
-		if next_replay != replay_selection:
-			replay_selection = next_replay
-			sound.play("menu_move")
-	elif state == "rematch":
-		var next_pick := clampi(rematch_pick + step, 0, BossRematch.BOSSES.size() - 1)
-		if next_pick != rematch_pick:
-			rematch_pick = next_pick
-			menu_note = ""
-			sound.play("menu_move")
 	elif state == "slots" and slot_stage == "choose":
 		slot_index = clampi(slot_index + step, 0, slots.size() - 1)
 		menu_note = ""
-	elif state == "controls":
-		key(KEY_PAGEUP if step < 0 else KEY_PAGEDOWN)
 
 
 ## Fingers are left clicks on every menu. The reference stops there, which left
@@ -770,11 +671,6 @@ func hover(position: Vector2) -> void:
 		OnlineInput.hover(self, at)
 	elif at.x >= 0 and state == "county":
 		CountyInput.hover(self, at)
-	elif at.x >= 0 and state == "title":
-		var index := Menu.title_hit(entries(), at.x, at.y)
-		if index >= 0 and index != selection:
-			selection = index
-			sound.play("menu_move")
 	elif at.x >= 0 and state == "setup":
 		if not display_trial.is_empty():
 			if Menu.CONFIRM.has_point(at):
@@ -792,17 +688,6 @@ func hover(position: Vector2) -> void:
 	elif at.x >= 0:
 		if Menu.BACK.has_point(at) and not (state == "slots" and slot_stage != "choose"):
 			part = "back"
-		elif state == "replays" and at.x >= 19 and at.x < 301:
-			var row := (at.y - REPLAY_TOP) / REPLAY_ROW
-			if at.y >= REPLAY_TOP and row < Campaign.ORDER.size() and row != replay_selection:
-				replay_selection = row
-				sound.play("menu_move")
-		elif state == "rematch":
-			var pick := BossRematch.row_at(at.x, at.y)
-			if pick >= 0 and pick != rematch_pick:
-				rematch_pick = pick
-				menu_note = ""
-				sound.play("menu_move")
 		elif state == "slots" and slot_stage == "choose" and at.x >= 23 and at.x < 296:
 			var slot_row := (at.y - SLOT_TOP) / SLOT_ROW
 			if at.y >= SLOT_TOP and slot_row < slots.size() and slot_row != slot_index:
@@ -825,21 +710,7 @@ func click(position: Vector2, button: int) -> void:
 		if button == MOUSE_BUTTON_LEFT:
 			CountyInput.tap(self, at)
 		return
-	if state == "title" and button == MOUSE_BUTTON_LEFT:
-		var index := Menu.title_hit(entries(), x, y)
-		if index >= 0:
-			selection = index
-			sound.play("menu_accept")
-			menu_action()
-			if state == "play":
-				block_fire = true
-	elif state == "controls" or state == "credits":
-		if state == "controls" and y >= 32 and y < 46:
-			controls_page = clampi((x - 20) / CONTROL_TAB, 0, CONTROL_PAGES.size() - 1)
-			sound.play("menu_move")
-		elif button == MOUSE_BUTTON_LEFT and (Menu.BACK.has_point(at) or input_device == "touch"):
-			back_to_title()
-	elif state == "slots" and button == MOUSE_BUTTON_LEFT:
+	if state == "slots" and button == MOUSE_BUTTON_LEFT:
 		if slot_stage != "choose":
 			if y >= 171 and y < 190:
 				key_slots(KEY_ENTER if x < 160 else KEY_ESCAPE)
@@ -851,28 +722,6 @@ func click(position: Vector2, button: int) -> void:
 			key_slots(KEY_ENTER)
 		elif y >= 171 and x >= 228:
 			key_slots(KEY_ESCAPE)
-	elif (
-		state == "replays"
-		and button == MOUSE_BUTTON_LEFT
-		and x >= 19
-		and x < 301
-		and y >= REPLAY_TOP
-		and y < REPLAY_TOP + REPLAY_ROW * Campaign.ORDER.size()
-	):
-		replay_selection = (y - REPLAY_TOP) / REPLAY_ROW
-		key(KEY_ENTER)
-	elif state == "replays" and button == MOUSE_BUTTON_LEFT and Menu.BACK.has_point(at):
-		back_to_title()
-	elif state == "rematch" and button == MOUSE_BUTTON_LEFT:
-		var pick := BossRematch.row_at(x, y)
-		if Menu.BACK.has_point(at):
-			back_to_title()
-		elif pick >= 0:
-			rematch_pick = pick
-			key(KEY_ENTER)
-	elif state == "rematch_done" and button == MOUSE_BUTTON_LEFT:
-		if Menu.BACK.has_point(at) or input_device == "touch":
-			key(KEY_ENTER)
 	elif state == "setup" and (button == MOUSE_BUTTON_LEFT or button == MOUSE_BUTTON_RIGHT):
 		_click_setup(x, y, button)
 

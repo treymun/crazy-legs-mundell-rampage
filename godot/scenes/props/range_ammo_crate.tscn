@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_o85m8"]
+[ext_resource type="PackedScene" path="res://assets3d/props/range_ammo_crate.glb" id="2_48q1v"]
+
+[node name="RangeAmmoCrate" type="Node3D" unique_id=1955178257]
+script = ExtResource("1_o85m8")
+prop = "range_ammo_crate"
+
+[node name="Model" type="Node3D" parent="." unique_id=1676295913 instance=ExtResource("2_48q1v")]

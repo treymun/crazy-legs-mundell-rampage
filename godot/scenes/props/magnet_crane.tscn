@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_ki6aq"]
+[ext_resource type="PackedScene" path="res://assets3d/props/magnet_crane.glb" id="2_8lyg2"]
+
+[node name="MagnetCrane" type="Node3D" unique_id=1463446403]
+script = ExtResource("1_ki6aq")
+prop = "magnet_crane"
+
+[node name="Model" type="Node3D" parent="." unique_id=1950777599 instance=ExtResource("2_8lyg2")]

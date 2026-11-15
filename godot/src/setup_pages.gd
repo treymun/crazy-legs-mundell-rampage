@@ -349,6 +349,16 @@ static func build() -> Array:
 						"HIGH IS 320 WIDE, LOW HALF. AUTO GOES LOW WHEN FRAMES RUN LATE. HD: 640, TWICE AS SHARP."
 					)
 				),
+				(
+					SessionStore
+					. choices(
+						"DRAW DISTANCE",
+						"draw_distance",
+						0,
+						["AUTO", "FAR", "NEAR"],
+						"NEAR STOPS DRAWING PAST 64 CELLS, EASIER ON A PHONE. AUTO: NEAR ON PHONES, FAR ELSEWHERE."
+					)
+				),
 				SessionStore.choices(
 					"FIELD OF VIEW",
 					"fov",

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_tm61p"]
+[ext_resource type="PackedScene" path="res://assets3d/props/mailbox_row.glb" id="2_a0787"]
+
+[node name="MailboxRow" type="Node3D" unique_id=53855932]
+script = ExtResource("1_tm61p")
+prop = "mailbox_row"
+
+[node name="Model" type="Node3D" parent="." unique_id=1363732977 instance=ExtResource("2_a0787")]

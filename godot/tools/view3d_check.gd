@@ -47,7 +47,24 @@ func _init() -> void:
 			_fail("prop %s: no mesh" % name)
 		if not assets.has_art("mesh_" + name):
 			_fail("prop %s: no baked picture mesh_%s" % [name, name])
+		var scene := models.scene(name)
+		var shown := scene.instantiate() if scene != null else null
+		if not shown is PropView:
+			_fail("prop %s: no scene (tools/art/build_prop_scenes.gd)" % name)
+		if shown != null:
+			shown.free()
 	print("%d triangles in %d levels, %d prop models" % [total, ids.size(), models.sizes.size()])
+	var actors := ActorModels.new(assets)
+	for kind: String in actors.kinds:
+		var packed := actors.scene(kind)
+		var view := packed.instantiate() as ActorView if packed != null else null
+		if view == null:
+			_fail("actor %s: no scene (tools/art/build_actor_scenes.gd)" % kind)
+			continue
+		if not view.setup(actors):
+			_fail("actor %s: its model cannot pose (no animation)" % kind)
+		view.free()
+	print("%d actor models" % actors.kinds.size())
 	if _failed.is_empty():
 		print("VIEW3D CHECK OK")
 		quit(0)

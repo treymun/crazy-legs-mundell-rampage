@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_cktvt"]
+[ext_resource type="PackedScene" path="res://assets3d/props/canned_ham.glb" id="2_rba8y"]
+
+[node name="CannedHam" type="Node3D" unique_id=1982517442]
+script = ExtResource("1_cktvt")
+prop = "canned_ham"
+
+[node name="Model" type="Node3D" parent="." unique_id=1822660130 instance=ExtResource("2_rba8y")]

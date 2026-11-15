@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_rdm42"]
+[ext_resource type="PackedScene" path="res://assets3d/props/cow_tube_broken.glb" id="2_u3de5"]
+
+[node name="CowTubeBroken" type="Node3D" unique_id=1542911868]
+script = ExtResource("1_rdm42")
+prop = "cow_tube_broken"
+
+[node name="Model" type="Node3D" parent="." unique_id=677195702 instance=ExtResource("2_u3de5")]

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_fuiqi"]
+[ext_resource type="PackedScene" path="res://assets3d/props/giant_hog.glb" id="2_llbgj"]
+
+[node name="GiantHog" type="Node3D" unique_id=1796199239]
+script = ExtResource("1_fuiqi")
+prop = "giant_hog"
+
+[node name="Model" type="Node3D" parent="." unique_id=1984666828 instance=ExtResource("2_llbgj")]

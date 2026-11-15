@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_ph18a"]
+[ext_resource type="PackedScene" path="res://assets3d/props/fridge.glb" id="2_hqnnx"]
+
+[node name="Fridge" type="Node3D" unique_id=238821412]
+script = ExtResource("1_ph18a")
+prop = "fridge"
+
+[node name="Model" type="Node3D" parent="." unique_id=109717768 instance=ExtResource("2_hqnnx")]

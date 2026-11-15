@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_qreud"]
+[ext_resource type="PackedScene" path="res://assets3d/props/specimen_jar.glb" id="2_ljknr"]
+
+[node name="SpecimenJar" type="Node3D" unique_id=149444838]
+script = ExtResource("1_qreud")
+prop = "specimen_jar"
+
+[node name="Model" type="Node3D" parent="." unique_id=1123900134 instance=ExtResource("2_ljknr")]

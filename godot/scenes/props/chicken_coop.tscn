@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_p1x1h"]
+[ext_resource type="PackedScene" path="res://assets3d/props/chicken_coop.glb" id="2_1br36"]
+
+[node name="ChickenCoop" type="Node3D" unique_id=96747362]
+script = ExtResource("1_p1x1h")
+prop = "chicken_coop"
+
+[node name="Model" type="Node3D" parent="." unique_id=72455693 instance=ExtResource("2_1br36")]

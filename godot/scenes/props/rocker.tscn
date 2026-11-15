@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_06nxo"]
+[ext_resource type="PackedScene" path="res://assets3d/props/rocker.glb" id="2_g21vj"]
+
+[node name="Rocker" type="Node3D" unique_id=930743050]
+script = ExtResource("1_06nxo")
+prop = "rocker"
+
+[node name="Model" type="Node3D" parent="." unique_id=403047215 instance=ExtResource("2_g21vj")]

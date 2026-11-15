@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_ujct5"]
+[ext_resource type="PackedScene" path="res://assets3d/props/tombstone_c.glb" id="2_epymx"]
+
+[node name="TombstoneC" type="Node3D" unique_id=498798750]
+script = ExtResource("1_ujct5")
+prop = "tombstone_c"
+
+[node name="Model" type="Node3D" parent="." unique_id=757646450 instance=ExtResource("2_epymx")]

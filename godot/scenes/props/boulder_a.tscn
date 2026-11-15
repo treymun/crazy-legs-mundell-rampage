@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_y0av2"]
+[ext_resource type="PackedScene" path="res://assets3d/props/boulder_a.glb" id="2_4d4se"]
+
+[node name="BoulderA" type="Node3D" unique_id=896933648]
+script = ExtResource("1_y0av2")
+prop = "boulder_a"
+
+[node name="Model" type="Node3D" parent="." unique_id=730314792 instance=ExtResource("2_4d4se")]

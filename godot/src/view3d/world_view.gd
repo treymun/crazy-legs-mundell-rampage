@@ -32,6 +32,8 @@ var actors: ActorLayer3D
 var tiles: ViewTiles
 var _root: Node3D
 var _chunks: Node3D
+## How far this frame draws (View.draw_far).
+var game_far := FAR
 var _moving: MeshInstance3D
 var _sky: MeshInstance3D
 var _assets: Assets
@@ -170,6 +172,7 @@ func frame(game: Game) -> void:
 	var angle: float = eye["view_angle"]
 	var at_hub: bool = not level.road_and_hub.is_empty() and y > 33.0
 	_build(level, at_hub)
+	game_far = r.draw_far
 	_place_camera(x, y, z, angle, view["horizon"], r.focal, vh)
 	var mirror := not is_nan(level.mirror_x)
 	_mirror(mirror, level, x, y, z, angle, view["horizon"], r.focal, Vector2i(vw, vh))
@@ -206,7 +209,9 @@ func _place_camera(
 	# down its -Z, so its yaw is -a - PI/2.
 	camera.transform = Transform3D(Basis(Vector3.UP, -angle - PI * .5), Vector3(x, z, y))
 	var size := NEAR * vh / focal
-	camera.set_frustum(size, Vector2(0.0, (horizon - vh * .5) * NEAR / focal), NEAR, FAR)
+	var far := game_far
+	camera.set_frustum(size, Vector2(0.0, (horizon - vh * .5) * NEAR / focal), NEAR, far)
+	_sky.position.z = -(far - 1.0)
 
 
 ## The mirror's picture: the room seen from the eye mirrored in the line
@@ -251,7 +256,7 @@ func _mirror(
 	)
 	var tall := NEAR * size.y / focal
 	_mirror_camera.set_frustum(
-		tall, Vector2(0.0, (horizon - size.y * .5) * NEAR / focal), NEAR, FAR
+		tall, Vector2(0.0, (horizon - size.y * .5) * NEAR / focal), NEAR, game_far
 	)
 
 

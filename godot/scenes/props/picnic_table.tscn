@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_34o2l"]
+[ext_resource type="PackedScene" path="res://assets3d/props/picnic_table.glb" id="2_hberb"]
+
+[node name="PicnicTable" type="Node3D" unique_id=493699000]
+script = ExtResource("1_34o2l")
+prop = "picnic_table"
+
+[node name="Model" type="Node3D" parent="." unique_id=1137412237 instance=ExtResource("2_hberb")]

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_sbs18"]
+[ext_resource type="PackedScene" path="res://assets3d/props/pa_horns.glb" id="2_0k1nw"]
+
+[node name="PaHorns" type="Node3D" unique_id=1582671531]
+script = ExtResource("1_sbs18")
+prop = "pa_horns"
+
+[node name="Model" type="Node3D" parent="." unique_id=1624764288 instance=ExtResource("2_0k1nw")]

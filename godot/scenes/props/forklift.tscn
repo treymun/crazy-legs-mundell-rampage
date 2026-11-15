@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_o740i"]
+[ext_resource type="PackedScene" path="res://assets3d/props/forklift.glb" id="2_frqkv"]
+
+[node name="Forklift" type="Node3D" unique_id=942892728]
+script = ExtResource("1_o740i")
+prop = "forklift"
+
+[node name="Model" type="Node3D" parent="." unique_id=779554732 instance=ExtResource("2_frqkv")]

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_5yqlt"]
+[ext_resource type="PackedScene" path="res://assets3d/props/crate_broken.glb" id="2_xr2xw"]
+
+[node name="CrateBroken" type="Node3D" unique_id=1195060173]
+script = ExtResource("1_5yqlt")
+prop = "crate_broken"
+
+[node name="Model" type="Node3D" parent="." unique_id=139315458 instance=ExtResource("2_xr2xw")]

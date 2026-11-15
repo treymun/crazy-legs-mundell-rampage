@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_pcvg7"]
+[ext_resource type="PackedScene" path="res://assets3d/props/high_striker.glb" id="2_0nicd"]
+
+[node name="HighStriker" type="Node3D" unique_id=1520267323]
+script = ExtResource("1_pcvg7")
+prop = "high_striker"
+
+[node name="Model" type="Node3D" parent="." unique_id=144342869 instance=ExtResource("2_0nicd")]

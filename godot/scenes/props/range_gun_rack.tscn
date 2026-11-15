@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_58bfo"]
+[ext_resource type="PackedScene" path="res://assets3d/props/range_gun_rack.glb" id="2_67fkj"]
+
+[node name="RangeGunRack" type="Node3D" unique_id=1385048823]
+script = ExtResource("1_58bfo")
+prop = "range_gun_rack"
+
+[node name="Model" type="Node3D" parent="." unique_id=1113538087 instance=ExtResource("2_67fkj")]

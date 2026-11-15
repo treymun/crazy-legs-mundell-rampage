@@ -11,6 +11,8 @@ extends BaseButton
 @export var id := ""
 var look: Callable
 var paint_layer: Painted
+## LEFT and RIGHT on a row that changes a value: called with -1 or 1.
+var step: Callable
 
 
 func _ready() -> void:
@@ -21,4 +23,22 @@ func _ready() -> void:
 
 func _hover() -> void:
 	if not disabled and get_viewport().gui_get_focus_owner() != self:
+		grab_focus()
+
+
+func _gui_input(event: InputEvent) -> void:
+	if not step.is_valid() or not has_focus():
+		return
+	if event.is_action_pressed("ui_left"):
+		step.call(-1)
+		accept_event()
+	elif event.is_action_pressed("ui_right"):
+		step.call(1)
+		accept_event()
+
+
+## Take the focus once the button is shown (a screen picks its button as it
+## is built, before its first frame); nothing if it was taken off since.
+func grab_when_shown() -> void:
+	if is_inside_tree() and is_visible_in_tree():
 		grab_focus()

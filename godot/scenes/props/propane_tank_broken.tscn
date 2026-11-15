@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_gijow"]
+[ext_resource type="PackedScene" path="res://assets3d/props/propane_tank_broken.glb" id="2_vk5n8"]
+
+[node name="PropaneTankBroken" type="Node3D" unique_id=233714032]
+script = ExtResource("1_gijow")
+prop = "propane_tank_broken"
+
+[node name="Model" type="Node3D" parent="." unique_id=296152406 instance=ExtResource("2_vk5n8")]

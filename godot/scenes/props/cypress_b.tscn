@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_x2qv2"]
+[ext_resource type="PackedScene" path="res://assets3d/props/cypress_b.glb" id="2_7c6pa"]
+
+[node name="CypressB" type="Node3D" unique_id=2046146278]
+script = ExtResource("1_x2qv2")
+prop = "cypress_b"
+
+[node name="Model" type="Node3D" parent="." unique_id=597365319 instance=ExtResource("2_7c6pa")]

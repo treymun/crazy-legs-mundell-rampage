@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_6xmb2"]
+[ext_resource type="PackedScene" path="res://assets3d/props/pylon.glb" id="2_66frm"]
+
+[node name="Pylon" type="Node3D" unique_id=1734344045]
+script = ExtResource("1_6xmb2")
+prop = "pylon"
+
+[node name="Model" type="Node3D" parent="." unique_id=2076696586 instance=ExtResource("2_66frm")]

@@ -77,9 +77,8 @@ var buys: Array = []
 var stage_leg := -1
 ## The bots' buying ways, by slot: rifle carriers, the sniper, the one who
 ## buys an SMG rather than save, the one who likes a shotgun or big pistol.
-const STYLES := [
-	"rifle", "sniper", "rifle", "smg", "close", "rifle", "rifle", "smg", "close", "sniper"
-]
+## (data/tuning/modes.cfg [tactical_bot] styles)
+static var STYLES: Array = ModeData.get_value("tactical_bot", "styles", [])
 
 
 func _init(p_slot := 0) -> void:

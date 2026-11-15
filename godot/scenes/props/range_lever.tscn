@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_44mh1"]
+[ext_resource type="PackedScene" path="res://assets3d/props/range_lever.glb" id="2_uv4l0"]
+
+[node name="RangeLever" type="Node3D" unique_id=1662472904]
+script = ExtResource("1_44mh1")
+prop = "range_lever"
+
+[node name="Model" type="Node3D" parent="." unique_id=2045540185 instance=ExtResource("2_uv4l0")]

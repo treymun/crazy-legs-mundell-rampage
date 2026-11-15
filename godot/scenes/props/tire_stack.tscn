@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_yymgr"]
+[ext_resource type="PackedScene" path="res://assets3d/props/tire_stack.glb" id="2_473h1"]
+
+[node name="TireStack" type="Node3D" unique_id=1541360075]
+script = ExtResource("1_yymgr")
+prop = "tire_stack"
+
+[node name="Model" type="Node3D" parent="." unique_id=1088071142 instance=ExtResource("2_473h1")]

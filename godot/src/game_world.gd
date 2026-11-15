@@ -66,10 +66,9 @@ func configure(options: Dictionary) -> void:
 	voice_captions = bool(options.get("voice_captions", 1))
 	bullet_marks = bool(options.get("bullet_marks", 1))
 	retro_look = bool(options.get("film_look", 0))
-	# A browser without threads draws every band on one core: it gets LOW whatever the setting.
-	var unthreaded := OS.has_feature("web") and not OS.has_feature("threads")
 	var detail := int(options.get("detail", 0))
-	if unthreaded or detail == 1 or (detail == 2 and View.auto_low):
+	view.draw_far = View.draw_far_for(int(options.get("draw_distance", 0)))
+	if detail == 1 or (detail == 2 and View.auto_low):
 		view.set_detail(1)
 	else:
 		view.set_detail(-1 if detail == 3 else 0)

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_iyfy0"]
+[ext_resource type="PackedScene" path="res://assets3d/props/trophy.glb" id="2_brd71"]
+
+[node name="Trophy" type="Node3D" unique_id=54738804]
+script = ExtResource("1_iyfy0")
+prop = "trophy"
+
+[node name="Model" type="Node3D" parent="." unique_id=185134488 instance=ExtResource("2_brd71")]

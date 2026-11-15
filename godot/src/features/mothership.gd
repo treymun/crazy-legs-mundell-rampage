@@ -701,9 +701,7 @@ func sprites() -> Array:
 	var out: Array = []
 	for e: Vector3 in emitters:
 		if game.in_view(e.x, e.y, 1.5):
-			var beam := View.Sprite.new(
-				e.x, e.y, "fx_beam_column", e.z + .1, game.world.stand(e)
-			)
+			var beam := View.Sprite.new(e.x, e.y, "fx_beam_column", e.z + .1, game.world.stand(e))
 			beam.translucent = true
 			beam.glow = true
 			out.append(beam)

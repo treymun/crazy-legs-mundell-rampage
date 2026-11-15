@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_wpub6"]
+[ext_resource type="PackedScene" path="res://assets3d/props/port_a_john.glb" id="2_48rfa"]
+
+[node name="PortAJohn" type="Node3D" unique_id=217406696]
+script = ExtResource("1_wpub6")
+prop = "port_a_john"
+
+[node name="Model" type="Node3D" parent="." unique_id=946842239 instance=ExtResource("2_48rfa")]

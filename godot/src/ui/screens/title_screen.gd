@@ -7,6 +7,7 @@ class_name TitleScreen
 extends UiScreen
 
 var _entries := PackedStringArray()
+var _rows: Array[PixelButton] = []
 
 
 func open(m: MainInput) -> void:
@@ -20,6 +21,7 @@ func _build() -> void:
 			child.queue_free()
 			remove_child(child)
 	_entries = main.entries()
+	_rows.clear()
 	var items := Menu.title_items(_entries)
 	var chosen: PixelButton = null
 	for i in items.size():
@@ -32,10 +34,17 @@ func _build() -> void:
 			func() -> void: _press(index)
 		)
 		b.focus_entered.connect(func() -> void: _picked(index))
+		_rows.append(b)
 		if i == posmod(main.selection, items.size()):
 			chosen = b
 	if chosen != null:
-		chosen.call_deferred("grab_focus")
+		chosen.call_deferred("grab_when_shown")
+
+
+func picked() -> PixelButton:
+	if main.entries() != _entries:
+		_build()
+	return _rows[posmod(main.selection, _rows.size())] if not _rows.is_empty() else null
 
 
 func _picked(index: int) -> void:
@@ -57,6 +66,7 @@ func back() -> bool:
 		main.state = "play"
 		main.sound.play("menu_back")
 		main.play_music()
+		main.grab(not main.game.showing_tally and not main.game.defeated())
 	return true
 
 

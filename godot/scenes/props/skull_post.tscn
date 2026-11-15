@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_fcmt5"]
+[ext_resource type="PackedScene" path="res://assets3d/props/skull_post.glb" id="2_kgees"]
+
+[node name="SkullPost" type="Node3D" unique_id=1246982311]
+script = ExtResource("1_fcmt5")
+prop = "skull_post"
+
+[node name="Model" type="Node3D" parent="." unique_id=2008271445 instance=ExtResource("2_kgees")]

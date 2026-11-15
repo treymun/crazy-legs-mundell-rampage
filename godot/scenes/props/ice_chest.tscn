@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_aaerq"]
+[ext_resource type="PackedScene" path="res://assets3d/props/ice_chest.glb" id="2_2j7cm"]
+
+[node name="IceChest" type="Node3D" unique_id=619154497]
+script = ExtResource("1_aaerq")
+prop = "ice_chest"
+
+[node name="Model" type="Node3D" parent="." unique_id=275994612 instance=ExtResource("2_2j7cm")]

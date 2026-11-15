@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_o5ast"]
+[ext_resource type="PackedScene" path="res://assets3d/props/tool_chest.glb" id="2_2q4s0"]
+
+[node name="ToolChest" type="Node3D" unique_id=261426510]
+script = ExtResource("1_o5ast")
+prop = "tool_chest"
+
+[node name="Model" type="Node3D" parent="." unique_id=1102866678 instance=ExtResource("2_2q4s0")]

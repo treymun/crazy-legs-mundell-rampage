@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_j0gvm"]
+[ext_resource type="PackedScene" path="res://assets3d/props/stock_car_b.glb" id="2_103ba"]
+
+[node name="StockCarB" type="Node3D" unique_id=1066649646]
+script = ExtResource("1_j0gvm")
+prop = "stock_car_b"
+
+[node name="Model" type="Node3D" parent="." unique_id=1118225200 instance=ExtResource("2_103ba")]

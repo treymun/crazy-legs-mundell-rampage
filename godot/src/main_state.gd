@@ -926,94 +926,6 @@ func setup_guide() -> String:
 	return "TAB PAGE / ARROWS CHANGE / R RESET"
 
 
-func render_replays() -> void:
-	menu_panel("REPLAY LEVEL")
-	for i in Campaign.ORDER.size():
-		var level_id: String = Campaign.ORDER[i]
-		var color := HUD.AMBER if i == replay_selection else HUD.INK
-		var y := REPLAY_TOP + i * REPLAY_ROW + 4
-		if i == replay_selection:
-			canvas.fill_rect(19, y - 4, 282, 24, Canvas.rgb(82, 49, 31))
-		HUD.text(canvas, Campaign.title_of(level_id), 26, y, "menu", color)
-		var status := "UNLOCKED" if unlocked.has(level_id) else "LOCKED"
-		HUD.text(canvas, status, 292, y + 1, "body", color, false, true, true)
-	HUD.text(canvas, "REPLAY USES ITS OWN SAVE SLOT", 160, 145, "body", HUD.INK, true)
-	HUD.text(
-		canvas,
-		menu_note if menu_note != "" else "ENTER START  /  ESC BACK",
-		140,
-		180,
-		"body",
-		HUD.INK,
-		true
-	)
-	Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
-
-
-func render_controls() -> void:
-	menu_panel("HOW TO RAISE HELL")
-	for j in CONTROL_PAGES.size():
-		var on := j == controls_page
-		canvas.fill_rect(
-			20 + j * CONTROL_TAB,
-			32,
-			CONTROL_TAB - 2,
-			13,
-			Menu.RUST if on else Canvas.rgb(48, 34, 26)
-		)
-		HUD.text(
-			canvas,
-			String(CONTROL_PAGES[j][0]),
-			19 + j * CONTROL_TAB + CONTROL_TAB / 2,
-			35,
-			"body",
-			HUD.INK if on else Menu.FADED,
-			true
-		)
-	var rows: Array = CONTROL_PAGES[controls_page][1]
-	for i in rows.size():
-		var row: Array = rows[i]
-		var y := 51 + i * 12
-		if i % 2 == 0:
-			canvas.fill_rect(19, y - 2, 282, 12, Canvas.rgb(33, 23, 19))
-		HUD.text(canvas, String(row[0]), 24, y, "menu", HUD.INK)
-		HUD.text(canvas, String(row[1]), 136, y, "menu", Canvas.rgb(232, 213, 178))
-	var other := (
-		"LB RB  OTHER CONTROLLERS" if input_device == "pad" else "LEFT / RIGHT  OTHER CONTROLLERS"
-	)
-	HUD.text(canvas, other, 24, 181, "mini", Menu.PAINT, false, false)
-	Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
-
-
-func render_credits() -> void:
-	menu_panel("CREDITS")
-	var blocks := [
-		["THE 1997 INSPIRATION", ["REDNECK RAMPAGE / XATRIX ENTERTAINMENT"]],
-		[
-			"PHOTOGRAPHS",
-			[
-				"JERRY JONES / KEITH ALLISON (CC BY-SA 2.0)",
-				"ROADSIDE / JOHN MARGOLIES, LIBRARY OF CONGRESS"
-			]
-		],
-		[
-			"MATERIALS AND AUDIO",
-			[
-				"SCORE AND EFFECTS / ELEVENLABS, FINISHED BY HAND",
-				"FULL CREDITS IN THIRD_PARTY_NOTICES.MD"
-			]
-		],
-	]
-	for i in blocks.size():
-		var block: Array = blocks[i]
-		var y := 44 + i * 41
-		HUD.text(canvas, String(block[0]), 25, y, "body", HUD.AMBER)
-		var lines: Array = block[1]
-		for j in lines.size():
-			HUD.text(canvas, String(lines[j]), 25, y + 13 + j * 10, "body", HUD.INK)
-	Menu.plate_button(canvas, Menu.BACK, "BACK", hover_part == "back")
-
-
 func render_setup() -> void:
 	var pages := SessionStore.setup_pages()
 	option_scroll = Menu.scroll_for(option_page, option_slot, option_scroll)
@@ -1153,47 +1065,8 @@ func render() -> void:
 	menu.motion = int(options.get("world_motion", 0))
 	menu.steady = steady
 	if ui != null and ui.show_state(state):
-		pass
-	elif state == "title":
-		menu.draw_title(
-			canvas,
-			entries(),
-			selection,
-			menu_note,
-			title_hint(),
-			menu_clock,
-			int(options.get("world_motion", 0)),
-			steady
-		)
-	elif state == "setup":
-		render_setup()
-	elif state == "slots":
-		render_slots()
-	elif state == "replays":
-		render_replays()
-	elif state == "controls":
-		render_controls()
-	elif state == "credits":
-		render_credits()
-	elif state == "showdown":
-		TacticalScreens.draw_picker(
-			canvas, menu, showdown_row, showdown_mode, showdown_map, showdown_long, showdown_rules
-		)
-	elif LobbyScreens.draw_screen(self):
-		pass
-	elif state == "rematch":
-		BossRematch.draw_board(
-			canvas,
-			menu,
-			rematch_pick,
-			rematch_open,
-			rematch_bests,
-			menu_note,
-			rematch_guide(),
-			hover_part
-		)
-	elif state == "rematch_done":
-		BossRematch.draw_result(canvas, menu, rematch_result, rematch_guide(), hover_part)
+		# Every menu is a screen of its own (src/ui/screens/).
+		ui.shown().render(canvas)
 	elif game != null:
 		gpu_look = gpu_ready and not cpu_look and (not smoke or view_shot != "")
 		game.gpu_look = gpu_look
@@ -1266,6 +1139,3 @@ func _frame_3d() -> void:
 			SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
 		)
 	palette_material.set_shader_parameter("view3d_on", on)
-
-
-

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_krxpn"]
+[ext_resource type="PackedScene" path="res://assets3d/props/axe_stump.glb" id="2_0au87"]
+
+[node name="AxeStump" type="Node3D" unique_id=1895083435]
+script = ExtResource("1_krxpn")
+prop = "axe_stump"
+
+[node name="Model" type="Node3D" parent="." unique_id=757991783 instance=ExtResource("2_0au87")]

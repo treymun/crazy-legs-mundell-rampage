@@ -20,7 +20,7 @@ const SHADERS_3D := "res://src/view3d/"
 var _sampler := RegEx.create_from_string(
 	"(?m)^\\s*uniform\\s+(?:sampler2D|sampler2DArray|sampler3D|usampler2D|isampler2D)\\s+(\\w+)"
 )
-var _include := RegEx.create_from_string("(?m)^\\s*#include\\s+\"([^\"]+)\"")
+var _include := RegEx.create_from_string('(?m)^\\s*#include\\s+"([^"]+)"')
 
 
 func _init() -> void:

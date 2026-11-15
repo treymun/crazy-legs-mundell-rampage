@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_uqopi"]
+[ext_resource type="PackedScene" path="res://assets3d/props/mash_barrel.glb" id="2_f7bch"]
+
+[node name="MashBarrel" type="Node3D" unique_id=1264243814]
+script = ExtResource("1_uqopi")
+prop = "mash_barrel"
+
+[node name="Model" type="Node3D" parent="." unique_id=233834001 instance=ExtResource("2_f7bch")]

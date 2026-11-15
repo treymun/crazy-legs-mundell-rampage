@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_mqdw1"]
+[ext_resource type="PackedScene" path="res://assets3d/props/hung_pickup.glb" id="2_uko0p"]
+
+[node name="HungPickup" type="Node3D" unique_id=636788470]
+script = ExtResource("1_mqdw1")
+prop = "hung_pickup"
+
+[node name="Model" type="Node3D" parent="." unique_id=1477847824 instance=ExtResource("2_uko0p")]

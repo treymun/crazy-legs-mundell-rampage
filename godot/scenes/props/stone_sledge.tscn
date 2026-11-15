@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_6xedj"]
+[ext_resource type="PackedScene" path="res://assets3d/props/stone_sledge.glb" id="2_vh6sp"]
+
+[node name="StoneSledge" type="Node3D" unique_id=677028458]
+script = ExtResource("1_6xedj")
+prop = "stone_sledge"
+
+[node name="Model" type="Node3D" parent="." unique_id=701956923 instance=ExtResource("2_vh6sp")]

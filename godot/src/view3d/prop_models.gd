@@ -5,10 +5,13 @@ class_name PropModels
 extends RefCounted
 
 const FOLDER := "res://assets3d/props"
+## Each prop's scene: a PropView over its mesh (tools/art/build_prop_scenes.gd).
+const SCENES := "res://scenes/props"
 
 ## name -> [width, depth, height, texture size]
 var sizes: Dictionary = {}
 var _meshes: Dictionary = {}
+var _scenes: Dictionary = {}
 var _textures: Dictionary = {}
 var _assets: Assets
 
@@ -27,7 +30,19 @@ func name_of(image: String) -> String:
 	if not image.begins_with("town_"):
 		return ""
 	var name := image.substr(5)
-	return name if sizes.has(name) and _assets.has_art("mesh_" + name) else ""
+	if not sizes.has(name) or not _assets.has_art("mesh_" + name):
+		return ""
+	return name if ResourceLoader.exists(SCENES.path_join(name + ".tscn")) else ""
+
+
+## The prop's scene (a PropView), or null when it has none.
+func scene(name: String) -> PackedScene:
+	var cached: Variant = _scenes.get(name)
+	if cached == null:
+		var path := SCENES.path_join(name + ".tscn")
+		cached = load(path) if ResourceLoader.exists(path) else null
+		_scenes[name] = cached
+	return cached as PackedScene
 
 
 func mesh(name: String) -> Mesh:

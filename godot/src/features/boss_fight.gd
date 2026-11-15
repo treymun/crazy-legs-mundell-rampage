@@ -402,9 +402,7 @@ func _ring(e: Enemy) -> Array:
 		var y := my + sin(a) * r
 		if w.blocked(x, y, .05):
 			continue
-		out.append(
-			View.GroundMark.new(x, y, w.elevation(x, y) + .005, a, dot, dot, "mark_warning")
-		)
+		out.append(View.GroundMark.new(x, y, w.elevation(x, y) + .005, a, dot, dot, "mark_warning"))
 	var fill := .12 + .42 * t
 	out.append(
 		View.GroundMark.new(mx, my, w.elevation(mx, my) + .006, 0.0, fill, fill, "mark_slam")

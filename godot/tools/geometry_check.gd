@@ -313,40 +313,36 @@ static func _nav(main, check: Callable) -> void:
 
 
 static func _views(main, check: Callable) -> void:
+	# The 3D view's mesh has surfaces round each viewpoint at the heights the
+	# level gives them: the deck's underside and top, the stairs, the ramp, a wall.
 	print("views")
 	var g := _game(main)
-	var p := g.player
+	var builder := LevelMesh.new(g.level)
+	var parts := builder.build_static(g.level.active_base(false))
+	var points := PackedVector3Array()
+	for key: Vector2i in parts:
+		var mesh: ArrayMesh = parts[key]
+		for surface in mesh.get_surface_count():
+			points.append_array(mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX])
 	for view: Array in [
-		["under", 6.5, 6.5, 0.0, 0.0, 0.0],
-		["deck", 9.0, 6.0, 0.0, DECK, 0.0],
-		["stairs", 2.5, 7.5, -.6, 0.0, 0.0],
-		["ramp", 12.7, 14.0, -PI * .5, 0.0, 0.0],
-		["wall", 15.0, 9.0, 0.0, 0.0, 0.0],
+		["under", 6.5, 6.5, DECK],
+		["deck", 9.0, 6.0, DECK],
+		["stairs", 2.5, 7.5, -1.0],
+		["ramp", 12.7, 14.0, -1.0],
+		["wall", 15.0, 9.0, -1.0],
 	]:
-		p.x = view[1]
-		p.y = view[2]
-		p.angle = view[3]
-		p.floor_z = view[4]
-		p.air = 0.0
-		p.eye = .95 + g.world.stand(p)
-		p.pitch = view[5]
-		g.armory.holstered = true
-		g.armory.lower = 1.0
-		g.message_until = 0.0
-		g.district_until = 0.0
-		var canvas := Canvas.new()
-		canvas.clear(0, 0, 0)
-		g.draw(canvas, 1, false)
-		var image := Image.create_from_data(320, 200, false, Image.FORMAT_RGB8, canvas.pixels)
-		var lit := 0
-		for y in range(0, 150, 5):
-			for x in range(0, 320, 5):
-				if image.get_pixel(x, y).get_luminance() > .02:
-					lit += 1
-		check.call(lit > 400, "the software view draws %s (%d lit samples)" % [view[0], lit])
-		if out_dir != "":
-			DirAccess.make_dir_recursive_absolute(out_dir)
-			image.save_png("%s/geometry_%s.png" % [out_dir, view[0]])
+		var near := 0
+		var at_height := 0
+		for q: Vector3 in points:
+			if Vector2(q.x - float(view[1]), q.z - float(view[2])).length() < 3.0:
+				near += 1
+				if absf(q.y - float(view[3])) < .05:
+					at_height += 1
+		var height_ok := float(view[3]) < 0.0 or at_height > 0
+		check.call(
+			near > 8 and height_ok,
+			"the 3D mesh has %s (%d points near, %d at its height)" % [view[0], near, at_height]
+		)
 
 
 static func _saves(main, check: Callable) -> void:

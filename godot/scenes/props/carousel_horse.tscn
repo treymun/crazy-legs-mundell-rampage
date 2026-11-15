@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_vmsr8"]
+[ext_resource type="PackedScene" path="res://assets3d/props/carousel_horse.glb" id="2_ndpe2"]
+
+[node name="CarouselHorse" type="Node3D" unique_id=1146413689]
+script = ExtResource("1_vmsr8")
+prop = "carousel_horse"
+
+[node name="Model" type="Node3D" parent="." unique_id=871590224 instance=ExtResource("2_ndpe2")]

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_ptqg5"]
+[ext_resource type="PackedScene" path="res://assets3d/props/dead_snag.glb" id="2_t4eeo"]
+
+[node name="DeadSnag" type="Node3D" unique_id=1267291602]
+script = ExtResource("1_ptqg5")
+prop = "dead_snag"
+
+[node name="Model" type="Node3D" parent="." unique_id=2118083146 instance=ExtResource("2_t4eeo")]

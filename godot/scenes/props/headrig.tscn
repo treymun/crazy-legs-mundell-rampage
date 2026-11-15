@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_7r5cp"]
+[ext_resource type="PackedScene" path="res://assets3d/props/headrig.glb" id="2_j4vt5"]
+
+[node name="Headrig" type="Node3D" unique_id=1478969207]
+script = ExtResource("1_7r5cp")
+prop = "headrig"
+
+[node name="Model" type="Node3D" parent="." unique_id=1002661935 instance=ExtResource("2_j4vt5")]

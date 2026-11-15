@@ -88,6 +88,24 @@ class GroundMark:
 		image = img
 
 
+## DRAW DISTANCE: FAR shows the farthest a level reaches (the speedway seen
+## across its oval); NEAR stops at 64 cells, where a wall is a few pixels tall,
+## to spare a phone's graphics chip. AUTO is NEAR on phones, FAR elsewhere.
+const FAR_DRAW := 160.0
+const NEAR_DRAW := 64.0
+
+
+static func draw_far_for(setting: int) -> float:
+	if setting == 2:
+		return NEAR_DRAW
+	if setting == 1:
+		return FAR_DRAW
+	var phone := (
+		OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+	)
+	return NEAR_DRAW if phone else FAR_DRAW
+
+
 var level: LevelData
 var assets: Assets
 ## The size the view is drawn at: HIGH 320x156, LOW half that each way, HD
@@ -96,6 +114,8 @@ var vw := WIDTH
 var vh := VIEW
 var focal := FOCAL
 var detail := 0
+## How far the 3D view draws, in cells (DRAW DISTANCE: View.draw_far_for).
+var draw_far := FAR_DRAW
 var res_up := 1.0
 ## VIEW DETAIL HD was chosen (kept while a frame is drawn at HIGH).
 var hd_wanted := false

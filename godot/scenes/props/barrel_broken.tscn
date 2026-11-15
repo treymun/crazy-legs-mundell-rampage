@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_2ljwb"]
+[ext_resource type="PackedScene" path="res://assets3d/props/barrel_broken.glb" id="2_kdxro"]
+
+[node name="BarrelBroken" type="Node3D" unique_id=581084777]
+script = ExtResource("1_2ljwb")
+prop = "barrel_broken"
+
+[node name="Model" type="Node3D" parent="." unique_id=1064205520 instance=ExtResource("2_kdxro")]

@@ -1,5 +1,5 @@
 ## The modelled props of the 3D view: each sprite whose picture has a mesh
-## (PropModels) is stood in the world as that mesh, where the sprite stood,
+## (PropModels) is stood in the world as that prop's scene (PropView), where the sprite stood,
 ## turned to face the most open side (props stand against walls and fences).
 ## A prop whose picture changes (a breakable's broken picture) swaps meshes.
 class_name PropLayer3D
@@ -8,7 +8,7 @@ extends Node3D
 var models: PropModels
 var _shader: Shader
 var _materials: Dictionary = {}
-## key (picture and place) -> MeshInstance3D
+## key (picture and place) -> PropView (scenes/props/<name>.tscn)
 var _shown: Dictionary = {}
 ## place -> facing (radians about up), kept so a broken prop faces as it did
 var _facing: Dictionary = {}
@@ -45,7 +45,7 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 	if level != _level:
 		_level = level
 		_facing.clear()
-		for node: MeshInstance3D in _shown.values():
+		for node: PropView in _shown.values():
 			node.queue_free()
 		_shown.clear()
 	var seen := {}
@@ -55,37 +55,26 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 		var place := Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))
 		var key := "%s@%s" % [s.image, place]
 		seen[key] = true
-		var node: MeshInstance3D = _shown.get(key)
+		var node: PropView = _shown.get(key)
 		if node == null:
-			var mesh := models.mesh(name)
-			if mesh == null:
+			var packed := models.scene(name)
+			if packed == null:
+				continue
+			node = packed.instantiate() as PropView
+			if node == null:
 				continue
 			var had := _materials.size()
-			node = MeshInstance3D.new()
-			node.mesh = mesh
-			node.material_override = _material(name)
+			var material := _material(name)
 			if _materials.size() > had:
-				fresh.append(node.material_override as ShaderMaterial)
-			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				fresh.append(material)
 			var tall: float = float((models.sizes[name] as Array)[2])
-			node.visibility_range_end = 51.0 if tall > 2.7 else 32.0
-			var turn := _turn(s, level, place)
-			node.transform = Transform3D(Basis(Vector3.UP, turn), Vector3(s.x, s.z, s.y))
-			var c := level.cell(
-				clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01)
-			)
-			var ti := clampi(level.area[c], 0, maxi(0, level.tints.size() / 3 - 1)) * 3
-			var tone := Color(1, 1, 1, level.light[c])
-			if level.tints.size() >= 3:
-				tone = Color(
-					level.tints[ti], level.tints[ti + 1], level.tints[ti + 2], level.light[c]
-				)
-			node.set_instance_shader_parameter("tone", tone)
+			node.setup(material, 51.0 if tall > 2.7 else 32.0)
+			node.stand(s.x, s.y, s.z, _turn(s, level, place), level)
 			add_child(node)
 			_shown[key] = node
 	for key: String in _shown.keys():
 		if not seen.has(key):
-			(_shown[key] as MeshInstance3D).queue_free()
+			(_shown[key] as PropView).queue_free()
 			_shown.erase(key)
 	return fresh
 

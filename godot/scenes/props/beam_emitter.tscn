@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_5ituk"]
+[ext_resource type="PackedScene" path="res://assets3d/props/beam_emitter.glb" id="2_uq82i"]
+
+[node name="BeamEmitter" type="Node3D" unique_id=244023760]
+script = ExtResource("1_5ituk")
+prop = "beam_emitter"
+
+[node name="Model" type="Node3D" parent="." unique_id=245160189 instance=ExtResource("2_uq82i")]

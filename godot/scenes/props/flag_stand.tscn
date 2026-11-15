@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_tfhby"]
+[ext_resource type="PackedScene" path="res://assets3d/props/flag_stand.glb" id="2_xu75p"]
+
+[node name="FlagStand" type="Node3D" unique_id=1651163453]
+script = ExtResource("1_tfhby")
+prop = "flag_stand"
+
+[node name="Model" type="Node3D" parent="." unique_id=1484263273 instance=ExtResource("2_xu75p")]

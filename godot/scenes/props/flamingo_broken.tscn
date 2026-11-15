@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_0apwu"]
+[ext_resource type="PackedScene" path="res://assets3d/props/flamingo_broken.glb" id="2_togm1"]
+
+[node name="FlamingoBroken" type="Node3D" unique_id=685999471]
+script = ExtResource("1_0apwu")
+prop = "flamingo_broken"
+
+[node name="Model" type="Node3D" parent="." unique_id=2047214755 instance=ExtResource("2_togm1")]

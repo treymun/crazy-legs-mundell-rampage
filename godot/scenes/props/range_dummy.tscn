@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_culdx"]
+[ext_resource type="PackedScene" path="res://assets3d/props/range_dummy.glb" id="2_mtmnm"]
+
+[node name="RangeDummy" type="Node3D" unique_id=1675711797]
+script = ExtResource("1_culdx")
+prop = "range_dummy"
+
+[node name="Model" type="Node3D" parent="." unique_id=1571834751 instance=ExtResource("2_mtmnm")]

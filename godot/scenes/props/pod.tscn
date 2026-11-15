@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_58h4r"]
+[ext_resource type="PackedScene" path="res://assets3d/props/pod.glb" id="2_62w74"]
+
+[node name="Pod" type="Node3D" unique_id=604475049]
+script = ExtResource("1_58h4r")
+prop = "pod"
+
+[node name="Model" type="Node3D" parent="." unique_id=1559551585 instance=ExtResource("2_62w74")]

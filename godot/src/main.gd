@@ -398,9 +398,7 @@ func _view_bench() -> void:
 				]
 			)
 		print(line)
-	print(
-		"WINDOW    3D view %.2f ms (%.0f fps)" % [totals["gpu"] / 7.0, 7000.0 / totals["gpu"]]
-	)
+	print("WINDOW    3D view %.2f ms (%.0f fps)" % [totals["gpu"] / 7.0, 7000.0 / totals["gpu"]])
 	get_tree().quit()
 
 
@@ -416,12 +414,7 @@ func _launch_check(delta: float) -> void:
 		print(
 			(
 				"LAUNCH CHECK: 3D view %s  HD %s  window %s  mode %d"
-				% [
-					game.view3d,
-					game.view.detail < 0,
-					get_window().size,
-					get_window().mode
-				]
+				% [game.view3d, game.view.detail < 0, get_window().size, get_window().mode]
 			)
 		)
 		get_tree().quit()

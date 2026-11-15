@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_u21m7"]
+[ext_resource type="PackedScene" path="res://assets3d/props/range_pin_t2_3.glb" id="2_sx28b"]
+
+[node name="RangePinT23" type="Node3D" unique_id=1014459228]
+script = ExtResource("1_u21m7")
+prop = "range_pin_t2_3"
+
+[node name="Model" type="Node3D" parent="." unique_id=1060297113 instance=ExtResource("2_sx28b")]

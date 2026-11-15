@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_50gir"]
+[ext_resource type="PackedScene" path="res://assets3d/props/ferris_wheel.glb" id="2_wlyu1"]
+
+[node name="FerrisWheel" type="Node3D" unique_id=968466629]
+script = ExtResource("1_50gir")
+prop = "ferris_wheel"
+
+[node name="Model" type="Node3D" parent="." unique_id=1784583871 instance=ExtResource("2_wlyu1")]

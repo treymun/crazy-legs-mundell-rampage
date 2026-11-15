@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_8mfus"]
+[ext_resource type="PackedScene" path="res://assets3d/props/saucer_wreck.glb" id="2_20n11"]
+
+[node name="SaucerWreck" type="Node3D" unique_id=899041143]
+script = ExtResource("1_8mfus")
+prop = "saucer_wreck"
+
+[node name="Model" type="Node3D" parent="." unique_id=2052231244 instance=ExtResource("2_20n11")]

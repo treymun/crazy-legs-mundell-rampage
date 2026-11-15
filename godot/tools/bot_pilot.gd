@@ -98,9 +98,7 @@ func steer(game: Game) -> Game.Controls:
 					game.world.elevation(struck.x, struck.y) + struck.z + struck.height * .5
 				)
 				var reach := maxf(.5, Vector2(struck.x - p.x, struck.y - p.y).length())
-				controls.look = clampf(
-					(top - p.eye) / reach * View.base_focal - p.pitch, -3.0, 3.0
-				)
+				controls.look = clampf((top - p.eye) / reach * View.base_focal - p.pitch, -3.0, 3.0)
 				controls.fire = absf(turn) < .05
 				way = [goal, 0]
 				gap = 0.0

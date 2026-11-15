@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_v0bcu"]
+[ext_resource type="PackedScene" path="res://assets3d/props/crushed_stack.glb" id="2_m8a3f"]
+
+[node name="CrushedStack" type="Node3D" unique_id=228603500]
+script = ExtResource("1_v0bcu")
+prop = "crushed_stack"
+
+[node name="Model" type="Node3D" parent="." unique_id=1537917058 instance=ExtResource("2_m8a3f")]

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_vm7of"]
+[ext_resource type="PackedScene" path="res://assets3d/props/dump_truck.glb" id="2_litls"]
+
+[node name="DumpTruck" type="Node3D" unique_id=1734605360]
+script = ExtResource("1_vm7of")
+prop = "dump_truck"
+
+[node name="Model" type="Node3D" parent="." unique_id=869452790 instance=ExtResource("2_litls")]

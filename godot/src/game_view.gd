@@ -631,10 +631,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	view_frame = {
 		"eye": eye,
 		"horizon":
-		(
-			(VIEW / 2.0 + float(eye["pitch"]) + float(eye["bob"]) + float(eye["sway"]))
-			/ view.res_up
-		),
+		(VIEW / 2.0 + float(eye["pitch"]) + float(eye["bob"]) + float(eye["sway"])) / view.res_up,
 		"flash": flash,
 		"sprites": listed,
 		"marks": marks_list,

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_7ods2"]
+[ext_resource type="PackedScene" path="res://assets3d/props/probe_table.glb" id="2_erd1b"]
+
+[node name="ProbeTable" type="Node3D" unique_id=1763298762]
+script = ExtResource("1_7ods2")
+prop = "probe_table"
+
+[node name="Model" type="Node3D" parent="." unique_id=527762137 instance=ExtResource("2_erd1b")]

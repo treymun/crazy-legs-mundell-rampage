@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_0k8jg"]
+[ext_resource type="PackedScene" path="res://assets3d/props/wreck_sedan.glb" id="2_sj3ex"]
+
+[node name="WreckSedan" type="Node3D" unique_id=930646135]
+script = ExtResource("1_0k8jg")
+prop = "wreck_sedan"
+
+[node name="Model" type="Node3D" parent="." unique_id=1857730139 instance=ExtResource("2_sj3ex")]

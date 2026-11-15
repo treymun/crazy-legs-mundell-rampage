@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_1nv2d"]
+[ext_resource type="PackedScene" path="res://assets3d/props/deer_target.glb" id="2_o0rlp"]
+
+[node name="DeerTarget" type="Node3D" unique_id=877450876]
+script = ExtResource("1_1nv2d")
+prop = "deer_target"
+
+[node name="Model" type="Node3D" parent="." unique_id=2046389283 instance=ExtResource("2_o0rlp")]

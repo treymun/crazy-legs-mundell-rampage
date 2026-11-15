@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_1edt1"]
+[ext_resource type="PackedScene" path="res://assets3d/props/corn_tray.glb" id="2_rqggw"]
+
+[node name="CornTray" type="Node3D" unique_id=1169473330]
+script = ExtResource("1_1edt1")
+prop = "corn_tray"
+
+[node name="Model" type="Node3D" parent="." unique_id=520893796 instance=ExtResource("2_rqggw")]

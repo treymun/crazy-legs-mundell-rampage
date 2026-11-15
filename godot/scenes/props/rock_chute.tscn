@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_4cx56"]
+[ext_resource type="PackedScene" path="res://assets3d/props/rock_chute.glb" id="2_wiybc"]
+
+[node name="RockChute" type="Node3D" unique_id=890741633]
+script = ExtResource("1_4cx56")
+prop = "rock_chute"
+
+[node name="Model" type="Node3D" parent="." unique_id=216838127 instance=ExtResource("2_wiybc")]

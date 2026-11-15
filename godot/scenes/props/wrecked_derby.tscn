@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_quhux"]
+[ext_resource type="PackedScene" path="res://assets3d/props/wrecked_derby.glb" id="2_2q7k4"]
+
+[node name="WreckedDerby" type="Node3D" unique_id=94577556]
+script = ExtResource("1_quhux")
+prop = "wrecked_derby"
+
+[node name="Model" type="Node3D" parent="." unique_id=938769245 instance=ExtResource("2_2q7k4")]

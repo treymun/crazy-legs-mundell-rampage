@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_h21sx"]
+[ext_resource type="PackedScene" path="res://assets3d/props/boil_table.glb" id="2_6qrfe"]
+
+[node name="BoilTable" type="Node3D" unique_id=2053849255]
+script = ExtResource("1_h21sx")
+prop = "boil_table"
+
+[node name="Model" type="Node3D" parent="." unique_id=824807805 instance=ExtResource("2_6qrfe")]

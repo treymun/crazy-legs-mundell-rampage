@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_gfffe"]
+[ext_resource type="PackedScene" path="res://assets3d/props/heron.glb" id="2_w1j0b"]
+
+[node name="Heron" type="Node3D" unique_id=1082633474]
+script = ExtResource("1_gfffe")
+prop = "heron"
+
+[node name="Model" type="Node3D" parent="." unique_id=955391084 instance=ExtResource("2_w1j0b")]

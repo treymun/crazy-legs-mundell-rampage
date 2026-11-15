@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_rtiye"]
+[ext_resource type="PackedScene" path="res://assets3d/props/lumber_stack.glb" id="2_4dpub"]
+
+[node name="LumberStack" type="Node3D" unique_id=394192476]
+script = ExtResource("1_rtiye")
+prop = "lumber_stack"
+
+[node name="Model" type="Node3D" parent="." unique_id=623710863 instance=ExtResource("2_4dpub")]

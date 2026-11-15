@@ -846,12 +846,7 @@ func _draw_bar(c: Canvas, game: Game, armory: Weapons.Armory) -> void:
 	number(c, str(health), 29, View.VIEW + 23, health <= 25)
 	if health <= 25 and int(game.clock * 3) % 2 == 0:
 		c.line(
-			14,
-			View.VIEW + 37,
-			44,
-			View.VIEW + 37,
-			Color(214 / 255.0, 74 / 255.0, 48 / 255.0),
-			2
+			14, View.VIEW + 37, 44, View.VIEW + 37, Color(214 / 255.0, 74 / 255.0, 48 / 255.0), 2
 		)
 	number(c, amount, 77, View.VIEW + 23, amount == "0")
 	if Weapons.CAPACITY[slot] > 0 and armory.loaded[slot] == 0 and armory.reserve[slot] > 0:

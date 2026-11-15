@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_mc4si"]
+[ext_resource type="PackedScene" path="res://assets3d/props/net_rack.glb" id="2_t4g38"]
+
+[node name="NetRack" type="Node3D" unique_id=1607042655]
+script = ExtResource("1_mc4si")
+prop = "net_rack"
+
+[node name="Model" type="Node3D" parent="." unique_id=1027048129 instance=ExtResource("2_t4g38")]

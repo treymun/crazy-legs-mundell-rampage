@@ -6,6 +6,8 @@ class_name ActorModels
 extends RefCounted
 
 const FOLDER := "res://assets3d/actors"
+## Each kind's scene: an ActorView over its model (tools/art/build_actor_scenes.gd).
+const SCENES := "res://scenes/actors"
 ## Blender's keys are a frame apart at 24 a second.
 const KEY_TIME := 1.0 / 24.0
 const LOOKS: Array[String] = ["", "hurt", "p2", "p3"]
@@ -29,13 +31,19 @@ func _init(assets: Assets) -> void:
 
 
 func has(kind: String) -> bool:
-	return kinds.has(kind) and _assets.has_art("actor3d_" + kind)
+	return (
+		kinds.has(kind)
+		and _assets.has_art("actor3d_" + kind)
+		and ResourceLoader.exists(SCENES.path_join(kind + ".tscn"))
+	)
 
 
+## The kind's scene (an ActorView), or null when it has none.
 func scene(kind: String) -> PackedScene:
 	var cached: Variant = _scenes.get(kind)
 	if cached == null:
-		cached = load(FOLDER.path_join(kind + ".glb"))
+		var path := SCENES.path_join(kind + ".tscn")
+		cached = load(path) if ResourceLoader.exists(path) else null
 		_scenes[kind] = cached
 	return cached as PackedScene
 
