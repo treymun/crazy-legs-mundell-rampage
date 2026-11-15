@@ -257,7 +257,8 @@ the gun's own, unchanged (the campaign never asks the rules).
   (`TacticalScreens._spread_marks`).
 - The bots stand to shoot with the guns that need it, scope a sniper rifle
   past arm's length, and buy by a style per slot (`TacticalBot.STYLES`).
-- The 5v5 maps' fences never break (`breakables.cfg` `never`).
+- The 5v5 maps' stock plank fences never break (`breakables.cfg` `never`); their
+  boarded cover does, and stands again each round ("Breakable cover" above).
 - The bots' attack gathers at the last route point no hold of the target site
   can see (`TacticalBot._stage_for`, `_released`, `STAGE_MOST`) and goes in
   together, guns on the site's holds (`_corner_to_check`).
@@ -270,6 +271,45 @@ the gun's own, unchanged (the campaign never asks the rules).
 - Balance is read off `tactical_check.gd`'s summary (side wins per map and
   mode, kills by gun, plants, `deaths=` for where players fell); bot matches,
   so only a guide.
+
+### Breakable cover
+
+The 5v5 maps' boarded planks (`cover_boards`, a fresh pine X nailed over grey
+boards so they read as what shoots through; tiles `cover_boards`,
+`cover_boards_hit` and the gap picture `cover_boards_gap` by
+`tools/art/wall_break_art.gd`) are `wall_breaks.gd` fence cells
+(`breakables.cfg [fence.cover_boards]`, hp 150: about five rifle hits or a
+stick of dynamite): shot about, then broken through into floor, sight and a
+way for the bots' step fields. A plan places them with `b.fence(x0, y0, x1,
+y1, top, "cover_boards")`; the stock plank fence (`stockyard`) still never
+breaks on these maps. Placed: grainyard's A-side fence to the co-op lot,
+boarded cover in the rail yard, A long and at the rail-yard end of co-op row
+(clear of the mid hold's look); holler's pen fences and a boarded gap in the
+hedge from the woodshed yard into the pens (7 steps round, 3 through);
+salvage's boarded slot through the canyon's tyre wall (14 steps round, 4
+through). Crates, barrels and the gas cans the maps stand break as before
+(`breakables.gd`).
+
+Every round's start puts it all back (`src/modes/round_cover.gd`,
+`RoundCover`): `remember()` keeps each game's walls, floor and furniture as
+built (from `Modes.setup`, before anything can break: a client's copy too),
+`put_back()` (`TacticalMode.begin_round`) lays them down again when anything
+broke, rebuilds the level's lookups, shuts the opened cells in the flow
+fields and tells `wall_breaks` and `breakables` to `forget()`. Every copy does
+it on the same tick; a copy that missed the round's start (put back on a later
+snapshot) lays its level down first (`GameSnapshot._apply_facts`). Nothing new
+is carried. `tools/cover_check.gd` (check_all quick) breaks a board and a prop
+on each map, checks the floor, sight and the shorter way, the next round's
+reset, and a copy kept up by snapshots alone.
+
+### Round MVP and the bots' gathering
+
+- At a round's end the kill feed shows `ROUND MVP  <name>  <n> KILLS` (the
+  most kills that round, `TacticalMode.round_mvp`, from `st.killed_by`).
+- An attack gathers before it goes in (`TacticalBot._released`): it waits for
+  the bots on its team only (and counts a person standing at the point); it
+  used to wait for every teammate, so with a person on the team (online, or
+  PLAY VS BOTS) the bots stood `STAGE_MOST` (32 s) every round.
 
 ### 5v5 checks
 
@@ -326,7 +366,10 @@ dev.45, `src/net/net_predict.gd`: a client draws its own player walked on
 with the inputs the host has not played into its copy
 (`NetSync.Client.unplayed_inputs`, the walking sums of `_step_body`), put back
 after the frame (`main.gd _net_aim`); `net_loopback.gd` prints how many ticks
-off the host's path the drawn player is with and without it.
+off the host's path the drawn player is with and without it. Since 3.2 the
+walk starts from the inputs the host really played (the echoed rows) and a
+correction fades over 90 ms (`NetPredict.Smoother`); `tools/net_lag.gd`
+measures it (multiplayer.md, "Lag: what a player feels").
 
 ## The browser online
 
@@ -343,7 +386,7 @@ and join codes stay desktop only.
 - Online co-op and deathmatch outside COUNTY RUN.
 - A relay or NAT punch-through for hosts whose router will not open the port
   (forward it, or a VPN).
-- Client prediction of walking (only the aim).
+- Client prediction of anything but walking and the aim (a shot, a pickup).
 - A second local input set (split keyboard).
 - A kill feed outside the 5v5 modes.
 - A lying-down picture for a player who is down (the standing one, squat;

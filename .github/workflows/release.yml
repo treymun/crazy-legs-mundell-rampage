@@ -61,6 +61,10 @@ jobs:
         run: godot --headless --path godot --script res://tools/net_showdown_check.gd
       - name: Always-open lobby on a server
         run: godot --headless --path godot --script res://tools/net_server_check.gd
+      - name: 5v5 breakable cover, broken and stood up again each round
+        run: godot --headless --path godot --script res://tools/cover_check.gd
+      - name: What a player feels online (a 120 ms link)
+        run: godot --headless --path godot --script res://tools/net_lag.gd -- quick
       - name: Menus by touch
         run: godot --headless --path godot --script res://tools/menu_touch_check.gd
       - name: County Run (rules, the three maps, a death and a retry on each)

@@ -39,6 +39,8 @@ class Room:
 	var ticks := 0
 	var tick_us := 0
 	var worst_us := 0
+	## Of tick_us, the bots' steering.
+	var bot_us := 0
 
 
 var rooms: Array[Room] = []
@@ -211,12 +213,15 @@ func _play(room: Room, delta: float) -> void:
 				var pilot: TacticalBot = room.pilots[slot]
 				own[slot] = pilot.steer(g)
 		g.focus(g.local_player)
+		var steered := Time.get_ticks_usec() - t0
 		room.net.host_tick(own)
+		var t1 := Time.get_ticks_usec()
 		for slot: int in room.pilots:
 			g.focus(g.players[slot])
 			var pilot: TacticalBot = room.pilots[slot]
 			pilot.moved(g)
 		g.focus(g.local_player)
+		room.bot_us += steered + Time.get_ticks_usec() - t1
 		var spent := Time.get_ticks_usec() - t0
 		room.ticks += 1
 		room.tick_us += spent
@@ -258,13 +263,22 @@ func _status() -> void:
 		var avg := room.tick_us / maxf(1.0, room.ticks) / 1000.0
 		parts.append(
 			(
-				"%s %s %d in, %d matches, tick %.2f ms (worst %.1f)"
-				% [n.port, n.phase, n.players.size(), room.matches, avg, room.worst_us / 1000.0]
+				"%s %s %d in, %d matches, tick %.2f ms (bots %.2f, worst %.1f)"
+				% [
+					n.port,
+					n.phase,
+					n.players.size(),
+					room.matches,
+					avg,
+					room.bot_us / maxf(1.0, room.ticks) / 1000.0,
+					room.worst_us / 1000.0
+				]
 			)
 		)
 		room.ticks = 0
 		room.tick_us = 0
 		room.worst_us = 0
+		room.bot_us = 0
 	_log("STATUS %.0f MB; %s" % [mem, "; ".join(parts)])
 
 

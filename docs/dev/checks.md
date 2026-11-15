@@ -35,6 +35,8 @@ failed.
 | `menu_touch_check` | MENU TOUCH OK | yes | taps through every menu, the 5v5 store, the County Run screens as touch events |
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
 | `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server |
+| `cover_check` | COVER CHECK OK | yes | the 5v5 maps' boarded cover: shot through (floor, sight, a shorter way), stood up again each round, kept by snapshots alone |
+| `net_lag` | NET LAG OK | | what a player feels online (`net_lag.gd`, run `-- quick`: a 120 ms link, limits on rubber band, missed hits, stalls, lost inputs, bandwidth); without quick, three links and the full table |
 
 ### What check_fixes runs
 
@@ -70,7 +72,8 @@ fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
   `build_menu_art`, `build_gore_art` into a scratch folder; then
   `verify_assets`, `view3d_check`, `check_fixes`, `net_showdown_check`,
   `net_server_check`, `menu_touch_check`, `county_check -- seconds=45`,
-  `county_net_check -- seconds=30`, `save_fixtures`, `level_edit_check`,
+  `county_net_check -- seconds=30`, `cover_check`, `net_lag -- quick`,
+  `save_fixtures`, `level_edit_check`,
   `physics_check`,
   `quest_reach`, `bot_campaign`, and a headless frame time (`bench.gd`).
 - **window** (after checks): Xvfb and Mesa's software OpenGL

@@ -715,6 +715,48 @@ func _sort_resting() -> void:
 # -------------------------------------------------------------------- saves
 
 
+## Everything whole and where the level stood it (`places`, by piece), no
+## bits, shells or fuses: the level's furniture was laid down as built again
+## (modes/round_cover.gd, a 5v5 round's start).
+func forget(places: Array) -> void:
+	for i in pieces.size():
+		var p: Piece = pieces[i]
+		if i < places.size():
+			var at: Vector2 = places[i]
+			if at != Vector2(p.x, p.y):
+				_place(p, at.x, at.y)
+		p.hp = p.spec.get("hp", 1.0)
+		if not p.broken:
+			continue
+		p.broken = false
+		var shown := _shown_broken(p)
+		if p.board != null:
+			p.board.image = p.image
+			p.board.height = p.height
+		if p.sprite != null:
+			p.sprite.image = p.image
+			p.sprite.height = p.height
+		if shown != null:
+			shown.image = p.image
+			shown.height = p.height
+	bits.clear()
+	wrecks.clear()
+	cooking.clear()
+	_resting_dirty = true
+	net_version += 1
+
+
+## A broken piece's sprite in the fixed sprites (by its broken picture).
+func _shown_broken(p: Piece) -> View.Sprite:
+	if p.sprite != null:
+		return p.sprite
+	var broken := str(p.spec["broken"])
+	for s: View.Sprite in game.fixed_sprites:
+		if s.image == broken and absf(s.x - p.board.x) < .001 and absf(s.y - p.board.y) < .001:
+			return s
+	return null
+
+
 func save() -> Dictionary:
 	var broken: Array = []
 	var moved: Array = []

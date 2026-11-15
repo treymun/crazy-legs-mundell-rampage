@@ -1017,7 +1017,7 @@ var slowmo := 0.0
 ## judged against what its shooter saw online (Controls.rewind). Worked out
 ## again by every copy as it steps, never carried.
 var place_log: Array[PackedFloat32Array] = []
-const REWIND_KEEP := 40
+const REWIND_KEEP := 72
 const SLOWMO_PACE := .35
 ## What the last shot to strike a wall, floor or roof met (materials.gd kinds:
 ## wood, tin, steel, brick, glass...), set just before `traced` says so.

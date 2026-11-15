@@ -578,6 +578,20 @@ static func _apply_world(game: Game, world: Dictionary) -> void:
 ## what is not broken yet (quietly). Only when it differs from what this game
 ## was last given (game.net_facts), so a running game is not asked each time.
 static func _apply_facts(game: Game, facts: Dictionary) -> void:
+	# A 5v5 round put back what broke: a copy with something broken that the
+	# snapshot has not (it missed the round's start) lays its level down as
+	# built first, then breaks what the snapshot says (modes/round_cover.gd).
+	for id: String in facts:
+		var had: GameFeature = game.features.get(id)
+		if had == null or game.net_facts.get(id) == var_to_bytes(facts[id]):
+			continue
+		var now := had.save()
+		if now.is_empty():
+			continue
+		if var_to_bytes(SnapCodec.plain(now)) != var_to_bytes(facts[id]):
+			if RoundCover.put_back(game):
+				game.net_facts.clear()
+			break
 	for id: String in facts:
 		var feature: GameFeature = game.features.get(id)
 		if feature == null:

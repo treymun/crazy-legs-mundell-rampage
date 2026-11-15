@@ -40,8 +40,6 @@ const SNAP_EVERY := 2
 ## Seconds a client is given to say HELLO, and to reach a host.
 const HELLO_WAIT := 6.0
 const CONNECT_WAIT := 12.0
-## Ticks a client's copy plays behind the newest snapshot (smooth motion).
-const PLAYOUT_BEHIND := 2
 const MAX_NAME := 12
 ## Milliseconds a leaving side keeps the line up for its BYE to arrive.
 const CLOSE_GRACE := 400.0
@@ -1004,12 +1002,15 @@ func client_input(c: Game.Controls) -> void:
 
 
 ## Plays the copy on toward the host's newest snapshot: `ticks` (about a
-## frame's worth), kept PLAYOUT_BEHIND behind it.
+## frame's worth), paced by the clock (NetSync.Client.playout).
 func client_play(ticks: int) -> void:
 	if client_sync != null:
-		# A tick more while it lags behind, so it never drifts away.
-		var extra := 1 if client_sync.backlog() > PLAYOUT_BEHIND + 2 else 0
-		client_sync.play_out(maxi(1, ticks) + extra, PLAYOUT_BEHIND)
+		# Paced by the clock, a depth behind the host that covers the link's
+		# jitter (NetSync.Client.playout); it used to stand a fixed
+		# two ticks behind the newest snapshot, so every late one froze
+		# everyone for a frame and the catch-up after it hurried them.
+		client_sync.by_clock = not county()
+		client_sync.playout(ticks, _now)
 
 
 ## The client's copy has the host's game on it (a first snapshot came).

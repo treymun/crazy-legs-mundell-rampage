@@ -603,7 +603,7 @@ func _process(delta: float) -> void:
 		watch_rematch()
 
 	sound.tick_score(dt)
-	var aimed := _net_aim()
+	var aimed := _net_aim(dt)
 	render()
 	if waiting_play != null and canvas.gpu:
 		# A browser still fetching the map: say so, and how far it has come.
@@ -939,20 +939,25 @@ func _net_host_tick(mine: Game.Controls) -> void:
 ## A client's own aim drawn where the mouse has put it (inputs the host has
 ## not played into the copy yet), so looking round never waits on the
 ## network; put back after the frame. [player, angle, pitch] or [].
-func _net_aim() -> Array:
+func _net_aim(dt: float) -> Array:
 	if net == null or net.role != NetPlay.Role.CLIENT or state != "play" or game == null:
+		net_smooth.reset()
 		return []
 	if not net.client_ready():
+		net_smooth.reset()
 		return []
 	var slot := net.my_slot()
 	if slot < 0 or slot >= game.players.size():
+		net_smooth.reset()
 		return []
 	var me: Player = game.players[slot]
 	if game.local_player != me or me.health <= 0 or game.showing_tally:
+		net_smooth.reset()
 		return []
 	# Walk on with the inputs the host has not played into the copy yet
-	# (net_predict.gd), then turn by the mouse not sent yet.
-	var kept := NetPredict.lead(game, me, net.client_sync.unplayed_inputs())
+	# (net_predict.gd), eased over a correction, then turn by the mouse not
+	# sent yet.
+	var kept := net_smooth.draw(game, me, net.client_sync, dt)
 	me.angle = fposmod(me.angle + net_turn, TAU)
 	me.pitch = clampf(me.pitch + net_look, -53.0, 53.0)
 	return [me, kept]

@@ -259,9 +259,13 @@ func tick(dt: float, controls: Variant) -> void:
 		player.flow.update(player.x, player.y, clock, world.stand(player))
 	else:
 		# Walked when first needed (focus()): an enemy after them, a trigger...
+		# The 5v5 round modes have nothing that hunts a player: none walked
+		# (ten fields walked a tick were half a 5v5's snapshot bytes; the
+		# hearing walks the local player's own, hearing.gd).
 		flow_walks.clear()
+		var hunted := Modes.flows_in_rounds or not Modes.is_tactical(self)
 		for q: Player in players:
-			q.flow_due = q.health > 0
+			q.flow_due = q.health > 0 and hunted
 	dangers.clear()
 	for shot: Shot in shots:
 		if shot.kind == "tnt":

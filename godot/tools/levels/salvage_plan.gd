@@ -38,7 +38,7 @@ func make() -> Builder:
 		"intro": "MUNDELL'S SALVAGE. FIVE A SIDE. B TO BUY.",
 		"score": "music",
 		"ambience": "range",
-		"layout": 1,
+		"layout": 2,
 		"sky": "sky",
 		"area_sounds": {},
 		"tactical":
@@ -189,6 +189,10 @@ func middle() -> void:
 	b.wall(24, 19, 26, 22, "junk_stack", 2.8)
 	b.wall(30, 26, 32, 29, "junk_stack", 2.8)
 	b.wall(36, 19, 38, 22, "tire_wall", 2.4)
+	# A boarded slot through the tyre wall: shot through, a way across the
+	# canyon's north end that its zig-zag otherwise keeps shut.
+	b.yard(36, 21, 38, 21, "junk_ground", d["canyon"])
+	b.fence(37, 21, 37, 21, 2.4, "cover_boards")
 	b.wall(40, 26, 41, 29, "junk_stack", 2.8)
 	b.car(28.0, 23.5, true)
 	b.car(39.0, 24.0, false)

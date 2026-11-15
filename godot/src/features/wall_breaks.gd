@@ -702,6 +702,18 @@ func sprites() -> Array:
 # -------------------------------------------------------------------- saves
 
 
+## Nothing broken any more: the level's walls were laid down as built again
+## (modes/round_cover.gd, a 5v5 round's start).
+func forget() -> void:
+	for face: WindowFace in windows:
+		face.broken = false
+	for f: Fence in fences.values():
+		f.hp = f.most
+		f.stage = 0
+	gaps.clear()
+	net_version += 1
+
+
 func save() -> Dictionary:
 	var shot: Array = []
 	for face: WindowFace in windows:
