@@ -13,7 +13,7 @@ func reflection() -> Variant:
 	var heading: String = ["front", "quarter", "side", "away", "back"][direction]
 	var stride := 0
 	if p.motion > .15 and p.air == 0.0:
-		stride = int(round(sin(p.walk_phase)))
+		stride = roundi(sin(p.walk_phase))
 	var height := 1.24 if p.crouched else 1.65
 	var feet: float = world.stand(p) + p.air
 	var out := View.Sprite.new(p.x, p.y, "player_%s_%d" % [heading, stride], height, feet)
@@ -65,7 +65,7 @@ func _list_fixed() -> void:
 			var back := View.Sprite.new(board.x, board.y, board.back, board.height, z)
 			back.plane = board.plane + PI
 			sprites.append(back)
-	for point in drums.keys():
+	for point: Vector2 in drums.keys():
 		var vec: Vector2 = point
 		sprites.append(
 			View.Sprite.new(vec.x, vec.y, "prop_fuel", 1.04, world.elevation(vec.x, vec.y))
@@ -145,7 +145,7 @@ func _blocks_of(list: Array) -> Array:
 		for i in places:
 			var s: View.Sprite = list[i]
 			var art: Dictionary = self.art.art(s.image)
-			var half := s.height * float(art["w"]) / maxf(1.0, float(art["h"])) * .5
+			var half := s.height * _view_num(art["w"]) / maxf(1.0, _view_num(art["h"])) * .5
 			reach = maxf(reach, Vector2(s.x - mx, s.y - my).length() + half + .3)
 		blocks.append([mx, my, reach, places])
 	return blocks
@@ -182,7 +182,8 @@ func _seen(list: Array, blocks: Array, cull: PackedFloat64Array) -> Array:
 			d = -dx * fx + dy * fy
 			if not (d > .13 - r and d < 51.0 + r and absf(dy * fx + dx * fy) < (d + r) * k + r):
 				continue
-		places.append_array(blocks[b][3])
+		var block_places: PackedInt32Array = blocks[b][3]
+		places.append_array(block_places)
 	places.sort()
 	var out: Array = []
 	out.resize(places.size())
@@ -206,7 +207,7 @@ func _aim_view() -> void:
 			sin(angle),
 			view.vw * .5 / view.focal + .02,
 			edge,
-			2.0 * edge - float(view_eye["x"]) if not is_nan(edge) else 0.0
+			2.0 * edge - _view_num(view_eye["x"]) if not is_nan(edge) else 0.0
 		]
 	)
 
@@ -236,6 +237,7 @@ func in_view(x: float, y: float, reach: float) -> bool:
 
 
 func sprites() -> Array:
+	var me: Game = self as Object
 	_aim_view()
 	# Everything listed below but the fixed sprites comes from the pool.
 	sprite_pool_n = 0
@@ -273,15 +275,21 @@ func sprites() -> Array:
 		var dust: Array = []
 		for i in 3 - detail:
 			var row: Array = dust_rows[i]
-			var dx: float = float(row[0]) + .11 * sin(clock * motion_speed * .68 + float(row[1]))
+			var dx: float = (
+				_view_num(row[0]) + .11 * sin(clock * motion_speed * .68 + _view_num(row[1]))
+			)
 			var puff := pooled(
-				dx + shift.x, float(row[1]) + shift.y, "hub_dust", float(row[2]), float(row[3])
+				dx + shift.x,
+				_view_num(row[1]) + shift.y,
+				"hub_dust",
+				_view_num(row[2]),
+				_view_num(row[3])
 			)
 			puff.translucent = true
 			puff.plane = 0.0
 			dust.append(puff)
 		dust.sort_custom(
-			func(a, b):
+			func(a: View.Sprite, b: View.Sprite) -> bool:
 				return (
 					sqrt(pow(a.x - player.x, 2) + pow(a.y - player.y, 2))
 					> sqrt(pow(b.x - player.x, 2) + pow(b.y - player.y, 2))
@@ -290,7 +298,7 @@ func sprites() -> Array:
 		sprites.append_array(dust)
 		return sprites
 	if gallery != null and gallery.active:
-		sprites.append(gallery.sprite(self))
+		sprites.append(gallery.sprite(me))
 	sprites.append_array(_seen(fixed_sprites_late, late_blocks, late_cull))
 	if finale != null and finale.kind == "rudy" and finale.alive:
 		for point: Vector2 in world.boss_decoys:
@@ -342,18 +350,18 @@ func sprites() -> Array:
 				):
 					continue
 		var slot := pooled(0.0, 0.0, "", 1.0, 0.0)
-		var sprite = enemy.sprite(observer, relieved, clock, slot)
+		var sprite: View.Sprite = enemy.sprite(observer, relieved, clock, slot)
 		if sprite != null and not enemy.alive and gore_fx.headless.has(enemy):
-			GoreExtras.headless_cel(self, sprite)
+			GoreExtras.headless_cel(me, sprite)
 		if sprite != null:
 			sprite.z += world.floor_under(sprite.x, sprite.y, world.stand(enemy) + .3)
 			sprite.who = enemy
 			sprites.append(sprite)
 		else:
 			sprite_pool_n -= 1
-	for entry in pickups:
-		var x := float(entry[1])
-		var y := float(entry[2])
+	for entry: Array in pickups:
+		var x: float = entry[1]
+		var y: float = entry[2]
 		if culling:
 			var dx := x - cx
 			var dy := y - cy
@@ -373,7 +381,7 @@ func sprites() -> Array:
 					continue
 		var hover := .06 + sin(clock * 3.5 + x) * .035
 		var lies: float = entry[4] if entry.size() > 4 else world.elevation(x, y)
-		sprites.append(pooled(x, y, "item_" + String(entry[0]), .33, lies + hover))
+		sprites.append(pooled(x, y, "item_" + str(entry[0]), .33, lies + hover))
 	for shot: Shot in shots:
 		if (
 			shot.enemy
@@ -400,7 +408,7 @@ func sprites() -> Array:
 			var shot_sprite := pooled(shot.x, shot.y, "fx_" + name, size, shot.z)
 			shot_sprite.glow = Shots.glows(shot.kind)
 			sprites.append(shot_sprite)
-	sprites.append_array(Features.sprites(self))
+	sprites.append_array(Features.sprites(me))
 	for fx_speck: Speck in specks:
 		if not in_view(fx_speck.x, fx_speck.y, .3):
 			continue
@@ -444,8 +452,8 @@ func sprites() -> Array:
 				blast
 			]
 		)
-	blast_order.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
-	for entry in blast_order:
+	blast_order.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
+	for entry: Array in blast_order:
 		var blast: Blast = entry[1]
 		if Effects.rich and blast.kind == "fire":
 			# features/gun_fx.gd draws the shader view's fireball.
@@ -477,21 +485,21 @@ func to_canvas(x: float, y: float, z: float) -> Vector3:
 	var angle: float = view_eye["view_angle"]
 	var fx := cos(angle)
 	var fy := sin(angle)
-	var dx: float = x - float(view_eye["x"])
-	var dy: float = y - float(view_eye["y"])
+	var dx: float = x - _view_num(view_eye["x"])
+	var dy: float = y - _view_num(view_eye["y"])
 	var ahead := dx * fx + dy * fy
 	if ahead < .12:
 		return Vector3(0, 0, -1)
 	var horizon: float = (
 		View.VIEW / 2.0
-		+ float(view_eye["pitch"])
-		+ float(view_eye["bob"])
-		+ float(view_eye["sway"])
+		+ _view_num(view_eye["pitch"])
+		+ _view_num(view_eye["bob"])
+		+ _view_num(view_eye["sway"])
 	)
 	var focal := View.base_focal
 	return Vector3(
 		View.WIDTH / 2.0 + (dy * fx - dx * fy) / ahead * focal,
-		horizon - (z - float(view_eye["eye"])) / ahead * focal,
+		horizon - (z - _view_num(view_eye["eye"])) / ahead * focal,
 		ahead
 	)
 
@@ -502,7 +510,7 @@ func to_canvas(x: float, y: float, z: float) -> Vector3:
 func feedback(c: Canvas) -> void:
 	if not in_hub:
 		var p := player
-		var alert = null
+		var alert: Variant = null
 		var nearest := 10.5 * 10.5
 		for enemy: Enemy in enemies:
 			if not (
@@ -520,7 +528,8 @@ func feedback(c: Canvas) -> void:
 				alert = turn
 				nearest = square
 		if alert != null:
-			var side := "REAR" if absf(alert) > 2.41 else "LEFT" if float(alert) < 0.0 else "RIGHT"
+			var turned: float = alert
+			var side := "REAR" if absf(turned) > 2.41 else "LEFT" if turned < 0.0 else "RIGHT"
 			var label := "WINDUP " + side
 			var width := 10 + PixelType.text_width(label, "mini")
 			var x := (
@@ -531,14 +540,12 @@ func feedback(c: Canvas) -> void:
 			HUD.panel(c, x, 74, width, 14, Canvas.rgb(40, 29, 22))
 			HUD.text(c, label, x + 5, 78, "mini", Canvas.rgb(233, 188, 111), false, false)
 	if item_feedback != null:
-		var name := String(item_feedback[0])
-		var text := String(item_feedback[1])
-		var end := float(item_feedback[2])
+		var name := str(item_feedback[0])
+		var text := str(item_feedback[1])
+		var end: float = item_feedback[2]
 		if clock < end:
-			var y := 102 + int(round(maxf(0.0, end - clock - .79) * 25.0 * bob_scale))
-			var label: String = (
-				text if text != "" else String(HUD.ITEM_LABELS[HUD.ITEMS.find(name)])
-			)
+			var y := 102 + roundi(maxf(0.0, end - clock - .79) * 25.0 * bob_scale)
+			var label: String = text if text != "" else str(HUD.ITEM_LABELS[HUD.ITEMS.find(name)])
 			HUD.panel(c, 8, y, 29 + PixelType.text_width(label, "mini"), 20, Canvas.rgb(38, 27, 21))
 			var image := art.art("item_" + name)
 			var iw: int = image["w"]
@@ -554,14 +561,14 @@ func feedback(c: Canvas) -> void:
 					c.set_pixel(11 + tx, y + 2 + ty, data[sp], data[sp + 1], data[sp + 2])
 			HUD.text(c, label, 30, y + 7, "mini", Canvas.rgb(249, 205, 144), false, false)
 	if damage_feedback != null:
-		var heading = damage_feedback[0]
-		var cause := String(damage_feedback[1])
-		var end2 := float(damage_feedback[2])
+		var heading: Variant = damage_feedback[0]
+		var cause := str(damage_feedback[1])
+		var end2: float = damage_feedback[2]
 		if clock >= end2:
 			return
 		var side := ""
 		if heading != null and not NO_MARK_SURFACE.has(cause):
-			var turn2 := fposmod(float(heading) - player.view_angle() + PI, TAU) - PI
+			var turn2 := fposmod(_view_num(heading) - player.view_angle() + PI, TAU) - PI
 			side = (
 				" REAR"
 				if absf(turn2) > 2.41
@@ -569,7 +576,7 @@ func feedback(c: Canvas) -> void:
 			)
 		HUD.banner(c, cause + side, 87, 288, Canvas.rgb(244, 160, 108))
 		if heading != null and not NO_MARK_SURFACE.has(cause):
-			_hurt_arc(c, fposmod(float(heading) - player.view_angle() + PI, TAU) - PI, end2)
+			_hurt_arc(c, fposmod(_view_num(heading) - player.view_angle() + PI, TAU) - PI, end2)
 
 
 # ---------------------------------------------------------------- main draw
@@ -580,6 +587,7 @@ func draw(c: Canvas, crosshair := 1, grade := true) -> void:
 
 
 func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
+	var me: Game = self as Object
 	var p := player
 	look_live = false
 	tone_live = false
@@ -589,15 +597,15 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	drunk_k = 0.0
 	c.layer = false
 	if showing_tally:
-		hud.intermission(c, self)
+		hud.intermission(c, me)
 		return
 	var practice := gallery != null and gallery.active
-	var weapon = gallery.pistol if practice else armory
+	var weapon: Weapons.Armory = gallery.pistol if practice else armory
 	var flash: float = (weapon.flash * 4.0 + blast_flash * .85) * flash_scale
 	view.time = clock
 	view.layered = layered and gpu_look
 	Effects.rich = view.layered and Effects.enabled
-	Scope.focal(self, p)
+	Scope.focal(me, p)
 	if view.detail < 0 and not view.layered:
 		# HD is the 3D view's: without one the view keeps HIGH and the wish,
 		# and the next frame drawn with a window is HD again.
@@ -622,7 +630,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	var marks_list: Array = wall_marks if bullet_marks else []
 	if not gore_fx.walls.is_empty():
 		marks_list = marks_list + gore_fx.walls
-	marks_list = marks_list + Features.wall_marks(self)
+	marks_list = marks_list + Features.wall_marks(me)
 	var listed: Array = sprites()
 	var t1 := Time.get_ticks_usec()
 	# What the 3D view (view3d/world_view.gd) draws this frame: it reads this
@@ -631,7 +639,10 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	view_frame = {
 		"eye": eye,
 		"horizon":
-		(VIEW / 2.0 + float(eye["pitch"]) + float(eye["bob"]) + float(eye["sway"])) / view.res_up,
+		(
+			(VIEW / 2.0 + _view_num(eye["pitch"]) + _view_num(eye["bob"]) + _view_num(eye["sway"]))
+			/ view.res_up
+		),
 		"flash": flash,
 		"sprites": listed,
 		"marks": marks_list,
@@ -649,7 +660,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	var scoped := p.scoped and p.health > 0
 	if scoped:
 		Scope.mask(c)  # under the features' marks (the 5v5 score and cash stay)
-	Features.draw_view(self, c)
+	Features.draw_view(me, c)
 	if c.gpu:
 		c.gpu_item(Canvas.ITEM_NORMAL)
 	c.view_tint = gun_light() if c.gpu and Effects.enabled else Color(1, 1, 1)
@@ -686,7 +697,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			_look_params()
 	else:
 		if look_live:
-			var table = tone if grade else null
+			var table: Variant = tone if grade else null
 			_look_pass(c, table)
 			graded = tone_live
 		if tone_live and not graded:
@@ -725,7 +736,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			var jolt := int(maxf(0.0, .2 - fresh) * 20.0 * shake_scale)
 			HUD.text(c, callout, 160 + jolt, 30, "heading", HUD.AMBER, true)
 		# A boss's entrance: its name slammed onto a fair ribbon (boss_kit.gd).
-		BossKit.draw_intro(self, c)
+		BossKit.draw_intro(me, c)
 		var after_notice := 5
 		if not map:
 			if practice:
@@ -736,7 +747,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 				after_notice = (
 					HUD.banner(c, level.districts[district], 5, 288, Canvas.rgb(245, 196, 122)) + 3
 				)
-			pin_top = BossBar.draw(self, c, after_notice)
+			pin_top = BossBar.draw(me, c, after_notice)
 		if not map and armory.fuse == 0.0:
 			var hint := gate_prompt()
 			if hint == "" and hints and not in_hub:
@@ -749,13 +760,13 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 				HUD.banner(c, hint, 137, 288, Canvas.rgb(251, 207, 142))
 			if voice_captions and caption_until > clock:
 				HUD.banner(c, caption, 121 if hint != "" else 137, 288, Canvas.rgb(209, 221, 179))
-			elif barks.visible(self) and hint == "":
+			elif barks.visible(me) and hint == "":
 				HUD.banner(c, '"' + barks.text + '"', 137, 288, Canvas.rgb(255, 214, 150))
 		if not map:
 			feedback(c)
 	elif not defeated():
 		# Down, but a partner is up or a respawn is coming (src/modes/).
-		ModeScreens.draw_down(c, self)
+		ModeScreens.draw_down(c, me)
 	else:
 		HUD.panel(c, 27, 54, 266, 52, Canvas.rgb(43, 26, 22))
 		HUD.text(c, "YOU BOUGHT THE FARM", 160, 64, "heading", HUD.INK, true)
@@ -764,10 +775,11 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		var lines: Array = []
 		for key: String in ["boss_rematch", "boss_checkpoint"]:
 			if lines.is_empty() and features.has(key):
-				lines = features[key].death_lines()
+				var death: Object = features[key]
+				lines = death.call("death_lines")
 		if lines.size() == 2:
-			HUD.text(c, String(lines[0]), 160, 82, "body", HUD.AMBER, true)
-			HUD.text(c, String(lines[1]), 160, 94, "body", HUD.INK, true)
+			HUD.text(c, str(lines[0]), 160, 82, "body", HUD.AMBER, true)
+			HUD.text(c, str(lines[1]), 160, 94, "body", HUD.INK, true)
 		else:
 			HUD.text(
 				c,
@@ -785,19 +797,21 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	if map and p.health > 0:
 		automap(c)
 	gore_fx.draw_lens(c)
-	hud.draw(c, self, weapon)
+	hud.draw(c, me, weapon)
 	stage_ms[4] = (Time.get_ticks_usec() - t4) / 1000.0
 
 
 ## This frame's lights for the graphics-card view (effects.cfg), nearest
 ## first, at most Effects.MAX_LIGHTS of them (view_lights.gd).
 func effect_lights() -> Array:
-	return ViewLights.effect_lights(self)
+	var me: Game = self as Object
+	return ViewLights.effect_lights(me)
 
 
 ## The light on the gun (view_lights.gd): white is the gun as drawn.
 func gun_light() -> Color:
-	return ViewLights.gun_light(self)
+	var me: Game = self as Object
+	return ViewLights.gun_light(me)
 
 
 ## A red arc at the edge of the view on the side the hurt came from, fading.
@@ -818,7 +832,7 @@ func _hurt_arc(c: Canvas, turn: float, end: float) -> void:
 ## use_target), breathing slowly: what the prompt names is the thing marked.
 ## Doors and things already done get none.
 func _use_mark(c: Canvas) -> void:
-	var found = use_target()
+	var found: Variant = use_target()
 	if found == null or found[0] is LevelData.Door or use_aim == Vector3.INF:
 		return
 	if found[0] is LevelData.Station and stations_done.has(found[0].id):
@@ -882,10 +896,10 @@ func _build_grit() -> void:
 	_grit_b.resize(count)
 	_dither.resize(count)
 	var wash: Array = WASH.get(level.id, [255, 255, 255, 0])
-	var amount := float(wash[3])
-	var tr := float(wash[0]) / 255.0
-	var tg := float(wash[1]) / 255.0
-	var tb := float(wash[2]) / 255.0
+	var amount := _view_num(wash[3])
+	var tr := _view_num(wash[0]) / 255.0
+	var tg := _view_num(wash[1]) / 255.0
+	var tb := _view_num(wash[2]) / 255.0
 	var w := float(maxi(WIDTH - 1, 1))
 	var h := float(maxi(VIEW - 1, 1))
 	for y in VIEW:
@@ -898,11 +912,11 @@ func _build_grit() -> void:
 			_grit_r[i] = ((1.0 - amount) + tr * amount) * vignette
 			_grit_g[i] = ((1.0 - amount) + tg * amount) * vignette
 			_grit_b[i] = ((1.0 - amount) + tb * amount) * vignette
-			_dither[i] = (float(BAYER[(x % 4) * 4 + (y % 4)]) / 16.0 - .5) * 6.0
+			_dither[i] = (_view_num(BAYER[(x % 4) * 4 + (y % 4)]) / 16.0 - .5) * 6.0
 
 
 func _apply_hurt_flash(c: Canvas) -> void:
-	var alpha := clampi(int(round(hurt_flash * 310.0 * flash_scale)), 0, 255)
+	var alpha := clampi(roundi(hurt_flash * 310.0 * flash_scale), 0, 255)
 	hurt_alpha = alpha if gpu_look else 0
 	if alpha == 0 or gpu_look:
 		return
@@ -929,7 +943,7 @@ func _drunk_warp(c: Canvas) -> void:
 	var shift := PackedInt32Array()
 	shift.resize(VIEW)
 	for y in VIEW:
-		shift[y] = int(round(sin(y * .16 + clock * 3.1) * (1.0 + 3.4 * strength)))
+		shift[y] = roundi(sin(y * .16 + clock * 3.1) * (1.0 + 3.4 * strength))
 	var pix := c.pixels
 	for y in VIEW:
 		var row := y * width * 3
@@ -974,7 +988,7 @@ func _look_params() -> void:
 	_look_blast = blast_flash * 60.0
 
 
-func _look_pass(c: Canvas, grade_tone = null) -> void:
+func _look_pass(c: Canvas, grade_tone: Variant = null) -> void:
 	_look_params()
 	_look_tone = grade_tone
 	# Row-banded across explicit threads. This pass is ~10 ms of per-pixel float
@@ -991,7 +1005,7 @@ func _look_pass(c: Canvas, grade_tone = null) -> void:
 		_look_rows(dst, src, 0, VIEW)
 		c.pixels = dst
 		return
-	_look_rows_per = int(ceil(float(VIEW) / bands))
+	_look_rows_per = ceili(float(VIEW) / bands)
 	while _look_threads.size() < bands:
 		_look_threads.append(Thread.new())
 	for i in bands:
@@ -1041,7 +1055,7 @@ func _look_rows(dst: PackedByteArray, src: PackedByteArray, y0: int, y1: int) ->
 	var grit_g := _grit_g
 	var grit_b := _grit_b
 	var dither := _dither
-	var tone = _look_tone
+	var tone: Variant = _look_tone
 	var gain := _look_gain
 	var blast_add := _look_blast
 	var frame_index := _look_frame
@@ -1174,12 +1188,10 @@ func automap(c: Canvas) -> void:
 		else "SECRETS %d/%d" % [secrets, total_secrets]
 	)
 	var keys := "   /   TAP TO ZOOM" if touch_aim else "   /   PGUP PGDN ZOOM   /   TAB CLOSE"
-	if Modes.is_tactical(self):
-		tally = (
-			"SITE A MARKED"
-			if world.tactical.get("sites", {}).size() == 1
-			else "SITES A AND B MARKED"
-		)
+	var me: Game = self as Object
+	if Modes.is_tactical(me):
+		var sites: Dictionary = world.tactical.get("sites", {})
+		tally = "SITE A MARKED" if sites.size() == 1 else "SITES A AND B MARKED"
 		keys = "   /   PGUP PGDN ZOOM   /   M CLOSE"
 	HUD.text(c, tally + keys, 160, MAP_Y + MAP_H + 15, "body", HUD.INK, true)
 
@@ -1189,7 +1201,7 @@ func automap(c: Canvas) -> void:
 func _map_region() -> Rect2i:
 	if in_hub and not level.map_window.is_empty():
 		var wnd: Array = level.map_window
-		return Rect2i(int(wnd[0]), int(wnd[1]), int(wnd[2]), int(wnd[3]))
+		return Rect2i(_view_int(wnd[0]), _view_int(wnd[1]), _view_int(wnd[2]), _view_int(wnd[3]))
 	return Rect2i(0, 0, int(world.width), int(world.height))
 
 
@@ -1222,7 +1234,7 @@ func _build_map_image(region: Rect2i, scale: float) -> void:
 	_map_hidden.clear()
 	for point: Vector2i in signature.slice(1):
 		_map_hidden[point] = true
-		for room in level.hidden_rooms:
+		for room: Array in level.hidden_rooms:
 			if room[0] == point:
 				var box: Vector4i = room[1]
 				for yy in range(box.y, box.w + 1):
@@ -1265,7 +1277,8 @@ func _map_paint_cell(x: int, y: int, walked: bool) -> void:
 	if world.surface_sound(int(world.floor_tile[cell])) == "water":
 		kind = 2
 	var r := _map_cell_rect(x, y)
-	_map_image.fill_rect(r, (MAP_WALKED if walked else MAP_GROUND)[kind])
+	var shade: Color = (MAP_WALKED if walked else MAP_GROUND)[kind]
+	_map_image.fill_rect(r, shade)
 	var line := 2 if _map_built_scale >= 4.0 else 1
 	for k: Vector2i in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
 		var n := Vector2i(x, y) + k
@@ -1320,15 +1333,15 @@ func _map_labels(c: Canvas) -> void:
 		for gate: LevelData.Gate in world.hub_gates:
 			labels.append(
 				[
-					String(Campaign.GATE_LABELS.get(gate.destination, "")),
+					str(Campaign.GATE_LABELS.get(gate.destination, "")),
 					gate.x,
 					gate.y,
 					not world.locked_gates.has(gate)
 				]
 			)
-		for clue in world.hub_clues:
-			if hub_findings.has(String(clue[0])):
-				var at := _map_point(float(clue[1]), float(clue[2]))
+		for clue: Variant in world.hub_clues:
+			if hub_findings.has(str(clue[0])):
+				var at := _map_point(_view_num(clue[1]), _view_num(clue[2]))
 				if _map_shows(at):
 					c.polygon(
 						[
@@ -1340,14 +1353,14 @@ func _map_labels(c: Canvas) -> void:
 						Canvas.rgb(200, 173, 111)
 					)
 	else:
-		for row in level.map_labels:
-			labels.append([String(row[0]), float(row[1]), float(row[2]), true])
+		for row: Variant in level.map_labels:
+			labels.append([str(row[0]), _view_num(row[1]), _view_num(row[2]), true])
 	var placed: Array[Rect2i] = []
-	for label_row in labels:
-		var label := String(label_row[0])
+	for label_row: Array in labels:
+		var label := str(label_row[0])
 		if label == "":
 			continue
-		var at := _map_point(float(label_row[1]), float(label_row[2]))
+		var at := _map_point(_view_num(label_row[1]), _view_num(label_row[2]))
 		var wide := PixelType.text_width(label)
 		var left := int(at.x) - wide / 2
 		if left < MAP_X + 1 or left + wide > MAP_X + MAP_W - 1:
@@ -1371,7 +1384,7 @@ func _map_labels(c: Canvas) -> void:
 			left,
 			int(at.y),
 			"body",
-			Canvas.rgb(244, 223, 185) if bool(label_row[3]) else Canvas.rgb(185, 123, 85),
+			Canvas.rgb(244, 223, 185) if label_row[3] else Canvas.rgb(185, 123, 85),
 			false,
 			false
 		)
@@ -1380,10 +1393,11 @@ func _map_labels(c: Canvas) -> void:
 ## Where the objective pin points: a blinking diamond, or an arrow on the
 ## window's edge pointing to it when it is off the map.
 func _map_goal(c: Canvas) -> void:
-	var goal = objective_target()
+	var goal: Variant = objective_target()
 	if goal == null or not (goal is Vector2):
 		return
-	var at := _map_point(goal.x, goal.y)
+	var spot: Vector2 = goal
+	var at := _map_point(spot.x, spot.y)
 	var color := (
 		Canvas.rgb(255, 214, 110) if int(clock * 3.0) % 2 == 0 else Canvas.rgb(214, 120, 60)
 	)
@@ -1451,5 +1465,15 @@ func _blit_map(c: Canvas) -> void:
 			var at := (dst.y + row) * Canvas.WIDTH + dst.x
 			for k in src.size.x:
 				c.cover[at + k] = 255
+
+
+## float() and int() of a number read from a list or dictionary, typed (the
+## same result for a number or a bool).
+static func _view_num(v: Variant) -> float:
+	return v
+
+
+static func _view_int(v: Variant) -> int:
+	return v
 
 # ------------------------------------------------------------------ controls

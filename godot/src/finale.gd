@@ -51,12 +51,13 @@ const ROLL := [
 const ROW_HEIGHT := {"title": 18, "head": 13, "line": 10, "gap": 10}
 
 
-static func draw(c: Canvas, game) -> void:
+static func draw(c: Canvas, game: Game) -> void:
 	HUD.panel(c, 10, 9, 300, 180)
 	var since := _since(game)
 	var roll_length := 0
 	for row: Array in ROLL:
-		roll_length += int(ROW_HEIGHT[String(row[0])])
+		var row_height: int = ROW_HEIGHT[str(row[0])]
+		roll_length += row_height
 	var cycle := TALLY_SECONDS + (roll_length + BOTTOM - TOP) / ROLL_SPEED + 1.0
 	var t := fmod(since, cycle)
 	if t < TALLY_SECONDS:
@@ -67,8 +68,8 @@ static func draw(c: Canvas, game) -> void:
 
 
 ## Seconds since the chapter was won (real time: play has stopped).
-static func _since(game) -> float:
-	var show = game.features.get("tally")
+static func _since(game: Game) -> float:
+	var show: Variant = game.features.get("tally")
 	var won_at: int = show.won_at if show != null else -1
 	if won_at < 0:
 		return 0.0
@@ -76,35 +77,35 @@ static func _since(game) -> float:
 
 
 ## Every chapter's kills, secrets and time, the totals, the last chapter's line.
-static func _tally(c: Canvas, game) -> void:
+static func _tally(c: Canvas, game: Game) -> void:
 	HUD.text(c, "THE COUNTY IS SAFE", 160, 14, "heading", HUD.AMBER, true)
 	HUD.text(c, "FOR NOW.", 160, 32, "mini", HUD.DIM, true)
-	var columns := [186, 237, 296]
-	var heads := ["KILLS", "SECRETS", "TIME"]
+	var columns: Array[int] = [186, 237, 296]
+	var heads: Array[String] = ["KILLS", "SECRETS", "TIME"]
 	HUD.text(c, "CHAPTER", 21, 42, "body", HUD.INK)
 	for i in 3:
 		HUD.text(c, heads[i], columns[i], 42, "body", HUD.INK, false, true, true)
 	var results: Array = game.history.duplicate()
 	results.append(game.result())
 	var step := 12 if results.size() > 6 else 14
-	var totals := [0, 0, 0, 0, 0]
+	var totals: Array[int] = [0, 0, 0, 0, 0]
 	for i in results.size():
 		var row: Array = results[i]
 		var y := 54 + step * i
 		c.fill_rect(17, y - 2, 286, step - 2, Color(30 / 255.0, 21 / 255.0, 17 / 255.0))
-		HUD.text(c, Campaign.title_of(String(row[0])), 21, y, "body", HUD.INK)
-		var values := [
-			"%d/%d" % [int(row[1]), int(row[2])],
-			"%d/%d" % [int(row[3]), int(row[4])],
-			"%d:%02d" % [int(row[5]) / 60, int(row[5]) % 60]
+		HUD.text(c, Campaign.title_of(str(row[0])), 21, y, "body", HUD.INK)
+		var values: Array[String] = [
+			"%d/%d" % [_int(row[1]), _int(row[2])],
+			"%d/%d" % [_int(row[3]), _int(row[4])],
+			"%d:%02d" % [_int(row[5]) / 60, _int(row[5]) % 60]
 		]
 		for k in 3:
 			HUD.text(c, values[k], columns[k], y, "body", HUD.AMBER, false, true, true)
 		for k in 5:
-			totals[k] += int(row[k + 1])
+			totals[k] += _int(row[k + 1])
 	var total_y := 54 + step * results.size() + 3
 	HUD.text(c, "TOTAL", 21, total_y, "body", HUD.AMBER)
-	var summed := [
+	var summed: Array[String] = [
 		"%d/%d" % [totals[0], totals[1]],
 		"%d/%d" % [totals[2], totals[3]],
 		"%d:%02d" % [totals[4] / 60, totals[4] % 60]
@@ -118,10 +119,16 @@ static func _tally(c: Canvas, game) -> void:
 static func _roll(c: Canvas, scrolled: float) -> void:
 	var y := BOTTOM - scrolled
 	for row: Array in ROLL:
-		var kind := String(row[0])
-		var tall := int(ROW_HEIGHT[kind])
+		var kind := str(row[0])
+		var tall: int = ROW_HEIGHT[kind]
 		if kind != "gap" and y > TOP - 2 and y < BOTTOM - 8:
 			var style := "heading" if kind == "title" else "body"
 			var colour := HUD.AMBER if kind != "line" else HUD.INK
-			HUD.text(c, String(row[1]), 160, int(y), style, colour, true)
+			HUD.text(c, str(row[1]), 160, int(y), style, colour, true)
 		y += tall
+
+
+## int() of a value read from data or a dictionary, typed (the same
+## result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v

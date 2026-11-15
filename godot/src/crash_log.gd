@@ -66,7 +66,7 @@ var _lock_path := LOCK
 ## Starts the session's log for the real game (`main` is the front end, read
 ## for context when something goes wrong). Prints a line when the last
 ## session ended without a clean exit. Returns the logger (also `current`).
-static func start(main, dir := DIR) -> CrashLog:
+static func start(main: Object, dir := DIR) -> CrashLog:
 	var logger := CrashLog.new()
 	logger._main = weakref(main)
 	logger._started_unix = Time.get_unix_time_from_system()
@@ -159,7 +159,7 @@ func _log_error(
 	if error_type != ERROR_TYPE_WARNING and first_errors.size() < 8:
 		first_errors.append("%s: %s (%s, %s)" % [kind, what, function, place])
 	var key := "%d %s %s" % [error_type, place, code]
-	var seen := int(_by_place.get(key, 0)) + 1
+	var seen: int = _by_place.get(key, 0) + 1
 	_by_place[key] = seen
 	if _file != null and seen <= REPEATS:
 		var out := PackedStringArray()
@@ -207,11 +207,11 @@ func _context() -> PackedStringArray:
 			]
 		)
 	)
-	var main = _main.get_ref() if _main != null else null
+	var main: Object = _main.get_ref() if _main != null else null
 	if main == null or not _on_main():
 		return out
-	var state := String(main.get("state"))
-	var game = main.get("game")
+	var state := str(main.get("state"))
+	var game: Game = main.get("game")
 	if game == null:
 		out.append("  screen %s, no game" % state)
 		return out
@@ -254,7 +254,7 @@ func _context() -> PackedStringArray:
 				]
 			)
 		)
-	var c = main.get("last_controls")
+	var c: Variant = main.get("last_controls")
 	if c != null:
 		out.append(
 			(
@@ -297,14 +297,15 @@ func _clock() -> String:
 ## old logs pruned, a new log and lock.
 func _open() -> void:
 	var lock := _read_lock()
-	if not lock.is_empty() and _still_running(int(lock.get("pid", 0))):
+	var pid: int = lock.get("pid", 0) if not lock.is_empty() else 0
+	if not lock.is_empty() and _still_running(pid):
 		# Another copy of the game is running on this profile: a log of our own
 		# (never rotated or pruned).
 		_path = "%s/live-%d.log" % [_dir, OS.get_process_id()]
 		_lock_path = "%s/live-%d.lock" % [_dir, OS.get_process_id()]
 	elif FileAccess.file_exists(_dir.path_join("session.log")):
 		var stamp := _stamp(FileAccess.get_modified_time(_dir.path_join("session.log")))
-		var crashed := not lock.is_empty() and String(lock.get("state", "")) != "background"
+		var crashed := not lock.is_empty() and str(lock.get("state", "")) != "background"
 		var kept := "%s/%s-%s.log" % [_dir, "crash" if crashed else "session", stamp]
 		var n := 1
 		while FileAccess.file_exists(kept):
@@ -360,7 +361,9 @@ func _write_lock(state: String) -> void:
 func _read_lock() -> Dictionary:
 	if not FileAccess.file_exists(_dir.path_join("session.lock")):
 		return {}
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(_dir.path_join("session.lock")))
+	var parsed: Variant = JSON.parse_string(
+		FileAccess.get_file_as_string(_dir.path_join("session.lock"))
+	)
 	return parsed if parsed is Dictionary else {"state": "unreadable"}
 
 
@@ -376,7 +379,7 @@ func _prune(prefix: String) -> void:
 			names.append(name)
 	names.sort()
 	while names.size() > KEEP:
-		DirAccess.remove_absolute(_dir.path_join(String(names.pop_front())))
+		DirAccess.remove_absolute(_dir.path_join(str(names.pop_front())))
 
 
 func _stamp(unix: int) -> String:
@@ -416,8 +419,8 @@ func _summary() -> String:
 		)
 	)
 	var places: Array = _by_place.keys()
-	places.sort_custom(func(a, b): return int(_by_place[a]) > int(_by_place[b]))
-	for key in places.slice(0, 10):
+	places.sort_custom(func(a: Variant, b: Variant) -> bool: return _by_place[a] > _by_place[b])
+	for key: String in places.slice(0, 10):
 		var parts := String(key).split(" ", true, 2)
 		out.append(
 			(

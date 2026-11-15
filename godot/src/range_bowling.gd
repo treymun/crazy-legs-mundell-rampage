@@ -164,13 +164,20 @@ func rack() -> void:
 	sweep_at = -1.0
 
 
+## A pin's two numbers `kx` and `ky` (its place, lean, swing or slide) as a vector.
+static func _pair(pin: Dictionary, kx: String, ky: String) -> Vector2:
+	var x: float = pin[kx]
+	var y: float = pin[ky]
+	return Vector2(x, y)
+
+
 static func lean(pin: Dictionary) -> float:
-	return Vector2(pin["tx"], pin["ty"]).length()
+	return _pair(pin, "tx", "ty").length()
 
 
 ## Down: off the deck, or leaning past COUNTS.
 static func is_down(pin: Dictionary) -> bool:
-	return String(pin["gone"]) != "" or lean(pin) > COUNTS
+	return str(pin["gone"]) != "" or lean(pin) > COUNTS
 
 
 func standing() -> int:
@@ -187,11 +194,11 @@ func pins_down() -> int:
 
 ## Where a pin's head lies over the deck, and its lean's heading.
 static func head(pin: Dictionary) -> Vector2:
-	var t := Vector2(pin["tx"], pin["ty"])
+	var t := _pair(pin, "tx", "ty")
 	var a := t.length()
 	if a < .0001:
-		return Vector2(pin["x"], pin["y"])
-	return Vector2(pin["x"], pin["y"]) + t / a * PIN_LEN * sin(minf(a, LYING))
+		return _pair(pin, "x", "y")
+	return _pair(pin, "x", "y") + t / a * PIN_LEN * sin(minf(a, LYING))
 
 
 # ------------------------------------------------------------------ the ball
@@ -199,7 +206,7 @@ static func head(pin: Dictionary) -> Vector2:
 
 ## A ball has been thrown (the range heard it): its hook from how fast the
 ## thrower was turning, radians a second.
-func thrown(shot, turn: float) -> void:
+func thrown(shot: GameState.Shot, turn: float) -> void:
 	ball_uid = shot.uid
 	hook = clampf(turn * HOOK_GAIN, -HOOK_MOST, HOOK_MOST)
 	in_gutter = false
@@ -211,7 +218,7 @@ static func _on_lane(x: float, y: float) -> bool:
 
 
 ## The ball on the lane this tick: hook, gutter, pit, and what it meets.
-func roll_ball(game, shot, dt: float) -> void:
+func roll_ball(game: Game, shot: GameState.Shot, dt: float) -> void:
 	if not _on_lane(shot.x, shot.y) or shot.z - game.world.elevation(shot.x, shot.y) > .35:
 		return
 	if roll_started < 0.0 and shot.y < FOUL_Y:
@@ -245,7 +252,7 @@ func roll_ball(game, shot, dt: float) -> void:
 	var at := Vector2(shot.x, shot.y)
 	var v_ball := Vector2(shot.vx, shot.vy)
 	for pin: Dictionary in pins:
-		if String(pin["gone"]) != "":
+		if str(pin["gone"]) != "":
 			continue
 		var near := _closest_on(pin, at)
 		var gap := at - near
@@ -264,7 +271,7 @@ func roll_ball(game, shot, dt: float) -> void:
 			_impulse(pin, near, -n * j, .14)
 			if not touched:
 				touched = true
-				game.sound_at("bowling_hit", pin["x"], pin["y"], .8)
+				game.sound_at("bowling_hit", _float(pin["x"]), _float(pin["y"]), .8)
 			_clack(near)
 	shot.x = at.x
 	shot.y = at.y
@@ -277,7 +284,7 @@ func roll_ball(game, shot, dt: float) -> void:
 
 ## The nearest point of a pin's body to `p`: its base, or along it to its head.
 static func _closest_on(pin: Dictionary, p: Vector2) -> Vector2:
-	var a := Vector2(pin["x"], pin["y"])
+	var a := _pair(pin, "x", "y")
 	var b := head(pin)
 	var ab := b - a
 	var len2 := ab.length_squared()
@@ -289,15 +296,15 @@ static func _closest_on(pin: Dictionary, p: Vector2) -> Vector2:
 ## The deck-level velocity of a pin's body at point `p` on it: sliding, its
 ## lean swinging over, a lying pin spinning.
 static func _velocity_at(pin: Dictionary, p: Vector2) -> Vector2:
-	var v := Vector2(pin["vx"], pin["vy"])
-	var base := Vector2(pin["x"], pin["y"])
-	var t := Vector2(pin["tx"], pin["ty"])
+	var v := _pair(pin, "vx", "vy")
+	var base := _pair(pin, "x", "y")
+	var t := _pair(pin, "tx", "ty")
 	var a := t.length()
 	var s := (p - base).length()
 	if a > .0001 and a < LYING:
-		var w := Vector2(pin["wx"], pin["wy"])
+		var w := _pair(pin, "wx", "wy")
 		v += t / a * w.dot(t / a) * s * cos(a) * PIN_LEN / maxf(.05, PIN_LEN * sin(a))
-	var spin := float(pin["spin"])
+	var spin := _float(pin["spin"])
 	if absf(spin) > .0001:
 		var r := p - (base + head(pin)) * .5
 		v += Vector2(-r.y, r.x) * spin
@@ -310,34 +317,34 @@ static func _velocity_at(pin: Dictionary, p: Vector2) -> Vector2:
 func _impulse(pin: Dictionary, p: Vector2, j: Vector2, height: float) -> void:
 	var a := lean(pin)
 	var share := .55 if a < LYING else .85
-	pin["vx"] = float(pin["vx"]) + j.x * share
-	pin["vy"] = float(pin["vy"]) + j.y * share
+	pin["vx"] = _float(pin["vx"]) + j.x * share
+	pin["vy"] = _float(pin["vy"]) + j.y * share
 	if a < LYING - .01:
 		var gain := TIP_GAIN * (.6 + height * 3.0)
-		pin["wx"] = float(pin["wx"]) + j.x * gain
-		pin["wy"] = float(pin["wy"]) + j.y * gain
+		pin["wx"] = _float(pin["wx"]) + j.x * gain
+		pin["wy"] = _float(pin["wy"]) + j.y * gain
 		if a < .02:
 			# Upright: it starts its lean the way it was struck, a little off.
 			var off := j.normalized().rotated(dice.randf_range(-.25, .25)) * .02
-			pin["tx"] = float(pin["tx"]) + off.x
-			pin["ty"] = float(pin["ty"]) + off.y
+			pin["tx"] = _float(pin["tx"]) + off.x
+			pin["ty"] = _float(pin["ty"]) + off.y
 	else:
-		var r := p - (Vector2(pin["x"], pin["y"]) + head(pin)) * .5
-		pin["spin"] = float(pin["spin"]) + (r.x * j.y - r.y * j.x) * 14.0
-	if j.length() > 2.6 and float(pin["z"]) <= 0.0:
+		var r := p - (_pair(pin, "x", "y") + head(pin)) * .5
+		pin["spin"] = _float(pin["spin"]) + (r.x * j.y - r.y * j.x) * 14.0
+	if j.length() > 2.6 and _float(pin["z"]) <= 0.0:
 		pin["vz"] = minf(1.6, (j.length() - 2.6) * .35)
 
 
-func tick(game, dt: float) -> void:
+func tick(game: Game, dt: float) -> void:
 	clacks = 0
 	var h := dt / STEPS
 	for _k in STEPS:
 		for pin: Dictionary in pins:
-			if String(pin["gone"]) == "":
+			if str(pin["gone"]) == "":
 				_step(pin, h)
 		_knock_pins()
 		for pin: Dictionary in pins:
-			if String(pin["gone"]) == "":
+			if str(pin["gone"]) == "":
 				_bounds(pin)
 	if clacks > 0:
 		game.sound_at("pin_clack", clack_at.x, clack_at.y, minf(1.0, .35 + clacks * .12))
@@ -347,8 +354,8 @@ func tick(game, dt: float) -> void:
 
 
 func _step(pin: Dictionary, h: float) -> void:
-	var t := Vector2(pin["tx"], pin["ty"])
-	var w := Vector2(pin["wx"], pin["wy"])
+	var t := _pair(pin, "tx", "ty")
+	var w := _pair(pin, "wx", "wy")
 	var a := t.length()
 	if a < LYING:
 		# The lean: its weight pulls it back short of TIP and over past it.
@@ -364,10 +371,10 @@ func _step(pin: Dictionary, h: float) -> void:
 			# a slide and a spin.
 			t = t / na * LYING
 			var radial := w.dot(t / LYING)
-			pin["vx"] = float(pin["vx"]) + t.x / LYING * radial * .05
-			pin["vy"] = float(pin["vy"]) + t.y / LYING * radial * .05
+			pin["vx"] = _float(pin["vx"]) + t.x / LYING * radial * .05
+			pin["vy"] = _float(pin["vy"]) + t.y / LYING * radial * .05
 			var across := w - t / LYING * radial
-			pin["spin"] = float(pin["spin"]) + (t.x * across.y - t.y * across.x) * .4
+			pin["spin"] = _float(pin["spin"]) + (t.x * across.y - t.y * across.x) * .4
 			w = Vector2.ZERO
 			_clack(head(pin))
 		elif na < .002 and w.length() < .02:
@@ -375,9 +382,9 @@ func _step(pin: Dictionary, h: float) -> void:
 			w = Vector2.ZERO
 	else:
 		# Lying: it turns about its middle as it spins.
-		var spin := float(pin["spin"])
+		var spin := _float(pin["spin"])
 		if absf(spin) > .001:
-			var base := Vector2(pin["x"], pin["y"])
+			var base := _pair(pin, "x", "y")
 			var mid := (base + head(pin)) * .5
 			var turn := spin * h
 			var nb := mid + (base - mid).rotated(turn)
@@ -390,11 +397,11 @@ func _step(pin: Dictionary, h: float) -> void:
 	pin["wx"] = w.x
 	pin["wy"] = w.y
 	# Sliding, or a hop in the air.
-	var v := Vector2(pin["vx"], pin["vy"])
-	var z := float(pin["z"])
-	if z > 0.0 or float(pin["vz"]) > 0.0:
-		pin["vz"] = float(pin["vz"]) - GRAVITY * h
-		z = maxf(0.0, z + float(pin["vz"]) * h)
+	var v := _pair(pin, "vx", "vy")
+	var z := _float(pin["z"])
+	if z > 0.0 or _float(pin["vz"]) > 0.0:
+		pin["vz"] = _float(pin["vz"]) - GRAVITY * h
+		z = maxf(0.0, z + _float(pin["vz"]) * h)
 		if z <= 0.0:
 			pin["vz"] = 0.0
 		pin["z"] = z
@@ -402,8 +409,8 @@ func _step(pin: Dictionary, h: float) -> void:
 		var friction := (SLIDE if a < LYING else SLIDE_DOWN) * h
 		var speed := v.length()
 		v = Vector2.ZERO if speed <= friction else v * (1.0 - friction / speed)
-	pin["x"] = float(pin["x"]) + v.x * h
-	pin["y"] = float(pin["y"]) + v.y * h
+	pin["x"] = _float(pin["x"]) + v.x * h
+	pin["y"] = _float(pin["y"]) + v.y * h
 	pin["vx"] = v.x
 	pin["vy"] = v.y
 
@@ -413,11 +420,11 @@ func _step(pin: Dictionary, h: float) -> void:
 func _knock_pins() -> void:
 	for i in pins.size():
 		var p: Dictionary = pins[i]
-		if String(p["gone"]) != "":
+		if str(p["gone"]) != "":
 			continue
 		for k in range(i + 1, pins.size()):
 			var q: Dictionary = pins[k]
-			if String(q["gone"]) != "":
+			if str(q["gone"]) != "":
 				continue
 			var pair := _nearest_pair(p, q)
 			var a: Vector2 = pair[0]
@@ -428,10 +435,10 @@ func _knock_pins() -> void:
 				continue
 			var n := gap / d
 			var push := (PIN_R * 2.0 - d) * .5
-			p["x"] = float(p["x"]) - n.x * push
-			p["y"] = float(p["y"]) - n.y * push
-			q["x"] = float(q["x"]) + n.x * push
-			q["y"] = float(q["y"]) + n.y * push
+			p["x"] = _float(p["x"]) - n.x * push
+			p["y"] = _float(p["y"]) - n.y * push
+			q["x"] = _float(q["x"]) + n.x * push
+			q["y"] = _float(q["y"]) + n.y * push
 			var closing := (_velocity_at(q, b) - _velocity_at(p, a)).dot(n)
 			if closing < 0.0:
 				var j := -(1.0 + E_PIN) * closing * .5
@@ -445,7 +452,7 @@ func _knock_pins() -> void:
 ## above).
 static func _height_at(pin: Dictionary, p: Vector2) -> float:
 	var a := lean(pin)
-	var s := (p - Vector2(pin["x"], pin["y"])).length()
+	var s := (p - _pair(pin, "x", "y")).length()
 	if a < .0001:
 		return .14
 	return clampf(s / maxf(.02, sin(a)) * cos(a), .05, .4)
@@ -453,9 +460,9 @@ static func _height_at(pin: Dictionary, p: Vector2) -> float:
 
 ## The closest points of two pins' bodies (each a point or a segment).
 static func _nearest_pair(p: Dictionary, q: Dictionary) -> Array:
-	var a0 := Vector2(p["x"], p["y"])
+	var a0 := _pair(p, "x", "y")
 	var a1 := head(p)
-	var b0 := Vector2(q["x"], q["y"])
+	var b0 := _pair(q, "x", "y")
 	var b1 := head(q)
 	var d1 := a1 - a0
 	var d2 := b1 - b0
@@ -488,33 +495,33 @@ static func _nearest_pair(p: Dictionary, q: Dictionary) -> Array:
 
 
 func _bounds(pin: Dictionary) -> void:
-	var base := Vector2(pin["x"], pin["y"])
+	var base := _pair(pin, "x", "y")
 	var tip := head(pin)
 	# The kickbacks: whichever end is past one is pushed back, and the slide
 	# comes off it.
 	for end: Vector2 in [base, tip]:
 		if end.x < KICKBACK[0] + PIN_R:
 			var dx: float = KICKBACK[0] + PIN_R - end.x
-			pin["x"] = float(pin["x"]) + dx
-			if float(pin["vx"]) < 0.0:
-				pin["vx"] = -float(pin["vx"]) * E_WALL
+			pin["x"] = _float(pin["x"]) + dx
+			if _float(pin["vx"]) < 0.0:
+				pin["vx"] = -_float(pin["vx"]) * E_WALL
 				_clack(end)
 		elif end.x > KICKBACK[1] - PIN_R:
 			var dx2: float = KICKBACK[1] - PIN_R - end.x
-			pin["x"] = float(pin["x"]) + dx2
-			if float(pin["vx"]) > 0.0:
-				pin["vx"] = -float(pin["vx"]) * E_WALL
+			pin["x"] = _float(pin["x"]) + dx2
+			if _float(pin["vx"]) > 0.0:
+				pin["vx"] = -_float(pin["vx"]) * E_WALL
 				_clack(end)
-	base = Vector2(pin["x"], pin["y"])
+	base = _pair(pin, "x", "y")
 	var mid := (base + head(pin)) * .5
 	if mid.y < PIT_Y:
 		pin["gone"] = "pit"
 	elif mid.x < BED[0] - .02 or mid.x > BED[1] + .02:
-		if lean(pin) > COUNTS or absf(float(pin["vx"])) + absf(float(pin["vy"])) > .1:
+		if lean(pin) > COUNTS or absf(_float(pin["vx"])) + absf(_float(pin["vy"])) > .1:
 			pin["gone"] = "gutter"
 	elif base.y > FOUL_Y:
 		pin["y"] = FOUL_Y
-		pin["vy"] = -absf(float(pin["vy"])) * E_WALL
+		pin["vy"] = -absf(_float(pin["vy"])) * E_WALL
 
 
 func _clack(at: Vector2) -> void:
@@ -543,17 +550,17 @@ func _settled() -> bool:
 	return still
 
 
-func _ball_live(game) -> bool:
+func _ball_live(game: Game) -> bool:
 	if ball_uid < 0:
 		return false
-	for shot in game.shots:
+	for shot: GameState.Shot in game.shots:
 		if shot.uid == ball_uid:
 			return true
 	ball_uid = -1
 	return false
 
 
-func _score(game) -> void:
+func _score(game: Game) -> void:
 	if sweep_at > 0.0 and game.clock >= sweep_at:
 		_sweep(game)
 		return
@@ -574,7 +581,7 @@ func _score(game) -> void:
 	_count(game)
 
 
-func _count(game) -> void:
+func _count(game: Game) -> void:
 	var up := standing()
 	var got := standing_before - up
 	if frame >= 10:
@@ -624,17 +631,17 @@ func _count(game) -> void:
 
 static func _frame_done(sheet: Array, last: bool) -> bool:
 	if not last:
-		return sheet.size() >= 2 or (sheet.size() == 1 and int(sheet[0]) == 10)
+		return sheet.size() >= 2 or (sheet.size() == 1 and _int(sheet[0]) == 10)
 	if sheet.size() >= 3:
 		return true
 	if sheet.size() == 2:
-		return int(sheet[0]) + int(sheet[1]) < 10
+		return _int(sheet[0]) + _int(sheet[1]) < 10
 	return false
 
 
 ## The pinsetter: deadwood out and the standing pins stood up where they are,
 ## or a fresh rack.
-func _sweep(game) -> void:
+func _sweep(game: Game) -> void:
 	sweep_at = -1.0
 	game.sound_at("range_pen_gate", L.PIN_HEAD.x, L.PIN_HEAD.y - .8, .45)
 	if sweep_full:
@@ -644,7 +651,7 @@ func _sweep(game) -> void:
 		if is_down(pin):
 			pin["gone"] = "swept"
 		else:
-			for key in ["vx", "vy", "tx", "ty", "wx", "wy", "spin", "z", "vz"]:
+			for key: String in ["vx", "vy", "tx", "ty", "wx", "wy", "spin", "z", "vz"]:
 				pin[key] = 0.0
 	standing_before = standing()
 
@@ -655,7 +662,7 @@ func split_name() -> String:
 	var up: Array = []
 	for pin: Dictionary in pins:
 		if not is_down(pin):
-			up.append(int(pin["n"]))
+			up.append(_int(pin["n"]))
 	if up.size() < 2 or 1 in up:
 		return ""
 	var seen := {up[0]: true}
@@ -686,10 +693,10 @@ func score() -> int:
 		var sheet: Array = frames[f]
 		if sheet.is_empty():
 			break
-		if int(sheet[0]) == 10 and f < 9:
+		if _int(sheet[0]) == 10 and f < 9:
 			total += 10 + _ball(balls, i + 1) + _ball(balls, i + 2)
 			i += 1
-		elif sheet.size() >= 2 and int(sheet[0]) + int(sheet[1]) >= 10 and f < 9:
+		elif sheet.size() >= 2 and _int(sheet[0]) + _int(sheet[1]) >= 10 and f < 9:
 			total += 10 + _ball(balls, i + 2)
 			i += 2
 		else:
@@ -700,7 +707,7 @@ func score() -> int:
 
 
 static func _ball(balls: Array, i: int) -> int:
-	return int(balls[i]) if i < balls.size() else 0
+	return _int(balls[i]) if i < balls.size() else 0
 
 
 ## The sheet as a bowler writes it: X a strike, / a spare, - a miss.
@@ -712,12 +719,12 @@ func sheet_text(last := 5) -> String:
 			break
 		var text := ""
 		for k in sheet.size():
-			var b := int(sheet[k])
+			var b := _int(sheet[k])
 			var spare: bool = (
 				k > 0
-				and int(sheet[k - 1]) != 10
-				and int(sheet[k - 1]) + b == 10
-				and not (k == 2 and int(sheet[0]) + int(sheet[1]) != 10 and int(sheet[1]) != 10)
+				and _int(sheet[k - 1]) != 10
+				and _int(sheet[k - 1]) + b == 10
+				and not (k == 2 and _int(sheet[0]) + _int(sheet[1]) != 10 and _int(sheet[1]) != 10)
 			)
 			if b == 10 and not spare:
 				text += "X"
@@ -740,7 +747,7 @@ func shot_at(s: Vector3, e: Vector3, crossing: Callable) -> Dictionary:
 	var best := {}
 	var best_t := 9.0
 	for pin: Dictionary in pins:
-		if String(pin["gone"]) != "" or lean(pin) > COUNTS:
+		if str(pin["gone"]) != "" or lean(pin) > COUNTS:
 			continue
 		var hit: Vector2 = crossing.call(s, e, pin["x"], pin["y"], .2, .2, .08)
 		if hit.x >= 0.0 and hit.x < best_t:
@@ -750,29 +757,29 @@ func shot_at(s: Vector3, e: Vector3, crossing: Callable) -> Dictionary:
 
 
 ## A round struck a pin: a hard knock high up, the way it flew.
-func shot_knock(game, pin: Dictionary, direction: Vector2, damage: float) -> void:
+func shot_knock(game: Game, pin: Dictionary, direction: Vector2, damage: float) -> void:
 	var j := direction.normalized() * clampf(damage / 18.0, .8, 4.0)
-	_impulse(pin, Vector2(pin["x"], pin["y"]), j, .3)
-	_clack(Vector2(pin["x"], pin["y"]))
+	_impulse(pin, _pair(pin, "x", "y"), j, .3)
+	_clack(_pair(pin, "x", "y"))
 	if roll_started < 0.0:
 		roll_started = game.clock
 		still_since = -1.0
 
 
 ## A blast at (x, y): pins within reach are thrown off it, those near hop.
-func blast(game, x: float, y: float) -> void:
+func blast(game: Game, x: float, y: float) -> void:
 	var any := false
 	for pin: Dictionary in pins:
-		if String(pin["gone"]) != "":
+		if str(pin["gone"]) != "":
 			continue
-		var away := Vector2(pin["x"] - x, pin["y"] - y)
+		var away := Vector2(_float(pin["x"]) - x, _float(pin["y"]) - y)
 		var d := away.length()
 		if d > 3.2:
 			continue
 		var power := (3.2 - d) * 2.2
 		var j := (away / maxf(d, .05)).rotated(dice.randf_range(-.4, .4)) * power
-		_impulse(pin, Vector2(pin["x"], pin["y"]), j, .25)
-		pin["vz"] = maxf(float(pin["vz"]), power * .3)
+		_impulse(pin, _pair(pin, "x", "y"), j, .25)
+		pin["vz"] = maxf(_float(pin["vz"]), power * .3)
 		any = true
 	if any and roll_started < 0.0:
 		roll_started = game.clock
@@ -784,22 +791,22 @@ func blast(game, x: float, y: float) -> void:
 
 ## The pins' sprites, each picture picked by how far it leans and which way
 ## its head lies to the viewer at (vx, vy) (tools/art: range_pin_t<k>_<j>).
-func sprites(game, eye: Vector2) -> Array:
+func sprites(game: Game, eye: Vector2) -> Array:
 	var out: Array = []
 	for pin: Dictionary in pins:
-		if String(pin["gone"]) in ["pit", "swept"]:
+		if str(pin["gone"]) in ["pit", "swept"]:
 			continue
-		var base := Vector2(pin["x"], pin["y"])
+		var base := _pair(pin, "x", "y")
 		if not game.in_view(base.x, base.y, .6):
 			continue
 		var a := lean(pin)
-		var floor_z: float = game.world.elevation(base.x, base.y) + float(pin["z"])
-		if String(pin["gone"]) == "gutter":
+		var floor_z: float = game.world.elevation(base.x, base.y) + _float(pin["z"])
+		if str(pin["gone"]) == "gutter":
 			floor_z -= .06
 		if a < .2:
 			out.append(View.Sprite.new(base.x, base.y, "town_range_pin", .5, floor_z))
 			continue
-		var t := Vector2(pin["tx"], pin["ty"]) / a
+		var t := _pair(pin, "tx", "ty") / a
 		var k := 1 if a < .62 else 2 if a < 1.25 else 3
 		# The view's right, and the head's heading measured from it toward
 		# away from the viewer; heads to the left are a flip.
@@ -814,10 +821,20 @@ func sprites(game, eye: Vector2) -> Array:
 		# Its height on screen: the picture's, at the standing pin's scale (a
 		# pin leaning away stands a little taller in its picture than one
 		# leaning toward the viewer).
-		var tall: float = float(TALL[k]) + float(TALL_YAW[k]) * sin(yaw)
+		var tall: float = _float(TALL[k]) + _float(TALL_YAW[k]) * sin(yaw)
 		# The picture's middle sits over the middle of the pin's body.
 		var mid := (base + head(pin)) * .5
 		var sprite := View.Sprite.new(mid.x, mid.y, name, tall, floor_z)
 		sprite.flip = flip
 		out.append(sprite)
 	return out
+
+
+## int() and float() of a value read from data or a dictionary, typed (the
+## same result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v
+
+
+static func _float(v: Variant) -> float:
+	return str(v).to_float() if v is String else v

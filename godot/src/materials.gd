@@ -155,7 +155,7 @@ static var _sides_of: Object = null
 
 ## The kind a tile name is made of.
 static func of_name(name: String) -> String:
-	var cached = _kinds.get(name)
+	var cached: Variant = _kinds.get(name)
 	if cached != null:
 		return cached
 	var base := name
@@ -212,11 +212,11 @@ static func coarse(kind: String) -> String:
 
 
 static func resist(kind: String) -> float:
-	return float(RESIST.get(kind, INF))
+	return RESIST.get(kind, INF)
 
 
 static func hole(kind: String) -> String:
-	return String(HOLES.get(kind, ""))
+	return str(HOLES.get(kind, ""))
 
 
 static func dusty(level: LevelData, x: float, y: float) -> bool:
@@ -228,9 +228,12 @@ static func dusty(level: LevelData, x: float, y: float) -> bool:
 
 ## What the round met at (x, y, z), a point inside whatever stopped it:
 ## `surface_tile` is the floor's or roof's tile when that is what it struck.
-static func struck(level: LevelData, x: float, y: float, z: float, surface_tile = null) -> String:
+static func struck(
+	level: LevelData, x: float, y: float, z: float, surface_tile: Variant = null
+) -> String:
 	if surface_tile != null:
-		return of_tile(level, int(surface_tile))
+		var tile: int = surface_tile
+		return of_tile(level, tile)
 	return of_tile(level, tile_at(level, x, y, z))
 
 
@@ -248,7 +251,7 @@ static func tile_at(level: LevelData, x: float, y: float, z: float) -> int:
 	for door: LevelData.Door in level.near_doors.get(Vector2i(ix, iy), []):
 		if door.blocks(x, y, .03):
 			return door.material
-	for fixture in level.near_fixtures.get(Vector2i(ix, iy), []):
+	for fixture: PackedFloat32Array in level.near_fixtures.get(Vector2i(ix, iy), []):
 		var f: PackedFloat32Array = fixture
 		if f[0] - .03 < x and x < f[2] + .03 and f[1] - .03 < y and y < f[3] + .03:
 			return _side(level, f)
@@ -270,7 +273,7 @@ static func _side(level: LevelData, f: PackedFloat32Array) -> int:
 		_sides = {}
 	var key := Vector4(f[0], f[1], f[2], f[3])
 	if _sides.has(key):
-		return int(_sides[key])
+		return _sides[key]
 	var found := level.tile_id("crate_side")
 	var w := level.walls
 	for i in level.wall_count:

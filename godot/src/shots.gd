@@ -31,28 +31,33 @@ static func load_tuning() -> void:
 
 
 static func gravity(kind: String) -> float:
-	return float(KINDS.get(kind, {}).get("gravity", 0.0))
+	return _kind(kind).get("gravity", 0.0)
 
 
 static func size(kind: String, enemy: bool) -> float:
-	return float(KINDS.get(kind, {}).get("size", .14 if enemy else .10))
+	return _kind(kind).get("size", .14 if enemy else .10)
 
 
 static func glows(kind: String) -> bool:
-	return bool(KINDS.get(kind, {}).get("glow", false))
+	return _kind(kind).get("glow", false)
 
 
 ## It bounces, rolls and rests till its life runs out, as thrown dynamite does.
 static func rolls(kind: String) -> bool:
-	return bool(KINDS.get(kind, {}).get("rolls", false))
+	return _kind(kind).get("rolls", false)
 
 
 static func explodes(kind: String) -> bool:
-	return bool(KINDS.get(kind, {}).get("explodes", false))
+	return _kind(kind).get("explodes", false)
 
 
 ## The blast of a kind: [blast] with what the kind's own section sets.
 static func blast(kind: String) -> Dictionary:
 	var out := BLAST.duplicate()
-	out.merge(KINDS.get(kind, {}), true)
+	out.merge(_kind(kind), true)
 	return out
+
+
+## A kind's own section ({} for a kind without one).
+static func _kind(kind: String) -> Dictionary:
+	return KINDS.get(kind, {})

@@ -13,8 +13,8 @@ const PEN_Y := 10.0
 
 ## The boss whose fight it would be: the chapter's last boss, or Hickston's
 ## sheriff and then Jerry; null when none is awake.
-static func awake(game) -> Enemy:
-	for foe in [game.finale, game.boss, game.jerry]:
+static func awake(game: Game) -> Enemy:
+	for foe: Enemy in [game.finale, game.boss, game.jerry]:
 		if foe != null and foe.alive and foe.alerted and not foe.dormant:
 			return foe
 	return null
@@ -23,37 +23,38 @@ static func awake(game) -> Enemy:
 ## Whether a point is in `foe`'s arena: within ARENA of a chapter's last boss;
 ## for Hickston's two, the box its level gives it (boss_arena: the sheriff's
 ## rodeo pen, Jerry's football field), or the top of the pasture.
-static func in_arena_at(game, foe: Enemy, x: float, y: float) -> bool:
+static func in_arena_at(game: Game, foe: Enemy, x: float, y: float) -> bool:
 	if foe == game.finale:
 		return Vector2(foe.x - x, foe.y - y).length() < ARENA
-	var box = box_of(game, foe.kind)
+	var box: Variant = box_of(game, foe.kind)
 	if box != null:
-		return box.has_point(Vector2(x, y))
+		var area: Rect2 = box
+		return area.has_point(Vector2(x, y))
 	return y < PEN_Y
 
 
 ## The box a kind's arena fills on its level's map (boss_arena's `box`, both
 ## corner cells inside), or null.
-static func box_of(game, kind: String) -> Variant:
-	var notes = game.level.boss_arena.get(kind, {})
-	var box = notes.get("box") if notes is Dictionary else null
-	if not (box is Array) or box.size() < 4:
+static func box_of(game: Game, kind: String) -> Variant:
+	var notes: Variant = game.level.boss_arena.get(kind, {})
+	var sheet: Dictionary = notes if notes is Dictionary else {}
+	var box: Variant = sheet.get("box") if notes is Dictionary else null
+	if not (box is Array) or len(box) < 4:
 		return null
-	return Rect2(
-		float(box[0]),
-		float(box[1]),
-		float(box[2]) - float(box[0]) + 1.0,
-		float(box[3]) - float(box[1]) + 1.0
-	)
+	var x0: float = box[0]
+	var y0: float = box[1]
+	var x1: float = box[2]
+	var y1: float = box[3]
+	return Rect2(x0, y0, x1 - x0 + 1.0, y1 - y0 + 1.0)
 
 
 ## Whether a point is clear of `foe`'s arena: out of it and ARENA away.
-static func clear_of(game, foe: Enemy, x: float, y: float) -> bool:
+static func clear_of(game: Game, foe: Enemy, x: float, y: float) -> bool:
 	return not in_arena_at(game, foe, x, y) and Vector2(foe.x - x, foe.y - y).length() >= ARENA
 
 
 ## The boss whose fight is on this moment, or null.
-static func on(game) -> Enemy:
+static func on(game: Game) -> Enemy:
 	if game.in_hub:
 		return null
 	var foe := awake(game)
@@ -63,7 +64,7 @@ static func on(game) -> Enemy:
 
 
 ## The living enemy of `kind` (a boss: there is one of each), or null.
-static func of_kind(game, kind: String) -> Enemy:
+static func of_kind(game: Game, kind: String) -> Enemy:
 	for e: Enemy in game.enemies:
 		if e.kind == kind and e.hp > 0.0:
 			return e

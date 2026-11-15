@@ -35,23 +35,24 @@ static func held_back(level: LevelData) -> Dictionary:
 	var held := {}
 	for trigger: Dictionary in level.triggers:
 		for action: Dictionary in trigger.get("do", []):
-			for id in action.get("wake", []):
-				held[String(id)] = true
+			for id: Variant in action.get("wake", []):
+				held[str(id)] = true
 	return held
 
 
-static func tick(game) -> void:
+static func tick(game: Game) -> void:
 	if game.in_hub or game.revisiting or Modes.is_versus(game):
 		return
 	for trigger: Dictionary in game.level.triggers:
-		var id := String(trigger.get("id", ""))
-		var once := bool(trigger.get("once", true))
+		var id := str(trigger.get("id", ""))
+		var once: bool = trigger.get("once", true)
 		if once and game.triggers_fired.has(id):
 			continue
-		var now := _met_any(game, trigger.get("when", {}))
+		var when: Dictionary = trigger.get("when", {})
+		var now := _met_any(game, when)
 		if not once:
 			# Fires on the way in, not on every tick spent inside.
-			var was := bool(game.triggers_inside.get(id, false))
+			var was: bool = game.triggers_inside.get(id, false)
 			game.triggers_inside[id] = now
 			if not now or was:
 				continue
@@ -65,7 +66,7 @@ static func tick(game) -> void:
 
 ## Whether any player meets `when`; the first who does (by slot) is left
 ## acting, so what the trigger does (a wake, a light) is about them.
-static func _met_any(game, when: Dictionary) -> bool:
+static func _met_any(game: Game, when: Dictionary) -> bool:
 	if game.players.size() == 1:
 		return _met(game, when)
 	for q: Player in game.players:
@@ -77,52 +78,52 @@ static func _met_any(game, when: Dictionary) -> bool:
 	return false
 
 
-static func _met(game, when: Dictionary) -> bool:
-	var p = game.player
+static func _met(game: Game, when: Dictionary) -> bool:
+	var p := game.player
 	if when.has("area"):
 		var box: Array = when["area"]
 		if not (
-			float(box[0]) <= p.x
-			and p.x <= float(box[2])
-			and float(box[1]) <= p.y
-			and p.y <= float(box[3])
+			_float(box[0]) <= p.x
+			and p.x <= _float(box[2])
+			and _float(box[1]) <= p.y
+			and p.y <= _float(box[3])
 		):
 			return false
-	if when.has("key") and not game.keys.has(String(when["key"])):
+	if when.has("key") and not game.keys.has(str(when["key"])):
 		return false
-	if when.has("station") and not game.stations_done.has(String(when["station"])):
+	if when.has("station") and not game.stations_done.has(str(when["station"])):
 		return false
-	if when.has("kills") and game.kills < int(when["kills"]):
+	if when.has("kills") and game.kills < _int(when["kills"]):
 		return false
-	if when.has("after") and game.clock < float(when["after"]):
+	if when.has("after") and game.clock < _float(when["after"]):
 		return false
 	if when.has("down"):
-		for id in when["down"]:
-			var at: int = game.enemy_ids.find(String(id))
+		for id: Variant in when["down"]:
+			var at: int = game.enemy_ids.find(str(id))
 			if at >= 0 and game.enemies[at].hp > 0.0:
 				return false
 	return true
 
 
 ## One action (also used by the level editor to try a trigger out).
-static func run(game, action: Dictionary) -> void:
-	var p = game.player
+static func run(game: Game, action: Dictionary) -> void:
+	var p := game.player
 	if action.has("message"):
-		game.message(String(action["message"]), float(action.get("for", 3.0)))
+		game.message(str(action["message"]), _float(action.get("for", 3.0)))
 	if action.has("sound"):
-		var at = action.get("at")
+		var at: Variant = action.get("at")
 		if at is Array:
-			game.sound_at(String(action["sound"]), float(at[0]), float(at[1]))
+			game.sound_at(str(action["sound"]), _float(at[0]), _float(at[1]))
 		else:
-			game.sound.play(String(action["sound"]))
+			game.sound.play(str(action["sound"]))
 	if action.has("open"):
 		var cell: Array = action["open"]
 		for door: LevelData.Door in game.world.doors:
-			if door.x == int(cell[0]) and door.y == int(cell[1]):
+			if door.x == _int(cell[0]) and door.y == _int(cell[1]):
 				game.toggle_door(door, true)
 	if action.has("wake"):
-		for id in action["wake"]:
-			var at: int = game.enemy_ids.find(String(id))
+		for id: Variant in action["wake"]:
+			var at: int = game.enemy_ids.find(str(id))
 			if at < 0:
 				continue
 			var enemy: Enemy = game.enemies[at]
@@ -131,7 +132,7 @@ static func run(game, action: Dictionary) -> void:
 	if action.has("alert"):
 		# Walking distance on the flow field, not through walls; never a boss,
 		# whose waking is its own scene.
-		var reach := int(float(action["alert"]))
+		var reach := int(_float(action["alert"]))
 		for enemy: Enemy in game.enemies:
 			if (
 				enemy.alive
@@ -144,28 +145,38 @@ static func run(game, action: Dictionary) -> void:
 		var spec: Dictionary = action["light"]
 		var base: Dictionary = Effects.LIGHTS.get("trigger", {})
 		var where: Array = spec.get("at", [p.x, p.y])
-		var tint = spec.get("color")
+		var tint: Variant = spec.get("color")
 		var color: Color = (
-			Color(float(tint[0]), float(tint[1]), float(tint[2]))
+			Color(_float(tint[0]), _float(tint[1]), _float(tint[2]))
 			if tint is Array
 			else base.get("color", Color(1, .3, .2))
 		)
-		var x := float(where[0])
-		var y := float(where[1])
+		var x := _float(where[0])
+		var y := _float(where[1])
 		game.trigger_lights.append(
 			[
 				x,
 				y,
-				game.world.elevation(x, y) + float(spec.get("z", base.get("height", 1.2))),
-				float(spec.get("radius", base.get("radius", 5.0))),
+				game.world.elevation(x, y) + _float(spec.get("z", base.get("height", 1.2))),
+				_float(spec.get("radius", base.get("radius", 5.0))),
 				color,
-				float(spec.get("strength", base.get("strength", 1.4))),
-				game.clock + float(spec.get("for", 4.0))
+				_float(spec.get("strength", base.get("strength", 1.4))),
+				game.clock + _float(spec.get("for", 4.0))
 			]
 		)
 	if action.has("shake"):
-		game.shake = minf(1.0, game.shake + float(action["shake"]))
+		game.shake = minf(1.0, game.shake + _float(action["shake"]))
 	if action.has("pickup"):
 		var drop: Dictionary = action["pickup"]
 		var spot: Array = drop.get("at", [p.x, p.y])
-		game.add_pickup(String(drop["name"]), float(spot[0]), float(spot[1]))
+		game.add_pickup(str(drop["name"]), _float(spot[0]), _float(spot[1]))
+
+
+## int() and float() of a value read from data or a dictionary, typed (the
+## same result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v
+
+
+static func _float(v: Variant) -> float:
+	return str(v).to_float() if v is String else v

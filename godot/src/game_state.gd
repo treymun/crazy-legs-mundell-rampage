@@ -157,7 +157,7 @@ class Rng:
 	func randf_range(a: float, b: float) -> float:
 		return a + (b - a) * next()
 
-	func choice(values: Array):
+	func choice(values: Array) -> Variant:
 		return values[clampi(int(next() * values.size()), 0, values.size() - 1)]
 
 	func get_state() -> int:
@@ -394,7 +394,7 @@ class Barks:
 		state = (state * 6364136223846793005 + 1442695040888963407) & 0x7FFFFFFFFFFFFFFF
 		return float(state >> 10) / 9007199254740992.0
 
-	func say(game, category: String, force := false) -> bool:
+	func say(game: Game, category: String, force := false) -> bool:
 		# The local player's mouth (another player's kill is not ours to crow).
 		if game.player != game.local_player:
 			return false
@@ -403,19 +403,18 @@ class Barks:
 		if not enabled and spoken.is_empty():
 			return false
 		var now: float = game.clock
-		if (
-			not force
-			and (
-				now < next_any
-				or now - float(last_at.get(category, -99.0)) < float(COOLDOWN[category])
-			)
-		):
-			return false
+		if not force:
+			if now < next_any:
+				return false
+			var last: float = last_at.get(category, -99.0)
+			var gap: float = COOLDOWN[category]
+			if now - last < gap:
+				return false
 		if not spoken.is_empty():
 			return _speak(game, category, spoken, now)
 		var pool: Array = LINES[category]
 		var choices: Array = []
-		for line in pool:
+		for line: Variant in pool:
 			if line != last_line.get(category):
 				choices.append(line)
 		if choices.is_empty():
@@ -434,16 +433,17 @@ class Barks:
 	## Mundell's spoken lines (data/tuning/mundell_lines.json): moment -> lines.
 	static func spoken_lines() -> Dictionary:
 		if _spoken_lines.is_empty() and FileAccess.file_exists(SPOKEN):
-			var parsed = JSON.parse_string(FileAccess.get_file_as_string(SPOKEN))
+			var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(SPOKEN))
 			if parsed is Dictionary:
-				_spoken_lines = parsed.get("lines", {})
+				var doc: Dictionary = parsed
+				_spoken_lines = doc.get("lines", {})
 		return _spoken_lines
 
 	## What Mundell can say aloud for `category` with CHATTER on, each [cue,
 	## caption, cuss]: his clean lines and the cuss pack's whose cues are made;
 	## [] with CHATTER off.
-	func _spoken(game, category: String) -> Array:
-		var chatter := int(game.chatter)
+	func _spoken(game: Game, category: String) -> Array:
+		var chatter := game.chatter
 		if chatter == CussLines.OFF or game.sound == null:
 			return []
 		var out: Array = []
@@ -451,15 +451,15 @@ class Barks:
 		for n in clean.size():
 			var cue := "mundell_%s_%d" % [category, n]
 			if game.sound.has(cue):
-				out.append([cue, String(clean[n]), false])
+				out.append([cue, str(clean[n]), false])
 		var cuss := CussLines.lines("mundell", "", category)
 		for n in cuss.size():
 			var cue := CussLines.cue("mundell", category, n, chatter)
 			if game.sound.has(cue):
-				out.append([cue, CussLines.caption(String(cuss[n]), chatter), true])
+				out.append([cue, CussLines.caption(str(cuss[n]), chatter), true])
 		return out
 
-	func _speak(game, category: String, spoken: Array, now: float) -> bool:
+	func _speak(game: Game, category: String, spoken: Array, now: float) -> bool:
 		var cussing := spoken.filter(func(s: Array) -> bool: return s[2])
 		var plain := spoken.filter(func(s: Array) -> bool: return not s[2])
 		var pool: Array = cussing if not cussing.is_empty() and _rand() < CUSS_SHARE else plain
@@ -468,18 +468,18 @@ class Barks:
 		var pick: Array = pool[clampi(int(_rand() * pool.size()), 0, pool.size() - 1)]
 		if pool.size() > 1 and pick[1] == last_line.get(category):
 			pick = pool[(pool.find(pick) + 1) % pool.size()]
-		game.sound.play(String(pick[0]), .95)
+		game.sound.play(str(pick[0]), .95)
 		last_line[category] = pick[1]
 		last_at[category] = now
 		next_any = now + GLOBAL_GAP
-		text = String(pick[1]).to_upper() if enabled else ""
+		text = str(pick[1]).to_upper() if enabled else ""
 		until = now + SHOW_FOR if enabled else 0.0
 		return true
 
-	func kill(game, head := false) -> void:
+	func kill(game: Game, head := false) -> void:
 		var recent: Array = []
-		for t in recent_kills:
-			if game.clock - float(t) < 7.0:
+		for t: float in recent_kills:
+			if game.clock - t < 7.0:
 				recent.append(t)
 		recent.append(game.clock)
 		recent_kills = recent
@@ -491,7 +491,7 @@ class Barks:
 			return
 		say(game, "kill")
 
-	func visible(game) -> bool:
+	func visible(game: Game) -> bool:
 		return enabled and until > game.clock
 
 
@@ -508,11 +508,11 @@ class Cheats:
 	var god := false
 	var used := false
 
-	func feed(char: String, game) -> String:
+	func feed(char: String, game: Game) -> String:
 		if char.length() != 1 or not char.to_lower() in "abcdefghijklmnopqrstuvwxyz":
 			return ""
 		buffer = (buffer + char.to_lower()).right(10)
-		for code in CODES:
+		for code: String in CODES:
 			if buffer.ends_with(code):
 				buffer = ""
 				apply(code, game)
@@ -523,19 +523,19 @@ class Cheats:
 				return text
 		return ""
 
-	func apply(code: String, game) -> void:
-		var p = game.player
+	func apply(code: String, game: Game) -> void:
+		var p := game.player
 		if code == "hickgod":
 			god = not god
 		elif code == "hickhp":
 			p.health = 100
 		elif code == "hickguns":
-			var a = game.armory
+			var a := game.armory
 			for i in Weapons.COUNT:
 				a.owned[i] = true
 				a.reserve[i] = Weapons.MAX_RESERVE[i]
 		elif code == "hickbooze":
-			for key in game.inventory:
+			for key: Variant in game.inventory:
 				game.inventory[key] = 5
 		elif code == "hickbarks":
 			game.barks_off_by_code = game.barks.enabled
@@ -573,7 +573,7 @@ class Gallery:
 	func _init() -> void:
 		pistol = Weapons.Armory.new(Weapons.REVOLVER)
 
-	func toggle(game) -> void:
+	func toggle(game: Game) -> void:
 		if active:
 			finish(game, "GALLERY CLOSED. E TO TRY AGAIN.")
 			return
@@ -597,11 +597,10 @@ class Gallery:
 
 	func hud() -> String:
 		return (
-			"TIN ROOSTER  %d/4  ROUNDS %d  TIME %02d"
-			% [hits, ROUNDS - spent, int(ceil(LIMIT - clock))]
+			"TIN ROOSTER  %d/4  ROUNDS %d  TIME %02d" % [hits, ROUNDS - spent, ceili(LIMIT - clock)]
 		)
 
-	func sprite(game):
+	func sprite(game: Game) -> View.Sprite:
 		var t: Vector3 = TARGETS[index] + Vector3(offset.x, offset.y, 0.0)
 		var out := View.Sprite.new(
 			t.x,
@@ -613,7 +612,7 @@ class Gallery:
 		out.plane = PI * .5
 		return out
 
-	func finish(game, message: String) -> void:
+	func finish(game: Game, message: String) -> void:
 		active = false
 		game.message(message, 2.6)
 
@@ -621,8 +620,8 @@ class Gallery:
 		index = (index + 1) % TARGETS.size()
 		next_target = clock + 2.35
 
-	func tick(dt: float, game, fire: bool) -> void:
-		var p = game.player
+	func tick(dt: float, game: Game, fire: bool) -> void:
+		var p := game.player
 		clock += dt
 		pistol.tick(dt, game)
 		var at: Vector2 = Vector2(p.x, p.y) - offset
@@ -681,10 +680,10 @@ var art: Assets
 var hud: HUD
 ## What the game's sounds play through: the speaker (Sound) while the acting
 ## player is the local one, that player's PlayerVoice otherwise (focus()).
-var sound = null
+var sound: Variant = null
 ## This machine's Sound itself: sound_at() places a sound for the local
 ## player's ears through it whoever is acting.
-var speaker = null
+var speaker: Variant = null
 
 var level: LevelData
 var world: LevelData
@@ -775,10 +774,10 @@ var route_sig := []
 var enemies: Array = []
 var partners := {}
 var wave: Array = []
-var boss = null
-var jerry = null
-var bessie = null
-var finale = null
+var boss: Enemy = null
+var jerry: Enemy = null
+var bessie: Enemy = null
+var finale: Enemy = null
 
 var props: Array = []
 # The sprites that only change with the game's state (props, boards, drums,
@@ -827,7 +826,7 @@ var history: Array = []
 var replay := false
 var revisiting := false
 var retained := {}
-var music_bookmark = null
+var music_bookmark: Variant = null
 var in_hub := false
 ## Loaded from a save of an older build of this level: started over (session_store.gd).
 var layout_restarted := false
@@ -860,8 +859,8 @@ var face := ""
 var notice := ""
 var hurt_flash := 0.0
 var blast_flash := 0.0
-var damage_feedback = null
-var item_feedback = null
+var damage_feedback: Variant = null
+var item_feedback: Variant = null
 ## Game feel (HIT FEEDBACK and SCREEN SHAKE): a short freeze when a shot kills
 ## or hits hard, the crosshair's hit mark (red after a kill) and its tick, and
 ## a shake of the view (0 to 1, squared when drawn) from blasts, heavy guns and
@@ -903,7 +902,7 @@ var scenery_spent := {}
 var exchanges: Array = []
 var heard_exchanges := {}
 var exchange_next := 0.0
-var exchange_pending = null
+var exchange_pending: LevelData.Exchange = null
 var caption := ""
 var caption_until := 0.0
 var visited := {}
@@ -924,8 +923,8 @@ var use_key := "E"
 ## marker drawn round it; INF when it chose none or a door.
 var use_aim := Vector3.INF
 var flush_until := 0.0
-var map_panel = null
-var map_signature = null
+var map_panel: Variant = null
+var map_signature: Variant = null
 var radio_check := 0.0
 
 # Options (configure()).
@@ -1053,7 +1052,7 @@ var flicker := true
 var crosshair_tint := Color8(188, 168, 132)
 
 ## Final VGA brightness tone table (set by the front end when brightness != 100).
-var tone = null
+var tone: Variant = null
 
 var showing_tally: bool:
 	get:
@@ -1075,7 +1074,7 @@ var _look_rows_per := 0
 var _look_gain := 1.0
 var _look_frame := 0
 var _look_blast := 0.0
-var _look_tone = null
+var _look_tone: Variant = null
 
 ## The automap (game_view.gd): the whole map drawn at the zoom in use, the
 ## scale it was drawn at, how much of `visited` is painted on it, the cells a
@@ -1142,7 +1141,8 @@ func _walk_flow(p: Player) -> void:
 ## (src/modes/). The campaign and co-op: nobody is up; versus never (a match
 ## ends on its limits).
 func defeated() -> bool:
-	var rules = features.get("mode")
+	const ModeFeature := preload("res://src/features/mode_feature.gd")
+	var rules: ModeFeature = features.get("mode")
 	if rules != null:
 		return rules.defeated()
 	return not Players.anyone_alive(self)
@@ -1221,6 +1221,7 @@ static func _prop_heights() -> Dictionary:
 	var cfg := Tuning.file("res://data/tuning/props.cfg")
 	var out := {}
 	if cfg.has_section("heights"):
-		for key in cfg.get_section_keys("heights"):
-			out[key] = float(cfg.get_value("heights", key))
+		for key: String in cfg.get_section_keys("heights"):
+			var h: float = cfg.get_value("heights", key)
+			out[key] = h
 	return out

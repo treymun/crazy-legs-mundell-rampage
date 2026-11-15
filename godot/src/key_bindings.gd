@@ -60,33 +60,33 @@ static func register(options: Dictionary) -> void:
 	var bound := {}
 	for entry: Array in ACTIONS:
 		var action: String = entry[0]
-		var code := int(options.get(option_key(action), entry[2]))
+		var code := _int(options.get(option_key(action), entry[2]))
 		bound[action] = code
 		if InputMap.has_action(action):
 			InputMap.erase_action(action)
 		InputMap.add_action(action, .2)
 		var keys: Array = [code] + entry[3]
-		for key_code in keys:
-			if int(key_code) == KEY_NONE:
+		for key_code: Variant in keys:
+			if _int(key_code) == KEY_NONE:
 				continue
 			var event := InputEventKey.new()
-			event.keycode = int(key_code)
-			if int(key_code) == KEY_CTRL:
+			event.keycode = _int(key_code)
+			if _int(key_code) == KEY_CTRL:
 				# Only the left Ctrl fires, as before: the right one is free.
 				event.location = KEY_LOCATION_LEFT
 			InputMap.action_add_event(action, event)
-		if code != int(entry[2]):
-			_translate[code] = int(entry[2])
+		if code != _int(entry[2]):
+			_translate[code] = _int(entry[2])
 	for entry: Array in ACTIONS:
-		var default_code := int(entry[2])
-		if int(bound[entry[0]]) != default_code and not _translate.has(default_code):
+		var default_code := _int(entry[2])
+		if _int(bound[entry[0]]) != default_code and not _translate.has(default_code):
 			_freed[default_code] = true
 
 
 ## The key a play key handler should see for a key pressed in play.
 static func translate(code: int) -> int:
 	if _translate.has(code):
-		return int(_translate[code])
+		return _int(_translate[code])
 	if _freed.has(code):
 		return KEY_NONE
 	return code
@@ -100,10 +100,10 @@ static func held(action: String) -> bool:
 ## takes this one's old key, so no key does two things.
 static func bind(options: Dictionary, action: String, code: int) -> void:
 	var mine := option_key(action)
-	var old := int(options.get(mine, _default_of(action)))
+	var old := _int(options.get(mine, _default_of(action)))
 	for entry: Array in ACTIONS:
-		var other := option_key(entry[0])
-		if other != mine and int(options.get(other, entry[2])) == code:
+		var other := option_key(str(entry[0]))
+		if other != mine and _int(options.get(other, entry[2])) == code:
 			options[other] = old
 	options[mine] = code
 
@@ -111,5 +111,11 @@ static func bind(options: Dictionary, action: String, code: int) -> void:
 static func _default_of(action: String) -> int:
 	for entry: Array in ACTIONS:
 		if entry[0] == action:
-			return int(entry[2])
+			return _int(entry[2])
 	return KEY_NONE
+
+
+## int() of a value read from data or a dictionary, typed (the same
+## result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v

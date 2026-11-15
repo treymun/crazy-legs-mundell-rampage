@@ -321,12 +321,12 @@ const LOOKS_FEATURES := [
 
 
 ## The simulation state of `game` now, as plain values.
-static func capture(game) -> Dictionary:
+static func capture(game: Game) -> Dictionary:
 	game.name_new()
 	var codec := SnapCodec.new(game)
 	var fields := {}
 	for name: String in SIM_FIELDS:
-		var v = game.get(name)
+		var v: Variant = game.get(name)
 		fields[name] = v if SnapCodec.PLAIN.has(typeof(v)) else codec.encode(v)
 	var players := {}
 	for p: Player in game.players:
@@ -339,7 +339,7 @@ static func capture(game) -> Dictionary:
 		enemies[str(e.uid)] = enemy_row(game, codec, i)
 	var features := {}
 	for id: String in SIM_FEATURES:
-		var feature = game.features.get(id)
+		var feature: GameFeature = game.features.get(id)
 		if feature != null:
 			features[id] = feature_row(codec, feature, id)
 	return {
@@ -360,25 +360,26 @@ static func capture(game) -> Dictionary:
 
 ## The carried fields of game.enemies[i], with "@id" its id in the level ("" for
 ## one that joined later).
-static func enemy_row(game, codec: SnapCodec, i: int) -> Dictionary:
-	var row: Dictionary = codec.encode_fields(game.enemies[i])
-	row["@id"] = String(game.enemy_ids[i]) if i < game.enemy_ids.size() else ""
+static func enemy_row(game: Game, codec: SnapCodec, i: int) -> Dictionary:
+	var enemy: Enemy = game.enemies[i]
+	var row: Dictionary = codec.encode_fields(enemy)
+	row["@id"] = str(game.enemy_ids[i]) if i < game.enemy_ids.size() else ""
 	return row
 
 
 ## A simulation feature's variables (all but `game`).
-static func feature_row(codec: SnapCodec, feature, id: String) -> Dictionary:
+static func feature_row(codec: SnapCodec, feature: GameFeature, id: String) -> Dictionary:
 	var vars := {}
 	for name: String in SnapCodec.fields_of(feature, id):
 		if name != "game":
-			var v = feature.get(name)
+			var v: Variant = feature.get(name)
 			vars[name] = v if SnapCodec.PLAIN.has(typeof(v)) else codec.encode(v)
 	return vars
 
 
 ## The level's own changing state: each door's progress, opened and
 ## discovered (by its place in the level's list), the panes broken.
-static func world_of(game) -> Dictionary:
+static func world_of(game: Game) -> Dictionary:
 	var doors: Array = []
 	for door: LevelData.Door in game.world.doors:
 		doors.append([door.progress, door.opened, door.discovered])
@@ -389,10 +390,10 @@ static func world_of(game) -> Dictionary:
 
 
 ## What each FACT_FEATURES feature broke, in its save's own form.
-static func facts_of(game) -> Dictionary:
+static func facts_of(game: Game) -> Dictionary:
 	var out := {}
 	for id: String in FACT_FEATURES:
-		var feature = game.features.get(id)
+		var feature: GameFeature = game.features.get(id)
 		if feature != null:
 			out[id] = SnapCodec.plain(feature.save())
 	return out
@@ -403,7 +404,7 @@ static func facts_of(game) -> Dictionary:
 ## feature instead.
 static func statics_of(codec: SnapCodec) -> Dictionary:
 	var derby := {}
-	for key in DerbyChamp.state:
+	for key: Variant in DerbyChamp.state:
 		if codec.iids.has(key):
 			derby[key] = DerbyChamp.state[key]
 	return {"derby": codec.encode(derby)}
@@ -415,10 +416,10 @@ static func statics_of(codec: SnapCodec) -> Dictionary:
 ## broken things are put as they were (only what is not broken yet breaks),
 ## then every carried field is set. Presentation options stay as `game` had
 ## them. False when `data` is for another level.
-static func apply(game, data: Dictionary) -> bool:
-	if String(data.get("level", "")) != game.level.id:
+static func apply(game: Game, data: Dictionary) -> bool:
+	if str(data.get("level", "")) != game.level.id:
 		return false
-	if int(data.get("layout", 0)) != game.level.layout:
+	if _int(data.get("layout", 0)) != game.level.layout:
 		return false
 	var codec := SnapCodec.new(game)
 	var players: Dictionary = data["players"]
@@ -426,9 +427,11 @@ static func apply(game, data: Dictionary) -> bool:
 		Players.join(game, game.player.x, game.player.y, 0.0)
 	var local: Player = game.local_player
 	game.focus(game.players[0])
-	_apply_world(game, data.get("world", {}))
+	var world: Dictionary = data.get("world", {})
+	_apply_world(game, world)
 	_apply_enemies(game, codec, data, {})
-	_apply_facts(game, data.get("facts", {}))
+	var facts: Dictionary = data.get("facts", {})
+	_apply_facts(game, facts)
 	for slot: String in players:
 		var p: Player = game.players[int(slot)]
 		var row: Dictionary = players[slot]
@@ -441,13 +444,14 @@ static func apply(game, data: Dictionary) -> bool:
 			codec.set_field(game, name, fields[name])
 	var features: Dictionary = data["features"]
 	for id: String in features:
-		var feature = game.features.get(id)
+		var feature: GameFeature = game.features.get(id)
 		if feature == null:
 			continue
 		var vars: Dictionary = features[id]
 		for name: String in vars:
 			codec.set_field(feature, name, vars[name])
-	_apply_statics(game, codec, data.get("statics", {}))
+	var statics: Dictionary = data.get("statics", {})
+	_apply_statics(game, codec, statics)
 	_settle(game, local)
 	return true
 
@@ -456,7 +460,7 @@ static func apply(game, data: Dictionary) -> bool:
 ## whole snapshot it now matches) touches, each field from `full`: what a
 ## client does with every delta from its host. `game` must hold the state of
 ## the snapshot `change` was taken against.
-static func apply_delta(game, change: Dictionary, full: Dictionary) -> void:
+static func apply_delta(game: Game, change: Dictionary, full: Dictionary) -> void:
 	var codec := SnapCodec.new(game)
 	var players: Dictionary = full["players"]
 	while game.players.size() < players.size():
@@ -464,20 +468,22 @@ static func apply_delta(game, change: Dictionary, full: Dictionary) -> void:
 	var local: Player = game.local_player
 	game.focus(game.players[0])
 	if change.has("world"):
-		_apply_world(game, full["world"])
+		var world: Dictionary = full["world"]
+		_apply_world(game, world)
 	if change.has("enemies") or change.has("order"):
 		_apply_enemies(game, codec, full, change.get("enemies", {}))
 	else:
 		for e: Enemy in game.enemies:
 			codec.by_uid[e.uid] = e
 	if change.has("facts"):
-		_apply_facts(game, full["facts"])
+		var facts: Dictionary = full["facts"]
+		_apply_facts(game, facts)
 	var players_change: Dictionary = change.get("players", {})
-	for slot in players_change:
-		if typeof(slot) == TYPE_STRING and String(slot).begins_with("@"):
+	for slot: Variant in players_change:
+		if typeof(slot) == TYPE_STRING and str(slot).begins_with("@"):
 			continue
 		var row: Dictionary = players[slot]
-		var p: Player = game.players[int(slot)]
+		var p: Player = game.players[_int(slot)]
 		for name: String in _touched(players_change[slot], row):
 			codec.set_field(p, name, row[name])
 	if not players_change.is_empty():
@@ -486,50 +492,56 @@ static func apply_delta(game, change: Dictionary, full: Dictionary) -> void:
 	for name: String in _touched(change.get("game", {}), fields):
 		codec.set_field(game, name, fields[name])
 	var features_change: Dictionary = change.get("features", {})
-	for id in features_change:
-		var feature = game.features.get(id)
-		if feature == null or not full["features"].has(id):
+	for id: Variant in features_change:
+		var feature: GameFeature = game.features.get(id)
+		if feature == null:
 			continue
-		var vars: Dictionary = full["features"][id]
+		var all_vars: Dictionary = full["features"]
+		if not all_vars.has(id):
+			continue
+		var vars: Dictionary = all_vars[id]
 		for name: String in _touched(features_change[id], vars):
 			codec.set_field(feature, name, vars[name])
 	if change.has("statics"):
-		_apply_statics(game, codec, full["statics"])
+		var statics: Dictionary = full["statics"]
+		_apply_statics(game, codec, statics)
 	_settle(game, local)
 
 
 ## The field names a row's change touches (all of the row for a new one).
-static func _touched(change, row: Dictionary) -> Array:
-	if not (change is Dictionary) or change.has("@new"):
+static func _touched(change: Variant, row: Dictionary) -> Array:
+	var asked: Dictionary = change if change is Dictionary else {"@new": true}
+	if asked.has("@new"):
 		return row.keys()
 	var out: Array = []
-	for name in change:
-		if typeof(name) == TYPE_STRING and not String(name).begins_with("@"):
+	for name: Variant in asked:
+		if typeof(name) == TYPE_STRING and not str(name).begins_with("@"):
 			out.append(name)
 	return out
 
 
 ## The dictionaries the party shares are one object again (Players.SHARED).
-static func _share(game) -> void:
+static func _share(game: Game) -> void:
 	for name: String in Players.SHARED:
-		if bool(Players.SHARED[name]):
+		if Players.SHARED[name]:
 			for p: Player in game.players:
 				p.set(name, game.players[0].get(name))
 
 
-static func _apply_statics(game, codec: SnapCodec, statics: Dictionary) -> void:
-	var derby = codec.decode(statics.get("derby", {}))
+static func _apply_statics(game: Game, codec: SnapCodec, statics: Dictionary) -> void:
+	var derby: Variant = codec.decode(statics.get("derby", {}))
 	if derby is Dictionary:
+		var ours: Dictionary = derby
 		# Ours only (the dictionary is every game's): the old part of it goes.
 		for e: Enemy in game.enemies:
-			if not derby.has(e.get_instance_id()):
+			if not ours.has(e.get_instance_id()):
 				DerbyChamp.state.erase(e.get_instance_id())
-		DerbyChamp.state.merge(derby, true)
+		DerbyChamp.state.merge(ours, true)
 
 
 ## After a snapshot: a finished station's lights, and the caches keyed on what
 ## changed underneath them start over; the local player is acting again.
-static func _settle(game, local: Player) -> void:
+static func _settle(game: Game, local: Player) -> void:
 	for station: LevelData.Station in game.world.stations:
 		if game.stations_done.has(station.id) and not game.lit_stations.has(station.id):
 			game.set_station_lights(station)
@@ -541,19 +553,19 @@ static func _settle(game, local: Player) -> void:
 
 
 ## Each door as the snapshot has it, and the panes broken.
-static func _apply_world(game, world: Dictionary) -> void:
+static func _apply_world(game: Game, world: Dictionary) -> void:
 	var doors: Array = world.get("doors", [])
 	var list: Array = game.world.doors
 	for i in mini(doors.size(), list.size()):
 		var door: LevelData.Door = list[i]
 		var row: Array = doors[i]
-		door.progress = float(row[0])
-		door.opened = bool(row[1])
-		door.discovered = bool(row[2])
+		door.progress = row[0]
+		door.opened = row[1]
+		door.discovered = row[2]
 	var panes: Array = world.get("panes", [])
 	if panes.size() != game.world.broken_panes.size():
 		var broken := {}
-		for cell in panes:
+		for cell: Variant in panes:
 			broken[cell] = true
 		game.world.broken_panes = broken
 
@@ -561,60 +573,63 @@ static func _apply_world(game, world: Dictionary) -> void:
 ## What FACT_FEATURES broke, onto the level: each feature's restore() breaks
 ## what is not broken yet (quietly). Only when it differs from what this game
 ## was last given (game.net_facts), so a running game is not asked each time.
-static func _apply_facts(game, facts: Dictionary) -> void:
+static func _apply_facts(game: Game, facts: Dictionary) -> void:
 	for id: String in facts:
-		var feature = game.features.get(id)
+		var feature: GameFeature = game.features.get(id)
 		if feature == null:
 			continue
-		var state = facts[id]
+		var state: Variant = facts[id]
 		var key := var_to_bytes(state)
 		if game.net_facts.get(id) == key:
 			continue
 		game.net_facts[id] = key
-		feature.restore(state if state is Dictionary else {})
+		var doc: Dictionary = state if state is Dictionary else {}
+		feature.restore(doc)
 
 
 ## The enemies in the snapshot's order: each one the game has with that uid,
 ## else a new one; every carried field set (for a delta, only the fields
 ## `change` touches of the enemies it names, every field of a new one); uids
 ## map for the references.
-static func _apply_enemies(game, codec: SnapCodec, data: Dictionary, change) -> void:
+static func _apply_enemies(game: Game, codec: SnapCodec, data: Dictionary, change: Variant) -> void:
 	var rows: Dictionary = data["enemies"]
 	var order: Array = data["order"]
 	var had := {}
 	for e: Enemy in game.enemies:
 		had[e.uid] = e
-	var whole: bool = not (change is Dictionary) or change.is_empty() or change.has("@new")
+	var asked: Dictionary = change if change is Dictionary else {}
+	var whole: bool = not (change is Dictionary) or asked.is_empty() or asked.has("@new")
 	var list: Array = []
 	var ids: Array = []
 	var made := {}
 	for i in order.size():
-		var uid := int(order[i])
+		var uid := _int(order[i])
 		var row: Dictionary = rows[str(uid)]
 		var e: Enemy = had.get(uid)
 		if e == null:
-			e = Enemy.new(String(row["kind"]), float(row["x"]), float(row["y"]))
+			e = Enemy.new(str(row["kind"]), _float(row["x"]), _float(row["y"]))
 			made[uid] = true
 		list.append(e)
 		codec.by_uid[uid] = e
-		if String(row["@id"]) != "":
-			ids.append(String(row["@id"]))
+		if str(row["@id"]) != "":
+			ids.append(str(row["@id"]))
 	game.enemies.assign(list)
 	game.enemy_ids.assign(ids)
 	for i in order.size():
-		var uid := int(order[i])
+		var uid := _int(order[i])
 		var key := str(uid)
 		var row: Dictionary = rows[key]
 		var names: Array
 		if whole or made.has(uid):
 			names = row.keys()
-		elif change.has(key):
-			names = _touched(change[key], row)
+		elif asked.has(key):
+			names = _touched(asked[key], row)
 		else:
 			continue
+		var enemy: Enemy = list[i]
 		for name: String in names:
 			if name != "@id":
-				codec.set_field(list[i], name, row[name])
+				codec.set_field(enemy, name, row[name])
 
 
 # ------------------------------------------------------------------ forms
@@ -635,7 +650,7 @@ static func from_bytes(bytes: PackedByteArray) -> Dictionary:
 		return {}
 	var size := bytes.decode_u32(0)
 	var raw := bytes.slice(4).decompress(size, FileAccess.COMPRESSION_ZSTD)
-	var data = bytes_to_var(raw)
+	var data: Variant = bytes_to_var(raw)
 	return data if data is Dictionary else {}
 
 
@@ -658,22 +673,24 @@ static func _without_unknown(d: Dictionary) -> Dictionary:
 ## it is; a key gone is listed under "@gone", the keys' order under "@order"
 ## when it is not base's with new keys after). patch(base, delta(base, now))
 ## == now. Each value is compared once, bit for bit.
-static func delta(base, now):
+static func delta(base: Variant, now: Variant) -> Variant:
 	if not (base is Dictionary and now is Dictionary):
 		return {"@new": now} if now is Dictionary else now
+	var base_d: Dictionary = base
+	var now_d: Dictionary = now
 	var out := {}
 	var gone: Array = []
-	for key in base:
-		if not now.has(key):
+	for key: Variant in base_d:
+		if not now_d.has(key):
 			gone.append(key)
-	for key in now:
-		var n = now[key]
-		if not base.has(key):
+	for key: Variant in now_d:
+		var n: Variant = now_d[key]
+		if not base_d.has(key):
 			out[key] = {"@new": n} if n is Dictionary else n
 			continue
-		var b = base[key]
+		var b: Variant = base_d[key]
 		if b is Dictionary and n is Dictionary:
-			var inner = delta(b, n)
+			var inner: Dictionary = delta(b, n)
 			if not inner.is_empty():
 				out[key] = inner
 		elif typeof(b) != typeof(n) or var_to_bytes(b) != var_to_bytes(n):
@@ -681,34 +698,36 @@ static func delta(base, now):
 	if not gone.is_empty():
 		out["@gone"] = gone
 	var expected: Array = []
-	for key in base:
-		if now.has(key):
+	for key: Variant in base_d:
+		if now_d.has(key):
 			expected.append(key)
-	for key in now:
-		if not base.has(key):
+	for key: Variant in now_d:
+		if not base_d.has(key):
 			expected.append(key)
-	if expected != now.keys():
-		out["@order"] = now.keys()
+	if expected != now_d.keys():
+		out["@order"] = now_d.keys()
 	return out
 
 
 ## `base` with `change` (a delta()) laid over it, as a new snapshot.
-static func patch(base, change):
+static func patch(base: Variant, change: Variant) -> Variant:
 	if not (change is Dictionary):
 		return change
-	if change.has("@new"):
-		return change["@new"]
-	var out: Dictionary = base.duplicate() if base is Dictionary else {}
-	if change.has("@gone"):
-		for gone in change["@gone"]:
+	var change_d: Dictionary = change
+	if change_d.has("@new"):
+		return change_d["@new"]
+	var base_d: Dictionary = base if base is Dictionary else {}
+	var out: Dictionary = base_d.duplicate() if base is Dictionary else {}
+	if change_d.has("@gone"):
+		for gone: Variant in change_d["@gone"]:
 			out.erase(gone)
-	for key in change:
+	for key: Variant in change_d:
 		if typeof(key) == TYPE_STRING and (key == "@gone" or key == "@order"):
 			continue
-		out[key] = patch(out.get(key), change[key])
-	if change.has("@order"):
+		out[key] = patch(out.get(key), change_d[key])
+	if change_d.has("@order"):
 		var ordered := {}
-		for key in change["@order"]:
+		for key: Variant in change_d["@order"]:
 			ordered[key] = out[key]
 		return ordered
 	return out
@@ -720,20 +739,22 @@ static func patch_into(base: Dictionary, change: Dictionary) -> Dictionary:
 	if change.has("@new"):
 		return change["@new"]
 	if change.has("@gone"):
-		for gone in change["@gone"]:
+		for gone: Variant in change["@gone"]:
 			base.erase(gone)
-	for key in change:
+	for key: Variant in change:
 		if typeof(key) == TYPE_STRING and (key == "@gone" or key == "@order"):
 			continue
-		var c = change[key]
-		var b = base.get(key)
-		if c is Dictionary and not c.has("@new") and b is Dictionary:
-			base[key] = patch_into(b, c)
+		var c: Variant = change[key]
+		var b: Variant = base.get(key)
+		var c_d: Dictionary = c if c is Dictionary else {}
+		if c is Dictionary and not c_d.has("@new") and b is Dictionary:
+			var b_d: Dictionary = b
+			base[key] = patch_into(b_d, c_d)
 		else:
 			base[key] = patch(b, c)
 	if change.has("@order"):
 		var ordered := {}
-		for key in change["@order"]:
+		for key: Variant in change["@order"]:
 			ordered[key] = base[key]
 		return ordered
 	return base
@@ -742,35 +763,38 @@ static func patch_into(base: Dictionary, change: Dictionary) -> Dictionary:
 ## Two deltas one after the other as one: patch(patch(b, older), newer) ==
 ## patch(b, merge(older, newer)). Neither may carry "@order" (the host's never
 ## do); null when one does.
-static func merge(older, newer):
-	if not (newer is Dictionary) or newer.has("@new"):
+static func merge(older: Variant, newer: Variant) -> Variant:
+	var newer_d: Dictionary = newer if newer is Dictionary else {}
+	if not (newer is Dictionary) or newer_d.has("@new"):
 		return newer
-	if newer.has("@order"):
+	if newer_d.has("@order"):
 		return null
 	if not (older is Dictionary):
 		return newer
-	if older.has("@new"):
-		return {"@new": patch(older["@new"], newer)}
-	if older.has("@order"):
+	var older_d: Dictionary = older
+	if older_d.has("@new"):
+		return {"@new": patch(older_d["@new"], newer)}
+	if older_d.has("@order"):
 		return null
-	var out: Dictionary = older.duplicate()
-	var gone: Array = (out.get("@gone", []) as Array).duplicate()
-	for key in newer.get("@gone", []):
+	var out: Dictionary = older_d.duplicate()
+	var had_gone: Array = out.get("@gone", [])
+	var gone: Array = had_gone.duplicate()
+	for key: Variant in newer_d.get("@gone", []):
 		out.erase(key)
 		if not gone.has(key):
 			gone.append(key)
-	for key in newer:
+	for key: Variant in newer_d:
 		if typeof(key) == TYPE_STRING and key == "@gone":
 			continue
 		# (A key back again after it went stays under "@gone" too: patch()
 		# takes it away first, then puts it at the end, as it came.)
 		if out.has(key):
-			var merged = merge(out[key], newer[key])
+			var merged: Variant = merge(out[key], newer_d[key])
 			if merged == null:
 				return null
 			out[key] = merged
 		else:
-			out[key] = newer[key]
+			out[key] = newer_d[key]
 	out.erase("@gone")
 	if not gone.is_empty():
 		out["@gone"] = gone
@@ -779,37 +803,43 @@ static func merge(older, newer):
 
 ## The first place two snapshots differ ("" when they do not), for a check's
 ## report: a path of keys and both values, shortened.
-static func first_difference(a, b, path := "") -> String:
+static func first_difference(a: Variant, b: Variant, path := "") -> String:
 	if a is Dictionary and b is Dictionary:
-		for key in a:
+		var a_d: Dictionary = a
+		var b_d: Dictionary = b
+		for key: Variant in a_d:
 			if typeof(key) == TYPE_STRING and key == "unknown":
 				continue
-			if not b.has(key):
+			if not b_d.has(key):
 				return "%s/%s: only in the first" % [path, key]
-			var inner := first_difference(a[key], b[key], "%s/%s" % [path, key])
+			var inner := first_difference(a_d[key], b_d[key], "%s/%s" % [path, key])
 			if inner != "":
 				return inner
-		for key in b:
-			if not a.has(key) and not (typeof(key) == TYPE_STRING and key == "unknown"):
+		for key: Variant in b_d:
+			if not a_d.has(key) and not (typeof(key) == TYPE_STRING and key == "unknown"):
 				return "%s/%s: only in the second" % [path, key]
 		# The same keys in another order (a loop over them would go otherwise).
-		if var_to_bytes(a.keys()) != var_to_bytes(b.keys()):
+		if var_to_bytes(a_d.keys()) != var_to_bytes(b_d.keys()):
 			return (
 				"%s: keys in another order (%s against %s)"
-				% [path, str(a.keys()).left(60), str(b.keys()).left(60)]
+				% [path, str(a_d.keys()).left(60), str(b_d.keys()).left(60)]
 			)
 		if var_to_bytes(a) != var_to_bytes(b):
 			return "%s: the dictionaries are typed otherwise" % path
 		return ""
 	if a is Array and b is Array:
-		if a.size() != b.size():
-			return "%s: %d items against %d" % [path, a.size(), b.size()]
-		for i in a.size():
-			var inner := first_difference(a[i], b[i], "%s[%d]" % [path, i])
+		var a_l: Array = a
+		var b_l: Array = b
+		if a_l.size() != b_l.size():
+			return "%s: %d items against %d" % [path, a_l.size(), b_l.size()]
+		for i in a_l.size():
+			var inner := first_difference(a_l[i], b_l[i], "%s[%d]" % [path, i])
 			if inner != "":
 				return inner
 		if var_to_bytes(a) != var_to_bytes(b):
-			return "%s: typed %s against %s" % [path, a.get_typed_builtin(), b.get_typed_builtin()]
+			return (
+				"%s: typed %s against %s" % [path, a_l.get_typed_builtin(), b_l.get_typed_builtin()]
+			)
 		return ""
 	if var_to_bytes(a) != var_to_bytes(b):
 		return "%s: %s against %s" % [path, str(a).left(80), str(b).left(80)]
@@ -818,17 +848,28 @@ static func first_difference(a, b, path := "") -> String:
 
 ## Fields of `game` and features it has that are in no list here (a check
 ## fails on them: say whether each is simulation or presentation).
-static func unclassified(game) -> Array:
+static func unclassified(game: Game) -> Array:
 	var known := {}
 	for name: String in SIM_FIELDS + PLAYER_FIELDS + VIEW_FIELDS:
 		known[name] = true
 	var out: Array = []
 	for prop: Dictionary in game.get_property_list():
-		if int(prop["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
+		var usage: int = prop["usage"]
+		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
 			continue
-		if not known.has(String(prop["name"])):
-			out.append("Game." + String(prop["name"]))
+		if not known.has(str(prop["name"])):
+			out.append("Game." + str(prop["name"]))
 	for id: String in game.features:
 		if not SIM_FEATURES.has(id) and not LOOKS_FEATURES.has(id):
 			out.append("feature " + id)
 	return out
+
+
+## int() and float() of a value read from data or a dictionary, typed (the
+## same result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v
+
+
+static func _float(v: Variant) -> float:
+	return str(v).to_float() if v is String else v

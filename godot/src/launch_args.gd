@@ -3,7 +3,7 @@ class_name LaunchArgs
 extends RefCounted
 
 
-static func parse_smoke(m) -> void:
+static func parse_smoke(m: MainState) -> void:
 	for arg in OS.get_cmdline_user_args():
 		var text := String(arg)
 		if text.begins_with("--smoke-frames="):
@@ -100,7 +100,7 @@ static func parse_smoke(m) -> void:
 	if Modes.TACTICAL.has(m.mode_name):
 		# A 5v5 mode: five a side unless --players says, on a 5v5 map; on a
 		# TAG TEAM map (or --tag-team) two a side by its rules.
-		var arena := String(m.mode_options.get("arena", ""))
+		var arena := str(m.mode_options.get("arena", ""))
 		if m.tag_team_arg or Modes.TAGTEAM_MAPS.has(arena):
 			m.mode_name = Modes.BOMB
 			if not Modes.TAGTEAM_MAPS.has(arena):
@@ -113,8 +113,8 @@ static func parse_smoke(m) -> void:
 		if m.mode_players < 2:
 			m.mode_players = Modes.MAX_PLAYERS
 		if not (
-			Modes.SHOWDOWN_MAPS.has(String(m.mode_options.get("arena", "")))
-			or Modes.TAGTEAM_MAPS.has(String(m.mode_options.get("arena", "")))
+			Modes.SHOWDOWN_MAPS.has(str(m.mode_options.get("arena", "")))
+			or Modes.TAGTEAM_MAPS.has(str(m.mode_options.get("arena", "")))
 		):
 			m.mode_options["arena"] = Modes.SHOWDOWN_MAPS[0]
 	m.smoke = m.smoke_frames > 0

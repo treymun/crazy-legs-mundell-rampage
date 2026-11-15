@@ -14,7 +14,7 @@
 class_name LevelEditor
 extends RefCounted
 
-var main
+var main: MainFlow
 var active := false
 var things: Array = []
 var thing := 0
@@ -22,20 +22,20 @@ var wall_tile := -1
 var _note := ""
 
 
-func _init(owner) -> void:
+func _init(owner: MainFlow) -> void:
 	main = owner
 	var kinds: Array = Enemy.KINDS.keys()
 	kinds.sort()
-	for kind in kinds:
-		things.append(["enemy", String(kind)])
+	for kind: Variant in kinds:
+		things.append(["enemy", str(kind)])
 	var pickups := {}
-	for id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
+	for id: String in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
 		for entry: Array in LevelEdit.read(id).get("pickups", []):
-			pickups[String(entry[0])] = true
+			pickups[str(entry[0])] = true
 	var names := pickups.keys()
 	names.sort()
-	for name in names:
-		things.append(["pickup", String(name)])
+	for name: Variant in names:
+		things.append(["pickup", str(name)])
 
 
 static func available() -> bool:
@@ -63,7 +63,7 @@ func key(code: int, shift: bool) -> bool:
 			thing = posmod(thing + (-1 if shift else 1), things.size())
 			_note = (
 				"PLACE: %s %s"
-				% [String(things[thing][0]).to_upper(), String(things[thing][1]).to_upper()]
+				% [str(things[thing][0]).to_upper(), str(things[thing][1]).to_upper()]
 			)
 		KEY_5:
 			_place()
@@ -125,18 +125,10 @@ func _toggle_wall() -> void:
 		func(level: Dictionary) -> bool:
 			var solid: Array = level["solid"]
 			var cell: int = target["hit"]
-			if (
-				cell >= 0
-				and (
-					float(
-						target["spot"].distance_to(
-							Vector2(cell % int(level["width"]), cell / int(level["width"]))
-						)
-					)
-					< 3.0
-				)
-			):
-				wall_tile = int(solid[cell])
+			var spot: Vector2 = target["spot"]
+			var width: int = level["width"]
+			if cell >= 0 and float(spot.distance_to(Vector2(cell % width, cell / width))) < 3.0:
+				wall_tile = solid[cell]
 				solid[cell] = -1
 				_note = "WALL TAKEN OUT"
 				return true
@@ -144,12 +136,14 @@ func _toggle_wall() -> void:
 			if cell < 0:
 				return false
 			if wall_tile < 0:
-				for v in solid:
-					if int(v) >= 0:
-						wall_tile = int(v)
+				for v: Variant in solid:
+					var tile: int = v
+					if tile >= 0:
+						wall_tile = tile
 						break
 			solid[cell] = wall_tile
-			level["wall_height"][cell] = maxf(1.85, float(level["wall_height"][cell]))
+			var was: float = level["wall_height"][cell]
+			level["wall_height"][cell] = maxf(1.85, was)
 			_note = "WALL PUT IN"
 			return true,
 		true
@@ -164,8 +158,10 @@ func _floor(step: float) -> void:
 			if cell < 0:
 				return false
 			var ground: Array = level["ground"]
-			ground[cell] = snappedf(float(ground[cell]) + step, .01)
-			_note = "FLOOR %.2f" % float(ground[cell])
+			var was: float = ground[cell]
+			ground[cell] = snappedf(was + step, .01)
+			var now: float = ground[cell]
+			_note = "FLOOR %.2f" % now
 			return true,
 		true
 	)
@@ -184,8 +180,9 @@ func _place() -> void:
 					{"kind": what[1], "x": x, "y": y, "id": "%s-edit-%d" % [what[1], list.size()]}
 				)
 			else:
-				level["pickups"].append([what[1], x, y])
-			_note = "PLACED %s" % String(what[1]).to_upper()
+				var pickups: Array = level["pickups"]
+				pickups.append([what[1], x, y])
+			_note = "PLACED %s" % str(what[1]).to_upper()
 			return true,
 		false
 	)
@@ -198,17 +195,19 @@ func _remove() -> void:
 			var best := 1.2
 			var found := ""
 			var at := -1
-			for i in level["enemies"].size():
-				var e: Dictionary = level["enemies"][i]
-				var d := spot.distance_to(Vector2(float(e["x"]), float(e["y"])))
+			var enemies: Array = level["enemies"]
+			for i in enemies.size():
+				var e: Dictionary = enemies[i]
+				var d := spot.distance_to(Vector2(_float(e["x"]), _float(e["y"])))
 				if d < best:
 					best = d
 					found = "enemies"
 					at = i
-			for list in ["pickups", "props"]:
-				for i in level[list].size():
-					var entry: Array = level[list][i]
-					var d := spot.distance_to(Vector2(float(entry[1]), float(entry[2])))
+			for list: String in ["pickups", "props"]:
+				var rows: Array = level[list]
+				for i in rows.size():
+					var entry: Array = rows[i]
+					var d := spot.distance_to(Vector2(_float(entry[1]), _float(entry[2])))
 					if d < best:
 						best = d
 						found = list
@@ -216,12 +215,13 @@ func _remove() -> void:
 			if at < 0:
 				_note = "NOTHING THERE TO TAKE AWAY"
 				return false
-			level[found].remove_at(at)
+			var from_list: Array = level[found]
+			from_list.remove_at(at)
 			if found == "enemies":
 				# Patrol routes are keyed by enemy number: the later ones move up.
 				var routes := {}
-				for key in level.get("patrols", {}):
-					var n := int(key)
+				for key: Variant in level.get("patrols", {}):
+					var n := _int(key)
 					if n != at:
 						routes[str(n - 1 if n > at else n)] = level["patrols"][key]
 				level["patrols"] = routes
@@ -245,22 +245,23 @@ func draw(c: Canvas) -> void:
 			line += " WALL %s" % String(game.world.tile_names[game.world.solid[cell]]).to_upper()
 		else:
 			line += " FLOOR %.2f" % game.world.ground[cell]
-	line += "  [4] %s" % String(things[thing][1]).to_upper()
+	line += "  [4] %s" % str(things[thing][1]).to_upper()
 	c.fill_rect(0, 0, Canvas.WIDTH, 9, Color(0, 0, 0))
 	HUD.text(c, line, 2, 1, "mini", HUD.AMBER, false, false)
 	# Trigger areas the player stands in (triggers.gd), with whether they fired.
 	var inside := PackedStringArray()
 	var p := game.player
 	for trigger: Dictionary in game.level.triggers:
-		var box = trigger.get("when", {}).get("area")
+		var when: Dictionary = trigger.get("when", {})
+		var box: Variant = when.get("area")
 		if (
 			box is Array
-			and float(box[0]) <= p.x
-			and p.x <= float(box[2])
-			and float(box[1]) <= p.y
-			and p.y <= float(box[3])
+			and _float(box[0]) <= p.x
+			and p.x <= _float(box[2])
+			and _float(box[1]) <= p.y
+			and p.y <= _float(box[3])
 		):
-			var id := String(trigger["id"])
+			var id := str(trigger["id"])
 			inside.append(id.to_upper() + (" (FIRED)" if game.triggers_fired.has(id) else ""))
 	if not inside.is_empty():
 		c.fill_rect(0, 9, Canvas.WIDTH, 9, Color(0, 0, 0))
@@ -268,3 +269,13 @@ func draw(c: Canvas) -> void:
 	if _note != "":
 		c.fill_rect(0, 147, Canvas.WIDTH, 9, Color(0, 0, 0))
 		HUD.text(c, _note, 2, 148, "mini", HUD.INK, false, false)
+
+
+## int() and float() of a value read from data or a dictionary, typed (the
+## same result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v
+
+
+static func _float(v: Variant) -> float:
+	return str(v).to_float() if v is String else v

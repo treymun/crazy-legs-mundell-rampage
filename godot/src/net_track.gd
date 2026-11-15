@@ -49,7 +49,7 @@ class Watch:
 	## net_version (the field at `guard`) moved since `guard_seen`.
 	var guarded := PackedInt32Array()
 	var guard := -1
-	var guard_seen = null
+	var guard_seen: Variant = null
 	## Reads the cold fields (or, for a kid, every field) in one call: a script
 	## made for the class (_packer), null to read them one by one.
 	var packer: GDScript = null
@@ -120,7 +120,7 @@ const FLOATY := {
 	TYPE_COLOR: true,
 }
 
-var game
+var game: Game
 var codec: SnapCodec
 var _game: Watch
 var _players := {}
@@ -137,7 +137,7 @@ var looked := 0
 var changed := 0
 
 
-func _init(p_game) -> void:
+func _init(p_game: Game) -> void:
 	game = p_game
 	reset()
 
@@ -157,7 +157,7 @@ func reset() -> void:
 		_enemies[str(e.uid)] = _watch(e, SnapCodec.fields_of(e, "Enemy"), 1, "Enemy")
 	_features.clear()
 	for id: String in GameSnapshot.SIM_FEATURES:
-		var feature = game.features.get(id)
+		var feature: GameFeature = game.features.get(id)
 		if feature != null:
 			_features[id] = _watch(feature, _feature_names(feature, id), 0, id)
 	var world := GameSnapshot.world_of(game)
@@ -165,13 +165,13 @@ func reset() -> void:
 	_panes = var_to_bytes(world["panes"])
 	_facts.clear()
 	for id: String in GameSnapshot.FACT_FEATURES:
-		var feature = game.features.get(id)
+		var feature: GameFeature = game.features.get(id)
 		if feature != null:
 			_facts[id] = var_to_bytes(SnapCodec.plain(feature.save()))
 	_statics = var_to_bytes(GameSnapshot.statics_of(codec))
 
 
-static func _feature_names(feature, id: String) -> PackedStringArray:
+static func _feature_names(feature: GameFeature, id: String) -> PackedStringArray:
 	var names := PackedStringArray()
 	for name: String in SnapCodec.fields_of(feature, id):
 		if name != "game":
@@ -206,7 +206,8 @@ func changes() -> Dictionary:
 	_enemies_changes(out)
 	var features := {}
 	for id: String in _features:
-		var row := _diff(_features[id])
+		var watch: Watch = _features[id]
+		var row := _diff(watch)
 		if not row.is_empty():
 			features[id] = row
 	if not features.is_empty():
@@ -242,11 +243,11 @@ func _enemies_changes(out: Dictionary) -> void:
 		return
 	# Who went, and whether the rest kept their places with the new at the end.
 	var now := {}
-	for uid in order:
+	for uid: int in order:
 		now[uid] = true
 	var gone: Array = []
 	var kept: Array = []
-	for uid in _order:
+	for uid: int in _order:
 		if now.has(uid):
 			kept.append(uid)
 		else:
@@ -286,7 +287,8 @@ func _world_changes(out: Dictionary, features: Dictionary) -> void:
 	for id: String in _facts:
 		if not features.has(id):
 			continue
-		var doc = SnapCodec.plain(game.features[id].save())
+		var feature: GameFeature = game.features[id]
+		var doc: Variant = SnapCodec.plain(feature.save())
 		var bytes := var_to_bytes(doc)
 		if bytes != _facts[id]:
 			_facts[id] = bytes
@@ -312,12 +314,13 @@ func _watch(o: Object, names: PackedStringArray, depth: int, key := "", whole :=
 	w.hot_mask.resize(names.size())
 	var hot: Array = HOT.get(key, [])
 	var guarded: Array = []
-	if o is GameFeature and o.get_script().get_script_constant_map().has("NET_GUARDED"):
-		guarded = o.get_script().get_script_constant_map()["NET_GUARDED"]
+	var script: Script = o.get_script()
+	if o is GameFeature and script.get_script_constant_map().has("NET_GUARDED"):
+		guarded = script.get_script_constant_map()["NET_GUARDED"]
 		w.guard = names.find("net_version")
 		w.guard_seen = o.get("net_version")
 	for i in names.size():
-		var v = o.get(w.snames[i])
+		var v: Variant = o.get(w.snames[i])
 		w.vals[i] = _kept(v)
 		if not whole:
 			w.kids[i] = _kids_of(v, depth)
@@ -343,13 +346,13 @@ func _watch(o: Object, names: PackedStringArray, depth: int, key := "", whole :=
 
 ## What is kept of a value to compare against: arrays and dictionaries as
 ## their bytes (objects in them by identity), anything else as it is.
-static func _kept(v):
+static func _kept(v: Variant) -> Variant:
 	var t := typeof(v)
 	if t == TYPE_ARRAY or t == TYPE_DICTIONARY:
 		return var_to_bytes(v)
 	if t >= TYPE_PACKED_BYTE_ARRAY:
 		# Shared by reference: a copy, or it would change with the game.
-		return v.duplicate()
+		return SnapCodec.packed_copy(v)
 	return v
 
 
@@ -358,18 +361,19 @@ static func _kept(v):
 static func _gather(w: Watch, into: Array) -> void:
 	var o := w.obj
 	if w.packer != null:
-		w.packer.pack(o, into)
+		w.packer.call("pack", o, into)
 	else:
 		for name: StringName in w.cold_names:
 			into.append(o.get(name))
 	if w.leaf:
 		return
 	for i in w.kids.size():
-		var kid = w.kids[i]
+		var kid: Variant = w.kids[i]
 		if kid == null or w.hot_mask[i]:
 			continue
 		if kid is Watch:
-			_gather_all(kid, into)
+			var one: Watch = kid
+			_gather_all(one, into)
 			continue
 		for each: Watch in kid:
 			_gather_all(each, into)
@@ -378,17 +382,18 @@ static func _gather(w: Watch, into: Array) -> void:
 static func _gather_all(w: Watch, into: Array) -> void:
 	var o := w.obj
 	if w.all_packer != null:
-		w.all_packer.pack(o, into)
+		w.all_packer.call("pack", o, into)
 	else:
 		for name: StringName in w.snames:
 			into.append(o.get(name))
 	if w.leaf:
 		return
-	for kid in w.kids:
+	for kid: Variant in w.kids:
 		if kid == null:
 			continue
 		if kid is Watch:
-			_gather_all(kid, into)
+			var one: Watch = kid
+			_gather_all(one, into)
 			continue
 		for each: Watch in kid:
 			_gather_all(each, into)
@@ -396,7 +401,7 @@ static func _gather_all(w: Watch, into: Array) -> void:
 
 ## The watches inside a value: over an object the codec carries by value, or
 ## over each such object inside an array or dictionary (null: none).
-func _kids_of(v, depth: int):
+func _kids_of(v: Variant, depth: int) -> Variant:
 	var t := typeof(v)
 	if t == TYPE_OBJECT:
 		return _object_watch(v, depth + 1)
@@ -407,14 +412,19 @@ func _kids_of(v, depth: int):
 	return found if not found.is_empty() else null
 
 
-func _collect(v, found: Array, depth: int, level: int) -> void:
+func _collect(v: Variant, found: Array, depth: int, level: int) -> void:
 	if level > SnapCodec.DEPTH:
 		return
-	var items: Array = v if v is Array else v.values()
-	for item in items:
+	var items: Array = []
+	if v is Array:
+		items = v
+	else:
+		var dict: Dictionary = v
+		items = dict.values()
+	for item: Variant in items:
 		var t := typeof(item)
 		if t == TYPE_OBJECT:
-			var w = _object_watch(item, depth + 1)
+			var w := _object_watch(item, depth + 1)
 			if w != null:
 				found.append(w)
 		elif t == TYPE_ARRAY or t == TYPE_DICTIONARY:
@@ -423,25 +433,26 @@ func _collect(v, found: Array, depth: int, level: int) -> void:
 
 ## A watch over an object the codec carries by value (its fields, at `depth`),
 ## or null for one it names (a player, an enemy, a door...) or never carries.
-func _object_watch(o, depth: int):
+func _object_watch(o: Variant, depth: int) -> Watch:
 	if o == null or not is_instance_valid(o):
 		return null
+	var obj: Object = o
 	if o is Player or o is Enemy or o == game or o is GameFeature or o is LevelData:
 		return null
 	if o is LevelData.Door or o is LevelData.Station or o is LevelData.Scenery:
 		return null
 	if o is RandomNumberGenerator:
-		return _watch(o, PackedStringArray(["seed", "state"]), depth, "", true)
+		return _watch(obj, PackedStringArray(["seed", "state"]), depth, "", true)
 	if o is FlowField:
 		var names := PackedStringArray(["origin", "next_at", "_walked", "_touched", "steps"])
-		return _watch(o, names, depth, "", true)
-	var script = o.get_script()
+		return _watch(obj, names, depth, "", true)
+	var script: Script = obj.get_script()
 	if script == null or not (o is RefCounted) or depth > SnapCodec.DEPTH:
 		return null
 	var key := SnapCodec.class_key(script)
 	if key == "" or SnapCodec.VIEW_CLASSES.has(key):
 		return null
-	return _watch(o, SnapCodec.fields_of(o, key), depth, key)
+	return _watch(obj, SnapCodec.fields_of(obj, key), depth, key)
 
 
 ## The changed fields of `w` (moving its baseline to now), encoded as a
@@ -459,8 +470,8 @@ func _diff(w: Watch) -> Dictionary:
 	var vals := w.vals
 	var snames := w.snames
 	for i in w.hot:
-		var v = obj.get(snames[i])
-		var old = vals[i]
+		var v: Variant = obj.get(snames[i])
+		var old: Variant = vals[i]
 		if typeof(v) == TYPE_FLOAT:
 			if typeof(old) == TYPE_FLOAT and v == old and (v != 0.0 or 1.0 / v == 1.0 / old):
 				continue
@@ -476,7 +487,7 @@ func _diff(w: Watch) -> Dictionary:
 		for k in cold.size():
 			_field(w, cold[k], now[k], out)
 	if w.guard >= 0:
-		var version = obj.get(snames[w.guard])
+		var version: Variant = obj.get(snames[w.guard])
 		if version != w.guard_seen:
 			w.guard_seen = version
 			for i in w.guarded:
@@ -486,8 +497,8 @@ func _diff(w: Watch) -> Dictionary:
 
 
 ## Field i of `w`, whose value now is `v`: into `out` when it changed.
-func _field(w: Watch, i: int, v, out: Dictionary) -> void:
-	var old = w.vals[i]
+func _field(w: Watch, i: int, v: Variant, out: Dictionary) -> void:
+	var old: Variant = w.vals[i]
 	var t := typeof(v)
 	if is_same(v, old):
 		if t == TYPE_FLOAT:
@@ -495,7 +506,7 @@ func _field(w: Watch, i: int, v, out: Dictionary) -> void:
 			if v != 0.0 or 1.0 / v == 1.0 / old:
 				return
 		elif t == TYPE_OBJECT:
-			var kid = w.kids[i]
+			var kid: Watch = w.kids[i]
 			if kid == null:
 				return
 			var inner := _diff(kid)
@@ -522,7 +533,7 @@ func _field(w: Watch, i: int, v, out: Dictionary) -> void:
 		w.vals[i] = bytes
 		w.kids[i] = _kids_of(v, w.depth)
 		_relevel(w)
-		var enc = codec.encode(v, w.depth)
+		var enc: Variant = codec.encode(v, w.depth)
 		out[w.names[i]] = {"@new": enc} if enc is Dictionary else enc
 	elif typeof(old) == t and t >= TYPE_PACKED_BYTE_ARRAY and _same_packed(v, old):
 		return
@@ -532,7 +543,7 @@ func _field(w: Watch, i: int, v, out: Dictionary) -> void:
 			w.kids[i] = _kids_of(v, w.depth) if t == TYPE_OBJECT else null
 			_relevel(w)
 		if t == TYPE_OBJECT or t == TYPE_INT:
-			var enc = codec.encode(v, w.depth)
+			var enc: Variant = codec.encode(v, w.depth)
 			out[w.names[i]] = {"@new": enc} if enc is Dictionary else enc
 		else:
 			out[w.names[i]] = _kept(v) if t >= TYPE_PACKED_BYTE_ARRAY else v
@@ -541,7 +552,7 @@ func _field(w: Watch, i: int, v, out: Dictionary) -> void:
 ## Whether `w` has no kids now (after one changed).
 static func _relevel(w: Watch) -> void:
 	w.leaf = true
-	for kid in w.kids:
+	for kid: Variant in w.kids:
 		if kid != null:
 			w.leaf = false
 			return
@@ -553,8 +564,8 @@ func _diff_whole(w: Watch) -> Dictionary:
 	var out := {}
 	looked += 1
 	for i in w.names.size():
-		var v = w.obj.get(w.snames[i])
-		var old = w.vals[i]
+		var v: Variant = w.obj.get(w.snames[i])
+		var old: Variant = w.vals[i]
 		if typeof(v) == typeof(old) and v == old:
 			if typeof(v) != TYPE_FLOAT or v != 0.0 or 1.0 / v == 1.0 / old:
 				continue
@@ -564,7 +575,7 @@ func _diff_whole(w: Watch) -> Dictionary:
 
 
 ## Packed arrays: by value (float ones bit for bit).
-static func _same_packed(a, b) -> bool:
+static func _same_packed(a: Variant, b: Variant) -> bool:
 	if a != b:
 		return false
 	var t := typeof(a)
