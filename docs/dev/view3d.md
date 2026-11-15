@@ -79,7 +79,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | marks | `mark.gdshader` | wall and ground decals |
 | rain | `rain.gdshader` | three camera-hung layers |
 | slabs | `SlabLayer3D`, `SlabModels`, `slab.gdshader` | pickups, loose things (brass, gibs, bits) and range targets as pixel slabs (MultiMesh per mesh) |
-| solids | `SolidLayer3D`, `solid.gdshader` | sprites with `solid` set (bowling pins, the bowling ball) as real meshes turned by their own `pose` |
+| solids | `SolidLayer3D`, `solid.gdshader` | sprites with `solid` set (bowling pins, the bowling ball) as real meshes turned by their own `turn` |
 | props | `PropLayer3D`, `PropView`, `prop_models.gd`, `prop.gdshader` | modelled props |
 | actors | `ActorLayer3D`, `ActorView`, `actor_models.gd`, `actor.gdshader` | rigged enemies and bosses |
 | heat | `HeatHaze` | heat shimmer boxes, handed to the display shader |
@@ -146,14 +146,14 @@ so it faces where it runs; it is stood again each frame it moves.
 
 A `View.Sprite` with `solid` set ("pin", "ball") is drawn by
 `SolidLayer3D` as a mesh standing at the sprite's (x, y, z), turned by its
-`pose` (a `Basis` in map axes, z up; `godot_basis` swaps to Godot's y up).
+`turn` (a `Basis` in map axes, z up; `godot_basis` swaps to Godot's y up).
 The meshes are built in code at start: a pin turned on a lathe from a real
 pin's profile with its two red neck stripes (drawn `CHUNK` 1.12 stouter, as
 the old picture was), a ball with three finger holes and a swirl. Faces
 carry their material in UV.x; `solid.gdshader` colours them from its
 `PAINT` table, shades the round sides in three steps of a key light from
 above and lights, fogs and palettes them as the sprites are. The range's
-pins come from `range_bowling.gd`'s `sprites` (pose from each pin's
+pins come from `range_bowling.gd`'s `sprites` (turn from each pin's
 quaternion); a bowling ball shot anywhere is drawn so by `Shots.ball_look`
 (rolled by its `travelled` about the line across its way).
 
@@ -245,8 +245,11 @@ Each enemy and boss with a model shows as an `ActorView` scene
 - A picture name's `~r.g.b` tint (`Assets.tinted_art`) tints the model too.
 - Bodies that are not enemies can wear a model through a stand-in Enemy that
   only the view reads: the 5v5 players and hostages (`ModeBodies`,
-  [modes.md](modes.md#rounds)). Co-op and deathmatch partners are still the
-  player's cels: there is no model of the player.
+  [modes.md](modes.md#rounds)), and every other player outside the 5v5
+  rounds and the player in the mirror as Mundell's model, `mundell`
+  ([modes.md](modes.md#presentation)). A sprite's `pose` names the model's
+  frame when it is not the picture's (the player pictures have no aim, fire
+  or fall cels).
 
 The pipeline is in [art.md](art.md#actors).
 

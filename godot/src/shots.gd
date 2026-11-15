@@ -74,6 +74,6 @@ static func ball_look(s: View.Sprite, shot: GameState.Shot) -> void:
 	var start := Basis.from_euler(Vector3(shot.uid * 1.7, shot.uid * 2.3, shot.uid * .9))
 	var across := Vector3(-shot.vy, shot.vx, 0.0)
 	if across.length_squared() > 1e-6:
-		s.pose = Basis(across.normalized(), shot.travelled / RADIUS) * start
+		s.turn = Basis(across.normalized(), shot.travelled / RADIUS) * start
 	else:
-		s.pose = start
+		s.turn = start

@@ -607,7 +607,7 @@ func blast(game: Game, x: float, y: float) -> void:
 
 
 ## The pins as 3D bodies for the view (View.Sprite.solid "pin": the mesh
-## stands on its foot, turned by `pose`), each where its foot is.
+## stands on its foot, turned by `turn`), each where its foot is.
 func sprites(game: Game, _eye: Vector2) -> Array:
 	var out: Array = []
 	var deck := _deck(game)
@@ -620,7 +620,7 @@ func sprites(game: Game, _eye: Vector2) -> Array:
 			continue
 		var sprite := View.Sprite.new(at.x, at.y, "town_range_pin", .5, deck + at.z)
 		sprite.solid = "pin"
-		sprite.pose = Basis(b.q)
+		sprite.turn = Basis(b.q)
 		out.append(sprite)
 	return out
 

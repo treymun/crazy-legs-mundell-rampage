@@ -422,6 +422,12 @@ def export(kind, meta):
     body.name = kind
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     height = max(v.co.z for v in body.data.vertices)
+    # Layers only the bake's sources need (actors_mundell.py's face picture and
+    # its weight): the mesh gets one unwrap of its own below.
+    for layer in list(body.data.uv_layers):
+        body.data.uv_layers.remove(layer)
+    if "face_w" in body.data.attributes:
+        body.data.attributes.remove(body.data.attributes["face_w"])
     # The parts were made for big renders: two fifths of the faces reads the same
     # at the view's size (vertex groups survive the collapse); the game makes
     # lighter copies of the mesh for distance itself.
@@ -431,6 +437,7 @@ def export(kind, meta):
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.01)
+    _favour_head(body, S, [_label(c, skeleton) for c in centres])
     bpy.ops.object.mode_set(mode="OBJECT")
     textures = []
     light_for(bpy.context.scene, kind in BOSS_PHASES)
@@ -542,6 +549,50 @@ def export(kind, meta):
         bpy.data.objects.remove(ob)
     for a in list(bpy.data.actions):
         bpy.data.actions.remove(a)
+
+
+def _favour_head(body, S, labels):
+    """A kind may give its head more of the texture than its size (S's look
+    `uv_head`, and `uv_face` for the parts wearing a photograph: Mundell's
+    face, actors_mundell.py): those UV islands grow by that much across,
+    then every island is packed again. In edit mode, after the unwrap."""
+    look = S.get("look", {})
+    head_k, face_k = look.get("uv_head", 1.0), look.get("uv_face", 1.0)
+    if head_k == 1.0 and face_k == 1.0:
+        return
+    from bpy_extras import bmesh_utils
+
+    bm = bmesh.from_edit_mesh(body.data)
+    uv = bm.loops.layers.uv.active
+    deform = bm.verts.layers.deform.active
+    groups = {g.index: g.name for g in body.vertex_groups}
+    photo = {i for i, m in enumerate(body.data.materials) if m is not None and m.name.startswith("photo")}
+
+    def _is_head(face):
+        weights = face.verts[0][deform] if deform is not None else {}
+        for index in weights.keys():
+            name = groups.get(index, "")
+            if name.startswith("b") and name[1:].isdigit() and int(name[1:]) < len(labels):
+                return labels[int(name[1:])] == "head"
+        return False
+
+    for island in bmesh_utils.bmesh_linked_uv_islands(bm, uv):
+        k = 1.0
+        if any(f.material_index in photo for f in island):
+            k = face_k
+        elif any(_is_head(f) for f in island):
+            k = head_k
+        if k == 1.0:
+            continue
+        loops = [loop for f in island for loop in f.loops]
+        mid = sum((loop[uv].uv for loop in loops), Vector((0.0, 0.0))) / len(loops)
+        for loop in loops:
+            loop[uv].uv = mid + (loop[uv].uv - mid) * k
+    bmesh.update_edit_mesh(body.data)
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.select_all(action="SELECT")
+    # Packed close (the unwrap's own packing leaves most of the square bare).
+    bpy.ops.uv.pack_islands(rotate=True, margin_method="FRACTION", margin=0.006)
 
 
 def _build_kept(kind, frame, wound, damage):

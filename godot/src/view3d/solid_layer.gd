@@ -1,5 +1,5 @@
 ## The solid bodies of the 3D view: sprites with `solid` set (a bowling pin,
-## a bowling ball) drawn as real meshes turned by their own pose, one
+## a bowling ball) drawn as real meshes turned by their own turn, one
 ## MultiMesh a kind, lit, tinted, fogged and paletted as the sprites
 ## (solid.gdshader). The meshes are built here at start: a pin turned on a
 ## lathe from a real pin's profile (foot, belly, neck with its two red
@@ -86,7 +86,7 @@ func show_solids(
 		var ahead := (s.x - cam.x) * fx + (s.y - cam.y) * fy
 		if ahead >= REACH or (ahead <= BEHIND and not everywhere):
 			continue
-		var g := godot_basis(s.pose)
+		var g := godot_basis(s.turn)
 		var tone := SpriteLayer3D.tone_at(level, s.x, s.y, s.glow)
 		var buf: PackedFloat32Array = rows.get(s.solid, PackedFloat32Array())
 		buf.append_array(
