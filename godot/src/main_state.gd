@@ -156,6 +156,9 @@ var cpu_view := false
 ## keeps the old renderer for comparison pictures.
 var view3d_on := true
 var world_view: WorldView3D
+## The menu screens built from Control nodes (src/ui/): a state with a screen
+## there is drawn and driven by it, not by render() and key().
+var ui: UiRoot
 ## The 320x200 viewport the canvas draws into with Godot 2D (see _start_overlay),
 ## and --cpu-canvas, which keeps the canvas in software.
 var overlay: SubViewport
@@ -1175,7 +1178,9 @@ func render() -> void:
 	menu.clock = menu_clock
 	menu.motion = int(options.get("world_motion", 0))
 	menu.steady = steady
-	if state == "title":
+	if ui != null and ui.show_state(state):
+		pass
+	elif state == "title":
 		menu.draw_title(
 			canvas,
 			entries(),

@@ -14,7 +14,7 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
 | 4 Gore and effects in 3D | not started |
 | 5 Every map and mode, then the switch | not started |
 | 6 Menus and HUD on Godot UI | not started |
-| 7 Content as data | not started |
+| 7 Content as data | mostly done |
 | 8 Docs | not started |
 
 ## Log
@@ -64,7 +64,27 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
 - Tour viewpoints take `actors` (kind, ahead, side, turn, state) for
   side-by-side pictures of the 3D actors.
 
+- Stage 7: content numbers moved into data/tuning: store.cfg (5v5 store,
+  economy, pvp hits, spread), difficulty.cfg (every per-difficulty array),
+  hits.cfg (head/limb multipliers, reactions, ammo pickups), modes.cfg (co-op,
+  deathmatch, 5v5 rounds, bomb, hostage, tag team, County Run cards/co-op/
+  moves/orbs/spawner, throwables, squads, idle life, hit zones), bosses.cfg
+  (169 boss-script numbers), lobby.cfg (lobby rows and defaults). Values
+  checked equal to the old constants; scripts keep their names as static
+  vars. Loaders: Difficulty, HitData, ModeData, BossData (src/core/).
+  Survey of what's left: `content_survey.md` (inline literals in boss
+  scripts, PROP_HEIGHTS, bots' STYLES).
+- Typing census (warnings as errors in a scratch copy): ~10.9k in src/
+  (3.7k constructor args from Variants, 2.2k unsafe method calls, 1.5k+
+  argument types, 1.1k untyped params, 0.7k untyped vars, 0.35k loop vars).
+
 ## Next
+
+- **Owner's standing request (2026-11-14): the 3D models must look damn good
+  and match the old cels** (faces, hands, colours, patterns). Before the
+  project is called done: a side-by-side pass of every actor kind in every
+  pose and look (tour `actors`, `--view2d` for the old), tuned until each
+  matches; sheets in docs/godot3d/compare/actors/.
 
 - Stage 2 leftovers: heat shimmer (haze boxes) in 3D; quest stations and
   `prop_*` pictures as meshes; mesh decimation for phones.

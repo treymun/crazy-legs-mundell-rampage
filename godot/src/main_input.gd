@@ -68,6 +68,16 @@ func _on_focus_gained() -> void:
 
 
 func key(code: int, shift := false) -> void:
+	if ui != null and ui.handles(state) and not _global_key(code):
+		# A screen of Control nodes: the key goes to it as a press and release.
+		ui.show_state(state)
+		for down: bool in [true, false]:
+			var ev := InputEventKey.new()
+			ev.keycode = code as Key
+			ev.physical_keycode = code as Key
+			ev.pressed = down
+			ui.take(ev)
+		return
 	if binding_action != "":
 		_bind_key(code)
 		return
@@ -478,7 +488,31 @@ func _key_play(code: int) -> void:
 # ------------------------------------------------------------------- input
 
 
+## The keys that work on every screen: fullscreen, music, saves, screenshot.
+static func _global_key(code: int) -> bool:
+	return code in [KEY_F11, KEY_F4, KEY_F5, KEY_F2, KEY_F6, KEY_F3, KEY_F9, KEY_F12]
+
+
 func _input(event: InputEvent) -> void:
+	if ui != null and ui.handles(state):
+		ui.show_state(state)
+		if event is InputEventKey and (event as InputEventKey).pressed:
+			input_device = "keys"
+			var code := (event as InputEventKey).keycode
+			if _global_key(code) and not (event as InputEventKey).echo:
+				key(code)
+				return
+		elif event is InputEventScreenTouch or event is InputEventScreenDrag:
+			input_device = "touch"
+		elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
+			# A pad drives menus through read_pad -> _pad_menu -> key() (its
+			# repeat and stick timing), which hands the keys to the screen.
+			input_device = "pad"
+			return
+		elif event is InputEventMouseButton:
+			input_device = "keys"
+		ui.take(event)
+		return
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
 		if (

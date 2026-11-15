@@ -276,7 +276,8 @@ func draw_title(
 	hint: String,
 	p_clock: float,
 	p_motion: int,
-	p_steady: bool
+	p_steady: bool,
+	skip_items := false
 ) -> void:
 	clock = p_clock
 	motion = p_motion
@@ -313,40 +314,10 @@ func draw_title(
 	var selected_id := ""
 	for i in items.size():
 		var item: Dictionary = items[i]
-		var rect: Rect2i = item["rect"]
-		var active := i == selection
-		if active:
+		if i == selection:
 			selected_id = String(item["id"])
-		if bool(item["primary"]):
-			_plate(c, rect, active)
-			var label := String(item["label"])
-			var style := (
-				"heading" if PixelType.text_width(label, "heading") < rect.size.x - 24 else "menu"
-			)
-			var top := rect.position.y + (2 if style == "heading" else 4)
-			HUD.text(
-				c,
-				label,
-				rect.position.x + rect.size.x / 2,
-				top,
-				style,
-				BRIGHT if active else PAINT,
-				true
-			)
-		else:
-			if active:
-				c.fill_rect(rect.position.x, rect.position.y, rect.size.x, rect.size.y - 1, RUST)
-				_hline(c, rect.position.x, rect.position.y, rect.size.x, RUST_HOT)
-				_hline(c, rect.position.x, rect.end.y - 2, rect.size.x, RUST_DEEP)
-				shell(c, rect.position.x + 1 + _nudge(), rect.position.y + 3)
-			HUD.text(
-				c,
-				String(item["label"]),
-				rect.position.x + 14,
-				rect.position.y + 2,
-				"body",
-				BRIGHT if active else PAINT
-			)
+		if not skip_items:
+			draw_title_item(c, item, i == selection)
 	# Under the board: what the entry is for, then how to drive the menu. A
 	# column of six (a game paused, a quicksave and every road open) reaches
 	# down to where the second line was: the entry's line alone, lower.
@@ -363,6 +334,42 @@ func draw_title(
 	var version := String(ProjectSettings.get_setting("application/config/version", ""))
 	if version != "":
 		HUD.text(c, "V" + version.to_upper(), 317, 193, "mini", FADED, false, true, true)
+
+
+## One title entry: the primary plate or a row, lit while it is picked (the
+## title screen's buttons paint themselves with it).
+func draw_title_item(c: Canvas, item: Dictionary, active: bool) -> void:
+	var rect: Rect2i = item["rect"]
+	if bool(item["primary"]):
+		_plate(c, rect, active)
+		var label := String(item["label"])
+		var style := (
+			"heading" if PixelType.text_width(label, "heading") < rect.size.x - 24 else "menu"
+		)
+		var top := rect.position.y + (2 if style == "heading" else 4)
+		HUD.text(
+			c,
+			label,
+			rect.position.x + rect.size.x / 2,
+			top,
+			style,
+			BRIGHT if active else PAINT,
+			true
+		)
+		return
+	if active:
+		c.fill_rect(rect.position.x, rect.position.y, rect.size.x, rect.size.y - 1, RUST)
+		_hline(c, rect.position.x, rect.position.y, rect.size.x, RUST_HOT)
+		_hline(c, rect.position.x, rect.end.y - 2, rect.size.x, RUST_DEEP)
+		shell(c, rect.position.x + 1 + _nudge(), rect.position.y + 3)
+	HUD.text(
+		c,
+		String(item["label"]),
+		rect.position.x + 14,
+		rect.position.y + 2,
+		"body",
+		BRIGHT if active else PAINT
+	)
 
 
 ## The big painted plate the main action sits on, ringed with marquee bulbs

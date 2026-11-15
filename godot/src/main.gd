@@ -78,6 +78,7 @@ func _ready() -> void:
 	layers = SceneLayers.new(palette_material, art)
 	view.material = palette_material
 	_start_overlay()
+	ui = UiRoot.new(self, overlay)
 	packs = PackLoader.new()
 	add_child(packs)
 	if LevelEditor.available():
