@@ -15,11 +15,23 @@ const HEADINGS: Array[String] = ["quarter_", "side_", "away_", "back_"]
 ## picture a quarter of the body's height, and the model lying in full, its
 ## belly and boots up, read as a heap.
 const FLAT := .5
+## Steps a ragdoll first seen long dead takes at once (it starts lying).
+const SETTLE := 40
 
 ## The model's kind (actors.json, actor3d_<kind> looks).
 @export var kind := ""
 
 var models: ActorModels
+## The dead body's ragdoll (null while alive or with a scripted fall); the
+## layer keeps it while the body is out of sight.
+var doll: Ragdoll
+var _rig: RagdollRig
+var _doll_clock := 0.0
+## The ragdoll's step count and transform the parts were last posed for.
+var _posed := -1
+var _posed_dead := false
+## Whether this model has been posed by its action (its parts are a real pose).
+var _shown_alive := false
 var _player: AnimationPlayer
 var _meshes: Array[MeshInstance3D] = []
 var _skeletons: Array[Skeleton3D] = []
@@ -60,13 +72,15 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	var look: int = pose[1]
 	var tint: Color = pose[2]
 	var z := s.z + (.07 if frame == "down" else 0.0)
-	var turn := PI * .5 - e.angle
-	var info: Dictionary = models.kinds[kind]
-	var canvas: Array = info.get("canvas", [1.0, e.height])
-	var tall: float = canvas[1]
-	var fit: float = info.get("scale", 1.0)
-	var size := e.height * e.variant / maxf(.1, tall) * fit
 	var down := 0.0
+	if not e.alive and e.died_at >= 0.0 and _ragdolls(e):
+		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
+		_flop(e, level, clock, Vector3(s.x, s.y, z))
+		_shade(s, level, look, tint, down)
+		return
+	doll = null
+	var turn := PI * .5 - e.angle
+	var size := _size(e)
 	if frame == "down":
 		down = 1.0
 	elif frame.begins_with("die_"):
@@ -76,6 +90,89 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		Basis(Vector3.UP, turn).scaled(Vector3(size, size * flat, size)), Vector3(s.x, z, s.y)
 	)
 	_player.seek(_time(frame, look, e, clock), true)
+	_shown_alive = true
+	_shade(s, level, look, tint, down)
+
+
+## The model's size for enemy `e` (its height against the model's canvas).
+func _size(e: Enemy) -> float:
+	var info: Dictionary = models.kinds[kind]
+	var canvas: Array = info.get("canvas", [1.0, e.height])
+	var tall: float = canvas[1]
+	var fit: float = info.get("scale", 1.0)
+	return e.height * e.variant / maxf(.1, tall) * fit
+
+
+## Whether dead enemy `e` falls as a ragdoll: RAGDOLLS on, a model standing
+## on two legs (RagdollRig), not a boss (its fall is a set piece of its own)
+## and not a kind fit.json keeps off ("ragdoll": false).
+func _ragdolls(e: Enemy) -> bool:
+	if not View.ragdolls or Enemy.BOSS_TITLES.has(e.kind):
+		return false
+	var info: Dictionary = models.kinds[kind]
+	if not info.get("ragdoll", true):
+		return false
+	if _rig == null:
+		_rig = RagdollRig.of(kind, self, info)
+	return _rig.ok
+
+
+## The body as its ragdoll: started from the pose it died in (or the model's
+## own body at rest when first seen long dead), thrown by the kill, carried
+## by play's body at `at` (map: x, y and the height it lies at), stepped and
+## its parts posed from it.
+func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
+	var up := maxf(0.0, at.z - level.floor_under(at.x, at.y, at.z + .05))
+	if doll == null or doll.died_at != e.died_at:
+		var size := _size(e)
+		var turn := PI * .5 - e.angle
+		var xf := Transform3D(
+			Basis(Vector3.UP, turn).scaled(Vector3(size, size, size)), Vector3(at.x, at.z, at.y)
+		)
+		var fresh := clock - e.died_at < .5
+		# The pose it died in when this model showed it alive, else standing.
+		var start := _rig.down_points
+		if fresh:
+			start = _rig.posed_points(_skeletons[0]) if _shown_alive else _rig.points
+		doll = Ragdoll.made(_rig, xf, start)
+		doll.died_at = e.died_at
+		doll.turn = turn
+		doll.follow(at, up, 0.0)
+		if fresh:
+			var dice := RandomNumberGenerator.new()
+			dice.seed = hash([e.kind, e.died_at, e.uid])
+			doll.knock(e, dice)
+		else:
+			# Lying already: a few steps fit it to the floor, the rest as it is drawn.
+			doll.settle(level, SETTLE)
+		_doll_clock = clock
+		_posed = -1
+	var dt := clampf(clock - _doll_clock, 0.0, .1)
+	_doll_clock = clock
+	doll.follow(at, up, dt)
+	doll.advance(level, dt)
+	var xf := Transform3D(
+		Basis(Vector3.UP, doll.turn).scaled(Vector3(doll.size, doll.size, doll.size)),
+		Vector3(at.x, at.z, at.y)
+	)
+	var dead := clock - e.died_at > .2
+	if doll.steps == _posed and xf == transform and dead == _posed_dead:
+		return
+	transform = xf
+	_posed = doll.steps
+	_posed_dead = dead
+	var back := xf.affine_inverse()
+	var model := PackedVector3Array()
+	model.resize(doll.pos.size())
+	for i in doll.pos.size():
+		var p := doll.pos[i]
+		model[i] = back * Vector3(p.x, p.z, p.y)
+	for skeleton in _skeletons:
+		_rig.pose(skeleton, model, dead)
+
+
+## The model's light, wash, look and how fallen it is (the rim's shade).
+func _shade(s: View.Sprite, level: LevelData, look: int, tint: Color, down: float) -> void:
 	var c := level.cell(clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01))
 	var ti := clampi(level.area[c], 0, maxi(0, level.tints.size() / 3 - 1)) * 3
 	var tone := Color(1, 1, 1, level.light[c])

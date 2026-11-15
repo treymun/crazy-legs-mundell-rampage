@@ -202,10 +202,16 @@ func tick(dt: float, controls: Variant) -> void:
 		BossKit.hold(self, dt, mine)
 		return
 	# Slow motion as a boss falls: the world at SLOWMO_PACE, the player and gun not.
+	# SLOW-MO FINISHERS off: none, a boss's fall's included (alone only: with
+	# others the world is theirs too).
 	var wdt := dt
+	if slowmo > 0.0 and not finish_slowmo and players.size() == 1:
+		slowmo = 0.0
 	if slowmo > 0.0:
+		wdt = dt * slow_pace()
 		slowmo = maxf(0.0, slowmo - dt)
-		wdt = dt * SLOWMO_PACE
+		if slowmo == 0.0:
+			slowmo_for = 0.0
 	clock += wdt
 	spawn_grace = maxf(0.0, spawn_grace - dt)
 	duck = maxf(0.0, duck - dt)

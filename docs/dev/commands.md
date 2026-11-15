@@ -95,6 +95,7 @@ godot --path godot ... --script res://tools/mode_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/tactical_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/county_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/range_frames.gd
+godot --path godot ... --script res://tools/death_frames.gd -- out=<dir> [level=hickston] [gun=shotgun] [classic]   # falls: ragdolls, or the scripted ones
 godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bowling lane: a spread of rolls, what stands, the tick's cost
 ```
 

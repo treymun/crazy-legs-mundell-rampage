@@ -326,6 +326,15 @@ static func build() -> Array:
 					"BLOOD PARTICLES", "gore", 1, "SHOW BLOOD PARTICLES WHEN ENEMIES ARE HIT"
 				),
 				SessionStore.toggle(
+					"RAGDOLLS", "ragdolls", 1, "DEAD BODIES FLOP AND TUMBLE THE WAY THEY WERE HIT"
+				),
+				SessionStore.toggle(
+					"SLOW-MO FINISHERS",
+					"finish_slowmo",
+					1,
+					"THE LAST KILL OF A FIGHT AND A BOSS'S FALL GO SLOW (ALONE ONLY)"
+				),
+				SessionStore.toggle(
 					"DISTRICT LABELS",
 					"district_labels",
 					1,

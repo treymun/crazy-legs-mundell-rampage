@@ -28,7 +28,9 @@ Boss fights share a framework: `src/boss_kit.gd`, `features/boss_fight.gd`,
 - Backup at phases 2 and 3 joins the enemies after the level's own (the posse
   feature saves them; `game.boss_backup` off for a rematch).
 - A fall sets `game.slowmo` (game.gd steps the world at `SLOWMO_PACE`, the
-  player and gun at full speed).
+  player and gun at full speed). SLOW-MO FINISHERS off drops it when alone;
+  the last kill of an ordinary fight has its own, eased
+  (`features/finishers.gd`, [gameplay.md](gameplay.md#ragdolls-and-finishing-shots-v320)).
 - Signals for voices and the like (on `game.events`): `boss_intro`,
   `boss_phase`, `boss_staggered`, `boss_weak_hit`, `boss_down(e, seconds)`.
 - `tools/boss_check.gd` (in check_fixes) holds it; `physics_frames.gd

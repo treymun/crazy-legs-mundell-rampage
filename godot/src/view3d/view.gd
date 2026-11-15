@@ -22,6 +22,9 @@ static var fov_focal := FOCAL
 ## VIEW DETAIL AUTO has dropped to LOW (main.gd _auto_detail); kept for the
 ## session so the next level starts where the last one settled.
 static var auto_low := false
+## RAGDOLLS (game_world.gd configure): dead enemies' models flop as ragdolls
+## (ActorView, src/ragdoll.gd); off, they play their old scripted fall.
+static var ragdolls := true
 
 
 ## A picture standing in the world: x, y on the map, z its feet, `height` tall

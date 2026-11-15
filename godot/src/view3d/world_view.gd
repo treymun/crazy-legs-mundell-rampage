@@ -47,6 +47,8 @@ var _assets: Assets
 var _level: LevelData
 var _builder: LevelMesh
 var _built_key: Array = []
+## The level whose kinds' ragdoll rigs have been found (ActorLayer3D.prepare).
+var _rigged: LevelData
 var _moving_rows := PackedFloat32Array()
 var _cells: ImageTexture
 var _anim_tiles := {}
@@ -185,6 +187,9 @@ func frame(game: Game) -> void:
 	var angle: float = eye["view_angle"]
 	var at_hub: bool = not level.road_and_hub.is_empty() and y > 33.0
 	_build(level, at_hub)
+	if level != _rigged:
+		_rigged = level
+		actors.prepare(game.enemies)
 	game_far = r.draw_far
 	var horizon: float = view["horizon"]
 	_place_camera(x, y, z, angle, horizon, r.focal, vh)

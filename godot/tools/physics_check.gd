@@ -18,6 +18,7 @@
 ## twice moves the same (play's bodies stay in step).
 extends SceneTree
 
+const PhysicsRagdolls := preload("res://tools/physics_ragdolls.gd")
 const DT := 1.0 / 60.0
 const TOL := .03
 const LEVELS := ["hickston", "feedstore", "quarry", "sawmill", "county_hickston", "mothership"]
@@ -48,6 +49,13 @@ func _run() -> void:
 		_level(game)
 	print("\nFEATURES ON A LOFT")
 	_features(main)
+	print("\nRAGDOLLS")
+	var rag_levels: Array = ["hickston", "feedstore", "quarry", "sawmill"]
+	if levels != LEVELS:
+		rag_levels = levels
+	PhysicsRagdolls.new(self).run(main, rag_levels)
+	print("\nSLOW-MO FINISHERS")
+	PhysicsRagdolls.new(self).finishers(main)
 	print("")
 	print(
 		(
