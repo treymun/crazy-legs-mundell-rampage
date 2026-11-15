@@ -59,6 +59,7 @@ func material(kind: String) -> ShaderMaterial:
 		var name := "actor3d_" + kind + ("" if look == "" else "_" + look)
 		var tex := _texture(name) if _assets.has_art(name) else plain
 		m.set_shader_parameter("look_" + ("plain" if look == "" else look), tex)
+	m.set_shader_parameter("baked_light", bool(kinds[kind].get("lit", false)))
 	_materials[kind] = m
 	return m
 

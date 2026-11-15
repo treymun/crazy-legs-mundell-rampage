@@ -166,15 +166,54 @@ def _bake(ob, image, sources=None):
             s.select_set(True)
     ob.select_set(True)
     bpy.context.view_layer.objects.active = ob
+    # The look as the cels were lit: the dusk stage (light_for) on the body
+    # facing front, as the front cel was drawn; emissive parts glow; the
+    # sheen the grey sky lays on everything (it greys the cels' colours) as
+    # seen head on.
+    scene.cycles.samples = 48
     bpy.ops.object.bake(
-        type="DIFFUSE",
-        pass_filter={"COLOR"},
+        type="COMBINED",
+        pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
         margin=4,
         use_clear=True,
         use_selected_to_active=bool(sources),
         cage_extrusion=.03,
         max_ray_distance=.08,
     )
+
+
+def _bake_ao(ob, image):
+    """Ambient occlusion of the body's own surface into `image`."""
+    for slot in ob.material_slots:
+        m = slot.material
+        if m is None or m.node_tree is None:
+            continue
+        node = m.node_tree.nodes.get("bake_target")
+        if node is None:
+            node = m.node_tree.nodes.new("ShaderNodeTexImage")
+            node.name = "bake_target"
+        node.image = image
+        m.node_tree.nodes.active = node
+    scene = bpy.context.scene
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = 32
+    scene.world.light_settings.distance = .25
+    bpy.ops.object.select_all(action="DESELECT")
+    ob.select_set(True)
+    bpy.context.view_layer.objects.active = ob
+    bpy.ops.object.bake(type="AO", margin=4, use_clear=True, use_selected_to_active=False)
+
+
+def _shaded(image, shade):
+    """The look times the creases' shade, softened (a crease darkens to 70%)."""
+    px = list(image.pixels)
+    sh = shade.pixels[:]
+    for i in range(0, len(px), 4):
+        k = .7 + .3 * sh[i]
+        px[i] *= k
+        px[i + 1] *= k
+        px[i + 2] *= k
+    image.pixels[:] = px
 
 
 def _save(image, path):
@@ -273,18 +312,31 @@ def export(kind, meta):
     body.name = kind
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     height = max(v.co.z for v in body.data.vertices)
-    # The parts were made for big renders: a sixth of the faces reads the same
-    # at the view's size (vertex groups survive the collapse).
+    # The parts were made for big renders: two fifths of the faces reads the same
+    # at the view's size (vertex groups survive the collapse); the game makes
+    # lighter copies of the mesh for distance itself.
     decimate = body.modifiers.new("fewer", "DECIMATE")
-    decimate.ratio = .15
+    decimate.ratio = .4
     bpy.ops.object.modifier_apply(modifier="fewer")
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.01)
     bpy.ops.object.mode_set(mode="OBJECT")
     textures = []
+    light_for(bpy.context.scene, kind in BOSS_PHASES)
     image = bpy.data.images.new("bake", TEXTURE, TEXTURE, alpha=False)
-    _bake(body, image)
+    # The creases' shade (eye sockets, under a brim, between fingers), the
+    # soft part of the cels' lighting that does not turn with the camera.
+    shade = bpy.data.images.new("shade", TEXTURE, TEXTURE, alpha=False)
+    _bake_ao(body, shade)
+    # Each look is baked from its own build's separate parts: the materials'
+    # patterns (plaid, grime, stripes) sit on each part's own coordinates,
+    # which the joined mesh no longer has.
+    source = [ob for ob, _fp, _w in _build_kept(kind, frames[0][0], 0, 0)]
+    _bake(body, image, source)
+    for ob in source:
+        bpy.data.objects.remove(ob)
+    _shaded(image, shade)
     _save(image, os.path.join(_OUT, "%s.png" % kind))
     textures.append("")
     # The hurt set and a boss's phases, baked from their own build onto the
@@ -297,11 +349,13 @@ def export(kind, meta):
     for tag, wound, damage in looks:
         source = [ob for ob, _fp, _w in _build_kept(kind, frames[0][0], wound, damage)]
         _bake(body, image, source)
+        _shaded(image, shade)
         _save(image, os.path.join(_OUT, "%s_%s.png" % (kind, tag)))
         textures.append(tag)
         for ob in source:
             bpy.data.objects.remove(ob)
     bpy.data.images.remove(image)
+    bpy.data.images.remove(shade)
     # The rig: one bone a cluster, each frame a key.
     data = bpy.data.armatures.new("rig")
     rig = bpy.data.objects.new("rig_" + kind, data)
@@ -365,6 +419,8 @@ def export(kind, meta):
         "parts": len(rest),
         "bones": len(order),
         "faces": len(body.data.polygons),
+        # The looks carry the dusk stage's light (the game adds only a turn's shade).
+        "lit": True,
         "labels": {"b%d" % b: _label(c, skeleton) for b, c in enumerate(centres)},
         # The cels' canvas (map units): the game draws a kind enemies.cfg
         # height tall for this canvas height, so a model is scaled by the same.
@@ -378,8 +434,18 @@ def export(kind, meta):
 
 
 def _build_kept(kind, frame, wound, damage):
-    """A frame built and kept apart from ROOT (a bake's source)."""
+    """A frame built and kept apart from ROOT (a bake's source). The hurt
+    build stands as the rest frame does (no limp, which skeleton() would
+    lean it into), so its wounds land where the mesh's surface is; the limp
+    is the hurt frames' own pose in the action."""
+    S = ACTORS[kind][1]
+    limps = S.get("limps", None)
+    S["limps"] = False
     parts = _build(kind, frame, wound, damage)
+    if limps is None:
+        del S["limps"]
+    else:
+        S["limps"] = limps
     for ob, _fp, _w in parts:
         world = ob.matrix_world.copy()
         ob.parent = None

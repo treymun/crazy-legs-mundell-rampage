@@ -21,6 +21,9 @@ instance uniform vec4 tone = vec4(1.0);
 instance uniform vec4 wash = vec4(1.0, 1.0, 1.0, 0.0);
 // 0 plain, 1 hurt, 2 a boss's second phase, 3 its third.
 instance uniform int look = 0;
+// The looks were baked with the dusk stage's light (the front cel's): only a
+// turn's shade is added, so a side or back seen keeps some modelling.
+uniform bool baked_light = false;
 
 varying vec3 map_p;
 
@@ -59,7 +62,17 @@ void fragment() {
 		texel = texelFetch(look_plain, at, 0);
 	}
 	vec3 albedo = floor(texel.rgb * 255.0 + 0.5);
-	vec3 shaded = albedo * stage_light(normalize(NORMAL)) * wash.rgb;
+	vec3 n = normalize(NORMAL);
+	vec3 shaded;
+	if (baked_light) {
+		float turn = 0.88 + 0.12 * max(0.0, dot(n, normalize(vec3(-0.35, 0.55, 0.75))));
+		// Only a true silhouette edge darkens: a body lying flat, seen
+		// edge on, keeps its colour.
+		float rim = mix(0.8, 1.0, smoothstep(0.02, 0.18, n.z));
+		shaded = albedo * turn * rim * wash.rgb;
+	} else {
+		shaded = photo_grade(albedo * stage_light(n)) * wash.rgb;
+	}
 	float t = -VERTEX.z;
 	float raw = max(0.19, tone.a / (1.0 + 0.102 * t));
 	raw = max(raw, 0.58 - 0.021 * t);

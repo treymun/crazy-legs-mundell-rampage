@@ -571,6 +571,28 @@ static func rgb(r: float, g: float, b: float, a := 255.0) -> Color:
 ## Down to game size with premultiplied alpha, a hard edge, a dark rim, and a
 ## grade toward a worn photograph (muzzle flashes and glows keep theirs).
 ## `grain_sigma` is the photograph's speckle (the bosses take less: cleaner).
+## photo_shrink's colour alone, for a picture already at its size (a 3D
+## model's baked look): a little less saturated, more contrast round .42 and
+## lifted, grain; the brightest left alone. The same grade the cels and prop
+## pictures were given, in the same place (before digitize).
+static func photo_grade(image: Sheet, seed: int, grain_sigma := .026) -> Sheet:
+	var n := image.w * image.h
+	var grain := noise(seed, n, grain_sigma)
+	var out := Sheet.new(image.w, image.h)
+	for i in n:
+		var o := i * 4
+		var c := Vector3(image.data[o], image.data[o + 1], image.data[o + 2]) / 255.0
+		if maxf(c.x, maxf(c.y, c.z)) <= .93:
+			var grey := (c.x + c.y + c.z) / 3.0
+			c = Vector3.ONE * grey + (c - Vector3.ONE * grey) * .86
+			c = (c - Vector3.ONE * .42) * 1.18 + Vector3.ONE * .52 + Vector3.ONE * grain[i]
+		out.data[o] = clampi(int(c.x * 255), 0, 255)
+		out.data[o + 1] = clampi(int(c.y * 255), 0, 255)
+		out.data[o + 2] = clampi(int(c.z * 255), 0, 255)
+		out.data[o + 3] = 255
+	return out
+
+
 static func photo_shrink(image: Sheet, size: Vector2i, seed: int, grain_sigma := .026) -> Sheet:
 	# Colour weighed by alpha twice over, as the Python builder's own premultiply
 	# followed by Pillow's did: a thin wing keeps its bright core over its dark

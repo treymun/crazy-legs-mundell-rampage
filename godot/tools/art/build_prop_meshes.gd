@@ -70,7 +70,10 @@ func _init() -> void:
 			continue
 		DirAccess.copy_absolute(glb, out_dir.path_join(name + ".glb"))
 		var baked := Paint.Sheet.load_png(raw.path_join(name + ".png"))
-		Paint.digitize(baked).save(art.path_join("mesh_%s.png" % name))
+		var seed := 0
+		for ch in name.to_utf8_buffer():
+			seed += ch
+		Paint.digitize(Paint.photo_grade(baked, seed)).save(art.path_join("mesh_%s.png" % name))
 		sizes[name] = meta[name]
 		count += 1
 	var file := FileAccess.open(sizes_path, FileAccess.WRITE)

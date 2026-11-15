@@ -62,7 +62,12 @@ func _init() -> void:
 		for look: String in entry["textures"]:
 			var tag := kind if look == "" else "%s_%s" % [kind, look]
 			var baked := Paint.Sheet.load_png(raw.path_join(tag + ".png"))
-			Paint.digitize(baked).save(art.path_join("actor3d_%s.png" % tag))
+			var seed := 0
+			for ch in tag.to_utf8_buffer():
+				seed += ch
+			Paint.digitize(Paint.photo_grade(baked, seed)).save(
+				art.path_join("actor3d_%s.png" % tag)
+			)
 		known[kind] = entry
 		count += 1
 	var file := FileAccess.open(known_path, FileAccess.WRITE)

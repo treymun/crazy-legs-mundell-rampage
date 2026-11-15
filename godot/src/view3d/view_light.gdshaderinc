@@ -224,6 +224,21 @@ bool mirror_clipped(vec3 p, uint layers) {
 	return (p.x - mirror_x) * sign(eye.x - mirror_x) < 0.008;
 }
 
+// The worn photograph's colour the cels and prop pictures were graded with
+// as they were shrunk (tools/art/paint.gd photo_shrink): a little less
+// saturated, more contrast round .42 and lifted; the brightest left alone.
+// c is 0-255.
+vec3 photo_grade(vec3 c) {
+	vec3 x = c / 255.0;
+	if (max(x.r, max(x.g, x.b)) > 0.93) {
+		return c;
+	}
+	float grey = (x.r + x.g + x.b) / 3.0;
+	x = vec3(grey) + (x - vec3(grey)) * 0.86;
+	x = (x - vec3(0.42)) * 1.18 + vec3(0.52);
+	return clamp(x, 0.0, 1.0) * 255.0;
+}
+
 // The old renderer's light_at(): the light falls off with the distance ahead,
 // stops at .19 and is stepped in 32nds.
 float stepped_light(float light, float t) {
