@@ -47,95 +47,16 @@ const REMEMBER := "user://online.json"
 ## Seconds an always-open lobby's results stay up before everyone is back.
 const BACK_AFTER := 12.0
 ## Settings an always-open lobby's admin may not change.
+const LOBBY_DATA := "res://data/tuning/lobby.cfg"
 const SERVER_ONLY := ["lobby_name", "password", "admin", "dedicated", "locked"]
 
 ## The lobby's settings: key, label, values, what each value is called.
-const LOBBY_ROWS := [
-	["max_players", "ROOM FOR", [2, 4, 6, 8, 10], ["2", "4", "6", "8", "10"]],
-	["late_join", "LATE JOIN", [true, false], ["ON", "OFF"]],
-	["pick_teams", "TEAMS", [true, false], ["PLAYERS PICK", "HOST BALANCES"]],
-	["chatter", "CHATTER", [2, 1, 0], ["EACH'S OWN", "CLEAN AT MOST", "OFF"]],
-]
-static var MATCH_ROWS: Array = [
-	# The lobby's game modes (a new online mode goes here and in play_mode()).
-	[
-		"mode",
-		"MODE",
-		["bomb", "hostage", "tagteam", "county"],
-		["SEARCH AND DESTROY", "HOSTAGE RESCUE", "TAG TEAM 2V2", "COUNTY RUN CO-OP"]
-	],
-	[
-		"map",
-		"MAP",
-		[
-			"grainyard",
-			"holler",
-			"salvage",
-			"pumpngo",
-			"pineacres",
-			"landing",
-			"county_hickston",
-			"county_quarry",
-			"county_bayou",
-		],
-		[
-			"GRAIN CO-OP",
-			"DISTILLERY",
-			"SALVAGE",
-			"2V2 PUMP 'N GO",
-			"2V2 PINE ACRES",
-			"2V2 LANDING",
-			"RUN: HICKSTON",
-			"RUN: THE QUARRY",
-			"RUN: GATOR BAYOU",
-		]
-	],
-	["store_rules", "RULES", TacticalShop.RULE_IDS, TacticalShop.RULE_NAMES],
-	["rounds", "ROUNDS TO WIN", [3, 4, 5, 7, 9, 10], ["3", "4", "5", "7", "9", "10"]],
-	["team_size", "TEAM SIZE", [1, 2, 3, 4, 5], ["1V1", "2V2", "3V3", "4V4", "5V5"]],
-	["bots", "BOTS FILL", [true, false], ["ON", "OFF"]],
-	["bot_skill", "BOT SKILL", [0, 1, 2, 3], ["EASY", "NORMAL", "HARD", "HOG WILD"]],
-	["friendly_fire", "FRIENDLY FIRE", [false, true], ["OFF", "ON"]],
-	[
-		"round_seconds",
-		"ROUND TIME",
-		[0.0, 60.0, 90.0, 120.0, 150.0, 180.0],
-		["MODE'S", "1:00", "1:30", "2:00", "2:30", "3:00"]
-	],
-	[
-		"buy_seconds",
-		"BUY TIME",
-		[10.0, 15.0, 20.0, 30.0, 45.0],
-		["10 S", "15 S", "20 S", "30 S", "45 S"]
-	],
-	["freeze_seconds", "FREEZE TIME", [3.0, 6.0, 10.0, 15.0], ["3 S", "6 S", "10 S", "15 S"]],
-	[
-		"start_money",
-		"START CASH",
-		[800, 1600, 4000, 10000, 16000],
-		["800", "1600", "4000", "10000", "16000"]
-	],
-]
-const DEFAULTS := {
-	"lobby_name": "MUNDELL'S LOBBY",
-	"password": "",
-	"max_players": 10,
-	"late_join": true,
-	"pick_teams": true,
-	"chatter": 2,
-	"mode": "bomb",
-	"map": "grainyard",
-	"rounds": 7,
-	"team_size": 5,
-	"bots": true,
-	"bot_skill": 1,
-	"friendly_fire": false,
-	"round_seconds": 0.0,
-	"buy_seconds": 20.0,
-	"freeze_seconds": 6.0,
-	"start_money": 800,
-	"store_rules": "any",
-}
+## The lobby's settings (data/tuning/lobby.cfg): key, label, values, what
+## each value is called; MATCH_ROWS the match's own (the store rules' row is
+## store.cfg's rules); DEFAULTS what a new lobby starts with.
+static var LOBBY_ROWS: Array = Tuning.file(LOBBY_DATA).get_value("lobby", "lobby_rows", [])
+static var MATCH_ROWS: Array = _match_rows()
+static var DEFAULTS: Dictionary = Tuning.file(LOBBY_DATA).get_value("lobby", "defaults", {})
 const TEAM_NAMES := ["HOGS", "GATORS"]
 
 var role := Role.NONE
@@ -1208,3 +1129,13 @@ static func remember(values: Dictionary) -> void:
 	var f := FileAccess.open(REMEMBER, FileAccess.WRITE)
 	if f != null:
 		f.store_string(JSON.stringify(all))
+
+
+## The match rows from lobby.cfg, the store rules' row filled from store.cfg.
+static func _match_rows() -> Array:
+	var rows: Array = Tuning.file(LOBBY_DATA).get_value("lobby", "match_rows", [])
+	for row: Array in rows:
+		if row[2] is String and row[2] == "store":
+			row[2] = TacticalShop.RULE_IDS
+			row[3] = TacticalShop.RULE_NAMES
+	return rows
