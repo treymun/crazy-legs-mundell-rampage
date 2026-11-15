@@ -22,7 +22,7 @@ failed.
 | Check | Passes with | In quick | What it holds |
 | --- | --- | --- | --- |
 | `check_shader` | SHADER OK | yes | texture counts: `display.gdshader` at most 9 (incl. TEXTURE), each view3d shader with its includes at most 10 |
-| `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads |
+| `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads; every pickup slab builds at its picture's size |
 | `verify_assets` | ASSETS OK | yes | assets and levels load; chapter-only kinds really are one chapter's; pending music noted |
 | `check_fixes` | PARITY FIXES OK | | the parity regression checks and the quick parts of many others (below) |
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
@@ -106,7 +106,7 @@ godot --headless --path godot --script res://tools/compare_sheet.gd -- <old dir>
   in a local reference fails CI's Mesa window, which has none.
 - Changing how text draws changes every reference (a tour, then `update`).
 - A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
-  `wet`, `lightning`, and `actors`.
+  `wet`, `lightning`, `actors` and `motion` (EASY ON THE EYES).
 - The old software-view references (`tools/pictures/`, `picture_check.gd`)
   and shader-view references (`tools/pictures_gpu/`, `compare_views.gd`) were
   deleted with the software renderer.

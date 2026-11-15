@@ -78,6 +78,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | sprites | `sprite.gdshader`, `sprite_clear.gdshader`, `sprite_body.gdshaderinc`, `SpriteLayer3D` | camera-facing MultiMesh billboards |
 | marks | `mark.gdshader` | wall and ground decals |
 | rain | `rain.gdshader` | three camera-hung layers |
+| pickups | `PickupLayer3D`, `PickupModels`, `pickup.gdshader` | `item_*` sprites as pixel slabs (MultiMesh per picture) |
 | props | `PropLayer3D`, `PropView`, `prop_models.gd`, `prop.gdshader` | modelled props |
 | actors | `ActorLayer3D`, `ActorView`, `actor_models.gd`, `actor.gdshader` | rigged enemies and bosses |
 | heat | `HeatHaze` | heat shimmer boxes, handed to the display shader |
@@ -114,6 +115,42 @@ Each prop placed with `town()` shows as a `PropView` scene
 pipeline that makes them is in [art.md](art.md#props). A light with `props` in
 effects.cfg rides every prop with that picture.
 
+## Pickups
+
+Every sprite showing an `item_*` picture (guns, ammo, beer, rinds, keys,
+County Run supply piles; not boards or see-through sprites) is drawn by
+`PickupLayer3D` as a slab made from its own picture (`PickupModels`): the
+picture's solid pixels (alpha over 100, the solid sprite test) pushed out a
+few pixels thick. Front and back show the picture; each edge pixel's side
+wall is one colour, the pixel's, or past a drawn dark outline the first
+pixel inside it (so a can's side is the can, not its black line). Sides are
+shaded .78, tops .9, bottoms .62 of the front's light, like a 1997 voxel.
+The thickness is .6 of the art's breadth (the middle of its solid columns'
+and rows' counts: a gun's barrel, a can's width), 2 to 12 pixels.
+
+- **No files.** The meshes are built from the art the first time a picture
+  is seen and cached (about 270 triangles each, 51 pictures); nothing is
+  added to the export. A picture not here yet (a chapter pack still being
+  fetched) stays a sprite.
+- **Same size and place.** A mesh is in sprite units (one unit the
+  picture's height, its empty bottom rows kept), scaled by the sprite's
+  height and stood at its x, y, z, so from the front it is the billboard;
+  x is centred on the art's solid columns.
+- **Same light.** `pickup.gdshader` is `sprite_body.gdshaderinc` with
+  `MESH`: the sprites' art slots (`SpriteLayer3D.slot()`, so call
+  `show_pickups` after `show_sprites`), stepped light, the area's tint, glow,
+  then LIGHTS AND GLOW with the face's own normal, fog and grade. Solid only
+  (no ALPHA), `cull_back`; no new texture.
+- **Motion is looks only.** Each pickup turns at `TURN` (.9 rad/s) on
+  `game.clock`, phase from its place; the bob is still the sprite's z
+  (`game_view.gd`, `county_orbs.gd`). EASY ON THE EYES (`world_motion`)
+  slows both to .4 (REDUCED) and stops them (STILL), where each pickup faces
+  the eye square to the view, as the sprite did.
+- Out to 32 cells ahead, as the sprite was.
+
+Before (left), STILL (middle) and turning (right):
+`docs/godot3d/remaster/pickups/*.png`.
+
 ## Actors
 
 Each enemy and boss with a model shows as an `ActorView` scene
@@ -129,8 +166,9 @@ The pipeline is in [art.md](art.md#actors).
 
 ## Checks
 
-- `tools/view3d_check.gd` builds every level's mesh headless and loads every
-  prop and actor scene (VIEW3D CHECK OK; in check_all and CI).
+- `tools/view3d_check.gd` builds every level's mesh headless, loads every
+  prop and actor scene and builds every pickup's slab, holding its front to
+  the picture's size and place (VIEW3D CHECK OK; in check_all and CI).
 - `tools/check_shader.gd` counts textures (SHADER OK).
 - `tools/compare_3d.gd` holds a window tour's pictures against
   `tools/pictures_3d/` ([checks.md](checks.md#picture-references)).
@@ -146,7 +184,8 @@ godot --path godot --audio-driver Dummy --resolution 1280x800 -- --view-bench=30
 ```
 
 A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
-`wet`, `lightning`, and `actors` (to show the 3D models).
+`wet`, `lightning`, `actors` (to show the 3D models) and `motion` (EASY ON
+THE EYES: 0 full, the default, 1 reduced, 2 still).
 
 ## User folder
 

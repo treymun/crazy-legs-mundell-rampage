@@ -1,4 +1,6 @@
-// The body of sprite.gdshader and sprite_clear.gdshader (CLEAR: blended).
+// The body of sprite.gdshader and sprite_clear.gdshader (CLEAR: blended), and
+// of pickup.gdshader (MESH: a pickup's slab, pickup_layer.gd, placed by its
+// own transform, each face shaded by which way it looks).
 #include "res://src/view3d/view_light.gdshaderinc"
 
 uniform sampler2DArray art : filter_nearest, repeat_disable;
@@ -14,12 +16,24 @@ varying vec3 map_p;
 // A board seen from behind is not drawn (the old renderer's test: its
 // back, where it has one, is a board of its own facing the other way).
 varying flat float behind;
+#ifdef MESH
+varying vec3 map_n;
+// Fronts and backs at full light; the side walls darker, as a 1997 voxel's.
+varying flat float face;
+#endif
 
 void vertex() {
 	data = INSTANCE_CUSTOM;
 	tone = COLOR;
 	vec3 w;
 	behind = 0.0;
+#ifdef MESH
+	w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	vec3 wn = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	map_n = vec3(wn.x, wn.z, wn.y);
+	vec3 an = abs(NORMAL);
+	face = an.z > 0.5 ? 1.0 : (an.x > 0.5 ? 0.78 : (NORMAL.y > 0.0 ? 0.9 : 0.62));
+#else
 	if ((int(data.w + 0.5) & BOARD) != 0) {
 		w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 		// Map (x, y) is Godot (x, z); the board's axis is (cos p, sin p).
@@ -36,6 +50,7 @@ void vertex() {
 		float height = length(MODEL_MATRIX[1].xyz);
 		w = MODEL_MATRIX[3].xyz + right * (VERTEX.x * width) + vec3(0.0, VERTEX.y * height, 0.0);
 	}
+#endif
 	map_p = vec3(w.x, w.z, w.y);
 	VERTEX = (VIEW_MATRIX * vec4(w, 1.0)).xyz;
 	NORMAL = vec3(0.0, 0.0, 1.0);
@@ -71,16 +86,29 @@ void fragment() {
 		if ((flags & BODY) != 0) {
 			raw = max(raw, 0.58 - 0.021 * t);
 		}
+#ifdef MESH
+		raw *= face;
+#endif
 		lit = floor(raw * 32.0 + 0.5) / 32.0;
 	}
+#ifdef MESH
+	if ((flags & GLOW) != 0) {
+		lit *= face;
+	}
+#endif
 	vec3 colour = clamp(floor(floor(texel.rgb * 255.0 + 0.5) * lit * tone.rgb), 0.0, 255.0);
 	if (hurt > 0.0) {
 		colour = floor(colour * (1.0 - hurt) + vec3(255.0, 232.0, 208.0) * hurt);
 	}
 	if (effects_on) {
+#ifdef MESH
+		vec3 nf = dot(map_n, eye - map_p) < 0.0 ? -map_n : map_n;
+#else
 		vec3 nf = normalize(eye - map_p);
 		nf.z = 0.0;
-		colour = surface_light(colour, map_p, t, normalize(nf + vec3(1e-5)), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec2(0.0), 0.0, 2);
+		nf = normalize(nf + vec3(1e-5));
+#endif
+		colour = surface_light(colour, map_p, t, nf, vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec2(0.0), 0.0, 2);
 	}
 	ALBEDO = to_output(colour);
 #ifdef CLEAR

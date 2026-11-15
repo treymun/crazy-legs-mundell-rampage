@@ -103,6 +103,29 @@ static func _quad() -> ArrayMesh:
 	return mesh
 
 
+## The art slot showing `name` this frame (call after show_sprites) and its
+## picture's size in the slot: for the pickups' meshes (PickupLayer3D).
+func slot(name: String) -> int:
+	return _slot(name)
+
+
+func slot_size(k: int) -> Vector2i:
+	return _slot_size[k]
+
+
+## The tint of the area at map (x, y) (rgb; a glowing sprite's is area 1's)
+## and the cell's light (a), as a sprite there is lit.
+static func tone_at(level: LevelData, x: float, y: float, glow: bool) -> Color:
+	var c := level.cell(clampf(x, 0.0, level.width - .01), clampf(y, 0.0, level.height - .01))
+	var tints := level.tints
+	var area := 1 if glow else level.area[c]
+	var ti := clampi(area, 0, maxi(0, tints.size() / 3 - 1)) * 3
+	var tone := Color(1, 1, 1, level.light[c])
+	if tints.size() >= 3:
+		tone = Color(tints[ti], tints[ti + 1], tints[ti + 2], level.light[c])
+	return tone
+
+
 ## The slot holding `name`, uploading it if it is new.
 func _slot(name: String) -> int:
 	var slot: int = _slot_of.get(name, -1)
@@ -191,8 +214,8 @@ func show_sprites(
 			clear_buf.append_array(_row(s, level, angle))
 		else:
 			solid_buf.append_array(_row(s, level, angle))
-	_fill(solid, solid_buf)
-	_fill(clear, clear_buf)
+	fill(solid, solid_buf)
+	fill(clear, clear_buf)
 
 
 ## The player as the mirror shows them (only the mirror's camera sees it).
@@ -200,7 +223,7 @@ func show_reflection(sprite: View.Sprite, level: LevelData, angle: float) -> voi
 	var buf := PackedFloat32Array()
 	if sprite != null and sprite.image != "":
 		buf = _row(sprite, level, angle)
-	_fill(reflection, buf)
+	fill(reflection, buf)
 
 
 ## One instance's 20 numbers: its transform (a billboard's width along the
@@ -220,13 +243,7 @@ func _row(s: View.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
 	var z := s.z
 	if s.body:
 		z -= s.height * _drop_of(s.image)
-	var c := level.cell(clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01))
-	var tints := level.tints
-	var area := 1 if s.glow else level.area[c]
-	var ti := clampi(area, 0, maxi(0, tints.size() / 3 - 1)) * 3
-	var tint := Color(1, 1, 1)
-	if tints.size() >= 3:
-		tint = Color(tints[ti], tints[ti + 1], tints[ti + 2])
+	var tint := tone_at(level, s.x, s.y, s.glow)
 	var flags := (
 		(FLIP if s.flip else 0)
 		| (GLOW if s.glow else 0)
@@ -256,7 +273,7 @@ func _row(s: View.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
 			tint.r,
 			tint.g,
 			tint.b,
-			level.light[c],
+			tint.a,
 			float(slot),
 			float(size.x),
 			float(size.y),
@@ -352,10 +369,10 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 				]
 			)
 		)
-	_fill(marks, buf)
+	fill(marks, buf)
 
 
-static func _fill(node: MultiMeshInstance3D, buf: PackedFloat32Array) -> void:
+static func fill(node: MultiMeshInstance3D, buf: PackedFloat32Array) -> void:
 	var mm := node.multimesh
 	var n := buf.size() / FLOATS
 	if mm.instance_count < n:

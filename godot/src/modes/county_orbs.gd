@@ -247,13 +247,15 @@ static func total_xp(f: CountyRun) -> int:
 static func sprites(game: Game, f: CountyRun) -> Array:
 	var out: Array = []
 	var t: float = game.clock
+	# EASY ON THE EYES calms the bob (STILL: none).
+	var sway: float = [1.0, .4, 0.0][clampi(game.view.world_motion, 0, 2)]
 	for orb: Array in f.orbs:
 		var x: float = orb[0]
 		var y: float = orb[1]
 		if not game.in_view(x, y, 1.0):
 			continue
 		var kind := str(orb[4])
-		var bob := .14 + sin(t * 3.2 + x * 1.7) * .05
+		var bob := .14 + sin(t * 3.2 + x * 1.7) * .05 * sway
 		var z: float = orb[2]
 		if kind == "xp":
 			var value: int = orb[3]
