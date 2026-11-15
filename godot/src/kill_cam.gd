@@ -144,7 +144,7 @@ func _boss_awake(g: Game) -> bool:
 	_boss_check = g.clock
 	_boss_seen = false
 	for e: Enemy in g.enemies:
-		if e.alive and not e.dormant and BossKit.is_boss(e):
+		if e.alive and e.alerted and not e.dormant and BossKit.is_boss(e):
 			_boss_seen = true
 			break
 	return _boss_seen

@@ -118,6 +118,9 @@ default), BOSSES AND AREAS; never online or with more than one player):
   (poses smoothed between samples, falls timed against the frozen clock);
   black bars carry KILL CAM and how to skip. Any key, click, tap or pad
   button skips it. Lost limbs are not shown in the replay.
+- Cost (measured in a 1280x800 window while firing, 2026-11-15): one sample
+  0.35 to 0.6 ms, taken every other frame at 60 fps (BOSSES only while a boss
+  is up and alerted); the HUD's Controls 0.03 ms a frame over the old bar.
 
 ## How a frame gets drawn
 
