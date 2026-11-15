@@ -141,14 +141,23 @@ static func ink_for(st: ModeFeature, p: Player) -> Color:
 ## the DEPUTIES as its yard deputies (the campaign's own actors, every view
 ## and walk cel), at the height of a player's hit box (the head drawn where a
 ## shot counts as the head); aiming and firing face on, hurt cels under half
-## health, crouched lower, laid out when down.
+## health, crouched lower, falling and then laid out when down. The 3D view
+## draws each as that actor's model (a ModeBodies stand-in).
 static func player_sprite(game: Game, q: Player, me: Player) -> View.Sprite:
 	var st := Modes.feature(game)
 	var kind := "billy" if st == null or TacticalMode.side_of(st, q) == 0 else "yard_deputy"
 	var floor_z: float = game.world.stand(q)
 	if q.health <= 0:
-		var down := game.pooled(q.x, q.y, kind + "_down", PLAYER_HEIGHT * .3, floor_z - .07)
+		var since := game.clock - ModeBodies.fell_at(game, q)
+		var cel := mini(4, int(since / Enemy.DEATH_TIME * 5.0))
+		var falling := "%s_die_%d" % [kind, cel]
+		var down: View.Sprite = null
+		if since >= 0.0 and since < Enemy.DEATH_TIME and game.art.has_art(falling):
+			down = game.pooled(q.x, q.y, falling, PLAYER_HEIGHT, floor_z)
+		else:
+			down = game.pooled(q.x, q.y, kind + "_down", PLAYER_HEIGHT * .3, floor_z - .07)
 		down.body = true
+		down.who = ModeBodies.for_player(game, q, kind, PLAYER_HEIGHT)
 		return down
 	var bearing := atan2(me.y - q.y, me.x - q.x)
 	var relative := Enemy.angle_delta(bearing, q.angle)
@@ -170,6 +179,7 @@ static func player_sprite(game: Game, q: Player, me: Player) -> View.Sprite:
 	var spr := game.pooled(q.x, q.y, image, tall, floor_z + q.air)
 	spr.flip = relative < 0.0 and direction < 4
 	spr.body = true
+	spr.who = ModeBodies.for_player(game, q, kind, tall)
 	return spr
 
 
@@ -184,22 +194,52 @@ static func tint_for(game: Game, p: Player) -> Array:
 # ----------------------------------------------------------------- world
 
 
+## Where a hostage is drawn: [x, y, facing, the carrier or null]. Where they
+## were held, facing this machine's player; a carried one walks at the
+## carrier's heels (the picture only: play keeps the hostage's own place).
+static func hostage_place(game: Game, hostage: Array) -> Array:
+	var x: float = hostage[0]
+	var y: float = hostage[1]
+	var me: Player = game.local_player
+	var slot: int = hostage[3]
+	if str(hostage[2]) == "carried" and slot >= 0 and slot < game.players.size():
+		var carrier: Player = game.players[slot]
+		var behind := (
+			Vector2(carrier.x, carrier.y) - Vector2(cos(carrier.angle), sin(carrier.angle)) * .5
+		)
+		if game.world.blocked(behind.x, behind.y, .2):
+			behind = Vector2(carrier.x, carrier.y)
+		return [behind.x, behind.y, carrier.angle, carrier]
+	return [x, y, atan2(me.y - y, me.x - x), null]
+
+
 ## The hostages and the shine bomb (pooled sprites).
 static func sprites(game: Game, st: ModeFeature) -> Array:
 	var out: Array = []
 	var art: Assets = game.art
 	if String(st.mode) == Modes.HOSTAGE:
-		for hostage: Array in st.hostages:
+		for k in st.hostages.size():
+			var hostage: Array = st.hostages[k]
 			if str(hostage[2]) == "rescued":
 				continue
-			var x: float = hostage[0]
-			var y: float = hostage[1]
+			var place := hostage_place(game, hostage)
+			var x: float = place[0]
+			var y: float = place[1]
 			if not game.in_view(x, y, 1.0):
 				continue
-			var image := "coot_0" if art.art_index.has("coot_0") else "player_front_0"
+			var carrier: Player = place[3]
+			var walking := carrier != null and Vector2(carrier.vx, carrier.vy).length() > .5
+			var has_coot := art.art_index.has("coot_0")
+			var image := "coot_0" if has_coot else "player_front_0"
+			if has_coot and walking:
+				image = "coot_w%d" % (int(carrier.walk_phase / (PI * .5)) % 4)
 			image = art.tinted_art(image, [1.25, 1.2, .85])
 			var spr := game.pooled(x, y, image, .98, game.world.elevation(x, y))
 			spr.body = true
+			if has_coot:
+				var gait := carrier.walk_phase if carrier != null else 0.0
+				var facing: float = place[2]
+				spr.who = ModeBodies.for_hostage(game, k, x, y, facing, gait, .98)
 			out.append(spr)
 	elif String(st.mode) == Modes.BOMB and st.bomb is Dictionary and not st.bomb.is_empty():
 		var state := str(st.bomb["state"])
@@ -246,9 +286,9 @@ static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 		_round_banner(c, game, st)
 	elif String(st.phase) == "freeze":
 		var left := maxi(1, ceili(float(st.phase_until) - game.clock))
-		HUD.text(c, str(left), 160, 50, "heading", HUD.AMBER, true)
+		HUD.text(c, str(left), 160, 18, "heading", HUD.AMBER, true)
 		if not open:
-			HUD.text(c, "TAP BUY" if touch_on else "B  BUY MENU", 160, 66, "body", HUD.INK, true)
+			HUD.text(c, "TAP BUY" if touch_on else "B  BUY MENU", 160, 34, "body", HUD.INK, true)
 	# (The open store is drawn over everything, gun and HUD too: main_state.gd.)
 	if not open and touch_on and me.slot == human and TacticalMode.can_buy(game, st, me):
 		LobbyScreens.button(c, BUY_PLATE, "BUY", true, "buy")
@@ -529,8 +569,9 @@ static func _objective_tags(c: Canvas, game: Game, st: ModeFeature, me: Player) 
 				continue
 			var ink := GREEN if state == "free" else HUD.AMBER
 			var word := "HOSTAGE" if state == "free" else "CARRIED"
-			var hostage_x: float = hostage[0]
-			var hostage_y: float = hostage[1]
+			var place := hostage_place(game, hostage)
+			var hostage_x: float = place[0]
+			var hostage_y: float = place[1]
 			_tag_at(c, game, me, hostage_x, hostage_y, 1.15, word, ink, true)
 		if TacticalMode.attacks(game, st, me):
 			for box: Array in HostageMode.rescue_boxes(game):

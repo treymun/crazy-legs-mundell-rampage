@@ -1,6 +1,7 @@
 ## What the game modes draw (CLAUDE.md "Modes"), all for this machine's
-## player: the partners in the world (their pictures, tinted by slot), a tag
-## and health over each (or at the view's edge when out of sight), the revive
+## player: the partners in the world (their pictures, tinted by slot, or by
+## team in team deathmatch: RED warm, BLUE cold, the tags too), a tag and
+## health over each (or at the view's edge when out of sight), the revive
 ## prompt and its progress, the frags and the clock in versus, the screen of a
 ## player who is down (game_view.gd, instead of the death screen while a
 ## partner is up or a respawn is coming) and the versus results (hud.gd
@@ -14,12 +15,17 @@ const HEADINGS := ["_front", "_quarter", "_side", "_away", "_back"]
 const RED := Color8(238, 89, 52)
 const GREEN := Color8(120, 210, 90)
 const PLATE := Color8(30, 21, 17)
+## Team deathmatch: RED's and BLUE's tint on the pictures and ink on the tags.
+const TEAM_TINTS := [[1.3, .76, .66], [.68, .88, 1.32]]
+const TEAM_INKS := [Color8(244, 104, 84), Color8(110, 184, 255)]
 
 
 ## The other players' pictures for this frame (pooled sprites).
 static func sprites(game: Game) -> Array:
 	var out: Array = []
 	var me: Player = game.local_player
+	if Modes.is_tactical(game):
+		ModeBodies.watch(game)
 	for q: Player in game.players:
 		if q == me or not game.in_view(q.x, q.y, 1.0):
 			continue
@@ -32,8 +38,9 @@ static func sprites(game: Game) -> Array:
 		var step := int(q.walk_phase / PI) % 2 if q.motion > .1 and q.health > 0 else 0
 		var base := "player%s_%d" % [HEADINGS[direction], step]
 		var image := base
-		if Modes.is_tactical(game):
-			image = game.art.tinted_art(base, TacticalScreens.tint_for(game, q))
+		if Modes.mode_of(game) == Modes.TEAM:
+			var team_tint: Array = TEAM_TINTS[q.team % 2]
+			image = game.art.tinted_art(base, team_tint)
 		elif q.slot != 0:
 			var tint: Array = Modes.TINTS[q.slot % Modes.TINTS.size()]
 			image = game.art.tinted_art(base, tint)
@@ -49,9 +56,16 @@ static func sprites(game: Game) -> Array:
 ## prompt, versus's frags and clock.
 static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 	var me: Player = game.local_player
+	# Nearest first: a farther partner's tag steps up out of a nearer one's way.
+	var others: Array = []
 	for q: Player in game.players:
 		if q != me:
-			_tag(c, game, me, q)
+			others.append([Vector2(q.x - me.x, q.y - me.y).length(), q])
+	others.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	var taken: Array[Rect2i] = []
+	for entry: Array in others:
+		var q: Player = entry[1]
+		_tag(c, game, me, q, taken)
 	if me.health > 0 and String(st.mode) == Modes.COOP:
 		var down := CoopMode.downed_near(game, me)
 		if down != null and down.revive > 0.0:
@@ -85,9 +99,10 @@ static func revive_prompt(game: Game) -> String:
 
 
 ## One partner's tag and health bar over their head, or at the view's edge
-## (with an arrow) when they are behind or out of sight.
-static func _tag(c: Canvas, game: Game, me: Player, q: Player) -> void:
-	var head: float = game.world.stand(q) + q.air + (1.14 if q.health > 0 else .6)
+## (with an arrow) when they are behind or out of sight; stepped up clear of
+## the tags already drawn (`taken`).
+static func _tag(c: Canvas, game: Game, me: Player, q: Player, taken: Array[Rect2i]) -> void:
+	var head: float = game.world.stand(q) + q.air + (1.14 if q.health > 0 else .5)
 	var at: Vector3 = game.to_canvas(q.x, q.y, head)
 	var seen: bool = (
 		at.z > 0.0
@@ -98,6 +113,8 @@ static func _tag(c: Canvas, game: Game, me: Player, q: Player) -> void:
 		and game.world.visible(me.x, me.y, q.x, q.y, me.eye, head - .3)
 	)
 	var tone := Modes.color(q)
+	if Modes.mode_of(game) == Modes.TEAM:
+		tone = TEAM_INKS[q.team % 2]
 	var label := Modes.tag(q) if q.health > 0 else Modes.tag(q) + " DOWN"
 	if q.health <= 0:
 		tone = RED
@@ -109,6 +126,14 @@ static func _tag(c: Canvas, game: Game, me: Player, q: Player) -> void:
 		x = clampi(int(160.0 + side * 148.0), 12, View.WIDTH - 12)
 		y = View.VIEW - 24
 		label = ("<" if rel < 0.0 else ">") + label if absf(rel) > .55 else label
+	var w := maxi(PixelType.text_width(label, "mini"), 22)
+	var rect := Rect2i(x - w / 2 - 1, y - 1, w + 2, 13)
+	for _tries in 4:
+		if not taken.any(func(r: Rect2i) -> bool: return r.intersects(rect)):
+			break
+		rect.position.y -= 13
+	y = rect.position.y + 1
+	taken.append(rect)
 	HUD.text(c, label, x, y, "mini", tone, true)
 	_bar(c, x - 10, y + 8, 20, float(maxi(0, q.health)) / 100.0, tone)
 	if q.health <= 0 and q.revive > 0.0:

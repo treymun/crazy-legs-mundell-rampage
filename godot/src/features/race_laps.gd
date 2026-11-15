@@ -9,6 +9,9 @@ extends GameFeature
 
 ## How close a car's middle may come to a body before it hits it.
 const REACH := .78
+## race_car_0's nose against the model's front (scripts/blender/props_speedway.py
+## _sw_race: the nose turned k * 45 - 90 + 28 degrees).
+const NOSE_TURN := -62.0 * PI / 180.0
 
 var path := PackedVector2Array()
 var lengths := PackedFloat32Array()
@@ -151,13 +154,14 @@ func _tick(dt: float) -> void:
 					game.focus(game.local_player)
 
 
-## The car's picture for where it is seen from: race_car_0 nose on to the
-## viewer, round by eighths to race_car_7.
+## Each car as the race car's model (the 3D view's prop `race_car_0`), turned
+## along the racing line: the sprite's `plane` is the model's turn, so the
+## nose points where the car runs whatever side it is seen from (the eight
+## pictures race_car_0..7 were the old view's turns of it).
 func sprites() -> Array:
 	var out: Array = []
 	if cars.is_empty() or game.revisiting:
 		return out
-	var p := game.player
 	for car: Array in cars:
 		var car_along: float = car[0]
 		var where: Array = _at(car_along)
@@ -165,13 +169,11 @@ func sprites() -> Array:
 		if not game.in_view(at.x, at.y, 1.6):
 			continue
 		var heading: float = where[1]
-		var toward_eye := atan2(p.y - at.y, p.x - at.x)
-		var turn := Enemy.angle_delta(toward_eye, heading)
-		var k := posmod(roundi(turn / (PI / 4.0)), 8)
 		var spr := View.Sprite.new(
-			at.x, at.y, "town_race_car_%d" % k, 1.05, game.world.elevation(at.x, at.y)
+			at.x, at.y, "town_race_car_0", 1.05, game.world.elevation(at.x, at.y)
 		)
 		spr.body = true
+		spr.plane = heading + NOSE_TURN
 		out.append(spr)
 	return out
 

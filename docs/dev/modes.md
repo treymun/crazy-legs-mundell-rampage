@@ -103,7 +103,10 @@ posse, critters).
 ## Team deathmatch
 
 `team_deathmatch_mode.gd`: RED slots 0 and 2, BLUE 1 and 3; teammates'
-bullets and blasts pass by; the frag limit is the team's score.
+bullets and blasts pass by; the frag limit is the team's score. The other
+players' pictures and tags wear their team's colour (`ModeScreens.TEAM_TINTS`,
+`TEAM_INKS`: RED warm, BLUE cold), not the slot colours of co-op and
+deathmatch. Tags over several players step up out of each other's way.
 
 ## The 5v5 round modes
 
@@ -138,6 +141,14 @@ and buy menu `tactical_screens.gd`, the bots `tactical_bot.gd` with
   _follow_view`; `TacticalScreens.human` is the slot the keys drive).
 - In a 5v5 round the number keys are the round shooters' (1 long gun, 2
   sidearm, 3 crowbar, 4 dynamite; TacticalScreens). Never saved.
+- In the 3D view the players are the campaign's own models (outlaws `billy`,
+  deputies `yard_deputy`) and the hostages `coot` (tinted): each sprite names a
+  `ModeBodies` stand-in (`src/modes/mode_bodies.gd`), an Enemy that is never in
+  `game.enemies` and never ticks, posed each frame from the player (place,
+  heading, gait, height, when they fell: the model falls over its five steps,
+  then lies). A carried hostage is drawn, and tagged, at the carrier's heels
+  (`TacticalScreens.hostage_place`); play keeps the hostage's own place. The
+  freeze countdown sits at the top, clear of the tags.
 
 ### The bots
 
