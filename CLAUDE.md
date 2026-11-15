@@ -113,6 +113,11 @@ godot --headless --path godot --script res://tools/release.gd -- 2.0.0-dev.N
   [view3d.md](docs/dev/view3d.md)
 - **Edit tuning, not scripts**, and add new guns at the end of weapons.cfg.
   [data.md](docs/dev/data.md)
+- **The game code is strictly typed.** Untyped and unsafe GDScript warnings
+  are errors in `src/` (tools and addons are exempt). Type every declaration;
+  read an untyped value into a typed variable (`var hp: int = d["hp"]`), not
+  `as` or `int()`. `game.sound` is a `GameSound`.
+  [architecture.md](docs/dev/architecture.md#static-typing)
 
 ## Index
 

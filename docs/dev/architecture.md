@@ -117,6 +117,37 @@ feature (last) are all features. See [gameplay.md](gameplay.md#features-listen-t
 - Saves: `session_store.gd` (`SessionStore.VERSION`), upgrades in
   `save_upgrade.gd`, fixtures in `godot/tools/saves/`.
 
+## Static typing
+
+`project.godot` turns GDScript's `untyped_declaration`,
+`unsafe_property_access`, `unsafe_method_access`, `unsafe_cast` and
+`unsafe_call_argument` warnings into errors for everything outside
+`res://tools` and `res://addons` (`directory_rules`). A script that breaks
+one does not compile, so the game does not start: `tools/load_all.gd` and
+every check catch it.
+
+- An untyped value (a Dictionary entry, a JSON number, a save) goes into a
+  typed variable: `var hp: int = d["hp"]`. That converts float and int the way
+  `int()` did. `v as int` on an untyped value and `int(d["hp"])` are both
+  flagged. Text from outside (a save, the network) that may be a String goes
+  through `str()` or a small `_int()` helper (see `session_store.gd`).
+- `String(v)` on an untyped value: write `str(v)`.
+- A play layer below `Game` that hands itself to a helper taking `game: Game`
+  writes `var me: Game = self as Object` (or `(self as Object) as Game`).
+- Feature scripts without a `class_name` are typed through a preload constant
+  (`const Breakables := preload("res://src/features/breakables.gd")`).
+  `GameMode` declares `const ModeFeature := preload(...)`; its subclasses
+  inherit it and must not declare their own.
+- An override's typed parameters must match the parent's exactly.
+- `game.sound` and `game.speaker` are a `GameSound` (`game_sound.gd`):
+  `SoundLink` wraps this machine's `Sound` node, `PlayerVoice` places another
+  player's sounds, `QuietSound` is a host's. Add a method there (and in
+  `SoundLink`) before play calls it; `GameSound.node()` gives the Sound itself
+  to code that needs the node (`soundscape.gd`).
+- A few dynamic calls remain where a script cannot be named (tools' bots
+  loaded at run time, the snapshot packer scripts made at run time, whose
+  source turns the warnings off).
+
 ## Where the rest is
 
 - Checks and CI: [checks.md](checks.md).
