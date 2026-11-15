@@ -11,7 +11,7 @@
 ## failed, and prints the end of each failing check's output.
 extends SceneTree
 
-## [script, the line that says it passed]
+## [script, the line that says it passed, its own arguments (optional)]
 const CHECKS := [
 	["check_shader", "SHADER OK"],
 	["view3d_check", "VIEW3D CHECK OK"],
@@ -31,6 +31,8 @@ const CHECKS := [
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK"],
 	["games_check", "GAMES CHECK OK"],
+	["cover_check", "COVER CHECK OK"],
+	["net_lag", "NET LAG OK", ["quick"]],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 const QUICK := [
@@ -45,6 +47,7 @@ const QUICK := [
 	"live_props_check",
 	"climb_check",
 	"games_check",
+	"cover_check",
 ]
 
 
@@ -67,13 +70,16 @@ func _init() -> void:
 		OS.set_environment("APPDATA", profile)
 		var job := OS.execute_with_pipe(
 			OS.get_executable_path(),
-			[
-				"--headless",
-				"--path",
-				ProjectSettings.globalize_path("res://"),
-				"--script",
-				"res://tools/%s.gd" % check[0]
-			],
+			(
+				[
+					"--headless",
+					"--path",
+					ProjectSettings.globalize_path("res://"),
+					"--script",
+					"res://tools/%s.gd" % check[0]
+				]
+				+ (["--"] + check[2] if check.size() > 2 else [])
+			),
 			false
 		)
 		jobs.append(

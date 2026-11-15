@@ -39,6 +39,8 @@ failed.
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
 | `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server |
 | `games_check` | GAMES CHECK OK | yes | the range's board on a lobby server over ENet (posts, a name's best, refusals, asks, the County Run board beside it), the fair's shooting gallery (the bell, each target's points, a can flying and bouncing, the house paying, the prizes saved, no station or door added), the hub's trophy shack (statuettes by the gates open, cups, gnomes, its card) |
+| `cover_check` | COVER CHECK OK | yes | the 5v5 maps' boarded cover: shot through (floor, sight, a shorter way), stood up again each round, kept by snapshots alone |
+| `net_lag` | NET LAG OK | | what a player feels online (`net_lag.gd`, run `-- quick`: a 120 ms link, limits on rubber band, missed hits, stalls, lost inputs, bandwidth); without quick, three links and the full table |
 
 ### What check_fixes runs
 
@@ -75,7 +77,7 @@ fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
   `verify_assets`, `view3d_check`, `check_fixes`, `net_showdown_check`,
   `net_server_check`, `menu_touch_check`, `camera_check`,
   `county_check -- seconds=45`,
-  `county_net_check -- seconds=30`, `games_check`, `save_fixtures`, `level_edit_check`,
+  `county_net_check -- seconds=30`, `games_check`, `cover_check`, `net_lag -- quick`, `save_fixtures`, `level_edit_check`,
   `physics_check`, `live_props_check`, `climb_check`,
   `quest_reach`, `bot_campaign`, and a headless frame time (`bench.gd`).
 - **window** (after checks): Xvfb and Mesa's software OpenGL

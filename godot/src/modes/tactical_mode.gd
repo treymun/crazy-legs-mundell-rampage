@@ -286,6 +286,8 @@ func begin_round(game: Game, st: ModeFeature) -> void:
 		for pocket: Variant in p.inventory.keys():
 			p.inventory[pocket] = 0  # no pork rinds in a round
 	game.shots.clear()
+	# What broke last round stands whole again (round_cover.gd).
+	RoundCover.put_back(game)
 	st.clouds = []
 	st.fires = []
 	st.decoys = []
@@ -399,6 +401,17 @@ func end_round(game: Game, st: ModeFeature, winner_team: int, how: String) -> vo
 	st.phase = "post"
 	st.phase_until = game.clock + POST
 	Modes.say(game, round_line(st), POST)
+	# The round's MVP up in the kill feed: the most kills this round.
+	var mvp := round_mvp(st)
+	if not mvp.is_empty():
+		var kills: int = mvp[1]
+		st.feed.append(
+			[
+				"ROUND MVP  %s  %d KILL%s" % [mvp[0], kills, "" if kills == 1 else "S"],
+				game.clock + POST,
+				winner_team
+			]
+		)
 	var line := "ann_outlaws" if winner_team == int(st.outlaws) else "ann_deputies"
 	if how == "DEFUSED":
 		line = "ann_defused"
@@ -436,6 +449,28 @@ func round_line(st: ModeFeature) -> String:
 		"TIME":
 			why = "THE CLOCK RAN OUT"
 	return "%s TAKE IT. %s." % [side, why]
+
+
+## The round's most kills: [tag, kills] ([] with none; a tie goes to who
+## got there first).
+static func round_mvp(st: ModeFeature) -> Array:
+	var counts := {}
+	var order: Array = []
+	for victim: Variant in st.killed_by:
+		var row: Array = st.killed_by[victim]
+		var tag := str(row[0])
+		if not counts.has(tag):
+			order.append(tag)
+		var had: int = counts.get(tag, 0)
+		counts[tag] = had + 1
+	var best: Array = []
+	var most := 0
+	for tag: String in order:
+		var kills: int = counts[tag]
+		if kills > most:
+			most = kills
+			best = [tag, kills]
+	return best
 
 
 static func pay(st: ModeFeature, p: Player, amount: int) -> void:

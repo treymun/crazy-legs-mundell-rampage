@@ -390,6 +390,107 @@ WebSocket 2 s) is in check_fixes. It also prints how many ticks off the host's
 path the drawn player is with and without client prediction
 ([modes.md](modes.md#client-prediction)).
 
+## Lag: what a player feels (`tools/net_lag.gd`)
+
+`net_lag.gd` runs an always-open lobby server (`LobbyServer`, as on the VPS)
+with a full 5v5 and `people` clients over 127.0.0.1 ENet with latency, jitter
+and loss on both sides, each client a `TacticalBot` steering from its own
+copy led by the prediction (what a person's screen shows). Per link it prints:
+how far the drawn player leads the server and the round trip to confirmation;
+the prediction's corrections and the jumps the player actually sees; frames
+where everyone else stood still or skipped; copies put back and mismatches;
+every client hitscan or pellet shot's centre line tested where that screen
+showed everyone and where the server judged it (with the rewind, and without
+for comparison); bandwidth per client, delta sizes, and the server's cost per
+tick split into the game, the snapshots and the bots, as a share of one core.
+`old` turns every fix below off (statics on NetSync, NetPredict.Smoother,
+NetSession, Modes and TacticalNav), so before and after run on one build;
+`quick` (check_all) is one 120 ms link for 30 s with limits. The numbers are
+in [the 3.2 measurements](#the-32-lag-measurements) below.
+
+What it found and what changed:
+
+- **ENet threw inputs away.** Its packet throttle drops unreliable packets
+  while the round trip grows and climbs back slowly: with a wandering round
+  trip a third to over half of the client's input packets never arrived, so
+  the host held and merged inputs (the rubber band) and small snapshots went
+  missing. `NetSession._patient` sets every peer's throttle to come back whole
+  at the next steady answer (`THROTTLE_INTERVAL`, `THROTTLE_BACK`).
+- **Prediction from the echoed rows.** `Client.unplayed_inputs` walks on with
+  what the host actually played for us on each tick past the copy's (a late
+  input held again, inputs merged after a stall), then our inputs it has not
+  played; the old guess at the input the copy's tick had was a tick or more
+  out whenever the host held or merged one.
+- **Corrections eased.** `NetPredict.Smoother` (main_state `net_smooth`, drawn
+  in `main.gd _net_aim`) keeps a correction as an offset on the picture that
+  fades over 90 ms instead of jumping; looks only, put back after the frame.
+- **Everyone else paced by the clock.** `Client.playout` shows the host's tick
+  now (judged from the quickest arrivals) less `playout_depth` (the
+  snapshots' gap plus their arrivals' 95th-percentile spread, up at once, down
+  after 3 s): a tick a frame however the snapshots bunch. It used to stand two
+  ticks behind the newest snapshot, so every late snapshot froze everyone for
+  a frame and the catch-up hurried them. The echo is taken from stale
+  snapshots too (big ones go reliable and can pass small ones).
+- **Smaller snapshots.** Each snapshot carried every input row since the
+  client's acknowledged base, a round trip of rows; now the rows since the
+  last snapshot sent it plus `ECHO_AGAIN` snapshots' worth (`Remote.echo_sent`).
+  The 5v5 rounds walk no player flow fields (nothing hunts a player there;
+  `game.gd`, `Modes.flows_in_rounds` for the old way), which were half a
+  delta; the hearing walks the listener's own (`hearing.gd _own`, never
+  carried).
+- **Cheaper on the server.** `Host._carry_since` merges the newest change onto
+  each base a client may still acknowledge, once each, where each client used
+  to merge every snapshot since its own base. `TacticalNav` keeps its fields
+  per world (up to 8, the one used longest ago going first; a solid floor
+  change walks them again): one cache for every game cleared itself whenever
+  two matches (or a server and copies) took turns, and the bots walked
+  whole-map fields every tick. `TacticalBot.calls` and `staged` are per game
+  for the same reason.
+- **Shots rewound from the tick that shot saw.** The host keeps the shown tick
+  each input packet reported for its newest input (`Remote.views`,
+  `_view_of`, worked out a tick an input from the nearest when a packet was
+  lost); it used the newest tick reported by anything before the input was
+  played, so a buffered shot was judged too late. `MAX_REWIND` is 64 ticks
+  (under `REWIND_KEEP`, 72).
+- `game.place_log` is still not carried: a copy put back on a snapshot keeps
+  its own log, so a rewound shot in the next half second can play otherwise
+  and part it (put back at the next check). With the inputs arriving, copies
+  are put back for lost inputs about never (0 in the runs below), so it was
+  left.
+
+### The 3.2 lag measurements
+
+`net_lag.gd -- seconds=90` (`old` for before), grainyard search and destroy,
+four people and six bots, 2% loss, jitter a fifth of the latency, on this PC
+loaded by other work (the server's milliseconds are only a guide; old and new
+ran side by side). The 250 ms column after is the run after `NetPredict.MOST`
+and the rewind keep were raised (below).
+
+| | 50 ms before | after | 120 ms before | after | 250 ms before | after |
+| --- | --- | --- | --- | --- | --- | --- |
+| rubber band seen, jumps a minute (p95) | 0.2 (.064) | 0 | 0 | 0 | 1009 (.49) | 1 (.04) |
+| everyone else frozen a frame | 0.7% | 0.2% | 8.4% | 0% | 16.3% | 0.1% |
+| copies put back for lost inputs | 13 | 0 | 9 | 0 | 20 | 0 |
+| looked a hit, judged a miss (no rewind) | 9% of 22 (27%) | 19% of 31 (42%) | 11% of 18 (39%) | 6% of 17 (35%) | 42% of 33 (73%) | 23% of 13 (69%) |
+| down per client | 125 KB/s | 54 | 178 | 57 | 280 | 60 |
+| delta median / p95 | 2431 / 7240 B | 687 / 1531 | 2951 / 8698 | 713 / 1832 | 5257 / 9681 | 828 / 1902 |
+| whole snapshots in 90 s | 7 | 0 | 13 | 0 | 41 | 0 |
+| server a tick (bots) | 12.6 ms (9.0) | 3.6 (1.1) | 9.4 (6.2) | 4.1 (1.1) | 14.0 (9.2) | 3.6 (0.8) |
+
+The drawn player leads the server by the one-way trip (6, 11, 20 ticks: the
+input shows at once), against 6 to 20 ticks behind without the prediction;
+the round trip to confirmation is the link's own (200, 333, 633 ms). The hit
+samples are small (a bot match): the rewind halves the misses at every
+latency, and what is left is mostly the centre line grazing a body's edge.
+At 250 ms the prediction stopped at 40 unplayed inputs (`NetPredict.MOST`, now
+90) and shots past 38 ticks were judged unrewound (`MAX_REWIND` now 64,
+`GameState.REWIND_KEEP` 72): that was the 1009 jumps a minute. The server's
+match tick includes the bots' steering of the six bot slots; with one match
+of a full 5v5 it is about a fifth of a core here (the VPS's core is slower
+than this PC's, so allow more). County Run co-op keeps the old playout
+(`Client.by_clock` off): its copies parted from the host while the party's
+card picks held the world.
+
 ## Online 5v5
 
 `src/net/net_play.gd`, `lobby_screens.gd`, `net_upnp.gd`; `docs/online.md` is

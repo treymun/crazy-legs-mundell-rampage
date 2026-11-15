@@ -59,6 +59,13 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
   is a `volume()`: a fixture that blocks and is stood on like any other, but
   is written to `collision_volumes` only, with no walls and no cap. `car()`
   uses one and lays its wreck model along it (`plane`, `hung`).
+- On the 5v5/2v2 maps, cover that shoots through is `b.fence(x0, y0, x1, y1,
+  top, "cover_boards")` ([modes.md](modes.md#breakable-cover)): outdoors only
+  (a cell under a roof or beside a step never opens), nothing standing on it,
+  clear of the bots' route lines and of a hold's look (`map_timing.gd --
+  strict` says when a hold watches nothing). A new tile goes at the END of
+  `data/index.json` ("tiles" and "tile") and `assets_gen/tiles_index.json`:
+  levels number tiles by that list.
 - A board's `z` counts up from its cell's ground (`game_view.gd`), not from a
   deck over it: a lamp on a walk over water or a pit takes the walk's top
   minus that ground.

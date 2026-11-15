@@ -30,6 +30,9 @@ const HOSTAGE := "hostage"
 const COUNTY := "county"
 const NAMES := [CAMPAIGN, COOP, DEATHMATCH, TEAM, BOMB, HOSTAGE, COUNTY]
 const TACTICAL := [BOMB, HOSTAGE]
+## On: the players' flow fields walked in the 5v5 rounds too, as before
+## (tools/net_lag.gd old; nothing hunts a player there).
+static var flows_in_rounds := false
 const MAX_PLAYERS := 10
 ## The older modes were written and checked for four players at most.
 const MAX_FREE_FOR_ALL := 4
@@ -279,6 +282,9 @@ static func setup(game: Game, name: String, count: int, options := {}) -> void:
 		if p.slot < st.names.size() and str(st.names[p.slot]) != "":
 			p.name = str(st.names[p.slot])
 		rules_for(name).joined(game, st, p)
+	if TACTICAL.has(name):
+		# The level as built, for each round's start (round_cover.gd).
+		RoundCover.remember(game)
 
 
 ## A new player standing beside `anchor`, facing as they do.

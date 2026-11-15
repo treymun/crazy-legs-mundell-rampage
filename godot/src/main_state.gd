@@ -270,6 +270,8 @@ var net_leave := false
 var net_accum := 0.0
 var net_turn := 0.0
 var net_look := 0.0
+## A client's own player eased over prediction corrections (net_predict.gd).
+var net_smooth := NetPredict.Smoother.new()
 ## Online from the command line (tests, a quick game with friends):
 ## --host-online[=port] or --join-online=<code or address>, --online-name=,
 ## --online-password=; for tests --online-start=<players> (the host starts

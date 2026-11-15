@@ -39,7 +39,7 @@ func make() -> Builder:
 		"intro": "PUCKETT GRAIN CO-OP. FIVE A SIDE. B TO BUY.",
 		"score": "music",
 		"ambience": "range",
-		"layout": 1,
+		"layout": 2,
 		"sky": "sky",
 		"area_sounds": {},
 		"tactical":
@@ -174,6 +174,7 @@ func north() -> void:
 	b.paint(47, 4, 54, 11, "concrete")
 	b.town("hay_wagon", 41.5, 9.5, {"solid": .44})
 	b.bale(42.5, 3.5)
+	b.fence(40, 4, 41, 4, 1.3, "cover_boards")
 	# Two grain bins, tall and round enough to hide behind.
 	b.wall(49, 6, 50, 7, "tin", 3.8)
 	b.wall(52, 10, 53, 11, "tin", 3.8)
@@ -204,6 +205,8 @@ func middle() -> void:
 	b.crate_stack(26.5, 26.5, 1.1)
 	b.prop("barrel", 36.5, 19.5)
 	b.streetlamp(30.5, 25.5, 4.8)
+	# Boarded cover in the open (breakable: a round's fight can strip it).
+	b.fence(33, 27, 34, 27, 1.3, "cover_boards")
 	# A short: up out of the rail yard's corner to A.
 	b.yard(35, 11, 42, 18, "gravel", d["a"])
 	b.bale(36.5, 12.5)
@@ -224,6 +227,9 @@ func middle() -> void:
 	b.fixture(45.15, 24.15, 49.85, 24.95, 1.75, "mill_tin", "tin")
 	b.crate_stack(41.5, 27.5)
 	b.crate_stack(53.5, 23.5)
+	# Cover for a push out of the rail yard, clear of the mid hold's look
+	# down the lane; it shoots apart.
+	b.fence(42, 23, 43, 23, 1.3, "cover_boards")
 
 
 # ----------------------------------------------------------------- south
@@ -278,7 +284,8 @@ func east() -> void:
 	b.streetlamp(63.5, 25.5, 4.6)
 	# North to A, through a gap in the stock fence.
 	b.yard(57, 6, 62, 17, "asphalt", d["coop"])
-	b.fence(57, 9, 57, 13)
+	# Boarded, so it shoots through: A opens wide to the co-op lot.
+	b.fence(57, 9, 57, 13, 1.24, "cover_boards")
 	b.town("fuel_tank", 61.5, 7.5, {"solid": .44})
 	b.town("propane_tank", 61.5, 13.5, {"solid": .36})
 	# South to B, in through the warehouse's back door.

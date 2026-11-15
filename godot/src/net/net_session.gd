@@ -34,6 +34,12 @@ const MTU_SAFE := 1200
 ## about 16), for the bandwidth a report gives besides the payload.
 const HEADER_BYTES := 44
 const PATIENCE_MS := 15000
+## ENet's throttle (_patient): looked at every THROTTLE_INTERVAL ms, back up
+## by THROTTLE_BACK (its whole scale, 32) at once, never slowed.
+const THROTTLE_INTERVAL := 1
+const THROTTLE_BACK := 32
+## On: ENet's throttle as it comes (net_lag.gd's before).
+static var throttle := false
 ## A lobby server's WebSocket players (the browser) come through `also`, their
 ## ids raised past the 31 bits either transport hands out, so they never meet.
 const ALSO_IDS := 1 << 32
@@ -134,6 +140,14 @@ func _patient(id: int) -> void:
 		var other := (peer as ENetMultiplayerPeer).get_peer(id)
 		if other != null:
 			other.set_timeout(32, PATIENCE_MS, PATIENCE_MS * 3)
+			if not throttle:
+				# ENet drops unreliable packets while the round trip grows (its
+				# throttle falls to 1 in 32 and climbs back slowly): with a
+				# wandering round trip it threw away a third to over half of
+				# the inputs, which the host then held or merged. Ours are
+				# small and carried again: the throttle is set to come back
+				# whole at the next steady answer.
+				other.throttle_configure(THROTTLE_INTERVAL, THROTTLE_BACK, 0)
 
 
 func connected() -> bool:

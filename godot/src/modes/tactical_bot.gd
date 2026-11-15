@@ -41,8 +41,11 @@ const CALL_FOR := 7.0
 
 ## The team's calls: game instance -> team -> {"A": clock seen, "B": ...}.
 static var calls := {}
-## The attack gathering before it goes in: "game|round" -> {go, here: slots}.
+## The attack gathering before it goes in: game instance -> {round, go,
+## here: slots gathered, bots: slots that are bots}.
 static var staged := {}
+## Games whose calls and gathering are kept at once.
+const GAMES_KEPT := 6
 ## Seconds into a round the attack goes in, gathered or not.
 const STAGE_MOST := 32.0
 ## How far back from the point before the site the team may gather instead.
@@ -358,7 +361,11 @@ static func _call(game: Game, _st: ModeFeature, team: int, seen: Player) -> void
 		return
 	var key: int = game.get_instance_id()
 	if not calls.has(key):
-		calls = {key: [{}, {}]}  # one game's calls at a time
+		# Each game its own (a server plays two matches at once): the oldest
+		# goes past GAMES_KEPT.
+		while calls.size() >= GAMES_KEPT:
+			calls.erase(calls.keys()[0])
+		calls[key] = [{}, {}]
 	calls[key][team][at] = game.clock
 
 
@@ -561,23 +568,39 @@ func _released(game: Game, p: Player, wait: Vector2) -> bool:
 	var st: ModeFeature = Modes.feature(game)
 	if st == null or not TacticalMode.attacks(game, st, p):
 		return true
-	var key := "%d|%d" % [game.get_instance_id(), int(st.round_no)]
-	if not staged.has(key):
-		staged = {key: {"go": false, "here": {}}}  # one round's gathering at a time
-	var team: Dictionary = staged[key]
+	var key: int = game.get_instance_id()
+	var round_no := int(st.round_no)
+	var found: Variant = staged.get(key)
+	var team: Dictionary = found if found is Dictionary else {}
+	if team.get("round", -1) != round_no:
+		# One round's gathering per game (a server plays two matches at once).
+		if not staged.has(key):
+			while staged.size() >= GAMES_KEPT:
+				staged.erase(staged.keys()[0])
+		team = {"round": round_no, "go": false, "here": {}, "bots": {}}
+		staged[key] = team
 	var gone: bool = team["go"]
 	if gone:
 		return true
 	var gathered: Dictionary = team["here"]
+	var bots: Dictionary = team["bots"]
+	bots[p.slot] = true
 	if Vector2(p.x, p.y).distance_to(wait) < ARRIVE * 1.6:
 		gathered[p.slot] = true
+	# Only bots are waited for: a person on the team (online) never says they
+	# are there, and the attack used to stand STAGE_MOST seconds for them.
 	var up := 0
 	var here := 0
 	for q: Player in game.players:
-		if q.team == p.team and q.health > 0 and team_index(game, q) != 4:
+		if q.team != p.team or q.health <= 0 or team_index(game, q) == 4:
+			continue
+		if bots.has(q.slot):
 			up += 1
 			if gathered.has(q.slot):
 				here += 1
+		elif Vector2(q.x, q.y).distance_to(wait) < ARRIVE * 1.6:
+			up += 1
+			here += 1
 	var seen: bool = foe != null and gathered.has(p.slot)
 	if here >= maxi(1, up - 1) or seen or game.clock - float(st.live_from) > STAGE_MOST:
 		team["go"] = true

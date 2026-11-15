@@ -43,7 +43,7 @@ func make() -> Builder:
 		"intro": "HOLLER DISTILLERY. FIVE A SIDE. B TO BUY.",
 		"score": "music",
 		"ambience": "range",
-		"layout": 1,
+		"layout": 2,
 		"sky": "sky",
 		"area_sounds": {},
 		"tactical":
@@ -248,8 +248,13 @@ func east() -> void:
 	b.bale(44.5, 45.5)
 	b.bale(36.5, 53.5)
 	b.yard(36, 21, 45, 30, "dirt", d["pens"])
-	b.fence(38, 24, 41, 24)
-	b.fence(43, 27, 43, 29)
+	# The pens' boards shoot apart (cover that goes as the round goes on).
+	b.fence(38, 24, 41, 24, 1.24, "cover_boards")
+	b.fence(43, 27, 43, 29, 1.24, "cover_boards")
+	# A boarded gap in the hedge from the woodshed yard: shot through, a
+	# second way into the pens beside B short.
+	b.yard(34, 28, 35, 29, "dirt", d["pens"])
+	b.fence(34, 28, 34, 29, 2.4, "cover_boards")
 	b.town("doghouse", 44.5, 22.5, {"solid": .32})
 	b.prop("hay", 37.5, 28.5)
 	b.town("washer", 36.5, 21.5, {"solid": .3})

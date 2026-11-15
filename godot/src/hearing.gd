@@ -45,6 +45,8 @@ var _clock := -1.0
 var _gain := 1.0
 var _cutoff := Sound.OPEN_CUTOFF
 var _rise := 0.0
+## The listener's own field while their carried one is not walked.
+var _own: FlowField = null
 
 
 ## How much the sound from (x, y) is cut by what is in the way (1 nothing).
@@ -148,7 +150,14 @@ func _round_the_corner(game: Game, x: float, y: float, floor_z: float) -> bool:
 	var world := game.world
 	var here := world.stand(p)
 	if field.distance(p.x, p.y, here) != 0:
-		return false
+		# Not walked lately (the 5v5 round modes walk none: nothing hunts the
+		# players): a field of the hearing's own, never carried.
+		if _own == null or _own.world != world:
+			_own = FlowField.new(world, field)
+		_own.update(p.x, p.y, game.clock, here)
+		field = _own
+		if field.distance(p.x, p.y, here) != 0:
+			return false
 	var steps := field.distance(x, y, floor_z)
 	if steps >= FlowField.FAR:
 		return false

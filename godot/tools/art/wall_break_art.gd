@@ -56,7 +56,60 @@ static func build(tiles: String, art: String) -> int:
 	var fence := Paint.Sheet.load_png(source.path_join("stockyard.png"))
 	_fence_hit(fence).save(tiles.path_join("stockyard_hit.png"))
 	_fence_gap(fence).save(art.path_join("stockyard_gap.png"))
-	return count + 2
+	# The 5v5 maps' boarded cover (data/tuning/breakables.cfg [fence.cover_boards]):
+	# the same planks gone grey, a fresh pine brace nailed across, so a
+	# player can tell what will shoot through from what will not.
+	var boards := _boarded(fence)
+	boards.save(tiles.path_join("cover_boards.png"))
+	_fence_hit(boards).save(tiles.path_join("cover_boards_hit.png"))
+	_fence_gap(boards).save(art.path_join("cover_boards_gap.png"))
+	return count + 5
+
+
+## The plank fence boarded up: its boards weathered grey, and two fresh pine
+## braces nailed across them corner to corner (an X), nail heads dark.
+static func _boarded(whole: Paint.Sheet) -> Paint.Sheet:
+	var s := whole.duplicate_sheet()
+	var dice := _dice("cover_boards")
+	for y in 128:
+		for x in 128:
+			var o := (y * 128 + x) * 4
+			var grey := (s.data[o] + s.data[o + 1] + s.data[o + 2]) / 3.0
+			s.put(
+				x,
+				y,
+				Paint.rgb(
+					lerpf(s.data[o], grey, .55) * .92,
+					lerpf(s.data[o + 1], grey, .55) * .92,
+					lerpf(s.data[o + 2], grey, .45) * .9
+				)
+			)
+	for brace: Array in [[Vector2(6, 118), Vector2(122, 10)], [Vector2(6, 10), Vector2(122, 118)]]:
+		var a: Vector2 = brace[0]
+		var b: Vector2 = brace[1]
+		var across := (b - a).normalized().orthogonal() * 6.5
+		var board := PackedVector2Array([a + across, b + across, b - across, a - across])
+		var mask := Paint.Sheet.new(128, 128)
+		Paint.polygon(mask, board, Color.WHITE)
+		for y in 128:
+			for x in 128:
+				if mask.alpha_at(x, y) == 0:
+					continue
+				# Pine with its grain along the board, darker at its edges.
+				var along := Vector2(x, y).dot((b - a).normalized())
+				var edge := absf(
+					Vector2(x, y).dot(across.normalized()) - a.dot(across.normalized())
+				)
+				var shade := 1.0 - .28 * smoothstep(4.0, 6.5, edge)
+				var grain := .93 + .07 * sin(along * .9 + dice.randf() * .6)
+				s.put(
+					x, y, Paint.rgb(214 * shade * grain, 172 * shade * grain, 112 * shade * grain)
+				)
+		for k in 5:
+			var at := a.lerp(b, (k + .5) / 5.0)
+			s.put(int(at.x), int(at.y), Paint.rgb(34, 28, 24))
+			s.put(int(at.x) + 1, int(at.y), Paint.rgb(70, 60, 52))
+	return s
 
 
 static func _dice(text: String) -> RandomNumberGenerator:

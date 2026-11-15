@@ -1026,7 +1026,7 @@ var finish_slowmo := true
 ## judged against what its shooter saw online (Controls.rewind). Worked out
 ## again by every copy as it steps, never carried.
 var place_log: Array[PackedFloat32Array] = []
-const REWIND_KEEP := 40
+const REWIND_KEEP := 72
 const SLOWMO_PACE := .35
 const FINISH_IN := .12
 const FINISH_OUT := .45

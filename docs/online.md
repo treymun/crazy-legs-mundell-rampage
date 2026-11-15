@@ -83,8 +83,12 @@ address and port (or join code) and its password if it has one.
   time; whoever runs one switches its MODE between SEARCH AND DESTROY,
   HOSTAGE RESCUE and TAG TEAM 2V2 (which moves it to a map and format that
   fit), and an empty lobby goes back to its own. `most_matches` (2) caps
-  matches across the server; a START past that is told to wait. One 5v5 with nine bots is about 15-20% of a
-  one-core VPS.
+  matches across the server; a START past that is told to wait. One 5v5 with
+  four people and six bots measured about a fifth of a core on the owner's PC
+  (`tools/net_lag.gd`). Before 3.2 the bots' route cache was shared by
+  every game in the process and cleared itself whenever two took turns (two
+  matches on the server): 6 to 9 ms a tick for the bots then, about 1 now
+  (not measured with two real matches).
 - Players need the same version as the server: update the server with each
   release.
 

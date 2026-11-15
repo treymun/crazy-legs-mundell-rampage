@@ -43,6 +43,15 @@ func _run() -> void:
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out.path_join("title.png"))
+	if OS.get_cmdline_user_args().has("cover"):
+		# The breakable cover only: boards whole, then shot through.
+		await _cover("salvage", Vector2(33.5, 21.5), Vector2i(37, 21))
+		await _cover("holler", Vector2(30.5, 28.6), Vector2i(34, 28))
+		print("tactical frames written to ", out)
+		main.queue_free()
+		await process_frame
+		quit()
+		return
 	main.state = "showdown"
 	main.showdown_row = 1
 	main.render()
@@ -102,6 +111,26 @@ func _snap(name: String) -> void:
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out.path_join(name + ".png"))
+
+
+## A map's boarded cover at `cell` seen from `at`, whole and then shot
+## through (src/modes/round_cover.gd).
+func _cover(id: String, at: Vector2, cell: Vector2i) -> void:
+	var g := _game(id, Modes.BOMB)
+	_play(g, 2)
+	var st = Modes.feature(g)
+	st.phase_until = g.clock + 99.0
+	_stand(g, at.x, at.y, cell.x + .5, cell.y + .5)
+	g.message_until = 0.0
+	await _snap(id + "_cover_whole")
+	var fences = g.features.get("wall_breaks")
+	var f = fences.fences.get(cell)
+	while f != null and f.stage < 2:
+		g.focus(g.local_player)
+		fences._knock(f, 34.0, 1.0, 0.0)
+	for i in 30:
+		g.tick(1.0 / 120.0, {})
+	await _snap(id + "_cover_broken")
 
 
 ## Stands this machine's player at (x, y) looking at (tx, ty), out of harm.

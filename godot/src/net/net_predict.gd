@@ -14,8 +14,10 @@ extends RefCounted
 const KEPT := [
 	"x", "y", "vx", "vy", "air", "vertical_speed", "jump_held", "crouched", "eye", "angle", "pitch"
 ]
-## More unplayed inputs than this (a stall) are not predicted past.
-const MOST := 40
+## More unplayed inputs than this (a stall) are not predicted past: 1.5 s
+## (it was 40 ticks, under a 250 ms link's round trip and playout, so the
+## drawn player was put back hundreds of times a minute there).
+const MOST := 90
 
 
 ## Steps `me` through `inputs` (Game.Controls, oldest first); returns what to
@@ -27,7 +29,7 @@ static func lead(game: Game, me: Player, inputs: Array) -> Dictionary:
 	var dt := NetSync.STEP
 	for i in range(maxi(0, inputs.size() - MOST), inputs.size()):
 		var controls: Game.Controls = inputs[i]
-		_step(game, me, controls, dt)
+		step(game, me, controls, dt)
 	return kept
 
 
@@ -36,8 +38,77 @@ static func restore(me: Player, kept: Dictionary) -> void:
 		me.set(field, kept[field])
 
 
+## The drawn player eased over a correction instead of jumping: each frame,
+## last frame's drawn place walked on by the inputs sent since is where the
+## player expects to be; when the prediction (lead) lands elsewhere (the host
+## played an input late, a body or a blow moved them), the gap is kept as an
+## offset on the picture that fades over SMOOTH seconds. Looks only: the
+## offset is put on for the frame and taken off with the rest (restore).
+class Smoother:
+	extends RefCounted
+	## Seconds a correction fades over (to 1/e).
+	const SMOOTH := .09
+	## A gap past this is a respawn or a new round: no easing.
+	const TELEPORT := 1.0
+	## Off: the prediction drawn as it is (net_lag.gd's before).
+	static var enabled := true
+
+	var offset := Vector2.ZERO
+	## The raw gap and the one the player saw this frame (for net_lag.gd).
+	var last_gap := 0.0
+	var last_seen := 0.0
+	var _prev := {}
+	var _prev_seq := -1
+
+	## Puts `me` where this frame draws it; returns what to hand to restore.
+	func draw(game: Game, me: Player, client: NetSync.Client, dt: float) -> Dictionary:
+		var copy_state := {}
+		for field: String in KEPT:
+			copy_state[field] = me.get(field)
+		var guess := Vector2.INF
+		if not _prev.is_empty():
+			NetPredict.restore(me, _prev)
+			for n in range(_prev_seq, client.input_seq):
+				var bytes: PackedByteArray = client.sent.get(n, PackedByteArray())
+				if bytes.size() >= NetWire.CONTROL_BYTES:
+					NetPredict.step(game, me, NetWire.unpack_controls(bytes), NetSync.STEP)
+			guess = Vector2(me.x, me.y)
+			NetPredict.restore(me, copy_state)
+		var kept := NetPredict.lead(game, me, client.unplayed_inputs())
+		var drawn := Vector2(me.x, me.y)
+		_prev = {}
+		for field: String in KEPT:
+			_prev[field] = me.get(field)
+		_prev_seq = client.input_seq
+		last_gap = 0.0
+		last_seen = 0.0
+		if guess == Vector2.INF:
+			return kept
+		var gap := guess - drawn
+		last_gap = gap.length()
+		if not enabled or last_gap > TELEPORT or (offset + gap).length() > TELEPORT:
+			offset = Vector2.ZERO
+			last_seen = last_gap
+			return kept
+		var expected := offset + gap
+		offset = expected * exp(-dt / SMOOTH)
+		if offset.length() < .002:
+			offset = Vector2.ZERO
+		last_seen = (expected - offset).length()
+		var at := drawn + offset
+		if offset != Vector2.ZERO and not game.world.blocked(at.x, at.y, .1):
+			me.x = at.x
+			me.y = at.y
+		return kept
+
+	## Forgets the last frame (out of play, dead, another match).
+	func reset() -> void:
+		_prev = {}
+		offset = Vector2.ZERO
+
+
 ## game.gd `_step_body`'s walking, for one tick.
-static func _step(game: Game, p: Player, controls: Game.Controls, dt: float) -> void:
+static func step(game: Game, p: Player, controls: Game.Controls, dt: float) -> void:
 	p.angle = fposmod(p.angle + controls.turn, TAU)
 	p.pitch = clampf(p.pitch + controls.look, -53.0, 53.0)
 	var forward: float = controls.forward

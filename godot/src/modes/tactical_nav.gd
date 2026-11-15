@@ -7,33 +7,56 @@ class_name TacticalNav
 extends RefCounted
 
 const MOST := 160
+## Worlds kept at once, the one used longest ago going first: an always-open
+## server plays two matches, and client copies share the process with the
+## server in the checks. One cache for all of them cleared itself at every
+## switch and walked whole-map fields again each tick.
+const WORLDS := 8
 
-static var _fields := {}
-static var _key := ""
-static var _floor: FlowField = null
+## world instance id -> {"solid": its solid_version, "fields": cell ->
+## FlowField, "floor": FlowField}, the one used last at the end.
+static var _worlds := {}
+static var _last := -1
+## WORLDS, or 1 (tools/net_lag.gd old: one cache for every game, as before).
+static var worlds_kept := WORLDS
 
 
 ## The field walked from the cell under (x, y) (null when that is off the map).
 static func field(game: Game, x: float, y: float) -> FlowField:
 	var world: LevelData = game.world
-	var key := "%s|%d|%d" % [world.id, world.solid_version, world.get_instance_id()]
-	if key != _key:
-		_fields.clear()
-		_key = key
-		_floor = null
 	var cell := Vector2i(int(x), int(y))
 	if cell.x < 0 or cell.y < 0 or cell.x >= world.width or cell.y >= world.height:
 		return null
-	if _fields.has(cell):
-		return _fields[cell]
-	if _fields.size() >= MOST:
-		_fields.clear()
-	var made := FlowField.new(world, _floor)
-	if _floor == null:
-		_floor = made
+	var key := world.get_instance_id()
+	var kept: Variant = _worlds.get(key)
+	if kept == null:
+		while _worlds.size() >= worlds_kept:
+			_worlds.erase(_worlds.keys()[0])
+		kept = {"solid": world.solid_version, "fields": {}, "floor": null}
+		_worlds[key] = kept
+	elif key != _last:
+		# Used now: to the end, the last to go.
+		_worlds.erase(key)
+		_worlds[key] = kept
+	_last = key
+	var cache: Dictionary = kept
+	if cache["solid"] != world.solid_version:
+		# Its floor changed (a fence shot through, a round's reset).
+		cache["solid"] = world.solid_version
+		cache["fields"] = {}
+		cache["floor"] = null
+	var fields: Dictionary = cache["fields"]
+	if fields.has(cell):
+		return fields[cell]
+	if fields.size() >= MOST:
+		fields.clear()
+	var floor_field: FlowField = cache["floor"]
+	var made := FlowField.new(world, floor_field)
+	if floor_field == null:
+		cache["floor"] = made
 	made.reach = world.width * world.height
 	made.update(cell.x + .5, cell.y + .5, 0.0)
-	_fields[cell] = made
+	fields[cell] = made
 	return made
 
 
