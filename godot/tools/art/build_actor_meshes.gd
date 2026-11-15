@@ -1,7 +1,7 @@
 ## Export the enemies and bosses as rigged, animated meshes for the 3D view.
 ##
 ##   godot --headless --path godot --script res://tools/art/build_actor_meshes.gd \
-##       [-- kinds=billy,coot] [no-render]
+##       [-- kinds=billy,coot] [no-render] [rig-only] [raw=<dir>]
 ##
 ## Blender (scripts/blender/export_actors.py) builds each kind with the code
 ## that renders its cels, frame by frame, rigs it from how its parts move and
@@ -10,6 +10,10 @@
 ## assets/art/actor3d_<kind>[_<look>].png (packed with the rest of the art)
 ## and notes each kind's frames and looks in godot/assets3d/actors/actors.json
 ## (view3d/actor_models.gd). Then run tools/pack_assets.gd and --import.
+## `rig-only` makes the mesh and rig again without baking (the committed
+## model's unwrap is carried over, so its looks still fit): for a change to
+## how a kind moves, not to its parts. `raw=` keeps Blender's output somewhere
+## other than _preview/actors/mesh_raw (two runs at once).
 extends SceneTree
 
 const Paint := preload("res://tools/art/paint.gd")
@@ -20,18 +24,26 @@ const FOLDER := "res://assets3d/actors"
 func _init() -> void:
 	var kinds := "all"
 	var render := true
+	var rig_only := false
+	var raw := Paint.repo("_preview/actors/mesh_raw")
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("kinds="):
 			kinds = arg.substr(6)
 		elif arg == "no-render":
 			render = false
-	var raw := Paint.repo("_preview/actors/mesh_raw")
+		elif arg == "rig-only":
+			rig_only = true
+		elif arg.begins_with("raw="):
+			raw = arg.substr(4)
 	DirAccess.make_dir_recursive_absolute(raw)
 	if render:
 		var said: Array = []
 		var code := OS.execute(
 			Actors.blender(),
-			["-b", "-P", Paint.repo("scripts/blender/export_actors.py"), "--", raw, kinds],
+			(
+				["-b", "-P", Paint.repo("scripts/blender/export_actors.py"), "--", raw, kinds]
+				+ (["rig"] if rig_only else [])
+			),
 			said,
 			true
 		)
@@ -66,8 +78,9 @@ func _init() -> void:
 		if not FileAccess.file_exists(glb):
 			continue
 		DirAccess.copy_absolute(glb, out_dir.path_join(kind + ".glb"))
+		_import_at_key_rate(out_dir.path_join(kind + ".glb.import"))
 		var entry: Dictionary = meta[kind]
-		for look: String in entry["textures"]:
+		for look: String in [] if rig_only else entry["textures"]:
 			var tag := kind if look == "" else "%s_%s" % [kind, look]
 			var baked := Paint.Sheet.load_png(raw.path_join(tag + ".png"))
 			var seed := 0
@@ -131,3 +144,19 @@ static func _fill_holes(s: Paint.Sheet) -> void:
 		if taken == 0:
 			break
 	s.data = d
+
+
+## The action's keys are 24 a second (Blender's frames): imported at Godot's
+## 30 they are resampled between keys, and a part shrunk away in one key comes
+## back part-grown in mid-air. A new kind's .import appears with --import; run
+## this tool again (no-render) after it to set it.
+static func _import_at_key_rate(path: String) -> void:
+	if not FileAccess.file_exists(path):
+		print("%s: run --import, then this tool again with no-render" % path)
+		return
+	var text := FileAccess.get_file_as_string(path)
+	var fixed := text.replace("animation/fps=30", "animation/fps=24")
+	if fixed != text:
+		var file := FileAccess.open(path, FileAccess.WRITE)
+		file.store_string(fixed)
+		file.close()

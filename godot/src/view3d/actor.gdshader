@@ -28,10 +28,23 @@ instance uniform float fallen = 0.0;
 // The looks were baked with the dusk stage's light (the front cel's): only a
 // turn's shade is added, so a side or back seen keeps some modelling.
 uniform bool baked_light = false;
+// Parts never thinner than this many of the view's pixels (actors.json
+// "min_px"): every surface stands out along its normal by half that at its
+// distance, nothing up close, a pixel's share far off, so a thin leg keeps a
+// pixel as its cel's line did.
+uniform float min_px = 0.0;
+// The looks' brightness against the kind's cels (actors fit.json "light").
+uniform float light = 1.0;
 
 varying vec3 map_p;
 
 void vertex() {
+	if (min_px > 0.0) {
+		float depth = -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z;
+		float px_focal = PROJECTION_MATRIX[1][1] * VIEWPORT_SIZE.y * 0.5;
+		float size = max(1e-4, length(MODEL_MATRIX[0].xyz));
+		VERTEX += NORMAL * (0.5 * min_px * max(depth, 0.0) / px_focal / size);
+	}
 	vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	map_p = vec3(w.x, w.z, w.y);
 }
@@ -65,7 +78,7 @@ void fragment() {
 	} else {
 		texel = texelFetch(look_plain, at, 0);
 	}
-	vec3 albedo = floor(texel.rgb * 255.0 + 0.5);
+	vec3 albedo = floor(texel.rgb * 255.0 + 0.5) * light;
 	vec3 n = normalize(NORMAL);
 	vec3 shaded;
 	if (baked_light) {

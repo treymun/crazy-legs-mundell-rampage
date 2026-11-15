@@ -101,10 +101,38 @@ There are 194 props.
    fingerprint, bones by identical motion), keys every frame at 24 fps in
    action "poses", labels bones head/arm_r/arm_l/leg_r/leg_l/body, and bakes
    looks (plain, hurt, p2, p3) under the dusk stage.
-2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]` grades
-   and digitizes (`assets/art/actor3d_<kind>[_<look>].png`) and writes
+   - Matching: parts pair in order within an exact print, then a left-over
+     part takes the nearest left-over print within `NEAR` (10%: a scale
+     rounded differently as the torso turns, a shin stretched by the walk,
+     fingers curled in a fall), nearest to where it sits on the body. Before
+     this, a third of Big Billy's parts (his belly among them) vanished for
+     his fall, and a boot for one walk beat.
+   - A part missing from a key (the gun once he is dead) is shrunk where it
+     is in the nearest key it is blended with (walk beats, fall steps), never
+     where it stood, so it cannot fly up while it shrinks. Keys are LINEAR.
+   - The unwrap (`_unwrap`): smart project, then the islands packed by their
+     shapes with a gap of `GAP` (.002 of the texture). With smart project's
+     own .01 gap a boss's hundreds of rivets, each cut in several islands,
+     took nearly all the texture in gaps: the baron's islands covered 3% of
+     it, Jerry's 4%, Billy's 14%; packed, about half (four times the texels
+     across on the baron), so faces and bellies are no longer a few blocky
+     texels. Only kinds baked since have it (the baron).
+   - Looks are 512² (`TEXTURE`); `FINE` kinds bake 1024² (the baron), with
+     fewer samples a texel.
+2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]
+   [rig-only] [raw=<dir>]` grades and digitizes
+   (`assets/art/actor3d_<kind>[_<look>].png`) and writes
    `godot/assets3d/actors/<kind>.glb` plus `actors.json` (each kind's frames
-   and looks, read by `view3d/actor_models.gd`).
+   and looks, read by `view3d/actor_models.gd`). `rig-only` makes the mesh
+   and rig again without baking (a minute for every kind instead of hours):
+   the unwrap is not the same run to run, so the committed model's unwrap is
+   carried over face by face and its looks still fit; use it for a change to
+   how a kind moves, not to its parts. `raw=` puts Blender's output
+   elsewhere than `_preview/actors/mesh_raw` (two runs at once). It keeps
+   each `.glb.import` at `animation/fps=24` (the keys' own rate; at Godot's
+   30 the keys were resampled between and a part shrunk away in one key came
+   back half-grown in mid-air: Big Billy's fall specks); `view3d_check`
+   fails a kind that is not.
 3. `tools/pack_assets.gd`, then `--import`.
 4. `tools/art/build_actor_scenes.gd [-- kinds=a,b]` writes
    `scenes/actors/<kind>.tscn` (an `ActorView` root). Same rule as props for

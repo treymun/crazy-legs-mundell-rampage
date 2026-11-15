@@ -108,7 +108,7 @@ godot --headless --path godot --script res://tools/compare_sheet.gd -- <old dir>
   in a local reference fails CI's Mesa window, which has none.
 - Changing how text draws changes every reference (a tour, then `update`).
 - A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
-  `wet`, `lightning`, `actors` and `motion` (EASY ON THE EYES).
+  `wet`, `lightning`, `actors`, `cels` and `motion` (EASY ON THE EYES).
 - The old software-view references (`tools/pictures/`, `picture_check.gd`)
   and shader-view references (`tools/pictures_gpu/`, `compare_views.gd`) were
   deleted with the software renderer.

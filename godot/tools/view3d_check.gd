@@ -64,6 +64,21 @@ func _init() -> void:
 		if not view.setup(actors):
 			_fail("actor %s: its model cannot pose (no animation)" % kind)
 		view.free()
+		# Imported at the action's own 24 keys a second: at Godot's 30 the
+		# keys are resampled between and a part shrunk away in one key
+		# comes back part-grown in mid-air (build_actor_meshes.gd sets it).
+		var import_path := ActorModels.FOLDER.path_join(kind + ".glb.import")
+		if not FileAccess.get_file_as_string(import_path).contains("animation/fps=24"):
+			_fail("actor %s: %s must import at animation/fps=24" % [kind, import_path])
+	var fit: Variant = JSON.parse_string(
+		FileAccess.get_file_as_string(ActorModels.FOLDER.path_join("fit.json"))
+	)
+	if not fit is Dictionary:
+		_fail("actors fit.json: not a dictionary")
+	else:
+		for kind: String in fit:
+			if not actors.kinds.has(kind):
+				_fail("actors fit.json: %s is not a model" % kind)
 	print("%d actor models" % actors.kinds.size())
 	_check_pickups(assets)
 	if _failed.is_empty():

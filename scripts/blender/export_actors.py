@@ -32,6 +32,9 @@ from mathutils import Matrix, Vector
 
 _ARGS = sys.argv[sys.argv.index("--") + 1:]
 _OUT, _KINDS = os.path.abspath(_ARGS[0]), _ARGS[1]
+# "rig": the mesh, unwrap and rig again without baking the looks (the unwrap
+# is the same every run, so the committed textures still fit).
+_RIG_ONLY = "rig" in _ARGS[2:]
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.argv = [sys.argv[0], "--", _OUT, "billy", "all", "1"]
 with open(os.path.join(_HERE, "enemy_actors.py"), encoding="utf-8") as _lib:
@@ -39,6 +42,10 @@ with open(os.path.join(_HERE, "enemy_actors.py"), encoding="utf-8") as _lib:
 exec(_source[: _source.rstrip().rfind("main()")], globals())
 
 TEXTURE = 512
+# The bosses with the most parts bake their looks twice as fine: at 512 their
+# hundreds of parts each got a few texels, blocky and dark at the seams up
+# close against their cels.
+FINE = {"baron": 1024}
 RECORD = []
 _place = place
 
@@ -130,20 +137,60 @@ def _frames(kind):
     return out
 
 
-def _match(rest, parts):
+# How far a part's print may stray between frames and still be the same part
+# (its largest difference, as a share of the size): the rounding of a placed
+# scale that turned with the torso, a shin stretched by the walk, a finger
+# curled in a fall.
+NEAR = .1
+
+
+def _match(rest, parts, root):
     """For each rest part, its place in this frame (or None): parts are paired
-    in order within each print."""
+    in order within each print; a part left over then takes the nearest
+    left-over print within NEAR of its own, the nearest to where it sits on
+    the body (under the frame's `root`) when there are more."""
     pool = {}
     for _ob, fp, world in parts:
         pool.setdefault(fp, []).append(world)
     used = {}
     out = []
+    taken = set()
     for _ob, fp, _world in rest:
         k = used.get(fp, 0)
         found = pool.get(fp, [])
         out.append(found[k] if k < len(found) else None)
+        if k < len(found):
+            taken.add((fp, k))
         used[fp] = k + 1
+    spare = [(fp, w) for fp, ws in pool.items() for k, w in enumerate(ws) if (fp, k) not in taken]
+    inv = root.inverted()
+    for i, (_ob, fp, w0) in enumerate(rest):
+        if out[i] is not None:
+            continue
+        best = None
+        for n, (fq, w) in enumerate(spare):
+            if fq[0] != fp[0]:
+                continue
+            stray = max(abs(a - b) / max(abs(a), abs(b), .02) for a, b in zip(fp[1:], fq[1:]))
+            if stray > NEAR:
+                continue
+            cost = stray + ((inv @ w).translation - w0.translation).length
+            if best is None or cost < best[0]:
+                best = (cost, n)
+        if best is not None:
+            out[i] = spare.pop(best[1])[1]
     return out
+
+
+def _chain(name):
+    """The frames a key is blended with (the walk's beats, a fall's steps):
+    a part missing from one is shrunk where it was in its neighbour."""
+    if name.startswith("die_") or name == "down":
+        return "fall"
+    bare = name[5:] if name.startswith("hurt_") else name
+    if len(bare) == 2 and bare[0] == "w" and bare[1].isdigit():
+        return name[:-2] + "walk"
+    return name
 
 
 # The ways round the body faces the stage while its look is baked.
@@ -197,11 +244,13 @@ def _bake(ob, image, sources=None):
         # arms and thighs and undersides, seen when a body lies down, baked
         # black with short ones); the nearest hit still wins. Fewer samples
         # than a render: the palette and the grain take the noise.
-        scene.cycles.samples = 24 if k == 0 else 16
+        # A finer texture takes fewer samples a texel (four texels share a
+        # pixel of the coarse one; the palette takes the rest of the noise).
+        scene.cycles.samples = (24 if k == 0 else 16) * 512 // TEXTURE + 4 * (TEXTURE > 512)
         bpy.ops.object.bake(
             type="COMBINED",
             pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
-            margin=4,
+            margin=TEXTURE // 128,
             use_clear=True,
             use_selected_to_active=bool(sources),
             cage_extrusion=.1,
@@ -285,7 +334,7 @@ def _bake_normals(ob):
     bpy.ops.object.select_all(action="DESELECT")
     ob.select_set(True)
     bpy.context.view_layer.objects.active = ob
-    bpy.ops.object.bake(type="NORMAL", normal_space="OBJECT", margin=4, use_clear=True)
+    bpy.ops.object.bake(type="NORMAL", normal_space="OBJECT", margin=TEXTURE // 128, use_clear=True)
     px = numpy.empty(len(image.pixels), dtype=numpy.float32)
     image.pixels.foreach_get(px)
     NORMALS = px.reshape(-1, 4)
@@ -311,7 +360,7 @@ def _bake_ao(ob, image):
     bpy.ops.object.select_all(action="DESELECT")
     ob.select_set(True)
     bpy.context.view_layer.objects.active = ob
-    bpy.ops.object.bake(type="AO", margin=4, use_clear=True, use_selected_to_active=False)
+    bpy.ops.object.bake(type="AO", margin=TEXTURE // 128, use_clear=True, use_selected_to_active=False)
 
 
 def _shaded(image, shade):
@@ -333,7 +382,9 @@ def _save(image, path):
 
 
 def export(kind, meta):
+    global TEXTURE
     make, S, extra, own = ACTORS[kind]
+    TEXTURE = FINE.get(kind, 512)
     frames = _frames(kind)
     # Every frame but the rest one first (their parts are only measured); the
     # rest frame last, whose parts are kept as the mesh.
@@ -345,7 +396,7 @@ def export(kind, meta):
     skeleton = LAST_J
     tracks = [[w for _ob, _fp, w in rest]]
     for frame, wound, name in frames[1:]:
-        tracks.append(_match(rest, places[(frame, wound)]))
+        tracks.append(_match(rest, places[(frame, wound)], _root_for(S, frame, own)))
     # Bones: parts whose motion from the rest frame is the same in every frame.
     clusters = {}
     order = []
@@ -428,11 +479,117 @@ def export(kind, meta):
     decimate = body.modifiers.new("fewer", "DECIMATE")
     decimate.ratio = .4
     bpy.ops.object.modifier_apply(modifier="fewer")
+    if _RIG_ONLY:
+        _carry_uvs(body, kind)
+    else:
+        _unwrap(body, kind)
+    textures = [""]
+    looks = []
+    if kind in BOSS_PHASES:
+        looks = [("p2", 0, 1), ("p3", 0, 2)]
+    elif not own:
+        looks = [("hurt", 1, 0)]
+    textures += [tag for tag, _w, _d in looks]
+    if not _RIG_ONLY:
+        _bake_looks(kind, body, frames[0][0], looks)
+    _rig(kind, body, frames, order, clusters, centres, tracks, rest)
+    meta[kind] = {
+        "frames": {name: t for t, (_f, _w, name) in enumerate(frames)},
+        "height": round(height, 3),
+        "textures": textures,
+        "parts": len(rest),
+        "bones": len(order),
+        "faces": len(body.data.polygons),
+        # The looks carry the dusk stage's light (the game adds only a turn's shade).
+        "lit": True,
+        "labels": {"b%d" % b: _label(c, skeleton) for b, c in enumerate(centres)},
+        # The cels' canvas (map units): the game draws a kind enemies.cfg
+        # height tall for this canvas height, so a model is scaled by the same.
+        "canvas": [S["canvas"][0], S["canvas"][1]],
+    }
+    print("ACTOR %s: %d parts, %d bones, %d frames" % (kind, len(rest), len(order), len(frames)))
+    for ob in [o for o in bpy.data.objects if o.type in ("MESH", "ARMATURE")]:
+        bpy.data.objects.remove(ob)
+    for a in list(bpy.data.actions):
+        bpy.data.actions.remove(a)
+
+
+# The packing's gap between islands, a share of the texture (two texels at
+# 1024). It was .01 in smart_project: a boss's hundreds of rivets, each cut in
+# several islands, then took most of the texture in gaps and his belly a
+# corner of it.
+GAP = .002
+
+
+def _unwrap(body, kind):
+    """Cut the body into islands (smart project) and pack them tightly by
+    their shapes, each the same texels a metre."""
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.01)
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.0)
+    bpy.ops.uv.select_all(action="SELECT")
+    bpy.ops.uv.pack_islands(rotate=True, margin_method="FRACTION", margin=GAP, shape_method="CONCAVE")
     bpy.ops.object.mode_set(mode="OBJECT")
-    textures = []
+    import bmesh as _bm
+
+    bm = _bm.new()
+    bm.from_mesh(body.data)
+    uv = bm.loops.layers.uv.active
+    area = 0.0
+    for face in bm.faces:
+        pts = [loop[uv].uv for loop in face.loops]
+        area += abs(sum(pts[k].x * pts[k - 1].y - pts[k - 1].x * pts[k].y for k in range(len(pts)))) / 2
+    bm.free()
+    print("ACTOR %s: unwrap covers %d%% of the texture" % (kind, round(area * 100)))
+
+
+def _carry_uvs(body, kind):
+    """The committed model's unwrap onto this body (the same parts, decimated
+    alike), so its baked looks still fit: each face takes the corners of the
+    old face nearest its centre, each corner the nearest of them."""
+    from mathutils.kdtree import KDTree
+
+    # Faces as the old model has them (glTF keeps triangles).
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.quads_convert_to_tris(quad_method="FIXED", ngon_method="CLIP")
+    bpy.ops.object.mode_set(mode="OBJECT")
+    path = os.path.join(_HERE, "..", "..", "godot", "assets3d", "actors", kind + ".glb")
+    objects = set(bpy.data.objects)
+    actions = set(bpy.data.actions)
+    bpy.ops.import_scene.gltf(filepath=path)
+    new = [o for o in bpy.data.objects if o not in objects]
+    # The body (the importer adds a little sphere of its own to draw bones).
+    old = max((o for o in new if o.type == "MESH"), key=lambda o: len(o.data.polygons))
+    om, mw = old.data, old.matrix_world
+    ouv = om.uv_layers.active.data
+    near = KDTree(len(om.polygons))
+    for poly in om.polygons:
+        near.insert(mw @ poly.center, poly.index)
+    near.balance()
+    me = body.data
+    while me.uv_layers:
+        me.uv_layers.remove(me.uv_layers[0])
+    uv = me.uv_layers.new(name="UVMap").data
+    exact = 0
+    for poly in me.polygons:
+        _co, j, dist = near.find(poly.center)
+        exact += dist < 1e-4
+        corners = [(mw @ om.vertices[om.loops[k].vertex_index].co, k) for k in om.polygons[j].loop_indices]
+        for li in poly.loop_indices:
+            v = me.vertices[me.loops[li].vertex_index].co
+            uv[li].uv = ouv[min(corners, key=lambda c: (c[0] - v).length_squared)[1]].uv
+    print("ACTOR %s: unwrap carried, %d of %d faces exact" % (kind, exact, len(me.polygons)))
+    for o in new:
+        bpy.data.objects.remove(o)
+    for a in [a for a in bpy.data.actions if a not in actions]:
+        bpy.data.actions.remove(a)
+    bpy.context.view_layer.objects.active = body
+
+
+def _bake_looks(kind, body, rest_frame, looks):
+    """Bake the plain look and each of `looks` ([(tag, wound, damage)]) onto the
+    body's unwrap, as <kind>[_<tag>].png."""
     light_for(bpy.context.scene, kind in BOSS_PHASES)
     image = bpy.data.images.new("bake", TEXTURE, TEXTURE, alpha=False)
     # The creases' shade (eye sockets, under a brim, between fingers), the
@@ -443,31 +600,28 @@ def export(kind, meta):
     # Each look is baked from its own build's separate parts: the materials'
     # patterns (plaid, grime, stripes) sit on each part's own coordinates,
     # which the joined mesh no longer has.
-    source = [ob for ob, _fp, _w in _build_kept(kind, frames[0][0], 0, 0)]
+    source = [ob for ob, _fp, _w in _build_kept(kind, rest_frame, 0, 0)]
     _bake(body, image, source)
     for ob in source:
         bpy.data.objects.remove(ob)
     _shaded(image, shade)
     _save(image, os.path.join(_OUT, "%s.png" % kind))
-    textures.append("")
     # The hurt set and a boss's phases, baked from their own build onto the
     # same unwrap.
-    looks = []
-    if kind in BOSS_PHASES:
-        looks = [("p2", 0, 1), ("p3", 0, 2)]
-    elif not own:
-        looks = [("hurt", 1, 0)]
     for tag, wound, damage in looks:
-        source = [ob for ob, _fp, _w in _build_kept(kind, frames[0][0], wound, damage)]
+        source = [ob for ob, _fp, _w in _build_kept(kind, rest_frame, wound, damage)]
         _bake(body, image, source)
         _shaded(image, shade)
         _save(image, os.path.join(_OUT, "%s_%s.png" % (kind, tag)))
-        textures.append(tag)
         for ob in source:
             bpy.data.objects.remove(ob)
     bpy.data.images.remove(image)
     bpy.data.images.remove(shade)
-    # The rig: one bone a cluster, each frame a key.
+
+
+def _rig(kind, body, frames, order, clusters, centres, tracks, rest):
+    """The rig: one bone a cluster, each frame a key; exported with the body
+    as <kind>.glb."""
     data = bpy.data.armatures.new("rig")
     rig = bpy.data.objects.new("rig_" + kind, data)
     bpy.context.scene.collection.objects.link(rig)
@@ -485,16 +639,35 @@ def export(kind, meta):
     rig.animation_data_create()
     action = bpy.data.actions.new("poses")
     rig.animation_data.action = action
-    names = {}
+    # Keys meet in straight lines: Godot samples the action between keys, and
+    # a curve overshoots there (a part shrunk away in one key and whole in the
+    # next came back as a speck in mid-air).
     for t, (frame, wound, name) in enumerate(frames):
-        names[name] = t
+        # A frame built of other parts altogether (the derby champ's wreck
+        # keeps a few wheels of his truck) holds the rest where the frame
+        # before it had them, whole, rather than leaving a few parts.
+        held = sum(w is not None for w in tracks[t]) < len(rest) / 2
         for b, key in enumerate(order):
             i = clusters[key][0]
             pb = rig.pose.bones["b%d" % b]
             rest_m = data.bones["b%d" % b].matrix_local
             w = tracks[t][i]
             if w is None:
-                d = Matrix.Translation(centres[b]) @ Matrix.Diagonal((1e-4, 1e-4, 1e-4, 1)) @ Matrix.Translation(-centres[b])
+                # Gone from this frame: shrunk where it is in the nearest
+                # frame it is blended with (so it never flies off to where
+                # it stood while it shrinks), else where it stands.
+                near = None
+                chain = _chain(name)
+                for u in sorted(range(len(frames)), key=lambda u: abs(u - t)):
+                    if tracks[u][i] is not None and _chain(frames[u][2]) == chain:
+                        near = tracks[u][i] @ rest[i][2].inverted()
+                        break
+                c = centres[b]
+                if near is not None and held:
+                    d = near
+                else:
+                    near = near or Matrix.Identity(4)
+                    d = near @ Matrix.Translation(c) @ Matrix.Diagonal((1e-4, 1e-4, 1e-4, 1)) @ Matrix.Translation(-c)
             else:
                 d = w @ rest[i][2].inverted()
             pb.matrix = d @ rest_m
@@ -502,6 +675,9 @@ def export(kind, meta):
             pb.keyframe_insert("location", frame=t)
             pb.keyframe_insert("rotation_quaternion", frame=t)
             pb.keyframe_insert("scale", frame=t)
+    for fc in _fcurves(action):
+        for kp in fc.keyframe_points:
+            kp.interpolation = "LINEAR"
     bpy.ops.object.mode_set(mode="OBJECT")
     body.parent = rig
     mod = body.modifiers.new("rig", "ARMATURE")
@@ -523,25 +699,18 @@ def export(kind, meta):
         export_force_sampling=False,
         export_def_bones=False,
     )
-    meta[kind] = {
-        "frames": names,
-        "height": round(height, 3),
-        "textures": textures,
-        "parts": len(rest),
-        "bones": len(order),
-        "faces": len(body.data.polygons),
-        # The looks carry the dusk stage's light (the game adds only a turn's shade).
-        "lit": True,
-        "labels": {"b%d" % b: _label(c, skeleton) for b, c in enumerate(centres)},
-        # The cels' canvas (map units): the game draws a kind enemies.cfg
-        # height tall for this canvas height, so a model is scaled by the same.
-        "canvas": [S["canvas"][0], S["canvas"][1]],
-    }
-    print("ACTOR %s: %d parts, %d bones, %d frames" % (kind, len(rest), len(order), len(frames)))
-    for ob in [o for o in bpy.data.objects if o.type in ("MESH", "ARMATURE")]:
-        bpy.data.objects.remove(ob)
-    for a in list(bpy.data.actions):
-        bpy.data.actions.remove(a)
+
+
+def _fcurves(action):
+    """An action's curves (Blender 4.4 and later keep them in slots' bags)."""
+    if hasattr(action, "fcurves"):
+        return list(action.fcurves)
+    out = []
+    for layer in action.layers:
+        for strip in layer.strips:
+            for bag in strip.channelbags:
+                out += list(bag.fcurves)
+    return out
 
 
 def _build_kept(kind, frame, wound, damage):

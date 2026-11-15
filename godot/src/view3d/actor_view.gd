@@ -11,6 +11,10 @@ class_name ActorView
 extends Node3D
 
 const HEADINGS: Array[String] = ["quarter_", "side_", "away_", "back_"]
+## A body at rest is drawn this much of its height: its cel was a flat
+## picture a quarter of the body's height, and the model lying in full, its
+## belly and boots up, read as a heap.
+const FLAT := .5
 
 ## The model's kind (actors.json, actor3d_<kind> looks).
 @export var kind := ""
@@ -55,9 +59,16 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	var info: Dictionary = models.kinds[kind]
 	var canvas: Array = info.get("canvas", [1.0, e.height])
 	var tall: float = canvas[1]
-	var size := e.height * e.variant / maxf(.1, tall)
+	var fit: float = info.get("scale", 1.0)
+	var size := e.height * e.variant / maxf(.1, tall) * fit
+	var down := 0.0
+	if frame == "down":
+		down = 1.0
+	elif frame.begins_with("die_"):
+		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
+	var flat := lerpf(1.0, FLAT, down * down)
 	transform = Transform3D(
-		Basis(Vector3.UP, turn).scaled(Vector3(size, size, size)), Vector3(s.x, z, s.y)
+		Basis(Vector3.UP, turn).scaled(Vector3(size, size * flat, size)), Vector3(s.x, z, s.y)
 	)
 	_player.seek(_time(frame, look, e, clock), true)
 	var c := level.cell(clampf(s.x, 0.0, level.width - .01), clampf(s.y, 0.0, level.height - .01))
@@ -66,11 +77,6 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	if level.tints.size() >= 3:
 		tone = Color(level.tints[ti], level.tints[ti + 1], level.tints[ti + 2], level.light[c])
 	var hurt := minf(.46, s.hurt / .18 * .44) if s.hurt > 0.0 else 0.0
-	var down := 0.0
-	if frame == "down":
-		down = 1.0
-	elif frame.begins_with("die_"):
-		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
 	for mesh in _meshes:
 		mesh.set_instance_shader_parameter("tone", tone)
 		mesh.set_instance_shader_parameter("wash", Color(tint.r, tint.g, tint.b, hurt))

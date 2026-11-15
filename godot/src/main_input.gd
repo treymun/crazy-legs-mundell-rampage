@@ -41,7 +41,9 @@ func _on_back() -> void:
 
 
 func _on_focus_lost() -> void:
-	if smoke:
+	# A view tour or bench in a window keeps drawing when another window
+	# takes the focus (it would pause to the title and freeze its pictures).
+	if smoke or touring:
 		return
 	if Time.get_ticks_msec() < focus_grace:
 		return
