@@ -15,7 +15,9 @@ func _tick(_dt: float) -> void:
 	Triggers.tick(game)
 	if not game.trigger_lights.is_empty():
 		game.trigger_lights = game.trigger_lights.filter(
-			func(l: Array) -> bool: return game.clock < float(l[6])
+			func(l: Array) -> bool:
+				var until: float = l[6]
+				return game.clock < until
 		)
 
 
@@ -30,9 +32,9 @@ func restore(state: Dictionary) -> void:
 	game.triggers_fired = {}
 	var known := {}
 	for trigger: Dictionary in game.level.triggers:
-		known[String(trigger["id"])] = true
-	var fired = state.get("fired", [])
+		known[str(trigger["id"])] = true
+	var fired: Variant = state.get("fired", [])
 	if fired is Array:
-		for name in fired:
+		for name: Variant in fired:
 			if typeof(name) == TYPE_STRING and known.has(name):
-				game.triggers_fired[String(name)] = true
+				game.triggers_fired[str(name)] = true

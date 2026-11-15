@@ -12,7 +12,7 @@ var shots := 0
 var landed := 0
 var hurt := 0.0
 var kills_by_gun := {}
-var _waiting: Array = []
+var _waiting: Array[float] = []
 
 
 func id() -> String:
@@ -38,7 +38,7 @@ func _fired(_gun: int) -> void:
 func _hit(_amount: float, _killed: bool) -> void:
 	if not game.acting_local():
 		return
-	while not _waiting.is_empty() and game.clock - float(_waiting[0]) > LANDS_WITHIN:
+	while not _waiting.is_empty() and game.clock - _waiting[0] > LANDS_WITHIN:
 		_waiting.pop_front()
 	if not _waiting.is_empty():
 		_waiting.pop_front()
@@ -49,8 +49,9 @@ func _killed(enemy: Enemy) -> void:
 	if not game.acting_local():
 		return
 	if enemy.hostile:
-		var gun := String(Weapons.NAMES[game.armory.active])
-		kills_by_gun[gun] = int(kills_by_gun.get(gun, 0)) + 1
+		var gun := str(Weapons.NAMES[game.armory.active])
+		var so_far: int = kills_by_gun.get(gun, 0)
+		kills_by_gun[gun] = so_far + 1
 
 
 func accuracy() -> int:
@@ -64,14 +65,19 @@ func save() -> Dictionary:
 
 
 func restore(state: Dictionary) -> void:
-	shots = maxi(0, int(state.get("shots", 0)))
-	landed = clampi(int(state.get("landed", 0)), 0, shots)
-	hurt = maxf(0.0, float(state.get("hurt", 0.0)))
+	var saved_shots: int = state.get("shots", 0)
+	shots = maxi(0, saved_shots)
+	var saved_landed: int = state.get("landed", 0)
+	landed = clampi(saved_landed, 0, shots)
+	var saved_hurt: float = state.get("hurt", 0.0)
+	hurt = maxf(0.0, saved_hurt)
 	kills_by_gun = {}
-	var kills = state.get("kills", {})
+	var kills: Variant = state.get("kills", {})
 	if kills is Dictionary:
-		for gun in kills:
-			kills_by_gun[String(gun)] = maxi(0, int(kills[gun]))
+		var by_gun: Dictionary = kills
+		for gun: Variant in by_gun:
+			var count: int = by_gun[gun]
+			kills_by_gun[str(gun)] = maxi(0, count)
 
 
 func tally_rows() -> Array:
@@ -82,8 +88,9 @@ func report() -> String:
 	var best := ""
 	var most := 0
 	for gun: String in kills_by_gun:
-		if int(kills_by_gun[gun]) > most:
-			most = int(kills_by_gun[gun])
+		var count: int = kills_by_gun[gun]
+		if count > most:
+			most = count
 			best = gun
 	return (
 		"%d shots, %d landed (%d%%), %d damage taken%s"

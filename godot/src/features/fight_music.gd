@@ -84,7 +84,7 @@ func _tick(dt: float) -> void:
 ## The boss whose fight it is: the chapter's last boss, or Hickston's sheriff
 ## and then Jerry; null when none is awake.
 func boss() -> Enemy:
-	for foe in [game.finale, game.boss, game.jerry]:
+	for foe: Enemy in [game.finale, game.boss, game.jerry]:
 		if foe != null and foe.alive and foe.alerted and not foe.dormant:
 			return foe
 	return null
@@ -95,7 +95,7 @@ func _boss_scan() -> void:
 	if foe == null or game.in_hub or OWN_MUSIC.has(foe.kind):
 		boss_fight = false
 		return
-	var p = game.player
+	var p := game.player
 	var near: bool = (
 		Vector2(foe.x - p.x, foe.y - p.y).length() < BOSS_RANGE
 		if foe == game.finale
@@ -110,7 +110,7 @@ func _boss_scan() -> void:
 ## those two: the menus, the tally and Maw's own track are left alone.
 func _boss_music() -> void:
 	var score := String(game.level.score)
-	var track := String(Sound.BOSSES.get(score, ""))
+	var track := str(Sound.BOSSES.get(score, ""))
 	if track == "" or (game.finale != null and OWN_MUSIC.has(game.finale.kind)):
 		return
 	var now := String(game.sound.score)
@@ -123,7 +123,7 @@ func _boss_music() -> void:
 ## A hit taken or landed counts only with an alerted enemy about: a hot coal
 ## or a shot pig is not a fight.
 func _struck() -> void:
-	var p = game.player
+	var p := game.player
 	for enemy: Enemy in game.enemies:
 		if (
 			enemy.alive
@@ -137,7 +137,7 @@ func _struck() -> void:
 
 
 func _engaged() -> int:
-	var p = game.player
+	var p := game.player
 	var count := 0
 	for enemy: Enemy in game.enemies:
 		if not (enemy.alive and enemy.hostile and enemy.alerted):

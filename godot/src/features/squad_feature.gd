@@ -85,11 +85,13 @@ func _start() -> void:
 		if not e.route.is_empty():
 			continue
 		var spec: Dictionary = game.level.enemies[i]
-		var at := Vector2(float(spec["x"]), float(spec["y"]))
+		var spec_x: float = spec["x"]
+		var spec_y: float = spec["y"]
+		var at := Vector2(spec_x, spec_y)
 		var picked := IdleLife.pick(game, e, at, i, about)
 		if picked.is_empty():
 			continue
-		e.mind.activity = String(picked[0])
+		e.mind.activity = str(picked[0])
 		e.mind.spot = at
 		e.mind.focus = picked[1]
 
@@ -97,8 +99,9 @@ func _start() -> void:
 func _heard(gun: int) -> void:
 	if not started or gun < 0 or gun >= Weapons.SHOT_NOISE.size():
 		return
-	var p = game.player
-	var reach: float = float(Weapons.SHOT_NOISE[gun]) * HEARING[clampi(game.difficulty, 0, 3)]
+	var p := game.player
+	var noise: float = Weapons.SHOT_NOISE[gun]
+	var reach: float = noise * HEARING[clampi(game.difficulty, 0, 3)]
 	for e: Enemy in game.enemies:
 		if e.mind == null or e.alerted or e.dormant or not e.alive:
 			continue
@@ -117,7 +120,7 @@ func _fell(e: Enemy) -> void:
 ## `only`: the hands after that player (null: all, with one player).
 func _step(only: Player) -> void:
 	var now: float = game.clock
-	var p = game.player
+	var p := game.player
 	var group: Array = []
 	var seers: Array = []
 	for e: Enemy in game.enemies:
@@ -159,7 +162,8 @@ func _step(only: Player) -> void:
 func _regroup(group: Array, now: float) -> void:
 	var kept: Array = []
 	for row: Array in losses:
-		if now - float(row[0]) < 10.0:
+		var fell_at: float = row[0]
+		if now - fell_at < 10.0:
 			kept.append(row)
 	losses = kept
 	if now < regroup_next or group.size() < 2 or losses.size() < 2:
@@ -169,7 +173,7 @@ func _regroup(group: Array, now: float) -> void:
 		health += e.hp / e.max_hp
 	if losses.size() < 3 and health / group.size() > .65:
 		return
-	var p = game.player
+	var p := game.player
 	var rally: Enemy = null
 	var far := -1.0
 	for e: Enemy in group:
@@ -203,11 +207,11 @@ func _flank(group: Array, now: float, level: int) -> void:
 			out += 1
 	if out >= FLANKERS[level]:
 		return
-	var p = game.player
+	var p := game.player
 	var pick: Enemy = null
 	var best := -1.0
 	for e: Enemy in group:
-		var m = e.mind
+		var m: Squad.Mind = e.mind
 		if (
 			m.flank_until > now
 			or m.press_until > now
@@ -259,7 +263,7 @@ func _press(seers: Array, now: float, level: int) -> void:
 	press_next = now + PRESS_WAIT[level]
 	if game.rng.random() >= PRESS_CHANCE[level]:
 		return
-	var p = game.player
+	var p := game.player
 	for e: Enemy in seers:
 		if e == shooter or e.mind.flank_until > now or e.mind.regroup != null:
 			continue
@@ -274,10 +278,10 @@ func _press(seers: Array, now: float, level: int) -> void:
 func _flush(group: Array, now: float, level: int) -> void:
 	if now < flush_next or now - last_seen < GONE_TO_GROUND:
 		return
-	var p = game.player
-	var w = game.world
+	var p := game.player
+	var w := game.world
 	for e: Enemy in group:
-		var m = e.mind
+		var m: Squad.Mind = e.mind
 		var bottle := e.brain == "bottle_tosser"
 		if (
 			not (bottle or level >= 2)
@@ -312,9 +316,10 @@ func ground_marks() -> Array:
 	if not started:
 		return out
 	for e: Enemy in game.enemies:
-		if e.mind != null and e.alive and e.mind.flush_at > 0.0:
-			out.append(game._spot(e.mind.flush_to.x, e.mind.flush_to.y, 1.1, "warning"))
-	for shot in game.shots:
+		var m: Squad.Mind = e.mind
+		if m != null and e.alive and m.flush_at > 0.0:
+			out.append(game._spot(m.flush_to.x, m.flush_to.y, 1.1, "warning"))
+	for shot: GameState.Shot in game.shots:
 		if shot.enemy and shot.kind == "tnt":
 			out.append(game._spot(shot.x, shot.y, 2.0, "warning"))
 	return out
@@ -325,7 +330,7 @@ func ground_marks() -> Array:
 func sprites() -> Array:
 	var out: Array = []
 	for e: Enemy in busy:
-		var m = e.mind
+		var m: Squad.Mind = e.mind
 		if m.activity == "" or e.alerted or not e.alive:
 			continue
 		if not game.in_view(e.x, e.y, 1.0) or not IdleLife.at_it(e):

@@ -6,6 +6,8 @@
 ## effects.cfg [debris] dust_cap of it at once (the oldest goes first).
 extends GameFeature
 
+const RaceLaps := preload("res://src/features/race_laps.gd")
+
 ## Fires and what rises off them: picture -> [embers from (part of its
 ## height), seconds between embers, smoke from (part of its height), seconds
 ## between wisps (0: none)].
@@ -82,7 +84,7 @@ func _add(kind: String, at: Vector3, v: Vector3, life: float, size: float, grow:
 	m.size = size
 	m.grow = grow
 	motes.append(m)
-	var cap := int(Effects.DEBRIS.get("dust_cap", 56))
+	var cap: int = Effects.DEBRIS.get("dust_cap", 56)
 	if motes.size() > cap:
 		motes = motes.slice(motes.size() - cap)
 
@@ -93,7 +95,7 @@ func _fired(gun: int) -> void:
 		return
 	# A gun that fires fast lays one thicker cloud, not a wall of them.
 	_smoke_next = game.clock + .14
-	var p = game.player
+	var p := game.player
 	var a: float = p.view_angle()
 	var count := 2 if gun == Weapons.SHOTGUN else 1
 	for k in count:
@@ -151,7 +153,7 @@ func _tick(dt: float) -> void:
 ## Dust off the boots on a dirt road: the player's at each step, the county's
 ## as they go.
 func _boots() -> void:
-	var p = game.player
+	var p := game.player
 	var world: LevelData = game.world
 	var step := int(p.walk_phase / PI)
 	if step != _step:
@@ -167,13 +169,16 @@ func _boots() -> void:
 		var key := e.get_instance_id()
 		seen[key] = true
 		var was: Array = _strides.get(key, [e.x, e.y, game.clock + dice.randf_range(0, .3)])
-		if game.clock >= float(was[2]):
-			var moved := Vector2(e.x - float(was[0]), e.y - float(was[1])).length()
+		var was_x: float = was[0]
+		var was_y: float = was[1]
+		var puff_at: float = was[2]
+		if game.clock >= puff_at:
+			var moved := Vector2(e.x - was_x, e.y - was_y).length()
 			# The derby boss's car churns up the arena whatever its floor.
 			var big := e.brain == "derby_champ"
 			var span := .06 if big else .28
 			if moved > span * (1.6 if big else .8) and (big or Materials.dusty(world, e.x, e.y)):
-				var away := Vector2(float(was[0]) - e.x, float(was[1]) - e.y).normalized()
+				var away := Vector2(was_x - e.x, was_y - e.y).normalized()
 				var at := Vector3(
 					e.x + away.x * e.radius,
 					e.y + away.y * e.radius,
@@ -190,7 +195,7 @@ func _boots() -> void:
 			was = [e.x, e.y, game.clock + span]
 		_strides[key] = was
 	if _strides.size() > seen.size() + 8:
-		for key in _strides.keys():
+		for key: Variant in _strides.keys():
 			if not seen.has(key):
 				_strides.erase(key)
 
@@ -200,14 +205,16 @@ func _race_dust() -> void:
 	if game.clock < _trail_next:
 		return
 	_trail_next = game.clock + .1
-	var laps = game.features.get("race_laps")
+	var laps: RaceLaps = game.features.get("race_laps")
 	if laps == null or laps.cars.is_empty() or game.revisiting:
 		return
-	var p = game.player
+	var p := game.player
 	for car: Array in laps.cars:
-		if float(car[1]) < 1.5:
+		var speed: float = car[1]
+		if speed < 1.5:
 			continue
-		var where: Array = laps._at(float(car[0]) - .9)
+		var car_along: float = car[0]
+		var where: Array = laps._at(car_along - .9)
 		var at: Vector2 = where[0]
 		if absf(at.x - p.x) > NEAR * 2.0 or absf(at.y - p.y) > NEAR * 2.0:
 			continue
@@ -224,7 +231,7 @@ func _race_dust() -> void:
 
 ## Embers lifting off the fires near enough, and their smoke.
 func _embers() -> void:
-	var p = game.player
+	var p := game.player
 	for fire: Array in _fires:
 		var fx: float = fire[0]
 		var fy: float = fire[1]
@@ -233,25 +240,31 @@ func _embers() -> void:
 		var row: Array = fire[4]
 		var base: float = fire[2]
 		var height: float = fire[3]
-		if game.clock >= float(fire[5]):
-			fire[5] = game.clock + float(row[1]) * dice.randf_range(.6, 1.4)
+		var ember_at: float = fire[5]
+		if game.clock >= ember_at:
+			var ember_gap: float = row[1]
+			fire[5] = game.clock + ember_gap * dice.randf_range(.6, 1.4)
+			var ember_from: float = row[0]
 			var at := Vector3(
 				fx + dice.randf_range(-.1, .1),
 				fy + dice.randf_range(-.1, .1),
-				base + height * float(row[0])
+				base + height * ember_from
 			)
 			var v := Vector3(dice.randf_range(-.15, .15), dice.randf_range(-.15, .15), .0)
 			v.z = dice.randf_range(.45, .9)
 			_add("ember", at, v, dice.randf_range(1.2, 2.2), .035, 0.0)
-		if float(row[3]) > 0.0 and game.clock >= float(fire[6]):
-			fire[6] = game.clock + float(row[3]) * dice.randf_range(.7, 1.3)
-			var top := Vector3(fx, fy, base + height * float(row[2]))
+		var wisp_gap: float = row[3]
+		var wisp_at: float = fire[6]
+		if wisp_gap > 0.0 and game.clock >= wisp_at:
+			fire[6] = game.clock + wisp_gap * dice.randf_range(.7, 1.3)
+			var smoke_from: float = row[2]
+			var top := Vector3(fx, fy, base + height * smoke_from)
 			_add("smoke", top, Vector3(0, 0, .3), dice.randf_range(2.0, 3.0), .1, .22)
 
 
 func sprites() -> Array:
 	var out: Array = []
-	var p = game.player
+	var p := game.player
 	for m: Mote in motes:
 		if (m.x - p.x) * (m.x - p.x) + (m.y - p.y) * (m.y - p.y) < .25:
 			continue

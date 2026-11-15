@@ -11,10 +11,10 @@
 class_name GameFeature
 extends RefCounted
 
-var game
+var game: Game
 
 
-func _init(p_game) -> void:
+func _init(p_game: Game) -> void:
 	game = p_game
 	attach()
 

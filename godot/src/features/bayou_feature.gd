@@ -43,14 +43,16 @@ func ground_marks() -> Array:
 		if not BayouBrains.is_king(e) or not e.alive or e.windup <= 0.0 or e.aim_mark == null:
 			continue
 		var mark: Array = e.aim_mark
-		var toward := atan2(float(mark[1]) - e.y, float(mark[0]) - e.x)
-		var gap := Vector2(float(mark[0]) - e.x, float(mark[1]) - e.y).length()
+		var mark_x: float = mark[0]
+		var mark_y: float = mark[1]
+		var toward := atan2(mark_y - e.y, mark_x - e.x)
+		var gap := Vector2(mark_x - e.x, mark_y - e.y).length()
 		if BayouBrains.runs_on(e, e.attacks + 1, game.world, toward, gap):
 			out.append_array(_lane(e, toward))
 		else:
 			for k in 3:
 				var bearing := toward + (k - 1) * .18
-				var reach := Vector2(float(mark[0]) - e.x, float(mark[1]) - e.y).length()
+				var reach := Vector2(mark_x - e.x, mark_y - e.y).length()
 				var at := Vector2(e.x + cos(bearing) * reach, e.y + sin(bearing) * reach)
 				out.append(
 					View.GroundMark.new(

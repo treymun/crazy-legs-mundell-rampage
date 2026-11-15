@@ -40,7 +40,7 @@ func _motion() -> int:
 
 func _tick(dt: float) -> void:
 	var id_: String = game.level.id
-	var p = game.player
+	var p := game.player
 	var outdoors: bool = game.world.roof[game.world.cell(p.x, p.y)] == 0.0
 	var kept: Array = []
 	for m: Mote in motes:
@@ -61,10 +61,12 @@ func _tick(dt: float) -> void:
 	if _motion() == 2 or game.in_hub or not outdoors:
 		return
 	var thin := 2 if _motion() == 1 else 1
-	if bool(Effects.mood(id_, "crows", false)) and game.clock >= next_flock:
+	var crows: bool = Effects.mood(id_, "crows", false)
+	if crows and game.clock >= next_flock:
 		next_flock = game.clock + dice.randf_range(14.0, 30.0) * thin
 		_flock(p)
-	if bool(Effects.mood(id_, "fireflies", false)):
+	var fireflies: bool = Effects.mood(id_, "fireflies", false)
+	if fireflies:
 		var lights := 0
 		for m: Mote in motes:
 			if not m.crow:
@@ -74,7 +76,7 @@ func _tick(dt: float) -> void:
 			lights += 1
 
 
-func _flock(p) -> void:
+func _flock(p: Player) -> void:
 	var heading := dice.randf_range(0, TAU)
 	var side := Vector2(cos(heading + PI / 2), sin(heading + PI / 2))
 	var start := (
@@ -97,7 +99,7 @@ func _flock(p) -> void:
 	game.sound_at("distant_crow", start.x, start.y, .35)
 
 
-func _firefly(p) -> void:
+func _firefly(p: Player) -> void:
 	var fly := Mote.new()
 	var a := dice.randf_range(0, TAU)
 	var d := dice.randf_range(2.0, 7.0)

@@ -124,7 +124,7 @@ func attach() -> void:
 
 ## Every gun, loaded, and as much for it as it carries.
 func _kit() -> void:
-	var a = game.armory
+	var a := game.armory
 	for i in Weapons.COUNT:
 		a.owned[i] = true
 		a.loaded[i] = Weapons.CAPACITY[i]
@@ -138,12 +138,12 @@ func _tick(dt: float) -> void:
 	if Modes.is_versus(game):
 		return  # a versus match on the range: no refills, no medic (src/modes/)
 	game.lessons = false
-	var a = game.armory
+	var a := game.armory
 	for i in Weapons.COUNT:
 		a.owned[i] = true
 		if a.reserve[i] < Weapons.MAX_RESERVE[i]:
 			a.reserve[i] = Weapons.MAX_RESERVE[i]
-	var p = game.player
+	var p := game.player
 	if p.health <= 0:
 		p.health = 100
 	var here := L.station_at(p.x, p.y)
@@ -186,40 +186,45 @@ func _fired(gun: int) -> void:
 
 func _gun_damage(gun: int) -> float:
 	var how: Dictionary = Weapons.FIRING[gun]
-	var mode := String(how.get("fire", ""))
+	var mode := str(how.get("fire", ""))
 	if mode == "melee":
 		var table: Array = Weapons.MELEE[gun]
-		return float(table[1 if game.sprint else 0])
+		var swing: float = table[1 if game.sprint else 0]
+		return swing
 	if mode == "pellets":
-		return float(how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE))
+		var pellet: float = how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)
+		return pellet
 	if gun == Weapons.RIPSAW:
 		return float(Weapons.GRIND_DAMAGE)
-	return float(Weapons.DAMAGE.get(gun, 0))
+	var damage: float = Weapons.DAMAGE.get(gun, 0)
+	return damage
 
 
 func _traced(end: Vector3, struck: String) -> void:
-	var p = game.player
+	var p := game.player
 	var gun: int = game.armory.active
 	var start := Vector3(p.x, p.y, p.eye)
 	var damage := _gun_damage(gun)
 	var hit: Dictionary = targets.trace(game, start, end, gun, damage)
 	if hit.has("id"):
 		_tally(gun, damage)
-		if String(hit["station"]) == "pellets" and game.clock - pellet_clock < .05:
-			pellet_blast[hit["id"]] = int(pellet_blast.get(hit["id"], 0)) + 1
+		if str(hit["station"]) == "pellets" and game.clock - pellet_clock < .05:
+			var so_far: int = pellet_blast.get(hit["id"], 0)
+			pellet_blast[hit["id"]] = so_far + 1
 	elif struck == "thing":
 		# A can off its post: the nearest can to where the shot ended.
 		for c: Array in L.CANS:
-			if Vector2(float(c[1]) - end.x, float(c[2]) - end.y).length() < .5:
-				var yards := roundi(Vector2(float(c[1]) - p.x, float(c[2]) - p.y).length())
-				cans_down[String(c[0])] = game.clock
+			var cx: float = c[1]
+			var cy: float = c[2]
+			if Vector2(cx - end.x, cy - end.y).length() < .5:
+				var yards := roundi(Vector2(cx - p.x, cy - p.y).length())
+				cans_down[str(c[0])] = game.clock
 				_note_reach("CAN AT %d YDS, %s" % [yards, _gun_name(gun)])
 	elif struck == "air" and station in ["cans", "rifle", "pellets", "special"]:
 		var how: Dictionary = Weapons.FIRING[gun]
 		if how.has("range"):
-			_note_reach(
-				"FELL SHORT: %s REACHES %d YDS" % [_gun_name(gun), roundi(float(how["range"]))]
-			)
+			var reach: float = how["range"]
+			_note_reach("FELL SHORT: %s REACHES %d YDS" % [_gun_name(gun), roundi(reach)])
 
 
 func _note_reach(text: String) -> void:
@@ -229,8 +234,10 @@ func _note_reach(text: String) -> void:
 
 func _tally(gun: int, damage: float) -> void:
 	var name := _gun_name(gun)
-	damage_by_gun[name] = float(damage_by_gun.get(name, 0.0)) + maxf(0.0, damage)
-	hits_by_gun[name] = int(hits_by_gun.get(name, 0)) + 1
+	var damage_so_far: float = damage_by_gun.get(name, 0.0)
+	damage_by_gun[name] = damage_so_far + maxf(0.0, damage)
+	var hits_so_far: int = hits_by_gun.get(name, 0)
+	hits_by_gun[name] = hits_so_far + 1
 
 
 func _exploded(x: float, y: float, _z: float, _energy: bool) -> void:
@@ -247,7 +254,7 @@ func _exploded(x: float, y: float, _z: float, _energy: bool) -> void:
 func _hurt(_amount: float, _cause: String) -> void:
 	if Modes.is_versus(game):
 		return
-	var p = game.player
+	var p := game.player
 	if p.health < 30:
 		p.health = 100
 		game.hurt_flash = 0.0
@@ -257,24 +264,29 @@ func _hurt(_amount: float, _cause: String) -> void:
 
 
 func _killed(enemy: Enemy) -> void:
-	var w = watched.get(enemy)
-	if w == null:
+	var found: Variant = watched.get(enemy)
+	if found == null:
 		return
+	var w: Dictionary = found
 	if enemy.explosive:
 		gibs += 1
-	var took: float = game.clock - float(w["first"]) if float(w["first"]) >= 0.0 else 0.0
+	var first: float = w["first"]
+	var took: float = game.clock - first if first >= 0.0 else 0.0
 	var best := ""
 	var most := 0.0
-	for gun: String in w["by_gun"]:
-		if float(w["by_gun"][gun]) > most:
-			most = float(w["by_gun"][gun])
+	var by_gun: Dictionary = w["by_gun"]
+	for gun: String in by_gun:
+		var dealt: float = by_gun[gun]
+		if dealt > most:
+			most = dealt
 			best = gun
+	var shots_then: int = w["shots"]
 	var line := (
 		"%s DOWN IN %.1f S, %d SHOTS%s"
 		% [
-			String(L.NAMES.get(w["kind"], String(w["kind"]).to_upper())),
+			str(L.NAMES.get(w["kind"], str(w["kind"]).to_upper())),
 			took,
-			shots_fired - int(w["shots"]),
+			shots_fired - shots_then,
 			(", " + best) if best != "" else ""
 		]
 	)
@@ -301,7 +313,7 @@ func _station(station_id: String) -> void:
 		_boss(what.substr(5))
 	elif what == "cans":
 		for c: Array in L.CANS:
-			game.scenery_spent.erase(String(c[0]))
+			game.scenery_spent.erase(str(c[0]))
 		cans_down.clear()
 		say("CANS BACK ON THEIR POSTS.", 1.6)
 	elif what == "pins":
@@ -322,7 +334,8 @@ func _station(station_id: String) -> void:
 	elif what == "fodder":
 		_clear("pit")
 		for i in L.FODDER_DOORS.size():
-			_spawn(String(L.FODDER_KINDS[i]), L.FODDER_DOORS[i], "pit", true)
+			var door: Vector2 = L.FODDER_DOORS[i]
+			_spawn(str(L.FODDER_KINDS[i]), door, "pit", true)
 		say("FODDER IN THE PIT. LIGHT A STICK [8].", 2.4)
 	elif what == "reset-pit":
 		_clear("pit")
@@ -338,16 +351,18 @@ func _station(station_id: String) -> void:
 func _take(i: int) -> void:
 	if i < 0 or i >= Weapons.COUNT:
 		return
-	var a = game.armory
+	var a := game.armory
 	if a.active != i:
 		a.select(i, game)
 	a.loaded[i] = Weapons.CAPACITY[i]
 	var how: Dictionary = Weapons.FIRING[i]
-	var note := String(GUN_NOTES[i]) if i < GUN_NOTES.size() else ""
+	var note := str(GUN_NOTES[i]) if i < GUN_NOTES.size() else ""
 	note = note.replace("{dmg}", str(roundi(_gun_damage(i))))
-	note = note.replace("{range}", str(roundi(float(how.get("range", 0.0)))))
-	note = note.replace("{pellet}", str(int(how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE))))
-	say(String(Weapons.LABELS[i]).get_slice(" [", 0) + ". " + note, 5.0)
+	var reach: float = how.get("range", 0.0)
+	note = note.replace("{range}", str(roundi(reach)))
+	var pellet: int = how.get("pellet_damage", Weapons.SHOTGUN_DAMAGE)
+	note = note.replace("{pellet}", str(pellet))
+	say(str(Weapons.LABELS[i]).get_slice(" [", 0) + ". " + note, 5.0)
 
 
 ## Can this kind be drawn here? A browser build fetches a chapter's own
@@ -355,11 +370,12 @@ func _take(i: int) -> void:
 func _ready_kind(kind: String) -> bool:
 	var kinds := [kind]
 	var def: Dictionary = Enemy.DEFS.get(kind, {})
-	for key in ["art", "brain"]:
-		var base := String(def.get(key, ""))
+	for key: String in ["art", "brain"]:
+		var base := str(def.get(key, ""))
 		if base != "":
 			kinds.append(base)
-			kinds.append(String(Enemy.DEFS.get(base, {}).get("brain", "")))
+			var base_def: Dictionary = Enemy.DEFS.get(base, {})
+			kinds.append(str(base_def.get("brain", "")))
 	for level_id: String in Assets.CHAPTER_KINDS:
 		for k: String in kinds:
 			if k in Assets.CHAPTER_KINDS[level_id] and not game.art.chapter_ready(level_id):
@@ -386,15 +402,17 @@ func _pen(kind: String) -> void:
 			["clone", 1, false]
 		]
 		for row: Array in squad:
-			var door: Vector2 = L.PEN_DOORS[int(row[1])]
-			_spawn(String(row[0]), door + Vector2(-.6 * int(row[1]), .4), "bullpen", bool(row[2]))
+			var at: int = row[1]
+			var door: Vector2 = L.PEN_DOORS[at]
+			var awake: bool = row[2]
+			_spawn(str(row[0]), door + Vector2(-.6 * at, .4), "bullpen", awake)
 		say("A SQUAD. WATCH THE HURT ONES RUN FOR THE LOAFERS.", 3.0)
 		return
 	if kind == "tough":
-		kind = String(L.TOUGH_KINDS[tough_next % L.TOUGH_KINDS.size()])
+		kind = str(L.TOUGH_KINDS[tough_next % L.TOUGH_KINDS.size()])
 		tough_next += 1
 	elif kind == "variant":
-		kind = String(L.VARIANT_KINDS[variant_next % L.VARIANT_KINDS.size()])
+		kind = str(L.VARIANT_KINDS[variant_next % L.VARIANT_KINDS.size()])
 		variant_next += 1
 	if not _ready_kind(kind):
 		say("THAT CRITTER'S STILL ON THE TRUCK. TRY AGAIN IN A MINUTE.", 2.5)
@@ -403,7 +421,7 @@ func _pen(kind: String) -> void:
 	var count := 2 if kind in ["skeeter", "crawler"] else 1
 	for k in count:
 		_spawn(kind, door2 + Vector2(0, k * .8), "bullpen", true)
-	say("HERE COMES A " + String(L.NAMES.get(kind, kind.to_upper())) + ".", 1.8)
+	say("HERE COMES A " + str(L.NAMES.get(kind, kind.to_upper())) + ".", 1.8)
 
 
 func _boss(kind: String) -> void:
@@ -421,13 +439,13 @@ func _boss(kind: String) -> void:
 	if foe != null:
 		game.finale = foe
 		var where := " IS ON THE POND." if kind == "swamp_king" else " IS LOOSE IN THE CORRAL."
-		say(String(L.NAMES.get(kind, kind)) + where, 2.4)
+		say(str(L.NAMES.get(kind, kind)) + where, 2.4)
 
 
 func _spawn(kind: String, at: Vector2, home: String, awake: bool) -> Enemy:
 	if not Enemy.KINDS.has(kind):
 		return null
-	var p = game.player
+	var p := game.player
 	var foe := Enemy.new(kind, at.x, at.y, atan2(p.y - at.y, p.x - at.x))
 	foe.flank = .42 if game.enemies.size() % 2 else -.42
 	game.enemies.append(foe)
@@ -454,7 +472,7 @@ func _spawn(kind: String, at: Vector2, home: String, awake: bool) -> Enemy:
 func _count(home: String) -> int:
 	var n := 0
 	for foe: Enemy in watched:
-		if String(watched[foe]["station"]) == home and foe.alive:
+		if str(watched[foe]["station"]) == home and foe.alive:
 			n += 1
 	return n
 
@@ -466,18 +484,16 @@ func _clear(home: String) -> void:
 	var zone: Array = L.STATIONS[home]["lane"] if L.STATIONS.has(home) else []
 	for i in game.enemies.size():
 		var foe: Enemy = game.enemies[i]
-		var w = watched.get(foe)
+		var w: Variant = watched.get(foe)
 		# A boss's backup and Maw's younguns are nobody's: the corral's are its.
-		var stray := (
-			w == null
-			and home == "corral"
-			and not zone.is_empty()
-			and foe.x >= float(zone[0])
-			and foe.x < float(zone[2]) + 1.0
-			and foe.y >= float(zone[1])
-			and foe.y < float(zone[3]) + 1.0
-		)
-		if (w != null and String(w["station"]) == home) or stray:
+		var stray := false
+		if w == null and home == "corral" and not zone.is_empty():
+			var x0: float = zone[0]
+			var y0: float = zone[1]
+			var x1: float = zone[2]
+			var y1: float = zone[3]
+			stray = foe.x >= x0 and foe.x < x1 + 1.0 and foe.y >= y0 and foe.y < y1 + 1.0
+		if (w != null and str(w["station"]) == home) or stray:
 			watched.erase(foe)
 			if game.finale == foe:
 				game.finale = null
@@ -486,7 +502,7 @@ func _clear(home: String) -> void:
 		keep_id.append(game.enemy_ids[i] if i < game.enemy_ids.size() else "range-%d" % i)
 	game.enemies = keep_e
 	game.enemy_ids = keep_id
-	game.shots = game.shots.filter(func(s) -> bool: return not s.enemy)
+	game.shots = game.shots.filter(func(s: GameState.Shot) -> bool: return not s.enemy)
 
 
 # ------------------------------------------------------------------ watching
@@ -495,43 +511,52 @@ func _clear(home: String) -> void:
 ## Stand the cans back up a while after they were shot off.
 func _cans() -> void:
 	for c: Array in L.CANS:
-		var can_id := String(c[0])
+		var can_id := str(c[0])
 		if game.scenery_spent.has(can_id):
 			if not cans_down.has(can_id):
 				cans_down[can_id] = game.clock
-			elif game.clock - float(cans_down[can_id]) > 4.0:
-				game.scenery_spent.erase(can_id)
-				cans_down.erase(can_id)
+			else:
+				var down_at: float = cans_down[can_id]
+				if game.clock - down_at > 4.0:
+					game.scenery_spent.erase(can_id)
+					cans_down.erase(can_id)
 
 
 func _watch() -> void:
 	for foe: Enemy in watched:
 		var w: Dictionary = watched[foe]
-		var lost := float(w["hp"]) - foe.hp
+		var hp_then: float = w["hp"]
+		var lost := hp_then - foe.hp
 		if lost > 0.0:
-			if float(w["first"]) < 0.0:
+			var first: float = w["first"]
+			if first < 0.0:
 				w["first"] = game.clock
 			# Hurt by the player when they fired just now; else by one of its own.
 			var by := (
 				_gun_name(game.armory.active) if game.clock - last_shot < 2.6 else "FRIENDLY FIRE"
 			)
-			w["by_gun"][by] = float(w["by_gun"].get(by, 0.0)) + lost
+			var by_gun: Dictionary = w["by_gun"]
+			var dealt: float = by_gun.get(by, 0.0)
+			by_gun[by] = dealt + lost
 			if by != "FRIENDLY FIRE":
-				damage_by_gun[by] = float(damage_by_gun.get(by, 0.0)) + lost
+				var dealt_all: float = damage_by_gun.get(by, 0.0)
+				damage_by_gun[by] = dealt_all + lost
 			w["hp"] = foe.hp
 		if not foe.alive:
 			continue
-		if foe.pressure_guard > 1.6 and float(w["guard"]) <= 1.6:
+		var guard_then: float = w["guard"]
+		if foe.pressure_guard > 1.6 and guard_then <= 1.6:
 			interrupts += 1
 			say("WIND-UP BROKEN! THE COPPERHEAD STAGGERED IT.", 2.0)
 		w["guard"] = foe.pressure_guard
-		if foe.stun >= .55 and float(w["stun"]) < .2 and foe.soak > .0:
+		var stun_then: float = w["stun"]
+		if foe.stun >= .55 and stun_then < .2 and foe.soak > .0:
 			slips += 1
 			if station == "soak":
 				say("DOWN IN THE MILK!", 1.4)
 		w["stun"] = foe.stun
 		var doing := doing_of(foe)
-		if doing != String(w["doing"]):
+		if doing != str(w["doing"]):
 			w["doing"] = doing
 			_announce(foe, doing)
 
@@ -559,19 +584,19 @@ static func doing_of(foe: Enemy) -> String:
 
 
 func doing_words(foe: Enemy) -> String:
-	return String(DOINGS.get(doing_of(foe), ""))
+	return str(DOINGS.get(doing_of(foe), ""))
 
 
 ## Say what a hand has taken to doing, when it is something worth learning.
 func _announce(foe: Enemy, doing: String) -> void:
 	if game.clock < say_next or not station in ["bullpen", "corral", "soak", "special"]:
 		return
-	var name := String(L.NAMES.get(foe.kind, foe.kind.to_upper()))
+	var name := str(L.NAMES.get(foe.kind, foe.kind.to_upper()))
 	var line := ""
 	if doing == "brawl" and foe.grudge != null:
 		line = (
 			"FRIENDLY FIRE! THE %s TURNS ON THE %s."
-			% [name, String(L.NAMES.get(foe.grudge.kind, foe.grudge.kind.to_upper()))]
+			% [name, str(L.NAMES.get(foe.grudge.kind, foe.grudge.kind.to_upper()))]
 		)
 	elif doing == "fetch":
 		line = "THE %s IS HURT AND RUNS FOR HELP." % name
@@ -583,7 +608,7 @@ func _announce(foe: Enemy, doing: String) -> void:
 
 
 func _gun_name(gun: int) -> String:
-	return String(Weapons.LABELS[gun]).get_slice(" [", 0)
+	return str(Weapons.LABELS[gun]).get_slice(" [", 0)
 
 
 # ------------------------------------------------------------------ the view

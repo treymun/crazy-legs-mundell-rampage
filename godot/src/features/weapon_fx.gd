@@ -119,7 +119,7 @@ func scatter(speed: float, up: float) -> Vector3:
 
 ## Where a shot leaves the gun, in the world: ahead, a little right and low.
 func _muzzle() -> Vector3:
-	var p = game.player
+	var p := game.player
 	var a: float = p.view_angle()
 	return Vector3(
 		p.x + cos(a) * .42 - sin(a) * .11, p.y + sin(a) * .42 + cos(a) * .11, p.eye - .17
@@ -209,7 +209,7 @@ func _streak(end: Vector3, speed: float, tail: float, rivet: bool) -> void:
 
 ## How far ahead of the eye a point is, along the view.
 func _ahead_of_eye(at: Vector3) -> float:
-	var p = game.player
+	var p := game.player
 	var a: float = p.view_angle()
 	return (at.x - p.x) * cos(a) + (at.y - p.y) * sin(a)
 
@@ -424,22 +424,33 @@ func _tick(dt: float) -> void:
 	bits = kept
 	if bits.size() > MAX_BITS:
 		bits = bits.slice(bits.size() - MAX_BITS)
-	while (
-		not streaks.is_empty()
-		and (
-			(game.clock - float(streaks[0][0])) * float(streaks[0][1]) - float(streaks[0][3])
-			> float(streaks[0][5])
-		)
-	):
+	while not streaks.is_empty():
+		var streak: Array = streaks[0]
+		var shot_at: float = streak[0]
+		var speed: float = streak[1]
+		var length: float = streak[3]
+		var far: float = streak[5]
+		if not ((game.clock - shot_at) * speed - length > far):
+			break
 		streaks.pop_front()
-	while not jets.is_empty() and game.clock - float(jets[0][0]) > JET_LIFE:
+	while not jets.is_empty():
+		var jet: Array = jets[0]
+		var jet_at: float = jet[0]
+		if not (game.clock - jet_at > JET_LIFE):
+			break
 		jets.pop_front()
-	while (
-		not squirts.is_empty()
-		and (game.clock - float(squirts[0][0]) - .15) * MILK_SPEED > float(squirts[0][2])
-	):
+	while not squirts.is_empty():
+		var squirt: Array = squirts[0]
+		var squirt_at: float = squirt[0]
+		var squirt_far: float = squirt[2]
+		if not ((game.clock - squirt_at - .15) * MILK_SPEED > squirt_far):
+			break
 		squirts.pop_front()
-	while not puddles.is_empty() and game.clock - float(puddles[0][6]) > PUDDLE_LIFE:
+	while not puddles.is_empty():
+		var pool: Array = puddles[0]
+		var pool_at: float = pool[6]
+		if not (game.clock - pool_at > PUDDLE_LIFE):
+			break
 		puddles.pop_front()
 
 
@@ -454,7 +465,7 @@ func _bosses() -> void:
 	if game.clock < _boss_next:
 		return
 	_boss_next = game.clock + .09
-	var p = game.player
+	var p := game.player
 	for e: Enemy in game.enemies:
 		if not Enemy.BOSS_TITLES.has(e.kind):
 			continue
@@ -490,7 +501,7 @@ func _soaked(_dt: float) -> void:
 	if game.clock < _drip_next:
 		return
 	_drip_next = game.clock + .12
-	var p = game.player
+	var p := game.player
 	for e: Enemy in game.enemies:
 		if e.soak < .12 or not e.alive or absf(e.x - p.x) > 10.0 or absf(e.y - p.y) > 10.0:
 			continue
@@ -508,27 +519,29 @@ func _soaked(_dt: float) -> void:
 ## What the player's shots shed as they fly.
 func _follow_shots() -> void:
 	var seen := {}
-	for shot in game.shots:
+	for shot: GameState.Shot in game.shots:
 		if shot.enemy:
 			continue
 		var key: int = shot.get_instance_id()
 		seen[key] = true
 		var state: Array = _following.get(key, [game.clock, shot.bounces])
-		if shot.kind == "blade" and shot.bounces != int(state[1]):
+		var bounced: int = state[1]
+		if shot.kind == "blade" and shot.bounces != bounced:
 			# The saw blade skipping off a wall.
 			_sparks(Vector3(shot.x, shot.y, shot.z), 9, 2.6)
 		state[1] = shot.bounces
-		if game.clock >= float(state[0]):
+		var shed_at: float = state[0]
+		if game.clock >= shed_at:
 			state[0] = game.clock + _shed(shot)
 		_following[key] = state
-	for key in _following.keys():
+	for key: Variant in _following.keys():
 		if not seen.has(key):
 			_following.erase(key)
 
 
 ## Sheds one helping of what this shot leaves behind; returns how long until
 ## the next.
-func _shed(shot) -> float:
+func _shed(shot: GameState.Shot) -> float:
 	var at := Vector3(shot.x, shot.y, shot.z)
 	var v := Vector3(shot.vx, shot.vy, shot.vz)
 	match shot.kind:
@@ -574,7 +587,7 @@ func _shed(shot) -> float:
 
 func sprites() -> Array:
 	var out: Array = []
-	var p = game.player
+	var p := game.player
 	for bit: Bit in bits:
 		if bit.age < 0.0:
 			continue
@@ -682,10 +695,13 @@ func _draw_streaks(c: Canvas, muzzle: Vector2) -> void:
 	var heads: Array = []
 	for s: Array in streaks:
 		var far: float = s[5]
-		var run: float = (game.clock - float(s[0])) * float(s[1])
+		var shot_at: float = s[0]
+		var speed: float = s[1]
+		var length: float = s[3]
+		var run: float = (game.clock - shot_at) * speed
 		var span := maxf(.01, far - MUZZLE_AHEAD)
 		var head := clampf(run / span, 0.0, 1.0)
-		var tail := clampf((run - float(s[3])) / span, 0.0, 1.0)
+		var tail := clampf((run - length) / span, 0.0, 1.0)
 		if head <= tail:
 			continue
 		var end: Vector3 = s[2]
@@ -723,8 +739,9 @@ func _draw_streaks(c: Canvas, muzzle: Vector2) -> void:
 		var at: Vector2 = h[0]
 		var r: int = h[1]
 		var size := r * 4 + 1
+		var hot: bool = h[2]
 		c.blit_rgba(
-			_glow_dot(r, bool(h[2])),
+			_glow_dot(r, hot),
 			size,
 			size,
 			int(at.x) - r * 2,
@@ -766,7 +783,7 @@ static func _glow_dot(r: int, rivet: bool) -> PackedByteArray:
 func _draw_milk(c: Canvas, muzzle: Vector2) -> void:
 	if squirts.is_empty():
 		return
-	var p = game.player
+	var p := game.player
 	var light: float = game.world.light[game.world.cell(p.x, p.y)]
 	var shade := clampf(.62 + .45 * light, .55, 1.0)
 	var tone := clampi(int(shade * 4.0), 0, 4)
@@ -776,7 +793,8 @@ func _draw_milk(c: Canvas, muzzle: Vector2) -> void:
 		var born: float = squirt[0]
 		var gap := .1
 		if k + 1 < squirts.size():
-			gap = minf(.13, float(squirts[k + 1][0]) - born)
+			var next_born: float = squirts[k + 1][0]
+			gap = minf(.13, next_born - born)
 		var far: float = squirt[2]
 		var span := maxf(.01, far - MUZZLE_AHEAD)
 		var front := clampf((game.clock - born) * MILK_SPEED / span, 0.0, 1.0)
@@ -788,7 +806,8 @@ func _draw_milk(c: Canvas, muzzle: Vector2) -> void:
 		if seen.z < 0.0:
 			continue
 		var mark := Vector2(seen.x, seen.y)
-		var spout: Vector2 = muzzle + TEATS[int(squirt[3])]
+		var teat: int = squirt[3]
+		var spout: Vector2 = muzzle + TEATS[teat]
 		var lift := .05 + .02 * far
 		# Drops spaced evenly on screen, not in the world (far off they bunch up).
 		var w_front := (1.0 - front) * MUZZLE_AHEAD / (MUZZLE_AHEAD + front * span)
@@ -828,14 +847,15 @@ func _draw_milk(c: Canvas, muzzle: Vector2) -> void:
 func _draw_jets(c: Canvas, muzzle: Vector2) -> void:
 	if jets.is_empty():
 		return
-	var p = game.player
+	var p := game.player
 	var light: float = game.world.light[game.world.cell(p.x, p.y)]
 	var shade := clampf(.6 + .45 * light, .55, 1.0)
 	var tone := clampi(int(shade * 4.0), 0, 4)
 	var focal := View.base_focal
 	var frame := int(game.clock * 30.0)
 	for jet: Array in jets:
-		var age: float = game.clock - float(jet[0])
+		var jet_at: float = jet[0]
+		var age: float = game.clock - jet_at
 		var far: float = jet[2]
 		var span := maxf(.01, far - MUZZLE_AHEAD)
 		var front := clampf(age * JET_SPEED / span, 0.0, 1.0)
@@ -962,20 +982,16 @@ func _draw_sparks(c: Canvas) -> void:
 
 func ground_marks() -> Array:
 	var out: Array = []
-	var p = game.player
+	var p := game.player
 	for pool: Array in puddles:
-		var dx: float = float(pool[0]) - p.x
-		var dy: float = float(pool[1]) - p.y
+		var px: float = pool[0]
+		var py: float = pool[1]
+		var dx: float = px - p.x
+		var dy: float = py - p.y
 		if dx * dx + dy * dy < 144.0:
-			out.append(
-				View.GroundMark.new(
-					pool[0],
-					pool[1],
-					pool[2],
-					pool[3],
-					pool[4],
-					pool[4],
-					"mark_milk_%d" % int(pool[5])
-				)
-			)
+			var pz: float = pool[2]
+			var turn: float = pool[3]
+			var size: float = pool[4]
+			var look: int = pool[5]
+			out.append(View.GroundMark.new(px, py, pz, turn, size, size, "mark_milk_%d" % look))
 	return out

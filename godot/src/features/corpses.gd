@@ -12,6 +12,9 @@
 ## only arithmetic on the hit, no dice, so play stays the same.
 extends GameFeature
 
+const WallBreaks := preload("res://src/features/wall_breaks.gd")
+const Water := preload("res://src/features/water.gd")
+
 ## The knock of each gun or shot (hurt()'s `how`), units a second, and what a
 ## blast or a heavy pile of pellets adds for each point of damage in the hit.
 const KNOCK := {
@@ -125,7 +128,9 @@ func _fallen(e: Enemy) -> void:
 func _throw(e: Enemy) -> void:
 	var how := e.killed_by
 	var from := e.killed_from
-	var speed := float(KNOCK.get(how, .8)) + float(PER_POINT.get(how, 0.0)) * e.struck_sum
+	var knock: float = KNOCK.get(how, .8)
+	var per_point: float = PER_POINT.get(how, 0.0)
+	var speed := knock + per_point * e.struck_sum
 	speed = minf(speed, 4.5)
 	var lift := minf(1.6, speed * .3)
 	var feel := _feel
@@ -185,7 +190,8 @@ func _push(e: Enemy, vx: float, vy: float, vz: float) -> Body:
 		body.z = game.world.stand(e) + e.toss
 		moving.append(body)
 		if moving.size() > MOVING_MAX:
-			_settle(moving[0])
+			var oldest: Body = moving[0]
+			_settle(oldest)
 			moving.pop_front()
 	body.vx += vx
 	body.vy += vy
@@ -201,7 +207,8 @@ func shove(x: float, y: float, reach: float, power: float) -> void:
 	for e: Enemy in game.enemies:
 		if e.alive or e.dormant or e.died_at < 0.0 or _still(e):
 			continue
-		if e.died_at == game.clock and float(_known.get(e, -1.0)) != e.died_at:
+		var known_at: float = _known.get(e, -1.0)
+		if e.died_at == game.clock and known_at != e.died_at:
 			continue
 		if absf(e.x - x) > reach or absf(e.y - y) > reach:
 			continue
@@ -218,8 +225,10 @@ func _settle(b: Body) -> void:
 
 func _tick(dt: float) -> void:
 	for e: Enemy in game.enemies:
-		if e.died_at >= 0.0 and not e.alive and float(_known.get(e, -1.0)) != e.died_at:
-			_fallen(e)
+		if e.died_at >= 0.0 and not e.alive:
+			var known_at: float = _known.get(e, -1.0)
+			if known_at != e.died_at:
+				_fallen(e)
 	if not moving.is_empty():
 		_move(dt)
 	if game.clock >= _look_next:
@@ -231,7 +240,7 @@ func _tick(dt: float) -> void:
 
 func _move(dt: float) -> void:
 	var still: Array = []
-	var breaks = game.features.get("wall_breaks")
+	var breaks: WallBreaks = game.features.get("wall_breaks")
 	for b: Body in moving:
 		var e := b.enemy
 		# Two smaller steps a tick: a fast body never skips a thin wall.
@@ -292,7 +301,7 @@ func _look_for_floaters() -> void:
 
 ## The nearest floating bodies bob on the water and now and then leave a ring.
 func _bob() -> void:
-	var water = game.features.get("water")
+	var water: Water = game.features.get("water")
 	var shown := 0
 	for f: Array in floating:
 		var e: Enemy = f[0]
@@ -308,10 +317,12 @@ func _bob() -> void:
 		if not near or shown >= FLOAT_MAX:
 			continue
 		shown += 1
-		e.toss = BOB * (1.0 + sin(game.clock * BOB_SPEED + float(f[1])))
+		var bob_phase: float = f[1]
+		e.toss = BOB * (1.0 + sin(game.clock * BOB_SPEED + bob_phase))
 		# The ring's clock is carried play: kept on a server's game too, which
 		# has no water feature (looks only) to draw the ring.
-		if game.clock >= float(f[2]):
+		var ring_at: float = f[2]
+		if game.clock >= ring_at:
 			f[2] = game.clock + RING_EVERY
 			if water != null:
 				water.ring(e.x, e.y, .7)

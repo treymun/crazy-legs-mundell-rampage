@@ -25,6 +25,8 @@
 ## game's rng; looks use `dice`.
 extends GameFeature
 
+const Breakables := preload("res://src/features/breakables.gd")
+
 static var KINDS: Array = BossData.get_value("boss_arena", "kinds")
 ## Fire: how often it bites, how hard (player, a hand or boss), the most patches.
 static var FIRE_BITE: float = BossData.get_value("boss_arena", "fire_bite")
@@ -147,10 +149,10 @@ func attach() -> void:
 			bosses.append(e)
 	if bosses.is_empty() or arena.is_empty():
 		return
-	var track = spec("foreman").get("track")
+	var track: Variant = spec("foreman").get("track")
 	if track is Array:
 		# Parked at the east end of its track, by the conveyor.
-		carriage_x = float(track[1])
+		carriage_x = track[1]
 	game.events.ticked.connect(_tick)
 	game.events.exploded.connect(_exploded)
 	game.events.traced.connect(_shot_traced)
@@ -158,21 +160,23 @@ func attach() -> void:
 
 ## The level's notes on a kind's arena ({} when it has none).
 func spec(kind: String) -> Dictionary:
-	var out = arena.get(kind, {})
+	var out: Variant = arena.get(kind, {})
 	return out if out is Dictionary else {}
 
 
 ## Whether (x, y) is inside a kind's arena box (false without one).
 func in_box(kind: String, x: float, y: float) -> bool:
-	var box = spec(kind).get("box")
-	if not (box is Array) or box.size() < 4:
+	var found: Variant = spec(kind).get("box")
+	if not (found is Array):
 		return false
-	return (
-		float(box[0]) <= x
-		and x <= float(box[2]) + 1.0
-		and float(box[1]) <= y
-		and y <= float(box[3]) + 1.0
-	)
+	var box: Array = found
+	if box.size() < 4:
+		return false
+	var x0: float = box[0]
+	var y0: float = box[1]
+	var x1: float = box[2]
+	var y1: float = box[3]
+	return x0 <= x and x <= x1 + 1.0 and y0 <= y and y <= y1 + 1.0
 
 
 ## The kind of the arena (x, y) is in, "" for none.
@@ -290,12 +294,16 @@ func roll(
 	r.image = image
 	r.x = x
 	r.y = y
-	r.z = game.world.elevation(x, y) + float(feel[0])
+	var radius: float = feel[0]
+	var wall: float = feel[1]
+	var bounce: float = feel[2]
+	var drag: float = feel[3]
+	r.z = game.world.elevation(x, y) + radius
 	r.vx = vx
 	r.vy = vy
 	r.size = size
-	r.feel = Tumble.Feel.new(float(feel[0]), float(feel[1]), float(feel[2]), float(feel[3]))
-	r.feel.lift = float(feel[0])
+	r.feel = Tumble.Feel.new(radius, wall, bounce, drag)
+	r.feel.lift = radius
 	r.feel.climb = .14
 	r.damage = damage
 	r.foe_damage = foe_damage
@@ -325,8 +333,9 @@ func ring_carriage() -> bool:
 	carriage_run = game.clock + CARRIAGE_WARN
 	carriage_hit = {}
 	var track: Array = spec("foreman")["track"]
-	game.sound_at("fair_bell", carriage_x, float(track[2]), .9)
-	game.sound_at("brake_ratchet", carriage_x, float(track[2]), .8)
+	var track_y: float = track[2]
+	game.sound_at("fair_bell", carriage_x, track_y, .9)
+	game.sound_at("brake_ratchet", carriage_x, track_y, .8)
 	return true
 
 
@@ -337,11 +346,11 @@ func carriage_moving() -> bool:
 ## Tyres off the drill stack nearest (x, y) within `reach`, rolling away from
 ## (x, y); each stack goes once.
 func knock_tyres(x: float, y: float, reach: float) -> bool:
-	var stacks = spec("jerry").get("tires", [])
+	var stacks: Array = spec("jerry").get("tires", [])
 	for i in stacks.size():
 		var s: Array = stacks[i]
-		var sx := float(s[0])
-		var sy := float(s[1])
+		var sx: float = s[0]
+		var sy: float = s[1]
 		if _tyres_out.has(i) or Vector2(sx - x, sy - y).length() > reach:
 			continue
 		_tyres_out[i] = true
@@ -393,7 +402,8 @@ func _tick_fires(_dt: float) -> void:
 		kept.append(f)
 		for p: Player in game.players:
 			var d := Vector2(p.x - f.x, p.y - f.y).length()
-			if d < f.r and p.air < .3 and game.clock >= float(_burn_next.get(p.slot, 0.0)):
+			var burn_next: float = _burn_next.get(p.slot, 0.0)
+			if d < f.r and p.air < .3 and game.clock >= burn_next:
 				_burn_next[p.slot] = game.clock + FIRE_BITE
 				game.damage(FIRE_PLAYER, [f.x, f.y], "FIRE", p)
 		for e: Enemy in game.enemies:
@@ -402,7 +412,8 @@ func _tick_fires(_dt: float) -> void:
 			if absf(e.x - f.x) > f.r + e.radius or absf(e.y - f.y) > f.r + e.radius:
 				continue
 			if Vector2(e.x - f.x, e.y - f.y).length() < f.r + e.radius * .5:
-				if game.clock >= float(e.get_meta("burn_next", 0.0)):
+				var burn_next: float = e.get_meta("burn_next", 0.0)
+				if game.clock >= burn_next:
 					e.set_meta("burn_next", game.clock + FIRE_BITE)
 					# Its own: no weak spot, no hit mark on the crosshair.
 					e.hurt(FIRE_FOE, game, false, false, e, "fire")
@@ -413,7 +424,10 @@ func _tick_fires(_dt: float) -> void:
 			born.append([f.x + cos(a) * 1.2, f.y + sin(a) * 1.2, f.until])
 	fires = kept
 	for row: Array in born:
-		fire(float(row[0]), float(row[1]), .7, maxf(3.0, float(row[2]) - game.clock), true)
+		var fx: float = row[0]
+		var fy: float = row[1]
+		var until: float = row[2]
+		fire(fx, fy, .7, maxf(3.0, until - game.clock), true)
 
 
 func _tick_strikes() -> void:
@@ -581,12 +595,13 @@ func _on_lane(x: float, y: float, l: Lane, width: float) -> bool:
 
 
 func _tick_carriage(dt: float) -> void:
-	var track = spec("foreman").get("track")
-	if not (track is Array) or carriage_run > game.clock:
+	var found: Variant = spec("foreman").get("track")
+	if not (found is Array) or carriage_run > game.clock:
 		return
-	var x0 := float(track[0])
-	var x1 := float(track[1])
-	var y := float(track[2])
+	var track: Array = found
+	var x0: float = track[0]
+	var x1: float = track[1]
+	var y: float = track[2]
 	carriage_x += carriage_dir * CARRIAGE_SPEED * dt
 	var ended := carriage_x <= x0 or carriage_x >= x1
 	carriage_x = clampf(carriage_x, x0, x1)
@@ -619,7 +634,7 @@ func _tick_carriage(dt: float) -> void:
 			game.burst(e.x, e.y, game.world.stand(e) + 1.0, "chips", 12, 2.0)
 			if e.brain == "foreman":
 				game.message("THE FOREMAN TOOK HIS OWN CARRIAGE!", 2.2)
-	var pieces = game.features.get("breakables")
+	var pieces: Breakables = game.features.get("breakables")
 	if pieces != null:
 		for dy: float in [-.45, 0.0, .45]:
 			var i: int = pieces.touch(
@@ -636,34 +651,35 @@ func _tick_carriage(dt: float) -> void:
 
 ## A boss's shot that meets something breakable in its arena breaks it.
 func _tick_shots() -> void:
-	var pieces = game.features.get("breakables")
+	var pieces: Breakables = game.features.get("breakables")
 	if pieces == null or game.shots.is_empty():
 		return
 	if _cover.is_empty():
 		# The breakables standing in an arena, found once (indexes into pieces).
 		_cover.append(-1)
 		for i in pieces.pieces.size():
-			if arena_at(pieces.pieces[i].x, pieces.pieces[i].y) != "":
+			var piece: Breakables.Piece = pieces.pieces[i]
+			if arena_at(piece.x, piece.y) != "":
 				_cover.append(i)
 	var spent: Array = []
-	for shot in game.shots:
+	for shot: GameState.Shot in game.shots:
 		if not shot.enemy or not BOSS_SHOTS.has(String(shot.kind)):
 			continue
 		var i := _cover_at(pieces, shot.x, shot.y, shot.z)
 		if i >= 0:
 			pieces.strike(i, maxf(SHOT_BREAK, float(shot.damage) * 2.0), shot.vx, shot.vy)
 			spent.append(shot)
-	for shot in spent:
+	for shot: GameState.Shot in spent:
 		game.finish_shot(shot)
 		game.shots.erase(shot)
 
 
 ## The whole piece of arena cover a shot at (x, y, z) is in, or -1 (the test
 ## breakables.gd touch() makes, over the arena's own pieces only).
-func _cover_at(pieces, x: float, y: float, z: float) -> int:
+func _cover_at(pieces: Breakables, x: float, y: float, z: float) -> int:
 	for k in range(1, _cover.size()):
 		var i: int = _cover[k]
-		var p = pieces.pieces[i]
+		var p: Breakables.Piece = pieces.pieces[i]
 		if p.broken or absf(p.x - x) > .14 + p.radius or absf(p.y - y) > .14 + p.radius:
 			continue
 		var foot: float = game.world.stand(p) + p.z
@@ -691,9 +707,9 @@ func _exploded(x: float, y: float, _z: float, energy: bool) -> void:
 	for k in 3:
 		var a := k * TAU / 3.0 + fmod(x * 1.7 + y * 2.3, TAU)
 		fire(x + cos(a) * 1.0, y + sin(a) * 1.0, .65, 5.0, spread)
-	for s in spec(kind).get("sawdust", []):
-		var sx := float(s[0])
-		var sy := float(s[1])
+	for s: Array in spec(kind).get("sawdust", []):
+		var sx: float = s[0]
+		var sy: float = s[1]
 		if Vector2(sx - x, sy - y).length() < 3.0:
 			fire(sx, sy, 1.25, 12.0, spread)
 			game.message("THE SAWDUST WENT UP!", 2.0)
@@ -704,7 +720,7 @@ func _exploded(x: float, y: float, _z: float, energy: bool) -> void:
 func _shot_traced(end: Vector3, _struck: String) -> void:
 	if lobs.is_empty() and rollers.is_empty():
 		return
-	var p = game.player
+	var p := game.player
 	var from := Vector3(p.x, p.y, p.eye)
 	for l: Lob in lobs.duplicate():
 		if l.drift and _near_line(from, end, Vector3(l.x, l.y, l.z), .45):
@@ -728,18 +744,20 @@ func _near_line(a: Vector3, b: Vector3, q: Vector3, reach: float) -> bool:
 
 ## Whether a fuel drum, tank, barrel or gas can just went up at (x, y).
 func _fuel_at(x: float, y: float) -> bool:
-	var pieces = game.features.get("breakables")
+	var pieces: Breakables = game.features.get("breakables")
 	if pieces != null:
-		for p in pieces.pieces:
+		for p: Breakables.Piece in pieces.pieces:
 			if (
 				p.broken
 				and absf(p.x - x) < .8
 				and absf(p.y - y) < .8
-				and ["fuel", "gas_can", "nitro", "tnt"].has(String(p.spec.get("blast", "")))
+				and ["fuel", "gas_can", "nitro", "tnt"].has(str(p.spec.get("blast", "")))
 			):
 				return true
-	for point in game.level.fuel_drums:
-		if absf(float(point[0]) - x) < .6 and absf(float(point[1]) - y) < .6:
+	for point: Variant in game.level.fuel_drums:
+		var px: float = point[0]
+		var py: float = point[1]
+		if absf(px - x) < .6 and absf(py - y) < .6:
 			return true
 	return false
 
@@ -772,14 +790,19 @@ func _tick_lights() -> void:
 				dark[kind] = true
 			else:
 				dark.erase(kind)
-	var p = game.player
+	var p := game.player
 	_flood_lights(p)
 	var near: Array = []
 	for f: Fire in fires:
 		var d := absf(f.x - p.x) + absf(f.y - p.y)
 		if d < 16.0:
 			near.append([d, f])
-	near.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
+	near.sort_custom(
+		func(a: Array, b: Array) -> bool:
+			var da: float = a[0]
+			var db: float = b[0]
+			return da < db
+	)
 	for i in mini(4, near.size()):
 		var f: Fire = near[i][1]
 		var flick := .85 + .15 * sin(game.clock * 17.0 + f.x * 3.1)
@@ -791,32 +814,46 @@ func _tick_lights() -> void:
 
 ## The floodlights that are on throw their light down into the arena: a pool
 ## out in front of each tower (FLOOD_* numbers), the nearest ones only.
-func _flood_lights(p) -> void:
+func _flood_lights(p: Player) -> void:
 	for kind: String in KINDS:
 		# The arena's own lights (its notes' `lights`: x, y, height, reach,
 		# colour, strength), on whatever the phase.
-		for l in spec(kind).get("lights", []):
-			if absf(float(l[0]) - p.x) < FLOOD_SEEN and absf(float(l[1]) - p.y) < FLOOD_SEEN:
+		for l: Array in spec(kind).get("lights", []):
+			var lx: float = l[0]
+			var ly: float = l[1]
+			if absf(lx - p.x) < FLOOD_SEEN and absf(ly - p.y) < FLOOD_SEEN:
 				var tint: Array = l[4]
+				var high: float = l[2]
+				var reach: float = l[3]
+				var red: float = tint[0]
+				var green: float = tint[1]
+				var blue: float = tint[2]
+				var strength: float = l[5]
 				_light(
-					float(l[0]),
-					float(l[1]),
-					game.world.elevation(float(l[0]), float(l[1])) + float(l[2]),
-					float(l[3]),
-					Color(float(tint[0]), float(tint[1]), float(tint[2])),
-					float(l[5])
+					lx,
+					ly,
+					game.world.elevation(lx, ly) + high,
+					reach,
+					Color(red, green, blue),
+					strength
 				)
 		if dark.has(kind):
 			continue
 		var notes := spec(kind)
-		var box = notes.get("box")
-		if not (box is Array) or notes.get("floods", []).is_empty():
+		var found: Variant = notes.get("box")
+		var floods: Array = notes.get("floods", [])
+		if not (found is Array) or floods.is_empty():
 			continue
-		var mid := Vector2(
-			(float(box[0]) + float(box[2]) + 1.0) * .5, (float(box[1]) + float(box[3]) + 1.0) * .5
-		)
-		for s in notes["floods"]:
-			var at := Vector2(float(s[0]), float(s[1]))
+		var box: Array = found
+		var bx0: float = box[0]
+		var by0: float = box[1]
+		var bx1: float = box[2]
+		var by1: float = box[3]
+		var mid := Vector2((bx0 + bx1 + 1.0) * .5, (by0 + by1 + 1.0) * .5)
+		for s: Array in floods:
+			var sx: float = s[0]
+			var sy: float = s[1]
+			var at := Vector2(sx, sy)
 			if absf(at.x - p.x) > FLOOD_SEEN or absf(at.y - p.y) > FLOOD_SEEN:
 				continue
 			var pool := at + (mid - at).normalized() * FLOOD_OUT
@@ -856,14 +893,16 @@ func light(x: float, y: float, z: float, radius: float, color: Color, strength: 
 ## Turn a kind's floodlights off or on: their glow, and the lamp list the
 ## view keeps (it lists again).
 func _floods(kind: String, on: bool) -> void:
-	var spots = spec(kind).get("floods", [])
+	var spots: Array = spec(kind).get("floods", [])
 	if spots.is_empty():
 		return
 	for board: LevelData.Billboard in game.world.billboards:
 		if board.image != "town_floodlight_tower":
 			continue
-		for s in spots:
-			if absf(board.x - float(s[0])) < .3 and absf(board.y - float(s[1])) < .3:
+		for s: Array in spots:
+			var sx: float = s[0]
+			var sy: float = s[1]
+			if absf(board.x - sx) < .3 and absf(board.y - sy) < .3:
 				board.glow = on
 				for spr: View.Sprite in game.fixed_sprites:
 					if spr.image == board.image and absf(spr.x - board.x) < .01:
@@ -928,10 +967,11 @@ func sprites() -> Array:
 
 
 func _carriage_sprites() -> Array:
-	var track = spec("foreman").get("track")
-	if not (track is Array):
+	var found: Variant = spec("foreman").get("track")
+	if not (found is Array):
 		return []
-	var y := float(track[2])
+	var track: Array = found
+	var y: float = track[2]
 	if not game.in_view(carriage_x, y, 2.5):
 		return []
 	var out: Array = []
@@ -992,12 +1032,13 @@ func ground_marks() -> Array:
 				"mark_lane"
 			)
 		)
-	var track = spec("foreman").get("track")
-	if track is Array and carriage_run < INF and game.clock < carriage_run:
+	var found: Variant = spec("foreman").get("track")
+	if found is Array and carriage_run < INF and game.clock < carriage_run:
 		# The bell rang: the track it will run, lit up end to end.
-		var x0 := float(track[0])
-		var x1 := float(track[1])
-		var y2 := float(track[2])
+		var track: Array = found
+		var x0: float = track[0]
+		var x1: float = track[1]
+		var y2: float = track[2]
 		if int(game.clock * 6.0) % 2 == 0:
 			out.append(
 				View.GroundMark.new(

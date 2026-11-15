@@ -25,6 +25,8 @@
 ## Looks use `dice`, never the game's rng.
 extends GameFeature
 
+const Corpses := preload("res://src/features/corpses.gd")
+
 ## Real seconds of slow motion as a boss falls (game.SLOWMO_PACE is how slow).
 static var SLOWMO: float = BossData.get_value("boss_fight", "slowmo")
 ## How many come at each phase change, EASY .. HOG WILD, and how far off the
@@ -84,13 +86,15 @@ func restore(state: Dictionary) -> void:
 			e.enraged = true
 
 
-func _times(rows) -> Dictionary:
+func _times(rows: Variant) -> Dictionary:
 	var out := {}
 	if rows is Dictionary:
-		for key in rows:
-			var value = rows[key]
-			if Enemy.BOSS_TITLES.has(String(key)) and (value is float or value is int):
-				out[String(key)] = maxf(0.0, float(value))
+		var by_kind: Dictionary = rows
+		for key: Variant in by_kind:
+			var value: Variant = by_kind[key]
+			if Enemy.BOSS_TITLES.has(str(key)) and (value is float or value is int):
+				var seconds: float = value
+				out[str(key)] = maxf(0.0, seconds)
 	return out
 
 
@@ -102,11 +106,9 @@ func tally_rows() -> Array:
 	var rows: Array = []
 	for kind: String in kinds:
 		if down.has(kind):
-			var s := int(down[kind])
+			var s: int = down[kind]
 			var label := (
-				"BOSS DOWN IN"
-				if kinds.size() == 1
-				else String(SHORT.get(kind, "BOSS")) + " DOWN IN"
+				"BOSS DOWN IN" if kinds.size() == 1 else str(SHORT.get(kind, "BOSS")) + " DOWN IN"
 			)
 			rows.append([label, "%d:%02d" % [int(s / 60.0), s % 60]])
 	return rows
@@ -187,10 +189,11 @@ func backup(e: Enemy, phase: int) -> int:
 	var kinds := ordinary_kinds()
 	if kinds.is_empty():
 		return 0
-	var p = game.player
+	var p := game.player
 	var made := 0
-	for spot: Vector2 in hidden_spots(e, int(BACKUP[clampi(game.difficulty, 0, 3)])):
-		var kind := String(kinds[(made + phase) % kinds.size()])
+	var want: int = BACKUP[clampi(game.difficulty, 0, 3)]
+	for spot: Vector2 in hidden_spots(e, want):
+		var kind := str(kinds[(made + phase) % kinds.size()])
 		var add := Enemy.new(kind, spot.x, spot.y, atan2(p.y - spot.y, p.x - spot.x))
 		add.flank = .42 if made % 2 else -.42
 		game.enemies.append(add)
@@ -217,7 +220,7 @@ func ordinary_kinds() -> Array:
 ## those behind something, then those behind the player's back. Rings out
 ## from the boss, beginning on its far side from the player.
 func hidden_spots(e: Enemy, want: int) -> Array:
-	var p = game.player
+	var p := game.player
 	var w: LevelData = game.world
 	var away := atan2(e.y - p.y, e.x - p.x)
 	var facing: float = p.view_angle()
@@ -249,7 +252,7 @@ func hidden_spots(e: Enemy, want: int) -> Array:
 ## Open floor a hand fits on that the enemies' paths reach from the player,
 ## not on top of them nor of a spot already taken.
 func _spawnable(at: Vector2, taken: Array) -> bool:
-	var p = game.player
+	var p := game.player
 	var w: LevelData = game.world
 	if at.x < 1.0 or at.y < 1.0 or at.x >= w.width - 1 or at.y >= w.height - 1:
 		return false
@@ -273,7 +276,8 @@ func _killed(e: Enemy) -> void:
 	if not BossKit.is_boss(e):
 		return
 	if met.has(e.kind) and not down.has(e.kind):
-		down[e.kind] = maxf(0.0, game.clock - float(met[e.kind]))
+		var met_at: float = met[e.kind]
+		down[e.kind] = maxf(0.0, game.clock - met_at)
 	game.slowmo = maxf(game.slowmo, SLOWMO)
 	_blast(e)
 	_loot(e)
@@ -281,7 +285,8 @@ func _killed(e: Enemy) -> void:
 		# The chapter's last boss and Jerry have their stings (game_world.gd).
 		game.sound.play("crowd_cheer", .8)
 	BossKit.moves(e.kind).dying(e, game)
-	game.events.boss_down.emit(e, float(down.get(e.kind, 0.0)))
+	var took: float = down.get(e.kind, 0.0)
+	game.events.boss_down.emit(e, took)
 
 
 ## Looks only: chunks, sparks and dust thrown wide, what lies near thrown again.
@@ -294,7 +299,7 @@ func _blast(e: Enemy) -> void:
 	sparks(e.x, e.y, floor_z + .2, "dust", 18, 2.4)
 	sparks(e.x, e.y, mid, "chips", 12, 2.8)
 	game.events.blast_shoved.emit(e.x, e.y, 3.5, 4.5)
-	var bodies = game.features.get("corpses")
+	var bodies: Corpses = game.features.get("corpses")
 	if bodies != null:
 		bodies.shove(e.x, e.y, 3.5, 3.4)
 	game.shake = 1.0
@@ -307,23 +312,22 @@ func _loot(e: Enemy) -> void:
 	if game.supply_rule == 2:
 		return
 	var kinds := loot_kinds()
-	var count: int = (
-		LOOT[0] + mini(LOOT[1] - LOOT[0], int(game.rng.random() * (LOOT[1] - LOOT[0] + 1)))
-	)
+	var least: int = LOOT[0]
+	var most: int = LOOT[1]
+	var count: int = least + mini(most - least, int(game.rng.random() * (most - least + 1)))
 	for _i in count:
-		var name := String(
-			kinds[clampi(int(game.rng.random() * kinds.size()), 0, kinds.size() - 1)]
-		)
-		var spot = _loot_spot(e)
-		if spot != null:
+		var name := str(kinds[clampi(int(game.rng.random() * kinds.size()), 0, kinds.size() - 1)])
+		var found: Variant = _loot_spot(e)
+		if found != null:
+			var spot: Vector2 = found
 			game.add_pickup(name, spot.x, spot.y)
 
 
 ## The ammo and food the chapter's own pickups are, in the order the level lists them.
 func loot_kinds() -> Array:
 	var out: Array = []
-	for row in game.level.pickups:
-		var name := String(GameState.ALIAS.get(String(row[0]), String(row[0])))
+	for row: Variant in game.level.pickups:
+		var name := str(GameState.ALIAS.get(str(row[0]), str(row[0])))
 		if (GameState.AMMO.has(name) or HUD.ITEMS.has(name)) and not out.has(name):
 			out.append(name)
 	return out if not out.is_empty() else LOOT_FALLBACK.duplicate()
@@ -339,7 +343,7 @@ func _loot_spot(e: Enemy) -> Variant:
 		var at := Vector2(e.x + cos(a) * r, e.y + sin(a) * r)
 		if _open(at) and w.visible(e.x, e.y, at.x, at.y):
 			return at
-	var p = game.player
+	var p := game.player
 	var toward := Vector2(p.x - e.x, p.y - e.y)
 	var steps := int(toward.length() / .5)
 	for k in steps:
@@ -371,7 +375,7 @@ func ground_marks() -> Array:
 			continue
 		if _rings(e):
 			out.append_array(_ring(e))
-		for thing in BossKit.moves(e.kind).telegraph(e, game):
+		for thing: Variant in BossKit.moves(e.kind).telegraph(e, game):
 			if thing is View.GroundMark:
 				out.append(thing)
 	return out
@@ -391,8 +395,8 @@ func _ring(e: Enemy) -> Array:
 	var out: Array = []
 	var seen: Vector2 = windups.get(e.get_instance_id(), Vector2(e.windup, e.windup))
 	var t := clampf(1.0 - e.windup / maxf(.05, seen.x), 0.0, 1.0)
-	var mx := float(e.aim_mark[0])
-	var my := float(e.aim_mark[1])
+	var mx: float = e.aim_mark[0]
+	var my: float = e.aim_mark[1]
 	var r := lerpf(RING_WIDE, RING_TIGHT, t)
 	var dot := .16 + .06 * t
 	var w: LevelData = game.world
@@ -417,7 +421,7 @@ func sprites() -> Array:
 			continue
 		var moves := BossKit.moves(e.kind)
 		if e.windup > 0.0:
-			for thing in moves.telegraph(e, game):
+			for thing: Variant in moves.telegraph(e, game):
 				if thing is View.Sprite:
 					out.append(thing)
 		if e.boss_phase >= 2:
@@ -430,7 +434,7 @@ func sprites() -> Array:
 ## the player sees, so the body never hides them.
 func _damage(e: Enemy) -> Array:
 	var out: Array = []
-	var p = game.player
+	var p := game.player
 	var floor_z: float = game.world.stand(e) + e.z
 	var toward := atan2(p.y - e.y, p.x - e.x)
 	var tall: float = e.height * e.variant

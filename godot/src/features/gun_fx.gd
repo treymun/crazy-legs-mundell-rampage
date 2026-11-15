@@ -121,7 +121,7 @@ func _forward() -> Vector3:
 
 ## Out ahead of the muzzle, in the world.
 func _ahead(far: float) -> Vector3:
-	var p = game.player
+	var p := game.player
 	var a: float = p.view_angle()
 	return Vector3(p.x + cos(a) * far - sin(a) * .1, p.y + sin(a) * far + cos(a) * .1, p.eye - .16)
 
@@ -174,7 +174,8 @@ func _fired(gun: int) -> void:
 
 func _traced(end: Vector3, struck: String) -> void:
 	var gun: int = game.armory.active
-	var mode := String(Weapons.FIRING[gun].get("fire", ""))
+	var firing: Dictionary = Weapons.FIRING[gun]
+	var mode := str(firing.get("fire", ""))
 	if mode != "hitscan" and mode != "pellets":
 		return
 	if gun == Weapons.PRESSURE or gun == Weapons.TEAT:
@@ -183,16 +184,16 @@ func _traced(end: Vector3, struck: String) -> void:
 	if struck == "glass":
 		kind = "glass"
 	elif struck.begins_with("wall:") and struck != "wall:":
-		kind = String(game.impact_kind)
+		kind = game.impact_kind
 	if not HIT_ART.has(kind):
 		return
 	_pellets += 1
 	if gun == Weapons.SHOTGUN and _pellets > PELLET_HITS:
 		return
-	var p = game.player
+	var p := game.player
 	var dir := (end - Vector3(p.x, p.y, p.eye)).normalized()
 	var at := end - dir * .06
-	var art := String(HIT_ART[kind])
+	var art := str(HIT_ART[kind])
 	var big := 1.3 if gun == Weapons.RIFLE else .8 if gun == Weapons.SHOTGUN else 1.0
 	if gun == Weapons.HUNTER or gun == Weapons.MARKSMAN:
 		big = 1.7 if gun == Weapons.HUNTER else 1.5
@@ -277,7 +278,10 @@ func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 	# A chain going up throws less each blast, so a row of barrels can't swamp
 	# the frame.
 	var since: float = game.clock - 1.0
-	while not _recent.is_empty() and float(_recent[0]) < since:
+	while not _recent.is_empty():
+		var oldest: float = _recent[0]
+		if not (oldest < since):
+			break
 		_recent.pop_front()
 	_recent.append(game.clock)
 	var heavy := _recent.size() > 2
@@ -347,7 +351,7 @@ func _new_blasts() -> void:
 
 func _keep(live: Dictionary) -> Dictionary:
 	var kept := {}
-	for key in _seen_blasts:
+	for key: Variant in _seen_blasts:
 		if live.has(key):
 			kept[key] = true
 	return kept
@@ -420,11 +424,23 @@ func _tick(dt: float) -> void:
 	bits = kept
 	if bits.size() > MAX_BITS:
 		bits = bits.slice(bits.size() - MAX_BITS)
-	while not booms.is_empty() and game.clock - float(booms[0][3]) > BOOM_LIFE:
+	while not booms.is_empty():
+		var boom: Array = booms[0]
+		var boom_at: float = boom[3]
+		if not (game.clock - boom_at > BOOM_LIFE):
+			break
 		booms.pop_front()
-	while not hits.is_empty() and game.clock - float(hits[0][3]) > HIT_LIFE:
+	while not hits.is_empty():
+		var hit: Array = hits[0]
+		var hit_at: float = hit[3]
+		if not (game.clock - hit_at > HIT_LIFE):
+			break
 		hits.pop_front()
-	while not shocks.is_empty() and game.clock - float(shocks[0][3]) > SHOCK_LIFE:
+	while not shocks.is_empty():
+		var ring: Array = shocks[0]
+		var ring_at: float = ring[3]
+		if not (game.clock - ring_at > SHOCK_LIFE):
+			break
 		shocks.pop_front()
 
 
@@ -433,7 +449,7 @@ func _follow_shots() -> void:
 	if game.shots.is_empty() and _following.is_empty():
 		return
 	var seen := {}
-	for shot in game.shots:
+	for shot: GameState.Shot in game.shots:
 		if shot.enemy:
 			continue
 		var key: int = shot.get_instance_id()
@@ -443,12 +459,12 @@ func _follow_shots() -> void:
 			next = game.clock + _shed(shot)
 		_following[key] = next
 	if _following.size() > seen.size():
-		for key in _following.keys():
+		for key: Variant in _following.keys():
 			if not seen.has(key):
 				_following.erase(key)
 
 
-func _shed(shot) -> float:
+func _shed(shot: GameState.Shot) -> float:
 	var at := Vector3(shot.x, shot.y, shot.z)
 	var v := Vector3(shot.vx, shot.vy, shot.vz)
 	match shot.kind:
@@ -479,16 +495,21 @@ func _shed(shot) -> float:
 func lights() -> Array:
 	var out: Array = []
 	for boom: Array in booms:
-		if bool(boom[5]):
+		var energy: bool = boom[5]
+		if energy:
 			continue
-		var age: float = game.clock - float(boom[3])
-		var flash = Effects.light(
-			"blast_flash", boom[0], boom[1], float(boom[2]) + .4, 1.0 - age / .14, game.clock
+		var boom_at: float = boom[3]
+		var age: float = game.clock - boom_at
+		var bx: float = boom[0]
+		var by: float = boom[1]
+		var bz: float = boom[2]
+		var flash: Variant = Effects.light(
+			"blast_flash", bx, by, bz + .4, 1.0 - age / .14, game.clock
 		)
 		if flash != null and age < .14:
 			out.append(flash)
-		var glow = Effects.light(
-			"boom_glow", boom[0], boom[1], float(boom[2]) + .5, 1.0 - age / BOOM_LIFE, game.clock
+		var glow: Variant = Effects.light(
+			"boom_glow", bx, by, bz + .5, 1.0 - age / BOOM_LIFE, game.clock
 		)
 		if glow != null:
 			out.append(glow)
@@ -499,7 +520,7 @@ func sprites() -> Array:
 	var out: Array = []
 	if not Effects.rich:
 		return out
-	var p = game.player
+	var p := game.player
 	for bit: Bit in bits:
 		if bit.age < 0.0:
 			continue
@@ -547,15 +568,19 @@ func sprites() -> Array:
 		s.translucent = translucent
 		out.append(s)
 	for hit: Array in hits:
-		if not game.in_view(hit[0], hit[1], .5):
+		var hx: float = hit[0]
+		var hy: float = hit[1]
+		if not game.in_view(hx, hy, .5):
 			continue
-		var age: float = game.clock - float(hit[3])
+		var hit_at: float = hit[3]
+		var age: float = game.clock - hit_at
 		var size: float = hit[5]
-		var art := String(hit[4])
+		var art := str(hit[4])
 		var frame := mini(2, int(age / HIT_LIFE * 3.0))
 		var tall := 1.5 if art == "water" else 1.0
+		var hz: float = hit[2]
 		var s: View.Sprite = game.pooled(
-			hit[0], hit[1], "fx_hit_%s_%d" % [art, frame], size * tall, float(hit[2]) - size * .5
+			hx, hy, "fx_hit_%s_%d" % [art, frame], size * tall, hz - size * .5
 		)
 		s.glow = art == "metal" or art == "glass"
 		out.append(s)
@@ -564,17 +589,25 @@ func sprites() -> Array:
 
 
 func _boom_sprites(out: Array) -> void:
-	var p = game.player
+	var p := game.player
 	var order: Array = []
 	for boom: Array in booms:
-		var age: float = game.clock - float(boom[3])
-		if age < 0.0 or not game.in_view(boom[0], boom[1], 2.5):
+		var boom_at: float = boom[3]
+		var age: float = game.clock - boom_at
+		var bx: float = boom[0]
+		var by: float = boom[1]
+		if age < 0.0 or not game.in_view(bx, by, 2.5):
 			continue
-		var dx: float = float(boom[0]) - p.x
-		var dy: float = float(boom[1]) - p.y
+		var dx: float = bx - p.x
+		var dy: float = by - p.y
 		order.append([dx * dx + dy * dy, boom, age])
 	# Farthest first, so a nearer ball covers a farther one.
-	order.sort_custom(func(a, b): return float(a[0]) > float(b[0]))
+	order.sort_custom(
+		func(a: Array, b: Array) -> bool:
+			var da: float = a[0]
+			var db: float = b[0]
+			return da > db
+	)
 	for row: Array in order:
 		var boom: Array = row[1]
 		var age: float = row[2]
@@ -582,14 +615,18 @@ func _boom_sprites(out: Array) -> void:
 		var t := clampf(age / BOOM_LIFE, 0.0, .999)
 		var frame := mini(7, int(pow(t, .8) * 8.0))
 		var size := (.95 + 1.7 * sqrt(t)) * scale
-		var z := maxf(.02, float(boom[2]) - size * .42 + age * .55)
-		var ball: View.Sprite = game.pooled(boom[0], boom[1], "fx_boom_%d" % frame, size, z)
+		var bx: float = boom[0]
+		var by: float = boom[1]
+		var bz: float = boom[2]
+		var energy: bool = boom[5]
+		var z := maxf(.02, bz - size * .42 + age * .55)
+		var ball: View.Sprite = game.pooled(bx, by, "fx_boom_%d" % frame, size, z)
 		ball.glow = frame < 5
 		ball.translucent = frame >= 5
 		out.append(ball)
-		if age < .1 and not bool(boom[5]):
+		if age < .1 and not energy:
 			var flash: View.Sprite = game.pooled(
-				boom[0], boom[1], "fx_boomflash_%d" % (0 if age < .05 else 1), 2.1, z - .3
+				bx, by, "fx_boomflash_%d" % (0 if age < .05 else 1), 2.1, z - .3
 			)
 			flash.glow = true
 			out.append(flash)
@@ -600,17 +637,15 @@ func ground_marks() -> Array:
 	if not Effects.rich:
 		return out
 	for ring: Array in shocks:
-		var t: float = (game.clock - float(ring[3])) / SHOCK_LIFE
+		var ring_at: float = ring[3]
+		var t: float = (game.clock - ring_at) / SHOCK_LIFE
 		var reach := .5 + 2.2 * sqrt(t)
+		var rx: float = ring[0]
+		var ry: float = ring[1]
+		var rz: float = ring[2]
 		out.append(
 			View.GroundMark.new(
-				ring[0],
-				ring[1],
-				ring[2],
-				0.0,
-				reach,
-				reach,
-				"mark_shock_%d" % mini(2, int(t * 3.0))
+				rx, ry, rz, 0.0, reach, reach, "mark_shock_%d" % mini(2, int(t * 3.0))
 			)
 		)
 	return out
