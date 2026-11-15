@@ -55,6 +55,13 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
   own base (the Mothership's `stand()`).
 - Stand small pieces in a cell's middle and posts on its corners, so nothing
   thin cuts the line between two open cells (the flow field).
+- A box a model or picture already shows (a car's chassis, a parked truck's)
+  is a `volume()`: a fixture that blocks and is stood on like any other, but
+  is written to `collision_volumes` only, with no walls and no cap. `car()`
+  uses one and lays its wreck model along it (`plane`, `hung`).
+- A board's `z` counts up from its cell's ground (`game_view.gd`), not from a
+  deck over it: a lamp on a walk over water or a pit takes the walk's top
+  minus that ground.
 
 ### Building one
 

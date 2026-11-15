@@ -22,6 +22,15 @@ const KIND_GLAZING := 5
 const KIND_MIRROR := 6
 const KIND_FLOOR := 8
 const KIND_ROOF := 9
+## Slab edges (LevelGeometry.slab_edges) keep these materials stretched over
+## each piece (a grandstand's riser is drawn for one step); every other
+## stretched material on a stair's, deck's or ramp's side is laid along by the
+## metre instead, so a flight's treads do not each squeeze the whole picture
+## into their own height.
+const EDGE_STRETCHED: Array[String] = ["grandstand_riser"]
+## Where a slab edge's material starts along it: far enough out that the
+## texel stays positive both ways round (levels are under this many cells).
+const EDGE_ORIGIN := 1024.0
 
 
 ## One growing set of arrays (a chunk's opaque or glazing surface).
@@ -76,6 +85,7 @@ var _tile_glazing := -1
 var _tile_hub_wall := -1
 var _tile_hub_screen := -1
 var _hub := false
+var _edge_stretched := {}
 ## chunk key -> [opaque Part, glazing Part]
 var _chunks := {}
 
@@ -108,6 +118,9 @@ func _init(p_level: LevelData) -> void:
 	_tile_hub_wall = level.tile_id("hub_service_wall")
 	_tile_hub_screen = level.tile_id("hub_screen")
 	_hub = level.id == "hub"
+	for tile_name: String in EDGE_STRETCHED:
+		if level.tile_id(tile_name) >= 0:
+			_edge_stretched[level.tile_id(tile_name)] = true
 
 
 ## The level's fixed geometry: base walls (LevelData.active_base), floors,
@@ -201,6 +214,7 @@ func _tint(area: int) -> Color:
 ## Every row of `rows` (stride 9: ax, ay, bx, by, tile, light, bottom, top,
 ## area) as an upright quad, seen from both sides.
 func add_walls(rows: PackedFloat32Array) -> void:
+	var edges: Dictionary = level.geo.slab_edges if level.geo != null else {}
 	for o in range(0, rows.size() - STRIDE + 1, STRIDE):
 		var ax := rows[o]
 		var ay := rows[o + 1]
@@ -233,6 +247,22 @@ func add_walls(rows: PackedFloat32Array) -> void:
 		var mode := int(tile_mode[tile]) if plain and tile >= 0 and tile < tile_mode.size() else 0
 		var along := length * 128.0 if mode != 0 else 128.0
 		var base := tile_base[tile] if mode == 2 else tile
+		var u_a := 0.0
+		if (
+			plain
+			and mode == 0
+			and not edges.is_empty()
+			and not _edge_stretched.has(tile)
+			and edges.get(Vector4(ax, ay, bx, by), -1) == tile
+		):
+			# A slab edge in a stretched material: repeat it by the metre from a
+			# point fixed in the world along the edge's line, so the next tread's
+			# side carries on the same boards.
+			mode = 1
+			var d := Vector2(bx - ax, by - ay) / length
+			u_a = (Vector2(ax, ay).dot(d) + EDGE_ORIGIN) * 128.0
+			along = EDGE_ORIGIN * 256.0
+		var u_b := u_a + length * 128.0 if mode != 0 else along
 		var v_top := (1.96 - top) * 100.0 if mode != 0 else 0.0
 		var v_bottom := (1.96 - bottom) * 100.0 if mode != 0 else 128.0
 		# The face's normal in map terms is (dy, -dx); world.gdshader flips u
@@ -242,10 +272,10 @@ func add_walls(rows: PackedFloat32Array) -> void:
 		c0.a = light
 		var c1 := Color(float(tile), float(base), along, float(mode + kind * 4))
 		var part := _part((ax + bx) * .5, (ay + by) * .5, kind == KIND_GLAZING)
-		part.vertex(Vector3(ax, bottom, ay), n, Vector2(0.0, v_bottom), c0, c1)
-		part.vertex(Vector3(ax, top, ay), n, Vector2(0.0, v_top), c0, c1)
-		part.vertex(Vector3(bx, top, by), n, Vector2(along, v_top), c0, c1)
-		part.vertex(Vector3(bx, bottom, by), n, Vector2(along, v_bottom), c0, c1)
+		part.vertex(Vector3(ax, bottom, ay), n, Vector2(u_a, v_bottom), c0, c1)
+		part.vertex(Vector3(ax, top, ay), n, Vector2(u_a, v_top), c0, c1)
+		part.vertex(Vector3(bx, top, by), n, Vector2(u_b, v_top), c0, c1)
+		part.vertex(Vector3(bx, bottom, by), n, Vector2(u_b, v_bottom), c0, c1)
 		part.quad()
 
 

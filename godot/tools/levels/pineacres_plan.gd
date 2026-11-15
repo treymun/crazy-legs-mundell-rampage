@@ -144,7 +144,7 @@ func site() -> void:
 	b.yard(8, 2, 24, 11, "concrete", d["a"])
 	b.paint(11, 5, 21, 9, "gravel")
 	b.prop("pickup_truck", 12.5, 3.5)
-	b.fixture(11.8, 3.1, 13.2, 3.9, .3, "mill_tin", "tin")
+	b.volume(11.8, 3.1, 13.2, 3.9, .3, "mill_tin", "tin")
 	b.town("laundry", 17.5, 4.5, {"solid": .2})
 	b.town("washer", 8.5, 10.5, {"solid": .3})
 	b.town("picnic_table", 11.5, 9.5, {"solid": .36})

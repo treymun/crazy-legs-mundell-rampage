@@ -249,7 +249,7 @@ func west() -> void:
 	b.paint(9, 24, 19, 24, "shoulder")
 	b.town("tow_truck", 2.5, 29.5, {"solid": .44})
 	b.prop("pickup_truck", 2.5, 19.5)
-	b.fixture(1.8, 19.1, 3.2, 19.9, .3, "mill_tin", "tin")
+	b.volume(1.8, 19.1, 3.2, 19.9, .3, "mill_tin", "tin")
 	b.crate_stack(15.5, 22.5)
 	b.town("mailbox_row", 8.5, 30.5)
 	b.streetlamp(8.5, 19.5, 4.4)

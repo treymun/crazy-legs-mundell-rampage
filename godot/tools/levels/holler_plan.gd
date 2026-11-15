@@ -157,7 +157,7 @@ func south() -> void:
 	b.town("log_pile", 19.5, 60.5, {"solid": .44})
 	b.town("log_loader", 39.5, 60.5, {"solid": .44})
 	b.prop("pickup_truck_b", 24.5, 61.5)
-	b.fixture(23.8, 61.1, 25.2, 61.9, .3, "mill_tin", "tin")
+	b.volume(23.8, 61.1, 25.2, 61.9, .3, "mill_tin", "tin")
 	b.town("axe_stump", 33.5, 61.5, {"solid": .26})
 	b.streetlamp(29.5, 61.5, 4.2)
 
@@ -262,9 +262,9 @@ func north() -> void:
 	b.yard(6, 2, 49, 6, "gravel", d["fire"])
 	b.paint(6, 4, 49, 4, "shoulder")
 	b.prop("pickup_truck", 19.5, 2.5)
-	b.fixture(18.8, 2.1, 20.2, 2.9, .3, "mill_tin", "tin")
+	b.volume(18.8, 2.1, 20.2, 2.9, .3, "mill_tin", "tin")
 	b.prop("pickup_truck_b", 37.5, 2.5)
-	b.fixture(36.8, 2.1, 38.2, 2.9, .3, "mill_tin", "tin")
+	b.volume(36.8, 2.1, 38.2, 2.9, .3, "mill_tin", "tin")
 	b.streetlamp(27.5, 2.5, 4.6)
 	b.prop("roadsign", 6.5, 2.5)
 	# The still house: site A.

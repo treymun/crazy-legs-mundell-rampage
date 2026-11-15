@@ -81,7 +81,8 @@ func catwalk() -> void:
 		b, "catwalk", [99, 44, 121, 46], CATWALK, {"tile": "steel_mesh", "edge": "steel_mesh"}
 	)
 	Geo.stairs(b, "catwalk_east", [121, 44, 124, 46], 0.0, CATWALK, "w", {"tile": "steel_mesh"})
-	b.town("lantern_post", 110.5, 44.3, {"z": CATWALK})
+	# A board's z counts up from its cell's ground (the flooded pit's floor).
+	b.town("lantern_post", 110.5, 44.3, {"z": CATWALK - float(b.ground[b.at(110, 44)])})
 
 
 func landmarks() -> void:

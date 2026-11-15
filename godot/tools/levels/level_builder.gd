@@ -35,6 +35,10 @@ var banded: Array = []
 
 var doors: Array = []
 var fixtures: Array = []
+## Fixtures that block and hold things up but are not drawn: the chassis under
+## a modelled car, which the model covers (by reference; finish() writes them
+## to the collision volumes only, without walls or a cap).
+var hidden_fixtures: Array = []
 var caps := {}
 var extra_walls: Array = []
 ## Level format 2's pieces (tools/levels/geo_kit.gd adds them; finish() writes
@@ -577,16 +581,50 @@ func poles(points: Array, z := 3.3) -> void:
 
 ## An old car: the modelled wreck (a sedan or a pickup; in a derby, a derby
 ## car) over a low chassis that is in the way and takes the shots.
+## The chassis is a hidden fixture, and the model lies along it (a car
+## turned to the open side would leave the box poking out of its flank).
 func car(x: float, y: float, along_x: bool, side := "mill_tin") -> void:
 	var lx := 1.7 if along_x else .9
 	var ly := .9 if along_x else 1.7
-	fixture(x - lx * .5, y - ly * .5, x + lx * .5, y + ly * .5, .3, side, "tin")
+	volume(x - lx * .5, y - ly * .5, x + lx * .5, y + ly * .5, .3, side, "tin")
 	var cx := clampi(int(x), 0, w - 1)
 	var cy := clampi(int(y), 0, h - 1)
 	var model := "wreck_sedan" if side == "mill_tin" else "wreck_pickup"
 	if districts[area[at(cx, cy)]] == "DEMOLITION DERBY":
 		model = "derby_car"
-	town(model, x, y)
+	town(model, x, y, {"plane": 0.0 if along_x else PI * .5, "hung": true})
+
+
+## A fixture nobody sees: in the way and under foot like any other, but with
+## no walls and no cap, for a box a model or a picture already shows (a car's
+## chassis, a parked truck's).
+func volume(
+	x0: float, y0: float, x1: float, y1: float, top: float, side := "mill_tin", cap := "tin"
+) -> void:
+	var f := [
+		snappedf(x0, .01),
+		snappedf(y0, .01),
+		snappedf(x1, .01),
+		snappedf(y1, .01),
+		snappedf(top, .01),
+		side,
+		cap,
+		0.0
+	]
+	fixtures.append(f)
+	hidden_fixtures.append(f)
+
+
+## The fixtures that are drawn (all but the hidden ones).
+func drawn_fixtures() -> Array:
+	var out: Array = []
+	for f: Array in fixtures:
+		var hidden := false
+		for h: Array in hidden_fixtures:
+			hidden = hidden or is_same(f, h)
+		if not hidden:
+			out.append(f)
+	return out
 
 
 func table(x0: float, y0: float, x1: float, y1: float, top := .62) -> void:
@@ -905,7 +943,7 @@ func level_dict() -> Dictionary:
 		"wall_height": wall_height,
 		"light": light,
 		"area": area,
-		"fixtures": fixtures,
+		"fixtures": drawn_fixtures(),
 	}
 	return level
 
@@ -1133,7 +1171,7 @@ func finish(spawn: Array) -> Dictionary:
 		"roof_heights": [],
 		"walls": level["walls"],
 		"doors": doors,
-		"fixtures": fixtures,
+		"fixtures": level["fixtures"],
 		"collision_volumes": fixtures.duplicate(true),
 		"caps": caps,
 		"pane_tiles": pane_tiles,

@@ -129,7 +129,7 @@ func west() -> void:
 	b.town("semi_tractor", 3.5, 33.5, {"solid": .44})
 	b.town("dump_truck", 10.5, 20.5, {"solid": .44})
 	b.prop("pickup_truck", 10.5, 32.5)
-	b.fixture(9.8, 32.1, 11.2, 32.9, .3, "mill_tin", "tin")
+	b.volume(9.8, 32.1, 11.2, 32.9, .3, "mill_tin", "tin")
 	b.town("tire_pile", 2.5, 19.5, {"solid": .34})
 	b.prop("roadsign", 11.5, 23.5)
 	# Feed road: bales and a wheelbarrow off to the sides.
@@ -272,7 +272,7 @@ func east() -> void:
 	b.yard(57, 18, 63, 34, "asphalt", d["coop"])
 	b.paint(58, 19, 62, 33, "concrete")
 	b.prop("pickup_truck", 62.5, 18.5)
-	b.fixture(61.8, 18.1, 63.2, 18.9, .3, "mill_tin", "tin")
+	b.volume(61.8, 18.1, 63.2, 18.9, .3, "mill_tin", "tin")
 	b.prop("pump", 57.5, 33.5)
 	b.town("mailbox_row", 63.5, 33.5)
 	b.streetlamp(63.5, 25.5, 4.6)

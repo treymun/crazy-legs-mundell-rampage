@@ -104,7 +104,7 @@ func build(_b) -> Array:
 func north() -> void:
 	b.yard(2, 2, 10, 8, "fair_gravel", d["lot"])
 	b.prop("pickup_truck", 2.5, 2.5)
-	b.fixture(1.8, 2.1, 3.2, 2.9, .3, "mill_tin", "tin")
+	b.volume(1.8, 2.1, 3.2, 2.9, .3, "mill_tin", "tin")
 	b.town("outboard_stand", 9.5, 7.5, {"solid": .3})
 	b.streetlamp(10.5, 2.5, 4.4)
 	b.yard(11, 2, 22, 8, "bayou_planks", d["porch"])

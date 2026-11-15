@@ -81,7 +81,8 @@ func footbridge() -> void:
 	)
 	Geo.stairs(b, "footbridge_west", [56, 53, 58, 58], 0.0, BRIDGE, "n", {"tile": "porch"})
 	Geo.stairs(b, "footbridge_east", [63, 46, 65, 51], 0.0, BRIDGE, "s", {"tile": "porch"})
-	b.town("lantern_post", 60.5, 51.25, {"z": BRIDGE})
+	# A board's z counts up from its cell's ground (the creek bed).
+	b.town("lantern_post", 60.5, 51.25, {"z": BRIDGE - float(b.ground[b.at(60, 51)])})
 
 
 func landmarks() -> void:
