@@ -54,6 +54,7 @@ godot --headless --path godot --script res://tools/bot_campaign.gd    # CAMPAIGN
 godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVES OK (-- make: add saves of the new version)
 godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
 godot --headless --path godot --script res://tools/physics_check.gd   # PHYSICS OK (loose things on decks, ramps, stairs, walls; levels=a,b)
+godot --headless --path godot --script res://tools/vehicle_check.gd    # VEHICLES OK (get in, drive, bump, run down, get out)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)
@@ -90,6 +91,7 @@ godot --path godot -- --rematch-all              # open every boss rematch
 godot --path godot ... --script res://tools/physics_frames.gd [-- only=hits|boss]
 godot --path godot ... --script res://tools/arena_frames.gd        # the first four boss arenas (docs/boss_arenas/)
 godot --path godot ... --script res://tools/arena_frames_late.gd   # the last four
+godot --path godot ... --script res://tools/vehicle_frames.gd -- out=<dir> [only=car]   # the vehicles parked, from the seat, driving, a wreck (docs/godot3d/features/D/)
 godot --path godot ... --script res://tools/squad_frames.gd
 godot --path godot ... --script res://tools/mode_frames.gd -- out=<dir>
 godot --path godot ... --script res://tools/tactical_frames.gd -- out=<dir>

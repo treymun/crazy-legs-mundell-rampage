@@ -6,6 +6,8 @@ extends GameState
 ## The mode feature (features/mode_feature.gd, id "mode"), as a type (a
 ## constant here, not on GameState: snapshots walk GameState's constants).
 const ModeFeature := preload("res://src/features/mode_feature.gd")
+## The vehicles feature's script (features/vehicles.gd), to type features["vehicles"].
+const VehiclesScript := preload("res://src/features/vehicles.gd")
 
 # --------------------------------------------------------------- loadout
 
@@ -252,6 +254,9 @@ func damage(amount: float, source: Variant = null, cause := "HIT", who: Player =
 		1.0, round_even(amount * (1.0 - mellow) * incoming * (adapt if adapting else 1.0))
 	)
 	amount = Modes.incoming(me, p, amount, cause)  # a mode's armour (COUNTY RUN)
+	var rides: VehiclesScript = features.get("vehicles")
+	if rides != null and cause != "WRECK" and rides.seated(p):
+		amount = maxf(1.0, round_even(rides.soak(p, amount)))  # the vehicle takes its share
 	p.health = maxi(0, p.health - int(amount))
 	events.player_hurt.emit(amount, cause)
 	if p.health == 0 and adapting:
@@ -864,6 +869,10 @@ func use_prompt() -> String:
 		if special != "":
 			use_aim = Vector3.INF  # the mode's own (a hostage, the bomb)
 			return special
+	var rides: VehiclesScript = features.get("vehicles")
+	if rides != null and (rides.seated(player) or rides.prompt(player) != ""):
+		use_aim = Vector3.INF  # getting in or out of a vehicle
+		return rides.prompt(player)
 	var found: Variant = use_target()
 	if found == null:
 		return ""
@@ -927,6 +936,9 @@ func interact() -> void:
 	var mst: ModeFeature = features.get("mode")
 	if mst != null and mst.mode != Modes.CAMPAIGN and mst.rules().use(me):
 		return  # the mode's own (a hostage taken or set down)
+	var rides: VehiclesScript = features.get("vehicles")
+	if rides != null and rides.use(player):
+		return  # in or out of a vehicle (features/vehicles.gd)
 	var gate: LevelData.Gate = portal_target()
 	if gate != null:
 		if world.locked_gates.has(gate):

@@ -286,6 +286,7 @@ const SIM_FEATURES := [
 	"posse",
 	"boss_fight",
 	"race_laps",
+	"vehicles",
 	"range",
 	"bayou",
 	"mothership",

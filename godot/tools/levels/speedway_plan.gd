@@ -254,6 +254,9 @@ func the_oval() -> void:
 		"damage": 34,
 		"models": ["race_car", "race_car"],
 	}
+	# A stock car to drive (features/vehicles.gd), on pit row's asphalt by the
+	# middle gap onto the track; the lap timer runs on the racing line above.
+	b.meta["vehicles"] = [["car", 58.0, 17.0, 0.0]]
 	# The flag stand at the line and the banner over it.
 	b.fixture(73.9, 61.1, 74.1, 61.3, 3.9, "steel_mesh", "steel_mesh")
 	b.fixture(73.9, 69.7, 74.1, 69.9, 3.9, "steel_mesh", "steel_mesh")

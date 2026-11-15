@@ -67,6 +67,9 @@ func make() -> Builder:
 		"return_gate": {"destination": "hub", "x": 64.0, "y": 90.4, "width": 3.5, "side": -1},
 		"wave": ["king", "lagoon-gator-a", "lagoon-gator-b", "dock-chummer", "dock-billy"],
 		"devices": [["jukebox", 68.4, 20.4]],
+		# An airboat moored on the deep water by the dock walk, bow to the
+		# lagoon (features/vehicles.gd): [kind, x, y, heading].
+		"vehicles": [["airboat", 95.6, 33.5, -PI / 2.0]],
 	}
 	return b
 

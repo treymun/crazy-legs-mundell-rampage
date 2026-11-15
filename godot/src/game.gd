@@ -354,6 +354,16 @@ func _step_body(p: Player, controls: Controls, dt: float) -> void:
 	p.drunk = maxf(0.0, p.drunk - dt * (2.4 if p.sprint else .77))
 	p.sprint = maxf(0.0, p.sprint - dt)
 	var intoxication := maxf(0.0, (p.drunk - 23.0) / 77.0)
+	var rides: VehiclesScript = features.get("vehicles")
+	if rides != null and rides.seated(p):
+		# In a vehicle: its controls drive it (features/vehicles.gd), no walking.
+		rides.drive(p, controls, dt)
+		if local and not host:
+			feel_turn = controls.turn
+			feel_landed = false
+			_surroundings(p, world.roof_over(p.x, p.y, p.floor_z))
+			visited[Vector2i(int(p.x), int(p.y))] = true
+		return
 	if p.gut >= 66.0 and clock >= p.next_belch:
 		p.next_belch = clock + 5.6
 		sound.play("belch", .76)
@@ -661,8 +671,11 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 	else:
 		p.scoped = false
 		p.alt_held = alt
+	var rides: VehiclesScript = features.get("vehicles")
 	if gallery != null and gallery.active and gallery.slot == p.slot:
 		gallery.tick(dt, self, controls.fire or alt)
+	elif rides != null and rides.hands_busy(p):
+		pass  # both hands on the wheel (features/vehicles.gd)
 	elif controls.fire or alt:
 		armory.fire(self, alt)
 	else:

@@ -36,6 +36,7 @@ const SKIP_FIELDS := {
 	"Weapons.Armory": ["boxes"],
 	"wall_breaks": ["by_cell", "win", "_faces", "_loose", "gaps"],
 	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty"],
+	"vehicles": ["_looks"],
 	# Looks kept in a simulation feature: the specks' own dice (how many a
 	# hit throws hangs on the specks already about, which are never carried)
 	# and when HEADSHOT! was last called (this machine's callouts).
@@ -531,6 +532,7 @@ static func _register_all() -> void:
 		"PlayerVoice": PlayerVoice,
 		"Sound": Sound,
 		"HUD": HUD,
+		"VehicleDrive": VehicleDrive,
 	}
 	for script: GDScript in Features.ALL:
 		roots[script.resource_path.get_file().get_basename()] = script

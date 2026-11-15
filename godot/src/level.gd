@@ -287,6 +287,7 @@ var tactical := {}
 ## Cars still lapping the track (features/race_laps.gd): their path, how
 ## many, how fast, the station that stops them.
 var lap_cars := {}
+var vehicles: Array = []  # to drive (features/vehicles.gd): [kind, x, y, heading]
 var distant_cues: Array = []
 var notes: Array = []
 var partners: Array = []
@@ -528,6 +529,7 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 		lv.pressure_ports.append(Vector2(_float(point[0]), _float(point[1])))
 	var laps: Variant = j.get("lap_cars", {})
 	lv.lap_cars = laps if laps is Dictionary else {}
+	lv.vehicles = j.get("vehicles", []) if j.get("vehicles", []) is Array else []
 	for point: Variant in j.get("boss_decoys", []):
 		lv.boss_decoys.append(Vector2(_float(point[0]), _float(point[1])))
 	var arena: Variant = j.get("boss_arena", {})

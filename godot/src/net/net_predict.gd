@@ -25,8 +25,15 @@ static func lead(game: Game, me: Player, inputs: Array) -> Dictionary:
 	for field: String in KEPT:
 		kept[field] = me.get(field)
 	var dt := NetSync.STEP
+	# In a vehicle (features/vehicles.gd) only the aim leads: the copy drives.
+	var rides: Game.VehiclesScript = game.features.get("vehicles")
+	var seated := rides != null and rides.seated(me)
 	for i in range(maxi(0, inputs.size() - MOST), inputs.size()):
 		var controls: Game.Controls = inputs[i]
+		if seated:
+			me.angle = fposmod(me.angle + controls.turn, TAU)
+			me.pitch = clampf(me.pitch + controls.look, -53.0, 53.0)
+			continue
 		_step(game, me, controls, dt)
 	return kept
 
