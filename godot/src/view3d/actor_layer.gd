@@ -8,6 +8,8 @@ extends Node3D
 var models: ActorModels
 ## enemy instance id -> ActorView
 var _shown: Dictionary = {}
+## The player's reflection (only the mirror's camera sees it), or null.
+var _mirrored: ActorView
 
 
 func _init(p_models: ActorModels) -> void:
@@ -51,6 +53,32 @@ func show_actors(
 			var old: ActorView = _shown[id]
 			old.queue_free()
 			_shown.erase(id)
+	return fresh
+
+
+## Show the player's reflection `s` as its model on render layers `bits`
+## (the mirror's camera's alone), or none (null, or a body with no model).
+## Returns the material when first used this frame.
+func show_reflection(
+	s: View.Sprite, level: LevelData, clock: float, bits: int
+) -> Array[ShaderMaterial]:
+	var fresh: Array[ShaderMaterial] = []
+	var e: Enemy = null
+	if s != null and s.who is Enemy:
+		e = s.who as Enemy
+	var kind := kind_of(e) if e != null else ""
+	if kind == "" or (_mirrored != null and _mirrored.kind != kind):
+		if _mirrored != null:
+			_mirrored.queue_free()
+			_mirrored = null
+	if kind == "":
+		return fresh
+	if _mirrored == null:
+		_mirrored = _make(kind, fresh)
+		if _mirrored == null:
+			return fresh
+		_mirrored.set_layers(bits)
+	_mirrored.show_as(s, e, level, clock)
 	return fresh
 
 

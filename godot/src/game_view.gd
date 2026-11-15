@@ -18,6 +18,11 @@ func reflection() -> Variant:
 	var feet: float = world.stand(p) + p.air
 	var out := View.Sprite.new(p.x, p.y, "player_%s_%d" % [heading, stride], height, feet)
 	out.flip = facing < 0.0 and direction < 4
+	# The 3D view shows Mundell's model in the mirror (the picture without it).
+	var me: Game = self as Object
+	ModeBodies.watch(me)
+	out.who = ModeBodies.for_player(me, p, ModeBodies.PLAYER_KIND, height)
+	out.pose = ModeBodies.player_pose(me, p, ModeBodies.PLAYER_KIND)
 	return out
 
 

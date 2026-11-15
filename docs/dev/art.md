@@ -70,6 +70,20 @@ and out= and copy only the new files). The variants are in
 later chapters' kinds in `actors_bayou.py`, `actors_speedway.py`,
 `actors_mothership.py`. The chicken, pig and Bessie are not Blender actors.
 
+Mundell himself (`actors_mundell.py`, kind `mundell`: no cels, only the model
+the 3D view draws for the other players) is a `person()` cast with wrapped
+head, body, legs and weapon: the face, brow, nose and beard are balls whose
+vertices carry a `face` texture coordinate onto his front picture
+(`player_front_0`, the face's box `_FACE_BOX`) and a `face_w` weight fading it
+into plain skin and beard round the sides (`photo_mat`), so the bake carries
+the photograph's face onto the model; export_actors.py drops those layers from
+the joined mesh before its own unwrap. Olive cap with the tan patch, grey
+beard, red-brown plaid over an orange tee, denim bib overalls with the thigh
+patch, brown boots, the pump gun with three brass shells held low across his
+hips, all from that picture; `enemy_actors.py -- <dir> mundell
+0,quarter_0,side_0,away_0,back_0 2` renders him to hold against the player
+pictures.
+
 ## The 3D asset pipeline
 
 The 3D view draws props and enemies as models made from the same Blender code

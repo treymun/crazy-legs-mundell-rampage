@@ -80,7 +80,8 @@ static func stem(kind: String) -> String:
 	var s: Variant = _stems.get(kind)
 	if s == null:
 		s = kind
-		var def: Dictionary = Enemy.DEFS[kind]
+		# A model no enemy is (Mundell's: ModeBodies.PLAYER_KIND) is its own stem.
+		var def: Dictionary = Enemy.DEFS.get(kind, {})
 		var fallback := str(def.get("art", ""))
 		if fallback != "" and not Assets.shared_index.has(kind + "_0"):
 			s = fallback

@@ -7,7 +7,9 @@
 ## play (a teammate and two opponents: the team colours); the 5v5 bodies close
 ## up (both sides, one falling) and a hostage; the speedway's lap cars going
 ## by. <name>.png in out=<dir>; only=coop,deathmatch,team,tactical,race runs
-## some of them.
+## some of them. only=mundell (not in the default set) lines up co-op
+## partners close up, turned every way round and in each pose (Mundell's
+## body, the sheets in docs/godot3d/compare/actors/mundell_*.png).
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/mode_frames.gd -- out=<dir> [only=team,race]
@@ -52,6 +54,8 @@ func _run() -> void:
 		await _race()
 	if only.has("bench"):
 		await _bench()
+	if only.has("mundell"):
+		await _mundell()
 	print("mode frames written to ", out)
 	main.queue_free()
 	await process_frame
@@ -223,6 +227,98 @@ func _bench() -> void:
 		)
 	)
 	await _snap("tac_bench")
+
+
+## `others` side by side a little ahead of `a` on Hickston's main street,
+## `a`'s gun put away.
+func _line_up(g: Game, a: Player, others: Array) -> void:
+	Modes.place(g, a, 60.0, 51.0, -PI * .5)
+	a.pitch = -6.0
+	for k in others.size():
+		Modes.place(g, others[k], 60.0 + (k - 1) * 1.15, 48.4 - absf(k - 1) * .3, PI * .5)
+	_ticks(g, 1)
+	a.angle = -PI * .5
+	a.armory.holstered = true
+	a.armory.lower = 1.0
+
+
+## Three partners `turns` from facing this player (radians), standing.
+func _turned(a: Player, others: Array, turns: Array) -> void:
+	for k in others.size():
+		var q: Player = others[k]
+		var turn: float = turns[k]
+		q.angle = atan2(a.y - q.y, a.x - q.x) + turn
+		q.motion = 0.0
+		q.vx = 0.0
+		q.vy = 0.0
+
+
+## Mundell's body as the others see it (only=mundell): three co-op partners
+## on the range turned to face, side and back, then a quarter, away and the
+## other side; walking, aiming and firing; hurt walking, flinching from a hit
+## and hurt aiming; falling, down and crouched; team deathmatch's colours.
+func _mundell() -> void:
+	var g := _game("hickston", Modes.COOP, 4)
+	_ticks(g, 2)
+	g.cheats.god = true
+	g.spawn_grace = 99.0
+	for e: Enemy in g.enemies:
+		e.dormant = true
+	var a: Player = g.players[0]
+	var others: Array = [g.players[1], g.players[2], g.players[3]]
+	_line_up(g, a, others)
+	_turned(a, others, [0.0, PI * .5, PI])
+	await _snap("mundell_turns")
+	_turned(a, others, [PI * .25, PI * .75, -PI * .5])
+	await _snap("mundell_turns2")
+	# Close up: the middle partner a step and a half ahead, the others aside.
+	var mid: Player = others[1]
+	Modes.place(g, mid, a.x, a.y - 1.5, PI * .5)
+	Modes.place(g, others[0], a.x - 3.0, a.y - 4.0, PI * .5)
+	Modes.place(g, others[2], a.x + 3.0, a.y - 4.0, PI * .5)
+	_turned(a, others, [0.0, 0.0, 0.0])
+	a.pitch = 4.0
+	await _snap("mundell_close")
+	_turned(a, [mid], [PI * .5])
+	await _snap("mundell_close_side")
+	_line_up(g, a, others)
+	_turned(a, others, [.3, -.4, .2])
+	for k in 3:
+		var q: Player = others[k]
+		q.walk_phase = 1.0 + k * .6
+	others[0].motion = 1.0
+	others[1].armory.shot_age = .4
+	others[2].armory.shot_age = .05
+	await _snap("mundell_poses")
+	for q: Player in others:
+		q.armory.shot_age = 1.0
+		q.health = 40
+	await _snap("mundell_hurt_still")
+	others[0].motion = 1.0
+	others[1].health = 30
+	others[2].armory.shot_age = .4
+	await _snap("mundell_hurt")
+	_turned(a, others, [.3, -.4, .2])
+	g.cheats.god = false
+	g.damage(500.0, null, "TEST", others[0])
+	g.damage(500.0, null, "TEST", others[1])
+	g.cheats.god = true
+	await _snap("mundell_falling_0")
+	_ticks(g, 20)
+	await _snap("mundell_falling")
+	others[2].crouched = true
+	_ticks(g, 200)
+	_turned(a, [others[2]], [.2])
+	others[2].crouched = true
+	await _snap("mundell_down")
+	var t := _game("hickston", Modes.TEAM, 4)
+	_ticks(t, 2)
+	for e: Enemy in t.enemies:
+		e.dormant = true
+	var me: Player = t.players[0]
+	_line_up(t, me, [t.players[1], t.players[2], t.players[3]])
+	_turned(me, [t.players[1], t.players[2], t.players[3]], [.3, -.3, .6])
+	await _snap("mundell_team")
 
 
 ## The 5v5 bodies close up: an outlaw and two deputies ahead, one walking,

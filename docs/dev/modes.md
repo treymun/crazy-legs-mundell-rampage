@@ -283,12 +283,28 @@ times run times to sites and checks the bots' routes and holds (strict).
 ## Presentation
 
 `mode_screens.gd`, drawn only with more than one player: partners in the world
-(`player_<heading>_<step>` cels, tinted by slot, squat when down), each
+(`player_<heading>_<step>` cels, tinted by slot, squat when down; the 3D view
+draws each as Mundell's model, below), each
 partner's tag and health over their head or at the view's edge with an arrow,
 `E  HOLD TO REVIVE P2` where the use prompts go and the progress, the frags
 and clock in versus, the down screen (`game_view.gd`: YOU'RE DOWN with the
 respawn count, FRAGGED BY P2) instead of the death screen while play goes on,
 and the results.
+
+Outside the 5v5 rounds every other player (co-op and County Run partners,
+deathmatch opponents, team deathmatch with its team tints, online too) is
+drawn in the 3D view as Mundell's own model, `mundell`
+(`scripts/blender/actors_mundell.py`, his front picture's face on its head),
+through a `ModeBodies` stand-in like the 5v5 bodies; the picture keeps its
+tint (`~r.g.b`), which tints the model. `ModeBodies.player_pose` picks the
+model's frame (`View.Sprite.pose`): falling and down when out, firing (a shot
+under .12 s old), flinching from a hit (`PAIN_TIME`, from `watch()` seeing
+their health drop), aiming (scoped or a shot under .7 s old), walking on their
+gait, standing; the hurt look under half health; crouched .8 as tall. The
+player in Hickston's mirror is the same model on the reflection's render layer
+(`ActorLayer3D.show_reflection`). Looks only: nothing carried changes.
+`tools/mode_frames.gd -- only=mundell` lines partners up turned every way and
+in each pose (`docs/godot3d/compare/actors/mundell_*.png`).
 
 ## Running them locally
 
@@ -330,7 +346,8 @@ and join codes stay desktop only.
 - Client prediction of walking (only the aim).
 - A second local input set (split keyboard).
 - A kill feed outside the 5v5 modes.
-- A lying-down picture for a player who is down (the standing one, squat).
+- A lying-down picture for a player who is down (the standing one, squat;
+  the 3D view's model falls and lies down).
 - Spawn points from the plans outside the 5v5 maps (only worked out).
 - Versus pickups other than the level's own.
 - The title's mode entries are MULTIPLAYER and COUNTY RUN (co-op and

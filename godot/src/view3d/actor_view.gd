@@ -46,7 +46,12 @@ func setup(p_models: ActorModels) -> bool:
 
 ## Stand where sprite `s` of enemy `e` stands, in its frame and look.
 func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
-	var pose := ActorView.pose_of(s.image, Variants.stem(e.kind))
+	var named := s.image
+	if s.pose != "":
+		# The model's own frame, with the picture's tint.
+		var tilde := s.image.find("~")
+		named = s.pose + (s.image.substr(tilde) if tilde >= 0 else "")
+	var pose := ActorView.pose_of(named, Variants.stem(e.kind))
 	var frame: String = pose[0]
 	var look: int = pose[1]
 	var tint: Color = pose[2]
@@ -76,6 +81,13 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		mesh.set_instance_shader_parameter("wash", Color(tint.r, tint.g, tint.b, hurt))
 		mesh.set_instance_shader_parameter("look", look)
 		mesh.set_instance_shader_parameter("fallen", down)
+
+
+## Draw on these render layers only (the mirror's reflection: WorldView3D
+## LAYER_REFLECTION, seen by the mirror's camera alone).
+func set_layers(bits: int) -> void:
+	for mesh in _meshes:
+		mesh.layers = bits
 
 
 ## Leave off what the body lost (Gore.lost: [piece, side]): the head, or an

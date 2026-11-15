@@ -174,8 +174,11 @@ Each enemy and boss with a model shows as an `ActorView` scene
 - A picture name's `~r.g.b` tint (`Assets.tinted_art`) tints the model too.
 - Bodies that are not enemies can wear a model through a stand-in Enemy that
   only the view reads: the 5v5 players and hostages (`ModeBodies`,
-  [modes.md](modes.md#rounds)). Co-op and deathmatch partners are still the
-  player's cels: there is no model of the player.
+  [modes.md](modes.md#rounds)), and every other player outside the 5v5
+  rounds and the player in the mirror as Mundell's model, `mundell`
+  ([modes.md](modes.md#presentation)). A sprite's `pose` names the model's
+  frame when it is not the picture's (the player pictures have no aim, fire
+  or fall cels).
 
 The pipeline is in [art.md](art.md#actors).
 
