@@ -65,11 +65,18 @@ func _run() -> void:
 			if probe:
 				var sp: View.Sprite = e.sprite([at.x, at.y], false, g.clock)
 				print(
-					"%s t%d toss %.3f stand %.3f floor %.3f sprite %s z %.3f" % [
-						e.brain, t, e.toss, g.world.stand(e),
-						g.world.floor_under(e.x, e.y, g.world.stand(e) + .3),
-						sp.image if sp != null else "-", sp.z if sp != null else -1.0
-					]
+					(
+						"%s t%d toss %.3f stand %.3f floor %.3f sprite %s z %.3f"
+						% [
+							e.brain,
+							t,
+							e.toss,
+							g.world.stand(e),
+							g.world.floor_under(e.x, e.y, g.world.stand(e) + .3),
+							sp.image if sp != null else "-",
+							sp.z if sp != null else -1.0
+						]
+					)
 				)
 				continue
 			await _snap("%s_%d" % [e.brain, t])
