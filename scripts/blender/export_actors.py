@@ -192,74 +192,36 @@ def _bake(ob, image, sources=None):
         for o, m in zip(turned, kept):
             o.matrix_world = spin @ m
         bpy.context.view_layer.update()
-        scene.cycles.samples = 48 if k == 0 else 32
+        # One bake a turn. The rays reach well past the lighter mesh's surface
+        # (it sits inside or outside its parts after the decimation: inner
+        # arms and thighs and undersides, seen when a body lies down, baked
+        # black with short ones); the nearest hit still wins. Fewer samples
+        # than a render: the palette and the grain take the noise.
+        scene.cycles.samples = 24 if k == 0 else 16
         bpy.ops.object.bake(
             type="COMBINED",
             pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
             margin=4,
             use_clear=True,
             use_selected_to_active=bool(sources),
-            cage_extrusion=.03,
-            max_ray_distance=.08,
+            cage_extrusion=.1,
+            max_ray_distance=.3,
         )
         px = numpy.empty(len(image.pixels), dtype=numpy.float32)
         image.pixels.foreach_get(px)
         px = px.reshape(-1, 4)
-        if sources:
-            # Texels the rays missed (a surface of the lighter mesh further
-            # than max_ray_distance from its part: inner arms and thighs,
-            # undersides, seen when a body lies down) bake black: bake again
-            # with longer rays and take those texels from it.
+        if k == 0:
             inside = NORMALS[:, :3].sum(axis=1) > .05
-            missed = inside & (px[:, :3].sum(axis=1) < .003)
-            if missed.any():
-                bpy.ops.object.bake(
-                    type="COMBINED",
-                    pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
-                    margin=4,
-                    use_clear=True,
-                    use_selected_to_active=True,
-                    cage_extrusion=.12,
-                    max_ray_distance=.35,
-                )
-                far = numpy.empty(len(image.pixels), dtype=numpy.float32)
-                image.pixels.foreach_get(far)
-                far = far.reshape(-1, 4)
-                px[missed, :3] = far[missed, :3]
-                still = inside & (px[:, :3].sum(axis=1) < .003)
-                if still.any():
-                    # What no ray finds (a surface inside another part, or one
-                    # the decimation moved far): the body baked onto itself,
-                    # its own materials (their colours; a pattern may sit a
-                    # little differently). Only the body is selected for it:
-                    # the parts have no unwrap of their own.
-                    for part in sources:
-                        part.select_set(False)
-                    bpy.ops.object.bake(
-                        type="COMBINED",
-                        pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
-                        margin=4,
-                        use_clear=True,
-                        use_selected_to_active=False,
-                    )
-                    for part in sources:
-                        part.select_set(True)
-                    ob.select_set(True)
-                    bpy.context.view_layer.objects.active = ob
-                    own = numpy.empty(len(image.pixels), dtype=numpy.float32)
-                    image.pixels.foreach_get(own)
-                    own = own.reshape(-1, 4)
-                    px[still, :3] = own[still, :3]
-                left = inside & (px[:, :3].sum(axis=1) < .003)
-                print(
-                    "ACTOR BAKE turn %d: %d texels missed, %d after longer rays, %d after its own"
-                    % (angle, int(missed.sum()), int(still.sum()), int(left.sum()))
-                )
+            dark = int((inside & (px[:, :3].sum(axis=1) < .003)).sum())
+            print("ACTOR BAKE on %s: %d black texels of %d" % (scene.cycles.device, dark, int(inside.sum())))
         # The texel's normal turned with the body, toward the camera (-y).
         c = math.cos(math.radians(angle))
         sn = math.sin(math.radians(angle))
         toward = -(sn * nx + c * ny)
-        w = numpy.clip(toward, 0.0, 1.0) ** 2 + 1e-4
+        # A texel whose ray found nothing in this turn bakes black: it takes
+        # no part in the blend (it would darken the texel, speckling faces).
+        hit = px[:, :3].sum(axis=1) > .003
+        w = (numpy.clip(toward, 0.0, 1.0) ** 2 + 1e-4) * hit
         if total is None:
             total = px.copy()
             total[:, :3] *= w[:, None]
@@ -270,8 +232,36 @@ def _bake(ob, image, sources=None):
     for o, m in zip(turned, kept):
         o.matrix_world = m
     bpy.context.view_layer.update()
-    total[:, :3] /= weight[:, None]
+    found = weight > 0.0
+    total[found, :3] /= weight[found, None]
+    _fill_missed(total, found & (NORMALS[:, :3].sum(axis=1) > .05))
     image.pixels.foreach_set(total.ravel())
+
+
+def _fill_missed(px, found):
+    """Texels on the body no turn's ray reached take their neighbours' colour."""
+    size = TEXTURE
+    rgb = px[:, :3].reshape(size, size, 3)
+    have = found.reshape(size, size) | (NORMALS[:, :3].sum(axis=1) <= .05).reshape(size, size)
+    # Texels off the body count as found only for the margin's sake: they
+    # never feed a fill (their colour is the bake's padding).
+    good = found.reshape(size, size).copy()
+    missing = ~have
+    print("ACTOR BAKE: %d texels no turn reached" % int(missing.sum()))
+    for _ in range(24):
+        if not missing.any():
+            break
+        acc = numpy.zeros_like(rgb)
+        cnt = numpy.zeros((size, size), dtype=numpy.float32)
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)):
+            g = numpy.roll(numpy.roll(good, dy, 0), dx, 1)
+            acc += numpy.roll(numpy.roll(rgb, dy, 0), dx, 1) * g[:, :, None]
+            cnt += g
+        take = missing & (cnt > 0)
+        rgb[take] = acc[take] / cnt[take][:, None]
+        good |= take
+        missing &= ~take
+    px[:, :3] = rgb.reshape(-1, 3)
 
 
 def _bake_normals(ob):
