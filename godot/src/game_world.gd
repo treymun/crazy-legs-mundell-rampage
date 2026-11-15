@@ -108,35 +108,40 @@ func message(text: String, length := 1.9) -> void:
 # ----------------------------------------------------------------- sound
 
 
-## How loud and where a sound from (x, y) reaches the local player's ears.
+## How loud and where a sound from (x, y) reaches the local player's ears:
+## farther counting height, cut by walls and floors between (Hearing).
 func sound_position(x: float, y: float, strength := 1.0, muffle := true) -> Vector2:
 	var p := local_player
+	var me: Game = self as Object
 	var dx := x - p.x
 	var dy := y - p.y
-	var distance := sqrt(dx * dx + dy * dy)
+	var across := sqrt(dx * dx + dy * dy)
+	var up := hearing.rise(me, x, y)
+	var distance := sqrt(across * across + up * up)
 	var volume := strength / (1.0 + distance * .22)
-	if muffle and distance > 1.0 and not world.visible(p.x, p.y, x, y):
-		volume *= .43
-	var pan := (-sin(p.view_angle()) * dx + cos(p.view_angle()) * dy) / maxf(1.0, distance)
+	if muffle and distance > 1.0:
+		volume *= hearing.gain(me, x, y)
+	var pan := (-sin(p.view_angle()) * dx + cos(p.view_angle()) * dy) / maxf(1.0, across)
 	return Vector2(volume, pan)
 
 
-## How dull a sound from x, y reaches the player: muffled through a wall,
-## a little duller far off or behind (a pan alone cannot say behind).
+## How dull a sound from x, y reaches the player: muffled through a wall or
+## a floor, less round a corner (Hearing), a little duller far off or behind
+## (a pan alone cannot say behind).
 func sound_cutoff(x: float, y: float) -> float:
 	var p := local_player
+	var me: Game = self as Object
 	var dx := x - p.x
 	var dy := y - p.y
-	var distance := sqrt(dx * dx + dy * dy)
+	var up := hearing.rise(me, x, y)
+	var distance := sqrt(dx * dx + dy * dy + up * up)
 	if distance <= 1.0:
 		return Sound.OPEN_CUTOFF
-	if not world.visible(p.x, p.y, x, y):
-		return 1300.0
 	var cutoff := Sound.OPEN_CUTOFF / (1.0 + maxf(0.0, distance - 6.0) * .12)
 	var facing := (cos(p.view_angle()) * dx + sin(p.view_angle()) * dy) / distance
 	if facing < -.3:
 		cutoff = minf(cutoff, 9000.0)
-	return maxf(2500.0, cutoff)
+	return minf(hearing.cutoff(me, x, y), maxf(2500.0, cutoff))
 
 
 func sound_at(name: String, x: float, y: float, strength := 1.0) -> void:

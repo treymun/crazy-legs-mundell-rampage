@@ -684,6 +684,9 @@ var sound: GameSound = null
 ## This machine's Sound itself: sound_at() places a sound for the local
 ## player's ears through it whoever is acting.
 var speaker: GameSound = null
+## Where placed sounds reach the local player's ears from: walls, floors and
+## the way round between (sound_position, sound_cutoff; hearing.gd).
+var hearing := Hearing.new()
 
 var level: LevelData
 var world: LevelData

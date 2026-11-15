@@ -65,7 +65,9 @@ func make() -> Builder:
 		"intro": "DUMP THE PIT FUEL, RUN THE CRUSHER AND CUT IN ON THE PA.",
 		"ending": '"CHECKERED FLAG. NOBODY ELSE FINISHED."',
 		"score": "music_speedway",
-		"ambience": "",
+		# The far-off crowd of the range maps until the speedway has a bed of its
+		# own (docs/dev/audio.md): race night, not the yard's crickets.
+		"ambience": "range",
 		"layout": 2,
 		"sky": "speedway_sky",
 		"control_name": "FIX THE FIX: FUEL, CRUSHER, PA",

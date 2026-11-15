@@ -463,6 +463,8 @@ through `build_town_props.gd`; signs' `<name>_shot` and the bits `fx_brk_*`:
   for breaking, strikes, the gun's feel, weather and water were made in
   dev.32 (`docs/*_audio.md` say where each plays); breakables.cfg's `chip` is
   the knock of a shot that does not break a thing yet.
+- **Placed sounds, takes and the per-play pitch** are in
+  [audio.md](audio.md) (`hearing.gd`, `Sound.VARIANTS`).
 - **Sound effects are QOA** (`sfx.bin`, about a fifth of 16-bit samples), and
   the tiles and skies are deflated whole (`Assets.pack_whole`). An
   `AudioStreamWAV`'s `data` is then not samples: count frames with

@@ -107,8 +107,12 @@ add("loop_tool",
     fuse_hiss=LOOP("A dynamite fuse burning: steady sputtering spark hiss.", 2.0, 1.4, "mech"),
     saw_motor=LOOP("A small two-stroke saw motor grinding metal at steady revs, harsh buzzing whine.", 2.0, 1.4, "tool"),
     )
+# Every room tail at the level the first thirty came out at (their older cues
+# were quieter still): the twelve added with later guns had no older cue and
+# took the family default, -10 dB, 2 to 6 dB under their own shot where the
+# rest sit 7 to 13 under (measured for 3.0.0), so a tommy gun's tail piled up.
 add("room",
-    **{f"room_{base}": D(base) for base in (
+    **{f"room_{base}": D(base, level=-16.0) for base in (
         "revolver", "shotgun", "shotgun_both", "rifle", "hunter", "mower", "county45", "star357", "hogleg", "riot_pump", "tommy",
         "grease_gun", "patrol_bar", "marksman", "riveter", "riveter_pair",
         "pressure_gun", "bottle_launcher", "cow_launcher", "teat_gun",
@@ -413,17 +417,21 @@ add("pickup",
     weapon_pickup=G("A gun grabbed off the ground: quick metal clack.", .5, None),
     key_pickup=G("A brass key picked up: bright jingle.", .5, None),
     )
+# The level (dB under the loudest) that splits a step recording into its
+# footfalls where the default -30 runs them together: grass and water read as
+# two long hits there, so their _0 and _1 were one and the same step till 3.0.0.
+STEP_SPLIT = {"grass": -20.0, "water": -16.0}
 add("foot",
-    step_grass_0=G("Four separate slow boot steps on dry grass.", 3.0, None, "foot", event=0),
-    step_grass_1=D("step_grass_0", "event", event=2),
+    step_grass_0=G("Four separate slow boot steps on dry grass.", 3.0, None, "foot", event=0, split=STEP_SPLIT["grass"]),
+    step_grass_1=D("step_grass_0", "event", event=2, split=STEP_SPLIT["grass"]),
     step_gravel_0=G("Four separate slow boot steps on loose gravel.", 3.0, None, "foot", event=0),
     step_gravel_1=D("step_gravel_0", "event", event=2),
     step_mud_0=G("Four separate slow boot steps in thick sucking mud.", 3.0, None, "foot", event=0),
     step_mud_1=D("step_mud_0", "event", event=2),
     step_tile_0=G("Four separate slow hard boot steps on a tile floor.", 3.0, None, "foot", event=0),
     step_tile_1=D("step_tile_0", "event", event=2),
-    step_water_0=G("Four separate slow boot steps splashing through shallow water.", 3.0, None, "foot", event=0),
-    step_water_1=D("step_water_0", "event", event=2),
+    step_water_0=G("Four separate slow boot steps splashing through shallow water.", 3.0, None, "foot", event=0, split=STEP_SPLIT["water"]),
+    step_water_1=D("step_water_0", "event", event=2, split=STEP_SPLIT["water"]),
     step_wood_0=G("Four separate slow boot steps on hollow wooden boards.", 3.0, None, "foot", event=0),
     step_wood_1=D("step_wood_0", "event", event=2),
     )
@@ -1023,6 +1031,46 @@ add("voice", **{f"mundell_{moment}_{n}": V(text, "mundell", **(
 # Each cuss line's CLEAN copy: the cuss words under a duck call or a horn, by turns.
 add("voice", **{f"{name}_clean": D(name, "bleep", **{"with": "duck" if i % 2 == 0 else "horn"})
                 for i, name in enumerate(sorted(n for n in CUES if n.startswith("cuss_")))})
+
+# ------------------------------------------------- the 3.0.0 remaster
+# More takes of the guns heard most often, made from their own recordings:
+# retuned like tape and given a fresh draw of the designed layers (punch()'s
+# noise is seeded, so the crack, bark and tail are new each take). sound.gd
+# VARIANTS deals them out in turn, and every play also gets a small pitch and
+# level of its own. `like` masters a take to the loudness of the cue it varies
+# (audio_build.py), so a set never jumps in level between takes. Paid takes
+# (other recordings) would be better still; see docs/dev/audio.md.
+def ALT(base, cents, keep, **opts):
+    return D(base, "pitch", cents=cents, keep=keep, like=base, **opts)
+
+
+add("report",
+    shotgun_alt=ALT("shotgun", -45, .95, punch=dict(thump=(124, 48, .13), body=.11, crack=.9, tail=.34, seed=5)),
+    shotgun_alt2=ALT("shotgun", 40, .95, punch=dict(thump=(116, 44, .14), body=.12, crack=.95, tail=.34, seed=13)),
+    county45_alt=ALT("county45", -40, .4, punch=dict(thump=(146, 66, .07), body=.06, crack=.8, tail=.12, clack=.32, seed=29)),
+    tommy_alt=ALT("tommy", -45, .2, punch=dict(thump=(130, 60, .045), body=.04, crack=.8, tail=.06, clack=.38, seed=31)),
+    tommy_alt2=ALT("tommy", 40, .2, punch=dict(thump=(140, 64, .045), body=.04, crack=.72, tail=.06, clack=.33, seed=37)),
+    grease_gun_alt=ALT("grease_gun", -45, .2, punch=dict(thump=(144, 68, .04), body=.035, crack=.72, tail=.05, clack=.42, seed=41)),
+    grease_gun_alt2=ALT("grease_gun", 40, .2, punch=dict(thump=(156, 72, .04), body=.035, crack=.66, tail=.05, clack=.48, seed=43)),
+    patrol_bar_alt=ALT("patrol_bar", -40, .3, punch=dict(thump=(120, 56, .06), body=.05, crack=.9, tail=.09, clack=.32, seed=47)),
+    patrol_bar_alt2=ALT("patrol_bar", 45, .3, punch=dict(thump=(130, 60, .06), body=.05, crack=1.0, tail=.09, clack=.28, seed=53)),
+    riot_pump_alt=ALT("riot_pump", -40, 1.0, punch=dict(thump=(122, 46, .13), body=.11, crack=.88, tail=.32, seed=59)),
+    star357_alt=ALT("star357", -40, .52, punch=dict(thump=(124, 54, .09), body=.08, crack=.95, tail=.2, seed=61)),
+    hogleg_alt=ALT("hogleg", -40, .6, punch=dict(thump=(110, 50, .12), body=.1, crack=.8, tail=.28, seed=67)),
+    hunter_alt=ALT("hunter", -35, .7, punch=dict(thump=(114, 52, .12), body=.09, crack=.95, tail=.3, seed=71)),
+    marksman_alt=ALT("marksman", -40, .55, punch=dict(thump=(122, 54, .1), body=.08, crack=.95, tail=.24, clack=.22, seed=73)),
+    )
+# More steps per floor: each step recording holds four footfalls and the game
+# used two (events 0 and 2); these are the other two. VARIANTS pairs them.
+add("foot", **{f"step_{floor}_{n + 2}": D(f"step_{floor}_0", "event", event=2 * n + 1, keep=.25, like=f"step_{floor}_{n}",
+                                          **({"split": STEP_SPLIT[floor]} if floor in STEP_SPLIT else {}))
+               for floor in ("grass", "gravel", "mud", "tile", "water", "wood") for n in range(2)})
+add("impact",
+    # Played since 2.0 (metal gibs, the tin guards, Jerry's scoreboard, the
+    # propane tanks and fuel drums) but never made, so it was silent. Made
+    # from the scrap-metal knock a fourth lower until a take of its own.
+    metal_down=D("scenery_scrap", "pitch", cents=-500, keep=.8),
+    )
 
 # Chapter music: (stem, title, bpm, prompt). Three per chapter, shuffled.
 BAND = ("Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven "
