@@ -14,16 +14,16 @@
 ##   HOG WILD     OIL FIRE: his charges leave burning oil down the lane.
 extends BossMoves
 
-const NITRO_WINDUP := 1.3
-const NITRO_SPEED := 10.5
-const NITRO_LEGS := 3
-const NITRO_REACH := 34.0
-const NITRO_DAMAGE := 34
-const NITRO_STALL := 1.9
+static var NITRO_WINDUP: float = BossData.get_value("boggs", "nitro_windup")
+static var NITRO_SPEED: float = BossData.get_value("boggs", "nitro_speed")
+static var NITRO_LEGS: int = BossData.get_value("boggs", "nitro_legs")
+static var NITRO_REACH: float = BossData.get_value("boggs", "nitro_reach")
+static var NITRO_DAMAGE: int = BossData.get_value("boggs", "nitro_damage")
+static var NITRO_STALL: float = BossData.get_value("boggs", "nitro_stall")
 ## How far off his heading a shot can come from and still find the radiator.
-const FRONT := .9
-const WEAK := 2.0
-const PACE := [1.3, 1.0, .92, .84]
+static var FRONT: float = BossData.get_value("boggs", "front")
+static var WEAK: float = BossData.get_value("boggs", "weak")
+static var PACE: Array = BossData.get_value("boggs", "pace")
 
 
 func stagger_hit(_e: Enemy) -> float:

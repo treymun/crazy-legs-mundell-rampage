@@ -20,19 +20,19 @@
 class_name TacticalUtility
 extends RefCounted
 
-const KINDS := ["flash_jar", "smudge_pot", "shine_cocktail", "firecracker_can"]
-const FLASH_REACH := 16.0
-const FLASH_MOST := 4.6
-const SMOKE_LIFE := 15.0
-const SMOKE_RADIUS := 2.7
-const SMOKE_GROW := 1.4
-const FIRE_LIFE := 7.0
-const FIRE_RADIUS := 2.1
-const FIRE_BITE := .25
-const FIRE_DAMAGE := 10.0
-const DECOY_LIFE := 10.0
+static var KINDS: Array = ModeData.get_value("tactical_utility", "kinds")
+static var FLASH_REACH: float = ModeData.get_value("tactical_utility", "flash_reach")
+static var FLASH_MOST: float = ModeData.get_value("tactical_utility", "flash_most")
+static var SMOKE_LIFE: float = ModeData.get_value("tactical_utility", "smoke_life")
+static var SMOKE_RADIUS: float = ModeData.get_value("tactical_utility", "smoke_radius")
+static var SMOKE_GROW: float = ModeData.get_value("tactical_utility", "smoke_grow")
+static var FIRE_LIFE: float = ModeData.get_value("tactical_utility", "fire_life")
+static var FIRE_RADIUS: float = ModeData.get_value("tactical_utility", "fire_radius")
+static var FIRE_BITE: float = ModeData.get_value("tactical_utility", "fire_bite")
+static var FIRE_DAMAGE: float = ModeData.get_value("tactical_utility", "fire_damage")
+static var DECOY_LIFE: float = ModeData.get_value("tactical_utility", "decoy_life")
 ## The decoy's rhythm: the gaps between its shots, over and over.
-const DECOY_GAPS := [.13, .13, .13, .9, .2, .2, 1.4, .13, .13, .7]
+static var DECOY_GAPS: Array = ModeData.get_value("tactical_utility", "decoy_gaps")
 
 
 static func burst(game, shot) -> void:

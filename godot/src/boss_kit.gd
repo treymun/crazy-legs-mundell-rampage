@@ -32,32 +32,23 @@ const MOVES := {
 	"maw": preload("res://src/bosses/maw.gd"),
 }
 ## Health left (of its whole) where a boss goes fightin' mad and plum desperate.
-const MAD_AT := .5
-const DESPERATE_AT := .2
+static var MAD_AT: float = BossData.get_value("boss_kit", "mad_at")
+static var DESPERATE_AT: float = BossData.get_value("boss_kit", "desperate_at")
 ## [damage in one instant that staggers, seconds before it can be again]: a
 ## load of buckshot at arm's length, a stick of dynamite at its feet or a
 ## bottle rocket does it; a revolver round never does.
-const STAGGER := {
-	"boss": [170.0, 3.5],
-	"jerry": [180.0, 3.5],
-	"rudy": [160.0, 3.5],
-	"foreman": [170.0, 4.0],
-	"baron": [180.0, 4.0],
-	"swamp_king": [220.0, 4.5],
-	"derby_champ": [240.0, 5.0],
-	"maw": [300.0, 6.0],
-}
-const STAGGER_DEFAULT := [180.0, 4.0]
+static var STAGGER: Dictionary = BossData.get_value("boss_kit", "stagger")
+static var STAGGER_DEFAULT: Array = BossData.get_value("boss_kit", "stagger_default")
 ## How far a stagger throws a boss back (cells), and a car or a boat sideways.
-const STAGGER_SHOVE := .45
-const SKID := .35
+static var STAGGER_SHOVE: float = BossData.get_value("boss_kit", "stagger_shove")
+static var SKID: float = BossData.get_value("boss_kit", "skid")
 ## The entrance, in seconds; fire, jump or use cuts it short after SKIP_AFTER.
-const INTRO := 1.6
-const SKIP_AFTER := .25
+static var INTRO: float = BossData.get_value("boss_kit", "intro")
+static var SKIP_AFTER: float = BossData.get_value("boss_kit", "skip_after")
 ## How near a boss the player is in its arena.
-const ARENA := 14.0
+static var ARENA: float = BossData.get_value("boss_kit", "arena")
 ## Seconds between WEAK SPOT! calls.
-const WEAK_CALL_GAP := 3.5
+static var WEAK_CALL_GAP: float = BossData.get_value("boss_kit", "weak_call_gap")
 
 static var _made := {}
 ## A tool driving the game (a SceneTree script: the walkthrough, the checks)

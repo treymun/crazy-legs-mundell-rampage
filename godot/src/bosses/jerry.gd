@@ -15,18 +15,18 @@
 ##               throws he punts a flaming pigskin that bursts where it lands.
 extends "res://src/bosses/arena_moves.gd"
 
-const KNEE_LINE := .3
-const KNEES := 2.0
-const BLAST_KNEES := 1.5
-const HELMET_LINE := .82
-const HELMET := .6
-const BLITZ_EVERY := 5.5
-const BLITZ_WARN := .9
-const BLITZ_SPEED := 7.2
-const BLITZ_REACH := 10.0
-const BLITZ_HIT := 20.0
-const BELL := 1.7
-const KICK_EVERY := 3
+static var KNEE_LINE: float = BossData.get_value("jerry", "knee_line")
+static var KNEES: float = BossData.get_value("jerry", "knees")
+static var BLAST_KNEES: float = BossData.get_value("jerry", "blast_knees")
+static var HELMET_LINE: float = BossData.get_value("jerry", "helmet_line")
+static var HELMET: float = BossData.get_value("jerry", "helmet")
+static var BLITZ_EVERY: float = BossData.get_value("jerry", "blitz_every")
+static var BLITZ_WARN: float = BossData.get_value("jerry", "blitz_warn")
+static var BLITZ_SPEED: float = BossData.get_value("jerry", "blitz_speed")
+static var BLITZ_REACH: float = BossData.get_value("jerry", "blitz_reach")
+static var BLITZ_HIT: float = BossData.get_value("jerry", "blitz_hit")
+static var BELL: float = BossData.get_value("jerry", "bell")
+static var KICK_EVERY: int = BossData.get_value("jerry", "kick_every")
 
 
 func fight_start(e: Enemy, _game) -> void:

@@ -23,10 +23,10 @@ extends RefCounted
 ## Shares of the body's height: the head is above HEAD_AT, the legs below
 ## LEGS_BELOW. In between, a hit further off the middle than ARM_OUT of the
 ## radius (ARM_SIDE seen side on, an arm toward the gun) is an arm.
-const HEAD_AT := .8
-const LEGS_BELOW := .44
-const ARM_OUT := .62
-const ARM_SIDE := .42
+static var HEAD_AT: float = ModeData.get_value("hit_zones", "head_at")
+static var LEGS_BELOW: float = ModeData.get_value("hit_zones", "legs_below")
+static var ARM_OUT: float = ModeData.get_value("hit_zones", "arm_out")
+static var ARM_SIDE: float = ModeData.get_value("hit_zones", "arm_side")
 ## How the 5v5 store's guns move what they hit, as enemies.gd REACTIONS has
 ## the campaign's: [shove in cells, stun seconds, flinch seconds].
 static var MORE_REACTIONS: Dictionary = HitData.section("reaction.store")
@@ -41,38 +41,24 @@ static var LIMP_TIME: float = HitData.value("zones", "limp_time", 3.0)
 static var LIMP_PACE: float = HitData.value("zones", "limp_pace", .55)
 ## What each kind holds that it can drop, as the picture of it lying there
 ## (fx_drop_<held>); the rest have nothing to drop.
-const HELD := {
-	"clone": "long",
-	"billy": "long",
-	"coot": "pistol",
-	"alien": "pistol",
-	"barker": "tool",
-	"millhand": "tool",
-	"boilerback": "long",
-	"yard_deputy": "pistol",
-	"chain_hand": "tool",
-	"valve_rat": "long",
-	"drone": "tool",
-	"pit_mechanic": "tool",
-	"flagman": "tool",
-}
-const DROP_CHANCE := .4
+static var HELD: Dictionary = ModeData.get_value("hit_zones", "held")
+static var DROP_CHANCE: float = ModeData.get_value("hit_zones", "drop_chance")
 ## Longest it goes without (it gives up looking and has it again), how long
 ## it stoops to pick it up, and its fists: damage, reach past its radius, and
 ## the time between swings.
-const DROP_TIME := 4.5
-const PICK_TIME := .45
-const PUNCH := 6
-const PUNCH_REACH := .62
-const PUNCH_TIME := 1.05
+static var DROP_TIME: float = ModeData.get_value("hit_zones", "drop_time")
+static var PICK_TIME: float = ModeData.get_value("hit_zones", "pick_time")
+static var PUNCH: int = ModeData.get_value("hit_zones", "punch")
+static var PUNCH_REACH: float = ModeData.get_value("hit_zones", "punch_reach")
+static var PUNCH_TIME: float = ModeData.get_value("hit_zones", "punch_time")
 ## How far a wind-up's mark is thrown aside by an arm hit, in cells.
-const AIM_THROW := 1.3
+static var AIM_THROW: float = ModeData.get_value("hit_zones", "aim_throw")
 ## One instant's damage that reels it further each step: [damage, stumble back
 ## in cells, flinch seconds, stun seconds].
-const REEL := [[12.0, .04, .2, 0.0], [30.0, .09, .32, 0.0], [60.0, .15, .46, .22]]
+static var REEL: Array = ModeData.get_value("hit_zones", "reel")
 ## Shells of tin and steel: a hit sparks and clanks instead of bleeding. The
 ## boilerback only on the boiler on his back.
-const METAL := ["tin_guard", "drone", "saucer", "probe"]
+static var METAL: Array = ModeData.get_value("hit_zones", "metal")
 
 
 ## Whether it has a head and limbs to hit (the county's hands, the greys).

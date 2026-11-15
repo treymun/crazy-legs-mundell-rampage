@@ -10,13 +10,11 @@ class_name ShipAliens
 extends RefCounted
 
 ## Hits a tailgate does not stop: blasts, swings, rolled and thrown things.
-const SHIELD_PASSES := [
-	"crowbar", "slingblade", "bowling", "pressure_gun", "blade", "ripsaw", "keg", "cow", "tnt"
-]
+static var SHIELD_PASSES: Array = BossData.get_value("ship_aliens", "shield_passes")
 ## How much of a hit gets past the tailgate, and how far round from its front
 ## (radians either side) a shot has to come from to meet it.
-const SHIELD_SOAK := .3
-const SHIELD_ARC := 1.1
+static var SHIELD_SOAK: float = BossData.get_value("ship_aliens", "shield_soak")
+static var SHIELD_ARC: float = BossData.get_value("ship_aliens", "shield_arc")
 ## Maw's second look: the housecoat gone, a third of her health left.
 const BARE_AT := 1.0 / 3.0
 

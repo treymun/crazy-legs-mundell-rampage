@@ -15,12 +15,12 @@
 ##                gun turned on the player straight off, no wind-up.
 extends BossMoves
 
-const DYNAMITE_WINDUP := 1.05
-const DYNAMITE_RADIUS := 1.6
+static var DYNAMITE_WINDUP: float = BossData.get_value("swamp_king", "dynamite_windup")
+static var DYNAMITE_RADIUS: float = BossData.get_value("swamp_king", "dynamite_radius")
 ## How far off his heading a shot must come from to strike the engine cage.
-const BEHIND := 2.0
-const WEAK := 2.0
-const PACE := [1.3, 1.0, .92, .84]
+static var BEHIND: float = BossData.get_value("swamp_king", "behind")
+static var WEAK: float = BossData.get_value("swamp_king", "weak")
+static var PACE: Array = BossData.get_value("swamp_king", "pace")
 
 
 func stagger_hit(_e: Enemy) -> float:

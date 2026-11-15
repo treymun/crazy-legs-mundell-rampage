@@ -14,8 +14,8 @@
 ##                player stood when it first landed (features/mothership.gd).
 extends BossMoves
 
-const CURLERS := 2.0
-const GIRDLE := 1.6
+static var CURLERS: float = BossData.get_value("maw", "curlers")
+static var GIRDLE: float = BossData.get_value("maw", "girdle")
 
 
 func phase_changed(e: Enemy, game, phase: int) -> void:

@@ -16,17 +16,17 @@
 ##               of bolts every way at once, a gap to slip through.
 extends "res://src/bosses/arena_moves.gd"
 
-const BACK := 1.95
-const PACK := 2.0
-const SHOULDER := 1.5
-const VENT := 1.4
-const VENT_EVERY := 3
-const STRIKE_EVERY := 5.2
-const STRIKE_CALL := .55
-const STRIKE_WARN := 1.15
-const STRIKES := 5
-const RING_EVERY := 4
-const RING_SHOTS := 14
+static var BACK: float = BossData.get_value("sheriff", "back")
+static var PACK: float = BossData.get_value("sheriff", "pack")
+static var SHOULDER: float = BossData.get_value("sheriff", "shoulder")
+static var VENT: float = BossData.get_value("sheriff", "vent")
+static var VENT_EVERY: int = BossData.get_value("sheriff", "vent_every")
+static var STRIKE_EVERY: float = BossData.get_value("sheriff", "strike_every")
+static var STRIKE_CALL: float = BossData.get_value("sheriff", "strike_call")
+static var STRIKE_WARN: float = BossData.get_value("sheriff", "strike_warn")
+static var STRIKES: int = BossData.get_value("sheriff", "strikes")
+static var RING_EVERY: int = BossData.get_value("sheriff", "ring_every")
+static var RING_SHOTS: int = BossData.get_value("sheriff", "ring_shots")
 
 
 func fight_start(e: Enemy, _game) -> void:

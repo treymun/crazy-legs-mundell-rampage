@@ -26,32 +26,23 @@
 extends GameFeature
 
 ## Real seconds of slow motion as a boss falls (game.SLOWMO_PACE is how slow).
-const SLOWMO := 1.0
+static var SLOWMO: float = BossData.get_value("boss_fight", "slowmo")
 ## How many come at each phase change, EASY .. HOG WILD, and how far off the
 ## player's facing (radians) a spot in plain view must be to count as unseen.
 static var BACKUP: Array = Difficulty.table("bosses", "backup")
-const BEHIND := 1.25
+static var BEHIND: float = BossData.get_value("boss_fight", "behind")
 ## The fewest and most pickups in a fallen boss's shower.
-const LOOT := [4, 6]
-const LOOT_FALLBACK := ["bullets", "shells", "rinds"]
+static var LOOT: Array = BossData.get_value("boss_fight", "loot")
+static var LOOT_FALLBACK: Array = BossData.get_value("boss_fight", "loot_fallback")
 ## Warning marks round a ring, and how wide it starts and ends.
-const RING_DOTS := 16
-const RING_WIDE := 1.7
-const RING_TIGHT := .5
+static var RING_DOTS: int = BossData.get_value("boss_fight", "ring_dots")
+static var RING_WIDE: float = BossData.get_value("boss_fight", "ring_wide")
+static var RING_TIGHT: float = BossData.get_value("boss_fight", "ring_tight")
 ## Bosses whose own marks are their warning.
-const NO_RING := ["derby_champ", "maw", "foreman"]
+static var NO_RING: Array = BossData.get_value("boss_fight", "no_ring")
 ## Names for the tally where a chapter has two.
-const SHORT := {
-	"boss": "SHERIFF",
-	"jerry": "JERRY",
-	"rudy": "RUDY",
-	"foreman": "FOREMAN",
-	"baron": "BARON",
-	"swamp_king": "SWAMP KING",
-	"derby_champ": "BOGGS",
-	"maw": "MAW",
-}
-const SPECK_CAP := 200
+static var SHORT: Dictionary = BossData.get_value("boss_fight", "short")
+static var SPECK_CAP: int = BossData.get_value("boss_fight", "speck_cap")
 
 ## The level's bosses.
 var bosses: Array = []

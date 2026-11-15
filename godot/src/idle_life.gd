@@ -14,69 +14,12 @@ extends RefCounted
 
 ## Activity -> pieces of the names of things that start it. Earlier rows win
 ## a tie at the same distance.
-const BY_THINGS := [
-	["probing", ["cow_tube", "specimen", "alien_console", "alien_crate", "saucer"]],
-	["watching", ["tv"]],
-	["cards", ["picnic_table", "boil_table", "table", "trophy"]],
-	[
-		"drinking",
-		[
-			"jug",
-			"mash_barrel",
-			"cooler",
-			"ice_chest",
-			"still",
-			"bottles",
-			"cancan",
-			"cans",
-			"jukebox",
-			"backstock",
-			"vending",
-			"copper_vat",
-			"soda"
-		]
-	],
-	["napping", ["porch_couch", "rocker", "bunk", "bathtub", "laundry", "couch"]],
-	["chopping", ["log_pile", "axe_stump", "lumber", "saw_blade", "pallet"]],
-	["feeding", ["hay", "feed", "giant_hog", "coop", "trough"]],
-	[
-		"tinkering",
-		[
-			"wreck",
-			"pickup_truck",
-			"engine",
-			"tool_chest",
-			"derby",
-			"stock_car",
-			"monster_truck",
-			"dump_truck",
-			"forklift",
-			"outboard",
-			"tire",
-			"nitro_rack",
-			"generator",
-			"mine_cart"
-		]
-	],
-	["fishing", ["crawfish", "net_rack", "gator_hide", "cypress", "reeds"]],
-	["smoking", ["lamp", "lantern", "gas_cans", "propane", "utilitypole", "pump"]],
-]
+static var BY_THINGS: Array = ModeData.get_value("idle_life", "by_things")
 ## How far from its place a thing may stand and still set the activity.
-const REACH := 2.6
+static var REACH: float = ModeData.get_value("idle_life", "reach")
 ## How much of its usual notice range a hand busy at each keeps (EASY; the
 ## harder the difficulty the nearer to all of it).
-const NOTICE := {
-	"napping": .45,
-	"watching": .65,
-	"cards": .7,
-	"tinkering": .7,
-	"probing": .7,
-	"drinking": .75,
-	"fishing": .75,
-	"chopping": .8,
-	"feeding": .85,
-	"smoking": .9,
-}
+static var NOTICE: Dictionary = ModeData.get_value("idle_life", "notice")
 
 
 ## Everything in the level an activity can be about: [name, place].

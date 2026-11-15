@@ -23,34 +23,32 @@
 ## pulses are a moment's. Looks spark off boss_fight's dice, never the game's rng.
 extends GameFeature
 
-const BOSSES := {
-	"quarry": "baron", "bayou": "swamp_king", "speedway": "derby_champ", "mothership": "maw"
-}
+static var BOSSES: Dictionary = BossData.get_value("boss_arenas", "bosses")
 ## Burst pipes: seconds a cycle, then how long each part of it lasts.
-const JET_CYCLE := 4.6
-const JET_WARN := .95
-const JET_LIVE := 1.35
-const JET_HURT := 12
-const JET_SCALD := 26.0
+static var JET_CYCLE: float = BossData.get_value("boss_arenas", "jet_cycle")
+static var JET_WARN: float = BossData.get_value("boss_arenas", "jet_warn")
+static var JET_LIVE: float = BossData.get_value("boss_arenas", "jet_live")
+static var JET_HURT: int = BossData.get_value("boss_arenas", "jet_hurt")
+static var JET_SCALD: float = BossData.get_value("boss_arenas", "jet_scald")
 ## The baron's own outlets on him: how much one blowing under him takes off.
-const OUTLET_SCALD := 30.0
+static var OUTLET_SCALD: float = BossData.get_value("boss_arenas", "outlet_scald")
 ## Burning slicks: how often one drops behind the boat, how long it takes to
 ## catch, how long it burns, how wide, what it does a touch.
-const SLICK_EVERY := .55
-const SLICK_CATCH := .6
-const SLICK_LIFE := 6.5
-const SLICK_R := .85
-const SLICK_HURT := 7
-const SLICK_BURN := 12.0
-const SLICKS_MAX := 16
+static var SLICK_EVERY: float = BossData.get_value("boss_arenas", "slick_every")
+static var SLICK_CATCH: float = BossData.get_value("boss_arenas", "slick_catch")
+static var SLICK_LIFE: float = BossData.get_value("boss_arenas", "slick_life")
+static var SLICK_R: float = BossData.get_value("boss_arenas", "slick_r")
+static var SLICK_HURT: int = BossData.get_value("boss_arenas", "slick_hurt")
+static var SLICK_BURN: float = BossData.get_value("boss_arenas", "slick_burn")
+static var SLICKS_MAX: int = BossData.get_value("boss_arenas", "slicks_max")
 ## The core's pulses: seconds between, the warning before, how fast it rolls.
-const PULSE_EVERY := [4.2, 3.6, 3.2, 2.7]
-const PULSE_WARN := .85
-const PULSE_SPEED := 4.6
-const PULSE_HURT := 13
-const PULSE_BURN := 40.0
+static var PULSE_EVERY: Array = BossData.get_value("boss_arenas", "pulse_every")
+static var PULSE_WARN: float = BossData.get_value("boss_arenas", "pulse_warn")
+static var PULSE_SPEED: float = BossData.get_value("boss_arenas", "pulse_speed")
+static var PULSE_HURT: int = BossData.get_value("boss_arenas", "pulse_hurt")
+static var PULSE_BURN: float = BossData.get_value("boss_arenas", "pulse_burn")
 ## Floodlights: seconds between one blowing and the next.
-const FLOOD_GAP := .45
+static var FLOOD_GAP: float = BossData.get_value("boss_arenas", "flood_gap")
 
 var level_id := ""
 var boss: Enemy = null

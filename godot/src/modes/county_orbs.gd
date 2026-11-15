@@ -12,15 +12,15 @@ class_name CountyOrbs
 extends RefCounted
 
 ## Value at or past which an XP cap is silver, then gold.
-const SILVER := 4
-const GOLD := 12
+static var SILVER: int = ModeData.get_value("county_orbs", "silver")
+static var GOLD: int = ModeData.get_value("county_orbs", "gold")
 ## How high above the player's feet (or below) a pile can be and still count
 ## as on their floor.
-const SAME_FLOOR := .62
+static var SAME_FLOOR: float = ModeData.get_value("county_orbs", "same_floor")
 ## Seconds a supply lies before it goes.
-const SUPPLY_LIFE := 60.0
+static var SUPPLY_LIFE: float = ModeData.get_value("county_orbs", "supply_life")
 ## Seconds a "+N" rises for.
-const POP := .7
+static var POP: float = ModeData.get_value("county_orbs", "pop")
 
 
 static func xp_for(_game, _f, e: Enemy) -> int:

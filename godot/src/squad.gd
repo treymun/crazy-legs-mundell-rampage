@@ -26,24 +26,12 @@ static var SEARCH: Array = Difficulty.table("hands", "search")
 ## The stun of a hand hit from behind while it noticed nothing, by difficulty.
 static var SNEAK_STUN: Array = Difficulty.table("hands", "sneak_stun")
 ## How far round the player (radians) a flanker swings before it closes in.
-const FLANK_SWING := 1.4
+static var FLANK_SWING: float = ModeData.get_value("squad", "flank_swing")
 ## Seconds between one bark of a moment and the next (any hand), and between
 ## any two barks at all.
-const MOMENT_GAP := {
-	"spot": 1.6,
-	"lost": 5.0,
-	"search": 6.0,
-	"help": 4.0,
-	"flank": 5.0,
-	"cover": 4.0,
-	"brawl": 5.0,
-	"idle": 7.0,
-	"surprised": 1.5,
-	"hurt_bad": 3.0,
-	"regroup": 8.0,
-}
-const ANY_GAP := .7
-const OWN_GAP := 3.5
+static var MOMENT_GAP: Dictionary = ModeData.get_value("squad", "moment_gap")
+static var ANY_GAP: float = ModeData.get_value("squad", "any_gap")
+static var OWN_GAP: float = ModeData.get_value("squad", "own_gap")
 
 
 class Mind:

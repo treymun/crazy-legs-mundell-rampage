@@ -7,7 +7,7 @@ const DATA := "res://data/tuning/modes.cfg"
 
 
 ## [section] key, or `fallback` (with an error) when the file lacks it.
-static func get_value(section: String, key: String, fallback: Variant) -> Variant:
+static func get_value(section: String, key: String, fallback: Variant = null) -> Variant:
 	var cfg := Tuning.file(DATA)
 	if not cfg.has_section_key(section, key):
 		push_error("%s: no [%s] %s" % [DATA, section, key])

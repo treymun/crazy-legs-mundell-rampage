@@ -11,12 +11,12 @@
 ## moment's tactics, and the activities come from the level again on load.
 extends GameFeature
 
-const SQUAD_STEP := .4
+static var SQUAD_STEP: float = ModeData.get_value("squad_feature", "squad_step")
 ## How far out a shot is heard, as a share of the gun's own noise (the hands
 ## that can see it are woken by Weapons as before), by difficulty.
 static var HEARING: Array = Difficulty.table("hands", "hearing")
 ## A squad: the alerted hands within this of the player.
-const NEAR := 18.0
+static var NEAR: float = ModeData.get_value("squad_feature", "near")
 ## Flankers out at once; the chance one is sent at a step and the wait
 ## after; pressing in likewise; a throw's wait; by difficulty.
 static var FLANKERS: Array = Difficulty.table("hands", "flankers")
@@ -26,8 +26,8 @@ static var PRESS_CHANCE: Array = Difficulty.table("hands", "press_chance")
 static var PRESS_WAIT: Array = Difficulty.table("hands", "press_wait")
 static var FLUSH_WAIT: Array = Difficulty.table("hands", "flush_wait")
 ## Seconds unseen before a throw flushes the player, and its wind-up.
-const GONE_TO_GROUND := 2.5
-const FLUSH_WINDUP := .85
+static var GONE_TO_GROUND: float = ModeData.get_value("squad_feature", "gone_to_ground")
+static var FLUSH_WINDUP: float = ModeData.get_value("squad_feature", "flush_windup")
 
 var started := false
 var next_step := 0.0

@@ -12,7 +12,7 @@ class_name CountySpawner
 extends RefCounted
 
 ## How many open spots are tried for one spawn.
-const TRIES := 28
+static var TRIES: int = ModeData.get_value("county_spawner", "tries")
 ## Spots worked out at the start, kept here per level (the cells don't move),
 ## and every cell the player's start walks to (cell -> true).
 static var _spots := {}

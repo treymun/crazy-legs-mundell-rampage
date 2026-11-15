@@ -11,13 +11,13 @@ class_name CountyMoves
 extends RefCounted
 
 ## A varmint this tough or tougher counts for HEAVY HAND and CALLED SHOT.
-const TOUGH := 90.0
+static var TOUGH: float = ModeData.get_value("county_moves", "tough")
 ## Seconds after a crowd thins that BREAKAWAY still counts it as escaped.
-const ESCAPE := 2.5
+static var ESCAPE: float = ModeData.get_value("county_moves", "escape")
 ## How long MUDSLIDE slides.
-const SLIDE := .26
+static var SLIDE: float = ModeData.get_value("county_moves", "slide")
 ## The blast CHAIN REACTION sets off (shots.cfg [county_chain]).
-const CHAIN := "county_chain"
+static var CHAIN: String = ModeData.get_value("county_moves", "chain")
 
 
 static func gun_of_shot(kind: String) -> int:

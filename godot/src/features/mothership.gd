@@ -24,78 +24,41 @@
 ## follows her health; the crew she called are the posse feature's to keep.
 extends GameFeature
 
-const LEVEL := "mothership"
+static var LEVEL: String = BossData.get_value("mothership", "level")
 const RANGE := preload("res://src/range_layout.gd")
-const BOSS := "maw"
-const TRACK := "boss_mothership"
+static var BOSS: String = BossData.get_value("mothership", "boss")
+static var TRACK: String = BossData.get_value("mothership", "track")
 ## Her picks, phase by phase, taken in turn by her attack count.
-const PATTERN := {
-	1: ["slam", "sweep", "slam", "call", "sweep", "slam", "sweep"],
-	2: ["slam", "stomp", "sweep", "call", "slam", "stomp", "sweep"],
-	3: ["stomp", "curlers", "slam", "sweep", "curlers", "call", "slam", "sweep"],
-}
-const TELLS := {
-	"slam": "ROLLIN' PIN",
-	"sweep": "HAIR DRYER",
-	"stomp": "STOMP! JUMP IT",
-	"call": "YOUNGUNS!",
-	"curlers": "HOT CURLERS!",
-}
-const PHASE_LINES := ["", "", "HOUSECOAT'S ON FIRE", "OUT OF THE HOUSECOAT"]
+static var PATTERN: Dictionary = BossData.get_value("mothership", "pattern")
+static var TELLS: Dictionary = BossData.get_value("mothership", "tells")
+static var PHASE_LINES: Array = BossData.get_value("mothership", "phase_lines")
 ## Seconds of wind-up for each attack (then scaled by PACE and the phase) and
 ## of cooldown after it.
-const WINDUP := {"slam": 1.05, "sweep": .85, "stomp": 1.0, "call": .9, "curlers": .95}
-const COOLDOWN := {"slam": 1.5, "sweep": 1.35, "stomp": 1.6, "call": 1.9, "curlers": 1.6}
+static var WINDUP: Dictionary = BossData.get_value("mothership", "windup")
+static var COOLDOWN: Dictionary = BossData.get_value("mothership", "cooldown")
 ## Her hot curlers: how many, how far round the player, how wide each lands;
 ## HOG WILD's second pin: how long after the first.
-const CURLER_COUNT := 5
-const CURLER_SPREAD := 2.1
-const CURLER_R := 1.0
-const PIN_AGAIN := .6
+static var CURLER_COUNT: int = BossData.get_value("mothership", "curler_count")
+static var CURLER_SPREAD: float = BossData.get_value("mothership", "curler_spread")
+static var CURLER_R: float = BossData.get_value("mothership", "curler_r")
+static var PIN_AGAIN: float = BossData.get_value("mothership", "pin_again")
 ## By DIFFICULTY, EASY .. HOG WILD: wind-ups and cooldowns stretched or cut,
 ## how hard she hits, the most pod crew up at once, beams loose in phases 2, 3.
-const PACE := [1.35, 1.0, .9, .8]
-const HARM := [.45, .66, .9, 1.2]
-const CREW_CAP := [2, 3, 4, 5]
-const BEAMS := [[1, 1], [1, 2], [2, 2], [2, 3]]
+static var PACE: Array = BossData.get_value("mothership", "pace")
+static var HARM: Array = BossData.get_value("mothership", "harm")
+static var CREW_CAP: Array = BossData.get_value("mothership", "crew_cap")
+static var BEAMS: Array = BossData.get_value("mothership", "beams")
 ## Who each phase calls up from the pods.
-const CALLS := {1: ["drone", "drone"], 2: ["drone", "probe"], 3: ["tin_guard", "drone"]}
-const CREW := ["drone", "probe", "tin_guard"]
-const SLAM_REACH := [2.1, 2.1, 2.6]
-const RING_SPEED := 5.2
-const BEAM_REACH := 1.3
+static var CALLS: Dictionary = BossData.get_value("mothership", "calls")
+static var CREW: Array = BossData.get_value("mothership", "crew")
+static var SLAM_REACH: Array = BossData.get_value("mothership", "slam_reach")
+static var RING_SPEED: float = BossData.get_value("mothership", "ring_speed")
+static var BEAM_REACH: float = BossData.get_value("mothership", "beam_reach")
 ## Boards that throw coloured light: image -> [r, g, b, radius, strength].
-const LIGHTS := {
-	"ship_glyphs_a": [.45, 1.0, .6, 3.2, .7],
-	"ship_glyphs_b": [1.0, .75, .4, 3.2, .6],
-	"town_cow_tube": [.4, 1.0, .6, 3.2, .85],
-	"town_ship_engine": [.5, 1.0, .55, 6.5, 1.5],
-	"town_pod": [.45, 1.0, .65, 2.8, .65],
-	"town_corn_tray": [.8, .45, 1.0, 3.8, .9],
-	"town_jukebox_rig": [1.0, .5, .8, 3.8, .9],
-	"town_alien_console": [.5, .9, 1.0, 2.8, .6],
-	"town_beam_emitter": [.6, 1.0, .8, 7.0, 1.3],
-	"town_specimen_jar": [.4, 1.0, .6, 2.2, .5],
-}
+static var LIGHTS: Dictionary = BossData.get_value("mothership", "lights")
 ## The chapter's own sounds once made (docs/new_chapters/mothership_audio.md),
 ## and what stands in for each till then.
-const CUES := {
-	"slam_warn": ["maw_pin_raise", "foreman_warn"],
-	"slam": ["maw_pin_slam", "explosion"],
-	"sweep_warn": ["maw_dryer_whine", "sheriff_siren"],
-	"sweep": ["maw_dryer_blast", "sheriff_shot"],
-	"stomp_warn": ["maw_stomp_warn", "baron_warn"],
-	"stomp": ["maw_stomp", "distant_quarry_blast"],
-	"call_warn": ["maw_holler", "sheriff_spot"],
-	"call": ["pod_open", "secret_slide"],
-	"rage": ["maw_rage", "sheriff_rage"],
-	"bare": ["maw_bare", "baron_rage"],
-	"death": ["maw_death", "sheriff_death"],
-	"intro": ["maw_intro", "shakedown_intro"],
-	"end": ["maw_end", "shakedown_end"],
-	"beam": ["beam_hum", "arm_ready"],
-	"quake": ["ship_quake", "distant_quarry_blast"],
-}
+static var CUES: Dictionary = BossData.get_value("mothership", "cues")
 
 var maw: Enemy = null
 var center := Vector2.ZERO

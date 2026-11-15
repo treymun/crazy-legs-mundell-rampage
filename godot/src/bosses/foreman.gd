@@ -15,15 +15,15 @@
 ##               it goes up when it meets someone or a wall (shoot it first).
 extends "res://src/bosses/arena_moves.gd"
 
-const RIG := 2.0
-const SIDE_RIG := 1.4
-const CARRIAGE := [9.0, 9.0, 6.5, 4.0]
-const CUT_EVERY := 5.0
-const CUT_WARN := .95
-const CUT_FAN := [-.42, -.21, 0.0, .21, .42]
-const CUT_BOUNCES := 2
-const DRUM_EVERY := 3
-const DRUM_SPEED := 5.8
+static var RIG: float = BossData.get_value("foreman", "rig")
+static var SIDE_RIG: float = BossData.get_value("foreman", "side_rig")
+static var CARRIAGE: Array = BossData.get_value("foreman", "carriage")
+static var CUT_EVERY: float = BossData.get_value("foreman", "cut_every")
+static var CUT_WARN: float = BossData.get_value("foreman", "cut_warn")
+static var CUT_FAN: Array = BossData.get_value("foreman", "cut_fan")
+static var CUT_BOUNCES: int = BossData.get_value("foreman", "cut_bounces")
+static var DRUM_EVERY: int = BossData.get_value("foreman", "drum_every")
+static var DRUM_SPEED: float = BossData.get_value("foreman", "drum_speed")
 
 
 func fight_start(e: Enemy, game) -> void:

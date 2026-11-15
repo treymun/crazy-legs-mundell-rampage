@@ -7,7 +7,7 @@ extends BossMoves
 
 ## How much longer it shrugs off another stagger once it is plum desperate:
 ## the last of its health goes at the player, not on its heels.
-const DESPERATE_REST := 1.7
+static var DESPERATE_REST: float = BossData.get_value("arena_moves", "desperate_rest")
 
 
 func stagger_rest(e: Enemy) -> float:
@@ -16,7 +16,7 @@ func stagger_rest(e: Enemy) -> float:
 
 ## Plum desperate, it hunkers down: a gun's hit anywhere but its weak spot
 ## counts DESPERATE_GUARD (blasts, fire and its own hazards count whole).
-const DESPERATE_GUARD := .7
+static var DESPERATE_GUARD: float = BossData.get_value("arena_moves", "desperate_guard")
 
 
 func guarded(e: Enemy, times: float) -> float:

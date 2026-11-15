@@ -17,16 +17,16 @@
 class_name BaronMoves
 extends BossMoves
 
-const RAIN_WINDUP := 1.15
-const RAIN_DAMAGE := 16
-const RAIN_RADIUS := .85
+static var RAIN_WINDUP: float = BossData.get_value("baron", "rain_windup")
+static var RAIN_DAMAGE: int = BossData.get_value("baron", "rain_damage")
+static var RAIN_RADIUS: float = BossData.get_value("baron", "rain_radius")
 ## How far off his facing a shot must come from to strike the boiler on his back.
-const BEHIND := 1.95
-const WEAK := 2.0
+static var BEHIND: float = BossData.get_value("baron", "behind")
+static var WEAK: float = BossData.get_value("baron", "weak")
 ## Wind-ups and the rain's pace by difficulty, EASY .. HOG WILD.
-const PACE := [1.3, 1.0, .92, .84]
+static var PACE: Array = BossData.get_value("baron", "pace")
 ## His cooldown after an attack, by phase, of what the brain gives.
-const COOLDOWN := [.75, .65, .6]
+static var COOLDOWN: Array = BossData.get_value("baron", "cooldown")
 
 
 ## Whether his next attack (after `done` attacks) is the outlets rather than

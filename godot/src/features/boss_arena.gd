@@ -25,30 +25,30 @@
 ## game's rng; looks use `dice`.
 extends GameFeature
 
-const KINDS := ["boss", "jerry", "rudy", "foreman"]
+static var KINDS: Array = BossData.get_value("boss_arena", "kinds")
 ## Fire: how often it bites, how hard (player, a hand or boss), the most patches.
-const FIRE_BITE := .5
-const FIRE_PLAYER := 6.0
-const FIRE_FOE := 16.0
-const FIRES_MAX := 26
+static var FIRE_BITE: float = BossData.get_value("boss_arena", "fire_bite")
+static var FIRE_PLAYER: float = BossData.get_value("boss_arena", "fire_player")
+static var FIRE_FOE: float = BossData.get_value("boss_arena", "fire_foe")
+static var FIRES_MAX: int = BossData.get_value("boss_arena", "fires_max")
 ## A boss's shot meeting something breakable: how hard it strikes it.
-const SHOT_BREAK := 30.0
-const BOSS_SHOTS := ["plasma", "football", "rudy_horn", "foreman_cut"]
+static var SHOT_BREAK: float = BossData.get_value("boss_arena", "shot_break")
+static var BOSS_SHOTS: Array = BossData.get_value("boss_arena", "boss_shots")
 ## The carriage: how fast it runs, how wide it is, what it does.
-const CARRIAGE_SPEED := 7.5
-const CARRIAGE_WARN := 1.4
-const CARRIAGE_HALF := .75
-const CARRIAGE_PLAYER := 28.0
-const CARRIAGE_FOE := 110.0
-const ROLL_FEEL_TIRE := [.32, .55, .3, .55]
+static var CARRIAGE_SPEED: float = BossData.get_value("boss_arena", "carriage_speed")
+static var CARRIAGE_WARN: float = BossData.get_value("boss_arena", "carriage_warn")
+static var CARRIAGE_HALF: float = BossData.get_value("boss_arena", "carriage_half")
+static var CARRIAGE_PLAYER: float = BossData.get_value("boss_arena", "carriage_player")
+static var CARRIAGE_FOE: float = BossData.get_value("boss_arena", "carriage_foe")
+static var ROLL_FEEL_TIRE: Array = BossData.get_value("boss_arena", "roll_feel_tire")
 ## A floodlight's pool: how far out in front of its tower, how high, how wide,
 ## its colour and strength, and how near the player it must stand to count.
-const FLOOD_OUT := 3.0
-const FLOOD_HIGH := 3.2
-const FLOOD_REACH := 8.0
+static var FLOOD_OUT: float = BossData.get_value("boss_arena", "flood_out")
+static var FLOOD_HIGH: float = BossData.get_value("boss_arena", "flood_high")
+static var FLOOD_REACH: float = BossData.get_value("boss_arena", "flood_reach")
 const FLOOD_COLOUR := Color(1, .93, .78)
-const FLOOD_STRENGTH := .85
-const FLOOD_SEEN := 20.0
+static var FLOOD_STRENGTH: float = BossData.get_value("boss_arena", "flood_strength")
+static var FLOOD_SEEN: float = BossData.get_value("boss_arena", "flood_seen")
 
 
 class Fire:

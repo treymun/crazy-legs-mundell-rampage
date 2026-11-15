@@ -16,14 +16,14 @@
 ##               shoot them down.
 extends "res://src/bosses/arena_moves.gd"
 
-const DRUM := 1.75
-const HORNS := 2.25
-const STACK_MAD := 7.0
-const STACK_DESPERATE := 3.6
-const FINALE_EVERY := 6.5
-const FINALE_WARN := 1.1
-const FINALE_SHOTS := 16
-const BALLOONS_EVERY := 3
+static var DRUM: float = BossData.get_value("rudy", "drum")
+static var HORNS: float = BossData.get_value("rudy", "horns")
+static var STACK_MAD: float = BossData.get_value("rudy", "stack_mad")
+static var STACK_DESPERATE: float = BossData.get_value("rudy", "stack_desperate")
+static var FINALE_EVERY: float = BossData.get_value("rudy", "finale_every")
+static var FINALE_WARN: float = BossData.get_value("rudy", "finale_warn")
+static var FINALE_SHOTS: int = BossData.get_value("rudy", "finale_shots")
+static var BALLOONS_EVERY: int = BossData.get_value("rudy", "balloons_every")
 
 
 func fight_start(e: Enemy, _game) -> void:

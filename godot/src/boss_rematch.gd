@@ -16,48 +16,22 @@
 class_name BossRematch
 extends RefCounted
 
-const FILE := "boss-rematch.json"
+static var FILE: String = BossData.get_value("boss_rematch", "file")
 ## The board's order: the campaign's.
-const BOSSES := ["boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "maw"]
-const LEVEL_OF := {
-	"boss": "hickston",
-	"jerry": "hickston",
-	"rudy": "fair",
-	"foreman": "sawmill",
-	"baron": "quarry",
-	"swamp_king": "bayou",
-	"derby_champ": "speedway",
-	"maw": "mothership",
-}
+static var BOSSES: Array = BossData.get_value("boss_rematch", "bosses")
+static var LEVEL_OF: Dictionary = BossData.get_value("boss_rematch", "level_of")
 ## Seconds for a BLUE ribbon: tools/boss_rematch_check.gd -- bot's time to
 ## kill at NORMAL with the rematch's guns (the sawed-off in hand), rounded up
 ## (Maw: its god-mode time; the bot goes down with a third of her left). RED within
 ## RED_SHARE of it; any win takes WHITE. Run the bot again after a change to
 ## a boss's fight and set these from it.
-const PAR := {
-	"boss": 12.0,
-	"jerry": 12.0,
-	"rudy": 10.0,
-	"foreman": 12.0,
-	"baron": 14.0,
-	"swamp_king": 14.0,
-	"derby_champ": 12.0,
-	"maw": 24.0,
-}
-const RED_SHARE := 1.6
+static var PAR: Dictionary = BossData.get_value("boss_rematch", "par")
+static var RED_SHARE: float = BossData.get_value("boss_rematch", "red_share")
 ## The guns lying about in each chapter and those before it (the levels'
 ## weapon pickups; boss_rematch_check.gd holds this to the level files).
-const GUNS := {
-	"hickston": [0, 1, 2, 3, 4, 5, 6, 7, 8, 15],
-	"fair": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 15],
-	"sawmill": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 15],
-	"quarry": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15],
-	"bayou": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15],
-	"speedway": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15],
-	"mothership": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15],
-}
+static var GUNS: Dictionary = BossData.get_value("boss_rematch", "guns")
 ## How far from the boss the player starts, in steps of the flow field.
-const DOOR_STEPS := 10
+static var DOOR_STEPS: int = BossData.get_value("boss_rematch", "door_steps")
 ## Doors a rematch leaves shut so the player comes in by the arena's front:
 ## the Mothership's escape hatch, which opens only when Maw falls (the way in
 ## is the iris), and the derby bowl's back gate (the way in is by the flag).
@@ -66,8 +40,8 @@ const SHUT := {"derby_champ": [Vector2i(89, 56)], "maw": [Vector2i(64, 62)]}
 ## rematch; null leaves the framework's own default.
 const BACKUP = null
 ## The board on screen: its first row and each row's height.
-const TOP := 34
-const ROW := 16
+static var TOP: int = BossData.get_value("boss_rematch", "top")
+static var ROW: int = BossData.get_value("boss_rematch", "row")
 
 static var unlock_all := false
 

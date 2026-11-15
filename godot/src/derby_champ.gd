@@ -14,13 +14,13 @@
 class_name DerbyChamp
 extends RefCounted
 
-const CHARGE_SPEED := 7.6
-const MAD_SPEED := 8.8
-const CHARGE_TIME := 2.4
+static var CHARGE_SPEED: float = BossData.get_value("derby_champ", "charge_speed")
+static var MAD_SPEED: float = BossData.get_value("derby_champ", "mad_speed")
+static var CHARGE_TIME: float = BossData.get_value("derby_champ", "charge_time")
 ## The last part of the windup the lane is locked for (the dodge window).
-const LOCK := .3
-const RAM_DAMAGE := 30
-const MAD_RAM_DAMAGE := 36
+static var LOCK: float = BossData.get_value("derby_champ", "lock")
+static var RAM_DAMAGE: int = BossData.get_value("derby_champ", "ram_damage")
+static var MAD_RAM_DAMAGE: int = BossData.get_value("derby_champ", "mad_ram_damage")
 
 ## Per champion: what he is doing ("roam", "aim", "charge", "stall", "spit"),
 ## the lane he locked, how long the charge has left, whether it hit the

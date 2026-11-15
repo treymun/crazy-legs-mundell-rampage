@@ -16,13 +16,13 @@
 class_name BayouBrains
 extends RefCounted
 
-const SKY := "bayou_sky"
+static var SKY: String = BossData.get_value("bayou_brains", "sky")
 ## How far an airboat run goes, how fast, and what it does to the player.
-const RUN_LENGTH := 12.0
-const RUN_SPEED := 8.4
-const RUN_DAMAGE := 22
+static var RUN_LENGTH: float = BossData.get_value("bayou_brains", "run_length")
+static var RUN_SPEED: float = BossData.get_value("bayou_brains", "run_speed")
+static var RUN_DAMAGE: int = BossData.get_value("bayou_brains", "run_damage")
 ## How far from where it started the king's boat will go before it turns back.
-const LEASH := 12.5
+static var LEASH: float = BossData.get_value("bayou_brains", "leash")
 
 
 static func is_king(e: Enemy) -> bool:
