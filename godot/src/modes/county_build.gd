@@ -6,6 +6,8 @@
 class_name CountyBuild
 extends RefCounted
 
+const CountyRun := preload("res://src/features/county_run.gd")
+
 ## How the spare slots of an ordinary level up are drawn: weights of an
 ## upgrade for another carried gun, a new weapon and a perk.
 static var WEIGHTS: Dictionary = ModeData.get_value("county_cards", "weights", {})
@@ -19,48 +21,57 @@ static func key(gun: int, id: String) -> String:
 	return "%s/%s" % [Weapons.NAMES[gun], id]
 
 
-static func rank(f, gun: int, id: String) -> int:
-	return int(f.ranks.get(key(gun, id), 0)) if gun >= 0 else 0
+static func rank(f: CountyRun, gun: int, id: String) -> int:
+	if gun < 0:
+		return 0
+	var r: int = f.ranks.get(key(gun, id), 0)
+	return r
 
 
-static func perk_rank(f, id: String) -> int:
-	return int(f.ranks.get("perk/" + id, 0))
+static func perk_rank(f: CountyRun, id: String) -> int:
+	var r: int = f.ranks.get("perk/" + id, 0)
+	return r
 
 
-static func has(f, milestone: String) -> bool:
-	return int(f.ranks.get("m/" + milestone, 0)) > 0
+static func has(f: CountyRun, milestone: String) -> bool:
+	var r: int = f.ranks.get("m/" + milestone, 0)
+	return r > 0
 
 
-static func milestone_rank(f, milestone: String) -> int:
-	return int(f.ranks.get("m/" + milestone, 0))
+static func milestone_rank(f: CountyRun, milestone: String) -> int:
+	var r: int = f.ranks.get("m/" + milestone, 0)
+	return r
 
 
-static func carried(f) -> Array:
+static func carried(f: CountyRun) -> Array:
 	var out: Array = []
-	for gun in f.slots:
-		if int(gun) >= 0:
-			out.append(int(gun))
+	for slot: Variant in f.slots:
+		var gun: int = slot
+		if gun >= 0:
+			out.append(gun)
 	return out
 
 
-static func carries_kind(f, kind: String) -> bool:
+static func carries_kind(f: CountyRun, kind: String) -> bool:
 	for gun: int in carried(f):
 		if CountyData.kind_of(gun) == kind:
 			return true
 	return false
 
 
-static func open_slot(f) -> int:
+static func open_slot(f: CountyRun) -> int:
 	return f.slots.find(-1)
 
 
 ## The value of upgrade `id` on `gun` at the rank held (0 none).
-static func value(f, gun: int, id: String) -> float:
-	return float(CountyData.upgrade(id).get("per", 0.0)) * rank(f, gun, id)
+static func value(f: CountyRun, gun: int, id: String) -> float:
+	var per: float = CountyData.upgrade(id).get("per", 0.0)
+	return per * rank(f, gun, id)
 
 
-static func perk_value(f, id: String) -> float:
-	return float(CountyData.perk(id).get("per", 0.0)) * perk_rank(f, id)
+static func perk_value(f: CountyRun, id: String) -> float:
+	var per: float = CountyData.perk(id).get("per", 0.0)
+	return per * perk_rank(f, id)
 
 
 # ------------------------------------------------------------- gun numbers
@@ -68,47 +79,48 @@ static func perk_value(f, id: String) -> float:
 
 ## Damage times this for a hit of `gun` (HOT LOADS; the streaks are
 ## CountyMoves').
-static func damage_scale(f, gun: int) -> float:
+static func damage_scale(f: CountyRun, gun: int) -> float:
 	return 1.0 + value(f, gun, "hot_loads")
 
 
 ## A reload takes this share of its time (QUICK HANDS, SLAM LOAD, BREAKAWAY).
-static func reload_scale(f, gun: int, burst: bool) -> float:
+static func reload_scale(f: CountyRun, gun: int, burst: bool) -> float:
 	var share := 1.0 - value(f, gun, "quick_hands") - value(f, gun, "slam_load")
 	if burst:
-		share *= 1.0 - float(CountyData.milestone("breakaway").get("reload", .5))
+		var reload: float = CountyData.milestone("breakaway").get("reload", .5)
+		share *= 1.0 - reload
 	return maxf(.25, share)
 
 
 ## The time between shots times this (FAST HANDS, LAST STAND's swings).
-static func fire_scale(f, gun: int, guarded: bool) -> float:
+static func fire_scale(f: CountyRun, gun: int, guarded: bool) -> float:
 	var share := 1.0 / (1.0 + value(f, gun, "fast_hands"))
 	if guarded and CountyData.kind_of(gun) == CountyData.MELEE:
-		share *= 1.0 - float(CountyData.milestone("last_stand").get("swing", .4))
+		var swing: float = CountyData.milestone("last_stand").get("swing", .4)
+		share *= 1.0 - swing
 	return share
 
 
 ## A hitscan or pellet shot's spread times this (TIGHT CHOKE, EXTRA BUCK).
-static func spread_scale(f, gun: int) -> float:
+static func spread_scale(f: CountyRun, gun: int) -> float:
 	var choke := value(f, gun, "tight_choke")
-	var buck := (
-		float(CountyData.upgrade("extra_buck").get("spread", 0.0)) * rank(f, gun, "extra_buck")
-	)
+	var buck_spread: float = CountyData.upgrade("extra_buck").get("spread", 0.0)
+	var buck := buck_spread * rank(f, gun, "extra_buck")
 	return maxf(.3, (1.0 - choke) * (1.0 + buck))
 
 
-static func extra_pellets(f, gun: int) -> int:
+static func extra_pellets(f: CountyRun, gun: int) -> int:
 	return roundi(value(f, gun, "extra_buck"))
 
 
 ## A melee swing's reach times this (LONG REACH).
-static func reach_scale(f, gun: int) -> float:
+static func reach_scale(f: CountyRun, gun: int) -> float:
 	return 1.0 + value(f, gun, "long_reach")
 
 
 ## The most rounds `gun` carries (DEEP POCKETS, the rifle's FIELD MAGAZINE).
-static func reserve_cap(f, gun: int) -> int:
-	var most := float(Weapons.MAX_RESERVE[gun])
+static func reserve_cap(f: CountyRun, gun: int) -> int:
+	var most: float = Weapons.MAX_RESERVE[gun]
 	most *= (
 		1.0
 		+ perk_value(f, "deep_pockets")
@@ -120,7 +132,7 @@ static func reserve_cap(f, gun: int) -> int:
 
 ## Rounds into `gun`'s pool, up to its cap here (the armory's own add_ammo
 ## caps at weapons.cfg's, which DEEP POCKETS goes past). True when any went in.
-static func give_ammo(game, f, gun: int, amount: int) -> bool:
+static func give_ammo(game: Game, f: CountyRun, gun: int, amount: int) -> bool:
 	if gun < 0 or CountyData.kind_of(gun) == CountyData.MELEE:
 		return false
 	var a: Weapons.Armory = game.armory
@@ -130,7 +142,7 @@ static func give_ammo(game, f, gun: int, amount: int) -> bool:
 
 
 ## How full `gun` is, 0..1 (melee: always full).
-static func fullness(game, f, gun: int) -> float:
+static func fullness(game: Game, f: CountyRun, gun: int) -> float:
 	if CountyData.kind_of(gun) == CountyData.MELEE:
 		return 1.0
 	var a: Weapons.Armory = game.armory
@@ -142,9 +154,10 @@ static func fullness(game, f, gun: int) -> float:
 
 ## The run's opening kit: the starting guns in the first slots, the rest of
 ## the armory empty and not owned.
-static func start_kit(game, f) -> void:
+static func start_kit(game: Game, f: CountyRun) -> void:
 	var start := CountyData.section("start")
-	var size := maxi(1, int(start.get("slots", 3)))
+	var slots: int = start.get("slots", 3)
+	var size := maxi(1, slots)
 	f.slots = []
 	for i in size:
 		f.slots.append(-1)
@@ -154,15 +167,19 @@ static func start_kit(game, f) -> void:
 		a.loaded[i] = 0
 		a.reserve[i] = 0
 	var k := 0
-	for name in start.get("weapons", ["revolver", "crowbar"]):
-		var gun := Weapons.NAMES.find(String(name))
+	for name: Variant in start.get("weapons", ["revolver", "crowbar"]):
+		var gun := Weapons.NAMES.find(str(name))
 		if gun >= 0 and k < size:
 			f.slots[k] = gun
 			_arm(game, f, gun)
 			k += 1
 	sort_slots(f)
-	var active := Weapons.NAMES.find(String(start.get("active", "revolver")))
-	a.active = active if active >= 0 and a.owned[active] else int(carried(f)[0])
+	var active := Weapons.NAMES.find(str(start.get("active", "revolver")))
+	if active >= 0 and a.owned[active]:
+		a.active = active
+	else:
+		var first: int = carried(f)[0]
+		a.active = first
 	a.reload = 0.0
 	a.cooldown = 0.0
 	a.fuse = 0.0
@@ -170,19 +187,20 @@ static func start_kit(game, f) -> void:
 	a.auto_switch = true
 
 
-static func _arm(game, f, gun: int) -> void:
+static func _arm(game: Game, f: CountyRun, gun: int) -> void:
 	var a: Weapons.Armory = game.armory
 	a.owned[gun] = true
 	a.loaded[gun] = Weapons.CAPACITY[gun]
 	a.reserve[gun] = 0
-	give_ammo(game, f, gun, int(CountyData.weapon(gun).get("reserve", Weapons.PICKUP_RESERVE[gun])))
+	var reserve: int = CountyData.weapon(gun).get("reserve", Weapons.PICKUP_RESERVE[gun])
+	give_ammo(game, f, gun, reserve)
 
 
 ## `gun` into slot `slot`: whatever was there goes with every upgrade on it
 ## (perks and milestones stay); the new one comes out loaded.
-static func put_weapon(game, f, gun: int, slot: int) -> void:
+static func put_weapon(game: Game, f: CountyRun, gun: int, slot: int) -> void:
 	var a: Weapons.Armory = game.armory
-	var old := int(f.slots[slot])
+	var old: int = f.slots[slot]
 	if old >= 0:
 		drop_upgrades(f, old)
 		a.owned[old] = false
@@ -200,7 +218,7 @@ static func put_weapon(game, f, gun: int, slot: int) -> void:
 
 ## The slots in the armory's own order (empty ones last), so 1-2-3 on the
 ## HUD, the number keys and the next-gun key all go the same way round.
-static func sort_slots(f) -> void:
+static func sort_slots(f: CountyRun) -> void:
 	var guns := carried(f)
 	guns.sort()
 	for i in f.slots.size():
@@ -208,15 +226,15 @@ static func sort_slots(f) -> void:
 
 
 ## Every upgrade on `gun` goes (a weapon replaced).
-static func drop_upgrades(f, gun: int) -> void:
-	var prefix := String(Weapons.NAMES[gun]) + "/"
+static func drop_upgrades(f: CountyRun, gun: int) -> void:
+	var prefix := str(Weapons.NAMES[gun]) + "/"
 	for k: String in f.ranks.keys():
 		if k.begins_with(prefix):
 			f.ranks.erase(k)
 
 
 ## [name, rank, most] of every upgrade on `gun` (what replacing it loses).
-static func upgrades_on(f, gun: int) -> Array:
+static func upgrades_on(f: CountyRun, gun: int) -> Array:
 	var out: Array = []
 	if gun < 0:
 		return out
@@ -224,19 +242,21 @@ static func upgrades_on(f, gun: int) -> Array:
 		var r := rank(f, gun, id)
 		if r > 0:
 			var spec := CountyData.upgrade(id)
-			out.append([String(spec.get("name", id)), r, int(spec.get("ranks", 1))])
+			var ranks: int = spec.get("ranks", 1)
+			out.append([str(spec.get("name", id)), r, ranks])
 	return out
 
 
 # ------------------------------------------------------------------ offers
 
 
-static func _room(f, gun: int, id: String) -> bool:
-	return rank(f, gun, id) < int(CountyData.upgrade(id).get("ranks", 1))
+static func _room(f: CountyRun, gun: int, id: String) -> bool:
+	var ranks: int = CountyData.upgrade(id).get("ranks", 1)
+	return rank(f, gun, id) < ranks
 
 
 ## The upgrades `gun` can still take.
-static func open_upgrades(f, gun: int) -> Array:
+static func open_upgrades(f: CountyRun, gun: int) -> Array:
 	var out: Array = []
 	for id: String in CountyData.upgrades_for(gun):
 		if _room(f, gun, id):
@@ -245,24 +265,27 @@ static func open_upgrades(f, gun: int) -> Array:
 
 
 ## The perks worth offering now: ranks left, or a supply that would help.
-static func open_perks(game, f) -> Array:
+static func open_perks(game: Game, f: CountyRun) -> Array:
 	var out: Array = []
 	for id: String in CountyData.section("perks"):
 		var spec := CountyData.perk(id)
-		if bool(spec.get("supply", false)):
+		var supply: bool = spec.get("supply", false)
+		if supply:
 			if id == "patch_up" and game.player.health >= 100:
 				continue
 			if id == "supply_grab" and supply_target(game, f) < 0:
 				continue
 			out.append(id)
-		elif perk_rank(f, id) < int(spec.get("ranks", 1)):
-			out.append(id)
+		else:
+			var ranks: int = spec.get("ranks", 1)
+			if perk_rank(f, id) < ranks:
+				out.append(id)
 	return out
 
 
 ## The carried gun SUPPLY GRAB would fill: the equipped one if it is short,
 ## else the emptiest (-1: every one is full or melee).
-static func supply_target(game, f) -> int:
+static func supply_target(game: Game, f: CountyRun) -> int:
 	var a: Weapons.Armory = game.armory
 	if carried(f).has(a.active) and fullness(game, f, a.active) < .95:
 		return a.active
@@ -276,7 +299,7 @@ static func supply_target(game, f) -> int:
 	return best
 
 
-static func unowned_weapons(f) -> Array:
+static func unowned_weapons(f: CountyRun) -> Array:
 	var out: Array = []
 	for gun: int in CountyData.roster():
 		if not carried(f).has(gun):
@@ -285,22 +308,18 @@ static func unowned_weapons(f) -> Array:
 
 
 static func _same(a: Dictionary, b: Dictionary) -> bool:
-	return (
-		String(a["type"]) == String(b["type"])
-		and String(a["id"]) == String(b["id"])
-		and int(a["gun"]) == int(b["gun"])
-	)
+	var a_gun: int = a["gun"]
+	var b_gun: int = b["gun"]
+	return str(a["type"]) == str(b["type"]) and str(a["id"]) == str(b["id"]) and a_gun == b_gun
 
 
 static func _add(cards: Array, card: Dictionary) -> bool:
 	for c: Dictionary in cards:
+		var c_gun: int = c["gun"]
+		var card_gun: int = card["gun"]
 		if (
 			_same(c, card)
-			or (
-				String(card["type"]) == "weapon"
-				and String(c["type"]) == "weapon"
-				and int(c["gun"]) == int(card["gun"])
-			)
+			or (str(card["type"]) == "weapon" and str(c["type"]) == "weapon" and c_gun == card_gun)
 		):
 			return false
 	cards.append(card)
@@ -313,34 +332,37 @@ static func card(type: String, id: String, gun := -1) -> Dictionary:
 
 ## The three cards for level up `entry` ([level, milestone, gun equipped]),
 ## drawn with the game's dice.
-static func offers(game, f, entry: Array) -> Array:
-	if bool(entry[1]):
+static func offers(game: Game, f: CountyRun, entry: Array) -> Array:
+	var big: bool = entry[1]
+	if big:
 		return milestone_offers(game, f)
-	var rng = game.rng
+	var rng: GameState.Rng = game.rng
 	var cards: Array = []
-	var equipped := int(entry[2])
+	var equipped: int = entry[2]
 	if not carried(f).has(equipped):
 		equipped = game.armory.active
 	# Always one for the gun in hand when the level came (or, worked out, for
 	# another carried gun; or a perk that helps).
 	var mine := open_upgrades(f, equipped)
 	if not mine.is_empty():
-		_add(cards, card("upgrade", String(rng.choice(mine)), equipped))
+		_add(cards, card("upgrade", str(rng.choice(mine)), equipped))
 	else:
 		var others: Array = []
 		for gun: int in carried(f):
 			for id: String in open_upgrades(f, gun):
 				others.append(card("upgrade", id, gun))
 		if not others.is_empty():
-			_add(cards, rng.choice(others))
+			var other: Dictionary = rng.choice(others)
+			_add(cards, other)
 		else:
 			var perks := open_perks(game, f)
 			if not perks.is_empty():
-				_add(cards, card("perk", String(rng.choice(perks))))
+				_add(cards, card("perk", str(rng.choice(perks))))
 	# A slot open: a weapon to fill it, every time.
 	var spare := unowned_weapons(f)
 	if open_slot(f) >= 0 and not spare.is_empty():
-		_add(cards, card("weapon", "", int(rng.choice(spare))))
+		var gun: int = rng.choice(spare)
+		_add(cards, card("weapon", "", gun))
 	var tries := 0
 	while cards.size() < 3 and tries < 40:
 		tries += 1
@@ -349,18 +371,21 @@ static func offers(game, f, entry: Array) -> Array:
 			break
 		var total := 0.0
 		for entry_w: Array in pool:
-			total += float(entry_w[1])
+			var weight: float = entry_w[1]
+			total += weight
 		var roll: float = rng.random() * total
 		for entry_w: Array in pool:
-			roll -= float(entry_w[1])
+			var weight: float = entry_w[1]
+			roll -= weight
 			if roll <= 0.0:
-				_add(cards, entry_w[0])
+				var picked: Dictionary = entry_w[0]
+				_add(cards, picked)
 				break
 	return cards
 
 
 ## Every card that could fill a spare place, with its weight.
-static func _spare_pool(game, f, cards: Array) -> Array:
+static func _spare_pool(game: Game, f: CountyRun, cards: Array) -> Array:
 	var pool: Array = []
 	var ups: Array = []
 	for gun: int in carried(f):
@@ -381,8 +406,9 @@ static func _spare_pool(game, f, cards: Array) -> Array:
 	var out: Array = []
 	for entry: Array in pool:
 		var taken := false
+		var pooled: Dictionary = entry[0]
 		for c: Dictionary in cards:
-			if _same(c, entry[0]):
+			if _same(c, pooled):
 				taken = true
 		if not taken:
 			out.append(entry)
@@ -391,14 +417,15 @@ static func _spare_pool(game, f, cards: Array) -> Array:
 
 ## A milestone can be offered: not taken (the spares can be again), its gun
 ## carried, and something to do.
-static func milestone_open(game, f, id: String) -> bool:
+static func milestone_open(game: Game, f: CountyRun, id: String) -> bool:
 	var spec := CountyData.milestone(id)
 	if spec.is_empty():
 		return false
-	var most := int(spec.get("ranks", 1))
-	if not bool(spec.get("again", false)) and milestone_rank(f, id) >= most:
+	var most: int = spec.get("ranks", 1)
+	var again: bool = spec.get("again", false)
+	if not again and milestone_rank(f, id) >= most:
 		return false
-	var needs := String(spec.get("needs", ""))
+	var needs := str(spec.get("needs", ""))
 	if needs != "":
 		var gun := Weapons.NAMES.find(needs)
 		if gun >= 0 and not carried(f).has(gun):
@@ -417,34 +444,36 @@ static func milestone_open(game, f, id: String) -> bool:
 
 ## Three major cards: a weapon's change, a way to live longer and a move,
 ## when there is one of each; else the others, then the spares.
-static func milestone_offers(game, f) -> Array:
-	var rng = game.rng
+static func milestone_offers(game: Game, f: CountyRun) -> Array:
+	var rng: GameState.Rng = game.rng
 	var by_kind := {"weapon": [], "survive": [], "move": [], "spare": []}
 	for id: String in CountyData.section("milestones"):
 		if milestone_open(game, f, id):
-			var kind := String(CountyData.milestone(id).get("kind", "spare"))
+			var kind := str(CountyData.milestone(id).get("kind", "spare"))
 			if by_kind.has(kind):
-				by_kind[kind].append(id)
+				var of_kind: Array = by_kind[kind]
+				of_kind.append(id)
 	var cards: Array = []
 	for kind: String in ["weapon", "survive", "move"]:
 		var ids: Array = by_kind[kind]
 		if not ids.is_empty():
-			_add(cards, card("milestone", String(rng.choice(ids))))
+			_add(cards, card("milestone", str(rng.choice(ids))))
 	var rest: Array = []
 	for kind: String in ["weapon", "survive", "move", "spare"]:
 		for id: String in by_kind[kind]:
 			rest.append(id)
 	while cards.size() < 3 and not rest.is_empty():
-		var id := String(rest.pop_front())
+		var id := str(rest.pop_front())
 		_add(cards, card("milestone", id))
 	return cards
 
 
-static func _double_down_target(f, gun: int) -> String:
+static func _double_down_target(f: CountyRun, gun: int) -> String:
 	var best := ""
 	var room := 0
 	for id: String in CountyData.upgrades_for(gun):
-		var left := int(CountyData.upgrade(id).get("ranks", 1)) - rank(f, gun, id)
+		var ranks: int = CountyData.upgrade(id).get("ranks", 1)
+		var left := ranks - rank(f, gun, id)
 		if left > room:
 			room = left
 			best = id
@@ -456,11 +485,11 @@ static func _double_down_target(f, gun: int) -> String:
 
 ## Takes `c` (a weapon card into `slot`, -1: the open one). The words for the
 ## build screen's log go on f.picks.
-static func take(game, f, c: Dictionary, slot := -1) -> void:
-	var gun := int(c["gun"])
-	var id := String(c["id"])
+static func take(game: Game, f: CountyRun, c: Dictionary, slot := -1) -> void:
+	var gun: int = c["gun"]
+	var id := str(c["id"])
 	var words := ""
-	match String(c["type"]):
+	match str(c["type"]):
 		"upgrade":
 			f.ranks[key(gun, id)] = rank(f, gun, id) + 1
 			words = (
@@ -478,7 +507,7 @@ static func take(game, f, c: Dictionary, slot := -1) -> void:
 			var into := open_slot(f) if open_slot(f) >= 0 else slot
 			if into < 0:
 				return
-			var old := int(f.slots[into])
+			var old: int = f.slots[into]
 			put_weapon(game, f, gun, into)
 			words = (
 				"%s%s"
@@ -486,22 +515,22 @@ static func take(game, f, c: Dictionary, slot := -1) -> void:
 			)
 		"perk":
 			var spec := CountyData.perk(id)
-			words = String(spec.get("name", id))
+			words = str(spec.get("name", id))
 			if id == "patch_up":
-				game.player.health = mini(100, game.player.health + int(spec.get("per", 40)))
+				var heal: int = spec.get("per", 40)
+				game.player.health = mini(100, game.player.health + heal)
 			elif id == "supply_grab":
 				var target := supply_target(game, f)
 				if target >= 0:
-					give_ammo(
-						game, f, target, roundi(reserve_cap(f, target) * float(spec.get("per", .6)))
-					)
+					var per: float = spec.get("per", .6)
+					give_ammo(game, f, target, roundi(reserve_cap(f, target) * per))
 					words += " (" + CountyData.short_name(target) + ")"
 			else:
 				f.ranks["perk/" + id] = perk_rank(f, id) + 1
 				words += " %d" % perk_rank(f, id)
 		"milestone":
 			var spec := CountyData.milestone(id)
-			words = String(spec.get("name", id))
+			words = str(spec.get("name", id))
 			f.ranks["m/" + id] = milestone_rank(f, id) + 1
 			if id == "big_haul":
 				game.player.health = 100
@@ -514,7 +543,7 @@ static func take(game, f, c: Dictionary, slot := -1) -> void:
 					var up := _double_down_target(f, on_gun)
 					if up != "":
 						f.ranks[key(on_gun, up)] = rank(f, on_gun, up) + 1
-						words += " +" + String(CountyData.upgrade(up).get("name", up))
+						words += " +" + str(CountyData.upgrade(up).get("name", up))
 	f.picks.append([f.level, words])
 
 
@@ -523,31 +552,32 @@ static func take(game, f, c: Dictionary, slot := -1) -> void:
 
 ## What a card says: [title, top line (the gun it is for, or the kind), lines
 ## of what it does, the tradeoff, how long it lasts].
-static func describe(game, f, c: Dictionary) -> Dictionary:
-	var gun := int(c["gun"])
-	var id := String(c["id"])
+static func describe(game: Game, f: CountyRun, c: Dictionary) -> Dictionary:
+	var gun: int = c["gun"]
+	var id := str(c["id"])
 	var out := {"title": "", "for": "", "lines": [], "trade": "", "lasts": "", "rank": ""}
-	match String(c["type"]):
+	match str(c["type"]):
 		"upgrade":
 			var spec := CountyData.upgrade(id)
 			var next := rank(f, gun, id) + 1
-			var most := int(spec.get("ranks", 1))
-			out["title"] = String(spec.get("name", id))
+			var most: int = spec.get("ranks", 1)
+			out["title"] = str(spec.get("name", id))
 			out["for"] = CountyData.gun_name(gun)
 			out["rank"] = "RANK %d OF %d" % [next, most]
 			var now := ""
 			if next > 1:
-				now = "NOW: " + CountyData.fill(String(spec.get("text", "")), spec, next - 1, gun)
-			out["lines"] = [CountyData.fill(String(spec.get("text", "")), spec, next, gun)]
+				now = "NOW: " + CountyData.fill(str(spec.get("text", "")), spec, next - 1, gun)
+			var lines: Array = [CountyData.fill(str(spec.get("text", "")), spec, next, gun)]
+			out["lines"] = lines
 			if now != "":
-				out["lines"].append(now)
-			out["trade"] = CountyData.fill(String(spec.get("trade", "")), spec, next, gun)
+				lines.append(now)
+			out["trade"] = CountyData.fill(str(spec.get("trade", "")), spec, next, gun)
 			out["lasts"] = "LASTS: WHILE CARRIED"
 		"weapon":
 			var spec := CountyData.weapon(gun)
 			out["title"] = CountyData.gun_name(gun)
 			out["for"] = "NEW WEAPON"
-			out["lines"] = [String(spec.get("plays", "")), CountyData.ammo_text(gun)]
+			out["lines"] = [str(spec.get("plays", "")), CountyData.ammo_text(gun)]
 			var slot := open_slot(f)
 			out["trade"] = (
 				"FILLS AN EMPTY SLOT" if slot >= 0 else "SLOTS FULL: PICK ONE TO SWAP OUT"
@@ -555,22 +585,23 @@ static func describe(game, f, c: Dictionary) -> Dictionary:
 			out["lasts"] = "LASTS: THE WHOLE RUN"
 		"perk":
 			var spec := CountyData.perk(id)
-			var supply := bool(spec.get("supply", false))
+			var supply: bool = spec.get("supply", false)
 			var next := perk_rank(f, id) + 1
-			out["title"] = String(spec.get("name", id))
+			out["title"] = str(spec.get("name", id))
 			out["for"] = "SUPPLIES" if supply else "PERK"
 			if not supply:
-				out["rank"] = "RANK %d OF %d" % [next, int(spec.get("ranks", 1))]
+				var ranks: int = spec.get("ranks", 1)
+				out["rank"] = "RANK %d OF %d" % [next, ranks]
 			var target := supply_target(game, f) if id == "supply_grab" else -1
 			out["lines"] = [
-				CountyData.fill(String(spec.get("text", "")), spec, 1 if supply else next, target)
+				CountyData.fill(str(spec.get("text", "")), spec, 1 if supply else next, target)
 			]
-			out["trade"] = String(spec.get("trade", ""))
+			out["trade"] = str(spec.get("trade", ""))
 			out["lasts"] = "LASTS: RIGHT NOW" if supply else "LASTS: THE WHOLE RUN"
 		"milestone":
 			var spec := CountyData.milestone(id)
 			var next := milestone_rank(f, id) + 1
-			out["title"] = String(spec.get("name", id))
+			out["title"] = str(spec.get("name", id))
 			out["for"] = (
 				{
 					"weapon": "WEAPON CHANGE",
@@ -578,21 +609,21 @@ static func describe(game, f, c: Dictionary) -> Dictionary:
 					"move": "MOVE",
 					"spare": "MAJOR"
 				}
-				. get(String(spec.get("kind", "")), "MAJOR")
+				. get(str(spec.get("kind", "")), "MAJOR")
 			)
-			var needs := String(spec.get("needs", ""))
+			var needs := str(spec.get("needs", ""))
 			if Weapons.NAMES.has(needs):
 				out["for"] = "CHANGES " + CountyData.short_name(Weapons.NAMES.find(needs))
 			out["lines"] = [
-				CountyData.fill(String(spec.get("text", "")), spec, next, game.armory.active)
+				CountyData.fill(str(spec.get("text", "")), spec, next, game.armory.active)
 			]
-			out["trade"] = String(spec.get("trade", ""))
+			out["trade"] = str(spec.get("trade", ""))
 			out["lasts"] = (
 				"LASTS: RIGHT NOW"
 				if id == "big_haul" or id == "double_down"
 				else (
 					"LASTS: WITH THAT GUN"
-					if String(spec.get("kind", "")) == "weapon"
+					if str(spec.get("kind", "")) == "weapon"
 					else "LASTS: THE WHOLE RUN"
 				)
 			)
@@ -603,53 +634,52 @@ static func describe(game, f, c: Dictionary) -> Dictionary:
 ## The short card (county_screens.gd): a badge, rank pips [held, most], one
 ## big line of what changes, a short downside and how long it lasts; every
 ## word of the long text goes to the details bar.
-static func _short(game, f, c: Dictionary, out: Dictionary) -> void:
-	var gun := int(c["gun"])
-	var id := String(c["id"])
+static func _short(game: Game, f: CountyRun, c: Dictionary, out: Dictionary) -> void:
+	var gun: int = c["gun"]
+	var id := str(c["id"])
 	var spec := {}
 	var held := 0
 	var most := 0
-	match String(c["type"]):
+	match str(c["type"]):
 		"upgrade":
 			spec = CountyData.upgrade(id)
 			held = rank(f, gun, id)
-			most = int(spec.get("ranks", 1))
+			most = spec.get("ranks", 1)
 			out["badge"] = "UPGRADE " + CountyData.short_name(gun)
 		"weapon":
 			out["badge"] = "NEW GUN"
-			out["big"] = String(CountyData.weapon(gun).get("plays", ""))
+			out["big"] = str(CountyData.weapon(gun).get("plays", ""))
 			out["small_trade"] = "" if open_slot(f) >= 0 else "SWAPS OUT A GUN"
 		"perk":
 			spec = CountyData.perk(id)
-			var supply := bool(spec.get("supply", false))
+			var supply: bool = spec.get("supply", false)
 			out["badge"] = "SUPPLIES" if supply else "PERK"
 			if not supply:
 				held = perk_rank(f, id)
-				most = int(spec.get("ranks", 1))
+				most = spec.get("ranks", 1)
 		"milestone":
 			spec = CountyData.milestone(id)
 			out["badge"] = "MILESTONE"
 	if not spec.is_empty():
 		var at := held + 1 if most > 0 else 1
 		var target := supply_target(game, f) if id == "supply_grab" else gun
-		out["big"] = CountyData.fill(
-			String(spec.get("short", spec.get("text", ""))), spec, at, target
-		)
-		out["small_trade"] = String(spec.get("short_trade", ""))
+		out["big"] = CountyData.fill(str(spec.get("short", spec.get("text", ""))), spec, at, target)
+		out["small_trade"] = str(spec.get("short_trade", ""))
 	out["pips"] = [held, most]
-	var detail: Array = (out["lines"] as Array).duplicate()
-	if String(out["trade"]) != "":
-		detail.append(String(out["trade"]))
+	var lines: Array = out["lines"]
+	var detail: Array = lines.duplicate()
+	if str(out["trade"]) != "":
+		detail.append(str(out["trade"]))
 	out["detail"] = " ".join(detail)
-	out["tag"] = String(out["lasts"]).trim_prefix("LASTS: ")
+	out["tag"] = str(out["lasts"]).trim_prefix("LASTS: ")
 
 
 ## Lines for the build screen: the slots with their upgrades, then the perks
 ## and milestones.
-static func summary(f) -> Array:
+static func summary(f: CountyRun) -> Array:
 	var out: Array = []
 	for i in f.slots.size():
-		var gun := int(f.slots[i])
+		var gun: int = f.slots[i]
 		if gun < 0:
 			out.append(["SLOT %d" % (i + 1), "EMPTY"])
 			continue
@@ -671,9 +701,8 @@ static func summary(f) -> Array:
 	var big: Array = []
 	for id: String in CountyData.section("milestones"):
 		var r := milestone_rank(f, id)
-		if r > 0 and not bool(CountyData.milestone(id).get("again", false)):
-			big.append(
-				String(CountyData.milestone(id).get("name", id)) + ("" if r < 2 else " %d" % r)
-			)
+		var again: bool = CountyData.milestone(id).get("again", false)
+		if r > 0 and not again:
+			big.append(str(CountyData.milestone(id).get("name", id)) + ("" if r < 2 else " %d" % r))
 	out.append(["MILESTONES", ", ".join(big) if not big.is_empty() else "NONE YET"])
 	return out

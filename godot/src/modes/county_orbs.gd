@@ -11,6 +11,8 @@
 class_name CountyOrbs
 extends RefCounted
 
+const CountyRun := preload("res://src/features/county_run.gd")
+
 ## Value at or past which an XP cap is silver, then gold.
 static var SILVER: int = ModeData.get_value("county_orbs", "silver")
 static var GOLD: int = ModeData.get_value("county_orbs", "gold")
@@ -23,16 +25,18 @@ static var SUPPLY_LIFE: float = ModeData.get_value("county_orbs", "supply_life")
 static var POP: float = ModeData.get_value("county_orbs", "pop")
 
 
-static func xp_for(_game, _f, e: Enemy) -> int:
+static func xp_for(_game: Game, _f: CountyRun, e: Enemy) -> int:
 	var x := CountyData.section("xp")
-	var v := maxi(1, roundi(e.max_hp / maxf(1.0, float(x.get("per_hp", 34)))))
+	var per_hp: float = x.get("per_hp", 34)
+	var v := maxi(1, roundi(e.max_hp / maxf(1.0, per_hp)))
 	if e.county_elite:
-		v *= int(x.get("elite_times", 4))
+		var elite_times: int = x.get("elite_times", 4)
+		v *= elite_times
 	return v
 
 
 ## What a kill leaves where `e` fell.
-static func drop(game, f, e: Enemy) -> void:
+static func drop(game: Game, f: CountyRun, e: Enemy) -> void:
 	var z: float = game.world.stand(e)
 	var at := _clear_spot(game, e.x, e.y, z)
 	if not _standable(game, e.x, e.y, z):
@@ -51,21 +55,23 @@ static func drop(game, f, e: Enemy) -> void:
 		_lay(f, at.x, at.y, z, value, "xp")
 	var s := CountyData.section("spawn")
 	var roll: float = game.rng.random()
-	if roll < float(s.get("supply_chance", .075)):
+	var supply_chance: float = s.get("supply_chance", .075)
+	var food_chance: float = s.get("food_chance", .05)
+	if roll < supply_chance:
 		var spot := _clear_spot(game, at.x + .35, at.y, z)
 		_lay(f, spot.x, spot.y, z, 1, "ammo")
-	elif roll < float(s.get("supply_chance", .075)) + float(s.get("food_chance", .05)):
+	elif roll < supply_chance + food_chance:
 		var spot := _clear_spot(game, at.x - .35, at.y, z)
 		_lay(f, spot.x, spot.y, z, 1, "food")
 
 
-static func _lay(f, x: float, y: float, z: float, value: int, kind: String) -> void:
+static func _lay(f: CountyRun, x: float, y: float, z: float, value: int, kind: String) -> void:
 	f.orbs.append([x, y, z, value, kind, f.run_time, false])
 
 
 ## (x, y) or the nearest spot round it the player can walk to and stand on at
 ## height z: open, not deep water, on ground that walks to the start.
-static func _clear_spot(game, x: float, y: float, z: float) -> Vector2:
+static func _clear_spot(game: Game, x: float, y: float, z: float) -> Vector2:
 	if _standable(game, x, y, z):
 		return Vector2(x, y)
 	for reach: float in [.3, .55, .8, 1.1, 1.6, 2.2, 3.0, 4.0]:
@@ -78,7 +84,7 @@ static func _clear_spot(game, x: float, y: float, z: float) -> Vector2:
 	return Vector2(x, y)
 
 
-static func _standable(game, x: float, y: float, z: float) -> bool:
+static func _standable(game: Game, x: float, y: float, z: float) -> bool:
 	var w: LevelData = game.world
 	if x < 1.0 or y < 1.0 or x >= w.width - 1 or y >= w.height - 1:
 		return false
@@ -89,7 +95,7 @@ static func _standable(game, x: float, y: float, z: float) -> bool:
 
 ## Whether the player could take the pile at (x, y), lying at height z:
 ## near enough, on their floor and seen.
-static func reachable(game, x: float, y: float, z: float, reach: float) -> bool:
+static func reachable(game: Game, x: float, y: float, z: float, reach: float) -> bool:
 	var p: Player = game.player
 	var dx := x - p.x
 	var dy := y - p.y
@@ -101,26 +107,29 @@ static func reachable(game, x: float, y: float, z: float, reach: float) -> bool:
 	return game.world.visible(p.x, p.y, x, y, p.eye, z + .25)
 
 
-static func magnet(f) -> float:
+static func magnet(f: CountyRun) -> float:
 	return 1.0 + CountyBuild.perk_value(f, "xp_magnet")
 
 
-static func tick(game, f, dt: float) -> void:
+static func tick(game: Game, f: CountyRun, dt: float) -> void:
 	var p: Player = game.player
 	if p.health <= 0:
 		return
 	var x := CountyData.section("xp")
-	var reach := float(x.get("reach", .85)) * magnet(f)
-	var pull := float(x.get("pull", 2.2)) * magnet(f)
+	var base_reach: float = x.get("reach", .85)
+	var reach := base_reach * magnet(f)
+	var base_pull: float = x.get("pull", 2.2)
+	var pull := base_pull * magnet(f)
 	var kept: Array = []
 	var took := 0
 	for orb: Array in f.orbs:
-		var kind := String(orb[4])
-		if kind != "xp" and f.run_time - float(orb[5]) > SUPPLY_LIFE:
+		var kind := str(orb[4])
+		var born: float = orb[5]
+		if kind != "xp" and f.run_time - born > SUPPLY_LIFE:
 			continue
-		var ox := float(orb[0])
-		var oy := float(orb[1])
-		var oz := float(orb[2])
+		var ox: float = orb[0]
+		var oy: float = orb[1]
+		var oz: float = orb[2]
 		if kind == "xp" and reachable(game, ox, oy, oz, pull):
 			# Floats in toward the player, faster the nearer it gets.
 			var dx := p.x - ox
@@ -130,7 +139,9 @@ static func tick(game, f, dt: float) -> void:
 			if d > .001:
 				orb[0] = ox + dx / d * step
 				orb[1] = oy + dy / d * step
-		if reachable(game, float(orb[0]), float(orb[1]), oz, reach if kind == "xp" else .7):
+		var now_x: float = orb[0]
+		var now_y: float = orb[1]
+		if reachable(game, now_x, now_y, oz, reach if kind == "xp" else .7):
 			if _take(game, f, orb):
 				took += 1
 				continue
@@ -138,22 +149,25 @@ static func tick(game, f, dt: float) -> void:
 	f.orbs = kept
 	if took > 0:
 		game.sound.play("county_xp", .55)
-	if (
-		f.orbs.size() > int(x.get("merge_over", 70))
-		and int(f.run_time * 2.0) != int((f.run_time - dt) * 2.0)
-	):
-		merge(f, float(x.get("merge_reach", 1.6)))
+	var merge_over: int = x.get("merge_over", 70)
+	if f.orbs.size() > merge_over and int(f.run_time * 2.0) != int((f.run_time - dt) * 2.0):
+		var merge_reach: float = x.get("merge_reach", 1.6)
+		merge(f, merge_reach)
 	var live: Array = []
 	for pop: Array in f.pops:
-		if f.run_time < float(pop[3]):
+		var until: float = pop[3]
+		if f.run_time < until:
 			live.append(pop)
 	f.pops = live
 
 
-static func _take(game, f, orb: Array) -> bool:
-	var kind := String(orb[4])
-	var value := int(orb[3])
-	var at := [float(orb[0]), float(orb[1]), float(orb[2])]
+static func _take(game: Game, f: CountyRun, orb: Array) -> bool:
+	var kind := str(orb[4])
+	var value: int = orb[3]
+	var ax: float = orb[0]
+	var ay: float = orb[1]
+	var az: float = orb[2]
+	var at := [ax, ay, az]
 	if kind == "food":
 		if game.player.health >= 100:
 			return false
@@ -166,7 +180,8 @@ static func _take(game, f, orb: Array) -> bool:
 		if gun < 0:
 			return false
 		var bonus := 1.0 + CountyBuild.perk_value(f, "deep_pockets")
-		var amount := maxi(1, roundi(int(Weapons.PICKUP_RESERVE[gun]) * bonus))
+		var reserve: int = Weapons.PICKUP_RESERVE[gun]
+		var amount := maxi(1, roundi(reserve * bonus))
 		CountyBuild.give_ammo(game, f, gun, amount)
 		game.sound.play("weapon_pickup", .6)
 		f.pops.append(
@@ -175,36 +190,44 @@ static func _take(game, f, orb: Array) -> bool:
 		return true
 	if CountyBuild.has(f, "grit_armor"):
 		var spec := CountyData.milestone("grit_armor")
-		f.armor = minf(float(spec.get("most", 40)), f.armor + float(spec.get("per", 1)) * value)
+		var most: float = spec.get("most", 40)
+		var per: float = spec.get("per", 1)
+		f.armor = minf(most, f.armor + per * value)
 	f.pops.append([at[0], at[1], at[2], f.run_time + POP, "+%d" % value])
-	game.burst(at[0], at[1], at[2] + .2, "spark", 3, .8)
+	game.burst(ax, ay, az + .2, "spark", 3, .8)
 	CountyMode.gain(game, f, value)
 	return true
 
 
 ## Piles of XP within `reach` of each other on one floor become one (the XP
 ## adds up, where they lay weighted by it); supplies never merge.
-static func merge(f, reach: float) -> void:
+static func merge(f: CountyRun, reach: float) -> void:
 	var out: Array = []
 	var used := {}
 	for i in f.orbs.size():
 		if used.has(i):
 			continue
-		var a: Array = f.orbs[i].duplicate()
-		if String(a[4]) == "xp":
+		var first: Array = f.orbs[i]
+		var a: Array = first.duplicate()
+		if str(a[4]) == "xp":
 			for j in range(i + 1, f.orbs.size()):
 				var b: Array = f.orbs[j]
-				if used.has(j) or String(b[4]) != "xp" or absf(float(a[2]) - float(b[2])) > .3:
+				if used.has(j) or str(b[4]) != "xp":
 					continue
-				if (
-					Vector2(float(a[0]), float(a[1])).distance_to(Vector2(float(b[0]), float(b[1])))
-					> reach
-				):
+				var az: float = a[2]
+				var bz: float = b[2]
+				if absf(az - bz) > .3:
 					continue
-				var va := float(a[3])
-				var vb := float(b[3])
-				a[0] = (float(a[0]) * va + float(b[0]) * vb) / (va + vb)
-				a[1] = (float(a[1]) * va + float(b[1]) * vb) / (va + vb)
+				var ax: float = a[0]
+				var ay: float = a[1]
+				var bx: float = b[0]
+				var by: float = b[1]
+				if Vector2(ax, ay).distance_to(Vector2(bx, by)) > reach:
+					continue
+				var va: float = a[3]
+				var vb: float = b[3]
+				a[0] = (ax * va + bx * vb) / (va + vb)
+				a[1] = (ay * va + by * vb) / (va + vb)
 				a[3] = int(va + vb)
 				a[6] = true
 				used[j] = true
@@ -212,36 +235,38 @@ static func merge(f, reach: float) -> void:
 	f.orbs = out
 
 
-static func total_xp(f) -> int:
+static func total_xp(f: CountyRun) -> int:
 	var n := 0
 	for orb: Array in f.orbs:
-		if String(orb[4]) == "xp":
-			n += int(orb[3])
+		if str(orb[4]) == "xp":
+			var value: int = orb[3]
+			n += value
 	return n
 
 
-static func sprites(game, f) -> Array:
+static func sprites(game: Game, f: CountyRun) -> Array:
 	var out: Array = []
 	var t: float = game.clock
 	for orb: Array in f.orbs:
-		var x := float(orb[0])
-		var y := float(orb[1])
+		var x: float = orb[0]
+		var y: float = orb[1]
 		if not game.in_view(x, y, 1.0):
 			continue
-		var kind := String(orb[4])
+		var kind := str(orb[4])
 		var bob := .14 + sin(t * 3.2 + x * 1.7) * .05
+		var z: float = orb[2]
 		if kind == "xp":
-			var value := int(orb[3])
+			var value: int = orb[3]
 			var tier := 2 if value >= GOLD else 1 if value >= SILVER else 0
 			var frame := int(t * 8.0 + x * 3.0) % 4
 			var s: View.Sprite = game.pooled(
-				x, y, "county_xp_%d_%d" % [tier, frame], .2 + tier * .05, float(orb[2]) + bob
+				x, y, "county_xp_%d_%d" % [tier, frame], .2 + tier * .05, z + bob
 			)
 			s.glow = true
 			out.append(s)
 		else:
 			var s: View.Sprite = game.pooled(
-				x, y, "item_bullets" if kind == "ammo" else "item_rinds", .33, float(orb[2]) + bob
+				x, y, "item_bullets" if kind == "ammo" else "item_rinds", .33, z + bob
 			)
 			s.glow = true  # supplies stand out in the dark like the XP
 			out.append(s)
@@ -249,14 +274,16 @@ static func sprites(game, f) -> Array:
 
 
 ## The "+N" over each pile just taken, rising and fading.
-static func draw_pops(c: Canvas, game, f) -> void:
+static func draw_pops(c: Canvas, game: Game, f: CountyRun) -> void:
 	for pop: Array in f.pops:
-		var left: float = float(pop[3]) - f.run_time
+		var until: float = pop[3]
+		var left: float = until - f.run_time
 		var age: float = POP - left
-		var at: Vector3 = game.to_canvas(
-			float(pop[0]), float(pop[1]), float(pop[2]) + .45 + age * .6
-		)
+		var px: float = pop[0]
+		var py: float = pop[1]
+		var pz: float = pop[2]
+		var at: Vector3 = game.to_canvas(px, py, pz + .45 + age * .6)
 		if at.z <= 0.0 or at.x < 4 or at.x > 316 or at.y < 4 or at.y > View.VIEW - 8:
 			continue
 		var ink := HUD.AMBER if left > POP * .4 else HUD.DIM
-		HUD.text(c, String(pop[4]), int(at.x), int(at.y), "mini", ink, true)
+		HUD.text(c, str(pop[4]), int(at.x), int(at.y), "mini", ink, true)

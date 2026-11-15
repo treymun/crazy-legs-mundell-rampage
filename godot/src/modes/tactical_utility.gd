@@ -20,6 +20,8 @@
 class_name TacticalUtility
 extends RefCounted
 
+const ModeFeature := preload("res://src/features/mode_feature.gd")
+
 static var KINDS: Array = ModeData.get_value("tactical_utility", "kinds")
 static var FLASH_REACH: float = ModeData.get_value("tactical_utility", "flash_reach")
 static var FLASH_MOST: float = ModeData.get_value("tactical_utility", "flash_most")
@@ -35,16 +37,17 @@ static var DECOY_LIFE: float = ModeData.get_value("tactical_utility", "decoy_lif
 static var DECOY_GAPS: Array = ModeData.get_value("tactical_utility", "decoy_gaps")
 
 
-static func burst(game, shot) -> void:
-	var st = Modes.feature(game)
+static func burst(game: Game, shot: GameState.Shot) -> void:
+	var st: ModeFeature = Modes.feature(game)
 	if st == null:
 		return
 	var x: float = shot.x
 	var y: float = shot.y
 	var z: float = maxf(.07, shot.z)
 	var spec := Shots.blast(String(shot.kind))
-	game.sound_at(String(spec.get("cue", "tnt_bounce")), x, y)
-	game.wake_nearby(float(spec.get("wake", 8.0)), x, y)
+	game.sound_at(str(spec.get("cue", "tnt_bounce")), x, y)
+	var wake: float = spec.get("wake", 8.0)
+	game.wake_nearby(wake, x, y)
 	match String(shot.kind):
 		"flash_jar":
 			_flash(game, st, x, y, z)
@@ -68,7 +71,7 @@ static func burst(game, shot) -> void:
 
 
 ## Everyone who sees the flash is blinded by how near and how square on.
-static func _flash(game, st, x: float, y: float, z: float) -> void:
+static func _flash(game: Game, st: ModeFeature, x: float, y: float, z: float) -> void:
 	game.burst(x, y, z, "spark", 30, 3.2)
 	for p: Player in game.players:
 		if p.health <= 0:
@@ -86,20 +89,26 @@ static func _flash(game, st, x: float, y: float, z: float) -> void:
 		if seconds < .35:
 			continue
 		var was: Array = st.blind.get(p.slot, [0.0, 0.0])
-		st.blind[p.slot] = [maxf(float(was[0]), game.clock + seconds), maxf(float(was[1]), k)]
+		var was_until: float = was[0]
+		var was_k: float = was[1]
+		st.blind[p.slot] = [maxf(was_until, game.clock + seconds), maxf(was_k, k)]
 		if p == game.local_player:
 			game.blast_flash = maxf(game.blast_flash, .5)
 			game.sound_at("ear_ring", p.x, p.y, clampf(k * 1.3, .3, 1.0))
 
 
-static func _firebomb(game, st, shot, x: float, y: float, z: float) -> void:
+static func _firebomb(
+	game: Game, st: ModeFeature, shot: GameState.Shot, x: float, y: float, z: float
+) -> void:
 	game.burst(x, y, z, "glass", 12, 1.6)
 	# Against a wall the fire starts a step back from it.
 	if game.world.blocked(x, y, .2):
 		x -= shot.vx * .06
 		y -= shot.vy * .06
 	for cloud: Array in st.clouds:
-		if Vector2(x - float(cloud[0]), y - float(cloud[1])).length() < SMOKE_RADIUS:
+		var cx: float = cloud[0]
+		var cy: float = cloud[1]
+		if Vector2(x - cx, y - cy).length() < SMOKE_RADIUS:
 			game.burst(x, y, z, "dust", 10, 1.0)
 			return  # thrown into smoke it only fizzles
 	game.burst(x, y, z, "spark", 24, 2.2)
@@ -107,50 +116,64 @@ static func _firebomb(game, st, shot, x: float, y: float, z: float) -> void:
 
 
 ## The sound of its thrower's best gun (the decoy's voice).
-static func _gun_cue(game, slot: int) -> String:
+static func _gun_cue(game: Game, slot: int) -> String:
 	if slot < 0 or slot >= game.players.size():
 		return "rifle"
 	var gun := TacticalShop.best_gun(game.players[slot])
-	return String(Weapons.NAMES[gun]) if gun != Weapons.CROWBAR else "revolver"
+	return str(Weapons.NAMES[gun]) if gun != Weapons.CROWBAR else "revolver"
 
 
-static func tick(game, st, _dt: float) -> void:
+static func tick(game: Game, st: ModeFeature, _dt: float) -> void:
 	var now: float = game.clock
-	st.clouds = st.clouds.filter(func(c: Array) -> bool: return float(c[2]) > now)
+	st.clouds = st.clouds.filter(
+		func(c: Array) -> bool:
+			var until: float = c[2]
+			return until > now
+	)
 	var fires: Array = []
 	for fire: Array in st.fires:
-		if float(fire[2]) <= now or _in_smoke(st, now, float(fire[0]), float(fire[1])):
+		var until: float = fire[2]
+		var fx: float = fire[0]
+		var fy: float = fire[1]
+		if until <= now or _in_smoke(st, now, fx, fy):
 			continue
 		fires.append(fire)
-		if now >= float(fire[3]):
+		var bite_at: float = fire[3]
+		if now >= bite_at:
 			fire[3] = now + FIRE_BITE
 			_bite(game, fire)
 			if int(now * 4.0) % 6 == 0:
-				game.sound_at("fire_crackle", float(fire[0]), float(fire[1]), .7)
+				game.sound_at("fire_crackle", fx, fy, .7)
 	st.fires = fires
 	var decoys: Array = []
 	for decoy: Array in st.decoys:
-		if float(decoy[2]) <= now:
+		var until: float = decoy[2]
+		if until <= now:
 			continue
 		decoys.append(decoy)
-		if now >= float(decoy[3]):
-			var k := int(decoy[6])
+		var next_at: float = decoy[3]
+		if now >= next_at:
+			var k: int = decoy[6]
 			decoy[6] = k + 1
-			decoy[3] = now + float(DECOY_GAPS[k % DECOY_GAPS.size()])
-			game.sound_at(String(decoy[5]), float(decoy[0]), float(decoy[1]))
-			game.burst(float(decoy[0]), float(decoy[1]), .1, "spark", 3, .8)
-			game.wake_nearby(9.0, float(decoy[0]), float(decoy[1]))
+			var gap: float = DECOY_GAPS[k % DECOY_GAPS.size()]
+			decoy[3] = now + gap
+			var dx: float = decoy[0]
+			var dy: float = decoy[1]
+			game.sound_at(str(decoy[5]), dx, dy)
+			game.burst(dx, dy, .1, "spark", 3, .8)
+			game.wake_nearby(9.0, dx, dy)
 	st.decoys = decoys
-	for slot in st.blind.keys():
-		if float(st.blind[slot][0]) <= now:
+	for slot: Variant in st.blind.keys():
+		var until: float = st.blind[slot][0]
+		if until <= now:
 			st.blind.erase(slot)
 
 
 ## Everyone standing in the fire (not over it in a jump) is burned.
-static func _bite(game, fire: Array) -> void:
-	var x := float(fire[0])
-	var y := float(fire[1])
-	var slot := int(fire[4])
+static func _bite(game: Game, fire: Array) -> void:
+	var x: float = fire[0]
+	var y: float = fire[1]
+	var slot: int = fire[4]
 	var thrower: Player = game.players[slot] if slot >= 0 and slot < game.players.size() else null
 	for p: Player in game.players:
 		if p.health <= 0 or p.air > .3:
@@ -164,32 +187,37 @@ static func _bite(game, fire: Array) -> void:
 			if scale <= 0.0:
 				continue
 			Modes._blamed(
-				game, slot, p, FIRE_DAMAGE * scale / maxf(.05, float(game.incoming)), [x, y], "FIRE"
+				game, slot, p, FIRE_DAMAGE * scale / maxf(.05, game.incoming), [x, y], "FIRE"
 			)
 		else:
 			game.damage(FIRE_DAMAGE, [x, y], "FIRE", p)
 
 
-static func _in_smoke(st, now: float, x: float, y: float) -> bool:
+static func _in_smoke(st: ModeFeature, now: float, x: float, y: float) -> bool:
 	for cloud: Array in st.clouds:
-		if Vector2(x - float(cloud[0]), y - float(cloud[1])).length() < _radius(cloud, now) * .8:
+		var cx: float = cloud[0]
+		var cy: float = cloud[1]
+		if Vector2(x - cx, y - cy).length() < _radius(cloud, now) * .8:
 			return true
 	return false
 
 
 static func _radius(cloud: Array, now: float) -> float:
-	return SMOKE_RADIUS * clampf((now - float(cloud[3])) / SMOKE_GROW, .25, 1.0)
+	var born: float = cloud[3]
+	return SMOKE_RADIUS * clampf((now - born) / SMOKE_GROW, .25, 1.0)
 
 
 ## Whether smoke stands between (ax, ay) and (bx, by).
-static func smoked(game, ax: float, ay: float, bx: float, by: float) -> bool:
-	var st = Modes.feature(game)
+static func smoked(game: Game, ax: float, ay: float, bx: float, by: float) -> bool:
+	var st: ModeFeature = Modes.feature(game)
 	if st == null or st.clouds.is_empty():
 		return false
 	var a := Vector2(ax, ay)
 	var b := Vector2(bx, by)
 	for cloud: Array in st.clouds:
-		var c := Vector2(float(cloud[0]), float(cloud[1]))
+		var cx: float = cloud[0]
+		var cy: float = cloud[1]
+		var c := Vector2(cx, cy)
 		var r := _radius(cloud, game.clock)
 		var near := Geometry2D.get_closest_point_to_segment(c, a, b)
 		if near.distance_to(c) < r:
@@ -198,32 +226,36 @@ static func smoked(game, ax: float, ay: float, bx: float, by: float) -> bool:
 
 
 ## How blind `p` is now (0 clear, 1 white).
-static func blindness(game, p: Player) -> float:
-	var st = Modes.feature(game)
+static func blindness(game: Game, p: Player) -> float:
+	var st: ModeFeature = Modes.feature(game)
 	if st == null or not st.blind.has(p.slot):
 		return 0.0
 	var row: Array = st.blind[p.slot]
-	var left: float = float(row[0]) - game.clock
-	return clampf(left / 1.4, 0.0, 1.0) * clampf(float(row[1]) * 1.6, 0.0, 1.0)
+	var until: float = row[0]
+	var strength: float = row[1]
+	var left: float = until - game.clock
+	return clampf(left / 1.4, 0.0, 1.0) * clampf(strength * 1.6, 0.0, 1.0)
 
 
 # ------------------------------------------------------------------ looks
 
 
 ## The smoke's billows, the fire's flames and a decoy's can (pooled sprites).
-static func sprites(game, st) -> Array:
+static func sprites(game: Game, st: ModeFeature) -> Array:
 	var out: Array = []
 	var now: float = game.clock
 	for cloud: Array in st.clouds:
-		var cx := float(cloud[0])
-		var cy := float(cloud[1])
+		var cx: float = cloud[0]
+		var cy: float = cloud[1]
 		if not game.in_view(cx, cy, SMOKE_RADIUS + 1.0):
 			continue
 		var r := _radius(cloud, now)
-		var fade := clampf((float(cloud[2]) - now) / 2.0, 0.0, 1.0)
+		var until: float = cloud[2]
+		var born: float = cloud[3]
+		var fade := clampf((until - now) / 2.0, 0.0, 1.0)
 		var ground: float = game.world.elevation(cx, cy)
 		for k in 18:
-			var a := k * 2.39996 + float(cloud[3])
+			var a := k * 2.39996 + born
 			var reach := r * sqrt((k + .5) / 18.0) * .85
 			var x := cx + cos(a) * reach + sin(now * .4 + k) * .12
 			var y := cy + sin(a) * reach + cos(now * .37 + k) * .12
@@ -238,11 +270,12 @@ static func sprites(game, st) -> Array:
 			var lift := ground + (k % 3) * .35 - .15
 			out.append(game.pooled(x, y, image, high, lift))
 	for fire: Array in st.fires:
-		var fx := float(fire[0])
-		var fy := float(fire[1])
+		var fx: float = fire[0]
+		var fy: float = fire[1]
 		if not game.in_view(fx, fy, FIRE_RADIUS + .5):
 			continue
-		var dying := clampf((float(fire[2]) - now) / 1.2, .3, 1.0)
+		var until: float = fire[2]
+		var dying := clampf((until - now) / 1.2, .3, 1.0)
 		for k in 9:
 			var a := k * 2.39996
 			var reach := FIRE_RADIUS * sqrt((k + .5) / 9.0) * .8
@@ -251,7 +284,7 @@ static func sprites(game, st) -> Array:
 			if game.world.blocked(x, y, .05):
 				continue
 			var frame := (int(now * 12.0) + k) % 4
-			var spr = game.pooled(
+			var spr: View.Sprite = game.pooled(
 				x,
 				y,
 				"fx_flame_%d" % frame,
@@ -261,15 +294,15 @@ static func sprites(game, st) -> Array:
 			spr.glow = true
 			out.append(spr)
 	for decoy: Array in st.decoys:
-		var dx := float(decoy[0])
-		var dy := float(decoy[1])
+		var dx: float = decoy[0]
+		var dy: float = decoy[1]
 		if game.in_view(dx, dy, .5):
 			out.append(game.pooled(dx, dy, "fx_firecracker_can", .15, game.world.elevation(dx, dy)))
 	return out
 
 
 ## The white-out of a flash, over this machine's player's view.
-static func draw_flash(c: Canvas, game) -> void:
+static func draw_flash(c: Canvas, game: Game) -> void:
 	var white := blindness(game, game.local_player)
 	if white <= .02:
 		return
@@ -286,7 +319,8 @@ static func draw_flash(c: Canvas, game) -> void:
 			data[i * 4 + 2] = 236
 			data[i * 4 + 3] = alpha
 		_whites[level] = data
-	c.blit_rgba(_whites[level], w, h, 0, 0, "flash_white_%d" % level)
+	var white_data: PackedByteArray = _whites[level]
+	c.blit_rgba(white_data, w, h, 0, 0, "flash_white_%d" % level)
 
 
 static var _whites := {}

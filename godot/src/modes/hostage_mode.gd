@@ -23,37 +23,40 @@ func title() -> String:
 
 
 func round_time() -> float:
-	return float(ModeData.get_value("hostage", "round_seconds", 115.0))
+	var seconds: float = ModeData.get_value("hostage", "round_seconds", 115.0)
+	return seconds
 
 
 ## The deputies go in.
-func attack_team(st) -> int:
+func attack_team(st: ModeFeature) -> int:
 	return 1 - int(st.outlaws)
 
 
-static func rescue_box(game) -> Array:
-	var box = game.world.tactical.get("rescue", [])
+static func rescue_box(game: Game) -> Array:
+	var box: Variant = game.world.tactical.get("rescue", [])
 	return box if box is Array else []
 
 
 ## Every place a hostage counts as out: the box round the deputies' spawn and
 ## the map's nearer rescue points ("rescue_more", on the lanes back from the
 ## sites).
-static func rescue_boxes(game) -> Array:
+static func rescue_boxes(game: Game) -> Array:
 	var out: Array = []
 	var main := rescue_box(game)
 	if not main.is_empty():
 		out.append(main)
-	var more = game.world.tactical.get("rescue_more", [])
+	var more: Variant = game.world.tactical.get("rescue_more", [])
 	if more is Array:
-		for box in more:
-			if box is Array and box.size() >= 4:
-				out.append(box)
+		for box: Variant in more:
+			if box is Array:
+				var corners: Array = box
+				if corners.size() >= 4:
+					out.append(box)
 	return out
 
 
 ## The rescue point nearest (x, y) (straight line), [] when there is none.
-static func nearest_rescue(game, x: float, y: float) -> Array:
+static func nearest_rescue(game: Game, x: float, y: float) -> Array:
 	var best: Array = []
 	var near := INF
 	for box: Array in rescue_boxes(game):
@@ -64,19 +67,21 @@ static func nearest_rescue(game, x: float, y: float) -> Array:
 	return best
 
 
-func reset_objective(game, st) -> void:
+func reset_objective(game: Game, st: ModeFeature) -> void:
 	st.hostages = []
 	st.rescued = 0
-	for at in game.world.tactical.get("hostages", []):
-		st.hostages.append([float(at[0]), float(at[1]), "free", -1])
+	for at: Array in game.world.tactical.get("hostages", []):
+		var hx: float = at[0]
+		var hy: float = at[1]
+		st.hostages.append([hx, hy, "free", -1])
 
 
-func objective_tick(game, st, _dt: float) -> void:
+func objective_tick(game: Game, st: ModeFeature, _dt: float) -> void:
 	var boxes := rescue_boxes(game)
 	for hostage: Array in st.hostages:
-		if String(hostage[2]) != "carried":
+		if str(hostage[2]) != "carried":
 			continue
-		var slot := int(hostage[3])
+		var slot: int = hostage[3]
 		var carrier: Player = (
 			game.players[slot] if slot >= 0 and slot < game.players.size() else null
 		)
@@ -104,7 +109,7 @@ func objective_tick(game, st, _dt: float) -> void:
 		hostage[1] = back.y
 
 
-func round_check(game, st) -> Array:
+func round_check(game: Game, st: ModeFeature) -> Array:
 	var attack := attack_team(st)
 	var defend := 1 - attack
 	if int(st.rescued) > 0:
@@ -118,63 +123,67 @@ func round_check(game, st) -> Array:
 	return []
 
 
-func dropped(_game, st, p: Player) -> void:
+func dropped(_game: Game, st: ModeFeature, p: Player) -> void:
 	for hostage: Array in st.hostages:
-		if String(hostage[2]) == "carried" and int(hostage[3]) == p.slot:
+		var holder: int = hostage[3]
+		if str(hostage[2]) == "carried" and holder == p.slot:
 			hostage[2] = "free"
 			hostage[3] = -1
 
 
 ## A carrier may run: walking them out took most of the round and nearly
 ## every one was run down from behind (tools/tactical_check.gd).
-func slowed(_st, _p: Player) -> bool:
+func slowed(_st: ModeFeature, _p: Player) -> bool:
 	return false
 
 
 ## The hostage the acting player carries, else the nearest free one in reach:
 ## its index, or -1.
-static func target(game, st) -> int:
+static func target(game: Game, st: ModeFeature) -> int:
 	var me: Player = game.player
 	if me.team != (Modes.rules(game) as TacticalMode).attack_team(st):
 		return -1
 	for i in st.hostages.size():
 		var hostage: Array = st.hostages[i]
-		if String(hostage[2]) == "carried" and int(hostage[3]) == me.slot:
+		var holder: int = hostage[3]
+		if str(hostage[2]) == "carried" and holder == me.slot:
 			return i
 	var near := CARRY_REACH
 	var best := -1
 	for i in st.hostages.size():
 		var hostage: Array = st.hostages[i]
-		if String(hostage[2]) != "free":
+		if str(hostage[2]) != "free":
 			continue
-		var d := Vector2(float(hostage[0]) - me.x, float(hostage[1]) - me.y).length()
+		var hx: float = hostage[0]
+		var hy: float = hostage[1]
+		var d := Vector2(hx - me.x, hy - me.y).length()
 		if d < near:
 			near = d
 			best = i
 	return best
 
 
-func use_prompt(game) -> String:
-	var st = Modes.feature(game)
+func use_prompt(game: Game) -> String:
+	var st: ModeFeature = Modes.feature(game)
 	if st == null or String(st.phase) != "live" or game.player.health <= 0:
 		return ""
 	var i := target(game, st)
 	if i < 0:
 		return ""
-	if String(st.hostages[i][2]) == "carried":
+	if str(st.hostages[i][2]) == "carried":
 		return "%s  SET THE HOSTAGE DOWN" % game.use_key
 	return "%s  TAKE THE HOSTAGE" % game.use_key
 
 
-func use(game) -> bool:
-	var st = Modes.feature(game)
+func use(game: Game) -> bool:
+	var st: ModeFeature = Modes.feature(game)
 	if st == null or String(st.phase) != "live" or game.player.health <= 0:
 		return false
 	var i := target(game, st)
 	if i < 0:
 		return false
 	var hostage: Array = st.hostages[i]
-	if String(hostage[2]) == "carried":
+	if str(hostage[2]) == "carried":
 		hostage[2] = "free"
 		hostage[3] = -1
 		if game.acting_local():
