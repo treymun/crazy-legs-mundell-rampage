@@ -671,6 +671,9 @@ func sprites() -> Array:
 				# worked out from where it is (looks only, nothing kept).
 				var turn := (b.x * 3.7 - b.y * 2.9 + b.z * 5.3) * .35 / maxf(.03, b.size)
 				s.spin = -turn if b.flip else turn
+			else:
+				# Rolling on the floor: the 3D view lays it flat.
+				s.lying = true
 			out.append(s)
 	for w: Array in wrecks:
 		var wx: float = w[0]
@@ -690,6 +693,7 @@ func _sort_resting() -> void:
 		if b.sprite == null:
 			b.sprite = View.Sprite.new(b.x, b.y, b.image, b.size, b.z)
 			b.sprite.flip = b.flip
+			b.sprite.lying = true
 		b.sprite.x = b.x
 		b.sprite.y = b.y
 		b.sprite.z = b.z

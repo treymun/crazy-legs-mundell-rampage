@@ -1,86 +1,179 @@
-## The pickups' meshes for the 3D view, made from their own pictures (the
-## `item_*` art) the first time each is shown, and kept: the picture's solid
-## pixels pushed out into a slab a few pixels thick. Its front and back show
-## the picture; each edge pixel's side wall is that pixel's colour, so the
-## outline and colours are the old sprite's exactly. Nothing is stored in the
-## export: the meshes are built from the art at run time.
+## Slabs for the 3D view, made from the world's own flat pictures the first
+## time each is shown, and kept: the picture's solid pixels pushed out a few
+## pixels thick. Its front and back show the picture; each edge pixel's side
+## wall is that pixel's colour, so the outline and colours are the old
+## sprite's exactly. Nothing is stored in the export: the meshes are built
+## from the art at run time. Three families (family()):
+##
+## - PICKUP: the `item_*` pickups, a chunky slab (.6 of the art's breadth).
+## - LOOSE: what a fight throws about and leaves lying (brass and hulls,
+##   gibs and scrap, breakables' bits, chips, splinters and clods, a hat shot
+##   off, a dropped gun): a thinner slab (.5 of the breadth) that tumbles.
+## - TARGET: the firing range's plywood and steel (boards, gongs, the cow,
+##   the gallery's movers): thin as plywood, a pixel for each 28 of height. A
+##   gong's plate and chains are a part of their own (PARTS) that swings
+##   from the bar, the frame staying put.
 ##
 ## A mesh is in sprite units: one unit is the picture's height, standing on
 ## its bottom row at y 0 (empty rows below the art kept, so it floats as the
 ## sprite did), x centred on the art's solid columns, the slab across z. The
 ## front (+Z) shows the picture as the sprite did. UVs are the picture's
 ## (0..1); a side wall's UV is its pixel's middle.
-class_name PickupModels
+class_name SlabModels
 extends RefCounted
 
+const NONE := 0
+const PICKUP := 1
+const LOOSE := 2
+const TARGET := 3
 ## A pixel is solid past this alpha (sprite.gdshader's solid test).
 const SOLID := 100
-## How thick the slab is: this share of the art's breadth (_breadth), in
-## whole pixels, between THIN and THICK.
-const DEPTH := .6
+## How thick a slab is: this share of the art's breadth (_breadth), in whole
+## pixels, between THIN and THICK (PICKUP, LOOSE); a TARGET is a pixel for
+## each PLY rows of its picture, at least THIN.
+const DEPTH := {PICKUP: .6, LOOSE: .5}
+const THICK := {PICKUP: 12, LOOSE: 8}
 const THIN := 2
-const THICK := 12
+const PLY := 28.0
 ## A side wall shows the colour inside the art's outline: an edge pixel this
 ## much darker than the one inside it is outline, up to OUTLINE pixels deep.
 const DARKER := .6
 const OUTLINE := 2
+## The pictures that tumble (by the start of their names). Not blood, smoke,
+## flames, flashes or glows: those stay pictures.
+const LOOSE_NAMES := [
+	"fx_casing",
+	"fx_hull",
+	"gib_",
+	"fx_brk_",
+	"fx_chips",
+	"fx_soil",
+	"fx_splinter_",
+	"fx_chunk_",
+	"fx_grit_",
+	"fx_hat_",
+	"fx_drop_",
+]
+## The firing range's targets (range_targets.gd; not the bowling pins).
+const TARGET_NAMES := {
+	"town_range_target": true,
+	"town_range_gong": true,
+	"town_range_cow_target": true,
+	"county_gallery_target": true,
+	"town_range_duck": true,
+}
+## A target's part that moves on its own: the solid pixels in this box of
+## its picture (a gong's plate and chains), hung from the box's top edge.
+## Its mesh is `<picture>` + PART; the picture's own mesh leaves it out.
+const PARTS := {"town_range_gong": Rect2i(14, 6, 56, 48)}
+const PART := "#part"
 
 var _assets: Assets
-## image -> ArrayMesh (null cached for a picture that is not there)
+## mesh key -> ArrayMesh (null cached for a picture that is not there)
 var _meshes: Dictionary = {}
+## picture -> where its part hangs from, in sprite units up (NAN: no part)
+var _pivots: Dictionary = {}
 
 
 func _init(assets: Assets) -> void:
 	_assets = assets
 
 
+## Which family a picture's slab is in (NONE: it stays a sprite).
+static func family(image: String) -> int:
+	if image.begins_with("item_"):
+		return PICKUP
+	if TARGET_NAMES.has(image):
+		return TARGET
+	if image.begins_with("fx_") or image.begins_with("gib_"):
+		for prefix: String in LOOSE_NAMES:
+			if image.begins_with(prefix):
+				return LOOSE
+	return NONE
+
+
 ## True when a sprite showing `image` is a pickup drawn as a mesh.
 static func is_pickup(image: String) -> bool:
-	return image.begins_with("item_")
+	return family(image) == PICKUP
 
 
-## The pickup's mesh, or null when its picture is not here (yet).
-func mesh(image: String) -> ArrayMesh:
-	if _meshes.has(image):
-		var known: ArrayMesh = _meshes[image]
+## The mesh for `key` (a picture's name, or its name + PART), or null when its
+## picture is not here (yet).
+func mesh(key: String) -> ArrayMesh:
+	if _meshes.has(key):
+		var known: ArrayMesh = _meshes[key]
 		return known
+	var part := key.ends_with(PART)
+	var image := key.trim_suffix(PART) if part else key
 	if not _assets.has_art(image):
-		_meshes[image] = null
+		_meshes[key] = null
 		return null
 	var a := _assets.art(image)
 	var w: int = a["w"]
 	var h: int = a["h"]
 	var data: PackedByteArray = a["data"]
-	var built := build(w, h, data)
+	var box: Rect2i = PARTS.get(image, Rect2i())
+	var built := build(w, h, data, family(image), box, part)
 	# A picture whose pack is still being fetched comes back blank: asked again.
 	if built != null:
-		_meshes[image] = built
+		_meshes[key] = built
 	return built
 
 
-## The slab for a w x h RGBA8 picture, or null when no pixel is solid.
-static func build(w: int, h: int, data: PackedByteArray) -> ArrayMesh:
+## Where the part of `image` hangs from (sprite units up from its bottom
+## row), or NAN when it has none.
+func pivot(image: String) -> float:
+	if _pivots.has(image):
+		var known: float = _pivots[image]
+		return known
+	var at := NAN
+	if PARTS.has(image) and _assets.has_art(image):
+		var box: Rect2i = PARTS[image]
+		var h: int = _assets.art(image)["h"]
+		at = float(h - box.position.y) / h
+	_pivots[image] = at
+	return at
+
+
+## The slab for a w x h RGBA8 picture, or null when no pixel is solid. With
+## a `box`, only its pixels (`inside`) or all but them; the slab is placed
+## as the whole picture's would be either way, so the two fit together.
+static func build(
+	w: int, h: int, data: PackedByteArray, kind := PICKUP, box := Rect2i(), inside := false
+) -> ArrayMesh:
 	if w <= 0 or h <= 0 or data.size() < w * h * 4:
 		return null
 	var solid := PackedByteArray()
 	solid.resize(w * h)
+	var all_x0 := w
+	var all_x1 := -1
 	var x0 := w
 	var x1 := -1
 	var y0 := h
 	var y1 := -1
+	var masked := box.has_area()
 	for y in h:
 		for x in w:
-			if data[(y * w + x) * 4 + 3] > SOLID:
-				solid[y * w + x] = 1
-				x0 = mini(x0, x)
-				x1 = maxi(x1, x)
-				y0 = mini(y0, y)
-				y1 = maxi(y1, y)
+			if data[(y * w + x) * 4 + 3] <= SOLID:
+				continue
+			all_x0 = mini(all_x0, x)
+			all_x1 = maxi(all_x1, x)
+			if masked and box.has_point(Vector2i(x, y)) != inside:
+				continue
+			solid[y * w + x] = 1
+			x0 = mini(x0, x)
+			x1 = maxi(x1, x)
+			y0 = mini(y0, y)
+			y1 = maxi(y1, y)
 	if x1 < 0:
 		return null
 	var q := 1.0 / h
-	var mid := (x0 + x1 + 1) * .5
-	var depth := clampi(roundi(_breadth(solid, w, h) * DEPTH), THIN, THICK)
+	var mid := (all_x0 + all_x1 + 1) * .5
+	var depth := maxi(THIN, roundi(h / PLY))
+	if kind != TARGET:
+		var share: float = DEPTH.get(kind, DEPTH[PICKUP])
+		var most: int = THICK.get(kind, THICK[PICKUP])
+		depth = clampi(roundi(_breadth(solid, w, h) * share), THIN, most)
 	var half := depth * q * .5
 	var slab := _Slab.new()
 	# Front and back: the art's box, its empty pixels left to the shader.

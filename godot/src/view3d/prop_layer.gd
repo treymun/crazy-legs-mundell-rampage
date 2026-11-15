@@ -72,6 +72,7 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			node.stand(s.x, s.y, s.z, _turn(s, level, place), level)
 			add_child(node)
 			_shown[key] = node
+		node.lean(s.tilt)
 	for key: String in _shown.keys():
 		if not seen.has(key):
 			var old: PropView = _shown[key]

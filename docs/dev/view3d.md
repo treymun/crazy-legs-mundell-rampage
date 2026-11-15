@@ -78,7 +78,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | sprites | `sprite.gdshader`, `sprite_clear.gdshader`, `sprite_body.gdshaderinc`, `SpriteLayer3D` | camera-facing MultiMesh billboards |
 | marks | `mark.gdshader` | wall and ground decals |
 | rain | `rain.gdshader` | three camera-hung layers |
-| pickups | `PickupLayer3D`, `PickupModels`, `pickup.gdshader` | `item_*` sprites as pixel slabs (MultiMesh per picture) |
+| slabs | `SlabLayer3D`, `SlabModels`, `slab.gdshader` | pickups, loose things (brass, gibs, bits) and range targets as pixel slabs (MultiMesh per mesh) |
 | props | `PropLayer3D`, `PropView`, `prop_models.gd`, `prop.gdshader` | modelled props |
 | actors | `ActorLayer3D`, `ActorView`, `actor_models.gd`, `actor.gdshader` | rigged enemies and bosses |
 | heat | `HeatHaze` | heat shimmer boxes, handed to the display shader |
@@ -125,41 +125,80 @@ unless its sprite sets `plane`: then the model turns by `-plane`. A moving
 prop (the speedway's lap cars, `race_laps.gd`) sets `plane` from its heading,
 so it faces where it runs; it is stood again each frame it moves.
 
-## Pickups
+## Slabs: pickups, loose things, range targets
 
-Every sprite showing an `item_*` picture (guns, ammo, beer, rinds, keys,
-County Run supply piles; not boards or see-through sprites) is drawn by
-`PickupLayer3D` as a slab made from its own picture (`PickupModels`): the
-picture's solid pixels (alpha over 100, the solid sprite test) pushed out a
-few pixels thick. Front and back show the picture; each edge pixel's side
-wall is one colour, the pixel's, or past a drawn dark outline the first
-pixel inside it (so a can's side is the can, not its black line). Sides are
-shaded .78, tops .9, bottoms .62 of the front's light, like a 1997 voxel.
-The thickness is .6 of the art's breadth (the middle of its solid columns'
-and rows' counts: a gun's barrel, a can's width), 2 to 12 pixels.
+Some of the world's flat pictures are drawn by `SlabLayer3D` as slabs made
+from their own picture (`SlabModels`): the picture's solid pixels (alpha
+over 100, the solid sprite test) pushed out a few pixels thick. Front and
+back show the picture; each edge pixel's side wall is one colour, the
+pixel's, or past a drawn dark outline the first pixel inside it (so a can's
+side is the can, not its black line). Sides are shaded .78, tops .9,
+bottoms .62 of the front's light, like a 1997 voxel. Three families
+(`SlabModels.family(image)`):
+
+| Family | Pictures | Thickness |
+| --- | --- | --- |
+| PICKUP | `item_*` (guns, ammo, beer, rinds, keys, County Run supply piles; not boards or see-through sprites) | .6 of the art's breadth, 2 to 12 px |
+| LOOSE | `fx_casing`, `fx_hull`, `gib_*` (meat, charred, scrap), `fx_brk_*` (breakables' bits), `fx_chips`, `fx_soil`, `fx_splinter_*`, `fx_grit_*`, `fx_hat_*`, `fx_drop_*` | .5 of the breadth, 2 to 8 px |
+| TARGET | the firing range's `town_range_target`, `town_range_gong`, `town_range_cow_target`, `county_gallery_target`, `town_range_duck` | plywood: 1 px per 28 rows, at least 2 |
+
+The breadth is the middle of the art's solid columns' and rows' counts (a
+gun's barrel, a can's width). Blood, smoke, flames, muzzle flashes, embers,
+glints and other glows stay sprites, as do see-through sprites and the
+bowling pins and ball (`range_bowling.gd`, props).
 
 - **No files.** The meshes are built from the art the first time a picture
-  is seen and cached (about 270 triangles each, 51 pictures); nothing is
+  is seen and cached (150 pictures, about 190 triangles each); nothing is
   added to the export. A picture not here yet (a chapter pack still being
   fetched) stays a sprite.
 - **Same size and place.** A mesh is in sprite units (one unit the
   picture's height, its empty bottom rows kept), scaled by the sprite's
   height and stood at its x, y, z, so from the front it is the billboard;
   x is centred on the art's solid columns.
-- **Same light.** `pickup.gdshader` is `sprite_body.gdshaderinc` with
+- **Parts.** `SlabModels.PARTS` cuts a box of a picture into a mesh of its
+  own (`<picture>#part`) that moves apart from the rest: the gong's plate
+  and chains, hung from the box's top edge (`pivot()`); the picture's own
+  mesh leaves those pixels out, and both are placed as the whole picture,
+  so they fit.
+- **Same light.** `slab.gdshader` is `sprite_body.gdshaderinc` with
   `MESH`: the sprites' art slots (`SpriteLayer3D.slot()`, so call
-  `show_pickups` after `show_sprites`), stepped light, the area's tint, glow,
+  `show_slabs` after `show_sprites`), stepped light, the area's tint, glow,
   then LIGHTS AND GLOW with the face's own normal, fog and grade. Solid only
-  (no ALPHA), `cull_back`; no new texture.
-- **Motion is looks only.** Each pickup turns at `TURN` (.9 rad/s) on
-  `game.clock`, phase from its place; the bob is still the sprite's z
-  (`game_view.gd`, `county_orbs.gd`). EASY ON THE EYES (`world_motion`)
-  slows both to .4 (REDUCED) and stops them (STILL), where each pickup faces
-  the eye square to the view, as the sprite did.
-- Out to 32 cells ahead, as the sprite was.
+  (no ALPHA), `cull_back`; no new texture. One MultiMesh per mesh.
+- **Motion is looks only**, worked out each frame from the sprite (nothing
+  kept, no dice of the game's):
+  - A pickup turns at `TURN` (.9 rad/s) on `game.clock`, phase from its
+    place; the bob is still the sprite's z (`game_view.gd`,
+    `county_orbs.gd`). EASY ON THE EYES (`world_motion`) slows both to .4
+    (REDUCED) and stops them (STILL), where each pickup faces the eye square
+    to the view, as the sprite did.
+  - A loose thing in the air tumbles in 3D: it turns about its face by the
+    sprite's `spin` (the features' own: debris and gore keep a spin rate,
+    breakables, weapon_fx and hit_reads work it out from where the bit is)
+    and end over end by `PITCH` (.7) of it, heading where its place says
+    (`HEADING`: it turns as it flies and slides and holds still at rest). On
+    its floor (`View.Sprite.lying`: at rest, or rolling with no fall) it lies
+    flat, propped `PROP` (.05 to .4 rad) off the floor by its place so it
+    still reads from a standing eye, face up (face down, the picture
+    mirrored, when flipped). Either way its lowest corner is on the sprite's
+    z and its middle over its x, y, as the turned billboard's was.
+  - A target stands on its foot along its `plane` (the lanes' boards, gongs
+    and cows face the firing line, south), turned round when flipped (a
+    gallery mover going the other way shows its back), and leans back about
+    its foot by `View.Sprite.tilt`. `range_targets.gd` sets it: a board or a
+    cow spins on its stand when hit (its `plane`, as before); a gong's plate
+    swings from the bar (`GONG_SWING`, `GONG_REACH`; the frame stays put); a
+    gallery mover wobbles on its stick as it rides (`MOVER_WOBBLE`, less with
+    EASY ON THE EYES, none when STILL) and, knocked down, goes over flat
+    backwards in `MOVER_FALL` and pops up when its `DOWN_TIME` is over (it
+    used to vanish). The dummies are props (`range_dummy`): they rock by the
+    same `tilt` (`ROCK_*`, `PropView.lean()`) instead of sliding sideways.
+- Out to 32 cells ahead, as the sprite was; targets to 51 (a tall
+  sprite's), so the rifle range's far gongs show from the firing line.
 
-Before (left), STILL (middle) and turning (right):
-`docs/godot3d/remaster/pickups/*.png`.
+Pickups before (left), STILL (middle) and turning (right):
+`docs/godot3d/remaster/pickups/*.png`. Loose things and targets before and
+after: `docs/godot3d/remaster2/slabs/*.png`.
 
 ## Actors
 
@@ -182,8 +221,9 @@ The pipeline is in [art.md](art.md#actors).
 ## Checks
 
 - `tools/view3d_check.gd` builds every level's mesh headless, loads every
-  prop and actor scene and builds every pickup's slab, holding its front to
-  the picture's size and place (VIEW3D CHECK OK; in check_all and CI).
+  prop and actor scene and builds every slab (pickups, loose things, range
+  targets; a gong with its plate), holding its front to the picture's size
+  and place (VIEW3D CHECK OK; in check_all and CI).
 - `tools/check_shader.gd` counts textures (SHADER OK).
 - `tools/compare_3d.gd` holds a window tour's pictures against
   `tools/pictures_3d/` ([checks.md](checks.md#picture-references)).

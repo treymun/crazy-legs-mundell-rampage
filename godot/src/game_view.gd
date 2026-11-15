@@ -441,6 +441,7 @@ func sprites() -> Array:
 		var chunk := pooled(g.x, g.y, g.image, g.size, g.z)
 		chunk.flip = g.flip
 		chunk.spin = g.spin
+		chunk.lying = g.rest or g.vz == 0.0
 		sprites.append(chunk)
 	var blast_order: Array = []
 	for blast: Blast in blasts:

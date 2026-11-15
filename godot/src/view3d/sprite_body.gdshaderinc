@@ -1,5 +1,5 @@
 // The body of sprite.gdshader and sprite_clear.gdshader (CLEAR: blended), and
-// of pickup.gdshader (MESH: a pickup's slab, pickup_layer.gd, placed by its
+// of slab.gdshader (MESH: a picture's slab, slab_layer.gd, placed by its
 // own transform, each face shaded by which way it looks).
 #include "res://src/view3d/view_light.gdshaderinc"
 

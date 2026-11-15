@@ -327,6 +327,8 @@ func sprites() -> Array:
 		s.glow = bit.kind == "ember"
 		s.translucent = bit.kind == "smoke"
 		s.spin = bit.spin
+		# On the floor (rolling or still) the 3D view lays a shell flat.
+		s.lying = bit.rest or (bit.vz == 0.0 and (bit.kind == "casing" or bit.kind == "hull"))
 		out.append(s)
 	return out
 
