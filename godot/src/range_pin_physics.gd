@@ -12,6 +12,11 @@
 ## and penetration is pushed out afterwards; bodies that have come to rest
 ## sleep until something knocks them. Map coordinates throughout: x and y
 ## across the floor, z up; a pin's z is its centre's height above the deck.
+##
+## The midway games use it too (range_games.gd): a milk bottle is a body with
+## its own spheres, centre of mass, foot and moments (Body.shape and the
+## rest, a pin's by default), and a thrown softball is a `free` ball, falling
+## and bouncing in three dimensions, where the bowling ball keeps to the lane.
 extends RefCounted
 
 ## A pin's profile up its axis from its foot: [height, radius] spheres (cells).
@@ -73,6 +78,16 @@ class Body:
 	var awake := false
 	var ball := false
 	var inv_m := 1.0
+	## Its spheres up the axis [height, radius], centre of mass, foot's radius
+	## and moments (a pin's unless set: a milk bottle's are its own).
+	var shape: Array = SPHERES
+	var com := COM
+	var foot_r := FOOT
+	var i_across := INERTIA_ACROSS
+	var i_along := INERTIA_ALONG
+	## A ball's radius; a free ball falls and bounces in 3D (a thrown one).
+	var radius := BALL_R
+	var free := false
 	## Touching the deck this step (for rolling and sleep).
 	var grounded := false
 	## Its spheres' centres this step (spheres()).
@@ -88,7 +103,7 @@ class Body:
 			return Vector3.ZERO
 		var u := axis()
 		var along := u * u.dot(t)
-		return along / INERTIA_ALONG + (t - along) / INERTIA_ACROSS
+		return along / i_along + (t - along) / i_across
 
 	func mass_inv() -> float:
 		return inv_m if awake or ball else 0.0
@@ -143,15 +158,15 @@ var first_hit := false
 static func spheres(b: Body) -> Array:
 	var u := b.axis()
 	var out: Array = []
-	for s: Array in SPHERES:
+	for s: Array in b.shape:
 		var h: float = s[0]
-		out.append(b.p + u * (h - COM))
+		out.append(b.p + u * (h - b.com))
 	return out
 
 
 ## A pin's foot (its base's middle), world.
 static func foot(b: Body) -> Vector3:
-	return b.p - b.axis() * COM
+	return b.p - b.axis() * b.com
 
 
 ## Step the bodies `h` seconds: pins (any may be asleep) and the ball (or
@@ -161,6 +176,19 @@ func step(pins: Array, ball: Body, h: float) -> void:
 		if b.awake:
 			b.v.z -= GRAVITY * h
 	var contacts: Array = []
+	if ball != null and ball.free:
+		ball.v.z -= GRAVITY * h
+		var under: float = floor_at.call(ball.p.x, ball.p.y)
+		var low := under - (ball.p.z - ball.radius)
+		if low > 0.0:
+			_add_world(
+				ball,
+				ball.p - Vector3(0, 0, ball.radius),
+				Vector3(0.0, 0.0, 1.0),
+				low,
+				MU_FLOOR,
+				contacts
+			)
 	for b: Body in pins:
 		b.sph = spheres(b)
 	for b: Body in pins:
@@ -207,7 +235,8 @@ func step(pins: Array, ball: Body, h: float) -> void:
 		else:
 			b.rest = 0.0
 	if ball != null:
-		ball.v.z = 0.0
+		if not ball.free:
+			ball.v.z = 0.0
 		ball.p += ball.v * h
 	_push_out(contacts)
 
@@ -216,7 +245,8 @@ func _floor_contacts(b: Body, out: Array) -> void:
 	var u := b.axis()
 	var r := 0
 	for c: Vector3 in b.sph:
-		var rad: float = SPHERES[r][1]
+		var sphere: Array = b.shape[r]
+		var rad: float = sphere[1]
 		r += 1
 		var under: float = floor_at.call(c.x, c.y)
 		var depth := under - (c.z - rad)
@@ -234,7 +264,7 @@ func _floor_contacts(b: Body, out: Array) -> void:
 		var other := u.cross(side)
 		for k in 6:
 			var a := k * TAU / 6.0
-			var pt := base + (side * cos(a) + other * sin(a)) * FOOT
+			var pt := base + (side * cos(a) + other * sin(a)) * b.foot_r
 			var under: float = floor_at.call(pt.x, pt.y)
 			if pt.z < under:
 				_add_world(b, pt, Vector3(0.0, 0.0, 1.0), under - pt.z, MU_FLOOR, out)
@@ -243,7 +273,8 @@ func _floor_contacts(b: Body, out: Array) -> void:
 func _wall_contacts(b: Body, out: Array) -> void:
 	var r := 0
 	for c: Vector3 in b.sph:
-		var rad: float = SPHERES[r][1]
+		var sphere: Array = b.shape[r]
+		var rad: float = sphere[1]
 		r += 1
 		if c.y > foul + .5 or c.y < cushion - .6:
 			continue
@@ -287,10 +318,12 @@ func _pin_pair(a: Body, o: Body, out: Array) -> void:
 	var at := Vector3.ZERO
 	var n := Vector3.ZERO
 	for i in sa.size():
-		var ra: float = SPHERES[i][1]
+		var sphere_a: Array = a.shape[i]
+		var ra: float = sphere_a[1]
 		var ca: Vector3 = sa[i]
 		for k in so.size():
-			var rk: float = SPHERES[k][1]
+			var sphere_k: Array = o.shape[k]
+			var rk: float = sphere_k[1]
 			var ck: Vector3 = so[k]
 			var gap := ca - ck
 			var d := gap.length()
@@ -324,11 +357,12 @@ func _ball_pin(ball: Body, pin: Body, out: Array) -> void:
 	var n := Vector3.ZERO
 	var r := 0
 	for c: Vector3 in spheres(pin):
-		var rad: float = SPHERES[r][1]
+		var sphere: Array = pin.shape[r]
+		var rad: float = sphere[1]
 		r += 1
 		var gap := ball.p - c
 		var d := gap.length()
-		var depth := BALL_R + rad - d
+		var depth := ball.radius + rad - d
 		if depth > best and d > 1e-6:
 			best = depth
 			n = gap / d
@@ -422,8 +456,10 @@ func _push_out(contacts: Array) -> void:
 		if ia + ib <= 0.0:
 			continue
 		var move := c.n * d * PUSH / (ia + ib)
-		if c.a.ball:
+		if c.a.ball and not c.a.free:
 			c.a.p += Vector3(move.x, move.y, 0.0) * ia
+		elif c.a.ball:
+			c.a.p += move * ia
 		elif c.a.awake:
 			c.a.p += move * ia
 		if c.b != null and (c.b.awake or c.b.ball):

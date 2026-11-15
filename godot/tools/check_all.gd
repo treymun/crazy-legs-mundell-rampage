@@ -27,6 +27,7 @@ const CHECKS := [
 	["menu_touch_check", "MENU TOUCH OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK"],
+	["games_check", "GAMES CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 const QUICK := [
@@ -37,6 +38,7 @@ const QUICK := [
 	"level_edit_check",
 	"menu_touch_check",
 	"physics_check",
+	"games_check",
 ]
 
 

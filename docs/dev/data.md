@@ -32,6 +32,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `cuss_lines.json` | the cuss pack (the voice tools read it too) | `src/cuss_lines.gd` |
 | `mundell_lines.json` | Mundell's wisecracks | `Barks` |
 | `servers.json` | the county servers the browser lists (`wss` for the browser build) | `NetBrowser` |
+| `range_games.cfg` | the midway games: `[horseshoes]`, `[skeeball]`, `[dunk]`, `[bottles]` (the range's games row), `[fair_gallery]`, `[range_board]` | `RangeTuning` (`src/core/range_tuning.gd`) |
 
 ## Loaders
 

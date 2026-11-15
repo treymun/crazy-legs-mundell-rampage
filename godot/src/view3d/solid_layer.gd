@@ -7,7 +7,10 @@
 ## Godot's axes (y up): a pin stands on its foot at the origin, the ball's
 ## middle is at the origin.
 ##
-## Each face carries its material in UV.x (solid.gdshader's PAINT).
+## Each face carries its material in UV.x (solid.gdshader's PAINT). The newer
+## kinds (solid_kit.gd: horseshoes, skee-ball, bottles, the dunk tank, the
+## fair's and the trophy shack's) carry their own colour and are built the
+## first time one is seen.
 class_name SolidLayer3D
 extends Node3D
 
@@ -82,7 +85,12 @@ func show_solids(
 	for item: Variant in list:
 		var s: View.Sprite = item
 		if not _meshes.has(s.solid):
-			continue
+			# The midway games', the fair's and the trophies' (solid_kit.gd), built
+			# the first time one is seen.
+			var made := SolidKit.mesh_of(s.solid)
+			if made == null:
+				continue
+			_meshes[s.solid] = made
 		var ahead := (s.x - cam.x) * fx + (s.y - cam.y) * fy
 		if ahead >= REACH or (ahead <= BEHIND and not everywhere):
 			continue

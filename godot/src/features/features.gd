@@ -41,6 +41,8 @@ const ALL := [
 	preload("res://src/features/squad_feature.gd"),
 	preload("res://src/features/county_run.gd"),
 	preload("res://src/features/mode_feature.gd"),
+	preload("res://src/features/fair_gallery.gd"),
+	preload("res://src/features/trophy_shack.gd"),
 ]
 
 ## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES
@@ -65,6 +67,7 @@ const LOOKS := [
 	"boss_voices",
 	"enemy_barks",
 	"boss_checkpoint",
+	"trophy_shack",
 ]
 
 

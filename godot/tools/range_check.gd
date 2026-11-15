@@ -11,7 +11,14 @@
 ## All eight bosses come out of the corral (the Swamp King onto its pond, Maw
 ## with her own fight), every hand in the county out of the bullpen (the tough
 ## guys and oddballs one after another), every gun hangs somewhere to take it,
-## and the bowling lane plays and scores as bowling does.
+## and the bowling lane plays and scores as bowling does. The games row
+## (range_games.gd) plays and scores: horseshoes (a ringer dropped round the
+## stake, a shoe knocked off it, a game of ten), the dunk tank (a shot on the
+## bullseye drops him in and he climbs back; a round counts), skee-ball (soft
+## comes back, the right roll drops in the rings, a game of nine) and knock
+## 'em down (three balls take bottles off the table, a shot one scores
+## nothing); each game's best goes to the records and the board (answered
+## here, range_board.gd), and every station's card draws.
 extends SceneTree
 
 const L := preload("res://src/range_layout.gd")
@@ -151,6 +158,317 @@ static func _bowling(g: Game, feature, check: Callable) -> void:
 		bowl.split_name() == "7-10", "a split is called by its pins (%s)" % bowl.split_name()
 	)
 	bowl.new_game()
+
+
+static func _tick(g: Game, n: int) -> void:
+	for i in n:
+		g.tick(1.0 / 60.0, Game.Controls.new())
+
+
+static func _stand(g: Game, x: float, y: float, angle: float, pitch := 0.0) -> void:
+	var p := g.player
+	p.x = x
+	p.y = y
+	p.angle = angle
+	p.pitch = pitch
+	p.floor_z = g.world.floor_under(x, y, .05)
+	p.eye = .95 + g.world.stand(p)
+
+
+## Ticks until the skee-ball in play has dropped (or come back).
+static func _roll_out(g: Game, skee) -> void:
+	for i in 600:
+		if skee.ball.is_empty():
+			return
+		g.tick(1.0 / 60.0, Game.Controls.new())
+
+
+## The games row: each game plays and scores, its best kept and boarded.
+static func _games(g: Game, feature, check: Callable) -> void:
+	print("RANGE GAMES ROW (horseshoes, dunk tank, skee-ball, knock 'em down, the board)")
+	RangeBoard.folder_override = OS.get_cache_dir().path_join("clmr-range-check")
+	DirAccess.make_dir_recursive_absolute(RangeBoard.folder_override)
+	if FileAccess.file_exists(RangeBoard.path()):
+		DirAccess.remove_absolute(RangeBoard.path())
+	var kept_store := RangeBoard.store
+	RangeBoard.store = OS.get_cache_dir().path_join("clmr-range-check-board.json")
+	if FileAccess.file_exists(RangeBoard.store):
+		DirAccess.remove_absolute(RangeBoard.store)
+	RangeBoard.local = true
+	RangeBoard.boards.clear()
+	g.player.health = 100
+	var games = feature.games
+	var walk := true
+	for st: Array in L.GAME_STATIONS:
+		var found := false
+		for s: LevelData.Station in g.world.stations:
+			found = found or s.id == "range-" + String(st[0])
+		walk = walk and found and not g.world.blocked(float(st[1]), float(st[2]) - .8, .2)
+	check.call(walk, "each game's station is there, with room to stand at it")
+	# HORSESHOES: a shoe dropped round the stake rings it; one sliding into
+	# the stake from the side is knocked off it.
+	games.shoes.clear()
+	games.shoes_left = 10
+	games.shoe_score = 0
+	(
+		games
+		. shoes
+		. append(
+			{
+				"x": L.STAKE.x,
+				"y": L.STAKE.y,
+				"z": .6,
+				"vx": 0.0,
+				"vy": 0.0,
+				"vz": 0.0,
+				"yaw": 0.0,
+				"wy": 0.0,
+				"state": "fly",
+				"ringed": false,
+				"lean": 0.0,
+				"knocked": false,
+			}
+		)
+	)
+	_tick(g, 90)
+	var dropped: Dictionary = games.shoes[0]
+	check.call(
+		bool(dropped["ringed"]) and String(dropped["state"]) == "rest" and games.shoe_score == 3,
+		(
+			"a shoe dropped round the stake is a ringer: 3 (%s, %d)"
+			% [games.shoe_last, games.shoe_score]
+		)
+	)
+	games.shoes.clear()
+	games.shoe_score = 0
+	(
+		games
+		. shoes
+		. append(
+			{
+				"x": L.STAKE.x - .6,
+				"y": L.STAKE.y,
+				"z": .009,
+				"vx": 5.0,
+				"vy": 0.0,
+				"vz": 0.0,
+				"yaw": 0.0,
+				"wy": 0.0,
+				"state": "slide",
+				"ringed": false,
+				"lean": 0.0,
+				"knocked": false,
+			}
+		)
+	)
+	_tick(g, 90)
+	var knocked: Dictionary = games.shoes[0]
+	check.call(
+		(
+			bool(knocked["knocked"])
+			and not bool(knocked["ringed"])
+			and float(knocked["x"]) < L.STAKE.x
+		),
+		"a shoe sliding heel first into the stake is knocked back off it"
+	)
+	# A game of ten from the box, pitched by the look: the pitch that carries
+	# to the stake scores, one that falls short does not.
+	games.shoes.clear()
+	games.shoes_left = 10
+	games.shoe_score = 0
+	games.ringers = 0
+	var court: float = g.world.elevation(L.STAKE.x, L.STAKE.y)
+	var aim := 0.0
+	var off := 99.0
+	for k in 107:
+		_stand(g, L.SHOE_BOX.x, L.SHOE_BOX.y, PI / 2.0, -53.0 + k)
+		var far: float = games.carry(g.player, court)
+		var miss := absf(far - (L.STAKE.y - L.SHOE_BOX.y - .3) + .3)
+		if miss < off:
+			off = miss
+			aim = -53.0 + k
+	var first := -1
+	var short := -1
+	for k in 10:
+		_stand(g, L.SHOE_BOX.x, L.SHOE_BOX.y, PI / 2.0, aim if k > 0 else -50.0)
+		var before: int = games.shoe_score
+		var said: String = games.pitch(g, g.player)
+		_tick(g, 150)
+		if k == 0:
+			short = games.shoe_score - before
+		elif first < 0:
+			first = games.shoe_score - before
+		if said != "":
+			break
+	var sane := true
+	for shoe: Dictionary in games.shoes:
+		sane = sane and String(shoe["state"]) == "rest" and is_finite(float(shoe["x"]))
+	check.call(
+		short == 0 and games.shoe_score > 0 and sane,
+		(
+			"a pitch that falls short scores nothing, those carried to the stake score (%d, %d: %s)"
+			% [short, first, games.shoe_last]
+		)
+	)
+	check.call(
+		games.shoes_left == 0 and int(feature.records.get("horseshoes", 0)) == games.shoe_score,
+		"a game of ten shoes ends and is kept as the best (%d)" % games.shoe_score
+	)
+	# THE DUNK TANK: a shot on the bullseye drops him in, he climbs back up.
+	_stand(g, L.TANK_AT.x + 1.45, 84.0, PI / 2.0)
+	games.start_dunk(g)
+	var hits := 0
+	for k in 2:
+		_tick(g, 2)
+		var t: Vector3 = games.target(g)
+		var p := g.player
+		var angle := atan2(t.y - p.y, t.x - p.x)
+		var reach := Vector2(t.x - p.x, t.y - p.y).length()
+		g.hitscan(angle, (t.z - p.eye) / reach, 36.0, 23.0, .0)
+		if k == 0:
+			check.call(
+				games.dunk_state == "falling",
+				"a .38 round on the bullseye drops the hand in (%s)" % games.dunk_state
+			)
+			_tick(g, 60)
+			check.call(games.dunk_state == "under", "he goes under with a splash")
+		_tick(g, int((games.DUNK_UNDER + games.DUNK_CLIMB + 1.0) * 60.0))
+		hits = games.dunks
+	check.call(games.dunk_state == "up" and hits == 2, "he climbs back up; two dunks counted")
+	_tick(g, int(games.DUNK_ROUND * 60.0))
+	check.call(
+		not games.dunk_on and int(feature.records.get("dunk", 0)) == 2,
+		"the round ends at the bell and its dunks are the best (%s)" % games.dunk_last
+	)
+	# SKEE-BALL: soft comes back, a range of rolls lands in the rings.
+	var skee = games.skee
+	skee.new_game()
+	var seen := {}
+	var best_pitch := 0.0
+	var top := -1
+	for k in 9:
+		var pitch := -53.0 + k * 13.0
+		_stand(g, L.SKEE_FOOT.x, L.SKEE_FOOT.y - .7, PI / 2.0, pitch)
+		var before: int = skee.score
+		feature._station("range-skee")
+		_roll_out(g, skee)
+		var got: int = skee.score - before
+		seen[pitch] = got
+		if got > top:
+			top = got
+			best_pitch = pitch
+	(
+		check
+		. call(
+			int(seen[-53.0]) == 0 and top >= 30 and skee.games == 1,
+			(
+				"skee-ball: soft rolls back for nothing, harder lands in the rings, nine balls a game %s"
+				% [seen]
+			)
+		)
+	)
+	check.call(
+		int(feature.records.get("skeeball", 0)) == skee.best and skee.best > 0,
+		"a skee-ball game is kept as the best (%d)" % skee.best
+	)
+	var fine := -1
+	for k in 40:
+		var pitch2: float = best_pitch - 6.0 + k * .3
+		_stand(g, L.SKEE_FOOT.x, L.SKEE_FOOT.y - .7, PI / 2.0, pitch2)
+		var before2: int = skee.score
+		feature._station("range-skee")
+		_roll_out(g, skee)
+		fine = maxi(fine, skee.score - before2)
+	check.call(fine >= 50, "a roll just right drops in the 50 (best %d)" % fine)
+	# KNOCK 'EM DOWN: three balls at the rack take bottles off the table.
+	games.rack_bottles()
+	_stand(g, L.BOTTLE_LINE.x, L.BOTTLE_LINE.y - .25, PI / 2.0)
+	var floor_z: float = g.world.elevation(L.TABLE_AT.x, L.TABLE_AT.y)
+	var aim_at := Vector3(L.TABLE_AT.x, L.TABLE_AT.y - .1, floor_z + 0.92)
+	for k in 3:
+		var p2 := g.player
+		var d := Vector2(aim_at.x - p2.x, aim_at.y - p2.y).length()
+		# Aim low over the counter: straight at the rack, the fall allowed for.
+		var speed: float = games.BALL_SPEED
+		var loft: float = games.BALL_LOFT
+		var drop := .5 * 10.7 * pow(d / speed, 2.0)
+		var slope := (aim_at.z + drop - (p2.eye - .12)) / d - loft
+		p2.pitch = slope * View.base_focal
+		p2.angle = atan2(aim_at.y - p2.y, aim_at.x - p2.x) + (k - 1) * .02
+		feature._station("range-bottles")
+		_tick(g, 300)
+	var off_table := 0
+	var bottles_ok := true
+	for bottle: Dictionary in games.bottles:
+		off_table += 1 if String(bottle["gone"]) == "off" else 0
+		var bx := float(bottle["x"])
+		var by := float(bottle["y"])
+		bottles_ok = (
+			bottles_ok
+			and is_finite(bx)
+			and absf(bx - L.TABLE_AT.x) < 9.0
+			and by < L.BOTTLE_BACK + .1
+			and float(bottle["z"]) > -.1
+		)
+	check.call(
+		games.balls_left == 0 and games.bottle_score > 0 and bottles_ok,
+		(
+			"three softballs take bottles off the table and score (%d off: %s)"
+			% [off_table, games.bottle_last]
+		)
+	)
+	check.call(
+		int(feature.records.get("bottles", 0)) == games.bottle_best,
+		"knock 'em down's best is kept (%d)" % games.bottle_best
+	)
+	games.rack_bottles()
+	var b0: Dictionary = games.bottles[0]
+	var p3 := g.player
+	var to := Vector3(float(b0["x"]), float(b0["y"]), floor_z + .95)
+	var reach3 := Vector2(to.x - p3.x, to.y - p3.y).length()
+	g.hitscan(atan2(to.y - p3.y, to.x - p3.x), (to.z - p3.eye) / reach3, 36.0, 23.0, .0)
+	_tick(g, 120)
+	check.call(
+		games.bottle_shot or String(games.bottle_last).contains("NO SCORE"),
+		"a round fired at the bottles knocks one over and the round scores nothing"
+	)
+	# The board: the bests went to it and come back on it.
+	var rows: Array = RangeBoard.rows("skeeball")
+	check.call(
+		not rows.is_empty() and int(rows[0][1]) == skee.best,
+		"the bests are posted to the board and come back on it (%s)" % [rows]
+	)
+	RangeBoard.answer({"range": "skeeball", "post": ["CHEAT", 9999], "version": "x"})
+	var cheat: Dictionary = RangeBoard.answer(
+		{
+			"range": "skeeball",
+			"post": ["CHEAT", 9999],
+			"version": String(ProjectSettings.get_setting("application/config/version", ""))
+		}
+	)
+	var cheated := false
+	for row: Array in cheat["rows"]:
+		cheated = cheated or String(row[0]) == "CHEAT"
+	check.call(not cheated, "a score past what a game allows is refused")
+	var c := Canvas.new()
+	var drew := true
+	for station: String in ["horseshoes", "dunk", "skeeball", "bottles", "bowling"]:
+		feature.station = station
+		feature.station_since = -100.0
+		feature.draw_view(c)
+		drew = drew and not feature.Card.readouts(feature).is_empty()
+	check.call(drew, "each game's station card draws its score and the board")
+	_stand(g, L.BOTTLE_LINE.x, L.BOTTLE_LINE.y - .25, PI / 2.0)
+	var kinds := {}
+	for sprite: View.Sprite in games.sprites(g):
+		kinds[sprite.solid] = true
+	check.call(
+		kinds.has("bottle") and kinds.has("softball"),
+		"the games give the 3D view their bodies (%s)" % [kinds.keys()]
+	)
+	RangeBoard.local = false
+	RangeBoard.store = kept_store
+	RangeBoard.folder_override = ""
 
 
 ## shots=<dir>: software pictures of the stations at work (levers pulled,
@@ -419,6 +737,7 @@ static func run(main, check: Callable) -> void:
 	_bowling(g, feature, check)
 	lever.call("gallery")
 	check.call(feature.targets.gallery_on, "the gallery lever starts a round")
+	_games(g, feature, check)
 	var c := Canvas.new()
 	feature.station = "bullpen"
 	feature.draw_view(c)

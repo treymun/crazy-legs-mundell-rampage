@@ -12,7 +12,9 @@
 ## A fingerpost on the stop's island has an arm for every gate, each pointing
 ## straight at it, and every gate can be seen from it. Round the stop: the
 ## Crossroads diner, the County Road Department (the dispatch board on its back,
-## facing the road in), the road crew's yard and the county impound.
+## facing the road in), the road crew's yard and the county impound. Behind
+## the Road Department's yard, Mundell's trophy shack (layout 4): what he has
+## to show for it all (features/trophy_shack.gd puts the trophies in it).
 ##
 ## Built by tools/levels/build_level.gd -- hub.
 extends RefCounted
@@ -52,6 +54,7 @@ var impound: int
 var site: int
 var diner: int
 var depot: int
+var shack: int
 
 
 func make() -> Builder:
@@ -62,7 +65,7 @@ func make() -> Builder:
 	b.meta = {
 		"title": "COUNTY CROSSROADS",
 		"heading": ["COUNTY", "CROSSROADS"],
-		"layout": 3,
+		"layout": 4,
 		"sky": "sky",
 		"hub_board": [53.5, 47.05],
 		"hub_gates": gates,
@@ -115,6 +118,7 @@ func build(_b) -> Array:
 	site = b.district("CRASH SITE", Color(.9, 1.04, .98))
 	diner = b.district("CROSSROADS DINER", Color(1.04, .98, .92))
 	depot = b.district("ROAD DEPARTMENT", Color(.96, .98, 1.02))
+	shack = b.district("MUNDELL'S SHACK", Color(1.06, .98, .88))
 	county_line_road()
 	county_road()
 	the_diner()
@@ -128,6 +132,7 @@ func build(_b) -> Array:
 	crew_yard()
 	impound_lot()
 	crash_site()
+	trophy_shack()
 	for g: Array in GATES:
 		gate(g)
 	the_stop()
@@ -464,6 +469,45 @@ func crash_site() -> void:
 	b.glow(44.0, 7.0, 5.0, .5)
 
 
+## Mundell's trophy shack, behind the Road Department's yard: a plank shack
+## on its own gravel with the door on its west side, a couch on the stoop,
+## the still out back. Inside, plinths and plaques for the bosses down the
+## north and south walls and a shelf on the east wall: the trophy shack
+## feature (features/trophy_shack.gd, SHACK) stands what he has won on them.
+func trophy_shack() -> void:
+	b.yard(59, 44, 72, 57, "gravel", shack, {"light": .9})
+	b.paint(59, 49, 61, 51, "porch")
+	(
+		b
+		. building(
+			62,
+			46,
+			70,
+			53,
+			shack,
+			{
+				"wall": "barn",
+				"roof": 2.6,
+				"floor": "wood",
+				"windows": 3,
+				"lit": .9,
+				"light": .95,
+				"skin": "office_wall",
+				"ceiling": "joists",
+			}
+		)
+	)
+	b.gap(62, 50, "e")
+	b.board("range_head_trophies", 61.94, 50.5, .62, {"z": 2.15, "plane": PI / 2})
+	b.town("porch_couch", 60.6, 48.6)
+	b.town("cooler", 60.4, 52.4)
+	b.town("still", 71.5, 55.5, {"solid": .45})
+	b.town("burn_barrel", 59.5, 55.5, {"solid": .25, "glow": true})
+	b.glow(59.5, 55.5, 2.6, .3)
+	b.streetlamp(59.5, 45.0)
+	b.glow(66.5, 49.5, 4.0, .22)
+
+
 func finish_up() -> void:
 	for l in [
 		["BAYOU", 9, 33],
@@ -478,5 +522,6 @@ func finish_up() -> void:
 		["CRASH SITE", 41, 14],
 		["DINER", 32, 45],
 		["ROAD DEPT", 51, 43],
+		["SHACK", 64, 49],
 	]:
 		b.label(String(l[0]), int(l[1]), int(l[2]))

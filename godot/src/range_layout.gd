@@ -4,11 +4,14 @@
 ## the range feature (features/firing_range.gd) runs it from the same ones, so
 ## a target is never drawn in one spot and shot at in another.
 ##
-## The map is 100 by 78: eight lanes north of the covered firing line (y 52 to
-## 55), the midway along it, and south of that the boss corral, the whuppin'
-## yard, the armory (where the player starts) and the bullpen. The corral
-## has a pond along its south fence (the Swamp King's airboat needs water);
-## the armory's store wall stands free down its middle.
+## The map is 100 by 100: eight lanes north of the covered firing line (y 52
+## to 55), the midway along it, and south of that the boss corral, the
+## whuppin' yard, the armory (where the player starts) and the bullpen. The
+## corral has a pond along its south fence (the Swamp King's airboat needs
+## water); the armory's store wall stands free down its middle. South of them
+## all, down the gravel walk between the armory and the bullpen, the games
+## row (y 78 to 98): horseshoes, the dunk tank, skee-ball and knock 'em down
+## (range_games.gd), each in its booth off the row's walk.
 extends RefCounted
 
 const ID := "range"
@@ -139,6 +142,50 @@ const STATIONS := {
 		[
 			"ONE BOSS AT A TIME, ALL EIGHT OF THEM. WATCH THE TELL ON THE BAR.",
 			"AT HALF HEALTH THEY GO FIGHTIN' MAD. THE SWAMP KING KEEPS TO THE POND."
+		],
+	},
+	"horseshoes":
+	{
+		"lane": [1, 81, 20, 98],
+		"zone": [1, 78, 20, 98],
+		"title": "HORSESHOES",
+		"teach":
+		[
+			"FACE THE STAKE AND PRESS USE TO PITCH. LOOK UP TO PITCH",
+			"FARTHER. RINGER 3, LEANER 2, WITHIN A SHOE 1. TEN SHOES A GAME."
+		],
+	},
+	"dunk":
+	{
+		"lane": [22, 81, 38, 98],
+		"zone": [22, 78, 38, 98],
+		"title": "DUNK TANK",
+		"teach":
+		[
+			"HIT THE BULLSEYE WITH ANY GUN AND IN HE GOES.",
+			"THE LEVER STARTS A 30 SECOND ROUND: IT SWINGS. COUNT THE DUNKS."
+		],
+	},
+	"skeeball":
+	{
+		"lane": [40, 81, 56, 98],
+		"zone": [40, 78, 56, 98],
+		"title": "SKEE-BALL",
+		"teach":
+		[
+			"PRESS USE AT THE FOOT TO ROLL. LOOK DOWN THE LANE TO ROLL SOFT,",
+			"UP TO ROLL HARD. 50 IN THE MIDDLE, 100 IN THE CORNERS. NINE BALLS."
+		],
+	},
+	"bottles":
+	{
+		"lane": [58, 81, 74, 98],
+		"zone": [58, 78, 74, 98],
+		"title": "KNOCK 'EM DOWN",
+		"teach":
+		[
+			"PRESS USE AT THE COUNTER TO THROW. THREE BALLS, TEN BOTTLES:",
+			"DOWN 1, OFF THE TABLE 2, THE TABLE CLEARED 10 MORE. AIM LOW."
 		],
 	},
 	"armory":
@@ -360,6 +407,28 @@ const BOSS_DECOYS := [[3.5, 69.5], [21.5, 69.5]]
 ## Maw Glorb's pods in the corral (features/mothership.gd on the range): her
 ## younguns come out of them, and her reach is worked out from them.
 const MAW_PODS := [Vector2(3.5, 61.5), Vector2(21.5, 61.5), Vector2(3.5, 70.0), Vector2(21.5, 70.0)]
+
+## The games row (range_games.gd): the horseshoe pitcher's box and the stake
+## (and the backboard behind the pit, its y), the dunk tank's middle, the
+## skee-ball lane's foot (it runs south), knock 'em down's table, its throw
+## line, the booth's walls (x) and its back (y), and the stations' spots.
+const GAMES_ROW := Rect2i(1, 78, 98, 3)
+const SHOE_BOX := Vector2(10.5, 83.2)
+const STAKE := Vector2(10.5, 92.5)
+const SHOE_BACK := 96.0
+const TANK_AT := Vector2(30.5, 92.5)
+const SKEE_FOOT := Vector2(48.5, 84.7)
+const TABLE_AT := Vector2(66.5, 89.5)
+const BOTTLE_LINE := Vector2(66.5, 84.35)
+const BOTTLE_WALLS := Vector2(58.0, 75.0)
+const BOTTLE_BACK := 90.98
+## [station id, x, y, label]: "range-" + the id.
+const GAME_STATIONS := [
+	["pitch", 10.5, 84.1, "PITCH A HORSESHOE"],
+	["dunk", 25.5, 84.4, "START A DUNK ROUND"],
+	["skee", 48.5, 83.7, "ROLL A SKEE-BALL"],
+	["bottles", 66.5, 85.0, "THROW A SOFTBALL"],
+]
 
 ## The store wall down the middle of the armory (a thin wall of the level's
 ## geometry, from x0 to x1 at y), and which guns hang on its north face (the

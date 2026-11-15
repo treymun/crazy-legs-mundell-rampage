@@ -445,6 +445,10 @@ the how-to. The 5v5 rules themselves are in
   (`Game.new(..., true)`, which client copies match exactly), at most
   `most_matches` at once (`may_start`).
 - `tools/net_server_check.gd` holds it.
+- The firing range's board rides COUNTY RUN's BOARD knock: a knock with
+  `range` in it is answered by `RangeBoard.answer` from
+  `user://range-board.json` ([gameplay.md](gameplay.md#the-ranges-records-and-board));
+  `tools/games_check.gd` knocks on a lobby server for it over ENet.
 
 ### The multiplayer menus
 

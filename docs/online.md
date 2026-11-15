@@ -140,6 +140,10 @@ The host needs **UDP port 47197** reachable from outside. Three ways:
    with that address. No router settings needed, and it works behind CGNAT.
 3. **Someone else hosts**: a friend whose router does UPnP.
 
+The server also keeps the firing range's board (`range-board.json` in the
+server's user folder, beside `county-board.json`): every game's top scores
+by name, posted by players' games when they finish one online.
+
 ## What is checked and what is not
 
 `tools/net_server_check.gd` (in check_all and CI) holds the always-open
@@ -149,6 +153,10 @@ and on a busy server, a match with bots kept in step with the server, back
 to the lobby on its own, the next admin when one leaves, a kick, an empty
 lobby ending its match and getting its settings back, closing tells
 everyone.
+
+`tools/games_check.gd` knocks on a lobby server in the same process for the
+firing range's board: a best comes back, a name's best counts, a score past
+what a game allows and another version's are refused.
 
 `tools/net_showdown_check.gd` plays a whole online session in one process
 over the network stack (a host and three clients on 127.0.0.1, with test lag

@@ -6,7 +6,9 @@
 ## soak tank, special orders and the powder pit), and along the midway the
 ## boss corral (all eight bosses, a pond for the Swamp King's airboat), the
 ## whuppin' yard and the bullpen with its two lever banks. The armory's store
-## wall stands free down its middle with the 5v5 guns and throwables.
+## wall stands free down its middle with the 5v5 guns and throwables. South
+## of it all, down the gravel walk past the armory, the games row (layout 5):
+## horseshoes, the dunk tank, skee-ball under its shed and knock 'em down.
 ## Every number the range feature needs is in src/range_layout.gd.
 ##
 ## Built by tools/levels/build_level.gd -- range.
@@ -15,8 +17,9 @@ extends RefCounted
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const L := preload("res://src/range_layout.gd")
+const Shape := preload("res://src/range_games_shape.gd")
 const W := 100
-const H := 78
+const H := 100
 
 var b: Builder
 var line: int
@@ -32,7 +35,7 @@ func make() -> Builder:
 		"intro": "MUNDELL'S PROVING GROUNDS. EVERY GUN, ALL THE AMMO. PAUSE TO LEAVE.",
 		"score": "music",
 		"ambience": "range",
-		"layout": 4,
+		"layout": 5,
 		"sky": "sky",
 		"pressure_ports": L.PRESSURE_PORTS,
 		"boss_decoys": L.BOSS_DECOYS,
@@ -62,6 +65,7 @@ func build(_b) -> Array:
 	yard()
 	armory()
 	bullpen()
+	games_row()
 	dressing()
 	return L.SPAWN
 
@@ -90,10 +94,17 @@ func marker(x_wall: float, y: float, yards: int) -> void:
 
 ## A lever on its post with its name plate, and the station that works it.
 func lever(
-	id: String, x: float, y: float, label_text: String, plate: String, facing := 0.0
+	id: String,
+	x: float,
+	y: float,
+	label_text: String,
+	plate: String,
+	facing := 0.0,
+	with_station := true
 ) -> void:
 	b.town("range_lever", x, y)
-	b.station("range-" + id, x, y, label_text, "", {"cue": "range_lever"})
+	if with_station:
+		b.station("range-" + id, x, y, label_text, "", {"cue": "range_lever"})
 	if plate != "":
 		var face := Vector2(-sin(facing), cos(facing))
 		var at := Vector2(x, y) - face * .3
@@ -532,6 +543,132 @@ func hunting_stand() -> void:
 	b.board("range_plaque_3", 70.0, 70.6, .22, {"z": .3, "plane": 0.0})
 
 
+# ------------------------------------------------------------------ games row
+
+
+## The games row (range_games.gd plays them; range_layout.gd says where): the
+## gravel walk past the armory comes down to a walk along the row, and off it
+## four booths between plank baffles, the midway's end past them.
+func games_row() -> void:
+	var row := b.district("THE GAMES ROW", Color(1.06, .98, .9))
+	b.yard(62, 77, 65, 77, "fair_gravel", line, {"light": .86})
+	var r: Rect2i = L.GAMES_ROW
+	b.yard(r.position.x, r.position.y, r.end.x - 1, r.end.y - 1, "fair_gravel", row, {"light": .9})
+	b.paint(r.position.x, r.position.y + 1, r.end.x - 1, r.position.y + 1, "tracks")
+	for x in [21, 39, 57, 75]:
+		b.wall(x, 81, x, 98, "wood", 1.5)
+		floodlight(x + .5, 80.6, 7.0, .2)
+	for k in range(0, 24):
+		var x := 3.0 + k * 4.0
+		if x > 97.0:
+			break
+		b.board("fair_bulbs", x, 80.94, .3, {"z": 2.0, "plane": PI, "back": "fair_bulbs_on"})
+	for x in [10.0, 30.0, 66.0, 87.0]:
+		b.streetlamp(x, 78.4, 4.5)
+	horseshoe_court()
+	dunk_booth()
+	skee_shed()
+	bottle_booth()
+	row_end()
+	for st: Array in L.GAME_STATIONS:
+		b.station(
+			"range-" + String(st[0]),
+			float(st[1]),
+			float(st[2]),
+			String(st[3]),
+			"",
+			{"cue": "range_lever"}
+		)
+
+
+## A header board over a booth's mouth, on a post each side.
+func booth_header(id: String, x0: int, x1: int) -> void:
+	var cx := (x0 + x1 + 1) * .5
+	b.board("range_head_" + id, cx, 81.06, .66, {"z": 1.9, "plane": PI})
+	post(x0, 81.0, 2.25)
+	post(x1 + 1.0, 81.0, 2.25)
+
+
+func horseshoe_court() -> void:
+	var lanes_id: int = lanes["horseshoes"]
+	b.yard(1, 81, 20, 98, "grass", lanes_id, {"light": .9})
+	booth_header("horseshoes", 6, 14)
+	# The pitcher's box, the clay pit round the stake, the backboard behind it.
+	b.paint(9, 82, 11, 84, "porch")
+	b.paint(8, 89, 12, 95, "quarry_dust")
+	b.paint(9, 85, 11, 88, "dirt")
+	b.wall(7, int(L.SHOE_BACK), 14, int(L.SHOE_BACK), "wood", .62)
+	b.town("range_bench", 4.5, 83.5, {"solid": .45, "scale": .85})
+	b.town("range_hay_bale", 17.5, 90.5, {"solid": .4})
+	b.town("range_hay_bale", 3.0, 94.0)
+	b.prop("tree_b", 2.0, 97.0)
+	b.prop("tree", 18.6, 97.2)
+	floodlight(14.5, 91.5, 7.0, .22)
+
+
+func dunk_booth() -> void:
+	var lanes_id: int = lanes["dunk"]
+	b.yard(22, 81, 38, 98, "dirt", lanes_id, {"light": .9})
+	booth_header("dunk", 26, 34)
+	b.paint(23, 84, 37, 84, "tracks")
+	var t := L.TANK_AT
+	b.volume(t.x - .92, t.y - .68, t.x + .92, t.y + .68, 1.15)
+	# The bullseye's arm and its post.
+	b.paint(28, 89, 33, 96, "creek")
+	lever("dunk", 25.5, 84.4, "", "gallery", PI, false)
+	b.town("range_ammo_crate", 36.5, 83.0)
+	b.town("picnic_table", 24.0, 95.5, {"solid": .4})
+	b.town("jug_stack", 36.6, 96.8)
+	b.glow(t.x, t.y, 4.0, .3)
+	floodlight(36.5, 91.0, 7.0, .2)
+
+
+func skee_shed() -> void:
+	var lanes_id: int = lanes["skeeball"]
+	b.room(40, 81, 56, 98, "floor_tile", lanes_id, {"roof": 3.1, "ceiling": "joists", "light": .9})
+	booth_header("skeeball", 44, 52)
+	var f := L.SKEE_FOOT
+	b.volume(f.x - .62, f.y - .42, f.x + .62, f.y + 4.85, 1.25)
+	b.paint(46, 82, 50, 83, "porch")
+	for p in [Vector2(42.5, 84.0), Vector2(54.5, 84.0), Vector2(42.5, 92.0), Vector2(54.5, 92.0)]:
+		b.prop("lamp", p.x, p.y)
+	b.town("jukebox_rig", 41.5, 97.0, {"solid": .4})
+	b.town("range_scoreboard", 54.0, 97.4)
+	b.glow(f.x, f.y + 2.5, 5.0, .25)
+
+
+func bottle_booth() -> void:
+	var lanes_id: int = lanes["bottles"]
+	b.yard(58, 81, 74, 98, "porch", lanes_id, {"light": .9})
+	booth_header("bottles", 62, 70)
+	var t := L.TABLE_AT
+	var half: Vector2 = Shape.TABLE_HALF
+	b.table(t.x - half.x, t.y - half.y, t.x + half.x, t.y + half.y, Shape.TABLE_TOP)
+	b.wall(59, int(L.BOTTLE_BACK) + 1, 73, int(L.BOTTLE_BACK) + 1, "fair_booth", 2.3)
+	var line_y := L.BOTTLE_LINE.y
+	b.fixture(t.x - 1.3, line_y + .05, t.x + 1.3, line_y + .45, .8, "counter", "counter_top")
+	b.town("balloons", 59.6, 92.6)
+	b.town("prize_bear", 73.4, 92.5)
+	b.town("cotton_candy", 72.5, 83.0, {"solid": .4, "scale": .88})
+	b.glow(t.x, t.y, 4.0, .35)
+
+
+## Past the booths: a place to sit and the board of the day.
+func row_end() -> void:
+	var row_end_id := b.district("THE MIDWAY'S END", Color(1.04, .98, .92))
+	b.yard(76, 81, 98, 98, "fair_gravel", row_end_id, {"light": .88})
+	b.board("range_head_games", 87.0, 98.94, .66, {"z": 1.9, "plane": PI})
+	b.town("range_scoreboard", 87.0, 97.6)
+	b.town("picnic_table", 80.5, 89.5, {"solid": .4})
+	b.town("picnic_table", 93.5, 89.5, {"solid": .4})
+	b.town("cotton_candy", 79.5, 96.5, {"solid": .4, "scale": .88})
+	b.town("burn_barrel", 96.5, 83.5, {"solid": .25, "glow": true})
+	b.glow(96.5, 83.5, 2.6, .3)
+	b.town("range_loudspeaker", 77.5, 82.5, {"solid": .15})
+	floodlight(97.4, 97.4, 9.0, .2)
+	floodlight(77.0, 97.4, 9.0, .2)
+
+
 ## Set pieces that tie it together: the PA, flags, the range-is-hot sign.
 func dressing() -> void:
 	b.town("range_loudspeaker", 33.5, 57.5, {"solid": .15})
@@ -551,5 +688,9 @@ func dressing() -> void:
 		["YARD", 27, 68],
 		["ARMORY", 42, 67],
 		["BULLPEN", 77, 67],
+		["HORSESHOES", 3, 87],
+		["DUNK", 24, 87],
+		["SKEE", 42, 87],
+		["BOTTLES", 60, 87],
 	]:
 		b.label(String(l[0]), int(l[1]), int(l[2]))

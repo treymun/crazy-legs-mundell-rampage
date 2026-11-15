@@ -585,6 +585,7 @@ func _process(delta: float) -> void:
 	if net != null or not net_old.is_empty() or browser != null:
 		_net_frame()
 	CountyScreens.board_frame(self)
+	RangeBoard.frame(self)
 	dt *= time_scale
 	if state == "play" and game != null:
 		if not focused or (console != null and console.open):

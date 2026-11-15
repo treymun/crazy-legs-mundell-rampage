@@ -1,4 +1,5 @@
-// A solid body in the 3D view (solid_layer.gd): a bowling pin or ball, a
+// A solid body in the 3D view (solid_layer.gd, solid_kit.gd): a bowling pin
+// or ball, a horseshoe, a skee-ball cabinet, a milk bottle and the rest, a
 // real mesh turned by its own pose, lit, tinted, fogged and paletted as the
 // sprites are (sprite_body.gdshaderinc's light), with a 1997 key light from
 // above shading its round sides in steps. Its colours are its materials'
@@ -29,11 +30,13 @@ varying flat vec4 tone;
 varying vec3 map_p;
 varying vec3 map_n;
 varying flat float paint;
+varying flat float packed;
 
 void vertex() {
 	data = INSTANCE_CUSTOM;
 	tone = COLOR;
 	paint = UV.x;
+	packed = UV.y;
 	vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	vec3 wn = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	map_n = vec3(wn.x, wn.z, wn.y);
@@ -48,6 +51,14 @@ void fragment() {
 	}
 	int flags = int(data.w + 0.5) & 255;
 	int m = clamp(int(paint + 0.5), 0, 5);
+	// A face with its own colour (solid_kit.gd): UV.x below zero, UV.y the
+	// colour packed r * 65536 + g * 256 + b; -2 shines.
+	vec3 base = PAINT[m];
+	float gloss = GLOSS[m];
+	if (paint < -0.5) {
+		base = vec3(floor(packed / 65536.0), mod(floor(packed / 256.0), 256.0), mod(packed, 256.0));
+		gloss = paint < -1.5 ? 0.6 : 0.1;
+	}
 	vec3 n = normalize(map_n);
 	vec3 to_eye = normalize(eye - map_p);
 	// Round sides in three steps of the key light, as a hand-shaded sprite.
@@ -61,11 +72,11 @@ void fragment() {
 		float raw = max(0.19, tone.a / (1.0 + 0.102 * t)) * shade;
 		lit = floor(raw * 32.0 + 0.5) / 32.0;
 	}
-	vec3 colour = clamp(floor(PAINT[m] * lit * tone.rgb), 0.0, 255.0);
+	vec3 colour = clamp(floor(base * lit * tone.rgb), 0.0, 255.0);
 	// A highlight where the key light glances off toward the eye.
 	float glint = dot(reflect(-normalize(KEY), n), to_eye);
 	if (glint > 0.93) {
-		colour = min(colour + vec3(150.0) * GLOSS[m] * tone.a, vec3(255.0));
+		colour = min(colour + vec3(150.0) * gloss * tone.a, vec3(255.0));
 	}
 	if (effects_on) {
 		colour = surface_light(colour, map_p, t, n, vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec2(0.0), 0.0, 2);

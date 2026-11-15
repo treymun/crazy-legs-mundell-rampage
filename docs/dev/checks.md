@@ -35,6 +35,7 @@ failed.
 | `menu_touch_check` | MENU TOUCH OK | yes | taps through every menu, the 5v5 store, the County Run screens as touch events |
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
 | `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server |
+| `games_check` | GAMES CHECK OK | yes | the range's board on a lobby server over ENet (posts, a name's best, refusals, asks, the County Run board beside it), the fair's shooting gallery (the bell, each target's points, a can flying and bouncing, the house paying, the prizes saved, no station or door added), the hub's trophy shack (statuettes by the gates open, cups, gnomes, its card) |
 
 ### What check_fixes runs
 
@@ -44,7 +45,7 @@ fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
 (penetration), `weather_check`, the quick parts of `net_check` (determinism),
 `multi_bots` (Hickston with four for 12 s, the bayou with two for 6 s),
 `net_loopback` (ENet 6 s with 40 ms, jitter and 5% loss; WebSocket 2 s),
-`mode_check`, `county_check` and `boss_rematch_check`, `range_check` (the firing range), the CRASH LOG block
+`mode_check`, `county_check` and `boss_rematch_check`, `range_check` (the firing range and its games row), the CRASH LOG block
 (`CrashLog.start(main, dir)` in a cache folder), and `geometry_check` and
 `map_check` (map sources, MAP_AUTHORING.md).
 
@@ -70,7 +71,7 @@ fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
   `build_menu_art`, `build_gore_art` into a scratch folder; then
   `verify_assets`, `view3d_check`, `check_fixes`, `net_showdown_check`,
   `net_server_check`, `menu_touch_check`, `county_check -- seconds=45`,
-  `county_net_check -- seconds=30`, `save_fixtures`, `level_edit_check`,
+  `county_net_check -- seconds=30`, `games_check`, `save_fixtures`, `level_edit_check`,
   `physics_check`,
   `quest_reach`, `bot_campaign`, and a headless frame time (`bench.gd`).
 - **window** (after checks): Xvfb and Mesa's software OpenGL
