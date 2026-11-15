@@ -66,10 +66,16 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	if level.tints.size() >= 3:
 		tone = Color(level.tints[ti], level.tints[ti + 1], level.tints[ti + 2], level.light[c])
 	var hurt := minf(.46, s.hurt / .18 * .44) if s.hurt > 0.0 else 0.0
+	var down := 0.0
+	if frame == "down":
+		down = 1.0
+	elif frame.begins_with("die_"):
+		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
 	for mesh in _meshes:
 		mesh.set_instance_shader_parameter("tone", tone)
 		mesh.set_instance_shader_parameter("wash", Color(tint.r, tint.g, tint.b, hurt))
 		mesh.set_instance_shader_parameter("look", look)
+		mesh.set_instance_shader_parameter("fallen", down)
 
 
 ## Leave off what the body lost (Gore.lost: [piece, side]): the head, or an

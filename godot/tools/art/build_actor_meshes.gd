@@ -28,10 +28,19 @@ func _init() -> void:
 	var raw := Paint.repo("_preview/actors/mesh_raw")
 	DirAccess.make_dir_recursive_absolute(raw)
 	if render:
+		var said: Array = []
 		var code := OS.execute(
 			Actors.blender(),
-			["-b", "-P", Paint.repo("scripts/blender/export_actors.py"), "--", raw, kinds]
+			["-b", "-P", Paint.repo("scripts/blender/export_actors.py"), "--", raw, kinds],
+			said,
+			true
 		)
+		# Blender's own report lines (each kind, the bake's missed texels).
+		for chunk: Variant in said:
+			for line in str(chunk).split("
+"):
+				if line.begins_with("ACTOR"):
+					print(line)
 		if code != 0:
 			push_error("Blender failed (exit %d); set BLENDER_PATH if it is elsewhere" % code)
 			quit(1)

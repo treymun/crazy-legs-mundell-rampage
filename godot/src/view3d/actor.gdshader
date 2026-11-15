@@ -21,6 +21,10 @@ instance uniform vec4 tone = vec4(1.0);
 instance uniform vec4 wash = vec4(1.0, 1.0, 1.0, 0.0);
 // 0 plain, 1 hurt, 2 a boss's second phase, 3 its third.
 instance uniform int look = 0;
+// How far down the body is (0 standing, 1 at rest on the ground): the cels of
+// a fall and a body lying face up were lit squarely by the stage's key, a
+// fifth brighter than a standing cel, and a body seen edge on keeps its colour.
+instance uniform float fallen = 0.0;
 // The looks were baked with the dusk stage's light (the front cel's): only a
 // turn's shade is added, so a side or back seen keeps some modelling.
 uniform bool baked_light = false;
@@ -68,8 +72,8 @@ void fragment() {
 		float turn = 0.88 + 0.12 * max(0.0, dot(n, normalize(vec3(-0.35, 0.55, 0.75))));
 		// Only a true silhouette edge darkens: a body lying flat, seen
 		// edge on, keeps its colour.
-		float rim = mix(0.8, 1.0, smoothstep(0.02, 0.18, n.z));
-		shaded = albedo * turn * rim * wash.rgb;
+		float rim = mix(mix(0.8, 1.0, smoothstep(0.02, 0.18, n.z)), 1.0, fallen);
+		shaded = albedo * turn * rim * (1.0 + 0.2 * fallen) * wash.rgb;
 	} else {
 		shaded = photo_grade(albedo * stage_light(n)) * wash.rgb;
 	}

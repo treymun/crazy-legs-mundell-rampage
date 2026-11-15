@@ -11,13 +11,23 @@ const int BOARD = 16;
 varying flat vec4 data;
 varying flat vec4 tone;
 varying vec3 map_p;
+// A board seen from behind is not drawn (the old renderer's test: its
+// back, where it has one, is a board of its own facing the other way).
+varying flat float behind;
 
 void vertex() {
 	data = INSTANCE_CUSTOM;
 	tone = COLOR;
 	vec3 w;
+	behind = 0.0;
 	if ((int(data.w + 0.5) & BOARD) != 0) {
 		w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+		// Map (x, y) is Godot (x, z); the board's axis is (cos p, sin p).
+		vec2 axis = normalize(MODEL_MATRIX[0].xz);
+		vec2 to_board = MODEL_MATRIX[3].xz - INV_VIEW_MATRIX[3].xz;
+		if (to_board.x * axis.y - to_board.y * axis.x <= 0.02) {
+			behind = 1.0;
+		}
 	} else {
 		// A billboard stands parallel to the plane of whichever camera draws it
 		// (the eye's, or the mirror's), as the old renderer's sprites did.
@@ -32,7 +42,7 @@ void vertex() {
 }
 
 void fragment() {
-	if (mirror_clipped(map_p, CAMERA_VISIBLE_LAYERS)) {
+	if (behind > 0.5 || mirror_clipped(map_p, CAMERA_VISIBLE_LAYERS)) {
 		discard;
 	}
 	int flags = int(data.w + 0.5) & 255;

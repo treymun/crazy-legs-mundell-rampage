@@ -27,6 +27,7 @@ import os
 import sys
 
 import bpy
+import numpy
 from mathutils import Matrix, Vector
 
 _ARGS = sys.argv[sys.argv.index("--") + 1:]
@@ -145,6 +146,12 @@ def _match(rest, parts):
     return out
 
 
+# The ways round the body faces the stage while its look is baked.
+TURNS = (0, 180, 90, 270)
+# The body's normal at each texel (_bake_normals), for the turns' weights.
+NORMALS = None
+
+
 def _bake(ob, image, sources=None):
     for slot in ob.material_slots:
         m = slot.material
@@ -167,19 +174,105 @@ def _bake(ob, image, sources=None):
     ob.select_set(True)
     bpy.context.view_layer.objects.active = ob
     # The look as the cels were lit: the dusk stage (light_for) on the body
-    # facing front, as the front cel was drawn; emissive parts glow; the
-    # sheen the grey sky lays on everything (it greys the cels' colours) as
-    # seen head on.
-    scene.cycles.samples = 48
-    bpy.ops.object.bake(
-        type="COMBINED",
-        pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
-        margin=4,
-        use_clear=True,
-        use_selected_to_active=bool(sources),
-        cage_extrusion=.03,
-        max_ray_distance=.08,
-    )
+    # facing it; emissive parts glow; the sheen the grey sky lays on
+    # everything (it greys the cels' colours). The cels were all lit from the
+    # camera's side, whichever way the body faced (a back cel, a body lying
+    # face down): so the body is baked facing the stage four ways round, and
+    # each texel takes its light from the turns in which its own surface
+    # faced the stage's camera (at -y), weighted by how squarely (its normal,
+    # NORMALS, baked once). A texel facing up or down gets the four alike.
+    turned = [ob] + list(sources or [])
+    kept = [o.matrix_world.copy() for o in turned]
+    total = None
+    weight = None
+    nx = NORMALS[:, 0] * 2.0 - 1.0
+    ny = NORMALS[:, 1] * 2.0 - 1.0
+    for k, angle in enumerate(TURNS):
+        spin = Matrix.Rotation(math.radians(angle), 4, "Z")
+        for o, m in zip(turned, kept):
+            o.matrix_world = spin @ m
+        bpy.context.view_layer.update()
+        scene.cycles.samples = 48 if k == 0 else 32
+        bpy.ops.object.bake(
+            type="COMBINED",
+            pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
+            margin=4,
+            use_clear=True,
+            use_selected_to_active=bool(sources),
+            cage_extrusion=.03,
+            max_ray_distance=.08,
+        )
+        px = numpy.empty(len(image.pixels), dtype=numpy.float32)
+        image.pixels.foreach_get(px)
+        px = px.reshape(-1, 4)
+        if sources:
+            # Texels the rays missed (a surface of the lighter mesh further
+            # than max_ray_distance from its part: inner arms and thighs,
+            # undersides, seen when a body lies down) bake black: bake again
+            # with longer rays and take those texels from it.
+            inside = NORMALS[:, :3].sum(axis=1) > .05
+            missed = inside & (px[:, :3].sum(axis=1) < .003)
+            if missed.any():
+                bpy.ops.object.bake(
+                    type="COMBINED",
+                    pass_filter={"EMIT", "DIRECT", "INDIRECT", "DIFFUSE", "GLOSSY"},
+                    margin=4,
+                    use_clear=True,
+                    use_selected_to_active=True,
+                    cage_extrusion=.12,
+                    max_ray_distance=.35,
+                )
+                far = numpy.empty(len(image.pixels), dtype=numpy.float32)
+                image.pixels.foreach_get(far)
+                far = far.reshape(-1, 4)
+                px[missed, :3] = far[missed, :3]
+                still = inside & (px[:, :3].sum(axis=1) < .003)
+                print("ACTOR BAKE turn %d: %d texels missed, %d after longer rays" % (angle, int(missed.sum()), int(still.sum())))
+        # The texel's normal turned with the body, toward the camera (-y).
+        c = math.cos(math.radians(angle))
+        sn = math.sin(math.radians(angle))
+        toward = -(sn * nx + c * ny)
+        w = numpy.clip(toward, 0.0, 1.0) ** 2 + 1e-4
+        if total is None:
+            total = px.copy()
+            total[:, :3] *= w[:, None]
+            weight = w.copy()
+        else:
+            total[:, :3] += px[:, :3] * w[:, None]
+            weight += w
+    for o, m in zip(turned, kept):
+        o.matrix_world = m
+    bpy.context.view_layer.update()
+    total[:, :3] /= weight[:, None]
+    image.pixels.foreach_set(total.ravel())
+
+
+def _bake_normals(ob):
+    """The body's object-space normal at each texel (NORMALS, 0..1 per axis)."""
+    global NORMALS
+    image = bpy.data.images.new("normals", TEXTURE, TEXTURE, alpha=False, float_buffer=True)
+    image.colorspace_settings.name = "Non-Color"
+    for slot in ob.material_slots:
+        m = slot.material
+        if m is None or m.node_tree is None:
+            continue
+        node = m.node_tree.nodes.get("bake_target")
+        if node is None:
+            node = m.node_tree.nodes.new("ShaderNodeTexImage")
+            node.name = "bake_target"
+        node.image = image
+        m.node_tree.nodes.active = node
+    scene = bpy.context.scene
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = 1
+    bpy.ops.object.select_all(action="DESELECT")
+    ob.select_set(True)
+    bpy.context.view_layer.objects.active = ob
+    bpy.ops.object.bake(type="NORMAL", normal_space="OBJECT", margin=4, use_clear=True)
+    px = numpy.empty(len(image.pixels), dtype=numpy.float32)
+    image.pixels.foreach_get(px)
+    NORMALS = px.reshape(-1, 4)
+    bpy.data.images.remove(image)
 
 
 def _bake_ao(ob, image):
@@ -329,6 +422,7 @@ def export(kind, meta):
     # soft part of the cels' lighting that does not turn with the camera.
     shade = bpy.data.images.new("shade", TEXTURE, TEXTURE, alpha=False)
     _bake_ao(body, shade)
+    _bake_normals(body)
     # Each look is baked from its own build's separate parts: the materials'
     # patterns (plaid, grime, stripes) sit on each part's own coordinates,
     # which the joined mesh no longer has.
