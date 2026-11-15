@@ -41,7 +41,7 @@ static func value(path: String, key: String, section := "all") -> Variant:
 static func table(path: String, names: Array, key: String) -> Array:
 	var cfg := file(path)
 	var out: Array = []
-	for name in names:
+	for name: String in names:
 		out.append(cfg.get_value(name, key))
 	return out
 
@@ -51,8 +51,9 @@ static func entries(path: String, names: Array, key: String) -> Dictionary:
 	var cfg := file(path)
 	var out := {}
 	for i in names.size():
-		if cfg.has_section_key(names[i], key):
-			out[i] = cfg.get_value(names[i], key)
+		var name: String = names[i]
+		if cfg.has_section_key(name, key):
+			out[i] = cfg.get_value(name, key)
 	return out
 
 
@@ -86,7 +87,8 @@ static func watch() -> bool:
 	_next_check = now + 500
 	var changed := false
 	for path: String in _stamps:
-		if FileAccess.get_modified_time(path) != int(_stamps[path]):
+		var stamp: int = _stamps[path]
+		if FileAccess.get_modified_time(path) != stamp:
 			changed = true
 	if not changed:
 		return false

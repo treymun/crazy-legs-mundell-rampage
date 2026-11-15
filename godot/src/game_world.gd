@@ -3,6 +3,10 @@
 class_name GameWorld
 extends GameState
 
+## The mode feature (features/mode_feature.gd, id "mode"), as a type (a
+## constant here, not on GameState: snapshots walk GameState's constants).
+const ModeFeature := preload("res://src/features/mode_feature.gd")
+
 # --------------------------------------------------------------- loadout
 
 
@@ -19,17 +23,21 @@ func loadout() -> Dictionary:
 
 
 func apply_loadout(kit: Dictionary) -> void:
-	player.health = int(kit["health"])
+	player.health = kit["health"]
 	var owned: Array = kit["owned"]
 	var loaded: Array = kit["loaded"]
 	var reserve: Array = kit["reserve"]
 	for i in mini(Weapons.COUNT, owned.size()):
-		armory.owned[i] = bool(owned[i])
-		armory.loaded[i] = int(loaded[i])
-		armory.reserve[i] = int(reserve[i])
-	armory.active = int(kit["active"])
-	inventory = kit["inventory"].duplicate()
-	inventory_slot = int(kit["slot"])
+		var own: bool = owned[i]
+		armory.owned[i] = own
+		var rounds: int = loaded[i]
+		armory.loaded[i] = rounds
+		var spare: int = reserve[i]
+		armory.reserve[i] = spare
+	armory.active = kit["active"]
+	var bag: Dictionary = kit["inventory"]
+	inventory = bag.duplicate()
+	inventory_slot = kit["slot"]
 
 
 func result() -> Array:
@@ -37,45 +45,54 @@ func result() -> Array:
 
 
 func configure(options: Dictionary) -> void:
-	difficulty = clampi(int(options.get("difficulty", 1)), 0, 3)
-	incoming = float(Difficulty.at("player", "incoming", difficulty))
-	sharpness = float(Difficulty.at("hands", "sharpness", difficulty))
-	ammo_scale = float(Difficulty.at("player", "ammo_scale", difficulty))
-	bob_scale = float(options.get("bob", 100)) / 100.0
-	flash_scale = [1.0, .32, 0.0][clampi(int(options.get("flashes", 0)), 0, 2)]
-	gore = bool(options.get("gore", 1))
-	aim_assist = int(options.get("aim_assist", 0))
-	hit_feedback = bool(options.get("hit_feedback", 1))
-	adaptive = bool(options.get("adaptive", 1))
-	chatter = clampi(int(options.get("chatter", CussLines.CUSSIN)), 0, 2)
-	View.fov_focal = View.FOCAL_FOR[clampi(int(options.get("fov", 0)), 0, 3)]
+	var picked: int = options.get("difficulty", 1)
+	difficulty = clampi(picked, 0, 3)
+	incoming = Difficulty.at("player", "incoming", difficulty)
+	sharpness = Difficulty.at("hands", "sharpness", difficulty)
+	ammo_scale = Difficulty.at("player", "ammo_scale", difficulty)
+	var bob: float = options.get("bob", 100)
+	bob_scale = bob / 100.0
+	var flashes: int = options.get("flashes", 0)
+	flash_scale = [1.0, .32, 0.0][clampi(flashes, 0, 2)]
+	gore = options.get("gore", 1)
+	aim_assist = options.get("aim_assist", 0)
+	hit_feedback = options.get("hit_feedback", 1)
+	adaptive = options.get("adaptive", 1)
+	var cussing: int = options.get("chatter", CussLines.CUSSIN)
+	chatter = clampi(cussing, 0, 2)
+	var fov: int = options.get("fov", 0)
+	View.fov_focal = View.FOCAL_FOR[clampi(fov, 0, 3)]
 	View.base_focal = View.fov_focal
-	shake_scale = [0.0, .5, 1.0][clampi(int(options.get("shake", 2)), 0, 2)]
-	district_labels = bool(options.get("district_labels", 1))
-	hints = bool(options.get("hints", 1))
-	hud_style = int(options.get("hud_style", 0))
+	var shaking: int = options.get("shake", 2)
+	shake_scale = [0.0, .5, 1.0][clampi(shaking, 0, 2)]
+	district_labels = options.get("district_labels", 1)
+	hints = options.get("hints", 1)
+	hud_style = options.get("hud_style", 0)
+	var tint: int = options.get("crosshair_color", 0)
 	crosshair_tint = [
 		Color8(188, 168, 132),
 		Color8(251, 183, 98),
 		Color8(160, 236, 92),
 		Color8(240, 64, 48),
 		Color8(255, 255, 255)
-	][clampi(int(options.get("crosshair_color", 0)), 0, 4)]
-	view.world_motion = int(options.get("world_motion", 0))
-	weapon_view = int(options.get("weapon_view", 0))
-	voice_captions = bool(options.get("voice_captions", 1))
-	bullet_marks = bool(options.get("bullet_marks", 1))
-	retro_look = bool(options.get("film_look", 0))
-	var detail := int(options.get("detail", 0))
-	view.draw_far = View.draw_far_for(int(options.get("draw_distance", 0)))
+	][clampi(tint, 0, 4)]
+	view.world_motion = options.get("world_motion", 0)
+	weapon_view = options.get("weapon_view", 0)
+	voice_captions = options.get("voice_captions", 1)
+	bullet_marks = options.get("bullet_marks", 1)
+	retro_look = options.get("film_look", 0)
+	var detail: int = options.get("detail", 0)
+	var far: int = options.get("draw_distance", 0)
+	view.draw_far = View.draw_far_for(far)
 	if detail == 1 or (detail == 2 and View.auto_low):
 		view.set_detail(1)
 	else:
 		view.set_detail(-1 if detail == 3 else 0)
-	flicker = bool(options.get("flicker", 1))
-	armory.auto_switch = bool(options.get("auto_switch", 1))
-	armory.auto_reload = bool(options.get("auto_reload", 1))
-	var enabled := bool(options.get("barks", 1)) and not barks_off_by_code
+	flicker = options.get("flicker", 1)
+	armory.auto_switch = options.get("auto_switch", 1)
+	armory.auto_reload = options.get("auto_reload", 1)
+	var barking: bool = options.get("barks", 1)
+	var enabled := barking and not barks_off_by_code
 	barks.enabled = enabled
 
 
@@ -164,6 +181,7 @@ func player_sheltered() -> bool:
 
 
 func wake_nearby(radius: float, x: float, y: float) -> void:
+	var me: Game = self as Object
 	for enemy: Enemy in enemies:
 		var distance := sqrt((enemy.x - x) * (enemy.x - x) + (enemy.y - y) * (enemy.y - y))
 		if (
@@ -173,11 +191,11 @@ func wake_nearby(radius: float, x: float, y: float) -> void:
 			and distance < radius
 			and (distance < 1.45 or world.visible(x, y, enemy.x, enemy.y))
 		):
-			enemy.wake(self, x, y)
+			enemy.wake(me, x, y)
 
 
-func disturb(x: float, y: float, radius: float, z = null) -> void:
-	var source: float = world.elevation(x, y) + .78 if z == null else float(z)
+func disturb(x: float, y: float, radius: float, z: Variant = null) -> void:
+	var source: float = world.elevation(x, y) + .78 if z == null else z
 	for actor: Enemy in enemies:
 		if (
 			not actor.alive
@@ -207,7 +225,7 @@ func disturb(x: float, y: float, radius: float, z = null) -> void:
 
 ## Hurts the acting player, or `who` (made the acting player meanwhile, so what
 ## listens to player_hurt hears it as theirs); the looks are the local player's.
-func damage(amount: float, source = null, cause := "HIT", who: Player = null) -> void:
+func damage(amount: float, source: Variant = null, cause := "HIT", who: Player = null) -> void:
 	if who != null and who != player:
 		var was := player
 		focus(who)
@@ -219,6 +237,7 @@ func damage(amount: float, source = null, cause := "HIT", who: Player = null) ->
 	var p := player
 	if cheats.god:
 		return
+	var me: Game = self as Object
 	var mellow: float = (
 		.10 * float(15 <= p.drunk and p.drunk <= 56) + .09 * float(16 <= p.gut and p.gut <= 64)
 	)
@@ -227,24 +246,28 @@ func damage(amount: float, source = null, cause := "HIT", who: Player = null) ->
 	amount = maxf(
 		1.0, round_even(amount * (1.0 - mellow) * incoming * (adapt if adapting else 1.0))
 	)
-	amount = Modes.incoming(self, p, amount, cause)  # a mode's armour (COUNTY RUN)
+	amount = Modes.incoming(me, p, amount, cause)  # a mode's armour (COUNTY RUN)
 	p.health = maxi(0, p.health - int(amount))
 	events.player_hurt.emit(amount, cause)
 	if p.health == 0 and adapting:
 		adapt = maxf(.78, adapt - .07)
 	if gallery != null and gallery.active and gallery.slot == p.slot:
-		gallery.finish(self, "GALLERY CLOSED. CLEAR THE BOOTH AND RETRY.")
+		gallery.finish(me, "GALLERY CLOSED. CLEAR THE BOOTH AND RETRY.")
 	if not acting_local():
 		var grunt := "player_down" if p.health == 0 else "hurt" if amount > 6.0 else "blow_grunt"
 		if speaker != null:
 			sound_at(grunt, p.x, p.y, .9)
 		return
-	var heading = null if source == null else atan2(float(source[1]) - p.y, float(source[0]) - p.x)
+	var heading: Variant = null
+	if source != null:
+		var from_y: float = source[1]
+		var from_x: float = source[0]
+		heading = atan2(from_y - p.y, from_x - p.x)
 	damage_feedback = [heading, cause, clock + .64]
 	hurt_flash = .27
 	shake = minf(1.0, shake + minf(.55, amount / 40.0))
 	set_face("ouch_shock", .32)
-	barks.say(self, "low" if p.health <= 25 else "hurt")
+	barks.say(me, "low" if p.health <= 25 else "hurt")
 	# A light knock is a grunt; a real wound the hurt cry.
 	var cry := "hurt" if amount > 6.0 or p.health <= 25 else "blow_grunt"
 	sound.play("player_down" if p.health == 0 else cry)
@@ -284,27 +307,30 @@ func add_pickup(name: String, x: float, y: float, lift := NAN) -> void:
 	if world.geo != null and not is_nan(lift):
 		var on := world.floor_under(x, y, lift + .05)
 		if on > world.elevation(x, y) + .01:
-			pickups[pickups.size() - 1].append(on)
+			var placed: Array = pickups[pickups.size() - 1]
+			placed.append(on)
 
 
 func collect(name: String) -> bool:
-	name = String(ALIAS.get(name, name))
+	var me: Game = self as Object
+	name = str(ALIAS.get(name, name))
 	if Weapons.NAMES.has(name):
-		armory.pickup(Weapons.NAMES.find(name), self)
-		barks.say(self, "pickup_weapon", true)
+		armory.pickup(Weapons.NAMES.find(name), me)
+		barks.say(me, "pickup_weapon", true)
 		set_face("grin_rampage", .6)
 	elif HUD.ITEMS.has(name):
-		if int(inventory[name]) >= 5:
+		var have: int = inventory[name]
+		if have >= 5:
 			return false
-		inventory[name] = int(inventory[name]) + 1
-		message(String(PICKUP_NAMES[name]))
-		barks.say(self, "pickup_food")
+		inventory[name] = have + 1
+		message(str(PICKUP_NAMES[name]))
+		barks.say(me, "pickup_food")
 	elif TASK_ITEMS.has(name):
 		task_items[name] = true
 		message("PA PATCH LEAD. TAKE IT TO THE BACKSTAGE BOOTH.", 3.0)
 	elif name.begins_with("key_"):
 		keys[name] = true
-		barks.say(self, "key", true)
+		barks.say(me, "key", true)
 		message(
 			(
 				"BRASS KEY - OPEN THE BARN."
@@ -317,18 +343,18 @@ func collect(name: String) -> bool:
 		if not AMMO.has(name):
 			return false
 		var entry_ammo: Array = AMMO[name]
-		var slot := int(entry_ammo[0])
-		var amount := int(entry_ammo[1])
+		var slot: int = entry_ammo[0]
+		var amount: int = entry_ammo[1]
 		if supply_rule == 1:
-			amount = maxi(1, int(round(amount * .70)))
-		amount = maxi(1, int(round(amount * ammo_scale)))
+			amount = maxi(1, roundi(amount * .70))
+		amount = maxi(1, roundi(amount * ammo_scale))
 		if not armory.add_ammo(slot, amount):
 			return false
 		if name == "dynamite" and not armory.owned[Weapons.DYNAMITE]:
 			armory.owned[Weapons.DYNAMITE] = true
 			message("DYNAMITE [8] - HOLD FIRE, RELEASE TO THROW", 3.5)
 		else:
-			message(String(PICKUP_NAMES[name]), 1.0)
+			message(str(PICKUP_NAMES[name]), 1.0)
 	sound.play(
 		(
 			"key_pickup"
@@ -346,10 +372,11 @@ func use_item(slot := -1) -> void:
 		inventory_slot = slot
 	var i := inventory_slot
 	var name: String = HUD.ITEMS[i]
-	if int(inventory[name]) == 0:
-		message("OUT OF " + String(HUD.ITEM_LABELS[i]) + ".", 1.05)
+	var have: int = inventory[name]
+	if have == 0:
+		message("OUT OF " + str(HUD.ITEM_LABELS[i]) + ".", 1.05)
 		return
-	inventory[name] = int(inventory[name]) - 1
+	inventory[name] = have - 1
 	var p := player
 	var health := p.health
 	var text := ""
@@ -403,7 +430,7 @@ func use_item(slot := -1) -> void:
 ## the player cannot walk through a hostile actor (or an actor through them).
 ## (A hostile body keeps out of every player's way; a player out of the
 ## enemies'; players who are up out of each other's.)
-func move_actor(body, dx: float, dy: float, radius: float) -> void:
+func move_actor(body: Variant, dx: float, dy: float, radius: float) -> void:
 	var p := player
 	var neighbors: Array = []
 	if body == p and body_cells_on:
@@ -423,20 +450,23 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 			):
 				neighbors.append(enemy)
 	elif body.hostile:
+		var bx: float = body.x
+		var by: float = body.y
 		for q: Player in players:
-			if absf(body.x - q.x) < 1.1 and absf(body.y - q.y) < 1.1:
+			if absf(bx - q.x) < 1.1 and absf(by - q.y) < 1.1:
 				neighbors.append(q)
 	# Players who are up block each other where the mode says (src/modes/).
 	var mates: Array = []
-	if body == p and players.size() > 1 and Modes.rules(self).bodies_block():
+	var me: Game = self as Object
+	if body == p and players.size() > 1 and Modes.rules(me).bodies_block():
 		for q: Player in players:
 			if q != p and q.health > 0 and absf(p.x - q.x) < .6 and absf(p.y - q.y) < .6:
 				mates.append(q)
-	var occupied = null
+	var occupied: Variant = null
 	if not neighbors.is_empty():
 		occupied = func(x: float, y: float) -> bool:
-			for neighbor in neighbors:
-				var enemy = neighbor if body == p else body
+			for neighbor: Variant in neighbors:
+				var enemy: Enemy = neighbor if body == p else body
 				var them: Player = p if body == p else neighbor
 				var enemy_base: float = world.stand(enemy) + enemy.z
 				var player_base: float = world.stand(them) + them.air
@@ -462,7 +492,7 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 					return true
 			return false
 	if not mates.is_empty():
-		var bodies = occupied
+		var bodies: Variant = occupied
 		occupied = func(x: float, y: float) -> bool:
 			var reach := PLAYER_RADIUS * 2.0
 			for q: Player in mates:
@@ -470,7 +500,10 @@ func move_actor(body, dx: float, dy: float, radius: float) -> void:
 				var was := (p.x - q.x) * (p.x - q.x) + (p.y - q.y) * (p.y - q.y)
 				if d < reach * reach and d < was and absf(p.air - q.air) < 1.0:
 					return true
-			return bodies != null and bodies.call(x, y)
+			if bodies == null:
+				return false
+			var others: Callable = bodies
+			return others.call(x, y)
 	world.move(body, dx, dy, radius, occupied)
 
 
@@ -486,10 +519,11 @@ func reopen_paths(x0: float, y0: float, x1: float, y1: float) -> void:
 
 
 func enemy_down(enemy: Enemy) -> void:
+	var me: Game = self as Object
 	kills += 1
 	events.enemy_killed.emit(enemy)
 	if enemy.hostile:
-		barks.kill(self, enemy.last_zone == "head")
+		barks.kill(me, enemy.last_zone == "head")
 	if not Enemy.BOSS_TITLES.has(enemy.kind):
 		for actor: Enemy in enemies:
 			if (
@@ -501,13 +535,14 @@ func enemy_down(enemy: Enemy) -> void:
 				and sqrt(pow(actor.x - enemy.x, 2) + pow(actor.y - enemy.y, 2)) < 2.85
 				and world.visible(actor.x, actor.y, enemy.x, enemy.y)
 			):
-				actor.retreat_from(self, enemy.x, enemy.y)
+				actor.retreat_from(me, enemy.x, enemy.y)
 				sound_at("county_fall_back", actor.x, actor.y, .67)
 				break
+	var kind_def: Dictionary = Enemy.DEFS[enemy.kind]
 	if enemy == boss:
 		if jerry != null:
 			jerry.dormant = false
-			jerry.wake(self, player.x, player.y)
+			jerry.wake(me, player.x, player.y)
 			jerry.cooldown = 1.25
 		message("THE SHERIFF'S DOWN. HERE COMES JERRY!", 4.0)
 		sound.play("jerry_intro")
@@ -518,33 +553,30 @@ func enemy_down(enemy: Enemy) -> void:
 	elif enemy == finale:
 		hazards.clear()
 		var kept: Array = []
-		for shot in shots:
+		for shot: Shot in shots:
 			if shot.kind != "foreman_cut" and shot.kind != "rudy_horn":
 				kept.append(shot)
 		shots = kept
-		var reward := String(Enemy.DEFS[enemy.kind].get("finale_drop", "bullets"))
+		var reward := str(kind_def.get("finale_drop", "bullets"))
 		add_pickup(String(reward), enemy.x, enemy.y)
 		message(
-			(
-				String(Enemy.BOSS_TITLES.get(enemy.kind, "BOSS"))
-				+ " IS DOWN. CLEAR THE LAST VARMINTS."
-			),
+			str(Enemy.BOSS_TITLES.get(enemy.kind, "BOSS")) + " IS DOWN. CLEAR THE LAST VARMINTS.",
 			3.0
 		)
 		sound.sting(enemy.kind + "_end")
-	elif Enemy.DEFS[enemy.kind].has("drop"):
+	elif kind_def.has("drop"):
 		# What it leaves (enemies.cfg): always, or by chance unless NO DROPS.
 		var spec: Dictionary = Enemy.DEFS[enemy.kind]
-		var chance := float(spec.get("drop_chance", 1.0))
+		var chance: float = spec.get("drop_chance", 1.0)
 		if chance >= 1.0 or (rng.random() < chance and supply_rule != 2):
-			add_pickup(String(spec["drop"]), enemy.x, enemy.y)
+			add_pickup(str(spec["drop"]), enemy.x, enemy.y)
 	if (
 		enemy.hostile
 		and not Enemy.BOSS_TITLES.has(enemy.kind)
 		and supply_rule != 2
 		and rng.random() < Enemy.LUCKY_CHANCE
 	):
-		add_pickup(String(rng.choice(HUD.ITEMS)), enemy.x + .2, enemy.y)
+		add_pickup(str(rng.choice(HUD.ITEMS)), enemy.x + .2, enemy.y)
 		message("FEELIN' LUCKY. SOMETHING DROPPED.", 1.6)
 	if (
 		world.extraction != null
@@ -644,7 +676,7 @@ func use_target() -> Variant:
 	# An aimed target beats an unaimed one (the reference's rule); among them
 	# the one nearest the crosshair wins, a little in favour of the nearer.
 	var best := [true, INF]
-	var result = null
+	var result: Variant = null
 	use_aim = Vector3.INF
 	for door_entry: Array in doors:
 		var x: float = door_entry[1]
@@ -654,7 +686,7 @@ func use_target() -> Variant:
 			best = rank
 			result = door_entry
 			use_aim = Vector3.INF
-	for device in devices:
+	for device: Variant in devices:
 		for point: Vector3 in aim_points(device):
 			var rank := _use_rank(point.x, point.y, DEVICE_REACH, DEVICE_TOUCH, DEVICE_CONE, facing)
 			if _ranks_above(rank, best) and seen_at(point):
@@ -696,29 +728,37 @@ func _use_rank(
 func _ranks_above(rank: Array, best: Array) -> bool:
 	if rank.is_empty():
 		return false
-	if bool(rank[0]) != bool(best[0]):
-		return not bool(rank[0])
-	return float(rank[1]) < float(best[1])
+	var rank_far: bool = rank[0]
+	var best_far: bool = best[0]
+	if rank_far != best_far:
+		return not rank_far
+	var rank_off: float = rank[1]
+	var best_off: float = best[1]
+	return rank_off < best_off
 
 
 ## Where USE acts on a device, as the game has always reported it.
-func use_point(device) -> Vector2:
+func use_point(device: Variant) -> Vector2:
 	if device is Array:
-		return Vector2(float(device[1]), float(device[2]))
+		var ax: float = device[1]
+		var ay: float = device[2]
+		return Vector2(ax, ay)
 	if device is GameState.Gallery:
 		return GALLERY_STAND + gallery.offset
-	return Vector2(device.x, device.y)
+	var dx: float = device.x
+	var dy: float = device.y
+	return Vector2(dx, dy)
 
 
 ## The points a device can be aimed at, with the height of what is seen there:
 ## its own point, and for a station or the exit the board that lights up for it
 ## close by (the panel the player looks at), for a note the slip on the table,
 ## for the jukebox and sink the thing itself.
-func aim_points(device) -> Array:
+func aim_points(device: Variant) -> Array:
 	if aim_cache.get("level") != world:
 		# A level reloaded from the editor: its boards may have moved.
 		aim_cache = {"level": world}
-	var key = device if not (device is Array) else String(device[0])
+	var key: Variant = device if not (device is Array) else str(device[0])
 	if aim_cache.has(key):
 		return aim_cache[key]
 	var at := use_point(device)
@@ -733,10 +773,12 @@ func aim_points(device) -> Array:
 		lift = 1.01
 		near_art = "note"
 	elif device is Array:
-		near_art = String(device[0])
+		near_art = str(device[0])
 	var base := world.elevation(at.x, at.y)
-	if (device is LevelData.Station or device is LevelData.Extraction) and not is_nan(device.z):
-		base = device.z
+	var placed := device is LevelData.Station or device is LevelData.Extraction
+	var device_z: float = device.z if placed else NAN
+	if placed and not is_nan(device_z):
+		base = device_z
 	var points: Array = [Vector3(at.x, at.y, base + lift)]
 	for board: LevelData.Billboard in world.billboards:
 		var d := Vector2(board.x, board.y).distance_to(at)
@@ -751,10 +793,12 @@ func aim_points(device) -> Array:
 			if prop.kind == near_art and Vector2(prop.x, prop.y).distance_to(at) < 1.5:
 				var z: float = world.elevation(prop.x, prop.y) + prop.z + prop.height * .5
 				points.append(Vector3(prop.x, prop.y, z))
-		for spec in level.props:
-			var q := Vector2(float(spec[1]), float(spec[2]))
-			if String(spec[0]) == near_art and q.distance_to(at) < 1.5:
-				var h := float(PROP_HEIGHTS.get(near_art, 1.0))
+		for spec: Variant in level.props:
+			var spec_x: float = spec[1]
+			var spec_y: float = spec[2]
+			var q := Vector2(spec_x, spec_y)
+			if str(spec[0]) == near_art and q.distance_to(at) < 1.5:
+				var h: float = PROP_HEIGHTS.get(near_art, 1.0)
 				points.append(Vector3(q.x, q.y, world.elevation(q.x, q.y) + h * .5))
 	aim_cache[key] = points
 	return points
@@ -785,13 +829,13 @@ func seen_at(point: Vector3) -> bool:
 ## ([name, x, y]). A key or the patch lead is taken from a little farther and
 ## over a counter or crate it lies by; anything else as it always was.
 func reaches_pickup(entry: Array) -> bool:
-	var x := float(entry[1])
-	var y := float(entry[2])
+	var x: float = entry[1]
+	var y: float = entry[2]
 	var gap := (player.x - x) * (player.x - x) + (player.y - y) * (player.y - y)
 	if gap >= .62 * .62:
 		# Beyond either reach (every tick, for every pickup in the level).
 		return false
-	var name := String(entry[0])
+	var name := str(entry[0])
 	# On the player's own floor (format 2: not the deck over them).
 	var lies: float = entry[4] if entry.size() > 4 else world.elevation(x, y)
 	if world.geo != null and absf(world.stand(player) + player.air - lies) > .7:
@@ -804,19 +848,20 @@ func reaches_pickup(entry: Array) -> bool:
 
 
 func use_prompt() -> String:
-	if players.size() > 1 and ModeScreens.revive_prompt(self) != "":
+	var me: Game = self as Object
+	if players.size() > 1 and ModeScreens.revive_prompt(me) != "":
 		use_aim = Vector3.INF  # a partner down beside you (src/modes/)
-		return ModeScreens.revive_prompt(self)
-	var mst = features.get("mode")
+		return ModeScreens.revive_prompt(me)
+	var mst: ModeFeature = features.get("mode")
 	if mst != null and mst.mode != Modes.CAMPAIGN:
-		var special: String = mst.rules().use_prompt(self)
+		var special: String = mst.rules().use_prompt(me)
 		if special != "":
 			use_aim = Vector3.INF  # the mode's own (a hostage, the bomb)
 			return special
-	var found = use_target()
+	var found: Variant = use_target()
 	if found == null:
 		return ""
-	var target = found[0]
+	var target: Variant = found[0]
 	if target is String:
 		if target == "bessie":
 			var boss_alive: bool = boss != null and boss.alive
@@ -827,7 +872,8 @@ func use_prompt() -> String:
 		if target == "sink":
 			return "E  USE SINK"
 	if target is Gallery:
-		return target.prompt()
+		var booth: Gallery = target
+		return booth.prompt()
 	if target is LevelData.Note:
 		return "E  READ " + target.label
 	if target is LevelData.Station:
@@ -836,15 +882,16 @@ func use_prompt() -> String:
 			return "ALREADY SET"
 		if station.reveals_secret:
 			return "E  CHECK THE LOOSE PANEL"
-		for key in station.requires:
-			if not stations_done.has(String(key)):
+		for key: Variant in station.requires:
+			if not stations_done.has(str(key)):
 				return objective()
 		if station.held != "" and not task_items.has(station.held):
 			return "FIND THE PATCH LEAD AT THE RAFFLE OFFICE"
 		if station.action == "strike":
 			return "STRIKE THE BELT RELEASE"
 		if station.action == "crank":
-			return "E  TURN THE CONDENSER  %d/3" % int(valve_turns.get(station.id, 0))
+			var turned: int = valve_turns.get(station.id, 0)
+			return "E  TURN THE CONDENSER  %d/3" % turned
 		return "E  " + station.label
 	if target is LevelData.Extraction:
 		return "E  " + target.label if exit_ready() else "EXIT LOCKED / CHECK TAB MAP"
@@ -870,10 +917,11 @@ func interact() -> void:
 		if boss_hold_for - boss_hold > BossKit.SKIP_AFTER:
 			boss_hold = 0.0
 		return
-	var mst = features.get("mode")
-	if mst != null and mst.mode != Modes.CAMPAIGN and mst.rules().use(self):
+	var me: Game = self as Object
+	var mst: ModeFeature = features.get("mode")
+	if mst != null and mst.mode != Modes.CAMPAIGN and mst.rules().use(me):
 		return  # the mode's own (a hostage taken or set down)
-	var gate = portal_target()
+	var gate: LevelData.Gate = portal_target()
 	if gate != null:
 		if world.locked_gates.has(gate):
 			message(gate_text(gate), 3.0)
@@ -884,25 +932,25 @@ func interact() -> void:
 			portal_request = gate.destination
 		return
 	if in_hub:
-		var clue = hub_clue()
+		var clue: Variant = hub_clue()
 		if clue != null:
-			message(String(clue[4]), 4.0)
-			if String(clue[0]) == "dispatch":
+			message(str(clue[4]), 4.0)
+			if str(clue[0]) == "dispatch":
 				if clock >= hub_dispatch_until:
 					hub_dispatch_until = clock + 6.0
 					var place := sound_position(level.hub_board.x, level.hub_board.y, .64)
 					sound.play_voice("county_dispatch_%d" % hub_milestone, place.x, place.y)
 					if voice_captions:
-						caption = String(HUB_DISPATCH[hub_milestone][2])
+						caption = str(HUB_DISPATCH[hub_milestone][2])
 						caption_until = clock + 2.4
 			else:
-				hub_findings[String(clue[0])] = true
+				hub_findings[str(clue[0])] = true
 				sound.play("menu_accept", .55)
 		return
-	var found = use_target()
+	var found: Variant = use_target()
 	if found == null:
 		return
-	var target = found[0]
+	var target: Variant = found[0]
 	var x: float = found[1]
 	var y: float = found[2]
 	if target is String:
@@ -928,14 +976,17 @@ func interact() -> void:
 				message("WASH UP, YOU ANIMAL.", 1.5)
 			return
 	if target is Gallery:
-		target.toggle(self)
+		var booth: Gallery = target
+		booth.toggle(me)
 		return
 	if target is LevelData.Note:
-		message(target.text, 4.0)
+		var note: LevelData.Note = target
+		message(note.text, 4.0)
 		sound.play("menu_move", .40)
 		return
 	if target is LevelData.Station:
-		operate_station(target)
+		var station: LevelData.Station = target
+		operate_station(station)
 		return
 	if target is LevelData.Extraction:
 		if revisiting:
@@ -981,8 +1032,8 @@ func interact() -> void:
 
 func set_station_lights(station: LevelData.Station) -> void:
 	lit_stations[station.id] = true
-	for sector_v in station.sectors:
-		var sector := int(sector_v)
+	for sector_v: Variant in station.sectors:
+		var sector: int = sector_v
 		var n := world.area.size()
 		for i in n:
 			if int(world.area[i]) == sector:
@@ -997,23 +1048,24 @@ func set_station_lights(station: LevelData.Station) -> void:
 func activate_station(station: LevelData.Station) -> void:
 	if stations_done.has(station.id):
 		return
-	for key in station.requires:
-		if not stations_done.has(String(key)):
+	for key: Variant in station.requires:
+		if not stations_done.has(str(key)):
 			message(objective(), 3.0)
 			sound.play("empty")
 			return
 	stations_done[station.id] = true
 	events.station_done.emit(station.id)
-	barks.say(self, "station")
+	var me: Game = self as Object
+	barks.say(me, "station")
 	set_station_lights(station)
 	for door: LevelData.Door in world.doors:
 		var point := Vector2i(door.x, door.y)
-		var required = world.access_doors.get(point)
+		var required: Variant = world.access_doors.get(point)
 		var satisfied := false
 		if required != null:
 			satisfied = true
-			for key in required:
-				if not stations_done.has(String(key)):
+			for key: Variant in required:
+				if not stations_done.has(str(key)):
 					satisfied = false
 					break
 		if station.opens.has(point) or (satisfied and not door.opened):
@@ -1023,7 +1075,7 @@ func activate_station(station: LevelData.Station) -> void:
 	if world.extraction != null and station.id == world.extraction.shutdown:
 		for enemy: Enemy in wave:
 			enemy.dormant = false
-			enemy.wake(self, player.x, player.y)
+			enemy.wake(me, player.x, player.y)
 			enemy.cooldown = 2.05 if enemy == finale else 1.15
 		if finale != null:
 			sound.sting(finale.kind + "_intro")
@@ -1044,7 +1096,7 @@ func operate_station(station: LevelData.Station) -> void:
 		if clock < next_valve_turn:
 			return
 		next_valve_turn = clock + .20
-		var turns := int(valve_turns.get(station.id, 0)) + 1
+		var turns: int = valve_turns.get(station.id, 0) + 1
 		if turns < 3:
 			valve_turns[station.id] = turns
 			sound_at("scenery_pipe", station.x, station.y, .67)
@@ -1059,8 +1111,10 @@ func operate_station(station: LevelData.Station) -> void:
 func _station_goal(station: LevelData.Station) -> Vector2:
 	if station.held != "" and not task_items.has(station.held):
 		for entry: Array in pickups:
-			if String(entry[0]) == station.held:
-				return Vector2(float(entry[1]), float(entry[2]))
+			if str(entry[0]) == station.held:
+				var lies_x: float = entry[1]
+				var lies_y: float = entry[2]
+				return Vector2(lies_x, lies_y)
 	return Vector2(station.x, station.y)
 
 
@@ -1132,7 +1186,7 @@ func _quest_lights() -> Array:
 
 ## Where a device's lamp is: near the top of its quest prop (the last of its
 ## aim points, the prop's middle), else above its own point.
-func _lamp_at(device) -> Vector3:
+func _lamp_at(device: Variant) -> Vector3:
 	var points := aim_points(device)
 	var last: Vector3 = points[points.size() - 1]
 	return Vector3(last.x, last.y, last.z + .5)
@@ -1155,7 +1209,7 @@ func finish_level(cue: String) -> void:
 
 func portal_target(reach := 2.62) -> Variant:
 	var portals: Array = world.hub_gates if in_hub else [world.return_gate]
-	for gate in portals:
+	for gate: LevelData.Gate in portals:
 		if gate == null:
 			continue
 		if gate.approach(player.x, player.y, player.view_angle(), reach) or _gate_aimed(gate):
@@ -1186,14 +1240,14 @@ func _gate_aimed(gate: LevelData.Gate) -> bool:
 
 
 func hub_clue() -> Variant:
-	var label: String = String(HUB_DISPATCH[hub_milestone][0])
-	var text: String = String(HUB_DISPATCH[hub_milestone][1])
-	var best = null
+	var label: String = str(HUB_DISPATCH[hub_milestone][0])
+	var text: String = str(HUB_DISPATCH[hub_milestone][1])
+	var best: Variant = null
 	var best_rank := [true, INF]
 	var candidates: Array = world.hub_clues.duplicate()
 	candidates.append(["dispatch", level.hub_board.x, level.hub_board.y, "READ " + label, text])
 	var facing := Vector2(cos(player.view_angle()), sin(player.view_angle()))
-	for clue in candidates:
+	for clue: Variant in candidates:
 		var x: float = clue[1]
 		var y: float = clue[2]
 		# As the quest devices: a little reach, the one nearest the crosshair.
@@ -1213,7 +1267,7 @@ func gate_text(gate: LevelData.Gate) -> String:
 		return "LOCKED / FINISH " + Campaign.title_of(previous)
 	return (
 		"E  "
-		+ String(gate_modes.get(gate.destination, "ENTER"))
+		+ str(gate_modes.get(gate.destination, "ENTER"))
 		+ " "
 		+ Campaign.title_of(gate.destination)
 	)
@@ -1236,7 +1290,8 @@ func toggle_door(door: LevelData.Door, opened: bool) -> void:
 		door.discovered = true
 		secrets += 1
 		message("YOU FOUND A SECRET!", 2.4)
-		barks.say(self, "secret")
+		var me: Game = self as Object
+		barks.say(me, "secret")
 		sound.play("yee_haw")
 
 
@@ -1278,9 +1333,11 @@ func pressure_ports(attacks: int) -> Array:
 	var count := 1 if relief_open() else 2
 	# The baron picks the outlets nearest where the player stood as he wound up
 	# (bosses/baron.gd keeps them on him); otherwise they go in turn.
-	if finale != null and int(finale.get_meta("ports_for", -1)) == attacks:
-		var picked: Array = finale.get_meta("ports")
-		return picked.slice(0, mini(count, picked.size()))
+	if finale != null:
+		var ports_for: int = finale.get_meta("ports_for", -1)
+		if ports_for == attacks:
+			var picked: Array = finale.get_meta("ports")
+			return picked.slice(0, mini(count, picked.size()))
 	var offset := int(attacks / 2) % ports.size()
 	var out: Array = []
 	for i in count:
@@ -1308,11 +1365,11 @@ func objective() -> String:
 		if shutdown == null:
 			return ""
 		var primary: Array = []
-		for key in shutdown.requires:
+		for key: Variant in shutdown.requires:
 			if not world.objective_side_tasks.has(key):
-				primary.append(String(key))
+				primary.append(str(key))
 		var pending: Array = []
-		for key in primary:
+		for key: Variant in primary:
 			if not stations_done.has(key):
 				pending.append(key)
 		if pending.size() == 1:
@@ -1370,7 +1427,8 @@ func shore_near(x: float, y: float) -> Vector2:
 
 
 func objective_target() -> Variant:
-	return GameObjective.objective_target(self)
+	var me: Game = self as Object
+	return GameObjective.objective_target(me)
 
 
 ## Where the objective pin points: four steps along the walk to `target`, and
@@ -1399,10 +1457,10 @@ func objective_route(target: Vector2, target_z := NAN) -> Array:
 
 
 func gate_prompt() -> String:
-	var gate = portal_target()
+	var gate: LevelData.Gate = portal_target()
 	if gate != null:
 		return gate_text(gate)
-	var clue = hub_clue() if in_hub else null
-	return "E  " + String(clue[3]) if clue != null else ""
+	var clue: Variant = hub_clue() if in_hub else null
+	return "E  " + str(clue[3]) if clue != null else ""
 
 # ---------------------------------------------------------------- feedback

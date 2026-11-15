@@ -36,6 +36,7 @@ const DOOR_LEAK := .08
 const DOOR_PICTURE := "made_car_door"
 const DOOR_W := 30
 const DOOR_H := 34
+const VariantsFeature := preload("res://src/features/variants_feature.gd")
 
 ## Read from Enemy.DEFS by tables() (each load of enemies.cfg).
 static var VARIANT_OF := {}
@@ -61,25 +62,26 @@ static func tables() -> void:
 	for kind: String in Enemy.DEFS:
 		var d: Dictionary = Enemy.DEFS[kind]
 		if d.has("tough_for"):
-			TOUGH[String(d["tough_for"])] = kind
+			TOUGH[str(d["tough_for"])] = kind
 		elif d.has("swap"):
-			VARIANT_OF[String(d["swap"])] = kind
+			VARIANT_OF[str(d["swap"])] = kind
 		if d.has("stumbles"):
-			STUMBLE[kind] = float(d["stumbles"])
+			STUMBLE[kind] = _float(d["stumbles"])
 		if d.has("steady"):
-			STEADY[kind] = float(d["steady"])
+			STEADY[kind] = _float(d["steady"])
 		if d.has("door"):
-			DOORS[kind] = float(d["door"])
+			DOORS[kind] = _float(d["door"])
 		if d.has("tint"):
 			TINTS[kind] = d["tint"]
 
 
 ## The kind whose pictures `kind` wears: its own once they are packed.
 static func stem(kind: String) -> String:
-	var s = _stems.get(kind)
+	var s: Variant = _stems.get(kind)
 	if s == null:
 		s = kind
-		var fallback := String(Enemy.DEFS[kind].get("art", ""))
+		var def: Dictionary = Enemy.DEFS[kind]
+		var fallback := str(def.get("art", ""))
 		if fallback != "" and not Assets.shared_index.has(kind + "_0"):
 			s = fallback
 		if not Assets.shared_index.is_empty():
@@ -89,15 +91,16 @@ static func stem(kind: String) -> String:
 
 ## A picture's name as `e` wears it: tinted for a tough guy.
 static func look(e: Enemy, name: String) -> String:
-	var tint = TINTS.get(e.kind)
+	var tint: Variant = TINTS.get(e.kind)
 	if tint == null or art == null:
 		return name
-	return art.tinted_art(name, tint)
+	var hue: Array = tint
+	return art.tinted_art(name, hue)
 
 
 ## The weave in a stumbling drunk's walk this moment.
 static func wobble(e: Enemy) -> float:
-	return float(STUMBLE[e.kind]) * sin(e.pose * 2.3 + e.x * .7)
+	return _float(STUMBLE[e.kind]) * sin(e.pose * 2.3 + e.x * .7)
 
 
 ## Turns `e` into `kind` (a variant or a tough guy), its health full again if
@@ -114,14 +117,14 @@ static func become(e: Enemy, kind: String) -> void:
 static func refresh(e: Enemy) -> void:
 	var spec: Array = Enemy.KINDS[e.kind]
 	var d: Dictionary = Enemy.DEFS[e.kind]
-	e.brain = String(d.get("brain", e.kind))
-	e.speed = float(spec[1])
-	e.radius = float(spec[2])
-	e.height = float(spec[3])
-	e.hostile = bool(spec[4])
-	e.max_hp = float(spec[0])
+	e.brain = str(d.get("brain", e.kind))
+	e.speed = _float(spec[1])
+	e.radius = _float(spec[2])
+	e.height = _float(spec[3])
+	e.hostile = spec[4]
+	e.max_hp = _float(spec[0])
 	e.hp = minf(e.hp, e.max_hp)
-	e.swims = bool(d.get("swims", false))
+	e.swims = d.get("swims", false)
 
 
 ## Which of the level's own enemies become variants at this difficulty:
@@ -136,7 +139,7 @@ static func swaps(level_id: String, kinds: Array, difficulty: int) -> Dictionary
 	for i in level_id.length():
 		seed += level_id.unicode_at(i) * (i + 1)
 	for i in kinds.size():
-		var kind := String(kinds[i])
+		var kind := str(kinds[i])
 		if VARIANT_OF.has(kind) and (i * 7 + seed) % every == 0:
 			out[i] = VARIANT_OF[kind]
 	return out
@@ -146,11 +149,12 @@ static func swaps(level_id: String, kinds: Array, difficulty: int) -> Dictionary
 ## -1: of the regulars of his kind standing about (not patrolling, not held
 ## back), the middle half by distance from the start, the one with most set
 ## dressing round him (props, boards and scenery within 3 cells).
-static func tough_pick(game, taken: Dictionary) -> int:
-	var tough := String(TOUGH.get(game.level.id, ""))
+static func tough_pick(game: Game, taken: Dictionary) -> int:
+	var tough := str(TOUGH.get(game.level.id, ""))
 	if tough == "":
 		return -1
-	var base := String(Enemy.DEFS[tough].get("swap", ""))
+	var tough_def: Dictionary = Enemy.DEFS[tough]
+	var base := str(tough_def.get("swap", ""))
 	# How far each is from the start on foot, through the doors.
 	var walk := FlowField.new(game.level, game.flow)
 	walk.reach = 100000
@@ -175,7 +179,7 @@ static func tough_pick(game, taken: Dictionary) -> int:
 	var from := rows.size()
 	var to := 0
 	for k in rows.size():
-		if int(rows[k][0]) >= far * .4 and int(rows[k][0]) <= far * .75:
+		if _int(rows[k][0]) >= far * .4 and _int(rows[k][0]) <= far * .75:
 			from = mini(from, k)
 			to = k + 1
 	if from >= to:
@@ -184,10 +188,10 @@ static func tough_pick(game, taken: Dictionary) -> int:
 	var best := -1
 	var most := -1
 	for row: Array in rows.slice(from, to):
-		var e: Enemy = game.enemies[int(row[1])]
+		var e: Enemy = game.enemies[_int(row[1])]
 		var count := 0
-		for p in game.level.props:
-			if Vector2(float(p[1]) - e.x, float(p[2]) - e.y).length_squared() < 9.0:
+		for p: Variant in game.level.props:
+			if Vector2(_float(p[1]) - e.x, _float(p[2]) - e.y).length_squared() < 9.0:
 				count += 1
 		for b: LevelData.Billboard in game.level.billboards:
 			if Vector2(b.x - e.x, b.y - e.y).length_squared() < 9.0:
@@ -197,7 +201,7 @@ static func tough_pick(game, taken: Dictionary) -> int:
 				count += 1
 		if count > most:
 			most = count
-			best = int(row[1])
+			best = _int(row[1])
 	return best
 
 
@@ -207,28 +211,28 @@ static func tough_pick(game, taken: Dictionary) -> int:
 ## A variant's own attack (true), or false to leave it to its brain: the
 ## drunk's jug every few pulls, and a billy's or coot's shot with its own
 ## numbers (barrels, blast, fan, aim, wild).
-static func attack(e: Enemy, game, direction: float, distance: float, eye: float) -> bool:
+static func attack(e: Enemy, game: Game, direction: float, distance: float, eye: float) -> bool:
 	var d: Dictionary = Enemy.DEFS[e.kind]
-	if d.has("throws") and e.attacks % int(d["throws"]) == 0:
+	if d.has("throws") and e.attacks % _int(d["throws"]) == 0:
 		_jug(e, game, direction, distance, eye)
 		return true
 	if not (d.has("barrels") or d.has("wild")) or (e.brain != "billy" and e.brain != "coot"):
 		return false
 	var close := e.brain == "billy"
 	var chance := maxf(.24, .88 - distance * .104) if close else maxf(.34, .83 - distance * .060)
-	chance *= float(d.get("aim", 1.0))
+	chance *= _float(d.get("aim", 1.0))
 	var blast: Array = d.get("blast", [14, 8] if close else [7, 7])
-	var damage := int(blast[0]) if distance < 2.4 else int(blast[1])
-	e.cooldown = float(d.get("delay", 1.45 if close else 1.58)) + game.rng.uniform(.04, .33)
+	var damage := _int(blast[0]) if distance < 2.4 else _int(blast[1])
+	e.cooldown = _float(d.get("delay", 1.45 if close else 1.58)) + game.rng.uniform(.04, .33)
 	game.sound_at("enemy_scatter" if close else "enemy_pistol", e.x, e.y, .9)
-	direction += game.rng.uniform(-1.0, 1.0) * float(d.get("wild", 0.0))
+	direction += game.rng.uniform(-1.0, 1.0) * _float(d.get("wild", 0.0))
 	game.burst(
 		e.x + cos(direction) * e.radius, e.y + sin(direction) * e.radius, eye, "spark", 3, 1.2
 	)
-	var p = game.player
+	var p := game.player
 	var miss := absf(Enemy.angle_delta(atan2(p.y - e.y, p.x - e.x), direction))
-	var fan := float(d.get("fan", .23 if close else .11))
-	for _k in int(d.get("barrels", 1)):
+	var fan := _float(d.get("fan", .23 if close else .11))
+	for _k in _int(d.get("barrels", 1)):
 		var in_way := _in_way(e, game, direction, distance)
 		if in_way != null:
 			if game.rng.random() < maxf(.35, chance):
@@ -242,7 +246,7 @@ static func attack(e: Enemy, game, direction: float, distance: float, eye: float
 
 
 ## One of their own between `e` and the player along `direction`, or null.
-static func _in_way(e: Enemy, game, direction: float, distance: float) -> Enemy:
+static func _in_way(e: Enemy, game: Game, direction: float, distance: float) -> Enemy:
 	var in_way: Enemy = null
 	var nearest := distance
 	for other: Enemy in game.enemies:
@@ -260,9 +264,9 @@ static func _in_way(e: Enemy, game, direction: float, distance: float) -> Enemy:
 
 ## The drunk's jug, lobbed like the bottle tosser's bottle (it smashes where
 ## the player stood: glass).
-static func _jug(e: Enemy, game, direction: float, distance: float, eye: float) -> void:
+static func _jug(e: Enemy, game: Game, direction: float, distance: float, eye: float) -> void:
 	e.cooldown = 2.1
-	var p = game.player
+	var p := game.player
 	var flight := minf(1.32, maxf(.48, distance / 6.1))
 	var throw := maxf(.45, (distance - .34) / flight)
 	var target_z: float = game.world.stand(p)
@@ -292,9 +296,9 @@ static func _jug(e: Enemy, game, direction: float, distance: float, eye: float) 
 ## unless the door is swung aside to fire, the door takes it; a blast tears
 ## at the door wherever it comes from. Returns what gets through to him.
 static func soak(
-	e: Enemy, amount: float, game, how: String, explosive: bool, pressure: bool, by
+	e: Enemy, amount: float, game: Game, how: String, explosive: bool, pressure: bool, by: Enemy
 ) -> float:
-	var keeper = game.features.get("variants")
+	var keeper: VariantsFeature = game.features.get("variants")
 	if keeper == null or by != null or keeper.door_left(e) <= 0.0:
 		return amount
 	if pressure or (ShipAliens.SHIELD_PASSES.has(how) and not explosive):
@@ -354,3 +358,13 @@ static func paint_door(assets: Assets) -> void:
 			data[o + 2] = c.b8
 			data[o + 3] = 255
 	assets.put_art(DOOR_PICTURE, DOOR_W, DOOR_H, data)
+
+
+## int() and float() of a value read from data or a dictionary, typed (the
+## same result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v
+
+
+static func _float(v: Variant) -> float:
+	return str(v).to_float() if v is String else v

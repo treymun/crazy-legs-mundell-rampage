@@ -60,6 +60,9 @@ static var REEL: Array = ModeData.get_value("hit_zones", "reel")
 ## boilerback only on the boiler on his back.
 static var METAL: Array = ModeData.get_value("hit_zones", "metal")
 
+const HitReads := preload("res://src/features/hit_reads.gd")
+const Critters := preload("res://src/features/critters.gd")
+
 
 ## Whether it has a head and limbs to hit (the county's hands, the greys).
 static func limbs(e: Enemy) -> bool:
@@ -74,7 +77,7 @@ static func metal(e: Enemy) -> bool:
 ## Enemy.hurt, before the damage is taken: where the player's hit struck, and
 ## how much that makes of it. 1 for anything but the player's aimed hit on a
 ## body with a head and limbs.
-static func strike(e: Enemy, game, how: String, by) -> float:
+static func strike(e: Enemy, game: Game, how: String, by: Enemy) -> float:
 	e.last_zone = ""
 	e.last_side = ""
 	var hit: Vector3 = game.hit_point
@@ -91,7 +94,7 @@ static func strike(e: Enemy, game, how: String, by) -> float:
 		return 1.0
 	match e.last_zone:
 		"head":
-			return float(HEAD.get(how, HEAD_DEFAULT))
+			return HEAD.get(how, HEAD_DEFAULT)
 		"arms":
 			return ARMS
 		"legs":
@@ -106,7 +109,7 @@ static func side(e: Enemy, from: Vector2) -> String:
 
 
 ## The zone a hit at `hit`, from `from`, is on.
-static func zone(e: Enemy, game, hit: Vector3, from: Vector2) -> String:
+static func zone(e: Enemy, game: Game, hit: Vector3, from: Vector2) -> String:
 	var feet: float = game.world.stand(e) + e.z
 	var up := (hit.z - feet) / maxf(.1, e.height * e.variant)
 	if up >= HEAD_AT:
@@ -128,12 +131,12 @@ static func zone(e: Enemy, game, hit: Vector3, from: Vector2) -> String:
 ## The speck kind a hit throws: sparks off metal, else the kind it bleeds.
 ## Thrown through the game's burst() as ever (the same count, so the same
 ## dice), or off the feature's own dice where burst() would have thrown none.
-static func splash(e: Enemy, game, x: float, y: float, z: float, bleeds: String) -> void:
+static func splash(e: Enemy, game: Game, x: float, y: float, z: float, bleeds: String) -> void:
 	if not metal(e):
 		game.burst(x, y, z, bleeds, 4, .9)
 		return
 	if bleeds == "gore" and not game.gore:
-		var fx = game.features.get("hit_reads")
+		var fx: HitReads = game.features.get("hit_reads")
 		if fx != null:
 			fx.sparks(x, y, z, 4, .9)
 		return
@@ -141,13 +144,13 @@ static func splash(e: Enemy, game, x: float, y: float, z: float, bleeds: String)
 
 
 ## Enemy.hurt, after the damage and the crosshair's mark: what the zone does.
-static func land(e: Enemy, game, amount: float, by) -> void:
-	var critters = game.features.get("critters")
+static func land(e: Enemy, game: Game, amount: float, by: Enemy) -> void:
+	var critters: Critters = game.features.get("critters")
 	if critters != null and by == null:
 		critters.struck(e)
 	if by != null or e.last_zone == "":
 		return
-	var fx = game.features.get("hit_reads")
+	var fx: HitReads = game.features.get("hit_reads")
 	if fx != null:
 		fx.landed(e, amount)
 	if not e.alive or not e.hostile or not limbs(e):
@@ -165,45 +168,50 @@ static func land(e: Enemy, game, amount: float, by) -> void:
 
 ## A bigger instant reels it further: each step of REEL it newly reaches
 ## this instant stumbles it back from the gun a little more.
-static func _reel(e: Enemy, game) -> void:
+static func _reel(e: Enemy, game: Game) -> void:
 	if game.clock - e.reel_at > .06:
 		e.reel = 0
 	e.reel_at = game.clock
 	var step := 0
 	for k in REEL.size():
-		if e.struck_sum >= float(REEL[k][0]):
+		if e.struck_sum >= REEL[k][0]:
 			step = k + 1
 	if step <= e.reel:
 		return
-	var before: float = 0.0 if e.reel == 0 else float(REEL[e.reel - 1][1])
+	var before: float = 0.0 if e.reel == 0 else REEL[e.reel - 1][1]
 	var row: Array = REEL[step - 1]
 	e.reel = step
 	var from: Vector2 = game.hit_from
 	var away := atan2(e.y - from.y, e.x - from.x)
-	var back := float(row[1]) - before
+	var back: float = row[1] - before
 	game.move_actor(e, cos(away) * back, sin(away) * back, e.radius)
-	e.flinch = maxf(e.flinch, float(row[2]))
-	e.stun = maxf(e.stun, float(row[3]))
+	var flinch: float = row[2]
+	var stun: float = row[3]
+	e.flinch = maxf(e.flinch, flinch)
+	e.stun = maxf(e.stun, stun)
 
 
 ## An arm hit: a weapon dropped (if it holds one and the dice say so), or a
 ## wind-up's aim thrown wide, or a fumble.
-static func _arm(e: Enemy, game) -> void:
-	var held := String(HELD.get(e.kind, ""))
+static func _arm(e: Enemy, game: Game) -> void:
+	var held := str(HELD.get(e.kind, ""))
 	if held != "" and e.disarmed_until < 0.0 and game.clock - e.arm_roll > .1:
 		# Once an instant: a load of buckshot is ten hits.
 		e.arm_roll = game.clock
 		if game.rng.random() < DROP_CHANCE:
 			_drop(e, game, held)
 			return
-	if e.windup > 0.0 and e.aim_mark is Array and e.aim_mark.size() >= 2:
-		var mark: Array = e.aim_mark.duplicate()
-		var dx := float(mark[0]) - e.x
-		var dy := float(mark[1]) - e.y
+	if e.windup > 0.0 and e.aim_mark is Array and len(e.aim_mark) >= 2:
+		var aimed: Array = e.aim_mark
+		var mark: Array = aimed.duplicate()
+		var dx: float = mark[0] - e.x
+		var dy: float = mark[1] - e.y
 		var length := maxf(.01, sqrt(dx * dx + dy * dy))
 		var turn := 1.0 if e.attacks % 2 else -1.0
-		mark[0] = float(mark[0]) - dy / length * AIM_THROW * turn
-		mark[1] = float(mark[1]) + dx / length * AIM_THROW * turn
+		var mark_x: float = mark[0]
+		var mark_y: float = mark[1]
+		mark[0] = mark_x - dy / length * AIM_THROW * turn
+		mark[1] = mark_y + dx / length * AIM_THROW * turn
 		e.aim_mark = mark
 	else:
 		e.cooldown = maxf(e.cooldown, .35)
@@ -211,14 +219,14 @@ static func _arm(e: Enemy, game) -> void:
 
 ## It drops its weapon: it lands a step back from the gun (the first open,
 ## level spot it can see, or at its feet), and the hand has to go and get it.
-static func _drop(e: Enemy, game, held: String) -> void:
+static func _drop(e: Enemy, game: Game, held: String) -> void:
 	e.disarmed_until = game.clock + DROP_TIME
 	e.pick_at = -1.0
 	e.windup = 0.0
 	e.aim_mark = null
 	e.volley = 0
 	var world: LevelData = game.world
-	var p = game.player
+	var p := game.player
 	var away := atan2(e.y - p.y, e.x - p.x)
 	var here := world.stand(e)
 	var spot := Vector2(e.x, e.y)
@@ -234,14 +242,14 @@ static func _drop(e: Enemy, game, held: String) -> void:
 			break
 	e.arm_at = spot
 	game.sound_at("scenery_scrap", e.x, e.y, .55)
-	var fx = game.features.get("hit_reads")
+	var fx: HitReads = game.features.get("hit_reads")
 	if fx != null:
 		fx.drop_arm(e, held, spot)
 
 
 ## Enemy.tick's hook: a hand without its weapon goes and gets it, swinging
 ## its fists at the player if they come close. True when it took the tick.
-static func tick(e: Enemy, dt: float, game) -> bool:
+static func tick(e: Enemy, dt: float, game: Game) -> bool:
 	if e.disarmed_until < 0.0:
 		return false
 	if game.clock >= e.disarmed_until or e.arm_at == Vector2.INF:
@@ -250,7 +258,7 @@ static func tick(e: Enemy, dt: float, game) -> bool:
 	if e.stun > 0.0:
 		return true
 	e.cooldown -= dt * float(game.sharpness)
-	var p = game.player
+	var p := game.player
 	var gap := Vector2(p.x - e.x, p.y - e.y)
 	if gap.length() < e.radius + PUNCH_REACH:
 		e.angle = gap.angle()
@@ -271,12 +279,12 @@ static func tick(e: Enemy, dt: float, game) -> bool:
 	return true
 
 
-static func _rearm(e: Enemy, game) -> void:
+static func _rearm(e: Enemy, game: Game) -> void:
 	e.disarmed_until = -1.0
 	e.pick_at = -1.0
 	e.arm_at = Vector2.INF
 	e.cooldown = maxf(e.cooldown, .45)
-	var fx = game.features.get("hit_reads")
+	var fx: HitReads = game.features.get("hit_reads")
 	if fx != null:
 		fx.picked_up(e)
 
@@ -286,19 +294,20 @@ static func _rearm(e: Enemy, game) -> void:
 ## pops the head, not the whole body). One barrel of buckshot throws the body
 ## back instead (hard at arm's length: features/corpses.gd); both barrels at
 ## once still take it apart.
-static func overkill(e: Enemy, game, how: String) -> bool:
+static func overkill(e: Enemy, game: Game, how: String) -> bool:
 	if how == "shotgun" and game.armory.last_spent < 2:
 		return false
 	var sum := e.struck_sum
 	if e.last_zone == "head" and limbs(e):
-		sum /= float(HEAD.get(how, HEAD_DEFAULT))
+		var head: float = HEAD.get(how, HEAD_DEFAULT)
+		sum /= head
 	return sum >= maxf(48.0, e.max_hp * .7)
 
 
 ## Whether the killing blast takes the body apart. A blast at its edge that
 ## only just finishes one throws it whole, and the cow launcher never takes
 ## one apart: they go up and come down (features/corpses.gd).
-static func blast_gibs(e: Enemy, game) -> bool:
+static func blast_gibs(e: Enemy, game: Game) -> bool:
 	if game.blast_kind == "cow":
 		return false
 	return e.struck_sum >= maxf(30.0, e.max_hp * .45)

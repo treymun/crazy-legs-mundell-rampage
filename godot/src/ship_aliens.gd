@@ -17,11 +17,12 @@ static var SHIELD_SOAK: float = BossData.get_value("ship_aliens", "shield_soak")
 static var SHIELD_ARC: float = BossData.get_value("ship_aliens", "shield_arc")
 ## Maw's second look: the housecoat gone, a third of her health left.
 const BARE_AT := 1.0 / 3.0
+const Mothership := preload("res://src/features/mothership.gd")
 
 
 ## The attack of a kind drawn here (true), or false for every other kind.
 static func attack(
-	enemy: Enemy, game, direction: float, distance: float, eye: float, aim_z
+	enemy: Enemy, game: Game, direction: float, distance: float, eye: float, aim_z: Variant
 ) -> bool:
 	match enemy.kind:
 		"drone":
@@ -31,7 +32,7 @@ static func attack(
 		"probe":
 			_tug(enemy, game, direction, distance, eye)
 		"maw":
-			var fight = game.features.get("mothership")
+			var fight: Mothership = game.features.get("mothership")
 			if fight != null:
 				fight.maw_attack(enemy, direction)
 			else:
@@ -43,7 +44,7 @@ static func attack(
 
 ## A hit on the tin guard's tailgate: most of it stopped, sparks off the tin.
 static func soak(
-	enemy: Enemy, amount: float, game, how: String, explosive: bool, pressure: bool, by
+	enemy: Enemy, amount: float, game: Game, how: String, explosive: bool, pressure: bool, by: Enemy
 ) -> float:
 	if Variants.DOORS.has(enemy.kind):
 		# The shield deputy's car door works the same way (src/variants.gd).
@@ -52,7 +53,7 @@ static func soak(
 		return amount
 	if SHIELD_PASSES.has(how):
 		return amount
-	var p = game.player
+	var p := game.player
 	var toward := atan2(p.y - enemy.y, p.x - enemy.x)
 	if absf(Enemy.angle_delta(toward, enemy.angle)) > SHIELD_ARC:
 		return amount
@@ -73,32 +74,34 @@ static func skin(enemy: Enemy) -> String:
 
 
 ## The boss bar's tell for Maw: the attack she is winding up.
-static func tell(game, boss: Enemy, fallback: String) -> String:
-	var fight = game.features.get("mothership") if boss.kind == "maw" else null
+static func tell(game: Game, boss: Enemy, fallback: String) -> String:
+	var fight: Mothership = game.features.get("mothership") if boss.kind == "maw" else null
 	return fight.tell_of() if fight != null else fallback
 
 
 ## The boss bar's line under the tell: Maw's phase as it changes.
-static func phase_text(game, boss: Enemy, fallback: String) -> String:
-	var fight = game.features.get("mothership") if boss.kind == "maw" else null
+static func phase_text(game: Game, boss: Enemy, fallback: String) -> String:
+	var fight: Mothership = game.features.get("mothership") if boss.kind == "maw" else null
 	return fight.phase_line(fallback) if fight != null else fallback
 
 
 ## The chapter's own sound once it is made (docs/new_chapters/mothership_audio.md),
 ## an existing one till then.
-static func cue(game, wanted: String, fallback: String) -> String:
+static func cue(game: Game, wanted: String, fallback: String) -> String:
 	return wanted if game.art != null and game.art.has_cue(wanted) else fallback
 
 
 ## The drone's prod: a zap that jolts the aim, then off out of reach.
-static func _prod(enemy: Enemy, game, eye: float) -> void:
+static func _prod(enemy: Enemy, game: Game, eye: float) -> void:
 	var lunge: Array = Enemy.LUNGES[enemy.kind]
-	enemy.cooldown = float(lunge[5])
-	var p = game.player
+	enemy.cooldown = lunge[5]
+	var p := game.player
 	var gap := Vector2(p.x - enemy.x, p.y - enemy.y).length()
-	if gap < float(lunge[2]) and game.world.visible(enemy.x, enemy.y, p.x, p.y, eye, p.eye):
-		game.damage(int(lunge[3]), [enemy.x, enemy.y], "ZAP")
-		game.sound_at(cue(game, "drone_zap", String(lunge[4])), enemy.x, enemy.y)
+	var reach: float = lunge[2]
+	if gap < reach and game.world.visible(enemy.x, enemy.y, p.x, p.y, eye, p.eye):
+		var hurt: int = lunge[3]
+		game.damage(hurt, [enemy.x, enemy.y], "ZAP")
+		game.sound_at(cue(game, "drone_zap", str(lunge[4])), enemy.x, enemy.y)
 		game.shake = minf(1.0, game.shake + .25)
 		p.angle = fposmod(p.angle + (.06 if enemy.attacks % 2 else -.06), TAU)
 		game.burst(p.x, p.y, p.eye - .3, "spark", 6, 1.2)
@@ -106,9 +109,11 @@ static func _prod(enemy: Enemy, game, eye: float) -> void:
 
 
 ## The tin guard's bug zapper: three bolts in a fan, the tailgate swung aside.
-static func _zap(enemy: Enemy, game, direction: float, distance: float, eye: float, aim_z) -> void:
+static func _zap(
+	enemy: Enemy, game: Game, direction: float, distance: float, eye: float, aim_z: Variant
+) -> void:
 	enemy.cooldown = 1.95 if enemy.attacks % 2 else 1.45
-	var target: float = game.player.eye if aim_z == null else float(aim_z)
+	var target: float = game.player.eye if aim_z == null else aim_z
 	var flight := maxf(.12, distance / 5.4)
 	for i in 3:
 		var theta := direction + (i - 1) * .14
@@ -130,11 +135,12 @@ static func _zap(enemy: Enemy, game, direction: float, distance: float, eye: flo
 
 ## The probe's beam: the player reeled a step or so toward it and zapped, or,
 ## out of reach of the beam, a plain bolt.
-static func _tug(enemy: Enemy, game, direction: float, distance: float, eye: float) -> void:
+static func _tug(enemy: Enemy, game: Game, direction: float, distance: float, eye: float) -> void:
 	enemy.cooldown = 2.4
-	var p = game.player
+	var p := game.player
 	var seen: bool = game.world.visible(enemy.x, enemy.y, p.x, p.y, eye, p.eye)
-	if seen and distance < float(Enemy.REACH[enemy.kind]) + .6:
+	var reach: float = Enemy.REACH[enemy.kind]
+	if seen and distance < reach + .6:
 		var pull := clampf(distance - 1.2, 0.0, 1.5)
 		var toward := atan2(enemy.y - p.y, enemy.x - p.x)
 		for _k in 6:

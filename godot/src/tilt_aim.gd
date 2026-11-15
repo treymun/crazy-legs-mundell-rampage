@@ -49,14 +49,14 @@ static func rates() -> Vector2:
 	if OS.has_feature("web"):
 		if not _listening:
 			return Vector2.ZERO
-		var raw = JavaScriptBridge.eval(
+		var raw: Variant = JavaScriptBridge.eval(
 			(
 				"(window.__clmrTilt || [0,0,0]).join(',') + ',' + "
 				+ "((screen.orientation && screen.orientation.angle) || window.orientation || 0)"
 			),
 			true
 		)
-		var parts := String(raw).split(",")
+		var parts := str(raw).split(",")
 		if parts.size() < 4:
 			return Vector2.ZERO
 		var spin := Vector3(float(parts[0]), float(parts[1]), float(parts[2])) * (PI / 180.0)

@@ -51,7 +51,7 @@ func stop_voice() -> void:
 	pass
 
 
-func set_room(_room_name) -> void:
+func set_room(_room_name: Variant) -> void:
 	pass
 
 

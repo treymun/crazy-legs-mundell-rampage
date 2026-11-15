@@ -20,7 +20,7 @@ static var _data := {}
 
 static func data() -> Dictionary:
 	if _data.is_empty() and FileAccess.file_exists(PATH):
-		var parsed = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
 		if parsed is Dictionary:
 			_data = parsed
 	return _data
@@ -29,12 +29,14 @@ static func data() -> Dictionary:
 ## The lines of `group` ("enemies", "tactical": by voice; "mundell": `who` "")
 ## for `moment` ([] when none).
 static func lines(group: String, who: String, moment: String) -> Array:
-	var part = data().get(group, {})
+	var part: Variant = data().get(group, {})
 	if who != "" and part is Dictionary:
-		part = (part as Dictionary).get(who, {})
+		var by_voice: Dictionary = part
+		part = by_voice.get(who, {})
 	if not part is Dictionary:
 		return []
-	var out = (part as Dictionary).get(moment, [])
+	var by_moment: Dictionary = part
+	var out: Variant = by_moment.get(moment, [])
 	return out if out is Array else []
 
 

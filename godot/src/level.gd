@@ -94,7 +94,7 @@ class Billboard:
 	var z := 0.0
 	var signal_name := ""
 	var glow := false
-	var plane = NAN
+	var plane := NAN
 	var back := ""
 
 
@@ -266,8 +266,8 @@ var index_cells := PackedByteArray()
 ## Never set again after load: a wall taken out leaves it 0 (still exact).
 var clear_cells := PackedByteArray()
 var broken_panes := {}
-var return_gate = null
-var extraction = null
+var return_gate: Gate = null
+var extraction: Extraction = null
 var hub_clues: Array = []
 var controlled_doors := {}
 var access_doors := {}
@@ -294,7 +294,7 @@ var partners: Array = []
 var triggers: Array = []
 var exchanges: Array = []
 var ruptures := {}
-var recovery_room = null
+var recovery_room: Variant = null
 var hidden_rooms: Array = []
 var map_labels: Array = []
 var objective_side_tasks: Array = []
@@ -310,7 +310,7 @@ var area_cues := {}
 ## Bumped when a level is rebuilt: a save of an older layout restarts it.
 var layout := 1
 ## The fair's shooting booth: where its stand is (null: where it always was).
-var gallery_stand = null
+var gallery_stand: Variant = null
 ## The Crossroads: where its dispatch board stands (the trunk tag and the dust
 ## follow it) and the part of it the map shows [x, y, w, h].
 var hub_board := Vector2(30.36, 44.13)
@@ -323,15 +323,17 @@ static var preview := {}
 
 static func load_level(level_id: String, assets: Assets) -> LevelData:
 	if preview.has(level_id):
-		return from_dict(preview[level_id], assets)
+		var given: Dictionary = preview[level_id]
+		return from_dict(given, assets)
 	var raw := FileAccess.get_file_as_string("res://data/%s.json" % level_id)
 	if raw.is_empty():
 		push_error("no level data for " + level_id)
 		return null
-	var j = JSON.parse_string(raw)
-	if not (j is Dictionary):
+	var parsed: Variant = JSON.parse_string(raw)
+	if not (parsed is Dictionary):
 		push_error("bad level json " + level_id)
 		return null
+	var j: Dictionary = parsed
 	return from_dict(j, assets)
 
 
@@ -339,7 +341,7 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 ## before it is written).
 static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 	var lv := LevelData.new()
-	lv.format = int(j.get("format", 1))
+	lv.format = _int(j.get("format", 1))
 	if lv.format > FORMAT:
 		push_error(
 			"level %s is format %d, newer than this build (%d)" % [j["id"], lv.format, FORMAT]
@@ -347,23 +349,23 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 		return null
 	lv.tile_names = assets.tile_names
 	lv.tile_index = assets.tile_index
-	lv.id = String(j["id"])
-	lv.title = String(j["title"])
-	for v in j.get("heading", []):
-		lv.heading.append(String(v))
-	lv.introduction = String(j.get("intro", ""))
-	lv.ending = String(j.get("ending", ""))
-	lv.score = String(j.get("score", ""))
-	lv.ambience = String(j.get("ambience", ""))
-	lv.rescue = bool(j.get("rescue", false))
+	lv.id = str(j["id"])
+	lv.title = str(j["title"])
+	for v: Variant in j.get("heading", []):
+		lv.heading.append(str(v))
+	lv.introduction = str(j.get("intro", ""))
+	lv.ending = str(j.get("ending", ""))
+	lv.score = str(j.get("score", ""))
+	lv.ambience = str(j.get("ambience", ""))
+	lv.rescue = j.get("rescue", false)
 	lv.spawn = _floats(j["spawn"])
-	for v in j.get("districts", []):
-		lv.districts.append(String(v))
-	lv.width = int(j["width"])
-	lv.height = int(j["height"])
-	lv.sky = String(j["sky"])
+	for v: Variant in j.get("districts", []):
+		lv.districts.append(str(v))
+	lv.width = _int(j["width"])
+	lv.height = _int(j["height"])
+	lv.sky = str(j["sky"])
 	if j.get("mirror") != null:
-		lv.mirror_x = float(j["mirror"][0])
+		lv.mirror_x = _float(j["mirror"][0])
 
 	lv.solid = _ints(j["solid"])
 	lv.floor_tile = _ints(j["floor"])
@@ -385,209 +387,212 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 		var row: Array = wall_list[i]
 		var o := i * WALL_STRIDE
 		for k in WALL_STRIDE:
-			lv.walls[o + k] = float(row[k])
+			lv.walls[o + k] = _float(row[k])
 
-	if not bool(j.get("hub_split", false)):
+	if not j.get("hub_split", false):
 		lv._merge_runs()
 
-	for d in j.get("doors", []):
+	for d: Dictionary in j.get("doors", []):
 		var door := Door.new()
-		door.x = int(d["x"])
-		door.y = int(d["y"])
-		door.style = String(d.get("style", "slide"))
-		door.vertical = bool(d.get("vertical", false))
-		door.key = String(d.get("key", ""))
-		door.secret = bool(d.get("secret", false))
-		door.blast_only = bool(d.get("blast_only", false))
-		door.progress = float(d.get("progress", 0.))
-		door.opened = bool(d.get("opened", false))
-		door.discovered = bool(d.get("discovered", false))
-		door.texture = String(d.get("texture", ""))
-		door.material = int(d.get("material", 0))
-		door.id = String(d.get("id", ""))
+		door.x = _int(d["x"])
+		door.y = _int(d["y"])
+		door.style = str(d.get("style", "slide"))
+		door.vertical = d.get("vertical", false)
+		door.key = str(d.get("key", ""))
+		door.secret = d.get("secret", false)
+		door.blast_only = d.get("blast_only", false)
+		door.progress = _float(d.get("progress", 0.))
+		door.opened = d.get("opened", false)
+		door.discovered = d.get("discovered", false)
+		door.texture = str(d.get("texture", ""))
+		door.material = _int(d.get("material", 0))
+		door.id = str(d.get("id", ""))
 		lv.doors.append(door)
 
-	for p in j.get("pane_tiles", []):
-		lv.pane_tiles.append(Vector2i(int(p[0]), int(p[1])))
+	for p: Variant in j.get("pane_tiles", []):
+		lv.pane_tiles.append(Vector2i(_int(p[0]), _int(p[1])))
 
-	for f in j.get("fixtures", []):
+	for f: Array in j.get("fixtures", []):
 		lv.fixtures.append(_floats(f))
-	for f in j.get("collision_volumes", []):
+	for f: Array in j.get("collision_volumes", []):
 		lv.collision_volumes.append(_floats(f))
 
-	for key in j.get("caps", {}):
-		var h := _f32(float(key))
+	for key: Variant in j.get("caps", {}):
+		var h := _f32(_float(key))
 		var list: Array = []
-		for c in j["caps"][key]:
+		for c: Variant in j["caps"][key]:
 			list.append(
-				[float(c[0]), float(c[1]), float(c[2]), float(c[3]), lv.tile_id(String(c[4]))]
+				[_float(c[0]), _float(c[1]), _float(c[2]), _float(c[3]), lv.tile_id(str(c[4]))]
 			)
 		lv.caps[h] = list
 
 	lv._take_geometry(j.get("geometry"))
 	lv._build_plane_bounds()
 
-	for g in j.get("hub_gates", []):
+	for g: Dictionary in j.get("hub_gates", []):
 		lv.hub_gates.append(_gate(lv, g))
 	if j.get("return_gate") != null:
-		lv.return_gate = _gate(lv, j["return_gate"])
+		var back: Dictionary = j["return_gate"]
+		lv.return_gate = _gate(lv, back)
 
 	lv.enemies = j.get("enemies", [])
-	for key in j.get("patrols", {}):
-		lv.patrols[int(key)] = j["patrols"][key]
+	for key: Variant in j.get("patrols", {}):
+		lv.patrols[_int(key)] = j["patrols"][key]
 	lv.pickups = j.get("pickups", [])
 	lv.props = j.get("props", [])
-	for b in j.get("billboards", []):
+	for b: Dictionary in j.get("billboards", []):
 		var board := Billboard.new()
-		board.x = float(b["x"])
-		board.y = float(b["y"])
-		board.image = String(b["image"])
-		board.height = float(b["height"])
-		board.z = float(b.get("z", 0.))
-		board.signal_name = String(b.get("signal", ""))
-		board.glow = bool(b.get("glow", false))
-		board.plane = NAN if b.get("plane") == null else float(b["plane"])
-		board.back = String(b.get("back", ""))
+		board.x = _float(b["x"])
+		board.y = _float(b["y"])
+		board.image = str(b["image"])
+		board.height = _float(b["height"])
+		board.z = _float(b.get("z", 0.))
+		board.signal_name = str(b.get("signal", ""))
+		board.glow = b.get("glow", false)
+		board.plane = NAN if b.get("plane") == null else _float(b["plane"])
+		board.back = str(b.get("back", ""))
 		lv.billboards.append(board)
-	for s in j.get("scenery", []):
+	for s: Dictionary in j.get("scenery", []):
 		var prop := Scenery.new()
-		prop.id = String(s["id"])
-		prop.kind = String(s["kind"])
-		prop.x = float(s["x"])
-		prop.y = float(s["y"])
-		prop.height = float(s["height"])
-		prop.z = float(s.get("z", 0.))
-		prop.radius = float(s.get("radius", .25))
-		for p in s.get("opens", []):
-			prop.opens.append(Vector2i(int(p[0]), int(p[1])))
-		prop.station = String(s.get("station", ""))
+		prop.id = str(s["id"])
+		prop.kind = str(s["kind"])
+		prop.x = _float(s["x"])
+		prop.y = _float(s["y"])
+		prop.height = _float(s["height"])
+		prop.z = _float(s.get("z", 0.))
+		prop.radius = _float(s.get("radius", .25))
+		for p: Variant in s.get("opens", []):
+			prop.opens.append(Vector2i(_int(p[0]), _int(p[1])))
+		prop.station = str(s.get("station", ""))
 		lv.scenery.append(prop)
 	lv.fuel_drums = j.get("fuel_drums", [])
 	lv.dress_marks = j.get("dress_marks", [])
-	for i in j.get("interiors", []):
+	for i: Variant in j.get("interiors", []):
 		var room := Interior.new()
-		room.art = String(i[0])
-		room.x = float(i[1])
-		room.y = float(i[2])
-		room.z = float(i[3])
-		room.height = float(i[4])
-		room.plane = float(i[5])
+		room.art = str(i[0])
+		room.x = _float(i[1])
+		room.y = _float(i[2])
+		room.z = _float(i[3])
+		room.height = _float(i[4])
+		room.plane = _float(i[5])
 		lv.interior_art.append(room)
 
-	for s in j.get("stations", []):
+	for s: Dictionary in j.get("stations", []):
 		var station := Station.new()
-		station.id = String(s["id"])
-		station.x = float(s["x"])
-		station.y = float(s["y"])
-		station.label = String(s.get("label", ""))
-		station.message = String(s.get("message", ""))
+		station.id = str(s["id"])
+		station.x = _float(s["x"])
+		station.y = _float(s["y"])
+		station.label = str(s.get("label", ""))
+		station.message = str(s.get("message", ""))
 		station.requires = s.get("requires", [])
-		for p in s.get("opens", []):
-			station.opens.append(Vector2i(int(p[0]), int(p[1])))
+		for p: Variant in s.get("opens", []):
+			station.opens.append(Vector2i(_int(p[0]), _int(p[1])))
 		station.sectors = s.get("sectors", [])
-		station.cue = String(s.get("cue", "lever_clunk"))
-		station.reveals_secret = bool(s.get("reveals_secret", false))
-		station.hidden = bool(s.get("hidden", false))
-		station.action = String(s.get("action", "use"))
-		station.held = String(s.get("held", ""))
-		station.z = float(s["z"]) if s.has("z") else NAN
+		station.cue = str(s.get("cue", "lever_clunk"))
+		station.reveals_secret = s.get("reveals_secret", false)
+		station.hidden = s.get("hidden", false)
+		station.action = str(s.get("action", "use"))
+		station.held = str(s.get("held", ""))
+		station.z = _float(s["z"]) if s.has("z") else NAN
 		lv.stations.append(station)
 
-	lv.control_name = String(j.get("control_name", ""))
-	lv.layout = int(j.get("layout", 1))
+	lv.control_name = str(j.get("control_name", ""))
+	lv.layout = _int(j.get("layout", 1))
 	if j.get("hub_board") != null:
-		lv.hub_board = Vector2(float(j["hub_board"][0]), float(j["hub_board"][1]))
+		lv.hub_board = Vector2(_float(j["hub_board"][0]), _float(j["hub_board"][1]))
 	lv.map_window = j.get("map_window", [])
 	if j.get("gallery") != null:
-		lv.gallery_stand = Vector2(float(j["gallery"][0]), float(j["gallery"][1]))
-	for d in j.get("devices", []):
-		lv.devices.append([String(d[0]), float(d[1]), float(d[2])])
+		lv.gallery_stand = Vector2(_float(j["gallery"][0]), _float(j["gallery"][1]))
+	for d: Variant in j.get("devices", []):
+		lv.devices.append([str(d[0]), _float(d[1]), _float(d[2])])
 	if j.has("area_sounds"):
 		lv.area_sounds = {}
-		for key in j["area_sounds"]:
-			lv.area_sounds[int(key)] = String(j["area_sounds"][key])
-	for key in j.get("area_cues", {}):
-		lv.area_cues[int(key)] = String(j["area_cues"][key])
+		for key: Variant in j["area_sounds"]:
+			lv.area_sounds[_int(key)] = str(j["area_sounds"][key])
+	for key: Variant in j.get("area_cues", {}):
+		lv.area_cues[_int(key)] = str(j["area_cues"][key])
 	if j.get("extraction") != null:
+		var ex: Dictionary = j["extraction"]
 		var exit := Extraction.new()
-		exit.x = float(j["extraction"]["x"])
-		exit.y = float(j["extraction"]["y"])
-		exit.label = String(j["extraction"]["label"])
-		exit.shutdown = String(j["extraction"]["shutdown"])
-		exit.z = float(j["extraction"].get("z", NAN))
+		exit.x = _float(j["extraction"]["x"])
+		exit.y = _float(j["extraction"]["y"])
+		exit.label = str(j["extraction"]["label"])
+		exit.shutdown = str(j["extraction"]["shutdown"])
+		exit.z = _float(ex.get("z", NAN))
 		lv.extraction = exit
-	for clue in j.get("hub_clues", []):
+	for clue: Variant in j.get("hub_clues", []):
 		lv.hub_clues.append(
-			[String(clue[0]), float(clue[1]), float(clue[2]), String(clue[3]), String(clue[4])]
+			[str(clue[0]), _float(clue[1]), _float(clue[2]), str(clue[3]), str(clue[4])]
 		)
-	for point in j.get("pressure_ports", []):
-		lv.pressure_ports.append(Vector2(float(point[0]), float(point[1])))
-	var laps = j.get("lap_cars", {})
+	for point: Variant in j.get("pressure_ports", []):
+		lv.pressure_ports.append(Vector2(_float(point[0]), _float(point[1])))
+	var laps: Variant = j.get("lap_cars", {})
 	lv.lap_cars = laps if laps is Dictionary else {}
-	for point in j.get("boss_decoys", []):
-		lv.boss_decoys.append(Vector2(float(point[0]), float(point[1])))
-	var arena = j.get("boss_arena", {})
+	for point: Variant in j.get("boss_decoys", []):
+		lv.boss_decoys.append(Vector2(_float(point[0]), _float(point[1])))
+	var arena: Variant = j.get("boss_arena", {})
 	lv.boss_arena = arena if arena is Dictionary else {}
-	var plan = j.get("tactical", {})
+	var plan: Variant = j.get("tactical", {})
 	lv.tactical = plan if plan is Dictionary else {}
-	for cue in j.get("distant_cues", []):
-		lv.distant_cues.append([float(cue[0]), float(cue[1]), String(cue[2])])
-	for n in j.get("notes", []):
+	for cue: Variant in j.get("distant_cues", []):
+		lv.distant_cues.append([_float(cue[0]), _float(cue[1]), str(cue[2])])
+	for n: Array in j.get("notes", []):
 		var note := Note.new()
-		note.x = float(n[0])
-		note.y = float(n[1])
-		note.label = String(n[2])
-		note.text = String(n[3])
-		note.plane = float(n[4]) if n.size() > 4 else 0.0
+		note.x = _float(n[0])
+		note.y = _float(n[1])
+		note.label = str(n[2])
+		note.text = str(n[3])
+		note.plane = _float(n[4]) if n.size() > 4 else 0.0
 		lv.notes.append(note)
-	for n in j.get("partners", []):
-		lv.partners.append([String(n[0]), String(n[1]), int(n[2])])
-	for trigger in j.get("triggers", []):
-		if trigger is Dictionary and trigger.has("id"):
+	for n: Variant in j.get("partners", []):
+		lv.partners.append([str(n[0]), str(n[1]), _int(n[2])])
+	for trigger: Variant in j.get("triggers", []):
+		var td: Dictionary = trigger if trigger is Dictionary else {}
+		if td.has("id"):
 			lv.triggers.append(trigger)
-	for n in j.get("exchanges", []):
+	for n: Dictionary in j.get("exchanges", []):
 		var exchange := Exchange.new()
-		exchange.id = String(n["id"])
-		exchange.x = float(n["x"])
-		exchange.y = float(n["y"])
-		exchange.stop_at = String(n.get("stop_at", ""))
+		exchange.id = str(n["id"])
+		exchange.x = _float(n["x"])
+		exchange.y = _float(n["y"])
+		exchange.stop_at = str(n.get("stop_at", ""))
 		exchange.lines = n.get("lines", [])
 		lv.exchanges.append(exchange)
 	lv.ruptures = {}
-	for key in j.get("ruptures", {}):
+	for key: Variant in j.get("ruptures", {}):
 		var rup: Array = j["ruptures"][key]
-		lv.ruptures[String(key)] = [float(rup[0]), float(rup[1]), String(rup[2])]
+		lv.ruptures[str(key)] = [_float(rup[0]), _float(rup[1]), str(rup[2])]
 	if j.get("recovery_room") != null:
 		var rec: Array = j["recovery_room"]
 		lv.recovery_room = [
-			float(rec[0]), float(rec[1]), float(rec[2]), float(rec[3]), String(rec[4])
+			_float(rec[0]), _float(rec[1]), _float(rec[2]), _float(rec[3]), str(rec[4])
 		]
 	lv.objective_side_tasks = j.get("objective_side_tasks", [])
-	for point in j.get("controlled_doors", []):
-		lv.controlled_doors[Vector2i(int(point[0]), int(point[1]))] = true
-	for point in j.get("crouch_doors", []):
-		lv.crouch_doors[Vector2i(int(point[0]), int(point[1]))] = true
+	for point: Variant in j.get("controlled_doors", []):
+		lv.controlled_doors[Vector2i(_int(point[0]), _int(point[1]))] = true
+	for point: Variant in j.get("crouch_doors", []):
+		lv.crouch_doors[Vector2i(_int(point[0]), _int(point[1]))] = true
 	lv.access_doors = {}
-	for key in j.get("access_doors", {}):
-		var parts := String(key).split(",")
+	for key: Variant in j.get("access_doors", {}):
+		var parts := str(key).split(",")
 		lv.access_doors[Vector2i(int(parts[0]), int(parts[1]))] = j["access_doors"][key]
 	lv.discovery_rooms = {}
-	for key in j.get("discovery_rooms", {}):
-		var pair := String(key).split(",")
+	for key: Variant in j.get("discovery_rooms", {}):
+		var pair := str(key).split(",")
 		lv.discovery_rooms[Vector2i(int(pair[0]), int(pair[1]))] = j["discovery_rooms"][key]
 	lv.reinforcements = j.get("reinforcements", [])
-	for room in j.get("hidden_rooms", []):
+	for room: Variant in j.get("hidden_rooms", []):
 		lv.hidden_rooms.append(
 			[
-				Vector2i(int(room[0][0]), int(room[0][1])),
-				Vector4i(int(room[1][0]), int(room[1][1]), int(room[1][2]), int(room[1][3]))
+				Vector2i(_int(room[0][0]), _int(room[0][1])),
+				Vector4i(_int(room[1][0]), _int(room[1][1]), _int(room[1][2]), _int(room[1][3]))
 			]
 		)
-	for label in j.get("map_labels", []):
-		lv.map_labels.append([String(label[0]), int(label[1]), int(label[2])])
+	for label: Variant in j.get("map_labels", []):
+		lv.map_labels.append([str(label[0]), _int(label[1]), _int(label[2])])
 	lv._build_indexes()
 
-	if bool(j.get("hub_split", false)):
+	if j.get("hub_split", false):
 		lv._split_road_and_hub()
 	lv._build_moving_floors()
 	lv.deep_tile = lv.tile_id("bayou_deep")
@@ -596,39 +601,39 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 
 static func _gate(lv: LevelData, g: Dictionary) -> Gate:
 	var gate := Gate.new()
-	gate.destination = String(g["destination"])
-	gate.x = float(g["x"])
-	gate.y = float(g["y"])
-	gate.width = float(g.get("width", 3.8))
-	gate.side = int(g.get("side", 1))
+	gate.destination = str(g["destination"])
+	gate.x = _float(g["x"])
+	gate.y = _float(g["y"])
+	gate.width = _float(g.get("width", 3.8))
+	gate.side = _int(g.get("side", 1))
 	gate.closed_tile = lv.tile_id("route_closed")
 	return gate
 
 
-static func _ints(values: Array) -> PackedInt32Array:
+static func _ints(values: Variant) -> PackedInt32Array:
 	var out := PackedInt32Array()
-	out.resize(values.size())
-	for i in values.size():
-		out[i] = int(values[i])
+	out.resize(len(values))
+	for i in len(values):
+		out[i] = _int(values[i])
 	return out
 
 
-static func _floats(values: Array) -> PackedFloat32Array:
+static func _floats(values: Variant) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
-	out.resize(values.size())
-	for i in values.size():
-		out[i] = float(values[i])
+	out.resize(len(values))
+	for i in len(values):
+		out[i] = _float(values[i])
 	return out
 
 
-static func _floats2(rows: Array) -> PackedFloat32Array:
+static func _floats2(rows: Variant) -> PackedFloat32Array:
 	var out := PackedFloat32Array()
-	out.resize(rows.size() * 3)
-	for i in rows.size():
+	out.resize(len(rows) * 3)
+	for i in len(rows):
 		var row: Array = rows[i]
-		out[i * 3] = float(row[0])
-		out[i * 3 + 1] = float(row[1])
-		out[i * 3 + 2] = float(row[2])
+		out[i * 3] = _float(row[0])
+		out[i * 3 + 1] = _float(row[1])
+		out[i * 3 + 2] = _float(row[2])
 	return out
 
 
@@ -649,7 +654,7 @@ func _build_plane_bounds() -> void:
 		var h := ground[i]
 		var y := i / width
 		var x := i - y * width
-		var b = buckets.get(h)
+		var b: Variant = buckets.get(h)
 		if b == null:
 			buckets[h] = [x, y, x + 1, y + 1]
 		else:
@@ -666,8 +671,8 @@ func _build_plane_bounds() -> void:
 	var heights := Array(ground_heights)
 	heights.sort()
 	heights.reverse()
-	for height in heights:
-		var b = buckets.get(height)
+	for height: float in heights:
+		var b: Variant = buckets.get(height)
 		var extra: Array = caps.get(height, [])
 		if b == null and extra.is_empty():
 			continue
@@ -680,11 +685,11 @@ func _build_plane_bounds() -> void:
 			y0 = b[1]
 			x1 = b[2]
 			y1 = b[3]
-		for c in extra:
-			x0 = mini(x0, int(c[0]))
-			y0 = mini(y0, int(c[1]))
-			x1 = maxi(x1, int(ceil(c[2])))
-			y1 = maxi(y1, int(ceil(c[3])))
+		for c: Variant in extra:
+			x0 = mini(x0, _int(c[0]))
+			y0 = mini(y0, _int(c[1]))
+			x1 = maxi(x1, _int(ceil(c[2])))
+			y1 = maxi(y1, _int(ceil(c[3])))
 		floor_bounds[height] = Vector4i(x0, y0, x1, y1)
 
 	var roof_buckets := {}
@@ -694,7 +699,7 @@ func _build_plane_bounds() -> void:
 			continue
 		var y := i / width
 		var x := i - y * width
-		var b = roof_buckets.get(h)
+		var b: Variant = roof_buckets.get(h)
 		if b == null:
 			roof_buckets[h] = [x, y, x + 1, y + 1]
 		else:
@@ -709,20 +714,20 @@ func _build_plane_bounds() -> void:
 	roof_bounds = {}
 	var rheight := Array(roof_heights)
 	rheight.sort()
-	for height in rheight:
-		var b = roof_buckets.get(height)
+	for height: float in rheight:
+		var b: Variant = roof_buckets.get(height)
 		var over: Array = roof_caps.get(height, [])
 		if b == null and over.is_empty():
 			continue
 		var r := Vector4i(1 << 30, 1 << 30, -(1 << 30), -(1 << 30))
 		if b != null:
-			r = Vector4i(b[0], b[1], b[2], b[3])
-		for c in over:
+			r = Vector4i(_int(b[0]), _int(b[1]), _int(b[2]), _int(b[3]))
+		for c: Variant in over:
 			r = Vector4i(
-				mini(r.x, int(c[0])),
-				mini(r.y, int(c[1])),
-				maxi(r.z, int(ceil(c[2]))),
-				maxi(r.w, int(ceil(c[3])))
+				mini(r.x, _int(c[0])),
+				mini(r.y, _int(c[1])),
+				maxi(r.z, _int(ceil(c[2]))),
+				maxi(r.w, _int(ceil(c[3])))
 			)
 		roof_bounds[height] = r
 	floor_boxes = _tight_boxes(floor_bounds, ground, caps)
@@ -734,7 +739,7 @@ func _build_plane_bounds() -> void:
 ## cut into tight boxes, so the pixels between them are not tested for it.
 func _tight_boxes(bounds: Dictionary, grid: PackedFloat32Array, capped: Dictionary) -> Array:
 	var out: Array = []
-	for h in bounds:
+	for h: float in bounds:
 		var box: Vector4i = bounds[h]
 		var area := (box.z - box.x) * (box.w - box.y)
 		var count := 0
@@ -774,7 +779,7 @@ func _merge_runs() -> void:
 	var tiled := {}
 	for name: String in LevelTiles.TILED:
 		if tile_index.has(name):
-			tiled[int(tile_index[name])] = true
+			tiled[_int(tile_index[name])] = true
 	var out := PackedFloat32Array()
 	var by_end := {}
 	var by_start := {}
@@ -850,25 +855,26 @@ func _build_moving_floors() -> void:
 	if sky == "bayou_sky":
 		flows.append(["bayou_water", 2])
 		flows.append(["bayou_deep", 1])
-	for flow in flows:
-		var tile := int(tile_index.get(flow[0], 0))
-		var rate := int(flow[1])
+	for flow: Array in flows:
+		var tile := _int(tile_index.get(flow[0], 0))
+		var rate := _int(flow[1])
 		var heights := {}
 		for i in floor_tile.size():
 			if floor_tile[i] == tile:
 				heights[ground[i]] = true
-		for h in caps:
-			for c in caps[h]:
-				if int(c[4]) == tile:
+		for h: float in caps:
+			for c: Variant in caps[h]:
+				if _int(c[4]) == tile:
 					heights[h] = true
-		for h in heights:
+		for h: float in heights:
 			if not moving_floors.has(h):
 				moving_floors[h] = []
-			moving_floors[h].append([tile, rate])
+			var on_h: Array = moving_floors[h]
+			on_h.append([tile, rate])
 
 
 func tile_id(name: String) -> int:
-	return int(tile_index.get(name, -1))
+	return _int(tile_index.get(name, -1))
 
 
 const DETAIL_BASES := LevelTiles.DETAIL_BASES
@@ -884,24 +890,24 @@ var _impact_surfaces := {}
 ## Mirrors engine.impact_surface(): the surface kind for a tile id.
 func impact_surface(tile: int) -> String:
 	if _impact_surfaces.is_empty():
-		for name in METAL_TILES:
+		for name: String in METAL_TILES:
 			_impact_surfaces[tile_id(name)] = "metal"
-		for name in PLASTER_TILES:
+		for name: String in PLASTER_TILES:
 			_impact_surfaces[tile_id(name)] = "plaster"
-		for name in DIRT_TILES:
+		for name: String in DIRT_TILES:
 			_impact_surfaces[tile_id(name)] = "dirt"
-		for name in DETAIL_BASES:
+		for name: String in DETAIL_BASES:
 			_impact_surfaces[tile_id(name)] = _impact_surfaces.get(
-				tile_id(DETAIL_BASES[name]), "wood"
+				tile_id(str(DETAIL_BASES[name])), "wood"
 			)
-	var kind = _impact_surfaces.get(tile)
-	return "wood" if kind == null else String(kind)
+	var kind: Variant = _impact_surfaces.get(tile)
+	return "wood" if kind == null else str(kind)
 
 
 ## Mirrors SURFACE_SOUNDS.get(floor, "gravel") using the tile id.
 func surface_sound(tile: int) -> String:
 	var name := String(tile_names[tile]) if tile >= 0 and tile < tile_names.size() else ""
-	return String(SURFACE_SOUNDS.get(name, "gravel"))
+	return str(SURFACE_SOUNDS.get(name, "gravel"))
 
 
 ## Mirrors TileMap.finish_geometry's spatial indexes (near_doors, near_fixtures).
@@ -913,19 +919,21 @@ func _build_indexes() -> void:
 				var key := Vector2i(xx, yy)
 				if not near_doors.has(key):
 					near_doors[key] = []
-				near_doors[key].append(door)
+				var at_key: Array = near_doors[key]
+				at_key.append(door)
 	near_fixtures = {}
 	for fixture in collision_volumes:
-		var fx0 := int(floor(fixture[0] - index_radius))
-		var fy0 := int(floor(fixture[1] - index_radius))
-		var fx1 := int(floor(fixture[2] + index_radius))
-		var fy1 := int(floor(fixture[3] + index_radius))
+		var fx0 := floori(fixture[0] - index_radius)
+		var fy0 := floori(fixture[1] - index_radius)
+		var fx1 := floori(fixture[2] + index_radius)
+		var fy1 := floori(fixture[3] + index_radius)
 		for yy in range(fy0, fy1 + 1):
 			for xx in range(fx0, fx1 + 1):
 				var key := Vector2i(xx, yy)
 				if not near_fixtures.has(key):
 					near_fixtures[key] = []
-				near_fixtures[key].append(fixture)
+				var at_key: Array = near_fixtures[key]
+				at_key.append(fixture)
 	door_cells = {}
 	for door in doors:
 		door_cells[door.y * width + door.x] = true
@@ -971,10 +979,8 @@ func drop_volume(volume: PackedFloat32Array) -> void:
 		return
 	collision_volumes.remove_at(i)
 	# Out of the index too, from the cells _build_indexes() put it in.
-	for yy in range(int(floor(volume[1] - index_radius)), int(floor(volume[3] + index_radius)) + 1):
-		for xx in range(
-			int(floor(volume[0] - index_radius)), int(floor(volume[2] + index_radius)) + 1
-		):
+	for yy in range(floori(volume[1] - index_radius), floori(volume[3] + index_radius) + 1):
+		for xx in range(floori(volume[0] - index_radius), floori(volume[2] + index_radius) + 1):
 			var near: Array = near_fixtures.get(Vector2i(xx, yy), [])
 			near.erase(volume)
 
@@ -1017,20 +1023,20 @@ func open_cell(cx: int, cy: int, faces: Dictionary) -> void:
 	var drop := {}
 	var added := PackedFloat32Array()
 	for e: Array in LevelEdit.EDGES:
-		var ax := float(cx + int(e[2]))
-		var ay := float(cy + int(e[3]))
-		var bx := float(cx + int(e[4]))
-		var by := float(cy + int(e[5]))
+		var ax := float(cx + _int(e[2]))
+		var ay := float(cy + _int(e[3]))
+		var bx := float(cx + _int(e[4]))
+		var by := float(cy + _int(e[5]))
 		for i in walls_on(ax, ay, bx, by):
 			drop[i] = true
-		var nx: int = cx + int(e[0])
-		var ny: int = cy + int(e[1])
+		var nx: int = cx + _int(e[0])
+		var ny: int = cy + _int(e[1])
 		if nx < 0 or ny < 0 or nx >= width or ny >= height:
 			continue
 		var n := ny * width + nx
 		if solid[n] < 0:
 			continue
-		var tile := int(faces.get(solid[n], solid[n]))
+		var tile := _int(faces.get(solid[n], solid[n]))
 		added.append_array(
 			PackedFloat32Array(
 				[
@@ -1039,7 +1045,7 @@ func open_cell(cx: int, cy: int, faces: Dictionary) -> void:
 					ax,
 					ay,
 					float(tile),
-					snappedf(light[c] * (1.0 if int(e[0]) == 0 else .83), .0001),
+					snappedf(light[c] * (1.0 if _int(e[0]) == 0 else .83), .0001),
 					ground[c],
 					maxf(wall_height[n], roof[c]),
 					float(area[c])
@@ -1066,7 +1072,7 @@ func open_cell(cx: int, cy: int, faces: Dictionary) -> void:
 
 
 ## Mirrors TileMap.blocked().
-func blocked(x: float, y: float, radius := 0.0, z = null) -> bool:
+func blocked(x: float, y: float, radius := 0.0, z: Variant = null) -> bool:
 	for step in 4:
 		var dx := -radius if step < 2 else radius
 		var dy := -radius if step % 2 == 0 else radius
@@ -1086,7 +1092,7 @@ func blocked(x: float, y: float, radius := 0.0, z = null) -> bool:
 			var g := ground[int(y) * width + int(x)]
 			if geo.blocks(x, y, radius, g + LevelGeometry.STEP, g + LevelGeometry.BODY):
 				return true
-		elif geo.solid_point(x, y, float(z), radius, false):
+		elif geo.solid_point(x, y, _float(z), radius, false):
 			return true
 	var near := radius <= index_radius
 	if near and index_cells.size() == width * height and index_cells[int(y) * width + int(x)] == 0:
@@ -1094,17 +1100,17 @@ func blocked(x: float, y: float, radius := 0.0, z = null) -> bool:
 		return false
 	var tile := Vector2i(int(x), int(y))
 	var fixtures: Array = near_fixtures.get(tile, NOTHING) if near else collision_volumes
-	for fixture in fixtures:
+	for fixture: PackedFloat32Array in fixtures:
 		var f: PackedFloat32Array = fixture
 		if (
 			f[0] - radius < x
 			and x < f[2] + radius
 			and f[1] - radius < y
 			and y < f[3] + radius
-			and (z == null or (f[7] - radius < float(z) and float(z) < f[4] + radius))
+			and (z == null or (f[7] - radius < _float(z) and _float(z) < f[4] + radius))
 		):
 			return true
-	for door in near_doors.get(tile, NOTHING):
+	for door: Door in near_doors.get(tile, NOTHING):
 		var d: Door = door
 		if d.blocks(x, y, radius):
 			return true
@@ -1116,7 +1122,7 @@ const NOTHING: Array = []
 
 
 ## Mirrors TileMap.pane_at(); returns the pane cell or null.
-func pane_at(x: float, y: float, z = null, radius := 0.0):
+func pane_at(x: float, y: float, z: Variant = null, radius := 0.0) -> Variant:
 	for pane in pane_tiles:
 		if broken_panes.has(pane):
 			continue
@@ -1124,19 +1130,21 @@ func pane_at(x: float, y: float, z = null, radius := 0.0):
 			float(pane.x) - radius < x
 			and x < float(pane.x) + 1.0 + radius
 			and absf(y - float(pane.y) - .5) < radius + .044
-			and (z == null or (.30 < float(z) and float(z) < 1.83))
+			and (z == null or (.30 < _float(z) and _float(z) < 1.83))
 		):
 			return pane
 	return null
 
 
 ## Mirrors TileMap.visible(): a stepped line-of-sight test.
-func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> bool:
+func visible(
+	x: float, y: float, xx: float, yy: float, z: Variant = null, zz: Variant = null
+) -> bool:
 	# No heights given (z null): the flat test it always was, furniture in the
 	# way whatever its height; geometry stops it where it stands in a body's
 	# way (blocked(): a deck overhead does not, a stair or a wall does).
 	var distance := sqrt((xx - x) * (xx - x) + (yy - y) * (yy - y))
-	var n := maxi(1, int(ceil(distance * 9.0)))
+	var n := maxi(1, ceili(distance * 9.0))
 	# With no panes and no locked gates, a step whose four corners are open floor
 	# and whose cell neither index lists is clear, as blocked() would find: those
 	# steps (most of them) are tested here without the call.
@@ -1172,16 +1180,16 @@ func visible(x: float, y: float, xx: float, yy: float, z = null, zz = null) -> b
 			if index_cells[int(sy) * width + int(sx)] == 0:
 				i += 1
 				continue
-		var wz = null
+		var wz: Variant = null
 		if z != null:
-			wz = float(z) + (float(zz) - float(z)) * t
+			wz = _float(z) + (_float(zz) - _float(z)) * t
 		if blocked(sx, sy, .023, wz):
 			return false
 		if geo != null and wz != null and geo.cells[int(sy) * width + int(sx)] != 0:
 			# A steep look can step over a deck thinner than one step climbs.
 			var bt := float(i - 1) / float(n)
-			var bz := float(z) + (float(zz) - float(z)) * bt
-			if geo.crosses(x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, float(wz)):
+			var bz := _float(z) + (_float(zz) - _float(z)) * bt
+			if geo.crosses(x + (xx - x) * bt, y + (yy - y) * bt, bz, sx, sy, _float(wz)):
 				return false
 		i += 1
 	return true
@@ -1197,13 +1205,13 @@ func _past_cell(x: float, y: float, xx: float, yy: float, n: int, i: int, cx: in
 	var dx := xx - x
 	var dy := yy - y
 	if dx > 0.0:
-		j = mini(j, int(ceil((float(cx + 1) - x) / dx * n)))
+		j = mini(j, ceili((float(cx + 1) - x) / dx * n))
 	elif dx < 0.0:
-		j = mini(j, int(ceil((float(cx) - x) / dx * n)))
+		j = mini(j, ceili((float(cx) - x) / dx * n))
 	if dy > 0.0:
-		j = mini(j, int(ceil((float(cy + 1) - y) / dy * n)))
+		j = mini(j, ceili((float(cy + 1) - y) / dy * n))
 	elif dy < 0.0:
-		j = mini(j, int(ceil((float(cy) - y) / dy * n)))
+		j = mini(j, ceili((float(cy) - y) / dy * n))
 	j = clampi(j, i + 1, n)
 	while j - 1 > i:
 		var t := float(j - 1) / float(n)
@@ -1216,12 +1224,12 @@ func _past_cell(x: float, y: float, xx: float, yy: float, n: int, i: int, cx: in
 
 
 ## Mirrors TileMap.move(): axis-separated with a step-height limit.
-func move(body, dx: float, dy: float, radius: float, occupied = null) -> void:
+func move(body: Variant, dx: float, dy: float, radius: float, occupied: Variant = null) -> void:
 	var start_x: float = body.x
 	var start_y: float = body.y
 	if _can_walk(body, start_x + dx, start_y, radius, occupied):
 		body.x += dx
-	if _can_walk(body, body.x, start_y + dy, radius, occupied):
+	if _can_walk(body, _float(body.x), start_y + dy, radius, occupied):
 		body.y += dy
 	if geo != null:
 		geo.settle(self, body, radius)
@@ -1243,23 +1251,27 @@ func over_deep(x: float, y: float) -> bool:
 	return geo.floor_at(x, y, 1e6, ground[c], true) > ground[c] + LevelGeometry.STEP
 
 
-func _can_walk(body, x: float, y: float, radius: float, occupied) -> bool:
+func _can_walk(body: Variant, x: float, y: float, radius: float, occupied: Variant) -> bool:
 	if geo != null:
 		# Format 2: the 3D test everywhere (the grid's own below differs from it
 		# by fixture heights, over water say, so it is never a short cut).
 		return geo.can_walk(self, body, x, y, radius, occupied)
 	if blocked(x, y, radius):
 		return false
-	if deep_tile >= 0 and deep_at(x, y) and not deep_at(body.x, body.y) and not body.get("swims"):
-		return false
-	if occupied != null and occupied.call(x, y):
-		return false
+	if deep_tile >= 0 and deep_at(x, y) and not deep_at(_float(body.x), _float(body.y)):
+		var thing: Object = body
+		if not thing.get("swims"):
+			return false
+	if occupied != null:
+		var taken: Callable = occupied
+		if taken.call(x, y):
+			return false
 	# An enemy has no `air` (only the player climbs a step by jumping); the
 	# type test answers as `"air" in body` would, without looking the name up.
 	if body is Enemy or not ("air" in body):
 		return true
-	var up := elevation(x, y) - elevation(body.x, body.y)
-	return up <= .245 + float(body.air)
+	var up := elevation(x, y) - elevation(_float(body.x), _float(body.y))
+	return up <= .245 + _float(body.air)
 
 
 ## Mirrors TileMap.update(): doors slide open/closed, blocked by live enemies.
@@ -1276,14 +1288,14 @@ func update(dt: float, players: Array, enemies: Array) -> void:
 		var previous := door.progress
 		door.progress = maxf(0.0, minf(1.0, door.progress + dt * 1.65 * direction))
 		if not door.opened:
-			for enemy in enemies:
+			for enemy: Enemy in enemies:
 				if enemy.alive and door.blocks(enemy.x, enemy.y, enemy.radius):
 					door.progress = previous
 					break
 
 
 func _someone_in(players: Array, centre: Vector2) -> bool:
-	for player in players:
+	for player: Player in players:
 		if (
 			sqrt(
 				(
@@ -1361,7 +1373,7 @@ func _make_active(at_hub: bool) -> PackedFloat32Array:
 			out.append(p.y + .5)
 			out.append(p.x + 1.0)
 			out.append(p.y + .5)
-			out.append(float(tile_index.get("glazing", 0)))
+			out.append(_float(tile_index.get("glazing", 0)))
 			out.append(.98)
 			out.append(.36)
 			out.append(1.78)
@@ -1375,12 +1387,12 @@ func _make_active(at_hub: bool) -> PackedFloat32Array:
 ## Take a geometry block (format 2): its pieces join the walls, floors and
 ## overhead surfaces the renderers draw, and the cells it touches are asked
 ## about collision and sight from now on.
-func _take_geometry(block) -> void:
+func _take_geometry(block: Variant) -> void:
 	if block == null:
 		return
 	var errors: Array = []
 	geo = LevelGeometry.from_json(block, width, height, tile_index, errors)
-	for e in errors:
+	for e: Variant in errors:
 		push_error("level %s %s" % [id, e])
 	if geo == null:
 		return
@@ -1388,20 +1400,25 @@ func _take_geometry(block) -> void:
 		func(x: float, y: float) -> float:
 			return elevation(clampf(x, 0.0, width - .001), clampf(y, 0.0, height - .001))
 	)
-	walls.append_array(parts["walls"])
+	var more: PackedFloat32Array = parts["walls"]
+	walls.append_array(more)
 	wall_count = walls.size() / WALL_STRIDE
-	for key in parts["caps"]:
-		var h := _f32(float(key))
+	for key: Variant in parts["caps"]:
+		var h := _f32(_float(key))
 		if not caps.has(h):
 			caps[h] = []
-		caps[h].append_array(parts["caps"][key])
+		var have: Array = caps[h]
+		var add: Array = parts["caps"][key]
+		have.append_array(add)
 		if not ground_heights.has(h):
 			ground_heights.append(h)
-	for key in parts["roof_caps"]:
-		var h := _f32(float(key))
+	for key: Variant in parts["roof_caps"]:
+		var h := _f32(_float(key))
 		if not roof_caps.has(h):
 			roof_caps[h] = []
-		roof_caps[h].append_array(parts["roof_caps"][key])
+		var have: Array = roof_caps[h]
+		var add: Array = parts["roof_caps"][key]
+		have.append_array(add)
 		if not roof_heights.has(h):
 			roof_heights.append(h)
 	slopes = parts["slopes"]
@@ -1410,15 +1427,17 @@ func _take_geometry(block) -> void:
 ## The floor under a body (its feet when it is not in the air). Anything
 ## that is not a body with a floor (a point, a piece of scenery) gets the
 ## cell's ground, as elevation() gives it.
-func stand(body) -> float:
+func stand(body: Variant) -> float:
+	var bx: float = body.x
+	var by: float = body.y
 	if geo == null:
 		# elevation() written out: this is asked thousands of times a tick.
-		return ground[int(body.y) * width + int(body.x)]
+		return ground[int(by) * width + int(bx)]
 	if not (body is Player or body is Enemy):
-		return elevation(body.x, body.y)
-	var c := _cell_near(body.x, body.y)
+		return elevation(bx, by)
+	var c := _cell_near(bx, by)
 	var r: float = body.radius if body is Enemy else .2
-	return geo.support(body.x, body.y, r, float(body.floor_z), ground[c])
+	return geo.support(bx, by, r, _float(body.floor_z), ground[c])
 
 
 ## The highest floor at (x, y) at or below z (the cell's ground without geometry).
@@ -1465,5 +1484,15 @@ func _cell_near(x: float, y: float) -> int:
 ## Whether two bodies stand on floors a step can't join (format 2: one on a
 ## deck, one under it): a hand that sees the player up there walks the nav
 ## graph round to the stairs rather than straight at them.
-func apart(a, b) -> bool:
+func apart(a: Variant, b: Variant) -> bool:
 	return geo != null and absf(stand(a) - stand(b)) > .45
+
+
+## int() and float() of a value read from data or a dictionary, typed (the
+## same result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v
+
+
+static func _float(v: Variant) -> float:
+	return str(v).to_float() if v is String else v

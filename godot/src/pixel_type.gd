@@ -158,7 +158,7 @@ static func glyph(char: String, mini: bool) -> Array:
 	for i in range(0, 14, 2):
 		rows2.append(("0x" + hex.substr(i, 2)).hex_to_int())
 	var w := 0
-	for r in rows2:
+	for r: int in rows2:
 		w = maxi(w, _bitlen(int(r)))
 	return [rows2, w]
 
@@ -176,7 +176,8 @@ static func text_width(text: String, style := "body") -> int:
 	var mini := is_mini(style)
 	var total := 0
 	for c in text.to_upper():
-		total += int(glyph(c, mini)[1]) + 1
+		var glyph_width: int = glyph(c, mini)[1]
+		total += glyph_width + 1
 	return maxi(0, total - 1) * sx
 
 

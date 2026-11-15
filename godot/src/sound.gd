@@ -197,12 +197,12 @@ class ShuffleRng:
 class ShuffleBank:
 	extends RefCounted
 	var tracks: Array = []
-	var rng = null
+	var rng: ShuffleRng = null
 	var bag: Array = []
-	var track = null
+	var track: Variant = null
 	var offset := 0.0
 
-	func _init(p_tracks: Array, p_rng) -> void:
+	func _init(p_tracks: Array, p_rng: ShuffleRng) -> void:
 		tracks = p_tracks.duplicate()
 		rng = p_rng
 
@@ -212,13 +212,13 @@ class ShuffleBank:
 			var i := bag.size() - 1
 			while i > 0:
 				var j := int(rng.next() * float(i + 1))
-				var swap = bag[i]
+				var swap: Variant = bag[i]
 				bag[i] = bag[j]
 				bag[j] = swap
 				i -= 1
 			if not bag.is_empty() and bag[bag.size() - 1] == track:
 				var last := bag.size() - 1
-				var swap2 = bag[last]
+				var swap2: Variant = bag[last]
 				bag[last] = bag[0]
 				bag[0] = swap2
 		track = bag.pop_back()
@@ -248,8 +248,8 @@ class ScorePlayer:
 	## Where each looping non-chapter song (the menu theme) was left.
 	var resume := {}
 	var requested := "title"
-	var active = null
-	var track = null
+	var active: Variant = null
+	var track: Variant = null
 	var offset := 0.0
 	var finish := 0.0
 	var last_position := 0.0
@@ -286,8 +286,9 @@ class ScorePlayer:
 		fight_player = p_fight
 		fights = p_fights
 		var rng := ShuffleRng.new(seed_value)
-		for key in definitions:
-			banks[key] = ShuffleBank.new(definitions[key], rng)
+		for key: Variant in definitions:
+			var listed: Array = definitions[key]
+			banks[key] = ShuffleBank.new(listed, rng)
 
 	## Absolute position in the current stream, in seconds.
 	func position() -> float:
@@ -304,7 +305,8 @@ class ScorePlayer:
 		var length := assets.track_length(track_name)
 		if length <= 0.0:
 			return 0.0
-		return minf(length, float(assets.music_ends.get(track_name, length)))
+		var end: float = assets.music_ends.get(track_name, length)
+		return minf(length, end)
 
 	func request(context: String) -> void:
 		requested = context
@@ -366,9 +368,9 @@ class ScorePlayer:
 			var bank: ShuffleBank = banks[context]
 			if bank.track == null:
 				bank.advance()
-			if bank.offset > play_end(String(bank.track)) - .48:
+			if bank.offset > play_end(str(bank.track)) - .48:
 				bank.advance()
-			track_name = String(bank.track)
+			track_name = str(bank.track)
 			start_at = bank.offset
 		else:
 			track_name = context
@@ -376,7 +378,7 @@ class ScorePlayer:
 			# The menu theme picks up where it left off, so pausing and
 			# resuming a game does not restart it from its first bar.
 			if loop:
-				start_at = float(resume.get(context, 0.0))
+				start_at = resume.get(context, 0.0)
 				if start_at > assets.track_length(track_name) - 1.0:
 					start_at = 0.0
 		var stream: AudioStream = assets.track(track_name)
@@ -414,7 +416,8 @@ class ScorePlayer:
 				start(requested, not reopen)
 		elif bank != null and not parked and (remaining <= 0.0 or not player.playing):
 			bank.advance()
-			start(active, false)
+			var again: String = active
+			start(again, false)
 		else:
 			var cap := 1.0 if bank == null else maxf(0.0, minf(1.0, remaining / CODA_FADE))
 			gain = minf(cap, gain + dt / FADE)
@@ -435,8 +438,8 @@ class ScorePlayer:
 			fight_marks[fight_track] = fight_position()
 		if fight_player != null and fight_player.playing:
 			fight_player.stop()
-		fight_track = String(fights.get(context, ""))
-		fight_at = float(fight_marks.get(fight_track, 0.0))
+		fight_track = str(fights.get(context, ""))
+		fight_at = fight_marks.get(fight_track, 0.0)
 		fight_mix = 0.0
 
 	## Turn the crossfade toward what the game asks; start, park and resume
@@ -478,7 +481,7 @@ class ScorePlayer:
 			else:
 				player.play()
 
-	func bookmark(context: String):
+	func bookmark(context: String) -> Variant:
 		var bank: ShuffleBank = banks.get(context)
 		if bank == null or bank.track == null:
 			return null
@@ -487,13 +490,14 @@ class ScorePlayer:
 			at = position()
 		return {"track": bank.track, "remaining": bank.bag.duplicate(), "offset": at}
 
-	func restore(context: String, value) -> void:
+	func restore(context: String, value: Variant) -> void:
 		if value == null or not banks.has(context):
 			return
 		var bank: ShuffleBank = banks[context]
 		bank.track = value["track"]
-		bank.offset = float(value["offset"])
-		bank.bag = (value["remaining"] as Array).duplicate()
+		bank.offset = value["offset"]
+		var remaining: Array = value["remaining"]
+		bank.bag = remaining.duplicate()
 		reopen = reopen or active == context
 
 
@@ -514,7 +518,7 @@ var assets: Assets
 var music := true
 var score := "title"
 var variations := {}
-var room = null
+var room: Variant = null
 var room_slot := 0
 var radio_gain := 0.0
 var effects_gain := 1.0
@@ -682,9 +686,9 @@ func set_space(kind: String) -> void:
 	if reverb == null:
 		return
 	var row: Array = SPACES[kind]
-	reverb.room_size = float(row[0])
-	reverb.damping = float(row[1])
-	reverb.wet = float(row[2])
+	reverb.room_size = row[0]
+	reverb.damping = row[1]
+	reverb.wet = row[2]
 	reverb.spread = .8
 
 
@@ -734,14 +738,14 @@ func _start(
 	elif name.begins_with("room_"):
 		scale = .72
 	else:
-		scale = float(REPORT_GAIN.get(name, 1.0))
+		scale = REPORT_GAIN.get(name, 1.0)
 	var gain := minf(1.0, effects_gain * volume * scale) * .82 * mix_headroom
 	_balance(
 		v, gain * (1.0 - maxf(0.0, pan) * pan_width), gain * (1.0 + minf(0.0, pan) * pan_width)
 	)
 
 
-func _free_effect():
+func _free_effect() -> Voice:
 	for v: Voice in _effects:
 		if not v.player.playing:
 			return v
@@ -766,14 +770,14 @@ func play(name: String, volume := 1.0, pan := 0.0, cutoff := OPEN_CUTOFF) -> voi
 	var cue := name
 	var variant: Array = VARIANTS.get(name, [])
 	if not variant.is_empty():
-		var index := int(variations.get(name, 0))
-		cue = String(variant[index % variant.size()])
+		var index: int = variations.get(name, 0)
+		cue = str(variant[index % variant.size()])
 		if not assets.has_cue(cue):
 			cue = name
 		variations[name] = index + 1
 	if not assets.has_cue(cue):
 		return
-	var target = null
+	var target: Voice = null
 	if WARNS.has(name):
 		if _playing_count(cue) > 0:
 			return
@@ -792,9 +796,9 @@ func play(name: String, volume := 1.0, pan := 0.0, cutoff := OPEN_CUTOFF) -> voi
 	_start(target, name, cue, volume, pan, cutoff)
 
 
-func set_room(room_name) -> void:
-	var target = (
-		null if room_name == null or String(room_name) == "" else "amb_" + String(room_name)
+func set_room(room_name: Variant) -> void:
+	var target: Variant = (
+		null if room_name == null or str(room_name) == "" else "amb_" + str(room_name)
 	)
 	if target == room:
 		return
@@ -805,9 +809,10 @@ func set_room(room_name) -> void:
 	room_slot ^= 1
 	if target == null:
 		return
-	if not assets.has_cue(target):
+	var room_cue: String = target
+	if not assets.has_cue(room_cue):
 		return
-	var stream := assets.cue(target)
+	var stream := assets.cue(room_cue)
 	if stream == null:
 		return
 	Assets.set_loop(stream, true)
@@ -1060,11 +1065,11 @@ func stop_preview() -> void:
 	_preview_left = 0.0
 
 
-func bookmark_score(context: String):
+func bookmark_score(context: String) -> Variant:
 	return score_player.bookmark(context) if score_player != null else null
 
 
-func restore_score(context: String, value) -> void:
+func restore_score(context: String, value: Variant) -> void:
 	if score_player != null:
 		score_player.restore(context, value)
 

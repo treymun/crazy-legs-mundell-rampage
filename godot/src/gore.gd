@@ -136,7 +136,7 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 	if not game.gore:
 		return
 	var kind := "plasma" if green else "gore"
-	var hand = game.player
+	var hand := game.player
 	if (
 		hand != null
 		and game.acting_local()
@@ -171,7 +171,7 @@ func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, gr
 	var d := .25
 	while d < 1.9:
 		if game.world.blocked(x + ax * d, y + ay * d, .02):
-			var mark = WallHits.wall_mark(game.world, x, y, z, ax, ay, 0.0, d)
+			var mark: Variant = WallHits.wall_mark(game.world, x, y, z, ax, ay, 0.0, d)
 			if mark != null:
 				mark.image = "fx_%s_%d" % ["acid" if green else "blood", dice.randi() % 4]
 				mark.radius = dice.randf_range(.17, .30)
@@ -218,7 +218,7 @@ func burst(enemy: Enemy) -> void:
 		g.image = prefix + part
 		if charred and dice.randf() < .5:
 			g.image = "gib_c_" + part
-		g.size = float(GIB_SIZES[part])
+		g.size = GIB_SIZES[part]
 		g.flip = dice.randf() < .5
 		g.green = green
 		gibs.append(g)
@@ -284,12 +284,14 @@ func impact(x: float, y: float, z: float, surface: String) -> void:
 func draw_lens(c: Canvas) -> void:
 	for drop: Array in lens:
 		var age: float = drop[3]
-		var radius := int(float(drop[2]) * (1.0 - age / 2.8))
+		var drop_size: float = drop[2]
+		var radius := int(drop_size * (1.0 - age / 2.8))
 		if radius < 1:
 			continue
 		var color := Canvas.rgb(70, 150, 50) if drop[4] else Canvas.rgb(132, 16, 16)
-		var x := int(drop[0])
-		var y := int(float(drop[1]) + age * age * 9.0)
+		var x: int = drop[0]
+		var drop_y: float = drop[1]
+		var y := int(drop_y + age * age * 9.0)
 		if y < View.VIEW - radius - 1:
 			c.circle(x, y, radius, color, true)
 			if radius > 2:
@@ -305,8 +307,9 @@ func tick(dt: float) -> void:
 	while not puffs.is_empty() and puffs[0].age > .34:
 		puffs.pop_front()
 	for drop: Array in lens:
-		drop[3] = float(drop[3]) + dt
-	while not lens.is_empty() and float(lens[0][3]) > 2.8:
+		var drop_age: float = drop[3]
+		drop[3] = drop_age + dt
+	while not lens.is_empty() and lens[0][3] > 2.8:
 		lens.pop_front()
 	for g: Gib in gibs:
 		if g.rest:

@@ -68,7 +68,7 @@ const PLAIN := {
 }
 const DEPTH := 14
 
-var game
+var game: Game
 ## Enemies by uid while decoding, and their instance ids -> uid while
 ## encoding (both filled from game.enemies).
 var by_uid := {}
@@ -94,7 +94,7 @@ const PACK_FROM := 8
 static var _made := {}
 
 
-func _init(p_game) -> void:
+func _init(p_game: Game) -> void:
 	game = p_game
 	if _by_key.is_empty():
 		_register_all()
@@ -105,32 +105,35 @@ func _init(p_game) -> void:
 # ------------------------------------------------------------------ encode
 
 
-func encode(value, depth := 0):
+func encode(value: Variant, depth := 0) -> Variant:
 	match typeof(value):
 		TYPE_OBJECT:
-			return _encode_object(value, depth)
+			var o: Object = value
+			return _encode_object(o, depth)
 		TYPE_ARRAY:
+			var list: Array = value
 			var out: Array = []
-			out.resize(value.size())
-			for i in value.size():
-				var v = value[i]
+			out.resize(list.size())
+			for i in list.size():
+				var v: Variant = list[i]
 				out[i] = v if PLAIN.has(typeof(v)) else encode(v, depth + 1)
 			return out
 		TYPE_DICTIONARY:
+			var dict: Dictionary = value
 			var plain := true
-			for key in value:
+			for key: Variant in dict:
 				if typeof(key) == TYPE_OBJECT or (typeof(key) == TYPE_INT and iids.has(key)):
 					plain = false
 					break
 			if plain:
 				var out := {}
-				for key in value:
-					var v = value[key]
+				for key: Variant in dict:
+					var v: Variant = dict[key]
 					out[key] = v if PLAIN.has(typeof(v)) else encode(v, depth + 1)
 				return out
 			var rows: Array = []
-			for key in value:
-				rows.append([encode(key, depth + 1), encode(value[key], depth + 1)])
+			for key: Variant in dict:
+				rows.append([encode(key, depth + 1), encode(dict[key], depth + 1)])
 			return {"@D": rows}
 		TYPE_INT:
 			if iids.has(value):
@@ -138,26 +141,64 @@ func encode(value, depth := 0):
 		TYPE_CALLABLE, TYPE_SIGNAL, TYPE_RID:
 			return SKIP
 	if typeof(value) >= TYPE_PACKED_BYTE_ARRAY:
-		return value.duplicate()
+		return packed_copy(value)
 	return value
 
 
 ## A deep copy of plain data with every array untyped (a save document holds
 ## the game's own arrays: a snapshot must not change as the game goes on).
-static func plain(value):
+static func plain(value: Variant) -> Variant:
 	if typeof(value) >= TYPE_PACKED_BYTE_ARRAY:
-		return value.duplicate()
+		return packed_copy(value)
 	if value is Array:
+		var list: Array = value
 		var out: Array = []
-		out.resize(value.size())
-		for i in value.size():
-			out[i] = plain(value[i])
+		out.resize(list.size())
+		for i in list.size():
+			out[i] = plain(list[i])
 		return out
 	if value is Dictionary:
+		var dict: Dictionary = value
 		var out := {}
-		for key in value:
-			out[key] = plain(value[key])
+		for key: Variant in dict:
+			out[key] = plain(dict[key])
 		return out
+	return value
+
+
+## A copy of a packed array (each kind is shared by reference).
+static func packed_copy(value: Variant) -> Variant:
+	match typeof(value):
+		TYPE_PACKED_BYTE_ARRAY:
+			var a: PackedByteArray = value
+			return a.duplicate()
+		TYPE_PACKED_INT32_ARRAY:
+			var a: PackedInt32Array = value
+			return a.duplicate()
+		TYPE_PACKED_INT64_ARRAY:
+			var a: PackedInt64Array = value
+			return a.duplicate()
+		TYPE_PACKED_FLOAT32_ARRAY:
+			var a: PackedFloat32Array = value
+			return a.duplicate()
+		TYPE_PACKED_FLOAT64_ARRAY:
+			var a: PackedFloat64Array = value
+			return a.duplicate()
+		TYPE_PACKED_STRING_ARRAY:
+			var a: PackedStringArray = value
+			return a.duplicate()
+		TYPE_PACKED_VECTOR2_ARRAY:
+			var a: PackedVector2Array = value
+			return a.duplicate()
+		TYPE_PACKED_VECTOR3_ARRAY:
+			var a: PackedVector3Array = value
+			return a.duplicate()
+		TYPE_PACKED_COLOR_ARRAY:
+			var a: PackedColorArray = value
+			return a.duplicate()
+		TYPE_PACKED_VECTOR4_ARRAY:
+			var a: PackedVector4Array = value
+			return a.duplicate()
 	return value
 
 
@@ -176,14 +217,14 @@ func _fields_of_object(
 	var pack: GDScript = _packs.get(script)
 	if pack != null:
 		var vals: Array = []
-		pack.pack(o, vals)
+		pack.call("pack", o, vals)
 		for i in names.size():
-			var v = vals[i]
+			var v: Variant = vals[i]
 			fields[names[i]] = v if PLAIN.has(typeof(v)) else encode(v, depth)
 		return fields
 	var snames: Array[StringName] = _snames[script]
 	for i in names.size():
-		var v = o.get(snames[i])
+		var v: Variant = o.get(snames[i])
 		fields[names[i]] = v if PLAIN.has(typeof(v)) else encode(v, depth)
 	return fields
 
@@ -219,8 +260,15 @@ static func encode_flow(f: FlowField) -> Dictionary:
 	var most := 0
 	for cell in at:
 		most = maxi(most, f.steps[cell])
-	var steps: Variant = PackedByteArray() if most < 255 else PackedInt32Array()
-	steps.resize(at.size())
+	var steps: Variant = null
+	if most < 255:
+		var narrow := PackedByteArray()
+		narrow.resize(at.size())
+		steps = narrow
+	else:
+		var wide := PackedInt32Array()
+		wide.resize(at.size())
+		steps = wide
 	for i in at.size():
 		steps[i] = f.steps[at[i]]
 	return {"@flow": [f.origin.x, f.origin.y, f.next_at, f._walked, at.duplicate(), steps]}
@@ -230,14 +278,15 @@ static func encode_flow(f: FlowField) -> Dictionary:
 ## left half done (the scratch field a walk fills is all FAR, as update()
 ## leaves it before every walk).
 static func decode_flow(f: FlowField, row: Array) -> void:
-	f.origin = Vector2i(int(row[0]), int(row[1]))
-	f.next_at = float(row[2])
-	f._walked = bool(row[3])
-	var at: PackedInt32Array = PackedInt32Array(row[4]).duplicate()
-	var steps = row[5]
+	f.origin = Vector2i(_int(row[0]), _int(row[1]))
+	f.next_at = row[2]
+	f._walked = row[3]
+	var cells: PackedInt32Array = row[4]
+	var at: PackedInt32Array = cells.duplicate()
+	var steps: Variant = row[5]
 	f.steps.fill(FlowField.FAR)
 	for i in at.size():
-		f.steps[at[i]] = int(steps[i])
+		f.steps[at[i]] = steps[i]
 	f._touched = at
 	f._next.fill(FlowField.FAR)
 	f._next_touched = PackedInt32Array()
@@ -245,23 +294,25 @@ static func decode_flow(f: FlowField, row: Array) -> void:
 	f._head = 0
 
 
-func _encode_object(o: Object, depth: int):
+func _encode_object(o: Object, depth: int) -> Variant:
 	if o == null:
 		return null
-	var script = o.get_script()
+	var script: Script = o.get_script()
 	if script != null and depth <= DEPTH:
-		var value_key = _value_keys.get(script)
+		var value_key: Variant = _value_keys.get(script)
 		if value_key != null:
-			fields_of(o, value_key)
-			return {"@o": value_key, "f": _fields_of_object(o, script, _fields[script], depth + 1)}
+			var carried: String = value_key
+			fields_of(o, carried)
+			var names: PackedStringArray = _fields[script]
+			return {"@o": value_key, "f": _fields_of_object(o, script, names, depth + 1)}
 	if o is Player:
-		return {"@p": o.slot}
+		return {"@p": (o as Player).slot}
 	if o is Enemy:
-		return {"@e": o.uid}
+		return {"@e": (o as Enemy).uid}
 	if o == game:
 		return {"@game": 1}
 	if o is GameFeature:
-		return {"@feature": o.id()}
+		return {"@feature": (o as GameFeature).id()}
 	if o is LevelData:
 		return {"@world": 1}
 	if o is LevelData.Door:
@@ -271,9 +322,10 @@ func _encode_object(o: Object, depth: int):
 	if o is LevelData.Scenery:
 		return {"@scenery": game.world.scenery.find(o)}
 	if o is RandomNumberGenerator:
-		return {"@rng": [o.seed, o.state]}
+		var dice := o as RandomNumberGenerator
+		return {"@rng": [dice.seed, dice.state]}
 	if o is FlowField:
-		return encode_flow(o)
+		return encode_flow(o as FlowField)
 	if o is View.Sprite or o is View.GroundMark or o is View.WallMark:
 		return SKIP
 	if script == null or not (o is RefCounted) or depth > DEPTH:
@@ -282,7 +334,8 @@ func _encode_object(o: Object, depth: int):
 	if key == "":
 		var names: Array = []
 		for prop: Dictionary in o.get_property_list():
-			if int(prop["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE and names.size() < 4:
+			var usage: int = prop["usage"]
+			if usage & PROPERTY_USAGE_SCRIPT_VARIABLE and names.size() < 4:
 				names.append(prop["name"])
 		unknown["an object with " + ", ".join(names)] = true
 		return SKIP
@@ -295,82 +348,87 @@ func _encode_object(o: Object, depth: int):
 
 
 ## The live value for `value`, filling `existing` in place where it can.
-func decode(value, existing = null):
+func decode(value: Variant, existing: Variant = null) -> Variant:
 	match typeof(value):
 		TYPE_ARRAY:
+			var list: Array = value
 			var out: Array = []
-			out.resize(value.size())
+			out.resize(list.size())
 			var old: Array = existing if existing is Array else []
-			for i in value.size():
-				out[i] = decode(value[i], old[i] if i < old.size() else null)
+			for i in list.size():
+				out[i] = decode(list[i], old[i] if i < old.size() else null)
 			if existing is Array:
-				existing.assign(out)
+				old.assign(out)
 				return existing
 			return out
 		TYPE_DICTIONARY:
-			return _decode_dictionary(value, existing)
+			var dict: Dictionary = value
+			return _decode_dictionary(dict, existing)
 	if typeof(value) >= TYPE_PACKED_BYTE_ARRAY:
-		return value.duplicate()
+		return packed_copy(value)
 	return value
 
 
-func _decode_dictionary(value: Dictionary, existing):
+func _decode_dictionary(value: Dictionary, existing: Variant) -> Variant:
 	if value.has("@skip"):
 		return existing
 	if value.has("@p"):
-		var slot := int(value["@p"])
+		var slot := _int(value["@p"])
 		return game.players[slot] if slot < game.players.size() else null
 	if value.has("@e"):
-		return by_uid.get(int(value["@e"]))
+		return by_uid.get(_int(value["@e"]))
 	if value.has("@iid"):
-		var e = by_uid.get(int(value["@iid"]))
+		var e: Enemy = by_uid.get(_int(value["@iid"]))
 		return e.get_instance_id() if e != null else 0
 	if value.has("@game"):
 		return game
 	if value.has("@feature"):
-		return game.features.get(String(value["@feature"]))
+		return game.features.get(str(value["@feature"]))
 	if value.has("@world"):
 		return game.world
 	if value.has("@door"):
-		return _at(game.world.doors, int(value["@door"]))
+		return _at(game.world.doors, _int(value["@door"]))
 	if value.has("@station"):
-		return _at(game.world.stations, int(value["@station"]))
+		return _at(game.world.stations, _int(value["@station"]))
 	if value.has("@scenery"):
-		return _at(game.world.scenery, int(value["@scenery"]))
+		return _at(game.world.scenery, _int(value["@scenery"]))
 	if value.has("@rng"):
 		var rng: RandomNumberGenerator = (
 			existing if existing is RandomNumberGenerator else RandomNumberGenerator.new()
 		)
-		rng.seed = int(value["@rng"][0])
-		rng.state = int(value["@rng"][1])
+		rng.seed = _int(value["@rng"][0])
+		rng.state = _int(value["@rng"][1])
 		return rng
 	if value.has("@o"):
-		return _decode_object(String(value["@o"]), value["f"], existing)
+		var fields: Dictionary = value["f"]
+		return _decode_object(str(value["@o"]), fields, existing)
 	if value.has("@flow"):
 		# Only ever onto the flow field already there (it needs its level).
 		if existing is FlowField:
-			decode_flow(existing, value["@flow"])
+			var flow: FlowField = existing
+			var row: Array = value["@flow"]
+			decode_flow(flow, row)
 		return existing
 	var into: Dictionary = existing if existing is Dictionary else {}
 	var old := into.duplicate()
 	into.clear()
 	if value.has("@D"):
 		for row: Array in value["@D"]:
-			var key = decode(row[0])
+			var key: Variant = decode(row[0])
 			into[key] = decode(row[1], old.get(key))
 		return into
-	for key in value:
+	for key: Variant in value:
 		into[key] = decode(value[key], old.get(key))
 	return into
 
 
-func _decode_object(key: String, fields: Dictionary, existing):
-	var script = _by_key.get(key)
+func _decode_object(key: String, fields: Dictionary, existing: Variant) -> Variant:
+	var script: GDScript = _by_key.get(key)
 	if script == null:
 		unknown[key] = true
 		return existing
-	var o = existing
-	if o == null or not (o is Object) or o.get_script() != script:
+	var o: Object = existing if existing is Object else null
+	if o == null or o.get_script() != script:
 		o = _make(script)
 		if o == null:
 			unknown[key + " (cannot be made)"] = true
@@ -382,25 +440,27 @@ func _decode_object(key: String, fields: Dictionary, existing):
 
 ## Sets one field of `o` from its snapshot value (in place for an array, a
 ## dictionary or an object of the same class).
-func set_field(o: Object, name: String, value) -> void:
-	var now = o.get(name)
-	var made = decode(value, now)
+func set_field(o: Object, name: String, value: Variant) -> void:
+	var now: Variant = o.get(name)
+	var made: Variant = decode(value, now)
 	if (typeof(now) == TYPE_ARRAY or typeof(now) == TYPE_DICTIONARY) and is_same(made, now):
 		return
 	o.set(name, made)
 
 
-static func _at(list: Array, i: int):
+static func _at(list: Array, i: int) -> Variant:
 	return list[i] if i >= 0 and i < list.size() else null
 
 
 ## A new object of `script` when its _init needs no arguments, else null.
-static func _make(script: Script) -> Object:
+static func _make(script: GDScript) -> Object:
 	if not _made.has(script):
 		var ok := true
 		for m: Dictionary in script.get_script_method_list():
 			if m["name"] == "_init":
-				ok = m["args"].size() <= m["default_args"].size()
+				var args: Array = m["args"]
+				var defaults: Array = m["default_args"]
+				ok = args.size() <= defaults.size()
 				break
 		_made[script] = ok
 	return script.new() if _made[script] else null
@@ -413,7 +473,7 @@ static func _make(script: Script) -> Object:
 static func class_key(script: Script) -> String:
 	if _by_key.is_empty():
 		_register_all()
-	return String(_by_script.get(script, ""))
+	return str(_by_script.get(script, ""))
 
 
 ## The fields of `o` a snapshot carries: its script variables, less SKIP_FIELDS.
@@ -425,14 +485,16 @@ static func fields_of(o: Object, key: String) -> PackedStringArray:
 	var only: Array = ONLY_FIELDS.get(key, [])
 	var names := PackedStringArray()
 	for prop: Dictionary in o.get_property_list():
-		if int(prop["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
+		var usage: int = prop["usage"]
+		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
 			continue
-		var name := String(prop["name"])
+		var name := str(prop["name"])
 		if not skip.has(name) and (only.is_empty() or only.has(name)):
 			names.append(name)
 	_fields[script] = names
-	_snames[script] = names_of(names)
-	_packs[script] = packer(_snames[script])
+	var snames := names_of(names)
+	_snames[script] = snames
+	_packs[script] = packer(snames)
 	return names
 
 
@@ -462,7 +524,8 @@ static func _register_all() -> void:
 	for script: GDScript in Features.ALL:
 		roots[script.resource_path.get_file().get_basename()] = script
 	for key: String in roots:
-		_register(key, roots[key])
+		var root: Script = roots[key]
+		_register(key, root)
 	var named := [
 		"LevelData.Door",
 		"LevelData.Station",
@@ -483,6 +546,13 @@ static func _register(key: String, script: Script) -> void:
 	_by_script[script] = key
 	_by_key[key] = script
 	for name: String in script.get_script_constant_map():
-		var inner = script.get_script_constant_map()[name]
+		var inner: Variant = script.get_script_constant_map()[name]
 		if inner is GDScript and not _by_script.has(inner):
-			_register(key + "." + name, inner)
+			var inner_script: GDScript = inner
+			_register(key + "." + name, inner_script)
+
+
+## int() of a value read from data or a dictionary, typed (the same
+## result for a number, a bool or a number written as text).
+static func _int(v: Variant) -> int:
+	return str(v).to_int() if v is String else v
