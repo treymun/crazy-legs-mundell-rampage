@@ -60,7 +60,13 @@ Short recipes. Each names the files to touch. After any of them, run
    then rebuild the level ([levels.md](levels.md)).
 5. If it breaks, add it to `data/tuning/breakables.cfg`. If it carries a
    light, add `props` to the `[light.*]` in effects.cfg.
-6. Run `view3d_check`.
+6. Run `view3d_check`, and `tools/art/prop_sheet.gd -- names=<name>
+   out=<png>` (a window) to hold the model against its picture.
+
+A quest station is modelled in `scripts/blender/quest_props.py` (STATIONS,
+its SCALE); `build_quest_art.gd` renders its two pictures and the same
+`build_prop_meshes.gd -- names=quest_<name>` makes its one model with both
+looks (art.md#props).
 
 ## A level
 

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_do4l1"]
+[ext_resource type="PackedScene" path="res://assets3d/props/laundry.glb" id="2_ps7rm"]
+
+[node name="Laundry" type="Node3D" unique_id=1417169955]
+script = ExtResource("1_do4l1")
+prop = "laundry"
+
+[node name="Model" type="Node3D" parent="." unique_id=953310517 instance=ExtResource("2_ps7rm")]

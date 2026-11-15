@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_oukpj"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_estop.glb" id="2_wpcmx"]
+
+[node name="QuestEstop" type="Node3D" unique_id=171867527]
+script = ExtResource("1_oukpj")
+prop = "quest_estop"
+
+[node name="Model" type="Node3D" parent="." unique_id=1928030201 instance=ExtResource("2_wpcmx")]

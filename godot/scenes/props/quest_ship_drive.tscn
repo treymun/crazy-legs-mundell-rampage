@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_uuhee"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_ship_drive.glb" id="2_jaa1s"]
+
+[node name="QuestShipDrive" type="Node3D" unique_id=1528056235]
+script = ExtResource("1_uuhee")
+prop = "quest_ship_drive"
+
+[node name="Model" type="Node3D" parent="." unique_id=653246664 instance=ExtResource("2_jaa1s")]

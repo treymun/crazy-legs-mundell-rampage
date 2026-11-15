@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_gajtb"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_condenser.glb" id="2_nhc2n"]
+
+[node name="QuestCondenser" type="Node3D" unique_id=579134855]
+script = ExtResource("1_gajtb")
+prop = "quest_condenser"
+
+[node name="Model" type="Node3D" parent="." unique_id=1927877873 instance=ExtResource("2_nhc2n")]

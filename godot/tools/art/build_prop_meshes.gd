@@ -9,13 +9,20 @@
 ## godot/assets3d/props/<name>.glb, commits each texture to the palette as
 ## assets/art/mesh_<name>.png (packed with the rest of the art) and notes the
 ## sizes in godot/assets3d/props/meshes.json, which the 3D view reads
-## (view3d/prop_models.gd). Then run tools/pack_assets.gd and --import.
+## (view3d/prop_models.gd): [width, depth, height, texture size, the
+## height its picture town_<name> (a station's town_<name>_off) was drawn
+## at, from assets/art/town_props.json; a sprite shown taller or shorter
+## stands the model scaled to match]. Then run tools/pack_assets.gd and
+## --import. A quest station (quest_props.py) is one model with both its
+## looks (export_meshes.py).
 extends SceneTree
 
 const Paint := preload("res://tools/art/paint.gd")
 const Actors := preload("res://tools/art/build_enemy_actors.gd")
 ## The libraries that model props, each run in turn into the same folder.
-const LIBRARIES: Array[String] = ["town_props.py", "props_range.py"]
+const LIBRARIES: Array[String] = [
+	"town_props.py", "props_range.py", "quest_props.py", "painted_boards.py"
+]
 const MESHES := "res://assets3d/props"
 
 
@@ -76,6 +83,17 @@ func _init() -> void:
 		Paint.digitize(Paint.photo_grade(baked, seed)).save(art.path_join("mesh_%s.png" % name))
 		sizes[name] = meta[name]
 		count += 1
+	# Every model's picture height (the old pictures' sizes do not move).
+	var pictures: Variant = JSON.parse_string(
+		FileAccess.get_file_as_string(art.path_join("town_props.json"))
+	)
+	if pictures is Dictionary:
+		for name: String in sizes:
+			var dims: Array = sizes[name]
+			var seen: Variant = pictures.get(name, pictures.get(name + "_off"))
+			if seen is Array:
+				var height: float = seen[1]
+				sizes[name] = dims.slice(0, 4) + [height]
 	var file := FileAccess.open(sizes_path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(sizes, "\t", true))
 	file.close()

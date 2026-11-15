@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_66gvu"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_switch.glb" id="2_81ly0"]
+
+[node name="QuestSwitch" type="Node3D" unique_id=139992451]
+script = ExtResource("1_66gvu")
+prop = "quest_switch"
+
+[node name="Model" type="Node3D" parent="." unique_id=498940811 instance=ExtResource("2_81ly0")]

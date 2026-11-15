@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_rfma5"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_fuel_drum.glb" id="2_qokkp"]
+
+[node name="QuestFuelDrum" type="Node3D" unique_id=1085108256]
+script = ExtResource("1_rfma5")
+prop = "quest_fuel_drum"
+
+[node name="Model" type="Node3D" parent="." unique_id=558346728 instance=ExtResource("2_qokkp")]

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_rprhk"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_exit_fair.glb" id="2_2nnlo"]
+
+[node name="QuestExitFair" type="Node3D" unique_id=13394599]
+script = ExtResource("1_rprhk")
+prop = "quest_exit_fair"
+
+[node name="Model" type="Node3D" parent="." unique_id=1219318049 instance=ExtResource("2_2nnlo")]

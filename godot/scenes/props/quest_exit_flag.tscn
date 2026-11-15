@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_peahf"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_exit_flag.glb" id="2_47pfv"]
+
+[node name="QuestExitFlag" type="Node3D" unique_id=2061645525]
+script = ExtResource("1_peahf")
+prop = "quest_exit_flag"
+
+[node name="Model" type="Node3D" parent="." unique_id=855681817 instance=ExtResource("2_47pfv")]
