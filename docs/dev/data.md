@@ -35,6 +35,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `mundell_lines.json` | Mundell's wisecracks | `Barks` |
 | `camera.cfg` | PHOTO MODE's camera and pictures `[photo]`, the KILL CAM's sampling, replay and camera `[kill_cam]`, QUALITY AUTO's measurement `[quality]` | `PhotoMode`, `KillCam`, `Quality` (static vars, read at start) |
 | `servers.json` | the county servers the browser lists (`wss` for the browser build) | `NetBrowser` |
+| `range_games.cfg` | the midway games: `[horseshoes]`, `[skeeball]`, `[dunk]`, `[bottles]` (the range's games row), `[fair_gallery]`, `[range_board]` | `RangeTuning` (`src/core/range_tuning.gd`) |
 
 ## Loaders
 

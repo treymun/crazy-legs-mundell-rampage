@@ -29,8 +29,8 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
 | `bayou_plan.gd` (+ `bayou_cast.gd`) | chapter 5 |
 | `speedway_plan.gd` | chapter 6 |
 | `mothership_plan.gd` (+ `mothership_cast.gd`) | chapter 7, all indoors, the last |
-| `range_plan.gd` | the firing range, not a chapter |
-| `hub_plan.gd` | the Crossroads (`data/hub.json`) |
+| `range_plan.gd` | the firing range, not a chapter (layout 5: the games row south of the armory) |
+| `hub_plan.gd` | the Crossroads (`data/hub.json`; layout 4: Mundell's trophy shack behind the Road Department) |
 | `grainyard_plan.gd`, `holler_plan.gd`, `salvage_plan.gd` | the 5v5 maps ([modes.md](modes.md#the-maps)) |
 | `pumpngo_plan.gd`, `pineacres_plan.gd`, `landing_plan.gd` | the 2v2 maps |
 | `county_hickston_plan.gd`, `county_quarry_plan.gd`, `county_bayou_plan.gd` (+ `county_kit.gd`) | the County Run maps ([county_run.md](county_run.md#the-maps)) |

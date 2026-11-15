@@ -13,6 +13,8 @@
 ##   range_plate_<kind>   the name plate on each release lever
 ##   range_gallery_back   the shooting gallery's striped backdrop
 ##   range_bowling_mask   the bowling alley's pin deck board
+##   range_head_<game>    the games row's booths, the trophy shack and the
+##                        fair's shooting gallery (HEADS_GAMES, painted last)
 ## Seeded, so a rerun gives the same files. Then run tools/pack_assets.gd.
 extends SceneTree
 
@@ -126,6 +128,18 @@ const PLATES_LATER := [
 	["tough", "A TOUGH GUY"],
 	["variant", "AN ODDBALL"],
 ]
+## The games row's header boards, the hub's trophy shack and the fair's
+## shooting gallery (painted last, as GUNS_LATER).
+const HEADS_GAMES := [
+	["horseshoes", "HORSESHOES", "RINGER 3  LEANER 2  CLOSE 1", "planks"],
+	["dunk", "DUNK TANK", "HIT THE BULLSEYE, SOAK A HAND", "tin_blue"],
+	["skeeball", "SKEE-BALL", "ROLL IT UP, DROP IT IN", "tin_red"],
+	["bottles", "KNOCK 'EM DOWN", "THREE BALLS  TEN BOTTLES", "tin_yellow"],
+	["games", "THE GAMES ROW", "BEAT THE COUNTY'S BEST", "planks_red"],
+	["trophies", "MUNDELL'S TROPHIES", "BOSSES  BOWLING  THE RANGE", "planks"],
+	["fairgallery", "SHOOTING GALLERY", "SHOOT THE BELL TO START", "tin_red"],
+	["prizes", "PRIZE BOOTH", "15 A BEER  30 A HAT  45 THE BEAR", "tin_cream"],
+]
 const YARDS := [3, 5, 6, 9, 10, 12, 15, 20, 25, 30, 35]
 
 var rng := RandomNumberGenerator.new()
@@ -158,6 +172,8 @@ func _init() -> void:
 		made["range_head_" + String(row[0])] = head(String(row[1]), String(row[2]), String(row[3]))
 	for row: Array in PLATES_LATER:
 		made["range_plate_" + String(row[0])] = plate(String(row[1]))
+	for row: Array in HEADS_GAMES:
+		made["range_head_" + String(row[0])] = head(String(row[1]), String(row[2]), String(row[3]))
 	for name: String in made:
 		var sheet: Paint.Sheet = made[name]
 		sheet.save(out.path_join(name + ".png"))

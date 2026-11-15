@@ -235,6 +235,19 @@ pins come from `range_bowling.gd`'s `sprites` (turn from each pin's
 quaternion); a bowling ball shot anywhere is drawn so by `Shots.ball_look`
 (rolled by its `travelled` about the line across its way).
 
+The newer kinds are built by `SolidKit` (`view3d/solid_kit.gd`) the first
+time one is seen, from the same numbers the play uses
+(`src/range_games_shape.gd`): a horseshoe and its stake, the skee-ball
+cabinet (maple lane, rubber hump, the ring board with its 10 to 50 rings and
+100 cups, the red cabinet and its bulbs) and its balls, a milk bottle, a
+softball, the dunk tank, its seat and its bullseye, and the fair's tin can,
+gallery rail, prize shelf, straw hat, beer and start bell, and the trophy
+shack's plinth and plaque. Their faces carry their own colour, not a PAINT
+material: UV.x is -1 (matte) or -2 (shiny) and UV.y the colour packed as
+r * 65536 + g * 256 + b (`solid.gdshader`). `SolidKit.tri` winds every face
+clockwise seen from its front, Godot's front face. A sprite's `turn` may
+scale (a rail or a shelf is one cell long, stretched by its turn).
+
 ## Slabs: pickups, loose things, range targets
 
 Some of the world's flat pictures are drawn by `SlabLayer3D` as slabs made

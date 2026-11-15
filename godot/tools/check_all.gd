@@ -30,6 +30,7 @@ const CHECKS := [
 	["camera_check", "CAMERA CHECK OK"],
 	["county_check", "COUNTY CHECK OK"],
 	["county_net_check", "COUNTY NET CHECK OK"],
+	["games_check", "GAMES CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 const QUICK := [
@@ -43,6 +44,7 @@ const QUICK := [
 	"physics_check",
 	"live_props_check",
 	"climb_check",
+	"games_check",
 ]
 
 

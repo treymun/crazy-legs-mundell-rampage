@@ -589,6 +589,7 @@ func _process(delta: float) -> void:
 	if net != null or not net_old.is_empty() or browser != null:
 		_net_frame()
 	CountyScreens.board_frame(self)
+	RangeBoard.frame(self)
 	dt *= time_scale
 	# With more than one player every copy steps physics alike (core/quality.gd).
 	Quality.shared = net != null or (game != null and game.players.size() > 1)

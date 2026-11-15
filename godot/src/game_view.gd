@@ -288,6 +288,11 @@ func sprites() -> Array:
 				)
 		)
 		sprites.append_array(dust)
+		# Mundell's trophy shack (features/trophy_shack.gd): the hub's only
+		# feature that stands things in it.
+		var shack: GameFeature = features.get("trophy_shack")
+		if shack != null:
+			sprites.append_array(shack.sprites())
 		return sprites
 	if gallery != null and gallery.active:
 		sprites.append(gallery.sprite(me))

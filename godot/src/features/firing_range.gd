@@ -10,12 +10,26 @@
 ## out are watched for the damage each gun does them, how long they took to
 ## drop, and what they get up to (cover, running for help, brawls), and the
 ## card (range_card.gd) shows it all for the station the player stands at.
-## Nothing here is saved: the range is never saved.
+## The games row south of the armory (range_games.gd: horseshoes, the dunk
+## tank, skee-ball, knock 'em down) is played from here too. Nothing here is
+## saved (the range is never saved); each game's best goes to the range's
+## records and, online, its board (range_board.gd), whose top five the
+## station's card shows.
 extends GameFeature
 
 const L := preload("res://src/range_layout.gd")
 const Targets := preload("res://src/range_targets.gd")
 const Card := preload("res://src/range_card.gd")
+const Games := preload("res://src/range_games.gd")
+## The station each board's game is played at.
+const BOARD_OF := {
+	"bowling": "bowling",
+	"gallery": "gallery",
+	"horseshoes": "horseshoes",
+	"dunk": "dunk",
+	"skeeball": "skeeball",
+	"bottles": "bottles",
+}
 ## The most critters one pen holds at once.
 const PEN_LIMIT := 10
 ## What each gun is, said when it is taken off the wall.
@@ -67,6 +81,12 @@ const DOINGS := {
 
 var on := false
 var targets: Targets
+var games: Games
+## The records on this machine (range_board.gd), read once and kept up; the
+## bowling games and gallery rounds counted so far (a new one is finished).
+var records := {}
+var bowled := 0
+var gallery_was := false
 ## The station the player stands at ("" for none) and since when.
 var station := ""
 var station_since := 0.0
@@ -112,6 +132,8 @@ func attach() -> void:
 	if not on:
 		return
 	targets = Targets.new()
+	games = Games.new()
+	records = RangeBoard.read()
 	_kit()
 	game.events.ticked.connect(_tick)
 	game.events.traced.connect(_traced)
@@ -150,6 +172,9 @@ func _tick(dt: float) -> void:
 	if here != station:
 		station = here
 		station_since = game.clock
+		for board: String in BOARD_OF:
+			if BOARD_OF[board] == here:
+				RangeBoard.want(board)
 	if pending != "":
 		game.message(pending, pending_for)
 		pending = ""
@@ -157,6 +182,8 @@ func _tick(dt: float) -> void:
 		range_hot = true
 		game.sound.play_voice("range_pa_hot", .7, 0.0)
 	targets.tick(game, dt)
+	games.tick(game, dt)
+	_finished()
 	_cans()
 	_watch()
 	if game.finale != null and not game.finale.alive and game.clock - game.finale.died_at > 4.0:
@@ -164,6 +191,25 @@ func _tick(dt: float) -> void:
 	if chain > 0 and game.clock > chain_until:
 		best_chain = maxi(best_chain, chain)
 		chain = 0
+
+
+## Games finished this tick: kept as the range's records and posted.
+func _finished() -> void:
+	var done: Array = games.finished.duplicate()
+	games.finished.clear()
+	var bowl := targets.bowling
+	if bowl.games != bowled:
+		bowled = bowl.games
+		done.append(["bowling", bowl.score()])
+	if gallery_was and not targets.gallery_on:
+		done.append(["gallery", targets.gallery_score])
+	gallery_was = targets.gallery_on
+	for row: Array in done:
+		var board := str(row[0])
+		var score: int = row[1]
+		if RangeBoard.finished(board, score):
+			records[board] = score
+			say("A NEW BEST AT THE %s: %d." % [str(RangeBoard.GAMES[board]), score], 2.6)
 
 
 func say(text: String, length := 3.0) -> void:
@@ -206,6 +252,8 @@ func _traced(end: Vector3, struck: String) -> void:
 	var start := Vector3(p.x, p.y, p.eye)
 	var damage := _gun_damage(gun)
 	var hit: Dictionary = targets.trace(game, start, end, gun, damage)
+	if hit.is_empty() and games.trace(game, start, end):
+		return
 	if hit.has("id"):
 		_tally(gun, damage)
 		if str(hit["station"]) == "pellets" and game.clock - pellet_clock < .05:
@@ -337,6 +385,17 @@ func _station(station_id: String) -> void:
 			var door: Vector2 = L.FODDER_DOORS[i]
 			_spawn(str(L.FODDER_KINDS[i]), door, "pit", true)
 		say("FODDER IN THE PIT. LIGHT A STICK [8].", 2.4)
+	elif what == "pitch":
+		_told(games.pitch(game, game.player))
+	elif what == "dunk":
+		games.start_dunk(game)
+	elif what == "skee":
+		var rolled := games.skee.roll(game.player, game.rng)
+		_told(rolled)
+		if rolled == "":
+			game.sound.play("football_throw", .5)
+	elif what == "bottles":
+		_told(games.throw_ball(game, game.player))
 	elif what == "reset-pit":
 		_clear("pit")
 		for d: Vector2 in L.DRUMS:
@@ -346,6 +405,11 @@ func _station(station_id: String) -> void:
 		best_chain = 0
 		targets.reset_targets()
 		say("PIT RESET: DRUMS BACK, TARGETS UP, FODDER GONE.", 2.4)
+
+
+func _told(words: String) -> void:
+	if words != "":
+		say(words, 1.6)
 
 
 func _take(i: int) -> void:
@@ -615,7 +679,11 @@ func _gun_name(gun: int) -> String:
 
 
 func sprites() -> Array:
-	return targets.sprites(game) if on else []
+	if not on:
+		return []
+	var out := targets.sprites(game)
+	out.append_array(games.sprites(game))
+	return out
 
 
 func draw_view(c: Canvas) -> void:

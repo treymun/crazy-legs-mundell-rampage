@@ -140,6 +140,9 @@ func rank_of(map_id: String, name: String, time: float) -> int:
 ## A lobby server's answer to a BOARD knock: the day's board for the map,
 ## after putting in the run posted (the best run a name has a day counts).
 static func answer(info: Dictionary) -> Dictionary:
+	if info.has("range"):
+		# The firing range's board rides the same knock (range_board.gd).
+		return RangeBoard.answer(info)
 	var map_id := str(info.get("map", ""))
 	var day := str(info.get("day", ""))
 	var out := {"map": map_id, "day": day, "rows": []}

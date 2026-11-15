@@ -7,7 +7,10 @@
 ## Godot's axes (y up): a pin stands on its foot at the origin, the ball's
 ## middle is at the origin.
 ##
-## Each face carries its material in UV.x (solid.gdshader's PAINT).
+## Each face carries its material in UV.x (solid.gdshader's PAINT). The newer
+## kinds (solid_kit.gd: horseshoes, skee-ball, bottles, the dunk tank, the
+## fair's and the trophy shack's) carry their own colour and are built the
+## first time one is seen.
 class_name SolidLayer3D
 extends Node3D
 
@@ -82,7 +85,12 @@ func show_solids(
 	for item: Variant in list:
 		var s: View.Sprite = item
 		if not _meshes.has(s.solid):
-			continue
+			# The midway games', the fair's and the trophies' (solid_kit.gd), built
+			# the first time one is seen.
+			var made := SolidKit.mesh_of(s.solid)
+			if made == null:
+				continue
+			_meshes[s.solid] = made
 		var ahead := (s.x - cam.x) * fx + (s.y - cam.y) * fy
 		if ahead >= REACH or (ahead <= BEHIND and not everywhere):
 			continue
@@ -184,9 +192,9 @@ static func pin_mesh() -> ArrayMesh:
 			var q10 := Vector3(cos(a0) * n1.x, n1.y, sin(a0) * n1.x)
 			var q11 := Vector3(cos(a1) * n1.x, n1.y, sin(a1) * n1.x)
 			var uv := Vector2(paint, 0.0)
-			# Outward faces, wound for Godot's front (clockwise seen from out).
+			# Outward faces, wound clockwise seen from outside (Godot's front).
 			for v: Array in [
-				[p00, q00], [p10, q10], [p11, q11], [p00, q00], [p11, q11], [p01, q01]
+				[p00, q00], [p11, q11], [p10, q10], [p00, q00], [p01, q01], [p11, q11]
 			]:
 				var pv: Vector3 = v[0]
 				var nv: Vector3 = v[1]
@@ -231,7 +239,7 @@ static func ball_mesh() -> ArrayMesh:
 			if paint == BALL and sin(mid.x * 9.0 + mid.y * 5.0) * cos(mid.z * 7.0) > .55:
 				paint = SWIRL
 			var uv := Vector2(paint, 0.0)
-			for n: Vector3 in [n00, n01, n11, n00, n11, n10]:
+			for n: Vector3 in [n00, n11, n01, n00, n10, n11]:
 				verts.append(n * BALL_R)
 				normals.append(n)
 				uvs.append(uv)

@@ -2,14 +2,21 @@
 ## view naming the station the player stands at, what it teaches (for the
 ## first few seconds there), and what it has measured: hits, groupings,
 ## pellets on each board, damage by gun, how long a critter took to drop and
-## what the county's hands are up to. Drawn in the HUD's panel and lettering,
-## so it reads the same in software and on the Godot 2D canvas.
+## what the county's hands are up to; at a game, its score, the player's best
+## and, once the teaching lines are gone, the county's top five from the
+## lobby server (range_board.gd). Drawn in the HUD's panel and lettering, so
+## it reads the same in software and on the Godot 2D canvas.
 extends RefCounted
 
 const L := preload("res://src/range_layout.gd")
 const Targets := preload("res://src/range_targets.gd")
 const FiringRange := preload("res://src/features/firing_range.gd")
+const Games := preload("res://src/range_games.gd")
+const Skee := preload("res://src/range_skeeball.gd")
 const X := 4
+## Stations whose target stands straight ahead and high (the skee-ball
+## board): their card goes in the top right corner instead.
+const RIGHT := ["skeeball"]
 const Y := 18
 const W := 150
 ## Seconds the teaching lines stay up after the player arrives.
@@ -20,6 +27,7 @@ const GOOD := Color(160 / 255.0, 236 / 255.0, 120 / 255.0)
 
 static func draw(c: Canvas, f: FiringRange) -> void:
 	var game: Game = f.game
+	var x := 320 - W - 4 if RIGHT.has(String(f.station)) else X
 	var info: Dictionary = L.STATIONS[f.station]
 	var talking: bool = game.message_until > game.clock
 	# Under the notice banner while one is up, and short.
@@ -29,27 +37,29 @@ static func draw(c: Canvas, f: FiringRange) -> void:
 		for line: String in info["teach"]:
 			teach.append_array(PixelType.wrap(line, W - 10, "mini"))
 	var readings: Array = readouts(f)
+	if teach.is_empty():
+		readings.append_array(board_lines(f))
 	var height := 14 + teach.size() * 7 + readings.size() * 7 + (3 if not teach.is_empty() else 0)
-	HUD.panel(c, X, top, W, height, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
-	HUD.text(c, str(info["title"]), X + 5, top + 3, "body", HUD.AMBER)
+	HUD.panel(c, x, top, W, height, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
+	HUD.text(c, str(info["title"]), x + 5, top + 3, "body", HUD.AMBER)
 	var y := top + 13
 	for line: String in teach:
-		HUD.text(c, line, X + 5, y, "mini", HUD.INK, false, false)
+		HUD.text(c, line, x + 5, y, "mini", HUD.INK, false, false)
 		y += 7
 	if not teach.is_empty():
-		c.fill_rect(X + 5, y, W - 10, 1, Color(110 / 255.0, 80 / 255.0, 54 / 255.0))
+		c.fill_rect(x + 5, y, W - 10, 1, Color(110 / 255.0, 80 / 255.0, 54 / 255.0))
 		y += 3
 	for row: Variant in readings:
 		var text := str(row[0]) if row is Array else str(row)
 		var colour: Color = row[1] if row is Array else READ
-		HUD.text(c, text, X + 5, y, "mini", colour, false, false)
+		HUD.text(c, text, x + 5, y, "mini", colour, false, false)
 		var parts: Array = row if row is Array else []
 		if row is Array and parts.size() > 2:
 			# A bar: how soaked, how much health is left.
 			var bar: float = parts[2]
 			var share := clampf(bar, 0.0, 1.0)
-			c.fill_rect(X + W - 34, y + 1, 28, 3, Color(.2, .14, .1))
-			c.fill_rect(X + W - 34, y + 1, int(28 * share), 3, colour)
+			c.fill_rect(x + W - 34, y + 1, 28, 3, Color(.2, .14, .1))
+			c.fill_rect(x + W - 34, y + 1, int(28 * share), 3, colour)
 		y += 7
 
 
@@ -162,8 +172,97 @@ static func readouts(f: FiringRange) -> Array:
 			for k in mini(3, guns.size()):
 				var dealt: float = f.damage_by_gun[guns[k]]
 				out.append("%s %d" % [str(guns[k]), roundi(dealt)])
+		"horseshoes", "dunk", "skeeball", "bottles":
+			out.append_array(game_lines(f))
 	if game.clock < f.reach_until and String(f.station) in ["cans", "rifle", "pellets", "special"]:
 		out.append([f.reach_note, GOOD])
+	return out
+
+
+## The games row's lines.
+static func game_lines(f: FiringRange) -> Array:
+	var game: Game = f.game
+	var g: Games = f.games
+	var out: Array = []
+	match String(f.station):
+		"horseshoes":
+			out.append(
+				(
+					"SHOE %d OF %d  SCORE %d  RINGERS %d"
+					% [Games.SHOES - g.shoes_left, Games.SHOES, g.shoe_score, g.ringers]
+				)
+			)
+			var court := game.world.elevation(L.STAKE.x, L.STAKE.y)
+			var reach := Games.carry(game.player, court)
+			var stake := Vector2(game.player.x, game.player.y).distance_to(L.STAKE)
+			out.append("A PITCH CARRIES %.1f YDS, THE STAKE %.1f" % [reach, stake])
+			if g.shoe_last != "":
+				out.append([g.shoe_last, GOOD])
+			out.append("BEST THIS VISIT %d" % g.shoe_best)
+		"dunk":
+			if g.dunk_on:
+				out.append(
+					[
+						(
+							"DUNKS %d  TIME LEFT %d"
+							% [g.dunks, ceili(Games.DUNK_ROUND - g.dunk_clock)]
+						),
+						GOOD
+					]
+				)
+			else:
+				out.append("PULL THE LEVER FOR A ROUND")
+			if g.dunk_last != "":
+				out.append([g.dunk_last, GOOD])
+			out.append("BEST THIS VISIT %d" % g.dunk_best)
+		"skeeball":
+			var skee: Skee = g.skee
+			var ball := Skee.BALLS - skee.balls_left + (1 if skee.ball.is_empty() else 0)
+			if skee.balls_left <= 0 and skee.ball.is_empty():
+				ball = 1
+			out.append("BALL %d OF %d  SCORE %d" % [mini(ball, Skee.BALLS), Skee.BALLS, skee.score])
+			out.append(["HOW HARD", READ, Skee.power(game.player)])
+			if skee.last != "":
+				out.append([skee.last, GOOD])
+			out.append("BEST THIS VISIT %d  FIFTIES %d" % [skee.best, skee.fifties])
+		"bottles":
+			var down := 0
+			var off := 0
+			for bottle: Dictionary in g.bottles:
+				if str(bottle["gone"]) == "off":
+					off += 1
+				elif Games.bottle_down(bottle):
+					down += 1
+			out.append("BALLS LEFT %d  DOWN %d  OFF %d" % [g.balls_left, down, off])
+			if g.bottle_last != "":
+				out.append([g.bottle_last, GOOD])
+			out.append("BEST THIS VISIT %d" % g.bottle_best)
+	return out
+
+
+## The station's game's best here and the county's top five (two to a line).
+static func board_lines(f: FiringRange) -> Array:
+	var out: Array = []
+	var board := ""
+	for key: String in FiringRange.BOARD_OF:
+		if FiringRange.BOARD_OF[key] == String(f.station):
+			board = key
+	if board == "":
+		return out
+	var mine: int = f.records.get(board, 0)
+	out.append("YOUR BEST EVER %d" % mine)
+	var rows := RangeBoard.rows(board)
+	if rows.is_empty():
+		out.append("COUNTY BOARD: ASKING..." if RangeBoard.busy() else "COUNTY BOARD: OFFLINE")
+		return out
+	var line := PackedStringArray()
+	for i in mini(RangeBoard.SHOWN, rows.size()):
+		var row: Array = rows[i]
+		var score: int = type_convert(row[1], TYPE_INT)
+		line.append("%d %s %d" % [i + 1, str(row[0]).left(8), score])
+		if line.size() == 2 or i == mini(RangeBoard.SHOWN, rows.size()) - 1:
+			out.append([("COUNTY " if i < 2 else "       ") + "  ".join(line), HUD.AMBER])
+			line = PackedStringArray()
 	return out
 
 

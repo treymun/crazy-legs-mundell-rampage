@@ -602,6 +602,79 @@ counted once every standing pin sleeps and the deadwood is slower than
 `DEADWOOD`. Tune with `tools/bowl_lab.gd` (rolls a spread of lines, prints
 what stands and the tick's cost); `range_check.gd` checks the lane.
 
+### The games row (v3.2 feature pass)
+
+South of the armory, down the gravel walk past it (`range_plan.gd`'s
+`games_row()`, range layout 5), four booths off a walk, played by
+`src/range_games.gd` and `src/range_skeeball.gd` from the range feature
+(stations `range-pitch`, `range-dunk`, `range-skee`, `range-bottles`); their
+numbers are `data/tuning/range_games.cfg`, their shapes
+`src/range_games_shape.gd` (the 3D view draws them from it: `SolidKit`).
+
+- **Horseshoes**: USE in the box pitches a shoe where the player faces, as
+  high as they look (the card says how far a pitch carries); `game.rng`
+  wobbles each pitch a little (`wobble`, `aim_wobble`). A shoe flies
+  spinning, lands dead in the pit, slides; the stake knocks it off when the
+  bar meets it from outside, holds it once the stake is inside the ring
+  (dropped over it or come in through the mouth). At rest: ringer 3, leaner
+  2 (drawn propped on the stake), within `point` 1. Ten shoes a game.
+- **Dunk tank**: any shot on the bullseye (traced) drops the plank and the
+  hand (a billy stand-in, `ModeBodies.stand_in`) into the water with a
+  splash; he stays under, climbs back and jaws. The lever starts a 30 s
+  round: the bullseye swings, dunks are counted.
+- **Skee-ball**: USE at the foot rolls a ball up the rising lane (how hard by
+  the look, `power()`; which way by the facing); off the hump it flies and
+  lands on the tilted board; where it lands is its ring (50 to 10, 100 in
+  the corner cups), a dead ball rolls back for nothing. Nine balls.
+- **Knock 'em down**: ten milk bottles racked on a table, three softballs.
+  The bottles are `range_pin_physics.gd` bodies with a bottle's own shape
+  (`Body.shape`, `com`, `foot_r`, moments) and the softball a `free` ball
+  (falls and bounces in 3D) in the same solve; a bottle below the table top
+  moves to a second solve on the ground, so nothing pops up through the
+  table. Down 1, off 2, cleared +10; a shot bottle spoils the round.
+
+Each game's finished score goes to `RangeBoard.finished` (records and the
+board, below); the station's card shows the score, the best and the
+county's top five. Nothing here is saved (the range never is).
+
+### The range's records and board
+
+`src/range_board.gd` (`RangeBoard`): each game's best (bowling, the duck
+gallery, the four above, the fair gallery) is kept in `range-records.json`
+beside the unlocks (tools: the cache), never in a campaign save. Online the
+finished score is posted to the first server in `servers.json` and each
+station asks for its game's board (top `shown`, a name's best counting, a
+score over `MOST` refused): a BOARD knock carrying `range`, answered by
+`RangeBoard.answer` (`CountyBoard.answer` hands a knock with `range` on, so
+the lobby server needed no change of its own) from `user://range-board.json`.
+`main.gd` calls `RangeBoard.frame` each frame; a tool never knocks unless
+`RangeBoard.local`. Offline the card says so and shows the local best.
+
+### The fair's shooting gallery
+
+`features/fair_gallery.gd` (SIM_FEATURES; saved: best, the hat, the bear,
+beers): in the fair's game court, the booth east of the prize booth on the
+north side. No station, door or wall of its own (the booths are
+`fair_plan.gd`'s as built), so it never stands in the quest's way. Shoot
+the bell at the counter: 30 s; ducks (2) on the back rail go over flat,
+cans (1) and bottles (3) ride the middle rail (a can flies off spinning,
+bounces off the booth's back and floor, 2 more shot in the air; a bottle
+bursts), the hog (5) runs the front rail now and then. Shots in a round
+come back to the gun's pocket. The prize booth pays: 15 a beer into the
+pockets, 30 the straw hat, 45 the bear (both then sit on its counter).
+Leaving the counter ends a round. Each round goes to the range's records.
+
+### Mundell's trophy shack
+
+`features/trophy_shack.gd` (LOOKS_FEATURES): the Crossroads' shack (hub
+layout 4) stands a statuette of each boss beaten (the boss's model through a
+stand-in at `STATUE` high on a plinth, its plaque behind) by
+`BossRematch.beaten` (the next gate open, the chapter marked won, the
+campaign won), a cup per range game with a best, a gnome per County Run map
+with a record, and inside a card lists them with the rematch bests. It
+reads the existing files only (no new save state); `game_view.gd`'s hub
+path adds its sprites.
+
 ### Walls break too
 
 `features/wall_breaks.gd`, breakables.cfg `[windows]` and `[fence.<tile>]`.

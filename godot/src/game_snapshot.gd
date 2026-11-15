@@ -309,6 +309,7 @@ const SIM_FEATURES := [
 	"variants",
 	"squad",
 	"mode",
+	"fair_gallery",
 ]
 ## Features that only look or sound (their own dice; never carried).
 const LOOKS_FEATURES := [
@@ -330,6 +331,7 @@ const LOOKS_FEATURES := [
 	"boss_voices",
 	"enemy_barks",
 	"boss_checkpoint",
+	"trophy_shack",
 ]
 
 
