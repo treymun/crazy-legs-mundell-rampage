@@ -293,8 +293,40 @@ def level_to(x: np.ndarray, target: float, ceiling: float = -0.8) -> np.ndarray:
     peak = np.abs(x).max()
     limit = 10 ** (ceiling / 20)
     if peak > limit:                                  # soft knee instead of clipping
-        x = np.tanh(x / peak * 1.5) / np.tanh(1.5) * limit if peak < limit * 2 else x / peak * limit
+        if peak < limit * 2:
+            x = np.tanh(x / peak * 1.5) / np.tanh(1.5) * limit
+        else:
+            # A spiky cue (a click, a crackle, a splat) more than 6 dB over the
+            # ceiling at its level: scaled down whole it lands far under its
+            # family (up to 17 dB, measured for 3.0.0). Limit the spikes first.
+            x = limit_peaks(x, limit)
+            x = x / max(np.abs(x).max(), limit) * limit
     return x
+
+
+LIMIT_DB = 6.0          # the most limit_peaks takes off a spike
+LIMIT_AHEAD = .0015     # seconds: the gain is down before the spike arrives
+LIMIT_RELEASE = .05     # seconds for the gain to come back
+
+
+def limit_peaks(x: np.ndarray, limit: float) -> np.ndarray:
+    """A look-ahead peak limiter: up to LIMIT_DB off whatever passes `limit`."""
+    floor = 10 ** (-LIMIT_DB / 20)
+    need = np.minimum(1.0, limit / np.maximum(np.abs(x), 1e-12))
+    ahead = max(1, int(LIMIT_AHEAD * RATE))
+    width = 2 * ahead + 1
+    padded = np.pad(need, ahead, constant_values=1.0)
+    held = np.lib.stride_tricks.sliding_window_view(padded, width).min(axis=1)
+    back = 1.0 - np.exp(-1.0 / (LIMIT_RELEASE * RATE))
+    gain = np.empty_like(held)
+    g = 1.0
+    for i, h in enumerate(held):                  # instant down, slow up
+        g = min(h, g + (1.0 - g) * back)
+        gain[i] = g
+    # Averaged over the same window, the gain still sits at or under what
+    # every sample in reach needs, and it no longer steps.
+    gain = np.convolve(np.pad(gain, ahead, mode="edge"), np.ones(width) / width, "valid")
+    return x * np.maximum(gain, floor)
 
 
 def reverb(x: np.ndarray, seconds: float) -> np.ndarray:
@@ -462,7 +494,9 @@ def bleeped(x: np.ndarray, spans: list[tuple[int, int]], kind: str) -> np.ndarra
             continue
         out[s:e] = part * (1 - ramp) + cover * ramp
     peak = float(np.max(np.abs(out)) + 1e-9)
-    return out * min(1.0, .97 / peak)
+    # Under the ceiling every other cue keeps (level_to's -0.8 dB): until
+    # 3.0.0 the cover could push a CLEAN line to -0.3 dB.
+    return out * min(1.0, 10 ** (-0.8 / 20) / peak)
 
 
 def old_seconds(name: str, inventory: dict) -> float | None:
@@ -521,7 +555,7 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
             cuss = bleep_times(name, entry.get("bleep", []), found)
             if entry.get("bleep"):
                 recipe["cuss_at"] = [[round(s, 2), round(e, 2)] for s, e in cuss]
-        hits = events(x)
+        hits = events(x, floor=entry.get("split", -30.0))
         if not hits:
             return None, {"status": "source is silent", **recipe}
         stop = len(x)
@@ -571,6 +605,7 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
     if not chain.get("loop"):
         x = fades(x, chain["fade"], chain.get("fade_in", .0015))
     target = chain["level"]
+    recipe["level"] = f"{target:.1f} dB (new cue)"
     old = OLD / f"{name}.wav"
     if old.is_file():
         heard = loudness(read_wav(old))
@@ -580,8 +615,14 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
     if "level" in entry:
         target = float(entry["level"])
         recipe["level"] = f"{target:.1f} dB (set for this cue)"
-    else:
-        recipe["level"] = f"{target:.1f} dB (new cue)"
+    if "like" in entry:
+        # Another take of a cue: as loud as that cue came out.
+        twin = done.get(entry["like"])
+        if twin is None and (FINAL / f"{entry['like']}.wav").is_file():
+            twin = read_wav(FINAL / f"{entry['like']}.wav")
+        if twin is not None:
+            target = loudness(twin)
+            recipe["level"] = f"{target:.1f} dB (as loud as {entry['like']})"
     x = level_to(x, target)
     recipe["keep_seconds"] = round(keep, 3)
     return x, {"status": "built", **recipe}
@@ -629,7 +670,11 @@ def measure(name: str, x: np.ndarray, loop: bool) -> dict:
 def build_sfx(inventory: dict, only: list[str] | None = None, previous: dict | None = None) -> dict:
     done: dict[str, np.ndarray] = {}
     report: dict = {}
-    order = sorted(spec.CUES, key=lambda n: spec.CUES[n].get("how") in ("room", "bleep"))
+    # Rooms and bleeps last (they are made from built cues); a take matched to
+    # another cue's loudness after that cue.
+    order = sorted(spec.CUES, key=lambda n: (spec.CUES[n].get("how") in ("room", "bleep"),
+                                             "like" in spec.CUES[n]))
+    canon = list(order)
     if only:
         # Just these cues; every other one keeps its file and its record.
         kept = (previous or {}).get("cues", {})
@@ -649,7 +694,8 @@ def build_sfx(inventory: dict, only: list[str] | None = None, previous: dict | N
         for stale in FINAL.glob("*.wav"):
             if stale.stem not in spec.CUES:
                 stale.unlink()
-    return report
+    # The manifest in one order, however few cues were built.
+    return {name: report[name] for name in canon if name in report}
 
 
 # --------------------------------------------------------------------- music

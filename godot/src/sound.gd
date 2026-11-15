@@ -161,11 +161,46 @@ const VARIANTS := {
 	"rifle": ["rifle", "rifle_alt", "rifle_alt2"],
 	"mower": ["mower", "mower_alt"],
 	"revolver": ["revolver", "revolver_alt"],
+	# The 3.0.0 remaster's takes (scripts/audio_spec.py, "the 3.0.0 remaster").
+	"shotgun": ["shotgun", "shotgun_alt", "shotgun_alt2"],
+	"county45": ["county45", "county45_alt"],
+	"tommy": ["tommy", "tommy_alt", "tommy_alt2"],
+	"grease_gun": ["grease_gun", "grease_gun_alt", "grease_gun_alt2"],
+	"patrol_bar": ["patrol_bar", "patrol_bar_alt", "patrol_bar_alt2"],
+	"riot_pump": ["riot_pump", "riot_pump_alt"],
+	"star357": ["star357", "star357_alt"],
+	"hogleg": ["hogleg", "hogleg_alt"],
+	"hunter": ["hunter", "hunter_alt"],
+	"marksman": ["marksman", "marksman_alt"],
+	# Four footfalls per floor: each foot keeps its own pair (game.gd alternates
+	# _0 and _1), so left and right still sound like two feet.
+	"step_grass_0": ["step_grass_0", "step_grass_2"],
+	"step_grass_1": ["step_grass_1", "step_grass_3"],
+	"step_gravel_0": ["step_gravel_0", "step_gravel_2"],
+	"step_gravel_1": ["step_gravel_1", "step_gravel_3"],
+	"step_mud_0": ["step_mud_0", "step_mud_2"],
+	"step_mud_1": ["step_mud_1", "step_mud_3"],
+	"step_tile_0": ["step_tile_0", "step_tile_2"],
+	"step_tile_1": ["step_tile_1", "step_tile_3"],
+	"step_water_0": ["step_water_0", "step_water_2"],
+	"step_water_1": ["step_water_1", "step_water_3"],
+	"step_wood_0": ["step_wood_0", "step_wood_2"],
+	"step_wood_1": ["step_wood_1", "step_wood_3"],
 	"hurt": ["hurt", "hurt_alt", "hurt_alt2"],
 	"yee_haw": ["yee_haw", "yee_haw_alt"],
 	# Steel plate: the long whine one round in three, the short ricochet between.
 	"ricochet_whine": ["ricochet_whine", "ricochet", "ricochet"],
 }
+## Every effect played gets a pitch and a level of its own, within these
+## (a share either way: 3.5 % is about 60 cents, 8 % under a decibel), so a
+## cue heard over and over never repeats exactly. Sound's own dice, never the
+## game's: it changes nothing in play. Warnings (timed to the attack), speech
+## and the menus keep their pitch.
+const PITCH_SPREAD := .035
+const LEVEL_SPREAD := .08
+const STEADY_PREFIXES := [
+	"menu_", "talk_", "bark_", "cuss_", "boss_", "mundell_", "county_", "range_pa_", "ann_"
+]
 
 const TOOL_GAIN := .26
 const STEP_GAIN := .83
@@ -557,6 +592,8 @@ var score_lift := 1.0
 
 var _amb_target := [0.0, 0.0]
 var _amb_rate := [0.0, 0.0]
+## The dice for each effect's own pitch and level (PITCH_SPREAD).
+var _dice := ShuffleRng.new(3001)
 
 
 func _init(p_art: Assets) -> void:
@@ -729,6 +766,11 @@ func _start(
 		muffle.cutoff_hz = cutoff
 	v.cue = cue
 	v.player.stream = stream
+	var pitch := 1.0
+	if _varies(name):
+		pitch = 1.0 + (_dice.next() * 2.0 - 1.0) * PITCH_SPREAD
+		volume *= 1.0 + (_dice.next() * 2.0 - 1.0) * LEVEL_SPREAD
+	v.player.pitch_scale = pitch
 	v.player.play()
 	var scale := 1.0
 	if name.begins_with("distant_"):
@@ -743,6 +785,16 @@ func _start(
 	_balance(
 		v, gain * (1.0 - maxf(0.0, pan) * pan_width), gain * (1.0 + minf(0.0, pan) * pan_width)
 	)
+
+
+## Whether `name` gets a pitch and level of its own (PITCH_SPREAD).
+func _varies(name: String) -> bool:
+	if WARNS.has(name):
+		return false
+	for prefix: String in STEADY_PREFIXES:
+		if name.begins_with(prefix):
+			return false
+	return true
 
 
 func _free_effect() -> Voice:

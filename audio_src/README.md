@@ -39,7 +39,7 @@ without ffmpeg can skip the first two lines.
 ## The budget
 
 `scripts/audio_generator.py` is the only code that talks to ElevenLabs. It will
-not send a request that could take the project past 80,000 credits in total,
+not send a request that could take the project past 100,000 credits in total,
 across every session: `python scripts/audio_generator.py status` prints what
 has been spent, and `status --reconcile` checks the ledger against the
 account's own counter. Measured rates on the Creator plan (2026-11-10): about

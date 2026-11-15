@@ -633,6 +633,8 @@ func _run() -> void:
 	preload("res://tools/squad_check.gd").run(main, check)
 	# CHATTER: the cuss pack's lines for the hands, Mundell and the 5v5 bots.
 	preload("res://tools/chatter_check.gd").run(main, check)
+	# Hearing through walls, round corners and floors; every cue the game names.
+	preload("res://tools/sound_check.gd").run(main, check)
 	# The multiplayer foundation: two players, snapshots, determinism (the
 	# quick part; net_check.gd on its own plays every chapter longer).
 	preload("res://tools/net_check.gd").run(main, check)

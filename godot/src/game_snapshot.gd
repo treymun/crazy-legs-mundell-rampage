@@ -135,6 +135,7 @@ const VIEW_FIELDS := [
 	"hud",
 	"sound",
 	"speaker",
+	"hearing",
 	"level",
 	"world",
 	"view",
