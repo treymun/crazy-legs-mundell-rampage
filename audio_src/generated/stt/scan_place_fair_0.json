@@ -1,0 +1,35 @@
+{
+ "text": "Uh, respond to the fairgrounds midway",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.04,
+   "end": 0.1
+  },
+  {
+   "text": "respond",
+   "start": 0.18,
+   "end": 0.78
+  },
+  {
+   "text": "to",
+   "start": 0.84,
+   "end": 0.9
+  },
+  {
+   "text": "the",
+   "start": 0.94,
+   "end": 1.02
+  },
+  {
+   "text": "fairgrounds",
+   "start": 1.08,
+   "end": 1.8
+  },
+  {
+   "text": "midway",
+   "start": 1.9,
+   "end": 2.52
+  }
+ ]
+}

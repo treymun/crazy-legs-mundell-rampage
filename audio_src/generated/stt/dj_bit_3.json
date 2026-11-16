@@ -1,0 +1,70 @@
+{
+ "text": "A reminder from the sheriff, no shooting road signs. That means you, Mundell",
+ "words": [
+  {
+   "text": "A",
+   "start": 0.04,
+   "end": 0.14
+  },
+  {
+   "text": "reminder",
+   "start": 0.24,
+   "end": 0.68
+  },
+  {
+   "text": "from",
+   "start": 0.76,
+   "end": 0.92
+  },
+  {
+   "text": "the",
+   "start": 0.96,
+   "end": 1.06
+  },
+  {
+   "text": "sheriff,",
+   "start": 1.1,
+   "end": 1.48
+  },
+  {
+   "text": "no",
+   "start": 1.58,
+   "end": 1.7
+  },
+  {
+   "text": "shooting",
+   "start": 1.8,
+   "end": 2.14
+  },
+  {
+   "text": "road",
+   "start": 2.22,
+   "end": 2.5
+  },
+  {
+   "text": "signs.",
+   "start": 2.6,
+   "end": 3.08
+  },
+  {
+   "text": "That",
+   "start": 3.14,
+   "end": 3.34
+  },
+  {
+   "text": "means",
+   "start": 3.38,
+   "end": 3.68
+  },
+  {
+   "text": "you,",
+   "start": 3.76,
+   "end": 3.92
+  },
+  {
+   "text": "Mundell",
+   "start": 4.059,
+   "end": 4.62
+  }
+ ]
+}

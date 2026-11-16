@@ -1,0 +1,75 @@
+{
+ "text": "This is KPSM The Possum, Dub Tillery with you till the sun comes up",
+ "words": [
+  {
+   "text": "This",
+   "start": 0.1,
+   "end": 0.26
+  },
+  {
+   "text": "is",
+   "start": 0.34,
+   "end": 0.52
+  },
+  {
+   "text": "KPSM",
+   "start": 0.58,
+   "end": 1.7
+  },
+  {
+   "text": "The",
+   "start": 1.76,
+   "end": 1.8
+  },
+  {
+   "text": "Possum,",
+   "start": 1.92,
+   "end": 2.44
+  },
+  {
+   "text": "Dub",
+   "start": 2.68,
+   "end": 2.94
+  },
+  {
+   "text": "Tillery",
+   "start": 3.04,
+   "end": 3.5
+  },
+  {
+   "text": "with",
+   "start": 3.62,
+   "end": 3.8
+  },
+  {
+   "text": "you",
+   "start": 3.88,
+   "end": 4.059
+  },
+  {
+   "text": "till",
+   "start": 4.12,
+   "end": 4.28
+  },
+  {
+   "text": "the",
+   "start": 4.32,
+   "end": 4.42
+  },
+  {
+   "text": "sun",
+   "start": 4.48,
+   "end": 4.76
+  },
+  {
+   "text": "comes",
+   "start": 4.88,
+   "end": 5.18
+  },
+  {
+   "text": "up",
+   "start": 5.32,
+   "end": 5.5
+  }
+ ]
+}

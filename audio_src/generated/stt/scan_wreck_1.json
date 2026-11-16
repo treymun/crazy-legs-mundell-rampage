@@ -1,0 +1,25 @@
+{
+ "text": "A vehicle fire reported",
+ "words": [
+  {
+   "text": "A",
+   "start": 0.04,
+   "end": 0.1
+  },
+  {
+   "text": "vehicle",
+   "start": 0.18,
+   "end": 0.58
+  },
+  {
+   "text": "fire",
+   "start": 0.76,
+   "end": 1.12
+  },
+  {
+   "text": "reported",
+   "start": 1.24,
+   "end": 2.06
+  }
+ ]
+}

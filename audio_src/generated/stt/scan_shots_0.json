@@ -1,0 +1,30 @@
+{
+ "text": "A report of shots fired",
+ "words": [
+  {
+   "text": "A",
+   "start": 0.06,
+   "end": 0.14
+  },
+  {
+   "text": "report",
+   "start": 0.18,
+   "end": 0.54
+  },
+  {
+   "text": "of",
+   "start": 0.6,
+   "end": 0.66
+  },
+  {
+   "text": "shots",
+   "start": 0.78,
+   "end": 1.2
+  },
+  {
+   "text": "fired",
+   "start": 1.36,
+   "end": 2.04
+  }
+ ]
+}

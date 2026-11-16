@@ -1,0 +1,25 @@
+{
+ "text": "Report of an explosion",
+ "words": [
+  {
+   "text": "Report",
+   "start": 0.2,
+   "end": 0.6
+  },
+  {
+   "text": "of",
+   "start": 0.64,
+   "end": 0.72
+  },
+  {
+   "text": "an",
+   "start": 0.76,
+   "end": 0.84
+  },
+  {
+   "text": "explosion",
+   "start": 0.9,
+   "end": 1.84
+  }
+ ]
+}

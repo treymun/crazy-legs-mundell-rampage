@@ -1,0 +1,70 @@
+{
+ "text": "Rudy the ringmaster has left the tent. Show's over, folks. Go on home",
+ "words": [
+  {
+   "text": "Rudy",
+   "start": 0.1,
+   "end": 0.46
+  },
+  {
+   "text": "the",
+   "start": 0.48,
+   "end": 0.6
+  },
+  {
+   "text": "ringmaster",
+   "start": 0.64,
+   "end": 1.4
+  },
+  {
+   "text": "has",
+   "start": 1.42,
+   "end": 1.6
+  },
+  {
+   "text": "left",
+   "start": 1.66,
+   "end": 1.9
+  },
+  {
+   "text": "the",
+   "start": 1.94,
+   "end": 2.08
+  },
+  {
+   "text": "tent.",
+   "start": 2.14,
+   "end": 2.5
+  },
+  {
+   "text": "Show's",
+   "start": 2.56,
+   "end": 2.96
+  },
+  {
+   "text": "over,",
+   "start": 3.08,
+   "end": 3.28
+  },
+  {
+   "text": "folks.",
+   "start": 3.4,
+   "end": 3.74
+  },
+  {
+   "text": "Go",
+   "start": 3.84,
+   "end": 4.019
+  },
+  {
+   "text": "on",
+   "start": 4.12,
+   "end": 4.32
+  },
+  {
+   "text": "home",
+   "start": 4.36,
+   "end": 4.72
+  }
+ ]
+}

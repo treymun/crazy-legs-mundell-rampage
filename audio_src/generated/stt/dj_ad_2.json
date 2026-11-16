@@ -1,0 +1,80 @@
+{
+ "text": "Fill up at the Gas 'N Gut. Gas, gizzards, and lottery tickets, all one register",
+ "words": [
+  {
+   "text": "Fill",
+   "start": 0.08,
+   "end": 0.28
+  },
+  {
+   "text": "up",
+   "start": 0.42,
+   "end": 0.58
+  },
+  {
+   "text": "at",
+   "start": 0.62,
+   "end": 0.72
+  },
+  {
+   "text": "the",
+   "start": 0.76,
+   "end": 0.8
+  },
+  {
+   "text": "Gas",
+   "start": 0.9,
+   "end": 1.2
+  },
+  {
+   "text": "'N",
+   "start": 1.22,
+   "end": 1.42
+  },
+  {
+   "text": "Gut.",
+   "start": 1.54,
+   "end": 1.86
+  },
+  {
+   "text": "Gas,",
+   "start": 1.98,
+   "end": 2.36
+  },
+  {
+   "text": "gizzards,",
+   "start": 2.52,
+   "end": 3.04
+  },
+  {
+   "text": "and",
+   "start": 3.1,
+   "end": 3.18
+  },
+  {
+   "text": "lottery",
+   "start": 3.28,
+   "end": 3.62
+  },
+  {
+   "text": "tickets,",
+   "start": 3.74,
+   "end": 4.1
+  },
+  {
+   "text": "all",
+   "start": 4.22,
+   "end": 4.32
+  },
+  {
+   "text": "one",
+   "start": 4.42,
+   "end": 4.58
+  },
+  {
+   "text": "register",
+   "start": 4.66,
+   "end": 5.18
+  }
+ ]
+}

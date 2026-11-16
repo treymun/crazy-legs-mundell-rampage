@@ -1285,3 +1285,60 @@ LOOP_LENGTH = {"boss_mothership": 90}
 VICTORY = ("victory", "A short celebratory cowpunk victory tune for a score tally screen: jubilant twangy "
            "guitar fanfare lick, slap bass and drums, playful and proud, ending on a big ringing final "
            "chord with a cymbal crash. " + BAND.split(" No vocals")[0] + " No vocals.", 14)
+
+# ------------------------------------------------- content pass 8: the county radio
+# KPSM, fourteen-ninety AM, the Possum: Dub Tillery's talk between the songs, in
+# the trucks and on the sets (voice "dj", an original late-night jock, through
+# an AM box), and the county's police scanner in the dispatch voice through the
+# radio box (src/radio_station.gd, features/radio.gd). The words are in
+# godot/data/tuning/radio_lines.json, which the game reads too. The crude lines
+# are cuss_dj_<topic>_<n> with CLEAN copies after every older one's.
+_RADIO = _json.loads((_Path(__file__).resolve().parent.parent / "godot" / "data" / "tuning"
+                      / "radio_lines.json").read_text(encoding="utf-8"))
+# How a radio line's transcript writes what the caption spells its own way.
+RADIO_HEARD: dict[str, str] = {
+    "dj_id_1": "KPSM 1490 AM. Still here, still awake, still the Possum",
+    "dj_ad_2": "Fill up at the Gas 'N Gut. Gas, gizzards, and lottery tickets, all one register",
+    "dj_ad_3": "the Possum County Fair's back. Rides inspected by somebody, probably",
+    "dj_wreck_0": "Report of a wreck tonight. Nobody hurt but the car's feelings",
+    "dj_boss_boggs_0": "Bumper Boggs lost a derby. Folks, I've been on the air 30 years. Never",
+}
+# Captions put the way the voice said them: the words sent were these.
+RADIO_SAID = {
+    "dj_ad_3": "The Possum County Fair is back. Rides inspected by somebody, probably.",
+    "scan_tag_4": "Code three, lights and siren.",
+}
+
+
+def _radio(name, text, who, fx, **opts):
+    if name in RADIO_HEARD:
+        opts["heard"] = RADIO_HEARD[name]
+    if name in RADIO_SAID:
+        opts["say"] = RADIO_SAID[name]
+    return V(text, who, fx, **opts)
+
+
+# keep 2: a jock's line runs up to 12 s (NATURAL's six times its keep).
+add("voice", **{f"dj_{group}_{n}": _radio(f"dj_{group}_{n}", text, "dj", "am", keep=2.0)
+                for group, lines in _RADIO["dj"].items()
+                for n, text in enumerate(lines)})
+add("voice", **{f"scan_{group}_{n}": _radio(f"scan_{group}_{n}", text, "dispatch", "radio")
+                for group, lines in _RADIO["scanner"].items()
+                for n, text in enumerate(lines)})
+_DJ_CUSS = []
+for _topic, _lines in _RADIO["cuss"].items():
+    for _n, _text in enumerate(_lines):
+        _name = f"cuss_dj_{_topic}_{_n}"
+        _entry = _cuss(_name, _text, "dj")
+        _entry.update(fx="am", keep=2.0, **({"heard": RADIO_HEARD[_name]} if _name in RADIO_HEARD else {}))
+        add("voice", **{_name: _entry})
+        _DJ_CUSS.append(_name)
+add("voice", **{f"{name}_clean": D(name, "bleep", **{"with": "duck" if i % 2 == 0 else "horn"})
+                for i, name in enumerate(_DJ_CUSS)})
+# The set clicking on as a truck's radio is tuned in, and the scanner's key-up.
+add("ui",
+    radio_tune=G("An old AM car radio switched on and its dial turned: a click, a quick sweep of crackling "
+                 "static and whistles, settling on a faint station.", 1.2, 1.1, "ui"),
+    scan_squelch=G("A police scanner squelch: a short burst of radio static with a chirp as the "
+                   "channel opens.", .6, .45, "ui"),
+    )

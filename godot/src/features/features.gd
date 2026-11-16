@@ -56,6 +56,7 @@ const ALL := [
 	preload("res://src/features/trophy_shack.gd"),
 	preload("res://src/features/kill_feed.gd"),
 	preload("res://src/features/new_iron.gd"),
+	preload("res://src/features/radio.gd"),
 ]
 
 ## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES
@@ -84,6 +85,7 @@ const LOOKS := [
 	"wreckage",
 	"kill_feed",
 	"new_iron",
+	"radio",
 ]
 
 

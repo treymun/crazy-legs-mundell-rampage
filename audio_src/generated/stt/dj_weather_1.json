@@ -1,0 +1,60 @@
+{
+ "text": "Forecast says clear skies, which means it'll rain on your laundry",
+ "words": [
+  {
+   "text": "Forecast",
+   "start": 0.08,
+   "end": 0.78
+  },
+  {
+   "text": "says",
+   "start": 0.84,
+   "end": 1.1
+  },
+  {
+   "text": "clear",
+   "start": 1.14,
+   "end": 1.36
+  },
+  {
+   "text": "skies,",
+   "start": 1.48,
+   "end": 1.94
+  },
+  {
+   "text": "which",
+   "start": 2.02,
+   "end": 2.2
+  },
+  {
+   "text": "means",
+   "start": 2.26,
+   "end": 2.52
+  },
+  {
+   "text": "it'll",
+   "start": 2.58,
+   "end": 2.78
+  },
+  {
+   "text": "rain",
+   "start": 2.84,
+   "end": 3.08
+  },
+  {
+   "text": "on",
+   "start": 3.14,
+   "end": 3.3
+  },
+  {
+   "text": "your",
+   "start": 3.34,
+   "end": 3.42
+  },
+  {
+   "text": "laundry",
+   "start": 3.5,
+   "end": 3.98
+  }
+ ]
+}

@@ -1,0 +1,75 @@
+{
+ "text": "Oh, bait and ammo on Main Street, night crawlers, buckshot, and a free calendar",
+ "words": [
+  {
+   "text": "Oh,",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "bait",
+   "start": 0.26,
+   "end": 0.48
+  },
+  {
+   "text": "and",
+   "start": 0.52,
+   "end": 0.62
+  },
+  {
+   "text": "ammo",
+   "start": 0.76,
+   "end": 1.08
+  },
+  {
+   "text": "on",
+   "start": 1.18,
+   "end": 1.32
+  },
+  {
+   "text": "Main",
+   "start": 1.38,
+   "end": 1.6
+  },
+  {
+   "text": "Street,",
+   "start": 1.74,
+   "end": 2.02
+  },
+  {
+   "text": "night",
+   "start": 2.18,
+   "end": 2.4
+  },
+  {
+   "text": "crawlers,",
+   "start": 2.5,
+   "end": 3.0
+  },
+  {
+   "text": "buckshot,",
+   "start": 3.16,
+   "end": 3.76
+  },
+  {
+   "text": "and",
+   "start": 3.86,
+   "end": 3.94
+  },
+  {
+   "text": "a",
+   "start": 3.98,
+   "end": 4.04
+  },
+  {
+   "text": "free",
+   "start": 4.08,
+   "end": 4.28
+  },
+  {
+   "text": "calendar",
+   "start": 4.42,
+   "end": 4.9
+  }
+ ]
+}

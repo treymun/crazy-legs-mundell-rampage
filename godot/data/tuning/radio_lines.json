@@ -1,0 +1,172 @@
+{
+	"_about": "The county radio (src/radio_station.gd, features/radio.gd): KPSM, fourteen-ninety AM, the Possum, with Dub Tillery after midnight (ElevenLabs voice \"dj\", an original character), and the county's police scanner in the dispatch voice. Every line is original. Read by scripts/audio_spec.py (the voices) and the game. Cues: dj_<group>_<n> and scan_<group>_<n>; the crude lines cuss_dj_<topic>_<n> with CLEAN copies <cue>_clean (*starred* words covered).",
+	"station": "KPSM",
+	"dj": {
+		"id": [
+			"This is KPSM, the Possum. Dub Tillery with you till the sun comes up.",
+			"KPSM, fourteen-ninety AM. Still here, still awake, still the Possum.",
+			"You're up late with Dub Tillery on KPSM, the Possum.",
+			"Possum County's only radio station, and the only one that'll have me.",
+			"Two in the mornin' on the Possum. Coffee's cold and the night ain't over."
+		],
+		"outro": [
+			"Here's another one. Keep it between the ditches.",
+			"Turn it up loud enough to scare the dog. Here we go.",
+			"This next one's for the night shift. Y'all hang in there.",
+			"No requests, no refunds, no sleep. Here comes the band again.",
+			"Back to the music before somebody calls in."
+		],
+		"weather": [
+			"Weather: hot, sticky and fixin' to storm. Bring the lawn chairs in.",
+			"Forecast says clear skies, which means it'll rain on your laundry.",
+			"Fog on the bayou tonight, thick as gravy. Watch for gators in the road.",
+			"Heat lightnin' over the quarry. Folks, that ain't the Lord, that's the transformer."
+		],
+		"ad": [
+			"Stanky's Bar and Grill. Cold beer, hot wings, and the bathroom mostly works.",
+			"Bait and Ammo on Main Street. Night crawlers, buckshot, and a free calendar.",
+			"Fill up at the Gas-N-Gut. Gas, gizzards and lottery tickets, all one register.",
+			"The Possum County Fair's back. Rides inspected by somebody, probably.",
+			"Saturday night at Buzzard Bend Speedway. Bring earplugs and a spare tooth.",
+			"The sawmill's hirin' again. Bring your own fingers.",
+			"Gator Bayou Bait and Tackle. If it bites, they sell it."
+		],
+		"bit": [
+			"This one goes out to Earl, who wants his truck back. Earl, it's in the creek.",
+			"Lost: one prize cow, answers to Bessie. Reward is a casserole.",
+			"Caller says there's lights over the cornfield again. Ma'am, lock your cows up.",
+			"Reminder from the sheriff: no shootin' road signs. That means you, Mundell."
+		],
+		"drive": [
+			"If you're drivin' tonight, buckle up and watch for deer. And Mundell.",
+			"Truckers, farmers and fools behind the wheel, this one's for you.",
+			"Roll the windows down and let the whole county hear it."
+		],
+		"boom": [
+			"Folks out that way say they heard a boom. Sounded expensive.",
+			"Somethin' just blew up out there. If it was your still, I'm sorry for your loss.",
+			"Another explosion, Possum County. Fire department says please stop."
+		],
+		"wreck": [
+			"Report of a wreck tonight. Nobody hurt but the car's feelin's.",
+			"Somebody totaled a perfectly good car. Tow truck's on the way, and he's grinnin'.",
+			"Another one in the ditch. The insurance man just quit."
+		],
+		"drunk": [
+			"Somebody out there's drunker than a skunk on a holiday. Drink some water, hoss.",
+			"If you're seein' two of everything tonight, shoot the one in the middle.",
+			"Folks, if you've been at the shine, let somebody else drive. Or nobody."
+		],
+		"deaths": [
+			"That Mundell boy keeps gettin' knocked down and gettin' back up. Stubborn as a mule.",
+			"Coroner called in. Says he's seen the same feller three times tonight.",
+			"Some nights you're the hammer, some nights you're the nail. Rough night, friend."
+		],
+		"secret": [
+			"Rumor is somebody found a secret stash out there. Finders keepers.",
+			"Somebody's pokin' behind the walls tonight. Find anything good, you call me.",
+			"Little birdie says somebody found what wasn't theirs to find. Good for them."
+		],
+		"rampage": [
+			"Scanner's lit up like Christmas. Somebody's on a tear tonight.",
+			"Half the county just called in about one skinny feller. Sounds like Mundell.",
+			"Busy night for the undertaker. Busiest since the chili cook-off."
+		],
+		"boss_sheriff": [
+			"Word is the sheriff's out of office. Permanently. And he wasn't from around here."
+		],
+		"boss_jerry": [
+			"Big Jerry lost one tonight. First time since the eighth grade."
+		],
+		"boss_rudy": [
+			"Rudy the ringmaster has left the tent. Show's over, folks, go on home."
+		],
+		"boss_foreman": [
+			"The mill foreman just clocked out for good. Lunch whistle's yours, boys."
+		],
+		"boss_baron": [
+			"The moonshine baron is out of business. Stock up while you can."
+		],
+		"boss_swamp_king": [
+			"The king of the bayou has been dethroned. The gators are takin' it hard."
+		],
+		"boss_boggs": [
+			"Bumper Boggs lost a derby. Folks, I've been on the air thirty years. Never."
+		],
+		"boss_maw": [
+			"Somethin' big just fell out of the sky. If you find a grandma, don't feed her."
+		]
+	},
+	"cuss": {
+		"boom": [
+			"Somethin' blew up so *damn* loud my coffee jumped."
+		],
+		"wreck": [
+			"Y'all drive like *hell* out there tonight."
+		],
+		"drunk": [
+			"Somebody out there's drunk as *hell* and twice as proud."
+		],
+		"deaths": [
+			"That Mundell boy's gettin' his *ass* handed to him tonight."
+		]
+	},
+	"scanner": {
+		"open": [
+			"All units, all units.",
+			"Possum County, all units on patrol.",
+			"Any unit in the area."
+		],
+		"shots": [
+			"Report of shots fired.",
+			"Caller reports gunfire, lots of it."
+		],
+		"boom": [
+			"Report of an explosion.",
+			"Caller says somethin' blew up."
+		],
+		"wreck": [
+			"Vehicle in the ditch.",
+			"Vehicle fire reported."
+		],
+		"rampage": [
+			"Man runnin' hog wild, armed.",
+			"Multiple bodies reported. Again."
+		],
+		"officer": [
+			"Officer down, officer needs assistance."
+		],
+		"place_hickston": [
+			"Respond to Stanky's Bar and Grill.",
+			"Respond to Main Street, by the feed barn."
+		],
+		"place_fair": [
+			"Respond to the fairgrounds midway."
+		],
+		"place_sawmill": [
+			"Respond to the sawmill."
+		],
+		"place_quarry": [
+			"Respond to Stillwater Quarry."
+		],
+		"place_bayou": [
+			"Respond to the fish camp on Gator Bayou."
+		],
+		"place_speedway": [
+			"Respond to Buzzard Bend Speedway."
+		],
+		"place_hub": [
+			"Respond to the county crossroads."
+		],
+		"place_mothership": [
+			"Respond to the sky. Somebody else take this one."
+		],
+		"tag": [
+			"Suspect is on foot. Real skinny legs.",
+			"Approach with caution.",
+			"Somebody wake up the deputy.",
+			"It's Mundell again, y'all.",
+			"Code three, lights and sirens."
+		]
+	}
+}

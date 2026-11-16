@@ -190,6 +190,18 @@ func _captions(cues: Dictionary) -> void:
 		for who: String in by_voice:
 			_cuss_lines(said, who, by_voice[who])
 	_cuss_lines(said, "mundell", pack.get("mundell", {}))
+	# The county radio (pass 8): Dub's lines, the scanner's, Dub's crude ones.
+	var radio := RadioStation.data()
+	var radio_count := 0
+	for part: Array in [["dj", "dj_"], ["scanner", "scan_"]]:
+		var groups: Dictionary = radio.get(part[0], {})
+		for group: String in groups:
+			var lines: Array = groups[group]
+			for n in lines.size():
+				said["%s%s_%d" % [part[1], group, n]] = str(lines[n])
+				radio_count += 1
+	_cuss_lines(said, "dj", radio.get("cuss", {}))
+	_check(radio_count >= 80, "the county radio's lines are in the list (%d)" % radio_count)
 	var wrong: Array = []
 	for cue: String in said:
 		if not cues.has(cue):

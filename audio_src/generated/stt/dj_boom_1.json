@@ -1,0 +1,85 @@
+{
+ "text": "Something just blew up out there. If it was your still, I'm sorry for your loss",
+ "words": [
+  {
+   "text": "Something",
+   "start": 0.1,
+   "end": 0.46
+  },
+  {
+   "text": "just",
+   "start": 0.58,
+   "end": 0.8
+  },
+  {
+   "text": "blew",
+   "start": 0.94,
+   "end": 1.18
+  },
+  {
+   "text": "up",
+   "start": 1.32,
+   "end": 1.48
+  },
+  {
+   "text": "out",
+   "start": 1.58,
+   "end": 1.84
+  },
+  {
+   "text": "there.",
+   "start": 1.9,
+   "end": 2.18
+  },
+  {
+   "text": "If",
+   "start": 2.26,
+   "end": 2.36
+  },
+  {
+   "text": "it",
+   "start": 2.44,
+   "end": 2.52
+  },
+  {
+   "text": "was",
+   "start": 2.56,
+   "end": 2.7
+  },
+  {
+   "text": "your",
+   "start": 2.76,
+   "end": 2.98
+  },
+  {
+   "text": "still,",
+   "start": 3.08,
+   "end": 3.42
+  },
+  {
+   "text": "I'm",
+   "start": 3.54,
+   "end": 3.7
+  },
+  {
+   "text": "sorry",
+   "start": 3.76,
+   "end": 4.019
+  },
+  {
+   "text": "for",
+   "start": 4.1,
+   "end": 4.2
+  },
+  {
+   "text": "your",
+   "start": 4.26,
+   "end": 4.36
+  },
+  {
+   "text": "loss",
+   "start": 4.4,
+   "end": 4.76
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "text": "No requests, no refunds, no sleep. Here's the ban",
+ "words": [
+  {
+   "text": "No",
+   "start": 0.08,
+   "end": 0.2
+  },
+  {
+   "text": "requests,",
+   "start": 0.3,
+   "end": 0.92
+  },
+  {
+   "text": "no",
+   "start": 1.06,
+   "end": 1.2
+  },
+  {
+   "text": "refunds,",
+   "start": 1.34,
+   "end": 1.96
+  },
+  {
+   "text": "no",
+   "start": 2.08,
+   "end": 2.2
+  },
+  {
+   "text": "sleep.",
+   "start": 2.34,
+   "end": 2.66
+  },
+  {
+   "text": "Here's",
+   "start": 2.7,
+   "end": 2.92
+  },
+  {
+   "text": "the",
+   "start": 2.96,
+   "end": 3.04
+  },
+  {
+   "text": "ban",
+   "start": 3.08,
+   "end": 3.48
+  }
+ ]
+}

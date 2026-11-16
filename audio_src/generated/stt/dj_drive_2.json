@@ -1,0 +1,60 @@
+{
+ "text": "Roll the windows down and let the whole county hear it",
+ "words": [
+  {
+   "text": "Roll",
+   "start": 0.08,
+   "end": 0.3
+  },
+  {
+   "text": "the",
+   "start": 0.32,
+   "end": 0.42
+  },
+  {
+   "text": "windows",
+   "start": 0.46,
+   "end": 0.98
+  },
+  {
+   "text": "down",
+   "start": 1.04,
+   "end": 1.4
+  },
+  {
+   "text": "and",
+   "start": 1.44,
+   "end": 1.54
+  },
+  {
+   "text": "let",
+   "start": 1.58,
+   "end": 1.78
+  },
+  {
+   "text": "the",
+   "start": 1.84,
+   "end": 1.92
+  },
+  {
+   "text": "whole",
+   "start": 1.96,
+   "end": 2.16
+  },
+  {
+   "text": "county",
+   "start": 2.3,
+   "end": 2.6
+  },
+  {
+   "text": "hear",
+   "start": 2.68,
+   "end": 2.86
+  },
+  {
+   "text": "it",
+   "start": 2.92,
+   "end": 3.08
+  }
+ ]
+}

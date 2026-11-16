@@ -1,0 +1,75 @@
+{
+ "text": "Fog on the bayou tonight, thick as gravy. Watch for gators in the road",
+ "words": [
+  {
+   "text": "Fog",
+   "start": 0.1,
+   "end": 0.38
+  },
+  {
+   "text": "on",
+   "start": 0.44,
+   "end": 0.58
+  },
+  {
+   "text": "the",
+   "start": 0.62,
+   "end": 0.7
+  },
+  {
+   "text": "bayou",
+   "start": 0.74,
+   "end": 1.18
+  },
+  {
+   "text": "tonight,",
+   "start": 1.28,
+   "end": 1.66
+  },
+  {
+   "text": "thick",
+   "start": 1.82,
+   "end": 2.04
+  },
+  {
+   "text": "as",
+   "start": 2.08,
+   "end": 2.22
+  },
+  {
+   "text": "gravy.",
+   "start": 2.26,
+   "end": 2.66
+  },
+  {
+   "text": "Watch",
+   "start": 2.76,
+   "end": 3.02
+  },
+  {
+   "text": "for",
+   "start": 3.04,
+   "end": 3.12
+  },
+  {
+   "text": "gators",
+   "start": 3.26,
+   "end": 3.66
+  },
+  {
+   "text": "in",
+   "start": 3.72,
+   "end": 3.82
+  },
+  {
+   "text": "the",
+   "start": 3.86,
+   "end": 3.9
+  },
+  {
+   "text": "road",
+   "start": 4.0,
+   "end": 4.4
+  }
+ ]
+}

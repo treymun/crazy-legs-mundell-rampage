@@ -485,6 +485,12 @@ Setting `chatter`: OFF 0, CLEAN 1, CUSSIN' 2, the owner's default;
   lines for every other voice's moments, Mundell's 9 and each chapter's tough
   guy's own line; and turns: nobody talks over a line still playing
   ([audio.md](audio.md#voices)).
+- The county radio (content pass 8, `features/radio.gd`, a looks feature):
+  KPSM's DJ between the songs and the police scanner react to what Mundell
+  does (a blast, a boss down, a car burnt out, a run of kills, drunk, a
+  secret, deaths; shots fired and a deputy down for the scanner); its own
+  RADIO setting, its crude lines follow CHATTER
+  ([audio.md](audio.md#the-county-radio-content-pass-8)).
 
 ## Things break
 
@@ -1335,7 +1341,9 @@ chapel path at Hickston. Only the campaign and co-op have them
   its `lamps` on (`effects.cfg [light.vehicle_lamp]`, a pool on the ground
   ahead of each, through `view_lights.gd`, and an `fx_flare` glow on the
   lamp) and its `radio` playing (the jukebox's loop through the radio
-  channel, `radio_volume`, within `radio_reach`; the jukebox wins);
+  channel, `radio_volume`, within `radio_reach`; the jukebox wins; KPSM's
+  DJ and scanner come from it when near, and taking it tunes it in: see
+  [audio.md](audio.md#the-county-radio-content-pass-8));
   the automap draws a little picture of it in the key's yellow
   (`VehicleFinder.ICONS`, and RIG, KEYS IN IT in the key); USE's prompt
   names it looked at from `spot_reach` ("AIRBOAT  /  KEYS IN IT"), only
