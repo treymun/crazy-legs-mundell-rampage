@@ -496,10 +496,14 @@ func _in_water(dt: float) -> void:
 		if w.fading >= 0.0:
 			continue
 		if w.floats < 0:
-			# Asked once each time it comes to rest.
-			w.floats = 0
-			if BayouBrains.wet_at(world, b.p.x, b.p.y):
-				w.floats = 2 if w.sinks else 1
+			# Asked once each time it comes to rest: all of it on the water.
+			w.floats = 2 if w.sinks else 1
+			var lying := Basis(b.q)
+			for k in 8:
+				var c := b.p + lying * b.points[k]
+				if not BayouBrains.wet_at(world, c.x, c.y):
+					w.floats = 0
+					break
 		if w.floats == 2:
 			b.p.z -= SINK_RATE * dt
 			if world.floor_under(b.p.x, b.p.y, 99.0) - b.p.z > SINK_DEEP:
@@ -509,14 +513,21 @@ func _in_water(dt: float) -> void:
 			continue
 		var phase := float(w.index) * 1.7 + b.p.x * .3
 		var way := flow * (1.0 + .4 * sin(game.clock * .41 + phase)) * dt
-		var to := b.p + Vector3(way.x, way.y, 0.0)
-		var edge := Vector2(signf(way.x), signf(way.y)) * minf(b.reach, .3)
-		if not BayouBrains.wet_at(world, to.x + edge.x, to.y + edge.y):
-			continue
-		if world.blocked(to.x, to.y, minf(b.reach, .3), b.p.z + .05):
-			continue
-		b.p = to
+		var was := b.p
+		var was_q := b.q
+		b.p += Vector3(way.x, way.y, 0.0)
 		b.q = (Quaternion(Vector3(0.0, 0.0, 1.0), DRIFT_TURN * dt * sin(phase)) * b.q).normalized()
+		# Every corner still over the water, none in the bank or a wall.
+		var turn := Basis(b.q)
+		var clear := true
+		for k in 8:
+			var c := b.p + turn * b.points[k]
+			if not BayouBrains.wet_at(world, c.x, c.y):
+				clear = false
+				break
+		if not clear or physics.inside(b) > .005:
+			b.p = was
+			b.q = was_q
 
 
 func _shrink(_dt: float) -> void:

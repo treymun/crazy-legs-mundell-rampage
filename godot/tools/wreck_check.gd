@@ -183,7 +183,7 @@ func _level(game: Game) -> void:
 		if d > worst:
 			worst = d
 			worst_body = w.body
-			where = "%s at %.2f,%.2f,%.2f" % [w.key, w.body.p.x, w.body.p.y, w.body.p.z]
+			where = "%s at %.2f,%.2f,%.2f floats %d awake %s" % [w.key, w.body.p.x, w.body.p.y, w.body.p.z, w.floats, w.body.awake]
 	if worst > TOL:
 		var b = worst_body
 		var turn := Basis(b.q)

@@ -25,6 +25,8 @@ const TOL := .03
 ## The most a loose thing's slab may turn in a tick once it is on its floor
 ## (radians): it eases over and rocks, never snaps flat.
 const SNAP := .35
+## How fast things are thrown at thin walls (units a second).
+const FAST := 24.0
 const LEVELS := ["hickston", "feedstore", "quarry", "sawmill", "county_hickston", "mothership"]
 
 var failures: Array = []
@@ -193,6 +195,51 @@ func _level(game: Game) -> void:
 	_check(decks + ramps + stairs > 0, "%s: something to drop on" % game.level.id)
 	_ok("%d decks, %d ramps, %d stairs" % [decks, ramps, stairs])
 	_walls(game, things)
+	_thin(game, things)
+
+
+## Thrown very fast (FAST) straight at a thin wall (a geometry segment that
+## stops loose things, a tenth of a unit thick), each thing stays its side:
+## tumble.gd splits a fast step so nothing skips through.
+func _thin(game: Game, things: Array) -> void:
+	var world := game.world
+	var tried := 0
+	var through := 0
+	for seg: LevelGeometry.Segment in world.geo.segments:
+		if not seg.sight or tried >= 4:
+			continue
+		var along := Vector2(seg.bx - seg.ax, seg.by - seg.ay)
+		if along.length() < 1.0:
+			continue
+		var mid := Vector2(seg.ax + seg.bx, seg.ay + seg.by) * .5
+		var n := Vector2(-along.y, along.x).normalized()
+		var from := mid + n * .6
+		var z := world.floor_under(from.x, from.y, seg.z0 + .3) + .25
+		if z + .3 > seg.z1 or z < seg.z0 or world.blocked(from.x, from.y, .3, z):
+			continue
+		if world.blocked(mid.x - n.x * .6, mid.y - n.y * .6, .3, z):
+			continue
+		tried += 1
+		for thing: Array in things:
+			var feel: Tumble.Feel = thing[1]
+			var b := Tumble.Body.new()
+			b.x = from.x
+			b.y = from.y
+			b.z = z + feel.lift
+			b.vx = -n.x * FAST
+			b.vy = -n.y * FAST
+			b.vz = 0.0
+			for _t in 120:
+				if b.rest:
+					break
+				if Tumble.step(world, b, feel, DT) & Tumble.RESTED:
+					b.rest = true
+			if (Vector2(b.x, b.y) - mid).dot(n) < 0.0:
+				through += 1
+				print("    %s went through %s at %s" % [thing[0], seg.id, Vector2(b.x, b.y)])
+	if tried > 0:
+		_check(through == 0, "%s: nothing thrown fast goes through a thin wall (%d)" % [game.level.id, through])
+		_ok("%d thin walls: everything thrown at %.0f stays its side" % [tried, FAST])
 
 
 ## The slab's footprint middle (INF when it is not inside its own cuts).
