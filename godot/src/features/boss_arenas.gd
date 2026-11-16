@@ -111,7 +111,7 @@ func attach() -> void:
 		var blue: float = c[2]
 		var strength: float = l[5]
 		game.trigger_lights.append([lx, ly, lz, radius, Color(red, green, blue), strength, INF])
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func restore(_state: Dictionary) -> void:

@@ -179,6 +179,20 @@ static func _bench(
 	var t5 := Time.get_ticks_usec()
 	GameSnapshot.apply(fresh, base)
 	var apply_ms := (Time.get_ticks_usec() - t5) / 1000.0
+	# What a client does every second (NetSync.Client._check_at): its copy
+	# captured and held to the snapshot of that tick; and a copy put back on
+	# a snapshot (_rebuild, onto the game already running).
+	var check_ms: Array = []
+	var again_ms: Array = []
+	for k in 5:
+		var t6 := Time.get_ticks_usec()
+		GameSnapshot.first_difference(
+			NetSync.comparable(base), NetSync.comparable(NetSync.capture(fresh))
+		)
+		var t7 := Time.get_ticks_usec()
+		GameSnapshot.apply(fresh, base)
+		again_ms.append((Time.get_ticks_usec() - t7) / 1000.0)
+		check_ms.append((t7 - t6) / 1000.0)
 	print(
 		(
 			(
@@ -198,6 +212,12 @@ static func _bench(
 				int(_median(d_raw)),
 				apply_ms
 			]
+		)
+	)
+	print(
+		(
+			"    client: check against a snapshot %.2f ms; put back on one (running) %.2f ms"
+			% [_median(check_ms), _median(again_ms)]
 		)
 	)
 	if host_script != null:

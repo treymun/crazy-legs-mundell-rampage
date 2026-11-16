@@ -108,7 +108,7 @@ func attach() -> void:
 	speck_dice.seed = hash(game.level.id) + 1314
 	game.events.shot_fired.connect(_fired)
 	game.events.exploded.connect(_blast)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 ## How many animals have been sent running, players knocked flat and cows

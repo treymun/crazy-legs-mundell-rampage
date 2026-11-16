@@ -41,6 +41,7 @@ const STEPS := [
 	"county_check",
 	"geometry_check",
 	"map_check",
+	"leak_check",
 ]
 ## The parts check_all and CI run side by side, balanced by STEP TIMES (on
 ## the desktop each part takes about 45 s; on a GitHub runner about three
@@ -94,6 +95,8 @@ func _run() -> void:
 				_boss_music(main)
 			"crash_log":
 				_crash_log(main)
+			"leak_check":
+				await load("res://tools/leak_check.gd").run(main, check)
 			_:
 				load("res://tools/%s.gd" % step).run(main, check)
 		times[step] = (Time.get_ticks_msec() - step_began) / 1000.0

@@ -1,13 +1,18 @@
 # Tuning data
 
 The game's numbers live in `godot/data/tuning/`. Edit these, not the scripts.
-A running game from the project folder reloads `weapons.cfg`, `enemies.cfg`,
-`effects.cfg` and `shots.cfg` within a second (`Tuning.watch()`, `tuning.gd`;
-values are Godot ConfigFile text, so 6 and 6.0 differ). The newer files are
-mostly read into static vars when their scripts load, so a change to them
-shows at the next start (store.cfg's header says a match started after the
-change uses it; `county.json` has its own stamp check in `county_data.gd`).
-Each `.cfg` file's own comments say what every key means.
+A running game from the project folder reads a saved `.cfg` again within a
+second and puts it to use where it can (the dev console's watch,
+`dev_tune.gd`; values are Godot ConfigFile text, so 6 and 6.0 differ):
+weapons, enemies (those in play too), shots and effects through their
+loaders, and the `static var`s the scripts read from the files, worked out
+again from their own lines; the console says each change and where it took.
+The console's `tune get/set/save/reload` tweak them in play (see
+[gameplay.md](gameplay.md), the developer console); never online. What a
+script keeps another way shows at the next level or start (store.cfg's
+header says a match started after the change uses it; `county.json` has its
+own stamp check in `county_data.gd`). Each `.cfg` file's own comments say
+what every key means.
 
 Scripts keep their old constant names as `static var`s loaded from these
 files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example

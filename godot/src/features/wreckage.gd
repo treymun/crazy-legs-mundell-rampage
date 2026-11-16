@@ -126,7 +126,7 @@ func attach() -> void:
 			if not src.is_empty():
 				keys.append(str(src["key"]))
 		WreckCuts.prepare(keys)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.exploded.connect(_exploded)
 	game.events.blast_shoved.connect(_shoved)
 

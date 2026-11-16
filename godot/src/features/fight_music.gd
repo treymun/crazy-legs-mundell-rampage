@@ -52,7 +52,7 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	# The local player's fight (another player's blows set no music here).
 	game.events.player_hurt.connect(func(_amount: float, _cause: String) -> void: _struck_here())
 	game.events.hit_landed.connect(func(_amount: float, _killed: bool) -> void: _struck_here())

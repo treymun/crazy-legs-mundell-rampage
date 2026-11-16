@@ -320,16 +320,20 @@ func _watch(o: Object, names: PackedStringArray, depth: int, key := "", whole :=
 		w.guard = names.find("net_version")
 		w.guard_seen = o.get("net_version")
 	for i in names.size():
+		if guarded.has(names[i]) and w.guard >= 0:
+			# Looked at as the snapshot carries it (SnapCodec.guarded: a
+			# table, kept until net_version moves), never object by object.
+			w.vals[i] = var_to_bytes(codec.guarded(o, names[i]))
+			w.guarded.append(i)
+			w.hot_mask[i] = 2
+			continue
 		var v: Variant = o.get(w.snames[i])
 		w.vals[i] = _kept(v)
 		if not whole:
 			w.kids[i] = _kids_of(v, depth)
 			if w.kids[i] != null:
 				w.leaf = false
-		if guarded.has(names[i]) and w.guard >= 0:
-			w.guarded.append(i)
-			w.hot_mask[i] = 2
-		elif hot.has(names[i]) and not whole:
+		if hot.has(names[i]) and not whole:
 			w.hot.append(i)
 			w.hot_mask[i] = 1
 		else:
@@ -491,7 +495,11 @@ func _diff(w: Watch) -> Dictionary:
 		if version != w.guard_seen:
 			w.guard_seen = version
 			for i in w.guarded:
-				_field(w, i, obj.get(snames[i]), out)
+				var enc: Variant = codec.guarded(obj, w.names[i])
+				var bytes := var_to_bytes(enc)
+				if bytes != w.vals[i]:
+					w.vals[i] = bytes
+					out[w.names[i]] = {"@new": enc} if enc is Dictionary else enc
 	changed += out.size()
 	return out
 

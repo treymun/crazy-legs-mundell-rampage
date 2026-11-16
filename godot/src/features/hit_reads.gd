@@ -83,7 +83,7 @@ func attach() -> void:
 	speck_dice.seed = hash(game.level.id) + 4022
 	_feel.grip = .5
 	_feel.hard = 1.4
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 ## How many heads popped this game (tools read it).
@@ -221,12 +221,15 @@ func picked_up(e: Enemy) -> void:
 
 func _add(b: Bit) -> void:
 	bits.append(b)
+	wake()
 	if bits.size() > MAX_BITS:
 		bits.pop_front()
 
 
 func _tick(dt: float) -> void:
 	if bits.is_empty():
+		# Nothing knocked loose: asleep until something is (_add).
+		sleep()
 		return
 	var gone: Array = []
 	for b: Bit in bits:

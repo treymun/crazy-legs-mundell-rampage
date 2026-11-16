@@ -1328,24 +1328,25 @@ func toggle_door(door: LevelData.Door, opened: bool) -> void:
 # ------------------------------------------------------------ projectiles
 
 
-func burst(x: float, y: float, z: float, kind: String, count: int, speed: float) -> void:
+## Specks thrown from (x, y, z) off game.rng. `keep` false: the dice are
+## spent but nothing is thrown. Specks are presentation (never carried), so
+## with more than one player what this machine shows (its specks, its GORE
+## setting) must never decide what game.rng spends: a copy put back on a
+## snapshot keeps its own specks, and its dice would part from the host's.
+func burst(
+	x: float, y: float, z: float, kind: String, count: int, speed: float, keep := true
+) -> void:
 	if kind == "gore" and not gore:
-		return
+		if players.size() < 2:
+			return
+		keep = false
 	for _i in count:
 		var angle := rng.random() * TAU
 		var v := rng.uniform(.24, speed)
-		specks.append(
-			Speck.new(
-				x,
-				y,
-				z,
-				cos(angle) * v,
-				sin(angle) * v,
-				rng.uniform(.2, speed * 1.3),
-				rng.uniform(.18, .68),
-				kind
-			)
-		)
+		var up := rng.uniform(.2, speed * 1.3)
+		var life := rng.uniform(.18, .68)
+		if keep:
+			specks.append(Speck.new(x, y, z, cos(angle) * v, sin(angle) * v, up, life, kind))
 
 
 func scenery_used(prop: LevelData.Scenery) -> bool:

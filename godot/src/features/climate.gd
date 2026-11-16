@@ -49,7 +49,7 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 51
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	var hard := rain_strength()
 	if hard > 0.0 and showers() <= 0.0:
 		# A storm chapter starts in its storm, the ground soaked, puddles out.

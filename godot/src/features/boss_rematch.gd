@@ -22,13 +22,17 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.enemy_killed.connect(_killed)
 	game.events.level_won.connect(_won)
 	game.events.boss_intro.connect(fight_began)
 
 
 func _tick(_dt: float) -> void:
+	if not active or said:
+		# No rematch here (BossRematch.build wakes it), or it is told.
+		sleep()
+		return
 	if active and fell >= 0.0 and not said:
 		# Over the chapter's own word on the fall (Jerry is not coming).
 		said = true

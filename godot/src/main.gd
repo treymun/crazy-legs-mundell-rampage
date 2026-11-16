@@ -541,8 +541,6 @@ func _process(delta: float) -> void:
 	if view_tour != "":
 		_view_tour()
 		return
-	if Tuning.watch():
-		notice("TUNING RELOADED.")
 	if waiting_play != null and art.chapter_ready(waiting_play.level.id):
 		play(waiting_play)
 	if game != null:
@@ -812,7 +810,11 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 			TacticalScreens.take_pending(controls)
 		if pilots.is_empty() or game.players.size() < 2:
 			replays.before(game, options, mode_options, SIM_STEP, controls, step_i == 0)
+			var timed := console != null and console.overlays.ticks
+			var tick_began := Time.get_ticks_usec() if timed else 0
 			game.tick(SIM_STEP, controls)
+			if timed:
+				console.overlays.tick_took(game, Time.get_ticks_usec() - tick_began)
 			replays.after(game, step_i == steps - 1)
 		else:
 			_tick_party(controls)

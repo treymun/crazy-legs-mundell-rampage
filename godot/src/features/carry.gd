@@ -110,7 +110,7 @@ func attach() -> void:
 	_bk = game.features.get("breakables")
 	if _bk != null:
 		_find()
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func _num(section: String, key: String) -> float:

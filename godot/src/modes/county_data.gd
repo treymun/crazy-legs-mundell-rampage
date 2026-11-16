@@ -2,7 +2,7 @@
 ## Run"): the three maps and their enemy mix, the XP curve, the spawner, the
 ## starting kit, each weapon's card, every upgrade, perk and milestone. Read
 ## once and kept; a run started from the project folder after the file
-## changed reads it again (Tuning.watch's clock is the file's own time).
+## changed reads it again (the file's own time is its clock).
 class_name CountyData
 extends RefCounted
 

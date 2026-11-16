@@ -17,15 +17,26 @@
 ##   show map|fps|off       overlays: a map of walls, enemies (and the way
 ##                          hunting ones will take), triggers and lights; a
 ##                          frame-time graph
+##   show ai|paths|hits|net|ticks   overlays over the view (src/dev_overlays.gd):
+##                          enemies' state and squad part, their paths and the
+##                          flow field, hit boxes and hitscan traces, the
+##                          online link, tick time by listener
+##   tune reload [file]     data/tuning read again and put to use (src/dev_tune.gd)
+##   tune get <section.key> | tune get <file> <section> <key>
+##   tune set <file> <section> <key> <value>   in play, not on disk ...
+##   tune save [file]       ... till this writes the .cfg (comments kept)
 ##
+## A saved tuning file is read again by itself within a second (tick()). The
+## tune commands that change numbers refuse online.
 ## run() takes the same text from scripts (tools/check_fixes.gd uses it).
 class_name DevConsole
 extends RefCounted
 
 const HELP := (
 	"GOD  GIVE <GUN|ALL>  AMMO  HEAL  SPAWN <KIND> [N]  KILLALL  TP <X> <Y>  WHERE  "
-	+ "TIME <SCALE>  TRIGGER <ID>  RELOAD  LEVEL <ID>  STATS  REMATCH  SHOW MAP|FPS|OFF  "
-	+ "REPLAY SAVE"
+	+ "TIME <SCALE>  TRIGGER <ID>  RELOAD  LEVEL <ID>  STATS  REMATCH  "
+	+ "SHOW MAP|FPS|AI|PATHS|HITS|NET|TICKS|OFF  REPLAY SAVE  "
+	+ "TUNE RELOAD|GET|SET|SAVE"
 )
 const ChapterStatsFeature := preload("res://src/features/chapter_stats.gd")
 const MAP_CELL := 4
@@ -39,6 +50,8 @@ var log := PackedStringArray()
 var show_map := false
 var show_fps := false
 var frames := PackedFloat32Array()
+var overlays := DevOverlays.new()
+var tune := DevTune.new()
 
 
 func _init(owner: MainFlow) -> void:
@@ -107,16 +120,24 @@ func run(command: String) -> String:
 		main.start(words[1])
 		return _say("level " + words[1])
 	if verb == "show":
-		# Each overlay turns on and off by itself; "off" clears both.
+		# Each overlay turns on and off by itself; "off" clears them all.
 		var what := words[1] if words.size() > 1 else "off"
 		if what == "map":
 			show_map = not show_map
 		elif what == "fps":
 			show_fps = not show_fps
-		else:
+		elif not overlays.toggle(what):
 			show_map = false
 			show_fps = false
-		return _say("map %s, fps %s" % ["on" if show_map else "off", "on" if show_fps else "off"])
+			overlays.off()
+		return _say(
+			(
+				"map %s, fps %s, %s"
+				% ["on" if show_map else "off", "on" if show_fps else "off", overlays.states()]
+			)
+		)
+	if verb == "tune":
+		return _tune(command, game)
 	if verb == "rematch":
 		# Every boss on the title's BOSS REMATCH board, for this session.
 		BossRematch.unlock_all = true
@@ -215,14 +236,88 @@ func _on_game(verb: String, words: PackedStringArray, game: Game) -> String:
 	return _say("unknown: " + verb + "  (help lists them)")
 
 
+## The tune commands (src/dev_tune.gd), from the command as typed (a
+## section, a key and a value keep their case).
+func _tune(command: String, game: Game) -> String:
+	var words := command.strip_edges().split(" ", false)
+	var sub := words[1].to_lower() if words.size() > 1 else ""
+	if sub == "get":
+		var found: Array = []
+		if words.size() == 3:
+			found = tune.find(words[2])
+		elif words.size() >= 5:
+			var path := DevTune.path_of(words[2])
+			if path != "" and Tuning.file(path).has_section_key(words[3], words[4]):
+				found = [
+					[path, words[3], words[4], Tuning.file(path).get_value(words[3], words[4])]
+				]
+		if found.is_empty():
+			return _say("no such value (tune get <section.key>)")
+		var said := PackedStringArray()
+		for row: Array in found:
+			var path: String = row[0]
+			said.append(
+				"%s [%s] %s = %s" % [path.get_file(), row[1], row[2], DevTune.shown(row[3])]
+			)
+		return _tell(said)
+	if not sub in ["set", "reload", "save"]:
+		return _say(
+			"tune reload [file] | get <section.key> | set <file> <section> <key> <value> | save [file]"
+		)
+	if main.net != null:
+		# Every machine in a match must play the same numbers.
+		return _say("not online: tuning would part the players")
+	var file := DevTune.path_of(words[2]) if words.size() > 2 else ""
+	if words.size() > 2 and file == "":
+		return _say("no tuning file " + words[2])
+	var lines := PackedStringArray()
+	match sub:
+		"set":
+			if words.size() < 6:
+				return _say("tune set <file> <section> <key> <value>")
+			var value := " ".join(words.slice(5))
+			lines = tune.set_value(file, words[3], words[4], value, game)
+		"reload":
+			lines = tune.reload(PackedStringArray([file]) if file != "" else DevTune.files(), game)
+		"save":
+			return _tell(
+				tune.save(PackedStringArray([file]) if file != "" else PackedStringArray())
+			)
+	if game != null and not (lines.size() == 1 and lines[0] == "no changes"):
+		# New numbers mid-run: a keyframe in the run's replay.
+		main.replays.touched(game)
+	return _tell(lines)
+
+
+## Several lines to the log (and the terminal); returns them as one text.
+func _tell(lines: PackedStringArray) -> String:
+	for text in lines:
+		print("tune: ", text)
+		_say(text)
+	return "\n".join(lines)
+
+
 func tick(delta: float) -> void:
 	frames.append(delta * 1000.0)
 	if frames.size() > 120:
 		frames = frames.slice(frames.size() - 120)
+	overlays.frame(main.game)
+	# A tuning file saved since it was read: read again, but never online (the
+	# change waits for the match to end).
+	if main.net == null:
+		var lines := tune.watch(main.game)
+		if not lines.is_empty():
+			_say("tuning file changed on disk")
+			_tell(lines)
+			main.notice("TUNING RELOADED.")
+			if main.game != null:
+				main.replays.touched(main.game)
 
 
 func draw(c: Canvas) -> void:
 	var game: Game = main.game
+	if overlays.any():
+		overlays.draw(c, game, main)
 	if show_map and game != null:
 		_draw_map(c, game)
 	if show_fps:

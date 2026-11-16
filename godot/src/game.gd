@@ -12,12 +12,18 @@ const ModeFeatureScript := preload("res://src/features/mode_feature.gd")
 const CarryScript := preload("res://src/features/carry.gd")
 const FireScript := preload("res://src/features/fire.gd")
 
+## Every Game made in this process, weakly (a list, never an owner): what
+## dispose_all() lets go of as the process ends.
+static var _made: Array[WeakRef] = []
+static var _exit_hooked := false
+
 
 ## `p_host`: an authoritative host's game (game_host.gd), with no presentation.
 func _init(
 	p_art: Assets, p_hud: HUD, p_sound: Variant, level_id := "hickston", p_host := false
 ) -> void:
 	host = p_host
+	_note_made()
 	gore_fx = Gore.new(self)
 	art = p_art
 	hud = p_hud
@@ -169,6 +175,56 @@ func _init(
 	Features.attach_all(self)
 	message(level.introduction, 5.0)
 	events.level_started.emit(level.id)
+
+
+## Lets go of everything in the game that points back at it, so it is freed
+## once its last holder drops it: the features (each detach()es), the gore,
+## the other players' voices and every listener of its events. A game holds
+## its features and they hold it (and the like), a cycle reference counting
+## never frees on its own. After this the game is spent: never tick, draw or
+## save it again. Called wherever a game is let go for good (main_flow.gd's
+## GamePool, the lobby server's, GameHost.close()); twice is harmless.
+func dispose() -> void:
+	for owner_of: Object in [events, self]:
+		for sig: Dictionary in owner_of.get_signal_list():
+			var sig_name: StringName = sig["name"]
+			for link: Dictionary in owner_of.get_signal_connection_list(sig_name):
+				var listener: Callable = link["callable"]
+				owner_of.disconnect(sig_name, listener)
+	events.clear_ticks()
+	for key: String in features:
+		var feature: GameFeature = features[key]
+		feature.detach()
+	features.clear()
+	if gore_fx != null:
+		gore_fx.game = null
+	for q: Player in players:
+		# Its voice holds the game and the player back (player_voice.gd).
+		q.voice = null
+	# The HUD every game shares holds the last game it showed (hud.gd).
+	hud = null
+
+
+## Disposes every game this process made that is still about (as the process
+## ends, from the scene tree's root leaving: a tool's last games too).
+static func dispose_all() -> void:
+	for ref: WeakRef in _made:
+		var made: Game = ref.get_ref()
+		if made != null:
+			made.dispose()
+	_made.clear()
+
+
+func _note_made() -> void:
+	_made = _made.filter(func(ref: WeakRef) -> bool: return ref.get_ref() != null)
+	_made.append(weakref(self))
+	if _exit_hooked:
+		return
+	var loop := Engine.get_main_loop()
+	if loop is SceneTree:
+		var tree: SceneTree = loop
+		tree.root.tree_exiting.connect(Callable(Game, &"dispose_all"))
+		_exit_hooked = true
 
 
 ## One step of the game (Game.tick of the reference): each player's controls,

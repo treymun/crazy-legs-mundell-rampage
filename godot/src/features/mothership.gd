@@ -101,7 +101,7 @@ func attach() -> void:
 		on_range = true
 		pods = RANGE.MAW_PODS.duplicate()
 		_take_pods()
-		game.events.ticked.connect(_tick)
+		tick_with(_tick)
 		game.events.enemy_killed.connect(_killed)
 		return
 	if game.level.id != LEVEL:
@@ -112,7 +112,7 @@ func attach() -> void:
 	pods = game.world.boss_decoys.duplicate()
 	_take_pods()
 	_light_the_ship()
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.station_done.connect(_station)
 	game.events.enemy_killed.connect(_killed)
 

@@ -199,6 +199,7 @@ static func build(make_game: Callable, kind: String) -> Game:
 		return null
 	var feature: BossRematchFeature = g.features["boss_rematch"]
 	feature.active = true
+	feature.wake()
 	feature.kind = kind
 	_prune(g, boss)
 	_finish_stations(g)

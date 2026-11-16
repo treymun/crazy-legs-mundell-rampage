@@ -6,9 +6,10 @@
 ## Vector2 and Vector3i are written as such).
 ##
 ## Weapons and Enemy load them when their scripts load. When the game runs
-## from the project folder, main.gd calls watch() and a saved change is picked
-## up in under a second, with no restart: fire rates, damage, how a gun sits
-## in view, enemy speed and reach.
+## from the project folder the dev console (src/dev_tune.gd) asks changed()
+## every frame and a saved change is picked up in under a second, with no
+## restart: fire rates, damage, how a gun sits in view, enemy speed and reach,
+## and the static values the scripts read from the files.
 class_name Tuning
 extends RefCounted
 
@@ -76,26 +77,35 @@ static func sections(path: String) -> PackedStringArray:
 	return out
 
 
-## Reload the files if one was saved since it was read; true when one was.
-## Only when running from the project folder: an exported game cannot change.
-static func watch() -> bool:
+## The file as last read (null: not read yet), without reading it.
+static func cached(path: String) -> ConfigFile:
+	return _files.get(path)
+
+
+## Use `cfg` for `path` from now on (DevTune: a file read again, or edited by
+## hand), stamped with the file's time on disk now.
+static func put(path: String, cfg: ConfigFile) -> void:
+	_files[path] = cfg
+	_stamps[path] = FileAccess.get_modified_time(path)
+
+
+## The files read that were saved since (at most every half second; never in
+## an exported game, which cannot change). DevTune reads them again.
+static func changed() -> PackedStringArray:
+	var out := PackedStringArray()
 	if OS.has_feature("template"):
-		return false
+		return out
 	var now := Time.get_ticks_msec()
 	if now < _next_check:
-		return false
+		return out
 	_next_check = now + 500
-	var changed := false
-	for path: String in _stamps:
+	for path: String in _stamps.keys():
+		if not FileAccess.file_exists(path):
+			# Gone (a tool's copy): forgotten.
+			_stamps.erase(path)
+			_files.erase(path)
+			continue
 		var stamp: int = _stamps[path]
 		if FileAccess.get_modified_time(path) != stamp:
-			changed = true
-	if not changed:
-		return false
-	_files.clear()
-	_stamps.clear()
-	Weapons.load_tuning()
-	Enemy.load_tuning()
-	Effects.load_tuning()
-	Shots.load_tuning()
-	return true
+			out.append(path)
+	return out

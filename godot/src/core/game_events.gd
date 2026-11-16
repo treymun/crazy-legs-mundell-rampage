@@ -75,3 +75,95 @@ signal boss_phase(enemy: Enemy, phase: int)
 signal boss_staggered(enemy: Enemy)
 signal boss_weak_hit(enemy: Enemy)
 signal boss_down(enemy: Enemy, seconds: float)
+
+## The features' ticks (GameFeature.tick_with), in the order they were added
+## (the features' own order), each run on `ticked` while its feature is
+## awake. One listener of `ticked` runs them all, connected first, so a
+## feature put to sleep (GameFeature.sleep(): nothing to do until something
+## wakes it) costs nothing, and one woken runs in its old place again (in the
+## same tick, when what woke it came earlier in that tick).
+var _ticks: Array[Callable] = []
+var _awake := PackedByteArray()
+## Owner instance id -> the indices of its ticks.
+var _ticks_of := {}
+## While true (the dev console's `show ticks`), each tick's microseconds
+## add up in `tick_us` by its place in the list; off, it costs one test a
+## tick. Looks only: timing never changes what the ticks do.
+var timing := false
+var tick_us := PackedInt64Array()
+
+
+func _init() -> void:
+	ticked.connect(_run_ticks)
+
+
+## `on_tick(dt)` each tick while `owner` is awake (it starts awake).
+func add_tick(owner: Object, on_tick: Callable) -> void:
+	var key := owner.get_instance_id()
+	var mine: PackedInt32Array = _ticks_of.get(key, PackedInt32Array())
+	mine.append(_ticks.size())
+	_ticks_of[key] = mine
+	_ticks.append(on_tick)
+	_awake.append(1)
+
+
+## Puts `owner`'s ticks to sleep (false) or wakes them (true).
+func set_awake(owner: Object, awake: bool) -> void:
+	var mine: Variant = _ticks_of.get(owner.get_instance_id())
+	if mine == null:
+		return
+	var on := 1 if awake else 0
+	for i: int in mine:
+		_awake[i] = on
+
+
+func is_awake(owner: Object) -> bool:
+	var mine: Variant = _ticks_of.get(owner.get_instance_id())
+	if mine == null:
+		return false
+	for i: int in mine:
+		if _awake[i] != 0:
+			return true
+	return false
+
+
+## Every tick awake again (a snapshot or a save was put on the game: each
+## feature sees for itself on its next tick whether it has work).
+func wake_all() -> void:
+	_awake.fill(1)
+
+
+## [tick (Callable), awake] for each, in order (tools/tick_profile.gd times them).
+func tick_list() -> Array:
+	var out: Array = []
+	for i in _ticks.size():
+		out.append([_ticks[i], _awake[i] != 0])
+	return out
+
+
+## Lets go of every tick (Game.dispose()).
+func clear_ticks() -> void:
+	_ticks.clear()
+	_awake.clear()
+	_ticks_of.clear()
+
+
+func _run_ticks(dt: float) -> void:
+	if timing:
+		_run_timed(dt)
+		return
+	for i in _ticks.size():
+		if _awake[i] != 0:
+			_ticks[i].call(dt)
+
+
+func _run_timed(dt: float) -> void:
+	if tick_us.size() != _ticks.size():
+		tick_us = PackedInt64Array()
+		tick_us.resize(_ticks.size())
+		tick_us.fill(0)
+	for i in _ticks.size():
+		if _awake[i] != 0:
+			var t0 := Time.get_ticks_usec()
+			_ticks[i].call(dt)
+			tick_us[i] += Time.get_ticks_usec() - t0

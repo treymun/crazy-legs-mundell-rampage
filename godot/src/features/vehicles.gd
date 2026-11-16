@@ -102,7 +102,7 @@ func attach() -> void:
 	if not line.is_empty():
 		middle /= line.size()
 		line.append(line[0])
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.exploded.connect(_blast)
 
 
@@ -804,7 +804,8 @@ func _clear_hull(v: VehicleDrive.Ride, s: VehicleDrive.Spec) -> void:
 			game.move_actor(q, push.x, push.y, GameState.PLAYER_RADIUS)
 			game.focus(game.local_player)
 	for e: Enemy in game.enemies:
-		if not e.alive or e.dormant or absf(e.x - v.x) > far or absf(e.y - v.y) > far:
+		# Far first: `alive` is worked out (the same hands pass either way).
+		if absf(e.x - v.x) > far or absf(e.y - v.y) > far or e.dormant or not e.alive:
 			continue
 		var out := VehicleDrive.out_of(s, v, e.x, e.y, e.radius)
 		if out != Vector2.INF and not Enemy.BOSS_TITLES.has(e.kind):

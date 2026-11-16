@@ -28,7 +28,8 @@
 class_name NetWire
 extends RefCounted
 
-const PROTOCOL := 3
+## 4: snapshot version 3 (a feature's guarded lists travel as tables).
+const PROTOCOL := 4
 const HELLO := 1
 const WELCOME := 2
 const INPUTS := 3

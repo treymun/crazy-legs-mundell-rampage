@@ -54,7 +54,7 @@ func attach() -> void:
 		if game.level.id == "mothership" and spot is Vector4:
 			var heat: Vector4 = spot
 			_sources.append([heat.x, heat.y, "core_thrum"])
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func _tick(_dt: float) -> void:

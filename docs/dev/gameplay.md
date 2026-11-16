@@ -133,7 +133,46 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   `dev_console.gd`): spawn, give, god, tp, time, trigger, reload, stats, and
   overlays (`show map`: walls, enemies by state with the hunting ones' paths,
   triggers, lights; `show fps`). `DevConsole.run()` takes the same text from
-  scripts.
+  scripts. Every command that changes the game is a keyframe in the run's
+  replay.
+- **Overlays over the view** (`show ai|paths|hits|net|ticks`, each on and off
+  by itself, `show off` clears all; `dev_overlays.gd`): drawn on the canvas
+  after the game, with points put on screen by the view's own sums
+  (`game.view_frame`'s eye and horizon, `game.view.focal`), so they sit on the
+  3D view and draw headless too. `ai`: each enemy's kind and state (ASLEEP,
+  IDLE, FIGHT, HUNT, LOST, plus WIND, STUN, COVER, FETCH, BRAWL...), its squad
+  part (`Squad.Mind`: FLANK, PRESS, FLUSH, SEARCH, an idle activity...), who
+  it is after and how long it has seen the player. `paths`: the flow field's
+  arrows round the player and the next ten steps of each alerted enemy, its
+  `target` marked. `hits`: each body's cylinder with the legs and head lines
+  (`HitZones.LEGS_BELOW`, `HEAD_AT`) and the last eight `traced` hitscan
+  lines (red on an enemy). `net`: online, the link's bytes a second, input to
+  ack (the round trip plus playout), ticks behind the newest snapshot,
+  mismatches, the prediction's last gap, the host's last full and delta
+  snapshot sizes; read by name, so they tolerate the net code moving on.
+  `ticks`: a bar a tick (8 px a ms) and the costliest `ticked` listeners, by
+  probes woven between them as `tick_profile.gd` times them (each listener
+  connected again in its own order and flags, so play is the same; woven
+  again when one joins or leaves; taken out when off), the rest as CORE
+  (main.gd times the tick only while it is on). Looks only, and nothing is
+  listened to or timed while off; `tune_check.gd` holds both.
+- **Live tuning** (`tune ...`, `dev_tune.gd`): `tune set <file> <section>
+  <key> <value>` changes the file as read (Godot value text; a whole number
+  given for a float stays a float), `tune get <section.key>` finds it in
+  every file, `tune reload [file]` reads from disk, `tune save [file]` writes
+  the set values into the .cfg (`tune_text.gd`: just those keys' lines, a
+  multi-line value whole; comments, order and line endings kept). A saved
+  file is read again by itself within a second (`Tuning.changed()`, asked from
+  the console's tick). Each change prints `file [section] key: old -> new
+  (where)`: `live` for weapons, enemies, shots and effects (their loaders run
+  again; enemies in play are scaled by their kind's new hp, speed, radius,
+  height over the old, so co-op toughness and variants stay), `live:
+  Class.VAR` for a `static var` whose line reads tuning (re-worked out with
+  an `Expression` on its script and set; about 400 of them), `level: reload`
+  for a level's mood, `restart the game` for a static whose line could not be
+  worked out again, `when read` otherwise (some code reads it only at a
+  level's start: `reload`). Refused online (`main.net`), the watch too, till
+  the match ends. Only the .cfg files; county.json reads itself again.
 
 ## Levels in play
 
