@@ -240,6 +240,9 @@ var moving_floors := {}
 var road_and_hub: Array = []
 var hub_gates: Array = []
 var locked_gates: Array = []
+## Wall rows a shut boss arena stands in its gaps (features/boss_lock.gd),
+## drawn with the doors.
+var lock_walls := PackedFloat32Array()
 
 var enemies: Array = []
 var patrols := {}
@@ -1257,7 +1260,7 @@ func active_base(at_hub: bool) -> PackedFloat32Array:
 func active_walls(at_hub: bool) -> PackedFloat32Array:
 	# Only doors and gates move (and the light, which the walls carry, changes
 	# with light_version): the list is made again only when one of them has.
-	var key: Array = [at_hub, light_version, locked_gates.size()]
+	var key: Array = [at_hub, light_version, locked_gates.size(), lock_walls.size()]
 	if not at_hub:
 		for door in doors:
 			key.append(door.progress)
@@ -1279,6 +1282,7 @@ func _make_active(at_hub: bool) -> PackedFloat32Array:
 	# Crossroads has no road split, so the renderer never asks for at_hub there.
 	for gate: Gate in locked_gates:
 		out.append_array(gate.barrier())
+	out.append_array(lock_walls)
 	if not at_hub:
 		for door in doors:
 			var seg := door.segment()

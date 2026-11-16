@@ -1,7 +1,9 @@
 ## The boss fight's set pieces and looks (boss_kit.gd has the parts the fight
 ## itself calls; each boss's own moves are src/bosses/):
-##   entrance     the first time a boss's fight begins (awake with the player in
-##                its arena, or hurt), once a save: the world holds
+##   entrance     the first time a boss's fight begins (awake with someone well
+##                into its arena: BossKit.party_started; a boss without a lock
+##                also once hurt), once a save; features/boss_lock.gd shuts
+##                its ways in. The world holds
 ##                BossKit.INTRO seconds while the view comes round and its name
 ##                comes down (BossKit.hold, draw_intro). Real play only
 ##                (game.lessons): tools, tours, benches and bots never get one.
@@ -132,16 +134,18 @@ func _tick(_dt: float) -> void:
 			_begin(e)
 
 
-## Its fight is on: awake and the player in its arena, or already hurt.
+## Its fight is on: awake and someone in its arena (a locked arena: well past
+## its ways in, BossKit.party_started). A boss without a lock begins hurt too;
+## a locked one never does from outside (a hand's stick, a drum or a fire
+## that hurts it is no start).
 func _begins(e: Enemy) -> bool:
-	return (
-		e.alive
-		and e.alerted
-		and not game.in_hub
-		and game.slowmo <= 0.0
-		and game.boss_hold <= 0.0
-		and (e.hp < e.max_hp or BossKit.party_in_arena(game, e))
-	)
+	if not e.alive or not e.alerted or game.in_hub:
+		return false
+	if game.slowmo > 0.0 or game.boss_hold > 0.0:
+		return false
+	if BossKit.party_started(game, e):
+		return true
+	return e.hp < e.max_hp and BossFight.lock_of(game, e.kind).is_empty()
 
 
 func _begin(e: Enemy) -> void:
@@ -234,6 +238,11 @@ func hidden_spots(e: Enemy, want: int) -> Array:
 				var a := away + turn * TAU / 24.0
 				var at := Vector2(e.x + cos(a) * ring, e.y + sin(a) * ring)
 				if not _spawnable(at, out):
+					continue
+				if (
+					not BossFight.lock_of(game, e.kind).is_empty()
+					and not BossFight.in_room(game, e.kind, at.x, at.y)
+				):
 					continue
 				var seen: bool = w.visible(
 					p.x, p.y, at.x, at.y, p.eye, w.elevation(at.x, at.y) + .9

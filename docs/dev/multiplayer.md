@@ -150,7 +150,8 @@ are shared by reference in Godot 4: encode and decode copy them):
 - "world" (each door's progress, opened and discovered by its place in the
   level's list; the panes broken, in breaking order);
 - "facts" (`FACT_FEATURES`' own save(): what breakables and wall breaks broke,
-  which changes the level's walls and floor);
+  which changes the level's walls and floor; the arena wreck; the boss arena
+  shut, `boss_lock`, whose restore lays its solid cells and gates on a copy);
 - "players" (every carried field by slot, each player's own, whoever is
   acting);
 - "enemies" (by uid) with "order";

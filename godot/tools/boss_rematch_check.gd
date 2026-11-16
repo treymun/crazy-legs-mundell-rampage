@@ -284,7 +284,8 @@ static func _checkpoint(main, check: Callable, kind: String) -> void:
 		if not door.secret:
 			door.opened = true
 			door.progress = 1.0
-	# The way in from the start: the last spot outside the arena, the first in.
+	# The way in from the start: the last spot outside the arena, the first
+	# where its fight starts (well past a locked arena's doorway).
 	var field := BossRematch.field_from(g, boss)
 	var path: Array = []
 	field.waypoint(g.level.spawn[0], g.level.spawn[1], 100000, path)
@@ -294,7 +295,7 @@ static func _checkpoint(main, check: Callable, kind: String) -> void:
 		var at := Vector2(cell.x + .5, cell.y + .5)
 		if not BossRematch.fits(g, cell):
 			continue
-		if BossFight.in_arena_at(g, boss, at.x, at.y):
+		if BossFight.started_at(g, boss, at.x, at.y):
 			inside = at
 			break
 		if (

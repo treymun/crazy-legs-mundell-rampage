@@ -11,6 +11,7 @@ class_name BossDoor
 extends RefCounted
 
 const BossCheckpointFeature := preload("res://src/features/boss_checkpoint.gd")
+const BossLockFeature := preload("res://src/features/boss_lock.gd")
 
 
 static func folder() -> String:
@@ -118,6 +119,11 @@ static func at_door(loaded: Game) -> Game:
 	var gear: BossGearFeature = loaded.features.get("boss_gear")
 	if gear != null:
 		gear.reset()
+	# Its doors as they stood before the fight shut them, the gates gone: it
+	# shuts again as the player walks in (features/boss_lock.gd).
+	var lock: BossLockFeature = loaded.features.get("boss_lock")
+	if lock != null:
+		lock.reset()
 	loaded.shots.clear()
 	loaded.hazards.clear()
 	loaded.blasts.clear()

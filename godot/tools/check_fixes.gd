@@ -633,6 +633,8 @@ func _run() -> void:
 	preload("res://tools/arena_check.gd").run(main, check)
 	# The arenas wreck as the fights go on; the bosses' gear shot off.
 	preload("res://tools/arena_wreck_check.gd").run(main, check)
+	# Locked in with each boss: the fight starts inside, every way in shuts.
+	preload("res://tools/boss_lock_check.gd").run(main, check)
 	# Squads, idle life, the tougher variants and each chapter's tough guy.
 	preload("res://tools/squad_check.gd").run(main, check)
 	# CHATTER: the cuss pack's lines for the hands, Mundell and the 5v5 bots.

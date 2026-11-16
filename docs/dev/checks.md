@@ -53,7 +53,10 @@ fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
 (penetration), `weather_check`, `climate_check` (puddles, mud, wind, the County Run storm front, the critters' physics), the quick parts of `net_check` (determinism),
 Besides its own parity checks (including the settings count, 60 now, and the
 `chatter_check`, `boss_check`, `arena_check`, `arena_wreck_check` (the arenas
-coming apart and the bosses' gear shot off), `break_check`, `feel_check`
+coming apart and the bosses' gear shot off), `boss_lock_check` (locked in with
+each boss: nothing starts at the door, every way in shuts once well in, holds,
+opens at the fall, the retry; co-op brought in, a snapshot copy, a save; on
+its own `-- <kind> ...` or `coop`), `break_check`, `feel_check`
 (penetration), `weather_check`, the quick parts of `net_check` (determinism),
 `multi_bots` (Hickston with four for 12 s, the bayou with two for 6 s),
 `net_loopback` (ENet 6 s with 40 ms, jitter and 5% loss; WebSocket 2 s),
