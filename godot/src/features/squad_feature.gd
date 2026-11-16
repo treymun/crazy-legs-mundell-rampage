@@ -74,6 +74,7 @@ func _tick(_dt: float) -> void:
 ## Every hand a Mind, and the level's own still at their places an activity.
 func _start() -> void:
 	var about := IdleLife.things(game)
+	var by_cell := IdleLife.grid(about)
 	for i in game.enemies.size():
 		var e: Enemy = game.enemies[i]
 		if not Squad.hand(e):
@@ -88,7 +89,7 @@ func _start() -> void:
 		var spec_x: float = spec["x"]
 		var spec_y: float = spec["y"]
 		var at := Vector2(spec_x, spec_y)
-		var picked := IdleLife.pick(game, e, at, i, about)
+		var picked := IdleLife.pick(game, e, at, i, about, by_cell)
 		if picked.is_empty():
 			continue
 		e.mind.activity = str(picked[0])

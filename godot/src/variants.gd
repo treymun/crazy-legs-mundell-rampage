@@ -146,6 +146,33 @@ static func swaps(level_id: String, kinds: Array, difficulty: int) -> Dictionary
 	return out
 
 
+## The walk from the start through every door (tough_pick) of each level as
+## read, by LevelData.source_key (the last WALKS_KEPT): a whole-level walk,
+## 1.5 to 4 ms, made when the game is (VariantsFeature.attach, while the
+## level loads) instead of on the chapter's first tick, and kept for a retry.
+static var _walks := {}
+const WALKS_KEPT := 4
+
+
+## The start's walk for `game` (from _walks when its level is as read).
+static func start_walk(game: Game) -> FlowField:
+	var walk := FlowField.new(game.level, game.flow)
+	walk.reach = 100000
+	walk.doors_open = true
+	walk.every_door = true
+	var lv := game.level
+	var key := lv.source_key if lv.walls_version == 0 and lv.solid_version == 0 else ""
+	if key != "" and _walks.has(key):
+		walk.steps = _walks[key]
+		return walk
+	walk.update(float(lv.spawn[0]), float(lv.spawn[1]), 0.0)
+	if key != "":
+		if _walks.size() >= WALKS_KEPT:
+			_walks.clear()
+		_walks[key] = walk.steps
+	return walk
+
+
 ## The one of the level's own enemies (an index) that is its tough guy, or
 ## -1: of the regulars of his kind standing about (not patrolling, not held
 ## back), the middle half by distance from the start, the one with most set
@@ -157,11 +184,7 @@ static func tough_pick(game: Game, taken: Dictionary) -> int:
 	var tough_def: Dictionary = Enemy.DEFS[tough]
 	var base := str(tough_def.get("swap", ""))
 	# How far each is from the start on foot, through the doors.
-	var walk := FlowField.new(game.level, game.flow)
-	walk.reach = 100000
-	walk.doors_open = true
-	walk.every_door = true
-	walk.update(float(game.level.spawn[0]), float(game.level.spawn[1]), 0.0)
+	var walk := start_walk(game)
 	var rows: Array = []
 	var far := 0
 	for i in game.enemy_ids.size():

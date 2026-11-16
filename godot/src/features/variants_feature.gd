@@ -34,6 +34,9 @@ func attach() -> void:
 	Variants.art = game.art
 	Variants.paint_door(game.art)
 	tick_with(_tick)
+	if Variants.TOUGH.has(game.level.id):
+		# The tough guy's walk while the level loads, not on the first tick.
+		Variants.start_walk(game)
 
 
 func _tick(_dt: float) -> void:

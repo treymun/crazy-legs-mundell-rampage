@@ -223,6 +223,11 @@ var hunted: Player = null
 var hunted_until := 0.0
 var spite: Player = null
 var spite_until := 0.0
+## The clock of the last tick it took while far and calm (EnemyLod; -1: not
+## calm), and a cover search left to go on (CoverSearch: [why, next spot,
+## fallback x, y, ring]).
+var lod_since := -1.0
+var cover_hunt: Array = []
 
 ## Mirror of the reference's read-only properties.
 var alive: bool:
@@ -275,50 +280,19 @@ func tactical() -> bool:
 	)
 
 
-## The nearest spot a step or three away the player cannot see, or null.
-## Of the hidden spots on the nearest ring that has one, the one least toward
-## the player (the first in heading order of those as little toward them). The
-## headings are tried in that order and the first hidden one is taken: the same
-## spot as testing all twelve, without the sight lines to the rest (a search of
-## the whole four rings was about 6 ms).
+## The nearest spot a step or three away the player cannot see, or null:
+## of the hidden spots on the nearest ring that has one, the one least toward
+## the player (CoverSearch, HANDS: CLASSIC's rings), all at once.
 func find_cover(game: GameWorld) -> Variant:
-	var p: Player = game.player
-	var away := atan2(y - p.y, x - p.x)
-	var order: Array = []
-	for k in 12:
-		order.append([absf(angle_delta(k * TAU / 12.0, away)), k])
-	order.sort_custom(
-		func(m: Array, n: Array) -> bool:
-			var m0: float = m[0]
-			var n0: float = n[0]
-			var m1: int = m[1]
-			var n1: int = n[1]
-			return m0 < n0 or (m[0] == n[0] and m1 < n1)
-	)
-	for ring: float in [1.2, 2.0, 2.8, 3.6]:
-		for pair: Array in order:
-			var k: int = pair[1]
-			var a := k * TAU / 12.0
-			var cx := x + cos(a) * ring
-			var cy := y + sin(a) * ring
-			if game.world.blocked(cx, cy, radius) or not game.world.visible(x, y, cx, cy):
-				continue
-			var head: float = game.world.elevation(cx, cy) + minf(.92, height * .72)
-			if game.world.visible(p.x, p.y, cx, cy, p.eye, head):
-				continue
-			return Vector2(cx, cy)
-	return null
+	return CoverSearch.whole(self, game, false)
 
 
 ## Duck out of sight for a breath, if there is anywhere to duck.
-func take_cover(game: GameWorld) -> void:
+## (CoverSearch: a few spots a tick; it ducks when the search ends.)
+func take_cover(game: GameWorld, why := CoverSearch.DUCK) -> void:
 	if game.clock < cover_ready or fetching != null or grudge != null:
 		return
-	var found: Variant = HandTactics.cover(self, game)
-	if found != null:
-		var spot: Vector2 = found
-		cover = [spot.x, spot.y, game.clock + game.rng.uniform(1.3, 2.4)]
-		cover_ready = game.clock + game.rng.uniform(5.0, 8.0)
+	CoverSearch.want(self, game, why)
 
 
 ## Badly hurt: run for a friend who has not seen the fight yet and bring
@@ -679,6 +653,8 @@ func tick(dt: float, game: Game) -> void:
 	soak = maxf(0.0, soak - dt / 6.0)
 	if mind != null and alerted:
 		Squad.watch(self, game)
+	if not cover_hunt.is_empty():
+		CoverSearch.go_on(self, game)
 	if BOSS_TITLES.has(kind) and BossKit.tick(self, dt, game):
 		# Its own moves (src/bosses/) took this tick.
 		return

@@ -687,6 +687,9 @@ var speaker: GameSound = null
 ## Where placed sounds reach the local player's ears from: walls, floors and
 ## the way round between (sound_position, sound_cutoff; hearing.gd).
 var hearing := Hearing.new()
+## The enemies' level of detail and the tick's budget for their costliest
+## questions (enemy_lod.gd): worked out each tick, never carried.
+var enemy_lod := EnemyLod.new()
 
 var level: LevelData
 var world: LevelData

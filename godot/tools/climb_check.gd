@@ -302,6 +302,8 @@ static func _cover(main, check: Callable) -> void:
 	e.hp = e.max_hp * .6
 	e.cover_ready = 0.0
 	e.take_cover(g)
+	# (In play a few spots a tick: CoverSearch; here to its end at once.)
+	CoverSearch.go_on(e, g, false)
 	var found: bool = e.cover != null
 	var spot := Vector2.INF
 	var solid := false

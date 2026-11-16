@@ -199,6 +199,15 @@ var _index := {}
 var _over := {}
 ## 1 for a cell the index lists anything under.
 var cells := PackedByteArray()
+## The heights that may stop a sight line in each cell: for cell c the
+## pairs band_low, band_high from sight_bands[sight_band_at[c]] up to
+## sight_bands[sight_band_at[c + 1]], sorted and merged, each spanning all of
+## what one or more of its index's slabs and sight-stopping segments fill
+## (a slab from its lowest bottom to its highest top anywhere). A step of a
+## sight line at heights outside every band, without passing one, meets
+## nothing of the geometry there (sight_clear(); LevelSight.visible).
+var sight_band_at := PackedInt32Array()
+var sight_bands := PackedFloat64Array()
 var _nav: NavGraph = null
 ## LevelData.source_key -> the nav graph of that level as read (nav()), the
 ## last NAVS_KEPT levels.
@@ -363,6 +372,63 @@ func _build_index() -> void:
 		)
 	for c in ceilings:
 		_put(_over, c.x0, c.y0, c.x1, c.y1, c, true)
+	_build_sight_bands()
+
+
+## A band's margin past what it spans (rounding never lets a test slip by).
+const BAND_SLACK := 1e-4
+
+
+func _build_sight_bands() -> void:
+	sight_band_at = PackedInt32Array()
+	sight_band_at.resize(width * height + 1)
+	sight_bands = PackedFloat64Array()
+	for c in width * height:
+		sight_band_at[c] = sight_bands.size()
+		if cells[c] == 0:
+			continue
+		var spans: Array[Vector2] = []
+		for item: Variant in _index.get(c, NOTHING):
+			if item is Slab:
+				var sl: Slab = item
+				var low := -1e12 if sl.thick < 0.0 else sl.top_min() - sl.thick
+				spans.append(Vector2(low, sl.top_max()))
+			elif item is Segment:
+				var g: Segment = item
+				if g.sight:
+					spans.append(Vector2(g.z0, g.z1))
+		spans.sort()
+		var low := 0.0
+		var high := 0.0
+		for k in spans.size():
+			var span: Vector2 = spans[k]
+			if k > 0 and span.x - BAND_SLACK <= high + BAND_SLACK:
+				high = maxf(high, span.y)
+				continue
+			if k > 0:
+				sight_bands.append(low - BAND_SLACK)
+				sight_bands.append(high + BAND_SLACK)
+			low = span.x
+			high = span.y
+		if not spans.is_empty():
+			sight_bands.append(low - BAND_SLACK)
+			sight_bands.append(high + BAND_SLACK)
+	sight_band_at[width * height] = sight_bands.size()
+
+
+## Whether a sight line's step from height z0 to z1 ending in cell c meets
+## nothing of the geometry: z1 in no band and no band between z0 and z1, so
+## neither solid_point() nor crosses() could stop it there. False: ask them
+## (it never says clear where they would not).
+func sight_clear(c: int, z0: float, z1: float) -> bool:
+	for k in range(sight_band_at[c], sight_band_at[c + 1], 2):
+		var low := sight_bands[k]
+		var high := sight_bands[k + 1]
+		if z1 >= low and z1 <= high:
+			return false
+		if (z0 < low) != (z1 < low) or (z0 > high) != (z1 > high):
+			return false
+	return true
 
 
 func _put(
