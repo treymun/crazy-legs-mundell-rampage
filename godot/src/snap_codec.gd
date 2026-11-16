@@ -60,6 +60,8 @@ const SKIP_FIELDS := {
 	],
 	"stills": ["_cfg", "_images"],
 	"vehicles": ["_looks"],
+	# A shut boss arena: what this machine put on its own world.
+	"boss_lock": ["_applied", "_solid", "_clear", "_held", "_gates", "_edge", "_ground", "_kinds"],
 	# A boss arena's wreck: its steps and their bosses (the level makes them
 	# the same everywhere), the lamps it took (sprites, to put back), when the
 	# next water ring shows, how a flung prop moves; the gear's feels.

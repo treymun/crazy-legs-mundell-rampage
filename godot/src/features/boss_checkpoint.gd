@@ -1,9 +1,10 @@
 ## The checkpoint at the boss door (boss_door.gd keeps the file). While no
 ## boss fight is on it notes where the player last stood on the ground, every
 ## SCAN seconds for the last minute. When a fight begins (the boss awake and
-## the player in its arena: BossFight.on) the door is the last of those spots
-## clear of the arena (BossFight.clear_of: out of it and ARENA from the boss,
-## so Hickston's is the pen's gate, not its middle), and a beat later, once
+## the player where its fight starts: BossFight.on and started_at, well into a
+## locked arena) the door is the last of those spots clear of the arena
+## (BossFight.clear_of: out of it and out of its doorways, or ARENA from a
+## boss without a lock), and a beat later, once
 ## the player is on the ground with no lit stick, the game is saved to the
 ## checkpoint: health, guns and rounds
 ## as they are at the fight's start, the boss still whole. Retrying puts the
@@ -92,7 +93,7 @@ func _tick(dt: float) -> void:
 		_settle()
 		return
 	var foe := BossFight.on(game)
-	if foe != null and not taken.has(foe.kind):
+	if foe != null and not taken.has(foe.kind) and BossFight.started_at(game, foe, p.x, p.y):
 		fight_began(foe)
 		return
 	if p.air == 0.0 and p.vertical_speed == 0.0:

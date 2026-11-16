@@ -98,6 +98,8 @@ godot --path godot ... --script res://tools/live_props_frames.gd -- out=<dir>  #
 godot --path godot ... --script res://tools/physics_frames.gd [-- only=hits|boss|break]
 godot --path godot ... --script res://tools/arena_frames.gd        # the first four boss arenas (docs/boss_arenas/)
 godot --path godot ... --script res://tools/arena_frames_late.gd   # the last four
+godot --path godot ... --script res://tools/lock_frames.gd -- out=<dir> [kinds=boss,rudy]   # each arena's way in open, then shut (docs/godot3d/polish/P/)
+godot --headless --path godot --script res://tools/boss_lock_check.gd [-- rudy coop]   # BOSS LOCK OK (also in check_fixes)
 godot --path godot ... --script res://tools/vehicle_frames.gd -- out=<dir> [only=car]   # the vehicles parked, from the seat, driving, a wreck (docs/godot3d/features/D/)
 godot --path godot ... --script res://tools/squad_frames.gd
 godot --path godot ... --script res://tools/climb_frames.gd -- out=<dir>   # ladders in every chapter, a climb, a pull-up, a hand on a ladder

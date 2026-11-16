@@ -31,7 +31,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `difficulty.cfg` | every number that changes with DIFFICULTY, one array each in the order EASY, NORMAL, HARD, HOG WILD: `[player]`, `[hands]`, `[bosses]`, `[bots]` | `Difficulty` (`src/core/difficulty.gd`) |
 | `hits.cfg` | how hits land: `[head]`, `[zones]`, `[reaction]`, `[reaction.store]`, `[ammo]`; keys are what `hurt()` is told did it | `HitData` (`src/core/hit_data.gd`), `hit_zones.gd`, `enemies.gd` |
 | `modes.cfg` | the modes' rules: `[versus]`, `[coop]` (with the scaling table), `[deathmatch]`, `[tactical]`, `[bomb]`, `[hostage]`, `[tagteam]`, County Run (`[county_cards]`, `[county_coop]`, `[county_moves]`, `[county_orbs]`, `[county_spawner]`), `[tactical_utility]` (throwables), `[squad]`, `[squad_feature]`, `[idle_life]`, `[climbing]` (ladders, pull-ups, hands falling), `[hand_tactics]` (reload, peek, kick), `[hit_zones]`, `[tactical_bot]` | `ModeData` (`src/core/mode_data.gd`) |
-| `bosses.cfg` | the boss scripts' numbers, one section per script (`[boss_kit]`, ...) | `BossData` (`src/core/boss_data.gd`) |
+| `bosses.cfg` | the boss scripts' numbers, one section per script (`[boss_kit]`, ...; `[boss_lock]` each arena's room, doors, gates and spot) | `BossData` (`src/core/boss_data.gd`) |
 | `lobby.cfg` | the online lobby's rows and defaults: each row is [key, label, values, names]; a new online mode goes in the mode row (and `NetPlay.play_mode()`) | `src/net/net_play.gd` |
 | `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short`, the storm front (`storm`) | `county_data.gd` |
 | `cuss_lines.json` | the cuss pack (the voice tools read it too) | `src/cuss_lines.gd` |

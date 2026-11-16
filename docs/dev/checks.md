@@ -79,6 +79,9 @@ quest props, `break_check`, `hit_check`, `range_check` (the firing range and
 its games row), `feel_check` (penetration), `boss_rematch_check`, the
 Mothership and the boss music, `boss_check`, `arena_check`,
 `arena_wreck_check` (the arenas coming apart and the bosses' gear shot off),
+`boss_lock_check` (locked in with each boss: nothing starts at the door, every
+way in shuts once well in, holds, opens at the fall, the retry; co-op brought
+in, a snapshot copy, a save),
 `squad_check`, `chatter_check`, `sound_check`, the quick parts of
 `net_check` (determinism), `multi_bots` (Hickston with four for 12 s, the
 bayou with two for 6 s), `net_loopback` (ENet 6 s with 40 ms, jitter and 5%

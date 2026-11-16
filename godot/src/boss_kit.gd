@@ -108,10 +108,13 @@ static func phase_of(e: Enemy) -> int:
 
 
 ## Whether the player is in the boss's arena (the boss bar shows, the boss
-## loop plays, its entrance can start): within ARENA of it, or anywhere in
-## the arena Hickston gives the sheriff and Jerry (BossFight.in_arena_at).
+## loop plays): its locked room (BossFight.in_arena_at); without a lock,
+## within ARENA of it, or anywhere in the arena Hickston gives the sheriff and
+## Jerry.
 static func in_arena(game: Game, e: Enemy) -> bool:
 	var p: Player = game.player
+	if not BossFight.lock_of(game, e.kind).is_empty():
+		return BossFight.in_arena_at(game, e, p.x, p.y)
 	if (
 		game.level.rescue
 		and (e == game.boss or e == game.jerry)
@@ -121,20 +124,33 @@ static func in_arena(game: Game, e: Enemy) -> bool:
 	return Vector2(e.x - p.x, e.y - p.y).length() < ARENA
 
 
-## Whether anyone up is in the boss's arena (its fight begins for the whole
-## party when the first of them walks in; the bar and the loop stay the local
-## player's own, in_arena).
+## Whether anyone up is in the boss's arena (the bar and the loop stay the
+## local player's own, in_arena).
 static func party_in_arena(game: Game, e: Enemy) -> bool:
-	if game.players.size() == 1:
-		return in_arena(game, e)
-	var was: Player = game.player
-	var found := false
 	for q: Player in game.players:
-		if q.health > 0:
-			game.focus(q)
-			found = in_arena(game, e)
-			if found:
-				break
+		if q.health > 0 and _in_arena_of(game, e, q, false):
+			return true
+	return false
+
+
+## Whether anyone up stands where the boss's fight starts (its entrance can
+## start; it begins for the whole party when the first of them walks that far
+## in): BossFight.started_at, DEPTH past every way into a locked arena.
+static func party_started(game: Game, e: Enemy) -> bool:
+	for q: Player in game.players:
+		if q.health > 0 and _in_arena_of(game, e, q, true):
+			return true
+	return false
+
+
+static func _in_arena_of(game: Game, e: Enemy, q: Player, started: bool) -> bool:
+	if not BossFight.lock_of(game, e.kind).is_empty():
+		if started:
+			return BossFight.started_at(game, e, q.x, q.y)
+		return BossFight.in_arena_at(game, e, q.x, q.y)
+	var was: Player = game.player
+	game.focus(q)
+	var found := in_arena(game, e)
 	game.focus(was)
 	return found
 

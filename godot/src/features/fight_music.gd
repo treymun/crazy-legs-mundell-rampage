@@ -98,7 +98,7 @@ func _boss_scan() -> void:
 	var p := game.player
 	var near: bool = (
 		Vector2(foe.x - p.x, foe.y - p.y).length() < BOSS_RANGE
-		if foe == game.finale
+		if foe == game.finale and BossFight.lock_of(game, foe.kind).is_empty()
 		else BossFight.in_arena_at(game, foe, p.x, p.y)
 	)
 	if near:

@@ -29,6 +29,7 @@ const STEPS := [
 	"boss_check",
 	"arena_check",
 	"arena_wreck_check",
+	"boss_lock_check",
 	"squad_check",
 	"chatter_check",
 	"sound_check",
@@ -47,7 +48,7 @@ const STEPS := [
 const PARTS := [
 	["hit_check", "net_check", "multi_bots"],
 	["range_check", "arena_wreck_check", "crash_log", "map_check"],
-	["weather_check", "boss_check", "squad_check"],
+	["weather_check", "boss_check", "boss_lock_check", "squad_check"],
 	["quest_props", "feel_check", "arena_check", "sound_check", "county_check"],
 	["parity", "break_check", "boss_rematch_check", "chatter_check"],
 	["climate_check", "mothership", "boss_music", "net_loopback", "mode_check", "geometry_check"],

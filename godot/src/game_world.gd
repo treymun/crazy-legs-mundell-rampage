@@ -919,7 +919,9 @@ func use_prompt() -> String:
 		return "E  " + target.label if exit_ready() else "EXIT LOCKED / CHECK TAB MAP"
 	var door: LevelData.Door = target
 	if world.controlled_doors.has(Vector2i(door.x, door.y)):
-		return "" if door.opened else "CONTROLLED BY A REMOTE SWITCH"
+		return (
+			"" if door.opened else BossFight.door_note(world, door, "CONTROLLED BY A REMOTE SWITCH")
+		)
 	if door.blast_only:
 		return "POWDER STORE  /  BLAST PANEL"
 	if door.key != "" and not keys.has(door.key):
@@ -1028,7 +1030,7 @@ func interact() -> void:
 	var door: LevelData.Door = target
 	if world.controlled_doors.has(Vector2i(door.x, door.y)):
 		if not door.opened:
-			message("THAT GATE HAS A REMOTE SWITCH.", 2.5)
+			message(BossFight.door_note(world, door, "THAT GATE HAS A REMOTE SWITCH."), 2.5)
 		return
 	if door.key != "" and not keys.has(door.key):
 		message(

@@ -231,13 +231,71 @@ while its last boss is alive, awake and the player is in its arena (as far as
 the boss bar shows), holds `BOSS_HOLD` seconds after the player steps out and
 hands back the moment the boss falls.
 
+## Locked in
+
+`features/boss_lock.gd`, `src/boss_fight.gd`, bosses.cfg `[boss_lock]`
+(v3.2.0 left the doors open and could start a fight from the corridor).
+
+- **The arena is a room.** Each boss's sheet names its level, its `room`
+  (boxes, or a circle for Maw's core; `BossFight.room_of` keeps the cells of
+  them its `spot` reaches with the ways in shut), its `doors` (the level's,
+  by id) and `gates` (open cells with no door: the rodeo's chute gate and the
+  gap at the chute fence's east end). The boss bar, the boss loop, the
+  checkpoint and the rematch's clock all ask the room
+  (`BossFight.in_arena_at`); without a sheet the old tests stand.
+- **The fight starts only well inside**: someone up `depth` (3 cells) past
+  every way in (`BossFight.started_at`, `BossKit.party_started`) with the boss
+  awake; one walking in on a sleeping boss wakes it. What started fights
+  early before: within 14 cells of a chapter's last boss counted as in its
+  arena, through walls, from the corridor, a roof or the next room; Hickston's
+  sheriff's box held the chute yard before his gate; and any hurt to a boss
+  (a hand's stick, a drum, fire, a thrown thing) began its fight wherever the
+  player was. A locked boss's fight never begins hurt from outside.
+- **A boss keeps to its room**, shut or not (`_keep_in`): the sheriff used to
+  walk out of his chute gate after the player and Boggs to drive out of the
+  bowl's north gate, so no fight could start. Set back on its nearest floor.
+- **The way out slams shut** the moment the fight begins: the doors swing to
+  and are held (USE: SHUT TILL THE BOSS IS DOWN; a kick, a station, a trigger
+  or a blast opening one is undone the next tick), a gap gets a gate (wall
+  rows in `LevelData.lock_walls`, drawn with the doors, the `gate` tile
+  `gate_top` high), and every one of those cells is solid while the boss
+  lives: bodies, shots, sight, thrown things, ragdolls, wrecks, fire and
+  vehicles stop at it. A breakable fence on the room's edge shot through
+  stands shut as a gate too. Enemies and players caught in a closing cell are
+  set beside it. The flow fields ask again at the shut cells, and backup at
+  phases 2 and 3 comes out inside the room.
+- **The bayou** has no doors round the lagoon: the king pulls up his three
+  bridges (west drawbridge, swing bridge, hoist bridge) and his whole bank of
+  the water is the shut-in ground (`flood`); the room (the lagoon and the
+  dock) is still where the fight starts and the bar shows.
+- **Co-op: everyone is brought in.** Anyone up outside the shut-in ground is
+  moved to the sheet's spot, off a vehicle first, as it shuts and whenever
+  they turn up outside (a respawn, a revive, an airboat across the channel).
+  Fairer than waiting for everyone: nobody is left outside to shoot through
+  a window, and nobody can hold the fight up by staying out.
+- **The fall opens it**: the doors that stood open swing open, the gates go;
+  a door that stood shut (Maw's escape hatch, the sheriff's stock gate) is
+  left to what opens it (her fall, his trigger).
+- **The retry**: `BossDoor.at_door` calls `reset()`: the doors as they stood
+  before it shut, the gates gone, the player at the door (the last spot out
+  of the room and its doorways). It shuts again as they walk in. The
+  checkpoint is taken a beat after the fight starts (no longer on the first
+  step into the arena).
+- Play, no dice; carried (SIM_FEATURES) and a fact (FACT_FEATURES: restore()
+  lays the solid cells, the gates and the held doors on a copy or a loaded
+  save). A save holds the shut boss and which doors stood open (the features
+  block: no new save version).
+- `tools/boss_lock_check.gd` (in check_fixes) holds all of it for the eight;
+  `tools/lock_frames.gd` (a window) pictures each way in open, then shut
+  (`docs/godot3d/polish/P/<kind>_lock.png`, before on the left).
+
 ## The boss checkpoint and BOSS REMATCH
 
-- **Checkpoint.** A beat after a boss fight begins (`BossFight.on`, the boss
-  bar's test) `features/boss_checkpoint.gd` saves the game, in SessionStore's
-  own format (no new version), to `boss-checkpoint-<chapter>[-replay].json`
-  in the profile; the door is the last spot the player stood clear of the
-  arena. On the death screen ENTER then retries the fight (`main_flow.gd
+- **Checkpoint.** A beat after a boss fight begins (`BossFight.on` with the
+  player where it starts, `started_at`) `features/boss_checkpoint.gd` saves the
+  game, in SessionStore's own format (no new version), to
+  `boss-checkpoint-<chapter>[-replay].json` in the profile; the door is the
+  last spot the player stood clear of the arena and its doorways. On the death screen ENTER then retries the fight (`main_flow.gd
   retry_fight`, `boss_door.gd`: boss whole, player at the door, health and
   rounds as they were) and RELOAD's key starts the chapter over. A win clears
   it, another chapter's start clears it.
