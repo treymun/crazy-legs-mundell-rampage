@@ -419,10 +419,7 @@ static func hub_clue(g: Game) -> Variant:
 		var y: float = clue[2]
 		# As the quest devices: a little reach, the one nearest the crosshair.
 		var rank := use_rank(g, x, y, DEVICE_REACH, DEVICE_TOUCH, DEVICE_CONE, facing)
-		if (
-			ranks_above(rank, best_rank)
-			and g.seen_at(Vector3(x, y, g.world.elevation(x, y) + .96))
-		):
+		if ranks_above(rank, best_rank) and g.seen_at(Vector3(x, y, g.world.elevation(x, y) + .96)):
 			best = clue
 			best_rank = rank
 	return best

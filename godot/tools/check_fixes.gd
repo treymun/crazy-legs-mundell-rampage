@@ -783,7 +783,10 @@ func _tactics(main) -> void:
 	helper.y = row.y
 	runner.alerted = true
 	runner.target = [p.x, p.y]
-	check(runner.fetch_help(town) and runner.fetching != null, "a badly hurt hand runs for help")
+	check(
+		HandTactics.fetch_help(runner, town) and runner.fetching != null,
+		"a badly hurt hand runs for help"
+	)
 	for i in 400:
 		town.tick(1.0 / 60.0, Game.Controls.new())
 		if runner.fetching == null:
