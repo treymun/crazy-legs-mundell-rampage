@@ -38,7 +38,8 @@ draws the bar on the software canvas as before.
   `features/vehicles.gd draw_view` while riding): speed, the rig's health
   and state, the throttle and the kind's line, in the plate's colours and
   lettering; MINIMAL keeps two lines, STATUS PANEL shows the speed on a
-  dial, and with the touch buttons up it hangs under the pin
+  dial; it hangs in the view's top left under the pin, clear of the hands
+  on the controls and the touch stick
   ([gameplay.md](gameplay.md#vehicles)).
 - **Scaling:** the overlay is the 320x200 picture, scaled to the window by
   the display shader with whole, crisp pixels (INTEGER 8:5 keeps every pixel

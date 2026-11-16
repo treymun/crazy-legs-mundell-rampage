@@ -28,6 +28,10 @@ const SWAY_PITCH := 55.0
 const PROP_IDLE := 5.0
 const PROP_FULL := 31.0
 const IDLE := .16
+## The prop's blades fade into a spinning disc from this much of the engine's
+## work, over this much more.
+const BLUR_FROM := .3
+const BLUR_SPAN := .45
 ## A gauge's needle sweeps 270 degrees from its rest at the bottom left.
 const NEEDLE_REST := deg_to_rad(135.0)
 const NEEDLE_SWEEP := deg_to_rad(270.0)
@@ -115,6 +119,7 @@ static func dress(
 	var rest := turn * Vector3(0.0, 0.0, s.cab_drop)
 	rest.z += b.heave * (1.0 - calm) - (buzz + thump) * .6
 	var parts := {}
+	var fade := {}
 	var steer := clampf(v.steer, -1.0, 1.0)
 	if v.wreck >= 0.0:
 		steer = 0.0
@@ -123,6 +128,11 @@ static func dress(
 			parts["stick"] = steer * s.cab_lock
 			parts["needle"] = NEEDLE_REST - NEEDLE_SWEEP * work
 			parts["prop"] = prop_turn
+			parts["blur"] = prop_turn
+			# Spinning up, the blades fade into a stippled disc.
+			var spin := clampf((work - BLUR_FROM) / BLUR_SPAN, 0.0, 1.0)
+			fade["prop"] = 1.0 - spin * .75
+			fade["blur"] = spin * .55
 		"car":
 			parts["steer"] = -steer * s.cab_lock
 			parts["speed"] = NEEDLE_REST - NEEDLE_SWEEP * pace
@@ -130,7 +140,7 @@ static func dress(
 		"mower":
 			parts["steer"] = -steer * s.cab_lock
 			parts["lever"] = LEVER_ON if blade_on(v, s) else LEVER_OFF
-	eye["cab"] = {"model": s.cab, "turn": turn, "lift": rest, "parts": parts}
+	eye["cab"] = {"model": s.cab, "turn": turn, "lift": rest, "parts": parts, "fade": fade}
 
 
 ## The mower's blade is biting (its lever forward): on the throttle or

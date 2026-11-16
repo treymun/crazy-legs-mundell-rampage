@@ -232,8 +232,13 @@ the stock car and the riding mower from the seat (`cab_airboat`, `cab_car`,
 `cab_mower`; [view3d.md](view3d.md#the-seat-view)), with town_props.py's
 shapes and materials in the outside models' colours, more detail where the
 eye is close (gauges with lit faces and their needles, the car's dice and
-window net, the mower's beer) and Mundell's hands (blocky, as a 1997 cel's:
-his skin, the red and black check of his sleeves, `fist`). The driver's eye
+window net, the mower's beer) and Mundell's hands (`fist`: four jointed
+fingers wrapped round the rim or stick, knuckles, thumb, wrist and cuff,
+painted with patches of the photographed hand in `source_art/crowbar_plate.png`,
+the hand every gun cel is held in: its skin evened half way to the cels'
+mid tone `CEL_SKIN` and its flannel, matt). The cabs bake under their own
+light (`CAB_LIGHTS`: the key from ahead, right and above; the town's from
+behind the sprite camera lit the backs of the hands and the hood flat). The driver's eye
 is the origin (x ahead, y left, z up, map units); a cab is parts: `body`
 and moving parts each modelled where it sits and moved so its pivot is the
 origin (`pivot`), the pivots and axes in `CAB_PIVOTS` (written as

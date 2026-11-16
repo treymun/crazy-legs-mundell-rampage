@@ -99,7 +99,8 @@ func live_materials() -> Array[ShaderMaterial]:
 	return out
 
 
-## Show the frame's `cab` (VehicleCab.view: model, turn, lift, parts) seen
+## Show the frame's `cab` (VehicleCab.dress: model, turn, lift, parts, and
+## `fade`: how much of a part shows, 0..1, stippled) seen
 ## from the eye at map `eye`, or none when it is empty. Returns the material
 ## made this frame, if any (the view hands it its shader numbers).
 func show_cab(cab: Dictionary, eye: Vector3, level: LevelData) -> Array[ShaderMaterial]:
@@ -127,6 +128,7 @@ func show_cab(cab: Dictionary, eye: Vector3, level: LevelData) -> Array[ShaderMa
 		SolidLayer3D.godot_basis(turn).scaled(Vector3.ONE * SHRINK), Vector3(full.x, full.z, full.y)
 	)
 	var angles: Dictionary = cab.get("parts", {})
+	var fades: Dictionary = cab.get("fade", {})
 	var pivots: Dictionary = _pivots[model]
 	var parts: Dictionary = _parts[model]
 	for part: String in parts:
@@ -147,6 +149,11 @@ func show_cab(cab: Dictionary, eye: Vector3, level: LevelData) -> Array[ShaderMa
 			else:
 				local = Transform3D(Basis(axis, angle), at)
 		node.transform = root * local
+		if fades.has(part):
+			# A part fading out or in (the airboat's prop and its blur).
+			var shows: float = fades[part]
+			node.visible = shows > .01
+			node.set_instance_shader_parameter("opacity", shows)
 	_light(level, eye)
 	return fresh
 

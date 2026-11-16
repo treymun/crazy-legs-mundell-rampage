@@ -17,7 +17,7 @@
 ## sway, the dip and the widening; the view widens at speed and not past the
 ## FIELD OF VIEW a player chose wider; the airboat throws spray over its bow
 ## that lands in the view; the plate is drawn (full, MINIMAL, STATUS PANEL's
-## dial, up under the pin with the touch buttons) with the right line for
+## dial, up under the pin clear of the hands and the touch stick) with the right line for
 ## each kind; and driving is the same with the cab drawn or not.
 extends SceneTree
 
@@ -26,7 +26,7 @@ const VehiclesScript := preload("res://src/features/vehicles.gd")
 const LEVELS := {"airboat": "bayou", "car": "speedway", "mower": "hickston"}
 ## Each kind's moving parts the game sets (VehicleCab.dress).
 const PARTS := {
-	"airboat": ["stick", "hand", "needle", "prop"],
+	"airboat": ["stick", "hand", "needle", "prop", "blur"],
 	"car": ["steer", "hand_l", "hand_r", "speed", "tach"],
 	"mower": ["steer", "hand", "lever"],
 }
@@ -270,13 +270,15 @@ func _plate(main: Control) -> void:
 		var o := (at.y * Canvas.WIDTH + at.x + VehicleHud.W / 2) * 3
 		var top := Color8(c.pixels[o], c.pixels[o + 1], c.pixels[o + 2])
 		_check(top.is_equal_approx(edge), "%s: the plate is drawn in its corner" % kind)
-		g.touch_aim = true
-		var t := Canvas.new()
-		VehicleHud.draw(t, g, v, s, true)
-		var o2 := (VehicleHud.AT_TOUCH.y * Canvas.WIDTH + at.x + VehicleHud.W / 2) * 3
-		var top2 := Color8(t.pixels[o2], t.pixels[o2 + 1], t.pixels[o2 + 2])
-		_check(top2.is_equal_approx(edge), "%s: up under the pin with the touch buttons" % kind)
-		g.touch_aim = false
+		# Clear of the hands at the view's bottom and of the touch move stick
+		# (bottom left), under the objective pin (whose plate ends by row 32).
+		var clear := true
+		for row in range(View.VIEW / 2, View.VIEW):
+			for col in VehicleHud.W:
+				var o2 := (row * Canvas.WIDTH + col) * 3
+				if c.pixels[o2] + c.pixels[o2 + 1] + c.pixels[o2 + 2] > 0:
+					clear = false
+		_check(clear and at.y > 32, "%s: up in the top corner, the view's bottom left clear" % kind)
 		g.hud.minimal = true
 		var m := Canvas.new()
 		VehicleHud.draw(m, g, v, s, true)
