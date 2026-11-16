@@ -1482,4 +1482,3 @@ func polish() -> void:
 		["coot", 76.0, 66.5, "stand-coot"],
 	]:
 		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
-

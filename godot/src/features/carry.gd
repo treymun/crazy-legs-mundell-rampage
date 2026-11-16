@@ -353,7 +353,14 @@ func _smash(i: int, p: Player) -> bool:
 	var base: float = game.world.stand(e) + e.z
 	game.hit_point = Vector3(e.x, e.y, base + e.height * e.variant * .9)
 	game.hit_from = Vector2(p.x, p.y)
-	e.hurt(_num("smash", "hit") + _num("smash", "per_weight") * t.weight, game, false, false, null, "smashed")
+	e.hurt(
+		_num("smash", "hit") + _num("smash", "per_weight") * t.weight,
+		game,
+		false,
+		false,
+		null,
+		"smashed"
+	)
 	if e.alive:
 		e.stun = maxf(e.stun, _num("smash", "stun"))
 		e.windup = 0.0

@@ -161,7 +161,12 @@ static func _boot(main, check: Callable) -> void:
 				and not wall.world.blocked(x + 1.5, y + .5, .45)
 				and not wall.world.blocked(x - .5, y + .5, .45)
 				and not wall.world.blocked(x + .5, y + .5, .45)
-				and absf(wall.world.elevation(x - .5, y + .5) - wall.world.elevation(x + 1.5, y + .5)) < .01
+				and (
+					absf(
+						wall.world.elevation(x - .5, y + .5) - wall.world.elevation(x + 1.5, y + .5)
+					)
+					< .01
+				)
 			):
 				spot = Vector2(x - .5, y + .5)
 				break
@@ -185,7 +190,9 @@ static func _boot(main, check: Callable) -> void:
 	var zx := z.x
 	press_use(d)
 	ticks(d, .8)
-	check.call(z.x - zx > .4 and a.alive, "a man booted into another knocks him on (%.2f)" % [z.x - zx])
+	check.call(
+		z.x - zx > .4 and a.alive, "a man booted into another knocks him on (%.2f)" % [z.x - zx]
+	)
 	# A healthy hand at USE is kicked, never finished; nothing in reach: USE as ever.
 	check.call(brawl(d).finished.is_empty(), "a healthy hand gets the boot, not a finisher")
 
@@ -224,7 +231,10 @@ static func _finishers(main, check: Callable) -> void:
 		var row: Dictionary = Brawl.MOVE.get(move, {})
 		check.call(
 			not e.alive and move != "" and str(row.get("class", "")) == cls and slow,
-			"%s: a low hand is finished (%s), the wind at full speed, the blow in slow motion" % [cls, row.get("name", "-")]
+			(
+				"%s: a low hand is finished (%s), the wind at full speed, the blow in slow motion"
+				% [cls, row.get("name", "-")]
+			)
 		)
 	# Each move of each class lands (picked by game.rng: try seeds until seen).
 	var seen := {}
@@ -246,7 +256,8 @@ static func _finishers(main, check: Callable) -> void:
 		for k: String in brawl(g).finished:
 			seen[k] = true
 	check.call(
-		seen.size() == Brawl.MOVE.size(), "every move lands (%s)" % ", ".join(PackedStringArray(seen.keys()))
+		seen.size() == Brawl.MOVE.size(),
+		"every move lands (%s)" % ", ".join(PackedStringArray(seen.keys()))
 	)
 	# A crowbar's swing finishes a man too.
 	var s := game(main)
@@ -324,7 +335,10 @@ static func _hazards(main, check: Callable) -> void:
 		walker.alerted = false
 		ticks(w, 1.0)
 		if kind == "saw":
-			check.call(walker.alive and wb.hazard_kills.is_empty(), "a hand walking by a hazard is never caught")
+			check.call(
+				walker.alive and wb.hazard_kills.is_empty(),
+				"a hand walking by a hazard is never caught"
+			)
 	# The water: hickston's creek.
 	var h := game(main, "hickston")
 	var edge := _water_edge(h)
@@ -369,7 +383,10 @@ static func _water_edge(g: Game) -> Vector2:
 				continue
 			var wet := true
 			for k in [3, 4]:
-				if not BayouBrains.wet_at(w, x + k + .5, y + .5) or w.blocked(x + k + .5, y + .5, .3):
+				if (
+					not BayouBrains.wet_at(w, x + k + .5, y + .5)
+					or w.blocked(x + k + .5, y + .5, .3)
+				):
 					wet = false
 			if wet and absf(w.elevation(x + .5, y + .5) - w.elevation(x + 3.5, y + .5)) < .3:
 				return Vector2(x + .5, y + .5)
@@ -389,7 +406,10 @@ static func _bosses(main, check: Callable) -> void:
 	press_use(g)
 	ticks(g, .6)
 	var b := brawl(g)
-	check.call(b.finished.is_empty() and boss.alive and b.kicks == 1, "a low boss gets the boot, never a finisher")
+	check.call(
+		b.finished.is_empty() and boss.alive and b.kicks == 1,
+		"a low boss gets the boot, never a finisher"
+	)
 	var h := game(main)
 	var hat := lane(h, 8)
 	stand(h, hat)
@@ -401,8 +421,15 @@ static func _bosses(main, check: Callable) -> void:
 	press_use(h)
 	ticks(h, 1.2)
 	check.call(
-		big.alive and full - big.hp <= big.max_hp * Brawl.BOSS_SHARE + 30.0 and full - big.hp > 10.0,
-		"a boss in a saw takes his share (%.0f of %.0f), never killed outright" % [full - big.hp, full]
+		(
+			big.alive
+			and full - big.hp <= big.max_hp * Brawl.BOSS_SHARE + 30.0
+			and full - big.hp > 10.0
+		),
+		(
+			"a boss in a saw takes his share (%.0f of %.0f), never killed outright"
+			% [full - big.hp, full]
+		)
 	)
 
 
@@ -443,7 +470,10 @@ static func _door(main, check: Callable) -> void:
 				"a running USE kicks a shut door in, open at once"
 			)
 			if e != null:
-				check.call(Vector2(e.x, e.y).distance_to(behind) > .5, "and the man behind it is thrown back")
+				check.call(
+					Vector2(e.x, e.y).distance_to(behind) > .5,
+					"and the man behind it is thrown back"
+				)
 			done = true
 			break
 		if done:
@@ -484,8 +514,10 @@ static func _smash(main, check: Callable) -> void:
 		var done: bool = t.state == 3 if want_piece else t.state != 1
 		check.call(
 			e.hp < hp and brawl(g).finishable(e) and done and carry.held_by(p) < 0,
-			"%s broken over a man's head: hurt %.0f, reeling%s"
-			% [t.image, hp - e.hp, ", it breaks" if want_piece else ", it drops"]
+			(
+				"%s broken over a man's head: hurt %.0f, reeling%s"
+				% [t.image, hp - e.hp, ", it breaks" if want_piece else ", it drops"]
+			)
 		)
 
 
@@ -536,10 +568,7 @@ static func _looks(main, check: Callable) -> void:
 			var a: Array = Looks.PLACES[pose]
 			var b: Array = written.get(pose, [-1, -1])
 			same = same and int(a[0]) == int(b[0]) and int(a[1]) == int(b[1])
-	check.call(
-		same,
-		"the boot cels sit where build_boot_views.gd put them (brawl_looks.gd PLACES)"
-	)
+	check.call(same, "the boot cels sit where build_boot_views.gd put them (brawl_looks.gd PLACES)")
 	var g := game(main)
 	var art_ok := true
 	for pose: String in Looks.PLACES:

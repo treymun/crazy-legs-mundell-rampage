@@ -665,9 +665,7 @@ func _slide_step(s: Array, dt: float) -> bool:
 	var vy: float = s[2]
 	var speed := sqrt(vx * vx + vy * vy)
 	if speed < _num(KICK, "stop"):
-		var hogs := BrawlHazards.hogs_near(game.enemies, e.x, e.y)
-		if not hogs.is_empty() and not BossKit.is_boss(e) and not _feasting(e):
-			caught(e, "hogs", e.x, e.y, _i(s[3]))
+		_among_hogs(e, _i(s[3]))
 		return false
 	e.stun = maxf(e.stun, .2)
 	var was_x := e.x
@@ -703,11 +701,21 @@ func _slide_step(s: Array, dt: float) -> bool:
 			game.burst(e.x, e.y, game.world.stand(e) + .9, "dust", 6, 1.4)
 			if e.alive:
 				e.stun = maxf(e.stun, _num(KICK, "stun"))
+		if e.alive:
+			_among_hogs(e, _i(s[3]))
 		return false
 	var slow := maxf(0.0, speed - _num(KICK, "drag") * dt) / speed
 	s[1] = vx * slow
 	s[2] = vy * slow
 	return true
+
+
+## Where a slide ends: among the hogs, they set on him.
+func _among_hogs(e: Enemy, slot: int) -> void:
+	if BossKit.is_boss(e) or _feasting(e):
+		return
+	if not BrawlHazards.hogs_near(game.enemies, e.x, e.y).is_empty():
+		caught(e, "hogs", e.x, e.y, slot)
 
 
 func _feasting(e: Enemy) -> bool:
@@ -735,7 +743,9 @@ func _domino(e: Enemy, vx: float, vy: float, s: Array) -> void:
 				sliding = true
 		if sliding:
 			continue
-		var share := _num(KICK, "domino") * (_num(KICK, "boss_share") if BossKit.is_boss(o) else 1.0)
+		var share := (
+			_num(KICK, "domino") * (_num(KICK, "boss_share") if BossKit.is_boss(o) else 1.0)
+		)
 		var p := _player(_i(s[3]))
 		if p != null:
 			_strike(p, o, _num(KICK, "damage") * .5, .5, "kick")

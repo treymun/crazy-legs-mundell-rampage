@@ -268,7 +268,9 @@ func _water() -> void:
 					dry = false
 			if not dry:
 				continue
-			if not (BayouBrains.wet_at(w, x + 3.5, y + .5) and BayouBrains.wet_at(w, x + 4.5, y + .5)):
+			if not (
+				BayouBrains.wet_at(w, x + 3.5, y + .5) and BayouBrains.wet_at(w, x + 4.5, y + .5)
+			):
 				continue
 			if w.roof_over(x + .5, y + .5, 1.0) > 0.0:
 				continue
@@ -296,8 +298,8 @@ func _hogs() -> void:
 	var man := _hand(g, "billy", at + Vector2(-1.4, 0.0), PI)
 	_ticks(g, .2)
 	_ticks(g, STEP, true)
-	_ticks(g, .8)
+	_ticks(g, 1.4)
 	await _snap("hazard_hogs_1_in")
-	_ticks(g, 1.0)
+	_ticks(g, 1.2)
 	await _snap("hazard_hogs_2_after")
 	print("  hogs: ", "dead" if not man.alive else "ALIVE")
