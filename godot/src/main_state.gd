@@ -712,7 +712,8 @@ func apply_options() -> void:
 		and not showcase
 	)
 	if game != null:
-		game.configure(options)
+		if replay_play == null:  # a replay plays on with the settings it was made with
+			game.configure(options)
 		game.tone = tone_table
 		replays.options_changed(game, options)
 
