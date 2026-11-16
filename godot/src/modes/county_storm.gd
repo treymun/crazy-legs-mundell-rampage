@@ -365,9 +365,9 @@ static func draw_map(c: Canvas, game: Game) -> void:
 
 
 static func _map_ring(c: Canvas, game: Game, at: Vector2, r: float, ink: Color) -> void:
-	var steps := clampi(roundi(r * game._map_scale_now * 4.0), 24, 400)
+	var steps := clampi(roundi(r * game.map_view.scale_now * 4.0), 24, 400)
 	for k in steps:
 		var a := TAU * k / steps
-		var dot: Vector2 = game._map_point(at.x + cos(a) * r, at.y + sin(a) * r)
-		if game._map_shows(dot):
+		var dot: Vector2 = game.map_view.point(at.x + cos(a) * r, at.y + sin(a) * r)
+		if game.map_view.shows(dot):
 			c.fill_rect(int(dot.x), int(dot.y), 1, 1, ink)

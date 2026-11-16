@@ -242,7 +242,7 @@ func _view_tour() -> void:
 		if shot.has("district"):
 			game.district = int(game.world.area[game.world.cell(p.x, p.y)])
 			game.district_until = game.clock + 99.0
-		# A viewpoint may open the map, at a zoom (game_view.gd MAP_ZOOMS).
+		# A viewpoint may open the map, at a zoom (GameAutomap.MAP_ZOOMS).
 		var map_on: bool = shot.get("map", false)
 		var map_zoom: int = shot.get("map_zoom", 2)
 		game.map = map_on

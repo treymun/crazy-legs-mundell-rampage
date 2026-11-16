@@ -171,7 +171,7 @@ func _init(
 			total_kills += 1
 	district = int(level.area[int(player.y) * level.width + int(player.x)])
 	configure({})
-	_build_grit()
+	screen_look.build_grit(level.id)
 	Features.attach_all(self)
 	message(level.introduction, 5.0)
 	events.level_started.emit(level.id)

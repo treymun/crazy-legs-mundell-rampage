@@ -1,5 +1,6 @@
 ## What the game draws: the sprite list, the frame (view, weapon, HUD), the
-## view effects and the automap (the game layers are listed in game_state.gd).
+## view effects (the software look pass: screen_look.gd) and the automap
+## (game_automap.gd) (the game layers are listed in game_state.gd).
 class_name GameView
 extends GameCombat
 
@@ -715,7 +716,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		if scene_live or c.gpu:
 			drunk_k = minf(1.0, (p.drunk - 38.0) / 62.0)
 		else:
-			_drunk_warp(c)
+			ScreenLook.drunk_warp(c, p.drunk, clock)
 	# The look pass and the brightness grade touch the same view rectangle; the
 	# lookup table is folded into the look pass when both are active.
 	var graded := false
@@ -920,51 +921,6 @@ func _hit_mark(c: Canvas) -> void:
 
 # ------------------------------------------------------------- view effects
 
-## The grit and dither of each wash made so far (_build_grit): wash -> [r, g,
-## b, dither], only ever read after, so every game of that wash shares them.
-static var _grits := {}
-
-
-func _build_grit() -> void:
-	var wash_key := str(WASH.get(level.id, [255, 255, 255, 0]))
-	var made: Variant = _grits.get(wash_key)
-	if made != null:
-		var kept: Array = made
-		_grit_r = kept[0]
-		_grit_g = kept[1]
-		_grit_b = kept[2]
-		_dither = kept[3]
-		return
-	# New arrays (a packed array in a Variant is shared: these are kept).
-	_grit_r = PackedFloat32Array()
-	_grit_g = PackedFloat32Array()
-	_grit_b = PackedFloat32Array()
-	_dither = PackedFloat32Array()
-	var count := WIDTH * VIEW
-	_grit_r.resize(count)
-	_grit_g.resize(count)
-	_grit_b.resize(count)
-	_dither.resize(count)
-	var wash: Array = WASH.get(level.id, [255, 255, 255, 0])
-	var amount := _view_num(wash[3])
-	var tr := _view_num(wash[0]) / 255.0
-	var tg := _view_num(wash[1]) / 255.0
-	var tb := _view_num(wash[2]) / 255.0
-	var w := float(maxi(WIDTH - 1, 1))
-	var h := float(maxi(VIEW - 1, 1))
-	for y in VIEW:
-		var ny := (float(y) / h - .5) * 2.0
-		for x in WIDTH:
-			var nx := (float(x) / w - .5) * 2.0
-			var radius := sqrt(nx * nx + ny * ny) / 1.4142
-			var vignette := 1.0 - .13 * pow(radius, 2.1)
-			var i := y * WIDTH + x
-			_grit_r[i] = ((1.0 - amount) + tr * amount) * vignette
-			_grit_g[i] = ((1.0 - amount) + tg * amount) * vignette
-			_grit_b[i] = ((1.0 - amount) + tb * amount) * vignette
-			_dither[i] = (_view_num(BAYER[(x % 4) * 4 + (y % 4)]) / 16.0 - .5) * 6.0
-	_grits[wash_key] = [_grit_r, _grit_g, _grit_b, _dither]
-
 
 func _apply_hurt_flash(c: Canvas) -> void:
 	var alpha := clampi(roundi(hurt_flash * 310.0 * flash_scale), 0, 255)
@@ -982,48 +938,6 @@ func _apply_hurt_flash(c: Canvas) -> void:
 		i += 3
 
 
-## rampage2.drunk_warp: per-row sine shear, ghost double image, amber tint.
-func _drunk_warp(c: Canvas) -> void:
-	var drunk := player.drunk
-	if drunk < 38.0:
-		return
-	var strength := minf(1.0, (drunk - 38.0) / 62.0)
-	var width := WIDTH
-	var source := PackedByteArray()
-	source.resize(width * VIEW * 3)
-	var shift := PackedInt32Array()
-	shift.resize(VIEW)
-	for y in VIEW:
-		shift[y] = roundi(sin(y * .16 + clock * 3.1) * (1.0 + 3.4 * strength))
-	var pix := c.pixels
-	for y in VIEW:
-		var row := y * width * 3
-		var offset := shift[y]
-		for x in width:
-			var sx := posmod(x + offset, width)
-			var sp := row + sx * 3
-			var dp := row + x * 3
-			source[dp] = pix[sp]
-			source[dp + 1] = pix[sp + 1]
-			source[dp + 2] = pix[sp + 2]
-	var ghost_dx := int(2 + 4 * strength)
-	if sin(clock * 1.7) <= 0.0:
-		ghost_dx = -ghost_dx
-	var mix := .30 * strength
-	for y in VIEW:
-		var row := y * width * 3
-		for x in width:
-			var gx := posmod(x - ghost_dx, width)
-			var gp := row + gx * 3
-			var dp := row + x * 3
-			var r := float(source[dp]) * (1.0 - mix) + float(source[gp]) * mix
-			var g := float(source[dp + 1]) * (1.0 - mix) + float(source[gp + 1]) * mix
-			var b := float(source[dp + 2]) * (1.0 - mix) + float(source[gp + 2]) * mix
-			pix[dp] = clampi(int(r * (1.0 + .06 * strength)), 0, 255)
-			pix[dp + 1] = clampi(int(g), 0, 255)
-			pix[dp + 2] = clampi(int(b * (1.0 - .10 * strength)), 0, 255)
-
-
 ## This frame's lamp buzz, grain frame and blast lift, for either look path.
 func _look_params() -> void:
 	var indoors: bool = world.roof[world.cell(player.x, player.y)] != 0.0
@@ -1034,46 +948,15 @@ func _look_params() -> void:
 		if int(clock * 7.3) % 29 == 0 and fmod(clock * 7.3, 1.0) < .35:
 			buzz -= .07
 		gain = buzz
-	_look_gain = gain
-	_look_frame = int(clock * 17.0) % GRAIN_FRAMES
-	_look_blast = blast_flash * 60.0
+	screen_look.gain = gain
+	screen_look.frame = int(clock * 17.0) % ScreenLook.GRAIN_FRAMES
+	screen_look.blast = blast_flash * 60.0
 
 
+## The software look pass (screen_look.gd), `grade_tone` folded in.
 func _look_pass(c: Canvas, grade_tone: Variant = null) -> void:
 	_look_params()
-	_look_tone = grade_tone
-	# Row-banded across explicit threads. This pass is ~10 ms of per-pixel float
-	# work at 50k pixels, so it is worth splitting. Each worker owns a private
-	# output buffer for its own rows; only writes need a single owner, and a
-	# shared buffer would make every worker detach on its first write (packed
-	# arrays are copy-on-write). The bands are concatenated natively with
-	# append_array, and the status rows below VIEW are carried over verbatim.
-	var src := c.pixels
-	var view_bytes := WIDTH * VIEW * 3
-	var bands := _look_band_count()
-	if bands <= 1:
-		var dst := src.slice(0)
-		_look_rows(dst, src, 0, VIEW)
-		c.pixels = dst
-		return
-	_look_rows_per = ceili(float(VIEW) / bands)
-	while _look_threads.size() < bands:
-		_look_threads.append(Thread.new())
-	for i in bands:
-		var t: Thread = _look_threads[i]
-		if t.is_started():
-			t.wait_to_finish()
-		t.start(_look_worker.bind(src, i))
-	# Each worker builds and returns its own buffer, so no band ever writes into
-	# memory another thread can see; the main thread collects the results.
-	var out := PackedByteArray()
-	for i in bands:
-		var part: PackedByteArray = _look_threads[i].wait_to_finish()
-		if part.size() > 0:
-			out.append_array(part)
-	if src.size() > view_bytes:
-		out.append_array(src.slice(view_bytes))
-	c.pixels = out
+	screen_look.run(c, art.grain, grade_tone, _look_band_count())
 
 
 func _look_band_count() -> int:
@@ -1086,18 +969,6 @@ func _look_band_count() -> int:
 	return mini(4, VIEW)
 
 
-func _look_worker(src: PackedByteArray, slot: int) -> PackedByteArray:
-	var y0 := slot * _look_rows_per
-	var y1 := mini(VIEW, y0 + _look_rows_per)
-	if y0 >= y1:
-		return PackedByteArray()
-	# Private buffer: one owner, so the band write cannot race with a detach.
-	var part := PackedByteArray()
-	part.resize((y1 - y0) * WIDTH * 3)
-	_look_rows(part, src, y0, y1)
-	return part
-
-
 func _grade_view(c: Canvas) -> void:
 	var pix := c.pixels
 	var n := WIDTH * VIEW * 3
@@ -1107,371 +978,11 @@ func _grade_view(c: Canvas) -> void:
 
 # ----------------------------------------------------------------- automap
 
-## The map over the view: the window it shows the level in, with two lines of
-## text under it (the status bar stays below).
-const MAP_X := 6
-const MAP_Y := 6
-const MAP_W := 308
-const MAP_H := 126
-## Pixels a cell at each zoom; 0 fits the whole level in the window.
-const MAP_ZOOMS := [0.0, 2.0, 3.0, 4.0]
-const MAP_BACK := Color8(22, 17, 13)
-const MAP_WALL := Color8(214, 178, 118)
-## Ground not walked yet, then walked: under the sky, under a roof, water.
-const MAP_GROUND := [Color8(54, 58, 47), Color8(70, 58, 45), Color8(44, 68, 72)]
-## A wall's own mass, against the void beyond the level.
-const MAP_MASS := Color8(40, 31, 23)
-const MAP_WALKED := [Color8(104, 92, 64), Color8(132, 104, 72), Color8(66, 104, 110)]
 
-
+## The map over the view (game_automap.gd, the game's map_view).
 func automap(c: Canvas) -> void:
-	var region := _map_region()
-	var scale := _map_scale(region)
-	if _map_image == null or _map_built_scale != scale or _map_signature_changed():
-		_build_map_image(region, scale)
-	_paint_walked(region, scale)
-	# The window follows the player (clamped to the level), or shows it all.
-	var full := Vector2(region.size) * scale
-	var origin := Vector2.ZERO
-	for k in 2:
-		var span: float = MAP_W if k == 0 else MAP_H
-		var at: float = (player.x if k == 0 else player.y) - float(region.position[k])
-		if full[k] <= span:
-			origin[k] = -(span - full[k]) / 2.0
-		else:
-			origin[k] = clampf(at * scale - span / 2.0, 0.0, full[k] - span)
-	_map_origin = origin.floor()
-	_map_scale_now = scale
-	_map_region_now = region
-	c.fill_rect(MAP_X - 4, MAP_Y - 4, MAP_W + 8, 152, Canvas.rgb(30, 23, 18))
-	c.rect_outline(MAP_X - 4, MAP_Y - 4, MAP_W + 8, 152, Canvas.rgb(149, 117, 81))
-	c.rect_outline(MAP_X - 1, MAP_Y - 1, MAP_W + 2, MAP_H + 2, Canvas.rgb(84, 64, 45))
-	_blit_map(c)
-	if not in_hub:
-		for door: LevelData.Door in world.doors:
-			if not door.secret or door.discovered:
-				var color := (
-					Canvas.rgb(110, 136, 90)
-					if door.opened
-					else Canvas.rgb(222, 128, 52) if door.key != "" else Canvas.rgb(176, 132, 82)
-				)
-				_map_cell_mark(c, float(door.x), float(door.y), color)
-	for station: LevelData.Station in world.stations:
-		if not station.reveals_secret and (not station.hidden or stations_done.has(station.id)):
-			var at2 := _map_point(station.x, station.y)
-			if _map_shows(at2):
-				var done := stations_done.has(station.id)
-				var mark := Canvas.rgb(151, 187, 110) if done else Canvas.rgb(236, 168, 84)
-				c.fill_rect(int(at2.x) - 2, int(at2.y) - 2, 5, 5, Canvas.rgb(22, 17, 13))
-				c.fill_rect(int(at2.x) - 1, int(at2.y) - 1, 3, 3, mark)
-	if world.extraction != null:
-		var at3 := _map_point(world.extraction.x, world.extraction.y)
-		if _map_shows(at3):
-			c.circle(
-				int(at3.x),
-				int(at3.y),
-				3,
-				Canvas.rgb(151, 187, 110) if exit_ready() else Canvas.rgb(190, 110, 84),
-				false
-			)
-	_map_labels(c)
 	var me: Game = self as Object
-	CountyStorm.draw_map(c, me)
-	_map_goal(c)
-	_map_player(c)
-	MapKey.draw(c, MAP_X + 1, MAP_Y + MAP_H - 1)  # what the marks mean
-	c.line(MAP_X, MAP_Y + MAP_H + 3, MAP_X + MAP_W - 1, MAP_Y + MAP_H + 3, Canvas.rgb(120, 87, 59))
-	HUD.text(
-		c,
-		objective() if hints else level.title,
-		160,
-		MAP_Y + MAP_H + 6,
-		"body",
-		Canvas.rgb(248, 199, 127),
-		true
-	)
-	var tally := (
-		"ROAD NOTES %d/%d" % [hub_findings.size(), world.hub_clues.size()]
-		if in_hub
-		else "SECRETS %d/%d" % [secrets, total_secrets]
-	)
-	var keys := "   /   TAP TO ZOOM" if touch_aim else "   /   PGUP PGDN ZOOM   /   TAB CLOSE"
-	if Modes.is_tactical(me):
-		var sites: Dictionary = world.tactical.get("sites", {})
-		tally = "SITE A MARKED" if sites.size() == 1 else "SITES A AND B MARKED"
-		keys = "   /   PGUP PGDN ZOOM   /   M CLOSE"
-	HUD.text(c, tally + keys, 160, MAP_Y + MAP_H + 15, "body", HUD.INK, true)
-
-
-## The part of the level the map covers, in cells: all of it, or the
-## Crossroads' own window of hub.json.
-func _map_region() -> Rect2i:
-	if in_hub and not level.map_window.is_empty():
-		var wnd: Array = level.map_window
-		return Rect2i(_view_int(wnd[0]), _view_int(wnd[1]), _view_int(wnd[2]), _view_int(wnd[3]))
-	return Rect2i(0, 0, int(world.width), int(world.height))
-
-
-func _map_scale(region: Rect2i) -> float:
-	var fit := minf(float(MAP_W) / region.size.x, float(MAP_H) / region.size.y)
-	var zoom: float = MAP_ZOOMS[clampi(map_zoom, 0, MAP_ZOOMS.size() - 1)]
-	return fit if zoom <= 0.0 or zoom <= fit else zoom
-
-
-func _map_signature_changed() -> bool:
-	return _map_signature() != map_signature
-
-
-## What the map image shows that can change: the secret doors still hidden,
-## and how many cells have opened (a fence broken through).
-func _map_signature() -> Array:
-	var signature: Array = [world.solid_version]
-	for door: LevelData.Door in world.doors:
-		if door.secret and not door.discovered:
-			signature.append(Vector2i(door.x, door.y))
-	return signature
-
-
-## The whole map at this scale, in an image: ground by kind, walls drawn as
-## lines along every edge between open ground and a wall. Ground still hidden
-## behind a secret door stays dark.
-func _build_map_image(region: Rect2i, scale: float) -> void:
-	var signature := _map_signature()
-	map_signature = signature
-	_map_hidden.clear()
-	for point: Vector2i in signature.slice(1):
-		_map_hidden[point] = true
-		for room: Array in level.hidden_rooms:
-			if room[0] == point:
-				var box: Vector4i = room[1]
-				for yy in range(box.y, box.w + 1):
-					for xx in range(box.x, box.z + 1):
-						_map_hidden[Vector2i(xx, yy)] = true
-	var size := (Vector2(region.size) * scale).ceil()
-	_map_image = Image.create_empty(
-		maxi(1, int(size.x)), maxi(1, int(size.y)), false, Image.FORMAT_RGB8
-	)
-	_map_image.fill(MAP_BACK)
-	_map_built_scale = scale
-	_map_region_now = region
-	_map_painted = 0
-	for yy in range(region.position.y, region.end.y):
-		for xx in range(region.position.x, region.end.x):
-			if _map_open(xx, yy):
-				_map_paint_cell(xx, yy, false)
-
-
-func _map_open(x: int, y: int) -> bool:
-	if x < 0 or y < 0 or x >= world.width or y >= world.height:
-		return false
-	return int(world.solid[y * int(world.width) + x]) < 0 and not _map_hidden.has(Vector2i(x, y))
-
-
-func _map_cell_rect(x: int, y: int) -> Rect2i:
-	var region := _map_region_now
-	var s := _map_built_scale
-	var x0 := int(roundf((x - region.position.x) * s))
-	var y0 := int(roundf((y - region.position.y) * s))
-	var x1 := int(roundf((x - region.position.x + 1) * s))
-	var y1 := int(roundf((y - region.position.y + 1) * s))
-	return Rect2i(x0, y0, maxi(1, x1 - x0), maxi(1, y1 - y0))
-
-
-## One cell of ground, walked or not, with its wall edges.
-func _map_paint_cell(x: int, y: int, walked: bool) -> void:
-	var cell := y * int(world.width) + x
-	var kind := 0 if world.roof[cell] == 0.0 else 1
-	if world.surface_sound(int(world.floor_tile[cell])) == "water":
-		kind = 2
-	var r := _map_cell_rect(x, y)
-	var shade: Color = (MAP_WALKED if walked else MAP_GROUND)[kind]
-	_map_image.fill_rect(r, shade)
-	var line := 2 if _map_built_scale >= 4.0 else 1
-	for k: Vector2i in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
-		var n := Vector2i(x, y) + k
-		if not _map_open(n.x, n.y) and _map_region_now.has_point(n):
-			_map_image.fill_rect(_map_cell_rect(n.x, n.y), MAP_MASS)
-	if not _map_open(x - 1, y):
-		_map_image.fill_rect(Rect2i(r.position.x, r.position.y, line, r.size.y), MAP_WALL)
-	if not _map_open(x + 1, y):
-		_map_image.fill_rect(Rect2i(r.end.x - line, r.position.y, line, r.size.y), MAP_WALL)
-	if not _map_open(x, y - 1):
-		_map_image.fill_rect(Rect2i(r.position.x, r.position.y, r.size.x, line), MAP_WALL)
-	if not _map_open(x, y + 1):
-		_map_image.fill_rect(Rect2i(r.position.x, r.end.y - line, r.size.x, line), MAP_WALL)
-
-
-## The ground walked since the image was last brought up to date.
-func _paint_walked(region: Rect2i, _scale: float) -> void:
-	var keys: Array = visited.keys()
-	for i in range(_map_painted, keys.size()):
-		var key: Vector2i = keys[i]
-		if region.has_point(key) and _map_open(key.x, key.y):
-			_map_paint_cell(key.x, key.y, true)
-	_map_painted = keys.size()
-
-
-## Where a point of the level is on the canvas, this frame.
-func _map_point(x: float, y: float) -> Vector2:
-	return Vector2(
-		MAP_X + (x - _map_region_now.position.x) * _map_scale_now - _map_origin.x,
-		MAP_Y + (y - _map_region_now.position.y) * _map_scale_now - _map_origin.y
-	)
-
-
-func _map_shows(at: Vector2) -> bool:
-	return at.x >= MAP_X and at.y >= MAP_Y and at.x < MAP_X + MAP_W and at.y < MAP_Y + MAP_H
-
-
-func _map_cell_mark(c: Canvas, x: float, y: float, color: Color) -> void:
-	var a := _map_point(x, y)
-	var b := _map_point(x + 1.0, y + 1.0)
-	var x0 := maxi(MAP_X, int(a.x))
-	var y0 := maxi(MAP_Y, int(a.y))
-	var x1 := mini(MAP_X + MAP_W, maxi(int(b.x), int(a.x) + 1))
-	var y1 := mini(MAP_Y + MAP_H, maxi(int(b.y), int(a.y) + 1))
-	if x1 > x0 and y1 > y0:
-		c.fill_rect(x0, y0, x1 - x0, y1 - y0, color)
-
-
-func _map_labels(c: Canvas) -> void:
-	var labels: Array = []
-	if in_hub:
-		for gate: LevelData.Gate in world.hub_gates:
-			labels.append(
-				[
-					str(Campaign.GATE_LABELS.get(gate.destination, "")),
-					gate.x,
-					gate.y,
-					not world.locked_gates.has(gate)
-				]
-			)
-		for clue: Variant in world.hub_clues:
-			if hub_findings.has(str(clue[0])):
-				var at := _map_point(_view_num(clue[1]), _view_num(clue[2]))
-				if _map_shows(at):
-					c.polygon(
-						[
-							Vector2(at.x, at.y - 3),
-							Vector2(at.x + 3, at.y),
-							Vector2(at.x, at.y + 3),
-							Vector2(at.x - 3, at.y)
-						],
-						Canvas.rgb(200, 173, 111)
-					)
-	else:
-		for row: Variant in level.map_labels:
-			labels.append([str(row[0]), _view_num(row[1]), _view_num(row[2]), true])
-	var placed: Array[Rect2i] = []
-	for label_row: Array in labels:
-		var label := str(label_row[0])
-		if label == "":
-			continue
-		var at := _map_point(_view_num(label_row[1]), _view_num(label_row[2]))
-		var wide := PixelType.text_width(label)
-		var left := int(at.x) - wide / 2
-		if left < MAP_X + 1 or left + wide > MAP_X + MAP_W - 1:
-			continue
-		if at.y < MAP_Y + 1 or at.y > MAP_Y + MAP_H - 9:
-			continue
-		# Zoomed out, names that would sit on each other: the first one only.
-		var box := Rect2i(left - 3, int(at.y) - 2, wide + 6, 11)
-		var crowded := false
-		for other: Rect2i in placed:
-			if other.intersects(box):
-				crowded = true
-				break
-		if crowded:
-			continue
-		placed.append(box)
-		c.fill_rect(left - 2, int(at.y) - 1, wide + 4, 9, Canvas.rgb(30, 23, 18))
-		HUD.text(
-			c,
-			label,
-			left,
-			int(at.y),
-			"body",
-			Canvas.rgb(244, 223, 185) if label_row[3] else Canvas.rgb(185, 123, 85),
-			false,
-			false
-		)
-
-
-## Where the objective pin points: a blinking diamond, or an arrow on the
-## window's edge pointing to it when it is off the map.
-func _map_goal(c: Canvas) -> void:
-	var goal: Variant = objective_target()
-	if goal == null or not (goal is Vector2):
-		return
-	var spot: Vector2 = goal
-	var at := _map_point(spot.x, spot.y)
-	var color := (
-		Canvas.rgb(255, 214, 110) if int(clock * 3.0) % 2 == 0 else Canvas.rgb(214, 120, 60)
-	)
-	if _map_shows(at):
-		c.polygon(
-			[
-				Vector2(at.x, at.y - 4),
-				Vector2(at.x + 4, at.y),
-				Vector2(at.x, at.y + 4),
-				Vector2(at.x - 4, at.y)
-			],
-			color
-		)
-		return
-	var middle := Vector2(MAP_X + MAP_W / 2.0, MAP_Y + MAP_H / 2.0)
-	var way := (at - middle).normalized()
-	var reach := minf(
-		(MAP_W / 2.0 - 6.0) / maxf(.001, absf(way.x)), (MAP_H / 2.0 - 6.0) / maxf(.001, absf(way.y))
-	)
-	var tip := middle + way * reach
-	var side := Vector2(-way.y, way.x)
-	c.polygon([tip + way * 4.0, tip - way * 3.0 + side * 3.5, tip - way * 3.0 - side * 3.5], color)
-
-
-func _map_player(c: Canvas) -> void:
-	var at := _map_point(player.x, player.y)
-	var way := Vector2(cos(player.angle), sin(player.angle))
-	var side := Vector2(-way.y, way.x)
-	var size := clampf(_map_scale_now * 1.4, 3.0, 5.0)
-	var tip := at + way * size * 1.3
-	var back_l := at - way * size * .8 + side * size * .8
-	var back_r := at - way * size * .8 - side * size * .8
-	c.polygon([tip, back_l, at - way * size * .3, back_r], Canvas.rgb(255, 170, 80))
-	c.line(int(tip.x), int(tip.y), int(back_l.x), int(back_l.y), Canvas.rgb(70, 32, 14))
-	c.line(int(tip.x), int(tip.y), int(back_r.x), int(back_r.y), Canvas.rgb(70, 32, 14))
-
-
-## The visible part of the map image into the window.
-func _blit_map(c: Canvas) -> void:
-	var src := Rect2i(maxi(0, int(_map_origin.x)), maxi(0, int(_map_origin.y)), 0, 0)
-	var dst := Vector2i(MAP_X + maxi(0, -int(_map_origin.x)), MAP_Y + maxi(0, -int(_map_origin.y)))
-	src.size = Vector2i(
-		mini(_map_image.get_width() - src.position.x, MAP_X + MAP_W - dst.x),
-		mini(_map_image.get_height() - src.position.y, MAP_Y + MAP_H - dst.y)
-	)
-	if src.size.x <= 0 or src.size.y <= 0:
-		return
-	var crop := _map_image.get_region(src)
-	if c.gpu:
-		if _map_texture == null or _map_texture.get_size() != Vector2(src.size):
-			_map_texture = ImageTexture.create_from_image(crop)
-		else:
-			_map_texture.update(crop)
-		c.gpu_texture(_map_texture, dst.x, dst.y, src.size.x, src.size.y)
-		return
-	var data := crop.get_data()
-	var pix := c.pixels
-	var row_bytes := src.size.x * 3
-	for row in src.size.y:
-		var from := row * row_bytes
-		var to := ((dst.y + row) * Canvas.WIDTH + dst.x) * 3
-		for k in row_bytes:
-			pix[to + k] = data[from + k]
-		if c.layer:
-			var at := (dst.y + row) * Canvas.WIDTH + dst.x
-			for k in src.size.x:
-				c.cover[at + k] = 255
+	map_view.draw(me, c)
 
 
 ## float() and int() of a number read from a list or dictionary, typed (the

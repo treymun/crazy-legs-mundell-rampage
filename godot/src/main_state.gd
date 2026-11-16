@@ -961,9 +961,9 @@ func _look_uniforms() -> void:
 				1.0 - amount + wb / 255.0 * amount
 			)
 		)
-		palette_material.set_shader_parameter("gain", game._look_gain)
-		palette_material.set_shader_parameter("blast", game._look_blast)
-		palette_material.set_shader_parameter("grain_frame", game._look_frame)
+		palette_material.set_shader_parameter("gain", game.screen_look.gain)
+		palette_material.set_shader_parameter("blast", game.screen_look.blast)
+		palette_material.set_shader_parameter("grain_frame", game.screen_look.frame)
 	if tone_on and tone_table != tone_sent:
 		tone_sent = tone_table
 		var table: PackedByteArray = tone_table

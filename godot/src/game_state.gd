@@ -543,7 +543,6 @@ var use_key := "E"
 var use_aim := Vector3.INF
 var flush_until := 0.0
 var map_panel: Variant = null
-var map_signature: Variant = null
 var radio_check := 0.0
 
 # Options (configure()).
@@ -708,35 +707,13 @@ var showing_tally: bool:
 
 # -------------------------------------------------------------- configure
 
-## rampage2.look_pass tables: wash tint, vignette and ordered dither.
-var _grit_r := PackedFloat32Array()
-var _grit_g := PackedFloat32Array()
-var _grit_b := PackedFloat32Array()
-var _dither := PackedFloat32Array()
+## The software look pass and its numbers (screen_look.gd).
+var screen_look := ScreenLook.new()
 
-const GRAIN_STRIDE := 936
-const GRAIN_FRAMES := 6
-
-var _look_threads: Array[Thread] = []
-var _look_rows_per := 0
-var _look_gain := 1.0
-var _look_frame := 0
-var _look_blast := 0.0
-var _look_tone: Variant = null
-
-## The automap (game_view.gd): the whole map drawn at the zoom in use, the
-## scale it was drawn at, how much of `visited` is painted on it, the cells a
-## secret still hides, and this frame's window onto it; the zoom (an index into
-## MAP_ZOOMS; 0 fits the level); the texture the window shows on a 2D canvas.
-var _map_image: Image = null
-var _map_built_scale := -1.0
-var _map_painted := 0
-var _map_hidden := {}
-var _map_origin := Vector2.ZERO
-var _map_scale_now := 1.0
-var _map_region_now := Rect2i()
+## The automap (game_automap.gd: its image, window and texture), and its zoom
+## (an index into GameAutomap.MAP_ZOOMS; 0 fits the level).
+var map_view := GameAutomap.new()
 var map_zoom := 2
-var _map_texture: ImageTexture
 
 ## game.Controls: one sim step's input.
 ## Milliseconds the last draw spent listing sprites, rendering the scene, drawing
@@ -897,49 +874,3 @@ static func _prop_heights() -> Dictionary:
 			var h: float = cfg.get_value("heights", key)
 			out[key] = h
 	return out
-
-
-## Apply the look + tone passes (game_view.gd's look pass) to rows [y0, y1)
-## of `src`, writing them into `dst` starting at its row 0. Both buffers are
-## row-aligned to `y0`.
-func _look_rows(dst: PackedByteArray, src: PackedByteArray, y0: int, y1: int) -> void:
-	var grain := art.grain
-	var grit_r := _grit_r
-	var grit_g := _grit_g
-	var grit_b := _grit_b
-	var dither := _dither
-	var tone: Variant = _look_tone
-	var gain := _look_gain
-	var blast_add := _look_blast
-	var frame_index := _look_frame
-	# Yields: the reference runs look_pass over (0,0,WIDTH,VIEW) and then the
-	# brightness grade over the same rectangle, so folding the two passes
-	# together here produces identical pixels for half the memory traffic.
-	var dst_row := 0
-	var y := y0
-	while y < y1:
-		var i := y * WIDTH
-		var o := dst_row
-		var so := i * 3
-		var gx := frame_index * VIEW + y
-		var x := 0
-		while x < WIDTH:
-			var add := float(int(grain[gx]) - 2) + blast_add + dither[i]
-			var r := clampi(int(float(src[so]) * (grit_r[i] * gain) + add), 0, 255)
-			var g := clampi(int(float(src[so + 1]) * (grit_g[i] * gain) + add), 0, 255)
-			var b := clampi(int(float(src[so + 2]) * (grit_b[i] * gain) + add), 0, 255)
-			if tone != null:
-				dst[o] = tone[r]
-				dst[o + 1] = tone[g]
-				dst[o + 2] = tone[b]
-			else:
-				dst[o] = r
-				dst[o + 1] = g
-				dst[o + 2] = b
-			gx += GRAIN_STRIDE
-			i += 1
-			o += 3
-			so += 3
-			x += 1
-		dst_row += WIDTH * 3
-		y += 1
