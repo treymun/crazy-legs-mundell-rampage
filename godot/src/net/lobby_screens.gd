@@ -2,7 +2,7 @@
 ## MULTIPLAYER (four big choices), the COUNTY SERVERS list, the HOST and JOIN
 ## forms, the lobby (both teams, its main settings, TEAM / READY / KICK /
 ## START) and its ALL SETTINGS page, and what goes over an online match (the
-## ping, the results, leaving). The keys are main_input.gd's (_key_online);
+## ping, the results, leaving). The keys are OnlineInput's (key_online);
 ## these only draw, list the rows the cursor walks, and note every place a
 ## tap or click lands (`zones`, read by main_input's _tap_menu), so what is
 ## drawn and what a finger hits are one and the same.
