@@ -812,6 +812,23 @@ func unsupported(b: Body) -> bool:
 			var room := o.half + Vector3(.02, .02, .02)
 			if absf(l.x) < room.x and absf(l.y) < room.y and absf(l.z) < room.z:
 				return false
+	# ...or lying on another piece by a face or an edge (no corner over it):
+	# the midpoints between its lowest corners, on the pieces under them.
+	var low: Array = []
+	for k in 8:
+		var c := b.p + turn * b.points[k]
+		if c.z <= lowest + .03:
+			low.append(c)
+	for i in low.size():
+		for j in range(i + 1, low.size()):
+			var a: Vector3 = low[i]
+			var other: Vector3 = low[j]
+			var mid := (a + other) * .5 - Vector3(0.0, 0.0, .04)
+			for o: Body in near:
+				var l := Basis(o.q).transposed() * (mid - o.p)
+				var room := o.half + Vector3(.02, .02, .02)
+				if absf(l.x) < room.x and absf(l.y) < room.y and absf(l.z) < room.z:
+					return false
 	return true
 
 
