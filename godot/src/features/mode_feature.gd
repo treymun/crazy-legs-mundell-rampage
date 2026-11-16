@@ -203,7 +203,7 @@ func restore(state: Dictionary) -> void:
 		if i >= game.players.size():
 			var x: float = row.get("x", game.players[0].x)
 			var y: float = row.get("y", game.players[0].y)
-			if not SessionStore._valid_position(game.world, x, y):
+			if not SaveRestore.valid_position(game.world, x, y):
 				var at := Modes.open_spot_near(game, game.players[0].x, game.players[0].y)
 				x = at.x
 				y = at.y
