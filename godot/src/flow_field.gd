@@ -125,13 +125,16 @@ func _measure_open(nodes: int) -> void:
 			if changing.has(cell):
 				open[cell] = 2
 			elif graph != null and world.geo.cells[cell] != 0:
-				if world.geo.stands(world, graph, cell) and not world.deep_at(cx + .5, cy + .5):
+				if (
+					LevelNav.stands(world.geo, world, graph, cell)
+					and not world.deep_at(cx + .5, cy + .5)
+				):
 					open[cell] = 1
 			elif not world.blocked(cx + .5, cy + .5, BODY) and not world.deep_at(cx + .5, cy + .5):
 				open[cell] = 1
 	if graph != null:
 		for n in range(width * height, graph.count):
-			open[n] = 1 if world.geo.stands(world, graph, n) else 0
+			open[n] = 1 if LevelNav.stands(world.geo, world, graph, n) else 0
 
 
 ## Measure the open floor again over a box of the map, from x0, y0 to x1, y1

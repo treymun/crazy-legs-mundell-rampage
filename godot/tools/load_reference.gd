@@ -79,7 +79,7 @@ static func merge_runs(lv: LevelData) -> void:
 	lv.wall_count = out.size() / LevelData.WALL_STRIDE
 
 
-## The nav graph as LevelGeometry._build_nav built it before it was made
+## The nav graph as LevelNav.build_nav built it before it was made
 ## faster.
 static func nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGraph:
 	var g := LevelGeometry.NavGraph.new()
@@ -152,7 +152,7 @@ static func nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGraph:
 					lists[n].append(m)
 					lists[m].append(n)
 	for i in geo.ladders.size():
-		var ends := geo.ladder_nodes(g, geo.ladders[i])
+		var ends := LevelNav.ladder_nodes(geo, g, geo.ladders[i])
 		g.ladder_ends.append(ends)
 		if ends.x >= 0 and not lists[ends.x].has(ends.y):
 			lists[ends.x].append(ends.y)
@@ -213,7 +213,7 @@ static func nav(geo: LevelGeometry, lv: LevelData) -> LevelGeometry.NavGraph:
 				var side := false
 				for k in range(n0, n1):
 					var b := g.edges[k]
-					if b != a and g.cell[b] != ca and LevelGeometry._joins(g, b, m):
+					if b != a and g.cell[b] != ca and LevelNav.joins(g, b, m):
 						side = true
 						break
 				if not side:

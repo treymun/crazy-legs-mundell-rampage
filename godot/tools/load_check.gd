@@ -1,7 +1,7 @@
 ## What the faster level load hands play is what the slow way gave, level by
 ## level:
 ##
-## - the nav graph (LevelGeometry._build_nav) node for node and edge for edge,
+## - the nav graph (LevelNav.build_nav) node for node and edge for edge,
 ##   in the same order, against the build it replaced (tools/load_reference.gd);
 ## - the level read (LevelData.load_level): its grids and walls number for
 ##   number, its plane bounds box for box, against the reads they replaced;
@@ -69,7 +69,7 @@ func _run() -> void:
 
 func _check_nav(id: String, lv: LevelData) -> void:
 	var t0 := Time.get_ticks_usec()
-	var fast: LevelGeometry.NavGraph = lv.geo._build_nav(lv)
+	var fast: LevelGeometry.NavGraph = LevelNav.build_nav(lv.geo, lv)
 	var t1 := Time.get_ticks_usec()
 	var slow: LevelGeometry.NavGraph = Reference.nav(lv.geo, lv)
 	var t2 := Time.get_ticks_usec()
