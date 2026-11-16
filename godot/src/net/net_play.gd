@@ -20,6 +20,12 @@
 ## their own BACK_AFTER seconds after the results come up, or at once when
 ## every person has left; an empty lobby goes back to its own settings.
 ##
+## THE PARTY LINE (net_relay.gd, relay_link.gd): a host may also open a room
+## on the relay in the lobby server (`party_line`), so friends join by its
+## short code with no port opened (or straight to the host when its own port
+## answers); the browser build hosts through it alone. join_lobby takes the
+## code like an address.
+##
 ## Nothing here draws or reads keys: the front end (main.gd, lobby_screens.gd)
 ## and tools/net_showdown_check.gd drive it alike:
 ##   var net := NetPlay.host_lobby(port, name, lobby)   # or NetPlay.join_lobby(...)
@@ -105,21 +111,34 @@ var _waiting_hello := {}
 var _my_name := ""
 var _password := ""
 var _closing_at := -1.0
+## What the party line was last told of the router (NEWS when it changes).
+var _router_told := ""
 
 # ------------------------------------------------------------------ opening
 
 
 ## A lobby hosted on `at_port` (null: the port is taken). `lobby` overrides
-## DEFAULTS (lobby_name, password, ...). `open_router` asks for UPnP.
+## DEFAULTS (lobby_name, password, ...). `open_router` asks for UPnP;
+## `party_line` opens a room on the relay too (the browser build: only
+## that, and null when no party line is known).
 static func host_lobby(
-	at_port: int, my_name: String, lobby := {}, open_router := true, bind := "*"
+	at_port: int,
+	my_name: String,
+	lobby := {},
+	open_router := true,
+	bind := "*",
+	party_line := false
 ) -> NetPlay:
-	var s := NetSession.host(at_port, NetSession.Transport.ENET, Modes.MAX_PLAYERS - 1, bind)
-	if s == null:
-		return null
+	var s: NetSession = null
+	var web := OS.has_feature("web")
+	if web and not party_line:
+		return null  # a browser cannot listen
+	if not web:
+		s = NetSession.host(at_port, NetSession.Transport.ENET, Modes.MAX_PLAYERS - 1, bind)
+		if s == null:
+			return null
 	var net := NetPlay.new()
 	net.role = Role.HOST
-	net.session = s
 	net.port = at_port
 	net.my_id = NetSession.HOST_ID
 	net.phase = "lobby"
@@ -127,17 +146,64 @@ static func host_lobby(
 	net.players.append(
 		{"id": NetSession.HOST_ID, "name": clean_name(my_name), "team": -1, "ready": true}
 	)
-	if open_router:
+	if open_router and not web:
 		net.upnp = NetUpnp.new()
 		net.upnp.open(at_port)
+	if party_line:
+		var link := RelayLink.open_room(net.room_info(s != null))
+		if link == null and s == null:
+			return null
+		if s == null:
+			s = link
+		else:
+			s.also = link
+		net._router_told = net._router_state()
+	net.session = s
 	return net
+
+
+## This lobby's room on the party line (null: none).
+func party_line() -> RelayLink:
+	if session is RelayLink:
+		return session as RelayLink
+	if session != null and session.also is RelayLink:
+		return session.also as RelayLink
+	return null
+
+
+## What the party line keeps of a hosted lobby (NetRelay's OPEN and NEWS):
+## the server list's summary, listed when it has no password, and the host's
+## own port and addresses for players to try first.
+func room_info(direct := true) -> Dictionary:
+	var lan: PackedStringArray = (
+		RelayLink.test_lan if not RelayLink.test_lan.is_empty() else local_addresses()
+	)
+	return {
+		"summary": summary(),
+		"listed": str(settings.get("password", "")) == "",
+		"port": port if direct else 0,
+		"open": _router_state() == "open",
+		"lan": Array(lan),
+	}
+
+
+## "open" when the router opened the port to an address the world can reach.
+func _router_state() -> String:
+	if upnp == null:
+		return ""
+	if upnp.state == "open" and upnp.external != "" and upnp.shared_address():
+		return "shared"
+	return upnp.state
 
 
 ## An always-open lobby on `at_port` with no host player (null: the port is
 ## taken). `lobby` overrides DEFAULTS and is what it goes back to when empty.
-static func serve_lobby(at_port: int, lobby := {}, bind := "*") -> NetPlay:
+## `more_peers`: room on its port for the party line's (net_relay.gd).
+static func serve_lobby(at_port: int, lobby := {}, bind := "*", more_peers := 0) -> NetPlay:
 	# Room for a few server lists asking at once besides a full lobby.
-	var s := NetSession.host(at_port, NetSession.Transport.ENET, Modes.MAX_PLAYERS + 6, bind)
+	var s := NetSession.host(
+		at_port, NetSession.Transport.ENET, Modes.MAX_PLAYERS + 6 + more_peers, bind
+	)
 	if s == null:
 		return null
 	var net := NetPlay.new()
@@ -158,11 +224,15 @@ static func serve_lobby(at_port: int, lobby := {}, bind := "*") -> NetPlay:
 ## Joining the lobby at `where` (an address, address:port or a join code).
 ## null when the address cannot even be tried.
 static func join_lobby(where: String, my_name: String, password := "") -> NetPlay:
-	var target := parse_address(where)
+	var room_code := NetRelay.clean_code(where)
+	var target := {"host": room_code, "port": 0} if room_code != "" else parse_address(where)
 	if target.is_empty():
 		return null
 	var s: NetSession = null
-	if where.contains("://"):
+	if room_code != "":
+		# A party line code: the host's own address first where it may answer.
+		s = RelayLink.join_room(room_code, not OS.has_feature("web"))
+	elif where.contains("://"):
 		# A lobby server's WebSocket (the browser build: wss://host:443).
 		s = NetSession.join(where, 0, NetSession.Transport.WEBSOCKET)
 	else:
@@ -254,6 +324,8 @@ func poll(now_ms: float) -> void:
 		return
 	if role == Role.CLIENT and phase == "connecting":
 		_connecting()
+		if session == null:
+			return
 	var packets := session.poll(now_ms)
 	var events := session.take_events()
 	if role == Role.HOST:
@@ -290,10 +362,28 @@ func poll(now_ms: float) -> void:
 		client_sync.take(snaps, now_ms)
 	# After the packets: a BYE that came with the hang-up says why.
 	if role == Role.CLIENT and phase not in ["connecting", "closed"] and not session.connected():
-		_close("LOST THE HOST")
+		# (Through the party line: what it said, "THE HOST HUNG UP" and the like.)
+		_close(session.refusal() if session.refusal() != "" else "LOST THE HOST")
 		return
 	if phase == "match":
 		_watch_tally()
+	if role == Role.HOST and not dedicated:
+		_watch_party_line()
+
+
+## A host's room on the party line: told when the router answers; a lobby
+## hosted through it alone (the browser) closes when it is lost.
+func _watch_party_line() -> void:
+	var link := party_line()
+	if link == null:
+		return
+	if link == session and link.refusal() != "":
+		_close(link.refusal())
+		return
+	var router := _router_state()
+	if router != _router_told:
+		_router_told = router
+		link.news(room_info(link != session))
 
 
 ## Notes when the match's results came up; an always-open lobby takes
@@ -321,7 +411,9 @@ func back_in() -> int:
 func _connecting() -> void:
 	if _opened_at < 0.0:
 		_opened_at = _now
-	if session.connected():
+	if session.refusal() != "":
+		_close(session.refusal())
+	elif session.connected():
 		phase = "hello"
 		var version := str(ProjectSettings.get_setting("application/config/version", ""))
 		session.send(
@@ -633,6 +725,9 @@ func send_lobby() -> void:
 		info["news"] = Array(_told)
 		_told.clear()
 	session.send(0, NetSession.CH_RELIABLE, NetWire.message(NetWire.LOBBY, info))
+	var link := party_line()
+	if link != null and not dedicated:
+		link.news(room_info(link != session))
 
 
 ## Does this machine run the lobby (the host, or an always-open lobby's admin)?
@@ -1035,12 +1130,14 @@ func my_slot() -> int:
 
 
 ## Round trip to the host in ms (a client; 0 the host).
+## Through the party line it is the trip to the line and the host's own.
 func ping_ms() -> float:
 	if role != Role.CLIENT or session == null or not (session.peer is ENetMultiplayerPeer):
 		return 0.0
 	var enet := session.peer as ENetMultiplayerPeer
 	var p := enet.get_peer(NetSession.HOST_ID)
-	return p.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME) if p != null else 0.0
+	var own := p.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME) if p != null else 0.0
+	return own + session.extra_ms()
 
 
 # ------------------------------------------------------------------ addresses

@@ -77,6 +77,7 @@ godot --headless --path godot --script res://tools/net_showdown_check.gd   # NET
 godot --headless --path godot --script res://tools/net_server_check.gd     # NET SERVER OK (always-open lobby, no host player)
 godot --headless --path godot --script res://tools/county_check.gd     # COUNTY CHECK OK (COUNTY RUN: rules, maps, a death and a retry)
 godot --headless --path godot --script res://tools/county_net_check.gd # COUNTY NET CHECK OK
+godot --headless --path godot --script res://tools/relay_check.gd       # RELAY CHECK OK (the party line; -- ping=<address>:<port> times one elsewhere)
 godot --headless --path godot --script res://tools/wall_break_check.gd # every level's breakable cells opened at once
 ```
 

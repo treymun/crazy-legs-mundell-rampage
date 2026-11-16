@@ -478,14 +478,16 @@ dev.45: a lobby server's lobby with `ws_port` also takes WebSocket players
 `tls_cert`/`tls_key` (server/setup.sh copies Let's Encrypt's certificate to
 /etc/clmr/tls on renewal; IONOS's own firewall passes 443 and 8443, not the
 47xxx TCP ports). servers.json's `wss` is what the browser build knocks on and
-joins (net_browser.gd, `NetPlay.join_lobby` with a `wss://` address); hosting
-and join codes stay desktop only.
+joins (net_browser.gd, `NetPlay.join_lobby` with a `wss://` address). Since
+pass 7 the browser also hosts and joins by a party line code, through the
+relay in the lobby server ([multiplayer.md](multiplayer.md#the-party-line-the-relay));
+a 10-character join code or an address stays desktop only.
 
 ## Not done
 
 - Online co-op and deathmatch outside COUNTY RUN.
-- A relay or NAT punch-through for hosts whose router will not open the port
-  (forward it, or a VPN).
+- UDP hole punching (the party line relays instead; a desktop player still
+  goes straight to a host whose router opened the port).
 - Client prediction of anything but walking and the aim (a shot, a pickup).
 - A second local input set (split keyboard).
 - A kill feed outside the 5v5 modes.

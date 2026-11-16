@@ -28,8 +28,8 @@ const FIELD_MOST := 21
 const HUB := [
 	["servers", "PLAY ONLINE", "THE COUNTY SERVERS. ALWAYS OPEN."],
 	["bots", "PLAY VS BOTS", "YOU AND THE BOTS. NO INTERNET NEEDED."],
-	["host", "HOST A GAME", "YOUR OWN LOBBY FOR FRIENDS."],
-	["join", "JOIN WITH A CODE", "TYPE IN A FRIEND'S JOIN CODE."],
+	["host", "HOST A GAME", "YOUR OWN LOBBY. NO ROUTER FIDDLING."],
+	["join", "JOIN WITH A CODE", "A FRIEND'S PARTY LINE CODE."],
 ]
 ## The lobby's main settings (its own page), and every one (ALL SETTINGS).
 const LOBBY_KEYS := ["mode", "map", "store_rules", "bots", "bot_skill"]
@@ -61,6 +61,8 @@ const LIT := Color(82 / 255.0, 49 / 255.0, 31 / 255.0)
 const PLAIN := Color(34 / 255.0, 23 / 255.0, 17 / 255.0)
 const EDGE := Color(141 / 255.0, 102 / 255.0, 65 / 255.0)
 const REFRESH := Rect2i(14, 177, 70, 13)
+## Servers (and party line rooms) the list shows at once.
+const SERVERS_SHOWN := 3
 
 ## Where a tap lands this frame: [rect, id, arg] in drawing order (the last
 ## one drawn on top). Cleared by main_state.gd render() each frame.
@@ -240,9 +242,9 @@ static func draw_host_form(
 		at,
 		note,
 		[
-			"FRIENDS ON OTHER NETWORKS NEED THE",
-			"PORT OPEN (UDP). THE GAME ASKS YOUR",
-			"ROUTER; IF IT WON'T, USE A VPN.",
+			"FRIENDS GET IN BY THE PARTY LINE CODE",
+			"THE LOBBY SHOWS. NO PORT TO OPEN.",
+			"NO PASSWORD: IT'S ON THE SERVER LIST.",
 		],
 		clock
 	)
@@ -259,7 +261,7 @@ static func draw_join_form(
 		form,
 		at,
 		note,
-		["YOUR FRIEND'S JOIN CODE (ABCDE-12345)", "OR ADDRESS. CTRL+V PASTES."],
+		["A PARTY LINE CODE (HKP-427), A JOIN", "CODE OR AN ADDRESS. CTRL+V PASTES."],
 		clock
 	)
 
@@ -290,9 +292,11 @@ static func draw_servers(
 	var list: Array = browser.servers
 	if list.is_empty():
 		HUD.text(c, "NO SERVERS HERE", 160, 90, "body", SOFT, true)
-	for i in list.size():
+	# SERVERS_SHOWN at once, the cursor's in sight (the party line's rooms below).
+	var first := clampi(at - 2, 0, maxi(0, list.size() - SERVERS_SHOWN))
+	for i in range(first, mini(list.size(), first + SERVERS_SHOWN)):
 		var s: Dictionary = list[i]
-		var y := 60 + i * 34
+		var y := 60 + (i - first) * 34
 		var r := Rect2i(19, y - 3, 282, 31)
 		var picked := at == i + 1
 		box(c, r, LIT if picked else PLAIN)
@@ -322,8 +326,9 @@ static func draw_servers(
 			what = "%s - %s" % [_mode_name(info.get("mode")), _map_name(info.get("map"))]
 			var ping: float = s["ping"]
 			how = (
-				"%s   %d MS"
+				"%s%s   %d MS"
 				% [
+					"PARTY LINE %s   " % s["code"] if s.has("code") else "",
 					"MATCH ON" if str(info.get("phase", "")) == "match" else "IN THE LOBBY",
 					roundi(ping)
 				]
@@ -332,8 +337,27 @@ static func draw_servers(
 		HUD.text(c, what, 34, y + 10, "body", ink)
 		HUD.text(c, how, 34, y + 19, "body", SOFT)
 		zone(r, "server", i)
-	_note(c, note, 60 + list.size() * 34 + 2)
-	HUD.text(c, "THE FIRST ONE IN RUNS IT: MODE, MAP, START.", 160, 165, "body", SOFT, true)
+	var rows_shown := mini(list.size(), SERVERS_SHOWN)
+	if first + rows_shown < list.size():
+		HUD.text(c, "MORE BELOW", 294, 60 + rows_shown * 34 - 4, "mini", SOFT, false, true, true)
+	_note(c, note, 60 + rows_shown * 34 + 2)
+	var on_room := false
+	if at >= 1 and at <= list.size():
+		var picked_row: Dictionary = list[at - 1]
+		on_room = picked_row.has("code")
+	HUD.text(
+		c,
+		(
+			"A FRIEND'S OWN LOBBY, ON THE PARTY LINE."
+			if on_room
+			else "THE FIRST ONE IN RUNS IT: MODE, MAP, START."
+		),
+		160,
+		165,
+		"body",
+		SOFT,
+		true
+	)
 	button(c, REFRESH, "REFRESH", false, "refresh")
 	back_button(c)
 
@@ -418,9 +442,40 @@ static func reach_lines(net: NetPlay) -> Array:
 				if net.is_admin()
 				else "ALWAYS-OPEN LOBBY. %s RUNS IT." % admin_name(net)
 			)
-		return [
-			"CONNECTED TO %s   PING %d MS" % [net.address.to_upper(), roundi(net.ping_ms())], second
-		]
+		var where := "CONNECTED TO %s" % net.address.to_upper()
+		if net.session is RelayLink:
+			var line := net.session as RelayLink
+			where = (
+				"STRAIGHT TO THE HOST (CODE %s)" % line.code
+				if line.via() == "direct"
+				else "ON THE PARTY LINE, CODE %s" % line.code
+			)
+		return ["%s   PING %d MS" % [where, roundi(net.ping_ms())], second]
+	var link := net.party_line()
+	if link != null and link == net.session:
+		# The browser hosts through the party line alone.
+		return [_line_status(link), "HOSTED IN A BROWSER: EVERYBODY COMES BY THE PARTY LINE"]
+	var router := _router_line(net)
+	if link != null and link.state == "open":
+		return [_line_status(link), router[1]]
+	var home := str(router[2])
+	if link != null:
+		home = _line_status(link) + "   " + home.replace("SAME NETWORK OR VPN", "AT HOME")
+	return [router[0], home]
+
+
+## The party line's part of the lobby's lines.
+static func _line_status(link: RelayLink) -> String:
+	match link.state:
+		"calling":
+			return "RINGING THE PARTY LINE..."
+		"open":
+			return "PARTY LINE CODE %s   C COPIES" % link.code
+	return link.why if link.why != "" else "NO PARTY LINE"
+
+
+## The router's part: [as the only way in, beside the party line, home].
+static func _router_line(net: NetPlay) -> Array:
 	var lan := NetPlay.local_addresses()
 	var at_home := ""
 	for ip: String in lan:
@@ -429,24 +484,40 @@ static func reach_lines(net: NetPlay) -> Array:
 	if net.port != NetSession.PORT:
 		home += "  PORT %d" % net.port
 	var up := net.upnp
+	var by_line := "FRIENDS COME BY THE PARTY LINE"
 	if up == null:
-		return ["ROUTER NOT ASKED: FORWARD UDP %d FOR FRIENDS OUTSIDE" % net.port, home]
+		return [
+			"ROUTER NOT ASKED: FORWARD UDP %d FOR FRIENDS OUTSIDE" % net.port,
+			"ROUTER NOT ASKED: %s" % by_line,
+			home
+		]
 	match up.state:
 		"asking":
-			return ["ASKING THE ROUTER TO OPEN UDP %d..." % net.port, home]
+			var asking := "ASKING THE ROUTER TO OPEN UDP %d..." % net.port
+			return [asking, asking, home]
 		"open":
 			if up.external == "":
-				return ["ROUTER OPENED UDP %d (IT WOULD NOT SAY ITS ADDRESS)" % net.port, home]
+				var said := "ROUTER OPENED UDP %d (IT WOULD NOT SAY ITS ADDRESS)" % net.port
+				return [said, said, home]
 			if up.shared_address():
-				return ["YOUR PROVIDER SHARES ONE ADDRESS (CGNAT): USE A VPN", home]
+				return [
+					"YOUR PROVIDER SHARES ONE ADDRESS (CGNAT): USE A VPN",
+					"YOUR PROVIDER SHARES ONE ADDRESS (CGNAT): %s" % by_line,
+					home
+				]
 			return [
 				(
 					"JOIN CODE %s   (%s)   C COPIES"
 					% [NetPlay.to_code(up.external, net.port), up.external]
 				),
+				"ROUTER OPENED UDP %d: FRIENDS COME STRAIGHT IN" % net.port,
 				home
 			]
-	return ["ROUTER WON'T OPEN UDP %d: FORWARD IT OR USE A VPN" % net.port, home]
+	return [
+		"ROUTER WON'T OPEN UDP %d: FORWARD IT OR USE A VPN" % net.port,
+		"ROUTER WON'T OPEN UDP %d: %s" % [net.port, by_line],
+		home
+	]
 
 
 static func draw_lobby(
@@ -457,8 +528,17 @@ static func draw_lobby(
 		back_button(c)
 		return
 	if net.phase == "connecting" or net.phase == "hello":
-		HUD.text(c, "KNOCKING ON THE DOOR...", 160, 90, "body", HUD.AMBER, true)
-		HUD.text(c, net.address.to_upper(), 160, 102, "body", SOFT, true)
+		var knock := "KNOCKING ON THE DOOR..."
+		var at_where := net.address.to_upper()
+		if net.session is RelayLink:
+			var line := net.session as RelayLink
+			at_where = "PARTY LINE CODE %s" % line.code
+			if line.state == "trying":
+				knock = "TRYING THE HOST'S OWN LINE..."
+			elif not line.connected():
+				knock = "RINGING THE PARTY LINE..."
+		HUD.text(c, knock, 160, 90, "body", HUD.AMBER, true)
+		HUD.text(c, at_where, 160, 102, "body", SOFT, true)
 		back_button(c, "GIVE UP")
 		return
 	var s := net.settings
@@ -469,6 +549,8 @@ static func draw_lobby(
 	HUD.text(c, title, 160, 32, "body", HUD.AMBER, true)
 	var reach := reach_lines(net)
 	HUD.text(c, str(reach[0]), 160, 42, "mini", HUD.INK, true)
+	if net.role == NetPlay.Role.HOST and str(reach[0]).contains("C COPIES"):
+		zone(Rect2i(40, 40, 240, 8), "copy")
 	HUD.text(c, str(reach[1]), 160, 49, "mini", SOFT, true)
 	_teams(c, net)
 	var list := rows(net)

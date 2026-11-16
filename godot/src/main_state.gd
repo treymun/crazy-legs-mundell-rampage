@@ -286,7 +286,8 @@ var net_smooth := NetPredict.Smoother.new()
 ## --online-password=; for tests --online-start=<players> (the host starts
 ## once that many are in and ready, everyone readies by themselves),
 ## --online-map= and --online-bot (project folder: a bot plays this
-## machine's player).
+## machine's player); --party-line=<address:port> another party line than
+## servers.json's (a lobby server on this PC).
 var online_args := {}
 ## --mode=tagteam: the 2v2 format (Modes.TAGTEAM_*).
 var tag_team_arg := false

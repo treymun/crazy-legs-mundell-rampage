@@ -2,7 +2,9 @@
 ## lobbies in data/tuning/servers.json, each asked every ASK_EVERY seconds
 ## what it is doing (an INFO knock on its own port: connect, ask, hear, hang
 ## up; NetPlay answers it), so a player sees them live and joins one with
-## ENTER, no code. Nothing here draws or reads keys.
+## ENTER, no code. Below them, the party line's rooms (net_relay.gd: hosts'
+## own lobbies with no password), asked of the line the same way (a LIST
+## knock); ENTER on one joins it by its code. Nothing here draws or reads keys.
 class_name NetBrowser
 extends RefCounted
 
@@ -18,6 +20,11 @@ var servers: Array = []
 var row := 1
 var name := ""
 var _now := 0.0
+## How many of `servers` are the listed ones (the party line's rooms follow).
+var _listed := 0
+## The party line's knock in flight, and when it was last asked.
+var _line: RelayLink = null
+var _line_at := -1.0e9
 
 
 ## The servers listed in data/tuning/servers.json ([] when there is none).
@@ -53,12 +60,14 @@ func _init(list := listed()) -> void:
 					}
 				)
 			)
+	_listed = servers.size()
 
 
 ## Asks and hears; call every frame while the list is shown.
 func poll(now_ms: float) -> void:
 	_now = now_ms
-	for s: Dictionary in servers:
+	_ask_line(now_ms)
+	for s: Dictionary in servers.slice(0, _listed):
 		var session: NetSession = s["session"]
 		var asked_at: float = s["asked_at"]
 		if session == null:
@@ -87,16 +96,63 @@ func poll(now_ms: float) -> void:
 			_hang_up(s)
 
 
-## Asks every server again now.
+## The party line's rooms, asked every ASK_EVERY seconds; each is a row
+## after the listed servers, joined by its code.
+func _ask_line(now_ms: float) -> void:
+	if _line == null:
+		if now_ms - _line_at >= ASK_EVERY * 1000.0:
+			_line_at = now_ms
+			_line = RelayLink.ask_rooms()
+		return
+	_line.poll(now_ms)
+	if _line.state == "done":
+		_rooms(_line.rooms, _line.answered_ms)
+	elif now_ms - _line_at <= WAIT * 1000.0 and _line.state == "calling":
+		return
+	else:
+		_rooms([], 0.0)  # not answering: no rooms to show
+	_line.close()
+	_line = null
+
+
+func _rooms(list: Array, line_ms: float) -> void:
+	servers.resize(_listed)
+	for entry: Variant in list:
+		if not entry is Dictionary:
+			continue
+		var room: Dictionary = entry
+		var info: Dictionary = room.get("summary", {})
+		var host_ms: float = room.get("host_ms", 0.0)
+		(
+			servers
+			. append(
+				{
+					"name": str(info.get("lobby_name", "A LOBBY")),
+					"code": str(room.get("code", "")),
+					"state": "up",
+					"info": info,
+					"ping": line_ms + maxf(0.0, host_ms),
+					"session": null,
+				}
+			)
+		)
+	row = mini(row, servers.size())
+
+
+## Asks every server (and the party line) again now.
 func refresh() -> void:
-	for s: Dictionary in servers:
+	for s: Dictionary in servers.slice(0, _listed):
 		_hang_up(s)
 		s["asked_at"] = -1.0e9
+	_line_at = -1.0e9
 
 
 func close() -> void:
-	for s: Dictionary in servers:
+	for s: Dictionary in servers.slice(0, _listed):
 		_hang_up(s)
+	if _line != null:
+		_line.close()
+		_line = null
 
 
 func _knock(s: Dictionary) -> void:
@@ -125,6 +181,8 @@ func _hang_up(s: Dictionary) -> void:
 ## "address:port" of server `i`, for NetPlay.join_lobby.
 func address_of(i: int) -> String:
 	var s: Dictionary = servers[i]
+	if s.has("code"):
+		return str(s["code"])  # a party line room
 	if OS.has_feature("web") and str(s["wss"]) != "":
 		return str(s["wss"])
 	var port: int = s["port"]
@@ -135,15 +193,16 @@ func address_of(i: int) -> String:
 func why_not_join(i: int) -> String:
 	var s: Dictionary = servers[i]
 	var info: Dictionary = s["info"]
+	var what := "THAT LOBBY" if s.has("code") else "THAT SERVER"
 	if str(s["state"]) != "up":
 		return "THAT SERVER ISN'T ANSWERING. TRY AGAIN IN A BIT."
 	var version := str(ProjectSettings.get_setting("application/config/version", ""))
 	if str(info.get("version", version)) != version:
-		return "THAT SERVER RUNS %s. YOU RUN %s." % [info.get("version", "?"), version]
+		return "%s RUNS %s. YOU RUN %s." % [what, info.get("version", "?"), version]
 	var players: int = info.get("players", 0)
 	var max_players: int = info.get("max_players", 10)
 	if players >= max_players:
-		return "THAT SERVER IS FULL."
+		return "%s IS FULL." % what
 	var late_join: bool = info.get("late_join", true)
 	if str(info.get("phase", "")) == "match" and not late_join:
 		return "A MATCH IS ON THERE (NO LATE JOIN)."

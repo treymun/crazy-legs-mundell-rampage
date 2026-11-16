@@ -928,7 +928,7 @@ func open_net_form(hosting: bool) -> void:
 	sound.play("menu_accept")
 
 
-const WEB_NOTE := "HOSTING AND JOIN CODES NEED THE DESKTOP GAME. PLAY ONLINE WORKS HERE."
+const WEB_NOTE := "IN THE BROWSER EVERYTHING GOES BY THE PARTY LINE."
 
 
 ## The picker's COUNTY SERVERS: the always-open lobbies, live (net_browser.gd).
@@ -968,10 +968,6 @@ func join_server(i: int) -> void:
 
 ## OPEN THE LOBBY on the HOST ONLINE form.
 func net_open_lobby() -> void:
-	if web:
-		net_note = WEB_NOTE
-		sound.play("empty")
-		return
 	var port := str(net_form["port"]).to_int()
 	if port < 1024 or port > 65535:
 		net_note = "A PORT FROM 1024 TO 65535, PLEASE."
@@ -982,9 +978,15 @@ func net_open_lobby() -> void:
 		"password": str(net_form["password"]),
 	}
 	var router: bool = net_form["router"]
-	var opened := NetPlay.host_lobby(port, str(net_form["name"]), lobby, router)
+	# The party line too: friends join by its code, no port opened (the
+	# browser hosts through it alone).
+	var opened := NetPlay.host_lobby(port, str(net_form["name"]), lobby, router, "*", true)
 	if opened == null:
-		net_note = "PORT %d IS TAKEN. IS ANOTHER COPY HOSTING?" % port
+		net_note = (
+			"THE PARTY LINE AIN'T ANSWERING. TRY THE DESKTOP GAME."
+			if web
+			else "PORT %d IS TAKEN. IS ANOTHER COPY HOSTING?" % port
+		)
 		sound.play("empty")
 		return
 	(
@@ -1004,15 +1006,15 @@ func net_open_lobby() -> void:
 
 ## JOIN on the JOIN ONLINE form.
 func net_join() -> void:
-	if web and not str(net_form["address"]).contains("://"):
-		net_note = WEB_NOTE
+	var address := str(net_form["address"])
+	var party := NetRelay.clean_code(address) != ""
+	if web and not address.contains("://") and not party:
+		net_note = "THE BROWSER TAKES PARTY LINE CODES (HKP-427) ONLY."
 		sound.play("empty")
 		return
-	var joined := NetPlay.join_lobby(
-		str(net_form["address"]), str(net_form["name"]), str(net_form["password"])
-	)
+	var joined := NetPlay.join_lobby(address, str(net_form["name"]), str(net_form["password"]))
 	if joined == null:
-		net_note = "THAT CODE OR ADDRESS WON'T DO."
+		net_note = "THE PARTY LINE AIN'T ANSWERING." if party else "THAT CODE OR ADDRESS WON'T DO."
 		sound.play("empty")
 		return
 	NetPlay.remember({"name": net_form["name"], "address": net_form["address"]})
