@@ -6,7 +6,9 @@ range, the 5v5/2v2 maps and the County Run maps are built from a plan in
 JSON is lost at the next build. [MAP_AUTHORING.md](../../MAP_AUTHORING.md) at
 the repo root is the guide to map sources (`godot/maps/*.map.json`) and
 `tools/map.gd` (new, inspect, validate, build, render), checked by
-`tools/geometry_check.gd` and `tools/map_check.gd`. Play rules that touch
+`tools/geometry_check.gd` and `tools/map_check.gd`. Maps players make in the
+game (CUSTOM MAPS, the MAP SHED) are their own small format:
+[Player maps](#player-maps). Play rules that touch
 levels (paths, ledges, using things, the hub) are in
 [gameplay.md](gameplay.md#levels-in-play).
 
@@ -172,3 +174,152 @@ reloads the level. `tools/level_edit_check.gd` (LEVEL EDIT OK) holds it.
 Wall files keep a piece per cell for the editors; straight runs of one
 repeating material merge into one piece when a level loads
 (`LevelData._merge_runs`).
+
+## Player maps
+
+Maps players make in the game itself: the title's **CUSTOM MAPS** list and
+its editor, **THE MAP SHED** (`src/user_maps/`,
+`src/ui/screens/custom_maps_screen.gd`, `map_editor_screen.gd`). They are a
+different, much smaller thing than a plan or a map source: a grid of letters
+and a list of things, every one of them from the palette in
+`data/tuning/user_maps.json` (edit that, not the scripts; a new cell or
+thing goes at the END of its list, since maps name them by letter and name).
+
+### The file
+
+```json
+{"schema": "clmr-usermap", "version": 1,
+ "name": "PUCKETT'S BACK FORTY", "author": "THE MAP SHED", "note": "...",
+ "mood": "dusk", "size": [40, 30],
+ "rows": ["HHHH...", "..."],
+ "things": [["hand", "billy", 16, 8, 4], ["mark", "start", 2, 27, 0]]}
+```
+
+- `rows`: `size[1]` strings of `size[0]` letters, each a palette cell:
+  ground (pasture, dirt, gravel, blacktop, road, slab, creek, mud), inside
+  floors (plank, shop concrete, diner checker, kitchen tile: roofed at 2.6),
+  steps (porch .24, deck .48, dock .72: a step up each), walls (barn, barn
+  window, brick, brick window, tin, cinder, plaster, trailer, stock fence,
+  hedgerow, rock, junk, tires; each its own height) and `D`, a swing door.
+- `things`: `[kind, name, x, y, facing]` on a cell (facing in eighths from
+  east): `hand` (enemy kinds whose art is in the base pack, so the browser
+  fetches nothing), `loot` (pickups), `prop` (town props and the old flat
+  props, each with a blocking radius and an optional lamp glow), `mark`
+  (`start`, `lever`, `goal`, `attack`, `defend`, `site_a`, `site_b`,
+  `hostage`; most one of a kind).
+- `mood`: the sky, score and ambience (`moods` in the palette).
+- Limits (`limits`): 32 KB, 12 to 64 cells a side, 256 things, 64 hands, a
+  name of 24 letters, 64 maps in the player's folder, 32 kept from lobbies.
+
+`UserMap` (`user_map.gd`) reads one: `parse_bytes`/`parse_text` hold it to
+all of that and refuse anything else with one plain line, never an error
+(brackets nested past six are refused before the parser sees them, numbers
+must be whole and finite, letters must be the pixel font's), and give it in
+canonical form. `to_text` writes the one canonical text; `hash_of` is its
+SHA-256; `level_id` is `custom_` and twelve hex of it (the versus copy ends
+in `v`). `modes(map)` says, per mode, `""` or why not (`solo`: a start, the
+lever and the truck, all walked to; `deathmatch`: 60 open cells; `bomb`,
+`hostage`: both starts walked between, 120 cells, site A (B optional) or a
+hostage; `county`: 260 cells from the start; the numbers are `modes` in the
+palette).
+
+### Into a level
+
+`UserMapBuild.level(map, versus)` (`user_map_build.gd`) compiles a map into
+a level dictionary: one cell of hedgerow round it (things move one cell in),
+the grids, the walls the grids imply (`LevelEdit.implied_walls`) with the
+chapters' foundation and eave bands on a building's outside, doors hung in
+their wall lines (a door not in one is built as wall) with the wall line
+filled over the lintel, lamp glow on the light grid, props as boards (or the
+old props) with a fixture base where they block, the lever as a station with
+the chapters' switch, the truck as the extraction with the exit prop, and
+`tactical` for the 5v5 (five spawns round each start facing the other, a box
+round each site, the hostages, the rescue ground round the attackers, a
+straight route and a hold at each site). The versus copy leaves out the
+hands, the lever and the truck and stands its doors open (the bots path
+through doorways). `UserMaps.register` puts it in `LevelData.preview` (one
+map at a time), so `make_game(id)` and every mode take it like any level.
+
+### Where they live and how they are played
+
+`UserMaps` (`user_maps.gd`): `user://maps/<name>.json` (the player's),
+`res://data/user_maps/` (the two examples), `user://maps/shared/<hash>.json`
+(maps lobbies sent). Tools set `UserMaps.folder_override` (under
+`OS.get_cache_dir()`). A file that does not pass shows on the list with its
+reason and plays nothing.
+
+`UserMapPlay` (`user_map_play.gd`) is the front end's side, its state static
+so the front end's layers hold only small hooks (main_state `entries`,
+`MENU_STATES`, `slot_source`; main_flow `menu_action`, `play` (never the
+campaign), `continue_campaign` (back to the list), `return_to_title` (a test
+run goes back to the shed), `save_game`/`load_game`, `open_county`,
+`net_match_game`, `net_open_lobby`). PLAY ALONE is the campaign's rules on
+the map; 5V5 VS BOTS and HOSTAGE VS BOTS are PLAY VS BOTS's match on its
+versus copy; COUNTY RUN is `start_county` on it (`county.json` `custom_map`
+is its horde, base-pack hands only); HOST ONLINE is the host form with the
+map waiting for the lobby, where DEATHMATCH, TEAM DEATHMATCH and CAMPAIGN
+CO-OP (one map, back to the lobby when won) take it too
+([multiplayer.md](multiplayer.md#player-maps-in-a-lobby)).
+
+### Saves of a player map
+
+F6 on a player map writes its own save, never the campaign's quicksave or
+slots: `user://maps/saves/<source>_<file>.json`, SessionStore's snapshot (at
+its VERSION, brought up by `SaveUpgrade` like any save) plus `custom_save`
+(1) and `custom_map` (the map's hash, name, file and source). F9, or the
+list's CONTINUE YOUR SAVE, loads it only onto the same map: a newer
+`custom_save`, a map gone, or a map changed since (its hash) is refused with
+a line saying so, and the file is kept. Campaign saves are untouched, so
+there is no new save VERSION. (`save_restore.gd` counts no chapter history
+before a level that is not a chapter.)
+
+### The MAP SHED
+
+`MapEditor` (`map_editor.gd`) is the working copy and every edit: tabs
+GROUND, INSIDE, STEPS, WALLS, HANDS, LOOT, PROPS, MARKS and TEAR OUT (for a
+finger or a pad, which have no right click); a box of cells (a wall box is a
+building: walls round, the INSIDE tab's floor in); one-of-a-kind marks move
+when placed again; a wall over a thing takes it; undo and redo (80 steps,
+one a stroke); NAME, SKY, SIZE (24x18 to 64x48, keeping what fits);
+`save()` (an example saves as the player's own copy).
+
+`MapPicture` (`map_picture.gd`) draws the plan from above: each cell its
+tile's own picture shrunk to the cell (floors flipped by cell so a field does
+not read as stamps), walls lifted and edged, steps lighter with a lip where
+they drop, inside floors dimmed, a wall's shadow on the ground south of it,
+doors as a slab, things as small marks.
+
+`MapEditorScreen` turns the mouse (click paints, right click tears out,
+SHIFT-drag a box, middle drag slides the plan, the wheel zooms), keys (H
+lists them), a pad (as keys) and touch into those calls. TEST plays the map
+as it stands from your start (SHIFT+T from the cursor); ESC comes back to the
+shed. Pictures: `--smoke-screen=mapedit:<n>[:<look>]` opens the list's n-th
+map (look 1 its test run, 2..9 a test from the cursor turned (look - 2)
+eighths, 100 CHECK, 101 the keys, 102 PROPS, 103 MARKS zoomed);
+`--smoke-screen=maps:<row>` the list on a row.
+
+### The examples
+
+`tools/user_map_examples.gd` makes `data/user_maps/pucketts_back_forty.json`
+(a farm at dusk: alone, deathmatch, County Run) and `the_sale_barn.json` (a
+livestock auction on a fair night: every mode) with the shed's own calls,
+the way a player's clicks make them. Change the script and run it again
+rather than editing the files (they are kept with LF line ends,
+`.gitattributes`, as the check compares them byte for byte).
+
+### Checks
+
+`tools/user_map_check.gd` (USER MAP CHECK OK; check_all quick and CI): the
+examples load and round-trip byte for byte; forty-odd broken and hostile
+files refused with a plain line (empty, junk, too big, nested ten thousand
+deep, newer, silly sizes, odd letters, things off the map or in a wall, too
+many) and a 4 MB file refused unread; the shed's calls; alone (lever, then
+truck, won), a 5v5 round of ten bots, County Run's horde and deathmatch's
+spawn points on the examples; a map save loaded, and refused for a changed,
+gone or newer map or one that does not fit; a hosted lobby on a map, a
+client getting it (hash checked, registered, kept), a 5v5 match on the same
+level on both, a deathmatch with someone dropping in (the map first), team
+deathmatch, CAMPAIGN CO-OP on the map (a retry, no party save, the win back
+to the lobby with nothing opened), MODE stepping past what a map can't
+host, the always-open servers refusing player maps, the map changed in the
+lobby, and hostile MAP packets refused. `menu_touch_check` taps through CUSTOM MAPS and the shed.

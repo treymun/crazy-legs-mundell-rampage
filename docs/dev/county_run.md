@@ -150,6 +150,11 @@ The browser fetches the chapter's pack for a county map
 (`CountyData.base_of`, `Assets.CHAPTER_ART`; `tools/pack_check.gd` holds its
 data and play to that pack).
 
+A player map ([levels.md](levels.md#player-maps)) with room enough runs too:
+CUSTOM MAPS' COUNTY RUN starts one on the map's versus copy, its horde
+`county.json` `custom_map` (hands from the base pack only); the end of the
+run goes back to CUSTOM MAPS.
+
 ## Checks
 
 - `tools/county_check.gd` (CI, check_all; its quick part in check_fixes) holds

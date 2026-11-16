@@ -38,7 +38,8 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `modes.cfg` | the modes' rules: `[versus]`, `[coop]` (with the scaling table), `[deathmatch]`, `[tactical]`, `[bomb]`, `[hostage]`, `[tagteam]`, County Run (`[county_cards]`, `[county_coop]`, `[county_moves]`, `[county_orbs]`, `[county_spawner]`), `[tactical_utility]` (throwables), `[squad]`, `[squad_feature]`, `[idle_life]`, `[climbing]` (ladders, pull-ups, hands falling), `[hand_tactics]` (reload, peek, kick), `[hit_zones]`, `[tactical_bot]` | `ModeData` (`src/core/mode_data.gd`) |
 | `bosses.cfg` | the boss scripts' numbers, one section per script (`[boss_kit]`, ...; `[boss_lock]` each arena's room, doors, gates and spot) | `BossData` (`src/core/boss_data.gd`) |
 | `lobby.cfg` | the online lobby's rows and defaults: each row is [key, label, values, names]; a new online mode goes in the mode row (and `NetPlay.play_mode()`) | `src/net/net_play.gd` |
-| `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short`, the storm front (`storm`) | `county_data.gd` |
+| `county.json` | County Run: every number and every word on a card, `start`, `tips`, `short`, the storm front (`storm`), a player map's horde (`custom_map`) | `county_data.gd` |
+| `user_maps.json` | player maps: their limits, what a mode needs, the moods, every cell and thing the MAP SHED offers (a new one at the end of its list) | `UserMap` (`src/user_maps/user_map.gd`) |
 | `cuss_lines.json` | the cuss pack (the voice tools read it too) | `src/cuss_lines.gd` |
 | `mundell_lines.json` | Mundell's wisecracks | `Barks` |
 | `camera.cfg` | PHOTO MODE's camera and pictures `[photo]`, the KILL CAM's sampling, replay and camera `[kill_cam]`, QUALITY AUTO's measurement `[quality]` | `PhotoMode`, `KillCam`, `Quality` (static vars, read at start) |

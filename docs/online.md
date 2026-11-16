@@ -109,6 +109,29 @@ crossroads, the range or a 5v5 or 2v2 map), FRAG LIMIT and TIME LIMIT end
 it. In team deathmatch you pick RED or BLUE with TEAM. After the results
 the host's ENTER takes everyone back to the lobby.
 
+## Custom maps
+
+A map made in the MAP SHED (title, **CUSTOM MAPS**) can be played online:
+
+1. **CUSTOM MAPS**, pick the map, **HOST ONLINE** (CHECK in the shed says
+   which modes the map can host and what it still needs for the rest).
+2. The host form opens as for HOST A GAME; **OPEN THE LOBBY**. The lobby's
+   MAP shows your map's name and MODE is one the map can host: SEARCH AND
+   DESTROY and HOSTAGE RESCUE (5v5 marks), COUNTY RUN CO-OP (room enough),
+   DEATHMATCH and TEAM DEATHMATCH, CAMPAIGN CO-OP (a start, the lever and the
+   truck: one map, the win takes everyone back to the lobby, no party save).
+   Stepping MODE onto one the map can't host steps past it and says why.
+3. Everyone who joins gets a copy of the map on the way in, before anything
+   can start (a few KB). Their game checks it: its hash must match what the
+   host said, and it must be a map the shed would load. A map that does not
+   check out sends the joiner back with `THE HOST'S MAP WAS NO GOOD` and why.
+   A copy is kept in their own maps folder (`maps/shared`, the 32 newest),
+   listed under CUSTOM MAPS as FROM A LOBBY.
+4. MAP's < > goes back to the game's own maps; to put a custom map on again,
+   HOST ONLINE it again.
+
+The always-open county servers do not take custom maps (yet).
+
 ## County servers (no code needed)
 
 Title, **MULTIPLAYER**, **PLAY ONLINE**: the always-open lobbies listed live
@@ -273,6 +296,11 @@ client, each played by a bot). **Not checked:** play between two real homes
 over the internet (through the party line on the VPS or straight), a real
 router's UPnP answering (the test PC's router did not), CGNAT, phones, and
 the browser build hosting or joining by a code in a real page.
+
+`tools/user_map_check.gd` hosts a lobby on a custom map in one process and
+has a client join: the map arrives, its hash checked, the match starts on
+the same level on both machines, a new map picked in the lobby reaches the
+client, and broken or hostile map packets are refused.
 
 ## How it works
 

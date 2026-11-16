@@ -10,6 +10,13 @@ Contents: the model, the files, the workflow, commands, the source format,
 components, validation codes, playtests, pictures, the editor, glTF import,
 existing levels, limitations.
 
+Players make maps in the game itself too: the title's CUSTOM MAPS and its
+editor, the MAP SHED. Those are their own small format (a grid of letters
+and a list of things from a fixed palette, checked hard because they come
+from strangers in lobbies), compiled into a level when played; they are not
+map sources and these tools do not read them. See
+[docs/dev/levels.md](docs/dev/levels.md#player-maps).
+
 ## The model (what geometry the game has)
 
 The game draws and plays a 2.5D world (as the 1997 engines did), extended in

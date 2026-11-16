@@ -396,7 +396,9 @@ static func _restore_campaign(doc: Dictionary, game: Game, expected_replay: Vari
 	if not (history is Array):
 		SessionStore._fail_at(825)
 		return false
-	var expected_history := 0 if game.replay else Campaign.ORDER.find(game.level.id)
+	# A player map (src/user_maps/) is no chapter: no history before it.
+	var chapter := Campaign.ORDER.find(game.level.id)
+	var expected_history := 0 if game.replay or chapter < 0 else chapter
 	if _count(history) != expected_history:
 		SessionStore._fail_at(828)
 		return false

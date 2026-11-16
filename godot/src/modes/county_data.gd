@@ -45,6 +45,8 @@ static func maps() -> Array:
 
 ## A map's entry ({} when the id is not one of them).
 static func map(level_id: String) -> Dictionary:
+	if UserMap.is_custom(level_id):
+		return section("custom_map")  # a player map (src/user_maps/)
 	for m: Variant in maps():
 		if m is Dictionary:
 			var entry: Dictionary = m

@@ -71,8 +71,8 @@ static func dress(made: Game, options: Dictionary, fresh: bool) -> void:
 ## (main_flow.gd start's replay kit): the shotgun and rifle, the chapter's
 ## own new gun, the teat gun, kegs and two rinds. Hickston keeps the start's.
 static func chapter_kit(fresh: Game, level_id: String) -> void:
-	if level_id == "hickston":
-		return
+	if level_id == "hickston" or UserMap.is_custom(level_id):
+		return  # (a player map starts everyone as PLAY ALONE does)
 	fresh.armory.owned[Weapons.SHOTGUN] = true
 	fresh.armory.owned[Weapons.RIFLE] = true
 	fresh.armory.loaded[Weapons.SHOTGUN] = Weapons.CAPACITY[Weapons.SHOTGUN]
@@ -147,6 +147,12 @@ static func load_party(main: MainFlow, info: Dictionary) -> Game:
 ## gate opened (on the host's profile too), and the party to the hub.
 static func next(main: MainFlow) -> void:
 	var current := main.net.match_game()
+	if UserMap.is_custom(current.level.id):
+		# A player map is one map: won, the party goes back to the lobby
+		# (never the Crossroads, never a chapter, nothing opened).
+		main.net_run = null
+		main.net.back_to_lobby()
+		return
 	var following := Campaign.next_level(current.level.id)
 	if following == "":
 		main.net_run = null
@@ -284,6 +290,8 @@ static func save(main: MainFlow) -> void:
 		main.notice("THE HOST KEEPS THE SAVES.")
 	elif target.in_hub:
 		main.notice("ENTER A CHAPTER TO SAVE THE PARTY.")
+	elif UserMap.is_custom(target.level.id):
+		main.notice("NO PARTY SAVE ON A PLAYER MAP. SEE IT THROUGH.")
 	elif target.showing_tally or target.defeated():
 		main.notice("NOTHING TO SAVE RIGHT NOW.")
 	elif target.armory.fuse > 0.0:

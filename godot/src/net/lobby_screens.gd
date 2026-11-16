@@ -380,6 +380,8 @@ static func _mode_name(id: Variant) -> String:
 
 
 static func _map_name(id: Variant) -> String:
+	if UserMap.is_custom(str(id)):
+		return NetMaps.shown_name(str(id)).left(20)
 	return value_name("map", id).trim_prefix("2V2 ")
 
 
@@ -439,6 +441,8 @@ static func setting_row(key: String) -> Array:
 
 
 static func value_name(key: String, value: Variant) -> String:
+	if key == "map" and UserMap.is_custom(str(value)):
+		return NetMaps.shown_name(str(value)).left(20)
 	var row := setting_row(key)
 	if row.is_empty():
 		return str(value)
@@ -719,6 +723,8 @@ static func _posse(c: Canvas, net: NetPlay) -> void:
 		said = ["THE CAMPAIGN, CHAPTER", "BY CHAPTER. UP TO FOUR."]
 		if str(net.settings.get("map", "")) == NetPlay.PARTY_SAVE:
 			said = ["THE HOST'S PARTY SAVE.", "ONLY THE HOST SAVES: F5."]
+		elif UserMap.is_custom(str(net.settings.get("map", ""))):
+			said = ["ONE MAP, UP TO FOUR. THROW", "THE LEVER, MAKE THE TRUCK."]
 	elif net.county():
 		said = ["A COUNTY RUN FOR", "THE WHOLE PARTY."]
 	said.append("LATE JOIN: JUMP IN ANY TIME." if late else "LATE JOIN OFF.")

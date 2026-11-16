@@ -50,6 +50,7 @@ func play(target: Game) -> void:
 	if not rematch:
 		rematch_return = null
 	var chapter := not target.in_hub and not practice and not rematch and not target.revisiting
+	chapter = chapter and not UserMap.is_custom(target.level.id)  # a player map: never the campaign
 	chapter = chapter and not CountyMode.active(target)  # a COUNTY RUN is never the campaign
 	chapter = chapter and net == null  # nor a chapter played online (net_coop.gd)
 	if chapter and not target.replay:
@@ -168,6 +169,10 @@ func start_county(map_id: String, daily := "") -> void:
 ## The COUNTY RUN map picker (state "county"); from a finished run the run
 ## is let go.
 func open_county(from_run := false) -> void:
+	if from_run and game != null and UserMap.is_custom(game.level.id):
+		game = null
+		UserMapPlay.open_list(self)  # a run on a player map: back to CUSTOM MAPS
+		return
 	if from_run:
 		game = null
 		menu_music()
@@ -301,6 +306,8 @@ func resume_entry() -> void:
 
 func continue_campaign() -> void:
 	var current := game
+	if not Modes.is_versus(current) and UserMapPlay.finished(self):
+		return  # a player map's tally: back to the list (or the shed)
 	if Modes.is_versus(current):
 		start_match()  # another round in the same arena
 		return
@@ -342,6 +349,8 @@ func continue_campaign() -> void:
 
 
 func return_to_title(discard := false) -> void:
+	if UserMapPlay.back_from_test(self):
+		return  # the MAP SHED's test run goes back to the shed
 	if discard or replay_play != null:
 		# A replay's game is not one to go back to.
 		var was_replay := replay_play != null
@@ -476,6 +485,10 @@ func menu_action() -> void:
 	if entry == "COUNTY RUN":
 		open_county()
 		return
+	if entry == "CUSTOM MAPS":
+		UserMapPlay.open_list(self)
+		sound.play("menu_accept")
+		return
 	if entry == "MULTIPLAYER":
 		state = "multi"
 		net_note = ""
@@ -525,6 +538,8 @@ func menu_action() -> void:
 
 
 func save_game() -> void:
+	if UserMapPlay.save(self):
+		return  # a player map keeps its own save
 	var target := game
 	var slot := current_slot()
 	if target != null and target.in_hub:
@@ -557,6 +572,8 @@ func save_game() -> void:
 
 
 func load_game() -> void:
+	if UserMapPlay.load_key(self):
+		return  # a player map's own save
 	var slot := current_slot()
 	if not FileAccess.file_exists(slot):
 		notice("NO QUICKSAVE YET.")
@@ -885,6 +902,7 @@ func reload_level_in_place() -> void:
 
 ## The HOST ONLINE (or JOIN ONLINE) form, filled from what was used last.
 func open_net_form(hosting: bool) -> void:
+	NetMaps.pending = {}  # CUSTOM MAPS' HOST ONLINE sets it again after this
 	var last := NetPlay.remembered()
 	var name := str(last.get("name", options.get("player_name", "MUNDELL")))
 	var port_v: Variant = last.get("port", NetSession.PORT)
@@ -977,6 +995,7 @@ func net_open_lobby() -> void:
 		)
 	)
 	_net_ready(opened)
+	NetMaps.after_open(opened)  # CUSTOM MAPS' HOST ONLINE: its map on the lobby
 	sound.play("menu_accept")
 
 
@@ -1025,6 +1044,8 @@ func _net_ready(opened: NetPlay) -> void:
 			return ""
 		if map == NetPlay.PARTY_SAVE:
 			return NetCoop.save_note()
+		if UserMap.is_custom(map):
+			return ""  # a player map is no chapter: nothing to have reached
 		if map != "hickston" and not unlocked.has(map):
 			# A chapter is played with friends once the host has reached it.
 			return "THE HOST AIN'T REACHED %s YET." % Campaign.title_of(map)
@@ -1050,7 +1071,10 @@ func net_match_game(info: Dictionary) -> Game:
 			made.configure(net_options(info))
 			made.net_role = "host"
 		return made
-	made = make_game(str(info["level"]))
+	var level_id := str(info["level"])
+	if UserMap.is_custom(level_id) and not LevelData.preview.has(level_id):
+		return null  # a player map that never came (net_maps.gd)
+	made = make_game(level_id)
 	if made == null:
 		return null
 	made.net_role = "host" if hosting else "copy"

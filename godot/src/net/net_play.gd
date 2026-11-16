@@ -613,6 +613,7 @@ func _hello(from: int, info: Dictionary) -> void:
 		NetSession.CH_RELIABLE,
 		NetWire.welcome({"id": from, "lobby": lobby_info(), "phase": phase})
 	)
+	NetMaps.send_to(self, from)  # a player map before anything can start on it
 	if phase == "match":
 		_seat_late(p)
 	send_lobby()
@@ -838,6 +839,8 @@ func maps() -> Array:
 ## set is not its; otherwise the MODE the map is (the first mode listing it:
 ## a 5v5 map stays with SEARCH AND DESTROY).
 func _mode_fits_map(changed := "map") -> void:
+	if NetMaps.fit_mode(self, changed):
+		return  # a player map: the modes it can host (net_maps.gd)
 	var map := str(settings.get("map", ""))
 	var mode := str(settings.get("mode", ""))
 	if dedicated and mode == Modes.COOP:
@@ -1177,6 +1180,8 @@ func _client_message(kind: int, info: Dictionary) -> void:
 			_take_lobby(info)
 		NetWire.START:
 			_start(info)
+		NetWire.MAP:
+			NetMaps.take(self, info)
 		NetWire.BACK:
 			client_sync = null
 			match_info = {}

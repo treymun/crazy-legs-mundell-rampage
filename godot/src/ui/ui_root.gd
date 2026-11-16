@@ -16,6 +16,8 @@ const _CONTROLS_SCREEN := preload("res://src/ui/screens/controls_screen.gd")
 const _CREDITS_SCREEN := preload("res://src/ui/screens/credits_screen.gd")
 const _KEYED_SCREEN := preload("res://src/ui/screens/keyed_screen.gd")
 const _COUNTY_MAPS_SCREEN := preload("res://src/ui/screens/county_maps_screen.gd")
+const _CUSTOM_MAPS_SCREEN := preload("res://src/ui/screens/custom_maps_screen.gd")
+const _MAP_EDITOR_SCREEN := preload("res://src/ui/screens/map_editor_screen.gd")
 const _ONLINE_SCREEN := preload("res://src/ui/screens/online_screen.gd")
 ## Front-end state -> screen script.
 const SCREENS := {
@@ -28,6 +30,8 @@ const SCREENS := {
 	"setup": _KEYED_SCREEN,
 	"slots": _KEYED_SCREEN,
 	"county": _COUNTY_MAPS_SCREEN,
+	"maps": _CUSTOM_MAPS_SCREEN,
+	"mapedit": _MAP_EDITOR_SCREEN,
 	"multi": _ONLINE_SCREEN,
 	"showdown": _ONLINE_SCREEN,
 	"servers": _ONLINE_SCREEN,

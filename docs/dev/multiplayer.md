@@ -778,6 +778,55 @@ party line only passes bytes between it and its players.
 - **Not checked:** two real homes through the VPS, CGNAT, a phone, the browser
   build hosting in a real page, the VPS's CPU with full rooms.
 
+### Player maps in a lobby
+
+`src/net/net_maps.gd` (`NetMaps`); the maps themselves are
+[levels.md](levels.md#player-maps).
+
+- CUSTOM MAPS' HOST ONLINE opens the host form with the map in
+  `NetMaps.pending`; when the lobby opens (`main_flow.gd net_open_lobby`)
+  `host_map` puts it on: `settings["map"]` the map's versus level id,
+  `settings["custom_map"]` its hash, name and author, MODE fitted to one the
+  map can host (`fit_mode`, first in `_mode_fits_map`; `MODE_NEEDS` maps
+  the lobby's modes to `UserMap.modes`): a MODE the map cannot host is
+  stepped past the way the host stepped, and the host's lobby says why
+  (`PUCKETT'S BACK FORTY CAN'T HOST SEARCH AND DESTROY: NEEDS AN ATTACK
+  START.`); TAG TEAM 2V2 keeps to its own maps. MAP is the map's versus copy
+  (no hands, lever or truck, doors open) for every mode but CAMPAIGN CO-OP,
+  which plays the map itself.
+- **DEATHMATCH, TEAM DEATHMATCH** on a player map: the versus copy, spawn
+  points from the whole map (`Modes.spawn_points`), pickups coming back;
+  someone dropping in gets the map before their START; the results go back
+  to the lobby as on any map.
+- **CAMPAIGN CO-OP** on a player map is one map: not held to the chapters
+  the host has reached (`main_flow.gd` `may_start`), everyone starts with
+  PLAY ALONE's kit (`NetCoop.chapter_kit`), downs and revives are co-op's,
+  everyone down and R starts the map over for the party, F5 writes no PARTY
+  SAVE (`NetCoop.save` says so), and the host's ENTER on the win takes
+  everyone back to the lobby (`NetCoop.next`): never the Crossroads or a
+  chapter, nothing opened on the host's profile.
+- **MAP** (`NetWire.MAP`, 20), host to client, reliable: `{"hash", "data"}`,
+  the map's canonical text as it is (a few KB at most, not packed: unpacking
+  a stranger's bytes is one more way in). The host sends it to everyone when
+  it picks a map and to each joiner straight after WELCOME (`_hello`), so on
+  the reliable channel it always comes before a START, a late joiner's too.
+- A client takes it only if it fits (`unpack`): at most `limits.bytes`, the
+  hash the one said, a map `UserMap.check` passes, already canonical. Then it
+  is registered (`LevelData.preview`) and kept under `user://maps/shared`;
+  otherwise the client leaves with `THE HOST'S MAP WAS NO GOOD: <why>`.
+  `net_match_game` makes no game of a player map that never came (THE MAP
+  WOULD NOT LOAD), so nobody plays a different map.
+- The lobby shows the map's name on MAP (`LobbyScreens.value_name`); the
+  host's < > on MAP steps to the game's own maps (back to a player map is
+  CUSTOM MAPS' HOST ONLINE again).
+- Nothing in the party line changes: a MAP packet's first byte is under
+  `RELAY_FIRST` and it is far under the line's 256 KB cap (the largest map's
+  is about 5 KB).
+- Always-open lobbies take no player maps (an admin's MAP is checked
+  against lobby.cfg's row by `allowed_value`). Not done: a shared list of
+  maps on the lobby server.
+- `tools/user_map_check.gd` holds it (ENet in one process).
+
 ### The multiplayer menus
 
 These are UiScreens now (`OnlineScreen`, a `ZonedScreen`; see
