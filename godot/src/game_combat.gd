@@ -498,6 +498,22 @@ func explode(shot: Shot) -> void:
 	if not energy:
 		disturb(x, y, 3.5, z)
 	blast_kind = shot.kind
+	# hurt() blames the acting player. With more than one: a player's own blast
+	# is its thrower's, any other (a hand's, a cooking barrel's) the nearest
+	# player's, the same on every machine, never whoever is local here
+	# (Players.blamed).
+	var acting := player
+	var own := own_step
+	var blame: Player = null
+	if players.size() > 1:
+		if not shot.enemy and shot.owner != -1 and shot.slot >= 0 and shot.slot < players.size():
+			blame = players[shot.slot]
+		else:
+			blame = Players.blamed(me, x, y)
+		if blame == player:
+			blame = null
+		else:
+			focus(blame, own)
 	for enemy: Enemy in enemies:
 		var distance := sqrt((enemy.x - x) * (enemy.x - x) + (enemy.y - y) * (enemy.y - y))
 		if enemy.alive and distance < radius and world.visible(x, y, enemy.x, enemy.y):
@@ -509,6 +525,8 @@ func explode(shot: Shot) -> void:
 			enemy.hurt(
 				maxi(1, int(bite)), self, not energy, false, null, "energy" if energy else "blast"
 			)
+	if blame != null:
+		focus(acting, own)
 	blast_kind = ""
 	for prop: LevelData.Scenery in world.scenery:
 		if (

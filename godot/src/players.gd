@@ -128,6 +128,32 @@ static func hunted(game: Game, e: Enemy) -> Player:
 	return pick
 
 
+## Who a hurt no player's hand dealt (a fire, a still's jet, a ship's fall,
+## a chain blast) is blamed on: hurt() turns the enemy on the acting player
+## (spite, where it wakes to, cover from them, who gets the kill), and
+## outside a player's own step the tick leaves the LOCAL player acting, who is
+## another on every machine. With more than one player: the nearest alive
+## (else player one), the same everywhere; null alone (play as ever).
+static func blamed(game: Game, x: float, y: float) -> Player:
+	if game.players.size() < 2:
+		return null
+	var near := nearest(game, x, y)
+	return near if near != null else game.players[0]
+
+
+## `e` hurt by the world (blamed()), the acting player put back after.
+static func world_hurt(game: Game, e: Enemy, amount: float, explosive := false, how := "") -> void:
+	var blame := blamed(game, e.x, e.y)
+	if blame == null:
+		e.hurt(amount, game, explosive, false, null, how)
+		return
+	var acting: Player = game.player
+	var own: bool = game.own_step
+	game.focus(blame)
+	e.hurt(amount, game, explosive, false, null, how)
+	game.focus(acting, own)
+
+
 ## The nearest player alive to (x, y), or null when everyone is down.
 static func nearest(game: Game, x: float, y: float) -> Player:
 	var best: Player = null

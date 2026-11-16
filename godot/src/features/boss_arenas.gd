@@ -222,7 +222,7 @@ func _burn(amount: float, how: String) -> void:
 	if not boss.alive:
 		return
 	game.hit_point = Vector3.INF
-	boss.hurt(amount, game, false, false, null, how)
+	Players.world_hurt(game, boss, amount, false, how)
 	boss.hit_flash = .18
 
 

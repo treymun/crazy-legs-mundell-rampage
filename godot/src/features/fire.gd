@@ -411,7 +411,7 @@ func _bite() -> void:
 				bodies[c] = e.uid
 			continue
 		if _at.has(c) and e.brain != "bessie" and _near_z(c, w.stand(e) + e.z):
-			e.hurt(num("bite_enemy"), game, false, false, null, "fire")
+			Players.world_hurt(game, e, num("bite_enemy"), false, "fire")
 	for p: Player in game.players:
 		if p.health <= 0 or p.air > .3:
 			continue

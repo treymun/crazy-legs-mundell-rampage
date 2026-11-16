@@ -139,7 +139,7 @@ func _spray(jet: Array, fire: Fire) -> void:
 			game.damage(bite, [x, y], "FIRE", p)
 	for e: Enemy in game.enemies:
 		if e.alive and e.brain != "bessie" and _in_path(e.x, e.y, x, y, land):
-			e.hurt(bite, game, false, false, null, "fire")
+			Players.world_hurt(game, e, bite, false, "fire")
 
 
 func _in_path(px: float, py: float, x: float, y: float, land: Vector2) -> bool:
