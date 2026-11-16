@@ -4,8 +4,10 @@
 ## splinter or two of its paint; a window's glass comes out in panes and a
 ## stockyard fence's boards and rails fly. Each piece is cut from the thing's
 ## own look (wreck_cuts.gd: its model's triangles with its baked texture, or
-## its picture), flies as a rigid box (wreck_physics.gd), bounces, slides,
-## piles on the others and stays where it comes to rest. A blast throws what
+## its picture), flies as a rigid box (wreck_physics.gd, on the shared core
+## phys_core.gd), bounces, slides, piles on the others and on bodies lying
+## about (ragdolls, which lie on the pieces in turn) and stays where it comes
+## to rest. A blast throws what
 ## lies about, and a boot kicks it.
 ##
 ## Looks only: it watches what breakables.gd and wall_breaks.gd broke (their
@@ -97,6 +99,8 @@ func attach() -> void:
 	var never: Array = cfg.get_value("pieces", "never", [])
 	on = cfg.get_value("pieces", "on", true) and not never.has(game.world.id)
 	if not on:
+		# None lie about here (a level kept from an earlier game holds none).
+		PhysCore.space(game.world).boxes = []
 		return
 	# A phone, or the LOW physics tier (src/core/quality.gd), takes
 	# `most_phone`; below HIGH a tick takes one step fewer (_tick).
@@ -152,7 +156,7 @@ func restore(_state: Dictionary) -> void:
 	if not on:
 		return
 	for w: Wreck in wrecks:
-		physics.bodies.erase(w.body)
+		physics.remove(w.body)
 	wrecks.clear()
 	_sync()
 
@@ -479,7 +483,7 @@ func _cap() -> void:
 
 
 func _drop(w: Wreck) -> void:
-	physics.bodies.erase(w.body)
+	physics.remove(w.body)
 	wrecks.erase(w)
 
 

@@ -20,6 +20,7 @@ extends SceneTree
 
 const PhysicsRagdolls := preload("res://tools/physics_ragdolls.gd")
 const PhysicsWater := preload("res://tools/physics_water.gd")
+const PhysicsCore := preload("res://tools/physics_core.gd")
 const DT := 1.0 / 60.0
 const TOL := .03
 ## The most a loose thing's slab may turn in a tick once it is on its floor
@@ -62,6 +63,8 @@ func _run() -> void:
 	if levels != LEVELS:
 		rag_levels = levels
 	PhysicsRagdolls.new(self).run(main, rag_levels)
+	print("\nTHE SHARED CORE")
+	PhysicsCore.new(self).run(main)
 	print("\nSLOW-MO FINISHERS")
 	PhysicsRagdolls.new(self).finishers(main)
 	print("")
