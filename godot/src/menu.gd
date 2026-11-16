@@ -22,6 +22,8 @@ const ROWS_Y := 125
 const ROW_H := 11
 ## The rows of a column of seven (title_items).
 const ROW_TIGHT := 9
+## Eight in the column (a game paused and a quicksave, with CUSTOM MAPS).
+const ROW_TIGHTEST := 8
 const PRIMARY_IDS := ["RESUME", "CONTINUE CAMPAIGN"]
 ## Left column: getting into the game. Right column: everything around it.
 const OFFICE_IDS := ["SAVE SLOTS", "SETUP", "CONTROLS", "CREDITS", "QUIT"]
@@ -38,6 +40,7 @@ const BLURBS := {
 	"FIRING RANGE": "EVERY GUN, ALL THE AMMO. GO LEARN 'EM.",
 	"LEAVE RANGE": "BACK TO THE TITLE. THE RANGE KEEPS NO SCORE.",
 	"BOSS REMATCH": "EVERY BOSS YOU BEAT, AGAIN, ON THE CLOCK.",
+	"CUSTOM MAPS": "MAPS FOLKS MADE. BUILD YOUR OWN IN THE MAP SHED.",
 	"MULTIPLAYER": "ONLINE, WITH FRIENDS OR AGAINST THE BOTS.",
 	"LEAVE REMATCH": "BACK TO THE TITLE. NOTHING THERE IS KEPT.",
 	"SAVE SLOTS": "FOUR NAMED SAVES, APART FROM QUICKSAVE.",
@@ -210,7 +213,7 @@ static func title_items(entries: PackedStringArray) -> Array:
 	var left := 0
 	for id: String in entries:
 		left += 1 if id != primary and not OFFICE_IDS.has(id) and id != "MULTIPLAYER" else 0
-	var row_h := ROW_H if left <= 6 else ROW_TIGHT
+	var row_h := ROW_H if left <= 6 else (ROW_TIGHT if left <= 7 else ROW_TIGHTEST)
 	var counts: Array[int] = [0, 0]
 	for id: String in entries:
 		var item := {"id": id, "label": str(LABELS.get(id, id)), "primary": id == primary}

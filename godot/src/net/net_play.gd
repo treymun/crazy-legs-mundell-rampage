@@ -605,6 +605,7 @@ func _hello(from: int, info: Dictionary) -> void:
 		NetSession.CH_RELIABLE,
 		NetWire.welcome({"id": from, "lobby": lobby_info(), "phase": phase})
 	)
+	NetMaps.send_to(self, from)  # a player map before anything can start on it
 	if phase == "match":
 		_seat_late(p)
 	send_lobby()
@@ -792,6 +793,8 @@ static func play_mode(id: String) -> String:
 
 ## MODE as the map makes it: TAG TEAM 2V2 on a 2v2 map, never on a 5v5 one.
 func _mode_fits_map() -> void:
+	if NetMaps.fit_mode(self):
+		return  # a player map: the modes it can host (net_maps.gd)
 	var map := str(settings.get("map", ""))
 	# COUNTY RUN co-op on its own maps, and only there.
 	if CountyData.MAP_IDS.has(map):
@@ -1048,6 +1051,8 @@ func _client_message(kind: int, info: Dictionary) -> void:
 			_take_lobby(info)
 		NetWire.START:
 			_start(info)
+		NetWire.MAP:
+			NetMaps.take(self, info)
 		NetWire.BACK:
 			client_sync = null
 			match_info = {}

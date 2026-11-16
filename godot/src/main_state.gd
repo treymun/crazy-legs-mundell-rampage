@@ -248,6 +248,8 @@ const MENU_STATES := [
 	"multi",
 	"lobbyset",
 	"county",
+	"maps",
+	"mapedit",
 ]
 ## The title's 5V5 SHOWDOWN picker (TacticalScreens.draw_picker): the row the
 ## cursor is on, the mode, map and match length picked, and whether the game
@@ -501,6 +503,7 @@ func entries() -> PackedStringArray:
 			"REPLAY LEVEL",
 			"LEAVE RANGE" if in_range() else "FIRING RANGE",
 			"LEAVE REMATCH" if in_rematch() else "BOSS REMATCH",
+			"CUSTOM MAPS",
 			"MULTIPLAYER",
 			"SAVE SLOTS",
 			"SETUP",
@@ -665,6 +668,7 @@ func slot_source() -> Game:
 		or current.level.id == RANGE_ID
 		or BossRematch.active(current)
 		or CountyMode.active(current)
+		or UserMap.is_custom(current.level.id)
 	):
 		return null
 	return campaign_run if current.revisiting else current

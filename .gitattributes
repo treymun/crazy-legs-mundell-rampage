@@ -1,3 +1,4 @@
 server/*.sh text eol=lf
 server/*.service text eol=lf
 server/*.json text eol=lf
+godot/data/user_maps/*.json text eol=lf
