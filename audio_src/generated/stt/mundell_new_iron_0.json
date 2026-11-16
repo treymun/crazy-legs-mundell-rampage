@@ -1,0 +1,35 @@
+{
+ "text": "Smells like gun oil 'round here",
+ "words": [
+  {
+   "text": "Smells",
+   "start": 0.12,
+   "end": 0.68
+  },
+  {
+   "text": "like",
+   "start": 0.78,
+   "end": 1.0
+  },
+  {
+   "text": "gun",
+   "start": 1.16,
+   "end": 1.42
+  },
+  {
+   "text": "oil",
+   "start": 1.52,
+   "end": 1.88
+  },
+  {
+   "text": "'round",
+   "start": 1.96,
+   "end": 2.46
+  },
+  {
+   "text": "here",
+   "start": 2.52,
+   "end": 2.88
+  }
+ ]
+}

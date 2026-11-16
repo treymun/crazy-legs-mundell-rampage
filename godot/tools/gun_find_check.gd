@@ -350,10 +350,15 @@ func _cues(main: Control, id: String, rows: Array) -> void:
 		g2.notice = ""
 		g2.message_until = 0.0
 		var smelled := 0
+		var bark_seen: float = g2.barks.last_at.get("new_iron", -99.0)
 		for t in 60 * 3:
 			g2.tick(STEP, Game.Controls.new())
-			if NewIron.SMELLS.has(g2.notice):
+			# Said as his bark (in his voice, captioned or not), or on the
+			# message line.
+			var barked: float = g2.barks.last_at.get("new_iron", -99.0)
+			if NewIron.SMELLS.has(g2.notice) or barked > bark_seen:
 				smelled += 1
+				bark_seen = barked
 				g2.notice = ""
 				g2.message_until = 0.0
 		# Once for it (and the guns lying with it), no more.

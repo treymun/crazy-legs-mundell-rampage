@@ -35096,14 +35096,274 @@
    "bytes": 484
   },
   {
-   "id": "reconcile@2026-11-16T12:51:24",
+   "id": "tts/mundell_new_iron_0#1",
+   "kind": "tts",
+   "name": "mundell_new_iron_0",
+   "params": {
+    "text": "Smells like gun oil round here...",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d87ac83c965c",
+   "reserved": 59,
+   "status": "settled",
+   "started": "2026-11-16T16:00:09",
+   "actual": 33,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_new_iron_0.mp3",
+   "bytes": 75275
+  },
+  {
+   "id": "tts/mundell_new_iron_1#1",
+   "kind": "tts",
+   "name": "mundell_new_iron_1",
+   "params": {
+    "text": "Somethin' shiny close by. New iron.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7da767e74236",
+   "reserved": 62,
+   "status": "settled",
+   "started": "2026-11-16T16:00:10",
+   "actual": 35,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_new_iron_1.mp3",
+   "bytes": 70887
+  },
+  {
+   "id": "tts/mundell_new_iron_2#1",
+   "kind": "tts",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "text": "Nose says there's a gun near.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0aa592c8e50c",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-16T16:00:11",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_new_iron_2.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "stt/mundell_new_iron_0#1",
+   "kind": "stt",
+   "name": "mundell_new_iron_0",
+   "params": {
+    "file": "mundell_new_iron_0.mp3",
+    "bytes": 75275
+   },
+   "hash": "4e9b5a89cb9f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T16:01:24",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_new_iron_0.json",
+   "bytes": 428
+  },
+  {
+   "id": "stt/mundell_new_iron_1#1",
+   "kind": "stt",
+   "name": "mundell_new_iron_1",
+   "params": {
+    "file": "mundell_new_iron_1.mp3",
+    "bytes": 70887
+   },
+   "hash": "8069c362d5f4",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T16:01:25",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_new_iron_1.json",
+   "bytes": 435
+  },
+  {
+   "id": "stt/mundell_new_iron_2#1",
+   "kind": "stt",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "file": "mundell_new_iron_2.mp3",
+    "bytes": 56467
+   },
+   "hash": "c97c13c17a1e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T16:01:27",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_new_iron_2.json",
+   "bytes": 416
+  },
+  {
+   "id": "tts/mundell_new_iron_2#2",
+   "kind": "tts",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "text": "My nose says there's a gun near.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bb3697764a20",
+   "reserved": 58,
+   "status": "settled",
+   "started": "2026-11-16T16:02:44",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_new_iron_2.mp3",
+   "bytes": 70887
+  },
+  {
+   "id": "stt/mundell_new_iron_2#2",
+   "kind": "stt",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "file": "mundell_new_iron_2.mp3",
+    "bytes": 70887
+   },
+   "hash": "424183c3f9bc",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T16:03:49",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_new_iron_2.json",
+   "bytes": 484
+  },
+  {
+   "id": "tts/mundell_new_iron_2#3",
+   "kind": "tts",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "text": "My nose says there's a gun near.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bb3697764a20",
+   "reserved": 58,
+   "status": "settled",
+   "started": "2026-11-16T16:03:50",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_new_iron_2.mp3",
+   "bytes": 62736
+  },
+  {
+   "id": "tts/mundell_new_iron_2#4",
+   "kind": "tts",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "text": "Gun's close. I can smell it.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "79773cd64a3a",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-16T16:05:02",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_new_iron_2.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "stt/mundell_new_iron_2#3",
+   "kind": "stt",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "file": "mundell_new_iron_2.mp3",
+    "bytes": 50825
+   },
+   "hash": "d1a43be3d7f6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T16:06:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_new_iron_2.json",
+   "bytes": 419
+  },
+  {
+   "id": "tts/mundell_new_iron_2#5",
+   "kind": "tts",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "text": "Gun's close. I can smell it.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "79773cd64a3a",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-16T16:06:08",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_new_iron_2.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "reconcile@2026-11-16T16:07:10",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -20041,
+   "actual": -20218,
    "basis": "account",
-   "balance_after": 73170
+   "balance_after": 73270
   }
  ],
  "anchor": {
@@ -35111,7 +35371,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-16T12:51:24",
-  "account_drop": 68447
+  "when": "2026-11-16T16:07:10",
+  "account_drop": 68547
  }
 }

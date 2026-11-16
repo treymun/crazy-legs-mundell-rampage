@@ -1,0 +1,35 @@
+{
+ "text": "Gun's close. I can smell it",
+ "words": [
+  {
+   "text": "Gun's",
+   "start": 0.04,
+   "end": 0.34
+  },
+  {
+   "text": "close.",
+   "start": 0.44,
+   "end": 0.86
+  },
+  {
+   "text": "I",
+   "start": 1.0,
+   "end": 1.02
+  },
+  {
+   "text": "can",
+   "start": 1.1,
+   "end": 1.22
+  },
+  {
+   "text": "smell",
+   "start": 1.38,
+   "end": 1.68
+  },
+  {
+   "text": "it",
+   "start": 1.74,
+   "end": 1.82
+  }
+ ]
+}

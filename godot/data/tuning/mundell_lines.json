@@ -108,6 +108,11 @@
 			"Smells like trouble. And pig.",
 			"Time to clean house.",
 			"Somebody's fixin' to get learned."
+		],
+		"new_iron": [
+			"Smells like gun oil round here...",
+			"Somethin' shiny close by. New iron.",
+			"Gun's close. I can smell it."
 		]
 	}
 }

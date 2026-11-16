@@ -40829,6 +40829,132 @@
    },
    "validation": "ok"
   },
+  "mundell_new_iron_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_new_iron_0.mp3",
+   "prompt": "Smells like gun oil round here...",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/mundell_new_iron_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     2.88
+    ],
+    "natural_seconds": 2.864,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.864
+   },
+   "measured": {
+    "seconds": 2.864,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0037,
+    "onset_ms": 7.5,
+    "centroid_hz": 1494,
+    "end_db": -146.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_new_iron_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_new_iron_1.mp3",
+   "prompt": "Somethin' shiny close by. New iron.",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/mundell_new_iron_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     2.72
+    ],
+    "natural_seconds": 2.717,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.717
+   },
+   "measured": {
+    "seconds": 2.717,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0064,
+    "onset_ms": 24.0,
+    "centroid_hz": 1561,
+    "end_db": -135.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_new_iron_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_new_iron_2.mp3",
+   "prompt": "Gun's close. I can smell it.",
+   "credits": 149,
+   "destination": "audio_src/final/sfx/mundell_new_iron_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.82
+    ],
+    "natural_seconds": 1.869,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.869
+   },
+   "measured": {
+    "seconds": 1.869,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0029,
+    "onset_ms": 13.3,
+    "centroid_hz": 1410,
+    "end_db": -167.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "metal_down": {
    "purpose": "no runtime reference (superseded by actor_*_down)",
    "refs": [],
@@ -50472,6 +50598,9 @@
   "mundell_start_1",
   "mundell_start_2",
   "mundell_start_3",
+  "mundell_new_iron_0",
+  "mundell_new_iron_1",
+  "mundell_new_iron_2",
   "cuss_coot_brawl_0_clean",
   "cuss_coot_brawl_1_clean",
   "cuss_coot_cover_0_clean",
