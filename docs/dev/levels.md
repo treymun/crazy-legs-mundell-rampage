@@ -115,7 +115,7 @@ and `tools/view3d_check.gd` (the level's 3D mesh builds).
 **Levels have a `layout` number.** Bump the plan's "layout" when the map
 changes so old saves of it start the chapter over. A save records it (save
 version 7); a save of an older layout of its level loads at that chapter's
-start with its guns, rounds, health and pockets (`session_store.gd _restart`),
+start with its guns, rounds, health and pockets (`save_restore.gd _restart`),
 and a finished chapter of an older layout stays finished. Rebuilding a level's
 map means:
 

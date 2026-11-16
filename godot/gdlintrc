@@ -1,8 +1,9 @@
 # gdlint settings for the port. Run from this folder:  gdlint src tools
 #
 # The big scripts are chains of layers (game_state.gd -> ... -> game.gd, the
-# same for renderer.gd and main.gd), so a file stays under 1,500 lines: add
-# a layer or move a group of functions down rather than raise the limit.
+# same for renderer.gd and main.gd), so a file stays under 1,500 lines: move
+# a self-contained piece out into a helper (docs/dev/architecture.md) rather
+# than raise the limit.
 # Method counts, early returns and declaration order follow the Python
 # original the port came from, so those checks are off.
 disable:

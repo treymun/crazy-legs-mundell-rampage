@@ -88,8 +88,9 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
 
 ## The automap, canvas and sprites
 
-- **The automap** (`game_view.gd`) follows the player at a readable zoom
-  (PGUP/PGDN, keypad +/-, the mouse wheel; zoom 0 fits the level), from an
+- **The automap** (`game_automap.gd`, the game's `map_view`) follows the
+  player at a readable zoom (PGUP/PGDN, keypad +/-, the mouse wheel; zoom 0
+  fits the level), from an
   image of the whole map at that scale (walls as lines, ground by kind,
   walked ground painted on as it is walked). A tour viewpoint may set `map`
   and `map_zoom`.
@@ -188,7 +189,7 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   a new hub layout needs no save fixtures.
 - **Levels have a `layout` number.** A save records it (save version 7); a save
   of an older layout of its level loads at that chapter's start with its guns,
-  rounds, health and pockets (`session_store.gd _restart`), and a finished
+  rounds, health and pockets (`save_restore.gd _restart`), and a finished
   chapter of an older layout stays finished. Rebuilding a level's map means
   bumping its plan's `layout`, then `save_fixtures.gd -- make` and fixing the
   old fixtures' expected positions in `tools/saves/expected.json`. A save whose
@@ -208,7 +209,8 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   `features/mothership.gd` (phases by health, attacks picked at the wind-up
   start with their floor marks, pod crew, the loose beam, her fall and the ship
   coming apart); the crew's own attacks and the tin guard's tailgate are
-  `ship_aliens.gd`, hooked from `enemies.gd` attack/hurt/sprite. After the last
+  `ship_aliens.gd`, hooked from `enemy_attacks.gd` attack, `enemies.gd` hurt
+  and `enemy_looks.gd` sprite. After the last
   chapter in `Campaign.ORDER`, `finale.gd` draws the true finale (the campaign's
   tally, then the credits). Chapter music not made yet is listed in
   `assets.gd PENDING_MUSIC` (pack_assets and verify_assets note it as pending).
@@ -251,8 +253,8 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   quest prop, gate and item in every level and fails when one is hard to use
   or works through a wall: run it after moving a station or its board. A
   station's board should stand on the side it is used from.
-- **Wall runs merge when a level loads** (`LevelData._merge_runs`, level.gd):
-  straight runs of one repeating material become one piece. Files keep a
+- **Wall runs merge when a level loads** (`LevelLoad.merge_runs`,
+  level_load.gd): straight runs of one repeating material become one piece. Files keep a
   piece per cell for the editors.
 - **Deep water and steering** (dev.45, `src/deep_steer.gd`): a hand that
   cannot swim and sees the player across deep water (no deck) follows the
@@ -264,7 +266,7 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
 the features; the engine pass's load track (2026-11-16) made the first visit
 to a chapter about twice as fast and changed nothing play sees:
 
-- **The nav graph** (`LevelGeometry._build_nav`) has the same nodes, edges
+- **The nav graph** (`LevelNav.build_nav`) has the same nodes, edges
   and order as before in about a third of the time: the orthogonal edges are
   gathered as pairs in the order found and laid out once (no list per node
   copied at every append); a cell with only cells round it (no deck or
@@ -278,7 +280,7 @@ to a chapter about twice as fast and changed nothing play sees:
   wall runs' keys once a piece (as text, as before).
 - **Fences** (`wall_breaks.gd`) ask only the boards, props and volumes in the
   cells round each fence, not all of them; the grit (the old canvas's look,
-  `GameView._build_grit`) is made once a wash; a level played again keeps its
+  `ScreenLook.build_grit`) is made once a wash; a level played again keeps its
   flow field's open floor (`FlowField._opens`) as it keeps its nav graph.
 - **The wreck pieces** are cut in the level's first frames, a model's on a
   worker (`WreckCuts.prepare`/`pump`, below), not while it loads.
@@ -312,8 +314,8 @@ download would grow by megabytes. `tools/load_bench.gd` measures it
   every tick of a bot's playthrough; `--play-bench=<seconds>` has the same bot
   (`tools/bot_pilot.gd`) play each chapter in a real window and prints the
   slowest frames with the tick's and the draw's share.
-- **The county's hands fight smart** (`enemies.gd`): a hurt hand may duck
-  behind cover the player cannot see (`find_cover`), a badly hurt one runs to
+- **The county's hands fight smart** (`enemies.gd`, `hand_tactics.gd`): a
+  hurt hand may duck behind cover the player cannot see (`find_cover`), a badly hurt one runs to
   fetch a friend, and a stray shot from another hand starts a brawl (`hurt(...,
   by)` sets a grudge). `hurt()` also takes the gun's name (`how`): the REACTIONS
   table throws back, stuns, soaks (teat gun) or gibs by gun. A boss goes

@@ -21,7 +21,8 @@ lines (gdlint).
   `start_county`, `net_match_game`, `retry_fight`, `_take_mode`), settings
   feedback.
 - `main_input.gd`: keys, the pad (`read_pad` -> `_pad_menu` -> `key()`), touch,
-  controls (`_controls`), the keyed menus.
+  controls (`_controls`), the keyed menus. The online screens' keys are
+  `OnlineInput` (`net/online_input.gd`, `key_online`, asked first by `key()`).
 - `main.gd`: `_ready` (the crash log), the per-frame drive (`advance()`,
   `_net_frame`, `_net_aim`, `_auto_detail`, `--launch-check`).
 
@@ -37,6 +38,30 @@ lines (gdlint).
   and `game.view_frame` for the 3D view.
 - `game.gd`: the tick (`tick(dt, controls)`, `_step_body`, `_step_hands`,
   slow motion, rewind).
+
+A layer stays under the line limit by handing self-contained pieces to
+helpers outside the chain: classes of static functions taking the game
+(`g: Game`; a layer below `Game` passes `var me: Game = self as Object`),
+or a small object the game holds in a field of its own (listed in
+`VIEW_FIELDS`), or a feature. The layer keeps a one-line function of the old
+name where other code calls it. Play's helpers so far:
+
+- `game_use.gd` (`GameUse`): what USE acts on (`use_target`, the device aim
+  points), its prompt, `interact()`, the Crossroads gates and clues.
+- `game_objective.gd` (`GameObjective`): the objective's text, pin and route,
+  the quest lamps.
+- `game_automap.gd` (`GameAutomap`, the game's `map_view`): the automap.
+- `screen_look.gd` (`ScreenLook`, `screen_look`): the software look pass
+  (grit, grain, dither, the brightness grade folded in) and the drunk warp;
+  its numbers also feed the GPU look.
+- `barks.gd`, `cheats.gd`, `gallery.gd`: Mundell's one-liners, the HICK MODE
+  codes, the tin rooster booth (preloaded as `GameState.Barks`, `Cheats`,
+  `Gallery`).
+- For an enemy: `enemy_attacks.gd` (`EnemyAttacks`: its attacks),
+  `enemy_looks.gd` (`EnemyLooks.sprite`), `hand_tactics.gd` (`HandTactics`:
+  cover, fetching help, brawls, swinging out), `enemy_tuning.gd`.
+- For the guns: `weapon_paint.gd` (`WeaponPaint`: the viewmodel's grading,
+  rims, blits and lines).
 
 `game.player` is the acting player, not always the local one: see
 [multiplayer.md](multiplayer.md#gameplayer-is-the-acting-player).
@@ -147,8 +172,10 @@ feature (last) are all features. See [gameplay.md](gameplay.md#features-listen-t
 ## Data
 
 - Levels: `godot/data/<id>.json`, built from plans in `godot/tools/levels/`
-  ([levels.md](levels.md)); loaded into `LevelData` (`level.gd`), with tiles
-  in `level_tiles.gd` and geometry in `level_geometry.gd`.
+  ([levels.md](levels.md)); loaded into `LevelData` (`level.gd`; read and
+  its tables built by `LevelLoad`, `level_load.gd`), with tiles in
+  `level_tiles.gd` and geometry in `level_geometry.gd` (its nav graph built
+  by `LevelNav`, `level_nav.gd`; the graph is `nav_graph.gd`).
 - Tuning: `godot/data/tuning/*.cfg` and `*.json`, read by `tuning.gd`
   (weapons, enemies, effects, shots: reloaded live from the project folder)
   and the loaders in `src/core/` (`Difficulty`, `HitData`, `ModeData`,
@@ -157,7 +184,8 @@ feature (last) are all features. See [gameplay.md](gameplay.md#features-listen-t
   `tools/pack_assets.gd` (generated, not committed) and loaded by `assets.gd`;
   the 3D models are in `godot/assets3d/` and `godot/scenes/`
   ([art.md](art.md)).
-- Saves: `session_store.gd` (`SessionStore.VERSION`), upgrades in
+- Saves: `session_store.gd` (`SessionStore.VERSION`, the writing side),
+  loading in `save_restore.gd` (`SaveRestore`), upgrades in
   `save_upgrade.gd`, fixtures in `godot/tools/saves/`.
 
 ## Static typing
