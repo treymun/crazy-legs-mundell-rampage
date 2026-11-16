@@ -240,10 +240,7 @@ func _check_rest(kind: String, view: ActorView, info: Dictionary) -> void:
 				continue
 			var path := anim.track_get_path(track)
 			var spot := anim.find_track(path, Animation.TYPE_POSITION_3D)
-			if (
-				spot >= 0
-				and anim.position_track_interpolate(spot, t).y > maxf(height * reach, .5)
-			):
+			if spot >= 0 and anim.position_track_interpolate(spot, t).y > maxf(height * reach, .5):
 				high += 1
 	if high > 0:
 		_fail("actor %s: %d parts still up at rest (down)" % [kind, high])

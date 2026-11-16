@@ -139,7 +139,7 @@ a shop lamp falling in the saw floor's arena.
   `look_of`); PropView shows the look the picture names.
 - **Faithful bakes**: the stations and the props drawn flat before (FLAT:
   laundry, the powder shelf, hubcap board, gator hide, probe rack, range
-  scoreboard, line sign) bake their materials' shine too and keep each
+  scoreboard, line sign, the shop lamp) bake their materials' shine too and keep each
   part's own object coordinates for its patterns (attribute `part_co`), so
   hazard stripes, planks and grime fall as in the sprite render; at 160
   texels a unit (512 px for most). The props modelled before kept their
@@ -179,8 +179,17 @@ a shop lamp falling in the saw floor's arena.
      took nearly all the texture in gaps: the baron's islands covered 3% of
      it, Jerry's 4%, Billy's 14%; packed, about half (four times the texels
      across on the baron), so faces and bellies are no longer a few blocky
-     texels. Only kinds baked since have it (the baron).
-   - Looks are 512² (`TEXTURE`); `FINE` kinds bake 1024² (the baron), with
+     texels. Every boss has it now: the baron and Jerry (v3.1.0), and since
+     the polish after v3.2.0 the sheriff (`boss`, 52% of the texture
+     used), Rudy (50%), the foreman (50%), the derby champ (53%), the Swamp
+     King (60%), Maw (55%) and her bare model, and the cow (58%); the
+     regular hands keep their v3.0.0 unwrap. A re-bake keeps the gear bones
+     (they come from the builds' `gear()` tags) and every frame; fit.json's
+     `light` was measured again for each (model against cel, the close-up
+     body's mean on the dusk tour).
+   - Looks are 512² (`TEXTURE`); `FINE` kinds bake 1024² (the baron, the
+     derby champ, the Swamp King, Maw and her bare model: the most parts or
+     the biggest bodies; the sheriff, Rudy and the foreman stay 512), with
      fewer samples a texel.
    - A boss's gear (`enemy_actors.py gear("hat")` before its parts,
      `gear("")` after; the cels ignore it) gets bones of its own, never
