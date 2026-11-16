@@ -112,6 +112,7 @@ func tick_took(game: Game, us: int) -> void:
 	tick_ms.append(us / 1000.0)
 	if tick_ms.size() > TICK_BARS:
 		tick_ms = tick_ms.slice(tick_ms.size() - TICK_BARS)
+	_fold_feature_ticks()
 	for name: String in _spent:
 		var spent: int = _spent[name]
 		var ms := spent / 1000.0
@@ -153,12 +154,14 @@ func _follow(game: Game) -> void:
 	if woven != want_woven:
 		if woven != null:
 			_unweave(woven.events.ticked)
+			woven.events.timing = false
 		_probes.clear()  # the game they were on is gone with them
 		_woven = weakref(want_woven) if want_woven != null else null
 		_woven_count = -1
 		tick_ms.clear()
 		listener_ms.clear()
 	if want_woven != null:
+		want_woven.events.timing = true
 		_weave(want_woven.events.ticked)
 
 
@@ -194,7 +197,7 @@ func _weave(sig: Signal) -> void:
 		var flags: int = link["flags"]
 		sig.connect(c, flags)
 		sig.connect(_probe_for(i + 1))
-		_names.append(_name_of(c))
+		_names.append("" if c.get_method() == "_run_ticks" else _name_of(c))
 	_woven_count = listeners.size()
 
 
@@ -213,9 +216,29 @@ func _unweave(sig: Signal) -> void:
 	_probes.clear()
 
 
+## The features' ticks (GameEvents.tick_list, timed there while `ticks` is
+## on) into `_spent` under each feature's name.
+func _fold_feature_ticks() -> void:
+	var game: Game = _woven.get_ref() if _woven != null else null
+	if game == null:
+		return
+	var events := game.events
+	var ticks: Array = events.tick_list()
+	for i in mini(ticks.size(), events.tick_us.size()):
+		var us: int = events.tick_us[i]
+		if us == 0:
+			continue
+		var row: Array = ticks[i]
+		var tick: Callable = row[0]
+		var name := _name_of(tick)
+		var had: int = _spent.get(name, 0)
+		_spent[name] = had + us
+	events.tick_us.fill(0)
+
+
 func _probe(i: int) -> void:
 	var now := Time.get_ticks_usec()
-	if i > 0 and i <= _names.size():
+	if i > 0 and i <= _names.size() and _names[i - 1] != "":
 		var name := _names[i - 1]
 		var had: int = _spent.get(name, 0)
 		_spent[name] = had + now - _probe_at

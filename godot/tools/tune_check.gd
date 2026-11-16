@@ -307,6 +307,11 @@ func _overlays(console: DevConsole) -> void:
 		o.listener_ms.size() >= before.size() - 1,
 		"ticks: each listener is timed (%d of %d)" % [o.listener_ms.size(), before.size()]
 	)
+	check(
+		o.listener_ms.has("weapon_fx"),
+		"ticks: the features' own ticks are timed one by one (GameEvents.timing)"
+	)
+	check(g.events.timing, "ticks: the events time their ticks while shown")
 	check(o.traces.size() > 0, "hits: the hitscan traces come in (%d)" % o.traces.size())
 	check(over != plain, "the overlays draw over the view (%d frames headless)" % drawn)
 	var rec: Replay = main.replays.rec
@@ -330,5 +335,6 @@ func _overlays(console: DevConsole) -> void:
 		not console.overlays.any() and after == before,
 		"turned off, the ticked listeners are as before, in order (%d)" % after.size()
 	)
+	check(not g.events.timing, "turned off, the features' ticks are no longer timed")
 	main.replays.enabled = false
 	main.return_to_title()

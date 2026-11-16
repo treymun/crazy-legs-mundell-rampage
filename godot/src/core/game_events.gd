@@ -86,6 +86,11 @@ var _ticks: Array[Callable] = []
 var _awake := PackedByteArray()
 ## Owner instance id -> the indices of its ticks.
 var _ticks_of := {}
+## While true (the dev console's `show ticks`), each tick's microseconds
+## add up in `tick_us` by its place in the list; off, it costs one test a
+## tick. Looks only: timing never changes what the ticks do.
+var timing := false
+var tick_us := PackedInt64Array()
 
 
 func _init() -> void:
@@ -144,6 +149,21 @@ func clear_ticks() -> void:
 
 
 func _run_ticks(dt: float) -> void:
+	if timing:
+		_run_timed(dt)
+		return
 	for i in _ticks.size():
 		if _awake[i] != 0:
 			_ticks[i].call(dt)
+
+
+func _run_timed(dt: float) -> void:
+	if tick_us.size() != _ticks.size():
+		tick_us = PackedInt64Array()
+		tick_us.resize(_ticks.size())
+		tick_us.fill(0)
+	for i in _ticks.size():
+		if _awake[i] != 0:
+			var t0 := Time.get_ticks_usec()
+			_ticks[i].call(dt)
+			tick_us[i] += Time.get_ticks_usec() - t0
