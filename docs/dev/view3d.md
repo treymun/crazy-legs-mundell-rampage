@@ -87,7 +87,10 @@ sticks, the touch stick and a drag; jump and crouch up and down, run
 faster), sliding along walls, off floors and ceilings and within `reach` of
 the player (`camera.cfg [photo]`). `game.eye_override` (a VIEW field) is the
 eye `game_view.gd _draw` uses: no shake, the sprites culled to it, the player
-added as Mundell (`ModeBodies.player_sprite`), and no gun, sights, prompts or
+added as Mundell (`ModeBodies.player_sprite`; in a vehicle he sits down into
+an open seat by vehicles.cfg `sit`, `ModeBodies.feet_of`, and the car's
+shell hides its driver, `hidden_in_vehicle`: he stood up through its roof
+before 3.3.0; a partner and the mirror the same), and no gun, sights, prompts or
 HUD. The strip in the status bar's rows names the filter and the buttons
 (H, a pad's Y or USE hides it). Filters: PLAIN, FILM (the film look's pass),
 and the display shader's `photo_filter` TINTYPE, DUSK, MOONLIGHT (view rows
@@ -427,7 +430,12 @@ round the safe ground ([county_run.md](county_run.md#the-storm-front)),
 curtain at the ring and a second `OUTER_STORM` (2.5) cells behind it, so the
 wall has depth as the eye moves (drawn back to front: the order swaps when the
 eye is out in the storm). `storm_wall.gdshader` (see-through, its own shader,
-`layer_k` 0 or 1) draws each as a dark curtain in four dithered steps: shafts
+`layer_k` 0 or 1) draws each as a dark curtain in four dithered steps
+(`dither_of`: within 5 to 11 units the steps break along streaks of rain a
+fourteenth of a cell wide hung on the curtain itself, falling with the wind;
+further, a soft grain of the 320-wide pixels; until 3.3.0 a 2x2 ordered
+pattern of screen pixels, which read as a fine screen door up close and in
+HD; `docs/godot3d/optimize/S/storm_*`): shafts
 of rain hanging down it over great rolls of cloud, swaying and carried round
 with the wind (`storm_k`, CountyStorm.strength), darkest at its foot where it
 kicks up brown dirt, its crown lit pale where it thins into the sky; lightning

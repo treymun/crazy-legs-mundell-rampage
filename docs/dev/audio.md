@@ -49,6 +49,17 @@ decision here comes from measurement and from the code.
 - **Rooms.** `set_room` plays the ambience bed (`amb_<level ambience>`, or
   room / yard / an area's), `set_space` the world bus's reverb (`SPACES`);
   indoors a gun also plays its `room_` tail (`report`, `sound_at`).
+- **Levels.** Every voice's level goes through `Sound.set_level` (read back
+  with `level_of`): it reaches the mixer only when it moves `LEVEL_STEP` or
+  to silence, and with no window (the checks, the lobby server) never for a
+  playing voice; headless the bus effects (panners, filters, reverb,
+  limiter) are added switched off (`_add_effect`). Each change of a playing
+  voice's level makes Godot's mixer a record it frees a frame later, and that
+  clean-up grows with the square of how many: a check that ticks minutes of
+  play inside one frame (net_check, tactical_check, check_fixes) used to
+  print OK and then keep a core busy for minutes on the next frame instead
+  of quitting (40,000 changes cost 4 s a frame, the full net_check's never
+  ended). Since 3.3.0 they quit at once.
 - **Checks.** `tools/sound_check.gd` (in `check_fixes`): hearing open, round,
   through a wall and through a floor on Hickston; it costs little and changes
   nothing in play; every take VARIANTS deals and every cue the game names at

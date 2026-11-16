@@ -189,7 +189,13 @@ tenths and hit nearly every shot:
   the gun's climb is pulled down by the same spring and each shot's
   kick throws the hand by 1 - `recoil`;
 - `head` is where up the body it aims (head hits come from the vertical
-  stray). Its dice are the bot's own (seeded by slot): bots play on the host
+  stray): the belly, .28 EASY to .44 HOG WILD. Before 3.3.0 it was the chest
+  (.52 to .62) and some 60% of NORMAL bots' pistol kills in a match were head
+  shots (the 5v5 head multiplier makes the killing hit a head one far more
+  often than the hits are); now some 30-40% of their pistol kills and 27% of
+  their rifle kills (`tactical_check`, grainyard, salvage and holler), and
+  `bot_check` holds every skill's head hits on a strafer to `MOST_HEADS`
+  (15%) without its kill, hit-rate and first-hit bounds moving. Its dice are the bot's own (seeded by slot): bots play on the host
   only and their controls are what every copy plays, so `game.rng` is left
   alone.
 

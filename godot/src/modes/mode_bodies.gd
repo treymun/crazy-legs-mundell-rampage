@@ -18,6 +18,7 @@ const PLAYER_KIND := "mundell"
 const PAIN_TIME := .3
 ## A player moving this fast (Player.motion) walks.
 const WALKING := .1
+const VehiclesFeature := preload("res://src/features/vehicles.gd")
 
 ## key -> Enemy stand-in, for the game `_game_id` only.
 static var _stand_ins: Dictionary = {}
@@ -119,9 +120,25 @@ static func hit_at(game: Game, q: Player) -> float:
 	return at
 
 
+## Whether player q is out of sight in a vehicle's closed shell (the car's
+## driver): nobody draws their body (it stood up through the roof).
+static func hidden_in_vehicle(game: Game, q: Player) -> bool:
+	var rides: VehiclesFeature = game.features.get("vehicles")
+	return rides != null and q.health > 0 and rides.shut_in(q)
+
+
+## Where player q's body stands: on the floor, or, in an open vehicle's seat
+## (the airboat, the mower), sunk into it to sit there (vehicles.cfg `sit`).
+static func feet_of(game: Game, q: Player) -> float:
+	var rides: VehiclesFeature = game.features.get("vehicles")
+	if rides != null and q.health > 0 and rides.seated(q):
+		return rides.rider_feet(q)
+	return game.world.stand(q) + q.air
+
+
 ## Player q as the world would see them, Mundell's model (the picture where
 ## there is none): the mirror's reflection, and the player in view of PHOTO
-## MODE's free camera.
+## MODE's free camera. Check hidden_in_vehicle() first.
 static func player_sprite(game: Game, q: Player) -> View.Sprite:
 	var facing := fposmod(TAU - q.angle, TAU) - PI
 	var direction := mini(4, int(absf(facing) / (PI / 4.0) + .5))
@@ -130,7 +147,7 @@ static func player_sprite(game: Game, q: Player) -> View.Sprite:
 	if q.motion > .15 and q.air == 0.0:
 		stride = roundi(sin(q.walk_phase))
 	var height := 1.24 if q.crouched else 1.65
-	var feet: float = game.world.stand(q) + q.air
+	var feet := feet_of(game, q)
 	var out := View.Sprite.new(q.x, q.y, "player_%s_%d" % [heading, stride], height, feet)
 	out.flip = facing < 0.0 and direction < 4
 	watch(game)

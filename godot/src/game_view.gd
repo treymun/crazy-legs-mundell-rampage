@@ -8,6 +8,8 @@ func reflection() -> Variant:
 	if is_nan(world.mirror_x):
 		return null
 	var me: Game = self as Object
+	if ModeBodies.hidden_in_vehicle(me, player):
+		return null
 	return ModeBodies.player_sprite(me, player)
 
 
@@ -651,7 +653,7 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		marks_list = marks_list + gore_fx.walls
 	marks_list = marks_list + Features.wall_marks(me)
 	var listed: Array = sprites()
-	if posing:
+	if posing and not ModeBodies.hidden_in_vehicle(me, p):
 		listed.append(ModeBodies.player_sprite(me, p))
 	var t1 := Time.get_ticks_usec()
 	# What the 3D view (view3d/world_view.gd) draws this frame: it reads this

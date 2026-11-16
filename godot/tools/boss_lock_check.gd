@@ -267,6 +267,17 @@ static func _arena(main, check: Callable, kind: String) -> void:
 			_lock(g).inside(spot.x, spot.y) and not _lock(g).inside(start[0], start[1]),
 			"%s: shut in on its side of the water, the chapter's start outside" % kind
 		)
+	if kind == "swamp_king":
+		# The north bank west of the lagoon (the Mudhole, the gator farm) is
+		# gated off: nobody waits the fight out in the juke joint.
+		var mudhole := Vector2(59.5, 14.5)
+		_stand(g, p, mudhole)
+		_ticks(g, 2)
+		check.call(
+			not _lock(g).inside(mudhole.x, mudhole.y) and _lock(g).inside(p.x, p.y),
+			"%s: the Mudhole is outside the shut arena; stood in it, brought in" % kind
+		)
+		_stand(g, p, spot, atan2(e.y - spot.y, e.x - spot.x))
 	var gates := BossFight.gate_cells(g, kind)
 	check.call(
 		gates.is_empty() == w.lock_walls.is_empty(),

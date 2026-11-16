@@ -32,7 +32,10 @@ const BLADE_EVERY := .4
 const MARKS_MAX := 240
 const CLIPS_MAX := 60
 const SPRAY_MAX := 48
-const SPARKS_MAX := 40
+const SPARKS_MAX := 64
+## A skid's streak: its picture and half its width (cells).
+const SKID_MARK := "mark_oil_0"
+const SKID_WIDE := .1
 ## How far the airboat goes between its wake's rings (cells).
 const WAKE_EVERY := .55
 ## How much of the body's bob and pitch the seat's eye takes, for each EASY ON
@@ -138,6 +141,27 @@ func seat_of(p: Player) -> Vector2i:
 ## Whether `p` rides a vehicle (game.gd steps them here instead of walking).
 func seated(p: Player) -> bool:
 	return not rides.is_empty() and seat_of(p).x >= 0
+
+
+## Whether `p` sits inside a closed shell, out of sight (the car: hands on
+## the wheel); an open seat (the airboat, the mower) shows its rider.
+func shut_in(p: Player) -> bool:
+	var at := seat_of(p) if not rides.is_empty() else Vector2i(-1, -1)
+	if at.x < 0:
+		return false
+	var v: VehicleDrive.Ride = rides[at.x]
+	return VehicleDrive.spec(v.kind).hands == 0
+
+
+## Where `p`'s body stands in an open seat (its feet, sunk by the kind's `sit`
+## so the hips sit on the seat and the legs are in the hull): looks only.
+func rider_feet(p: Player) -> float:
+	var at := seat_of(p) if not rides.is_empty() else Vector2i(-1, -1)
+	if at.x < 0:
+		return game.world.stand(p) + p.air
+	var v: VehicleDrive.Ride = rides[at.x]
+	var b := body(at.x)
+	return v.z + VehicleDrive.spec(v.kind).sit + (b.heave if b != null else 0.0)
 
 
 ## Whether `p`'s hands are on a wheel (the car: no shooting from it).
@@ -540,7 +564,9 @@ func _leave_marks(
 	var mowing := s.cuts and GRASS.has(tile)
 	var braking := s.brake_skid and b.acc < -s.brake * .55 and VehicleDrive.along(v) > 2.0
 	if (v.slide > s.skid or braking) and step % 2 == 0 and not s.floors.has(tile):
-		# Two black streaks off the back wheels, along the way it is going.
+		# Two black streaks of rubber off the back wheels, along the way it is
+		# going: a tyre's width of near-black smear (the pale wear decal they
+		# were drawn with read as nothing on dirt and tarmac at 320 wide).
 		var way := atan2(v.vy, v.vx)
 		var back := -s.length * .3
 		for side: float in [-1.0, 1.0]:
@@ -551,8 +577,8 @@ func _leave_marks(
 					v.y + sin(v.h) * back + cos(v.h) * off,
 					v.z + .004,
 					way,
-					"detail_wear_oil",
-					.07
+					SKID_MARK,
+					SKID_WIDE
 				]
 			)
 	elif mowing and step % 6 == 0:
@@ -585,10 +611,10 @@ func _leave_marks(
 ## Sparks where it scrapes a wall (the car's steel on brick and concrete).
 func _sparks(v: VehicleDrive.Ride, speed: float) -> void:
 	var sparks: Array = _looks["sparks"]
-	var count := clampi(int(speed * .7), 3, 7)
+	var count := clampi(int(speed * 1.3), 6, 14)
 	for _k in count:
 		var a := _dice.randf() * TAU
-		var fly := _dice.randf_range(.8, 2.4)
+		var fly := _dice.randf_range(1.0, 3.2)
 		sparks.append(
 			[
 				v.bump_x,
@@ -870,7 +896,9 @@ func sprites() -> Array:
 	var sparks: Array = _looks["sparks"]
 	_fly(out, clips, .9, 4.0, "fx_chaff_%d", 2, .12, false)
 	_fly(out, spray, .7, 6.0, "fx_spray_%d", 4, .34, false)
-	_fly(out, sparks, .45, 7.0, "fx_sparks_%d", 3, .24, true)
+	# A scrape's sparks a third of a cell across and over half a second: at
+	# 320 wide the smaller, quicker ones were a pixel for a frame or two.
+	_fly(out, sparks, .6, 6.0, "fx_sparks_%d", 3, .34, true)
 	return out
 
 

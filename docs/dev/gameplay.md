@@ -1028,7 +1028,10 @@ chapel path at Hickston. Only the campaign and co-op have them
   (`sway_eye`, from `game_view.gd`; EASY ON THE EYES: 70 %, 30 %, none; no
   roll of the camera); the car's dash rides a pixel or two. The car leaves
   two tyre streaks off its back wheels sliding or braking hard
-  (`brake_skid`) and throws sparks where it strikes a wall (`sparks`); the
+  (`brake_skid`; black rubber `SKID_MARK` a tyre wide, `SKID_WIDE`: the pale
+  thin wear decal before 3.3.0 read as nothing at 320 wide) and throws a
+  spray of sparks where it strikes a wall (`sparks`; 6 to 14, a third of a
+  cell, over half a second); the
   airboat throws spray off its bow (more in a turn) and leaves a wake of
   rings behind it (`spray`, the water feature's `ring`); the mower spits
   clippings out of its side chute. The engine's cue plays at a pitch from

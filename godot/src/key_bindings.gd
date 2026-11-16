@@ -37,6 +37,14 @@ const ACTIONS := [
 	["always_run", "ALWAYS RUN ON/OFF", KEY_CAPSLOCK, []],
 ]
 
+## What a key does where its label alone does not say (the KEYS page's help).
+const HINTS := {
+	"strafe_mode": "HOLD IT AND THE TURN KEYS STEP SIDEWAYS",
+	"fire_key": "FIRES FROM THE KEYBOARD; THE LEFT MOUSE BUTTON ALWAYS FIRES",
+	"holster": "PUTS THE GUN AWAY AND TAKES IT OUT AGAIN",
+	"always_run": "FLIPS ALWAYS RUN ON AND OFF",
+}
+
 ## Bound key -> the default key of its action, for keys that differ.
 static var _translate := {}
 ## Default keys whose action now has another key (they do nothing in play).
@@ -45,6 +53,20 @@ static var _freed := {}
 
 static func option_key(action: String) -> String:
 	return "key_" + action
+
+
+## The KEYS page's help for `action` (labelled `label`): what it does, the
+## keys it always has as well, and how to put them all back.
+static func hint(action: String, label: String) -> String:
+	var text: String = HINTS.get(action, "THE KEY FOR %s IN PLAY" % label)
+	for entry: Array in ACTIONS:
+		if entry[0] != action:
+			continue
+		var extra: Array = entry[3]
+		var names: Array = extra.map(func(code: int) -> String: return key_name(code))
+		if not names.is_empty():
+			text += " (ALSO %s)" % " AND ".join(PackedStringArray(names))
+	return text + ". RESET PAGE PUTS EVERY KEY BACK."
 
 
 static func key_name(code: int) -> String:

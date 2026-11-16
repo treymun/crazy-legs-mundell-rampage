@@ -103,6 +103,12 @@ minutes on a GitHub runner); the last part also runs any step no part
 names, so a new step is never left out, and a step named twice or not in
 `STEPS` fails the run. Add a new step to `STEPS` and to the lightest part.
 
+A check that prints OK and does not quit has been the mixer before
+(audio.md "Levels": every level change of a playing voice ticked inside one
+frame is cleaned up on the next, at a cost growing with their square); a
+probe that times the frames after the work (`await process_frame` twice,
+`Performance.TIME_PROCESS`) shows which frame holds it up.
+
 ### Other checks, not in check_all
 
 | Check | Passes with | What it holds |

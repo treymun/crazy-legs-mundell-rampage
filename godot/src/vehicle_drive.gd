@@ -53,6 +53,9 @@ class Spec:
 	var hands := 1
 	var eye := 1.0
 	var seat := 0.0
+	## A rider's body seen from outside (looks only): how far its feet stand
+	## over the floor (below it: sunk so the hips sit on the seat).
+	var sit := 0.0
 	var ram := 10.0
 	var ram_from := 2.5
 	var blade := 0.0

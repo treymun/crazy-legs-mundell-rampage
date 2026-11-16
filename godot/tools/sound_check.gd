@@ -8,7 +8,9 @@
 ## a body on the floor above through the floor; it never changes play, and
 ## asking costs little. The bank: every take VARIANTS deals and every cue the
 ## game names at run time (barks, boss lines, enemies' cries, guns, floors,
-## materials) is made, or made in code (Assets.MADE_CUES). Nobody listens
+## materials) is made, or made in code (Assets.MADE_CUES). A voice's level
+## reaches the mixer only when it changes, and never for a playing voice with
+## no window (Sound.set_level: what kept long checks from quitting). Nobody listens
 ## here: this says the sounds are there and placed, not how they sound.
 extends SceneTree
 
@@ -43,6 +45,45 @@ static func run(main, check: Callable) -> void:
 	print("\nSOUND (HEARING, THE BANK)")
 	_hearing(main, check)
 	_bank(main, check)
+	_levels(main, check)
+
+
+## Sound.set_level: a level only reaches the mixer when it changes, and with no
+## window a playing voice's is only noted (each change of a playing voice's
+## level costs the mixer a record whose clean-up grows with the square of how
+## many: checks that tick minutes in one frame stalled for minutes after OK).
+static func _levels(main, check: Callable) -> void:
+	var voice := AudioStreamPlayer.new()
+	main.sound.add_child(voice)
+	var hush := AudioStreamWAV.new()
+	hush.format = AudioStreamWAV.FORMAT_16_BITS
+	hush.mix_rate = 22050
+	var quiet := PackedByteArray()
+	quiet.resize(22050 * 4)
+	hush.data = quiet
+	voice.stream = hush
+	Sound.set_level(voice, .5)
+	var stopped_set := is_equal_approx(voice.volume_linear, .5)
+	voice.play()
+	for i in 20000:
+		Sound.set_level(voice, .2 + .6 * fposmod(i * .37, 1.0))
+	Sound.set_level(voice, .3)
+	check.call(
+		(
+			stopped_set
+			and voice.playing
+			and is_equal_approx(voice.volume_linear, .5)
+			and is_equal_approx(Sound.level_of(voice), .3)
+		),
+		(
+			"headless, a playing voice's level is noted (%.2f) and not handed to the mixer (%.2f)"
+			% [Sound.level_of(voice), voice.volume_linear]
+		)
+	)
+	voice.stop()
+	Sound.set_level(voice, .3)
+	check.call(is_equal_approx(voice.volume_linear, .3), "a stopped voice's level is set as ever")
+	voice.queue_free()
 
 
 ## Every cell near the player, sorted by what lies between: open, round a

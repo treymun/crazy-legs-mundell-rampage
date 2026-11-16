@@ -97,6 +97,23 @@ float debris(vec2 at, float tm, float speed, float seed) {
 	return length(r * vec2(1.0, 1.6)) < 0.14 ? 1.0 : 0.0;
 }
 
+// The threshold the curtain's steps are dithered by at (around, up), `far`
+// units from the eye (`frag` the pixel): streaks of rain on the curtain near, a grain of the
+// 320-wide pixels far, mixed a pixel at a time between 5 and 11 units.
+float dither_of(vec2 at, float tm, float drift, float layer, float far, vec2 frag) {
+	// A streak a fourteenth of a cell wide and half a cell long, each its own
+	// shade, falling with the wind; staggered so no two columns line up.
+	float lane = floor(at.x * 14.0 + drift * 6.0);
+	float fall = (at.y + tm * 6.5) * 2.2 + hash12(vec2(lane, layer)) * 7.0;
+	float streak = hash12(vec2(lane, floor(fall)) + layer * 19.0);
+	vec2 px = floor(frag * (320.0 / view_size.x));
+	// Ragged only along the steps' edges, so the rolls of cloud keep their
+	// shapes.
+	float grain = 0.5 + (hash12(px + layer * 5.3) - 0.5) * 0.65;
+	float pick = hash12(px.yx + 2.7);
+	return pick < smoothstep(5.0, 11.0, far) ? grain : streak;
+}
+
 void fragment() {
 	float layer = float(layer_k);
 	float tm = anim_time * motion;
@@ -105,12 +122,14 @@ void fragment() {
 	vec2 at = vec2(UV.x * 6.2831853 * r, map_p.z - storm_base);
 	float up = at.y;
 	float drift = tm * (0.9 + 1.6 * storm_k) * (1.0 - 0.35 * layer);
-	// The curtain in four steps, dithered between them pixel by pixel (a 2x2
-	// ordered pattern), as a 1997 palette would show it: the shafts hanging
-	// down it over the great rolls of cloud, darkest at its foot, its top
-	// lit pale by the sky where it thins out.
-	ivec2 grid = ivec2(floor(FRAGCOORD.xy));
-	float dither = (float(((grid.x & 1) * 2) ^ ((grid.y & 1) * 3)) + 0.5) / 4.0;
+	// The curtain in four steps, dithered between them as a 1997 palette
+	// would show it: the shafts hanging down it over the great rolls of
+	// cloud, darkest at its foot, its top lit pale by the sky where it thins
+	// out. Never a fine ordered pattern (it read as a screen door up close):
+	// near, the steps break along streaks of driven rain hung on the curtain
+	// itself, falling and carried with the wind; far, where a streak is under
+	// a pixel, a ragged grain in the 320-wide pixels whatever the view's size.
+	float dither = dither_of(at, tm, drift, layer, -VERTEX.z, FRAGCOORD.xy);
 	float mass = curtain(at * vec2(0.45, 0.35), tm * 0.6, drift * 0.5, layer + 3.0);
 	float fine = curtain(at * 1.8, tm * 1.3, drift * 1.8, layer);
 	float billow = floor((mass * 0.5 + fine * 0.5) * 3.0 + dither) / 3.0;

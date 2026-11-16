@@ -77,9 +77,15 @@ static func build() -> Array:
 				SessionStore.toggle(
 					"INVERT PAD Y", "pad_invert", 0, "REVERSE UP AND DOWN ON THE RIGHT STICK"
 				),
-				SessionStore.toggle("ALWAYS RUN", "autorun", 0, "SHIFT INVERTS RUN WHILE HELD"),
+				SessionStore.toggle(
+					"ALWAYS RUN", "autorun", 0, "RUN ALL THE TIME; HOLD THE RUN KEY TO WALK"
+				),
 				SessionStore.choices(
-					"CROUCH", "crouch", 0, ["HOLD", "TOGGLE"], "HOW THE Z KEY CONTROLS CROUCHING"
+					"CROUCH MODE",
+					"crouch",
+					0,
+					["HOLD", "TOGGLE"],
+					"HOLD: DOWN WHILE THE KEY IS HELD. TOGGLE: ONE PRESS DOWN, ONE UP"
 				),
 				SessionStore.toggle(
 					"PAUSE ON FOCUS LOSS", "focus_pause", 1, "PAUSE IF YOU SWITCH TO ANOTHER WINDOW"
@@ -251,11 +257,11 @@ static func build() -> Array:
 					"WHAT THE HANDS, THE BOTS AND MUNDELL SAY. CLEAN QUACKS OVER THE CUSSIN'"
 				),
 				SessionStore.choices(
-					"SFX STEREO WIDTH",
+					"STEREO WIDTH",
 					"stereo",
 					2,
 					["MONO", "NARROW", "NORMAL", "WIDE"],
-					"CONTROL HOW FAR POSITIONAL SOUNDS PAN"
+					"HOW FAR SOUNDS PAN LEFT AND RIGHT. MONO FOR ONE SPEAKER OR ONE EARBUD"
 				),
 				SessionStore.toggle(
 					"ROOM REVERB",
@@ -327,7 +333,10 @@ static func build() -> Array:
 					"aim_assist",
 					0,
 					["OFF", "VERTICAL", "CLASSIC"],
-					"HELPS LINE UP VISIBLE TARGETS"
+					(
+						"VERTICAL: A SHOT RISES OR DIPS TO A FOE IN THE SIGHTS."
+						+ " CLASSIC: IT TURNS ONTO ONE NEAR THEM TOO"
+					)
 				),
 				SessionStore.toggle(
 					"HIT FEEDBACK",
@@ -441,7 +450,7 @@ static func build() -> Array:
 					"LIGHTS AND GLOW",
 					"lights",
 					1,
-					"GUNFIRE, BLASTS, SHOTS AND LAMPS CAST COLOURED LIGHT. LIT WINDOWS GLOW."
+					"GUNFIRE, BLASTS, SHOTS AND LAMPS CAST COLORED LIGHT. LIT WINDOWS GLOW."
 				),
 				(
 					SessionStore
@@ -472,7 +481,10 @@ static func build() -> Array:
 					"world_motion",
 					0,
 					["FULL", "REDUCED", "STATIC"],
-					"ADJUST MOTION IN CROSSROADS SCENERY AND THE MENUS"
+					(
+						"MOVING WATER, RAIN, SWAYING TREES, THE STORM, A SEAT'S ROCKING"
+						+ " AND THE MENUS. STATIC STILLS THEM"
+					)
 				),
 				SessionStore.choices(
 					"SCREEN SHAKE",

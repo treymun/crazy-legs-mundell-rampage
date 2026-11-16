@@ -30,7 +30,7 @@ static func sprites(game: Game) -> Array:
 	var me: Player = game.local_player
 	ModeBodies.watch(game)
 	for q: Player in game.players:
-		if q == me or not game.in_view(q.x, q.y, 1.0):
+		if q == me or not game.in_view(q.x, q.y, 1.0) or ModeBodies.hidden_in_vehicle(game, q):
 			continue
 		if Modes.is_tactical(game):
 			out.append(TacticalScreens.player_sprite(game, q, me))
@@ -47,9 +47,8 @@ static func sprites(game: Game) -> Array:
 		elif q.slot != 0:
 			var tint: Array = Modes.TINTS[q.slot % Modes.TINTS.size()]
 			image = game.art.tinted_art(base, tint)
-		var floor_z: float = game.world.stand(q)
 		var spr := game.pooled(
-			q.x, q.y, image, PARTNER_HEIGHT if q.health > 0 else .5, floor_z + q.air
+			q.x, q.y, image, PARTNER_HEIGHT if q.health > 0 else .5, ModeBodies.feet_of(game, q)
 		)
 		spr.flip = relative < 0.0 and direction < 4
 		spr.body = true

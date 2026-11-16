@@ -98,6 +98,10 @@ looks (art.md#props).
 ## A setting
 
 1. Add a row to `src/setup_pages.gd`: label, key, default, choices, hint.
+   Name keys and buttons by what they do, not by a default key (a key can be
+   rebound: "HOLD THE RUN KEY", not "SHIFT"); a KEYS page row's help comes
+   from `KeyBindings.hint` (`HINTS` where the label alone does not say, and
+   the keys it always has too).
 2. Bump the settings count in `tools/check_fixes.gd` (70 now).
 3. Settings are not part of a save: no save version.
 

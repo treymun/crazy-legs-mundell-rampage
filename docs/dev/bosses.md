@@ -267,7 +267,14 @@ hands back the moment the boss falls.
 - **The bayou** has no doors round the lagoon: the king pulls up his three
   bridges (west drawbridge, swing bridge, hoist bridge) and his whole bank of
   the water is the shut-in ground (`flood`); the room (the lagoon and the
-  dock) is still where the fight starts and the bar shows.
+  dock) is still where the fight starts and the bar shows. Since 3.3.0 a
+  gate (`gates`, x 72) shuts the north bank west of the lagoon (the Mudhole,
+  the pit, the gator farm) off it too: before, a player could wait the
+  fight out in the juke joint.
+- **Maw's viewports** (the sills between her core and the ring deck) were
+  checked in 3.3.0 and left open: nobody can be in the ring once she is shut
+  in (they are brought in), and before it shots from the ring, standing or
+  jumping, do not reach her over the sill.
 - **Co-op: everyone is brought in.** Anyone up outside the shut-in ground is
   moved to the sheet's spot, off a vehicle first, as it shuts and whenever
   they turn up outside (a respawn, a revive, an airboat across the channel).

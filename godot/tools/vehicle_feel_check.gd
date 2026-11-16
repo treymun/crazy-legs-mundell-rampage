@@ -1,8 +1,10 @@
 ## Checks of how the vehicles look on the move (src/vehicle_feel.gd, looks
 ## only), run by tools/vehicle_check.gd: the car squats on the throttle and
 ## dives braking hard (leaving tyre marks), leans out of a turn (its outside
-## lower), leaves skid marks on a hard handbrake turn, throws sparks off a
-## wall it scrapes, and comes back to rest on its springs after a drop off a
+## lower), leaves skid marks on a hard handbrake turn (black rubber a tyre
+## wide), throws a spray of sparks off a wall it scrapes, hides its driver in
+## its shell from outside (the mower's rider sits down into the seat instead),
+## and comes back to rest on its springs after a drop off a
 ## ledge; the airboat rocks parked, throws spray and leaves a wake on the
 ## water; the mower bounces and spits clippings; the engine's pitch rises
 ## with the speed; and the 3D view is handed the car tipped on its springs.
@@ -159,6 +161,20 @@ static func _car(main, check: Callable) -> void:
 			% [rides.looks_count("marks") - before, v.slide]
 		)
 	)
+	var dark := 0
+	for m: View.GroundMark in rides.ground_marks():
+		if m.image == VehiclesScript.SKID_MARK and m.width >= .1:
+			dark += 1
+	check.call(
+		dark > 4 and g.art.has_art(VehiclesScript.SKID_MARK),
+		"car: its skids are drawn as black rubber a tyre wide (%d)" % dark
+	)
+	# The driver from outside (PHOTO MODE, a partner): unseen in the car's
+	# shell, not stood up through its roof.
+	check.call(
+		ModeBodies.hidden_in_vehicle(g, g.player),
+		"car: its driver is hidden in its shell from outside"
+	)
 	# Into a wall: sparks.
 	g = _seat(main, "speedway")
 	rides = g.features.get("vehicles")
@@ -171,7 +187,7 @@ static func _car(main, check: Callable) -> void:
 		if v.bumps > bumps + 3:
 			break
 	check.call(
-		v.bumps > bumps and sparks > 0,
+		v.bumps > bumps and sparks >= 6,
 		"car: it throws sparks where it strikes a wall (%d, %d bumps)" % [sparks, v.bumps - bumps]
 	)
 
@@ -261,6 +277,13 @@ static func _mower(main, check: Callable) -> void:
 	check.call(
 		clips > 0 or not ["grass", "lawn", "bayou_marsh"].has(tile),
 		"mower: on the grass it spits clippings (%d, on %s)" % [clips, tile]
+	)
+	# Its rider from outside sits down into the seat (vehicles.cfg `sit`).
+	var p := g.player
+	var feet := ModeBodies.feet_of(g, p)
+	check.call(
+		not ModeBodies.hidden_in_vehicle(g, p) and feet < v.z - .2,
+		"mower: its rider shows, sat down into the seat (feet %.2f under its floor)" % (v.z - feet)
 	)
 
 

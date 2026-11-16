@@ -202,7 +202,7 @@ class KeySetting:
 			0x7FFFFFFF,
 			1,
 			[],
-			"THE KEY FOR %s IN PLAY. RESET PAGE PUTS EVERY KEY BACK." % p_label
+			KeyBindings.hint(p_action, p_label)
 		)
 		action = p_action
 

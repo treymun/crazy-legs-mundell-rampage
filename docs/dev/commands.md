@@ -100,6 +100,7 @@ godot --path godot ... --script res://tools/live_props_frames.gd -- out=<dir>  #
 godot --path godot ... --script res://tools/physics_frames.gd [-- only=hits|boss|break]
 godot --path godot ... --script res://tools/arena_frames.gd        # the first four boss arenas (docs/boss_arenas/)
 godot --path godot ... --script res://tools/view_polish_frames.gd -- out=<dir> [only=storm|shadow|marks]   # the storm wall, SHADOWS, marks on props (docs/godot3d/polish/L/)
+godot --path godot ... --script res://tools/polish_frames.gd -- out=<dir> [only=photo_car|photo_mower|photo_airboat|skids|sparks]   # the 3.3.0 polish: riders in vehicles, skids, sparks (docs/godot3d/optimize/S/)
 godot --path godot ... --script res://tools/arena_frames_late.gd   # the last four
 godot --path godot ... --script res://tools/lock_frames.gd -- out=<dir> [kinds=boss,rudy]   # each arena's way in open, then shut (docs/godot3d/polish/P/)
 godot --headless --path godot --script res://tools/boss_lock_check.gd [-- rudy coop]   # BOSS LOCK OK (also in check_fixes)

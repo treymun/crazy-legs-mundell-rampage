@@ -916,7 +916,7 @@ func use_prompt() -> String:
 			return "E  TURN THE CONDENSER  %d/3" % turned
 		return "E  " + station.label
 	if target is LevelData.Extraction:
-		return "E  " + target.label if exit_ready() else "EXIT LOCKED / CHECK TAB MAP"
+		return "E  " + target.label if exit_ready() else "EXIT LOCKED / CHECK THE MAP"
 	var door: LevelData.Door = target
 	if world.controlled_doors.has(Vector2i(door.x, door.y)):
 		return (

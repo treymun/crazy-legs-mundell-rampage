@@ -13,7 +13,7 @@ extends SceneTree
 const KINDS := ["boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "maw"]
 ## Which way in each looks at (by its place in BossFight.entrances), and how
 ## far inside it stands.
-const WAY := {"boss": 1, "baron": 1, "derby_champ": 1, "swamp_king": 0}
+const WAY := {"boss": 1, "baron": 1, "derby_champ": 1, "swamp_king": 13}
 const BACK := 4.5
 
 var main

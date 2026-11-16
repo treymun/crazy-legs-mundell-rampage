@@ -14,12 +14,14 @@
 ## gun up. Each trial ends at the kill or after CAP seconds (the target
 ## lived). Per row: time to the first shot and the first hit, time to kill
 ## (median; `lived` the share the target outlived CAP), the hit rate (shots
-## that took health or vest off / shots fired) and head hits.
+## that took health or vest off / shots fired), head hits (of hits) and head
+## kills (of kills: the killing hit on the head).
 ##
 ## The check (no `bench`) runs a short set (EASY, NORMAL, HARD at 5, 12 and
 ## 20 cells) and holds each skill's numbers against a strafer inside BOUNDS
 ## (an EASY bot slower and wilder than a HARD one, none of them a laser up
-## close), checks a bot holds its fire with a smoke cloud between and fires
+## close, heading no more than MOST_HEADS of its hits), checks a bot holds its
+## fire with a smoke cloud between and fires
 ## with the lane clear (SMOKE), and plays ten-bot matches (grainyard and
 ## salvage search and destroy, holler hostage rescue) so the bots plant, cut a
 ## fuse and carry hostages out, and the team radio speaks (OBJECTIVES).
@@ -37,6 +39,11 @@ const BOUNDS := {
 }
 ## Nobody is a laser: the most any skill hits a strafer at the nearest range.
 const MOST_CLOSE := .9
+## Nobody heads like a machine: the most of any skill's hits on a strafer that
+## land on the head (aimed at the belly, a bot heads it only where its hand
+## strays high; before 3.3.0 they aimed at the chest and some 60% of their
+## pistol kills in a match were head shots).
+const MOST_HEADS := .15
 
 var failures: Array = []
 var main: Control
@@ -94,13 +101,24 @@ func _run() -> void:
 	)
 	print(
 		(
-			"  %-9s %5s %-8s %8s %8s %8s %6s %6s %6s"
-			% ["skill", "range", "target", "1st shot", "1st hit", "kill", "lived", "hits", "heads"]
+			"  %-9s %5s %-8s %8s %8s %8s %6s %6s %6s %6s"
+			% [
+				"skill",
+				"range",
+				"target",
+				"1st shot",
+				"1st hit",
+				"kill",
+				"lived",
+				"hits",
+				"heads",
+				"hs kl"
+			]
 		)
 	)
 	var by_skill := {}
 	for skill: int in skills:
-		var totals := {"first_hit": [], "hits": 0, "shots": 0, "kills": 0, "n": 0}
+		var totals := {"first_hit": [], "hits": 0, "heads": 0, "shots": 0, "kills": 0, "n": 0}
 		for d: float in ranges:
 			for moving: bool in [false, true]:
 				var row := _aim_row(map, skill, d, moving, trials)
@@ -111,6 +129,7 @@ func _run() -> void:
 					var hit_times: Array = row["first_hit_all"]
 					totals["first_hit"].append_array(hit_times)
 					totals["hits"] += int(row["hits"])
+					totals["heads"] += int(row["heads"])
 					totals["shots"] += int(row["shots"])
 					totals["kills"] += int(row["kills"])
 					totals["n"] += trials
@@ -152,6 +171,14 @@ func _run() -> void:
 				(
 					"%s: kills a strafer within %.0f s %.0f%% (at least %.0f%%)"
 					% [name, CAP, kills * 100.0, float(b["kills"]) * 100.0]
+				)
+			)
+			var heads := float(t["heads"]) / maxf(1.0, float(t["hits"]))
+			_check(
+				heads <= MOST_HEADS,
+				(
+					"%s: head hits like a person's, %.0f%% of hits on a strafer (at most %.0f%%)"
+					% [name, heads * 100.0, MOST_HEADS * 100.0]
 				)
 			)
 		if by_skill.has(0) and by_skill.has(2):
@@ -200,7 +227,7 @@ func _print_row(skill: int, d: float, moving: bool, row: Dictionary) -> void:
 	var kill := _median(row["kill_all"])
 	print(
 		(
-			"  %-9s %5.0f %-8s %8s %8s %8s %5.0f%% %5.0f%% %5.0f%%"
+			"  %-9s %5.0f %-8s %8s %8s %8s %5.0f%% %5.0f%% %5.0f%% %5.0f%%"
 			% [
 				_skill_name(skill),
 				d,
@@ -211,6 +238,7 @@ func _print_row(skill: int, d: float, moving: bool, row: Dictionary) -> void:
 				100.0 * float(row["lived"]) / maxf(1.0, float(row["n"])),
 				100.0 * float(row["hits"]) / maxf(1.0, float(row["shots"])),
 				100.0 * float(row["heads"]) / maxf(1.0, float(row["hits"])),
+				100.0 * float(row["head_kills"]) / maxf(1.0, float(row["kills"])),
 			]
 		)
 	)
@@ -276,6 +304,7 @@ func _aim_row(map: String, skill: int, d: float, moving: bool, trials: int) -> D
 		"hits": 0,
 		"shots": 0,
 		"heads": 0,
+		"head_kills": 0,
 		"kills": 0,
 		"n": trials,
 	}
@@ -333,6 +362,7 @@ func _aim_row(map: String, skill: int, d: float, moving: bool, trials: int) -> D
 		shots[0] = 0
 		var hits := 0
 		var heads := 0
+		var last_head := false
 		var was := target.health + int(st.armor[target.slot])
 		var ticks := int(CAP * hz)
 		for i in ticks:
@@ -362,7 +392,8 @@ func _aim_row(map: String, skill: int, d: float, moving: bool, trials: int) -> D
 			var now := maxi(0, target.health) + int(st.armor[target.slot])
 			if now < was:
 				hits += 1
-				if st.head_hit.get(target.slot, false):
+				last_head = st.head_hit.get(target.slot, false)
+				if last_head:
 					heads += 1
 					st.head_hit.erase(target.slot)
 				if first_hit < 0.0:
@@ -380,6 +411,8 @@ func _aim_row(map: String, skill: int, d: float, moving: bool, trials: int) -> D
 		if killed >= 0.0:
 			row["kills"] += 1
 			row["kill_all"].append(killed)
+			if last_head:
+				row["head_kills"] += 1
 		else:
 			row["lived"] += 1
 			row["kill_all"].append(CAP)

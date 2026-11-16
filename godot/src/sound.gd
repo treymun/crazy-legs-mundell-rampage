@@ -26,6 +26,9 @@ const SPACES := {
 }
 ## The cutoff of a sound with nothing in the way.
 const OPEN_CUTOFF := 20500.0
+## The least change of a voice's level worth telling the mixer (set_level):
+## about a hundredth of a decibel at full level.
+const LEVEL_STEP := .001
 
 const SCORES := {
 	"music": ["music", "county_line", "porchlight_stomp"],
@@ -355,9 +358,9 @@ class ScorePlayer:
 	## Both streams at the master level, crossfaded at equal power.
 	func apply_levels() -> void:
 		var angle := fight_mix * PI * .5
-		player.volume_linear = master * gain * cos(angle)
+		Sound.set_level(player, master * gain * cos(angle))
 		if fight_player != null:
-			fight_player.volume_linear = master * fight_gate * sin(angle)
+			Sound.set_level(fight_player, master * fight_gate * sin(angle))
 
 	func set_enabled(value: bool) -> void:
 		enabled = value
@@ -430,7 +433,7 @@ class ScorePlayer:
 		last_position = start_at
 		gain = 0.0
 		reopen = false
-		player.volume_linear = 0.0
+		Sound.set_level(player, 0.0)
 		if start_at >= .05:
 			player.play(start_at)
 		else:
@@ -494,7 +497,7 @@ class ScorePlayer:
 				Assets.set_loop(stream, true)
 				fight_player.stream = stream
 				fight_player.stream_paused = false
-				fight_player.volume_linear = 0.0
+				Sound.set_level(fight_player, 0.0)
 				fight_player.play(fight_at)
 			elif fight_mix == 0.0 and fight_player.playing:
 				fight_position()
@@ -510,7 +513,7 @@ class ScorePlayer:
 		elif fight_mix < 1.0 and parked:
 			parked = false
 			player.stream_paused = false
-			player.volume_linear = 0.0
+			Sound.set_level(player, 0.0)
 			if offset >= .05:
 				player.play(offset)
 			else:
@@ -642,7 +645,7 @@ func _init(p_art: Assets) -> void:
 		var limiter := AudioEffectHardLimiter.new()
 		limiter.ceiling_db = -.8
 		limiter.pre_gain_db = 1.5
-		AudioServer.add_bus_effect(0, limiter)
+		_add_effect(0, limiter)
 	# Unseeded in the reference: a different track order on every launch.
 	score_player = ScorePlayer.new(
 		assets,
@@ -686,11 +689,50 @@ func _ensure_bus(slot: int, in_world := true) -> int:
 	AudioServer.set_bus_send(index, send)
 	var panner := AudioEffectPanner.new()
 	panner.pan = 0.0
-	AudioServer.add_bus_effect(index, panner)
+	_add_effect(index, panner)
 	var muffle := AudioEffectLowPassFilter.new()
 	muffle.cutoff_hz = OPEN_CUTOFF
-	AudioServer.add_bus_effect(index, muffle)
+	_add_effect(index, muffle)
 	return index
+
+
+## A bus effect added to bus `bus`, switched off with no window (the checks,
+## the lobby server): nobody hears it there, and the mixer's thread need not
+## work every voice's panner and filter, the reverb and the limiter. Its
+## settings are still set (and read back) as ever.
+func _add_effect(bus: int, effect: AudioEffect) -> void:
+	AudioServer.add_bus_effect(bus, effect)
+	if _headless():
+		AudioServer.set_bus_effect_enabled(bus, AudioServer.get_bus_effect_count(bus) - 1, false)
+
+
+## A voice's level set (linear), only when it moves LEVEL_STEP or more (or to
+## silence).
+## Each change of a playing voice's level makes the mixer a record it frees
+## a frame later, and Godot's clean-up of those grows with the square of how
+## many there are: a check that ticks minutes of play inside one frame then
+## stalled for minutes on the next one (it printed OK and kept a core busy
+## instead of quitting). With no window (the checks, the lobby server) a
+## playing voice's level is only noted (level_of reads it); a stopped one's
+## is set as ever.
+static func set_level(player: AudioStreamPlayer, value: float) -> void:
+	player.set_meta(&"level", value)
+	if player.playing and _headless():
+		return
+	var off := absf(player.volume_linear - value)
+	if off < LEVEL_STEP and (value > 0.0 or off == 0.0):
+		return
+	player.volume_linear = value
+
+
+## A voice's level as last set (set_level).
+static func level_of(player: AudioStreamPlayer) -> float:
+	var value: float = player.get_meta(&"level", player.volume_linear)
+	return value
+
+
+static func _headless() -> bool:
+	return DisplayServer.get_name() == "headless"
 
 
 ## The world bus (made once), its reverb silent until set_space().
@@ -709,7 +751,7 @@ func _world() -> String:
 			reverb.wet = 0.0
 			reverb.predelay_msec = 18.0
 			reverb.hipass = .25
-			AudioServer.add_bus_effect(_world_bus, reverb)
+			_add_effect(_world_bus, reverb)
 	return "world"
 
 
@@ -749,9 +791,9 @@ func _all_voices() -> Array:
 func _balance(v: Voice, left: float, right: float) -> void:
 	var total := left + right
 	if total <= .00001:
-		v.player.volume_linear = 0.0
+		Sound.set_level(v.player, 0.0)
 		return
-	v.player.volume_linear = total * .5
+	Sound.set_level(v.player, total * .5)
 	var panner := AudioServer.get_bus_effect(v.bus, 0) as AudioEffectPanner
 	if panner != null:
 		panner.pan = clampf((right - left) / total, -1.0, 1.0)
@@ -868,7 +910,7 @@ func set_room(room_name: Variant) -> void:
 	room = target
 	var old := room_slot
 	_amb_target[old] = 0.0
-	_amb_rate[old] = maxf(_ambience[old].player.volume_linear, .0001) / AMB_FADE
+	_amb_rate[old] = maxf(Sound.level_of(_ambience[old].player), .0001) / AMB_FADE
 	room_slot ^= 1
 	if target == null:
 		return
@@ -882,7 +924,7 @@ func set_room(room_name: Variant) -> void:
 	var v := _ambience[room_slot]
 	v.cue = target
 	v.player.stream = stream
-	v.player.volume_linear = 0.0
+	Sound.set_level(v.player, 0.0)
 	v.player.play()
 	_amb_target[room_slot] = .78 * ambient_gain * mix_headroom
 	_amb_rate[room_slot] = _amb_target[room_slot] / AMB_FADE
@@ -896,16 +938,16 @@ func _process(delta: float) -> void:
 		var step: float = _amb_rate[i] * delta
 		var target: float = _amb_target[i]
 		if target <= 0.0:
-			var next := maxf(0.0, player.volume_linear - step)
+			var next := maxf(0.0, Sound.level_of(player) - step)
 			if next <= .0001:
 				player.stop()
-				player.volume_linear = 0.0
+				Sound.set_level(player, 0.0)
 				_amb_rate[i] = 0.0
 			else:
-				player.volume_linear = next
+				Sound.set_level(player, next)
 		else:
-			player.volume_linear = minf(target, player.volume_linear + step)
-			if player.volume_linear >= target:
+			Sound.set_level(player, minf(target, Sound.level_of(player) + step))
+			if Sound.level_of(player) >= target:
 				_amb_rate[i] = 0.0
 
 
@@ -943,13 +985,14 @@ func set_levels(effects: float, music_level: float, ambience := 1.0, stereo := 2
 		score_player.level(music_gain * (1.0 - radio_gain))
 	_amb_target[room_slot] = .78 * ambience * mix_headroom
 	if _amb_rate[room_slot] <= 0.0:
-		_ambience[room_slot].player.volume_linear = _amb_target[room_slot]
+		var bed_level: float = _amb_target[room_slot]
+		Sound.set_level(_ambience[room_slot].player, bed_level)
 	if _fuse.player.playing:
-		_fuse.player.volume_linear = .64 * effects * mix_headroom
+		Sound.set_level(_fuse.player, .64 * effects * mix_headroom)
 	if _tool.player.playing:
-		_tool.player.volume_linear = TOOL_GAIN * effects * mix_headroom
+		Sound.set_level(_tool.player, TOOL_GAIN * effects * mix_headroom)
 	if _sting.player.playing:
-		_sting.player.volume_linear = .84 * music_gain
+		Sound.set_level(_sting.player, .84 * music_gain)
 
 
 func set_fuse(burning: bool) -> void:
@@ -962,7 +1005,7 @@ func set_fuse(burning: bool) -> void:
 			_fuse.cue = "fuse_hiss"
 			_fuse.player.stream = stream
 			_fuse.player.play()
-			_fuse.player.volume_linear = .64 * effects_gain * mix_headroom
+			Sound.set_level(_fuse.player, .64 * effects_gain * mix_headroom)
 	elif _fuse.player.playing:
 		_fuse.player.stop()
 
@@ -1004,7 +1047,7 @@ func set_tool(active: bool) -> void:
 			_tool.cue = "saw_motor"
 			_tool.player.stream = stream
 			_tool.player.play()
-			_tool.player.volume_linear = TOOL_GAIN * effects_gain * mix_headroom
+			Sound.set_level(_tool.player, TOOL_GAIN * effects_gain * mix_headroom)
 	elif _tool.player.playing:
 		_tool.player.stop()
 
@@ -1161,7 +1204,7 @@ func sting(cue: String) -> void:
 		_sting.cue = cue
 		_sting.player.stream = stream
 		_sting.player.play()
-		_sting.player.volume_linear = .84 * music_gain
+		Sound.set_level(_sting.player, .84 * music_gain)
 
 
 func toggle_music() -> void:

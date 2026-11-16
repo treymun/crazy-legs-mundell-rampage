@@ -311,7 +311,7 @@ static func marks(e: Enemy, game: Game) -> Array:
 static func tell(e: Enemy) -> String:
 	var mode: String = _state(e)["mode"]
 	if mode == "spit":
-		return "SPARE TYRES"
+		return "SPARE TIRES"
 	if mode == "stall":
 		return "STALLED! LET HIM HAVE IT"
 	return "RAMMING LANE"
