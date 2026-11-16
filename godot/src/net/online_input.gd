@@ -9,6 +9,8 @@
 class_name OnlineInput
 extends RefCounted
 
+const BossCheckpointFeature := preload("res://src/features/boss_checkpoint.gd")
+
 ## The screens whose taps are read here.
 const SCREENS := ["multi", "showdown", "servers", "nethost", "netjoin", "lobby", "lobbyset"]
 ## The screens with a field to type in (the phone's keyboard may be up).
@@ -118,7 +120,7 @@ static func _tap_lobby(main: MainInput, id: String, arg: int) -> void:
 	if i < 0:
 		return
 	main.lobby_row = i
-	if LobbyScreens.LOBBY_KEYS.has(id):
+	if LobbyScreens.lobby_keys(main.net).has(id):
 		# A setting: a click is its next value, its < the last.
 		main.key(KEY_LEFT if arg < 0 else KEY_RIGHT)
 	else:
@@ -217,7 +219,7 @@ static func key_all(main: MainInput, code: int) -> void:
 		return
 	var key := str(LobbyScreens.ALL_KEYS[posmod(LobbyScreens.all_row, n)])
 	var current: Variant = net.settings.get(key)
-	var next_value: Variant = LobbyScreens.stepped(key, current, change)
+	var next_value: Variant = LobbyScreens.stepped(key, current, change, net)
 	net.set_setting(key, next_value)
 	main.sound.play("menu_move")
 
@@ -244,8 +246,12 @@ static func key_online(main: MainInput, code: int) -> bool:
 	if main.net == null or main.state != "play":
 		return false
 	var enter := code == KEY_ENTER or code == KEY_KP_ENTER
+	var coop := main.game != null and Modes.mode_of(main.game) == Modes.COOP
+	if code == KEY_F5 and coop:
+		NetCoop.save(main)  # THE PARTY SAVE: the host's only
+		return true
 	if code in [KEY_F2, KEY_F3, KEY_F5, KEY_F6, KEY_F9]:
-		main.notice("NO SAVING ONLINE.")
+		main.notice("PICK THE PARTY SAVE IN THE LOBBY TO LOAD IT." if coop else "NO SAVING ONLINE.")
 		return true
 	if main.net_leave:
 		if enter:
@@ -253,18 +259,32 @@ static func key_online(main: MainInput, code: int) -> bool:
 		elif code == KEY_ESCAPE:
 			main.net_leave = false
 		return true
+	var hosting := main.net.role == NetPlay.Role.HOST
 	if main.game != null and main.game.showing_tally:
 		if enter or code == KEY_SPACE:
-			if main.net.is_admin():
+			if coop and hosting:
+				NetCoop.next(main)  # on into the next chapter, by the hub
+			elif main.net.is_admin() and not coop:
 				main.net.back_to_lobby()
 			return true
 		if code == KEY_ESCAPE:
 			main.net_leave = true
 			return true
 		return false
+	if coop and main.game != null and main.game.defeated() and code != KEY_ESCAPE:
+		# Everyone down: the host picks (the fight again, or the chapter).
+		var checkpoint: BossCheckpointFeature = main.game.features.get("boss_checkpoint")
+		var fight := checkpoint != null and checkpoint.offered()
+		if hosting and enter:
+			NetCoop.retry(main, fight)
+		elif hosting and code == KEY_R:
+			NetCoop.retry(main, false)
+		return true
 	if code == KEY_ESCAPE and not TacticalScreens.open:
 		main.net_leave = true
 		return true
+	if main.game != null and NetKeys.party(main.game):
+		return NetKeys.key(main, main.game, code)
 	return false
 
 
@@ -463,6 +483,6 @@ static func lobby_change(main: MainInput, row: String, step: int, accept: bool) 
 		_:
 			if main.net.is_admin():
 				main.net.set_setting(
-					row, LobbyScreens.stepped(row, main.net.settings.get(row), step)
+					row, LobbyScreens.stepped(row, main.net.settings.get(row), step, main.net)
 				)
 	main.sound.play("menu_move")

@@ -95,6 +95,16 @@ all from that picture; head and face get more of the texture (`uv_head`,
 0,quarter_0,side_0,away_0,back_0 2` renders him to hold against the player
 pictures.
 
+His pictures lying down (`assets/art/player_down_side`, `_head`, `_feet`, for
+a player down drawn flat: [modes.md](modes.md#presentation)) are the model's
+own down frame drawn by the game's 3D view: `tools/art/build_player_down.gd`
+(a window: `godot --path godot --audio-driver Dummy --resolution 1280x800
+--script res://tools/art/build_player_down.gd`) draws the view twice on the
+crossroads at HD with SHADOWS off, with and without the body, takes the
+difference as the matte, cuts the box, scales it by `SCALE` (about 122 rows a
+map unit, `ModeScreens.DOWN_ROWS`) and gives it the old cels' one-pixel dark
+rim. Run it again after the model changes, then pack_assets.
+
 ## The 3D asset pipeline
 
 The 3D view draws props and enemies as models made from the same Blender code

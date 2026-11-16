@@ -64,7 +64,15 @@ const SERVER_ONLY := ["lobby_name", "password", "admin", "dedicated", "locked"]
 static var LOBBY_ROWS: Array = Tuning.file(LOBBY_DATA).get_value("lobby", "lobby_rows", [])
 static var MATCH_ROWS: Array = _match_rows()
 static var DEFAULTS: Dictionary = Tuning.file(LOBBY_DATA).get_value("lobby", "defaults", {})
+## Each mode's maps (lobby.cfg mode_maps): MAP steps through the mode's own.
+static var MODE_MAPS: Dictionary = Tuning.file(LOBBY_DATA).get_value("lobby", "mode_maps", {})
 const TEAM_NAMES := ["HOGS", "GATORS"]
+## The party modes (campaign co-op, deathmatch, team deathmatch): people only,
+## no bots, four at most; a newcomer joins a match under way (late joining)
+## and someone leaving lies out of play (Modes.went_away).
+const PARTY_MODES := [Modes.COOP, Modes.DEATHMATCH, Modes.TEAM]
+## CAMPAIGN CO-OP's MAP that loads the host's online co-op save (main_flow).
+const PARTY_SAVE := "party_save"
 
 var role := Role.NONE
 var session: NetSession = null
@@ -584,9 +592,9 @@ func _hello(from: int, info: Dictionary) -> void:
 		and str(info.get("password", "")) != str(settings["password"])
 	):
 		refused = "WRONG PASSWORD"
-	elif players.size() >= max_players:
+	elif players.size() >= max_players or (party() and players.size() >= most_players()):
 		refused = "THE LOBBY IS FULL"
-	elif phase == "match" and (not late_join or _bot_slot_for() < 0):
+	elif phase == "match" and (not late_join or not _room_late()):
 		refused = "A MATCH IS UNDER WAY" + ("" if late_join else " (NO LATE JOIN)")
 	if refused != "":
 		session.send(from, NetSession.CH_RELIABLE, NetWire.welcome({"refused": refused}))
@@ -610,6 +618,18 @@ func _hello(from: int, info: Dictionary) -> void:
 	send_lobby()
 
 
+## Room for someone joining a match under way: a bot's slot in the 5v5, a
+## slot left empty or a new player in the party modes.
+func _room_late() -> bool:
+	if not party():
+		return _bot_slot_for() >= 0
+	if host_sync == null:
+		return false
+	if host_sync.game.players.any(func(q: Player) -> bool: return q.away):
+		return true
+	return host_sync.game.players.size() < most_players()
+
+
 ## A name nobody else in the lobby has (a number added).
 func unique_name(name: String, id: int) -> String:
 	var out := name
@@ -629,8 +649,13 @@ func _gone(id: int) -> void:
 	_tell("%s LEFT" % p["name"])
 	if phase == "match" and host_sync != null:
 		host_sync.drop_remote(id)
-		# (COUNTY RUN co-op: nobody takes their place; they stand where they were.)
-		if p.has("slot") and not county():
+		# (COUNTY RUN co-op: nobody takes their place; they stand where they were.
+		# Co-op and deathmatch: they lie out of play until someone takes the slot.)
+		if p.has("slot") and party():
+			var gone_slot: int = p["slot"]
+			if gone_slot < host_sync.game.players.size():
+				Modes.went_away(host_sync.game, host_sync.game.players[gone_slot])
+		elif p.has("slot") and not county():
 			var slot: int = p["slot"]
 			changes.append({"bot": slot, "name": str(p["name"])})
 	if dedicated:
@@ -753,16 +778,12 @@ func set_setting(key: String, value: Variant) -> void:
 		return
 	if role != Role.HOST:
 		return
-	var was_tag := Modes.TAGTEAM_MAPS.has(str(settings.get("map", "")))
+	var was_tag := str(settings.get("mode", "")) == "tagteam"
 	settings[key] = value
-	var tag := was_tag
-	if key == "map":
-		tag = Modes.TAGTEAM_MAPS.has(str(value))
-	elif key == "mode":
-		# TAG TEAM 2V2 onto a 2v2 map, a 5v5 mode onto a 5v5 map.
-		tag = str(value) == "tagteam"
-		if tag != was_tag:
-			settings["map"] = Modes.TAGTEAM_MAPS[0] if tag else Modes.SHOWDOWN_MAPS[0]
+	# A mode onto one of its maps; a map that is not the mode's takes the lobby
+	# to the mode it is (a 2v2 map: TAG TEAM 2V2, a chapter: CAMPAIGN CO-OP).
+	_mode_fits_map(key)
+	var tag := str(settings.get("mode", "")) == "tagteam"
 	if tag != was_tag:
 		# Onto a TAG TEAM map: its format (two a side, first to 9, short
 		# rounds); back onto a 5v5 map: the 5v5's.
@@ -770,7 +791,6 @@ func set_setting(key: String, value: Variant) -> void:
 		settings["rounds"] = 9 if tag else 7
 		settings["round_seconds"] = 90.0 if tag else 0.0
 		settings["buy_seconds"] = 15.0 if tag else 20.0
-	_mode_fits_map()
 	if key == "pick_teams":
 		var picking: bool = value
 		if not picking:
@@ -790,26 +810,60 @@ static func play_mode(id: String) -> String:
 	return Modes.BOMB if id == "tagteam" else id
 
 
-## MODE as the map makes it: TAG TEAM 2V2 on a 2v2 map, never on a 5v5 one.
-func _mode_fits_map() -> void:
-	var map := str(settings.get("map", ""))
-	# COUNTY RUN co-op on its own maps, and only there.
-	if CountyData.MAP_IDS.has(map):
-		settings["mode"] = Modes.COUNTY
-		return
+## A party mode's lobby (CAMPAIGN CO-OP, DEATHMATCH, TEAM DEATHMATCH).
+func party() -> bool:
+	return PARTY_MODES.has(str(settings.get("mode", "")))
+
+
+## The most people the lobby's mode takes.
+func most_players() -> int:
 	if county():
-		settings["mode"] = Modes.BOMB
-	var tag := Modes.TAGTEAM_MAPS.has(map)
-	if tag:
-		settings["mode"] = "tagteam"
-	elif str(settings.get("mode", "")) == "tagteam":
-		settings["mode"] = Modes.BOMB
+		return CountyCoop.MOST
+	return Modes.MAX_FREE_FOR_ALL if party() else Modes.MAX_PLAYERS
+
+
+## The modes this lobby can play: an always-open lobby has no host to lead a
+## campaign, so no CAMPAIGN CO-OP there.
+func modes() -> Array:
+	var row: Array = MATCH_ROWS[0][2]
+	return row.filter(func(m: Variant) -> bool: return not (dedicated and str(m) == Modes.COOP))
+
+
+## The maps of the lobby's mode (MAP steps through these).
+func maps() -> Array:
+	return MODE_MAPS.get(str(settings.get("mode", "")), [])
+
+
+## MODE and MAP agree: after MODE changed, the mode's first map when the one
+## set is not its; otherwise the MODE the map is (the first mode listing it:
+## a 5v5 map stays with SEARCH AND DESTROY).
+func _mode_fits_map(changed := "map") -> void:
+	var map := str(settings.get("map", ""))
+	var mode := str(settings.get("mode", ""))
+	if dedicated and mode == Modes.COOP:
+		mode = Modes.BOMB
+		settings["mode"] = mode
+	var own: Array = MODE_MAPS.get(mode, [])
+	if own.has(map):
+		return
+	if changed == "mode" and not own.is_empty():
+		settings["map"] = own[0]
+		return
+	for m: Variant in modes():
+		var listed: Array = MODE_MAPS.get(str(m), [])
+		if listed.has(map):
+			settings["mode"] = str(m)
+			return
+	if not own.is_empty():
+		settings["map"] = own[0]
 
 
 ## Is everyone ready and are the teams playable? "" when it can start.
 func why_not_start() -> String:
 	if phase != "lobby" or not (is_admin() or dedicated):
 		return "ONLY THE HOST STARTS"
+	if party():
+		return _why_not_party()
 	if county():
 		var boss_id := admin_of()
 		for p: Dictionary in players:
@@ -838,6 +892,31 @@ func why_not_start() -> String:
 		return "BOTH TEAMS NEED A PLAYER (OR BOTS ON)"
 	if str(settings["mode"]) == Modes.HOSTAGE and Modes.TAGTEAM_MAPS.has(str(settings["map"])):
 		return "NO HOSTAGES ON A 2V2 MAP: SEARCH AND DESTROY"
+	return ""
+
+
+## The party modes: everyone ready, four at most, two for a fight.
+func _why_not_party() -> String:
+	var boss_id := admin_of()
+	for p: Dictionary in players:
+		var ready: bool = p["ready"]
+		var pid: int = p["id"]
+		if not ready and pid != boss_id:
+			return "WAITING ON %s" % p["name"]
+	var mode := str(settings["mode"])
+	if players.size() > most_players():
+		return "FOUR AT MOST IN THIS ONE"
+	if mode != Modes.COOP and players.size() < 2:
+		return "IT TAKES TWO TO FIGHT. WAIT ON A FRIEND."
+	var pick_teams: bool = settings["pick_teams"]
+	if mode == Modes.TEAM and pick_teams:
+		var plan := team_plan()
+		var sides := [0, 0]
+		for p: Dictionary in players:
+			var side: int = plan[p["id"]]
+			sides[side] += 1
+		if sides[0] == 0 or sides[1] == 0:
+			return "BOTH TEAMS NEED A PLAYER"
 	return ""
 
 
@@ -885,13 +964,13 @@ func start_match() -> String:
 		teams.append(team)
 		names.append(str(p["name"]))
 	var bots: bool = settings["bots"]
-	if bots and not county():
+	if bots and not county() and not party():
 		for t in 2:
 			while teams.count(t) < size:
 				teams.append(t)
 				names.append("")
 	var info := {
-		"level": str(settings["map"]),
+		"level": str(Modes.arena_of(str(settings["map"]))[0]),
 		"mode": play_mode(str(settings["mode"])),
 		"count": teams.size(),
 		"options": match_options(teams, names),
@@ -927,6 +1006,11 @@ func match_options(teams: Array, names: Array) -> Dictionary:
 		"teams": teams,
 		"names": names,
 	}
+	if party():
+		out["frag_limit"] = settings.get("frag_limit", DeathmatchMode.FRAG_LIMIT)
+		out["time_limit"] = settings.get("time_limit", DeathmatchMode.TIME_LIMIT)
+		if str(settings["mode"]) == Modes.COOP:
+			out["arena"] = ""
 	for key: String in Modes.HOST_SETTINGS:
 		if settings.has(key):
 			out[key] = settings[key]
@@ -940,7 +1024,11 @@ func _send_start(id: int, slot: int) -> void:
 	var options: Dictionary = match_info["options"]
 	var teams: Array = options["teams"]
 	var names: Array = options["names"]
-	info["options"] = match_options(teams, _names_now(names))
+	var given := match_options(teams, _names_now(names))
+	given.merge(options, false)  # what the front end added (a hub's gates)
+	info["options"] = given
+	if party() and host_sync != null:
+		info["count"] = host_sync.game.players.size()
 	session.send(id, NetSession.CH_RELIABLE, NetWire.message(NetWire.START, info))
 
 
@@ -953,8 +1041,21 @@ func _names_now(names: Array) -> Array:
 	return out
 
 
-## A late joiner takes a bot's place on the team with fewer people.
+## A late joiner takes a bot's place on the team with fewer people (the
+## party modes: a slot left empty, or a new player: Modes.join_late).
 func _seat_late(p: Dictionary) -> void:
+	if party():
+		var q := Modes.join_late(host_sync.game, str(p["name"]))
+		if q == null:
+			return
+		p["slot"] = q.slot
+		p["ready"] = true
+		var joined_id: int = p["id"]
+		host_sync.add_remote(joined_id, q.slot)
+		_send_start(joined_id, q.slot)
+		changes.append({"human": q.slot, "name": str(p["name"])})
+		_tell("%s PULLS UP A CHAIR" % p["name"])
+		return
 	var slot := _bot_slot_for()
 	if slot < 0:
 		return
@@ -1003,6 +1104,34 @@ func bot_slots() -> Array:
 		if not taken.has(q.slot):
 			out.append(q.slot)
 	return out
+
+
+## The host's match goes on in another game (online co-op: the next chapter,
+## the hub, a retried boss fight, a chapter from its start): every client is
+## sent START for it, on its own slot. Snapshot numbers run on past the last
+## game's (`seq_from`) and a client's input numbers carry on, so nothing of
+## the last game still on its way is taken for the new one (NetSync). `extra`
+## goes in START's options (the hub's locked gates).
+func switch_match(game: Game, extra := {}) -> void:
+	if role != Role.HOST or host_sync == null or game == null:
+		return
+	var next_seq := host_sync.seq + 1 + NetSync.Host.KEEP
+	match_info["level"] = game.level.id
+	match_info["count"] = game.players.size()
+	var options: Dictionary = match_info["options"]
+	for key: String in ["locked", "gate_modes"]:
+		options.erase(key)
+	options.merge(extra, true)
+	match_info["seq_from"] = next_seq
+	host_sync = NetSync.Host.new(session, game, func() -> int: return -1, SNAP_EVERY)
+	host_sync.seq = next_seq - 1
+	tally_at = -1.0
+	for p: Dictionary in players:
+		var pid: int = p["id"]
+		if pid != NetSession.HOST_ID and p.has("slot"):
+			var slot: int = p["slot"]
+			host_sync.add_remote(pid, slot)
+			_send_start(pid, slot)
 
 
 ## One tick of the match: `own` holds the host's own player and the bots.
@@ -1082,7 +1211,15 @@ func _start(info: Dictionary) -> void:
 	if game == null:
 		_close("THE MAP WOULD NOT LOAD")
 		return
+	var was := client_sync
 	client_sync = NetSync.Client.new(session, func(_id: String) -> Game: return null)
+	if info.has("seq_from"):
+		# The host moved the match on (switch_match): the last game's snapshots
+		# still on their way are stale, and our inputs keep their numbers.
+		var seq_from: int = info["seq_from"]
+		client_sync.latest = seq_from - 1
+		if was != null:
+			client_sync.input_seq = was.input_seq
 	client_sync.slot = info["slot"]
 	client_sync.level = str(info["level"])
 	client_sync.game = game

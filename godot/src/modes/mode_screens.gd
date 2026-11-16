@@ -20,6 +20,14 @@ const TEAM_TINTS := [[1.3, .76, .66], [.68, .88, 1.32]]
 const TEAM_INKS := [Color8(244, 104, 84), Color8(110, 184, 255)]
 ## How tall a partner's picture stands (map units), the model too.
 const PARTNER_HEIGHT := 1.02
+## A player down lies on the floor: player_down_side (seen across, the head
+## to the left; flipped from the other side), _head and _feet (seen from
+## each end), from tools/art/build_player_down.gd (the 3D model's own down
+## frame, drawn as the 3D view draws it), DOWN_ROWS rows a map unit tall.
+const DOWN_ROWS := 122.0
+## The results' last line (empty online: the lobby's line is there).
+const FOOTER := "ENTER  ANOTHER ROUND  /  ESC TITLE"
+static var footer := FOOTER
 
 
 ## The other players' pictures for this frame (pooled sprites). The 3D view
@@ -30,7 +38,9 @@ static func sprites(game: Game) -> Array:
 	var me: Player = game.local_player
 	ModeBodies.watch(game)
 	for q: Player in game.players:
-		if q == me or not game.in_view(q.x, q.y, 1.0) or ModeBodies.hidden_in_vehicle(game, q):
+		if q == me or q.away or not game.in_view(q.x, q.y, 1.0):
+			continue
+		if ModeBodies.hidden_in_vehicle(game, q):
 			continue
 		if Modes.is_tactical(game):
 			out.append(TacticalScreens.player_sprite(game, q, me))
@@ -40,6 +50,17 @@ static func sprites(game: Game) -> Array:
 		var direction := mini(4, int(absf(relative) / (PI / 4.0) + .5))
 		var step := int(q.walk_phase / PI) % 2 if q.motion > .1 and q.health > 0 else 0
 		var base := "player%s_%d" % [HEADINGS[direction], step]
+		var tall := PARTNER_HEIGHT if q.health > 0 else .5
+		var lying := q.health <= 0 and game.art.has_art("player_down_side")
+		if lying:
+			# The model falls onto its side, its head to its right of the way
+			# it faced: seen across from in front (behind: flipped), else
+			# from the head or the feet.
+			base = "player_down_side"
+			if absf(relative) > PI / 4.0 and absf(relative) < PI * .75:
+				base = "player_down_head" if relative > 0.0 else "player_down_feet"
+			var rows: int = game.art.art(base)["h"]
+			tall = rows / DOWN_ROWS
 		var image := base
 		if Modes.mode_of(game) == Modes.TEAM:
 			var team_tint: Array = TEAM_TINTS[q.team % 2]
@@ -47,14 +68,14 @@ static func sprites(game: Game) -> Array:
 		elif q.slot != 0:
 			var tint: Array = Modes.TINTS[q.slot % Modes.TINTS.size()]
 			image = game.art.tinted_art(base, tint)
-		var spr := game.pooled(
-			q.x, q.y, image, PARTNER_HEIGHT if q.health > 0 else .5, ModeBodies.feet_of(game, q)
-		)
+		var spr := game.pooled(q.x, q.y, image, tall, ModeBodies.feet_of(game, q))
 		spr.flip = relative < 0.0 and direction < 4
+		if lying:
+			spr.flip = absf(relative) >= PI * .75
 		spr.body = true
 		var kind := ModeBodies.PLAYER_KIND
-		var tall := PARTNER_HEIGHT * (.8 if q.crouched and q.health > 0 else 1.0)
-		spr.who = ModeBodies.for_player(game, q, kind, tall)
+		var model_tall := PARTNER_HEIGHT * (.8 if q.crouched and q.health > 0 else 1.0)
+		spr.who = ModeBodies.for_player(game, q, kind, model_tall)
 		spr.pose = ModeBodies.player_pose(game, q, kind)
 		out.append(spr)
 	return out
@@ -73,7 +94,9 @@ static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 	var taken: Array[Rect2i] = []
 	for entry: Array in others:
 		var q: Player = entry[1]
-		_tag(c, game, me, q, taken)
+		if not q.away:
+			_tag(c, game, me, q, taken)
+	_watching(c, game, me)
 	if me.health > 0 and String(st.mode) == Modes.COOP:
 		var down := CoopMode.downed_near(game, me)
 		if down != null and down.revive > 0.0:
@@ -92,6 +115,29 @@ static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 			% [me.frags, lead, int(st.frag_limit), left / 60, left % 60]
 		)
 		HUD.text(c, text, 316, 12, "mini", HUD.AMBER, false, true, true)
+
+
+## Watching a partner (main.gd _watch_partner) while this machine's own
+## player is down: whose view this is, how long until they are back, SPACE.
+static func _watching(c: Canvas, game: Game, me: Player) -> void:
+	var human := TacticalScreens.human
+	if human < 0 or human >= game.players.size() or me.slot == human:
+		return
+	var own: Player = game.players[human]
+	if own.health > 0:
+		return
+	HUD.text(c, "WATCHING " + Modes.tag(me), 160, 22, "body", HUD.AMBER, true)
+	var since: float = game.clock - own.down_at if own.down_at >= 0.0 else 0.0
+	var line := "SPACE  NEXT"
+	if Modes.mode_of(game) == Modes.COOP:
+		var back := maxi(0, ceili(CoopMode.RESPAWN_AFTER - since))
+		line = "YOU'RE DOWN. BACK IN %d  /  SPACE  NEXT" % back
+		if own.revive > 0.0:
+			line = "GETTIN' HAULED UP..."
+	elif Modes.is_versus(game):
+		var back := maxi(0, ceili(DeathmatchMode.RESPAWN_DELAY - since))
+		line = "BACK IN %d" % back
+	HUD.text(c, line, 160, 32, "mini", HUD.INK, true)
 
 
 ## The use prompt over a partner down beside this machine's player (co-op;
@@ -245,7 +291,8 @@ static func results(c: Canvas, game: Game) -> bool:
 		if deaths >= 0:
 			HUD.text(c, str(row[2]), 202, y + lift, style, HUD.INK, false, true, true)
 	_ribbon(c, match_rules.winner(game))
-	HUD.text(c, "ENTER  ANOTHER ROUND  /  ESC TITLE", 22, 172, "body", HUD.INK)
+	if footer != "":
+		HUD.text(c, footer, 22, 172, "body", HUD.INK)
 	return true
 
 

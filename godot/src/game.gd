@@ -744,7 +744,9 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 		var mode_state: ModeFeatureScript = features.get("mode")
 		if mode_state != null and mode_state.mode != Modes.CAMPAIGN:
 			mode_state.rules().buy(self, mode_state, p, controls.buy)
-	if controls.item >= 0:
+	if controls.item >= POCKET_PICK:
+		inventory_slot = clampi(controls.item - POCKET_PICK, 0, HUD.ITEMS.size() - 1)
+	elif controls.item >= 0:
 		use_item(controls.item)
 	if controls.use and not p.use_held:
 		interact()
