@@ -124,7 +124,7 @@ func id() -> String:
 func attach() -> void:
 	# A fixed seed until a run's storm takes its own (county_storm.gd begin).
 	storm_dice.seed = 1997
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.shot_fired.connect(_fired)
 	game.events.enemy_killed.connect(_killed)
 
@@ -132,6 +132,10 @@ func attach() -> void:
 func _tick(dt: float) -> void:
 	if on and not over:
 		CountyMode.step(game, self, dt)
+	else:
+		# No run under way (or it is over): asleep till one starts
+		# (CountyMode.start wakes it).
+		sleep()
 
 
 func _fired(gun: int) -> void:

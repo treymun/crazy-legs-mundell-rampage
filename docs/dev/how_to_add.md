@@ -84,9 +84,13 @@ looks (art.md#props).
 ## A feature
 
 1. Create `src/features/<name>.gd` extending `GameFeature`: `id()`,
-   `attach()` connecting to `game.events.<signal>.connect(...)`, `save()` and
+   `attach()` connecting to `game.events.<signal>.connect(...)` (its tick
+   with `tick_with(_tick)`, never `ticked.connect`), `save()` and
    `restore()` (gets {} from older saves, so no new save version), optional
-   `tally_rows()` and `draw_view(c)`.
+   `tally_rows()` and `draw_view(c)`. With nothing to do for a while it may
+   `sleep()` and `wake()` where work comes ([architecture.md](architecture.md#gameevents)).
+   Anything it keeps that points back at the game (beyond `game`) is let go
+   in `detach()`.
 2. List it in `src/features/features.gd` (`Features.ALL`; also
    `Features.LOOKS` if it only looks).
 3. Put its id in `SIM_FEATURES` or `LOOKS_FEATURES` in

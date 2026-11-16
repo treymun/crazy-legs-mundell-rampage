@@ -68,7 +68,7 @@ func attach() -> void:
 				]
 			)
 	game.events.shot_fired.connect(_fired)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func _add(kind: String, at: Vector3, v: Vector3, life: float, size: float, grow: float) -> void:

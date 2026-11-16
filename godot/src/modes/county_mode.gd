@@ -41,6 +41,7 @@ func start(game: Game, _st: ModeFeature) -> void:
 			door.opened = true
 			door.progress = 1.0
 	f.on = true
+	f.wake()
 	f.map_id = game.level.id
 	f.level = 1
 	f.xp = 0

@@ -85,7 +85,7 @@ func attach() -> void:
 	var hard: float = Effects.mood(game.level.id, "rain", 0.0)
 	_rain = clampf(hard, 0.0, 1.0) * (clampf(share, 0.0, 1.0) if share > 0.0 else 1.0)
 	_map()
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.exploded.connect(_exploded)
 	game.events.prop_broken.connect(_broken)
 

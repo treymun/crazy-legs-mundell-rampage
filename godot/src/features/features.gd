@@ -107,6 +107,7 @@ static func restore_all(game: Game, saved: Variant) -> void:
 		var feature: GameFeature = game.features[key]
 		var given: Dictionary = state if state is Dictionary else {}
 		feature.restore(given)
+	game.events.wake_all()
 
 
 static func sprites(game: Game) -> Array:

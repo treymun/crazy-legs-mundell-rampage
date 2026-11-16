@@ -52,7 +52,7 @@ func id() -> String:
 func attach() -> void:
 	for e: Enemy in game.enemies:
 		_fit(e)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func save() -> Dictionary:

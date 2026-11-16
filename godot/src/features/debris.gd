@@ -71,7 +71,7 @@ func attach() -> void:
 	game.events.shot_fired.connect(_fired)
 	game.events.gun_reloading.connect(_reloading)
 	game.events.exploded.connect(_exploded)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func _life(key: String, fallback: float) -> float:

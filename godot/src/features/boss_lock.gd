@@ -59,7 +59,7 @@ func attach() -> void:
 		if not BossFight.lock_of(game, title).is_empty():
 			_kinds.append(title)
 	if not _kinds.is_empty():
-		game.events.ticked.connect(_tick)
+		tick_with(_tick)
 
 
 func save() -> Dictionary:
@@ -122,12 +122,19 @@ func _tick(_dt: float) -> void:
 		return
 	# Each boss looked for once a tick (BossFight.of_kind), not twice.
 	var found := {}
+	var any := false
 	for title: String in _kinds:
 		var boss := BossFight.of_kind(game, title)
 		found[title] = boss
+		any = any or boss != null
 		_keep_in(boss)
 	if kind != "":
 		_hold()
+		return
+	if not any:
+		# Every boss it locks in is down (BossFight.of_kind finds none with
+		# health): nothing to keep in or shut on again.
+		sleep()
 		return
 	for title: String in _kinds:
 		var e: Enemy = found.get(title)

@@ -102,7 +102,7 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.player_hurt.connect(_hurt)
 	game.events.pickup_taken.connect(_picked)
 	game.events.level_won.connect(_won)

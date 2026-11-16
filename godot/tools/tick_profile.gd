@@ -1,20 +1,27 @@
 ## Where the game's tick spends its time, headless: for every chapter it
 ## stands the player at the spawn (idle) and then in the nearest fight with
-## the trigger held (as bench.gd does), and times each listener of
-## `events.ticked` (the features) on its own, in the order they run, and the
-## rest of the tick (the bodies, enemies, shots: "core").
+## the trigger held (as bench.gd does), and times each feature's tick on its
+## own (GameFeature.tick_with, in the order they run; a sleeping one is not
+## run, as in play), and the rest of the tick (the bodies, enemies, shots:
+## "core").
 ##
 ##   godot --headless --path godot --script res://tools/tick_profile.gd \
-##       [-- <frames>] [levels=a,b] [top=N]
+##       [-- <frames>] [levels=a,b] [top=N] [plain]
 ##
 ## Prints per scene the tick's mean, the core's share and the costliest
-## listeners (mean ms per tick), then the same over every scene.
+## listeners (mean ms per tick), then the same over every scene. `plain`
+## times only the whole tick (no timer around each listener, which costs a
+## little itself): the number to hold old against new.
 extends SceneTree
 
 const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
 
 ## The listeners being timed (Callable) and their summed microseconds.
 var _calls: Array[Callable] = []
+## The game's events, and whether its features' ticks run through them
+## (GameEvents._run_ticks, taken over here).
+var _events: Object = null
+var _dispatch := false
 var _us: Dictionary = {}
 var _total_us: Dictionary = {}
 
@@ -31,11 +38,18 @@ func _name_of(c: Callable) -> String:
 	return "%s.%s" % [script_name, c.get_method()]
 
 
-## Take every listener of `sig` (and any joined since) under the one timer.
-func _absorb(sig: Signal) -> void:
+## Take every listener of `ticked` (and any joined since) under the one
+## timer: the features' ticks (GameEvents.tick_list) as each feature's own.
+func _absorb(events: GameEvents) -> void:
+	var sig: Signal = events.ticked
+	_events = events
 	for link: Dictionary in sig.get_connections():
 		var c: Callable = link["callable"]
 		if c == Callable(self, "_timed"):
+			continue
+		if c.get_method() == "_run_ticks":
+			sig.disconnect(c)
+			_dispatch = true
 			continue
 		sig.disconnect(c)
 		_calls.append(c)
@@ -44,6 +58,19 @@ func _absorb(sig: Signal) -> void:
 
 
 func _timed(dt: float) -> void:
+	if _dispatch:
+		# GameEvents._run_ticks, each tick timed (a sleeping one is skipped).
+		var ticks: Array = _events.get("_ticks")
+		var awake: PackedByteArray = _events.get("_awake")
+		for i in ticks.size():
+			if awake[i] == 0:
+				continue
+			var c: Callable = ticks[i]
+			var t0 := Time.get_ticks_usec()
+			c.call(dt)
+			var name := _name_of(c)
+			_us[name] = int(_us.get(name, 0)) + Time.get_ticks_usec() - t0
+			awake = _events.get("_awake")
 	for c in _calls:
 		var t0 := Time.get_ticks_usec()
 		c.call(dt)
@@ -56,6 +83,7 @@ func _run() -> void:
 	var frames := 300
 	var levels: Array = LEVELS.duplicate()
 	var top := 8
+	var plain := args.has("plain")
 	for arg: String in args:
 		if arg.is_valid_int():
 			frames = int(arg)
@@ -80,10 +108,12 @@ func _run() -> void:
 				controls.fire = true
 				controls.turn = .4
 			_calls.clear()
+			_dispatch = false
 			_us.clear()
 			var tick_us := 0
 			for i in frames:
-				_absorb(game.events.ticked)
+				if not plain:
+					_absorb(game.events)
 				if i == 20:
 					_us.clear()
 					tick_us = 0

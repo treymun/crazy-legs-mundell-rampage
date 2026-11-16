@@ -67,6 +67,7 @@ check's output. `lint` also runs gdformat --check and gdlint from the repo's
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
 | `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server (`seconds=30`, as CI always ran it) |
 | `games_check` | GAMES CHECK OK | yes | the range's board on a lobby server over ENet (posts, a name's best, refusals, asks, the County Run board beside it), the fair's shooting gallery (the bell, each target's points, a can flying and bouncing, the house paying, the prizes saved, no station or door added), the hub's trophy shack (statuettes by the gates open, cups, gnomes, its card), the range's duck row (a duck turned at the rail's end spins round on its stick) |
+| `leak_check` | LEAK CHECK OK | yes | every game let go is freed: games made and disposed (campaign, co-op, deathmatch, County Run, range, Crossroads, a host's) and the front end's own flow (a chapter, the Crossroads, the range, a County Run, co-op, a deathmatch, back to the title) come back to the same object count round after round ([architecture.md](architecture.md#letting-a-game-go)) |
 | `cover_check` | COVER CHECK OK | yes | the 5v5 maps' boarded cover: shot through (floor, sight, a shorter way), stood up again each round, kept by snapshots alone |
 | `bot_check` | BOT CHECK OK | | the 5v5 bots' aim per BOT SKILL against a strafing target at 5, 12 and 20 cells (first hit, hit rate, kills inside 6 s within bounds; EASY slower than HARD; no laser up close), a target behind smoke never taken for a foe or shot at (and with the lane clear it is), ten-bot matches where they plant, carry and rescue a hostage and the team radio speaks, and a bomb planted with the outlaws down cut by the deputy bots on grainyard, salvage and pineacres (`bench` prints the before/after table: four skills, 4..22 cells, standing and strafing) |
 | `net_lag` | NET LAG OK | | what a player feels online (`net_lag.gd`, run `-- quick`: a 120 ms link, limits on rubber band, missed hits, stalls, lost inputs, bandwidth); without quick, three links and the full table |
@@ -240,8 +241,10 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
   and the memory (static, textures, buffers, video). Give it a scratch
   `APPDATA` with an options.json to pick a QUALITY tier.
 - **The tick, by listener:** `tools/tick_profile.gd -- 300 [levels=a,b]`
-  times each `events.ticked` listener (the features) and the rest ("core":
-  bodies, enemies, shots), idle and in a fight, per chapter.
+  times each feature's tick (`tick_with`, sleeping ones skipped) and the
+  rest ("core": bodies, enemies, shots), idle and in a fight, per chapter;
+  `plain` times the whole tick only (the timers cost a little themselves),
+  the number to hold old against new.
 - **Loading:** `tools/load_bench.gd -- [rounds=3] [levels=a,b]`: per level
   the game made the first time (cold: nav graph and wreck caches empty) and
   again (warm), the 3D level mesh's whole build, the wreck cutting alone.

@@ -119,7 +119,7 @@ func attach() -> void:
 			var src := _source(p)
 			if not src.is_empty():
 				WreckCuts.parts(game.art, str(src["key"]))
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.exploded.connect(_exploded)
 	game.events.blast_shoved.connect(_shoved)
 

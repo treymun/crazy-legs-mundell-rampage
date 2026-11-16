@@ -41,6 +41,8 @@ var _base_tick := 0
 ## Milliseconds the last step, delta and snapshot took (the server prints them).
 var step_ms := 0.0
 var delta_ms := 0.0
+## The game was made elsewhere (adopt()): close() leaves it be.
+var _adopted := false
 
 
 ## A host for `level_id` with `slots` players (the second on a step off the
@@ -49,6 +51,7 @@ var delta_ms := 0.0
 func _init(level_id := "hickston", slots := 1, options := {}, existing: Game = null) -> void:
 	if existing != null:
 		game = existing
+		_adopted = true
 	else:
 		if _art == null:
 			_art = Assets.new()
@@ -61,6 +64,13 @@ func _init(level_id := "hickston", slots := 1, options := {}, existing: Game = n
 	track = NetTrack.new(game)
 	_looked_at = tick
 	_base_tick = tick
+
+
+## Done with the host: its own game (not an adopted one) is disposed
+## (Game.dispose()); the host is spent after it.
+func close() -> void:
+	if not _adopted:
+		game.dispose()
 
 
 ## A host over a game already made (and perhaps already played).

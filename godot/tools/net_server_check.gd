@@ -320,6 +320,10 @@ func _play() -> void:
 		),
 		"the empty lobby ends the match and has its own settings again"
 	)
+	_check(
+		server.games.size() == 0,
+		"both matches' games are let go (%d still kept)" % server.games.size()
+	)
 	var dave := _join("dave")
 	_wait(func() -> bool: return dave.phase == "lobby" and dave.is_admin())
 	_check(dave.is_admin(), "the next one in runs it")

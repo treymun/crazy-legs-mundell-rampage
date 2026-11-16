@@ -32,6 +32,12 @@ var _puddles: Dictionary = {}
 ## Splashes made (tools count them), and when the next may be heard.
 var splashes := 0
 var _splash_next := 0.0
+## Whether any floor of the level is water, or a puddle floor (wet only
+## while the ground is wet enough): with no water floor and no puddle holding
+## water nobody wades, so the feature sleeps while no ring is left to age
+## (a ring made wakes it, and so does Weather once the puddles fill).
+var _has_water := true
+var _has_puddles := true
 
 
 func id() -> String:
@@ -40,8 +46,17 @@ func id() -> String:
 
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 77
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.exploded.connect(_blast)
+	_sort_tiles(game.world)
+	_has_water = false
+	_has_puddles = false
+	var floors: PackedInt32Array = game.world.floor_tile
+	for tile in _kinds.size():
+		if _kinds[tile] == 1 and not _has_water:
+			_has_water = floors.has(tile)
+		elif _kinds[tile] == 2 and not _has_puddles:
+			_has_puddles = floors.has(tile)
 
 
 ## Water at the point: a floor [water] names, or a puddle-floor under the sky
@@ -67,7 +82,7 @@ func wet_at(x: float, y: float) -> bool:
 		return false
 	var weather: Weather = game.features.get("weather")
 	var open: bool = world.roof[i] <= world.ground[i] + .01
-	return weather != null and weather.wet > .35 and open
+	return weather != null and weather.wet > Weather.PUDDLE_WET and open
 
 
 ## What each floor tile is to wet_at(): 1 water, 2 a puddle floor, 0 neither.
@@ -107,6 +122,7 @@ func shown(px: float, py: float) -> Array:
 
 
 func ring(x: float, y: float, size: float) -> void:
+	wake()
 	rings.append([x, y, game.clock, size])
 	if rings.size() > MAX_RINGS:
 		rings.pop_front()
@@ -156,6 +172,16 @@ func _tick(_dt: float) -> void:
 		if game.clock - born < LIFE:
 			break
 		rings.pop_front()
+	if not _has_water and rings.is_empty():
+		var weather: Weather = game.features.get("weather")
+		if not _has_puddles or weather == null or weather.wet <= Weather.PUDDLE_WET:
+			# Nowhere to wade (wet_at() is false everywhere): nothing to tick.
+			# Woken, every body is one first seen (dry till now, it made no
+			# ring either way; only puddles filling on such a level, as in a
+			# County Run storm, could tell the two apart).
+			_bodies.clear()
+			sleep()
+			return
 	var p := game.player
 	var seen := {}
 	if p.air <= .05:

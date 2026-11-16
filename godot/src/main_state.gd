@@ -91,7 +91,15 @@ var view: TextureRect
 var frame_image: Image
 var frame_texture: ImageTexture
 
-var game: Game = null
+## The game on screen. Each change has the games let go disposed at the
+## frame's end (release_games(): a game never frees itself, game.gd dispose()).
+var game: Game = null:
+	set(value):
+		game = value
+		_release_due()
+## Every game made here (make_game), for release_games().
+var games := GamePool.new()
+var _release_queued := false
 var campaign_run: Game = null
 var hub_origin: Game = null
 var replay_runs := {}
@@ -538,7 +546,32 @@ func _entry_path() -> String:
 
 
 func make_game(level_id := "hickston") -> Game:
-	return Game.new(art, hud, sound, level_id)
+	return games.track(Game.new(art, hud, sound, level_id))
+
+
+## Disposes, at the frame's end, the games made here that nothing keeps any
+## more (GamePool): by then a change of level, retry, load, rematch or match
+## has put every game it keeps in its place.
+func _release_due() -> void:
+	if not _release_queued and is_inside_tree():
+		_release_queued = true
+		release_games.call_deferred()
+
+
+## The games kept: on screen, the campaign and the hub's, a replay, the ones
+## waiting behind the range or a rematch or for their pictures, a match's,
+## and any the kill cam, PHOTO MODE or the HUD still look at (each with the
+## chapters it retains). Every other game made here is disposed.
+func release_games() -> int:
+	_release_queued = false
+	var kept: Array = [game, campaign_run, hub_origin, range_return, rematch_return, waiting_play]
+	kept.append_array(replay_runs.values())
+	for each: Variant in [net] + net_old:
+		if each is NetPlay:
+			var link: NetPlay = each
+			kept.append(link.match_game())
+	kept.append_array([kill_cam.game, photo.game, hud.shown_game if hud != null else null])
+	return games.sweep(kept)
 
 
 func face_into_level(target: Game) -> void:
@@ -856,6 +889,7 @@ const SHOWCASE_SECONDS := 6.0
 
 
 func _exit_tree() -> void:
+	games.clear()
 	if net != null:
 		net.leave("THE HOST QUIT" if net.role == NetPlay.Role.HOST else "LEFT")
 		net.flush_leave()

@@ -33,14 +33,18 @@ func id() -> String:
 func attach() -> void:
 	Variants.art = game.art
 	Variants.paint_door(game.art)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func _tick(_dt: float) -> void:
 	if not swapped:
 		swapped = true
 		_swap()
-	if told or tough == null or game.clock < .5:
+	if told or tough == null:
+		# Swapped, and the tough guy told of (or none): nothing more to tick.
+		sleep()
+		return
+	if game.clock < .5:
 		return
 	var e := tough
 	if not e.alive:
