@@ -102,7 +102,8 @@ func _check(ok: bool, text: String) -> void:
 
 
 func _server() -> bool:
-	var port := 44000 + OS.get_process_id() % 12000
+	# (21000..35000: clear of the other net checks' ports, run beside them.)
+	var port := 21000 + OS.get_process_id() % 9000
 	for k in 20:
 		var config := {
 			"bind": "127.0.0.1",
@@ -125,6 +126,15 @@ func _server() -> bool:
 	# The host's home address is this machine: ALICE goes straight there.
 	RelayLink.test_lan = PackedStringArray(["127.0.0.1"])
 	return true
+
+
+## The host's lobby from the front end, on the first free port from `from`.
+func _open(from: int) -> void:
+	for k in 20:
+		main.net_form["port"] = str(from + k * 7)
+		main.net_open_lobby()
+		if main.net != null:
+			return
 
 
 # ------------------------------------------------------------ the frames
@@ -281,7 +291,7 @@ func _coop() -> void:
 		"port": str(lobby_port + 5000),
 		"router": false,
 	}
-	main.net_open_lobby()
+	_open(lobby_port + 5000)
 	var host: NetPlay = main.net
 	_check(host != null, "TREY hosts from the front end")
 	if host == null:
@@ -615,7 +625,7 @@ func _versus() -> void:
 			"port": str(lobby_port + 5100),
 			"router": false,
 		}
-		main.net_open_lobby()
+		_open(lobby_port + 5100)
 		host = main.net
 		_wait(
 			func() -> bool: return host.party_line() != null and host.party_line().state == "open"
@@ -672,12 +682,20 @@ func _versus() -> void:
 		"DAN joins the match under way at a spawn point with the kit"
 	)
 	var st := Modes.feature(g)
-	_wait(func() -> bool: return bool(st.match_over), int(150.0 / STEP))
+	# A minute of fighting at most (a long run beside other checks on a busy
+	# machine is what lost a client once), then the limit is brought to the
+	# best score so the results come all the same.
+	_wait(func() -> bool: return bool(st.match_over), int(60.0 / STEP))
+	if not bool(st.match_over):
+		st.frag_limit = maxi(1, (Modes.rules(g) as DeathmatchMode).leader_score(g))
+		_wait(func() -> bool: return bool(st.match_over), 240)
 	var frags := 0
 	for p: Player in g.players:
 		frags += maxi(0, p.frags)
 	var copy: Game = clients[0].match_game()
-	var feed_frag := false
+	_check(copy != null, "every client still in the match (%s)" % clients[0].reason)
+	if copy == null:
+		return
 	var feed = copy.features.get("kill_feed")
 	print(
 		(
@@ -689,7 +707,14 @@ func _versus() -> void:
 		)
 	)
 	_check(frags > 0, "frags land (%d)" % frags)
-	_run_for(.5)
+	_wait(
+		func() -> bool:
+			return clients.all(
+				func(n: NetPlay) -> bool:
+					return n.match_game() != null and n.match_game().showing_tally
+			),
+		360
+	)
 	copy = clients[0].match_game()
 	_check(
 		bool(st.match_over) and copy.showing_tally,

@@ -36,13 +36,9 @@ const HUB := [
 const LOBBY_KEYS := ["mode", "map", "store_rules", "bots", "bot_skill"]
 const POSSE_KEYS := ["mode", "map", "late_join"]
 ## The main settings' labels where the row's own is too long for them.
-const SHORT := {
-	"bot_skill": "SKILL",
-	"bots": "BOTS",
-	"late_join": "LATE",
-	"frag_limit": "FRAGS",
-	"time_limit": "CLOCK"
-}
+## (LATE JOIN is the lobby's DOORS there: OPEN or SHUT to someone coming in
+## once it's going; ALL SETTINGS says it in full.)
+const SHORT := {"bot_skill": "SKILL", "bots": "BOTS", "late_join": "DOORS"}
 const VERSUS_KEYS := ["mode", "map", "late_join", "frag_limit", "time_limit"]
 const ALL_KEYS := [
 	"mode",
@@ -730,6 +726,12 @@ static func _posse(c: Canvas, net: NetPlay) -> void:
 static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 	var admin := net.is_admin()
 	var keys := lobby_keys(net)
+	# Each column's "<" past its longest label, so the arrows line up.
+	var widest: Array[int] = [0, 0]
+	for i in keys.size():
+		var named := str(SHORT.get(str(keys[i]), setting_row(str(keys[i]))[1]))
+		var at := 0 if i < 3 else 1
+		widest[at] = maxi(widest[at], PixelType.text_width(named, "body"))
 	for i in keys.size():
 		var key := str(keys[i])
 		# MODE, MAP and RULES (the long values) wide on the left; BOTS, SKILL.
@@ -748,17 +750,30 @@ static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 			value = _map_name(net.settings.get(key))
 		elif key == "mode":
 			value = _mode_name(net.settings.get(key))
+		elif key == "late_join":
+			var open_doors: bool = net.settings.get(key, true)
+			value = "OPEN" if open_doors else "SHUT"
 		var ink := HUD.AMBER if here else HUD.INK
+		# The value's room: past the label (and its "<"), up to the row's end
+		# (and its ">"); a value too long for it takes the small letters.
+		var label_w := PixelType.text_width(label, "body")
+		var col_w: int = widest[col]
+		var left := x0 + maxi(36, col_w + 7)
 		if not admin:
-			HUD.text(c, value, x0 + w - 4, y, "body", ink, false, true, true)
+			var style := "body"
+			if label_w + PixelType.text_width(value, "body") + 8 > w - 4:
+				style = "mini"
+			HUD.text(c, value, x0 + w - 4, y, style, ink, false, true, true)
 			continue
 		# Whoever runs it: a click on the value is the next one, the arrows
 		# step either way.
-		HUD.text(c, value, x0 + 39 + (w - 51) / 2, y, "body", ink, true)
-		HUD.text(c, "<", x0 + 36, y, "body", SOFT)
+		var span := x0 + w - 8 - (left + 7)
+		var style := "body" if PixelType.text_width(value, "body") <= span - 2 else "mini"
+		HUD.text(c, value, left + 7 + span / 2, y + (1 if style == "mini" else 0), style, ink, true)
+		HUD.text(c, "<", left, y, "body", SOFT)
 		HUD.text(c, ">", x0 + w - 8, y, "body", SOFT)
 		zone(Rect2i(x0 - 2, y - 2, w, 11), key, 1)
-		zone(Rect2i(x0 + 32, y - 2, 13, 11), key, -1)
+		zone(Rect2i(left - 4, y - 2, 13, 11), key, -1)
 		zone(Rect2i(x0 + w - 13, y - 2, 13, 11), key, 1)
 	button(c, Rect2i(180, 140, 122, 11), "ALL SETTINGS", cursor == "more", "more")
 

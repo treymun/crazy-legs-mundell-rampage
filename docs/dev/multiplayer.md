@@ -652,7 +652,9 @@ the how-to. The 5v5 rules themselves are in
   to game with `NetPlay.switch_match`): see
   [modes.md](modes.md#online-co-op-and-deathmatch). The lobby shows their
   posse as one list (`LobbyScreens._posse`) and only their own settings
-  (`lobby_keys`).
+  (`lobby_keys`). The main settings' "<" stands past each column's longest
+  label (a value too long for what is left takes the small letters); LATE
+  JOIN shows there as DOORS OPEN / SHUT (`SHORT`).
 - Someone leaving mid-match: a bot plays on in their slot; LATE JOIN: a
   newcomer takes the bot's slot on the team with fewer people. ESC asks
   before leaving; nobody pauses or saves.
