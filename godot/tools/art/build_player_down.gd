@@ -18,11 +18,22 @@ extends SceneTree
 
 ## Where the camera stands, turned from the way the body faced: the model
 ## falls onto its side of the way it faced, its head to its right.
-const VIEWS := {"_side": 0.0, "_head": PI * .5, "_feet": -PI * .5}
+## Each: [the turn, how far off, how far it looks down, how much higher
+## than a standing eye, the colour lift]. From either end the camera stands higher and looks
+## further down, so the body reads along its length (boots, overalls, plaid,
+## cap) rather than as the soles of two boots.
+const VIEWS := {
+	"_side": [0.0, 3.0, -30.0, 0.0, 1.18],
+	"_head": [PI * .5, 3.6, -53.0, .5, 1.25],
+	"_feet": [-PI * .5, 3.2, -53.0, .7, 1.45],
+}
 ## Where the camera stands from the body, and how far it looks down.
-const REACH := 3.0
-const PITCH := -30.0
-## The view's pixels to the picture's (the view at HD, REACH away: about
+## Colour lift on the drawn body (the view at dusk is darker than the old
+## painted cels): times the view's lift, then a little gamma. From the feet
+## the body is mostly its own shade (soles, the far side of the legs): lifted
+## most, so it reads as boots and overalls rather than a dark lump.
+const GAMMA := .88
+## The view's pixels to the picture's (the view at HD, 3 cells off: about
 ## ModeScreens.DOWN_ROWS rows a map unit after it, which sizes them so).
 const SCALE := .8
 ## A pixel is the body's when the two draws differ by more than this.
@@ -69,13 +80,17 @@ func _run() -> void:
 	b.health = 0
 	b.down_at = g.clock
 	for name: String in VIEWS:
-		var turn: float = VIEWS[name]
+		var view: Array = VIEWS[name]
+		var turn: float = view[0]
+		var reach: float = view[1]
 		var lie := 0.4
 		Modes.place(g, b, spot.x, spot.y, lie)
 		b.health = 0
 		var from := lie + turn
-		Modes.place(g, a, spot.x + cos(from) * REACH, spot.y + sin(from) * REACH, from + PI)
-		a.pitch = PITCH
+		Modes.place(g, a, spot.x + cos(from) * reach, spot.y + sin(from) * reach, from + PI)
+		a.pitch = view[2]
+		var higher: float = view[3]
+		a.eye += higher
 		# Down long enough for the model to lie still (ModeBodies.fell_at).
 		for k in 3:
 			await _draw(g)
@@ -84,7 +99,8 @@ func _run() -> void:
 		b.away = true
 		var without := await _draw(g)
 		b.away = false
-		var cel := _cut(with_body, without, name)
+		var lift: float = view[4]
+		var cel := _cut(with_body, without, name, lift)
 		if cel == null:
 			push_error("no body seen for " + name)
 			continue
@@ -126,7 +142,7 @@ func _draw(g: Game) -> Image:
 
 ## The body from the difference of the two draws, cut to its box, scaled to
 ## the cels' rows and given the old cels' dark rim.
-func _cut(with_body: Image, without: Image, name: String) -> Image:
+func _cut(with_body: Image, without: Image, name: String, lift: float) -> Image:
 	with_body.convert(Image.FORMAT_RGBA8)
 	without.convert(Image.FORMAT_RGBA8)
 	var w := with_body.get_width()
@@ -163,7 +179,13 @@ func _cut(with_body: Image, without: Image, name: String) -> Image:
 		for x in size.x:
 			var c := body.get_pixel(x, y)
 			if c.a >= .5:
-				rimmed.set_pixel(x + 1, y + 1, Color(c.r, c.g, c.b, 1.0))
+				var lit := Color(
+					pow(minf(1.0, c.r * lift), GAMMA),
+					pow(minf(1.0, c.g * lift), GAMMA),
+					pow(minf(1.0, c.b * lift), GAMMA),
+					1.0
+				)
+				rimmed.set_pixel(x + 1, y + 1, lit)
 	var rim := Color8(28, 18, 14)
 	var edged := rimmed.duplicate() as Image
 	for y in rimmed.get_height():

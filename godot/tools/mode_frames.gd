@@ -315,7 +315,8 @@ func q_names(g: Game) -> void:
 		p.name = names[p.slot % names.size()]
 
 
-## The lobby with its posse (CAMPAIGN CO-OP, then DEATHMATCH).
+## The lobby in every mode, as the host and as someone in it (the rows,
+## labels and values each mode shows): lobby_<mode>_host / _client.
 func _lobby() -> void:
 	var net := NetPlay.host_lobby(
 		41000 + OS.get_process_id() % 9000, "Mundell", {}, false, "127.0.0.1"
@@ -323,20 +324,29 @@ func _lobby() -> void:
 	if net == null:
 		return
 	net.players.append({"id": 7, "name": "BUBBA", "team": -1, "ready": true})
-	net.players.append({"id": 8, "name": "CLETUS", "team": -1, "ready": false})
+	net.players.append({"id": 8, "name": "CLETUS", "team": 1, "ready": false})
 	main.net = net
 	main.state = "lobby"
 	main.game = null
-	net.set_setting("mode", Modes.COOP)
-	main.render()
-	await RenderingServer.frame_post_draw
-	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png(out.path_join("party_lobby_coop.png"))
-	net.set_setting("mode", Modes.DEATHMATCH)
-	main.render()
-	await RenderingServer.frame_post_draw
-	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png(out.path_join("party_lobby_dm.png"))
+	for mode: String in [
+		"bomb", "hostage", "tagteam", "county", Modes.COOP, Modes.DEATHMATCH, Modes.TEAM
+	]:
+		net.role = NetPlay.Role.HOST
+		net.my_id = NetSession.HOST_ID
+		net.set_setting("mode", mode)
+		if mode == Modes.DEATHMATCH:
+			net.set_setting("time_limit", 600.0)
+		for side: String in ["host", "client"]:
+			if side == "client":
+				net.role = NetPlay.Role.CLIENT
+				net.my_id = 7
+			main.render()
+			await RenderingServer.frame_post_draw
+			await RenderingServer.frame_post_draw
+			var shot := root.get_texture().get_image()
+			shot.save_png(out.path_join("lobby_%s_%s.png" % [mode, side]))
+	net.role = NetPlay.Role.HOST
+	net.my_id = NetSession.HOST_ID
 	main.net = null
 	net.finish()
 

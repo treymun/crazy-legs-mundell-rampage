@@ -464,7 +464,9 @@ picture squatted.
 **The kill feed** (`features/kill_feed.gd`, a looks feature, never carried
 or saved): co-op, deathmatch, team deathmatch and a COUNTY RUN party (the 5v5
 rounds keep theirs) get five short lines down the view's left, `MOST` 5,
-`SECONDS` 5: `BUBBA  SAWED-OFF  BILLY` (a hand put down by a player's own
+`SECONDS` 5, from y 78 (under the drive plate, and under the objective pin's
+arrow and plate when the boss bar pushes it lower: fewer lines then, never
+past y 106, above the revive line): `BUBBA  SAWED-OFF  BILLY` (a hand put down by a player's own
 step or shot, `game.own_step`; bosses and tough guys by name, gold),
 `CLETUS WENT DOWN` (`... THAT'S THE WHOLE POSSE` when nobody is left up),
 `EARLENE HAULED CLETUS UP` (a revive), `... DUSTED OFF AND CAME BACK` (a

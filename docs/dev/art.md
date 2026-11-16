@@ -109,8 +109,11 @@ own down frame drawn by the game's 3D view: `tools/art/build_player_down.gd`
 --script res://tools/art/build_player_down.gd`) draws the view twice on the
 crossroads at HD with SHADOWS off, with and without the body, takes the
 difference as the matte, cuts the box, scales it by `SCALE` (about 122 rows a
-map unit, `ModeScreens.DOWN_ROWS`) and gives it the old cels' one-pixel dark
-rim. Run it again after the model changes, then pack_assets.
+map unit, `ModeScreens.DOWN_ROWS`), lifts its colour (the dusk view is darker
+than the old painted cels; most from the feet, where the body is mostly its
+own shade) and gives it the old cels' one-pixel dark rim. The end views are
+taken from higher and looking further down (`VIEWS`), so they read along the
+body (boots, overalls, plaid, cap) rather than as two soles. Run it again after the model changes, then pack_assets.
 
 ## The 3D asset pipeline
 

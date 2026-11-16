@@ -12,10 +12,15 @@ extends GameFeature
 ## Lines kept at once, and how long one stays (seconds of game clock).
 const MOST := 5
 const SECONDS := 5.0
-## Where the lines go: down the view's left, under the notices and clear of
-## the boss bar and objective pin on the right.
+## Where the lines go: down the view's left, under the drive plate (when
+## driving: vehicle_hud.gd, 4,36 to 88,73) and under the objective pin's
+## arrow and plate (game.pin_top + PIN_CLEAR at the lowest, its last frame's;
+## the boss bar and the run plate are on the right), and above the revive
+## line (y 116): BOTTOM the last line's top, fewer lines when the pin is low.
 const X := 4
-const TOP := 56
+const TOP := 78
+const PIN_CLEAR := 32
+const BOTTOM := 106
 const STEP := 7
 ## A few hands are better known by another name than their kind's.
 const CALLED := {
@@ -131,8 +136,15 @@ func _up_line(p: Player) -> String:
 func draw_view(c: Canvas) -> void:
 	if not shown() or rows.is_empty() or game.map:
 		return
-	var y := TOP
-	for row: Array in rows:
+	var y := top()
+	var room := maxi(0, (BOTTOM - y) / STEP + 1)
+	for i in range(maxi(0, rows.size() - room), rows.size()):
+		var row: Array = rows[i]
 		var ink: Color = row[2]
 		HUD.text(c, str(row[0]), X, y, "mini", ink, false, true)
 		y += STEP
+
+
+## The first line's top: TOP, or lower when the objective pin hangs lower.
+func top() -> int:
+	return maxi(TOP, game.pin_top + PIN_CLEAR)
