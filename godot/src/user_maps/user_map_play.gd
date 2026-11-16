@@ -168,8 +168,8 @@ static func host(m: MainFlow, entry: Dictionary) -> String:
 	var why := why_not(entry, "host")
 	if why != "":
 		return why
-	NetMaps.pending = entry["map"]
 	m.open_net_form(true)
+	NetMaps.pending = entry["map"]
 	return ""
 
 

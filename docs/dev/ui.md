@@ -85,6 +85,7 @@ In `src/ui/screens/`:
 | `TitleScreen`, `ReplaysScreen`, `RematchScreen`, `RematchDoneScreen`, `ControlsScreen`, `CreditsScreen` | title, replays, rematch, rematch_done, controls, credits | buttons; Godot focus |
 | `OnlineScreen` (a `ZonedScreen`) | multi, showdown, servers, nethost, netjoin, lobby, lobbyset | drawn with `LobbyScreens` zones; pointer via the Control, keys via the front end's handlers |
 | `CountyMapsScreen` (a `ZonedScreen`) | county | likewise, with `CountyScreens` |
+| `CustomMapsScreen`, `MapEditorScreen` | maps, mapedit | their own: focus on the screen, keys, the mouse and touch in `_gui_input` ([levels.md](levels.md#player-maps)) |
 | `KeyedScreen` | setup, slots | drawing only; keys and pointer stay with `main_input.gd` |
 
 `ZonedScreen` is the base for screens drawn with zones (each draw notes where

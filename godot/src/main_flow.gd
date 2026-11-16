@@ -193,6 +193,10 @@ func start_county(map_id: String, daily := "") -> void:
 ## The COUNTY RUN map picker (state "county"); from a finished run the run
 ## is let go.
 func open_county(from_run := false) -> void:
+	if from_run and game != null and UserMap.is_custom(game.level.id):
+		game = null
+		UserMapPlay.open_list(self)  # a run on a player map: back to CUSTOM MAPS
+		return
 	if from_run:
 		game = null
 		menu_music()
@@ -922,6 +926,7 @@ func reload_level_in_place() -> void:
 
 ## The HOST ONLINE (or JOIN ONLINE) form, filled from what was used last.
 func open_net_form(hosting: bool) -> void:
+	NetMaps.pending = {}  # CUSTOM MAPS' HOST ONLINE sets it again after this
 	var last := NetPlay.remembered()
 	var name := str(last.get("name", options.get("player_name", "MUNDELL")))
 	var port_v: Variant = last.get("port", NetSession.PORT)

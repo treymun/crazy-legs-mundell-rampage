@@ -74,6 +74,26 @@ the same RULES row.
 With LATE JOIN on, someone who joins during a match takes over a bot on the
 team with fewer people, straight away.
 
+## Custom maps
+
+A map made in the MAP SHED (title, **CUSTOM MAPS**) can be played online:
+
+1. **CUSTOM MAPS**, pick the map, **HOST ONLINE** (it says READY when the
+   map can host a 5v5 round or a County Run: CHECK in the shed says what it
+   still needs).
+2. The host form opens as for HOST A GAME; **OPEN THE LOBBY**. The lobby's
+   MAP shows your map's name and MODE is one the map can host.
+3. Everyone who joins gets a copy of the map on the way in, before anything
+   can start (a few KB). Their game checks it: its hash must match what the
+   host said, and it must be a map the shed would load. A map that does not
+   check out sends the joiner back with `THE HOST'S MAP WAS NO GOOD` and why.
+   A copy is kept in their own maps folder (`maps/shared`, the 32 newest),
+   listed under CUSTOM MAPS as FROM A LOBBY.
+4. MAP's < > goes back to the game's own maps; to put a custom map on again,
+   HOST ONLINE it again.
+
+The always-open county servers do not take custom maps (yet).
+
 ## County servers (no code needed)
 
 Title, **MULTIPLAYER**, **PLAY ONLINE**: the always-open lobbies listed live
@@ -228,6 +248,11 @@ client, each played by a bot). **Not checked:** play between two real homes
 over the internet (through the party line on the VPS or straight), a real
 router's UPnP answering (the test PC's router did not), CGNAT, phones, and
 the browser build hosting or joining by a code in a real page.
+
+`tools/user_map_check.gd` hosts a lobby on a custom map in one process and
+has a client join: the map arrives, its hash checked, the match starts on
+the same level on both machines, a new map picked in the lobby reaches the
+client, and broken or hostile map packets are refused.
 
 ## How it works
 

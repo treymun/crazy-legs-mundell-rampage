@@ -136,6 +136,15 @@ static func fit_mode(net: NetPlay) -> bool:
 		var each := str(v)
 		if each != "tagteam" and str(can.get(str(MODE_NEEDS.get(each, "")), "no")) == "":
 			net.settings["mode"] = each
+			var why := str(can.get(str(MODE_NEEDS.get(mode, "")), ""))
+			if why != "" and why != "no":
+				# Said in the lobby: why the MODE asked for did not take.
+				net._tell(
+					(
+						"%s CAN'T HOST %s: %s"
+						% [map["name"], LobbyScreens.value_name("mode", mode), why]
+					)
+				)
 			return true
 	return true
 

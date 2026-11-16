@@ -313,7 +313,14 @@ func _draw_row(c: Canvas, i: int) -> void:
 	var entry: Dictionary = UserMapPlay.entries[i - 1]
 	var source := str(entry["source"])
 	if entry.has("error"):
-		HUD.text(c, str(entry["stem"]).to_upper().left(18), x, r.position.y + 1, "body", HUD.DIM)
+		HUD.text(
+			c,
+			str(entry["stem"]).to_upper().replace("_", " ").left(18),
+			x,
+			r.position.y + 1,
+			"body",
+			HUD.DIM
+		)
 		HUD.text(c, "WON'T LOAD", x, r.position.y + 9, "mini", LobbyScreens.RED)
 		return
 	var map: Dictionary = entry["map"]
@@ -368,7 +375,7 @@ func _draw_entry(c: Canvas, entry: Dictionary) -> void:
 			)
 		HUD.text(
 			c,
-			str(entry["path"]).get_file().to_upper().left(28),
+			str(entry["path"]).get_file().to_upper().replace("_", " ").left(28),
 			PANEL.position.x + 6,
 			PANEL.end.y - 10,
 			"mini",

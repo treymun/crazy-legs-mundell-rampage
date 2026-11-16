@@ -52,6 +52,7 @@ const CHECKS := [
 	["tune_check", "TUNE CHECK OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
 	["load_check", "LOAD CHECK OK"],
+	["user_map_check", "USER MAP CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 ## Rows that measure timing (net_lag's limits on hits that looked like hits,
@@ -78,6 +79,7 @@ const QUICK := [
 	"wreck_check",
 	"plank_check",
 	"tune_check",
+	"user_map_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
 ## in the Actions log, or this table's own column there), to share the rows
@@ -106,6 +108,7 @@ const CI_SECONDS := {
 	"replay_check": 45,
 	"load_check": 35,
 	"tune_check": 15,
+	"user_map_check": 20,
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and

@@ -26,7 +26,7 @@ const ID_PREFIX := "custom_"
 const VERSUS_TAIL := "v"
 const KINDS := ["mark", "hand", "loot", "prop"]
 ## Letters a map's name, author and note may use (the pixel font's).
-const LETTERS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,'!?-&:/#()"
+const LETTERS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,'!?-:/()"
 ## The deepest a file's brackets may nest before it is not even parsed (a
 ## map file nests three deep).
 const DEPTH := 6
@@ -34,7 +34,7 @@ const DEPTH := 6
 const MODE_NAMES := {
 	"solo": "PLAY ALONE",
 	"deathmatch": "DEATHMATCH",
-	"bomb": "5V5 SEARCH & DESTROY",
+	"bomb": "5V5 SEARCH AND DESTROY",
 	"hostage": "5V5 HOSTAGE RESCUE",
 	"county": "COUNTY RUN",
 }

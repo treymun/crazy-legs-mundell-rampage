@@ -10,7 +10,9 @@
 ## SETTINGS (a row, >, DONE), TEAM and CLOSE; and in a 5v5 freeze on a touch
 ## screen the BUY plate, a store row (bought) and a tap outside (closed);
 ## COUNTY RUN's map picker, its reward cards (a pick, a swap, CANCEL), the
-## build screen and the end of a run's buttons, and a card picked by mouse.
+## build screen and the end of a run's buttons, and a card picked by mouse;
+## CUSTOM MAPS (a map, an action, NEW MAP) and the MAP SHED (a palette item,
+## a cell painted, the TEAR OUT tab, BACK twice past the unsaved warning).
 ## Fails on any script or engine error.
 extends SceneTree
 
@@ -33,6 +35,7 @@ func _run() -> void:
 	_lobby()
 	_store()
 	_county()
+	_maps()
 	tally.stop()
 	_check(
 		tally.errors == 0,
@@ -338,6 +341,81 @@ func _county() -> void:
 	_check(main.state == "county" and main.game == null, "MAPS goes back to the map picker")
 	main.state = "title"
 	CountyRecords.folder_override = ""
+
+
+func _maps() -> void:
+	print("\nCUSTOM MAPS AND THE MAP SHED BY TOUCH")
+	UserMaps.folder_override = OS.get_cache_dir().path_join("clmr-maps-touch")
+	main.state = "title"
+	main.game = null
+	main.render()
+	var titles: Array = main.entries()
+	var at: int = titles.find("CUSTOM MAPS")
+	var spot := Vector2i(-1, -1)
+	for y in range(30, 200, 2):
+		for x in range(10, 310, 4):
+			if spot.x < 0 and Menu.title_hit(titles, x, y) == at:
+				spot = Vector2i(x, y)
+	_tap(spot)
+	_check(main.state == "maps", "the title's CUSTOM MAPS opens the list (%s)" % main.state)
+	var row := CustomMapsScreen.LIST.position + Vector2i(40, 2 + CustomMapsScreen.ROW_H + 8)
+	_tap(row)
+	_check(UserMapPlay.row == 1, "a tap on a map picks it (row %d)" % UserMapPlay.row)
+	var edit := Rect2i()
+	for i in 9:
+		var r := Rect2i(
+			CustomMapsScreen.PANEL.position.x + 3,
+			CustomMapsScreen.ACTIONS_Y + i * CustomMapsScreen.ACTION_H,
+			40,
+			CustomMapsScreen.ACTION_H - 1
+		)
+		if i == UserMapPlay.ACTIONS.find("edit"):
+			edit = r
+	_tap(edit.position + Vector2i(10, 3))
+	_check(
+		main.state == "mapedit" and UserMapPlay.editor != null,
+		"EDIT IN THE SHED opens the map in the shed (%s)" % main.state
+	)
+	_tap(Vector2i(270, MapEditorScreen.PLATES_Y + 4))
+	_check(
+		main.state == "maps",
+		"the shed's BACK goes back to the list, nothing changed (%s)" % main.state
+	)
+	UserMapPlay.row = 0
+	_tap(CustomMapsScreen.LIST.position + Vector2i(40, 8))
+	_check(main.state == "mapedit", "+ NEW MAP opens a blank map in the shed (%s)" % main.state)
+	var ed := UserMapPlay.editor
+	# PLAIN DIRT, the GROUND tab's second item, then a cell of the plan.
+	_tap(Vector2i(MapEditorScreen.PALETTE.position.x + 20, MapEditorScreen.ITEMS_Y + 8 + 3))
+	_check(str(ed.item()["label"]) == "PLAIN DIRT", "a tap on the palette picks PLAIN DIRT")
+	var px := ed.cells_px()
+	var size := Vector2i(UserMap.width(ed.map), UserMap.height(ed.map)) * px
+	var origin := (
+		MapEditorScreen.VIEW.position + ((MapEditorScreen.VIEW.size - size) / 2).max(Vector2i.ZERO)
+	)
+	_tap(origin + Vector2i(5, 5) * px + Vector2i(px / 2, px / 2))
+	_check(
+		UserMap.at(ed.map, 5, 5) == ".",
+		"a tap on the plan paints the cell (%s)" % UserMap.at(ed.map, 5, 5)
+	)
+	for i in 8:
+		_tap(Vector2i(MapEditorScreen.PALETTE.end.x - 6, MapEditorScreen.PALETTE.position.y + 6))
+	_check(
+		str(ed.item()["label"]) == "TEAR IT OUT",
+		"the tab arrow reaches TEAR OUT (%s)" % ed.item()["label"]
+	)
+	_tap(origin + Vector2i(5, 5) * px + Vector2i(px / 2, px / 2))
+	_check(UserMap.at(ed.map, 5, 5) == ".", "tearing out bare ground leaves it be")
+	var back := Vector2i(270, MapEditorScreen.PLATES_Y + 4)
+	_tap(back)
+	_check(
+		main.state == "mapedit" and ed.note.begins_with("NOT SAVED"),
+		"BACK on an unsaved map warns first (%s)" % ed.note
+	)
+	_tap(back)
+	_check(main.state == "maps", "BACK again leaves it (%s)" % main.state)
+	UserMaps.folder_override = ""
+	main.state = "title"
 
 
 func _find(id: String, arg := -99) -> Array:

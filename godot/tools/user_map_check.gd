@@ -671,6 +671,15 @@ func _online() -> void:
 		str(host.settings["mode"]) == "county",
 		"the lobby's MODE moves to one the map can host (%s)" % host.settings["mode"]
 	)
+	var heard := [""]
+	_wait(
+		func() -> bool:
+			heard[0] += " ".join(host.take_news())
+			return heard[0].contains("CAN'T HOST")
+	)
+	_check(
+		heard[0].contains("CAN'T HOST"), "and the host is told why (%s)" % heard[0].strip_edges()
+	)
 	# The packet stays far under the party line's cap, the largest map too.
 	var big := UserMap.blank(64, 64, "BIG")
 	var rows: Array = big["rows"]

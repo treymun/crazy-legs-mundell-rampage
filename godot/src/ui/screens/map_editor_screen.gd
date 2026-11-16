@@ -71,6 +71,11 @@ func _init() -> void:
 
 func open(m: MainInput) -> void:
 	super.open(m)
+	_picture_version = -1
+	_field = ""
+	_checking = false
+	_keys = false
+	_leave_armed = false
 	if UserMapPlay.editor == null:
 		UserMapPlay.editor = MapEditor.new()
 		if main.smoke_frames > 0 and main.selection > 0:
@@ -82,15 +87,31 @@ func open(m: MainInput) -> void:
 			]
 			var start: Dictionary = entry["map"]
 			UserMapPlay.editor = MapEditor.new(start)
-			if main.showdown_mode >= 1:
+			_smoke_look(main.showdown_mode)
+			if main.showdown_mode >= 1 and main.showdown_mode < 100:
 				# 2..: from the cursor, turned (n - 2) eighths.
 				UserMapPlay.editor.facing = posmod(main.showdown_mode - 2, 8)
 				UserMapPlay.test.call_deferred(main, main.showdown_mode >= 2)
-	_picture_version = -1
-	_field = ""
-	_checking = false
-	_leave_armed = false
 	grab_focus.call_deferred()
+
+
+## Pictures of the shed (--smoke-screen=mapedit:<n>:<look>): 100 the CHECK
+## panel, 101 the keys, 102 the PROPS tab, 103 MARKS zoomed in.
+func _smoke_look(look: int) -> void:
+	var ed := _ed()
+	match look:
+		100:
+			_checking = true
+		101:
+			_keys = true
+		102:
+			ed.tab = 6
+			ed.picks[6] = 9
+		103:
+			ed.tab = 7
+			ed.zoom = 3
+			ed.cursor = Vector2i(24, 15)
+			ed.follow(VIEW.size)
 
 
 func _ed() -> MapEditor:
@@ -180,7 +201,7 @@ func _key(code: int, shift: bool, ctrl: bool) -> void:
 		KEY_PAGEUP:
 			ed.next_tab(-1)
 			_tick()
-		KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8:
+		KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9:
 			ed.tab = code - KEY_1
 			_tick()
 		KEY_R:
@@ -282,7 +303,6 @@ func _button(b: InputEventMouseButton) -> void:
 		_checking = false
 		_keys = false
 		return
-	_leave_armed = false
 	if b.button_index == MOUSE_BUTTON_XBUTTON1:
 		back()
 		return
@@ -297,6 +317,7 @@ func _button(b: InputEventMouseButton) -> void:
 		return
 	var c := _cell_at(at)
 	if c.x >= 0:
+		_leave_armed = false
 		ed.cursor = c
 		_last_cell = c
 		ed.begin()
@@ -361,6 +382,8 @@ func _plate(i: int) -> Rect2i:
 
 func _plate_do(what: String) -> void:
 	var ed := _ed()
+	if what != "BACK":
+		_leave_armed = false
 	match what:
 		"NAME":
 			_edit_field("name")

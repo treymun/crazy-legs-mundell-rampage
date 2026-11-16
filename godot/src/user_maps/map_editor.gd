@@ -17,7 +17,16 @@ const TABS := [
 	["LOOT", "thing", "loot"],
 	["PROPS", "thing", "prop"],
 	["MARKS", "thing", "mark"],
+	["TEAR OUT", "erase", ""],
 ]
+## The TEAR OUT tab's one item (for a finger or a pad, which have no right
+## click).
+const TEAR := {
+	"kind": "erase",
+	"name": "erase",
+	"label": "TEAR IT OUT",
+	"help": "TAKES A THING AWAY, OR A WALL BACK TO PASTURE.",
+}
 const ZOOMS := [4, 6, 8, 12]
 const UNDO_MOST := 80
 ## The sizes NEW MAP and SIZE step through.
@@ -33,7 +42,7 @@ var source := "mine"
 var cursor := Vector2i(1, 1)
 var tab := 0
 ## The item picked on each tab.
-var picks: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0]
+var picks: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 var facing := 0
 var zoom := 1
 ## The cell at the view's top left.
@@ -57,6 +66,8 @@ func _init(start: Dictionary = {}) -> void:
 static func items(t: int) -> Array:
 	var spec: Array = TABS[t]
 	var out: Array = []
+	if spec[1] == "erase":
+		return [TEAR]
 	var source_list: Array = UserMap.cells() if spec[1] == "cell" else UserMap.things()
 	for v: Variant in source_list:
 		var entry: Dictionary = v
@@ -222,6 +233,8 @@ func _take_thing(c: Vector2i) -> bool:
 func apply(c: Vector2i) -> bool:
 	if not inside(c):
 		return false
+	if str(TABS[tab][1]) == "erase":
+		return erase(c)
 	var spec := item()
 	var done := false
 	if is_cell_tab():
@@ -299,6 +312,11 @@ func box(a: Vector2i, b: Vector2i) -> bool:
 	var lo := Vector2i(mini(a.x, b.x), mini(a.y, b.y))
 	var hi := Vector2i(maxi(a.x, b.x), maxi(a.y, b.y))
 	var done := false
+	if str(TABS[tab][1]) == "erase":
+		for y in range(lo.y, hi.y + 1):
+			for x in range(lo.x, hi.x + 1):
+				done = erase(Vector2i(x, y)) or done
+		return done
 	if not is_cell_tab():
 		return apply(b)
 	var key := str(item()["key"])

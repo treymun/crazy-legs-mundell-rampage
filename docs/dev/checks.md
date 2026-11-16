@@ -60,6 +60,7 @@ check's output. `lint` also runs gdformat --check and gdlint from the repo's
 | `wreck_check` | WRECK CHECK OK | yes | every kind of breakable with `pieces`, windows and fence cells on the chapters, a County Run map and the hub throw real pieces that all come to rest on a floor, never inside anything; none on the versus maps; the cap holds; a save put back throws nothing; asleep costs next to nothing ([gameplay.md](gameplay.md#in-real-pieces-of-themselves)) |
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
 | `level_edit_check` | LEVEL EDIT OK | yes | level editing keeps the walls right |
+| `user_map_check` | USER MAP CHECK OK | yes | player maps: the examples, hostile files refused, the MAP SHED's calls, a map played alone, in a 5v5 round, County Run and deathmatch, its saves, sent to a lobby's joiner ([levels.md](levels.md#player-maps)) |
 | `quest_reach` | QUEST REACH OK | | every quest prop, gate and item can be used from where it is seen, and never through a wall (slow; `tour=<json>` for pictures of each prop) |
 | `bot_campaign` | CAMPAIGN WALKTHROUGH OK | | the bot plays the campaign through (slow) |
 | `net_showdown_check` | NET SHOWDOWN OK | | online 5v5, host plus three clients, lobby to lobby (`lag= loss= seconds=`) |

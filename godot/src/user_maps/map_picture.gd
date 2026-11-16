@@ -210,6 +210,9 @@ static func icon(
 			var face := GLOW if glow > 0.0 else (PROP_TREE if tree else PROP)
 			c.circle(cx, cy, r, PROP_EDGE)
 			c.circle(cx, cy, maxi(0, r - 1), face)
+		"erase":
+			c.line(cx - r, cy - r, cx + r, cy + r, BAD, 2)
+			c.line(cx + r, cy - r, cx - r, cy + r, BAD, 2)
 		"mark":
 			match name:
 				"start":

@@ -316,6 +316,12 @@ func _parity(main: Control) -> void:
 	var items := Menu.title_items(rows)
 	check(items.size() == rows.size(), "every title entry has a place")
 	var clear := true
+	# A column of six or fewer stands on 11 px rows; seven (a campaign to
+	# continue, with CUSTOM MAPS) on Menu.ROW_TIGHT, eight on ROW_TIGHTEST.
+	var left := 0
+	for item: Dictionary in items:
+		left += 1 if int(item["column"]) == 0 else 0
+	var tall := Menu.ROW_H if left <= 6 else (Menu.ROW_TIGHT if left <= 7 else Menu.ROW_TIGHTEST)
 	for i in items.size():
 		var rect: Rect2i = items[i]["rect"]
 		if Menu.title_hit(rows, rect.position.x + 2, rect.position.y + 2) != i:
@@ -323,9 +329,9 @@ func _parity(main: Control) -> void:
 		for j in i:
 			if rect.intersects(items[j]["rect"]):
 				clear = false
-		if not Menu.BOARD.encloses(rect) or rect.size.y < 11:
+		if not Menu.BOARD.encloses(rect) or rect.size.y < tall:
 			clear = false
-	check(clear, "title rows do not overlap, sit on the board and are 11+ px tall")
+	check(clear, "title rows do not overlap, sit on the board and are %d+ px tall" % tall)
 	# CONTINUE CAMPAIGN once a campaign exists, NEW GAME on a fresh profile.
 	check(bool(items[0]["primary"]), "the first entry takes the big plate")
 	main.start("hickston")

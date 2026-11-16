@@ -155,7 +155,8 @@ looks (art.md#props).
    and a `match` arm).
 3. Numbers in `data/tuning/modes.cfg` (`ModeData.get_value`).
 4. For online play, add it to the mode row in `data/tuning/lobby.cfg` and
-   `NetPlay.play_mode()`.
+   `NetPlay.play_mode()`; for player maps, what it needs of one in
+   `NetMaps.MODE_NEEDS` (and `UserMap.modes` if that is new).
 5. Run `mode_check`. See [modes.md](modes.md).
 
 ## A County Run card
@@ -165,3 +166,13 @@ looks (art.md#props).
 2. If it acts in a fight, add its effect in `src/modes/county_moves.gd`.
 3. Run `county_check`. [COUNTY_RUN.md](../../COUNTY_RUN.md) is the full
    how-to for maps, weapons, upgrades and milestone abilities.
+
+## A MAP SHED cell or thing
+
+1. Add it at the END of its list in `data/tuning/user_maps.json` (`cells`: a
+   letter not used yet, its group, tile, label and help line; `things`: its
+   kind, name, label, help, and for a prop its height, blocking radius and
+   any glow). Words in the game's voice, letters the pixel font has.
+2. A hand must have its art in the base pack (no chapter's), a prop a model.
+3. Run `user_map_check` and look at it in the shed
+   (`--smoke-screen=mapedit:1:102`). See [levels.md](levels.md#player-maps).
