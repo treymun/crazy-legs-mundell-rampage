@@ -22,7 +22,7 @@ static func floats(values: Array) -> PackedFloat32Array:
 	return out
 
 
-## The walls' runs merged as LevelData._merge_runs merged them before its
+## The walls' runs merged as LevelLoad.merge_runs merged them before its
 ## keys were joined once a piece.
 static func merge_runs(lv: LevelData) -> void:
 	var tiled := {}
