@@ -252,7 +252,10 @@ func hitscan(
 				y = p.y + ay * hit_d
 				_traced(ax, ay, slope, hit_d, "wall:" + surface)
 				ended = true
-				if specks.size() < 144:
+				# (Online the chips' dice are spent whatever this machine's
+				# specks: burst().)
+				var room := specks.size() < 144
+				if room or players.size() > 1:
 					var particle := str(Materials.SPECKS.get(kind, "chips"))
 					var pspeed: float = (
 						{"wood": .64, "metal": 1.21, "plaster": .53, "dirt": .48}.get(surface, .64)
@@ -263,8 +266,10 @@ func hitscan(
 						maxf(.04, minf(1.8, p.eye + hit_d * slope)),
 						String(particle),
 						3,
-						float(pspeed)
+						float(pspeed),
+						room
 					)
+				if room:
 					events.wall_struck.emit(
 						x, y, maxf(.04, minf(1.8, p.eye + hit_d * slope)), surface
 					)

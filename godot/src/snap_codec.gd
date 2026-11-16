@@ -67,6 +67,8 @@ const SKIP_FIELDS := {
 	# next water ring shows, how a flung prop moves; the gear's feels.
 	"arena_wreck": ["steps", "foes", "_taken", "_ring_next", "_fly_feel"],
 	"boss_gear": ["_feels"],
+	# How bodies move (set in attach, the same everywhere; a body names its own).
+	"corpses": ["_feel", "_slick", "_flung"],
 	# Looks kept in a simulation feature: the specks' own dice (how many a
 	# hit throws hangs on the specks already about, which are never carried)
 	# and when HEADSHOT! was last called (this machine's callouts).

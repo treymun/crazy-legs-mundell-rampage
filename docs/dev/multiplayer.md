@@ -126,7 +126,12 @@ is a SIM field; a simulation feature's looks keep their own dice that the
 snapshot skips (`SnapCodec.SKIP_FIELDS`: the specks of `hit_reads` and
 `critters`, whose count hangs on the specks already about), and what follows
 this machine's callouts (`hit_reads._call_at`, after the BARKS setting and
-`callout_until`) is skipped too.
+`callout_until`) is skipped too. With more than one player `burst()` spends
+`game.rng` whatever this machine's specks or GORE setting (it leaves the
+specks out instead), and an object a snapshot carries by value is never
+shared by two carried fields (a corpse names its feel, `Body.how`): putting a
+snapshot on fills such an object in place, so a shared one took another's
+numbers ([county_run.md](county_run.md#copies-that-parted-after-a-card-pick-online-fixed)).
 
 ### Stable ids
 

@@ -211,14 +211,30 @@ wrong version or an old day is refused). Posting happens in the front end
   streak (`f.elites_down`, `f.hurt`, `f.best_streak`), supplies glow, and the
   maps have lamps at the new gates and crossings and burn barrels.
 
-## Known issue: a body's resting place online (co-op)
+## Copies that parted after a card pick online (fixed)
 
-When a player levels up, the server holds the world for the card pick; a
-client copy runs one tick past it first (the known one-tick `/game/clock`
-mismatch at the pick, county_net_check allows one). A body still sliding at
-that moment then lies a tick's slide (a few cm) further on that copy, and the
-delta snapshots only correct what the server changed, so the offset can stay
-until the body moves again (county_net_check: `/enemies/N/x` on a dead hand,
-on some runs). It is in v3.2.0 too, seen more often since v3.3.0. The fix is
-to stop the copy's tick at the hold, or to send the bodies' places with the
-hold's snapshot; not done yet.
+county_net_check failed about half its runs on CI: a dead hand's
+`/enemies/N/x`, a hand's `spite` or the game's dice parted on a copy seconds
+after the card pick. The pick was never the cause. The check hands the
+server's game two levels of XP outside a tick, so each copy runs one tick
+past it (the one `/game/clock` mismatch the check allows) and is put back on
+the newest snapshot (delta snapshots are patched onto the client's copy of
+the whole snapshot, which is put on whole: nothing stayed uncorrected). Two
+things a snapshot does not carry then parted the copy again later:
+
+- **Specks decided the dice.** A shot into a wall threw its chips
+  (`burst()`, off `game.rng`) only while fewer than 144 specks were about,
+  and the GORE setting decided whether a gore burst spent the dice at all.
+  Specks are presentation, never carried, so a copy put back kept its own and
+  spent the dice otherwise later. With more than one player the dice are now
+  always spent and only the specks are left out (`burst(..., keep)`); one
+  player plays exactly as before.
+- **A body's feel was filled in place.** `corpses.gd` bodies held one of the
+  feature's three `Tumble.Feel` objects, which a snapshot carries by value;
+  putting one on a copy whose moving bodies stood in another order filled a
+  shared feel with another body's numbers, and a thrown body slid on with the
+  wrong drag (the "body offset"). A body now names its feel (`Body.how`:
+  PLAIN, SLICK, FLUNG) and the three feels are not carried.
+
+`net_check` holds both (`_put_back`; each failed on the old code) and
+county_net_check prints each copy's rebuilds.

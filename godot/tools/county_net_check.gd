@@ -251,6 +251,14 @@ func _play() -> void:
 			]
 		)
 	)
+	for net: NetPlay in [alice, bob]:
+		var cs: NetSync.Client = net.client_sync
+		print(
+			(
+				"    %s: rebuilds %d (inputs lost %d), stale %d, no base %d"
+				% [net._my_name, cs.rebuilds, cs.rebuilds_lost, cs.stale, cs.no_base]
+			)
+		)
 	_check(
 		f.level >= 3 and f.picks.size() >= picked + 2 and f.pending.is_empty(),
 		"the party levels and the leader's cards land (%d picks)" % f.picks.size()
