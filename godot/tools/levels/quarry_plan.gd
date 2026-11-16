@@ -108,8 +108,19 @@ func build(_b) -> Array:
 	polish()
 	dress()
 	lintels()
+	new_iron()
 	Climbs.quarry(b)
 	return [64.5, 81.5, -PI / 2]
+
+
+## The quarry's new gun (feature pass 7, src/gun_finder.gd): the cow launcher
+## (the "pressure_gun" pickup in the east cut, game_state.gd ALIAS) lay well off
+## the way; a second one lies at the foot of the cliff by the weigh station,
+## under a DANGER sign somebody painted for Mundell. A pickup and a sign hung
+## on the rock only: no new layout.
+func new_iron() -> void:
+	b.pickup("cow_launcher", 68.5, 65.2)
+	b.board("gun_sign_quarry", 68.97, 65.2, .6, {"z": .7, "plane": PI / 2, "hung": true})
 
 
 ## Door tops in this plan count from the door's own floor, as on flat ground:

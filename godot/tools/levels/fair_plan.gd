@@ -88,8 +88,19 @@ func build(_b) -> Array:
 	cast()
 	detail()
 	polish()
+	new_iron()
 	Climbs.fair(b)
 	return [64.5, 81.5, -PI / 2]
+
+
+## The fair's new guns (feature pass 7, src/gun_finder.gd): the powder keg lies
+## on the way to the PA; the bottle rocket launcher sat far off in the prize
+## pavilion, so a second one is a prize at the midway's east booth across from
+## the shotgun's, its counter painted WIN A GUN. Pickups and a sign hung on the
+## counter only: no new layout.
+func new_iron() -> void:
+	b.pickup("bottle_launcher", 70.6, 56.5)
+	b.board("gun_sign_fair", 71.27, 56.5, .5, {"z": .22, "plane": PI / 2, "hung": true})
 
 
 # ------------------------------------------------------------------- areas
