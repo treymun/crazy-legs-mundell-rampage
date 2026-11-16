@@ -96,6 +96,22 @@ const LINES := {
 		"TIME TO CLEAN HOUSE.",
 		"SOMEBODY'S FIXIN' TO GET LEARNED."
 	],
+	"finisher":
+	[
+		"NIGHT NIGHT, BUBBA.",
+		"THAT'S HOW WE DO IT IN THE COUNTY.",
+		"STAY DOWN, YA VARMINTS.",
+		"SHOULDA RUN, BOY.",
+		"LIGHTS OUT, COUSIN."
+	],
+	"hazard":
+	[
+		"WELL, THAT'S ONE WAY TO GO.",
+		"HE WAS ASKIN' FER THAT.",
+		"MAMA SAID WATCH YER STEP, SON.",
+		"COUNTY CLEANS UP AFTER ITSELF.",
+		"THAT'S WHAT THE SIGN WAS FOR."
+	],
 	"new_iron":
 	[
 		"SMELLS LIKE GUN OIL ROUND HERE...",
@@ -120,7 +136,9 @@ const COOLDOWN := {
 	"key": 4.0,
 	"headshot": 7.0,
 	"start": 60.0,
-	"new_iron": 4.0
+	"new_iron": 4.0,
+	"finisher": 5.0,
+	"hazard": 4.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

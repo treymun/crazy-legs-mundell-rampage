@@ -292,6 +292,7 @@ const SIM_FEATURES := [
 	"mothership",
 	"corpses",
 	"finishers",
+	"brawl",
 	"breakables",
 	"wall_breaks",
 	"carry",

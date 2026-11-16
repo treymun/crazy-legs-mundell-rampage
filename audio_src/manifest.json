@@ -40955,6 +40955,426 @@
    },
    "validation": "ok"
   },
+  "mundell_finisher_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_finisher_0.mp3",
+   "prompt": "Night night, bubba.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_finisher_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.04
+    ],
+    "natural_seconds": 1.241,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.241
+   },
+   "measured": {
+    "seconds": 1.171,
+    "peak_db": -0.8,
+    "loud_db": -7.8,
+    "dc": 0.0,
+    "onset_ms": 7.9,
+    "centroid_hz": 1854,
+    "end_db": -75.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_finisher_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_finisher_1.mp3",
+   "prompt": "That's how we do it in the county.",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/mundell_finisher_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.94
+    ],
+    "natural_seconds": 1.802,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.802
+   },
+   "measured": {
+    "seconds": 1.802,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1576,
+    "end_db": -118.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_finisher_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_finisher_2.mp3",
+   "prompt": "Stay down, ya varmints.",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/mundell_finisher_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.92
+    ],
+    "natural_seconds": 1.969,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.969
+   },
+   "measured": {
+    "seconds": 1.969,
+    "peak_db": -0.8,
+    "loud_db": -7.1,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1685,
+    "end_db": -150.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_finisher_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_finisher_3.mp3",
+   "prompt": "Shoulda run, boy.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/mundell_finisher_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.8
+    ],
+    "natural_seconds": 1.884,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.884
+   },
+   "measured": {
+    "seconds": 1.878,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0011,
+    "onset_ms": 47.8,
+    "centroid_hz": 1615,
+    "end_db": -161.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_finisher_4": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_finisher_4.mp3",
+   "prompt": "Lights out, cousin.",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/mundell_finisher_4.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.58
+    ],
+    "natural_seconds": 1.498,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.498
+   },
+   "measured": {
+    "seconds": 1.498,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0015,
+    "onset_ms": 15.4,
+    "centroid_hz": 1449,
+    "end_db": -145.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hazard_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hazard_0.mp3",
+   "prompt": "Well, that's one way to go.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/mundell_hazard_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.5
+    ],
+    "natural_seconds": 2.54,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.54
+   },
+   "measured": {
+    "seconds": 2.54,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0005,
+    "onset_ms": 1.0,
+    "centroid_hz": 1555,
+    "end_db": -132.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hazard_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hazard_1.mp3",
+   "prompt": "He was askin' fer that.",
+   "credits": 42,
+   "destination": "audio_src/final/sfx/mundell_hazard_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.76
+    ],
+    "natural_seconds": 1.775,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.775
+   },
+   "measured": {
+    "seconds": 1.73,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0048,
+    "onset_ms": 19.5,
+    "centroid_hz": 1381,
+    "end_db": -111.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hazard_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hazard_2.mp3",
+   "prompt": "Mama said watch yer step, son.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/mundell_hazard_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.76
+    ],
+    "natural_seconds": 2.723,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.723
+   },
+   "measured": {
+    "seconds": 2.679,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0039,
+    "onset_ms": 39.5,
+    "centroid_hz": 1497,
+    "end_db": -151.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hazard_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hazard_3.mp3",
+   "prompt": "County cleans up after itself.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/mundell_hazard_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.6
+    ],
+    "natural_seconds": 2.541,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.541
+   },
+   "measured": {
+    "seconds": 2.541,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.0033,
+    "onset_ms": 3.2,
+    "centroid_hz": 1602,
+    "end_db": -160.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_hazard_4": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_hazard_4.mp3",
+   "prompt": "That's what the sign was for.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/mundell_hazard_4.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.26,
+     2.48
+    ],
+    "natural_seconds": 2.318,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.318
+   },
+   "measured": {
+    "seconds": 2.318,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0013,
+    "onset_ms": 0.0,
+    "centroid_hz": 1600,
+    "end_db": -139.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "metal_down": {
    "purpose": "no runtime reference (superseded by actor_*_down)",
    "refs": [],
@@ -50601,6 +51021,16 @@
   "mundell_new_iron_0",
   "mundell_new_iron_1",
   "mundell_new_iron_2",
+  "mundell_finisher_0",
+  "mundell_finisher_1",
+  "mundell_finisher_2",
+  "mundell_finisher_3",
+  "mundell_finisher_4",
+  "mundell_hazard_0",
+  "mundell_hazard_1",
+  "mundell_hazard_2",
+  "mundell_hazard_3",
+  "mundell_hazard_4",
   "cuss_coot_brawl_0_clean",
   "cuss_coot_brawl_1_clean",
   "cuss_coot_cover_0_clean",

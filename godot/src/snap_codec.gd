@@ -76,6 +76,8 @@ const SKIP_FIELDS := {
 	"boss_arena": ["_lights", "_light_used"],
 	# How bodies move (set in attach, the same everywhere; a body names its own).
 	"corpses": ["_feel", "_slick", "_flung"],
+	# The hazard props of the level (worked out the same everywhere).
+	"brawl": ["_spots", "_spots_of"],
 	# Looks kept in a simulation feature: the specks' own dice (how many a
 	# hit throws hangs on the specks already about, which are never carried)
 	# and when HEADSHOT! was last called (this machine's callouts).

@@ -41,6 +41,8 @@ const KNOCK := {
 	"teat_gun": 2.4,
 	"energy": 1.4,
 	"blast": 2.0,
+	"kick": 3.2,
+	"kick_finish": 4.6,
 }
 const PER_POINT := {"shotgun": .03, "blast": .012}
 ## Buckshot this near (cells) throws a body hard: from POINT_BLANK_KNOCK up by
@@ -181,6 +183,10 @@ func _throw(e: Enemy) -> void:
 			lift = BLAST_LIFT
 		moves = FLUNG
 		crash = true
+	elif how == "kick" or how == "kick_finish":
+		# A boot (features/brawl.gd): back hard along it, into what is there.
+		crash = true
+		lift = 1.0 if how == "kick" else 1.6
 	elif how == "teat_gun":
 		moves = SLICK
 		lift = 0.0
