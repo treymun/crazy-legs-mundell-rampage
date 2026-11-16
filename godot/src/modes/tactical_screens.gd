@@ -37,11 +37,14 @@ const SHOP_KEYS := [
 ]
 const SHOP_NAMES := ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "<", ">"]
 
-## The title's 5V5 SHOWDOWN picker: its rows (mode, map, match, START), the
-## match lengths (rounds to win), and what each map and mode is.
-const PICKER_ROWS := 5
+## The title's 5V5 SHOWDOWN picker: its rows (mode, map, match, rules, bots,
+## START), the match lengths (rounds to win), and what each map and mode is.
+const PICKER_ROWS := 6
 ## The picker's LET 'ER RIP row (the last).
-const PICKER_GO := 4
+const PICKER_GO := 5
+## The picker's BOTS row: the bots' skill (Modes' bot_skill: 0 EASY .. 3 HOG
+## WILD, 4 MIXED, each bot its own).
+const SKILL_NAMES := ["EASY", "NORMAL", "HARD", "HOG WILD", "MIXED"]
 ## A 5v5 player's figure, as tall as the hit box (Modes.player_in_line: 1.08).
 const PLAYER_HEIGHT := 1.14
 const MATCH_LENGTHS := [4, 7]
@@ -268,6 +271,9 @@ static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 		_spread_marks(c, game, me)
 	_top_strip(c, game, st, rules, me)
 	_feed(c, game, st)
+	TacticalRadio.listen(game, st)
+	if not me.scoped:
+		TacticalRadio.draw(c, game, st)
 	_bars(c, game, st, me)
 	_cash_gain(c, game, st, me)
 	if me.slot != human:
@@ -834,11 +840,11 @@ static func _say(game: Game, text: String) -> void:
 
 
 ## The title's 5V5 SHOWDOWN picker: mode, map, match length, START.
-## PLAY VS BOTS: mode, map, match length, rules and LET 'ER RIP. A value row
-## steps with LEFT and RIGHT or a tap on its arrows (a tap on the picked row:
-## the next value); the taps are noted in LobbyScreens.zones.
+## PLAY VS BOTS: mode, map, match length, rules, the bots' skill and LET 'ER
+## RIP. A value row steps with LEFT and RIGHT or a tap on its arrows (a tap on
+## the picked row: the next value); the taps are noted in LobbyScreens.zones.
 static func draw_picker(
-	c: Canvas, menu: Menu, row: int, mode: int, map: int, long: int, rules := 0
+	c: Canvas, menu: Menu, row: int, mode: int, map: int, long: int, rules := 0, skill := 1
 ) -> void:
 	menu.draw_sheet(c, "PLAY VS BOTS")
 	var mode_id := str(PICKER_MODES[posmod(mode, PICKER_MODES.size())])
@@ -855,22 +861,23 @@ static func draw_picker(
 		["MAP", str(MAP_TITLES.get(map_id, map_id.to_upper()))],
 		["MATCH", "FIRST TO %d ROUNDS" % rounds],
 		["RULES", str(TacticalShop.RULE_NAMES[posmod(rules, TacticalShop.RULE_NAMES.size())])],
+		["BOTS", str(SKILL_NAMES[posmod(skill, SKILL_NAMES.size())])],
 	]
 	var picked := posmod(row, PICKER_ROWS)
 	for i in rows.size():
-		var y := 42 + i * 16
+		var y := 40 + i * 13
 		var here := i == picked
 		var ink := HUD.AMBER if here else HUD.INK
 		if here:
-			c.fill_rect(19, y - 3, 282, 14, LobbyScreens.LIT)
+			c.fill_rect(19, y - 3, 282, 13, LobbyScreens.LIT)
 			Menu.shell(c, 22, y + 1)
 		HUD.text(c, str(rows[i][0]), 36, y, "body", Menu.FADED)
 		HUD.text(c, str(rows[i][1]), 196, y, "body", ink, true)
 		HUD.text(c, "<", 112, y, "body", ink if here else Menu.DIM)
 		HUD.text(c, ">", 278, y, "body", ink if here else Menu.DIM)
-		LobbyScreens.zone(Rect2i(19, y - 3, 282, 14), "row", i)
-		LobbyScreens.zone(Rect2i(100, y - 3, 32, 14), "left", i)
-		LobbyScreens.zone(Rect2i(264, y - 3, 37, 14), "right", i)
+		LobbyScreens.zone(Rect2i(19, y - 3, 282, 13), "row", i)
+		LobbyScreens.zone(Rect2i(100, y - 3, 32, 13), "left", i)
+		LobbyScreens.zone(Rect2i(264, y - 3, 37, 13), "right", i)
 	var go := picked == PICKER_GO
 	LobbyScreens.button(c, Rect2i(70, 107, 180, 20), "", go, "go", PICKER_GO)
 	HUD.text(c, "LET 'ER RIP", 160, 110, "heading", HUD.AMBER if go else HUD.INK, true)

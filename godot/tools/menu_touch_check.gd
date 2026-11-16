@@ -105,6 +105,13 @@ func _menus() -> void:
 	var long_was: int = main.showdown_long
 	_tap_zone("row", 2)
 	_check(main.showdown_row == 2 and main.showdown_long != long_was, "one tap on MATCH changes it")
+	var skill_was: int = main.showdown_skill
+	_tap_zone("left", 4)
+	_check(
+		main.showdown_row == 4 and main.showdown_skill != skill_was,
+		"BOTS' arrow changes the bots' skill"
+	)
+	_tap_zone("right", 4)
 	_tap_zone("back")
 	_check(main.state == "multi", "BACK goes back to MULTIPLAYER")
 	_tap_zone("row", 0)

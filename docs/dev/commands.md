@@ -67,6 +67,7 @@ godot --headless --path godot --script res://tools/multi_bots.gd -- players=1,2,
 godot --headless --path godot --script res://tools/net_loopback.gd -- seconds=180 lag=50 loss=0.05   # NET LOOPBACK OK (websocket: over WebSocket)
 godot --headless --path godot --script res://tools/mode_check.gd      # MODE CHECK OK (co-op, deathmatch; quick: check_fixes's part)
 godot --headless --path godot --script res://tools/tactical_check.gd -- rounds=3   # TACTICAL CHECK OK (the 5v5 modes, ten bots, every map; rules=shotguns etc.)
+godot --headless --path godot --script res://tools/bot_check.gd   # BOT CHECK OK (the bots' aim by skill, smoke, objectives, radio; -- bench for the full table)
 godot --headless --path godot --script res://tools/net_showdown_check.gd   # NET SHOWDOWN OK (online 5v5 lobby to lobby; lag= loss= seconds=)
 godot --headless --path godot --script res://tools/net_server_check.gd     # NET SERVER OK (always-open lobby, no host player)
 godot --headless --path godot --script res://tools/county_check.gd     # COUNTY CHECK OK (COUNTY RUN: rules, maps, a death and a retry)

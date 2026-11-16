@@ -17,24 +17,48 @@
 ##              facing the way the attack comes; a foe seen on a site calls
 ##              the others over; a planted bomb draws everyone, the nearest
 ##              cuts the fuse; a hostage carried away is chased.
-## In a fight it turns onto the nearest foe it sees with a little reaction
-## time and an aim that settles (no aimbot), strafes, and fires when the
-## crosshair is on them. Its decisions use only what a player could see or
-## hear about, plus the team's own calls.
+## In a fight it aims as a person does (bot_aim.gd: a reaction time, a flick
+## that lands off and settles, a hand that strays and lags a strafer, bursts at
+## range), side-steps and stands for the shot, and falls back to cover when
+## hurt (by its persona). It trades a teammate's death, pushes or holds on a
+## foe it lost, turns to gunfire that hurts it, keeps out of fire, spreads out
+## going in and shoots boarded cover open when that is the shorter way. Its
+## decisions use only what a player could see or hear about, plus the team's
+## own calls.
 class_name TacticalBot
 extends RefCounted
 
 const ModeFeature := preload("res://src/features/mode_feature.gd")
+const WallBreaks := preload("res://src/features/wall_breaks.gd")
 
 const LOOK_EVERY := .15
+## How often a foe in sight is looked at again (a sight line is dear: a
+## tick at 60 a second is .017), and the spot to have the gun on going onto a
+## site (_corner_to_check).
+const SIGHT_EVERY := .034
+const CORNER_EVERY := .25
+## Goals further than NAV_NEAR walk the field of their cell snapped to a
+## NAV_GRID-cell grid (_nav_for).
+const NAV_NEAR := 5.0
+## An attacker falls back at this share of its persona's line, and nobody on
+## the attack hides with under NO_HIDING seconds of the round left.
+const ATTACK_FALL_BACK := .6
+const NO_HIDING := 30.0
+const NAV_GRID := 3.0
 const SIGHT := 34.0
+## Half the field of view it notices foes in (a person's screen and a little
+## to each side), and how near it hears one whatever way it faces.
+const VIEW_HALF := 1.15
+const HEARS := 2.5
 const TURN := .11
-## By the game's DIFFICULTY (EASY..HOG WILD): seconds from first sight to the
-## first shot, how far the first aim is off (radians, settling away), and how
-## much the aim keeps wandering while it fires.
-static var REACTION: Array = Difficulty.table("bots", "reaction")
-static var AIM_ERROR: Array = Difficulty.table("bots", "aim_error")
-static var WOBBLE: Array = Difficulty.table("bots", "wobble")
+## BOT SKILL's MIXED: each bot its own skill by slot (modes.cfg).
+const MIXED := 4
+static var MIXED_SKILLS: Array = ModeData.get_value("tactical_bot", "mixed", [1])
+static var PERSONAS: Array = ModeData.get_value("tactical_bot", "personas", ["careful"])
+static var FALL_BACK: Dictionary = ModeData.get_value("tactical_bot", "fall_back", {})
+static var PUSH_LOST: Dictionary = ModeData.get_value("tactical_bot", "push_lost", {})
+static var TRADE_REACH: float = ModeData.get_value("tactical_bot", "trade_reach", 14.0)
+static var TRADE_FOR: float = ModeData.get_value("tactical_bot", "trade_for", 6.0)
 const ARRIVE := 1.4
 const LURK_UNTIL := 22.0
 const CALL_FOR := 7.0
@@ -65,7 +89,6 @@ var foe_since := 0.0
 var foe_lost_at := -99.0
 var foe_last := Vector2.ZERO
 var next_look := 0.0
-var aim_off := 0.0
 var stuck := 0.0
 var last_spot := Vector2.ZERO
 var used_at := -99.0
@@ -80,6 +103,50 @@ var thrown := {}
 var buys: Array = []
 ## The route point where the attack gathers (_stage_for).
 var stage_leg := -1
+## The hand on the mouse (bot_aim.gd) and the way it plays (PERSONAS).
+var aim := BotAim.new()
+var persona := "careful"
+## Teammates up at the last look (slot -> bool), to see one fall and trade.
+var mates_up := {}
+## Where to go to trade a teammate's death and where to have the gun, until.
+var trade_at := Vector2.INF
+var trade_look := Vector2.INF
+var trade_until := 0.0
+## Falling back hurt: the spot out of the foe's sight, kept until; looked for
+## again after cover_look.
+var cover_at := Vector2.INF
+var cover_until := 0.0
+var cover_look := 0.0
+## Where gunfire that hurt it came from, turned to until.
+var alert_at := Vector2.INF
+var alert_until := 0.0
+var health_was := 100
+## The foe it lost was killed (no push after a dead one).
+var foe_dead := false
+## Where to have the gun while walking (INF: the way it goes).
+var watch := Vector2.INF
+## When the side-step changes way.
+var strafe_flip := 0.0
+## A boarded cover cell being shot open for a shorter way, and until when it
+## is given up; the route leg it was last looked for at.
+var board := Vector2i(-1, -1)
+var board_until := 0.0
+var board_leg := -1
+## When the foe in sight is looked at again; the hold the gun is on going in,
+## until it is looked for again.
+var sight_at := 0.0
+var corner := Vector2.INF
+var corner_at := 0.0
+## Route points moved aside for this bot this round (by leg), and the route
+## point itself behind the one it walks to now (its step field is the one
+## walked: the team shares it), INF when the goal is no route point.
+var spread := {}
+var route_point := Vector2.INF
+## A goal near enough to walk straight at when it is in sight: which, until
+## when that was looked at, and whether it is.
+var straight_goal := Vector2.INF
+var straight_at := 0.0
+var straight := false
 ## The bots' buying ways, by slot: rifle carriers, the sniper, the one who
 ## buys an SMG rather than save, the one who likes a shotgun or big pistol.
 ## (data/tuning/modes.cfg [tactical_bot] styles)
@@ -118,25 +185,42 @@ func steer(game: Game) -> Game.Controls:
 	if TacticalUtility.blindness(game, p) > .3:
 		# Flashed: no target, no shooting, a stagger about.
 		foe = null
+		aim.rest(game)
 		c.turn = sin(game.clock * 3.0 + slot) * .05
 		c.forward = -.3
 		return c
+	_watch_team(game, p)
 	_look(game, st, p)
 	_plan_throw(game, st, p)
+	route_point = Vector2.INF
 	var goal := _goal(game, st, p, c)
+	if not c.hold:
+		goal = _tactics_goal(game, st, p, goal)
 	if foe != null:
 		_fight(game, st, p, c, goal)
 	else:
-		_walk(game, p, c, goal)
+		aim.rest(game)
+		if not _shoot_board(game, p, c):
+			_walk(game, p, c, goal)
+	BotTactics.keep_out_of_fire(game, st, p, c)
 	_unstick(game, p, c)
 	return c
 
 
-static func _skill(game: Game) -> int:
+## This bot's skill (0 EASY .. 3 HOG WILD): the match's BOT SKILL (MIXED: by
+## its place in its team, both teams alike), else the game's DIFFICULTY.
+static func skill_for(game: Game, p_slot: int) -> int:
 	var st: ModeFeature = Modes.feature(game)
+	var skill := int(game.difficulty)
 	if st != null and int(st.bot_skill) >= 0:
-		return clampi(int(st.bot_skill), 0, 3)
-	return clampi(int(game.difficulty), 0, 3)
+		skill = int(st.bot_skill)
+	if skill == MIXED:
+		var k := p_slot >> 1
+		if p_slot >= 0 and p_slot < game.players.size():
+			k = team_index(game, game.players[p_slot])
+		var mixed: int = MIXED_SKILLS[k % MIXED_SKILLS.size()]
+		return clampi(mixed, 0, 3)
+	return clampi(skill, 0, 3)
 
 
 ## Called after the tick (main.gd _tick_party): nothing to settle.
@@ -183,6 +267,20 @@ func _plan(game: Game, st: ModeFeature, p: Player) -> void:
 	lurking = false
 	throw_gun = -1
 	thrown = {}
+	aim.skill = skill_for(game, p.slot)
+	persona = str(PERSONAS[team_index(game, p) % PERSONAS.size()])
+	mates_up = {}
+	trade_until = 0.0
+	cover_at = Vector2.INF
+	cover_until = 0.0
+	alert_until = 0.0
+	health_was = p.health
+	watch = Vector2.INF
+	board = Vector2i(-1, -1)
+	board_leg = -1
+	foe_lost_at = -99.0
+	spread = {}
+	corner_at = 0.0
 	var plan: Dictionary = game.world.tactical
 	var k := team_index(game, p)
 	if TacticalMode.attacks(game, st, p):
@@ -235,6 +333,12 @@ func _shop(game: Game, st: ModeFeature, p: Player) -> void:
 	# Each bot has its way (STYLES): most carry a rifle, one is the team's
 	# sniper, one likes an SMG when money is short, one a shotgun up close.
 	var style := str(STYLES[slot % STYLES.size()])
+	# The team buys together: when most of it cannot buy (the team's middle
+	# cash short of a rifle and a vest) a bot that could only just buy saves
+	# with them, unless the losses have run long enough to force it.
+	if not has_long and not half_start and behind < 2 and cash < 4600:
+		if _team_cash(st, p) < 3000:
+			cash = mini(cash, 1150)
 	if has_long:
 		wants = ["vest_hat", "vest"]
 	elif half_start:
@@ -289,6 +393,19 @@ func _shop(game: Game, st: ModeFeature, p: Player) -> void:
 		buys.append(TacticalShop.index_of(id))
 
 
+## The middle of the team's cash (its players by slot).
+static func _team_cash(st: ModeFeature, p: Player) -> int:
+	var all: Array = []
+	for i in st.money.size():
+		if i % 2 == p.slot % 2:
+			all.append(st.money[i])
+	if all.is_empty():
+		return 0
+	all.sort()
+	var middle: int = all[all.size() >> 1]
+	return middle
+
+
 ## The best gun in hand, reloaded when dry.
 func _arm(_game: Game, p: Player, c: Game.Controls) -> void:
 	var a: Weapons.Armory = p.armory
@@ -307,11 +424,16 @@ func _arm(_game: Game, p: Player, c: Game.Controls) -> void:
 ## between looks); a foe seen on a site is called to the team.
 func _look(game: Game, st: ModeFeature, p: Player) -> void:
 	if foe != null:
-		if foe.health <= 0 or not _sees(game, p, foe):
+		var look_again := game.clock >= sight_at
+		if look_again:
+			sight_at = game.clock + SIGHT_EVERY
+		if foe.health <= 0 or (look_again and not _sees(game, p, foe)):
 			foe_lost_at = game.clock
-			foe_last = Vector2(foe.x, foe.y) if foe.health > 0 else foe_last
+			foe_dead = foe.health <= 0
+			foe_last = Vector2(foe.x, foe.y)
 			foe = null
 		else:
+			aim.still_seen(game, foe)
 			return
 	if game.clock < next_look:
 		return
@@ -328,8 +450,8 @@ func _look(game: Game, st: ModeFeature, p: Player) -> void:
 	if best != null:
 		foe = best
 		foe_since = game.clock
-		var miss: float = AIM_ERROR[_skill(game)]
-		aim_off = rng.randf_range(-miss, miss) * clampf(near / 10.0, .5, 1.6)
+		sight_at = game.clock + SIGHT_EVERY
+		aim.notice(game, p, best, rng)
 		_call(game, st, p.team, best)
 
 
@@ -337,9 +459,9 @@ func _sees(game: Game, p: Player, q: Player) -> bool:
 	var d := Vector2(q.x - p.x, q.y - p.y).length()
 	if d > SIGHT:
 		return false
-	# Only what is in front: a field of view of about 150 degrees, unless close.
+	# Only what is in front (a screen and a little each side), unless close.
 	var bearing := atan2(q.y - p.y, q.x - p.x)
-	if d > 2.5 and absf(Enemy.angle_delta(bearing, p.angle)) > 1.3:
+	if d > HEARS and absf(Enemy.angle_delta(bearing, p.angle)) > VIEW_HALF:
 		return false
 	if TacticalUtility.smoked(game, p.x, p.y, q.x, q.y):
 		return false
@@ -425,6 +547,7 @@ func _bomb_goal(game: Game, st: ModeFeature, p: Player, c: Game.Controls) -> Vec
 			lurking = false
 			route = [[centre.x, centre.y]]
 			leg = 0
+			spread = {}
 		if carrying:
 			var on_site := Vector2(p.x, p.y).distance_to(centre) < 2.2
 			if BombMode.site_at(game, p.x, p.y) == site and on_site:
@@ -516,17 +639,50 @@ func _route_goal(game: Game, p: Player) -> Vector2:
 		var px: float = point[0]
 		var py: float = point[1]
 		var at := Vector2(px, py)
+		route_point = at
+		if leg < route.size() - 1:
+			at = _spread_out(game, p, leg)
 		if stage_leg >= 0 and leg > stage_leg and not lurking:
-			var stage: Array = route[stage_leg]
-			var sx: float = stage[0]
-			var sy: float = stage[1]
-			var wait := Vector2(sx, sy)
+			var wait := _spread_out(game, p, stage_leg)
 			if not _released(game, p, wait):
+				var stage: Array = route[stage_leg]
+				var sx: float = stage[0]
+				var sy: float = stage[1]
+				route_point = Vector2(sx, sy)
 				return wait
 		if at.distance_to(Vector2(p.x, p.y)) > ARRIVE:
 			return at
 		leg += 1
 	return Vector2.INF
+
+
+## Route point `index` moved aside by this bot's place in the team, so a team
+## on one route walks abreast, not in a line (the point itself where that is
+## not open floor). Worked out once a leg a round.
+func _spread_out(game: Game, p: Player, index: int) -> Vector2:
+	var point: Array = route[index]
+	var px: float = point[0]
+	var py: float = point[1]
+	var at := Vector2(px, py)
+	if spread.has(index):
+		var kept: Vector2 = spread[index]
+		return kept
+	spread[index] = at
+	var off := (team_index(game, p) - 2) * .55
+	var before: Array = route[index - 1] if index > 0 else [p.x, p.y]
+	var bx: float = before[0]
+	var by: float = before[1]
+	var along := at - Vector2(bx, by)
+	if absf(off) < .01 or along.length() < .5:
+		return at
+	var moved := at + Vector2(-along.y, along.x).normalized() * off
+	if (
+		game.world.blocked(moved.x, moved.y, .35)
+		or not game.world.visible(at.x, at.y, moved.x, moved.y)
+	):
+		return at
+	spread[index] = moved
+	return moved
 
 
 ## Where on the route the team gathers: the point before the site itself,
@@ -604,8 +760,15 @@ func _released(game: Game, p: Player, wait: Vector2) -> bool:
 	var seen: bool = foe != null and gathered.has(p.slot)
 	if here >= maxi(1, up - 1) or seen or game.clock - float(st.live_from) > STAGE_MOST:
 		team["go"] = true
+		team["go_at"] = game.clock
 	var go: bool = team["go"]
-	return go
+	if not go or seen:
+		return go
+	# In one after another, not in a heap: the aggressive first, the careful
+	# last, a beat apart.
+	var order := 0 if persona == "aggressive" else (1 if persona == "support" else 2)
+	var go_at: float = team.get("go_at", game.clock)
+	return game.clock >= go_at + order * .25 + team_index(game, p) * .05
 
 
 ## Whether `p` is the nearest of its team up to `at`.
@@ -621,6 +784,8 @@ static func _nearest_to(game: Game, p: Player, at: Vector2) -> bool:
 ## Which way to face standing still: the hold's own way, else toward the
 ## middle of the map.
 func _face_angle(game: Game, _st: ModeFeature, p: Player) -> float:
+	if watch != Vector2.INF:
+		return atan2(watch.y - p.y, watch.x - p.x)
 	if hold != Vector3.INF and Vector2(hold.x, hold.y).distance_to(Vector2(p.x, p.y)) < 2.0:
 		return hold.z
 	if not route.is_empty():
@@ -643,9 +808,10 @@ func _walk(game: Game, p: Player, c: Game.Controls, goal: Vector2) -> void:
 	if gap < .6:
 		c.turn = clampf(Enemy.angle_delta(_face_angle(game, null, p), p.angle), -TURN, TURN)
 		return
-	# Recently lost a foe: look where it was on the way.
-	var want := _heading(game, p, goal)
-	var check := _corner_to_check(game, p)
+	var want := _heading(game, p, _nav_for(game, p, goal, gap))
+	# The gun on a spot that matters (where a foe was lost, a teammate fell,
+	# gunfire came from), else on a hold as it goes onto a site.
+	var check := watch if watch != Vector2.INF else _corner_to_check(game, p)
 	if check != Vector2.INF:
 		# Going onto a site: the gun on the spot a defender would hold, the
 		# feet still on the way (forward and strafe split along it), walking.
@@ -662,6 +828,30 @@ func _walk(game: Game, p: Player, c: Game.Controls, goal: Vector2) -> void:
 	c.running = gap > 2.5
 
 
+## Where to walk the step field of for `goal` (each new cell is a whole-map
+## field walked, TacticalNav): far off, the route point itself (the team's
+## field) or the goal's cell snapped to a coarse grid, so the bots' many
+## passing goals (a teammate's fall, a lost foe, a carrier) share fields;
+## near, the goal itself, walked straight at when it is in sight.
+func _nav_for(game: Game, p: Player, goal: Vector2, gap: float) -> Vector2:
+	if route_point != Vector2.INF and goal.distance_to(route_point) < 1.6:
+		return route_point if gap > 3.0 else goal
+	if gap > NAV_NEAR:
+		straight = false
+		var snapped := Vector2(
+			floorf(goal.x / NAV_GRID) * NAV_GRID + NAV_GRID * .5,
+			floorf(goal.y / NAV_GRID) * NAV_GRID + NAV_GRID * .5
+		)
+		if not game.world.blocked(snapped.x, snapped.y, .3):
+			return snapped
+		return goal
+	if goal.distance_to(straight_goal) > .5 or game.clock >= straight_at:
+		straight_goal = goal
+		straight_at = game.clock + .3
+		straight = game.world.visible(p.x, p.y, goal.x, goal.y)
+	return goal
+
+
 ## An attacker on its last leg onto a site: the nearest of the map's holds
 ## (where defenders wait) it could see from here, to have its gun on as it
 ## goes in. INF when there is none, or it is not going in.
@@ -671,6 +861,14 @@ func _corner_to_check(game: Game, p: Player) -> Vector2:
 	var st: ModeFeature = Modes.feature(game)
 	if st == null or not TacticalMode.attacks(game, st, p):
 		return Vector2.INF
+	if game.clock < corner_at:
+		return corner
+	corner_at = game.clock + CORNER_EVERY
+	corner = _nearest_hold_seen(game, p)
+	return corner
+
+
+func _nearest_hold_seen(game: Game, p: Player) -> Vector2:
 	var best := Vector2.INF
 	var near := 18.0
 	for key: String in game.world.tactical.get("holds", {}):
@@ -685,34 +883,24 @@ func _corner_to_check(game: Game, p: Player) -> Vector2:
 	return best
 
 
-static func _heading(game: Game, p: Player, goal: Vector2) -> float:
+func _heading(game: Game, p: Player, goal: Vector2) -> float:
 	var direct := atan2(goal.y - p.y, goal.x - p.x)
-	if goal.distance_to(Vector2(p.x, p.y)) < 1.2:
+	if (
+		goal.distance_to(Vector2(p.x, p.y)) < 1.2
+		or (straight and goal.distance_to(straight_goal) < .6)
+	):
 		return direct
 	var field := TacticalNav.field(game, goal.x, goal.y)
 	var h: float = field.heading(p.x, p.y, game.world.stand(p)) if field != null else NAN
 	return direct if is_nan(h) else h
 
 
-## Turn onto the foe with a settling aim, strafe, and fire on target.
-func _fight(game: Game, _st: ModeFeature, p: Player, c: Game.Controls, goal: Vector2) -> void:
-	var dx := foe.x - p.x
-	var dy := foe.y - p.y
-	var d := maxf(.4, sqrt(dx * dx + dy * dy))
-	var since: float = game.clock - foe_since
-	var settle := aim_off * exp(-since * 3.0)
-	var skill := _skill(game)
-	var wobble: float = WOBBLE[skill] * sin(game.clock * 6.3 + slot * 1.9)
-	var want := atan2(dy, dx) + settle + wobble
-	var turn := Enemy.angle_delta(want, p.angle)
-	c.turn = clampf(turn, -TURN, TURN)
-	var target: float = game.world.stand(foe) + foe.air + .7
-	var slope := (target - p.eye) / d
-	c.look = clampf(slope * View.base_focal - p.pitch, -3.0, 3.0)
-	# On target as it means to aim (the wobble in that): some shots go wide.
-	var on := absf(Enemy.angle_delta(want, p.angle)) < maxf(.03, atan(.22 / d))
-	var reaction: float = REACTION[skill]
-	c.fire = since > reaction and on
+## Aim at the foe as a person does (bot_aim.gd), side-step and stand for the
+## shot, fall back hurt, and close in or hold by the gun's reach.
+func _fight(game: Game, st: ModeFeature, p: Player, c: Game.Controls, goal: Vector2) -> void:
+	var d := maxf(.4, Vector2(foe.x - p.x, foe.y - p.y).length())
+	var on := aim.aim(game, p, foe, c, rng)
+	var noticed := game.clock >= aim.ready_at
 	# The gun for the distance; out of its reach, close in.
 	var wanted := TacticalShop.gun_for(p, d)
 	if wanted != p.armory.active and p.armory.switch <= 0.0 and p.armory.fuse <= 0.0:
@@ -723,28 +911,34 @@ func _fight(game: Game, _st: ModeFeature, p: Player, c: Game.Controls, goal: Vec
 	var how: Dictionary = Weapons.FIRING[p.armory.active]
 	var scope: float = how.get("scope", 0.0)
 	var scopes := bool(scope)
-	var want_scope := scopes and d > 6.0
+	var want_scope := scopes and d > 6.0 and noticed
 	if want_scope != p.scoped and not p.alt_held and p.armory.switch <= 0.0:
 		c.alt_fire = true
+	c.fire = on and aim.burst_allows(game, p, d, rng)
 	if scopes and not p.scoped and d > 6.0:
 		c.fire = false
-	if fmod(game.clock + slot * .7, 1.6) < .02:
+	# Footwork: a side-step that changes way every so often; the guns that
+	# want a still shooter (TacticalShop.MOVE_SPREAD) stand for the shot and
+	# fire once stopped, stepping again between bursts.
+	if game.clock >= strafe_flip:
 		strafe_turn = -strafe_turn
-	c.strafe = strafe_turn * (.8 if since > reaction else 0.0)
-	# A gun that wants a still shooter (TacticalShop.MOVE_SPREAD): step aside
-	# between shots, stand to take them.
+		strafe_flip = game.clock + rng.randf_range(.35, .9)
+	c.strafe = strafe_turn * .8 if noticed else 0.0
 	var kind := TacticalShop.kind_of(p.armory.active)
 	if kind in ["RIFLE", "MACHINE GUN", "SNIPER", "PISTOL"] and d > 4.0:
-		if fmod(game.clock + slot * .37, .9) < .3:
-			c.fire = false
-		else:
+		if noticed and not aim.resting(game):
 			c.strafe = 0.0
+			if Vector2(p.vx, p.vy).length() > TacticalShop.STILL_BELOW * 1.2:
+				c.fire = false
+			# The careful kneel for a long shot.
+			c.crouch = persona == "careful" and d > 9.0
+	if _falling_back(game, st, p, c, d):
+		return
 	if d > reach:
 		# Out of reach: attackers close in, a defender keeps to its spot and
 		# lets them come.
 		c.fire = false
-		var mode_state: ModeFeature = Modes.feature(game)
-		if TacticalMode.attacks(game, mode_state, p) or hold == Vector3.INF:
+		if TacticalMode.attacks(game, st, p) or hold == Vector3.INF:
 			c.forward = 1.0
 			c.running = true
 			c.strafe *= .3
@@ -754,7 +948,170 @@ func _fight(game: Game, _st: ModeFeature, p: Player, c: Game.Controls, goal: Vec
 	elif d < 2.0:
 		c.forward = -.5
 	elif goal != Vector2.INF and hold == Vector3.INF and d > 12.0:
-		c.forward = .3
+		c.forward = .3 if persona != "careful" else 0.0
+
+
+## Hurt under its persona's line (FALL_BACK) with the foe not nearly done:
+## back off, gun still on the foe, to a spot the foe cannot see (BotTactics);
+## true while it does. Out of sight it waits there a moment (_tactics_goal),
+## then peeks again with the angle already held.
+func _falling_back(game: Game, st: ModeFeature, p: Player, c: Game.Controls, d: float) -> bool:
+	var line: float = FALL_BACK.get(persona, 35.0)
+	var attacking := TacticalMode.attacks(game, st, p)
+	if attacking:
+		# The attack has a clock to beat: it holds on longer, and with little
+		# of the round left nobody hides.
+		line *= ATTACK_FALL_BACK
+		var rules := Modes.rules(game) as TacticalMode
+		if rules != null and str(st.bomb.get("state", "")) != "planted":
+			var left := rules.round_time_of(st) - (game.clock - float(st.live_from))
+			if left < NO_HIDING:
+				return false
+	if p.health >= line and game.clock >= cover_until:
+		return false
+	if foe.health < 30 and d < 12.0:
+		return false  # nearly done: finish it
+	if _on_objective(st, p):
+		return false
+	if game.clock >= cover_look:
+		cover_look = game.clock + .6
+		cover_at = BotTactics.cover_spot(game, p, foe)
+		if cover_at != Vector2.INF and game.clock >= cover_until:
+			cover_until = game.clock + rng.randf_range(2.2, 3.6)
+	if cover_at == Vector2.INF:
+		return false
+	var to := cover_at - Vector2(p.x, p.y)
+	if to.length() < .4:
+		return false
+	var off := Enemy.angle_delta(atan2(to.y, to.x), p.angle)
+	c.forward = cos(off)
+	c.strafe = sin(off)
+	c.running = true
+	return true
+
+
+## Whether it is busy with the round's objective (carrying the bomb or a
+## hostage, planting, cutting a fuse): it does not fall back or trade then.
+func _on_objective(st: ModeFeature, p: Player) -> bool:
+	if String(st.mode) == Modes.BOMB:
+		var bomb: Dictionary = st.bomb
+		var state := str(bomb.get("state", ""))
+		var holder: int = bomb.get("slot", -1)
+		if state == "carried" and holder == p.slot:
+			return true
+		if state == "planted" and TacticalMode.defends(st, p):
+			var bx: float = bomb.get("x", 0.0)
+			var by: float = bomb.get("y", 0.0)
+			return Vector2(bx, by).distance_to(Vector2(p.x, p.y)) < BombMode.DEFUSE_REACH
+		return false
+	for h: Array in st.hostages:
+		var carrier: int = h[3]
+		if str(h[2]) == "carried" and carrier == p.slot:
+			return true
+	return false
+
+
+# ---------------------------------------------------------------- tactics
+
+
+## Teammates seen to fall (a nearby one draws it to trade: where they fell,
+## the gun on where the killer was), and gunfire that hurt it with no foe in
+## sight (it turns to where the nearest foe who just fired is: it heard it).
+func _watch_team(game: Game, p: Player) -> void:
+	for q: Player in game.players:
+		if q == p or q.team != p.team:
+			continue
+		var up := q.health > 0
+		var was: bool = mates_up.get(q.slot, up)
+		mates_up[q.slot] = up
+		if not was or up or foe != null:
+			continue
+		var gap := Vector2(q.x - p.x, q.y - p.y).length()
+		if gap > TRADE_REACH * (1.3 if persona == "support" else 1.0):
+			continue
+		trade_at = Vector2(q.x, q.y)
+		trade_until = game.clock + TRADE_FOR * (.6 if persona == "careful" else 1.0)
+		trade_look = trade_at
+		var by := q.downed_by
+		if by >= 0 and by < game.players.size() and game.players[by].team != p.team:
+			var killer: Player = game.players[by]
+			trade_look = Vector2(killer.x, killer.y)
+	if p.health < health_was and foe == null:
+		var near := SIGHT
+		for q: Player in game.players:
+			if q.team == p.team or q.health <= 0 or q.armory.cooldown <= 0.0:
+				continue
+			var gap := Vector2(q.x - p.x, q.y - p.y).length()
+			if gap < near:
+				near = gap
+				alert_at = (
+					Vector2(q.x, q.y) + Vector2(rng.randf_range(-1, 1), rng.randf_range(-1, 1))
+				)
+				alert_until = game.clock + 2.0
+	health_was = p.health
+
+
+## The objective's goal turned by what is going on: back to cover while
+## hurt, to a teammate's death to trade it, after a foe it lost (by persona);
+## and where to keep the gun on the way (`watch`).
+func _tactics_goal(game: Game, st: ModeFeature, p: Player, goal: Vector2) -> Vector2:
+	watch = Vector2.INF
+	var here := Vector2(p.x, p.y)
+	if game.clock < alert_until:
+		watch = alert_at
+	var busy := _on_objective(st, p)
+	if game.clock < cover_until and cover_at != Vector2.INF and foe == null and not busy:
+		# Out of sight: wait there, the gun on where the foe was.
+		watch = foe_last
+		return cover_at if here.distance_to(cover_at) > .5 else Vector2.INF
+	if game.clock < trade_until and not busy:
+		if here.distance_to(trade_at) < 2.0:
+			trade_until = 0.0
+		else:
+			watch = trade_look
+			return trade_at
+	var lost_for := game.clock - foe_lost_at
+	if not foe_dead and lost_for < 3.0:
+		watch = foe_last
+		var push: float = PUSH_LOST.get(persona, 0.0)
+		if lost_for < push and not busy and here.distance_to(foe_last) > 1.5:
+			return foe_last
+	return goal
+
+
+## An attacker on its route with a whole boarded cover cell near that,
+## shot open, would be the shorter way to its next point: it stands and
+## shoots it open (BotTactics.board_for, looked for once a leg). True while
+## it does.
+func _shoot_board(game: Game, p: Player, c: Game.Controls) -> bool:
+	if route.is_empty() or lurking or leg >= route.size():
+		return false
+	if board_leg != leg:
+		board_leg = leg
+		board = Vector2i(-1, -1)
+		var point: Array = route[leg]
+		var px: float = point[0]
+		var py: float = point[1]
+		if persona != "careful":
+			board = BotTactics.board_for(game, p, Vector2(px, py))
+			board_until = game.clock + 4.0
+	if board.x < 0:
+		return false
+	var walls: WallBreaks = game.features.get("wall_breaks")
+	var f: WallBreaks.Fence = null
+	if walls != null and walls.fences.has(board):
+		f = walls.fences[board]
+	if f == null or f.stage >= 2 or game.clock > board_until:
+		board = Vector2i(-1, -1)
+		return false
+	var at := Vector2(board.x + .5, board.y + .5)
+	var d := maxf(.5, at.distance_to(Vector2(p.x, p.y)))
+	var turn := Enemy.angle_delta(atan2(at.y - p.y, at.x - p.x), p.angle)
+	c.turn = clampf(turn, -TURN, TURN)
+	var slope := (game.world.elevation(at.x, at.y) + f.top * .5 - p.eye) / d
+	c.look = clampf(slope * View.base_focal - p.pitch, -3.0, 3.0)
+	c.fire = absf(turn) < .05 and p.armory.cooldown <= 0.0
+	return true
 
 
 ## Hops and side-steps out of a spot it is wedged in; a waypoint it cannot

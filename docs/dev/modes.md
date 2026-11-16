@@ -159,8 +159,98 @@ and buy menu `tactical_screens.gd`, the bots `tactical_bot.gd` with
 `TacticalBot` plays every slot but this machine's, in any build (main_flow
 `_take_mode`); they buy a rifle or save, take the map's `routes` to the team's
 site of the round (`plan_site`), hold the map's `holds` on defence, call foes
-seen on a site, plant, defuse, carry and chase, pick the gun for the
-distance, and aim with a reaction time and a wobble by DIFFICULTY.
+seen on a site, plant, defuse, carry and chase, and pick the gun for the
+distance.
+
+**Skill.** BOT SKILL (the lobby's row, PLAY VS BOTS' BOTS row, `bot_skill`
+in `Modes.HOST_SETTINGS`): EASY, NORMAL (the default), HARD, HOG WILD, or
+MIXED (each bot its own, modes.cfg `[tactical_bot] mixed` by place in its
+team, both teams alike: one EASY, two NORMAL, two HARD);
+`TacticalBot.skill_for`. Unset (-1) it follows the game's DIFFICULTY.
+
+**Aim** (`src/modes/bot_aim.gd`, `BotAim`; numbers in modes.cfg `[bot_aim]`
+by skill). Since 3.2 polish the bots no longer settle onto a foe in a few
+tenths and hit nearly every shot:
+
+- a foe coming into view is noticed after `reaction` (x0.8..1.35, more off
+  the middle of the view and far away, a third for a foe seen within
+  `memory` s: a re-peek); they notice only inside about 115 degrees in front
+  (`VIEW_HALF`) unless within 2.5 cells;
+- the crosshair is driven onto the foe by a damped spring (`spring`,
+  `damping` under 1 so it overshoots, `turn_most`), the first fling landing
+  off by `flick` of the turn;
+- the hand's aim point strays (`noise`, re-picked every .12 to .3 s), more with
+  the bot's own speed, the foe's sideways speed, range and a burst's length;
+  a strafer is followed only by `track` of its motion (the rest is lag);
+- it fires when its crosshair is inside `trigger` times the body's width of
+  where it means to aim, so the stray is where misses come from; automatic
+  guns go in bursts of `burst` at range and rest (`rest`), spraying inside 6
+  cells (`spray_inside`), and a pistol past that taps `pistol_tap` s apart;
+  the gun's climb is pulled down by the same spring and each shot's
+  kick throws the hand by 1 - `recoil`;
+- `head` is where up the body it aims (head hits come from the vertical
+  stray). Its dice are the bot's own (seeded by slot): bots play on the host
+  only and their controls are what every copy plays, so `game.rng` is left
+  alone.
+
+**Play.** Each bot has a persona (modes.cfg `personas` by its place in its
+team, both teams alike: aggressive,
+careful, support). In a fight a rifle, machine gun, sniper or pistol user
+stands to shoot once it has noticed the foe (firing only when nearly
+stopped; the careful kneel past 9 cells), side-steps between bursts, and
+under its persona's `fall_back` health (and the foe not nearly done) backs
+off, gun up, to the nearest spot the foe cannot see (`BotTactics.cover_spot`,
+at most 14 spots, looked for every .6 s), waits there 2..3.5 s with the gun
+on where the foe was, then comes back on the angle (the re-peek's short
+reaction); an attacker holds on to .6 of that line and nobody on the
+attack hides with under 30 s left (`ATTACK_FALL_BACK`, `NO_HIDING`). A
+teammate falling within `trade_reach` draws it to trade (gun on
+where the killer stood) for `trade_for` s; a foe lost (not killed) keeps its
+gun there 3 s, and the aggressive push there for `push_lost` s; gunfire that
+hurts it with nobody in sight turns it to the nearest foe who just fired.
+Nobody busy with the objective (carrying, planting, cutting the fuse,
+carrying a hostage) falls back or trades. Route points are moved aside by
+team place (`_spread_out`) so a team walks abreast, and after the gathering
+they go in one after another (aggressive first, careful last). An attacker
+whose next route point is 6 or more steps nearer through a whole boarded
+cover cell in sight within 7 cells stands and shoots it open
+(`BotTactics.board_for`, once a leg, not the careful). Everyone keeps out of
+the round's fires (`keep_out_of_fire`). The team buys together: when its
+middle cash is under 3000, a bot that could only just buy (under 4600, the
+losses not yet run to two) saves with it (`_team_cash`). Far goals walk the
+step field of their cell snapped to a 3-cell grid and route points their own
+(`_nav_for`), near ones straight when in sight, so passing goals share the
+whole-map fields. There are no ladders on the 5v5 maps.
+
+**Team radio** (`src/modes/tactical_radio.gd`): short lines at the view's
+left from this machine's teammates, worked out each frame from what every
+copy already holds (looks only, nothing carried, nothing on the server):
+foes a teammate has in front of them ("HOG 3: TWO ON B"), planting, planted,
+the bomb dropped, a fuse being cut, a hostage carried out, a teammate hit
+under 40. A speaker waits `radio_gap` between lines and the team
+`team_radio_gap`. There are no radio voices (text only).
+
+**Before and after** (`tools/bot_check.gd -- bench trials=12`, grainyard,
+60 Hz, the outlaw rifle against a target in a vest, cap 6 s; median time to
+the first hit / median time to kill / hit rate):
+
+| skill, target | 4 cells | 8 cells | 14 cells | 22 cells |
+| --- | --- | --- | --- | --- |
+| EASY strafing, before | .53 / 1.20 / 98% | .75 / 1.70 / 58% | .90 / 2.57 / 25% | 1.02 / 2.47 / 20% |
+| EASY strafing, after | .78 / 2.13 / 47% | 1.03 / 3.82 / 31% | 1.73 / 5.37 / 21% | 5.17 / 6+ / 8% |
+| NORMAL strafing, before | .43 / .90 / 100% | .43 / 1.02 / 90% | .55 / 1.43 / 58% | .67 / 1.55 / 36% |
+| NORMAL strafing, after | .62 / 2.00 / 48% | .90 / 2.42 / 48% | 1.33 / 3.18 / 31% | 1.80 / 4.05 / 22% |
+| NORMAL standing, after | .65 / 1.17 / 80% | .73 / 1.40 / 74% | .88 / 1.85 / 47% | 1.33 / 3.75 / 21% |
+| HARD strafing, before | .43 / .90 / 100% | .43 / .90 / 100% | .43 / 1.25 / 78% | .68 / 1.13 / 50% |
+| HARD strafing, after | .47 / 1.28 / 75% | .68 / 1.70 / 54% | 1.10 / 2.52 / 38% | 1.07 / 2.27 / 32% |
+| HOG WILD strafing, before | .43 / .90 / 100% | .43 / .90 / 100% | .43 / 1.02 / 86% | .55 / 1.25 / 52% |
+| HOG WILD strafing, after | .38 / 1.08 / 77% | .65 / 1.35 / 73% | .68 / 1.43 / 62% | .93 / 1.90 / 37% |
+
+(Before, NORMAL to HOG WILD hit a strafer 90..100% inside 8 cells and killed
+it about as fast as the rifle fires, the first hit .4 s after it came into
+view. A decent player lands a first hit in about .5 to .7 s and hits a
+strafer maybe half the time up close: NORMAL is now about that, HARD a little
+better, HOG WILD near the old bots at range but no longer perfect.)
 
 ### The maps
 

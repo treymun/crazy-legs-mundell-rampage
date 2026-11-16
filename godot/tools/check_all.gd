@@ -42,6 +42,7 @@ const CHECKS := [
 	["county_net_check", "COUNTY NET CHECK OK", ["seconds=30"]],
 	["games_check", "GAMES CHECK OK"],
 	["cover_check", "COVER CHECK OK"],
+	["bot_check", "BOT CHECK OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]

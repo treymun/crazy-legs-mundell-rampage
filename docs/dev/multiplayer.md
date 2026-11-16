@@ -507,7 +507,13 @@ the how-to. The 5v5 rules themselves are in
   defaults in `data/tuning/lobby.cfg`); the match ones reach the mode through
   `Modes.HOST_SETTINGS` (freeze, buy and round seconds, start cash, friendly
   fire, bot skill, bots, `teams` and `names` by slot: the host is slot 0, then
-  the people, then bots to the team size).
+  the people, then bots to the team size). BOT SKILL is EASY, NORMAL, HARD,
+  HOG WILD or MIXED (each bot its own skill by its place in its team; the
+  bots' aim and play
+  are in [modes.md](modes.md#the-bots)). The bots steer on the host only;
+  their controls are carried like a person's, so a client never runs them
+  and their dice are their own (never `game.rng`). The team radio is worked
+  out on each machine from what it already holds (looks only).
 - A match is made by `main_flow.gd net_match_game` on every machine alike (the
   host's play settings, START's "sim", over each machine's own), then played:
   the host ticks at `NetSync.STEP` with its own player and the bots
