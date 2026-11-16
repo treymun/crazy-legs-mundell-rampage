@@ -38,7 +38,9 @@
 class_name GameSnapshot
 extends RefCounted
 
-const VERSION := 2
+const VERSION := 3
+## NET_GUARDED field names by feature script (guarded_of).
+static var _guarded := {}
 ## Features whose save() is how the level's walls and floor are put back (a
 ## piece broken leaves its base, a fence shot through opens its cell).
 const FACT_FEATURES := ["breakables", "wall_breaks", "arena_wreck", "boss_lock"]
@@ -393,14 +395,61 @@ static func enemy_row(game: Game, codec: SnapCodec, i: int) -> Dictionary:
 	return row
 
 
-## A simulation feature's variables (all but `game`).
+## A simulation feature's variables (all but `game`); its NET_GUARDED lists
+## as SnapCodec.guarded() keeps them (tables, encoded again only when its
+## net_version moved).
 static func feature_row(codec: SnapCodec, feature: GameFeature, id: String) -> Dictionary:
+	var guarded := guarded_of(feature)
 	var vars := {}
 	for name: String in SnapCodec.fields_of(feature, id):
-		if name != "game":
-			var v: Variant = feature.get(name)
-			vars[name] = v if SnapCodec.PLAIN.has(typeof(v)) else codec.encode(v)
+		if name == "game":
+			continue
+		if guarded.has(name):
+			vars[name] = codec.guarded(feature, name)
+			continue
+		var v: Variant = feature.get(name)
+		vars[name] = v if SnapCodec.PLAIN.has(typeof(v)) else codec.encode(v)
 	return vars
+
+
+## A feature's NET_GUARDED field names ([] for none).
+static func guarded_of(feature: GameFeature) -> Array:
+	var script: Script = feature.get_script()
+	if not _guarded.has(script):
+		var names: Array = script.get_script_constant_map().get("NET_GUARDED", [])
+		_guarded[script] = names
+	return _guarded[script]
+
+
+## `vars` (a feature's row of a snapshot) onto `feature`, only the fields
+## `names`: a guarded list it already holds (SnapCodec.guarded_same) is left
+## as it is, and what each guarded field now holds is noted for the next
+## capture and the next snapshot (SnapCodec.guarded_now).
+static func _put_feature(
+	codec: SnapCodec, feature: GameFeature, vars: Dictionary, names: Array
+) -> void:
+	var guarded := guarded_of(feature)
+	if guarded.is_empty():
+		for name: String in names:
+			codec.set_field(feature, name, vars[name])
+		return
+	var was: Variant = feature.get("net_version")
+	var put := {}
+	# The guarded lists first, while net_version is still the game's own.
+	for name: String in names:
+		if guarded.has(name):
+			put[name] = true
+			if not SnapCodec.guarded_same(feature, name, vars[name]):
+				codec.set_field(feature, name, vars[name])
+	for name: String in names:
+		if not guarded.has(name):
+			codec.set_field(feature, name, vars[name])
+	for name: String in guarded:
+		if put.has(name):
+			SnapCodec.guarded_now(feature, name, vars[name])
+		else:
+			# Not in this delta: it holds what it held, now at the new version.
+			SnapCodec.guarded_moved(feature, name, was)
 
 
 ## The level's own changing state: each door's progress, opened and
@@ -461,6 +510,8 @@ static func apply(game: Game, data: Dictionary) -> bool:
 	for slot: String in players:
 		var p: Player = game.players[int(slot)]
 		var row: Dictionary = players[slot]
+		if row.size() == SnapCodec.fields_of(p, "Player").size() and codec.put_fields(p, row):
+			continue
 		for name: String in row:
 			codec.set_field(p, name, row[name])
 	_share(game)
@@ -474,8 +525,7 @@ static func apply(game: Game, data: Dictionary) -> bool:
 		if feature == null:
 			continue
 		var vars: Dictionary = features[id]
-		for name: String in vars:
-			codec.set_field(feature, name, vars[name])
+		_put_feature(codec, feature, vars, vars.keys())
 	var statics: Dictionary = data.get("statics", {})
 	_apply_statics(game, codec, statics)
 	_settle(game, local)
@@ -526,8 +576,7 @@ static func apply_delta(game: Game, change: Dictionary, full: Dictionary) -> voi
 		if not all_vars.has(id):
 			continue
 		var vars: Dictionary = all_vars[id]
-		for name: String in _touched(features_change[id], vars):
-			codec.set_field(feature, name, vars[name])
+		_put_feature(codec, feature, vars, _touched(features_change[id], vars))
 	if change.has("statics"):
 		var statics: Dictionary = full["statics"]
 		_apply_statics(game, codec, statics)
@@ -667,6 +716,8 @@ static func _apply_enemies(game: Game, codec: SnapCodec, data: Dictionary, chang
 		else:
 			continue
 		var enemy: Enemy = list[i]
+		if names.size() == row.size() and codec.put_fields(enemy, row):
+			continue
 		for name: String in names:
 			if name != "@id":
 				codec.set_field(enemy, name, row[name])
@@ -712,7 +763,7 @@ static func _without_unknown(d: Dictionary) -> Dictionary:
 ## carries its new value: a dictionary as {"@new": value}, anything else as
 ## it is; a key gone is listed under "@gone", the keys' order under "@order"
 ## when it is not base's with new keys after). patch(base, delta(base, now))
-## == now. Each value is compared once, bit for bit.
+## == now. Each value is compared once, bit for bit (_changed).
 static func delta(base: Variant, now: Variant) -> Variant:
 	if not (base is Dictionary and now is Dictionary):
 		return {"@new": now} if now is Dictionary else now
@@ -733,7 +784,7 @@ static func delta(base: Variant, now: Variant) -> Variant:
 			var inner: Dictionary = delta(b, n)
 			if not inner.is_empty():
 				out[key] = inner
-		elif typeof(b) != typeof(n) or var_to_bytes(b) != var_to_bytes(n):
+		elif _changed(b, n):
 			out[key] = {"@new": n} if n is Dictionary else n
 	if not gone.is_empty():
 		out["@gone"] = gone
@@ -747,6 +798,22 @@ static func delta(base: Variant, now: Variant) -> Variant:
 	if expected != now_d.keys():
 		out["@order"] = now_d.keys()
 	return out
+
+
+## Whether `now` differs from `was`, bit for bit: numbers, flags and text by
+## value (a float's sign of zero too; a NaN counts as changed, which only
+## sends it again), anything else by its bytes.
+static func _changed(was: Variant, now: Variant) -> bool:
+	var t := typeof(now)
+	if typeof(was) != t:
+		return true
+	if t == TYPE_FLOAT:
+		var a: float = was
+		var b: float = now
+		return not (a == b and (a != 0.0 or 1.0 / a == 1.0 / b))
+	if t == TYPE_INT or t == TYPE_BOOL or t == TYPE_STRING or t == TYPE_STRING_NAME:
+		return was != now
+	return var_to_bytes(was) != var_to_bytes(now)
 
 
 ## `base` with `change` (a delta()) laid over it, as a new snapshot.
@@ -842,8 +909,13 @@ static func merge(older: Variant, newer: Variant) -> Variant:
 
 
 ## The first place two snapshots differ ("" when they do not), for a check's
-## report: a path of keys and both values, shortened.
+## report: a path of keys and both values, shortened. Each dictionary or
+## array is compared whole first (natively) and walked only when it differs.
 static func first_difference(a: Variant, b: Variant, path := "") -> String:
+	var t := typeof(a)
+	if t == typeof(b) and (t == TYPE_DICTIONARY or t == TYPE_ARRAY):
+		if var_to_bytes(a) == var_to_bytes(b):
+			return ""
 	if a is Dictionary and b is Dictionary:
 		var a_d: Dictionary = a
 		var b_d: Dictionary = b

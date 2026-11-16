@@ -487,6 +487,7 @@ static func _host_and_mirror(main, check: Callable, id: String, ticks: int, play
 	var parted := ""
 	var tracked := ""
 	var mirrored := ""
+	var kept := ""
 	var refused := 0
 	var sizes: Array = []
 	var delta_ms: Array = []
@@ -522,7 +523,15 @@ static func _host_and_mirror(main, check: Callable, id: String, ticks: int, play
 			if host.tick != mirror.acked:
 				mirror.take(host.delta_since(mirror.acked))
 			compared += 1
+			# The host's snapshot with its guarded lists kept (SnapCodec.guarded)
+			# and encoded afresh: the same, or something changed one of them
+			# without bumping its feature's net_version.
+			var sk := GameSnapshot.capture(host.game)
+			SnapCodec.keep_tables = false
 			var sh := GameSnapshot.capture(host.game)
+			SnapCodec.keep_tables = true
+			if kept == "" and not GameSnapshot.same(sk, sh):
+				kept = "tick %d: %s" % [t + 1, GameSnapshot.first_difference(sh, sk)]
 			if parted == "":
 				var sp := GameSnapshot.capture(plain)
 				if not GameSnapshot.same(sh, sp):
@@ -542,6 +551,13 @@ static func _host_and_mirror(main, check: Callable, id: String, ticks: int, play
 				"%s: a host's game and an ordinary one fed the same controls are identical over %d ticks%s"
 				% [who, ticks, "" if parted == "" else " (%s)" % parted]
 			)
+		)
+	)
+	check.call(
+		kept == "",
+		(
+			"%s: the guarded lists kept between snapshots are the game's own (%d looks)%s"
+			% [who, compared, "" if kept == "" else " (%s)" % kept]
 		)
 	)
 	check.call(

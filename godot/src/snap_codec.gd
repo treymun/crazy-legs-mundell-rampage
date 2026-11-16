@@ -14,6 +14,10 @@
 ##                       rest is FAR; its open floor follows the level)
 ##   {"@skip": 1}        what a snapshot never carries (sprites, images,
 ##                       threads, callables): apply leaves it as it is.
+##   {"@T": [class, names, keys, columns]}  a feature's NET_GUARDED list or
+##                       dictionary of objects of one class, as one table
+##                       (guarded(), table()): a column a field, packed
+##                       where its type allows
 ## A dictionary with an object for a key is {"@D": [[key, value], ...]}.
 ## Decoding works in place where it can: an object of the same class, an
 ## array or a dictionary already there is filled, not replaced, so what it
@@ -109,6 +113,32 @@ const PLAIN := {
 	TYPE_COLOR: true,
 }
 const DEPTH := 14
+## Tables (table()): kept on a feature under this meta; a column's form on the
+## wire by its field's type (COL_FIELDS, untyped: an Array of encoded values).
+const TABLE_META := &"_net_table"
+const COL_ANY := 0
+const COL_BOOL := 3
+const COL_FIELDS := [TYPE_NIL, TYPE_FLOAT, TYPE_INT, TYPE_BOOL, TYPE_STRING, TYPE_VECTOR2]
+const COL_TYPES := [
+	TYPE_ARRAY,
+	TYPE_PACKED_FLOAT64_ARRAY,
+	TYPE_PACKED_INT64_ARRAY,
+	TYPE_PACKED_BYTE_ARRAY,
+	TYPE_PACKED_STRING_ARRAY,
+	TYPE_PACKED_VECTOR2_ARRAY,
+]
+const COL_MAKE := [
+	"[]",
+	"PackedFloat64Array()",
+	"PackedInt64Array()",
+	"PackedByteArray()",
+	"PackedStringArray()",
+	"PackedVector2Array()",
+]
+const TABLER_WARNINGS := (
+	'"untyped_declaration", "unsafe_property_access", "unsafe_method_access",'
+	+ ' "unsafe_call_argument"'
+)
 
 var game: Game
 ## Enemies by uid while decoding, and their instance ids -> uid while
@@ -134,6 +164,21 @@ static var _value_keys := {}
 ## Fewer fields than this are read one by one.
 const PACK_FROM := 8
 static var _made := {}
+## Per script: the table reader and writer (_tabler, null: none) and its
+## columns' forms.
+static var _tablers := {}
+## Per script: the writer of all its carried fields (_putter, null: none).
+static var _putters := {}
+## Per script: the reader of all its carried fields into a row (_rower, null:
+## none) and the fields it must look at again.
+static var _rowers := {}
+## Per script: its carried field names as an Array (to hold a row's keys to).
+static var _name_lists := {}
+static var _row_fix := {}
+## Off: every snapshot encodes the guarded lists again (net_check holds the
+## kept ones against it: something changed one without bumping net_version).
+static var keep_tables := true
+static var _table_kinds := {}
 
 
 func _init(p_game: Game) -> void:
@@ -255,6 +300,17 @@ func encode_fields(o: Object) -> Dictionary:
 func _fields_of_object(
 	o: Object, script: Script, names: PackedStringArray, depth: int
 ) -> Dictionary:
+	var rower := _rower(o, script)
+	if rower != null:
+		# Every field read into one dictionary in one call; then only those
+		# whose type may need encoding looked at again.
+		var row: Dictionary = rower.call("row", o)
+		for i: int in _row_fix[script]:
+			var name := names[i]
+			var v: Variant = row[name]
+			if not PLAIN.has(typeof(v)):
+				row[name] = encode(v, depth)
+		return row
 	var fields := {}
 	var pack: GDScript = _packs.get(script)
 	if pack != null:
@@ -450,6 +506,9 @@ func _decode_dictionary(value: Dictionary, existing: Variant) -> Variant:
 	if value.has("@o"):
 		var fields: Dictionary = value["f"]
 		return _decode_object(str(value["@o"]), fields, existing)
+	if value.has("@T"):
+		var table_row: Array = value["@T"]
+		return _decode_table(table_row, existing)
 	if value.has("@flow"):
 		# Only ever onto the flow field already there (it needs its level).
 		if existing is FlowField:
@@ -486,6 +545,112 @@ func _decode_object(key: String, fields: Dictionary, existing: Variant) -> Varia
 	return o
 
 
+## Every carried field of `o` from `row` (encode_fields()' form, perhaps with
+## "@"-keys besides): the values decoded against what `o` holds, then written
+## in one call (a script made per class, _putter: member writes about twice
+## as fast as Object.set() name by name). False when `row` does not hold
+## exactly those fields (nothing is set then).
+func put_fields(o: Object, row: Dictionary) -> bool:
+	var script: Script = o.get_script()
+	var names: PackedStringArray = fields_of(o, class_key(script))
+	var putter := _putter(script)
+	var pack: GDScript = _packs.get(script)
+	if putter == null or pack == null:
+		return false
+	var n := names.size()
+	var now: Array = []
+	var keys: Array = row.keys()
+	if keys.size() >= n and _rower(o, script) != null:
+		# The row's keys are the fields in order (an enemy's "@id" after them):
+		# its values as they stand, only the fields whose type may need
+		# decoding looked at.
+		keys.resize(n)
+		if keys == _name_lists[script]:
+			var in_order: Array = row.values()
+			in_order.resize(n)
+			for i: int in _row_fix[script]:
+				var w: Variant = in_order[i]
+				if typeof(w) >= TYPE_DICTIONARY:
+					if now.is_empty():
+						pack.call("pack", o, now)
+					in_order[i] = decode(w, now[i])
+			putter.call("put", o, in_order)
+			return true
+	var vals: Array = []
+	vals.resize(n)
+	for i in n:
+		var name := names[i]
+		if not row.has(name):
+			return false
+		var v: Variant = row[name]
+		if typeof(v) >= TYPE_DICTIONARY:
+			if now.is_empty():
+				pack.call("pack", o, now)
+			v = decode(v, now[i])
+		vals[i] = v
+	putter.call("put", o, vals)
+	return true
+
+
+## A script whose row(o) is o's carried fields as a dictionary (the order of
+## fields_of), made from its class's field list; _row_fix[script] the indices
+## of the fields whose declared type is not always plain (untyped, int,
+## objects, arrays...). Null (none) for a short list.
+static func _rower(o: Object, script: Script) -> GDScript:
+	if _rowers.has(script):
+		return _rowers[script]
+	var names: PackedStringArray = _fields.get(script, PackedStringArray())
+	var made: GDScript = null
+	if names.size() >= PACK_FROM:
+		var types := {}
+		for prop: Dictionary in o.get_property_list():
+			var usage: int = prop["usage"]
+			if usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
+				types[str(prop["name"])] = prop["type"]
+		var fix := PackedInt32Array()
+		var pairs := PackedStringArray()
+		for i in names.size():
+			pairs.append('"%s": o.%s' % [names[i], names[i]])
+			var t: int = types.get(names[i], TYPE_NIL)
+			if not PLAIN.has(t) or t == TYPE_NIL:
+				fix.append(i)
+		var source := (
+			"@warning_ignore_start(%s)\n" % TABLER_WARNINGS
+			+ "extends RefCounted\n\n\nstatic func row(o: Object) -> Dictionary:\n"
+			+ "\treturn {%s}\n" % ", ".join(pairs)
+		)
+		made = GDScript.new()
+		made.source_code = source
+		if made.reload() != OK:
+			made = null
+		_row_fix[script] = fix
+	_rowers[script] = made
+	return made
+
+
+## A script whose put(o, values) writes `script`'s carried fields in order.
+static func _putter(script: Script) -> GDScript:
+	if _putters.has(script):
+		return _putters[script]
+	var names: PackedStringArray = _fields.get(script, PackedStringArray())
+	var made: GDScript = null
+	if not names.is_empty():
+		var writes := PackedStringArray()
+		for i in names.size():
+			writes.append("\to.%s = v[%d]\n" % [names[i], i])
+		var source := (
+			"@warning_ignore_start(%s)\n" % TABLER_WARNINGS
+			+ "extends RefCounted\n\n\nstatic func put(o: Object, v: Array) -> void:\n"
+			+ "".join(writes)
+		)
+		made = GDScript.new()
+		made.source_code = source
+		if made.reload() != OK:
+			made = null
+	_putters[script] = made
+	return made
+
+
 ## Sets one field of `o` from its snapshot value (in place for an array, a
 ## dictionary or an object of the same class).
 func set_field(o: Object, name: String, value: Variant) -> void:
@@ -514,6 +679,244 @@ static func _make(script: GDScript) -> Object:
 	return script.new() if _made[script] else null
 
 
+# ------------------------------------------------------------------ tables
+
+
+## A feature's NET_GUARDED field as a snapshot carries it: a list or a
+## dictionary (plain keys) of objects of one class carried by value (a level's
+## windows, fences, breakable pieces, things) is one table, the rest as
+## encode() has it. Kept on the feature (a meta, never a script variable)
+## until its net_version moves: anything that changes one of those objects
+## bumps it (net_track.gd holds the same rule), so a snapshot of a level whose
+## fences stand as they did costs nothing for them. Each call hands out its
+## own outer dictionary (a caller may patch it in place).
+func guarded(feature: Object, name: String) -> Variant:
+	var version: Variant = feature.get("net_version")
+	var kept: Dictionary = feature.get_meta(TABLE_META, {})
+	var row: Array = kept.get(name, [])
+	var enc: Variant = null
+	if keep_tables and version != null and not row.is_empty() and row[0] == version:
+		enc = row[1]
+	else:
+		enc = table(feature.get(name))
+		if keep_tables and version != null:
+			if kept.is_empty():
+				feature.set_meta(TABLE_META, kept)
+			kept[name] = [version, enc]
+	if enc is Dictionary:
+		var d: Dictionary = enc
+		return d.duplicate()
+	return enc
+
+
+## Whether `value` (a snapshot's form of `feature`'s guarded field `name`) is
+## what the feature holds now, as far as its kept table knows (false when it
+## does not know): putting it on can be skipped.
+static func guarded_same(feature: Object, name: String, value: Variant) -> bool:
+	var kept: Dictionary = feature.get_meta(TABLE_META, {})
+	var row: Array = kept.get(name, [])
+	if not keep_tables or row.is_empty() or row[0] != feature.get("net_version"):
+		return false
+	var had: Variant = row[1]
+	if had is Dictionary and value is Dictionary:
+		var a: Dictionary = had
+		var b: Dictionary = value
+		if a.has("@T") and b.has("@T") and is_same(a["@T"], b["@T"]):
+			return true
+	return var_to_bytes(had) == var_to_bytes(value)
+
+
+## After a snapshot was put on: the feature's guarded field `name` is `value`
+## at the net_version it has now.
+static func guarded_now(feature: Object, name: String, value: Variant) -> void:
+	var kept: Dictionary = feature.get_meta(TABLE_META, {})
+	if kept.is_empty():
+		feature.set_meta(TABLE_META, kept)
+	var keep: Variant = value
+	if value is Dictionary:
+		var d: Dictionary = value
+		keep = d.duplicate()
+	kept[name] = [feature.get("net_version"), keep]
+
+
+## After a delta that left `feature`'s guarded field `name` alone was put
+## on: what was kept at net_version `was` is what it holds at the new one.
+static func guarded_moved(feature: Object, name: String, was: Variant) -> void:
+	var kept: Dictionary = feature.get_meta(TABLE_META, {})
+	var row: Array = kept.get(name, [])
+	if not row.is_empty() and row[0] == was:
+		row[0] = feature.get("net_version")
+
+
+## `value` as a table: {"@T": [class, names, keys, columns]} for a list (keys
+## null) or a dictionary of objects all of one class carried by value, each
+## column a packed array where its field is typed (float, int, bool as bytes,
+## String, Vector2), else an Array of encoded values. Anything else (empty, a
+## mix, a key that is not plain) as encode() has it.
+func table(value: Variant) -> Variant:
+	var items: Array = []
+	var keys: Variant = null
+	if value is Dictionary:
+		var dict: Dictionary = value
+		var key_list: Array = dict.keys()
+		for k: Variant in key_list:
+			var t := typeof(k)
+			if not PLAIN.has(t) and (t != TYPE_INT or iids.has(k)):
+				return encode(value)
+		keys = key_list
+		items = dict.values()
+	elif value is Array:
+		items = value
+	if items.is_empty() or typeof(items[0]) != TYPE_OBJECT or items[0] == null:
+		return encode(value)
+	var first: Object = items[0]
+	var script: Script = first.get_script()
+	var key: Variant = _value_keys.get(script)
+	if key == null:
+		return encode(value)
+	var tabler := _tabler(first, str(key))
+	if tabler == null:
+		return encode(value)
+	var cols: Array = tabler.call("take", items, script)
+	if cols.is_empty():
+		return encode(value)
+	var kinds: PackedByteArray = _table_kinds[script]
+	for j in kinds.size():
+		if kinds[j] == COL_ANY:
+			var col: Array = cols[j]
+			for i in col.size():
+				var v: Variant = col[i]
+				if not PLAIN.has(typeof(v)):
+					col[i] = encode(v, 2)
+	return {"@T": [key, _fields[script], keys, cols]}
+
+
+func _decode_table(row: Array, existing: Variant) -> Variant:
+	var key := str(row[0])
+	var names: PackedStringArray = row[1]
+	var keys: Variant = row[2]
+	var cols: Array = row[3]
+	var script: GDScript = _by_key.get(key)
+	if script == null:
+		unknown[key] = true
+		return existing
+	var key_list: Array = keys if keys is Array else []
+	var n := key_list.size()
+	if not (keys is Array) and not cols.is_empty():
+		n = len(cols[0])
+	var old_list: Array = existing if existing is Array and not (keys is Array) else []
+	var old_dict: Dictionary = existing if existing is Dictionary and keys is Array else {}
+	var items: Array = []
+	items.resize(n)
+	for i in n:
+		var o: Variant = null
+		if keys is Array:
+			o = old_dict.get(key_list[i])
+		elif i < old_list.size():
+			o = old_list[i]
+		var obj: Object = o if typeof(o) == TYPE_OBJECT else null
+		if obj == null or obj.get_script() != script:
+			obj = _make(script)
+			if obj == null:
+				unknown[key + " (cannot be made)"] = true
+				return existing
+		items[i] = obj
+	var tabler: GDScript = null
+	if n > 0:
+		var first: Object = items[0]
+		tabler = _tabler(first, key)
+	var kinds: PackedByteArray = _table_kinds.get(script, PackedByteArray())
+	var fast: bool = tabler != null and names == _fields[script] and cols.size() == names.size()
+	for j in kinds.size():
+		if fast and kinds[j] != COL_ANY and COL_TYPES[kinds[j]] != typeof(cols[j]):
+			fast = false
+	if fast:
+		tabler.call("put", items, cols)
+	for j in mini(names.size(), cols.size()):
+		if fast and kinds[j] != COL_ANY:
+			continue
+		var col: Variant = cols[j]
+		var bytes := typeof(col) == TYPE_PACKED_BYTE_ARRAY
+		for i in n:
+			var obj: Object = items[i]
+			var v: Variant = col[i]
+			set_field(obj, names[j], (v != 0) if bytes else v)
+	if keys is Array:
+		var into: Dictionary = existing if existing is Dictionary else {}
+		if into.keys() != key_list:
+			into.clear()
+			for i in n:
+				into[key_list[i]] = items[i]
+		return into
+	if existing is Array:
+		old_list.assign(items)
+		return existing
+	return items
+
+
+## A script whose take(items, script) reads every carried field of each item
+## (all of them `script`'s objects, else []) into columns, and put(items,
+## columns) writes the typed columns back (the Array columns are the
+## caller's), for the class of `o` (`key`); null when one cannot be made.
+static func _tabler(o: Object, key: String) -> GDScript:
+	var script: Script = o.get_script()
+	if _tablers.has(script):
+		return _tablers[script]
+	var names: PackedStringArray = fields_of(o, key)
+	var types := {}
+	for prop: Dictionary in o.get_property_list():
+		var usage: int = prop["usage"]
+		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			types[str(prop["name"])] = prop["type"]
+	var kinds := PackedByteArray()
+	var make := PackedStringArray()
+	var takes := PackedStringArray()
+	var puts := PackedStringArray()
+	var reads := PackedStringArray()
+	var cols := PackedStringArray()
+	for j in names.size():
+		var name := names[j]
+		var t: int = types.get(name, TYPE_NIL)
+		var kind := COL_FIELDS.find(t)
+		if kind < 0:
+			kind = COL_ANY
+		kinds.append(kind)
+		cols.append("c%d" % j)
+		make.append("\tvar c%d := %s\n\tc%d.resize(n)\n" % [j, COL_MAKE[kind], j])
+		if kind == COL_BOOL:
+			takes.append("\t\tc%d[i] = 1 if o.%s else 0\n" % [j, name])
+			puts.append("\t\to.%s = c%d[i] != 0\n" % [name, j])
+		else:
+			takes.append("\t\tc%d[i] = o.%s\n" % [j, name])
+			if kind != COL_ANY:
+				puts.append("\t\to.%s = c%d[i]\n" % [name, j])
+		if kind != COL_ANY:
+			var packed_type: String = COL_MAKE[kind]
+			reads.append("\tvar c%d: %s = cols[%d]\n" % [j, packed_type.trim_suffix("()"), j])
+	var source := (
+		"@warning_ignore_start(%s)\n" % TABLER_WARNINGS
+		+ "extends RefCounted\n\n\nstatic func take(items: Array, s: Script) -> Array:\n"
+		+ "\tvar n := items.size()\n"
+		+ "".join(make)
+		+ "\tfor i in n:\n\t\tvar o = items[i]\n"
+		+ "\t\tif typeof(o) != TYPE_OBJECT or o == null or o.get_script() != s:\n"
+		+ "\t\t\treturn []\n"
+		+ "".join(takes)
+		+ "\treturn [%s]\n\n\n" % ", ".join(cols)
+		+ "static func put(items: Array, cols: Array) -> void:\n"
+		+ "".join(reads)
+		+ "\tfor i in items.size():\n\t\tvar o = items[i]\n"
+		+ "".join(puts)
+		+ "\t\tpass\n"
+	)
+	var made := GDScript.new()
+	made.source_code = source
+	var tabler: GDScript = made if made.reload() == OK else null
+	_tablers[script] = tabler
+	_table_kinds[script] = kinds
+	return tabler
+
+
 # --------------------------------------------------------------- classes
 
 
@@ -540,6 +943,7 @@ static func fields_of(o: Object, key: String) -> PackedStringArray:
 		if not skip.has(name) and (only.is_empty() or only.has(name)):
 			names.append(name)
 	_fields[script] = names
+	_name_lists[script] = Array(names)
 	var snames := names_of(names)
 	_snames[script] = snames
 	_packs[script] = packer(snames)
@@ -572,6 +976,17 @@ static func _register_all() -> void:
 	}
 	for script: GDScript in Features.ALL:
 		roots[script.resource_path.get_file().get_basename()] = script
+	# Every root under its own name first, then what each holds: a feature's
+	# inner classes are named by its file (wall_breaks.Fence) even when another
+	# root reaches that script through a preload first (SKIP_FIELDS and
+	# ONLY_FIELDS name them so; before snapshot version 3 some were named by
+	# that path, so their lists never applied and a feature reached that way
+	# was carried by value).
+	for key: String in roots:
+		var root: Script = roots[key]
+		if not _by_script.has(root):
+			_by_script[root] = key
+			_by_key[key] = root
 	for key: String in roots:
 		var root: Script = roots[key]
 		_register(key, root)
@@ -590,7 +1005,7 @@ static func _register_all() -> void:
 
 
 static func _register(key: String, script: Script) -> void:
-	if _by_script.has(script):
+	if _by_script.get(script, key) != key:
 		return
 	_by_script[script] = key
 	_by_key[key] = script
