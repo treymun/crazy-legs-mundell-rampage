@@ -1,14 +1,22 @@
 ## Every headless check at once, in parallel, with one table at the end.
 ##
 ##   godot --headless --path godot --script res://tools/check_all.gd [-- lint] [fast] [quick]
+##       [only=a,b] [shard=K/N] [jobs=J] [full]
 ##
-## Each check runs in its own Godot process with its own scratch profile
-## (APPDATA), so none of them touches your saves or another check's files.
-## lint also runs gdformat --check and gdlint from the repo's .venv; fast
-## leaves out the campaign walkthrough, the pictures and the quest reach; quick
-## runs only QUICK (a minute or two: the set to run after every change, the
-## whole set at the end of a piece of work). Exits 1 if anything
-## failed, and prints the end of each failing check's output.
+## Each check runs in its own Godot process with its own scratch profile and
+## cache folder (PROFILE_VARS), so none of them touches your saves or another
+## check's files (the tools keep boss checkpoints, County Run and range
+## records under OS.get_cache_dir(): shared, two checks starting chapters at
+## once would clear each other's). lint also runs gdformat --check and gdlint from
+## the repo's .venv; fast leaves out the campaign walkthrough, the pictures and
+## the quest reach; quick runs only QUICK (a minute or two: the set to run
+## after every change, the whole set at the end of a piece of work).
+## check_fixes runs as its parts (check_fixes_1 ... , its PARTS) side by side.
+## only= runs the named rows; shard=K/N runs the K-th of N even shares of the
+## rows by CI_SECONDS (what CI's matrix runs, so every row here is in CI);
+## jobs= runs at most J at once; full prints every row's whole output (in
+## folded groups on GitHub Actions). Exits 1 if anything failed, and prints
+## the end of each failing check's output.
 extends SceneTree
 
 ## [script, the line that says it passed, its own arguments (optional)]
@@ -31,12 +39,16 @@ const CHECKS := [
 	["menu_touch_check", "MENU TOUCH OK"],
 	["camera_check", "CAMERA CHECK OK"],
 	["county_check", "COUNTY CHECK OK"],
-	["county_net_check", "COUNTY NET CHECK OK"],
+	["county_net_check", "COUNTY NET CHECK OK", ["seconds=30"]],
 	["games_check", "GAMES CHECK OK"],
 	["cover_check", "COVER CHECK OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
+## Rows that measure timing (net_lag's limits on hits that looked like hits,
+## stalls, rubber band): they run last, with nothing beside them. Beside
+## another check on a 4-core runner net_lag went over its 12% limit.
+const ALONE := ["net_lag"]
 const QUICK := [
 	"check_shader",
 	"view3d_check",
@@ -53,50 +65,68 @@ const QUICK := [
 	"vehicle_check",
 	"wreck_check",
 ]
+## Seconds each row takes on a GitHub runner, from a real run (the step times
+## in the Actions log, or this table's own column there), to share the rows
+## out evenly with shard=. A row not listed counts as DEFAULT_SECONDS.
+const CI_SECONDS := {
+	"check_fixes_1": 150,
+	"check_fixes_2": 150,
+	"check_fixes_3": 150,
+	"check_fixes_4": 150,
+	"check_fixes_5": 150,
+	"check_fixes_6": 150,
+	"save_fixtures": 40,
+	"county_check": 42,
+	"county_net_check": 30,
+	"wreck_check": 30,
+	"net_lag": 25,
+	"bot_campaign": 22,
+	"quest_reach": 20,
+	"net_showdown_check": 20,
+	"live_props_check": 15,
+	"physics_check": 15,
+	"climb_check": 12,
+	"net_server_check": 10,
+	"vehicle_check": 10,
+}
+const DEFAULT_SECONDS := 8
+## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and
+## OS.get_cache_dir() (LOCALAPPDATA, XDG_CACHE_HOME): each row gets its own.
+const PROFILE_VARS := ["APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME", "XDG_CACHE_HOME"]
 
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var started := Time.get_ticks_msec()
-	var scratch := OS.get_environment("TEMP").path_join(
-		"clmr_checks_%d" % Time.get_unix_time_from_system()
-	)
-	var kept_appdata := OS.get_environment("APPDATA")
+	var rows := _rows()
+	var picked: Array = []
+	for row: Dictionary in rows:
+		var script := String(row["script"])
+		if args.has("fast") and script in SLOW:
+			continue
+		if args.has("quick") and not script in QUICK:
+			continue
+		picked.append(row)
+	for arg in args:
+		if arg.begins_with("only="):
+			picked = _only(picked, arg.substr(5).split(","))
+		elif arg.begins_with("shard="):
+			picked = _shard(picked, arg.substr(6))
+	if picked.is_empty():
+		print("NOTHING TO RUN: an only= or shard= argument names no check")
+		quit(1)
+		return
+	var cap := picked.size()
+	for arg in args:
+		if arg.begins_with("jobs="):
+			cap = maxi(1, int(arg.substr(5)))
+	var temp := OS.get_environment("TEMP")
+	if temp.is_empty():
+		temp = OS.get_cache_dir()
+	var scratch := temp.path_join("clmr_checks_%d" % Time.get_unix_time_from_system())
 	var jobs: Array = []
-	for check: Array in CHECKS:
-		if args.has("fast") and String(check[0]) in SLOW:
-			continue
-		if args.has("quick") and not String(check[0]) in QUICK:
-			continue
-		var profile := scratch.path_join(String(check[0]))
-		DirAccess.make_dir_recursive_absolute(profile)
-		# A child takes the environment as it is when it starts.
-		OS.set_environment("APPDATA", profile)
-		var job := OS.execute_with_pipe(
-			OS.get_executable_path(),
-			(
-				[
-					"--headless",
-					"--path",
-					ProjectSettings.globalize_path("res://"),
-					"--script",
-					"res://tools/%s.gd" % check[0]
-				]
-				+ (["--"] + check[2] if check.size() > 2 else [])
-			),
-			false
-		)
-		jobs.append(
-			{
-				"name": check[0],
-				"pass": check[1],
-				"job": job,
-				"out": "",
-				"began": Time.get_ticks_msec(),
-				"ms": 0
-			}
-		)
-	OS.set_environment("APPDATA", kept_appdata)
+	for row: Dictionary in picked:
+		jobs.append(row.merged({"job": {}, "out": "", "began": 0, "ms": 0, "done": false}))
 	var lint := []
 	if args.has("lint"):
 		var venv := _venv()
@@ -109,26 +139,56 @@ func _init() -> void:
 			)
 			var code := OS.execute(venv.path_join(tool + ".exe"), tool_args, output, true)
 			lint.append([tool, code == 0, "\n".join(output)])
-	# Read every child's output as it comes, until all have finished.
-	var running := jobs.size()
-	while running > 0:
+	# Start rows while fewer than `cap` run; read every child's output as it
+	# comes, until all have finished. ALONE rows go last, one by one, with
+	# nothing beside them.
+	var waiting: Array = []
+	for j: Dictionary in jobs:
+		if not String(j["script"]) in ALONE:
+			waiting.append(j)
+	for j: Dictionary in jobs:
+		if String(j["script"]) in ALONE:
+			waiting.append(j)
+	var running := 0
+	var alone := false
+	while not waiting.is_empty() or running > 0:
+		while not waiting.is_empty() and running < cap and not alone:
+			var j: Dictionary = waiting[0]
+			if String(j["script"]) in ALONE:
+				if running > 0:
+					break
+				alone = true
+			waiting.pop_front()
+			j["job"] = _start(j, scratch)
+			j["began"] = Time.get_ticks_msec()
+			running += 1
 		running = 0
+		alone = false
 		for j: Dictionary in jobs:
 			var job: Dictionary = j["job"]
-			for stream in ["stdio", "stderr"]:
-				var pipe: FileAccess = job.get(stream)
-				if pipe == null:
-					continue
-				var chunk := pipe.get_buffer(65536)
-				while chunk.size() > 0:
-					j["out"] += chunk.get_string_from_utf8()
-					chunk = pipe.get_buffer(65536)
+			if job.is_empty() or bool(j["done"]):
+				continue
+			_drain(j)
 			if OS.is_process_running(int(job["pid"])):
 				running += 1
-			elif int(j["ms"]) == 0:
+				alone = alone or String(j["script"]) in ALONE
+			else:
+				# What it wrote just before it ended.
+				_drain(j)
+				j["done"] = true
 				j["ms"] = Time.get_ticks_msec() - int(j["began"])
-		OS.delay_msec(100)
+		# Often: a child whose output pipe is full waits until it is read,
+		# and at 100 ms net_lag's online timing came out differently (13% of
+		# hits judged misses where a plain run has 8%).
+		OS.delay_msec(10)
 	var failed := 0
+	var groups := OS.get_environment("GITHUB_ACTIONS") == "true"
+	if args.has("full"):
+		for j: Dictionary in jobs:
+			print(("::group::" if groups else "\n== ") + String(j["name"]))
+			print(String(j["out"]).strip_edges())
+			if groups:
+				print("::endgroup::")
 	print("")
 	for row: Array in lint:
 		print("%-18s %s" % [row[0], "ok" if row[1] else "FAILED"])
@@ -142,6 +202,8 @@ func _init() -> void:
 		if not ok:
 			failed += 1
 			print(_tail(out, 25))
+			if groups:
+				print("::error::%s failed (its whole output is above)" % j["name"])
 	print(
 		(
 			"%s in %.1f s"
@@ -154,7 +216,119 @@ func _init() -> void:
 	quit(1 if failed else 0)
 
 
-## The last lines of a check's output, without the engine's exit noise.
+## Every row: CHECKS with check_fixes split into its parts.
+func _rows() -> Array:
+	var rows: Array = []
+	for check: Array in CHECKS:
+		var script := String(check[0])
+		var own: Array = check[2] if check.size() > 2 else []
+		if script == "check_fixes":
+			var fixes: GDScript = load("res://tools/check_fixes.gd")
+			var parts: Array = fixes.get_script_constant_map()["PARTS"]
+			for k in range(1, parts.size() + 1):
+				rows.append(
+					{
+						"name": "%s_%d" % [script, k],
+						"script": script,
+						"pass": check[1],
+						"args": own + ["part=%d" % k]
+					}
+				)
+			continue
+		rows.append({"name": script, "script": script, "pass": check[1], "args": own})
+	return rows
+
+
+## The rows named (a script's name takes all its parts); empty if one is unknown.
+func _only(rows: Array, names: PackedStringArray) -> Array:
+	var kept: Array = []
+	for name in names:
+		var found := false
+		for row: Dictionary in rows:
+			if row["name"] == name or row["script"] == name:
+				found = true
+				if not kept.has(row):
+					kept.append(row)
+		if not found:
+			push_error("check_all: no check named " + name)
+			return []
+	return kept
+
+
+## Share the rows out over N shards, longest first onto the lightest shard
+## (by CI_SECONDS), and keep the K-th.
+func _shard(rows: Array, spec: String) -> Array:
+	var k := int(spec.get_slice("/", 0))
+	var n := int(spec.get_slice("/", 1))
+	if n < 1 or k < 1 or k > n:
+		return []
+	var order := rows.duplicate()
+	order.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return _seconds(a) > _seconds(b))
+	var loads: Array = []
+	var shares: Array = []
+	for _i in n:
+		loads.append(0)
+		shares.append([])
+	for row: Dictionary in order:
+		var lightest := 0
+		for i in n:
+			if int(loads[i]) < int(loads[lightest]):
+				lightest = i
+		loads[lightest] = int(loads[lightest]) + _seconds(row)
+		shares[lightest].append(row)
+	print("shard %d of %d: about %d s of checks" % [k, n, loads[k - 1]])
+	return shares[k - 1]
+
+
+func _seconds(row: Dictionary) -> int:
+	return int(CI_SECONDS.get(row["name"], DEFAULT_SECONDS))
+
+
+## Read what a row's process has written so far.
+func _drain(j: Dictionary) -> void:
+	var job: Dictionary = j["job"]
+	for stream in ["stdio", "stderr"]:
+		var pipe: FileAccess = job.get(stream)
+		if pipe == null:
+			continue
+		var chunk := pipe.get_buffer(65536)
+		while chunk.size() > 0:
+			j["out"] += chunk.get_string_from_utf8()
+			chunk = pipe.get_buffer(65536)
+
+
+## Start one row in its own Godot process and scratch profile.
+func _start(row: Dictionary, scratch: String) -> Dictionary:
+	var profile := scratch.path_join(String(row["name"]))
+	DirAccess.make_dir_recursive_absolute(profile)
+	# A child takes the environment as it is when it starts.
+	var kept := {}
+	for key in PROFILE_VARS:
+		kept[key] = OS.get_environment(key)
+		OS.set_environment(key, profile)
+	var args: Array = row["args"]
+	var job := OS.execute_with_pipe(
+		OS.get_executable_path(),
+		(
+			[
+				"--headless",
+				"--path",
+				ProjectSettings.globalize_path("res://"),
+				"--script",
+				"res://tools/%s.gd" % row["script"]
+			]
+			+ (["--"] + args if not args.is_empty() else [])
+		),
+		false
+	)
+	for key: String in kept:
+		if String(kept[key]).is_empty():
+			OS.unset_environment(key)
+		else:
+			OS.set_environment(key, String(kept[key]))
+	return job
+
+
 ## The repo's .venv/Scripts: beside the project, or further up (a git
 ## worktree under .claude/worktrees has none of its own and shares the
 ## main checkout's).
@@ -168,6 +342,7 @@ func _venv() -> String:
 	return ProjectSettings.globalize_path("res://").path_join("../.venv/Scripts").simplify_path()
 
 
+## The last lines of a check's output, without the engine's exit noise.
 func _tail(text: String, count: int) -> String:
 	var lines := PackedStringArray()
 	for line in text.split("\n"):

@@ -1,29 +1,36 @@
 name: Set up Godot and the game data
 description: >
-  Installs the Godot editor and the export templates the release uses, packs
-  the assets the project reads (tools/pack_assets.gd; kept between runs until
-  an asset changes), stamps the tag version on release builds, and imports the
-  project. No Python. Linux runners only.
+  Installs the Godot editor (and, for a build, the export templates), packs the
+  assets the project reads (tools/pack_assets.gd), stamps the tag version on
+  release builds, and imports the project. The editor, the templates, the
+  packs and the import cache (.godot/) are each kept between runs; the packs
+  and the import cache are saved only by a job that asks (save-cache), so the
+  parallel jobs of one run do not race to save the same thing. No Python.
+  Linux runners only.
 
 inputs:
   godot-version:
     description: Godot release to build with (must match godot/project.godot).
     default: "4.7.2"
+  templates:
+    description: "'true' also installs the export templates (the build jobs)."
+    default: "false"
+  save-cache:
+    description: "'true' saves the packs and the import cache when this run made new ones."
+    default: "false"
 
 runs:
   using: composite
   steps:
-    - name: Restore Godot
-      id: cache
+    - name: Restore the Godot editor
+      id: editor
       uses: actions/cache@v4
       with:
-        path: |
-          ~/godot
-          ~/.local/share/godot/export_templates
-        key: godot-${{ inputs.godot-version }}-linux-windows-web-weblite-android
+        path: ~/godot
+        key: godot-editor-${{ inputs.godot-version }}-linux
 
-    - name: Download Godot
-      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Download the Godot editor
+      if: steps.editor.outputs.cache-hit != 'true'
       shell: bash
       env:
         VERSION: ${{ inputs.godot-version }}
@@ -31,16 +38,39 @@ runs:
         set -euo pipefail
         base="https://github.com/godotengine/godot/releases/download/${VERSION}-stable"
         editor="Godot_v${VERSION}-stable_linux.x86_64.zip"
-        templates="Godot_v${VERSION}-stable_export_templates.tpz"
-        work="$RUNNER_TEMP/godot-download"
-        mkdir -p "$work" ~/godot ~/.local/share/godot/export_templates/${VERSION}.stable
+        work="$RUNNER_TEMP/godot-editor"
+        mkdir -p "$work" ~/godot
         cd "$work"
-        curl -fsSL --retry 3 -O "$base/$editor" -O "$base/$templates" -O "$base/SHA512-SUMS.txt"
-        grep -E "  ($editor|$templates)\$" SHA512-SUMS.txt | sha512sum --check --strict
+        curl -fsSL --retry 3 -O "$base/$editor" -O "$base/SHA512-SUMS.txt"
+        grep -E "  $editor\$" SHA512-SUMS.txt | sha512sum --check --strict
         unzip -q -j "$editor" -d ~/godot
         mv ~/godot/Godot_v${VERSION}-stable_linux.x86_64 ~/godot/godot
         chmod +x ~/godot/godot
-        # The archive holds every platform (1.3 GB); the release needs four files
+        rm -rf "$work"
+
+    - name: Restore the export templates
+      id: templates
+      if: inputs.templates == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/share/godot/export_templates
+        key: godot-templates-${{ inputs.godot-version }}-windows-web-weblite-android
+
+    - name: Download the export templates
+      if: inputs.templates == 'true' && steps.templates.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        VERSION: ${{ inputs.godot-version }}
+      run: |
+        set -euo pipefail
+        base="https://github.com/godotengine/godot/releases/download/${VERSION}-stable"
+        templates="Godot_v${VERSION}-stable_export_templates.tpz"
+        work="$RUNNER_TEMP/godot-templates"
+        mkdir -p "$work" ~/.local/share/godot/export_templates/${VERSION}.stable
+        cd "$work"
+        curl -fsSL --retry 3 -O "$base/$templates" -O "$base/SHA512-SUMS.txt"
+        grep -E "  $templates\$" SHA512-SUMS.txt | sha512sum --check --strict
+        # The archive holds every platform (1.3 GB); the release needs these
         # (the browser build ships with and without threads).
         unzip -q -j "$templates" \
           templates/version.txt \
@@ -53,7 +83,7 @@ runs:
 
     - name: Restore the asset packs
       id: packs
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: godot/assets_gen
         key: packs-${{ hashFiles('assets/art/**', 'assets/tiles/**', 'audio_src/manifest.json', 'audio_src/final/sfx/**', 'godot/assets/music/**', 'godot/assets_gen/tiles_index.json', 'godot/tools/pack_assets.gd', 'godot/src/assets.gd') }}
@@ -63,20 +93,46 @@ runs:
       shell: bash
       run: ~/godot/godot --headless --path godot --script res://tools/pack_assets.gd
 
+    - name: Save the asset packs
+      if: inputs.save-cache == 'true' && steps.packs.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: godot/assets_gen
+        key: ${{ steps.packs.outputs.cache-primary-key }}
+
     - name: Stamp the release version
       if: github.ref_type == 'tag'
       shell: bash
       run: ~/godot/godot --headless --path godot --script res://tools/version.gd -- "$GITHUB_REF_NAME"
+
+    # The import cache: the models' and icons' imports and the script class
+    # cache. Keyed on the imported files; any older one is restored otherwise
+    # and the import below redoes only what changed.
+    - name: Restore the import cache
+      id: imported
+      uses: actions/cache/restore@v4
+      with:
+        path: godot/.godot
+        key: godot-import-${{ inputs.godot-version }}-${{ hashFiles('godot/assets3d/**', 'godot/icons/**', 'godot/**/*.import') }}
+        restore-keys: godot-import-${{ inputs.godot-version }}-
 
     - name: Import the project
       shell: bash
       run: |
         echo "$HOME/godot" >> "$GITHUB_PATH"
         ~/godot/godot --version
-        # Builds the script class cache and imports the icons; without it the
-        # first headless run cannot resolve the project's class names.
+        # Builds the script class cache and imports the models and icons;
+        # without it the first headless run cannot resolve the project's
+        # class names.
         ~/godot/godot --headless --path godot --import > "$RUNNER_TEMP/godot-import.log" 2>&1 || true
         if grep -E "SCRIPT ERROR|Parse Error" "$RUNNER_TEMP/godot-import.log"; then
           cat "$RUNNER_TEMP/godot-import.log"
           exit 1
         fi
+
+    - name: Save the import cache
+      if: inputs.save-cache == 'true' && steps.imported.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: godot/.godot
+        key: ${{ steps.imported.outputs.cache-primary-key }}

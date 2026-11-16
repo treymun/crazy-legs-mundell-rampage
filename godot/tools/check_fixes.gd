@@ -1,13 +1,60 @@
 ## Regression checks for the porting bugs found in the parity audit against the
 ## Python original. Each block fails if the bug it names comes back.
 ##
-##   Godot --headless --path <project> --script res://tools/check_fixes.gd
+##   Godot --headless --path <project> --script res://tools/check_fixes.gd [-- part=K | only=a,b]
 ##
 ## Like bot_campaign.gd this writes saves into the game's user:// profile; point
 ## APPDATA at a scratch folder first if the real profile must stay untouched.
+##
+## The steps (STEPS) are independent: each starts the levels it needs. part=K
+## runs PARTS[K - 1] only (check_all and CI run the parts side by side; the
+## last part also runs any step no part names, so a new step is never left
+## out); only= runs the named steps. Every run ends with each step's time, to
+## balance PARTS by.
 extends SceneTree
 
+## Every step in the order a whole run takes them.
+const STEPS := [
+	"parity",
+	"weather_check",
+	"climate_check",
+	"quest_props",
+	"break_check",
+	"hit_check",
+	"range_check",
+	"feel_check",
+	"boss_rematch_check",
+	"mothership",
+	"boss_music",
+	"boss_check",
+	"arena_check",
+	"arena_wreck_check",
+	"squad_check",
+	"chatter_check",
+	"sound_check",
+	"net_check",
+	"multi_bots",
+	"net_loopback",
+	"crash_log",
+	"mode_check",
+	"county_check",
+	"geometry_check",
+	"map_check",
+]
+## The parts check_all and CI run side by side, balanced by STEP TIMES (on
+## the desktop each part takes about 45 s; on a GitHub runner about three
+## to four times that).
+const PARTS := [
+	["hit_check", "net_check", "multi_bots"],
+	["range_check", "arena_wreck_check", "crash_log", "map_check"],
+	["weather_check", "boss_check", "squad_check"],
+	["quest_props", "feel_check", "arena_check", "sound_check", "county_check"],
+	["parity", "break_check", "boss_rematch_check", "chatter_check"],
+	["climate_check", "mothership", "boss_music", "net_loopback", "mode_check", "geometry_check"],
+]
+
 var failures: Array = []
+var times := {}
 
 
 func _init() -> void:
@@ -29,6 +76,73 @@ func _run() -> void:
 	main.set_process(false)
 	main.state = "title"
 
+	var picked := _picked()
+	if picked.is_empty():
+		failures.append("bad part= or only= argument")
+	var began := Time.get_ticks_msec()
+	for step: String in picked:
+		var step_began := Time.get_ticks_msec()
+		match step:
+			"parity":
+				_parity(main)
+			"quest_props":
+				_quest_props(main)
+			"mothership":
+				_mothership(main)
+			"boss_music":
+				_boss_music(main)
+			"crash_log":
+				_crash_log(main)
+			_:
+				load("res://tools/%s.gd" % step).run(main, check)
+		times[step] = (Time.get_ticks_msec() - step_began) / 1000.0
+	print("\nSTEP TIMES (s)")
+	for step: String in picked:
+		print("  %-20s %6.1f" % [step, times[step]])
+	print("  %-20s %6.1f" % ["all", (Time.get_ticks_msec() - began) / 1000.0])
+	print("")
+	if failures.is_empty():
+		print("PARITY FIXES OK")
+	else:
+		print("%d CHECK(S) FAILED" % failures.size())
+	main.queue_free()
+	await process_frame
+	quit(1 if not failures.is_empty() else 0)
+
+
+## The steps this run takes (empty when an argument names nothing known).
+func _picked() -> Array:
+	var listed := {}
+	for part: Array in PARTS:
+		for step: String in part:
+			if not step in STEPS or listed.has(step):
+				push_error("PARTS names %s twice or not in STEPS" % step)
+				return []
+			listed[step] = true
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("part="):
+			var k := int(arg.substr(5))
+			if k < 1 or k > PARTS.size():
+				return []
+			var steps: Array = PARTS[k - 1].duplicate()
+			if k == PARTS.size():
+				for step: String in STEPS:
+					if not listed.has(step):
+						steps.append(step)
+			return steps
+		if arg.begins_with("only="):
+			var steps: Array = []
+			for step in arg.substr(5).split(","):
+				if not step in STEPS:
+					return []
+				steps.append(step)
+			return steps
+	return STEPS.duplicate()
+
+
+## The parity audit's own checks and the quick ones beside them (part of
+## the first part).
+func _parity(main: Control) -> void:
 	print("RANDOM RANGE (was [0, 0.5): one-sided spread, doubled hit and drop odds)")
 	var rng := Game.Rng.new(1997)
 	var low := 1.0
@@ -601,71 +715,6 @@ func _run() -> void:
 	weather.next_flash = 0.0
 	stormy.events.ticked.emit(1.0 / 60.0)
 	check(stormy.lightning > .5, "a stormy level's lightning lights the yard")
-	# The rain, the water's rings, the lamps' pools and the shimmer.
-	preload("res://tools/weather_check.gd").run(main, check)
-	# Weather you can feel, County Run's storm front, the critters' physics.
-	preload("res://tools/climate_check.gd").run(main, check)
-	_quest_props(main)
-
-	# Things that break, bodies and bits that move, blasts that throw and chain.
-	preload("res://tools/break_check.gd").run(main, check)
-
-	# Where hits land, how the killing blow throws a body, the animals.
-	preload("res://tools/hit_check.gd").run(main, check)
-
-	# The firing range: its title entry, its way out, the campaign untouched.
-	preload("res://tools/range_check.gd").run(main, check)
-
-	# Bullets through planks, the gun and view on springs, marks that stay.
-	preload("res://tools/feel_check.gd").run(main, check)
-
-	# The boss checkpoint and the BOSS REMATCH (the bot's timed fights are
-	# that tool's own `bot`).
-	preload("res://tools/boss_rematch_check.gd").run(main, check)
-
-	# The Mothership, the last chapter, and the true finale after it.
-	_mothership(main)
-	_boss_music(main)
-
-	# Boss fights: phases, stagger, weak spots, backup, entrance, the fall.
-	preload("res://tools/boss_check.gd").run(main, check)
-	# The sheriff's, Jerry's, Rudy's and the foreman's arenas and moves.
-	preload("res://tools/arena_check.gd").run(main, check)
-	# The arenas wreck as the fights go on; the bosses' gear shot off.
-	preload("res://tools/arena_wreck_check.gd").run(main, check)
-	# Squads, idle life, the tougher variants and each chapter's tough guy.
-	preload("res://tools/squad_check.gd").run(main, check)
-	# CHATTER: the cuss pack's lines for the hands, Mundell and the 5v5 bots.
-	preload("res://tools/chatter_check.gd").run(main, check)
-	# Hearing through walls, round corners and floors; every cue the game names.
-	preload("res://tools/sound_check.gd").run(main, check)
-	# The multiplayer foundation: two players, snapshots, determinism (the
-	# quick part; net_check.gd on its own plays every chapter longer).
-	preload("res://tools/net_check.gd").run(main, check)
-	# Four bots in one game and its twin seen from another player's machine;
-	# a host and a client over localhost (each tool on its own runs longer).
-	preload("res://tools/multi_bots.gd").run(main, check)
-	preload("res://tools/net_loopback.gd").run(main, check)
-	_crash_log(main)
-	# The game modes: co-op's revive, respawn, scaling and shared hazards;
-	# deathmatch's spawns, frags, limits and results (mode_check.gd).
-	preload("res://tools/mode_check.gd").run(main, check)
-	# COUNTY RUN: slots, swaps, XP, level ups and milestones, spawns, a short
-	# play on each map through a death and a retry (county_check.gd).
-	preload("res://tools/county_check.gd").run(main, check)
-	# Level format 2 (decks, stairs, ramps, thin walls, nav between floors) and
-	# the map tools (geometry_check.gd, map_check.gd).
-	preload("res://tools/geometry_check.gd").run(main, check)
-	preload("res://tools/map_check.gd").run(main, check)
-
-	print("")
-	if failures.is_empty():
-		print("PARITY FIXES OK")
-	else:
-		print("%d CHECK(S) FAILED" % failures.size())
-	main.queue_free()
-	await process_frame
-	quit(1 if not failures.is_empty() else 0)
 
 
 ## The county's hands fight smarter: a stray shot starts a brawl, the hurt

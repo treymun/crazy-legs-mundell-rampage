@@ -45,11 +45,13 @@ walkthrough and the quest reach; `quick`: about a minute):
 ```
 godot --headless --path godot --script res://tools/check_all.gd -- lint
 godot --headless --path godot --script res://tools/check_all.gd -- quick
+godot --headless --path godot --script res://tools/check_all.gd -- only=check_fixes,county_check   # some rows (a script names all its parts)
+godot --headless --path godot --script res://tools/check_all.gd -- shard=2/6 jobs=2 full          # what CI's "Checks 2 of 6" runs
 cd godot && gdformat --check src tools addons && gdlint src tools addons
 godot --headless --path godot --script res://tools/check_shader.gd    # SHADER OK
 godot --headless --path godot --script res://tools/view3d_check.gd    # VIEW3D CHECK OK
 godot --headless --path godot --script res://tools/verify_assets.gd   # ASSETS OK
-godot --headless --path godot --script res://tools/check_fixes.gd     # PARITY FIXES OK
+godot --headless --path godot --script res://tools/check_fixes.gd     # PARITY FIXES OK (part=K: one of its PARTS; only=a,b: named steps)
 godot --headless --path godot --script res://tools/bot_campaign.gd    # CAMPAIGN WALKTHROUGH OK
 godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVES OK (-- make: add saves of the new version)
 godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL EDIT OK
@@ -167,7 +169,14 @@ once.
 ```
 godot --headless --path godot --script res://tools/version.gd -- 3.0.N
 
-# Publish (ask the owner first): stamps, commits, pushes, waits for CI, moves
-# main, tags, then checks the site and the release's three files
+# Publish (ask the owner first): stamps, commits, pushes, waits for the
+# branch's CI, moves main, tags, waits for main's and the tag's runs (they
+# skip the checks the branch passed and only build), then checks the site
+# and the release's three files. About 10 to 12 minutes.
 godot --headless --path godot --script res://tools/release.gd -- 3.0.N
 ```
+
+Builds by hand: Actions, "Build, release and publish", Run workflow (input
+`builds`, on by default: the EXE, installer, APK and browser builds as run
+artifacts; on main it also deploys the site). CI is described in
+[checks.md](checks.md#ci).

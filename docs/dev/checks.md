@@ -11,20 +11,45 @@ set at the end of a piece of work. The full command list is in
 godot --headless --path godot --script res://tools/check_all.gd -- lint    # everything, plus gdformat and gdlint
 godot --headless --path godot --script res://tools/check_all.gd -- quick   # about a minute: the set to run after every change
 godot --headless --path godot --script res://tools/check_all.gd -- fast    # without the walkthrough and the quest reach
+godot --headless --path godot --script res://tools/check_all.gd -- only=check_fixes,net_lag   # some rows
+godot --headless --path godot --script res://tools/check_all.gd -- shard=2/6 jobs=2 full     # what CI's "Checks 2 of 6" runs
 ```
 
-Each check runs in its own Godot process with its own scratch profile
-(APPDATA), so none of them touches your saves or another check's files; one
-table at the end, and the end of each failing check's output. `lint` also
-runs gdformat --check and gdlint from the repo's `.venv`. Exit 1 if anything
-failed.
+Each check runs in its own Godot process with its own scratch profile and
+cache folder (`PROFILE_VARS`: APPDATA and LOCALAPPDATA on Windows,
+XDG_DATA_HOME and XDG_CACHE_HOME on Linux), so none of them touches your
+saves or another check's files. The cache folder matters: the tools keep
+boss checkpoints, County Run and range records under `OS.get_cache_dir()`,
+and two checks starting chapters at once would otherwise clear each other's
+checkpoints (seen as `boss_rematch_check` failing only beside other checks).
+One table at the end with each row's time, and the end of each failing
+check's output. `lint` also runs gdformat --check and gdlint from the repo's
+`.venv`. Exit 1 if anything failed.
+
+- **check_fixes runs as its parts** (`check_fixes_1` ... `check_fixes_6`, one
+  process each, from its `PARTS`), so the longest check no longer sets the
+  pace: about 50 s each on the desktop instead of 4 1/2 minutes in one.
+- `only=a,b` runs the named rows (a script's name takes all its parts); an
+  unknown name fails.
+- `shard=K/N` shares every row out over N shards, longest first onto the
+  lightest (by `CI_SECONDS`), and runs the K-th. CI's matrix runs the six
+  shards, so **a row added to `CHECKS` is in CI with no workflow edit**; give
+  it a `CI_SECONDS` entry once a run shows its time (unlisted rows count 8 s).
+- `jobs=J` runs at most J rows at once (CI: 2 on a 4-core runner); `full`
+  prints every row's whole output, in folded groups on GitHub Actions.
+- Rows in `ALONE` (`net_lag`: its limits are on online timing) run last,
+  with nothing beside them.
+- check_all reads the children's output every 10 ms: a child whose output
+  pipe is full waits until it is read, and at the old 100 ms net_lag's
+  timing came out differently (13% of hits judged misses, over its 12%
+  limit, where a plain run has 8%) and every check ran slower.
 
 | Check | Passes with | In quick | What it holds |
 | --- | --- | --- | --- |
 | `check_shader` | SHADER OK | yes | texture counts: `display.gdshader` at most 9 (incl. TEXTURE), each view3d shader with its includes at most 10 |
 | `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads (a station's with both looks, every quest picture modelled); every slab (pickups, loose things, range targets) builds at its picture's size |
 | `verify_assets` | ASSETS OK | yes | assets and levels load; chapter-only kinds really are one chapter's; pending music noted |
-| `check_fixes` | PARITY FIXES OK | | the parity regression checks and the quick parts of many others (below) |
+| `check_fixes` | PARITY FIXES OK | | the parity regression checks and the quick parts of many others (below), in six parts side by side |
 | `physics_check` | PHYSICS OK | yes | gibs, brass, chunks and bodies dropped on decks, ramps and stairs and thrown at walls rest on a surface, never inside anything; the loose-things features on a loft ([gameplay.md](gameplay.md#loose-things-on-the-real-3d-shape-v300-remaster)); ragdolls lie on decks, treads, ramps and past a rail and sleep, slow-mo finishers start on the last kill and never with company (`physics_ragdolls.gd`) |
 | `live_props_check` | LIVE PROPS OK | yes | things taken up, held, thrown (a hand hurt and shoved, a propane tank breaking and going up, jugs spilling shine, a brute heaving a tank), set down and saved; fire spreading over hay, never onto stone or dirt, burning out, the same twice, sooner in rain; a still spraying and going up; a snapshot carrying a throw and a fire on tick for tick; all of it off with LIVE PROPS AND FIRE off ([gameplay.md](gameplay.md#picking-things-up-fire-that-spreads-the-stills)) |
 | `climb_check` | CLIMB CHECK OK | yes | every chapter has ladders, each joined foot to top in the nav graph; a ladder takes the player up and down, JUMP lets go; pull-ups onto a chest-high stack and from it onto a roof, not onto one too high; a hand comes up a ladder to the player on a lookout and drops off it to get at them below; a hand under fire ducks out of sight, peeks out, fires and goes back; a hand kicks a door open (not EASY or CLASSIC); the same run twice comes out the same |
@@ -39,27 +64,39 @@ failed.
 | `menu_touch_check` | MENU TOUCH OK | yes | taps through every menu, the 5v5 store, the County Run screens as touch events |
 | `camera_check` | CAMERA CHECK OK | yes | the QUALITY tiers (pick, presets, AUTO's meter, physics steps); the HUD's Control boxes compose to `HUD.draw`'s bar pixel for pixel (campaign, 5v5, County Run, full and MINIMAL); PHOTO MODE in and out, flying, the player in view, a filter, a picture saved; the KILL CAM noted, sampled, replayed with stand-ins and skipped; play's snapshot unchanged by either |
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
-| `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server |
+| `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server (`seconds=30`, as CI always ran it) |
 | `games_check` | GAMES CHECK OK | yes | the range's board on a lobby server over ENet (posts, a name's best, refusals, asks, the County Run board beside it), the fair's shooting gallery (the bell, each target's points, a can flying and bouncing, the house paying, the prizes saved, no station or door added), the hub's trophy shack (statuettes by the gates open, cups, gnomes, its card) |
 | `cover_check` | COVER CHECK OK | yes | the 5v5 maps' boarded cover: shot through (floor, sight, a shorter way), stood up again each round, kept by snapshots alone |
 | `net_lag` | NET LAG OK | | what a player feels online (`net_lag.gd`, run `-- quick`: a 120 ms link, limits on rubber band, missed hits, stalls, lost inputs, bandwidth); without quick, three links and the full table |
 
 ### What check_fixes runs
 
-Besides its own parity checks (including the settings count, 66 now, and the
-Besides its own parity checks (including the settings count, 61 now, and the
-fingerpost arms), check_fixes runs or holds: `hit_check`, `squad_check`,
-`chatter_check`, `boss_check`, `arena_check`, `break_check`, `feel_check`
-(penetration), `weather_check`, `climate_check` (puddles, mud, wind, the County Run storm front, the critters' physics), the quick parts of `net_check` (determinism),
-Besides its own parity checks (including the settings count, 60 now, and the
-`chatter_check`, `boss_check`, `arena_check`, `arena_wreck_check` (the arenas
-coming apart and the bosses' gear shot off), `break_check`, `feel_check`
-(penetration), `weather_check`, the quick parts of `net_check` (determinism),
-`multi_bots` (Hickston with four for 12 s, the bayou with two for 6 s),
-`net_loopback` (ENet 6 s with 40 ms, jitter and 5% loss; WebSocket 2 s),
-`mode_check`, `county_check` and `boss_rematch_check`, `range_check` (the firing range and its games row), the CRASH LOG block
-(`CrashLog.start(main, dir)` in a cache folder), and `geometry_check` and
+Its steps (`STEPS`, each independent: it starts the levels it needs): its own
+parity checks (`parity`: including the settings count, 69 plus the key
+bindings now, and the fingerpost arms), `weather_check`, `climate_check`
+(puddles, mud, wind, the County Run storm front, the critters' physics), the
+quest props, `break_check`, `hit_check`, `range_check` (the firing range and
+its games row), `feel_check` (penetration), `boss_rematch_check`, the
+Mothership and the boss music, `boss_check`, `arena_check`,
+`arena_wreck_check` (the arenas coming apart and the bosses' gear shot off),
+`squad_check`, `chatter_check`, `sound_check`, the quick parts of
+`net_check` (determinism), `multi_bots` (Hickston with four for 12 s, the
+bayou with two for 6 s), `net_loopback` (ENet 6 s with 40 ms, jitter and 5%
+loss; WebSocket 2 s), the CRASH LOG block (`CrashLog.start(main, dir)` in a
+cache folder), `mode_check`, `county_check`, and `geometry_check` and
 `map_check` (map sources, MAP_AUTHORING.md).
+
+```
+godot --headless --path godot --script res://tools/check_fixes.gd               # every step, in order
+godot --headless --path godot --script res://tools/check_fixes.gd -- part=3     # PARTS[2] only
+godot --headless --path godot --script res://tools/check_fixes.gd -- only=boss_check,arena_check
+```
+
+Every run ends with `STEP TIMES (s)`, each step's time. `PARTS` holds six
+lists balanced by those times (about 45 s each on the desktop, 2 1/2 to 4
+minutes on a GitHub runner); the last part also runs any step no part
+names, so a new step is never left out, and a step named twice or not in
+`STEPS` fails the run. Add a new step to `STEPS` and to the lightest part.
 
 ### Other checks, not in check_all
 
@@ -76,27 +113,60 @@ coming apart and the bosses' gear shot off), `break_check`, `feel_check`
 
 ## CI
 
-`.github/workflows/release.yml`:
+`.github/workflows/release.yml` runs its checks side by side on free
+GitHub runners (the repository is public: standard runners cost nothing, up
+to 20 jobs at once). Every push:
 
-- **checks** (every push): boots the game headless and fails on script
-  errors; runs the art tools `build_fx_art`, `build_building_tiles`,
-  `build_menu_art`, `build_gore_art` into a scratch folder; then
-  `verify_assets`, `view3d_check`, `check_fixes`, `net_showdown_check`,
-  `net_server_check`, `menu_touch_check`, `camera_check`,
-  `county_check -- seconds=45`,
-  `county_net_check -- seconds=30`, `games_check`, `cover_check`, `net_lag -- quick`, `save_fixtures`, `level_edit_check`,
-  `physics_check`, `live_props_check`, `climb_check`, `vehicle_check`,
-  `wreck_check`,
-  `quest_reach`, `bot_campaign`, and a headless frame time (`bench.gd`).
-- **window** (after checks): Xvfb and Mesa's software OpenGL
+- **lint** (`Format and lint the GDScript`): gdformat --check and gdlint, from
+  a cached venv of the `gdtoolkit` pinned in `requirements-dev.txt`.
+- **checks** (`Checks 1 of 6` ... `6 of 6`): a matrix; each runs
+  `check_all.gd -- shard=K/6 jobs=2 full`, so every row of check_all (with
+  check_fixes in its six parts) runs in exactly one shard, two at a time.
+  Each row's output is in a folded group; the table with each row's time is
+  on the run's summary page (use those times for `CI_SECONDS`).
+- **window** (`Boot, art tools, the 3D view's pictures, frame time`): boots
+  the game headless and fails on script errors; runs the art tools
+  `build_fx_art`, `build_building_tiles`, `build_menu_art`, `build_gore_art`
+  into a scratch folder; Xvfb and Mesa's software OpenGL
   (`--rendering-driver opengl3`) tour the 3D view through
-  `tools/picture_views.json` into a folder, fail on SCRIPT ERROR, Parse Error
-  or SHADER ERROR, then `tools/compare_3d.gd` holds the pictures against
-  `tools/pictures_3d/` (PICTURES 3D OK). The frames are kept as an artifact.
-- **Windows EXE, Android APK and the browser builds, the release and the
-  site** run on `main`, `v*` tags or a run started by hand (packs are cached
-  until an asset changes). The Windows and Android builds also run on
-  `refs/heads/godot-3d`, as run artifacts only: no release, no site.
+  `tools/picture_views.json`, failing on SCRIPT ERROR, Parse Error or SHADER
+  ERROR, and `tools/compare_3d.gd` holds the pictures against
+  `tools/pictures_3d/` (PICTURES 3D OK; the frames are kept as an artifact);
+  last the headless frame time (`bench.gd -- 120 max=60`), alone on its
+  runner.
+
+The builds wait for all of those (every shard, the lint and the window job):
+
+| Run | Builds |
+| --- | --- |
+| a branch push | none |
+| `main` | the browser builds (`Web`, `Web Lite`, music packs), deployed with the landing page to Pages |
+| a `v*` tag | the EXE (smoke-tested on Windows), the installer, the APK, then the GitHub release with the three files |
+| Run workflow (by hand) | input `builds` (on by default): all four as run artifacts; on `main` it deploys the site, on a tag it releases |
+
+**A passed commit is not checked twice.** On a push to `main` or a `v*` tag
+the job `earlier` asks the API for a passed run of this workflow on the same
+commit (the branch's, which `tools/release.gd` waits for before it moves main
+and tags). If there is one, lint, checks and window are skipped and the
+builds start at once; if not (a push to main by hand, or the API failing),
+everything runs and the builds wait for it as on a branch. Either way
+nothing builds or publishes on a commit whose checks did not pass.
+
+**Caches** (`.github/actions/godot`): the Godot editor and, for the build
+jobs only, the export templates (fixed keys); the asset packs (keyed on the
+art, sound and `pack_assets.gd`); the import cache `godot/.godot` (keyed on
+the models, icons and `.import` files; an older one is restored otherwise
+and the import redoes only what changed); the gdtoolkit venv. Packs and the
+import cache are saved only by `Checks 1 of 6` and by main's browser build,
+so parallel jobs do not race; a branch can restore main's caches but not
+another branch's.
+
+**Times** (estimated from the v3.2.0 runs before the split, where
+check_fixes alone took 12 to 20 minutes; replace with a real run's): a
+branch push about 5 minutes (was 19 to 28); main and
+a tag after a passed branch about 2 and 4 minutes (each was about 30); so
+`release.gd` about 10 to 12 minutes in all (was 45 to 50). The first run after
+a cache key changes downloads again (the templates are 1.3 GB).
 
 `gh` is not logged in on this machine: read CI through the public API with
 curl.

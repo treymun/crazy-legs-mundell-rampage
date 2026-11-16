@@ -40,7 +40,7 @@ the sound in `audio_src/` by the Python tools in `scripts/`. The detail is in
 | `godot/assets3d/`, `godot/scenes/` | The 3D models (`props/`, `actors/` glb + json) and their scenes (`PropView`, `ActorView`) |
 | `scripts/` | Python: the sound (`audio_*`: ElevenLabs, budget ledger, mastering), the landing page's pictures (`build_site_assets.py`), and the Blender scripts (`blender/`, run inside Blender's own Python) |
 | `site/` | The landing page; the browser builds deploy under `play/` and `play/lite/` |
-| `.github/workflows/release.yml` | Checks and the 3D view's picture comparison on every push; the builds, the release and the site on `main`, `v*` tags or a run started by hand |
+| `.github/workflows/release.yml` | Every push: the lint, check_all in six parallel shards, the 3D view's picture comparison. `main`: the browser builds and the site; `v*` tags: the EXE, installer, APK and release (both skip the checks a branch run already passed on that commit); a run started by hand builds all |
 | `docs/dev/` | The developer docs this file points to |
 
 ## Commands

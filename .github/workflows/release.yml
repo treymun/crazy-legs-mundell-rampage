@@ -1,19 +1,31 @@
 name: Build, release and publish
 
-# Every push runs the checks and the shader-view comparison. A push to main, a
-# v* tag or a run started by hand also exports the Windows, Web and Android
-# builds (they take most of a run's time, so a branch push skips them); main
-# also deploys the landing page with the browser builds under play/. A v* tag
-# stamps its version into the builds, deploys, and publishes the EXE, the
-# installer and the APK as a GitHub release.
+# Every push runs the checks side by side: the lint, every row of
+# tools/check_all.gd shared over six runners (check_fixes in its six parts),
+# and the window job (boot, the art tools, the 3D view's pictures, the frame
+# time). Builds wait for all of them:
+# - a branch push builds nothing;
+# - main builds the browser builds and deploys the landing page (play/);
+# - a v* tag builds the EXE, the installer and the APK and publishes them as
+#   a GitHub release;
+# - a run started by hand builds all four as run artifacts (input `builds`).
+# A push to main or a v* tag whose commit already passed a run of this
+# workflow (tools/release.gd pushes them only after the branch's run passed)
+# skips the checks and goes straight to its builds (the job `earlier`).
 
 on:
   push:
     branches: ["**"]
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      builds:
+        description: Export the EXE, installer, APK and browser builds as run artifacts
+        type: boolean
+        default: true
 
 permissions:
+  actions: read
   contents: write
   pages: write
   id-token: write
@@ -23,20 +35,88 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  earlier:
+    name: Checks passed on this commit already?
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    outputs:
+      passed: ${{ steps.look.outputs.passed }}
+    steps:
+      - name: Look for a passed run of this workflow on the same commit
+        id: look
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Any failure here leaves passed=false, and the checks then run.
+          count=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/release.yml/runs?head_sha=$GITHUB_SHA&status=success&per_page=100" \
+            --jq "[.workflow_runs[] | select(.id != $GITHUB_RUN_ID)] | length" 2>/dev/null || echo 0)
+          if [ "${count:-0}" -gt 0 ] 2>/dev/null; then passed=true; else passed=false; fi
+          echo "passed=$passed" >> "$GITHUB_OUTPUT"
+          echo "::notice::Passed runs of this workflow on $GITHUB_SHA: ${count:-0} (skip the checks: $passed)"
+
+  lint:
+    name: Format and lint the GDScript
+    needs: earlier
+    if: ${{ !cancelled() && needs.earlier.outputs.passed != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore gdtoolkit
+        id: venv
+        uses: actions/cache@v4
+        with:
+          path: ~/gdtoolkit-venv
+          key: gdtoolkit-${{ runner.os }}-py${{ steps.python.outputs.python-version }}-${{ hashFiles('requirements-dev.txt') }}
+      - name: Install gdtoolkit
+        if: steps.venv.outputs.cache-hit != 'true'
+        run: |
+          python -m venv ~/gdtoolkit-venv
+          ~/gdtoolkit-venv/bin/pip install -q "$(grep -E '^gdtoolkit==' requirements-dev.txt | cut -d' ' -f1)"
+      - name: gdformat and gdlint
+        working-directory: godot
+        run: |
+          ~/gdtoolkit-venv/bin/gdformat --check src tools addons
+          ~/gdtoolkit-venv/bin/gdlint src tools addons
+
   checks:
-    name: Lint and headless checks
+    name: Checks ${{ matrix.shard }} of 6
+    needs: earlier
+    if: ${{ !cancelled() && needs.earlier.outputs.passed != 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep the 6 in the name and the shard= argument below in step.
+        shard: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/godot
+        with:
+          save-cache: ${{ matrix.shard == 1 }}
+      - name: This share of tools/check_all.gd
+        shell: bash
+        run: |
+          # check_all shares its rows out by CI_SECONDS (every row is in one
+          # share) and runs two at a time; full prints each row's output in
+          # a folded group, then the table with each row's time. The last
+          # line decides; the table goes on the run's summary either way.
+          godot --headless --path godot --script res://tools/check_all.gd -- \
+            shard=${{ matrix.shard }}/6 jobs=2 full 2>&1 | tee checks.log || true
+          { echo '### Checks ${{ matrix.shard }} of 6'; echo '```'; grep -E "^(shard |[a-z0-9_]+ +(ok|FAILED) |ALL CHECKS OK|[0-9]+ FAILED)" checks.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          grep -q "ALL CHECKS OK" checks.log
+
+  window:
+    name: Boot, art tools, the 3D view's pictures, frame time
+    needs: earlier
+    if: ${{ !cancelled() && needs.earlier.outputs.passed != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/godot
-      - name: Format and lint the GDScript
-        working-directory: godot
-        run: |
-          pipx install "$(grep -E '^gdtoolkit==' ../requirements-dev.txt | cut -d' ' -f1)"
-          gdformat --check src tools addons
-          gdlint src tools addons
-      - name: The display shader fits a WebGL page's 16 textures
-        run: godot --headless --path godot --script res://tools/check_shader.gd
       - name: Boot the game headless
         run: |
           godot --headless --path godot --quit-after 100 2>&1 | tee boot.log
@@ -51,63 +131,6 @@ jobs:
             if grep -E "SCRIPT ERROR|Parse Error" art.log; then exit 1; fi
           done
           test -s "$RUNNER_TEMP/art/fx_fire_0.png" && test -s "$RUNNER_TEMP/art/menu_board.png"
-      - name: Assets and levels load
-        run: godot --headless --path godot --script res://tools/verify_assets.gd
-      - name: Every level's 3D mesh builds, every prop model loads
-        run: godot --headless --path godot --script res://tools/view3d_check.gd
-      - name: Parity regression checks
-        run: godot --headless --path godot --script res://tools/check_fixes.gd
-      - name: Online 5v5, lobby to lobby
-        run: godot --headless --path godot --script res://tools/net_showdown_check.gd
-      - name: Always-open lobby on a server
-        run: godot --headless --path godot --script res://tools/net_server_check.gd
-      - name: 5v5 breakable cover, broken and stood up again each round
-        run: godot --headless --path godot --script res://tools/cover_check.gd
-      - name: What a player feels online (a 120 ms link)
-        run: godot --headless --path godot --script res://tools/net_lag.gd -- quick
-      - name: Menus by touch
-        run: godot --headless --path godot --script res://tools/menu_touch_check.gd
-      - name: Photo mode, kill cam, quality tiers, the HUD on Controls
-        run: godot --headless --path godot --script res://tools/camera_check.gd
-      - name: County Run (rules, the three maps, a death and a retry on each)
-        run: godot --headless --path godot --script res://tools/county_check.gd -- seconds=45
-      - name: County Run co-op online
-        run: godot --headless --path godot --script res://tools/county_net_check.gd -- seconds=30
-      - name: Range board on the lobby server, the fair's gallery, the trophy shack
-        run: godot --headless --path godot --script res://tools/games_check.gd
-      - name: Saves from earlier versions still load
-        run: godot --headless --path godot --script res://tools/save_fixtures.gd
-      - name: Level editing keeps the walls right
-        run: godot --headless --path godot --script res://tools/level_edit_check.gd
-      - name: Loose things rest on decks, ramps and stairs, never in walls
-        run: godot --headless --path godot --script res://tools/physics_check.gd
-      - name: Things picked up and thrown, fire that spreads, the stills
-        run: godot --headless --path godot --script res://tools/live_props_check.gd
-      - name: Ladders, pull-ups and the smarter hands
-        run: godot --headless --path godot --script res://tools/climb_check.gd
-      - name: Vehicles drive, bump, run down and are got out of
-        run: godot --headless --path godot --script res://tools/vehicle_check.gd
-      - name: Broken scenery comes apart in pieces that rest on floors
-        run: godot --headless --path godot --script res://tools/wreck_check.gd
-      - name: Every quest prop and item can be used from where it is seen
-        run: godot --headless --path godot --script res://tools/quest_reach.gd
-      - name: Campaign walkthrough
-        run: godot --headless --path godot --script res://tools/bot_campaign.gd
-      - name: Frame time
-        run: |
-          # A shared runner is slow and noisy: this only catches a big slowdown.
-          # The real numbers come from tools/bench.gd and main.gd --view-bench
-          # on a desktop.
-          godot --headless --path godot --script res://tools/bench.gd -- 120 max=60 2>&1 | tee bench.log
-          grep -q "SPEED OK" bench.log
-          { echo '### Frame time (headless, CPU side only)'; echo '```'; grep -E "fps|OK|SLOW" bench.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-  window:
-    name: The 3D view draws every viewpoint
-    needs: checks
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/godot
       - name: A virtual screen and Mesa's software OpenGL
         run: |
           sudo apt-get update -qq
@@ -115,13 +138,21 @@ jobs:
       - name: The 3D view draws every viewpoint
         run: |
           mkdir -p "$RUNNER_TEMP/views3d"
-          xvfb-run -a -s "-screen 0 1280x800x24"             godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 --             --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views3d" 2>&1 | tee window3d.log
+          xvfb-run -a -s "-screen 0 1280x800x24" godot --path godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 -- --view-tour=res://tools/picture_views.json "--view-out=$RUNNER_TEMP/views3d" 2>&1 | tee window3d.log
           if grep -E "SCRIPT ERROR|Parse Error|SHADER ERROR" window3d.log; then exit 1; fi
           test -s "$RUNNER_TEMP/views3d/hickston_01_0_3d.png"
       - name: The 3D view matches its references
         run: |
           godot --headless --path godot --script res://tools/compare_3d.gd -- "$RUNNER_TEMP/views3d" 2>&1 | tee compare3d.log
           grep -q "PICTURES 3D OK" compare3d.log
+      - name: Frame time
+        run: |
+          # A shared runner is slow and noisy: this only catches a big slowdown.
+          # The real numbers come from tools/bench.gd and main.gd --view-bench
+          # on a desktop. Nothing else runs on this runner meanwhile.
+          godot --headless --path godot --script res://tools/bench.gd -- 120 max=60 2>&1 | tee bench.log
+          grep -q "SPEED OK" bench.log
+          { echo '### Frame time (headless, CPU side only)'; echo '```'; grep -E "fps|OK|SLOW" bench.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Keep the frames
         if: always()
         uses: actions/upload-artifact@v4
@@ -130,16 +161,22 @@ jobs:
           path: ${{ runner.temp }}/views3d
           if-no-files-found: ignore
 
+  # The builds run only when every check above passed in this run, or the
+  # job `earlier` found a passed run on this same commit.
   windows:
     name: Windows EXE
-    needs: checks
-    # The 3D rewrite's branch builds the EXE and APK too, as run artifacts only
-    # (no release, no site: those stay main's and tags').
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/godot-3d' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    needs: [earlier, lint, checks, window]
+    if: >-
+      ${{ !cancelled()
+      && (startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.builds))
+      && (needs.earlier.outputs.passed == 'true'
+          || (needs.lint.result == 'success' && needs.checks.result == 'success' && needs.window.result == 'success')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/godot
+        with:
+          templates: "true"
       - name: Export the single-file EXE
         run: |
           mkdir -p godot/build/windows
@@ -158,6 +195,7 @@ jobs:
   installer:
     name: Windows installer
     needs: windows
+    if: ${{ !cancelled() && needs.windows.result == 'success' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -196,10 +234,12 @@ jobs:
 
   android:
     name: Android APK
-    needs: checks
-    # The 3D rewrite's branch builds the EXE and APK too, as run artifacts only
-    # (no release, no site: those stay main's and tags').
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/godot-3d' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    needs: [earlier, lint, checks, window]
+    if: >-
+      ${{ !cancelled()
+      && (startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.builds))
+      && (needs.earlier.outputs.passed == 'true'
+          || (needs.lint.result == 'success' && needs.checks.result == 'success' && needs.window.result == 'success')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -208,6 +248,8 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: ./.github/actions/godot
+        with:
+          templates: "true"
       - name: Point Godot at the Android SDK and a signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -270,12 +312,20 @@ jobs:
 
   web:
     name: Browser build and landing page
-    needs: checks
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    needs: [earlier, lint, checks, window]
+    if: >-
+      ${{ !cancelled()
+      && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.builds))
+      && (needs.earlier.outputs.passed == 'true'
+          || (needs.lint.result == 'success' && needs.checks.result == 'success' && needs.window.result == 'success')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/godot
+        with:
+          templates: "true"
+          # main's caches are the ones every branch can restore.
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
       - name: Export the WebAssembly build
         run: |
           mkdir -p godot/build/web godot/build/web-lite
@@ -305,16 +355,16 @@ jobs:
           godot --headless --path godot --script res://tools/version.gd | tail -n 1 > _site/version.txt
           du -sh _site
       - uses: actions/configure-pages@v5
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        if: github.ref == 'refs/heads/main'
       - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        if: github.ref == 'refs/heads/main'
         with:
           path: _site
 
   release:
     name: Publish GitHub release
-    if: startsWith(github.ref, 'refs/tags/v')
     needs: [installer, android]
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/v') && needs.installer.result == 'success' && needs.android.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -336,8 +386,8 @@ jobs:
 
   pages:
     name: Deploy GitHub Pages
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     needs: [web]
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.web.result == 'success' }}
     concurrency:
       group: pages-deploy
       cancel-in-progress: false

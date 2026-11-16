@@ -6,16 +6,23 @@
 ##     put back first).
 ##  2. tools/version.gd stamps N; the change is committed as "Version N" and the
 ##     branch is pushed.
-##  3. The branch's CI run must pass.
-##  4. main is fast-forwarded to it and pushed (it deploys the site).
-##  5. The tag vN is pushed (it builds the EXE, installer and APK).
-##  6. Both runs must pass, the site's version.txt must say N and the release
-##     must hold its three files.
+##  3. The branch's CI run must pass (every check, the pictures, the lint).
+##  4. main is fast-forwarded to it and pushed (it builds the browser builds
+##     and deploys the site).
+##  5. The tag vN is pushed (it builds the EXE, installer and APK and makes
+##     the release).
+##  6. The main and tag runs must pass (they find the branch's passed run on
+##     the same commit and go straight to the builds), the site's version.txt
+##     must say N and the release must hold its three files.
+## Nothing is published unless the branch's checks passed: main and the tag
+## are pushed only after step 3, and their runs build only on a commit whose
+## checks passed (.github/workflows/release.yml, the job `earlier`).
 ## Ask the owner before running it: it publishes. gh is not logged in here, so
 ## CI is read from the public API with curl.
 extends SceneTree
 
 const REPO := "treymun/crazy-legs-mundell-rampage"
+const WORKFLOW := "release.yml"
 const BRANCH := "combat-overhaul"
 const SITE := "https://treymun.github.io/crazy-legs-mundell-rampage/version.txt"
 const ASSETS := [
@@ -25,6 +32,11 @@ const ASSETS := [
 ]
 ## Seconds to wait for CI runs before giving up.
 const PATIENCE := 3600
+## Seconds between looks at CI (the API allows 60 calls an hour without a
+## login: a release takes about 30 at this pace), and how long the site may
+## take to show N.
+const POLL := 20
+const SITE_PATIENCE := 300
 
 var repo_root := ""
 
@@ -82,7 +94,7 @@ func _init() -> void:
 	var sha := _git(["rev-parse", "HEAD"]).strip_edges()
 
 	_step("3. CI on the branch")
-	if not _wait_runs(sha, 1):
+	if not _wait_runs(sha, [BRANCH]):
 		_stop("the branch's CI did not pass; nothing was published")
 		return
 
@@ -101,10 +113,18 @@ func _init() -> void:
 	_git(["push", "-q", "origin", tag])
 
 	_step("6. the release and the site")
-	if not _wait_runs(sha, 3):
+	if not _wait_runs(sha, ["main", tag]):
 		_stop("a release run failed; see the Actions page")
 		return
-	var live := _curl(SITE + "?fresh=%d" % Time.get_unix_time_from_system()).strip_edges()
+	# Pages can take a minute to serve the new deploy.
+	var live := ""
+	var looked := 0
+	while true:
+		live = _curl(SITE + "?fresh=%d" % Time.get_unix_time_from_system()).strip_edges()
+		if live == version or looked >= SITE_PATIENCE:
+			break
+		OS.delay_msec(POLL * 1000)
+		looked += POLL
 	if live != version:
 		_stop("the site says %s, not %s" % [live, version])
 		return
@@ -123,33 +143,39 @@ func _init() -> void:
 	quit()
 
 
-## Wait until `count` CI runs of this commit (branch, main, tag) have all passed.
-func _wait_runs(sha: String, count: int) -> bool:
+## Wait until this commit's workflow run on each ref (the branch, main, the
+## tag) has passed; stop at the first that fails. Runs on other refs and of
+## other workflows are not waited for.
+func _wait_runs(sha: String, refs: Array) -> bool:
 	var waited := 0
 	while waited < PATIENCE:
-		var runs = JSON.parse_string(
-			_curl("https://api.github.com/repos/%s/actions/runs?head_sha=%s" % [REPO, sha])
-		)
+		var url := "https://api.github.com/repos/%s/actions/workflows/%s/runs" % [REPO, WORKFLOW]
+		var runs = JSON.parse_string(_curl(url + "?head_sha=%s&per_page=50" % sha))
 		var listed: Array = runs.get("workflow_runs", []) if runs is Dictionary else []
-		var done := 0
-		for run: Dictionary in listed:
-			if String(run["status"]) == "completed":
-				if String(run.get("conclusion", "")) != "success":
-					print("  %s run %s" % [run["head_branch"], run.get("conclusion")])
-					return false
-				done += 1
-		if listed.size() >= count and done >= listed.size():
-			print("  %d run(s) passed" % done)
+		if runs is Dictionary and not runs.has("workflow_runs"):
+			# The API without a login allows 60 calls an hour from one address.
+			print("  the API says: %s" % runs.get("message", "?"))
+		var passed := 0
+		for ref: String in refs:
+			# The newest run on the ref counts (a re-run replaces an older one).
+			var newest: Dictionary = {}
+			for run: Dictionary in listed:
+				if String(run["head_branch"]) == ref and String(run["event"]) == "push":
+					if newest.is_empty() or int(run["id"]) > int(newest["id"]):
+						newest = run
+			if newest.is_empty() or String(newest["status"]) != "completed":
+				continue
+			if String(newest.get("conclusion", "")) != "success":
+				print("  %s run %s: %s" % [ref, newest.get("conclusion"), newest["html_url"]])
+				return false
+			passed += 1
+		if passed == refs.size():
+			print("  passed: " + ", ".join(refs))
 			return true
-		OS.delay_msec(20000)
-		waited += 20
+		OS.delay_msec(POLL * 1000)
+		waited += POLL
 		if waited % 120 == 0:
-			print(
-				(
-					"  waiting for CI (%d of %d done, %d s)"
-					% [done, maxi(count, listed.size()), waited]
-				)
-			)
+			print("  waiting for CI (%d of %d passed, %d s)" % [passed, refs.size(), waited])
 	return false
 
 
