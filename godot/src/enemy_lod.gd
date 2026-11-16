@@ -34,6 +34,11 @@ static var COVER_BUDGET := 8
 ## The cover spots left this tick (CoverSearch), and for which tick.
 var cover_left := 0
 var cover_clock := -1.0
+## The players who are up this tick: x, y, and their facing's cos and sin,
+## four numbers each (worked out once a tick, for calm()).
+var _eyes := PackedFloat64Array()
+var _eyes_clock := -1.0
+var _eyes_players := -1
 ## Ticks taken and waited this game, for the tools (not play).
 var thought := 0
 var waited := 0
@@ -65,7 +70,10 @@ func step(e: Enemy, wdt: float, game: GameState) -> float:
 	if not (e.hp > 0.0) or e.dormant or e.brain == "bessie":
 		# (Enemy.tick does nothing for these.)
 		return wdt
-	if not ON or not calm(e, game):
+	# While it waits only what others can change is asked again (calm()'s
+	# `full` false); the rest on the tick after each of its own.
+	var full := e.lod_since < 0.0 or game.clock - e.lod_since <= wdt * 1.5
+	if not ON or not calm(e, game, full):
 		thought += 1
 		if e.lod_since < 0.0:
 			return wdt
@@ -92,12 +100,41 @@ func step(e: Enemy, wdt: float, game: GameState) -> float:
 
 
 ## Whether `e` may think less often now: far from every player who is up,
-## out of their sight lines' way, and nothing going on.
-func calm(e: Enemy, game: GameState) -> bool:
+## out of their sight lines' way, and nothing going on. `full` false asks
+## only what others change (a player's place, an alarm, a shot heard, a hit,
+## a critter's scare, the squad's calls): the rest only changes on its own
+## ticks, and a far calm one cannot start a wind-up, a volley or a climb.
+func calm(e: Enemy, game: GameState, full := true) -> bool:
+	if game.clock != _eyes_clock or game.players.size() != _eyes_players:
+		_look(game)
+	var far2 := FAR * FAR
+	var view2 := VIEW_FAR * VIEW_FAR
+	var eyes := _eyes
+	for k in range(0, eyes.size(), 4):
+		var dx := e.x - eyes[k]
+		var dy := e.y - eyes[k + 1]
+		var d2 := dx * dx + dy * dy
+		if d2 < far2:
+			return false
+		if d2 < view2 and dx * eyes[k + 2] + dy * eyes[k + 3] > VIEW_COS * sqrt(d2):
+			# Out in front of them, near enough to watch it walk.
+			return false
 	if (
 		e.alerted
 		or e.heard != null
-		or e.windup > 0.0
+		or e.retreat != null
+		or e.held_cel != ""
+		or e.hop > 0.0
+		or (e.struck_at >= 0.0 and game.clock - e.struck_at < HURT)
+	):
+		return false
+	var m: Squad.Mind = e.mind
+	if m != null and (m.investigate != null or m.regroup != null or m.flush_at > 0.0):
+		return false
+	if not full:
+		return true
+	return not (
+		e.windup > 0.0
 		or e.volley != 0
 		or e.stun > 0.0
 		or e.recovery > 0.0
@@ -105,44 +142,25 @@ func calm(e: Enemy, game: GameState) -> bool:
 		or e.flinch > 0.0
 		or e.soak > 0.0
 		or e.cover != null
-		or e.retreat != null
 		or e.grudge != null
 		or e.fetching != null
 		or e.ladder >= 0
 		or e.climb_z > 0.0
 		or e.disarmed_until >= 0.0
-		or e.hop > 0.0
-		or e.held_cel != ""
 		or not e.cover_hunt.is_empty()
 		or e.brain == "derby_champ"
 		or Enemy.BOSS_TITLES.has(e.kind)
-	):
-		return false
-	if e.struck_at >= 0.0 and game.clock - e.struck_at < HURT:
-		return false
-	var m: Squad.Mind = e.mind
-	if (
-		m != null
-		and (
-			m.investigate != null
-			or m.search_until > 0.0
-			or m.regroup != null
-			or m.flush_at > 0.0
-			or m.kick_at > 0.0
-		)
-	):
-		return false
-	var far2 := FAR * FAR
-	var view2 := VIEW_FAR * VIEW_FAR
+		or (m != null and (m.search_until > 0.0 or m.kick_at > 0.0))
+	)
+
+
+func _look(game: GameState) -> void:
+	_eyes_clock = game.clock
+	_eyes_players = game.players.size()
+	_eyes.resize(0)
 	for q: Player in game.players:
-		if q.health <= 0:
-			continue
-		var dx := e.x - q.x
-		var dy := e.y - q.y
-		var d2 := dx * dx + dy * dy
-		if d2 < far2:
-			return false
-		if d2 < view2 and dx * cos(q.angle) + dy * sin(q.angle) > VIEW_COS * sqrt(d2):
-			# Out in front of them, near enough to watch it walk.
-			return false
-	return true
+		if q.health > 0:
+			_eyes.append(q.x)
+			_eyes.append(q.y)
+			_eyes.append(cos(q.angle))
+			_eyes.append(sin(q.angle))

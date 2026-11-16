@@ -1264,7 +1264,10 @@ write there: keep writing packs from memory.
   carried: the clock of that tick, -1 when not calm; it changes only on the
   ticks it takes, so a waiting enemy adds nothing to a snapshot's delta): its
   timers, walks and dice keep their pace in fewer, longer steps. The tick anything engages it, it ticks that tick with
-  what it saved and every tick after. Game.tick asks `enemy_lod.step()` for
+  what it saved and every tick after. While it waits only what others can
+  change is asked again each tick (where the players are, an alarm, a shot
+  heard, a hit, a critter's scare, the squad's calls); the rest, which only
+  changes on its own ticks, on the tick after each of them. Game.tick asks `enemy_lod.step()` for
   each enemy's step (0: it waits; with several players it is not focused
   either). It changes play (where a far patrol is when you get there) but
   only from play's own state, so it is the same on every machine and in a
