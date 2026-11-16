@@ -515,7 +515,10 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   (the torso rigid, each limb half a stick, knees fold only forwards and
   elbows only back, ranges for the neck and hips, no limb in the torso),
   Verlet steps of 1/60 s, three passes, friction on the floor, asleep (no
-  steps at all) once still for `SLEEP_AFTER`. The world is tumble.gd's: each
+  steps at all) once still for `SLEEP_AFTER` (or a wreck piece near it
+  stirs). The level's questions are the shared core's (`PhysCore`: plain
+  floor, walls, rails, each ball's floor kept in `Floors`), and it lies on
+  wreck pieces as on another body. The world is tumble.gd's: each
   ball on the highest floor under it (`Tumble.floor_at`: decks, treads,
   ramps, counters), under roofs, never into a wall, a slab's side or a rail
   (a rail play's body went over lifts the ball over its bar; a ball come
@@ -693,7 +696,8 @@ moments. The shape is six spheres up a real pin's profile and the six-point
 ring of its foot, so a pin rocks back short of about ten degrees and goes
 over past it because its centre of mass leaves its foot. Contacts (deck,
 gutter channels, kickbacks, the cushion, pin on pin, ball on pin) are solved
-by sequential impulses with friction and bounce, `STEPS` small steps a tick
+by sequential impulses with friction and bounce (the shared core's exact
+solver, `PhysCore.prepare`/`solve`), `STEPS` small steps a tick
 and `PASSES` passes, penetration pushed out after; still pins sleep and cost
 nothing until knocked. While the ball is among the pins (`AMONG`) its roll
 for the tick is solved again with them from where it was, so it gives up
@@ -874,27 +878,40 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   was, its base opens the way as a crate's does; `never` on the versus maps).
   This is play (they stop shots, take hp and free their cells, the same on
   every machine); the pieces are not.
-- **Physics** (`WreckPhysics`): the contacts made in a step are kept and
-  handed out again the next (`_contact()`, each `clear()`ed to as new): 48
-  pieces in the air made hundreds a step. Each piece a box with a quaternion, slide and
+- **Physics** (`WreckPhysics`, on the shared core: see "The shared physics
+  core" below): each piece a `PhysCore.Box` with a quaternion, slide and
   spin, mass and moments from its size; contacts are its corners (and points
   along a long stick) against the floor under it (`Tumble.floor_at`, so
   decks, stairs, ramps and furniture tops), roofs, walls, furniture sides
   and steps higher than `LEDGE` (`solid()`, pushed out along the shortest of
-  x or y), and other pieces (the axis two boxes overlap least, so a plank on
-  a plank is pushed up); sequential impulses, `PASSES` passes, speculative
+  x or y), other pieces (the axis two boxes overlap least, so a plank on a
+  plank is pushed up; the middles of its edges when no corner is in the
+  other, so two flat boards turned face to face stack) and the balls of
+  ragdolls lying about (`Ragdoll.others`, held still). The core's fast
+  solver (`PASSES` at most, stopping once a pass changes nothing), speculative
   contacts (`MARGIN` plus its speed) so a fall never passes through a deck,
   penetration pushed out after (pieces from one another first, then from
   the level by the deepest contact each way, so a pile never squeezes one
   into the floor). Pieces of one break pass through each other for `APART`.
-  A piece sleeps when it has been slow `SLEEP_AFTER`, has gone nowhere for
-  `HELD_AFTER`, or has been awake and slow `LONGEST`; going to sleep it is
+- **What it asks the level**: a piece looks round once while it stays
+  within `REASK` (`_look_round`: plain ground under all of it, a wall near,
+  the highest floor under it, a roof near); one whose lowest point is
+  `AIR_GAP` over every floor under it with no wall or roof near asks nothing
+  more; else each point's floor, roof and "in something" are kept while the
+  point stays put (`PhysCore.Floors`), and with no wall near a point higher
+  than every floor under it is skipped. More than `GRID_FROM` pieces find
+  their neighbours by the core's grid. A tick takes one step, not `steps`,
+  while every awake piece is slower than `SLOW_V`/`SLOW_W`.
+- **Sleep**: a piece sleeps when it has been slow `SLEEP_AFTER`, has gone
+  nowhere for `HELD_AFTER` (even wedged a little way into something once
+  awake `WEDGED_AFTER`), has crept on the floor slower than `CREEP_V` for
+  `CREEP_AFTER`, or has been awake and slow `LONGEST`; going to sleep it is
   lifted out of any floor and wall it is a little way into. Asleep it costs
-  nothing; one resting piece a tick is asked whether it still lies on
-  something (once until it is knocked again), blasts (`blast_shoved`) throw
-  what lies about and this machine's player kicks pieces walking through.
-  A body over plain level ground every way it reaches skips the level's
-  questions (`_plain_under`, the open yard).
+  nothing and remembers what it lies on (`Body.under`): when that wakes or
+  is taken away (`remove()`), it wakes at once. One resting piece a tick is
+  still asked whether it lies on something (a floor, a wall, a piece, a
+  body; once until it is knocked again), blasts (`blast_shoved`) throw what
+  lies about and this machine's player kicks pieces walking through.
 - **How it is found**: the feature watches breakables' pieces, the windows
   and the fence cells (by their `net_version`) for ones newly broken, so a
   client's mirror throws pieces too; what is broken at the start, from a save
@@ -903,7 +920,11 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   from this machine's player (looks only).
 - **Cost**: `[pieces] most` (48, `most_phone` 20) lie about at most; past it
   the oldest shrink away in `fade` and stop moving. More than `CROWD` (20)
-  awake takes one physics step a tick instead of `steps` (2). Idle (all
+  awake takes one physics step a tick instead of `steps` (2). On the shared
+  core (engine pass 6) the hickston fight's `wreckage._tick` is about a third
+  of what it was (tick_profile, headless, back to back on a busy desktop:
+  0.76 to 0.25 ms; fair 0.60 to 0.17), and 48 pieces thrown at once 2.15 to
+  1.28 ms a tick, worst tick 9.2 to 5.7 ms, all asleep in 4 s instead of 6. Idle (all
   asleep) a tick costs about 15 us; breaking everything on hickston at once
   (48 pieces in the air) peaked near 9 ms a tick headless on a busy desktop,
   a single crate about 1 to 2 ms for a second. A phone or the LOW physics
@@ -921,6 +942,48 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   the idle cost; `tools/physics_frames.gd -- only=break` pictures the
   barrel, window, fence, picnic table and hazard drums
   (`docs/godot3d/features/C/`, before and after).
+
+### The shared physics core (engine pass 6)
+
+`src/phys_core.gd` (`PhysCore`) is what the loose things' solvers share:
+the wreck pieces (`wreck_physics.gd`, looks), the bowling pins and the
+midway's bottles (`range_pin_physics.gd`, play) and the ragdolls
+(`ragdoll.gd`, looks). Pure GDScript, no dice, no threads, no native
+physics, so play's users stay the same on every machine.
+
+- **Bodies and contacts**: `Body` (middle, quaternion, slide, spin, weight;
+  each solver's own body extends it with its inertia), `Box` (a box's
+  moments, corners, edge middles, `extent`, `ball_out`), `Contact`, `Pool`
+  (contacts handed out again each step).
+- **Two solvers**: `prepare`/`solve` is the exact one, the pins' arithmetic
+  to the last bit (bowling is play: bowl_lab rolls give the same pins, and
+  `physics_core.gd` holds the old formulas against it); `prepare_fast`/
+  `solve_fast` works each contact's turning terms out once a step (the
+  body's inverse inertia in world axes, `Box.turned()`), uses two fixed ways
+  across the normal for friction and stops when a pass changes nothing
+  (`SETTLED`): looks only.
+- **Grid**: a hash of map cells (`GRID`) for finding near bodies.
+- **The level's questions**: `plain`, `plain_under`, `plain_rect`,
+  `level_ground`, `in_wall`, `solid`, `way_out`, `ball_solid`, `rail_at`, and
+  `Floors` (a point's floor, roof and "in something" kept while it moves
+  less than `REASK`), for wreck pieces and ragdolls alike.
+- **Space** (`PhysCore.space(world)`, kept on the LevelData): the wreck
+  pieces about (`boxes`) and how many are awake (`stirring`). A ragdoll's
+  balls are pushed out of the pieces (`Ragdoll._on_boxes`: a body lies on a
+  plank; striking one at rest wakes and shoves it), and a body asleep wakes
+  when a piece near it stirs (`_pieces_stir`). The pieces meet the ragdolls
+  in `Ragdoll.others` (those on their level, `Ragdoll.level`): a board
+  dropped on a body lies across it. All looks; a headless server has no
+  ragdolls, so its pieces meet none.
+- **Resting on**: `Body.under` is what a sleeping body lies on;
+  `wake_resting_on` wakes every body on one that woke or went.
+- **Not on it**: `tumble.gd` stays play's own point-body stepper (gibs, bits,
+  bodies, rolling shots: SIM, arithmetic every machine must match), though
+  every solver here asks its `floor_at`.
+- Checks: `physics_check`'s part `tools/physics_core.gd` (the exact solver
+  against the old formulas, the grid against asking everyone, `ball_out`,
+  a box dropped, three stacked and knocked from under, the same throw twice,
+  a body on a piece and a board on a body).
 
 ### Materials and penetration
 

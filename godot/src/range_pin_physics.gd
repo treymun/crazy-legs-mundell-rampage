@@ -8,8 +8,9 @@
 ## centre of mass then lies outside its foot, not because a number says so.
 ## Down, it rolls on its belly and head and slides; knocked, it spins. The
 ## ball is a heavy sphere rolling on the lane. Contacts are solved by
-## impulses (sequential, with friction and bounce), a few small steps a tick,
-## and penetration is pushed out afterwards; bodies that have come to rest
+## impulses (sequential, with friction and bounce: phys_core.gd's exact
+## solver, every number as it always was), a few small steps a tick, and
+## penetration is pushed out afterwards; bodies that have come to rest
 ## sleep until something knocks them. Map coordinates throughout: x and y
 ## across the floor, z up; a pin's z is its centre's height above the deck.
 ##
@@ -68,16 +69,12 @@ const SLEEP_AFTER := .3
 const PASSES := 4
 
 
-## One body this tick (a pin, or the ball with `ball` set).
+## One body this tick (a pin, or the ball with `ball` set): PhysCore's rigid
+## body (its middle, turn, slide, spin, weight), asleep until knocked.
 class Body:
-	var p := Vector3.ZERO
-	var q := Quaternion.IDENTITY
-	var v := Vector3.ZERO
-	var w := Vector3.ZERO
+	extends PhysCore.Body
 	var rest := 0.0
-	var awake := false
 	var ball := false
-	var inv_m := 1.0
 	## Its spheres up the axis [height, radius], centre of mass, foot's radius
 	## and moments (a pin's unless set: a milk bottle's are its own).
 	var shape: Array = SPHERES
@@ -88,10 +85,11 @@ class Body:
 	## A ball's radius; a free ball falls and bounces in 3D (a thrown one).
 	var radius := BALL_R
 	var free := false
-	## Touching the deck this step (for rolling and sleep).
-	var grounded := false
 	## Its spheres' centres this step (spheres()).
 	var sph: Array = []
+
+	func _init() -> void:
+		awake = false
 
 	## Its axis (a pin's foot to head), world.
 	func axis() -> Vector3:
@@ -108,38 +106,14 @@ class Body:
 	func mass_inv() -> float:
 		return inv_m if awake or ball else 0.0
 
-	func velocity_at(r: Vector3) -> Vector3:
-		return v + w.cross(r)
-
-	func push(j: Vector3, r: Vector3) -> void:
-		v += j * mass_inv()
-		w += inv_inertia(r.cross(j))
-
 	func wake() -> void:
 		if not ball:
 			awake = true
 			rest = 0.0
 
 
-## A contact: bodies a and b (b -1 the world), the points from each centre,
-## the normal (pushing a away from b), how deep, the bounce it wants, the
-## friction, and the impulses so far.
-class Contact:
-	var a: Body
-	var b: Body
-	var ra := Vector3.ZERO
-	var rb := Vector3.ZERO
-	var n := Vector3(0.0, 0.0, 1.0)
-	var depth := 0.0
-	var bias := 0.0
-	var mu := 0.0
-	var jn := 0.0
-	var jt := Vector3.ZERO
-	var mass_n := 0.0
-	## 0 a wall, 1 pin on pin, 2 ball on pin, 3 the deck (1 and 2 are heard).
-	var kind := 0
-	var cushion := false
-
+# A contact is a PhysCore.Contact: `kind` 0 a wall, 1 pin on pin, 2 ball on
+# pin, 3 the deck (1 and 2 are heard); `cushion` the lane's end.
 
 ## The world's floor under (x, y) relative to the deck, given by the lane.
 var floor_at: Callable
@@ -207,11 +181,11 @@ func step(pins: Array, ball: Body, h: float) -> void:
 			_pin_pair(a, o, contacts)
 		if ball != null:
 			_ball_pin(ball, a, contacts)
-	_prepare(contacts)
+	_prepare(contacts, h)
 	for _pass in PASSES:
-		for c: Contact in contacts:
-			_solve(c)
-	for c: Contact in contacts:
+		for c: PhysCore.Contact in contacts:
+			PhysCore.solve(c)
+	for c: PhysCore.Contact in contacts:
 		if c.jn > .18 and (c.kind == 1 or c.kind == 2):
 			knocks += 1
 			var at := c.a.p + c.ra
@@ -219,10 +193,7 @@ func step(pins: Array, ball: Body, h: float) -> void:
 	for b: Body in pins:
 		if not b.awake:
 			continue
-		b.p += b.v * h
-		var spin := b.w.length()
-		if spin > 1e-6:
-			b.q = (Quaternion(b.w / spin, spin * h) * b.q).normalized()
+		PhysCore.integrate(b, h)
 		b.w *= exp(-(ROLL_DAMP if b.grounded else AIR_DAMP) * h)
 		if b.grounded and b.axis().z < .5:
 			b.v *= exp(-ROLL_DRAG * h)
@@ -295,8 +266,10 @@ func _wall_contacts(b: Body, out: Array) -> void:
 			_add_world(b, c + Vector3(0, rad, 0), Vector3(0, -1, 0), c.y + rad - foul, MU_WALL, out)
 
 
-func _add_world(b: Body, at: Vector3, n: Vector3, depth: float, mu: float, out: Array) -> Contact:
-	var c := Contact.new()
+func _add_world(
+	b: Body, at: Vector3, n: Vector3, depth: float, mu: float, out: Array
+) -> PhysCore.Contact:
+	var c := PhysCore.Contact.new()
 	c.a = b
 	c.b = null
 	c.ra = at - b.p
@@ -336,7 +309,7 @@ func _pin_pair(a: Body, o: Body, out: Array) -> void:
 		return
 	a.wake()
 	o.wake()
-	var c := Contact.new()
+	var c := PhysCore.Contact.new()
 	c.a = a
 	c.b = o
 	c.ra = at - a.p
@@ -372,7 +345,7 @@ func _ball_pin(ball: Body, pin: Body, out: Array) -> void:
 	pin.wake()
 	if not first_hit:
 		first_hit = true
-	var ct := Contact.new()
+	var ct := PhysCore.Contact.new()
 	ct.a = ball
 	ct.b = pin
 	ct.ra = at - ball.p
@@ -384,25 +357,9 @@ func _ball_pin(ball: Body, pin: Body, out: Array) -> void:
 	out.append(ct)
 
 
-func _rel(c: Contact) -> Vector3:
-	var v := c.a.velocity_at(c.ra)
-	if c.b != null:
-		v -= c.b.velocity_at(c.rb)
-	return v
-
-
-## The impulse it takes to change the closing speed along `d` by one.
-func _mass_along(c: Contact, d: Vector3) -> float:
-	var k := c.a.mass_inv() + c.a.inv_inertia(c.ra.cross(d)).cross(c.ra).dot(d)
-	if c.b != null:
-		k += c.b.mass_inv() + c.b.inv_inertia(c.rb.cross(d)).cross(c.rb).dot(d)
-	return 1.0 / k if k > 1e-9 else 0.0
-
-
-func _prepare(contacts: Array) -> void:
-	for c: Contact in contacts:
-		c.mass_n = _mass_along(c, c.n)
-		var closing := _rel(c).dot(c.n)
+## Each contact's bounce by its kind, then PhysCore's exact preparing.
+func _prepare(contacts: Array, h: float) -> void:
+	for c: PhysCore.Contact in contacts:
 		var e := E_FLOOR
 		match c.kind:
 			1:
@@ -411,43 +368,13 @@ func _prepare(contacts: Array) -> void:
 				e = E_BALL
 			0:
 				e = E_CUSHION if c.cushion else E_WALL
-		c.bias = -e * closing if closing < -BOUNCE_FROM else 0.0
-
-
-func _solve(c: Contact) -> void:
-	if c.mass_n <= 0.0:
-		return
-	var vn := _rel(c).dot(c.n)
-	var dj := (c.bias - vn) * c.mass_n
-	var total := maxf(c.jn + dj, 0.0)
-	dj = total - c.jn
-	c.jn = total
-	_apply(c, c.n * dj)
-	# Friction: against the slip, no more than mu times the push.
-	var vr := _rel(c)
-	var slip := vr - c.n * vr.dot(c.n)
-	var speed := slip.length()
-	if speed < 1e-6:
-		return
-	var t := slip / speed
-	var k := _mass_along(c, t)
-	var want := c.jt - t * speed * k
-	var most := c.mu * c.jn
-	if want.length() > most:
-		want = want.normalized() * most
-	_apply(c, want - c.jt)
-	c.jt = want
-
-
-func _apply(c: Contact, j: Vector3) -> void:
-	c.a.push(j, c.ra)
-	if c.b != null:
-		c.b.push(-j, c.rb)
+		c.e = e
+	PhysCore.prepare(contacts, h, BOUNCE_FROM)
 
 
 ## Penetration left after the step pushed out (the bodies' places only).
 func _push_out(contacts: Array) -> void:
-	for c: Contact in contacts:
+	for c: PhysCore.Contact in contacts:
 		var d := c.depth - SLOP
 		if d <= 0.0:
 			continue
@@ -456,11 +383,14 @@ func _push_out(contacts: Array) -> void:
 		if ia + ib <= 0.0:
 			continue
 		var move := c.n * d * PUSH / (ia + ib)
-		if c.a.ball and not c.a.free:
-			c.a.p += Vector3(move.x, move.y, 0.0) * ia
-		elif c.a.ball:
-			c.a.p += move * ia
-		elif c.a.awake:
-			c.a.p += move * ia
-		if c.b != null and (c.b.awake or c.b.ball):
-			c.b.p -= move * ib
+		var a: Body = c.a
+		if a.ball and not a.free:
+			a.p += Vector3(move.x, move.y, 0.0) * ia
+		elif a.ball:
+			a.p += move * ia
+		elif a.awake:
+			a.p += move * ia
+		if c.b != null:
+			var o: Body = c.b
+			if o.awake or o.ball:
+				o.p -= move * ib

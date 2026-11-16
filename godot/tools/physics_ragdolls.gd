@@ -379,7 +379,7 @@ func _run(game: Game, e: Enemy, knocked: bool) -> Array:
 								doll.old[i],
 								Ragdoll._solid(world, doll.old[i], doll.radius[i]),
 								Ragdoll._solid(world, doll.old[i], doll.radius[i] * .5),
-								doll._floors[i],
+								doll._fl.floor[i],
 								near
 							]
 						)

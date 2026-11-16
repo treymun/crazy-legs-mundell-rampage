@@ -17,8 +17,11 @@
 ## the highest floor under it (a deck, a stair tread, a ramp, a counter top,
 ## the ground), never comes up through a deck's underside, never into a wall,
 ## a slab's side or a rail (rails let a body by in tumble.gd; here a body's
-## legs catch on one and it goes over it head first). Map coordinates
-## throughout: x and y across the floor, z up.
+## legs catch on one and it goes over it head first). The level's questions
+## (plain floor, walls, rails, each ball's floor kept while it stays put) are
+## the shared physics core's (phys_core.gd), and so is the space it shares
+## with the wreck pieces: a body lies on a piece, a piece on a body. Map
+## coordinates throughout: x and y across the floor, z up.
 class_name Ragdoll
 extends RefCounted
 
@@ -38,8 +41,6 @@ const MOST_AWAKE := 8.0
 ## The torso's middle may lag play's body by this much before it is pulled.
 const SLACK := .3
 const PULL := 8.0
-## A ball's floor is asked again once it has moved this far across.
-const REASK := .03
 ## The model's shape is kept out of the floor once a ball is this near it
 ## (model units), to within HULL_SLACK (map units).
 const HULL_NEAR := .5
@@ -84,11 +85,9 @@ var _left := 0.0
 var _torso_r := .1
 ## Play's body's move, given on the next step.
 var _shove := Vector3.ZERO
-## Each ball's floor and roof this step.
-var _floors := PackedFloat32Array()
+## Each ball's floor (kept while it stays put) and roof this step.
+var _fl := PhysCore.Floors.new()
 var _roofs := PackedFloat32Array()
-## Where each ball's floor was last asked from (INF: ask again).
-var _asked := PackedVector3Array()
 ## The rig it hangs on: its segments' outermost points keep the model's
 ## shape (a shoulder, a boot's toe, a hat's brim) out of the floor, not only
 ## the balls (_hull_floor). Null: the balls alone.
@@ -99,6 +98,9 @@ var _up := PackedVector3Array()
 var _slopes := PackedVector2Array()
 ## How far its balls reach from its torso's middle (kept each step).
 var extent := 1.0
+## The level it lies on (set each step: the wreck pieces ask for those on
+## theirs).
+var level: LevelData
 
 ## The ragdolls about (ActorLayer3D sets it each frame: those shown and those
 ## kept out of sight): a body lies on another rather than through it.
@@ -334,7 +336,7 @@ func follow(at: Vector3, up: float, dt: float) -> void:
 
 ## Step for dt seconds (in STEP steps, at most MOST_STEPS). Returns the steps.
 func advance(world: LevelData, dt: float) -> int:
-	if not awake:
+	if not awake and not _pieces_stir(world):
 		return 0
 	_left = minf(_left + dt, STEP * MOST_STEPS)
 	var n := 0
@@ -361,58 +363,52 @@ func step(world: LevelData) -> void:
 		pos[i] = p + v + _shove - Vector3(0.0, 0.0, g)
 	var shoved := _shove
 	_shove = Vector3.ZERO
-	if _floors.size() != count:
-		_floors.resize(count)
+	level = world
+	if _roofs.size() != count:
 		_roofs.resize(count)
 		_slopes.resize(count)
-		_asked.resize(count)
-		_asked.fill(Vector3.INF)
+	_fl.size_to(count)
 	var plain := _plain(world)
 	if plain:
 		# Open floor all round: the cells' own ground and roof, no walls.
 		for i in count:
 			var p := pos[i]
 			var c := int(p.y) * world.width + int(p.x)
-			_floors[i] = world.ground[c]
+			_fl.keep(i, INF, INF, INF, world.ground[c])
 			_roofs[i] = world.roof[c] if world.roof[c] > old[i].z + .01 else 0.0
 			_slopes[i] = Vector2.ZERO
-			_asked[i] = Vector3.INF
 	else:
 		for i in count:
 			var p := pos[i]
 			var o := old[i]
 			var r := radius[i]
 			var z := o.z - r + .03
-			var was := _asked[i]
 			# The floor asked a step or two ago still holds for a ball that has
 			# hardly moved across and is no higher than it was asked from.
-			if (
-				absf(p.x - was.x) < REASK
-				and absf(p.y - was.y) < REASK
-				and z <= was.z + .01
-				and z >= _floors[i] - .01
-			):
+			if _fl.held(i, p.x, p.y, z):
 				continue
-			_asked[i] = Vector3(p.x, p.y, z)
-			_floors[i] = Tumble.floor_at(world, p.x, p.y, z, r * .6)
+			var under := Tumble.floor_at(world, p.x, p.y, z, r * .6)
+			_fl.keep(i, p.x, p.y, z, under)
 			_roofs[i] = world.roof_over(p.x, p.y, o.z)
-			_slopes[i] = Tumble.slope(world, p.x, p.y, _floors[i])
+			_slopes[i] = Tumble.slope(world, p.x, p.y, under)
+	var floors := _fl.floor
 	var touching := PackedByteArray()
 	touching.resize(count)
 	for _pass in PASSES:
 		_links()
 		_hinges()
 		for i in count:
-			if _floor(i, _floors[i], _roofs[i]):
+			if _floor(i, floors[i], _roofs[i]):
 				touching[i] = 1
 	_on_bodies(touching)
+	_on_boxes(world, touching)
 	_hull_floor(touching)
 	if not plain:
 		# Last, nothing ends the step inside a wall, a slab's side or a rail
 		# (the links may have pulled a ball in).
 		for i in count:
 			_walls(world, i)
-			_floor(i, _floors[i], _roofs[i])
+			_floor(i, floors[i], _roofs[i])
 	# Play's body's move carried the balls along; it is not theirs to keep
 	# going with (each frame brings its own), as far as they made it.
 	var reach := shoved.length()
@@ -449,12 +445,13 @@ func step(world: LevelData) -> void:
 ## from now on.
 func _lay(world: LevelData, plain: bool, touching: PackedByteArray) -> void:
 	awake = false
+	_fl.size_to(pos.size())
 	for i in pos.size():
 		var p := pos[i]
 		var r := radius[i]
 		if not plain:
 			var under := Tumble.floor_at(world, p.x, p.y, p.z - r + .03, r * .6)
-			_floors[i] = under
+			_fl.keep(i, INF, INF, INF, under)
 			pos[i] = Vector3(p.x, p.y, maxf(p.z, under + r))
 	for _k in 2:
 		_hull_floor(touching)
@@ -503,6 +500,64 @@ func _on_bodies(touching: PackedByteArray) -> void:
 			pos[i] = p
 
 
+## Wreck pieces lying about (the level's PhysCore.Space): a ball inside one
+## is pushed out of it (all the way when the piece lies still, half when it
+## moves), and lying on one holds it as a floor does. A ball striking a piece
+## at rest faster than WAKE_HIT wakes it and shoves it along (looks only).
+func _on_boxes(world: LevelData, touching: PackedByteArray) -> void:
+	var boxes := PhysCore.space(world).boxes
+	if boxes.is_empty():
+		return
+	var mid := middle()
+	for item: Variant in boxes:
+		var b: PhysCore.Box = item
+		var reach := extent + b.reach
+		if (
+			absf(b.p.x - mid.x) > reach
+			or absf(b.p.y - mid.y) > reach
+			or absf(b.p.z - mid.z) > reach
+		):
+			continue
+		for i in pos.size():
+			var p := pos[i]
+			var r := radius[i]
+			if p.distance_squared_to(b.p) > (b.reach + r) * (b.reach + r):
+				continue
+			var out := b.ball_out(p, r)
+			var deep := out.length()
+			if deep < 1e-6:
+				continue
+			var n := out / deep
+			var hit := (old[i] - p).dot(n)
+			if not b.awake and hit > WAKE_HIT:
+				b.wake()
+				b.v -= n * (hit / STEP) * .5
+			pos[i] = p + out * (.5 if b.awake else 1.0)
+			if n.z > .5:
+				touching[i] = 1
+
+
+## Whether a wreck piece near this body (asleep) is moving: what it lies on
+## may be going, so it wakes.
+func _pieces_stir(world: LevelData) -> bool:
+	var space := PhysCore.space(world)
+	if space.stirring == 0 or pos.is_empty():
+		return false
+	var mid := middle()
+	for item: Variant in space.boxes:
+		var b: PhysCore.Box = item
+		var reach := extent + b.reach
+		if (
+			b.awake
+			and absf(b.p.x - mid.x) < reach
+			and absf(b.p.y - mid.y) < reach
+			and absf(b.p.z - mid.z) < reach
+		):
+			wake()
+			return true
+	return false
+
+
 ## The model's own shape against the floor: each segment's outermost point
 ## lowest now (the rig's hull, turned as the view will turn that segment's
 ## parts) is kept out of the floor under its nearest ball, the segment's
@@ -513,12 +568,15 @@ func _hull_floor(touching: PackedByteArray) -> void:
 	if rig == null or rig.hull.size() != R.ENDS.size():
 		return
 	var count := pos.size()
+	if _fl.floor.size() != count:
+		return
+	var floors := _fl.floor
 	_up.resize(count)
 	var near := false
 	for i in count:
 		var p := pos[i]
 		_up[i] = Vector3(p.x, p.z, p.y)
-		near = near or p.z - radius[i] - _floors[i] < HULL_NEAR * size
+		near = near or p.z - radius[i] - floors[i] < HULL_NEAR * size
 	if not near:
 		return
 	var frames := rig.frames_of(_up)
@@ -528,7 +586,7 @@ func _hull_floor(touching: PackedByteArray) -> void:
 		var f := frames[s]
 		var top := -INF
 		for b: int in balls:
-			top = maxf(top, _floors[b])
+			top = maxf(top, floors[b])
 		if f.origin.y - rig.hull_reach[s] * size > top + .005:
 			continue
 		var down := f.basis.transposed() * Vector3.DOWN
@@ -559,7 +617,7 @@ func _hull_floor(touching: PackedByteArray) -> void:
 			if dd < gap:
 				gap = dd
 				nearest = b
-		var sink := _floors[nearest] - at.y
+		var sink := floors[nearest] - at.y
 		if sink <= HULL_SLACK:
 			continue
 		var lift := PackedFloat32Array()
@@ -702,58 +760,24 @@ func _walls(world: LevelData, i: int) -> void:
 
 ## Whether every cell the body is over (and a little round it) is open floor
 ## with nothing of the geometry, no furniture, door, pane or gate near: then
-## the cells' ground and roof are all there is.
+## the cells' ground and roof are all there is (PhysCore.plain_rect).
 func _plain(world: LevelData) -> bool:
-	if world.index_cells.size() != world.width * world.height:
-		return false
 	var lo := Vector2(INF, INF)
 	var hi := Vector2(-INF, -INF)
 	for p in pos:
 		lo = Vector2(minf(lo.x, p.x), minf(lo.y, p.y))
 		hi = Vector2(maxf(hi.x, p.x), maxf(hi.y, p.y))
-	var x0 := int(lo.x - .3)
-	var y0 := int(lo.y - .3)
-	var x1 := int(hi.x + .3)
-	var y1 := int(hi.y + .3)
-	if x0 < 0 or y0 < 0 or x1 >= world.width or y1 >= world.height:
-		return false
-	var geo := world.geo
-	for y in range(y0, y1 + 1):
-		for x in range(x0, x1 + 1):
-			var c := y * world.width + x
-			if world.solid[c] >= 0 or world.index_cells[c] != 0:
-				return false
-			if geo != null and geo.cells[c] != 0:
-				return false
-	for pane: Vector2i in world.pane_tiles:
-		if pane.x >= x0 - 1 and pane.x <= x1 + 1 and pane.y >= y0 - 1 and pane.y <= y1 + 1:
-			return false
-	for gate: LevelData.Gate in world.locked_gates:
-		if (
-			absf(gate.x - (lo.x + hi.x) * .5) < gate.width + 3.0
-			and absf(gate.y - (lo.y + hi.y) * .5) < 3.0
-		):
-			return false
-	return true
+	return PhysCore.plain_rect(
+		world, int(lo.x - .3), int(lo.y - .3), int(hi.x + .3), int(hi.y + .3)
+	)
 
 
 static func _solid(world: LevelData, p: Vector3, r: float) -> bool:
-	return world.blocked(p.x, p.y, r * .8, p.z) or _rail_at(world, p, r) != null
+	return PhysCore.ball_solid(world, p, r)
 
 
-## The rail (a free wall that lets sight by, which blocked() leaves out) a
-## ball of radius r at p is in, or null.
 static func _rail_at(world: LevelData, p: Vector3, r: float) -> LevelGeometry.Segment:
-	if world.geo == null or world.geo.clear_at(p.x, p.y):
-		return null
-	for item: Variant in world.geo.near_items(p.x, p.y):
-		if item is LevelGeometry.Segment:
-			var s: LevelGeometry.Segment = item
-			if not s.sight and p.z + r > s.z0 and p.z - r < s.z1:
-				var reach := r * .8 + s.half
-				if s.dist2(p.x, p.y) < reach * reach:
-					return s
-	return null
+	return PhysCore.rail_at(world, p, r)
 
 
 ## Which side of rail s point p is on.
