@@ -921,7 +921,7 @@ func _hit_mark(c: Canvas) -> void:
 # ------------------------------------------------------------- view effects
 
 ## The grit and dither of each wash made so far (_build_grit): wash -> [r, g,
-## b, dither], only ever read, so every game of that wash shares them.
+## b, dither], only ever read after, so every game of that wash shares them.
 static var _grits := {}
 
 
@@ -935,6 +935,11 @@ func _build_grit() -> void:
 		_grit_b = kept[2]
 		_dither = kept[3]
 		return
+	# New arrays (a packed array in a Variant is shared: these are kept).
+	_grit_r = PackedFloat32Array()
+	_grit_g = PackedFloat32Array()
+	_grit_b = PackedFloat32Array()
+	_dither = PackedFloat32Array()
 	var count := WIDTH * VIEW
 	_grit_r.resize(count)
 	_grit_g.resize(count)

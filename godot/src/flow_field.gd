@@ -84,16 +84,18 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 	for door: LevelData.Door in world.doors:
 		_door_at[door.y * width + door.x] = door
 	# The level as read, nothing opened yet: its open floor as measured the
-	# last time it was played (only read: reopen() writes a copy of its own).
+	# last time it was played. A copy each way: a packed array in a Variant
+	# is shared, and reopen() writes this one.
 	var key := world.source_key if world.walls_version == 0 and world.solid_version == 0 else ""
 	if key != "" and _opens.has(key):
-		open = _opens[key]
+		var kept: PackedByteArray = _opens[key]
+		open = kept.duplicate()
 		return
 	_measure_open(nodes)
 	if key != "":
 		if _opens.size() >= OPENS_KEPT:
 			_opens.erase(_opens.keys()[0])
-		_opens[key] = open
+		_opens[key] = open.duplicate()
 
 
 ## The open floor of a level (open): 0 wall, 1 floor, 2 a door's, a pane's

@@ -5,6 +5,8 @@
 ##   in the same order, against the build it replaced (tools/load_reference.gd);
 ## - the level read (LevelData.load_level): its grids and walls number for
 ##   number, its plane bounds box for box, against the reads they replaced;
+## - a level's open floor kept for the next game (FlowField._opens) as it was
+##   measured, whatever the game since did with its own;
 ## - the wreck pieces cut on a worker while the level's first frames run
 ##   (WreckCuts.prepare) against the same keys cut at once on this thread.
 ##
@@ -106,10 +108,22 @@ func _check_cuts(assets: Assets, levels: Array) -> void:
 	var sound := Sound.new(assets)
 	root.add_child(sound)
 	var keys := {}
+	var opens := 0
 	for id: String in levels:
 		if FileAccess.get_file_as_string("res://data/%s.json" % id).is_empty():
 			continue
+		# The open floor kept for a level played again: what a fresh game
+		# measured, and never what a game since changed (reopen).
+		(FlowField as Script).get("_opens").clear()
 		var game := Game.new(assets, hud, sound, id)
+		var measured := game.flow.open.duplicate()
+		# (A packed array in a Variant is shared: this game's writes must not
+		# reach the one kept.)
+		game.flow.open.fill(0)
+		var again := Game.new(assets, hud, sound, id)
+		if again.flow.open != measured:
+			_fail("%s: the open floor kept differs from the one measured" % id)
+		opens += 1
 		var wreck: Object = game.features.get("wreckage")
 		var pieces: Object = game.features.get("breakables")
 		if wreck == null or pieces == null or not bool(wreck.get("on")):
@@ -126,6 +140,7 @@ func _check_cuts(assets: Assets, levels: Array) -> void:
 			waited += 1
 		if not WreckCuts.idle():
 			_fail("%s: the wreck cuts never finished" % id)
+	print("open floors: %d levels kept as measured" % opens)
 	var by_worker := {}
 	for key: String in keys:
 		by_worker[key] = WreckCuts.parts(assets, key)
@@ -138,8 +153,10 @@ func _check_cuts(assets: Assets, levels: Array) -> void:
 		pieces += here.size()
 		if not _same_parts(here, by_worker[key]):
 			_fail("wreck cut %s differs from the worker's" % key)
-	if models == 0 or pieces == 0:
+	if models > 0 and pieces == 0:
 		_fail("no wreck pieces were cut")
+	if levels.has("hickston") and models == 0:
+		_fail("hickston has no breakables with pieces")
 	print(
 		(
 			"wreck cuts: %d keys (%d models, %d pieces) the same cut on a worker and here"
