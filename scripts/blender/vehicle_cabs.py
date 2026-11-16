@@ -319,9 +319,13 @@ def needle(at, rot, r):
 AB_FLOOR = -1.55
 AB_DECK = AB_FLOOR + .36
 AB_FAN = (-1.06, 0.0, -.36)
-AB_STICK = (.98, .3, AB_DECK + .03)
-AB_GRIP = (AB_STICK[0] - .05, AB_STICK[1], AB_STICK[2] + .54)
-AB_POD = (1.38, .62, -.8)
+# The rudder stick rises from the deck out on his left, leaning back a
+# little; his fist holds it near its top, the black-gripped end and its knob
+# standing above the fist, the steel shaft below it.
+AB_STICK = (1.0, .45, AB_DECK + .03)
+AB_STICK_TOP = (AB_STICK[0] - .04, AB_STICK[1], AB_STICK[2] + .69)
+AB_GRIP = (AB_STICK[0] - .031, AB_STICK[1], AB_STICK[2] + .54)
+AB_POD = (2.0, .6, -.85)
 AB_POD_ROT = (12, -58, 0)
 
 
@@ -371,7 +375,7 @@ def cab_airboat_body():
     for s in (1, -1):
         rod((.48, s * .28, deck + .2), (.14, s * .22, -.97), .015, alu)
     box(.11, .13, .03, (.56, -.15, deck + .14), dark, (0, -20, 0))
-    # The tach on a bracket off the left rail (its needle a part).
+    # The tach on a bracket off the left rail ahead of the stick (its needle a part).
     rod((AB_POD[0] + .03, .68, deck + .2), (AB_POD[0] + .02, AB_POD[1] + .02, AB_POD[2] - .05), .016, dark)
     gauge(AB_POD, AB_POD_ROT, .055, dark)
     # The rudder stick's bracket on the deck.
@@ -402,17 +406,25 @@ def cab_airboat_body():
 
 
 def cab_airboat_stick():
-    # The rudder stick on his left, up from its bracket.
+    # The rudder stick on his left: a steel shaft up from its bracket, a
+    # black rubber grip at its top under his fist, a round black knob.
     p = Vector(AB_STICK)
-    top = p + Vector((-.05, 0, .6))
-    rod(p, top, .02, mat(60, 60, 62, metal=.7, rough=.4, grime=.5))
-    rod(Vector(AB_GRIP) - Vector((0, 0, .055)), top + Vector((0, 0, .015)), .028, mat(24, 22, 22, rough=.9, grime=.2))
+    top = Vector(AB_STICK_TOP)
+    steel = mat(150, 154, 156, metal=.8, rough=.3, grime=.35)
+    black = mat(26, 24, 24, rough=.85, grime=.15)
+    rod(p, top, .016, steel)
+    grip = Vector(AB_GRIP)
+    rod(grip - Vector((0, 0, .06)), top + Vector((0, 0, .005)), .024, black, seg=12)
+    for k in range(4):
+        cyl(.026, .006, grip + (top - grip) * (.2 + k * .22), black, seg=12)
+    ball(.034, top + Vector((0, 0, .02)), black)
+    cyl(.03, .05, p + Vector((0, 0, .03)), mat(40, 40, 42, metal=.5, grime=.5), seg=12)
     pivot(AB_STICK)
 
 
 def cab_airboat_hand():
     # His left hand on the stick's grip (it follows the grip, cab_layer.gd).
-    fist(AB_GRIP, (0, 0, 1), (.3, .5, -.95), bar_r=.028, face=(-.3, 1, 0))
+    fist(AB_GRIP, (0, 0, 1), (.74, .52, -1.3), bar_r=.024)
     pivot(AB_GRIP)
 
 
