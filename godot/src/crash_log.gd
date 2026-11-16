@@ -9,7 +9,9 @@
 ## cut), the last session's log is kept aside as crash-<stamp>.log and one
 ## line goes to the console. Earlier clean logs rotate as session-<stamp>.log
 ## (KEEP of each). A session that went to the background on a phone and was
-## closed there by the system is not counted as a crash.
+## closed there by the system is not counted as a crash. The run's replay the
+## front end keeps beside the log (session.replay, src/replay_keeper.gd) goes
+## with it: kept as crash-<stamp>.replay after a crash, dropped otherwise.
 ##
 ## Nothing runs per frame: the hook is called only when the engine reports
 ## something, the context is read then (on the main thread; an error on a
@@ -120,7 +122,14 @@ func close() -> void:
 		_file.close()
 		_file = null
 		DirAccess.remove_absolute(_lock_path)
+		DirAccess.remove_absolute(replay_path())
 	_mutex.unlock()
+
+
+## Where the front end keeps this session's replay, beside its log
+## (session.replay; live-<pid>.replay for a second copy on the profile).
+func replay_path() -> String:
+	return _path.get_basename() + ".replay"
 
 
 ## Gone to the background (a phone): the system may close it there, which is
@@ -312,6 +321,7 @@ func _open() -> void:
 			n += 1
 			kept = "%s/%s-%s-%d.log" % [_dir, "crash" if crashed else "session", stamp, n]
 		DirAccess.rename_absolute(_dir.path_join("session.log"), kept)
+		_keep_replay(kept if crashed else "")
 		if crashed:
 			last_session = (
 				"CRASH LOG: the last session (version %s, started %s) did not close cleanly; its log is %s"
@@ -324,6 +334,7 @@ func _open() -> void:
 			print(last_session)
 	_prune("session-")
 	_prune("crash-")
+	_prune("crash-", ".replay")
 	_file = FileAccess.open(_path, FileAccess.WRITE)
 	if _file == null:
 		return
@@ -371,11 +382,23 @@ func _still_running(pid: int) -> bool:
 	return pid > 0 and pid != OS.get_process_id() and OS.is_process_running(pid)
 
 
-## Keeps the KEEP newest logs whose names start with `prefix`.
-func _prune(prefix: String) -> void:
+## The last session's replay beside its log `kept` (crash-<stamp>.replay),
+## or gone when `kept` is "" (it closed cleanly).
+func _keep_replay(kept: String) -> void:
+	var replay := _dir.path_join("session.replay")
+	if not FileAccess.file_exists(replay):
+		return
+	if kept == "":
+		DirAccess.remove_absolute(replay)
+	else:
+		DirAccess.rename_absolute(replay, kept.get_basename() + ".replay")
+
+
+## Keeps the KEEP newest logs (or `ext` files) whose names start with `prefix`.
+func _prune(prefix: String, ext := ".log") -> void:
 	var names: Array = []
 	for name in DirAccess.get_files_at(_dir):
-		if name.begins_with(prefix) and name.ends_with(".log"):
+		if name.begins_with(prefix) and name.ends_with(ext):
 			names.append(name)
 	names.sort()
 	while names.size() > KEEP:

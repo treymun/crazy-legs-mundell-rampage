@@ -43,6 +43,10 @@ static func parse_smoke(m: MainState) -> void:
 		elif text == "--rematch-all":
 			# Every boss on the rematch board (from the project folder only).
 			BossRematch.unlock_all = DevConsole.available()
+		elif text.begins_with("--replay="):
+			# A replay (src/replay.gd) played in the game's view: a path, or a
+			# name in user://replays.
+			m.replay_file = text.substr(9)
 		elif text.begins_with("--play-at="):
 			m.play_at = text.substr(10)
 		elif text == "--server":

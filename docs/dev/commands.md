@@ -123,6 +123,9 @@ godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bo
 ```
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 godot --headless --path godot --script res://tools/tick_profile.gd -- 300   # the tick by listener (features) and core, idle and fighting
+godot --headless --path godot --script res://tools/tick_profile.gd -- 300 replay   # and what recording a replay costs a tick
+godot --headless --path godot --script res://tools/replay_check.gd [-- quick]   # replays play back exactly (front: the front end's part alone)
+godot --path godot -- --replay=<file>   # play a replay in the game's view (a path, or a name in user://replays); Esc leaves
 godot --headless --path godot --script res://tools/load_bench.gd -- rounds=3   # level loads cold and warm, the level mesh, the wreck cutting
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/stress_bench.gd -- [only=county]   # the worst moments: frame, parts, slots, memory
 godot --headless --path godot --script res://tools/first_minutes.gd   # a bot plays each chapter's opening: first fight, kills, health (old-ai: enemies do not hunt)

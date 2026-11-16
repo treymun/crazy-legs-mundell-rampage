@@ -5,10 +5,12 @@
 ## rest of the tick (the bodies, enemies, shots: "core").
 ##
 ##   godot --headless --path godot --script res://tools/tick_profile.gd \
-##       [-- <frames>] [levels=a,b] [top=N]
+##       [-- <frames>] [levels=a,b] [top=N] [replay]
 ##
 ## Prints per scene the tick's mean, the core's share and the costliest
-## listeners (mean ms per tick), then the same over every scene.
+## listeners (mean ms per tick), then the same over every scene. `replay`
+## also records every tick as the front end does (src/replay.gd) and prints
+## what the recording costs a tick, apart from the tick.
 extends SceneTree
 
 const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
@@ -56,6 +58,8 @@ func _run() -> void:
 	var frames := 300
 	var levels: Array = LEVELS.duplicate()
 	var top := 8
+	var replay := args.has("replay")
+	var all_rec_us := 0
 	for arg: String in args:
 		if arg.is_valid_int():
 			frames = int(arg)
@@ -82,14 +86,24 @@ func _run() -> void:
 			_calls.clear()
 			_us.clear()
 			var tick_us := 0
+			var rec: Replay = Replay.record(game, options) if replay else null
+			var rec_us := 0
 			for i in frames:
 				_absorb(game.events.ticked)
 				if i == 20:
 					_us.clear()
 					tick_us = 0
+					rec_us = 0
+				var r0 := Time.get_ticks_usec()
+				if rec != null:
+					rec.tick(1.0 / 60.0, controls)
 				var t0 := Time.get_ticks_usec()
 				game.tick(1.0 / 60.0, controls)
-				tick_us += Time.get_ticks_usec() - t0
+				var t1 := Time.get_ticks_usec()
+				tick_us += t1 - t0
+				if rec != null:
+					rec.ticked()
+					rec_us += t0 - r0 + Time.get_ticks_usec() - t1
 			var n := frames - 20
 			var listened := 0
 			for k: String in _us:
@@ -111,7 +125,12 @@ func _run() -> void:
 				)
 			)
 			print("    " + _top(_us, n, top))
+			if rec != null:
+				all_rec_us += rec_us
+				print("    recording %.1f us a tick" % [float(rec_us) / n])
 	print("ALL        tick %.3f ms" % [all_tick / 1000.0 / all_frames])
+	if replay:
+		print("    recording %.1f us a tick" % [float(all_rec_us) / all_frames])
 	print("    " + _top(_total_us, all_frames, top * 2))
 	quit()
 

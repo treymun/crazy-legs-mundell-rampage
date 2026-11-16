@@ -341,6 +341,72 @@ unless `always_track_call_stacks`, which costs every call, is on).
   gets `live-<pid>.log`. KEEP (5) of each kind.
 - Nothing runs per frame. check_fixes's CRASH LOG block holds it in a cache
   folder (`CrashLog.start(main, dir)`).
+- The run's replay goes beside the log (`session.replay`, below): kept as
+  `crash-<stamp>.replay` with a crash log, dropped at a clean exit.
+
+### Replays
+
+`src/replay.gd` (`Replay`), the front end's part in `src/replay_keeper.gd`.
+Play is deterministic, so a run is its start and each tick's controls:
+
+- **What a replay holds.** A header (build, level, layout, the mode's setup
+  {mode, count, options}, the rng seed, god, history, the physics tier
+  `Quality.physics`, which steps some play) and segments. Each segment starts
+  from a keyframe (`GameSnapshot.to_bytes`, or nothing for a fresh game made
+  as the tools make one, then seeded) with the options it was configured with
+  (FOV aims the shots, so all of them), then a byte stream: a tick's controls
+  as the fields that changed by slot (floats 0/1/-1 in the tag, else float32
+  when exact, else float64; the buttons as one byte; ints zigzag), a run of
+  ticks unchanged, an action between ticks, a hash every `HASH_EVERY` (120)
+  ticks, a snapshot when the game was touched, the end. The file is MAGIC, the
+  size and the values zstd'd.
+- **Actions between ticks.** The front end's keys that change play outside
+  `game.tick` (USE, a gun slot, the wheel, reload, holster, turn back, level
+  the view, a pocket, an item, a County Run card, the build screen's hold)
+  go through `main.act(game, op)`, which records the op and does it
+  (`Replay.apply_op`, the same code playback runs). A setting changed mid-run
+  is an "options" op. New front-end code that changes play must use act() (or
+  add an op).
+- **Touches.** `Replay.probe` (each player's place, view, speed, health, gun,
+  pockets; the dice, the enemy and shot counts, god, touch aim) is taken after
+  every tick and before the next; a difference means something else changed
+  the game (a cheat on the title, the dev console, the revisit respawn), and a
+  snapshot of the game then goes in the stream. The console's commands take
+  one always.
+- **Recording only reads.** A keyframe's capture would name new things
+  (`name_new`); `capture_quiet` takes those uids back. Nothing in the tick
+  changes; the tick profile is the same with and without (`tick_profile.gd
+  replay`).
+- **How much is kept.** The whole run up to `CAP_TICKS` (30 min), then
+  segments of a minute, the newest five; a saved replay is the run's start and
+  its last minutes, played across the gap from the next keyframe.
+- **When it is written.** `ReplayKeeper` records a local game from its first
+  tick (so a County Run's seed, a kit, a loaded save are in the keyframe):
+  REPLAYS on (PLAY page), not online, not a tool, tour, bench, smoke run or
+  demo. A death or the end writes `user://replays/<stamp>-<level>-<why>.replay`
+  (the newest 12 kept), every 30 s the session's file is brought up to date,
+  and the console's `replay save` writes it now. Files are packed and written
+  on a worker thread.
+- **Playing one.** `--replay=<file>` (a path, or a name in user://replays)
+  plays it in the game's view: the keys do nothing to it, Esc leaves, the HUD
+  says when it is over or the first hash that differed. `Replay.Playback`
+  (`start(maker)`, `step()`, `run()`, `diverged`, `last_good`,
+  `end_matches()`) is what tools use.
+- **Costs** (measured on the owner's PC while other work ran, 2026-11-16): a
+  tick's recording about 6-9 us alone and 13-20 us beside the real tick
+  (about 1% of a 1.5 ms tick; the second tick of a frame skips the probe); a
+  keyframe 6-13 ms (taken once at the start, then a minute apart only past
+  the cap). The controls are 20-100 KB a minute raw for the bots (a turn every
+  tick), about 25 KB a minute zstd'd.
+- **Guard.** `tools/replay_check.gd` (check_all, `-- quick`) records bot runs
+  (chapter one fresh, sawmill from the middle with actions and touches, the
+  quarry boss, County Run, co-op), plays each from its bytes, and needs every
+  hash and the whole end snapshot equal; a refactor that changes play by a
+  hair fails it.
+- **Not done.** A replay recorded on a phone (wreckage takes fewer pieces
+  there by the device, not the tier) may part on a PC. Online games are not
+  recorded. The kill cam still uses its own samples, not the recorded ticks.
+  `-0.0` in a control is recorded as whichever zero came first.
 
 ### The transport
 

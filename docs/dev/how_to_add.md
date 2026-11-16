@@ -102,7 +102,7 @@ looks (art.md#props).
    rebound: "HOLD THE RUN KEY", not "SHIFT"); a KEYS page row's help comes
    from `KeyBindings.hint` (`HINTS` where the label alone does not say, and
    the keys it always has too).
-2. Bump the settings count in `tools/check_fixes.gd` (70 now).
+2. Bump the settings count in `tools/check_fixes.gd` (71 now).
 3. Settings are not part of a save: no save version.
 
 ## A menu screen

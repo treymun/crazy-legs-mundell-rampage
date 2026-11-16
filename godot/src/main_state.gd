@@ -382,6 +382,12 @@ var frame_count := 0
 ## the controls the last play frame handed the game (its context).
 var crash_log: CrashLog = null
 var last_controls: Game.Controls = null
+## The run's replay (replay_keeper.gd: recorded from a local game's first
+## tick, written at a death, the end or a crash), the replay playing in the
+## game's view instead of the keys (--replay=, null: none) and its file.
+var replays := ReplayKeeper.new()
+var replay_play: Replay.Playback = null
+var replay_file := ""
 
 
 func _parse_smoke() -> void:
@@ -693,9 +699,22 @@ func apply_options() -> void:
 	_build_tone(brightness)
 	# Smoke runs count frames, not seconds: leave them uncapped.
 	Engine.max_fps = 0 if smoke or web else roundi(1.0 / frame_interval())
+	# REPLAYS: local games are recorded (never a tool's, a tour's or a bench's).
+	var keep_replays: int = options.get("replays", 1)
+	replays.enabled = (
+		keep_replays != 0
+		and replay_play == null
+		and Engine.get_main_loop().get_script() == null
+		and view_tour == ""
+		and view_bench == 0
+		and not smoke
+		and not demo
+		and not showcase
+	)
 	if game != null:
 		game.configure(options)
 		game.tone = tone_table
+		replays.options_changed(game, options)
 
 
 func frame_interval() -> float:
@@ -713,6 +732,15 @@ func _build_tone(level: int) -> void:
 	for i in 256:
 		table[i] = clampi(roundi(pow(float(i) / 255.0, 100.0 / float(level)) * 255.0), 0, 255)
 	tone_table = table
+
+
+## An action of this machine's player between ticks (a key, the wheel, a
+## card): done, and kept in the run's replay (replay_keeper.gd). Nothing
+## while a replay plays.
+func act(target: Game, op: Array) -> Variant:
+	if replay_play != null:
+		return null
+	return replays.act(target, op)
 
 
 func persist_options() -> void:
@@ -861,6 +889,7 @@ func _exit_tree() -> void:
 		net.flush_leave()
 	for old: NetPlay in net_old:
 		old.finish()
+	replays.settle()
 	if crash_log != null:
 		crash_log.close()
 		crash_log = null

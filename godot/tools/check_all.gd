@@ -44,6 +44,7 @@ const CHECKS := [
 	["games_check", "GAMES CHECK OK"],
 	["cover_check", "COVER CHECK OK"],
 	["bot_check", "BOT CHECK OK"],
+	["replay_check", "REPLAY CHECK OK", ["quick"]],
 	["net_lag", "NET LAG OK", ["quick"]],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
@@ -91,6 +92,7 @@ const CI_SECONDS := {
 	"climb_check": 12,
 	"net_server_check": 10,
 	"vehicle_check": 10,
+	"replay_check": 45,
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and

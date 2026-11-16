@@ -294,6 +294,11 @@ func _key_play(code: int) -> void:
 	var target := game
 	if target == null:
 		return
+	if replay_play != null:
+		# A replay playing (--replay=): the keys do nothing to it; Esc leaves.
+		if code == KEY_ESCAPE:
+			return_to_title()
+		return
 	# COUNTY RUN's keys first: its cards, swap, build screen, slots and end.
 	if CountyInput.key_play(self, target, code):
 		return
@@ -342,7 +347,7 @@ func _key_play(code: int) -> void:
 				restart_chapter(target)
 	elif (code == KEY_E or code == KEY_SPACE) and target.player.health > 0:
 		var previous := hub_findings.size()
-		target.interact()
+		act(target, ["use"])
 		if hub_findings.size() != previous:
 			if not SessionStore.save_notes("", hub_findings):
 				target.message("ROAD NOTE FOUND. IT COULD NOT BE FILED.", 3.2)
@@ -356,12 +361,11 @@ func _key_play(code: int) -> void:
 		if code == KEY_TAB:
 			target.map = not target.map
 	elif code == KEY_R:
-		if target.armory.start_reload(target):
-			target.barks.say(target, "reload")
+		act(target, ["reload"])
 	elif (code == KEY_H or code == KEY_SCROLLLOCK) and target.armory.fuse <= 0.0:
-		target.armory.holstered = not target.armory.holstered
+		act(target, ["holster"])
 	elif code >= KEY_1 and code <= KEY_9:
-		target.armory.select(code - KEY_1, target)
+		act(target, ["select", code - KEY_1])
 	elif (
 		code == KEY_0
 		or code == KEY_MINUS
@@ -379,23 +383,24 @@ func _key_play(code: int) -> void:
 			}
 			. get(code, Weapons.ROCKET)
 		)
-		target.armory.select(slot, target)
+		act(target, ["select", slot])
 	elif code == KEY_SEMICOLON or code == KEY_APOSTROPHE:
-		target.armory.cycle(-1 if code == KEY_SEMICOLON else 1, target)
+		act(target, ["cycle", -1 if code == KEY_SEMICOLON else 1])
 	elif code == KEY_BACKSPACE:
-		target.player.angle = fposmod(target.player.angle + PI, TAU)
+		act(target, ["turn_back"])
 	elif code == KEY_Q or code == KEY_BRACKETLEFT or code == KEY_BRACKETRIGHT:
-		target.inventory_slot = posmod(
+		var pocket := posmod(
 			target.inventory_slot + (-1 if code == KEY_BRACKETLEFT else 1), HUD.ITEMS.size()
 		)
+		act(target, ["pocket", pocket])
 	elif code == KEY_F or code == KEY_ENTER or code == KEY_KP_ENTER:
-		target.use_item()
+		act(target, ["item", -1])
 	elif code == KEY_C or code == KEY_B or code == KEY_M or code == KEY_V or code == KEY_X:
-		target.use_item([KEY_C, KEY_B, KEY_M, KEY_V, KEY_X].find(code))
+		act(target, ["item", [KEY_C, KEY_B, KEY_M, KEY_V, KEY_X].find(code)])
 	elif code == KEY_TAB:
 		target.map = not target.map
 	elif code == KEY_HOME:
-		target.player.pitch = 0.0
+		act(target, ["pitch0"])
 	elif code == KEY_CAPSLOCK:
 		var autorun: int = options["autorun"]
 		options["autorun"] = 0 if autorun != 0 else 1
@@ -561,7 +566,7 @@ func _input(event: InputEvent) -> void:
 			):
 				var step := 1 if button.button_index == MOUSE_BUTTON_WHEEL_UP else -1
 				if not Modes.is_tactical(game) and net == null:
-					game.armory.cycle(step, game)
+					act(game, ["cycle", step])
 				elif not Modes.is_tactical(game) or game.local_player.slot == TacticalScreens.human:
 					TacticalScreens.pending_cycle = step  # sent with the next controls
 			elif state != "play":
@@ -943,7 +948,7 @@ func _touch_actions() -> void:
 	if touch.consume("use"):
 		key(KEY_E)
 	if touch.consume("next") and not game.in_hub:
-		game.armory.cycle(1, game)
+		act(game, ["cycle", 1])
 	for pair: Array in [["rinds", KEY_C], ["beer", KEY_B], ["shine", KEY_M]]:
 		if touch.consume(str(pair[0])) and state == "play":
 			var bound: int = pair[1]

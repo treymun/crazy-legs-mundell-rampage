@@ -13,6 +13,7 @@
 ##   reload / level <id>    reload this level / go to another
 ##   stats                  how the chapter went (features/chapter_stats.gd)
 ##   rematch                every boss on the BOSS REMATCH board (this session)
+##   replay save            the run so far to user://replays (src/replay_keeper.gd)
 ##   show map|fps|off       overlays: a map of walls, enemies (and the way
 ##                          hunting ones will take), triggers and lights; a
 ##                          frame-time graph
@@ -23,7 +24,8 @@ extends RefCounted
 
 const HELP := (
 	"GOD  GIVE <GUN|ALL>  AMMO  HEAL  SPAWN <KIND> [N]  KILLALL  TP <X> <Y>  WHERE  "
-	+ "TIME <SCALE>  TRIGGER <ID>  RELOAD  LEVEL <ID>  STATS  REMATCH  SHOW MAP|FPS|OFF"
+	+ "TIME <SCALE>  TRIGGER <ID>  RELOAD  LEVEL <ID>  STATS  REMATCH  SHOW MAP|FPS|OFF  "
+	+ "REPLAY SAVE"
 )
 const ChapterStatsFeature := preload("res://src/features/chapter_stats.gd")
 const MAP_CELL := 4
@@ -119,8 +121,22 @@ func run(command: String) -> String:
 		# Every boss on the title's BOSS REMATCH board, for this session.
 		BossRematch.unlock_all = true
 		return _say("every boss is on the rematch board")
+	if verb == "replay":
+		var path := main.replays.save("asked")
+		if path == "":
+			return _say("nothing recorded (replays is off, or no tick yet)")
+		return _say("replay saved: " + path.get_file())
 	if game == null:
 		return _say("start a level first")
+	var said := _on_game(verb, words, game)
+	if not verb in ["where", "stats", "reload"]:
+		# The game changed outside its tick: a keyframe in the run's replay.
+		main.replays.touched(game)
+	return said
+
+
+## A command on the game in play.
+func _on_game(verb: String, words: PackedStringArray, game: Game) -> String:
 	var p := game.player
 	match verb:
 		"god":

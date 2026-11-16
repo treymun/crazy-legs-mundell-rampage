@@ -57,7 +57,7 @@ static func key_play(main: MainInput, game: Game, code: int) -> bool:
 		return _key_end(main, game, code)
 	if CountyScreens.build_open:
 		if code in [KEY_ESCAPE, KEY_B, KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_TAB]:
-			close_build(game)
+			close_build(game, main)
 			return true
 		return code != KEY_F11
 	if not f.pending.is_empty():
@@ -71,7 +71,7 @@ static func key_play(main: MainInput, game: Game, code: int) -> bool:
 					# Online: the gun goes with the next controls (never the copy itself).
 					TacticalScreens.pending_weapon = slot_gun
 				else:
-					game.armory.select(slot_gun, game)
+					main.act(game, ["select", slot_gun])
 		return true
 	if main.net != null:
 		if code == KEY_R:
@@ -83,26 +83,33 @@ static func key_play(main: MainInput, game: Game, code: int) -> bool:
 	if code in [KEY_0, KEY_MINUS, KEY_EQUAL, KEY_BACKSLASH]:
 		return true  # the campaign's gun keys: nothing to carry there
 	if code == KEY_B:
-		open_build(game)
+		open_build(game, main)
 		return true
 	if code in [KEY_C, KEY_M, KEY_V, KEY_X, KEY_F, KEY_Q]:
 		return true  # no pockets in a run
 	return false
 
 
-static func open_build(game: Game) -> void:
+## (`main`: the front end, whose act() keeps the hold in the run's replay.)
+static func open_build(game: Game, main: MainInput = null) -> void:
 	CountyScreens.build_open = true
 	var f := CountyMode.run(game)
 	# A party's world never holds for one player's look at the build.
 	if f != null and not CountyCoop.party(game):
-		f.paused = true
+		if main != null:
+			main.act(game, ["county_pause", 1])
+		else:
+			f.paused = true
 
 
-static func close_build(game: Game) -> void:
+static func close_build(game: Game, main: MainInput = null) -> void:
 	CountyScreens.build_open = false
 	var f := CountyMode.run(game)
 	if f != null:
-		f.paused = false
+		if main != null:
+			main.act(game, ["county_pause", 0])
+		else:
+			f.paused = false
 
 
 static func _key_cards(main: MainInput, game: Game, f: CountyRun, code: int) -> bool:
@@ -112,7 +119,7 @@ static func _key_cards(main: MainInput, game: Game, f: CountyRun, code: int) -> 
 			return true
 		return false  # the title (the world stays held)
 	if code == KEY_B:
-		open_build(game)
+		open_build(game, main)
 		return true
 	if not CountyScreens.armed() or not picks_here(game):
 		return true
@@ -151,7 +158,8 @@ static func _choose(main: MainInput, game: Game, i: int, slot := -1) -> bool:
 	if main.net != null:
 		CountyScreens.pending_pick = CountyCoop.encode(i, slot)
 		return true
-	return CountyMode.choose(game, i, slot)
+	var taken: Variant = main.act(game, ["county", i, slot])
+	return taken == true
 
 
 ## Card `i` taken: a weapon with every slot full asks which to swap out.
@@ -280,9 +288,9 @@ static func tap(main: MainInput, at: Vector2i) -> bool:
 		"cancel":
 			cancel_swap(main)
 		"build":
-			open_build(game)
+			open_build(game, main)
 		"close":
-			close_build(game)
+			close_build(game, main)
 		"retry":
 			_end_action(main, game, 0)
 		"maps":

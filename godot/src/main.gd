@@ -49,6 +49,7 @@ func _ready() -> void:
 	# A real launch logs errors and crashes (a tool driving the game does not).
 	if not web and Engine.get_main_loop().get_script() == null:
 		crash_log = CrashLog.start(self)
+		replays.session_path = crash_log.replay_path()  # a crash keeps the run's replay
 	mobile = (
 		OS.has_feature("android")
 		or OS.has_feature("ios")
@@ -140,6 +141,8 @@ func _ready() -> void:
 
 	if online_args.has("host") or online_args.has("join"):
 		_online_from_args()
+	elif replay_file != "":
+		ReplayKeeper.play_file(self, replay_file)
 	elif play_at != "":
 		_play_at()
 	elif mode_name != "" and Modes.rules_for(mode_name).versus():
@@ -788,6 +791,9 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 	if net != null and net.phase == "match":
 		_net_advance(elapsed, controls)
 		return
+	if replay_play != null:
+		ReplayKeeper.advance(self, elapsed)
+		return
 	last_controls = controls
 	accumulator = minf(.1, accumulator + elapsed)
 	pending_turn += controls.turn
@@ -801,11 +807,13 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 	pending_turn = 0.0
 	pending_look = 0.0
 	var tactical := Modes.is_tactical(game)
-	for _i in steps:
+	for step_i in steps:
 		if tactical:
 			TacticalScreens.take_pending(controls)
 		if pilots.is_empty() or game.players.size() < 2:
+			replays.before(game, options, mode_options, SIM_STEP, controls, step_i == 0)
 			game.tick(SIM_STEP, controls)
+			replays.after(game, step_i == steps - 1)
 		else:
 			_tick_party(controls)
 		if game.portal_request != "":
@@ -867,7 +875,9 @@ func _tick_party(mine: Game.Controls) -> void:
 			game.focus(p)
 			given[p.slot] = pilot.call("steer", game)
 	game.focus(game.local_player)
+	replays.before(game, options, mode_options, SIM_STEP, given)
 	game.tick(SIM_STEP, given)
+	replays.after(game)
 	for p: Player in game.players:
 		var pilot: Object = pilots.get(p.slot)
 		if pilot != null and p.slot != own:

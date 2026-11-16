@@ -366,8 +366,13 @@ func continue_campaign() -> void:
 
 
 func return_to_title(discard := false) -> void:
-	if discard:
+	if discard or replay_play != null:
+		# A replay's game is not one to go back to.
+		var was_replay := replay_play != null
+		replay_play = null
 		game = null
+		if was_replay:
+			apply_options()  # recording again (REPLAYS)
 	menu_music()
 	state = "title"
 	selection = 0

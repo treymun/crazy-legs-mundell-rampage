@@ -404,6 +404,12 @@ static func build() -> Array:
 				SessionStore.toggle(
 					"TOOLTIPS / OBJECTIVES", "hints", 1, "SHOW USE PROMPTS AND OBJECTIVES"
 				),
+				SessionStore.toggle(
+					"REPLAYS",
+					"replays",
+					1,
+					"KEEP A REPLAY OF EACH DEATH, CHAPTER END AND CRASH (PLAY ONE WITH --REPLAY=)"
+				),
 			]
 		],
 		[

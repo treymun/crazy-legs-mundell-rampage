@@ -9,6 +9,10 @@ level builder in [levels.md](levels.md).
 
 - **Gameplay randomness** comes from the game's `rng`. Cosmetic effects use
   their own seeded generator (`gore_fx.dice`), so they never change play.
+  `tools/replay_check.gd` holds play exact: recorded runs must play back to
+  the same hashes and end ([multiplayer.md](multiplayer.md#replays)). The
+  front end's keys that change play go through `main.act()` so a replay
+  keeps them.
 - **Saves are versioned.** Changing what a save holds means bumping
   `SessionStore.VERSION`, adding the step from the old version in
   `src/save_upgrade.gd`, and running `tools/save_fixtures.gd -- make` to add
@@ -19,15 +23,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (60 now; LIVE PROPS
-  AND FIRE is the newest, under PLAY). Settings are not part of a save, so a
-
-  default, choices, hint); `tools/check_fixes.gd` counts them (60 now; HANDS
-  is the newest, under PLAY). Settings are not part of a save, so a
-  default, choices, hint); `tools/check_fixes.gd` counts them (61 now;
-  WEATHER and COUNTY STORM are the newest, under PLAY). Settings are not part of a save, so a
-  default, choices, hint); `tools/check_fixes.gd` counts them (60 now; BOSS
-  ARENAS WRECK is the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (71 now;
+  REPLAYS is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and

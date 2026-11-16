@@ -360,8 +360,8 @@ func _parity(main: Control) -> void:
 		bounded, "every setting can be selected, stays inside the list and clear of the help text"
 	)
 	check(
-		seen.size() == 70 + KeyBindings.ACTIONS.size(),
-		"all 70 settings and every control's key are on a page"
+		seen.size() == 71 + KeyBindings.ACTIONS.size(),
+		"all 71 settings and every control's key are on a page"
 	)
 	var stored := SessionStore.settings("")
 	var kept := true
