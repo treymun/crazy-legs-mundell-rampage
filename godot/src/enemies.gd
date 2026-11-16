@@ -66,7 +66,7 @@ static func _static_init() -> void:
 	load_tuning()
 
 
-## Read the tuned values and definitions; Tuning.watch() calls it again after a change.
+## Read the tuned values and definitions; DevTune (the dev console) calls it again after a change.
 static func load_tuning() -> void:
 	EnemyTuning.load_tuning()
 

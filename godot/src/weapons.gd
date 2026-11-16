@@ -126,7 +126,7 @@ static func _static_init() -> void:
 	load_tuning()
 
 
-## Read the tuned values; Tuning.watch() calls it again after a change.
+## Read the tuned values; DevTune (the dev console) calls it again after a change.
 static func load_tuning() -> void:
 	var path := Tuning.WEAPONS
 	NAMES = Array(Tuning.sections(path))

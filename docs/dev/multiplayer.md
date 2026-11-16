@@ -372,7 +372,10 @@ Play is deterministic, so a run is its start and each tick's controls:
   every tick and before the next; a difference means something else changed
   the game (a cheat on the title, the dev console, the revisit respawn), and a
   snapshot of the game then goes in the stream. The console's commands take
-  one always.
+  one always, and so does a tuning change (`tune set`/`reload`, a tuning file
+  read again when saved). The tuning itself is not in the replay: a replay
+  played with other numbers than it was made with parts at the first tick
+  they matter.
 - **Recording only reads.** A keyframe's capture would name new things
   (`name_new`); `capture_quiet` takes those uids back. Nothing in the tick
   changes; the tick profile is the same with and without (`tick_profile.gd
