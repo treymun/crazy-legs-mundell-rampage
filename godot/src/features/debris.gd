@@ -256,8 +256,9 @@ func _shell(bit: Bit, dt: float) -> void:
 	var ox := bit.x
 	var oy := bit.y
 	var hit := Tumble.step(game.world, bit, _case_feel if casing else _hull_feel, dt)
-	if (hit & Tumble.FLOOR or (bit.vz == 0.0 and bit.landed < 0.0)) and Water.splash_if(
-		game, bit.x, bit.y, bit.z, .2
+	if (
+		(hit & Tumble.FLOOR or (bit.vz == 0.0 and bit.landed < 0.0))
+		and Water.splash_if(game, bit.x, bit.y, bit.z, .2)
 	):
 		bit.sink = bit.age
 		bit.rest = false
@@ -362,7 +363,9 @@ func sprites() -> Array:
 		# easing over onto it (settle) and rolling, flat once it rests.
 		s.lying = bit.rest or (bit.vz == 0.0 and (bit.kind == "casing" or bit.kind == "hull"))
 		if s.lying:
-			s.settle = minf(bit.age - bit.landed, View.SETTLED) if bit.landed >= 0.0 else View.SETTLED
+			s.settle = (
+				minf(bit.age - bit.landed, View.SETTLED) if bit.landed >= 0.0 else View.SETTLED
+			)
 			s.roll = bit.roll
 			if bit.rest:
 				var flat := roundf(bit.roll / PI) * PI

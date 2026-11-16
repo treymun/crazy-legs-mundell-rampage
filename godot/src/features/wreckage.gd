@@ -98,12 +98,13 @@ func attach() -> void:
 	on = cfg.get_value("pieces", "on", true) and not never.has(game.world.id)
 	if not on:
 		return
-	# TODO(track I): Quality.physics / Quality.steps(n) (src/core/quality.gd)
-	# once the phone tiers land; until then a phone takes `most_phone`.
+	# A phone, or the LOW physics tier (src/core/quality.gd), takes
+	# `most_phone`; below HIGH a tick takes one step fewer (_tick).
 	var phone := (
 		OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
 	)
-	most = cfg.get_value("pieces", "most_phone" if phone else "most", 48)
+	var few := phone or Quality.level() == Quality.LOW
+	most = cfg.get_value("pieces", "most_phone" if few else "most", 48)
 	steps = cfg.get_value("pieces", "steps", 2)
 	fade = cfg.get_value("pieces", "fade", .5)
 	dense = cfg.get_value("pieces", "dense", 500.0)
@@ -166,7 +167,8 @@ func _tick(dt: float) -> void:
 	var flying := 0
 	for b: WreckPhysics.Body in physics.bodies:
 		flying += 1 if b.awake else 0
-	physics.step(dt, steps if flying <= CROWD else 1)
+	var n := steps if Quality.level() == Quality.HIGH else maxi(1, steps - 1)
+	physics.step(dt, n if flying <= CROWD else 1)
 	if physics.knock_hard > 2.0 and game.clock >= _clink_next:
 		_clink_next = game.clock + .2
 		var w := _nearest(physics.knock_at)

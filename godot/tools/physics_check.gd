@@ -238,7 +238,10 @@ func _thin(game: Game, things: Array) -> void:
 				through += 1
 				print("    %s went through %s at %s" % [thing[0], seg.id, Vector2(b.x, b.y)])
 	if tried > 0:
-		_check(through == 0, "%s: nothing thrown fast goes through a thin wall (%d)" % [game.level.id, through])
+		_check(
+			through == 0,
+			"%s: nothing thrown fast goes through a thin wall (%d)" % [game.level.id, through]
+		)
 		_ok("%d thin walls: everything thrown at %.0f stays its side" % [tried, FAST])
 
 
@@ -441,7 +444,9 @@ func _features(main) -> void:
 		debris._tick(DT)
 		for bit in debris.bits:
 			var down: bool = bit.rest or bit.vz == 0.0
-			var since: float = minf(bit.age - bit.landed, View.SETTLED) if bit.landed >= 0.0 else -1.0
+			var since: float = (
+				minf(bit.age - bit.landed, View.SETTLED) if bit.landed >= 0.0 else -1.0
+			)
 			var turn := _slab_turn(bit.x, bit.y, bit.spin, down, since)
 			if down and was.has(bit):
 				snap = maxf(snap, Quaternion(turn).angle_to(Quaternion(was[bit])))
@@ -499,11 +504,16 @@ func _features(main) -> void:
 			for g: Gore.Gib in gore.gibs:
 				spun = spun or (not g.rest and g.spin != 0.0)
 		for g: Gore.Gib in gore.gibs:
-			var turn := _slab_turn(g.x, g.y, g.spin, g.rest, minf(g.age, View.SETTLED) if g.rest else -1.0)
+			var turn := _slab_turn(
+				g.x, g.y, g.spin, g.rest, minf(g.age, View.SETTLED) if g.rest else -1.0
+			)
 			if g.rest and seen.has(g):
 				gib_snap = maxf(gib_snap, Quaternion(turn).angle_to(Quaternion(seen[g])))
 			seen[g] = turn
-	_check(gib_snap < SNAP, "gibs ease over onto a face as they come to rest (%.2f rad a tick at most)" % gib_snap)
+	_check(
+		gib_snap < SNAP,
+		"gibs ease over onto a face as they come to rest (%.2f rad a tick at most)" % gib_snap
+	)
 	_ok("gibs settle onto a face with no snap (%.2f rad a tick at most)" % gib_snap)
 	var resting := 0
 	var flat := 0

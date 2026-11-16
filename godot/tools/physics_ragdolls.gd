@@ -129,7 +129,12 @@ func _stacked(game: Game) -> void:
 		under.lies_on(game.world, TOL) and moved < .3,
 		"the one under (knocked %.2f) still lies on the floor" % moved
 	)
-	_ok("a body dropped on another lies across it (%.3f in); the one under, knocked, lies on" % through)
+	_ok(
+		(
+			"a body dropped on another lies across it (%.3f in); the one under, knocked, lies on"
+			% through
+		)
+	)
 
 
 ## A body first seen long dead starts from the model's body at rest, takes a

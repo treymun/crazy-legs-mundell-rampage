@@ -19,9 +19,8 @@
 ## and this feature's dictionaries, carried online); feathers, mud and
 ## splashes are looks off their own dice. At most ACTIVE_MOST bodies fly or
 ## fall at once (the rest just hop) and nothing moves that is not set off.
-## Nothing saved: it all lasts seconds.
-## TODO(quality): no Quality.physics / Quality.steps on this branch; when it
-## lands, scale ACTIVE_MOST by it.
+## Nothing saved: it all lasts seconds. Below the HIGH physics tier
+## (Quality.level(); always HIGH with company) fewer fly at once (_most()).
 extends GameFeature
 
 const Water := preload("res://src/features/water.gd")
@@ -146,6 +145,12 @@ func _animal(e: Enemy) -> bool:
 	return e.alive and not e.hostile and not e.dormant and e.brain != "bessie"
 
 
+## Bodies flying or falling at once at most: ACTIVE_MOST, cut to the physics
+## tier (Quality.steps: HIGH all, MEDIUM two thirds, LOW half).
+static func _most() -> int:
+	return Quality.steps(ACTIVE_MOST)
+
+
 func _active() -> int:
 	return _glides.size() + _tips.size()
 
@@ -194,7 +199,7 @@ func _flap(e: Enemy, lift: float, away: float) -> void:
 		return
 	_hops[e] = lift
 	e.hop = .01
-	if _active() < ACTIVE_MOST:
+	if _active() < _most():
 		_glides[e] = Vector2.from_angle(away + dice.randf_range(-.5, .5)) * GLIDE
 	_spatter(e, "feather", 3)
 	game.sound_at("chicken", e.x, e.y, .45)
@@ -276,7 +281,7 @@ func tip(p: Player) -> bool:
 		if d < best_d:
 			best = e
 			best_d = d
-	if best == null or _active() >= ACTIVE_MOST:
+	if best == null or _active() >= _most():
 		return false
 	_tips[best] = [.06, TIP_PUSH, 0, 0.0]
 	best.heard = null

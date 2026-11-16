@@ -183,7 +183,10 @@ func _level(game: Game) -> void:
 		if d > worst:
 			worst = d
 			worst_body = w.body
-			where = "%s at %.2f,%.2f,%.2f floats %d awake %s" % [w.key, w.body.p.x, w.body.p.y, w.body.p.z, w.floats, w.body.awake]
+			where = (
+				"%s at %.2f,%.2f,%.2f floats %d awake %s"
+				% [w.key, w.body.p.x, w.body.p.y, w.body.p.z, w.floats, w.body.awake]
+			)
 	if worst > TOL:
 		var b = worst_body
 		var turn := Basis(b.q)
@@ -241,10 +244,18 @@ func _level(game: Game) -> void:
 				leaning += 1
 			else:
 				on_end += 1
-				print("       on its end: %s#%d at %s half %s (tipped %.1f s, kicked %.1f, turn %s)" % [w.key, w.index, b.p, b.half, b.tipping, b.kicked, b.turn])
+				print(
+					(
+						"       on its end: %s#%d at %s half %s (tipped %.1f s, kicked %.1f, turn %s)"
+						% [w.key, w.index, b.p, b.half, b.tipping, b.kicked, b.turn]
+					)
+				)
 	_check(
 		on_end == 0,
-		"%s: no piece rests on its end unless propped (%d; %d leaning)" % [game.level.id, on_end, leaning]
+		(
+			"%s: no piece rests on its end unless propped (%d; %d leaning)"
+			% [game.level.id, on_end, leaning]
+		)
 	)
 	print(
 		(

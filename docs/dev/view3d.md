@@ -307,11 +307,15 @@ bowling pins and ball (`range_bowling.gd`, props).
     breakables, weapon_fx and hit_reads work it out from where the bit is)
     and end over end by `PITCH` (.7) of it, heading where its place says
     (`HEADING`: it turns as it flies and slides and holds still at rest). On
-    its floor (`View.Sprite.lying`: at rest, or rolling with no fall) it lies
-    flat, propped `PROP` (.05 to .4 rad) off the floor by its place so it
-    still reads from a standing eye, face up (face down, the picture
-    mirrored, when flipped). Either way its lowest corner is on the sprite's
-    z and its middle over its x, y, as the turned billboard's was.
+    its floor (`View.Sprite.lying`) with a `settle` (seconds down, kept by
+    its feature) it eases over from the turn it came down at onto its nearer
+    face in `SETTLE`, rocks a little (`ROCK`, `ROCK_RATE`, `ROCK_DAMP`, over
+    by `ROCK_TIME`), a round thing turned about its length by `roll`, and
+    lies propped `PROP` (.1 to .45 rad, by a smooth sum of its place) so it
+    still reads from a standing eye (`settled()`; `turn_of()` is the whole
+    turn, the checks use it). With no settle (-1) it lies flat at once, as
+    before. Either way its lowest corner is on the sprite's z and its middle
+    over its x, y, as the turned billboard's was.
   - A target stands on its foot along its `plane` (the lanes' boards, gongs
     and cows face the firing line, south), turned round when flipped (a
     gallery mover going the other way shows its back), and leans back about

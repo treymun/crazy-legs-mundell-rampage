@@ -369,7 +369,10 @@ func tick(dt: float) -> void:
 		var ox := g.x
 		var oy := g.y
 		var hit := Tumble.step(game.world, g, _feel(g.size), dt)
-		if hit & (Tumble.FLOOR | Tumble.RESTED) and Water.splash_if(game, g.x, g.y, g.z, g.size * 2.0):
+		if (
+			hit & (Tumble.FLOOR | Tumble.RESTED)
+			and Water.splash_if(game, g.x, g.y, g.z, g.size * 2.0)
+		):
 			# Into the water: a splash, and it sinks.
 			g.rest = true
 			g.sinking = true

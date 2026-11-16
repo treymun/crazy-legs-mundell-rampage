@@ -64,7 +64,8 @@ In `godot/src/core/`:
   gun has its own muzzle light, `[light.muzzle_<gun>]`.
 - **A level's mood** is `[level.<id>]`: fog colour and distance, grade, cloud
   drift, lightning, rain (`rain`, `showers` for spells), `fog_banks`, `heat`
-  spots, crows, fireflies. `[debris] wind_<level>` drifts the dust.
+  spots, crows, fireflies. `[debris] wind_<level>` drifts the dust;
+  `current_<level>` is the water's current (floating bodies and boards).
 - **Breakables**: 5v5 maps' fences are `never`; keep a breakable fence tile
   out of `LevelTiles.TILED`.
 

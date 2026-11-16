@@ -52,16 +52,7 @@ const WAKE_HIT := .02
 ## Each of the rig's segments' balls (RagdollRig.ENDS order): the torso's
 ## six, the head, each limb half's two ends.
 const SEG_BALLS := [
-	[0, 1, 2, 3, 13, 14],
-	[4],
-	[2, 5],
-	[5, 6],
-	[3, 7],
-	[7, 8],
-	[0, 9],
-	[9, 10],
-	[1, 11],
-	[11, 12]
+	[0, 1, 2, 3, 13, 14], [4], [2, 5], [5, 6], [3, 7], [7, 8], [0, 9], [9, 10], [1, 11], [11, 12]
 ]
 
 const R := preload("res://src/view3d/ragdoll_rig.gd")

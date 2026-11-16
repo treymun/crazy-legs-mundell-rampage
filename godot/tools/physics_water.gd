@@ -48,7 +48,10 @@ func run(main: Node) -> void:
 		debris._tick(DT)
 	for bit in debris.bits:
 		went += 1 if bit.kind == "casing" else 0
-	_check(water.splashes > before, "brass falling in the water splashes (%d)" % (water.splashes - before))
+	_check(
+		water.splashes > before,
+		"brass falling in the water splashes (%d)" % (water.splashes - before)
+	)
 	_check(went == 0, "the brass sinks and is gone (%d left)" % went)
 	_ok("brass falling in the water splashes and sinks (%d splashes)" % (water.splashes - before))
 	# A burst over the water: the gibs splash and go under.
@@ -68,8 +71,10 @@ func run(main: Node) -> void:
 			under += 1
 	_check(
 		water.splashes > before and under > 0,
-		"gibs falling in the water splash (%d) and sink (%d of %d)"
-		% [water.splashes - before, under, gore.gibs.size()]
+		(
+			"gibs falling in the water splash (%d) and sink (%d of %d)"
+			% [water.splashes - before, under, gore.gibs.size()]
+		)
 	)
 	_ok("a burst over the water: %d gibs splash in and sink" % under)
 	# A body thrown into the water splashes, floats and drifts on the current.
@@ -163,7 +168,12 @@ func _crate(main: Node) -> void:
 	_check(water.splashes > before, "a crate's boards falling in the water splash")
 	_check(floating > 0 and moved > 0, "its boards float (%d) and drift (%d)" % [floating, moved])
 	_check(not wreck.physics.moving(), "drifting boards stay asleep")
-	_ok("a crate broken over the water: its boards splash, %d float, %d drift off asleep" % [floating, moved])
+	_ok(
+		(
+			"a crate broken over the water: its boards splash, %d float, %d drift off asleep"
+			% [floating, moved]
+		)
+	)
 
 
 func _game(main: Node) -> Game:
