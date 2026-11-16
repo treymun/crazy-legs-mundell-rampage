@@ -1458,7 +1458,8 @@ func sprite(
 	elif hostile:
 		look = EnemyLooks.cel(self, look)
 	out.image = Variants.look(self, look)
-	out.height = height * variant * squash
+	# A cow going over: her picture squashed by the lean, never below .3.
+	out.height = height * variant * maxf(.3, squash)
 	out.z = z
 	out.body = hostile
 	out.hurt = hit_flash

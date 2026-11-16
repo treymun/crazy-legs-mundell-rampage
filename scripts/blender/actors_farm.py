@@ -1,8 +1,8 @@
 """The county's livestock (critters you can shove around, features/critters.gd),
 exec'd by enemy_actors.py into its own namespace after ACTORS is made, so
 ball, limb, mat, T, R, Vector and the rest are in scope. Built from scratch:
-nothing is traced from another game. Cels only (they stay pictures in the 3D
-view, like the chickens and hogs).
+nothing is traced from another game. The mule's are cels only (it stays a
+picture in the 3D view, like the chickens and hogs).
 
     cow   a Holstein in black and white patches: pink nose and udder, stubby
           horns, a yellow ear tag and a cowbell on a strap. Walk cels, and
@@ -13,7 +13,16 @@ view, like the chickens and hogs).
 
 Seen side on and a little from the front, head to the right (the game flips
 the cel to walk left): x along the body, y away from the camera, z up.
+
+The cow is a 3D model too (export_actors.py sets FOR_MODEL): built facing the
+camera as the people are (head toward -y) with no turn for the camera, lying
+`down` square on her left side with her legs stuck out to her right, the top
+pair raised a little; the 3D view rolls her standing model over onto that
+side as she is tipped (view3d/actor_view.gd).
 """
+
+# Set by export_actors.py: the pose for the model rather than the camera.
+FOR_MODEL = False
 
 COW = dict(canvas=(3.3, 1.8), px=96)
 MULE = dict(canvas=(3.2, 2.05), px=104)
@@ -42,13 +51,34 @@ def _legs(M, phase, dead, kick, look):
         swing = .16 * phase * (1 if k else -1)
         hip = Vector((x, s * side, hip_z))
         if dead:
-            # Stiff out from the belly, a little apart.
-            foot = hip + Vector((.16 if front else -.16, s * .05, -hip_z + .04))
-            knee = hip.lerp(foot, .5) + Vector((.02 if front else -.03, 0, 0))
-        elif kick and not front:
+            # Stiff and straight out from the belly, fore and hind pairs
+            # apart; the top pair (her right, -y: she lies on her left) raised
+            # well off the bottom pair, so all four read from any side. Each piece as long as
+            # it is standing (export_actors.py matches the parts by shape: a
+            # longer shin would be another part, and the leg would vanish).
+            bend = .05 if front else -.12
+            knee0 = Vector((x + bend, s * side, hip_z * .45))
+            fetlock0 = Vector((x, s * side * .95, .11))
+            way = Vector((.18 if front else -.18, s * (.45 if s < 0 else .02), -hip_z + .02)).normalized()
+            knee = hip + way * (knee0 - hip).length
+            fetlock = knee + way * (fetlock0 - knee0).length
+            toe = fetlock + way * Vector((.02, 0, -.11)).length
+            limb(hip, knee, r0, r0 * .6, hide, M)
+            limb(knee, fetlock, r0 * .52, r1, lower, M)
+            limb(fetlock, toe, r1 * 1.05, r1 * 1.3, hoof, M, caps=False, seg=12)
+            continue
+        if kick and not front:
             # Both hind legs straight out behind, hooves up.
             foot = Vector((x - .92, s * side * .7, hip_z - .02))
             knee = hip.lerp(foot, .45) + Vector((0, 0, -.05))
+        elif FOR_MODEL and swing:
+            # The model swings each leg whole from the hip: a shin stretched
+            # by the stride would be another part to export_actors.py, gone
+            # from that walk beat.
+            bend = .05 if front else -.12
+            turn = Matrix.Rotation(-math.atan2(swing, hip_z), 3, "Y")
+            knee = hip + turn @ (Vector((x + bend, s * side, hip_z * .45)) - hip)
+            foot = hip + turn @ (Vector((x, s * side * .95, 0)) - hip)
         else:
             reach = .12 if kick and front else 0.
             foot = Vector((x + swing + reach, s * side * .95, 0))
@@ -62,9 +92,17 @@ def _pose(frame, shift):
     side (`down`), or rearing its rump up to kick; `shift` centres it."""
     phase = frame if isinstance(frame, int) else 0
     C = T((shift, 0, 0))
+    if FOR_MODEL:
+        # Head toward -y, square, and lying flat on her left side.
+        M = R(0, 0, -math.pi / 2) @ C
+        if frame == "down":
+            M = R(0, 0, -math.pi / 2) @ T((0, 0, .39)) @ R(-math.pi / 2, 0, 0) @ T((0, 0, -1.0)) @ C
+        return M, phase
     M = R(0, 0, -.3) @ C
     if frame == "down":
-        M = T((0, 0, .36)) @ R(0, 0, -.22) @ R(-1.82, 0, 0) @ C
+        # Turned more to the camera than she walks, so her stiff legs show
+        # their length rather than pointing at the eye.
+        M = T((0, 0, .36)) @ R(0, 0, -.62) @ R(-1.82, 0, 0) @ C
     elif frame == "kick":
         M = R(0, 0, -.3) @ T((0, 0, .1)) @ R(0, .18, 0) @ C
     return M, phase
@@ -133,7 +171,10 @@ def cow(frame):
             limb((-.44 + dx, s * .06, .52), (-.44 + dx, s * .06, .44), .024, .017, pink, M)
     # the tail and its tuft, swinging with the walk
     root = Vector((-1.04, 0, 1.24))
-    end = Vector((-1.12 - .05 * phase, .04 * phase, .52)) if not dead else Vector((-1.45, -.02, 1.0))
+    end = Vector((-1.12 - .05 * phase, .04 * phase, .52))
+    if dead:
+        # Out stiff behind her, as long as it hangs (the same part).
+        end = root + Vector((-.41, -.02, -.24)).normalized() * (Vector((-1.12, 0, .52)) - root).length
     limb(root, end, .03, .02, white, M)
     ball(end, (.05, .05, .1), black, M)
     _legs(M, phase, dead, False, look)

@@ -70,7 +70,13 @@ and boss phase cels ([bosses.md](bosses.md#the-bosses-art-wears-the-fight)).
 and out= and copy only the new files). The variants are in
 `scripts/blender/actors_variants.py`, the wounds in `actors_wounds.py`, the
 later chapters' kinds in `actors_bayou.py`, `actors_speedway.py`,
-`actors_mothership.py`. The chicken, pig and Bessie are not Blender actors.
+`actors_mothership.py`, the livestock (cow, mule) in `actors_farm.py`. The
+chicken, pig and Bessie are not Blender actors. The cow is a 3D model too
+(export_actors.py sets `FOR_MODEL`: built square to her heading, not turned
+for the camera, and lying `down` flat on her left side with her stiff legs
+out, the top pair raised); her `down` cel is turned more to the camera than
+she walks, so her legs show their length. The 3D view tips her standing
+model over onto that side (fit.json `tips`, [view3d.md](view3d.md#actors)).
 
 Mundell himself (`actors_mundell.py`, kind `mundell`: no cels, only the model
 the 3D view draws for the other players) is a `person()` cast with wrapped
@@ -115,9 +121,14 @@ colours must look right and match the cels before a model counts as done.
    a flame); it keeps those when the tool runs again only if the prop is
    skipped (`names=`).
 
-There are 227 models for 253 of the 257 `town_*` pictures; the range's four
-targets (`range_target`, `_gong`, `_cow_target`, `_duck`) stay pictures
-(`KEEP_FLAT` in export_meshes.py).
+There are 228 models: 227 for 253 of the 257 `town_*` pictures, and
+`shop_lamp` (props_more.py) for the old hanging lamp picture `prop_lamp`
+(`PropModels.PICTURES`). The range's four targets (`range_target`, `_gong`,
+`_cow_target`, `_duck`) stay pictures (`KEEP_FLAT` in export_meshes.py),
+drawn as slabs ([view3d.md](view3d.md#slabs-pickups-loose-things-range-targets)).
+`tools/model_frames.gd -- out=<dir>` (a window) takes pictures of the
+leftovers given models after v3.2.0: the duck row turning, a cow tipped,
+a shop lamp falling in the saw floor's arena.
 
 - **Quest stations** (after v3.0.0): each station is ONE model,
   `quest_<name>`, holding both looks as mesh nodes `look_off` (to do: lamp

@@ -809,6 +809,30 @@ def rock_chute():
     return 3.1, 2.8
 
 
+def shop_lamp():
+    """The hanging shop light (the old game's picture prop_lamp: hung under
+    a roof by game.gd, dropped by a boss arena's wreck): a dark enamel
+    trough, its inside pale and warm in the light of the tube it shades,
+    sockets at the ends, two wire hangers up to the roof. Long along x."""
+    shell = mat(62, 54, 48, metal=.3, rough=.5, grime=.55)
+    inside = mat(226, 196, 166, rough=.45, grime=.3)
+    box(.72, .15, .025, (0, 0, .16), shell)
+    for s in (-1, 1):
+        box(.72, .022, .085, (0, s * .088, .118), shell, (s * -32, 0, 0))
+        box(.7, .01, .07, (0, s * .074, .12), inside, (s * -32, 0, 0))
+    box(.69, .13, .008, (0, 0, .145), inside)
+    for x in (-.355, .355):
+        box(.02, .16, .09, (x, 0, .12), shell)
+        cyl(.034, .03, (x * .93, 0, .074), mat(40, 36, 34, metal=.5, rough=.4), (0, 90, 0), seg=12)
+    # The tube: lit, a warm cream (its glow is the pale band in the picture).
+    cyl(.026, .63, (0, 0, .074), mat(250, 236, 206, rough=.3, emit=4.0, grime=0.), (0, 90, 0), seg=14)
+    wire = mat(*CHROME, metal=.8, rough=.35, grime=.5)
+    for x in (-.26, .26):
+        box(.01, .01, .075, (x, 0, .21), wire)
+        ball(.016, (x, 0, .248), wire, (1, .4, 1))
+    return .85, .32
+
+
 MORE = {
     "truck_blocks": truck_blocks, "porch_couch": porch_couch, "wheelbarrow": wheelbarrow,
     "chicken_coop": chicken_coop, "gas_cans": gas_cans, "tire_stack": tire_stack,
@@ -826,6 +850,7 @@ MORE = {
     "lumber_stack": lumber_stack, "sorting_table": sorting_table, "skiff": skiff,
     "stone_blocks": stone_blocks, "mash_barrel": mash_barrel, "crane_hook": crane_hook,
     "powder_shelf": powder_shelf, "stone_sledge": stone_sledge, "rock_chute": rock_chute,
+    "shop_lamp": shop_lamp,
 }
 
 

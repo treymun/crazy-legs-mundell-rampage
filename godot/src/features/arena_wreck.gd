@@ -44,6 +44,8 @@ static var WAVE_SPEED: float = BossData.get_value("arena_wreck", "wave_speed")
 static var WAVE_REACH: float = BossData.get_value("arena_wreck", "wave_reach")
 static var WAVE_FRONT: float = BossData.get_value("arena_wreck", "wave_front")
 
+## How far a fallen lamp lies tipped over (radians; looks only).
+const LAMP_LIE := 1.15
 const WARN := 0
 const GOING := 1
 const DOWN := 2
@@ -687,6 +689,11 @@ func sprites() -> Array:
 			continue
 		var height: float = p["height"]
 		var z: float = p["z"]
+		if str(p["kind"]) == "fall" and _i(p, "stage") == GOING:
+			# On its way down (play lowers it only once it lands).
+			var t0: float = p["t0"]
+			var age := game.clock - t0
+			z = maxf(game.world.floor_under(x, y, z), z - .5 * GRAVITY * age * age)
 		var s := View.Sprite.new(x, y, str(p["image"]), height, z)
 		s.track = "wreck%d" % k
 		var board := _board(p)
@@ -728,6 +735,11 @@ func _turn_of(p: Dictionary) -> Basis:
 			return Basis(axis, age * 5.0) * Basis(Vector3(0, 0, 1), heading)
 	if stage == WARN:
 		return Basis(Vector3(1, 0, 0), .08 * sin(game.clock * 17.0))
+	if kind == "fall":
+		# A lamp swings over as it drops and lies tipped on its side, its tube
+		# showing (the 3D view's shop lamp; a picture stands as it was).
+		var k := 1.0 if stage == DOWN else clampf(age * 2.5, 0.0, 1.0)
+		return Basis(Vector3(1, 0, 0), LAMP_LIE * k)
 	return Basis.IDENTITY
 
 

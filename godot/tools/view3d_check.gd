@@ -90,6 +90,7 @@ func _init() -> void:
 			if not actors.kinds.has(kind):
 				_fail("actors fit.json: %s is not a model" % kind)
 	print("%d actor models" % actors.kinds.size())
+	_check_leftovers(models, actors)
 	_check_slabs(assets)
 	if _failed.is_empty():
 		print("VIEW3D CHECK OK")
@@ -221,6 +222,9 @@ func _check_rest(kind: String, view: ActorView, info: Dictionary) -> void:
 	var frames: Dictionary = info["frames"]
 	var height: float = info["height"]
 	var own_cel: bool = info.get("down_cel", false)
+	# A body that lies with its legs up (fit.json "down_high": the tipped
+	# cow's top pair stuck up stiff) may reach higher.
+	var reach: float = info.get("down_high", DOWN_HIGH)
 	var high := 0
 	var partial := 0
 	for name: String in frames:
@@ -238,13 +242,37 @@ func _check_rest(kind: String, view: ActorView, info: Dictionary) -> void:
 			var spot := anim.find_track(path, Animation.TYPE_POSITION_3D)
 			if (
 				spot >= 0
-				and anim.position_track_interpolate(spot, t).y > maxf(height * DOWN_HIGH, .5)
+				and anim.position_track_interpolate(spot, t).y > maxf(height * reach, .5)
 			):
 				high += 1
 	if high > 0:
 		_fail("actor %s: %d parts still up at rest (down)" % [kind, high])
 	if partial > 0:
 		_fail("actor %s: %d parts partway shrunk at keys" % [kind, partial])
+
+
+## The pictures drawn flat until after v3.2.0 that have models now: the
+## hanging shop lamp (game.gd's prop_lamp, which a boss arena drops) is the
+## shop_lamp model; the cow is a model that rolls over on the hooves of the
+## side she lies on `down` as she is tipped (ActorView.tipped).
+func _check_leftovers(models: PropModels, actors: ActorModels) -> void:
+	if models.name_of("prop_lamp") != "shop_lamp":
+		_fail("prop_lamp: not drawn as the shop_lamp model")
+	var cow: Dictionary = actors.kinds.get("cow", {})
+	var tips: float = cow.get("tips", 0.0)
+	var frames: Dictionary = cow.get("frames", {})
+	if tips <= 0.0 or not frames.has("down"):
+		_fail("actor cow: no model that tips (fit.json tips) and lies down")
+		return
+	var over := ActorView.tipped(PI * .5, tips)
+	var hoof := over * Vector3(tips, 0.0, 0.0)
+	var back := over * Vector3(0.0, 1.4, 0.0)
+	if (
+		hoof.distance_to(Vector3(tips, 0.0, 0.0)) > .001
+		or absf(back.y - tips) > .01
+		or back.x < 1.0
+	):
+		_fail("actor cow: tipped, she does not go over on her hooves (%s, %s)" % [hoof, back])
 
 
 func _fail(line: String) -> void:

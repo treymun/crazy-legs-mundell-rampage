@@ -40,12 +40,15 @@ sys.argv = [sys.argv[0], "--", _OUT, "billy", "all", "1"]
 with open(os.path.join(_HERE, "enemy_actors.py"), encoding="utf-8") as _lib:
     _source = _lib.read()
 exec(_source[: _source.rstrip().rfind("main()")], globals())
+# The livestock (actors_farm.py) built for a model: square to their heading,
+# not turned for the camera.
+FOR_MODEL = True
 
 TEXTURE = 512
 # The bosses with the most parts bake their looks twice as fine: at 512 their
 # hundreds of parts each got a few texels, blocky and dark at the seams up
 # close against their cels.
-FINE = {"baron": 1024}
+FINE = {"baron": 1024, "derby_champ": 1024, "swamp_king": 1024, "maw": 1024, "maw_bare": 1024}
 RECORD = []
 _place = place
 

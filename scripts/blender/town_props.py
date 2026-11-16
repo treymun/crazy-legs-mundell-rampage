@@ -484,7 +484,8 @@ PROPS.update(MORE)
 # The mothership's props (props_mothership.py, loaded above) keep their own table.
 PROPS.update(SHIP)
 # Drawn flat on a plane in the game: rendered face on.
-FLAT = {"laundry", "powder_shelf", "hubcap_board", "gator_hide"} | SHIP_FLAT
+# The shop lamp (the old picture prop_lamp) is face on too, and bakes faithfully.
+FLAT = {"laundry", "powder_shelf", "hubcap_board", "gator_hide", "shop_lamp"} | SHIP_FLAT
 
 
 # ---------------------------------------------------------------- stage
