@@ -221,32 +221,7 @@ func _target(rows: Dictionary, s: View.Sprite, facing: float, tone: Color, art: 
 static func _add(rows: Dictionary, key: String, t: Transform3D, tone: Color, art: Vector4) -> void:
 	var buf: PackedFloat32Array = rows.get(key, PackedFloat32Array())
 	var b := t.basis
-	buf.append_array(
-		PackedFloat32Array(
-			[
-				b.x.x,
-				b.y.x,
-				b.z.x,
-				t.origin.x,
-				b.x.y,
-				b.y.y,
-				b.z.y,
-				t.origin.y,
-				b.x.z,
-				b.y.z,
-				b.z.z,
-				t.origin.z,
-				tone.r,
-				tone.g,
-				tone.b,
-				tone.a,
-				art.x,
-				art.y,
-				art.z,
-				art.w
-			]
-		)
-	)
+	SpriteLayer3D.put(buf, b.x, b.y, b.z, t.origin, tone, Color(art.x, art.y, art.z, art.w))
 	rows[key] = buf
 
 

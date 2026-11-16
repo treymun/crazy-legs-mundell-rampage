@@ -30,6 +30,18 @@ func shown() -> Array:
 	return _shown.values()
 
 
+## The materials the pieces shown now draw with (each once).
+func live_materials() -> Array[ShaderMaterial]:
+	var seen := {}
+	var out: Array[ShaderMaterial] = []
+	for node: MeshInstance3D in _shown.values():
+		var m := node.material_override as ShaderMaterial
+		if m != null and not seen.has(m):
+			seen[m] = true
+			out.append(m)
+	return out
+
+
 static func takes(s: View.Sprite) -> bool:
 	return s.solid.begins_with("~")
 

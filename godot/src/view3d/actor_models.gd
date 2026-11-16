@@ -16,6 +16,7 @@ const LOOKS: Array[String] = ["", "hurt", "p2", "p3"]
 ## numbers for the kind merged in.
 var kinds: Dictionary = {}
 var _scenes: Dictionary = {}
+var _has_scene: Dictionary = {}
 var _materials: Dictionary = {}
 ## "kind:gear" -> [ArrayMesh, middle] (gear_mesh)
 var _gear_meshes: Dictionary = {}
@@ -52,11 +53,14 @@ func _init(assets: Assets) -> void:
 
 
 func has(kind: String) -> bool:
-	return (
-		kinds.has(kind)
-		and _assets.has_art("actor3d_" + kind)
-		and ResourceLoader.exists(SCENES.path_join(kind + ".tscn"))
-	)
+	if not kinds.has(kind) or not _assets.has_art("actor3d_" + kind):
+		return false
+	# Asked for every enemy's sprite every frame: ResourceLoader.exists once.
+	var ok: Variant = _has_scene.get(kind)
+	if ok == null:
+		ok = ResourceLoader.exists(SCENES.path_join(kind + ".tscn"))
+		_has_scene[kind] = ok
+	return ok
 
 
 ## The kind's scene (an ActorView), or null when it has none.

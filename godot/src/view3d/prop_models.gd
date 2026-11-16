@@ -23,6 +23,11 @@ var sizes: Dictionary = {}
 var _meshes: Dictionary = {}
 var _scenes: Dictionary = {}
 var _textures: Dictionary = {}
+## picture -> the model name its text stands for ("" none), and model name ->
+## whether its scene exists: name_of runs for every sprite every frame, and
+## ResourceLoader.exists costs tens of microseconds a call.
+var _named: Dictionary = {}
+var _has_scene: Dictionary = {}
 var _assets: Assets
 
 
@@ -39,6 +44,25 @@ func _init(assets: Assets) -> void:
 ## A quest station's pictures (town_quest_<name>_off, _on) both stand for its
 ## one model, `quest_<name>`.
 func name_of(image: String) -> String:
+	var known: Variant = _named.get(image)
+	if known == null:
+		known = _model_named(image)
+		_named[image] = known
+	var name: String = known
+	if name == "":
+		return ""
+	# The art may come later (a chapter's pack fetched in the browser).
+	if not _assets.has_art("mesh_" + name):
+		return ""
+	var ok: Variant = _has_scene.get(name)
+	if ok == null:
+		ok = ResourceLoader.exists(SCENES.path_join(name + ".tscn"))
+		_has_scene[name] = ok
+	return name if ok else ""
+
+
+## The model a picture's name stands for by its text alone ("" none).
+func _model_named(image: String) -> String:
 	if not image.begins_with("town_"):
 		return ""
 	var name := image.substr(5)
@@ -49,9 +73,7 @@ func name_of(image: String) -> String:
 		name = name.trim_suffix("_" + look)
 		if not sizes.has(name):
 			return ""
-	if not _assets.has_art("mesh_" + name):
-		return ""
-	return name if ResourceLoader.exists(SCENES.path_join(name + ".tscn")) else ""
+	return name
 
 
 ## Which look of its model a picture shows ("off", "on"), or "" for a prop

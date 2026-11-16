@@ -65,6 +65,12 @@ var _params := {}
 ## SHADOWS' numbers as last handed to the floors, walls and marks.
 var _received := {}
 var _materials: Array[ShaderMaterial] = []
+## The layers' materials drawn lately (_track_live), and the frame each was
+## last drawn on.
+const IDLE_FRAMES := 120
+var _live: Array[ShaderMaterial] = []
+var _used := {}
+var _frames := 0
 var _rain: Array[MeshInstance3D] = []
 ## County Run's storm front: a wall round the safe ground, its front curtain
 ## and the one behind it (storm_wall.gdshader).
@@ -74,6 +80,22 @@ var _storm_materials: Array[ShaderMaterial] = []
 var _shadows := ViewShadows.new()
 ## Holes, scorch and char on props, vehicles and wreck pieces (thing_marks.gd).
 var _thing_marks := ThingMarks.new()
+## Where frame() spends its time, summed in microseconds per part (the
+## benches print and clear it: main.gd --view-bench, tools/stress_bench.gd).
+const PART_NAMES: Array[String] = [
+	"setup",
+	"shadows",
+	"props",
+	"wrecks",
+	"marks",
+	"actors",
+	"glue",
+	"sprites",
+	"slabs",
+	"decals",
+	"uniforms"
+]
+var parts_us := PackedInt64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 var _mirror_view: SubViewport
 var _mirror_camera: Camera3D
 
@@ -200,7 +222,10 @@ func texture() -> ViewportTexture:
 	return viewport.get_texture()
 
 
-## Set a shader number on every material of the view, when it changed.
+## Set a shader number on every material of the view in use, when it
+## changed: the view's own and the props', wrecks' and actors' drawn lately
+## (_track_live; one not drawn for a while is handed every number when it is
+## drawn again).
 func _share(name: String, value: Variant) -> void:
 	var old: Variant = _params.get(name)
 	if old != null and typeof(old) == typeof(value) and old == value:
@@ -208,6 +233,30 @@ func _share(name: String, value: Variant) -> void:
 	_params[name] = value
 	for m: ShaderMaterial in _materials:
 		m.set_shader_parameter(name, value)
+	for m: ShaderMaterial in _live:
+		m.set_shader_parameter(name, value)
+
+
+## The props', wrecks' and actors' materials drawn this frame join `_live`
+## (handed every shader number first when they were not in it); those not
+## drawn for IDLE_FRAMES leave it. A long session meets hundreds of models,
+## and handing each frame's numbers to every one of them cost more than the
+## rest of the frame's view work.
+func _track_live(materials: Array[ShaderMaterial]) -> void:
+	_frames += 1
+	for m in materials:
+		var last: int = _used.get(m, -IDLE_FRAMES - 1)
+		if _frames - last > IDLE_FRAMES:
+			for key: String in _params:
+				m.set_shader_parameter(key, _params[key])
+			_live.append(m)
+		_used[m] = _frames
+	var k := _live.size() - 1
+	while k >= 0:
+		var gone: int = _used[_live[k]]
+		if _frames - gone > IDLE_FRAMES:
+			_live.remove_at(k)
+		k -= 1
 
 
 ## SHADOWS' numbers (view_shadows.gd), only to what takes shadows: the
@@ -240,6 +289,7 @@ func frame(game: Game) -> void:
 	var view: Dictionary = game.view_frame
 	if view.is_empty():
 		return
+	var t0 := Time.get_ticks_usec()
 	var r: View = game.view
 	var level: LevelData = game.level
 	var vw: int = r.vw
@@ -292,13 +342,21 @@ func frame(game: Game) -> void:
 			slabbed.append(s)
 		else:
 			pictures.append(item)
+	var t1 := Time.get_ticks_usec()
 	_shadows.collect(game, acting, modelled, wrecked, Vector3(x, y, z), props.models)
+	var t2 := Time.get_ticks_usec()
 	var fresh := props.show_props(modelled, level)
+	var t3 := Time.get_ticks_usec()
 	fresh.append_array(wrecks.show_wrecks(wrecked, level))
+	var t4 := Time.get_ticks_usec()
 	_thing_marks.update(game, props, wrecks)
+	var t5 := Time.get_ticks_usec()
 	var gear_lost: Dictionary = view.get("gear_lost", {})
+	ActorView.draws += 1
+	ActorView.lod_eye = Vector3(x, y, z) if r.detail == 1 else Vector3.INF
 	fresh.append_array(actors.show_actors(acting, level, game.clock, game.gore_fx.lost, gear_lost))
 	fresh.append_array(actors.show_gear(gear, level))
+	var t6 := Time.get_ticks_usec()
 	# The player in the mirror: their model when they have one, else their picture.
 	var reflection: View.Sprite = null
 	if mirror:
@@ -310,19 +368,28 @@ func frame(game: Game) -> void:
 		and actors.kind_of(reflection.who as Enemy) != ""
 	):
 		reflection = null
-	for m: ShaderMaterial in fresh:
-		_materials.append(m)
-		for key: String in _params:
-			m.set_shader_parameter(key, _params[key])
+	# What the layers draw with this frame (the ones made now among them).
+	fresh.append_array(props.live_materials())
+	fresh.append_array(wrecks.live_materials())
+	fresh.append_array(actors.live_materials())
+	_track_live(fresh)
+	var t7 := Time.get_ticks_usec()
 	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
+	var t8 := Time.get_ticks_usec()
 	slabs.show_slabs(slabbed, level, Vector3(x, y, z), angle, game.clock, r.world_motion, mirror)
 	solids.show_solids(solid, level, Vector3(x, y, z), angle, mirror)
+	var t9 := Time.get_ticks_usec()
 	if mirror:
 		sprites.show_reflection(reflection, level, angle)
 	var marks: Array = view["marks"]
 	var ground: Array = view["ground"]
 	sprites.show_marks(marks, ground, Vector3(x, y, z), angle)
+	var t10 := Time.get_ticks_usec()
 	_uniforms(game, view, r, Vector3(x, y, z), angle, at_hub)
+	var t11 := Time.get_ticks_usec()
+	var at := [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11]
+	for k in PART_NAMES.size():
+		parts_us[k] += at[k + 1] - at[k]
 
 
 func _place_camera(

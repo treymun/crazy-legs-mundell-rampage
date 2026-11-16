@@ -370,6 +370,8 @@ func _view_bench() -> void:
 				game.tick(1.0 / 60.0, held)
 				render()
 				await get_tree().process_frame
+			if world_view != null:
+				world_view.parts_us.fill(0)
 			var began := Time.get_ticks_usec()
 			var busy := 0
 			var drawing := 0
@@ -407,6 +409,12 @@ func _view_bench() -> void:
 				for k in 8:
 					row += " %s %.2f" % [names[k], parts[k] / 1000.0 / view_bench]
 				print("%-9s%s" % [level_id, row])
+				if world_view != null:
+					row = "  view"
+					for k in WorldView3D.PART_NAMES.size():
+						var us: float = world_view.parts_us[k]
+						row += " %s %.2f" % [WorldView3D.PART_NAMES[k], us / 1000.0 / view_bench]
+					print("%-9s%s" % [level_id, row])
 				frames.sort()
 				var median := frames[frames.size() / 2]
 				var slow := 0
