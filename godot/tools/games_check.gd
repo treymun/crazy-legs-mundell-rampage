@@ -17,12 +17,17 @@
 ## the shots; leaving the counter ends a round; the prizes pay out by score
 ## (a beer to the pockets, the hat and the bear kept in the save), and the
 ## booths add no station, door or wall to the chapter.
+## THE RANGE'S DUCK ROW (range_targets.gd): a duck turned at its rail's end
+## spins round on its stick (edge on halfway) instead of snapping round, and
+## rides the other way showing its other face.
 ## THE TROPHY SHACK (features/trophy_shack.gd): from the bosses beaten (the
 ## gates open), the range's records and the County Run records, the shack
 ## stands a statuette on the plinth of each boss beaten and none for the rest,
 ## a cup for each game with a best, a gnome for each County Run map, and its
 ## card says so; the shack can be walked into from the Crossroads' start.
 extends SceneTree
+
+const RangeLayout := preload("res://src/range_layout.gd")
 
 var failures: Array = []
 var main: Control
@@ -41,6 +46,7 @@ func _run() -> void:
 	var tally := CrashLog.tally()
 	_board()
 	_gallery()
+	_ducks()
 	_trophies()
 	tally.stop()
 	_check(
@@ -308,6 +314,52 @@ func _gallery() -> void:
 	_stand(g, 98.5, 49.6, -PI / 2.0)
 	f.draw_view(c)
 	RangeBoard.folder_override = ""
+
+
+func _ducks() -> void:
+	print("THE RANGE'S DUCK ROW")
+	var g: Game = main.make_game("range")
+	g.configure({})
+	var t = g.features["range"].targets
+	var x1: float = RangeLayout.GALLERY_X[1]
+	var duck: Dictionary = {}
+	for m: Dictionary in t.movers:
+		if int(m["row"]) == 1:
+			duck = m
+			break
+	_check(not duck.is_empty(), "the range has a duck row")
+	if duck.is_empty():
+		return
+	# Riding right; just turned at the end; edge on; most of the way round.
+	var turns: Array = []
+	for at: Array in [
+		[x1 - 2.0, 1.0], [x1 - .01, -1.0], [x1 - .225, -1.0], [x1 - .4, -1.0], [x1 - 2.0, -1.0]
+	]:
+		duck["x"] = at[0]
+		duck["dir"] = at[1]
+		duck["down_until"] = 0.0
+		_stand(g, float(at[0]), 49.0, -PI / 2.0)
+		for s: View.Sprite in t.sprites(g):
+			if s.image == "town_range_duck" and absf(s.x - float(at[0])) < .001:
+				turns.append(s.plane + (PI if s.flip else 0.0))
+	_check(turns.size() == 5, "each duck is drawn (%d)" % turns.size())
+	if turns.size() == 5:
+		var a: float = turns[0]
+		var b: float = turns[1]
+		var c: float = turns[2]
+		var d: float = turns[3]
+		var e: float = turns[4]
+		_check(
+			(
+				absf(a) < .01
+				and b < .2
+				and absf(c - PI * .5) < .2
+				and d > c
+				and d < PI
+				and absf(e - PI) < .01
+			),
+			"a duck turned at the rail's end spins round on its stick (%s)" % [turns]
+		)
 
 
 # ------------------------------------------------------------------ the shack

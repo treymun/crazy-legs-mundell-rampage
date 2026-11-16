@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_hfvo1"]
+[ext_resource type="PackedScene" path="res://assets3d/props/shop_lamp.glb" id="2_nlcw1"]
+
+[node name="ShopLamp" type="Node3D" unique_id=1970614755]
+script = ExtResource("1_hfvo1")
+prop = "shop_lamp"
+
+[node name="Model" type="Node3D" parent="." unique_id=539278799 instance=ExtResource("2_nlcw1")]

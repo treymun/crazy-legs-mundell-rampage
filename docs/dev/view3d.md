@@ -202,8 +202,8 @@ for what feeds them.
 ## Props
 
 Each prop placed with `town()` (and every quest station) shows as a
-`PropView` scene (`scenes/props/<name>.tscn`) over its baked glTF model: 227
-models for 253 of the 257 `town_*` pictures (the range's four targets stay
+`PropView` scene (`scenes/props/<name>.tscn`) over its baked glTF model: 228
+models, for 253 of the 257 `town_*` pictures and the shop lamp (the range's four targets stay
 pictures). The pipeline that makes them is in [art.md](art.md#props). A light
 with `props` in effects.cfg rides every prop with that picture.
 
@@ -221,6 +221,11 @@ wreck, `features/arena_wreck.gd`) is one model stood again each frame at the
 sprite's place, turned the way it first stood and then by `turn` (map axes)
 about its feet (`PropView.carry`): a floodlight tower going over, a vat on
 its side, a wreck flung across the bowl.
+
+A picture not named `town_*` may stand for a model too
+(`PropModels.PICTURES`): the hanging shop lamp `prop_lamp` (game.gd hangs it
+under a roof; a boss arena drops it) is the `shop_lamp` model, so it hangs,
+falls and lies in 3D.
 
 A prop's facing is worked out once for where it stands (the most open way),
 unless its sprite sets `plane`: then the model turns by `-plane`. A quest
@@ -329,7 +334,9 @@ bowling pins and ball (`range_bowling.gd`, props).
     cow spins on its stand when hit (its `plane`, as before); a gong's plate
     swings from the bar (`GONG_SWING`, `GONG_REACH`; the frame stays put); a
     gallery mover wobbles on its stick as it rides (`MOVER_WOBBLE`, less with
-    EASY ON THE EYES, none when STILL) and, knocked down, goes over flat
+    EASY ON THE EYES, none when STILL), spins round on its stick when it
+    turns at its rail's end (over its first `MOVER_TURN` cells back, edge on
+    halfway, then its other face) and, knocked down, goes over flat
     backwards in `MOVER_FALL` and pops up when its `DOWN_TIME` is over (it
     used to vanish). The dummies are props (`range_dummy`): they rock by the
     same `tilt` (`ROCK_*`, `PropView.lean()`) instead of sliding sideways.
@@ -377,7 +384,13 @@ Each enemy and boss with a model shows as an `ActorView` scene
   the billboard cel through its middle did), and `min_px` (the crawler, 1.5)
   pushes every surface out along its normal by half that many of the view's
   pixels at its distance (nothing up close), so thin legs keep about a pixel
-  at range as the cel's lines did. `down_cel` keeps the old cel for the body
+  at range as the cel's lines did. `flat` sets how flat a dead body of the
+  kind lies (FLAT otherwise; the cow 1: her legs stuck out). `tips` (the
+  cow, .19: the hooves' half width) rolls a living body over sideways by the
+  lean its `squash` holds (critters.gd: the lean's cosine) on the hooves of
+  the side it lies on `down` (`ActorView.tipped`): a tipped cow goes over
+  rigid, lies on her side with her stiff legs out, and gets up again.
+  `down_cel` keeps the old cel for the body
   at rest where that is a build of its own the model's parts cannot make
   (the derby champ's burnt-out wreck, the swamp king's sunk boat, the Maw):
   `ActorLayer3D.takes()`.

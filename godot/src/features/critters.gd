@@ -497,9 +497,10 @@ func _topple(dt: float) -> void:
 		t[1] = turn
 		t[2] = stage
 		# Lying, she shows her fallen picture; going over and up, her own
-		# picture leaning (squashed by the lean's cosine).
+		# picture leaning (squashed by the lean's cosine, Enemy.sprite; the 3D
+		# view rolls her model by the lean it reads back from it).
 		e.held_cel = "cow_down" if stage == 1 else ""
-		e.squash = Enemy.DOWN_SHARE["cow"] if stage == 1 else maxf(.3, cos(lean))
+		e.squash = Enemy.DOWN_SHARE["cow"] if stage == 1 else cos(lean)
 	for e: Enemy in done:
 		_tips.erase(e)
 		e.held_cel = ""

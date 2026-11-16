@@ -87,13 +87,28 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 		down = 1.0
 	elif frame.begins_with("die_"):
 		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
-	var flat := lerpf(1.0, FLAT, down * down)
+	var info: Dictionary = models.kinds[kind]
+	var flat_at: float = info.get("flat", FLAT)
+	var flat := lerpf(1.0, flat_at, down * down) if not e.alive else 1.0
 	transform = Transform3D(
 		Basis(Vector3.UP, turn).scaled(Vector3(size, size * flat, size)), Vector3(s.x, z, s.y)
 	)
+	var tips: float = info.get("tips", 0.0)
+	if tips > 0.0 and e.alive and frame != "down" and e.squash < 1.0:
+		transform = transform * ActorView.tipped(acos(clampf(e.squash, 0.0, 1.0)), tips)
 	_player.seek(_time(frame, look, e, clock), true)
 	_shown_alive = true
 	_shade(s, level, look, tint, down)
+
+
+## A body tipped over sideways by `lean` (radians; a cow going over and getting
+## up, features/critters.gd: Enemy.squash is the lean's cosine), rolled about
+## its long axis (the model's forward, +z) on the hooves on its left, `side`
+## out from its middle (+x): she goes over onto the side she lies on `down`.
+static func tipped(lean: float, side: float) -> Transform3D:
+	var pivot := Vector3(side, 0.0, 0.0)
+	var roll := Basis(Vector3(0.0, 0.0, 1.0), -lean)
+	return Transform3D(roll, pivot - roll * pivot)
 
 
 ## The model's size for enemy `e` (its height against the model's canvas).

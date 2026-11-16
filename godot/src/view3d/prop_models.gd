@@ -15,6 +15,9 @@ const LOOKS: Array[String] = ["off", "on"]
 ## -28 degrees): a prop that faces where it is used from is turned so, and
 ## from there is seen as its picture showed it.
 const PICTURE_TURN := deg_to_rad(28.0)
+## Pictures not named town_<name> that a model stands for: the hanging shop
+## lamp game.gd hangs under a roof (and a boss arena's wreck drops).
+const PICTURES := {"prop_lamp": "shop_lamp"}
 
 ## name -> [width, depth, height, texture size, picture height]: the last,
 ## how tall its picture town_<name> was drawn (a sprite shown at another
@@ -39,6 +42,11 @@ func _init(assets: Assets) -> void:
 ## A quest station's pictures (town_quest_<name>_off, _on) both stand for its
 ## one model, `quest_<name>`.
 func name_of(image: String) -> String:
+	if PICTURES.has(image):
+		var named: String = PICTURES[image]
+		if not sizes.has(named) or not _assets.has_art("mesh_" + named):
+			return ""
+		return named if ResourceLoader.exists(SCENES.path_join(named + ".tscn")) else ""
 	if not image.begins_with("town_"):
 		return ""
 	var name := image.substr(5)

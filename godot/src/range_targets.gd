@@ -22,6 +22,9 @@ const ROCK_SWING := 16.0
 const ROCK_REACH := .35
 const MOVER_WOBBLE := .06
 const MOVER_FALL := .12
+## A mover turned at its rail's end spins round on its stick over this much
+## of its way back (cells), edge on halfway, instead of snapping round.
+const MOVER_TURN := .45
 
 var dice := RandomNumberGenerator.new()
 ## Each: {id, station, kind, x, y, hits, spin (seconds left), last [gun, damage,
@@ -403,9 +406,20 @@ func sprites(game: Game) -> Array:
 		var row_size: float = row[3]
 		var row_lift: float = row[1]
 		var s := View.Sprite.new(mx, row_y, str(row[2]), row_size, row_lift)
-		s.plane = 0.0
 		var dir: float = m["dir"]
-		s.flip = dir < 0.0
+		var turn := PI if dir < 0.0 else 0.0
+		var x0: float = L.GALLERY_X[0]
+		var x1: float = L.GALLERY_X[1]
+		var back := (x1 - mx) if dir < 0.0 else (mx - x0)
+		if back < MOVER_TURN:
+			# Still coming round from the way it went (0 facing right, PI left).
+			turn = PI * smoothstep(0.0, 1.0, back / MOVER_TURN)
+			if dir > 0.0:
+				turn = PI - turn
+		# Past a quarter turn it shows its other face (the picture mirrored):
+		# a board on its plane is one-sided, so flip it round instead.
+		s.flip = turn > PI * .5
+		s.plane = turn - PI if s.flip else turn
 		# On its stick it wobbles as it rides (less with EASY ON THE EYES, none
 		# when STILL); knocked down it goes over flat backwards and pops up
 		# again. Both are the 3D view's tilt.

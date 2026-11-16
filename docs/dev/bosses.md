@@ -151,7 +151,8 @@ like DIFFICULTY): off, the fights are as before.
   lagoon's lantern posts (the stilts going), the waves and the dead snag; the
   bowl's crushed stacks and wrecks (each few of his attacks) and the last
   floodlight tower; the core's pods. The props are drawn as their models on
-  the move (`View.Sprite.track`); a board taken over is
+  the move (`View.Sprite.track`; a lamp is the `shop_lamp` model, hung, falling
+  and lying, since the polish after v3.2.0); a board taken over is
   `LevelData.Billboard.hidden`, a lamp a `game.props` sprite taken away.
   Play: no dice, carried (SIM_FEATURES) and a fact (FACT_FEATURES: restore
   puts the cover, the hidden boards and the lamps right). The boss
