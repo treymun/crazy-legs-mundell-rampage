@@ -62,6 +62,16 @@ func kick_now(recoil: float) -> void:
 	kick_v = 0.0
 
 
+## A blow given (features/brawl_looks.gd: a boot landing, a finisher): the
+## view jolts by `yaw` (radians), `pitch` (pixels) and `drop` (cells), the gun
+## by `shove` (pixels), as far as SCREEN SHAKE lets it.
+func punch(yaw: float, pitch: float, drop: float, shove: Vector2) -> void:
+	var hz: float = Weapons.SWAY.get("hz", 5.5)
+	var k := game.shake_scale * TAU * hz * PUSH
+	view_v += Vector3(yaw, pitch, drop) * k
+	jolt_v += shove * k
+
+
 ## The shot the game just played was kicked already (kick_now): this tick's
 ## look at the gun does not kick again.
 func skip_kick() -> void:

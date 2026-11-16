@@ -13,8 +13,8 @@
 ## - **Finishers.** USE (or a swing of a blade or the crowbar) on a hand in
 ##   reach who is low, reeling or dazed starts a short move picked by the gun
 ##   in hand (pistol whip or a round in the mouth; a butt stroke or a belly
-##   full of lead; the crowbar to the skull or gutting; else a stomp or a
-##   punt): the blow lands `wind` later, alone in slow motion, with gore, a
+##   full of lead; the crowbar to the skull or gutting; else a boot to the
+##   face or a punt): the blow lands `wind` later, alone in slow motion, with gore, a
 ##   call on screen and Mundell's word on it (barks "finisher"). Bosses are
 ##   never finished. features/brawl_looks.gd shows the boot and the blows.
 ## - **Hazards** (src/brawl_hazards.gd): a man driven into a saw, a chipper,
@@ -418,13 +418,14 @@ func start_finish(p: Player, e: Enemy) -> void:
 			slides.erase(s)
 			break
 	p.armory.cooldown = maxf(p.armory.cooldown, _num(FINISH, "hold"))
-	if Finishers.allowed(game):
-		var f: Object = game.features.get("finishers")
-		if f != null:
-			f.set("again_at", game.clock + Finishers.REST)
-		game.slowmo = maxf(game.slowmo, _num(FINISH, "slowmo"))
-		game.slowmo_for = game.slowmo
-		game.slowmo_pace = _num(FINISH, "pace")
+	if cls == "blade":
+		# The blade's own swing shows (weapons.gd pose()); it strikes nothing.
+		p.armory.shot_age = 0.0
+		p.armory.swing_hit = false
+	var f: Object = game.features.get("finishers")
+	if f != null and Finishers.allowed(game):
+		# Its own slow motion comes with the blow (_blow), not the shot's.
+		f.set("again_at", game.clock + Finishers.REST)
 	wake()
 
 
@@ -457,6 +458,11 @@ func _blow(m: Array) -> void:
 	if end == "head_off":
 		var head: float = HitZones.HEAD.get(how, HitZones.HEAD_DEFAULT)
 		amount = maxf(e.hp / head + 2.0, 46.0 / head)
+	if Finishers.allowed(game):
+		# The world slows as the blow lands, so the body and the bits fly.
+		game.slowmo = maxf(game.slowmo, _num(FINISH, "slowmo"))
+		game.slowmo_for = game.slowmo
+		game.slowmo_pace = _num(FINISH, "pace")
 	_hush_kill_bark(p)
 	_strike(p, e, amount, up, how)
 	if e.alive:

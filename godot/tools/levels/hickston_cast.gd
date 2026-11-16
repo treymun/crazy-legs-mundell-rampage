@@ -407,3 +407,16 @@ static func set_pieces(b: Builder) -> void:
 			"lines": ["RADIO: KEEP THE KEY DRY.", "VOICE: THEN FIX THE ROOF."]
 		}
 	)
+
+
+## The county's hazards a man can be booted into (content pass 8,
+## src/features/brawl.gd and src/brawl_hazards.gd): a well by the yard, a bug
+## zapper, a cattle guard on the road, a hot wire by the hogs (and the hog pen
+## itself, the creek). Each stands in the open where the chapter's hands fight;
+## layout 7 for them.
+static func hazards(b: Builder) -> void:
+	b.town("well", 19.5, 41.5, {"solid": .5, "base": "concrete"})
+	b.town("bug_zapper", 69.5, 52.5, {"solid": .12, "glow": true})
+	b.town("cattle_guard", 58.5, 37.5)
+	b.volume(85.5, 13.38, 87.5, 13.62, 1.2)
+	b.town("electric_fence", 86.5, 13.5, {"plane": 0.0})

@@ -328,6 +328,7 @@ const LOOKS_FEATURES := [
 	"dust",
 	"gun_fx",
 	"feel",
+	"brawl_looks",
 	"soundscape",
 	"boss_voices",
 	"enemy_barks",

@@ -54,6 +54,7 @@ static func run(main, check: Callable) -> void:
 	_door(main, check)
 	_smash(main, check)
 	_sync(main, check)
+	_looks(main, check)
 
 
 # ------------------------------------------------------------------ helpers
@@ -212,8 +213,10 @@ static func _finishers(main, check: Callable) -> void:
 		var e := hand(g, "billy", at.x + 1.1, at.y)
 		e.hp = e.max_hp * .2
 		press_use(g)
-		var slow := g.slowmo > 0.0
-		ticks(g, 1.2)
+		var crisp := g.slowmo == 0.0
+		ticks(g, .2)
+		var slow := g.slowmo > 0.0 and crisp
+		ticks(g, 1.0)
 		var b := brawl(g)
 		var move := ""
 		for k: String in b.finished:
@@ -221,7 +224,7 @@ static func _finishers(main, check: Callable) -> void:
 		var row: Dictionary = Brawl.MOVE.get(move, {})
 		check.call(
 			not e.alive and move != "" and str(row.get("class", "")) == cls and slow,
-			"%s: a low hand is finished (%s), in slow motion" % [cls, row.get("name", "-")]
+			"%s: a low hand is finished (%s), the wind at full speed, the blow in slow motion" % [cls, row.get("name", "-")]
 		)
 	# Each move of each class lands (picked by game.rng: try seeds until seen).
 	var seen := {}
@@ -269,6 +272,7 @@ static func _finishers(main, check: Callable) -> void:
 	te.hp = 1.0
 	two.finish_slowmo = false
 	press_use(two)
+	ticks(two, .3)
 	check.call(two.slowmo == 0.0, "SLOW-MO FINISHERS off: the finisher plays at full speed")
 	# Co-op: the second player finishes a man; no slow motion with two.
 	var co := game(main)
@@ -515,3 +519,41 @@ static func _sync(main, check: Callable) -> void:
 			ticks(g, .83)
 		ends.append(var_to_str([a.x, a.y, a.hp, o.x, o.y, o.hp]))
 	check.call(ends[0] == ends[1], "two runs of the same boot end the same")
+
+
+# -------------------------------------------------------------------- looks
+
+
+## The boot's cels are packed and placed where the art tool put them; the
+## boot shows for a kick, the gun ducks, and the view jolts as it lands.
+static func _looks(main, check: Callable) -> void:
+	const Looks := preload("res://src/features/brawl_looks.gd")
+	var path := ProjectSettings.globalize_path("res://").path_join("../assets/art/boot_views.json")
+	var written = JSON.parse_string(FileAccess.get_file_as_string(path.simplify_path()))
+	var same: bool = written is Dictionary and written.size() == Looks.PLACES.size()
+	if same:
+		for pose: String in Looks.PLACES:
+			var a: Array = Looks.PLACES[pose]
+			var b: Array = written.get(pose, [-1, -1])
+			same = same and int(a[0]) == int(b[0]) and int(a[1]) == int(b[1])
+	check.call(
+		same,
+		"the boot cels sit where build_boot_views.gd put them (brawl_looks.gd PLACES)"
+	)
+	var g := game(main)
+	var art_ok := true
+	for pose: String in Looks.PLACES:
+		art_ok = art_ok and g.art.has_art("fx_boot_" + pose)
+	check.call(art_ok, "the boot cels are packed")
+	var at := lane(g, 6)
+	stand(g, at)
+	hand(g, "billy", at.x + 1.2, at.y)
+	var looks = g.features["brawl_looks"]
+	press_use(g)
+	var seen: bool = not looks.boot().is_empty()
+	var ducked := g.player.weapon_lag.y > 5.0
+	var jolted := false
+	for i in 12:
+		g.tick(STEP, Game.Controls.new())
+		jolted = jolted or g.view_kick.length() > .001
+	check.call(seen and ducked and jolted, "a kick shows the boot, the gun ducks, the view jolts")

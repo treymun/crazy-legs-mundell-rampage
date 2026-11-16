@@ -55,7 +55,7 @@ func make() -> Builder:
 		"ending": '"NEXT TIME, TAKE THE TRACTOR."',
 		"score": "music",
 		"rescue": true,
-		"layout": 6,
+		"layout": 7,
 		"sky": "sky",
 		# A riding mower on the chapel path by the graveyard (features/vehicles.gd).
 		"vehicles": [["mower", 79.0, 59.5, 0.0]],
@@ -91,6 +91,7 @@ func build(_b) -> Array:
 	# KEYS IN IT on the chapel's south wall over the mower (src/vehicle_finder.gd):
 	# hung on the wall that is there, so the map is as it was (no new layout).
 	b.board("vehicle_sign_mower", 81.2, 58.03, .45, {"z": .85, "plane": 0.0, "hung": true})
+	Cast.hazards(b)
 	new_iron()
 	Climbs.hickston(b)
 	return [7.5, 69.5, 0.0]
@@ -1481,3 +1482,4 @@ func polish() -> void:
 		["coot", 76.0, 66.5, "stand-coot"],
 	]:
 		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
+

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_pgj22"]
+[ext_resource type="PackedScene" path="res://assets3d/props/electric_fence.glb" id="2_c1evk"]
+
+[node name="ElectricFence" type="Node3D" unique_id=1656029876]
+script = ExtResource("1_pgj22")
+prop = "electric_fence"
+
+[node name="Model" type="Node3D" parent="." unique_id=59797142 instance=ExtResource("2_c1evk")]
