@@ -4,6 +4,11 @@
 ##
 ## (front: only the front end's part, the last below.)
 ##
+## Across builds (a refactor that must keep play exact): `keep=<dir>` writes
+## each recording and its recorded game's end snapshot to <dir>; a later
+## build's `against=<dir>` plays every kept recording onto a fresh game and
+## checks every hash, the end hash and the whole end snapshot.
+##
 ## Bots play recorded runs: the first chapter from a fresh game and its seed,
 ## a later chapter recorded from the middle (a snapshot) with its USE, gun
 ## picks and wheel as actions between ticks and two touches outside them (a
@@ -28,6 +33,8 @@ var quick := false
 ## Recording cost over every run: microseconds and ticks.
 var cost_us := 0
 var cost_ticks := 0
+## keep=<dir>: where each recording and its end snapshot are written.
+var keep_dir := ""
 
 
 func _init() -> void:
@@ -49,6 +56,20 @@ func _run() -> void:
 	quick = OS.get_cmdline_user_args().has("quick")
 	var scale := 1 if quick else 2
 	print("REPLAYS")
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("keep="):
+			keep_dir = arg.trim_prefix("keep=")
+			DirAccess.make_dir_recursive_absolute(keep_dir)
+		elif arg.begins_with("against="):
+			_against(arg.trim_prefix("against="))
+			print("")
+			print(
+				"REPLAY CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size()
+			)
+			main.queue_free()
+			await process_frame
+			quit(1 if not failures.is_empty() else 0)
+			return
 	if OS.get_cmdline_user_args().has("front"):
 		_front_end("hickston", 1200)
 		quit(1 if not failures.is_empty() else 0)
@@ -90,6 +111,14 @@ func _replayed(name: String, rec: Replay, g: Game, step := STEP) -> Replay.Playb
 	cost_us += rec.spent_us
 	cost_ticks += rec.ticks
 	var bytes := rec.to_bytes()
+	if not keep_dir.is_empty():
+		var slug := name.to_lower().replace(" ", "_")
+		var f := FileAccess.open(keep_dir.path_join(slug + ".replay"), FileAccess.WRITE)
+		f.store_buffer(bytes)
+		f.close()
+		f = FileAccess.open(keep_dir.path_join(slug + ".end"), FileAccess.WRITE)
+		f.store_buffer(var_to_bytes(GameSnapshot.capture(g)))
+		f.close()
 	var back := Replay.from_bytes(bytes)
 	check(back != null, "%s: the replay comes back from its bytes" % name)
 	if back == null:
@@ -136,6 +165,41 @@ func _replayed(name: String, rec: Replay, g: Game, step := STEP) -> Replay.Playb
 		)
 	)
 	return pb
+
+
+## Plays every recording kept in `dir` (by keep=, maybe by another build)
+## onto a fresh game: every hash, the end hash and the end snapshot match.
+func _against(dir: String) -> void:
+	var names := Array(DirAccess.get_files_at(dir)).filter(
+		func(n: String) -> bool: return n.ends_with(".replay")
+	)
+	check(not names.is_empty(), "recordings kept in %s (%d)" % [dir, names.size()])
+	for file: String in names:
+		var rep := Replay.load_file(dir.path_join(file))
+		check(rep != null, "%s: loads" % file)
+		if rep == null:
+			continue
+		var pb := Replay.Playback.new(rep)
+		pb.start(Callable(main, "make_game"))
+		pb.run()
+		var want: Dictionary = bytes_to_var(
+			FileAccess.get_file_as_bytes(dir.path_join(file.get_basename() + ".end"))
+		)
+		var got := GameSnapshot.capture(pb.game)
+		var same := GameSnapshot.same(want, got)
+		check(
+			pb.diverged < 0 and pb.hashes > 0 and pb.end_matches() and same,
+			(
+				"%s: %d ticks play back exactly (%d hashes%s)%s"
+				% [
+					file,
+					pb.tick,
+					pb.hashes,
+					"" if pb.diverged < 0 else ", parted at tick %d" % pb.diverged,
+					"" if same else ": " + GameSnapshot.first_difference(want, got)
+				]
+			)
+		)
 
 
 ## The bot's controls for `g`; its USE, gun pick and wheel go through

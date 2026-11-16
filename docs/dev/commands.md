@@ -131,6 +131,8 @@ godot --headless --path godot --script res://tools/tick_spikes.gd -- level=hicks
 godot --headless --path godot --script res://tools/ai_check.gd   # AI CHECK OK: the spike fixes are exact, the enemies' level of detail
 godot --headless --path godot --script res://tools/tick_profile.gd -- 300 replay   # and what recording a replay costs a tick
 godot --headless --path godot --script res://tools/replay_check.gd [-- quick]   # replays play back exactly (front: the front end's part alone)
+godot --headless --path godot --script res://tools/replay_check.gd -- keep=<dir>     # also writes each recording and its end snapshot to <dir>
+godot --headless --path godot --script res://tools/replay_check.gd -- against=<dir>  # another build plays them: every hash and the end snapshot match (a refactor kept play exact)
 godot --path godot -- --replay=<file>   # play a replay in the game's view (a path, or a name in user://replays); Esc leaves
 godot --headless --path godot --script res://tools/load_bench.gd -- rounds=3   # level loads cold and warm, the level mesh, the wreck cutting (on a worker, not in the load)
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/stress_bench.gd -- [only=county]   # the worst moments: frame, parts, slots, memory
