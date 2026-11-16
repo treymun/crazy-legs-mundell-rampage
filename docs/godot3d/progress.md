@@ -121,6 +121,24 @@ Test builds: `C:\Users\treym\Downloads\CrazyLegs-3D-Test\` (TESTING.md there).
   bosses busy up close (512 texture), co-op partners still flat cels, HUD
   not on Controls.
 
+### 2026-11-16: polish and optimization pass (v3.3.0)
+- Boss arenas lock you in (boss_lock.gd): the fight starts only well inside,
+  every way in shuts and holds until the boss falls (the early starts were a
+  14-cell radius through walls, gaps by the sheriff's chute, any damage
+  starting it, bosses walking out).
+- 5v5 and DM bots aim like people (bot_aim.gd, BOT SKILL EASY..HOG WILD,
+  MIXED), personas, trades, team radio, belly aim (headshots ~38%).
+- Physics: loose things settle, ragdolls on the floor (<1 cm), staves tip,
+  water splashes and drift, no tunnelling; vehicle feel (squat, lean, spray,
+  skids, sparks, engine pitch); plank walls of sheds and barns break.
+- Looks: the County Run storm wall, chunky dynamic shadows (SHADOWS), marks on
+  props/vehicles/wreck pieces; six bosses re-baked on the tight unwrap; the
+  shop lamp and the cow as models; ducks turn on their sticks.
+- Optimization (track R; numbers in docs/godot3d/optimize/R/results.md): view
+  bench HIGH/MEDIUM/LOW 7.20/7.17/6.03 -> 6.93/6.26/5.44 ms, a wall broken
+  59 -> 3.4 ms, repeat level loads 4.6 -> 1.5 s; checks no longer hang after
+  OK (sound level churn); CI in six parallel shards (~4 min).
+
 ### 2026-11-15: feature pass (v3.2.0)
 - Ten tracks merged (pictures in docs/godot3d/features/): ragdolls and
   slow-mo finishers; picking up and throwing props, spreading fire, the
