@@ -214,7 +214,15 @@ var door_cells := {}
 ## piece shown with another tile adds its start to `retiled` (set_wall_tile).
 var walls_version := 0
 var solid_version := 0
+## The level file it was read from and that file's hash ("" when made from a
+## dictionary): LevelGeometry.nav keeps the nav graph of a level as read.
+var source_key := ""
 var retiled := PackedVector2Array()
+## Each open_cell() counts one in `reshapes` and adds to `reshaped` the
+## points it changed (the cell's middle, every metre of each piece taken
+## out): the 3D view builds only those chunks again.
+var reshapes := 0
+var reshaped := PackedVector2Array()
 var boards_version := 0  # bumped when a board is hidden or shown (relisted)
 ## The fixed wall pieces by their edge (walls_on()), made when first asked.
 var _edge_index := {}
@@ -341,7 +349,10 @@ static func load_level(level_id: String, assets: Assets) -> LevelData:
 		push_error("bad level json " + level_id)
 		return null
 	var j: Dictionary = parsed
-	return from_dict(j, assets)
+	var lv := from_dict(j, assets)
+	if lv != null:
+		lv.source_key = "%s:%d:%d" % [level_id, raw.length(), raw.hash()]
+	return lv
 
 
 ## A level from its file's contents (load_level; the map tools check one
@@ -1064,6 +1075,14 @@ func open_cell(cx: int, cy: int, faces: Dictionary, low := false) -> void:
 			)
 		)
 	solid[c] = -1
+	reshapes += 1
+	reshaped.append(Vector2(cx + .5, cy + .5))
+	for i: int in drop:
+		var a := Vector2(walls[i * WALL_STRIDE], walls[i * WALL_STRIDE + 1])
+		var b := Vector2(walls[i * WALL_STRIDE + 2], walls[i * WALL_STRIDE + 3])
+		var metres := ceili(a.distance_to(b))
+		for k in metres + 1:
+			reshaped.append(a.lerp(b, float(k) / maxf(1.0, metres)))
 	var out := PackedFloat32Array()
 	out.resize(walls.size() - drop.size() * WALL_STRIDE)
 	var at := 0

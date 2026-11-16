@@ -10,6 +10,10 @@ extends Node3D
 
 ## As far ahead as props are drawn.
 const REACH := 32.0
+## Spare nodes kept at most: a hidden node keeps its eight shader instance
+## numbers (the global buffer holds 4096, 1024 on many phones and in WebGL),
+## and a scene of 48 pieces left 48 spares holding them after they went.
+const SPARE := 8
 
 var _assets: Assets
 var _shader: Shader
@@ -87,9 +91,12 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 	for s: View.Sprite in _shown.keys():
 		if not seen.has(s):
 			var idle: MeshInstance3D = _shown[s]
+			_shown.erase(s)
+			if _spare.size() >= SPARE:
+				idle.queue_free()
+				continue
 			idle.visible = false
 			idle.set_meta("solid", "")
-			_shown.erase(s)
 			_spare.append(idle)
 	return fresh
 

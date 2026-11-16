@@ -120,13 +120,20 @@ func reset() -> void:
 func _tick(_dt: float) -> void:
 	if game.in_hub:
 		return
+	# Each boss looked for once a tick (BossFight.of_kind, in one pass: the
+	# first of its kind still standing), not once per question.
+	var found := {}
+	for e: Enemy in game.enemies:
+		if e.hp > 0.0 and not found.has(e.kind) and _kinds.has(e.kind):
+			found[e.kind] = e
 	for title: String in _kinds:
-		_keep_in(BossFight.of_kind(game, title))
+		var boss: Enemy = found.get(title)
+		_keep_in(boss)
 	if kind != "":
 		_hold()
 		return
 	for title: String in _kinds:
-		var e := BossFight.of_kind(game, title)
+		var e: Enemy = found.get(title)
 		if e == null or not e.alive or e.dormant or not BossKit.party_started(game, e):
 			continue
 		if not e.alerted:

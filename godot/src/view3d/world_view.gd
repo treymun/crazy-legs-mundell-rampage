@@ -58,6 +58,12 @@ var _rigged: LevelData
 ## (LevelData.retiled) they show.
 var _chunk_nodes := {}
 var _retiled_seen := 0
+## The walls' version and LevelData.reshapes, reshaped built for, and the
+## cell texture's pixels (_reshape).
+var _walls_seen := 0
+var _reshapes_seen := 0
+var _reshaped_seen := 0
+var _cell_pixels: Image
 var _moving_rows := PackedFloat32Array()
 var _cells: ImageTexture
 var _anim_tiles := {}
@@ -453,9 +459,17 @@ func _mirror(
 ## (Re)build the level's meshes when the level, its walls, its light or
 ## (moving walls only) its doors, panes and gates changed.
 func _build(level: LevelData, at_hub: bool) -> void:
-	var key: Array = [level, level.walls_version, level.light_version, at_hub]
-	if key != _built_key:
+	var key: Array = [level, level.light_version, at_hub]
+	# Cells opened since (LevelData.open_cell) and nothing else changing the
+	# walls: only their chunks again (a full build is 40 to 100 ms).
+	var opened := level.walls_version - _walls_seen
+	if key == _built_key and opened > 0 and opened == level.reshapes - _reshapes_seen:
+		_reshape(level, at_hub)
+	elif key != _built_key or opened != 0:
 		_built_key = key
+		_walls_seen = level.walls_version
+		_reshapes_seen = level.reshapes
+		_reshaped_seen = level.reshaped.size()
 		_level = level
 		_builder = LevelMesh.new(level)
 		for child in _chunks.get_children():
@@ -467,7 +481,8 @@ func _build(level: LevelData, at_hub: bool) -> void:
 			var built: ArrayMesh = parts[k]
 			_chunk_node(k, built)
 		_moving_rows = PackedFloat32Array([NAN])
-		_cells = ImageTexture.create_from_image(_cell_image(level))
+		_cell_pixels = _cell_image(level)
+		_cells = ImageTexture.create_from_image(_cell_pixels)
 		_share("cells_tex", _cells)
 		_share("map_size", Vector2i(level.width, level.height))
 		var sky := _assets.sky(level.sky)
@@ -485,25 +500,9 @@ func _build(level: LevelData, at_hub: bool) -> void:
 		# A window shot out, a fence shot about: only its chunks again.
 		var only := {}
 		for i in range(_retiled_seen, level.retiled.size()):
-			var at := level.retiled[i]
-			for corner: Vector2 in [
-				Vector2(-.6, -.6), Vector2(.6, -.6), Vector2(-.6, .6), Vector2(.6, .6)
-			]:
-				var near := at + corner
-				var chunk := Vector2i(
-					floori(near.x / LevelMesh.CHUNK), floori(near.y / LevelMesh.CHUNK)
-				)
-				only[chunk] = true
+			_chunks_at(level.retiled[i], only)
 		_retiled_seen = level.retiled.size()
-		var parts := _builder.build_static(level.active_base(at_hub), only)
-		for k: Vector2i in only:
-			var old: MeshInstance3D = _chunk_nodes.get(k)
-			if old != null:
-				old.queue_free()
-				_chunk_nodes.erase(k)
-			if parts.has(k):
-				var remade: ArrayMesh = parts[k]
-				_chunk_node(k, remade)
+		_rebuild(level, at_hub, only)
 	var active := level.active_walls(at_hub)
 	var base_size := level.active_base(at_hub).size()
 	var rows := active.slice(base_size)
@@ -515,6 +514,48 @@ func _build(level: LevelData, at_hub: bool) -> void:
 			_moving.set_surface_override_material(0, world_material)
 			if mesh.get_surface_count() > 1:
 				_moving.set_surface_override_material(1, glass_material)
+
+
+## The chunks a change at map point `at` may touch (it and anything within
+## .6 of it), into `only`.
+static func _chunks_at(at: Vector2, only: Dictionary) -> void:
+	for corner: Vector2 in [Vector2(-.6, -.6), Vector2(.6, -.6), Vector2(-.6, .6), Vector2(.6, .6)]:
+		var near := at + corner
+		only[Vector2i(floori(near.x / LevelMesh.CHUNK), floori(near.y / LevelMesh.CHUNK))] = true
+
+
+## Build the chunks `only` again.
+func _rebuild(level: LevelData, at_hub: bool, only: Dictionary) -> void:
+	var parts := _builder.build_static(level.active_base(at_hub), only)
+	for k: Vector2i in only:
+		var old: MeshInstance3D = _chunk_nodes.get(k)
+		if old != null:
+			old.queue_free()
+			_chunk_nodes.erase(k)
+		if parts.has(k):
+			var remade: ArrayMesh = parts[k]
+			_chunk_node(k, remade)
+
+
+## Cells opened (LevelData.open_cell: a plank wall or a fence broken
+## through, a shed's wall opened under its roof): their chunks built again
+## and their cells' pixels of the cell texture made again.
+func _reshape(level: LevelData, at_hub: bool) -> void:
+	var only := {}
+	for i in range(_reshaped_seen, level.reshaped.size()):
+		var at := level.reshaped[i]
+		_chunks_at(at, only)
+		var cx := clampi(floori(at.x), 0, level.width - 1)
+		var cy := clampi(floori(at.y), 0, level.height - 1)
+		_cell_pixels.set_pixel(cx, cy, _cell_colour(level, cy * level.width + cx))
+		_anim_tiles[level.floor_tile[cy * level.width + cx]] = true
+	_walls_seen = level.walls_version
+	_reshapes_seen = level.reshapes
+	_reshaped_seen = level.reshaped.size()
+	_rebuild(level, at_hub, only)
+	_cells.update(_cell_pixels)
+	for i in level.wall_count:
+		_anim_tiles[int(level.walls[i * LevelData.WALL_STRIDE + 4])] = true
 
 
 func _chunk_node(k: Vector2i, chunk: ArrayMesh) -> void:
@@ -543,6 +584,15 @@ static func _cell_image(level: LevelData) -> Image:
 			bytes[o + 1] = 0
 		bytes[o + 3] = 255
 	return Image.create_from_data(lw, lh, false, Image.FORMAT_RGBA8, bytes)
+
+
+## Cell i's pixel of _cell_image.
+static func _cell_colour(level: LevelData, i: int) -> Color:
+	var lw := level.width
+	var sky := level.roof[i] <= level.ground[i] + .01
+	if level.geo != null and level.geo.covered(i % lw + .5, i / lw + .5, level.ground[i]):
+		sky = false
+	return Color8(clampi(level.area[i], 0, 255), 255 if sky else 0, 0, 255)
 
 
 func _uniforms(

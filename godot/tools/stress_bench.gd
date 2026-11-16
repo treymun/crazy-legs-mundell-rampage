@@ -143,6 +143,23 @@ func _time(name: String, g: Game, step: Callable, extra := Callable()) -> void:
 		print(row)
 	print("STRESS %-8s start  %s" % [name, start])
 	print("STRESS %-8s end    %s" % [name, _counts(g, extra)])
+	print(
+		(
+			(
+				"STRESS %-8s memory  static %.0f MB  textures %.0f MB  buffers %.0f MB  video %.0f MB"
+				+ "  objects %d  nodes %d"
+			)
+			% [
+				name,
+				Performance.get_monitor(Performance.MEMORY_STATIC) / 1e6,
+				Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1e6,
+				Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1e6,
+				Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1e6,
+				Performance.get_monitor(Performance.OBJECT_COUNT),
+				Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+			]
+		)
+	)
 
 
 ## What explains a frame's cost, now.
@@ -172,9 +189,30 @@ func _counts(g: Game, extra: Callable) -> String:
 		)
 		% [pieces, awake, shown_wrecks, alive, g.enemies.size(), sprites.size(), props, actors]
 	)
+	if main.world_view != null:
+		text += "  instance slots %d" % _slots(main.world_view)
 	if extra.is_valid():
 		text += "  " + String(extra.call(g))
 	return text
+
+
+## The shader instance numbers the view's models hold (each a vec4 slot of
+## the global buffer: 4096 here, 1024 where a uniform block holds 16 KB, as
+## on many phones and in WebGL): prop and wreck parts 8 (tone, six marks,
+## char), actor parts 4.
+func _slots(view: Node) -> int:
+	var total := 0
+	for node: Node in view.find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		var m := mesh.material_override as ShaderMaterial
+		if m == null or m.shader == null:
+			continue
+		var path := m.shader.resource_path
+		if path.ends_with("prop.gdshader") or path.ends_with("wreck.gdshader"):
+			total += 8
+		elif path.ends_with("actor.gdshader"):
+			total += 4
+	return total
 
 
 # ------------------------------------------------------------------ helpers
