@@ -80,8 +80,19 @@ func build(_b) -> Array:
 	detail()
 	polish()
 	dress()
+	new_iron()
 	Climbs.sawmill(b)
 	return [64.5, 81.5, -PI / 2]
+
+
+## The mill's new gun (feature pass 7, src/gun_finder.gd): the bowling ball
+## (the "riveter" pickup in the sorting yard, game_state.gd ALIAS) lay well off
+## the way; a second one waits by the sorting yard's north wall in sight of the
+## e-stop, under the mill league's sign. A pickup and a sign hung on the wall
+## only: no new layout.
+func new_iron() -> void:
+	b.pickup("bowling_ball", 106.5, 28.45)
+	b.board("gun_sign_mill", 106.5, 28.97, .6, {"z": .72, "plane": PI, "hung": true})
 
 
 # ------------------------------------------------------------------- areas

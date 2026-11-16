@@ -64,6 +64,7 @@ godot --headless --path godot --script res://tools/live_props_check.gd # LIVE PR
 godot --headless --path godot --script res://tools/vehicle_check.gd    # VEHICLES OK (get in, drive, bump, run down, get out)
 godot --headless --path godot --script res://tools/vehicle_cab_check.gd    # VEHICLE CAB OK (the seat view, the driving plate)
 godot --headless --path godot --script res://tools/vehicle_set_check.gd    # VEHICLE SET OK (finding the vehicles, the channel run, the heat race, the window gun, riding shotgun)
+godot --headless --path godot --script res://tools/gun_find_check.gd [-- audit] [map=<dir>]   # GUN FIND OK (the guns along each chapter's way, their shine, map mark, prompt, smell; audit prints the table)
 godot --headless --path godot --script res://tools/wreck_check.gd     # WRECK CHECK OK (broken scenery in real pieces; levels=a,b)
 godot --headless --path godot --script res://tools/load_check.gd      # LOAD CHECK OK (the fast level load the same as the old one; levels=a,b)
 godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)
@@ -117,6 +118,7 @@ godot --headless --path godot --script res://tools/boss_lock_check.gd [-- rudy c
 godot --path godot ... --script res://tools/vehicle_frames.gd -- out=<dir> [only=car]   # the vehicles parked, from the seat (ahead, down, back), driving, a wreck (docs/godot3d/features/D/)
 godot --path godot ... --script res://tools/vehicle_set_frames.gd -- out=<dir> [only=find|runs|window]   # pass 7: each vehicle as found (sign, lamps, prompt), the automap, the two runs under way, the .38 out of the car's window, the passenger's view
 godot --headless --path godot --script res://tools/art/build_vehicle_signs.gd   # the KEYS IN IT signs (assets/art/vehicle_sign_<kind>.png); then pack_assets
+godot --headless --path godot --script res://tools/art/build_gun_signs.gd   # the gun signs, the glint, the shack's shadow board (assets/art/gun_sign_*.png, fx_gun_shine_*, gun_board); then pack_assets
 godot --headless --path godot --script res://tools/art/build_cab_meshes.gd [-- names=cab_car] [no-render]   # the seat views' models (Blender, vehicle_cabs.py); then pack_assets and --import
 godot --path godot ... --script res://tools/squad_frames.gd
 godot --path godot ... --script res://tools/climb_frames.gd -- out=<dir>   # ladders in every chapter, a climb, a pull-up, a hand on a ladder

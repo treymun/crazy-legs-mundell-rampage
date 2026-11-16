@@ -38,6 +38,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_item_art` | the armory's wall pictures of guns with no pickup picture (`item_<name>`, via `item_pictures.py`) |
 | `build_range_signs` | the firing range's signs |
 | `build_vehicle_signs` | the hand-painted KEYS IN IT signs left by the vehicles (`vehicle_sign_airboat`, `_car`, `_mower`: letters a pixel up or down, paint running, a key on a ring; sun-bleached bayou planks with a bite out, a checkered tin plate, the church's whitewash) |
+| `build_gun_signs` | what points a player at a gun not had yet (feature pass 7, `src/gun_finder.gd`), in the vehicle signs' hand: every word at least twice its size so a line reads from a few cells off: GUNS THIS WAY sawn to an arrow (`gun_sign_way_r`), Hickston's GUNS / HONOR SYSTEM with a rifle painted by it (`gun_sign_honor`), the fair's WIN A GUN / NO REFUNDS on striped tin (`_fair`), MILL LEAGUE / BOWLING NITE on grey tin (`_mill`), DANGER / COW LAUNCHER / NOT YOU MUNDELL on hazard tin (`_quarry`), a hobo's chalk gun and X (`_chalk`, the wall showing through); the glint over a gun lying out (`fx_gun_shine_0..2`: spark, cross, star); Mundell's shadow board for the trophy shack (`gun_board`: pegboard, a whitewash outline of each `GunFinder.BOARD` gun from its pickup picture, MUNDELL'S IRON in the last place) |
 | `enemy_sheet` | `-- dirs=<old>,<new>` lays cels side by side (`docs/enemy_art/`) |
 
 CI runs `build_fx_art`, `build_building_tiles`, `build_menu_art` and

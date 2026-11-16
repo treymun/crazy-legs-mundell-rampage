@@ -92,6 +92,46 @@ the oval can be driven all the way round). A run's gates must lie on what
 its vehicle runs on and be reachable in order; `tools/vehicle_set_check.gd`
 drives each one to the end.
 
+### The guns along the way
+
+Feature pass 7 (`src/gun_finder.gd` makes a gun not had yet shine, go on
+the map and be named; [gameplay.md](gameplay.md#finding-the-guns-feature-pass-7)).
+Each chapter with a first-time gun well off its way has a `new_iron()` in
+its plan: a second copy of the gun by the way (the first left where it was,
+its rounds still worth the walk) under a hand-painted sign
+(`gun_sign_<name>`, `tools/art/build_gun_signs.gd`), hung (`"hung"`) on a
+wall or counter that was there. Pickups and hung signs only: nothing built,
+so no new layout (a save keeps its own pickups and holds no boards; an old
+save goes on with the pickups it had):
+
+- Hickston: Bait & Ammo is shut, so a few are left out front on the county
+  road under GUNS (a rifle painted by it) / HONOR SYSTEM (the sling blade,
+  rifle, teat gun and rip saw); a GUNS THIS WAY arrow on GAS-N-GUT's south
+  wall round to its crossbow; a hobo's chalk gun and X on the trailer by
+  the alien arm gun's secret closet (it stays secret: its cells lie out on
+  the registry floor by the way).
+- The fair: the bottle rocket launcher as a prize at the midway's east
+  booth across from the shotgun's, its counter painted WIN A GUN / NO
+  REFUNDS (the powder
+  keg already lies on the way).
+- The sawmill: the bowling ball (a level's `riveter` pickup is the bowling
+  ball in the campaign, `game_state.gd ALIAS`) by the sorting yard's north
+  wall in sight of the e-stop, under MILL LEAGUE / BOWLING NITE.
+- The quarry: the cow launcher (the `pressure_gun` pickup) at the foot of
+  the cliff by the weigh station, under DANGER / COW LAUNCHER / NOT YOU
+  MUNDELL.
+- The bayou, the speedway and the ship lay out no gun new in campaign order
+  (a gun missed earlier still shines there); the hub lays out none.
+
+Every word on a gun sign is painted at least twice its size and the signs
+hang about two thirds of a cell tall, so each line reads at 320x200 from a
+few cells off: few words, big, the joke in the big words.
+
+County Run's maps drop the gun signs with the vehicles' (`county_kit.gd`),
+and their pickups as before. A new sign must hang on something facing out,
+and a new first-time gun lie within `NEAR` steps of the way, signed if it is
+further than `SIGNED` and out of sight: `tools/gun_find_check.gd`.
+
 ### Places to climb
 
 Since v3.2.0 every chapter has height to climb (`climbs.gd`, one function a

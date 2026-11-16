@@ -96,10 +96,13 @@ func draw(g: Game, c: Canvas) -> void:
 		for v: VehicleDrive.Ride in rides.rides:
 			if keyed == "" and VehicleFinder.ready(v):
 				keyed = v.kind
+	# The guns not had yet that were seen or smelled (src/gun_finder.gd).
+	var iron: GameFeature = g.features.get("new_iron")
+	var guns: bool = iron != null and iron.call("draw_map", c, self)
 	CountyStorm.draw_map(c, g)
 	_goal(g, c)
 	_player_mark(g, c)
-	MapKey.draw(c, MAP_X + 1, MAP_Y + MAP_H - 1, keyed)  # what the marks mean
+	MapKey.draw(c, MAP_X + 1, MAP_Y + MAP_H - 1, keyed, guns)  # what the marks mean
 	c.line(MAP_X, MAP_Y + MAP_H + 3, MAP_X + MAP_W - 1, MAP_Y + MAP_H + 3, Canvas.rgb(120, 87, 59))
 	HUD.text(
 		c,

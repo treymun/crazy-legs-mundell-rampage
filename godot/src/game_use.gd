@@ -198,6 +198,8 @@ static func use_prompt(g: Game) -> String:
 		# Nothing else at hand: a vehicle from the wider reach, or one looked at
 		# from further off (src/vehicle_finder.gd).
 		var far := rides.prompt(g.player, true) if rides != null else ""
+		if far == "":
+			far = GunFinder.far_prompt(g)  # a gun not had yet, looked at (src/gun_finder.gd)
 		if far != "":
 			g.use_aim = Vector3.INF
 		return far

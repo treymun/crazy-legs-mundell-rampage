@@ -334,6 +334,7 @@ const LOOKS_FEATURES := [
 	"trophy_shack",
 	"wreckage",
 	"kill_feed",
+	"new_iron",
 ]
 
 

@@ -860,7 +860,60 @@ stand-in at `STATUE` high on a plinth, its plaque behind) by
 campaign won), a cup per range game with a best, a gnome per County Run map
 with a record, and inside a card lists them with the rematch bests. It
 reads the existing files only (no new save state); `game_view.gd`'s hub
-path adds its sprites.
+path adds its sprites. On the west wall north of the door hangs Mundell's
+shadow board (`gun_board`, `tools/art/build_gun_signs.gd`): a whitewash
+outline for each of the campaign's fourteen guns (`GunFinder.BOARD`: the
+riveter and the Copperhead are the range's and the 5v5 store's, a level's
+`riveter` and `pressure_gun` pickups giving the bowling ball and the cow
+launcher, `game_state.gd ALIAS`), each gun the local player has hung flat on
+its outline (a pickup's picture on a `plane` is drawn flat, not as a slab);
+the card adds GUN BOARD n OF 14 and STILL OUT THERE: each gun missing that
+lies in a chapter already beaten, with where (`GunFinder.CHAPTER_GUNS`).
+
+### Finding the guns (feature pass 7)
+
+Players walked past the new guns, so a gun the local player ain't got yet
+("new iron": `armory.owned`) is made easy to find, in every campaign chapter
+played alone or in co-op (`GunFinder.on`: not the hub, the range, County
+Run, the versus maps or a boss rematch). All of it is looks and sound
+(`src/gun_finder.gd`, the LOOKS feature `features/new_iron.gd`); numbers in
+`effects.cfg [new_iron]`:
+
+- **It shines**: a warm glint over it (`fx_gun_shine_0..2`, a spark that
+  flashes a cross and a star on a beat set by the clock and its place) and a
+  pool of light round it (`[light.new_iron]`, through `view_lights.gd`), as
+  if a lamp were left on over a display. Gone once it is had.
+- **The automap marks it** once seen (in sight within `see_reach`) or
+  smelled (within `smell_reach`, about the same floor, no sight needed): a
+  little gun in red with a steel barrel (`GunFinder.ICON`; guns lying
+  together get one mark), NEW IRON in the key (`map_key.gd`). What was seen
+  is saved by where it lies (the feature's save, no save version).
+- **USE's prompt names it** looked at from `prompt_reach` off (within
+  `prompt_facing`; of a row, the one most in the middle of the view), when
+  nothing else is at hand: "RIP SAW  /  NEW IRON" (`game_use.gd`, after a
+  vehicle's).
+- **Mundell smells it** the first time one is within `smell_reach`: SMELLS
+  LIKE GUN OIL ROUND HERE... and two more in turn (`NewIron.SMELLS`, on the
+  message line once it is clear; text only, so no voice credits), once for
+  the guns lying together.
+- **Secrets stay secrets**: a gun in a hidden room behind a secret door not
+  found yet (`GunFinder.in_secret`) neither shines, is lit nor goes on the
+  map; Mundell can still smell it, a hint and no more.
+- **The tally** counts the chapter's guns had under the secrets (GUNS 02 /
+  03, `GunFinder.tally`, `hud.gd intermission`); the trophy shack's board
+  and card show what is still out there (above).
+- **In the levels** each chapter's plan with a first-time gun well off its
+  way has a `new_iron()` (see [levels.md](levels.md#the-guns-along-the-way)).
+
+`tools/gun_find_check.gd` (GUN FIND OK, in check_all) holds it: the way
+through each chapter (`tools/gun_routes.gd`, route_map's legs), every gun
+new to a player arriving in campaign order within `NEAR` steps of it with
+no secret in front, signed where the way is left for it when further and
+out of sight, a gun only behind a secret teased by its rounds near the way;
+every gun lying out shining, lit, named looked at, marked once seen, smelled
+once, none of it once had; secrets kept; the tally row; the shack's board;
+none of it off the campaign. `-- audit` prints the table and `map=<dir>`
+draws each chapter's guns against its way.
 
 ### Walls break too
 

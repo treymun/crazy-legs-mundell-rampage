@@ -52,9 +52,13 @@ static func strip(b, id: String, title: String, intro: String) -> void:
 	b.controlled_doors = []
 	b.access_doors = {}
 	b.hidden_rooms = []
-	# The vehicles' KEYS IN IT signs go with the vehicles (src/vehicle_finder.gd).
+	# The vehicles' KEYS IN IT signs go with the vehicles (src/vehicle_finder.gd),
+	# and the signs to the chapter's guns with its guns (src/gun_finder.gd): a
+	# County Run is armed by its own offers.
 	b.billboards = b.billboards.filter(
-		func(bd: Dictionary) -> bool: return not String(bd["image"]).begins_with("vehicle_sign_")
+		func(bd: Dictionary) -> bool:
+			var image := String(bd["image"])
+			return not image.begins_with("vehicle_sign_") and not image.begins_with("gun_sign_")
 	)
 	for d: Dictionary in b.doors:
 		d["key"] = ""

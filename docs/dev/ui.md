@@ -47,7 +47,12 @@ draws the bar on the software canvas as before.
   next gate's name; MINIMAL keeps one line.
 - **The automap's key** (`map_key.gd`) adds a last row, RIG, KEYS IN IT,
   with the little picture the map marks a ready vehicle with
-  (`src/vehicle_finder.gd`), on a map that has one.
+  (`src/vehicle_finder.gd`), on a map that has one; and NEW IRON with the
+  little red gun a gun not had yet is marked with once seen
+  (`src/gun_finder.gd`).
+- **The chapter tally** (`hud.gd intermission`) has a GUNS row under the
+  secrets in a campaign chapter (its guns had, `GunFinder.tally`); with
+  seven rows they close up to 10 pixels apart.
 - **Scaling:** the overlay is the 320x200 picture, scaled to the window by
   the display shader with whole, crisp pixels (INTEGER 8:5 keeps every pixel
   the same size) inside the phone's safe area, so the HUD scales with the

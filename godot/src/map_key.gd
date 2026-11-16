@@ -15,9 +15,10 @@ const ROWS := [
 
 
 ## `keyed`: a vehicle kind standing ready on the map, for a last row with its
-## little picture (KEYS IN IT, src/vehicle_finder.gd), or "".
-static func draw(c: Canvas, x: int, y: int, keyed := "") -> void:
-	var rows := ROWS.size() + (1 if keyed != "" else 0)
+## little picture (KEYS IN IT, src/vehicle_finder.gd), or "". `guns`: a gun
+## not had yet is marked on it (NEW IRON, src/gun_finder.gd).
+static func draw(c: Canvas, x: int, y: int, keyed := "", guns := false) -> void:
+	var rows := ROWS.size() + (1 if keyed != "" else 0) + (1 if guns else 0)
 	var h := rows * 7 + 4
 	c.fill_rect(x, y - h, 96, h, Color8(22, 17, 13))
 	c.rect_outline(x, y - h, 96, h, Color8(84, 64, 45))
@@ -31,3 +32,7 @@ static func draw(c: Canvas, x: int, y: int, keyed := "") -> void:
 		var ky := y - h + 3 + ROWS.size() * 7
 		VehicleFinder.icon(c, keyed, x + 3, ky)
 		HUD.text(c, "RIG, KEYS IN IT", x + 15, ky, "mini", HUD.INK, false, false)
+	if guns:
+		var gy := y - h + 3 + (rows - 1) * 7
+		GunFinder.icon(c, x + 3, gy)
+		HUD.text(c, "NEW IRON", x + 15, gy, "mini", HUD.INK, false, false)
