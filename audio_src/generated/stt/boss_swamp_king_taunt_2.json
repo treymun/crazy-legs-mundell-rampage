@@ -1,0 +1,30 @@
+{
+ "text": "My gators are getting hungry",
+ "words": [
+  {
+   "text": "My",
+   "start": 0.08,
+   "end": 0.22
+  },
+  {
+   "text": "gators",
+   "start": 0.32,
+   "end": 0.74
+  },
+  {
+   "text": "are",
+   "start": 0.78,
+   "end": 0.88
+  },
+  {
+   "text": "getting",
+   "start": 0.92,
+   "end": 1.18
+  },
+  {
+   "text": "hungry",
+   "start": 1.24,
+   "end": 1.74
+  }
+ ]
+}

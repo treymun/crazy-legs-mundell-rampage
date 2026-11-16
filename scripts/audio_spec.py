@@ -859,7 +859,39 @@ BOSS_LINES = {
                     "Wait till your father lands!", "My curlers! Not my curlers!",
                     "Tell my young'uns... supper's cold."]),
 }
-BOSS_MOMENTS = ["intro", "taunt_0", "taunt_1", "worried", "last"]
+# The pass 7 voice pass: a second entrance (a retry or a rematch), two more
+# taunts, a mad line as they hit half health (after their roar) and a second
+# worried one. Same voices, same settings.
+BOSS_MORE = {
+    "sheriff": ["Pull over, Earth boy. Nice and slow.", "That'll go on your permanent record.",
+                "You have the right to remain squishy.", "Now you done riled the law!",
+                "Mayday! Saucer to base, mayday!"],
+    "jerry": ["Kickoff time, son. Hope you stretched.", "Ten yards and a loss of teeth!",
+              "My granny tackles harder than you!", "Now you got me sweatin', boy!",
+              "Call a timeout! Call a timeout!"],
+    "rudy": ["Back again? Every sucker gets a second ticket!", "Winner gets nothin'! Step right up!",
+             "Knock 'em down, win a coffin!", "Ladies and gents, he's ruinin' my show!",
+             "Somebody cue the band! Anybody!"],
+    "foreman": ["Punch in, slacker. Shift's startin'.", "No breaks on my floor!",
+                "Sweat or bleed, I don't care which!", "Who said you could quit workin'?",
+                "Call the union! Call somebody!"],
+    "baron": ["Ah. A guest. Do mind the stills.", "Have a taste of the barrel, boy!",
+              "A hundred proof, and so am I!", "You've gone and spoiled my batch!",
+              "Not the copper! Anything but the copper!"],
+    "swamp_king": ["Back on my bayou, boy? Big mistake.", "My gators are gettin' hungry!",
+                   "Swim home, boy! I dare you!", "Come get him, my sweet babies!",
+                   "Bail her out! Somebody bail!"],
+    "boggs": ["Round two, sunshine! Start your engines!", "Eat my dust, boy!",
+              "I've wrecked better than you on a Tuesday!", "Now you scratched my paint!",
+              "She's smokin'! She's smokin' bad!"],
+    "maw": ["Back for seconds, hooman?", "Sit up straight, hooman!",
+            "Don't make me get the wooden spoon!", "My housecoat's on fire, you little varmint!",
+            "Mercy, I'm comin' apart at the seams!"],
+}
+for _who, (_voice, _lines) in BOSS_LINES.items():
+    _lines.extend(BOSS_MORE[_who])
+BOSS_MOMENTS = ["intro", "taunt_0", "taunt_1", "worried", "last",
+                "intro_1", "taunt_2", "taunt_3", "mad", "worried_1"]
 # How a line's transcript spells words the caption writes the county's way.
 BOSS_HEARD = {
     "boss_sheriff_taunt_0": "Resist an arrest, I see",
@@ -934,6 +966,56 @@ BARKS = {
         "regroup": ["Return to the saucer!"],
     },
 }
+# The pass 7 voice pass: more lines for the moments heard most (every moment
+# two at least, spot three, idle four), and a fifth voice, the county's working
+# men (the mill, the quarry, the fish camp and the pits: the "local" voice of
+# the radio talk), who had shouted in the young hick's voice till then.
+BARKS_MORE = {
+    "hick": {
+        "spot": ["Yonder he goes!"], "lost": ["Dang it, he's gone!"],
+        "search": ["Here, city boy, city boy..."], "help": ["Cletus! Bring the truck!"],
+        "flank": ["I'll go round the shed!"], "cover": ["Git behind the truck!"],
+        "idle": ["Who drank my beer?", "Reckon it'll rain?"], "surprised": ["Whoa, Nelly!"],
+        "hurt_bad": ["I'm leakin', Earl!"], "regroup": ["Run fer the truck!"],
+    },
+    "deputy": {
+        "spot": ["Hold it right there!"], "lost": ["Suspect's gone to ground."],
+        "search": ["Check them bushes, Dwayne."], "help": ["All units, get over here!"],
+        "flank": ["Circle round back!"], "cover": ["Get behind the cruiser!"],
+        "idle": ["Sure is hot for April.", "Who ate my bear claw?"], "surprised": ["Sweet mercy!"],
+        "hurt_bad": ["I'm shot! Call my mama!"], "regroup": ["Fall back to the station!"],
+    },
+    "coot": {
+        "spot": ["Trespasser! Fetch the salt!"], "lost": ["Where'd the varmint git to?"],
+        "search": ["Here, varmint, varmint..."], "help": ["Mother! Bring the rock salt!"],
+        "flank": ["I'll git him from the henhouse!"], "cover": ["Hold on, lemme sit a spell."],
+        "idle": ["Kids these days...", "Is it Tuesday?"], "surprised": ["Great jumpin' catfish!"],
+        "hurt_bad": ["Lord, my hip!"], "regroup": ["Back to the porch!"],
+    },
+    "grey": {
+        "spot": ["Specimen located!"], "lost": ["Target has left the sector."],
+        "search": ["Sweep for hooman heat."], "help": ["Send more probes!"],
+        "flank": ["Approach from the rear."], "cover": ["Deploy the force field!"],
+        "idle": ["Why do they tip the cows?", "I miss my home planet."], "surprised": ["Alert! A hooman!"],
+        "hurt_bad": ["My antenna! My antenna!"], "regroup": ["Retreat to the mothership!"],
+    },
+}
+for _who, _moments in BARKS_MORE.items():
+    for _moment, _lines in _moments.items():
+        BARKS[_who][_moment].extend(_lines)
+BARKS["local"] = {
+    "spot": ["Hey! We got a live one!", "Boss said shoot on sight!"],
+    "lost": ["Now where'd that feller git to?", "Lost him round the side."],
+    "search": ["Come on out, we won't bite.", "Check behind the stacks."],
+    "help": ["Need a hand over here!", "Somebody fetch the big wrench!"],
+    "flank": ["I'll take the long way round!", "Comin' at him from the side!"],
+    "cover": ["Git behind somethin' solid!", "Duck, Dwayne!"],
+    "brawl": ["That was my good arm, Dwayne!", "Quit shootin' the help!"],
+    "idle": ["Lunch whistle ain't blowed yet?", "My back's killin' me."],
+    "surprised": ["Well, I'll be dipped!", "Who let you in here?"],
+    "hurt_bad": ["I'm hurt bad! Call it in!", "That's a workman's comp claim!"],
+    "regroup": ["Back to the trucks!", "Clock out, boys! Clock out!"],
+}
 # How a bark's transcript spells what the caption writes the county's way.
 BARK_HEARD = {
     "bark_hick_spot_1": "Yeah, get him boys", "bark_hick_cover_0": "Uh, keep your head down",
@@ -961,6 +1043,31 @@ add("voice", **{f"bark_{who}_{moment}_{n}": _bark(f"bark_{who}_{moment}_{n}", te
                 for who, moments in BARKS.items()
                 for moment, lines in moments.items()
                 for n, text in enumerate(lines)})
+
+# Each chapter's tough guy says his piece the first time he sees the player
+# (features/variants_feature.gd TOUGH_SAYS), in his kind's bark voice.
+TOUGH_SAYS = {
+    "tough_earl": ("hick", "Big Earl runs this street, boy!"),
+    "tough_clem": ("hick", "Step right up, boy! Clem's waitin'!"),
+    "tough_tom": ("local", "Timber, boy! That's you fallin'!"),
+    "tough_bubba": ("local", "Bubba's got a full head of steam!"),
+    "tough_chuck": ("local", "Dinner bell's ringin', and you're dinner!"),
+    "tough_pete": ("local", "Four tires and a grudge, boy!"),
+    "tough_zorgo": ("grey", "Zorgo the Large demands your beer!"),
+}
+add("voice", **{f"bark_{kind}": V(text, who) for kind, (who, text) in TOUGH_SAYS.items()})
+# Maw Glorb's other lines (features/mothership.gd): as the core iris opens and
+# she wakes, and when she calls her crew out of the pods (twice a fight).
+add("voice",
+    boss_maw_wake=V("You killed my baby boy!", "maw"),
+    boss_maw_crew_0=V("Git him, young'uns!", "maw"),
+    boss_maw_crew_1=V("Young'uns! Git in here!", "maw"),
+    )
+# The fair's loudspeaker near its PA pole (game.gd distant cues), by turns,
+# in Rudy's voice through the PA: the words the screen has always shown, and two more.
+FAIR_PA = ["Winners must feed their prizes.", "Lost young'uns may be claimed at the hog barn.",
+           "The two-headed calf is closed for repairs."]
+add("voice", **{f"ann_fair_{n}": V(text, "barker", "pa") for n, text in enumerate(FAIR_PA)})
 
 # The CUSS PACK (CHATTER: CUSSIN' / CLEAN / OFF, features/enemy_barks.gd,
 # features/chatter.gd), from godot/data/tuning/cuss_lines.json (the game reads it
@@ -1028,9 +1135,45 @@ add("voice", **{f"mundell_{moment}_{n}": V(text, "mundell", **(
                     if f"mundell_{moment}_{n}" in MUNDELL_HEARD else {}))
                 for moment, lines in _MUNDELL.items()
                 for n, text in enumerate(lines)})
-# Each cuss line's CLEAN copy: the cuss words under a duck call or a horn, by turns.
+# Each cuss line's CLEAN copy: the cuss words under a duck call or a horn, by
+# turns (the working men's lines of pass 7 after the rest, so no older copy
+# changes its cover).
+_CUSSED = sorted(n for n in CUES if n.startswith("cuss_") and not n.startswith("cuss_local_"))
+_CUSSED += sorted(n for n in CUES if n.startswith("cuss_local_"))
 add("voice", **{f"{name}_clean": D(name, "bleep", **{"with": "duck" if i % 2 == 0 else "horn"})
-                for i, name in enumerate(sorted(n for n in CUES if n.startswith("cuss_")))})
+                for i, name in enumerate(_CUSSED)})
+
+# How the pass 7 lines' transcripts write words the captions spell the county's
+# way or a name sideways (the words are there; checked line by line).
+VOICE_HEARD = {
+    "boss_jerry_intro_1": "Kick off time, son. Hope you stretched",
+    "boss_jerry_taunt_2": "10 yards and a loss of teeth",
+    "boss_rudy_taunt_3": "Knock him down. Win a coffin",
+    "boss_foreman_taunt_2": "No brakes on my floor",
+    "bark_coot_cover_1": "Hold on, let me sit a spell",
+    "bark_grey_regroup_1": "Retreat to the motherships",
+    "bark_grey_surprised_1": "Alert! Ahooman",
+    "bark_hick_search_1": "Here's City Boy, City Boy",
+    "bark_local_flank_1": "Come and at him from the side",
+    "bark_local_brawl_0": "that was my good arm, Twain",
+    "bark_tough_chuck": "dinner bell's ringing and your dinner",
+    "bark_tough_zorgo": "Sorgo the Large demands your beer",
+    "boss_maw_crew_0": "Get him, youngins",
+    "boss_maw_crew_1": "Youngins, get in here",
+    "ann_fair_1": "Lost youngins may be claimed at the hog barn",
+    "cuss_local_search_0": "Show yourself, you pissant",
+    "mundell_drunk_3": "Oh, the room's dancing",
+    "mundell_empty_2": "Dang plum out",
+}
+for _name, _heard in VOICE_HEARD.items():
+    CUES[_name]["heard"] = _heard
+# The local voice's plosives spike: its shouted lines' peaks are limited
+# (audio_build.py `squash`, dB) so they sit as loud as the other hands'. Its
+# older radio talk keeps its finish.
+for _name, _entry in CUES.items():
+    if (_entry["make"] == "voice" and _entry["voice"] == "local"
+            and _name.startswith(("bark_", "cuss_local_"))):
+        _entry["squash"] = 4.0
 
 # ------------------------------------------------- the 3.0.0 remaster
 # More takes of the guns heard most often, made from their own recordings:

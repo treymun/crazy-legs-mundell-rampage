@@ -1,0 +1,30 @@
+{
+ "text": "Sure is hot for April",
+ "words": [
+  {
+   "text": "Sure",
+   "start": 0.02,
+   "end": 0.32
+  },
+  {
+   "text": "is",
+   "start": 0.42,
+   "end": 0.58
+  },
+  {
+   "text": "hot",
+   "start": 0.62,
+   "end": 0.86
+  },
+  {
+   "text": "for",
+   "start": 0.92,
+   "end": 1.04
+  },
+  {
+   "text": "April",
+   "start": 1.12,
+   "end": 1.46
+  }
+ ]
+}

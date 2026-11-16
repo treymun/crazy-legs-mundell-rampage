@@ -1,0 +1,40 @@
+{
+ "text": "Not the copper. Anything but the copper",
+ "words": [
+  {
+   "text": "Not",
+   "start": 0.06,
+   "end": 0.36
+  },
+  {
+   "text": "the",
+   "start": 0.44,
+   "end": 0.58
+  },
+  {
+   "text": "copper.",
+   "start": 0.76,
+   "end": 1.24
+  },
+  {
+   "text": "Anything",
+   "start": 1.38,
+   "end": 1.98
+  },
+  {
+   "text": "but",
+   "start": 2.12,
+   "end": 2.42
+  },
+  {
+   "text": "the",
+   "start": 2.48,
+   "end": 2.64
+  },
+  {
+   "text": "copper",
+   "start": 2.78,
+   "end": 3.34
+  }
+ ]
+}

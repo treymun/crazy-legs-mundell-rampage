@@ -1,0 +1,30 @@
+{
+ "text": "Coffee tastes like piss again",
+ "words": [
+  {
+   "text": "Coffee",
+   "start": 0.06,
+   "end": 0.66
+  },
+  {
+   "text": "tastes",
+   "start": 0.78,
+   "end": 1.14
+  },
+  {
+   "text": "like",
+   "start": 1.2,
+   "end": 1.54
+  },
+  {
+   "text": "piss",
+   "start": 1.6,
+   "end": 1.88
+  },
+  {
+   "text": "again",
+   "start": 1.96,
+   "end": 2.46
+  }
+ ]
+}

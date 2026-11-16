@@ -77,6 +77,17 @@ func play_voice(_name: String, _volume := 1.0, _pan := 0.0) -> float:
 	return 0.0
 
 
+## Whether a spoken line (Sound.SPEECH) is still playing: the voices wait or
+## stay quiet rather than talk over each other.
+func talking() -> bool:
+	return false
+
+
+## Stops the spoken lines playing as effects (a boss's line cuts in).
+func hush_speech() -> void:
+	pass
+
+
 func sting(_cue: String) -> void:
 	pass
 

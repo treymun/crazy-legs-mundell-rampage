@@ -1,0 +1,30 @@
+{
+ "text": "Yeah, get behind the truck",
+ "words": [
+  {
+   "text": "Yeah,",
+   "start": 0.08,
+   "end": 0.22
+  },
+  {
+   "text": "get",
+   "start": 0.32,
+   "end": 0.48
+  },
+  {
+   "text": "behind",
+   "start": 0.52,
+   "end": 0.86
+  },
+  {
+   "text": "the",
+   "start": 0.9,
+   "end": 0.96
+  },
+  {
+   "text": "truck",
+   "start": 1.06,
+   "end": 1.54
+  }
+ ]
+}

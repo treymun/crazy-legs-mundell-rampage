@@ -1,0 +1,30 @@
+{
+ "text": "Run for it, damn it",
+ "words": [
+  {
+   "text": "Run",
+   "start": 0.26,
+   "end": 0.6
+  },
+  {
+   "text": "for",
+   "start": 0.76,
+   "end": 1.0
+  },
+  {
+   "text": "it,",
+   "start": 1.06,
+   "end": 1.14
+  },
+  {
+   "text": "damn",
+   "start": 1.3,
+   "end": 1.58
+  },
+  {
+   "text": "it",
+   "start": 1.62,
+   "end": 1.68
+  }
+ ]
+}

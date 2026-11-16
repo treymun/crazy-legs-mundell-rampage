@@ -1,0 +1,35 @@
+{
+ "text": "Somebody get their ass over here",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.2,
+   "end": 0.9
+  },
+  {
+   "text": "get",
+   "start": 1.08,
+   "end": 1.38
+  },
+  {
+   "text": "their",
+   "start": 1.44,
+   "end": 1.66
+  },
+  {
+   "text": "ass",
+   "start": 1.92,
+   "end": 2.24
+  },
+  {
+   "text": "over",
+   "start": 2.34,
+   "end": 2.58
+  },
+  {
+   "text": "here",
+   "start": 2.64,
+   "end": 3.0
+  }
+ ]
+}

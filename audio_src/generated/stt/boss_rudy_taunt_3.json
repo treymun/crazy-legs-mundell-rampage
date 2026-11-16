@@ -1,0 +1,35 @@
+{
+ "text": "Knock him down. Win a coffin",
+ "words": [
+  {
+   "text": "Knock",
+   "start": 0.06,
+   "end": 0.3
+  },
+  {
+   "text": "him",
+   "start": 0.32,
+   "end": 0.46
+  },
+  {
+   "text": "down.",
+   "start": 0.52,
+   "end": 0.86
+  },
+  {
+   "text": "Win",
+   "start": 0.92,
+   "end": 1.02
+  },
+  {
+   "text": "a",
+   "start": 1.06,
+   "end": 1.14
+  },
+  {
+   "text": "coffin",
+   "start": 1.2,
+   "end": 1.76
+  }
+ ]
+}

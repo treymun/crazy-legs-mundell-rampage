@@ -1,0 +1,30 @@
+{
+ "text": "They deployed the force field",
+ "words": [
+  {
+   "text": "They",
+   "start": 0.18,
+   "end": 0.28
+  },
+  {
+   "text": "deployed",
+   "start": 0.28,
+   "end": 0.68
+  },
+  {
+   "text": "the",
+   "start": 0.7,
+   "end": 0.78
+  },
+  {
+   "text": "force",
+   "start": 0.86,
+   "end": 1.2
+  },
+  {
+   "text": "field",
+   "start": 1.28,
+   "end": 1.84
+  }
+ ]
+}

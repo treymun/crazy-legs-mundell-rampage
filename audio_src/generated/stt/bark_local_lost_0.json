@@ -1,0 +1,40 @@
+{
+ "text": "Well now, where'd that feller get to?",
+ "words": [
+  {
+   "text": "Well",
+   "start": 0.04,
+   "end": 0.16
+  },
+  {
+   "text": "now,",
+   "start": 0.24,
+   "end": 0.54
+  },
+  {
+   "text": "where'd",
+   "start": 0.66,
+   "end": 0.98
+  },
+  {
+   "text": "that",
+   "start": 1.04,
+   "end": 1.22
+  },
+  {
+   "text": "feller",
+   "start": 1.44,
+   "end": 1.74
+  },
+  {
+   "text": "get",
+   "start": 1.9,
+   "end": 2.18
+  },
+  {
+   "text": "to?",
+   "start": 2.24,
+   "end": 2.44
+  }
+ ]
+}

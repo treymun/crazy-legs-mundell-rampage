@@ -1,0 +1,30 @@
+{
+ "text": "Here's City Boy, City Boy",
+ "words": [
+  {
+   "text": "Here's",
+   "start": 0.08,
+   "end": 0.38
+  },
+  {
+   "text": "City",
+   "start": 0.42,
+   "end": 0.66
+  },
+  {
+   "text": "Boy,",
+   "start": 0.76,
+   "end": 0.98
+  },
+  {
+   "text": "City",
+   "start": 1.12,
+   "end": 1.36
+  },
+  {
+   "text": "Boy",
+   "start": 1.46,
+   "end": 1.88
+  }
+ ]
+}

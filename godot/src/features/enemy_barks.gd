@@ -2,7 +2,8 @@
 ## moments (game_state.gd enemy_bark: spot, lost, search, help, flank, cover,
 ## brawl, idle, surprised, hurt_bad, regroup) and the hand says a line for it
 ## in its kind's voice, from where it stands, captioned when nothing else is.
-## Throttled so a crowd never talks over itself. Sound and captions only: its
+## Throttled so a crowd never talks over itself, and quiet while anyone else
+## is talking (Sound.talking: a boss, Mundell, the radio). Sound and captions only: its
 ## own dice, nothing saved. CHATTER (game.chatter, CussLines): OFF says
 ## nothing; CLEAN and CUSSIN' mix in the cuss pack's lines where they are made
 ## (CUSS_SHARE of the time), CLEAN's copies quacked over and captioned #@!%.
@@ -15,23 +16,25 @@ extends GameFeature
 const ModeFeature := preload("res://src/features/mode_feature.gd")
 
 ## Kind (or brain) -> voice. Kinds not here (skeeters, saucers, gators, the
-## probes, lanterns, crawlers, the chalk spitters) have nothing to say.
+## probes, lanterns, crawlers, the chalk spitters) have nothing to say. The
+## young hicks are Hickston's and the fair's; the working men of the mill, the
+## quarry, the fish camp and the pits talk in the local voice (pass 7).
 const VOICES := {
 	"billy": "hick",
 	"big_billy": "hick",
 	"clone": "hick",
-	"millhand": "hick",
-	"chain_hand": "hick",
-	"boilerback": "hick",
-	"valve_rat": "hick",
-	"bottle_tosser": "hick",
+	"millhand": "local",
+	"chain_hand": "local",
+	"boilerback": "local",
+	"valve_rat": "local",
+	"bottle_tosser": "local",
 	"barker": "hick",
-	"noodler": "hick",
-	"chum_tosser": "hick",
-	"pit_mechanic": "hick",
-	"tire_roller": "hick",
-	"nitro_huffer": "hick",
-	"flagman": "hick",
+	"noodler": "local",
+	"chum_tosser": "local",
+	"pit_mechanic": "local",
+	"tire_roller": "local",
+	"nitro_huffer": "local",
+	"flagman": "local",
 	"yard_deputy": "deputy",
 	"shield_deputy": "deputy",
 	"coot": "coot",
@@ -45,59 +48,92 @@ const VOICES := {
 const LINES := {
 	"hick":
 	{
-		"spot": ["There he is!", "Git him, boys!"],
-		"lost": ["Where'd he go?"],
-		"search": ["Come on out, city boy."],
-		"help": ["Bubba! Get out here!"],
-		"flank": ["I'll cut round back!"],
-		"cover": ["Keep yer head down!"],
+		"spot": ["There he is!", "Git him, boys!", "Yonder he goes!"],
+		"lost": ["Where'd he go?", "Dang it, he's gone!"],
+		"search": ["Come on out, city boy.", "Here, city boy, city boy..."],
+		"help": ["Bubba! Get out here!", "Cletus! Bring the truck!"],
+		"flank": ["I'll cut round back!", "I'll go round the shed!"],
+		"cover": ["Keep yer head down!", "Git behind the truck!"],
 		"brawl": ["You shot me, Earl!", "That's it, you're dead!"],
-		"idle": ["Pass me another one.", "Ain't nothin' on TV."],
-		"surprised": ["What in tarnation?"],
-		"hurt_bad": ["Ow! I'm hit, Mama!"],
-		"regroup": ["Fall back! Fall back!"],
+		"idle":
+		[
+			"Pass me another one.",
+			"Ain't nothin' on TV.",
+			"Who drank my beer?",
+			"Reckon it'll rain?"
+		],
+		"surprised": ["What in tarnation?", "Whoa, Nelly!"],
+		"hurt_bad": ["Ow! I'm hit, Mama!", "I'm leakin', Earl!"],
+		"regroup": ["Fall back! Fall back!", "Run fer the truck!"],
 	},
 	"deputy":
 	{
-		"spot": ["Freeze, boy!", "Suspect spotted!"],
-		"lost": ["Lost visual."],
-		"search": ["Spread out and find him."],
-		"help": ["Officer needs assistance!"],
-		"flank": ["Flankin' left!"],
-		"cover": ["Takin' cover!"],
+		"spot": ["Freeze, boy!", "Suspect spotted!", "Hold it right there!"],
+		"lost": ["Lost visual.", "Suspect's gone to ground."],
+		"search": ["Spread out and find him.", "Check them bushes, Dwayne."],
+		"help": ["Officer needs assistance!", "All units, get over here!"],
+		"flank": ["Flankin' left!", "Circle round back!"],
+		"cover": ["Takin' cover!", "Get behind the cruiser!"],
 		"brawl": ["You're under arrest, Cletus!", "Assaultin' an officer!"],
-		"idle": ["Quiet night.", "Donut run after this."],
-		"surprised": ["Well, I'll be!"],
-		"hurt_bad": ["Man down! Man down!"],
-		"regroup": ["Pull back to the cruiser!"],
+		"idle":
+		[
+			"Quiet night.",
+			"Donut run after this.",
+			"Sure is hot for April.",
+			"Who ate my bear claw?"
+		],
+		"surprised": ["Well, I'll be!", "Sweet mercy!"],
+		"hurt_bad": ["Man down! Man down!", "I'm shot! Call my mama!"],
+		"regroup": ["Pull back to the cruiser!", "Fall back to the station!"],
 	},
 	"coot":
 	{
-		"spot": ["Git off my land!", "I see you, varmint!"],
-		"lost": ["Dang eyes."],
-		"search": ["I know you're out there."],
-		"help": ["Junior! Fetch the shotgun!"],
-		"flank": ["Comin' round the barn!"],
-		"cover": ["My back ain't what it was."],
+		"spot": ["Git off my land!", "I see you, varmint!", "Trespasser! Fetch the salt!"],
+		"lost": ["Dang eyes.", "Where'd the varmint git to?"],
+		"search": ["I know you're out there.", "Here, varmint, varmint..."],
+		"help": ["Junior! Fetch the shotgun!", "Mother! Bring the rock salt!"],
+		"flank": ["Comin' round the barn!", "I'll git him from the henhouse!"],
+		"cover": ["My back ain't what it was.", "Hold on, lemme sit a spell."],
 		"brawl": ["Watch where yer shootin'!", "I'll tan yer hide!"],
-		"idle": ["Back in my day...", "Where'd I put my teeth?"],
-		"surprised": ["Lord have mercy!"],
-		"hurt_bad": ["I'm too old for this!"],
-		"regroup": ["Retreat! Move, ol' knees!"],
+		"idle":
+		["Back in my day...", "Where'd I put my teeth?", "Kids these days...", "Is it Tuesday?"],
+		"surprised": ["Lord have mercy!", "Great jumpin' catfish!"],
+		"hurt_bad": ["I'm too old for this!", "Lord, my hip!"],
+		"regroup": ["Retreat! Move, ol' knees!", "Back to the porch!"],
 	},
 	"grey":
 	{
-		"spot": ["Earthling detected.", "Hooman sighted!"],
-		"lost": ["The hooman has vanished."],
-		"search": ["Scan the sector."],
-		"help": ["Requesting reinforcements!"],
-		"flank": ["Encircle the hooman."],
-		"cover": ["Raise the shields!"],
+		"spot": ["Earthling detected.", "Hooman sighted!", "Specimen located!"],
+		"lost": ["The hooman has vanished.", "Target has left the sector."],
+		"search": ["Scan the sector.", "Sweep for hooman heat."],
+		"help": ["Requesting reinforcements!", "Send more probes!"],
+		"flank": ["Encircle the hooman.", "Approach from the rear."],
+		"cover": ["Raise the shields!", "Deploy the force field!"],
 		"brawl": ["Friendly fire, Zorp!", "You will be probed for that!"],
-		"idle": ["This cow is defective.", "Report: still no Bessie."],
-		"surprised": ["Eep! Intruder!"],
-		"hurt_bad": ["Hull breach!"],
-		"regroup": ["Return to the saucer!"],
+		"idle":
+		[
+			"This cow is defective.",
+			"Report: still no Bessie.",
+			"Why do they tip the cows?",
+			"I miss my home planet."
+		],
+		"surprised": ["Eep! Intruder!", "Alert! A hooman!"],
+		"hurt_bad": ["Hull breach!", "My antenna! My antenna!"],
+		"regroup": ["Return to the saucer!", "Retreat to the mothership!"],
+	},
+	"local":
+	{
+		"spot": ["Hey! We got a live one!", "Boss said shoot on sight!"],
+		"lost": ["Now where'd that feller git to?", "Lost him round the side."],
+		"search": ["Come on out, we won't bite.", "Check behind the stacks."],
+		"help": ["Need a hand over here!", "Somebody fetch the big wrench!"],
+		"flank": ["I'll take the long way round!", "Comin' at him from the side!"],
+		"cover": ["Git behind somethin' solid!", "Duck, Dwayne!"],
+		"brawl": ["That was my good arm, Dwayne!", "Quit shootin' the help!"],
+		"idle": ["Lunch whistle ain't blowed yet?", "My back's killin' me."],
+		"surprised": ["Well, I'll be dipped!", "Who let you in here?"],
+		"hurt_bad": ["I'm hurt bad! Call it in!", "That's a workman's comp claim!"],
+		"regroup": ["Back to the trucks!", "Clock out, boys! Clock out!"],
 	},
 }
 ## How often a hand reaches for a cuss pack line when one is made.
@@ -108,6 +144,8 @@ const OWN_GAP := 7.0
 ## How far off a line is heard at all, and captioned.
 const HEARD := 18.0
 const CAPTIONED := 11.0
+## Seconds Mundell's boss line waits for the boss to finish talking.
+const MUNDELL_WAITS := 5.0
 
 var dice := RandomNumberGenerator.new()
 var _next := 0.0
@@ -118,6 +156,8 @@ var _health := {}
 var _bomb := ""
 var _phase := ""
 var _started := false
+## Mundell's boss line waiting for the boss to finish his: [moment, from, until].
+var _mundell_next: Array = []
 
 
 func id() -> String:
@@ -131,11 +171,15 @@ func attach() -> void:
 	if game.has_signal("ticked"):
 		game.events.connect("ticked", _tactical)
 		game.events.connect("ticked", _chapter_start)
-	# Mundell has his say at a boss fight's start and its end (Barks).
+		game.events.connect("ticked", _mundell_waits)
+	# Mundell has his say at a boss fight's start and its end (Barks), once the
+	# boss has had his (features/boss_voices.gd).
 	if game.has_signal("boss_intro"):
-		game.events.connect("boss_intro", func(_e: Enemy) -> void: _mundell("boss"))
+		game.events.connect("boss_intro", func(_e: Enemy) -> void: _mundell_after("boss"))
 	if game.has_signal("boss_down"):
-		game.events.connect("boss_down", func(_e: Enemy, _s: float) -> void: _mundell("boss_down"))
+		game.events.connect(
+			"boss_down", func(_e: Enemy, _s: float) -> void: _mundell_after("boss_down")
+		)
 
 
 ## The voice `e` talks in, or "".
@@ -146,7 +190,7 @@ static func voice_of(e: Enemy) -> String:
 func _bark(e: Enemy, moment: String) -> void:
 	if e == null or not e.alive or game.clock < _next or game.sound == null:
 		return
-	if int(game.chatter) == CussLines.OFF:
+	if int(game.chatter) == CussLines.OFF or game.sound.talking():
 		return
 	var who := voice_of(e)
 	if who == "":
@@ -191,6 +235,23 @@ func _bark(e: Enemy, moment: String) -> void:
 func _mundell(moment: String) -> void:
 	if game.barks != null:
 		game.barks.say(game, moment, true)
+
+
+## Mundell answers a boss: as soon as nobody is talking, within MUNDELL_WAITS.
+func _mundell_after(moment: String) -> void:
+	_mundell_next = [moment, game.clock + .35, game.clock + MUNDELL_WAITS]
+
+
+func _mundell_waits(_dt: float) -> void:
+	if _mundell_next.is_empty():
+		return
+	var from: float = _mundell_next[1]
+	var until: float = _mundell_next[2]
+	if game.clock < from or (game.clock < until and game.sound.talking()):
+		return
+	var moment := str(_mundell_next[0])
+	_mundell_next = []
+	_mundell(moment)
 
 
 ## A couple of seconds into a chapter, Mundell sizes it up.

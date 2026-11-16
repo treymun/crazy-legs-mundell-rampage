@@ -1,0 +1,25 @@
+{
+ "text": "Run for the truck!",
+ "words": [
+  {
+   "text": "Run",
+   "start": 0.08,
+   "end": 0.28
+  },
+  {
+   "text": "for",
+   "start": 0.36,
+   "end": 0.48
+  },
+  {
+   "text": "the",
+   "start": 0.56,
+   "end": 0.66
+  },
+  {
+   "text": "truck!",
+   "start": 0.78,
+   "end": 1.22
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Damn it, I'm bleeding",
+ "words": [
+  {
+   "text": "Damn",
+   "start": 0.04,
+   "end": 0.42
+  },
+  {
+   "text": "it,",
+   "start": 0.48,
+   "end": 0.58
+  },
+  {
+   "text": "I'm",
+   "start": 0.86,
+   "end": 1.02
+  },
+  {
+   "text": "bleeding",
+   "start": 1.1,
+   "end": 1.54
+  }
+ ]
+}

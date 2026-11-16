@@ -1,0 +1,40 @@
+{
+ "text": "Ah, a guest. Do mind the stills",
+ "words": [
+  {
+   "text": "Ah,",
+   "start": 0.12,
+   "end": 0.38
+  },
+  {
+   "text": "a",
+   "start": 0.68,
+   "end": 0.7
+  },
+  {
+   "text": "guest.",
+   "start": 0.86,
+   "end": 1.36
+  },
+  {
+   "text": "Do",
+   "start": 1.5,
+   "end": 1.74
+  },
+  {
+   "text": "mind",
+   "start": 1.8,
+   "end": 2.16
+  },
+  {
+   "text": "the",
+   "start": 2.22,
+   "end": 2.36
+  },
+  {
+   "text": "stills",
+   "start": 2.46,
+   "end": 3.04
+  }
+ ]
+}

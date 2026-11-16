@@ -1,0 +1,30 @@
+{
+ "text": "She's smoking! She's smoking bad",
+ "words": [
+  {
+   "text": "She's",
+   "start": 0.06,
+   "end": 0.38
+  },
+  {
+   "text": "smoking!",
+   "start": 0.42,
+   "end": 1.38
+  },
+  {
+   "text": "She's",
+   "start": 1.52,
+   "end": 1.76
+  },
+  {
+   "text": "smoking",
+   "start": 1.82,
+   "end": 2.32
+  },
+  {
+   "text": "bad",
+   "start": 2.44,
+   "end": 2.96
+  }
+ ]
+}

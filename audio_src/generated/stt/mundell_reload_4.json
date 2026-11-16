@@ -1,0 +1,20 @@
+{
+ "text": "Fill her up!",
+ "words": [
+  {
+   "text": "Fill",
+   "start": 0.14,
+   "end": 0.48
+  },
+  {
+   "text": "her",
+   "start": 0.5,
+   "end": 0.68
+  },
+  {
+   "text": "up!",
+   "start": 0.82,
+   "end": 1.1
+  }
+ ]
+}

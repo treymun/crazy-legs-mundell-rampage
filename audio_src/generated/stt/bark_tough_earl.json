@@ -1,0 +1,40 @@
+{
+ "text": "That big Earl runs this street, boy",
+ "words": [
+  {
+   "text": "That",
+   "start": 0.1,
+   "end": 0.22
+  },
+  {
+   "text": "big",
+   "start": 0.32,
+   "end": 0.5
+  },
+  {
+   "text": "Earl",
+   "start": 0.52,
+   "end": 0.7
+  },
+  {
+   "text": "runs",
+   "start": 0.78,
+   "end": 1.0
+  },
+  {
+   "text": "this",
+   "start": 1.04,
+   "end": 1.16
+  },
+  {
+   "text": "street,",
+   "start": 1.24,
+   "end": 1.48
+  },
+  {
+   "text": "boy",
+   "start": 1.56,
+   "end": 1.86
+  }
+ ]
+}

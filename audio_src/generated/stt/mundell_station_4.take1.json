@@ -1,0 +1,35 @@
+{
+ "text": "Uh, good enough for the counties",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.1,
+   "end": 0.18
+  },
+  {
+   "text": "good",
+   "start": 0.32,
+   "end": 0.46
+  },
+  {
+   "text": "enough",
+   "start": 0.5,
+   "end": 0.78
+  },
+  {
+   "text": "for",
+   "start": 0.86,
+   "end": 0.94
+  },
+  {
+   "text": "the",
+   "start": 0.98,
+   "end": 1.04
+  },
+  {
+   "text": "counties",
+   "start": 1.16,
+   "end": 1.74
+  }
+ ]
+}

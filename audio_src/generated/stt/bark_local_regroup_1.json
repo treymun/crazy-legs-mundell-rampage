@@ -1,0 +1,30 @@
+{
+ "text": "Clock out, boys. Clock out",
+ "words": [
+  {
+   "text": "Clock",
+   "start": 0.06,
+   "end": 0.38
+  },
+  {
+   "text": "out,",
+   "start": 0.5,
+   "end": 0.74
+  },
+  {
+   "text": "boys.",
+   "start": 0.9,
+   "end": 1.36
+  },
+  {
+   "text": "Clock",
+   "start": 1.44,
+   "end": 1.76
+  },
+  {
+   "text": "out",
+   "start": 1.84,
+   "end": 2.1
+  }
+ ]
+}

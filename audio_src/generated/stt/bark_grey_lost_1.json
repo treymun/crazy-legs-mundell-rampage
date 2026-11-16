@@ -1,0 +1,30 @@
+{
+ "text": "Target has left the sector",
+ "words": [
+  {
+   "text": "Target",
+   "start": 0.24,
+   "end": 0.62
+  },
+  {
+   "text": "has",
+   "start": 0.66,
+   "end": 0.86
+  },
+  {
+   "text": "left",
+   "start": 0.92,
+   "end": 1.12
+  },
+  {
+   "text": "the",
+   "start": 1.16,
+   "end": 1.28
+  },
+  {
+   "text": "sector",
+   "start": 1.34,
+   "end": 1.92
+  }
+ ]
+}

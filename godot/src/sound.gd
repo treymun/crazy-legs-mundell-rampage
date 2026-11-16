@@ -204,6 +204,8 @@ const LEVEL_SPREAD := .08
 const STEADY_PREFIXES := [
 	"menu_", "talk_", "bark_", "cuss_", "boss_", "mundell_", "county_", "range_pa_", "ann_"
 ]
+## The spoken lines (someone talking): talking() and hush_speech() look for these.
+const SPEECH := ["talk_", "bark_", "cuss_", "boss_", "mundell_", "county_", "range_pa_", "ann_"]
 
 const TOOL_GAIN := .26
 const STEP_GAIN := .83
@@ -1072,6 +1074,32 @@ func play_voice(name: String, volume: float, pan: float) -> float:
 func stop_voice() -> void:
 	if _voice.player.playing:
 		_voice.player.stop()
+
+
+static func is_speech(cue: String) -> bool:
+	for prefix: String in SPEECH:
+		if cue.begins_with(prefix):
+			return true
+	return false
+
+
+## Whether a spoken line is still playing on any voice (the hands, Mundell, a
+## boss, the radio talk): the voices wait their turn or keep quiet.
+func talking() -> bool:
+	for v: Voice in _all_voices():
+		if v != null and v.player.playing and is_speech(v.cue):
+			return true
+	return false
+
+
+## Stops every spoken line playing as an effect (a hand's bark, Mundell's
+## wisecrack), for a boss's line on the voice channel to be heard alone.
+func hush_speech() -> void:
+	for v: Voice in _effects:
+		if v.player.playing and is_speech(v.cue):
+			v.player.stop()
+	if _priority != null and _priority.player.playing and is_speech(_priority.cue):
+		_priority.player.stop()
 
 
 func pause_world() -> void:

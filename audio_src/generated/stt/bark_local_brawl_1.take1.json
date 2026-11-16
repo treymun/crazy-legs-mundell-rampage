@@ -1,0 +1,25 @@
+{
+ "text": "Quit shooting the hill",
+ "words": [
+  {
+   "text": "Quit",
+   "start": 0.18,
+   "end": 0.44
+  },
+  {
+   "text": "shooting",
+   "start": 0.52,
+   "end": 0.92
+  },
+  {
+   "text": "the",
+   "start": 0.96,
+   "end": 1.06
+  },
+  {
+   "text": "hill",
+   "start": 1.12,
+   "end": 1.4
+  }
+ ]
+}

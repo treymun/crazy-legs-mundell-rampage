@@ -1,0 +1,30 @@
+{
+ "text": "I'll go around the shed",
+ "words": [
+  {
+   "text": "I'll",
+   "start": 0.18,
+   "end": 0.34
+  },
+  {
+   "text": "go",
+   "start": 0.38,
+   "end": 0.48
+  },
+  {
+   "text": "around",
+   "start": 0.56,
+   "end": 0.82
+  },
+  {
+   "text": "the",
+   "start": 0.86,
+   "end": 0.94
+  },
+  {
+   "text": "shed",
+   "start": 1.06,
+   "end": 1.5
+  }
+ ]
+}

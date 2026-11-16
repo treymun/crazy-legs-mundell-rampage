@@ -1,0 +1,40 @@
+{
+ "text": "Ladies and gents, he's ruining my show",
+ "words": [
+  {
+   "text": "Ladies",
+   "start": 0.18,
+   "end": 0.6
+  },
+  {
+   "text": "and",
+   "start": 0.62,
+   "end": 0.7
+  },
+  {
+   "text": "gents,",
+   "start": 0.8,
+   "end": 1.1
+  },
+  {
+   "text": "he's",
+   "start": 1.16,
+   "end": 1.36
+  },
+  {
+   "text": "ruining",
+   "start": 1.42,
+   "end": 1.8
+  },
+  {
+   "text": "my",
+   "start": 1.84,
+   "end": 1.96
+  },
+  {
+   "text": "show",
+   "start": 2.04,
+   "end": 2.46
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "text": "Round two. Sunshine, start your engines",
+ "words": [
+  {
+   "text": "Round",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "two.",
+   "start": 0.4,
+   "end": 0.7
+  },
+  {
+   "text": "Sunshine,",
+   "start": 0.84,
+   "end": 1.5
+  },
+  {
+   "text": "start",
+   "start": 1.64,
+   "end": 1.9
+  },
+  {
+   "text": "your",
+   "start": 1.94,
+   "end": 2.04
+  },
+  {
+   "text": "engines",
+   "start": 2.12,
+   "end": 2.62
+  }
+ ]
+}

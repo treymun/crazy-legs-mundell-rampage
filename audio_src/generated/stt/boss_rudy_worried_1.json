@@ -1,0 +1,30 @@
+{
+ "text": "Somebody cue the band. Anybody",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.18,
+   "end": 0.78
+  },
+  {
+   "text": "cue",
+   "start": 0.96,
+   "end": 1.2
+  },
+  {
+   "text": "the",
+   "start": 1.26,
+   "end": 1.34
+  },
+  {
+   "text": "band.",
+   "start": 1.44,
+   "end": 1.8
+  },
+  {
+   "text": "Anybody",
+   "start": 1.94,
+   "end": 2.78
+  }
+ ]
+}

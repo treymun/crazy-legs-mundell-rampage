@@ -1,0 +1,30 @@
+{
+ "text": "I miss my home planet",
+ "words": [
+  {
+   "text": "I",
+   "start": 0.12,
+   "end": 0.18
+  },
+  {
+   "text": "miss",
+   "start": 0.22,
+   "end": 0.42
+  },
+  {
+   "text": "my",
+   "start": 0.46,
+   "end": 0.58
+  },
+  {
+   "text": "home",
+   "start": 0.62,
+   "end": 0.82
+  },
+  {
+   "text": "planet",
+   "start": 0.94,
+   "end": 1.54
+  }
+ ]
+}

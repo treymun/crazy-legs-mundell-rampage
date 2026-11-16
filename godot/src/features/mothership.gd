@@ -27,6 +27,7 @@ extends GameFeature
 static var LEVEL: String = BossData.get_value("mothership", "level")
 const RANGE := preload("res://src/range_layout.gd")
 const BossArenas := preload("res://src/features/boss_arenas.gd")
+const BossVoices := preload("res://src/features/boss_voices.gd")
 static var BOSS: String = BossData.get_value("mothership", "boss")
 static var TRACK: String = BossData.get_value("mothership", "track")
 ## Her picks, phase by phase, taken in turn by her attack count.
@@ -62,6 +63,8 @@ static var LIGHTS: Dictionary = BossData.get_value("mothership", "lights")
 static var CUES: Dictionary = BossData.get_value("mothership", "cues")
 
 var maw: Enemy = null
+## Her calls to the crew so far (which of her two lines is next; sound only).
+var crew_calls := 0
 var center := Vector2.ZERO
 var reach := 9.0
 var pods: Array = []
@@ -221,6 +224,7 @@ func _station(station_id: String) -> void:
 		return
 	game.message("MAW GLORB: YOU KILLED MY BABY BOY.", 4.0)
 	game.sound.sting(cue("intro"))
+	_maw_says("boss_maw_wake", false)
 	game.shake = minf(1.0, game.shake + .5)
 
 
@@ -568,6 +572,20 @@ func _call_crew() -> void:
 		made += 1
 	if made > 0:
 		game.message("MAW: GET HIM, YOUNGUNS!", 2.0)
+		_maw_says("boss_maw_crew_%d" % (crew_calls % 2), true)
+		crew_calls += 1
+
+
+## Maw says one of her own lines (BossVoices.MAW_LINES, captioned by the
+## message already on screen): at once, or once nobody is talking. Sound only.
+func _maw_says(line_cue: String, wait: bool) -> void:
+	var voices: BossVoices = game.features.get("boss_voices")
+	if voices == null or maw == null:
+		return
+	if wait:
+		voices.queue(maw, line_cue, "", BossVoices.MAD_AFTER, 3.0)
+	else:
+		voices.line(maw, line_cue, "")
 
 
 # ------------------------------------------------------------------ her fall

@@ -1,0 +1,20 @@
+{
+ "text": "Reckon it'll rain?",
+ "words": [
+  {
+   "text": "Reckon",
+   "start": 0.04,
+   "end": 0.28
+  },
+  {
+   "text": "it'll",
+   "start": 0.32,
+   "end": 0.48
+  },
+  {
+   "text": "rain?",
+   "start": 0.58,
+   "end": 0.88
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "text": "Well, boss said shoot on sight",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "boss",
+   "start": 0.24,
+   "end": 0.58
+  },
+  {
+   "text": "said",
+   "start": 0.62,
+   "end": 0.98
+  },
+  {
+   "text": "shoot",
+   "start": 1.06,
+   "end": 1.34
+  },
+  {
+   "text": "on",
+   "start": 1.44,
+   "end": 1.66
+  },
+  {
+   "text": "sight",
+   "start": 1.78,
+   "end": 2.08
+  }
+ ]
+}

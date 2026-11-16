@@ -1,0 +1,20 @@
+{
+ "text": "Dang plum out!",
+ "words": [
+  {
+   "text": "Dang",
+   "start": 0.04,
+   "end": 0.4
+  },
+  {
+   "text": "plum",
+   "start": 0.5,
+   "end": 0.84
+  },
+  {
+   "text": "out!",
+   "start": 0.94,
+   "end": 1.42
+  }
+ ]
+}

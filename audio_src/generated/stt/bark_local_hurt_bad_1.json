@@ -1,0 +1,30 @@
+{
+ "text": "That's a workman's comp claim",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.1,
+   "end": 0.48
+  },
+  {
+   "text": "a",
+   "start": 0.6,
+   "end": 0.68
+  },
+  {
+   "text": "workman's",
+   "start": 0.74,
+   "end": 1.34
+  },
+  {
+   "text": "comp",
+   "start": 1.4,
+   "end": 1.76
+  },
+  {
+   "text": "claim",
+   "start": 1.88,
+   "end": 2.48
+  }
+ ]
+}

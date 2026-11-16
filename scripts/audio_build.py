@@ -601,6 +601,12 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
         recipe["speaker"] = entry["fx"]
     if chain.get("drive"):
         x = drive(x, chain["drive"])
+    if entry.get("squash"):
+        # A voice whose plosives spike (the local voice) sits under the others
+        # once its peaks meet the ceiling: its spikes are limited first, so its
+        # words come out as loud as the rest.
+        x = limit_peaks(x / max(float(np.abs(x).max()), 1e-9), 10 ** (-entry["squash"] / 20))
+        recipe["squash_db"] = entry["squash"]
     x = x - x.mean()
     if not chain.get("loop"):
         x = fades(x, chain["fade"], chain.get("fade_in", .0015))

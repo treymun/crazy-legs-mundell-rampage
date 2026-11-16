@@ -1,0 +1,30 @@
+{
+ "text": "Pork rinds, now we're living",
+ "words": [
+  {
+   "text": "Pork",
+   "start": 0.2,
+   "end": 0.56
+  },
+  {
+   "text": "rinds,",
+   "start": 0.64,
+   "end": 1.2
+  },
+  {
+   "text": "now",
+   "start": 1.3,
+   "end": 1.54
+  },
+  {
+   "text": "we're",
+   "start": 1.62,
+   "end": 1.82
+  },
+  {
+   "text": "living",
+   "start": 1.86,
+   "end": 2.2
+  }
+ ]
+}

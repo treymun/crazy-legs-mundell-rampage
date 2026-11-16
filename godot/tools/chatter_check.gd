@@ -10,6 +10,9 @@
 ## under CLEAN and nothing under OFF; Mundell says his aloud with the caption
 ## to match, and falls back to his old wisecracks with CHATTER OFF; in a 2v2 a
 ## bot crows over a kill and talks at the plant, never this machine's player.
+## Turns (pass 7): nobody talks over a line still playing (a hand keeps quiet,
+## Mundell's line is shown, not said), a boss's line cuts in, its mad line and
+## Mundell's answer wait their turn, and a tough guy says his piece.
 extends SceneTree
 
 var failures: Array = []
@@ -19,12 +22,24 @@ var failures: Array = []
 class Ear:
 	extends QuietSound
 	var played: Array = []
+	## Someone is talking (Sound.talking), as the test says.
+	var busy := false
 
 	func has(_cue: String) -> bool:
 		return true
 
 	func play(name: String, _volume := 1.0, _pan := 0.0, _cutoff := 0.0) -> void:
 		played.append(name)
+
+	func play_voice(name: String, _volume := 1.0, _pan := 0.0) -> float:
+		played.append(name)
+		return 1.0
+
+	func talking() -> bool:
+		return busy
+
+	func hush_speech() -> void:
+		played.append("hush")
 
 
 func _init() -> void:
@@ -57,6 +72,7 @@ static func run(main, check: Callable) -> void:
 	_hands(main, check)
 	_mundell(main, check)
 	_bots(main, check)
+	_turns(main, check)
 
 
 static func _lines(check: Callable) -> void:
@@ -268,4 +284,107 @@ static func _bots(main, check: Callable) -> void:
 	check.call(
 		ear.played.size() == 1 and String(ear.played[0]).contains("_plant_"),
 		"the planter says so (%s)" % [ear.played]
+	)
+
+
+static func _turns(main, check: Callable) -> void:
+	var made := _game(main, "hickston")
+	var g: Game = made[0]
+	var ear: Ear = made[1]
+	g.chatter = CussLines.CUSSIN
+	g.barks.enabled = true
+	var barks = g.features["enemy_barks"]
+	var hand: Enemy = null
+	for e: Enemy in g.enemies:
+		if e.alive and barks.voice_of(e) == "hick":
+			hand = e
+			break
+	hand.x = g.player.x + 2.0
+	hand.y = g.player.y
+	ear.busy = true
+	for i in 10:
+		barks._next = 0.0
+		barks._own = {}
+		barks._bark(hand, "spot")
+	g.barks.next_any = 0.0
+	g.barks.last_at = {}
+	g.barks.say(g, "kill", true)
+	check.call(
+		ear.played.is_empty() and Game.Barks.LINES["kill"].has(g.barks.text),
+		(
+			"while someone talks a hand keeps quiet and Mundell's line is shown, not said %s"
+			% [ear.played]
+		)
+	)
+	var voices = g.features["boss_voices"]
+	var boss := Enemy.new("boss", g.player.x + 3.0, g.player.y, 0.0)
+	voices._intro(boss)
+	check.call(
+		ear.played == ["hush", "boss_sheriff_intro"] and g.caption == voices.LINES["sheriff"][0],
+		"a boss's first entrance line cuts in over the talk, captioned %s" % [ear.played]
+	)
+	ear.played.clear()
+	voices._enraged(boss)
+	voices._tick(0.0)
+	g.clock += voices.MAD_AFTER + .1
+	voices._tick(0.0)
+	var waited := ear.played.is_empty()
+	ear.busy = false
+	voices._tick(0.0)
+	check.call(
+		waited and ear.played == ["hush", "boss_sheriff_mad"],
+		"its mad line comes after the roar, once nobody is talking %s" % [ear.played]
+	)
+	ear.played.clear()
+	ear.busy = true
+	g.clock += voices.TAUNT_GAP + 1.0
+	for i in 20:
+		voices._hurt(5.0, "TEST")
+	check.call(ear.played.is_empty(), "no taunt over somebody talking")
+	ear.busy = false
+	var taunts := {}
+	for i in 80:
+		voices._taunt_next = 0.0
+		voices._hurt(5.0, "TEST")
+	for cue: String in ear.played:
+		if cue.begins_with("boss_sheriff_taunt_"):
+			taunts[cue] = true
+	check.call(taunts.size() == 4, "all four of its taunts are dealt (%s)" % [taunts.keys()])
+	var intros := {}
+	for i in 12:
+		ear.played.clear()
+		voices._intro(boss)
+		intros[ear.played.back()] = true
+	check.call(
+		intros.has("boss_sheriff_intro") and intros.has("boss_sheriff_intro_1"),
+		"a retry gets either entrance line (%s)" % [intros.keys()]
+	)
+	ear.played.clear()
+	ear.busy = true
+	g.barks.next_any = 0.0
+	g.barks.last_at = {}
+	barks._mundell_after("boss")
+	g.clock += 1.0
+	barks._mundell_waits(0.0)
+	var held := ear.played.is_empty()
+	ear.busy = false
+	barks._mundell_waits(0.0)
+	check.call(
+		held and ear.played.size() == 1 and String(ear.played[0]).contains("mundell_boss_"),
+		"Mundell answers the boss once the boss is done %s" % [ear.played]
+	)
+	var variants = g.features["variants"]
+	var tough := Enemy.new("tough_earl", g.player.x + 3.0, g.player.y, 0.0)
+	ear.played.clear()
+	variants._says(tough)
+	check.call(
+		ear.played == ["bark_tough_earl"] and g.caption == variants.TOUGH_SAYS["tough_earl"],
+		"a tough guy says his piece, captioned %s" % [ear.played]
+	)
+	g.chatter = CussLines.OFF
+	ear.played.clear()
+	variants._says(tough)
+	check.call(
+		ear.played.size() == 1 and not String(ear.played[0]).begins_with("bark_"),
+		"with CHATTER OFF he only hollers %s" % [ear.played]
 	)

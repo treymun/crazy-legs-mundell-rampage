@@ -1,0 +1,35 @@
+{
+ "text": "That'll go on your permanent record",
+ "words": [
+  {
+   "text": "That'll",
+   "start": 0.08,
+   "end": 0.42
+  },
+  {
+   "text": "go",
+   "start": 0.46,
+   "end": 0.7
+  },
+  {
+   "text": "on",
+   "start": 0.8,
+   "end": 0.96
+  },
+  {
+   "text": "your",
+   "start": 1.02,
+   "end": 1.22
+  },
+  {
+   "text": "permanent",
+   "start": 1.36,
+   "end": 1.78
+  },
+  {
+   "text": "record",
+   "start": 1.9,
+   "end": 2.34
+  }
+ ]
+}

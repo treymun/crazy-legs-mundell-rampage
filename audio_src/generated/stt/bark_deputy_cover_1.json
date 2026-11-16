@@ -1,0 +1,25 @@
+{
+ "text": "Get behind the cruiser",
+ "words": [
+  {
+   "text": "Get",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "behind",
+   "start": 0.28,
+   "end": 0.76
+  },
+  {
+   "text": "the",
+   "start": 0.8,
+   "end": 0.9
+  },
+  {
+   "text": "cruiser",
+   "start": 0.94,
+   "end": 1.5
+  }
+ ]
+}

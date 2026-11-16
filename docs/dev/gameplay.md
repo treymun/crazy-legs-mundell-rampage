@@ -480,7 +480,11 @@ Setting `chatter`: OFF 0, CLEAN 1, CUSSIN' 2, the owner's default;
   not made yet is simply not said.
 - `tools/chatter_check.gd` (in check_fixes) holds it with an ear that has
   every cue. 128 cuss lines and 67 of Mundell's, about 4,600 credits with
-  retakes and his voice.
+  retakes and his voice. Pass 7 added the working men's voice (local: the
+  mill, quarry, fish camp and pit hands, 22 lines and 22 cuss lines), more
+  lines for every other voice's moments, Mundell's 9 and each chapter's tough
+  guy's own line; and turns: nobody talks over a line still playing
+  ([audio.md](audio.md#voices)).
 
 ## Things break
 

@@ -51,6 +51,7 @@ cd godot && gdformat --check src tools addons && gdlint src tools addons
 godot --headless --path godot --script res://tools/check_shader.gd    # SHADER OK
 godot --headless --path godot --script res://tools/view3d_check.gd    # VIEW3D CHECK OK
 godot --headless --path godot --script res://tools/verify_assets.gd   # ASSETS OK
+godot --headless --path godot --script res://tools/voice_check.gd     # VOICE CHECK OK (after pack_assets)
 godot --headless --path godot --script res://tools/check_fixes.gd     # PARITY FIXES OK (part=K: one of its PARTS; only=a,b: named steps)
 godot --headless --path godot --script res://tools/bot_campaign.gd    # CAMPAIGN WALKTHROUGH OK
 godot --headless --path godot --script res://tools/save_fixtures.gd   # OLD SAVES OK (-- make: add saves of the new version)

@@ -1,0 +1,25 @@
+{
+ "text": "Check them bushes, Dwayne",
+ "words": [
+  {
+   "text": "Check",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "them",
+   "start": 0.32,
+   "end": 0.48
+  },
+  {
+   "text": "bushes,",
+   "start": 0.6,
+   "end": 1.08
+  },
+  {
+   "text": "Dwayne",
+   "start": 1.18,
+   "end": 1.68
+  }
+ ]
+}

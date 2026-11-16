@@ -1,0 +1,30 @@
+{
+ "text": "Where'd the varmint get to?",
+ "words": [
+  {
+   "text": "Where'd",
+   "start": 0.1,
+   "end": 0.42
+  },
+  {
+   "text": "the",
+   "start": 0.48,
+   "end": 0.56
+  },
+  {
+   "text": "varmint",
+   "start": 0.66,
+   "end": 1.02
+  },
+  {
+   "text": "get",
+   "start": 1.14,
+   "end": 1.38
+  },
+  {
+   "text": "to?",
+   "start": 1.44,
+   "end": 1.72
+  }
+ ]
+}

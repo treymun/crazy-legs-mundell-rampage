@@ -1,0 +1,25 @@
+{
+ "text": "Need me more boom",
+ "words": [
+  {
+   "text": "Need",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "me",
+   "start": 0.3,
+   "end": 0.4
+  },
+  {
+   "text": "more",
+   "start": 0.5,
+   "end": 0.76
+  },
+  {
+   "text": "boom",
+   "start": 0.88,
+   "end": 1.42
+  }
+ ]
+}

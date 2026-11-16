@@ -1,0 +1,35 @@
+{
+ "text": "Well, lost him round the side",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.0,
+   "end": 0.14
+  },
+  {
+   "text": "lost",
+   "start": 0.28,
+   "end": 0.62
+  },
+  {
+   "text": "him",
+   "start": 0.64,
+   "end": 0.82
+  },
+  {
+   "text": "round",
+   "start": 0.88,
+   "end": 1.2
+  },
+  {
+   "text": "the",
+   "start": 1.24,
+   "end": 1.38
+  },
+  {
+   "text": "side",
+   "start": 1.46,
+   "end": 1.92
+  }
+ ]
+}

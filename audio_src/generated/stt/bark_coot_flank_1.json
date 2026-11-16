@@ -1,0 +1,35 @@
+{
+ "text": "I'll get him from the henhouse",
+ "words": [
+  {
+   "text": "I'll",
+   "start": 0.1,
+   "end": 0.28
+  },
+  {
+   "text": "get",
+   "start": 0.32,
+   "end": 0.46
+  },
+  {
+   "text": "him",
+   "start": 0.5,
+   "end": 0.64
+  },
+  {
+   "text": "from",
+   "start": 0.68,
+   "end": 0.86
+  },
+  {
+   "text": "the",
+   "start": 0.92,
+   "end": 1.0
+  },
+  {
+   "text": "henhouse",
+   "start": 1.06,
+   "end": 1.7
+  }
+ ]
+}

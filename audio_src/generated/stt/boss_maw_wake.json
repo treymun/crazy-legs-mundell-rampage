@@ -1,0 +1,30 @@
+{
+ "text": "You killed my baby boy",
+ "words": [
+  {
+   "text": "You",
+   "start": 0.1,
+   "end": 0.18
+  },
+  {
+   "text": "killed",
+   "start": 0.3,
+   "end": 0.58
+  },
+  {
+   "text": "my",
+   "start": 0.62,
+   "end": 0.78
+  },
+  {
+   "text": "baby",
+   "start": 0.82,
+   "end": 1.1
+  },
+  {
+   "text": "boy",
+   "start": 1.2,
+   "end": 1.58
+  }
+ ]
+}

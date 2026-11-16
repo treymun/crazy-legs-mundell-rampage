@@ -1,0 +1,35 @@
+{
+ "text": "We'll need a hand over here",
+ "words": [
+  {
+   "text": "We'll",
+   "start": 0.04,
+   "end": 0.16
+  },
+  {
+   "text": "need",
+   "start": 0.22,
+   "end": 0.46
+  },
+  {
+   "text": "a",
+   "start": 0.52,
+   "end": 0.64
+  },
+  {
+   "text": "hand",
+   "start": 0.7,
+   "end": 1.08
+  },
+  {
+   "text": "over",
+   "start": 1.18,
+   "end": 1.44
+  },
+  {
+   "text": "here",
+   "start": 1.48,
+   "end": 1.76
+  }
+ ]
+}

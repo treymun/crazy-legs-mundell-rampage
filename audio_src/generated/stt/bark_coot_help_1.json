@@ -1,0 +1,30 @@
+{
+ "text": "Mother, bring the rock salt",
+ "words": [
+  {
+   "text": "Mother,",
+   "start": 0.08,
+   "end": 0.48
+  },
+  {
+   "text": "bring",
+   "start": 0.64,
+   "end": 0.88
+  },
+  {
+   "text": "the",
+   "start": 0.94,
+   "end": 1.0
+  },
+  {
+   "text": "rock",
+   "start": 1.08,
+   "end": 1.36
+  },
+  {
+   "text": "salt",
+   "start": 1.46,
+   "end": 1.74
+  }
+ ]
+}

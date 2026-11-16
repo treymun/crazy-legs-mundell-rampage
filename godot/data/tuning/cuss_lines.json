@@ -184,6 +184,52 @@
 				"Back to the saucer! Haul *ass*!",
 				"Retreat, *dammit*!"
 			]
+		},
+		"local": {
+			"spot": [
+				"There's the *sumbitch*, boys!",
+				"Shoot that *jackass*!"
+			],
+			"lost": [
+				"Lost the *bastard* again!",
+				"Well, *damn*, he's gone."
+			],
+			"search": [
+				"Show yerself, ya *pissant*!",
+				"Quit hidin', *dumbass*!"
+			],
+			"help": [
+				"*Dammit*, somebody help me!",
+				"Somebody git their *ass* over here!"
+			],
+			"flank": [
+				"I'll come round and bust his *ass*!",
+				"Flank the *sumbitch*!"
+			],
+			"cover": [
+				"Git down, ya *jackass*!",
+				"Keep yer *damn* head low!"
+			],
+			"brawl": [
+				"Watch it, ya *dumbass*!",
+				"You shot my *damn* lunch!"
+			],
+			"idle": [
+				"This job's pure *bullshit*.",
+				"Coffee tastes like *piss* again."
+			],
+			"surprised": [
+				"What the *hell*?!",
+				"Aw, *shit*!"
+			],
+			"hurt_bad": [
+				"*Dammit*, I'm bleedin'!",
+				"Son of a *bitch*, that hurt!"
+			],
+			"regroup": [
+				"Run fer it, *dammit*!",
+				"Git yer *asses* outta here!"
+			]
 		}
 	},
 	"mundell": {

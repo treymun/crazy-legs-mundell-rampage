@@ -1,0 +1,35 @@
+{
+ "text": "Come on out. We won't bite",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.06,
+   "end": 0.44
+  },
+  {
+   "text": "on",
+   "start": 0.54,
+   "end": 0.86
+  },
+  {
+   "text": "out.",
+   "start": 0.98,
+   "end": 1.18
+  },
+  {
+   "text": "We",
+   "start": 1.38,
+   "end": 1.52
+  },
+  {
+   "text": "won't",
+   "start": 1.64,
+   "end": 1.86
+  },
+  {
+   "text": "bite",
+   "start": 2.06,
+   "end": 2.32
+  }
+ ]
+}

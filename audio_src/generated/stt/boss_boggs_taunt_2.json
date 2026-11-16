@@ -1,0 +1,25 @@
+{
+ "text": "Eat my dust, boy",
+ "words": [
+  {
+   "text": "Eat",
+   "start": 0.06,
+   "end": 0.18
+  },
+  {
+   "text": "my",
+   "start": 0.24,
+   "end": 0.42
+  },
+  {
+   "text": "dust,",
+   "start": 0.54,
+   "end": 0.86
+  },
+  {
+   "text": "boy",
+   "start": 0.96,
+   "end": 1.34
+  }
+ ]
+}
