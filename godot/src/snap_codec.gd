@@ -40,7 +40,9 @@ const SKIP_FIELDS := {
 	# burn), this machine's view of it (what it last put in step, the held
 	# picture, the marks) and a furniture base each machine frees itself.
 	"carry": ["_shown_version", "_cfg", "_specs", "_feels", "_brutes", "_bk"],
-	"carry.Thing": ["base"],
+	# A thing's board is the level's own (the breakables' piece shares it):
+	# put in step from the thing every tick, never carried twice.
+	"carry.Thing": ["base", "board"],
 	"fire":
 	[
 		"_cfg",

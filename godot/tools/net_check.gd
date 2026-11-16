@@ -473,6 +473,9 @@ static func _host_and_mirror(main, check: Callable, id: String, ticks: int, play
 	var plain := _made(main, id, players)
 	for g: Game in [host.game, plain]:
 		g.cheats.god = true
+		# A finisher's slow motion is a lone player's (never on a host:
+		# features/finishers.gd), so the plain game plays without it here.
+		g.finish_slowmo = false
 	var mirror := GameHost.mirror_for(main.make_game(id))
 	var took := mirror.take(host.snapshot())
 	var pilots: Array = []
