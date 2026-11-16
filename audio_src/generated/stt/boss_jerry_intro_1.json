@@ -1,0 +1,40 @@
+{
+ "text": "Kick off time, son. Hope you stretched",
+ "words": [
+  {
+   "text": "Kick",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "off",
+   "start": 0.36,
+   "end": 0.5
+  },
+  {
+   "text": "time,",
+   "start": 0.6,
+   "end": 0.9
+  },
+  {
+   "text": "son.",
+   "start": 1.0,
+   "end": 1.26
+  },
+  {
+   "text": "Hope",
+   "start": 1.4,
+   "end": 1.64
+  },
+  {
+   "text": "you",
+   "start": 1.68,
+   "end": 1.74
+  },
+  {
+   "text": "stretched",
+   "start": 1.86,
+   "end": 2.28
+  }
+ ]
+}

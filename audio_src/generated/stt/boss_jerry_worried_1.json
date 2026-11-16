@@ -1,0 +1,35 @@
+{
+ "text": "Call a timeout. Call a timeout",
+ "words": [
+  {
+   "text": "Call",
+   "start": 0.08,
+   "end": 0.32
+  },
+  {
+   "text": "a",
+   "start": 0.36,
+   "end": 0.4
+  },
+  {
+   "text": "timeout.",
+   "start": 0.52,
+   "end": 1.06
+  },
+  {
+   "text": "Call",
+   "start": 1.24,
+   "end": 1.44
+  },
+  {
+   "text": "a",
+   "start": 1.48,
+   "end": 1.52
+  },
+  {
+   "text": "timeout",
+   "start": 1.64,
+   "end": 2.24
+  }
+ ]
+}

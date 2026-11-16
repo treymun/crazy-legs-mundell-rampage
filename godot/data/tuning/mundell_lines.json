@@ -32,7 +32,8 @@
 			"Good eatin'.",
 			"Mmm, salty.",
 			"That hits the spot.",
-			"Wash it down."
+			"Wash it down.",
+			"Pork rinds. Now we're livin'."
 		],
 		"hurt": [
 			"Ow! That stung.",
@@ -50,20 +51,26 @@
 			"Lock and load.",
 			"Another round.",
 			"Come on, come on...",
-			"Feed the beast."
+			"Feed the beast.",
+			"Fill 'er up."
 		],
 		"empty": [
 			"Click. Well, shucks.",
-			"Out of shells!"
+			"Out of shells!",
+			"Dang, plumb out.",
+			"Need me more boom."
 		],
 		"drunk": [
 			"Hic! Who moved the barn?",
 			"The ground's movin'.",
-			"I see two of ya."
+			"I see two of ya.",
+			"Whoa, the room's dancin'."
 		],
 		"secret": [
 			"Well, looky here.",
-			"Now that's a secret."
+			"Now that's a secret.",
+			"Secret stash! Don't mind if I do.",
+			"Can't hide nothin' from me."
 		],
 		"boss": [
 			"Well, ain't you a big ugly one.",
@@ -81,12 +88,14 @@
 			"That oughta do it.",
 			"Fixed it. Sorta.",
 			"Done and done.",
-			"Mama'd be proud."
+			"Mama'd be proud.",
+			"Good enough fer the county."
 		],
 		"key": [
 			"Now somethin' round here opens.",
 			"Keys! Now we're cookin'.",
-			"Well now. Bet it fits somethin'."
+			"Well now. Bet it fits somethin'.",
+			"Shiny. Mine now."
 		],
 		"headshot": [
 			"Right between the eyes.",

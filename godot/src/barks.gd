@@ -29,15 +29,35 @@ const LINES := {
 		"HOT DIGGITY.",
 		"OH, YOU PURTY THING."
 	],
-	"pickup_food": ["GOOD EATIN'.", "MMM, SALTY.", "THAT HITS THE SPOT.", "WASH IT DOWN."],
+	"pickup_food":
+	[
+		"GOOD EATIN'.",
+		"MMM, SALTY.",
+		"THAT HITS THE SPOT.",
+		"WASH IT DOWN.",
+		"PORK RINDS. NOW WE'RE LIVIN'."
+	],
 	"hurt":
 	["OW! THAT STUNG.", "WHY, I OUGHTA...", "YOU'LL PAY FER THAT.", "RIGHT IN THE OVERALLS!"],
 	"low":
 	["I'M SEEIN' THE LIGHT...", "NEED ME A SNACK.", "TOO MEAN TO DIE.", "SOMEBODY GET MAMA."],
-	"reload": ["LOCK AND LOAD.", "ANOTHER ROUND.", "COME ON, COME ON...", "FEED THE BEAST."],
-	"empty": ["CLICK. WELL, SHUCKS.", "OUT OF SHELLS!"],
-	"drunk": ["HIC! WHO MOVED THE BARN?", "THE GROUND'S MOVIN'.", "I SEE TWO OF YA."],
-	"secret": ["WELL, LOOKY HERE.", "NOW THAT'S A SECRET."],
+	"reload":
+	["LOCK AND LOAD.", "ANOTHER ROUND.", "COME ON, COME ON...", "FEED THE BEAST.", "FILL 'ER UP."],
+	"empty": ["CLICK. WELL, SHUCKS.", "OUT OF SHELLS!", "DANG, PLUMB OUT.", "NEED ME MORE BOOM."],
+	"drunk":
+	[
+		"HIC! WHO MOVED THE BARN?",
+		"THE GROUND'S MOVIN'.",
+		"I SEE TWO OF YA.",
+		"WHOA, THE ROOM'S DANCIN'."
+	],
+	"secret":
+	[
+		"WELL, LOOKY HERE.",
+		"NOW THAT'S A SECRET.",
+		"SECRET STASH! DON'T MIND IF I DO.",
+		"CAN'T HIDE NOTHIN' FROM ME."
+	],
 	"boss":
 	[
 		"WELL, AIN'T YOU A BIG UGLY ONE.",
@@ -52,12 +72,20 @@ const LINES := {
 		"SOMEBODY HOSE THAT OFF THE FLOOR.",
 		"BIGGEST VARMINT I EVER BAGGED."
 	],
-	"station": ["THAT OUGHTA DO IT.", "FIXED IT. SORTA.", "DONE AND DONE.", "MAMA'D BE PROUD."],
+	"station":
+	[
+		"THAT OUGHTA DO IT.",
+		"FIXED IT. SORTA.",
+		"DONE AND DONE.",
+		"MAMA'D BE PROUD.",
+		"GOOD ENOUGH FER THE COUNTY."
+	],
 	"key":
 	[
 		"NOW SOMETHIN' ROUND HERE OPENS.",
 		"KEYS! NOW WE'RE COOKIN'.",
-		"WELL NOW. BET IT FITS SOMETHIN'."
+		"WELL NOW. BET IT FITS SOMETHIN'.",
+		"SHINY. MINE NOW."
 	],
 	"headshot":
 	["RIGHT BETWEEN THE EYES.", "DIDN'T NEED THAT HEAD ANYHOW.", "CLEAN OFF!", "BULLSEYE, BUBBA."],
@@ -121,6 +149,9 @@ func say(game: Game, category: String, force := false) -> bool:
 		return false
 	# With CHATTER on, Mundell says a cuss pack line aloud where one is made.
 	var spoken := _spoken(game, category)
+	if not spoken.is_empty() and game.sound.talking():
+		# Somebody is talking (a boss, a hand, the radio): shown, not said.
+		spoken = []
 	if not enabled and spoken.is_empty():
 		return false
 	var now: float = game.clock

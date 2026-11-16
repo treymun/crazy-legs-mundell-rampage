@@ -1,0 +1,45 @@
+{
+ "text": "I've wrecked better than you on a Tuesday",
+ "words": [
+  {
+   "text": "I've",
+   "start": 0.08,
+   "end": 0.2
+  },
+  {
+   "text": "wrecked",
+   "start": 0.22,
+   "end": 0.48
+  },
+  {
+   "text": "better",
+   "start": 0.6,
+   "end": 0.82
+  },
+  {
+   "text": "than",
+   "start": 0.84,
+   "end": 0.98
+  },
+  {
+   "text": "you",
+   "start": 1.06,
+   "end": 1.32
+  },
+  {
+   "text": "on",
+   "start": 1.44,
+   "end": 1.56
+  },
+  {
+   "text": "a",
+   "start": 1.6,
+   "end": 1.7
+  },
+  {
+   "text": "Tuesday",
+   "start": 1.76,
+   "end": 2.46
+  }
+ ]
+}

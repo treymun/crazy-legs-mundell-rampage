@@ -1,0 +1,40 @@
+{
+ "text": "Come and at him from the side",
+ "words": [
+  {
+   "text": "Come",
+   "start": 0.18,
+   "end": 0.46
+  },
+  {
+   "text": "and",
+   "start": 0.5,
+   "end": 0.62
+  },
+  {
+   "text": "at",
+   "start": 0.72,
+   "end": 0.92
+  },
+  {
+   "text": "him",
+   "start": 0.94,
+   "end": 1.1
+  },
+  {
+   "text": "from",
+   "start": 1.14,
+   "end": 1.36
+  },
+  {
+   "text": "the",
+   "start": 1.4,
+   "end": 1.52
+  },
+  {
+   "text": "side",
+   "start": 1.56,
+   "end": 2.0
+  }
+ ]
+}

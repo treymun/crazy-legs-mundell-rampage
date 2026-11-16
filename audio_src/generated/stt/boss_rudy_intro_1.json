@@ -1,0 +1,45 @@
+{
+ "text": "Back again. Every sucker gets a second ticket",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.16,
+   "end": 0.44
+  },
+  {
+   "text": "again.",
+   "start": 0.52,
+   "end": 0.94
+  },
+  {
+   "text": "Every",
+   "start": 1.16,
+   "end": 1.46
+  },
+  {
+   "text": "sucker",
+   "start": 1.58,
+   "end": 1.88
+  },
+  {
+   "text": "gets",
+   "start": 1.98,
+   "end": 2.2
+  },
+  {
+   "text": "a",
+   "start": 2.26,
+   "end": 2.34
+  },
+  {
+   "text": "second",
+   "start": 2.4,
+   "end": 2.74
+  },
+  {
+   "text": "ticket",
+   "start": 2.84,
+   "end": 3.42
+  }
+ ]
+}

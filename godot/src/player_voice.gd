@@ -36,6 +36,14 @@ func play_voice(name: String, volume := 1.0, _pan := 0.0) -> float:
 	return game.speaker.play_voice(name, place.x, place.y)
 
 
+func talking() -> bool:
+	return game.speaker.talking()
+
+
+func hush_speech() -> void:
+	game.speaker.hush_speech()
+
+
 func sting(_cue: String) -> void:
 	pass
 

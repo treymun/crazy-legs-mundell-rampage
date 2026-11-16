@@ -1,0 +1,30 @@
+{
+ "text": "Punch in, slacker. Shift's starting",
+ "words": [
+  {
+   "text": "Punch",
+   "start": 0.06,
+   "end": 0.36
+  },
+  {
+   "text": "in,",
+   "start": 0.46,
+   "end": 0.6
+  },
+  {
+   "text": "slacker.",
+   "start": 0.74,
+   "end": 1.28
+  },
+  {
+   "text": "Shift's",
+   "start": 1.44,
+   "end": 1.82
+  },
+  {
+   "text": "starting",
+   "start": 1.92,
+   "end": 2.42
+  }
+ ]
+}

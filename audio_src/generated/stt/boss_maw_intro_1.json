@@ -1,0 +1,25 @@
+{
+ "text": "Back for seconds, hooman?",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.08,
+   "end": 0.28
+  },
+  {
+   "text": "for",
+   "start": 0.34,
+   "end": 0.44
+  },
+  {
+   "text": "seconds,",
+   "start": 0.58,
+   "end": 0.96
+  },
+  {
+   "text": "hooman?",
+   "start": 1.02,
+   "end": 1.36
+  }
+ ]
+}

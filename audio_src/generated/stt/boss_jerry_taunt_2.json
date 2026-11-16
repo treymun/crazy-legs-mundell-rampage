@@ -1,0 +1,40 @@
+{
+ "text": "10 yards and a loss of teeth",
+ "words": [
+  {
+   "text": "10",
+   "start": 0.06,
+   "end": 0.26
+  },
+  {
+   "text": "yards",
+   "start": 0.3,
+   "end": 0.68
+  },
+  {
+   "text": "and",
+   "start": 0.8,
+   "end": 0.88
+  },
+  {
+   "text": "a",
+   "start": 0.94,
+   "end": 0.98
+  },
+  {
+   "text": "loss",
+   "start": 1.04,
+   "end": 1.26
+  },
+  {
+   "text": "of",
+   "start": 1.3,
+   "end": 1.42
+  },
+  {
+   "text": "teeth",
+   "start": 1.46,
+   "end": 1.74
+  }
+ ]
+}

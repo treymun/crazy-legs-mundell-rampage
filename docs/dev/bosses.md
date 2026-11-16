@@ -33,6 +33,9 @@ Boss fights share a framework: `src/boss_kit.gd`, `features/boss_fight.gd`,
   (`features/finishers.gd`, [gameplay.md](gameplay.md#ragdolls-and-finishing-shots-v320)).
 - Signals for voices and the like (on `game.events`): `boss_intro`,
   `boss_phase`, `boss_staggered`, `boss_weak_hit`, `boss_down(e, seconds)`.
+  `features/boss_voices.gd` says each boss's lines on them (entrance, taunts,
+  the mad line on `boss_enraged`, worried at phase 3, the last word) and
+  queues a line until nobody is talking ([audio.md](audio.md#voices)).
 - `tools/boss_check.gd` (in check_fixes) holds it; `physics_frames.gd
   only=boss` takes its pictures.
 

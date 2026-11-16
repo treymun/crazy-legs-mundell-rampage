@@ -1,0 +1,40 @@
+{
+ "text": "Back on my bayou, Sheriff. Big mistake",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.06,
+   "end": 0.32
+  },
+  {
+   "text": "on",
+   "start": 0.4,
+   "end": 0.58
+  },
+  {
+   "text": "my",
+   "start": 0.64,
+   "end": 0.82
+  },
+  {
+   "text": "bayou,",
+   "start": 0.92,
+   "end": 1.36
+  },
+  {
+   "text": "Sheriff.",
+   "start": 1.48,
+   "end": 1.82
+  },
+  {
+   "text": "Big",
+   "start": 2.0,
+   "end": 2.22
+  },
+  {
+   "text": "mistake",
+   "start": 2.3,
+   "end": 2.94
+  }
+ ]
+}

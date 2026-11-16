@@ -1,0 +1,35 @@
+{
+ "text": "Sorgo the Large demands your beer",
+ "words": [
+  {
+   "text": "Sorgo",
+   "start": 0.04,
+   "end": 0.46
+  },
+  {
+   "text": "the",
+   "start": 0.54,
+   "end": 0.62
+  },
+  {
+   "text": "Large",
+   "start": 0.66,
+   "end": 1.06
+  },
+  {
+   "text": "demands",
+   "start": 1.14,
+   "end": 1.6
+  },
+  {
+   "text": "your",
+   "start": 1.66,
+   "end": 1.78
+  },
+  {
+   "text": "beer",
+   "start": 1.9,
+   "end": 2.36
+  }
+ ]
+}

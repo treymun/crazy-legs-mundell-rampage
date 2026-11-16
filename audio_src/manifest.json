@@ -21566,6 +21566,216 @@
    },
    "validation": "ok"
   },
+  "boss_sheriff_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_intro_1.mp3",
+   "prompt": "Pull over, Earth boy. Nice and slow.",
+   "credits": 36,
+   "destination": "audio_src/final/sfx/boss_sheriff_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.52
+    ],
+    "natural_seconds": 2.468,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.468
+   },
+   "measured": {
+    "seconds": 2.468,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0045,
+    "onset_ms": 4.0,
+    "centroid_hz": 1777,
+    "end_db": -137.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_taunt_2.mp3",
+   "prompt": "That'll go on your permanent record.",
+   "credits": 36,
+   "destination": "audio_src/final/sfx/boss_sheriff_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.34
+    ],
+    "natural_seconds": 2.246,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.246
+   },
+   "measured": {
+    "seconds": 2.246,
+    "peak_db": -0.8,
+    "loud_db": -7.1,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1110,
+    "end_db": -142.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_taunt_3.mp3",
+   "prompt": "You have the right to remain squishy.",
+   "credits": 37,
+   "destination": "audio_src/final/sfx/boss_sheriff_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.66
+    ],
+    "natural_seconds": 1.764,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.764
+   },
+   "measured": {
+    "seconds": 1.764,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0032,
+    "onset_ms": 24.9,
+    "centroid_hz": 1761,
+    "end_db": -128.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_mad.mp3",
+   "prompt": "Now you done riled the law!",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/boss_sheriff_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.38
+    ],
+    "natural_seconds": 1.483,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.483
+   },
+   "measured": {
+    "seconds": 1.483,
+    "peak_db": -0.8,
+    "loud_db": -7.3,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1461,
+    "end_db": -120.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_sheriff_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_sheriff_worried_1.mp3",
+   "prompt": "Mayday! Saucer to base, mayday!",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/boss_sheriff_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.32
+    ],
+    "natural_seconds": 2.322,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.322
+   },
+   "measured": {
+    "seconds": 2.322,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0044,
+    "onset_ms": 8.1,
+    "centroid_hz": 1732,
+    "end_db": -128.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "boss_jerry_intro": {
    "purpose": "new cue",
    "refs": [],
@@ -21772,6 +21982,216 @@
     "onset_ms": 12.2,
     "centroid_hz": 1370,
     "end_db": -121.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_intro_1.mp3",
+   "prompt": "Kickoff time, son. Hope you stretched.",
+   "credits": 38,
+   "destination": "audio_src/final/sfx/boss_jerry_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.28
+    ],
+    "natural_seconds": 2.12,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.12
+   },
+   "measured": {
+    "seconds": 2.12,
+    "peak_db": -0.8,
+    "loud_db": -3.6,
+    "dc": 0.0016,
+    "onset_ms": 5.7,
+    "centroid_hz": 1011,
+    "end_db": -132.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_taunt_2.mp3",
+   "prompt": "Ten yards and a loss of teeth!",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/boss_jerry_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.74
+    ],
+    "natural_seconds": 1.91,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.91
+   },
+   "measured": {
+    "seconds": 1.843,
+    "peak_db": -0.8,
+    "loud_db": -4.4,
+    "dc": 0.0001,
+    "onset_ms": 19.7,
+    "centroid_hz": 1189,
+    "end_db": -102.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_taunt_3.mp3",
+   "prompt": "My granny tackles harder than you!",
+   "credits": 68,
+   "destination": "audio_src/final/sfx/boss_jerry_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.34
+    ],
+    "natural_seconds": 2.289,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.289
+   },
+   "measured": {
+    "seconds": 2.289,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0058,
+    "onset_ms": 16.3,
+    "centroid_hz": 1288,
+    "end_db": -113.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_mad.mp3",
+   "prompt": "Now you got me sweatin', boy!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/boss_jerry_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.76
+    ],
+    "natural_seconds": 1.809,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.809
+   },
+   "measured": {
+    "seconds": 1.809,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0043,
+    "onset_ms": 23.1,
+    "centroid_hz": 1401,
+    "end_db": -138.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_jerry_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_jerry_worried_1.mp3",
+   "prompt": "Call a timeout! Call a timeout!",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/boss_jerry_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.24
+    ],
+    "natural_seconds": 2.167,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.167
+   },
+   "measured": {
+    "seconds": 2.167,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0026,
+    "onset_ms": 17.4,
+    "centroid_hz": 1483,
+    "end_db": -131.4,
     "problems": []
    },
    "validation": "ok"
@@ -21986,6 +22406,216 @@
    },
    "validation": "ok"
   },
+  "boss_rudy_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_intro_1.mp3",
+   "prompt": "Back again? Every sucker gets a second ticket!",
+   "credits": 46,
+   "destination": "audio_src/final/sfx/boss_rudy_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     3.42
+    ],
+    "natural_seconds": 3.394,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.394
+   },
+   "measured": {
+    "seconds": 3.394,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0074,
+    "onset_ms": 4.4,
+    "centroid_hz": 1576,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_taunt_2.mp3",
+   "prompt": "Winner gets nothin'! Step right up!",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/boss_rudy_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.98
+    ],
+    "natural_seconds": 2.866,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.866
+   },
+   "measured": {
+    "seconds": 2.866,
+    "peak_db": -0.8,
+    "loud_db": -8.5,
+    "dc": 0.0001,
+    "onset_ms": 7.1,
+    "centroid_hz": 1817,
+    "end_db": -136.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_taunt_3.mp3",
+   "prompt": "Knock 'em down, win a coffin!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/boss_rudy_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.76
+    ],
+    "natural_seconds": 1.851,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.851
+   },
+   "measured": {
+    "seconds": 1.851,
+    "peak_db": -0.8,
+    "loud_db": -7.0,
+    "dc": 0.0,
+    "onset_ms": 54.1,
+    "centroid_hz": 1593,
+    "end_db": -135.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_mad.mp3",
+   "prompt": "Ladies and gents, he's ruinin' my show!",
+   "credits": 39,
+   "destination": "audio_src/final/sfx/boss_rudy_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.46
+    ],
+    "natural_seconds": 2.442,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.442
+   },
+   "measured": {
+    "seconds": 2.442,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0019,
+    "onset_ms": 19.0,
+    "centroid_hz": 1925,
+    "end_db": -141.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_rudy_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_rudy_worried_1.mp3",
+   "prompt": "Somebody cue the band! Anybody!",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/boss_rudy_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.78
+    ],
+    "natural_seconds": 2.719,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.719
+   },
+   "measured": {
+    "seconds": 2.719,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0058,
+    "onset_ms": 68.7,
+    "centroid_hz": 1867,
+    "end_db": -129.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "boss_foreman_intro": {
    "purpose": "new cue",
    "refs": [],
@@ -22192,6 +22822,216 @@
     "onset_ms": 0.9,
     "centroid_hz": 1830,
     "end_db": -112.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_intro_1.mp3",
+   "prompt": "Punch in, slacker. Shift's startin'.",
+   "credits": 36,
+   "destination": "audio_src/final/sfx/boss_foreman_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.42
+    ],
+    "natural_seconds": 2.457,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.457
+   },
+   "measured": {
+    "seconds": 2.457,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0019,
+    "onset_ms": 37.6,
+    "centroid_hz": 1841,
+    "end_db": -137.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_taunt_2.mp3",
+   "prompt": "No breaks on my floor!",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/boss_foreman_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.58
+    ],
+    "natural_seconds": 1.643,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.643
+   },
+   "measured": {
+    "seconds": 1.643,
+    "peak_db": -0.8,
+    "loud_db": -7.8,
+    "dc": 0.0,
+    "onset_ms": 8.5,
+    "centroid_hz": 1659,
+    "end_db": -136.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_taunt_3.mp3",
+   "prompt": "Sweat or bleed, I don't care which!",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/boss_foreman_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.0
+    ],
+    "natural_seconds": 2.044,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.044
+   },
+   "measured": {
+    "seconds": 2.044,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0004,
+    "onset_ms": 15.6,
+    "centroid_hz": 1751,
+    "end_db": -117.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_mad.mp3",
+   "prompt": "Who said you could quit workin'?",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/boss_foreman_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.76
+    ],
+    "natural_seconds": 1.779,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.779
+   },
+   "measured": {
+    "seconds": 1.779,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.003,
+    "onset_ms": 16.2,
+    "centroid_hz": 1558,
+    "end_db": -123.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_foreman_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_foreman_worried_1.mp3",
+   "prompt": "Call the union! Call somebody!",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/boss_foreman_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.08
+    ],
+    "natural_seconds": 2.137,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.137
+   },
+   "measured": {
+    "seconds": 2.137,
+    "peak_db": -0.8,
+    "loud_db": -7.5,
+    "dc": 0.0,
+    "onset_ms": 6.1,
+    "centroid_hz": 1658,
+    "end_db": -125.6,
     "problems": []
    },
    "validation": "ok"
@@ -22406,6 +23246,216 @@
    },
    "validation": "ok"
   },
+  "boss_baron_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_intro_1.mp3",
+   "prompt": "Ah. A guest. Do mind the stills.",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/boss_baron_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     3.04
+    ],
+    "natural_seconds": 2.801,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.801
+   },
+   "measured": {
+    "seconds": 2.801,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0029,
+    "onset_ms": 0.0,
+    "centroid_hz": 1648,
+    "end_db": -132.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_taunt_2.mp3",
+   "prompt": "Have a taste of the barrel, boy!",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/boss_baron_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.24
+    ],
+    "natural_seconds": 2.297,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.297
+   },
+   "measured": {
+    "seconds": 2.297,
+    "peak_db": -0.8,
+    "loud_db": -7.1,
+    "dc": 0.0,
+    "onset_ms": 4.0,
+    "centroid_hz": 1438,
+    "end_db": -165.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_taunt_3.mp3",
+   "prompt": "A hundred proof, and so am I!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/boss_baron_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.28
+    ],
+    "natural_seconds": 2.254,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.254
+   },
+   "measured": {
+    "seconds": 2.254,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.0004,
+    "onset_ms": 0.0,
+    "centroid_hz": 1319,
+    "end_db": -120.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_mad.mp3",
+   "prompt": "You've gone and spoiled my batch!",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/boss_baron_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     2.56
+    ],
+    "natural_seconds": 2.541,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.541
+   },
+   "measured": {
+    "seconds": 2.541,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0,
+    "onset_ms": 1.0,
+    "centroid_hz": 1204,
+    "end_db": -143.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_baron_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_baron_worried_1.mp3",
+   "prompt": "Not the copper! Anything but the copper!",
+   "credits": 40,
+   "destination": "audio_src/final/sfx/boss_baron_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     3.34
+    ],
+    "natural_seconds": 3.335,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.335
+   },
+   "measured": {
+    "seconds": 3.335,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.001,
+    "onset_ms": 9.2,
+    "centroid_hz": 1601,
+    "end_db": -129.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "boss_swamp_king_intro": {
    "purpose": "new cue",
    "refs": [],
@@ -22612,6 +23662,216 @@
     "onset_ms": 7.7,
     "centroid_hz": 1970,
     "end_db": -128.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_intro_1.mp3",
+   "prompt": "Back on my bayou, boy? Big mistake.",
+   "credits": 71,
+   "destination": "audio_src/final/sfx/boss_swamp_king_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.52
+    ],
+    "natural_seconds": 2.465,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.465
+   },
+   "measured": {
+    "seconds": 2.465,
+    "peak_db": -0.8,
+    "loud_db": -7.0,
+    "dc": 0.0,
+    "onset_ms": 7.8,
+    "centroid_hz": 1391,
+    "end_db": -162.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_taunt_2.mp3",
+   "prompt": "My gators are gettin' hungry!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/boss_swamp_king_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.74
+    ],
+    "natural_seconds": 1.678,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.678
+   },
+   "measured": {
+    "seconds": 1.678,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0008,
+    "onset_ms": 28.5,
+    "centroid_hz": 1742,
+    "end_db": -113.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_taunt_3.mp3",
+   "prompt": "Swim home, boy! I dare you!",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/boss_swamp_king_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.68
+    ],
+    "natural_seconds": 1.688,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.688
+   },
+   "measured": {
+    "seconds": 1.688,
+    "peak_db": -0.8,
+    "loud_db": -8.0,
+    "dc": 0.0,
+    "onset_ms": 19.5,
+    "centroid_hz": 1631,
+    "end_db": -126.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_mad.mp3",
+   "prompt": "Come get him, my sweet babies!",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/boss_swamp_king_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.8
+    ],
+    "natural_seconds": 1.825,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.825
+   },
+   "measured": {
+    "seconds": 1.825,
+    "peak_db": -0.8,
+    "loud_db": -8.1,
+    "dc": 0.0,
+    "onset_ms": 10.6,
+    "centroid_hz": 1853,
+    "end_db": -167.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_swamp_king_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_swamp_king_worried_1.mp3",
+   "prompt": "Bail her out! Somebody bail!",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/boss_swamp_king_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.0
+    ],
+    "natural_seconds": 2.087,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.087
+   },
+   "measured": {
+    "seconds": 2.08,
+    "peak_db": -0.8,
+    "loud_db": -7.7,
+    "dc": 0.0,
+    "onset_ms": 7.3,
+    "centroid_hz": 1596,
+    "end_db": -162.2,
     "problems": []
    },
    "validation": "ok"
@@ -22826,6 +24086,216 @@
    },
    "validation": "ok"
   },
+  "boss_boggs_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_intro_1.mp3",
+   "prompt": "Round two, sunshine! Start your engines!",
+   "credits": 40,
+   "destination": "audio_src/final/sfx/boss_boggs_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.62
+    ],
+    "natural_seconds": 2.768,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.768
+   },
+   "measured": {
+    "seconds": 2.723,
+    "peak_db": -0.8,
+    "loud_db": -7.6,
+    "dc": 0.0,
+    "onset_ms": 9.6,
+    "centroid_hz": 1739,
+    "end_db": -154.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_taunt_2.mp3",
+   "prompt": "Eat my dust, boy!",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/boss_boggs_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.34
+    ],
+    "natural_seconds": 1.445,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.445
+   },
+   "measured": {
+    "seconds": 1.445,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0016,
+    "onset_ms": 11.6,
+    "centroid_hz": 1692,
+    "end_db": -152.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_taunt_3.mp3",
+   "prompt": "I've wrecked better than you on a Tuesday!",
+   "credits": 42,
+   "destination": "audio_src/final/sfx/boss_boggs_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.46
+    ],
+    "natural_seconds": 2.612,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.612
+   },
+   "measured": {
+    "seconds": 2.57,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 1901,
+    "end_db": -162.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_mad.mp3",
+   "prompt": "Now you scratched my paint!",
+   "credits": 54,
+   "destination": "audio_src/final/sfx/boss_boggs_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.74
+    ],
+    "natural_seconds": 1.772,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.772
+   },
+   "measured": {
+    "seconds": 1.772,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0052,
+    "onset_ms": 14.1,
+    "centroid_hz": 1760,
+    "end_db": -161.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_boggs_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_boggs_worried_1.mp3",
+   "prompt": "She's smokin'! She's smokin' bad!",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/boss_boggs_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.96
+    ],
+    "natural_seconds": 3.053,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.053
+   },
+   "measured": {
+    "seconds": 3.053,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0002,
+    "onset_ms": 18.2,
+    "centroid_hz": 1862,
+    "end_db": -180.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "boss_maw_intro": {
    "purpose": "new cue",
    "refs": [],
@@ -23036,6 +24506,216 @@
    },
    "validation": "ok"
   },
+  "boss_maw_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_intro_1.mp3",
+   "prompt": "Back for seconds, hooman?",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/boss_maw_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.36
+    ],
+    "natural_seconds": 1.416,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.416
+   },
+   "measured": {
+    "seconds": 1.416,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0036,
+    "onset_ms": 5.6,
+    "centroid_hz": 2090,
+    "end_db": -150.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_taunt_2.mp3",
+   "prompt": "Sit up straight, hooman!",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/boss_maw_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.4
+    ],
+    "natural_seconds": 1.448,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.448
+   },
+   "measured": {
+    "seconds": 1.448,
+    "peak_db": -0.8,
+    "loud_db": -8.1,
+    "dc": 0.0,
+    "onset_ms": 20.2,
+    "centroid_hz": 1723,
+    "end_db": -150.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_taunt_3.mp3",
+   "prompt": "Don't make me get the wooden spoon!",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/boss_maw_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.2
+    ],
+    "natural_seconds": 2.176,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.176
+   },
+   "measured": {
+    "seconds": 2.176,
+    "peak_db": -0.8,
+    "loud_db": -4.4,
+    "dc": 0.001,
+    "onset_ms": 5.4,
+    "centroid_hz": 1759,
+    "end_db": -130.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_mad.mp3",
+   "prompt": "My housecoat's on fire, you little varmint!",
+   "credits": 43,
+   "destination": "audio_src/final/sfx/boss_maw_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.7
+    ],
+    "natural_seconds": 2.715,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.715
+   },
+   "measured": {
+    "seconds": 2.715,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0013,
+    "onset_ms": 20.5,
+    "centroid_hz": 1602,
+    "end_db": -157.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_worried_1.mp3",
+   "prompt": "Mercy, I'm comin' apart at the seams!",
+   "credits": 37,
+   "destination": "audio_src/final/sfx/boss_maw_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.48
+    ],
+    "natural_seconds": 2.398,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.398
+   },
+   "measured": {
+    "seconds": 2.398,
+    "peak_db": -0.8,
+    "loud_db": -4.0,
+    "dc": 0.0012,
+    "onset_ms": 21.2,
+    "centroid_hz": 1720,
+    "end_db": -111.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_hick_spot_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23120,6 +24800,48 @@
    },
    "validation": "ok"
   },
+  "bark_hick_spot_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_spot_2.mp3",
+   "prompt": "Yonder he goes!",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/bark_hick_spot_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.1
+    ],
+    "natural_seconds": 1.071,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.071
+   },
+   "measured": {
+    "seconds": 1.071,
+    "peak_db": -0.8,
+    "loud_db": -8.9,
+    "dc": 0.0,
+    "onset_ms": 21.2,
+    "centroid_hz": 1639,
+    "end_db": -116.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_hick_lost_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23158,6 +24880,48 @@
     "onset_ms": 0.1,
     "centroid_hz": 1519,
     "end_db": -117.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_hick_lost_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_lost_1.mp3",
+   "prompt": "Dang it, he's gone!",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/bark_hick_lost_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.24
+    ],
+    "natural_seconds": 1.127,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.127
+   },
+   "measured": {
+    "seconds": 1.127,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0036,
+    "onset_ms": 6.5,
+    "centroid_hz": 1930,
+    "end_db": -118.6,
     "problems": []
    },
    "validation": "ok"
@@ -23204,6 +24968,48 @@
    },
    "validation": "ok"
   },
+  "bark_hick_search_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_search_1.mp3",
+   "prompt": "Here, city boy, city boy...",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/bark_hick_search_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.88
+    ],
+    "natural_seconds": 1.948,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.948
+   },
+   "measured": {
+    "seconds": 1.948,
+    "peak_db": -0.8,
+    "loud_db": -7.7,
+    "dc": 0.0,
+    "onset_ms": 11.1,
+    "centroid_hz": 1642,
+    "end_db": -145.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_hick_help_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23242,6 +25048,48 @@
     "onset_ms": 9.2,
     "centroid_hz": 1632,
     "end_db": -121.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_hick_help_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_help_1.mp3",
+   "prompt": "Cletus! Bring the truck!",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/bark_hick_help_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.38,
+     1.66
+    ],
+    "natural_seconds": 1.496,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.496
+   },
+   "measured": {
+    "seconds": 1.426,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0015,
+    "onset_ms": 38.2,
+    "centroid_hz": 1530,
+    "end_db": -75.8,
     "problems": []
    },
    "validation": "ok"
@@ -23288,6 +25136,48 @@
    },
    "validation": "ok"
   },
+  "bark_hick_flank_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_flank_1.mp3",
+   "prompt": "I'll go round the shed!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/bark_hick_flank_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.5
+    ],
+    "natural_seconds": 1.475,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.475
+   },
+   "measured": {
+    "seconds": 1.449,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0024,
+    "onset_ms": 0.3,
+    "centroid_hz": 1735,
+    "end_db": -155.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_hick_cover_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23326,6 +25216,48 @@
     "onset_ms": 0.2,
     "centroid_hz": 1206,
     "end_db": -92.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_hick_cover_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_cover_1.mp3",
+   "prompt": "Git behind the truck!",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/bark_hick_cover_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.32,
+     1.54
+    ],
+    "natural_seconds": 1.337,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.337
+   },
+   "measured": {
+    "seconds": 1.32,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.0018,
+    "onset_ms": 23.7,
+    "centroid_hz": 1822,
+    "end_db": -151.3,
     "problems": []
    },
    "validation": "ok"
@@ -23498,6 +25430,90 @@
    },
    "validation": "ok"
   },
+  "bark_hick_idle_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_idle_2.mp3",
+   "prompt": "Who drank my beer?",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/bark_hick_idle_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     0.92
+    ],
+    "natural_seconds": 0.905,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.905
+   },
+   "measured": {
+    "seconds": 0.905,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 148.3,
+    "centroid_hz": 2214,
+    "end_db": -135.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_hick_idle_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_idle_3.mp3",
+   "prompt": "Reckon it'll rain?",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/bark_hick_idle_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     0.88
+    ],
+    "natural_seconds": 0.971,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.971
+   },
+   "measured": {
+    "seconds": 0.965,
+    "peak_db": -0.8,
+    "loud_db": -7.7,
+    "dc": 0.0001,
+    "onset_ms": 6.4,
+    "centroid_hz": 1612,
+    "end_db": -144.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_hick_surprised_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23536,6 +25552,48 @@
     "onset_ms": 29.0,
     "centroid_hz": 1605,
     "end_db": -111.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_hick_surprised_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_surprised_1.mp3",
+   "prompt": "Whoa, Nelly!",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/bark_hick_surprised_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     0.74
+    ],
+    "natural_seconds": 0.767,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.767
+   },
+   "measured": {
+    "seconds": 0.767,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0028,
+    "onset_ms": 16.1,
+    "centroid_hz": 1653,
+    "end_db": -126.5,
     "problems": []
    },
    "validation": "ok"
@@ -23582,6 +25640,48 @@
    },
    "validation": "ok"
   },
+  "bark_hick_hurt_bad_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_hurt_bad_1.mp3",
+   "prompt": "I'm leakin', Earl!",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/bark_hick_hurt_bad_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.36,
+     1.34
+    ],
+    "natural_seconds": 1.156,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.156
+   },
+   "measured": {
+    "seconds": 1.156,
+    "peak_db": -0.8,
+    "loud_db": -5.0,
+    "dc": 0.0077,
+    "onset_ms": 0.0,
+    "centroid_hz": 1788,
+    "end_db": -143.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_hick_regroup_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23620,6 +25720,48 @@
     "onset_ms": 16.5,
     "centroid_hz": 1459,
     "end_db": -138.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_hick_regroup_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_hick_regroup_1.mp3",
+   "prompt": "Run fer the truck!",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/bark_hick_regroup_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.22
+    ],
+    "natural_seconds": 1.17,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.17
+   },
+   "measured": {
+    "seconds": 1.17,
+    "peak_db": -0.8,
+    "loud_db": -7.1,
+    "dc": 0.0,
+    "onset_ms": 11.1,
+    "centroid_hz": 1675,
+    "end_db": -121.8,
     "problems": []
    },
    "validation": "ok"
@@ -23708,6 +25850,48 @@
    },
    "validation": "ok"
   },
+  "bark_deputy_spot_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_spot_2.mp3",
+   "prompt": "Hold it right there!",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/bark_deputy_spot_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     1.0,
+     2.22
+    ],
+    "natural_seconds": 1.237,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.237
+   },
+   "measured": {
+    "seconds": 1.237,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.0014,
+    "onset_ms": 9.5,
+    "centroid_hz": 1585,
+    "end_db": -104.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_deputy_lost_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23746,6 +25930,48 @@
     "onset_ms": 4.8,
     "centroid_hz": 1712,
     "end_db": -140.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_deputy_lost_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_lost_1.mp3",
+   "prompt": "Suspect's gone to ground.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/bark_deputy_lost_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.46
+    ],
+    "natural_seconds": 1.474,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.474
+   },
+   "measured": {
+    "seconds": 1.474,
+    "peak_db": -0.8,
+    "loud_db": -7.8,
+    "dc": 0.0001,
+    "onset_ms": 3.7,
+    "centroid_hz": 1606,
+    "end_db": -126.9,
     "problems": []
    },
    "validation": "ok"
@@ -23792,6 +26018,48 @@
    },
    "validation": "ok"
   },
+  "bark_deputy_search_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_search_1.mp3",
+   "prompt": "Check them bushes, Dwayne.",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/bark_deputy_search_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.68
+    ],
+    "natural_seconds": 1.765,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.765
+   },
+   "measured": {
+    "seconds": 1.765,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0014,
+    "onset_ms": 15.3,
+    "centroid_hz": 1549,
+    "end_db": -155.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_deputy_help_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23830,6 +26098,48 @@
     "onset_ms": 0.0,
     "centroid_hz": 1998,
     "end_db": -138.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_deputy_help_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_help_1.mp3",
+   "prompt": "All units, get over here!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/bark_deputy_help_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.66
+    ],
+    "natural_seconds": 1.577,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.577
+   },
+   "measured": {
+    "seconds": 1.577,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0019,
+    "onset_ms": 0.9,
+    "centroid_hz": 1716,
+    "end_db": -113.7,
     "problems": []
    },
    "validation": "ok"
@@ -23876,6 +26186,48 @@
    },
    "validation": "ok"
   },
+  "bark_deputy_flank_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_flank_1.mp3",
+   "prompt": "Circle round back!",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/bark_deputy_flank_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.26
+    ],
+    "natural_seconds": 1.372,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.372
+   },
+   "measured": {
+    "seconds": 1.327,
+    "peak_db": -0.8,
+    "loud_db": -8.9,
+    "dc": 0.0,
+    "onset_ms": 9.3,
+    "centroid_hz": 1616,
+    "end_db": -141.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_deputy_cover_0": {
    "purpose": "new cue",
    "refs": [],
@@ -23914,6 +26266,48 @@
     "onset_ms": 22.5,
     "centroid_hz": 1806,
     "end_db": -134.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_deputy_cover_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_cover_1.mp3",
+   "prompt": "Get behind the cruiser!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/bark_deputy_cover_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.5
+    ],
+    "natural_seconds": 1.499,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.499
+   },
+   "measured": {
+    "seconds": 1.499,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.007,
+    "onset_ms": 9.3,
+    "centroid_hz": 1579,
+    "end_db": -117.4,
     "problems": []
    },
    "validation": "ok"
@@ -24086,6 +26480,90 @@
    },
    "validation": "ok"
   },
+  "bark_deputy_idle_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_idle_2.mp3",
+   "prompt": "Sure is hot for April.",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/bark_deputy_idle_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.02,
+     1.46
+    ],
+    "natural_seconds": 1.472,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.472
+   },
+   "measured": {
+    "seconds": 1.472,
+    "peak_db": -0.8,
+    "loud_db": -8.0,
+    "dc": 0.0,
+    "onset_ms": 5.4,
+    "centroid_hz": 1682,
+    "end_db": -151.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_deputy_idle_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_idle_3.mp3",
+   "prompt": "Who ate my bear claw?",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/bark_deputy_idle_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.28,
+     1.78
+    ],
+    "natural_seconds": 1.535,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.535
+   },
+   "measured": {
+    "seconds": 1.535,
+    "peak_db": -0.8,
+    "loud_db": -5.0,
+    "dc": 0.0016,
+    "onset_ms": 45.4,
+    "centroid_hz": 1584,
+    "end_db": -129.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_deputy_surprised_0": {
    "purpose": "new cue",
    "refs": [],
@@ -24124,6 +26602,48 @@
     "onset_ms": 0.3,
     "centroid_hz": 1418,
     "end_db": -138.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_deputy_surprised_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_surprised_1.mp3",
+   "prompt": "Sweet mercy!",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/bark_deputy_surprised_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.02,
+     0.92
+    ],
+    "natural_seconds": 0.923,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.923
+   },
+   "measured": {
+    "seconds": 0.923,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.0042,
+    "onset_ms": 13.2,
+    "centroid_hz": 1577,
+    "end_db": -125.7,
     "problems": []
    },
    "validation": "ok"
@@ -24170,6 +26690,48 @@
    },
    "validation": "ok"
   },
+  "bark_deputy_hurt_bad_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_hurt_bad_1.mp3",
+   "prompt": "I'm shot! Call my mama!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/bark_deputy_hurt_bad_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.5
+    ],
+    "natural_seconds": 1.505,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.505
+   },
+   "measured": {
+    "seconds": 1.505,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1334,
+    "end_db": -140.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_deputy_regroup_0": {
    "purpose": "new cue",
    "refs": [],
@@ -24208,6 +26770,48 @@
     "onset_ms": 11.6,
     "centroid_hz": 1510,
     "end_db": -138.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_deputy_regroup_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_deputy_regroup_1.mp3",
+   "prompt": "Fall back to the station!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/bark_deputy_regroup_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.5
+    ],
+    "natural_seconds": 1.472,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.472
+   },
+   "measured": {
+    "seconds": 1.472,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0019,
+    "onset_ms": 8.8,
+    "centroid_hz": 1669,
+    "end_db": -112.7,
     "problems": []
    },
    "validation": "ok"
@@ -24296,6 +26900,48 @@
    },
    "validation": "ok"
   },
+  "bark_coot_spot_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_spot_2.mp3",
+   "prompt": "Trespasser! Fetch the salt!",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/bark_coot_spot_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.82
+    ],
+    "natural_seconds": 1.795,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.795
+   },
+   "measured": {
+    "seconds": 1.795,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0012,
+    "onset_ms": 30.7,
+    "centroid_hz": 1992,
+    "end_db": -133.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_coot_lost_0": {
    "purpose": "new cue",
    "refs": [],
@@ -24334,6 +26980,48 @@
     "onset_ms": 5.4,
     "centroid_hz": 2264,
     "end_db": -108.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_coot_lost_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_lost_1.mp3",
+   "prompt": "Where'd the varmint git to?",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/bark_coot_lost_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.72
+    ],
+    "natural_seconds": 1.696,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.696
+   },
+   "measured": {
+    "seconds": 1.696,
+    "peak_db": -0.8,
+    "loud_db": -6.9,
+    "dc": 0.0,
+    "onset_ms": 20.5,
+    "centroid_hz": 1922,
+    "end_db": -125.0,
     "problems": []
    },
    "validation": "ok"
@@ -24380,6 +27068,48 @@
    },
    "validation": "ok"
   },
+  "bark_coot_search_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_search_1.mp3",
+   "prompt": "Here, varmint, varmint...",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/bark_coot_search_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.6
+    ],
+    "natural_seconds": 1.549,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.549
+   },
+   "measured": {
+    "seconds": 1.549,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.0013,
+    "onset_ms": 11.2,
+    "centroid_hz": 1862,
+    "end_db": -130.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_coot_help_0": {
    "purpose": "new cue",
    "refs": [],
@@ -24418,6 +27148,48 @@
     "onset_ms": 30.4,
     "centroid_hz": 2039,
     "end_db": -117.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_coot_help_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_help_1.mp3",
+   "prompt": "Mother! Bring the rock salt!",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/bark_coot_help_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.74
+    ],
+    "natural_seconds": 1.761,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.761
+   },
+   "measured": {
+    "seconds": 1.761,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0029,
+    "onset_ms": 44.8,
+    "centroid_hz": 1808,
+    "end_db": -137.5,
     "problems": []
    },
    "validation": "ok"
@@ -24464,6 +27236,48 @@
    },
    "validation": "ok"
   },
+  "bark_coot_flank_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_flank_1.mp3",
+   "prompt": "I'll git him from the henhouse!",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/bark_coot_flank_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.7
+    ],
+    "natural_seconds": 1.526,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.526
+   },
+   "measured": {
+    "seconds": 1.526,
+    "peak_db": -0.8,
+    "loud_db": -6.5,
+    "dc": 0.0047,
+    "onset_ms": 0.0,
+    "centroid_hz": 2058,
+    "end_db": -122.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_coot_cover_0": {
    "purpose": "new cue",
    "refs": [],
@@ -24502,6 +27316,48 @@
     "onset_ms": 37.6,
     "centroid_hz": 2210,
     "end_db": -122.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_coot_cover_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_cover_1.mp3",
+   "prompt": "Hold on, lemme sit a spell.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/bark_coot_cover_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.78
+    ],
+    "natural_seconds": 1.817,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.817
+   },
+   "measured": {
+    "seconds": 1.817,
+    "peak_db": -0.8,
+    "loud_db": -8.5,
+    "dc": 0.0,
+    "onset_ms": 7.4,
+    "centroid_hz": 2357,
+    "end_db": -144.5,
     "problems": []
    },
    "validation": "ok"
@@ -24674,6 +27530,90 @@
    },
    "validation": "ok"
   },
+  "bark_coot_idle_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_idle_2.mp3",
+   "prompt": "Kids these days...",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/bark_coot_idle_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.32
+    ],
+    "natural_seconds": 1.276,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.276
+   },
+   "measured": {
+    "seconds": 1.276,
+    "peak_db": -0.8,
+    "loud_db": -5.0,
+    "dc": 0.0021,
+    "onset_ms": 36.3,
+    "centroid_hz": 2516,
+    "end_db": -106.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_coot_idle_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_idle_3.mp3",
+   "prompt": "Is it Tuesday?",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/bark_coot_idle_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     0.94
+    ],
+    "natural_seconds": 0.977,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.977
+   },
+   "measured": {
+    "seconds": 0.977,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0033,
+    "onset_ms": 4.1,
+    "centroid_hz": 1986,
+    "end_db": -124.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_coot_surprised_0": {
    "purpose": "new cue",
    "refs": [],
@@ -24712,6 +27652,48 @@
     "onset_ms": 27.9,
     "centroid_hz": 1963,
     "end_db": -105.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_coot_surprised_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_surprised_1.mp3",
+   "prompt": "Great jumpin' catfish!",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/bark_coot_surprised_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.88
+    ],
+    "natural_seconds": 1.75,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.75
+   },
+   "measured": {
+    "seconds": 1.75,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0028,
+    "onset_ms": 58.2,
+    "centroid_hz": 2000,
+    "end_db": -115.4,
     "problems": []
    },
    "validation": "ok"
@@ -24758,6 +27740,48 @@
    },
    "validation": "ok"
   },
+  "bark_coot_hurt_bad_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_hurt_bad_1.mp3",
+   "prompt": "Lord, my hip!",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/bark_coot_hurt_bad_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.0
+    ],
+    "natural_seconds": 0.944,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.944
+   },
+   "measured": {
+    "seconds": 0.944,
+    "peak_db": -0.8,
+    "loud_db": -7.8,
+    "dc": 0.0,
+    "onset_ms": 22.7,
+    "centroid_hz": 1991,
+    "end_db": -113.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_coot_regroup_0": {
    "purpose": "new cue",
    "refs": [],
@@ -24796,6 +27820,48 @@
     "onset_ms": 16.0,
     "centroid_hz": 1469,
     "end_db": -111.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_coot_regroup_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_coot_regroup_1.mp3",
+   "prompt": "Back to the porch!",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/bark_coot_regroup_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.04
+    ],
+    "natural_seconds": 0.934,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.934
+   },
+   "measured": {
+    "seconds": 0.934,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0007,
+    "onset_ms": 9.6,
+    "centroid_hz": 1588,
+    "end_db": -124.8,
     "problems": []
    },
    "validation": "ok"
@@ -24884,6 +27950,48 @@
    },
    "validation": "ok"
   },
+  "bark_grey_spot_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_spot_2.mp3",
+   "prompt": "Specimen located!",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/bark_grey_spot_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.42
+    ],
+    "natural_seconds": 1.365,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.365
+   },
+   "measured": {
+    "seconds": 1.365,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0012,
+    "onset_ms": 7.7,
+    "centroid_hz": 2311,
+    "end_db": -130.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_grey_lost_0": {
    "purpose": "new cue",
    "refs": [],
@@ -24922,6 +28030,48 @@
     "onset_ms": 34.8,
     "centroid_hz": 2658,
     "end_db": -161.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_grey_lost_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_lost_1.mp3",
+   "prompt": "Target has left the sector.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/bark_grey_lost_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     1.92
+    ],
+    "natural_seconds": 1.804,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.804
+   },
+   "measured": {
+    "seconds": 1.804,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.0012,
+    "onset_ms": 44.3,
+    "centroid_hz": 2612,
+    "end_db": -124.5,
     "problems": []
    },
    "validation": "ok"
@@ -24968,6 +28118,48 @@
    },
    "validation": "ok"
   },
+  "bark_grey_search_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_search_1.mp3",
+   "prompt": "Sweep for hooman heat.",
+   "credits": 44,
+   "destination": "audio_src/final/sfx/bark_grey_search_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.54
+    ],
+    "natural_seconds": 1.617,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.617
+   },
+   "measured": {
+    "seconds": 1.611,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0004,
+    "onset_ms": 28.8,
+    "centroid_hz": 2578,
+    "end_db": -145.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_grey_help_0": {
    "purpose": "new cue",
    "refs": [],
@@ -25006,6 +28198,48 @@
     "onset_ms": 7.5,
     "centroid_hz": 2735,
     "end_db": -144.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_grey_help_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_help_1.mp3",
+   "prompt": "Send more probes!",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/bark_grey_help_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.08
+    ],
+    "natural_seconds": 1.174,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.174
+   },
+   "measured": {
+    "seconds": 1.157,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0001,
+    "onset_ms": 34.6,
+    "centroid_hz": 2578,
+    "end_db": -137.3,
     "problems": []
    },
    "validation": "ok"
@@ -25052,6 +28286,48 @@
    },
    "validation": "ok"
   },
+  "bark_grey_flank_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_flank_1.mp3",
+   "prompt": "Approach from the rear.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/bark_grey_flank_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     1.48
+    ],
+    "natural_seconds": 1.399,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.399
+   },
+   "measured": {
+    "seconds": 1.399,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0003,
+    "onset_ms": 0.0,
+    "centroid_hz": 3184,
+    "end_db": -112.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_grey_cover_0": {
    "purpose": "new cue",
    "refs": [],
@@ -25090,6 +28366,48 @@
     "onset_ms": 24.0,
     "centroid_hz": 2740,
     "end_db": -150.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_grey_cover_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_cover_1.mp3",
+   "prompt": "Deploy the force field!",
+   "credits": 46,
+   "destination": "audio_src/final/sfx/bark_grey_cover_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.54
+    ],
+    "natural_seconds": 1.47,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.47
+   },
+   "measured": {
+    "seconds": 1.47,
+    "peak_db": -0.8,
+    "loud_db": -4.4,
+    "dc": 0.0026,
+    "onset_ms": 11.8,
+    "centroid_hz": 1865,
+    "end_db": -106.1,
     "problems": []
    },
    "validation": "ok"
@@ -25262,6 +28580,90 @@
    },
    "validation": "ok"
   },
+  "bark_grey_idle_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_idle_2.mp3",
+   "prompt": "Why do they tip the cows?",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/bark_grey_idle_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.96
+    ],
+    "natural_seconds": 2.017,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.017
+   },
+   "measured": {
+    "seconds": 2.017,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0011,
+    "onset_ms": 50.8,
+    "centroid_hz": 2914,
+    "end_db": -143.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_grey_idle_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_idle_3.mp3",
+   "prompt": "I miss my home planet.",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/bark_grey_idle_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.54
+    ],
+    "natural_seconds": 1.581,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.581
+   },
+   "measured": {
+    "seconds": 1.555,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 2053,
+    "end_db": -152.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_grey_surprised_0": {
    "purpose": "new cue",
    "refs": [],
@@ -25300,6 +28702,48 @@
     "onset_ms": 5.6,
     "centroid_hz": 3912,
     "end_db": -74.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_grey_surprised_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_surprised_1.mp3",
+   "prompt": "Alert! A hooman!",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/bark_grey_surprised_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     0.98
+    ],
+    "natural_seconds": 1.153,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.153
+   },
+   "measured": {
+    "seconds": 1.106,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0012,
+    "onset_ms": 6.2,
+    "centroid_hz": 2728,
+    "end_db": -110.6,
     "problems": []
    },
    "validation": "ok"
@@ -25346,6 +28790,48 @@
    },
    "validation": "ok"
   },
+  "bark_grey_hurt_bad_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_hurt_bad_1.mp3",
+   "prompt": "My antenna! My antenna!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/bark_grey_hurt_bad_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.92
+    ],
+    "natural_seconds": 2.02,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.02
+   },
+   "measured": {
+    "seconds": 2.02,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.002,
+    "onset_ms": 16.6,
+    "centroid_hz": 3014,
+    "end_db": -142.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "bark_grey_regroup_0": {
    "purpose": "new cue",
    "refs": [],
@@ -25384,6 +28870,1547 @@
     "onset_ms": 10.5,
     "centroid_hz": 3231,
     "end_db": -103.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_grey_regroup_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_grey_regroup_1.mp3",
+   "prompt": "Retreat to the mothership!",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/bark_grey_regroup_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.68
+    ],
+    "natural_seconds": 1.572,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.572
+   },
+   "measured": {
+    "seconds": 1.572,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0019,
+    "onset_ms": 26.3,
+    "centroid_hz": 2348,
+    "end_db": -144.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_spot_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_spot_0.mp3",
+   "prompt": "Hey! We got a live one!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/bark_local_spot_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.6
+    ],
+    "natural_seconds": 2.447,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.447
+   },
+   "measured": {
+    "seconds": 2.447,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.0052,
+    "onset_ms": 4.2,
+    "centroid_hz": 1358,
+    "end_db": -117.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_spot_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_spot_1.mp3",
+   "prompt": "Boss said shoot on sight!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/bark_local_spot_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     2.08
+    ],
+    "natural_seconds": 1.966,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.966
+   },
+   "measured": {
+    "seconds": 1.966,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.0036,
+    "onset_ms": 6.0,
+    "centroid_hz": 1094,
+    "end_db": -126.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_lost_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_lost_0.mp3",
+   "prompt": "Now where'd that feller git to?",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/bark_local_lost_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     2.44
+    ],
+    "natural_seconds": 2.305,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.305
+   },
+   "measured": {
+    "seconds": 2.305,
+    "peak_db": -0.8,
+    "loud_db": -7.3,
+    "dc": 0.0002,
+    "onset_ms": 1.7,
+    "centroid_hz": 987,
+    "end_db": -127.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_lost_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_lost_1.mp3",
+   "prompt": "Lost him round the side.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/bark_local_lost_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.28,
+     1.92
+    ],
+    "natural_seconds": 1.753,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.753
+   },
+   "measured": {
+    "seconds": 1.753,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0054,
+    "onset_ms": 0.0,
+    "centroid_hz": 1343,
+    "end_db": -148.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_search_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_search_0.mp3",
+   "prompt": "Come on out, we won't bite.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/bark_local_search_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.32
+    ],
+    "natural_seconds": 2.357,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.357
+   },
+   "measured": {
+    "seconds": 2.357,
+    "peak_db": -0.8,
+    "loud_db": -9.3,
+    "dc": 0.0002,
+    "onset_ms": 3.2,
+    "centroid_hz": 1235,
+    "end_db": -125.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_search_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_search_1.mp3",
+   "prompt": "Check behind the stacks.",
+   "credits": 24,
+   "destination": "audio_src/final/sfx/bark_local_search_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.86
+    ],
+    "natural_seconds": 1.813,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.813
+   },
+   "measured": {
+    "seconds": 1.813,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0057,
+    "onset_ms": 3.4,
+    "centroid_hz": 1790,
+    "end_db": -152.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_help_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_help_0.mp3",
+   "prompt": "Need a hand over here!",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/bark_local_help_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     1.76
+    ],
+    "natural_seconds": 1.681,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.681
+   },
+   "measured": {
+    "seconds": 1.681,
+    "peak_db": -0.8,
+    "loud_db": -4.5,
+    "dc": 0.0121,
+    "onset_ms": 2.4,
+    "centroid_hz": 1100,
+    "end_db": -147.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_help_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_help_1.mp3",
+   "prompt": "Somebody fetch the big wrench!",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/bark_local_help_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.6
+    ],
+    "natural_seconds": 2.509,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.509
+   },
+   "measured": {
+    "seconds": 2.509,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0034,
+    "onset_ms": 0.0,
+    "centroid_hz": 1208,
+    "end_db": -147.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_flank_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_flank_0.mp3",
+   "prompt": "I'll take the long way round!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/bark_local_flank_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.3,
+     2.48
+    ],
+    "natural_seconds": 2.269,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.269
+   },
+   "measured": {
+    "seconds": 2.269,
+    "peak_db": -0.8,
+    "loud_db": -5.6,
+    "dc": 0.005,
+    "onset_ms": 0.0,
+    "centroid_hz": 1142,
+    "end_db": -133.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_flank_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_flank_1.mp3",
+   "prompt": "Comin' at him from the side!",
+   "credits": 28,
+   "destination": "audio_src/final/sfx/bark_local_flank_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.0
+    ],
+    "natural_seconds": 1.903,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.903
+   },
+   "measured": {
+    "seconds": 1.903,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.0052,
+    "onset_ms": 3.5,
+    "centroid_hz": 1218,
+    "end_db": -121.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_cover_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_cover_0.mp3",
+   "prompt": "Git behind somethin' solid!",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/bark_local_cover_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.08
+    ],
+    "natural_seconds": 2.008,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.008
+   },
+   "measured": {
+    "seconds": 2.008,
+    "peak_db": -0.8,
+    "loud_db": -5.0,
+    "dc": 0.0079,
+    "onset_ms": 3.0,
+    "centroid_hz": 1618,
+    "end_db": -123.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_cover_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_cover_1.mp3",
+   "prompt": "Duck, Dwayne!",
+   "credits": 13,
+   "destination": "audio_src/final/sfx/bark_local_cover_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.28
+    ],
+    "natural_seconds": 1.288,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.288
+   },
+   "measured": {
+    "seconds": 1.288,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0061,
+    "onset_ms": 38.3,
+    "centroid_hz": 1554,
+    "end_db": -127.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_brawl_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_brawl_0.mp3",
+   "prompt": "That was my good arm, Dwayne!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/bark_local_brawl_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.3,
+     2.74
+    ],
+    "natural_seconds": 2.69,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.69
+   },
+   "measured": {
+    "seconds": 2.629,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0036,
+    "onset_ms": 0.0,
+    "centroid_hz": 862,
+    "end_db": -120.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_brawl_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_brawl_1.mp3",
+   "prompt": "Quit shootin' the help!",
+   "credits": 46,
+   "destination": "audio_src/final/sfx/bark_local_brawl_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.7
+    ],
+    "natural_seconds": 1.519,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.519
+   },
+   "measured": {
+    "seconds": 1.519,
+    "peak_db": -0.8,
+    "loud_db": -4.2,
+    "dc": 0.0023,
+    "onset_ms": 3.1,
+    "centroid_hz": 1338,
+    "end_db": -113.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_idle_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_idle_0.mp3",
+   "prompt": "Lunch whistle ain't blowed yet?",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/bark_local_idle_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     2.08
+    ],
+    "natural_seconds": 1.987,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.987
+   },
+   "measured": {
+    "seconds": 1.987,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0032,
+    "onset_ms": 4.4,
+    "centroid_hz": 1241,
+    "end_db": -124.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_idle_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_idle_1.mp3",
+   "prompt": "My back's killin' me.",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/bark_local_idle_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     1.9
+    ],
+    "natural_seconds": 1.717,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.717
+   },
+   "measured": {
+    "seconds": 1.717,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0056,
+    "onset_ms": 0.4,
+    "centroid_hz": 1215,
+    "end_db": -110.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_surprised_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_surprised_0.mp3",
+   "prompt": "Well, I'll be dipped!",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/bark_local_surprised_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     2.12
+    ],
+    "natural_seconds": 1.997,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.997
+   },
+   "measured": {
+    "seconds": 1.997,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0088,
+    "onset_ms": 0.0,
+    "centroid_hz": 1389,
+    "end_db": -128.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_surprised_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_surprised_1.mp3",
+   "prompt": "Who let you in here?",
+   "credits": 20,
+   "destination": "audio_src/final/sfx/bark_local_surprised_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.56
+    ],
+    "natural_seconds": 1.441,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.441
+   },
+   "measured": {
+    "seconds": 1.441,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0003,
+    "onset_ms": 4.6,
+    "centroid_hz": 1243,
+    "end_db": -103.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_hurt_bad_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_hurt_bad_0.mp3",
+   "prompt": "I'm hurt bad! Call it in!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/bark_local_hurt_bad_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.72
+    ],
+    "natural_seconds": 1.755,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.755
+   },
+   "measured": {
+    "seconds": 1.755,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.005,
+    "onset_ms": 2.6,
+    "centroid_hz": 1089,
+    "end_db": -124.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_hurt_bad_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_hurt_bad_1.mp3",
+   "prompt": "That's a workman's comp claim!",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/bark_local_hurt_bad_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.48
+    ],
+    "natural_seconds": 2.563,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.563
+   },
+   "measured": {
+    "seconds": 2.504,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0063,
+    "onset_ms": 2.8,
+    "centroid_hz": 1473,
+    "end_db": -131.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_regroup_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_regroup_0.mp3",
+   "prompt": "Back to the trucks!",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/bark_local_regroup_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     1.82
+    ],
+    "natural_seconds": 1.743,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.743
+   },
+   "measured": {
+    "seconds": 1.732,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0028,
+    "onset_ms": 8.2,
+    "centroid_hz": 1216,
+    "end_db": -155.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_local_regroup_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_local_regroup_1.mp3",
+   "prompt": "Clock out, boys! Clock out!",
+   "credits": 54,
+   "destination": "audio_src/final/sfx/bark_local_regroup_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.1
+    ],
+    "natural_seconds": 2.3,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.3
+   },
+   "measured": {
+    "seconds": 2.23,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0092,
+    "onset_ms": 18.7,
+    "centroid_hz": 907,
+    "end_db": -98.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_tough_earl": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_tough_earl.mp3",
+   "prompt": "Big Earl runs this street, boy!",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/bark_tough_earl.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.32,
+     1.86
+    ],
+    "natural_seconds": 1.666,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.666
+   },
+   "measured": {
+    "seconds": 1.666,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0,
+    "onset_ms": 8.1,
+    "centroid_hz": 1794,
+    "end_db": -156.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_tough_clem": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_tough_clem.mp3",
+   "prompt": "Step right up, boy! Clem's waitin'!",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/bark_tough_clem.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.34
+    ],
+    "natural_seconds": 2.335,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.335
+   },
+   "measured": {
+    "seconds": 2.335,
+    "peak_db": -0.8,
+    "loud_db": -6.3,
+    "dc": 0.0,
+    "onset_ms": 81.5,
+    "centroid_hz": 1424,
+    "end_db": -120.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_tough_tom": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_tough_tom.mp3",
+   "prompt": "Timber, boy! That's you fallin'!",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/bark_tough_tom.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.52
+    ],
+    "natural_seconds": 2.546,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.546
+   },
+   "measured": {
+    "seconds": 2.546,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0079,
+    "onset_ms": 12.8,
+    "centroid_hz": 931,
+    "end_db": -131.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_tough_bubba": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_tough_bubba.mp3",
+   "prompt": "Bubba's got a full head of steam!",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/bark_tough_bubba.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     3.14
+    ],
+    "natural_seconds": 2.853,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.853
+   },
+   "measured": {
+    "seconds": 2.853,
+    "peak_db": -0.8,
+    "loud_db": -5.0,
+    "dc": 0.0043,
+    "onset_ms": 44.1,
+    "centroid_hz": 877,
+    "end_db": -110.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_tough_chuck": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_tough_chuck.mp3",
+   "prompt": "Dinner bell's ringin', and you're dinner!",
+   "credits": 41,
+   "destination": "audio_src/final/sfx/bark_tough_chuck.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.44
+    ],
+    "natural_seconds": 2.344,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.344
+   },
+   "measured": {
+    "seconds": 2.344,
+    "peak_db": -0.8,
+    "loud_db": -5.0,
+    "dc": 0.0007,
+    "onset_ms": 31.7,
+    "centroid_hz": 1252,
+    "end_db": -136.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_tough_pete": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_tough_pete.mp3",
+   "prompt": "Four tires and a grudge, boy!",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/bark_tough_pete.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.48
+    ],
+    "natural_seconds": 2.401,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.401
+   },
+   "measured": {
+    "seconds": 2.401,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.0012,
+    "onset_ms": 26.7,
+    "centroid_hz": 1115,
+    "end_db": -131.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_tough_zorgo": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_tough_zorgo.mp3",
+   "prompt": "Zorgo the Large demands your beer!",
+   "credits": 34,
+   "destination": "audio_src/final/sfx/bark_tough_zorgo.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     2.36
+    ],
+    "natural_seconds": 2.461,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.461
+   },
+   "measured": {
+    "seconds": 2.46,
+    "peak_db": -0.8,
+    "loud_db": -5.0,
+    "dc": 0.0008,
+    "onset_ms": 37.8,
+    "centroid_hz": 2774,
+    "end_db": -142.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_wake": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_wake.mp3",
+   "prompt": "You killed my baby boy!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/boss_maw_wake.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.58
+    ],
+    "natural_seconds": 1.621,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.621
+   },
+   "measured": {
+    "seconds": 1.621,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1888,
+    "end_db": -154.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_crew_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_crew_0.mp3",
+   "prompt": "Git him, young'uns!",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/boss_maw_crew_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.0
+    ],
+    "natural_seconds": 1.063,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.063
+   },
+   "measured": {
+    "seconds": 1.063,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0018,
+    "onset_ms": 3.6,
+    "centroid_hz": 1880,
+    "end_db": -158.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_maw_crew_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_maw_crew_1.mp3",
+   "prompt": "Young'uns! Git in here!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/boss_maw_crew_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.38
+    ],
+    "natural_seconds": 1.4,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.4
+   },
+   "measured": {
+    "seconds": 1.4,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.0016,
+    "onset_ms": 6.9,
+    "centroid_hz": 2653,
+    "end_db": -134.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_fair_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_fair_0.mp3",
+   "prompt": "Winners must feed their prizes.",
+   "credits": 31,
+   "destination": "audio_src/final/sfx/ann_fair_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.08
+    ],
+    "natural_seconds": 2.052,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.052
+   },
+   "measured": {
+    "seconds": 2.222,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0035,
+    "onset_ms": 7.7,
+    "centroid_hz": 1469,
+    "end_db": -137.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_fair_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_fair_1.mp3",
+   "prompt": "Lost young'uns may be claimed at the hog barn.",
+   "credits": 46,
+   "destination": "audio_src/final/sfx/ann_fair_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.52
+    ],
+    "natural_seconds": 2.424,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.424
+   },
+   "measured": {
+    "seconds": 2.594,
+    "peak_db": -0.8,
+    "loud_db": -3.9,
+    "dc": 0.0016,
+    "onset_ms": 3.8,
+    "centroid_hz": 1150,
+    "end_db": -134.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "ann_fair_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/ann_fair_2.mp3",
+   "prompt": "The two-headed calf is closed for repairs.",
+   "credits": 42,
+   "destination": "audio_src/final/sfx/ann_fair_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.6
+    ],
+    "natural_seconds": 2.513,
+    "speaker": "pa",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.513
+   },
+   "measured": {
+    "seconds": 2.683,
+    "peak_db": -0.8,
+    "loud_db": -4.9,
+    "dc": 0.0011,
+    "onset_ms": 11.7,
+    "centroid_hz": 1124,
+    "end_db": -133.2,
     "problems": []
    },
    "validation": "ok"
@@ -29612,6 +34639,1084 @@
    },
    "validation": "ok"
   },
+  "cuss_local_spot_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_spot_0.mp3",
+   "prompt": "There's the sumbitch, boys!",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/cuss_local_spot_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.2
+    ],
+    "cuss_at": [
+     [
+      0.98,
+      1.68
+     ]
+    ],
+    "natural_seconds": 2.239,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.239
+   },
+   "measured": {
+    "seconds": 2.238,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0019,
+    "onset_ms": 5.0,
+    "centroid_hz": 1496,
+    "end_db": -125.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_spot_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_spot_1.mp3",
+   "prompt": "Shoot that jackass!",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/cuss_local_spot_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.64
+    ],
+    "cuss_at": [
+     [
+      0.88,
+      1.64
+     ]
+    ],
+    "natural_seconds": 1.695,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.695
+   },
+   "measured": {
+    "seconds": 1.688,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0038,
+    "onset_ms": 3.1,
+    "centroid_hz": 1601,
+    "end_db": -148.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_lost_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_lost_0.mp3",
+   "prompt": "Lost the bastard again!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/cuss_local_lost_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.2
+    ],
+    "cuss_at": [
+     [
+      0.94,
+      1.52
+     ]
+    ],
+    "natural_seconds": 2.042,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.042
+   },
+   "measured": {
+    "seconds": 2.042,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0026,
+    "onset_ms": 2.8,
+    "centroid_hz": 1167,
+    "end_db": -111.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_lost_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_lost_1.mp3",
+   "prompt": "Well, damn, he's gone.",
+   "credits": 22,
+   "destination": "audio_src/final/sfx/cuss_local_lost_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.02
+    ],
+    "cuss_at": [
+     [
+      0.66,
+      1.16
+     ]
+    ],
+    "natural_seconds": 2.061,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.061
+   },
+   "measured": {
+    "seconds": 2.061,
+    "peak_db": -0.8,
+    "loud_db": -8.1,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1452,
+    "end_db": -129.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_search_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_search_0.mp3",
+   "prompt": "Show yerself, ya pissant!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/cuss_local_search_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.6
+    ],
+    "cuss_at": [
+     [
+      1.96,
+      2.6
+     ]
+    ],
+    "natural_seconds": 2.632,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.632
+   },
+   "measured": {
+    "seconds": 2.632,
+    "peak_db": -0.8,
+    "loud_db": -4.5,
+    "dc": 0.0069,
+    "onset_ms": 2.9,
+    "centroid_hz": 1168,
+    "end_db": -134.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_search_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_search_1.mp3",
+   "prompt": "Quit hidin', dumbass!",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/cuss_local_search_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.88
+    ],
+    "cuss_at": [
+     [
+      1.1,
+      1.88
+     ]
+    ],
+    "natural_seconds": 1.962,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.962
+   },
+   "measured": {
+    "seconds": 1.962,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0044,
+    "onset_ms": 29.2,
+    "centroid_hz": 1375,
+    "end_db": -127.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_help_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_help_0.mp3",
+   "prompt": "Dammit, somebody help me!",
+   "credits": 69,
+   "destination": "audio_src/final/sfx/cuss_local_help_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.94
+    ],
+    "cuss_at": [
+     [
+      0.04,
+      0.58
+     ]
+    ],
+    "natural_seconds": 1.96,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.96
+   },
+   "measured": {
+    "seconds": 1.96,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0044,
+    "onset_ms": 4.4,
+    "centroid_hz": 1180,
+    "end_db": -123.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_help_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_help_1.mp3",
+   "prompt": "Somebody git their ass over here!",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/cuss_local_help_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     3.0
+    ],
+    "cuss_at": [
+     [
+      1.92,
+      2.24
+     ]
+    ],
+    "natural_seconds": 2.91,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.91
+   },
+   "measured": {
+    "seconds": 2.91,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0052,
+    "onset_ms": 0.0,
+    "centroid_hz": 1007,
+    "end_db": -129.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_flank_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_flank_0.mp3",
+   "prompt": "I'll come round and bust his ass!",
+   "credits": 33,
+   "destination": "audio_src/final/sfx/cuss_local_flank_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.26,
+     2.42
+    ],
+    "cuss_at": [
+     [
+      2.18,
+      2.42
+     ]
+    ],
+    "natural_seconds": 2.339,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.339
+   },
+   "measured": {
+    "seconds": 2.339,
+    "peak_db": -0.8,
+    "loud_db": -9.9,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 1227,
+    "end_db": -136.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_flank_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_flank_1.mp3",
+   "prompt": "Flank the sumbitch!",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/cuss_local_flank_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.66
+    ],
+    "cuss_at": [
+     [
+      0.98,
+      1.66
+     ]
+    ],
+    "natural_seconds": 1.61,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.61
+   },
+   "measured": {
+    "seconds": 1.61,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0045,
+    "onset_ms": 62.4,
+    "centroid_hz": 1286,
+    "end_db": -147.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_cover_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_cover_0.mp3",
+   "prompt": "Git down, ya jackass!",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/cuss_local_cover_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.98
+    ],
+    "cuss_at": [
+     [
+      1.18,
+      1.98
+     ]
+    ],
+    "natural_seconds": 2.051,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.051
+   },
+   "measured": {
+    "seconds": 2.013,
+    "peak_db": -0.8,
+    "loud_db": -5.1,
+    "dc": 0.0066,
+    "onset_ms": 1.5,
+    "centroid_hz": 1157,
+    "end_db": -148.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_cover_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_cover_1.mp3",
+   "prompt": "Keep yer damn head low!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/cuss_local_cover_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.02
+    ],
+    "cuss_at": [
+     [
+      0.74,
+      1.14
+     ]
+    ],
+    "natural_seconds": 1.918,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.918
+   },
+   "measured": {
+    "seconds": 1.918,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0137,
+    "onset_ms": 11.5,
+    "centroid_hz": 1240,
+    "end_db": -116.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_brawl_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_brawl_0.mp3",
+   "prompt": "Watch it, ya dumbass!",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/cuss_local_brawl_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.92
+    ],
+    "cuss_at": [
+     [
+      1.24,
+      1.92
+     ]
+    ],
+    "natural_seconds": 1.862,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.862
+   },
+   "measured": {
+    "seconds": 1.862,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0026,
+    "onset_ms": 0.3,
+    "centroid_hz": 1198,
+    "end_db": -132.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_brawl_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_brawl_1.mp3",
+   "prompt": "You shot my damn lunch!",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/cuss_local_brawl_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.02
+    ],
+    "cuss_at": [
+     [
+      1.18,
+      1.52
+     ]
+    ],
+    "natural_seconds": 2.053,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.053
+   },
+   "measured": {
+    "seconds": 2.04,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0086,
+    "onset_ms": 0.9,
+    "centroid_hz": 1471,
+    "end_db": -155.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_idle_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_idle_0.mp3",
+   "prompt": "This job's pure bullshit.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/cuss_local_idle_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.16
+    ],
+    "cuss_at": [
+     [
+      1.58,
+      2.16
+     ]
+    ],
+    "natural_seconds": 2.138,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.138
+   },
+   "measured": {
+    "seconds": 2.138,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0079,
+    "onset_ms": 2.5,
+    "centroid_hz": 1122,
+    "end_db": -130.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_idle_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_idle_1.mp3",
+   "prompt": "Coffee tastes like piss again.",
+   "credits": 30,
+   "destination": "audio_src/final/sfx/cuss_local_idle_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     2.46
+    ],
+    "cuss_at": [
+     [
+      1.6,
+      1.88
+     ]
+    ],
+    "natural_seconds": 2.429,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.429
+   },
+   "measured": {
+    "seconds": 2.429,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0043,
+    "onset_ms": 12.5,
+    "centroid_hz": 1389,
+    "end_db": -130.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_surprised_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_surprised_0.mp3",
+   "prompt": "What the hell?!",
+   "credits": 15,
+   "destination": "audio_src/final/sfx/cuss_local_surprised_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     1.78
+    ],
+    "cuss_at": [
+     [
+      1.24,
+      1.78
+     ]
+    ],
+    "natural_seconds": 1.706,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.706
+   },
+   "measured": {
+    "seconds": 1.706,
+    "peak_db": -0.8,
+    "loud_db": -4.4,
+    "dc": 0.0068,
+    "onset_ms": 0.0,
+    "centroid_hz": 1238,
+    "end_db": -118.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_surprised_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_surprised_1.mp3",
+   "prompt": "Aw, shit!",
+   "credits": 9,
+   "destination": "audio_src/final/sfx/cuss_local_surprised_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.32
+    ],
+    "cuss_at": [
+     [
+      1.0,
+      1.32
+     ]
+    ],
+    "natural_seconds": 1.385,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.385
+   },
+   "measured": {
+    "seconds": 1.385,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0003,
+    "onset_ms": 0.0,
+    "centroid_hz": 539,
+    "end_db": -126.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_hurt_bad_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_hurt_bad_0.mp3",
+   "prompt": "Dammit, I'm bleedin'!",
+   "credits": 21,
+   "destination": "audio_src/final/sfx/cuss_local_hurt_bad_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.54
+    ],
+    "cuss_at": [
+     [
+      0.04,
+      0.58
+     ]
+    ],
+    "natural_seconds": 1.697,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.697
+   },
+   "measured": {
+    "seconds": 1.667,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0003,
+    "onset_ms": 4.3,
+    "centroid_hz": 1498,
+    "end_db": -123.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_hurt_bad_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_hurt_bad_1.mp3",
+   "prompt": "Son of a bitch, that hurt!",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/cuss_local_hurt_bad_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.12,
+     1.96
+    ],
+    "cuss_at": [
+     [
+      0.92,
+      1.24
+     ]
+    ],
+    "natural_seconds": 1.947,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.947
+   },
+   "measured": {
+    "seconds": 1.947,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0075,
+    "onset_ms": 0.0,
+    "centroid_hz": 1328,
+    "end_db": -130.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_regroup_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_regroup_0.mp3",
+   "prompt": "Run fer it, dammit!",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/cuss_local_regroup_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.26,
+     1.68
+    ],
+    "cuss_at": [
+     [
+      1.3,
+      1.68
+     ]
+    ],
+    "natural_seconds": 1.555,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.555
+   },
+   "measured": {
+    "seconds": 1.555,
+    "peak_db": -0.8,
+    "loud_db": -4.5,
+    "dc": 0.0058,
+    "onset_ms": 0.0,
+    "centroid_hz": 829,
+    "end_db": -120.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_regroup_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/cuss_local_regroup_1.mp3",
+   "prompt": "Git yer asses outta here!",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/cuss_local_regroup_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.16
+    ],
+    "cuss_at": [
+     [
+      0.82,
+      1.22
+     ]
+    ],
+    "natural_seconds": 2.176,
+    "squash_db": 4.0,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.176
+   },
+   "measured": {
+    "seconds": 2.176,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0069,
+    "onset_ms": 6.3,
+    "centroid_hz": 1248,
+    "end_db": -117.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "cuss_mundell_kill_0": {
    "purpose": "new cue",
    "refs": [],
@@ -32582,6 +38687,48 @@
    },
    "validation": "ok"
   },
+  "mundell_pickup_food_4": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_pickup_food_4.mp3",
+   "prompt": "Pork rinds. Now we're livin'.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/mundell_pickup_food_4.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.2
+    ],
+    "natural_seconds": 2.03,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.03
+   },
+   "measured": {
+    "seconds": 2.03,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0097,
+    "onset_ms": 4.5,
+    "centroid_hz": 1705,
+    "end_db": -134.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "mundell_hurt_0": {
    "purpose": "new cue",
    "refs": [],
@@ -33086,6 +39233,48 @@
    },
    "validation": "ok"
   },
+  "mundell_reload_4": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_reload_4.mp3",
+   "prompt": "Fill 'er up.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/mundell_reload_4.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.14,
+     1.1
+    ],
+    "natural_seconds": 0.926,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.926
+   },
+   "measured": {
+    "seconds": 0.926,
+    "peak_db": -0.8,
+    "loud_db": -7.1,
+    "dc": 0.0001,
+    "onset_ms": 14.7,
+    "centroid_hz": 1826,
+    "end_db": -136.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "mundell_empty_0": {
    "purpose": "new cue",
    "refs": [],
@@ -33166,6 +39355,90 @@
     "onset_ms": 0.0,
     "centroid_hz": 1663,
     "end_db": -136.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_empty_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_empty_2.mp3",
+   "prompt": "Dang, plumb out.",
+   "credits": 32,
+   "destination": "audio_src/final/sfx/mundell_empty_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.42
+    ],
+    "natural_seconds": 1.508,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.508
+   },
+   "measured": {
+    "seconds": 1.508,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0102,
+    "onset_ms": 10.6,
+    "centroid_hz": 1434,
+    "end_db": -177.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_empty_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_empty_3.mp3",
+   "prompt": "Need me more boom.",
+   "credits": 18,
+   "destination": "audio_src/final/sfx/mundell_empty_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.42
+    ],
+    "natural_seconds": 1.402,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.402
+   },
+   "measured": {
+    "seconds": 1.402,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0026,
+    "onset_ms": 7.2,
+    "centroid_hz": 1365,
+    "end_db": -126.1,
     "problems": []
    },
    "validation": "ok"
@@ -33296,6 +39569,48 @@
    },
    "validation": "ok"
   },
+  "mundell_drunk_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_drunk_3.mp3",
+   "prompt": "Whoa, the room's dancin'.",
+   "credits": 25,
+   "destination": "audio_src/final/sfx/mundell_drunk_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.14,
+     1.98
+    ],
+    "natural_seconds": 1.912,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.912
+   },
+   "measured": {
+    "seconds": 1.912,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0017,
+    "onset_ms": 0.0,
+    "centroid_hz": 1562,
+    "end_db": -117.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "mundell_secret_0": {
    "purpose": "new cue",
    "refs": [],
@@ -33376,6 +39691,90 @@
     "onset_ms": 27.5,
     "centroid_hz": 1627,
     "end_db": -151.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_secret_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_secret_2.mp3",
+   "prompt": "Secret stash! Don't mind if I do.",
+   "credits": 95,
+   "destination": "audio_src/final/sfx/mundell_secret_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     2.74
+    ],
+    "natural_seconds": 2.789,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.789
+   },
+   "measured": {
+    "seconds": 2.789,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0004,
+    "onset_ms": 29.4,
+    "centroid_hz": 1559,
+    "end_db": -149.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_secret_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_secret_3.mp3",
+   "prompt": "Can't hide nothin' from me.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/mundell_secret_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.06
+    ],
+    "natural_seconds": 1.862,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.862
+   },
+   "measured": {
+    "seconds": 1.862,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0047,
+    "onset_ms": 49.0,
+    "centroid_hz": 1638,
+    "end_db": -126.5,
     "problems": []
    },
    "validation": "ok"
@@ -33884,6 +40283,48 @@
    },
    "validation": "ok"
   },
+  "mundell_station_4": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_station_4.mp3",
+   "prompt": "Good enough fer the county.",
+   "credits": 54,
+   "destination": "audio_src/final/sfx/mundell_station_4.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.34,
+     1.8
+    ],
+    "natural_seconds": 1.522,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.522
+   },
+   "measured": {
+    "seconds": 1.522,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.008,
+    "onset_ms": 17.5,
+    "centroid_hz": 1475,
+    "end_db": -127.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "mundell_key_0": {
    "purpose": "new cue",
    "refs": [],
@@ -34006,6 +40447,48 @@
     "onset_ms": 2.2,
     "centroid_hz": 1760,
     "end_db": -140.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "mundell_key_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/mundell_key_3.mp3",
+   "prompt": "Shiny. Mine now.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/mundell_key_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.08,
+     1.52
+    ],
+    "natural_seconds": 1.592,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.592
+   },
+   "measured": {
+    "seconds": 1.592,
+    "peak_db": -0.8,
+    "loud_db": -7.7,
+    "dc": 0.0,
+    "onset_ms": 10.7,
+    "centroid_hz": 1838,
+    "end_db": -149.9,
     "problems": []
    },
    "validation": "ok"
@@ -41824,6 +48307,798 @@
     "problems": []
    },
    "validation": "ok"
+  },
+  "cuss_local_brawl_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_brawl_0",
+   "source": "audio_src/generated/tts/cuss_local_brawl_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_brawl_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_brawl_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 1.862,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0015,
+    "onset_ms": 0.3,
+    "centroid_hz": 1194,
+    "end_db": -133.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_brawl_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_brawl_1",
+   "source": "audio_src/generated/tts/cuss_local_brawl_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_brawl_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_brawl_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 2.04,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0059,
+    "onset_ms": 0.9,
+    "centroid_hz": 1153,
+    "end_db": -155.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_cover_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_cover_0",
+   "source": "audio_src/generated/tts/cuss_local_cover_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_cover_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_cover_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.013,
+    "peak_db": -0.8,
+    "loud_db": -9.8,
+    "dc": 0.0028,
+    "onset_ms": 27.8,
+    "centroid_hz": 1265,
+    "end_db": -153.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_cover_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_cover_1",
+   "source": "audio_src/generated/tts/cuss_local_cover_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_cover_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_cover_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.918,
+    "peak_db": -0.8,
+    "loud_db": -6.0,
+    "dc": 0.0066,
+    "onset_ms": 11.5,
+    "centroid_hz": 781,
+    "end_db": -116.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_flank_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_flank_0",
+   "source": "audio_src/generated/tts/cuss_local_flank_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_flank_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_flank_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.339,
+    "peak_db": -0.8,
+    "loud_db": -9.9,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 1224,
+    "end_db": -136.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_flank_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_flank_1",
+   "source": "audio_src/generated/tts/cuss_local_flank_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_flank_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_flank_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.61,
+    "peak_db": -0.8,
+    "loud_db": -4.3,
+    "dc": 0.0026,
+    "onset_ms": 62.4,
+    "centroid_hz": 921,
+    "end_db": -147.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_help_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_help_0",
+   "source": "audio_src/generated/tts/cuss_local_help_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_help_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_help_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 1.96,
+    "peak_db": -0.8,
+    "loud_db": -8.5,
+    "dc": 0.0026,
+    "onset_ms": 1.5,
+    "centroid_hz": 1171,
+    "end_db": -126.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_help_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_help_1",
+   "source": "audio_src/generated/tts/cuss_local_help_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_help_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_help_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 2.91,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0036,
+    "onset_ms": 0.0,
+    "centroid_hz": 900,
+    "end_db": -129.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_hurt_bad_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_hurt_bad_0",
+   "source": "audio_src/generated/tts/cuss_local_hurt_bad_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_hurt_bad_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_hurt_bad_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 1.667,
+    "peak_db": -0.8,
+    "loud_db": -9.8,
+    "dc": 0.0,
+    "onset_ms": 6.7,
+    "centroid_hz": 1442,
+    "end_db": -125.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_hurt_bad_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_hurt_bad_1",
+   "source": "audio_src/generated/tts/cuss_local_hurt_bad_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_hurt_bad_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_hurt_bad_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.947,
+    "peak_db": -0.8,
+    "loud_db": -5.5,
+    "dc": 0.0064,
+    "onset_ms": 0.0,
+    "centroid_hz": 817,
+    "end_db": -130.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_idle_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_idle_0",
+   "source": "audio_src/generated/tts/cuss_local_idle_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_idle_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_idle_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.138,
+    "peak_db": -0.8,
+    "loud_db": -9.5,
+    "dc": 0.0043,
+    "onset_ms": 2.5,
+    "centroid_hz": 1173,
+    "end_db": -133.5,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_idle_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_idle_1",
+   "source": "audio_src/generated/tts/cuss_local_idle_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_idle_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_idle_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 2.429,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0044,
+    "onset_ms": 12.5,
+    "centroid_hz": 1304,
+    "end_db": -130.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_lost_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_lost_0",
+   "source": "audio_src/generated/tts/cuss_local_lost_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_lost_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_lost_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.042,
+    "peak_db": -0.8,
+    "loud_db": -8.7,
+    "dc": 0.0014,
+    "onset_ms": 2.9,
+    "centroid_hz": 1140,
+    "end_db": -114.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_lost_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_lost_1",
+   "source": "audio_src/generated/tts/cuss_local_lost_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_lost_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_lost_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 2.061,
+    "peak_db": -0.8,
+    "loud_db": -8.1,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 894,
+    "end_db": -129.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_regroup_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_regroup_0",
+   "source": "audio_src/generated/tts/cuss_local_regroup_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_regroup_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_regroup_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 1.555,
+    "peak_db": -0.8,
+    "loud_db": -9.8,
+    "dc": 0.0023,
+    "onset_ms": 0.0,
+    "centroid_hz": 791,
+    "end_db": -126.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_regroup_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_regroup_1",
+   "source": "audio_src/generated/tts/cuss_local_regroup_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_regroup_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_regroup_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 2.176,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0054,
+    "onset_ms": 6.3,
+    "centroid_hz": 976,
+    "end_db": -117.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_search_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_search_0",
+   "source": "audio_src/generated/tts/cuss_local_search_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_search_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_search_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.632,
+    "peak_db": -0.8,
+    "loud_db": -8.8,
+    "dc": 0.0049,
+    "onset_ms": 7.4,
+    "centroid_hz": 1155,
+    "end_db": -139.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_search_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_search_1",
+   "source": "audio_src/generated/tts/cuss_local_search_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_search_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_search_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.962,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0022,
+    "onset_ms": 29.2,
+    "centroid_hz": 909,
+    "end_db": -127.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_spot_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_spot_0",
+   "source": "audio_src/generated/tts/cuss_local_spot_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_spot_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_spot_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 2.238,
+    "peak_db": -0.8,
+    "loud_db": -8.5,
+    "dc": 0.0013,
+    "onset_ms": 5.1,
+    "centroid_hz": 1285,
+    "end_db": -128.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_spot_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_spot_1",
+   "source": "audio_src/generated/tts/cuss_local_spot_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_spot_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_spot_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.688,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0011,
+    "onset_ms": 3.1,
+    "centroid_hz": 1109,
+    "end_db": -148.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_surprised_0_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_surprised_0",
+   "source": "audio_src/generated/tts/cuss_local_surprised_0.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_surprised_0_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_surprised_0 with 1 word(s) under a duck"
+   },
+   "measured": {
+    "seconds": 1.706,
+    "peak_db": -0.8,
+    "loud_db": -9.8,
+    "dc": 0.0069,
+    "onset_ms": 0.4,
+    "centroid_hz": 1210,
+    "end_db": -125.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cuss_local_surprised_1_clean": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "derived from cuss_local_surprised_1",
+   "source": "audio_src/generated/tts/cuss_local_surprised_1.mp3",
+   "prompt": null,
+   "credits": 0,
+   "destination": "audio_src/final/sfx/cuss_local_surprised_1_clean.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "derived": "cuss_local_surprised_1 with 1 word(s) under a horn"
+   },
+   "measured": {
+    "seconds": 1.385,
+    "peak_db": -1.8,
+    "loud_db": -7.4,
+    "dc": 0.0012,
+    "onset_ms": 0.0,
+    "centroid_hz": 477,
+    "end_db": -126.0,
+    "problems": []
+   },
+   "validation": "ok"
   }
  },
  "music": {
@@ -42761,97 +50036,216 @@
   "boss_sheriff_taunt_1",
   "boss_sheriff_worried",
   "boss_sheriff_last",
+  "boss_sheriff_intro_1",
+  "boss_sheriff_taunt_2",
+  "boss_sheriff_taunt_3",
+  "boss_sheriff_mad",
+  "boss_sheriff_worried_1",
   "boss_jerry_intro",
   "boss_jerry_taunt_0",
   "boss_jerry_taunt_1",
   "boss_jerry_worried",
   "boss_jerry_last",
+  "boss_jerry_intro_1",
+  "boss_jerry_taunt_2",
+  "boss_jerry_taunt_3",
+  "boss_jerry_mad",
+  "boss_jerry_worried_1",
   "boss_rudy_intro",
   "boss_rudy_taunt_0",
   "boss_rudy_taunt_1",
   "boss_rudy_worried",
   "boss_rudy_last",
+  "boss_rudy_intro_1",
+  "boss_rudy_taunt_2",
+  "boss_rudy_taunt_3",
+  "boss_rudy_mad",
+  "boss_rudy_worried_1",
   "boss_foreman_intro",
   "boss_foreman_taunt_0",
   "boss_foreman_taunt_1",
   "boss_foreman_worried",
   "boss_foreman_last",
+  "boss_foreman_intro_1",
+  "boss_foreman_taunt_2",
+  "boss_foreman_taunt_3",
+  "boss_foreman_mad",
+  "boss_foreman_worried_1",
   "boss_baron_intro",
   "boss_baron_taunt_0",
   "boss_baron_taunt_1",
   "boss_baron_worried",
   "boss_baron_last",
+  "boss_baron_intro_1",
+  "boss_baron_taunt_2",
+  "boss_baron_taunt_3",
+  "boss_baron_mad",
+  "boss_baron_worried_1",
   "boss_swamp_king_intro",
   "boss_swamp_king_taunt_0",
   "boss_swamp_king_taunt_1",
   "boss_swamp_king_worried",
   "boss_swamp_king_last",
+  "boss_swamp_king_intro_1",
+  "boss_swamp_king_taunt_2",
+  "boss_swamp_king_taunt_3",
+  "boss_swamp_king_mad",
+  "boss_swamp_king_worried_1",
   "boss_boggs_intro",
   "boss_boggs_taunt_0",
   "boss_boggs_taunt_1",
   "boss_boggs_worried",
   "boss_boggs_last",
+  "boss_boggs_intro_1",
+  "boss_boggs_taunt_2",
+  "boss_boggs_taunt_3",
+  "boss_boggs_mad",
+  "boss_boggs_worried_1",
   "boss_maw_intro",
   "boss_maw_taunt_0",
   "boss_maw_taunt_1",
   "boss_maw_worried",
   "boss_maw_last",
+  "boss_maw_intro_1",
+  "boss_maw_taunt_2",
+  "boss_maw_taunt_3",
+  "boss_maw_mad",
+  "boss_maw_worried_1",
   "bark_hick_spot_0",
   "bark_hick_spot_1",
+  "bark_hick_spot_2",
   "bark_hick_lost_0",
+  "bark_hick_lost_1",
   "bark_hick_search_0",
+  "bark_hick_search_1",
   "bark_hick_help_0",
+  "bark_hick_help_1",
   "bark_hick_flank_0",
+  "bark_hick_flank_1",
   "bark_hick_cover_0",
+  "bark_hick_cover_1",
   "bark_hick_brawl_0",
   "bark_hick_brawl_1",
   "bark_hick_idle_0",
   "bark_hick_idle_1",
+  "bark_hick_idle_2",
+  "bark_hick_idle_3",
   "bark_hick_surprised_0",
+  "bark_hick_surprised_1",
   "bark_hick_hurt_bad_0",
+  "bark_hick_hurt_bad_1",
   "bark_hick_regroup_0",
+  "bark_hick_regroup_1",
   "bark_deputy_spot_0",
   "bark_deputy_spot_1",
+  "bark_deputy_spot_2",
   "bark_deputy_lost_0",
+  "bark_deputy_lost_1",
   "bark_deputy_search_0",
+  "bark_deputy_search_1",
   "bark_deputy_help_0",
+  "bark_deputy_help_1",
   "bark_deputy_flank_0",
+  "bark_deputy_flank_1",
   "bark_deputy_cover_0",
+  "bark_deputy_cover_1",
   "bark_deputy_brawl_0",
   "bark_deputy_brawl_1",
   "bark_deputy_idle_0",
   "bark_deputy_idle_1",
+  "bark_deputy_idle_2",
+  "bark_deputy_idle_3",
   "bark_deputy_surprised_0",
+  "bark_deputy_surprised_1",
   "bark_deputy_hurt_bad_0",
+  "bark_deputy_hurt_bad_1",
   "bark_deputy_regroup_0",
+  "bark_deputy_regroup_1",
   "bark_coot_spot_0",
   "bark_coot_spot_1",
+  "bark_coot_spot_2",
   "bark_coot_lost_0",
+  "bark_coot_lost_1",
   "bark_coot_search_0",
+  "bark_coot_search_1",
   "bark_coot_help_0",
+  "bark_coot_help_1",
   "bark_coot_flank_0",
+  "bark_coot_flank_1",
   "bark_coot_cover_0",
+  "bark_coot_cover_1",
   "bark_coot_brawl_0",
   "bark_coot_brawl_1",
   "bark_coot_idle_0",
   "bark_coot_idle_1",
+  "bark_coot_idle_2",
+  "bark_coot_idle_3",
   "bark_coot_surprised_0",
+  "bark_coot_surprised_1",
   "bark_coot_hurt_bad_0",
+  "bark_coot_hurt_bad_1",
   "bark_coot_regroup_0",
+  "bark_coot_regroup_1",
   "bark_grey_spot_0",
   "bark_grey_spot_1",
+  "bark_grey_spot_2",
   "bark_grey_lost_0",
+  "bark_grey_lost_1",
   "bark_grey_search_0",
+  "bark_grey_search_1",
   "bark_grey_help_0",
+  "bark_grey_help_1",
   "bark_grey_flank_0",
+  "bark_grey_flank_1",
   "bark_grey_cover_0",
+  "bark_grey_cover_1",
   "bark_grey_brawl_0",
   "bark_grey_brawl_1",
   "bark_grey_idle_0",
   "bark_grey_idle_1",
+  "bark_grey_idle_2",
+  "bark_grey_idle_3",
   "bark_grey_surprised_0",
+  "bark_grey_surprised_1",
   "bark_grey_hurt_bad_0",
+  "bark_grey_hurt_bad_1",
   "bark_grey_regroup_0",
+  "bark_grey_regroup_1",
+  "bark_local_spot_0",
+  "bark_local_spot_1",
+  "bark_local_lost_0",
+  "bark_local_lost_1",
+  "bark_local_search_0",
+  "bark_local_search_1",
+  "bark_local_help_0",
+  "bark_local_help_1",
+  "bark_local_flank_0",
+  "bark_local_flank_1",
+  "bark_local_cover_0",
+  "bark_local_cover_1",
+  "bark_local_brawl_0",
+  "bark_local_brawl_1",
+  "bark_local_idle_0",
+  "bark_local_idle_1",
+  "bark_local_surprised_0",
+  "bark_local_surprised_1",
+  "bark_local_hurt_bad_0",
+  "bark_local_hurt_bad_1",
+  "bark_local_regroup_0",
+  "bark_local_regroup_1",
+  "bark_tough_earl",
+  "bark_tough_clem",
+  "bark_tough_tom",
+  "bark_tough_bubba",
+  "bark_tough_chuck",
+  "bark_tough_pete",
+  "bark_tough_zorgo",
+  "boss_maw_wake",
+  "boss_maw_crew_0",
+  "boss_maw_crew_1",
+  "ann_fair_0",
+  "ann_fair_1",
+  "ann_fair_2",
   "cuss_hick_spot_0",
   "cuss_hick_spot_1",
   "cuss_hick_lost_0",
@@ -42940,6 +50334,28 @@
   "cuss_grey_hurt_bad_1",
   "cuss_grey_regroup_0",
   "cuss_grey_regroup_1",
+  "cuss_local_spot_0",
+  "cuss_local_spot_1",
+  "cuss_local_lost_0",
+  "cuss_local_lost_1",
+  "cuss_local_search_0",
+  "cuss_local_search_1",
+  "cuss_local_help_0",
+  "cuss_local_help_1",
+  "cuss_local_flank_0",
+  "cuss_local_flank_1",
+  "cuss_local_cover_0",
+  "cuss_local_cover_1",
+  "cuss_local_brawl_0",
+  "cuss_local_brawl_1",
+  "cuss_local_idle_0",
+  "cuss_local_idle_1",
+  "cuss_local_surprised_0",
+  "cuss_local_surprised_1",
+  "cuss_local_hurt_bad_0",
+  "cuss_local_hurt_bad_1",
+  "cuss_local_regroup_0",
+  "cuss_local_regroup_1",
   "cuss_mundell_kill_0",
   "cuss_mundell_kill_1",
   "cuss_mundell_kill_2",
@@ -43005,6 +50421,7 @@
   "mundell_pickup_food_1",
   "mundell_pickup_food_2",
   "mundell_pickup_food_3",
+  "mundell_pickup_food_4",
   "mundell_hurt_0",
   "mundell_hurt_1",
   "mundell_hurt_2",
@@ -43017,13 +50434,19 @@
   "mundell_reload_1",
   "mundell_reload_2",
   "mundell_reload_3",
+  "mundell_reload_4",
   "mundell_empty_0",
   "mundell_empty_1",
+  "mundell_empty_2",
+  "mundell_empty_3",
   "mundell_drunk_0",
   "mundell_drunk_1",
   "mundell_drunk_2",
+  "mundell_drunk_3",
   "mundell_secret_0",
   "mundell_secret_1",
+  "mundell_secret_2",
+  "mundell_secret_3",
   "mundell_boss_0",
   "mundell_boss_1",
   "mundell_boss_2",
@@ -43036,9 +50459,11 @@
   "mundell_station_1",
   "mundell_station_2",
   "mundell_station_3",
+  "mundell_station_4",
   "mundell_key_0",
   "mundell_key_1",
   "mundell_key_2",
+  "mundell_key_3",
   "mundell_headshot_0",
   "mundell_headshot_1",
   "mundell_headshot_2",
@@ -43175,6 +50600,28 @@
   "cuss_mundell_station_0_clean",
   "cuss_mundell_streak_0_clean",
   "cuss_mundell_streak_1_clean",
+  "cuss_local_brawl_0_clean",
+  "cuss_local_brawl_1_clean",
+  "cuss_local_cover_0_clean",
+  "cuss_local_cover_1_clean",
+  "cuss_local_flank_0_clean",
+  "cuss_local_flank_1_clean",
+  "cuss_local_help_0_clean",
+  "cuss_local_help_1_clean",
+  "cuss_local_hurt_bad_0_clean",
+  "cuss_local_hurt_bad_1_clean",
+  "cuss_local_idle_0_clean",
+  "cuss_local_idle_1_clean",
+  "cuss_local_lost_0_clean",
+  "cuss_local_lost_1_clean",
+  "cuss_local_regroup_0_clean",
+  "cuss_local_regroup_1_clean",
+  "cuss_local_search_0_clean",
+  "cuss_local_search_1_clean",
+  "cuss_local_spot_0_clean",
+  "cuss_local_spot_1_clean",
+  "cuss_local_surprised_0_clean",
+  "cuss_local_surprised_1_clean",
   "shotgun_alt",
   "shotgun_alt2",
   "county45_alt",

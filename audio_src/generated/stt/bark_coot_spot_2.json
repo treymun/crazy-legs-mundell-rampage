@@ -1,0 +1,25 @@
+{
+ "text": "Trespasser, fetch the salt",
+ "words": [
+  {
+   "text": "Trespasser,",
+   "start": 0.06,
+   "end": 0.86
+  },
+  {
+   "text": "fetch",
+   "start": 0.98,
+   "end": 1.22
+  },
+  {
+   "text": "the",
+   "start": 1.28,
+   "end": 1.36
+  },
+  {
+   "text": "salt",
+   "start": 1.48,
+   "end": 1.82
+  }
+ ]
+}

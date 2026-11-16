@@ -1,0 +1,35 @@
+{
+ "text": "Now you done riled the law",
+ "words": [
+  {
+   "text": "Now",
+   "start": 0.06,
+   "end": 0.22
+  },
+  {
+   "text": "you",
+   "start": 0.3,
+   "end": 0.4
+  },
+  {
+   "text": "done",
+   "start": 0.44,
+   "end": 0.62
+  },
+  {
+   "text": "riled",
+   "start": 0.7,
+   "end": 0.98
+  },
+  {
+   "text": "the",
+   "start": 1.02,
+   "end": 1.1
+  },
+  {
+   "text": "law",
+   "start": 1.14,
+   "end": 1.38
+  }
+ ]
+}

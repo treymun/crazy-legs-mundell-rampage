@@ -11,6 +11,13 @@ const ModeFeatureScript := preload("res://src/features/mode_feature.gd")
 ## Picking things up and throwing them, and the fire that spreads.
 const CarryScript := preload("res://src/features/carry.gd")
 const FireScript := preload("res://src/features/fire.gd")
+## What the fair's loudspeaker says near its pole, by turns (cues ann_fair_<n>,
+## scripts/audio_spec.py FAIR_PA); on screen as PA: in capitals.
+const FAIR_PA := [
+	"Winners must feed their prizes.",
+	"Lost young'uns may be claimed at the hog barn.",
+	"The two-headed calf is closed for repairs."
+]
 
 ## Every Game made in this process, weakly (a list, never an owner): what
 ## dispose_all() lets go of as the process ends.
@@ -651,7 +658,12 @@ func _surroundings(p: Player, roof: float) -> void:
 						or clock < message_until
 					):
 						continue
-					message("PA: WINNERS MUST FEED THEIR PRIZES.", 3.5)
+					var said := int(clock / 5.9) % FAIR_PA.size()
+					message("PA: " + str(FAIR_PA[said]).to_upper(), 3.5)
+					if sound.has("ann_fair_%d" % said):
+						# The words themselves, not the far-off garble.
+						sound_at("ann_fair_%d" % said, cx, cy, .8)
+						continue
 				sound_at(cue, cx, cy, .55)
 		elif level.area_cues.has(area) and roof == 0.0:
 			sound.play(str(level.area_cues[area]), .24, .7 if int(clock) % 2 else -.64)

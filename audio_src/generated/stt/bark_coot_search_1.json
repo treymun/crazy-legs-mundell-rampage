@@ -1,0 +1,20 @@
+{
+ "text": "Here, varmint, varmint",
+ "words": [
+  {
+   "text": "Here,",
+   "start": 0.08,
+   "end": 0.42
+  },
+  {
+   "text": "varmint,",
+   "start": 0.58,
+   "end": 0.98
+  },
+  {
+   "text": "varmint",
+   "start": 1.1,
+   "end": 1.6
+  }
+ ]
+}

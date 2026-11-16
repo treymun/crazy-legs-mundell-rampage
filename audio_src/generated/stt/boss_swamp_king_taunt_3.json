@@ -1,0 +1,35 @@
+{
+ "text": "Swim home, boy. I dare you",
+ "words": [
+  {
+   "text": "Swim",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "home,",
+   "start": 0.32,
+   "end": 0.56
+  },
+  {
+   "text": "boy.",
+   "start": 0.66,
+   "end": 0.9
+  },
+  {
+   "text": "I",
+   "start": 1.04,
+   "end": 1.06
+  },
+  {
+   "text": "dare",
+   "start": 1.16,
+   "end": 1.42
+  },
+  {
+   "text": "you",
+   "start": 1.5,
+   "end": 1.68
+  }
+ ]
+}

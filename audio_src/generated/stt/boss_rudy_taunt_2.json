@@ -1,0 +1,35 @@
+{
+ "text": "Winner gets nothing. Step right up",
+ "words": [
+  {
+   "text": "Winner",
+   "start": 0.22,
+   "end": 0.54
+  },
+  {
+   "text": "gets",
+   "start": 0.72,
+   "end": 1.02
+  },
+  {
+   "text": "nothing.",
+   "start": 1.12,
+   "end": 1.72
+  },
+  {
+   "text": "Step",
+   "start": 1.92,
+   "end": 2.26
+  },
+  {
+   "text": "right",
+   "start": 2.32,
+   "end": 2.62
+  },
+  {
+   "text": "up",
+   "start": 2.76,
+   "end": 2.98
+  }
+ ]
+}

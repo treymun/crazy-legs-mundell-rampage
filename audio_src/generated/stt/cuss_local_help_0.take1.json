@@ -1,0 +1,30 @@
+{
+ "text": "Dammit, I need a hint",
+ "words": [
+  {
+   "text": "Dammit,",
+   "start": 0.04,
+   "end": 0.56
+  },
+  {
+   "text": "I",
+   "start": 0.82,
+   "end": 1.0
+  },
+  {
+   "text": "need",
+   "start": 1.08,
+   "end": 1.38
+  },
+  {
+   "text": "a",
+   "start": 1.48,
+   "end": 1.54
+  },
+  {
+   "text": "hint",
+   "start": 1.6,
+   "end": 2.08
+  }
+ ]
+}

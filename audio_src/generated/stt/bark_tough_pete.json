@@ -1,0 +1,35 @@
+{
+ "text": "Four tires and a grudge, boy",
+ "words": [
+  {
+   "text": "Four",
+   "start": 0.2,
+   "end": 0.44
+  },
+  {
+   "text": "tires",
+   "start": 0.6,
+   "end": 1.18
+  },
+  {
+   "text": "and",
+   "start": 1.24,
+   "end": 1.36
+  },
+  {
+   "text": "a",
+   "start": 1.44,
+   "end": 1.46
+  },
+  {
+   "text": "grudge,",
+   "start": 1.62,
+   "end": 2.04
+  },
+  {
+   "text": "boy",
+   "start": 2.16,
+   "end": 2.48
+  }
+ ]
+}

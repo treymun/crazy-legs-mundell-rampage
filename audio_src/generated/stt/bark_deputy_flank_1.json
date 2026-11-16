@@ -1,0 +1,20 @@
+{
+ "text": "Circle 'round back",
+ "words": [
+  {
+   "text": "Circle",
+   "start": 0.04,
+   "end": 0.4
+  },
+  {
+   "text": "'round",
+   "start": 0.44,
+   "end": 0.78
+  },
+  {
+   "text": "back",
+   "start": 0.88,
+   "end": 1.26
+  }
+ ]
+}

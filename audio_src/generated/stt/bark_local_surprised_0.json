@@ -1,0 +1,25 @@
+{
+ "text": "Well, I'll be dipped",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.24,
+   "end": 0.74
+  },
+  {
+   "text": "I'll",
+   "start": 1.08,
+   "end": 1.34
+  },
+  {
+   "text": "be",
+   "start": 1.42,
+   "end": 1.54
+  },
+  {
+   "text": "dipped",
+   "start": 1.68,
+   "end": 2.12
+  }
+ ]
+}

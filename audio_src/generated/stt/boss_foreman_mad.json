@@ -1,0 +1,35 @@
+{
+ "text": "Who said you could quit working?",
+ "words": [
+  {
+   "text": "Who",
+   "start": 0.04,
+   "end": 0.16
+  },
+  {
+   "text": "said",
+   "start": 0.26,
+   "end": 0.48
+  },
+  {
+   "text": "you",
+   "start": 0.54,
+   "end": 0.62
+  },
+  {
+   "text": "could",
+   "start": 0.72,
+   "end": 0.9
+  },
+  {
+   "text": "quit",
+   "start": 0.96,
+   "end": 1.18
+  },
+  {
+   "text": "working?",
+   "start": 1.26,
+   "end": 1.76
+  }
+ ]
+}

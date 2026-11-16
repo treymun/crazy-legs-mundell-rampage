@@ -1,0 +1,25 @@
+{
+ "text": "Check behind the stacks",
+ "words": [
+  {
+   "text": "Check",
+   "start": 0.16,
+   "end": 0.42
+  },
+  {
+   "text": "behind",
+   "start": 0.5,
+   "end": 1.12
+  },
+  {
+   "text": "the",
+   "start": 1.16,
+   "end": 1.28
+  },
+  {
+   "text": "stacks",
+   "start": 1.36,
+   "end": 1.86
+  }
+ ]
+}

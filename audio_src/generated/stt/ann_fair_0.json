@@ -1,0 +1,30 @@
+{
+ "text": "Winners must feed their prizes",
+ "words": [
+  {
+   "text": "Winners",
+   "start": 0.18,
+   "end": 0.58
+  },
+  {
+   "text": "must",
+   "start": 0.66,
+   "end": 0.88
+  },
+  {
+   "text": "feed",
+   "start": 0.92,
+   "end": 1.16
+  },
+  {
+   "text": "their",
+   "start": 1.2,
+   "end": 1.34
+  },
+  {
+   "text": "prizes",
+   "start": 1.44,
+   "end": 2.08
+  }
+ ]
+}

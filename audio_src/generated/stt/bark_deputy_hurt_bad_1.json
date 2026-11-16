@@ -1,0 +1,30 @@
+{
+ "text": "I'm shot. Call my mama",
+ "words": [
+  {
+   "text": "I'm",
+   "start": 0.1,
+   "end": 0.2
+  },
+  {
+   "text": "shot.",
+   "start": 0.3,
+   "end": 0.6
+  },
+  {
+   "text": "Call",
+   "start": 0.74,
+   "end": 0.94
+  },
+  {
+   "text": "my",
+   "start": 0.98,
+   "end": 1.12
+  },
+  {
+   "text": "mama",
+   "start": 1.16,
+   "end": 1.5
+  }
+ ]
+}

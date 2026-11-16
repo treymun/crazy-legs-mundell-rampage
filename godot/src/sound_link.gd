@@ -76,6 +76,14 @@ func stop_voice() -> void:
 	sound.stop_voice()
 
 
+func talking() -> bool:
+	return sound.talking()
+
+
+func hush_speech() -> void:
+	sound.hush_speech()
+
+
 func set_room(room_name: Variant) -> void:
 	sound.set_room(room_name)
 

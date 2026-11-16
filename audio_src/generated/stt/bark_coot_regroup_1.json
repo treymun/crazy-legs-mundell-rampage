@@ -1,0 +1,25 @@
+{
+ "text": "Back to the porch",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.06,
+   "end": 0.3
+  },
+  {
+   "text": "to",
+   "start": 0.34,
+   "end": 0.42
+  },
+  {
+   "text": "the",
+   "start": 0.46,
+   "end": 0.52
+  },
+  {
+   "text": "porch",
+   "start": 0.62,
+   "end": 1.04
+  }
+ ]
+}

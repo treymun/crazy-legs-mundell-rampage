@@ -1,0 +1,35 @@
+{
+ "text": "Oh, who ate my bear claw?",
+ "words": [
+  {
+   "text": "Oh,",
+   "start": 0.08,
+   "end": 0.18
+  },
+  {
+   "text": "who",
+   "start": 0.28,
+   "end": 0.42
+  },
+  {
+   "text": "ate",
+   "start": 0.5,
+   "end": 0.68
+  },
+  {
+   "text": "my",
+   "start": 0.72,
+   "end": 0.94
+  },
+  {
+   "text": "bear",
+   "start": 1.06,
+   "end": 1.28
+  },
+  {
+   "text": "claw?",
+   "start": 1.38,
+   "end": 1.78
+  }
+ ]
+}

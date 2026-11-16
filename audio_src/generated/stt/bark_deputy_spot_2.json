@@ -1,0 +1,35 @@
+{
+ "text": "Yoseite Joe, hold it right there",
+ "words": [
+  {
+   "text": "Yoseite",
+   "start": 0.04,
+   "end": 0.48
+  },
+  {
+   "text": "Joe,",
+   "start": 0.6,
+   "end": 0.78
+  },
+  {
+   "text": "hold",
+   "start": 1.0,
+   "end": 1.24
+  },
+  {
+   "text": "it",
+   "start": 1.28,
+   "end": 1.36
+  },
+  {
+   "text": "right",
+   "start": 1.46,
+   "end": 1.78
+  },
+  {
+   "text": "there",
+   "start": 1.84,
+   "end": 2.22
+  }
+ ]
+}

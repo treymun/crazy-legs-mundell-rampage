@@ -1,0 +1,50 @@
+{
+ "text": "Lost youngins may be claimed at the hog barn",
+ "words": [
+  {
+   "text": "Lost",
+   "start": 0.2,
+   "end": 0.44
+  },
+  {
+   "text": "youngins",
+   "start": 0.52,
+   "end": 0.9
+  },
+  {
+   "text": "may",
+   "start": 0.96,
+   "end": 1.1
+  },
+  {
+   "text": "be",
+   "start": 1.14,
+   "end": 1.26
+  },
+  {
+   "text": "claimed",
+   "start": 1.3,
+   "end": 1.58
+  },
+  {
+   "text": "at",
+   "start": 1.6,
+   "end": 1.68
+  },
+  {
+   "text": "the",
+   "start": 1.72,
+   "end": 1.78
+  },
+  {
+   "text": "hog",
+   "start": 1.82,
+   "end": 2.1
+  },
+  {
+   "text": "barn",
+   "start": 2.18,
+   "end": 2.52
+  }
+ ]
+}

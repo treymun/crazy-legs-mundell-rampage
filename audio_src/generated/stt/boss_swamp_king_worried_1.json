@@ -1,0 +1,30 @@
+{
+ "text": "Bail her out. Somebody bail",
+ "words": [
+  {
+   "text": "Bail",
+   "start": 0.08,
+   "end": 0.38
+  },
+  {
+   "text": "her",
+   "start": 0.4,
+   "end": 0.56
+  },
+  {
+   "text": "out.",
+   "start": 0.66,
+   "end": 0.94
+  },
+  {
+   "text": "Somebody",
+   "start": 1.04,
+   "end": 1.54
+  },
+  {
+   "text": "bail",
+   "start": 1.66,
+   "end": 2.0
+  }
+ ]
+}

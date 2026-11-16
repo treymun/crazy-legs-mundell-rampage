@@ -13,6 +13,17 @@ const RematchFeature := preload("res://src/features/boss_rematch.gd")
 
 ## Seconds a dropped door lies about.
 const DOOR_LIE := 25.0
+## What each chapter's tough guy says when he first sees the player, in his
+## kind's bark voice (scripts/audio_spec.py TOUGH_SAYS, cues bark_<kind>).
+const TOUGH_SAYS := {
+	"tough_earl": "Big Earl runs this street, boy!",
+	"tough_clem": "Step right up, boy! Clem's waitin'!",
+	"tough_tom": "Timber, boy! That's you fallin'!",
+	"tough_bubba": "Bubba's got a full head of steam!",
+	"tough_chuck": "Dinner bell's ringin', and you're dinner!",
+	"tough_pete": "Four tires and a grudge, boy!",
+	"tough_zorgo": "Zorgo the Large demands your beer!",
+}
 
 var swapped := false
 ## Car doors' hit points, by enemy (instance id); an enemy not here has his whole.
@@ -58,7 +69,25 @@ func _tick(_dt: float) -> void:
 		var line := str(def.get("tough_line", ""))
 		var title := str(def["tough_title"])
 		game.message(title + (" - " + line if line != "" else ""), 3.2)
-		game.sound_at(str(Enemy.AWAKE.get(e.kind, "billy_alert")), e.x, e.y, 1.0)
+		_says(e)
+
+
+## The tough guy says his piece (TOUGH_SAYS, cue bark_<kind>) with CHATTER
+## on, captioned; his kind's alert cry otherwise. Sound and caption only.
+func _says(e: Enemy) -> void:
+	var cue := "bark_" + e.kind
+	var said := str(TOUGH_SAYS.get(e.kind, ""))
+	if (
+		said != ""
+		and int(game.chatter) != CussLines.OFF
+		and game.sound != null
+		and game.sound.has(cue)
+	):
+		game.sound_at(cue, e.x, e.y, 1.0)
+		game.caption = said
+		game.caption_until = game.clock + 2.4
+		return
+	game.sound_at(str(Enemy.AWAKE.get(e.kind, "billy_alert")), e.x, e.y, 1.0)
 
 
 ## The chapter's tough guy among the enemies, or null.

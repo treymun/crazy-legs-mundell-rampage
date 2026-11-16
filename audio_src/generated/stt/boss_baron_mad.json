@@ -1,0 +1,35 @@
+{
+ "text": "You've gone and spoiled my batch",
+ "words": [
+  {
+   "text": "You've",
+   "start": 0.16,
+   "end": 0.52
+  },
+  {
+   "text": "gone",
+   "start": 0.62,
+   "end": 0.96
+  },
+  {
+   "text": "and",
+   "start": 1.0,
+   "end": 1.1
+  },
+  {
+   "text": "spoiled",
+   "start": 1.2,
+   "end": 1.66
+  },
+  {
+   "text": "my",
+   "start": 1.72,
+   "end": 1.94
+  },
+  {
+   "text": "batch",
+   "start": 2.08,
+   "end": 2.56
+  }
+ ]
+}

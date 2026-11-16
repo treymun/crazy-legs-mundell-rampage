@@ -1,0 +1,25 @@
+{
+ "text": "My antenna! My antenna!",
+ "words": [
+  {
+   "text": "My",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "antenna!",
+   "start": 0.34,
+   "end": 0.84
+  },
+  {
+   "text": "My",
+   "start": 1.02,
+   "end": 1.18
+  },
+  {
+   "text": "antenna!",
+   "start": 1.28,
+   "end": 1.92
+  }
+ ]
+}

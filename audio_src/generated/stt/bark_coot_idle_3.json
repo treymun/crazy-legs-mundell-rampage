@@ -1,0 +1,20 @@
+{
+ "text": "Is it Tuesday?",
+ "words": [
+  {
+   "text": "Is",
+   "start": 0.1,
+   "end": 0.18
+  },
+  {
+   "text": "it",
+   "start": 0.22,
+   "end": 0.32
+  },
+  {
+   "text": "Tuesday?",
+   "start": 0.38,
+   "end": 0.94
+  }
+ ]
+}

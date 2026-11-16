@@ -1,0 +1,20 @@
+{
+ "text": "Yonder he goes",
+ "words": [
+  {
+   "text": "Yonder",
+   "start": 0.06,
+   "end": 0.46
+  },
+  {
+   "text": "he",
+   "start": 0.5,
+   "end": 0.62
+  },
+  {
+   "text": "goes",
+   "start": 0.66,
+   "end": 1.1
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Suspect's gone to ground",
+ "words": [
+  {
+   "text": "Suspect's",
+   "start": 0.08,
+   "end": 0.64
+  },
+  {
+   "text": "gone",
+   "start": 0.68,
+   "end": 0.9
+  },
+  {
+   "text": "to",
+   "start": 0.94,
+   "end": 1.02
+  },
+  {
+   "text": "ground",
+   "start": 1.08,
+   "end": 1.46
+  }
+ ]
+}

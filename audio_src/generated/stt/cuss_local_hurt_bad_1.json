@@ -1,0 +1,35 @@
+{
+ "text": "Son of a bitch, that hurt",
+ "words": [
+  {
+   "text": "Son",
+   "start": 0.12,
+   "end": 0.42
+  },
+  {
+   "text": "of",
+   "start": 0.48,
+   "end": 0.6
+  },
+  {
+   "text": "a",
+   "start": 0.68,
+   "end": 0.74
+  },
+  {
+   "text": "bitch,",
+   "start": 0.92,
+   "end": 1.24
+  },
+  {
+   "text": "that",
+   "start": 1.38,
+   "end": 1.64
+  },
+  {
+   "text": "hurt",
+   "start": 1.7,
+   "end": 1.96
+  }
+ ]
+}

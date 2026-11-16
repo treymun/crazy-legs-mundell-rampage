@@ -1,0 +1,15 @@
+{
+ "text": "Duck Dwayne",
+ "words": [
+  {
+   "text": "Duck",
+   "start": 0.18,
+   "end": 0.52
+  },
+  {
+   "text": "Dwayne",
+   "start": 0.62,
+   "end": 1.28
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+ "text": "Well, back to the trucks",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "back",
+   "start": 0.22,
+   "end": 0.54
+  },
+  {
+   "text": "to",
+   "start": 0.6,
+   "end": 0.84
+  },
+  {
+   "text": "the",
+   "start": 0.94,
+   "end": 1.06
+  },
+  {
+   "text": "trucks",
+   "start": 1.34,
+   "end": 1.82
+  }
+ ]
+}

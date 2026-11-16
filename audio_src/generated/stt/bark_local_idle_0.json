@@ -1,0 +1,35 @@
+{
+ "text": "Well, lunch whistle ain't blowed yet",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.02,
+   "end": 0.1
+  },
+  {
+   "text": "lunch",
+   "start": 0.24,
+   "end": 0.56
+  },
+  {
+   "text": "whistle",
+   "start": 0.64,
+   "end": 1.0
+  },
+  {
+   "text": "ain't",
+   "start": 1.08,
+   "end": 1.38
+  },
+  {
+   "text": "blowed",
+   "start": 1.42,
+   "end": 1.82
+  },
+  {
+   "text": "yet",
+   "start": 1.9,
+   "end": 2.08
+  }
+ ]
+}

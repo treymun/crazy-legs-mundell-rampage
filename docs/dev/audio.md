@@ -66,6 +66,76 @@ decision here comes from measurement and from the code.
   run time (barks, boss lines, enemy cries, guns, floors, materials,
   `metal_down`) is in the bank or `Assets.MADE_CUES`.
 
+## Voices
+
+Every spoken line is a `V` cue: an ElevenLabs line in one of the designed
+voices (`audio_src/voices.json`, all original characters; `eleven_multilingual_v2`,
+stability .6, similarity .8, style .35, the same for every line so a voice
+always sounds like itself).
+
+- **Who says what.** Mundell (`mundell_lines.json` and his cuss lines,
+  `barks.gd`); the bosses (`features/boss_voices.gd`: two entrances, four
+  taunts, a mad line at half health, two worried lines, a last word; Maw's
+  wake and crew calls, `mothership.gd`); the hands (`features/enemy_barks.gd`:
+  eleven squad moments in five voices: hick for Hickston and the fair, local
+  for the mill, quarry, fish camp and pits, deputy, coot, grey); each
+  chapter's tough guy when he first sees you (`variants_feature.gd`
+  `TOUGH_SAYS`, cue `bark_<kind>`); the radio talk (`talk_*`, dispatch); the
+  announcer (`ann_*`, the 5v5 and the fair PA, `game.gd FAIR_PA`).
+- **Making a line.** Write the caption in the game's table and the spec
+  (`audio_spec.py`), then `audio_produce.py --only <cues>` (paid) and
+  `audio_produce.py --transcribe` (paid, about a credit a line). The
+  python running these needs `requirements.txt`'s elevenlabs and
+  python-dotenv (the repo `.venv` may only have numpy; the system Python
+  has them). `audio_build.py --sfx --only <cues> <cuss cues>_clean` cuts
+  each line at its caption's words from the transcript, and refuses a line
+  whose transcript does not say the caption. Where the transcript only
+  spells the county's words or a name its own way, the line gets `heard`
+  (`VOICE_HEARD`, `BOSS_HEARD`, `BARK_HEARD`, `CUSS_HEARD`, `MUNDELL_HEARD`);
+  where it says something else, the line is made again (`--redo`, the old
+  take kept as `.take<k>`; transcribe it again with
+  `audio_produce.transcribe(name, True)`), or reworded.
+- **Level.** Lines finish at -3 dB (loudest 50 ms) under the -0.8 dB
+  ceiling. The local voice's plosives hit the ceiling first and left its
+  shouts 2.5 dB under the others (speech RMS -13.0 against about -10.5):
+  its barks, cuss lines and tough guys take `squash` 4 (their spikes limited
+  before levelling) and land at -10.4. Its older radio talk is unchanged.
+- **Turns.** `Sound.talking()` is any spoken line (`Sound.SPEECH`) still
+  playing; `hush_speech()` stops the ones playing as effects. A hand keeps
+  quiet while anyone talks; Mundell's line is shown, not said; a boss's
+  line hushes the rest and plays on the voice channel; its mad line (1.1 s
+  after the roar) and Maw's crew calls queue until nobody talks (dropped
+  after a few seconds); Mundell's answer to a boss's entrance or fall waits
+  for the boss to finish (`enemy_barks.gd _mundell_after`). All of it is
+  sound and captions, off its own dice; play is unchanged.
+- **Checks.** `tools/voice_check.gd` (check_all, quick): every spoken line
+  mastered from its transcript, its CLEAN copy, loading from the bank at
+  0.3 to 6 s, every caption the game shows the words the line was made
+  from, every recording, transcript and kept take booked and the ledger
+  matching the account's drop at its last reconcile. `chatter_check` holds
+  the turns. `county_dispatch_6` is a byte copy of a booked take of
+  `county_dispatch_4` (voice_check `COPIED`).
+
+### The pass 7 voice pass (2026-11-16)
+
+172 new cues (150 lines and 22 CLEAN copies): the bosses 43 (5 each and
+Maw's 3), the hands 66 (11 for each old voice, 22 for the new local one),
+the local cuss lines 22, the tough guys 7, the fair PA 3, Mundell 9. 150
+first takes; 119 matched their captions as made, 17 more only spelled the
+county's words or a name their own way (`heard`), 12 said something else and
+were made again (the swamp king's "cher" heard as "Sheriff" was reworded to
+"boy"). Of those, 9 came back right, one only spelled "plumb" as "plum", and
+two missed again and were reworded ("Hidey-hole!" heard as "Tidy hole", "I
+need a hand" as "a hint"): 164 recordings for 150 lines. Measured against the 347
+older lines: median 1.81 s (older 1.65), speech rate 11.4 letters a second
+(10.9), every peak at -0.8 dB. The ledger booked 68,459 before and 68,447
+after its reconcile: the account's own counter rose 2,642 credits from the
+reconcile of 2026-11-13 to the end of this pass, for this pass and 184
+earlier requests booked at their expected cost but never reconciled. Not
+listened to: the owner should hear the local voice's barks (a slower, lower
+voice than the hicks', and the longest barks at about 2 s) and the grey's
+new lines in game.
+
 ## The 3.0.0 remaster pass (measured, not heard)
 
 - Loudness of all 993 effects (loudest 50 ms, peak; EBU R128 for cues of 1 s

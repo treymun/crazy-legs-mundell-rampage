@@ -1,0 +1,35 @@
+{
+ "text": "Boy, Emmett, I need a hint",
+ "words": [
+  {
+   "text": "Boy,",
+   "start": 0.06,
+   "end": 0.22
+  },
+  {
+   "text": "Emmett,",
+   "start": 0.28,
+   "end": 0.46
+  },
+  {
+   "text": "I",
+   "start": 0.7,
+   "end": 0.84
+  },
+  {
+   "text": "need",
+   "start": 1.0,
+   "end": 1.32
+  },
+  {
+   "text": "a",
+   "start": 1.44,
+   "end": 1.56
+  },
+  {
+   "text": "hint",
+   "start": 1.62,
+   "end": 2.04
+  }
+ ]
+}

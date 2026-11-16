@@ -1,0 +1,35 @@
+{
+ "text": "Uh, Cletus, bring the truck. Uh",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.16,
+   "end": 0.24
+  },
+  {
+   "text": "Cletus,",
+   "start": 0.38,
+   "end": 0.72
+  },
+  {
+   "text": "bring",
+   "start": 0.82,
+   "end": 1.0
+  },
+  {
+   "text": "the",
+   "start": 1.04,
+   "end": 1.1
+  },
+  {
+   "text": "truck.",
+   "start": 1.18,
+   "end": 1.66
+  },
+  {
+   "text": "Uh",
+   "start": 1.76,
+   "end": 1.8
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+ "text": "You shot my damn lunch",
+ "words": [
+  {
+   "text": "You",
+   "start": 0.1,
+   "end": 0.3
+  },
+  {
+   "text": "shot",
+   "start": 0.44,
+   "end": 0.76
+  },
+  {
+   "text": "my",
+   "start": 0.82,
+   "end": 1.04
+  },
+  {
+   "text": "damn",
+   "start": 1.18,
+   "end": 1.52
+  },
+  {
+   "text": "lunch",
+   "start": 1.6,
+   "end": 2.02
+  }
+ ]
+}

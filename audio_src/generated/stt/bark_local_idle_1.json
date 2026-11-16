@@ -1,0 +1,25 @@
+{
+ "text": "My back's killing me",
+ "words": [
+  {
+   "text": "My",
+   "start": 0.24,
+   "end": 0.52
+  },
+  {
+   "text": "back's",
+   "start": 0.7,
+   "end": 1.1
+  },
+  {
+   "text": "killing",
+   "start": 1.22,
+   "end": 1.64
+  },
+  {
+   "text": "me",
+   "start": 1.7,
+   "end": 1.9
+  }
+ ]
+}

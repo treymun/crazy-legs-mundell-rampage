@@ -1,0 +1,40 @@
+{
+ "text": "Hold on, let me sit a spell",
+ "words": [
+  {
+   "text": "Hold",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "on,",
+   "start": 0.36,
+   "end": 0.52
+  },
+  {
+   "text": "let",
+   "start": 0.6,
+   "end": 0.7
+  },
+  {
+   "text": "me",
+   "start": 0.76,
+   "end": 0.86
+  },
+  {
+   "text": "sit",
+   "start": 0.94,
+   "end": 1.18
+  },
+  {
+   "text": "a",
+   "start": 1.24,
+   "end": 1.32
+  },
+  {
+   "text": "spell",
+   "start": 1.42,
+   "end": 1.78
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "Well, damn, he's gone",
+ "words": [
+  {
+   "text": "Well,",
+   "start": 0.1,
+   "end": 0.4
+  },
+  {
+   "text": "damn,",
+   "start": 0.66,
+   "end": 1.16
+  },
+  {
+   "text": "he's",
+   "start": 1.28,
+   "end": 1.58
+  },
+  {
+   "text": "gone",
+   "start": 1.62,
+   "end": 2.02
+  }
+ ]
+}

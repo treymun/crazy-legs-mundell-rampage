@@ -1,0 +1,40 @@
+{
+ "text": "Or I'll take the long way round",
+ "words": [
+  {
+   "text": "Or",
+   "start": 0.0,
+   "end": 0.16
+  },
+  {
+   "text": "I'll",
+   "start": 0.3,
+   "end": 0.58
+  },
+  {
+   "text": "take",
+   "start": 0.64,
+   "end": 0.96
+  },
+  {
+   "text": "the",
+   "start": 1.02,
+   "end": 1.1
+  },
+  {
+   "text": "long",
+   "start": 1.16,
+   "end": 1.54
+  },
+  {
+   "text": "way",
+   "start": 1.66,
+   "end": 1.92
+  },
+  {
+   "text": "round",
+   "start": 2.08,
+   "end": 2.48
+  }
+ ]
+}

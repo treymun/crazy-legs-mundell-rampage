@@ -1,0 +1,25 @@
+{
+ "text": "Who drank my beer?",
+ "words": [
+  {
+   "text": "Who",
+   "start": 0.08,
+   "end": 0.16
+  },
+  {
+   "text": "drank",
+   "start": 0.22,
+   "end": 0.42
+  },
+  {
+   "text": "my",
+   "start": 0.46,
+   "end": 0.56
+  },
+  {
+   "text": "beer?",
+   "start": 0.64,
+   "end": 0.92
+  }
+ ]
+}

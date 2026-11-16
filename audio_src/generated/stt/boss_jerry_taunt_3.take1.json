@@ -1,0 +1,35 @@
+{
+ "text": "Why Granny tackles harder than you",
+ "words": [
+  {
+   "text": "Why",
+   "start": 0.06,
+   "end": 0.18
+  },
+  {
+   "text": "Granny",
+   "start": 0.26,
+   "end": 0.64
+  },
+  {
+   "text": "tackles",
+   "start": 0.86,
+   "end": 1.28
+  },
+  {
+   "text": "harder",
+   "start": 1.32,
+   "end": 1.66
+  },
+  {
+   "text": "than",
+   "start": 1.72,
+   "end": 1.86
+  },
+  {
+   "text": "you",
+   "start": 1.92,
+   "end": 2.14
+  }
+ ]
+}

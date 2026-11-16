@@ -1,0 +1,25 @@
+{
+ "text": "Quit shooting the help",
+ "words": [
+  {
+   "text": "Quit",
+   "start": 0.2,
+   "end": 0.5
+  },
+  {
+   "text": "shooting",
+   "start": 0.6,
+   "end": 1.02
+  },
+  {
+   "text": "the",
+   "start": 1.06,
+   "end": 1.2
+  },
+  {
+   "text": "help",
+   "start": 1.3,
+   "end": 1.7
+  }
+ ]
+}
