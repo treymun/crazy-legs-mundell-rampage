@@ -29,6 +29,7 @@ failed.
 | `live_props_check` | LIVE PROPS OK | yes | things taken up, held, thrown (a hand hurt and shoved, a propane tank breaking and going up, jugs spilling shine, a brute heaving a tank), set down and saved; fire spreading over hay, never onto stone or dirt, burning out, the same twice, sooner in rain; a still spraying and going up; a snapshot carrying a throw and a fire on tick for tick; all of it off with LIVE PROPS AND FIRE off ([gameplay.md](gameplay.md#picking-things-up-fire-that-spreads-the-stills)) |
 | `climb_check` | CLIMB CHECK OK | yes | every chapter has ladders, each joined foot to top in the nav graph; a ladder takes the player up and down, JUMP lets go; pull-ups onto a chest-high stack and from it onto a roof, not onto one too high; a hand comes up a ladder to the player on a lookout and drops off it to get at them below; a hand under fire ducks out of sight, peeks out, fires and goes back; a hand kicks a door open (not EASY or CLASSIC); the same run twice comes out the same |
 | `vehicle_check` | VEHICLES OK | yes | each vehicle (airboat, car, mower) is got into with USE, drives, strikes something and bounces off never inside a wall, runs a hand down and is got out of; the airboat keeps to water, the car holds no gun, a wreck throws its driver out, a rider rides along in co-op, a snapshot copy drives the same ([gameplay.md](gameplay.md#vehicles)) |
+| `plank_check` | PLANK CHECK OK | yes | a barn's and a pen's wall at the fair, the sawmill's shed, a bayou shack and a gabled barn on County Run's Hickston: one may open, shot about it shows its boards out (a merged run cut at the cell), broken through it is floor to bodies, sight and both flow fields and walked through, a shed keeps its roof (and gable) over the gap, a pen's neighbours stand their own height, its planks rest on a floor, a snapshot and a save open it the same with the same walls ([gameplay.md](gameplay.md#walls-break-too)) |
 | `wreck_check` | WRECK CHECK OK | yes | every kind of breakable with `pieces`, windows and fence cells on the chapters, a County Run map and the hub throw real pieces that all come to rest on a floor, never inside anything; none on the versus maps; the cap holds; a save put back throws nothing; asleep costs next to nothing ([gameplay.md](gameplay.md#in-real-pieces-of-themselves)) |
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
 | `level_edit_check` | LEVEL EDIT OK | yes | level editing keeps the walls right |
@@ -86,7 +87,7 @@ coming apart and the bosses' gear shot off), `break_check`, `feel_check`
   `county_check -- seconds=45`,
   `county_net_check -- seconds=30`, `games_check`, `cover_check`, `net_lag -- quick`, `save_fixtures`, `level_edit_check`,
   `physics_check`, `live_props_check`, `climb_check`, `vehicle_check`,
-  `wreck_check`,
+  `wreck_check`, `plank_check`,
   `quest_reach`, `bot_campaign`, and a headless frame time (`bench.gd`).
 - **window** (after checks): Xvfb and Mesa's software OpenGL
   (`--rendering-driver opengl3`) tour the 3D view through

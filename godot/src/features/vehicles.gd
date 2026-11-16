@@ -585,7 +585,7 @@ func _leave_marks(
 ## Sparks where it scrapes a wall (the car's steel on brick and concrete).
 func _sparks(v: VehicleDrive.Ride, speed: float) -> void:
 	var sparks: Array = _looks["sparks"]
-	var count := clampi(int(speed * .5), 2, 5)
+	var count := clampi(int(speed * .7), 3, 7)
 	for _k in count:
 		var a := _dice.randf() * TAU
 		var fly := _dice.randf_range(.8, 2.4)
@@ -846,7 +846,7 @@ func sprites() -> Array:
 		var s := VehicleDrive.spec(v.kind)
 		if not game.in_view(v.x, v.y, s.length):
 			continue
-		if mine == Vector2i(i, 0) and s.hands == 0:
+		if mine == Vector2i(i, 0) and s.hands == 0 and game.eye_override.is_empty():
 			# Its driver sees the dash and the wheel (draw_view), not the
 			# inside of its shell.
 			_smoke(out, v, s)
@@ -870,7 +870,7 @@ func sprites() -> Array:
 	var sparks: Array = _looks["sparks"]
 	_fly(out, clips, .9, 4.0, "fx_chaff_%d", 2, .12, false)
 	_fly(out, spray, .7, 6.0, "fx_spray_%d", 4, .34, false)
-	_fly(out, sparks, .45, 7.0, "fx_sparks_%d", 3, .16, true)
+	_fly(out, sparks, .45, 7.0, "fx_sparks_%d", 3, .24, true)
 	return out
 
 
@@ -973,7 +973,8 @@ func draw_view(c: Canvas) -> void:
 	if rides.is_empty():
 		return
 	var at := seat_of(game.local_player)
-	if at.x < 0:
+	if at.x < 0 or not game.eye_override.is_empty():
+		# PHOTO MODE's free camera sees the car from outside: no dash.
 		return
 	var v: VehicleDrive.Ride = rides[at.x]
 	var s := VehicleDrive.spec(v.kind)

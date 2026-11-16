@@ -57,6 +57,7 @@ godot --headless --path godot --script res://tools/physics_check.gd   # PHYSICS 
 godot --headless --path godot --script res://tools/live_props_check.gd # LIVE PROPS OK (pick up and throw, spreading fire, the stills)
 godot --headless --path godot --script res://tools/vehicle_check.gd    # VEHICLES OK (get in, drive, bump, run down, get out)
 godot --headless --path godot --script res://tools/wreck_check.gd     # WRECK CHECK OK (broken scenery in real pieces; levels=a,b)
+godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
 godot --headless --path godot --script res://tools/camera_check.gd     # CAMERA CHECK OK (photo mode, kill cam, quality, HUD on Controls)
