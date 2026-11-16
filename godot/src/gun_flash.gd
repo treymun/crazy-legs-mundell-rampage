@@ -40,7 +40,7 @@ static func draw(
 	var front := Weapons.view_point(x, y, float(anchor.x), float(anchor.y), s)
 	var fc := Vector2(roundf(front.x - 3.0 * s), roundf(front.y - 2.0 * s))
 	# The flash adds its light to the picture instead of covering it.
-	Weapons.Armory._blit_glow(
+	WeaponPaint.blit_glow(
 		frame,
 		flash_art,
 		fw,
@@ -56,7 +56,7 @@ static func draw(
 		for k in 7:
 			var ang := -3.2 + k * .33 + float((last_spent * 3 + k * 5) % 7) * .06
 			var far := reach * (.62 + .1 * float(k % 4))
-			Weapons.Armory._line(
+			WeaponPaint.draw_line(
 				frame,
 				int(fc.x + cos(ang) * far * .55),
 				int(fc.y + sin(ang) * far * .55),
@@ -68,7 +68,7 @@ static func draw(
 		var twin_size := roundi(size * .76)
 		var twin_name := "fx_%s_%d" % [prefix, mini(3, index + 1)]
 		var twin := assets.art(twin_name)
-		Weapons.Armory._blit_glow(
+		WeaponPaint.blit_glow(
 			frame,
 			twin,
 			twin_size,
@@ -109,7 +109,7 @@ static func _rich(
 	var halo_name := "fx_%s_%d" % ["energy" if look == "energy" else "fire", step]
 	var hw := roundi(fw * 1.7)
 	var hh := roundi(fh * 1.7)
-	Weapons.Armory._blit_glow(
+	WeaponPaint.blit_glow(
 		frame,
 		assets.art(halo_name),
 		hw,
@@ -120,7 +120,7 @@ static func _rich(
 		halo_name
 	)
 	var name := "fx_mf_%s_%d_%d" % [look, shape, step]
-	Weapons.Armory._blit_scaled(
+	WeaponPaint.blit_scaled(
 		frame, assets.art(name), fw, fh, int(fc.x) - fw / 2, int(fc.y) - fh / 2, alpha, name
 	)
 	if i == Weapons.SHOTGUN and last_spent == 2:
@@ -128,7 +128,7 @@ static func _rich(
 		var twin := "fx_mf_%s_%d_%d" % [look, 1 - shape, mini(2, step + 1)]
 		var tw := roundi(fw * .8)
 		var th := roundi(fh * .8)
-		Weapons.Armory._blit_scaled(
+		WeaponPaint.blit_scaled(
 			frame,
 			assets.art(twin),
 			tw,
