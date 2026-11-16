@@ -89,7 +89,7 @@ static func _gather(g: GameView) -> Array:
 			var y: float = entry[2]
 			if absf(y - p.y) < 10.0:
 				found.append(Effects.light(item, x, y, g.world.elevation(x, y) + .4, 1.0, g.clock))
-	found.append_array(g._quest_lights())
+	found.append_array(GameObjective.quest_lights((g as Object) as Game))
 	for l: Array in g.trigger_lights:
 		var until: float = l[6]
 		if g.clock < until:

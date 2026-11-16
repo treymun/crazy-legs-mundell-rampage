@@ -238,7 +238,7 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
 - **The objective pin** leads to a station's carried item first while it lies
   somewhere (the fair's PA patch lead). The fair's tin rooster booth is where
   its level puts it (`gallery` in the JSON: the stand; targets 3.58 east).
-- **Using things is forgiving, and checked** (`game_world.gd use_target`): a
+- **Using things is forgiving, and checked** (`game_use.gd use_target`): a
   quest device (station, exit, note, jukebox, sink, the tin rooster stand)
   answers USE at any of its aim points (its own point and the board that
   lights up for it within 3.5, the slip on a note's table, the jukebox or sink
@@ -366,7 +366,7 @@ falling, nothing moves that was not set off):
   `KICK_REACH` behind it (its rump to them: `Enemy.angle`): a wind-up showing
   `mule_kick` (`Enemy.held_cel`), then `MULE_KICK` and a knockdown.
 - A **cow** (`[cow]`) tips at USE beside her (`critters.tip`, called from
-  `game_world.gd interact()` before the use targets): a rigid fall about her
+  `game_use.gd interact()` before the use targets): a rigid fall about her
   hooves (`TIP_PULL` times the sine of her lean, one bounce), lying `TIPPED_FOR`
   seconds on her `cow_down` cel (`Enemy.squash`, `Enemy.DOWN_SHARE`), then up.
 - Their cels: `scripts/blender/actors_farm.py` (cels only, like the chicken
@@ -1119,7 +1119,7 @@ chapel path at Hickston. Only the campaign and co-op have them
   ALONG / BURNT OUT, and GET OUT while it stands. USE while seated gets out
   beside it (left, right, behind, front, a little further each way), never
   into deep water, a wall or another hull ("NOWHERE TO STEP OFF HERE").
-  Hooks: `game_world.gd` interact/use_prompt, `game.gd _step_body` (a seated
+  Hooks: `game_use.gd` interact/use_prompt, `game.gd _step_body` (a seated
   player is driven, not walked) and `_step_hands` (the car's hands are on the
   wheel: no firing, the gun holstered), `damage()` (the vehicle soaks its
   `soak` share of what hurts the people in it), `net_predict.gd` (a seated

@@ -1,5 +1,6 @@
-## Messages, sound, damage, pickups, waves, doors, stations, the use key and
-## the objective (the game layers are listed in game_state.gd).
+## Messages, sound, damage, pickups, waves, doors, stations, the use key
+## (game_use.gd) and the objective (game_objective.gd) (the game layers are
+## listed in game_state.gd).
 class_name GameWorld
 extends GameState
 
@@ -655,171 +656,10 @@ func face_name() -> String:
 # -------------------------------------------------------------- interaction
 
 
-## Mirrors Game.use_target: returns [target, x, y] or null.
+## GameUse.use_target (game_use.gd).
 func use_target() -> Variant:
-	if gallery != null and gallery.active:
-		return [gallery, GALLERY_STAND.x + gallery.offset.x, GALLERY_STAND.y + gallery.offset.y]
-	var facing := Vector2(cos(player.view_angle()), sin(player.view_angle()))
-	if bessie != null and bessie.alive:
-		var dx: float = bessie.x - player.x
-		var dy: float = bessie.y - player.y
-		var distance := sqrt(dx * dx + dy * dy)
-		if (
-			distance < 1.52
-			and (distance < .55 or dx * facing.x + dy * facing.y > distance * .40)
-			and world.visible(player.x, player.y, bessie.x, bessie.y)
-		):
-			return ["bessie", bessie.x, bessie.y]
-	var doors: Array = []
-	for door: LevelData.Door in world.doors:
-		if (
-			door.opened
-			and (door.blast_only or world.controlled_doors.has(Vector2i(door.x, door.y)))
-		):
-			continue
-		var centre := door.center()
-		doors.append([door, centre.x, centre.y])
-	var devices: Array = []
-	for station: LevelData.Station in world.stations:
-		if not station.reveals_secret or not stations_done.has(station.id):
-			devices.append(station)
-	if world.extraction != null:
-		devices.append(world.extraction)
-	for device: Array in level.devices:
-		devices.append(device)
-	if gallery != null:
-		devices.append(gallery)
-	for note: LevelData.Note in level.notes:
-		devices.append(note)
-	# An aimed target beats an unaimed one (the reference's rule); among them
-	# the one nearest the crosshair wins, a little in favour of the nearer.
-	var best := [true, INF]
-	var result: Variant = null
-	use_aim = Vector3.INF
-	for door_entry: Array in doors:
-		var x: float = door_entry[1]
-		var y: float = door_entry[2]
-		var rank := _use_rank(x, y, 1.57, .50, .48, facing)
-		if _ranks_above(rank, best) and world.visible(player.x, player.y, x, y):
-			best = rank
-			result = door_entry
-			use_aim = Vector3.INF
-	for device: Variant in devices:
-		for point: Vector3 in aim_points(device):
-			var rank := _use_rank(point.x, point.y, DEVICE_REACH, DEVICE_TOUCH, DEVICE_CONE, facing)
-			if _ranks_above(rank, best) and seen_at(point):
-				best = rank
-				use_aim = point
-				var at := use_point(device)
-				result = [device[0] if device is Array else device, at.x, at.y]
-	return result
-
-
-## Quest devices (stations, the exit, notes, the jukebox and sink, the tin
-## rooster stand) answer USE from a little farther than doors and a little
-## wider round the crosshair, at any of their aim points (aim_points).
-const DEVICE_REACH := 1.65
-const DEVICE_TOUCH := .62
-const DEVICE_CONE := .34
-
-
-## [not aimed, score] for something at x, y, or [] when it is out of reach:
-## aimed within `cone` (the dot of the facing and the way to it, per unit of
-## distance), or closer than `touch` whichever way the player faces. The score
-## is how far off the crosshair it is (radians) and a third of its distance.
-func _use_rank(
-	x: float, y: float, reach: float, touch: float, cone: float, facing: Vector2
-) -> Array:
-	var dx := x - player.x
-	var dy := y - player.y
-	var distance := sqrt(dx * dx + dy * dy)
-	if distance >= reach:
-		return []
-	var along := dx * facing.x + dy * facing.y
-	var aimed := along > distance * cone
-	if not aimed and distance >= touch:
-		return []
-	var off := acos(clampf(along / maxf(distance, .001), -1.0, 1.0))
-	return [not aimed, off + distance * .35]
-
-
-func _ranks_above(rank: Array, best: Array) -> bool:
-	if rank.is_empty():
-		return false
-	var rank_far: bool = rank[0]
-	var best_far: bool = best[0]
-	if rank_far != best_far:
-		return not rank_far
-	var rank_off: float = rank[1]
-	var best_off: float = best[1]
-	return rank_off < best_off
-
-
-## Where USE acts on a device, as the game has always reported it.
-func use_point(device: Variant) -> Vector2:
-	if device is Array:
-		var ax: float = device[1]
-		var ay: float = device[2]
-		return Vector2(ax, ay)
-	if device is GameState.Gallery:
-		return GALLERY_STAND + gallery.offset
-	var dx: float = device.x
-	var dy: float = device.y
-	return Vector2(dx, dy)
-
-
-## The points a device can be aimed at, with the height of what is seen there:
-## its own point, and for a station or the exit the board that lights up for it
-## close by (the panel the player looks at), for a note the slip on the table,
-## for the jukebox and sink the thing itself.
-func aim_points(device: Variant) -> Array:
-	if aim_cache.get("level") != world:
-		# A level reloaded from the editor: its boards may have moved.
-		aim_cache = {"level": world}
-	var key: Variant = device if not (device is Array) else str(device[0])
-	if aim_cache.has(key):
-		return aim_cache[key]
-	var at := use_point(device)
-	var lift := .9
-	var signal_name := ""
-	var near_art := ""
-	if device is LevelData.Station:
-		signal_name = device.id
-	elif device is LevelData.Extraction:
-		signal_name = "exit"
-	elif device is LevelData.Note:
-		lift = 1.01
-		near_art = "note"
-	elif device is Array:
-		near_art = str(device[0])
-	var base := world.elevation(at.x, at.y)
-	var placed := device is LevelData.Station or device is LevelData.Extraction
-	var device_z: float = device.z if placed else NAN
-	if placed and not is_nan(device_z):
-		base = device_z
-	var points: Array = [Vector3(at.x, at.y, base + lift)]
-	for board: LevelData.Billboard in world.billboards:
-		var d := Vector2(board.x, board.y).distance_to(at)
-		var mine := signal_name != "" and board.signal_name == signal_name and d < 3.5
-		if near_art == "note":
-			mine = d < .8 and (board.image == "county_note" or board.image.begins_with("story_"))
-		if mine:
-			var z: float = world.elevation(board.x, board.y) + board.z + board.height * .5
-			points.append(Vector3(board.x, board.y, z))
-	if near_art != "" and near_art != "note":
-		for prop: LevelData.Scenery in world.scenery:
-			if prop.kind == near_art and Vector2(prop.x, prop.y).distance_to(at) < 1.5:
-				var z: float = world.elevation(prop.x, prop.y) + prop.z + prop.height * .5
-				points.append(Vector3(prop.x, prop.y, z))
-		for spec: Variant in level.props:
-			var spec_x: float = spec[1]
-			var spec_y: float = spec[2]
-			var q := Vector2(spec_x, spec_y)
-			if str(spec[0]) == near_art and q.distance_to(at) < 1.5:
-				var h: float = PROP_HEIGHTS.get(near_art, 1.0)
-				points.append(Vector3(q.x, q.y, world.elevation(q.x, q.y) + h * .5))
-	aim_cache[key] = points
-	return points
+	var me: Game = self as Object
+	return GameUse.use_target(me)
 
 
 ## Whether the player's eye sees `point` (x, y, height), or failing that the
@@ -865,196 +705,16 @@ func reaches_pickup(entry: Array) -> bool:
 	return gap < .43 * .43 and world.visible(player.x, player.y, x, y)
 
 
+## GameUse.use_prompt (game_use.gd).
 func use_prompt() -> String:
 	var me: Game = self as Object
-	if players.size() > 1 and ModeScreens.revive_prompt(me) != "":
-		use_aim = Vector3.INF  # a partner down beside you (src/modes/)
-		return ModeScreens.revive_prompt(me)
-	var mst: ModeFeature = features.get("mode")
-	if mst != null and mst.mode != Modes.CAMPAIGN:
-		var special: String = mst.rules().use_prompt(me)
-		if special != "":
-			use_aim = Vector3.INF  # the mode's own (a hostage, the bomb)
-			return special
-	var rides: VehiclesScript = features.get("vehicles")
-	if rides != null and (rides.seated(player) or rides.prompt(player) != ""):
-		use_aim = Vector3.INF  # getting in or out of a vehicle
-		return rides.prompt(player)
-	var found: Variant = use_target()
-	if found == null:
-		return ""
-	var target: Variant = found[0]
-	if target is String:
-		if target == "bessie":
-			var boss_alive: bool = boss != null and boss.alive
-			var jerry_alive: bool = jerry != null and jerry.alive
-			return "CLEAR THE PEN FIRST" if boss_alive or jerry_alive else "E  RESCUE BESSIE"
-		if target == "jukebox":
-			return "E  STOP JUKEBOX" if jukebox_on else "E  PLAY JUKEBOX"
-		if target == "sink":
-			return "E  USE SINK"
-	if target is Gallery:
-		var booth: Gallery = target
-		return booth.prompt()
-	if target is LevelData.Note:
-		return "E  READ " + target.label
-	if target is LevelData.Station:
-		var station: LevelData.Station = target
-		if stations_done.has(station.id):
-			return "ALREADY SET"
-		if station.reveals_secret:
-			return "E  CHECK THE LOOSE PANEL"
-		for key: Variant in station.requires:
-			if not stations_done.has(str(key)):
-				return objective()
-		if station.held != "" and not task_items.has(station.held):
-			return "FIND THE PATCH LEAD AT THE RAFFLE OFFICE"
-		if station.action == "strike":
-			return "STRIKE THE BELT RELEASE"
-		if station.action == "crank":
-			var turned: int = valve_turns.get(station.id, 0)
-			return "E  TURN THE CONDENSER  %d/3" % turned
-		return "E  " + station.label
-	if target is LevelData.Extraction:
-		return "E  " + target.label if exit_ready() else "EXIT LOCKED / CHECK THE MAP"
-	var door: LevelData.Door = target
-	if world.controlled_doors.has(Vector2i(door.x, door.y)):
-		return (
-			"" if door.opened else BossFight.door_note(world, door, "CONTROLLED BY A REMOTE SWITCH")
-		)
-	if door.blast_only:
-		return "POWDER STORE  /  BLAST PANEL"
-	if door.key != "" and not keys.has(door.key):
-		return "BRASS KEY NEEDED" if door.key.ends_with("brass") else "STEEL KEY NEEDED"
-	if door.secret and not door.discovered:
-		if world.crouch_doors.has(Vector2i(door.x, door.y)):
-			return "CROUCH / USE THE LOW HATCH"
-		return ""
-	return "E  CLOSE DOOR" if door.opened else "E  OPEN DOOR"
+	return GameUse.use_prompt(me)
 
 
+## GameUse.interact (game_use.gd).
 func interact() -> void:
-	if showing_tally or player.health <= 0:
-		return
-	if boss_hold > 0.0:
-		# USE cuts a boss's entrance short (BossKit.hold).
-		if boss_hold_for - boss_hold > BossKit.SKIP_AFTER:
-			boss_hold = 0.0
-		return
 	var me: Game = self as Object
-	var mst: ModeFeature = features.get("mode")
-	if mst != null and mst.mode != Modes.CAMPAIGN and mst.rules().use(me):
-		return  # the mode's own (a hostage taken or set down)
-	var rides: VehiclesScript = features.get("vehicles")
-	if rides != null and rides.use(player):
-		return  # in or out of a vehicle (features/vehicles.gd)
-	var gate: LevelData.Gate = portal_target()
-	if gate != null:
-		if world.locked_gates.has(gate):
-			message(gate_text(gate), 3.0)
-			sound.play("chain_rattle")
-		elif armory.fuse > 0.0:
-			message("THROW THE LIT STICK BEFORE LEAVING.", 3.0)
-		else:
-			portal_request = gate.destination
-		return
-	if in_hub:
-		var clue: Variant = hub_clue()
-		if clue != null:
-			message(str(clue[4]), 4.0)
-			if str(clue[0]) == "dispatch":
-				if clock >= hub_dispatch_until:
-					hub_dispatch_until = clock + 6.0
-					var place := sound_position(level.hub_board.x, level.hub_board.y, .64)
-					sound.play_voice("county_dispatch_%d" % hub_milestone, place.x, place.y)
-					if voice_captions:
-						caption = str(HUB_DISPATCH[hub_milestone][2])
-						caption_until = clock + 2.4
-			else:
-				hub_findings[str(clue[0])] = true
-				sound.play("menu_accept", .55)
-		return
-	var critters: Object = features.get("critters")
-	if critters != null and critters.call("tip", player):
-		return  # a cow tipped over (features/critters.gd)
-	var found: Variant = use_target()
-	if found == null:
-		return
-	var target: Variant = found[0]
-	var x: float = found[1]
-	var y: float = found[2]
-	if target is String:
-		if target == "bessie":
-			if (boss != null and boss.alive) or (jerry != null and jerry.alive):
-				message("CLEAR THE PASTURE BEFORE YOU FREE BESSIE.", 2.4)
-			elif revisiting:
-				message("BESSIE IS SAFE. RETURN VIA THE ROAD GATE.", 2.4)
-			else:
-				finish_level("got_bessie")
-			return
-		if target == "jukebox":
-			jukebox_on = not jukebox_on
-			radio_check = 0.0
-			sound_at("menu_accept", x, y, .54)
-			message("JUKEBOX: HICKSTON SHUFFLE" if jukebox_on else "JUKEBOX OFF", 1.45)
-			return
-		if target == "sink":
-			if clock >= flush_until:
-				flush_until = clock + 1.35
-				sound_at("sink_flush", x, y, .83)
-				burst(x, y, .86, "splash", 8, .47)
-				message("WASH UP, YOU ANIMAL.", 1.5)
-			return
-	if target is Gallery:
-		var booth: Gallery = target
-		booth.toggle(me)
-		return
-	if target is LevelData.Note:
-		var note: LevelData.Note = target
-		message(note.text, 4.0)
-		sound.play("menu_move", .40)
-		return
-	if target is LevelData.Station:
-		var station: LevelData.Station = target
-		operate_station(station)
-		return
-	if target is LevelData.Extraction:
-		if revisiting:
-			message("SHIFT DONE. RETURN VIA THE ROAD GATE.", 2.4)
-		elif exit_ready():
-			finish_level("gate")
-		else:
-			message(objective(), 3.0)
-			sound_at("chain_rattle", x, y, .8)
-		return
-	var door: LevelData.Door = target
-	if world.controlled_doors.has(Vector2i(door.x, door.y)):
-		if not door.opened:
-			message(BossFight.door_note(world, door, "THAT GATE HAS A REMOTE SWITCH."), 2.5)
-		return
-	if door.key != "" and not keys.has(door.key):
-		message(
-			(
-				"NEEDS THE BRASS BARN KEY."
-				if door.key.ends_with("brass")
-				else "NEEDS THE STEEL PASTURE KEY."
-			),
-			2.7
-		)
-		sound.play("empty")
-		return
-	if door.blast_only:
-		message("POWDER STORE. THAT PANEL NEEDS DYNAMITE.", 2.65)
-		sound.play("empty", .56)
-		return
-	if (
-		world.crouch_doors.has(Vector2i(door.x, door.y))
-		and not player.crouched
-		and not door.discovered
-	):
-		message("GET LOW AND TRY THE HATCH AGAIN.", 3.0)
-		return
-	toggle_door(door, not door.opened)
+	GameUse.interact(me)
 
 
 # ----------------------------------------------------------------- stations
@@ -1136,18 +796,6 @@ func operate_station(station: LevelData.Station) -> void:
 	activate_station(station)
 
 
-## Where to go for a station: the station, or first the thing it needs carried
-## to it (the fair's PA patch lead) while that still lies somewhere.
-func _station_goal(station: LevelData.Station) -> Vector2:
-	if station.held != "" and not task_items.has(station.held):
-		for entry: Array in pickups:
-			if str(entry[0]) == station.held:
-				var lies_x: float = entry[1]
-				var lies_y: float = entry[2]
-				return Vector2(lies_x, lies_y)
-	return Vector2(station.x, station.y)
-
-
 ## The mill's relay, where the saws are loudest (the rain is heard away from it).
 func _relay_at() -> Vector2:
 	for station: LevelData.Station in world.stations:
@@ -1160,66 +808,6 @@ func exit_ready() -> bool:
 	if world.extraction == null:
 		return false
 	return stations_done.has(world.extraction.shutdown) and not _wave_alive()
-
-
-## What the objective is done at glows a little, as the lamp on the quest prop
-## would: a station still to do warm at its lamp, a done one a small green
-## pilot; the exit red until the way is clear, then green; a Crossroads gate
-## red while locked, green once open (effects.cfg station_todo, station_done,
-## exit_locked, exit_open, gate_locked, gate_open). Steady: the props are
-## modelled whole and read without a blink. A hidden station keeps its secret.
-func _quest_lights() -> Array:
-	var p := player
-	var out: Array = []
-	if in_hub:
-		for gate: LevelData.Gate in world.hub_gates:
-			if absf(gate.x - p.x) < 14.0 and absf(gate.y - p.y) < 14.0:
-				var locked := world.locked_gates.has(gate)
-				var z := world.elevation(gate.x, gate.y + gate.side * .4) + 2.0
-				out.append(
-					Effects.light(
-						"gate_locked" if locked else "gate_open",
-						gate.x,
-						gate.y + gate.side * .4,
-						z,
-						1.0,
-						clock
-					)
-				)
-		return out
-	for station: LevelData.Station in world.stations:
-		if station.hidden or station.reveals_secret:
-			continue
-		if absf(station.x - p.x) > 12.0 or absf(station.y - p.y) > 12.0:
-			continue
-		var done := stations_done.has(station.id)
-		var at: Vector3 = _lamp_at(station)
-		out.append(
-			Effects.light(
-				"station_done" if done else "station_todo",
-				at.x,
-				at.y,
-				at.z - (.45 if done else 0.0),
-				1.0,
-				clock
-			)
-		)
-	var exit: LevelData.Extraction = world.extraction
-	if exit != null and absf(exit.x - p.x) < 12.0 and absf(exit.y - p.y) < 12.0:
-		var at: Vector3 = _lamp_at(exit)
-		var open := exit_ready()
-		out.append(
-			Effects.light("exit_open" if open else "exit_locked", at.x, at.y, at.z, 1.0, clock)
-		)
-	return out
-
-
-## Where a device's lamp is: near the top of its quest prop (the last of its
-## aim points, the prop's middle), else above its own point.
-func _lamp_at(device: Variant) -> Vector3:
-	var points := aim_points(device)
-	var last: Vector3 = points[points.size() - 1]
-	return Vector3(last.x, last.y, last.z + .5)
 
 
 func finish_level(cue: String) -> void:
@@ -1237,70 +825,16 @@ func finish_level(cue: String) -> void:
 		sound.play(cue)
 
 
+## GameUse.portal_target (game_use.gd).
 func portal_target(reach := 2.62) -> Variant:
-	var portals: Array = world.hub_gates if in_hub else [world.return_gate]
-	for gate: LevelData.Gate in portals:
-		if gate == null:
-			continue
-		if gate.approach(player.x, player.y, player.view_angle(), reach) or _gate_aimed(gate):
-			var face: float = gate.y + (.17 if player.y - gate.y >= 0.0 else -.17)
-			if world.visible(
-				player.x,
-				player.y,
-				player.x,
-				face,
-				player.eye,
-				world.elevation(player.x, face) + .93
-			):
-				return gate
-	return null
+	var me: Game = self as Object
+	return GameUse.portal_target(me, reach)
 
 
-## A gate the player stands in front of with the crosshair on its opening,
-## however slanting (Gate.approach wants the gate fairly square ahead).
-func _gate_aimed(gate: LevelData.Gate) -> bool:
-	var d := (player.y - gate.y) * gate.side
-	if d < .15 or d > 1.9 or absf(player.x - gate.x) > gate.width * .5 + .1:
-		return false
-	var toward := -sin(player.view_angle()) * gate.side
-	if toward < .15:
-		return false
-	var hit := player.x + cos(player.view_angle()) * d / toward
-	return absf(hit - gate.x) < gate.width * .5 and d / toward < 2.4
-
-
+## GameUse.hub_clue (game_use.gd).
 func hub_clue() -> Variant:
-	var label: String = str(HUB_DISPATCH[hub_milestone][0])
-	var text: String = str(HUB_DISPATCH[hub_milestone][1])
-	var best: Variant = null
-	var best_rank := [true, INF]
-	var candidates: Array = world.hub_clues.duplicate()
-	candidates.append(["dispatch", level.hub_board.x, level.hub_board.y, "READ " + label, text])
-	var facing := Vector2(cos(player.view_angle()), sin(player.view_angle()))
-	for clue: Variant in candidates:
-		var x: float = clue[1]
-		var y: float = clue[2]
-		# As the quest devices: a little reach, the one nearest the crosshair.
-		var rank := _use_rank(x, y, DEVICE_REACH, DEVICE_TOUCH, DEVICE_CONE, facing)
-		if _ranks_above(rank, best_rank) and seen_at(Vector3(x, y, world.elevation(x, y) + .96)):
-			best = clue
-			best_rank = rank
-	return best
-
-
-func gate_text(gate: LevelData.Gate) -> String:
-	if gate.destination == "hub":
-		return "E  RETURN TO COUNTY CROSSROADS"
-	if world.locked_gates.has(gate):
-		var index := Campaign.ORDER.find(gate.destination)
-		var previous: String = Campaign.ORDER[index - 1] if index > 0 else ""
-		return "LOCKED / FINISH " + Campaign.title_of(previous)
-	return (
-		"E  "
-		+ str(gate_modes.get(gate.destination, "ENTER"))
-		+ " "
-		+ Campaign.title_of(gate.destination)
-	)
+	var me: Game = self as Object
+	return GameUse.hub_clue(me)
 
 
 func toggle_door(door: LevelData.Door, opened: bool) -> void:
@@ -1379,82 +913,10 @@ func pressure_ports(attacks: int) -> Array:
 # -------------------------------------------------------------- ground marks
 
 
+## GameObjective.objective (game_objective.gd).
 func objective() -> String:
-	if in_hub:
-		return "FACE A GATE AND PRESS E OR SPACE"
-	if revisiting:
-		return "COMPLETED / RETURN AT THE ROAD GATE"
-	if not level.rescue:
-		var exit: LevelData.Extraction = world.extraction
-		if exit == null:
-			return ""
-		var shutdown: LevelData.Station = null
-		for station: LevelData.Station in world.stations:
-			if station.id == exit.shutdown:
-				shutdown = station
-				break
-		if shutdown == null:
-			return ""
-		var primary: Array = []
-		for key: Variant in shutdown.requires:
-			if not world.objective_side_tasks.has(key):
-				primary.append(str(key))
-		var pending: Array = []
-		for key: Variant in primary:
-			if not stations_done.has(key):
-				pending.append(key)
-		if pending.size() == 1:
-			for station: LevelData.Station in world.stations:
-				if station.id == pending[0]:
-					if station.held != "" and not task_items.has(station.held):
-						return "FIND THE PA PATCH LEAD AT THE RAFFLE OFFICE"
-					return station.label
-		if not pending.is_empty():
-			return world.control_name
-		for station: LevelData.Station in world.stations:
-			if world.objective_side_tasks.has(station.id) and not stations_done.has(station.id):
-				return station.label
-		if not stations_done.has(shutdown.id):
-			return shutdown.label
-		var threats := 0
-		for enemy: Enemy in wave:
-			if enemy.alive:
-				threats += 1
-		return "CLEAR EXIT THREATS: %d" % threats if threats else exit.label
-	if (boss == null or not boss.alive) and (jerry == null or not jerry.alive):
-		return "RESCUE BESSIE"
-	if jerry != null and jerry.alive and not jerry.dormant:
-		return "PASTURE / BEAT JERRY"
-	if keys.has("key_steel"):
-		return "PASTURE / FIND BESSIE"
-	if keys.has("key_brass"):
-		return (
-			"BARN / STEEL KEY AT THE FEED SCALE"
-			if legacy_key_route
-			else "STEEL KEY / EAST AT THE STOCK REGISTRY"
-		)
-	return "STANKY'S / BRASS KEY IN DISPATCH"
-
-
-## The middle of the nearest cell to (x, y) a body can stand in out of deep
-## water (rings out to 12 cells), or (x, y) itself when there is none.
-func shore_near(x: float, y: float) -> Vector2:
-	for r in range(1, 13):
-		var best := Vector2.INF
-		for cy in range(int(y) - r, int(y) + r + 1):
-			for cx in range(int(x) - r, int(x) + r + 1):
-				if maxi(absi(cx - int(x)), absi(cy - int(y))) != r:
-					continue
-				var at := Vector2(cx + .5, cy + .5)
-				if cx < 1 or cy < 1 or cx >= world.width - 1 or cy >= world.height - 1:
-					continue
-				if world.blocked(at.x, at.y, .3) or world.deep_at(at.x, at.y):
-					continue
-				if at.distance_squared_to(Vector2(x, y)) < best.distance_squared_to(Vector2(x, y)):
-					best = at
-		if best != Vector2.INF:
-			return best
-	return Vector2(x, y)
+	var me: Game = self as Object
+	return GameObjective.objective(me)
 
 
 func objective_target() -> Variant:
@@ -1462,36 +924,15 @@ func objective_target() -> Variant:
 	return GameObjective.objective_target(me)
 
 
-## Where the objective pin points: four steps along the walk to `target`, and
-## how many steps the whole walk is (-1 when it cannot be walked).
+## GameObjective.objective_route (game_objective.gd).
 func objective_route(target: Vector2, target_z := NAN) -> Array:
-	if route == null:
-		return [target, -1]
-	if is_nan(target_z) and world.geo != null:
-		target_z = world.goal_floor(target)
-	var opened := 0
-	for door: LevelData.Door in world.doors:
-		if door.opened:
-			opened += 1
-	var sig := [stations_done.size(), keys.size(), opened]
-	if sig != route_sig:
-		# A door opened or a key was found: the way may be different now.
-		route_sig = sig
-		route.origin = Vector2i(-1, -1)
-		route.next_at = 0.0
-	route.update(target.x, target.y, clock, target_z)
-	var feet := world.stand(player)
-	var steps := route.distance(player.x, player.y, feet)
-	if steps >= FlowField.FAR:
-		return [target, -1]
-	return [route.waypoint(player.x, player.y, 4, [], feet), steps]
+	var me: Game = self as Object
+	return GameObjective.objective_route(me, target, target_z)
 
 
+## GameUse.gate_prompt (game_use.gd).
 func gate_prompt() -> String:
-	var gate: LevelData.Gate = portal_target()
-	if gate != null:
-		return gate_text(gate)
-	var clue: Variant = hub_clue() if in_hub else null
-	return "E  " + str(clue[3]) if clue != null else ""
+	var me: Game = self as Object
+	return GameUse.gate_prompt(me)
 
 # ---------------------------------------------------------------- feedback
