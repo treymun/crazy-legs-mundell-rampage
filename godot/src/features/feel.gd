@@ -55,6 +55,19 @@ func attach() -> void:
 	tick_with(_tick)
 
 
+## An online client's own shot shown ahead of the game (net_shot_predict.gd):
+## the gun jumps back now, by `recoil` as a shot of the gun would.
+func kick_now(recoil: float) -> void:
+	kick = maxf(kick, 0.0) * .5 + recoil
+	kick_v = 0.0
+
+
+## The shot the game just played was kicked already (kick_now): this tick's
+## look at the gun does not kick again.
+func skip_kick() -> void:
+	_age = 0.0
+
+
 func _hurt(amount: float, _cause: String) -> void:
 	if not game.acting_local():
 		return

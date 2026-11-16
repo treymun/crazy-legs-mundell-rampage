@@ -310,11 +310,18 @@ func tick(dt: float, controls: Variant) -> void:
 		if q.health > 0:
 			focus(q, true)
 			var hand_controls: Controls = by_slot[q.slot]
+			# An online client's own hands (hands_watch.gd): what it showed
+			# already is not shown again.
+			var watched := hands_watch != null and q.slot == hands_watch.slot
+			if watched:
+				hands_watch.before_hands(self, q, hand_controls)
 			var back: int = hand_controls.rewind
 			if back > 0 and players.size() > 1:
 				_rewound_hands(q, hand_controls, dt, back)
 			else:
 				_step_hands(q, hand_controls, dt)
+			if watched:
+				hands_watch.after_hands(self, q, hand_controls)
 	focus(local_player)
 	sound.set_fuse(armory.fuse != 0.0)
 	sound.set_tool(

@@ -136,6 +136,9 @@ func _ahead(far: float) -> Vector3:
 
 
 func _fired(gun: int) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_fired.bind(gun), "shot")
+		return
 	if not game.acting_local():
 		return
 	_pellets = 0
@@ -178,7 +181,14 @@ func _fired(gun: int) -> void:
 				puff.grow = .45
 
 
+func own_shot(gun: int) -> void:
+	_fired(gun)
+
+
 func _traced(end: Vector3, struck: String) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_traced.bind(end, struck), "trace")
+		return
 	var gun: int = game.armory.active
 	var firing: Dictionary = Weapons.FIRING[gun]
 	var mode := str(firing.get("fire", ""))
@@ -268,6 +278,10 @@ func _traced(end: Vector3, struck: String) -> void:
 				var v := _scatter(.7, 0.0)
 				v.z = dice.randf_range(1.8, 3.0)
 				_bit("drop", at, v, .6, .03, 9.0)
+
+
+func own_trace(end: Vector3, struck: String) -> void:
+	_traced(end, struck)
 
 
 ## Something come down in water (water.gd splash()): the water strike's

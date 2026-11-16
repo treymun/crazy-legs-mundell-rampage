@@ -528,7 +528,9 @@ the prediction's corrections and the jumps the player actually sees; frames
 where everyone else stood still or skipped; copies put back and mismatches;
 every client hitscan or pellet shot's centre line tested where that screen
 showed everyone and where the server judged it (with the rewind, and without
-for comparison); bandwidth per client, delta sizes, and the server's cost per
+for comparison); each client's own shots, button to flash shown at the press
+and as the copy played it, and how many were withdrawn
+([modes.md](modes.md#shots-reloads-and-pickups)); bandwidth per client, delta sizes, and the server's cost per
 tick split into the game, the snapshots and the bots, as a share of one core.
 `old` turns every fix below off (statics on NetSync, NetPredict.Smoother,
 NetSession, Modes and TacticalNav), so before and after run on one build;

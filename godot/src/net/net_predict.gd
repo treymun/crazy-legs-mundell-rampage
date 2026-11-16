@@ -10,9 +10,22 @@
 class_name NetPredict
 extends RefCounted
 
-## The player's fields stepped here, kept to put back after the frame.
+## The player's fields stepped here, kept to put back after the frame
+## (floor_z: a map with decks and stairs moves it under the feet, and a copy
+## left with the drawn one parted on the next tick's eye; pass 7).
 const KEPT := [
-	"x", "y", "vx", "vy", "air", "vertical_speed", "jump_held", "crouched", "eye", "angle", "pitch"
+	"x",
+	"y",
+	"vx",
+	"vy",
+	"air",
+	"vertical_speed",
+	"jump_held",
+	"crouched",
+	"eye",
+	"angle",
+	"pitch",
+	"floor_z",
 ]
 ## More unplayed inputs than this (a stall) are not predicted past: 1.5 s
 ## (it was 40 ticks, under a 250 ms link's round trip and playout, so the

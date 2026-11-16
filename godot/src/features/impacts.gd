@@ -66,13 +66,23 @@ func _fx() -> WeaponFx:
 
 
 func _fired(_gun: int) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_fired.bind(_gun), "shot")
+		return
 	_pellets = 0
+
+
+func own_shot(gun: int) -> void:
+	_fired(gun)
 
 
 # ------------------------------------------------------------------ striking
 
 
 func _traced(end: Vector3, struck: String) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_traced.bind(end, struck), "trace")
+		return
 	var gun: int = game.armory.active
 	var firing: Dictionary = Weapons.FIRING[gun]
 	var mode := str(firing.get("fire", ""))
@@ -103,6 +113,10 @@ func _traced(end: Vector3, struck: String) -> void:
 	if end.z < floor_z + .1 and _marks_gun(gun):
 		_pock(end, kind)
 	_adopt_holes()
+
+
+func own_trace(end: Vector3, struck: String) -> void:
+	_traced(end, struck)
 
 
 ## What flies off `kind` at `at`, thrown back along `out` (toward the gun for a
@@ -190,6 +204,9 @@ func _marks_gun(gun: int) -> bool:
 ## A round out the far side of a wall: what it tears out flies on with it, and
 ## a hole there too.
 func _pierced(entry: Vector3, exit: Vector3, _struck: String) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_pierced.bind(entry, exit, _struck), "trace")
+		return
 	var way := exit - entry
 	var flat := Vector2(way.x, way.y).length()
 	if flat < .001:

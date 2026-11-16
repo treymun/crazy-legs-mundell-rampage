@@ -660,6 +660,8 @@ func _process(delta: float) -> void:
 	if not aimed.is_empty():
 		var aimed_player: Player = aimed[0]
 		var aimed_kept: Dictionary = aimed[1]
+		var shots_kept: Dictionary = aimed[2]
+		net_shots.restore(game, aimed_player, shots_kept)
 		NetPredict.restore(aimed_player, aimed_kept)
 	var spent := (Time.get_ticks_usec() - work_began) / 1000.0
 	_auto_detail(dt, spent)
@@ -1036,10 +1038,11 @@ func _net_host_tick(mine: Game.Controls) -> void:
 
 ## A client's own aim drawn where the mouse has put it (inputs the host has
 ## not played into the copy yet), so looking round never waits on the
-## network; put back after the frame. [player, angle, pitch] or [].
+## network; put back after the frame. [player, kept, shots' kept] or [].
 func _net_aim(dt: float) -> Array:
 	if net == null or net.role != NetPlay.Role.CLIENT or state != "play" or game == null:
 		net_smooth.reset()
+		net_shots.forget()
 		return []
 	if not net.client_ready():
 		net_smooth.reset()
@@ -1058,7 +1061,9 @@ func _net_aim(dt: float) -> Array:
 	var kept := net_smooth.draw(game, me, net.client_sync, dt)
 	me.angle = fposmod(me.angle + net_turn, TAU)
 	me.pitch = clampf(me.pitch + net_look, -53.0, 53.0)
-	return [me, kept]
+	# Our shots, reloads and pickups shown now, not when the copy plays them
+	# (net_shot_predict.gd); the gun and the pickups are put back after the frame.
+	return [me, kept, net_shots.frame(game, me, net.client_sync)]
 
 
 ## --host-online / --join-online: straight into a lobby.

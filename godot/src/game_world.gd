@@ -874,6 +874,11 @@ func burst(
 		if players.size() < 2:
 			return
 		keep = false
+	if own_quiet and keep:
+		# An online client's own shot it showed already (hands_watch.gd):
+		# the dice go as ever, the specks are the watcher's to show or drop.
+		hands_watch.held_burst(x, y, z, kind, count, speed)
+		keep = false
 	for _i in count:
 		var angle := rng.random() * TAU
 		var v := rng.uniform(.24, speed)

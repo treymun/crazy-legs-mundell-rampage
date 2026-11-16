@@ -149,6 +149,9 @@ func _stain(x: float, y: float, radius: float, green: bool, from_z: float) -> vo
 ## Blood leaving a wound along (ax, ay): drops in the air, drops on the floor
 ## beyond the body, and a splat on a wall close behind it.
 func spray(x: float, y: float, z: float, ax: float, ay: float, amount: float, green: bool) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(spray.bind(x, y, z, ax, ay, amount, green), "hit")
+		return
 	if not game.gore:
 		return
 	var kind := "plasma" if green else "gore"
@@ -299,6 +302,9 @@ func settled(enemy: Enemy) -> void:
 
 ## Dust or sparks where a bullet lands.
 func impact(x: float, y: float, z: float, surface: String) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(impact.bind(x, y, z, surface), "trace")
+		return
 	var puff := Puff.new()
 	puff.x = x
 	puff.y = y

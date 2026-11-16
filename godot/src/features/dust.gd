@@ -91,6 +91,9 @@ func _add(kind: String, at: Vector3, v: Vector3, life: float, size: float, grow:
 
 ## Gun smoke off the muzzle, out ahead a little and hanging.
 func _fired(gun: int) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_fired.bind(gun), "shot")
+		return
 	if not gun in Weapons.MUZZLE_GUNS or gun == Weapons.ARMGUN or game.clock < _smoke_next:
 		return
 	# A gun that fires fast lays one thicker cloud, not a wall of them.
@@ -112,6 +115,10 @@ func _fired(gun: int) -> void:
 			dice.randf_range(.05, .16)
 		)
 		_add("smoke", at, v, dice.randf_range(2.2, 3.4), .06 + k * .015, .17)
+
+
+func own_shot(gun: int) -> void:
+	_fired(gun)
 
 
 func _tick(dt: float) -> void:
