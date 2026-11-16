@@ -200,6 +200,10 @@ var _over := {}
 ## 1 for a cell the index lists anything under.
 var cells := PackedByteArray()
 var _nav: NavGraph = null
+## LevelData.source_key -> the nav graph of that level as read (nav()), the
+## last NAVS_KEPT levels.
+const NAVS_KEPT := 4
+static var _navs: Dictionary = {}
 
 
 ## Reads a level's geometry block (null when it has none). Problems found are
@@ -924,10 +928,26 @@ class NavGraph:
 		return edges.slice(first[n], first[n + 1])
 
 
-## The nav graph, built when first asked (FlowField).
+## The nav graph, built when first asked (FlowField). The graph of a level as
+## read from its file, nothing opened yet, is kept for the next time that
+## level is played (a retry, a load, the next match: a few tenths of a second
+## of the level's load); it is only read once built, never changed.
 func nav(lv: LevelData) -> NavGraph:
 	if _nav != null:
 		return _nav
+	var key := lv.source_key if lv.walls_version == 0 and lv.solid_version == 0 else ""
+	if key != "" and _navs.has(key):
+		_nav = _navs[key]
+		return _nav
+	_nav = _build_nav(lv)
+	if key != "":
+		if _navs.size() >= NAVS_KEPT:
+			_navs.erase(_navs.keys()[0])
+		_navs[key] = _nav
+	return _nav
+
+
+func _build_nav(lv: LevelData) -> NavGraph:
 	var g := NavGraph.new()
 	var n_cells := width * height
 	g.cells = n_cells
@@ -1017,43 +1037,81 @@ func nav(lv: LevelData) -> NavGraph:
 	g.dfirst.resize(g.count + 1)
 	var dtotal := 0
 	var dlists: Array[PackedInt32Array] = []
+	# (Read straight from the lists, not through around()'s copies; the
+	# corner asked last and once: (corner, feet) -> whether it is blocked.
+	# The same answers in the same order as asking it all each time, in a
+	# third of the time.)
+	var corners := {}
+	# Each node's cell's column and row, and whether a ladder joins it.
+	var col := PackedInt32Array()
+	var row := PackedInt32Array()
+	col.resize(g.count)
+	row.resize(g.count)
+	for n in g.count:
+		col[n] = g.cell[n] % width
+		row[n] = g.cell[n] / width
+	var laddered := PackedByteArray()
+	laddered.resize(g.count)
+	for ends: Vector2i in g.ladder_ends:
+		if ends.x >= 0:
+			laddered[ends.x] = 1
+			laddered[ends.y] = 1
 	for n in g.count:
 		var found := PackedInt32Array()
-		var c := g.cell[n]
-		var near := g.around(n)
-		for a in near:
-			if g.links.has(n * g.count + a):
+		var cx := col[n]
+		var cy := row[n]
+		var n0 := g.first[n]
+		var n1 := g.first[n + 1]
+		for i in range(n0, n1):
+			var a := g.edges[i]
+			if laddered[n] == 1 and g.links.has(n * g.count + a):
 				continue
-			for m in g.around(a):
-				if g.links.has(a * g.count + m):
+			var ca := g.cell[a]
+			for j in range(g.first[a], g.first[a + 1]):
+				var m := g.edges[j]
+				if absi(col[m] - cx) != 1 or absi(row[m] - cy) != 1:
 					continue
-				var cm := g.cell[m]
-				if absi(cm % width - c % width) != 1 or absi(cm / width - c / width) != 1:
+				if laddered[a] == 1 and g.links.has(a * g.count + m):
 					continue
 				if found.has(m):
+					continue
+				# The other side's cell leads from n to m too.
+				var side := false
+				for k in range(n0, n1):
+					var b := g.edges[k]
+					if b != a and g.cell[b] != ca and _joins(g, b, m):
+						side = true
+						break
+				if not side:
 					continue
 				# Never past the corner the two cells share when something stands
 				# on it (a porch post on a cell corner): a body cutting the corner
 				# would wedge on it.
-				var corner := Vector2(
-					(c % width + cm % width + 1) * .5, (c / width + cm / width + 1) * .5
+				var at := Vector3(
+					(cx + col[m] + 1) * .5, (cy + row[m] + 1) * .5, minf(g.z[n], g.z[m])
 				)
-				if static_blocked(
-					lv, corner.x, corner.y, NAV_BODY * .6, minf(g.z[n], g.z[m]), BODY
-				):
+				var blocked: Variant = corners.get(at)
+				if blocked == null:
+					blocked = static_blocked(lv, at.x, at.y, NAV_BODY * .6, at.z, BODY)
+					corners[at] = blocked
+				if blocked:
 					continue
-				for b in near:
-					if b != a and g.cell[b] != g.cell[a] and g.around(b).has(m):
-						found.append(m)
-						break
+				found.append(m)
 		dlists.append(found)
 		g.dfirst[n] = dtotal
 		dtotal += found.size()
 	g.dfirst[g.count] = dtotal
 	for n in g.count:
 		g.dedges.append_array(dlists[n])
-	_nav = g
 	return g
+
+
+## Whether node b's orthogonal neighbours include m.
+static func _joins(g: NavGraph, b: int, m: int) -> bool:
+	for e in range(g.first[b], g.first[b + 1]):
+		if g.edges[e] == m:
+			return true
+	return false
 
 
 ## A ladder's foot and top nodes in g ((-1, -1): its foot or its top is not a

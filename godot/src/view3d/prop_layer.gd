@@ -38,6 +38,18 @@ func shown() -> Array:
 	return _shown.values()
 
 
+## The materials the props shown now draw with (each once).
+func live_materials() -> Array[ShaderMaterial]:
+	var seen := {}
+	var out: Array[ShaderMaterial] = []
+	for node: PropView in _shown.values():
+		var m := node.material
+		if m != null and not seen.has(m):
+			seen[m] = true
+			out.append(m)
+	return out
+
+
 ## Every material the layer has made (the view shares its numbers with them).
 func materials() -> Array[ShaderMaterial]:
 	var out: Array[ShaderMaterial] = []
@@ -101,6 +113,9 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			)
 			continue
 		if node == null:
+			var dims: Array = models.sizes[name]
+			var size := models.scale_of(name, s.height)
+			var tall: float = dims[2]
 			var packed := models.scene(name)
 			if packed == null:
 				continue
@@ -111,9 +126,6 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			var material := _material(name)
 			if _materials.size() > had:
 				fresh.append(material)
-			var dims: Array = models.sizes[name]
-			var size := models.scale_of(name, s.height)
-			var tall: float = dims[2]
 			node.setup(material, 51.0 if tall * size > 2.7 else 32.0)
 			node.show_look(models.look_of(s.image))
 			node.stand(s.x, s.y, s.z, _turn(s, level, place), level, size)

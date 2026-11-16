@@ -7,6 +7,13 @@ extends Node3D
 
 ## Ragdolls kept for bodies out of sight (the oldest let go first).
 const KEEP_DOLLS := 64
+## Models kept hidden for reuse when their body leaves the view, per kind
+## and in all: a model made from its scene costs a few tenths of a
+## millisecond, and bodies leave and come back into view all the time as the
+## player turns. Few: each keeps its share of the shader instance numbers
+## (gl_compatibility has room for 4096, 1024 on some phones and browsers).
+const SPARE := 3
+const SPARE_ALL := 12
 
 var models: ActorModels
 ## enemy instance id -> ActorView
@@ -17,6 +24,9 @@ var _dolls: Dictionary = {}
 var _mirrored: ActorView
 ## "enemy instance id:gear" -> the piece of gear shot off (show_gear)
 var _pieces: Dictionary = {}
+## kind -> Array of hidden ActorViews ready for reuse (SPARE), how many
+var _spare: Dictionary = {}
+var _spares := 0
 
 
 func _init(p_models: ActorModels) -> void:
@@ -39,6 +49,24 @@ func prepare(enemies: Array) -> void:
 		var view := packed.instantiate()
 		RagdollRig.of(kind, view, info)
 		view.free()
+
+
+## The materials the models shown now draw with (bodies, gear shot off,
+## the player in the mirror; each once).
+func live_materials() -> Array[ShaderMaterial]:
+	var kinds := {}
+	for view: ActorView in _shown.values():
+		kinds[view.kind] = true
+	if _mirrored != null:
+		kinds[_mirrored.kind] = true
+	var out: Array[ShaderMaterial] = []
+	for kind: String in kinds:
+		out.append(models.material(kind))
+	for node: MeshInstance3D in _pieces.values():
+		var m := node.material_override as ShaderMaterial
+		if m != null and not out.has(m):
+			out.append(m)
+	return out
 
 
 ## The model kind an enemy is drawn with ("" when none).
@@ -89,7 +117,7 @@ func show_actors(
 		var view: ActorView = _shown.get(id)
 		if view == null or view.kind != kind:
 			if view != null:
-				view.queue_free()
+				_retire(view)
 			_shown.erase(id)
 			view = _make(kind, fresh)
 			if view == null:
@@ -112,9 +140,22 @@ func show_actors(
 				_dolls[id] = old.doll
 				if _dolls.size() > KEEP_DOLLS:
 					_dolls.erase(_dolls.keys()[0])
-			old.queue_free()
+			_retire(old)
 			_shown.erase(id)
 	return fresh
+
+
+## A model no longer shown: hidden and kept for its kind's next body
+## (SPARE of a kind, SPARE_ALL in all), or freed.
+func _retire(view: ActorView) -> void:
+	var kept: Array = _spare.get(view.kind, [])
+	if kept.size() >= SPARE or _spares >= SPARE_ALL:
+		view.queue_free()
+		return
+	view.retire()
+	kept.append(view)
+	_spare[view.kind] = kept
+	_spares += 1
 
 
 ## Show the player's reflection `s` as its model on render layers `bits`
@@ -135,7 +176,7 @@ func show_reflection(
 	if kind == "":
 		return fresh
 	if _mirrored == null:
-		_mirrored = _make(kind, fresh)
+		_mirrored = _make(kind, fresh, false)
 		if _mirrored == null:
 			return fresh
 		_mirrored.set_layers(bits)
@@ -196,7 +237,13 @@ func show_gear(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 	return fresh
 
 
-func _make(kind: String, fresh: Array[ShaderMaterial]) -> ActorView:
+func _make(kind: String, fresh: Array[ShaderMaterial], reuse := true) -> ActorView:
+	var kept: Array = _spare.get(kind, [])
+	if reuse and not kept.is_empty():
+		var again: ActorView = kept.pop_back()
+		_spares -= 1
+		again.revive()
+		return again
 	var packed := models.scene(kind)
 	if packed == null:
 		return null

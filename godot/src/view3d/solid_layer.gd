@@ -97,31 +97,14 @@ func show_solids(
 		var g := godot_basis(s.turn)
 		var tone := SpriteLayer3D.tone_at(level, s.x, s.y, s.glow)
 		var buf: PackedFloat32Array = rows.get(s.solid, PackedFloat32Array())
-		buf.append_array(
-			PackedFloat32Array(
-				[
-					g.x.x,
-					g.y.x,
-					g.z.x,
-					s.x,
-					g.x.y,
-					g.y.y,
-					g.z.y,
-					s.z,
-					g.x.z,
-					g.y.z,
-					g.z.z,
-					s.y,
-					tone.r,
-					tone.g,
-					tone.b,
-					tone.a,
-					0.0,
-					0.0,
-					0.0,
-					float(SpriteLayer3D.GLOW if s.glow else 0)
-				]
-			)
+		SpriteLayer3D.put(
+			buf,
+			g.x,
+			g.y,
+			g.z,
+			Vector3(s.x, s.z, s.y),
+			tone,
+			Color(0.0, 0.0, 0.0, float(SpriteLayer3D.GLOW if s.glow else 0))
 		)
 		rows[s.solid] = buf
 	for kind: String in rows:

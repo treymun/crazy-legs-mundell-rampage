@@ -195,6 +195,21 @@ class Contact:
 	var jt := Vector3.ZERO
 	var mass_n := 0.0
 
+	## As one just made (contacts are kept and handed out again each step).
+	func clear() -> void:
+		a = null
+		b = null
+		ra = Vector3.ZERO
+		rb = Vector3.ZERO
+		n = Vector3(0.0, 0.0, 1.0)
+		depth = 0.0
+		bias = 0.0
+		mu = MU
+		e = E_FLOOR
+		jn = 0.0
+		jt = Vector3.ZERO
+		mass_n = 0.0
+
 
 var world: LevelData
 ## The pieces (Body), and the clock (seconds stepped).
@@ -204,6 +219,10 @@ var clock := 0.0
 var knocks := 0
 var knock_at := Vector3.ZERO
 var knock_hard := 0.0
+## The contacts made so far, handed out again each step (a step of 48 pieces
+## in the air makes hundreds; making them anew was a good share of its cost).
+var _contacts: Array[Contact] = []
+var _contacts_used := 0
 
 
 func _init(p_world: LevelData) -> void:
@@ -231,7 +250,21 @@ func step(dt: float, steps := 2) -> void:
 		clock += h
 
 
+## A contact as new, from the kept ones.
+func _contact() -> Contact:
+	var c: Contact
+	if _contacts_used < _contacts.size():
+		c = _contacts[_contacts_used]
+		c.clear()
+	else:
+		c = Contact.new()
+		_contacts.append(c)
+	_contacts_used += 1
+	return c
+
+
 func _step(h: float) -> void:
+	_contacts_used = 0
 	var live: Array = []
 	for b: Body in bodies:
 		b.turn = Basis(b.q)
@@ -535,7 +568,7 @@ func _way_out(at: Vector3) -> Vector3:
 
 
 func _add(b: Body, r: Vector3, n: Vector3, depth: float, e: float, out: Array) -> void:
-	var c := Contact.new()
+	var c := _contact()
 	c.a = b
 	c.b = null
 	c.ra = r
@@ -612,7 +645,7 @@ func _pair(a: Body, o: Body, out: Array) -> void:
 			if closing < -.5:
 				a.wake()
 				o.wake()
-		var c := Contact.new()
+		var c := _contact()
 		c.a = a
 		c.b = o
 		c.ra = r

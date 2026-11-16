@@ -92,6 +92,7 @@ func _init() -> void:
 	print("%d actor models" % actors.kinds.size())
 	_check_leftovers(models, actors)
 	_check_slabs(assets)
+	_check_reshape(assets)
 	if _failed.is_empty():
 		print("VIEW3D CHECK OK")
 		quit(0)
@@ -270,6 +271,90 @@ func _check_leftovers(models: PropModels, actors: ActorModels) -> void:
 		or back.x < 1.0
 	):
 		_fail("actor cow: tipped, she does not go over on her hooves (%s, %s)" % [hoof, back])
+
+
+## A plank wall or a shed's wall broken through (LevelData.open_cell) builds
+## only the chunks it touched again (WorldView3D._reshape): those come out as
+## a whole build after would make them, every other chunk as it was, and the
+## cell texture's pixels as _cell_image after.
+func _check_reshape(assets: Assets) -> void:
+	var hud := HUD.new(assets)
+	var sound := Sound.new(assets)
+	root.add_child(sound)
+	var opened := 0
+	var part_us := 0
+	var whole_us := 0
+	var sheds := 0
+	for id: String in ["fair", "sawmill", "bayou", "county_hickston"]:
+		var game := Game.new(assets, hud, sound, id)
+		var level := game.level
+		var walls: Object = game.features.get("wall_breaks")
+		if walls == null:
+			continue
+		var builder := LevelMesh.new(level)
+		var tried := 0
+		for f: Object in (walls.get("fences") as Dictionary).values():
+			if tried >= 3 or not walls.call("_may_open", f):
+				continue
+			tried += 1
+			var before := builder.build_static(level.active_base(false))
+			var reshaped := level.reshaped.size()
+			var retiled := level.retiled.size()
+			var reshapes := level.reshapes
+			var version := level.walls_version
+			walls.call("_break_through", f, true)
+			if level.reshapes != reshapes + 1 or level.walls_version != version + 1:
+				_fail("%s: a wall broken through is not one reshape" % id)
+				continue
+			var only := {}
+			for i in range(reshaped, level.reshaped.size()):
+				WorldView3D._chunks_at(level.reshaped[i], only)
+			for i in range(retiled, level.retiled.size()):
+				WorldView3D._chunks_at(level.retiled[i], only)
+			var t0 := Time.get_ticks_usec()
+			var some := builder.build_static(level.active_base(false), only)
+			var t1 := Time.get_ticks_usec()
+			var after := builder.build_static(level.active_base(false))
+			part_us += t1 - t0
+			whole_us += Time.get_ticks_usec() - t1
+			for k: Vector2i in after.keys() + before.keys():
+				var want := _arrays(after.get(k))
+				var got := _arrays(some.get(k) if only.has(k) else before.get(k))
+				if want != got:
+					_fail("%s: chunk %s after a wall opened at %s" % [id, k, f.get("cell")])
+					break
+			var image := WorldView3D._cell_image(level)
+			var cell: Vector2i = f.get("cell")
+			var c := cell.y * level.width + cell.x
+			if image.get_pixelv(cell) != WorldView3D._cell_colour(level, c):
+				_fail("%s: the cell texture at %s" % [id, cell])
+			opened += 1
+			sheds += 1 if int(f.get("inside")) >= 0 else 0
+	if opened < 4 or sheds < 1:
+		_fail("walls broken through: only %d (%d sheds)" % [opened, sheds])
+	print(
+		(
+			(
+				"%d walls broken through (%d sheds): only their chunks built again,"
+				+ " %.1f ms a wall (a whole build %.1f)"
+			)
+			% [
+				opened,
+				sheds,
+				part_us / 1000.0 / maxi(1, opened),
+				whole_us / 1000.0 / maxi(1, opened)
+			]
+		)
+	)
+
+
+static func _arrays(mesh: Variant) -> Array:
+	var out: Array = []
+	if mesh is ArrayMesh:
+		var m: ArrayMesh = mesh
+		for s in m.get_surface_count():
+			out.append(m.surface_get_arrays(s))
+	return out
 
 
 func _fail(line: String) -> void:

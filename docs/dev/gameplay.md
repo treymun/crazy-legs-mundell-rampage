@@ -231,7 +231,12 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   walks the whole level (5 to 10 ms), so it has a `budget` (1500 cells a
   tick): a new walk (a door opened, a key, something broken, the boss moving a
   cell) finishes over a few frames while the last answer stands; the first
-  walk is always whole. Stutters: `first_minutes.gd -- whole hitches` times
+  walk is always whole. A level with geometry walks its nav graph
+  (`LevelGeometry.nav`, a quarter of a second to build on the desktop); the
+  graph of a level as read from its file (nothing opened yet, keyed by
+  `LevelData.source_key`, the file's name, length and hash) is kept for the
+  next game on that level (`NAVS_KEPT` 4 levels): a retry, a load, the next
+  match. It is only read once built. Stutters: `first_minutes.gd -- whole hitches` times
   every tick of a bot's playthrough; `--play-bench=<seconds>` has the same bot
   (`tools/bot_pilot.gd`) play each chapter in a real window and prints the
   slowest frames with the tick's and the draw's share.
@@ -786,8 +791,9 @@ path adds its sprites.
 - A fence cell (stockyard) shot down to `damaged` swaps its faces to
   `stockyard_hit`, and at 0 hp `LevelData.open_cell()` makes it floor: its own
   face pieces leave `walls`, each solid neighbour gets the face
-  `implied_walls` would give it, `walls_version`/`solid_version` bump (the 3D
-  view's level mesh key and the automap signature), both flow fields reopen
+  `implied_walls` would give it, `walls_version`/`solid_version` bump (the
+  automap signature; the 3D view builds only the chunks listed in `reshaped`
+  again, [view3d.md](view3d.md#keeping-the-frame-cheap-track-r-before-v330)), both flow fields reopen
   it, and `stockyard_gap` stands in it as two plane sprites.
 - This stays exact because nothing is rebuilt until something breaks: window
   and stockyard tiles are not `LevelTiles.TILED`, so their pieces are never
@@ -871,7 +877,9 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   was, its base opens the way as a crate's does; `never` on the versus maps).
   This is play (they stop shots, take hp and free their cells, the same on
   every machine); the pieces are not.
-- **Physics** (`WreckPhysics`): each piece a box with a quaternion, slide and
+- **Physics** (`WreckPhysics`): the contacts made in a step are kept and
+  handed out again the next (`_contact()`, each `clear()`ed to as new): 48
+  pieces in the air made hundreds a step. Each piece a box with a quaternion, slide and
   spin, mass and moments from its size; contacts are its corners (and points
   along a long stick) against the floor under it (`Tumble.floor_at`, so
   decks, stairs, ramps and furniture tops), roofs, walls, furniture sides

@@ -214,10 +214,7 @@ func show_sprites(
 				continue
 		if board and dx * sin(s.plane) - dy * cos(s.plane) <= .02 and not everywhere:
 			continue
-		if s.translucent:
-			clear_buf.append_array(_row(s, level, angle))
-		else:
-			solid_buf.append_array(_row(s, level, angle))
+		_row(clear_buf if s.translucent else solid_buf, s, level, angle)
 	fill(solid, solid_buf)
 	fill(clear, clear_buf)
 
@@ -226,14 +223,14 @@ func show_sprites(
 func show_reflection(sprite: View.Sprite, level: LevelData, angle: float) -> void:
 	var buf := PackedFloat32Array()
 	if sprite != null and sprite.image != "":
-		buf = _row(sprite, level, angle)
+		_row(buf, sprite, level, angle)
 	fill(reflection, buf)
 
 
-## One instance's 20 numbers: its transform (a billboard's width along the
-## view's right, a board's along its own axis), its tint and light, its art
-## slot and size, its flags and hit wash.
-func _row(s: View.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
+## One instance's 20 numbers, added to `buf`: its transform (a billboard's
+## width along the view's right, a board's along its own axis), its tint and
+## light, its art slot and size, its flags and hit wash.
+func _row(buf: PackedFloat32Array, s: View.Sprite, level: LevelData, angle: float) -> void:
 	var board := not is_nan(s.plane)
 	var slot := _slot(s.image)
 	var size := _slot_size[slot]
@@ -264,29 +261,16 @@ func _row(s: View.Sprite, level: LevelData, angle: float) -> PackedFloat32Array:
 	var bx := axis * width
 	var by := Vector3(0.0, s.height, 0.0)
 	var bz := bx.cross(by).normalized()
-	return PackedFloat32Array(
-		[
-			bx.x,
-			by.x,
-			bz.x,
-			s.x,
-			bx.y,
-			by.y,
-			bz.y,
-			z,
-			bx.z,
-			by.z,
-			bz.z,
-			s.y,
-			tint.r,
-			tint.g,
-			tint.b,
-			tint.a,
-			float(slot),
-			float(size.x),
-			float(size.y),
-			float(flags + hurt * 256 + spin * SPIN_ONE)
-		]
+	put(
+		buf,
+		bx,
+		by,
+		bz,
+		Vector3(s.x, z, s.y),
+		Color(tint.r, tint.g, tint.b, tint.a),
+		Color(
+			float(slot), float(size.x), float(size.y), float(flags + hurt * 256 + spin * SPIN_ONE)
+		)
 	)
 
 
@@ -310,31 +294,14 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 		var bx := Vector3(m.ux, 0.0, m.uy) * (2.0 * m.radius)
 		var by := Vector3(0.0, 2.0 * m.radius, 0.0)
 		var bz := Vector3(-m.uy, 0.0, m.ux)
-		buf.append_array(
-			PackedFloat32Array(
-				[
-					bx.x,
-					by.x,
-					bz.x,
-					m.x,
-					bx.y,
-					by.y,
-					bz.y,
-					m.z - m.radius,
-					bx.z,
-					by.z,
-					bz.z,
-					m.y,
-					1.0,
-					1.0,
-					1.0,
-					1.0,
-					float(slot),
-					float(size.x),
-					float(size.y),
-					0.0
-				]
-			)
+		put(
+			buf,
+			bx,
+			by,
+			bz,
+			Vector3(m.x, m.z - m.radius, m.y),
+			Color(1.0, 1.0, 1.0, 1.0),
+			Color(float(slot), float(size.x), float(size.y), 0.0)
 		)
 	for item: Variant in grounds:
 		if not item is View.GroundMark:
@@ -356,49 +323,60 @@ func show_marks(walls: Array, grounds: Array, cam: Vector3, angle: float) -> voi
 			bx.y = g.gx * bx.x + g.gy * bx.z
 			by.y = g.gx * by.x + g.gy * by.z
 			at.y += g.gx * (at.x - g.x) + g.gy * (at.z - g.y)
-		buf.append_array(
-			PackedFloat32Array(
-				[
-					bx.x,
-					by.x,
-					0.0,
-					at.x,
-					bx.y,
-					by.y,
-					1.0,
-					at.y,
-					bx.z,
-					by.z,
-					0.0,
-					at.z,
-					1.0,
-					1.0,
-					1.0,
-					1.0,
-					float(slot),
-					float(size.x),
-					float(size.y),
-					1.0
-				]
-			)
+		put(
+			buf,
+			bx,
+			by,
+			Vector3(0.0, 1.0, 0.0),
+			at,
+			Color(1.0, 1.0, 1.0, 1.0),
+			Color(float(slot), float(size.x), float(size.y), 1.0)
 		)
 	fill(marks, buf)
 
 
+## Add one instance's FLOATS numbers to `buf` in the MultiMesh's layout: the
+## basis columns bx, by, bz and the origin as a 3x4 matrix by rows, the
+## colour, the custom data. (Written in place: a Packed array made from a
+## list of twenty numbers for each sprite cost more than the rest of a row.)
+static func put(
+	buf: PackedFloat32Array, bx: Vector3, by: Vector3, bz: Vector3, o: Vector3, c: Color, d: Color
+) -> void:
+	var i := buf.size()
+	buf.resize(i + FLOATS)
+	buf[i] = bx.x
+	buf[i + 1] = by.x
+	buf[i + 2] = bz.x
+	buf[i + 3] = o.x
+	buf[i + 4] = bx.y
+	buf[i + 5] = by.y
+	buf[i + 6] = bz.y
+	buf[i + 7] = o.y
+	buf[i + 8] = bx.z
+	buf[i + 9] = by.z
+	buf[i + 10] = bz.z
+	buf[i + 11] = o.z
+	buf[i + 12] = c.r
+	buf[i + 13] = c.g
+	buf[i + 14] = c.b
+	buf[i + 15] = c.a
+	buf[i + 16] = d.r
+	buf[i + 17] = d.g
+	buf[i + 18] = d.b
+	buf[i + 19] = d.a
+
+
+## Hand `buf` (FLOATS numbers an instance, in the MultiMesh's own layout: a
+## 3x4 transform by rows, the colour, the custom data) to the node's
+## MultiMesh in one call, instead of three calls an instance.
 static func fill(node: MultiMeshInstance3D, buf: PackedFloat32Array) -> void:
 	var mm := node.multimesh
 	var n := buf.size() / FLOATS
 	if mm.instance_count < n:
 		mm.instance_count = maxi(maxi(n, mm.instance_count * 2), 64)
-	for i in n:
-		var o := i * FLOATS
-		var t := Transform3D(
-			Vector3(buf[o], buf[o + 4], buf[o + 8]),
-			Vector3(buf[o + 1], buf[o + 5], buf[o + 9]),
-			Vector3(buf[o + 2], buf[o + 6], buf[o + 10]),
-			Vector3(buf[o + 3], buf[o + 7], buf[o + 11])
-		)
-		mm.set_instance_transform(i, t)
-		mm.set_instance_color(i, Color(buf[o + 12], buf[o + 13], buf[o + 14], buf[o + 15]))
-		mm.set_instance_custom_data(i, Color(buf[o + 16], buf[o + 17], buf[o + 18], buf[o + 19]))
+	if n > 0:
+		# The buffer must cover every instance; those past n are not drawn.
+		buf.resize(mm.instance_count * FLOATS)
+		RenderingServer.multimesh_set_buffer(mm.get_rid(), buf)
+		buf.resize(n * FLOATS)
 	mm.visible_instance_count = n

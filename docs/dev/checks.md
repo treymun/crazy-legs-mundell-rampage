@@ -225,10 +225,61 @@ number from earlier. Window runs that change settings get a scratch `APPDATA`
 (the owner's profile is shared).
 
 - Headless, CPU side: `tools/bench.gd -- 150`.
-- In a window: `-- --view-bench=300`; `--play-bench=<seconds>` has the bot
-  play each chapter and prints the slowest frames with the tick's and the
-  draw's share; `first_minutes.gd -- whole hitches` times every tick of a
-  bot's playthrough.
+- In a window: `-- --view-bench=300` (each chapter: the frame, its parts, and
+  the 3D view's own parts, `WorldView3D.parts_us`); `--play-bench=<seconds>`
+  has the bot play each chapter and prints the slowest frames with the tick's
+  and the draw's share; `first_minutes.gd -- whole hitches` times every tick
+  of a bot's playthrough.
+- **The worst moments**, in a window: `tools/stress_bench.gd -- [only=a,b]
+  [frames=240]` builds idle (hickston, a reference), strike (a bowling
+  strike), wreck48 (48 wreck pieces flying), fire (hickston's hay burning),
+  arena (Maw's third phase, the arena coming apart), fivev5 (ten bots in a
+  grainyard round) and county (County Run at 12 minutes, the storm closing,
+  38 hands) and prints each one's frame median, p99 and max, tick and render
+  means, the view's parts, what is on screen, the shader instance slots held
+  and the memory (static, textures, buffers, video). Give it a scratch
+  `APPDATA` with an options.json to pick a QUALITY tier.
+- **The tick, by listener:** `tools/tick_profile.gd -- 300 [levels=a,b]`
+  times each `events.ticked` listener (the features) and the rest ("core":
+  bodies, enemies, shots), idle and in a fight, per chapter.
+- **Loading:** `tools/load_bench.gd -- [rounds=3] [levels=a,b]`: per level
+  the game made the first time (cold: nav graph and wreck caches empty) and
+  again (warm), the 3D level mesh's whole build, the wreck cutting alone.
+
+### Measured before v3.3.0 (track R, 2026-11-16)
+
+Desktop (RTX 5070 Ti laptop, 1280x800 window, the PC busy with other work),
+`88b05d3` against track R's branch, back to back, medians of the runs.
+Whole details: `docs/godot3d/optimize/R/results.md`.
+
+| What | Before | After |
+| --- | --- | --- |
+| `--view-bench` all chapters, HIGH / MEDIUM / LOW (3 runs) | 7.20 / 7.17 / 6.03 ms | 6.93 / 6.26 / 5.44 ms |
+| hickston fight, the view's actors part (HIGH) | 1.29 ms | 0.74 ms |
+| the view's shader numbers (`uniforms`), mothership HIGH | 0.45 ms | 0.30 ms |
+| stress county (HIGH): frame median / render | 13.3 / 7.41 ms | 13.0 / 7.04 ms |
+| stress county (LOW): frame median / p99 | 11.4 / 32.1 ms | 10.2 / 23.5 ms |
+| stress fivev5 (HIGH): frame median | 6.77 ms | 5.76 ms |
+| stress arena (HIGH): frame median / p99 | 5.62 / 14.9 ms | 5.15 / 11.8 ms |
+| shader instance slots held, arena / county / fivev5 | 772 / 760 / 448 | 468 / 504 / 164 |
+| a wall broken through (whole level mesh vs its chunks) | 59 ms | 3.4 ms |
+| load, 15 levels, warm (a retry, a load) / cold | 4.64 / 5.79 s | 1.54 / 5.12 s |
+| game tick, all chapters idle and fighting (headless) | 0.78 ms | 0.77 ms |
+
+Remaining worst cases: County Run late (12 to 14 ms a frame on this desktop:
+33 rigged hands posed every frame, 1.4 to 1.7 ms of AnimationPlayer seeks);
+the first visit to a chapter (0.35 to 0.57 s headless: the nav graph, 0.2 to
+0.3 s, and the wreck cutting, up to 0.29 s on the Mothership); the web pack
+(below). Not measured: a phone, the browser build's frame times, the APK.
+
+**Export sizes** (2026-11-16): Windows EXE 302.6 MB (the 109 MB engine and a
+193 MB pack: `assets_gen` 140 MB of which art.bin 49 MB, sfx.bin 13 MB and the
+music packs 63 MB; the models' imported scenes 39.5 MB); Web and Web Lite
+119.9 MB pack (the chapter art and music packs fetched later) plus 38.8 /
+39.5 MB wasm. Art is already deflated per picture; the sound is 16-bit PCM;
+the model scenes are uncompressed meshes (mesh compression would change how
+they look). Nothing was trimmed: nothing unused was found that is safe to
+drop.
 - Network: `tools/net_bench.gd -- levels=hickston players=1,2,4 [host]`.
 - **The browser:** export both builds, serve each with COOP/COEP headers, add
   a page whose `GODOT_CONFIG` args are `["--", "--view-bench=300"]`, and run

@@ -523,6 +523,62 @@ drawn as their old cels instead, for old-against-new sheets) and `motion`
 (EASY ON THE EYES: 0 full, the default, 1 reduced, 2 still). A tour or bench
 keeps drawing when its window loses the focus.
 
+## Keeping the frame cheap (track R, before v3.3.0)
+
+What the view does each frame is GDScript on the main thread, so on a phone
+or in the browser it is most of the frame. `WorldView3D.parts_us` times
+`frame()` in parts (setup, shadows, props, wrecks, marks, actors, glue,
+sprites, slabs, decals, uniforms); `--view-bench` and
+`tools/stress_bench.gd` print them ([checks.md](checks.md#benchmarks)).
+Rules that keep it cheap, none of which changes a picture:
+
+- **No file checks per frame.** `ResourceLoader.exists` costs tens of
+  microseconds; `PropModels.name_of` (asked for every sprite every frame) and
+  `ActorModels.has` keep their answers (a picture's model name by its text,
+  whether a scene exists by name; the art is still asked each time, as a
+  chapter's pack may arrive later in the browser).
+- **Actor models are pooled and posed only when the pose changes.** A body
+  leaving the view hides its `ActorView` for its kind's next body
+  (`ActorLayer3D.SPARE` 3 a kind, `SPARE_ALL` 12 in all) instead of freeing
+  it; making one from its scene cost about 0.15 ms, and turning in a fight
+  made three a frame. `ActorView` seeks its AnimationPlayer only when the
+  action time changed (a seek is 25 to 70 us; idle bodies hold a frame), sets
+  its four instance numbers only when they changed, and keeps
+  `pose_of`'s answers by picture. Props are not pooled: a hidden model keeps
+  its shader instance numbers (below).
+- **VIEW DETAIL LOW (QUALITY LOW) poses far bodies less often**: past
+  `ActorView.LOD_NEAR` (10 cells) every other frame, past `LOD_FAR` (20)
+  every third, staggered by body; they still move every frame. HIGH and
+  MEDIUM pose every body every frame.
+- **Shader numbers go to the materials in use.** `_share` sets a changed
+  number on the view's own materials and on the props', wrecks' and actors'
+  materials drawn within `IDLE_FRAMES` (120) frames (`_track_live`; each
+  layer's `live_materials()`); a material drawn again after that gets every
+  number at once. A long session meets hundreds of models, and handing each
+  frame's eye, angle, clock and lights to every material ever made cost more
+  than the rest of the view.
+- **MultiMeshes are filled in one call.** The sprites', slabs' and solids'
+  rows are written in place in the MultiMesh's own layout
+  (`SpriteLayer3D.put`) and handed over with
+  `RenderingServer.multimesh_set_buffer`, not three calls an instance from
+  a Packed array made per row.
+- **An opened cell rebuilds only its chunks.** `LevelData.open_cell` (a plank
+  wall or fence broken through, a shed's wall opened) counts `reshapes` and
+  lists the points it changed in `reshaped`; `WorldView3D._reshape` builds
+  only those chunks again and patches the cell texture's pixels (3.4 ms a
+  wall against 59 for the whole level, desktop). Anything else that changes
+  the walls (the 5v5 cover standing again) still rebuilds all.
+  `view3d_check` holds the chunks to what a whole build makes.
+- **Shader instance numbers are a budget.** Every model part with instance
+  uniforms holds them in one global buffer: 4096 vec4 slots on this desktop,
+  1024 where a uniform block holds 16 KB (WebGL2's minimum, many phones).
+  Prop and wreck parts take 8 (tone, six marks, char), actor parts 4. Past
+  the budget Godot prints "Too many instances using shader instance
+  variables" and those parts draw black. The heavy stress scenes hold 600 to
+  800 slots (`stress_bench` prints `instance slots`), so hidden pools stay
+  small (`WreckLayer3D.SPARE` 8 spare pieces, the actor pool above). A next
+  step would give unmarked parts a material without the mark slots.
+
 ## User folder
 
 The 3D build uses its own user folder ("Crazy Legs Mundell Rampage 3D"), so it

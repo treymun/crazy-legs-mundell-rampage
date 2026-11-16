@@ -122,6 +122,9 @@ godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bo
 
 ```
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
+godot --headless --path godot --script res://tools/tick_profile.gd -- 300   # the tick by listener (features) and core, idle and fighting
+godot --headless --path godot --script res://tools/load_bench.gd -- rounds=3   # level loads cold and warm, the level mesh, the wreck cutting
+godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/stress_bench.gd -- [only=county]   # the worst moments: frame, parts, slots, memory
 godot --headless --path godot --script res://tools/first_minutes.gd   # a bot plays each chapter's opening: first fight, kills, health (old-ai: enemies do not hunt)
 godot --headless --path godot --script res://tools/first_minutes.gd -- hickston whole   # bot plays it to the end (god mode; hitches: time every tick; diff=<0..3>)
 godot --headless --path godot --script res://tools/ttk.gd -- ../docs/weapon_ttk.md   # time to kill, every gun against every enemy

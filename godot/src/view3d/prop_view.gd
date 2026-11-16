@@ -9,6 +9,8 @@ extends Node3D
 
 ## The prop's name (meshes.json, town_<name> sprites, mesh_<name> texture).
 @export var prop := ""
+## The material its parts draw with (setup()).
+var material: ShaderMaterial
 
 var _meshes: Array[MeshInstance3D] = []
 var _turn := 0.0
@@ -19,7 +21,8 @@ var _lit_cell := -1
 
 
 ## Give every part of the model `material`; the prop shows to `reach` cells.
-func setup(material: ShaderMaterial, reach: float) -> void:
+func setup(p_material: ShaderMaterial, reach: float) -> void:
+	material = p_material
 	for child in find_children("*", "MeshInstance3D", true, false):
 		var mesh := child as MeshInstance3D
 		mesh.material_override = material
