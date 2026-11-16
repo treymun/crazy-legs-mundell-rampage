@@ -22,6 +22,8 @@ const RUN_TIME := 3.2
 const RUN_FRAMES := 6
 ## How many pellets of one load throw chips (the rest only mark).
 const PELLET_BITS := 5
+## How many marking shots and blasts are kept for the 3D view (thing_hits).
+const THING_KEEP := 24
 
 var dice := RandomNumberGenerator.new()
 var _pellets := 0
@@ -34,6 +36,11 @@ var scorches: Array = []
 ## picture, made at, fading since, its run or null].
 var _splats := {}
 var _marks_out: Array = []
+## For the 3D view's marks on modelled things (view3d/thing_marks.gd): the
+## latest marking shots and blasts, [serial, from, to] (a blast: from == to),
+## each with a serial so the view takes each once. Looks only.
+var thing_hits: Array = []
+var thing_serial := 0
 
 
 func id() -> String:
@@ -75,6 +82,8 @@ func _traced(end: Vector3, struck: String) -> void:
 		return
 	var p := game.player
 	var dir := (end - Vector3(p.x, p.y, p.eye)).normalized()
+	if _marks_gun(gun) and struck != "enemy":
+		_thing_hit(Vector3(p.x, p.y, p.eye), end)
 	if struck == "glass":
 		# A pane going: chips of it everywhere, glinting where they land.
 		for _k in 8:
@@ -249,10 +258,22 @@ func _pock(at: Vector3, kind: String) -> void:
 	pocks.append([mark, picture, game.clock, -1.0])
 
 
+## A marking shot from `from` to `to`, or a blast (from == to), for the 3D
+## view to mark the modelled things it met (BULLET MARKS on).
+func _thing_hit(from: Vector3, to: Vector3) -> void:
+	if not game.bullet_marks:
+		return
+	thing_serial += 1
+	thing_hits.append([thing_serial, from, to])
+	if thing_hits.size() > THING_KEEP:
+		thing_hits.pop_front()
+
+
 ## A blast against a wall scorches it: the nearest faces round it, up to two.
 func _exploded(x: float, y: float, z: float, energy: bool) -> void:
 	if energy:
 		return
+	_thing_hit(Vector3(x, y, z), Vector3(x, y, z))
 	var world: LevelData = game.world
 	# Up the wall from the floor the blast was over (a loft's, not the yard's).
 	var floor_z: float = world.floor_under(x, y, z)

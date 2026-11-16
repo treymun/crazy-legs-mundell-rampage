@@ -9,6 +9,10 @@ extends Node3D
 
 ## How far the old pictures turned a model from face on (PropModels.facing).
 const PICTURE_TURN := PropModels.PICTURE_TURN
+## How many props out of view keep their marks, and how far a prop made
+## again may be from where it went and keep its marks (cells).
+const KEEP := 48
+const REMADE := 1.6
 
 var models: PropModels
 var _shader: Shader
@@ -18,11 +22,20 @@ var _shown: Dictionary = {}
 ## place -> facing (radians about up), kept so a broken prop faces as it did
 var _facing: Dictionary = {}
 var _level: LevelData
+## The props made this frame (thing_marks.gd chars them at once).
+var made: Array[PropView] = []
+## Marks on props no longer shown, by key (thing_marks.gd), kept to KEEP.
+var _kept := {}
 
 
 func _init(p_models: PropModels) -> void:
 	models = p_models
 	_shader = load("res://src/view3d/prop.gdshader")
+
+
+## The props shown now.
+func shown() -> Array:
+	return _shown.values()
 
 
 ## Every material the layer has made (the view shares its numbers with them).
@@ -55,13 +68,16 @@ func _material(name: String) -> ShaderMaterial:
 ## materials made this frame (the view hands them its shader numbers).
 func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 	var fresh: Array[ShaderMaterial] = []
+	made.clear()
 	if level != _level:
 		_level = level
 		_facing.clear()
+		_kept.clear()
 		for node: PropView in _shown.values():
 			node.queue_free()
 		_shown.clear()
 	var seen := {}
+	var made_keys: Array[String] = []
 	for s: View.Sprite in sprites:
 		var name := models.name_of(s.image)
 		var place := Vector3(snappedf(s.x, .01), snappedf(s.y, .01), snappedf(s.z, .01))
@@ -103,6 +119,8 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			node.stand(s.x, s.y, s.z, _turn(s, level, place), level, size)
 			add_child(node)
 			_shown[key] = node
+			made.append(node)
+			made_keys.append(key)
 			if loose:
 				node.tumble(s.x, s.y, s.z, SolidLayer3D.godot_basis(s.turn), level, size, tall)
 				continue
@@ -110,12 +128,52 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 			node.carry(s.x, s.y, s.z, SolidLayer3D.godot_basis(s.turn))
 			continue
 		node.lean(s.tilt)
+	var gone: Array = []
 	for key: String in _shown.keys():
 		if not seen.has(key):
 			var old: PropView = _shown[key]
+			var marks := old.take_marks()
+			if not marks.is_empty():
+				gone.append([key, old.prop, old.position, marks])
 			old.queue_free()
 			_shown.erase(key)
+	_pass_marks(made_keys, gone)
 	return fresh
+
+
+## Marks follow a prop that comes back into view (kept by its key) or one
+## made again where it went (a car stood again at its next place, a thrown
+## thing landing, a breakable showing its struck picture): the nearest gone
+## prop of the same model within REMADE cells hands its marks on.
+func _pass_marks(made_keys: Array[String], gone: Array) -> void:
+	for i in made.size():
+		var node := made[i]
+		var key := made_keys[i]
+		if _kept.has(key):
+			var kept: Array = _kept[key]
+			node.give_marks(kept)
+			_kept.erase(key)
+			continue
+		var best := -1
+		var best_d := REMADE
+		for k in gone.size():
+			var row: Array = gone[k]
+			var at: Vector3 = row[2]
+			var model: String = row[1]
+			var d := at.distance_to(node.position)
+			if model == node.prop and d < best_d:
+				best = k
+				best_d = d
+		if best >= 0:
+			var row: Array = gone[best]
+			var marks: Array = row[3]
+			node.give_marks(marks)
+			gone.remove_at(best)
+	for row: Array in gone:
+		var key: String = row[0]
+		_kept[key] = row[3]
+	while _kept.size() > KEEP:
+		_kept.erase(_kept.keys()[0])
 
 
 ## Which way a prop faces (PropModels.facing), kept for where it stands so a

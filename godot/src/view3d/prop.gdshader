@@ -2,11 +2,13 @@
 // stage's light, committed to the palette), lit as the sprite it replaces
 // was: light_at(distance, the cell's light) stepped in 32nds, the area's
 // tint; then LIGHTS AND GLOW's lights (with the mesh's own normals), grade
-// and fog.
+// and fog. The holes, scorch and char shots, blasts and fire left on it
+// (thing_marks.gdshaderinc) before its light.
 shader_type spatial;
 render_mode unshaded, cull_disabled, shadows_disabled, fog_disabled;
 
 #include "res://src/view3d/view_light.gdshaderinc"
+#include "res://src/view3d/thing_marks.gdshaderinc"
 
 uniform sampler2D baked : filter_nearest, repeat_disable;
 // The wind sways it (effects.cfg [sway], prop_layer.gd): how far its top
@@ -21,6 +23,7 @@ varying vec3 map_p;
 varying vec3 map_n;
 
 void vertex() {
+	own_p = VERTEX;
 	vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	if (sway_k != 0.0 && motion > 0.0) {
 		float h = clamp(VERTEX.y / max(sway_size.x, 0.01), 0.0, 1.0);
@@ -52,7 +55,7 @@ void fragment() {
 	vec3 texel = floor(texelFetch(baked, at, 0).rgb * 255.0 + 0.5);
 	float t = -VERTEX.z;
 	float lit = stepped_light(tone.a, t);
-	vec3 colour = clamp(floor(texel * lit * tone.rgb), 0.0, 255.0);
+	vec3 colour = thing_marks(clamp(floor(texel * lit * tone.rgb), 0.0, 255.0));
 	if (effects_on) {
 		vec3 cam = vec3(CAMERA_POSITION_WORLD.x, CAMERA_POSITION_WORLD.z, CAMERA_POSITION_WORLD.y);
 		vec3 nf = dot(map_n, cam - map_p) < 0.0 ? -map_n : map_n;

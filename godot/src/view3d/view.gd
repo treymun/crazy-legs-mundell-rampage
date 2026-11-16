@@ -25,6 +25,10 @@ static var auto_low := false
 ## RAGDOLLS (game_world.gd configure): dead enemies' models flop as ragdolls
 ## (ActorView, src/ragdoll.gd); off, they play their old scripted fall.
 static var ragdolls := true
+## SHADOWS (main_state.gd apply_options; QUALITY LOW turns it off): what
+## moves throws chunky shadows from the strong lights and a blob from the sky
+## (view3d/view_shadows.gd). Needs LIGHTS AND GLOW.
+static var shadows := true
 
 
 ## A picture standing in the world: x, y on the map, z its feet, `height` tall

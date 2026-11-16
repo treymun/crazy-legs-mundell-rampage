@@ -40,6 +40,7 @@ func _run() -> void:
 	_hud()
 	_photo()
 	_kill_cam()
+	preload("res://tools/view_polish_check.gd").run(main, _check)
 	tally.stop()
 	_check(
 		tally.errors == 0,
@@ -75,8 +76,13 @@ func _quality() -> void:
 	_check(Quality.device_tier(true) == Quality.MEDIUM, "a phone's guess before measuring")
 	var low := Quality.preset(Quality.LOW)
 	_check(
-		low["detail"] == 1 and low["draw_distance"] == 2 and low["lights"] == 0,
-		"LOW: half detail, near, no lights"
+		(
+			low["detail"] == 1
+			and low["draw_distance"] == 2
+			and low["lights"] == 0
+			and low["shadows"] == 0
+		),
+		"LOW: half detail, near, no lights, no shadows"
 	)
 	var high := Quality.preset(Quality.HIGH)
 	_check(

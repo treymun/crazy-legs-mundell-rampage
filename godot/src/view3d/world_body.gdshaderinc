@@ -54,6 +54,33 @@ vec2 relief_at(int tile, int pu, int pv, vec3 here) {
 	return vec2(h - left, h - up);
 }
 
+// County Run's storm front where it meets the ground (storm_ring): the
+// ground soaked dark from a few cells inside the wall on out under it, and a
+// ragged line of churned dirt clods where the wall stands, in 1/12-cell
+// blocks.
+vec3 storm_ground(vec3 colour, float lit, inout float gloss) {
+	vec2 rel = map_p.xy - storm_ring.xy;
+	float edge = length(rel) - storm_ring.z;
+	if (edge < -4.5) {
+		return colour;
+	}
+	float soak = smoothstep(-4.0, 0.6, edge);
+	colour = floor(colour * (1.0 - 0.34 * soak));
+	gloss = max(gloss, 0.55 * soak);
+	vec2 q = floor(map_p.xy * 12.0);
+	float turn = atan(rel.y, rel.x);
+	float rag = 0.22 * sin(turn * floor(storm_ring.z * 1.3)) + 0.14 * sin(turn * floor(storm_ring.z * 3.7) + 1.1);
+	float band = edge - rag - (hash12(q) - 0.5) * 0.3;
+	if (band > -0.45 && band < 0.4) {
+		float h = hash12(q + 17.3);
+		vec3 dirt = h > 0.78 ? vec3(78.0, 62.0, 44.0) : (h < 0.3 ? vec3(28.0, 21.0, 15.0) : vec3(50.0, 38.0, 27.0));
+		float cover = (band < -0.3 || band > 0.28) ? 0.5 : 0.85;
+		colour = floor(mix(colour, dirt * lit, cover));
+		gloss = min(gloss, 0.2);
+	}
+	return colour;
+}
+
 void fragment() {
 	if (mirror_clipped(map_p, CAMERA_VISIBLE_LAYERS)) {
 		discard;
@@ -188,6 +215,9 @@ void fragment() {
 					colour = floor(colour * (1.0 - 0.17 * wet));
 					gloss = 0.4 * wet;
 				}
+			}
+			if (storm_ring.w > 0.0 && open && info.r <= 0.0) {
+				colour = storm_ground(colour, lit, gloss);
 			}
 		}
 		if (!done && t < RELIEF_FAR) {

@@ -13,6 +13,9 @@ extends Node
 
 const NEAR := .02
 const FAR := 160.0
+## How far behind the storm's front curtain the second one stands (cells;
+## storm_wall.gdshader OUTER).
+const OUTER_STORM := 2.5
 const WeatherFeature := preload("res://src/features/weather.gd")
 const WaterFeature := preload("res://src/features/water.gd")
 const CountyRun := preload("res://src/features/county_run.gd")
@@ -59,11 +62,18 @@ var _moving_rows := PackedFloat32Array()
 var _cells: ImageTexture
 var _anim_tiles := {}
 var _params := {}
+## SHADOWS' numbers as last handed to the floors, walls and marks.
+var _received := {}
 var _materials: Array[ShaderMaterial] = []
 var _rain: Array[MeshInstance3D] = []
-## County Run's storm front: a wall round the safe ground (storm_wall.gdshader).
-var _storm_wall: MeshInstance3D
-var _storm_material: ShaderMaterial
+## County Run's storm front: a wall round the safe ground, its front curtain
+## and the one behind it (storm_wall.gdshader).
+var _storm_walls: Array[MeshInstance3D] = []
+var _storm_materials: Array[ShaderMaterial] = []
+## SHADOWS: what the strong lights and the sky throw (view_shadows.gd).
+var _shadows := ViewShadows.new()
+## Holes, scorch and char on props, vehicles and wreck pieces (thing_marks.gd).
+var _thing_marks := ThingMarks.new()
 var _mirror_view: SubViewport
 var _mirror_camera: Camera3D
 
@@ -154,9 +164,6 @@ func _init(assets: Assets) -> void:
 		camera.add_child(sheet)
 		_rain.append(sheet)
 		rain_materials.append(rain_material)
-	_storm_material = ShaderMaterial.new()
-	_storm_material.shader = load("res://src/view3d/storm_wall.gdshader")
-	_storm_material.render_priority = 5
 	var tube := CylinderMesh.new()
 	tube.top_radius = 1.0
 	tube.bottom_radius = 1.0
@@ -165,13 +172,22 @@ func _init(assets: Assets) -> void:
 	tube.cap_bottom = false
 	tube.radial_segments = 96
 	tube.rings = 1
-	_storm_wall = MeshInstance3D.new()
-	_storm_wall.mesh = tube
-	_storm_wall.material_override = _storm_material
-	_storm_wall.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_storm_wall.visible = false
-	_root.add_child(_storm_wall)
-	_materials = [world_material, glass_material, sky_material, _storm_material]
+	var storm_shader: Shader = load("res://src/view3d/storm_wall.gdshader")
+	for k in 2:
+		var storm_material := ShaderMaterial.new()
+		storm_material.shader = storm_shader
+		storm_material.set_shader_parameter("layer_k", k)
+		storm_material.render_priority = 5 - k
+		var wall := MeshInstance3D.new()
+		wall.mesh = tube
+		wall.material_override = storm_material
+		wall.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		wall.visible = false
+		_root.add_child(wall)
+		_storm_walls.append(wall)
+		_storm_materials.append(storm_material)
+	_materials = [world_material, glass_material, sky_material]
+	_materials.append_array(_storm_materials)
 	_materials.append_array(rain_materials)
 	_materials.append_array(sprites.materials())
 	_materials.append(slabs.material)
@@ -192,6 +208,31 @@ func _share(name: String, value: Variant) -> void:
 	_params[name] = value
 	for m: ShaderMaterial in _materials:
 		m.set_shader_parameter(name, value)
+
+
+## SHADOWS' numbers (view_shadows.gd), only to what takes shadows: the
+## level's floors and walls and the marks on them, when they changed.
+func _share_shadows() -> void:
+	var counts := Vector2i(_shadows.pair_count, _shadows.blob_count)
+	var values := {
+		"shadow_count": counts.x,
+		"blob_count": counts.y,
+	}
+	# Copies: the layer fills its own arrays again each frame.
+	if counts.x > 0:
+		values["shadow_a"] = _shadows.pair_a.duplicate()
+		values["shadow_b"] = _shadows.pair_b.duplicate()
+	if counts.y > 0:
+		values["blobs"] = _shadows.blobs.duplicate()
+	var takers: Array[ShaderMaterial] = [world_material, glass_material, sprites.mark_material]
+	for name: String in values:
+		var value: Variant = values[name]
+		var old: Variant = _received.get(name)
+		if old != null and typeof(old) == typeof(value) and old == value:
+			continue
+		_received[name] = value
+		for m in takers:
+			m.set_shader_parameter(name, value)
 
 
 ## Draw this frame of `game` (call after game.draw()).
@@ -251,8 +292,10 @@ func frame(game: Game) -> void:
 			slabbed.append(s)
 		else:
 			pictures.append(item)
+	_shadows.collect(game, acting, modelled, wrecked, Vector3(x, y, z), props.models)
 	var fresh := props.show_props(modelled, level)
 	fresh.append_array(wrecks.show_wrecks(wrecked, level))
+	_thing_marks.update(game, props, wrecks)
 	var gear_lost: Dictionary = view.get("gear_lost", {})
 	fresh.append_array(actors.show_actors(acting, level, game.clock, game.gore_fx.lost, gear_lost))
 	fresh.append_array(actors.show_gear(gear, level))
@@ -481,23 +524,45 @@ func _uniforms(
 			fposmod((0.0 if still else r.time) * (1.9 if motion == 0 else .72), TAU * 1000.0)
 		)
 	_effects(game)
-	_storm(game)
+	_storm(game, cam)
 
 
 ## County Run's storm front: its wall stood round the safe ground, as tall as
 ## the weather, sized to the ring (county_storm.gd).
-func _storm(game: Game) -> void:
+func _storm(game: Game, cam: Vector3) -> void:
 	var f: CountyRun = game.features.get("county")
 	var on := f != null and f.on and f.storm_on and (f.storm_stage > 0 or f.storm_warned)
-	_storm_wall.visible = on
+	# The rich wall (the curtain behind, the flickers, the debris) with LIGHTS
+	# AND GLOW at a view detail above LOW (QUALITY LOW has neither).
+	var rich := Effects.enabled and game.view.detail != 1
+	_storm_walls[0].visible = on
+	_storm_walls[1].visible = on and rich
 	if not on:
+		_share("storm_ring", Vector4.ZERO)
 		return
-	var low := -3.0
-	var tall := 16.0
-	_storm_wall.position = Vector3(f.storm_at.x, low + tall * .5, f.storm_at.y)
-	_storm_wall.scale = Vector3(f.storm_r, tall, f.storm_r)
+	var base := 0.0
+	var level := game.level
+	var middle := Vector2(
+		clampf(f.storm_at.x, 0.0, level.width - .01), clampf(f.storm_at.y, 0.0, level.height - .01)
+	)
+	if level.width > 0 and level.height > 0:
+		base = level.ground[level.cell(middle.x, middle.y)]
+	var low := base - 1.5
+	var tall := 30.0
+	var k := CountyStorm.strength(f)
+	for i in 2:
+		var r := f.storm_r + i * OUTER_STORM
+		_storm_walls[i].position = Vector3(f.storm_at.x, low + tall * .5, f.storm_at.y)
+		_storm_walls[i].scale = Vector3(r, tall, r)
+	# From out in the storm the front curtain is the far one: draw it first.
+	var out := Vector2(cam.x, cam.y).distance_to(f.storm_at) > f.storm_r
+	_storm_materials[0].render_priority = 4 if out else 5
+	_storm_materials[1].render_priority = 5 if out else 4
 	_share("storm_r", f.storm_r)
-	_share("storm_k", CountyStorm.strength(f))
+	_share("storm_k", k)
+	_share("storm_base", base)
+	_share("storm_rich", rich)
+	_share("storm_ring", Vector4(f.storm_at.x, f.storm_at.y, f.storm_r, maxf(k, .05)))
 
 
 ## LIGHTS AND GLOW: this frame's lights, the level's mood, weather and moving
@@ -513,6 +578,9 @@ func _effects(game: Game) -> void:
 		for sheet: MeshInstance3D in _rain:
 			sheet.visible = false
 		_share("light_count", 0)
+		_shadows.pair_count = 0
+		_shadows.blob_count = 0
+		_share_shadows()
 		_share("lightning", 0.0)
 		_share("rain", 0.0)
 		_share("wet", 0.0)
@@ -540,6 +608,8 @@ func _effects(game: Game) -> void:
 	_share("light_pos", at)
 	_share("light_col", tint)
 	_share("light_flags", flags)
+	_shadows.pair(found)
+	_share_shadows()
 	var id := game.level.id
 	var fog: Color = Effects.mood(id, "fog", Color(0, 0, 0))
 	_share("fog_color", Vector3(fog.r, fog.g, fog.b))

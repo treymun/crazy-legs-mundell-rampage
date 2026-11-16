@@ -61,7 +61,7 @@ godot --headless --path godot --script res://tools/vehicle_check.gd    # VEHICLE
 godot --headless --path godot --script res://tools/wreck_check.gd     # WRECK CHECK OK (broken scenery in real pieces; levels=a,b)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
-godot --headless --path godot --script res://tools/camera_check.gd     # CAMERA CHECK OK (photo mode, kill cam, quality, HUD on Controls)
+godot --headless --path godot --script res://tools/camera_check.gd     # CAMERA CHECK OK (photo mode, kill cam, quality, HUD on Controls, shadows, marks on props, storm wall)
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)
 godot --headless --path godot --script res://tools/multi_bots.gd -- players=1,2,4 seconds=60   # MULTI BOTS OK (whole: to the end; mortal; diff=)
 godot --headless --path godot --script res://tools/net_loopback.gd -- seconds=180 lag=50 loss=0.05   # NET LOOPBACK OK (websocket: over WebSocket)
@@ -98,6 +98,7 @@ godot --path godot ... --script res://tools/physics_frames.gd [-- only=hits|boss
 godot --path godot ... --script res://tools/live_props_frames.gd -- out=<dir>  # a thing held, thrown, landed; a brute; hay burning; a still
 godot --path godot ... --script res://tools/physics_frames.gd [-- only=hits|boss|break]
 godot --path godot ... --script res://tools/arena_frames.gd        # the first four boss arenas (docs/boss_arenas/)
+godot --path godot ... --script res://tools/view_polish_frames.gd -- out=<dir> [only=storm|shadow|marks]   # the storm wall, SHADOWS, marks on props (docs/godot3d/polish/L/)
 godot --path godot ... --script res://tools/arena_frames_late.gd   # the last four
 godot --path godot ... --script res://tools/lock_frames.gd -- out=<dir> [kinds=boss,rudy]   # each arena's way in open, then shut (docs/godot3d/polish/P/)
 godot --headless --path godot --script res://tools/boss_lock_check.gd [-- rudy coop]   # BOSS LOCK OK (also in check_fixes)

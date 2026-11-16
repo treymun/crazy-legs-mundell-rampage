@@ -120,8 +120,8 @@ middle a reached spot inside the last. Outside it a player takes
 back in; near the wall it throws boards, tin and hay (`storm_bits`, the break
 bits' pictures) that hurt (`bit_damage`). It builds the climate's rain and
 wind (`climate.storm`). Shown: the HUD line and a small ring map in the top
-right (`CountyStorm.draw_hud`), the ring on the automap (`draw_map`) and a dark
-wall of rain in the 3D view (`world_view.gd _storm`, `storm_wall.gdshader`).
+right (`CountyStorm.draw_hud`), the ring on the automap (`draw_map`) and a towering
+wall of storm in the 3D view: two curtains with lightning and flying debris in them, the ground soaked and churned along it, the world past it dimmed and veiled ([view3d.md](view3d.md#county-runs-storm-front)).
 COUNTY STORM (setting, `game.storm_on`, a sim option carried online) leaves
 it out; a DAILY RUN always has it. `tools/climate_check.gd` checks the stages,
 the hurt and the push, the setting and the daily storm; the cards, XP and

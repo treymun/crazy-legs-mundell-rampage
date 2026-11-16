@@ -60,6 +60,19 @@ uniform float shadow_gust = 0.0;
 uniform float shadow_lx = 1.15;
 uniform float shadow_ly = 0.73;
 uniform float water_drift = 0.0;
+// County Run's storm front (world_view.gd _storm): the ring's middle (xy), its
+// radius (z) and how hard it blows (w; 0: no storm). Outside it the world is
+// dimmer, and the eye's line fogs for as far as it runs through the storm.
+uniform vec4 storm_ring = vec4(0.0);
+// SHADOWS (view_shadows.gd): what the strong lights throw on the level's
+// floors and walls. Each pair is one body's segment from a (xyz) to b (xyz),
+// a.w its radius, b.w the light (an index into light_pos) it stands in. Each
+// blob is the sky's soft shadow under a body: x, y, the floor's z, radius.
+uniform int shadow_count = 0;
+uniform vec4 shadow_a[16];
+uniform vec4 shadow_b[16];
+uniform int blob_count = 0;
+uniform vec4 blobs[12];
 
 const float RELIEF_FAR = 10.0;
 const float RELIEF_K = 1.5;
@@ -288,7 +301,122 @@ float anim_light(int tile) {
 	return 1.0;
 }
 
-vec3 lights_at(vec3 p, vec3 nf, vec3 nb, bool ground, float gloss, vec3 view) {
+// SHADOWS are worked out on a grid of SHADOW_GRID blocks a cell, their soft
+// edges dithered on that grid (a 2x2 ordered pattern): chunky, as a 1997
+// low-res shadow map was. In a body's shadow a light keeps SHADOW_LEFT of
+// what it gives and the surface's own light loses up to SHADOW_DIM (a full
+// strength light, close); under a blob the sky's light loses BLOB_DARK.
+const float SHADOW_GRID = 10.0;
+const float SHADOW_LEFT = 0.12;
+const float SHADOW_DIM = 0.6;
+const float BLOB_DARK = 0.5;
+// What the storm's veil fades to.
+const vec3 STORM_FOG = vec3(30.0, 32.0, 40.0);
+
+// The middle of the shadow block p lies in (pushed a hair off its surface).
+vec3 shadow_block(vec3 p, vec3 n) {
+	return (floor((p + n * 0.02) * SHADOW_GRID) + 0.5) / SHADOW_GRID;
+}
+
+// The dither threshold of the block q on a surface facing n (0 to 1).
+float shadow_dither(vec3 q, vec3 n) {
+	vec2 g = abs(n.z) > 0.5 ? q.xy : vec2(q.x + q.y, q.z);
+	ivec2 gi = ivec2(floor(g * SHADOW_GRID));
+	return (float(((gi.x & 1) * 2) ^ ((gi.y & 1) * 3)) + 0.5) / 4.0;
+}
+
+// How much of the line from q to the light l a body (segment a.xyz to b,
+// radius a.w) covers: 1 squarely in its shadow, 0 clear.
+float shadow_cover(vec3 q, vec3 l, vec4 a, vec3 b) {
+	vec3 d1 = l - q;
+	vec3 d2 = b - a.xyz;
+	vec3 r = q - a.xyz;
+	float aa = max(dot(d1, d1), 1e-6);
+	float e = max(dot(d2, d2), 1e-6);
+	float f = dot(d2, r);
+	float c = dot(d1, r);
+	float bb = dot(d1, d2);
+	float den = aa * e - bb * bb;
+	float s = den > 1e-6 ? clamp((bb * f - c * e) / den, 0.0, 1.0) : 0.0;
+	float t = (bb * s + f) / e;
+	if (t < 0.0) {
+		t = 0.0;
+		s = clamp(-c / aa, 0.0, 1.0);
+	} else if (t > 1.0) {
+		t = 1.0;
+		s = clamp((bb - c) / aa, 0.0, 1.0);
+	}
+	float dist = length(q + d1 * s - a.xyz - d2 * t);
+	return 1.0 - smoothstep(a.w * 0.6, a.w * 1.15, dist);
+}
+
+// The sky's soft shadow under the bodies at floor point p: 0 none, 1 full.
+float blob_shadow(vec3 p, vec3 nf) {
+	vec3 q = shadow_block(p, nf);
+	float th = shadow_dither(q, nf);
+	float dark = 0.0;
+	for (int k = 0; k < blob_count; k++) {
+		vec4 b = blobs[k];
+		if (abs(p.z - b.z) > 0.25) {
+			continue;
+		}
+		float cover = 1.0 - smoothstep(0.45, 1.0, length(q.xy - b.xy) / b.w);
+		if (cover > th) {
+			dark = max(dark, cover > 0.85 ? 1.0 : 0.65);
+		}
+	}
+	return dark;
+}
+
+// How far the eye's line to p runs through the storm, as the veil it lays
+// over p (0 none, at most .82): a ring of radius storm_ring.z round its xy.
+float storm_veil(vec3 p) {
+	vec2 d = p.xy - eye.xy;
+	float a = dot(d, d);
+	if (a < 1e-6) {
+		return 0.0;
+	}
+	vec2 f = eye.xy - storm_ring.xy;
+	float b = 2.0 * dot(f, d);
+	float c = dot(f, f) - storm_ring.z * storm_ring.z;
+	float disc = b * b - 4.0 * a * c;
+	float inside = 0.0;
+	if (disc > 0.0) {
+		float root = sqrt(disc);
+		inside = clamp((-b + root) / (2.0 * a), 0.0, 1.0) - clamp((-b - root) / (2.0 * a), 0.0, 1.0);
+	}
+	float through = sqrt(a) * (1.0 - inside);
+	return min(0.82, 1.0 - exp(-through * (0.06 + 0.1 * storm_ring.w)));
+}
+
+vec3 lights_at(vec3 p, vec3 nf, vec3 nb, bool ground, float gloss, vec3 view, int kind) {
+	// Each light's share left by the bodies standing in it (the level's own
+	// floors and walls only: a body would shadow itself).
+	// A strong light's shadow also darkens what the room's own light gives
+	// (as a 1997 shadow decal did): `dim`, by the light's strength and how
+	// near it is.
+	float shade[16];
+	float dim = 1.0;
+	bool shadowed = kind < 2 && shadow_count > 0;
+	if (shadowed) {
+		for (int i = 0; i < 16; i++) {
+			shade[i] = 1.0;
+		}
+		vec3 q = shadow_block(p, nf);
+		float th = shadow_dither(q, nf);
+		for (int k = 0; k < shadow_count; k++) {
+			int li = int(shadow_b[k].w + 0.5);
+			vec4 at = light_pos[li];
+			float near = 1.0 - distance(at.xyz, q) / at.w;
+			if (li >= light_count || near <= 0.0) {
+				continue;
+			}
+			if (shadow_cover(q, at.xyz, shadow_a[k], shadow_b[k].xyz) > th) {
+				shade[li] = SHADOW_LEFT;
+				dim = min(dim, 1.0 - SHADOW_DIM * clamp(light_col[li].a * 1.6, 0.0, 1.0) * sqrt(near));
+			}
+		}
+	}
 	vec3 sum = vec3(0.0);
 	for (int i = 0; i < light_count; i++) {
 		vec4 at = light_pos[i];
@@ -307,9 +435,9 @@ vec3 lights_at(vec3 p, vec3 nf, vec3 nb, bool ground, float gloss, vec3 view) {
 			float q = clamp(1.0 - length(d.xy) / (at.w * POOL_REACH), 0.0, 1.0);
 			k += floor(q * 3.0 + 0.999) / 3.0 * 0.85;
 		}
-		sum += light_col[i].rgb * light_col[i].a * k;
+		sum += light_col[i].rgb * light_col[i].a * k * (shadowed ? shade[i] : 1.0);
 	}
-	return sum;
+	return sum + vec3(dim - 1.0);
 }
 
 float fog_bank(vec3 p, float reach, float t) {
@@ -347,11 +475,22 @@ vec3 surface_light(vec3 base, vec3 p, float t, vec3 nf, vec3 tu, vec3 tv, vec2 b
 		vec3 sun = normalize(SKY_LIGHT);
 		base *= 1.0 + RELIEF_SKY * (dot(nb, sun) - dot(nf, sun));
 	}
+	if (ground && blob_count > 0) {
+		base = floor(base * (1.0 - BLOB_DARK * blob_shadow(p, nf)));
+	}
 	if (light_count > 0 && t < 160.0) {
 		vec3 view = normalize(eye - p);
-		base = min(floor(base * (vec3(1.0) + lights_at(p, nf, nb, ground, outside ? gloss : gloss * 0.5, view))), vec3(255.0));
+		base = min(floor(base * (vec3(1.0) + lights_at(p, nf, nb, ground, outside ? gloss : gloss * 0.5, view, kind))), vec3(255.0));
 	}
 	base = min(base * grade * (outside ? 1.0 - 0.05 * rain : 1.0), vec3(255.0));
+	float veil = 0.0;
+	if (storm_ring.w > 0.0) {
+		// Under the storm, out past its wall: darker, and veiled the farther
+		// the eye's line runs through it.
+		float out_p = length(p.xy - storm_ring.xy) - storm_ring.z;
+		base = floor(base * (1.0 - 0.38 * smoothstep(-0.5, 5.0, out_p)));
+		veil = storm_veil(p);
+	}
 	if (lightning > 0.0) {
 		vec3 toward = normalize(vec3(flash_dir, 1.1));
 		float lift = outside ? 0.4 + 0.5 * clamp(dot(nb, toward), 0.0, 1.0) + gloss * 0.2 : 0.14;
@@ -362,7 +501,11 @@ vec3 surface_light(vec3 base, vec3 p, float t, vec3 nf, vec3 tu, vec3 tv, vec2 b
 	if (fog_banks > 0.0) {
 		fog = fog + (1.0 - fog) * fog_bank(p, min(t, 14.0), t);
 	}
-	return floor(mix(base, fog_color * 255.0, fog));
+	base = mix(base, fog_color * 255.0, fog);
+	if (veil > 0.0) {
+		base = mix(base, min(STORM_FOG * (1.0 + lightning * 1.6), vec3(255.0)), veil);
+	}
+	return floor(base);
 }
 
 // The picture's colour (0-255) as the frame buffer wants it: the

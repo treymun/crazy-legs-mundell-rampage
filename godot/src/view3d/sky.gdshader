@@ -10,5 +10,9 @@ render_mode unshaded, cull_disabled, shadows_disabled, fog_disabled;
 void fragment() {
 	vec2 px = FRAGCOORD.xy;
 	vec3 sky = sky_at(int(px.x), floor(px.y) + 0.5 - horizon);
+	// Out under County Run's storm (storm_ring): its dark roof overhead.
+	if (storm_ring.w > 0.0 && distance(eye.xy, storm_ring.xy) > storm_ring.z) {
+		sky = mix(sky, min(STORM_FOG * (1.0 + lightning * 2.0), vec3(255.0)), 0.72);
+	}
 	ALBEDO = to_output(floor(sky + 0.5));
 }

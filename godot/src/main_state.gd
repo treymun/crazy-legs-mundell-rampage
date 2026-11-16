@@ -666,6 +666,8 @@ func apply_options() -> void:
 	apply_master()
 	var lights: int = options.get("lights", 1)
 	Effects.enabled = lights != 0
+	var shadows: int = options.get("shadows", 1)
+	View.shadows = shadows != 0
 	var text_size: int = options.get("text_size", 0)
 	HUD.text_style = ["body", "menu", "heading"][clampi(text_size, 0, 2)]
 	var small_text: int = options.get("small_text", 0)

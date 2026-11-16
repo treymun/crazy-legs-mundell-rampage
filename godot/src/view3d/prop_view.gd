@@ -26,6 +26,21 @@ func setup(material: ShaderMaterial, reach: float) -> void:
 		_meshes.append(mesh)
 
 
+## The model's parts (what shots and fire mark: thing_marks.gd).
+func meshes() -> Array[MeshInstance3D]:
+	return _meshes
+
+
+## The marks on its parts, to keep while it is not shown (ThingMarks.saved).
+func take_marks() -> Array:
+	return ThingMarks.saved(_meshes)
+
+
+## Put back marks it had (take_marks), or another of its model's.
+func give_marks(saved: Array) -> void:
+	ThingMarks.restore(_meshes, saved)
+
+
 ## Show one look of a model that holds several (a quest station's mesh
 ## nodes `look_off` and `look_on`): the one named, every other hidden. A
 ## model without looks shows whole.
