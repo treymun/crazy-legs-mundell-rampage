@@ -219,8 +219,20 @@ after the card pick. The pick was never the cause. The check hands the
 server's game two levels of XP outside a tick, so each copy runs one tick
 past it (the one `/game/clock` mismatch the check allows) and is put back on
 the newest snapshot (delta snapshots are patched onto the client's copy of
-the whole snapshot, which is put on whole: nothing stayed uncorrected). Two
-things a snapshot does not carry then parted the copy again later:
+the whole snapshot, which is put on whole: nothing stayed uncorrected). Three
+things then parted a copy again later; the first was the one that failed
+most, always on BOB's copy (the WebSocket client, player two):
+
+- **Fire blamed the local player.** `hurt()` turns a hand on the acting
+  player (`spite`, where it wakes to, the cover it takes, who gets the kill),
+  and a fire biting a hand (`fire.gd _bite`), a still's jet, the mothership's
+  fall and a blast nobody's hand threw (a cooking barrel, a hand's dynamite,
+  CHAIN REACTION) ran while the tick left the LOCAL player acting: player one
+  on the server and on ALICE's copy, player two on BOB's. Such a hurt is now
+  blamed on the nearest player alive (`Players.blamed`, `world_hurt`; in
+  `explode()` a player's own blast stays its thrower's), the same on every
+  machine; one player plays as before. The failing runs were the ones where
+  a hand walked into a burning cell after the pick.
 
 - **Specks decided the dice.** A shot into a wall threw its chips
   (`burst()`, off `game.rng`) only while fewer than 144 specks were about,
@@ -236,5 +248,8 @@ things a snapshot does not carry then parted the copy again later:
   wrong drag (the "body offset"). A body now names its feel (`Body.how`:
   PLAIN, SLICK, FLUNG) and the three feels are not carried.
 
-`net_check` holds both (`_put_back`; each failed on the old code) and
+`county_check` plays a party's run seen from either player's machine
+(`_party_twin`: the same controls, one game local to each player, fires lit
+under hands and a barrel's blast; it parted on the old code), `net_check`
+holds the other two (`_put_back`; each failed on the old code) and
 county_net_check prints each copy's rebuilds.

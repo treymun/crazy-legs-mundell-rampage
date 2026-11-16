@@ -590,7 +590,7 @@ func _killed(enemy: Enemy) -> void:
 	for i in range(game.enemy_ids.size(), game.enemies.size()):
 		var e: Enemy = game.enemies[i]
 		if e.alive and CREW.has(e.kind) and Vector2(e.x, e.y).distance_to(center) < reach + 3.0:
-			e.hurt(999.0, game, true)
+			Players.world_hurt(game, e, 999.0, true)
 	if game.sound != null:
 		game.sound.set_score(game.level.score)
 

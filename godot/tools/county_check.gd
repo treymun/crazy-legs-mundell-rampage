@@ -79,6 +79,7 @@ static func run(main, check: Callable, seconds := QUICK_SECONDS) -> void:
 	_steer(main, check)
 	_melee_blood(check)
 	_party(main, check)
+	_party_twin(main, check)
 	_campaign_untouched(main, check)
 	for map_id: String in CountyData.MAP_IDS:
 		_play(main, check, map_id, seconds)
@@ -1088,6 +1089,102 @@ static func _party(main, check: Callable) -> void:
 	g.damage(999, null, "test", one)
 	g.tick(STEP, Game.Controls.new())
 	check.call(f.over, "both down: the run is over")
+
+
+## A party's run as two machines see it: the same controls into two games,
+## one seen from player one's machine and one from player two's
+## (Players.set_local), stay identical. What nobody's hand did (a fire biting
+## a hand, a barrel going up, a chain blast) is blamed on the nearest player
+## (Players.blamed), never on whoever is local: hurt() turns a hand on the
+## acting player, so an online copy parted from the server's game whenever a
+## hand stood in a fire (county_net_check: a hand's spite, cover, sight).
+static func _party_twin(main, check: Callable) -> void:
+	var games: Array = []
+	for local in 2:
+		var g: Game = main.make_game("county_hickston")
+		g.configure({"difficulty": 1})
+		g.rng.set_state(4242)
+		Modes.setup(g, Modes.COUNTY, 2)
+		g.cheats.god = true
+		Players.set_local(g, g.players[local])
+		games.append(g)
+	var a: Game = games[0]
+	var b: Game = games[1]
+	var bots := [Bot.new(), Bot.new()]
+	var burned := 0
+	var parted := ""
+	for t in 1500:
+		if t > 0 and t % 300 == 0:
+			# Out of anyone's hands: a fire under a hand (its bite comes in the
+			# fire's own tick), and later a barrel's blast beside another
+			# (between ticks, as a cooking barrel's comes in its feature's).
+			for g: Game in games:
+				var hands: Array = []
+				for e: Enemy in g.enemies:
+					if e.alive and e.hostile:
+						hands.append(e)
+				if hands.size() >= 2:
+					var one: Enemy = hands[0]
+					var two: Enemy = hands[1]
+					var fire: GameFeature = g.features.get("fire")
+					if fire != null and fire.call("ignite", one.x, one.y, g.world.stand(one), 3.0):
+						burned += 1
+					if t >= 900:
+						var blast := GameState.Shot.new(
+							two.x + .5,
+							two.y,
+							g.world.stand(two) + .3,
+							0.0,
+							0.0,
+							0.0,
+							"tnt",
+							0.0,
+							false,
+							0
+						)
+						blast.owner = -1
+						g.explode(blast)
+		var given := {}
+		for p: Player in a.players:
+			var c := Game.Controls.new()
+			if p.health > 0:
+				a.focus(p)
+				c = bots[p.slot].steer(a)
+				bots[p.slot].moved(a)
+			given[p.slot] = c
+		a.focus(a.local_player)
+		var f = CountyMode.run(a)
+		if f != null and not f.offer.is_empty():
+			var leader := CountyCoop.leader(a)
+			if leader != null:
+				var i := Bot.pick(a, f)
+				var full: bool = (
+					String(f.offer[i]["type"]) == "weapon" and CountyBuild.open_slot(f) < 0
+				)
+				var pick: Game.Controls = given[leader.slot]
+				pick.buy = CountyCoop.encode(i, 0 if full else -1)
+		var bytes := {}
+		for slot: int in given:
+			bytes[slot] = NetWire.pack_controls(given[slot])
+		for g: Game in games:
+			var mine := {}
+			for slot: int in bytes:
+				mine[slot] = NetWire.unpack_controls(bytes[slot])
+			g.tick(STEP, mine)
+		if (t + 1) % 60 == 0:
+			var where := GameSnapshot.first_difference(
+				NetSync.comparable(NetSync.capture(a)), NetSync.comparable(NetSync.capture(b))
+			)
+			if where != "":
+				parted = "tick %d: %s" % [t + 1, where]
+				break
+	check.call(
+		parted == "" and burned >= 4,
+		(
+			"a party's run is the same seen from either player's machine (fires lit %d)%s"
+			% [burned / 2, "" if parted == "" else " (%s)" % parted]
+		)
+	)
 
 
 ## The campaign is untouched: no mode, the hooks hand back what they get.

@@ -372,7 +372,13 @@ static func world(game: Game, f: CountyRun, _dt: float) -> void:
 			var cx: float = c[0]
 			var cy: float = c[1]
 			var cz: float = c[2]
-			game.explode(GameState.Shot.new(cx, cy, cz, 0.0, 0.0, 0.0, CHAIN, 0.0, false, 0))
+			var shot := GameState.Shot.new(cx, cy, cz, 0.0, 0.0, 0.0, CHAIN, 0.0, false, 0)
+			# The nearest player's blast (explode() blames its thrower), the same
+			# on every machine.
+			var blame := Players.blamed(game, cx, cy)
+			if blame != null:
+				shot.slot = blame.slot
+			game.explode(shot)
 			f.chain_origin = 0
 		f.chains = left
 

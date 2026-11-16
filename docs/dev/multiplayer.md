@@ -49,6 +49,12 @@ while that enemy ticks, a shot's thrower while it flies (`Shot.slot`).
   tests the acting player). `game.reopen_paths()` opens a broken piece's cells
   in every player's flow field and the route.
 - After focusing someone else, focus back: `game.focus(game.local_player)`.
+- Outside a player's own step the tick leaves the LOCAL player acting, who
+  is another on every machine. A hurt no player's hand dealt (fire, a
+  still's jet, a blast nobody threw) is blamed on `Players.blamed` (the
+  nearest player alive; `Players.world_hurt`), never on whoever is acting
+  then: `hurt()` turns the enemy on the acting player (county_check
+  `_party_twin` holds it).
 
 ### Controls per player
 
