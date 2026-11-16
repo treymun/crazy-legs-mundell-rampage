@@ -58,6 +58,22 @@ class Spec:
 	var blade := 0.0
 	var cuts := false
 	var every := 1.0
+	## How it looks on the move (src/vehicle_feel.gd, looks only): the
+	## springs' pace and damping, the lean in a turn and the squat on the
+	## throttle (and their most), the jolts off rough floors, the rocking on
+	## water, and what it throws (spray, sparks off a wall, skids braking).
+	var spring := 2.0
+	var damp := .4
+	var lean := .02
+	var lean_most := .08
+	var squat := .01
+	var squat_most := .06
+	var rough := 0.0
+	var rough_off := 0.0
+	var rock := 0.0
+	var spray := false
+	var sparks := false
+	var brake_skid := false
 
 
 ## A vehicle in play: plain numbers a snapshot carries and a save keeps.

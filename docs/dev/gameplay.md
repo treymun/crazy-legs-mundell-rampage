@@ -800,6 +800,38 @@ path adds its sprites.
   with nothing on them may open; the rest get shot about but hold.
 - `tools/wall_break_check.gd` holds it (every level's cells opened at once).
   The Crossroads breaks nothing.
+- **Plank walls** (polish pass N): `[fence.wood]`, `[fence.barn]` and
+  `[fence.bayou_shack]` make the sheds', barns' and shacks' board walls
+  break, and `[fence.stockyard]` gains two rules. `sheds`: a cell straight
+  through between a roofed floor and the open air may open under its roof
+  (`src/plank_walls.gd open_shed`: the gap takes the inside's roof, ceiling,
+  floor, light and area, so the ceiling runs on over it, and every piece on
+  its edges standing wholly above that roof, a barn's gable, stays). Only
+  where its faces up to the roof are its own boards, the spec's `inside`
+  tiles or trim, with no window on it, no door, gate, pane or deck
+  (geometry) beside it, the ground level both sides and a roof at least 1.9
+  over the gap. `under_roof`: a pen's fence inside a barn opens with its own
+  roof kept and its neighbours' faces only their own height
+  (`LevelData.open_cell(..., low)`). `straight`: only a cell open on two
+  opposite sides. `only_open`: a cell that may not open is left whole (no
+  building corner shot about). The region rule still holds for all of them.
+  Today: the fair 35 barn wall cells and 32 pen cells, the sawmill 35 shed
+  cells, the bayou 49 shack cells, County Run's Hickston 16 and bayou 52
+  (Hickston's chapter sheds sit behind its gates, so they hold).
+- A repeating plank wall (`LevelTiles.TILED`: wood, barn) is merged into runs
+  at load; `PlankWalls.split` cuts a run at the cell before it is shot about
+  or opened (the run keeps its place as its first part, the rest go at the
+  end, and the chunks they were and are in build again through `retiled`).
+  Shot about, the cell's own boards and the boards of a plank wall on its
+  other face (`inside` tiles with a `<tile>_hit`) show `<tile>_hit`
+  (`tools/art/wall_break_art.gd`: the planks knocked out to the dark behind;
+  a TILED wall's `_hit` repeats as the wall does, `level_mesh.gd`), never a
+  gable above the roof. Its planks fly as `planks:5,3` (wreckage) and the
+  stumps stand in the gap (`<tile>_gap`). Nothing new is saved or carried:
+  the fence cells' hp and stage were already (a save without them restores
+  whole, so no save version; no map changed, so no layout).
+  `tools/plank_check.gd` (check_all, quick too) holds it; railings, stairs
+  and decks (geometry pieces) do not break yet.
 - A swapped tile (`LevelData.set_wall_tile`: a window shot out, a fence shot
   about) adds the piece's start to `LevelData.retiled`; the 3D view builds
   only the chunks round it again (`LevelMesh.build_static(base, only)`, a few
@@ -980,8 +1012,36 @@ chapel path at Hickston. Only the campaign and co-op have them
   own model is left out of its driver's view (the dash and wheel instead).
   Sounds reuse cues: `airboat_wake`, `lap_car_pass`, `saw_motor`, `crunch`,
   `lap_car_hit`, `tire_roll`, `mower`.
-- **Checks**: `tools/vehicle_check.gd` (in check_all, quick too);
-  `tools/vehicle_frames.gd` takes window pictures (`docs/godot3d/features/D/`).
+- **How it looks on the move** (polish pass N; `src/vehicle_feel.gd`, looks
+  only): each ride's body is on springs (`spring`, `damp` in vehicles.cfg),
+  worked out every tick from how the ride itself moved (its speed along it,
+  its turn, its floor's height, `bumps`) with the feature's own `_dice`
+  (snapshots skip it and `_looks`): it squats back on the throttle and dives
+  braking (`squat`), leans out of a turn (`lean`), takes a kerb or step on
+  its springs, lands with a dip off a ledge, jars on a wall, jolts over
+  rough floors (`rough` everywhere, `rough_off` more on its slow floors and
+  grass: the mower bounces all the time), and the airboat rocks on the water
+  (`rock`). A parked, settled ride costs nothing. The 3D view gets its model
+  as a prop on the move (`View.Sprite.track` "ride<n>", `turn` the heading,
+  pitch and roll, `z` with the bob; `PropView.relight` lights it in the cell
+  it is in) and the seat's eye takes a little of the bob and pitch
+  (`sway_eye`, from `game_view.gd`; EASY ON THE EYES: 70 %, 30 %, none; no
+  roll of the camera); the car's dash rides a pixel or two. The car leaves
+  two tyre streaks off its back wheels sliding or braking hard
+  (`brake_skid`) and throws sparks where it strikes a wall (`sparks`); the
+  airboat throws spray off its bow (more in a turn) and leaves a wake of
+  rings behind it (`spray`, the water feature's `ring`); the mower spits
+  clippings out of its side chute. The engine's cue plays at a pitch from
+  `ENGINE_LOW` standing to `ENGINE_HIGH` flat out (`game.sound_at(...,
+  rate)` -> `GameSound.play_at_rate`). PHOTO MODE sees the car from outside
+  (its model shown, no dash).
+- **Checks**: `tools/vehicle_check.gd` (in check_all, quick too; its FEEL part
+  is `tools/vehicle_feel_check.gd`: squat, dive, lean the right way, skid
+  marks, sparks, landing and settling, rocking, spray and wake, the mower's
+  bounce and clippings, other dice the same drive);
+  `tools/vehicle_frames.gd` takes window pictures (`docs/godot3d/features/D/`)
+  and `tools/feel_frames.gd` the feel's and the plank walls'
+  (`docs/godot3d/polish/N/`).
 
 ## Gore
 

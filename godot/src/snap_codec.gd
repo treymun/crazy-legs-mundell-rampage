@@ -59,7 +59,7 @@ const SKIP_FIELDS := {
 		"_barrels"
 	],
 	"stills": ["_cfg", "_images"],
-	"vehicles": ["_looks"],
+	"vehicles": ["_looks", "_dice"],
 	# A shut boss arena: what this machine put on its own world.
 	"boss_lock": ["_applied", "_solid", "_clear", "_held", "_gates", "_edge", "_ground", "_kinds"],
 	# A boss arena's wreck: its steps and their bosses (the level makes them

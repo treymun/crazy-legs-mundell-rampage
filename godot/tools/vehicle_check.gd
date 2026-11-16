@@ -13,7 +13,8 @@
 ## and marsh, the car will not climb a stair, the car holds the gun down (no
 ## shots from the wheel) while the airboat shoots; a wreck throws its driver
 ## out hurt; a game driven and one made from its snapshot drive on the same,
-## tick for tick; and a save and load keeps where it was parked.
+## tick for tick; and a save and load keeps where it was parked. Then how
+## they look on the move (tools/vehicle_feel_check.gd).
 extends SceneTree
 
 const STEP := 1.0 / 60.0
@@ -21,6 +22,7 @@ const STEP := 1.0 / 60.0
 const CARRY := 4.0
 const DRIVE_TICKS := 150
 const VehiclesScript := preload("res://src/features/vehicles.gd")
+const FeelCheck := preload("res://tools/vehicle_feel_check.gd")
 
 var failures: Array = []
 var passes := 0
@@ -46,6 +48,8 @@ func _run() -> void:
 	_ride_along(main)
 	print("\nIN STEP")
 	_lockstep(main)
+	print("\nFEEL")
+	FeelCheck.run(main, _check)
 	print("")
 	print(
 		(

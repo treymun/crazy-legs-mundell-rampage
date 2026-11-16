@@ -37,6 +37,13 @@ const BOARDS := [
 	[14, 21], [23, 30], [32, 39], [41, 48], [50, 57], [59, 66], [68, 75], [78, 85], [87, 94]
 ]
 const RAILS := [[21, 32], [57, 68], [99, 110]]
+## The plank walls that break too (breakables.cfg [fence.wood], [fence.barn],
+## [fence.bayou_shack]: a shed's wall, a plank fence): each shot about
+## (<tile>_hit: its upright planks knocked out, the dark behind them) and the
+## stumps left standing when it goes through (<tile>_gap), from its own tile.
+const PLANK_WALLS := ["wood", "barn", "bayou_shack"]
+## Their planks: eight up each tile, no rails.
+const PLANKS := [[1, 14], [17, 30], [33, 46], [49, 62], [65, 78], [81, 94], [97, 110], [113, 126]]
 
 
 ## Draw them all: tiles into `tiles`, the gap's picture into `art`.
@@ -63,7 +70,11 @@ static func build(tiles: String, art: String) -> int:
 	boards.save(tiles.path_join("cover_boards.png"))
 	_fence_hit(boards).save(tiles.path_join("cover_boards_hit.png"))
 	_fence_gap(boards).save(art.path_join("cover_boards_gap.png"))
-	return count + 5
+	for name: String in PLANK_WALLS:
+		var wall := Paint.Sheet.load_png(source.path_join(name + ".png"))
+		_fence_hit(wall, PLANKS, [], name + "_hit").save(tiles.path_join(name + "_hit.png"))
+		_fence_gap(wall, false, name + "_gap").save(art.path_join(name + "_gap.png"))
+	return count + 5 + PLANK_WALLS.size() * 2
 
 
 ## The plank fence boarded up: its boards weathered grey, and two fresh pine
@@ -224,14 +235,16 @@ static func _shot_out(
 ## The plank fence shot about: boards knocked out (the dark behind showing
 ## between the rails), one broken off at the top, one at the bottom, one
 ## split, splinters pale at every break, and holes.
-static func _fence_hit(whole: Paint.Sheet) -> Paint.Sheet:
+static func _fence_hit(
+	whole: Paint.Sheet, boards := BOARDS, rails := RAILS, seed := "stockyard_hit"
+) -> Paint.Sheet:
 	var s := whole.duplicate_sheet()
-	var dice := _dice("stockyard_hit")
+	var dice := _dice(seed)
 	# [board, from row, to row]: what of it is gone (rails stay).
 	var gone := [[3, 0, 127], [8, 0, 127], [1, 0, 50], [6, 78, 127], [5, 34, 55]]
 	var cut := Paint.Sheet.new(128, 128)
 	for g: Array in gone:
-		var board: Array = BOARDS[int(g[0])]
+		var board: Array = boards[int(g[0]) % boards.size()]
 		var from: int = g[1]
 		var to: int = g[2]
 		var pts := PackedVector2Array()
@@ -259,7 +272,7 @@ static func _fence_hit(whole: Paint.Sheet) -> Paint.Sheet:
 		Paint.polygon(cut, pts, Color.WHITE)
 	for y in 128:
 		var on_rail := false
-		for r: Array in RAILS:
+		for r: Array in rails:
 			on_rail = on_rail or (y >= int(r[0]) and y <= int(r[1]))
 		for x in 128:
 			if cut.alpha_at(x, y) > 0 and not on_rail:
@@ -300,10 +313,10 @@ static func _fence_hit(whole: Paint.Sheet) -> Paint.Sheet:
 ## What stands in a fence cell broken through, 64 x 52 (a cell wide and .8
 ## tall): stumps across the bottom, a board left standing at each side, the
 ## middle rail snapped and hanging from the left, a board hanging off it.
-static func _fence_gap(whole: Paint.Sheet) -> Paint.Sheet:
+static func _fence_gap(whole: Paint.Sheet, rails := true, seed := "stockyard_gap") -> Paint.Sheet:
 	var w := 64
 	var h := 52
-	var dice := _dice("stockyard_gap")
+	var dice := _dice(seed)
 	var full := Paint.Sheet.new(w, h)
 	# The fence's own planks, the lower rows of its tile, half size.
 	for y in h:
@@ -375,7 +388,7 @@ static func _fence_gap(whole: Paint.Sheet) -> Paint.Sheet:
 		)
 		x += wide + (1 if dice.randf() < .3 else 0)
 	# The lower rail: kept each side, gone in the middle.
-	for y in range(37, 44):
+	for y in range(37, 44 if rails else 37):
 		for xx in range(0, w):
 			if xx < 17 or xx > 45:
 				keep.put(xx, y, white)
@@ -385,7 +398,28 @@ static func _fence_gap(whole: Paint.Sheet) -> Paint.Sheet:
 			if keep.alpha_at(xx, y) > 0:
 				var o := (y * w + xx) * 4
 				out.put(xx, y, Color8(full.data[o], full.data[o + 1], full.data[o + 2]))
-	# The middle rail snapped: its left half hangs, its right a stub.
+	if rails:
+		_hanging(out)
+	# Every broken edge pale with splinters, the rest of the outline dark.
+	var edge := out.duplicate_sheet()
+	for y in h:
+		for xx in w:
+			if out.alpha_at(xx, y) == 0:
+				continue
+			var open := 0
+			for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, -1)]:
+				var q := Vector2i(xx, y) + d
+				if q.x >= 0 and q.x < w and q.y >= 0 and out.alpha_at(q.x, q.y) == 0:
+					open += 1
+			if open > 0:
+				var c := Paint.rgb(214, 186, 140) if dice.randf() < .4 else Paint.rgb(48, 38, 30)
+				edge.put(xx, y, c)
+	return Paint.digitize(edge, 4.0)
+
+
+## The fence's middle rail snapped (its left half hanging, its right a stub)
+## and a board hanging off it by one nail, swung down and out.
+static func _hanging(out: Paint.Sheet) -> void:
 	var rail := Paint.rgb(64, 52, 40)
 	var rail_top := Paint.rgb(122, 104, 82)
 	Paint.polygon(
@@ -409,18 +443,3 @@ static func _fence_gap(whole: Paint.Sheet) -> Paint.Sheet:
 	)
 	Paint.line2(out, 16, 20, 27, 46, Paint.rgb(150, 124, 92))
 	out.put(17, 21, Paint.rgb(40, 34, 30))
-	# Every broken edge pale with splinters, the rest of the outline dark.
-	var edge := out.duplicate_sheet()
-	for y in h:
-		for xx in w:
-			if out.alpha_at(xx, y) == 0:
-				continue
-			var open := 0
-			for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, -1)]:
-				var q := Vector2i(xx, y) + d
-				if q.x >= 0 and q.x < w and q.y >= 0 and out.alpha_at(q.x, q.y) == 0:
-					open += 1
-			if open > 0:
-				var c := Paint.rgb(214, 186, 140) if dice.randf() < .4 else Paint.rgb(48, 38, 30)
-				edge.put(xx, y, c)
-	return Paint.digitize(edge, 4.0)

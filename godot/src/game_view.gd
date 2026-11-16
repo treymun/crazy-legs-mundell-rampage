@@ -639,6 +639,10 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		eye["view_angle"] += view_kick.x
 		eye["pitch"] += view_kick.y
 		eye["eye"] -= view_kick.z
+		# A vehicle's seat rides its springs (features/vehicles.gd, looks).
+		var riding: GameFeature = features.get("vehicles")
+		if riding != null:
+			riding.call("sway_eye", eye)
 	view_eye = eye
 	var listing := Time.get_ticks_usec()
 	var marks: Array = ground_marks()

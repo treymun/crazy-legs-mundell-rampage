@@ -153,11 +153,11 @@ func sound_cutoff(x: float, y: float) -> float:
 	return minf(hearing.cutoff(me, x, y), maxf(2500.0, cutoff))
 
 
-func sound_at(name: String, x: float, y: float, strength := 1.0) -> void:
+func sound_at(name: String, x: float, y: float, strength := 1.0, rate := 1.0) -> void:
 	if host:
 		return
 	var place := sound_position(x, y, strength)
-	speaker.play(name, place.x, place.y, sound_cutoff(x, y))
+	speaker.play_at_rate(name, place.x, place.y, sound_cutoff(x, y), rate)
 	var p := local_player
 	if name != "bessie" and world.roof[int(p.y) * level.width + int(p.x)] != 0.0:
 		if speaker.has("room_" + name):
