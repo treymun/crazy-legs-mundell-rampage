@@ -45,6 +45,9 @@ class Room:
 
 var rooms: Array[Room] = []
 var art: Assets
+## Every match's game made here (_make): a finished match's is disposed
+## (GamePool) once its lobby has let it go.
+var games := GamePool.new()
 var sim := {}
 var most_matches := MOST_MATCHES
 var _status_in := 10.0
@@ -155,6 +158,8 @@ func frame(now: float, delta: float) -> void:
 			busy = true
 			_play(room, delta)
 	Engine.max_fps = MATCH_FPS if busy else IDLE_FPS
+	if games.size() > 0:
+		games.sweep(rooms.map(func(r: Room) -> Game: return r.net.match_game()))
 	_status_in -= delta
 	if _status_in <= 0.0:
 		_status_in = STATUS_EVERY
@@ -242,7 +247,7 @@ func _make(info: Dictionary) -> Game:
 	var count: int = info["count"]
 	var options: Dictionary = info["options"]
 	Modes.setup(made, str(info["mode"]), count, options)
-	return made
+	return games.track(made)
 
 
 ## The process's resident memory in MB (Linux; else Godot's own count, which

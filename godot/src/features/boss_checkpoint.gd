@@ -40,7 +40,7 @@ func id() -> String:
 
 
 func attach() -> void:
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.level_won.connect(_won)
 	# The boss's entrance starts the fight in real play; the polling in
 	# _tick still catches it where there is no entrance (tools, bots).

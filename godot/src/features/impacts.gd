@@ -53,7 +53,7 @@ func attach() -> void:
 	game.events.traced.connect(_traced)
 	game.events.pierced.connect(_pierced)
 	game.events.exploded.connect(_exploded)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func _cap(key: String, fallback: float) -> float:

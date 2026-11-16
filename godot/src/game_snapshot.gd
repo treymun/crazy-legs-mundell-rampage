@@ -576,6 +576,8 @@ static func _settle(game: Game, local: Player) -> void:
 	game._named_enemies = game.enemies.size()
 	game.player = null
 	game.focus(local)
+	# A sleeping feature (GameFeature.sleep()) sees again what it has to do.
+	game.events.wake_all()
 
 
 ## Each door as the snapshot has it, and the panes broken.

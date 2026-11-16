@@ -195,7 +195,8 @@ controls})` one fixed 120 Hz tick at a time (`tick` counts them). `snapshot()`
 is bytes of `{"tick", "full"}`; `delta_since(acked)` is bytes of `{"tick",
 "base": acked, "d"}`, or a whole snapshot when the base is older than
 `HISTORY` ticks (or -1). `adopt(game)` wraps a game already made;
-`join_near(game)` seats one more player.
+`join_near(game)` seats one more player. `close()` disposes the host's own
+game (not an adopted one; [architecture.md](architecture.md#letting-a-game-go)).
 
 Presentation that play still leans on stays on a host: specks and gore (their
 count gates `burst()` and its rng), the View object (hitscan's material comes
@@ -617,7 +618,9 @@ the how-to. The 5v5 rules themselves are in
   with the next LOBBY (`_tell`).
 - One process runs every lobby with TacticalBot pilots on host games
   (`Game.new(..., true)`, which client copies match exactly), at most
-  `most_matches` at once (`may_start`).
+  `most_matches` at once (`may_start`). A finished match's game is disposed
+  once its lobby lets it go (the server's `GamePool`, swept each frame), so
+  months of rounds do not pile up.
 - `tools/net_server_check.gd` holds it.
 - The firing range's board rides COUNTY RUN's BOARD knock: a knock with
   `range` in it is answered by `RangeBoard.answer` from

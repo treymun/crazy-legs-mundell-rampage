@@ -31,10 +31,12 @@ func attach() -> void:
 	if game.level.id != "hub":
 		# The Crossroads never ticks its features and never keeps a count.
 		game.total_kills += ROOM
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func _tick(_dt: float) -> void:
+	# Its one tick's work done (now or before a save): nothing more to tick.
+	sleep()
 	if spawned:
 		return
 	spawned = true

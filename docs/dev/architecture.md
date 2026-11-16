@@ -77,11 +77,49 @@ listen to. Signals are synchronous and keep the order listeners connected
 in, so play that listens stays the same on every machine. Connect with
 `game.events.<signal>.connect(...)`.
 
+A feature's tick is not a `ticked` listener of its own: `tick_with(_tick)`
+(GameFeature) adds it to the events' tick list, which one `ticked` listener
+runs in the order the ticks were added (the features' order). A feature
+with nothing to do calls `sleep()` and is skipped until something calls its
+`wake()` (an event it listens to, another feature handing it work); a
+snapshot or a save put on the game wakes every feature
+(`GameEvents.wake_all()`). Sleep only when each skipped tick would have done
+nothing at all, so play stays exact. Asleep now: the race cars once they
+have run dry and stopped, the water on a level with no water floor while no
+puddle holds water and no ring is left, the posse and the variants after
+their one tick, a still with no pipe spraying, hit reads with nothing
+knocked loose, the boss lock once its bosses are down, County Run with no
+run and a rematch feature off a rematch.
+
+## Letting a game go
+
+A game holds its features and they hold it (`feature.game`), and so do its
+gore, its players' voices and the lambdas listening to its events: a cycle
+reference counting never frees, so a game dropped without more stays in
+memory for good (before 3.3.x, 1,300-odd objects every level load).
+`Game.dispose()` cuts every such link (each feature's `detach()`, the
+event listeners and ticks, the gore, the voices); after it the game is
+spent. Who makes games lets them go: the front end through its `GamePool`
+(`main_state.gd` `games`: `make_game` tracks each, and whenever `game`
+changes, at the frame's end, every game no longer kept is disposed: kept
+are the game on screen, the campaign run and the hub's origin, replays, the
+games waiting behind the range or a rematch or for their pictures, a
+match's, and what the kill cam, PHOTO MODE and the HUD still show, each with
+the chapters it retains), the lobby server its rooms' finished matches
+(its own `GamePool`), `GameHost.close()` its game. A feature holding more
+that points back at the game lets it go in `detach()`. Whatever is still
+about as the process ends (a tool's games) is disposed as the scene tree's
+root leaves (`Game.dispose_all()`), so tools end without leaked instances.
+A tool that keeps a game from `main.make_game` past a frame's end in which
+`main.game` changed holds it where `release_games()` looks, or makes it
+with `Game.new` instead. `tools/leak_check.gd` holds it.
+
 ## Features
 
 A piece of play or polish kept in a file of its own: `src/features/`, each a
 `GameFeature` (`game_feature.gd`: `id()`, `attach()` to connect, `save()`,
-`restore()`, `tally_rows()`, `draw_view(c)`), listed in `features.gd`
+`restore()`, `tally_rows()`, `draw_view(c)`, `tick_with()`, `sleep()` and
+`wake()`, `detach()`), listed in `features.gd`
 (`Features.ALL`; `Features.LOOKS` for looks-only ones a host leaves out).
 Each is a simulation feature or a looks feature (`SIM_FEATURES`,
 `LOOKS_FEATURES` in `game_snapshot.gd`). Triggers, lessons, chapter stats,

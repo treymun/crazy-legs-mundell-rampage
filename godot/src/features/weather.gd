@@ -18,6 +18,8 @@ const Climate := preload("res://src/features/climate.gd")
 ## Prints: the most kept, how near the player a walker must be to leave
 ## them, the mud they need, each mark's stride and size.
 const PRINT_CAP := 120
+## How wet the ground must be for a puddle floor to hold water (water.gd).
+const PUDDLE_WET := .35
 const PRINT_NEAR := 22.0
 const PRINT_MUD := .12
 const STRIDES := {"boot": .55, "hoof": .45, "claw": .22, "tyre": .5}
@@ -62,7 +64,7 @@ func id() -> String:
 func attach() -> void:
 	dice.seed = hash(game.level.id) + 51
 	next_flash = 12.0 + dice.randf_range(0.0, 20.0)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	# A storm chapter starts in its storm, the ground already soaked; showers
 	# start dry, the first spell a little way in.
 	var hard := rain_strength()
@@ -102,9 +104,15 @@ func hold(hard: float, soaked: float, flash := 0.0, full := -1.0, blow := Vector
 
 func _tick(dt: float) -> void:
 	_lay_prints()
+	if not held:
+		_rain(dt)
+	if wet > PUDDLE_WET:
+		# The puddles hold water: the rings on them (water.gd sleeps without).
+		var water: GameFeature = game.features.get("water")
+		if water != null:
+			water.wake()
 	if held:
 		return
-	_rain(dt)
 	var rate: float = Effects.mood(game.level.id, "lightning", 0.0)
 	if rate <= 0.0 or game.in_hub or game.flash_scale <= 0.0 or not Effects.enabled:
 		game.lightning = 0.0

@@ -27,6 +27,33 @@ func attach() -> void:
 	pass
 
 
+## `on_tick(dt)` every tick, after the world (the events' `ticked`), in the
+## features' order, while this feature is awake. Use this, not
+## `ticked.connect`, so the order holds when a feature sleeps.
+func tick_with(on_tick: Callable) -> void:
+	game.events.add_tick(self, on_tick)
+
+
+## Off the tick until wake(): call it only when every tick until then would
+## do nothing at all (play must not change), and wake() wherever work comes
+## (an event, a call from another feature). A snapshot or a save put on the
+## game wakes every feature (GameEvents.wake_all()).
+func sleep() -> void:
+	game.events.set_awake(self, false)
+
+
+func wake() -> void:
+	game.events.set_awake(self, true)
+
+
+## The game is let go for good (Game.dispose(), which has already cut every
+## listener of its events): drop what points back at it. A feature holding
+## more than `game` that points at the game (a helper keeping it) lets that
+## go too, then calls super().
+func detach() -> void:
+	game = null
+
+
 ## What to keep in a save (plain values: numbers, strings, arrays, dictionaries).
 func save() -> Dictionary:
 	return {}

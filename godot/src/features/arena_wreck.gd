@@ -91,7 +91,7 @@ func attach() -> void:
 				fired.append(-1)
 	if steps.is_empty():
 		return
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func save() -> Dictionary:

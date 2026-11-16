@@ -41,7 +41,7 @@ func attach() -> void:
 		_images[str(image)] = true
 	game.events.prop_struck.connect(_struck)
 	game.events.prop_broken.connect(_broken)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 
 
 func num(key: String) -> float:
@@ -72,6 +72,7 @@ func _struck(image: String, x: float, y: float, z: float, ax: float, ay: float) 
 	var floor_z := game.world.elevation(x, y)
 	var hole := clampf(z, floor_z + .35, floor_z + 1.3)
 	jets.append([x, y, hole, back.x, back.y, game.clock + num("jet_life"), game.clock])
+	wake()
 	game.sound_at("pressure_vent", x, y, .9)
 	game.sound_at("molotov_burst", x, y, .5)
 
@@ -98,6 +99,8 @@ func _broken(image: String, x: float, y: float, z: float) -> void:
 
 func _tick(_dt: float) -> void:
 	if jets.is_empty():
+		# No pipe spraying: asleep until one is shot (_struck).
+		sleep()
 		return
 	var fire := _fire()
 	var kept: Array = []

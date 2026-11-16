@@ -47,7 +47,7 @@ func attach() -> void:
 	var speed: float = spec.get("speed", 8.0)
 	for k in count:
 		cars.append([total * k / count, speed, 0.0, float(k)])
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.station_done.connect(_station)
 
 
@@ -97,6 +97,7 @@ func _tick(dt: float) -> void:
 	if game.stations_done.has(str(spec.get("stop_at", ""))):
 		dry = true
 	var p := game.player
+	var running := false
 	for car: Array in cars:
 		var speed: float = car[1]
 		if dry:
@@ -104,6 +105,7 @@ func _tick(dt: float) -> void:
 			car[1] = speed
 		if speed <= 0.0:
 			continue
+		running = true
 		var car_along: float = car[0]
 		car_along = fposmod(car_along + speed * dt, total)
 		car[0] = car_along
@@ -142,16 +144,21 @@ func _tick(dt: float) -> void:
 					game.shake = minf(1.0, game.shake + .8)
 				game.sound_at("lap_car_hit", q.x, q.y, 1.0)
 		for e: Enemy in game.enemies:
+			# The cheap test first (the same hands are run down either way).
+			if absf(e.x - at.x) >= 1.2 or absf(e.y - at.y) >= 1.2:
+				continue
 			if not e.alive or Enemy.BOSS_TITLES.has(e.kind) or e.z > .3:
 				continue
-			if absf(e.x - at.x) < 1.2 and absf(e.y - at.y) < 1.2:
-				if Vector2(e.x - at.x, e.y - at.y).length() < REACH + e.radius:
-					# hurt() blames the acting player: the nearest, the same on
-					# every machine (not whoever is local here).
-					var near_e: Player = Players.nearest(game, e.x, e.y)
-					game.focus(near_e if near_e != null else game.players[0])
-					e.hurt(80.0, game, true, false, null, "car")
-					game.focus(game.local_player)
+			if Vector2(e.x - at.x, e.y - at.y).length() < REACH + e.radius:
+				# hurt() blames the acting player: the nearest, the same on
+				# every machine (not whoever is local here).
+				var near_e: Player = Players.nearest(game, e.x, e.y)
+				game.focus(near_e if near_e != null else game.players[0])
+				e.hurt(80.0, game, true, false, null, "car")
+				game.focus(game.local_player)
+	if dry and not running:
+		# Every car has coasted to a stop for good: nothing to tick.
+		sleep()
 
 
 ## Each car as the race car's model (the 3D view's prop `race_car_0`), turned

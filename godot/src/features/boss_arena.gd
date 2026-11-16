@@ -153,7 +153,7 @@ func attach() -> void:
 	if track is Array:
 		# Parked at the east end of its track, by the conveyor.
 		carriage_x = track[1]
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.exploded.connect(_exploded)
 	game.events.traced.connect(_shot_traced)
 

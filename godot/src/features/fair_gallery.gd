@@ -102,7 +102,7 @@ func attach() -> void:
 	if not on:
 		return
 	_fill()
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.traced.connect(_traced)
 	game.events.shot_fired.connect(_fired)
 

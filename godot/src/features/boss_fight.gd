@@ -67,7 +67,7 @@ func attach() -> void:
 	for e: Enemy in game.enemies:
 		if BossKit.is_boss(e):
 			bosses.append(e)
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.enemy_killed.connect(_killed)
 
 

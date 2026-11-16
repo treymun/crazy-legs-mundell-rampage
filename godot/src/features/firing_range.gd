@@ -135,7 +135,7 @@ func attach() -> void:
 	games = Games.new()
 	records = RangeBoard.read()
 	_kit()
-	game.events.ticked.connect(_tick)
+	tick_with(_tick)
 	game.events.traced.connect(_traced)
 	game.events.shot_fired.connect(_fired)
 	game.events.exploded.connect(_exploded)
