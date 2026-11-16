@@ -835,7 +835,9 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   pocks, wall scorches, blood running down from `gore.walls`, each to a cap
   and a life from effects.cfg `[debris]`, the oldest fading first
   (`Assets.faded_art`, alpha-scaled copies). Features add wall marks through
-  `wall_marks()`.
+  `wall_marks()`. It also keeps the latest marking shots and blasts in
+  `thing_hits` (looks only) for the 3D view to hole, scorch and char props,
+  vehicles and wreck pieces ([view3d.md](view3d.md#marks-on-modelled-things)).
 - `features/dust.gd` is gun smoke, boot dust, race-car and derby dust and
   embers off fires (`dust_cap`), drifting on `[debris] wind_<level>`.
 - `features/feel.gd` puts the gun on springs (sway, each gun's kick from

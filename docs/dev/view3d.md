@@ -47,14 +47,14 @@ shader view; not re-measured in the 3D view.)
 ### QUALITY: the tiers
 
 QUALITY (VIEW page, `quality`: AUTO, LOW, MEDIUM, HIGH; `src/core/quality.gd`)
-picks VIEW DETAIL, DRAW DISTANCE, LIGHTS AND GLOW and the physics detail at
-once:
+picks VIEW DETAIL, DRAW DISTANCE, LIGHTS AND GLOW, SHADOWS and the physics
+detail at once:
 
-| Tier | VIEW DETAIL | DRAW DISTANCE | LIGHTS AND GLOW | physics |
-| --- | --- | --- | --- | --- |
-| LOW | LOW | NEAR | off | LOW (half the steps) |
-| MEDIUM | AUTO | NEAR | on | MEDIUM (two thirds) |
-| HIGH | AUTO | FAR | on | HIGH (all; the old defaults) |
+| Tier | VIEW DETAIL | DRAW DISTANCE | LIGHTS AND GLOW | SHADOWS | physics |
+| --- | --- | --- | --- | --- | --- |
+| LOW | LOW | NEAR | off | off | LOW (half the steps) |
+| MEDIUM | AUTO | NEAR | on | on | MEDIUM (two thirds) |
+| HIGH | AUTO | FAR | on | on | HIGH (all; the old defaults) |
 
 - A tier picked in setup sets the three settings (`main_flow.gd
   _quality_picked`); each can still be changed afterwards.
@@ -160,6 +160,9 @@ Headless runs draw no world, only the canvas. The renderer is
 | solids | `SolidLayer3D`, `solid.gdshader` | sprites with `solid` set (bowling pins, the bowling ball) as real meshes turned by their own `turn` |
 | props | `PropLayer3D`, `PropView`, `prop_models.gd`, `prop.gdshader` | modelled props (`PropModels.facing`: which way one stands) |
 | wrecks | `WreckLayer3D`, `wreck.gdshader` | broken scenery's real pieces (sprites with `solid` "~<key>#<piece>", cut by `src/wreck_cuts.gd`: [gameplay.md](gameplay.md#in-real-pieces-of-themselves)) |
+| shadows | `ViewShadows` (`view_shadows.gd`), `view_light.gdshaderinc` | SHADOWS: what moves throws chunky shadows from the strong lights and a blob from the sky ([below](#shadows)) |
+| thing marks | `ThingMarks` (`thing_marks.gd`), `thing_marks.gdshaderinc` | holes, scorch and char on props, vehicles and wreck pieces ([below](#marks-on-modelled-things)) |
+| storm | `storm_wall.gdshader`, `world_view.gd _storm` | County Run's storm front: two curtains round the ring, the ground and the world outside it ([below](#county-runs-storm-front)) |
 | actors | `ActorLayer3D`, `ActorView`, `actor_models.gd`, `actor.gdshader` | rigged enemies and bosses |
 | heat | `HeatHaze` | heat shimmer boxes, handed to the display shader |
 | mirror | second camera | draws the reflection on cull layer bit `1 << 19` (`LAYER_MIRROR`) |
@@ -411,8 +414,83 @@ z). `rain.gdshader` slants the streaks with the wind across the view;
 model by `prop_layer.gd` with the model's height and width): trees, flags
 and scarecrows bend from the ground, laundry, a hanging sign or a crane hook
 swing from their top (the posts at the ends stay), stilled by SCENERY MOTION.
-County Run's storm front is an open cylinder round the safe ground
-(`world_view.gd _storm`, `storm_wall.gdshader`: see-through, its own shader).
+
+### County Run's storm front
+
+(Track L, after v3.2.0.) `world_view.gd _storm` stands two open cylinders
+round the safe ground ([county_run.md](county_run.md#the-storm-front)),
+30 cells tall from just under the ground at the ring's middle: the front
+curtain at the ring and a second `OUTER_STORM` (2.5) cells behind it, so the
+wall has depth as the eye moves (drawn back to front: the order swaps when the
+eye is out in the storm). `storm_wall.gdshader` (see-through, its own shader,
+`layer_k` 0 or 1) draws each as a dark curtain in four dithered steps: shafts
+of rain hanging down it over great rolls of cloud, swaying and carried round
+with the wind (`storm_k`, CountyStorm.strength), darkest at its foot where it
+kicks up brown dirt, its crown lit pale where it thins into the sky; lightning
+flickers inside it (a patch at a time on its own beat, lighting the billows
+from within, a fork at the peaks) and boards, tin and hay fly round in the
+front curtain as black silhouettes. `storm_ring` (the ring's middle, radius
+and strength; 0 with no storm) goes to every shader: `surface_light` darkens
+whatever stands out past the wall and veils each surface by how far the eye's
+line runs through the storm (`storm_veil`, toward `STORM_FOG`); the floors
+(`world_body.gdshaderinc storm_ground`) are soaked dark from four cells
+inside the wall on out, with a ragged line of churned dirt clods where it
+stands; out in the storm the sky turns to its dark roof (`sky.gdshader`).
+EASY ON THE EYES slows it all (`motion`) and STILL freezes it, flickers and
+debris included; `storm_rich` (LIGHTS AND GLOW on and VIEW DETAIL above LOW,
+so off on QUALITY LOW) keeps one plain curtain otherwise, and the veil, the
+dimming and the ground need LIGHTS AND GLOW. Pictures:
+`docs/godot3d/polish/L/storm_*.png`.
+
+### Shadows
+
+SHADOWS (VIEW page, `shadows`, on; `View.shadows`, set in `main_state.gd
+apply_options`; QUALITY LOW turns it off; needs LIGHTS AND GLOW). Each frame
+`ViewShadows.collect` makes bodies of what is drawn, a segment with a radius:
+the actors (enemies, other players, bosses; a dead body lies along its
+heading), this machine's player (not in PHOTO MODE), props on the move
+(thrown, carried, an arena's wreck flung), the vehicles drawn (along their
+heading) and the four nearest wreck pieces; the `MOST_BODIES` (12) nearest
+the eye within `REACH` (22) are kept. `pair()` matches them with this frame's
+lights (Game.effect_lights(), in the order the shaders get them): a light of
+strength times radius `STRONG` (.6) or more, the body within .9 of its reach
+and not its own (closer than its radius plus `OWN_LIGHT`: the shooter's
+muzzle flash, the fire it burns in); the `MOST_PAIRS` (16) that matter most go
+to the floors, walls and marks only (`world_view.gd _share_shadows`: a body
+would shadow itself). `lights_at` tests each floor and wall block (a grid of
+`SHADOW_GRID` 10 blocks a cell, the soft edge dithered 2x2 on that grid: a
+1997 low-res shadow map) against the pairs: in a body's shadow the light keeps
+`SHADOW_LEFT` of its light and the surface's own light loses up to
+`SHADOW_DIM` by the light's strength and nearness. Every body also lays a
+blob on the floor under it from the sky (`blobs`, at most 12, smaller and
+gone as it rises; `BLOB_DARK`). No Forward+ features: plain uniform arrays
+in the gl_compatibility shaders, no new texture. Cost (`--view-bench=300`,
+back to back on the noisy desktop, with the marks below): 6.51 ms before,
+6.76 after (the whole 3D view, mean of two runs each). Pictures:
+`docs/godot3d/polish/L/shadows_on.png`, `shadows_off.png`.
+
+### Marks on modelled things
+
+Bullet holes, scorch and char stay on props (PropView), vehicles (props too)
+and wreck pieces as wall marks do on walls (`ThingMarks`, `thing_marks.gd`).
+`features/impacts.gd` keeps the latest marking shots (the guns that hole
+walls, BULLET MARKS on) and blasts in `thing_hits` ([serial, from, to]; a
+blast's from and to are the same); each frame the view takes the new ones:
+a shot's line from the gun to where it ended is met with the nearby parts'
+own triangles (`TriangleMesh`, made once a mesh) and the first part hit gets a
+hole there; a blast scorches the side facing it of up to eight parts within
+`BLAST_REACH`. A mark is kept in the part's own space (`marks` meta, at most
+six, the oldest going), so it moves with a carried, thrown or flung thing and
+a driving car, and handed to `thing_marks.gdshaderinc` (`mark0`..`mark5`:
+place and kind*10 + radius; drawn in chunky blocks: a black core, a dark rim,
+flecks of the bare stuff; or soot). Char (`char_k`) comes from
+`features/fire.gd`: what stands in a burning cell chars to `CHAR_BURNING`, in
+a burnt-out one to `CHAR_BURNT`; a vehicle burning out `CHAR_WRECK`, one badly
+hurt `CHAR_HURT`. `PropLayer3D` keeps the marks of props gone out of view
+(`KEEP`, by key) and hands a gone prop's marks to one of its model made again
+within `REMADE` cells (a car stood again at its next place, a thrown thing
+landing, a breakable showing its struck picture); at most `MOST_MARKED` (64)
+parts carry marks. Looks only. Pictures: `docs/godot3d/polish/L/marks_*.png`.
 
 A tour viewpoint may set `map`/`map_zoom`, `gun`/`fire`/`ticks`, `rain`,
 `wet`, `lightning`, `actors` (to show the 3D models), `cels` (true: enemies

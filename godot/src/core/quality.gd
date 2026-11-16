@@ -49,14 +49,14 @@ static func steps(full: int) -> int:
 
 
 ## The settings a tier sets: VIEW DETAIL (0 HIGH, 1 LOW, 2 AUTO), DRAW
-## DISTANCE (0 AUTO, 1 FAR, 2 NEAR) and LIGHTS AND GLOW.
+## DISTANCE (0 AUTO, 1 FAR, 2 NEAR), LIGHTS AND GLOW and SHADOWS (off on LOW).
 static func preset(tier: int) -> Dictionary:
 	match clampi(tier, LOW, HIGH):
 		LOW:
-			return {"detail": 1, "draw_distance": 2, "lights": 0}
+			return {"detail": 1, "draw_distance": 2, "lights": 0, "shadows": 0}
 		MEDIUM:
-			return {"detail": 2, "draw_distance": 2, "lights": 1}
-	return {"detail": 2, "draw_distance": 1, "lights": 1}
+			return {"detail": 2, "draw_distance": 2, "lights": 1, "shadows": 1}
+	return {"detail": 2, "draw_distance": 1, "lights": 1, "shadows": 1}
 
 
 ## The tier the device alone suggests before anything is measured.

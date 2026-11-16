@@ -2,11 +2,13 @@
 // its baked texture, or a board of a picture or a tile, lit as the prop or
 // the sprite it came from was (prop.gdshader's light: light_at stepped in
 // 32nds, the area's tint, then LIGHTS AND GLOW, grade and fog). A picture's
-// clear texels are not drawn (a sign's ragged edge). Solid: no ALPHA.
+// clear texels are not drawn (a sign's ragged edge). Solid: no ALPHA. Holes,
+// scorch and char as a prop has them (thing_marks.gdshaderinc).
 shader_type spatial;
 render_mode unshaded, cull_disabled, shadows_disabled, fog_disabled;
 
 #include "res://src/view3d/view_light.gdshaderinc"
+#include "res://src/view3d/thing_marks.gdshaderinc"
 
 uniform sampler2D baked : filter_nearest, repeat_disable;
 // The area's tint (rgb) and the cell's light (a).
@@ -16,6 +18,7 @@ varying vec3 map_p;
 varying vec3 map_n;
 
 void vertex() {
+	own_p = VERTEX;
 	vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	map_p = vec3(w.x, w.z, w.y);
 	vec3 n = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
@@ -35,7 +38,7 @@ void fragment() {
 	vec3 texel = floor(texel4.rgb * 255.0 + 0.5);
 	float t = -VERTEX.z;
 	float lit = stepped_light(tone.a, t);
-	vec3 colour = clamp(floor(texel * lit * tone.rgb), 0.0, 255.0);
+	vec3 colour = thing_marks(clamp(floor(texel * lit * tone.rgb), 0.0, 255.0));
 	if (effects_on) {
 		vec3 cam = vec3(CAMERA_POSITION_WORLD.x, CAMERA_POSITION_WORLD.z, CAMERA_POSITION_WORLD.y);
 		vec3 nf = dot(map_n, cam - map_p) < 0.0 ? -map_n : map_n;

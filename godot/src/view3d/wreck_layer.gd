@@ -25,6 +25,11 @@ func _init(assets: Assets) -> void:
 	_shader = load("res://src/view3d/wreck.gdshader")
 
 
+## The pieces shown now (what shots and fire mark: thing_marks.gd).
+func shown() -> Array:
+	return _shown.values()
+
+
 static func takes(s: View.Sprite) -> bool:
 	return s.solid.begins_with("~")
 
@@ -56,6 +61,7 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 			node.set_meta("solid", s.solid)
 			node.set_meta("cell", -1)
 			node.visible = true
+			ThingMarks.clear(node)
 		seen[s] = true
 		node.transform = Transform3D(SolidLayer3D.godot_basis(s.turn), Vector3(s.x, s.z, s.y))
 		var cell := level.cell(

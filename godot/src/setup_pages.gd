@@ -443,6 +443,15 @@ static func build() -> Array:
 					1,
 					"GUNFIRE, BLASTS, SHOTS AND LAMPS CAST COLOURED LIGHT. LIT WINDOWS GLOW."
 				),
+				(
+					SessionStore
+					. toggle(
+						"SHADOWS",
+						"shadows",
+						1,
+						"PEOPLE, CARS AND THROWN THINGS CAST CHUNKY SHADOWS FROM LAMPS, FIRE AND GUNFIRE"
+					)
+				),
 				SessionStore.toggle(
 					"FILM GRAIN + COLOR WASH",
 					"film_look",
