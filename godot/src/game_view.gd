@@ -920,8 +920,26 @@ func _hit_mark(c: Canvas) -> void:
 
 # ------------------------------------------------------------- view effects
 
+## The grit and dither of each wash made so far (_build_grit): wash -> [r, g,
+## b, dither], only ever read after, so every game of that wash shares them.
+static var _grits := {}
+
 
 func _build_grit() -> void:
+	var wash_key := str(WASH.get(level.id, [255, 255, 255, 0]))
+	var made: Variant = _grits.get(wash_key)
+	if made != null:
+		var kept: Array = made
+		_grit_r = kept[0]
+		_grit_g = kept[1]
+		_grit_b = kept[2]
+		_dither = kept[3]
+		return
+	# New arrays (a packed array in a Variant is shared: these are kept).
+	_grit_r = PackedFloat32Array()
+	_grit_g = PackedFloat32Array()
+	_grit_b = PackedFloat32Array()
+	_dither = PackedFloat32Array()
 	var count := WIDTH * VIEW
 	_grit_r.resize(count)
 	_grit_g.resize(count)
@@ -945,6 +963,7 @@ func _build_grit() -> void:
 			_grit_g[i] = ((1.0 - amount) + tg * amount) * vignette
 			_grit_b[i] = ((1.0 - amount) + tb * amount) * vignette
 			_dither[i] = (_view_num(BAYER[(x % 4) * 4 + (y % 4)]) / 16.0 - .5) * 6.0
+	_grits[wash_key] = [_grit_r, _grit_g, _grit_b, _dither]
 
 
 func _apply_hurt_flash(c: Canvas) -> void:

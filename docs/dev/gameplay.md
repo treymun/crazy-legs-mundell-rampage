@@ -258,6 +258,39 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   cannot swim and sees the player across deep water (no deck) follows the
   flow field; `LevelData.over_deep` is a deck over the water.
 
+### Loading a level
+
+`Game.new` reads the level, builds its nav graph and flow fields and attaches
+the features; the engine pass's load track (2026-11-16) made the first visit
+to a chapter about twice as fast and changed nothing play sees:
+
+- **The nav graph** (`LevelGeometry._build_nav`) has the same nodes, edges
+  and order as before in about a third of the time: the orthogonal edges are
+  gathered as pairs in the order found and laid out once (no list per node
+  copied at every append); a cell with only cells round it (no deck or
+  ladder in its 3 by 3) takes its diagonals from each cell's step masks (its
+  neighbours are always N, W, E, S in that order, so the slow walk's order
+  is NW, NE, SW, SE); `_walks` keeps what it asked at each point on a
+  sixteenth of a cell by the exact feet height, so the walk back asks nothing
+  again.
+- **The level read** takes the grids as packed arrays natively, the walls row
+  by row, the plane bounds a row's run of one height at a time, and joins the
+  wall runs' keys once a piece (as text, as before).
+- **Fences** (`wall_breaks.gd`) ask only the boards, props and volumes in the
+  cells round each fence, not all of them; the grit (the old canvas's look,
+  `GameView._build_grit`) is made once a wash; a level played again keeps its
+  flow field's open floor (`FlowField._opens`) as it keeps its nav graph.
+- **The wreck pieces** are cut in the level's first frames, a model's on a
+  worker (`WreckCuts.prepare`/`pump`, below), not while it loads.
+
+`tools/load_check.gd` holds every level to the old code kept in
+`tools/load_reference.gd` (the nav graph, the grids and walls, the plane
+bounds) and the worker's cuts to cuts made at once. Not precomputed into
+`assets_gen`: the packs are made before the project is imported (CI), the nav
+graph would have to be rebuilt with every rule change, and the browser
+download would grow by megabytes. `tools/load_bench.gd` measures it
+([checks.md](checks.md#benchmarks)).
+
 ## Enemies
 
 - **Enemies path on a flow field** (`src/flow_field.gd`): out of sight, an
@@ -268,11 +301,14 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   tick): a new walk (a door opened, a key, something broken, the boss moving a
   cell) finishes over a few frames while the last answer stands; the first
   walk is always whole. A level with geometry walks its nav graph
-  (`LevelGeometry.nav`, a quarter of a second to build on the desktop); the
-  graph of a level as read from its file (nothing opened yet, keyed by
-  `LevelData.source_key`, the file's name, length and hash) is kept for the
-  next game on that level (`NAVS_KEPT` 4 levels): a retry, a load, the next
-  match. It is only read once built. Stutters: `first_minutes.gd -- whole hitches` times
+  (`LevelGeometry.nav`, about a tenth of a second to build on the desktop
+  since the load pass, see "Loading a level"); the graph of a level as read
+  from its file (nothing opened yet, keyed by `LevelData.source_key`, the
+  file's name, length and hash) is kept for the next game on that level
+  (`NAVS_KEPT` 4 levels): a retry, a load, the next match. It is only read
+  once built. The flow field's open floor of a level as read is kept the
+  same way (`FlowField.OPENS_KEPT`), as a copy each way: a packed array in a
+  Variant is shared, and `reopen` writes a game's own. Stutters: `first_minutes.gd -- whole hitches` times
   every tick of a bot's playthrough; `--play-bench=<seconds>` has the same bot
   (`tools/bot_pilot.gd`) play each chapter in a real window and prints the
   slowest frames with the tick's and the draw's share.
@@ -909,9 +945,18 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   (each triangle cut by the cell's planes; a shell gets an inside face set in
   by `SHELL` so it has a thickness) and keeps its UVs, so a piece is drawn
   with the prop's own baked texture; a picture or a tile becomes boxes with
-  that part of the picture on their faces. A key is cut once (all of a
-  level's at its start, in `attach`: the cow tube, 5,400 triangles, is the
-  slowest at about 80 ms) and kept for the process.
+  that part of the picture on their faces. A key is cut once and kept for
+  the process. A level's breakables are not cut while it loads:
+  `attach` lists their keys (`WreckCuts.prepare`) and `WreckCuts.pump`, each
+  tick, cuts the next, a model's on a `WorkerThreadPool` task (its model read
+  on the main thread first; the worker only reads it), a picture's or a
+  tile's at once (a millisecond or two). The cow tube, 5,400 triangles, is
+  the slowest at about 80 to 120 ms; a level's all are cut within its first
+  second or two. A key asked for before its turn (something broke at once) is
+  cut there and then, or waited for if the worker has it. The lite browser
+  build has no threads: it cuts a key the first time something of it breaks.
+  Looks only: the pieces are the same whichever thread cuts them
+  (`load_check`).
 - **New breakables**: `town_picnic_table`, `town_camp_chairs` and
   `town_outhouse` break (`gone`: no broken picture, nothing stands where it
   was, its base opens the way as a crate's does; `never` on the versus maps).

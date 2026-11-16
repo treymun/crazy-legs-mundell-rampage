@@ -1,9 +1,10 @@
 ## How long each level takes to load, headless: the game made for it
-## (Game.new and configure: the level read, its features attached, the
-## breakables' wreck pieces cut), the first time in the session and again;
+## (Game.new and configure: the level read, its nav graph, its features
+## attached), the first time in the session and again;
 ## the 3D view's level mesh (LevelMesh.build_static, what a window builds on
 ## the level's first frame and again whenever a wall opens), and the wreck
-## pieces' cutting alone with their caches empty (WreckCuts).
+## pieces' cutting alone with their caches empty (WreckCuts: since the load
+## pass it runs on a worker in the level's first frames, not in the load).
 ##
 ##   godot --headless --path godot --script res://tools/load_bench.gd [-- levels=a,b] [rounds=3]
 ##
@@ -65,8 +66,7 @@ func _run() -> void:
 		for r in rounds:
 			# Cold: the wreck pieces' and nav graphs' caches empty, as on a
 			# level's first visit (warm: played again, a retry or a load).
-			WreckCuts._cache.clear()
-			WreckCuts._soups.clear()
+			WreckCuts.clear()
 			var navs: Variant = (LevelGeometry as Script).get("_navs")
 			if navs is Dictionary:
 				(navs as Dictionary).clear()
@@ -82,8 +82,7 @@ func _run() -> void:
 			var t3 := Time.get_ticks_usec()
 			# The cutting alone (the keys the wreckage feature cut at load).
 			var keys := _wreck_keys(game)
-			WreckCuts._cache.clear()
-			WreckCuts._soups.clear()
+			WreckCuts.clear()
 			var t4 := Time.get_ticks_usec()
 			for key: String in keys:
 				WreckCuts.parts(assets, key)

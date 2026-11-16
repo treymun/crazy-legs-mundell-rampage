@@ -47,6 +47,7 @@ const CHECKS := [
 	["replay_check", "REPLAY CHECK OK", ["quick"]],
 	["tune_check", "TUNE CHECK OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
+	["load_check", "LOAD CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 ## Rows that measure timing (net_lag's limits on hits that looked like hits,
@@ -95,6 +96,7 @@ const CI_SECONDS := {
 	"net_server_check": 10,
 	"vehicle_check": 10,
 	"replay_check": 45,
+	"load_check": 35,
 	"tune_check": 15,
 }
 const DEFAULT_SECONDS := 8

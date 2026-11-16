@@ -115,14 +115,17 @@ func attach() -> void:
 	physics = WreckPhysics.new(game.world)
 	_models = PropModels.new(game.art)
 	_sync()
-	# What the level can break is cut now, while it loads, not in a fight
-	# (a big model takes tens of milliseconds; kept for the next level).
+	# What the level can break is cut in its first frames (WreckCuts.pump,
+	# a model's on a worker), not while it loads nor in a fight (a big model
+	# takes tens of milliseconds; kept for the next level).
 	var pieces: Breakables = game.features.get("breakables")
 	if pieces != null:
+		var keys: Array = []
 		for p: Breakables.Piece in pieces.pieces:
 			var src := _source(p)
 			if not src.is_empty():
-				WreckCuts.parts(game.art, str(src["key"]))
+				keys.append(str(src["key"]))
+		WreckCuts.prepare(keys)
 	tick_with(_tick)
 	game.events.exploded.connect(_exploded)
 	game.events.blast_shoved.connect(_shoved)
@@ -165,6 +168,7 @@ func restore(_state: Dictionary) -> void:
 
 
 func _tick(dt: float) -> void:
+	WreckCuts.pump(game.art)
 	_watch()
 	# Many in the air at once: one step a tick, not `steps` (the cost caps
 	# itself; they settle a little rougher).

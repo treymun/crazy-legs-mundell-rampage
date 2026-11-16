@@ -30,6 +30,13 @@
 ## middle at the origin and its front toward +y; a picture's or a tile's runs
 ## x along it (left to right as drawn), y through it, z up, its foot's middle
 ## at the origin. Cut once a key and kept.
+##
+## A level's breakables are not cut while it loads: prepare() lists their keys
+## and pump() (each tick of the level's first frames) cuts them one at a time,
+## a model's on a worker thread (looks only, the same pieces whichever thread
+## cuts them: tools/load_check.gd holds the two together). A key asked for
+## before its turn is cut there and then, as before. A build without threads
+## (the lite browser build) cuts a key the first time something of it breaks.
 class_name WreckCuts
 extends RefCounted
 
@@ -97,8 +104,92 @@ class Soup:
 		return box
 
 
+## A model's pieces being cut on a worker thread (pump()): the key, what it
+## cuts, and the pieces once cut. The worker only reads the soup (measured
+## before it starts) and writes `out`.
+class Job:
+	var key := ""
+	var soup: Soup
+	var recipe := ""
+	var args := PackedFloat32Array()
+	var out: Array = []
+	var task := -1
+
+	func run() -> void:
+		out = WreckCuts._cut_model(soup, recipe, args)
+
+
 static var _cache := {}
 static var _soups := {}
+## Keys waiting to be cut (prepare()), and the model cut on a worker now.
+static var _waiting: Array[String] = []
+static var _job: Job = null
+
+
+## Lists keys to cut while the level's first frames run (pump()), none of it
+## now. Without threads nothing is listed: a key is cut when first asked for.
+static func prepare(keys: Array) -> void:
+	if not OS.has_feature("threads"):
+		return
+	for item: Variant in keys:
+		var key := str(item)
+		if _cache.has(key) or _waiting.has(key) or (_job != null and _job.key == key):
+			continue
+		_waiting.append(key)
+
+
+## One step of the cutting prepare() listed: takes in a worker's finished cut,
+## then starts the next model on a worker (its model read here) or cuts the
+## next picture or tile here (a millisecond or two). Cheap when nothing waits.
+static func pump(assets: Assets) -> void:
+	if _job != null:
+		if not WorkerThreadPool.is_task_completed(_job.task):
+			return
+		_settle()
+	while not _waiting.is_empty():
+		var key: String = _waiting.pop_front()
+		if _cache.has(key):
+			continue
+		var bar := key.find("|")
+		if not key.begins_with("m:") or bar < 0:
+			parts(assets, key)
+			return
+		var soup := _model(key.substr(2, bar - 2))
+		if soup.size() == 0:
+			_cache[key] = []
+			continue
+		soup.measure()
+		var job := Job.new()
+		var recipe := key.substr(bar + 1)
+		job.key = key
+		job.soup = soup
+		job.recipe = recipe.get_slice(":", 0)
+		job.args = _numbers(recipe.get_slice(":", 1) if recipe.contains(":") else "")
+		job.task = WorkerThreadPool.add_task(job.run, false, "wreck cuts")
+		_job = job
+		return
+
+
+## Whether nothing is waiting to be cut or being cut.
+static func idle() -> bool:
+	return _job == null and _waiting.is_empty()
+
+
+## Waits for the worker's cut and keeps it.
+static func _settle() -> void:
+	if _job == null:
+		return
+	WorkerThreadPool.wait_for_task_completion(_job.task)
+	_cache[_job.key] = _job.out
+	_job = null
+
+
+## Forgets every cut (the tools' cold loads), after the worker's is done.
+static func clear() -> void:
+	_settle()
+	_waiting.clear()
+	_cache.clear()
+	_soups.clear()
 
 
 ## The pieces a key cuts into (empty when there is nothing to cut).
@@ -107,6 +198,11 @@ static func parts(assets: Assets, key: String) -> Array:
 	if cached != null:
 		var known: Array = cached
 		return known
+	if _job != null and _job.key == key:
+		_settle()
+		var cut: Array = _cache[key]
+		return cut
+	_waiting.erase(key)
 	var out: Array = []
 	var bar := key.find("|")
 	if bar > 0:

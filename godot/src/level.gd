@@ -400,12 +400,11 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 
 	var wall_list: Array = j["walls"]
 	lv.wall_count = wall_list.size()
-	lv.walls.resize(lv.wall_count * WALL_STRIDE)
 	for i in lv.wall_count:
-		var row: Array = wall_list[i]
-		var o := i * WALL_STRIDE
-		for k in WALL_STRIDE:
-			lv.walls[o + k] = _float(row[k])
+		var row := _floats(wall_list[i])
+		if row.size() != WALL_STRIDE:
+			row.resize(WALL_STRIDE)
+		lv.walls.append_array(row)
 
 	if not j.get("hub_split", false):
 		lv._merge_runs()
@@ -629,7 +628,12 @@ static func _gate(lv: LevelData, g: Dictionary) -> Gate:
 	return gate
 
 
+## A list of numbers (or numbers written as text) as ints, read natively (as
+## _int reads each: tools/load_check.gd holds the two together).
 static func _ints(values: Variant) -> PackedInt32Array:
+	if values is Array:
+		var list: Array = values
+		return PackedInt32Array(list)
 	var out := PackedInt32Array()
 	out.resize(len(values))
 	for i in len(values):
@@ -638,6 +642,9 @@ static func _ints(values: Variant) -> PackedInt32Array:
 
 
 static func _floats(values: Variant) -> PackedFloat32Array:
+	if values is Array:
+		var list: Array = values
+		return PackedFloat32Array(list)
 	var out := PackedFloat32Array()
 	out.resize(len(values))
 	for i in len(values):
@@ -668,23 +675,8 @@ static func _f32(value: float) -> float:
 ## Mirrors Renderer.plane_bounds, but gathers every bbox in one pass over cells
 ## instead of rescanning the grid per height.
 func _build_plane_bounds() -> void:
-	var buckets := {}
-	for i in ground.size():
-		var h := ground[i]
-		var y := i / width
-		var x := i - y * width
-		var b: Variant = buckets.get(h)
-		if b == null:
-			buckets[h] = [x, y, x + 1, y + 1]
-		else:
-			if x < b[0]:
-				b[0] = x
-			if y < b[1]:
-				b[1] = y
-			if x + 1 > b[2]:
-				b[2] = x + 1
-			if y + 1 > b[3]:
-				b[3] = y + 1
+	var counts := {}
+	var buckets := _buckets(ground, false, counts)
 	floor_bounds = {}
 	# Python inserts floors nearest-first (reversed sorted heights).
 	var heights := Array(ground_heights)
@@ -711,25 +703,8 @@ func _build_plane_bounds() -> void:
 			y1 = maxi(y1, _int(ceil(c[3])))
 		floor_bounds[height] = Vector4i(x0, y0, x1, y1)
 
-	var roof_buckets := {}
-	for i in roof.size():
-		var h := roof[i]
-		if h <= 0.0:
-			continue
-		var y := i / width
-		var x := i - y * width
-		var b: Variant = roof_buckets.get(h)
-		if b == null:
-			roof_buckets[h] = [x, y, x + 1, y + 1]
-		else:
-			if x < b[0]:
-				b[0] = x
-			if y < b[1]:
-				b[1] = y
-			if x + 1 > b[2]:
-				b[2] = x + 1
-			if y + 1 > b[3]:
-				b[3] = y + 1
+	var roof_counts := {}
+	var roof_buckets := _buckets(roof, true, roof_counts)
 	roof_bounds = {}
 	var rheight := Array(roof_heights)
 	rheight.sort()
@@ -749,23 +724,64 @@ func _build_plane_bounds() -> void:
 				maxi(r.w, _int(ceil(c[3])))
 			)
 		roof_bounds[height] = r
-	floor_boxes = _tight_boxes(floor_bounds, ground, caps)
-	roof_boxes = _tight_boxes(roof_bounds, roof, roof_caps)
+	floor_boxes = _tight_boxes(floor_bounds, ground, caps, counts)
+	roof_boxes = _tight_boxes(roof_bounds, roof, roof_caps, roof_counts)
+
+
+## Each height's cells' bounds in `grid` (h -> [x0, y0, x1, y1]; none at or
+## below 0 when `skip_low`), and how many cells have it (`counts`), a row's
+## run of one height at a time.
+func _buckets(grid: PackedFloat32Array, skip_low: bool, counts: Dictionary) -> Dictionary:
+	var buckets := {}
+	var n := grid.size()
+	var i := 0
+	while i < n:
+		var h := grid[i]
+		var y := i / width
+		var row_end := mini(n, (y + 1) * width)
+		var j := i + 1
+		while j < row_end and grid[j] == h:
+			j += 1
+		if not (skip_low and h <= 0.0):
+			var x0 := i - y * width
+			var x1 := j - y * width
+			var b: Variant = buckets.get(h)
+			if b == null:
+				buckets[h] = [x0, y, x1, y + 1]
+				counts[h] = j - i
+			else:
+				if x0 < b[0]:
+					b[0] = x0
+				if y < b[1]:
+					b[1] = y
+				if x1 > b[2]:
+					b[2] = x1
+				if y + 1 > b[3]:
+					b[3] = y + 1
+				counts[h] += j - i
+		i = j
+	return buckets
 
 
 ## The planes the renderer walks: [height, box] in the bounds' order. A height
 ## whose cells are scattered across a big box (a creek, a few porch roofs) is
 ## cut into tight boxes, so the pixels between them are not tested for it.
-func _tight_boxes(bounds: Dictionary, grid: PackedFloat32Array, capped: Dictionary) -> Array:
+## `counts`: how many cells of a height there are (all inside its box), where
+## known (_buckets).
+func _tight_boxes(
+	bounds: Dictionary, grid: PackedFloat32Array, capped: Dictionary, counts: Dictionary
+) -> Array:
 	var out: Array = []
 	for h: float in bounds:
 		var box: Vector4i = bounds[h]
 		var area := (box.z - box.x) * (box.w - box.y)
-		var count := 0
-		for y in range(maxi(0, box.y), mini(height, box.w)):
-			for x in range(maxi(0, box.x), mini(width, box.z)):
-				if grid[y * width + x] == h:
-					count += 1
+		var count: int = counts.get(h, -1)
+		if count < 0:
+			count = 0
+			for y in range(maxi(0, box.y), mini(height, box.w)):
+				for x in range(maxi(0, box.x), mini(width, box.z)):
+					if grid[y * width + x] == h:
+						count += 1
 		if capped.has(h) or area <= 64 or count * 2 >= area:
 			out.append([h, box])
 			continue
@@ -812,39 +828,42 @@ func _merge_runs() -> void:
 			for k in WALL_STRIDE:
 				out.append(walls[o + k])
 			continue
+		# (Keys as text, as they always were: str() of each, joined.)
 		var kind := (
-			"%s|%s|%s|%s|%s|%s"
-			% [
-				step.normalized(),
-				walls[o + 4],
-				walls[o + 5],
-				walls[o + 6],
-				walls[o + 7],
-				walls[o + 8]
-			]
+			str(step.normalized())
+			+ "|"
+			+ str(walls[o + 4])
+			+ "|"
+			+ str(walls[o + 5])
+			+ "|"
+			+ str(walls[o + 6])
+			+ "|"
+			+ str(walls[o + 7])
+			+ "|"
+			+ str(walls[o + 8])
 		)
-		var after := "%s|%s" % [a, kind]
-		var before := "%s|%s" % [b, kind]
+		var after := str(a) + "|" + kind
+		var before := str(b) + "|" + kind
 		if by_end.has(after):
 			# This piece carries on from the end of a run: the run reaches b.
 			var r: int = by_end[after]
 			by_end.erase(after)
 			out[r + 2] = b.x
 			out[r + 3] = b.y
-			by_end["%s|%s" % [b, kind]] = r
+			by_end[before] = r
 		elif by_start.has(before):
 			# A run starts where this piece ends: the run starts at a now.
 			var r: int = by_start[before]
 			by_start.erase(before)
 			out[r] = a.x
 			out[r + 1] = a.y
-			by_start["%s|%s" % [a, kind]] = r
+			by_start[after] = r
 		else:
 			var r := out.size()
 			for k in WALL_STRIDE:
 				out.append(walls[o + k])
-			by_end["%s|%s" % [b, kind]] = r
-			by_start["%s|%s" % [a, kind]] = r
+			by_end[before] = r
+			by_start[after] = r
 	walls = out
 	wall_count = out.size() / WALL_STRIDE
 
