@@ -39,9 +39,8 @@ const SKID_WIDE := .1
 ## How far the airboat goes between its wake's rings (cells).
 const WAKE_EVERY := .55
 ## How much of the body's bob and pitch the seat's eye takes, for each EASY ON
-## THE EYES step (full, reduced, still), and the pitch in view lines a radian.
+## THE EYES step (full, reduced, still): src/vehicle_cab.gd sways it.
 const SWAY := [.7, .3, 0.0]
-const SWAY_PITCH := 55.0
 ## The engine's pitch standing and at top speed.
 const ENGINE_LOW := .82
 const ENGINE_HIGH := 1.32
@@ -54,7 +53,6 @@ const LINE_REACH := 6.5
 ## The eye's rumble at full speed (cells).
 const RUMBLE := .012
 const INK := Color8(236, 214, 150)
-const WARN := Color8(240, 120, 70)
 
 ## The vehicles (VehicleDrive.Ride).
 var rides: Array = []
@@ -66,7 +64,18 @@ var middle := Vector2.ZERO
 ## clippings, spray and sparks [x, y, z, vx, vy, vz, at], each ride's body
 ## on its springs (VehicleFeel.Body, by the ride's place in `rides`) and how
 ## far each has gone since its wake's last ring.
-var _looks := {"marks": [], "clips": [], "spray": [], "sparks": [], "bodies": [], "wake": []}
+## The seat view's looks too (src/vehicle_cab.gd): each ride's prop turned
+## so far (radians) and the spray over the driver's bow.
+var _looks := {
+	"marks": [],
+	"clips": [],
+	"spray": [],
+	"sparks": [],
+	"bodies": [],
+	"wake": [],
+	"props": [],
+	"drops": []
+}
 ## The looks' own dice (snapshots skip it).
 var _dice := RandomNumberGenerator.new()
 
@@ -91,9 +100,11 @@ func attach() -> void:
 	_dice.seed = 1958
 	var bodies: Array = _looks["bodies"]
 	var wake: Array = _looks["wake"]
+	var props: Array = _looks["props"]
 	for _v: VehicleDrive.Ride in rides:
 		bodies.append(VehicleFeel.Body.new())
 		wake.append(0.0)
+		props.append(0.0)
 	for point: Variant in game.level.lap_cars.get("path", []):
 		var px: float = point[0]
 		var py: float = point[1]
@@ -252,6 +263,23 @@ func use(p: Player) -> bool:
 		game.sound_at(s.engine, v.x, v.y, .8)
 	_place(p, v, s, k, 0.0)
 	return true
+
+
+## Stands `p` beside ride `i` facing it and gets in as USE does (a view
+## tour's viewpoint from the seat, main.gd; the checks). True when `p` sits
+## in it (already, or now).
+func seat_in(p: Player, i: int) -> bool:
+	if i < 0 or i >= rides.size():
+		return false
+	if seat_of(p).x >= 0:
+		return seat_of(p).x == i
+	var v: VehicleDrive.Ride = rides[i]
+	var side := VehicleDrive.spec(v.kind).width * .5 + .3
+	p.x = v.x - sin(v.h) * side
+	p.y = v.y + cos(v.h) * side
+	p.angle = v.h - PI * .5
+	use(p)
+	return seat_of(p).x == i
 
 
 func _say(p: Player, text: String) -> void:
@@ -533,6 +561,11 @@ func _feel(i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, dt: float) -> voi
 		return
 	var b: VehicleFeel.Body = bodies[i]
 	var speed := VehicleDrive.speed(v)
+	var props: Array = _looks["props"]
+	if i < props.size() and v.seats[0] >= 0:
+		# The airboat's prop turning while someone is at the stick.
+		var turned: float = props[i]
+		props[i] = fposmod(turned + VehicleCab.prop_speed(v, s) * dt, TAU)
 	var parked := speed < .02 and v.z == b.last_z and v.bumps == b.last_bumps and b.fall == 0.0
 	if parked and b.started and b.still() and s.rock <= 0.0:
 		# Parked and settled: nothing to work out (asleep it costs nothing).
@@ -552,6 +585,9 @@ func _feel(i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, dt: float) -> voi
 	_leave_marks(v, s, b, tile)
 	if s.spray and s.floors.has(tile):
 		_spray(i, v, s, speed, dt)
+		if v.seats[0] == game.local_player.slot:
+			var drops: Array = _looks["drops"]
+			VehicleCab.spray(drops, v, game.clock, dt, _dice)
 
 
 ## Skids and a mown stripe left behind, and the grass the mower throws out of
@@ -663,7 +699,9 @@ func _spray(i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, speed: float, dt
 
 ## The seat's eye on the springs (game_view.gd, the local player's view
 ## only): it rises and falls and tips with the body, a little, and less or
-## not at all with EASY ON THE EYES.
+## not at all with EASY ON THE EYES; the engine's buzz, the dip and the
+## widening at speed, and the driver's own vehicle from the seat (the cab:
+## src/vehicle_cab.gd).
 func sway_eye(eye: Dictionary) -> void:
 	if rides.is_empty():
 		return
@@ -672,13 +710,18 @@ func sway_eye(eye: Dictionary) -> void:
 	if at.x < 0 or at.x >= bodies.size():
 		return
 	var calm: float = SWAY[clampi(game.view.world_motion, 0, 2)]
-	if calm <= 0.0:
-		return
+	var v: VehicleDrive.Ride = rides[at.x]
+	var s := VehicleDrive.spec(v.kind)
+	var props: Array = _looks["props"]
+	var turned: float = props[at.x] if at.x < props.size() else 0.0
 	var b: VehicleFeel.Body = bodies[at.x]
-	var lift: float = eye["eye"]
-	var pitch: float = eye["pitch"]
-	eye["eye"] = lift + b.heave * calm
-	eye["pitch"] = pitch + b.pitch * SWAY_PITCH * calm
+	VehicleCab.dress(eye, v, s, b, at.y, calm, game.shake_scale, game.clock, turned, cab_drawn(s))
+
+
+## Whether this machine draws the driver's own vehicle from the seat (a
+## window, and the cab's art: a browser build may not have it yet).
+func cab_drawn(s: VehicleDrive.Spec) -> bool:
+	return game.view.layered and s.cab != "" and game.art.has_art("mesh_" + s.cab)
 
 
 ## The body of ride i on its springs (for the checks and the frames).
@@ -873,9 +916,14 @@ func sprites() -> Array:
 		var s := VehicleDrive.spec(v.kind)
 		if not game.in_view(v.x, v.y, s.length):
 			continue
-		if mine == Vector2i(i, 0) and s.hands == 0 and game.eye_override.is_empty():
-			# Its driver sees the dash and the wheel (draw_view), not the
-			# inside of its shell.
+		if (
+			mine == Vector2i(i, 0)
+			and (s.hands == 0 or cab_drawn(s))
+			and game.eye_override.is_empty()
+		):
+			# Its driver sees it from the seat (the cab: src/vehicle_cab.gd),
+			# or the car's dash and wheel (draw_view), not its shell around
+			# the eye.
 			_smoke(out, v, s)
 			continue
 		# Its model on the move (the 3D view keeps one by its track), turned
@@ -1007,8 +1055,11 @@ func draw_view(c: Canvas) -> void:
 		return
 	var v: VehicleDrive.Ride = rides[at.x]
 	var s := VehicleDrive.spec(v.kind)
-	if at.y == 0 and s.hands == 0:
-		# The dash rides the springs with the eye (a pixel or two).
+	var drops: Array = _looks["drops"]
+	VehicleCab.draw_spray(c, drops, game.view_eye, game.clock)
+	if at.y == 0 and s.hands == 0 and not cab_drawn(s):
+		# Without the seat view (no window, or its art not here yet): the
+		# car's painted dash, riding the springs with the eye a pixel or two.
 		var b := body(at.x)
 		var calm: float = SWAY[clampi(game.view.world_motion, 0, 2)]
 		# Never up off the view's bottom edge: it sits a pixel down to rise.
@@ -1016,10 +1067,7 @@ func draw_view(c: Canvas) -> void:
 		if b != null and calm > 0.0:
 			lift = clampi(1 + roundi(b.heave * 30.0 * calm), 0, 3)
 		VehicleLooks.cab(c, v.steer, VehicleDrive.speed(v) / maxf(1.0, s.top), lift)
-	var mph := roundi(VehicleDrive.speed(v) * 3.4)
-	var health := roundi(100.0 * v.hp / maxf(1.0, s.hp))
-	c.label("%d MPH" % mph, 6, View.VIEW - 18, "body", INK)
-	c.label("RIG %d%%" % health, 6, View.VIEW - 10, "mini", INK if health > 50 else WARN)
+	VehicleHud.draw(c, game, v, s, at.y == 0)
 	if not line.is_empty() and v.kind == "car" and at.y == 0:
 		var text := "LAP " + clock_text(game.clock - v.lap_start)
 		if v.lap_best > 0.0:

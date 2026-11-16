@@ -38,6 +38,8 @@ var solids: SolidLayer3D
 var props: PropLayer3D
 var wrecks: WreckLayer3D
 var actors: ActorLayer3D
+## The driver's own vehicle from the seat (cab_layer.gd).
+var cab: CabLayer3D
 var tiles: ViewTiles
 var _root: Node3D
 var _chunks: Node3D
@@ -128,7 +130,7 @@ func _init(assets: Assets) -> void:
 	camera.near = NEAR
 	camera.far = FAR
 	camera.current = true
-	camera.cull_mask = LAYER_WORLD | LAYER_SKY
+	camera.cull_mask = LAYER_WORLD | LAYER_SKY | CabLayer3D.LAYER
 	_root.add_child(camera)
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_COLOR
@@ -162,6 +164,8 @@ func _init(assets: Assets) -> void:
 	_root.add_child(wrecks)
 	actors = ActorLayer3D.new(ActorModels.new(assets))
 	_root.add_child(actors)
+	cab = CabLayer3D.new(assets)
+	_root.add_child(cab)
 	_sky = MeshInstance3D.new()
 	var plane := QuadMesh.new()
 	plane.size = Vector2(4000.0, 4000.0)
@@ -317,7 +321,10 @@ func frame(game: Game) -> void:
 		actors.prepare(game.enemies)
 	game_far = r.draw_far
 	var horizon: float = view["horizon"]
-	_place_camera(x, y, z, angle, horizon, r.focal, vh)
+	# A driver's view is a little wider, more so at speed (vehicle_cab.gd):
+	# the view's middle still looks where the crosshair aims.
+	var wide: float = eye.get("wide", 1.0)
+	_place_camera(x, y, z, angle, horizon, r.focal, vh, wide)
 	var mirror := not is_nan(level.mirror_x)
 	_mirror(mirror, level, x, y, z, angle, horizon, r.focal, Vector2i(vw, vh))
 	# Sprites whose picture has a mesh are stood up as props, enemies with a
@@ -368,6 +375,8 @@ func frame(game: Game) -> void:
 	if mirror:
 		reflection = view.get("reflection")
 	fresh.append_array(actors.show_reflection(reflection, level, game.clock, LAYER_REFLECTION))
+	var seat_view: Dictionary = eye.get("cab", {})
+	fresh.append_array(cab.show_cab(seat_view, Vector3(x, y, z), level))
 	if (
 		reflection != null
 		and reflection.who is Enemy
@@ -378,6 +387,7 @@ func frame(game: Game) -> void:
 	fresh.append_array(props.live_materials())
 	fresh.append_array(wrecks.live_materials())
 	fresh.append_array(actors.live_materials())
+	fresh.append_array(cab.live_materials())
 	_track_live(fresh)
 	var t7 := Time.get_ticks_usec()
 	sprites.show_sprites(pictures, level, Vector3(x, y, z), angle, mirror)
@@ -399,12 +409,13 @@ func frame(game: Game) -> void:
 
 
 func _place_camera(
-	x: float, y: float, z: float, angle: float, horizon: float, focal: float, vh: int
+	x: float, y: float, z: float, angle: float, horizon: float, focal: float, vh: int, wide := 1.0
 ) -> void:
 	# Map forward (cos a, sin a) is Godot (cos a, 0, sin a); a camera looks
 	# down its -Z, so its yaw is -a - PI/2.
 	camera.transform = Transform3D(Basis(Vector3.UP, -angle - PI * .5), Vector3(x, z, y))
-	var size := NEAR * vh / focal
+	# `wide` (below 1) widens the view about its middle, which keeps its way.
+	var size := NEAR * vh / (focal * wide)
 	var far := game_far
 	camera.set_frustum(size, Vector2(0.0, (horizon - vh * .5) * NEAR / focal), NEAR, far)
 	_sky.position.z = -(far - 1.0)
@@ -618,8 +629,11 @@ func _uniforms(
 	_share("flow_shift", flow_shift)
 	_share("view_angle", fmod(angle, TAU * 512.0))
 	var horizon: float = view["horizon"]
-	_share("horizon", horizon)
-	_share("focal", r.focal)
+	# A widened view (a driver's) has its horizon row and focal moved with it.
+	var eye: Dictionary = view["eye"]
+	var wide: float = eye.get("wide", 1.0)
+	_share("horizon", r.vh * .5 + (horizon - r.vh * .5) * wide)
+	_share("focal", r.focal * wide)
 	_share("view_size", Vector2(r.vw, r.vh))
 	_share("res_up", r.res_up)
 	# The Crossroads' tower shadow and runoff (render_state.gd _prepare_hub).

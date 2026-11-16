@@ -106,6 +106,15 @@ func _vehicle(kind: String, id: String) -> void:
 	await _snap(kind + "_3_driving")
 	_ticks(g, 50, 1.0, .8)
 	await _snap(kind + "_4_turning")
+	# The seat view looked round: down at the controls, and back (the
+	# airboat's fan cage).
+	var p := g.player
+	p.pitch = -40.0
+	await _snap(kind + "_6_seat_down")
+	p.pitch = 0.0
+	p.angle = fposmod(v.h + PI * .8, TAU)
+	await _snap(kind + "_7_seat_back")
+	p.angle = v.h
 	if kind == "airboat":
 		rides.call("_hurt", v, 99999.0)
 		_ticks(g, 90)

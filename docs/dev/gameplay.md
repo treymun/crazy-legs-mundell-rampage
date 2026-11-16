@@ -1103,8 +1103,10 @@ physics, so play's users stay the same on every machine.
 ## Vehicles
 
 `features/vehicles.gd` (the feature), `src/vehicle_drive.gd` (the driving
-sums, the `Spec` and `Ride` classes), `src/vehicle_looks.gd` (the car's dash
-and wheel), numbers in `data/tuning/vehicles.cfg`. A level's `"vehicles"`
+sums, the `Spec` and `Ride` classes), `src/vehicle_cab.gd` (the seat view
+and how the seat feels), `src/vehicle_hud.gd` (the driving plate),
+`src/vehicle_looks.gd` (the car's painted dash, without a window), numbers
+in `data/tuning/vehicles.cfg`. A level's `"vehicles"`
 list places them (`[kind, x, y, heading]`, level_builder from the plan's
 `meta`): the airboat moored by Gator Bayou's dock walk, a stock car on the
 speedway's pit row, a riding mower (the tractor model at half size) on the
@@ -1128,7 +1130,10 @@ chapel path at Hickston. Only the campaign and co-op have them
   with it); not toward the look while firing, so a shot to the side holds
   the course; JUMP is the handbrake (the car slides). Grip wears away the
   slide across its heading (the airboat slides most; its prop turns it on the
-  throttle standing still). The hull is three circles along it tested with
+  throttle standing still; since the engine pass after 3.3.0 a little less:
+  `grip` 1.1 to 1.6 and `coast` 1.1 to 1.5, so it floats less). `Ride.gas` is
+  the driver's throttle this tick (plain number, carried; the cab's tach and
+  the plate read it). The hull is three circles along it tested with
   `geo.blocked_body` (walls, furniture, closed doors, decks) and `floor_at`:
   a step taller than its `step` stops it (the car climbs the banked turns'
   .12 steps, never a stair); `floors` lists the only floors it runs on (the
@@ -1160,8 +1165,11 @@ chapel path at Hickston. Only the campaign and co-op have them
   features block (place, heading, health, wreck, seats; restore gets {} from
   older saves, so no save version, and adding a level's list changed no map,
   so no layout). Skid marks, the mown stripe and the clippings are `_looks`
-  (skipped by snapshots); smoke and flames come from the clock; the car's
-  own model is left out of its driver's view (the dash and wheel instead).
+  (skipped by snapshots); smoke and flames come from the clock; the driver's
+  own model is left out of their view (the seat view instead, below; with no
+  window, the car's painted dash and wheel, `VehicleLooks`). The models are
+  stood on their heading by `nose` (the airboat's and car's were posed 20
+  and 18 degrees round for their sprites and drove crabwise before).
   Sounds reuse cues: `airboat_wake`, `lap_car_pass`, `saw_motor`, `crunch`,
   `lap_car_hit`, `tire_roll`, `mower`.
 - **How it looks on the move** (polish pass N; `src/vehicle_feel.gd`, looks
@@ -1190,11 +1198,61 @@ chapel path at Hickston. Only the campaign and co-op have them
   `ENGINE_LOW` standing to `ENGINE_HIGH` flat out (`game.sound_at(...,
   rate)` -> `GameSound.play_at_rate`). PHOTO MODE sees the car from outside
   (its model shown, no dash).
+- **From the seat** (the engine pass after 3.3.0; `src/vehicle_cab.gd`,
+  `view3d/cab_layer.gd`, looks only): the driver sees their own vehicle in
+  the 3D view, a model of what a driver sees of it (`cab` in vehicles.cfg:
+  the airboat's deck, green rails, bow lamp, cooler, rope, jug and tach on
+  its post, the fan cage and prop behind; the car's hood with its scoop and
+  stripes, A-pillars, windscreen bars, header, mirror and fuzzy dice, the
+  dash with two gauges, window net, cage; the mower's red hood, grille,
+  lamps, exhaust stack, the cutting deck out in front, fenders and a beer)
+  with Mundell's hands on the controls (the airboat's stick, the mower's
+  spinner knob: the other hand holds the gun; the car's wheel at eleven and
+  one). `sway_eye` (from game_view.gd) hands the frame's eye a `cab`: its
+  model, its turn (the body on its springs, `VehicleFeel.turn`, so the hood
+  squats, dives, leans and bucks against the view, which takes only
+  SCENERY MOTION's share of it), how much lower the eye sits in it
+  (`cab_drop`) and how far it tips its nose up (`cab_tilt`), so the front
+  shows in the old view's narrow height with the road still showing over
+  it; and the moving parts' turns: the wheel (`cab_lock`, clockwise for a
+  right turn) with the hands riding it, the airboat's stick, the needles
+  (speed, the car's tach by its gear, the airboat's tach by `rpm`), the
+  airboat's prop (turned in `_looks` while someone is at the stick) and the
+  mower's blade lever (forward while the blade bites). Not for a rider, not
+  in PHOTO MODE, not without a window or the cab's art.
+- **How the seat feels** (`VehicleCab.dress`): the engine buzzes in the view
+  (`buzz`, `buzz_hz`, more on the throttle; the hood buzzes a hair against
+  it), the mower thumps (`chug`), the eye dips or rises at speed
+  (`seat_dip`), and a driver's view is wider (83 degrees across when FIELD
+  OF VIEW is narrower: `DRIVE_FOCAL`) and widens by up to `KICK` more at top
+  speed (the eye's `wide`: world_view.gd widens the camera about the view's
+  middle, so the crosshair still aims true). SCREEN SHAKE scales the buzz
+  and thump; SCENERY MOTION scales them and the sway, the dip and the kick
+  (STILL: none). The airboat's hull slaps the water at speed (`slap`, kicks
+  on the springs with the looks' dice) and its bow rides up as it gets going
+  (`trim`); spray flies back over its bow into the driver's view (`drops`
+  in `_looks`, in the cab's own axes, drawn on the view as a pixel or two of
+  white water where the cab puts them: `VehicleCab.draw_spray`). The car
+  squats and dives more than before (`squat` .009, `lean` .007).
+- **The driving plate** (`src/vehicle_hud.gd`, from `draw_view`): a tin plate
+  in the view's bottom left in the status bar's colours: the speed in the
+  big rust numerals (STATUS PANEL: on a little dial), the rig's health as a
+  row of ten lamps with SMOKIN' (under half), ON FIRE (a quarter, flashing)
+  or BURNT OUT, the throttle up its right edge (reverse red, down), and the
+  kind's line: the car's GEAR (R, N, 1 to 4 by its speed) with a tach, the
+  airboat's FAN tach, the mower's BLADE ON/OFF lamp. HUD MINIMAL keeps two
+  lines of text (MPH and RIG or its state). With the touch buttons up it
+  hangs at (4, 34), under the objective pin and clear of the move stick;
+  the touch stick and buttons drive as before (throttle and steering are
+  FORWARD and STRAFE, the right-side drag the look it steers to).
 - **Checks**: `tools/vehicle_check.gd` (in check_all, quick too; its FEEL part
   is `tools/vehicle_feel_check.gd`: squat, dive, lean the right way, skid
   marks, sparks, landing and settling, rocking, spray and wake, the mower's
   bounce and clippings, other dice the same drive);
-  `tools/vehicle_frames.gd` takes window pictures (`docs/godot3d/features/D/`)
+  `tools/vehicle_cab_check.gd` (VEHICLE CAB OK: the seat view, its parts and
+  their turns, the settings, the plate, driving the same with it drawn);
+  `tools/vehicle_frames.gd` takes window pictures (`docs/godot3d/features/D/`;
+  from the seat looking down and back too)
   and `tools/feel_frames.gd` the feel's and the plank walls'
   (`docs/godot3d/polish/N/`).
 

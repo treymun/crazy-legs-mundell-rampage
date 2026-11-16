@@ -23,6 +23,9 @@ const EASE := 10.0
 ## The most the body may bob (cells) or turn on its springs (radians).
 const HEAVE_MOST := .22
 const TURN_MOST := .3
+## The airboat's hull slaps the water (vehicles.cfg `slap`) faster than this
+## (cells a second).
+const SLAP_FROM := 2.5
 
 
 ## One vehicle's body on its springs: heave (up, cells), pitch (nose up,
@@ -106,13 +109,21 @@ static func step(
 		b.heave_v += (dice.randf() - .5) * jolt * 6.0
 		b.pitch_v += (dice.randf() - .5) * jolt * 5.0
 		b.roll_v += (dice.randf() - .5) * jolt * 7.0
+	if s.slap > 0.0 and speed > SLAP_FROM and dice.randf() < dt * (.8 + speed * .35):
+		# The hull slapping the chop at speed: a kick up, the bow first.
+		var slap := s.slap * minf(speed, 8.0) / 8.0 * (.5 + dice.randf())
+		b.heave_v += slap
+		b.pitch_v += slap * .5
+		b.roll_v += (dice.randf() - .5) * slap * .6
 	b.last_along = along
 	b.last_h = v.h
 	b.last_z = v.z
 	b.last_bumps = v.bumps
-	# Where the springs pull it: out of the turn, back on the throttle.
+	# Where the springs pull it: out of the turn, back on the throttle; the
+	# airboat's bow riding up as it gets going.
 	var roll_to := clampf(-s.lean * b.lat, -s.lean_most, s.lean_most)
 	var pitch_to := clampf(s.squat * b.acc, -s.squat_most, s.squat_most)
+	pitch_to += s.trim * clampf(along / maxf(1.0, s.top), 0.0, 1.0)
 	if s.rock > 0.0:
 		# On the water it rocks, a slow swell more than a chop, less at speed.
 		var calm := 1.0 / (1.0 + speed * .15)

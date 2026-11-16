@@ -6,7 +6,9 @@ dusk stage's light baked into one small texture, then written as a glTF.
     blender -b -P scripts/blender/export_meshes.py -- <out dir> <names|all> <library.py>
 
 <library.py> is town_props.py (the town and every chapter's props, the broken
-ones too), props_range.py, quest_props.py or painted_boards.py. Writes
+ones too), props_range.py, quest_props.py, painted_boards.py or
+vehicle_cabs.py (the vehicles' seat views: parts in one glb, not dropped to
+the ground, up to CAB_MOST texels). Writes
 <out dir>/<name>.glb (the mesh, map units, its front toward glTF +Z),
 <out dir>/<name>.png (the baked texture) and meshes.json ({name: [width,
 depth, height, texture size]}). godot/tools/art/build_prop_meshes.gd runs it
@@ -52,6 +54,8 @@ exec(_source, globals())
 DENSITY = 64
 CLOSE_DENSITY = 160
 MOST = 512
+# A cab fills the bottom of the driver's view: more texels across.
+CAB_MOST = 1024
 LEAST = 64
 # Drawn by the range's own code as pictures (shot at, marked): not models.
 KEEP_FLAT = {"range_target", "range_gong", "range_cow_target", "range_duck"}
@@ -67,8 +71,13 @@ def _clear():
 
 
 def _models():
-    """name -> [(look, make, scale)]: a station's two looks, or a prop's one."""
+    """name -> [(look, make, scale)]: a station's two looks, a vehicle cab's
+    parts (vehicle_cabs.py CABS), or a prop's one."""
     out = {}
+    if "CABS" in globals():
+        for name, parts in CABS.items():
+            out[name] = [(part, make, 1.0) for part, make in parts]
+        return out
     if "STATIONS" in globals():
         for name, make in STATIONS.items():
             size = SCALE.get(name, 1.0)
@@ -125,12 +134,17 @@ def _shrink(ob, size):
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
 
-def _unwrap(parts):
+def _unwrap(parts, tight=False):
     # Every look at once (multi-object editing): their islands share one map.
+    # `tight` (a cab: hundreds of small parts seen up close) packs the islands
+    # with a hair's gap instead of smart project's own wide margins.
     _select(parts)
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.02)
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.0 if tight else 0.02)
+    if tight:
+        bpy.ops.uv.select_all(action="SELECT")
+        bpy.ops.uv.pack_islands(rotate=True, margin=0.004)
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
@@ -243,7 +257,10 @@ def run():
             continue
         # Feet on the ground: the sprite was cropped to its lowest pixel and
         # stood there (a rack modelled up a wall stands at its own bottom).
-        drop = min(v.co[2] for ob in parts for v in ob.data.vertices)
+        # A cab stays where it was modelled (the driver's eye at the origin,
+        # each moving part about its pivot).
+        cab = "CABS" in globals()
+        drop = 0.0 if cab else min(v.co[2] for ob in parts for v in ob.data.vertices)
         if abs(drop) > 1e-4:
             for ob in parts:
                 ob.data.transform(Matrix.Translation((0, 0, -drop)))
@@ -254,11 +271,11 @@ def run():
         area = (dims[0] * dims[1] + dims[1] * dims[2] + dims[0] * dims[2]) * len(parts)
         density = CLOSE_DENSITY if faithful else DENSITY
         size = 1 << max(0, int(math.ceil(math.log2(max(1.0, math.sqrt(area) * density)))))
-        size = max(LEAST, min(MOST, size))
+        size = max(LEAST, min(CAB_MOST if cab else MOST, size))
         # The looks bake side by side (far enough apart not to shade each other).
         for k, ob in enumerate(parts):
             ob.location = (k * LOOK_GAP, 0, 0)
-        _unwrap(parts)
+        _unwrap(parts, cab)
         _bake(parts, size, os.path.join(_OUT, name + ".png"), faithful)
         for ob in parts:
             ob.location = (0, 0, 0)

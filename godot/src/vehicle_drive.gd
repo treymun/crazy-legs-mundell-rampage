@@ -77,6 +77,22 @@ class Spec:
 	var spray := false
 	var sparks := false
 	var brake_skid := false
+	## The seat view (src/vehicle_cab.gd, view3d/cab_layer.gd; looks only):
+	## its model, how much lower the eye sits in it and how far it tips its
+	## nose up (to show more of it in the view), the wheel's or stick's lock
+	## (radians), the engine's buzz in the view (cells, at its pace a second)
+	## and the mower's chug, the eye's dip at top speed, the airboat's slaps
+	## on the water and its bow's rise at speed (radians).
+	var cab := ""
+	var cab_drop := 0.0
+	var cab_tilt := 0.0
+	var cab_lock := .9
+	var buzz := 0.0
+	var buzz_hz := 30.0
+	var chug := 0.0
+	var seat_dip := 0.0
+	var slap := 0.0
+	var trim := 0.0
 
 
 ## A vehicle in play: plain numbers a snapshot carries and a save keeps.
@@ -103,8 +119,10 @@ class Ride:
 	## When the engine and the tyres are heard next.
 	var engine_at := 0.0
 	var skid_at := 0.0
-	## The wheel's lock (-1..1) and the slide across the heading this tick.
+	## The wheel's lock (-1..1) and the slide across the heading this tick;
+	## the driver's throttle (-1..1: back is reverse) this tick.
 	var steer := 0.0
+	var gas := 0.0
 	var slide := 0.0
 	## Enemy uid -> when this vehicle may hit it again.
 	var hits := {}
@@ -228,6 +246,7 @@ static func throttle(
 	var across := vel.dot(r)
 	var top := s.top * scale
 	var gas := clampf(c.forward, -1.0, 1.0)
+	v.gas = gas
 	if gas > 0.0:
 		if along < -.3:
 			along = minf(0.0, along + s.brake * dt)

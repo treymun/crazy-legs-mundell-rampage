@@ -225,6 +225,35 @@ Guns in hand stay 2D cels over the 3D view.
 `tools/view3d_check.gd` loads every prop and actor scene; run it after either
 pipeline.
 
+### Seat views
+
+`scripts/blender/vehicle_cabs.py` models what a driver sees of the airboat,
+the stock car and the riding mower from the seat (`cab_airboat`, `cab_car`,
+`cab_mower`; [view3d.md](view3d.md#the-seat-view)), with town_props.py's
+shapes and materials in the outside models' colours, more detail where the
+eye is close (gauges with lit faces and their needles, the car's dice and
+window net, the mower's beer) and Mundell's hands (blocky, as a 1997 cel's:
+his skin, the red and black check of his sleeves, `fist`). The driver's eye
+is the origin (x ahead, y left, z up, map units); a cab is parts: `body`
+and moving parts each modelled where it sits and moved so its pivot is the
+origin (`pivot`), the pivots and axes in `CAB_PIVOTS` (written as
+`cabs.json`). `export_meshes.py` bakes a cab like a station's looks (one glb,
+one texture, faithful bake) but leaves it where it was modelled (no drop to
+the ground) and packs its many small islands tightly up to `CAB_MOST`
+(1024).
+
+```
+godot --headless --path godot --script res://tools/art/build_cab_meshes.gd [-- names=cab_car] [no-render]
+```
+
+writes `godot/assets3d/cabs/<name>.glb`, `cabs.json` and
+`assets/art/mesh_<name>.png` (graded and digitized like the props); then
+`pack_assets.gd` and `--import`. Two things that bit: Godot's glTF import
+reads a node name ending in `wheel` as a VehicleWheel3D (the car's wheel
+part is `steer`), and Blender exits 0 on a Python error unless
+`--python-exit-code 1` (the tool passes it). `tools/vehicle_frames.gd` takes
+the seat views in a window.
+
 ## Gun effects art
 
 `tools/art/build_gun_fx_art.gd` makes the pictures for the LIGHTS AND GLOW gun

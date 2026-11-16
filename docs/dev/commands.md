@@ -58,6 +58,7 @@ godot --headless --path godot --script res://tools/level_edit_check.gd  # LEVEL 
 godot --headless --path godot --script res://tools/physics_check.gd   # PHYSICS OK (loose things on decks, ramps, stairs, walls; levels=a,b)
 godot --headless --path godot --script res://tools/live_props_check.gd # LIVE PROPS OK (pick up and throw, spreading fire, the stills)
 godot --headless --path godot --script res://tools/vehicle_check.gd    # VEHICLES OK (get in, drive, bump, run down, get out)
+godot --headless --path godot --script res://tools/vehicle_cab_check.gd    # VEHICLE CAB OK (the seat view, the driving plate)
 godot --headless --path godot --script res://tools/wreck_check.gd     # WRECK CHECK OK (broken scenery in real pieces; levels=a,b)
 godot --headless --path godot --script res://tools/load_check.gd      # LOAD CHECK OK (the fast level load the same as the old one; levels=a,b)
 godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)
@@ -106,7 +107,8 @@ godot --path godot ... --script res://tools/polish_frames.gd -- out=<dir> [only=
 godot --path godot ... --script res://tools/arena_frames_late.gd   # the last four
 godot --path godot ... --script res://tools/lock_frames.gd -- out=<dir> [kinds=boss,rudy]   # each arena's way in open, then shut (docs/godot3d/polish/P/)
 godot --headless --path godot --script res://tools/boss_lock_check.gd [-- rudy coop]   # BOSS LOCK OK (also in check_fixes)
-godot --path godot ... --script res://tools/vehicle_frames.gd -- out=<dir> [only=car]   # the vehicles parked, from the seat, driving, a wreck (docs/godot3d/features/D/)
+godot --path godot ... --script res://tools/vehicle_frames.gd -- out=<dir> [only=car]   # the vehicles parked, from the seat (ahead, down, back), driving, a wreck (docs/godot3d/features/D/)
+godot --headless --path godot --script res://tools/art/build_cab_meshes.gd [-- names=cab_car] [no-render]   # the seat views' models (Blender, vehicle_cabs.py); then pack_assets and --import
 godot --path godot ... --script res://tools/squad_frames.gd
 godot --path godot ... --script res://tools/climb_frames.gd -- out=<dir>   # ladders in every chapter, a climb, a pull-up, a hand on a ladder
 godot --path godot ... --script res://tools/mode_frames.gd -- out=<dir>
