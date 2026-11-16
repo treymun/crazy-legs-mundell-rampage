@@ -41,8 +41,6 @@ const MOST_AWAKE := 8.0
 ## The torso's middle may lag play's body by this much before it is pulled.
 const SLACK := .3
 const PULL := 8.0
-## A ball's floor is asked again once it has moved this far across.
-const REASK := PhysCore.REASK
 ## The model's shape is kept out of the floor once a ball is this near it
 ## (model units), to within HULL_SLACK (map units).
 const HULL_NEAR := .5

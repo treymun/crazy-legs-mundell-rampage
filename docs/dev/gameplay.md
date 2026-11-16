@@ -924,8 +924,10 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
 - **Cost**: `[pieces] most` (48, `most_phone` 20) lie about at most; past it
   the oldest shrink away in `fade` and stop moving. More than `CROWD` (20)
   awake takes one physics step a tick instead of `steps` (2). On the shared
-  core (engine pass 6) the hickston fight's `wreckage._tick` went from about
-  0.40 to 0.13 ms (tick_profile, headless). Idle (all
+  core (engine pass 6) the hickston fight's `wreckage._tick` is about a third
+  of what it was (tick_profile, headless, back to back on a busy desktop:
+  0.76 to 0.25 ms; fair 0.60 to 0.17), and 48 pieces thrown at once 2.15 to
+  1.28 ms a tick, worst tick 9.2 to 5.7 ms, all asleep in 4 s instead of 6. Idle (all
   asleep) a tick costs about 15 us; breaking everything on hickston at once
   (48 pieces in the air) peaked near 9 ms a tick headless on a busy desktop,
   a single crate about 1 to 2 ms for a second. A phone or the LOW physics
