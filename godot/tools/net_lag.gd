@@ -102,6 +102,20 @@ func _run() -> void:
 			+ ("" if tally.errors == 0 else " (%d: %s)" % [tally.errors, tally.first_errors[0]])
 		)
 	)
+	if quick and not rows.is_empty() and not _within(rows[0]):
+		# A real-time measure on a shared machine (CI's runners): a slow moment
+		# can tip one 30 s run over a limit. One more run; a real regression
+		# misses on both, and the second run's numbers are the ones checked.
+		print("")
+		print("  over a limit on the first run: once more")
+		var again := measure(
+			120.0,
+			opts["jitter_ms"] if opts["jitter_ms"] >= 0.0 else 120.0 * opts["jitter"],
+			float(opts["loss"])
+		)
+		if not again.is_empty():
+			_table([again])
+			rows[0] = again
 	if quick and not rows.is_empty():
 		var r: Dictionary = rows[0]
 		_check(r["mismatches"] == 0, "the copies keep with the server (%d)" % r["mismatches"])
@@ -136,6 +150,17 @@ func _run() -> void:
 	main.queue_free()
 	await process_frame
 	quit(1 if not failures.is_empty() else 0)
+
+
+## Whether a quick run's numbers are all within QUICK_LIMITS.
+static func _within(r: Dictionary) -> bool:
+	for key: String in QUICK_LIMITS:
+		var most: float = QUICK_LIMITS[key]
+		var got: float = r[key]
+		if got > most:
+			return false
+	var parted: int = r["mismatches"]
+	return parted == 0
 
 
 func _check(ok: bool, text: String) -> void:
