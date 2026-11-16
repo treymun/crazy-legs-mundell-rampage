@@ -23,6 +23,15 @@
 ## sway of the seat's eye (less with EASY ON THE EYES, none when STILL); the
 ## airboat's spray and wake, the car's tyre marks and sparks off a wall, the
 ## mower's bounce and clippings; the engine's note rising with the speed.
+##
+## Finding one (feature pass 7, src/vehicle_finder.gd, looks only): a ready
+## vehicle keeps its lamps on and its radio playing, the automap marks it,
+## USE's prompt names it from further off and its line is said the first time
+## a player comes near. Out of the car's window a one-handed gun shoots
+## (`window`, [all] window_guns: the other hand stays on the wheel, steering
+## less, the shot strays more, never back through the cage), and its
+## passenger rides beside the driver and shoots (the set pieces built round
+## them are features/vehicle_runs.gd).
 extends GameFeature
 
 ## A mower's blade bites what it runs over this often (seconds).
@@ -74,7 +83,8 @@ var _looks := {
 	"bodies": [],
 	"wake": [],
 	"props": [],
-	"drops": []
+	"drops": [],
+	"told": {}
 }
 ## The looks' own dice (snapshots skip it).
 var _dice := RandomNumberGenerator.new()
@@ -175,20 +185,70 @@ func rider_feet(p: Player) -> float:
 	return v.z + VehicleDrive.spec(v.kind).sit + (b.heave if b != null else 0.0)
 
 
-## Whether `p`'s hands are on a wheel (the car: no shooting from it).
+## Whether `p`'s hands are on a wheel (the car: no shooting from it, but a
+## one-handed gun out of the window), or the shot would go back through the
+## car's cage (its driver and its passenger both).
 func hands_busy(p: Player) -> bool:
 	if rides.is_empty():
 		return false
 	var at := seat_of(p)
-	if at.x < 0 or at.y != 0:
+	if at.x < 0:
 		return false
 	var v: VehicleDrive.Ride = rides[at.x]
-	return VehicleDrive.spec(v.kind).hands == 0
+	var s := VehicleDrive.spec(v.kind)
+	if s.window and not window_clear(p, v):
+		return true
+	if at.y != 0:
+		return false
+	return s.hands == 0 and not (s.window and one_handed(p))
 
 
-## The vehicle nearest `p`'s hand within reach (and roughly in front), or -1.
-func _nearest(p: Player) -> int:
-	var reach := VehicleDrive.shared("reach")
+## Whether `p`'s gun in hand goes one-handed out of a window ([all]
+## window_guns).
+static func one_handed(p: Player) -> bool:
+	var guns: Array = Tuning.file(VehicleDrive.FILE).get_value("all", "window_guns", [])
+	return guns.has(str(Weapons.NAMES[p.armory.active]))
+
+
+## Whether `p` looks out of the front or a side of `v` (within window_arc of
+## its nose), not back through the cage.
+static func window_clear(p: Player, v: VehicleDrive.Ride) -> bool:
+	var arc := deg_to_rad(VehicleDrive.shared("window_arc"))
+	return absf(wrapf(p.angle - v.h, -PI, PI)) <= arc
+
+
+## Takes up the first one-handed gun `p` owns (window_guns' order), getting
+## in at the wheel with a gun that needs both hands.
+func _window_gun(p: Player) -> void:
+	var guns: Array = Tuning.file(VehicleDrive.FILE).get_value("all", "window_guns", [])
+	for name: Variant in guns:
+		var slot: int = Weapons.NAMES.find(str(name))
+		if slot >= 0 and p.armory.owned[slot]:
+			game.focus(p)
+			p.armory.select(slot, game)
+			game.focus(game.local_player)
+			return
+
+
+## How much more a seated player's shot strays (Modes.shot_tuning): out of
+## the car's window from the wheel, or riding along; 1 on foot and at the
+## airboat's stick or the mower's wheel.
+func aim_scale(p: Player) -> float:
+	if rides.is_empty():
+		return 1.0
+	var at := seat_of(p)
+	if at.x < 0:
+		return 1.0
+	var v: VehicleDrive.Ride = rides[at.x]
+	if at.y > 0:
+		return VehicleDrive.shared("rider_spread")
+	return VehicleDrive.shared("window_spread") if VehicleDrive.spec(v.kind).window else 1.0
+
+
+## The vehicle nearest `p`'s hand within reach (and roughly in front), or -1;
+## `wide`: the wider reach, when nothing else is at hand to USE.
+func _nearest(p: Player, wide := false) -> int:
+	var reach := VehicleDrive.shared("reach_wide" if wide else "reach")
 	var best := -1
 	var best_gap := INF
 	for i in rides.size():
@@ -204,8 +264,10 @@ func _nearest(p: Player) -> int:
 	return best
 
 
-## What USE does here, for the prompt ("" when no vehicle is at hand).
-func prompt(p: Player) -> String:
+## What USE does here, for the prompt ("" when no vehicle is at hand);
+## `wide`: when nothing else is at hand to USE, from the wider reach, and
+## then a ready vehicle looked at from further off is named.
+func prompt(p: Player, wide := false) -> String:
 	if rides.is_empty() or not active():
 		return ""
 	var at := seat_of(p)
@@ -213,9 +275,9 @@ func prompt(p: Player) -> String:
 		# Said while it stands (on the move USE still gets out).
 		var mine: VehicleDrive.Ride = rides[at.x]
 		return "E  GET OUT" if VehicleDrive.speed(mine) < .5 else ""
-	var i := _nearest(p)
+	var i := _nearest(p, wide)
 	if i < 0:
-		return ""
+		return VehicleFinder.far_prompt(game, rides, p) if wide else ""
 	var v: VehicleDrive.Ride = rides[i]
 	if v.wreck >= 0.0:
 		return "BURNT OUT"
@@ -227,8 +289,9 @@ func prompt(p: Player) -> String:
 	return "NO ROOM"
 
 
-## USE: get out, or in. True when it was about a vehicle.
-func use(p: Player) -> bool:
+## USE: get out, or in (`wide`: from the wider reach, when nothing else
+## answered it). True when it was about a vehicle.
+func use(p: Player, wide := false) -> bool:
 	if rides.is_empty() or not active():
 		return false
 	var at := seat_of(p)
@@ -237,7 +300,7 @@ func use(p: Player) -> bool:
 		if not _get_out(p, mine, at.y, false):
 			_say(p, "NOWHERE TO STEP OFF HERE.")
 		return true
-	var i := _nearest(p)
+	var i := _nearest(p, wide)
 	if i < 0:
 		return false
 	var v: VehicleDrive.Ride = rides[i]
@@ -257,7 +320,10 @@ func use(p: Player) -> bool:
 		# Settled in facing where it points (the look steers it).
 		p.angle = v.h
 		if s.hands == 0:
-			p.armory.holstered = true
+			if s.window and not one_handed(p):
+				# A one-handed gun to hand for the window, if one is owned.
+				_window_gun(p)
+			p.armory.holstered = not (s.window and one_handed(p))
 		_lap_reset(v)
 		v.engine_at = game.clock + .5
 		game.sound_at(s.engine, v.x, v.y, .8)
@@ -341,12 +407,14 @@ func _in_any(x: float, y: float) -> bool:
 	return false
 
 
-## Sits `p` in seat k (the driver over `seat`, a rider behind), the eye at
-## the seat's height with the engine's rumble.
+## Sits `p` in seat k (the driver over `seat`, a rider behind or beside:
+## `ride_back`, `ride_side`), the eye at the seat's height with the engine's
+## rumble.
 func _place(p: Player, v: VehicleDrive.Ride, s: VehicleDrive.Spec, k: int, rumble: float) -> void:
-	var along := s.seat - .9 * k
-	p.x = v.x + cos(v.h) * along
-	p.y = v.y + sin(v.h) * along
+	var along := s.seat - s.ride_back * k
+	var side := s.ride_side * k
+	p.x = v.x + cos(v.h) * along - sin(v.h) * side
+	p.y = v.y + sin(v.h) * along + cos(v.h) * side
 	p.floor_z = v.z
 	p.air = 0.0
 	p.vertical_speed = 0.0
@@ -366,12 +434,19 @@ func drive(p: Player, c: GameState.Controls, dt: float) -> void:
 	var s := VehicleDrive.spec(v.kind)
 	p.angle = fposmod(p.angle + c.turn, TAU)
 	p.pitch = clampf(p.pitch + c.look, -53.0, 53.0)
+	if at.y == 0 and s.window:
+		# The gun out of the window while it is one-handed and points out of
+		# the front or the sides; else both hands on the wheel.
+		p.armory.holstered = not (one_handed(p) and window_clear(p, v))
 	if at.y == 0 and v.wreck < 0.0:
 		var h := v.h
 		var scale := (
 			s.slow if s.slow_floors.has(VehicleDrive.tile_at(game.world, v.x, v.y)) else 1.0
 		)
-		VehicleDrive.throttle(v, s, c, wrapf(p.angle - h, -PI, PI), dt, scale)
+		var hand := 1.0
+		if s.window and not p.armory.holstered:
+			hand = VehicleDrive.shared("one_hand_turn")
+		VehicleDrive.throttle(v, s, c, wrapf(p.angle - h, -PI, PI), dt, scale, hand)
 		var struck := VehicleDrive.move(game.world, v, s, dt, h)
 		if absf(c.strafe) >= .1:
 			# Steered by keys: the eye comes round with it.
@@ -716,6 +791,30 @@ func sway_eye(eye: Dictionary) -> void:
 	var turned: float = props[at.x] if at.x < props.size() else 0.0
 	var b: VehicleFeel.Body = bodies[at.x]
 	VehicleCab.dress(eye, v, s, b, at.y, calm, game.shake_scale, game.clock, turned, cab_drawn(s))
+	var cab: Dictionary = eye.get("cab", {})
+	if not cab.is_empty() and s.window:
+		# The car's hands: none at the wheel with nobody there; the right
+		# one off it while the driver's gun is out of the window.
+		var at_wheel: int = v.seats[0]
+		var driver := _player(at_wheel)
+		var fade: Dictionary = cab["fade"]
+		fade["hand_l"] = 0.0 if driver == null else 1.0
+		fade["hand_r"] = 0.0 if driver == null or not driver.armory.holstered else 1.0
+
+
+## The lamps' lights near `p` (view_lights.gd).
+func lights(p: Player) -> Array:
+	if rides.is_empty() or not active():
+		return []
+	return VehicleFinder.lights(rides, p, game.clock)
+
+
+## The radio left playing in a ready vehicle near `p`: Vector3(x, y, how
+## loud), or Vector3.INF (game.gd's surroundings).
+func radio(p: Player) -> Vector3:
+	if rides.is_empty() or not active():
+		return Vector3.INF
+	return VehicleFinder.radio(rides, p)
 
 
 ## Whether this machine draws the driver's own vehicle from the seat (a
@@ -794,6 +893,10 @@ func _blast(x: float, y: float, _z: float, _energy: bool) -> void:
 ## stands inside a hull.
 func _tick(dt: float) -> void:
 	var on := active()
+	if not game.host and on:
+		# A vehicle's line, the first time a player comes near it (looks).
+		var told: Dictionary = _looks["told"]
+		VehicleFinder.spot(game, rides, told)
 	for i in rides.size():
 		var v: VehicleDrive.Ride = rides[i]
 		var s := VehicleDrive.spec(v.kind)
@@ -895,6 +998,9 @@ func restore(state: Dictionary) -> void:
 		v.vy = 0.0
 		var seats: Array = row[7]
 		v.seats = seats.duplicate()
+		while v.seats.size() < maxi(1, VehicleDrive.spec(v.kind).seats):
+			# Saved before it had another seat (the car's passenger).
+			v.seats.append(-1)
 	# Put down somewhere new: the springs start again from rest.
 	var bodies: Array = _looks["bodies"]
 	for i in bodies.size():
@@ -911,16 +1017,14 @@ func sprites() -> Array:
 	if rides.is_empty() or not active():
 		return out
 	var mine := seat_of(game.local_player)
+	VehicleFinder.glows(game, rides, mine.x if mine.y == 0 else -1, out)
 	for i in rides.size():
 		var v: VehicleDrive.Ride = rides[i]
 		var s := VehicleDrive.spec(v.kind)
 		if not game.in_view(v.x, v.y, s.length):
 			continue
-		if (
-			mine == Vector2i(i, 0)
-			and (s.hands == 0 or cab_drawn(s))
-			and game.eye_override.is_empty()
-		):
+		var seat_view := mine.x == i and (mine.y == 0 or (s.window and cab_drawn(s)))
+		if seat_view and (s.hands == 0 or cab_drawn(s)) and game.eye_override.is_empty():
 			# Its driver sees it from the seat (the cab: src/vehicle_cab.gd),
 			# or the car's dash and wheel (draw_view), not its shell around
 			# the eye.
@@ -1068,6 +1172,9 @@ func draw_view(c: Canvas) -> void:
 			lift = clampi(1 + roundi(b.heave * 30.0 * calm), 0, 3)
 		VehicleLooks.cab(c, v.steer, VehicleDrive.speed(v) / maxf(1.0, s.top), lift)
 	VehicleHud.draw(c, game, v, s, at.y == 0)
+	var runs: GameFeature = game.features.get("vehicle_runs")
+	if runs != null and runs.call("live"):
+		return  # a set piece's own timer is up (features/vehicle_runs.gd)
 	if not line.is_empty() and v.kind == "car" and at.y == 0:
 		var text := "LAP " + clock_text(game.clock - v.lap_start)
 		if v.lap_best > 0.0:

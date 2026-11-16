@@ -195,7 +195,12 @@ static func use_prompt(g: Game) -> String:
 		return rides.prompt(g.player)
 	var found: Variant = use_target(g)
 	if found == null:
-		return ""
+		# Nothing else at hand: a vehicle from the wider reach, or one looked at
+		# from further off (src/vehicle_finder.gd).
+		var far := rides.prompt(g.player, true) if rides != null else ""
+		if far != "":
+			g.use_aim = Vector3.INF
+		return far
 	var target: Variant = found[0]
 	if target is String:
 		if target == "bessie":
@@ -293,6 +298,8 @@ static func interact(g: Game) -> void:
 		return  # a cow tipped over (features/critters.gd)
 	var found: Variant = use_target(g)
 	if found == null:
+		if rides != null:
+			rides.use(g.player, true)  # a vehicle from the wider reach
 		return
 	var target: Variant = found[0]
 	var x: float = found[1]

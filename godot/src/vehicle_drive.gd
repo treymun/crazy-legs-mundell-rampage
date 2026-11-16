@@ -93,6 +93,13 @@ class Spec:
 	var seat_dip := 0.0
 	var slap := 0.0
 	var trim := 0.0
+	# Finding it and riding it (vehicles.cfg; src/vehicle_finder.gd).
+	var spotted := ""
+	var lamps: Array = []
+	var radio := false
+	var window := false
+	var ride_side := 0.0
+	var ride_back := .9
 
 
 ## A vehicle in play: plain numbers a snapshot carries and a save keeps.
@@ -152,7 +159,11 @@ static func spec(kind: String) -> Spec:
 		if not cfg.has_section_key(kind, key):
 			continue
 		var raw: Variant = cfg.get_value(kind, key)
-		if raw is Array:
+		if raw is Array and s.get(key) is Array:
+			# A list of numbers (the lamps' places), kept as it is.
+			var kept_list: Array = raw
+			s.set(key, kept_list.duplicate())
+		elif raw is Array:
 			var names := PackedStringArray()
 			var items: Array = raw
 			for item: Variant in items:
@@ -235,9 +246,10 @@ static func fits(w: LevelData, s: Spec, x: float, y: float, h: float, z: float) 
 
 ## One tick of driving `v` with `c`'s throttle and steering; `look` is how
 ## far the driver's eye is turned from the heading (radians); `scale` slows
-## it on a slow floor. Returns how far the wheel was turned (-1..1).
+## it on a slow floor; `turn_scale` turns it less (one hand on the wheel).
+## Returns how far the wheel was turned (-1..1).
 static func throttle(
-	v: Ride, s: Spec, c: GameState.Controls, look: float, dt: float, scale: float
+	v: Ride, s: Spec, c: GameState.Controls, look: float, dt: float, scale: float, turn_scale := 1.0
 ) -> float:
 	var f := Vector2(cos(v.h), sin(v.h))
 	var r := Vector2(-sin(v.h), cos(v.h))
@@ -274,7 +286,7 @@ static func throttle(
 	vel = f * along + r * across
 	v.vx = vel.x
 	v.vy = vel.y
-	v.h = fposmod(v.h + steer * s.turn * bite * dt, TAU)
+	v.h = fposmod(v.h + steer * s.turn * turn_scale * bite * dt, TAU)
 	return steer
 
 

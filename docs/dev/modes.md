@@ -66,7 +66,10 @@ rounds and pockets each player's own.
   log carriage, steam jets and core pulses (already per player).
 - Vehicles (`features/vehicles.gd`, [gameplay.md](gameplay.md#vehicles)) are
   the campaign's and co-op's only: a partner rides along in the airboat's
-  second seat. Versus, the 5v5 and County Run have none, so nothing online
+  second seat, or beside the stock car's driver (riding shotgun, shooting
+  out of the window, the cab seen from the passenger seat; no partner tag
+  over someone in the same vehicle); a set piece's reward goes to everyone
+  in it. Versus, the 5v5 and County Run have none, so nothing online
   drives (a seated client's prediction leads only its aim).
 
 ### Scaling

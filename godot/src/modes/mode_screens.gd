@@ -66,8 +66,11 @@ static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 	var me: Player = game.local_player
 	# Nearest first: a farther partner's tag steps up out of a nearer one's way.
 	var others: Array = []
+	var rides: Game.VehiclesScript = game.features.get("vehicles")
+	var my_seat := rides.seat_of(me).x if rides != null and rides.seated(me) else -1
 	for q: Player in game.players:
-		if q != me:
+		# A partner in the same vehicle is right there (no tag at the edge).
+		if q != me and (my_seat < 0 or rides.seat_of(q).x != my_seat):
 			others.append([Vector2(q.x - me.x, q.y - me.y).length(), q])
 	others.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	var taken: Array[Rect2i] = []

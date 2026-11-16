@@ -110,13 +110,14 @@ static func dress(
 	if is_equal_approx(View.base_focal, View.fov_focal):
 		wide = clampf(DRIVE_FOCAL / maxf(1.0, View.fov_focal), .75, 1.0)
 	eye["wide"] = wide * (1.0 - KICK * pace * pace * motion)
-	if seat != 0 or not drawn or s.cab == "":
+	if (seat != 0 and not s.window) or not drawn or s.cab == "":
 		return
 	# The cab: tipped on the body's springs against the eye (which took
 	# `calm` of them), the eye sitting `cab_drop` lower in it; a hair of the
-	# buzz in the hood too.
+	# buzz in the hood too. The car's passenger sees it from their seat,
+	# `ride_side` to the right of the wheel.
 	var turn := VehicleFeel.turn(b, v.h) * Basis(Vector3(0.0, 1.0, 0.0), -s.cab_tilt)
-	var rest := turn * Vector3(0.0, 0.0, s.cab_drop)
+	var rest := turn * Vector3(0.0, -s.ride_side * seat, s.cab_drop)
 	rest.z += b.heave * (1.0 - calm) - (buzz + thump) * .6
 	var parts := {}
 	var fade := {}

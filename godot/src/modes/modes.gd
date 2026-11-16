@@ -145,6 +145,11 @@ static func shot_spread(game: Game, p: Player, gun: int, how: Dictionary, heat: 
 
 
 static func shot_tuning(game: Game, p: Player, gun: int, spread: Vector2, reach: float) -> Array:
+	var rides: Game.VehiclesScript = game.features.get("vehicles")
+	if rides != null:
+		# Out of a car's window, or riding along: it strays more
+		# (features/vehicles.gd aim_scale; 1 on foot).
+		spread *= rides.aim_scale(p)
 	var st: ModeFeature = game.features.get("mode")
 	if st == null or not (TACTICAL.has(String(st.mode)) or String(st.mode) == COUNTY):
 		return [spread, reach]

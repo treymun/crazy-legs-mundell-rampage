@@ -624,7 +624,14 @@ func _surroundings(p: Player, roof: float) -> void:
 			var place := sound_position(radio_x, radio_y, .60)
 			sound.set_radio(true, place.x, place.y)
 		else:
-			sound.set_radio(false)
+			# A radio left playing in a ready vehicle (src/vehicle_finder.gd).
+			var rides: VehiclesScript = features.get("vehicles")
+			var tune := rides.radio(p) if rides != null else Vector3.INF
+			if tune != Vector3.INF:
+				var heard := sound_position(tune.x, tune.y, .60 * tune.z)
+				sound.set_radio(true, heard.x, heard.y)
+			else:
+				sound.set_radio(false)
 	if area != district and p.motion > .15:
 		district = area
 		district_until = clock + 2.1

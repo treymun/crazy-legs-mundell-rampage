@@ -9,6 +9,8 @@
 ##            {"kills": 12}                   that many kills in the chapter
 ##            {"after": 30.0}                 seconds into the chapter
 ##            {"down": ["id", ...]}           every one of those enemies is down
+##            {"run": "channel_run"}          that vehicle set piece has been
+##                                            started (features/vehicle_runs.gd)
 ##    "once": true,
 ##    "do": [{"message": "TEXT", "for": 3.0},
 ##           {"sound": "cue", "at": [x, y]},  ("at" left out: heard everywhere)
@@ -97,6 +99,10 @@ static func _met(game: Game, when: Dictionary) -> bool:
 		return false
 	if when.has("after") and game.clock < _float(when["after"]):
 		return false
+	if when.has("run"):
+		var runs: GameFeature = game.features.get("vehicle_runs")
+		if runs == null or not runs.call("started", str(when["run"])):
+			return false
 	if when.has("down"):
 		for id: Variant in when["down"]:
 			var at: int = game.enemy_ids.find(str(id))

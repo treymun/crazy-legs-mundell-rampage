@@ -275,6 +275,13 @@ its wrist takes only `turn` of it, so the forearm does not sweep the view).
   objective pin's arrow) are a few pixels off while it is wide.
 - Hiding the driver's own model (`features/vehicles.gd sprites`) is play's
   job: the layer only draws the cab.
+- **The car's passenger** (feature pass 7) sees the same cab from their
+  seat: `VehicleCab.dress` moves its `lift` `ride_side` to the left (the
+  eye sits right of the wheel), and the car's shell is left out of their
+  view too. The car's hands are parts with a `fade` like the prop: the
+  right one goes (0) while its driver's gun is out of the window, both with
+  nobody at the wheel (a part's `fade` is set every frame: a part left out
+  of it keeps the last one).
 
 ## Solid bodies
 

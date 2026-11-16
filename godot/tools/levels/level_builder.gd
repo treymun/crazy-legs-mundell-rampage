@@ -1215,6 +1215,9 @@ func finish(spawn: Array) -> Dictionary:
 	if meta.has("vehicles"):
 		# What the player can drive (features/vehicles.gd): [kind, x, y, heading].
 		out["vehicles"] = meta["vehicles"]
+	if meta.has("vehicle_runs"):
+		# The set pieces run in them (features/vehicle_runs.gd).
+		out["vehicle_runs"] = meta["vehicle_runs"]
 	if meta.has("boss_arena"):
 		# Where a boss arena's hazards stand (features/boss_arena.gd).
 		out["boss_arena"] = meta["boss_arena"]

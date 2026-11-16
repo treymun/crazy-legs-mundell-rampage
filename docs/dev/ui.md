@@ -40,7 +40,14 @@ draws the bar on the software canvas as before.
   lettering; MINIMAL keeps two lines, STATUS PANEL shows the speed on a
   dial; it hangs in the view's top left under the pin, clear of the hands
   on the controls and the touch stick
-  ([gameplay.md](gameplay.md#vehicles)).
+  ([gameplay.md](gameplay.md#vehicles)). A vehicle set piece's plate
+  (`features/vehicle_runs.gd draw_view`) hangs across from it in the top
+  right in the same tin: the run's name, LAP n/3 or GATE n/N, the time
+  left in the big lettering (flashing red in the last ten seconds) and the
+  next gate's name; MINIMAL keeps one line.
+- **The automap's key** (`map_key.gd`) adds a last row, RIG, KEYS IN IT,
+  with the little picture the map marks a ready vehicle with
+  (`src/vehicle_finder.gd`), on a map that has one.
 - **Scaling:** the overlay is the 320x200 picture, scaled to the window by
   the display shader with whole, crisp pixels (INTEGER 8:5 keeps every pixel
   the same size) inside the phone's safe area, so the HUD scales with the

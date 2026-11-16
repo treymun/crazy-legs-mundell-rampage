@@ -70,6 +70,26 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
   deck over it: a lamp on a walk over water or a pit takes the walk's top
   minus that ground.
 
+### Vehicles and their set pieces
+
+A plan's meta places its vehicles (`"vehicles"`, [gameplay.md](gameplay.md#vehicles))
+and the set pieces run in them (`"vehicle_runs"`: the start, the gates in
+order, laps, time, reward and lines; level_builder writes both only when
+the plan has them). The hands a run sets on the player are ordinary
+`b.enemy` rows held back by a trigger whose `"when"` is `{"run": id}` and
+whose `"do"` wakes them. Each vehicle has its KEYS IN IT sign beside it
+(`vehicle_sign_<kind>`): Hickston's is hung on the chapel wall that was
+there (`"hung"`, nothing built, so no new layout), the bayou's stands on
+the dock walk, the speedway's hangs on pit row's garage wall. County Run's
+maps drop the vehicles, their runs and their signs (`county_kit.gd`).
+Feature pass 7 put them in: `bayou_plan.gd channel_run()` (layout 5: the
+sign, the king's boys, the CHANNEL RUN) and `speedway_plan.gd heat_race()`
+(layout 4: the sign, the pit crew, the HEAT RACE; and the team's hauler in
+`speedway_cast.gd` moved off turn 2's banking into the gravel behind it, so
+the oval can be driven all the way round). A run's gates must lie on what
+its vehicle runs on and be reachable in order; `tools/vehicle_set_check.gd`
+drives each one to the end.
+
 ### Places to climb
 
 Since v3.2.0 every chapter has height to climb (`climbs.gd`, one function a

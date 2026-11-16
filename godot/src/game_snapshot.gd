@@ -283,6 +283,7 @@ const SIM_FEATURES := [
 	"boss_fight",
 	"race_laps",
 	"vehicles",
+	"vehicle_runs",
 	"range",
 	"bayou",
 	"mothership",
