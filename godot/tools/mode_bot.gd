@@ -6,12 +6,19 @@
 ##           (when nothing is after it); left more than FOLLOW behind the
 ##           first player it walks their flow field back to them;
 ##   versus  it hunts the nearest player it may hurt: walks their flow field
-##           until it sees them, then turns, strafes and shoots.
+##           until it sees them, then aims as the 5v5 bots do (BotAim, at the
+##           game's DIFFICULTY: a reaction, a flick that settles, a hand that
+##           strays), strafes and shoots.
 ## Always through its controls (as_controls), never the game's calls.
 extends "res://tools/bot_pilot.gd"
 
 const REVIVE_FROM := 14.0
 const FOLLOW := 9.0
+
+## The hand on the mouse in versus, the player it is on, and its own dice.
+var hand := BotAim.new()
+var aimed := -1
+var dice := RandomNumberGenerator.new()
 
 
 func steer(game: Game) -> Game.Controls:
@@ -87,6 +94,8 @@ func _hunt(game: Game) -> Game.Controls:
 			seen = sees
 	foe = null
 	if best == null:
+		hand.rest(game)
+		aimed = -1
 		return c
 	var want := atan2(best.y - p.y, best.x - p.x)
 	if not seen:
@@ -95,13 +104,20 @@ func _hunt(game: Game) -> Game.Controls:
 	var turn := Enemy.angle_delta(want, p.angle)
 	c.turn = clampf(turn, -.12, .12)
 	if seen:
-		var target: float = game.world.elevation(best.x, best.y) + best.air + .62
-		var slope := (target - p.eye) / maxf(.5, near)
-		c.look = clampf(slope * View.base_focal - p.pitch, -3.0, 3.0)
-		c.fire = absf(turn) < .07
+		if aimed != best.slot:
+			if aimed < 0:
+				dice.seed = 6007 * (p.slot + 1) + int(game.clock * 10.0)
+			hand.skill = clampi(int(game.difficulty), 0, 3)
+			hand.notice(game, p, best, dice)
+			aimed = best.slot
+		hand.still_seen(game, best)
+		var on := hand.aim(game, p, best, c, dice)
+		c.fire = on and hand.burst_allows(game, p, near, dice)
 		c.forward = .6 if near > 5.0 else (-.4 if near < 2.0 else 0.0)
 		c.strafe = 1.0 if fmod(game.clock + p.slot * 1.3, 2.4) < 1.2 else -1.0
 	else:
+		hand.rest(game)
+		aimed = -1
 		c.look = clampf(-p.pitch, -2.0, 2.0)
 		c.forward = 1.0 if absf(turn) < .9 else .2
 		c.running = true

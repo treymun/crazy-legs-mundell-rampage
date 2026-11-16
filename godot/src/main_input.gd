@@ -285,6 +285,8 @@ func _key_showdown(code: int) -> void:
 				showdown_long = posmod(showdown_long + step, 2)
 			3:
 				showdown_rules = posmod(showdown_rules + step, TacticalShop.RULE_IDS.size())
+			4:
+				showdown_skill = posmod(showdown_skill + step, TacticalScreens.SKILL_NAMES.size())
 		sound.play("menu_move")
 
 

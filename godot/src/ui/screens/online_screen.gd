@@ -15,7 +15,8 @@ func draw_zoned(c: Canvas) -> void:
 			main.showdown_mode,
 			main.showdown_map,
 			main.showdown_long,
-			main.showdown_rules
+			main.showdown_rules,
+			main.showdown_skill
 		)
 	else:
 		LobbyScreens.draw_screen(main)

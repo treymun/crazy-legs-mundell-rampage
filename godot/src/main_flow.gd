@@ -158,6 +158,7 @@ func start_showdown() -> void:
 	mode_options["store_rules"] = str(
 		TacticalShop.RULE_IDS[posmod(showdown_rules, TacticalShop.RULE_IDS.size())]
 	)
+	mode_options["bot_skill"] = posmod(showdown_skill, TacticalScreens.SKILL_NAMES.size())
 	showdown_on = true
 	sound.play("menu_accept")
 	start_match()

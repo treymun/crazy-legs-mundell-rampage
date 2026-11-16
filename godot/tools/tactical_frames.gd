@@ -1,9 +1,10 @@
 ## Pictures of the 5v5 round modes (src/modes/tactical_mode.gd) in a real
 ## window (the graphics-card view players see): the title's 5V5 SHOWDOWN
 ## picker; on each map the freeze with the buy menu open, a look down a lane
-## a few seconds into the round with the bots playing, each site, the
-## automap; a planted shine bomb, a hostage, the scoreboard of a player who is
-## out and the match's results. <name>.png in out=<dir>.
+## a few seconds into the round with the bots playing, the team radio's
+## lines (`_radio`), each site, the automap; a planted shine bomb, a hostage,
+## the scoreboard of a player who is out and the match's results. <name>.png
+## in out=<dir>.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/tactical_frames.gd -- out=<dir> [maps=holler]
@@ -160,6 +161,16 @@ func _map(id: String) -> void:
 	_play(g, int(TacticalMode.FREEZE * 120.0) + 120 * 7)
 	g.message_until = 0.0
 	await _snap(id + "_lane")
+	# On until the team radio has a line or two up (tactical_radio.gd: it
+	# listens as the view draws, here every few ticks).
+	g.cheats.god = true
+	for i in 400:
+		_play(g, 6)
+		TacticalRadio.listen(g, st)
+		if TacticalRadio.lines(g).size() >= 2:
+			break
+	g.message_until = 0.0
+	await _snap(id + "_radio")
 	g.cheats.god = true
 	var plan: Dictionary = g.world.tactical
 	for site: String in plan["sites"]:

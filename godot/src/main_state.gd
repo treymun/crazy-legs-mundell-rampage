@@ -250,6 +250,7 @@ var showdown_mode := 0
 var showdown_map := 0
 var showdown_long := 1
 var showdown_rules := 0  # the picker's RULES (TacticalShop.RULE_IDS)
+var showdown_skill := 1  # the picker's BOTS (TacticalScreens.SKILL_NAMES; NORMAL)
 var browser: NetBrowser = null  # the COUNTY SERVERS list while it is shown
 var showdown_on := false
 ## Online play (src/net/net_play.gd, docs/online.md): the lobby or match this
