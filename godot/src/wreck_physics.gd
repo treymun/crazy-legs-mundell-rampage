@@ -785,6 +785,13 @@ static func knock(b: Body, dv: Vector3, spin: Vector3) -> void:
 ## its lowest corner is well over the floor under it.
 func unsupported(b: Body) -> bool:
 	var turn := Basis(b.q)
+	# Balanced on its middle across an edge (a rail, a deck's lip): every
+	# corner hangs out over air, yet the floor under its middle holds it.
+	var lowest := INF
+	for k in 8:
+		lowest = minf(lowest, (b.p + turn * b.points[k]).z)
+	if Tumble.floor_at(world, b.p.x, b.p.y, b.p.z + .02) >= lowest - .05:
+		return false
 	var near: Array = []
 	for o: Body in bodies:
 		if o != b and o.p.distance_to(b.p) < o.reach + b.reach + .1:
