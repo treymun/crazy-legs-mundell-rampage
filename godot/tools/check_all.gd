@@ -207,6 +207,14 @@ func _init() -> void:
 			print(_tail(out, 25))
 			if groups:
 				print("::error::%s failed (its whole output is above)" % j["name"])
+				# Each failing line as its own annotation: the public API shows
+				# annotations without a sign-in, and the log needs one.
+				var shown := 0
+				for line: String in out.split("\n"):
+					var text := line.strip_edges()
+					if shown < 12 and (text.begins_with("FAIL") or text.contains("SCRIPT ERROR")):
+						print("::error::%s: %s" % [j["name"], text.left(300)])
+						shown += 1
 	print(
 		(
 			"%s in %.1f s"
