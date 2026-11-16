@@ -65,6 +65,14 @@ func play(_name: String, _volume := 1.0, _pan := 0.0, _cutoff := Sound.OPEN_CUTO
 	pass
 
 
+## play() at `rate` times its pitch (a vehicle's engine rising with its
+## speed); where nothing can change the pitch it plays as it is.
+func play_at_rate(
+	name: String, volume := 1.0, pan := 0.0, cutoff := Sound.OPEN_CUTOFF, _rate := 1.0
+) -> void:
+	play(name, volume, pan, cutoff)
+
+
 func play_voice(_name: String, _volume := 1.0, _pan := 0.0) -> float:
 	return 0.0
 

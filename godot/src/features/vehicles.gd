@@ -16,13 +16,32 @@
 ## dice; only the marks it leaves and the grass it throws are looks
 ## (`_looks`, skipped by snapshots). Only the campaign and co-op have them
 ## (online play, County Run and the 5v5, has none).
+##
+## How each looks on the move is src/vehicle_feel.gd (looks only, its own
+## dice): the body on its springs (squat, dive, lean, bumps, landings, the
+## airboat rocking), shown as its model turned on the move and as a little
+## sway of the seat's eye (less with EASY ON THE EYES, none when STILL); the
+## airboat's spray and wake, the car's tyre marks and sparks off a wall, the
+## mower's bounce and clippings; the engine's note rising with the speed.
 extends GameFeature
 
 ## A mower's blade bites what it runs over this often (seconds).
 const BLADE_EVERY := .4
-## Marks left behind (skids, mown grass) and grass thrown at most.
-const MARKS_MAX := 160
-const CLIPS_MAX := 40
+## Marks left behind (skids, mown grass) and grass thrown at most; spray and
+## sparks in the air at most.
+const MARKS_MAX := 240
+const CLIPS_MAX := 60
+const SPRAY_MAX := 48
+const SPARKS_MAX := 40
+## How far the airboat goes between its wake's rings (cells).
+const WAKE_EVERY := .55
+## How much of the body's bob and pitch the seat's eye takes, for each EASY ON
+## THE EYES step (full, reduced, still), and the pitch in view lines a radian.
+const SWAY := [.7, .3, 0.0]
+const SWAY_PITCH := 55.0
+## The engine's pitch standing and at top speed.
+const ENGINE_LOW := .82
+const ENGINE_HIGH := 1.32
 ## Floors the mower leaves a mown stripe on and throws clippings off.
 const GRASS := ["grass", "bayou_marsh", "lawn"]
 ## Smoke over a hurt or burning vehicle, drawn from the clock.
@@ -40,9 +59,13 @@ var rides: Array = []
 ## level's lap_cars; empty elsewhere).
 var line := PackedVector2Array()
 var middle := Vector2.ZERO
-## Looks only (snapshots skip it): marks [x, y, z, angle, image], grass
-## clippings [x, y, z, vx, vy, vz, at].
-var _looks := {"marks": [], "clips": []}
+## Looks only (snapshots skip it): marks [x, y, z, angle, image, width], grass
+## clippings, spray and sparks [x, y, z, vx, vy, vz, at], each ride's body
+## on its springs (VehicleFeel.Body, by the ride's place in `rides`) and how
+## far each has gone since its wake's last ring.
+var _looks := {"marks": [], "clips": [], "spray": [], "sparks": [], "bodies": [], "wake": []}
+## The looks' own dice (snapshots skip it).
+var _dice := RandomNumberGenerator.new()
 
 
 func id() -> String:
@@ -62,6 +85,12 @@ func attach() -> void:
 		rides.append(_make(kind, x, y, h))
 	if rides.is_empty():
 		return
+	_dice.seed = 1958
+	var bodies: Array = _looks["bodies"]
+	var wake: Array = _looks["wake"]
+	for _v: VehicleDrive.Ride in rides:
+		bodies.append(VehicleFeel.Body.new())
+		wake.append(0.0)
 	for point: Variant in game.level.lap_cars.get("path", []):
 		var px: float = point[0]
 		var py: float = point[1]
@@ -301,7 +330,6 @@ func drive(p: Player, c: GameState.Controls, dt: float) -> void:
 		_cut(v, s, c)
 		_noises(v, s)
 		_lap(v, p)
-		_leave_marks(v, s)
 	_place(p, v, s, at.y, VehicleDrive.speed(v) / maxf(1.0, s.top))
 
 
@@ -414,12 +442,13 @@ func _cut(v: VehicleDrive.Ride, s: VehicleDrive.Spec, c: GameState.Controls) -> 
 		breaks.call("strike", i, amount, cos(v.h) * dir, sin(v.h) * dir)
 
 
-## The engine's note, quicker with speed, and the tyres' squeal on a slide.
+## The engine's note, quicker and higher with speed, and the tyres' squeal on
+## a slide.
 func _noises(v: VehicleDrive.Ride, s: VehicleDrive.Spec) -> void:
 	var pace := clampf(VehicleDrive.speed(v) / maxf(1.0, s.top), 0.0, 1.0)
 	if game.clock >= v.engine_at:
 		v.engine_at = game.clock + s.every * (1.7 - .7 * pace)
-		game.sound_at(s.engine, v.x, v.y, .3 + .5 * pace)
+		game.sound_at(s.engine, v.x, v.y, .3 + .5 * pace, engine_rate(pace))
 	if v.slide > s.skid and game.clock >= v.skid_at:
 		v.skid_at = game.clock + .3
 		game.sound_at("tire_roll", v.x, v.y, .6)
@@ -462,34 +491,181 @@ func _off_line(at: Vector2) -> bool:
 	return true
 
 
+## The engine's pitch at `pace` (0..1 of its top speed).
+static func engine_rate(pace: float) -> float:
+	return lerpf(ENGINE_LOW, ENGINE_HIGH, clampf(pace, 0.0, 1.0))
+
+
 static func clock_text(seconds: float) -> String:
 	var whole := int(seconds)
 	return "%d:%02d.%d" % [whole / 60, whole % 60, int((seconds - whole) * 10.0)]
 
 
-## Skids and a mown stripe left behind, and the grass the mower throws.
-func _leave_marks(v: VehicleDrive.Ride, s: VehicleDrive.Spec) -> void:
-	if game.host or VehicleDrive.speed(v) < .4:
+## Ride i's looks for one tick (src/vehicle_feel.gd): its body on its springs,
+## then what it leaves and throws.
+func _feel(i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, dt: float) -> void:
+	var bodies: Array = _looks["bodies"]
+	if i >= bodies.size():
 		return
+	var b: VehicleFeel.Body = bodies[i]
+	var speed := VehicleDrive.speed(v)
+	var parked := speed < .02 and v.z == b.last_z and v.bumps == b.last_bumps and b.fall == 0.0
+	if parked and b.started and b.still() and s.rock <= 0.0:
+		# Parked and settled: nothing to work out (asleep it costs nothing).
+		b.last_h = v.h
+		b.last_z = v.z
+		b.last_along = 0.0
+		return
+	var tile := VehicleDrive.tile_at(game.world, v.x, v.y)
+	var rough := s.rough
+	if s.slow_floors.has(tile) or GRASS.has(tile):
+		rough += s.rough_off
+	var struck := VehicleFeel.step(b, v, s, dt, rough, game.clock, _dice)
+	if struck and s.sparks and speed > 1.5:
+		_sparks(v, speed)
+	if speed < .4:
+		return
+	_leave_marks(v, s, b, tile)
+	if s.spray and s.floors.has(tile):
+		_spray(i, v, s, speed, dt)
+
+
+## Skids and a mown stripe left behind, and the grass the mower throws out of
+## its side chute.
+func _leave_marks(
+	v: VehicleDrive.Ride, s: VehicleDrive.Spec, b: VehicleFeel.Body, tile: String
+) -> void:
 	var marks: Array = _looks["marks"]
 	var step := int(game.clock * 60.0)
-	var mowing := s.cuts and GRASS.has(VehicleDrive.tile_at(game.world, v.x, v.y))
-	if v.slide > s.skid and step % 4 == 0:
-		marks.append([v.x, v.y, v.z + .004, v.h, "detail_wear_oil"])
+	var mowing := s.cuts and GRASS.has(tile)
+	var braking := s.brake_skid and b.acc < -s.brake * .55 and VehicleDrive.along(v) > 2.0
+	if (v.slide > s.skid or braking) and step % 2 == 0 and not s.floors.has(tile):
+		# Two black streaks off the back wheels, along the way it is going.
+		var way := atan2(v.vy, v.vx)
+		var back := -s.length * .3
+		for side: float in [-1.0, 1.0]:
+			var off := side * s.width * .38
+			marks.append(
+				[
+					v.x + cos(v.h) * back - sin(v.h) * off,
+					v.y + sin(v.h) * back + cos(v.h) * off,
+					v.z + .004,
+					way,
+					"detail_wear_oil",
+					.07
+				]
+			)
 	elif mowing and step % 6 == 0:
 		marks.append(
-			[v.x - cos(v.h) * .5, v.y - sin(v.h) * .5, v.z + .003, v.h, "detail_wear_silt"]
+			[v.x - cos(v.h) * .5, v.y - sin(v.h) * .5, v.z + .003, v.h, "detail_wear_silt", .5]
 		)
-	if marks.size() > MARKS_MAX:
+	while marks.size() > MARKS_MAX:
 		marks.pop_front()
-	if mowing and step % 3 == 0:
+	if mowing and step % 2 == 0:
+		# Out of the chute on its right side, in a spray of bits.
 		var clips: Array = _looks["clips"]
-		var side := 1.0 if step % 2 == 0 else -1.0
+		var out := Vector2(-sin(v.h), cos(v.h))
+		var fan := _dice.randf_range(-.5, .5)
+		var throw := 1.2 + _dice.randf() * 1.1
 		clips.append(
-			[v.x, v.y, v.z + .2, -sin(v.h) * 1.4 * side, cos(v.h) * 1.4 * side, 1.6, game.clock]
+			[
+				v.x + out.x * s.width * .5,
+				v.y + out.y * s.width * .5,
+				v.z + .18,
+				(out.x + cos(v.h) * fan) * throw + v.vx * .5,
+				(out.y + sin(v.h) * fan) * throw + v.vy * .5,
+				1.2 + _dice.randf() * 1.0,
+				game.clock
+			]
 		)
-		if clips.size() > CLIPS_MAX:
+		while clips.size() > CLIPS_MAX:
 			clips.pop_front()
+
+
+## Sparks where it scrapes a wall (the car's steel on brick and concrete).
+func _sparks(v: VehicleDrive.Ride, speed: float) -> void:
+	var sparks: Array = _looks["sparks"]
+	var count := clampi(int(speed * .5), 2, 5)
+	for _k in count:
+		var a := _dice.randf() * TAU
+		var fly := _dice.randf_range(.8, 2.4)
+		sparks.append(
+			[
+				v.bump_x,
+				v.bump_y,
+				v.z + .2 + _dice.randf() * .3,
+				cos(a) * fly - v.vx * .25,
+				sin(a) * fly - v.vy * .25,
+				_dice.randf_range(.8, 2.6),
+				game.clock
+			]
+		)
+	while sparks.size() > SPARKS_MAX:
+		sparks.pop_front()
+
+
+## The airboat on the water: spray off the bow (more in a turn, a sheet off
+## the outside when it slides) and a wake behind it, two rings at a time.
+func _spray(i: int, v: VehicleDrive.Ride, s: VehicleDrive.Spec, speed: float, dt: float) -> void:
+	var f := Vector2(cos(v.h), sin(v.h))
+	var r := Vector2(-sin(v.h), cos(v.h))
+	var spray: Array = _looks["spray"]
+	var chance := clampf((speed - 1.5) / 6.0, 0.0, 1.0) + clampf(v.slide * .4, 0.0, .8)
+	if _dice.randf() < chance:
+		var bow := Vector2(v.x, v.y) + f * s.length * .45
+		for side: float in [-1.0, 1.0]:
+			var at := bow + r * side * s.width * .45
+			var out := r * side * _dice.randf_range(.6, 1.6) + f * speed * .25
+			spray.append(
+				[at.x, at.y, v.z + .1, out.x, out.y, _dice.randf_range(1.0, 2.2), game.clock]
+			)
+	while spray.size() > SPRAY_MAX:
+		spray.pop_front()
+	var wake: Array = _looks["wake"]
+	var gone: float = wake[i]
+	gone += speed * dt
+	if gone >= WAKE_EVERY:
+		gone = 0.0
+		var water: GameFeature = game.features.get("water")
+		if water != null and water.has_method("ring"):
+			var stern := Vector2(v.x, v.y) - f * s.length * .55
+			for side: float in [-1.0, 1.0]:
+				var at := stern + r * side * s.width * .4
+				water.call("ring", at.x, at.y, .5 + speed * .06)
+	wake[i] = gone
+
+
+## The seat's eye on the springs (game_view.gd, the local player's view
+## only): it rises and falls and tips with the body, a little, and less or
+## not at all with EASY ON THE EYES.
+func sway_eye(eye: Dictionary) -> void:
+	if rides.is_empty():
+		return
+	var at := seat_of(game.local_player)
+	var bodies: Array = _looks["bodies"]
+	if at.x < 0 or at.x >= bodies.size():
+		return
+	var calm: float = SWAY[clampi(game.view.world_motion, 0, 2)]
+	if calm <= 0.0:
+		return
+	var b: VehicleFeel.Body = bodies[at.x]
+	var lift: float = eye["eye"]
+	var pitch: float = eye["pitch"]
+	eye["eye"] = lift + b.heave * calm
+	eye["pitch"] = pitch + b.pitch * SWAY_PITCH * calm
+
+
+## The body of ride i on its springs (for the checks and the frames).
+func body(i: int) -> VehicleFeel.Body:
+	var bodies: Array = _looks["bodies"]
+	return bodies[i] if i >= 0 and i < bodies.size() else null
+
+
+## The marks and bits in the looks (for the checks): "marks", "spray",
+## "sparks", "clips".
+func looks_count(kind: String) -> int:
+	var list: Array = _looks.get(kind, [])
+	return list.size()
 
 
 ## Hurts a vehicle; at 0 it is wrecked.
@@ -549,8 +725,11 @@ func _blast(x: float, y: float, _z: float, _energy: bool) -> void:
 ## stands inside a hull.
 func _tick(dt: float) -> void:
 	var on := active()
-	for v: VehicleDrive.Ride in rides:
+	for i in rides.size():
+		var v: VehicleDrive.Ride = rides[i]
 		var s := VehicleDrive.spec(v.kind)
+		if not game.host and on:
+			_feel(i, v, s, dt)
 		for k in v.seats.size():
 			var slot: int = v.seats[k]
 			if slot < 0:
@@ -646,6 +825,10 @@ func restore(state: Dictionary) -> void:
 		v.vy = 0.0
 		var seats: Array = row[7]
 		v.seats = seats.duplicate()
+	# Put down somewhere new: the springs start again from rest.
+	var bodies: Array = _looks["bodies"]
+	for i in bodies.size():
+		bodies[i] = VehicleFeel.Body.new()
 
 
 # ------------------------------------------------------------------- looks
@@ -668,29 +851,65 @@ func sprites() -> Array:
 			# inside of its shell.
 			_smoke(out, v, s)
 			continue
+		# Its model on the move (the 3D view keeps one by its track), turned
+		# to its heading and tipped on its springs (src/vehicle_feel.gd).
+		var b := body(i)
 		var spr := View.Sprite.new(v.x, v.y, s.picture, s.height, v.z)
 		spr.body = true
-		spr.plane = v.h + s.nose
+		spr.plane = s.nose
+		spr.track = "ride%d" % i
+		if b != null:
+			spr.z = v.z + b.heave
+			spr.turn = VehicleFeel.turn(b, v.h)
+		else:
+			spr.turn = Basis(Vector3(0.0, 0.0, 1.0), v.h)
 		out.append(spr)
 		_smoke(out, v, s)
 	var clips: Array = _looks["clips"]
-	for c: Array in clips:
+	var spray: Array = _looks["spray"]
+	var sparks: Array = _looks["sparks"]
+	_fly(out, clips, .9, 4.0, "fx_chaff_%d", 2, .12, false)
+	_fly(out, spray, .7, 6.0, "fx_spray_%d", 4, .34, false)
+	_fly(out, sparks, .45, 7.0, "fx_sparks_%d", 3, .16, true)
+	return out
+
+
+## Bits in the air ([x, y, z, vx, vy, vz, born]): each `life` seconds,
+## falling by `fall`, its picture `name` % frame (of `frames`) by its age.
+func _fly(
+	out: Array,
+	list: Array,
+	life: float,
+	fall: float,
+	name: String,
+	frames: int,
+	size: float,
+	glow: bool
+) -> void:
+	for c: Array in list:
 		var born: float = c[6]
 		var age := game.clock - born
-		if age > .9 or age < 0.0:
+		if age > life or age < 0.0:
 			continue
 		var z0: float = c[2]
 		var vz: float = c[5]
-		var cz := z0 + vz * age - 4.0 * age * age
-		if cz < z0 - .2:
+		var cz := z0 + vz * age - fall * age * age
+		if cz < z0 - .25:
 			continue
 		var cx: float = c[0]
 		var cy: float = c[1]
 		var dx: float = c[3]
 		var dy: float = c[4]
-		var name := "fx_chaff_%d" % (int(age * 9.0) % 2)
-		out.append(game.pooled(cx + dx * age, cy + dy * age, name, .12, cz))
-	return out
+		# Two frames tumble (the clippings); more play through once.
+		var frame := (
+			int(age * 9.0) % 2 if frames == 2 else mini(frames - 1, int(age / life * frames))
+		)
+		var bit := game.pooled(cx + dx * age, cy + dy * age, name % frame, size, cz)
+		if glow:
+			bit.glow = true
+		else:
+			bit.translucent = frames > 2
+		out.append(bit)
 
 
 ## Smoke from a hurt engine (thick, with flames, under a quarter and while a
@@ -739,7 +958,9 @@ func ground_marks() -> Array:
 			continue
 		var mz: float = m[2]
 		var ma: float = m[3]
-		out.append(View.GroundMark.new(mx, my, mz, ma, .55, .5, str(m[4])))
+		var wide: float = m[5] if m.size() > 5 else .5
+		var reach := .55 if wide >= .3 else .32
+		out.append(View.GroundMark.new(mx, my, mz, ma, reach, wide, str(m[4])))
 	for v: VehicleDrive.Ride in rides:
 		if v.wreck >= 0.0:
 			out.append(View.GroundMark.new(v.x, v.y, v.z + .005, 0.0, 1.6, 1.6, "mark_scorch_0"))
@@ -757,7 +978,14 @@ func draw_view(c: Canvas) -> void:
 	var v: VehicleDrive.Ride = rides[at.x]
 	var s := VehicleDrive.spec(v.kind)
 	if at.y == 0 and s.hands == 0:
-		VehicleLooks.cab(c, v.steer, VehicleDrive.speed(v) / maxf(1.0, s.top))
+		# The dash rides the springs with the eye (a pixel or two).
+		var b := body(at.x)
+		var calm: float = SWAY[clampi(game.view.world_motion, 0, 2)]
+		# Never up off the view's bottom edge: it sits a pixel down to rise.
+		var lift := 0
+		if b != null and calm > 0.0:
+			lift = clampi(1 + roundi(b.heave * 30.0 * calm), 0, 3)
+		VehicleLooks.cab(c, v.steer, VehicleDrive.speed(v) / maxf(1.0, s.top), lift)
 	var mph := roundi(VehicleDrive.speed(v) * 3.4)
 	var health := roundi(100.0 * v.hp / maxf(1.0, s.hp))
 	c.label("%d MPH" % mph, 6, View.VIEW - 18, "body", INK)

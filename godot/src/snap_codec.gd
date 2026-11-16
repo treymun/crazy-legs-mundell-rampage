@@ -59,7 +59,7 @@ const SKIP_FIELDS := {
 		"_barrels"
 	],
 	"stills": ["_cfg", "_images"],
-	"vehicles": ["_looks"],
+	"vehicles": ["_looks", "_dice"],
 	# A boss arena's wreck: its steps and their bosses (the level makes them
 	# the same everywhere), the lamps it took (sprites, to put back), when the
 	# next water ring shows, how a flung prop moves; the gear's feels.

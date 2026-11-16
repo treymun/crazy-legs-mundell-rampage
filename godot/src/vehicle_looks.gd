@@ -38,11 +38,12 @@ static var _dash := PackedByteArray()
 
 
 ## The dash across the bottom of the view, its gauges' needles at `pace`
-## (0..1 of top speed), then the wheel over it.
-static func cab(c: Canvas, steer: float, pace: float) -> void:
+## (0..1 of top speed), then the wheel over it; both `lift` pixels down (the
+## body on its springs, vehicle_feel.gd).
+static func cab(c: Canvas, steer: float, pace: float, lift := 0) -> void:
 	if _dash.is_empty():
 		_dash = _paint_dash()
-	var top := View.VIEW - DASH_H
+	var top := View.VIEW - DASH_H + lift
 	c.blit_rgba(_dash, View.WIDTH, DASH_H, 0, top, "vehicle_dash")
 	for k in GAUGES.size():
 		var g: Vector2i = GAUGES[k]
@@ -51,7 +52,7 @@ static func cab(c: Canvas, steer: float, pace: float) -> void:
 		var a := PI * (1.15 - 1.3 * turn)
 		var tip := Vector2(g.x + cos(a) * (GAUGE_R - 2), top + g.y - sin(a) * (GAUGE_R - 2))
 		c.line(g.x, top + g.y, int(tip.x), int(tip.y), NEEDLE)
-	wheel(c, steer)
+	wheel(c, steer, lift)
 
 
 static func _paint_dash() -> PackedByteArray:
@@ -84,14 +85,15 @@ static func _paint_dash() -> PackedByteArray:
 	return data
 
 
-## Draws the wheel turned by `steer` (-1..1) at the bottom of the view.
-static func wheel(c: Canvas, steer: float) -> void:
+## Draws the wheel turned by `steer` (-1..1) at the bottom of the view,
+## `lift` pixels down.
+static func wheel(c: Canvas, steer: float, lift := 0) -> void:
 	if _turns.is_empty():
 		for k in TURNS:
 			_turns.append(_paint(LOCK * (float(k) / (TURNS - 1) * 2.0 - 1.0)))
 	var k := clampi(roundi((steer + 1.0) * .5 * (TURNS - 1)), 0, TURNS - 1)
 	var data: PackedByteArray = _turns[k]
-	c.blit_rgba(data, W, H, (View.WIDTH - W) / 2, View.VIEW - H, "vehicle_wheel_%d" % k)
+	c.blit_rgba(data, W, H, (View.WIDTH - W) / 2, View.VIEW - H + lift, "vehicle_wheel_%d" % k)
 
 
 static func _paint(turn: float) -> PackedByteArray:

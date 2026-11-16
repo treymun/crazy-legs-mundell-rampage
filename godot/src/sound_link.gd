@@ -42,6 +42,12 @@ func play(name: String, volume := 1.0, pan := 0.0, cutoff := Sound.OPEN_CUTOFF) 
 	sound.play(name, volume, pan, cutoff)
 
 
+func play_at_rate(
+	name: String, volume := 1.0, pan := 0.0, cutoff := Sound.OPEN_CUTOFF, rate := 1.0
+) -> void:
+	sound.play_at_rate(name, volume, pan, cutoff, rate)
+
+
 func play_voice(name: String, volume := 1.0, pan := 0.0) -> float:
 	return sound.play_voice(name, volume, pan)
 

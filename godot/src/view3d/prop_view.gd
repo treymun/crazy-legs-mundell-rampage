@@ -14,6 +14,8 @@ var _meshes: Array[MeshInstance3D] = []
 var _turn := 0.0
 var _lean := 0.0
 var _size := 1.0
+## The cell its light was last taken from (relight()).
+var _lit_cell := -1
 
 
 ## Give every part of the model `material`; the prop shows to `reach` cells.
@@ -41,7 +43,12 @@ func stand(x: float, y: float, z: float, turn: float, level: LevelData, size := 
 	_lean = 0.0
 	_size = size
 	transform = Transform3D(Basis(Vector3.UP, turn).scaled(Vector3.ONE * size), Vector3(x, z, y))
-	var c := level.cell(clampf(x, 0.0, level.width - .01), clampf(y, 0.0, level.height - .01))
+	_light(level.cell(clampf(x, 0.0, level.width - .01), clampf(y, 0.0, level.height - .01)), level)
+
+
+## Lit by cell c's light and tint.
+func _light(c: int, level: LevelData) -> void:
+	_lit_cell = c
 	var ti := clampi(level.area[c], 0, maxi(0, level.tints.size() / 3 - 1)) * 3
 	var tone := Color(1, 1, 1, level.light[c])
 	if level.tints.size() >= 3:
@@ -69,6 +76,14 @@ func carry(x: float, y: float, z: float, tumble: Basis) -> void:
 	transform = Transform3D(
 		(tumble * Basis(Vector3.UP, _turn)).scaled(Vector3.ONE * _size), Vector3(x, z, y)
 	)
+
+
+## Lit again by the cell it is in now when that changed (a vehicle driving
+## from the sun into a shed: View.Sprite.body on a track).
+func relight(x: float, y: float, level: LevelData) -> void:
+	var c := level.cell(clampf(x, 0.0, level.width - .01), clampf(y, 0.0, level.height - .01))
+	if c != _lit_cell:
+		_light(c, level)
 
 
 ## Lean back about its feet by `tilt` radians, away from its front (a range

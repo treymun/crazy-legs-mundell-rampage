@@ -594,6 +594,8 @@ var _amb_target := [0.0, 0.0]
 var _amb_rate := [0.0, 0.0]
 ## The dice for each effect's own pitch and level (PITCH_SPREAD).
 var _dice := ShuffleRng.new(3001)
+## The pitch play_at_rate() asks of the cue it starts (1 otherwise).
+var _rate := 1.0
 
 
 func _init(p_art: Assets) -> void:
@@ -770,7 +772,7 @@ func _start(
 	if _varies(name):
 		pitch = 1.0 + (_dice.next() * 2.0 - 1.0) * PITCH_SPREAD
 		volume *= 1.0 + (_dice.next() * 2.0 - 1.0) * LEVEL_SPREAD
-	v.player.pitch_scale = pitch
+	v.player.pitch_scale = pitch * _rate
 	v.player.play()
 	var scale := 1.0
 	if name.begins_with("distant_"):
@@ -814,6 +816,15 @@ func _playing_count(cue: String) -> int:
 
 func has(cue: String) -> bool:
 	return assets.has_cue(cue)
+
+
+## play() at `rate` times the cue's pitch (an engine rising with its speed).
+func play_at_rate(
+	name: String, volume := 1.0, pan := 0.0, cutoff := OPEN_CUTOFF, rate := 1.0
+) -> void:
+	_rate = clampf(rate, .5, 2.0)
+	play(name, volume, pan, cutoff)
+	_rate = 1.0
 
 
 func play(name: String, volume := 1.0, pan := 0.0, cutoff := OPEN_CUTOFF) -> void:

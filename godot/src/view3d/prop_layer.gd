@@ -108,6 +108,9 @@ func show_props(sprites: Array, level: LevelData) -> Array[ShaderMaterial]:
 				continue
 		if s.track != "":
 			node.carry(s.x, s.y, s.z, SolidLayer3D.godot_basis(s.turn))
+			if s.body:
+				# A vehicle on the move is lit where it is (features/vehicles.gd).
+				node.relight(s.x, s.y, level)
 			continue
 		node.lean(s.tilt)
 	for key: String in _shown.keys():
