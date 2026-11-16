@@ -46,6 +46,7 @@ const CHECKS := [
 	["bot_check", "BOT CHECK OK"],
 	["replay_check", "REPLAY CHECK OK", ["quick"]],
 	["net_lag", "NET LAG OK", ["quick"]],
+	["load_check", "LOAD CHECK OK"],
 ]
 const SLOW := ["bot_campaign", "quest_reach"]
 ## Rows that measure timing (net_lag's limits on hits that looked like hits,
@@ -93,6 +94,7 @@ const CI_SECONDS := {
 	"net_server_check": 10,
 	"vehicle_check": 10,
 	"replay_check": 45,
+	"load_check": 35,
 }
 const DEFAULT_SECONDS := 8
 ## Where Godot puts user:// (APPDATA on Windows, XDG_DATA_HOME on Linux) and

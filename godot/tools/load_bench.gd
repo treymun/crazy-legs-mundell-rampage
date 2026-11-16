@@ -65,8 +65,7 @@ func _run() -> void:
 		for r in rounds:
 			# Cold: the wreck pieces' and nav graphs' caches empty, as on a
 			# level's first visit (warm: played again, a retry or a load).
-			WreckCuts._cache.clear()
-			WreckCuts._soups.clear()
+			WreckCuts.clear()
 			var navs: Variant = (LevelGeometry as Script).get("_navs")
 			if navs is Dictionary:
 				(navs as Dictionary).clear()
@@ -82,8 +81,7 @@ func _run() -> void:
 			var t3 := Time.get_ticks_usec()
 			# The cutting alone (the keys the wreckage feature cut at load).
 			var keys := _wreck_keys(game)
-			WreckCuts._cache.clear()
-			WreckCuts._soups.clear()
+			WreckCuts.clear()
 			var t4 := Time.get_ticks_usec()
 			for key: String in keys:
 				WreckCuts.parts(assets, key)

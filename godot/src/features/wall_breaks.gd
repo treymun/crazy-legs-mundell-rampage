@@ -108,6 +108,11 @@ var _faces := {}
 var _loose := {}
 var _cover := {}
 var _ways := {}
+## While it is worked out: the boards' and props' places by cell, the
+## collision volumes by the cells they cover (the few very big ones apart).
+var _spots := {}
+var _volumes := {}
+var _big_volumes: Array = []
 var _crash_next := -1.0
 ## Counts every change to a window or fence (broken, hp, stage): a host's
 ## NetTrack looks through the lists in NET_GUARDED only when it moved, so
@@ -248,10 +253,14 @@ func _find_fences(cfg: ConfigFile) -> void:
 	for gate: Variant in world.locked_gates:
 		var g: LevelData.Gate = gate
 		_ways[Vector2i(floori(g.x), floori(g.y))] = true
+	_index_things()
 	_rule()
 	_loose = {}
 	_cover = {}
 	_ways = {}
+	_spots = {}
+	_volumes = {}
+	_big_volumes = []
 	# A plank wall that may not open stays as built (no boards shot off a
 	# building's corner, a run of them cut for nothing).
 	for key: Vector2i in fences.keys():
@@ -342,15 +351,19 @@ func _may_open(f: Fence) -> bool:
 		return false
 	f.low = roofed
 	var box := Rect2(cx - .15, cy - .15, 1.3, 1.3)
-	for b: LevelData.Billboard in world.billboards:
-		if box.has_point(Vector2(b.x, b.y)):
-			return false
-	for s: View.Sprite in game.props:
-		if box.has_point(Vector2(s.x, s.y)):
-			return false
-	for v: PackedFloat32Array in world.collision_volumes:
+	# (Boards, props and volumes from the cells round it: _index_things.)
+	for v: PackedFloat32Array in _big_volumes:
 		if v[0] < cx + 1.05 and v[2] > cx - .05 and v[1] < cy + 1.05 and v[3] > cy - .05:
 			return false
+	for yy in range(cy - 1, cy + 2):
+		for xx in range(cx - 1, cx + 2):
+			var at := Vector2i(xx, yy)
+			for spot: Vector2 in _spots.get(at, []):
+				if box.has_point(spot):
+					return false
+			for v: PackedFloat32Array in _volumes.get(at, []):
+				if v[0] < cx + 1.05 and v[2] > cx - .05 and v[1] < cy + 1.05 and v[3] > cy - .05:
+					return false
 	# A free piece of wall on it (a sign's backing, a rail) would be left in the air.
 	for yy in range(cy - 1, cy + 2):
 		for xx in range(cx - 1, cx + 2):
@@ -397,6 +410,41 @@ func _shed_wall(f: Fence) -> bool:
 				return false
 	f.top = top - world.ground[c]
 	return true
+
+
+## The billboards' and props' places by the cell they are in, and the
+## collision volumes by each cell they cover (one over more than 64 cells in
+## a list of its own): _may_open asks only the cells round a fence, a box
+## that holds everything it would have found asking them all.
+func _index_things() -> void:
+	var world: LevelData = game.world
+	for b: LevelData.Billboard in world.billboards:
+		_spot(Vector2(b.x, b.y))
+	for s: View.Sprite in game.props:
+		_spot(Vector2(s.x, s.y))
+	for v: PackedFloat32Array in world.collision_volumes:
+		var x0 := floori(v[0])
+		var y0 := floori(v[1])
+		var x1 := floori(v[2])
+		var y1 := floori(v[3])
+		if (x1 - x0 + 1) * (y1 - y0 + 1) > 64:
+			_big_volumes.append(v)
+			continue
+		for yy in range(y0, y1 + 1):
+			for xx in range(x0, x1 + 1):
+				var at := Vector2i(xx, yy)
+				if not _volumes.has(at):
+					_volumes[at] = []
+				var list: Array = _volumes[at]
+				list.append(v)
+
+
+func _spot(p: Vector2) -> void:
+	var at := Vector2i(floori(p.x), floori(p.y))
+	if not _spots.has(at):
+		_spots[at] = []
+	var list: Array = _spots[at]
+	list.append(p)
 
 
 ## The free wall pieces (off the grid: signs' backings, rails, awnings) by the

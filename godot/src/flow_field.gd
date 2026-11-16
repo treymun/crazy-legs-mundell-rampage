@@ -57,6 +57,10 @@ var _walked := false
 ## width * height is cell n's own floor, the rest stand on decks, so a field
 ## tells an upper floor from the one under it. null on every other level.
 var graph: LevelGeometry.NavGraph = null
+## LevelData.source_key -> that level's open floor as read (a level played
+## again measures nothing: tens of milliseconds of its load), the last few.
+const OPENS_KEPT := 4
+static var _opens := {}
 
 
 func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
@@ -77,6 +81,24 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 		open = floor_from.open
 		_door_at = floor_from._door_at
 		return
+	for door: LevelData.Door in world.doors:
+		_door_at[door.y * width + door.x] = door
+	# The level as read, nothing opened yet: its open floor as measured the
+	# last time it was played (only read: reopen() writes a copy of its own).
+	var key := world.source_key if world.walls_version == 0 and world.solid_version == 0 else ""
+	if key != "" and _opens.has(key):
+		open = _opens[key]
+		return
+	_measure_open(nodes)
+	if key != "":
+		if _opens.size() >= OPENS_KEPT:
+			_opens.erase(_opens.keys()[0])
+		_opens[key] = open
+
+
+## The open floor of a level (open): 0 wall, 1 floor, 2 a door's, a pane's
+## or a gate's.
+func _measure_open(nodes: int) -> void:
 	open.resize(nodes)
 	var changing := {}
 	for tile: Vector2i in world.near_doors:
@@ -93,7 +115,6 @@ func _init(p_world: LevelData, floor_from: FlowField = null) -> void:
 	for door: LevelData.Door in world.doors:
 		changing[door.y * width + door.x] = true
 		door_cells[door.y * width + door.x] = true
-		_door_at[door.y * width + door.x] = door
 	for cy in height:
 		for cx in width:
 			var cell := cy * width + cx
