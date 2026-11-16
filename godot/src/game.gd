@@ -336,13 +336,19 @@ func tick(dt: float, controls: Variant) -> void:
 		if shot.kind == "tnt":
 			# The player's, or one a hand lobbed to flush them out (squad.gd).
 			dangers.append(Vector3(shot.x, shot.y, 3.1))
+	# Far and calm ones think less often (enemy_lod.gd): 0 while one waits.
 	if players.size() == 1:
 		for enemy: Enemy in enemies:
-			enemy.tick(wdt, self)
+			var edt := enemy_lod.step(enemy, wdt, self)
+			if edt > 0.0:
+				enemy.tick(edt, self)
 	else:
 		# Each enemy ticks with the player it is after acting (Players.hunted):
 		# its sight, flow field, aim and blows are about them.
 		for enemy: Enemy in enemies:
+			var edt := enemy_lod.step(enemy, wdt, self)
+			if edt == 0.0:
+				continue
 			if enemy.hp > 0.0 and not enemy.dormant:
 				# Its pick stands RETARGET seconds (Players.hunted's first test,
 				# written out), and focusing whoever is acting already is nothing.
@@ -351,7 +357,7 @@ func tick(dt: float, controls: Variant) -> void:
 					keep = Players.hunted(self, enemy)
 				if keep != player or own_step or keep.flow_due:
 					focus(keep)
-			enemy.tick(wdt, self)
+			enemy.tick(edt, self)
 		focus(local_player)
 		# Nobody needed theirs yet: walked now, so it is current after the tick
 		# for whatever reads it (a bot after another player, the next tick).

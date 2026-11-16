@@ -46,39 +46,11 @@ static func duck(game: GameWorld) -> float:
 	return chance
 
 
-## Where a hand ducks (Enemy.take_cover): smart, a hidden spot right behind
-## something solid where one is near; else Enemy.find_cover's.
+## Where a hand ducks (Enemy.take_cover), all at once: smart, a hidden spot
+## right behind something solid where one is near; else Enemy.find_cover's.
+## (Play looks a few spots a tick: src/cover_search.gd.)
 static func cover(e: Enemy, game: GameWorld) -> Variant:
-	if not smart(game):
-		return e.find_cover(game)
-	var p: Player = game.player
-	var w: LevelData = game.world
-	var away := atan2(e.y - p.y, e.x - p.x)
-	var fallback: Variant = null
-	var fallback_ring := 0.0
-	for ring: float in [1.0, 1.7, 2.4, 3.1, 3.8]:
-		if fallback != null and ring > fallback_ring + .8:
-			# A ring further on than the open spot found: take that one.
-			break
-		for k in 12:
-			# Away from the player first, round to the sides.
-			var turn := ((k + 1) >> 1) * (1 if k % 2 else -1)
-			var a := away + turn * TAU / 12.0
-			var cx := e.x + cos(a) * ring
-			var cy := e.y + sin(a) * ring
-			if w.blocked(cx, cy, e.radius) or not w.visible(e.x, e.y, cx, cy):
-				continue
-			var head: float = w.elevation(cx, cy) + minf(.92, e.height * .72)
-			if w.visible(p.x, p.y, cx, cy, p.eye, head):
-				continue
-			var to := Vector2(p.x - cx, p.y - cy).normalized()
-			if w.blocked(cx + to.x * (e.radius + .45), cy + to.y * (e.radius + .45), .12):
-				# Something solid between it and the player, right there.
-				return Vector2(cx, cy)
-			if fallback == null:
-				fallback = Vector2(cx, cy)
-				fallback_ring = ring
-	return fallback
+	return CoverSearch.whole(e, game, smart(game))
 
 
 ## An alerted hand's turn before it attacks or chases (Enemy.tick): a ladder,
@@ -132,13 +104,8 @@ static func _shot_off(e: Enemy, game: Game, m: Squad.Mind, level: int) -> void:
 		e.cooldown = maxf(e.cooldown, RELOAD)
 		game.sound_at("reload", e.x, e.y, .6)
 		e.cover_ready = 0.0
-		e.take_cover(game)
-		if e.cover != null:
-			var spot: Array = e.cover
-			var sx: float = spot[0]
-			var sy: float = spot[1]
-			m.cover_home = Vector2(sx, sy)
-			e.cover = [sx, sy, game.clock + RELOAD + .4]
+		# (Down behind it till the reload is done: CoverSearch, when it ends.)
+		e.take_cover(game, CoverSearch.RELOAD)
 		return
 	if m.cover_home.distance_to(Vector2(e.x, e.y)) > 3.0:
 		m.cover_home = Vector2.INF

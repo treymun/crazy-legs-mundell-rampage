@@ -148,6 +148,7 @@ const VIEW_FIELDS := [
 	"sound",
 	"speaker",
 	"hearing",
+	"enemy_lod",
 	"level",
 	"world",
 	"view",

@@ -18,7 +18,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | File | What it holds | Read by |
 | --- | --- | --- |
 | `weapons.cfg` | fire rates, damage, reloads, how each gun fires (hitscan, pellets, projectile, melee), sits in view and sounds; `flash_art`/`flash_size`, `penetrate`/`penetrate_damage`, `scope`/`scope_spread`, `thrown` | `weapons.gd` |
-| `enemies.cfg` | enemy health, speed, reach, voice, boss `title` and drops; variants (`brain=`, `art=`, `height`, `tint`) | `enemies.gd`, `variants.gd` |
+| `enemies.cfg` | enemy health, speed, reach, voice, boss `title` and drops; variants (`brain=`, `art=`, `height`, `tint`); in `[all]` the level of detail (`lod`, `lod_far`, `lod_step`, `lod_view_far`, `lod_view_angle`, `lod_hurt`) and `cover_budget` | `enemies.gd`, `variants.gd`, `enemy_lod.gd` |
 | `shots.cfg` | each shot's fall, size, glow and blast; `rolls` | the shots, breakables |
 | `effects.cfg` | lights and glows (`[light.*]`), a level's mood (`[level.<id>]`), `[anim.<tile>]`, `[debris]`, `[water]`, `[relief]`, `[puddles]`, `[mud]`, `[sway]`, `[climate]` (the weather that changes play) | `Effects`, `view_lights.gd`, the 3D view |
 | `breakables.cfg` | what breaks, its broken picture, hp, bits, cues, blast; `[windows]`, `[fence.<tile>]`, `never` | `features/breakables.gd`, `wall_breaks.gd` |

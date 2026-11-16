@@ -198,35 +198,52 @@ func _walk() -> void:
 	var stop := _queue.size() + width * height
 	if budget > 0 and _walked:
 		stop = _head + budget
-	while _head < _queue.size() and _head < stop:
-		var cell := _queue[_head]
-		_head += 1
-		var d := _next[cell]
-		if d >= reach:
-			continue
-		if graph != null:
-			for e in range(graph.first[cell], graph.first[cell + 1]):
-				var next := graph.edges[e]
-				if _next[next] != FAR or not passable(next):
+	# (passable() written out for the open and the wall cells, the most of
+	# them; the same cells in the same order.)
+	var kinds := open
+	if graph != null:
+		var first := graph.first
+		var edges := graph.edges
+		while _head < _queue.size() and _head < stop:
+			var cell := _queue[_head]
+			_head += 1
+			var d := _next[cell]
+			if d >= reach:
+				continue
+			for e in range(first[cell], first[cell + 1]):
+				var next := edges[e]
+				if _next[next] != FAR:
+					continue
+				var kind := kinds[next]
+				if kind == 0 or (kind == 2 and not passable(next)):
 					continue
 				_next[next] = d + 1
 				_next_touched.append(next)
 				_queue.append(next)
-			continue
-		var cx := cell % width
-		var cy := cell / width
-		for k in 4:
-			var n: Vector2i = NEIGHBOURS[k]
-			var nx := cx + n.x
-			var ny := cy + n.y
-			if nx < 0 or ny < 0 or nx >= width or ny >= height:
+	else:
+		while _head < _queue.size() and _head < stop:
+			var cell := _queue[_head]
+			_head += 1
+			var d := _next[cell]
+			if d >= reach:
 				continue
-			var next := ny * width + nx
-			if _next[next] != FAR or not passable(next):
-				continue
-			_next[next] = d + 1
-			_next_touched.append(next)
-			_queue.append(next)
+			var cx := cell % width
+			var cy := cell / width
+			for k in 4:
+				var n: Vector2i = NEIGHBOURS[k]
+				var nx := cx + n.x
+				var ny := cy + n.y
+				if nx < 0 or ny < 0 or nx >= width or ny >= height:
+					continue
+				var next := ny * width + nx
+				if _next[next] != FAR:
+					continue
+				var kind := kinds[next]
+				if kind == 0 or (kind == 2 and not passable(next)):
+					continue
+				_next[next] = d + 1
+				_next_touched.append(next)
+				_queue.append(next)
 	if _head < _queue.size():
 		return
 	var done := _next

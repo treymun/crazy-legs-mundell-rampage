@@ -36,16 +36,49 @@ static func things(game: Game) -> Array:
 	return out
 
 
+## things() by REACH-sized cell (Vector2i -> the rows' indices, in order),
+## so pick() looks only at the rows round a place (a chapter's first tick
+## asked every row for every hand: 3 ms on hickston).
+static func grid(about: Array) -> Dictionary:
+	var out := {}
+	var size := maxf(REACH, .5)
+	for i in about.size():
+		var row: Array = about[i]
+		var place: Vector2 = row[1]
+		var key := Vector2i(floori(place.x / size), floori(place.y / size))
+		var list: PackedInt32Array = out.get(key, PackedInt32Array())
+		list.append(i)
+		out[key] = list
+	return out
+
+
 ## What `e` (the level's own enemy number `index`, placed at `at`) does
 ## before it notices anything, from `about` (things()): [activity, the
 ## thing's place] or [] for nothing. Aliens probe a critter (a pig, a
-## chicken) or their specimens.
-static func pick(game: Game, e: Enemy, at: Vector2, index: int, about: Array) -> Array:
+## chicken) or their specimens. `by_cell` (grid(about)): only the rows that
+## can be near are looked at, in about's order (the same answer).
+static func pick(
+	game: Game, e: Enemy, at: Vector2, index: int, about: Array, by_cell: Dictionary = {}
+) -> Array:
 	var best := ""
 	var best_at := Vector2.INF
 	var near := REACH * REACH
 	var alien := Enemy.PLASMA.has(e.kind)
-	for row: Array in about:
+	var rows := about
+	if not by_cell.is_empty():
+		var size := maxf(REACH, .5)
+		var cx := floori(at.x / size)
+		var cy := floori(at.y / size)
+		var picked := PackedInt32Array()
+		for gy in range(cy - 1, cy + 2):
+			for gx in range(cx - 1, cx + 2):
+				var here: PackedInt32Array = by_cell.get(Vector2i(gx, gy), PackedInt32Array())
+				picked.append_array(here)
+		picked.sort()
+		rows = []
+		for i in picked:
+			rows.append(about[i])
+	for row: Array in rows:
 		var place: Vector2 = row[1]
 		var d := at.distance_squared_to(place)
 		if d >= near:

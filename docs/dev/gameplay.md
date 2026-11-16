@@ -1209,9 +1209,68 @@ write there: keep writing packs from memory.
   is answered from the solid grid alone; the answers are the same, about 2.6
   times faster. Keep it exact: a new collision source must be in
   `near_fixtures`/`near_doors` (built by `_build_indexes`) or `blocked()` loses it.
-- **What was tried for the tick and dropped:** enemies far away (past the 32
-  cells the old renderer drew) ticking at 30 Hz with the time saved up kept
-  the dice the same but stepped far patrols coarser, so where a hand stood
-  when the player got there could differ from before (not exact, so not
-  kept); cosmetic features stepped at 60 Hz would move choppier on a display
-  over 60 Hz. Keep tick changes exact (same state, same dice).
+- **Sight's quick tests** (engine pass 6, `level_sight.gd`): a step in a
+  `box_cells` cell (open, off the map's edge, no door or geometry listed
+  under it; furniture may be) is not tested one by one: the stretch of the
+  line inside the cell is tested once against the solid cells round it
+  (`_walls_clear`: its box kept blocked()'s .023 from each solid side and
+  corner) and against the fixtures' boxes listed there (`_boxes_met`,
+  clipped, at the line's heights), and if it meets none every step in the
+  cell is clear. At heights on a level with geometry, a step in a cell the
+  geometry alone lists is clear when its height and the step before lie
+  outside every one of the cell's `LevelGeometry.sight_bands` (each slab and
+  sight-stopping segment near the cell from its lowest bottom to its highest
+  top, merged). These only ever say "clear" where the step by step test
+  would, and read the live grid and lists (a wall opened, a cell walled up,
+  furniture broken out); anything else falls through to the old steps. A
+  sight line costs less than half what it did (random lines, hickston 74 ->
+  34 us at heights, 51 -> 27 flat; the other chapters alike); `ai_check`
+  compares 9,000 lines a map both ways on nine maps.
+- **The flow field's walk** writes passable() out for open and wall cells
+  (the function call was most of it): the same cells in the same order,
+  2.5 times faster (hickston about 1 ms -> 0.4 ms a walk).
+- **Spikes** (`tools/tick_spikes.gd`: net_bench's bot game played three
+  times, each tick at its least, with every feature and listener timed
+  apart). Before engine pass 6 the worst ticks of 7,200 on hickston were:
+  a hand ducking for cover (`HandTactics.cover`: up to 60 spots, two sight
+  lines each, 3 to 11 ms in the tick a shot hurt it), the chapter's first
+  tick (the tough guy's whole-level walk in `variants_feature` 4 to 10 ms,
+  the squad's activities 3 to 4 ms), a wake spreading to friends near
+  (1.7 to 3 ms with their barks), the player's flow field walk (1 to 2 ms
+  every quarter second on the move: the p95), a big hit's blood spray
+  (`gore.spray`, 1.6 ms) and the wreck pieces (1 ms). Now: cover a few spots
+  a tick (`cover_search.gd`), the tough guy's walk made while the level loads
+  and kept per level (`Variants.start_walk`), the activities looked up by
+  cell (`IdleLife.grid`), the walk and the sight lines above.
+- **Cover a few spots a tick** (`src/cover_search.gd`): `Enemy.take_cover`
+  hands the search to CoverSearch; all the hands together test at most
+  enemies.cfg `cover_budget` (8) spots a tick, a search that runs out goes
+  on from where it stopped on the hand's next ticks (`Enemy.cover_hunt`,
+  carried) and the hand ducks when it ends (a reload's cover too: down till
+  `Mind.reload_until`). The whole search at once (`CoverSearch.whole`,
+  `Enemy.find_cover`, `HandTactics.cover`) finds the spot it always did; a
+  spot that could no longer change the answer is passed before its sight
+  lines.
+- **The enemies' level of detail** (`src/enemy_lod.gd`, `game.enemy_lod`, a
+  VIEW field): an enemy far from every player who is up (enemies.cfg
+  `lod_far`, 20 cells: past the 14 it sees) and with nothing going on (not
+  alerted; no shot heard, investigation, search, regroup, flush or kick; not
+  hit for `lod_hurt` s; no wind-up, volley, stun, recovery, flinch, milk,
+  cover or cover search, retreat, brawl, fetch, ladder, fall, hop or held
+  cel; no boss or derby champ) and not out in front of a player within
+  `lod_view_far` cells and `lod_view_angle` degrees ticks only every
+  `lod_step` (.05) s times .6 to 1 (by its uid and pose, so the turns never
+  fall together), with all the time since its last tick (`Enemy.lod_since`,
+  carried: the clock of that tick, -1 when not calm; it changes only on the
+  ticks it takes, so a waiting enemy adds nothing to a snapshot's delta): its
+  timers, walks and dice keep their pace in fewer, longer steps. The tick anything engages it, it ticks that tick with
+  what it saved and every tick after. Game.tick asks `enemy_lod.step()` for
+  each enemy's step (0: it waits; with several players it is not focused
+  either). It changes play (where a far patrol is when you get there) but
+  only from play's own state, so it is the same on every machine and in a
+  replay; `lod=false` turns it off. On hickston about two thirds of the
+  enemies wait on a given tick at the start.
+- **What was tried for the tick and dropped:** cosmetic features stepped at
+  60 Hz would move choppier on a display over 60 Hz. (Far enemies ticking
+  less often was dropped once for not being exact; it is now the level of
+  detail above, a deliberate change of play.)

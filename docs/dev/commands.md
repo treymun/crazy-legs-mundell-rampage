@@ -123,6 +123,8 @@ godot --headless --path godot --script res://tools/bowl_lab.gd [-- trace]   # bo
 ```
 godot --headless --path godot --script res://tools/bench.gd -- 150    # frame time, CPU side
 godot --headless --path godot --script res://tools/tick_profile.gd -- 300   # the tick by listener (features) and core, idle and fighting
+godot --headless --path godot --script res://tools/tick_spikes.gd -- level=hickston   # the worst ticks of a bot's play and what was in them
+godot --headless --path godot --script res://tools/ai_check.gd   # AI CHECK OK: the spike fixes are exact, the enemies' level of detail
 godot --headless --path godot --script res://tools/tick_profile.gd -- 300 replay   # and what recording a replay costs a tick
 godot --headless --path godot --script res://tools/replay_check.gd [-- quick]   # replays play back exactly (front: the front end's part alone)
 godot --path godot -- --replay=<file>   # play a replay in the game's view (a path, or a name in user://replays); Esc leaves

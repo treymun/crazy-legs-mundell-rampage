@@ -274,11 +274,23 @@ var near_fixtures := {}
 ## 1 for a cell either index lists anything under (it stays 1 when a piece is
 ## taken out): a 0 lets blocked() skip both lookups for the open floor.
 var index_cells := PackedByteArray()
+## 1 for a cell either index lists anything under (index_cells without the
+## geometry's cells): a geometry cell without it is the geometry's alone to
+## blocked() at a height (LevelSight.visible's quick test).
+var furniture_cells := PackedByteArray()
 ## 1 for a cell neither index lists anything under whose eight neighbours
 ## and itself are all open floor, off the map's edge: every step of a sight
 ## line inside it is clear, so visible() jumps to where the line leaves it.
 ## Never set again after load: a wall taken out leaves it 0 (still exact).
 var clear_cells := PackedByteArray()
+## 1 for an open cell off the map's edge with no door and no geometry listed
+## under it (furniture may be): a sight line's steps through it are clear
+## when the stretch inside it keeps blocked()'s reach from every solid cell
+## round it and from the fixtures' boxes listed there (LevelSight.visible
+## tests the stretch once instead of step by step). Never set again after
+## load (a piece taken out leaves the index's list shorter, a wall taken out
+## leaves the cell open: still exact).
+var box_cells := PackedByteArray()
 var broken_panes := {}
 var return_gate: Gate = null
 var extraction: Extraction = null
@@ -962,10 +974,14 @@ func _build_indexes() -> void:
 	if geo != null:
 		for i in width * height:
 			index_cells[i] = geo.cells[i]
+	furniture_cells = PackedByteArray()
+	furniture_cells.resize(width * height)
+	furniture_cells.fill(0)
 	for index: Dictionary in [near_doors, near_fixtures]:
 		for key: Vector2i in index:
 			if key.x >= 0 and key.y >= 0 and key.x < width and key.y < height:
 				index_cells[key.y * width + key.x] = 1
+				furniture_cells[key.y * width + key.x] = 1
 	# Open across: a cell and its left and right neighbours all open floor.
 	var across := PackedByteArray()
 	across.resize(width * height)
@@ -978,6 +994,9 @@ func _build_indexes() -> void:
 	clear_cells = PackedByteArray()
 	clear_cells.resize(width * height)
 	clear_cells.fill(0)
+	box_cells = PackedByteArray()
+	box_cells.resize(width * height)
+	box_cells.fill(0)
 	for cy in range(1, height - 1):
 		for cx in range(1, width - 1):
 			var cell := cy * width + cx
@@ -988,6 +1007,12 @@ func _build_indexes() -> void:
 				and across[cell + width] != 0
 			):
 				clear_cells[cell] = 1
+			elif (
+				solid[cell] < 0
+				and (geo == null or geo.cells[cell] == 0)
+				and not near_doors.has(Vector2i(cx, cy))
+			):
+				box_cells[cell] = 1
 
 
 ## Take one piece of furniture out of the way (a crate shot to pieces:

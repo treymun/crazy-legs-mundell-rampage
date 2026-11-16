@@ -24,6 +24,7 @@ static func load_tuning() -> void:
 	Enemy.VOICE_TAKES = Tuning.value(path, "voice_takes")
 	Enemy.DEATH_ONLY = Tuning.value(path, "death_only_voices")
 	Enemy.LUCKY_CHANCE = Tuning.value(path, "lucky_chance")
+	EnemyLod.load_tuning()
 	Enemy.DEFS = {}
 	for kind in Tuning.sections(path):
 		Enemy.DEFS[kind] = definition(cfg, kind, 0)
