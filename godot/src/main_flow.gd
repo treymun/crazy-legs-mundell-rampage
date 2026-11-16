@@ -61,7 +61,7 @@ func play(target: Game) -> void:
 	if not art.chapter_ready(target.level.id):
 		waiting_play = target
 		packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(target.level.id), "")))
-		notice("FETCHING THE CHAPTER. A MOMENT...", 4.0)
+		notice("HOLD YOUR HORSES. THE ROAD'S STILL COMING IN.", 4.0)
 		return
 	waiting_play = null
 	CrashLog.note("play %s%s" % [target.level.id, " (replay)" if target.replay else ""])

@@ -294,6 +294,12 @@ jobs:
             } > ~/.config/godot/$name
           done
           ls "$ANDROID_HOME/build-tools" "$ANDROID_HOME/platform-tools/adb"
+      - name: The phones' lighter copy of the art and music
+        run: |
+          # tools/pack_lite.gd re-encodes the music with ffmpeg.
+          command -v ffmpeg > /dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null; }
+          godot --headless --path godot --script res://tools/pack_lite.gd 2>&1 | tee lite.log
+          grep -q "LITE PACKS WRITTEN.*music re-encoded" lite.log
       - name: Export the APK
         run: |
           mkdir -p godot/build/android
@@ -333,17 +339,25 @@ jobs:
           save-cache: ${{ github.ref == 'refs/heads/main' }}
       - name: Export the WebAssembly build
         run: |
+          # The browsers' lighter copy of the art and music (assets_gen/lite):
+          # tools/pack_lite.gd re-encodes the music with ffmpeg.
+          command -v ffmpeg > /dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null; }
+          godot --headless --path godot --script res://tools/pack_lite.gd 2>&1 | tee lite.log
+          grep -q "LITE PACKS WRITTEN.*music re-encoded" lite.log
           mkdir -p godot/build/web godot/build/web-lite
           godot --headless --path godot --export-release "Web" build/web/index.html 2>&1 | tee export.log
           # The lighter build has no threads: it is what iPhones, iPads and any
           # browser that will not isolate the page are sent to (play/lite/).
           godot --headless --path godot --export-release "Web Lite" build/web-lite/index.html 2>&1 | tee -a export.log
           if grep -iE "export .*failed|SCRIPT ERROR" export.log; then exit 1; fi
-          # Each chapter's music is left out of index.pck and fetched after the
-          # game starts (src/pack_loader.gd), from packs beside it.
+          # Each chapter's own files (music, enemies, their models and sounds,
+          # its own props) are left out of index.pck and fetched after the game
+          # starts (src/pack_loader.gd), from packs beside it.
           godot --headless --path godot --script res://tools/make_packs.gd -- build/web 2>&1 | tee packs.log
           grep -q "PACKS OK" packs.log
-          cp godot/build/web/packs.json godot/build/web/music_*.pck godot/build/web-lite/
+          godot --headless --path godot --script res://tools/pack_check.gd -- quick lite build=build/web 2>&1 | tee -a packs.log
+          grep -q "PACK CHECK OK" packs.log
+          cp godot/build/web/packs.json godot/build/web/chapter_*.pck godot/build/web-lite/
           for build in web web-lite; do
             test -s godot/build/$build/index.wasm
             test -s godot/build/$build/index.pck

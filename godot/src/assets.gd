@@ -22,9 +22,11 @@ const MADE_CUES := [
 	"county_milestone",
 	"mule_bray",
 ]
-## Enemies only one chapter has: their pictures live in that chapter's file,
-## which the browser build fetches after it starts (tools/make_packs.gd puts
-## it in the chapter's pack with its music) and main_flow.gd play() waits for.
+## Enemies only one chapter has. Everything named after one lives in that
+## chapter's own files (chapter_of: its pictures, its model and baked looks,
+## its sounds), which the browser build fetches after it starts
+## (tools/make_packs.gd puts them in the chapter's pack with its music) and
+## main_flow.gd play() waits for.
 const CHAPTER_KINDS := {
 	"fair": ["barker", "bottle_tosser", "crawler", "rudy"],
 	"sawmill": ["chain_hand", "foreman", "lantern", "millhand"],
@@ -33,6 +35,8 @@ const CHAPTER_KINDS := {
 	"speedway": ["derby_champ", "flagman", "nitro_huffer", "pit_mechanic", "tire_roller"],
 	"mothership": ["drone", "maw", "probe", "tin_guard"],
 }
+## Each chapter's art file; its sounds are in sfx_<the same stem>.bin and its
+## music in music_<stem>.bin (stem_of).
 const CHAPTER_ART := {
 	"fair": "art_fair.bin",
 	"sawmill": "art_mill.bin",
@@ -51,6 +55,23 @@ const CHAPTER_ART := {
 ## godot/assets/music. (The firing range plays Hickston's score.) Every
 ## chapter's tracks are made now.
 const PENDING_MUSIC: Array = []
+## The browser and phone builds read a lighter copy of the art and music from
+## LITE_DIR (tools/pack_lite.gd: the biggest model textures halved, the music
+## re-encoded smaller; the same names, the same index keys). A desktop build
+## and the project folder read FULL_DIR.
+const FULL_DIR := "res://assets_gen/"
+const LITE_DIR := "res://assets_gen/lite/"
+## Name prefixes that tie an asset to an enemy kind (chapter_of).
+const KIND_PREFIXES: Array[String] = ["", "actor3d_", "boss_"]
+
+## Where the art and music are read from: FULL_DIR, or LITE_DIR in a browser
+## or phone build that has it. Set before the first Assets to read the other
+## (tools/pack_check.gd).
+static var tier_dir := ""
+## While a check records (tools/pack_check.gd), every picture and cue asked for
+## by name, to hold each level to the files its pack brings.
+static var recording := false
+static var asked: Dictionary = {}
 
 var tile_names: PackedStringArray = PackedStringArray()
 var tile_index: Dictionary = {}
@@ -68,12 +89,17 @@ var art_index: Dictionary = {}
 var _art_file: FileAccess
 var _art_files := {}
 var _art_cache: Dictionary = {}
+## kind (or picture) -> true once its chapter's files are here (kind_ready,
+## art_ready)
+var _kinds_ready: Dictionary = {}
 
 var sfx_index: Dictionary = {}
 var sfx_rate: int = 22050
 ## The bank holds QOA (tools/pack_assets.gd), or 16-bit samples in an older pack.
 var sfx_qoa := false
 var _sfx_file: FileAccess
+## A chapter's own cues' files by name (sfx_<stem>.bin), opened as needed.
+var _sfx_files := {}
 var _sfx_cache: Dictionary = {}
 
 var music_index: Dictionary = {}
@@ -100,11 +126,12 @@ func _init() -> void:
 	palette = FileAccess.get_file_as_bytes("res://assets_gen/palette.bin")
 	grain = FileAccess.get_file_as_bytes("res://assets_gen/grain.bin")
 
-	art_index = _json("res://assets_gen/art_index.json")
+	var dir := tier()
+	art_index = _json(dir + "art_index.json")
 	# Shared for BossLooks (a class name here would stop tools/pack_assets.gd
 	# compiling in a fresh checkout, where it runs before the class cache exists).
 	shared_index = art_index
-	_art_file = FileAccess.open("res://assets_gen/art.bin", FileAccess.READ)
+	_art_file = FileAccess.open(dir + "art.bin", FileAccess.READ)
 
 	var sfx := _json("res://assets_gen/sfx_index.json")
 	sfx_rate = sfx.get("rate", 22050)
@@ -112,8 +139,19 @@ func _init() -> void:
 	sfx_index = sfx.get("cues", {})
 	_sfx_file = FileAccess.open("res://assets_gen/sfx.bin", FileAccess.READ)
 
-	music_index = _json("res://assets_gen/music_index.json")
+	music_index = _json(dir + "music_index.json")
 	music_ends = _json("res://assets_gen/music_ends.json")
+
+
+## Where the art and music are read from (tier_dir), decided the first time.
+static func tier() -> String:
+	if tier_dir == "":
+		# --lite-assets: the lighter copy on a desktop too, to look at it.
+		var small := OS.has_feature("web") or OS.has_feature("mobile")
+		small = small or OS.get_cmdline_user_args().has("--lite-assets")
+		var lite := small and FileAccess.file_exists(LITE_DIR + "art_index.json")
+		tier_dir = LITE_DIR if lite else FULL_DIR
+	return tier_dir
 
 
 ## A whole file deflated, behind "TZ01" and its size (tools/pack_assets.gd):
@@ -148,24 +186,70 @@ func tile(name: String) -> int:
 	return at
 
 
-## Which chapter file a picture belongs in ("" for art.bin).
-static func art_home(name: String) -> String:
+## The chapter (a CHAPTER_KINDS key) whose own files hold the picture, cue or
+## model named `name`, by the name alone; "" for the first download. A
+## chapter enemy's kind itself, and anything named <kind>_..., actor3d_<kind>
+## (its baked looks) or boss_<kind>_... (its lines). One rule for every
+## asset, so a new one finds its home without a list (tools/pack_check.gd
+## holds the levels and the code to it).
+static func chapter_of(name: String) -> String:
 	for level_id: String in CHAPTER_KINDS:
 		for kind: String in CHAPTER_KINDS[level_id]:
-			if name.begins_with(kind + "_"):
-				return CHAPTER_ART[level_id]
+			for prefix: String in KIND_PREFIXES:
+				var stem := prefix + kind
+				if name.begins_with(stem + "_") or (name == stem and prefix != "boss_"):
+					return level_id
 	return ""
 
 
+## Which chapter file a picture belongs in ("" for art.bin).
+static func art_home(name: String) -> String:
+	return str(CHAPTER_ART.get(chapter_of(name), ""))
+
+
+## The stem of a chapter's own files ("" for none): art_<stem>.bin,
+## sfx_<stem>.bin, music_<stem>.bin.
+static func stem_of(level_id: String) -> String:
+	return str(CHAPTER_ART.get(level_id, "")).trim_prefix("art_").trim_suffix(".bin")
+
+
 ## True when every picture this level needs is here (a browser build may still
-## be fetching a chapter's pack).
+## be fetching a chapter's pack: its art, sounds and models come together).
 func chapter_ready(level_id: String) -> bool:
 	var file_name := str(CHAPTER_ART.get(level_id, ""))
-	return file_name == "" or FileAccess.file_exists("res://assets_gen/" + file_name)
+	return file_name == "" or FileAccess.file_exists(tier() + file_name)
+
+
+## Whether picture `name` is in the index and its file is here (a chapter's
+## prop in a browser build comes with the chapter's pack, model and all).
+func art_ready(name: String) -> bool:
+	var found: Variant = art_index.get(name)
+	if found == null:
+		return false
+	var info: Dictionary = found
+	if not info.has("file") or _art_files.has(info["file"]) or _kinds_ready.has(name):
+		return true
+	if not FileAccess.file_exists(tier() + str(info["file"])):
+		return false
+	_kinds_ready[name] = true
+	return true
+
+
+## Whether an enemy kind's own files are here (ActorModels draws a chapter's
+## enemy as its model only once its pack is mounted).
+func kind_ready(kind: String) -> bool:
+	if _kinds_ready.has(kind):
+		return true
+	if not chapter_ready(chapter_of(kind)):
+		return false
+	_kinds_ready[kind] = true
+	return true
 
 
 ## Returns {w, h, data:PackedByteArray} with RGBA8 pixels.
 func art(name: String) -> Dictionary:
+	if recording:
+		asked[name] = true
 	var cached: Variant = _art_cache.get(name)
 	if cached != null:
 		return cached
@@ -181,7 +265,7 @@ func art(name: String) -> Dictionary:
 		var file_name := str(info["file"])
 		source = _art_files.get(file_name)
 		if source == null:
-			source = FileAccess.open("res://assets_gen/" + file_name, FileAccess.READ)
+			source = FileAccess.open(tier() + file_name, FileAccess.READ)
 			if source == null:
 				# Not fetched yet: blank for now, and asked again next time.
 				return blank
@@ -263,6 +347,8 @@ func sky(name: String) -> Dictionary:
 
 
 func cue(name: String) -> AudioStreamWAV:
+	if recording:
+		asked[name] = true
 	var cached: Variant = _sfx_cache.get(name)
 	if cached != null:
 		return cached
@@ -273,8 +359,18 @@ func cue(name: String) -> AudioStreamWAV:
 			return _sfx_cache[name]
 		return null
 	var info: Dictionary = found
+	var source := _sfx_file
+	if info.has("file"):
+		# A chapter's own cue (pack_assets.gd): silent till its pack is here.
+		var file_name := str(info["file"])
+		source = _sfx_files.get(file_name)
+		if source == null:
+			source = FileAccess.open(FULL_DIR + file_name, FileAccess.READ)
+			if source == null:
+				return null
+			_sfx_files[file_name] = source
 	var offset: int = info["offset"]
-	_sfx_file.seek(offset)
+	source.seek(offset)
 	var frames: int = info["frames"]
 	var stream := AudioStreamWAV.new()
 	stream.mix_rate = sfx_rate
@@ -282,10 +378,10 @@ func cue(name: String) -> AudioStreamWAV:
 	if sfx_qoa:
 		stream.format = AudioStreamWAV.FORMAT_QOA
 		var size: int = info["size"]
-		stream.data = _sfx_file.get_buffer(size)
+		stream.data = source.get_buffer(size)
 	else:
 		stream.format = AudioStreamWAV.FORMAT_16_BITS
-		stream.data = _sfx_file.get_buffer(frames * 2)
+		stream.data = source.get_buffer(frames * 2)
 	_sfx_cache[name] = stream
 	return stream
 
@@ -301,7 +397,7 @@ func track(name: String) -> AudioStreamOggVorbis:
 	var file_name := str(info.get("file", "music.bin"))
 	var handle: FileAccess = _music_files.get(file_name)
 	if handle == null:
-		var path := "res://assets_gen/" + file_name
+		var path := tier() + file_name
 		if not FileAccess.file_exists(path):
 			return null
 		handle = FileAccess.open(path, FileAccess.READ)

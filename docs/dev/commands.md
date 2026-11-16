@@ -15,6 +15,9 @@ What each check holds is in [checks.md](checks.md).
 
 ```
 godot --headless --path godot --script res://tools/pack_assets.gd   # rebuild godot/assets_gen (no Python)
+godot --headless --path godot --script res://tools/pack_lite.gd     # the browser and phone copy, assets_gen/lite (ffmpeg)
+godot --headless --path godot --script res://tools/make_packs.gd -- <web build dir>   # the chapter packs
+godot --headless --path godot --script res://tools/pack_check.gd [-- fix] [lite] [build=<dir>]   # PACK CHECK OK
 godot --headless --path godot --import                               # after adding a class_name script or new .glb files
 ```
 

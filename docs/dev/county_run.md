@@ -147,7 +147,8 @@ crossing over deep water is planks on the water. Build one with
 county_bayou). Validate one with a throwaway source: `map.gd -- new zz_x
 base=county_quarry`, `validate zz_x`, then delete `godot/maps/zz_x.map.json`.
 The browser fetches the chapter's pack for a county map
-(`CountyData.base_of`, `Assets.CHAPTER_ART`).
+(`CountyData.base_of`, `Assets.CHAPTER_ART`; `tools/pack_check.gd` holds its
+data and play to that pack).
 
 ## Checks
 

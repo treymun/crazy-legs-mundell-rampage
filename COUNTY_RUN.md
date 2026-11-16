@@ -101,9 +101,10 @@ raised routes and names its landmarks.
    and delete `godot/maps/zz_x.map.json` afterwards.
 5. Add it to `data/tuning/county.json` `maps` (id, title, tag, blurb, the
    enemy `pool` as `[kind, from minute, weight]` and `elites`) and to
-   `CountyData.MAP_IDS`. A chapter's own enemies need its art pack in the
+   `CountyData.MAP_IDS`. A chapter's own enemies need its pack in the
    browser: add `"county_<name>": "art_<chapter>.bin"` to `Assets.CHAPTER_ART`
-   (`CountyData.base_of` maps the id to the chapter's music).
+   (`CountyData.base_of` maps the id to the chapter's pack and music), and
+   run `tools/pack_check.gd`.
 6. Run `tools/county_check.gd` (it plays every map) and commit the plan,
    `data/county_<name>.json` and the json change.
 

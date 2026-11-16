@@ -55,6 +55,10 @@ func _init(assets: Assets) -> void:
 func has(kind: String) -> bool:
 	if not kinds.has(kind) or not _assets.has_art("actor3d_" + kind):
 		return false
+	# A browser build fetches a chapter's models and looks after it starts:
+	# till then its enemy is drawn as its sprite.
+	if not _assets.kind_ready(kind):
+		return false
 	# Asked for every enemy's sprite every frame: ResourceLoader.exists once.
 	var ok: Variant = _has_scene.get(kind)
 	if ok == null:

@@ -177,7 +177,7 @@ var kill_cam := KillCam.new()
 var quality_measured := -1
 var quality_meter: Quality.Meter = null
 var quality_first := false
-## The browser build's chapter music, fetched after start (pack_loader.gd).
+## The browser build's chapter packs, fetched after start (pack_loader.gd).
 var packs: PackLoader
 ## The in-game level editor (level_editor.gd; only from the project folder),
 ## and when the playing level's file was last seen changed.
@@ -196,14 +196,15 @@ var waiting_play: Game = null
 ## or well under the frame's time.
 var work_ms := 0.0
 var detail_strain := 0.0
+## Each chapter's pack in a browser build (tools/make_packs.gd pack_name).
 const CHAPTER_PACKS := {
-	"hickston": "music_hickston",
-	"fair": "music_fair",
-	"sawmill": "music_mill",
-	"quarry": "music_quarry",
-	"bayou": "music_bayou",
-	"speedway": "music_speedway",
-	"mothership": "music_mothership",
+	"hickston": "chapter_hickston",
+	"fair": "chapter_fair",
+	"sawmill": "chapter_sawmill",
+	"quarry": "chapter_quarry",
+	"bayou": "chapter_bayou",
+	"speedway": "chapter_speedway",
+	"mothership": "chapter_mothership",
 }
 ## --launch-check: a player's launch in any build, the exported game too: the
 ## settings' window mode, then a chapter, and after LAUNCH_CHECK_SECONDS of play

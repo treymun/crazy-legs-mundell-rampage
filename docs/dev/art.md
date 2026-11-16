@@ -4,6 +4,11 @@ The art in `assets/` is made by the Godot art tools in `godot/tools/art/`
 (GDScript, run like the other tools), with Blender for the 3D renders and the
 3D models (`scripts/blender/`, run inside Blender's own Python). After any of
 them, run `tools/pack_assets.gd` (and `--import` after new `.glb` files).
+A chapter enemy's art and model, and a prop only one chapter shows, go in
+that chapter's browser pack by themselves; a new model of a chapter enemy or
+such a prop needs `tools/pack_check.gd -- fix` to write it into the browser
+presets' list ([checks.md](checks.md#the-browser-packs)). The browser and
+phone builds halve model textures over 512 texels a side (`pack_lite.gd`).
 `paint.gd` is their drawing library. Each takes `out=<dir>` to write somewhere
 else for a comparison. Their pictures have the old Python builders' look, not
 their exact bytes. Every picture is committed to the VGA palette.

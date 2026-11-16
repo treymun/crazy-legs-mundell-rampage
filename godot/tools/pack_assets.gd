@@ -5,16 +5,19 @@
 ##
 ##   Godot --headless --path godot --script res://tools/pack_assets.gd [-- <out dir>]
 ##
-## The packs are not committed (about 70 MB); a fresh clone or a CI job runs
+## The packs are not committed (about 150 MB); a fresh clone or a CI job runs
 ## this once before opening or exporting the project. Their *_index.json files
 ## are committed, and tiles_index.json is also the list of tiles, in the order
-## the levels number them.
+## the levels number them. The browser and phone builds also need
+## tools/pack_lite.gd (their lighter copy, assets_gen/lite, not committed).
 ##
 ##   tiles.bin    128x128 RGB per tile, in tiles_index.json order
 ##   art.bin      each picture's RGBA, deflated on its own (assets.gd inflates
 ##                it the first time it is drawn; identical pictures share one
-##                copy), + art_index.json
-##   sfx.bin      every cue of the audio manifest, mono 16-bit, + sfx_index.json
+##                copy), + art_index.json; a chapter's own pictures (its
+##                enemies' cels and baked looks) in art_<chapter>.bin
+##   sfx.bin      every cue of the audio manifest (QOA), + sfx_index.json; a
+##                chapter's own cues in sfx_<chapter>.bin (Assets.chapter_of)
 ##   music.bin    the menu theme and the tally tune (Ogg Vorbis), and
 ##   music_<chapter>.bin   each chapter's three tracks and its fight loop (a
 ##                browser build leaves these out of its first download:
@@ -27,6 +30,7 @@ extends SceneTree
 ## By path, not class name: CI packs before the project is imported, when
 ## class names do not resolve yet.
 const AssetsLib := preload("res://src/assets.gd")
+const PropHomes := preload("res://tools/prop_homes.gd")
 
 const SFX_RATE := 22050
 const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky", "bayou_sky", "speedway_sky"]
@@ -152,8 +156,10 @@ func _tiles() -> void:
 func _art() -> void:
 	var index := {}
 	var blob := PackedByteArray()
-	# A chapter's own enemies go in a file of their own, which the browser
-	# build fetches after it starts (src/assets.gd, tools/make_packs.gd).
+	# A chapter's own enemies and props go in a file of their own, which the
+	# browser build fetches after it starts (Assets.chapter_of,
+	# tools/prop_homes.gd, tools/make_packs.gd).
+	var props := PropHomes.homes()
 	var chapter_blobs := {}
 	var twins := {}
 	for file_name: String in AssetsLib.CHAPTER_ART.values():
@@ -167,6 +173,9 @@ func _art() -> void:
 		# inflated the first time the game asks for it.
 		var packed := image.get_data().compress(FileAccess.COMPRESSION_DEFLATE)
 		var home := AssetsLib.art_home(file.get_basename())
+		var prop := file.get_basename().trim_prefix("mesh_")
+		if home == "" and file.begins_with("mesh_") and props.has(prop):
+			home = "art_%s.bin" % props[prop]
 		# A picture the same as one already in its file (the actors' old
 		# three-cel walk names) points at that one's bytes instead.
 		var key := "%s|%d|%d|%d" % [home, hash(packed), image.get_width(), image.get_height()]
@@ -234,7 +243,11 @@ func _sfx() -> void:
 	var names: Array = (manifest["cues"] as Dictionary).keys()
 	names.sort()
 	var index := {}
-	var blob := PackedByteArray()
+	# sfx.bin, and a chapter's own cues (named after its enemies:
+	# Assets.chapter_of) in sfx_<stem>.bin, fetched with its pack in a browser.
+	var blobs := {"sfx.bin": PackedByteArray()}
+	for level_id: String in AssetsLib.CHAPTER_KINDS:
+		blobs["sfx_%s.bin" % AssetsLib.stem_of(level_id)] = PackedByteArray()
 	var problems := PackedStringArray()
 	for name: String in names:
 		var raw := _wav(repo.path_join("audio_src/final/sfx/%s.wav" % name), problems, name)
@@ -246,14 +259,23 @@ func _sfx() -> void:
 		if qoa.is_empty():
 			problems.append(name + ": QOA encoding failed")
 			continue
-		index[name] = {"offset": blob.size(), "size": qoa.size(), "frames": raw.size() / 2}
+		var chapter := AssetsLib.chapter_of(name)
+		var file_name := "sfx.bin" if chapter == "" else "sfx_%s.bin" % AssetsLib.stem_of(chapter)
+		var blob: PackedByteArray = blobs[file_name]
+		var entry := {"offset": blob.size(), "size": qoa.size(), "frames": raw.size() / 2}
+		if chapter != "":
+			entry["file"] = file_name
+		index[name] = entry
 		blob.append_array(qoa)
+		blobs[file_name] = blob
 	if not problems.is_empty():
 		_fail("effect bank not written, fix these cues first: " + "; ".join(problems))
 		return
-	_write("sfx.bin", blob)
+	for file_name: String in blobs:
+		_write(file_name, blobs[file_name])
+		print("%s %.2f MB" % [file_name, blobs[file_name].size() / 1e6])
 	_write_json("sfx_index.json", {"rate": SFX_RATE, "codec": "qoa", "cues": index})
-	print("sfx.bin %.2f MB, %d cues" % [blob.size() / 1e6, index.size()])
+	print("sfx: %d cues in %d files" % [index.size(), blobs.size()])
 
 
 ## Mono 16-bit samples at SFX_RATE as QOA, by way of a WAV Godot compresses.

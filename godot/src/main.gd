@@ -552,7 +552,16 @@ func _process(delta: float) -> void:
 		_view_tour()
 		return
 	if waiting_play != null and art.chapter_ready(waiting_play.level.id):
+		if state != "play":
+			menu_note = ""
 		play(waiting_play)
+	elif waiting_play != null:
+		# The chapter waited for comes down next, whatever was queued first,
+		# and the menu says how far along its road is.
+		var waited := str(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
+		packs.want_first(waited)
+		if state != "play" and menu_note != packs.road_line(waited):
+			menu_note = packs.road_line(waited)
 	if game != null:
 		packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(game.level.id), "")))
 		_watch_level()
@@ -645,9 +654,9 @@ func _process(delta: float) -> void:
 	var aimed := _net_aim(dt)
 	render()
 	if waiting_play != null and canvas.gpu:
-		# A browser still fetching the map: say so, and how far it has come.
+		# A browser still fetching the chapter: say so, and how far it has come.
 		var pack := str(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
-		HUD.banner(canvas, "FETCHING THE MAP... %d%%" % roundi(packs.progress(pack) * 100.0), 88)
+		HUD.banner(canvas, packs.road_line(pack), 88)
 	if not aimed.is_empty():
 		var aimed_player: Player = aimed[0]
 		var aimed_kept: Dictionary = aimed[1]

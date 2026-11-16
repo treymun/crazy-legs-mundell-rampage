@@ -25,6 +25,7 @@ const CHECKS := [
 	["view3d_check", "VIEW3D CHECK OK"],
 	["verify_assets", "ASSETS OK"],
 	["voice_check", "VOICE CHECK OK"],
+	["pack_check", "PACK CHECK OK"],
 	["check_fixes", "PARITY FIXES OK"],
 	["physics_check", "PHYSICS OK"],
 	["live_props_check", "LIVE PROPS OK"],
@@ -105,6 +106,7 @@ const CI_SECONDS := {
 	"vehicle_check": 10,
 	"replay_check": 45,
 	"load_check": 35,
+	"pack_check": 30,
 	"tune_check": 15,
 }
 const DEFAULT_SECONDS := 8
