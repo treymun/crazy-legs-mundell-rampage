@@ -528,7 +528,9 @@ the prediction's corrections and the jumps the player actually sees; frames
 where everyone else stood still or skipped; copies put back and mismatches;
 every client hitscan or pellet shot's centre line tested where that screen
 showed everyone and where the server judged it (with the rewind, and without
-for comparison); bandwidth per client, delta sizes, and the server's cost per
+for comparison); each client's own shots, button to flash shown at the press
+and as the copy played it, and how many were withdrawn
+([modes.md](modes.md#shots-reloads-and-pickups)); bandwidth per client, delta sizes, and the server's cost per
 tick split into the game, the snapshots and the bots, as a share of one core.
 `old` turns every fix below off (statics on NetSync, NetPredict.Smoother,
 NetSession, Modes and TacticalNav), so before and after run on one build;
@@ -647,6 +649,12 @@ the how-to. The 5v5 rules themselves are in
   (`_net_host_tick`); a client sends controls and plays its copy out
   (`_net_advance`), and draws its own aim with the turns the host has not
   played yet (`_net_aim`).
+- CAMPAIGN CO-OP, DEATHMATCH and TEAM DEATHMATCH are on the same MODE row
+  (people only, four at most; the co-op campaign moves the match from game
+  to game with `NetPlay.switch_match`): see
+  [modes.md](modes.md#online-co-op-and-deathmatch). The lobby shows their
+  posse as one list (`LobbyScreens._posse`) and only their own settings
+  (`lobby_keys`).
 - Someone leaving mid-match: a bot plays on in their slot; LATE JOIN: a
   newcomer takes the bot's slot on the team with fewer people. ESC asks
   before leaving; nobody pauses or saves.
@@ -724,7 +732,8 @@ party line only passes bytes between it and its players.
 - **Codes.** Three letters with no vowels (no words) and three digits,
   `HKP-427` (`NetRelay.clean_code` reads `hkp427` too); a 10-character join
   code is still the host's own address, not the line.
-- **The API for a mode** (NETMODES builds co-op and deathmatch on it): host
+- **The API for a mode** (online co-op and deathmatch are built on it,
+  [modes.md](modes.md#online-co-op-and-deathmatch)): host
   with `NetPlay.host_lobby(port, name, lobby, router, bind, true)` (the last
   `party_line`): the desktop's own ENet session gets the room as its `also`
   (the line's players are ids past `ALSO_IDS`, beside direct ones); the
@@ -778,10 +787,24 @@ party line only passes bytes between it and its players.
   `NetMaps.pending`; when the lobby opens (`main_flow.gd net_open_lobby`)
   `host_map` puts it on: `settings["map"]` the map's versus level id,
   `settings["custom_map"]` its hash, name and author, MODE fitted to one the
-  map can host (`fit_mode`, from `_mode_fits_map`; `MODE_NEEDS` maps the
-  lobby's modes to `UserMap.modes`): a MODE the map cannot host does not
-  take, and the host's lobby says why (`PUCKETT'S BACK FORTY CAN'T HOST
-  SEARCH AND DESTROY: NEEDS AN ATTACK START.`).
+  map can host (`fit_mode`, first in `_mode_fits_map`; `MODE_NEEDS` maps
+  the lobby's modes to `UserMap.modes`): a MODE the map cannot host is
+  stepped past the way the host stepped, and the host's lobby says why
+  (`PUCKETT'S BACK FORTY CAN'T HOST SEARCH AND DESTROY: NEEDS AN ATTACK
+  START.`); TAG TEAM 2V2 keeps to its own maps. MAP is the map's versus copy
+  (no hands, lever or truck, doors open) for every mode but CAMPAIGN CO-OP,
+  which plays the map itself.
+- **DEATHMATCH, TEAM DEATHMATCH** on a player map: the versus copy, spawn
+  points from the whole map (`Modes.spawn_points`), pickups coming back;
+  someone dropping in gets the map before their START; the results go back
+  to the lobby as on any map.
+- **CAMPAIGN CO-OP** on a player map is one map: not held to the chapters
+  the host has reached (`main_flow.gd` `may_start`), everyone starts with
+  PLAY ALONE's kit (`NetCoop.chapter_kit`), downs and revives are co-op's,
+  everyone down and R starts the map over for the party, F5 writes no PARTY
+  SAVE (`NetCoop.save` says so), and the host's ENTER on the win takes
+  everyone back to the lobby (`NetCoop.next`): never the Crossroads or a
+  chapter, nothing opened on the host's profile.
 - **MAP** (`NetWire.MAP`, 20), host to client, reliable: `{"hash", "data"}`,
   the map's canonical text as it is (a few KB at most, not packed: unpacking
   a stranger's bytes is one more way in). The host sends it to everyone when
@@ -799,9 +822,9 @@ party line only passes bytes between it and its players.
 - Nothing in the party line changes: a MAP packet's first byte is under
   `RELAY_FIRST` and it is far under the line's 256 KB cap (the largest map's
   is about 5 KB).
-- Not done: always-open lobbies take no player maps (an admin's MAP is
-  checked against lobby.cfg's row), and there is no shared list of maps on
-  the lobby server.
+- Always-open lobbies take no player maps (an admin's MAP is checked
+  against lobby.cfg's row by `allowed_value`). Not done: a shared list of
+  maps on the lobby server.
 - `tools/user_map_check.gd` holds it (ENet in one process).
 
 ### The multiplayer menus
@@ -847,6 +870,6 @@ These are UiScreens now (`OnlineScreen`, a `ZonedScreen`; see
 
 (The start of this note was lost in an earlier edit of CLAUDE.md.) ... breaks
 or the posse; per-player stats (chapter stats and the tally are the local
-player's) and a kill feed; the steam scald list is keyed by hazard instance id
+player's; the kill feed is the modes', `features/kill_feed.gd`); the steam scald list is keyed by hazard instance id
 (not carried). Respawn, bodies blocking, area attacks on every player and the
 group's boss fight are the modes' ([modes.md](modes.md)).

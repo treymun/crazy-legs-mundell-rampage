@@ -141,6 +141,7 @@ const PLAYER_FIELDS := [
 ## (enemies and enemy_ids are carried under "enemies"; partners, route,
 ## dangers and the use/aim caches are worked out from the level or the tick.)
 const VIEW_FIELDS := [
+	"net_role",
 	"_named_enemies",
 	"place_log",
 	"specks",
@@ -274,6 +275,8 @@ const VIEW_FIELDS := [
 	"flow_walks",
 	"body_cells",
 	"body_cells_on",
+	"hands_watch",
+	"own_quiet",
 ]
 ## Features whose state is play (carried: every variable but `game`).
 const SIM_FEATURES := [
@@ -283,6 +286,7 @@ const SIM_FEATURES := [
 	"boss_fight",
 	"race_laps",
 	"vehicles",
+	"vehicle_runs",
 	"range",
 	"bayou",
 	"mothership",
@@ -329,6 +333,7 @@ const LOOKS_FEATURES := [
 	"boss_checkpoint",
 	"trophy_shack",
 	"wreckage",
+	"kill_feed",
 ]
 
 

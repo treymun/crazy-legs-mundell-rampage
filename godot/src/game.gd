@@ -310,11 +310,18 @@ func tick(dt: float, controls: Variant) -> void:
 		if q.health > 0:
 			focus(q, true)
 			var hand_controls: Controls = by_slot[q.slot]
+			# An online client's own hands (hands_watch.gd): what it showed
+			# already is not shown again.
+			var watched := hands_watch != null and q.slot == hands_watch.slot
+			if watched:
+				hands_watch.before_hands(self, q, hand_controls)
 			var back: int = hand_controls.rewind
 			if back > 0 and players.size() > 1:
 				_rewound_hands(q, hand_controls, dt, back)
 			else:
 				_step_hands(q, hand_controls, dt)
+			if watched:
+				hands_watch.after_hands(self, q, hand_controls)
 	focus(local_player)
 	sound.set_fuse(armory.fuse != 0.0)
 	sound.set_tool(
@@ -624,7 +631,14 @@ func _surroundings(p: Player, roof: float) -> void:
 			var place := sound_position(radio_x, radio_y, .60)
 			sound.set_radio(true, place.x, place.y)
 		else:
-			sound.set_radio(false)
+			# A radio left playing in a ready vehicle (src/vehicle_finder.gd).
+			var rides: VehiclesScript = features.get("vehicles")
+			var tune := rides.radio(p) if rides != null else Vector3.INF
+			if tune != Vector3.INF:
+				var heard := sound_position(tune.x, tune.y, .60 * tune.z)
+				sound.set_radio(true, heard.x, heard.y)
+			else:
+				sound.set_radio(false)
 	if area != district and p.motion > .15:
 		district = area
 		district_until = clock + 2.1
@@ -744,7 +758,9 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 		var mode_state: ModeFeatureScript = features.get("mode")
 		if mode_state != null and mode_state.mode != Modes.CAMPAIGN:
 			mode_state.rules().buy(self, mode_state, p, controls.buy)
-	if controls.item >= 0:
+	if controls.item >= POCKET_PICK:
+		inventory_slot = clampi(controls.item - POCKET_PICK, 0, HUD.ITEMS.size() - 1)
+	elif controls.item >= 0:
 		use_item(controls.item)
 	if controls.use and not p.use_held:
 		interact()

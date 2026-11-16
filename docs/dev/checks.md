@@ -50,12 +50,14 @@ check's output. `lint` also runs gdformat --check and gdlint from the repo's
 | `view3d_check` | VIEW3D CHECK OK | yes | every level's 3D mesh builds headless; every prop and actor scene loads (a station's with both looks, every quest picture modelled); every slab (pickups, loose things, range targets) builds at its picture's size; no fallen body's part stays up at `down` (fit.json `down_high` for the cow's raised legs); the hanging lamp is the shop_lamp model and a tipped cow rolls on her hooves (`ActorView.tipped`) |
 | `verify_assets` | ASSETS OK | yes | assets and levels load; chapter-only kinds really are one chapter's; pending music noted |
 | `voice_check` | VOICE CHECK OK | yes | every spoken line in the audio manifest is mastered from its transcript, has its CLEAN copy (cuss lines) and loads from the packed bank at 0.3 to 6 s; every caption the game shows for a line (bosses, hands, tough guys, Maw, the fair PA, Mundell, the cuss pack) is the text it was made from; every recording, transcript and kept take is booked in the ledger, which adds up to the account's drop ([audio.md](audio.md#voices)) |
+| `pack_check` | PACK CHECK OK | | the browser build's split ([the browser packs](#the-browser-packs)): the name rule, every picture and cue in its home file, no level's data naming another chapter's assets, each level played 12 s by the bot asking only for the first download's and its own chapter's pictures and cues, the export presets' lists (`fix` rewrites the chapters' models), the lighter copy when built (`lite` requires it), the budgets; `build=<dir>` also reads an exported index.pck and every pack |
 | `check_fixes` | PARITY FIXES OK | | the parity regression checks and the quick parts of many others (below), in six parts side by side |
 | `physics_check` | PHYSICS OK | yes | gibs, brass, chunks and bodies dropped on decks, ramps and stairs and thrown at walls rest on a surface, never inside anything; the loose-things features on a loft ([gameplay.md](gameplay.md#loose-things-on-the-real-3d-shape-v300-remaster)); ragdolls lie on decks, treads, ramps and past a rail and sleep, no model sunk past 1 cm, one body on another, slow-mo finishers start on the last kill and never with company (`physics_ragdolls.gd`); loose things settle with no snap; nothing thrown fast passes a thin wall; water splashes, sinks and drifts (`physics_water.gd`); the shared physics core: the exact solver the same to the bit as the pins' old one, the grid, boxes stacking and waking what lies on them, a body on a wreck piece and a board on a body (`physics_core.gd`, [gameplay.md](gameplay.md#the-shared-physics-core-engine-pass-6)) |
 | `live_props_check` | LIVE PROPS OK | yes | things taken up, held, thrown (a hand hurt and shoved, a propane tank breaking and going up, jugs spilling shine, a brute heaving a tank), set down and saved; fire spreading over hay, never onto stone or dirt, burning out, the same twice, sooner in rain; a still spraying and going up; a snapshot carrying a throw and a fire on tick for tick; all of it off with LIVE PROPS AND FIRE off ([gameplay.md](gameplay.md#picking-things-up-fire-that-spreads-the-stills)) |
 | `climb_check` | CLIMB CHECK OK | yes | every chapter has ladders, each joined foot to top in the nav graph; a ladder takes the player up and down, JUMP lets go; pull-ups onto a chest-high stack and from it onto a roof, not onto one too high; a hand comes up a ladder to the player on a lookout and drops off it to get at them below; a hand under fire ducks out of sight, peeks out, fires and goes back; a hand kicks a door open (not EASY or CLASSIC); the same run twice comes out the same |
 | `vehicle_cab_check` | VEHICLE CAB OK | yes | the seat view: every kind's cab model, art and moving parts are there; the driver's eye gets the cab (not on foot, in PHOTO MODE or without a window: then the car's painted dash), its own model is left out, the wheel turns clockwise right with the hands on it, needles rise, the prop turns, the blade lever goes forward; drawn, it sits between the near plane and the nearest wall; SCREEN SHAKE and STILL stop what they should, the view widens at speed but never past a wider FIELD OF VIEW; spray lands in the view; the driving plate in every HUD mode and with touch; driving the same with the cab drawn ([gameplay.md](gameplay.md#vehicles)) |
-| `vehicle_check` | VEHICLES OK | yes | each vehicle (airboat, car, mower) is got into with USE, drives, strikes something and bounces off never inside a wall, runs a hand down and is got out of; the airboat keeps to water, the car holds no gun, a wreck throws its driver out, a rider rides along in co-op, a snapshot copy drives the same ([gameplay.md](gameplay.md#vehicles)) |
+| `vehicle_set_check` | VEHICLE SET OK | no | finding the vehicles and what is built round them (feature pass 7): on each map with one, its KEYS IN IT sign by it, its lamps on (dark once burnt out), its radio heard near and not far, the automap's mark, USE's prompt from further off looked at (not away), the wider reach, its line said once; the bayou's CHANNEL RUN and the speedway's HEAT RACE driven to the end in time by a pilot (the hands they wake held back till then, the pin and objective on the next gate, the plate, the flare, the reward, the tally, a save), run out of time and needing another pass, the race only the lap cars' way and in their time; the car's window gun (one-handed only, not back through the cage, wilder, steering less, the cab's right hand off) and a partner riding shotgun who shoots and sees the cab from their seat ([gameplay.md](gameplay.md#vehicles)) |
+| `vehicle_check` | VEHICLES OK | yes | each vehicle (airboat, car, mower) is got into with USE, drives, strikes something and bounces off never inside a wall, runs a hand down and is got out of; the airboat keeps to water, the car's driver holds the .38 out of the window, a wreck throws its driver out, a rider rides along in co-op, a snapshot copy drives the same ([gameplay.md](gameplay.md#vehicles)) |
 | `plank_check` | PLANK CHECK OK | yes | a barn's and a pen's wall at the fair, the sawmill's shed, a bayou shack and a gabled barn on County Run's Hickston: one may open, shot about it shows its boards out (a merged run cut at the cell), broken through it is floor to bodies, sight and both flow fields and walked through, a shed keeps its roof (and gable) over the gap, a pen's neighbours stand their own height, its planks rest on a floor, a snapshot and a save open it the same with the same walls ([gameplay.md](gameplay.md#walls-break-too)) |
 | `wreck_check` | WRECK CHECK OK | yes | every kind of breakable with `pieces`, windows and fence cells on the chapters, a County Run map and the hub throw real pieces that all come to rest on a floor, never inside anything; none on the versus maps; the cap holds; a save put back throws nothing; asleep costs next to nothing ([gameplay.md](gameplay.md#in-real-pieces-of-themselves)) |
 | `save_fixtures` | OLD SAVES OK | yes | saves from every earlier version still load |
@@ -69,6 +71,7 @@ check's output. `lint` also runs gdformat --check and gdlint from the repo's
 | `camera_check` | CAMERA CHECK OK | yes | the QUALITY tiers (pick, presets, AUTO's meter, physics steps); the HUD's Control boxes compose to `HUD.draw`'s bar pixel for pixel (campaign, 5v5, County Run, full and MINIMAL); PHOTO MODE in and out, flying, the player in view, a filter, a picture saved; the KILL CAM noted, sampled, replayed with stand-ins and skipped; play's snapshot unchanged by either; the view polish (`view_polish_check.gd`): SHADOWS' pairs and blobs, marks on a prop's model (holes, scorch, char, kept and handed on), the storm wall's curtains and ring |
 | `county_check` | COUNTY CHECK OK | | County Run rules; each map through a death and a retry |
 | `county_net_check` | COUNTY NET CHECK OK | | a County Run party of two over ENet and WebSocket against a lobby server (`seconds=30`, as CI always ran it) |
+| `net_party_check` | NET PARTY OK | | online CAMPAIGN CO-OP, DEATHMATCH and TEAM DEATHMATCH hosted by the real front end through a lobby server's party line: chapter to hub to chapter, the boss checkpoint's retry, downs, revives, watching, late joins, leaving, THE PARTY SAVE, the kill feed, a deathmatch by bots (`only=coop` or `only=versus`) |
 | `relay_check` | RELAY CHECK OK | | the party line in a lobby server: its limits, the lag it adds, a hosted 5v5 and a County Run with players through it over ENet and WebSocket (a fallback from the host's address, a late joiner straight in, a kick, the host gone), copies kept with the host (`quick` in check_all; `ping=<address>:<port>` times a line running elsewhere) |
 | `games_check` | GAMES CHECK OK | yes | the range's board on a lobby server over ENet (posts, a name's best, refusals, asks, the County Run board beside it), the fair's shooting gallery (the bell, each target's points, a can flying and bouncing, the house paying, the prizes saved, no station or door added), the hub's trophy shack (statuettes by the gates open, cups, gnomes, its card), the range's duck row (a duck turned at the rail's end spins round on its stick) |
 | `leak_check` | LEAK CHECK OK | yes | every game let go is freed: games made and disposed (campaign, co-op, deathmatch, County Run, range, Crossroads, a host's) and the front end's own flow (a chapter, the Crossroads, the range, a County Run, co-op, a deathmatch, back to the title) come back to the same object count round after round ([architecture.md](architecture.md#letting-a-game-go)) |
@@ -78,6 +81,7 @@ check's output. `lint` also runs gdformat --check and gdlint from the repo's
 | `replay_check` | REPLAY CHECK OK | | replays play back exactly (`replay_check.gd`, run `-- quick`): bots record chapter one from a fresh game, sawmill from the middle with its keys as actions and a cheat and a wound outside them, the quarry boss fight, County Run with card picks and co-op with two; each from its bytes onto a fresh game matches every hash and the whole end snapshot; a recording past its cap plays across its gap; a nudged game is caught within a hash; the front end's own recorder (advance, act, a setting changed mid-run), `replay save`, a death's file and the crash log keeping the session's replay. Prints the recording's cost a tick. Without quick, twice as long |
 | `load_check` | LOAD CHECK OK | | the faster level load hands play what the slow way gave, on every level: the nav graph node for node and edge for edge in the same order, the grids, walls and plane bounds number for number (against `tools/load_reference.gd`, the old code kept); the open floor kept for a level played again as measured, untouched by what a game did with its own; the wreck pieces cut on a worker while a level's first frames run the same piece for piece as cut at once ([gameplay.md](gameplay.md#loading-a-level)) |
 | `tune_check` | TUNE CHECK OK | yes | the dev console's tuning and overlays (`dev_tune.gd`, `dev_overlays.gd`): `tune set` takes in a running game (a gun's fire time, an enemy kind's health on the one in play and a new one, static values from modes.cfg, hits.cfg and difficulty.cfg, a whole number keeping a float's type), `tune get` reads it, a change is a replay keyframe, online it is refused, `tune reload` puts the files' values back and says each change (a second says none); `tune save`'s rewrite on bosses.cfg's text (a key, a multi-line value, a new key and section; every other value, comment and line ending kept) and on a copy of weapons.cfg, read back; the watch reads a saved copy again; every overlay on over a bot's fight drawn headless (traces, tick and listener times come in, the picture changes), the run recorded with them on plays back exactly without them, and turned off the `ticked` listeners are as before, in order. Prints the static values watched and what a reload of every file costs |
+| `predict_check` | PREDICT CHECK OK | yes | an online client's own shots, reloads and pickups shown at the press and put right by the host's word (`net_shot_predict.gd`), with no network: a range deathmatch as the copy, a hand-filled `NetSync.Client` as its link, each input played 12 ticks on. A shot played (one bang, kick and tracer, rounds down at the press and never back up, its mark and tick once), refused (rounds back, mark and blood withdrawn), out of rounds (one dry click), a hit judged a miss (mark and blood withdrawn), a gun taken up and fired at once, a pickup played and one refused (back in the picture), a reload pressed mid-burst with the trigger held (every cue, tracer and shell counted as often as a copy without prediction), and nothing on a game nobody watches |
 | `net_lag` | NET LAG OK | | what a player feels online (`net_lag.gd`, run `-- quick`: a 120 ms link, limits on rubber band, missed hits, stalls, lost inputs, bandwidth); without quick, three links and the full table |
 
 ### What check_fixes runs
@@ -160,8 +164,8 @@ The builds wait for all of those (every shard, the lint and the window job):
 | Run | Builds |
 | --- | --- |
 | a branch push | none |
-| `main` | the browser builds (`Web`, `Web Lite`, music packs), deployed with the landing page to Pages |
-| a `v*` tag | the EXE (smoke-tested on Windows), the installer, the APK, then the GitHub release with the three files |
+| `main` | the browser builds (`pack_lite.gd`, `Web`, `Web Lite`, the chapter packs, `pack_check.gd -- quick lite build=`), deployed with the landing page to Pages |
+| a `v*` tag | the EXE (smoke-tested on Windows), the installer, the APK (after `pack_lite.gd`), then the GitHub release with the three files |
 | Run workflow (by hand) | input `builds` (on by default): all four as run artifacts; on `main` it deploys the site, on a tag it releases |
 
 **A passed commit is not checked twice.** On a push to `main` or a `v*` tag
@@ -290,13 +294,11 @@ the first visit to a chapter (0.35 to 0.57 s headless: the nav graph, 0.2 to
 (below). Not measured: a phone, the browser build's frame times, the APK.
 
 **Export sizes** (2026-11-16): Windows EXE 302.6 MB (the 109 MB engine and a
-193 MB pack: `assets_gen` 140 MB of which art.bin 49 MB, sfx.bin 13 MB and the
-music packs 63 MB; the models' imported scenes 39.5 MB); Web and Web Lite
-119.9 MB pack (the chapter art and music packs fetched later) plus 38.8 /
-39.5 MB wasm. Art is already deflated per picture; the sound is 16-bit PCM;
-the model scenes are uncompressed meshes (mesh compression would change how
-they look). Nothing was trimmed: nothing unused was found that is safe to
-drop.
+193 MB pack: `assets_gen` 140 MB of which art 76 MB, sfx 13 MB and music
+63 MB; the models' imported scenes 39.5 MB), unchanged by the browser work
+below. Art is deflated per picture, the sound is QOA, the model scenes are
+uncompressed meshes (mesh compression would change how they look).
+
 - Network: `tools/net_bench.gd -- levels=hickston players=1,2,4 [host]`.
 - **The browser:** export both builds, serve each with COOP/COEP headers, add
   a page whose `GODOT_CONFIG` args are `["--", "--view-bench=300"]`, and run
@@ -306,3 +308,55 @@ drop.
   (`--enable-logging=stderr`).
 - Close browser tabs and preview servers after testing: the owner has heard
   game audio from tabs left open.
+
+### The browser packs
+
+What a browser downloads, gzipped as GitHub Pages sends it (measured on the
+exported builds, 2026-11-16, pass 7):
+
+| | before | after |
+| --- | --- | --- |
+| first visit (wasm, index.pck, js): the title and Hickston | 133.9 MB | 77.2 MB |
+| ... and Hickston's music | 143.5 MB | 83.5 MB |
+| everything, all seven chapter packs | 206.6 MB | 178.3 MB |
+| Web Lite first visit (iPhone, iPad) | 133.9 MB | 77.1 MB |
+| APK (estimated from its pack, against the 221 MB 3.4.0 APK) | 221 MB | about 192 MB |
+
+- **The split.** `index.pck` holds the title, Hickston, the hub, the range
+  and the versus maps. Each other chapter's own files are a pack of their
+  own (`tools/make_packs.gd`, `chapter_<id>-<hash>.pck`, 13 to 18 MB):
+  its music, its enemies' pictures, baked looks, sounds and models, and the
+  props only its levels show. What is a chapter's is decided by name
+  (`Assets.chapter_of`: a chapter enemy's kind, `<kind>_...`,
+  `actor3d_<kind>...`, `boss_<kind>_...`; one rule for art, cues and models,
+  so new sound such as voice lines finds its pack by its name) and, for the
+  props, by the levels' data (`tools/prop_homes.gd`: shown only by one
+  chapter's levels and named by no script or tuning file). Anything else
+  stays in the first download, so a new asset is safe by default.
+- **Streaming.** `src/pack_loader.gd` fetches the packs after the title is
+  up, in chapter order, the chapter asked for first; keeps them in the
+  browser's storage (named by hash, so a changed pack is fetched again);
+  mounts each and registers its models' ids. A chapter started before its
+  pack is here waits on the menu with a line of its own (`ROAD_LINES`, with
+  how far it has come) and starts when it lands; its enemies are drawn as
+  their sprites and its props as their pictures until then (`kind_ready`,
+  `art_ready`). Packs are read 4 MB a frame.
+- **The lighter copy.** The browser and phone builds read
+  `assets_gen/lite` (`tools/pack_lite.gd`, needs ffmpeg): the 18 model
+  textures over 512 texels a side halved (the bosses and the seat views; at
+  the 320x200 view a boss looks the same: 276 pixels of a 1280x800 frame
+  moved), the music re-encoded at Vorbis q3 (about 100 kbps, two thirds of
+  the bytes, the same samples). The desktop builds leave it out and never
+  read it; `--lite-assets` reads it on a desktop to look at it.
+- **The check.** `tools/pack_check.gd` (above); CI's browser job runs it on
+  the export with `lite build=build/web`. Budgets: the first download's
+  packed files 80 MB (72.4 now), a chapter pack 20 MB (17.7).
+- **Not cut:** the sound effects stay QOA in every build (Vorbis would save
+  about half of the 13 MB but the bank's cues are WAV streams everywhere in
+  `sound.gd`); the engine's wasm (10 MB gzipped) is the stock template.
+- **Trying it:** export Web, `make_packs.gd -- <dir>`, serve the folder with
+  COOP/COEP headers and open `index.html` with `GODOT_CONFIG` args
+  `["--", "--play-at=fair"]`: the menu says `TOWING THE FAIRGROUNDS IN...`
+  and the fair starts when its pack lands. The built-in browser pane runs a
+  hidden tab at a frame or two a second and did not finish a pack in a
+  minute, old build or new; use a headless Chrome (`--headless=new --mute-audio --enable-unsafe-swiftshader`).

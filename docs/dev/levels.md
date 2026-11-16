@@ -72,6 +72,26 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
   deck over it: a lamp on a walk over water or a pit takes the walk's top
   minus that ground.
 
+### Vehicles and their set pieces
+
+A plan's meta places its vehicles (`"vehicles"`, [gameplay.md](gameplay.md#vehicles))
+and the set pieces run in them (`"vehicle_runs"`: the start, the gates in
+order, laps, time, reward and lines; level_builder writes both only when
+the plan has them). The hands a run sets on the player are ordinary
+`b.enemy` rows held back by a trigger whose `"when"` is `{"run": id}` and
+whose `"do"` wakes them. Each vehicle has its KEYS IN IT sign beside it
+(`vehicle_sign_<kind>`): Hickston's is hung on the chapel wall that was
+there (`"hung"`, nothing built, so no new layout), the bayou's stands on
+the dock walk, the speedway's hangs on pit row's garage wall. County Run's
+maps drop the vehicles, their runs and their signs (`county_kit.gd`).
+Feature pass 7 put them in: `bayou_plan.gd channel_run()` (layout 5: the
+sign, the king's boys, the CHANNEL RUN) and `speedway_plan.gd heat_race()`
+(layout 4: the sign, the pit crew, the HEAT RACE; and the team's hauler in
+`speedway_cast.gd` moved off turn 2's banking into the gravel behind it, so
+the oval can be driven all the way round). A run's gates must lie on what
+its vehicle runs on and be reachable in order; `tools/vehicle_set_check.gd`
+drives each one to the end.
+
 ### Places to climb
 
 Since v3.2.0 every chapter has height to climb (`climbs.gd`, one function a
@@ -237,9 +257,9 @@ run goes back to the shed), `save_game`/`load_game`, `open_county`,
 the map; 5V5 VS BOTS and HOSTAGE VS BOTS are PLAY VS BOTS's match on its
 versus copy; COUNTY RUN is `start_county` on it (`county.json` `custom_map`
 is its horde, base-pack hands only); HOST ONLINE is the host form with the
-map waiting for the lobby ([multiplayer.md](multiplayer.md#player-maps-in-a-lobby)).
-Deathmatch is checked for (CHECK, `modes()`) and is for a lobby that has the
-mode.
+map waiting for the lobby, where DEATHMATCH, TEAM DEATHMATCH and CAMPAIGN
+CO-OP (one map, back to the lobby when won) take it too
+([multiplayer.md](multiplayer.md#player-maps-in-a-lobby)).
 
 ### Saves of a player map
 
@@ -297,6 +317,9 @@ many) and a 4 MB file refused unread; the shed's calls; alone (lever, then
 truck, won), a 5v5 round of ten bots, County Run's horde and deathmatch's
 spawn points on the examples; a map save loaded, and refused for a changed,
 gone or newer map or one that does not fit; a hosted lobby on a map, a
-client getting it (hash checked, registered, kept), the match on the same
-level on both, the map changed in the lobby, and hostile MAP packets
-refused. `menu_touch_check` taps through CUSTOM MAPS and the shed.
+client getting it (hash checked, registered, kept), a 5v5 match on the same
+level on both, a deathmatch with someone dropping in (the map first), team
+deathmatch, CAMPAIGN CO-OP on the map (a retry, no party save, the win back
+to the lobby with nothing opened), MODE stepping past what a map can't
+host, the always-open servers refusing player maps, the map changed in the
+lobby, and hostile MAP packets refused. `menu_touch_check` taps through CUSTOM MAPS and the shed.

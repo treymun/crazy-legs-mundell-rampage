@@ -308,10 +308,12 @@ func _key_play(code: int) -> void:
 		return
 	if code == KEY_ESCAPE:
 		return_to_title()
-	elif tactical and target.local_player.slot != TacticalScreens.human:
+	elif target.players.size() > 1 and target.local_player.slot != TacticalScreens.human:
 		# Out, watching a teammate: their guns are not this machine's to change.
 		if code == KEY_TAB:
 			target.map = not target.map
+		elif code == KEY_SPACE or code == KEY_E:
+			TacticalScreens.watch_next = true  # the next one up (main.gd)
 	elif target.showing_tally:
 		if code == KEY_ENTER or code == KEY_KP_ENTER or code == KEY_SPACE:
 			continue_campaign()

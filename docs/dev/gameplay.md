@@ -1111,23 +1111,28 @@ physics, so play's users stay the same on every machine.
 `features/vehicles.gd` (the feature), `src/vehicle_drive.gd` (the driving
 sums, the `Spec` and `Ride` classes), `src/vehicle_cab.gd` (the seat view
 and how the seat feels), `src/vehicle_hud.gd` (the driving plate),
-`src/vehicle_looks.gd` (the car's painted dash, without a window), numbers
-in `data/tuning/vehicles.cfg`. A level's `"vehicles"`
+`src/vehicle_looks.gd` (the car's painted dash, without a window),
+`src/vehicle_finder.gd` (finding one), `features/vehicle_runs.gd` (the set
+pieces built round them), numbers in `data/tuning/vehicles.cfg`. A level's
+`"vehicles"`
 list places them (`[kind, x, y, heading]`, level_builder from the plan's
 `meta`): the airboat moored by Gator Bayou's dock walk, a stock car on the
 speedway's pit row, a riding mower (the tractor model at half size) on the
 chapel path at Hickston. Only the campaign and co-op have them
 (`active()`); County Run's maps strip them (`county_kit.gd STORY_META`).
 
-- **In and out**: USE beside a hull (within `reach`, roughly facing it)
-  takes the driver's seat, or the next seat (the airboat seats two: a co-op
-  partner rides along and shoots); the prompt says DRIVE THE <NAME> / RIDE
-  ALONG / BURNT OUT, and GET OUT while it stands. USE while seated gets out
+- **In and out**: USE beside a hull (within `reach`, roughly facing it; or
+  `reach_wide` when nothing else is at hand to USE, a station or a door)
+  takes the driver's seat, or the next seat (the airboat and the car seat
+  two: a co-op partner rides along behind the airboat's driver, `ride_back`,
+  or beside the car's, `ride_side`, and shoots); the prompt says DRIVE THE
+  <NAME> / RIDE ALONG / BURNT OUT, and GET OUT while it stands. USE while seated gets out
   beside it (left, right, behind, front, a little further each way), never
   into deep water, a wall or another hull ("NOWHERE TO STEP OFF HERE").
   Hooks: `game_use.gd` interact/use_prompt, `game.gd _step_body` (a seated
-  player is driven, not walked) and `_step_hands` (the car's hands are on the
-  wheel: no firing, the gun holstered), `damage()` (the vehicle soaks its
+  player is driven, not walked) and `_step_hands` (`hands_busy`: the car's
+  hands are on the wheel unless a one-handed gun is out of its window,
+  below), `damage()` (the vehicle soaks its
   `soak` share of what hurts the people in it), `net_predict.gd` (a seated
   client predicts only its aim).
 - **Driving** (`VehicleDrive.throttle`/`move`): FORWARD/BACK throttle, brake
@@ -1254,7 +1259,62 @@ chapel path at Hickston. Only the campaign and co-op have them
   lines of text (MPH and RIG or its state) in the same corner. The touch
   stick and buttons drive as before (throttle and steering are
   FORWARD and STRAFE, the right-side drag the look it steers to).
-- **Checks**: `tools/vehicle_check.gd` (in check_all, quick too; its FEEL part
+- **Out of the window** (feature pass 7; the car's `window`): the car's
+  driver holds a one-handed gun out of it (`[all] window_guns`: the .38,
+  the sawed-off, the pistols, a stick of dynamite; getting in with a long
+  gun takes up the first one owned) while the other hand stays on the
+  wheel, so it steers at `one_hand_turn` of its lock; a long gun stays
+  down. A shot strays `window_spread` times more (`Modes.shot_tuning` asks
+  `aim_scale`; a rider's `rider_spread`; on foot and at the airboat's stick
+  or the mower's wheel 1, as before) and goes only out of the front and the
+  sides (`window_arc` from the nose, the driver's and the passenger's: never
+  back through the cage, where the gun drops). The seat view hides the cab's
+  right hand while the gun is out (its `fade`, `hand_r`) and both with
+  nobody at the wheel.
+- **Riding shotgun**: the car's passenger sits `ride_side` to the right of
+  the wheel and sees the cab from there (`VehicleCab.dress` offsets the
+  cab's `lift`; the car's shell is left out of their view too), with the
+  driver's hands on the wheel. Co-op only: online play outside COUNTY RUN
+  has no co-op yet, and County Run's maps have no vehicles.
+- **Finding one** (feature pass 7; `src/vehicle_finder.gd`, looks and
+  sound only): a ready vehicle (nobody at its wheel, not burnt out) keeps
+  its `lamps` on (`effects.cfg [light.vehicle_lamp]`, a pool on the ground
+  ahead of each, through `view_lights.gd`, and an `fx_flare` glow on the
+  lamp) and its `radio` playing (the jukebox's loop through the radio
+  channel, `radio_volume`, within `radio_reach`; the jukebox wins);
+  the automap draws a little picture of it in the key's yellow
+  (`VehicleFinder.ICONS`, and RIG, KEYS IN IT in the key); USE's prompt
+  names it looked at from `spot_reach` ("AIRBOAT  /  KEYS IN IT"), only
+  when nothing else is at hand; its `spotted` line is said once a chapter
+  the first time a player is within `spot_told` of it in sight (remembered
+  in `_looks`). Each map with one hangs a hand-painted KEYS IN IT sign by
+  it (`vehicle_sign_<kind>`, `tools/art/build_vehicle_signs.gd`).
+- **Set pieces** (feature pass 7; `features/vehicle_runs.gd`, a simulation
+  feature): a level's `"vehicle_runs"` (from its plan's meta) are runs
+  against the clock through gates in order, started by driving the right
+  vehicle through `start` (the way `way` points, when given) and lost on the
+  clock, a wreck or nobody at the wheel (then started again once the vehicle
+  has left the start). The hands a run sets on the player are held back by
+  a level trigger with `"when": {"run": id}` (`src/triggers.gd`); made in
+  time, everyone in the vehicle `collect`s its `reward` and the tally shows
+  the time. At the wheel the objective names the run's start and then each
+  gate (`GameObjective` asks `goal`/`objective`; the pin points there), a
+  flare burns on it (`[light.run_flare]`, `run_start`) and a plate across
+  from the driving plate shows the title, the time left, the gate or lap
+  and its name. Gator Bayou's CHANNEL RUN: out of the dock, down the south
+  fork, up the north fork to the swing bridge and into the king's lagoon in
+  45 s, the king's boys (four gators, two chummers, a coot, a billy) woken
+  as it starts, the king's stash ('shine, sticks, shells, cartridges) the
+  reward. Buzzard Bend's HEAT RACE: three laps of the oval in the stock car
+  from the start line, east as the lap cars run, through a gate at each turn
+  and the back stretch, in the lap cars' own time for three laps
+  (`pace`; 80 s once they have run dry), the pit crew coming out of the
+  infield; the purse in the glovebox. Saved (a run in the middle starts
+  over); no save version (an older save restores none).
+- **Checks**: `tools/vehicle_set_check.gd` (VEHICLE SET OK: finding each
+  one, both runs driven to the end and run out of time, the window's guns,
+  riding shotgun); `tools/vehicle_set_frames.gd` takes its window pictures.
+  `tools/vehicle_check.gd` (in check_all, quick too; its FEEL part
   is `tools/vehicle_feel_check.gd`: squat, dive, lean the right way, skid
   marks, sparks, landing and settling, rocking, spray and wake, the mower's
   bounce and clippings, other dice the same drive);

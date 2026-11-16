@@ -270,10 +270,13 @@ func dress_grounds() -> void:
 	b.town("burn_barrel", 141.5, 96.5, {"solid": .3, "glow": true})
 	b.glow(141.5, 96.5, 3.5, .3)
 	b.town("camp_chairs", 143.0, 94.5)
-	# The north-east corner behind turn 2: a team camped by their hauler.
-	b.fixture(108.1, 36.6, 117.9, 38.4, 2.7, "trailer", "trailer")
-	b.town("semi_tractor", 119.5, 37.5, {"solid": .45})
-	b.board("speedway_ad_bait", 113.0, 38.44, .9, {"z": 1.3, "plane": 0.0})
+	# The north-east corner behind turn 2: a team camped by their hauler, in
+	# the gravel past the turn's outside wall (layout 4: it stood across the
+	# turn's banking before, so the lap cars ran through it and the stock car
+	# could not get round the oval: speedway_plan.gd heat_race).
+	b.fixture(110.6, 22.6, 119.4, 24.4, 2.7, "trailer", "trailer")
+	b.town("semi_tractor", 120.5, 23.5, {"solid": .45})
+	b.board("speedway_ad_bait", 115.0, 24.44, .9, {"z": 1.3, "plane": 0.0})
 
 
 func cast() -> void:

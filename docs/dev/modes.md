@@ -66,7 +66,10 @@ rounds and pockets each player's own.
   log carriage, steam jets and core pulses (already per player).
 - Vehicles (`features/vehicles.gd`, [gameplay.md](gameplay.md#vehicles)) are
   the campaign's and co-op's only: a partner rides along in the airboat's
-  second seat. Versus, the 5v5 and County Run have none, so nothing online
+  second seat, or beside the stock car's driver (riding shotgun, shooting
+  out of the window, the cab seen from the passenger seat; no partner tag
+  over someone in the same vehicle); a set piece's reward goes to everyone
+  in it. Versus, the 5v5 and County Run have none, so nothing online
   drives (a seated client's prediction leads only its aim).
 
 ### Scaling
@@ -423,8 +426,8 @@ times run times to sites and checks the bots' routes and holds (strict).
 ## Presentation
 
 `mode_screens.gd`, drawn only with more than one player: partners in the world
-(`player_<heading>_<step>` cels, tinted by slot, squat when down; the 3D view
-draws each as Mundell's model, below), each
+(`player_<heading>_<step>` cels, tinted by slot; the 3D view draws each as
+Mundell's model, below), each
 partner's tag and health over their head or at the view's edge with an arrow,
 `E  HOLD TO REVIVE P2` where the use prompts go and the progress, the frags
 and clock in versus, the down screen (`game_view.gd`: YOU'RE DOWN with the
@@ -445,6 +448,121 @@ player in Hickston's mirror is the same model on the reflection's render layer
 (`ActorLayer3D.show_reflection`). Looks only: nothing carried changes.
 `tools/mode_frames.gd -- only=mundell` lines partners up turned every way and
 in each pose (`docs/godot3d/compare/actors/mundell_*.png`).
+
+**Lying down.** Since pass 7 a player who is down has a flat picture of
+their own: `player_down_side` (seen across, the head to the left; flipped
+from behind), `player_down_head` and `player_down_feet` (from each end),
+picked by where the viewer stands from the way they faced (the model falls
+onto its side, its head to its right) and drawn `h / DOWN_ROWS` (122 rows a
+map unit) tall (`ModeScreens.sprites`). They are the 3D model's own down
+frame drawn by the game's own view (`tools/art/build_player_down.gd`, a
+window: the view drawn with and without the body, the difference its matte,
+no shadows, a dark rim as the old cels have), so the flat picture (a view
+tour's cels, a missing model) lies as the model does. Before, the standing
+picture squatted.
+
+**The kill feed** (`features/kill_feed.gd`, a looks feature, never carried
+or saved): co-op, deathmatch, team deathmatch and a COUNTY RUN party (the 5v5
+rounds keep theirs) get five short lines down the view's left, `MOST` 5,
+`SECONDS` 5: `BUBBA  SAWED-OFF  BILLY` (a hand put down by a player's own
+step or shot, `game.own_step`; bosses and tough guys by name, gold),
+`CLETUS WENT DOWN` (`... THAT'S THE WHOLE POSSE` when nobody is left up),
+`EARLENE HAULED CLETUS UP` (a revive), `... DUSTED OFF AND CAME BACK` (a
+respawn), in versus `BUBBA  SAWED-OFF  CLETUS` and `CLETUS CASHED OUT`, and
+online `BOB HEADED HOME` / `CARL ROLLED IN`. Each machine works it out from
+what its own game holds (players' health, `away` and `downed_by` watched
+tick to tick), so a client's copy put back on a snapshot may skip a line.
+
+**Watching while down** (`main.gd _watch_partner`, looks only through
+`Players.set_local`): outside the 5v5 rounds, two seconds after this
+machine's player goes down (one in deathmatch) the view goes to a partner up
+(team deathmatch: a teammate; deathmatch: whoever fragged them), SPACE or E
+the next, `WATCHING BUBBA` and `YOU'RE DOWN. BACK IN 12  /  SPACE  NEXT` at
+the top; back to their own the moment they are up. `TacticalScreens.human`
+is the slot this machine's keys drive in every mode now (`_take_mode`), so
+`_tick_party` and the host's tick keep feeding their own player.
+
+## Online co-op and deathmatch
+
+Since pass 7 CAMPAIGN CO-OP, DEATHMATCH and TEAM DEATHMATCH are on a hosted
+lobby's MODE row (`lobby.cfg`'s mode row and `mode_maps`, `NetPlay.PARTY_MODES`;
+the how-to is `docs/online.md`), hosted through the party line like the rest
+(`NetPlay.host_lobby(..., party_line=true)`, `join_lobby(code)`). People only,
+four at most (`most_players()`), no bots; MAP steps through the mode's own
+maps (`NetPlay.maps()`; a map only one mode lists moves the lobby to it).
+An always-open lobby has no host to lead a campaign: no CAMPAIGN CO-OP there
+(`modes()`).
+
+- **Deathmatch, team deathmatch**: the arenas of `Modes.ARENAS` (the rodeo
+  grounds, the Hogs' field, Rudy's big top, the saw floor, the crossroads, the
+  range, the 5v5 and 2v2 maps), START's level is the arena's
+  (`Modes.arena_of`), FRAG LIMIT and TIME LIMIT (`frag_limit`, `time_limit`)
+  go in the match options. Team deathmatch's teams are the lobby's picks
+  (`TeamDeathmatchMode.joined`: `TacticalMode.team_of`). The results'
+  ENTER (the host) takes everyone back to the lobby.
+- **Co-op, chapter by chapter** (`src/net/net_coop.gd`, `NetCoop`): MAP is a
+  chapter the host has reached (`may_start` says THE HOST AIN'T REACHED ...
+  otherwise; past Hickston everyone starts with the gate's replay kit,
+  `NetCoop.chapter_kit`, which main_flow's `start` now calls too) or THE
+  PARTY SAVE. Whenever the party goes somewhere else the host makes the next
+  game and moves the match onto it (`NetPlay.switch_match`: START again to
+  everyone on their own slots; snapshot numbers run on past the old game's,
+  `seq_from`, and a client's input numbers carry on, so a packet of the old
+  game still on its way is never taken for the new one):
+  - the chapter won: the host's ENTER on the tally (`ROLL ON, Y'ALL`; a
+    client sees `THE HOST TAKES THE PARTY ON`) makes the next chapter with
+    each player's own kit (`Modes.carry`) and history, opens its gate on the
+    host's profile (as local co-op does) and takes the party to the COUNTY
+    CROSSROADS (CLASSIC on: straight in). The hub's gates are the host's
+    open ones, the chapter under way CONTINUE (`dress`: the clients make the
+    same locked gates from START's `locked` and `gate_modes`);
+  - any player's USE at a gate (`portal_request` on the host's game, seen in
+    `main.gd _net_advance`): the hub's into a chapter (the one under way,
+    `main.net_run`, is picked up where it was left; any other starts fresh
+    with everyone's kit), a chapter's own gate back to the hub;
+  - everyone down: the host's ENTER retries a boss fight from the party's
+    boss checkpoint (`BossDoor.path_of`: `boss-checkpoint-<chapter>-party.json`,
+    never the host's own), the partners at player one's side (`gather`); R
+    (or no checkpoint) the chapter from its start, player one with the kit
+    it was entered with. A client's death screen says THE HOST PICKS WHAT
+    COMES NEXT; a copy never writes a checkpoint (`game.net_role` "copy").
+  - Keys and the PA lead are the party's as offline; quest stations, doors
+    and pickups are the host's game's like everything else.
+- **Saves**: only the host saves online. F5 in a chapter writes THE PARTY
+  SAVE (`NetCoop.save_path()`, beside the boss checkpoints; never the host's
+  quicksave or campaign entry, and an online chapter is never the host's
+  `campaign_run`); a client's F5 says THE HOST KEEPS THE SAVES. MAP THE PARTY
+  SAVE starts from it: the people in the lobby take its slots in order, a
+  slot nobody takes lies out of play, more people join beside player one;
+  START says so when there is no save yet (`may_start`). A save now keeps
+  each slot's name and `away` (no new version: the features block).
+- **A save taken while player one is down** (a co-op checkpoint taken while
+  the host was down and watching): `SessionStore.save` writes player one on
+  their feet with `REVIVE_HEALTH`, as a partner down comes back
+  (`Modes.gather`), and saves player one's own part whoever this machine
+  shows or acts (it focuses `players[0]`). Before, it never loaded.
+- **Late joining** (LATE JOIN on, the default): a newcomer takes a slot whose
+  person left, else a new player (`Modes.join_late`: co-op beside a partner
+  up with the lead's guns; versus at the spawn point farthest from everyone
+  with the kit, team deathmatch on the side with fewer up), and gets START
+  for it; the clients' copies get the new player from the next snapshot.
+- **Leaving**: the slot lies out of play (`Player.away`, `Modes.went_away`:
+  down, never stood up or respawned, not drawn, no tag) until someone takes
+  it. Nobody leaving ends the match but the host.
+- **Keys online** (`src/net/net_keys.gd`, host and clients alike): nothing a
+  key does may change a game between ticks, so the gun keys, ; ', reload,
+  USE, the pockets (Q [ ] pick one: `Controls.item` past `Game.POCKET_PICK`;
+  F and C B M V X use one) go out with the next controls
+  (`TacticalScreens.pending_*`), BACKSPACE turns round with the mouse's
+  turn, HOME levels the view; holstering is offline only.
+- `tools/net_party_check.gd` (check_all, about a minute) plays all of it
+  from a lobby server's party line with the real front end as host: three
+  in a co-op Hickston, a down and a revive and their feed lines, the host
+  down watching a partner with the copies keeping, the sheriff's checkpoint
+  and its retry, the chapter won, the hub's gates, the fair with the kits
+  carried, a late join, a leave, THE PARTY SAVE and its start; a deathmatch
+  played by bots on every copy with a late joiner and the results; team
+  deathmatch's picks.
 
 ## Running them locally
 
@@ -471,6 +589,80 @@ walk starts from the inputs the host really played (the echoed rows) and a
 correction fades over 90 ms (`NetPredict.Smoother`); `tools/net_lag.gd`
 measures it (multiplayer.md, "Lag: what a player feels").
 
+### Shots, reloads and pickups
+
+Pass 7, `src/net/net_gun_lead.gd`, `net_shot_predict.gd`, `net_echo_sound.gd`,
+`src/hands_watch.gd`. Before it a client's own shot flashed, banged and kicked
+when its copy played it: a round trip and the play-out later (350 ms on a
+100 ms link). Now, looks only, the host's game still the only truth:
+
+- **The gun leads.** `NetGunLead.lead` steps our gun through the unplayed
+  inputs with Weapons.Armory's sums (select, reload, the tick and its beats,
+  fire with its refusals: holstered, cooling down, reloading, switching, dry,
+  the 5v5 freeze through `hold_controls`), no dice and no hits. The flash, the
+  kick pose, the rifle's climb and the HUD's rounds are drawn from it and put
+  back after the frame, so a refused shot's round simply comes back. Not led:
+  dynamite (the fuse), something carried, the wheel, the gallery booth.
+- **What happened is shown once** (`NetShotPredict.frame`, from `_net_aim`):
+  the bang (and its room ring), the cycle's and reload's beats, a dry click and
+  its word, a gun's equip sound; for a shot the gun's kick (`feel.kick_now`),
+  shake, and every looks-only feature's muzzle puff, shell and smoke
+  (`GameFeature.own_shot`; `own_reload` for a reload's shells). A bullet or
+  pellet gun's line is drawn where our screen shows the world (`probe`: the
+  enemies and players the copy shows, which is what the host's rewind judges
+  by, then the walls; pellets off our own dice inside the spread): its tracer
+  and chips (`own_trace`), the wall's sound, and on someone well inside their
+  edge (the centre line) the crosshair's mark, the tick and blood (specks on a
+  player, the gore spray on a hand).
+- **A pickup** our drawn player reaches and would take (`would_take`:
+  collect's refusals) leaves the picture with its sound and word at once.
+- **The copy does not show it again.** `game.hands_watch` (null on a single
+  player game and a host) is called round the watched slot's `_step_hands`.
+  While something shown is due (within `WINDOW` inputs of the one the copy
+  plays) the step's looks-only calls are held (`game.own_quiet`:
+  `HandsWatch.defer`, `held_burst` for burst()'s specks, whose dice go as
+  ever) and its sounds written down (`NetEchoSound`). After it a shot the
+  copy fired is matched with the oldest shown one: its held looks dropped, its
+  shake taken back, the next kick skipped (`feel.skip_kick`), a mark it did
+  not give withdrawn with its blood (the specks taken out), a kill it gave
+  shown as it has it; a sound already heard is dropped, anything else (a kill's
+  tick, a yelp, a shot nobody foresaw) plays then. Something shown and never
+  played by `EXPIRE` inputs past is withdrawn quietly (a pickup comes back).
+- **Every online mode gets it** (County Run co-op, the 5v5 rounds, tag
+  team, and any mode added online later): it reads only Game.Controls, the
+  copy and `NetSync.Client`. Nothing carried is touched; `net_lag`,
+  `county_net_check` (which draw the frame as main.gd does) find no parting.
+
+`tools/predict_check.gd` (check_all) holds the cases: a shot played, refused,
+dry, a hit judged a miss, a gun taken up and fired, a pickup played and
+refused, a reload mid-burst (every cue, tracer and shell as often as a copy
+without prediction), and nothing on a game nobody watches. `net_lag.gd` prints
+button-to-flash shown and the copy's (the old way), and how often a shown shot
+or hit was withdrawn (`noshots` turns it off).
+
+Measured with `net_lag.gd -- lags=50,100,150` (one way each side, a fifth of
+it jitter, 2% loss; grainyard search and destroy, four people and six bots;
+the tool's clock is its own, so runs repeat nearly to the millisecond): three
+60 s runs with it and three with `noshots`, then one of 240 s with it. Button
+to the flash and bang, median (p95):
+
+| | 50 ms | 100 ms | 150 ms |
+| --- | --- | --- | --- |
+| before: when the copy fired it | 200 ms (217) | 350 (383) | 500 (533) |
+| now: shown | the same frame | the same frame | the same frame |
+| shots shown, then withdrawn (240 s) | 1.2% of 166 | 3.3% of 209 | 2.6% of 155 |
+| shots fired that were not foreseen | 0 | 0 | 0 |
+| marks shown, then withdrawn (240 s) | 23% of 57 | 25% of 48 | 35% of 46 |
+| (the tool's "looked a hit, judged a miss") | 21% | 18% | 30% |
+
+A withdrawn shot is mostly one pressed just before the round ended or the
+player went down on the host. A withdrawn mark is a centre line the host
+judged a miss, as often as the bots' own aim is (a line grazing a body's edge
+shows no mark at the press, `SURE`; the host's mark shows when it lands); on
+hands in County Run co-op (no rewind for them) a fifth of the marks shown
+were withdrawn in `county_net_check`. "The same frame": the input and its
+shot are drawn by the frame that sent it.
+
 ## The browser online
 
 dev.45: a lobby server's lobby with `ws_port` also takes WebSocket players
@@ -485,20 +677,21 @@ a 10-character join code or an address stays desktop only.
 
 ## Not done
 
-- Online co-op and deathmatch outside COUNTY RUN.
 - UDP hole punching (the party line relays instead; a desktop player still
   goes straight to a host whose router opened the port).
-- Client prediction of anything but walking and the aim (a shot, a pickup).
+- Client prediction of a thrown stick of dynamite, the saw's grind, a melee
+  blow landing, a projectile in flight, the scope going up, USE and items
+  (each still shows when the copy plays it).
 - A second local input set (split keyboard).
-- A kill feed outside the 5v5 modes.
-- A lying-down picture for a player who is down (the standing one, squat;
-  the 3D view's model falls and lies down).
 - Spawn points from the plans outside the 5v5 maps (only worked out).
 - Versus pickups other than the level's own.
-- The title's mode entries are MULTIPLAYER and COUNTY RUN (co-op and
-  deathmatch command line only).
-- A save or snapshot taken while player one is down does not load
-  (SessionStore refuses a player at 0; the quicksave is refused then anyway).
-- The co-op boss checkpoint's retry with partners is put together from the
-  save round-trip and `gather`, with no check of its own; the boss PARs and
-  the tuning are single-player numbers.
+- Co-op and deathmatch on the title with nobody else: there is no second
+  local input set and the partner bots are tools only (`tools/mode_bot.gd`),
+  so the title's MULTIPLAYER takes them online (HOST A GAME; a friend in the
+  same house joins by the host's address or the code); `--mode=` still plays
+  them against the tool bots from the project folder.
+- Online co-op: a revisited (won) chapter, the range and BOSS REMATCH stay
+  single-player; late joining does not scale the enemies already about
+  (CoopMode scales on the first tick and for new ones); the boss PARs and the
+  tuning are single-player numbers; the always-open servers carry no
+  CAMPAIGN CO-OP.

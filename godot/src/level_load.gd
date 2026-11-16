@@ -515,6 +515,8 @@ static func from_dict(j: Dictionary, assets: Assets) -> LevelData:
 	var laps: Variant = j.get("lap_cars", {})
 	lv.lap_cars = laps if laps is Dictionary else {}
 	lv.vehicles = j.get("vehicles", []) if j.get("vehicles", []) is Array else []
+	var runs: Variant = j.get("vehicle_runs", [])
+	lv.vehicle_runs = runs if runs is Array else []
 	for point: Variant in j.get("boss_decoys", []):
 		lv.boss_decoys.append(Vector2(LevelData._float(point[0]), LevelData._float(point[1])))
 	var arena: Variant = j.get("boss_arena", {})

@@ -70,7 +70,7 @@ func make() -> Builder:
 		# The far-off crowd of the range maps until the speedway has a bed of its
 		# own (docs/dev/audio.md): race night, not the yard's crickets.
 		"ambience": "range",
-		"layout": 3,
+		"layout": 4,
 		"sky": "speedway_sky",
 		"control_name": "FIX THE FIX: FUEL, CRUSHER, PA",
 		"extraction":
@@ -111,8 +111,68 @@ func build(_b) -> Array:
 	tow_lot()
 	var cast := Cast.new()
 	cast.dress(self)
+	heat_race()
 	Climbs.speedway(b)
 	return [12.0, 100.5, -PI / 2]
+
+
+# ------------------------------------------------------------ the heat race
+
+
+## The stock car's set piece (layout 4; features/vehicle_runs.gd): KEYS IN IT
+## on the garage wall over the car on pit row; three laps of the oval from
+## the start line, the way the lap cars run (east down the front stretch),
+## through a gate at each turn and the back stretch, to beat the Boggs boys'
+## time for three laps (or 80 seconds once they have run dry), with the pit
+## crew coming out of the infield onto the track at the car.
+func heat_race() -> void:
+	b.board("vehicle_sign_car", 58.5, 15.03, .5, {"z": .95, "plane": 0.0, "hung": true})
+	var crew := [
+		["tire_roller", 40.5, 45.5, "heat-roller-a"],
+		["tire_roller", 108.5, 31.5, "heat-roller-b"],
+		["nitro_huffer", 62.5, 59.5, "heat-huffer"],
+		["pit_mechanic", 90.5, 30.5, "heat-wrench"],
+	]
+	var ids: Array = []
+	for e in crew:
+		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
+		ids.append(e[3])
+	(
+		b
+		. triggers
+		. append(
+			{
+				"id": "heat-race-crew",
+				"when": {"run": "heat_race"},
+				"do": [{"wake": ids}],
+			}
+		)
+	)
+	var d := 19.6
+	var r := d / cos(PI / 8.0)
+	b.meta["vehicle_runs"] = [
+		{
+			"id": "heat_race",
+			"title": "HEAT RACE",
+			"kind": "car",
+			"start": [74.0, MID + d, 4.0, "THE START LINE"],
+			"way": [1.0, 0.0],
+			"gates":
+			[
+				[snappedf(STRAIGHT_E + r - 1.0, .01), MID, 6.0, "TURN ONE"],
+				[74.0, MID - d, 6.0, "THE BACK STRETCH"],
+				[snappedf(STRAIGHT_W - r + 1.0, .01), MID, 6.0, "TURN THREE"],
+				[74.0, MID + d, 5.0, "THE LINE"],
+			],
+			"laps": 3,
+			"time": 80.0,
+			"pace": true,
+			"reward": ["whiskey", "rinds", "rinds", "dynamite", "dynamite", "shells"],
+			"intro": "HEAT RACE! THREE LAPS, AND THE BOGGS BOYS AIN'T LETTIN' YOU BY!",
+			"won": "CHECKERED FLAG IN %s! THE PURSE IS IN THE GLOVEBOX.",
+			"lost": "THE BOGGS BOYS TOOK THE FLAG.",
+		}
+	]
 
 
 # ------------------------------------------------------------- the oval maths

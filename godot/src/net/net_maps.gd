@@ -27,7 +27,7 @@ const MODE_NEEDS := {
 	"county": "county",
 	"coop": "solo",
 	"deathmatch": "deathmatch",
-	"team": "deathmatch",
+	"team_deathmatch": "deathmatch",
 }
 
 ## The map CUSTOM MAPS' HOST ONLINE picked, for the next lobby opened.
@@ -40,6 +40,8 @@ static var received := {}
 static var refused := {}
 ## A custom map's name by its level id (the lobby screens show it).
 static var names := {}
+## The MODE each hosted lobby had last (which way the host stepped MODE).
+static var last_mode := {}
 
 
 ## The lobby just opened (main_flow.gd net_open_lobby): the map HOST ONLINE
@@ -53,10 +55,9 @@ static func after_open(net: NetPlay) -> void:
 
 ## Put `map` on the host's lobby and send it to everyone in it.
 static func host_map(net: NetPlay, map: Dictionary) -> void:
-	var id := UserMaps.register(map, true)
+	_register(map)
 	hosted[net.get_instance_id()] = map
-	names[id] = str(map["name"])
-	net.settings["map"] = id
+	net.settings["map"] = UserMap.level_id(map, true)
 	net.settings["custom_map"] = {
 		"hash": UserMap.hash_of(map), "name": str(map["name"]), "author": str(map["author"])
 	}
@@ -87,7 +88,9 @@ static func unpack(info: Dictionary) -> Dictionary:
 	if not data is PackedByteArray or not hash is String:
 		return {"error": "THE MAP CAME MANGLED."}
 	var raw: PackedByteArray = data
-	if raw.is_empty() or raw.size() > UserMap.limit("bytes"):
+	if raw.is_empty():
+		return {"error": "THE MAP CAME EMPTY."}
+	if raw.size() > UserMap.limit("bytes"):
 		return {"error": "THE MAP CAME TOO BIG TO BE ONE."}
 	var text := raw.get_string_from_utf8()
 	if UserMap.hash_text(text) != str(hash):
@@ -110,43 +113,66 @@ static func take(net: NetPlay, info: Dictionary) -> void:
 		net.leave("THE HOST'S MAP WAS NO GOOD: " + str(got["error"]))
 		return
 	var map: Dictionary = got["map"]
-	var id := UserMaps.register(map, true)
-	names[id] = str(map["name"])
+	_register(map)
 	received[net.get_instance_id()] = UserMap.hash_of(map)
 	UserMaps.keep_shared(map)
 
 
+## Both copies of a map where the game loads levels: CAMPAIGN CO-OP plays
+## the map itself (hands, lever, truck), every other mode its versus copy.
+static func _register(map: Dictionary) -> void:
+	for versus: bool in [false, true]:
+		names[UserMaps.register(map, versus)] = str(map["name"])
+
+
 ## The lobby's MODE fitted to a custom map (true), or the lobby is not on one
-## (false; its "custom_map" goes).
-static func fit_mode(net: NetPlay) -> bool:
+## (false; its "custom_map" goes). A MODE the map cannot host is stepped past
+## the way the host stepped (the host's lobby says why), and MAP is the map's
+## own level for CAMPAIGN CO-OP, its versus copy for the rest. TAG TEAM 2V2
+## keeps to its own maps; an always-open lobby never gets a player map.
+static func fit_mode(net: NetPlay, changed := "map") -> bool:
 	var id := str(net.settings.get("map", ""))
+	var key := net.get_instance_id()
 	if not UserMap.is_custom(id):
 		net.settings.erase("custom_map")
+		last_mode.erase(key)
 		return false
-	var map: Dictionary = hosted.get(net.get_instance_id(), {})
+	var map: Dictionary = hosted.get(key, {})
 	if map.is_empty():
-		return true
+		return true  # a client's view of the settings: the host fits them
 	var can := UserMap.modes(map)
+	var offered: Array = net.modes()
 	var mode := str(net.settings.get("mode", ""))
-	if str(can.get(str(MODE_NEEDS.get(mode, "")), "no")) == "":
-		return true
-	var row := LobbyScreens.setting_row("mode")
-	var values: Array = row[2] if not row.is_empty() else []
-	for v: Variant in values:
-		var each := str(v)
-		if each != "tagteam" and str(can.get(str(MODE_NEEDS.get(each, "")), "no")) == "":
-			net.settings["mode"] = each
-			var why := str(can.get(str(MODE_NEEDS.get(mode, "")), ""))
-			if why != "" and why != "no":
-				# Said in the lobby: why the MODE asked for did not take.
-				net._tell(
-					(
-						"%s CAN'T HOST %s: %s"
-						% [map["name"], LobbyScreens.value_name("mode", mode), why]
-					)
-				)
-			return true
+	if not _hosts(can, mode):
+		var at := offered.find(mode)
+		var from := offered.find(str(last_mode.get(key, mode)))
+		var step := 1
+		if at >= 0 and from >= 0 and posmod(at - from, offered.size()) > offered.size() / 2:
+			step = -1
+		var picked := ""
+		for k in offered.size():
+			var each := str(offered[posmod(maxi(at, 0) + k * step, offered.size())])
+			if _hosts(can, each):
+				picked = each
+				break
+		var why := str(can.get(str(MODE_NEEDS.get(mode, "")), ""))
+		if changed == "mode" and why != "":
+			# Said in the lobby: why the MODE asked for did not take.
+			net._tell(
+				"%s CAN'T HOST %s: %s" % [map["name"], LobbyScreens.value_name("mode", mode), why]
+			)
+		elif changed == "mode" and mode == "tagteam":
+			net._tell("TAG TEAM 2V2 KEEPS TO ITS OWN THREE MAPS.")
+		if picked != "":
+			mode = picked
+			net.settings["mode"] = mode
+	last_mode[key] = mode
+	net.settings["map"] = UserMap.level_id(map, mode != Modes.COOP)
 	return true
+
+
+static func _hosts(can: Dictionary, mode: String) -> bool:
+	return mode != "tagteam" and str(can.get(str(MODE_NEEDS.get(mode, "")), "no")) == ""
 
 
 ## What the lobby screens call a lobby's map ("" for one not custom).

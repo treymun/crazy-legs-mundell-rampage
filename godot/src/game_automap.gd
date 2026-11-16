@@ -88,10 +88,18 @@ func draw(g: Game, c: Canvas) -> void:
 				false
 			)
 	_labels(g, c)
+	# The vehicles standing ready, keys in them (src/vehicle_finder.gd).
+	var keyed := ""
+	var rides: Game.VehiclesScript = g.features.get("vehicles")
+	if rides != null and not g.in_hub and rides.active():
+		VehicleFinder.draw_map(c, self, rides.rides)
+		for v: VehicleDrive.Ride in rides.rides:
+			if keyed == "" and VehicleFinder.ready(v):
+				keyed = v.kind
 	CountyStorm.draw_map(c, g)
 	_goal(g, c)
 	_player_mark(g, c)
-	MapKey.draw(c, MAP_X + 1, MAP_Y + MAP_H - 1)  # what the marks mean
+	MapKey.draw(c, MAP_X + 1, MAP_Y + MAP_H - 1, keyed)  # what the marks mean
 	c.line(MAP_X, MAP_Y + MAP_H + 3, MAP_X + MAP_W - 1, MAP_Y + MAP_H + 3, Canvas.rgb(120, 87, 59))
 	HUD.text(
 		c,

@@ -10,8 +10,8 @@
 ## way is run down (dead, killed by "roadkill" or the mower's blade, its body
 ## thrown along the way it was going); USE puts the player back on foot
 ## beside it, not inside it or a wall. Then: the airboat only runs on water
-## and marsh, the car will not climb a stair, the car holds the gun down (no
-## shots from the wheel) while the airboat shoots; a wreck throws its driver
+## and marsh, the car will not climb a stair, the car's driver holds a
+## one-handed gun out of the window while the airboat shoots; a wreck throws its driver
 ## out hurt; a game driven and one made from its snapshot drive on the same,
 ## tick for tick; and a save and load keeps where it was parked. Then how
 ## they look on the move (tools/vehicle_feel_check.gd).
@@ -266,12 +266,17 @@ func _rules(main) -> void:
 	# The car will not climb a stair (a tread taller than its step).
 	var car := VehicleDrive.spec("car")
 	_check(car.step < LevelGeometry.STEP, "the car's step (%.2f) is under a stair's" % car.step)
-	# The car holds the gun down; the airboat shoots.
+	# The car's driver has a one-handed gun out of the window (the .38 to
+	# start with; a long gun stays down: tools/vehicle_set_check.gd); the
+	# airboat shoots.
 	g = _game(main, "speedway")
 	walk_up(g)
 	g.interact()
 	var holstered := g.player.armory.holstered
-	_check(holstered and rides(g).hands_busy(g.player), "speedway: the car's driver holds no gun")
+	_check(
+		not holstered and not rides(g).hands_busy(g.player),
+		"speedway: the car's driver holds the .38 out of the window"
+	)
 	var b := _game(main, "bayou")
 	walk_up(b)
 	b.interact()

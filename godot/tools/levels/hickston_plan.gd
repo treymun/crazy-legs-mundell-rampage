@@ -88,6 +88,9 @@ func build(_b) -> Array:
 	more_detail()
 	story()
 	polish()
+	# KEYS IN IT on the chapel's south wall over the mower (src/vehicle_finder.gd):
+	# hung on the wall that is there, so the map is as it was (no new layout).
+	b.board("vehicle_sign_mower", 81.2, 58.03, .45, {"z": .85, "plane": 0.0, "hung": true})
 	Climbs.hickston(b)
 	return [7.5, 69.5, 0.0]
 

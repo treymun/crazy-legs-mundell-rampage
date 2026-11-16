@@ -60,11 +60,9 @@ static func why_not(entry: Dictionary, what: String) -> String:
 		"solo", "bomb", "hostage", "county":
 			return str(UserMap.modes(map)[what])
 		"host":
-			var hosts := UserMap.hosts(map)
-			for mode: String in ["bomb", "hostage", "county"]:
-				if hosts.has(mode):
-					return ""
-			return "ONLINE NEEDS 5V5 MARKS OR ROOM FOR A COUNTY RUN."
+			if UserMap.hosts(map).is_empty():
+				return "NOTHING TO HOST YET: PUT YOUR START DOWN AND GIVE IT ROOM."
+			return ""
 		"remove":
 			return "THE EXAMPLES STAY." if str(entry["source"]) == "example" else ""
 	return ""

@@ -1,14 +1,28 @@
-## The browser build's second download. Each chapter's music is left out of the
-## first one (export_presets.cfg) and published beside it as a small pack
-## (tools/make_packs.gd writes them and packs.json). This fetches them after
-## the game has started, the chapter being played first, keeps them in the
-## browser's storage for the next visit, and mounts each as it arrives; until
-## then that chapter's music is simply not there yet (assets.gd track()).
+## The browser build's second download. The first one (index.pck) holds the
+## title and Hickston; each chapter's own files (its music, its enemies'
+## pictures, looks, sounds and models) are left out of it (export_presets.cfg)
+## and published beside it as a pack (tools/make_packs.gd writes them and
+## packs.json). This fetches them after the game has started, the chapter
+## being played first, keeps them in the browser's storage for the next
+## visit, and mounts each as it arrives. Until then that chapter's music is
+## simply not there yet (assets.gd track()) and main_flow.gd play() waits for
+## its pictures, saying so with the chapter's ROAD_LINES.
 class_name PackLoader
 extends Node
 
 const STORE := "user://packs"
 const MANIFEST := "packs.json"
+const CHUNK := 4 << 20
+## What the screen says while a chapter's pack comes down, with how far.
+const ROAD_LINES := {
+	"chapter_hickston": "WARMING UP THE TRUCK",
+	"chapter_fair": "TOWING THE FAIRGROUNDS IN",
+	"chapter_sawmill": "HAULING LOGS TO BLACKWATER",
+	"chapter_quarry": "BLASTING A ROAD TO STILLWATER",
+	"chapter_bayou": "POLING OUT TO GATOR BAYOU",
+	"chapter_speedway": "GASSING UP FOR THE SPEEDWAY",
+	"chapter_mothership": "HITCHING A RIDE TO THE SAUCER",
+}
 
 var manifest := {}
 var queue: Array[String] = []
@@ -31,10 +45,13 @@ func _ready() -> void:
 	# packs both) before Godot sees it; asking for gzip made Godot unzip it
 	# again, fail, and never mount a pack.
 	_http.accept_gzip = false
+	# Read in big bites: the request is polled once a frame, and the default
+	# 64 KB a bite is under 4 MB a second at 60 frames a second.
+	_http.download_chunk_size = CHUNK
 	add_child(_http)
 	_http.request_completed.connect(_done)
 	_manifest_due = true
-	print("music packs from ", _base)
+	print("chapter packs from ", _base)
 	_next()
 
 
@@ -47,6 +64,13 @@ func progress(pack: String) -> float:
 		var total: float = entry.get("size", 1)
 		return clampf(float(_http.get_downloaded_bytes()) / maxf(1.0, total), 0.0, .99)
 	return 0.0
+
+
+## The line the screen shows while `pack` comes down: the chapter's road
+## and how far along it is.
+func road_line(pack: String) -> String:
+	var line := str(ROAD_LINES.get(pack, "FETCHING THE CHAPTER"))
+	return "%s... %d%%" % [line, roundi(progress(pack) * 100.0)]
 
 
 ## Fetch this pack next (a chapter has just started).
@@ -73,7 +97,7 @@ func _next() -> void:
 		_http.download_file = ""
 		var asked := _http.request(_base + MANIFEST)
 		if asked != OK:
-			print("music packs: cannot ask for ", _base + MANIFEST, " (error ", asked, ")")
+			print("chapter packs: cannot ask for ", _base + MANIFEST, " (error ", asked, ")")
 			_busy = ""
 			_retry(MANIFEST)
 		return
@@ -148,9 +172,30 @@ func _mount(name: String) -> void:
 	var path := STORE.path_join(str(manifest[name]["file"]))
 	if ProjectSettings.load_resource_pack(path, false):
 		loaded[name] = true
-		print("music pack ready: ", name)
+		_learn_ids(name)
+		print("chapter pack ready: ", name)
 	else:
 		push_warning("could not mount " + path)
+
+
+## The ids of the models a pack brings (tools/make_packs.gd uid_list): the
+## first download's list was made without them, and a scene naming one by id
+## would fall back to its path with a warning.
+func _learn_ids(name: String) -> void:
+	var list := "res://packs/%s.uids" % name
+	if not FileAccess.file_exists(list):
+		return
+	for line in FileAccess.get_file_as_string(list).split("\n", false):
+		var parts := line.split(" ", false)
+		if parts.size() != 2:
+			continue
+		var id := ResourceUID.text_to_id(parts[0])
+		if id == ResourceUID.INVALID_ID:
+			continue
+		if ResourceUID.has_id(id):
+			ResourceUID.set_id(id, parts[1])
+		else:
+			ResourceUID.add_id(id, parts[1])
 
 
 ## Packs kept from an earlier version of the game.

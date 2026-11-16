@@ -16,10 +16,14 @@
 ## 5. A map save: saved and loaded; refused when the map changed, when it is
 ##    gone, when it is from a newer game.
 ## 6. The online lobby: a host on a custom map, a client joins and gets it
-##    (hash checked, put where levels load, kept under shared), the match
-##    starts on the same level on both; the map changed in the lobby reaches
-##    everyone; hostile MAP packets (wrong hash, oversized, a zip bomb, not
-##    canonical, junk) are refused and a client given one leaves with the why.
+##    (hash checked, put where levels load, kept under shared), a 5v5 match,
+##    a DEATHMATCH (a late joiner gets the map, then drops in), TEAM
+##    DEATHMATCH, CAMPAIGN CO-OP on the map itself (not held to the chapters
+##    reached, no PARTY SAVE, the win back to the lobby with nothing opened);
+##    MODE stepped past what a map can't host (and why), TAG TEAM never on
+##    one, MAP back to the game's own; the always-open servers refuse player
+##    maps; the map changed in the lobby reaches everyone; hostile MAP
+##    packets are refused and a client given one leaves with the why.
 ## Maps and saves go under OS.get_cache_dir(), never the player's folder.
 extends SceneTree
 
@@ -559,8 +563,14 @@ func _saves() -> void:
 # ------------------------------------------------------------------ 6
 
 
-func _make(info: Dictionary) -> Game:
-	return main.net_match_game(info)
+## A client's game for START, made as that machine's front end makes it
+## (main_flow.gd net_match_game with the client's lobby as its own).
+func _client_make(info: Dictionary, client: NetPlay) -> Game:
+	var was: NetPlay = main.net
+	main.net = client
+	var made: Game = main.net_match_game(info)
+	main.net = was
+	return made
 
 
 func _pump(frames: int) -> void:
@@ -579,6 +589,49 @@ func _wait(what: Callable, most := 300) -> bool:
 	return what.call()
 
 
+func _join(port: int, name: String) -> NetPlay:
+	var client := NetPlay.join_lobby("127.0.0.1:%d" % port, name)
+	client.make_match = _client_make.bind(client)
+	nets.append(client)
+	return client
+
+
+## The match on for `ticks`, everyone standing still.
+func _play_ticks(host: NetPlay, clients: Array, ticks: int) -> void:
+	for t in ticks:
+		now += STEP * 1000.0
+		for net: NetPlay in nets:
+			net.poll(now)
+		host.host_tick({})
+		for c: NetPlay in clients:
+			if c.phase == "match":
+				c.client_input(Game.Controls.new())
+				c.client_play(1)
+
+
+## Everyone ready, the match started: "" or why not.
+func _start(host: NetPlay, clients: Array) -> String:
+	for c: NetPlay in clients:
+		c.ask({"ready": true})
+	_wait(
+		func() -> bool:
+			return clients.all(
+				func(c: NetPlay) -> bool: return bool(host.player_of(c.my_id).get("ready", false))
+			)
+	)
+	var why := host.start_match()
+	if why == "":
+		_wait(
+			func() -> bool: return clients.all(func(c: NetPlay) -> bool: return c.phase == "match")
+		)
+	return why
+
+
+func _back(host: NetPlay, clients: Array) -> void:
+	host.back_to_lobby()
+	_wait(func() -> bool: return clients.all(func(c: NetPlay) -> bool: return c.phase == "lobby"))
+
+
 func _online() -> void:
 	var barn: Dictionary = _example("the_sale_barn")["map"]
 	var forty: Dictionary = _example("pucketts_back_forty")["map"]
@@ -592,11 +645,13 @@ func _online() -> void:
 	_check(host != null, "the host opens a lobby")
 	if host == null:
 		return
-	host.make_match = _make
 	nets.append(host)
+	var m: MainFlow = main
+	m._net_ready(host)  # the front end's own: make_match, may_start
 	NetMaps.pending = barn
 	NetMaps.after_open(host)
 	var vs := UserMap.level_id(barn, true)
+	var solo := UserMap.level_id(barn)
 	_check(
 		str(host.settings["map"]) == vs and str(host.settings["mode"]) == "bomb",
 		(
@@ -606,17 +661,19 @@ func _online() -> void:
 	)
 	# The client is another machine: it has never seen the map.
 	LevelData.preview.erase(vs)
+	LevelData.preview.erase(solo)
 	_wipe(UserMaps.shared_folder())
-	var alice := NetPlay.join_lobby("127.0.0.1:%d" % port, "alice")
-	alice.make_match = _make
-	nets.append(alice)
+	var alice := _join(port, "alice")
 	_wait(func() -> bool: return NetMaps.received.has(alice.get_instance_id()))
 	_check(alice.phase == "lobby", "ALICE joins")
 	_check(
 		str(NetMaps.received.get(alice.get_instance_id(), "")) == UserMap.hash_of(barn),
 		"ALICE gets the map, its hash checked"
 	)
-	_check(LevelData.preview.has(vs), "and it is where her game loads levels from")
+	_check(
+		LevelData.preview.has(vs) and LevelData.preview.has(solo),
+		"and both its copies are where her game loads levels from"
+	)
 	var kept := UserMaps.shared_folder().path_join(UserMap.hash_of(barn).substr(0, 16) + ".json")
 	_check(
 		FileAccess.file_exists(kept) and not UserMaps.read(kept, "shared").has("error"),
@@ -627,13 +684,11 @@ func _online() -> void:
 		LobbyScreens.value_name("map", alice.settings["map"]) == "THE SALE BARN",
 		"her lobby shows the map's name"
 	)
+	# A 5v5 round with bots.
 	host.set_setting("team_size", 2)
 	host.set_setting("rounds", 2)
-	alice.ask({"ready": true})
-	_wait(func() -> bool: return bool(host.player_of(alice.my_id).get("ready", false)))
-	var why := host.start_match()
-	_check(why == "", "the host starts the match on it %s" % why)
-	_wait(func() -> bool: return alice.phase == "match")
+	var why := _start(host, [alice])
+	_check(why == "", "the host starts a 5v5 match on it %s" % why)
 	var hg := host.match_game()
 	var ag := alice.match_game()
 	_check(
@@ -647,17 +702,12 @@ func _online() -> void:
 		),
 		"both play the same level (%s)" % (ag.level.id if ag != null else "none")
 	)
-	for t in 120:
-		now += STEP * 1000.0
-		for net: NetPlay in nets:
-			net.poll(now)
-		host.host_tick({})
-		alice.client_input(Game.Controls.new())
-		alice.client_play(1)
+	_play_ticks(host, [alice], 120)
 	_check(alice.client_ready() and alice.phase == "match", "the match plays on the custom map")
-	host.back_to_lobby()
-	_wait(func() -> bool: return alice.phase == "lobby")
+	_back(host, [alice])
+	_party(host, alice, port, barn)
 	# The host picks another map: it reaches everyone in the lobby.
+	host.set_setting("mode", "bomb")
 	NetMaps.host_map(host, forty)
 	_wait(
 		func() -> bool:
@@ -671,15 +721,167 @@ func _online() -> void:
 		str(host.settings["mode"]) == "county",
 		"the lobby's MODE moves to one the map can host (%s)" % host.settings["mode"]
 	)
-	var heard := [""]
-	_wait(
-		func() -> bool:
-			heard[0] += " ".join(host.take_news())
-			return heard[0].contains("CAN'T HOST")
+	host.take_news()
+	host.set_setting("mode", "hostage")
+	var heard := " ".join(host.take_news())
+	_check(
+		(
+			not str(host.settings["mode"]) in ["hostage", "bomb", "tagteam"]
+			and UserMap.is_custom(str(host.settings["map"]))
+			and heard.contains("CAN'T HOST HOSTAGE")
+		),
+		"MODE steps past one the map can't host (to %s), the host told why" % host.settings["mode"]
+	)
+	host.set_setting("mode", "tagteam")
+	_check(
+		str(host.settings["mode"]) != "tagteam" and UserMap.is_custom(str(host.settings["map"])),
+		"TAG TEAM 2V2 never takes a player map (%s)" % host.settings["mode"]
+	)
+	host.set_setting("map", "salvage")
+	_check(
+		not host.settings.has("custom_map") and str(host.settings["mode"]) == "bomb",
+		"MAP stepped to the game's own map leaves the player map"
+	)
+	# The always-open servers take no player map.
+	_check(
+		NetPlay.allowed_value("map", vs) == null and NetPlay.allowed_value("map", solo) == null,
+		"an always-open lobby's admin cannot set a player map"
+	)
+	_packets(alice, barn)
+	host.leave()
+	m.net = null
+	m.state = "title"
+
+
+## DEATHMATCH, TEAM DEATHMATCH and CAMPAIGN CO-OP on the sale barn, and a
+## late joiner.
+func _party(host: NetPlay, alice: NetPlay, port: int, barn: Dictionary) -> void:
+	var vs := UserMap.level_id(barn, true)
+	var solo := UserMap.level_id(barn)
+	var m: MainFlow = main
+	host.set_setting("mode", "deathmatch")
+	_check(
+		str(host.settings["mode"]) == "deathmatch" and str(host.settings["map"]) == vs,
+		"DEATHMATCH takes the player map (%s)" % host.settings["map"]
+	)
+	var why := _start(host, [alice])
+	_check(why == "", "a deathmatch starts on it %s" % why)
+	_play_ticks(host, [alice], 30)
+	var hg := host.match_game()
+	var ag := alice.match_game()
+	var spread := (
+		hg != null
+		and hg.players.size() >= 2
+		and (
+			Vector2(hg.players[0].x, hg.players[0].y).distance_to(
+				Vector2(hg.players[1].x, hg.players[1].y)
+			)
+			> 3.0
+		)
 	)
 	_check(
-		heard[0].contains("CAN'T HOST"), "and the host is told why (%s)" % heard[0].strip_edges()
+		(
+			hg != null
+			and ag != null
+			and Modes.mode_of(hg) == Modes.DEATHMATCH
+			and ag.level.id == vs
+			and hg.enemies.is_empty()
+			and spread
+		),
+		"both on the versus copy, no hands, the two spawned apart"
 	)
+	# Someone drops in during it: the map first, then the match.
+	LevelData.preview.erase(UserMap.level_id(barn, true))
+	var bob := _join(port, "bob")
+	_wait(func() -> bool: return bob.phase == "match" or bob.phase == "closed", 400)
+	_check(
+		str(NetMaps.received.get(bob.get_instance_id(), "")) == UserMap.hash_of(barn),
+		"a late joiner gets the map on the way in"
+	)
+	_check(
+		bob.phase == "match" and bob.match_game() != null and bob.match_game().level.id == vs,
+		"and drops into the deathmatch on it (%s)" % bob.phase
+	)
+	_play_ticks(host, [alice, bob], 90)
+	_check(alice.phase == "match" and bob.phase == "match", "the deathmatch plays on")
+	_back(host, [alice, bob])
+	_check(host.phase == "lobby", "results go back to the lobby")
+	host.set_setting("mode", "team_deathmatch")
+	why = _start(host, [alice, bob])
+	_check(
+		why == "" and Modes.mode_of(host.match_game()) == Modes.TEAM,
+		"TEAM DEATHMATCH starts on it too %s" % why
+	)
+	_play_ticks(host, [alice, bob], 60)
+	_back(host, [alice, bob])
+	# CAMPAIGN CO-OP: the map itself, one map and back to the lobby.
+	host.set_setting("mode", "coop")
+	_check(
+		str(host.settings["map"]) == solo,
+		"CAMPAIGN CO-OP plays the map itself, hands and all (%s)" % host.settings["map"]
+	)
+	_check(host.may_start.call() == "", "and is not held to the chapters the host has reached")
+	var unlocked_before: Dictionary = m.unlocked.duplicate()
+	var party_save := NetCoop.save_path()
+	var saved_before := (
+		FileAccess.get_modified_time(party_save) if FileAccess.file_exists(party_save) else -1
+	)
+	why = _start(host, [alice, bob])
+	_check(why == "", "a co-op starts on it %s" % why)
+	var g := host.match_game()
+	_check(
+		g != null and g.level.id == solo and not g.enemies.is_empty() and g.players.size() == 3,
+		"three of them against the map's hands (%d)" % (g.enemies.size() if g != null else -1)
+	)
+	if g == null:
+		return
+	# Everyone down: R starts the map over for the party, the same map.
+	for p: Player in g.players:
+		p.health = 0
+	m.game = g
+	NetCoop.retry(m, false)
+	_wait(func() -> bool: return alice.match_game() != null and alice.match_game() != g)
+	g = host.match_game()
+	_check(
+		(
+			g.level.id == solo
+			and g.player.health == 100
+			and alice.phase == "match"
+			and alice.match_game().level.id == solo
+		),
+		"everyone down: the retry starts the map over for the whole party"
+	)
+	m.game = g
+	NetCoop.save(m)
+	var saved_after := (
+		FileAccess.get_modified_time(party_save) if FileAccess.file_exists(party_save) else -1
+	)
+	_check(saved_after == saved_before, "F5 writes no PARTY SAVE on a player map")
+	var lever: LevelData.Station = g.world.stations[0]
+	g.focus(g.players[0])
+	g.operate_station(lever)
+	var exit := g.world.extraction
+	g.player.x = exit.x - .8
+	g.player.y = exit.y
+	g.player.floor_z = 0.0
+	g.player.angle = 0.0
+	for k in 3:
+		GameUse.interact(g)
+		host.host_tick({})
+	_check(g.won, "the party throws the lever and makes the truck")
+	NetCoop.next(m)
+	_wait(func() -> bool: return alice.phase == "lobby" and bob.phase == "lobby")
+	_check(
+		host.phase == "lobby" and m.net_run == null and m.unlocked == unlocked_before,
+		"the win goes back to the lobby: no Crossroads, no chapter, nothing opened"
+	)
+	m.game = null
+	bob.leave()
+	nets.erase(bob)
+	host.set_setting("mode", "bomb")
+
+
+func _packets(alice: NetPlay, barn: Dictionary) -> void:
 	# The packet stays far under the party line's cap, the largest map too.
 	var big := UserMap.blank(64, 64, "BIG")
 	var rows: Array = big["rows"]
@@ -718,12 +920,11 @@ func _online() -> void:
 			got.has("error") and not got.has("map"),
 			"a MAP packet refused: %s (%s)" % [case[0], got.get("error", "")]
 		)
-	NetMaps.take(alice, cases[2][1])
+	NetMaps.take(alice, cases[4][1])
 	_check(
 		alice.phase == "closed" and alice.reason.contains("MAP WAS NO GOOD"),
 		"a client sent a bad map leaves with why (%s)" % alice.reason
 	)
-	host.leave()
 
 
 func _packet_with(packet: Dictionary, key: String, value: Variant) -> Dictionary:

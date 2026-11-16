@@ -16,7 +16,11 @@ decision here comes from measurement and from the code.
   loudness: every take of a set comes out as loud as the first).
 - `scripts/audio_build.py` finishes them (free, deterministic): `--sfx` all
   the effects, `--sfx --only <cues>` just those (a `room_`/`bleep` cue needs
-  its base in the list), `--check`. Then `tools/pack_assets.gd`.
+  its base in the list), `--check`. Then `tools/pack_assets.gd`. A cue
+  named after a chapter's enemy (`<kind>_...`, `boss_<kind>_...`) goes in
+  that chapter's `sfx_<chapter>.bin` and its browser pack; the browser and
+  phone builds play the music re-encoded at Vorbis q3 (`pack_lite.gd`,
+  [checks.md](checks.md#the-browser-packs)).
 - `level_to` brings a cue to its level under a -0.8 dB ceiling: a gentle knee
   up to 6 dB over, past that a look-ahead limiter (`limit_peaks`, at most
   `LIMIT_DB` 6 dB off the spikes) and then a plain scale. Very short spiky cues

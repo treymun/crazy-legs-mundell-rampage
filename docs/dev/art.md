@@ -4,6 +4,11 @@ The art in `assets/` is made by the Godot art tools in `godot/tools/art/`
 (GDScript, run like the other tools), with Blender for the 3D renders and the
 3D models (`scripts/blender/`, run inside Blender's own Python). After any of
 them, run `tools/pack_assets.gd` (and `--import` after new `.glb` files).
+A chapter enemy's art and model, and a prop only one chapter shows, go in
+that chapter's browser pack by themselves; a new model of a chapter enemy or
+such a prop needs `tools/pack_check.gd -- fix` to write it into the browser
+presets' list ([checks.md](checks.md#the-browser-packs)). The browser and
+phone builds halve model textures over 512 texels a side (`pack_lite.gd`).
 `paint.gd` is their drawing library. Each takes `out=<dir>` to write somewhere
 else for a comparison. Their pictures have the old Python builders' look, not
 their exact bytes. Every picture is committed to the VGA palette.
@@ -32,6 +37,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_weather_art` | prints in the mud: `mark_boot_mud`, `mark_hoof_mud`, `mark_claw_mud`, `mark_tyre_mud` |
 | `build_item_art` | the armory's wall pictures of guns with no pickup picture (`item_<name>`, via `item_pictures.py`) |
 | `build_range_signs` | the firing range's signs |
+| `build_vehicle_signs` | the hand-painted KEYS IN IT signs left by the vehicles (`vehicle_sign_airboat`, `_car`, `_mower`: letters a pixel up or down, paint running, a key on a ring; sun-bleached bayou planks with a bite out, a checkered tin plate, the church's whitewash) |
 | `enemy_sheet` | `-- dirs=<old>,<new>` lays cels side by side (`docs/enemy_art/`) |
 
 CI runs `build_fx_art`, `build_building_tiles`, `build_menu_art` and
@@ -94,6 +100,16 @@ all from that picture; head and face get more of the texture (`uv_head`,
 `uv_face`, export_actors.py `_favour_head`); `enemy_actors.py -- <dir> mundell
 0,quarter_0,side_0,away_0,back_0 2` renders him to hold against the player
 pictures.
+
+His pictures lying down (`assets/art/player_down_side`, `_head`, `_feet`, for
+a player down drawn flat: [modes.md](modes.md#presentation)) are the model's
+own down frame drawn by the game's 3D view: `tools/art/build_player_down.gd`
+(a window: `godot --path godot --audio-driver Dummy --resolution 1280x800
+--script res://tools/art/build_player_down.gd`) draws the view twice on the
+crossroads at HD with SHADOWS off, with and without the body, takes the
+difference as the matte, cuts the box, scales it by `SCALE` (about 122 rows a
+map unit, `ModeScreens.DOWN_ROWS`) and gives it the old cels' one-pixel dark
+rim. Run it again after the model changes, then pack_assets.
 
 ## The 3D asset pipeline
 

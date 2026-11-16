@@ -20,36 +20,7 @@ func start(
 	fresh.replay = replay
 	fresh.history = history
 	if replay and kit == null and level_id != "hickston":
-		fresh.armory.owned[Weapons.SHOTGUN] = true
-		fresh.armory.owned[Weapons.RIFLE] = true
-		fresh.armory.loaded[Weapons.SHOTGUN] = Weapons.CAPACITY[Weapons.SHOTGUN]
-		fresh.armory.loaded[Weapons.RIFLE] = Weapons.CAPACITY[Weapons.RIFLE]
-		fresh.armory.reserve[Weapons.SHOTGUN] = 16
-		fresh.armory.reserve[Weapons.RIFLE] = 48
-		fresh.armory.active = Weapons.SHOTGUN
-		fresh.inventory["rinds"] = 2
-		var bonus: Array = (
-			{
-				"fair": [Weapons.ROCKET, 3],
-				"sawmill": [Weapons.BOWLING, 3],
-				"quarry": [Weapons.COW, 3],
-				"bayou": [Weapons.CROSSBOW, 6],
-				"speedway": [Weapons.CROSSBOW, 6],
-				"mothership": [Weapons.ARMGUN, 18],
-			}
-			. get(level_id, [Weapons.ROCKET, 3])
-		)
-		var new_weapon: int = bonus[0]
-		fresh.armory.owned[new_weapon] = true
-		fresh.armory.loaded[new_weapon] = Weapons.CAPACITY[new_weapon]
-		var bonus_rounds: int = bonus[1]
-		fresh.armory.reserve[new_weapon] = bonus_rounds
-		for extra: Array in [[Weapons.TEAT, 60], [Weapons.KEG, 2]]:
-			var slot: int = extra[0]
-			fresh.armory.owned[slot] = true
-			fresh.armory.loaded[slot] = Weapons.CAPACITY[slot]
-			var extra_rounds: int = extra[1]
-			fresh.armory.reserve[slot] = extra_rounds
+		NetCoop.chapter_kit(fresh, level_id)
 	if kit != null:
 		var loadout: Dictionary = kit
 		fresh.apply_loadout(loadout)
@@ -61,7 +32,7 @@ func play(target: Game) -> void:
 	if not art.chapter_ready(target.level.id):
 		waiting_play = target
 		packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(target.level.id), "")))
-		notice("FETCHING THE CHAPTER. A MOMENT...", 4.0)
+		notice("HOLD YOUR HORSES. THE ROAD'S STILL COMING IN.", 4.0)
 		return
 	waiting_play = null
 	CrashLog.note("play %s%s" % [target.level.id, " (replay)" if target.replay else ""])
@@ -81,6 +52,7 @@ func play(target: Game) -> void:
 	var chapter := not target.in_hub and not practice and not rematch and not target.revisiting
 	chapter = chapter and not UserMap.is_custom(target.level.id)  # a player map: never the campaign
 	chapter = chapter and not CountyMode.active(target)  # a COUNTY RUN is never the campaign
+	chapter = chapter and net == null  # nor a chapter played online (net_coop.gd)
 	if chapter and not target.replay:
 		campaign_run = target
 	if chapter and target.replay:
@@ -88,7 +60,7 @@ func play(target: Game) -> void:
 	if chapter:
 		# A chapter under way: the other chapters' boss checkpoints go (boss_door.gd).
 		BossDoor.clear_others(target.level.id, target.replay)
-	target.configure(options if net == null else _net_options(net.match_info))
+	target.configure(options if net == null else net_options(net.match_info))
 	target.tone = tone_table
 	var crouch_option: int = options["crouch"]
 	crouch_latched = target.player.crouched and crouch_option != 0
@@ -115,6 +87,10 @@ func _take_mode(target: Game) -> void:
 	if Modes.mode_of(target) == Modes.COOP:
 		Modes.gather(target)
 	pilots.clear()
+	# The slot this machine's keys drive (the view may follow a partner while
+	# they are down: main.gd _follow_view).
+	TacticalScreens.human = target.local_player.slot
+	ModeScreens.footer = "" if net != null else ModeScreens.FOOTER
 	if Modes.is_tactical(target):
 		# The 5v5 modes' own bots play everyone else, in any build.
 		TacticalScreens.reset()
@@ -131,8 +107,8 @@ func _take_mode(target: Game) -> void:
 			if p != target.local_player:
 				pilots[p.slot] = TacticalBot.new(p.slot)
 		return
-	if target.players.size() < 2 or not DevConsole.available():
-		return
+	if target.players.size() < 2 or not DevConsole.available() or net != null:
+		return  # online: each player is a person (net_play.gd)
 	var script: GDScript = load("res://tools/mode_bot.gd") if FileAccess.file_exists(BOT) else null
 	if script == null:
 		return
@@ -1060,6 +1036,21 @@ func _net_ready(opened: NetPlay) -> void:
 		if options.has(key):
 			sim[key] = options[key]
 	net.sim_options = sim
+	# CAMPAIGN CO-OP's THE PARTY SAVE: say so before START when there is none.
+	net.may_start = func() -> String:
+		var mode := str(net.settings.get("mode", ""))
+		var map := str(net.settings.get("map", ""))
+		if mode != Modes.COOP:
+			return ""
+		if map == NetPlay.PARTY_SAVE:
+			return NetCoop.save_note()
+		if UserMap.is_custom(map):
+			return ""  # a player map is no chapter: nothing to have reached
+		if map != "hickston" and not unlocked.has(map):
+			# A chapter is played with friends once the host has reached it.
+			return "THE HOST AIN'T REACHED %s YET." % Campaign.title_of(map)
+		return ""
+	net_run = null
 	net_leave = false
 	net_note = ""
 	lobby_row = 0
@@ -1071,19 +1062,31 @@ func _net_ready(opened: NetPlay) -> void:
 ## The game a match is played on (NetPlay.make_match): the map, the host's
 ## play settings and the lobby's match on it; a client's view on its slot.
 func net_match_game(info: Dictionary) -> Game:
+	var hosting := net == null or net.role == NetPlay.Role.HOST
+	var made: Game = null
+	if str(info["level"]) == NetPlay.PARTY_SAVE:
+		# CAMPAIGN CO-OP from THE PARTY SAVE (the host's: START names its level).
+		made = NetCoop.load_party(self, info) if hosting else null
+		if made != null:
+			made.configure(net_options(info))
+			made.net_role = "host"
+		return made
 	var level_id := str(info["level"])
 	if UserMap.is_custom(level_id) and not LevelData.preview.has(level_id):
 		return null  # a player map that never came (net_maps.gd)
-	var made: Game = make_game(level_id)
+	made = make_game(level_id)
 	if made == null:
 		return null
-	made.configure(_net_options(info))
+	made.net_role = "host" if hosting else "copy"
+	made.configure(net_options(info))
 	if info.has("seed"):
 		var match_seed: int = info["seed"]
 		made.rng.set_state(match_seed)
 	var count: int = info["count"]
 	var match_options: Dictionary = info["options"]
 	Modes.setup(made, str(info["mode"]), count, match_options)
+	if str(info["mode"]) == Modes.COOP:
+		NetCoop.dress(made, match_options, not info.has("seq_from"))
 	var slot: int = info.get("slot", 0)
 	if slot > 0 and slot < made.players.size():
 		Players.set_local(made, made.players[slot])
@@ -1095,7 +1098,7 @@ func net_match_game(info: Dictionary) -> Game:
 
 
 ## This machine's settings with the host's play settings over them.
-func _net_options(info: Dictionary) -> Dictionary:
+func net_options(info: Dictionary) -> Dictionary:
 	var out := options.duplicate()
 	var sim: Dictionary = info.get("sim", {})
 	out.merge(sim, true)
@@ -1119,6 +1122,7 @@ func net_begin_match() -> void:
 ## Everyone back in the lobby after a match.
 func net_to_lobby() -> void:
 	game = null
+	net_run = null
 	pilots.clear()
 	net_leave = false
 	lobby_row = 0
@@ -1147,6 +1151,7 @@ func net_closed() -> void:
 func _net_gone(note: String) -> void:
 	net_old.append(net)
 	net = null
+	net_run = null
 	game = null
 	pilots.clear()
 	net_leave = false

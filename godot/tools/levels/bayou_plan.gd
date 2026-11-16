@@ -60,7 +60,7 @@ func make() -> Builder:
 		"ending": '"NO WAKE ZONE, MY FOOT."',
 		"score": "bayou_score",
 		"ambience": "bayou",
-		"layout": 4,
+		"layout": 5,
 		"sky": "bayou_sky",
 		"control_name": "BRIDGES: BOIL YARD GENERATOR, CANNERY BREAKER",
 		"extraction":
@@ -113,9 +113,71 @@ func build(_b) -> Array:
 	Cast.enemies(b)
 	Cast.pickups(b)
 	Cast.set_pieces(b)
+	channel_run()
 	posts()
 	Climbs.bayou(b)
 	return [64.5, 87.5, -PI / 2]
+
+
+# ------------------------------------------------------- the channel run
+
+
+## The airboat's set piece (layout 5; features/vehicle_runs.gd): KEYS IN IT
+## on the dock walk beside the boat; out of the dock and the king's boys come
+## (gators in both forks and the lagoon, chummers and a coot on the banks, a
+## billy by the dock), down the south fork, back up the north fork to the
+## swing bridge and up into the king's lagoon against the clock for his
+## stash.
+## The route keeps to the water the airboat runs on (both forks, the east
+## reach and the lagoon: tools/vehicle_set_check.gd drives it).
+func channel_run() -> void:
+	b.board("vehicle_sign_airboat", 97.6, 35.4, .5, {"z": .45, "plane": -PI / 2.0})
+	var boys := [
+		["gator", 84.5, 40.5, "run-gator-a"],
+		["gator", 76.5, 44.5, "run-gator-b"],
+		["gator", 72.5, 28.5, "run-gator-c"],
+		["gator", 93.5, 17.5, "run-gator-d"],
+		["chum_tosser", 76.5, 34.5, "run-chummer-a"],
+		["chum_tosser", 78.5, 47.5, "run-chummer-b"],
+		["coot", 69.5, 26.5, "run-coot"],
+		["billy", 86.5, 31.5, "run-billy"],
+	]
+	var ids: Array = []
+	for e in boys:
+		b.enemy(String(e[0]), float(e[1]), float(e[2]), String(e[3]))
+		ids.append(e[3])
+	(
+		b
+		. triggers
+		. append(
+			{
+				"id": "channel-run-boys",
+				"when": {"run": "channel_run"},
+				"do": [{"wake": ids}, {"sound": "chum_holler", "at": [80.0, 40.0]}],
+			}
+		)
+	)
+	b.meta["vehicle_runs"] = [
+		{
+			"id": "channel_run",
+			"title": "CHANNEL RUN",
+			"kind": "airboat",
+			"start": [91.0, 38.5, 3.0, "THE DOCK"],
+			"gates":
+			[
+				[71.5, 44.8, 2.6, "THE SOUTH FORK"],
+				[69.0, 28.5, 2.6, "THE SWING BRIDGE"],
+				[95.5, 9.5, 3.0, "THE KING'S LAGOON"],
+			],
+			"laps": 1,
+			"time": 45.0,
+			"pace": false,
+			"reward": ["moonshine", "moonshine", "dynamite", "dynamite", "shells", "rifle_ammo"],
+			"intro": "THE KING'S BOYS SEEN YOU TAKE HIS BOAT! RUN THE CHANNEL. LAGOON OR BUST!",
+			"won": "MADE THE LAGOON IN %s. THE KING'S STASH WAS UNDER THE SEAT: 'SHINE AND STICKS.",
+			"lost": "THE KING'S BOYS RUN YOU DOWN. TOO SLOW.",
+		}
+	]
 
 
 # ------------------------------------------------------------------ the kit

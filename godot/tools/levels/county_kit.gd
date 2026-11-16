@@ -28,6 +28,7 @@ const STORY_META := [
 	"boss_decoys",
 	"lap_cars",
 	"vehicles",
+	"vehicle_runs",
 	"tactical",
 	"gallery",
 	"hub_gates",
@@ -51,6 +52,10 @@ static func strip(b, id: String, title: String, intro: String) -> void:
 	b.controlled_doors = []
 	b.access_doors = {}
 	b.hidden_rooms = []
+	# The vehicles' KEYS IN IT signs go with the vehicles (src/vehicle_finder.gd).
+	b.billboards = b.billboards.filter(
+		func(bd: Dictionary) -> bool: return not String(bd["image"]).begins_with("vehicle_sign_")
+	)
 	for d: Dictionary in b.doors:
 		d["key"] = ""
 		d["secret"] = false

@@ -1,8 +1,9 @@
-# Playing 5v5 online
+# Playing online
 
-The 5v5 and 2v2 modes (and COUNTY RUN co-op) can be played with friends on
-other networks: one person hosts a lobby, the others join it, and the empty
-places fill with bots. Everyone needs the same version of the game.
+The 5v5 and 2v2 modes, COUNTY RUN co-op, the CAMPAIGN in co-op, DEATHMATCH
+and TEAM DEATHMATCH can be played with friends on other networks: one person
+hosts a lobby, the others join it (in the 5v5 modes the empty places fill
+with bots). Everyone needs the same version of the game.
 
 Nobody has to touch their router. A hosted lobby rings **THE PARTY LINE**, a
 relay on the game's own server: the host gets a short code like `HKP-427`,
@@ -72,17 +73,54 @@ the same RULES row.
    the party line tells you `THE HOST HUNG UP`.
 
 With LATE JOIN on, someone who joins during a match takes over a bot on the
-team with fewer people, straight away.
+team with fewer people, straight away (co-op and deathmatch: they pull up a
+chair beside the party, or at a spawn point with the starting guns).
+
+## Co-op through the campaign
+
+MODE **CAMPAIGN CO-OP** in a lobby you host (two to four of you; not on the
+always-open servers): MAP is the chapter to start (one the host has reached
+in their own campaign; past Hickston everyone gets the guns a gate on the
+crossroads gives) or **THE PARTY SAVE**.
+
+- Everyone plays their own guns and pockets; keys and the PA lead are the
+  party's. A partner down is stood up by someone holding USE beside them,
+  or comes back beside a partner after 20 seconds; while you're down the
+  view goes to a partner (SPACE for the next one).
+- The host's ENTER on a won chapter's tally takes everyone on: to the
+  COUNTY CROSSROADS, where any of you walks through a gate for the party
+  (the chapter you left is picked up where you left it). With CLASSIC on
+  it goes straight into the next chapter.
+- Everyone down: the host's ENTER tries the boss fight again from the
+  party's own checkpoint, everyone at the door together; R starts the
+  chapter over.
+- Only the host saves: F5 writes THE PARTY SAVE (never the host's own
+  campaign or quicksave). Next time pick MAP THE PARTY SAVE; whoever is in
+  the lobby takes its places in order.
+- Someone who leaves lies out of play until someone joins and takes their
+  place. The kill feed down the left says who went down and who hauled whom
+  up.
+
+## Deathmatch and team deathmatch
+
+MODE **DEATHMATCH** or **TEAM DEATHMATCH** (two to four): MAP is the arena
+(the rodeo grounds, the Hogs' field, Rudy's big top, the saw floor, the
+crossroads, the range or a 5v5 or 2v2 map), FRAG LIMIT and TIME LIMIT end
+it. In team deathmatch you pick RED or BLUE with TEAM. After the results
+the host's ENTER takes everyone back to the lobby.
 
 ## Custom maps
 
 A map made in the MAP SHED (title, **CUSTOM MAPS**) can be played online:
 
-1. **CUSTOM MAPS**, pick the map, **HOST ONLINE** (it says READY when the
-   map can host a 5v5 round or a County Run: CHECK in the shed says what it
-   still needs).
+1. **CUSTOM MAPS**, pick the map, **HOST ONLINE** (CHECK in the shed says
+   which modes the map can host and what it still needs for the rest).
 2. The host form opens as for HOST A GAME; **OPEN THE LOBBY**. The lobby's
-   MAP shows your map's name and MODE is one the map can host.
+   MAP shows your map's name and MODE is one the map can host: SEARCH AND
+   DESTROY and HOSTAGE RESCUE (5v5 marks), COUNTY RUN CO-OP (room enough),
+   DEATHMATCH and TEAM DEATHMATCH, CAMPAIGN CO-OP (a start, the lever and the
+   truck: one map, the win takes everyone back to the lobby, no party save).
+   Stepping MODE onto one the map can't host steps past it and says why.
 3. Everyone who joins gets a copy of the map on the way in, before anything
    can start (a few KB). Their game checks it: its hash must match what the
    host said, and it must be a map the shed would load. A map that does not
@@ -237,6 +275,16 @@ same port meanwhile, the room on the servers list, a match with every copy
 kept with the host, a late joiner going straight to the host, a kick and the
 closing heard through the line; a County Run party of three through it, and
 the host's game going with no goodbye.
+
+`tools/net_party_check.gd` (in check_all and CI) hosts from the real front end
+through a lobby server's party line: a co-op Hickston for three (one straight
+to the host, one over the WebSocket by the line), a partner down and hauled
+up, the host down watching a partner, the sheriff's checkpoint and its retry,
+the chapter won and the crossroads, the fair through a gate with everyone's
+guns, a late joiner, a leaver, THE PARTY SAVE written and started again; a
+deathmatch fought by bots on every copy with a late joiner and the results;
+team deathmatch's picks. **Not checked:** a real two-PC co-op chapter played
+by people (try it: see the pass 7 report).
 
 `tools/net_showdown_check.gd` plays a whole online session in one process
 over the network stack (a host and three clients on 127.0.0.1, with test lag

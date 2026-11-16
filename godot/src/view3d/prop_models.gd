@@ -54,8 +54,9 @@ func name_of(image: String) -> String:
 	var name: String = known
 	if name == "":
 		return ""
-	# The art may come later (a chapter's pack fetched in the browser).
-	if not _assets.has_art("mesh_" + name):
+	# The art and model may come later (a chapter's pack fetched in the
+	# browser): its picture stands in till then.
+	if not _assets.art_ready("mesh_" + name):
 		return ""
 	var ok: Variant = _has_scene.get(name)
 	if ok == null:

@@ -11,6 +11,9 @@ const HEIGHT := 200
 const FOCAL := 230.0
 const HUB_WIDTH := 50.0
 const PLAYER_RADIUS := .19
+## Controls.item at or past this picks pocket item - POCKET_PICK (online: the
+## pocket a client's Q steps to goes to every copy as its controls).
+const POCKET_PICK := 64
 const HUB_BOARD := Vector2(30.36, 44.13)
 const GALLERY_STAND := Vector2(25.96, 33.42)
 const GALLERY_TARGETS := [
@@ -355,6 +358,12 @@ var sprint: float:
 		player.sprint = value
 ## The acting player acts by their own hand this moment (focus()).
 var own_step := false
+## An online client's copy: who watches this machine's own hands step
+## (hands_watch.gd, src/net/net_shot_predict.gd), and whether that step's
+## looks are handed to it now (the shot was shown already). Null and off on a
+## single-player game and a host.
+var hands_watch: HandsWatch = null
+var own_quiet := false
 ## How many of `enemies` name_new() has looked at.
 var _named_enemies := 0
 ## The controls of a player nobody steers this tick (never changed).
@@ -376,6 +385,10 @@ var next_uid := 1
 ## looks-only features, no sound, no voices, no talk, no room or place names),
 ## the simulation exactly as in any other game.
 var host := false
+## Online: "host" (the host's own game) or "copy" (a client's copy); "" off
+## line. The host keeps the boss checkpoint and the party save, so a copy
+## never writes either, and each says the right lines (looks only).
+var net_role := ""
 ## What each FACT_FEATURES feature was last given from a snapshot (bytes), and
 ## the stations whose lights are up (game_snapshot.gd puts both right).
 var net_facts := {}

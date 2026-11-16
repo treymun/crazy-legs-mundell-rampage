@@ -147,6 +147,9 @@ func _scatter(speed: float, up: float) -> Vector3:
 
 
 func _fired(gun: int) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_fired.bind(gun), "shot")
+		return
 	if not game.acting_local():
 		return
 	_pellets = 0
@@ -159,7 +162,14 @@ func _fired(gun: int) -> void:
 			_bit("ember", from + ahead * .6, v, dice.randf_range(.45, .8), .035, 6.0)
 
 
+func own_shot(gun: int) -> void:
+	_fired(gun)
+
+
 func _traced(end: Vector3, struck: String) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_traced.bind(end, struck), "trace")
+		return
 	if not game.acting_local():
 		return
 	var gun: int = game.armory.active
@@ -201,6 +211,10 @@ func _traced(end: Vector3, struck: String) -> void:
 		Weapons.RIPSAW:
 			if struck.begins_with("wall:"):
 				_strike(end, struck.substr(5), .6)
+
+
+func own_trace(end: Vector3, struck: String) -> void:
+	_traced(end, struck)
 
 
 ## A hot streak from the muzzle to the mark (draw_view draws it).

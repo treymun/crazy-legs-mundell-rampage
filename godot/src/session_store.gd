@@ -457,7 +457,20 @@ static func _write_atomic(path: String, text: String) -> bool:
 
 
 static func save(game: Game, path: String, manual: Variant = null) -> bool:
+	# Player one's save, whoever this machine shows (watching a partner) or
+	# whoever is acting.
+	var acting := game.player
+	if acting != game.players[0]:
+		game.focus(game.players[0])
 	var doc := snapshot(game)
+	if acting != game.player:
+		game.focus(acting)
+	# Co-op: player one down when it was taken comes back on their feet, as a
+	# partner down does (Modes.gather), or the save would never load.
+	var lead: Dictionary = doc["player"]
+	var lead_health: int = lead.get("health", 100)
+	if lead_health <= 0 and Modes.mode_of(game) == Modes.COOP:
+		lead["health"] = CoopMode.REVIVE_HEALTH
 	if not game.retained.is_empty():
 		var retained := {}
 		for key: Variant in game.retained:

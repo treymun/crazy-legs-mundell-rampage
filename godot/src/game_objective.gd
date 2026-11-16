@@ -9,6 +9,9 @@ extends RefCounted
 static func objective_target(g: Game) -> Variant:
 	if g.in_hub or g.revisiting:
 		return null
+	var run: Variant = _run_goal(g)
+	if run != null:
+		return run
 	if not g.level.rescue:
 		var exit: LevelData.Extraction = g.world.extraction
 		if exit == null:
@@ -105,6 +108,13 @@ static func objective_target(g: Game) -> Variant:
 	return Vector2(jerry.x, jerry.y)
 
 
+## A vehicle set piece's next gate, or its start for a player at the wheel
+## of the vehicle that can run it (features/vehicle_runs.gd); null else.
+static func _run_goal(g: Game) -> Variant:
+	var runs: GameFeature = g.features.get("vehicle_runs")
+	return runs.call("goal", g.player) if runs != null else null
+
+
 ## Where to go for a station: the station, or first the thing it needs carried
 ## to it (the fair's PA patch lead) while that still lies somewhere.
 static func station_goal(g: Game, station: LevelData.Station) -> Vector2:
@@ -182,6 +192,13 @@ static func objective(g: Game) -> String:
 		return "FACE A GATE AND PRESS E OR SPACE"
 	if g.revisiting:
 		return "COMPLETED / RETURN AT THE ROAD GATE"
+	var runs: GameFeature = g.features.get("vehicle_runs")
+	if runs != null:
+		# At the wheel for a vehicle set piece (features/vehicle_runs.gd): its
+		# start, or its next gate while it runs.
+		var run_line: String = runs.call("objective", g.player)
+		if run_line != "":
+			return run_line
 	if not g.level.rescue:
 		var exit: LevelData.Extraction = g.world.extraction
 		if exit == null:

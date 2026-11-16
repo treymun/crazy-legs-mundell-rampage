@@ -810,6 +810,11 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 			if lines.is_empty() and features.has(key):
 				var death: Object = features[key]
 				lines = death.call("death_lines")
+		if net_role == "copy":
+			# Online co-op: the host picks (net_coop.gd retry).
+			lines = ["THE HOST PICKS WHAT COMES NEXT", "ESC  LEAVE THE GAME"]
+		elif net_role == "host" and lines.size() != 2:
+			lines = ["ENTER  THE CHAPTER AGAIN", "ESC  LEAVE THE GAME"]
 		if lines.size() == 2:
 			HUD.text(c, str(lines[0]), 160, 82, "body", HUD.AMBER, true)
 			HUD.text(c, str(lines[1]), 160, 94, "body", HUD.INK, true)

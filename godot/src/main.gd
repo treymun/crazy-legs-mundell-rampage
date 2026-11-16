@@ -552,7 +552,16 @@ func _process(delta: float) -> void:
 		_view_tour()
 		return
 	if waiting_play != null and art.chapter_ready(waiting_play.level.id):
+		if state != "play":
+			menu_note = ""
 		play(waiting_play)
+	elif waiting_play != null:
+		# The chapter waited for comes down next, whatever was queued first,
+		# and the menu says how far along its road is.
+		var waited := str(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
+		packs.want_first(waited)
+		if state != "play" and menu_note != packs.road_line(waited):
+			menu_note = packs.road_line(waited)
 	if game != null:
 		packs.want_first(str(CHAPTER_PACKS.get(CountyData.base_of(game.level.id), "")))
 		_watch_level()
@@ -645,12 +654,14 @@ func _process(delta: float) -> void:
 	var aimed := _net_aim(dt)
 	render()
 	if waiting_play != null and canvas.gpu:
-		# A browser still fetching the map: say so, and how far it has come.
+		# A browser still fetching the chapter: say so, and how far it has come.
 		var pack := str(CHAPTER_PACKS.get(CountyData.base_of(waiting_play.level.id), ""))
-		HUD.banner(canvas, "FETCHING THE MAP... %d%%" % roundi(packs.progress(pack) * 100.0), 88)
+		HUD.banner(canvas, packs.road_line(pack), 88)
 	if not aimed.is_empty():
 		var aimed_player: Player = aimed[0]
 		var aimed_kept: Dictionary = aimed[1]
+		var shots_kept: Dictionary = aimed[2]
+		net_shots.restore(game, aimed_player, shots_kept)
 		NetPredict.restore(aimed_player, aimed_kept)
 	var spent := (Time.get_ticks_usec() - work_began) / 1000.0
 	_auto_detail(dt, spent)
@@ -838,7 +849,10 @@ func advance(elapsed: float, controls: Game.Controls) -> void:
 ## teammate still up (the keys and mouse still drive their own player, who
 ## is out), and back to them when the next round stands them up.
 func _follow_view() -> void:
-	if game == null or not Modes.is_tactical(game):
+	if game == null:
+		return
+	if not Modes.is_tactical(game):
+		_watch_partner()
 		return
 	var human := TacticalScreens.human
 	if human < 0 or human >= game.players.size():
@@ -872,14 +886,55 @@ func _follow_view() -> void:
 		Players.set_local(game, me)
 
 
+## Co-op, deathmatch and team deathmatch (and COUNTY RUN's party): while this
+## machine's player is down the view goes to someone up after a moment, a
+## partner or teammate (in deathmatch whoever fragged them), SPACE the next;
+## back to their own the moment they are up. Looks only (Players.set_local:
+## nothing carried reads the local player); the keys still drive their own.
+func _watch_partner() -> void:
+	var human := TacticalScreens.human
+	if game.players.size() < 2 or human < 0 or human >= game.players.size():
+		return
+	var me: Player = game.players[human]
+	var watched: Player = game.local_player
+	if me.health > 0 or me.away or game.showing_tally or game.defeated():
+		TacticalScreens.watch_next = false
+		if watched != me:
+			Players.set_local(game, me)
+		return
+	var since := game.clock - me.down_at if me.down_at >= 0.0 else 0.0
+	var versus := Modes.mode_of(game) == Modes.DEATHMATCH
+	if since < (1.0 if versus else 2.0):
+		return  # a moment to see who did it, and where they lie
+	var order: Array = game.players.filter(
+		func(q: Player) -> bool:
+			if q == me or q.health <= 0 or q.away:
+				return false
+			return Modes.mode_of(game) != Modes.TEAM or q.team == me.team
+	)
+	if versus:
+		order = order.filter(func(q: Player) -> bool: return q.slot == me.downed_by)
+	if order.is_empty():
+		if watched != me:
+			Players.set_local(game, me)
+		return
+	if TacticalScreens.watch_next:
+		TacticalScreens.watch_next = false
+		var at := order.find(watched)
+		var next_up: Player = order[(at + 1) % order.size()]
+		Players.set_local(game, next_up)
+		return
+	if watched == me or not order.has(watched):
+		var first_up: Player = order[0]
+		Players.set_local(game, first_up)
+
+
 ## One step with the other players played by their pilots (src/modes/,
 ## tools/mode_bot.gd; the 5v5 modes' TacticalBot): this machine's own player
 ## on `mine` (in the 5v5 modes the one it plays, even while the view is on a
 ## teammate).
 func _tick_party(mine: Game.Controls) -> void:
-	var own: int = game.local_player.slot
-	if Modes.is_tactical(game):
-		own = TacticalScreens.human
+	var own: int = TacticalScreens.human
 	var given := {own: mine}
 	for p: Player in game.players:
 		var pilot: Object = pilots.get(p.slot)
@@ -995,6 +1050,11 @@ func _net_advance(elapsed: float, controls: Game.Controls) -> void:
 			CountyScreens.take_pending(controls)
 			if hosting:
 				_net_host_tick(controls)
+				var target := net.match_game()
+				if target != null and target.portal_request != "":
+					# Online co-op: someone took a gate; the party goes (net_coop.gd).
+					NetCoop.travel(self, target.portal_request)
+					break
 			else:
 				net.client_input(controls)
 	if not hosting:
@@ -1002,6 +1062,8 @@ func _net_advance(elapsed: float, controls: Game.Controls) -> void:
 		var copy := net.match_game()
 		if copy != null and copy != game:
 			game = copy
+	elif net.match_game() != null and net.match_game() != game:
+		game = net.match_game()
 	_follow_view()
 
 
@@ -1027,10 +1089,11 @@ func _net_host_tick(mine: Game.Controls) -> void:
 
 ## A client's own aim drawn where the mouse has put it (inputs the host has
 ## not played into the copy yet), so looking round never waits on the
-## network; put back after the frame. [player, angle, pitch] or [].
+## network; put back after the frame. [player, kept, shots' kept] or [].
 func _net_aim(dt: float) -> Array:
 	if net == null or net.role != NetPlay.Role.CLIENT or state != "play" or game == null:
 		net_smooth.reset()
+		net_shots.forget()
 		return []
 	if not net.client_ready():
 		net_smooth.reset()
@@ -1049,7 +1112,9 @@ func _net_aim(dt: float) -> Array:
 	var kept := net_smooth.draw(game, me, net.client_sync, dt)
 	me.angle = fposmod(me.angle + net_turn, TAU)
 	me.pitch = clampf(me.pitch + net_look, -53.0, 53.0)
-	return [me, kept]
+	# Our shots, reloads and pickups shown now, not when the copy plays them
+	# (net_shot_predict.gd); the gun and the pickups are put back after the frame.
+	return [me, kept, net_shots.frame(game, me, net.client_sync)]
 
 
 ## --host-online / --join-online: straight into a lobby.

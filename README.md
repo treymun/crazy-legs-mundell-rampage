@@ -75,7 +75,7 @@ shoot each other. Every picture and every sound in it is original.
 
 | Where | What you get |
 | --- | --- |
-| **Browser** | <https://treymun.github.io/crazy-legs-mundell-rampage/>: desktop Chrome, Edge or Firefox. About 65 MB on the first visit, then the browser keeps it. iPhone and iPad get a lighter build. |
+| **Browser** | <https://treymun.github.io/crazy-legs-mundell-rampage/>: desktop Chrome, Edge or Firefox. About 77 MB on the first visit (the title and Hickston); each later chapter, 13 to 18 MB, comes down while you play, and the browser keeps it all. iPhone and iPad get a lighter build. |
 | **Windows** | `CrazyLegsMundellRampage.exe` (one file, no install) or `CrazyLegsMundellRampage_Setup.exe` (Start-menu shortcut and uninstaller). Windows 10 or 11, 64-bit, OpenGL 3.3. |
 | **Android** | `CrazyLegsMundellRampage.apk`: Android 7.0 or newer, arm64, held sideways. Touch controls, or plug in a gamepad. |
 
@@ -112,13 +112,17 @@ at the git tag `python-original`.
 godot --headless --path godot --script res://tools/pack_assets.gd   # asset packs, no Python needed
 godot --headless --path godot --import
 godot --headless --path godot --export-release "Windows Desktop" build/windows/CrazyLegsMundellRampage.exe
+godot --headless --path godot --script res://tools/pack_lite.gd     # browser and phone copy (ffmpeg on PATH)
 godot --headless --path godot --export-release "Web" build/web/index.html
+godot --headless --path godot --script res://tools/make_packs.gd -- build/web   # the chapter packs
 godot --headless --path godot --export-release "Android" build/android/CrazyLegsMundellRampage.apk
 ISCC installer.iss
 ```
 
-`pack_assets.gd` writes `godot/assets_gen/*.bin` (about 70 MB, not committed) from `assets/`,
-`audio_src/` and `godot/assets/music` in a few seconds. The exports need Godot 4.7.2 with its export
+`pack_assets.gd` writes `godot/assets_gen/*.bin` (about 150 MB, not committed) from `assets/`,
+`audio_src/` and `godot/assets/music` in a few seconds; `pack_lite.gd` writes the lighter copy
+the browser and phone builds read (`assets_gen/lite`: the biggest model textures halved, the music
+re-encoded smaller). The exports need Godot 4.7.2 with its export
 templates; Android also needs JDK 17, the Android SDK and a keystore.
 
 Every check runs headless, all at once, in about two minutes:

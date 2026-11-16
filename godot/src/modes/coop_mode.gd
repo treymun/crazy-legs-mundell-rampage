@@ -107,6 +107,8 @@ func _beside(game: Game, anchor: Enemy) -> Vector2:
 func tick(game: Game, st: ModeFeature, dt: float) -> void:
 	scale_new(game, st)
 	for p: Player in game.players:
+		if p.away:
+			continue  # left an online game: out of play until someone takes the slot
 		if p.health > 0:
 			if p.down_at >= 0.0:
 				p.down_at = -1.0
@@ -140,7 +142,7 @@ static func downed_near(game: Game, p: Player) -> Player:
 	var best: Player = null
 	var gap := REVIVE_REACH * 2.0
 	for q: Player in game.players:
-		if q == p or q.health > 0:
+		if q == p or q.health > 0 or q.away:
 			continue
 		var d := Vector2(q.x - p.x, q.y - p.y).length()
 		if d < gap:
@@ -213,5 +215,5 @@ func pickup(game: Game, _st: ModeFeature, name: String) -> void:
 ## The chapter is won: anyone down comes along, on their feet.
 func won(game: Game, _st: ModeFeature) -> void:
 	for p: Player in game.players:
-		if p.health <= 0:
+		if p.health <= 0 and not p.away:
 			Modes.stand_up(game, p, REVIVE_HEALTH)

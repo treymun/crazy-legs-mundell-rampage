@@ -10,6 +10,9 @@
 ## some of them. only=mundell (not in the default set) lines up co-op
 ## partners close up, turned every way round and in each pose (Mundell's
 ## body, the sheets in docs/godot3d/compare/actors/mundell_*.png).
+## only=party (not in the default set): the flat pictures of partners down
+## (player_down_side, _head, _feet: the view's cels, then the models), the
+## kill feed and watching a partner while down, and the lobby's posse.
 ##
 ##   godot --path godot --audio-driver Dummy --resolution 1280x800 \
 ##       --script res://tools/mode_frames.gd -- out=<dir> [only=team,race]
@@ -56,6 +59,8 @@ func _run() -> void:
 		await _bench()
 	if only.has("mundell"):
 		await _mundell()
+	if only.has("party"):
+		await _party()
 	print("mode frames written to ", out)
 	main.queue_free()
 	await process_frame
@@ -251,6 +256,89 @@ func _turned(a: Player, others: Array, turns: Array) -> void:
 		q.motion = 0.0
 		q.vx = 0.0
 		q.vy = 0.0
+
+
+## The party's pictures (only=party): three partners down lying three ways
+## round, as the flat pictures (a view tour's cels) and as the models; the
+## kill feed with a down and a revive in it while this player watches a
+## partner; the lobby's posse for CAMPAIGN CO-OP and DEATHMATCH.
+func _party() -> void:
+	var g := _game("hickston", Modes.COOP, 4)
+	_ticks(g, 2)
+	g.cheats.god = true
+	g.spawn_grace = 99.0
+	for e: Enemy in g.enemies:
+		e.dormant = true
+	var a: Player = g.players[0]
+	var others: Array = [g.players[1], g.players[2], g.players[3]]
+	_line_up(g, a, others)
+	g.cheats.god = false
+	for q: Player in others:
+		g.damage(500.0, null, "TEST", q)
+	g.cheats.god = true
+	_ticks(g, 2)
+	# Across (head left), from the head, from the feet.
+	_turned(a, others, [0.0, PI * .5, -PI * .5])
+	a.pitch = -14.0
+	_ticks(g, int(Enemy.DEATH_TIME * 60.0) + 60)
+	_turned(a, others, [0.0, PI * .5, -PI * .5])
+	WorldView3D.cels = true
+	await _snap("party_down_cels")
+	_turned(a, others, [PI, -PI * .5 + .3, PI * .5 - .3])
+	await _snap("party_down_cels2")
+	WorldView3D.cels = false
+	_turned(a, others, [0.0, PI * .5, -PI * .5])
+	await _snap("party_down_models")
+	# The feed and the watching line: this player down, the view on a partner.
+	var feed = g.features["kill_feed"]
+	g.cheats.god = false
+	g.damage(500.0, null, "TEST", a)
+	g.cheats.god = true
+	for q: Player in others:
+		Modes.stand_up(g, q, 80)
+	q_names(g)
+	feed.add("BUBBA  SAWED-OFF  BILLY", feed.KILL_INK)
+	feed.add("CLETUS WENT DOWN", feed.DOWN_INK)
+	feed.add("EARLENE HAULED CLETUS UP", feed.UP_INK)
+	feed.add("BUBBA  DYNAMITE CROSSBOW  ALIEN SHERIFF", feed.BOSS_INK)
+	TacticalScreens.human = 0
+	_ticks(g, 30)
+	Players.set_local(g, others[0])
+	await _snap("party_feed_watching", true)
+	Players.set_local(g, a)
+	await _lobby()
+
+
+func q_names(g: Game) -> void:
+	var names := ["MUNDELL", "BUBBA", "CLETUS", "EARLENE"]
+	for p: Player in g.players:
+		p.name = names[p.slot % names.size()]
+
+
+## The lobby with its posse (CAMPAIGN CO-OP, then DEATHMATCH).
+func _lobby() -> void:
+	var net := NetPlay.host_lobby(
+		41000 + OS.get_process_id() % 9000, "Mundell", {}, false, "127.0.0.1"
+	)
+	if net == null:
+		return
+	net.players.append({"id": 7, "name": "BUBBA", "team": -1, "ready": true})
+	net.players.append({"id": 8, "name": "CLETUS", "team": -1, "ready": false})
+	main.net = net
+	main.state = "lobby"
+	main.game = null
+	net.set_setting("mode", Modes.COOP)
+	main.render()
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(out.path_join("party_lobby_coop.png"))
+	net.set_setting("mode", Modes.DEATHMATCH)
+	main.render()
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(out.path_join("party_lobby_dm.png"))
+	main.net = null
+	net.finish()
 
 
 ## Mundell's body as the others see it (only=mundell): three co-op partners

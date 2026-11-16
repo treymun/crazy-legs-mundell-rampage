@@ -25,8 +25,16 @@ static func path(level_id: String, replay: bool) -> String:
 	return folder().path_join("boss-checkpoint-%s%s.json" % [level_id, "-replay" if replay else ""])
 
 
+## A co-op game's checkpoint is a file of its own (-party), so a party's
+## fight never takes the place of the host's own chapter's.
+static func path_of(game: Game) -> String:
+	if Modes.mode_of(game) == Modes.COOP:
+		return folder().path_join("boss-checkpoint-%s-party.json" % game.level.id)
+	return path(game.level.id, game.replay)
+
+
 static func write(game: Game) -> bool:
-	return SessionStore.save(game, path(game.level.id, game.replay))
+	return SessionStore.save(game, path_of(game))
 
 
 static func clear(level_id: String, replay: bool) -> void:
@@ -49,8 +57,9 @@ static func clear_all() -> void:
 
 
 ## The token the checkpoint on file was taken with for `kind` ("" for none).
-static func token_on_file(level_id: String, replay: bool, kind: String) -> String:
-	var file := path(level_id, replay)
+static func token_on_file(level_id: String, replay: bool, kind: String, file := "") -> String:
+	if file == "":
+		file = path(level_id, replay)
 	if not FileAccess.file_exists(file):
 		return ""
 	var doc: Variant = JSON.parse_string(FileAccess.get_file_as_string(file))
@@ -73,9 +82,7 @@ static func token_on_file(level_id: String, replay: bool, kind: String) -> Strin
 ## The fight again: the checkpoint loaded, the player at the door, the boss
 ## whole, nothing in the air. Null when the file is gone or no longer loads.
 static func restore(make_game: Callable, current: Game) -> Game:
-	var loaded := SessionStore.read(
-		path(current.level.id, current.replay), make_game, current.replay, current.level.id
-	)
+	var loaded := SessionStore.read(path_of(current), make_game, current.replay, current.level.id)
 	if loaded == null:
 		return null
 	return at_door(loaded)
