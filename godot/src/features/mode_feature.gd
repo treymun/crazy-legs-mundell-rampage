@@ -155,6 +155,10 @@ func save() -> Dictionary:
 	var rows: Array = []
 	for p: Player in game.players:
 		var row := {"frags": p.frags, "deaths": p.deaths, "team": p.team}
+		if p.name != "":
+			row["name"] = p.name  # online: the lobby's names
+		if p.away:
+			row["away"] = true
 		if p.slot > 0:
 			(
 				row
@@ -214,6 +218,8 @@ func restore(state: Dictionary) -> void:
 		p.frags = row.get("frags", 0)
 		p.deaths = row.get("deaths", 0)
 		p.team = row.get("team", p.slot % 2)
+		p.name = str(row.get("name", p.name))
+		p.away = row.get("away", false)
 		if i > 0:
 			_kit(p, row)
 	if mode == Modes.COOP:

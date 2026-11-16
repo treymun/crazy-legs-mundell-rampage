@@ -89,6 +89,10 @@ var deaths := 0
 var team := 0
 ## Who last brought this player down (a slot; -1 the world or an enemy).
 var downed_by := -1
+## Online co-op and deathmatch: the person playing this slot left. They lie
+## out of play (down, never stood up, not drawn) until someone joining late
+## takes the slot (Modes.join_late).
+var away := false
 ## The scope is up (a gun with weapons.cfg `scope`: ALT FIRE puts it up and
 ## down), and ALT FIRE was held last tick (it acts on a fresh press).
 var scoped := false

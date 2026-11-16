@@ -17,8 +17,9 @@ func title() -> String:
 	return "TEAM DEATHMATCH"
 
 
-func joined(_game: Game, _st: ModeFeature, p: Player) -> void:
-	p.team = p.slot % 2
+## RED the even slots, BLUE the odd, or the online lobby's picks.
+func joined(_game: Game, st: ModeFeature, p: Player) -> void:
+	p.team = TacticalMode.team_of(st, p.slot)
 
 
 func hurt_scale(_game: Game, attacker: Player, victim: Player, _blast: bool) -> float:

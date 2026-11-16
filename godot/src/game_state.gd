@@ -11,6 +11,9 @@ const HEIGHT := 200
 const FOCAL := 230.0
 const HUB_WIDTH := 50.0
 const PLAYER_RADIUS := .19
+## Controls.item at or past this picks pocket item - POCKET_PICK (online: the
+## pocket a client's Q steps to goes to every copy as its controls).
+const POCKET_PICK := 64
 const HUB_BOARD := Vector2(30.36, 44.13)
 const GALLERY_STAND := Vector2(25.96, 33.42)
 const GALLERY_TARGETS := [
@@ -382,6 +385,10 @@ var next_uid := 1
 ## looks-only features, no sound, no voices, no talk, no room or place names),
 ## the simulation exactly as in any other game.
 var host := false
+## Online: "host" (the host's own game) or "copy" (a client's copy); "" off
+## line. The host keeps the boss checkpoint and the party save, so a copy
+## never writes either, and each says the right lines (looks only).
+var net_role := ""
 ## What each FACT_FEATURES feature was last given from a snapshot (bytes), and
 ## the stations whose lights are up (game_snapshot.gd puts both right).
 var net_facts := {}

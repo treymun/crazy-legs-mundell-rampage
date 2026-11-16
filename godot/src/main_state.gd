@@ -269,6 +269,9 @@ var showdown_on := false
 ## it, a line for those screens, asking to leave a match (ESC), and the
 ## match's own clock: time and mouse saved up toward the next tick.
 var net: NetPlay = null
+## Online co-op, the host: the chapter the party is in or left for the hub,
+## picked up again through its gate (net_coop.gd).
+var net_run: Game = null
 var net_old: Array = []
 var net_form := {}
 var net_row := 0
@@ -574,7 +577,9 @@ func _release_due() -> void:
 ## chapters it retains). Every other game made here is disposed.
 func release_games() -> int:
 	_release_queued = false
-	var kept: Array = [game, campaign_run, hub_origin, range_return, rematch_return, waiting_play]
+	var kept: Array = [
+		game, campaign_run, hub_origin, range_return, rematch_return, waiting_play, net_run
+	]
 	kept.append_array(replay_runs.values())
 	for each: Variant in [net] + net_old:
 		if each is NetPlay:

@@ -74,6 +74,7 @@ func restore(state: Dictionary) -> void:
 func eligible() -> bool:
 	return (
 		not game.in_hub
+		and game.net_role != "copy"
 		and not game.revisiting
 		and Campaign.ORDER.has(game.level.id)
 		and not BossRematch.active(game)
@@ -144,7 +145,8 @@ func _settle() -> void:
 
 func _won() -> void:
 	if eligible():
-		BossDoor.clear(game.level.id, game.replay)
+		if BossDoor.path_of(game) == BossDoor.path(game.level.id, game.replay):
+			BossDoor.clear(game.level.id, game.replay)
 
 
 ## RETRY THE FIGHT is on offer: a fight was begun, its boss still stands, and
@@ -160,7 +162,9 @@ func offered() -> bool:
 			and taken.has(fight_kind)
 			and boss != null
 			and (
-				BossDoor.token_on_file(game.level.id, game.replay, fight_kind)
+				(BossDoor.token_on_file(
+					game.level.id, game.replay, fight_kind, BossDoor.path_of(game)
+				))
 				== str(taken[fight_kind])
 			)
 		)

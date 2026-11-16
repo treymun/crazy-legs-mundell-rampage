@@ -300,6 +300,69 @@ static func join_beside(game: Game, anchor: Player) -> Player:
 	return p
 
 
+## Someone joining a running online co-op or (team) deathmatch match: the
+## slot of a player whose person left (Player.away) when there is one, else a
+## new player (MAX_FREE_FOR_ALL at most; null: no room). Co-op: beside a
+## partner up, on their feet with the lead's guns; versus: on the spawn point
+## farthest from everyone with the kit (team deathmatch: on the team with
+## fewer up). Called between ticks, on the host only.
+static func join_late(game: Game, name: String) -> Player:
+	var st := feature(game)
+	if st == null or not (String(st.mode) in [COOP, DEATHMATCH, TEAM]):
+		return null
+	var p: Player = null
+	for q: Player in game.players:
+		if q.away:
+			p = q
+			break
+	if p == null:
+		if game.players.size() >= MAX_FREE_FOR_ALL:
+			return null
+		p = join_beside(game, game.players[0])
+		rules(game).joined(game, st, p)
+	p.away = false
+	p.name = name
+	p.frags = 0
+	p.deaths = 0
+	p.downed_by = -1
+	if String(st.mode) == COOP:
+		var near := Players.nearest(game, game.players[0].x, game.players[0].y)
+		if near == null or near == p:
+			near = game.players[0]
+		carry(near, p)
+		var at := open_spot_near(game, near.x, near.y)
+		place(game, p, at.x, at.y, near.angle)
+		stand_up(game, p, 100)
+	else:
+		if String(st.mode) == TEAM:
+			var up := [0, 0]
+			for q: Player in game.players:
+				if q != p and not q.away:
+					up[q.team % 2] += 1
+			p.team = 0 if up[0] <= up[1] else 1
+		var spot := far_spawn(game, st, p)
+		var sx: float = spot[0]
+		var sy: float = spot[1]
+		var sa: float = spot[2]
+		place(game, p, sx, sy, sa)
+		give_kit(p)
+		stand_up(game, p, 100)
+	game.focus(game.local_player)
+	return p
+
+
+## The person playing `p` left an online co-op or deathmatch match: they lie
+## out of play (down, never stood up again, not drawn) until a late joiner
+## takes the slot. On the host, between ticks.
+static func went_away(game: Game, p: Player) -> void:
+	p.away = true
+	p.health = 0
+	p.down_at = game.clock
+	p.revive = 0.0
+	p.holding = false
+	p.scoped = false
+
+
 ## A partner's own kit into the next game (a chapter after a chapter, a retry
 ## of one): health (back to full after a game over), guns, rounds, pockets.
 static func carry(from: Player, to: Player) -> void:
@@ -321,7 +384,7 @@ static func carry(from: Player, to: Player) -> void:
 static func gather(game: Game) -> void:
 	var lead: Player = game.players[0]
 	for p: Player in game.players:
-		if p == lead:
+		if p == lead or p.away:
 			continue
 		if Vector2(p.x - lead.x, p.y - lead.y).length() > 4.0:
 			var at := open_spot_near(game, lead.x, lead.y)
@@ -516,6 +579,19 @@ static func clear_enemies(game: Game) -> void:
 	game.bessie = null
 	game.finale = null
 	game.total_kills = 0
+	# The boss features' own lists go too: a copy put on a snapshot would find
+	# names of bosses no longer in the game (online deathmatch in an arena).
+	for key: Array in [
+		["boss_fight", "bosses"], ["boss_arena", "bosses"], ["boss_gear", "gear"], ["squad", "busy"]
+	]:
+		var f: Object = game.features.get(str(key[0]))
+		if f != null:
+			var listed: Array = f.get(str(key[1]))
+			listed.clear()
+	for key: Array in [["variants", "tough"], ["boss_arenas", "boss"], ["mothership", "maw"]]:
+		var f: Object = game.features.get(str(key[0]))
+		if f != null:
+			f.set(str(key[1]), null)
 
 
 ## A versus starting kit: the crowbar, the .38 and the shotgun with rounds.

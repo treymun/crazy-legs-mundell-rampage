@@ -28,11 +28,22 @@ const FIELD_MOST := 21
 const HUB := [
 	["servers", "PLAY ONLINE", "THE COUNTY SERVERS. ALWAYS OPEN."],
 	["bots", "PLAY VS BOTS", "YOU AND THE BOTS. NO INTERNET NEEDED."],
-	["host", "HOST A GAME", "YOUR OWN LOBBY. NO ROUTER FIDDLING."],
+	["host", "HOST A GAME", "CO-OP, DEATHMATCH OR 5V5. NO ROUTER FIDDLING."],
 	["join", "JOIN WITH A CODE", "A FRIEND'S PARTY LINE CODE."],
 ]
-## The lobby's main settings (its own page), and every one (ALL SETTINGS).
+## The lobby's main settings (its own page), and every one (ALL SETTINGS);
+## the party modes' and COUNTY RUN's own (lobby_keys()).
 const LOBBY_KEYS := ["mode", "map", "store_rules", "bots", "bot_skill"]
+const POSSE_KEYS := ["mode", "map", "late_join"]
+## The main settings' labels where the row's own is too long for them.
+const SHORT := {
+	"bot_skill": "SKILL",
+	"bots": "BOTS",
+	"late_join": "LATE",
+	"frag_limit": "FRAGS",
+	"time_limit": "CLOCK"
+}
+const VERSUS_KEYS := ["mode", "map", "late_join", "frag_limit", "time_limit"]
 const ALL_KEYS := [
 	"mode",
 	"map",
@@ -46,6 +57,8 @@ const ALL_KEYS := [
 	"buy_seconds",
 	"freeze_seconds",
 	"start_money",
+	"frag_limit",
+	"time_limit",
 	"max_players",
 	"late_join",
 	"pick_teams",
@@ -377,9 +390,30 @@ static func _map_name(id: Variant) -> String:
 ## always-open lobby's admin) sets the main settings, kicks and starts;
 ## everyone picks a team, readies up and can see ALL SETTINGS.
 static func rows(net: NetPlay) -> Array:
+	var team: Array = ["team"] if teams_matter(net) else []
 	if net == null or not net.is_admin():
-		return ["team", "ready", "more"]
-	return ["team"] + LOBBY_KEYS + ["more", "kick", "start"]
+		return team + ["ready", "more"]
+	return team + lobby_keys(net) + ["more", "kick", "start"]
+
+
+## The main settings the lobby's mode shows.
+static func lobby_keys(net: NetPlay) -> Array:
+	if net == null:
+		return LOBBY_KEYS
+	var mode := str(net.settings.get("mode", ""))
+	if mode == Modes.COOP or net.county():
+		return POSSE_KEYS
+	if mode == Modes.DEATHMATCH or mode == Modes.TEAM:
+		return VERSUS_KEYS
+	return LOBBY_KEYS
+
+
+## Teams to pick (not in co-op, deathmatch or a COUNTY RUN party).
+static func teams_matter(net: NetPlay) -> bool:
+	if net == null:
+		return true
+	var mode := str(net.settings.get("mode", ""))
+	return not (mode == Modes.COOP or mode == Modes.DEATHMATCH or net.county())
 
 
 ## The others in the lobby (whom the kick row walks through).
@@ -417,12 +451,17 @@ static func value_name(key: String, value: Variant) -> String:
 	return str(row[3][at]) if at >= 0 else str(value)
 
 
-## The next (step 1) or last (-1) value of a setting.
-static func stepped(key: String, value: Variant, step: int) -> Variant:
+## The next (step 1) or last (-1) value of a setting (MODE through the
+## lobby's modes, MAP through the mode's own maps, when `net` is given).
+static func stepped(key: String, value: Variant, step: int, net: NetPlay = null) -> Variant:
 	var row := setting_row(key)
 	if row.is_empty():
 		return value
 	var values: Array = row[2]
+	if net != null and key == "map" and not net.maps().is_empty():
+		values = net.maps()
+	elif net != null and key == "mode":
+		values = net.modes()
 	var at := values.find(value)
 	if at < 0:
 		for i in values.size():
@@ -567,15 +606,22 @@ static func draw_lobby(
 
 
 ## Both teams as the match would line them up (a player who did not pick goes
-## where the host's balance puts them, marked ?).
+## where the host's balance puts them, marked ?); co-op, deathmatch and a
+## COUNTY RUN party: the posse, one list.
 static func _teams(c: Canvas, net: NetPlay) -> void:
+	if not teams_matter(net):
+		_posse(c, net)
+		return
 	var size: int = net.settings.get("team_size", 5)
+	var tdm := str(net.settings.get("mode", "")) == Modes.TEAM
 	var shown := [0, 0]
 	for t in 2:
 		var ink := Color8(232, 160, 96) if t == 0 else Color8(126, 196, 120)
-		HUD.text(
-			c, "%s  (%dV%d)" % [NetPlay.TEAM_NAMES[t], size, size], 22 + t * 144, 57, "body", ink
-		)
+		var team_title := "%s  (%dV%d)" % [NetPlay.TEAM_NAMES[t], size, size]
+		if tdm:
+			ink = ModeScreens.TEAM_INKS[t]
+			team_title = str(TeamDeathmatchMode.TEAMS[t])
+		HUD.text(c, team_title, 22 + t * 144, 57, "body", ink)
 	for p: Dictionary in net.players:
 		var side_raw: int = p.get("side", p.get("team", 0))
 		var side := clampi(side_raw, 0, 1)
@@ -614,7 +660,7 @@ static func _teams(c: Canvas, net: NetPlay) -> void:
 		var x := 22 + t * 144
 		var shown_t: int = shown[t]
 		var extra := shown_t - 5
-		var bots_on: bool = net.settings.get("bots", true)
+		var bots_on: bool = net.settings.get("bots", true) and not tdm
 		if extra > 0:
 			HUD.text(c, "+%d MORE" % extra, x, 112, "mini", SOFT)
 		elif bots_on:
@@ -624,11 +670,68 @@ static func _teams(c: Canvas, net: NetPlay) -> void:
 				HUD.text(c, "+ %d BOT%s" % [bots, "" if bots == 1 else "S"], x, y, "body", Menu.DIM)
 
 
+## The posse (co-op, deathmatch, a COUNTY RUN party): who is in, of how many,
+## who hosts and who is ready, in one list down the left.
+static func _posse(c: Canvas, net: NetPlay) -> void:
+	var mode := str(net.settings.get("mode", ""))
+	var heading := "THE POSSE"
+	if mode == Modes.DEATHMATCH:
+		heading = "EVERY MAN FOR HIMSELF"
+	HUD.text(
+		c,
+		"%s  (%d OF %d)" % [heading, net.players.size(), net.most_players()],
+		22,
+		57,
+		"body",
+		Color8(232, 160, 96)
+	)
+	var served: bool = net.settings.get("dedicated", net.dedicated)
+	for i in mini(net.players.size(), 5):
+		var p: Dictionary = net.players[i]
+		var y := 67 + i * 9
+		var pid: int = p["id"]
+		var me := pid == net.my_id
+		var tone: Color = Modes.COLORS[i % Modes.COLORS.size()]
+		c.fill_rect(22, y + 2, 4, 4, tone)
+		var drawn := HUD.text(c, str(p["name"]), 30, y, "body", HUD.AMBER if me else HUD.INK)
+		var tag := ""
+		if pid == NetSession.HOST_ID and not served:
+			tag = "HOST"
+		elif served and pid == net.admin_of():
+			tag = "ADMIN"
+		if tag != "":
+			HUD.text(c, tag, drawn.end.x + 4, y + 1, "mini", SOFT)
+		var ready: bool = p.get("ready", false)
+		HUD.text(
+			c,
+			"OK" if ready else "...",
+			160,
+			y,
+			"body",
+			GREEN if ready else Menu.DIM,
+			false,
+			true,
+			true
+		)
+	var late: bool = net.settings.get("late_join", true)
+	var said: Array = ["NO TEAMS, NO FRIENDS.", "FIRST TO THE FRAG LIMIT."]
+	if mode == Modes.COOP:
+		said = ["THE CAMPAIGN, CHAPTER", "BY CHAPTER. UP TO FOUR."]
+		if str(net.settings.get("map", "")) == NetPlay.PARTY_SAVE:
+			said = ["THE HOST'S PARTY SAVE.", "ONLY THE HOST SAVES: F5."]
+	elif net.county():
+		said = ["A COUNTY RUN FOR", "THE WHOLE PARTY."]
+	said.append("LATE JOIN: JUMP IN ANY TIME." if late else "LATE JOIN OFF.")
+	for k in said.size():
+		HUD.text(c, str(said[k]), 178, 67 + k * 9, "mini", SOFT)
+
+
 ## The lobby's main settings in two columns, MODE MAP RULES | BOTS SKILL.
 static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 	var admin := net.is_admin()
-	for i in LOBBY_KEYS.size():
-		var key := str(LOBBY_KEYS[i])
+	var keys := lobby_keys(net)
+	for i in keys.size():
+		var key := str(keys[i])
 		# MODE, MAP and RULES (the long values) wide on the left; BOTS, SKILL.
 		var col := 0 if i < 3 else 1
 		var x0 := 20 if col == 0 else 182
@@ -638,7 +741,7 @@ static func _main_settings(c: Canvas, net: NetPlay, cursor: String) -> void:
 		if here:
 			c.fill_rect(x0 - 2, y - 2, w, 11, LIT)
 		var row := setting_row(key)
-		var label := str(row[1]).replace("BOT SKILL", "SKILL").replace("BOTS FILL", "BOTS")
+		var label := str(SHORT.get(key, row[1]))
 		HUD.text(c, label, x0, y, "body", Menu.FADED)
 		var value := value_name(key, net.settings.get(key))
 		if key == "map":
@@ -668,7 +771,8 @@ static func _actions(c: Canvas, net: NetPlay, cursor: String, kick_at: int, arme
 	var pick_teams: bool = net.settings.get("pick_teams", true)
 	if not pick_teams:
 		team_name = "BALANCED"
-	button(c, Rect2i(14, y, 96, 12), "TEAM: %s" % team_name, cursor == "team", "team")
+	if teams_matter(net):
+		button(c, Rect2i(14, y, 96, 12), "TEAM: %s" % team_name, cursor == "team", "team")
 	if net.is_admin():
 		var rest := others(net)
 		var who := "NOBODY"
@@ -758,7 +862,18 @@ static func draw_match(c: Canvas, net: NetPlay, game: Game, leave_asked: bool) -
 			var ping := roundi(net.ping_ms())
 			var ink := GREEN if ping < 80 else (HUD.AMBER if ping < 160 else RED)
 			HUD.text(c, "%d MS" % ping, 316, 10, "mini", ink, false, true, true)
-	if game != null and game.showing_tally and not leave_asked:
+	if (
+		game != null
+		and game.showing_tally
+		and not leave_asked
+		and Modes.mode_of(game) == Modes.COOP
+	):
+		# Online co-op: the host takes the party on (net_coop.gd next).
+		if net.role == NetPlay.Role.HOST:
+			button(c, Rect2i(60, 176, 200, 13), "ENTER  ROLL ON, Y'ALL", true, "lobby_now")
+		else:
+			HUD.text(c, "THE HOST TAKES THE PARTY ON", 160, 181, "body", HUD.AMBER, true)
+	elif game != null and game.showing_tally and not leave_asked:
 		var back := net.back_in()
 		var line := "WAITING TO GO BACK TO THE LOBBY"
 		if back >= 0:

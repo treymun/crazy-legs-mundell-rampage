@@ -112,6 +112,9 @@ static var pending_weapon := -1
 static var pending_reload := false
 static var pending_use := false
 static var pending_cycle := 0
+## A pocket item to use, or a pocket to pick (Game.POCKET_PICK + its place):
+## online co-op and deathmatch (-1 none).
+static var pending_item := -1
 ## Watching a teammate while out: SPACE asks for the next one.
 static var watch_next := false
 ## The results screen's last line (empty online: the lobby's line is there).
@@ -128,6 +131,7 @@ static func reset() -> void:
 	pending_reload = false
 	pending_use = false
 	pending_cycle = 0
+	pending_item = -1
 	_cash_seen = -1
 	open = false
 	cursor = 0
@@ -1003,6 +1007,8 @@ static func take_pending(c: Game.Controls) -> void:
 	# Once each: a frame of several ticks hands them to the first only.
 	c.use = pending_use
 	c.cycle = pending_cycle
+	c.item = pending_item
+	pending_item = -1
 	pending_weapon = -1
 	pending_reload = false
 	pending_use = false

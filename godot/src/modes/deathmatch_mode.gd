@@ -73,7 +73,7 @@ func tick(game: Game, st: ModeFeature, _dt: float) -> void:
 	if st.match_over:
 		return
 	for p: Player in game.players:
-		if p.health > 0:
+		if p.health > 0 or p.away:
 			continue
 		if p.down_at < 0.0:
 			p.down_at = game.clock
