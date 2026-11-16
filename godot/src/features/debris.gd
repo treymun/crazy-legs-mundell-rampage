@@ -20,6 +20,12 @@ const FADE := 2.5
 ## seconds a shell come to rest takes to roll the rest of the way flat.
 const ROLL_R := .3
 const ROLL_FLAT := .25
+## A shell come down in water sinks this fast (units a second) and is gone
+## after this long.
+const SINK_RATE := .2
+const SINK_TIME := .5
+
+const Water := preload("res://src/features/water.gd")
 
 
 ## One piece of debris in the air or on the ground.
@@ -37,6 +43,8 @@ class Bit:
 	var landed := -1.0
 	var rested := -1.0
 	var roll := 0.0
+	## Its age when it splashed into water and went under (below 0: never).
+	var sink := -1.0
 
 
 var dice := RandomNumberGenerator.new()
@@ -239,9 +247,21 @@ func _tick(dt: float) -> void:
 ## time, glances off walls, turns over in the air, rolls and lies still.
 func _shell(bit: Bit, dt: float) -> void:
 	var casing := bit.kind == "casing"
+	if bit.sink >= 0.0:
+		# Gone into the water: down under its face, then gone.
+		bit.z -= SINK_RATE * dt
+		if bit.age - bit.sink > SINK_TIME:
+			bit.life = bit.age
+		return
 	var ox := bit.x
 	var oy := bit.y
 	var hit := Tumble.step(game.world, bit, _case_feel if casing else _hull_feel, dt)
+	if (hit & Tumble.FLOOR or (bit.vz == 0.0 and bit.landed < 0.0)) and Water.splash_if(
+		game, bit.x, bit.y, bit.z, .2
+	):
+		bit.sink = bit.age
+		bit.rest = false
+		return
 	if hit & Tumble.FLOOR:
 		bit.spin_rate *= -.5
 		game.sound_at("casing_tink", bit.x, bit.y, .22 if casing else .12)

@@ -177,6 +177,8 @@ func _level(game: Game) -> void:
 	var where := ""
 	var worst_body = null
 	for w in wreck.wrecks:
+		if w.floats == 2 or w.fading >= 0.0:
+			continue
 		var d: float = wreck.physics.inside(w.body)
 		if d > worst:
 			worst = d
@@ -205,6 +207,8 @@ func _level(game: Game) -> void:
 	)
 	var floating := 0
 	for w in wreck.wrecks:
+		if w.floats == 2 or w.fading >= 0.0:
+			continue
 		if wreck.physics.unsupported(w.body):
 			floating += 1
 			var low := Vector3(0, 0, INF)

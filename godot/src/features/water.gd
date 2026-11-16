@@ -16,6 +16,8 @@ const LIFE := 1.6
 ## How far a wading body goes between strides' rings, and a wake's rings.
 const STRIDE := .45
 const WAKE := .3
+## Splashes are heard no closer together than this (a burst of gibs is one).
+const SPLASH_GAP := .1
 
 var dice := RandomNumberGenerator.new()
 var rings: Array = []
@@ -27,6 +29,9 @@ var _kinds := PackedByteArray()
 var _kinds_of: LevelData = null
 var _water: Dictionary = {}
 var _puddles: Dictionary = {}
+## Splashes made (tools count them), and when the next may be heard.
+var splashes := 0
+var _splash_next := 0.0
 
 
 func id() -> String:
@@ -105,6 +110,43 @@ func ring(x: float, y: float, size: float) -> void:
 	rings.append([x, y, game.clock, size])
 	if rings.size() > MAX_RINGS:
 		rings.pop_front()
+
+
+## Something come down in water at (x, y, z), `size` how big (a shell .2, a
+## gib or a hat .5, a board 1, a body 2): rings spreading from it, a crest of
+## water and drops thrown up (gun_fx's water strike) and a splash heard, the
+## sound no more than one a SPLASH_GAP. Looks only (its own dice).
+func splash(x: float, y: float, z: float, size: float) -> void:
+	splashes += 1
+	ring(x, y, size * 1.3)
+	if size >= .8:
+		var a := dice.randf_range(0.0, TAU)
+		ring(x + cos(a) * .25 * size, y + sin(a) * .25 * size, size * .7)
+	var fx: GameFeature = game.features.get("gun_fx")
+	if fx != null:
+		fx.call("splash", x, y, z, size)
+	if game.clock >= _splash_next:
+		_splash_next = game.clock + SPLASH_GAP
+		game.sound_at("wade_splash", x, y, clampf(.25 + size * .3, .25, .9))
+
+
+## Splash if (x, y) is water (BayouBrains.wet_at: deep water or a water
+## floor); true when it was. For anything landing: a feature calls this
+## where it lands (a server's game has no water feature: `water` null).
+static func splash_if(game: Game, x: float, y: float, z: float, size: float) -> bool:
+	if not BayouBrains.wet_at(game.world, x, y):
+		return false
+	var water: GameFeature = game.features.get("water")
+	if water != null:
+		water.call("splash", x, y, z, size)
+	return true
+
+
+## The water's current on this level (effects.cfg [debris] current_<level>,
+## units a second; none for most): what floats drifts on it.
+static func current(level_id: String) -> Vector2:
+	var flow: Vector2 = Effects.DEBRIS.get("current_" + level_id, Vector2.ZERO)
+	return flow
 
 
 func _tick(_dt: float) -> void:

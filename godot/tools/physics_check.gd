@@ -19,6 +19,7 @@
 extends SceneTree
 
 const PhysicsRagdolls := preload("res://tools/physics_ragdolls.gd")
+const PhysicsWater := preload("res://tools/physics_water.gd")
 const DT := 1.0 / 60.0
 const TOL := .03
 ## The most a loose thing's slab may turn in a tick once it is on its floor
@@ -52,6 +53,8 @@ func _run() -> void:
 		_level(game)
 	print("\nFEATURES ON A LOFT")
 	_features(main)
+	print("\nWATER")
+	PhysicsWater.new(self).run(main)
 	print("\nRAGDOLLS")
 	var rag_levels: Array = ["hickston", "feedstore", "quarry", "sawmill"]
 	if levels != LEVELS:

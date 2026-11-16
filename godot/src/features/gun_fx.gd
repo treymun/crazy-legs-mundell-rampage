@@ -270,6 +270,20 @@ func _traced(end: Vector3, struck: String) -> void:
 				_bit("drop", at, v, .6, .03, 9.0)
 
 
+## Something come down in water (water.gd splash()): the water strike's
+## crest, as big as it was, and drops thrown up round it.
+func splash(x: float, y: float, z: float, size: float) -> void:
+	var at := Vector3(x, y, z)
+	var crest := clampf(.35 + size * .35, .35, 1.4)
+	hits.append([x, y, z + crest * .5, game.clock, "water", crest])
+	if hits.size() > MAX_HITS:
+		hits.pop_front()
+	for _k in clampi(int(2.0 + size * 4.0), 2, 10):
+		var v := _scatter(.5 + size * .3, 0.0)
+		v.z = dice.randf_range(1.4, 2.4) * (.8 + minf(size, 2.0) * .25)
+		_bit("drop", at, v, .6, .03, 9.0)
+
+
 func _puff(at: Vector3, out: Vector3, kind: String, size: float) -> void:
 	var puff := _bit(kind, at + out * .05, out * .45 + Vector3(0, 0, .18), .9, size)
 	puff.grow = size * 2.2

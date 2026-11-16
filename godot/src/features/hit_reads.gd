@@ -7,6 +7,7 @@
 ## and sound, its own dice; nothing saved.
 extends GameFeature
 
+const Water := preload("res://src/features/water.gd")
 ## Hats and dropped weapons at once; the oldest goes when more come.
 const MAX_BITS := 24
 ## Seconds a hat lies before it goes (a weapon goes when it is picked up, or
@@ -246,6 +247,8 @@ func _tick(dt: float) -> void:
 		if hit & Tumble.RESTED:
 			b.rest = true
 		if b.vz == 0.0:
+			if b.landed < 0.0:
+				Water.splash_if(game, b.x, b.y, b.z, .5)
 			_landed(b)
 		else:
 			b.landed = -1.0

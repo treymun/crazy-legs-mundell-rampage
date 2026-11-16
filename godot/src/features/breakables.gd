@@ -21,6 +21,7 @@
 extends GameFeature
 
 const PATH := "res://data/tuning/breakables.cfg"
+const Water := preload("res://src/features/water.gd")
 ## Seconds before a broken explosive goes up: shot, and set off by a blast
 ## (each one more after the last, so a row goes off one after another).
 const FUSE_SHOT := .1
@@ -695,11 +696,15 @@ func _tick(dt: float) -> void:
 		var oy := b.y
 		var hit := Tumble.step(game.world, b, _feel(b.image), dt)
 		# When it came down and how it was turned (looks only, never carried).
+		var down := hit & Tumble.FLOOR != 0
 		if b.vz != 0.0:
 			b.landed = -1.0
 		elif b.landed < 0.0:
 			b.landed = game.clock
 			b.spin0 = _turn(b)
+			down = true
+		if down:
+			Water.splash_if(game, b.x, b.y, b.z, .4)
 		if hit & Tumble.RESTED:
 			b.rest = true
 			_resting_dirty = true

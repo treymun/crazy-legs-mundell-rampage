@@ -31,6 +31,8 @@ class Gib:
 	## the air (radians a second); on the ground it turns as it rolls.
 	var spin := 0.0
 	var spin_rate := 0.0
+	## Come down in water: it sinks under its face (SINK_RATE, SINK_TIME).
+	var sinking := false
 
 
 ## Dust or sparks where a bullet struck.
@@ -45,6 +47,10 @@ class Puff:
 ## Gore keeps fixed-size rings: the oldest chunk, pool or splat is reused, so a
 ## long fight never grows these lists or stalls on freeing them.
 const GIB_CAP := 80
+## A chunk come down in water sinks this fast (units a second) for this long.
+const SINK_RATE := .3
+const SINK_TIME := 1.2
+const Water := preload("res://src/features/water.gd")
 const PUFF_CAP := 20
 const BLOOD_CAP := 140
 const SPLAT_CAP := 48
@@ -338,6 +344,9 @@ func tick(dt: float) -> void:
 	for g: Gib in gibs:
 		if g.rest:
 			g.age += dt
+			if g.sinking and g.age < SINK_TIME:
+				# Gone into the water: down under its face.
+				g.z -= SINK_RATE * dt
 			continue
 		# A chunk in the air leaves a line of drops behind it.
 		g.drip -= dt
@@ -360,6 +369,12 @@ func tick(dt: float) -> void:
 		var ox := g.x
 		var oy := g.y
 		var hit := Tumble.step(game.world, g, _feel(g.size), dt)
+		if hit & (Tumble.FLOOR | Tumble.RESTED) and Water.splash_if(game, g.x, g.y, g.z, g.size * 2.0):
+			# Into the water: a splash, and it sinks.
+			g.rest = true
+			g.sinking = true
+			g.age = 0.0
+			continue
 		if hit & Tumble.RESTED:
 			# It comes to lie on one face or the other: the 3D view eases it
 			# over from the turn it stopped at (kept), by its age at rest.

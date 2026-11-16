@@ -73,9 +73,11 @@ var dead_scale := PackedVector3Array()
 var anchors := PackedInt32Array()
 ## Each segment's frame at the key "0" (from the points, as frames() makes it).
 var rest_frames: Array[Transform3D] = []
-## The points as the model's own body at rest ("down") has them: a body first
-## seen already dead starts from there.
+## The points as the model's own body at rest ("down") has them (a tool's
+## pose to drop from).
 var down_points := PackedVector3Array()
+## The points lying on the back on the floor (_lie_down).
+var lying_points := PackedVector3Array()
 ## Each segment's outermost points in its rest frame (model units), in a
 ## bucket for each of ways() (Array[PackedVector3Array] each), and how far
 ## the furthest reaches from the frame's origin (_hull).
@@ -222,7 +224,24 @@ func _build(view: Node, info: Dictionary) -> void:
 		_rest_inv.append(f.basis.inverse())
 	_hull(all_at, all_bone)
 	down_points = points_from(dead)
+	_lie_down()
 	ok = true
+
+
+## The points lying on the back on the floor (y 0), the torso's middle over
+## the origin: the standing points turned face up about the torso's middle.
+## A body first seen long dead starts so (a few steps fit it to the floor).
+func _lie_down() -> void:
+	var mid := (points[HIP_L] + points[HIP_R] + points[SH_L] + points[SH_R]) * .25
+	var turn := Basis(Vector3.RIGHT, -PI * .5)
+	lying_points = PackedVector3Array()
+	var low := INF
+	for i in POINTS:
+		var p := turn * (points[i] - mid)
+		lying_points.append(p)
+		low = minf(low, p.y - radii[i])
+	for i in POINTS:
+		lying_points[i] = lying_points[i] - Vector3(0.0, low, 0.0)
 
 
 ## Each segment's outermost points (its parts' convex hull, a part the dead

@@ -27,6 +27,14 @@ const BLAST_TIME := .5
 const BLAST_NEAR := 4.5
 ## More awake than this: one physics step a tick.
 const CROWD := 20
+## What goes under in water (breakables.cfg `stuff`; glass and clay too, by
+## their clink); how fast it sinks, how deep before it shrinks away, and how
+## fast a floating piece turns as it drifts (radians a second at most).
+const SINKS := ["tin", "redtin", "grey", "clay", "glass"]
+const SINK_RATE := .25
+const SINK_DEEP := .3
+const DRIFT_TURN := .25
+const Water := preload("res://src/features/water.gd")
 
 
 ## One piece lying about or flying.
@@ -44,6 +52,11 @@ class Wreck:
 	var fading := -1.0
 	## Woken once for nothing under it since it was last knocked.
 	var wedged := false
+	## What it is made of goes under in water (glass, clay, tin, stone), and
+	## how it lies there: -1 not asked since it came to rest, 0 not on water,
+	## 1 floating, 2 sinking.
+	var sinks := false
+	var floats := -1
 
 
 var physics: WreckPhysics
@@ -67,6 +80,9 @@ var _wall_version := -1
 var _blasts: Array = []
 var _groups := 0
 var _clink_next := 0.0
+var _splash_next := 0.0
+## The pieces being thrown now are of something that sinks (SINKS).
+var _sinking := false
 var _wake_at := 0
 var _models: PropModels
 
@@ -156,6 +172,11 @@ func _tick(dt: float) -> void:
 		var w := _nearest(physics.knock_at)
 		if w != null and w.clink != "":
 			game.sound_at(w.clink, physics.knock_at.x, physics.knock_at.y, .25)
+	if physics.knock_hard > 1.2 and game.clock >= _splash_next:
+		var at := physics.knock_at
+		if Water.splash_if(game, at.x, at.y, at.z, clampf(physics.knock_hard * .25, .5, 1.4)):
+			_splash_next = game.clock + .15
+	_in_water(dt)
 	_shrink(dt)
 	_kick()
 	if not wrecks.is_empty():
@@ -285,7 +306,9 @@ func _break_piece(p: Breakables.Piece) -> void:
 	var count: int = p.spec.get("pieces_most", 3 if is_sign else 99)
 	var stuff := str(p.spec.get("stuff", "wood"))
 	var clink := "glass_settle" if stuff == "glass" or stuff == "clay" else "debris_settle"
+	_sinking = SINKS.has(stuff)
 	_throw(src, knock, .6 if is_sign else 1.0, count, clink, [])
+	_sinking = false
 
 
 func _break_window(walls: WallBreaks, face: WallBreaks.WindowFace) -> void:
@@ -424,6 +447,7 @@ func _throw(
 		w.index = i
 		w.size = size
 		w.clink = clink
+		w.sinks = _sinking or clink == "glass_settle"
 		w.sprite = View.Sprite.new(b.p.x, b.p.y, "", 1.0, b.p.z)
 		w.sprite.solid = "~%s#%d" % [key, i]
 		wrecks.append(w)
@@ -455,6 +479,44 @@ func _cap() -> void:
 func _drop(w: Wreck) -> void:
 	physics.bodies.erase(w.body)
 	wrecks.erase(w)
+
+
+## Pieces lying still on water: wood (and anything light) floats, drifting
+## on the level's current (Water.current) and turning slowly, never onto the
+## bank or into a wall; glass, clay, tin and stone sink under the surface and
+## shrink away. Asleep all the while (a drifting piece costs a cell's look).
+func _in_water(dt: float) -> void:
+	var flow := Water.current(game.level.id)
+	var world := game.world
+	for w: Wreck in wrecks:
+		var b := w.body
+		if b.awake:
+			w.floats = -1
+			continue
+		if w.fading >= 0.0:
+			continue
+		if w.floats < 0:
+			# Asked once each time it comes to rest.
+			w.floats = 0
+			if BayouBrains.wet_at(world, b.p.x, b.p.y):
+				w.floats = 2 if w.sinks else 1
+		if w.floats == 2:
+			b.p.z -= SINK_RATE * dt
+			if world.floor_under(b.p.x, b.p.y, 99.0) - b.p.z > SINK_DEEP:
+				w.fading = game.clock
+			continue
+		if w.floats != 1 or flow == Vector2.ZERO:
+			continue
+		var phase := float(w.index) * 1.7 + b.p.x * .3
+		var way := flow * (1.0 + .4 * sin(game.clock * .41 + phase)) * dt
+		var to := b.p + Vector3(way.x, way.y, 0.0)
+		var edge := Vector2(signf(way.x), signf(way.y)) * minf(b.reach, .3)
+		if not BayouBrains.wet_at(world, to.x + edge.x, to.y + edge.y):
+			continue
+		if world.blocked(to.x, to.y, minf(b.reach, .3), b.p.z + .05):
+			continue
+		b.p = to
+		b.q = (Quaternion(Vector3(0.0, 0.0, 1.0), DRIFT_TURN * dt * sin(phase)) * b.q).normalized()
 
 
 func _shrink(_dt: float) -> void:

@@ -196,6 +196,17 @@ func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 ## Let it fall still at once (a body first seen long after it died): up to
 ## `most` steps, stopping when it sleeps.
 func settle(world: LevelData, most := 240, rest := false) -> void:
+	if rest:
+		# Lowered at once till its lowest ball is on the floor under it.
+		var gap := INF
+		for i in pos.size():
+			var p := pos[i]
+			var under := Tumble.floor_at(world, p.x, p.y, p.z - radius[i] + .03, radius[i] * .6)
+			gap = minf(gap, p.z - radius[i] - under)
+		if gap > 0.0 and gap < INF:
+			for i in pos.size():
+				pos[i] = pos[i] - Vector3(0.0, 0.0, gap)
+				old[i] = pos[i]
 	for _k in most:
 		if not awake:
 			return
