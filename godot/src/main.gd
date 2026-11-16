@@ -270,6 +270,16 @@ func _view_tour() -> void:
 			arms.switch = 0.0
 			arms.cooldown = 0.0
 			arms.reload = 0.0
+		if shot.has("seat"):
+			# A viewpoint from a vehicle's seat (features/vehicles.gd): in at
+			# the wheel of the level's ride, looking `angle` off its heading.
+			var rides: GameFeature = game.features.get("vehicles")
+			var seat: int = shot["seat"]
+			if rides != null and rides.call("seat_in", p, seat):
+				var rows: Array = rides.get("rides")
+				var ride: VehicleDrive.Ride = rows[seat]
+				p.angle = ride.h + shot_angle
+				p.pitch = shot_pitch
 		if shot.has("ticks"):
 			var held := Game.Controls.new()
 			var fire: bool = shot.get("fire", false)

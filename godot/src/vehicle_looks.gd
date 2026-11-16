@@ -4,6 +4,10 @@
 ## rim, two chrome spokes) turning as it steers. Painted once in code (the
 ## wheel a turn at a time, seven of them) and drawn as cached pictures
 ## (Canvas.blit_rgba); the car's own model is left out of its driver's view.
+## Since the engine pass after 3.3.0 only without the seat view (no window,
+## or the cab's art not here yet: features/vehicles.gd cab_drawn); with it
+## the driver sees the car's own dash, wheel and hood in 3D
+## (src/vehicle_cab.gd, view3d/cab_layer.gd).
 class_name VehicleLooks
 extends RefCounted
 

@@ -344,5 +344,51 @@
   "weapon": true,
   "x": 63.5,
   "y": 26.5
+ },
+ {
+  "angle": 0.0,
+  "forward": 1.0,
+  "level": "bayou",
+  "pitch": 0.0,
+  "seat": 0,
+  "tag": "bayou_seat_0",
+  "ticks": 50,
+  "weapon": true,
+  "x": 0.0,
+  "y": 0.0
+ },
+ {
+  "angle": 2.7,
+  "level": "bayou",
+  "pitch": 0.0,
+  "seat": 0,
+  "tag": "bayou_seat_back_0",
+  "weapon": true,
+  "x": 0.0,
+  "y": 0.0
+ },
+ {
+  "angle": 0.0,
+  "forward": 1.0,
+  "level": "speedway",
+  "pitch": 0.0,
+  "seat": 0,
+  "tag": "speedway_seat_0",
+  "ticks": 50,
+  "weapon": false,
+  "x": 0.0,
+  "y": 0.0
+ },
+ {
+  "angle": 0.0,
+  "forward": 1.0,
+  "level": "hickston",
+  "pitch": 0.0,
+  "seat": 0,
+  "tag": "hickston_seat_0",
+  "ticks": 40,
+  "weapon": true,
+  "x": 0.0,
+  "y": 0.0
  }
 ]

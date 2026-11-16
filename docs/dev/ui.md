@@ -34,6 +34,12 @@ draws the bar on the software canvas as before.
   the campaign's meters are left off (their boxes hidden, the plate showing
   through; the software bar skips drawing them), and the pin; the 5v5 side
   and COUNTY RUN's gun slots stay.
+- **The driving plate** (`src/vehicle_hud.gd`, drawn on the canvas by
+  `features/vehicles.gd draw_view` while riding): speed, the rig's health
+  and state, the throttle and the kind's line, in the plate's colours and
+  lettering; MINIMAL keeps two lines, STATUS PANEL shows the speed on a
+  dial, and with the touch buttons up it hangs under the pin
+  ([gameplay.md](gameplay.md#vehicles)).
 - **Scaling:** the overlay is the 320x200 picture, scaled to the window by
   the display shader with whole, crisp pixels (INTEGER 8:5 keeps every pixel
   the same size) inside the phone's safe area, so the HUD scales with the

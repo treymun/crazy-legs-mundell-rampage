@@ -167,6 +167,7 @@ Headless runs draw no world, only the canvas. The renderer is
 | thing marks | `ThingMarks` (`thing_marks.gd`), `thing_marks.gdshaderinc` | holes, scorch and char on props, vehicles and wreck pieces ([below](#marks-on-modelled-things)) |
 | storm | `storm_wall.gdshader`, `world_view.gd _storm` | County Run's storm front: two curtains round the ring, the ground and the world outside it ([below](#county-runs-storm-front)) |
 | actors | `ActorLayer3D`, `ActorView`, `actor_models.gd`, `actor.gdshader` | rigged enemies and bosses |
+| seat view | `CabLayer3D` (`cab_layer.gd`), `cab.gdshader` | the driver's own vehicle from the seat ([below](#the-seat-view)) |
 | heat | `HeatHaze` | heat shimmer boxes, handed to the display shader |
 | mirror | second camera | draws the reflection on cull layer bit `1 << 19` (`LAYER_MIRROR`) |
 
@@ -237,6 +238,39 @@ takes the most open way. Only looks: where the player aims and what USE
 reaches are the same as before (`quest_reach`). A moving
 prop (the speedway's lap cars, `race_laps.gd`) sets `plane` from its heading,
 so it faces where it runs; it is stood again each frame it moves.
+
+## The seat view
+
+`CabLayer3D` draws what a driver sees of their own vehicle (the frame's
+`eye["cab"]` from `src/vehicle_cab.gd`: model, turn in map axes, `lift` from
+the eye at full size, each moving part's turn) from
+`assets3d/cabs/<model>.glb` (meshes `look_<part>`, one baked texture
+`mesh_<model>`) and `cabs.json` (each part's pivot and axis in Blender's
+axes; a hand rides another part: it goes round with the wheel or stick and
+its wrist takes only `turn` of it, so the forearm does not sweep the view).
+
+- **Shrunk toward the eye**: the whole cab is drawn `SHRINK` (.1) of its
+  size about the eye, so it looks the same size but sits nearer than any
+  wall can come (a hull keeps walls .45 or more from the eye; the farthest
+  part, the airboat's bow, is at .3) and further than the camera's near
+  plane (.02): it never cuts into a wall or hides behind one, and whatever
+  of the road it does not cover shows. `cab.gdshader` (a prop's light) works
+  its distance and place at full size (`/ shrink`), so it is lit as the
+  vehicle would be, by the cell the driver sits in.
+- **Its own layer** (`LAYER` 8): the eye's camera draws it, the mirror's
+  camera does not.
+- **The old view's height** is narrow (37 degrees at FIELD OF VIEW 70): a
+  driver's view is widened (`eye["wide"]`, below) and each kind sits its eye
+  lower in its cab (`cab_drop`) and tips it nose up a little (`cab_tilt`),
+  so the hood, rails and controls show while the nose stays a few degrees
+  under the horizon.
+- **Widening** (`eye["wide"]`, below 1): `_place_camera` widens the frustum
+  about the view's middle (the aim's way, `horizon` kept), and the shaders'
+  `focal` and `horizon` follow, so the sky lines up; the crosshair still
+  aims where it shoots. Overlays the canvas places from `View.focal` (the
+  objective pin's arrow) are a few pixels off while it is wide.
+- Hiding the driver's own model (`features/vehicles.gd sprites`) is play's
+  job: the layer only draws the cab.
 
 ## Solid bodies
 
