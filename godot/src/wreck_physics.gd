@@ -58,6 +58,10 @@ const WALL_STEP := .03
 const WALL_REACH := .6
 ## A floor more than this over a point is a step's side to it, not a floor.
 const LEDGE := .2
+## How far round a resting piece's corner a wall holds it up (unsupported()).
+const LEAN_SIDES := [
+	Vector3(.05, 0.0, 0.0), Vector3(-.05, 0.0, 0.0), Vector3(0.0, .05, 0.0), Vector3(0.0, -.05, 0.0)
+]
 ## A piece on its floor standing on an end or an edge (its upright reach
 ## more than TALL times its narrow foot's, within TIP_FROM radians of
 ## upright) with nothing leaning it (a contact steeper than PROP_N) is
@@ -790,6 +794,10 @@ func unsupported(b: Body) -> bool:
 		# A corner on a floor, a top or a wall's foot...
 		if Tumble.floor_at(world, c.x, c.y, b.p.z + .02) >= c.z - .05:
 			return false
+		# ...leaning on a wall (a stave propped in a corner is held there)...
+		for side: Vector3 in LEAN_SIDES:
+			if solid(c + side):
+				return false
 		# ...or on another piece.
 		var below := c - Vector3(0.0, 0.0, .04)
 		for o: Body in near:
