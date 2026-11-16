@@ -144,7 +144,12 @@ jobs:
       - name: The 3D view matches its references
         run: |
           godot --headless --path godot --script res://tools/compare_3d.gd -- "$RUNNER_TEMP/views3d" 2>&1 | tee compare3d.log
-          grep -q "PICTURES 3D OK" compare3d.log
+          # Each moved picture also as an annotation: those can be read from
+          # the public API without a login (the log cannot).
+          if ! grep -q "PICTURES 3D OK" compare3d.log; then
+            grep -E "MOVED|MISSING|PICTURES 3D|ERROR" compare3d.log | head -40 | sed 's/^/::error title=3D view::/'
+            exit 1
+          fi
       - name: Frame time
         run: |
           # A shared runner is slow and noisy: this only catches a big slowdown.
