@@ -893,9 +893,10 @@ Run, the versus maps or a boss rematch). All of it is looks and sound
   nothing else is at hand: "RIP SAW  /  NEW IRON" (`game_use.gd`, after a
   vehicle's).
 - **Mundell smells it** the first time one is within `smell_reach`: SMELLS
-  LIKE GUN OIL ROUND HERE... and two more in turn (`NewIron.SMELLS`, on the
-  message line once it is clear; text only, so no voice credits), once for
-  the guns lying together.
+  LIKE GUN OIL ROUND HERE... and two more, said in his voice as the
+  `new_iron` bark (Barks LINES, mundell_lines.json, cues
+  `mundell_new_iron_0..2`; the message line when he can't, `NewIron.SMELLS`),
+  once for the guns lying together.
 - **Secrets stay secrets**: a gun in a hidden room behind a secret door not
   found yet (`GunFinder.in_secret`) neither shines, is lit nor goes on the
   map; Mundell can still smell it, a hint and no more.

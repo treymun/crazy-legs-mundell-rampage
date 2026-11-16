@@ -8,7 +8,7 @@ extends GameFeature
 const SMELLS := [
 	"SMELLS LIKE GUN OIL ROUND HERE...",
 	"SOMETHIN' SHINY CLOSE BY. NEW IRON.",
-	"NOSE SAYS THERE'S A GUN NEAR.",
+	"GUN'S CLOSE. I CAN SMELL IT.",
 ]
 
 ## Where each gun seen or smelled lies (GunFinder.spot), and each he has said
@@ -79,7 +79,10 @@ func _tick(_dt: float) -> void:
 			if near or (d <= see and game.world.visible(p.x, p.y, x, y, p.eye, eye)):
 				seen[at] = true
 		if near and not told.has(at) and game.message_until <= game.clock:
-			game.message(str(SMELLS[said % SMELLS.size()]), 2.6)
+			# Said in his voice (Barks "new_iron", mundell_new_iron_*); shown
+			# on the message line when he can't (another player's view).
+			if not game.barks.say(game, "new_iron", true):
+				game.message(str(SMELLS[said % SMELLS.size()]), 2.6)
 			said += 1
 			_tell_near(p, smell)
 

@@ -96,6 +96,12 @@ const LINES := {
 		"TIME TO CLEAN HOUSE.",
 		"SOMEBODY'S FIXIN' TO GET LEARNED."
 	],
+	"new_iron":
+	[
+		"SMELLS LIKE GUN OIL ROUND HERE...",
+		"SOMETHIN' SHINY CLOSE BY. NEW IRON.",
+		"GUN'S CLOSE. I CAN SMELL IT."
+	],
 }
 const COOLDOWN := {
 	"kill": 6.0,
@@ -113,7 +119,8 @@ const COOLDOWN := {
 	"station": 6.0,
 	"key": 4.0,
 	"headshot": 7.0,
-	"start": 60.0
+	"start": 60.0,
+	"new_iron": 4.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

@@ -1,0 +1,35 @@
+{
+ "text": "Something shiny close by. New iron",
+ "words": [
+  {
+   "text": "Something",
+   "start": 0.04,
+   "end": 0.54
+  },
+  {
+   "text": "shiny",
+   "start": 0.66,
+   "end": 1.08
+  },
+  {
+   "text": "close",
+   "start": 1.18,
+   "end": 1.48
+  },
+  {
+   "text": "by.",
+   "start": 1.58,
+   "end": 1.96
+  },
+  {
+   "text": "New",
+   "start": 2.06,
+   "end": 2.24
+  },
+  {
+   "text": "iron",
+   "start": 2.36,
+   "end": 2.72
+  }
+ ]
+}
