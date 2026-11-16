@@ -398,6 +398,11 @@ func _look_for_floaters() -> void:
 	var busy := {}
 	for b: Body in moving:
 		busy[b.enemy] = true
+	# Already afloat: by the carried list itself (a copy rebuilt from a
+	# snapshot gets `floating` but not the `_floats` set keyed by enemies, and
+	# a body listed twice would drift twice as fast there).
+	for f: Array in floating:
+		busy[f[0]] = true
 	for e: Enemy in game.enemies:
 		if e.alive or e.dormant or e.explosive or _floats.has(e) or busy.has(e) or _still(e):
 			continue

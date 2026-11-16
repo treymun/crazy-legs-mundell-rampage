@@ -209,6 +209,7 @@ func _level(game: Game) -> void:
 		"%s: no piece rests inside anything (worst %.3f %s)" % [game.level.id, worst, where]
 	)
 	var floating := 0
+	var hung := ""
 	for w in wreck.wrecks:
 		if w.floats == 2 or w.fading >= 0.0:
 			continue
@@ -219,19 +220,25 @@ func _level(game: Game) -> void:
 				var c: Vector3 = w.body.p + Basis(w.body.q) * w.body.points[k]
 				if c.z < low.z:
 					low = c
-			print(
-				(
-					"       hangs: %s#%d at %s lowest %s floor %.3f"
-					% [
-						w.key,
-						w.index,
-						w.body.p,
-						low,
-						Tumble.floor_at(game.world, low.x, low.y, w.body.p.z + .02)
-					]
-				)
+			hung = (
+				"%s#%d at %s lowest %s floor %.3f awake %s"
+				% [
+					w.key,
+					w.index,
+					w.body.p,
+					low,
+					Tumble.floor_at(game.world, low.x, low.y, w.body.p.z + .02),
+					w.body.awake
+				]
 			)
-	_check(floating == 0, "%s: every piece lies on something (%d hang)" % [game.level.id, floating])
+			print("       hangs: " + hung)
+	_check(
+		floating == 0,
+		(
+			"%s: every piece lies on something (%d hang%s)"
+			% [game.level.id, floating, ": " + hung if hung != "" else ""]
+		)
+	)
 	# A stave or a board never rests on its end or edge unless it leans on
 	# something (a wall, another piece).
 	var on_end := 0
