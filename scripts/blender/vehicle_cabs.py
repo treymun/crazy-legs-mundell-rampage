@@ -32,9 +32,23 @@ with open(os.path.join(_HERE, "town_props.py"), encoding="utf-8") as _lib:
 exec(_source[: _source.rstrip().rfind("main()")], globals())
 from mathutils import Matrix  # noqa: E402
 
-SKIN = (184, 132, 102)
-SHIRT = (138, 46, 36)
-CHECK = (34, 24, 22)
+_town_stage = stage
+# The cab's own light, seen from the seat: the key from ahead, right and
+# above (the town's comes from behind the camera that drew the sprites,
+# which from the seat lights the backs of the hands and the hood flat), a
+# fill from the left, a rim from behind.
+CAB_LIGHTS = {"key": ((-.55, .45, -.7), 4.4), "fill": ((.3, -.7, -.35), .8), "rim": ((.6, .3, -.5), 1.2)}
+
+
+def stage():
+    scene, camera = _town_stage()
+    for name, (travel, power) in CAB_LIGHTS.items():
+        ob = bpy.data.objects.get(name)
+        if ob is not None:
+            ob.rotation_euler = Vector(travel).to_track_quat("-Z", "Y").to_euler()
+            ob.data.energy = power
+    return scene, camera
+
 CREAM_FACE = (226, 212, 168)
 NEEDLE_RED = (206, 44, 26)
 
@@ -112,17 +126,106 @@ def pivot(p):
     ROOT.location = (-p[0], -p[1], -p[2])
 
 
+# Mundell's hands: the skin and the flannel cuff of the photographed hand in
+# the crowbar's first-person plate (source_art/crowbar_plate.png, the same
+# hand every gun cel is held in: godot/tools/art/build_weapon_views.gd), cut
+# from it and laid on the cab hands, so they are the same weathered skin and
+# the same red and black check.
+PLATE = os.path.join(_HERE, "..", "..", "source_art", "crowbar_plate.png")
+# Opaque patches of the plate (left, top, right, bottom in its pixels): the
+# back of the hand, the flannel at the wrist.
+SKIN_CROP = (392, 232, 432, 266)
+SLEEVE_CROP = (500, 388, 586, 420)
+# How many times a patch repeats a cell (a patch is about 3.6 cm of hand).
+SKIN_TILE = 16.0
+# The cel hands' mid tone (gun_slingblade_idle's hand, the middle of its
+# skin pixels).
+CEL_SKIN = (132, 93, 72)
+SLEEVE_TILE = 22.0
+
+
+def _crop(box, name):
+    """A patch of the plate as an image of its own (opaque)."""
+    if name in bpy.data.images:
+        return bpy.data.images[name]
+    src = bpy.data.images.load(os.path.abspath(PLATE), check_existing=True)
+    w, h = src.size
+    px = list(src.pixels)
+    x0, y0, x1, y1 = box
+    cw, ch = x1 - x0, y1 - y0
+    img = bpy.data.images.new(name, cw, ch, alpha=False)
+    out = [1.0] * (cw * ch * 4)
+    for yy in range(ch):
+        sy = h - 1 - (y0 + yy)
+        ty = ch - 1 - yy
+        for xx in range(cw):
+            si = (sy * w + x0 + xx) * 4
+            ti = (ty * cw + xx) * 4
+            out[ti:ti + 3] = px[si:si + 3]
+    img.pixels = out
+    return img
+
+
+def photo_mat(box, tile, name, rough=.7, deep=1.0, flat=None):
+    """A material painted with a patch of the plate, repeated over each part
+    from its own coordinates (box projection)."""
+    key = ("photo", name)
+    if key in MATS:
+        return MATS[key]
+    m = bpy.data.materials.new(name)
+    try:
+        m.use_nodes = True
+    except Exception:
+        pass
+    nt = m.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+    nt.links.new(bsdf.outputs[0], out.inputs[0])
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    mapping = nt.nodes.new("ShaderNodeMapping")
+    mapping.inputs["Scale"].default_value = (tile, tile, tile)
+    nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = _crop(box, name + "_patch")
+    tex.projection = "BOX"
+    tex.projection_blend = .35
+    try:
+        tex.extension = "MIRROR"
+    except Exception:
+        tex.extension = "REPEAT"
+    nt.links.new(mapping.outputs["Vector"], tex.inputs["Vector"])
+    shade = nt.nodes.new("ShaderNodeMix")
+    shade.data_type = "RGBA"
+    shade.blend_type = "MULTIPLY"
+    shade.inputs["Factor"].default_value = 1.0
+    nt.links.new(tex.outputs["Color"], shade.inputs["A"])
+    shade.inputs["B"].default_value = (deep, deep * .96, deep * .94, 1)
+    colour = shade.outputs["Result"]
+    if flat is not None:
+        # Evened toward a flat tone: the photograph's pores and hairs read as
+        # grey speckle a few texels across.
+        even = nt.nodes.new("ShaderNodeMix")
+        even.data_type = "RGBA"
+        even.inputs["Factor"].default_value = .5
+        nt.links.new(colour, even.inputs["A"])
+        even.inputs["B"].default_value = (lin(flat[0]), lin(flat[1]), lin(flat[2]), 1)
+        colour = even.outputs["Result"]
+    nt.links.new(colour, bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = rough
+    for socket in ("Specular IOR Level", "Specular"):
+        if socket in bsdf.inputs:
+            bsdf.inputs[socket].default_value = .15
+    MATS[key] = m
+    return m
+
+
 def skin():
-    return mat(*SKIN, rough=.75, grime=.15)
+    return photo_mat(SKIN_CROP, SKIN_TILE, "hand_skin", .9, .9, CEL_SKIN)
 
 
 def sleeve():
-    """His shirt's check, red and near black, fine enough to read on a cuff."""
-    m = mat(*SHIRT, rough=.9, grime=.3, check=CHECK)
-    for node in m.node_tree.nodes:
-        if node.bl_idname == "ShaderNodeTexWave":
-            node.inputs["Scale"].default_value = 15.0
-    return m
+    return photo_mat(SLEEVE_CROP, SLEEVE_TILE, "hand_sleeve", .95)
 
 
 def obox(size, center, x_axis, y_axis, m):
@@ -136,40 +239,55 @@ def obox(size, center, x_axis, y_axis, m):
     return ob
 
 
-def fist(at, bar, elbow, k=.8, thumb=0):
-    """Mundell's hand closed round a bar through `at` running along `bar`,
-    the forearm in its checked sleeve off to `elbow`, `k` its size; the back
-    of the hand toward his eye (the origin). Blocky, as the hands in a 1997
-    game's cels: the back of the hand, four fingers wrapped over the far
-    side, the thumb round the near (`thumb` 1 or -1: laid along the bar that
-    way on the near side instead, as on a wheel's rim)."""
+def fist(at, bar, elbow, bar_r=.02, k=1.0, face=None):
+    """Mundell's hand closed round a bar `bar_r` thick through `at`, running
+    along `bar`, its forearm in the checked sleeve off toward `elbow`; the
+    back of the hand toward his eye (the origin), or `face`. Four fingers in three
+    joints wrap over the bar's far side and curl in under it, knuckles
+    standing out, the thumb round under them; the skin and cuff are the
+    photographed hand's (photo_mat)."""
     p, d = Vector(at), Vector(bar).normalized()
-    look = -p
-    u = (look - d * look.dot(d)).normalized()
-    back = Vector(elbow) - p
-    b = back - d * back.dot(d)
-    b = (b - u * b.dot(u)).normalized()
+    e = Vector(elbow) - p
+    b = (e - d * e.dot(d)).normalized()
+    f = -b
+    u = d.cross(f)
+    if u.dot(-p if face is None else Vector(face)) < 0:
+        d, u = -d, -u
     flesh = skin()
-    dark = mat(160, 110, 84, rough=.8, grime=.12)
-    # The back of the hand, from the knuckles back toward the wrist.
-    obox((.084 * k, .028 * k, .08 * k), p + (u * .026 + b * .03) * k, d, u, flesh)
-    # The fingers over the bar's far side as one block, a shade darker than
-    # the back of the hand (the knuckles), curled in under it.
-    obox((.084 * k, .03 * k, .03 * k), p + (u * .016 - b * .016) * k, d, u, dark)
-    obox((.08 * k, .024 * k, .026 * k), p + (-u * .016 - b * .024) * k, d, u, dark)
-    # The thumb round the near side, along the bar.
-    if thumb:
-        obox((.05 * k, .02 * k, .022 * k), p + (u * .01 + b * .008 + d * thumb * .052) * k, d, u, flesh)
-    else:
-        obox((.05 * k, .02 * k, .022 * k), p + (-u * .03 + b * .012 + d * .012) * k, d, u, flesh)
+
+    def round_at(phi, r, along):
+        a = math.radians(phi)
+        return p + (u * math.cos(a) + f * math.sin(a)) * r + d * along
+
+    # The back of the hand over the bar, and the palm under it.
+    blob(1.0, p + u * (bar_r + .012 * k) + b * .036 * k, flesh, d, b, (.046 * k, .052 * k, .017 * k))
+    blob(1.0, p - u * bar_r * .3 + b * (bar_r + .028 * k), flesh, d, b, (.044 * k, .034 * k, .022 * k))
+    # Four fingers, index to little: knuckle, three joints round the bar.
+    for along, size, thick in ((.0285, 1.0, .0105), (.0095, 1.06, .011), (-.0095, 1.0, .0105), (-.028, .84, .0094)):
+        rf = thick * k
+        a = along * k
+        knuckle = round_at(18, bar_r + .02 * k, a) + b * .004 * k
+        blob(1.0, knuckle, flesh, d, u, (rf * 1.15, rf * .9, rf * 1.2))
+        joints = [knuckle, round_at(18 + 75 * size, bar_r + rf, a), round_at(18 + 140 * size, bar_r + rf, a),
+                  round_at(18 + 190 * size, bar_r + rf * .85, a)]
+        for j in range(3):
+            rod(joints[j], joints[j + 1], rf * (1.0 - .1 * j), flesh, seg=8, r1=rf * (.9 - .1 * j))
+            ball(rf * (.95 - .1 * j), joints[j + 1], flesh)
+    # The thumb round under the bar toward the index finger.
+    t0 = p - u * (bar_r * .4) + b * (bar_r + .02 * k) + d * .03 * k
+    t1 = round_at(-150, bar_r + .012 * k, .042 * k)
+    t2 = round_at(-205, bar_r + .011 * k, .05 * k)
+    for a0, a1, r in ((t0, t1, .012), (t1, t2, .0105)):
+        rod(a0, a1, r * k, flesh, seg=8, r1=r * .9 * k)
+        ball(r * .95 * k, a1, flesh)
     # The wrist, the cuff and the forearm back to the elbow.
-    wrist = p + (u * .018 + b * .072) * k
+    wrist = p + b * (bar_r + .06 * k) + u * .004
     w2 = Vector(elbow)
     away = (w2 - wrist).normalized()
-    rod(wrist - away * .01 * k, wrist + away * .05 * k, .028 * k, flesh, seg=10, r1=.031 * k)
-    cuff = wrist + away * .05 * k
-    rod(cuff, cuff + away * .04 * k, .04 * k, sleeve(), seg=12, r1=.042 * k)
-    rod(cuff + away * .035 * k, w2, .042 * k, sleeve(), seg=12, r1=.05 * k)
+    rod(wrist - away * .02 * k, wrist + away * .06 * k, .026 * k, flesh, seg=12, r1=.029 * k)
+    cuff = wrist + away * .06 * k
+    rod(cuff, cuff + away * .03 * k, .039 * k, sleeve(), seg=14, r1=.041 * k)
+    rod(cuff + away * .028 * k, w2, .04 * k, sleeve(), seg=14, r1=.05 * k)
 
 
 def gauge(at, rot, r, m_rim):
@@ -203,8 +321,8 @@ AB_DECK = AB_FLOOR + .36
 AB_FAN = (-1.06, 0.0, -.36)
 AB_STICK = (.98, .3, AB_DECK + .03)
 AB_GRIP = (AB_STICK[0] - .05, AB_STICK[1], AB_STICK[2] + .54)
-AB_POD = (1.05, .04, -.74)
-AB_POD_ROT = (0, -55, 0)
+AB_POD = (1.38, .62, -.8)
+AB_POD_ROT = (12, -58, 0)
 
 
 def _ab_mats():
@@ -242,13 +360,6 @@ def cab_airboat_body():
     box(.48, .34, .28, (2.15, .3, deck + .15), cooler)
     box(.5, .36, .05, (2.15, .3, deck + .31), mat(232, 226, 210, rough=.6, grime=.5))
     box(.04, .37, .3, (2.15, .3, deck + .16), mat(30, 30, 32, grime=.2))
-    rope = mat(176, 150, 98, rough=.95, grime=.4)
-    for k, r in enumerate((.14, .11, .08)):
-        torus(r, .022, (2.38, -.3, deck + .025 + k * .03), rope, seg=20, minor=6)
-    jug = mat(206, 188, 150, rough=.5, grime=.5)
-    ball(.1, (1.95, -.42, deck + .1), jug, (1, 1, 1.15))
-    cyl(.03, .07, (1.95, -.42, deck + .23), jug, seg=8)
-    box(.09, .002, .06, (1.95, -.52, deck + .11), mat(30, 26, 22, grime=.1))
     # The high seat on its frame, the footrest, the throttle pedal.
     box(.5, .56, .05, (-.08, 0, -.97), alu)
     for x in (-.28, .14):
@@ -260,9 +371,9 @@ def cab_airboat_body():
     for s in (1, -1):
         rod((.48, s * .28, deck + .2), (.14, s * .22, -.97), .015, alu)
     box(.11, .13, .03, (.56, -.15, deck + .14), dark, (0, -20, 0))
-    # The tach's post up from the deck (its pod here, its needle a part).
-    rod((AB_POD[0] + .04, AB_POD[1], deck), (AB_POD[0] + .02, AB_POD[1], AB_POD[2] - .04), .018, dark)
-    gauge(AB_POD, AB_POD_ROT, .05, dark)
+    # The tach on a bracket off the left rail (its needle a part).
+    rod((AB_POD[0] + .03, .68, deck + .2), (AB_POD[0] + .02, AB_POD[1] + .02, AB_POD[2] - .05), .016, dark)
+    gauge(AB_POD, AB_POD_ROT, .055, dark)
     # The rudder stick's bracket on the deck.
     box(.1, .06, .05, (AB_STICK[0], AB_STICK[1], deck + .025), dark)
     # Behind the seat: the engine, its filter and pipes, the caged fan.
@@ -287,7 +398,7 @@ def cab_airboat_body():
     for s in (1, -1):
         beam((fx - .05, s * .5, deck), (fx - .05, s * .62, fz + .2), .05, alu)
         box(.4, .03, .5, (fx - .5, s * .3, deck + .3), paint)
-    cyl(.1, .14, (fx + .1, 0, fz), dark, (0, 90, 0), seg=12)
+    cyl(.06, .16, (fx + .12, 0, fz), mat(196, 198, 194, metal=.8, rough=.25, grime=.1), (0, 90, 0), seg=16)
 
 
 def cab_airboat_stick():
@@ -301,42 +412,55 @@ def cab_airboat_stick():
 
 def cab_airboat_hand():
     # His left hand on the stick's grip (it follows the grip, cab_layer.gd).
-    fist(AB_GRIP, (0, 0, 1), (.3, .46, -.95))
+    fist(AB_GRIP, (0, 0, 1), (.3, .5, -.95), bar_r=.028, face=(-.3, 1, 0))
     pivot(AB_GRIP)
 
 
 def cab_airboat_needle():
-    needle(AB_POD, AB_POD_ROT, .05)
+    needle(AB_POD, AB_POD_ROT, .055)
     pivot(AB_POD)
 
 
 def cab_airboat_prop():
-    # The two-bladed wooden prop, its hub on the engine's shaft.
-    wood = mat(150, 120, 80, planks=3.0, grime=.5)
+    # The two-bladed varnished wooden prop, red tips, an aluminium hub.
+    wood = mat(196, 150, 92, rough=.35, planks=3.0, grime=.25)
+    tip = mat(196, 40, 30, rough=.4, grime=.2)
     fx, _fy, fz = AB_FAN
-    box(.05, 1.72, .13, (fx, 0, fz), wood, (24, 0, 0))
-    cyl(.08, .1, (fx, 0, fz), mat(40, 40, 42, metal=.5, grime=.5), (0, 90, 0), seg=12)
+    for s in (1, -1):
+        box(.04, .7, .16, (fx, s * .44, fz), wood, (s * 18, 0, 0))
+        box(.042, .1, .14, (fx, s * .82, fz), tip, (s * 18, 0, 0))
+    cyl(.05, .12, (fx, 0, fz), mat(200, 202, 198, metal=.8, rough=.25, grime=.1), (0, 90, 0), seg=16)
+    cyl(.02, .14, (fx, 0, fz), mat(60, 58, 56, metal=.6, grime=.1), (0, 90, 0), seg=10)
+    pivot(AB_FAN)
+
+
+def cab_airboat_blur():
+    # The prop spinning: a pale disc of wood streaked round, red at its rim
+    # (drawn stippled over the cage, cab.gdshader `opacity`).
+    fx, _fy, fz = AB_FAN
+    cyl(.8, .006, (fx - .01, 0, fz), mat(176, 140, 96, rough=.6, planks=9.0, grime=.35), (0, 90, 0), seg=40)
+    torus(.82, .03, (fx - .01, 0, fz), mat(176, 52, 40, rough=.5, grime=.2), (0, 90, 0), seg=40, minor=6)
     pivot(AB_FAN)
 
 
 # --------------------------------------------------------------- stock car
 CAR_FLOOR = -.82
 CAR_HOOD = -.19
-CAR_WHEEL = (.55, 0.0, -.38)
+CAR_WHEEL = (.5, 0.0, -.25)
 CAR_WHEEL_ROT = (0, -62, 0)
-CAR_RIM = .18
-CAR_GRIP = 30
-CAR_SPEEDO = (.665, .18, -.235)
-CAR_TACH = (.665, -.18, -.235)
+CAR_RIM = .17
+CAR_GRIP = 60
+CAR_SPEEDO = (.665, .3, -.235)
+CAR_TACH = (.665, -.3, -.235)
 CAR_GAUGE_ROT = (0, -78, 0)
 
 
 def _car_mats():
-    white = mat(222, 218, 206, metal=.25, rough=.5, grime=.6)
-    red = mat(186, 34, 30, rough=.5)
-    dark = mat(28, 28, 30, rough=.6, grime=.2)
-    cage = mat(150, 152, 150, metal=.7, rough=.4, grime=.4)
-    vinyl = mat(64, 44, 32, rough=.8, grime=.5)
+    white = mat(204, 198, 182, metal=.25, rough=.55, grime=.9)
+    red = mat(176, 36, 30, rough=.5, grime=.5)
+    dark = mat(44, 42, 42, rough=.6, grime=.3, emit=.08)
+    cage = mat(156, 158, 154, metal=.7, rough=.4, grime=.4)
+    vinyl = mat(104, 74, 52, rough=.8, grime=.55, emit=.12)
     return white, red, dark, cage, vinyl
 
 
@@ -371,6 +495,14 @@ def cab_car_body():
     box(.025, .27, .05, (1.46, 0, hood + .035), dark)
     box(.5, .4, .01, (1.75, -.26, hood + .006), primer, (0, 0, 8))
     ball(.12, (1.9, .32, hood + .01), mat(160, 156, 146, grime=.6), (1.6, 1.0, .12))
+    # Track mud thrown up over the nose, a rust bloom, a number on the scoop.
+    mud = mat(96, 78, 58, rough=.95, grime=.6)
+    for k, (x, y, r) in enumerate(((2.15, .3, .1), (2.25, -.1, .14), (2.05, -.4, .08), (2.3, .42, .09),
+                                   (1.95, .05, .06), (2.4, .15, .12))):
+        ball(r, (x, y, hood - .02 - (x - 2.0) * .17), mud, (1.5, 1.1, .1))
+    ball(.07, (1.1, .44, hood + .006), mat(128, 66, 36, rough=.9, grime=.5), (1.4, 1.0, .1))
+    box(.12, .12, .004, (1.27, 0, hood + .072), mat(236, 232, 220, rough=.6, grime=.4))
+    box(.03, .07, .006, (1.27, 0, hood + .075), red, (0, 0, 15))
     # The cowl, the dash's top, its face with two gauges, switches, tape.
     box(.06, 1.04, .04, (.82, 0, hood + .01), dark)
     box(.14, 1.0, .03, (.75, 0, -.215), vinyl)
@@ -411,10 +543,19 @@ def cab_car_body():
         rod((-.3, s * .4, hood - .25), (-.3, s * .4, .14), .022, cage)
         rod((.6, s * .43, hood - .35), (-.25, s * .43, hood + .0), .022, cage)
     rod((-.3, .4, .14), (-.3, -.4, .14), .022, cage)
-    # The race seat behind him.
-    box(.06, .5, .62, (-.3, 0, -.24), vinyl)
+    # The race seat behind him, low enough to see the cage and the back
+    # window over it, its padded shoulders.
+    box(.06, .46, .5, (-.42, 0, -.36), vinyl)
     for s in (1, -1):
-        box(.22, .05, .4, (-.2, s * .26, -.32), vinyl)
+        box(.2, .05, .3, (-.33, s * .24, -.42), vinyl)
+        ball(.06, (-.4, s * .17, -.12), vinyl, (1.0, 1.2, .8))
+    # The back window's frame and the trunk lid and spoiler beyond it.
+    white = _car_mats()[0]
+    box(.05, .86, .04, (-.75, 0, .1), white)
+    for s in (1, -1):
+        beam((-.75, s * .43, .1), (-1.0, s * .45, hood + .02), .05, white)
+    box(.5, 1.0, .05, (-1.25, 0, hood - .02), white)
+    box(.06, 1.02, .16, (-1.5, 0, hood + .06), white, (0, -25, 0))
 
 
 def cab_car_wheel():
@@ -444,7 +585,7 @@ def _car_hand(side):
     a = math.radians(CAR_GRIP)
     tangent = -up * math.sin(a) * side + left * math.cos(a)
     at = car_grip(side)
-    fist(at, tangent, (.15, side * .24, -.85), thumb=-side)
+    fist(at, tangent, (.12, side * .32, -.8), bar_r=.018, k=.85)
     pivot(at)
 
 
@@ -468,11 +609,12 @@ def cab_car_tach():
 
 # ------------------------------------------------------------ riding mower
 MOW_FLOOR = -1.2
-MOW_WHEEL = (.45, 0.0, -.61)
+MOW_WHEEL = (.45, 0.0, -.53)
 MOW_WHEEL_ROT = (0, -42, 0)
 MOW_RIM = .12
-MOW_KNOB = 45
-MOW_LEVER = (.72, -.29, -.8)
+MOW_KNOB = -40
+MOW_GRIP = 60
+MOW_LEVER = (.66, .3, -.84)
 
 
 def _mow_mats():
@@ -483,11 +625,12 @@ def _mow_mats():
     return paint, rim, dark, black
 
 
-def mow_knob():
-    """The spinner knob's top, where his left hand holds it."""
+def mow_grip():
+    """Where his left hand holds the rim (ten o'clock), and the rim's way there."""
     rot = Euler([math.radians(a) for a in MOW_WHEEL_ROT]).to_matrix()
-    ka = math.radians(MOW_KNOB)
-    return Vector(MOW_WHEEL) + rot @ Vector((math.cos(ka) * MOW_RIM, math.sin(ka) * MOW_RIM, .05))
+    a = math.radians(MOW_GRIP)
+    at = Vector(MOW_WHEEL) + rot @ Vector((math.cos(a) * MOW_RIM, math.sin(a) * MOW_RIM, 0))
+    return at, rot @ Vector((-math.sin(a), math.cos(a), 0))
 
 
 def cab_mower_body():
@@ -562,7 +705,7 @@ def cab_mower_wheel():
             beam((0, 0, 0), (math.cos(ra) * R, math.sin(ra) * R, 0), .02, black, .008)
         cyl(.042, .03, (0, 0, .01), paint, seg=14)
         cyl(.024, .012, (0, 0, .03), rim, seg=12)
-        # The spinner knob near the top, a little left.
+        # The spinner knob at one o'clock.
         kx, ky = math.cos(ka) * R, math.sin(ka) * R
         cyl(.012, .07, (kx, ky, .035), mat(*CHROME, metal=.8, rough=.3, grime=.4), seg=8)
         ball(.02, (kx, ky, .075), mat(200, 40, 34, rough=.4, grime=.2))
@@ -572,14 +715,13 @@ def cab_mower_wheel():
 
 
 def cab_mower_hand():
-    normal = Euler([math.radians(a) for a in MOW_WHEEL_ROT]).to_matrix() @ Vector((0, 0, 1))
-    knob = mow_knob()
-    fist(knob, normal, (.08, .3, -1.1))
-    pivot(knob)
+    at, tangent = mow_grip()
+    fist(at, tangent, (.08, .32, -1.05), bar_r=.016)
+    pivot(at)
 
 
 def cab_mower_lever():
-    # The blade lever by the hood's right side: yellow knob, forward is on.
+    # The blade lever by the hood's left side: yellow knob, forward is on.
     p = Vector(MOW_LEVER)
     top = p + Vector((-.02, -.01, .24))
     rod(p, top, .012, mat(40, 40, 42, metal=.6, grime=.4))
@@ -591,7 +733,7 @@ def cab_mower_lever():
 # node name ending in "wheel" as a VehicleWheel3D: the wheel is "steer".)
 CABS = {
     "cab_airboat": [("body", cab_airboat_body), ("stick", cab_airboat_stick), ("hand", cab_airboat_hand),
-                    ("needle", cab_airboat_needle), ("prop", cab_airboat_prop)],
+                    ("needle", cab_airboat_needle), ("prop", cab_airboat_prop), ("blur", cab_airboat_blur)],
     "cab_car": [("body", cab_car_body), ("steer", cab_car_wheel), ("hand_l", cab_car_hand_l),
                 ("hand_r", cab_car_hand_r), ("speed", cab_car_speed), ("tach", cab_car_tach)],
     "cab_mower": [("body", cab_mower_body), ("steer", cab_mower_wheel), ("hand", cab_mower_hand),
@@ -620,6 +762,7 @@ CAB_PIVOTS = {
         "hand": _hand(AB_GRIP, "stick", AB_STICK, [1, 0, 0], .5),
         "needle": {"at": list(AB_POD), "axis": _axis_of(AB_POD_ROT)},
         "prop": {"at": list(AB_FAN), "axis": [1, 0, 0]},
+        "blur": {"at": list(AB_FAN), "axis": [1, 0, 0]},
     },
     "cab_car": {
         "eye": .82,
@@ -632,7 +775,7 @@ CAB_PIVOTS = {
     "cab_mower": {
         "eye": 1.2,
         "steer": {"at": list(MOW_WHEEL), "axis": _axis_of(MOW_WHEEL_ROT)},
-        "hand": _hand(mow_knob(), "steer", MOW_WHEEL, _axis_of(MOW_WHEEL_ROT), .35),
+        "hand": _hand(mow_grip()[0], "steer", MOW_WHEEL, _axis_of(MOW_WHEEL_ROT), .6),
         "lever": {"at": list(MOW_LEVER), "axis": [0, 1, 0]},
     },
 }

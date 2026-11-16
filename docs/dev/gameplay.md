@@ -1201,14 +1201,16 @@ chapel path at Hickston. Only the campaign and co-op have them
 - **From the seat** (the engine pass after 3.3.0; `src/vehicle_cab.gd`,
   `view3d/cab_layer.gd`, looks only): the driver sees their own vehicle in
   the 3D view, a model of what a driver sees of it (`cab` in vehicles.cfg:
-  the airboat's deck, green rails, bow lamp, cooler, rope, jug and tach on
-  its post, the fan cage and prop behind; the car's hood with its scoop and
+  the airboat's deck, green rails, bow lamp, cooler and a tach on a bracket
+  off the left rail, the fan cage behind with its varnished prop, which
+  fades into a stippled spinning disc as the engine works (`fade`); the car's hood with its scoop and
   stripes, A-pillars, windscreen bars, header, mirror and fuzzy dice, the
   dash with two gauges, window net, cage; the mower's red hood, grille,
   lamps, exhaust stack, the cutting deck out in front, fenders and a beer)
   with Mundell's hands on the controls (the airboat's stick, the mower's
-  spinner knob: the other hand holds the gun; the car's wheel at eleven and
-  one). `sway_eye` (from game_view.gd) hands the frame's eye a `cab`: its
+  wheel at ten: the other hand holds the gun; the car's wheel at ten and
+  two), the same weathered skin and flannel cuff as the photographed hand
+  the guns are held in. `sway_eye` (from game_view.gd) hands the frame's eye a `cab`: its
   model, its turn (the body on its springs, `VehicleFeel.turn`, so the hood
   squats, dives, leans and bucks against the view, which takes only
   SCENERY MOTION's share of it), how much lower the eye sits in it
@@ -1235,15 +1237,16 @@ chapel path at Hickston. Only the campaign and co-op have them
   white water where the cab puts them: `VehicleCab.draw_spray`). The car
   squats and dives more than before (`squat` .009, `lean` .007).
 - **The driving plate** (`src/vehicle_hud.gd`, from `draw_view`): a tin plate
-  in the view's bottom left in the status bar's colours: the speed in the
+  in the view's top left (4, 36), under the objective pin's arrow and clear
+  of the hands on the controls and the touch move stick, in the status
+  bar's colours: the speed in the
   big rust numerals (STATUS PANEL: on a little dial), the rig's health as a
   row of ten lamps with SMOKIN' (under half), ON FIRE (a quarter, flashing)
   or BURNT OUT, the throttle up its right edge (reverse red, down), and the
   kind's line: the car's GEAR (R, N, 1 to 4 by its speed) with a tach, the
   airboat's FAN tach, the mower's BLADE ON/OFF lamp. HUD MINIMAL keeps two
-  lines of text (MPH and RIG or its state). With the touch buttons up it
-  hangs at (4, 34), under the objective pin and clear of the move stick;
-  the touch stick and buttons drive as before (throttle and steering are
+  lines of text (MPH and RIG or its state) in the same corner. The touch
+  stick and buttons drive as before (throttle and steering are
   FORWARD and STRAFE, the right-side drag the look it steers to).
 - **Checks**: `tools/vehicle_check.gd` (in check_all, quick too; its FEEL part
   is `tools/vehicle_feel_check.gd`: squat, dive, lean the right way, skid

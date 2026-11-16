@@ -15,6 +15,13 @@ uniform sampler2D baked : filter_nearest, repeat_disable;
 uniform float shrink = 0.1;
 // The area's tint (rgb) and the cell's light (a), where the driver sits.
 instance uniform vec4 tone = vec4(1.0, 1.0, 1.0, 1.0);
+// How much of a part shows (cab_layer.gd: the airboat's prop fading into
+// its spinning disc): below 1, an ordered stipple of its pixels is left
+// out, as a 1997 game showed a blur, the world showing through.
+instance uniform float opacity = 1.0;
+// Up close the stepped light would burn pale paint white: no nearer than
+// this (cells) for the light.
+const float LIGHT_NEAR = 2.5;
 
 varying vec3 map_p;
 varying vec3 map_n;
@@ -30,11 +37,18 @@ void vertex() {
 }
 
 void fragment() {
+	if (opacity < 0.999) {
+		ivec2 cell = ivec2(FRAGCOORD.xy) % 4;
+		int bayer[16] = int[](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+		if ((float(bayer[cell.y * 4 + cell.x]) + 0.5) / 16.0 > opacity) {
+			discard;
+		}
+	}
 	ivec2 size = textureSize(baked, 0);
 	ivec2 at = clamp(ivec2(UV * vec2(size)), ivec2(0), size - 1);
 	vec3 texel = floor(texelFetch(baked, at, 0).rgb * 255.0 + 0.5);
 	float t = -VERTEX.z / shrink;
-	float lit = stepped_light(tone.a, t);
+	float lit = min(stepped_light(tone.a, max(t, LIGHT_NEAR)), 1.0);
 	vec3 colour = clamp(floor(texel * lit * tone.rgb), 0.0, 255.0);
 	if (effects_on) {
 		vec3 cam = vec3(CAMERA_POSITION_WORLD.x, CAMERA_POSITION_WORLD.z, CAMERA_POSITION_WORLD.y);

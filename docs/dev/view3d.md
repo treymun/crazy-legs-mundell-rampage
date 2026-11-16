@@ -256,7 +256,11 @@ its wrist takes only `turn` of it, so the forearm does not sweep the view).
   plane (.02): it never cuts into a wall or hides behind one, and whatever
   of the road it does not cover shows. `cab.gdshader` (a prop's light) works
   its distance and place at full size (`/ shrink`), so it is lit as the
-  vehicle would be, by the cell the driver sits in.
+  vehicle would be, by the cell the driver sits in (its light no nearer
+  than `LIGHT_NEAR` and never over full, so pale paint does not burn
+  white). A part with `fade` below 1 (the airboat's prop and its blur disc)
+  leaves out an ordered 4x4 stipple of its pixels (`opacity`), the world
+  showing through: a 1997 blur, no blending.
 - **Its own layer** (`LAYER` 8): the eye's camera draws it, the mirror's
   camera does not.
 - **The old view's height** is narrow (37 degrees at FIELD OF VIEW 70): a

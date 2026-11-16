@@ -1,4 +1,4 @@
-## The driving plate: a small tin plate in the view's bottom left corner while
+## The driving plate: a small tin plate in the view's top left corner while
 ## this machine's player rides a vehicle (features/vehicles.gd draw_view),
 ## in the status bar's colours and lettering: the speed (big rust numerals,
 ## or a dial with STATUS PANEL's dials), the rig's health as a row of lamps
@@ -6,17 +6,16 @@
 ## bar up its right edge (reverse runs down it, red), and a line for the
 ## kind: the car's gear, the airboat's fan on its tach, the mower's blade on
 ## or off. HUD MINIMAL keeps only the speed and the rig's health, in two
-## lines of text. With the touch buttons up it hangs higher, clear of the
-## move stick under the left thumb. Looks only.
+## lines of text, in the same corner. Looks only.
 class_name VehicleHud
 extends RefCounted
 
 const W := 84
 const H := 37
-## The plate's corner: over the status bar, and with the touch stick up,
-## under the objective pin.
-const AT := Vector2i(4, View.VIEW - H - 3)
-const AT_TOUCH := Vector2i(4, 34)
+## The plate's corner: the view's top left, under the objective pin's
+## arrow, clear of the hands on the controls at the bottom of the view and of
+## the touch buttons' move stick.
+const AT := Vector2i(4, 36)
 ## MPH for each cell a second.
 const MPH := 3.4
 const LAMPS := 10
@@ -40,15 +39,14 @@ static func draw(
 	var state := condition(v, share)
 	var hot := share <= .25 and int(game.clock * 3.0) % 2 == 0
 	if game.hud.minimal:
-		HUD.text(c, "%d MPH" % mph, 6, View.VIEW - 19, "body", HUD.INK, false, true)
+		HUD.text(c, "%d MPH" % mph, AT.x + 2, AT.y, "body", HUD.INK, false, true)
 		var line := "RIG %d%%" % health if state == "" else state
 		HUD.text(
-			c, line, 6, View.VIEW - 10, "mini", HUD.LOW if share <= .5 else HUD.INK, false, true
+			c, line, AT.x + 2, AT.y + 9, "mini", HUD.LOW if share <= .5 else HUD.INK, false, true
 		)
 		return
-	var at := AT_TOUCH if game.touch_aim else AT
-	var x := at.x
-	var y := at.y
+	var x := AT.x
+	var y := AT.y
 	c.panel(x, y, W, H, FACE, EDGE)
 	# The speed: big numerals, or STATUS PANEL's dial with them small.
 	var pace := clampf(VehicleDrive.speed(v) / maxf(1.0, s.top), 0.0, 1.0)
