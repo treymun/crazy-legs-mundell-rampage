@@ -358,10 +358,16 @@ func _size(path: String) -> int:
 
 
 ## The first download's packed files and each pack, against the budgets.
+## The budgets are for what the browser downloads: the lighter copy. Without
+## it (a desktop checkout, CI's check shards) the sizes are only printed;
+## CI's browser job builds it and runs this with `lite`, which holds them.
 func _sizes() -> void:
 	var dir := Assets.LITE_DIR
+	var budgets := true
 	if not FileAccess.file_exists(dir + "art_index.json"):
 		dir = Assets.FULL_DIR
+		budgets = false
+		print("  no lighter copy here: sizes of the full files, budgets not held")
 	var first := 0
 	for name: String in ["art.bin", "art_index.json", "music.bin", "music_index.json"]:
 		first += _size(dir + name)
@@ -380,7 +386,7 @@ func _sizes() -> void:
 				for part in Packs.imported_files(folder.path_join(file)):
 					first += _size(part)
 	print("  first download's packed files %.1f MB (budget %.0f)" % [first / 1e6, FIRST_BUDGET_MB])
-	if first / 1e6 > FIRST_BUDGET_MB:
+	if budgets and first / 1e6 > FIRST_BUDGET_MB:
 		_fail("the first download is %.1f MB, over %.0f" % [first / 1e6, FIRST_BUDGET_MB])
 	for level_id: String in Packs.ORDER:
 		var total := 0
@@ -390,7 +396,7 @@ func _sizes() -> void:
 				path = part.replace(Assets.LITE_DIR, Assets.FULL_DIR)
 			total += _size(path)
 		print("  %-20s %.1f MB" % [Packs.pack_name(level_id), total / 1e6])
-		if total / 1e6 > PACK_BUDGET_MB:
+		if budgets and total / 1e6 > PACK_BUDGET_MB:
 			_fail(
 				(
 					"%s is %.1f MB, over %.0f"
