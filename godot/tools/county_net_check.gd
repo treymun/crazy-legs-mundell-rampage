@@ -24,6 +24,8 @@ var main: Control
 var now := 0.0
 var nets: Array = []
 var bots := {}
+## Each client's own shots shown at once, as main.gd draws them (net_shot_predict.gd).
+var shots := {}
 var seconds := 40.0
 var map_id := "county_hickston"
 var ws_port := 0
@@ -121,7 +123,18 @@ func _frame() -> void:
 				)
 				c.buy = CountyCoop.encode(i, 0 if full else -1)
 		net.client_input(c)
+		if not shots.has(net):
+			shots[net] = NetShotPredict.new()
+		var sp: NetShotPredict = shots[net]
+		sp.now_ms = now
 		net.client_play(1)
+		if net.client_ready():
+			var copy := net.match_game()
+			var me: Player = copy.players[net.my_slot()]
+			if me.health > 0 and copy.local_player == me:
+				var walked := NetPredict.lead(copy, me, net.client_sync.unplayed_inputs())
+				sp.restore(copy, me, sp.frame(copy, me, net.client_sync))
+				NetPredict.restore(me, walked)
 	OS.delay_msec(1)
 
 
@@ -250,6 +263,17 @@ func _play() -> void:
 				)
 			]
 		)
+	)
+	var shown := 0
+	var fired := 0
+	for net: NetPlay in [alice, bob]:
+		var sp: NetShotPredict = shots.get(net, NetShotPredict.new())
+		shown += int(sp.stats["shots"])
+		fired += int(sp.stats["confirmed"]) + int(sp.stats["late"])
+		print("    %s's own shots shown at once: %s" % [net._my_name, sp.stats])
+	_check(
+		shown > 0 and fired > 0,
+		"each copy shows its own shots at the press (%d shown, %d fired)" % [shown, fired]
 	)
 	for net: NetPlay in [alice, bob]:
 		var cs: NetSync.Client = net.client_sync

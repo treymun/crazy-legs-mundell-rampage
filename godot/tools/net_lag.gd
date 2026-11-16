@@ -16,6 +16,9 @@
 ##   line tested where the client's screen showed everyone (looked) and where
 ##   the server judged it (with its rewind; and without, for comparison):
 ##   shots that looked like a hit on someone and were judged a miss.
+## - OWN SHOTS: button to the flash and bang as shown at the press
+##   (net_shot_predict.gd) and as the copy played it (the old way), and how
+##   often a shown shot or hit was withdrawn (`noshots`: that prediction off).
 ## - BANDWIDTH down and up per client, snapshot sizes, and the server's cost
 ##   per tick (the game, the bots, the snapshots) as a share of one core.
 ##
@@ -33,7 +36,13 @@ const Loopback := preload("res://tools/net_loopback.gd")
 const JUMP_FROM := .02
 ## The quick part's limits at 120 ms + 24 jitter + 2% loss.
 const QUICK_LIMITS := {
-	"jump_p95": .25, "ghost_share": .12, "stall_share": .08, "up_lost": .1, "down_kbs": 110.0
+	"jump_p95": .25,
+	"ghost_share": .12,
+	"stall_share": .08,
+	"up_lost": .1,
+	"down_kbs": 110.0,
+	"shot_withdrawn": .1,
+	"shot_late": .1,
 }
 
 var failures: Array = []
@@ -71,6 +80,11 @@ func _run() -> void:
 			NetSync.Client.adaptive_playout = false
 			NetPredict.Smoother.enabled = false
 			NetSession.throttle = true
+			NetShotPredict.enabled = false
+			continue
+		if arg == "noshots":
+			# Only the shots' prediction off (net_shot_predict.gd).
+			NetShotPredict.enabled = false
 			continue
 		var parts := arg.split("=")
 		if parts.size() == 2:
@@ -140,6 +154,17 @@ func _run() -> void:
 		_check(
 			r["up_lost"] <= QUICK_LIMITS["up_lost"],
 			"inputs lost past the link's own loss %.1f%%" % [r["up_lost"] * 100.0]
+		)
+		_check(
+			(
+				r["shots_shown"] > 0
+				and r["shot_withdrawn"] <= QUICK_LIMITS["shot_withdrawn"]
+				and r["shot_late"] <= QUICK_LIMITS["shot_late"]
+			),
+			(
+				"own shots shown at the press (%d), %.0f%% withdrawn, %.0f%% not foreseen"
+				% [r["shots_shown"], r["shot_withdrawn"] * 100.0, r["shot_late"] * 100.0]
+			)
 		)
 		_check(
 			r["down_kbs"] <= QUICK_LIMITS["down_kbs"],
@@ -290,6 +315,7 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 			"server_at": [],
 			"copy_at": [],
 			"drawn_at": [],
+			"shots": NetShotPredict.new(),
 		}
 	var down0: int = lobby_net.session.sent
 	var heard0: int = lobby_net.session.received_packets
@@ -342,7 +368,17 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 				copy.focus(copy.local_player)
 				NetPredict.restore(me, led)
 			net.client_input(c)
+			var shots: NetShotPredict = stats[net]["shots"]
+			shots.now_ms = now
 			net.client_play(1)
+			if me != null and me.health > 0 and net.client_ready():
+				# The frame as main.gd draws it: walked on, our shots shown
+				# (net_shot_predict.gd), put back.
+				var cs: NetSync.Client = net.client_sync
+				var walked := NetPredict.lead(copy, me, cs.unplayed_inputs())
+				var shown := shots.frame(copy, me, cs)
+				shots.restore(copy, me, shown)
+				NetPredict.restore(me, walked)
 			if me != null:
 				_frame_stats(net, stats[net], sg, c)
 				if bots.has(net):
@@ -411,6 +447,30 @@ func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 	out["starved"] = starved / maxf(1.0, seconds) / people
 	out["skipped"] = skipped / maxf(1.0, seconds) / people
 	out["confirm_ms"] = _pct(lags, .5)
+	# Our own shots: button to the flash and bang (net_shot_predict.gd).
+	var show_ms := PackedFloat32Array()
+	var copy_ms := PackedFloat32Array()
+	var tally := {}
+	for net: NetPlay in nets:
+		var sp: NetShotPredict = stats[net]["shots"]
+		show_ms.append_array(sp.show_ms)
+		copy_ms.append_array(sp.copy_ms)
+		for key: String in sp.stats:
+			tally[key] = int(tally.get(key, 0)) + int(sp.stats[key])
+	show_ms.sort()
+	copy_ms.sort()
+	out["shot_show_ms"] = _pct(show_ms, .5)
+	out["shot_show_p95"] = _pct(show_ms, .95)
+	out["shot_copy_ms"] = _pct(copy_ms, .5)
+	out["shot_copy_p95"] = _pct(copy_ms, .95)
+	var shown_shots: int = tally.get("shots", 0)
+	var copy_shots: int = int(tally.get("confirmed", 0)) + int(tally.get("late", 0))
+	out["own_shots"] = copy_shots
+	out["shots_shown"] = shown_shots
+	out["shot_withdrawn"] = int(tally.get("withdrawn", 0)) / maxf(1.0, shown_shots)
+	out["shot_late"] = int(tally.get("late", 0)) / maxf(1.0, copy_shots)
+	out["hit_withdrawn"] = int(tally.get("hits_withdrawn", 0)) / maxf(1.0, tally.get("hits", 0))
+	out["hits_shown"] = tally.get("hits", 0)
 	out["drawn_k"] = _mean(PackedFloat32Array(lead_k))
 	out["copy_k"] = _mean(PackedFloat32Array(copy_k))
 	# Shots.
@@ -597,6 +657,16 @@ func _table(rows: Array) -> void:
 	line.call("copies put back on a snapshot", "%.0f", "rebuilds")
 	line.call("  of them for inputs lost", "%.0f", "lost")
 	line.call("  mismatches", "%.0f", "mismatches")
+	line.call("own shots: fired (copy)", "%.0f", "own_shots")
+	line.call("own shots: shown at the press", "%.0f", "shots_shown")
+	line.call("own shots: button to flash, shown (ms)", "%.0f", "shot_show_ms")
+	line.call("  p95 (ms)", "%.0f", "shot_show_p95")
+	line.call("own shots: button to the copy's (ms)", "%.0f", "shot_copy_ms")
+	line.call("  p95 (ms)", "%.0f", "shot_copy_p95")
+	line.call("own shots: shown, then withdrawn (%)", "%.1f", "shot_withdrawn", 100.0)
+	line.call("own shots: fired, not foreseen (%)", "%.1f", "shot_late", 100.0)
+	line.call("own hits: shown on someone", "%.0f", "hits_shown")
+	line.call("own hits: withdrawn by the host (%)", "%.1f", "hit_withdrawn", 100.0)
 	line.call("hits: client shots judged", "%.0f", "shots")
 	line.call("hits: looked like a hit", "%.0f", "looked_hits")
 	line.call("hits: looked a hit, judged a miss (%)", "%.1f", "ghost_share", 100.0)

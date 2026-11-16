@@ -355,6 +355,12 @@ var sprint: float:
 		player.sprint = value
 ## The acting player acts by their own hand this moment (focus()).
 var own_step := false
+## An online client's copy: who watches this machine's own hands step
+## (hands_watch.gd, src/net/net_shot_predict.gd), and whether that step's
+## looks are handed to it now (the shot was shown already). Null and off on a
+## single-player game and a host.
+var hands_watch: HandsWatch = null
+var own_quiet := false
 ## How many of `enemies` name_new() has looked at.
 var _named_enemies := 0
 ## The controls of a player nobody steers this tick (never changed).

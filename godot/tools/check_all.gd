@@ -48,6 +48,7 @@ const CHECKS := [
 	["bot_check", "BOT CHECK OK"],
 	["replay_check", "REPLAY CHECK OK", ["quick"]],
 	["tune_check", "TUNE CHECK OK"],
+	["predict_check", "PREDICT CHECK OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
 	["load_check", "LOAD CHECK OK"],
 ]
@@ -75,6 +76,7 @@ const QUICK := [
 	"wreck_check",
 	"plank_check",
 	"tune_check",
+	"predict_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
 ## in the Actions log, or this table's own column there), to share the rows

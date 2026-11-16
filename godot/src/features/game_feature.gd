@@ -69,6 +69,22 @@ func tally_rows() -> Array:
 	return []
 
 
+## This machine's own shot shown ahead of the game (an online client's
+## prediction, src/net/net_shot_predict.gd): the gun going off, a round's line
+## ending at `end` on `struck` (as `traced` says), a reload starting. The
+## looks-only features answer as they do to those events.
+func own_shot(_gun: int) -> void:
+	pass
+
+
+func own_trace(_end: Vector3, _struck: String) -> void:
+	pass
+
+
+func own_reload(_gun: int) -> void:
+	pass
+
+
 ## Sprites it adds to the view this frame (View.Sprite).
 func sprites() -> Array:
 	return []

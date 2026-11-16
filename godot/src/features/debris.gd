@@ -131,6 +131,9 @@ func _add(bit: Bit) -> void:
 
 
 func _fired(gun: int) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_fired.bind(gun), "shot")
+		return
 	if gun in [Weapons.RIFLE, Weapons.RIVETER, Weapons.HUNTER, Weapons.MOWER]:
 		_eject("casing", 1)
 	elif (
@@ -148,13 +151,24 @@ func _fired(gun: int) -> void:
 		_eject("hull", 1, .5)
 
 
+func own_shot(gun: int) -> void:
+	_fired(gun)
+
+
 func _reloading(gun: int) -> void:
+	if game.own_quiet:
+		game.hands_watch.defer(_reloading.bind(gun), "reload")
+		return
 	if gun == Weapons.REVOLVER or gun == Weapons.STAR357:
 		_eject("casing", 6, .4)
 	elif gun == Weapons.HOGLEG:
 		_eject("casing", 3, .3)
 	elif gun == Weapons.SHOTGUN:
 		_eject("hull", 2, .7)
+
+
+func own_reload(gun: int) -> void:
+	_reloading(gun)
 
 
 func _exploded(x: float, y: float, z: float, energy: bool) -> void:

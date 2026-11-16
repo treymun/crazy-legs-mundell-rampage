@@ -274,6 +274,8 @@ const VIEW_FIELDS := [
 	"flow_walks",
 	"body_cells",
 	"body_cells_on",
+	"hands_watch",
+	"own_quiet",
 ]
 ## Features whose state is play (carried: every variable but `game`).
 const SIM_FEATURES := [

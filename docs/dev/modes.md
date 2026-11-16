@@ -471,6 +471,80 @@ walk starts from the inputs the host really played (the echoed rows) and a
 correction fades over 90 ms (`NetPredict.Smoother`); `tools/net_lag.gd`
 measures it (multiplayer.md, "Lag: what a player feels").
 
+### Shots, reloads and pickups
+
+Pass 7, `src/net/net_gun_lead.gd`, `net_shot_predict.gd`, `net_echo_sound.gd`,
+`src/hands_watch.gd`. Before it a client's own shot flashed, banged and kicked
+when its copy played it: a round trip and the play-out later (350 ms on a
+100 ms link). Now, looks only, the host's game still the only truth:
+
+- **The gun leads.** `NetGunLead.lead` steps our gun through the unplayed
+  inputs with Weapons.Armory's sums (select, reload, the tick and its beats,
+  fire with its refusals: holstered, cooling down, reloading, switching, dry,
+  the 5v5 freeze through `hold_controls`), no dice and no hits. The flash, the
+  kick pose, the rifle's climb and the HUD's rounds are drawn from it and put
+  back after the frame, so a refused shot's round simply comes back. Not led:
+  dynamite (the fuse), something carried, the wheel, the gallery booth.
+- **What happened is shown once** (`NetShotPredict.frame`, from `_net_aim`):
+  the bang (and its room ring), the cycle's and reload's beats, a dry click and
+  its word, a gun's equip sound; for a shot the gun's kick (`feel.kick_now`),
+  shake, and every looks-only feature's muzzle puff, shell and smoke
+  (`GameFeature.own_shot`; `own_reload` for a reload's shells). A bullet or
+  pellet gun's line is drawn where our screen shows the world (`probe`: the
+  enemies and players the copy shows, which is what the host's rewind judges
+  by, then the walls; pellets off our own dice inside the spread): its tracer
+  and chips (`own_trace`), the wall's sound, and on someone well inside their
+  edge (the centre line) the crosshair's mark, the tick and blood (specks on a
+  player, the gore spray on a hand).
+- **A pickup** our drawn player reaches and would take (`would_take`:
+  collect's refusals) leaves the picture with its sound and word at once.
+- **The copy does not show it again.** `game.hands_watch` (null on a single
+  player game and a host) is called round the watched slot's `_step_hands`.
+  While something shown is due (within `WINDOW` inputs of the one the copy
+  plays) the step's looks-only calls are held (`game.own_quiet`:
+  `HandsWatch.defer`, `held_burst` for burst()'s specks, whose dice go as
+  ever) and its sounds written down (`NetEchoSound`). After it a shot the
+  copy fired is matched with the oldest shown one: its held looks dropped, its
+  shake taken back, the next kick skipped (`feel.skip_kick`), a mark it did
+  not give withdrawn with its blood (the specks taken out), a kill it gave
+  shown as it has it; a sound already heard is dropped, anything else (a kill's
+  tick, a yelp, a shot nobody foresaw) plays then. Something shown and never
+  played by `EXPIRE` inputs past is withdrawn quietly (a pickup comes back).
+- **Every online mode gets it** (County Run co-op, the 5v5 rounds, tag
+  team, and any mode added online later): it reads only Game.Controls, the
+  copy and `NetSync.Client`. Nothing carried is touched; `net_lag`,
+  `county_net_check` (which draw the frame as main.gd does) find no parting.
+
+`tools/predict_check.gd` (check_all) holds the cases: a shot played, refused,
+dry, a hit judged a miss, a gun taken up and fired, a pickup played and
+refused, a reload mid-burst (every cue, tracer and shell as often as a copy
+without prediction), and nothing on a game nobody watches. `net_lag.gd` prints
+button-to-flash shown and the copy's (the old way), and how often a shown shot
+or hit was withdrawn (`noshots` turns it off).
+
+Measured with `net_lag.gd -- lags=50,100,150` (one way each side, a fifth of
+it jitter, 2% loss; grainyard search and destroy, four people and six bots;
+the tool's clock is its own, so runs repeat nearly to the millisecond): three
+60 s runs with it and three with `noshots`, then one of 240 s with it. Button
+to the flash and bang, median (p95):
+
+| | 50 ms | 100 ms | 150 ms |
+| --- | --- | --- | --- |
+| before: when the copy fired it | 200 ms (217) | 350 (383) | 500 (533) |
+| now: shown | the same frame | the same frame | the same frame |
+| shots shown, then withdrawn (240 s) | 1.2% of 166 | 3.3% of 209 | 2.6% of 155 |
+| shots fired that were not foreseen | 0 | 0 | 0 |
+| marks shown, then withdrawn (240 s) | 23% of 57 | 25% of 48 | 35% of 46 |
+| (the tool's "looked a hit, judged a miss") | 21% | 18% | 30% |
+
+A withdrawn shot is mostly one pressed just before the round ended or the
+player went down on the host. A withdrawn mark is a centre line the host
+judged a miss, as often as the bots' own aim is (a line grazing a body's edge
+shows no mark at the press, `SURE`; the host's mark shows when it lands); on
+hands in County Run co-op (no rewind for them) a fifth of the marks shown
+were withdrawn in `county_net_check`. "The same frame": the input and its
+shot are drawn by the frame that sent it.
+
 ## The browser online
 
 dev.45: a lobby server's lobby with `ws_port` also takes WebSocket players
@@ -486,7 +560,9 @@ and join codes stay desktop only.
 - Online co-op and deathmatch outside COUNTY RUN.
 - A relay or NAT punch-through for hosts whose router will not open the port
   (forward it, or a VPN).
-- Client prediction of anything but walking and the aim (a shot, a pickup).
+- Client prediction of a thrown stick of dynamite, the saw's grind, a melee
+  blow landing, a projectile in flight, the scope going up, USE and items
+  (each still shows when the copy plays it).
 - A second local input set (split keyboard).
 - A kill feed outside the 5v5 modes.
 - A lying-down picture for a player who is down (the standing one, squat;
