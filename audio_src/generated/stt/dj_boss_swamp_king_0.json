@@ -1,0 +1,80 @@
+{
+ "text": "Uh, the king of the bayou has been dethroned. The gators are taking it hard",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "the",
+   "start": 0.2,
+   "end": 0.26
+  },
+  {
+   "text": "king",
+   "start": 0.38,
+   "end": 0.66
+  },
+  {
+   "text": "of",
+   "start": 0.72,
+   "end": 0.76
+  },
+  {
+   "text": "the",
+   "start": 0.8,
+   "end": 0.92
+  },
+  {
+   "text": "bayou",
+   "start": 0.96,
+   "end": 1.5
+  },
+  {
+   "text": "has",
+   "start": 1.54,
+   "end": 1.76
+  },
+  {
+   "text": "been",
+   "start": 1.8,
+   "end": 2.0
+  },
+  {
+   "text": "dethroned.",
+   "start": 2.06,
+   "end": 2.82
+  },
+  {
+   "text": "The",
+   "start": 2.92,
+   "end": 3.06
+  },
+  {
+   "text": "gators",
+   "start": 3.12,
+   "end": 3.6
+  },
+  {
+   "text": "are",
+   "start": 3.66,
+   "end": 3.86
+  },
+  {
+   "text": "taking",
+   "start": 3.92,
+   "end": 4.24
+  },
+  {
+   "text": "it",
+   "start": 4.28,
+   "end": 4.38
+  },
+  {
+   "text": "hard",
+   "start": 4.44,
+   "end": 4.98
+  }
+ ]
+}

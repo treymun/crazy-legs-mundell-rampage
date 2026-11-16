@@ -35356,14 +35356,3769 @@
    "bytes": 47063
   },
   {
-   "id": "reconcile@2026-11-16T16:07:10",
+   "id": "voice_design/dj#1",
+   "kind": "voice_design",
+   "name": "dj",
+   "params": {
+    "description": "A gravel-voiced late-night country radio disc jockey in his sixties from rural Arkansas: a deep, smoky, unhurried baritone drawl, warm, wry and a little worn from cigarettes and coffee, talking close to the microphone on a small AM station after midnight. Close, dry studio recording.",
+    "text": "Well, it's a quarter past two on KPSM, the Possum, and I'm still here. Pour yourself another cup, lock up the chickens, and keep it between the ditches, Possum County. Here's one for the night owls."
+   },
+   "hash": "de53313f9c1e",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-16T17:13:11",
+   "actual": 594,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/dj.mp3",
+   "bytes": 332948
+  },
+  {
+   "id": "tts/dj_id_0#1",
+   "kind": "tts",
+   "name": "dj_id_0",
+   "params": {
+    "text": "This is KPSM, the Possum. Dub Tillery with you till the sun comes up.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "88e4488d8941",
+   "reserved": 102,
+   "status": "settled",
+   "started": "2026-11-16T17:14:25",
+   "actual": 69,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_id_0.mp3",
+   "bytes": 138596
+  },
+  {
+   "id": "tts/dj_id_3#1",
+   "kind": "tts",
+   "name": "dj_id_3",
+   "params": {
+    "text": "Possum County's only radio station, and the only one that'll have me.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f3b521bce357",
+   "reserved": 102,
+   "status": "settled",
+   "started": "2026-11-16T17:14:25",
+   "actual": 69,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_id_3.mp3",
+   "bytes": 104114
+  },
+  {
+   "id": "tts/dj_id_2#1",
+   "kind": "tts",
+   "name": "dj_id_2",
+   "params": {
+    "text": "You're up late with Dub Tillery on KPSM, the Possum.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9ea4743dbb97",
+   "reserved": 82,
+   "status": "settled",
+   "started": "2026-11-16T17:14:25",
+   "actual": 52,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_id_2.mp3",
+   "bytes": 95337
+  },
+  {
+   "id": "tts/dj_id_1#1",
+   "kind": "tts",
+   "name": "dj_id_1",
+   "params": {
+    "text": "KPSM, fourteen-ninety AM. Still here, still awake, still the Possum.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b50fd3398775",
+   "reserved": 101,
+   "status": "settled",
+   "started": "2026-11-16T17:14:25",
+   "actual": 68,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_id_1.mp3",
+   "bytes": 131700
+  },
+  {
+   "id": "tts/dj_id_4#1",
+   "kind": "tts",
+   "name": "dj_id_4",
+   "params": {
+    "text": "Two in the mornin' on the Possum. Coffee's cold and the night ain't over.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "191a96023d90",
+   "reserved": 107,
+   "status": "settled",
+   "started": "2026-11-16T17:14:27",
+   "actual": 73,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_id_4.mp3",
+   "bytes": 105368
+  },
+  {
+   "id": "tts/dj_outro_0#1",
+   "kind": "tts",
+   "name": "dj_outro_0",
+   "params": {
+    "text": "Here's another one. Keep it between the ditches.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "000048927eb3",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-16T17:14:28",
+   "actual": 48,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_outro_0.mp3",
+   "bytes": 67125
+  },
+  {
+   "id": "tts/dj_outro_1#1",
+   "kind": "tts",
+   "name": "dj_outro_1",
+   "params": {
+    "text": "Turn it up loud enough to scare the dog. Here we go.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7a75bcf0af21",
+   "reserved": 82,
+   "status": "settled",
+   "started": "2026-11-16T17:14:28",
+   "actual": 52,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_outro_1.mp3",
+   "bytes": 81545
+  },
+  {
+   "id": "tts/dj_outro_2#1",
+   "kind": "tts",
+   "name": "dj_outro_2",
+   "params": {
+    "text": "This next one's for the night shift. Y'all hang in there.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "3ec73e2b626a",
+   "reserved": 88,
+   "status": "settled",
+   "started": "2026-11-16T17:14:28",
+   "actual": 57,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_outro_2.mp3",
+   "bytes": 79664
+  },
+  {
+   "id": "tts/dj_outro_3#1",
+   "kind": "tts",
+   "name": "dj_outro_3",
+   "params": {
+    "text": "No requests, no refunds, no sleep. Here's the band.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2fe1d4e44d79",
+   "reserved": 81,
+   "status": "settled",
+   "started": "2026-11-16T17:14:28",
+   "actual": 51,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_outro_3.mp3",
+   "bytes": 87187
+  },
+  {
+   "id": "tts/dj_outro_4#1",
+   "kind": "tts",
+   "name": "dj_outro_4",
+   "params": {
+    "text": "Back to the music before somebody calls in.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "440df36839bd",
+   "reserved": 71,
+   "status": "settled",
+   "started": "2026-11-16T17:14:29",
+   "actual": 43,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_outro_4.mp3",
+   "bytes": 66498
+  },
+  {
+   "id": "tts/dj_weather_0#1",
+   "kind": "tts",
+   "name": "dj_weather_0",
+   "params": {
+    "text": "Weather: hot, sticky and fixin' to storm. Bring the lawn chairs in.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "460dc14e9464",
+   "reserved": 100,
+   "status": "settled",
+   "started": "2026-11-16T17:14:29",
+   "actual": 67,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_weather_0.mp3",
+   "bytes": 112892
+  },
+  {
+   "id": "tts/dj_weather_1#1",
+   "kind": "tts",
+   "name": "dj_weather_1",
+   "params": {
+    "text": "Forecast says clear skies, which means it'll rain on your laundry.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "438f317e43bb",
+   "reserved": 99,
+   "status": "settled",
+   "started": "2026-11-16T17:14:29",
+   "actual": 66,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_weather_1.mp3",
+   "bytes": 100980
+  },
+  {
+   "id": "tts/dj_weather_2#1",
+   "kind": "tts",
+   "name": "dj_weather_2",
+   "params": {
+    "text": "Fog on the bayou tonight, thick as gravy. Watch for gators in the road.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5158fc5f5b94",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-16T17:14:29",
+   "actual": 71,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_weather_2.mp3",
+   "bytes": 111011
+  },
+  {
+   "id": "tts/dj_weather_3#1",
+   "kind": "tts",
+   "name": "dj_weather_3",
+   "params": {
+    "text": "Heat lightnin' over the quarry. Folks, that ain't the Lord, that's the transformer.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "84d20e461e68",
+   "reserved": 119,
+   "status": "settled",
+   "started": "2026-11-16T17:14:30",
+   "actual": 83,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_weather_3.mp3",
+   "bytes": 106622
+  },
+  {
+   "id": "tts/dj_ad_0#1",
+   "kind": "tts",
+   "name": "dj_ad_0",
+   "params": {
+    "text": "Stanky's Bar and Grill. Cold beer, hot wings, and the bathroom mostly works.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "dbf2abe4b2d7",
+   "reserved": 111,
+   "status": "settled",
+   "started": "2026-11-16T17:14:30",
+   "actual": 76,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_ad_0.mp3",
+   "bytes": 148627
+  },
+  {
+   "id": "tts/dj_ad_1#1",
+   "kind": "tts",
+   "name": "dj_ad_1",
+   "params": {
+    "text": "Bait and Ammo on Main Street. Night crawlers, buckshot, and a free calendar.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9059fd903c75",
+   "reserved": 111,
+   "status": "settled",
+   "started": "2026-11-16T17:14:30",
+   "actual": 76,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_ad_1.mp3",
+   "bytes": 124176
+  },
+  {
+   "id": "tts/dj_ad_2#1",
+   "kind": "tts",
+   "name": "dj_ad_2",
+   "params": {
+    "text": "Fill up at the Gas-N-Gut. Gas, gizzards and lottery tickets, all one register.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "700e6594a4bb",
+   "reserved": 113,
+   "status": "settled",
+   "started": "2026-11-16T17:14:31",
+   "actual": 78,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_ad_2.mp3",
+   "bytes": 131073
+  },
+  {
+   "id": "tts/dj_ad_3#1",
+   "kind": "tts",
+   "name": "dj_ad_3",
+   "params": {
+    "text": "The Possum County Fair is back. Rides inspected by somebody, probably.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cb8bdd09ab6f",
+   "reserved": 104,
+   "status": "settled",
+   "started": "2026-11-16T17:14:31",
+   "actual": 70,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_ad_3.mp3",
+   "bytes": 122923
+  },
+  {
+   "id": "tts/dj_ad_4#1",
+   "kind": "tts",
+   "name": "dj_ad_4",
+   "params": {
+    "text": "Saturday night at Buzzard Bend Speedway. Bring earplugs and a spare tooth.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "47f9c80acc3e",
+   "reserved": 108,
+   "status": "settled",
+   "started": "2026-11-16T17:14:31",
+   "actual": 74,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_ad_4.mp3",
+   "bytes": 121669
+  },
+  {
+   "id": "tts/dj_ad_5#1",
+   "kind": "tts",
+   "name": "dj_ad_5",
+   "params": {
+    "text": "The sawmill's hirin' again. Bring your own fingers.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "36aaf30fa29a",
+   "reserved": 81,
+   "status": "settled",
+   "started": "2026-11-16T17:14:32",
+   "actual": 51,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_ad_5.mp3",
+   "bytes": 79664
+  },
+  {
+   "id": "tts/dj_ad_6#1",
+   "kind": "tts",
+   "name": "dj_ad_6",
+   "params": {
+    "text": "Gator Bayou Bait and Tackle. If it bites, they sell it.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "00d163d6788c",
+   "reserved": 86,
+   "status": "settled",
+   "started": "2026-11-16T17:14:32",
+   "actual": 55,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_ad_6.mp3",
+   "bytes": 88441
+  },
+  {
+   "id": "tts/dj_bit_0#1",
+   "kind": "tts",
+   "name": "dj_bit_0",
+   "params": {
+    "text": "This one goes out to Earl, who wants his truck back. Earl, it's in the creek.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c2e222159727",
+   "reserved": 112,
+   "status": "settled",
+   "started": "2026-11-16T17:14:32",
+   "actual": 77,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_bit_0.mp3",
+   "bytes": 109757
+  },
+  {
+   "id": "tts/dj_bit_1#1",
+   "kind": "tts",
+   "name": "dj_bit_1",
+   "params": {
+    "text": "Lost: one prize cow, answers to Bessie. Reward is a casserole.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5704b951e304",
+   "reserved": 94,
+   "status": "settled",
+   "started": "2026-11-16T17:14:32",
+   "actual": 62,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_bit_1.mp3",
+   "bytes": 115399
+  },
+  {
+   "id": "tts/dj_bit_2#1",
+   "kind": "tts",
+   "name": "dj_bit_2",
+   "params": {
+    "text": "Caller says there's lights over the cornfield again. Ma'am, lock your cows up.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6996fa758337",
+   "reserved": 113,
+   "status": "settled",
+   "started": "2026-11-16T17:14:32",
+   "actual": 78,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_bit_2.mp3",
+   "bytes": 129819
+  },
+  {
+   "id": "tts/dj_bit_3#1",
+   "kind": "tts",
+   "name": "dj_bit_3",
+   "params": {
+    "text": "Reminder from the sheriff: no shootin' road signs. That means you, Mundell.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0c137d71a830",
+   "reserved": 110,
+   "status": "settled",
+   "started": "2026-11-16T17:14:33",
+   "actual": 75,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_bit_3.mp3",
+   "bytes": 119788
+  },
+  {
+   "id": "tts/dj_drive_0#1",
+   "kind": "tts",
+   "name": "dj_drive_0",
+   "params": {
+    "text": "If you're drivin' tonight, buckle up and watch for deer. And Mundell.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f26c8f4189fd",
+   "reserved": 102,
+   "status": "settled",
+   "started": "2026-11-16T17:14:33",
+   "actual": 69,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_drive_0.mp3",
+   "bytes": 111011
+  },
+  {
+   "id": "tts/dj_drive_2#1",
+   "kind": "tts",
+   "name": "dj_drive_2",
+   "params": {
+    "text": "Roll the windows down and let the whole county hear it.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "62e08c4aa865",
+   "reserved": 86,
+   "status": "settled",
+   "started": "2026-11-16T17:14:34",
+   "actual": 55,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_drive_2.mp3",
+   "bytes": 78410
+  },
+  {
+   "id": "tts/dj_drive_1#1",
+   "kind": "tts",
+   "name": "dj_drive_1",
+   "params": {
+    "text": "Truckers, farmers and fools behind the wheel, this one's for you.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "251bc6ee5df8",
+   "reserved": 98,
+   "status": "settled",
+   "started": "2026-11-16T17:14:34",
+   "actual": 65,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_drive_1.mp3",
+   "bytes": 96591
+  },
+  {
+   "id": "tts/dj_boom_0#1",
+   "kind": "tts",
+   "name": "dj_boom_0",
+   "params": {
+    "text": "Folks out that way say they heard a boom. Sounded expensive.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d8bd5c17ec55",
+   "reserved": 92,
+   "status": "settled",
+   "started": "2026-11-16T17:14:34",
+   "actual": 60,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boom_0.mp3",
+   "bytes": 82799
+  },
+  {
+   "id": "tts/dj_boom_1#1",
+   "kind": "tts",
+   "name": "dj_boom_1",
+   "params": {
+    "text": "Somethin' just blew up out there. If it was your still, I'm sorry for your loss.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cc951359665a",
+   "reserved": 116,
+   "status": "settled",
+   "started": "2026-11-16T17:14:34",
+   "actual": 80,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boom_1.mp3",
+   "bytes": 118534
+  },
+  {
+   "id": "tts/dj_boom_2#1",
+   "kind": "tts",
+   "name": "dj_boom_2",
+   "params": {
+    "text": "Another explosion, Possum County. Fire department says please stop.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "cbabec00e82a",
+   "reserved": 100,
+   "status": "settled",
+   "started": "2026-11-16T17:14:35",
+   "actual": 67,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boom_2.mp3",
+   "bytes": 100980
+  },
+  {
+   "id": "tts/dj_wreck_0#1",
+   "kind": "tts",
+   "name": "dj_wreck_0",
+   "params": {
+    "text": "Report of a wreck tonight. Nobody hurt but the car's feelin's.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "211e3d50a89c",
+   "reserved": 94,
+   "status": "settled",
+   "started": "2026-11-16T17:14:35",
+   "actual": 62,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_wreck_0.mp3",
+   "bytes": 91576
+  },
+  {
+   "id": "tts/dj_wreck_1#1",
+   "kind": "tts",
+   "name": "dj_wreck_1",
+   "params": {
+    "text": "Somebody totaled a perfectly good car. Tow truck's on the way, and he's grinnin'.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "523ba31d36f6",
+   "reserved": 117,
+   "status": "settled",
+   "started": "2026-11-16T17:14:35",
+   "actual": 81,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_wreck_1.mp3",
+   "bytes": 119788
+  },
+  {
+   "id": "tts/dj_wreck_2#1",
+   "kind": "tts",
+   "name": "dj_wreck_2",
+   "params": {
+    "text": "Another one in the ditch. The insurance man just quit.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8176991b8227",
+   "reserved": 84,
+   "status": "settled",
+   "started": "2026-11-16T17:14:35",
+   "actual": 54,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_wreck_2.mp3",
+   "bytes": 81545
+  },
+  {
+   "id": "tts/dj_drunk_0#1",
+   "kind": "tts",
+   "name": "dj_drunk_0",
+   "params": {
+    "text": "Somebody out there's drunker than a skunk on a holiday. Drink some water, hoss.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ad8c2251fd63",
+   "reserved": 114,
+   "status": "settled",
+   "started": "2026-11-16T17:14:36",
+   "actual": 79,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_drunk_0.mp3",
+   "bytes": 115399
+  },
+  {
+   "id": "tts/dj_drunk_1#1",
+   "kind": "tts",
+   "name": "dj_drunk_1",
+   "params": {
+    "text": "If you're seein' two of everything tonight, shoot the one in the middle.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "83521709bc4e",
+   "reserved": 106,
+   "status": "settled",
+   "started": "2026-11-16T17:14:36",
+   "actual": 72,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_drunk_1.mp3",
+   "bytes": 96591
+  },
+  {
+   "id": "tts/dj_drunk_2#1",
+   "kind": "tts",
+   "name": "dj_drunk_2",
+   "params": {
+    "text": "Folks, if you've been at the shine, let somebody else drive. Or nobody.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0c1e735a1421",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-16T17:14:36",
+   "actual": 71,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_drunk_2.mp3",
+   "bytes": 104114
+  },
+  {
+   "id": "tts/dj_deaths_0#1",
+   "kind": "tts",
+   "name": "dj_deaths_0",
+   "params": {
+    "text": "That Mundell boy keeps gettin' knocked down and gettin' back up. Stubborn as a mule.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "64fedd660492",
+   "reserved": 120,
+   "status": "settled",
+   "started": "2026-11-16T17:14:36",
+   "actual": 84,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_deaths_0.mp3",
+   "bytes": 128565
+  },
+  {
+   "id": "tts/dj_deaths_2#1",
+   "kind": "tts",
+   "name": "dj_deaths_2",
+   "params": {
+    "text": "Some nights you're the hammer, some nights you're the nail. Rough night, friend.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6ac83e4f13f5",
+   "reserved": 116,
+   "status": "settled",
+   "started": "2026-11-16T17:14:37",
+   "actual": 80,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_deaths_2.mp3",
+   "bytes": 105368
+  },
+  {
+   "id": "tts/dj_deaths_1#1",
+   "kind": "tts",
+   "name": "dj_deaths_1",
+   "params": {
+    "text": "Coroner called in. Says he's seen the same feller three times tonight.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d07bd1678b06",
+   "reserved": 104,
+   "status": "settled",
+   "started": "2026-11-16T17:14:37",
+   "actual": 70,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_deaths_1.mp3",
+   "bytes": 101607
+  },
+  {
+   "id": "tts/dj_secret_0#1",
+   "kind": "tts",
+   "name": "dj_secret_0",
+   "params": {
+    "text": "Rumor is somebody found a secret stash out there. Finders keepers.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f1df855769d2",
+   "reserved": 99,
+   "status": "settled",
+   "started": "2026-11-16T17:14:37",
+   "actual": 66,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_secret_0.mp3",
+   "bytes": 108503
+  },
+  {
+   "id": "tts/dj_secret_1#1",
+   "kind": "tts",
+   "name": "dj_secret_1",
+   "params": {
+    "text": "Somebody's pokin' behind the walls tonight. Find anything good, you call me.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "285807d492ac",
+   "reserved": 111,
+   "status": "settled",
+   "started": "2026-11-16T17:14:37",
+   "actual": 76,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_secret_1.mp3",
+   "bytes": 111011
+  },
+  {
+   "id": "tts/dj_secret_2#1",
+   "kind": "tts",
+   "name": "dj_secret_2",
+   "params": {
+    "text": "Little birdie says somebody found what wasn't theirs to find. Good for them.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b5a8f16f8846",
+   "reserved": 111,
+   "status": "settled",
+   "started": "2026-11-16T17:14:38",
+   "actual": 76,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_secret_2.mp3",
+   "bytes": 118534
+  },
+  {
+   "id": "tts/dj_rampage_0#1",
+   "kind": "tts",
+   "name": "dj_rampage_0",
+   "params": {
+    "text": "Scanner's lit up like Christmas. Somebody's on a tear tonight.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "791fdca269b9",
+   "reserved": 94,
+   "status": "settled",
+   "started": "2026-11-16T17:14:38",
+   "actual": 62,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_rampage_0.mp3",
+   "bytes": 85306
+  },
+  {
+   "id": "tts/dj_rampage_1#1",
+   "kind": "tts",
+   "name": "dj_rampage_1",
+   "params": {
+    "text": "Half the county just called in about one skinny feller. Sounds like Mundell.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e2df1d62c1b0",
+   "reserved": 111,
+   "status": "settled",
+   "started": "2026-11-16T17:14:38",
+   "actual": 76,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_rampage_1.mp3",
+   "bytes": 119788
+  },
+  {
+   "id": "tts/dj_rampage_2#1",
+   "kind": "tts",
+   "name": "dj_rampage_2",
+   "params": {
+    "text": "Busy night for the undertaker. Busiest since the chili cook-off.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2e91b1c1de4a",
+   "reserved": 96,
+   "status": "settled",
+   "started": "2026-11-16T17:14:38",
+   "actual": 64,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_rampage_2.mp3",
+   "bytes": 100980
+  },
+  {
+   "id": "tts/dj_boss_sheriff_0#1",
+   "kind": "tts",
+   "name": "dj_boss_sheriff_0",
+   "params": {
+    "text": "Word is the sheriff's out of office. Permanently. And he wasn't from around here.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d96b645985af",
+   "reserved": 117,
+   "status": "settled",
+   "started": "2026-11-16T17:14:39",
+   "actual": 81,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boss_sheriff_0.mp3",
+   "bytes": 106622
+  },
+  {
+   "id": "tts/dj_boss_jerry_0#1",
+   "kind": "tts",
+   "name": "dj_boss_jerry_0",
+   "params": {
+    "text": "Big Jerry lost one tonight. First time since the eighth grade.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e0e39858748d",
+   "reserved": 94,
+   "status": "settled",
+   "started": "2026-11-16T17:14:39",
+   "actual": 62,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boss_jerry_0.mp3",
+   "bytes": 95337
+  },
+  {
+   "id": "tts/dj_boss_rudy_0#1",
+   "kind": "tts",
+   "name": "dj_boss_rudy_0",
+   "params": {
+    "text": "Rudy the ringmaster has left the tent. Show's over, folks, go on home.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "03a54a5ee018",
+   "reserved": 104,
+   "status": "settled",
+   "started": "2026-11-16T17:14:39",
+   "actual": 70,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boss_rudy_0.mp3",
+   "bytes": 121042
+  },
+  {
+   "id": "tts/dj_boss_foreman_0#1",
+   "kind": "tts",
+   "name": "dj_boss_foreman_0",
+   "params": {
+    "text": "The mill foreman just clocked out for good. Lunch whistle's yours, boys.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "03288214031b",
+   "reserved": 106,
+   "status": "settled",
+   "started": "2026-11-16T17:14:39",
+   "actual": 72,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boss_foreman_0.mp3",
+   "bytes": 115399
+  },
+  {
+   "id": "tts/dj_boss_baron_0#1",
+   "kind": "tts",
+   "name": "dj_boss_baron_0",
+   "params": {
+    "text": "The moonshine baron is out of business. Stock up while you can.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7c1e833bc702",
+   "reserved": 95,
+   "status": "settled",
+   "started": "2026-11-16T17:14:40",
+   "actual": 63,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boss_baron_0.mp3",
+   "bytes": 92830
+  },
+  {
+   "id": "tts/dj_boss_swamp_king_0#1",
+   "kind": "tts",
+   "name": "dj_boss_swamp_king_0",
+   "params": {
+    "text": "The king of the bayou has been dethroned. The gators are takin' it hard.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "282a59436e4d",
+   "reserved": 106,
+   "status": "settled",
+   "started": "2026-11-16T17:14:40",
+   "actual": 72,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boss_swamp_king_0.mp3",
+   "bytes": 124176
+  },
+  {
+   "id": "tts/dj_boss_boggs_0#1",
+   "kind": "tts",
+   "name": "dj_boss_boggs_0",
+   "params": {
+    "text": "Bumper Boggs lost a derby. Folks, I've been on the air thirty years. Never.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "568572961177",
+   "reserved": 110,
+   "status": "settled",
+   "started": "2026-11-16T17:14:40",
+   "actual": 75,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boss_boggs_0.mp3",
+   "bytes": 114145
+  },
+  {
+   "id": "tts/dj_boss_maw_0#1",
+   "kind": "tts",
+   "name": "dj_boss_maw_0",
+   "params": {
+    "text": "Somethin' big just fell out of the sky. If you find a grandma, don't feed her.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "842b27445a2a",
+   "reserved": 113,
+   "status": "settled",
+   "started": "2026-11-16T17:14:40",
+   "actual": 78,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_boss_maw_0.mp3",
+   "bytes": 121042
+  },
+  {
+   "id": "tts/scan_open_0#1",
+   "kind": "tts",
+   "name": "scan_open_0",
+   "params": {
+    "text": "All units, all units.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ba8e771ac33e",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T17:14:41",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_open_0.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/scan_open_1#1",
+   "kind": "tts",
+   "name": "scan_open_1",
+   "params": {
+    "text": "Possum County units.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "05ce164e6797",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-16T17:14:41",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_open_1.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/scan_open_2#1",
+   "kind": "tts",
+   "name": "scan_open_2",
+   "params": {
+    "text": "Any unit in the area.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "27e88208d31a",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T17:14:41",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_open_2.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/scan_shots_0#1",
+   "kind": "tts",
+   "name": "scan_shots_0",
+   "params": {
+    "text": "Report of shots fired.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5bb742d6262d",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-16T17:14:42",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_shots_0.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/scan_shots_1#1",
+   "kind": "tts",
+   "name": "scan_shots_1",
+   "params": {
+    "text": "Caller reports gunfire, lots of it.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "73c8e0541977",
+   "reserved": 62,
+   "status": "settled",
+   "started": "2026-11-16T17:14:42",
+   "actual": 35,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_shots_1.mp3",
+   "bytes": 87187
+  },
+  {
+   "id": "tts/scan_boom_0#1",
+   "kind": "tts",
+   "name": "scan_boom_0",
+   "params": {
+    "text": "Report of an explosion.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "0fdcba65b84c",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-16T17:14:42",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_boom_0.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/scan_boom_1#1",
+   "kind": "tts",
+   "name": "scan_boom_1",
+   "params": {
+    "text": "Caller says somethin' blew up.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "53c7718768bb",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-16T17:14:42",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_boom_1.mp3",
+   "bytes": 45182
+  },
+  {
+   "id": "tts/scan_wreck_0#1",
+   "kind": "tts",
+   "name": "scan_wreck_0",
+   "params": {
+    "text": "Vehicle in the ditch.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c3dc0aa6114d",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T17:14:42",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_wreck_0.mp3",
+   "bytes": 57094
+  },
+  {
+   "id": "tts/scan_wreck_1#1",
+   "kind": "tts",
+   "name": "scan_wreck_1",
+   "params": {
+    "text": "Vehicle fire reported.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "03706e4ce26b",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-16T17:14:43",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_wreck_1.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/scan_rampage_0#1",
+   "kind": "tts",
+   "name": "scan_rampage_0",
+   "params": {
+    "text": "Man runnin' hog wild, armed.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "348555a42346",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-16T17:14:43",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_rampage_0.mp3",
+   "bytes": 72768
+  },
+  {
+   "id": "tts/scan_rampage_1#1",
+   "kind": "tts",
+   "name": "scan_rampage_1",
+   "params": {
+    "text": "Multiple bodies reported. Again.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "4a51b3c4dc79",
+   "reserved": 58,
+   "status": "settled",
+   "started": "2026-11-16T17:14:43",
+   "actual": 32,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_rampage_1.mp3",
+   "bytes": 74021
+  },
+  {
+   "id": "tts/scan_officer_0#1",
+   "kind": "tts",
+   "name": "scan_officer_0",
+   "params": {
+    "text": "Officer down, officer needs assistance.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "760a71b036df",
+   "reserved": 66,
+   "status": "settled",
+   "started": "2026-11-16T17:14:43",
+   "actual": 39,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_officer_0.mp3",
+   "bytes": 75275
+  },
+  {
+   "id": "tts/scan_place_hickston_0#1",
+   "kind": "tts",
+   "name": "scan_place_hickston_0",
+   "params": {
+    "text": "Respond to Stanky's Bar and Grill.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "705df4a34276",
+   "reserved": 60,
+   "status": "settled",
+   "started": "2026-11-16T17:14:44",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_hickston_0.mp3",
+   "bytes": 76529
+  },
+  {
+   "id": "tts/scan_place_hickston_1#1",
+   "kind": "tts",
+   "name": "scan_place_hickston_1",
+   "params": {
+    "text": "Respond to Main Street, by the feed barn.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "32d7a6dfd045",
+   "reserved": 69,
+   "status": "settled",
+   "started": "2026-11-16T17:14:44",
+   "actual": 41,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_hickston_1.mp3",
+   "bytes": 87187
+  },
+  {
+   "id": "tts/scan_place_fair_0#1",
+   "kind": "tts",
+   "name": "scan_place_fair_0",
+   "params": {
+    "text": "Respond to the fairgrounds midway.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "99cb1ba92354",
+   "reserved": 60,
+   "status": "settled",
+   "started": "2026-11-16T17:14:44",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_fair_0.mp3",
+   "bytes": 66498
+  },
+  {
+   "id": "tts/scan_place_sawmill_0#1",
+   "kind": "tts",
+   "name": "scan_place_sawmill_0",
+   "params": {
+    "text": "Respond to the sawmill.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b8c6f66eebd4",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-16T17:14:45",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_sawmill_0.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/scan_place_quarry_0#1",
+   "kind": "tts",
+   "name": "scan_place_quarry_0",
+   "params": {
+    "text": "Respond to Stillwater Quarry.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "35ca0811572c",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-16T17:14:45",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_quarry_0.mp3",
+   "bytes": 76529
+  },
+  {
+   "id": "tts/scan_place_bayou_0#1",
+   "kind": "tts",
+   "name": "scan_place_bayou_0",
+   "params": {
+    "text": "Respond to the fish camp on Gator Bayou.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1d03c66b2f62",
+   "reserved": 68,
+   "status": "settled",
+   "started": "2026-11-16T17:14:45",
+   "actual": 40,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_bayou_0.mp3",
+   "bytes": 90949
+  },
+  {
+   "id": "tts/scan_place_speedway_0#1",
+   "kind": "tts",
+   "name": "scan_place_speedway_0",
+   "params": {
+    "text": "Respond to Buzzard Bend Speedway.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a3f7f66db1f6",
+   "reserved": 59,
+   "status": "settled",
+   "started": "2026-11-16T17:14:45",
+   "actual": 33,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_speedway_0.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/scan_place_hub_0#1",
+   "kind": "tts",
+   "name": "scan_place_hub_0",
+   "params": {
+    "text": "Respond to the county crossroads.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f51bf9566a0b",
+   "reserved": 59,
+   "status": "settled",
+   "started": "2026-11-16T17:14:46",
+   "actual": 33,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_hub_0.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "tts/scan_place_mothership_0#1",
+   "kind": "tts",
+   "name": "scan_place_mothership_0",
+   "params": {
+    "text": "Respond to the sky. Somebody else take this one.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "63f1860b5039",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-16T17:14:46",
+   "actual": 48,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_place_mothership_0.mp3",
+   "bytes": 106622
+  },
+  {
+   "id": "tts/scan_tag_0#1",
+   "kind": "tts",
+   "name": "scan_tag_0",
+   "params": {
+    "text": "Suspect is on foot. Real skinny legs.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7f900142c305",
+   "reserved": 64,
+   "status": "settled",
+   "started": "2026-11-16T17:14:46",
+   "actual": 37,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_tag_0.mp3",
+   "bytes": 81545
+  },
+  {
+   "id": "tts/scan_tag_1#1",
+   "kind": "tts",
+   "name": "scan_tag_1",
+   "params": {
+    "text": "Approach with caution.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d2fe2bd84713",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-16T17:14:46",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_tag_1.mp3",
+   "bytes": 58348
+  },
+  {
+   "id": "tts/scan_tag_2#1",
+   "kind": "tts",
+   "name": "scan_tag_2",
+   "params": {
+    "text": "Somebody wake up the deputy.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bfdbdcac0a03",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-16T17:14:47",
+   "actual": 28,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_tag_2.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/scan_tag_3#1",
+   "kind": "tts",
+   "name": "scan_tag_3",
+   "params": {
+    "text": "It's Mundell again, y'all.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c76983725948",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-16T17:14:47",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_tag_3.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/scan_tag_4#1",
+   "kind": "tts",
+   "name": "scan_tag_4",
+   "params": {
+    "text": "Code three, lights and siren.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "640a4ebadd92",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-16T17:14:47",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_tag_4.mp3",
+   "bytes": 53959
+  },
+  {
+   "id": "tts/cuss_dj_boom_0#1",
+   "kind": "tts",
+   "name": "cuss_dj_boom_0",
+   "params": {
+    "text": "Somethin' blew up so damn loud my coffee jumped.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "264cc509bd72",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-16T17:14:48",
+   "actual": 48,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_dj_boom_0.mp3",
+   "bytes": 75275
+  },
+  {
+   "id": "tts/cuss_dj_wreck_0#1",
+   "kind": "tts",
+   "name": "cuss_dj_wreck_0",
+   "params": {
+    "text": "Y'all drive like hell out there tonight.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "9dd4798bf70c",
+   "reserved": 68,
+   "status": "settled",
+   "started": "2026-11-16T17:14:48",
+   "actual": 40,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_dj_wreck_0.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/cuss_dj_drunk_0#1",
+   "kind": "tts",
+   "name": "cuss_dj_drunk_0",
+   "params": {
+    "text": "Somebody out there's drunk as hell and twice as proud.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "16407917380f",
+   "reserved": 84,
+   "status": "settled",
+   "started": "2026-11-16T17:14:49",
+   "actual": 54,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_dj_drunk_0.mp3",
+   "bytes": 79664
+  },
+  {
+   "id": "tts/cuss_dj_deaths_0#1",
+   "kind": "tts",
+   "name": "cuss_dj_deaths_0",
+   "params": {
+    "text": "That Mundell boy's gettin' his ass handed to him tonight.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5343071832a6",
+   "reserved": 88,
+   "status": "settled",
+   "started": "2026-11-16T17:14:49",
+   "actual": 57,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/cuss_dj_deaths_0.mp3",
+   "bytes": 98472
+  },
+  {
+   "id": "sfx/radio_tune#1",
+   "kind": "sfx",
+   "name": "radio_tune",
+   "params": {
+    "text": "An old AM car radio switched on and its dial turned: a click, a quick sweep of crackling static and whistles, settling on a faint station. Tiny, dry, clean, tactile 1990s PC game interface sound. No music, no voice.",
+    "duration_seconds": 1.2,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "cccc13e07fc2",
+   "reserved": 53,
+   "status": "settled",
+   "started": "2026-11-16T17:14:49",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/radio_tune.mp3",
+   "bytes": 30136
+  },
+  {
+   "id": "sfx/scan_squelch#1",
+   "kind": "sfx",
+   "name": "scan_squelch",
+   "params": {
+    "text": "A police scanner squelch: a short burst of radio static with a chirp as the channel opens. Tiny, dry, clean, tactile 1990s PC game interface sound. No music, no voice.",
+    "duration_seconds": 0.6,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "941e3540f2e7",
+   "reserved": 29,
+   "status": "settled",
+   "started": "2026-11-16T17:14:50",
+   "actual": 8,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/scan_squelch.mp3",
+   "bytes": 15716
+  },
+  {
+   "id": "stt/dj_id_2#1",
+   "kind": "stt",
+   "name": "dj_id_2",
+   "params": {
+    "file": "dj_id_2.mp3",
+    "bytes": 95337
+   },
+   "hash": "5f13cda307cb",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_id_2.json",
+   "bytes": 688
+  },
+  {
+   "id": "stt/dj_id_3#1",
+   "kind": "stt",
+   "name": "dj_id_3",
+   "params": {
+    "file": "dj_id_3.mp3",
+    "bytes": 104114
+   },
+   "hash": "c8ce6831ab53",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_id_3.json",
+   "bytes": 831
+  },
+  {
+   "id": "stt/dj_id_0#1",
+   "kind": "stt",
+   "name": "dj_id_0",
+   "params": {
+    "file": "dj_id_0.mp3",
+    "bytes": 138596
+   },
+   "hash": "42c973ddf584",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_id_0.json",
+   "bytes": 944
+  },
+  {
+   "id": "stt/dj_id_1#1",
+   "kind": "stt",
+   "name": "dj_id_1",
+   "params": {
+    "file": "dj_id_1.mp3",
+    "bytes": 131700
+   },
+   "hash": "93424e9b56ff",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:54",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_id_1.json",
+   "bytes": 696
+  },
+  {
+   "id": "stt/dj_id_4#1",
+   "kind": "stt",
+   "name": "dj_id_4",
+   "params": {
+    "file": "dj_id_4.mp3",
+    "bytes": 105368
+   },
+   "hash": "a64c74601161",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:55",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_id_4.json",
+   "bytes": 954
+  },
+  {
+   "id": "stt/dj_outro_0#1",
+   "kind": "stt",
+   "name": "dj_outro_0",
+   "params": {
+    "file": "dj_outro_0.mp3",
+    "bytes": 67125
+   },
+   "hash": "920ec8e9f1ca",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:55",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_outro_0.json",
+   "bytes": 571
+  },
+  {
+   "id": "stt/dj_outro_1#1",
+   "kind": "stt",
+   "name": "dj_outro_1",
+   "params": {
+    "file": "dj_outro_1.mp3",
+    "bytes": 81545
+   },
+   "hash": "5893c3c87ca7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:55",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_outro_1.json",
+   "bytes": 800
+  },
+  {
+   "id": "stt/dj_outro_2#1",
+   "kind": "stt",
+   "name": "dj_outro_2",
+   "params": {
+    "file": "dj_outro_2.mp3",
+    "bytes": 79664
+   },
+   "hash": "b5b6267a356a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:55",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_outro_2.json",
+   "bytes": 754
+  },
+  {
+   "id": "stt/dj_outro_3#1",
+   "kind": "stt",
+   "name": "dj_outro_3",
+   "params": {
+    "file": "dj_outro_3.mp3",
+    "bytes": 87187
+   },
+   "hash": "3744c5a74c0b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:56",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_outro_3.json",
+   "bytes": 628
+  },
+  {
+   "id": "stt/dj_outro_4#1",
+   "kind": "stt",
+   "name": "dj_outro_4",
+   "params": {
+    "file": "dj_outro_4.mp3",
+    "bytes": 66498
+   },
+   "hash": "9f0f8e94d9f6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:56",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_outro_4.json",
+   "bytes": 560
+  },
+  {
+   "id": "stt/dj_weather_0#1",
+   "kind": "stt",
+   "name": "dj_weather_0",
+   "params": {
+    "file": "dj_weather_0.mp3",
+    "bytes": 112892
+   },
+   "hash": "302b431865c1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:56",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_weather_0.json",
+   "bytes": 834
+  },
+  {
+   "id": "stt/dj_weather_1#1",
+   "kind": "stt",
+   "name": "dj_weather_1",
+   "params": {
+    "file": "dj_weather_1.mp3",
+    "bytes": 100980
+   },
+   "hash": "5c0074b349d9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:57",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_weather_1.json",
+   "bytes": 773
+  },
+  {
+   "id": "stt/dj_weather_2#1",
+   "kind": "stt",
+   "name": "dj_weather_2",
+   "params": {
+    "file": "dj_weather_2.mp3",
+    "bytes": 111011
+   },
+   "hash": "7d00869f55f9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:57",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_weather_2.json",
+   "bytes": 950
+  },
+  {
+   "id": "stt/dj_weather_3#1",
+   "kind": "stt",
+   "name": "dj_weather_3",
+   "params": {
+    "file": "dj_weather_3.mp3",
+    "bytes": 106622
+   },
+   "hash": "403deab2563b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:57",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_weather_3.json",
+   "bytes": 918
+  },
+  {
+   "id": "stt/dj_ad_0#1",
+   "kind": "stt",
+   "name": "dj_ad_0",
+   "params": {
+    "file": "dj_ad_0.mp3",
+    "bytes": 148627
+   },
+   "hash": "551ece92e31d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_ad_0.json",
+   "bytes": 902
+  },
+  {
+   "id": "stt/dj_ad_1#1",
+   "kind": "stt",
+   "name": "dj_ad_1",
+   "params": {
+    "file": "dj_ad_1.mp3",
+    "bytes": 124176
+   },
+   "hash": "407ee5839800",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_ad_1.json",
+   "bytes": 967
+  },
+  {
+   "id": "stt/dj_ad_2#1",
+   "kind": "stt",
+   "name": "dj_ad_2",
+   "params": {
+    "file": "dj_ad_2.mp3",
+    "bytes": 131073
+   },
+   "hash": "796ceb9e0f0f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_ad_2.json",
+   "bytes": 1024
+  },
+  {
+   "id": "stt/dj_ad_3#1",
+   "kind": "stt",
+   "name": "dj_ad_3",
+   "params": {
+    "file": "dj_ad_3.mp3",
+    "bytes": 122923
+   },
+   "hash": "5f7f71b5cfb0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_ad_3.json",
+   "bytes": 787
+  },
+  {
+   "id": "stt/dj_ad_4#1",
+   "kind": "stt",
+   "name": "dj_ad_4",
+   "params": {
+    "file": "dj_ad_4.mp3",
+    "bytes": 121669
+   },
+   "hash": "2b3136fa0b4f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:59",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_ad_4.json",
+   "bytes": 847
+  },
+  {
+   "id": "stt/dj_ad_5#1",
+   "kind": "stt",
+   "name": "dj_ad_5",
+   "params": {
+    "file": "dj_ad_5.mp3",
+    "bytes": 79664
+   },
+   "hash": "243f096993ea",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:59",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_ad_5.json",
+   "bytes": 578
+  },
+  {
+   "id": "stt/dj_ad_6#1",
+   "kind": "stt",
+   "name": "dj_ad_6",
+   "params": {
+    "file": "dj_ad_6.mp3",
+    "bytes": 88441
+   },
+   "hash": "59d1b99f7902",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:59",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_ad_6.json",
+   "bytes": 750
+  },
+  {
+   "id": "stt/dj_bit_0#1",
+   "kind": "stt",
+   "name": "dj_bit_0",
+   "params": {
+    "file": "dj_bit_0.mp3",
+    "bytes": 109757
+   },
+   "hash": "9347b34506ec",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:15:59",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_bit_0.json",
+   "bytes": 1070
+  },
+  {
+   "id": "stt/dj_bit_1#1",
+   "kind": "stt",
+   "name": "dj_bit_1",
+   "params": {
+    "file": "dj_bit_1.mp3",
+    "bytes": 115399
+   },
+   "hash": "99e56e4ed6ae",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:00",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_bit_1.json",
+   "bytes": 829
+  },
+  {
+   "id": "stt/dj_bit_2#1",
+   "kind": "stt",
+   "name": "dj_bit_2",
+   "params": {
+    "file": "dj_bit_2.mp3",
+    "bytes": 129819
+   },
+   "hash": "0f48d1568c95",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:00",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_bit_2.json",
+   "bytes": 905
+  },
+  {
+   "id": "stt/dj_bit_3#1",
+   "kind": "stt",
+   "name": "dj_bit_3",
+   "params": {
+    "file": "dj_bit_3.mp3",
+    "bytes": 119788
+   },
+   "hash": "15da9d35a597",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:00",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_bit_3.json",
+   "bytes": 907
+  },
+  {
+   "id": "stt/dj_drive_0#1",
+   "kind": "stt",
+   "name": "dj_drive_0",
+   "params": {
+    "file": "dj_drive_0.mp3",
+    "bytes": 111011
+   },
+   "hash": "9ca32ba18dfe",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:01",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_drive_0.json",
+   "bytes": 832
+  },
+  {
+   "id": "stt/dj_drive_1#1",
+   "kind": "stt",
+   "name": "dj_drive_1",
+   "params": {
+    "file": "dj_drive_1.mp3",
+    "bytes": 96591
+   },
+   "hash": "c9e2fecff4fa",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:01",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_drive_1.json",
+   "bytes": 771
+  },
+  {
+   "id": "stt/dj_drive_2#1",
+   "kind": "stt",
+   "name": "dj_drive_2",
+   "params": {
+    "file": "dj_drive_2.mp3",
+    "bytes": 78410
+   },
+   "hash": "8d54ab15cfbc",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:01",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_drive_2.json",
+   "bytes": 751
+  },
+  {
+   "id": "stt/dj_boom_0#1",
+   "kind": "stt",
+   "name": "dj_boom_0",
+   "params": {
+    "file": "dj_boom_0.mp3",
+    "bytes": 82799
+   },
+   "hash": "e9d6cd44681d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:01",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boom_0.json",
+   "bytes": 762
+  },
+  {
+   "id": "stt/dj_boom_1#1",
+   "kind": "stt",
+   "name": "dj_boom_1",
+   "params": {
+    "file": "dj_boom_1.mp3",
+    "bytes": 118534
+   },
+   "hash": "16a9cd3ae006",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:02",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boom_1.json",
+   "bytes": 1078
+  },
+  {
+   "id": "stt/dj_boom_2#1",
+   "kind": "stt",
+   "name": "dj_boom_2",
+   "params": {
+    "file": "dj_boom_2.mp3",
+    "bytes": 100980
+   },
+   "hash": "53e85381976e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:02",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boom_2.json",
+   "bytes": 660
+  },
+  {
+   "id": "stt/dj_wreck_0#1",
+   "kind": "stt",
+   "name": "dj_wreck_0",
+   "params": {
+    "file": "dj_wreck_0.mp3",
+    "bytes": 91576
+   },
+   "hash": "569d8ab70860",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:02",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_wreck_0.json",
+   "bytes": 764
+  },
+  {
+   "id": "stt/dj_wreck_1#1",
+   "kind": "stt",
+   "name": "dj_wreck_1",
+   "params": {
+    "file": "dj_wreck_1.mp3",
+    "bytes": 119788
+   },
+   "hash": "c0bbd4054e59",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:02",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_wreck_1.json",
+   "bytes": 969
+  },
+  {
+   "id": "stt/dj_wreck_2#1",
+   "kind": "stt",
+   "name": "dj_wreck_2",
+   "params": {
+    "file": "dj_wreck_2.mp3",
+    "bytes": 81545
+   },
+   "hash": "9528a1a2e4dd",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:03",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_wreck_2.json",
+   "bytes": 695
+  },
+  {
+   "id": "stt/dj_drunk_0#1",
+   "kind": "stt",
+   "name": "dj_drunk_0",
+   "params": {
+    "file": "dj_drunk_0.mp3",
+    "bytes": 115399
+   },
+   "hash": "71498da3642a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:03",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_drunk_0.json",
+   "bytes": 964
+  },
+  {
+   "id": "stt/dj_drunk_1#1",
+   "kind": "stt",
+   "name": "dj_drunk_1",
+   "params": {
+    "file": "dj_drunk_1.mp3",
+    "bytes": 96591
+   },
+   "hash": "41fe314b275e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:04",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_drunk_1.json",
+   "bytes": 895
+  },
+  {
+   "id": "stt/dj_drunk_2#1",
+   "kind": "stt",
+   "name": "dj_drunk_2",
+   "params": {
+    "file": "dj_drunk_2.mp3",
+    "bytes": 104114
+   },
+   "hash": "068c01b1df85",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:04",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_drunk_2.json",
+   "bytes": 894
+  },
+  {
+   "id": "stt/dj_deaths_0#1",
+   "kind": "stt",
+   "name": "dj_deaths_0",
+   "params": {
+    "file": "dj_deaths_0.mp3",
+    "bytes": 128565
+   },
+   "hash": "a3e426428d19",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:04",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_deaths_0.json",
+   "bytes": 1032
+  },
+  {
+   "id": "stt/dj_deaths_1#1",
+   "kind": "stt",
+   "name": "dj_deaths_1",
+   "params": {
+    "file": "dj_deaths_1.mp3",
+    "bytes": 101607
+   },
+   "hash": "d463e117d8db",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:05",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_deaths_1.json",
+   "bytes": 833
+  },
+  {
+   "id": "stt/dj_deaths_2#1",
+   "kind": "stt",
+   "name": "dj_deaths_2",
+   "params": {
+    "file": "dj_deaths_2.mp3",
+    "bytes": 105368
+   },
+   "hash": "454800e2a0e2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:05",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_deaths_2.json",
+   "bytes": 913
+  },
+  {
+   "id": "stt/dj_secret_0#1",
+   "kind": "stt",
+   "name": "dj_secret_0",
+   "params": {
+    "file": "dj_secret_0.mp3",
+    "bytes": 108503
+   },
+   "hash": "bd7477d50653",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:05",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_secret_0.json",
+   "bytes": 773
+  },
+  {
+   "id": "stt/dj_secret_1#1",
+   "kind": "stt",
+   "name": "dj_secret_1",
+   "params": {
+    "file": "dj_secret_1.mp3",
+    "bytes": 111011
+   },
+   "hash": "c674b7c3d50c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:05",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_secret_1.json",
+   "bytes": 846
+  },
+  {
+   "id": "stt/dj_secret_2#1",
+   "kind": "stt",
+   "name": "dj_secret_2",
+   "params": {
+    "file": "dj_secret_2.mp3",
+    "bytes": 118534
+   },
+   "hash": "de85d3af826c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_secret_2.json",
+   "bytes": 902
+  },
+  {
+   "id": "stt/dj_rampage_0#1",
+   "kind": "stt",
+   "name": "dj_rampage_0",
+   "params": {
+    "file": "dj_rampage_0.mp3",
+    "bytes": 85306
+   },
+   "hash": "e4f4d7aeff1b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_rampage_0.json",
+   "bytes": 707
+  },
+  {
+   "id": "stt/dj_rampage_1#1",
+   "kind": "stt",
+   "name": "dj_rampage_1",
+   "params": {
+    "file": "dj_rampage_1.mp3",
+    "bytes": 119788
+   },
+   "hash": "c849c96ceb62",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_rampage_1.json",
+   "bytes": 905
+  },
+  {
+   "id": "stt/dj_rampage_2#1",
+   "kind": "stt",
+   "name": "dj_rampage_2",
+   "params": {
+    "file": "dj_rampage_2.mp3",
+    "bytes": 100980
+   },
+   "hash": "6ea12afa64ab",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_rampage_2.json",
+   "bytes": 712
+  },
+  {
+   "id": "stt/dj_boss_sheriff_0#1",
+   "kind": "stt",
+   "name": "dj_boss_sheriff_0",
+   "params": {
+    "file": "dj_boss_sheriff_0.mp3",
+    "bytes": 106622
+   },
+   "hash": "6cef4ad7c922",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boss_sheriff_0.json",
+   "bytes": 965
+  },
+  {
+   "id": "stt/dj_boss_jerry_0#1",
+   "kind": "stt",
+   "name": "dj_boss_jerry_0",
+   "params": {
+    "file": "dj_boss_jerry_0.mp3",
+    "bytes": 95337
+   },
+   "hash": "f932fbdcffd7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boss_jerry_0.json",
+   "bytes": 761
+  },
+  {
+   "id": "stt/dj_boss_rudy_0#1",
+   "kind": "stt",
+   "name": "dj_boss_rudy_0",
+   "params": {
+    "file": "dj_boss_rudy_0.mp3",
+    "bytes": 121042
+   },
+   "hash": "f48acd5ae967",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boss_rudy_0.json",
+   "bytes": 891
+  },
+  {
+   "id": "stt/dj_boss_foreman_0#1",
+   "kind": "stt",
+   "name": "dj_boss_foreman_0",
+   "params": {
+    "file": "dj_boss_foreman_0.mp3",
+    "bytes": 115399
+   },
+   "hash": "0a3a1fed6f57",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boss_foreman_0.json",
+   "bytes": 840
+  },
+  {
+   "id": "stt/dj_boss_baron_0#1",
+   "kind": "stt",
+   "name": "dj_boss_baron_0",
+   "params": {
+    "file": "dj_boss_baron_0.mp3",
+    "bytes": 92830
+   },
+   "hash": "5d82c79d381c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boss_baron_0.json",
+   "bytes": 885
+  },
+  {
+   "id": "stt/dj_boss_swamp_king_0#1",
+   "kind": "stt",
+   "name": "dj_boss_swamp_king_0",
+   "params": {
+    "file": "dj_boss_swamp_king_0.mp3",
+    "bytes": 124176
+   },
+   "hash": "289f600d6595",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boss_swamp_king_0.json",
+   "bytes": 1014
+  },
+  {
+   "id": "stt/dj_boss_boggs_0#1",
+   "kind": "stt",
+   "name": "dj_boss_boggs_0",
+   "params": {
+    "file": "dj_boss_boggs_0.mp3",
+    "bytes": 114145
+   },
+   "hash": "473a191b1632",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boss_boggs_0.json",
+   "bytes": 953
+  },
+  {
+   "id": "stt/dj_boss_maw_0#1",
+   "kind": "stt",
+   "name": "dj_boss_maw_0",
+   "params": {
+    "file": "dj_boss_maw_0.mp3",
+    "bytes": 121042
+   },
+   "hash": "fe725fec85dd",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_boss_maw_0.json",
+   "bytes": 1073
+  },
+  {
+   "id": "stt/scan_open_0#1",
+   "kind": "stt",
+   "name": "scan_open_0",
+   "params": {
+    "file": "scan_open_0.mp3",
+    "bytes": 51452
+   },
+   "hash": "8fa247cc5f9c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_open_0.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/scan_open_1#1",
+   "kind": "stt",
+   "name": "scan_open_1",
+   "params": {
+    "file": "scan_open_1.mp3",
+    "bytes": 45182
+   },
+   "hash": "40abc6db99f3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_open_1.json",
+   "bytes": 234
+  },
+  {
+   "id": "stt/scan_open_2#1",
+   "kind": "stt",
+   "name": "scan_open_2",
+   "params": {
+    "file": "scan_open_2.mp3",
+    "bytes": 50825
+   },
+   "hash": "8a3fd450c8ee",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_open_2.json",
+   "bytes": 412
+  },
+  {
+   "id": "stt/scan_shots_0#1",
+   "kind": "stt",
+   "name": "scan_shots_0",
+   "params": {
+    "file": "scan_shots_0.mp3",
+    "bytes": 52705
+   },
+   "hash": "fb837fbf9db2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:09",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_shots_0.json",
+   "bytes": 355
+  },
+  {
+   "id": "stt/scan_shots_1#1",
+   "kind": "stt",
+   "name": "scan_shots_1",
+   "params": {
+    "file": "scan_shots_1.mp3",
+    "bytes": 87187
+   },
+   "hash": "d93d68071e56",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_shots_1.json",
+   "bytes": 434
+  },
+  {
+   "id": "stt/scan_boom_0#1",
+   "kind": "stt",
+   "name": "scan_boom_0",
+   "params": {
+    "file": "scan_boom_0.mp3",
+    "bytes": 52705
+   },
+   "hash": "1eed3635912e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:10",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_boom_0.json",
+   "bytes": 296
+  },
+  {
+   "id": "stt/scan_boom_1#1",
+   "kind": "stt",
+   "name": "scan_boom_1",
+   "params": {
+    "file": "scan_boom_1.mp3",
+    "bytes": 45182
+   },
+   "hash": "a809984e4121",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_boom_1.json",
+   "bytes": 366
+  },
+  {
+   "id": "stt/scan_wreck_0#1",
+   "kind": "stt",
+   "name": "scan_wreck_0",
+   "params": {
+    "file": "scan_wreck_0.mp3",
+    "bytes": 57094
+   },
+   "hash": "db846b67c302",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_wreck_0.json",
+   "bytes": 294
+  },
+  {
+   "id": "stt/scan_wreck_1#1",
+   "kind": "stt",
+   "name": "scan_wreck_1",
+   "params": {
+    "file": "scan_wreck_1.mp3",
+    "bytes": 52705
+   },
+   "hash": "010b1379c2af",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:11",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_wreck_1.json",
+   "bytes": 300
+  },
+  {
+   "id": "stt/scan_rampage_0#1",
+   "kind": "stt",
+   "name": "scan_rampage_0",
+   "params": {
+    "file": "scan_rampage_0.mp3",
+    "bytes": 72768
+   },
+   "hash": "d99f735f0c82",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_rampage_0.json",
+   "bytes": 424
+  },
+  {
+   "id": "stt/scan_rampage_1#1",
+   "kind": "stt",
+   "name": "scan_rampage_1",
+   "params": {
+    "file": "scan_rampage_1.mp3",
+    "bytes": 74021
+   },
+   "hash": "9efaecdb4463",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_rampage_1.json",
+   "bytes": 312
+  },
+  {
+   "id": "stt/scan_officer_0#1",
+   "kind": "stt",
+   "name": "scan_officer_0",
+   "params": {
+    "file": "scan_officer_0.mp3",
+    "bytes": 75275
+   },
+   "hash": "d3ed1836fbea",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_officer_0.json",
+   "bytes": 385
+  },
+  {
+   "id": "stt/scan_place_hickston_0#1",
+   "kind": "stt",
+   "name": "scan_place_hickston_0",
+   "params": {
+    "file": "scan_place_hickston_0.mp3",
+    "bytes": 76529
+   },
+   "hash": "27f9efc63caa",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:12",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_hickston_0.json",
+   "bytes": 430
+  },
+  {
+   "id": "stt/scan_place_hickston_1#1",
+   "kind": "stt",
+   "name": "scan_place_hickston_1",
+   "params": {
+    "file": "scan_place_hickston_1.mp3",
+    "bytes": 87187
+   },
+   "hash": "06266c0610ea",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_hickston_1.json",
+   "bytes": 614
+  },
+  {
+   "id": "stt/scan_place_fair_0#1",
+   "kind": "stt",
+   "name": "scan_place_fair_0",
+   "params": {
+    "file": "scan_place_fair_0.mp3",
+    "bytes": 66498
+   },
+   "hash": "e16557ae6833",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_fair_0.json",
+   "bytes": 437
+  },
+  {
+   "id": "stt/scan_place_sawmill_0#1",
+   "kind": "stt",
+   "name": "scan_place_sawmill_0",
+   "params": {
+    "file": "scan_place_sawmill_0.mp3",
+    "bytes": 51452
+   },
+   "hash": "260cc52cf3c2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_sawmill_0.json",
+   "bytes": 296
+  },
+  {
+   "id": "stt/scan_place_quarry_0#1",
+   "kind": "stt",
+   "name": "scan_place_quarry_0",
+   "params": {
+    "file": "scan_place_quarry_0.mp3",
+    "bytes": 76529
+   },
+   "hash": "3f65aa29c749",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:13",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_quarry_0.json",
+   "bytes": 370
+  },
+  {
+   "id": "stt/scan_place_bayou_0#1",
+   "kind": "stt",
+   "name": "scan_place_bayou_0",
+   "params": {
+    "file": "scan_place_bayou_0.mp3",
+    "bytes": 90949
+   },
+   "hash": "cd22c7a50086",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_bayou_0.json",
+   "bytes": 615
+  },
+  {
+   "id": "stt/scan_place_speedway_0#1",
+   "kind": "stt",
+   "name": "scan_place_speedway_0",
+   "params": {
+    "file": "scan_place_speedway_0.mp3",
+    "bytes": 52705
+   },
+   "hash": "4c3ae7630664",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_speedway_0.json",
+   "bytes": 374
+  },
+  {
+   "id": "stt/scan_place_hub_0#1",
+   "kind": "stt",
+   "name": "scan_place_hub_0",
+   "params": {
+    "file": "scan_place_hub_0.mp3",
+    "bytes": 60856
+   },
+   "hash": "892b80909f24",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_hub_0.json",
+   "bytes": 372
+  },
+  {
+   "id": "stt/scan_place_mothership_0#1",
+   "kind": "stt",
+   "name": "scan_place_mothership_0",
+   "params": {
+    "file": "scan_place_mothership_0.mp3",
+    "bytes": 106622
+   },
+   "hash": "c86fdf3baf7a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:14",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_place_mothership_0.json",
+   "bytes": 626
+  },
+  {
+   "id": "stt/scan_tag_0#1",
+   "kind": "stt",
+   "name": "scan_tag_0",
+   "params": {
+    "file": "scan_tag_0.mp3",
+    "bytes": 81545
+   },
+   "hash": "b8ec4e9688b9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_tag_0.json",
+   "bytes": 491
+  },
+  {
+   "id": "stt/scan_tag_1#1",
+   "kind": "stt",
+   "name": "scan_tag_1",
+   "params": {
+    "file": "scan_tag_1.mp3",
+    "bytes": 58348
+   },
+   "hash": "efe5e7a40b1c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_tag_1.json",
+   "bytes": 241
+  },
+  {
+   "id": "stt/scan_tag_2#1",
+   "kind": "stt",
+   "name": "scan_tag_2",
+   "params": {
+    "file": "scan_tag_2.mp3",
+    "bytes": 55213
+   },
+   "hash": "fb30a562391c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_tag_2.json",
+   "bytes": 365
+  },
+  {
+   "id": "stt/scan_tag_3#1",
+   "kind": "stt",
+   "name": "scan_tag_3",
+   "params": {
+    "file": "scan_tag_3.mp3",
+    "bytes": 52705
+   },
+   "hash": "f2f4812a84a0",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:15",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_tag_3.json",
+   "bytes": 303
+  },
+  {
+   "id": "stt/scan_tag_4#1",
+   "kind": "stt",
+   "name": "scan_tag_4",
+   "params": {
+    "file": "scan_tag_4.mp3",
+    "bytes": 53959
+   },
+   "hash": "db31be7cdc51",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_tag_4.json",
+   "bytes": 366
+  },
+  {
+   "id": "stt/cuss_dj_boom_0#1",
+   "kind": "stt",
+   "name": "cuss_dj_boom_0",
+   "params": {
+    "file": "cuss_dj_boom_0.mp3",
+    "bytes": 75275
+   },
+   "hash": "5f4e8c490124",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_dj_boom_0.json",
+   "bytes": 619
+  },
+  {
+   "id": "stt/cuss_dj_wreck_0#1",
+   "kind": "stt",
+   "name": "cuss_dj_wreck_0",
+   "params": {
+    "file": "cuss_dj_wreck_0.mp3",
+    "bytes": 56467
+   },
+   "hash": "74a6ab86c52f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_dj_wreck_0.json",
+   "bytes": 498
+  },
+  {
+   "id": "stt/cuss_dj_drunk_0#1",
+   "kind": "stt",
+   "name": "cuss_dj_drunk_0",
+   "params": {
+    "file": "cuss_dj_drunk_0.mp3",
+    "bytes": 79664
+   },
+   "hash": "b09da83b803c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_dj_drunk_0.json",
+   "bytes": 690
+  },
+  {
+   "id": "stt/cuss_dj_deaths_0#1",
+   "kind": "stt",
+   "name": "cuss_dj_deaths_0",
+   "params": {
+    "file": "cuss_dj_deaths_0.mp3",
+    "bytes": 98472
+   },
+   "hash": "a532841e8694",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:16:17",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/cuss_dj_deaths_0.json",
+   "bytes": 698
+  },
+  {
+   "id": "tts/dj_outro_3#2",
+   "kind": "tts",
+   "name": "dj_outro_3",
+   "params": {
+    "text": "No requests, no refunds, no sleep. Here's the band.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "2fe1d4e44d79",
+   "reserved": 81,
+   "status": "settled",
+   "started": "2026-11-16T17:18:04",
+   "actual": 51,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_outro_3.mp3",
+   "bytes": 81545
+  },
+  {
+   "id": "tts/scan_open_1#2",
+   "kind": "tts",
+   "name": "scan_open_1",
+   "params": {
+    "text": "Possum County units.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "05ce164e6797",
+   "reserved": 44,
+   "status": "settled",
+   "started": "2026-11-16T17:18:04",
+   "actual": 20,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_open_1.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "stt/dj_outro_3#2",
+   "kind": "stt",
+   "name": "dj_outro_3",
+   "params": {
+    "file": "dj_outro_3.mp3",
+    "bytes": 81545
+   },
+   "hash": "e3a7f47e973b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:19:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_outro_3.json",
+   "bytes": 629
+  },
+  {
+   "id": "stt/scan_open_1#2",
+   "kind": "stt",
+   "name": "scan_open_1",
+   "params": {
+    "file": "scan_open_1.mp3",
+    "bytes": 51452
+   },
+   "hash": "7f8fdca9d9e6",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:19:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_open_1.json",
+   "bytes": 234
+  },
+  {
+   "id": "tts/scan_open_1#3",
+   "kind": "tts",
+   "name": "scan_open_1",
+   "params": {
+    "text": "Possum County, all units on patrol.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "64dcefcef137",
+   "reserved": 62,
+   "status": "settled",
+   "started": "2026-11-16T17:20:44",
+   "actual": 35,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/scan_open_1.mp3",
+   "bytes": 74021
+  },
+  {
+   "id": "tts/dj_outro_3#3",
+   "kind": "tts",
+   "name": "dj_outro_3",
+   "params": {
+    "text": "No requests, no refunds, no sleep. Here comes the band again.",
+    "voice_id": "ICd0ivCydzP1Fqk5agXM",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "25fc2d44f9d3",
+   "reserved": 93,
+   "status": "settled",
+   "started": "2026-11-16T17:20:44",
+   "actual": 61,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/dj_outro_3.mp3",
+   "bytes": 97218
+  },
+  {
+   "id": "stt/dj_outro_3#3",
+   "kind": "stt",
+   "name": "dj_outro_3",
+   "params": {
+    "file": "dj_outro_3.mp3",
+    "bytes": 97218
+   },
+   "hash": "aaead1411d7a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:21:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/dj_outro_3.json",
+   "bytes": 762
+  },
+  {
+   "id": "stt/scan_open_1#3",
+   "kind": "stt",
+   "name": "scan_open_1",
+   "params": {
+    "file": "scan_open_1.mp3",
+    "bytes": 74021
+   },
+   "hash": "45d8c27f4f03",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:21:53",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/scan_open_1.json",
+   "bytes": 429
+  },
+  {
+   "id": "reconcile@2026-11-16T17:22:55",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -20218,
+   "actual": -24273,
    "basis": "account",
-   "balance_after": 73270
+   "balance_after": 75707
   }
  ],
  "anchor": {
@@ -35371,7 +39126,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-16T16:07:10",
-  "account_drop": 68547
+  "when": "2026-11-16T17:22:55",
+  "account_drop": 70984
  }
 }

@@ -257,6 +257,13 @@ static func build() -> Array:
 					"WHAT THE HANDS, THE BOTS AND MUNDELL SAY. CLEAN QUACKS OVER THE CUSSIN'"
 				),
 				SessionStore.choices(
+					"RADIO",
+					"radio",
+					0,
+					["DJ + MUSIC", "MUSIC ONLY", "OFF"],
+					"KPSM'S DJ BETWEEN SONGS AND THE POLICE SCANNER. OFF ALSO HUSHES THE SETS"
+				),
+				SessionStore.choices(
 					"STEREO WIDTH",
 					"stereo",
 					2,

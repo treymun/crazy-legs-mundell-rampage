@@ -1,0 +1,65 @@
+{
+ "text": "The mill foreman just clocked out for good. Lunch whistle's yours, boys",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.18,
+   "end": 0.26
+  },
+  {
+   "text": "mill",
+   "start": 0.32,
+   "end": 0.54
+  },
+  {
+   "text": "foreman",
+   "start": 0.68,
+   "end": 1.06
+  },
+  {
+   "text": "just",
+   "start": 1.18,
+   "end": 1.42
+  },
+  {
+   "text": "clocked",
+   "start": 1.46,
+   "end": 1.78
+  },
+  {
+   "text": "out",
+   "start": 1.86,
+   "end": 2.06
+  },
+  {
+   "text": "for",
+   "start": 2.1,
+   "end": 2.18
+  },
+  {
+   "text": "good.",
+   "start": 2.3,
+   "end": 2.6
+  },
+  {
+   "text": "Lunch",
+   "start": 2.7,
+   "end": 2.96
+  },
+  {
+   "text": "whistle's",
+   "start": 3.06,
+   "end": 3.52
+  },
+  {
+   "text": "yours,",
+   "start": 3.58,
+   "end": 3.98
+  },
+  {
+   "text": "boys",
+   "start": 4.1,
+   "end": 4.58
+  }
+ ]
+}

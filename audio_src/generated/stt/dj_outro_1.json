@@ -1,0 +1,65 @@
+{
+ "text": "Turn it up loud enough to scare the dog. Here we go",
+ "words": [
+  {
+   "text": "Turn",
+   "start": 0.08,
+   "end": 0.26
+  },
+  {
+   "text": "it",
+   "start": 0.3,
+   "end": 0.4
+  },
+  {
+   "text": "up",
+   "start": 0.48,
+   "end": 0.62
+  },
+  {
+   "text": "loud",
+   "start": 0.68,
+   "end": 0.94
+  },
+  {
+   "text": "enough",
+   "start": 0.98,
+   "end": 1.32
+  },
+  {
+   "text": "to",
+   "start": 1.36,
+   "end": 1.48
+  },
+  {
+   "text": "scare",
+   "start": 1.56,
+   "end": 1.9
+  },
+  {
+   "text": "the",
+   "start": 1.94,
+   "end": 2.04
+  },
+  {
+   "text": "dog.",
+   "start": 2.08,
+   "end": 2.5
+  },
+  {
+   "text": "Here",
+   "start": 2.54,
+   "end": 2.7
+  },
+  {
+   "text": "we",
+   "start": 2.74,
+   "end": 2.84
+  },
+  {
+   "text": "go",
+   "start": 2.88,
+   "end": 3.14
+  }
+ ]
+}

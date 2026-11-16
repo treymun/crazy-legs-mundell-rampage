@@ -42,6 +42,7 @@ files, so code reads `MAD_AT` or `TAGTEAM_PLAYERS` as before (for example
 | `user_maps.json` | player maps: their limits, what a mode needs, the moods, every cell and thing the MAP SHED offers (a new one at the end of its list) | `UserMap` (`src/user_maps/user_map.gd`) |
 | `cuss_lines.json` | the cuss pack (the voice tools read it too) | `src/cuss_lines.gd` |
 | `mundell_lines.json` | Mundell's wisecracks | `Barks` |
+| `radio_lines.json` | the county radio's words: Dub's lines by group, his crude ones, the scanner's pieces (the voice tools read it too) | `RadioStation` |
 | `camera.cfg` | PHOTO MODE's camera and pictures `[photo]`, the KILL CAM's sampling, replay and camera `[kill_cam]`, QUALITY AUTO's measurement `[quality]` | `PhotoMode`, `KillCam`, `Quality` (static vars, read at start) |
 | `servers.json` | the county servers the browser lists (`wss` for the browser build) | `NetBrowser` |
 | `range_games.cfg` | the midway games: `[horseshoes]`, `[skeeball]`, `[dunk]`, `[bottles]` (the range's games row), `[fair_gallery]`, `[range_board]` | `RangeTuning` (`src/core/range_tuning.gd`) |

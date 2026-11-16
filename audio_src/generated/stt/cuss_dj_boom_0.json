@@ -1,0 +1,50 @@
+{
+ "text": "Something blew up so damn loud my coffee jumped",
+ "words": [
+  {
+   "text": "Something",
+   "start": 0.1,
+   "end": 0.4
+  },
+  {
+   "text": "blew",
+   "start": 0.5,
+   "end": 0.7
+  },
+  {
+   "text": "up",
+   "start": 0.8,
+   "end": 0.9
+  },
+  {
+   "text": "so",
+   "start": 0.98,
+   "end": 1.1
+  },
+  {
+   "text": "damn",
+   "start": 1.24,
+   "end": 1.54
+  },
+  {
+   "text": "loud",
+   "start": 1.6,
+   "end": 1.9
+  },
+  {
+   "text": "my",
+   "start": 1.94,
+   "end": 2.12
+  },
+  {
+   "text": "coffee",
+   "start": 2.16,
+   "end": 2.54
+  },
+  {
+   "text": "jumped",
+   "start": 2.7,
+   "end": 3.02
+  }
+ ]
+}

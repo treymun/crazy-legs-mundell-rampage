@@ -1,0 +1,70 @@
+{
+ "text": "If you're seeing two of everything tonight, shoot the one in the middle",
+ "words": [
+  {
+   "text": "If",
+   "start": 0.3,
+   "end": 0.42
+  },
+  {
+   "text": "you're",
+   "start": 0.46,
+   "end": 0.6
+  },
+  {
+   "text": "seeing",
+   "start": 0.68,
+   "end": 1.1
+  },
+  {
+   "text": "two",
+   "start": 1.16,
+   "end": 1.4
+  },
+  {
+   "text": "of",
+   "start": 1.46,
+   "end": 1.56
+  },
+  {
+   "text": "everything",
+   "start": 1.64,
+   "end": 2.14
+  },
+  {
+   "text": "tonight,",
+   "start": 2.18,
+   "end": 2.62
+  },
+  {
+   "text": "shoot",
+   "start": 2.72,
+   "end": 2.96
+  },
+  {
+   "text": "the",
+   "start": 3.0,
+   "end": 3.08
+  },
+  {
+   "text": "one",
+   "start": 3.14,
+   "end": 3.26
+  },
+  {
+   "text": "in",
+   "start": 3.28,
+   "end": 3.34
+  },
+  {
+   "text": "the",
+   "start": 3.38,
+   "end": 3.44
+  },
+  {
+   "text": "middle",
+   "start": 3.5,
+   "end": 3.78
+  }
+ ]
+}

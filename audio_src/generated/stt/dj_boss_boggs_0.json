@@ -1,0 +1,75 @@
+{
+ "text": "Bumper Boggs lost a derby. Folks, I've been on the air 30 years. Never",
+ "words": [
+  {
+   "text": "Bumper",
+   "start": 0.22,
+   "end": 0.52
+  },
+  {
+   "text": "Boggs",
+   "start": 0.64,
+   "end": 1.0
+  },
+  {
+   "text": "lost",
+   "start": 1.08,
+   "end": 1.38
+  },
+  {
+   "text": "a",
+   "start": 1.44,
+   "end": 1.52
+  },
+  {
+   "text": "derby.",
+   "start": 1.56,
+   "end": 1.98
+  },
+  {
+   "text": "Folks,",
+   "start": 2.1,
+   "end": 2.34
+  },
+  {
+   "text": "I've",
+   "start": 2.46,
+   "end": 2.6
+  },
+  {
+   "text": "been",
+   "start": 2.62,
+   "end": 2.76
+  },
+  {
+   "text": "on",
+   "start": 2.84,
+   "end": 2.94
+  },
+  {
+   "text": "the",
+   "start": 2.98,
+   "end": 3.06
+  },
+  {
+   "text": "air",
+   "start": 3.12,
+   "end": 3.26
+  },
+  {
+   "text": "30",
+   "start": 3.36,
+   "end": 3.62
+  },
+  {
+   "text": "years.",
+   "start": 3.68,
+   "end": 4.019
+  },
+  {
+   "text": "Never",
+   "start": 4.12,
+   "end": 4.44
+  }
+ ]
+}

@@ -1,0 +1,45 @@
+{
+ "text": "The sawmill's hiring again. Bring your own fingers",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.18,
+   "end": 0.28
+  },
+  {
+   "text": "sawmill's",
+   "start": 0.32,
+   "end": 0.94
+  },
+  {
+   "text": "hiring",
+   "start": 0.98,
+   "end": 1.4
+  },
+  {
+   "text": "again.",
+   "start": 1.46,
+   "end": 1.88
+  },
+  {
+   "text": "Bring",
+   "start": 1.96,
+   "end": 2.16
+  },
+  {
+   "text": "your",
+   "start": 2.22,
+   "end": 2.32
+  },
+  {
+   "text": "own",
+   "start": 2.38,
+   "end": 2.58
+  },
+  {
+   "text": "fingers",
+   "start": 2.64,
+   "end": 3.08
+  }
+ ]
+}

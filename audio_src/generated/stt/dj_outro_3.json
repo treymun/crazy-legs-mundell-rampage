@@ -1,0 +1,60 @@
+{
+ "text": "No requests, no refunds, no sleep. Here comes the band again",
+ "words": [
+  {
+   "text": "No",
+   "start": 0.06,
+   "end": 0.2
+  },
+  {
+   "text": "requests,",
+   "start": 0.3,
+   "end": 0.86
+  },
+  {
+   "text": "no",
+   "start": 0.96,
+   "end": 1.06
+  },
+  {
+   "text": "refunds,",
+   "start": 1.18,
+   "end": 1.78
+  },
+  {
+   "text": "no",
+   "start": 1.86,
+   "end": 1.98
+  },
+  {
+   "text": "sleep.",
+   "start": 2.12,
+   "end": 2.48
+  },
+  {
+   "text": "Here",
+   "start": 2.5,
+   "end": 2.62
+  },
+  {
+   "text": "comes",
+   "start": 2.74,
+   "end": 2.98
+  },
+  {
+   "text": "the",
+   "start": 3.0,
+   "end": 3.1
+  },
+  {
+   "text": "band",
+   "start": 3.14,
+   "end": 3.42
+  },
+  {
+   "text": "again",
+   "start": 3.48,
+   "end": 3.84
+  }
+ ]
+}

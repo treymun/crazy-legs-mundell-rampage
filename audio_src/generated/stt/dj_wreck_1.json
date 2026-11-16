@@ -1,0 +1,75 @@
+{
+ "text": "Somebody totaled a perfectly good car. Tow truck's on the way, and he's grinning",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.1,
+   "end": 0.54
+  },
+  {
+   "text": "totaled",
+   "start": 0.64,
+   "end": 1.08
+  },
+  {
+   "text": "a",
+   "start": 1.1,
+   "end": 1.2
+  },
+  {
+   "text": "perfectly",
+   "start": 1.26,
+   "end": 1.64
+  },
+  {
+   "text": "good",
+   "start": 1.76,
+   "end": 1.92
+  },
+  {
+   "text": "car.",
+   "start": 2.04,
+   "end": 2.44
+  },
+  {
+   "text": "Tow",
+   "start": 2.68,
+   "end": 2.84
+  },
+  {
+   "text": "truck's",
+   "start": 2.96,
+   "end": 3.36
+  },
+  {
+   "text": "on",
+   "start": 3.44,
+   "end": 3.54
+  },
+  {
+   "text": "the",
+   "start": 3.58,
+   "end": 3.66
+  },
+  {
+   "text": "way,",
+   "start": 3.7,
+   "end": 3.98
+  },
+  {
+   "text": "and",
+   "start": 4.04,
+   "end": 4.12
+  },
+  {
+   "text": "he's",
+   "start": 4.16,
+   "end": 4.4
+  },
+  {
+   "text": "grinning",
+   "start": 4.44,
+   "end": 4.8
+  }
+ ]
+}

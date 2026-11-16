@@ -1,0 +1,65 @@
+{
+ "text": "Saturday night at Buzzard Bend Speedway. Bring earplugs and a spare tooth",
+ "words": [
+  {
+   "text": "Saturday",
+   "start": 0.08,
+   "end": 0.52
+  },
+  {
+   "text": "night",
+   "start": 0.64,
+   "end": 0.9
+  },
+  {
+   "text": "at",
+   "start": 0.92,
+   "end": 1.06
+  },
+  {
+   "text": "Buzzard",
+   "start": 1.16,
+   "end": 1.6
+  },
+  {
+   "text": "Bend",
+   "start": 1.72,
+   "end": 1.98
+  },
+  {
+   "text": "Speedway.",
+   "start": 2.16,
+   "end": 2.72
+  },
+  {
+   "text": "Bring",
+   "start": 2.82,
+   "end": 3.08
+  },
+  {
+   "text": "earplugs",
+   "start": 3.16,
+   "end": 3.78
+  },
+  {
+   "text": "and",
+   "start": 3.82,
+   "end": 3.9
+  },
+  {
+   "text": "a",
+   "start": 3.96,
+   "end": 4.019
+  },
+  {
+   "text": "spare",
+   "start": 4.04,
+   "end": 4.42
+  },
+  {
+   "text": "tooth",
+   "start": 4.46,
+   "end": 4.78
+  }
+ ]
+}

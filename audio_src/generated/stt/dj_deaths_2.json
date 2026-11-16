@@ -1,0 +1,70 @@
+{
+ "text": "Some nights you're the hammer, some nights you're the nail. Rough night, friend",
+ "words": [
+  {
+   "text": "Some",
+   "start": 0.1,
+   "end": 0.3
+  },
+  {
+   "text": "nights",
+   "start": 0.36,
+   "end": 0.62
+  },
+  {
+   "text": "you're",
+   "start": 0.68,
+   "end": 0.84
+  },
+  {
+   "text": "the",
+   "start": 0.88,
+   "end": 0.96
+  },
+  {
+   "text": "hammer,",
+   "start": 1.02,
+   "end": 1.36
+  },
+  {
+   "text": "some",
+   "start": 1.52,
+   "end": 1.72
+  },
+  {
+   "text": "nights",
+   "start": 1.78,
+   "end": 2.08
+  },
+  {
+   "text": "you're",
+   "start": 2.14,
+   "end": 2.32
+  },
+  {
+   "text": "the",
+   "start": 2.36,
+   "end": 2.44
+  },
+  {
+   "text": "nail.",
+   "start": 2.5,
+   "end": 2.9
+  },
+  {
+   "text": "Rough",
+   "start": 3.12,
+   "end": 3.38
+  },
+  {
+   "text": "night,",
+   "start": 3.44,
+   "end": 3.68
+  },
+  {
+   "text": "friend",
+   "start": 3.78,
+   "end": 4.14
+  }
+ ]
+}

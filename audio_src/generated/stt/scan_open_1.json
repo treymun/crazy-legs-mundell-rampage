@@ -1,0 +1,35 @@
+{
+ "text": "Possum County, all units on patrol",
+ "words": [
+  {
+   "text": "Possum",
+   "start": 0.16,
+   "end": 0.5
+  },
+  {
+   "text": "County,",
+   "start": 0.64,
+   "end": 1.1
+  },
+  {
+   "text": "all",
+   "start": 1.4,
+   "end": 1.5
+  },
+  {
+   "text": "units",
+   "start": 1.62,
+   "end": 1.9
+  },
+  {
+   "text": "on",
+   "start": 1.96,
+   "end": 2.06
+  },
+  {
+   "text": "patrol",
+   "start": 2.16,
+   "end": 2.8
+  }
+ ]
+}

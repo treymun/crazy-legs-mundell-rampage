@@ -1,0 +1,55 @@
+{
+ "text": "Another one in the ditch. The insurance man just quit",
+ "words": [
+  {
+   "text": "Another",
+   "start": 0.22,
+   "end": 0.52
+  },
+  {
+   "text": "one",
+   "start": 0.64,
+   "end": 0.74
+  },
+  {
+   "text": "in",
+   "start": 0.8,
+   "end": 0.88
+  },
+  {
+   "text": "the",
+   "start": 0.92,
+   "end": 1.02
+  },
+  {
+   "text": "ditch.",
+   "start": 1.06,
+   "end": 1.42
+  },
+  {
+   "text": "The",
+   "start": 1.5,
+   "end": 1.58
+  },
+  {
+   "text": "insurance",
+   "start": 1.64,
+   "end": 2.12
+  },
+  {
+   "text": "man",
+   "start": 2.22,
+   "end": 2.46
+  },
+  {
+   "text": "just",
+   "start": 2.56,
+   "end": 2.74
+  },
+  {
+   "text": "quit",
+   "start": 2.86,
+   "end": 3.08
+  }
+ ]
+}

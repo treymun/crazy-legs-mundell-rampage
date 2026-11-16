@@ -715,6 +715,8 @@ func apply_options() -> void:
 		sound.set_space("")
 	var voice_volume: float = options["voice_volume"]
 	sound.voice_gain = voice_volume / 100.0
+	var radio: int = options.get("radio", RadioStation.DJ_AND_MUSIC)
+	sound.station.mode = clampi(radio, 0, 2)
 	apply_master()
 	var lights: int = options.get("lights", 1)
 	Effects.enabled = lights != 0

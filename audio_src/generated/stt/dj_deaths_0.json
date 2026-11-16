@@ -1,0 +1,80 @@
+{
+ "text": "That Mundell boy keeps getting knocked down and getting back up, stubborn as a mule",
+ "words": [
+  {
+   "text": "That",
+   "start": 0.1,
+   "end": 0.28
+  },
+  {
+   "text": "Mundell",
+   "start": 0.38,
+   "end": 0.9
+  },
+  {
+   "text": "boy",
+   "start": 1.02,
+   "end": 1.28
+  },
+  {
+   "text": "keeps",
+   "start": 1.4,
+   "end": 1.66
+  },
+  {
+   "text": "getting",
+   "start": 1.7,
+   "end": 1.98
+  },
+  {
+   "text": "knocked",
+   "start": 2.04,
+   "end": 2.42
+  },
+  {
+   "text": "down",
+   "start": 2.48,
+   "end": 2.82
+  },
+  {
+   "text": "and",
+   "start": 2.86,
+   "end": 2.94
+  },
+  {
+   "text": "getting",
+   "start": 3.02,
+   "end": 3.24
+  },
+  {
+   "text": "back",
+   "start": 3.36,
+   "end": 3.68
+  },
+  {
+   "text": "up,",
+   "start": 3.82,
+   "end": 4.0
+  },
+  {
+   "text": "stubborn",
+   "start": 4.12,
+   "end": 4.48
+  },
+  {
+   "text": "as",
+   "start": 4.54,
+   "end": 4.64
+  },
+  {
+   "text": "a",
+   "start": 4.68,
+   "end": 4.72
+  },
+  {
+   "text": "mule",
+   "start": 4.78,
+   "end": 5.12
+  }
+ ]
+}

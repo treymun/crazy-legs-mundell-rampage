@@ -335,6 +335,7 @@ const LOOKS_FEATURES := [
 	"wreckage",
 	"kill_feed",
 	"new_iron",
+	"radio",
 ]
 
 
