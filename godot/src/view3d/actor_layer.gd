@@ -26,6 +26,8 @@ func _init(p_models: ActorModels) -> void:
 ## Find the ragdoll rigs of the kinds among `enemies` now (a level's first
 ## frame) rather than at a first kill (a few hundredths of a second each).
 func prepare(enemies: Array) -> void:
+	# The last level's bodies lie there, not here.
+	_dolls.clear()
 	for e: Enemy in enemies:
 		var kind := kind_of(e)
 		if kind == "" or Enemy.BOSS_TITLES.has(e.kind) or RagdollRig.has(kind):
@@ -72,6 +74,13 @@ func show_actors(
 	var most: int = Effects.RAGDOLL.get("budget", 40)
 	# Fewer limb steps a frame on a low physics tier (src/core/quality.gd).
 	Ragdoll.budget = Quality.steps(most)
+	# The bodies about, so one lies on another (those out of sight lie still).
+	var dolls: Array = _dolls.values()
+	for id: int in _shown:
+		var shown: ActorView = _shown[id]
+		if shown.doll != null:
+			dolls.append(shown.doll)
+	Ragdoll.others = dolls
 	for s: View.Sprite in sprites:
 		var e := s.who as Enemy
 		var kind := kind_of(e)

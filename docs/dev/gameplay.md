@@ -475,13 +475,14 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   view's plane, in 32 steps (packed into the flags word: flags + 256 x hurt +
   65536 x step; `sprite_body.gdshaderinc` lifts it so no corner dips under
   its floor). Gibs keep `spin`/`spin_rate` (fast for small ones, most of it
-  lost at each bounce, turning with the run on the ground, flat at rest);
-  brass flips end over end and drops flat; breakables' and weapon_fx chips
-  and hit_reads' hats and dropped guns work theirs out from where they are
-  (nothing kept, so play's bits carry nothing new). The 3D view draws all of
-  these as slabs that tumble in 3D from that spin and lie flat on the floor
-  (`View.Sprite.lying`, set by each feature: at rest or rolling with no fall);
-  see [view3d.md](view3d.md#slabs-pickups-loose-things-range-targets). The
+  lost at each bounce, turning with the run on the ground, kept at rest);
+  brass flips end over end and rolls on its side; breakables' and weapon_fx
+  chips and hit_reads' hats and dropped guns work theirs out from where they
+  are (play's bits carry nothing new). The 3D view draws all of these as
+  slabs that tumble in 3D from that spin and settle onto the floor
+  (`View.Sprite.lying` and `settle`, set by each feature; see "Physics
+  polish" below and
+  [view3d.md](view3d.md#slabs-pickups-loose-things-range-targets)). The
   firing range's targets lean by `View.Sprite.tilt` (range_targets.gd).
 - **The eye**: `feel.gd _plant` drops the 3D eye up to `STEP_DROP` (.018) as
   each boot comes down (sharp at the footfall, nothing in the air, standing
@@ -555,6 +556,74 @@ for something that can be up on one; use `floor_under(x, y, z)` or
   players or on a host. `tools/death_frames.gd` pictures falls in a window
   (every tick drawn; `classic` for the scripted falls). Pictures:
   `docs/godot3d/features/a/`.
+
+### Physics polish (after v3.2.0, track M)
+
+- **Loose things settle, no snap.** `View.Sprite.settle` (seconds on its
+  floor; -1 the old instant lie) and `roll` let the 3D view ease a slab over
+  from the turn it came down at onto its nearer face in `SETTLE` (.28 s),
+  turned about the floor no more than it must, rocking a little after
+  (`ROCK*`), then lying still (`SlabLayer3D.settled`, `turn_of`; propped
+  `PROP` .1 to .45 rad by a smooth sum of its place so it reads from a
+  standing eye). Each feature keeps when its thing came down and its spin
+  then: brass and hulls (`debris.gd landed`, `rested`) lie on their side from
+  the first touch and roll about their length by their run (`ROLL_R`),
+  easing flat at rest (`ROLL_FLAT`); gibs (`gore.gd`, game_view's chunk)
+  tumble on by their roll while they roll and settle from rest (`g.age`);
+  weapon_fx and gun_fx chips, hit_reads' hats and guns (`landed`, `spin0`)
+  and breakables' bits (`landed` on game.clock, `spin0`; the resting block
+  sprites get their settle until `View.SETTLED`) settle from their landing.
+  `landed`/`spin0` of the play features are SnapCodec SKIP_FIELDS (looks).
+  A bounce puts a thing back in the air: it tumbles again and settles anew.
+- **Ragdolls on the floor.** `RagdollRig._hull` keeps each segment's convex
+  hull (Godot's QuickHull of its parts' vertices, a lost part left out) in
+  the segment's rest frame, sorted into 26 buckets by the fine ways (`FINE`,
+  `BUCKET_EDGE`) each point is outermost along; `Ragdoll._hull_floor` turns
+  the segments as the view will (`frames_of`, the same equivariant sums),
+  finds each one's lowest point in the bucket nearest straight down and
+  lifts that segment's balls (the torso by its corners, the head about the
+  neck) the least that keeps it out of the floor under its nearest ball; the
+  lift stops the fall (no bounce). Skipped for segments well clear of the
+  floor (about 25 us a step on top of 80; `budget` still caps a frame). A
+  ball on a floor steeper than `SLIDE_FROM` is pulled down it past what
+  friction holds, so limbs hang down a ramp. Bodies lie on one another:
+  `Ragdoll.others` (ActorLayer3D sets it each frame from those shown and
+  kept) pushes a ball out of another body's balls (all the way when that one
+  sleeps; a knock faster than `WAKE_HIT` wakes it). A body first seen long
+  dead starts lying on its back on the floor (`RagdollRig.lying_points`),
+  lowered onto it, takes `ActorView.SETTLE` (10) steps at once and is laid
+  still (`settle(..., rest)`): about 1.5 ms once, no stir after.
+- **Wreck pieces tip.** A thin piece (`THIN`: a stave, a board) standing on
+  an end or an edge (`WreckPhysics.standing`: upright reach over `TALL` times
+  its narrow foot, within `TIP_FROM` of upright) with nothing leaning it (no
+  contact steeper than `PROP_N`, none holding it above its middle) is set
+  turning about its foot's edge on the side it leans, just fast enough to go
+  over (`TIP_KICK`, harder each try, every `TIP_EVERY` for `TIP_MOST`); it
+  never sleeps standing meanwhile. Chunks of bulky things may stand.
+- **Water reacts** (`features/water.gd`): `splash(x, y, z, size)` rings,
+  gun_fx's water crest and drops (`gun_fx.splash`) and a splash heard (one a
+  `SPLASH_GAP`); `Water.splash_if(game, ...)` is how anything landing asks
+  (BayouBrains.wet_at; a server has no water feature, so it only answers).
+  Brass, hulls and gibs splash in and sink (`SINK_RATE`, `SINK_TIME`), a body
+  thrown or falling in splashes (corpses.gd), and so do breakables' bits,
+  thrown things (carry), hats and guns and wreck pieces (their hardest knock
+  a tick). effects.cfg `[debris] current_<level>` (bayou, County Run's
+  bayou) is the current: a floating body near a player drifts on it,
+  swaying (`DRIFT_SWAY`, `DRIFT_TURN`; play, arithmetic only, never out of
+  the water or into a wall); wreck pieces at rest all over water float off
+  on it asleep (wreckage.gd `_in_water`, never into the bank: `inside()`),
+  and tin, clay and glass (`SINKS`) go under and shrink away.
+- **Fast things never skip a wall**: `Tumble.step` splits a step that would
+  move more than `MOVE_MOST` (.14) into up to `MOST_SPLIT` steps (play's
+  bodies too: the same on every machine).
+- Checks: physics_check (brass and gibs settle with no step over `SNAP` a
+  tick, brass rolls; things thrown at 24 a second at thin walls stay their
+  side), `tools/physics_water.gd` (splashes, sinking, a body afloat drifts
+  the same twice, a crate's boards float off asleep), physics_ragdolls (no
+  part of any kind sunk more than `SINK` .01, a body dropped on another lies
+  across it, one first seen long dead lies still at once), wreck_check (no
+  piece rests on its end unless propped). `tools/physics_polish_frames.gd`
+  pictures it (`docs/godot3d/polish/M/`, before and after).
 
 ### Picking things up, fire that spreads, the stills
 
@@ -800,9 +869,9 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   awake takes one physics step a tick instead of `steps` (2). Idle (all
   asleep) a tick costs about 15 us; breaking everything on hickston at once
   (48 pieces in the air) peaked near 9 ms a tick headless on a busy desktop,
-  a single crate about 1 to 2 ms for a second. TODO: `Quality.physics` /
-  `Quality.steps` when the phone tiers land (track I); a phone takes
-  `most_phone` until then.
+  a single crate about 1 to 2 ms for a second. A phone or the LOW physics
+  tier (`Quality.level()`) takes `most_phone`; below HIGH a tick takes one
+  step fewer.
 - **Drawn** by `WreckLayer3D`: a sprite with `solid` "~<key>#<piece>" is that
   piece's mesh (made once from the cut), a MeshInstance3D a piece shown
   (kept for the next piece after), `wreck.gdshader` (prop.gdshader's light

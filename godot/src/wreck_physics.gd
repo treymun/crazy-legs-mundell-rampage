@@ -58,6 +58,21 @@ const WALL_STEP := .03
 const WALL_REACH := .6
 ## A floor more than this over a point is a step's side to it, not a floor.
 const LEDGE := .2
+## A piece on its floor standing on an end or an edge (its upright reach
+## more than TALL times its narrow foot's, within TIP_FROM radians of
+## upright) with nothing leaning it (a contact steeper than PROP_N) is
+## tipped over its foot (_tip: once slower than TIP_SLOW, again every
+## TIP_EVERY seconds it still stands) for TIP_MOST at most.
+## Only a thin piece (a stave, a board, a stick: its thinnest side under
+## THIN of its longest) tips; a chunk of something bulky may stand.
+const TALL := 1.8
+const THIN := .5
+const TIP_FROM := .5
+const PROP_N := .7
+const TIP_SLOW := .3
+const TIP_EVERY := .4
+const TIP_KICK := 1.35
+const TIP_MOST := 2.5
 
 
 ## One piece.
@@ -86,6 +101,11 @@ class Body:
 	var held := 0.0
 	var awake_for := 0.0
 	var grounded := false
+	## Leaning on something this step (a wall, another piece's side), and how
+	## long it has been tipped over off an end or an edge.
+	var propped := false
+	var tipping := 0.0
+	var kicked := -1.0
 	## The break it came from, and when (pieces of one break pass through each
 	## other for a moment).
 	var group := 0
@@ -155,6 +175,8 @@ class Body:
 	func wake() -> void:
 		if not awake:
 			awake_for = 0.0
+			tipping = 0.0
+			kicked = -1.0
 		awake = true
 		still = 0.0
 
@@ -221,6 +243,7 @@ func _step(h: float) -> void:
 	var contacts: Array = []
 	for b: Body in live:
 		b.grounded = false
+		b.propped = false
 		b.deepest = 0.0
 		_world_contacts(b, h, contacts)
 	# Each awake piece against every other (two awake ones once).
@@ -258,9 +281,14 @@ func _step(h: float) -> void:
 			b.v *= exp(-GROUND_SLIDE * h)
 		else:
 			b.w *= exp(-AIR_DAMP * h)
+		# A stave or a board come down on its end or its edge with nothing
+		# leaning it there tips over (it never sleeps standing).
+		var tips := b.grounded and not b.propped and b.tipping < TIP_MOST and standing(b)
+		if tips:
+			_tip(b, h)
 		# Gravity pulls every step: one this slow that long is held up by
 		# something (the floor, a wall, another piece).
-		var settled := b.deepest < SLEEP_DEEP
+		var settled := b.deepest < SLEEP_DEEP and not tips
 		if settled and b.v.length() < SLEEP_V and b.w.length() < SLEEP_W:
 			b.still += h
 			if b.still > SLEEP_AFTER:
@@ -278,9 +306,72 @@ func _step(h: float) -> void:
 				_sleep(b)
 		# However it sits, one awake this long and slow lies down where it is.
 		b.awake_for += h
-		if b.awake and b.awake_for > LONGEST and b.v.length() < 1.0:
+		if b.awake and b.awake_for > LONGEST and b.v.length() < 1.0 and not tips:
 			_sleep(b)
 	_push_out(contacts)
+
+
+## Whether a piece stands on an end or an edge: its axis nearest upright
+## reaches more than TALL times the narrower of the other two (a stave on its
+## end, a board on its edge), and it is within TIP_FROM of upright. A cube,
+## a chunk or anything lying flat does not.
+static func standing(b: Body) -> bool:
+	var up := 0
+	var most := -1.0
+	for a in 3:
+		var along := absf(b.turn[a].z)
+		if along > most:
+			most = along
+			up = a
+	if most < cos(TIP_FROM):
+		return false
+	var thin := minf(b.half.x, minf(b.half.y, b.half.z))
+	var big := maxf(b.half.x, maxf(b.half.y, b.half.z))
+	if thin > big * THIN:
+		return false
+	var foot := minf(b.half[(up + 1) % 3], b.half[(up + 2) % 3])
+	return b.half[up] > foot * TALL
+
+
+## Tip a standing piece over its narrow foot, the way it already leans (else
+## by its place): once it has slowed, it is set turning about its foot's edge
+## on that side (that edge still, so nothing drags it back) fast enough to
+## carry its middle past the edge (TIP_KICK times what just does), every
+## TIP_EVERY while it still stands.
+func _tip(b: Body, h: float) -> void:
+	b.tipping += h
+	if b.v.length() > TIP_SLOW or b.w.length() > TIP_SLOW * 4.0:
+		return
+	if b.kicked >= 0.0 and b.tipping - b.kicked < TIP_EVERY:
+		return
+	b.kicked = b.tipping
+	var up := 0
+	var most := -1.0
+	for a in 3:
+		if absf(b.turn[a].z) > most:
+			most = absf(b.turn[a].z)
+			up = a
+	var a1 := (up + 1) % 3
+	var a2 := (up + 2) % 3
+	var narrow := a1 if b.half[a1] < b.half[a2] else a2
+	var u: Vector3 = b.turn[up] * signf(b.turn[up].z)
+	var side: Vector3 = b.turn[narrow]
+	var lean := Vector3(u.x, u.y, 0.0)
+	var sense := signf(side.dot(lean))
+	if lean.length() < .02 or sense == 0.0:
+		sense = 1.0 if fposmod(b.p.x * 7.3 + b.p.y * 3.1, 2.0) < 1.0 else -1.0
+	side *= sense
+	var tall: float = b.half[up]
+	var foot: float = b.half[narrow]
+	var edge := b.p - u * tall + side * foot
+	var about := u.cross(side).normalized()
+	var reach := sqrt(tall * tall + foot * foot)
+	var rise := reach - tall
+	# (Harder each time it comes back up: the floor's grip takes some.)
+	var kick := TIP_KICK * (1.0 + b.tipping / TIP_EVERY * .35)
+	var spin := sqrt(2.0 * GRAVITY * rise / (4.0 / 3.0 * reach * reach)) * kick
+	b.w = about * spin
+	b.v = b.w.cross(b.p - edge)
 
 
 ## Put a piece to sleep where it lies, lifted out of any floor and moved out
@@ -454,6 +545,10 @@ func _add(b: Body, r: Vector3, n: Vector3, depth: float, e: float, out: Array) -
 	# A wall is slippery: a piece against one slides down it to the floor.
 	c.mu = MU if n.z > .5 else MU_WALL
 	out.append(c)
+	# Against a wall's side, or held up over its middle (its top end on a
+	# ledge): it leans there.
+	if (n.z < PROP_N or r.z > 0.0) and depth > -.01:
+		b.propped = true
 	b.deepest = maxf(b.deepest, depth)
 
 
@@ -527,11 +622,15 @@ func _pair(a: Body, o: Body, out: Array) -> void:
 		c.e = E_BODY
 		c.mu = MU_BODY
 		out.append(c)
-		# Lying on another piece holds it up as the floor does (it may sleep).
+		# Lying on another piece holds it up as the floor does (it may sleep);
+		# against one's side, it leans on it.
 		if n.z > .5:
 			a.grounded = true
 		elif n.z < -.5:
 			o.grounded = true
+		if absf(n.z) < PROP_N or (n.z > .5 and r.z > 0.0):
+			a.propped = true
+			o.propped = true
 		found += 1
 		if found >= 4:
 			return

@@ -15,8 +15,10 @@ const HEADINGS: Array[String] = ["quarter_", "side_", "away_", "back_"]
 ## picture a quarter of the body's height, and the model lying in full, its
 ## belly and boots up, read as a heap.
 const FLAT := .5
-## Steps a ragdoll first seen long dead takes at once (it starts lying).
-const SETTLE := 40
+## Steps a ragdoll first seen long dead takes at once (it starts on the floor
+## lying on its back, RagdollRig.lying_points), after which it lies still: no
+## hitch, no stir.
+const SETTLE := 10
 
 ## The model's kind (actors.json, actor3d_<kind> looks).
 @export var kind := ""
@@ -117,8 +119,8 @@ func _ragdolls(e: Enemy) -> bool:
 	return _rig.ok
 
 
-## The body as its ragdoll: started from the pose it died in (or the model's
-## own body at rest when first seen long dead), thrown by the kill, carried
+## The body as its ragdoll: started from the pose it died in (or lying on its
+## back when first seen long dead), thrown by the kill, carried
 ## by play's body at `at` (map: x, y and the height it lies at), stepped and
 ## its parts posed from it.
 func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
@@ -131,7 +133,7 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 		)
 		var fresh := clock - e.died_at < .5
 		# The pose it died in when this model showed it alive, else standing.
-		var start := _rig.down_points
+		var start := _rig.lying_points
 		if fresh:
 			start = _rig.posed_points(_skeletons[0]) if _shown_alive else _rig.points
 		doll = Ragdoll.made(_rig, xf, start)
@@ -144,7 +146,7 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 			doll.knock(e, dice)
 		else:
 			# Lying already: a few steps fit it to the floor, the rest as it is drawn.
-			doll.settle(level, SETTLE)
+			doll.settle(level, SETTLE, true)
 		_doll_clock = clock
 		_posed = -1
 	var dt := clampf(clock - _doll_clock, 0.0, .1)

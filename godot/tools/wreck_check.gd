@@ -177,11 +177,16 @@ func _level(game: Game) -> void:
 	var where := ""
 	var worst_body = null
 	for w in wreck.wrecks:
+		if w.floats == 2 or w.fading >= 0.0:
+			continue
 		var d: float = wreck.physics.inside(w.body)
 		if d > worst:
 			worst = d
 			worst_body = w.body
-			where = "%s at %.2f,%.2f,%.2f" % [w.key, w.body.p.x, w.body.p.y, w.body.p.z]
+			where = (
+				"%s at %.2f,%.2f,%.2f floats %d awake %s"
+				% [w.key, w.body.p.x, w.body.p.y, w.body.p.z, w.floats, w.body.awake]
+			)
 	if worst > TOL:
 		var b = worst_body
 		var turn := Basis(b.q)
@@ -205,6 +210,8 @@ func _level(game: Game) -> void:
 	)
 	var floating := 0
 	for w in wreck.wrecks:
+		if w.floats == 2 or w.fading >= 0.0:
+			continue
 		if wreck.physics.unsupported(w.body):
 			floating += 1
 			var low := Vector3(0, 0, INF)
@@ -225,6 +232,31 @@ func _level(game: Game) -> void:
 				)
 			)
 	_check(floating == 0, "%s: every piece lies on something (%d hang)" % [game.level.id, floating])
+	# A stave or a board never rests on its end or edge unless it leans on
+	# something (a wall, another piece).
+	var on_end := 0
+	var leaning := 0
+	for w in wreck.wrecks:
+		var b: WreckPhysics.Body = w.body
+		b.turn = Basis(b.q)
+		if WreckPhysics.standing(b):
+			if b.propped:
+				leaning += 1
+			else:
+				on_end += 1
+				print(
+					(
+						"       on its end: %s#%d at %s half %s (tipped %.1f s, kicked %.1f, turn %s)"
+						% [w.key, w.index, b.p, b.half, b.tipping, b.kicked, b.turn]
+					)
+				)
+	_check(
+		on_end == 0,
+		(
+			"%s: no piece rests on its end unless propped (%d; %d leaning)"
+			% [game.level.id, on_end, leaning]
+		)
+	)
 	print(
 		(
 			"  ok   %d pieces at rest after %.1f s, worst %.3f in"

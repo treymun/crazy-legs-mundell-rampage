@@ -53,6 +53,11 @@ const RIDES := [0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0]
 const THICKEST := .22
 ## Labels that must all have parts for a rig.
 const LIMBS := ["body", "head", "arm_l", "arm_r", "leg_l", "leg_r"]
+## The hull's fine ways: the points of a cube's faces FINE steps from its
+## middle (218 of them at 3, at most about 18 degrees apart); a fine way
+## goes in the bucket of each of ways() within BUCKET_EDGE of its nearest.
+const FINE := 3
+const BUCKET_EDGE := .15
 
 var ok := false
 ## Where each point is at the key "0", model space (y up), and how big a ball
@@ -68,11 +73,20 @@ var dead_scale := PackedVector3Array()
 var anchors := PackedInt32Array()
 ## Each segment's frame at the key "0" (from the points, as frames() makes it).
 var rest_frames: Array[Transform3D] = []
-## The points as the model's own body at rest ("down") has them: a body first
-## seen already dead starts from there.
+## The points as the model's own body at rest ("down") has them (a tool's
+## pose to drop from).
 var down_points := PackedVector3Array()
+## The points lying on the back on the floor (_lie_down).
+var lying_points := PackedVector3Array()
+## Each segment's outermost points in its rest frame (model units), in a
+## bucket for each of ways() (Array[PackedVector3Array] each), and how far
+## the furthest reaches from the frame's origin (_hull).
+var hull: Array[Array] = []
+var hull_reach := PackedFloat32Array()
+var _rest_inv: Array[Basis] = []
 
 static var _built := {}
+static var _ways: Array[Vector3] = []
 
 
 ## Whether kind's rig has been found already.
@@ -123,6 +137,9 @@ func _build(view: Node, info: Dictionary) -> void:
 	# A third of the vertices and their parts, for how thick each limb is.
 	var every := PackedVector3Array()
 	var every_bone := PackedInt32Array()
+	# All of them, for each segment's outermost points (_hull).
+	var all_at := PackedVector3Array()
+	var all_bone := PackedInt32Array()
 	for m: Node in meshes:
 		var mesh := m as MeshInstance3D
 		if mesh.mesh == null or mesh.skin == null:
@@ -164,6 +181,8 @@ func _build(view: Node, info: Dictionary) -> void:
 				clouds[label] = cloud
 				part_mid[bone] += at
 				part_n[bone] += 1
+				all_at.append(at)
+				all_bone.append(bone)
 				if v % 3 == 0:
 					every.append(at)
 					every_bone.append(bone)
@@ -200,8 +219,104 @@ func _build(view: Node, info: Dictionary) -> void:
 			anchors[seg] = i
 	_thicken(every, every_bone)
 	rest_frames = frames_of(points)
+	_rest_inv.clear()
+	for f: Transform3D in rest_frames:
+		_rest_inv.append(f.basis.inverse())
+	_hull(all_at, all_bone)
 	down_points = points_from(dead)
+	_lie_down()
 	ok = true
+
+
+## The points lying on the back on the floor (y 0), the torso's middle over
+## the origin: the standing points turned face up about the torso's middle.
+## A body first seen long dead starts so (a few steps fit it to the floor).
+func _lie_down() -> void:
+	var mid := (points[HIP_L] + points[HIP_R] + points[SH_L] + points[SH_R]) * .25
+	var turn := Basis(Vector3.RIGHT, -PI * .5)
+	lying_points = PackedVector3Array()
+	var low := INF
+	for i in POINTS:
+		var p := turn * (points[i] - mid)
+		lying_points.append(p)
+		low = minf(low, p.y - radii[i])
+	for i in POINTS:
+		lying_points[i] = lying_points[i] - Vector3(0.0, low, 0.0)
+
+
+## Each segment's outermost points (its parts' convex hull, a part the dead
+## body loses left out), in the segment's rest frame, sorted into a bucket
+## for each of the 26 ways (`ways()`): a bucket holds the hull's points that
+## lie furthest out along the fine ways (FINE) nearest that way. The ragdoll
+## keeps the lowest of them out of the floor, so a shoulder, a boot's toe or
+## a hat's brim lying on the floor never sinks in; it looks in one bucket.
+func _hull(cloud_at: PackedVector3Array, cloud_bone: PackedInt32Array) -> void:
+	var local: Array[PackedVector3Array] = []
+	for s in ENDS.size():
+		local.append(PackedVector3Array())
+	for k in cloud_at.size():
+		var bone := cloud_bone[k]
+		if dead_scale[bone].x < .2:
+			continue
+		var s := bone_seg[bone]
+		local[s].append(rest_frames[s].affine_inverse() * cloud_at[k])
+	var coarse := ways()
+	var fine: Array[Vector3] = []
+	for x in range(-FINE, FINE + 1):
+		for y in range(-FINE, FINE + 1):
+			for z in range(-FINE, FINE + 1):
+				if maxi(absi(x), maxi(absi(y), absi(z))) == FINE:
+					fine.append(Vector3(x, y, z).normalized())
+	hull.clear()
+	hull_reach.clear()
+	for s in ENDS.size():
+		var points := local[s]
+		if points.size() >= 4:
+			var mesh := ArrayMesh.new()
+			var arrays := []
+			arrays.resize(Mesh.ARRAY_MAX)
+			arrays[Mesh.ARRAY_VERTEX] = points
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arrays)
+			var shape := mesh.create_convex_shape(true, false)
+			if shape != null and shape.points.size() >= 4:
+				points = shape.points
+		var buckets: Array[PackedVector3Array] = []
+		for c in coarse.size():
+			buckets.append(PackedVector3Array())
+		var reach := 0.0
+		for p in points:
+			reach = maxf(reach, p.length())
+		if not points.is_empty():
+			for way: Vector3 in fine:
+				var best := points[0]
+				var most := best.dot(way)
+				for p in points:
+					var d := p.dot(way)
+					if d > most:
+						most = d
+						best = p
+				# Into the bucket of each way near this one (a way between two
+				# buckets is looked for in either).
+				var near := -2.0
+				for c: Vector3 in coarse:
+					near = maxf(near, c.dot(way))
+				for c in coarse.size():
+					if coarse[c].dot(way) >= near - BUCKET_EDGE and not buckets[c].has(best):
+						buckets[c].append(best)
+		hull.append(buckets)
+		hull_reach.append(reach)
+
+
+## The 26 ways the hull's buckets look along (the cube's faces, edges and
+## corners from its middle).
+static func ways() -> Array[Vector3]:
+	if _ways.is_empty():
+		for x in range(-1, 2):
+			for y in range(-1, 2):
+				for z in range(-1, 2):
+					if x != 0 or y != 0 or z != 0:
+						_ways.append(Vector3(x, y, z).normalized())
+	return _ways
 
 
 ## Each limb half's and the head's balls at least as big as the limb is thick
@@ -403,10 +518,10 @@ func frames_of(at: PackedVector3Array) -> Array[Transform3D]:
 		for s in range(1, ENDS.size()):
 			out[s] = Transform3D(torso, _from(at, s, shoulders))
 		return out
-	var turn_torso := torso * rest_frames[TORSO].basis.inverse()
+	var turn_torso := torso * _rest_inv[TORSO]
 	for s in range(1, ENDS.size()):
 		var parent: int = PARENT[s]
-		var base := out[parent].basis * rest_frames[parent].basis.inverse()
+		var base := out[parent].basis * _rest_inv[parent]
 		if parent == TORSO:
 			base = turn_torso
 		var start := _from(at, s, shoulders)

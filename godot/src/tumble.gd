@@ -27,6 +27,10 @@ const HOLD := 1.15
 const WALL := 1
 const FLOOR := 2
 const RESTED := 4
+## The most a body moves in one of step()'s steps (a thin wall is .1 thick,
+## a small gib .05 round), and the most steps a step is split into.
+const MOVE_MOST := .14
+const MOST_SPLIT := 6
 
 
 ## A body step() can move: where it is, how it moves, whether it has come to
@@ -175,7 +179,26 @@ static func blocks(world: LevelData, x: float, y: float, z: float, feel: Feel) -
 
 ## Move `b` for dt. Returns WALL and FLOOR when it struck them hard enough to
 ## be heard, RESTED when it came to rest this step (the caller marks it so).
+## A body going so fast it would move more than MOVE_MOST in the step is
+## moved in that many smaller steps (at most MOST_SPLIT), so it never skips
+## through a thin wall, a fence or a rail's post, or a deck's edge.
 static func step(world: LevelData, b: Variant, feel: Feel, dt: float) -> int:
+	var vx: float = b.vx
+	var vy: float = b.vy
+	var vz: float = b.vz
+	var move := sqrt(vx * vx + vy * vy + vz * vz) * dt
+	if move <= MOVE_MOST:
+		return _step(world, b, feel, dt)
+	var n := mini(MOST_SPLIT, ceili(move / MOVE_MOST))
+	var out := 0
+	for _k in n:
+		out |= _step(world, b, feel, dt / n)
+		if out & RESTED:
+			break
+	return out
+
+
+static func _step(world: LevelData, b: Variant, feel: Feel, dt: float) -> int:
 	# Typed copies of the body's numbers (b is any body with these fields: a
 	# Body, a shot, a roller), written back before each return.
 	var x: float = b.x

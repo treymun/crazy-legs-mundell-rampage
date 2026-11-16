@@ -81,6 +81,10 @@ const RING_EVERY := 1.4
 ## looked for (a body loaded from a save lies where it was).
 const FLOAT_MAX := 12
 const FLOAT_LOOK := 1.0
+## How much a floating body's drift on the current (Water.current) speeds
+## up and slows down, and turns (radians either way), by its phase.
+const DRIFT_SWAY := .35
+const DRIFT_TURN := .5
 
 
 class Body:
@@ -137,6 +141,8 @@ func _fallen(e: Enemy) -> void:
 	if _still(e):
 		return
 	_throw(e)
+	# Down in the water where it stood: a splash (looks, if any).
+	Water.splash_if(game, e.x, e.y, game.world.stand(e), 1.4)
 
 
 ## How the killing blow throws it: [run, lift] along the shot, by the gun.
@@ -253,7 +259,7 @@ func _tick(dt: float) -> void:
 		_look_for_floaters()
 		_look_for_unheld()
 	if not floating.is_empty():
-		_bob()
+		_bob(dt)
 
 
 func _move(dt: float) -> void:
@@ -265,6 +271,7 @@ func _move(dt: float) -> void:
 		for _k in 2:
 			var vx := b.vx
 			var vy := b.vy
+			var fall := b.vz
 			var air: bool = b.z > game.world.floor_under(b.x, b.y, b.z + .05) + .02
 			_rails(b, dt * .5)
 			var hit := Tumble.step(game.world, b, b.feel, dt * .5)
@@ -284,6 +291,9 @@ func _move(dt: float) -> void:
 			if hit & (Tumble.WALL | Tumble.FLOOR) and game.clock >= _thud_next:
 				_thud_next = game.clock + .12
 				game.sound_at("body_thud", b.x, b.y, .7)
+			# Come down in water: a splash (looks; the water feature's, if any).
+			if air and b.vz <= 0.0 and b.z <= game.world.floor_under(b.x, b.y, b.z + .05) + .02:
+				Water.splash_if(game, b.x, b.y, b.z, clampf(1.0 + absf(fall) * .4, 1.2, 2.4))
 			if b.moo and air and hit & Tumble.FLOOR:
 				b.moo = false
 				game.sound_at("cow_moo", b.x, b.y, .8)
@@ -396,8 +406,29 @@ func _look_for_floaters() -> void:
 			floating.append([e, fmod(e.x * 1.7 + e.y * 2.3, TAU), game.clock])
 
 
+## A floating body goes slowly with the level's current (Water.current), a
+## little faster and slower by its phase and turning a touch, never out of
+## the water nor into a wall or the bank (it waits there). Arithmetic only:
+## the same on every machine.
+func _drift(e: Enemy, phase: float, dt: float) -> void:
+	var flow := Water.current(game.level.id)
+	if flow == Vector2.ZERO:
+		return
+	var sway := 1.0 + DRIFT_SWAY * sin(game.clock * .37 + phase)
+	var way := flow.rotated(DRIFT_TURN * sin(game.clock * .23 + phase * 1.3)) * sway * dt
+	var world := game.world
+	var r := _feel.radius
+	var to := Vector2(e.x + way.x, e.y + way.y)
+	if not BayouBrains.wet_at(world, to.x + signf(way.x) * r, to.y + signf(way.y) * r):
+		return
+	if world.blocked(to.x, to.y, r, world.stand(e) + .2):
+		return
+	e.x = to.x
+	e.y = to.y
+
+
 ## The nearest floating bodies bob on the water and now and then leave a ring.
-func _bob() -> void:
+func _bob(dt: float) -> void:
 	var water: Water = game.features.get("water")
 	var shown := 0
 	for f: Array in floating:
@@ -416,6 +447,7 @@ func _bob() -> void:
 		shown += 1
 		var bob_phase: float = f[1]
 		e.toss = BOB * (1.0 + sin(game.clock * BOB_SPEED + bob_phase))
+		_drift(e, bob_phase, dt)
 		# The ring's clock is carried play: kept on a server's game too, which
 		# has no water feature (looks only) to draw the ring.
 		var ring_at: float = f[2]

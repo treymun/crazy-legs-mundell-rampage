@@ -19,8 +19,9 @@ const DT := 1.0 / 60.0
 const TOL := .03
 ## view3d_check's: no part of a body at rest higher than this of its height.
 const DOWN_HIGH := .5
-## No part of a ragdoll at rest deeper in the floor than this (map units).
-const SINK := .07
+## No part of a ragdoll at rest deeper in the floor than this (map units): the
+## model's own shape is kept out of it (RagdollRig.hull), not only its balls.
+const SINK := .01
 
 var check: SceneTree
 var rig: RagdollRig
@@ -84,6 +85,82 @@ func run(main: Node, levels: Array) -> void:
 		game.configure({})
 		_level(game)
 	_rails(main)
+	_stacked(ground)
+	_first_seen(ground)
+
+
+## A body dropped onto one lying still lies across it (no ball through the
+## other's), and the one under stays as it lay.
+func _stacked(game: Game) -> void:
+	var at := Vector2(30.5, 30.5)
+	var e := _body(game, at)
+	var floor_z := e.floor_z
+	var size := .5
+	var under := Ragdoll.made(rig, _xf(at, floor_z, 0.0, size), rig.points)
+	var dice := RandomNumberGenerator.new()
+	dice.seed = 5
+	e.killed_by = "rifle"
+	e.killed_from = at - Vector2(1.0, 0.0)
+	under.knock(e, dice)
+	under.settle(game.world, 900)
+	var was := under.pos.duplicate()
+	var top := Ragdoll.made(rig, _xf(at, floor_z + .45, 1.6, size), rig.down_points)
+	Ragdoll.others = [under, top]
+	for _k in 900:
+		if not top.awake and not under.awake:
+			break
+		if top.awake:
+			top.step(game.world)
+		if under.awake:
+			under.step(game.world)
+	Ragdoll.others = []
+	var through := 0.0
+	for i in top.pos.size():
+		for j in under.pos.size():
+			var gap := top.pos[i].distance_to(under.pos[j]) - top.radius[i] - under.radius[j]
+			through = maxf(through, -gap)
+	var moved := 0.0
+	for j in was.size():
+		moved = maxf(moved, was[j].distance_to(under.pos[j]))
+	_check(not top.awake and not under.awake, "a body dropped on another: both come to rest")
+	_check(through < .02, "it lies across the other, not through it (%.3f in)" % through)
+	_check(top.middle().z > under.middle().z + .05, "it lies on top of it")
+	_check(
+		under.lies_on(game.world, TOL) and moved < .3,
+		"the one under (knocked %.2f) still lies on the floor" % moved
+	)
+	_ok(
+		(
+			"a body dropped on another lies across it (%.3f in); the one under, knocked, lies on"
+			% through
+		)
+	)
+
+
+## A body first seen long dead starts from the model's body at rest, takes a
+## few steps at once and then lies still: no hitch, no stir after.
+func _first_seen(game: Game) -> void:
+	var at := Vector2(30.5, 30.5)
+	var e := _body(game, at)
+	var doll := Ragdoll.made(rig, _xf(at, e.floor_z, .7, .5), rig.lying_points)
+	var t0 := Time.get_ticks_usec()
+	doll.settle(game.world, ActorView.SETTLE, true)
+	var took := (Time.get_ticks_usec() - t0) / 1000.0
+	var steps := doll.steps
+	for _t in 60:
+		doll.advance(game.world, DT)
+	_check(
+		not doll.awake and steps <= ActorView.SETTLE and doll.steps == steps,
+		"a body first seen long dead lies still at once (%d steps)" % steps
+	)
+	_check(doll.lies_on(game.world, TOL), "it lies on the floor (%s)" % _where(game.world, doll))
+	_ok("a body first seen long dead: %d steps in %.2f ms, then still" % [steps, took])
+
+
+static func _xf(at: Vector2, z: float, turn: float, size: float) -> Transform3D:
+	return Transform3D(
+		Basis(Vector3.UP, turn).scaled(Vector3(size, size, size)), Vector3(at.x, z, at.y)
+	)
 
 
 ## Kind `kind` shot down on open ground and posed from its ragdoll: as

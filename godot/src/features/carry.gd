@@ -20,6 +20,7 @@
 extends GameFeature
 
 const Breakables := preload("res://src/features/breakables.gd")
+const Water := preload("res://src/features/water.gd")
 const PATH := "res://data/tuning/carry.cfg"
 const STAND := 0
 const HELD := 1
@@ -460,6 +461,9 @@ func _flight(t: Thing, dt: float) -> void:
 		return
 	if hit & (Tumble.WALL | Tumble.FLOOR):
 		game.sound_at(str(_spec(t.image).get("cue", "impact_wood")), t.x, t.y, .55)
+		if hit & Tumble.FLOOR:
+			# Into water: a splash (looks; the water feature's, if any).
+			Water.splash_if(game, t.x, t.y, t.z, clampf(.6 + t.weight * .4, .8, 1.8))
 		if _landed_hard(t, speed, ax, ay):
 			return
 	if hit & Tumble.RESTED:

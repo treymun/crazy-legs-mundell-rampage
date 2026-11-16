@@ -40,6 +40,20 @@ const SLACK := .3
 const PULL := 8.0
 ## A ball's floor is asked again once it has moved this far across.
 const REASK := .03
+## The model's shape is kept out of the floor once a ball is this near it
+## (model units), to within HULL_SLACK (map units).
+const HULL_NEAR := .5
+const HULL_SLACK := .002
+## A ball on a floor steeper than this (its fall a unit across) is pulled
+## down it by the rest of the slope's share of gravity.
+const SLIDE_FROM := .25
+## Striking a body lying still faster than this (a step) wakes it.
+const WAKE_HIT := .02
+## Each of the rig's segments' balls (RagdollRig.ENDS order): the torso's
+## six, the head, each limb half's two ends.
+const SEG_BALLS := [
+	[0, 1, 2, 3, 13, 14], [4], [2, 5], [5, 6], [3, 7], [7, 8], [0, 9], [9, 10], [1, 11], [11, 12]
+]
 
 const R := preload("res://src/view3d/ragdoll_rig.gd")
 const Corpses := preload("res://src/features/corpses.gd")
@@ -75,6 +89,20 @@ var _floors := PackedFloat32Array()
 var _roofs := PackedFloat32Array()
 ## Where each ball's floor was last asked from (INF: ask again).
 var _asked := PackedVector3Array()
+## The rig it hangs on: its segments' outermost points keep the model's
+## shape (a shoulder, a boot's toe, a hat's brim) out of the floor, not only
+## the balls (_hull_floor). Null: the balls alone.
+var rig: RagdollRig
+## The points in the view's axes (y up), for the rig's frames.
+var _up := PackedVector3Array()
+## Each ball's floor's fall (Tumble.slope), asked with its floor.
+var _slopes := PackedVector2Array()
+## How far its balls reach from its torso's middle (kept each step).
+var extent := 1.0
+
+## The ragdolls about (ActorLayer3D sets it each frame: those shown and those
+## kept out of sight): a body lies on another rather than through it.
+static var others: Array = []
 
 ## Steps every ragdoll on screen may still take this frame (ActorLayer3D
 ## sets it each frame from effects.cfg [ragdoll] budget).
@@ -100,6 +128,7 @@ static func made(rig: RagdollRig, xf: Transform3D, model: PackedVector3Array) ->
 		rest.append(rig.points[i] * scale)
 		radii.append(rig.radii[i] * scale)
 	doll.size = scale
+	doll.rig = rig
 	doll.start(at, radii, rest)
 	return doll
 
@@ -157,11 +186,27 @@ func knock(e: Enemy, dice: RandomNumberGenerator) -> void:
 
 ## Let it fall still at once (a body first seen long after it died): up to
 ## `most` steps, stopping when it sleeps.
-func settle(world: LevelData, most := 240) -> void:
+func settle(world: LevelData, most := 240, rest := false) -> void:
+	if rest:
+		# Lowered at once till its lowest ball is on the floor under it.
+		var gap := INF
+		for i in pos.size():
+			var p := pos[i]
+			var under := Tumble.floor_at(world, p.x, p.y, p.z - radius[i] + .03, radius[i] * .6)
+			gap = minf(gap, p.z - radius[i] - under)
+		if gap > 0.0 and gap < INF:
+			for i in pos.size():
+				pos[i] = pos[i] - Vector3(0.0, 0.0, gap)
+				old[i] = pos[i]
 	for _k in most:
 		if not awake:
 			return
 		step(world)
+	# `rest`: it lies as it is now from here on (it never stirs in sight).
+	if rest and awake:
+		var touching := PackedByteArray()
+		touching.resize(pos.size())
+		_lay(world, false, touching)
 
 
 ## Start from points `at` (map) with radii `radii`, the links' lengths taken
@@ -319,6 +364,7 @@ func step(world: LevelData) -> void:
 	if _floors.size() != count:
 		_floors.resize(count)
 		_roofs.resize(count)
+		_slopes.resize(count)
 		_asked.resize(count)
 		_asked.fill(Vector3.INF)
 	var plain := _plain(world)
@@ -329,6 +375,7 @@ func step(world: LevelData) -> void:
 			var c := int(p.y) * world.width + int(p.x)
 			_floors[i] = world.ground[c]
 			_roofs[i] = world.roof[c] if world.roof[c] > old[i].z + .01 else 0.0
+			_slopes[i] = Vector2.ZERO
 			_asked[i] = Vector3.INF
 	else:
 		for i in count:
@@ -349,6 +396,7 @@ func step(world: LevelData) -> void:
 			_asked[i] = Vector3(p.x, p.y, z)
 			_floors[i] = Tumble.floor_at(world, p.x, p.y, z, r * .6)
 			_roofs[i] = world.roof_over(p.x, p.y, o.z)
+			_slopes[i] = Tumble.slope(world, p.x, p.y, _floors[i])
 	var touching := PackedByteArray()
 	touching.resize(count)
 	for _pass in PASSES:
@@ -357,6 +405,8 @@ func step(world: LevelData) -> void:
 		for i in count:
 			if _floor(i, _floors[i], _roofs[i]):
 				touching[i] = 1
+	_on_bodies(touching)
+	_hull_floor(touching)
 	if not plain:
 		# Last, nothing ends the step inside a wall, a slab's side or a rail
 		# (the links may have pulled a ball in).
@@ -371,12 +421,18 @@ func step(world: LevelData) -> void:
 		for i in count:
 			var k := clampf((pos[i] - old[i]).dot(way) / reach, 0.0, 1.0)
 			old[i] += shoved * k
-	# Friction: a ball on the floor slides less far.
+	# Friction: a ball on the floor slides less far; on a ramp steeper than
+	# SLIDE_FROM it is pulled down it a little past what friction holds.
 	for i in count:
 		if touching[i]:
 			var p := pos[i]
 			var o := old[i]
 			old[i] = Vector3(p.x - (p.x - o.x) * GRIP, p.y - (p.y - o.y) * GRIP, o.z)
+			var fall := _slopes[i]
+			var steep := fall.length()
+			if steep > SLIDE_FROM:
+				var pull := fall / steep * (steep - SLIDE_FROM) * GRAVITY * STEP * STEP
+				old[i] -= Vector3(pull.x, pull.y, 0.0)
 	var most := 0.0
 	for i in count:
 		most = maxf(most, pos[i].distance_squared_to(old[i]))
@@ -385,16 +441,175 @@ func step(world: LevelData) -> void:
 	else:
 		still = 0.0
 	if still > SLEEP_AFTER or age > MOST_AWAKE:
-		awake = false
-		# Laid to rest on the floor really under each ball (not one asked a
-		# step or two ago).
-		for i in count:
+		_lay(world, plain, touching)
+
+
+## Asleep where it is: laid on the floor really under each ball (not one
+## asked a step or two ago) and the model's shape out of it, as it will lie
+## from now on.
+func _lay(world: LevelData, plain: bool, touching: PackedByteArray) -> void:
+	awake = false
+	for i in pos.size():
+		var p := pos[i]
+		var r := radius[i]
+		if not plain:
+			var under := Tumble.floor_at(world, p.x, p.y, p.z - r + .03, r * .6)
+			_floors[i] = under
+			pos[i] = Vector3(p.x, p.y, maxf(p.z, under + r))
+	for _k in 2:
+		_hull_floor(touching)
+	for i in pos.size():
+		old[i] = pos[i]
+
+
+## Other bodies (others) near: a ball inside one of theirs is pushed out of it
+## (all the way when theirs lies still, half when both move), so a body
+## comes to lie across another; lying on one holds it as a floor does. A
+## hard knock wakes the body lying still.
+func _on_bodies(touching: PackedByteArray) -> void:
+	var mid := middle()
+	extent = 0.0
+	for i in pos.size():
+		extent = maxf(extent, pos[i].distance_to(mid) + radius[i])
+	if others.size() < 2:
+		return
+	for item: Variant in others:
+		var o: Ragdoll = item
+		if o == self or o.pos.size() != pos.size():
+			continue
+		var om := o.middle()
+		var reach := extent + o.extent
+		if absf(om.x - mid.x) > reach or absf(om.y - mid.y) > reach or absf(om.z - mid.z) > reach:
+			continue
+		var share := .5 if o.awake else 1.0
+		for i in pos.size():
 			var p := pos[i]
 			var r := radius[i]
-			if not plain:
-				var under := Tumble.floor_at(world, p.x, p.y, p.z - r + .03, r * .6)
-				pos[i] = Vector3(p.x, p.y, maxf(p.z, under + r))
-			old[i] = pos[i]
+			if p.distance_to(om) > o.extent + r:
+				continue
+			for j in o.pos.size():
+				var off := p - o.pos[j]
+				var least := r + o.radius[j]
+				var d2 := off.length_squared()
+				if d2 >= least * least or d2 < 1e-10:
+					continue
+				var d := sqrt(d2)
+				var n := off / d
+				if not o.awake and (old[i] - p).dot(n) > WAKE_HIT:
+					o.wake()
+				p += n * (least - d) * share
+				if n.z > .5:
+					touching[i] = 1
+			pos[i] = p
+
+
+## The model's own shape against the floor: each segment's outermost point
+## lowest now (the rig's hull, turned as the view will turn that segment's
+## parts) is kept out of the floor under its nearest ball, the segment's
+## balls lifted as a stick (or the torso as a whole) would be about it. The
+## lift stops the fall there (no bounce back up). Segments well over their
+## floor are skipped, and a body up in the air costs nothing here.
+func _hull_floor(touching: PackedByteArray) -> void:
+	if rig == null or rig.hull.size() != R.ENDS.size():
+		return
+	var count := pos.size()
+	_up.resize(count)
+	var near := false
+	for i in count:
+		var p := pos[i]
+		_up[i] = Vector3(p.x, p.z, p.y)
+		near = near or p.z - radius[i] - _floors[i] < HULL_NEAR * size
+	if not near:
+		return
+	var frames := rig.frames_of(_up)
+	var ways := RagdollRig.ways()
+	for s in R.ENDS.size():
+		var balls: Array = SEG_BALLS[s]
+		var f := frames[s]
+		var top := -INF
+		for b: int in balls:
+			top = maxf(top, _floors[b])
+		if f.origin.y - rig.hull_reach[s] * size > top + .005:
+			continue
+		var down := f.basis.transposed() * Vector3.DOWN
+		# The bucket of the way nearest straight down, then its lowest point.
+		var way := 0
+		var along := -2.0
+		for k in ways.size():
+			var d := ways[k].dot(down)
+			if d > along:
+				along = d
+				way = k
+		var buckets: Array = rig.hull[s]
+		var hull: PackedVector3Array = buckets[way]
+		if hull.is_empty():
+			continue
+		var best := hull[0]
+		var most := best.dot(down)
+		for q in hull:
+			var d := q.dot(down)
+			if d > most:
+				most = d
+				best = q
+		var at := f.origin + f.basis * (best * size)
+		var nearest: int = balls[0]
+		var gap := INF
+		for b: int in balls:
+			var dd := Vector2(_up[b].x - at.x, _up[b].z - at.z).length_squared()
+			if dd < gap:
+				gap = dd
+				nearest = b
+		var sink := _floors[nearest] - at.y
+		if sink <= HULL_SLACK:
+			continue
+		var lift := PackedFloat32Array()
+		var wsum := 0.0
+		var lifted: Array[int] = []
+		if s == R.TORSO:
+			# The torso turns by its four corners (the belly and the back follow).
+			for b: int in [R.HIP_L, R.HIP_R, R.SH_L, R.SH_R]:
+				var w := 1.0 / (.02 + _up[b].distance_squared_to(at))
+				lift.append(w)
+				lifted.append(b)
+				wsum += w
+		else:
+			var a: int = R.ENDS[s][0]
+			var b: int = R.ENDS[s][1]
+			var from := (_up[R.SH_L] + _up[R.SH_R]) * .5 if a < 0 else _up[a]
+			var run := _up[b] - from
+			var t := clampf((at - from).dot(run) / maxf(run.length_squared(), 1e-6), 0.0, 1.0)
+			if a < 0:
+				# The head turns about the neck: the shoulders carry the neck's share.
+				lift.append_array([(1.0 - t) * .5, (1.0 - t) * .5, t])
+				lifted.append_array([R.SH_L, R.SH_R, b])
+				wsum = 1.0
+			else:
+				lift.append_array([1.0 - t, t])
+				lifted.append_array([a, b])
+				wsum = 1.0
+		# The least lifts of the balls that raise that point by `sink`.
+		var sq := 0.0
+		for k in lift.size():
+			lift[k] /= wsum
+			sq += lift[k] * lift[k]
+		for k in lift.size():
+			lift[k] *= sink / maxf(sq, 1e-6)
+		if s == R.TORSO:
+			# The belly and the back by as much as the corners on average.
+			var mean := (lift[0] + lift[1] + lift[2] + lift[3]) * .25
+			lift.append_array([mean, mean])
+			lifted.append_array([R.BELLY, R.BACK])
+		for k in lifted.size():
+			var b := lifted[k]
+			var up := lift[k]
+			if up <= 0.0:
+				continue
+			var p := pos[b]
+			p.z += up
+			pos[b] = p
+			if p.z > old[b].z:
+				old[b] = Vector3(old[b].x, old[b].y, p.z)
+			touching[b] = 1
 
 
 func _links() -> void:

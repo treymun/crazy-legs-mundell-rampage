@@ -68,6 +68,12 @@ class Sprite:
 	## A loose thing on its floor, rolling or at rest: the 3D view lays its
 	## slab flat (SlabLayer3D). Billboards ignore it.
 	var lying := false
+	## Seconds a lying loose thing has been on its floor: its slab eases over
+	## from its tumble (`spin` as it came down) onto its face and rocks a
+	## little (SlabLayer3D.settled). Below 0: it lies flat at once.
+	var settle := -1.0
+	## A lying round thing's turn about its length (a shell rolling).
+	var roll := 0.0
 	## A modelled prop on the move (a boss arena's wreck: a floodlight tower
 	## toppling, a lamp coming down, a crate flung): a name the prop keeps
 	## while it moves, so the 3D view moves one model instead of making one at
@@ -130,6 +136,9 @@ class GroundMark:
 ## DRAW DISTANCE: FAR shows the farthest a level reaches (the speedway seen
 ## across its oval); NEAR stops at 64 cells, where a wall is a few pixels tall,
 ## to spare a phone's graphics chip. AUTO is NEAR on phones, FAR elsewhere.
+## Seconds after which a loose thing's settle on its floor is over
+## (Sprite.settle): from then on it lies still, the same each frame.
+const SETTLED := 1.0
 const FAR_DRAW := 160.0
 const NEAR_DRAW := 64.0
 
