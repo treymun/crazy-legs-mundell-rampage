@@ -86,11 +86,17 @@ const FLOAT_LOOK := 1.0
 const DRIFT_SWAY := .35
 const DRIFT_TURN := .5
 
+## How a body moves (Body.how): the feature's _feel, _slick or _flung.
+enum { PLAIN, SLICK, FLUNG }
+
 
 class Body:
 	extends Tumble.Body
 	var enemy: Enemy
-	var feel: Tumble.Feel
+	## Which of the feature's feels moves it (PLAIN, SLICK, FLUNG), by name and
+	## never the Feel itself: a snapshot carries objects by value, and a copy
+	## put back on one would fill a feel the bodies share with another's.
+	var how := PLAIN
 	## Whether it breaks a window or fence it is thrown into, and moos landing.
 	var crash := false
 	var moo := false
@@ -154,7 +160,7 @@ func _throw(e: Enemy) -> void:
 	var speed := knock + per_point * e.struck_sum
 	speed = minf(speed, 4.5)
 	var lift := minf(1.6, speed * .3)
-	var feel := _feel
+	var moves := PLAIN
 	var crash := false
 	var moo := false
 	if how == "shotgun" and Vector2(e.x, e.y).distance_to(from) < POINT_BLANK:
@@ -173,10 +179,10 @@ func _throw(e: Enemy) -> void:
 		else:
 			speed = BLAST_RUN + float(PER_POINT["blast"]) * e.struck_sum
 			lift = BLAST_LIFT
-		feel = _flung
+		moves = FLUNG
 		crash = true
 	elif how == "teat_gun":
-		feel = _slick
+		moves = SLICK
 		lift = 0.0
 	elif how in ["rifle", "mower", "tommy", "grease_gun", "patrol_bar", "crowbar", "slingblade"]:
 		lift = 0.0
@@ -187,7 +193,7 @@ func _throw(e: Enemy) -> void:
 			return
 	away = away.normalized()
 	var body := _push(e, away.x * speed, away.y * speed, lift)
-	body.feel = feel
+	body.how = moves
 	body.crash = crash
 	body.moo = moo
 
@@ -207,7 +213,7 @@ func _push(e: Enemy, vx: float, vy: float, vz: float) -> Body:
 	if body == null:
 		body = Body.new()
 		body.enemy = e
-		body.feel = _feel
+		body.how = PLAIN
 		body.x = e.x
 		body.y = e.y
 		body.z = game.world.stand(e) + e.toss
@@ -239,6 +245,10 @@ func shove(x: float, y: float, reach: float, power: float) -> void:
 		if push != Vector3.ZERO and game.world.visible(x, y, e.x, e.y):
 			_known[e] = e.died_at
 			_push(e, push.x, push.y, push.z)
+
+
+func feel_of(b: Body) -> Tumble.Feel:
+	return _slick if b.how == SLICK else _flung if b.how == FLUNG else _feel
 
 
 func _settle(b: Body) -> void:
@@ -274,7 +284,7 @@ func _move(dt: float) -> void:
 			var fall := b.vz
 			var air: bool = b.z > game.world.floor_under(b.x, b.y, b.z + .05) + .02
 			_rails(b, dt * .5)
-			var hit := Tumble.step(game.world, b, b.feel, dt * .5)
+			var hit := Tumble.step(game.world, b, feel_of(b), dt * .5)
 			if hit & Tumble.WALL and b.crash and breaks != null:
 				var run := Vector2(vx, vy).length()
 				if run > CRASH_SPEED:
@@ -322,7 +332,7 @@ func _move(dt: float) -> void:
 ## push away from what holds it. True when it was pushed.
 func _off_edge(b: Body) -> bool:
 	var world := game.world
-	var r := b.feel.radius
+	var r := feel_of(b).radius
 	if b.slid >= EDGE_TRIES or world.floor_under(b.x, b.y, b.z + .05) >= b.z - EDGE_DROP:
 		return false
 	var away := Vector2.ZERO
@@ -356,7 +366,7 @@ func _rails(b: Body, h: float) -> void:
 		var s: LevelGeometry.Segment = item
 		if s.sight or s.z0 >= b.z + RAIL_TALL or s.z1 <= b.z:
 			continue
-		var reach := b.feel.radius + s.half
+		var reach := feel_of(b).radius + s.half
 		if s.dist2(nx, ny) >= reach * reach or s.dist2(b.x, b.y) < reach * reach:
 			continue
 		var run := Vector2(b.vx, b.vy)
@@ -371,7 +381,7 @@ func _rails(b: Body, h: float) -> void:
 			n = -n
 		var into := run.dot(n)
 		if into < 0.0:
-			run -= n * into * (1.0 + b.feel.wall)
+			run -= n * into * (1.0 + feel_of(b).wall)
 			b.vx = run.x
 			b.vy = run.y
 		return

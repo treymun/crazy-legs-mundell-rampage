@@ -38,14 +38,13 @@ const MAX_REWIND := 64
 const LOCAL_ONLY := ["visited"]
 
 
-## A snapshot of `game` as the host takes it: player one acting (the save
-## part follows the acting player, so a client whose own player is local
-## would take another), and a copy of its own: a capture shares the game's
-## packed arrays (the flow fields'), which the game goes on writing into.
+## A snapshot of `game` as the host takes it: player one acting. (A capture
+## copies the game's packed arrays itself, so no deep copy here: it was a
+## third of a client's check every second.)
 static func capture(game: Game) -> Dictionary:
 	var local: Player = game.local_player
 	game.focus(game.players[0])
-	var data := GameSnapshot.capture(game).duplicate(true)
+	var data := GameSnapshot.capture(game)
 	game.focus(local)
 	return data
 

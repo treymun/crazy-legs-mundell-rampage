@@ -126,7 +126,12 @@ is a SIM field; a simulation feature's looks keep their own dice that the
 snapshot skips (`SnapCodec.SKIP_FIELDS`: the specks of `hit_reads` and
 `critters`, whose count hangs on the specks already about), and what follows
 this machine's callouts (`hit_reads._call_at`, after the BARKS setting and
-`callout_until`) is skipped too.
+`callout_until`) is skipped too. With more than one player `burst()` spends
+`game.rng` whatever this machine's specks or GORE setting (it leaves the
+specks out instead), and an object a snapshot carries by value is never
+shared by two carried fields (a corpse names its feel, `Body.how`): putting a
+snapshot on fills such an object in place, so a shared one took another's
+numbers ([county_run.md](county_run.md#copies-that-parted-after-a-card-pick-online-fixed)).
 
 ### Stable ids
 
@@ -142,7 +147,7 @@ enemy) travels as its uid.
 
 ### Snapshots
 
-`src/game_snapshot.gd`, version 2. `GameSnapshot.capture(game)` is a
+`src/game_snapshot.gd`, version 3. `GameSnapshot.capture(game)` is a
 Dictionary of plain values that never changes as play goes on (packed arrays
 are shared by reference in Godot 4: encode and decode copy them):
 
@@ -177,7 +182,32 @@ at all (`SKIP_FIELDS`). `to_bytes`/`from_bytes` (var_to_bytes, zstd),
 bit; a changed dictionary is `{"@new": value}`, anything else travels as it
 is; gone keys under "@gone", a new key order under "@order"), `patch`,
 `patch_into` (into the caller's own copy), `merge(older, newer)` (two deltas
-as one), `same(a, b)` (bit for bit, key order too), `first_difference`.
+as one), `same(a, b)` (bit for bit, key order too), `first_difference`
+(each dictionary compared whole first, walked only where it differs: a
+client's check every second took 100 to 180 ms walking it all).
+
+A feature's NET_GUARDED lists (wall breaks' windows and fences, breakables'
+pieces, carry's things) travel as one table each (`SnapCodec.guarded`,
+`table`: `{"@T": [class, names, keys, columns]}`, a packed column a field
+where its type allows), kept on the feature (a meta, never a script
+variable) until its `net_version` moves: a capture costs nothing for them
+while nothing broke. `apply` leaves a list the game already holds as it is
+(`guarded_same`) and notes what each now holds (`guarded_now`,
+`guarded_moved`), so a copy put back costs nothing for them either. The same
+rule as NetTrack's: anything that changes one of those objects bumps
+`net_version`; net_check holds the kept tables against fresh ones
+(`SnapCodec.keep_tables` off). Enemies' and players' fields are read into a
+row and written back in one call each (scripts made per class: `_rower`,
+`_putter`; `put_fields`).
+
+Inner classes are named by their feature's file (`wall_breaks.Fence`), all
+roots first (`_register_all`). Before version 3 a feature reached first
+through another's preload named its inner classes by that path
+(`boss_fight.Corpses.WallBreaks.Fence`), so ONLY_FIELDS and SKIP_FIELDS never
+applied to them: every fence carried its tuning (a Hickston snapshot was
+892 KB before packing, 392 KB now; 32 KB packed, 26 KB now), the breakable
+bits' `landed` and `spin0` (this machine's view) were carried, and a feature
+reached so was carried by value instead of named.
 
 `snap_codec.gd` turns objects into plain values by reflection (script
 variables, read in one call through a script made per class, `packer()`); a
@@ -219,8 +249,10 @@ snapshot or delta is asked for) compares the `HOT` fields one by one and the
 rest of an object and everything inside it as ONE var_to_bytes, so a field is
 only looked at alone when its part changed; floats to the sign of zero. A
 feature with `NET_GUARDED` lists (wall breaks' windows and fences,
-breakables' pieces) is looked through only when its `net_version` moved:
-anything that changes a window, fence or piece must bump it. The changes per
+breakables' pieces, carry's things) compares each as its table
+(`SnapCodec.guarded`, the snapshot's own form) only when its `net_version`
+moved, and sends it whole when it changed: anything that changes a window,
+fence or piece must bump it. The changes per
 look are logged; `delta_since` merges the log since the base
 (`GameSnapshot.merge`). Never "@order": enemies that change places send the
 enemies whole.
@@ -262,6 +294,21 @@ of a delta (every field of every one is read each look: about 10 to 20 us an
 enemy). One player's tick is unchanged; four bots cost 1.2 to 1.9 times one
 (Hickston .62 -> .88 ms).
 
+Pass 6 (snapshot version 3: tables, inner classes named by their file, rows
+read and written in one call, `first_difference` comparing whole first), on
+this PC loaded by other work, `net_bench -- levels=hickston players=1,4`,
+medians of three runs old and new back to back (a quieter set of three
+before it in brackets): a whole capture 28 -> 5.6 ms (18 -> 5.2), 892 KB raw
+-> 392 KB, 35.0 -> 28.8 KB packed, packing 10 -> 3.1 ms; onto a fresh game
+54 -> 15 ms (47 -> 11); a client's check every second (capture and compare)
+226 -> 17 ms (192 -> 9.4); a copy put back on a snapshot 52 -> 10 ms (49 ->
+5.9); the host's whole snapshot 46 -> 13 ms (26 -> 8.1), a mirror taking it
+65 -> 18 ms (43 -> 11). The host's delta (NetTrack, 2 KB) and a mirror
+putting one on are as they were (3 to 5 ms, 1 to 2 ms); the generic capture
+and diff (`GameSnapshot.delta`, only the old untracked way) 27 + 47 -> 7.9 +
+21 ms (17 + 32 -> 4.4 + 12). What is left of a capture is mostly the
+enemies (each one's row, 2 to 3 ms for 100).
+
 ### The determinism check
 
 `tools/net_check.gd`; its quick part runs in `check_fixes.gd`. Two games fed
@@ -277,7 +324,9 @@ sound; it and an ordinary game fed the same controls stay identical; a mirror
 over a fresh client game, kept up by deltas alone every 4 ticks and once by a
 whole snapshot onto its running game, matches the host each time it is
 compared (the patched snapshot and a capture of its game), in every chapter
-and with 2 and 4 players; deltas merge. The bot (`bot_pilot.gd as_controls`)
+and with 2 and 4 players, and the host's snapshot with its guarded tables
+kept is the one encoded afresh; deltas merge; a copy put back on a snapshot
+keeps its dice and its thrown bodies' slide (`_put_back`). The bot (`bot_pilot.gd as_controls`)
 asks for USE and the next gun through its controls so a lockstep game gets
 them too.
 
@@ -417,8 +466,9 @@ Play is deterministic, so a run is its start and each tick's controls:
 `src/net/`: `NetSession` wraps ENet or WebSocket (`MultiplayerPeer`, packets
 only), with test latency, jitter and loss on what it sends (on the clock
 handed to `poll`; loss only unreliable). `NetWire` is every packet's layout
-(protocol 3: controls in 14 bytes, buys, reloads and the host's rewind among
-them; inputs sent redundantly with the tick the client shows; snapshots with
+(protocol 4, snapshot version 3: an older client is refused at HELLO;
+controls in 14 bytes, buys, reloads and the host's rewind among them;
+inputs sent redundantly with the tick the client shows; snapshots with
 their base, tick, input ack and the inputs played since the base; the lobby's
 messages).
 

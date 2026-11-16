@@ -88,6 +88,7 @@ static func run(
 	_two_players(main, check, String(levels[0]), ticks if ticks <= QUICK_TICKS else 10800)
 	# The host and its mirrors (game_host.gd, game_mirror.gd).
 	_merge_rules(check)
+	_put_back(main, check, String(levels[0]))
 	_host_game(main, check, String(levels[0]))
 	var host_ticks := QUICK_HOST if ticks <= QUICK_TICKS else ticks
 	for id: String in levels:
@@ -486,6 +487,7 @@ static func _host_and_mirror(main, check: Callable, id: String, ticks: int, play
 	var parted := ""
 	var tracked := ""
 	var mirrored := ""
+	var kept := ""
 	var refused := 0
 	var sizes: Array = []
 	var delta_ms: Array = []
@@ -521,7 +523,15 @@ static func _host_and_mirror(main, check: Callable, id: String, ticks: int, play
 			if host.tick != mirror.acked:
 				mirror.take(host.delta_since(mirror.acked))
 			compared += 1
+			# The host's snapshot with its guarded lists kept (SnapCodec.guarded)
+			# and encoded afresh: the same, or something changed one of them
+			# without bumping its feature's net_version.
+			var sk := GameSnapshot.capture(host.game)
+			SnapCodec.keep_tables = false
 			var sh := GameSnapshot.capture(host.game)
+			SnapCodec.keep_tables = true
+			if kept == "" and not GameSnapshot.same(sk, sh):
+				kept = "tick %d: %s" % [t + 1, GameSnapshot.first_difference(sh, sk)]
 			if parted == "":
 				var sp := GameSnapshot.capture(plain)
 				if not GameSnapshot.same(sh, sp):
@@ -541,6 +551,13 @@ static func _host_and_mirror(main, check: Callable, id: String, ticks: int, play
 				"%s: a host's game and an ordinary one fed the same controls are identical over %d ticks%s"
 				% [who, ticks, "" if parted == "" else " (%s)" % parted]
 			)
+		)
+	)
+	check.call(
+		kept == "",
+		(
+			"%s: the guarded lists kept between snapshots are the game's own (%d looks)%s"
+			% [who, compared, "" if kept == "" else " (%s)" % kept]
 		)
 	)
 	check.call(
@@ -603,3 +620,85 @@ static func _merge_rules(check: Callable) -> void:
 		),
 		"deltas merge: patch(a, merge(delta(a, b), delta(b, c))) == c"
 	)
+
+
+# ------------------------------------------------------ a copy put back
+
+
+## What a client's copy keeps of its own when it is put back on a snapshot
+## (presentation: specks, the GORE setting; the order of its moving bodies)
+## must never part it from the host again (county_net_check found both):
+## with two players a burst spends the same dice whatever this machine's
+## specks or GORE (alone, GORE off spends none, as ever), and thrown bodies
+## put back on a copy whose moving bodies stood in another order slide on
+## exactly as the host's.
+static func _put_back(main, check: Callable, id: String) -> void:
+	var a := _made(main, id, 2)
+	var b := _made(main, id, 2)
+	b.gore = false
+	for i in 150:
+		b.specks.append(GameState.Speck.new(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 9.0, "chips"))
+	a.burst(a.players[0].x, a.players[0].y, .5, "gore", 5, 1.2)
+	b.burst(b.players[0].x, b.players[0].y, .5, "gore", 5, 1.2, false)
+	var solo := _made(main, id)
+	solo.gore = false
+	var before := _dice(solo)
+	solo.burst(solo.player.x, solo.player.y, .5, "gore", 5, 1.2)
+	check.call(
+		_dice(a) == _dice(b) and _dice(solo) == before,
+		(
+			(
+				"%s: two players' bursts spend the same dice whatever the specks and GORE (alone,"
+				+ " GORE off spends none)"
+			)
+			% id
+		)
+	)
+	# The copy threw the same bodies itself, in the other order (its bodies
+	# hold the feature's own feels), then is put back on the host's snapshot.
+	var host := _made(main, id, 2)
+	var copy := _made(main, id, 2)
+	var thrown := _throw_bodies(host, [0, 1, 2])
+	_throw_bodies(copy, [2, 1, 0])
+	GameSnapshot.apply(copy, GameSnapshot.capture(host))
+	for t in 90:
+		host.tick(STEP, Game.Controls.new())
+		copy.tick(STEP, Game.Controls.new())
+	var where := GameSnapshot.first_difference(
+		GameSnapshot.capture(host), GameSnapshot.capture(copy)
+	)
+	check.call(
+		thrown == 3 and where == "",
+		(
+			(
+				"%s: thrown bodies put back on a copy (its bodies in another order) slide on as the"
+				+ " host's%s"
+			)
+			% [id, "" if where == "" else " (%s)" % where]
+		)
+	)
+
+
+## Three hands of `g` killed and thrown, slick, plain and flung, in `order`;
+## how many.
+static func _throw_bodies(g: Game, order: Array) -> int:
+	var bodies: GameFeature = g.features.get("corpses")
+	var hands: Array = []
+	for e: Enemy in g.enemies:
+		if e.alive and e.hostile and hands.size() < 3:
+			hands.append(e)
+	if hands.size() < 3:
+		return hands.size()
+	var feels := [1, 0, 2]
+	for i: int in order:
+		var e: Enemy = hands[i]
+		e.hp = 0.0
+		e.died_at = g.clock
+		bodies.get("_known")[e] = e.died_at
+		var body: Object = bodies.call("_push", e, 1.5 - i, .8, .6)
+		body.set("how", feels[i])
+	return 3
+
+
+static func _dice(g: Game) -> PackedByteArray:
+	return var_to_bytes(SnapCodec.new(g).encode(g.rng))
