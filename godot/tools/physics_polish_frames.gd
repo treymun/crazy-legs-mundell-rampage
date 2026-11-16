@@ -175,11 +175,20 @@ func _body() -> void:
 	_ticks(g, 10)
 	g.hit_point = Vector3(e.x, e.y, ground + .9)
 	g.hit_from = Vector2(spot.x - 2.0, spot.y)
-	e.hurt(e.hp + 4.0, g, false, false, null, "shotgun")
+	for _k in 6:
+		if e.alive:
+			e.hurt(e.hp + 4.0, g, false, false, null, "shotgun")
 	_ticks(g, 240)
-	var aim := func() -> void:
-		var side := Vector2(e.x, e.y) + Vector2(.2, 1.25)
-		_stand(g, side.x, side.y, ground + .32, e.x, e.y, ground + .05)
+	var side := Vector2(e.x, e.y) + Vector2(.5, 1.9)
+	for k in 16:
+		var q := Vector2(e.x, e.y) + Vector2.from_angle(k * TAU / 16.0) * 1.9
+		if (
+			not g.world.blocked(q.x, q.y, .5)
+			and g.world.visible(q.x, q.y, e.x, e.y, ground + .55, ground + .1)
+		):
+			side = q
+			break
+	var aim := func() -> void: _stand(g, side.x, side.y, ground + .55, e.x, e.y, ground + .05)
 	aim.call()
 	await _strip(g, "body", [1], aim)
 
@@ -250,11 +259,11 @@ func _staves() -> void:
 		if b.image == "town_warning_barrel" or b.image == "town_mash_barrel":
 			drums.append(Vector2(b.x, b.y))
 	for d: Vector2 in drums:
-		var spot := _open(g, d.x, d.y, 3.0)
+		var spot := _open(g, d.x, d.y, 4.5)
 		if spot == Vector2.INF:
 			continue
 		var ground := g.world.elevation(d.x, d.y)
-		var aim := func() -> void: _stand(g, spot.x, spot.y, ground + .95, d.x, d.y, ground + .1)
+		var aim := func() -> void: _stand(g, spot.x, spot.y, ground + 1.9, d.x, d.y, ground)
 		aim.call()
 		_ticks(g, 10)
 		g.explode(Game.Shot.new(d.x + .3, d.y + .2, ground + .2, 0, 0, 0, "tnt"))
@@ -279,5 +288,21 @@ func _open(g: Game, x: float, y: float, far := 0.0) -> Vector2:
 				and not w.visible(at.x, at.y, x, y, w.elevation(x, y) + .9, w.elevation(x, y) + .2)
 			):
 				continue
+			if not _clear(g, at, Vector2(x, y)):
+				continue
 			return at
 	return Vector2.INF
+
+
+## Nothing standing between a and b (or beside a) to hide the view.
+func _clear(g: Game, a: Vector2, b: Vector2) -> bool:
+	var things: Array = []
+	for s: View.Sprite in g.props:
+		things.append(Vector2(s.x, s.y))
+	for board: LevelData.Billboard in g.world.billboards:
+		things.append(Vector2(board.x, board.y))
+	for q: Vector2 in things:
+		var on := Geometry2D.get_closest_point_to_segment(q, a, b)
+		if on.distance_to(q) < .6 and q.distance_to(b) > .8:
+			return false
+	return true
