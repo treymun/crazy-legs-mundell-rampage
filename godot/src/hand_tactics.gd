@@ -225,3 +225,115 @@ static func _drop(
 		return false
 	e.follow(dt, game, atan2(p.y - e.y, p.x - e.x), 1.0)
 	return true
+
+
+# ---------------------------------------------------------------------------
+# The classic tactics every HANDS setting has (moved out of enemies.gd; the
+# hand's tick calls them): fetching help, a brawl with one of its own, holding
+# cover, and swinging out from a friend's heels.
+
+
+## Badly hurt: run for a friend who has not seen the fight yet and bring
+## them back; with nobody near, just back off as before.
+static func fetch_help(e: Enemy, game: GameWorld) -> bool:
+	var best: Enemy = null
+	var near := 12.0
+	for other: Enemy in game.enemies:
+		if (
+			other != e
+			and other.alive
+			and other.tactical()
+			and not other.alerted
+			and not other.dormant
+		):
+			var d := sqrt(pow(other.x - e.x, 2) + pow(other.y - e.y, 2))
+			if d < near:
+				near = d
+				best = other
+	if best == null:
+		return false
+	e.fetching = best
+	e.fetch_until = game.clock + 7.0
+	e.cover = null
+	return true
+
+
+## A brawl with one of its own: close in and swing until one drops or it cools off.
+static func brawl(e: Enemy, dt: float, game: GameWorld) -> bool:
+	if not e.grudge.alive or game.clock > e.grudge_until:
+		e.grudge = null
+		return false
+	var gap := sqrt(pow(e.grudge.x - e.x, 2) + pow(e.grudge.y - e.y, 2))
+	var heading := atan2(e.grudge.y - e.y, e.grudge.x - e.x)
+	if gap > e.radius + e.grudge.radius + .25:
+		e.follow(dt, game, heading, 1.08)
+		return true
+	e.angle = heading
+	e.face_left = cos(heading) < 0.0
+	if e.cooldown <= 0.0:
+		e.cooldown = game.rng.uniform(.75, 1.15)
+		game.sound_at("brawl_punch", e.x, e.y, .8)
+		e.grudge.hurt(game.rng.uniform(8.0, 13.0), game, false, false, e)
+	return true
+
+
+## Running for a friend: once close, it hollers and both come back for the player.
+static func fetch(e: Enemy, dt: float, game: GameWorld, p: Player) -> bool:
+	if not e.fetching.alive or e.fetching.alerted or game.clock > e.fetch_until:
+		e.fetching = null
+		return false
+	var gap := sqrt(pow(e.fetching.x - e.x, 2) + pow(e.fetching.y - e.y, 2))
+	if gap < 2.4 or game.world.visible(e.x, e.y, e.fetching.x, e.fetching.y) and gap < 4.0:
+		var friend := e.fetching
+		e.fetching = null
+		friend.wake(game, p.x, p.y)
+		game.sound_at(str(Enemy.AWAKE.get(e.kind, "billy_alert")), e.x, e.y, .85)
+		e.hunt_until = game.clock + 9.0
+		return false
+	e.follow(dt, game, atan2(e.fetching.y - e.y, e.fetching.x - e.x), 1.12)
+	return true
+
+
+## Ducked out of sight: get there, keep low a moment, then come back out.
+static func hold_cover(
+	e: Enemy, dt: float, game: GameWorld, can_see: bool, direction: float
+) -> bool:
+	var until: float = e.cover[2]
+	if game.clock > until:
+		e.cover = null
+		return false
+	var cx: float = e.cover[0]
+	var cy: float = e.cover[1]
+	var gap := sqrt(pow(cx - e.x, 2) + pow(cy - e.y, 2))
+	if gap > .25:
+		e.follow(dt, game, atan2(cy - e.y, cx - e.x), 1.1)
+		return true
+	if can_see:
+		# The player came round: no use hiding here.
+		e.cover = null
+		return false
+	e.angle = direction
+	return true
+
+
+## Which way to swing out so as not to close in on a friend's heels: toward
+## the side away from the nearest friend also coming in (0: no one close).
+static func spread_side(e: Enemy, game: GameWorld) -> float:
+	if game.clock < e.spread_next:
+		return e.spread
+	e.spread_next = game.clock + .3
+	e.spread = 0.0
+	var p: Player = game.player
+	var best := 2.2
+	for other: Enemy in game.enemies:
+		if other == e or not other.alive or not other.alerted or not other.hostile:
+			continue
+		var d := sqrt(pow(other.x - e.x, 2) + pow(other.y - e.y, 2))
+		if d < best:
+			best = d
+			var ax: float = e.x - p.x
+			var ay: float = e.y - p.y
+			var bx: float = other.x - p.x
+			var by: float = other.y - p.y
+			e.spread = .55 if ax * by - ay * bx > 0.0 else -.55
+	return e.spread

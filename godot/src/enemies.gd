@@ -1,7 +1,9 @@
 ## Port of enemies.py: Hickston's townsfolk, flying pests and the pasture bosses.
 ##
 ## Every table mirrors the reference exactly; the AI methods are line-for-line
-## ports so the same seeded rng calls happen in the same order.
+## ports so the same seeded rng calls happen in the same order. The attacks
+## are in enemy_attacks.gd, the sprite in enemy_looks.gd, the tactics (cover,
+## fetching help, brawls) in hand_tactics.gd and the tuning in enemy_tuning.gd.
 class_name Enemy
 extends RefCounted
 
@@ -295,31 +297,6 @@ func take_cover(game: GameWorld, why := CoverSearch.DUCK) -> void:
 	CoverSearch.want(self, game, why)
 
 
-## Badly hurt: run for a friend who has not seen the fight yet and bring
-## them back; with nobody near, just back off as before.
-func fetch_help(game: GameWorld) -> bool:
-	var best: Enemy = null
-	var near := 12.0
-	for other: Enemy in game.enemies:
-		if (
-			other != self
-			and other.alive
-			and other.tactical()
-			and not other.alerted
-			and not other.dormant
-		):
-			var d := sqrt(pow(other.x - x, 2) + pow(other.y - y, 2))
-			if d < near:
-				near = d
-				best = other
-	if best == null:
-		return false
-	fetching = best
-	fetch_until = game.clock + 7.0
-	cover = null
-	return true
-
-
 static func angle_delta(a: float, b: float) -> float:
 	return fposmod(a - b + PI, TAU) - PI
 
@@ -406,7 +383,7 @@ func hurt(
 		and game.rng.random() < .55
 	):
 		fled = true
-		if not (tactical() and fetch_help(game)):
+		if not (tactical() and HandTactics.fetch_help(self, game)):
 			retreat_from(game, game.player.x, game.player.y)
 	elif (
 		hp > 0.0
@@ -802,11 +779,11 @@ func tick(dt: float, game: Game) -> void:
 		return
 	if recovery > .17 and (BOSS_TITLES.has(kind) or SIGNATURES.has(kind) or brain == "boilerback"):
 		return
-	if grudge != null and _brawl(dt, game):
+	if grudge != null and HandTactics.brawl(self, dt, game):
 		return
-	if fetching != null and _fetch(dt, game, p):
+	if fetching != null and HandTactics.fetch(self, dt, game, p):
 		return
-	if cover != null and _hold_cover(dt, game, can_see, direction):
+	if cover != null and HandTactics.hold_cover(self, dt, game, can_see, direction):
 		return
 	if retreat != null:
 		var rx: float = retreat[0]
@@ -879,7 +856,10 @@ func tick(dt: float, game: Game) -> void:
 				# more than one direction, and away from a friend close by.
 				approach += flank * clampf((distance - 2.5) / 5.0, 0.0, 1.0)
 				if tactical() and distance > 2.0:
-					approach += _spread(game) * clampf((distance - 2.0) / 3.0, 0.0, 1.0)
+					approach += (
+						HandTactics.spread_side(self, game)
+						* clampf((distance - 2.0) / 3.0, 0.0, 1.0)
+					)
 			follow(dt, game, approach, pace)
 	elif (
 		(brain == "coot" or brain == "skeeter" or brain == "chalk_spitter")
@@ -948,296 +928,18 @@ func _react(how: String, champion: bool, game: GameWorld, from_x: float, from_y:
 	flinch = maxf(flinch, flinched * scale)
 
 
-## A brawl with one of its own: close in and swing until one drops or it cools off.
-func _brawl(dt: float, game: GameWorld) -> bool:
-	if not grudge.alive or game.clock > grudge_until:
-		grudge = null
-		return false
-	var gap := sqrt(pow(grudge.x - x, 2) + pow(grudge.y - y, 2))
-	var heading := atan2(grudge.y - y, grudge.x - x)
-	if gap > radius + grudge.radius + .25:
-		follow(dt, game, heading, 1.08)
-		return true
-	angle = heading
-	face_left = cos(heading) < 0.0
-	if cooldown <= 0.0:
-		cooldown = game.rng.uniform(.75, 1.15)
-		game.sound_at("brawl_punch", x, y, .8)
-		grudge.hurt(game.rng.uniform(8.0, 13.0), game, false, false, self)
-	return true
-
-
-## Running for a friend: once close, it hollers and both come back for the player.
-func _fetch(dt: float, game: GameWorld, p: Player) -> bool:
-	if not fetching.alive or fetching.alerted or game.clock > fetch_until:
-		fetching = null
-		return false
-	var gap := sqrt(pow(fetching.x - x, 2) + pow(fetching.y - y, 2))
-	if gap < 2.4 or game.world.visible(x, y, fetching.x, fetching.y) and gap < 4.0:
-		var friend := fetching
-		fetching = null
-		friend.wake(game, p.x, p.y)
-		game.sound_at(str(AWAKE.get(kind, "billy_alert")), x, y, .85)
-		hunt_until = game.clock + 9.0
-		return false
-	follow(dt, game, atan2(fetching.y - y, fetching.x - x), 1.12)
-	return true
-
-
-## Ducked out of sight: get there, keep low a moment, then come back out.
-func _hold_cover(dt: float, game: GameWorld, can_see: bool, direction: float) -> bool:
-	var until: float = cover[2]
-	if game.clock > until:
-		cover = null
-		return false
-	var cx: float = cover[0]
-	var cy: float = cover[1]
-	var gap := sqrt(pow(cx - x, 2) + pow(cy - y, 2))
-	if gap > .25:
-		follow(dt, game, atan2(cy - y, cx - x), 1.1)
-		return true
-	if can_see:
-		# The player came round: no use hiding here.
-		cover = null
-		return false
-	angle = direction
-	return true
-
-
-## Which way to swing out so as not to close in on a friend's heels: toward
-## the side away from the nearest friend also coming in (0: no one close).
-func _spread(game: GameWorld) -> float:
-	if game.clock < spread_next:
-		return spread
-	spread_next = game.clock + .3
-	spread = 0.0
-	var p: Player = game.player
-	var best := 2.2
-	for other: Enemy in game.enemies:
-		if other == self or not other.alive or not other.alerted or not other.hostile:
-			continue
-		var d := sqrt(pow(other.x - x, 2) + pow(other.y - y, 2))
-		if d < best:
-			best = d
-			var ax: float = x - p.x
-			var ay: float = y - p.y
-			var bx: float = other.x - p.x
-			var by: float = other.y - p.y
-			spread = .55 if ax * by - ay * bx > 0.0 else -.55
-	return spread
-
-
+## EnemyAttacks.attack (enemy_attacks.gd).
 func attack(
 	game: GameCombat, direction: float, distance: float, eye: float, aim_z: Variant = null
 ) -> void:
-	attacks += 1
-	if SpeedwayHands.attack(self, game as Game, direction, distance, eye, aim_z):
-		return
-	if BayouBrains.attack(self, game as Game, direction, distance, eye):
-		return
-	if ShipAliens.attack(self, game as Game, direction, distance, eye, aim_z):
-		return
-	if Variants.attack(self, game as Game, direction, distance, eye):
-		return
-	if SIGNATURES.has(kind):
-		signature_attack(game, direction, distance, eye, aim_z)
-		return
-	if brain == "boilerback" or brain == "chalk_spitter" or TELLS.has(kind):
-		special_attack(game, direction, distance, eye, aim_z)
-		return
-	if LUNGES.has(kind):
-		var lunge: Array = LUNGES[kind]
-		var p: Player = game.player
-		var aim := atan2(p.y - y, p.x - x)
-		var swing := brain == "skeeter" or absf(angle_delta(aim, direction)) < .61
-		var reach: float = lunge[2]
-		if (
-			swing
-			and sqrt(pow(p.x - x, 2) + pow(p.y - y, 2)) < reach
-			and game.world.visible(x, y, p.x, p.y, eye, p.eye)
-		):
-			var hit: int = lunge[3]
-			game.damage(hit, [x, y], "STRIKE")
-			game.sound_at(str(lunge[4]), x, y)
-		cooldown = lunge[5]
-		return
-	if RANGED.has(kind):
-		fire_projectiles(game, direction, distance, eye, aim_z)
-		return
-
-	var chance := 0.0
-	var damage := 0
-	var cue := ""
-	var delay := 0.0
-	if brain == "billy":
-		chance = maxf(.24, .88 - distance * .104)
-		damage = 14 if distance < 2.4 else 8
-		cue = "enemy_scatter"
-		delay = 1.45
-	elif brain == "coot":
-		chance = maxf(.34, .83 - distance * .060)
-		damage = 7
-		cue = "enemy_pistol"
-		delay = 1.58
-	else:
-		chance = maxf(.39, 1.0 - distance * .115)
-		damage = 7 if distance > 2.0 else 10
-		cue = "enemy"
-		delay = 1.36 if attacks % 2 else 1.77
-	cooldown = delay + game.rng.uniform(.04, .33)
-	game.sound_at(cue, x, y, .90)
-	game.burst(x + cos(direction) * radius, y + sin(direction) * radius, eye, "spark", 3, 1.2)
-	var p2: Player = game.player
-	var miss := absf(angle_delta(atan2(p2.y - y, p2.x - x), direction))
-	var fan := .23 if brain == "billy" else .11 if brain == "coot" else .15
-	# One of their own between them and the player takes it instead.
-	var in_way: Enemy = null
-	var nearest := distance
-	for other: Enemy in game.enemies:
-		if other == self or not other.alive or not other.hostile:
-			continue
-		var ox: float = other.x - x
-		var oy: float = other.y - y
-		var along := ox * cos(direction) + oy * sin(direction)
-		if along > .3 and along < nearest:
-			if absf(ox * sin(direction) - oy * cos(direction)) < other.radius + .06:
-				nearest = along
-				in_way = other
-	if in_way != null:
-		if game.rng.random() < maxf(.35, chance):
-			in_way.hurt(float(damage), game, false, false, self)
-		return
-	chance *= (.79 if p2.crouched else 1.0) * maxf(0.0, 1.0 - miss / fan * .60)
-	chance = minf(.97, chance * float(game.sharpness))
-	if miss < fan and game.rng.random() < chance:
-		game.damage(damage, [x, y], "FIRE")
+	EnemyAttacks.attack(self, game, direction, distance, eye, aim_z)
 
 
-func signature_attack(
-	game: GameCombat, direction: float, distance: float, eye: float, aim_z: Variant
-) -> void:
-	var p: Player = game.player
-	var spec: Array = SIGNATURES[kind]
-	cooldown = spec[4]
-	game.sound_at(str(spec[6]), x, y, .9)
-	var def: Dictionary = DEFS[kind]
-	var sx := x + cos(direction) * .34
-	var sy := y + sin(direction) * .34
-	if game.world.blocked(sx, sy, .045, eye):
-		return
-	if brain == "yard_deputy":
-		var aim_target: float = p.eye if aim_z == null else aim_z
-		var slope := (aim_target - eye) * 8.4 / maxf(distance - .34, .6)
-		game.launch(sx, sy, eye, direction - .023, 8.4, "deputy_slug", slope, true, 8, 1.08)
-		volley = 1
-		volley_timer = .23
-		volley_angle = direction
-		volley_slope = slope
-	elif brain == "bottle_tosser":
-		var flight := minf(1.32, maxf(.48, distance / 6.1))
-		var speed2 := maxf(.45, (distance - .34) / flight)
-		var mark: Array = aim_mark if aim_mark != null else [p.x, p.y]
-		var mark_x: float = mark[0]
-		var mark_y: float = mark[1]
-		var target_z: float = game.world.elevation(mark_x, mark_y)
-		game.launch(
-			sx,
-			sy,
-			eye,
-			direction,
-			speed2,
-			str(def.get("shot", "fair_bottle")),
-			(target_z + .06 - eye) / flight + 2.75 * flight,
-			true,
-			0,
-			flight
-		)
-	elif brain == "chain_hand":
-		for swing: float in [-.19, 0.0, .19]:
-			game.launch(sx, sy, eye - .12, direction + swing, 8.0, "chain_hook", 0.0, true, 7, .44)
-	else:
-		var ground_z: float = game.world.stand(self)
-		var slug := str(def.get("shot", "valve_slug"))
-		game.launch(sx, sy, ground_z + .31, direction, 6.3, slug, 0.0, true, 12, 1.17)
-
-
+## EnemyAttacks.special_attack (enemy_attacks.gd).
 func special_attack(
 	game: GameCombat, direction: float, distance: float, eye: float, aim_z: Variant
 ) -> void:
-	var p: Player = game.player
-	if brain == "chalk_spitter":
-		var flight := minf(1.25, maxf(.51, distance / 6.15))
-		var speed2 := maxf(.5, (distance - .18) / flight)
-		var mark: Array = aim_mark if aim_mark != null else [p.x, p.y]
-		var mark_x: float = mark[0]
-		var mark_y: float = mark[1]
-		var target_z: float = game.world.elevation(mark_x, mark_y)
-		game.launch(
-			x,
-			y,
-			eye,
-			direction,
-			speed2,
-			"chalk_lob",
-			(target_z + .07 - eye) / flight + 2.1 * flight,
-			true,
-			0,
-			flight
-		)
-		cooldown = 1.88
-		game.sound_at("chalk_spit", x, y)
-	elif brain == "rudy":
-		volley = 8 if enraged else 5
-		volley_timer = .02
-		volley_angle = direction if attacks % 2 else direction + .095
-		var aim_target: float = p.eye if aim_z == null else aim_z
-		volley_slope = (aim_target - eye) * 6.8 / maxf(1.0, distance)
-		cooldown = (1.42 if attacks % 2 else 1.73) * (.8 if enraged else 1.0)
-		game.sound_at("rudy_horn", x, y)
-	elif brain == "foreman":
-		for lane: Array in saw_lanes(direction):
-			var lane_x: float = lane[0]
-			var lane_y: float = lane[1]
-			var lane_at: float = lane[2]
-			if not game.world.blocked(lane_x, lane_y, .04):
-				game.launch(
-					lane_x,
-					lane_y,
-					game.world.elevation(lane_x, lane_y) + .58,
-					lane_at,
-					7.6,
-					"foreman_cut",
-					0.0,
-					true,
-					13,
-					1.38
-				)
-		cooldown = 1.69 * (.85 if enraged else 1.0)
-		game.sound_at("foreman_cut", x, y)
-	elif brain == "baron" and BaronMoves.outlets_next(attacks - 1, enraged):
-		var ports: Array = game.pressure_ports(attacks - 1)
-		var relieved: bool = game.relief_open()
-		# pressure_ports() hands back the level's Vector2 points, not [x, y] pairs.
-		for point: Vector2 in ports:
-			game.add_hazard("steam", point.x, point.y, .94, .69, 1.08 if relieved else 1.35, 15)
-			game.sound_at("pressure_vent", point.x, point.y, .76)
-		cooldown = (1.95 if relieved else 1.58) * (.8 if enraged else 1.0)
-	else:
-		var rad := 4.45 if brain == "boilerback" else 5.45
-		for spread: float in [-.23, 0.0, .23]:
-			var sx := x + cos(direction + spread) * .72
-			var sy := y + sin(direction + spread) * .72
-			if not game.world.blocked(sx, sy, .04):
-				game.burst(sx, sy, eye - .20, "dust", 6, 1.45)
-		var aim := atan2(p.y - y, p.x - x)
-		if (
-			sqrt(pow(p.x - x, 2) + pow(p.y - y, 2)) < rad
-			and absf(angle_delta(aim, direction)) < .47
-			and game.world.visible(x, y, p.x, p.y, eye, p.eye)
-		):
-			game.damage(15 if brain == "boilerback" else 18, [x, y], "STEAM")
-		cooldown = 1.60
-		game.sound_at("boiler_release", x, y)
+	EnemyAttacks.special_attack(self, game, direction, distance, eye, aim_z)
 
 
 ## Saw lanes as [x, y, bearing] triples.
@@ -1253,84 +955,6 @@ func saw_lanes(direction: float, attack: Variant = null) -> Array:
 	for nudge: float in nudges:
 		out.append([x + side_x * nudge, y + side_y * nudge, direction])
 	return out
-
-
-func fire_projectiles(
-	game: GameCombat, direction: float, distance: float, eye: float, aim_z: Variant
-) -> void:
-	var football := brain == "jerry"
-	var kind_name := "football" if football else "plasma"
-	var spread := .15
-	var count := 1
-	var speed2 := 0.0
-	var damage := 0
-	if football:
-		count = 3 if hp < max_hp / 2.0 else 1
-		speed2 = 7.1
-		damage = 13
-		cooldown = 1.02 if count == 3 else 1.32
-	elif brain == "boss":
-		count = 3 if hp < max_hp / 2.0 else 1
-		speed2 = 5.7
-		damage = 13
-		cooldown = 1.28
-	elif brain == "saucer":
-		count = 2
-		speed2 = 3.7
-		damage = 8
-		cooldown = 1.74
-	elif brain == "barker":
-		count = 3
-		speed2 = 4.7
-		damage = 8
-		spread = .27
-		cooldown = 1.70
-		kind_name = "barker_bolt"
-	elif brain == "lantern":
-		count = 2
-		speed2 = 4.15
-		damage = 9
-		spread = .12
-		cooldown = 1.52
-		kind_name = "lantern_bolt"
-		var aim_at: float = game.player.eye if aim_z == null else aim_z
-		aim_z = aim_at - .37
-	else:
-		count = 1
-		speed2 = 4.4
-		damage = 9
-		cooldown = .99 if attacks % 2 else 1.84
-	for i in count:
-		var theta := direction + (i - (count - 1) / 2.0) * spread
-		var dx := cos(theta) * (radius + .055)
-		var dy := sin(theta) * (radius + .055)
-		var t := maxf(.12, distance / speed2)
-		var aim_target: float = game.player.eye if aim_z == null else aim_z
-		var lift := (aim_target - eye) / t + (1.2 * t if football else 0.0)
-		game.launch(
-			x + dx,
-			y + dy,
-			eye,
-			theta,
-			speed2,
-			kind_name,
-			lift,
-			true,
-			damage,
-			-1.0,
-			get_instance_id()
-		)
-	var cue: String = (
-		{
-			"jerry": "football_throw",
-			"saucer": "saucer_shot",
-			"boss": "sheriff_shot",
-			"barker": "barker_blast",
-			"lantern": "lantern_spit"
-		}
-		. get(kind, "plasma")
-	)
-	game.sound_at(cue, x, y)
 
 
 ## The cue for this kind being hurt ("pain") or killed ("down").
@@ -1354,95 +978,11 @@ func recovery_time(relieved := false) -> float:
 	return time
 
 
-## What it looks like this frame. `into` (a sprite fresh from Game.pooled(),
-## every field at its default) is filled in and handed back instead of a new one.
+## EnemyLooks.sprite (enemy_looks.gd).
 func sprite(
 	observer: Variant = null, relieved := false, now := -1.0, into: View.Sprite = null
 ) -> View.Sprite:
-	if dormant:
-		return null
-	var out := into if into != null else View.Sprite.new()
-	out.x = x
-	out.y = y
-	out.flip = face_left
-	if not alive:
-		if explosive or brain == "saucer" or brain == "skeeter":
-			return null
-		var fallen := now - died_at
-		var cels := 5 if TURNS.has(kind) else 2 if FALLS.has(kind) else 0
-		var span := DEATH_TIME if cels == 5 else DEATH_TIME * .5
-		var worn := Variants.stem(kind)
-		if cels > 0 and died_at >= 0.0 and now >= died_at and fallen < span:
-			var cel := cel_name(worn + "_die", mini(cels - 1, int(fallen / span * cels)))
-			out.image = Variants.look(self, cel)
-			out.height = height * variant
-			out.z = z + toss
-			return out
-		out.image = Variants.look(self, cel_name(worn, "down"))
-		out.height = height * DOWN_SHARE.get(brain, .25)
-		out.z = toss - .07
-		return out
-	var turns := TURNS.has(kind)
-	var recover := recovery_time(relieved) if recovery > 0.0 else 0.0
-	var release := minf(.14, recover * .53)
-	var frame: Variant = 0
-	if hostile and (stun > 0.0 or (flinch > 0.0 and windup <= 0.0)):
-		frame = "pain"
-	elif recover > 0.0 and recovery > recover - release:
-		frame = "fire"
-	elif windup > 0.0:
-		frame = "aim"
-	elif recover > 0.0 and turns:
-		frame = "recover"
-	elif brain == "saucer" or brain == "skeeter" or brain == "lantern":
-		frame = int(pose * (16 if brain == "skeeter" else 5)) % 3 - 1
-	elif stun > 0.0 or brain == "bessie" or pose - last_stride > .18:
-		frame = 0
-	elif turns:
-		# Four-beat walk: contact, passing, contact, passing.
-		frame = WALK_CELS[posmod(int(floorf(gait / (PI * .5))), 4)]
-	else:
-		frame = int(roundf(sin(gait)))
-	if mind != null and not alerted and frame is int and frame == 0:
-		frame = IdleLife.frame(self, observer)
-	var worn := Variants.stem(kind)
-	var stem: String = worn if kind != "maw" else worn + ShipAliens.skin(self)
-	var walking: bool = frame is String and str(frame).begins_with("w")
-	var plain: bool = frame is int and frame >= -1 and frame <= 1
-	if observer != null and (plain or walking) and turns:
-		var seen_x: float = observer[0]
-		var seen_y: float = observer[1]
-		var bearing := atan2(seen_y - y, seen_x - x)
-		var relative := angle_delta(bearing, angle)
-		var direction := mini(4, int(absf(relative) / (PI / 4.0) + .5))
-		if direction:
-			stem += HEADINGS[direction]
-		out.flip = relative < 0.0 and direction < 4
-	if (
-		frame is int
-		and frame == 0
-		and stem == worn
-		and FIDGETS.has(kind)
-		and not alerted
-		and fmod(pose + x * .37 + y * .13, 5.2) > 4.68
-	):
-		frame = "fidget"
-	var look := cel_name(stem, frame) if held_cel == "" else held_cel
-	var boss := BOSS_TITLES.has(kind)
-	if boss:
-		look = BossLooks.cel(self, look)
-	elif hostile:
-		look = EnemyLooks.cel(self, look)
-	out.image = Variants.look(self, look)
-	# A cow going over: her picture squashed by the lean, never below .3.
-	out.height = height * variant * maxf(.3, squash)
-	out.z = z
-	out.body = hostile
-	out.hurt = hit_flash
-	if windup > 0.0 and boss:
-		# A boss winding up glows in a quickening beat (boss_kit.gd).
-		out.hurt = maxf(hit_flash, BossKit.pulse(self))
-	return out
+	return EnemyLooks.sprite(self, observer, relieved, now, into)
 
 
 ## An animal's cry (a chicken, a hog, a cow, the mule).
