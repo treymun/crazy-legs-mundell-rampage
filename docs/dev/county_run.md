@@ -210,3 +210,15 @@ wrong version or an old day is refused). Posting happens in the front end
   first three runs (`f.tips`), the end adds elites, XP, damage and the best
   streak (`f.elites_down`, `f.hurt`, `f.best_streak`), supplies glow, and the
   maps have lamps at the new gates and crossings and burn barrels.
+
+## Known issue: a body's resting place online (co-op)
+
+When a player levels up, the server holds the world for the card pick; a
+client copy runs one tick past it first (the known one-tick `/game/clock`
+mismatch at the pick, county_net_check allows one). A body still sliding at
+that moment then lies a tick's slide (a few cm) further on that copy, and the
+delta snapshots only correct what the server changed, so the offset can stay
+until the body moves again (county_net_check: `/enemies/N/x` on a dead hand,
+on some runs). It is in v3.2.0 too, seen more often since v3.3.0. The fix is
+to stop the copy's tick at the hold, or to send the bodies' places with the
+hold's snapshot; not done yet.
