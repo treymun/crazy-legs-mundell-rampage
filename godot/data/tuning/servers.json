@@ -1,7 +1,7 @@
 {
-	"_about": "The COUNTY SERVERS list (src/net/net_browser.gd): the always-open lobbies the game shows and joins with one key. server/lobbies.json is what runs on them. The browser build joins through each one's \"wss\" (a secure WebSocket: a page on https may open nothing else).",
+	"_about": "The COUNTY SERVERS list (src/net/net_browser.gd): the always-open lobbies the game shows and joins with one key. server/lobbies.json is what runs on them. The browser build joins through each one's \"wss\" (a secure WebSocket: a page on https may open nothing else). \"relay\": the party line (src/net/net_relay.gd) answers on that lobby's ports too; the game calls the first one marked.",
 	"servers": [
-		{"name": "COUNTY LOBBY 1", "address": "66.179.95.117", "port": 47197, "wss": "wss://0qohjo3.cserverhost.cloud:443"},
-		{"name": "COUNTY LOBBY 2", "address": "66.179.95.117", "port": 47198, "wss": "wss://0qohjo3.cserverhost.cloud:8443"}
+		{"name": "COUNTY LOBBY 1", "address": "66.179.95.117", "port": 47197, "relay": true, "wss": "wss://0qohjo3.cserverhost.cloud:443"},
+		{"name": "COUNTY LOBBY 2", "address": "66.179.95.117", "port": 47198, "relay": true, "wss": "wss://0qohjo3.cserverhost.cloud:8443"}
 	]
 }

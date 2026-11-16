@@ -1,8 +1,15 @@
 # Playing 5v5 online
 
-The 5v5 and 2v2 modes can be played with friends on other networks: one person
-hosts a lobby, the others join it, and the empty places fill with bots.
-Everyone needs the same version of the game.
+The 5v5 and 2v2 modes (and COUNTY RUN co-op) can be played with friends on
+other networks: one person hosts a lobby, the others join it, and the empty
+places fill with bots. Everyone needs the same version of the game.
+
+Nobody has to touch their router. A hosted lobby rings **THE PARTY LINE**, a
+relay on the game's own server: the host gets a short code like `HKP-427`,
+friends type it in, and their game reaches the host's through the server.
+It works behind CGNAT, on a phone and in the browser. When the host's own
+port does answer (the router opened it), a desktop friend goes straight to
+the host instead, which is a little quicker.
 
 ## Hosting
 
@@ -10,16 +17,20 @@ Everyone needs the same version of the game.
 2. Fill in your name, the lobby's name and a password (leave it empty for an
    open lobby). The port is 47197 unless you change it. Leave **ASK THE
    ROUTER** on.
-3. **OPEN THE LOBBY**. The second line of the lobby says how friends get in:
-   - `JOIN CODE ABCDE-12345 (203.0.113.7)  C COPIES`: the router opened
-     the port. Press **C** to copy the code and send it to your friends.
-   - `ROUTER WON'T OPEN UDP 47197`: your router said no to UPnP or has it
-     off. See "When the router won't open the port" below.
-   - `YOUR PROVIDER SHARES ONE ADDRESS (CGNAT)`: your internet provider puts
-     many homes behind one address, so nobody outside can reach you. Use a VPN
-     (below), or have a friend whose router works host.
-   - The third line lists your addresses on your own network (and on a VPN):
-     friends in the same house, or on the same VPN, join with those.
+3. **OPEN THE LOBBY**. The lines under the lobby's name say how friends get
+   in:
+   - `PARTY LINE CODE HKP-427   C COPIES`: press **C** (or tap the line) to
+     copy the code and send it to your friends. That is all they need.
+   - The next line is your router: `ROUTER OPENED UDP 47197: FRIENDS COME
+     STRAIGHT IN`, or `ROUTER WON'T OPEN UDP 47197: FRIENDS COME BY THE PARTY
+     LINE` (fine either way).
+   - `RINGING THE PARTY LINE...` for a moment, then the code. If it says
+     `THE PARTY LINE AIN'T ANSWERING` the server is down or out of reach: the
+     lobby still opens the old way (the join code from your router, your home
+     addresses for the same house or a VPN; see "When the router won't open
+     the port" below).
+   - A lobby with **no password** is listed on everyone's COUNTY SERVERS list
+     (PLAY ONLINE) too; one with a password is only reached by its code.
 4. Set the match with the arrow keys: mode, map, rounds to win, team size
    (1v1 to 5v5), bots on or off, bot skill, friendly fire, round time, buy
    time, freeze time, starting cash; and the lobby: how many people it has
@@ -44,13 +55,21 @@ the same RULES row.
 ## Joining
 
 1. Title, **MULTIPLAYER**, **JOIN WITH A CODE**.
-2. Your name, then the host's **join code** or **address**: `203.0.113.7`,
-   `203.0.113.7:47197`, a VPN address like `100.101.102.103`, or a name.
+2. Your name, then the host's **party line code** (`HKP-427`; small letters
+   and no dash work too). The old ways still work on the desktop: a **join
+   code** (`ABCDE-12345`) or an **address** (`203.0.113.7`,
+   `203.0.113.7:47197`, a VPN address like `100.101.102.103`, or a name).
    CTRL+V pastes. Then the password if the lobby has one.
-3. **JOIN**. In the lobby, LEFT/RIGHT picks your team (ANY lets the host
+3. **JOIN**. With a code it says `RINGING THE PARTY LINE...` (and for up to
+   three seconds `TRYING THE HOST'S OWN LINE...` when the host's port may
+   answer). The lobby's top line says how you got there: `ON THE PARTY LINE`
+   or `STRAIGHT TO THE HOST`. A wrong code says `NOBODY'S ON THE PARTY LINE
+   BY THAT CODE`. In the lobby, LEFT/RIGHT picks your team (ANY lets the host
    balance), ENTER says READY.
-4. In the match the top right shows your ping. ESC (then ENTER) leaves; a bot
-   takes your place for the rest of the match.
+4. In the match the top right shows your ping (through the party line: your
+   trip to the server and the host's, added). ESC (then ENTER) leaves; a bot
+   takes your place for the rest of the match. If the host's game goes away
+   the party line tells you `THE HOST HUNG UP`.
 
 With LATE JOIN on, someone who joins during a match takes over a bot on the
 team with fewer people, straight away.
@@ -58,8 +77,10 @@ team with fewer people, straight away.
 ## County servers (no code needed)
 
 Title, **MULTIPLAYER**, **PLAY ONLINE**: the always-open lobbies listed live
-(mode, map, how many are in, in the lobby or a match on, ping). Type your
-name once at the top, pick one, press ENTER: you are in its lobby. R asks
+(mode, map, how many are in, in the lobby or a match on, ping), and below
+them every player's own lobby on the party line that has no password
+(`PARTY LINE HKP-427` on its second line; the list scrolls past three).
+Type your name once at the top, pick one, press ENTER: you are in its lobby. R asks
 again; a server that is down shows NOT ANSWERING, one on another version says
 so. The list is `godot/data/tuning/servers.json` (name, address, port); the
 game asks each server with an INFO knock on its own port (`NetWire.INFO`,
@@ -108,6 +129,24 @@ godot --headless --path godot -- --lobby-server=../server/lobbies.json
 
 The server's address is kept out of this public repository.
 
+## The party line on the server
+
+The relay is part of the lobby server: `server/lobbies.json`'s `"relay"`
+turns it on (rooms at once, players a room, bytes a second a room, minutes an
+empty room stays open; `src/net/net_relay.gd`). It answers on the lobbies'
+own ports (UDP 47197 and 47198, and the browser's wss on 443 and 8443), so it
+needs no new port or firewall rule; it comes with the next `deploy.sh`.
+`godot/data/tuning/servers.json` marks the servers the game calls for it
+(`"relay": true`). The log has a line for each room opened and closed (how
+long, how many joined, the bytes each way) and the status line counts rooms,
+players and bytes a second. A 5v5 player through it costs about 3 KB/s up and
+27 KB/s down; a full room of nine about 250 KB/s.
+
+To time it against a server by hand:
+`godot --headless --path godot --script res://tools/relay_check.gd -- ping=<address>:47197`
+(it opens a room and joins it from the same PC, and prints the round trip
+through the line against the trip to the server).
+
 ## The browser build online (wss)
 
 A page on https may only open secure WebSockets, so each lobby in
@@ -128,9 +167,16 @@ WebSocket side runs plain (fine for tests on 127.0.0.1, refused by a page
 on https). `tools/net_server_check.gd` plays a whole match with one player
 on the WebSocket side; `tools/county_net_check.gd` a County Run party.
 
+The browser build hosts (HOST A GAME) and joins by a party line code through
+the same wss: it cannot listen or open UDP itself, so everyone comes by the
+party line (the lobby says `HOSTED IN A BROWSER`). It cannot use a 10-letter
+join code or an address.
+
 ## When the router won't open the port
 
-The host needs **UDP port 47197** reachable from outside. Three ways:
+With the party line answering this is not needed. Without it (the server
+down, or another server list), the host needs **UDP port 47197** reachable
+from outside. Three ways:
 
 1. **Forward the port by hand.** In your router's settings (usually
    `192.168.0.1` or `192.168.1.1` in a browser), find "port forwarding" and
@@ -162,6 +208,16 @@ everyone.
 firing range's board: a best comes back, a name's best counts, a score past
 what a game allows and another version's are refused.
 
+`tools/relay_check.gd` (in check_all and CI) holds the party line: a lobby
+server with it on its ports, a full line turning a room away, a room over its
+bytes a second keeping only what must arrive, an empty room closing; a hosted
+5v5 with one player in over ENet (after trying the host's address that does
+not answer) and one over the WebSocket, the server's own lobby busy on the
+same port meanwhile, the room on the servers list, a match with every copy
+kept with the host, a late joiner going straight to the host, a kick and the
+closing heard through the line; a County Run party of three through it, and
+the host's game going with no goodbye.
+
 `tools/net_showdown_check.gd` plays a whole online session in one process
 over the network stack (a host and three clients on 127.0.0.1, with test lag
 and packet loss): joining by code, a wrong password turned away, not ready,
@@ -169,15 +225,16 @@ the host's settings, teams, names, buys over the wire, rounds, a player
 leaving (a bot takes over), a late joiner, back to the lobby, closing it. Two
 real game windows on one PC were also run against each other (a host and a
 client, each played by a bot). **Not checked:** play between two real homes
-over the internet, a real router's UPnP answering (the test PC's router did
-not), CGNAT, phones and the browser build (the browser cannot host or join
-yet: it would need WebRTC or a WebSocket relay).
+over the internet (through the party line on the VPS or straight), a real
+router's UPnP answering (the test PC's router did not), CGNAT, phones, and
+the browser build hosting or joining by a code in a real page.
 
 ## How it works
 
 `src/net/net_play.gd` is the lobby and the match around it; `net_sync.gd`
 the match itself; `net_wire.gd` every packet; `net_session.gd` the ENet
-connection; `net_upnp.gd` the router; `lobby_screens.gd` the screens.
+connection; `net_upnp.gd` the router; `net_relay.gd` the party line on the
+server and `relay_link.gd` a game's end of it; `lobby_screens.gd` the screens.
 
 - **The host plays the one real game.** It runs at 60 ticks a second with
   its own player, the bots and every client's controls (buys, reloads, gun

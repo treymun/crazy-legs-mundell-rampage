@@ -1,6 +1,7 @@
 {
 	"bind": "*",
 	"most_matches": 2,
+	"relay": {"rooms": 24, "players": 15, "room_bytes": 1000000, "idle_minutes": 30},
 	"tls_cert": "/etc/clmr/tls/fullchain.pem",
 	"tls_key": "/etc/clmr/tls/privkey.pem",
 	"lobbies": [

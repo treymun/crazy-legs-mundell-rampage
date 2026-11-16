@@ -11,8 +11,11 @@
 ## each lobby's keys any of NetPlay.DEFAULTS. A lobby's "ws_port" also takes
 ## the browser build over a WebSocket on that TCP port, secured (wss) with the
 ## config's "tls_cert" and "tls_key" files when both load (a browser page on
-## https may only open wss). Prints a line for everyone who
-## comes and goes, each match, and every STATUS_EVERY seconds how busy it is.
+## https may only open wss). The config's "relay" ({} for NetRelay.DEFAULTS,
+## or any of them) runs THE PARTY LINE on the same ports: players' own lobbies
+## reached through the server by a short code (net_relay.gd). Prints a line for
+## everyone who comes and goes, each match, each party line room, and every
+## STATUS_EVERY seconds how busy it is.
 class_name LobbyServer
 extends Node
 
@@ -50,6 +53,8 @@ var art: Assets
 var games := GamePool.new()
 var sim := {}
 var most_matches := MOST_MATCHES
+## THE PARTY LINE on the lobbies' ports (null: the config has no "relay").
+var relay: NetRelay = null
 var _status_in := 10.0
 var _failed := ""
 
@@ -62,6 +67,12 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 	var bind := str(config.get("bind", "*"))
 	var tls := _tls(config)
 	most_matches = config.get("most_matches", MOST_MATCHES)
+	var relay_config: Variant = config.get("relay")
+	var line_peers := 0
+	if relay_config is Dictionary:
+		var relay_dict: Dictionary = relay_config
+		relay = NetRelay.new(relay_dict)
+		line_peers = relay.limits["peers"]
 	for entry: Variant in config.get("lobbies", []):
 		if not entry is Dictionary:
 			continue
@@ -71,7 +82,7 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 		lobby.erase("port")
 		var ws_port: int = lobby.get("ws_port", 0)
 		lobby.erase("ws_port")
-		var net := NetPlay.serve_lobby(port, lobby, bind)
+		var net := NetPlay.serve_lobby(port, lobby, bind, line_peers)
 		if net == null:
 			_failed = "PORT %d IS TAKEN" % port
 			continue
@@ -84,6 +95,10 @@ func _init(config: Dictionary, sim_options := {}) -> void:
 			else:
 				net.session.also = ws
 				_log("  and %s on TCP %d" % ["WSS" if tls != null else "WS", ws_port])
+				if relay != null:
+					relay.tap(ws)
+		if relay != null:
+			relay.tap(net.session)
 		net.make_match = _make
 		net.may_start = _may_start
 		net.sim_options = sim
@@ -138,8 +153,12 @@ func _ready() -> void:
 	Engine.max_fps = IDLE_FPS
 	_log(
 		(
-			"VERSION %s, %d LOBBIES"
-			% [ProjectSettings.get_setting("application/config/version", "?"), rooms.size()]
+			"VERSION %s, %d LOBBIES%s"
+			% [
+				ProjectSettings.get_setting("application/config/version", "?"),
+				rooms.size(),
+				", THE PARTY LINE ON THEIR PORTS" if relay != null else ""
+			]
 		)
 	)
 
@@ -157,6 +176,13 @@ func frame(now: float, delta: float) -> void:
 		if room.net.phase == "match":
 			busy = true
 			_play(room, delta)
+	if relay != null:
+		relay.poll(now)
+		# What the lobbies' polls forwarded goes out now, not a frame later.
+		relay.flush()
+		for line: String in relay.take_news():
+			_log("PARTY LINE: " + line)
+		busy = busy or relay.busy()
 	Engine.max_fps = MATCH_FPS if busy else IDLE_FPS
 	if games.size() > 0:
 		games.sweep(rooms.map(func(r: Room) -> Game: return r.net.match_game()))
@@ -284,11 +310,15 @@ func _status() -> void:
 		room.tick_us = 0
 		room.worst_us = 0
 		room.bot_us = 0
+	if relay != null:
+		parts.append(relay.status())
 	_log("STATUS %.0f MB; %s" % [mem, "; ".join(parts)])
 
 
 ## Closes every lobby, telling everyone why (the service is stopping).
 func close_all(why := "THE SERVER IS RESTARTING") -> void:
+	if relay != null:
+		relay.close_all(why)
 	for room in rooms:
 		room.net.leave(why)
 	for room in rooms:

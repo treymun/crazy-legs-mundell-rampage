@@ -106,6 +106,9 @@ static func _tap_servers(main: MainInput, id: String, arg: int) -> void:
 
 
 static func _tap_lobby(main: MainInput, id: String, arg: int) -> void:
+	if id == "copy":
+		main.key(KEY_C)
+		return
 	var list := LobbyScreens.rows(main.net)
 	if id == "kick_left" or id == "kick_right":
 		main.lobby_row = list.find("kick")
@@ -396,7 +399,11 @@ static func key_lobby(main: MainInput, code: int) -> void:
 	elif code == KEY_C and host:
 		var lines := LobbyScreens.reach_lines(main.net)
 		var at := str(lines[0]).find("JOIN CODE ")
-		if at >= 0:
+		var link := main.net.party_line()
+		if link != null and link.state == "open":
+			DisplayServer.clipboard_set(link.code)
+			main.net_note = "PARTY LINE CODE COPIED. SEND IT TO YOUR FRIENDS."
+		elif at >= 0:
 			DisplayServer.clipboard_set(str(lines[0]).substr(at + 10, 11))
 			main.net_note = "JOIN CODE COPIED. SEND IT TO YOUR FRIENDS."
 		else:

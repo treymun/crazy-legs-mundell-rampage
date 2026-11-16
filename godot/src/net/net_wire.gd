@@ -43,6 +43,9 @@ const BYE := 9
 const INFO := 10
 ## COUNTY RUN's daily board (county_board.gd): a post or an ask, and the board.
 const BOARD := 11
+## The party line's own kinds start here (net_relay.gd): a game packet's
+## first byte stays below it.
+const RELAY_FIRST := 0xF0
 const NO_BASE := 0xFFFFFFFF
 const CONTROL_BYTES := 14
 ## Inputs carried again in each INPUTS packet until confirmed.

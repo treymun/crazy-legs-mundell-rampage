@@ -624,7 +624,8 @@ card picks held the world.
 the how-to. The 5v5 rules themselves are in
 [modes.md](modes.md#the-5v5-round-modes).
 
-- `NetPlay.host_lobby` / `join_lobby`; the front end polls it every frame
+- `NetPlay.host_lobby` / `join_lobby` (a party line code or an address); the
+  front end hosts with the party line on; the front end polls it every frame
   (`main.gd _net_frame`) and acts on `take_changes()` (a match began, back to
   the lobby, a bot or a person took a slot).
 - HELLO carries name, password and version (refused: wrong password, another
@@ -650,7 +651,10 @@ the how-to. The 5v5 rules themselves are in
   newcomer takes the bot's slot on the team with fewer people. ESC asks
   before leaving; nobody pauses or saves.
 - The router is asked for the port by UPnP on a thread; the join code is the
-  outside IPv4 and port in ten characters (`NetPlay.to_code`). ENet peers wait
+  outside IPv4 and port in ten characters (`NetPlay.to_code`). The lobby's
+  first line is the party line's code when it has one (C or a tap copies it),
+  the second how the router answered; a player sees whether they came by the
+  line or straight in. ENet peers wait
   `NetSession.PATIENCE_MS` of silence before giving up (a machine loading a
   map stalls).
 - Play that reads `game.local_player` must not change anything carried: the
@@ -685,6 +689,85 @@ the how-to. The 5v5 rules themselves are in
   `range` in it is answered by `RangeBoard.answer` from
   `user://range-board.json` ([gameplay.md](gameplay.md#the-ranges-records-and-board));
   `tools/games_check.gd` knocks on a lobby server for it over ENet.
+
+### The party line (the relay)
+
+`src/net/net_relay.gd` (`NetRelay`, in the lobby server), `src/net/relay_link.gd`
+(`RelayLink`, a `NetSession`, the far end); players' how-to in
+`docs/online.md`. Anyone hosts from the menu with no port opened, behind
+CGNAT, or in the browser: the host's game still plays the one real game, the
+party line only passes bytes between it and its players.
+
+- **Where it runs.** `server/lobbies.json`'s `"relay"` (any of
+  `NetRelay.DEFAULTS`) turns it on in `LobbyServer`, on the lobbies' own ports:
+  `relay.tap(session)` for each lobby's ENet and WebSocket session. A packet
+  whose first byte is `NetWire.RELAY_FIRST` (0xF0) or more goes to the line
+  (`NetSession.poll`); a peer that opens, joins or looks for a room is then the
+  line's (`NetSession.claim`): the lobby never sees its packets, its leaving,
+  its drop or its share of a broadcast. So no new port or firewall rule, and
+  the browser reaches it over the wss it already has. Rooms are process-wide:
+  a room opened on one port is joined from any of them, ENet or WebSocket.
+  `NetRelay.listen(port)` gives it a port of its own (the check).
+- **The game finds it** in `data/tuning/servers.json`: the first server marked
+  `"relay": true` (its address and port, the browser its `wss`).
+  `RelayLink.server` overrides it; a tool script never reaches the real one
+  unless it sets that (`RelayLink.where`).
+- **Packets** (the table is at the top of net_relay.gd): controls are
+  `NetWire.message` dictionaries (OPEN, ROOM, LOOK, FOUND, JOIN, IN, PEER, KICK,
+  NEWS, LIST, STAT, GONE). A player's game packets go as they are (the line
+  knows their room) and reach the host as `FROM` + id (u32) + the bytes; the
+  host's go as `TO` + channel + id (0 everyone) + the bytes and reach the
+  player as the host sent them, on that channel. ENet's own channel and
+  reliability are kept (a WebSocket's are all reliable). The line reads only
+  the first byte of a game packet: a new game packet kind needs nothing here,
+  only that its first byte stays under 0xF0.
+- **Codes.** Three letters with no vowels (no words) and three digits,
+  `HKP-427` (`NetRelay.clean_code` reads `hkp427` too); a 10-character join
+  code is still the host's own address, not the line.
+- **The API for a mode** (NETMODES builds co-op and deathmatch on it): host
+  with `NetPlay.host_lobby(port, name, lobby, router, bind, true)` (the last
+  `party_line`): the desktop's own ENet session gets the room as its `also`
+  (the line's players are ids past `ALSO_IDS`, beside direct ones); the
+  browser's session is the room itself. Join with `NetPlay.join_lobby(code,
+  ...)`. Below NetPlay: `RelayLink.open_room(info)` (`state` "open", `code`),
+  `RelayLink.join_room(code, may_look)`, `RelayLink.ask_rooms()` (`rooms`),
+  then the ordinary NetSession calls (`send`, `poll`, `take_events`, `drop`,
+  `connected`, `refusal()` for why it was turned away or lost, `extra_ms()` the
+  host's own trip for the ping, `via()` "line" or "direct"). `news(info)`
+  tells the line the lobby changed (NetPlay does it in `send_lobby` and when
+  the router answers). Nothing in the line knows a mode, a map or a snapshot.
+- **Straight to the host when it can.** A desktop player asks the line where
+  the host is first (LOOK): the host's home addresses when both come from one
+  outside address, else its outside address when its router opened the port
+  (`NetPlay.room_info`: `port`, `open`, `lan`). It tries those for
+  `RelayLink.DIRECT_WAIT` (3 s), keeps the first that answers (`state`
+  "direct": a plain line to the host, the line hung up) and otherwise joins
+  through the line. The browser (WebSocket) joins through the line at once.
+- **Limits** (`NetRelay.DEFAULTS`, all in lobbies.json): 24 rooms, 4 from one
+  outside address, 15 players a room, 1,000,000 bytes a second a room both ways (over it only reliable
+  packets pass and the line logs it once; ten seconds over twice it shuts the
+  room), a room nobody is in closes after 30 minutes, packets over 256 KB are
+  dropped, someone who only looked is let go after 10 s, 64 ENet peers each
+  port for the line. The host leaving or timing out (ENet, 15 s of silence)
+  closes the room and tells its players (GONE "THE HOST HUNG UP"). The log
+  has each room's opening and closing (minutes, joins, bytes each way,
+  dropped) and a status part (rooms, players, bytes and packets a second).
+  While a room has players the server runs at `MATCH_FPS` (120), and the line
+  flushes every session after the frame (`NetSession.flush`), so a packet
+  waits for the next frame at most once each way.
+- **Costs**, measured on the owner's PC (`tools/relay_check.gd`, others' work
+  running): the line in process, polled flat out, adds about 0.07 ms to a
+  round trip; at 120 frames a second it adds 9 to 11 ms median (13 to 14 p95),
+  half a frame each way on average, on top of the trip to the server and
+  back. A 3v3 with two players through it: up 3.0 KB/s and down 21 to 24 KB/s
+  a player (payload; the line's header is 5 bytes a packet up, 6 down); a
+  5v5 on Grain Co-op with three people and seven bots (`relay_check --
+  team=5 map=grainyard seconds=60`) up 3.0 and down 27 KB/s a player, about
+  85 packets a second each, so a full room of nine is about 250 KB/s
+  through the server. One forwarded packet is a dictionary lookup and a
+  slice.
+- **Not checked:** two real homes through the VPS, CGNAT, a phone, the browser
+  build hosting in a real page, the VPS's CPU with full rooms.
 
 ### The multiplayer menus
 
@@ -721,7 +804,9 @@ These are UiScreens now (`OnlineScreen`, a `ZonedScreen`; see
   and asks each every `ASK_EVERY` seconds with an INFO knock (connect,
   `NetWire.INFO`, `NetPlay.summary()` back, hang up; `_info` never seats
   anyone; a served lobby has 6 spare ENet peers for them); ENTER joins through
-  `net_join` like the JOIN form.
+  `net_join` like the JOIN form. The party line's listed rooms (no password)
+  follow the servers, asked with a LIST knock as often; the list shows three
+  rows at a time and scrolls with the cursor.
 
 ### Still open
 

@@ -96,6 +96,11 @@ static func parse_smoke(m: MainState) -> void:
 			m.online_args["map"] = text.substr(13)
 		elif text == "--online-bot":
 			m.online_args["bot"] = true
+		elif text.begins_with("--party-line="):
+			# Another party line than servers.json's (a lobby server on this PC).
+			var at := NetPlay.parse_address(text.substr(13))
+			if not at.is_empty():
+				RelayLink.server = {"host": at["host"], "port": at["port"]}
 		elif text.begins_with("--smoke-screen="):
 			# A front-end screen instead of a level: title, setup, controls,
 			# credits, replays or slots; "setup:3" opens the fourth settings page

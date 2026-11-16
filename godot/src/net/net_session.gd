@@ -50,6 +50,13 @@ var peer: MultiplayerPeer = null
 var also: NetSession = null
 var transport := Transport.ENET
 var hosting := false
+## The party line (net_relay.gd) sharing this session's port: it is handed
+## every packet whose first byte is NetWire.RELAY_FIRST or more and everything
+## from a peer it claimed (`claim`), and those peers are left out of this
+## session's broadcasts, drops and events. `tap_slot` is its number for them.
+var tap: NetRelay = null
+var tap_slot := 0
+var _claimed := {}
 ## Test conditions on what this side sends.
 var lag_ms := 0.0
 var jitter_ms := 0.0
@@ -99,22 +106,28 @@ static func host(
 ## says when it is through).
 static func join(address: String, port := PORT, kind := Transport.ENET) -> NetSession:
 	var s := NetSession.new()
-	s.transport = kind
+	return s if s.dial(address, port, kind) else null
+
+
+## Starts this session connecting to `address` (join(); a RelayLink's own).
+func dial(address: String, port := PORT, kind := Transport.ENET) -> bool:
+	transport = kind
 	var err := ERR_UNAVAILABLE
 	if kind == Transport.ENET:
 		var enet := ENetMultiplayerPeer.new()
 		err = enet.create_client(address, port, CHANNELS)
-		s.peer = enet
+		peer = enet
 	else:
 		var ws := _websocket()
 		# A whole address ("wss://host:443": the browser build to a lobby server).
 		var url := address if address.contains("://") else "ws://%s:%d" % [address, port]
 		err = ws.create_client(url)
-		s.peer = ws
+		peer = ws
 	if err != OK:
-		return null
-	s._wire()
-	return s
+		peer = null
+		return false
+	_wire()
+	return true
 
 
 func _wire() -> void:
@@ -127,8 +140,12 @@ func _wire() -> void:
 	)
 	peer.peer_disconnected.connect(
 		func(id: int) -> void:
-			left.append(id)
 			_peers.erase(id)
+			if _claimed.has(id):
+				_claimed.erase(id)
+				tap.gone(self, id)
+			else:
+				left.append(id)
 	)
 
 
@@ -159,6 +176,49 @@ func id() -> int:
 	return peer.get_unique_id() if peer != null else 0
 
 
+## Why this session was turned away before it was through ("" not): a
+## RelayLink's refusal (no such code, the party line full).
+func refusal() -> String:
+	return ""
+
+
+## Milliseconds the far side adds past this link's own round trip (a
+## RelayLink: the host's trip to the party line).
+func extra_ms() -> float:
+	return 0.0
+
+
+## Round trip to peer `to` in ms (-1: not known, a WebSocket).
+func rtt(to: int) -> float:
+	if peer is ENetMultiplayerPeer:
+		var other := (peer as ENetMultiplayerPeer).get_peer(to)
+		if other != null:
+			return other.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)
+	return -1.0
+
+
+## Peer `to`'s address as this side sees it ("" not known).
+func address_of(to: int) -> String:
+	if peer is ENetMultiplayerPeer:
+		var other := (peer as ENetMultiplayerPeer).get_peer(to)
+		return other.get_remote_address() if other != null else ""
+	if peer is WebSocketMultiplayerPeer and _peers.has(to):
+		return (peer as WebSocketMultiplayerPeer).get_peer_address(to)
+	return ""
+
+
+## The party line takes peer `to` as its own (or gives it back).
+func claim(to: int, on := true) -> void:
+	if on:
+		_claimed[to] = true
+	else:
+		_claimed.erase(to)
+
+
+func claimed(to: int) -> bool:
+	return _claimed.has(to)
+
+
 ## [joined, left] since the last call.
 func take_events() -> Array:
 	var out := [joined.duplicate(), left.duplicate()]
@@ -181,6 +241,12 @@ func send(to: int, channel: int, bytes: PackedByteArray) -> void:
 		if to != 0:
 			return
 	if peer == null:
+		return
+	if to == 0 and not _claimed.is_empty():
+		# The party line's peers hear nothing of this session's own.
+		for other: int in _peers.keys():
+			if not _claimed.has(other):
+				send(other, channel, bytes)
 		return
 	# A WebSocket is TCP underneath: everything arrives, in order.
 	var reliable := (
@@ -208,6 +274,11 @@ func send(to: int, channel: int, bytes: PackedByteArray) -> void:
 func _put(to: int, channel: int, reliable: bool, bytes: PackedByteArray) -> void:
 	if peer == null or (to != 0 and not _peers.has(to)):
 		return  # gone meanwhile (a packet the test's lag held back)
+	if hosting and to != 0 and peer is ENetMultiplayerPeer:
+		# Hanging up already (its goodbye not yet polled): ENet refuses it.
+		var other := (peer as ENetMultiplayerPeer).get_peer(to)
+		if other == null or other.get_state() != ENetPacketPeer.STATE_CONNECTED:
+			return
 	peer.set_target_peer(to)
 	if transport == Transport.ENET:
 		peer.transfer_channel = channel
@@ -244,9 +315,16 @@ func poll(now_ms: float) -> Array:
 	var out: Array = []
 	while peer.get_available_packet_count() > 0:
 		var from := peer.get_packet_peer()
+		var channel := peer.get_packet_channel() if tap != null else 0
 		var bytes := peer.get_packet()
 		received += bytes.size()
 		received_packets += 1
+		if (
+			tap != null
+			and (_claimed.has(from) or (not bytes.is_empty() and bytes[0] >= NetWire.RELAY_FIRST))
+		):
+			tap.take(self, from, bytes, channel)
+			continue
 		out.append([from, bytes])
 	if also != null:
 		for packet: Array in also.poll(now_ms):
@@ -260,10 +338,29 @@ func drop(id: int) -> void:
 	if also != null and id >= ALSO_IDS:
 		also.drop(id - ALSO_IDS)
 		return
+	if _claimed.has(id):
+		return  # the party line's (it lets its own go: cut())
 	# (A server list's knock may have hung up first: only a peer still here.)
 	if peer != null and hosting and _peers.has(id):
 		peer.disconnect_peer(id)
 	_peers.erase(id)
+
+
+## The party line letting one of its peers go (its goodbye had its time).
+func cut(id: int) -> void:
+	if peer != null and hosting and _peers.has(id):
+		peer.disconnect_peer(id)
+
+
+## Sends what was put out this frame now, not at the next poll (the party
+## line forwards into other sessions than the one it read from).
+func flush() -> void:
+	if peer is ENetMultiplayerPeer:
+		var host_of := (peer as ENetMultiplayerPeer).host
+		if host_of != null:
+			host_of.flush()
+	elif peer != null:
+		peer.poll()
 
 
 func close() -> void:

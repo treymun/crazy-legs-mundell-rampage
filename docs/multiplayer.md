@@ -71,13 +71,14 @@ replication): `NetSession` hides which one.
 | Platform | Transport | Notes |
 | --- | --- | --- |
 | Windows, Linux, macOS | ENet (UDP) | Channels: reliable (hello, welcome, big snapshots), inputs (unreliable), small snapshots (unreliable). A host listening on all addresses may meet the system firewall's prompt the first time. |
-| Android | ENet (UDP) | The same build; needs the INTERNET permission in the export preset (not set yet). A phone on mobile data is behind carrier NAT: it can join, not host, without a relay. |
+| Android | ENet (UDP) | The same build; needs the INTERNET permission in the export preset (not set yet). A phone on mobile data is behind carrier NAT: it hosts through the party line (the relay in the lobby server). |
 | Browser (full build) | WebSocket (TCP) now; WebRTC later | A browser cannot open a UDP socket or listen. WebSocket works today against a host on a desktop or a server (`websocket` in the loopback test), but TCP holds everything up behind a lost packet. WebRTC data channels (unreliable, unordered) are the real browser transport: `WebRTCMultiplayerPeer`, same API, but they need a signalling server to meet and STUN/TURN for NAT. |
 | Browser (lite build) | WebSocket | The lite build has no threads (`variant/thread_support=false`): one core for the game, the view and the network. It can be a client; it should never host. |
 
 A browser page served over HTTPS may only open `wss://` (TLS) WebSockets, so a
 host for browser players needs a certificate (a dedicated server does; a
-player's desktop does not have one): another reason for a relay or server.
+player's desktop does not have one): the party line (the relay in the lobby
+server) is how a browser hosts or joins a player's game.
 
 ## Tests
 
@@ -117,11 +118,10 @@ slot, UPnP, shots judged where the shooter saw them, the aim drawn at once.
   joining mid-chapter (a whole snapshot, then deltas: the protocol already
   does this), leaving and timing out (the host keeps the slot; the co-op
   rules decide what happens to the body).
-- **NAT and relay:** most players are behind NAT. Options: a relay server
-  that forwards packets (simplest, always works, costs a server), UDP hole
-  punching through a meeting server for ENet, or WebRTC with STUN and a TURN
-  fallback (which is a relay). A dedicated server build (headless, the
-  host work) avoids the problem for anyone who runs one.
+- **NAT and relay:** most players are behind NAT. Done in pass 7 as a relay
+  in the lobby server, THE PARTY LINE (docs/dev/multiplayer.md): a host
+  gets a short code, players join through the server, or straight to the
+  host when its port answers. UDP hole punching and WebRTC are not done.
 - **Interpolation and prediction:** today the client's copy is the host's
   game some 100 to 200 ms ago. The local player should be predicted: play
   their own inputs on the copy at once, and when a snapshot arrives, put it
