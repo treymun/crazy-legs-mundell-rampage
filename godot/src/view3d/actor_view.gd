@@ -15,8 +15,9 @@ const HEADINGS: Array[String] = ["quarter_", "side_", "away_", "back_"]
 ## picture a quarter of the body's height, and the model lying in full, its
 ## belly and boots up, read as a heap.
 const FLAT := .5
-## Steps a ragdoll first seen long dead takes at once (it starts lying).
-const SETTLE := 40
+## Steps a ragdoll first seen long dead takes at once (it starts lying, from
+## the model's own body at rest), after which it lies still: no hitch, no stir.
+const SETTLE := 20
 
 ## The model's kind (actors.json, actor3d_<kind> looks).
 @export var kind := ""
@@ -144,7 +145,7 @@ func _flop(e: Enemy, level: LevelData, clock: float, at: Vector3) -> void:
 			doll.knock(e, dice)
 		else:
 			# Lying already: a few steps fit it to the floor, the rest as it is drawn.
-			doll.settle(level, SETTLE)
+			doll.settle(level, SETTLE, true)
 		_doll_clock = clock
 		_posed = -1
 	var dt := clampf(clock - _doll_clock, 0.0, .1)

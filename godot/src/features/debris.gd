@@ -16,6 +16,10 @@ extends GameFeature
 const MAX_BITS := 90
 ## Seconds a scorch takes to fade out once its time is up.
 const FADE := 2.5
+## A shell's roundness against its height (its picture's), for its roll, and
+## seconds a shell come to rest takes to roll the rest of the way flat.
+const ROLL_R := .3
+const ROLL_FLAT := .25
 
 
 ## One piece of debris in the air or on the ground.
@@ -28,6 +32,11 @@ class Bit:
 	## Turned over (View.Sprite.spin) and how fast it turns in the air.
 	var spin := 0.0
 	var spin_rate := 0.0
+	## Its age when it came onto its floor for good (below 0: in the air) and
+	## when it came to rest; how far it has turned rolling about its length.
+	var landed := -1.0
+	var rested := -1.0
+	var roll := 0.0
 
 
 var dice := RandomNumberGenerator.new()
@@ -238,18 +247,20 @@ func _shell(bit: Bit, dt: float) -> void:
 		game.sound_at("casing_tink", bit.x, bit.y, .22 if casing else .12)
 	elif hit & Tumble.WALL:
 		bit.spin_rate *= -.7
+	# On its floor (rolling or still) the 3D view eases it over onto its side
+	# from the turn it came down at (its spin then, kept) and rolls it about
+	# its length by its run; off the floor again (a bounce) it tumbles anew.
+	if bit.vz != 0.0:
+		bit.landed = -1.0
+		bit.spin += bit.spin_rate * dt
+	elif bit.landed < 0.0:
+		bit.landed = bit.age
 	if hit & Tumble.RESTED:
 		bit.rest = true
-		# It lies along the floor (the pictures lie flat), one end or the other.
-		bit.spin = roundf(bit.spin / PI) * PI
+		bit.rested = bit.age
 	elif bit.vz == 0.0:
-		# Rolling about its length on the floor: it drops flat and rolls on,
-		# a little wobble with the run.
 		var run := Vector2(bit.x - ox, bit.y - oy).length()
-		var flat := roundf(bit.spin / PI) * PI
-		bit.spin = lerpf(bit.spin, flat, minf(1.0, dt * 14.0)) + sin(bit.age * 40.0) * run * 2.0
-	else:
-		bit.spin += bit.spin_rate * dt
+		bit.roll += run / (bit.size * ROLL_R) * signf(bit.spin_rate + .001)
 
 
 ## One resting shell a tick is asked whether it still has a floor under it.
@@ -327,8 +338,16 @@ func sprites() -> Array:
 		s.glow = bit.kind == "ember"
 		s.translucent = bit.kind == "smoke"
 		s.spin = bit.spin
-		# On the floor (rolling or still) the 3D view lays a shell flat.
+		# On the floor (rolling or still) the 3D view lays a shell on its side,
+		# easing over onto it (settle) and rolling, flat once it rests.
 		s.lying = bit.rest or (bit.vz == 0.0 and (bit.kind == "casing" or bit.kind == "hull"))
+		if s.lying:
+			s.settle = minf(bit.age - bit.landed, View.SETTLED) if bit.landed >= 0.0 else View.SETTLED
+			s.roll = bit.roll
+			if bit.rest:
+				var flat := roundf(bit.roll / PI) * PI
+				var done := smoothstep(0.0, ROLL_FLAT, bit.age - bit.rested)
+				s.roll = lerpf(bit.roll, flat, done)
 		out.append(s)
 	return out
 

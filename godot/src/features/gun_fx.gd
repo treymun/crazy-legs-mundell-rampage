@@ -64,6 +64,8 @@ class Bit:
 	var gravity := 0.0
 	var rest := false
 	var trail := 0.0
+	## Its age when it came to rest (the 3D view settles it onto a face).
+	var landed := -1.0
 
 
 var dice := RandomNumberGenerator.new()
@@ -425,6 +427,7 @@ func _tick(dt: float) -> void:
 				bit.vy *= .5
 			else:
 				bit.rest = true
+				bit.landed = bit.age
 	bits = kept
 	if bits.size() > MAX_BITS:
 		bits = bits.slice(bits.size() - MAX_BITS)
@@ -573,9 +576,14 @@ func sprites() -> Array:
 		if TUMBLES.has(bit.kind):
 			# The 3D view tumbles it in the air, by where it is (nothing kept),
 			# and lays it flat on the floor.
+			# Come to rest it eases over onto a face from the turn it came down
+			# at (the same sum where it lies).
 			s.lying = bit.rest or bit.vz == 0.0
-			if not s.lying:
-				s.spin = (bit.x * 3.7 - bit.y * 2.9 + bit.z * 5.3) * .3 / maxf(.03, bit.size)
+			s.spin = (bit.x * 3.7 - bit.y * 2.9 + bit.z * 5.3) * .3 / maxf(.03, bit.size)
+			if s.lying:
+				s.settle = View.SETTLED
+				if bit.rest and bit.landed >= 0.0:
+					s.settle = minf(bit.age - bit.landed, View.SETTLED)
 		out.append(s)
 	for hit: Array in hits:
 		var hx: float = hit[0]

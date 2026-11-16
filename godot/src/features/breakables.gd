@@ -88,6 +88,10 @@ class Bit:
 	var roll := 0.0
 	## Its picture once it lies still (made once, drawn from then on).
 	var sprite: View.Sprite = null
+	## When it came onto its floor (game.clock; below 0: in the air) and how
+	## it was turned then: how the 3D view settles it (looks, never carried).
+	var landed := -1.0
+	var spin0 := 0.0
 
 
 ## A side of a block of bits lying still, in cells: a frame asks the view about
@@ -690,6 +694,12 @@ func _tick(dt: float) -> void:
 		var ox := b.x
 		var oy := b.y
 		var hit := Tumble.step(game.world, b, _feel(b.image), dt)
+		# When it came down and how it was turned (looks only, never carried).
+		if b.vz != 0.0:
+			b.landed = -1.0
+		elif b.landed < 0.0:
+			b.landed = game.clock
+			b.spin0 = _turn(b)
 		if hit & Tumble.RESTED:
 			b.rest = true
 			_resting_dirty = true
@@ -712,17 +722,21 @@ func sprites() -> Array:
 			var in_block: Array = block[3]
 			out.append_array(in_block)
 	for b: Bit in bits:
-		if not b.rest and game.in_view(b.x, b.y, b.size + .2):
+		if b.rest:
+			# Just come to rest: its settle goes on (then it lies still).
+			if b.sprite != null and b.sprite.settle < View.SETTLED:
+				_settling(b, b.sprite)
+			continue
+		if game.in_view(b.x, b.y, b.size + .2):
 			var s: View.Sprite = game.pooled(b.x, b.y, b.image, b.size, b.z)
 			s.flip = b.flip
 			if b.vz != 0.0:
 				# In the air it turns over as it goes, faster the smaller it is:
 				# worked out from where it is (looks only, nothing kept).
-				var turn := (b.x * 3.7 - b.y * 2.9 + b.z * 5.3) * .35 / maxf(.03, b.size)
-				s.spin = -turn if b.flip else turn
+				s.spin = _turn(b)
 			else:
-				# Rolling on the floor: the 3D view lays it flat.
-				s.lying = true
+				# Rolling on the floor: the 3D view eases it over onto a face.
+				_settling(b, s)
 			out.append(s)
 	for w: Array in wrecks:
 		var wx: float = w[0]
@@ -731,6 +745,23 @@ func sprites() -> Array:
 			var tall: float = w[3]
 			out.append(game.pooled(wx, wy, str(w[2]), tall, game.world.elevation(wx, wy)))
 	return out
+
+
+## How far a bit in the air is turned over, faster the smaller it is: worked
+## out from where it is (looks only, nothing kept).
+static func _turn(b: Bit) -> float:
+	var turn := (b.x * 3.7 - b.y * 2.9 + b.z * 5.3) * .35 / maxf(.03, b.size)
+	return -turn if b.flip else turn
+
+
+## A bit on its floor as the 3D view lays it: easing over onto a face from
+## the turn it came down at, for as long as it has been down (game.clock).
+func _settling(b: Bit, s: View.Sprite) -> void:
+	s.lying = true
+	s.spin = b.spin0
+	s.settle = View.SETTLED
+	if b.landed >= 0.0:
+		s.settle = clampf(game.clock - b.landed, 0.0, View.SETTLED)
 
 
 func _sort_resting() -> void:
@@ -746,6 +777,7 @@ func _sort_resting() -> void:
 		b.sprite.x = b.x
 		b.sprite.y = b.y
 		b.sprite.z = b.z
+		_settling(b, b.sprite)
 		var key := Vector2i(floori(b.x / BLOCK), floori(b.y / BLOCK))
 		if not by_key.has(key):
 			by_key[key] = []

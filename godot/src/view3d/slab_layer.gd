@@ -40,7 +40,15 @@ const PITCH := .7
 const PITCH_FROM := .9
 ## How far a lying thing is propped up off flat: from x, up to x + y radians,
 ## by its place.
-const PROP := Vector2(.05, .35)
+const PROP := Vector2(.1, .35)
+## Coming to its floor: seconds to ease from the tumble to lying, and the
+## rock after (radians at first, radians a second, how fast it dies, and
+## when it is over).
+const SETTLE := .28
+const ROCK := .3
+const ROCK_RATE := 21.0
+const ROCK_DAMP := 6.5
+const ROCK_TIME := .9
 
 var models: SlabModels
 var material: ShaderMaterial
@@ -131,24 +139,60 @@ func _loose(s: View.Sprite) -> Transform3D:
 	if not _boxes.has(s.image):
 		box = models.mesh(s.image).get_aabb()
 		_boxes[s.image] = box
-	var heading := s.x * HEADING.x + s.y * HEADING.y
-	var basis := Basis(Vector3.UP, heading)
-	if s.lying:
-		# Flat, or propped a little on something under one end (a lump lies
-		# so): the picture still reads from a standing eye.
-		var prop := PROP.x + PROP.y * fposmod(heading * .618, 1.0)
-		basis = basis * Basis(Vector3.RIGHT, prop - PI * .5)
-		if s.flip:
-			basis = basis * Basis(Vector3.UP, PI)
-	else:
-		basis = (
-			basis * Basis(Vector3.RIGHT, s.spin * PITCH + PITCH_FROM) * Basis(Vector3.BACK, s.spin)
-		)
+	var basis := turn_of(s)
 	var half := box.size * .5 * s.height
 	var low := absf(basis.x.y) * half.x + absf(basis.y.y) * half.y + absf(basis.z.y) * half.z
 	var middle := basis * (box.get_center() * s.height)
 	var at := Vector3(s.x, s.z + low, s.y) - middle
 	return Transform3D(basis.scaled(Vector3.ONE * s.height), at)
+
+
+## How a loose thing's slab is turned (view axes, y up): tumbling in the air
+## by its `spin`, settling onto its floor or lying there.
+static func turn_of(s: View.Sprite) -> Basis:
+	var heading := s.x * HEADING.x + s.y * HEADING.y
+	var basis := Basis(Vector3.UP, heading)
+	var air := (
+		basis * Basis(Vector3.RIGHT, s.spin * PITCH + PITCH_FROM) * Basis(Vector3.BACK, s.spin)
+	)
+	if not s.lying:
+		return air
+	if s.settle >= 0.0:
+		return settled(air, heading, s.settle, s.roll)
+	# Flat, or propped a little on something under one end (a lump lies so):
+	# the picture still reads from a standing eye.
+	var prop := PROP.x + PROP.y * fposmod(heading * .618, 1.0)
+	basis = basis * Basis(Vector3.RIGHT, prop - PI * .5)
+	if s.flip:
+		basis = basis * Basis(Vector3.UP, PI)
+	return basis
+
+
+## A loose thing `since` seconds on its floor (View.Sprite.settle) that was
+## turned `air` as it came down: it eases over onto the face nearer the
+## floor in SETTLE (no snap), turned about the floor's normal no more than it
+## must, and rocks a little on it, less each time (ROCK); `roll` turns a
+## round thing (a shell) about its length as it rolls. At rest it lies flat
+## or propped on one end by its place (PROP), as before, the same each frame.
+static func settled(air: Basis, heading: float, since: float, roll: float) -> Basis:
+	var down := air.z.y < 0.0
+	var along := -air.x if down else air.x
+	var yaw := heading
+	if Vector2(along.x, along.z).length() > .2:
+		yaw = atan2(-along.z, along.x)
+	# (By a smooth function of its place: one rolling props up smoothly.)
+	var prop := PROP.x + PROP.y * (.5 + .5 * sin(heading * 3.9))
+	var lie := Basis(Vector3.UP, yaw) * Basis(Vector3.RIGHT, prop - PI * .5)
+	if down:
+		lie = lie * Basis(Vector3.UP, PI)
+	if roll != 0.0:
+		lie = lie * Basis(Vector3.RIGHT, roll)
+	if since >= ROCK_TIME:
+		return lie
+	var w := smoothstep(0.0, SETTLE, since)
+	var out := air.slerp(lie, w) if w < 1.0 else lie
+	var rock := ROCK * exp(-since * ROCK_DAMP) * sin(since * ROCK_RATE)
+	return Basis(lie.x.normalized(), rock) * out
 
 
 ## A target on its stand, and its swinging part when it has one.

@@ -19,8 +19,9 @@ const DT := 1.0 / 60.0
 const TOL := .03
 ## view3d_check's: no part of a body at rest higher than this of its height.
 const DOWN_HIGH := .5
-## No part of a ragdoll at rest deeper in the floor than this (map units).
-const SINK := .07
+## No part of a ragdoll at rest deeper in the floor than this (map units): the
+## model's own shape is kept out of it (RagdollRig.hull), not only its balls.
+const SINK := .01
 
 var check: SceneTree
 var rig: RagdollRig

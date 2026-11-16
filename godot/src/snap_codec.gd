@@ -70,6 +70,10 @@ const SKIP_FIELDS := {
 	# and when HEADSHOT! was last called (this machine's callouts).
 	"critters": ["speck_dice"],
 	"hit_reads": ["speck_dice", "_call_at"],
+	# When a hat, a gun or a bit came down and how it was turned: only how
+	# the 3D view settles it (each machine its own).
+	"hit_reads.Bit": ["landed", "spin0"],
+	"breakables.Bit": ["landed", "spin0"],
 }
 ## Classes of which a snapshot carries only these fields: things a level
 ## makes the same on every machine (a window, a fence cell, a breakable

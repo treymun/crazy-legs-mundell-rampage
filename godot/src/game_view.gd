@@ -445,7 +445,10 @@ func sprites() -> Array:
 		var chunk := pooled(g.x, g.y, g.image, g.size, g.z)
 		chunk.flip = g.flip
 		chunk.spin = g.spin
-		chunk.lying = g.rest or g.vz == 0.0
+		# Rolling it turns over by its run; at rest it settles onto a face.
+		chunk.lying = g.rest
+		if g.rest:
+			chunk.settle = minf(g.age, View.SETTLED)
 		sprites.append(chunk)
 	var blast_order: Array = []
 	for blast: Blast in blasts:

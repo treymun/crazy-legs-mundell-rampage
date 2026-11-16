@@ -56,6 +56,10 @@ class Bit:
 	var owner: Enemy = null
 	var start := Vector3.ZERO
 	var land := Vector3.ZERO
+	## Its age when it came onto its floor (looks: the 3D view settles it
+	## onto a face from the turn it came down at, `spin0`; never carried).
+	var landed := -1.0
+	var spin0 := 0.0
 
 
 var dice := RandomNumberGenerator.new()
@@ -241,7 +245,10 @@ func _tick(dt: float) -> void:
 		var hit := Tumble.step(game.world, b, _feel, dt)
 		if hit & Tumble.RESTED:
 			b.rest = true
-		if b.vz != 0.0:
+		if b.vz == 0.0:
+			_landed(b)
+		else:
+			b.landed = -1.0
 			# Turning over as it flies.
 			b.turn += dt
 			if b.turn > .09:
@@ -264,6 +271,7 @@ func _fly(b: Bit, dt: float) -> void:
 			b.flip = not b.flip
 	elif not b.rest:
 		b.rest = true
+		_landed(b)
 		game.sound_at("tnt_bounce", b.x, b.y, .5)
 
 
@@ -279,7 +287,25 @@ func sprites() -> Array:
 		# The 3D view tumbles it in the air, by where it is (nothing kept), and
 		# lays it flat where it lies.
 		s.lying = b.rest or (b.owner == null and b.vz == 0.0)
-		if not s.lying:
-			s.spin = (b.x * 3.7 - b.y * 2.9 + b.z * 5.3) * .3 / maxf(.03, b.size)
+		s.spin = _spin(b)
+		if s.lying:
+			# Come down: it eases over onto a face from the turn it came down
+			# at and slides on so.
+			s.settle = View.SETTLED
+			if b.landed >= 0.0:
+				s.spin = b.spin0
+				s.settle = clampf(b.age - b.landed, 0.0, View.SETTLED)
 		out.append(s)
 	return out
+
+
+## How far a bit is turned over, worked out from where it is (nothing kept).
+static func _spin(b: Bit) -> float:
+	return (b.x * 3.7 - b.y * 2.9 + b.z * 5.3) * .3 / maxf(.03, b.size)
+
+
+## Its floor reached: when, and the turn it came down at (looks only).
+static func _landed(b: Bit) -> void:
+	if b.landed < 0.0:
+		b.landed = b.age
+		b.spin0 = _spin(b)

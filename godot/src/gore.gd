@@ -361,9 +361,10 @@ func tick(dt: float) -> void:
 		var oy := g.y
 		var hit := Tumble.step(game.world, g, _feel(g.size), dt)
 		if hit & Tumble.RESTED:
+			# It comes to lie on one face or the other: the 3D view eases it
+			# over from the turn it stopped at (kept), by its age at rest.
 			g.rest = true
-			# It comes to lie flat, one way up or the other.
-			g.spin = roundf(g.spin / PI) * PI
+			g.age = 0.0
 		if hit & Tumble.FLOOR:
 			# Each bounce takes the most of its spin.
 			g.spin_rate *= -.45

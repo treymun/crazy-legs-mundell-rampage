@@ -21,6 +21,9 @@ extends SceneTree
 const PhysicsRagdolls := preload("res://tools/physics_ragdolls.gd")
 const DT := 1.0 / 60.0
 const TOL := .03
+## The most a loose thing's slab may turn in a tick once it is on its floor
+## (radians): it eases over and rocks, never snaps flat.
+const SNAP := .35
 const LEVELS := ["hickston", "feedstore", "quarry", "sawmill", "county_hickston", "mothership"]
 
 var failures: Array = []
@@ -133,6 +136,21 @@ func _inside(world: LevelData, b: Variant, feel: Tumble.Feel) -> bool:
 
 
 ## Whether a body lies on the floor really under it, within TOL.
+## A loose thing's slab turned as the 3D view turns it (SlabLayer3D.turn_of)
+## at (x, y) turned `spin`, lying or not, `settle` seconds on its floor.
+func _slab_turn(x: float, y: float, spin: float, lying: bool, settle: float) -> Basis:
+	var s := View.Sprite.new(x, y, "fx_casing", .05, 0.0)
+	s.spin = spin
+	s.lying = lying
+	s.settle = settle
+	return SlabLayer3D.turn_of(s)
+
+
+## Whether a slab so turned lies on a face (flat, or propped by PROP at most).
+func _flat(turn: Basis) -> bool:
+	return absf(turn.z.normalized().y) > cos(SlabLayer3D.PROP.x + SlabLayer3D.PROP.y + .02)
+
+
 func _resting_on_floor(world: LevelData, b: Variant, feel: Tumble.Feel) -> bool:
 	var floor_z := Tumble.floor_at(world, b.x, b.y, b.z - feel.lift + .01, feel.radius) + feel.lift
 	return absf(b.z - floor_z) < TOL
@@ -364,8 +382,24 @@ func _features(main) -> void:
 	var debris = game.features["debris"]
 	debris.bits.clear()
 	game.events.gun_reloading.emit(Weapons.REVOLVER)
+	# Each shell's slab as the 3D view turns it (debris.sprites(), less its
+	# roll): from its tumble onto its side with no snap; it rolls on the floor.
+	var was: Dictionary = {}
+	var snap := 0.0
+	var rolled := false
 	for _t in 360:
 		debris._tick(DT)
+		for bit in debris.bits:
+			var down: bool = bit.rest or bit.vz == 0.0
+			var since: float = minf(bit.age - bit.landed, View.SETTLED) if bit.landed >= 0.0 else -1.0
+			var turn := _slab_turn(bit.x, bit.y, bit.spin, down, since)
+			if down and was.has(bit):
+				snap = maxf(snap, Quaternion(turn).angle_to(Quaternion(was[bit])))
+			was[bit] = turn
+			rolled = rolled or absf(bit.roll) > 1.0
+	_check(snap < SNAP, "brass eases onto its side as it lands (%.2f rad a tick at most)" % snap)
+	_check(rolled, "brass rolls on the floor")
+	_ok("brass lands with no snap (%.2f rad a tick at most) and rolls" % snap)
 	var lying := 0
 	var wrong := 0
 	for bit in debris.bits:
@@ -405,11 +439,22 @@ func _features(main) -> void:
 	p.x = mid.x - 2.0
 	gore.burst(e)
 	var spun := false
+	# Each gib's slab as the 3D view turns it (game_view.gd's chunk): it never
+	# snaps from its tumble to lying (the most it turns in a tick on its floor).
+	var seen: Dictionary = {}
+	var gib_snap := 0.0
 	for t in 480:
 		gore.tick(DT)
 		if t == 8:
 			for g: Gore.Gib in gore.gibs:
 				spun = spun or (not g.rest and g.spin != 0.0)
+		for g: Gore.Gib in gore.gibs:
+			var turn := _slab_turn(g.x, g.y, g.spin, g.rest, minf(g.age, View.SETTLED) if g.rest else -1.0)
+			if g.rest and seen.has(g):
+				gib_snap = maxf(gib_snap, Quaternion(turn).angle_to(Quaternion(seen[g])))
+			seen[g] = turn
+	_check(gib_snap < SNAP, "gibs ease over onto a face as they come to rest (%.2f rad a tick at most)" % gib_snap)
+	_ok("gibs settle onto a face with no snap (%.2f rad a tick at most)" % gib_snap)
 	var resting := 0
 	var flat := 0
 	var off := 0
@@ -436,7 +481,7 @@ func _features(main) -> void:
 					]
 				)
 			)
-		if is_equal_approx(fposmod(g.spin + .001, PI), .001) or g.spin == 0.0:
+		if g.rest and _flat(_slab_turn(g.x, g.y, g.spin, true, View.SETTLED)):
 			flat += 1
 	_check(off == 0, "a burst's gibs all rest on surfaces (%d off)" % off)
 	_check(spun, "gibs turn over in the air")
