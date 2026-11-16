@@ -3,10 +3,10 @@
 ##
 ##   gun_sign_way_r                   GUNS THIS WAY, a plank cut to an arrow (sawn
 ##                                    pointing left too: sign_way(false))
-##   gun_sign_honor                   Hickston: GUNS, HONOR SYSTEM, a buck in the can
-##   gun_sign_fair                    the fair: WIN A GUN on a carny's striped tin
-##   gun_sign_mill                    the sawmill: MILL LEAGUE bowling, stencilled on grey tin
-##   gun_sign_quarry                  the quarry: DANGER, the cow launcher, on yellow tin
+##   gun_sign_honor                   Hickston: GUNS (a rifle painted by it), HONOR SYSTEM
+##   gun_sign_fair                    the fair: WIN A GUN, NO REFUNDS on a carny's striped tin
+##   gun_sign_mill                    the sawmill: MILL LEAGUE, BOWLING NITE, on grey tin
+##   gun_sign_quarry                  the quarry: DANGER, COW LAUNCHER, NOT YOU MUNDELL
 ##   gun_sign_chalk                   a hobo's chalk mark: a gun and an X (by a secret)
 ##   fx_gun_shine_0..2                the glint over a gun lying out: a spark, a cross, a star
 ##   gun_board                        Mundell's shadow board in the trophy shack: a painted
@@ -182,28 +182,42 @@ func nails(s: Paint.Sheet) -> void:
 
 
 ## A long gun painted with a wide brush, muzzle to the right (x, y its butt's
-## top left; about 26 by 9): stock, action, barrel, a trigger guard.
-func long_gun(s: Paint.Sheet, x: int, y: int, ink: Color) -> void:
-	for k in 7:
-		Paint.rect(s, x + k, y + 3 - k / 3, x + k, y + 8 - k / 2, ink)  # the stock
-	Paint.rect(s, x + 7, y + 1, x + 13, y + 4, ink)  # the action
-	Paint.rect(s, x + 13, y + 1, x + 26, y + 2, ink)  # the barrel
-	Paint.rect(s, x + 14, y + 3, x + 22, y + 3, ink)  # the forend
-	Paint.rect(s, x + 9, y + 5, x + 9, y + 6, ink)
-	Paint.rect(s, x + 10, y + 7, x + 12, y + 7, ink)  # the guard
-	Paint.rect(s, x + 12, y + 5, x + 12, y + 6, ink)
+## top left; about 26 by 9, `k` times that): stock, action, barrel, a guard.
+func long_gun(s: Paint.Sheet, x: int, y: int, ink: Color, k := 1) -> void:
+	var dab := func(x0: int, y0: int, x1: int, y1: int) -> void:
+		Paint.rect(s, x + x0 * k, y + y0 * k, x + x1 * k + k - 1, y + y1 * k + k - 1, ink)
+	for i in 7:
+		dab.call(i, 3 - i / 3, i, 8 - i / 2)  # the stock
+	dab.call(7, 1, 13, 4)  # the action
+	dab.call(13, 1, 26, 2)  # the barrel
+	dab.call(14, 3, 22, 3)  # the forend
+	dab.call(9, 5, 9, 6)
+	dab.call(10, 7, 12, 7)  # the guard
+	dab.call(12, 5, 12, 6)
+
+
+## How wide `text` paints at `scale` (painted()'s letters).
+static func text_width(text: String, scale: int) -> int:
+	var width := 0
+	for c in text:
+		width += (int(PixelType.glyph(c, false)[1]) + 1) * scale
+	return width - scale
 
 
 # --------------------------------------------------------------------- signs
+#
+# Every word on a sign is painted at least twice its size (a letter 14 pixels
+# high): hung about half a cell to two thirds of a cell tall, a line reads at
+# 320x200 from a few cells off. Few words, big; the joke in the big words.
 
 
 ## A plank sawn to an arrow, pointing right (or left): GUNS THIS WAY.
 func sign_way(right: bool) -> Paint.Sheet:
-	var w := 100
-	var h := 44
-	var base := planks(w, h, Color(.7, .64, .5), 8)
+	var w := 136
+	var h := 56
+	var base := planks(w, h, Color(.7, .64, .5), 9)
 	var s := Paint.Sheet.new(w, h)
-	var head := 22
+	var head := 30
 	for y in h:
 		for x in w:
 			var keep := false
@@ -218,7 +232,7 @@ func sign_way(right: bool) -> Paint.Sheet:
 				var o := (y * w + x) * 4
 				for k in 4:
 					s.data[o + k] = base.data[o + k]
-	# A dark edge where the saw went, and a lighter one where the sun lands.
+	# A dark edge where the saw went.
 	var edge := s.duplicate_sheet()
 	for y in h:
 		for x in w:
@@ -235,64 +249,73 @@ func sign_way(right: bool) -> Paint.Sheet:
 				edge.put(x, y, Color8(46, 32, 22))
 	s = edge
 	var mid := (w - head) / 2 + (0 if right else head)
-	painted(s, "GUNS", mid, 9, 2, Color8(178, 32, 22), 14)
-	painted(s, "THIS WAY", mid, 28, 1, Color8(34, 26, 20))
+	painted(s, "GUNS", mid, 8, 3, Color8(178, 32, 22), 14)
+	painted(s, "THIS WAY", mid, 33, 2, Color8(34, 26, 20))
 	Paint.point(s, 6 if right else w - 7, h / 2, Color8(200, 196, 186))
-	weather(s, 60, 2)
+	weather(s, 70, 2)
 	return Paint.digitize(s)
 
 
+## Hickston: Bait & Ammo's honor-system board, a rifle painted by GUNS.
 func sign_honor() -> Paint.Sheet:
-	var s := planks(150, 46, Color(.84, .8, .7), 8)
-	long_gun(s, 8, 6, Color8(40, 30, 24))
-	painted(s, "GUNS", 92, 4, 2, Color8(176, 34, 24), 20)
-	painted(s, "HONOR SYSTEM", 75, 23, 1, Color8(36, 28, 22))
-	painted(s, "A BUCK IN THE COFFEE CAN", 75, 33, 1, Color8(150, 30, 22))
+	var guns := text_width("GUNS", 3)
+	var w := maxi(8 + 52 + 8 + guns + 10, text_width("HONOR SYSTEM", 2) + 20)
+	var s := planks(w, 56, Color(.84, .8, .7), 9)
+	long_gun(s, 8, 7, Color8(40, 30, 24), 2)
+	painted(s, "GUNS", 8 + 52 + 8 + guns / 2, 5, 3, Color8(176, 34, 24), 18)
+	painted(s, "HONOR SYSTEM", w / 2, 32, 2, Color8(36, 28, 22))
 	frame(s, Color8(62, 48, 34))
 	nails(s)
-	weather(s, 100, 3)
+	weather(s, 110, 3)
 	return Paint.digitize(s)
 
 
+## The fair: a prize booth's counter, WIN A GUN, NO REFUNDS.
 func sign_fair() -> Paint.Sheet:
-	var s := tin(150, 46, Color(.9, .84, .66), .6)
+	var w := text_width("WIN A GUN", 3) + 2 * 14 + 12
+	var h := 56
+	var s := tin(w, h, Color(.9, .84, .66), .6)
 	# The carny's red and white stripes down each end.
-	for y in range(2, 44):
-		for x in range(2, 148):
-			if x < 12 or x > 137:
+	for y in range(2, h - 2):
+		for x in range(2, w - 2):
+			if x < 14 or x > w - 15:
 				var red := ((x + y) / 4) % 2 == 0
 				s.put(x, y, Color8(176, 36, 30) if red else Color8(236, 226, 200))
-	painted(s, "WIN A GUN", 75, 5, 2, Color8(182, 30, 24), 10)
-	painted(s, "EVERY PLAYER A WINNER", 75, 23, 1, Color8(30, 56, 120))
-	painted(s, "NO REFUNDS", 75, 33, 1, Color8(150, 30, 22))
+	painted(s, "WIN A GUN", w / 2, 6, 3, Color8(182, 30, 24), 10)
+	painted(s, "NO REFUNDS", w / 2, 33, 2, Color8(30, 56, 120))
 	frame(s, Color8(60, 44, 30))
-	weather(s, 70, 4)
+	weather(s, 80, 4)
 	return Paint.digitize(s)
 
 
+## The sawmill: the mill league's bowling night, painted on grey tin.
 func sign_mill() -> Paint.Sheet:
-	var s := tin(140, 44, Color(.62, .64, .62))
-	for x in range(3, 137):
+	var w := maxi(text_width("MILL LEAGUE", 2), text_width("BOWLING NITE", 2)) + 22
+	var h := 54
+	var s := tin(w, h, Color(.62, .64, .62))
+	for x in range(3, w - 3):
 		for y in range(3, 6):
 			s.put(x, y, Color8(214, 168, 40) if (x / 6) % 2 == 0 else Color8(30, 26, 22))
-	painted(s, "MILL LEAGUE", 70, 9, 2, Color8(28, 26, 24), 6, true)
-	painted(s, "BOWLING NITE THURSDAY", 70, 26, 1, Color8(28, 26, 24))
-	painted(s, "BRING YER OWN BALL", 70, 35, 1, Color8(160, 34, 24))
+	painted(s, "MILL LEAGUE", w / 2, 11, 2, Color8(28, 26, 24), 6)
+	painted(s, "BOWLING NITE", w / 2, 31, 2, Color8(160, 34, 24), 8)
 	frame(s, Color8(40, 38, 36))
-	weather(s, 70, 6)
+	weather(s, 80, 6)
 	return Paint.digitize(s)
 
 
+## The quarry: DANGER on hazard tin, the cow launcher, and who it is meant for.
 func sign_quarry() -> Paint.Sheet:
-	var s := tin(150, 46, Color(.86, .7, .2), .7)
-	for x in range(2, 148):
-		for y: int in [3, 4, 5, 6, 39, 40, 41, 42]:
+	var w := text_width("NOT YOU MUNDELL", 2) + 22
+	var h := 78
+	var s := tin(w, h, Color(.86, .7, .2), .7)
+	for x in range(2, w - 2):
+		for y: int in [3, 4, 5, 6, h - 7, h - 6, h - 5, h - 4]:
 			s.put(x, y, Color8(26, 22, 18) if ((x + y) / 5) % 2 == 0 else Color8(222, 178, 44))
-	painted(s, "DANGER", 75, 8, 2, Color8(160, 28, 20), 8)
-	painted(s, "COW LAUNCHER - HANDS OFF", 75, 23, 1, Color8(26, 22, 18))
-	painted(s, "THAT MEANS YOU MUNDELL", 75, 31, 1, Color8(150, 26, 18))
+	painted(s, "DANGER", w / 2, 10, 3, Color8(160, 28, 20), 8)
+	painted(s, "COW LAUNCHER", w / 2, 35, 2, Color8(26, 22, 18))
+	painted(s, "NOT YOU MUNDELL", w / 2, 53, 2, Color8(150, 26, 18))
 	frame(s, Color8(52, 40, 22))
-	weather(s, 80, 5)
+	weather(s, 90, 5)
 	return Paint.digitize(s)
 
 

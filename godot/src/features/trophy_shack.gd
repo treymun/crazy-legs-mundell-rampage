@@ -339,12 +339,75 @@ static func _clock(seconds: float) -> String:
 	return "%d:%02d" % [s / 60, s % 60]
 
 
+## The card, in the top left corner, or wherever it keeps clear of the
+## shadow board (card_at); looking at the board with no room for it, folded to
+## GUN BOARD n OF 14; none while the board fills the view.
 func draw_view(c: Canvas) -> void:
 	if not on or game.map or not inside(game.local_player):
 		return
 	var rows := lines()
+	var size := Vector2i(170, 14 + rows.size() * 7)
 	var top := 34 if game.message_until > game.clock else 18
-	HUD.panel(c, 4, top, 170, 14 + rows.size() * 7, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
-	HUD.text(c, "MUNDELL'S TROPHIES", 9, top + 3, "body", HUD.AMBER)
+	var at := card_at(size, top)
+	if at.x < 0:
+		# Looking at the board: the card folds to its count, out of its way.
+		rows = rows.filter(func(r: Variant) -> bool: return str(r).begins_with("GUN BOARD"))
+		size = Vector2i(170, 14 + rows.size() * 7)
+		at = card_at(size, top)
+	if at.x < 0:
+		return
+	HUD.panel(c, at.x, at.y, size.x, size.y, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
+	HUD.text(c, "MUNDELL'S TROPHIES", at.x + 5, at.y + 3, "body", HUD.AMBER)
 	for i in rows.size():
-		HUD.text(c, str(rows[i]), 9, top + 13 + i * 7, "mini", HUD.INK, false, false)
+		HUD.text(c, str(rows[i]), at.x + 5, at.y + 13 + i * 7, "mini", HUD.INK, false, false)
+
+
+## Where the card of `size` goes: the first of the view's corners (top left,
+## top right, bottom left, bottom right) clear of the shadow board as it is
+## seen now, else anywhere along the top or bottom edge clear of it;
+## Vector2i(-1, -1) when nowhere is (the board then fills the middle of the
+## view: what the card would say hangs there).
+func card_at(size: Vector2i, top: int) -> Vector2i:
+	var board := board_rect()
+	var right := View.WIDTH - 4 - size.x
+	var bottom := View.VIEW - 4 - size.y
+	for y: int in [top, bottom]:
+		for x: int in [4, right]:
+			if not Rect2(Vector2(x, y), Vector2(size)).grow(2.0).intersects(board):
+				return Vector2i(x, y)
+	# No corner clear: anywhere along the top or the bottom edge that is.
+	for y: int in [top, bottom]:
+		for x in range(4, right, 6):
+			if not Rect2(Vector2(x, y), Vector2(size)).grow(2.0).intersects(board):
+				return Vector2i(x, y)
+	return Vector2i(-1, -1)
+
+
+## The shadow board on the 320x156 view now (an empty Rect2 when it is behind
+## the eye): its corners through game.to_canvas, one behind the eye pushing
+## it off that side of the view.
+func board_rect() -> Rect2:
+	var w := BOARD_MARGIN * 2 + BOARD_CELL.x * BOARD_COLUMNS
+	var h := BOARD_MARGIN * 2 + BOARD_CELL.y * BOARD_ROWS
+	var half := BOARD_TALL * w / h * .5
+	var floor_z := game.world.elevation(66.5, 50.0)
+	var seen := Rect2()
+	var any := false
+	for side: float in [-1.0, 1.0]:
+		for up: float in [0.0, BOARD_TALL]:
+			var p := game.to_canvas(BOARD_AT.x, BOARD_AT.y + side * half, floor_z + BOARD_Z + up)
+			if p.z < 0.0:
+				continue
+			var at := Vector2(p.x, p.y)
+			seen = Rect2(at, Vector2.ZERO) if not any else seen.expand(at)
+			any = true
+	if not any:
+		return Rect2()
+	# A corner behind the eye: the board runs off that edge of the view.
+	var ahead := 0
+	for side: float in [-1.0, 1.0]:
+		if game.to_canvas(BOARD_AT.x, BOARD_AT.y + side * half, floor_z + BOARD_Z).z >= 0.0:
+			ahead += 1
+	if ahead < 2:
+		seen = seen.merge(Rect2(Vector2(0, seen.position.y), Vector2(View.WIDTH, seen.size.y)))
+	return seen

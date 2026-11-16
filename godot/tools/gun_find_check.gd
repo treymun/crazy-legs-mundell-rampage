@@ -435,6 +435,37 @@ func _hub(main: Control) -> void:
 			hung += 1
 	_check(board == 1 and g.art.has_art("gun_board"), "the shadow board hangs in the shack")
 	_check(hung == 5, "each gun had hangs on it (%d)" % hung)
+	# The card keeps clear of the board, looked at from the middle of the shack
+	# and from the door's side and the back.
+	var size := Vector2i(170, 14 + lines.size() * 7)
+	for eye: Vector2 in [Vector2(66.2, 49.5), Vector2(68.6, 50.8), Vector2(64.6, 51.9)]:
+		var angle := atan2(48.5 - eye.y, 63.0 - eye.x)
+		g.view_eye = {
+			"x": eye.x,
+			"y": eye.y,
+			"view_angle": angle,
+			"pitch": 0.0,
+			"bob": 0.0,
+			"sway": 0.0,
+			"eye": g.world.elevation(eye.x, eye.y) + .95,
+		}
+		var seen: Rect2 = shack.call("board_rect")
+		var at: Vector2i = shack.call("card_at", size, 18)
+		var fits := size
+		if at.x < 0:
+			fits = Vector2i(170, 21)  # folded to its count
+			at = shack.call("card_at", fits, 18)
+		_check(
+			(
+				seen.size.x > 20.0
+				and at.x >= 0
+				and not Rect2(Vector2(at), Vector2(fits)).intersects(seen)
+			),
+			(
+				"looked at from (%.1f, %.1f): the card (%s) clear of the board (%s)"
+				% [eye.x, eye.y, at, seen]
+			)
+		)
 
 
 func _off(main: Control) -> void:

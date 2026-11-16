@@ -103,22 +103,27 @@ so no new layout (a save keeps its own pickups and holds no boards; an old
 save goes on with the pickups it had):
 
 - Hickston: Bait & Ammo is shut, so a few are left out front on the county
-  road, GUNS / HONOR SYSTEM / A BUCK IN THE COFFEE CAN (the sling blade,
+  road under GUNS (a rifle painted by it) / HONOR SYSTEM (the sling blade,
   rifle, teat gun and rip saw); a GUNS THIS WAY arrow on GAS-N-GUT's south
   wall round to its crossbow; a hobo's chalk gun and X on the trailer by
   the alien arm gun's secret closet (it stays secret: its cells lie out on
   the registry floor by the way).
 - The fair: the bottle rocket launcher as a prize at the midway's east
-  booth across from the shotgun's, its counter painted WIN A GUN (the powder
+  booth across from the shotgun's, its counter painted WIN A GUN / NO
+  REFUNDS (the powder
   keg already lies on the way).
 - The sawmill: the bowling ball (a level's `riveter` pickup is the bowling
   ball in the campaign, `game_state.gd ALIAS`) by the sorting yard's north
-  wall in sight of the e-stop, under MILL LEAGUE / BOWLING NITE THURSDAY.
+  wall in sight of the e-stop, under MILL LEAGUE / BOWLING NITE.
 - The quarry: the cow launcher (the `pressure_gun` pickup) at the foot of
-  the cliff by the weigh station, under DANGER / COW LAUNCHER - HANDS OFF /
-  THAT MEANS YOU MUNDELL.
+  the cliff by the weigh station, under DANGER / COW LAUNCHER / NOT YOU
+  MUNDELL.
 - The bayou, the speedway and the ship lay out no gun new in campaign order
   (a gun missed earlier still shines there); the hub lays out none.
+
+Every word on a gun sign is painted at least twice its size and the signs
+hang about two thirds of a cell tall, so each line reads at 320x200 from a
+few cells off: few words, big, the joke in the big words.
 
 County Run's maps drop the gun signs with the vehicles' (`county_kit.gd`),
 and their pickups as before. A new sign must hang on something facing out,

@@ -100,7 +100,7 @@ func build(_b) -> Array:
 ## counter only: no new layout.
 func new_iron() -> void:
 	b.pickup("bottle_launcher", 70.6, 56.5)
-	b.board("gun_sign_fair", 71.27, 56.5, .5, {"z": .22, "plane": PI / 2, "hung": true})
+	b.board("gun_sign_fair", 71.27, 56.5, .62, {"z": .22, "plane": PI / 2, "hung": true})
 
 
 # ------------------------------------------------------------------- areas

@@ -120,7 +120,7 @@ func build(_b) -> Array:
 ## on the rock only: no new layout.
 func new_iron() -> void:
 	b.pickup("cow_launcher", 68.5, 65.2)
-	b.board("gun_sign_quarry", 68.97, 65.2, .6, {"z": .7, "plane": PI / 2, "hung": true})
+	b.board("gun_sign_quarry", 68.97, 65.2, .82, {"z": .62, "plane": PI / 2, "hung": true})
 
 
 ## Door tops in this plan count from the door's own floor, as on flat ground:

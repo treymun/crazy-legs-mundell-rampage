@@ -92,7 +92,7 @@ func build(_b) -> Array:
 ## only: no new layout.
 func new_iron() -> void:
 	b.pickup("bowling_ball", 106.5, 28.45)
-	b.board("gun_sign_mill", 106.5, 28.97, .55, {"z": .75, "plane": PI, "hung": true})
+	b.board("gun_sign_mill", 106.5, 28.97, .6, {"z": .72, "plane": PI, "hung": true})
 
 
 # ------------------------------------------------------------------- areas

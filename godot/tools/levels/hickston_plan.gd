@@ -100,16 +100,17 @@ func build(_b) -> Array:
 ## Hickston lays out seven, four of them well off the way through (the salvage
 ## yard's sling blade, Feed & Seed's rifle, the trailer court's rip saw, the
 ## barn's teat gun). Bait & Ammo is shut, so the owner left a few out front on
-## the honor system, on the county road the way in walks along: a second one of
-## each, the first still where it was. An arrow on GAS-N-GUT's south wall round
-## to its door and its crossbow; a hobo's chalk mark on the trailer by the alien arm gun's secret
-## closet (the secret stays one: its cells lie out on the registry floor).
-## Signs hung on walls that are there and pickups only: no new layout.
+## the honor system (GUNS / HONOR SYSTEM), on the county road the way in walks
+## along: a second one of each, the first still where it was. An arrow on
+## GAS-N-GUT's south wall round to its door and its crossbow; a hobo's chalk
+## mark on the trailer by the alien arm gun's secret closet (the secret stays
+## one: its cells lie out on the registry floor). Signs hung on walls that are
+## there and pickups only: no new layout.
 func new_iron() -> void:
 	for p: Array in [["slingblade", 41.0], ["rifle", 41.8], ["teat_gun", 42.6], ["ripsaw", 43.4]]:
 		b.pickup(String(p[0]), float(p[1]), 58.45)
-	b.board("gun_sign_honor", 42.2, 58.03, .6, {"z": .78, "plane": 0.0, "hung": true})
-	b.board("gun_sign_way_r", 28.8, 56.03, .5, {"z": .7, "plane": 0.0, "hung": true})
+	b.board("gun_sign_honor", 42.2, 58.03, .62, {"z": .74, "plane": 0.0, "hung": true})
+	b.board("gun_sign_way_r", 28.8, 56.03, .55, {"z": .68, "plane": 0.0, "hung": true})
 	b.board("gun_sign_chalk", 119.6, 55.97, .32, {"z": .35, "plane": PI, "hung": true})
 
 
