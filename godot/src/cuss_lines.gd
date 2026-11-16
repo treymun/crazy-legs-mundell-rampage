@@ -1,10 +1,9 @@
 ## The CUSS PACK's lines (data/tuning/cuss_lines.json, which the voice tools
-## read too): the hands' (features/enemy_barks.gd), Mundell's (game_state.gd
-## Barks) and the 5v5 bots' (features/chatter.gd). The CHATTER setting is
-## OFF (0), CLEAN (1: the same lines with the cuss words under a duck call or a
-## horn, captions as #@!%) or CUSSIN' (2). A line's cue is
-## cuss_<voice>_<moment>_<n>, its CLEAN copy that plus _clean; a cue not made
-## yet is simply not said.
+## read too): the hands' (features/enemy_barks.gd), Mundell's (barks.gd) and
+## the 5v5 bots' (features/chatter.gd). The CHATTER setting is OFF (0),
+## CLEAN (1: the same lines with the cuss words under a duck call or a horn,
+## captions as #@!%) or CUSSIN' (2). A line's cue is cuss_<voice>_<moment>_<n>,
+## its CLEAN copy that plus _clean; a cue not made yet is simply not said.
 class_name CussLines
 extends RefCounted
 

@@ -1,5 +1,5 @@
 ## The CHATTER setting and the cuss pack (src/cuss_lines.gd,
-## features/enemy_barks.gd, game_state.gd Barks), headless, with an ear that
+## features/enemy_barks.gd, barks.gd), headless, with an ear that
 ## says every cue is made and writes down what is played (no recordings
 ## needed; tools/check_fixes.gd runs it; this also runs on its own):
 ##
