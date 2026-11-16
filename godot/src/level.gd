@@ -1017,10 +1017,12 @@ func walls_on(ax: float, ay: float, bx: float, by: float) -> PackedInt32Array:
 ## reopened) the flow fields; the faces it showed leave the wall list and each
 ## solid cell beside it shows a face toward it, as the builder would have made
 ## it (LevelEdit.implied_walls), in `faces`' tile for its own when listed. The
-## pieces taken out are the cell's own (never merged: a broken fence's tile is
-## not one of LevelTiles.TILED); the rest keep their order and the new faces
-## go after them. Not for the Crossroads' split wall lists.
-func open_cell(cx: int, cy: int, faces: Dictionary) -> void:
+## pieces taken out are the cell's own (a merged run of a LevelTiles.TILED
+## plank wall is cut at the cell first: PlankWalls.split); the rest keep their
+## order and the new faces go after them, as high as the cell's roof, or only
+## as their own walls when `low` (a pen's fence under a barn's roof). Not for
+## the Crossroads' split wall lists.
+func open_cell(cx: int, cy: int, faces: Dictionary, low := false) -> void:
 	if not road_and_hub.is_empty():
 		return
 	var c := cy * width + cx
@@ -1053,7 +1055,7 @@ func open_cell(cx: int, cy: int, faces: Dictionary) -> void:
 					float(tile),
 					snappedf(light[c] * (1.0 if _int(e[0]) == 0 else .83), .0001),
 					ground[c],
-					maxf(wall_height[n], roof[c]),
+					wall_height[n] if low else maxf(wall_height[n], roof[c]),
 					float(area[c])
 				]
 			)

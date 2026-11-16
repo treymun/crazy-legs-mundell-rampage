@@ -21,6 +21,17 @@
 ## breaks nothing. Nothing about the walls changes until something breaks, so
 ## the view is the same picture until then.
 ##
+## Plank walls too (a [fence.<tile>] with `sheds`, `under_roof`, `straight`):
+## a shed's wall of boards between its roofed floor and the open air opens
+## under its roof (src/plank_walls.gd: the gap takes the inside's roof and
+## light, a gable above stays), a pen's fence under a barn's roof opens with
+## the roof kept, and a straight run of planks in a yard opens like the
+## stockyard's. A wall of a repeating tile (a barn's boards) is cut at the cell
+## first (PlankWalls.split) so only that cell's part comes away. Such a wall
+## opens only where it is plain boards both sides, has no window, door, gate
+## or deck beside it and a roof at least a body's height over the gap; one
+## that may not open is left whole (`only_open`).
+##
 ## game_combat.gd tells it where each hitscan shot, pellet or swing met a wall
 ## (strike()) and every blast (blast()). What is broken saves in the feature's
 ## block; a save from before it restores with nothing broken.
@@ -74,6 +85,10 @@ class Fence:
 	## Which way the fence runs through it: along x, else along y.
 	var along_x := true
 	var top := 1.0
+	## A shed's wall: the roofed cell it opens into (its index; -1: none), and
+	## a pen's fence under a roof (its neighbours' faces only their own height).
+	var inside := -1
+	var low := false
 
 
 var windows: Array = []
@@ -87,8 +102,12 @@ var win := {}
 var dice := RandomNumberGenerator.new()
 ## A fence's tile -> its `hit` tile: what a face turned toward a gap shows.
 var _faces := {}
-## While finding the fences: the free wall pieces by cell (_loose_pieces).
+## While finding the fences: the free wall pieces by cell (_loose_pieces),
+## what covers each edge (PlankWalls.coverage) and the doors, gates and panes
+## by cell (a shed's wall beside one holds).
 var _loose := {}
+var _cover := {}
+var _ways := {}
 var _crash_next := -1.0
 ## Counts every change to a window or fence (broken, hp, stage): a host's
 ## NetTrack looks through the lists in NET_GUARDED only when it moved, so
@@ -190,8 +209,7 @@ func _find_fences(cfg: ConfigFile) -> void:
 			continue  # a level whose fences hold (the 5v5 maps: no new lanes mid-match)
 		var tile := world.tile_id(name)
 		var hit := world.tile_id(str(spec.get("hit", "")))
-		# A merged run would not come apart a cell at a time.
-		if tile < 0 or hit < 0 or LevelTiles.TILED.has(name):
+		if tile < 0 or hit < 0:
 			continue
 		if not game.art.has_art(str(spec.get("broken", ""))):
 			continue
@@ -222,8 +240,24 @@ func _find_fences(cfg: ConfigFile) -> void:
 			f.along_x = by_x or not by_y
 			fences[f.cell] = f
 	_loose_pieces()
+	_cover = PlankWalls.coverage(world)
+	for door: LevelData.Door in world.doors:
+		_ways[Vector2i(door.x, door.y)] = true
+	for pane: Vector2i in world.pane_tiles:
+		_ways[pane] = true
+	for gate: Variant in world.locked_gates:
+		var g: LevelData.Gate = gate
+		_ways[Vector2i(floori(g.x), floori(g.y))] = true
 	_rule()
 	_loose = {}
+	_cover = {}
+	_ways = {}
+	# A plank wall that may not open stays as built (no boards shot off a
+	# building's corner, a run of them cut for nothing).
+	for key: Vector2i in fences.keys():
+		var f: Fence = fences[key]
+		if not f.opens and f.spec.get("only_open", false):
+			fences.erase(key)
 
 
 ## A cell's solid tile (-1 open, or off the map).
@@ -276,16 +310,37 @@ func _may_open(f: Fence) -> bool:
 	if cx <= 0 or cy <= 0 or cx >= w - 1 or cy >= world.height - 1:
 		return false
 	var c := cy * w + cx
-	if world.roof[c] > 0.0:
+	var roofed := world.roof[c] > 0.0
+	if roofed and not f.spec.get("under_roof", false):
 		return false
+	var sides: Array[int] = []
+	f.inside = -1
 	for e: Array in LevelEdit.EDGES:
 		var ex: int = e[0]
 		var ey: int = e[1]
 		var n := (cy + ey) * w + cx + ex
 		if world.solid[n] >= 0:
 			continue
-		if world.roof[n] > 0.0 or absf(world.ground[n] - world.ground[c]) > .001:
+		sides.append(n)
+		if absf(world.ground[n] - world.ground[c]) > .001:
 			return false
+		if roofed:
+			# A pen's fence in a barn: the same roof all round it.
+			if absf(world.roof[n] - world.roof[c]) > .001:
+				return false
+		elif world.roof[n] > 0.0:
+			# A shed's wall: its roof on one side only.
+			if not f.spec.get("sheds", false) or f.inside >= 0:
+				return false
+			f.inside = n
+	if f.spec.get("straight", false) or f.inside >= 0:
+		# Straight through: open on two opposite sides, solid on the others.
+		if sides.size() != 2 or sides[0] + sides[1] != 2 * c:
+			return false
+	if f.inside >= 0 and not _shed_wall(f):
+		f.inside = -1
+		return false
+	f.low = roofed
 	var box := Rect2(cx - .15, cy - .15, 1.3, 1.3)
 	for b: LevelData.Billboard in world.billboards:
 		if box.has_point(Vector2(b.x, b.y)):
@@ -302,6 +357,45 @@ func _may_open(f: Fence) -> bool:
 			for piece: Vector3 in _loose.get(Vector2i(xx, yy), []):
 				if box.has_point(Vector2(piece.x, piece.y)) and piece.z < f.top + .3:
 					return false
+	return true
+
+
+## Whether a shed's wall cell may open under its roof: no window on it, no
+## door, gate, pane or deck beside it, a roof a body's height over the gap,
+## and plain boards (its own, the spec's `inside` tiles, trim) on its faces up
+## to the roof; what stands above the roof (a gable) stays. Sets its top.
+func _shed_wall(f: Fence) -> bool:
+	var world: LevelData = game.world
+	var w := world.width
+	if by_cell.has(f.cell):
+		return false
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			var at := Vector2i(f.cell.x + dx, f.cell.y + dy)
+			if _ways.has(at):
+				return false
+			if world.geo != null and world.geo.cells[at.y * w + at.x] != 0:
+				return false
+	var c := f.cell.y * w + f.cell.x
+	var top := world.roof[f.inside]
+	if top - world.ground[c] < 1.9:
+		return false
+	var plain := {f.tile: true, f.hit_tile: true}
+	var inside: Array = f.spec.get("inside", [])
+	for name: Variant in inside:
+		var t := world.tile_id(str(name))
+		if t >= 0:
+			plain[t] = true
+	for e: Array in LevelEdit.EDGES:
+		var edge := _own_edge(f.cell, e)
+		var rows: Array = _cover.get(edge, [])
+		for row: Vector3 in rows:
+			if row.y >= top - .01:
+				continue
+			var tile := int(row.x)
+			if not plain.has(tile) and not String(world.tile_names[tile]).begins_with("trim_"):
+				return false
+	f.top = top - world.ground[c]
 	return true
 
 
@@ -580,11 +674,28 @@ func _shoot_about(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 	f.stage = 1
 	net_version += 1
 	var world: LevelData = game.world
+	PlankWalls.split(world, f.cell.x, f.cell.y)
+	# Its own boards knocked out, and boards of another plank wall on its other
+	# face (a shed's inside, a pen's barn boards) knocked out as theirs.
+	var hits := {f.tile: f.hit_tile}
+	var also: Array = f.spec.get("inside", [])
+	for name: Variant in also:
+		var t := world.tile_id(str(name))
+		var t_hit := world.tile_id(str(name) + "_hit")
+		if t >= 0 and t_hit >= 0 and not hits.has(t):
+			hits[t] = t_hit
+	# Not what stands above a shed's roof (its gable stays as it was).
+	var over := world.ground[f.cell.y * world.width + f.cell.x] + f.top - .01
 	for e: Array in LevelEdit.EDGES:
 		var edge := _own_edge(f.cell, e)
 		for i in world.walls_on(edge.x, edge.y, edge.z, edge.w):
-			if int(world.walls[i * LevelData.WALL_STRIDE + 4]) == f.tile:
-				world.set_wall_tile(i, f.hit_tile)
+			var tile := int(world.walls[i * LevelData.WALL_STRIDE + 4])
+			if (
+				hits.has(tile)
+				and (f.inside < 0 or world.walls[i * LevelData.WALL_STRIDE + 6] < over)
+			):
+				var hit: int = hits[tile]
+				world.set_wall_tile(i, hit)
 	if quiet:
 		return
 	var at := _front(f, ax, ay)
@@ -604,7 +715,11 @@ func _break_through(f: Fence, quiet: bool, ax := 0.0, ay := 0.0) -> void:
 	var world: LevelData = game.world
 	var cx := f.cell.x
 	var cy := f.cell.y
-	world.open_cell(cx, cy, _faces)
+	PlankWalls.split(world, cx, cy)
+	if f.inside >= 0:
+		PlankWalls.open_shed(world, cx, cy, f.inside, _faces)
+	else:
+		world.open_cell(cx, cy, _faces, f.low)
 	game.reopen_paths(cx, cy, cx + 1, cy + 1)
 	game.route_sig = []
 	_stand_gap(f)

@@ -105,6 +105,9 @@ func _init(p_level: LevelData) -> void:
 		tile_mode[i] = 0
 		if LevelTiles.TILED.has(tile_name):
 			tile_mode[i] = 1
+		elif tile_name.ends_with("_hit") and LevelTiles.TILED.has(tile_name.trim_suffix("_hit")):
+			# A plank wall shot about (wall_breaks.gd) repeats as its wall does.
+			tile_mode[i] = 1
 		elif (
 			tile_name.ends_with("_win")
 			or tile_name.ends_with("_lit")
