@@ -2,8 +2,9 @@
 ##
 ## Every table mirrors the reference exactly; the AI methods are line-for-line
 ## ports so the same seeded rng calls happen in the same order. The attacks
-## are in enemy_attacks.gd, the sprite in enemy_looks.gd, the tactics (cover,
-## fetching help, brawls) in hand_tactics.gd and the tuning in enemy_tuning.gd.
+## are in enemy_attacks.gd, the hurt and wind-up cels in enemy_looks.gd, the
+## tactics (cover, fetching help, brawls) in hand_tactics.gd and the tuning in
+## enemy_tuning.gd.
 class_name Enemy
 extends RefCounted
 
@@ -978,11 +979,95 @@ func recovery_time(relieved := false) -> float:
 	return time
 
 
-## EnemyLooks.sprite (enemy_looks.gd).
+## What it looks like this frame. `into` (a sprite fresh from Game.pooled(),
+## every field at its default) is filled in and handed back instead of a new one.
 func sprite(
 	observer: Variant = null, relieved := false, now := -1.0, into: View.Sprite = null
 ) -> View.Sprite:
-	return EnemyLooks.sprite(self, observer, relieved, now, into)
+	if dormant:
+		return null
+	var out := into if into != null else View.Sprite.new()
+	out.x = x
+	out.y = y
+	out.flip = face_left
+	if not alive:
+		if explosive or brain == "saucer" or brain == "skeeter":
+			return null
+		var fallen := now - died_at
+		var cels := 5 if TURNS.has(kind) else 2 if FALLS.has(kind) else 0
+		var span := DEATH_TIME if cels == 5 else DEATH_TIME * .5
+		var worn := Variants.stem(kind)
+		if cels > 0 and died_at >= 0.0 and now >= died_at and fallen < span:
+			var cel := cel_name(worn + "_die", mini(cels - 1, int(fallen / span * cels)))
+			out.image = Variants.look(self, cel)
+			out.height = height * variant
+			out.z = z + toss
+			return out
+		out.image = Variants.look(self, cel_name(worn, "down"))
+		out.height = height * DOWN_SHARE.get(brain, .25)
+		out.z = toss - .07
+		return out
+	var turns := TURNS.has(kind)
+	var recover := recovery_time(relieved) if recovery > 0.0 else 0.0
+	var release := minf(.14, recover * .53)
+	var frame: Variant = 0
+	if hostile and (stun > 0.0 or (flinch > 0.0 and windup <= 0.0)):
+		frame = "pain"
+	elif recover > 0.0 and recovery > recover - release:
+		frame = "fire"
+	elif windup > 0.0:
+		frame = "aim"
+	elif recover > 0.0 and turns:
+		frame = "recover"
+	elif brain == "saucer" or brain == "skeeter" or brain == "lantern":
+		frame = int(pose * (16 if brain == "skeeter" else 5)) % 3 - 1
+	elif stun > 0.0 or brain == "bessie" or pose - last_stride > .18:
+		frame = 0
+	elif turns:
+		# Four-beat walk: contact, passing, contact, passing.
+		frame = WALK_CELS[posmod(int(floorf(gait / (PI * .5))), 4)]
+	else:
+		frame = int(roundf(sin(gait)))
+	if mind != null and not alerted and frame is int and frame == 0:
+		frame = IdleLife.frame(self, observer)
+	var worn := Variants.stem(kind)
+	var stem: String = worn if kind != "maw" else worn + ShipAliens.skin(self)
+	var walking: bool = frame is String and str(frame).begins_with("w")
+	var plain: bool = frame is int and frame >= -1 and frame <= 1
+	if observer != null and (plain or walking) and turns:
+		var seen_x: float = observer[0]
+		var seen_y: float = observer[1]
+		var bearing := atan2(seen_y - y, seen_x - x)
+		var relative := angle_delta(bearing, angle)
+		var direction := mini(4, int(absf(relative) / (PI / 4.0) + .5))
+		if direction:
+			stem += HEADINGS[direction]
+		out.flip = relative < 0.0 and direction < 4
+	if (
+		frame is int
+		and frame == 0
+		and stem == worn
+		and FIDGETS.has(kind)
+		and not alerted
+		and fmod(pose + x * .37 + y * .13, 5.2) > 4.68
+	):
+		frame = "fidget"
+	var look := cel_name(stem, frame) if held_cel == "" else held_cel
+	var boss := BOSS_TITLES.has(kind)
+	if boss:
+		look = BossLooks.cel(self, look)
+	elif hostile:
+		look = EnemyLooks.cel(self, look)
+	out.image = Variants.look(self, look)
+	# A cow going over: her picture squashed by the lean, never below .3.
+	out.height = height * variant * maxf(.3, squash)
+	out.z = z
+	out.body = hostile
+	out.hurt = hit_flash
+	if windup > 0.0 and boss:
+		# A boss winding up glows in a quickening beat (boss_kit.gd).
+		out.hurt = maxf(hit_flash, BossKit.pulse(self))
+	return out
 
 
 ## An animal's cry (a chicken, a hog, a cow, the mule).

@@ -58,8 +58,14 @@ name where other code calls it. Play's helpers so far:
   codes, the tin rooster booth (preloaded as `GameState.Barks`, `Cheats`,
   `Gallery`).
 - For an enemy: `enemy_attacks.gd` (`EnemyAttacks`: its attacks),
-  `enemy_looks.gd` (`EnemyLooks.sprite`), `hand_tactics.gd` (`HandTactics`:
-  cover, fetching help, brawls, swinging out), `enemy_tuning.gd`.
+  `hand_tactics.gd` (`HandTactics`: cover, fetching help, brawls, swinging
+  out), `enemy_looks.gd`, `enemy_tuning.gd`.
+
+Keep hot paths direct: a function run for every enemy every frame (its
+sprite) or for every cell in a loop stays where its fields are, or reads the
+helper's object's fields into locals first; through `obj.field` each access
+costs (a level's load was 13 % slower before its moved loops read through
+locals).
 - For the guns: `weapon_paint.gd` (`WeaponPaint`: the viewmodel's grading,
   rims, blits and lines).
 

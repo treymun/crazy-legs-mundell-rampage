@@ -209,8 +209,8 @@ then. The pictures are in [art.md](art.md#gun-effects-art).
   `features/mothership.gd` (phases by health, attacks picked at the wind-up
   start with their floor marks, pod crew, the loose beam, her fall and the ship
   coming apart); the crew's own attacks and the tin guard's tailgate are
-  `ship_aliens.gd`, hooked from `enemy_attacks.gd` attack, `enemies.gd` hurt
-  and `enemy_looks.gd` sprite. After the last
+  `ship_aliens.gd`, hooked from `enemy_attacks.gd` attack and `enemies.gd`
+  hurt and sprite. After the last
   chapter in `Campaign.ORDER`, `finale.gd` draws the true finale (the campaign's
   tally, then the credits). Chapter music not made yet is listed in
   `assets.gd PENDING_MUSIC` (pack_assets and verify_assets note it as pending).

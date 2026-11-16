@@ -334,8 +334,9 @@ static func ladder_nodes(
 ## floor on a level with geometry; doors and panes are FlowField's to ask).
 static func stands(geo: LevelGeometry, lv: LevelData, g: LevelGeometry.NavGraph, n: int) -> bool:
 	var c := g.cell[n]
-	var x := c % geo.width + .5
-	var y := c / geo.width + .5
+	var width := geo.width
+	var x := c % width + .5
+	var y := c / width + .5
 	var feet := g.z[n]
 	if geo.static_blocked(lv, x, y, LevelGeometry.NAV_BODY, feet, LevelGeometry.BODY):
 		return false
@@ -355,17 +356,18 @@ static func walks(
 ) -> bool:
 	var a := g.cell[n]
 	var b := g.cell[m]
-	var ax := a % geo.width + .5
-	var ay := a / geo.width + .5
-	var bx := b % geo.width + .5
-	var by := b / geo.width + .5
+	var width := geo.width
+	var ax := a % width + .5
+	var ay := a / width + .5
+	var bx := b % width + .5
+	var by := b / width + .5
 	var feet := g.z[n]
-	var across := geo.width * 16 + 1
+	var across := width * 16 + 1
 	for k in range(1, LevelGeometry.NAV_STEPS + 1):
 		var f := float(k) / LevelGeometry.NAV_STEPS
 		var x := ax + (bx - ax) * f
 		var y := ay + (by - ay) * f
-		var c := int(y) * geo.width + int(x)
+		var c := int(y) * width + int(x)
 		# Asked before at this point and height: the same answer (the
 		# point's key is exact: it is on a sixteenth of a cell, or not kept).
 		# Its floor by the feet it was asked from, whether it stands by the

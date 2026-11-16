@@ -11,7 +11,7 @@ extends RefCounted
 ## instead of rescanning the grid per height.
 static func build_plane_bounds(lv: LevelData) -> void:
 	var counts := {}
-	var buckets := buckets(lv, lv.ground, false, counts)
+	var buckets := buckets(lv.ground, lv.width, false, counts)
 	lv.floor_bounds = {}
 	# Python inserts floors nearest-first (reversed sorted heights).
 	var heights := Array(lv.ground_heights)
@@ -39,7 +39,7 @@ static func build_plane_bounds(lv: LevelData) -> void:
 		lv.floor_bounds[height] = Vector4i(x0, y0, x1, y1)
 
 	var roof_counts := {}
-	var roof_buckets := buckets(lv, lv.roof, true, roof_counts)
+	var roof_buckets := buckets(lv.roof, lv.width, true, roof_counts)
 	lv.roof_bounds = {}
 	var rheight := Array(lv.roof_heights)
 	rheight.sort()
@@ -64,29 +64,31 @@ static func build_plane_bounds(lv: LevelData) -> void:
 				maxi(r.w, LevelData._int(ceil(c[3])))
 			)
 		lv.roof_bounds[height] = r
-	lv.floor_boxes = tight_boxes(lv, lv.floor_bounds, lv.ground, lv.caps, counts)
-	lv.roof_boxes = tight_boxes(lv, lv.roof_bounds, lv.roof, lv.roof_caps, roof_counts)
+	lv.floor_boxes = tight_boxes(lv.floor_bounds, lv.ground, lv.width, lv.height, lv.caps, counts)
+	lv.roof_boxes = tight_boxes(
+		lv.roof_bounds, lv.roof, lv.width, lv.height, lv.roof_caps, roof_counts
+	)
 
 
 ## Each height's cells' bounds in `grid` (h -> [x0, y0, x1, y1]; none at or
 ## below 0 when `skip_low`), and how many cells have it (`counts`), a row's
 ## run of one height at a time.
 static func buckets(
-	lv: LevelData, grid: PackedFloat32Array, skip_low: bool, counts: Dictionary
+	grid: PackedFloat32Array, width: int, skip_low: bool, counts: Dictionary
 ) -> Dictionary:
 	var buckets := {}
 	var n := grid.size()
 	var i := 0
 	while i < n:
 		var h := grid[i]
-		var y := i / lv.width
-		var row_end := mini(n, (y + 1) * lv.width)
+		var y := i / width
+		var row_end := mini(n, (y + 1) * width)
 		var j := i + 1
 		while j < row_end and grid[j] == h:
 			j += 1
 		if not (skip_low and h <= 0.0):
-			var x0 := i - y * lv.width
-			var x1 := j - y * lv.width
+			var x0 := i - y * width
+			var x1 := j - y * width
 			var b: Variant = buckets.get(h)
 			if b == null:
 				buckets[h] = [x0, y, x1, y + 1]
@@ -111,9 +113,10 @@ static func buckets(
 ## `counts`: how many cells of a height there are (all inside its box), where
 ## known (_buckets).
 static func tight_boxes(
-	lv: LevelData,
 	bounds: Dictionary,
 	grid: PackedFloat32Array,
+	width: int,
+	height: int,
 	capped: Dictionary,
 	counts: Dictionary
 ) -> Array:
@@ -124,9 +127,9 @@ static func tight_boxes(
 		var count: int = counts.get(h, -1)
 		if count < 0:
 			count = 0
-			for y in range(maxi(0, box.y), mini(lv.height, box.w)):
-				for x in range(maxi(0, box.x), mini(lv.width, box.z)):
-					if grid[y * lv.width + x] == h:
+			for y in range(maxi(0, box.y), mini(height, box.w)):
+				for x in range(maxi(0, box.x), mini(width, box.z)):
+					if grid[y * width + x] == h:
 						count += 1
 		if capped.has(h) or area <= 64 or count * 2 >= area:
 			out.append([h, box])
@@ -139,7 +142,7 @@ static func tight_boxes(
 				var y1 := -1
 				for y in range(ty, mini(box.w, ty + 8)):
 					for x in range(tx, mini(box.z, tx + 8)):
-						if grid[y * lv.width + x] == h:
+						if grid[y * width + x] == h:
 							x0 = mini(x0, x)
 							y0 = mini(y0, y)
 							x1 = maxi(x1, x + 1)
@@ -164,29 +167,31 @@ static func merge_runs(lv: LevelData) -> void:
 	var out := PackedFloat32Array()
 	var by_end := {}
 	var by_start := {}
+	# The walls read through a local (only `out` is written; lv.walls after).
+	var walls := lv.walls
 	for i in lv.wall_count:
 		var o := i * LevelData.WALL_STRIDE
-		var a := Vector2(lv.walls[o], lv.walls[o + 1])
-		var b := Vector2(lv.walls[o + 2], lv.walls[o + 3])
+		var a := Vector2(walls[o], walls[o + 1])
+		var b := Vector2(walls[o + 2], walls[o + 3])
 		var step := b - a
 		var whole := a == a.floor() and b == b.floor() and (step.x == 0.0 or step.y == 0.0)
-		if not tiled.has(int(lv.walls[o + 4])) or not whole or step == Vector2.ZERO:
+		if not tiled.has(int(walls[o + 4])) or not whole or step == Vector2.ZERO:
 			for k in LevelData.WALL_STRIDE:
-				out.append(lv.walls[o + k])
+				out.append(walls[o + k])
 			continue
 		# (Keys as text, as they always were: str() of each, joined.)
 		var kind := (
 			str(step.normalized())
 			+ "|"
-			+ str(lv.walls[o + 4])
+			+ str(walls[o + 4])
 			+ "|"
-			+ str(lv.walls[o + 5])
+			+ str(walls[o + 5])
 			+ "|"
-			+ str(lv.walls[o + 6])
+			+ str(walls[o + 6])
 			+ "|"
-			+ str(lv.walls[o + 7])
+			+ str(walls[o + 7])
 			+ "|"
-			+ str(lv.walls[o + 8])
+			+ str(walls[o + 8])
 		)
 		var after := str(a) + "|" + kind
 		var before := str(b) + "|" + kind
@@ -207,7 +212,7 @@ static func merge_runs(lv: LevelData) -> void:
 		else:
 			var r := out.size()
 			for k in LevelData.WALL_STRIDE:
-				out.append(lv.walls[o + k])
+				out.append(walls[o + k])
 			by_end[before] = r
 			by_start[after] = r
 	lv.walls = out
@@ -218,16 +223,17 @@ static func split_road_and_hub(lv: LevelData) -> void:
 	lv.road_and_hub = [PackedFloat32Array(), PackedFloat32Array()]
 	var a: PackedFloat32Array = lv.road_and_hub[0]
 	var b: PackedFloat32Array = lv.road_and_hub[1]
+	var walls := lv.walls
 	for i in lv.wall_count:
 		var o := i * LevelData.WALL_STRIDE
-		var y0: float = lv.walls[o + 1]
-		var y1: float = lv.walls[o + 3]
+		var y0: float = walls[o + 1]
+		var y1: float = walls[o + 3]
 		if maxf(y0, y1) <= 34.:
 			for k in LevelData.WALL_STRIDE:
-				a.append(lv.walls[o + k])
+				a.append(walls[o + k])
 		if minf(y0, y1) >= 33.:
 			for k in LevelData.WALL_STRIDE:
-				b.append(lv.walls[o + k])
+				b.append(walls[o + k])
 	lv.road_and_hub = [a, b]
 
 
@@ -243,9 +249,11 @@ static func build_moving_floors(lv: LevelData) -> void:
 		var tile := LevelData._int(lv.tile_index.get(flow[0], 0))
 		var rate := LevelData._int(flow[1])
 		var heights := {}
-		for i in lv.floor_tile.size():
-			if lv.floor_tile[i] == tile:
-				heights[lv.ground[i]] = true
+		var floor_tile := lv.floor_tile
+		var ground := lv.ground
+		for i in floor_tile.size():
+			if floor_tile[i] == tile:
+				heights[ground[i]] = true
 		for h: float in lv.caps:
 			for c: Variant in lv.caps[h]:
 				if LevelData._int(c[4]) == tile:
