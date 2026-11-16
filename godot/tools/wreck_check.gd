@@ -225,6 +225,23 @@ func _level(game: Game) -> void:
 				)
 			)
 	_check(floating == 0, "%s: every piece lies on something (%d hang)" % [game.level.id, floating])
+	# A stave or a board never rests on its end or edge unless it leans on
+	# something (a wall, another piece).
+	var on_end := 0
+	var leaning := 0
+	for w in wreck.wrecks:
+		var b: WreckPhysics.Body = w.body
+		b.turn = Basis(b.q)
+		if WreckPhysics.standing(b):
+			if b.propped:
+				leaning += 1
+			else:
+				on_end += 1
+				print("       on its end: %s#%d at %s half %s (tipped %.1f s, kicked %.1f, turn %s)" % [w.key, w.index, b.p, b.half, b.tipping, b.kicked, b.turn])
+	_check(
+		on_end == 0,
+		"%s: no piece rests on its end unless propped (%d; %d leaning)" % [game.level.id, on_end, leaning]
+	)
 	print(
 		(
 			"  ok   %d pieces at rest after %.1f s, worst %.3f in"
