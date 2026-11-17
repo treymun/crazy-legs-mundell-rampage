@@ -20,6 +20,8 @@
 ## Point APPDATA at a scratch folder: it runs the game with the profile there.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 var main
 var out := ""
 var only: Array = ["coop", "deathmatch", "team", "tactical", "race"]
@@ -318,9 +320,7 @@ func q_names(g: Game) -> void:
 ## The lobby in every mode, as the host and as someone in it (the rows,
 ## labels and values each mode shows): lobby_<mode>_host / _client.
 func _lobby() -> void:
-	var net := NetPlay.host_lobby(
-		41000 + OS.get_process_id() % 9000, "Mundell", {}, false, "127.0.0.1"
-	)
+	var net := NetPlay.host_lobby(NetPorts.pick("mode_frames"), "Mundell", {}, false, "127.0.0.1")
 	if net == null:
 		return
 	net.players.append({"id": 7, "name": "BUBBA", "team": -1, "ready": true})

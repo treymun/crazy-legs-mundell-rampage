@@ -31,7 +31,11 @@
 ## engine errors anywhere.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const STEP := NetSync.STEP
+## The deathmatch's TIME LIMIT here (seconds of the match's own clock).
+const MATCH_SECONDS := 60.0
 const Bot := preload("res://tools/mode_bot.gd")
 const LockCheck := preload("res://tools/boss_lock_check.gd")
 
@@ -102,8 +106,7 @@ func _check(ok: bool, text: String) -> void:
 
 
 func _server() -> bool:
-	# (21000..35000: clear of the other net checks' ports, run beside them.)
-	var port := 21000 + OS.get_process_id() % 9000
+	var port := NetPorts.pick("net_party_check", [0], [3000])
 	for k in 20:
 		var config := {
 			"bind": "127.0.0.1",
@@ -131,7 +134,7 @@ func _server() -> bool:
 ## The host's lobby from the front end, on the first free port from `from`.
 func _open(from: int) -> void:
 	for k in 20:
-		main.net_form["port"] = str(from + k * 7)
+		main.net_form["port"] = str(NetPorts.pick("net_party_check host") if k else from)
 		main.net_open_lobby()
 		if main.net != null:
 			return
@@ -288,10 +291,10 @@ func _coop() -> void:
 		"name": "Trey",
 		"lobby_name": "TREY'S CO-OP",
 		"password": "",
-		"port": str(lobby_port + 5000),
+		"port": "0",
 		"router": false,
 	}
-	_open(lobby_port + 5000)
+	_open(NetPorts.pick("net_party_check co-op"))
 	var host: NetPlay = main.net
 	_check(host != null, "TREY hosts from the front end")
 	if host == null:
@@ -622,10 +625,10 @@ func _versus() -> void:
 			"name": "Trey",
 			"lobby_name": "TREY'S YARD",
 			"password": "",
-			"port": str(lobby_port + 5100),
+			"port": "0",
 			"router": false,
 		}
-		_open(lobby_port + 5100)
+		_open(NetPorts.pick("net_party_check versus"))
 		host = main.net
 		_wait(
 			func() -> bool: return host.party_line() != null and host.party_line().state == "open"
@@ -655,6 +658,12 @@ func _versus() -> void:
 	)
 	host.set_setting("mode", Modes.DEATHMATCH)
 	host.set_setting("frag_limit", 5)
+	# The clock ends it if the frag limit has not by then: the copies end it
+	# on the same tick as the host. (It used to bring the host's frag limit
+	# down after a minute, between ticks: each copy then parted from the host
+	# once, and with DAN's arrival that was one put back too many, about one
+	# run in three on a busy machine. Pass 9.)
+	host.set_setting("time_limit", MATCH_SECONDS)
 	_check(
 		str(host.settings["map"]) == "hickston:boss",
 		"MODE DEATHMATCH takes MAP to its first arena (%s)" % host.settings["map"]
@@ -682,13 +691,13 @@ func _versus() -> void:
 		"DAN joins the match under way at a spawn point with the kit"
 	)
 	var st := Modes.feature(g)
+	_check(
+		is_equal_approx(float(st.time_limit), MATCH_SECONDS),
+		"the lobby's TIME LIMIT reaches the match (%s)" % st.time_limit
+	)
 	# A minute of fighting at most (a long run beside other checks on a busy
-	# machine is what lost a client once), then the limit is brought to the
-	# best score so the results come all the same.
-	_wait(func() -> bool: return bool(st.match_over), int(60.0 / STEP))
-	if not bool(st.match_over):
-		st.frag_limit = maxi(1, (Modes.rules(g) as DeathmatchMode).leader_score(g))
-		_wait(func() -> bool: return bool(st.match_over), 240)
+	# machine is what lost a client once): the frag limit or the clock.
+	_wait(func() -> bool: return bool(st.match_over), int((MATCH_SECONDS + 5.0) / STEP))
 	var frags := 0
 	for p: Player in g.players:
 		frags += maxi(0, p.frags)

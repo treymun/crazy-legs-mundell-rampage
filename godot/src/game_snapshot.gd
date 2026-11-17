@@ -39,6 +39,8 @@ class_name GameSnapshot
 extends RefCounted
 
 const VERSION := 3
+## first_difference's least nearness for a vector's single-precision parts.
+const VECTOR_NEAR := 1e-6
 ## NET_GUARDED field names by feature script (guarded_of).
 static var _guarded := {}
 ## Features whose save() is how the level's walls and floor are put back (a
@@ -917,7 +919,11 @@ static func merge(older: Variant, newer: Variant) -> Variant:
 ## The first place two snapshots differ ("" when they do not), for a check's
 ## report: a path of keys and both values, shortened. Each dictionary or
 ## array is compared whole first (natively) and walked only when it differs.
-static func first_difference(a: Variant, b: Variant, path := "") -> String:
+## `near` > 0: floats (and vectors' parts) this near, relative to their size
+## (at least 1), count as the same; anything else is still bit for bit. The
+## online copies use it (NetSync.Client.NEAR): a server on Linux and a client
+## on Windows round sin, cos and the like a last bit apart.
+static func first_difference(a: Variant, b: Variant, path := "", near := 0.0) -> String:
 	var t := typeof(a)
 	if t == typeof(b) and (t == TYPE_DICTIONARY or t == TYPE_ARRAY):
 		if var_to_bytes(a) == var_to_bytes(b):
@@ -930,7 +936,7 @@ static func first_difference(a: Variant, b: Variant, path := "") -> String:
 				continue
 			if not b_d.has(key):
 				return "%s/%s: only in the first" % [path, key]
-			var inner := first_difference(a_d[key], b_d[key], "%s/%s" % [path, key])
+			var inner := first_difference(a_d[key], b_d[key], "%s/%s" % [path, key], near)
 			if inner != "":
 				return inner
 		for key: Variant in b_d:
@@ -942,7 +948,7 @@ static func first_difference(a: Variant, b: Variant, path := "") -> String:
 				"%s: keys in another order (%s against %s)"
 				% [path, str(a_d.keys()).left(60), str(b_d.keys()).left(60)]
 			)
-		if var_to_bytes(a) != var_to_bytes(b):
+		if near <= 0.0 and var_to_bytes(a) != var_to_bytes(b):
 			return "%s: the dictionaries are typed otherwise" % path
 		return ""
 	if a is Array and b is Array:
@@ -951,17 +957,49 @@ static func first_difference(a: Variant, b: Variant, path := "") -> String:
 		if a_l.size() != b_l.size():
 			return "%s: %d items against %d" % [path, a_l.size(), b_l.size()]
 		for i in a_l.size():
-			var inner := first_difference(a_l[i], b_l[i], "%s[%d]" % [path, i])
+			var inner := first_difference(a_l[i], b_l[i], "%s[%d]" % [path, i], near)
 			if inner != "":
 				return inner
-		if var_to_bytes(a) != var_to_bytes(b):
+		if near <= 0.0 and var_to_bytes(a) != var_to_bytes(b):
 			return (
 				"%s: typed %s against %s" % [path, a_l.get_typed_builtin(), b_l.get_typed_builtin()]
 			)
 		return ""
 	if var_to_bytes(a) != var_to_bytes(b):
+		if near > 0.0 and t == typeof(b) and _near(a, b, near):
+			return ""
+		if t == TYPE_FLOAT and typeof(b) == TYPE_FLOAT:
+			var fa: float = a
+			var fb: float = b
+			return "%s: %.17f against %.17f" % [path, fa, fb]
+		if t == TYPE_VECTOR2 and typeof(b) == TYPE_VECTOR2:
+			var va: Vector2 = a
+			var vb: Vector2 = b
+			return "%s: (%.17f, %.17f) against (%.17f, %.17f)" % [path, va.x, va.y, vb.x, vb.y]
 		return "%s: %s against %s" % [path, str(a).left(80), str(b).left(80)]
 	return ""
+
+
+## Two floats or vectors of floats `near` apart (relative, at least 1). A
+## vector's parts are single precision: a last bit there is about 1e-7 of
+## it, so they are let be VECTOR_NEAR apart at least.
+static func _near(a: Variant, b: Variant, near: float) -> bool:
+	match typeof(a):
+		TYPE_FLOAT:
+			var fa: float = a
+			var fb: float = b
+			return absf(fa - fb) <= near * maxf(1.0, maxf(absf(fa), absf(fb)))
+		TYPE_VECTOR2:
+			var va: Vector2 = a
+			var vb: Vector2 = b
+			var n := maxf(near, VECTOR_NEAR)
+			return _near(va.x, vb.x, n) and _near(va.y, vb.y, n)
+		TYPE_VECTOR3:
+			var wa: Vector3 = a
+			var wb: Vector3 = b
+			var n := maxf(near, VECTOR_NEAR)
+			return _near(wa.x, wb.x, n) and _near(wa.y, wb.y, n) and _near(wa.z, wb.z, n)
+	return false
 
 
 ## Fields of `game` and features it has that are in no list here (a check

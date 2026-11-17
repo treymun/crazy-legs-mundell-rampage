@@ -16,6 +16,8 @@
 ## Fails on any script or engine error.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 var failures: Array = []
 var main
 
@@ -136,9 +138,7 @@ func _menus() -> void:
 
 func _lobby() -> void:
 	print("\nTHE LOBBY BY TOUCH")
-	var net := NetPlay.host_lobby(
-		41000 + OS.get_process_id() % 9000, "TREY", {}, false, "127.0.0.1"
-	)
+	var net := NetPlay.host_lobby(NetPorts.pick("menu_touch_check"), "TREY", {}, false, "127.0.0.1")
 	if net == null:
 		_check(false, "a lobby to host")
 		return

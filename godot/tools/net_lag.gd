@@ -30,6 +30,8 @@
 ## for 30 s with limits (tools/check_all.gd). Prints NET LAG OK.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const STEP := NetSync.STEP
 const Loopback := preload("res://tools/net_loopback.gd")
 ## A rubber band jump smaller than this is not counted (cells).
@@ -197,7 +199,7 @@ func _check(ok: bool, text: String) -> void:
 ## One link: a server, `people` clients, `seconds` of the match.
 func measure(lag: float, jitter: float, loss: float) -> Dictionary:
 	var server: LobbyServer = null
-	var port := 44000 + OS.get_process_id() % 15000
+	var port := NetPorts.pick("net_lag")
 	for k in 20:
 		var lobby := {
 			"port": port + k,

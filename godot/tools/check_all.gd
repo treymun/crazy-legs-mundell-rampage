@@ -67,6 +67,7 @@ const CHECKS := [
 	["replay_check", "REPLAY CHECK OK", ["quick"]],
 	["tune_check", "TUNE CHECK OK"],
 	["predict_check", "PREDICT CHECK OK"],
+	["net_errors_check", "NET ERRORS OK"],
 	["net_lag", "NET LAG OK", ["quick"]],
 	["load_check", "LOAD CHECK OK"],
 	["user_map_check", "USER MAP CHECK OK"],
@@ -102,6 +103,7 @@ const QUICK := [
 	"plank_check",
 	"tune_check",
 	"predict_check",
+	"net_errors_check",
 	"user_map_check",
 ]
 ## Seconds each row takes on a GitHub runner, from a real run (the step times
@@ -125,6 +127,7 @@ const CI_SECONDS := {
 	"bot_campaign": 22,
 	"quest_reach": 20,
 	"net_showdown_check": 20,
+	"net_errors_check": 10,
 	"live_props_check": 15,
 	"brawl_check": 20,
 	"physics_check": 15,
