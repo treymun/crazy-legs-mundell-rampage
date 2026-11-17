@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_rbm0e"]
+[ext_resource type="PackedScene" path="res://assets3d/props/radio_mast.glb" id="2_m57ie"]
+
+[node name="RadioMast" type="Node3D" unique_id=1511619454]
+script = ExtResource("1_rbm0e")
+prop = "radio_mast"
+
+[node name="Model" type="Node3D" parent="." unique_id=1557832719 instance=ExtResource("2_m57ie")]

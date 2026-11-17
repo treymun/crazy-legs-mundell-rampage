@@ -43,7 +43,9 @@ func _run() -> void:
 	main.set_process(false)
 	main.state = "title"
 	var args := OS.get_cmdline_user_args()
-	var levels: Array = ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+	var levels: Array = [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+	]
 	var ticks := 6000
 	var after := 1200
 	for arg: String in args:

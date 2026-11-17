@@ -82,6 +82,11 @@ const HUB_DISPATCH := [
 		"RADIO: CHECK THE SPEEDWAY."
 	],
 	[
+		"GRANNY'S LOAD",
+		"BUZZARD BEND QUIET. THE REVENUE MAN HAS GRANNY HOOTEN'S STILL UP COPPERHEAD RIDGE.",
+		"RADIO: CHECK ON GRANNY HOOTEN."
+	],
+	[
 		"ALL CLEAR",
 		"BESSIE'S TAG IS BACK. MUNDELL STILL OWES FOR THE JUGS.",
 		"RADIO: THE TAG IS HOME."
@@ -91,6 +96,20 @@ const HUB_DISPATCH := [
 		"THE SHIP CAME DOWN IN PIECES OVER THE COUNTY. MAW'S DONE.",
 		"RADIO: NOTHING UP THERE BUT STARS."
 	],
+]
+
+## The dispatch board's voice and picture for each line above (the Moonshine
+## Run's line came after the last two were recorded, so it has the next cue).
+const HUB_DISPATCH_CUES := [
+	"county_dispatch_0",
+	"county_dispatch_1",
+	"county_dispatch_2",
+	"county_dispatch_3",
+	"county_dispatch_4",
+	"county_dispatch_5",
+	"county_dispatch_8",
+	"county_dispatch_6",
+	"county_dispatch_7",
 ]
 
 ## scenery.REACTIONS: kind -> [cue, particle, count]
@@ -117,11 +136,12 @@ const WASH := {
 	"quarry": [178, 214, 255, .12],
 	"bayou": [236, 196, 150, .13],
 	"speedway": [255, 206, 168, .12],
+	"moonshine": [180, 196, 255, .12],
 	"mothership": [200, 255, 220, .12],
 }
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
-const NO_MARK_SURFACE := ["BACKBLAST", "LIT DYNAMITE", "STEAM", "CHALK"]
+const NO_MARK_SURFACE := ["BACKBLAST", "LIT DYNAMITE", "STEAM", "CHALK", "TEAR GAS"]
 
 # ------------------------------------------------------------------ helpers
 

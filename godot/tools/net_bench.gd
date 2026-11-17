@@ -32,7 +32,9 @@ func _run() -> void:
 	await process_frame
 	main.set_process(false)
 	main.state = "title"
-	var levels: Array = ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+	var levels: Array = [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+	]
 	var counts: Array = [1, 2, 4]
 	var ticks := 7200
 	var idle := false

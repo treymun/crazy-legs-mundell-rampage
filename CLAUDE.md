@@ -129,7 +129,7 @@ godot --headless --path godot --script res://tools/release.gd -- 3.0.N
 | [data.md](docs/dev/data.md) | Every tuning file, its loader, and the rules for adding to them |
 | [gameplay.md](docs/dev/gameplay.md) | Play's easy-to-get-wrong parts: events, sprites, levels in play, enemies, hits, squads, chatter, breaking, gore, mood, the tick |
 | [audio.md](docs/dev/audio.md) | The sound: making and finishing cues, takes and per-play dice, hearing through walls and floors, the 3.0.0 measurements |
-| [bosses.md](docs/dev/bosses.md) | The boss framework, the eight arenas, boss and hand art, fight music, checkpoint and rematch |
+| [bosses.md](docs/dev/bosses.md) | The boss framework, the nine arenas, boss and hand art, fight music, checkpoint and rematch |
 | [multiplayer.md](docs/dev/multiplayer.md) | Players, snapshots, the host, the mirror, the transport, online 5v5, lobbies, the crash log |
 | [modes.md](docs/dev/modes.md) | Co-op, deathmatch, team DM, the 5v5 rounds, store rules, tag team, prediction, browser online |
 | [county_run.md](docs/dev/county_run.md) | County Run: the mode, weapons, XP, offers, spawner, maps, co-op, daily run |

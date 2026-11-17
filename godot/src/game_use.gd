@@ -287,7 +287,8 @@ static func interact(g: Game) -> void:
 				if g.clock >= g.hub_dispatch_until:
 					g.hub_dispatch_until = g.clock + 6.0
 					var place := g.sound_position(g.level.hub_board.x, g.level.hub_board.y, .64)
-					g.sound.play_voice("county_dispatch_%d" % g.hub_milestone, place.x, place.y)
+					var cue: String = Game.HUB_DISPATCH_CUES[g.hub_milestone]
+					g.sound.play_voice(cue, place.x, place.y)
 					if g.voice_captions:
 						g.caption = str(Game.HUB_DISPATCH[g.hub_milestone][2])
 						g.caption_until = g.clock + 2.4

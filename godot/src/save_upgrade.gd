@@ -74,6 +74,41 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 						var body: Dictionary = bodies[key]
 						body["floor_z"] = 0.0
 			return doc
+		8:
+			# Version 9 has the Moonshine Run between the speedway and the
+			# Mothership: a campaign save at the Mothership finished the six
+			# chapters before it, so the new one is put in its history as gone
+			# by (nothing killed or found; its gate stays open for a replay).
+			_moonshine_passed(doc)
+			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
 			return null
+
+
+## A version 8 campaign save of a chapter after the Moonshine Run (the
+## Mothership) gets the run's row in its history, where it falls in
+## Campaign.ORDER; any other save is as it was.
+static func _moonshine_passed(doc: Dictionary) -> void:
+	var at := Campaign.ORDER.find("moonshine")
+	var level := str(doc.get("level", ""))
+	if Campaign.ORDER.find(level) <= at:
+		return
+	var campaign: Variant = doc.get("campaign")
+	if not (campaign is Dictionary):
+		return
+	var fields: Dictionary = campaign
+	var replay: Variant = fields.get("replay", false)
+	if replay is bool and replay:
+		return
+	var history: Variant = fields.get("history")
+	if not (history is Array):
+		return
+	var rows: Array = history
+	for row: Variant in rows:
+		if row is Array:
+			var cells: Array = row
+			if not cells.is_empty() and str(cells[0]) == "moonshine":
+				return
+	if rows.size() == at:
+		rows.append(["moonshine", 0, 0, 0, 0, 0])

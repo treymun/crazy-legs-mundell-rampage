@@ -18,7 +18,9 @@
 extends SceneTree
 
 const STEP := 1.0 / 60.0
-const KINDS := ["boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "maw"]
+const KINDS := [
+	"boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "revenue_man", "maw"
+]
 
 var failures: Array = []
 

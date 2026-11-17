@@ -12,7 +12,7 @@ extends RefCounted
 ## step to save_upgrade.gd that turns a save of the version before into this
 ## one, so every save back to OLDEST_VERSION still loads. tools/save_fixtures.gd
 ## keeps real saves of each version (tools/saves/) and checks they still do.
-const VERSION := 8
+const VERSION := 9
 const OLDEST_VERSION := 4
 const SLOT := "hickston-quick.json"
 const SETTINGS_FILE := "options.json"
@@ -138,7 +138,13 @@ const SHOT_KINDS := [
 	"bowling",
 	"keg",
 	"cow",
-	"milk"
+	"milk",
+	# The speedway's thrown things and the Moonshine Run's tear gas: a save
+	# made with one in the air loads (it was refused before).
+	"wrench",
+	"tire",
+	"flare",
+	"tear_gas"
 ]
 const SPECK_KINDS := [
 	"spark", "plasma", "feather", "gore", "dust", "glass", "splash", "chips", "powder", "soil"
@@ -649,7 +655,10 @@ static func unlocks(path := "") -> Dictionary:
 		if parsed is Array:
 			var listed: Array = parsed
 			for level_id: String in Campaign.ORDER.slice(1):
-				if not listed.has(level_id):
+				# The Moonshine Run came into the campaign before the Mothership
+				# after players had opened its gate: it opens with it.
+				var passed := level_id == "moonshine" and listed.has("mothership")
+				if not listed.has(level_id) and not passed:
 					break
 				result[level_id] = true
 	return result

@@ -17818,6 +17818,682 @@
    },
    "validation": "ok"
   },
+  "revenue_man_warn": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "warn",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/revenue_man_warn.mp3",
+   "prompt": "A drum-fed tommy gun's bolt yanked back and slammed home, then the drum slapped in place.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/revenue_man_warn.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "warn",
+    "chain": {
+     "hp": 120,
+     "lp": 10500,
+     "low": 0.0,
+     "pres": 3.5,
+     "fade": 0.08,
+     "level": -3.0,
+     "drive": 1.2
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.0
+   },
+   "measured": {
+    "seconds": 1.0,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.0053,
+    "onset_ms": 0.0,
+    "centroid_hz": 128,
+    "end_db": -113.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "revenue_man_rage": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "alert",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/revenue_man_rage.mp3",
+   "prompt": "A big federal agent bellowing in fury, a deep cold Southern voice roaring wordlessly.",
+   "credits": 16,
+   "destination": "audio_src/final/sfx/revenue_man_rage.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "alert",
+    "chain": {
+     "hp": 110,
+     "lp": 10000,
+     "low": 0.0,
+     "pres": 2.5,
+     "fade": 0.2,
+     "level": -4.0
+    },
+    "natural_seconds": 1.224,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.224
+   },
+   "measured": {
+    "seconds": 1.224,
+    "peak_db": -0.8,
+    "loud_db": -4.5,
+    "dc": 0.0069,
+    "onset_ms": 0.0,
+    "centroid_hz": 379,
+    "end_db": -146.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "revenue_man_death": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/revenue_man_death.mp3",
+   "prompt": "A big man in a suit groans and falls heavily onto a wooden floor, a tommy gun clattering down beside him.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/revenue_man_death.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 1.447,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 1.447
+   },
+   "measured": {
+    "seconds": 1.447,
+    "peak_db": -0.8,
+    "loud_db": -4.7,
+    "dc": 0.0023,
+    "onset_ms": 0.0,
+    "centroid_hz": 1294,
+    "end_db": -137.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "revenue_man_pain": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/revenue_man_pain.mp3",
+   "prompt": "A big man grunting hard as a bullet hits him, a short pained snarl.",
+   "credits": 10,
+   "destination": "audio_src/final/sfx/revenue_man_pain.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.312,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.48
+   },
+   "measured": {
+    "seconds": 0.48,
+    "peak_db": -0.8,
+    "loud_db": -4.8,
+    "dc": 0.0026,
+    "onset_ms": 0.0,
+    "centroid_hz": 952,
+    "end_db": -144.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "revenue_man_down": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "death",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/revenue_man_down.mp3",
+   "prompt": "A big man gives a short dying groan and goes still.",
+   "credits": 12,
+   "destination": "audio_src/final/sfx/revenue_man_down.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "death",
+    "chain": {
+     "hp": 80,
+     "lp": 10000,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "natural_seconds": 0.629,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 0.629
+   },
+   "measured": {
+    "seconds": 0.629,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0017,
+    "onset_ms": 0.0,
+    "centroid_hz": 1283,
+    "end_db": -120.0,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "revenue_man_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "sting",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/revenue_man_intro.mp3",
+   "prompt": "A menacing low twangy guitar riff over a slow tom roll and a tommy gun bolt cocking: the lawman steps out of the dark.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/revenue_man_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "sting",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.12,
+     "level": -3.0
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -0.8,
+    "loud_db": -3.8,
+    "dc": 0.0102,
+    "onset_ms": 0.0,
+    "centroid_hz": 118,
+    "end_db": -119.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "revenue_man_end": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "sting",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/revenue_man_end.mp3",
+   "prompt": "A huge rowdy cowpunk final chord and a moonshine jug cork popping, then a rebel whoop.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/revenue_man_end.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "sting",
+    "chain": {
+     "hp": 45,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.0,
+     "fade": 0.12,
+     "level": -3.0
+    },
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.2
+   },
+   "measured": {
+    "seconds": 2.2,
+    "peak_db": -0.8,
+    "loud_db": -3.7,
+    "dc": 0.0027,
+    "onset_ms": 0.0,
+    "centroid_hz": 626,
+    "end_db": -159.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "church_bell": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/church_bell.mp3",
+   "prompt": "One old iron church bell rung hard in a small wooden steeple, ringing out over the hills at night.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/church_bell.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.5
+   },
+   "measured": {
+    "seconds": 2.48,
+    "peak_db": -0.8,
+    "loud_db": -9.1,
+    "dc": 0.0002,
+    "onset_ms": 0.0,
+    "centroid_hz": 974,
+    "end_db": -163.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "cruiser_siren": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "scene",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/cruiser_siren.mp3",
+   "prompt": "An old 1990s police car siren wailing then yelping as the car speeds past at night.",
+   "credits": 29,
+   "destination": "audio_src/final/sfx/cruiser_siren.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "scene",
+    "chain": {
+     "hp": 70,
+     "lp": 10500,
+     "low": 1.0,
+     "pres": 1.5,
+     "fade": 0.3,
+     "level": -4.0
+    },
+    "lead_trimmed_ms": 149,
+    "level": "-4.0 dB (new cue)",
+    "keep_seconds": 2.5
+   },
+   "measured": {
+    "seconds": 2.331,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 1203,
+    "end_db": -171.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "amb_ridge": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "ambience",
+   "origin": "generated",
+   "source": "audio_src/generated/sfx/amb_ridge.mp3",
+   "prompt": "A hot summer night in the Ozark hills: crickets and katydids, a whip-poor-will calling far off, a creek trickling, a soft breeze in pine trees.",
+   "credits": 111,
+   "destination": "audio_src/final/sfx/amb_ridge.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "ambience",
+    "chain": {
+     "hp": 50,
+     "lp": 6800,
+     "low": 2.0,
+     "pres": -2.5,
+     "fade": 0,
+     "level": -22.0,
+     "loop": 0.6
+    },
+    "level": "-22.0 dB (new cue)",
+    "keep_seconds": 10.0
+   },
+   "measured": {
+    "seconds": 9.4,
+    "peak_db": -12.3,
+    "loud_db": -22.0,
+    "dc": 0.0,
+    "onset_ms": 0.0,
+    "centroid_hz": 5813,
+    "end_db": -21.8,
+    "seam_jump": 0.0084,
+    "seam_vs_p999": 0.03,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_bridge-radio_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_bridge-radio_0.mp3",
+   "prompt": "Car two, any sign of that load?",
+   "credits": 69,
+   "destination": "audio_src/final/sfx/talk_bridge-radio_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.3
+    ],
+    "natural_seconds": 2.291,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.291
+   },
+   "measured": {
+    "seconds": 2.291,
+    "peak_db": -0.8,
+    "loud_db": -3.7,
+    "dc": 0.0018,
+    "onset_ms": 2.8,
+    "centroid_hz": 1656,
+    "end_db": -120.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_bridge-radio_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_bridge-radio_1.mp3",
+   "prompt": "Nothin' but mosquitoes.",
+   "credits": 44,
+   "destination": "audio_src/final/sfx/talk_bridge-radio_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.06,
+     1.48
+    ],
+    "natural_seconds": 1.668,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.668
+   },
+   "measured": {
+    "seconds": 1.599,
+    "peak_db": -0.8,
+    "loud_db": -5.8,
+    "dc": 0.0029,
+    "onset_ms": 24.9,
+    "centroid_hz": 1850,
+    "end_db": -78.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_camp-talk_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_camp-talk_0.mp3",
+   "prompt": "Chief says don't taste the evidence.",
+   "credits": 36,
+   "destination": "audio_src/final/sfx/talk_camp-talk_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     2.02
+    ],
+    "natural_seconds": 1.893,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.893
+   },
+   "measured": {
+    "seconds": 1.893,
+    "peak_db": -0.8,
+    "loud_db": -5.0,
+    "dc": 0.0003,
+    "onset_ms": 15.1,
+    "centroid_hz": 1674,
+    "end_db": -117.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_camp-talk_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_camp-talk_1.mp3",
+   "prompt": "Chief ain't here.",
+   "credits": 17,
+   "destination": "audio_src/final/sfx/talk_camp-talk_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.16,
+     1.38
+    ],
+    "natural_seconds": 1.318,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.318
+   },
+   "measured": {
+    "seconds": 1.318,
+    "peak_db": -0.8,
+    "loud_db": -11.2,
+    "dc": 0.0001,
+    "onset_ms": 3.2,
+    "centroid_hz": 1841,
+    "end_db": -110.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_booth-radio_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_booth-radio_0.mp3",
+   "prompt": "Checkpoint, hold every car.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/talk_booth-radio_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.38
+    ],
+    "natural_seconds": 2.359,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.359
+   },
+   "measured": {
+    "seconds": 2.35,
+    "peak_db": -0.8,
+    "loud_db": -4.5,
+    "dc": 0.0007,
+    "onset_ms": 0.0,
+    "centroid_hz": 1261,
+    "end_db": -117.3,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "talk_booth-radio_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/talk_booth-radio_1.mp3",
+   "prompt": "Even Granny's?",
+   "credits": 14,
+   "destination": "audio_src/final/sfx/talk_booth-radio_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     1.02
+    ],
+    "natural_seconds": 0.883,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 0.883
+   },
+   "measured": {
+    "seconds": 0.883,
+    "peak_db": -0.8,
+    "loud_db": -5.4,
+    "dc": 0.0024,
+    "onset_ms": 0.0,
+    "centroid_hz": 1519,
+    "end_db": -119.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "county_dispatch_8": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/county_dispatch_8.mp3",
+   "prompt": "Check on Granny Hooten.",
+   "credits": 23,
+   "destination": "audio_src/final/sfx/county_dispatch_8.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.48
+    ],
+    "natural_seconds": 1.474,
+    "speaker": "radio",
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.474
+   },
+   "measured": {
+    "seconds": 1.467,
+    "peak_db": -0.8,
+    "loud_db": -4.6,
+    "dc": 0.0031,
+    "onset_ms": 5.0,
+    "centroid_hz": 1855,
+    "end_db": -112.9,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "drone_zap": {
    "purpose": "new cue",
    "refs": [],
@@ -24296,6 +24972,426 @@
    },
    "validation": "ok"
   },
+  "boss_revenue_man_intro": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_intro.mp3",
+   "prompt": "Federal government, son. That still is evidence.",
+   "credits": 48,
+   "destination": "audio_src/final/sfx/boss_revenue_man_intro.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     2.82
+    ],
+    "natural_seconds": 2.819,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.819
+   },
+   "measured": {
+    "seconds": 2.819,
+    "peak_db": -0.8,
+    "loud_db": -5.2,
+    "dc": 0.0007,
+    "onset_ms": 23.7,
+    "centroid_hz": 1093,
+    "end_db": -136.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_taunt_0": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_taunt_0.mp3",
+   "prompt": "You have the right to remain thirsty.",
+   "credits": 37,
+   "destination": "audio_src/final/sfx/boss_revenue_man_taunt_0.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.24,
+     2.1
+    ],
+    "natural_seconds": 2.019,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.019
+   },
+   "measured": {
+    "seconds": 2.019,
+    "peak_db": -0.8,
+    "loud_db": -7.5,
+    "dc": 0.0,
+    "onset_ms": 2.0,
+    "centroid_hz": 1336,
+    "end_db": -128.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_taunt_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_taunt_1.mp3",
+   "prompt": "Taxes are due, boy!",
+   "credits": 19,
+   "destination": "audio_src/final/sfx/boss_revenue_man_taunt_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.44
+    ],
+    "natural_seconds": 1.423,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.423
+   },
+   "measured": {
+    "seconds": 1.417,
+    "peak_db": -0.8,
+    "loud_db": -6.2,
+    "dc": 0.0022,
+    "onset_ms": 3.3,
+    "centroid_hz": 1253,
+    "end_db": -111.2,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_worried": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_worried.mp3",
+   "prompt": "That's government property you're shootin'!",
+   "credits": 43,
+   "destination": "audio_src/final/sfx/boss_revenue_man_worried.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.26
+    ],
+    "natural_seconds": 2.177,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.177
+   },
+   "measured": {
+    "seconds": 2.177,
+    "peak_db": -0.8,
+    "loud_db": -7.3,
+    "dc": 0.0,
+    "onset_ms": 4.4,
+    "centroid_hz": 1038,
+    "end_db": -124.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_last": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_last.mp3",
+   "prompt": "Tell Washington... I tried.",
+   "credits": 27,
+   "destination": "audio_src/final/sfx/boss_revenue_man_last.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     1.78
+    ],
+    "natural_seconds": 1.765,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.765
+   },
+   "measured": {
+    "seconds": 1.752,
+    "peak_db": -0.8,
+    "loud_db": -9.0,
+    "dc": 0.0001,
+    "onset_ms": 4.1,
+    "centroid_hz": 1432,
+    "end_db": -151.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_intro_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_intro_1.mp3",
+   "prompt": "Back again? Contraband don't get a second chance.",
+   "credits": 49,
+   "destination": "audio_src/final/sfx/boss_revenue_man_intro_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.18,
+     3.1
+    ],
+    "natural_seconds": 3.04,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 3.04
+   },
+   "measured": {
+    "seconds": 3.04,
+    "peak_db": -0.8,
+    "loud_db": -5.7,
+    "dc": 0.0019,
+    "onset_ms": 7.7,
+    "centroid_hz": 1116,
+    "end_db": -170.8,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_taunt_2": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_taunt_2.mp3",
+   "prompt": "Consider yourself audited!",
+   "credits": 26,
+   "destination": "audio_src/final/sfx/boss_revenue_man_taunt_2.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     1.84
+    ],
+    "natural_seconds": 1.801,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.801
+   },
+   "measured": {
+    "seconds": 1.789,
+    "peak_db": -0.8,
+    "loud_db": -5.9,
+    "dc": 0.0003,
+    "onset_ms": 3.8,
+    "centroid_hz": 1168,
+    "end_db": -146.4,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_taunt_3": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_taunt_3.mp3",
+   "prompt": "I've busted bigger stills than you!",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/boss_revenue_man_taunt_3.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.22,
+     2.16
+    ],
+    "natural_seconds": 2.159,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.159
+   },
+   "measured": {
+    "seconds": 2.13,
+    "peak_db": -0.8,
+    "loud_db": -5.3,
+    "dc": 0.0001,
+    "onset_ms": 1.2,
+    "centroid_hz": 1298,
+    "end_db": -118.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_mad": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_mad.mp3",
+   "prompt": "Now that's assault on a federal officer!",
+   "credits": 40,
+   "destination": "audio_src/final/sfx/boss_revenue_man_mad.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.2,
+     2.04
+    ],
+    "natural_seconds": 1.998,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.998
+   },
+   "measured": {
+    "seconds": 1.998,
+    "peak_db": -0.8,
+    "loud_db": -6.1,
+    "dc": 0.0019,
+    "onset_ms": 3.3,
+    "centroid_hz": 855,
+    "end_db": -132.1,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "boss_revenue_man_worried_1": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/boss_revenue_man_worried_1.mp3",
+   "prompt": "Somebody radio Washington! Anybody!",
+   "credits": 35,
+   "destination": "audio_src/final/sfx/boss_revenue_man_worried_1.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.1,
+     2.48
+    ],
+    "natural_seconds": 2.571,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 2.571
+   },
+   "measured": {
+    "seconds": 2.57,
+    "peak_db": -0.8,
+    "loud_db": -8.0,
+    "dc": 0.0001,
+    "onset_ms": 0.0,
+    "centroid_hz": 1105,
+    "end_db": -120.6,
+    "problems": []
+   },
+   "validation": "ok"
+  },
   "boss_maw_intro": {
    "purpose": "new cue",
    "refs": [],
@@ -30114,6 +31210,48 @@
     "onset_ms": 26.7,
     "centroid_hz": 1115,
     "end_db": -131.7,
+    "problems": []
+   },
+   "validation": "ok"
+  },
+  "bark_tough_hoss": {
+   "purpose": "new cue",
+   "refs": [],
+   "family": "voice",
+   "origin": "generated speech",
+   "source": "audio_src/generated/tts/bark_tough_hoss.mp3",
+   "prompt": "Hoss is here to collect, boy!",
+   "credits": 65,
+   "destination": "audio_src/final/sfx/bark_tough_hoss.wav -> godot/assets_gen/sfx.bin",
+   "format": "mono 16-bit PCM 22050 Hz",
+   "replaced_seconds": null,
+   "recipe": {
+    "status": "built",
+    "family": "voice",
+    "chain": {
+     "hp": 110,
+     "lp": 9000,
+     "low": 0.0,
+     "pres": 2.0,
+     "fade": 0.06,
+     "level": -3.0
+    },
+    "words_at": [
+     0.04,
+     1.58
+    ],
+    "natural_seconds": 1.616,
+    "level": "-3.0 dB (new cue)",
+    "keep_seconds": 1.616
+   },
+   "measured": {
+    "seconds": 1.616,
+    "peak_db": -0.8,
+    "loud_db": -7.1,
+    "dc": 0.0,
+    "onset_ms": 7.1,
+    "centroid_hz": 1590,
+    "end_db": -130.7,
     "problems": []
    },
    "validation": "ok"
@@ -49856,6 +50994,68 @@
    "origin": "generated",
    "destination": "godot/assets/music/fight_mothership.ogg -> godot/assets_gen/music.bin",
    "format": "stereo Vorbis 44.1 kHz"
+  },
+  "moonshine_score": {
+   "status": "built",
+   "title": "Copperhead Ridge Run",
+   "bpm_asked": 138,
+   "seconds": 107.06,
+   "lufs": -15.0,
+   "lra": 7.0,
+   "true_peak_db": -0.8,
+   "source_lufs": -11.43,
+   "credits": 1518,
+   "origin": "generated",
+   "destination": "godot/assets/music/moonshine_score.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "fight_moonshine": {
+   "status": "built",
+   "title": "Revenuer Roadblock Brawl",
+   "bpm_asked": 160,
+   "loop": true,
+   "seconds": 54.0,
+   "lufs": -15.1,
+   "lra": 0.8,
+   "true_peak_db": -3.7,
+   "source_lufs": -9.49,
+   "loop_from_take": 9.948,
+   "loop_to_take": 63.948,
+   "match_rhythm": 0.946,
+   "match_harmony": 0.996,
+   "match_attack": 0.529,
+   "cross_correlation": 0.088,
+   "join_jump": 0.13,
+   "join_level_spread_db": 8.84,
+   "body_level_spread_db": 9.79,
+   "credits": 966,
+   "origin": "generated",
+   "destination": "godot/assets/music/fight_moonshine.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
+  },
+  "boss_moonshine": {
+   "status": "built",
+   "title": "The Revenue Man Cometh",
+   "bpm_asked": 170,
+   "loop": true,
+   "seconds": 59.331,
+   "lufs": -15.1,
+   "lra": 2.4,
+   "true_peak_db": -3.7,
+   "source_lufs": -9.28,
+   "loop_from_take": 5.336,
+   "loop_to_take": 64.668,
+   "match_rhythm": 0.765,
+   "match_harmony": 0.893,
+   "match_attack": 0.339,
+   "cross_correlation": -0.082,
+   "join_jump": 1.37,
+   "join_level_spread_db": 9.8,
+   "body_level_spread_db": 6.91,
+   "credits": 1932,
+   "origin": "generated",
+   "destination": "godot/assets/music/boss_moonshine.ogg -> godot/assets_gen/music.bin",
+   "format": "stereo Vorbis 44.1 kHz"
   }
  },
  "dropped_from_bank": [
@@ -50065,6 +51265,23 @@
   "talk_booth-pa_1",
   "talk_camp-fire_0",
   "talk_camp-fire_1",
+  "revenue_man_warn",
+  "revenue_man_rage",
+  "revenue_man_death",
+  "revenue_man_pain",
+  "revenue_man_down",
+  "revenue_man_intro",
+  "revenue_man_end",
+  "church_bell",
+  "cruiser_siren",
+  "amb_ridge",
+  "talk_bridge-radio_0",
+  "talk_bridge-radio_1",
+  "talk_camp-talk_0",
+  "talk_camp-talk_1",
+  "talk_booth-radio_0",
+  "talk_booth-radio_1",
+  "county_dispatch_8",
   "drone_zap",
   "guard_zapper",
   "probe_tug",
@@ -50227,6 +51444,16 @@
   "boss_boggs_taunt_3",
   "boss_boggs_mad",
   "boss_boggs_worried_1",
+  "boss_revenue_man_intro",
+  "boss_revenue_man_taunt_0",
+  "boss_revenue_man_taunt_1",
+  "boss_revenue_man_worried",
+  "boss_revenue_man_last",
+  "boss_revenue_man_intro_1",
+  "boss_revenue_man_taunt_2",
+  "boss_revenue_man_taunt_3",
+  "boss_revenue_man_mad",
+  "boss_revenue_man_worried_1",
   "boss_maw_intro",
   "boss_maw_taunt_0",
   "boss_maw_taunt_1",
@@ -50365,6 +51592,7 @@
   "bark_tough_bubba",
   "bark_tough_chuck",
   "bark_tough_pete",
+  "bark_tough_hoss",
   "bark_tough_zorgo",
   "boss_maw_wake",
   "boss_maw_crew_0",

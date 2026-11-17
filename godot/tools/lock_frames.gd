@@ -10,7 +10,9 @@
 ## Point APPDATA at a scratch folder: it runs the game with the profile there.
 extends SceneTree
 
-const KINDS := ["boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "maw"]
+const KINDS := [
+	"boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "revenue_man", "maw"
+]
 ## Which way in each looks at (by its place in BossFight.entrances), and how
 ## far inside it stands.
 const WAY := {"boss": 1, "baron": 1, "derby_champ": 1, "swamp_king": 13}

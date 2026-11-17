@@ -1,0 +1,25 @@
+{
+ "text": "Somebody radio Washington. Anybody",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.1,
+   "end": 0.54
+  },
+  {
+   "text": "radio",
+   "start": 0.64,
+   "end": 1.06
+  },
+  {
+   "text": "Washington.",
+   "start": 1.16,
+   "end": 1.78
+  },
+  {
+   "text": "Anybody",
+   "start": 1.9,
+   "end": 2.48
+  }
+ ]
+}

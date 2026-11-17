@@ -390,5 +390,61 @@
   "weapon": true,
   "x": 0.0,
   "y": 0.0
+ },
+ {
+  "angle": 0.0,
+  "drunk": 0.0,
+  "level": "moonshine",
+  "pitch": 2.0,
+  "tag": "moonshine_bridge_0",
+  "weapon": true,
+  "x": 34.5,
+  "y": 77.5
+ },
+ {
+  "angle": -1.5708,
+  "drunk": 0.0,
+  "level": "moonshine",
+  "pitch": 4.0,
+  "tag": "moonshine_checkpoint_0",
+  "weapon": true,
+  "x": 94.0,
+  "y": 38.5
+ },
+ {
+  "angle": 0.0,
+  "drunk": 0.0,
+  "level": "moonshine",
+  "pitch": 4.0,
+  "tag": "moonshine_cave_0",
+  "weapon": true,
+  "x": 113.6,
+  "y": 7.5
+ },
+ {
+  "actors": [
+   {
+    "ahead": 3.0,
+    "kind": "revenooer",
+    "side": -1.6
+   },
+   {
+    "ahead": 3.6,
+    "kind": "revenue_man",
+    "side": 0.0
+   },
+   {
+    "ahead": 3.0,
+    "kind": "gas_man",
+    "side": 1.6
+   }
+  ],
+  "angle": 3.14159,
+  "level": "moonshine",
+  "pitch": 0.0,
+  "tag": "moonshine_revenue_men_0",
+  "weapon": false,
+  "x": 104.0,
+  "y": 8.0
  }
 ]

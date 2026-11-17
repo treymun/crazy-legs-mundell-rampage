@@ -9,7 +9,16 @@
 extends RefCounted
 
 const LEVELS := [
-	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership", "hub", "range"
+	"hickston",
+	"fair",
+	"sawmill",
+	"quarry",
+	"bayou",
+	"speedway",
+	"moonshine",
+	"mothership",
+	"hub",
+	"range"
 ]
 ## Levels that have to have windows, and fence cells that open.
 const WINDOWS_IN := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "range"]

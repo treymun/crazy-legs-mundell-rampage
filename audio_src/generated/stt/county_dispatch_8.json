@@ -1,0 +1,25 @@
+{
+ "text": "Check on Granny Hooten",
+ "words": [
+  {
+   "text": "Check",
+   "start": 0.18,
+   "end": 0.36
+  },
+  {
+   "text": "on",
+   "start": 0.42,
+   "end": 0.56
+  },
+  {
+   "text": "Granny",
+   "start": 0.64,
+   "end": 0.94
+  },
+  {
+   "text": "Hooten",
+   "start": 1.02,
+   "end": 1.48
+  }
+ ]
+}

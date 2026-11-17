@@ -29,6 +29,9 @@ const CALLED := {
 	"lantern": "LANTERN HAND",
 	"yard_deputy": "DEPUTY",
 	"pit_mechanic": "PIT CREW",
+	"revenooer": "REVENUER",
+	"still_buster": "STILL BUSTER",
+	"gas_man": "GAS MAN",
 }
 ## Inks: a player's own line (theirs or about them) warm, the rest by kind.
 const DOWN_INK := Color8(238, 104, 72)

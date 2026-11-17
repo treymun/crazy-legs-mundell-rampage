@@ -30,9 +30,10 @@ per floor (`geo_kit.gd` for decks, stairs and bridges).
 | `quarry_plan.gd` | the quarry |
 | `bayou_plan.gd` (+ `bayou_cast.gd`) | chapter 5 |
 | `speedway_plan.gd` | chapter 6 |
-| `mothership_plan.gd` (+ `mothership_cast.gd`) | chapter 7, all indoors, the last |
+| `moonshine_plan.gd` (+ `moonshine_cast.gd`) | chapter 7, the Moonshine Run: Copperhead Ridge by night (below) |
+| `mothership_plan.gd` (+ `mothership_cast.gd`) | chapter 8, all indoors, the last |
 | `range_plan.gd` | the firing range, not a chapter (layout 5: the games row south of the armory) |
-| `hub_plan.gd` | the Crossroads (`data/hub.json`; layout 4: Mundell's trophy shack behind the Road Department) |
+| `hub_plan.gd` | the Crossroads (`data/hub.json`; layout 4: Mundell's trophy shack behind the Road Department; layout 5: the ridge road's gate to the Moonshine Run, south off the county line road's west end, a revenue cruiser pulled off by it) |
 | `grainyard_plan.gd`, `holler_plan.gd`, `salvage_plan.gd` | the 5v5 maps ([modes.md](modes.md#the-maps)) |
 | `pumpngo_plan.gd`, `pineacres_plan.gd`, `landing_plan.gd` | the 2v2 maps |
 | `county_hickston_plan.gd`, `county_quarry_plan.gd`, `county_bayou_plan.gd` (+ `county_kit.gd`) | the County Run maps ([county_run.md](county_run.md#the-maps)) |
@@ -131,6 +132,46 @@ County Run's maps drop the gun signs with the vehicles' (`county_kit.gd`),
 and their pickups as before. A new sign must hang on something facing out,
 and a new first-time gun lie within `NEAR` steps of the way, signed if it is
 further than `SIGNED` and out of sight: `tools/gun_find_check.gd`.
+
+### The Moonshine Run (content pass 8)
+
+`moonshine_plan.gd` (+ `moonshine_cast.gd`), 128x96, layout 1, between the
+speedway and the Mothership in `Campaign.ORDER`. Copperhead Ridge by night:
+the woods (`ridge_pines`) stand everywhere nobody cleared, the bluffs and the
+still cave are `ridge_rock` over `cave_floor` (`tools/art/build_moonshine_art.gd`,
+with the moonlit sky and the signs). Granny Hooten's farm (the start, the
+tobacco barn with the stock car in it, the smokehouse stash), Mule Creek a step
+down (a man wades it, the car does not climb out), the low water bridge, Little
+Bethel church and its graveyard, the county blacktop (a loop the revenue
+cruisers patrol: `lap_cars` with `model` `town_cruiser`, `siren`, `laps` false so
+no lap timer, `dry` their line, stopped by the radio station), Buzzard Knob and
+the radio mast, the deer camp, Snake Holler (Skeeter's trailer with Granny's
+brass barn key, the busted still, the sinkhole), the county line checkpoint,
+the log gate, the switchbacks (a step of .12 a cell, the car's), the revenue
+camp and the still cave.
+
+- Stations: `trunk` (in the barn; opens its four doors), `radio` (stops the
+  cruisers; while it talks an agent may radio the player in,
+  `src/moonshine_hands.gd`), `bell` (Little Bethel's rope; opens the log gate),
+  then `cave` (Granny's dinner iron by the cave door; needs the three) wakes the
+  Revenue Man. The exit is the last jar by the camp.
+- The MOONSHINE RUN (`vehicle_runs`): the stock car from the barn doors over the
+  bridge, round the church curve, along the blacktop among the cruisers and
+  up through the checkpoint in 45 s, the agents at both roadblocks woken as it
+  starts. Each roadblock is a cruiser (a `volume` under its model, `parked()`)
+  across half the road and two `town_sawhorse` barricades across the rest:
+  breakables (`breakables.cfg`) the car rams through (`vehicles.gd _cut`), with a
+  gap a man gets by at (so they never part the floor). The checkpoint's shoulder
+  is a step up the car cannot take. `vehicle_lines` gives the car its own line in
+  the barn (`Level.vehicle_lines`, over vehicles.cfg `spotted`).
+- Keys and secrets: the brass key in Skeeter's trailer opens the barn's tack
+  room; the smokehouse, the pulpit and the sinkhole hide stashes.
+- Hooks for the other pass-8 tracks (nothing built for them here): the tobacco
+  barn and the farm's and camp's water towers, the camp's generator and fuel
+  drums (destruction, fuel fires); Granny's empty doghouse by the porch (the dog
+  companion); the revenue radio, the checkpoint booth and the cruisers (the CB
+  radio).
+- `tools/moonshine_check.gd` (MOONSHINE CHECK OK, in check_all) holds it.
 
 ### Places to climb
 

@@ -1,0 +1,40 @@
+{
+ "text": "Federal government, son. That still is evidence",
+ "words": [
+  {
+   "text": "Federal",
+   "start": 0.18,
+   "end": 0.48
+  },
+  {
+   "text": "government,",
+   "start": 0.58,
+   "end": 1.02
+  },
+  {
+   "text": "son.",
+   "start": 1.16,
+   "end": 1.44
+  },
+  {
+   "text": "That",
+   "start": 1.62,
+   "end": 1.74
+  },
+  {
+   "text": "still",
+   "start": 1.88,
+   "end": 2.08
+  },
+  {
+   "text": "is",
+   "start": 2.16,
+   "end": 2.3
+  },
+  {
+   "text": "evidence",
+   "start": 2.38,
+   "end": 2.82
+  }
+ ]
+}

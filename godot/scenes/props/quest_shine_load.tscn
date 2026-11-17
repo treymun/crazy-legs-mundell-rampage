@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_3evb3"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_shine_load.glb" id="2_2e5f0"]
+
+[node name="QuestShineLoad" type="Node3D" unique_id=1229243456]
+script = ExtResource("1_3evb3")
+prop = "quest_shine_load"
+
+[node name="Model" type="Node3D" parent="." unique_id=1993349570 instance=ExtResource("2_2e5f0")]

@@ -140,6 +140,17 @@ listened to: the owner should hear the local voice's barks (a slower, lower
 voice than the hicks', and the longest barks at about 2 s) and the grey's
 new lines in game.
 
+### The Moonshine Run (content pass 8)
+
+A designed voice for the Revenue Man ("revenue_man": a big, cold, clipped
+federal lawman, nobody real) and his ten lines; the tough guy Hoss in the
+deputy's voice; the dispatch's line for the Crossroads board (`county_dispatch_8`,
+its place in `GameState.HUB_DISPATCH_CUES`); three radio exchanges. Effects: the
+Revenue Man's warn, rage, pain, down, death, entrance and end stings, Little
+Bethel's bell, a cruiser siren and the ridge's night bed (`amb_ridge`, the
+level's ambience). Music: `moonshine_score`, `fight_moonshine`,
+`boss_moonshine` (`music_moonshine.bin`). Not listened to.
+
 ## The 3.0.0 remaster pass (measured, not heard)
 
 - Loudness of all 993 effects (loudest 50 ms, peak; EBU R128 for cues of 1 s

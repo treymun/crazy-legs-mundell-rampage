@@ -11,7 +11,9 @@
 ## Point APPDATA at a scratch folder: it runs the game with the profile there.
 extends SceneTree
 
-const KINDS := ["boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "maw"]
+const KINDS := [
+	"boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "revenue_man", "maw"
+]
 
 var main
 var out := ""

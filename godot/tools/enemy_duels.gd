@@ -21,7 +21,9 @@ var GAP := 9.0
 ## DANGER_TIME seconds (the hand kept whole); otherwise a duel to the end.
 var danger := false
 const DANGER_TIME := 12.0
-const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const LEVELS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 
 var sound: Sound
 

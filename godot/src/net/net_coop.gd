@@ -88,6 +88,7 @@ static func chapter_kit(fresh: Game, level_id: String) -> void:
 			"quarry": [Weapons.COW, 3],
 			"bayou": [Weapons.CROSSBOW, 6],
 			"speedway": [Weapons.CROSSBOW, 6],
+			"moonshine": [Weapons.COW, 3],
 			"mothership": [Weapons.ARMGUN, 18],
 		}
 		. get(level_id, [Weapons.ROCKET, 3])

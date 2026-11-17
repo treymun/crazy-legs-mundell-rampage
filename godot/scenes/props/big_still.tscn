@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_yselh"]
+[ext_resource type="PackedScene" path="res://assets3d/props/big_still.glb" id="2_qj6ao"]
+
+[node name="BigStill" type="Node3D" unique_id=611488038]
+script = ExtResource("1_yselh")
+prop = "big_still"
+
+[node name="Model" type="Node3D" parent="." unique_id=447706123 instance=ExtResource("2_qj6ao")]

@@ -16,7 +16,16 @@ func _init() -> void:
 	var assets := Assets.new()
 	var failures: Array = []
 	for id in [
-		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership", "hub", "range"
+		"hickston",
+		"fair",
+		"sawmill",
+		"quarry",
+		"bayou",
+		"speedway",
+		"moonshine",
+		"mothership",
+		"hub",
+		"range"
 	]:
 		var level := LevelEdit.read(id)
 		if level.is_empty():

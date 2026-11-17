@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_o5pla"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_bell_rope.glb" id="2_k66qe"]
+
+[node name="QuestBellRope" type="Node3D" unique_id=1255612344]
+script = ExtResource("1_o5pla")
+prop = "quest_bell_rope"
+
+[node name="Model" type="Node3D" parent="." unique_id=1621692613 instance=ExtResource("2_k66qe")]

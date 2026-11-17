@@ -1,0 +1,35 @@
+{
+ "text": "Toss is here to collect, boy",
+ "words": [
+  {
+   "text": "Toss",
+   "start": 0.04,
+   "end": 0.26
+  },
+  {
+   "text": "is",
+   "start": 0.32,
+   "end": 0.42
+  },
+  {
+   "text": "here",
+   "start": 0.44,
+   "end": 0.6
+  },
+  {
+   "text": "to",
+   "start": 0.64,
+   "end": 0.74
+  },
+  {
+   "text": "collect,",
+   "start": 0.78,
+   "end": 1.1
+  },
+  {
+   "text": "boy",
+   "start": 1.2,
+   "end": 1.58
+  }
+ ]
+}

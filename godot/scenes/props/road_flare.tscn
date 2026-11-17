@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_sctwe"]
+[ext_resource type="PackedScene" path="res://assets3d/props/road_flare.glb" id="2_aquql"]
+
+[node name="RoadFlare" type="Node3D" unique_id=1489420955]
+script = ExtResource("1_sctwe")
+prop = "road_flare"
+
+[node name="Model" type="Node3D" parent="." unique_id=1756353626 instance=ExtResource("2_aquql")]

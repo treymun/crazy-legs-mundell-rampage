@@ -11,6 +11,10 @@
 ##   speedway    the derby bowl. In phase 3 the bowl's floodlights blow one
 ##               after another (`floods`) and the wrecks round the wall burn
 ##               (`fires`); his headlights are the light he comes by.
+##   moonshine   the still cave. In phase 3 Granny's still blows (`still`), the
+##               shine round it burns (`fires`) and the roof comes down a rock
+##               at a time on marked spots round the player and the cave's
+##               own loose spots (`rocks`): they hurt the Revenue Man too.
 ##   mothership  the core. In her last phase the core goes critical: the beam
 ##               column throbs red and every few seconds a pulse rolls out from
 ##               it across the deck, to be jumped, that burns Maw as well.
@@ -51,6 +55,15 @@ static var PULSE_HURT: int = BossData.get_value("boss_arenas", "pulse_hurt")
 static var PULSE_BURN: float = BossData.get_value("boss_arenas", "pulse_burn")
 ## Floodlights: seconds between one blowing and the next.
 static var FLOOD_GAP: float = BossData.get_value("boss_arenas", "flood_gap")
+## The still cave coming down: seconds between rocks by difficulty, the
+## ring's fuse, its width, its hurt to a player and to the boss, and how often
+## the spilled shine catches again.
+static var ROCK_EVERY: Array = BossData.get_value("boss_arenas", "rock_every")
+static var ROCK_FUSE: float = BossData.get_value("boss_arenas", "rock_fuse")
+static var ROCK_R: float = BossData.get_value("boss_arenas", "rock_r")
+static var ROCK_HURT: int = BossData.get_value("boss_arenas", "rock_hurt")
+static var ROCK_BURN: float = BossData.get_value("boss_arenas", "rock_burn")
+static var REBURN: float = BossData.get_value("boss_arenas", "reburn")
 
 var level_id := ""
 var boss: Enemy = null
@@ -74,6 +87,11 @@ var flood_boards: Array = []
 var alarm_lights: Array = []
 var head_light: Array = []
 var jet_hit := {}
+## The still cave: when the next rock comes down, how many have, when the
+## shine catches again.
+var rock_next := -1.0
+var rocks_down := 0
+var burn_next := -1.0
 
 
 func id() -> String:
@@ -137,6 +155,8 @@ func turn(e: Enemy) -> void:
 			game.message("HIS TANK'S HOLED! THE LAGOON'S CATCHING FIRE!", 2.8)
 		"speedway":
 			game.message("THE FLOODLIGHTS ARE BLOWING!", 2.6)
+		"moonshine":
+			_still_blows()
 		"mothership":
 			game.message("THE CORE'S GOING CRITICAL! JUMP THE PULSES!", 3.0)
 			game.sound_at(ShipAliens.cue(game, "ship_quake", "distant_quarry_blast"), e.x, e.y, 1.0)
@@ -171,6 +191,8 @@ func _tick(_dt: float) -> void:
 			_spill()
 		"speedway":
 			_floods()
+		"moonshine":
+			_cave_in()
 		"mothership":
 			_pulses()
 			_alarm(Color(1.0, .2, .25), 1.3)
@@ -207,6 +229,9 @@ func _land(d: Array) -> void:
 				_burn(OUTLET_SCALD * .6, "steam")
 		"curler":
 			_blast(x, y, z + .3, "maw_curler")
+		"rock":
+			var hurt_rock: int = d[6]
+			_rock(x, y, z, r, hurt_rock, str(d[7]))
 		_:
 			_blast(x, y, z + .3, "king_dynamite")
 
@@ -393,6 +418,75 @@ func _blow_flood(k: int, quiet: bool) -> void:
 	game.sound_at(ShipAliens.cue(game, "arc_snap", "metal_down"), board.x, board.y, .8)
 	game.blast_flash = maxf(game.blast_flash, .25)
 	game.shake = minf(1.0, game.shake + .2)
+
+
+# ------------------------------------------------------------------ the still cave
+
+
+## Granny's still goes up: a blast at it, the shine round it burning, the
+## roof starting to come down.
+func _still_blows() -> void:
+	game.message("THE STILL'S BLOWIN'! THE ROOF'S COMIN' DOWN!", 3.0)
+	var at: Array = arena.get("still", [boss.x, boss.y])
+	var sx: float = at[0]
+	var sy: float = at[1]
+	_blast(sx, sy, game.world.elevation(sx, sy) + .8, "still_blast")
+	game.sound_at(ShipAliens.cue(game, "ship_quake", "distant_quarry_blast"), sx, sy, 1.0)
+	game.shake = minf(1.0, game.shake + .8)
+	for spot: Array in arena.get("fires", []):
+		var fx: float = spot[0]
+		var fy: float = spot[1]
+		burn(fx, fy)
+	burn_next = game.clock + REBURN
+	rock_next = game.clock + 1.4
+
+
+## A rock every few seconds: one at the player, and in turn one of the
+## cave's own loose spots (two on HOG WILD); the shine catches again.
+func _cave_in() -> void:
+	if not boss.alive:
+		return
+	if burn_next > 0.0 and game.clock >= burn_next:
+		burn_next = game.clock + REBURN
+		for spot: Array in arena.get("fires", []):
+			var fx: float = spot[0]
+			var fy: float = spot[1]
+			burn(fx, fy)
+	if rock_next < 0.0 or game.clock < rock_next:
+		return
+	var every: float = ROCK_EVERY[clampi(game.difficulty, 0, 3)]
+	rock_next = game.clock + every
+	var p := game.player
+	var lead := Vector2(cos(p.angle), sin(p.angle)) * (.6 if rocks_down % 2 else 0.0)
+	var spots: Array = [Vector2(p.x, p.y) + lead]
+	var loose: Array = arena.get("rocks", [])
+	var turns := 2 if game.difficulty == 3 else 1
+	for k in turns:
+		if not loose.is_empty():
+			var at: Array = loose[(rocks_down + k * 3) % loose.size()]
+			var ax: float = at[0]
+			var ay: float = at[1]
+			spots.append(Vector2(ax, ay))
+	rocks_down += 1
+	for at: Vector2 in spots:
+		if game.world.blocked(at.x, at.y, .2):
+			continue
+		drop("rock", at.x, at.y, ROCK_FUSE, ROCK_R, ROCK_HURT, "ROCKFALL")
+	game.sound_at("ship_quake", p.x, p.y, .35)
+	_sparks(p.x, p.y, game.world.elevation(p.x, p.y) + 2.6, "dust", 6, .6)
+
+
+## A rock off the roof lands: whoever is under it is struck, the boss too.
+func _rock(x: float, y: float, z: float, r: float, hurt: int, cause: String) -> void:
+	for p: Player in game.players:
+		if p.air < .6 and Vector2(p.x - x, p.y - y).length() < r + GameState.PLAYER_RADIUS:
+			game.damage(hurt, [x, y], cause, p)
+	if Vector2(boss.x - x, boss.y - y).length() < r + boss.radius:
+		_burn(ROCK_BURN, "blast")
+	_sparks(x, y, z + .3, "dust", 14, 2.0)
+	_sparks(x, y, z + .3, "chips", 8, 2.6)
+	game.sound_at("impact_stone", x, y, 1.0)
+	game.shake = minf(1.0, game.shake + .25)
 
 
 # ------------------------------------------------------------------ the core
@@ -703,6 +797,8 @@ func _falling(d: Array, frame: int) -> Array:
 		image = "fx_energy_%d" % (frame % 4)
 	elif kind == "steam":
 		image = "fx_valve_slug"
+	elif kind == "rock":
+		image = "fx_brk_clay_%d" % (frame % 2)
 	var s := View.Sprite.new(x, y, image, .35, game.world.elevation(x, y) + left * 6.0)
 	s.glow = kind != "tnt"
 	return [s]

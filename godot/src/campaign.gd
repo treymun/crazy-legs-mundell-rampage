@@ -7,7 +7,9 @@
 class_name Campaign
 extends RefCounted
 
-const ORDER := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const ORDER := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 
 const GATE_LABELS := {
 	"hickston": "HICKSTON",
@@ -16,6 +18,7 @@ const GATE_LABELS := {
 	"quarry": "QUARRY",
 	"bayou": "BAYOU",
 	"speedway": "SPEEDWAY",
+	"moonshine": "RIDGE",
 	"mothership": "SHIP",
 }
 
@@ -243,6 +246,46 @@ const LEVEL_INFO := {
 			["SALVAGE", 124, 8],
 			["CRUSHER", 130, 31],
 			["TOW LOT", 118, 88]
+		],
+	},
+	"moonshine":
+	{
+		"title": "THE MOONSHINE RUN",
+		"heading": ["COPPERHEAD RIDGE", "THE MOONSHINE RUN"],
+		"districts":
+		[
+			"GRANNY HOOTEN'S PLACE",
+			"THE TOBACCO BARN",
+			"MULE CREEK",
+			"LOW WATER BRIDGE",
+			"LITTLE BETHEL CHURCH",
+			"BETHEL GRAVEYARD",
+			"THE BACKROAD",
+			"COUNTY BLACKTOP",
+			"BUZZARD KNOB",
+			"DEER CAMP",
+			"SNAKE HOLLER",
+			"COUNTY LINE CHECKPOINT",
+			"THE SWITCHBACKS",
+			"REVENUE CAMP",
+			"THE STILL CAVE"
+		],
+		"introduction": "LOAD GRANNY'S SHINE, CUT THE REVENUE RADIO AND RING THE CHURCH BELL.",
+		"ending": '"GRANNY SAYS THE TAX IS PAID IN FULL."',
+		"score": "moonshine_score",
+		"ambience": "ridge",
+		"rescue": false,
+		"labels":
+		[
+			["GRANNY'S", 3, 76],
+			["BARN", 20, 78],
+			["CHURCH", 48, 59],
+			["BLACKTOP", 40, 57],
+			["KNOB", 14, 4],
+			["HOLLER", 98, 63],
+			["CHECKPOINT", 80, 30],
+			["CAMP", 64, 1],
+			["STILL CAVE", 114, 1]
 		],
 	},
 	"mothership":

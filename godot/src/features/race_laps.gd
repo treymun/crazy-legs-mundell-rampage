@@ -4,7 +4,9 @@
 ## dirt ahead of it and its engine heard as it comes; whoever is on the line
 ## when it arrives is run down, the county's hands as well as the player. Once
 ## the station is done the cars run dry and coast to a stop where they are.
-## Only the speedway has them; any other level has no "lap_cars".
+## The speedway's race cars; the Moonshine Run's revenue cruisers patrolling
+## the county blacktop ("model", "nose" in degrees, "siren": their light bars
+## lit, "dry": the line when they stop); any other level has no "lap_cars".
 extends GameFeature
 
 ## How close a car's middle may come to a body before it hits it.
@@ -75,7 +77,7 @@ func restore(state: Dictionary) -> void:
 func _station(station_id: String) -> void:
 	if station_id == str(spec.get("stop_at", "")) and not dry:
 		dry = true
-		game.message("THE CARS ARE COUGHING. THEY'RE RUNNING DRY.", 3.0)
+		game.message(str(spec.get("dry", "THE CARS ARE COUGHING. THEY'RE RUNNING DRY.")), 3.0)
 
 
 ## Where along the line `d` is, and which way the line runs there.
@@ -177,11 +179,45 @@ func sprites() -> Array:
 			continue
 		var heading: float = where[1]
 		var spr := View.Sprite.new(
-			at.x, at.y, "town_race_car_0", 1.05, game.world.elevation(at.x, at.y)
+			at.x,
+			at.y,
+			str(spec.get("model", "town_race_car_0")),
+			1.05,
+			game.world.elevation(at.x, at.y)
 		)
 		spr.body = true
-		spr.plane = heading + NOSE_TURN
+		spr.plane = heading + _nose()
 		out.append(spr)
+	return out
+
+
+## The model's nose against its front: the race car's own turn unless the
+## level names another (degrees).
+func _nose() -> float:
+	if spec.has("nose"):
+		var degrees: float = spec["nose"]
+		return deg_to_rad(degrees)
+	return NOSE_TURN
+
+
+## The cruisers' light bars going round as they run (effects.cfg
+## [light.cruiser]; looks only).
+func lights(p: Player) -> Array:
+	var out: Array = []
+	var siren: bool = spec.get("siren", false)
+	if cars.is_empty() or game.revisiting or not siren:
+		return out
+	for car: Array in cars:
+		var car_along: float = car[0]
+		var where: Array = _at(car_along)
+		var at: Vector2 = where[0]
+		if absf(at.x - p.x) > 16.0 or absf(at.y - p.y) > 16.0:
+			continue
+		var l: Variant = Effects.light(
+			"cruiser", at.x, at.y, game.world.elevation(at.x, at.y) + 1.3, 1.0, game.clock
+		)
+		if l != null:
+			out.append(l)
 	return out
 
 

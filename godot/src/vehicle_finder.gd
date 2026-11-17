@@ -120,7 +120,7 @@ static func spot(g: Game, rides: Array, told: Dictionary) -> void:
 		return
 	told[i] = true
 	var v: VehicleDrive.Ride = rides[i]
-	var line := VehicleDrive.spec(v.kind).spotted
+	var line := str(g.level.vehicle_lines.get(v.kind, VehicleDrive.spec(v.kind).spotted))
 	if line != "":
 		g.message(line, 3.2)
 

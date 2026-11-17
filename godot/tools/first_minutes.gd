@@ -55,7 +55,7 @@ func _run() -> void:
 			difficulty = int(arg.substr(5))
 			args.erase(arg)
 	var ids := (
-		["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+		["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"]
 		if args.is_empty()
 		else [args[0]]
 	)

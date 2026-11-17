@@ -20,7 +20,9 @@ const AssetsLib := preload("res://src/assets.gd")
 const PropHomes := preload("res://tools/prop_homes.gd")
 
 ## The chapters in fetching order.
-const ORDER := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const ORDER := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 const ACTORS := "res://assets3d/actors"
 const PROPS := "res://assets3d/props"
 

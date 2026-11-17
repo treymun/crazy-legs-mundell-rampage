@@ -35356,14 +35356,1202 @@
    "bytes": 47063
   },
   {
-   "id": "reconcile@2026-11-16T16:07:10",
+   "id": "voice_design/revenue_man#1",
+   "kind": "voice_design",
+   "name": "revenue_man",
+   "params": {
+    "description": "A big, cold, middle-aged federal revenue agent from the 1990s rural South: a deep, slow, clipped baritone with a flat Arkansas drawl, dry and menacing, every word an order, a hint of smug amusement. Close, dry studio recording.",
+    "text": "Federal government, son. That still up yonder is evidence now, and so is every jar in your trunk. You can come along quiet, or you can come along in a sack. Your choice."
+   },
+   "hash": "50bea65484a5",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-16T17:59:04",
+   "actual": 507,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/revenue_man.mp3",
+   "bytes": 342979
+  },
+  {
+   "id": "sfx/revenue_man_warn#1",
+   "kind": "sfx",
+   "name": "revenue_man_warn",
+   "params": {
+    "text": "A drum-fed tommy gun's bolt yanked back and slammed home, then the drum slapped in place. Close-miked, punchy, dry, hard transient, 1990s PC shooter sound effect. One single shot, no echo tail, no music.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0e79412e1905",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T18:00:16",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/revenue_man_warn.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/revenue_man_rage#1",
+   "kind": "sfx",
+   "name": "revenue_man_rage",
+   "params": {
+    "text": "A big federal agent bellowing in fury, a deep cold Southern voice roaring wordlessly. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.4,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7c7d32a7d06c",
+   "reserved": 61,
+   "status": "settled",
+   "started": "2026-11-16T18:00:16",
+   "actual": 16,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/revenue_man_rage.mp3",
+   "bytes": 34524
+  },
+  {
+   "id": "sfx/revenue_man_pain#1",
+   "kind": "sfx",
+   "name": "revenue_man_pain",
+   "params": {
+    "text": "A big man grunting hard as a bullet hits him, a short pained snarl. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 0.8,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "94f6fe499877",
+   "reserved": 37,
+   "status": "settled",
+   "started": "2026-11-16T18:00:16",
+   "actual": 10,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/revenue_man_pain.mp3",
+   "bytes": 20732
+  },
+  {
+   "id": "sfx/revenue_man_death#1",
+   "kind": "sfx",
+   "name": "revenue_man_death",
+   "params": {
+    "text": "A big man in a suit groans and falls heavily onto a wooden floor, a tommy gun clattering down beside him. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 2.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0bba80eda623",
+   "reserved": 85,
+   "status": "settled",
+   "started": "2026-11-16T18:00:16",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/revenue_man_death.mp3",
+   "bytes": 49571
+  },
+  {
+   "id": "sfx/revenue_man_down#1",
+   "kind": "sfx",
+   "name": "revenue_man_down",
+   "params": {
+    "text": "A big man gives a short dying groan and goes still. One man, a gravel-voiced comic hillbilly, dry and close. No music, no other sounds.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "0d58098b6998",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T18:00:18",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/revenue_man_down.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "sfx/revenue_man_intro#1",
+   "kind": "sfx",
+   "name": "revenue_man_intro",
+   "params": {
+    "text": "A menacing low twangy guitar riff over a slow tom roll and a tommy gun bolt cocking: the lawman steps out of the dark. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b72d21d10376",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-16T18:00:19",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/revenue_man_intro.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/revenue_man_end#1",
+   "kind": "sfx",
+   "name": "revenue_man_end",
+   "params": {
+    "text": "A huge rowdy cowpunk final chord and a moonshine jug cork popping, then a rebel whoop. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "1527078e5466",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-16T18:00:19",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/revenue_man_end.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/church_bell#1",
+   "kind": "sfx",
+   "name": "church_bell",
+   "params": {
+    "text": "One old iron church bell rung hard in a small wooden steeple, ringing out over the hills at night. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "274b9de78f35",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-16T18:00:19",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/church_bell.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/cruiser_siren#1",
+   "kind": "sfx",
+   "name": "cruiser_siren",
+   "params": {
+    "text": "An old 1990s police car siren wailing then yelping as the car speeds past at night. Heard from a distance across open country, soft, slightly muffled, no music.",
+    "duration_seconds": 2.5,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "b44743b49bf3",
+   "reserved": 105,
+   "status": "settled",
+   "started": "2026-11-16T18:00:20",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/cruiser_siren.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "sfx/amb_ridge#1",
+   "kind": "sfx",
+   "name": "amb_ridge",
+   "params": {
+    "text": "A hot summer night in the Ozark hills: crickets and katydids, a whip-poor-will calling far off, a creek trickling, a soft breeze in pine trees. Soft, mellow, low-key background ambience bed, full-bodied rather than shrill, no sudden events, seamless loop, no music, no voices.",
+    "duration_seconds": 10,
+    "loop": true,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "e28773aca4dd",
+   "reserved": 405,
+   "status": "settled",
+   "started": "2026-11-16T18:00:21",
+   "actual": 111,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/amb_ridge.mp3",
+   "bytes": 241414
+  },
+  {
+   "id": "tts/boss_revenue_man_intro#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_intro",
+   "params": {
+    "text": "Federal government, son. That still is evidence.",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "4c03086cc487",
+   "reserved": 77,
+   "status": "settled",
+   "started": "2026-11-16T18:02:22",
+   "actual": 48,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_intro.mp3",
+   "bytes": 74021
+  },
+  {
+   "id": "tts/boss_revenue_man_taunt_0#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_taunt_0",
+   "params": {
+    "text": "You have the right to remain thirsty.",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "82b4f531e7e5",
+   "reserved": 64,
+   "status": "settled",
+   "started": "2026-11-16T18:02:22",
+   "actual": 37,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_taunt_0.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/boss_revenue_man_taunt_1#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_taunt_1",
+   "params": {
+    "text": "Taxes are due, boy!",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bf36559b1da7",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-16T18:02:22",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_taunt_1.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/boss_revenue_man_worried#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_worried",
+   "params": {
+    "text": "That's government property you're shootin'!",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f3bc67395051",
+   "reserved": 71,
+   "status": "settled",
+   "started": "2026-11-16T18:02:22",
+   "actual": 43,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_worried.mp3",
+   "bytes": 62736
+  },
+  {
+   "id": "tts/boss_revenue_man_last#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_last",
+   "params": {
+    "text": "Tell Washington... I tried.",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8b63ea2cb061",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-16T18:02:24",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_last.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/boss_revenue_man_intro_1#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_intro_1",
+   "params": {
+    "text": "Back again? Contraband don't get a second chance.",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a31fdc7b84c0",
+   "reserved": 78,
+   "status": "settled",
+   "started": "2026-11-16T18:02:25",
+   "actual": 49,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_intro_1.mp3",
+   "bytes": 78410
+  },
+  {
+   "id": "tts/boss_revenue_man_taunt_2#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_taunt_2",
+   "params": {
+    "text": "Consider yourself audited!",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "27de5437007b",
+   "reserved": 51,
+   "status": "settled",
+   "started": "2026-11-16T18:02:25",
+   "actual": 26,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_taunt_2.mp3",
+   "bytes": 48317
+  },
+  {
+   "id": "tts/boss_revenue_man_taunt_3#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_taunt_3",
+   "params": {
+    "text": "I've busted bigger stills than you!",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "6880acc47509",
+   "reserved": 62,
+   "status": "settled",
+   "started": "2026-11-16T18:02:25",
+   "actual": 35,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_taunt_3.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "tts/boss_revenue_man_mad#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_mad",
+   "params": {
+    "text": "Now that's assault on a federal officer!",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "e35fdd8b6136",
+   "reserved": 68,
+   "status": "settled",
+   "started": "2026-11-16T18:02:26",
+   "actual": 40,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_mad.mp3",
+   "bytes": 53959
+  },
+  {
+   "id": "tts/boss_revenue_man_worried_1#1",
+   "kind": "tts",
+   "name": "boss_revenue_man_worried_1",
+   "params": {
+    "text": "Somebody radio Washington! Anybody!",
+    "voice_id": "xV6EiUYXSgXYLG1p0GVn",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "80645e504fb0",
+   "reserved": 62,
+   "status": "settled",
+   "started": "2026-11-16T18:02:26",
+   "actual": 35,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/boss_revenue_man_worried_1.mp3",
+   "bytes": 65244
+  },
+  {
+   "id": "tts/bark_tough_hoss#1",
+   "kind": "tts",
+   "name": "bark_tough_hoss",
+   "params": {
+    "text": "Hoss collects the tax, boy. In full!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "32fb0d9a2caa",
+   "reserved": 63,
+   "status": "settled",
+   "started": "2026-11-16T18:02:26",
+   "actual": 36,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_tough_hoss.mp3",
+   "bytes": 61483
+  },
+  {
+   "id": "tts/county_dispatch_8#1",
+   "kind": "tts",
+   "name": "county_dispatch_8",
+   "params": {
+    "text": "Check on Granny Hooten.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b094bba01752",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-16T18:02:27",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/county_dispatch_8.mp3",
+   "bytes": 40794
+  },
+  {
+   "id": "tts/talk_bridge-radio_1#1",
+   "kind": "tts",
+   "name": "talk_bridge-radio_1",
+   "params": {
+    "text": "Nothin' but skeeters.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d7aa821f285e",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-16T18:02:27",
+   "actual": 21,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_bridge-radio_1.mp3",
+   "bytes": 36405
+  },
+  {
+   "id": "tts/talk_camp-talk_0#1",
+   "kind": "tts",
+   "name": "talk_camp-talk_0",
+   "params": {
+    "text": "Chief says don't taste the evidence.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "32865547dc4d",
+   "reserved": 63,
+   "status": "settled",
+   "started": "2026-11-16T18:02:28",
+   "actual": 36,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_camp-talk_0.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "tts/talk_bridge-radio_0#1",
+   "kind": "tts",
+   "name": "talk_bridge-radio_0",
+   "params": {
+    "text": "Unit two, any sign of the Hooten load?",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7a581a10735f",
+   "reserved": 65,
+   "status": "settled",
+   "started": "2026-11-16T18:02:28",
+   "actual": 38,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_bridge-radio_0.mp3",
+   "bytes": 80918
+  },
+  {
+   "id": "tts/talk_camp-talk_1#1",
+   "kind": "tts",
+   "name": "talk_camp-talk_1",
+   "params": {
+    "text": "Chief ain't here.",
+    "voice_id": "090590avdhCUxpEMwsqh",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1f908f3d94e4",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-16T18:02:28",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_camp-talk_1.mp3",
+   "bytes": 37032
+  },
+  {
+   "id": "tts/talk_booth-radio_0#1",
+   "kind": "tts",
+   "name": "talk_booth-radio_0",
+   "params": {
+    "text": "Checkpoint, hold every car.",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "52e8656acc46",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-16T18:02:29",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_booth-radio_0.mp3",
+   "bytes": 62736
+  },
+  {
+   "id": "tts/talk_booth-radio_1#1",
+   "kind": "tts",
+   "name": "talk_booth-radio_1",
+   "params": {
+    "text": "Even Granny's?",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "77d4d5ed9506",
+   "reserved": 36,
+   "status": "settled",
+   "started": "2026-11-16T18:02:29",
+   "actual": 14,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_booth-radio_1.mp3",
+   "bytes": 29509
+  },
+  {
+   "id": "stt/boss_revenue_man_intro#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_intro",
+   "params": {
+    "file": "boss_revenue_man_intro.mp3",
+    "bytes": 74021
+   },
+   "hash": "ba22bb6ab7f1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:33",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_intro.json",
+   "bytes": 516
+  },
+  {
+   "id": "stt/boss_revenue_man_taunt_0#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_taunt_0",
+   "params": {
+    "file": "boss_revenue_man_taunt_0.mp3",
+    "bytes": 56467
+   },
+   "hash": "6d612a2747c2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_taunt_0.json",
+   "bytes": 494
+  },
+  {
+   "id": "stt/boss_revenue_man_taunt_1#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_taunt_1",
+   "params": {
+    "file": "boss_revenue_man_taunt_1.mp3",
+    "bytes": 43928
+   },
+   "hash": "236ec5307b13",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_taunt_1.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/boss_revenue_man_worried#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_worried",
+   "params": {
+    "file": "boss_revenue_man_worried.mp3",
+    "bytes": 62736
+   },
+   "hash": "20fa6dafe808",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_worried.json",
+   "bytes": 393
+  },
+  {
+   "id": "stt/boss_revenue_man_last#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_last",
+   "params": {
+    "file": "boss_revenue_man_last.mp3",
+    "bytes": 47063
+   },
+   "hash": "4fe4b583dcfa",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:38",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_last.json",
+   "bytes": 300
+  },
+  {
+   "id": "stt/boss_revenue_man_intro_1#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_intro_1",
+   "params": {
+    "file": "boss_revenue_man_intro_1.mp3",
+    "bytes": 78410
+   },
+   "hash": "28429e6c387b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:39",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_intro_1.json",
+   "bytes": 573
+  },
+  {
+   "id": "stt/boss_revenue_man_taunt_2#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_taunt_2",
+   "params": {
+    "file": "boss_revenue_man_taunt_2.mp3",
+    "bytes": 48317
+   },
+   "hash": "effeb45b4aba",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:40",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_taunt_2.json",
+   "bytes": 248
+  },
+  {
+   "id": "stt/boss_revenue_man_taunt_3#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_taunt_3",
+   "params": {
+    "file": "boss_revenue_man_taunt_3.mp3",
+    "bytes": 60856
+   },
+   "hash": "64b7d155c07f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:41",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_taunt_3.json",
+   "bytes": 433
+  },
+  {
+   "id": "stt/boss_revenue_man_mad#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_mad",
+   "params": {
+    "file": "boss_revenue_man_mad.mp3",
+    "bytes": 53959
+   },
+   "hash": "3b3289ed1810",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:42",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_mad.json",
+   "bytes": 497
+  },
+  {
+   "id": "stt/boss_revenue_man_worried_1#1",
+   "kind": "stt",
+   "name": "boss_revenue_man_worried_1",
+   "params": {
+    "file": "boss_revenue_man_worried_1.mp3",
+    "bytes": 65244
+   },
+   "hash": "389554afd404",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:43",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_revenue_man_worried_1.json",
+   "bytes": 321
+  },
+  {
+   "id": "stt/bark_tough_hoss#1",
+   "kind": "stt",
+   "name": "bark_tough_hoss",
+   "params": {
+    "file": "bark_tough_hoss.mp3",
+    "bytes": 61483
+   },
+   "hash": "c0744e542482",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:44",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_tough_hoss.json",
+   "bytes": 486
+  },
+  {
+   "id": "stt/county_dispatch_8#1",
+   "kind": "stt",
+   "name": "county_dispatch_8",
+   "params": {
+    "file": "county_dispatch_8.mp3",
+    "bytes": 40794
+   },
+   "hash": "0a3d4f65c3be",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:45",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/county_dispatch_8.json",
+   "bytes": 299
+  },
+  {
+   "id": "stt/talk_bridge-radio_0#1",
+   "kind": "stt",
+   "name": "talk_bridge-radio_0",
+   "params": {
+    "file": "talk_bridge-radio_0.mp3",
+    "bytes": 80918
+   },
+   "hash": "af18b0cc5ba3",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:46",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_bridge-radio_0.json",
+   "bytes": 611
+  },
+  {
+   "id": "stt/talk_bridge-radio_1#1",
+   "kind": "stt",
+   "name": "talk_bridge-radio_1",
+   "params": {
+    "file": "talk_bridge-radio_1.mp3",
+    "bytes": 36405
+   },
+   "hash": "69c89904fe55",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:47",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_bridge-radio_1.json",
+   "bytes": 237
+  },
+  {
+   "id": "stt/talk_camp-talk_0#1",
+   "kind": "stt",
+   "name": "talk_camp-talk_0",
+   "params": {
+    "file": "talk_camp-talk_0.mp3",
+    "bytes": 55213
+   },
+   "hash": "23fa0044747e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:48",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_camp-talk_0.json",
+   "bytes": 435
+  },
+  {
+   "id": "stt/talk_camp-talk_1#1",
+   "kind": "stt",
+   "name": "talk_camp-talk_1",
+   "params": {
+    "file": "talk_camp-talk_1.mp3",
+    "bytes": 37032
+   },
+   "hash": "527098cc7a28",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:49",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_camp-talk_1.json",
+   "bytes": 231
+  },
+  {
+   "id": "stt/talk_booth-radio_0#1",
+   "kind": "stt",
+   "name": "talk_booth-radio_0",
+   "params": {
+    "file": "talk_booth-radio_0.mp3",
+    "bytes": 62736
+   },
+   "hash": "3e45483291c7",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:50",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_booth-radio_0.json",
+   "bytes": 306
+  },
+  {
+   "id": "stt/talk_booth-radio_1#1",
+   "kind": "stt",
+   "name": "talk_booth-radio_1",
+   "params": {
+    "file": "talk_booth-radio_1.mp3",
+    "bytes": 29509
+   },
+   "hash": "cf13f5e0bbe8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:03:51",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_booth-radio_1.json",
+   "bytes": 168
+  },
+  {
+   "id": "music/moonshine_score#1",
+   "kind": "music",
+   "name": "moonshine_score",
+   "params": {
+    "prompt": "Dark, driving outlaw cowpunk on a moonlit backroad: a menacing low twangy baritone guitar riff, a train-beat snare that never lets up, slap bass running like tires on gravel, a lonesome harmonica wailing like a far-off siren, a fiddle sawing over the bridge; a quiet creeping middle with tremolo guitar and brushed snare like hiding in a holler, then the riff comes roaring back for the getaway. About 138 BPM. Instrumental 1990s cowpunk bar band recorded live in a small room: twangy overdriven Telecaster lead with a bright biting treble tone, second crunchy rhythm guitar, slap upright bass, snappy cracking snare and lively acoustic drums. Up-tempo and urgent. Gritty, mischievous, swaggering, lo-fi but punchy. No vocals, no synths. Clear hook riff, a contrasting middle section, then the hook returns bigger and ends on a hard stop.",
+    "music_length_ms": 110000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2214755b2618",
+   "reserved": 2327,
+   "status": "settled",
+   "started": "2026-11-16T18:03:53",
+   "actual": 1518,
+   "basis": "expected",
+   "file": "audio_src/generated/music/moonshine_score.mp3",
+   "bytes": 2641337
+  },
+  {
+   "id": "music/fight_moonshine#1",
+   "kind": "music",
+   "name": "fight_moonshine",
+   "params": {
+    "prompt": "Breakneck outlaw hillbilly punk at 160 BPM: a snarling twangy guitar riff over pounding train-beat drums, a wailing harmonica screaming like a police siren, frantic banjo rolls and a stomping upright bass. Desperate and reckless, a shootout at a roadblock in the dark. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "a501179cc407",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-16T18:03:53",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/fight_moonshine.mp3",
+   "bytes": 1678359
+  },
+  {
+   "id": "music/boss_moonshine#1",
+   "kind": "music",
+   "name": "boss_moonshine",
+   "params": {
+    "prompt": "Furious dark outlaw country-metal at 170 BPM: a crushing low-tuned twangy guitar riff, a machine-gun snare and double kick rattling like a tommy gun, a screaming harmonica, a fiddle sawing like a siren, booming toms and anvil hits like a still about to blow. Heavy, fast and dangerous. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7466effbb264",
+   "reserved": 1499,
+   "status": "failed",
+   "started": "2026-11-16T18:03:53",
+   "actual": 966,
+   "basis": "expected",
+   "error": "ApiError 429: {'detail': {'type': 'rate_limit_error', 'code': 'concurrent_limit_exceeded', 'message': 'Too many concurrent requests. Your current subscription is associated with a maximum of 2 concurrent requests (running in parallel). This is done such that a single user does not overwhelm our systems and affect other users negatively. Please upgrade your subscription or contact sales if you want to increase t"
+  },
+  {
+   "id": "music/boss_moonshine#2",
+   "kind": "music",
+   "name": "boss_moonshine",
+   "params": {
+    "prompt": "Furious dark outlaw country-metal at 170 BPM: a crushing low-tuned twangy guitar riff, a machine-gun snare and double kick rattling like a tommy gun, a screaming harmonica, a fiddle sawing like a siren, booming toms and anvil hits like a still about to blow. Heavy, fast and dangerous. Instrumental, no vocals, no synths. Full energy from the very first beat to the last: no intro, no fade-in, no breakdown, no ending, one steady tempo and key throughout so it loops seamlessly. Raw, gritty, lo-fi but punchy 1990s recording.",
+    "music_length_ms": 70000,
+    "model_id": "music_v1",
+    "force_instrumental": true,
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "7466effbb264",
+   "reserved": 1499,
+   "status": "settled",
+   "started": "2026-11-16T18:05:56",
+   "actual": 966,
+   "basis": "expected",
+   "file": "audio_src/generated/music/boss_moonshine.mp3",
+   "bytes": 1678359
+  },
+  {
+   "id": "tts/talk_bridge-radio_0#2",
+   "kind": "tts",
+   "name": "talk_bridge-radio_0",
+   "params": {
+    "text": "Car two, any sign of that load?",
+    "voice_id": "8T4hWWdNdbND6KXX7qa6",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "566938ea9737",
+   "reserved": 57,
+   "status": "settled",
+   "started": "2026-11-16T18:08:02",
+   "actual": 31,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_bridge-radio_0.mp3",
+   "bytes": 60856
+  },
+  {
+   "id": "tts/bark_tough_hoss#2",
+   "kind": "tts",
+   "name": "bark_tough_hoss",
+   "params": {
+    "text": "Hoss is here to collect, boy!",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "503b3ecb3f97",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-16T18:08:02",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/bark_tough_hoss.mp3",
+   "bytes": 43928
+  },
+  {
+   "id": "tts/talk_bridge-radio_1#2",
+   "kind": "tts",
+   "name": "talk_bridge-radio_1",
+   "params": {
+    "text": "Nothin' but mosquitoes.",
+    "voice_id": "jvHYwseygQQPlBP9Ogjd",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f78e1571f713",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-16T18:08:02",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/talk_bridge-radio_1.mp3",
+   "bytes": 42674
+  },
+  {
+   "id": "stt/bark_tough_hoss#2",
+   "kind": "stt",
+   "name": "bark_tough_hoss",
+   "params": {
+    "file": "bark_tough_hoss.mp3",
+    "bytes": 43928
+   },
+   "hash": "a6a13020684d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:09:06",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_tough_hoss.json",
+   "bytes": 420
+  },
+  {
+   "id": "stt/talk_bridge-radio_0#2",
+   "kind": "stt",
+   "name": "talk_bridge-radio_0",
+   "params": {
+    "file": "talk_bridge-radio_0.mp3",
+    "bytes": 60856
+   },
+   "hash": "e84d7d340e3c",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:09:07",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_bridge-radio_0.json",
+   "bytes": 483
+  },
+  {
+   "id": "stt/talk_bridge-radio_1#2",
+   "kind": "stt",
+   "name": "talk_bridge-radio_1",
+   "params": {
+    "file": "talk_bridge-radio_1.mp3",
+    "bytes": 42674
+   },
+   "hash": "c9bc727c2cbd",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T18:09:08",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/talk_bridge-radio_1.json",
+   "bytes": 309
+  },
+  {
+   "id": "reconcile@2026-11-16T18:29:25",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -20218,
+   "actual": -19120,
    "basis": "account",
-   "balance_after": 73270
+   "balance_after": 80497
   }
  ],
  "anchor": {
@@ -35371,7 +36559,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-16T16:07:10",
-  "account_drop": 68547
+  "when": "2026-11-16T18:29:25",
+  "account_drop": 75774
  }
 }

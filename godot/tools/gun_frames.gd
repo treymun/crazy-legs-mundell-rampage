@@ -54,7 +54,9 @@ const HELD := [
 ]
 ## Materials the .38 is shown striking, and where to look for each.
 const KINDS := ["wood", "brick", "tin", "steel", "stone", "dirt", "brush", "timber", "glass"]
-const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const LEVELS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 
 var main
 var out := ""

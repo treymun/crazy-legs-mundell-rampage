@@ -192,7 +192,10 @@ static func _flow(main, check: Callable) -> void:
 	check.call(not main.rematch_open.has("rudy"), "and Rudy waits for the fair to be beaten")
 	BossRematch.unlock_all = true
 	main.open_rematch_board()
-	check.call(main.rematch_open.size() == 8, "unlock_all (--rematch-all, console) opens all eight")
+	check.call(
+		main.rematch_open.size() == BossRematch.BOSSES.size(),
+		"unlock_all (--rematch-all, console) opens all %d" % BossRematch.BOSSES.size()
+	)
 	BossRematch.unlock_all = false
 	main.start("hickston")
 	var chapter: Game = main.game

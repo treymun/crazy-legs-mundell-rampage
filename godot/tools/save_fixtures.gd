@@ -100,6 +100,10 @@ func _make(main) -> void:
 	_play(main.game, 90)
 	made["mothership_replay"] = main.game
 
+	main.start("moonshine", null, [], true, null)
+	_play(main.game, 90)
+	made["moonshine_replay"] = main.game
+
 	for name: String in made:
 		var path := FOLDER.path_join(prefix + name + ".json")
 		if not SessionStore.save(made[name], ProjectSettings.globalize_path(path)):

@@ -15,7 +15,16 @@
 extends SceneTree
 
 const LEVELS := [
-	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership", "hub", "range"
+	"hickston",
+	"fair",
+	"sawmill",
+	"quarry",
+	"bayou",
+	"speedway",
+	"moonshine",
+	"mothership",
+	"hub",
+	"range"
 ]
 
 var failures: Array = []

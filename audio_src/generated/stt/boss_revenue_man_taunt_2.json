@@ -1,0 +1,20 @@
+{
+ "text": "Consider yourself audited",
+ "words": [
+  {
+   "text": "Consider",
+   "start": 0.2,
+   "end": 0.62
+  },
+  {
+   "text": "yourself",
+   "start": 0.74,
+   "end": 1.22
+  },
+  {
+   "text": "audited",
+   "start": 1.32,
+   "end": 1.84
+  }
+ ]
+}

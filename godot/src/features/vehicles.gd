@@ -115,7 +115,10 @@ func attach() -> void:
 		bodies.append(VehicleFeel.Body.new())
 		wake.append(0.0)
 		props.append(0.0)
-	for point: Variant in game.level.lap_cars.get("path", []):
+	# A patrol's beat (the Moonshine Run's cruisers, "laps": false) is no
+	# racing line: no lap timer there.
+	var timed: bool = game.level.lap_cars.get("laps", true)
+	for point: Variant in game.level.lap_cars.get("path", []) if timed else []:
 		var px: float = point[0]
 		var py: float = point[1]
 		line.append(Vector2(px, py))

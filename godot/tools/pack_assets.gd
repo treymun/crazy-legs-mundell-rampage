@@ -33,7 +33,9 @@ const AssetsLib := preload("res://src/assets.gd")
 const PropHomes := preload("res://tools/prop_homes.gd")
 
 const SFX_RATE := 22050
-const SKIES := ["sky", "fair_sky", "mill_sky", "quarry_sky", "bayou_sky", "speedway_sky"]
+const SKIES := [
+	"sky", "fair_sky", "mill_sky", "quarry_sky", "bayou_sky", "speedway_sky", "moonshine_sky"
+]
 ## Each chapter's file: its tracks, the loop its fights swell into
 ## (Sound.FIGHTS), then its boss loop (Sound.BOSSES).
 const MUSIC_FILES := {
@@ -54,6 +56,7 @@ const MUSIC_FILES := {
 		"fight_speedway",
 		"boss_speedway",
 	],
+	"music_moonshine": ["moonshine_score", "fight_moonshine", "boss_moonshine"],
 	"music_mothership": ["mothership_score", "fight_mothership", "boss_mothership"],
 }
 ## Tracks not made yet are listed in assets.gd PENDING_MUSIC: only noted here,

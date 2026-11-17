@@ -17,6 +17,7 @@ const SPEAKERS := {
 	"baron": "baron",
 	"swamp_king": "swamp_king",
 	"derby_champ": "boggs",
+	"revenue_man": "revenue_man",
 	"maw": "maw",
 }
 ## The captions, as the lines were made, in MOMENTS order.
@@ -111,6 +112,19 @@ const LINES := {
 		"I've wrecked better than you on a Tuesday!",
 		"Now you scratched my paint!",
 		"She's smokin'! She's smokin' bad!"
+	],
+	"revenue_man":
+	[
+		"Federal government, son. That still is evidence.",
+		"You have the right to remain thirsty.",
+		"Taxes are due, boy!",
+		"That's government property you're shootin'!",
+		"Tell Washington... I tried.",
+		"Back again? Contraband don't get a second chance.",
+		"Consider yourself audited!",
+		"I've busted bigger stills than you!",
+		"Now that's assault on a federal officer!",
+		"Somebody radio Washington! Anybody!"
 	],
 	"maw":
 	[

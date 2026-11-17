@@ -22,6 +22,7 @@ const TOUGH_SAYS := {
 	"tough_bubba": "Bubba's got a full head of steam!",
 	"tough_chuck": "Dinner bell's ringin', and you're dinner!",
 	"tough_pete": "Four tires and a grudge, boy!",
+	"tough_hoss": "Hoss is here to collect, boy!",
 	"tough_zorgo": "Zorgo the Large demands your beer!",
 }
 

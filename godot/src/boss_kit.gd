@@ -30,6 +30,7 @@ const MOVES := {
 	"swamp_king": preload("res://src/bosses/swamp_king.gd"),
 	"derby_champ": preload("res://src/bosses/boggs.gd"),
 	"maw": preload("res://src/bosses/maw.gd"),
+	"revenue_man": preload("res://src/bosses/revenue_man.gd"),
 }
 ## Health left (of its whole) where a boss goes fightin' mad and plum desperate.
 static var MAD_AT: float = BossData.get_value("boss_kit", "mad_at")

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_rw2c4"]
+[ext_resource type="PackedScene" path="res://assets3d/props/revenue_tent.glb" id="2_81yif"]
+
+[node name="RevenueTent" type="Node3D" unique_id=910415199]
+script = ExtResource("1_rw2c4")
+prop = "revenue_tent"
+
+[node name="Model" type="Node3D" parent="." unique_id=900660452 instance=ExtResource("2_81yif")]

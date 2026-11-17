@@ -417,7 +417,12 @@ func _trophies() -> void:
 		elif s.image == "town_trophy_gnome":
 			gnomes += 1
 	_check(
-		statues == expect.size() and plinths == 8 and cups == 2 and gnomes == 1,
+		(
+			statues == expect.size()
+			and plinths == BossRematch.BOSSES.size()
+			and cups == 2
+			and gnomes == 1
+		),
 		(
 			(
 				"a statuette on each beaten boss's plinth, bare plinths for the rest,"

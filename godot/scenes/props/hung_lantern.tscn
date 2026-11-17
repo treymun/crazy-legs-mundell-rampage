@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_y8hjs"]
+[ext_resource type="PackedScene" path="res://assets3d/props/hung_lantern.glb" id="2_ti07y"]
+
+[node name="HungLantern" type="Node3D" unique_id=1133689684]
+script = ExtResource("1_y8hjs")
+prop = "hung_lantern"
+
+[node name="Model" type="Node3D" parent="." unique_id=1169022130 instance=ExtResource("2_ti07y")]

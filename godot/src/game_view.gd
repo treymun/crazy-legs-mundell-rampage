@@ -256,9 +256,8 @@ func sprites() -> Array:
 		# reference, not sprites that turn to face the camera.
 		var board_at: Vector2 = level.hub_board
 		var shift: Vector2 = board_at - HUB_BOARD
-		var dispatch := pooled(
-			board_at.x, board_at.y, "county_dispatch_%d" % hub_milestone, .46, 1.02
-		)
+		var dispatch_cue: String = HUB_DISPATCH_CUES[hub_milestone]
+		var dispatch := pooled(board_at.x, board_at.y, dispatch_cue, .46, 1.02)
 		dispatch.plane = 0.0
 		sprites.append(dispatch)
 		if hub_milestone != 0:

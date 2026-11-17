@@ -981,6 +981,150 @@ def item_pa_patch():
     return .9, .6
 
 
+# ------------------------------------------------------- the moonshine run
+def _jar(x, y, z, m=None, lid=(196, 176, 110)):
+    """A quart mason jar of shine, its zinc lid."""
+    cyl(.07, .2, (x, y, z + .1), m or mat(214, 218, 204, rough=.1, metal=.1, grime=.2), seg=12)
+    cyl(.072, .03, (x, y, z + .2), mat(*lid, metal=.7, rough=.35), seg=12)
+
+
+def quest_shine_load(done):
+    """Granny's last crate of jars on a hand truck by the stock car's trunk,
+    a red lantern on it: loaded, the crate empty but for straw, the lantern
+    out, the green pilot lit and a tag on the handle."""
+    steel = mat(170, 40, 30, metal=.5, rough=.45, grime=.6)
+    for s in (-1, 1):
+        rod((s * .22, .12, .05), (s * .22, .18, 1.25), .02, steel)
+        cyl(.1, .06, (s * .27, .14, .1), mat(*SOOT, rough=.9), (0, 90, 0), seg=14)
+    rod((-.22, .18, 1.25), (.22, .18, 1.25), .02, steel)
+    box(.52, .2, .03, (0, -.02, .05), steel)
+    crate = mat(*GREY_WOOD, planks=8.0, grime=.6)
+    box(.56, .44, .05, (0, -.06, .1), crate)
+    for s in (-1, 1):
+        box(.56, .03, .2, (0, -.06 + s * .21, .21), crate)
+        box(.03, .44, .2, (s * .27, -.06, .21), crate)
+    box(.3, .016, .1, (0, -.276, .21), mat(*CREAM, rough=.6))
+    letters("XXX", 0, -.29, .21, .016, mat(160, 30, 22))
+    if not done:
+        for k in range(6):
+            _jar(-.16 + (k % 3) * .16, -.14 + (k // 3) * .16, .12)
+        lamp((.2, -.06, .48), .07, RED_LAMP, True)
+    else:
+        straw = mat(*STRAW, grime=.4)
+        for k in range(5):
+            box(.18, .06, .02, (-.15 + k * .08, -.06 + (k % 2) * .08, .14), straw, (0, 0, k * 37))
+        lamp((.2, -.06, .48), .07, RED_LAMP, False)
+        pilot((-.22, .1, 1.0), GREEN_LAMP, True, .03, (90, 0, 0))
+        tag((.22, .16, 1.15))
+    return 1.0, 1.4
+
+
+def quest_bell_rope(done):
+    """The church's bell rope down through the boards of the steeple, its red
+    and white sally by a hook post: rung, the sally swung up and the rope
+    taut out of sight, the lamp gone green."""
+    wood = mat(236, 232, 220, planks=6.0, grime=.45)
+    foot(.44, .36)
+    box(.12, .12, 1.7, (.16, .04, .9), wood)
+    box(.4, .12, .1, (0, .04, 1.72), wood)
+    rope = mat(222, 206, 160, grime=.35)
+    hang = -.08 if not done else .02
+    low = .58 if not done else .9
+    rod((0, .04, 1.72), (hang, -.02, low + .04), .016, rope)
+    for k in range(5):
+        colour = (200, 30, 24) if k % 2 == 0 else (240, 236, 220)
+        cyl(.04, .07, (hang, -.02, low - k * .07), mat(*colour, rough=.5), seg=12)
+    rod((hang, -.02, low - .35), (hang, -.02, low - .5), .016, rope)
+    rod((.16, -.04, .9), (.04, -.06, .9), .012, mat(60, 56, 50, metal=.7))
+    box(.24, .02, .14, (.16, -.03, 1.3), mat(*CREAM, rough=.6))
+    lamp((.16, .04, 1.8), .07, AMBER_LAMP if not done else GREEN_LAMP, True)
+    return .9, 2.0
+
+
+def quest_radio_set(done):
+    """The revenue men's radio on its table: an olive set with its dials and
+    the handset on its hook, the whip and the coax out to the mast, a red
+    lamp lit while it talks; cut, the coax hacked through and sparking, the
+    face dark, the pilot green."""
+    olive = mat(92, 98, 66, metal=.3, rough=.6, grime=.55)
+    box(.7, .4, .38, (0, 0, .19), olive)
+    box(.62, .02, .28, (0, -.205, .2), mat(40, 42, 34, metal=.3))
+    for k in range(3):
+        cyl(.045, .03, (-.2 + k * .14, -.22, .25), mat(200, 196, 180, metal=.5), (90, 0, 0), seg=12)
+    face = glow((255, 190, 60), 3.0) if not done else dark_glass((255, 190, 60))
+    box(.18, .02, .08, (.2, -.215, .28), face)
+    box(.1, .06, .26, (.42, -.06, .2), mat(*SOOT))
+    rod((.42, -.06, .34), (.42, -.06, .4), .01, mat(*SOOT))
+    rod((-.3, .1, .38), (-.36, .14, 1.2), .008, mat(60, 60, 60, metal=.7))
+    coax = mat(*SOOT, rough=.6)
+    if not done:
+        path([(.3, .2, .1), (.5, .3, .01), (.9, .4, .01)], .015, coax)
+        lamp((-.2, .05, .38), .06, RED_LAMP, True)
+    else:
+        path([(.3, .2, .1), (.5, .3, .01)], .015, coax)
+        path([(.62, .34, .01), (.9, .4, .01)], .015, coax)
+        for k in range(4):
+            ball(.015, (.56 + k * .01, .32, .03 + k * .015), glow((255, 220, 120), 6.0))
+        lamp((-.2, .05, .38), .06, RED_LAMP, False)
+        pilot((.0, -.21, .35), GREEN_LAMP, True, .03)
+        tag((-.36, -.2, .36))
+    return 1.4, 1.3
+
+
+def quest_cave_knocker(done):
+    """Granny's dinner iron by the cave door: a steel triangle on a crooked
+    post with its striker hung by it, a lantern lit red; rung, the triangle
+    swung and the striker down in the dirt, the lantern green."""
+    wood = mat(*GREY_WOOD, planks=4.0, grime=.65)
+    foot(.4, .34, mat(96, 88, 76, grime=.7))
+    box(.13, .13, 1.75, (0, .04, .92), wood, (0, 3, 0))
+    box(.62, .1, .1, (.24, .04, 1.72), wood)
+    iron = mat(70, 66, 60, metal=.75, rough=.45, grime=.4)
+    a = math.radians(0 if not done else 24)
+    pivot = Vector((.44, -.02, 1.66))
+    pts = [Vector((0, 0, -.12)), Vector((-.2, 0, -.5)), Vector((.2, 0, -.5))]
+    turned = [pivot + Vector((p.x * math.cos(a) - p.z * math.sin(a), 0, p.x * math.sin(a) + p.z * math.cos(a)))
+              for p in pts]
+    rod(pivot, turned[0], .008, mat(60, 56, 50, metal=.7))
+    for p, q in ((turned[0], turned[1]), (turned[1], turned[2]), (turned[2], turned[0])):
+        rod(p, q, .022, iron)
+    if not done:
+        rod((.2, -.02, 1.66), (.2, -.02, 1.36), .008, mat(60, 56, 50, metal=.7))
+        rod((.2, -.02, 1.36), (.2, -.02, 1.04), .016, iron)
+        lamp((-.02, .04, 1.82), .07, RED_LAMP, True)
+    else:
+        rod((.1, -.2, .02), (.38, -.3, .02), .016, iron)
+        lamp((-.02, .04, 1.82), .07, GREEN_LAMP, True)
+    box(.26, .02, .16, (0, -.03, 1.1), mat(*CREAM, rough=.6))
+    return 1.0, 2.1
+
+
+def quest_exit_jar(done):
+    """The last jar home: a big stoneware jug with XXX on it chained to a
+    stump under a red lantern; the way clear, the chain off, the jug
+    unstoppered and the lantern green."""
+    stump = mat(96, 72, 48, planks=3.0, grime=.6)
+    cyl(.32, .5, (0, 0, .25), stump, seg=16)
+    cyl(.3, .02, (0, 0, .5), mat(170, 140, 96, grime=.4), seg=16)
+    jug = mat(214, 206, 186, rough=.4, grime=.4)
+    ball(.2, (0, 0, .72), jug, (1, 1, 1.05))
+    cyl(.07, .14, (0, 0, .96), jug, seg=12)
+    cyl(.205, .05, (0, 0, .62), mat(120, 70, 40, rough=.4), seg=18)
+    letters("XXX", 0, -.2, .74, .022, mat(60, 40, 30))
+    rod((.05, 0, .92), (.18, 0, .86), .02, jug)
+    if not done:
+        cyl(.05, .06, (0, 0, 1.06), mat(160, 120, 80, rough=.8), seg=10)
+        chain_mat = mat(170, 166, 156, metal=.85, rough=.35)
+        chain((-.3, -.1, .3), (-.1, -.22, .7), chain_mat, .05)
+        chain((-.1, -.22, .7), (.25, -.15, .55), chain_mat, .05)
+        box(.08, .04, .09, (.27, -.17, .5), mat(214, 160, 60, metal=.8, rough=.3))
+    else:
+        cyl(.05, .06, (.22, -.2, .53), mat(160, 120, 80, rough=.8), (70, 0, 0), seg=10)
+    rod((.32, .12, 0), (.32, .12, 1.5), .03, mat(*GREY_WOOD, grime=.6))
+    lamp((.32, .12, 1.52), .08, RED_LAMP if not done else GREEN_LAMP, True)
+    return 1.0, 1.8
+
+
 # ------------------------------------------------------------------- table
 STATIONS = {
     "quest_switch": lambda d: quest_switch(d, "mill"),
@@ -1009,6 +1153,11 @@ STATIONS = {
     "quest_ship_drain": quest_ship_drain,
     "quest_ship_iris": quest_ship_iris,
     "quest_ship_launch": quest_ship_launch,
+    "quest_shine_load": quest_shine_load,
+    "quest_bell_rope": quest_bell_rope,
+    "quest_radio_set": quest_radio_set,
+    "quest_cave_knocker": quest_cave_knocker,
+    "quest_exit_jar": quest_exit_jar,
 }
 # Shrunk to stand about chest high, the lamp within sight of a player
 # standing at the lever (an exit and the bell a little taller).
@@ -1018,7 +1167,8 @@ SCALE = {
     "quest_patchbay": .9, "quest_brake": .95, "quest_bell": .82, "quest_exit": .86,
     "quest_exit_fair": .86, "quest_exit_flag": .83, "quest_bolt": .93,
     "quest_condenser": .97, "quest_fuel_dump": .82, "quest_flag": .8,
-    "quest_ship_drain": .87,
+    "quest_ship_drain": .87, "quest_shine_load": .86, "quest_bell_rope": .84,
+    "quest_radio_set": .8, "quest_cave_knocker": .86, "quest_exit_jar": .86,
 }
 ITEMS = {
     "item_key_brass": lambda: item_key((214, 160, 64), (210, 30, 22)),

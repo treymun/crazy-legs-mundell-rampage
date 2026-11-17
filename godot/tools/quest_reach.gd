@@ -18,7 +18,16 @@
 extends SceneTree
 
 const LEVELS := [
-	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership", "hub", "range"
+	"hickston",
+	"fair",
+	"sawmill",
+	"quarry",
+	"bayou",
+	"speedway",
+	"moonshine",
+	"mothership",
+	"hub",
+	"range"
 ]
 ## The ring a player stands in to use something: no nearer, no farther.
 const NEAR := .5

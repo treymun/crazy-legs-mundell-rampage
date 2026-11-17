@@ -20,7 +20,9 @@ const Carry := preload("res://src/features/carry.gd")
 const Fire := preload("res://src/features/fire.gd")
 const Stills := preload("res://src/features/stills.gd")
 const Breakables := preload("res://src/features/breakables.gd")
-const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const LEVELS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 const DT := 1.0 / 60.0
 
 var failures: Array = []

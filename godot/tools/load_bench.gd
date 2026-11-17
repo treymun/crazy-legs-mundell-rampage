@@ -18,6 +18,7 @@ const LEVELS := [
 	"quarry",
 	"bayou",
 	"speedway",
+	"moonshine",
 	"mothership",
 	"hub",
 	"range",

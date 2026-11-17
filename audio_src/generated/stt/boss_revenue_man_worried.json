@@ -1,0 +1,30 @@
+{
+ "text": "That's government property you're shooting",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.22,
+   "end": 0.46
+  },
+  {
+   "text": "government",
+   "start": 0.5,
+   "end": 0.92
+  },
+  {
+   "text": "property",
+   "start": 1.06,
+   "end": 1.54
+  },
+  {
+   "text": "you're",
+   "start": 1.62,
+   "end": 1.8
+  },
+  {
+   "text": "shooting",
+   "start": 1.84,
+   "end": 2.26
+  }
+ ]
+}

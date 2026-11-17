@@ -96,6 +96,8 @@ func _rule() -> void:
 		"maw_bare": "mothership",
 		"boss_swamp_king_intro": "bayou",
 		"actor3d_derby_champ": "speedway",
+		"revenue_man_warn": "moonshine",
+		"actor3d_revenooer_hurt": "moonshine",
 		"range_plate_gator": "",
 		"mesh_gator_hide": "",
 		"fx_rudy_horn": "",

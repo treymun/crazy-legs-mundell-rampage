@@ -5,7 +5,9 @@
 ## `gun_find_check.gd -- audit` prints the table.
 extends RefCounted
 
-const CHAPTERS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const CHAPTERS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 ## A chapter's guns are new to a player who arrives with only what the
 ## chapters before it lay out (and the crowbar and .38 every game starts with).
 const START := ["crowbar", "revolver"]

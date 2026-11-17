@@ -83,7 +83,7 @@ static func _gather(g: GameView) -> Array:
 	found.append_array(_boat_engines(g))
 	# The vehicles' lamps, a set piece's flares, the guns lying out not had yet
 	# (features/vehicles.gd, features/vehicle_runs.gd, features/new_iron.gd).
-	for key: String in ["vehicles", "vehicle_runs", "new_iron"]:
+	for key: String in ["vehicles", "vehicle_runs", "new_iron", "race_laps"]:
 		var lit: GameFeature = g.features.get(key)
 		if lit != null:
 			var more_lights: Array = lit.call("lights", p)

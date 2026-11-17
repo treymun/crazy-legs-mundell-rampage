@@ -31,6 +31,7 @@ const SIGHT_LEVELS := [
 	"quarry",
 	"bayou",
 	"speedway",
+	"moonshine",
 	"mothership",
 	"county_hickston",
 	"grainyard",
@@ -368,7 +369,9 @@ func _cover_before(e: Enemy, game: Game, smart: bool) -> Variant:
 func _idle(main) -> void:
 	var same := 0
 	var tried := 0
-	for id: String in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
+	for id: String in [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+	]:
 		var g: Game = main.make_game(id)
 		var about := IdleLife.things(g)
 		var by_cell := IdleLife.grid(about)

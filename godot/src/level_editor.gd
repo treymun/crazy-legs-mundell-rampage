@@ -29,7 +29,9 @@ func _init(owner: MainFlow) -> void:
 	for kind: Variant in kinds:
 		things.append(["enemy", str(kind)])
 	var pickups := {}
-	for id: String in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
+	for id: String in [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+	]:
 		for entry: Array in LevelEdit.read(id).get("pickups", []):
 			pickups[str(entry[0])] = true
 	var names := pickups.keys()

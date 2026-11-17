@@ -33,6 +33,7 @@ const CHAPTER_KINDS := {
 	"quarry": ["baron", "boilerback", "chalk_spitter", "valve_rat"],
 	"bayou": ["chum_tosser", "gator", "noodler", "swamp_king"],
 	"speedway": ["derby_champ", "flagman", "nitro_huffer", "pit_mechanic", "tire_roller"],
+	"moonshine": ["gas_man", "revenooer", "revenue_man", "still_buster"],
 	"mothership": ["drone", "maw", "probe", "tin_guard"],
 }
 ## Each chapter's art file; its sounds are in sfx_<the same stem>.bin and its
@@ -45,6 +46,7 @@ const CHAPTER_ART := {
 	"county_quarry": "art_quarry.bin",
 	"county_bayou": "art_bayou.bin",
 	"speedway": "art_speedway.bin",
+	"moonshine": "art_moonshine.bin",
 	"mothership": "art_mothership.bin",
 }
 ## Chapter music still to be made (the main session's audio pass; see

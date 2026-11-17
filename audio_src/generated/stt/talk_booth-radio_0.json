@@ -1,0 +1,25 @@
+{
+ "text": "Checkpoint, hold every car",
+ "words": [
+  {
+   "text": "Checkpoint,",
+   "start": 0.22,
+   "end": 0.94
+  },
+  {
+   "text": "hold",
+   "start": 1.2,
+   "end": 1.46
+  },
+  {
+   "text": "every",
+   "start": 1.52,
+   "end": 1.72
+  },
+  {
+   "text": "car",
+   "start": 1.88,
+   "end": 2.38
+  }
+ ]
+}

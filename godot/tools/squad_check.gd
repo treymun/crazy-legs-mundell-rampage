@@ -15,7 +15,9 @@
 ## WILD and none on EASY; the barks come, and not in a flood.
 extends SceneTree
 
-const CHAPTERS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const CHAPTERS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 const STEP := 1.0 / 60.0
 
 var failures: Array = []

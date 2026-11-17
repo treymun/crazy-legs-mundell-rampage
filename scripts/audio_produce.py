@@ -146,6 +146,12 @@ DESIGNS = {
                 "with a thick Arkansas accent. Close, dry studio recording.",
                 "Well hot dang, look at this mess. Somebody done stole my cow, shot up my truck and drank "
                 "every last jar in the cellar. Reckon I'll just have to go and get it all back myself."),
+    # The Moonshine Run's boss: an original federal lawman, nobody real.
+    "revenue_man": ("A big, cold, middle-aged federal revenue agent from the 1990s rural South: a deep, slow, "
+                    "clipped baritone with a flat Arkansas drawl, dry and menacing, every word an order, a "
+                    "hint of smug amusement. Close, dry studio recording.",
+                    "Federal government, son. That still up yonder is evidence now, and so is every jar in "
+                    "your trunk. You can come along quiet, or you can come along in a sack. Your choice."),
     "grey": ("A small B-movie grey alien speaking in a high, buzzing, nasal monotone with a slight electronic "
              "warble, comically officious and fussy. Close, dry studio recording.",
              "Attention, earthling. You are in violation of interstellar livestock regulations. Remain "

@@ -37,6 +37,13 @@ const PLINTHS := [
 	[65.5, 1],
 	[67.1, 1],
 	[68.7, 1],
+	[69.6, -1],
+]
+## Whose plinth each is, in PLINTHS order: the eight first, then the Moonshine
+## Run's Revenue Man in the north-east corner by the shelf (his chapter came
+## later; the others kept their places).
+const PLINTH_KINDS := [
+	"boss", "jerry", "rudy", "foreman", "baron", "swamp_king", "derby_champ", "maw", "revenue_man"
 ]
 const SHELF_X := 69.72
 const SHELF_Z := 1.0
@@ -140,9 +147,7 @@ func sprites() -> Array:
 		var facing := 0.0 if side < 0 else PI
 		out.append(_solid(x, y, floor_z, "plinth"))
 		out.append(_solid(x, wall, floor_z + 1.5, "plaque", Basis(Vector3(0, 0, 1), facing)))
-		if i >= BossRematch.BOSSES.size():
-			continue
-		var kind: String = BossRematch.BOSSES[i]
+		var kind: String = PLINTH_KINDS[i]
 		if not beaten.has(kind):
 			continue
 		var e := ModeBodies.stand_in(game, "trophy-" + kind, kind)

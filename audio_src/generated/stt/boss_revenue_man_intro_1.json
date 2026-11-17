@@ -1,0 +1,45 @@
+{
+ "text": "Back again, contraband don't get a second chance",
+ "words": [
+  {
+   "text": "Back",
+   "start": 0.18,
+   "end": 0.38
+  },
+  {
+   "text": "again,",
+   "start": 0.46,
+   "end": 0.76
+  },
+  {
+   "text": "contraband",
+   "start": 0.88,
+   "end": 1.46
+  },
+  {
+   "text": "don't",
+   "start": 1.54,
+   "end": 1.8
+  },
+  {
+   "text": "get",
+   "start": 1.84,
+   "end": 1.98
+  },
+  {
+   "text": "a",
+   "start": 2.04,
+   "end": 2.12
+  },
+  {
+   "text": "second",
+   "start": 2.18,
+   "end": 2.48
+  },
+  {
+   "text": "chance",
+   "start": 2.58,
+   "end": 3.1
+  }
+ ]
+}

@@ -16,7 +16,9 @@
 ## what the recording costs a tick, apart from the tick.
 extends SceneTree
 
-const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const LEVELS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 
 ## The listeners being timed (Callable) and their summed microseconds.
 var _calls: Array[Callable] = []

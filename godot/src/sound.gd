@@ -37,6 +37,7 @@ const SCORES := {
 	"quarry_score": ["quarry_score", "copper_and_steam", "last_load"],
 	"bayou_score": ["bayou_score", "cypress_crawl", "crawdad_boil_hop"],
 	"music_speedway": ["music_speedway", "pit_row_boogie", "checkered_flag_rag"],
+	"moonshine_score": ["moonshine_score"],
 	"mothership_score": ["mothership_score"],
 }
 ## Each chapter's fight loop (seamless, made by scripts/audio_build.py): it
@@ -49,6 +50,7 @@ const FIGHTS := {
 	"quarry_score": "fight_quarry",
 	"bayou_score": "fight_bayou",
 	"music_speedway": "fight_speedway",
+	"moonshine_score": "fight_moonshine",
 	"mothership_score": "fight_mothership",
 }
 ## Each chapter's boss loop (seamless, scripts/audio_build.py): it takes over
@@ -62,6 +64,7 @@ const BOSSES := {
 	"quarry_score": "boss_quarry",
 	"bayou_score": "boss_bayou",
 	"music_speedway": "boss_speedway",
+	"moonshine_score": "boss_moonshine",
 	"mothership_score": "boss_mothership",
 }
 
@@ -107,6 +110,7 @@ const WARNS := [
 	"chum_slosh",
 	"gator_hiss",
 	"derby_champ_warn",
+	"revenue_man_warn",
 	"huffer_hiss",
 	"drone_buzz",
 	"guard_wind",

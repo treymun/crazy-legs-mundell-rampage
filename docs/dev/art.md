@@ -23,7 +23,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_menu_art` | menu boards and pictures |
 | `build_building_tiles` | building wall tiles |
 | `build_town_signs` | Hickston's painted signs and the corn tile |
-| `build_bayou_art`, `build_speedway_art`, `build_ship_art` | each new chapter's tiles, sky or signs; the Mothership's alien-lettered signs and Maw's floor marks |
+| `build_bayou_art`, `build_speedway_art`, `build_moonshine_art`, `build_ship_art` | each new chapter's tiles, sky or signs; the Mothership's alien-lettered signs and Maw's floor marks; the Moonshine Run's woods, bluff and cave floor tiles, its moonlit sky, its signs and the tear gas canister in flight |
 | `build_quest_art` | every chapter's quest props (below) |
 | `build_town_props` | every chapter's modelled props as sprites (below) |
 | `build_enemy_actors` | the enemy and boss cels: runs Blender, then shrinks, grades and digitizes its renders |
@@ -43,6 +43,14 @@ their exact bytes. Every picture is committed to the VGA palette.
 
 CI runs `build_fx_art`, `build_building_tiles`, `build_menu_art` and
 `build_gore_art` into a scratch folder to check they still run.
+
+The Moonshine Run's own models: `scripts/blender/props_moonshine.py` (the
+revenue cruiser with its light bar, the barricade and its broken copy, the road
+flare, the wall tent, the radio mast, the hung lantern, Granny's big still with
+the dynamite wired to it), its stations in `quest_props.py` (the shine crate on
+its hand truck, the church bell rope, the revenue radio, Granny's dinner iron,
+the last jar) and its people in `actors_moonshine.py` (the revenooer, the still
+buster, the gas man and the Revenue Man, who bakes at 1024: `FINE`).
 
 ### Quest props
 

@@ -643,6 +643,11 @@ func finish_shot(shot: Shot) -> void:
 	elif shot.kind == "chalk_lob":
 		add_hazard("chalk", shot.x, shot.y, .89, .08, 2.75, 6)
 		sound_at("chalk_pop", shot.x, shot.y, .67)
+	elif shot.kind == "tear_gas":
+		# The Moonshine Run's gas man: a cloud on the ground where it lands.
+		add_hazard("chalk", shot.x, shot.y, 1.1, .2, 3.4, 5)
+		burst(shot.x, shot.y, shot.z, "dust", 12, 1.6)
+		sound_at("smoke_hiss", shot.x, shot.y, .8)
 	elif shot.kind == "fair_bottle":
 		burst(shot.x, shot.y, shot.z, "glass", 13, 1.7)
 		sound_at("tosser_glass", shot.x, shot.y, .8)
@@ -966,12 +971,7 @@ func update_hazards(dt: float) -> void:
 				and sqrt(pow(p.x - hazard.x, 2) + pow(p.y - hazard.y, 2)) < hazard.radius
 				and world.visible(hazard.x, hazard.y, p.x, p.y)
 			):
-				damage(
-					hazard.damage,
-					[hazard.x, hazard.y],
-					"STEAM" if hazard.kind == "steam" else "CHALK",
-					p
-				)
+				damage(hazard.damage, [hazard.x, hazard.y], hazard_cause(hazard), p)
 				struck_any = true
 		if struck_any:
 			hazard.next_hit = hazard.life if hazard.kind == "steam" else hazard.age + .68
@@ -980,6 +980,14 @@ func update_hazards(dt: float) -> void:
 		if hazard.age < hazard.life:
 			kept.append(hazard)
 	hazards = kept
+
+
+## What a hazard's hurt is called: the Moonshine Run's chalk-white clouds are
+## the gas man's tear gas.
+func hazard_cause(hazard: Hazard) -> String:
+	if hazard.kind == "steam":
+		return "STEAM"
+	return "TEAR GAS" if level != null and level.id == "moonshine" else "CHALK"
 
 
 ## Mirrors Game.ground_marks: decals, hazard rings, boss telegraphs, actor

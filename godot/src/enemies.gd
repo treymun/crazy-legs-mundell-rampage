@@ -644,6 +644,14 @@ func tick(dt: float, game: Game) -> void:
 	if disarmed_until >= 0.0 and HitZones.tick(self, dt, game):
 		# Gone to fetch the weapon an arm hit made it drop.
 		return
+	if volley and brain == "revenue_man":
+		# The Revenue Man's tommy gun (src/moonshine_hands.gd).
+		volley_timer -= dt
+		if volley_timer <= 0.0:
+			MoonshineHands.tommy_round(self, game as Game)
+			volley -= 1
+			volley_timer += .07
+		return
 	if volley:
 		volley_timer -= dt
 		if volley_timer <= 0.0:

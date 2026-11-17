@@ -398,6 +398,15 @@ const GATE_BOARDS := [
 		Color(1.0, .8, .22)
 	],
 	[
+		"moonshine",
+		"COPPERHEAD",
+		"hub_moonshine_marker",
+		"COPPERHEAD RIDGE",
+		"MIND THE REVENUERS",
+		Color(.12, .14, .2),
+		Color(.95, .82, .4)
+	],
+	[
 		"mothership",
 		"MOTHERSHIP",
 		"hub_ship_marker",
@@ -416,6 +425,7 @@ const ARMS := [
 	["quarry", "STILLWATER CUT", Color(.42, .38, .3), INK],
 	["bayou", "GATOR BAYOU", Color(.22, .33, .2), Color(.88, .95, .64)],
 	["speedway", "BUZZARD BEND", Color(.15, .14, .13), Color(1.0, .8, .22)],
+	["moonshine", "COPPERHEAD RIDGE", Color(.12, .14, .2), Color(.95, .82, .4)],
 	["mothership", "CRASH SITE", Color(.84, .64, .12), Color(.1, .07, .05)],
 ]
 

@@ -33,6 +33,7 @@ const CHAPTER_GUNS := {
 	"quarry": ["shotgun", "rifle", "cow_launcher"],
 	"bayou": ["shotgun", "rifle", "crossbow"],
 	"speedway": ["shotgun", "rifle", "crossbow", "bottle_launcher"],
+	"moonshine": ["shotgun", "crossbow", "rifle", "cow_launcher"],
 	"mothership": ["armgun", "bottle_launcher", "powder_keg"],
 }
 const PATH := "res://data/tuning/effects.cfg"

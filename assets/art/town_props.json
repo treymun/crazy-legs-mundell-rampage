@@ -51,6 +51,10 @@
 		3.54,
 		1.74
 	],
+	"big_still": [
+		2.95,
+		2.38
+	],
 	"boil_pot": [
 		1.45,
 		1.85
@@ -142,6 +146,10 @@
 	"crawfish_traps": [
 		1.28,
 		1.12
+	],
+	"cruiser": [
+		2.94,
+		1.85
 	],
 	"crushed_stack": [
 		2.4,
@@ -290,6 +298,10 @@
 	"hubcap_board": [
 		1.84,
 		1.0
+	],
+	"hung_lantern": [
+		0.2,
+		0.57
 	],
 	"hung_pickup": [
 		2.43,
@@ -463,6 +475,14 @@
 		1.02,
 		1.49
 	],
+	"quest_bell_rope_off": [
+		0.47,
+		1.67
+	],
+	"quest_bell_rope_on": [
+		0.47,
+		1.67
+	],
 	"quest_bolt_off": [
 		0.84,
 		1.34
@@ -478,6 +498,14 @@
 	"quest_brake_on": [
 		1.16,
 		1.33
+	],
+	"quest_cave_knocker_off": [
+		0.85,
+		1.76
+	],
+	"quest_cave_knocker_on": [
+		0.85,
+		1.76
 	],
 	"quest_condenser_off": [
 		0.72,
@@ -510,6 +538,14 @@
 	"quest_exit_flag_on": [
 		0.84,
 		1.7
+	],
+	"quest_exit_jar_off": [
+		0.68,
+		1.5
+	],
+	"quest_exit_jar_on": [
+		0.68,
+		1.5
 	],
 	"quest_exit_off": [
 		1.13,
@@ -583,6 +619,14 @@
 		0.67,
 		1.34
 	],
+	"quest_radio_set_off": [
+		1.17,
+		1.02
+	],
+	"quest_radio_set_on": [
+		1.17,
+		1.02
+	],
 	"quest_relay_off": [
 		0.77,
 		1.34
@@ -590,6 +634,14 @@
 	"quest_relay_on": [
 		0.77,
 		1.34
+	],
+	"quest_shine_load_off": [
+		0.65,
+		1.11
+	],
+	"quest_shine_load_on": [
+		0.65,
+		1.11
 	],
 	"quest_ship_drain_off": [
 		0.57,
@@ -694,6 +746,10 @@
 	"race_car_7": [
 		2.47,
 		1.12
+	],
+	"radio_mast": [
+		2.51,
+		7.93
 	],
 	"range_ammo_crate": [
 		1.02,
@@ -851,6 +907,14 @@
 		1.04,
 		1.34
 	],
+	"revenue_tent": [
+		2.68,
+		1.82
+	],
+	"road_flare": [
+		0.54,
+		0.44
+	],
 	"rock_chute": [
 		3.06,
 		2.91
@@ -874,6 +938,14 @@
 	"sawdust_pile": [
 		2.0,
 		0.95
+	],
+	"sawhorse": [
+		1.16,
+		1.21
+	],
+	"sawhorse_broken": [
+		1.31,
+		1.09
 	],
 	"scarecrow": [
 		1.5,

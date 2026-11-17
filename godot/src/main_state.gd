@@ -204,6 +204,7 @@ const CHAPTER_PACKS := {
 	"quarry": "chapter_quarry",
 	"bayou": "chapter_bayou",
 	"speedway": "chapter_speedway",
+	"moonshine": "chapter_moonshine",
 	"mothership": "chapter_mothership",
 }
 ## --launch-check: a player's launch in any build, the exported game too: the

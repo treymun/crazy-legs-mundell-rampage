@@ -317,6 +317,9 @@ var lap_cars := {}
 var vehicles: Array = []  # to drive (features/vehicles.gd): [kind, x, y, heading]
 ## Set pieces run in them (features/vehicle_runs.gd): a dictionary each.
 var vehicle_runs: Array = []
+## A level's own words for a vehicle first seen (kind -> line), over its
+## vehicles.cfg `spotted` (the Moonshine Run's car is in a barn, not at a track).
+var vehicle_lines := {}
 var distant_cues: Array = []
 var notes: Array = []
 var partners: Array = []

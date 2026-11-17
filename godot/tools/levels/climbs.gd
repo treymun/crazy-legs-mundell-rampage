@@ -184,6 +184,60 @@ static func speedway(b) -> void:
 	b.pickup("bullets", 6.0, 17.5, 2.7)
 
 
+static func moonshine(b) -> void:
+	# The tobacco barn's hayloft along its west wall over the bales, a ladder
+	# up its east edge (moonshine_plan.gd).
+	var barn := _area(b, 22, 76)
+	(
+		Climb
+		. catwalk(
+			b,
+			"hayloft",
+			[17.0, 69.0, 20.0, 84.0],
+			1.9,
+			"e",
+			"e",
+			.35,
+			{
+				"tile": "porch",
+				"under": "joists",
+				"edge": "barn",
+				"rail": "wood",
+				"ladder": "wood",
+				"area": barn,
+				"posts": [Vector2(20.0, 69.0), Vector2(20.0, 76.5), Vector2(20.0, 84.0)],
+			}
+		)
+	)
+	b.pickup("rifle_ammo", 19.0, 72.0, 1.9)
+	b.pickup("moonshine", 18.5, 83.0, 1.9)
+	# The deer camp's stand over the clearing.
+	var blind := {
+		"roof": 1.4,
+		"post": "wood",
+		"tile": "porch",
+		"edge": "wood",
+		"ladder": "wood",
+		"area": _area(b, 75, 48),
+	}
+	Climb.tower(b, "deer_stand_m", [79.0, 50.0, 81.0, 52.0], 2.2, "w", blind)
+	b.pickup("rifle_ammo", 80.3, 51.0, 2.2)
+	# The fire lookout at the camp's west end, over the valley.
+	var top := 1.92
+	var lookout := {
+		"roof": 1.4,
+		"base": top,
+		"post": "wood",
+		"tile": "porch",
+		"edge": "wood",
+		"ladder": "wood",
+		"area": _area(b, 61, 10),
+	}
+	Climb.tower(b, "fire_lookout", [59.6, 9.4, 62.4, 12.2], top + 2.8, "e", lookout)
+	b.pickup("rifle_ammo", 60.6, 10.4, top + 2.8)
+	b.pickup("dynamite", 61.4, 11.2, top + 2.8)
+
+
 static func mothership(b) -> void:
 	# The cargo hold: a grated walk along the north bulkhead, over the door
 	# from the engine room, up a ladder at its west end.

@@ -21,6 +21,7 @@ const ROAD_LINES := {
 	"chapter_quarry": "BLASTING A ROAD TO STILLWATER",
 	"chapter_bayou": "POLING OUT TO GATOR BAYOU",
 	"chapter_speedway": "GASSING UP FOR THE SPEEDWAY",
+	"chapter_moonshine": "LOADING THE TRUNK AT GRANNY'S",
 	"chapter_mothership": "HITCHING A RIDE TO THE SAUCER",
 }
 

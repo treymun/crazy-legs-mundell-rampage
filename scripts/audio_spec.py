@@ -674,6 +674,40 @@ add("voice",
     talk_camp__fire_1=V("That's a floodlight, Earl.", "dispatch"),
     )
 
+# The Moonshine Run (chapter seven, Copperhead Ridge by night): the Revenue
+# Man, the cruisers, Little Bethel's bell, the ridge at night.
+add("warn",
+    revenue_man_warn=N("A drum-fed tommy gun's bolt yanked back and slammed home, then the drum slapped in place.", 1.0, style="gun"),
+    )
+add("alert",
+    revenue_man_rage=N("A big federal agent bellowing in fury, a deep cold Southern voice roaring wordlessly.", 1.4, style="vox"),
+    )
+add("death",
+    revenue_man_death=N("A big man in a suit groans and falls heavily onto a wooden floor, a tommy gun clattering down beside him.", 2.0, style="vox"),
+    revenue_man_pain=N("A big man grunting hard as a bullet hits him, a short pained snarl.", .8, style="vox"),
+    revenue_man_down=N("A big man gives a short dying groan and goes still.", 1.0, style="vox"),
+    )
+add("sting",
+    revenue_man_intro=N("A menacing low twangy guitar riff over a slow tom roll and a tommy gun bolt cocking: the lawman steps out of the dark.", 2.5, 2.2, "sting"),
+    revenue_man_end=N("A huge rowdy cowpunk final chord and a moonshine jug cork popping, then a rebel whoop.", 2.5, 2.2, "sting"),
+    )
+add("scene",
+    church_bell=N("One old iron church bell rung hard in a small wooden steeple, ringing out over the hills at night.", 2.5, style="far"),
+    cruiser_siren=N("An old 1990s police car siren wailing then yelping as the car speeds past at night.", 2.5, style="far"),
+    )
+add("ambience",
+    amb_ridge=LOOP("A hot summer night in the Ozark hills: crickets and katydids, a whip-poor-will calling far off, a creek trickling, a soft breeze in pine trees.", 10, 10.0, "amb"),
+    )
+add("voice",
+    talk_bridge__radio_0=V("Car two, any sign of that load?", "dispatch", "radio"),
+    talk_bridge__radio_1=V("Nothin' but mosquitoes.", "deputy"),
+    talk_camp__talk_0=V("Chief says don't taste the evidence.", "deputy"),
+    talk_camp__talk_1=V("Chief ain't here.", "local"),
+    talk_booth__radio_0=V("Checkpoint, hold every car.", "dispatch", "radio"),
+    talk_booth__radio_1=V("Even Granny's?", "deputy", heard="Even grannies"),
+    county_dispatch_8=V("Check on Granny Hooten.", "dispatch", "radio"),
+    )
+
 # The Mothership (chapter seven): the crew, the tin guard, the probe, Maw Glorb.
 add("attack",
     drone_zap=N("A cattle prod jabbed into somebody: a crackling electric zap and a short buzz.", .7, .45, "alien"),
@@ -855,6 +889,10 @@ BOSS_LINES = {
     "boggs": ("boggs", ["Buckle up, sunshine!", "Trade paint with me, boy!",
                         "Forty-seven wins and countin'!", "Radiator's blown, dang it!",
                         "Checkered flag... for me..."]),
+    "revenue_man": ("revenue_man", ["Federal government, son. That still is evidence.",
+                                    "You have the right to remain thirsty.", "Taxes are due, boy!",
+                                    "That's government property you're shootin'!",
+                                    "Tell Washington... I tried."]),
     "maw": ("maw", ["Who tracked mud on my clean deck?", "Eat your vegetables, hooman!",
                     "Wait till your father lands!", "My curlers! Not my curlers!",
                     "Tell my young'uns... supper's cold."]),
@@ -884,6 +922,9 @@ BOSS_MORE = {
     "boggs": ["Round two, sunshine! Start your engines!", "Eat my dust, boy!",
               "I've wrecked better than you on a Tuesday!", "Now you scratched my paint!",
               "She's smokin'! She's smokin' bad!"],
+    "revenue_man": ["Back again? Contraband don't get a second chance.", "Consider yourself audited!",
+                    "I've busted bigger stills than you!", "Now that's assault on a federal officer!",
+                    "Somebody radio Washington! Anybody!"],
     "maw": ["Back for seconds, hooman?", "Sit up straight, hooman!",
             "Don't make me get the wooden spoon!", "My housecoat's on fire, you little varmint!",
             "Mercy, I'm comin' apart at the seams!"],
@@ -1053,9 +1094,13 @@ TOUGH_SAYS = {
     "tough_bubba": ("local", "Bubba's got a full head of steam!"),
     "tough_chuck": ("local", "Dinner bell's ringin', and you're dinner!"),
     "tough_pete": ("local", "Four tires and a grudge, boy!"),
+    "tough_hoss": ("deputy", "Hoss is here to collect, boy!"),
     "tough_zorgo": ("grey", "Zorgo the Large demands your beer!"),
 }
-add("voice", **{f"bark_{kind}": V(text, who) for kind, (who, text) in TOUGH_SAYS.items()})
+# The transcript spells his name its own way.
+TOUGH_HEARD = {"tough_hoss": "Toss is here to collect, boy"}
+add("voice", **{f"bark_{kind}": V(text, who, **({"heard": TOUGH_HEARD[kind]} if kind in TOUGH_HEARD else {}))
+                for kind, (who, text) in TOUGH_SAYS.items()})
 # Maw Glorb's other lines (features/mothership.gd): as the core iris opens and
 # she wakes, and when she calls her crew out of the pods (twice a fight).
 add("voice",
@@ -1241,6 +1286,9 @@ MUSIC = [
     ("music_speedway", "Buzzard Bend Feature Race", 126, "Greasy Southern rock and honky-tonk at a dirt-track race night: driving overdriven Telecaster riff, chugging bass, snare on two and four with a ride cymbal like a revving engine, a wailing harmonica answering, a pedal steel swell over the bridge. Loose, loud, beer-soaked and fast."),
     ("pit_row_boogie", "Pit Row Boogie", 144, "Swaggering pit-row boogie: a chugging palm-muted guitar riff like an idling V8, cowbell and clanking wrench percussion on the backbeat, honky-tonk piano rolls, a slide guitar wailing through the turns; a grinding half-time breakdown, then the riff floors it."),
     ("checkered_flag_rag", "Checkered Flag Rag", 172, "Hell-for-leather train-beat hillbilly rock under the floodlights: a fast chicken-picked guitar hook, galloping slap bass, banjo rolls and honky-tonk piano racing each other, crash cymbals like a pile-up at the finish line; a stop-time middle, then a last lap even faster."),
+    # The Moonshine Run: running Granny's load down the backroads by night, the
+    # revenue men's lights in the mirror.
+    ("moonshine_score", "Copperhead Ridge Run", 138, "Dark, driving outlaw cowpunk on a moonlit backroad: a menacing low twangy baritone guitar riff, a train-beat snare that never lets up, slap bass running like tires on gravel, a lonesome harmonica wailing like a far-off siren, a fiddle sawing over the bridge; a quiet creeping middle with tremolo guitar and brushed snare like hiding in a holler, then the riff comes roaring back for the getaway."),
     # The Mothership: a junky saucer run by B-movie greys and their grandma.
     ("mothership_score", "Abducted Hoedown", 136, "Dark, spooky cowpunk aboard a junky flying saucer: a B-movie theremin answering a twangy tremolo guitar hook, slap bass walking like a creeping alien, a clanking hull-plate backbeat; a half-time middle with a musical saw, then the hook returns bigger."),
 ]
@@ -1248,6 +1296,7 @@ MUSIC = [
 # later chapters' are shorter: the game shuffles three of them.
 MUSIC_LENGTH = {stem: 120 for stem in ("bayou_score", "cypress_crawl", "crawdad_boil_hop", "music_speedway",
                                        "pit_row_boogie", "checkered_flag_rag", "mothership_score")}
+MUSIC_LENGTH["moonshine_score"] = 110
 # Where a track's playback stops when the take ends past it (the game cuts
 # there and moves on): music_speedway's take stops dead at 111.9 s and only
 # hits one last stab four seconds of silence later.
@@ -1265,6 +1314,7 @@ FIGHTS = [
     ("fight_quarry", "Stillwater Jug Brawl", 132, "Heavy moonshine-fuelled blues-rock at 132 BPM: grinding fuzz guitar riff, howling bottleneck slide guitar, booming jug bass blowing the low notes, stomping drums with tambourine and chain hits, frantic banjo answers. Dark, drunk and dangerous swamp-blues muscle."),
     ("fight_bayou", "Airboat Brawl", 136, "Heavy swamp-rock brawl at 136 BPM: fuzzed slide guitar riff, stomping drums with washboard and tambourine, a droning jug bass, frantic fiddle and harmonica stabs over a roaring overdriven riff. Loud, sweaty and dangerous."),
     ("fight_speedway", "Demolition Derby Brawl", 138, "Heavy redneck rock brawl at 138 BPM: crunching fuzz guitar riff, pounding floor toms and crash cymbals like cars colliding, slide guitar screaming over the top, honky-tonk piano hammering, a quick banjo roll on the turnarounds. Dangerous, sweaty and relentless."),
+    ("fight_moonshine", "Revenuer Roadblock Brawl", 160, "Breakneck outlaw hillbilly punk at 160 BPM: a snarling twangy guitar riff over pounding train-beat drums, a wailing harmonica screaming like a police siren, frantic banjo rolls and a stomping upright bass. Desperate and reckless, a shootout at a roadblock in the dark."),
     ("fight_mothership", "Ray Gun Barn Dance", 176, "Frantic hillbilly punk at 176 BPM: furious banjo rolls and sawing fiddle against a wailing theremin riff, overdriven twang guitar, washboard and crashing train-beat drums. Manic, like a hoedown in a crashing spaceship."),
 ]
 # Boss music: (stem, title, bpm, prompt). Each chapter's sound, faster and much
@@ -1278,6 +1328,7 @@ BOSSES = [
     ("boss_quarry", "Boil-Over at the Still", 150, "Ferocious moonshine swamp-blues metal at 150 BPM: a grinding detuned fuzz riff, howling bottleneck slide guitar, booming jug bass, stomping double-kick drums with chain hits and tambourine, a harmonica screaming like a steam whistle, frantic banjo. Heavier and faster than ever, a still about to blow."),
     ("boss_bayou", "Swamp King's Rampage", 168, "Ferocious swamp-metal stomp at 168 BPM: a growling fuzzed slide guitar riff that roars like an airboat engine, pounding double-kick drums and floor toms, washboard and tambourine slammed on every beat, a droning jug bass, harmonica and fiddle screaming over the top. Enormous, fast and heavy."),
     ("boss_speedway", "Bumper Boggs Wrecking Ball", 180, "Furious demolition-derby country-metal at 180 BPM: a crushing low-tuned guitar riff that revs like a big-block engine, a screaming slide guitar, pounding toms and crash cymbals like steel colliding, honky-tonk piano hammered hard, banjo rolls on the turnarounds. Heavy, fast and reckless."),
+    ("boss_moonshine", "The Revenue Man Cometh", 170, "Furious dark outlaw country-metal at 170 BPM: a crushing low-tuned twangy guitar riff, a machine-gun snare and double kick rattling like a tommy gun, a screaming harmonica, a fiddle sawing like a siren, booming toms and anvil hits like a still about to blow. Heavy, fast and dangerous."),
     ("boss_mothership", "Maw's Last Supper", 148, "The biggest, heaviest cut on the record: a thundering country-metal riff on detuned twangy baritone guitars, booming toms and anvil hits, a church-organ swell under a screaming theremin lead, a slide guitar howling back at it, the whole band slamming unison stabs. Relentless and epic, a hoedown at the end of the world."),
 ]
 # Seconds asked for each loop: the fights and bosses 70, the last boss more.

@@ -1,0 +1,40 @@
+{
+ "text": "Now that's assault on a federal officer",
+ "words": [
+  {
+   "text": "Now",
+   "start": 0.2,
+   "end": 0.32
+  },
+  {
+   "text": "that's",
+   "start": 0.36,
+   "end": 0.52
+  },
+  {
+   "text": "assault",
+   "start": 0.58,
+   "end": 0.94
+  },
+  {
+   "text": "on",
+   "start": 0.98,
+   "end": 1.06
+  },
+  {
+   "text": "a",
+   "start": 1.1,
+   "end": 1.18
+  },
+  {
+   "text": "federal",
+   "start": 1.22,
+   "end": 1.5
+  },
+  {
+   "text": "officer",
+   "start": 1.6,
+   "end": 2.04
+  }
+ ]
+}

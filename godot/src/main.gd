@@ -370,7 +370,7 @@ func _view_bench() -> void:
 	RenderingServer.viewport_set_measure_render_time(rid, true)
 	var totals := {"gpu": 0.0}
 	for level_id: String in [
-		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
 	]:
 		var line := "%-9s" % level_id
 		for mode: String in ["gpu"]:
@@ -489,7 +489,7 @@ func _play_bench() -> void:
 	await get_tree().process_frame
 	var pilot_script: GDScript = load("res://tools/bot_pilot.gd")
 	for level_id: String in [
-		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
 	]:
 		start(level_id)
 		Engine.max_fps = 0

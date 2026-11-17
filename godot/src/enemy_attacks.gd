@@ -14,6 +14,8 @@ static func attack(
 	e.attacks += 1
 	if SpeedwayHands.attack(e, game as Game, direction, distance, eye, aim_z):
 		return
+	if MoonshineHands.attack(e, game as Game, direction, distance, eye, aim_z):
+		return
 	if BayouBrains.attack(e, game as Game, direction, distance, eye):
 		return
 	if ShipAliens.attack(e, game as Game, direction, distance, eye, aim_z):

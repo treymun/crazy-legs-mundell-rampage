@@ -1,0 +1,25 @@
+{
+ "text": "Nothing but mosquitoes, eh?",
+ "words": [
+  {
+   "text": "Nothing",
+   "start": 0.06,
+   "end": 0.38
+  },
+  {
+   "text": "but",
+   "start": 0.44,
+   "end": 0.64
+  },
+  {
+   "text": "mosquitoes,",
+   "start": 0.68,
+   "end": 1.48
+  },
+  {
+   "text": "eh?",
+   "start": 1.56,
+   "end": 1.66
+  }
+ ]
+}

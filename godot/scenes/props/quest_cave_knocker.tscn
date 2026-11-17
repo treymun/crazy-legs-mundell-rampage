@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_78lc3"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_cave_knocker.glb" id="2_hjgmo"]
+
+[node name="QuestCaveKnocker" type="Node3D" unique_id=169710253]
+script = ExtResource("1_78lc3")
+prop = "quest_cave_knocker"
+
+[node name="Model" type="Node3D" parent="." unique_id=48670865 instance=ExtResource("2_hjgmo")]

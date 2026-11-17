@@ -21,7 +21,9 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out_dir := String(args[0]) if not args.is_empty() else ""
 	var art := Assets.new()
-	for id in ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]:
+	for id in [
+		"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+	]:
 		var level := LevelData.load_level(id, art)
 		_route(level, out_dir)
 	quit()

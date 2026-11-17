@@ -1365,6 +1365,12 @@ chapel path at Hickston. Only the campaign and co-op have them
   (`pace`; 80 s once they have run dry), the pit crew coming out of the
   infield; the purse in the glovebox. Saved (a run in the middle starts
   over); no save version (an older save restores none).
+- **The Moonshine Run** (content pass 8): Granny's stock car in her barn,
+  its own line (`Level.vehicle_lines`); the MOONSHINE RUN through two
+  roadblocks of barricades it rams (breakables struck at `ram_from` or more);
+  the county blacktop's patrol cruisers are `race_laps` with a cruiser model,
+  light bars (`lights()`, effects.cfg `[light.cruiser]` `blink`/`blink_color`)
+  and no lap timer (`lap_cars.laps` false). `tools/moonshine_check.gd` drives it.
 - **Checks**: `tools/vehicle_set_check.gd` (VEHICLE SET OK: finding each
   one, both runs driven to the end and run out of time, the window's guns,
   riding shotgun); `tools/vehicle_set_frames.gd` takes its window pictures.

@@ -10,7 +10,9 @@
 ## Point APPDATA at a scratch folder: it runs the game with the profile there.
 extends SceneTree
 
-const CHAPTERS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const CHAPTERS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 const STEP := 1.0 / 60.0
 
 var main

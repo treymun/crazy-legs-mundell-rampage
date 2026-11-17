@@ -19,7 +19,9 @@ extends SceneTree
 
 const Pilot := preload("res://tools/bot_pilot.gd")
 const STEP := 1.0 / 60.0
-const LEVELS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const LEVELS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 const WHOLE_LIMIT := 1500.0
 ## Snapshots of the two runs compared every this many ticks (and at the end).
 const COMPARE_EVERY := 600

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/view3d/prop_view.gd" id="1_kjd1i"]
+[ext_resource type="PackedScene" path="res://assets3d/props/quest_radio_set.glb" id="2_q44hf"]
+
+[node name="QuestRadioSet" type="Node3D" unique_id=2059139839]
+script = ExtResource("1_kjd1i")
+prop = "quest_radio_set"
+
+[node name="Model" type="Node3D" parent="." unique_id=1059248896 instance=ExtResource("2_q44hf")]

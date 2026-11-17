@@ -1,0 +1,50 @@
+{
+ "text": "Hi, Unit 2. Any sign of the Hooton load?",
+ "words": [
+  {
+   "text": "Hi,",
+   "start": 0.0,
+   "end": 0.12
+  },
+  {
+   "text": "Unit",
+   "start": 0.26,
+   "end": 0.54
+  },
+  {
+   "text": "2.",
+   "start": 0.94,
+   "end": 1.14
+  },
+  {
+   "text": "Any",
+   "start": 1.48,
+   "end": 1.68
+  },
+  {
+   "text": "sign",
+   "start": 1.8,
+   "end": 2.1
+  },
+  {
+   "text": "of",
+   "start": 2.16,
+   "end": 2.22
+  },
+  {
+   "text": "the",
+   "start": 2.26,
+   "end": 2.32
+  },
+  {
+   "text": "Hooton",
+   "start": 2.38,
+   "end": 2.68
+  },
+  {
+   "text": "load?",
+   "start": 2.78,
+   "end": 3.2
+  }
+ ]
+}

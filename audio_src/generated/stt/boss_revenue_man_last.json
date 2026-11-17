@@ -1,0 +1,25 @@
+{
+ "text": "Tell Washington I tried",
+ "words": [
+  {
+   "text": "Tell",
+   "start": 0.18,
+   "end": 0.32
+  },
+  {
+   "text": "Washington",
+   "start": 0.42,
+   "end": 1.02
+  },
+  {
+   "text": "I",
+   "start": 1.2,
+   "end": 1.28
+  },
+  {
+   "text": "tried",
+   "start": 1.34,
+   "end": 1.78
+  }
+ ]
+}

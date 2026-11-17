@@ -1,7 +1,8 @@
 # Bosses
 
-The eight bosses: the sheriff (`boss`), Jerry, Rudy, the foreman, the Baron,
-the Swamp King, Boggs (`derby_champ`) and Maw Glorb. Their numbers are in
+The nine bosses: the sheriff (`boss`), Jerry, Rudy, the foreman, the Baron,
+the Swamp King, Boggs (`derby_champ`), the Revenue Man (`revenue_man`, content
+pass 8) and Maw Glorb. Their numbers are in
 `data/tuning/enemies.cfg` (health, speed, `title`, drops) and
 `data/tuning/bosses.cfg` (the boss scripts' numbers, read through `BossData`).
 To add one, see [how_to_add.md](how_to_add.md#a-boss).
@@ -11,7 +12,7 @@ To add one, see [how_to_add.md](how_to_add.md#a-boss).
 Boss fights share a framework: `src/boss_kit.gd`, `features/boss_fight.gd`,
 `src/bosses/`.
 
-- Each of the eight bosses (a `title` in enemies.cfg) has a `BossMoves` file
+- Each of the nine bosses (a `title` in enemies.cfg) has a `BossMoves` file
   (`bosses/boss_moves.gd`): `fight_start`, `phase_changed`, `tick` (true skips
   the brain), `weak_spot` (a damage multiplier, no dice), `telegraph`,
   `looks`, `dying`, `stagger_hit`/`stagger_rest`, `hog_wild(game)`.
@@ -130,6 +131,32 @@ times (`boss_rematch_check.gd -- bot`, now with `diff=` and `runs=`) set
 their PAR. Maw's own fight is described in
 [gameplay.md](gameplay.md#levels-in-play) (the Mothership).
 
+## The Revenue Man (content pass 8)
+
+`src/bosses/revenue_man.gd`, `src/moonshine_hands.gd`, bosses.cfg
+`[revenue_man]` and the moonshine rows of `[boss_lock]`, `[boss_arenas]`,
+`[boss_gear]` (his shades and fedora) and `[arena_wreck]` (mash barrels and
+jugs kicked over). The still cave (moonshine layout 1): Granny's copper still
+at its back with his dynamite wired to it, timbers with lanterns, mash
+barrels, two boulders; seen from the door Granny's dinner iron opens.
+
+- His attacks in turn by phase (`pattern`): TOMMY GUN (a fanned burst of
+  deputy slugs, `Enemy.volley`, `MoonshineHands.tommy_round`), AXE CHARGE (a run
+  at where the player stood; into the rock or a barrel the axe sticks and he
+  stands STUCK a moment, every hit counting `stuck_weak`), TEAR GAS (canisters
+  lobbed round the player, two, three on HOG WILD: a cloud of the chalk hazard,
+  hurt called TEAR GAS).
+- Weak spot: his mirrored shades, a hit from in front of him (`front`) high on
+  him (`head`) counts `weak`; the unusual one, facing his gun.
+- Phase 3, THE STILL BLOWS (`boss_arenas.gd _still_blows`, `_cave_in`): a blast
+  at the still (`shots.cfg [still_blast]`), the spilled shine burning on its
+  spots (again every `reburn`), and a rock off the roof every `rock_every`
+  seconds by difficulty on a closing ring at the player and in turn on the
+  cave's loose spots (`rocks`), hurting him too (`rock_burn`).
+- His voice is a designed one (`voices.json` "revenue_man"), his lines
+  `boss_revenue_man_*`. BOSS REMATCH has him (`par` set from the bot); the
+  trophy shack's ninth plinth (`PLINTH_KINDS`) is his.
+
 ## The arenas wreck and the gear comes off
 
 BOSS ARENAS WRECK (setting, on by default, PLAY; `game.boss_wrecks`, carried
@@ -174,7 +201,7 @@ like DIFFICULTY): off, the fights are as before.
   bite `ramless` (.6) once the ram is off; hats, the tin star, the monocle,
   the crown and Maw's curlers and glasses fly for the fun of it. Carried and
   saved; the checkpoint's retry puts every piece back.
-- `tools/arena_wreck_check.gd` (in check_fixes) holds both for all eight;
+- `tools/arena_wreck_check.gd` (in check_fixes) holds both for all nine;
   `tools/wreck_frames.gd` (a window) takes pictures of each step and of the
   gear coming off. In `docs/godot3d/features/F/` each sheet is a step read
   left to right, then down (before, its warning, going over, lying as
@@ -186,7 +213,7 @@ like DIFFICULTY): off, the fights are as before.
 ## The bosses' art wears the fight
 
 `src/boss_looks.gd`, called from `Enemy.sprite()` for bosses only.
-`build_enemy_actors.gd` renders the eight bosses on a dusk stage (warm key,
+`build_enemy_actors.gd` renders the nine bosses on a dusk stage (warm key,
 two rims, more samples; `enemy_actors.py light_for`, the graphics card when
 Cycles has one) with less grain, plus a wind-up cel `<kind>_wind` (the first
 half of a wind-up; then `_aim`) and a battle-damaged copy of every living cel
@@ -296,7 +323,7 @@ hands back the moment the boss falls.
   lays the solid cells, the gates and the held doors on a copy or a loaded
   save). A save holds the shut boss and which doors stood open (the features
   block: no new save version).
-- `tools/boss_lock_check.gd` (in check_fixes) holds all of it for the eight;
+- `tools/boss_lock_check.gd` (in check_fixes) holds all of it for the nine;
   `tools/lock_frames.gd` (a window) pictures each way in open, then shut
   (`docs/godot3d/polish/P/<kind>_lock.png`, before on the left).
 

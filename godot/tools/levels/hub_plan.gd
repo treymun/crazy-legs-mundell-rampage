@@ -37,6 +37,7 @@ const GATES := [
 	["quarry", 62.0, 40.0, -1, "route_quarry", "hub_quarry_marker", 1.75],
 	["bayou", 17.0, 28.0, 1, "route_bayou", "hub_bayou_marker", 1.45],
 	["speedway", 71.0, 28.0, 1, "route_speedway", "hub_speedway_marker", 1.45],
+	["moonshine", 11.0, 40.0, -1, "route_moonshine", "hub_moonshine_marker", 1.15],
 	["mothership", 44.0, 8.0, 1, "route_mothership", "hub_ship_marker", 2.5],
 ]
 
@@ -49,6 +50,7 @@ var mill: int
 var quarry: int
 var bayou: int
 var speedway: int
+var ridge: int
 var crew: int
 var impound: int
 var site: int
@@ -65,7 +67,7 @@ func make() -> Builder:
 	b.meta = {
 		"title": "COUNTY CROSSROADS",
 		"heading": ["COUNTY", "CROSSROADS"],
-		"layout": 4,
+		"layout": 5,
 		"sky": "sky",
 		"hub_board": [53.5, 47.05],
 		"hub_gates": gates,
@@ -113,6 +115,7 @@ func build(_b) -> Array:
 	quarry = b.district("QUARRY ROAD", Color(.94, .98, 1.06))
 	bayou = b.district("BAYOU ROAD", Color(.9, 1.02, .9))
 	speedway = b.district("SPEEDWAY ROAD", Color(1.06, .98, .9))
+	ridge = b.district("RIDGE ROAD", Color(.9, .94, 1.06))
 	crew = b.district("ROAD CREW YARD", Color(1.0, .98, .92))
 	impound = b.district("COUNTY IMPOUND", Color(.98, .96, 1.0))
 	site = b.district("CRASH SITE", Color(.9, 1.04, .98))
@@ -129,6 +132,7 @@ func build(_b) -> Array:
 	fair_road()
 	quarry_road()
 	speedway_road()
+	ridge_road()
 	crew_yard()
 	impound_lot()
 	crash_site()
@@ -395,6 +399,18 @@ func speedway_road() -> void:
 	b.streetlamp(73.5, 39.3)
 
 
+## The ridge road (layout 5, the Moonshine Run): its gate south off the west
+## end of the county line road among the reeds, the revenue men's cruiser
+## pulled off by it with its lights going, a flare in the road.
+func ridge_road() -> void:
+	b.yard(14, ROAD_S + 1, 19, ROAD_S + 3, "gravel", ridge)
+	b.town("cruiser", 16.5, 42.0, {"plane": 0.0, "hung": true, "glow": true})
+	b.volume(15.2, 41.3, 17.8, 42.7, .5)
+	b.town("road_flare", 15.0, 40.6)
+	b.glow(15.0, 40.6, 2.4, .3)
+	b.town("jug_stack", 18.5, 40.5, {"solid": .3})
+
+
 func crew_yard() -> void:
 	# North of the road west of the stop: the road crew's yard and its gear.
 	b.yard(21, 22, 29, ROAD_N - 1, "gravel", crew)
@@ -517,6 +533,7 @@ func finish_up() -> void:
 		["FAIR", 51, 30],
 		["QUARRY", 60, 37],
 		["SPEEDWAY", 71, 33],
+		["RIDGE", 8, 42],
 		["CREW", 23, 24],
 		["IMPOUND", 60, 24],
 		["CRASH SITE", 41, 14],

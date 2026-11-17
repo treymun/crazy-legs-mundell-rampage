@@ -15,7 +15,9 @@
 extends SceneTree
 
 const STEP := 1.0 / 60.0
-const CHAPTERS := ["hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "mothership"]
+const CHAPTERS := [
+	"hickston", "fair", "sawmill", "quarry", "bayou", "speedway", "moonshine", "mothership"
+]
 
 var failures: Array = []
 

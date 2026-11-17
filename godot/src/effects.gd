@@ -153,4 +153,11 @@ static func light(
 	var pool: bool = d["pool"]
 	var radius: float = d["radius"]
 	var flags := (POOL if pool else 0) | (HOT if heat > 0.0 else 0)
-	return [x, y, z, radius, d["color"], strength, flags, heat]
+	var colour: Color = d["color"]
+	if d.has("blink"):
+		# A light bar: `blink` times a second it swaps to `blink_color` (each
+		# car on its own beat by where it stands; the clock, never dice).
+		var rate: float = d["blink"]
+		if fposmod(clock * rate + x * .37 + y * .23, 1.0) >= .5:
+			colour = d.get("blink_color", colour)
+	return [x, y, z, radius, colour, strength, flags, heat]
