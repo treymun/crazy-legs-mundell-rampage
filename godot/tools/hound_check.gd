@@ -358,13 +358,22 @@ func _fight() -> void:
 	e.hp = e.max_hp * .4
 	var held := false
 	var stunned := true
+	var dragged := false
+	var faced := true
 	for t in 60 * 6:
 		g.tick(STEP, Game.Controls.new())
 		if d.state == Hound.PIN:
 			held = true
 			stunned = stunned and e.stun > 0.0
+			dragged = dragged or e.held_cel.ends_with("_die_1")
+			var to_p := atan2(g.player.y - e.y, g.player.x - e.x)
+			faced = faced and absf(wrapf(e.angle - to_p, -PI, PI)) < .05
+		elif held:
+			break
 	_check(held, "on his own he goes for a badly hurt hand and holds it")
 	_check(stunned, "held, it cannot fight (stunned the whole time)")
+	_check(dragged and faced, "held, it is dragged half down, leaning back from the player")
+	_check(e.held_cel == "" or d.state == Hound.PIN, "let go, it stands again")
 	_check(e.alive and e.hp >= 1.0, "he never kills it himself (%.0f health left)" % e.hp)
 	_check(_hound(g).kicks > 0, "the hands kick at him (%d kicks)" % _hound(g).kicks)
 	# The player finishes it.

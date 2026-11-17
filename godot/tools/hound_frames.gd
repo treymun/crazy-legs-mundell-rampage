@@ -154,5 +154,16 @@ func _pin() -> void:
 	d.until = g.clock + 99.0
 	d.angle = atan2(foe.y - d.y, foe.x - d.x)
 	foe.stun = .3
+	g.armory.holstered = true
+	g.armory.lower = 1.0
+	_ticks(g, 3)
+	d.angle = atan2(foe.y - d.y, foe.x - d.x)
 	p.pitch = -10.0
 	await _snap("hound_pin")
+	# From his side, a moment on (the dog shaking the other way).
+	var round_to := atan2(d.y - foe.y, d.x - foe.x) + .5
+	p.x = foe.x + cos(round_to) * 3.2
+	p.y = foe.y + sin(round_to) * 3.2
+	p.angle = atan2(foe.y - p.y, foe.x - p.x)
+	_ticks(g, 16)
+	await _snap("hound_pin_side")

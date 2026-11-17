@@ -225,8 +225,11 @@ a shop lamp falling in the saw floor's arena.
      every leg piece a fixed length posed by two-bone IK, so each is the
      same part in every frame; his coat a ticked material sized to each part
      (`_ticked`: a ball's coordinates are its unit sphere, a limb's metres).
-     `hound_face` is his HUD badge's head, cels only (`cels_only`:
-     export_actors.py makes no model of it). `build_enemy_actors.gd --
+     His black hood, ears and saddle are matte (`_matte`: a glossy black
+     reads grey under the stage's rims). `hound_face` is his HUD badge's
+     head, near profile so the long muzzle and the black ear read at 27
+     pixels, cels only (`cels_only`: export_actors.py makes no model of it),
+     lit with the rims down and no road dirt (`_CLEAN`). `build_enemy_actors.gd --
      kinds=hound,hound_face`, then the steps below for `hound`.
 2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]
    [rig-only] [raw=<dir>]` grades and digitizes

@@ -948,7 +948,10 @@ numbers in `data/tuning/hound.cfg`.
   any hand he takes (`HoundNose.takes`: not a boss, nothing that flies or
   swims). He bites (never for the last of its health: the kill is always a
   player's) and under `pin_below` holds it down `pin_time`: stunned the whole
-  time, it cannot fight or walk. The hands within `kick_reach`, the held one
+  time, it cannot fight or walk, dragged half down (its fall's `die_1` held,
+  `Enemy.held_cel`, now and then its pain twist), turned to face his player
+  so it leans back along their line of sight and their shots land on what
+  they see (its hit cylinder never moves). The hands within `kick_reach`, the held one
   too, kick at him (`kick_rate`, the kick shown as the hand's attack frame);
   blasts hurt him. A held hand finished counts on the tally (BLUE: FETCHED,
   HELD) and gets a GOOD BOY.

@@ -2703,12 +2703,12 @@
 		]
 	},
 	"hound": {
-		"bones": 58.0,
+		"bones": 59.0,
 		"canvas": [
 			1.5,
 			1.0
 		],
-		"faces": 21353.0,
+		"faces": 21274.0,
 		"frames": {
 			"0": 0.0,
 			"bark": 13.0,
@@ -2792,13 +2792,14 @@
 			"b55": "body",
 			"b56": "body",
 			"b57": "body",
+			"b58": "body",
 			"b6": "body",
 			"b7": "body",
 			"b8": "body",
 			"b9": "body"
 		},
 		"lit": true,
-		"parts": 160.0,
+		"parts": 159.0,
 		"textures": [
 			""
 		]

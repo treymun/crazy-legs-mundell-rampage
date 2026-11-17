@@ -38,7 +38,7 @@ same part in every frame (export_actors.py matches parts by shape).
 
 HOUND = dict(canvas=(1.5, 1.0), px=60)
 # The badge is cels only: export_actors.py makes no model of it.
-HOUND_FACE = dict(canvas=(.46, .46), px=40, cels_only=True)
+HOUND_FACE = dict(canvas=(.42, .42), px=44, cels_only=True)
 HOUND_CELS = [0, "wag", "w0", "w1", "w2", "w3", "w4", "r0", "r1", "r2", "r3", "r4", "sit", "bark", "bay",
               "bite", "pin", "pin2", "fetch", "point", "sniff", "pain", "down", "whine"]
 FACE_CELS = [0, 1, 2, "down"]
@@ -49,13 +49,15 @@ PLAIN_KINDS = tuple(PLAIN_KINDS) + ("hound", "hound_face")
 _ARM, _FORE, _PASTERN = .21, .26, .08
 _THIGH, _GASKIN, _META = .24, .26, .15
 _TICK_MATS = {}
+# The badge's head is drawn near the stage's floor: no road dirt on it.
+_CLEAN = [False]
 # His head is a little big for him: a hound's.
-_HEAD = Matrix.Diagonal((1.14, 1.14, 1.14, 1))
+_HEAD = Matrix.Diagonal((1.2, 1.2, 1.2, 1))
 # The coats: [base, ticks, flecks a metre, how much of it is ticked].
 _COATS = {
-    "coat": ((178, 184, 190), (30, 38, 56), 150., .72),
-    "fine": ((192, 196, 198), (58, 66, 86), 290., .5),
-    "legs": ((176, 180, 186), (36, 44, 60), 170., .72),
+    "coat": ((140, 150, 166), (30, 36, 52), 110., .5),
+    "fine": ((150, 156, 168), (40, 46, 62), 150., .5),
+    "legs": ((150, 158, 172), (36, 42, 58), 130., .5),
     "tan": ((150, 96, 56), (60, 42, 30), 190., .36),
 }
 
@@ -67,8 +69,12 @@ def _ticked(which, size):
     and a soft roan of the same blue through it, so it reads slate-blue from
     across a yard and ticked up close."""
     base, dark, per_metre, amount = _COATS[which]
+    if _CLEAN[0] and which == "fine":
+        # The badge's muzzle a shade darker and more ticked: at its few
+        # pixels a pale muzzle reads as a white blob.
+        base, amount = (124, 130, 144), .6
     density = round(per_metre * size * 2) / 2
-    key = (which, density)
+    key = (which, density, _CLEAN[0])
     if key in _TICK_MATS and _TICK_MATS[key].name in bpy.data.materials:
         return _TICK_MATS[key]
     m = bpy.data.materials.new("tick%d" % len(_TICK_MATS))
@@ -92,8 +98,8 @@ def _ticked(which, size):
     soft.inputs["Detail"].default_value = 3.0
     nt.links.new(coord.outputs["Object"], soft.inputs["Vector"])
     soft_ramp = nt.nodes.new("ShaderNodeMapRange")
-    soft_ramp.inputs[1].default_value = .38
-    soft_ramp.inputs[2].default_value = .66
+    soft_ramp.inputs[1].default_value = .3
+    soft_ramp.inputs[2].default_value = .56
     soft_ramp.inputs[4].default_value = .9
     nt.links.new(soft.outputs[0], soft_ramp.inputs[0])
     mix1 = nt.nodes.new("ShaderNodeMix")
@@ -122,7 +128,7 @@ def _ticked(which, size):
     ramp = nt.nodes.new("ShaderNodeMapRange")
     ramp.inputs[1].default_value = .0
     ramp.inputs[2].default_value = .22
-    ramp.inputs[3].default_value = .5
+    ramp.inputs[3].default_value = 0. if _CLEAN[0] else .5
     ramp.inputs[4].default_value = .0
     nt.links.new(sepz.outputs[2], ramp.inputs[0])
     mud = nt.nodes.new("ShaderNodeMix")
@@ -162,16 +168,27 @@ def _tl(a, b, ra, rb, which, M=None, caps=True, seg=18):
         _tb(b, rb * 1.045, which)
 
 
+def _matte(m, level=.12):
+    """A dark coat's sheen turned down: black hair is not glossy, and under
+    the stage's bright rims a shiny black reads grey."""
+    for node in m.node_tree.nodes:
+        if node.type == "BSDF_PRINCIPLED":
+            for name in ("Specular IOR Level", "Specular"):
+                if name in node.inputs:
+                    node.inputs[name].default_value = level
+    return m
+
+
 def _coat():
     """The plain materials: the black of his saddle and hood, the eyes, nose,
     mouth, collar and tag."""
     return dict(
-        black=mat(30, 32, 40, .82, grime=.2),
+        black=_matte(mat(12, 12, 16, .9, grime=0)),
         tan=mat(136, 84, 48, .82, grime=.35),
         nose=mat(26, 22, 24, .32, grime=0),
         eye=mat(58, 32, 18, .12, grime=0),
         glint=mat(240, 236, 226, .2, grime=0),
-        lid=mat(84, 86, 96, .82, grime=.2),
+        lid=_matte(mat(12, 12, 16, .9, grime=0)),
         mouth=MOUTH(),
         tongue=mat(198, 88, 96, .4, grime=0),
         haw=mat(96, 46, 44, .5, grime=0),
@@ -272,19 +289,20 @@ def _pose_of(frame):
         P["tail_yaw"] = 0.
         P["brows"] = 1.
     elif name in ("pin", "pin2"):
+        # Jaws clamped on a leg, hauling back: forelegs planted out in front,
+        # hind legs braced under him, rump low, head down and shaking.
         side = 1 if name == "pin" else -1
-        P["neck"] = -.35
-        P["nod"] = .35
-        P["yaw"] = .32 * side
-        P["jaw"] = .1
+        P["neck"] = -.15
+        P["nod"] = .3
+        P["yaw"] = .22 * side
+        P["jaw"] = .12
         P["tongue"] = False
-        P["pitch"] = .2 if name == "pin" else .15
-        P["rise"] = -.1
-        P["crouch"] = .07
-        P["feet"] = {"lf": (.16, 0.), "rf": (.12, 0.), "lh": (-.2, 0.), "rh": (-.16, 0.)}
-        P["tail"] = (.9, .55, .3)
-        P["tail_yaw"] = -.35 * side
-        P["ears"] = .35
+        P["pitch"] = -.12
+        P["rise"] = -.13
+        P["feet"] = {"lf": (.22, 0.), "rf": (.17, 0.), "lh": (.02, 0.), "rh": (.06, 0.)}
+        P["tail"] = (.7, .3, .15)
+        P["tail_yaw"] = -.3 * side
+        P["ears"] = .3
         P["brows"] = 1.
     elif name == "fetch":
         P["neck"] = .75
@@ -360,10 +378,10 @@ def _pose_of(frame):
 
 def _paw(paw, which, C, M):
     """A hound's foot: a tight cat foot, toes and dark nails at the front."""
-    _tb(paw + Vector((.02, 0, .018)), (.042, .03, .022), which, M)
+    _tb(paw + Vector((.022, 0, .02)), (.05, .036, .026), which, M)
     for k in (-1, 0, 1):
-        _tb(paw + Vector((.05, k * .016, .012)), (.016, .012, .013), which, M)
-        ball(paw + Vector((.066, k * .016, .006)), (.006, .005, .005), C["pad"], M)
+        _tb(paw + Vector((.056, k * .019, .013)), (.019, .014, .015), which, M)
+        ball(paw + Vector((.074, k * .019, .006)), (.007, .006, .006), C["pad"], M)
 
 
 def _leg(hip, foot, l1, l2, low_len, low_back, pole, r, C, curl=False):
@@ -382,8 +400,10 @@ def _leg(hip, foot, l1, l2, low_len, low_back, pole, r, C, curl=False):
     r0, r1, r2, r3 = r
     _tl(hip, knee, r0, r1, "legs")
     _tl(knee, wrist, r1 * .8, r2, "legs")
-    _tl(wrist, paw, r2 * .95, r3, "tan", caps=False, seg=12)
-    _paw(paw, "tan", C, None)
+    _tl(wrist, paw, r2 * .95, r3, "legs", caps=False, seg=12)
+    _paw(paw, "legs", C, None)
+    # a tan sock up the back of the pastern
+    ball(wrist.lerp(paw, .5) + (wrist - paw).cross(Vector((0, 0, 1))) * 0, (r2 * .9, r2 * .9, low_len * .45), C["tan"])
 
 
 def _leg_fold(hip, foot, fwd, C):
@@ -394,73 +414,73 @@ def _leg_fold(hip, foot, fwd, C):
     hock = foot - fwd * _META + Vector((0, 0, .035))
     knee, hock = ik(hip, hock, _THIGH, _GASKIN, fwd + Vector((0, 0, .6)))
     paw = hock + (foot - hock).normalized() * _META
-    _tl(hip, knee, .078, .05, "legs")
-    _tl(knee, hock, .05 * .8, .03, "legs")
-    _tl(hock, paw, .03 * .95, .025, "tan", caps=False, seg=12)
-    _paw(paw, "tan", C, None)
+    _tl(hip, knee, .092, .06, "legs")
+    _tl(knee, hock, .06 * .8, .036, "legs")
+    _tl(hock, paw, .036 * .95, .03, "legs", caps=False, seg=12)
+    _paw(paw, "legs", C, None)
 
 
 def _head(Hm, P, C):
     """The head in its own frame Hm: the neck's top at the origin, +x down the
-    muzzle. A long square muzzle and hanging flews, a domed skull under the
-    black hood, tan pips, brown eyes, ears to below the jaw."""
+    muzzle. The black hood over the whole skull and round the eyes, a tan pip
+    over each eye and tan cheeks, a long square ticked muzzle with a big dark
+    nose and droopy black-edged flews, brown eyes with a red haw, and long
+    low-set black ears hanging well past the jaw."""
     black = C["black"]
-    # the skull, its peak at the back, the black hood over it and the cheeks
-    _tb((.06, 0, .045), (.115, .085, .088), "fine", Hm)
-    ball((.0, 0, .075), (.09, .083, .06), black, Hm)
-    ball((-.04, 0, .1), (.04, .036, .036), black, Hm)
+    tan = C["tan"]
+    # the skull under the black hood, its peak at the back
+    ball((.055, 0, .045), (.12, .088, .09), black, Hm)
+    ball((-.035, 0, .095), (.045, .04, .04), black, Hm)
+    # the stop, and a tan pip over each eye (raised when worried)
+    ball((.15, 0, .07), (.04, .045, .035), black, Hm)
+    brow = .012 * P["brows"]
     for s in (-1, 1):
-        # the hood round each eye and down the cheek behind it
-        ball((.14, s * .047, .066), (.042, .027, .03), black, Hm, rot=(s * .3, -.1, 0))
-        ball((.06, s * .062, .035), (.06, .03, .05), black, Hm, rot=(s * .2, 0, 0))
-    # the stop and brows, a tan pip over each eye (raised when worried)
-    brow = .01 * P["brows"]
+        ball((.16, s * .043, .1 + brow), (.024, .02, .014), tan, Hm, rot=(s * .3, -.3, 0))
+    # the muzzle: long and square, blue-ticked over the top, tan at the sides
+    _tl((.13, 0, .035), (.29, 0, .012), .058, .05, "fine", Hm)
+    _tb((.21, 0, .052), (.09, .04, .022), "fine", Hm)
     for s in (-1, 1):
-        ball((.158, s * .042, .088 + brow), (.019, .016, .009), C["tan"], Hm, rot=(s * .3, -.35, 0))
-    # the muzzle, long and square, ticked, tan along the cheeks and lips
-    _tl((.12, 0, .035), (.27, 0, .012), .055, .046, "fine", Hm)
-    _tb((.19, 0, .05), (.085, .042, .022), "fine", Hm)
+        ball((.19, s * .046, -.004), (.065, .02, .024), tan, Hm, rot=(0, -.1, 0))
+        ball((.11, s * .066, -.012), (.045, .022, .026), tan, Hm)
+    nose = Vector((.31, 0, .028))
+    ball(nose, (.034, .046, .034), C["nose"], Hm)
     for s in (-1, 1):
-        ball((.17, s * .042, .006), (.04, .014, .02), C["tan"], Hm, rot=(0, -.1, 0))
-    nose = Vector((.295, 0, .025))
-    ball(nose, (.03, .042, .03), C["nose"], Hm)
+        ball(nose + Vector((.025, s * .018, -.004)), (.009, .01, .01), C["mouth"], Hm)
+    # the flews: the upper lips hanging past the lower jaw, black at the edge
     for s in (-1, 1):
-        ball(nose + Vector((.022, s * .017, -.004)), (.008, .009, .009), C["mouth"], Hm)
-    # the flews: the upper lips hanging past the lower jaw, dark at the edge
-    for s in (-1, 1):
-        _tb((.22, s * .037, -.022), (.075, .02, .036), "fine", Hm, rot=(0, -.1, 0))
-        ball((.245, s * .036, -.045), (.04, .016, .016), black, Hm)
+        _tb((.23, s * .04, -.02), (.075, .02, .04), "fine", Hm, rot=(0, -.1, 0))
+        ball((.25, s * .04, -.048), (.05, .018, .02), black, Hm)
     # the lower jaw on its hinge, the mouth inside, teeth and tongue
     J = Hm @ T((.08, 0, -.02)) @ R(0, P["jaw"], 0)
-    _tl((0, 0, 0), (.18, 0, -.012), .036, .027, "fine", J)
-    ball((.09, 0, .014), (.08, .028, .016), C["mouth"], J)
+    _tl((0, 0, 0), (.19, 0, -.012), .038, .028, "fine", J)
+    ball((.095, 0, .014), (.085, .03, .016), C["mouth"], J)
     for s in (-1, 1):
-        ball((.16, s * .02, .022), (.007, .007, .014), C["tooth"], J)
-        ball((.17, s * .026, -.03), (.007, .007, .014), C["tooth"], Hm)
+        ball((.17, s * .02, .022), (.007, .007, .014), C["tooth"], J)
+        ball((.18, s * .028, -.03), (.007, .007, .014), C["tooth"], Hm)
     if P["tongue"]:
         # lolling out past his teeth, as a hound pants
-        ball((.17, .0, .008), (.058, .025, .009), C["tongue"], J, rot=(0, .45, 0))
+        ball((.18, .0, .008), (.06, .026, .009), C["tongue"], J, rot=(0, .45, 0))
     else:
-        ball((.09, .0, .016), (.055, .021, .008), C["tongue"], J)
+        ball((.095, .0, .016), (.058, .022, .008), C["tongue"], J)
     # the eyes: dark brown, a glint, a red haw under each; lids that close
     # (up inside the hood while open)
     for s in (-1, 1):
-        eye = Vector((.162, s * .06, .066))
-        ball(eye, .022, C["eye"], Hm)
-        ball(eye + Vector((.012, s * .007, .008)), .006, C["glint"], Hm)
+        eye = Vector((.158, s * .062, .068))
+        ball(eye, .023, C["eye"], Hm)
+        ball(eye + Vector((.013, s * .008, .009)), .007, C["glint"], Hm)
         shut = P["lids"]
         lid = eye + Vector((.004 - .02 * (1 - shut), -s * .003, .012 - .008 * shut + .012 * (1 - shut)))
-        ball(lid, (.022, .02, .012 + .008 * shut), C["lid"], Hm)
-        ball(eye + Vector((.0, s * .0, -.02)), (.012, .01, .004), C["haw"], Hm)
-    # the ears: long and low-set behind the eyes, soft, hanging past the
-    # jaw; swung back by speed or a yelp, up a little when he is keen
+        ball(lid, (.023, .021, .012 + .009 * shut), C["lid"], Hm)
+        ball(eye + Vector((.002, 0, -.021)), (.014, .011, .005), C["haw"], Hm)
+    # the ears: long, wide, low-set behind the eyes, soft, hanging well past
+    # the jaw; swung back by speed or a yelp, up a little when he is keen
     back, up = P["ears"], P["ears_up"]
     for s in (-1, 1):
-        root = Vector((.035, s * .074, .075))
-        E = Hm @ T(root) @ R(s * (.08 + up * .55), .3 * back - up * .2, 0)
-        ball((0, s * .01, -.015), (.045, .022, .04), black, E)
-        ball((-.006, s * .016, -.1), (.058, .015, .1), black, E, rot=(s * .04, .08, 0))
-        ball((-.012, s * .018, -.19), (.048, .013, .05), black, E)
+        root = Vector((.03, s * .08, .07))
+        E = Hm @ T(root) @ R(s * (.1 + up * .55), .3 * back - up * .2, 0)
+        ball((.005, s * .012, -.02), (.055, .026, .045), black, E)
+        ball((-.004, s * .018, -.12), (.07, .017, .12), black, E, rot=(s * .04, .06, 0))
+        ball((-.012, s * .02, -.235), (.058, .015, .06), black, E)
     return J
 
 
@@ -481,35 +501,35 @@ def _body(P, C, M):
     black = C["black"]
     # a deep narrow chest and prosternum, the ribs back to a tucked loin, a
     # lean rump, the withers a little over the croup
-    _tb((.27 + s_, 0, .6), (.18, .128, .19), "coat", B)
-    _tb((.37 + s_, 0, .55), (.1, .095, .12), "coat", B)
-    _tb((.05, 0, .63), (.29, .122, .13), "coat", B)
-    _tb((.06, 0, .54), (.2, .096, .06), "coat", B, rot=(0, .12, 0))
+    _tb((.27 + s_, 0, .58), (.19, .135, .22), "coat", B)
+    _tb((.38 + s_, 0, .53), (.11, .1, .14), "coat", B)
+    _tb((.05, 0, .61), (.29, .128, .15), "coat", B)
+    _tb((.07, 0, .5), (.2, .1, .07), "coat", B, rot=(0, .16, 0))
     _tb((-.18, 0, .64), (.15, .1, .1), "coat", B)
     _tb((-.33 - s_, 0, .64), (.125, .112, .115), "coat", B)
     _tb((-.36 - s_, 0, .69), (.085, .09, .05), "coat", B)
     _tb((.25 + s_, 0, .73), (.12, .1, .05), "coat", B)
-    # the black saddle: ragged, over the back and down the flanks
-    for x, z, rx, rz, ry, tilt in (
-        (.06, .728, .2, .036, .1, 0.), (-.12, .72, .1, .03, .082, .1), (.2, .74, .08, .03, .085, -.1),
-        (-.25, .71, .06, .026, .07, .2),
+    # the black saddle: a blanket of black laid over his back (each piece a
+    # little wider than the body under it, so it shows from the back down to
+    # a ragged edge on the flanks), black on his hips and shoulder
+    for x, z, rx, ry, rz, tilt in (
+        (-.02, .655, .27, .134, .105, 0.), (-.21, .655, .13, .108, .085, .1), (.2, .69, .1, .108, .06, -.15),
     ):
         ball((x, 0, z), (rx, ry, rz), black, B, rot=(0, tilt, 0))
     for x, z, rx, rz, rot in (
-        (.1, .66, .09, .06, .3), (-.04, .69, .07, .05, -.2), (.2, .66, .05, .045, .5),
-        (-.24, .66, .055, .04, -.4), (-.36, .63, .04, .035, .2),
+        (.12, .58, .07, .05, .4), (-.06, .56, .06, .04, -.3), (-.34, .6, .06, .05, .3), (.3, .64, .05, .05, .2),
     ):
         for s in (-1, 1):
-            y = s * (.104 if x > -.15 else .092)
-            ball((x, y, z), (rx, .024, rz), black, B, rot=(s * .28, rot, 0))
+            y = s * (.122 if x > -.25 else .1)
+            ball((x, y, z), (rx, .022, rz), black, B, rot=(s * .2, rot, 0))
     # tan under the tail
     ball((-.455 - s_, 0, .6), (.03, .055, .045), C["tan"], B)
     # the neck: up from the withers, thick, the dewlap under it
     neck = P["neck"]
     base = Vector((.35 + s_, 0, .7))
     top = base + Vector((math.cos(neck) * .2, 0, math.sin(neck) * .2))
-    _tl(base, top, .1, .075, "coat", B)
-    _tb(base.lerp(top, .6) + Vector((.035, 0, -.055)), (.07, .055, .05), "coat", B)
+    _tl(base, top, .11, .085, "coat", B)
+    _tb(base.lerp(top, .6) + Vector((.035, 0, -.06)), (.08, .062, .055), "coat", B)
     # the collar, a worn red strap round the neck's root, a brass tag
     collar = base.lerp(top, .35)
     d = (top - base).normalized()
@@ -517,10 +537,10 @@ def _body(P, C, M):
     v = d.cross(u)
     for k in range(14):
         a, b = k / 14 * math.tau, (k + 1) / 14 * math.tau
-        p0 = collar + (u * math.cos(a) + v * math.sin(a)) * .093
-        p1 = collar + (u * math.cos(b) + v * math.sin(b)) * .093
+        p0 = collar + (u * math.cos(a) + v * math.sin(a)) * .104
+        p1 = collar + (u * math.cos(b) + v * math.sin(b)) * .104
         limb(p0, p1, .015, .015, C["collar"], B, caps=False, seg=6)
-    tag = collar + v * .105 + Vector((.015, 0, -.035))
+    tag = collar + v * .116 + Vector((.015, 0, -.035))
     ring(tag + Vector((0, 0, .022)), (0, 1, 0), .011, .003, C["tag"], n=8, M=B)
     ball(tag, (.02, .006, .022), C["tag"], B)
     # the head on the neck's top: lifted, nodded, turned
@@ -542,7 +562,7 @@ def _body(P, C, M):
                 foot = Vector((.3 + fx, s * .09, fz))
             pole = (-1, 0, -.15) if lie != "belly" else (-1, 0, -.6)
             _leg(hip, M @ foot, _ARM, _FORE, _PASTERN, -.2, B.to_3x3() @ Vector(pole),
-                 (.052, .036, .026, .022), C, curl=P["paw_curl"] == leg)
+                 (.064, .045, .033, .028), C, curl=P["paw_curl"] == leg)
         else:
             hip = B @ Vector((-.34 - s_, s * .085, .6))
             if sat:
@@ -557,7 +577,7 @@ def _body(P, C, M):
                 _leg_fold(hip, M @ foot, fwd, C)
                 continue
             _leg(hip, M @ foot, _THIGH, _GASKIN, _META, .45, B.to_3x3() @ Vector((1, 0, -.1)),
-                 (.078, .05, .03, .025), C)
+                 (.092, .06, .036, .03), C)
     # the tail from the top of the rump
     a0, a1, a2 = P["tail"]
     turn = 0. if sat or lie else pitch
@@ -570,7 +590,7 @@ def _tail_in(M, B, root, angles, yaw):
     """The tail laid out in the body's frame (so it turns with him)."""
     R3 = B.to_3x3().normalized()
     pieces = (.14, .13, .11)
-    radii = (.036, .027, .019, .01)
+    radii = (.042, .031, .021, .011)
     at = Vector(root)
     pitch_back = 0.
     for k, (length, a) in enumerate(zip(pieces, angles)):
@@ -605,25 +625,37 @@ def hound(frame):
 
 
 def hound_face(frame):
-    """The badge's head: turned three-quarters to the camera and a little down
-    at it, the neck under it."""
+    """The badge's head: three-quarters to the camera, both long black ears
+    framing it, a little down at it, the red collar under the jaw."""
+    # A portrait's light: the dusk stage's rims turned down, so his black
+    # hood and ears read black at the badge's size, not rim-lit grey.
+    if "rim" in LIGHTS:
+        LIGHTS["rim"][0].energy = 2.2
+        LIGHTS["rim2"][0].energy = 1.2
+        LIGHTS["key"][0].energy = 5.6
+        LIGHTS["bg"].inputs[1].default_value = .3
+    _CLEAN[0] = True
     C = _coat()
     P = _pose_of(0)
+    P.update(ears=0., ears_up=.15)
     if frame == 1:
         P.update(jaw=.04, tongue=False, ears_up=.4, brows=1.)
     elif frame == 2:
-        P.update(jaw=.32, tongue=False, ears=.7, lids=.55, brows=1.)
+        P.update(jaw=.32, tongue=False, ears=.5, lids=.55, brows=1.)
     elif frame == "down":
-        P.update(jaw=.1, tongue=True, ears=.3, lids=1.)
-    Hm = T((.03, 0, .17)) @ R(0, 0, -.62) @ R(0, .12, 0) @ T((-.13, 0, 0))
+        P.update(jaw=.1, tongue=True, ears=.2, lids=1.)
+    Hm = T((-.025, 0, .17)) @ R(0, 0, -.8) @ R(0, .2, 0) @ T((-.1, 0, 0)) @ Matrix.Diagonal((.84, .84, .84, 1))
     _head(Hm, P, C)
-    _tl(Hm @ Vector((-.03, 0, -.01)), Hm @ Vector((-.09, 0, -.24)), .085, .1, "coat")
-    collar = Hm @ Vector((-.07, 0, -.16))
-    for k in range(14):
-        a, b = k / 14 * math.tau, (k + 1) / 14 * math.tau
-        p0 = collar + Vector((math.cos(a), math.sin(a), 0)) * .1
-        p1 = collar + Vector((math.cos(b), math.sin(b), 0)) * .1
-        limb(p0, p1, .016, .016, C["collar"], None, caps=False, seg=6)
+    neck = Hm @ Vector((-.03, 0, -.01))
+    _tl(neck, neck + Vector((.02, .04, -.16)), .075, .085, "coat")
+    collar = neck + Vector((-.012, .02, -.1))
+    for k in range(16):
+        a, b = k / 16 * math.tau, (k + 1) / 16 * math.tau
+        p0 = collar + Vector((math.cos(a), math.sin(a), 0)) * .09
+        p1 = collar + Vector((math.cos(b), math.sin(b), 0)) * .09
+        limb(p0, p1, .02, .02, C["collar"], None, caps=False, seg=6)
+    ball(collar + Vector((.02, -.095, -.03)), (.024, .008, .026), C["tag"])
+    _CLEAN[0] = False
 
 
 ACTORS.update({

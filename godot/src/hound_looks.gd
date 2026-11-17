@@ -9,10 +9,10 @@ extends RefCounted
 
 ## The badge's plate: its top left on the 320x200 canvas, its size.
 const BADGE_X := 3
-const BADGE_W := 56
-const BADGE_H := 27
+const BADGE_W := 62
+const BADGE_H := 33
 ## The head's box in it.
-const FACE := 21
+const FACE := 27
 ## The plate's wood and trim, as the status bar's (hud.gd meter()).
 const PLATE := Color(57 / 255.0, 46 / 255.0, 38 / 255.0)
 const TRIM := Color(172 / 255.0, 159 / 255.0, 132 / 255.0)

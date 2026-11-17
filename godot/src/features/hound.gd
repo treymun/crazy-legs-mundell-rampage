@@ -234,6 +234,11 @@ func _behind(p: Player, side: float) -> Vector2:
 
 
 func _into(d: Dog, state: int) -> void:
+	if d.state == PIN and state != PIN:
+		# The hand he held stands up again.
+		var held := HoundNose.enemy_of(game, d.foe)
+		if held != null:
+			held.held_cel = ""
 	d.state = state
 	d.since = game.clock
 	d.until = 0.0
@@ -485,6 +490,11 @@ func _fight(d: Dog, p: Player, dt: float) -> void:
 	e.aim_mark = null
 	e.volley = 0
 	e.hp = maxf(1.0, e.hp - n("pin_bite") * dt)
+	# Dragged half down, leaning back from his player (so their shots land on
+	# what they see), twisting in pain now and then.
+	e.angle = atan2(p.y - e.y, p.x - e.x)
+	var twist := fmod(game.clock + e.uid * .37, 1.1) >= .8
+	e.held_cel = Variants.stem(e.kind) + ("_pain" if twist else "_die_1")
 	var hold := e.radius + n("radius") + .1
 	if gap > hold + .2:
 		_go(d, p, e.x, e.y, n("run"), dt)
@@ -523,6 +533,7 @@ func _let_go(d: Dog, _e: Enemy) -> void:
 func _killed(e: Enemy) -> void:
 	for d: Dog in dogs:
 		if (d.state == PIN or d.state == SIC) and d.foe == e.uid:
+			e.held_cel = ""
 			if d.state == PIN:
 				finished += 1
 				if d.slot < game.players.size():

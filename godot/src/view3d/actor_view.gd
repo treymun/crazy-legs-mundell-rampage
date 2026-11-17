@@ -120,7 +120,7 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	var size := _size(e)
 	if frame == "down":
 		down = 1.0
-	elif frame.begins_with("die_"):
+	elif frame.begins_with("die_") and not ActorView.held(e):
 		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
 	var info: Dictionary = models.kinds[kind]
 	var flat_at: float = info.get("flat", FLAT)
@@ -301,6 +301,12 @@ func lose_gear(names: Array) -> void:
 					skeleton.set_bone_pose_scale(i, Vector3(.001, .001, .001))
 
 
+## Whether `e` is alive and shown in a step of its fall it never took (a
+## hand the hound drags down, features/hound.gd): that step's key, held.
+static func held(e: Enemy) -> bool:
+	return e.alive and e.died_at < 0.0
+
+
 ## pose_of, kept: the same picture always gives the same answer.
 static func pose_cached(image: String, stem: String) -> Array:
 	var by_image: Dictionary = _poses.get(stem, {})
@@ -366,7 +372,7 @@ func _time(frame: String, look: int, e: Enemy, clock: float) -> float:
 			var beat_r := fposmod(e.gait / (PI * .5), 4.0)
 			var run_at: float = first_r
 			return run_at + beat_r * ActorModels.KEY_TIME
-	if frame.begins_with("die_"):
+	if frame.begins_with("die_") and not ActorView.held(e):
 		var first: Variant = models.key_time(kind, "die_0")
 		if first != null:
 			var span := Enemy.DEATH_TIME
