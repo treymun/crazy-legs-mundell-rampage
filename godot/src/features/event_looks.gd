@@ -185,7 +185,7 @@ func _whirl(ev: CountyEvents, dt: float) -> void:
 		var r := dice.randf_range(.8, 2.8) * (.5 + .5 * k)
 		var x := ev.tw_at.x + cos(a) * r
 		var y := ev.tw_at.y + sin(a) * r
-		var z := game.world.elevation(x, y)
+		var z := game.world.elevation_near(x, y)
 		var round := Vector2(-sin(a), cos(a)) * dice.randf_range(2.0, 4.0)
 		_puff(x, y, z + dice.randf_range(0.0, .6), dice.randf_range(1.0, 1.8), 1.2, round)
 
@@ -251,7 +251,7 @@ func sprites() -> Array:
 	if ev == null:
 		return out
 	if ev.kind == "twister":
-		var ground := game.world.elevation(ev.tw_at.x, ev.tw_at.y)
+		var ground := game.world.elevation_near(ev.tw_at.x, ev.tw_at.y)
 		for b: Array in _bits:
 			var a: float = b[0]
 			var r: float = b[1]

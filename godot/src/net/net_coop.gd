@@ -223,7 +223,8 @@ static func hub(main: MainFlow, from: Game, message: String) -> void:
 			labels[dest] = "REPLAY"
 	var extra := {"locked": locked, "gate_modes": labels}
 	dress(made, extra, false)
-	made.message(message if message != "" else "COUNTY CROSSROADS. FACE A GATE AND PRESS E.", 4.5)
+	var hint := "COUNTY CROSSROADS. FACE A GATE AND PRESS %s." % main.use_button()
+	made.message(message if message != "" else hint, 4.5)
 	go(main, made, extra)
 
 

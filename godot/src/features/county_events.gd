@@ -212,7 +212,7 @@ func restore(state: Dictionary) -> void:
 			raid_still = int(at(r, 2))
 			busted = at(r, 3) == 1.0
 			var kept: Array = state.get("raiders", [])
-			raiders = kept.duplicate()
+			raiders = _whole(kept)
 		"blackout":
 			var r: Array = state.get("dark", [])
 			if r.size() < 4:
@@ -223,8 +223,17 @@ func restore(state: Dictionary) -> void:
 			var kept: Array = state.get("torches", [])
 			torches = kept.duplicate(true)
 			var lit: Array = state.get("lanterns", [])
-			lanterns = lit.duplicate()
+			lanterns = _whole(lit)
 			power = false
+
+
+## Indexes read back from a save (a file's numbers are all floats): whole
+## numbers again, so has() and find() with an enemy's index match.
+static func _whole(rows: Array) -> Array:
+	var out: Array = []
+	for v: Variant in rows:
+		out.append(roundi(at([v], 0)))
+	return out
 
 
 func tally_rows() -> Array:

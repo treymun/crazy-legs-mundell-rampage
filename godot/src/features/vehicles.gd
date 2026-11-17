@@ -1008,8 +1008,13 @@ func restore(state: Dictionary) -> void:
 		v.wreck = row[6]
 		v.vx = 0.0
 		v.vy = 0.0
+		# A save file's numbers come back as floats: the seats are slots again,
+		# or seat_of never finds its rider and the seat stays taken for good.
 		var seats: Array = row[7]
-		v.seats = seats.duplicate()
+		v.seats = []
+		for who: Variant in seats:
+			var slot: int = who
+			v.seats.append(slot)
 		while v.seats.size() < maxi(1, VehicleDrive.spec(v.kind).seats):
 			# Saved before it had another seat (the car's passenger).
 			v.seats.append(-1)

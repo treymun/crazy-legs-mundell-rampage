@@ -222,6 +222,7 @@ const VIEW_FIELDS := [
 	"amb_clock",
 	"aim_cache",
 	"use_key",
+	"torch_key",
 	"use_aim",
 	"map_panel",
 	"radio_check",

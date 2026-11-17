@@ -560,8 +560,11 @@ static func _restore_rest(doc: Dictionary, game: Game, expected_replay: Variant)
 		enemy.responded = row[2]
 		if enemy.heard != null and enemy.heard[2] > enemy.heard[3]:
 			return SessionStore._fail_at(808)
-		if enemy.retreat != null and not enemy.responded:
-			return SessionStore._fail_at(809)
+		# A retreat without `responded` is play now: a hand clear of lit
+		# dynamite or of a barn creaking down (features/set_pieces.gd) runs
+		# without the once-only fall-back, and one far off and asleep keeps it.
+		# (Python's check refused such a save, and with it every later save
+		# of the campaign that kept the chapter.)
 
 	# campaign
 	if not _restore_campaign(doc, game, expected_replay):

@@ -42,16 +42,18 @@ const STEPS := [
 	"geometry_check",
 	"map_check",
 	"leak_check",
+	"save_numbers",
+	"polish_bugs",
 ]
 ## The parts check_all and CI run side by side, balanced by STEP TIMES (on
 ## the desktop each part takes about 45 s; on a GitHub runner about three
 ## to four times that).
 const PARTS := [
 	["hit_check", "net_check", "multi_bots"],
-	["range_check", "arena_wreck_check", "crash_log", "map_check"],
+	["range_check", "arena_wreck_check", "crash_log", "map_check", "save_numbers"],
 	["weather_check", "boss_check", "boss_lock_check", "squad_check"],
 	["quest_props", "feel_check", "arena_check", "sound_check", "county_check"],
-	["parity", "break_check", "boss_rematch_check", "chatter_check"],
+	["parity", "break_check", "boss_rematch_check", "chatter_check", "polish_bugs"],
 	["climate_check", "mothership", "boss_music", "net_loopback", "mode_check", "geometry_check"],
 ]
 
@@ -97,6 +99,10 @@ func _run() -> void:
 				_crash_log(main)
 			"leak_check":
 				await load("res://tools/leak_check.gd").run(main, check)
+			"save_numbers":
+				load("res://tools/save_numbers_check.gd").run(main, check)
+			"polish_bugs":
+				load("res://tools/polish_bugs_check.gd").run(main, check)
 			_:
 				load("res://tools/%s.gd" % step).run(main, check)
 		times[step] = (Time.get_ticks_msec() - step_began) / 1000.0

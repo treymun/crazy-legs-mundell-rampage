@@ -51,7 +51,10 @@ static func start(ev: CountyEvents) -> bool:
 		if e.alive and not e.dormant and e.tactical() and not Enemy.BOSS_TITLES.has(e.kind):
 			if g.rng.random() < n(ev, "lanterns"):
 				ev.lanterns.append(i)
-	g.message("POWER'S OUT! YOU GOT A FLASHLIGHT: L.", 4.0)
+	if g.torch_key == "":
+		g.message("POWER'S OUT! YOU GOT A FLASHLIGHT.", 4.0)
+	else:
+		g.message("POWER'S OUT! YOU GOT A FLASHLIGHT: %s." % g.torch_key, 4.0)
 	return true
 
 
@@ -164,7 +167,7 @@ static func prompt(ev: CountyEvents, p: Player) -> String:
 		return ""
 	if Vector2(ev.breaker.x - p.x, ev.breaker.y - p.y).length() > 1.4:
 		return ""
-	return "USE: THROW THE MAIN BREAKER"
+	return "%s: THROW THE MAIN BREAKER" % ev.game.use_key
 
 
 static func use(ev: CountyEvents, p: Player) -> bool:

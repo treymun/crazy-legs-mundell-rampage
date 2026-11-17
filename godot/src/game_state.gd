@@ -576,6 +576,9 @@ var aim_cache := {}
 ## The name of the button that uses things, for the prompt: the bound key, Y
 ## on a controller, USE on a touch screen (main.gd sets it each frame).
 var use_key := "E"
+## The FLASHLIGHT key's name for the blackout's word (main.gd sets it each
+## frame): the bound key, "" on a controller or a touch screen (none there).
+var torch_key := "L"
 ## The aim point (x, y, height) of the device use_target() last chose, for the
 ## marker drawn round it; INF when it chose none or a door.
 var use_aim := Vector3.INF

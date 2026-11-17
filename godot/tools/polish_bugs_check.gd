@@ -1,0 +1,246 @@
+## Polish pass 9's BUGS fixes that are not save numbers (save_numbers_check.gd).
+## check_fixes step `polish_bugs`.
+##
+## - A twister lifting past the map's edge (it runs on 8 cells past its end)
+##   read the ground off the map: a script error each frame on the quarry
+##   and Copperhead Ridge, and its rip and fling skipped. check_all fails a
+##   row whose output holds a script error, so this plays one out there.
+## - A hand sent running from a barn creaking down (or from lit dynamite)
+##   holds a retreat without the once-only fall-back; Python's save check
+##   refused such a save, and with it every later campaign save keeping that
+##   chapter (seen after a twister on Copperhead Ridge).
+## - In co-op the twister and the hogs shoved player two with move_actor,
+##   which took any player but the acting one for a hand: a script error a
+##   frame and the rest of the twister's pull skipped (the swamp waves of the
+##   bayou's arena too).
+## - The blackout's word names the FLASHLIGHT key as bound (and none on a pad
+##   or a touch screen); the breaker's prompt and the Crossroads' objective
+##   and greeting name the USE button (they said E whatever it was).
+## - The junk bench's board: USE shut it for a frame and the same press,
+##   reaching the game as a use at the bench, put it up again (only ESC
+##   shut it); Space, USE's fixed key, bought the tag picked.
+## - PHOTO MODE never opens over a chapter's opener (the pause screen's Y
+##   while one waited behind it flew a camera nobody could see).
+extends RefCounted
+
+const STEP := 1.0 / 60.0
+
+
+static func run(main: Control, check: Callable) -> void:
+	print("\nPOLISH PASS 9 BUGS")
+	for id: String in ["quarry", "moonshine"]:
+		_twister_edge(main, check, id)
+	_flee_save(main, check)
+	_coop_shove(main, check)
+	_words(main, check)
+	_photo_over_opener(main, check)
+	_bench_done(main, check)
+
+
+static func _game(main: Control, id: String, events := 2) -> Game:
+	var g: Game = main.make_game(id)
+	g.configure({"difficulty": 1, "events": events})
+	g.lessons = false
+	g.cheats.god = true
+	var history: Array = []
+	for c: String in Campaign.ORDER:
+		if c == id:
+			break
+		history.append([c, 0, 0, 0, 0, 0])
+	g.history = history
+	return g
+
+
+static func _twister_edge(main: Control, check: Callable, id: String) -> void:
+	var g := _game(main, id)
+	for t in 30:
+		g.tick(STEP, Game.Controls.new())
+	var ev: CountyEvents = g.features["events"]
+	if not ev.begin("twister"):
+		check.call(false, "%s: a twister starts" % id)
+		return
+	var off := false
+	var w := g.world
+	for t in 60 * 180:
+		g.tick(STEP, Game.Controls.new())
+		var at := ev.tw_at
+		off = off or at.x < 0.0 or at.y < 0.0 or at.x >= w.width or at.y >= w.height
+		if ev.kind == "":
+			break
+	check.call(ev.kind == "", "%s: a twister plays out" % id)
+	check.call(off, "%s: it lifts past the map's edge (no script error reading the ground)" % id)
+	check.call(
+		is_equal_approx(w.elevation_near(-5.0, w.height + 3.0), w.elevation(0.0, w.height - 1.0)),
+		"%s: the ground off the map is its nearest cell's" % id
+	)
+
+
+static func _flee_save(main: Control, check: Callable) -> void:
+	var g := _game(main, "hickston", 0)
+	g.tick(STEP, Game.Controls.new())
+	var sets: SetPiecesFeature = g.features.get("set_pieces")
+	var boxes: Array = sets.get("_boxes")
+	var hand: Enemy = null
+	for e: Enemy in g.enemies:
+		if e.alive and e.tactical() and not Enemy.BOSS_TITLES.has(e.kind) and hand == null:
+			hand = e
+	if boxes.is_empty() or hand == null:
+		check.call(false, "hickston has a set piece and a hand")
+		return
+	var box: Rect2 = boxes[0]
+	hand.x = box.get_center().x
+	hand.y = box.position.y - .8
+	sets.call("_warn", 0)
+	check.call(
+		hand.retreat != null and not hand.responded,
+		"a hand by a barn creaking down runs (no fall-back used)"
+	)
+	var text := JSON.stringify(SessionStore.snapshot(g))
+	var parsed: Variant = JSON.parse_string(text)
+	var doc: Dictionary = parsed if parsed is Dictionary else {}
+	SessionStore.last_error = ""
+	var back := SessionStore.restore(doc, main.make_game)
+	check.call(back != null, "a save with him running loads ('%s')" % SessionStore.last_error)
+
+
+static func _words(main: Control, check: Callable) -> void:
+	var g := _game(main, "hickston")
+	g.tick(STEP, Game.Controls.new())
+	var ev: CountyEvents = g.features["events"]
+	g.torch_key = "K"
+	g.use_key = "Y"
+	ev.begin("blackout")
+	check.call(
+		g.notice.ends_with("FLASHLIGHT: K."), "the blackout names the bound key (%s)" % g.notice
+	)
+	ev.finish()
+	g.torch_key = ""
+	ev.begin("blackout")
+	check.call(g.notice.ends_with("FLASHLIGHT."), "and no key on a pad (%s)" % g.notice)
+	g.player.x = ev.breaker.x
+	g.player.y = ev.breaker.y
+	check.call(
+		ev.prompt(g.player) == "Y: THROW THE MAIN BREAKER",
+		"the breaker names the USE button (%s)" % ev.prompt(g.player)
+	)
+	var options: Dictionary = main.options.duplicate()
+	main.options[KeyBindings.option_key("flashlight")] = KEY_K
+	main.input_device = "keys"
+	var keyed: String = main.torch_button()
+	main.input_device = "pad"
+	var padded: String = main.torch_button()
+	main.options = options
+	check.call(keyed == "K" and padded == "", "the front end names the key, none on a pad")
+	var hub: Game = main.make_game("hub")
+	hub.in_hub = true
+	hub.use_key = "E"
+	var plain := GameObjective.objective(hub)
+	hub.use_key = "Y"
+	check.call(
+		(
+			plain == "FACE A GATE AND PRESS E OR SPACE"
+			and GameObjective.objective(hub).ends_with("PRESS Y")
+		),
+		"the Crossroads' objective names the USE button (%s)" % GameObjective.objective(hub)
+	)
+	main.input_device = "pad"
+	main.open_hub(null)
+	main.input_device = "keys"
+	check.call(main.game.notice.ends_with("PRESS Y."), "and its greeting (%s)" % main.game.notice)
+
+
+static func _coop_shove(main: Control, check: Callable) -> void:
+	var g := _game(main, "hickston")
+	Modes.setup(g, Modes.COOP, 2, {})
+	for t in 30:
+		g.tick(STEP, Game.Controls.new())
+	var one: Player = g.players[0]
+	var two: Player = g.players[1]
+	g.focus(one)
+	var x0 := two.x
+	g.move_actor(two, .25, 0.0, GameState.PLAYER_RADIUS)
+	g.move_actor(two, -.25, 0.0, GameState.PLAYER_RADIUS)
+	g.move_actor(two, .25, 0.0, GameState.PLAYER_RADIUS)
+	check.call(
+		absf(two.x - x0) > .001 and g.player == one,
+		"move_actor shoves player two while player one acts (%.2f)" % (two.x - x0)
+	)
+	var ev: CountyEvents = g.features["events"]
+	if not ev.begin("twister"):
+		check.call(false, "a co-op twister starts")
+		return
+	ev.phase = EventTwister.CROSS
+	ev.since = g.clock
+	var before := Vector2(two.x, two.y)
+	for t in 20:
+		two.x = ev.tw_at.x + 1.6
+		two.y = ev.tw_at.y
+		before = Vector2(two.x, two.y)
+		g.tick(STEP, Game.Controls.new())
+	check.call(
+		Vector2(two.x, two.y).distance_to(before) > .0001 or two.knocked > 0.0,
+		"a co-op twister pulls player two too"
+	)
+
+
+static func _photo_over_opener(main: Control, check: Callable) -> void:
+	main.start("hickston")
+	var open_before: bool = PhotoMode.allowed(main)
+	main.opener.begin(main, main.game)
+	var during: bool = PhotoMode.allowed(main)
+	main.opener.stop(main)
+	check.call(
+		open_before and not during and PhotoMode.allowed(main),
+		"PHOTO MODE waits out a chapter's opener"
+	)
+
+
+static func _frames(main: Control, n: int) -> void:
+	for f in n:
+		main._process(STEP)
+
+
+static func _use_key(main: Control, code: int) -> void:
+	main.key(code)
+	Input.action_press("use")
+	_frames(main, 3)
+	Input.action_release("use")
+	_frames(main, 3)
+
+
+static func _bench_done(main: Control, check: Callable) -> void:
+	var options: Dictionary = main.options.duplicate()
+	main.options["bench"] = 1
+	main.start("hickston")
+	main.focused = true
+	var g: Game = main.game
+	g.cheats.god = true
+	_frames(main, 3)
+	var bench: GameFeature = g.features.get("bench")
+	var benches: Array = bench.get("benches")
+	var b: Array = benches[0]
+	g.player.x = float(b[0]) + 1.0
+	g.player.y = float(b[1])
+	g.player.angle = PI
+	for k in 8:
+		if bench.call("at_bench", g.player) >= 0:
+			break
+		g.player.angle += PI / 4.0
+	g.armory.scrap = 40
+	g.armory.owned[Weapons.NAMES.find("revolver")] = true
+	_use_key(main, KEY_E)
+	var up := BenchScreen.open
+	_use_key(main, KEY_E)
+	check.call(up and not BenchScreen.open, "USE puts the bench's board up and USE again shuts it")
+	_use_key(main, KEY_E)
+	BenchScreen.row = 0
+	BenchScreen.column = 0
+	_use_key(main, KEY_SPACE)
+	_frames(main, 3)
+	check.call(
+		not BenchScreen.open and g.armory.scrap == 40 and g.armory.mods.is_empty(),
+		"Space (USE's own key) shuts it and buys nothing"
+	)
+	BenchScreen.reset()
+	main.options = options
+	main.return_to_title(true)

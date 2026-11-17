@@ -5,10 +5,11 @@
 ## alike), the player standing still while it is up.
 ##
 ## Walk keys (or the arrows, the stick) pick a tag, FIRE or ENTER tapes it on,
-## USE or ESC shuts it; a click or tap on a tag picks and buys it. A buy goes
-## out with the next controls (Controls.buy: take_pending), so every copy of
-## a networked game, and a replay, buys alike. It shuts by itself when its
-## player walks off from the bench or goes down (settle).
+## USE (Space too, USE's fixed key) or ESC shuts it; a click or tap on a tag
+## picks and buys it. A buy goes out with the next controls (Controls.buy:
+## take_pending), so every copy of a networked game, and a replay, buys alike.
+## It shuts by itself when its player walks off from the bench or goes down
+## (settle).
 ##
 ## The pictures are tools/art/build_bench_art.gd's: bench_board (the board,
 ## its tape and can), bench_tag_<short> (each mod's tag, lettered),
@@ -64,6 +65,11 @@ static func settle(game: Game) -> void:
 		return
 	if game.bench_asked:
 		game.bench_asked = false
+		if open:
+			# USE again at the bench (the key's own press reaches the game as
+			# a use before steer sees it held): DONE, as the strip says.
+			open = false
+			return
 		show(game)
 	if not open:
 		return
@@ -136,7 +142,7 @@ static func key(game: Game, code: int) -> bool:
 			_move(-1, 0)
 		KEY_RIGHT:
 			_move(1, 0)
-		KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
+		KEY_ENTER, KEY_KP_ENTER:
 			_buy(game)
 		_:
 			return false

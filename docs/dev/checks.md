@@ -113,7 +113,12 @@ in, a snapshot copy, a save),
 bayou with two for 6 s), `net_loopback` (ENet 6 s with 40 ms, jitter and 5%
 loss; WebSocket 2 s), the CRASH LOG block (`CrashLog.start(main, dir)` in a
 cache folder), `mode_check`, `county_check`, and `geometry_check` and
-`map_check` (map sources, MAP_AUTHORING.md).
+`map_check` (map sources, MAP_AUTHORING.md), `leak_check`, and polish pass
+9's `save_numbers` (saves round-tripped through JSON mid-ride, mid-raid and
+mid-blackout: a vehicle's seats and the event's hand lists come back whole
+numbers) and `polish_bugs` (a twister lifting past the map's edge, a save with
+a hand running from a barn creaking down, co-op's twister and hogs shoving
+player two, the blackout's key words).
 
 ```
 godot --headless --path godot --script res://tools/check_fixes.gd               # every step, in order

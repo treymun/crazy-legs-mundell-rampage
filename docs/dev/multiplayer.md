@@ -45,8 +45,10 @@ while that enemy ticks, a shot's thrower while it flies (`Shot.slot`).
   meets it is left acting), arena fire, rollers, the log carriage, steam jets,
   slicks, core pulses, race cars.
 - A new hazard loops over `game.players` and calls `game.damage(amount,
-  source, cause, who)`; a knock-back focuses the player first (`move_actor`
-  tests the acting player). `game.reopen_paths()` opens a broken piece's cells
+  source, cause, who)`; a knock-back may move any player with `move_actor`
+  (it took any player but the acting one for a hand until polish pass 9: a
+  script error in co-op for the twister, the hogs and the bayou arena's
+  waves). `game.reopen_paths()` opens a broken piece's cells
   in every player's flow field and the route.
 - After focusing someone else, focus back: `game.focus(game.local_player)`.
 - Outside a player's own step the tick leaves the LOCAL player acting, who

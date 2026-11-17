@@ -671,6 +671,7 @@ func _process(delta: float) -> void:
 		_watch_pointer_lock()
 		game.touch_aim = touch.active
 		game.use_key = use_button()
+		game.torch_key = torch_button()
 
 	if console != null:
 		console.tick(delta)

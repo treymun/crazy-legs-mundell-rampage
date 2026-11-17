@@ -189,7 +189,10 @@ static func lamp_at(g: Game, device: Variant) -> Vector3:
 
 static func objective(g: Game) -> String:
 	if g.in_hub:
-		return "FACE A GATE AND PRESS E OR SPACE"
+		# The USE button as bound (Y on a pad, USE on a touch screen).
+		if g.use_key == "E":
+			return "FACE A GATE AND PRESS E OR SPACE"
+		return "FACE A GATE AND PRESS %s" % g.use_key
 	if g.revisiting:
 		return "COMPLETED / RETURN AT THE ROAD GATE"
 	var runs: GameFeature = g.features.get("vehicle_runs")
