@@ -1470,3 +1470,43 @@ add("ui",
     scan_squelch=G("A police scanner squelch: a short burst of radio static with a chirp as the "
                    "channel opens.", .6, .45, "ui"),
     )
+
+# ------------------------------------------------- content pass 8: the chapter openers
+# The old storyteller who reads two lines over each chapter's opener (voice
+# "narrator", an original character; src/opener.gd), and each opener's music:
+# a title sting that builds under the flyover and lands as the card drops.
+# The words are in godot/data/tuning/openers.json, which the game reads too.
+_OPENERS = _json.loads((_Path(__file__).resolve().parent.parent / "godot" / "data" / "tuning"
+                        / "openers.json").read_text(encoding="utf-8"))
+# How a narrator line's transcript writes what the caption spells its own way.
+NARRATOR_HEARD: dict[str, str] = {
+    "narr_hickston_0": "Hixton was a quiet town till the sky stole a cow",
+    "narr_speedway_1": "Bumper Boggs ain't lost a derby in 47 tries",
+    "narr_mothership_0": "Remember that saucer over Hixton? Its mama came looking",
+}
+add("voice", **{f"narr_{chapter}_{n}": V(text, "narrator", **({"heard": NARRATOR_HEARD[f"narr_{chapter}_{n}"]}
+                                                           if f"narr_{chapter}_{n}" in NARRATOR_HEARD else {}))
+                for chapter, entry in _OPENERS["chapters"].items()
+                for n, text in enumerate(entry["lines"])})
+_OPENER_TAIL = (" A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands "
+                "on one big final hit that rings out for two seconds.")
+add("sting",
+    sting_open_hickston=N("Swaggering small-town cowpunk: a twangy overdriven Telecaster riff over a train-beat "
+                          "snare and walking slap bass, a banjo roll, and one eerie wobbling theremin note on top."
+                          + _OPENER_TAIL, 8.0, style="sting"),
+    sting_open_fair=N("Crooked carnival rockabilly: a wheezy off-kilter calliope run tumbling into a reverb-soaked "
+                      "twangy guitar riff and galloping slap bass, a rude horn honk." + _OPENER_TAIL, 8.0, style="sting"),
+    sting_open_sawmill=N("Heavy swampy blues-rock grind: a thick fuzzy slide guitar riff, pounding floor toms and "
+                         "anvil clanks like a saw carriage, rough lumberyard muscle." + _OPENER_TAIL, 8.0, style="sting"),
+    sting_open_quarry=N("Dark Southern rock stomp: a detuned heavy riff, chain and tambourine percussion, a steam "
+                        "whistle shriek, ominous twang." + _OPENER_TAIL, 8.0, style="sting"),
+    sting_open_bayou=N("Swampy dark Southern rock at dusk: a greasy slide guitar riff over a loping kick and "
+                       "washboard, a jug bass and a lonesome harmonica answering." + _OPENER_TAIL, 8.0, style="sting"),
+    sting_open_speedway=N("Greasy dirt-track Southern rock: a driving overdriven guitar riff over a revving V8 "
+                          "engine, a wailing harmonica and pounding drums." + _OPENER_TAIL, 8.0, style="sting"),
+    sting_open_moonshine=N("Dark outlaw cowpunk on a moonlit backroad: a menacing low twangy baritone guitar riff, "
+                           "a train-beat snare, slap bass and a lonesome harmonica wailing like a far-off siren."
+                           + _OPENER_TAIL, 8.0, style="sting"),
+    sting_open_mothership=N("Spooky B-movie cowpunk: a wailing theremin answering a twangy tremolo guitar riff, "
+                            "slap bass creeping, clanking metal backbeat." + _OPENER_TAIL, 8.0, style="sting"),
+    )

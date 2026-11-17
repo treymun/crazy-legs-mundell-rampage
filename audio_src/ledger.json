@@ -42987,14 +42987,871 @@
    "bytes": 937
   },
   {
-   "id": "reconcile@2026-11-17T05:28:18",
+   "id": "voice_design/narrator#1",
+   "kind": "voice_design",
+   "name": "narrator",
+   "params": {
+    "description": "A weathered old storyteller from the Arkansas Ozarks in his seventies, spinning a yarn on a front porch at dusk: a slow, deep, dusty baritone drawl with a gentle gravel to it, warm and unhurried, a dry wink in every line, measured pauses, a little ominous when the story turns. Close, dry studio recording.",
+    "text": "Now, I've told this one a time or two. Hickston was a quiet little town, right up until the night the sky came down and took a man's cow. And friend, that was the wrong man's cow."
+   },
+   "hash": "ba93aba25c7f",
+   "reserved": 3000,
+   "status": "settled",
+   "started": "2026-11-17T05:47:27",
+   "actual": 537,
+   "basis": "expected",
+   "file": "audio_src/generated/voice_design/narrator.mp3",
+   "bytes": 371818
+  },
+  {
+   "id": "tts/narr_fair_0#1",
+   "kind": "tts",
+   "name": "narr_fair_0",
+   "params": {
+    "text": "Possum County Fair. Fried pickles and crooked games.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "c1777e70526c",
+   "reserved": 82,
+   "status": "settled",
+   "started": "2026-11-17T05:48:59",
+   "actual": 52,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_fair_0.mp3",
+   "bytes": 95337
+  },
+  {
+   "id": "tts/narr_hickston_0#1",
+   "kind": "tts",
+   "name": "narr_hickston_0",
+   "params": {
+    "text": "Hickston was a quiet town. Till the sky stole a cow.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "b4314ea73b1c",
+   "reserved": 82,
+   "status": "settled",
+   "started": "2026-11-17T05:48:59",
+   "actual": 52,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_hickston_0.mp3",
+   "bytes": 97218
+  },
+  {
+   "id": "tts/narr_hickston_1#1",
+   "kind": "tts",
+   "name": "narr_hickston_1",
+   "params": {
+    "text": "And the new sheriff ain't from around here.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1f9fc0abe0a0",
+   "reserved": 71,
+   "status": "settled",
+   "started": "2026-11-17T05:48:59",
+   "actual": 43,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_hickston_1.mp3",
+   "bytes": 59602
+  },
+  {
+   "id": "tts/narr_fair_1#1",
+   "kind": "tts",
+   "name": "narr_fair_1",
+   "params": {
+    "text": "And the man runnin' the show? He's got your ticket.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "43722affe0b5",
+   "reserved": 81,
+   "status": "settled",
+   "started": "2026-11-17T05:48:59",
+   "actual": 51,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_fair_1.mp3",
+   "bytes": 79664
+  },
+  {
+   "id": "tts/narr_sawmill_0#1",
+   "kind": "tts",
+   "name": "narr_sawmill_0",
+   "params": {
+    "text": "Out at Blackwater the rain don't quit. Neither do the saws.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "a6a44a2220ea",
+   "reserved": 90,
+   "status": "settled",
+   "started": "2026-11-17T05:49:01",
+   "actual": 59,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_sawmill_0.mp3",
+   "bytes": 90949
+  },
+  {
+   "id": "tts/narr_sawmill_1#1",
+   "kind": "tts",
+   "name": "narr_sawmill_1",
+   "params": {
+    "text": "And the foreman don't believe in lunch breaks.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "f42175b286c2",
+   "reserved": 75,
+   "status": "settled",
+   "started": "2026-11-17T05:49:01",
+   "actual": 46,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_sawmill_1.mp3",
+   "bytes": 70887
+  },
+  {
+   "id": "tts/narr_quarry_0#1",
+   "kind": "tts",
+   "name": "narr_quarry_0",
+   "params": {
+    "text": "They quit cuttin' rock at Stillwater. Now they cook shine.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5e0b6021eff2",
+   "reserved": 89,
+   "status": "settled",
+   "started": "2026-11-17T05:49:01",
+   "actual": 58,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_quarry_0.mp3",
+   "bytes": 90949
+  },
+  {
+   "id": "tts/narr_quarry_1#1",
+   "kind": "tts",
+   "name": "narr_quarry_1",
+   "params": {
+    "text": "The Copper Baron owns every drop. He don't share.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "705816c40a63",
+   "reserved": 78,
+   "status": "settled",
+   "started": "2026-11-17T05:49:01",
+   "actual": 49,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_quarry_1.mp3",
+   "bytes": 77156
+  },
+  {
+   "id": "tts/narr_bayou_0#1",
+   "kind": "tts",
+   "name": "narr_bayou_0",
+   "params": {
+    "text": "Past the county line, the road quits and the bayou starts.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "674982ecaead",
+   "reserved": 89,
+   "status": "settled",
+   "started": "2026-11-17T05:49:02",
+   "actual": 58,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_bayou_0.mp3",
+   "bytes": 95337
+  },
+  {
+   "id": "tts/narr_bayou_1#1",
+   "kind": "tts",
+   "name": "narr_bayou_1",
+   "params": {
+    "text": "And the Swamp King's gators ain't missed a meal yet.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "8ac769304ddb",
+   "reserved": 82,
+   "status": "settled",
+   "started": "2026-11-17T05:49:02",
+   "actual": 52,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_bayou_1.mp3",
+   "bytes": 79664
+  },
+  {
+   "id": "tts/narr_speedway_0#1",
+   "kind": "tts",
+   "name": "narr_speedway_0",
+   "params": {
+    "text": "Race night at Buzzard Bend. Dirt, diesel and bad ideas.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "92b6b81b2a58",
+   "reserved": 86,
+   "status": "settled",
+   "started": "2026-11-17T05:49:02",
+   "actual": 55,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_speedway_0.mp3",
+   "bytes": 111638
+  },
+  {
+   "id": "tts/narr_speedway_1#1",
+   "kind": "tts",
+   "name": "narr_speedway_1",
+   "params": {
+    "text": "Bumper Boggs ain't lost a derby in forty-seven tries.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bc20e555208c",
+   "reserved": 83,
+   "status": "settled",
+   "started": "2026-11-17T05:49:02",
+   "actual": 53,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_speedway_1.mp3",
+   "bytes": 91576
+  },
+  {
+   "id": "tts/narr_moonshine_0#1",
+   "kind": "tts",
+   "name": "narr_moonshine_0",
+   "params": {
+    "text": "Up on Copperhead Ridge, Granny's got a load to run.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "39a7ddf428e5",
+   "reserved": 81,
+   "status": "settled",
+   "started": "2026-11-17T05:49:02",
+   "actual": 51,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_moonshine_0.mp3",
+   "bytes": 87187
+  },
+  {
+   "id": "tts/narr_moonshine_1#1",
+   "kind": "tts",
+   "name": "narr_moonshine_1",
+   "params": {
+    "text": "And the revenue man's waitin' at the county line.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7cbf22239c29",
+   "reserved": 78,
+   "status": "settled",
+   "started": "2026-11-17T05:49:03",
+   "actual": 49,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_moonshine_1.mp3",
+   "bytes": 78410
+  },
+  {
+   "id": "tts/narr_mothership_0#1",
+   "kind": "tts",
+   "name": "narr_mothership_0",
+   "params": {
+    "text": "Remember that saucer over Hickston? Its mama came lookin'.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "82dd45418c00",
+   "reserved": 89,
+   "status": "settled",
+   "started": "2026-11-17T05:49:03",
+   "actual": 58,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_mothership_0.mp3",
+   "bytes": 88441
+  },
+  {
+   "id": "tts/narr_mothership_1#1",
+   "kind": "tts",
+   "name": "narr_mothership_1",
+   "params": {
+    "text": "Maw Glorb. Curlers, a housecoat, and a ray gun.",
+    "voice_id": "psgbtSM8YSESaIGjCj50",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "bb3446c0d832",
+   "reserved": 76,
+   "status": "settled",
+   "started": "2026-11-17T05:49:03",
+   "actual": 47,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/narr_mothership_1.mp3",
+   "bytes": 92830
+  },
+  {
+   "id": "sfx/sting_open_hickston#1",
+   "kind": "sfx",
+   "name": "sting_open_hickston",
+   "params": {
+    "text": "Swaggering small-town cowpunk: a twangy overdriven Telecaster riff over a train-beat snare and walking slap bass, a banjo roll, and one eerie wobbling theremin note on top. A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands on one big final hit that rings out for two seconds. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 8.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "86c8585b1ff9",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-17T05:49:04",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sting_open_hickston.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/sting_open_fair#1",
+   "kind": "sfx",
+   "name": "sting_open_fair",
+   "params": {
+    "text": "Crooked carnival rockabilly: a wheezy off-kilter calliope run tumbling into a reverb-soaked twangy guitar riff and galloping slap bass, a rude horn honk. A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands on one big final hit that rings out for two seconds. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 8.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "c5b6a8807c60",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-17T05:49:04",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sting_open_fair.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/sting_open_sawmill#1",
+   "kind": "sfx",
+   "name": "sting_open_sawmill",
+   "params": {
+    "text": "Heavy swampy blues-rock grind: a thick fuzzy slide guitar riff, pounding floor toms and anvil clanks like a saw carriage, rough lumberyard muscle. A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands on one big final hit that rings out for two seconds. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 8.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "6e4b548a4a79",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-17T05:49:04",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sting_open_sawmill.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/sting_open_quarry#1",
+   "kind": "sfx",
+   "name": "sting_open_quarry",
+   "params": {
+    "text": "Dark Southern rock stomp: a detuned heavy riff, chain and tambourine percussion, a steam whistle shriek, ominous twang. A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands on one big final hit that rings out for two seconds. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 8.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d291d6271aed",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-17T05:49:04",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sting_open_quarry.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/sting_open_bayou#1",
+   "kind": "sfx",
+   "name": "sting_open_bayou",
+   "params": {
+    "text": "Swampy dark Southern rock at dusk: a greasy slide guitar riff over a loping kick and washboard, a jug bass and a lonesome harmonica answering. A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands on one big final hit that rings out for two seconds. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 8.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "d9671ec7dba1",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-17T05:49:07",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sting_open_bayou.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/sting_open_speedway#1",
+   "kind": "sfx",
+   "name": "sting_open_speedway",
+   "params": {
+    "text": "Greasy dirt-track Southern rock: a driving overdriven guitar riff over a revving V8 engine, a wailing harmonica and pounding drums. A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands on one big final hit that rings out for two seconds. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 8.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "ba53c3975fe7",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-17T05:49:07",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sting_open_speedway.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/sting_open_moonshine#1",
+   "kind": "sfx",
+   "name": "sting_open_moonshine",
+   "params": {
+    "text": "Dark outlaw cowpunk on a moonlit backroad: a menacing low twangy baritone guitar riff, a train-beat snare, slap bass and a lonesome harmonica wailing like a far-off siren. A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands on one big final hit that rings out for two seconds. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 8.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "de7b13d0d63d",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-17T05:49:07",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sting_open_moonshine.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "sfx/sting_open_mothership#1",
+   "kind": "sfx",
+   "name": "sting_open_mothership",
+   "params": {
+    "text": "Spooky B-movie cowpunk: a wailing theremin answering a twangy tremolo guitar riff, slap bass creeping, clanking metal backbeat. A title sting for a 1990s game's chapter opening: it builds for about six seconds, then lands on one big final hit that rings out for two seconds. Gritty cowpunk rockabilly bar band: twangy overdriven electric guitar, slap bass, live drums. Instrumental, short, no vocals.",
+    "duration_seconds": 8.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "2d2bd41d779d",
+   "reserved": 325,
+   "status": "settled",
+   "started": "2026-11-17T05:49:07",
+   "actual": 89,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/sting_open_mothership.mp3",
+   "bytes": 193767
+  },
+  {
+   "id": "stt/narr_fair_1#1",
+   "kind": "stt",
+   "name": "narr_fair_1",
+   "params": {
+    "file": "narr_fair_1.mp3",
+    "bytes": 79664
+   },
+   "hash": "a2dfa9d728de",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_fair_1.json",
+   "bytes": 689
+  },
+  {
+   "id": "stt/narr_fair_0#1",
+   "kind": "stt",
+   "name": "narr_fair_0",
+   "params": {
+    "file": "narr_fair_0.mp3",
+    "bytes": 95337
+   },
+   "hash": "412a1aa53062",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_fair_0.json",
+   "bytes": 577
+  },
+  {
+   "id": "stt/narr_hickston_1#1",
+   "kind": "stt",
+   "name": "narr_hickston_1",
+   "params": {
+    "file": "narr_hickston_1.mp3",
+    "bytes": 59602
+   },
+   "hash": "ed77c7a80ff2",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_hickston_1.json",
+   "bytes": 558
+  },
+  {
+   "id": "stt/narr_hickston_0#1",
+   "kind": "stt",
+   "name": "narr_hickston_0",
+   "params": {
+    "file": "narr_hickston_0.mp3",
+    "bytes": 97218
+   },
+   "hash": "ef2891fa5214",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:34",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_hickston_0.json",
+   "bytes": 737
+  },
+  {
+   "id": "stt/narr_sawmill_0#1",
+   "kind": "stt",
+   "name": "narr_sawmill_0",
+   "params": {
+    "file": "narr_sawmill_0.mp3",
+    "bytes": 90949
+   },
+   "hash": "77041c21ba40",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_sawmill_0.json",
+   "bytes": 762
+  },
+  {
+   "id": "stt/narr_sawmill_1#1",
+   "kind": "stt",
+   "name": "narr_sawmill_1",
+   "params": {
+    "file": "narr_sawmill_1.mp3",
+    "bytes": 70887
+   },
+   "hash": "485b9970de98",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_sawmill_1.json",
+   "bytes": 567
+  },
+  {
+   "id": "stt/narr_quarry_0#1",
+   "kind": "stt",
+   "name": "narr_quarry_0",
+   "params": {
+    "file": "narr_quarry_0.mp3",
+    "bytes": 90949
+   },
+   "hash": "d6d9c2f2346a",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_quarry_0.json",
+   "bytes": 700
+  },
+  {
+   "id": "stt/narr_quarry_1#1",
+   "kind": "stt",
+   "name": "narr_quarry_1",
+   "params": {
+    "file": "narr_quarry_1.mp3",
+    "bytes": 77156
+   },
+   "hash": "6a1dd3656dea",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_quarry_1.json",
+   "bytes": 629
+  },
+  {
+   "id": "stt/narr_bayou_0#1",
+   "kind": "stt",
+   "name": "narr_bayou_0",
+   "params": {
+    "file": "narr_bayou_0.mp3",
+    "bytes": 95337
+   },
+   "hash": "a20ba9a379b1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_bayou_0.json",
+   "bytes": 760
+  },
+  {
+   "id": "stt/narr_bayou_1#1",
+   "kind": "stt",
+   "name": "narr_bayou_1",
+   "params": {
+    "file": "narr_bayou_1.mp3",
+    "bytes": 79664
+   },
+   "hash": "04745b6cd5f8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_bayou_1.json",
+   "bytes": 693
+  },
+  {
+   "id": "stt/narr_speedway_0#1",
+   "kind": "stt",
+   "name": "narr_speedway_0",
+   "params": {
+    "file": "narr_speedway_0.mp3",
+    "bytes": 111638
+   },
+   "hash": "b33702ef3cdb",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_speedway_0.json",
+   "bytes": 700
+  },
+  {
+   "id": "stt/narr_speedway_1#1",
+   "kind": "stt",
+   "name": "narr_speedway_1",
+   "params": {
+    "file": "narr_speedway_1.mp3",
+    "bytes": 91576
+   },
+   "hash": "f480e19c87a1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_speedway_1.json",
+   "bytes": 620
+  },
+  {
+   "id": "stt/narr_moonshine_0#1",
+   "kind": "stt",
+   "name": "narr_moonshine_0",
+   "params": {
+    "file": "narr_moonshine_0.mp3",
+    "bytes": 87187
+   },
+   "hash": "410d38f00a9b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_moonshine_0.json",
+   "bytes": 688
+  },
+  {
+   "id": "stt/narr_moonshine_1#1",
+   "kind": "stt",
+   "name": "narr_moonshine_1",
+   "params": {
+    "file": "narr_moonshine_1.mp3",
+    "bytes": 78410
+   },
+   "hash": "178cf8731ca1",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:38",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_moonshine_1.json",
+   "bytes": 627
+  },
+  {
+   "id": "stt/narr_mothership_0#1",
+   "kind": "stt",
+   "name": "narr_mothership_0",
+   "params": {
+    "file": "narr_mothership_0.mp3",
+    "bytes": 88441
+   },
+   "hash": "85768cb63dc8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:38",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_mothership_0.json",
+   "bytes": 640
+  },
+  {
+   "id": "stt/narr_mothership_1#1",
+   "kind": "stt",
+   "name": "narr_mothership_1",
+   "params": {
+    "file": "narr_mothership_1.mp3",
+    "bytes": 92830
+   },
+   "hash": "41d3590725bc",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T05:51:39",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/narr_mothership_1.json",
+   "bytes": 624
+  },
+  {
+   "id": "reconcile@2026-11-17T05:52:41",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -27754,
+   "actual": -28761,
    "basis": "account",
-   "balance_after": 81500
+   "balance_after": 82767
   }
  ],
  "anchor": {
@@ -43002,7 +43859,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-17T05:28:18",
-  "account_drop": 76777
+  "when": "2026-11-17T05:52:41",
+  "account_drop": 78044
  }
 }

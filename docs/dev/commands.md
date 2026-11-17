@@ -73,6 +73,8 @@ godot --headless --path godot --script res://tools/load_check.gd      # LOAD CHE
 godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
+godot --headless --path godot --script res://tools/opener_check.gd     # OPENER CHECK OK (the chapter openers)
+godot --path godot --audio-driver Dummy --resolution 1280x800 -- --opener=<chapter> [--opener-out=<dir>]   # a chapter's opener (its key frames saved)
 godot --headless --path godot --script res://tools/camera_check.gd     # CAMERA CHECK OK (photo mode, kill cam, quality, HUD on Controls, shadows, marks on props, storm wall)
 godot --headless --path godot --script res://tools/tune_check.gd       # TUNE CHECK OK (the console's tune set/get/reload/save, every overlay drawn headless, play unchanged)
 godot --headless --path godot --script res://tools/net_check.gd       # NET CHECK OK (players, snapshots, determinism; quick: check_fixes's part)

@@ -1,0 +1,50 @@
+{
+ "text": "And the revenue man's waiting at the county line",
+ "words": [
+  {
+   "text": "And",
+   "start": 0.12,
+   "end": 0.32
+  },
+  {
+   "text": "the",
+   "start": 0.38,
+   "end": 0.46
+  },
+  {
+   "text": "revenue",
+   "start": 0.52,
+   "end": 0.98
+  },
+  {
+   "text": "man's",
+   "start": 1.1,
+   "end": 1.48
+  },
+  {
+   "text": "waiting",
+   "start": 1.6,
+   "end": 1.98
+  },
+  {
+   "text": "at",
+   "start": 2.02,
+   "end": 2.16
+  },
+  {
+   "text": "the",
+   "start": 2.2,
+   "end": 2.3
+  },
+  {
+   "text": "county",
+   "start": 2.36,
+   "end": 2.64
+  },
+  {
+   "text": "line",
+   "start": 2.74,
+   "end": 3.14
+  }
+ ]
+}

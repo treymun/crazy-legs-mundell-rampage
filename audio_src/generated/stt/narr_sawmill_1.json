@@ -1,0 +1,45 @@
+{
+ "text": "And the foreman don't believe in lunch breaks",
+ "words": [
+  {
+   "text": "And",
+   "start": 0.08,
+   "end": 0.22
+  },
+  {
+   "text": "the",
+   "start": 0.26,
+   "end": 0.38
+  },
+  {
+   "text": "foreman",
+   "start": 0.44,
+   "end": 0.98
+  },
+  {
+   "text": "don't",
+   "start": 1.06,
+   "end": 1.3
+  },
+  {
+   "text": "believe",
+   "start": 1.34,
+   "end": 1.74
+  },
+  {
+   "text": "in",
+   "start": 1.78,
+   "end": 1.88
+  },
+  {
+   "text": "lunch",
+   "start": 1.94,
+   "end": 2.18
+  },
+  {
+   "text": "breaks",
+   "start": 2.3,
+   "end": 2.74
+  }
+ ]
+}

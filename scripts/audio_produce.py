@@ -162,6 +162,13 @@ DESIGNS = {
            "close to the microphone on a small AM station after midnight. Close, dry studio recording.",
            "Well, it's a quarter past two on KPSM, the Possum, and I'm still here. Pour yourself another cup, "
            "lock up the chickens, and keep it between the ditches, Possum County. Here's one for the night owls."),
+    # The chapter openers' storyteller (content pass 8, src/opener.gd): an original voice, nobody real.
+    "narrator": ("A weathered old storyteller from the Arkansas Ozarks in his seventies, spinning a yarn on a "
+                 "front porch at dusk: a slow, deep, dusty baritone drawl with a gentle gravel to it, warm and "
+                 "unhurried, a dry wink in every line, measured pauses, a little ominous when the story turns. "
+                 "Close, dry studio recording.",
+                 "Now, I've told this one a time or two. Hickston was a quiet little town, right up until the "
+                 "night the sky came down and took a man's cow. And friend, that was the wrong man's cow."),
 }
 
 

@@ -1,0 +1,45 @@
+{
+ "text": "And the new sheriff ain't from around here",
+ "words": [
+  {
+   "text": "And",
+   "start": 0.08,
+   "end": 0.2
+  },
+  {
+   "text": "the",
+   "start": 0.24,
+   "end": 0.32
+  },
+  {
+   "text": "new",
+   "start": 0.36,
+   "end": 0.5
+  },
+  {
+   "text": "sheriff",
+   "start": 0.62,
+   "end": 1.1
+  },
+  {
+   "text": "ain't",
+   "start": 1.14,
+   "end": 1.36
+  },
+  {
+   "text": "from",
+   "start": 1.4,
+   "end": 1.54
+  },
+  {
+   "text": "around",
+   "start": 1.62,
+   "end": 2.02
+  },
+  {
+   "text": "here",
+   "start": 2.08,
+   "end": 2.3
+  }
+ ]
+}

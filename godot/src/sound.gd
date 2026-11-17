@@ -1286,6 +1286,18 @@ func sting(cue: String) -> void:
 		Sound.set_level(_sting.player, .84 * music_gain)
 
 
+## A chapter opener's music (opener.gd): the chapter's score held while the
+## opener's sting `cue` plays, or with "" the sting stopped and the score let go.
+func opener_music(cue: String) -> void:
+	if score_player != null:
+		score_player.pause(cue != "")
+	if cue == "":
+		_sting.player.stop()
+		return
+	sting(cue)
+	_sting.player.stream_paused = false
+
+
 func toggle_music() -> void:
 	if score_player != null:
 		music = not music

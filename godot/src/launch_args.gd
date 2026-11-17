@@ -24,6 +24,12 @@ static func parse_smoke(m: MainState) -> void:
 			m.launch_check = true
 		elif text.begins_with("--view-tour="):
 			m.view_tour = text.substr(12)
+		elif text.begins_with("--opener="):
+			m.opener.forced = text.substr(9)  # a chapter's opener, whatever the setting
+		elif text.begins_with("--opener-data="):
+			ChapterOpener.data_path = text.substr(14)  # a draft of openers.json
+		elif text.begins_with("--opener-out="):
+			m.opener.shots_out = text.substr(13)  # its key frames saved, then quit
 		elif text.begins_with("--view-out="):
 			m.view_out = text.substr(11)
 		elif text.begins_with("--view-bench="):

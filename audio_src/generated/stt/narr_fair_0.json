@@ -1,0 +1,45 @@
+{
+ "text": "Possum County Fair, fried pickles and crooked games",
+ "words": [
+  {
+   "text": "Possum",
+   "start": 0.06,
+   "end": 0.48
+  },
+  {
+   "text": "County",
+   "start": 0.6,
+   "end": 0.9
+  },
+  {
+   "text": "Fair,",
+   "start": 1.02,
+   "end": 1.44
+  },
+  {
+   "text": "fried",
+   "start": 1.68,
+   "end": 1.98
+  },
+  {
+   "text": "pickles",
+   "start": 2.1,
+   "end": 2.6
+  },
+  {
+   "text": "and",
+   "start": 2.64,
+   "end": 2.74
+  },
+  {
+   "text": "crooked",
+   "start": 2.84,
+   "end": 3.14
+  },
+  {
+   "text": "games",
+   "start": 3.24,
+   "end": 3.74
+  }
+ ]
+}

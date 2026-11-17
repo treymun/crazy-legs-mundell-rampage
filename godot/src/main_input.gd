@@ -94,6 +94,9 @@ func key(code: int, shift := false) -> void:
 	if kill_cam.playing:
 		kill_cam.stop(self)  # any key skips the KILL CAM
 		return
+	if opener.playing:
+		opener.stop(self)  # any key skips a chapter's opener
+		return
 	if photo.key(self, code):
 		return
 	if code == KEY_P and state == "play" and photo.enter(self):
@@ -466,6 +469,10 @@ static func _global_key(code: int) -> bool:
 func _input(event: InputEvent) -> void:
 	if ui != null and ui.handles(state) and _to_screen(event):
 		return
+	if opener.playing and (event is InputEventMouseButton or event is InputEventScreenTouch):
+		if event.is_pressed():
+			opener.stop(self)  # a click or a tap skips a chapter's opener
+		return
 	if kill_cam.playing and (event is InputEventMouseButton or event is InputEventScreenTouch):
 		if event.is_pressed():
 			kill_cam.stop(self)  # a click or a tap skips the KILL CAM
@@ -833,6 +840,9 @@ func read_pad(dt: float) -> Dictionary:
 			pressed[index] = true
 			input_device = "pad"
 		pad_down[index] = down
+	if not pressed.is_empty() and opener.playing:
+		opener.stop(self)  # any button skips a chapter's opener
+		return idle
 	if pressed.has(JOY_BUTTON_Y) and state == "title" and game != null and photo.enter(self):
 		grab(true)  # Y on the pause screen: PHOTO MODE
 		return idle

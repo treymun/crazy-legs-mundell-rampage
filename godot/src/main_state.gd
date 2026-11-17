@@ -171,6 +171,8 @@ var cpu_canvas := false
 var hud_layer: HudLayer
 var photo := PhotoMode.new()
 var kill_cam := KillCam.new()
+## The chapter openers (opener.gd): the cinematic before a chapter's first tick.
+var opener := ChapterOpener.new()
 ## QUALITY (core/quality.gd): the tier AUTO measured on this machine (-1 not
 ## yet), its measurement while it runs, and whether it may set the picture
 ## settings when done (only on a first run: no settings saved before).
@@ -590,6 +592,7 @@ func release_games() -> int:
 			var link: NetPlay = each
 			kept.append(link.match_game())
 	kept.append_array([kill_cam.game, photo.game, hud.shown_game if hud != null else null])
+	kept.append_array([opener.game, opener.pending])
 	return games.sweep(kept)
 
 
@@ -731,6 +734,8 @@ func apply_options() -> void:
 	hud.minimal = hud_mode == 1
 	var kill_mode: int = options.get("kill_cam", KillCam.BOSSES)
 	kill_cam.mode = kill_mode
+	var opener_mode: int = options.get("openers", ChapterOpener.FIRST_TIME)
+	opener.mode = opener_mode
 	var quality: int = options.get("quality", 0)
 	Quality.physics = Quality.tier_of(quality, quality_measured, mobile)
 	var tilt_aim: int = options.get("tilt_aim", 0)
@@ -1216,6 +1221,8 @@ func render() -> void:
 		var crosshair: int = options["crosshair"]
 		if kill_cam.playing:
 			kill_cam.draw(self)  # the replay from its own camera, no HUD
+		elif opener.playing:
+			opener.draw(self)  # a chapter's opener: its own camera, no HUD
 		else:
 			game.draw(canvas, crosshair, true)
 			_frame_3d()

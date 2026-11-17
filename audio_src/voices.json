@@ -83,5 +83,10 @@
   "id": "xV6EiUYXSgXYLG1p0GVn",
   "description": "A big, cold, middle-aged federal revenue agent from the 1990s rural South: a deep, slow, clipped baritone with a flat Arkansas drawl, dry and menacing, every word an order, a hint of smug amusement. Close, dry studio recording.",
   "preview": "audio_src/generated/voice_design/revenue_man.mp3"
+ },
+ "narrator": {
+  "id": "psgbtSM8YSESaIGjCj50",
+  "description": "A weathered old storyteller from the Arkansas Ozarks in his seventies, spinning a yarn on a front porch at dusk: a slow, deep, dusty baritone drawl with a gentle gravel to it, warm and unhurried, a dry wink in every line, measured pauses, a little ominous when the story turns. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/narrator.mp3"
  }
 }

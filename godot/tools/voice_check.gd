@@ -202,6 +202,14 @@ func _captions(cues: Dictionary) -> void:
 				radio_count += 1
 	_cuss_lines(said, "dj", radio.get("cuss", {}))
 	_check(radio_count >= 80, "the county radio's lines are in the list (%d)" % radio_count)
+	# The chapter openers' storyteller (pass 8): two lines a chapter.
+	var told := 0
+	for id: String in Campaign.ORDER:
+		var lines := ChapterOpener.lines_of(id)
+		for n in lines.size():
+			said["narr_%s_%d" % [id, n]] = lines[n]
+			told += 1
+	_check(told == Campaign.ORDER.size() * 2, "the openers' lines are in the list (%d)" % told)
 	var wrong: Array = []
 	for cue: String in said:
 		if not cues.has(cue):

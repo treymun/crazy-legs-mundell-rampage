@@ -378,6 +378,13 @@ static func build() -> Array:
 					"A SHORT REPLAY OF THE KILL FROM ANOTHER ANGLE. ANY KEY SKIPS. NEVER ONLINE."
 				),
 				SessionStore.choices(
+					"OPENERS",
+					"openers",
+					0,
+					["FIRST TIME", "ALWAYS", "OFF"],
+					"A SHORT PICTURE SHOW AS EACH CHAPTER STARTS. ANY KEY SKIPS. NEVER ONLINE."
+				),
+				SessionStore.choices(
 					"WEATHER",
 					"weather",
 					0,

@@ -53,6 +53,7 @@ func play(target: Game) -> void:
 	chapter = chapter and not UserMap.is_custom(target.level.id)  # a player map: never the campaign
 	chapter = chapter and not CountyMode.active(target)  # a COUNTY RUN is never the campaign
 	chapter = chapter and net == null  # nor a chapter played online (net_coop.gd)
+	opener.offer(self, target, chapter)
 	if chapter and not target.replay:
 		campaign_run = target
 	if chapter and target.replay:
@@ -461,6 +462,7 @@ func retry_fight() -> void:
 ## The death screen's retry: the chapter from its start, with the guns it was
 ## entered with.
 func restart_chapter(target: Game) -> void:
+	opener.retrying = true  # the chapter over again: no opener
 	start(target.level.id, target.entry, target.history, target.replay, target.supply_rule)
 	game.retained = target.retained
 

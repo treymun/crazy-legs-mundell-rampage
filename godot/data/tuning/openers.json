@@ -1,0 +1,94 @@
+{
+	"_about": "The chapter openers (src/opener.gd): a short cinematic before each campaign chapter's first tick, the camera flown over the level, a title card, the boss in silhouette, an old storyteller reading two lines (ElevenLabs voice \"narrator\", an original character) and a music sting. Looks only. Read by scripts/audio_spec.py (the lines) and the game. Cues: narr_<chapter>_<n> (the lines), sting_open_<chapter> (the music). Shots: from/to are where the camera flies [x, y, z] (cells; z the height, the ground about 0, roofs 2 to 3), look/look_to the point it watches, secs how long; the camera eases between them. title: when the card drops (s) and how long it hangs; boss: the cel (art name), the light behind it, its growl, its sting and its line.",
+	"number_words": ["ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN"],
+	"chapters": {
+		"hickston": {
+			"tagline": "SOMEBODY STOLE THE WRONG COW.",
+			"card": "plank",
+			"lines": ["Hickston was a quiet town. Till the sky stole a cow.", "And the new sheriff ain't from around here."],
+			"boss": {"cel": "boss_0", "light": "cone", "color": [150, 255, 170], "growl": "sheriff_rage", "sting": "shakedown_intro", "line": "boss_sheriff_taunt_3", "say": "You have the right to remain squishy."},
+			"shots": [
+				{"secs": 3.0, "from": [6, 73, 1.3], "to": [10, 67, 2.6], "look": [16, 62, 1.4], "look_to": [22, 56, 1.2]},
+				{"secs": 2.8, "from": [30, 67, 1.6], "to": [44, 66, 2.2], "look": [36, 60, 1.6], "look_to": [50, 57, 1.4]},
+				{"secs": 3.0, "from": [128, 30, 1.6], "to": [130.5, 24, 2.4], "look": [130.5, 17, 1.9], "look_to": [130.5, 16, 1.9]}
+			]
+		},
+		"fair": {
+			"tagline": "THE RIDES AIN'T ALL THAT'S RIGGED.",
+			"card": "marquee",
+			"lines": ["Possum County Fair. Fried pickles and crooked games.", "And the man runnin' the show? He's got your ticket."],
+			"boss": {"cel": "rudy_0", "light": "cone", "color": [255, 236, 190], "growl": "rudy_rage", "sting": "rudy_intro", "line": "boss_rudy_intro", "say": "Step right up and lose, sucker!"},
+			"shots": [
+				{"secs": 3.0, "from": [64, 84, 1.2], "to": [64, 78, 2.2], "look": [64, 70, 2.2], "look_to": [64, 64, 2.0]},
+				{"secs": 2.8, "from": [62, 66, 1.8], "to": [63, 56, 2.4], "look": [64, 44, 1.6], "look_to": [64, 36, 1.8]},
+				{"secs": 3.0, "from": [64.5, 27, 2.0], "to": [64.5, 20, 2.6], "look": [64.5, 10, 2.0], "look_to": [64.5, 10, 2.2]}
+			]
+		},
+		"sawmill": {
+			"tagline": "THE BELT DON'T STOP FOR NOBODY.",
+			"card": "plank",
+			"lines": ["Out at Blackwater the rain don't quit. Neither do the saws.", "And the foreman don't believe in lunch breaks."],
+			"boss": {"cel": "foreman_0", "light": "door", "color": [255, 170, 80], "growl": "foreman_rage", "sting": "foreman_intro", "line": "boss_foreman_intro", "say": "You're on the clock, slacker."},
+			"shots": [
+				{"secs": 3.0, "from": [64, 80, 1.1], "to": [64, 77, 1.6], "look": [64, 72.5, 1.3], "look_to": [64, 70, 1.5]},
+				{"secs": 2.8, "from": [40, 50, 1.2], "to": [52, 44, 1.6], "look": [64, 38, 0.8], "look_to": [70, 32, 1.0]},
+				{"secs": 3.0, "from": [64, 40, 2.4], "to": [64, 31, 3.0], "look": [64.5, 17, 1.8], "look_to": [64.5, 15, 2.0]}
+			]
+		},
+		"quarry": {
+			"tagline": "A HUNDRED PROOF AND RISIN'.",
+			"card": "tin",
+			"lines": ["They quit cuttin' rock at Stillwater. Now they cook shine.", "The Copper Baron owns every drop. He don't share."],
+			"boss": {"cel": "baron_0", "light": "glow", "color": [255, 140, 50], "growl": "baron_rage", "sting": "baron_intro", "line": "boss_baron_intro", "say": "Nobody drinks my shine for free."},
+			"shots": [
+				{"secs": 3.0, "from": [67, 83, 1.3], "to": [67, 79, 2.2], "look": [65, 70, 1.2], "look_to": [62, 64, 1.2]},
+				{"secs": 2.8, "from": [46, 52, 2.0], "to": [56, 48, 2.8], "look": [64.5, 38, 1.5], "look_to": [70, 38, 1.5]},
+				{"secs": 3.0, "from": [64, 22, 1.8], "to": [64, 16, 2.4], "look": [64, 7, 2.0], "look_to": [64, 7, 2.2]}
+			]
+		},
+		"bayou": {
+			"tagline": "NO WAKE ZONE. NO WITNESSES.",
+			"card": "swamp",
+			"lines": ["Past the county line, the road quits and the bayou starts.", "And the Swamp King's gators ain't missed a meal yet."],
+			"boss": {"cel": "swamp_king_0", "light": "moon", "color": [220, 235, 170], "growl": "swamp_king_rage", "sting": "swamp_king_intro", "line": "boss_swamp_king_intro", "say": "Who's on my water?"},
+			"shots": [
+				{"secs": 3.0, "from": [64, 90, 1.2], "to": [63, 82, 1.8], "look": [63.5, 70, 1.2], "look_to": [63.5, 64, 1.2]},
+				{"secs": 2.8, "from": [78, 60, 1.4], "to": [82, 55, 2.0], "look": [88, 54, 1.4], "look_to": [94, 58, 1.2]},
+				{"secs": 3.0, "from": [104, 46, 1.6], "to": [104, 40, 2.4], "look": [104.5, 36, 1.7], "look_to": [102, 30, 1.6]}
+			]
+		},
+		"speedway": {
+			"tagline": "TRADE PAINT OR GET OFF THE TRACK.",
+			"card": "marquee",
+			"lines": ["Race night at Buzzard Bend. Dirt, diesel and bad ideas.", "Bumper Boggs ain't lost a derby in forty-seven tries."],
+			"boss": {"cel": "derby_champ_0", "light": "headlights", "color": [255, 248, 210], "growl": "derby_champ_rage", "sting": "derby_champ_intro", "line": "boss_boggs_intro", "say": "Buckle up, sunshine!"},
+			"shots": [
+				{"secs": 3.0, "from": [24, 82, 1.4], "to": [20, 78, 2.2], "look": [14, 76.5, 1.7], "look_to": [14, 74, 1.8]},
+				{"secs": 2.8, "from": [58, 69, 1.6], "to": [66, 67, 2.6], "look": [76, 60, 0.8], "look_to": [86, 54, 0.8]},
+				{"secs": 3.0, "from": [78, 62, 3.4], "to": [83, 58, 4.2], "look": [89.5, 52.5, 0.8], "look_to": [89.5, 52.5, 0.8]}
+			]
+		},
+		"moonshine": {
+			"tagline": "OUTRUN THE LAW. DON'T SPILL A DROP.",
+			"card": "tin",
+			"lines": ["Up on Copperhead Ridge, Granny's got a load to run.", "And the revenue man's waitin' at the county line."],
+			"boss": {"cel": "revenue_man_0", "light": "flasher", "color": [255, 60, 50], "color_b": [70, 110, 255], "growl": "revenue_man_rage", "sting": "revenue_man_intro", "line": "boss_revenue_man_taunt_0", "say": "You have the right to remain thirsty."},
+			"shots": [
+				{"secs": 3.0, "from": [30, 77.5, 1.3], "to": [34, 77.5, 1.7], "look": [42, 77.5, 0.9], "look_to": [46, 76, 0.9]},
+				{"secs": 2.8, "from": [54, 74, 1.4], "to": [58, 73, 2.0], "look": [61, 66, 0.8], "look_to": [62, 62, 0.8]},
+				{"secs": 3.0, "from": [94, 39.5, 1.1], "to": [94, 36.5, 1.8], "look": [94, 30, 1.3], "look_to": [94, 26, 1.3]}
+			]
+		},
+		"mothership": {
+			"tagline": "WIPE YER FEET. MAW'S WAITIN'.",
+			"card": "saucer",
+			"lines": ["Remember that saucer over Hickston? Its mama came lookin'.", "Maw Glorb. Curlers, a housecoat, and a ray gun."],
+			"boss": {"cel": "maw_0", "light": "cone", "color": [120, 255, 120], "growl": "maw_rage", "sting": "maw_intro", "line": "boss_maw_intro", "say": "Who tracked mud on my clean deck?"},
+			"shots": [
+				{"secs": 3.0, "from": [60, 88, 1.4], "to": [60, 82, 2.2], "look": [59, 72, 2.6], "look_to": [60, 70, 2.6]},
+				{"secs": 2.8, "from": [79, 55, 1.4], "to": [78.6, 50, 1.8], "look": [68, 53, 1.2], "look_to": [68, 48, 1.2]},
+				{"secs": 3.0, "from": [58, 38, 1.8], "to": [59, 44, 2.4], "look": [60.5, 58.5, 2.0], "look_to": [60.5, 58.5, 2.0]}
+			]
+		}
+	}
+}

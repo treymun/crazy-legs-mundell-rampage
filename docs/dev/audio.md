@@ -167,6 +167,20 @@ comin'" was heard as "comments" and was reworded to "He was askin' fer that"
 (one more take). About 400 credits (264 voice, 132 transcripts). Not
 listened to.
 
+### The chapter openers' storyteller (content pass 8)
+
+A designed voice, "narrator": a weathered old Ozark storyteller on a porch
+at dusk, slow, deep and dusty, an original character. Two lines a chapter
+(`narr_<chapter>_0`, `_1`, words in `data/tuning/openers.json`, read by
+`audio_spec.py` and the game; `src/opener.gd`), dry, at the voices' level.
+Made 2026-11-17: 16 first takes, all said their words; three only spelled
+them their own way ("Hixton" twice, "47": `NARRATOR_HEARD`). Lines last 2.4
+to 4.5 s. Each opener's music is a `sting` cue `sting_open_<chapter>` (8 s,
+the chapter's band and instruments, building to a last chord); the boss
+teaser reuses each boss's growl (`<kind>_rage`), entrance sting and a line
+of its own. About 2,280 credits at the ledger's expected rates (voice design
+537, lines 833, stings 712, transcripts 192). Not listened to.
+
 ## The county radio (content pass 8)
 
 KPSM, fourteen-ninety AM, the Possum: Dub Tillery, a gravel-voiced

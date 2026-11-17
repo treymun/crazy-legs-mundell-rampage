@@ -1,0 +1,60 @@
+{
+ "text": "Hixton was a quiet town till the sky stole a cow",
+ "words": [
+  {
+   "text": "Hixton",
+   "start": 0.06,
+   "end": 0.58
+  },
+  {
+   "text": "was",
+   "start": 0.68,
+   "end": 0.82
+  },
+  {
+   "text": "a",
+   "start": 0.88,
+   "end": 0.94
+  },
+  {
+   "text": "quiet",
+   "start": 1.0,
+   "end": 1.44
+  },
+  {
+   "text": "town",
+   "start": 1.5,
+   "end": 1.96
+  },
+  {
+   "text": "till",
+   "start": 2.2,
+   "end": 2.36
+  },
+  {
+   "text": "the",
+   "start": 2.4,
+   "end": 2.48
+  },
+  {
+   "text": "sky",
+   "start": 2.58,
+   "end": 2.86
+  },
+  {
+   "text": "stole",
+   "start": 3.0,
+   "end": 3.28
+  },
+  {
+   "text": "a",
+   "start": 3.34,
+   "end": 3.42
+  },
+  {
+   "text": "cow",
+   "start": 3.48,
+   "end": 3.9
+  }
+ ]
+}

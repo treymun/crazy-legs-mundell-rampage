@@ -125,6 +125,59 @@ default), BOSSES AND AREAS; never online or with more than one player):
   0.35 to 0.6 ms, taken every other frame at 60 fps (BOSSES only while a boss
   is up and alerted); the HUD's Controls 0.03 ms a frame over the old bar.
 
+## The chapter openers (content pass 8)
+
+`src/opener.gd` (`ChapterOpener`, the front end's `opener`) and
+`src/opener_art.gd` (`OpenerArt`): before a campaign chapter's first tick a
+short cinematic of 14 to 16 s, like a 1990s cutscene. PLAY page `openers`:
+FIRST TIME (the default; the chapters seen are kept in
+`user://openers_seen.json`, not the settings), ALWAYS, OFF.
+
+- **When.** `main_flow.gd play()` offers each game; it is due only for a
+  campaign chapter on this machine (the `chapter` test there: not the hub,
+  the range, a rematch, a revisit, a player map, COUNTY RUN or online), in
+  CAMPAIGN or local CO-OP, at game clock 0 (not a loaded save), not after
+  the death screen's retry (`restart_chapter` sets `retrying`), never in a
+  tour, bench, smoke run, demo or a tool (unless the tool asks). It starts on
+  the next play frame if that game is still the one on screen (the hub that
+  `continue_campaign` opens straight after `start()` drops it). Never online:
+  the host's game cannot hold still for one machine, and a client joining a
+  chapter under way has missed its start anyway.
+- **How.** The front end does not tick the game while it plays (as PHOTO
+  MODE and the KILL CAM); each frame `game.eye_override` is set to the
+  opener's camera only for `game.draw` (no gun, sights or HUD; Mundell stands
+  at the start), then cleared, and the variants' draw-time cache of who holds
+  a car door (`CACHES`) is put back, so the game starts exactly as it would
+  have (`opener_check` compares snapshots, and two seconds of play after it
+  with play without one). Any key, click, tap or pad button skips it
+  (`main_input.gd`); the click is blocked from firing; the iris opens on play.
+- **What.** Authored per chapter in `data/tuning/openers.json`: three shots
+  (`secs`, `from`/`to` the camera's [x, y, z], `look`/`look_to` the point it
+  watches; eased half way, so it never stops), the card style (`plank`,
+  `swamp`, `tin`, `marquee`, `checker`, `saucer`: `OpenerArt.STYLES`) and
+  tagline, the boss (`cel`, `light`: cone, glow, door, moon, headlights,
+  flasher; its colour, growl, sting, line and caption) and the narrator's two
+  lines. The title is `Campaign.title_of`, CHAPTER <N> from the campaign's
+  order. Shots look best low (z 1 to 3.5) and close to a sign or building:
+  from high up the levels read as a flat murky plane.
+- **The frame.** Black bars (rows 0-13 and 142 on, "ANY KEY SKIPS"), a dip to
+  black at each cut, the card dropped in on ropes with a bounce (the B-movie
+  title rushes in from big instead), the tagline typed out under it, then
+  the view darkens, the light fades in behind the boss's cel drawn as a
+  near-black silhouette with a rim of the light, he looms nearer and the
+  light flares as he growls; the line said is captioned in the bottom bar
+  (VOICE CAPTIONS). Pictures are made once per opener as Images, from the
+  game's own letters (three times the body font where the title fits, else
+  twice) and cels; their dice are seeded by the chapter's name.
+- **Sound.** The chapter's score is held (`Sound.opener_music`) while its
+  `sting_open_<chapter>` plays; the narrator's first line at 0.55 s on the
+  voice channel, his second as the boss is shown, then the boss's growl and
+  its boss sting, and its line; the schedule follows the lines' own lengths.
+- **Tools.** `--opener=<chapter>` plays the chapter with its opener whatever
+  the setting (`--opener-data=<file>` from a draft of the file);
+  `--opener-out=<dir>` also saves each key moment's window picture
+  (`<chapter>_shot<k>.png`, `_card`, `_boss`, `_growl`, `_line`) and quits.
+
 ## How a frame gets drawn
 
 1. `game_view.gd` builds `game.view_frame` each draw: `{eye, horizon, flash,

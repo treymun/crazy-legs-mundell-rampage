@@ -1,0 +1,50 @@
+{
+ "text": "The copper baron owns every drop. He don't share",
+ "words": [
+  {
+   "text": "The",
+   "start": 0.08,
+   "end": 0.14
+  },
+  {
+   "text": "copper",
+   "start": 0.24,
+   "end": 0.54
+  },
+  {
+   "text": "baron",
+   "start": 0.64,
+   "end": 1.0
+  },
+  {
+   "text": "owns",
+   "start": 1.08,
+   "end": 1.36
+  },
+  {
+   "text": "every",
+   "start": 1.44,
+   "end": 1.62
+  },
+  {
+   "text": "drop.",
+   "start": 1.72,
+   "end": 2.06
+  },
+  {
+   "text": "He",
+   "start": 2.12,
+   "end": 2.24
+  },
+  {
+   "text": "don't",
+   "start": 2.28,
+   "end": 2.54
+  },
+  {
+   "text": "share",
+   "start": 2.6,
+   "end": 2.96
+  }
+ ]
+}

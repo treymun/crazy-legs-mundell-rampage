@@ -1,0 +1,60 @@
+{
+ "text": "Past the county line, the road quits and the bayou starts.",
+ "words": [
+  {
+   "text": "Past",
+   "start": 0.1,
+   "end": 0.4
+  },
+  {
+   "text": "the",
+   "start": 0.42,
+   "end": 0.54
+  },
+  {
+   "text": "county",
+   "start": 0.58,
+   "end": 0.88
+  },
+  {
+   "text": "line,",
+   "start": 0.98,
+   "end": 1.32
+  },
+  {
+   "text": "the",
+   "start": 1.4,
+   "end": 1.48
+  },
+  {
+   "text": "road",
+   "start": 1.54,
+   "end": 1.76
+  },
+  {
+   "text": "quits",
+   "start": 1.88,
+   "end": 2.22
+  },
+  {
+   "text": "and",
+   "start": 2.26,
+   "end": 2.38
+  },
+  {
+   "text": "the",
+   "start": 2.42,
+   "end": 2.52
+  },
+  {
+   "text": "bayou",
+   "start": 2.56,
+   "end": 2.96
+  },
+  {
+   "text": "starts.",
+   "start": 3.12,
+   "end": 3.64
+  }
+ ]
+}

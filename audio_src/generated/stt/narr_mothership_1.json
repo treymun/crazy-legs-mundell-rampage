@@ -1,0 +1,50 @@
+{
+ "text": "Maw Glorb, curlers, a housecoat, and a ray gun",
+ "words": [
+  {
+   "text": "Maw",
+   "start": 0.08,
+   "end": 0.32
+  },
+  {
+   "text": "Glorb,",
+   "start": 0.42,
+   "end": 0.98
+  },
+  {
+   "text": "curlers,",
+   "start": 1.12,
+   "end": 1.72
+  },
+  {
+   "text": "a",
+   "start": 1.82,
+   "end": 1.9
+  },
+  {
+   "text": "housecoat,",
+   "start": 1.96,
+   "end": 2.68
+  },
+  {
+   "text": "and",
+   "start": 2.74,
+   "end": 2.84
+  },
+  {
+   "text": "a",
+   "start": 2.9,
+   "end": 2.92
+  },
+  {
+   "text": "ray",
+   "start": 3.02,
+   "end": 3.2
+  },
+  {
+   "text": "gun",
+   "start": 3.32,
+   "end": 3.66
+  }
+ ]
+}
