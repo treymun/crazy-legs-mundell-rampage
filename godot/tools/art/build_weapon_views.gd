@@ -15,6 +15,14 @@
 ## BLENDER_PATH overrides where Blender is; no-render reuses the last renders;
 ## out= writes the cels somewhere else and leaves the anchors alone. Then run
 ## tools/pack_assets.gd.
+##
+## The workbench's mods (scripts/blender/weapon_mods.py, run with weapon_views.py
+## and into the same folder): a modelled gun with mods on is a view of its own
+## (rifle__brake_drum: the gun's name, "__", the mods' short names in name
+## order), cut as its gun is, gun_<view>_<pose>; a photographed gun's mod is
+## its parts alone, laid over each of that gun's own cels (PHOTO_POSES: where
+## the photograph's barrel lies in each, as the idle cel's carried there),
+## gun_<gun>__<mod>_<pose>: the game lays a gun's mods over its cel in turn.
 extends SceneTree
 
 const Paint := preload("res://tools/art/paint.gd")
@@ -160,6 +168,34 @@ const GUN_POSES := ["idle", "kick", "recover", "open", "eject", "load", "close"]
 const THROWN := ["flash_jar", "smudge_pot", "shine_cocktail", "firecracker_can"]
 ## How big a throwable's own picture in flight is (pixels across).
 const THROWN_SPRITE := 22
+## The photographed guns' cels and where the barrel lies in each, on the cel:
+## [muzzle x, y, the barrel's angle (degrees), its length to the frame]. A
+## pose's mod is the idle pose's laid by the turn, stretch and move that take
+## the idle barrel onto that pose's.
+const PHOTO_POSES := {
+	"revolver":
+	{
+		"idle": [162, 46, 40.2, 34.1],
+		"kick": [182, 21, 59.6, 33.6],
+		"recover": [171, 35, 51.1, 33.4],
+		"open": [158, 40, 24.7, 40.7],
+		"eject": [164, 47, 24.0, 39.4],
+		"load": [164, 47, 24.0, 39.4],
+		"close": [172, 37, 31.2, 38.6]
+	},
+	"shotgun":
+	{
+		"idle": [148, 44, 36.2, 1.0],
+		"kick": [159, 10, 45.8, 1.2],
+		"recover": [153, 34, 40.1, 1.07],
+		"open": [142, 56, 16.7, 1.1],
+		"eject": [136, 60, 3.0, 1.1],
+		"eject_one": [136, 60, 3.0, 1.1],
+		"load": [136, 66, -3.0, 1.1],
+		"load_one": [136, 66, -3.0, 1.1],
+		"close": [150, 42, 20.0, 1.1]
+	},
+}
 const POSES := {
 	"slingblade": ["idle", "wind", "strike", "follow", "recover"],
 	"flash_jar": ["idle", "kick", "throw", "dry"],
@@ -200,6 +236,18 @@ func _init() -> void:
 				",".join(only) if not only.is_empty() else "all"
 			]
 		)
+		if code == 0:
+			code = OS.execute(
+				Enemies.blender(),
+				[
+					"-b",
+					"-P",
+					Paint.repo("scripts/blender/weapon_mods.py"),
+					"--",
+					raw,
+					",".join(only) if not only.is_empty() else "all"
+				]
+			)
 		if code != 0:
 			push_error("Blender failed (exit %d); set BLENDER_PATH if it is elsewhere" % code)
 			quit(1)
@@ -212,17 +260,24 @@ func _init() -> void:
 	var anchors_path := art.path_join("weapon_anchors.json")
 	var anchors = JSON.parse_string(FileAccess.get_file_as_string(anchors_path))
 	var count := 0
+	## A photographed gun's mods: gun -> [view name, ...].
+	var photo := {}
 	for name: String in views:
-		if not only.is_empty() and not only.has(name):
+		if not only.is_empty() and not only.has(name) and not only.has(base_of(name)):
 			continue
 		var view: Dictionary = views[name]
+		if view.get("photo", false):
+			if not photo.has(base_of(name)):
+				photo[base_of(name)] = []
+			photo[base_of(name)].append(name)
+			continue
 		var made := cels(name, view, raw)
 		var fronts: Dictionary = made[1]
 		for pose: String in made[0]:
 			var cel: Paint.Sheet = made[0][pose]
 			Paint.digitize(kept_rows(cel)).save(out.path_join("gun_%s_%s.png" % [name, pose]))
 			count += 1
-		if THROWN.has(name):
+		if THROWN.has(name) and base_of(name) == name:
 			# Its own small picture, for while it flies and lies about.
 			var raw_art := Paint.Sheet.load_png(raw.path_join(name + ".png"))
 			var piece := raw_art.cropped(raw_art.bbox(0).grow(2))
@@ -235,11 +290,80 @@ func _init() -> void:
 				if fronts.has(pose):
 					points[pose] = fronts[pose]
 			anchors[name] = points
+	for gun: String in photo:
+		count += photo_cels(gun, photo[gun], views, raw, out)
 	if out == art:
 		var file := FileAccess.open(anchors_path, FileAccess.WRITE)
 		file.store_string(JSON.stringify(anchors, "", false))
 	print("weapon views: %d cels in %s" % [count, out])
 	quit()
+
+
+## The gun a view is of: its name before "__" (a view with the workbench's mods on).
+static func base_of(name: String) -> String:
+	return name.get_slice("__", 0)
+
+
+## Every pose of a photographed gun with each choice of its mods on
+## (gun_<gun>__<mods>_<pose>, the mods' short names in name order): each
+## mod's parts laid over the cel in turn. Returns how many cels it wrote.
+func photo_cels(gun: String, names: Array, views: Dictionary, raw: String, out: String) -> int:
+	names.sort()
+	var count := 0
+	for pose: String in PHOTO_POSES[gun]:
+		var laid := {}
+		for name: String in names:
+			laid[name] = photo_layer(name, pose, views[name], raw)
+		for pick in range(1, 1 << names.size()):
+			var cel := Paint.Sheet.load_png(Paint.repo("assets/art/gun_%s_%s.png" % [gun, pose]))
+			var shorts: Array = []
+			for k in names.size():
+				if pick >> k & 1:
+					var name: String = names[k]
+					shorts.append(name.get_slice("__", 1))
+					over_cel(cel, laid[name])
+			cel.save(out.path_join("gun_%s__%s_%s.png" % [gun, "_".join(shorts), pose]))
+			count += 1
+	return count
+
+
+## A photographed gun's mod for one of its cels: the parts laid as the idle
+## pose lays its plate, carried onto the pose's barrel (PHOTO_POSES), cut to
+## the cel's rows and committed to the palette: [laid, digitized].
+func photo_layer(name: String, pose: String, view: Dictionary, raw: String) -> Array:
+	var gun := base_of(name)
+	var rig := String(view["rig"])
+	var seed := 0
+	for c in name.to_utf8_buffer():
+		seed += c
+	var parts := weathered(Paint.Sheet.load_png(raw.path_join(name + ".png")), seed)
+	var idle: Array = PHOTO_POSES[gun]["idle"]
+	var now: Array = PHOTO_POSES[gun][pose]
+	var stretch: float = float(now[3]) / float(idle[3])
+	var carry := (
+		move(Vector2(now[0], now[1]))
+		* turn_about(Vector2.ZERO, float(now[2]) - float(idle[2]))
+		* grow(stretch)
+		* move(-Vector2(idle[0], idle[1]))
+	)
+	var laid := kept_rows(lay(parts, carry * to_cel(rig, 0.0, Vector2.ZERO)))
+	return [laid, Paint.digitize(laid)]
+
+
+## A mod's layer over a cel, behind the hand (skin on the cel stays in front).
+static func over_cel(cel: Paint.Sheet, layer: Array) -> void:
+	var laid: Paint.Sheet = layer[0]
+	var shown: Paint.Sheet = layer[1]
+	for i in cel.w * cel.h:
+		var o := i * 4
+		if laid.data[o + 3] == 0:
+			continue
+		var r := cel.data[o]
+		var b := cel.data[o + 2]
+		if cel.data[o + 3] > 0 and r > b + 40 and r > 110:
+			continue
+		for k in 4:
+			cel.data[o + k] = shown.data[o + k]
 
 
 static func turn_about(at: Vector2, degrees: float) -> Transform2D:
@@ -411,26 +535,27 @@ func cels(name: String, view: Dictionary, raw: String) -> Array:
 	else:
 		held.composite(weapon)
 		held.composite(hands)
+	var gun := base_of(name)
 	var table: Dictionary = (
 		SWING
-		if name == "slingblade"
-		else THROW if name == "tnt" or THROWN.has(name) else CARRY if rig == "carry" else GUN
+		if gun == "slingblade"
+		else THROW if gun == "tnt" or THROWN.has(gun) else CARRY if rig == "carry" else GUN
 	)
 	var out := {}
 	var fronts := {}
-	for pose: String in POSES.get(name, GUN_POSES):
+	for pose: String in POSES.get(gun, GUN_POSES):
 		var entry: Array = table[pose]
 		# The bowling ball is carried low on the right, the keg in front of the belly.
 		var matrix := to_cel("ball" if name == "bowling_ball" else rig, entry[0], entry[1])
 		var source := held
 		if (
 			(rig == "carry" and not entry[2])
-			or ((name == "tnt" or THROWN.has(name)) and pose == "dry")
+			or ((gun == "tnt" or THROWN.has(gun)) and pose == "dry")
 		):
 			source = hands
 		var cel := lay(source, matrix)
 		var front: Vector2 = matrix * Vector2(view["front"][0], view["front"][1])
-		if name == "tnt" and pose.begins_with("lit"):
+		if gun == "tnt" and pose.begins_with("lit"):
 			spark(cel, front, 5 if pose == "lit" else 3, pose == "lit")
 		if pose.begins_with("grind"):
 			for k in 4 if pose == "grind" else 7:

@@ -39,6 +39,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_range_signs` | the firing range's signs |
 | `build_vehicle_signs` | the hand-painted KEYS IN IT signs left by the vehicles (`vehicle_sign_airboat`, `_car`, `_mower`: letters a pixel up or down, paint running, a key on a ring; sun-bleached bayou planks with a bite out, a checkered tin plate, the church's whitewash) |
 | `build_gun_signs` | what points a player at a gun not had yet (feature pass 7, `src/gun_finder.gd`), in the vehicle signs' hand: every word at least twice its size so a line reads from a few cells off: GUNS THIS WAY sawn to an arrow (`gun_sign_way_r`), Hickston's GUNS / HONOR SYSTEM with a rifle painted by it (`gun_sign_honor`), the fair's WIN A GUN / NO REFUNDS on striped tin (`_fair`), MILL LEAGUE / BOWLING NITE on grey tin (`_mill`), DANGER / COW LAUNCHER / NOT YOU MUNDELL on hazard tin (`_quarry`), a hobo's chalk gun and X (`_chalk`, the wall showing through); the glint over a gun lying out (`fx_gun_shine_0..2`: spark, cross, star); Mundell's shadow board for the trophy shack (`gun_board`: pegboard, a whitewash outline of each `GunFinder.BOARD` gun from its pickup picture, MUNDELL'S IRON in the last place) |
+| `build_bench_art` | Mundell's junk bench (content pass 8): the screen's board `bench_board` (pegboard, a two-by-four frame, MUNDELL'S JUNK BENCH lettered on duct tape, the scrap's coffee can, the foot's tape strip), each mod's manila price tag `bench_tag_<short>` (and `_dim`) with the part rendered on it and its name and line hand lettered, each gun on its pegs `bench_gun_<gun>` (and `_bare`, its whitewash outline), the ON stamp, the HUD's marks `bench_mod_<short>_hud` and nut, the scrap pickups `item_scrap_bolts/wire/hubcap`; the parts, guns and scrap are rendered by `scripts/blender/weapon_mods.py items` |
 | `enemy_sheet` | `-- dirs=<old>,<new>` lays cels side by side (`docs/enemy_art/`) |
 
 CI runs `build_fx_art`, `build_building_tiles`, `build_menu_art` and
@@ -314,3 +315,19 @@ revolver plate, the shotgun plate, the crowbar plate for throwables), cut by
 `build_weapon_views.gd`. The 5v5 guns' side materials and `pbr(edge=,
 cavity=)` are in [modes.md](modes.md#the-guns). `src/melee_blood.gd` wets the
 crowbar and sling blade (a cached copy of the graded cel in weapons.gd).
+
+**The junk bench's mods** (content pass 8): `scripts/blender/weapon_mods.py`
+runs weapon_views.py's library. A modelled gun (rifle, crossbow, dynamite)
+is rendered again with each choice of its mods on, `<gun>__<shorts>`
+(rifle__brake_drum), and cut as its gun is. The photographed .38 and
+sawed-off get each mod's parts alone, placed on the photograph's own gun
+(`PHOTO`: the barrel's frame fitted to the plate's muzzle, sight and strap by
+a small solve, a holdout stand-in hiding what is behind the gun), and
+build_weapon_views.gd lays them over each of the gun's cels (`PHOTO_POSES`:
+where the barrel lies in each cel, the idle mod carried there by a turn,
+stretch and move; the hand on the cel stays in front), every choice
+written as `gun_<gun>__<shorts>_<pose>`. The brake's can moves the rifle's
+muzzle anchor (`weapon_anchors.json` `rifle__brake`). `Armory.art_name`
+picks the picture; a gun with no picture of its mods falls back to its own.
+`tools/bench_frames.gd` (a window) takes every modded gun in hand, the
+board, the benches and the scrap.

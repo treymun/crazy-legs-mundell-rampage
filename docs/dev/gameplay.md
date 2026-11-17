@@ -23,8 +23,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (72 now;
-  HOUND DOG is the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (73 now;
+  JUNK BENCH is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -996,6 +996,73 @@ hounds and their own whistles; two games in lockstep with him about, a
 snapshot onto a fresh game running on the same; his art, the stand-in and
 the badge. `-- play=<level>` lets the campaign bot play two minutes with him
 and prints what he did.
+
+### Mundell's junk bench (content pass 8)
+
+Scrap to pick up and a bench to spend it at on duct-tape mods for the main
+guns, in the campaign's chapters and the Crossroads, alone or in co-op
+(`BenchMods.on`: not the range, County Run, a player map, a boss rematch or
+the versus modes; County Run's runs and daily board are balanced on its own
+guns and offers, so it keeps them). JUNK BENCH (PLAY page, `bench`, on)
+turns it off; a game reads `bench` from its options with 0 when missing, and
+the front end sets it to 0 when a tool or view tour runs (`main.gd`), so
+every older check, replay and picture is unchanged. Numbers in
+`data/tuning/bench.cfg`; code `src/bench_mods.gd` (the mods),
+`src/features/bench.gd` (a SIM feature: the benches, scrap, USE),
+`src/bench_screen.gd` (the board).
+
+- **Scrap** is a pickup (`item_scrap_bolts`, `_wire`, `_hubcap`: 1, 2, 3)
+  taken as any pickup (`game_world.gd collect`), carried on the player's
+  `Armory.scrap` (at most `most`). It drops (game.rng) from a hand killed
+  (`enemy_chance`, the tougher kinds more), every piece of `boss` from a
+  boss, a breakable broken (`props` by picture), a vehicle wrecked and a set
+  piece come down (looked for every 15 ticks, each once, saved); `count`
+  pieces are laid beside a chapter's own pickups as it starts (once, saved).
+- **The benches**: the Crossroads' in the Road Department's yard against
+  the depot (`hub_at`); a chapter's near its start, out of the way the
+  start faces, its back to a wall where it can (`_spot`, the same on every
+  machine). Its model is `town_junk_bench` (props_bench.py) drawn through a
+  sprite; it has no box: a player walking into it is put back out (hands
+  can walk through one). The Crossroads runs no hands and no features, so
+  game.gd hands its controls to `bench.hub_tick`.
+- **Buying**: USE at a bench (`game_use.gd`, before BLUE) sets
+  `game.bench_asked` for this machine's player; the front end opens
+  BenchScreen (`settle`, every frame; shut when its player walks `leave`
+  off). A pick goes out as `Controls.buy` (the place in bench.cfg's mods,
+  `take_pending`), so a replay, every copy online and co-op partners buy
+  alike; `bench.buy` takes it only at a bench, once, with the gun and the
+  scrap (`BenchMods.why_not`), says MODNAME TAPED ON with a strip of tape
+  torn off (`bench_tape`, a made cue) and Mundell's `bench_buy` line.
+- **The mods** (`Armory.mods`, bench.cfg ids, name order) are numbers on the
+  gun's own weapons.cfg keys: `Armory.firing(slot)` is the section with
+  the mods' `set` and `times` on (`BenchMods.firing`, cached), and the
+  Armory reads fire_time, reload_time, max_reserve, damage, shot_noise, the
+  scope and the spread through it (`num`); `Armory.mods_on` (set each tick
+  from `game.bench_live`) keeps them out of every other game. Their own
+  keys: `bayonet` (`Armory._jab`: FIRE dry or loading drives it into the
+  hand in front, one under its share of health finished; a lunge in
+  `_hold`), `burns` and `blast_scale` (`BenchMods.blast_of`, put on the
+  blast in `game_combat.gd explode`: a flaming bolt lights what it reaches,
+  `_light_up`), `fuse` (the dynamite's). The ten: PAWN SHOP SCOPE (ALT FIRE
+  zooms 2.1, dead on, reach 36), SPEED LOADER (reload halved), CORN KNIFE
+  (38, 1.55 reach, finishes under 40 %), PIPE CHOKE (spread .6, reach 1.4),
+  DRUM MAG (320 carried, heat .6), COFFEE CAN BRAKE (climb .35, heat
+  spread .5, 30 % louder), FLAMING BOLTS, TRUCK SPRING (bolt 1.45 faster,
+  half the lob, cocks in .75), LONG FUSE (4.4 s), 3-STICK BUNDLE (radius
+  1.4, strength 1.5, hurts you as much more).
+- **Looks**: each choice of a gun's mods has its own pictures
+  (`gun_<gun>__<shorts>_<pose>`, `Armory.art_name`; [art.md](art.md#guns-in-first-person));
+  the status bar shows the mods on the gun in hand as marks on a strip of
+  tape under its rounds and the scrap by the keys (`hud.gd _draw_mods`).
+- **Carried**: saves (version 10: the armory's `scrap` and `mods`,
+  `save_restore.gd _restore_bench`, a mod no longer in bench.cfg dropped;
+  the drum's rounds pass the save check), the chapter kit (`loadout`),
+  Modes.carry (online co-op's chapters and hub), the Crossroads' buys back
+  into the chapter it leads to (`main_flow.gd bench_carry`); snapshots carry
+  the Armory's fields as ever.
+
+`tools/bench_check.gd` (BENCH CHECK OK, in check_all) holds it;
+`tools/bench_frames.gd` takes its pictures in a window.
 
 ### Walls break too
 

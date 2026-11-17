@@ -40014,14 +40014,140 @@
    "bytes": 20732
   },
   {
-   "id": "reconcile@2026-11-16T18:59:28",
+   "id": "tts/mundell_bench_buy_0#1",
+   "kind": "tts",
+   "name": "mundell_bench_buy_0",
+   "params": {
+    "text": "Duct tape and a prayer. Good as new.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "7c8f9556a55e",
+   "reserved": 63,
+   "status": "settled",
+   "started": "2026-11-17T04:57:42",
+   "actual": 36,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_bench_buy_0.mp3",
+   "bytes": 68379
+  },
+  {
+   "id": "tts/mundell_bench_buy_1#1",
+   "kind": "tts",
+   "name": "mundell_bench_buy_1",
+   "params": {
+    "text": "Now that's engineerin'.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "267b889176ca",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-17T04:57:43",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_bench_buy_1.mp3",
+   "bytes": 66498
+  },
+  {
+   "id": "tts/mundell_bench_buy_2#1",
+   "kind": "tts",
+   "name": "mundell_bench_buy_2",
+   "params": {
+    "text": "Taped on tight. Don't tell the county.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "13c4aaa6772f",
+   "reserved": 65,
+   "status": "settled",
+   "started": "2026-11-17T04:57:43",
+   "actual": 38,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_bench_buy_2.mp3",
+   "bytes": 85306
+  },
+  {
+   "id": "stt/mundell_bench_buy_2#1",
+   "kind": "stt",
+   "name": "mundell_bench_buy_2",
+   "params": {
+    "file": "mundell_bench_buy_2.mp3",
+    "bytes": 85306
+   },
+   "hash": "cf8bce9f8554",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T04:58:46",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_bench_buy_2.json",
+   "bytes": 560
+  },
+  {
+   "id": "stt/mundell_bench_buy_0#1",
+   "kind": "stt",
+   "name": "mundell_bench_buy_0",
+   "params": {
+    "file": "mundell_bench_buy_0.mp3",
+    "bytes": 68379
+   },
+   "hash": "44aae9ad848d",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T04:58:46",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_bench_buy_0.json",
+   "bytes": 547
+  },
+  {
+   "id": "stt/mundell_bench_buy_1#1",
+   "kind": "stt",
+   "name": "mundell_bench_buy_1",
+   "params": {
+    "file": "mundell_bench_buy_1.mp3",
+    "bytes": 66498
+   },
+   "hash": "41fc7bc3900f",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T04:58:46",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_bench_buy_1.json",
+   "bytes": 242
+  },
+  {
+   "id": "reconcile@2026-11-17T04:59:48",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -20175,
+   "actual": -19305,
    "basis": "account",
-   "balance_after": 80497
+   "balance_after": 81500
   }
  ],
  "anchor": {
@@ -40029,7 +40155,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-16T18:59:28",
-  "account_drop": 75774
+  "when": "2026-11-17T04:59:48",
+  "account_drop": 76777
  }
 }

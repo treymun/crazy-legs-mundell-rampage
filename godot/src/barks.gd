@@ -109,6 +109,13 @@ const LINES := {
 	"hound_come": ["BLUE! HERE, BOY!"],
 	"hound_good": ["GOOD BOY, BLUE.", "THAT'S MY DOG."],
 	"hound_up": ["HANG ON, BLUE. I GOTCHA."],
+	# A mod taped on at the junk bench (features/bench.gd).
+	"bench_buy":
+	[
+		"DUCT TAPE AND A PRAYER. GOOD AS NEW.",
+		"NOW THAT'S ENGINEERIN'.",
+		"TAPED ON TIGHT. DON'T TELL THE COUNTY.",
+	],
 }
 const COOLDOWN := {
 	"kill": 6.0,
@@ -133,7 +140,8 @@ const COOLDOWN := {
 	"hound_stay": 1.5,
 	"hound_come": 1.5,
 	"hound_good": 9.0,
-	"hound_up": 2.0
+	"hound_up": 2.0,
+	"bench_buy": 1.0
 }
 ## Where his spoken lines are written (the voices'; LINES is the same in
 ## capitals), and how often CUSSIN' or CLEAN reaches for a cuss line over a

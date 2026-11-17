@@ -251,6 +251,7 @@ func travel(destination: String) -> void:
 		play(origin)
 	elif chapter != null:
 		chapter.revisiting = chapter.won
+		bench_carry(current, chapter)
 		face_into_level(chapter)
 		play(chapter)
 	elif replay_runs.has(destination):
@@ -259,6 +260,18 @@ func travel(destination: String) -> void:
 		play(replay)
 	else:
 		start(destination, null, [], campaign_run != null or destination != "hickston", null)
+		bench_carry(current, game)
+
+
+## Out of the Crossroads into a chapter already under way: the scrap and
+## mods got at the hub's bench go along (the hub's kit is a copy of the
+## chapter's; nothing else was spent there).
+func bench_carry(from: Game, to: Game) -> void:
+	if from == null or to == null or not from.in_hub or to == from:
+		return
+	for i in mini(from.players.size(), to.players.size()):
+		to.players[i].armory.scrap = from.players[i].armory.scrap
+		to.players[i].armory.mods = from.players[i].armory.mods.duplicate()
 
 
 func bookmark_campaign_audio(target: Game) -> void:
@@ -1032,7 +1045,8 @@ func _net_ready(opened: NetPlay) -> void:
 		"weather",
 		"county_storm",
 		"boss_wrecks",
-		"hound"
+		"hound",
+		"bench"
 	]:
 		if options.has(key):
 			sim[key] = options[key]

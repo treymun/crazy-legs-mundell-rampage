@@ -301,6 +301,9 @@ func sprites() -> Array:
 		var shack: GameFeature = features.get("trophy_shack")
 		if shack != null:
 			sprites.append_array(shack.sprites())
+		var bench: GameFeature = features.get("bench")  # the junk bench on its counter
+		if bench != null:
+			sprites.append_array(bench.sprites())
 		return sprites
 	if gallery != null and gallery.active:
 		sprites.append(gallery.sprite(me))

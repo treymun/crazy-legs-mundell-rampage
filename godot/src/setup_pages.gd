@@ -316,6 +316,15 @@ static func build() -> Array:
 						"BLUE, YOUR COONHOUND: BAYS AT SECRETS AND NEW IRON, FETCHES, HOLDS VARMINTS DOWN"
 					)
 				),
+				(
+					SessionStore
+					. toggle(
+						"JUNK BENCH",
+						"bench",
+						1,
+						"PICK UP SCRAP, TAPE MODS ON YOUR GUNS AT MUNDELL'S BENCH (CROSSROADS, CHAPTER STARTS)"
+					)
+				),
 				SessionStore.toggle(
 					"ADAPTIVE DIFFICULTY",
 					"adaptive",

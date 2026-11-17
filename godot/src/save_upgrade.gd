@@ -85,6 +85,15 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 			else:
 				doc["features"] = {}
 			return doc
+		9:
+			# Version 10 keeps the junk bench's scrap and mods with the guns
+			# (src/bench_mods.gd); nobody had any before it.
+			var armory: Variant = doc.get("armory")
+			if armory is Dictionary:
+				var guns: Dictionary = armory
+				guns["scrap"] = 0
+				guns["mods"] = []
+			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
 			return null

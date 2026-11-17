@@ -183,6 +183,10 @@ static func use_prompt(g: Game) -> String:
 	if g.players.size() > 1 and ModeScreens.revive_prompt(g) != "":
 		g.use_aim = Vector3.INF  # a partner down beside you (src/modes/)
 		return ModeScreens.revive_prompt(g)
+	var bench: Game.BenchScript = g.features.get("bench")
+	if bench != null and bench.prompt(g.player) != "":
+		g.use_aim = Vector3.INF  # the junk bench (features/bench.gd)
+		return bench.prompt(g.player)
 	var hound: Game.HoundScript = g.features.get("hound")
 	if hound != null and hound.prompt(g.player) != "":
 		g.use_aim = Vector3.INF  # BLUE down beside you (features/hound.gd)
@@ -273,6 +277,9 @@ static func interact(g: Game) -> void:
 	var rides: Game.VehiclesScript = g.features.get("vehicles")
 	if rides != null and rides.use(g.player):
 		return  # in or out of a vehicle (features/vehicles.gd)
+	var bench: Game.BenchScript = g.features.get("bench")
+	if bench != null and bench.use(g.player):
+		return  # the junk bench's screen (features/bench.gd)
 	var hound: Game.HoundScript = g.features.get("hound")
 	if hound != null and hound.use(g.player):
 		return  # a pork rind for BLUE, down beside you (features/hound.gd)

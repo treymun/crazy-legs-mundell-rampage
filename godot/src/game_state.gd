@@ -615,6 +615,15 @@ var boss_wrecks := true
 ## HOUND DOG (setting): BLUE comes along in the campaign's chapters
 ## (features/hound.gd); off, no hound.
 var hound_on := false
+## WORKBENCH (setting): scrap and Mundell's junk bench (src/bench_mods.gd);
+## off, neither. Absent (an older replay, a tool): off, as play was before it.
+var bench_on := false
+## The bench is live in this game (BenchMods.on, set as the bench feature
+## starts): the guns' mods count (Weapons.Armory.mods_on, set each tick).
+var bench_live := false
+## This machine's player used a bench: the front end opens the bench screen
+## (BenchScreen) and clears it.
+var bench_asked := false
 ## The touch overlay is in use (main.gd sets it): aim help reaches further.
 var touch_aim := false
 ## TOUCH AUTO FIRE (game_combat.gd sights_on_enemy): its last answer. The

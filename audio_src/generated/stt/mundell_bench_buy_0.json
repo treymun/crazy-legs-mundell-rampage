@@ -1,0 +1,45 @@
+{
+ "text": "Duct tape and a prayer. Good as new",
+ "words": [
+  {
+   "text": "Duct",
+   "start": 0.06,
+   "end": 0.32
+  },
+  {
+   "text": "tape",
+   "start": 0.4,
+   "end": 0.72
+  },
+  {
+   "text": "and",
+   "start": 0.78,
+   "end": 0.86
+  },
+  {
+   "text": "a",
+   "start": 0.92,
+   "end": 1.0
+  },
+  {
+   "text": "prayer.",
+   "start": 1.08,
+   "end": 1.56
+  },
+  {
+   "text": "Good",
+   "start": 1.78,
+   "end": 1.98
+  },
+  {
+   "text": "as",
+   "start": 2.02,
+   "end": 2.16
+  },
+  {
+   "text": "new",
+   "start": 2.24,
+   "end": 2.56
+  }
+ ]
+}

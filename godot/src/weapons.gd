@@ -253,6 +253,14 @@ class Armory:
 	var tnt_latched := false
 	var auto_switch := true
 	var auto_reload := true
+	## The junk bench (src/bench_mods.gd): the scrap this player carries, the
+	## mods they have taped on (bench.cfg ids, in name order), and whether
+	## the mods count in this game (BenchMods.on: set each tick by game.gd).
+	var scrap := 0
+	var mods: Array[String] = []
+	var mods_on := false
+	## Seconds since the last bayonet jab (a mod's `bayonet`): its lunge.
+	var jab_age := 1.0
 	## The lit, enlarged cels, their rims and their composed rows, by cel and
 	## light level. Kept for the whole session, not per level: lighting a cel is
 	## the slowest thing a frame ever does (some 15 ms the first time a gun is
@@ -276,7 +284,32 @@ class Armory:
 			reserve.append(30 if i == Weapons.REVOLVER else 0)
 		active = start_slot
 
+	## Gun `slot`'s weapons.cfg section, with this player's mods on when they
+	## count (BenchMods).
+	func firing(slot: int) -> Dictionary:
+		if not mods_on or mods.is_empty():
+			return Weapons.FIRING[slot]
+		return BenchMods.firing(slot, mods)
+
+	## One of gun `slot`'s numbers (a weapons.cfg key), mods and all.
+	func num(slot: int, key: String) -> float:
+		var v: float = firing(slot).get(key, 0.0)
+		return v
+
+	## The name gun `slot`'s pictures go by (gun_<name>_<pose>): its mods
+	## show on it.
+	func art_name(slot: int) -> String:
+		if not mods_on or mods.is_empty():
+			return Weapons.NAMES[slot]
+		return BenchMods.art_name(slot, mods)
+
+	## The dynamite's fuse, the long fuse's when it is on.
+	func fuse_time() -> float:
+		var v: float = firing(Weapons.DYNAMITE).get("fuse", Weapons.DYNAMITE_FUSE)
+		return v
+
 	func tick(dt: float, game: GameState) -> void:
+		jab_age += dt
 		for slot in Weapons.COUNT:
 			if loaded[slot] > Weapons.CAPACITY[slot]:
 				# An older save's magazine: put the rounds back in the pool.
@@ -293,7 +326,7 @@ class Armory:
 		shot_age += dt
 		if active in Weapons.CYCLE_GUNS and reserve[active] > 0 and reload <= 0.0:
 			# The hand-loaded cycle after a shot: its three sounds on the beats.
-			var span: float = Weapons.FIRE_TIME[active]
+			var span := num(active, "fire_time")
 			var hold: float = Weapons.KICK_HOLD[active]
 			if age_before < span and span > hold:
 				var was: float = (age_before - hold) / (span - hold)
@@ -310,7 +343,7 @@ class Armory:
 				cooldown = Weapons.FIRE_TIME[Weapons.DYNAMITE]
 				shot_age = 0.0
 				(game as GameCombat).throw_dynamite(0.0)
-		var how: Dictionary = Weapons.FIRING[active]
+		var how := firing(active)
 		if str(how.get("fire", "")) == "melee" and swing_hit and shot_age >= how["swing_at"]:
 			swing_hit = false
 			var p: Player = game.player
@@ -332,7 +365,7 @@ class Armory:
 		rifle_heat = maxf(0.0, rifle_heat - dt * 1.8)
 		lower = maxf(0.0, minf(1.0, lower + dt * (5.5 if holstered else -5.5)))
 		if reload > 0.0:
-			var reload_time: float = Weapons.RELOAD_TIME[active]
+			var reload_time := num(active, "reload_time")
 			var before: float = 1.0 - reload / reload_time
 			reload -= dt
 			var progress: float = 1.0 - reload / reload_time
@@ -385,7 +418,7 @@ class Armory:
 
 	func add_ammo(slot: int, amount: int) -> bool:
 		var old := reserve[slot]
-		var most: int = Weapons.MAX_RESERVE[slot]
+		var most := roundi(num(slot, "max_reserve"))
 		reserve[slot] = mini(most, old + amount)
 		return reserve[slot] > old
 
@@ -399,7 +432,7 @@ class Armory:
 	func start_reload(game: GameState) -> bool:
 		var i := active
 		if Weapons.CAPACITY[i] and reload <= 0.0 and reserve[i] and loaded[i] < Weapons.CAPACITY[i]:
-			reload = Weapons.RELOAD_TIME[i]
+			reload = num(i, "reload_time")
 			grinding = false
 			game.sound.play(str(Weapons.OPEN_AUDIO[i]), .85)
 			game.events.gun_reloading.emit(i)
@@ -412,13 +445,15 @@ class Armory:
 			holstered = false
 			switch = .20
 			return
+		if reload and not switch and game.player.health > 0 and _jab(game):
+			return
 		if cooldown or reload or switch or game.player.health <= 0:
 			return
 		if i == Weapons.DYNAMITE:
 			if fuse == 0.0 and not tnt_latched:
 				if reserve[Weapons.CROSSBOW]:
 					reserve[Weapons.CROSSBOW] -= 1
-					fuse = Weapons.DYNAMITE_FUSE
+					fuse = fuse_time()
 					tnt_latched = true
 					game.sound.play("match_strike")
 					game.set_face("grin_rampage", .35)
@@ -431,6 +466,8 @@ class Armory:
 		var pool := Weapons.pool_fed(i)
 		if ((Weapons.CAPACITY[i] and not loaded[i]) or (pool and not reserve[i])) and not grind:
 			var started: bool = not pool and auto_reload and start_reload(game)
+			if _jab(game):
+				return
 			if not started and empty == 0.0:
 				empty = .34
 				game.sound.play("dry_" + str(Weapons.NAMES[i]))
@@ -450,7 +487,7 @@ class Armory:
 		elif i == Weapons.SHOTGUN and spent == 1 and loaded[i] == 2:
 			cooldown = .26
 		else:
-			cooldown = Weapons.FIRE_TIME[i] + (.18 if spent == 2 else 0.0)
+			cooldown = num(i, "fire_time") + (.18 if spent == 2 else 0.0)
 		recoil = Weapons.RECOIL[i] + (.19 if spent == 2 else 0.0)
 		flash = (.10 if spent == 2 else .072) if i in Weapons.MUZZLE_GUNS else 0.0
 		grinding = grind
@@ -479,12 +516,12 @@ class Armory:
 		var player: Player = game.player
 		var aim: float = player.view_angle()
 		var slope: float = (player.pitch + player.sway) / View.base_focal
-		var how: Dictionary = Weapons.FIRING[i]
+		var how := firing(i)
 		if how.get("assist", false):
 			var assisted: Array = game.assisted_aim(aim, slope)
 			aim = assisted[0]
 			slope = assisted[1]
-		var noise: float = Weapons.SHOT_NOISE[i]
+		var noise := num(i, "shot_noise")
 		game.wake_nearby(noise, player.x, player.y)
 		var mode := str(how.get("fire", ""))
 		if grind:
@@ -495,7 +532,7 @@ class Armory:
 			var tuned := Modes.shot_spread(game, player, i, how, rifle_heat)
 			var spread: Vector2 = tuned[0]
 			var reach: float = tuned[1]
-			var amount: float = Weapons.DAMAGE.get(i, 0)
+			var amount := num(i, "damage")
 			var width: float = how["width"]
 			var pressure: bool = how.get("pressure", false)
 			var offsets: Array = [0.0]
@@ -539,7 +576,7 @@ class Armory:
 			var height: float = how.get("shot_height", 0.0)
 			var lift: float = how.get("shot_lift", 0.0)
 			var aimed: bool = how.get("shot_aimed", true)
-			var damage: int = Weapons.DAMAGE.get(i, 0)
+			var damage := roundi(num(i, "damage"))
 			var life: float = how.get("shot_life", -1.0)
 			game.launch(
 				player.x + cos(aim) * reach,
@@ -554,6 +591,41 @@ class Armory:
 				life
 			)
 
+	## A bayonet's jab (a mod's `bayonet`: [damage, reach, finish below]):
+	## FIRE with the gun dry or loading drives it into the hand in front; one
+	## already under that share of its health is finished. True when it jabbed.
+	func _jab(game: Game) -> bool:
+		var how := firing(active)
+		if not how.has("bayonet"):
+			return false
+		if jab_age < .42:
+			return true
+		var spec: Array = how["bayonet"]
+		var damage: float = spec[0]
+		var reach: float = spec[1]
+		var finish: float = spec[2]
+		jab_age = 0.0
+		recoil = maxf(recoil, .5)
+		game.sound.play("crowbar", .72)
+		var p: Player = game.player
+		var aim := p.view_angle()
+		var slope := (p.pitch + p.sway) / View.base_focal
+		var best: Enemy = null
+		var near := reach
+		for e: Enemy in game.enemies:
+			if not e.alive or not e.hostile:
+				continue
+			var d := Vector2(e.x - p.x, e.y - p.y)
+			var off := absf(angle_difference(aim, d.angle()))
+			if d.length() < near and off < .5:
+				near = d.length()
+				best = e
+		if best != null and best.hp <= best.max_hp * finish:
+			damage = best.hp + 1.0
+		if game.hitscan(aim, slope, damage, reach, .34):
+			game.sound.play("crowbar_hit", .85)
+		return true
+
 	func release_dynamite(game: Game) -> void:
 		if fuse > 0.0:
 			game.throw_dynamite(fuse)
@@ -567,7 +639,7 @@ class Armory:
 
 	func pose() -> String:
 		if reload > 0.0:
-			var reload_time: float = Weapons.RELOAD_TIME[active]
+			var reload_time := num(active, "reload_time")
 			var progress: float = 1.0 - reload / reload_time
 			var beats: Array = Weapons.RELOAD_BEATS[active]
 			var index := 0
@@ -622,11 +694,11 @@ class Armory:
 			or (active in [Weapons.CROSSBOW, Weapons.RIPSAW] and not reserve[active])
 		):
 			return "kick"
-		elif active in Weapons.CYCLE_GUNS and shot_age < Weapons.FIRE_TIME[active]:
+		elif active in Weapons.CYCLE_GUNS and shot_age < num(active, "fire_time"):
 			if not reserve[active]:
 				return "open"
 			var hold: float = Weapons.KICK_HOLD[active]
-			var fire_time: float = Weapons.FIRE_TIME[active]
+			var fire_time := num(active, "fire_time")
 			var span := fire_time - hold
 			var cycle := (shot_age - hold) / span
 			var stage := 0
@@ -655,10 +727,10 @@ class Armory:
 		var lift_amt := minf(1.0, switch / .23)
 		var depth: float = Weapons.RAISE_DEPTH[i]
 		lift_amt = lift_amt * lift_amt * (3.0 - 2.0 * lift_amt) * depth
-		var reload_time: float = Weapons.RELOAD_TIME[i]
+		var reload_time := num(i, "reload_time")
 		var reload_sway := sin(PI * reload / reload_time) if reload else 0.0
 		if i in Weapons.CYCLE_GUNS and reserve[i] > 0:
-			var cycle_span: float = Weapons.FIRE_TIME[i]
+			var cycle_span := num(i, "fire_time")
 			if shot_age < cycle_span:
 				reload_sway = sin(PI * shot_age / cycle_span)
 		var x := roundf(
@@ -683,6 +755,11 @@ class Armory:
 			)
 		)
 		y = maxf(y, float(View.VIEW - Weapons.GUN_H - Weapons.HOLD_FLOOR))
+		if jab_age < .3:
+			# The bayonet's lunge: out and up, and back.
+			var lunge := sin(PI * jab_age / .3)
+			x -= roundf(lunge * 9.0)
+			y -= roundf(lunge * 16.0)
 		var nudge: Vector2 = Weapons.VIEW_SHIFT.get(i, Vector2.ZERO)
 		x += nudge.x
 		y += nudge.y
@@ -697,7 +774,9 @@ class Armory:
 		var s: float = Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE)
 		var held := _hold(player, bob, offset)
 		var anchor: Vector3i = Weapons.MUZZLES[i]
-		var table: Dictionary = Weapons.muzzle_anchors().get(str(Weapons.NAMES[i]), {})
+		var table: Dictionary = Weapons.muzzle_anchors().get(
+			art_name(i), Weapons.muzzle_anchors().get(str(Weapons.NAMES[i]), {})
+		)
 		var pose_name := pose()
 		if table.has(pose_name):
 			var pair: Array = table[pose_name]
@@ -734,7 +813,9 @@ class Armory:
 		var i := active
 		var pose_name := pose()
 		var s: float = Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE)
-		var name := "gun_%s_%s" % [Weapons.NAMES[i], pose_name]
+		var name := "gun_%s_%s" % [art_name(i), pose_name]
+		if not assets.has_art(name):
+			name = "gun_%s_%s" % [Weapons.NAMES[i], pose_name]
 		var level := clampi(roundi((.68 + .38 * light + flash * flashes * 1.6) * 16), 11, 18)
 		_warm(assets, clampi(roundi((.68 + .38 * light) * 16), 11, 18))
 		var key := name + "|" + str(level)
@@ -759,6 +840,8 @@ class Armory:
 		var bx := roundi(x + Weapons.VIEW_PIVOT.x * (1.0 - s))
 		var by := roundi(y + Weapons.VIEW_PIVOT.y * (1.0 - s) + Weapons.VIEW_SINK)
 		var source: String = Weapons.NAMES[i]
+		if Weapons.muzzle_anchors().has(art_name(i)):
+			source = art_name(i)
 		var rim: Dictionary = rim_cache.get(key, {})
 		if rim.is_empty():
 			rim = WeaponPaint.rim_of(image)
@@ -864,7 +947,7 @@ class Armory:
 				)
 		if i == Weapons.DYNAMITE and fuse > 0.0 and lower < .25:
 			var spot2 := Weapons.view_point(x, y, 144.0, 137.0, s)
-			var width := maxi(1, roundi(32.0 * fuse / Weapons.DYNAMITE_FUSE * s))
+			var width := maxi(1, roundi(32.0 * fuse / fuse_time() * s))
 			WeaponPaint.fill_rect(
 				frame,
 				int(roundf(spot2.x)),
@@ -923,15 +1006,17 @@ class Armory:
 					graded[key] = entry[0]
 					rim_cache[key] = entry[1]
 					composed[key] = entry[2]
-		var gun: String = Weapons.NAMES[active]
+		var gun := art_name(active)
 		var want := "%s|%d" % [gun, base_level]
 		if want == _warm_key:
 			return
 		_warm_key = want
 		if not _poses.has(gun):
 			var names: Array = []
+			var prefix := "gun_%s_" % gun
 			for name: String in assets.art_index:
-				if name.begins_with("gun_%s_" % gun):
+				# (not the gun with other mods on: gun_rifle__drum_idle is not the bare rifle)
+				if name.begins_with(prefix) and not name.substr(prefix.length()).begins_with("_"):
 					names.append(name)
 			_poses[gun] = names
 		var jobs: Array = []

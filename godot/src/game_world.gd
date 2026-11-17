@@ -11,6 +11,8 @@ const ModeFeature := preload("res://src/features/mode_feature.gd")
 const VehiclesScript := preload("res://src/features/vehicles.gd")
 ## The hound's script (features/hound.gd), to type features["hound"].
 const HoundScript := preload("res://src/features/hound.gd")
+## The junk bench's (features/bench.gd), to type features["bench"].
+const BenchScript := preload("res://src/features/bench.gd")
 
 # --------------------------------------------------------------- loadout
 
@@ -23,7 +25,9 @@ func loadout() -> Dictionary:
 		"reserve": armory.reserve.duplicate(),
 		"active": armory.active,
 		"inventory": inventory.duplicate(),
-		"slot": inventory_slot
+		"slot": inventory_slot,
+		"scrap": armory.scrap,
+		"mods": armory.mods.duplicate()
 	}
 
 
@@ -43,6 +47,14 @@ func apply_loadout(kit: Dictionary) -> void:
 	var bag: Dictionary = kit["inventory"]
 	inventory = bag.duplicate()
 	inventory_slot = kit["slot"]
+	# The junk bench's (a kit from before it has none).
+	var scrap: int = kit.get("scrap", 0)
+	armory.scrap = scrap
+	var mods: Array = kit.get("mods", [])
+	var kept: Array[String] = []
+	for id: Variant in mods:
+		kept.append(str(id))
+	armory.mods = kept
 
 
 func result() -> Array:
@@ -73,6 +85,8 @@ func configure(options: Dictionary) -> void:
 	# Absent (an older replay, a tool): no hound, as play was before him.
 	var hounding: int = options.get("hound", 0)
 	hound_on = hounding == 1
+	var benching: int = options.get("bench", 0)
+	bench_on = benching == 1
 	var cussing: int = options.get("chatter", CussLines.CUSSIN)
 	chatter = clampi(cussing, 0, 2)
 	var fov: int = options.get("fov", 0)
@@ -337,7 +351,14 @@ func add_pickup(name: String, x: float, y: float, lift := NAN) -> void:
 func collect(name: String) -> bool:
 	var me: Game = self as Object
 	name = str(ALIAS.get(name, name))
-	if Weapons.NAMES.has(name):
+	if name.begins_with("scrap_"):
+		# The junk bench's scrap (src/bench_mods.gd), on the taker's armory.
+		var most: int = BenchMods.value("scrap", "most", 99)
+		if armory.scrap >= most:
+			return false
+		armory.scrap = mini(most, armory.scrap + BenchMods.worth(name))
+		message("SCRAP. %d IN THE POCKET." % armory.scrap, 1.2)
+	elif Weapons.NAMES.has(name):
 		armory.pickup(Weapons.NAMES.find(name), me)
 		barks.say(me, "pickup_weapon", true)
 		set_face("grin_rampage", .6)
