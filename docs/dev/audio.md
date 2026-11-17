@@ -145,6 +145,17 @@ listened to: the owner should hear the local voice's barks (a slower, lower
 voice than the hicks', and the longest barks at about 2 s) and the grey's
 new lines in game.
 
+### Pass 8: Mundell on finishers and hazards (2026-11-16)
+
+Ten lines in his voice (barks.gd and mundell_lines.json `finisher`,
+`hazard`; cues `mundell_finisher_0..4`, `mundell_hazard_0..4`), spoken over
+his kill line after a finisher or a hazard kill. Seven matched as made; "ya
+varmint" came back "you varmints" and "watch yer step" came back with ", son"
+(both captions reworded to the take, `heard` in MUNDELL_HEARD); "He had that
+comin'" was heard as "comments" and was reworded to "He was askin' fer that"
+(one more take). About 400 credits (264 voice, 132 transcripts). Not
+listened to.
+
 ## The county radio (content pass 8)
 
 KPSM, fourteen-ninety AM, the Possum: Dub Tillery, a gravel-voiced

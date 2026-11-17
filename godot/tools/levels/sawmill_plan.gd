@@ -41,7 +41,7 @@ func make() -> Builder:
 		"ending": '"CLOCK OUT. LEAVE THE BOOTS OUTSIDE."',
 		"score": "mill_score",
 		"ambience": "mill",
-		"layout": 7,
+		"layout": 8,
 		"sky": "mill_sky",
 		"control_name": "SLUICE FEED AND DRY-KILN BELT",
 		"objective_side_tasks": ["brake"],
@@ -81,6 +81,7 @@ func build(_b) -> Array:
 	detail()
 	polish()
 	dress()
+	hazards()
 	new_iron()
 	Climbs.sawmill(b)
 	SetPieces.sawmill(b)
@@ -941,3 +942,13 @@ func dress_east() -> void:
 	b.town("lumber_stack", 119.5, 6.5, {"solid": .45})
 	b.town("pallet_stack", 119.5, 10.5, {"solid": .45})
 	b.town("belt_conveyor", 121.5, 20.5, {"solid": .45})
+
+
+## The county's hazards a man can be booted into (content pass 8,
+## src/features/brawl.gd and src/brawl_hazards.gd): two wood chippers, a burn
+## barrel (and the four saws, the log pond). Each stands in the open where the
+## chapter's hands fight; layout 8 with pass 8's set pieces.
+func hazards() -> void:
+	b.town("wood_chipper", 82.5, 69.5, {"solid": .45})
+	b.town("wood_chipper", 23.5, 40.5, {"solid": .45})
+	b.town("burn_barrel", 102.5, 17.5, {"solid": .28, "glow": true})

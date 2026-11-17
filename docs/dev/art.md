@@ -66,7 +66,20 @@ fingerpost's arms and the beam pad's order: signs, not stations.
 in `assets/art/town_props.json` for the level builder's `town()`. Broken
 props come from `scripts/blender/props_broken.py` through the same tool
 (breakables, [gameplay.md](gameplay.md#things-break)). `no-render` reuses the
-last renders; `names=` picks some.
+last renders; `names=` picks some. `props_hazards.py` (content pass 8) is
+the county's hazards: `wood_chipper`, `bug_zapper`, `electric_fence`,
+`well`, `cattle_guard` (sprites, meshes and scenes like the rest).
+
+`tools/art/build_boot_views.gd` (runs `scripts/blender/boot_views.py`) cuts
+Mundell's kick in first person, four cels `fx_boot_kick_0..3`: a work boot
+modelled from hulls (lug sole and heel, stitched welt, toe cap, eyelets and
+crossed laces, tongue, collar) in his model's brown, coming up sole first
+from the bottom of his view (chevron lugs, a separate darker stacked heel,
+the toe up), with his overalls' turned-up cuff under the heel,
+lit by the gun views' three suns, graded as the gun cels; where each sits on
+the view goes to `assets/art/boot_views.json` (`brawl_looks.gd PLACES`, held
+the same by brawl_check). The game's view is the top 156 rows of the 200 it
+is rendered over: keep the boot above row 150.
 
 ### Enemies and bosses
 

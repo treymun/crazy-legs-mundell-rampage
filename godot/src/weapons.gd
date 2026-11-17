@@ -68,6 +68,8 @@ const GUN_H := 120
 const HIP_PISTOL := Vector2(13, 9)
 const HIP_LONG := Vector2(15, 11)
 const VIEW_PIVOT := Vector2(160.0, 120.0)
+## Where on a gun cel (shares of its size) a finisher turns it: the hand.
+const TURN_GRIP := Vector2(.72, .92)
 
 ## Defined in data/tuning/weapons.cfg (see the key list there), loaded by
 ## load_tuning(): each gun's name and its reload and open sounds; the guns
@@ -830,15 +832,24 @@ class Armory:
 			var rim_w: int = rim["w"]
 			var rim_h: int = rim["h"]
 			var rim_data: PackedByteArray = rim["data"]
-			canvas.gpu_texture(
-				Canvas.texture("gunrim|" + key, rim_data, rim_w, rim_h), bx, by - 1, rim_w, rim_h
-			)
+			if player.weapon_turn == 0.0:
+				canvas.gpu_texture(
+					Canvas.texture("gunrim|" + key, rim_data, rim_w, rim_h),
+					bx,
+					by - 1,
+					rim_w,
+					rim_h
+				)
 			var cel_w: int = image["w"]
 			var cel_h: int = image["h"]
 			var cel_data: PackedByteArray = image["data"]
-			canvas.gpu_texture(
-				Canvas.texture("gun|" + key, cel_data, cel_w, cel_h), bx, by, cel_w, cel_h
-			)
+			var made := Canvas.texture("gun|" + key, cel_data, cel_w, cel_h)
+			if player.weapon_turn != 0.0:
+				# A finisher's swing (brawl_looks.gd): turned about the grip.
+				var grip := Vector2(cel_w * Weapons.TURN_GRIP.x, cel_h * Weapons.TURN_GRIP.y)
+				canvas.gpu_texture_turned(made, bx, by, cel_w, cel_h, player.weapon_turn, grip)
+			else:
+				canvas.gpu_texture(made, bx, by, cel_w, cel_h)
 		elif not lay:
 			# Rim first, one pixel high, then the cel.
 			WeaponPaint.blit_rgba(frame, rim, bx, by - 1)

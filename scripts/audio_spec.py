@@ -1153,6 +1153,9 @@ MUNDELL_HEARD = {
     "mundell_station_3": "Mama, I'd be proud.",
     "mundell_pickup_food_1": "Um, salty.",
     "mundell_streak_2": "It's Rampage Times!",
+    "mundell_finisher_2": "Stay down, you varmints!",
+    "mundell_hazard_1": "He was asking for that",
+    "mundell_hazard_2": "Mama said watch your step, son",
 }
 # Where the voice needs the words spelt as said (BLUE's "sic 'em").
 MUNDELL_SAY = {

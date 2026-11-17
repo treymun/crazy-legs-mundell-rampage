@@ -1,0 +1,20 @@
+{
+ "text": "Night night, Bubba",
+ "words": [
+  {
+   "text": "Night",
+   "start": 0.04,
+   "end": 0.28
+  },
+  {
+   "text": "night,",
+   "start": 0.36,
+   "end": 0.62
+  },
+  {
+   "text": "Bubba",
+   "start": 0.74,
+   "end": 1.04
+  }
+ ]
+}

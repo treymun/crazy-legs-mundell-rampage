@@ -1,0 +1,35 @@
+{
+ "text": "That's what the sign was for",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.26,
+   "end": 0.74
+  },
+  {
+   "text": "what",
+   "start": 0.8,
+   "end": 0.98
+  },
+  {
+   "text": "the",
+   "start": 1.04,
+   "end": 1.18
+  },
+  {
+   "text": "sign",
+   "start": 1.24,
+   "end": 1.6
+  },
+  {
+   "text": "was",
+   "start": 1.66,
+   "end": 1.88
+  },
+  {
+   "text": "for",
+   "start": 1.94,
+   "end": 2.48
+  }
+ ]
+}

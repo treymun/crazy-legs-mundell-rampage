@@ -35356,6 +35356,468 @@
    "bytes": 47063
   },
   {
+   "id": "tts/mundell_finisher_2#1",
+   "kind": "tts",
+   "name": "mundell_finisher_2",
+   "params": {
+    "text": "Stay down, ya varmint.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "dad9a9527086",
+   "reserved": 46,
+   "status": "settled",
+   "started": "2026-11-16T17:23:41",
+   "actual": 22,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_finisher_2.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/mundell_finisher_1#1",
+   "kind": "tts",
+   "name": "mundell_finisher_1",
+   "params": {
+    "text": "That's how we do it in the county.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "813b8ab5a255",
+   "reserved": 60,
+   "status": "settled",
+   "started": "2026-11-16T17:23:41",
+   "actual": 34,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_finisher_1.mp3",
+   "bytes": 52705
+  },
+  {
+   "id": "tts/mundell_finisher_0#1",
+   "kind": "tts",
+   "name": "mundell_finisher_0",
+   "params": {
+    "text": "Night night, bubba.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "755c79a85955",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-16T17:23:41",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_finisher_0.mp3",
+   "bytes": 47063
+  },
+  {
+   "id": "tts/mundell_finisher_3#1",
+   "kind": "tts",
+   "name": "mundell_finisher_3",
+   "params": {
+    "text": "Shoulda run, boy.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "dab8f0944a00",
+   "reserved": 40,
+   "status": "settled",
+   "started": "2026-11-16T17:23:41",
+   "actual": 17,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_finisher_3.mp3",
+   "bytes": 51452
+  },
+  {
+   "id": "tts/mundell_finisher_4#1",
+   "kind": "tts",
+   "name": "mundell_finisher_4",
+   "params": {
+    "text": "Lights out, cousin.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "1b0314dbd648",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-16T17:23:42",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_finisher_4.mp3",
+   "bytes": 50825
+  },
+  {
+   "id": "tts/mundell_hazard_0#1",
+   "kind": "tts",
+   "name": "mundell_hazard_0",
+   "params": {
+    "text": "Well, that's one way to go.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d6bd63878c88",
+   "reserved": 52,
+   "status": "settled",
+   "started": "2026-11-16T17:23:42",
+   "actual": 27,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hazard_0.mp3",
+   "bytes": 66498
+  },
+  {
+   "id": "tts/mundell_hazard_1#1",
+   "kind": "tts",
+   "name": "mundell_hazard_1",
+   "params": {
+    "text": "He had that comin'.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "5022236c26ba",
+   "reserved": 42,
+   "status": "settled",
+   "started": "2026-11-16T17:23:42",
+   "actual": 19,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hazard_1.mp3",
+   "bytes": 56467
+  },
+  {
+   "id": "tts/mundell_hazard_2#1",
+   "kind": "tts",
+   "name": "mundell_hazard_2",
+   "params": {
+    "text": "Mama said watch yer step.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "ff8f3dd2c4b3",
+   "reserved": 50,
+   "status": "settled",
+   "started": "2026-11-16T17:23:42",
+   "actual": 25,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hazard_2.mp3",
+   "bytes": 69633
+  },
+  {
+   "id": "tts/mundell_hazard_3#1",
+   "kind": "tts",
+   "name": "mundell_hazard_3",
+   "params": {
+    "text": "County cleans up after itself.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "454b9399d740",
+   "reserved": 56,
+   "status": "settled",
+   "started": "2026-11-16T17:23:43",
+   "actual": 30,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hazard_3.mp3",
+   "bytes": 74021
+  },
+  {
+   "id": "tts/mundell_hazard_4#1",
+   "kind": "tts",
+   "name": "mundell_hazard_4",
+   "params": {
+    "text": "That's what the sign was for.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "37ed0dd1d71f",
+   "reserved": 54,
+   "status": "settled",
+   "started": "2026-11-16T17:23:43",
+   "actual": 29,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hazard_4.mp3",
+   "bytes": 74021
+  },
+  {
+   "id": "stt/mundell_finisher_2#1",
+   "kind": "stt",
+   "name": "mundell_finisher_2",
+   "params": {
+    "file": "mundell_finisher_2.mp3",
+    "bytes": 52705
+   },
+   "hash": "db2b0f99ef24",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:24:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_finisher_2.json",
+   "bytes": 301
+  },
+  {
+   "id": "stt/mundell_finisher_3#1",
+   "kind": "stt",
+   "name": "mundell_finisher_3",
+   "params": {
+    "file": "mundell_finisher_3.mp3",
+    "bytes": 51452
+   },
+   "hash": "74ef49775d36",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:24:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_finisher_3.json",
+   "bytes": 229
+  },
+  {
+   "id": "stt/mundell_finisher_0#1",
+   "kind": "stt",
+   "name": "mundell_finisher_0",
+   "params": {
+    "file": "mundell_finisher_0.mp3",
+    "bytes": 47063
+   },
+   "hash": "c3fd0e6c3b49",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:24:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_finisher_0.json",
+   "bytes": 235
+  },
+  {
+   "id": "stt/mundell_finisher_1#1",
+   "kind": "stt",
+   "name": "mundell_finisher_1",
+   "params": {
+    "file": "mundell_finisher_1.mp3",
+    "bytes": 52705
+   },
+   "hash": "2463937a44a9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:24:58",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_finisher_1.json",
+   "bytes": 542
+  },
+  {
+   "id": "stt/mundell_finisher_4#1",
+   "kind": "stt",
+   "name": "mundell_finisher_4",
+   "params": {
+    "file": "mundell_finisher_4.mp3",
+    "bytes": 50825
+   },
+   "hash": "6f6874006b02",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:24:59",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_finisher_4.json",
+   "bytes": 236
+  },
+  {
+   "id": "stt/mundell_hazard_0#1",
+   "kind": "stt",
+   "name": "mundell_hazard_0",
+   "params": {
+    "file": "mundell_hazard_0.mp3",
+    "bytes": 66498
+   },
+   "hash": "eed3bd1ffd43",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:24:59",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hazard_0.json",
+   "bytes": 417
+  },
+  {
+   "id": "stt/mundell_hazard_1#1",
+   "kind": "stt",
+   "name": "mundell_hazard_1",
+   "params": {
+    "file": "mundell_hazard_1.mp3",
+    "bytes": 56467
+   },
+   "hash": "05014c4f9482",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:24:59",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hazard_1.json",
+   "bytes": 292
+  },
+  {
+   "id": "stt/mundell_hazard_2#1",
+   "kind": "stt",
+   "name": "mundell_hazard_2",
+   "params": {
+    "file": "mundell_hazard_2.mp3",
+    "bytes": 69633
+   },
+   "hash": "2a02bc2d50d9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:25:00",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hazard_2.json",
+   "bytes": 426
+  },
+  {
+   "id": "stt/mundell_hazard_3#1",
+   "kind": "stt",
+   "name": "mundell_hazard_3",
+   "params": {
+    "file": "mundell_hazard_3.mp3",
+    "bytes": 74021
+   },
+   "hash": "ca34a797c1cb",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:25:01",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hazard_3.json",
+   "bytes": 365
+  },
+  {
+   "id": "stt/mundell_hazard_4#1",
+   "kind": "stt",
+   "name": "mundell_hazard_4",
+   "params": {
+    "file": "mundell_hazard_4.mp3",
+    "bytes": 74021
+   },
+   "hash": "17f6dbd450ac",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:25:01",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hazard_4.json",
+   "bytes": 421
+  },
+  {
+   "id": "tts/mundell_hazard_1#2",
+   "kind": "tts",
+   "name": "mundell_hazard_1",
+   "params": {
+    "text": "He was askin' fer that.",
+    "voice_id": "jGcF20nQLzIgnZUK6MUL",
+    "model_id": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "voice_settings": {
+     "stability": 0.6,
+     "similarity_boost": 0.8,
+     "style": 0.35,
+     "use_speaker_boost": true
+    }
+   },
+   "hash": "d519be3dd420",
+   "reserved": 47,
+   "status": "settled",
+   "started": "2026-11-16T17:26:35",
+   "actual": 23,
+   "basis": "expected",
+   "file": "audio_src/generated/tts/mundell_hazard_1.mp3",
+   "bytes": 55213
+  },
+  {
+   "id": "stt/mundell_hazard_1#2",
+   "kind": "stt",
+   "name": "mundell_hazard_1",
+   "params": {
+    "file": "mundell_hazard_1.mp3",
+    "bytes": 55213
+   },
+   "hash": "4336d31ae7b8",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-16T17:27:41",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_hazard_1.json",
+   "bytes": 353
+  },
+  {
    "id": "voice_design/dj#1",
    "kind": "voice_design",
    "name": "dj",
@@ -40014,12 +40476,12 @@
    "bytes": 20732
   },
   {
-   "id": "reconcile@2026-11-16T18:59:28",
+   "id": "reconcile@2026-11-16T20:50:23",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -20175,
+   "actual": -20571,
    "basis": "account",
    "balance_after": 80497
   }
@@ -40029,7 +40491,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-16T18:59:28",
+  "when": "2026-11-16T20:50:23",
   "account_drop": 75774
  }
 }

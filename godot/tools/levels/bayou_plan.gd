@@ -60,7 +60,7 @@ func make() -> Builder:
 		"ending": '"NO WAKE ZONE, MY FOOT."',
 		"score": "bayou_score",
 		"ambience": "bayou",
-		"layout": 5,
+		"layout": 6,
 		"sky": "bayou_sky",
 		"control_name": "BRIDGES: BOIL YARD GENERATOR, CANNERY BREAKER",
 		"extraction":
@@ -114,6 +114,7 @@ func build(_b) -> Array:
 	Cast.pickups(b)
 	Cast.set_pieces(b)
 	channel_run()
+	hazards()
 	posts()
 	Climbs.bayou(b)
 	return [64.5, 87.5, -PI / 2]
@@ -1121,3 +1122,13 @@ func story() -> void:
 	b.distant_cues.append([59.0, 14.0, "distant_bayou_juke"])
 	b.distant_cues.append([14.0, 18.0, "distant_bayou_gator"])
 	b.distant_cues.append([60.0, 70.0, "distant_bayou_frogs"])
+
+
+## The county's hazards a man can be booted into (content pass 8,
+## src/features/brawl.gd and src/brawl_hazards.gd): two bug zappers and a burn
+## barrel (and the deep water, the gators in it). Each stands in the open where
+## the chapter's hands fight; layout 6 for them.
+func hazards() -> void:
+	b.town("bug_zapper", 25.5, 18.5, {"solid": .12, "glow": true})
+	b.town("bug_zapper", 27.5, 53.5, {"solid": .12, "glow": true})
+	b.town("burn_barrel", 16.5, 56.5, {"solid": .28, "glow": true})
