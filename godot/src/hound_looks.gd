@@ -62,8 +62,8 @@ static func body(
 static func carried(
 	g: Game, item: String, x: float, y: float, z: float, angle: float
 ) -> View.Sprite:
-	var reach := .55
-	return g.pooled(x + cos(angle) * reach, y + sin(angle) * reach, "item_" + item, .2, z + .78)
+	var reach := .86
+	return g.pooled(x + cos(angle) * reach, y + sin(angle) * reach, "item_" + item, .2, z + .72)
 
 
 ## The badge: `share` his health (0..1), `face` the head to show (0 panting,
