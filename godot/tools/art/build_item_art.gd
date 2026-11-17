@@ -1,5 +1,8 @@
 ## The armory's wall pictures of the guns and throwables that have no pickup
-## picture of their own (the 5v5 store's): Blender lays each first-person model
+## picture of their own (the 5v5 store's), and since polish pass 9 the
+## pickups (and HUD icons) of the crowbar, the .38, the sawed-off and the
+## dynamite (theirs were the first-person photographs, hand and all) and the
+## dynamite sticks' (a box of shells): Blender lays each first-person model
 ## (scripts/blender/weapon_views.py) on its side and renders it square on
 ## (scripts/blender/item_pictures.py); this crops each to its edges, shrinks it
 ## to its size on the rack with the props' grade (paint.gd photo_shrink) and
@@ -20,7 +23,10 @@ const SUPERSAMPLE := 4
 const LONG := 72
 const SHORT := 32
 const THROWN := 24
-const SHORT_GUNS := ["county45", "star357", "hogleg", "grease_gun"]
+const SHORT_GUNS := ["county45", "star357", "hogleg", "grease_gun", "revolver"]
+## The first sixteen guns' pickups made here keep about the long side their
+## old pictures had, so each lies in the world about as big as it did.
+const OWN_SIZE := {"crowbar": 45, "shotgun": 52, "tnt": 34, "dynamite": 36}
 const THROWN_ITEMS := ["flash_jar", "smudge_pot", "shine_cocktail", "firecracker_can"]
 
 
@@ -75,7 +81,7 @@ func _init() -> void:
 		if name in THROWN_ITEMS:
 			target = Vector2i(maxi(1, roundi(THROWN * cut.w / float(cut.h))), THROWN)
 		else:
-			var wide := SHORT if name in SHORT_GUNS else LONG
+			var wide: int = OWN_SIZE.get(name, SHORT if name in SHORT_GUNS else LONG)
 			target = Vector2i(wide, maxi(1, roundi(wide * cut.h / float(cut.w))))
 		var seed := 0
 		for c in name.to_utf8_buffer():

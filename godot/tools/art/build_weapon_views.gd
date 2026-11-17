@@ -1,12 +1,14 @@
-## Cut the first-person cels for the thirteen weapons that are not
-## photographed plates, into assets/art.
+## Cut the first-person cels for every weapon but the crowbar (still the
+## photographed plate it was), into assets/art.
 ##
 ##   godot --headless --path godot --script res://tools/art/build_weapon_views.gd \
 ##       [-- only=rifle,tnt] [no-render] [out=<dir>]
 ##
-## The crowbar, revolver and shotgun are photographs with the hands in them.
-## Blender (scripts/blender/weapon_views.py, run in Blender's own Python)
-## renders every other weapon through the camera of one of those plates into
+## The crowbar, revolver and shotgun plates are photographs with the hands in
+## them (source_art/*_plate.png; the game showed the .38 and the sawed-off as
+## those photographs until polish pass 9). Blender
+## (scripts/blender/weapon_views.py, run in Blender's own Python) renders
+## every weapon, those two included, through the camera of one plate into
 ## _preview/weapon_raw, so here the plate's own hand is laid over the weapon at
 ## the plate's own size and place, and the result goes through the layout the
 ## plate itself goes through (LAYOUT). A weapon held like the revolver
@@ -16,13 +18,14 @@
 ## out= writes the cels somewhere else and leaves the anchors alone. Then run
 ## tools/pack_assets.gd.
 ##
+## A view with "states" (the .38's and the sawed-off's reloads) has a render
+## of its own for each of those poses, <name>@<pose>.png: the cylinder swung
+## out, the action broken open, the empties flying, the rounds going in.
+##
 ## The workbench's mods (scripts/blender/weapon_mods.py, run with weapon_views.py
-## and into the same folder): a modelled gun with mods on is a view of its own
+## and into the same folder): a gun with mods on is a view of its own
 ## (rifle__brake_drum: the gun's name, "__", the mods' short names in name
-## order), cut as its gun is, gun_<view>_<pose>; a photographed gun's mod is
-## its parts alone, laid over each of that gun's own cels (PHOTO_POSES: where
-## the photograph's barrel lies in each, as the idle cel's carried there),
-## gun_<gun>__<mod>_<pose>: the game lays a gun's mods over its cel in turn.
+## order), cut as its gun is, gun_<view>_<pose>.
 extends SceneTree
 
 const Paint := preload("res://tools/art/paint.gd")
@@ -168,10 +171,12 @@ const GUN_POSES := ["idle", "kick", "recover", "open", "eject", "load", "close"]
 const THROWN := ["flash_jar", "smudge_pot", "shine_cocktail", "firecracker_can"]
 ## How big a throwable's own picture in flight is (pixels across).
 const THROWN_SPRITE := 22
-## The photographed guns' cels and where the barrel lies in each, on the cel:
-## [muzzle x, y, the barrel's angle (degrees), its length to the frame]. A
-## pose's mod is the idle pose's laid by the turn, stretch and move that take
-## the idle barrel onto that pose's.
+## Where the old photographs of the .38 and the sawed-off had the barrel in
+## each cel: [muzzle x, y, the barrel's angle (degrees), its length to the
+## frame (the .38) or how much bigger it showed (the sawed-off)]. Their
+## models are posed the same way (held_pose): turned by the change of angle,
+## grown by the sawed-off's stretch, moved so the muzzle moves as it did, so
+## the kick and the reload keep the swing the photographs had.
 const PHOTO_POSES := {
 	"revolver":
 	{
@@ -196,6 +201,34 @@ const PHOTO_POSES := {
 		"close": [150, 42, 20.0, 1.1]
 	},
 }
+## Cel pixels a pose's muzzle goes further than the photograph's did: the
+## .38 sits higher, so the hand round its grip shows as the photograph's
+## did; the sawed-off's model is longer than the photograph's gun showed,
+## so broken open it is moved left to keep the breech, the empties and the
+## shells going in on the view.
+const PHOTO_NUDGE := {
+	"revolver":
+	{
+		"idle": Vector2(-4, -14),
+		"kick": Vector2(-4, -4),
+		"recover": Vector2(-4, -9),
+		"open": Vector2(-4, -14),
+		"eject": Vector2(-4, -14),
+		"load": Vector2(-4, -14),
+		"close": Vector2(-4, -14)
+	},
+	"shotgun":
+	{
+		"open": Vector2(-38, -2),
+		"eject": Vector2(-44, -4),
+		"eject_one": Vector2(-44, -4),
+		"load": Vector2(-44, -2),
+		"load_one": Vector2(-44, -2),
+		"close": Vector2(-18, 0)
+	}
+}
+## The poses that grow with PHOTO_POSES' stretch (the sawed-off's).
+const STRETCHED := ["shotgun"]
 const POSES := {
 	"slingblade": ["idle", "wind", "strike", "follow", "recover"],
 	"flash_jar": ["idle", "kick", "throw", "dry"],
@@ -204,7 +237,9 @@ const POSES := {
 	"firecracker_can": ["idle", "kick", "throw", "dry"],
 	"tnt": ["idle", "kick", "throw", "lit", "lit_alt", "dry"],
 	"ripsaw": ["idle", "kick", "open", "eject", "load", "close", "grind", "grind_hot"],
-	"crossbow": ["idle", "kick", "open", "eject", "load", "close"]
+	"crossbow": ["idle", "kick", "open", "eject", "load", "close"],
+	"shotgun":
+	["idle", "kick", "recover", "open", "eject", "eject_one", "load", "load_one", "close"]
 }
 
 
@@ -260,17 +295,10 @@ func _init() -> void:
 	var anchors_path := art.path_join("weapon_anchors.json")
 	var anchors = JSON.parse_string(FileAccess.get_file_as_string(anchors_path))
 	var count := 0
-	## A photographed gun's mods: gun -> [view name, ...].
-	var photo := {}
 	for name: String in views:
 		if not only.is_empty() and not only.has(name) and not only.has(base_of(name)):
 			continue
 		var view: Dictionary = views[name]
-		if view.get("photo", false):
-			if not photo.has(base_of(name)):
-				photo[base_of(name)] = []
-			photo[base_of(name)].append(name)
-			continue
 		var made := cels(name, view, raw)
 		var fronts: Dictionary = made[1]
 		for pose: String in made[0]:
@@ -290,8 +318,6 @@ func _init() -> void:
 				if fronts.has(pose):
 					points[pose] = fronts[pose]
 			anchors[name] = points
-	for gun: String in photo:
-		count += photo_cels(gun, photo[gun], views, raw, out)
 	if out == art:
 		var file := FileAccess.open(anchors_path, FileAccess.WRITE)
 		file.store_string(JSON.stringify(anchors, "", false))
@@ -302,68 +328,6 @@ func _init() -> void:
 ## The gun a view is of: its name before "__" (a view with the workbench's mods on).
 static func base_of(name: String) -> String:
 	return name.get_slice("__", 0)
-
-
-## Every pose of a photographed gun with each choice of its mods on
-## (gun_<gun>__<mods>_<pose>, the mods' short names in name order): each
-## mod's parts laid over the cel in turn. Returns how many cels it wrote.
-func photo_cels(gun: String, names: Array, views: Dictionary, raw: String, out: String) -> int:
-	names.sort()
-	var count := 0
-	for pose: String in PHOTO_POSES[gun]:
-		var laid := {}
-		for name: String in names:
-			laid[name] = photo_layer(name, pose, views[name], raw)
-		for pick in range(1, 1 << names.size()):
-			var cel := Paint.Sheet.load_png(Paint.repo("assets/art/gun_%s_%s.png" % [gun, pose]))
-			var shorts: Array = []
-			for k in names.size():
-				if pick >> k & 1:
-					var name: String = names[k]
-					shorts.append(name.get_slice("__", 1))
-					over_cel(cel, laid[name])
-			cel.save(out.path_join("gun_%s__%s_%s.png" % [gun, "_".join(shorts), pose]))
-			count += 1
-	return count
-
-
-## A photographed gun's mod for one of its cels: the parts laid as the idle
-## pose lays its plate, carried onto the pose's barrel (PHOTO_POSES), cut to
-## the cel's rows and committed to the palette: [laid, digitized].
-func photo_layer(name: String, pose: String, view: Dictionary, raw: String) -> Array:
-	var gun := base_of(name)
-	var rig := String(view["rig"])
-	var seed := 0
-	for c in name.to_utf8_buffer():
-		seed += c
-	var parts := weathered(Paint.Sheet.load_png(raw.path_join(name + ".png")), seed)
-	var idle: Array = PHOTO_POSES[gun]["idle"]
-	var now: Array = PHOTO_POSES[gun][pose]
-	var stretch: float = float(now[3]) / float(idle[3])
-	var carry := (
-		move(Vector2(now[0], now[1]))
-		* turn_about(Vector2.ZERO, float(now[2]) - float(idle[2]))
-		* grow(stretch)
-		* move(-Vector2(idle[0], idle[1]))
-	)
-	var laid := kept_rows(lay(parts, carry * to_cel(rig, 0.0, Vector2.ZERO)))
-	return [laid, Paint.digitize(laid)]
-
-
-## A mod's layer over a cel, behind the hand (skin on the cel stays in front).
-static func over_cel(cel: Paint.Sheet, layer: Array) -> void:
-	var laid: Paint.Sheet = layer[0]
-	var shown: Paint.Sheet = layer[1]
-	for i in cel.w * cel.h:
-		var o := i * 4
-		if laid.data[o + 3] == 0:
-			continue
-		var r := cel.data[o]
-		var b := cel.data[o + 2]
-		if cel.data[o + 3] > 0 and r > b + 40 and r > 110:
-			continue
-		for k in 4:
-			cel.data[o + k] = shown.data[o + k]
 
 
 static func turn_about(at: Vector2, degrees: float) -> Transform2D:
@@ -384,14 +348,54 @@ static func grow(k: float) -> Transform2D:
 	return Transform2D(Vector2(k, 0), Vector2(0, k), Vector2.ZERO)
 
 
-## Taking a pixel of the 1280x896 render to the 320x174 cel.
-static func to_cel(rig: String, turn: float, shift: Vector2) -> Transform2D:
+## Taking a pixel of the 1280x896 render to the 320x174 cel: the pose turns
+## it `turn` degrees about the wrist, grows it `stretch` times about it and
+## moves it `shift` layout pixels.
+static func to_cel(rig: String, turn: float, shift: Vector2, stretch := 1.0) -> Transform2D:
+	var posed := (
+		move(shift) * turn_about(WRIST[rig], turn) * grow_about(WRIST[rig], stretch) * seated(rig)
+	)
+	return window(rig) * posed
+
+
+## The plate's layout: a render pixel to the unposed layout.
+static func seated(rig: String) -> Transform2D:
 	var layout: Array = LAYOUT[rig]
-	var window: Vector3 = layout[4]
 	var plate: Transform2D = move(layout[0]) * grow(layout[1]) * move(-Vector2(PLATE_AT))
-	var seated := turn_about(layout[3], layout[2]) * plate
-	var posed := move(shift) * turn_about(WRIST[rig], turn) * seated
-	return grow(window.x) * move(-Vector2(window.y, window.z)) * posed
+	return turn_about(layout[3], layout[2]) * plate
+
+
+## The finished cel's window on the layout.
+static func window(rig: String) -> Transform2D:
+	var w: Vector3 = LAYOUT[rig][4]
+	return grow(w.x) * move(-Vector2(w.y, w.z))
+
+
+static func grow_about(at: Vector2, k: float) -> Transform2D:
+	return move(at) * grow(k) * move(-at)
+
+
+## The .38's or the sawed-off's pose as its photograph had it (PHOTO_POSES):
+## [turn, shift, stretch] for to_cel, given where the model's muzzle is on
+## the render.
+static func held_pose(gun: String, pose: String, rig: String, front: Vector2) -> Array:
+	var idle: Array = PHOTO_POSES[gun]["idle"]
+	var now: Array = PHOTO_POSES[gun][pose]
+	var turn := float(now[2]) - float(idle[2])
+	var stretch := float(now[3]) / float(idle[3]) if STRETCHED.has(gun) else 1.0
+	var w := window(rig)
+	var at_idle: Vector2 = seated(rig) * front
+	var want: Vector2 = (
+		w.affine_inverse()
+		* (
+			w * at_idle
+			+ Vector2(now[0], now[1])
+			- Vector2(idle[0], idle[1])
+			+ PHOTO_NUDGE.get(gun, {}).get(pose, Vector2.ZERO)
+		)
+	)
+	var posed: Vector2 = turn_about(WRIST[rig], turn) * grow_about(WRIST[rig], stretch) * at_idle
+	return [turn, want - posed, stretch]
 
 
 ## The source seen through `matrix`: sampled at SUPER times the cel's size
@@ -520,14 +524,9 @@ func spark(cel: Paint.Sheet, at: Vector2, size: int, hot: bool) -> void:
 	)
 
 
-## Every pose of one weapon, and where its muzzle lands in each.
-func cels(name: String, view: Dictionary, raw: String) -> Array:
-	var rig := String(view["rig"])
-	var seed := 0
-	for c in name.to_utf8_buffer():
-		seed += c
-	var weapon := weathered(Paint.Sheet.load_png(raw.path_join(name + ".png")), seed)
-	var hands := carry_hands(view) if rig == "carry" else plate_hand(rig)
+## A render weathered and held: the hands over it (under a carried thing).
+func held_sheet(path: String, seed: int, hands: Paint.Sheet, rig: String) -> Paint.Sheet:
+	var weapon := weathered(Paint.Sheet.load_png(path), seed)
 	var held := Paint.Sheet.new(weapon.w, weapon.h)
 	if rig == "carry":
 		held.composite(hands)
@@ -535,7 +534,20 @@ func cels(name: String, view: Dictionary, raw: String) -> Array:
 	else:
 		held.composite(weapon)
 		held.composite(hands)
+	return held
+
+
+## Every pose of one weapon, and where its muzzle lands in each.
+func cels(name: String, view: Dictionary, raw: String) -> Array:
+	var rig := String(view["rig"])
+	var seed := 0
+	for c in name.to_utf8_buffer():
+		seed += c
+	var hands := carry_hands(view) if rig == "carry" else plate_hand(rig)
+	var held := held_sheet(raw.path_join(name + ".png"), seed, hands, rig)
+	var states: Array = view.get("states", [])
 	var gun := base_of(name)
+	var front_at := Vector2(view["front"][0], view["front"][1])
 	var table: Dictionary = (
 		SWING
 		if gun == "slingblade"
@@ -544,17 +556,26 @@ func cels(name: String, view: Dictionary, raw: String) -> Array:
 	var out := {}
 	var fronts := {}
 	for pose: String in POSES.get(gun, GUN_POSES):
-		var entry: Array = table[pose]
+		var entry: Array = table.get(pose, [0, Vector2.ZERO])
+		if PHOTO_POSES.has(gun):
+			entry = held_pose(gun, pose, rig, front_at)
 		# The bowling ball is carried low on the right, the keg in front of the belly.
-		var matrix := to_cel("ball" if name == "bowling_ball" else rig, entry[0], entry[1])
+		var matrix := to_cel(
+			"ball" if name == "bowling_ball" else rig,
+			entry[0],
+			entry[1],
+			entry[2] if entry.size() > 2 and entry[2] is float else 1.0
+		)
 		var source := held
+		if states.has(pose):
+			source = held_sheet(raw.path_join("%s@%s.png" % [name, pose]), seed, hands, rig)
 		if (
 			(rig == "carry" and not entry[2])
 			or ((gun == "tnt" or THROWN.has(gun)) and pose == "dry")
 		):
 			source = hands
 		var cel := lay(source, matrix)
-		var front: Vector2 = matrix * Vector2(view["front"][0], view["front"][1])
+		var front: Vector2 = matrix * front_at
 		if gun == "tnt" and pose.begins_with("lit"):
 			spark(cel, front, 5 if pose == "lit" else 3, pose == "lit")
 		if pose.begins_with("grind"):

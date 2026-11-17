@@ -42,6 +42,9 @@ var weapon_lag := Vector2.ZERO
 ## How far the gun is turned on the view (radians, about its grip): a
 ## finisher's swing (features/brawl_looks.gd; looks only, never carried).
 var weapon_turn := 0.0
+## The gun's pose a finisher shows instead of its own (features/brawl_looks.gd:
+## cocked back, the blow, the follow-through; "" its own; looks only).
+var weapon_pose := ""
 
 # What each player has of their own (src/players.gd: the per-player vs shared
 # split). The game's `armory`, `inventory`, `keys`, `task_items`, `sprint`,

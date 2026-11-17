@@ -60,9 +60,10 @@ static var FIRING: Array = []
 const RELOAD_POSES := ["open", "eject", "load", "close"]
 const GUN_W := 320
 const GUN_H := 120
-## The crowbar, revolver and shotgun are photographed plates. Every other
-## weapon is rendered through one of those plates' cameras and held by that
-## plate's hand, so it draws at that plate's scale and with its nudge.
+## The crowbar is a photographed plate. Every other weapon (the .38 and the
+## sawed-off too, since polish pass 9) is rendered through one of the
+## crowbar's, revolver's or shotgun's plate cameras and held by that plate's
+## hand, so it draws at that plate's scale and with its nudge.
 ## Pixels to slide a viewmodel right and down so its muzzle sits under the
 ## crosshair instead of on it.
 const HIP_PISTOL := Vector2(13, 9)
@@ -122,6 +123,10 @@ static var GRIND_DAMAGE: int
 static var VIEW_SCALE: float
 static var VIEW_SINK: float
 static var HOLD_FLOOR: float
+## How long a switch (Armory.select) takes, and the part of it the gun put
+## away spends going down before the new one comes up ([all] switch_lower).
+const SWITCH_TIME := .23
+static var SWITCH_LOWER: float
 
 
 static func _static_init() -> void:
@@ -190,6 +195,7 @@ static func load_tuning() -> void:
 	VIEW_SCALE = Tuning.value(path, "view_scale")
 	VIEW_SINK = Tuning.value(path, "view_sink")
 	HOLD_FLOOR = Tuning.value(path, "hold_floor")
+	SWITCH_LOWER = Tuning.value(path, "switch_lower")
 	# A gun drawn at a new size or place must be lit and scaled again.
 	Armory.graded.clear()
 	Armory.rim_cache.clear()
@@ -278,6 +284,10 @@ class Armory:
 	static var _warm_key := ""
 	static var _poses := {}
 	var boxes := {}
+	## The gun last drawn and the one going down out of the view as a switch
+	## starts (looks only, never carried: draw() works them out).
+	var drawn := -1
+	var leaving := -1
 
 	func _init(start_slot := 1) -> void:
 		for i in Weapons.COUNT:
@@ -399,7 +409,7 @@ class Armory:
 			swing_hit = false
 			tnt_latched = false
 			holstered = false
-			switch = .23
+			switch = Weapons.SWITCH_TIME
 			game.sound.play("equip_" + str(Weapons.NAMES[slot]), .61)
 			game.message(str(Weapons.LABELS[slot]), .95)
 		elif not owned[slot]:
@@ -734,11 +744,18 @@ class Armory:
 	## a reload's sway, the lowered view, and (player.weapon_lag, from
 	## features/feel.gd's springs) its weight, its kick and its jolts.
 	func _hold(player: Player, bob: float, offset: int) -> Vector2:
-		var i := active
+		var i := shown_gun()
 		var gait: float = player.motion * (0.35 if player.air else 1.0) * bob
-		var lift_amt := minf(1.0, switch / .23)
 		var depth: float = Weapons.RAISE_DEPTH[i]
-		lift_amt = lift_amt * lift_amt * (3.0 - 2.0 * lift_amt) * depth
+		var lift_amt := 0.0
+		if i != active:
+			# The gun put away going down: eased in, quicker as it goes.
+			var down := clampf((Weapons.SWITCH_TIME - switch) / Weapons.SWITCH_LOWER, 0.0, 1.0)
+			lift_amt = down * down * depth
+		else:
+			# The new one coming up after it: fast out of the bottom, eased home.
+			var up := minf(1.0, switch / (Weapons.SWITCH_TIME - Weapons.SWITCH_LOWER))
+			lift_amt = up * up * (3.0 - 2.0 * up) * depth
 		var reload_time := num(i, "reload_time")
 		var reload_sway := sin(PI * reload / reload_time) if reload else 0.0
 		if i in Weapons.CYCLE_GUNS and reserve[i] > 0:
@@ -777,11 +794,29 @@ class Armory:
 		y += nudge.y
 		return Vector2(x, y)
 
+	## The gun drawn now: the one in hand, or the one put away while it is
+	## still going down (the first SWITCH_LOWER of a switch).
+	func shown_gun() -> int:
+		if (
+			leaving >= 0
+			and leaving != active
+			and switch > Weapons.SWITCH_TIME - Weapons.SWITCH_LOWER
+		):
+			return leaving
+		return active
+
+	## Note a switch to draw (looks only): the gun drawn before it goes down.
+	func _note_drawn() -> void:
+		if active != drawn:
+			leaving = drawn if switch > 0.0 else -1
+			drawn = active
+
 	## Works out where the muzzle of the gun in hand is on the view now, before
 	## it is drawn, for what is drawn under it (weapon_fx.gd draw_view).
 	func place_muzzle(player: Player, bob: float, offset: int) -> void:
+		_note_drawn()
 		var i := active
-		if not i in Weapons.MUZZLE_GUNS:
+		if not i in Weapons.MUZZLE_GUNS or shown_gun() != i:
 			return
 		var s: float = Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE)
 		var held := _hold(player, bob, offset)
@@ -822,8 +857,17 @@ class Armory:
 			return
 		if gpu:
 			canvas.gpu_item(Canvas.ITEM_NORMAL_VIEW)
-		var i := active
-		var pose_name := pose()
+		_note_drawn()
+		var i := shown_gun()
+		var pose_name := pose() if i == active else "idle"
+		if (
+			player.weapon_pose != ""
+			and i == active
+			and pose_name == "idle"
+			and assets.has_art("gun_%s_%s" % [Weapons.NAMES[i], player.weapon_pose])
+		):
+			# A finisher's own frame (features/brawl_looks.gd).
+			pose_name = player.weapon_pose
 		var s: float = Weapons.VIEW_SCALES.get(i, Weapons.VIEW_SCALE)
 		var name := "gun_%s_%s" % [art_name(i), pose_name]
 		if not assets.has_art(name):

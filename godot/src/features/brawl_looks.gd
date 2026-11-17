@@ -92,6 +92,23 @@ const PATHS := {
 	"punt":
 	[[0.0, 0.0, 0.0, 0.0], [.1, 34.0, 80.0, 10.0], [.5, 34.0, 80.0, 10.0], [.7, 0.0, 0.0, 0.0]],
 }
+## The gun's own frames through each finisher (Player.weapon_pose): [seconds
+## from the start, pose] in order, "" its own again. The pistol and the long
+## gun are cocked back (recover), driven through the blow (kick) and brought
+## back; the blades swing their own swing (wind, strike, follow, recover); a
+## round in the mouth or the gut is cocked, then the shot's own kick shows.
+const FRAMES := {
+	"whip": [[0.0, "recover"], [.1, "kick"], [.24, "recover"], [.44, ""]],
+	"butt": [[0.0, "recover"], [.1, "kick"], [.26, "recover"], [.48, ""]],
+	"mouth": [[0.0, "recover"], [.12, ""]],
+	"belly": [[0.0, "recover"], [.12, ""]],
+	"skull": [[0.0, "wind"], [.11, "strike"], [.21, "follow"], [.36, "recover"], [.56, ""]],
+	"gut": [[0.0, "wind"], [.11, "strike"], [.21, "follow"], [.36, "recover"], [.56, ""]],
+}
+## A gun that swings the blade's moves with frames of its own names.
+const FRAME_NAMES := {
+	"ripsaw": {"wind": "kick", "strike": "grind_hot", "follow": "grind", "recover": "kick"},
+}
 ## Each blow's jolt: [view yaw (radians), view pitch (pixels), eye drop
 ## (cells), the gun's shove x and y (pixels)].
 const KICK_PUNCH := [.0, -3.0, .02, 0.0, 10.0]
@@ -122,7 +139,14 @@ func attach() -> void:
 ## Where each boot cel's top left corner sits on the 320x200 view, as
 ## tools/art/build_boot_views.gd wrote them to assets/art/boot_views.json
 ## (tools/brawl_check.gd holds the two the same).
-const PLACES := {"kick_0": [146, 95], "kick_1": [143, 85], "kick_2": [140, 76], "kick_3": [168, 96]}
+const PLACES := {
+	"kick_0": [146, 95],
+	"kick_1": [143, 85],
+	"kick_2": [140, 76],
+	"kick_3": [168, 96],
+	"kick_4": [151, 99],
+	"kick_5": [155, 111],
+}
 
 
 func _brawl() -> Brawl:
@@ -151,30 +175,39 @@ func boot() -> Array:
 	if move == "punt" and s >= 0.0 and s < wind + KICK_DOWN - KICK_UP:
 		return _kick_pose(maxf(0.0, s - wind + KICK_UP))
 	if move == "stomp" and s >= 0.0 and s < wind + .35:
-		# Chambered, then driven up into his face, held on contact, dropped.
-		if s < wind * .5:
+		# Lifted, chambered, driven up into his face, held on contact,
+		# pulled back, dropped.
+		if s < wind * .3:
+			return _at("kick_5", 0.0, lerpf(30.0, 0.0, s / (wind * .3)))
+		if s < wind * .65:
 			return _at("kick_0", 0.0, 0.0)
 		if s < wind:
 			return _at("kick_1", 0.0, 0.0)
 		if s < wind + .1:
 			return _at("kick_2", -4.0, -4.0)
-		return _at("kick_3", 0.0, lerpf(0.0, 70.0, (s - wind - .1) / .25))
+		if s < wind + .17:
+			return _at("kick_4", 0.0, 0.0)
+		return _at("kick_3", 0.0, lerpf(0.0, 70.0, (s - wind - .17) / .18))
 	return []
 
 
-## The kick's frames: chambered, driven out, the blow (held a moment on
-## contact: the hit-stop), pulled back, dropped away.
+## The kick's six frames: lifted, chambered, driven out, the blow (held a
+## moment on contact: the hit-stop), pulled back, dropped away.
 func _kick_pose(t: float) -> Array:
+	if t < KICK_UP * .5:
+		return _at("kick_5", 0.0, lerpf(24.0, 0.0, t / (KICK_UP * .5)))
 	if t < KICK_UP:
-		return _at("kick_0", 0.0, lerpf(50.0, 0.0, t / KICK_UP))
+		return _at("kick_0", 0.0, 0.0)
 	if t < KICK_LAND:
 		return _at("kick_1", 0.0, 0.0)
 	if t < KICK_OUT:
 		return _at("kick_2", 0.0, 0.0)
 	var d := (t - KICK_OUT) / (KICK_DOWN - KICK_OUT)
-	if d < .4:
-		return _at("kick_1", 0.0, lerpf(0.0, 12.0, d / .4))
-	return _at("kick_3", 0.0, lerpf(0.0, 70.0, (d - .4) / .6))
+	if d < .2:
+		return _at("kick_1", 0.0, lerpf(0.0, 6.0, d / .2))
+	if d < .45:
+		return _at("kick_4", 0.0, lerpf(0.0, 8.0, (d - .2) / .25))
+	return _at("kick_3", 0.0, lerpf(0.0, 70.0, (d - .45) / .55))
 
 
 func _at(pose: String, dx: float, dy: float) -> Array:
@@ -211,6 +244,7 @@ func _tick(_dt: float) -> void:
 	var p := game.local_player
 	var slot := p.slot
 	p.weapon_turn = 0.0
+	p.weapon_pose = ""
 	var feel: Feel = game.features.get("feel")
 	# The kick: the gun ducks out of the boot's way; a jolt as it lands.
 	var at: float = b.kicked_at.get(slot, -10.0)
@@ -233,11 +267,24 @@ func _tick(_dt: float) -> void:
 	var path := _path(move, s)
 	p.weapon_lag += Vector2(path.x, path.y)
 	p.weapon_turn = deg_to_rad(path.z)
+	p.weapon_pose = frame(move, s, str(Weapons.NAMES[p.armory.active]))
 	var wind: float = Brawl.FINISH["wind"]
 	if s >= wind and _blow_punched != started:
 		_blow_punched = started
 		var jolt: Array = BLOW_PUNCH.get(move, KICK_PUNCH)
 		_punch(feel, jolt)
+
+
+## The gun's frame for `move` at `s` seconds in, held in gun `gun` ("" its own).
+static func frame(move: String, s: float, gun: String) -> String:
+	var keys: Array = FRAMES.get(move, [])
+	var shown := ""
+	for row: Array in keys:
+		var t: float = row[0]
+		if s >= t:
+			shown = row[1]
+	var names: Dictionary = FRAME_NAMES.get(gun, {})
+	return str(names.get(shown, shown))
 
 
 func _punch(feel: Feel, k: Array) -> void:

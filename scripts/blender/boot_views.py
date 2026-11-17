@@ -305,8 +305,11 @@ WIDE = 1.5
 # units; the game's view is the top 156 of the 200 rows rendered): the boot
 # comes up from the bottom of the view sole first, its tread to the man
 # kicked, the toe up, the stacked heel down and the overalls' cuff under it.
-# Each: the heel, the toe's way, the top of the foot's way, the knee.
+# Each: the heel, the toe's way, the top of the foot's way, the knee. Six
+# frames since polish pass 9 (lifted and pulled back between the four).
 POSES = {
+    # Lifted: the knee coming up, the boot only just in the bottom of the view.
+    "kick_5": ((.11, .66, -.42), (.05, .4, 1), (.35, .92, -.2), (.2, .15, -1.55)),
     # Chambered: the boot coming up low from the bottom of the view.
     "kick_0": ((.07, .78, -.35), (0, .45, 1), (.4, .9, -.3), (.18, .2, -1.5)),
     # Driven out, rising, the tread to him.
@@ -314,6 +317,8 @@ POSES = {
     # The blow: the sole flat to him in the lower middle of the view, the
     # toe up, the stacked heel down, the cuff under it.
     "kick_2": ((.0, 1.28, -.2), (-.05, .6, 1), (.5, .8, -.5), (.12, .45, -1.45)),
+    # Pulled back off him, the knee bending again, the toe tipping forward.
+    "kick_4": ((.06, 1.0, -.3), (.08, .75, .75), (.45, .7, -.6), (.18, .28, -1.5)),
     # Back down and away to the right.
     "kick_3": ((.14, .88, -.34), (.25, .5, 1), (.1, .9, -.4), (.24, .25, -1.5)),
 }
