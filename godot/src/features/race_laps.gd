@@ -100,6 +100,7 @@ func _tick(dt: float) -> void:
 		dry = true
 	var p := game.player
 	var running := false
+	var siren: bool = spec.get("siren", false)
 	for car: Array in cars:
 		var speed: float = car[1]
 		if dry:
@@ -117,8 +118,12 @@ func _tick(dt: float) -> void:
 		var gap := Vector2(p.x - at.x, p.y - at.y).length()
 		var pass_at: float = car[3]
 		if gap < 12.0 and game.clock >= pass_at:
+			# A cruiser coming round fresh (not heard for a second past its
+			# last pass) wails its siren; close by, its engine as a race car's.
+			var fresh := game.clock >= pass_at + 1.0
 			car[3] = game.clock + 2.2
-			game.sound_at("lap_car_pass", at.x, at.y, .9)
+			var cue := "cruiser_siren" if siren and fresh else "lap_car_pass"
+			game.sound_at(cue, at.x, at.y, .9)
 		# Every player on the track is run down, each with their own second
 		# before the same car can hit them again: car[2] is player one's,
 		# car[3 + slot] another player's (added when first needed).

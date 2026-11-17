@@ -43970,14 +43970,256 @@
    "bytes": 242
   },
   {
-   "id": "reconcile@2026-11-17T09:40:11",
+   "id": "sfx/honk#1",
+   "kind": "sfx",
+   "name": "honk",
+   "params": {
+    "text": "An old 1970s pickup truck's horn: two short, flat, slightly sour honks, beep beep. Close, dry, crisp foley recording of real hardware. One clean sound, no music, no voice.",
+    "duration_seconds": 1.0,
+    "loop": false,
+    "prompt_influence": 0.45,
+    "model_id": "eleven_text_to_sound_v2",
+    "output_format": "mp3_44100_192"
+   },
+   "hash": "4fe2de7c9e57",
+   "reserved": 45,
+   "status": "settled",
+   "started": "2026-11-17T11:21:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/sfx/honk.mp3",
+   "bytes": 25747
+  },
+  {
+   "id": "stt/ann_planted#3",
+   "kind": "stt",
+   "name": "ann_planted",
+   "params": {
+    "file": "ann_planted.mp3",
+    "bytes": 46436
+   },
+   "hash": "a00e8b3e5520",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:35",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_planted.json",
+   "bytes": 359
+  },
+  {
+   "id": "stt/ann_hogs_win#3",
+   "kind": "stt",
+   "name": "ann_hogs_win",
+   "params": {
+    "file": "ann_hogs_win.mp3",
+    "bytes": 51452
+   },
+   "hash": "13162f4e2d40",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:36",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/ann_hogs_win.json",
+   "bytes": 363
+  },
+  {
+   "id": "stt/boss_sheriff_taunt_1#3",
+   "kind": "stt",
+   "name": "boss_sheriff_taunt_1",
+   "params": {
+    "file": "boss_sheriff_taunt_1.mp3",
+    "bytes": 40794
+   },
+   "hash": "fefd8de7e601",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:37",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_sheriff_taunt_1.json",
+   "bytes": 296
+  },
+  {
+   "id": "stt/boss_jerry_intro#3",
+   "kind": "stt",
+   "name": "boss_jerry_intro",
+   "params": {
+    "file": "boss_jerry_intro.mp3",
+    "bytes": 39540
+   },
+   "hash": "d109fdaa3c30",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:38",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_jerry_intro.json",
+   "bytes": 419
+  },
+  {
+   "id": "stt/boss_foreman_worried#3",
+   "kind": "stt",
+   "name": "boss_foreman_worried",
+   "params": {
+    "file": "boss_foreman_worried.mp3",
+    "bytes": 50825
+   },
+   "hash": "a3b2c1c63599",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:39",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_foreman_worried.json",
+   "bytes": 363
+  },
+  {
+   "id": "stt/boss_boggs_last#3",
+   "kind": "stt",
+   "name": "boss_boggs_last",
+   "params": {
+    "file": "boss_boggs_last.mp3",
+    "bytes": 50825
+   },
+   "hash": "d8478e100442",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:40",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/boss_boggs_last.json",
+   "bytes": 295
+  },
+  {
+   "id": "stt/bark_hick_hurt_bad_0#3",
+   "kind": "stt",
+   "name": "bark_hick_hurt_bad_0",
+   "params": {
+    "file": "bark_hick_hurt_bad_0.mp3",
+    "bytes": 33897
+   },
+   "hash": "6ca090755faf",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:41",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_hick_hurt_bad_0.json",
+   "bytes": 287
+  },
+  {
+   "id": "stt/bark_deputy_spot_1#3",
+   "kind": "stt",
+   "name": "bark_deputy_spot_1",
+   "params": {
+    "file": "bark_deputy_spot_1.mp3",
+    "bytes": 39540
+   },
+   "hash": "f0990b464cb4",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:42",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_spot_1.json",
+   "bytes": 173
+  },
+  {
+   "id": "stt/bark_deputy_search_0#3",
+   "kind": "stt",
+   "name": "bark_deputy_search_0",
+   "params": {
+    "file": "bark_deputy_search_0.mp3",
+    "bytes": 35151
+   },
+   "hash": "ad67d371923b",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:43",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_deputy_search_0.json",
+   "bytes": 354
+  },
+  {
+   "id": "stt/bark_coot_spot_1#3",
+   "kind": "stt",
+   "name": "bark_coot_spot_1",
+   "params": {
+    "file": "bark_coot_spot_1.mp3",
+    "bytes": 38286
+   },
+   "hash": "9e37b227f87e",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:45",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_coot_spot_1.json",
+   "bytes": 288
+  },
+  {
+   "id": "stt/bark_grey_cover_0#3",
+   "kind": "stt",
+   "name": "bark_grey_cover_0",
+   "params": {
+    "file": "bark_grey_cover_0.mp3",
+    "bytes": 25120
+   },
+   "hash": "0d66b94c2a82",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:46",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_cover_0.json",
+   "bytes": 233
+  },
+  {
+   "id": "stt/bark_grey_surprised_0#3",
+   "kind": "stt",
+   "name": "bark_grey_surprised_0",
+   "params": {
+    "file": "bark_grey_surprised_0.mp3",
+    "bytes": 56467
+   },
+   "hash": "627d3bc9dd07",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:47",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/bark_grey_surprised_0.json",
+   "bytes": 105
+  },
+  {
+   "id": "stt/mundell_new_iron_2#4",
+   "kind": "stt",
+   "name": "mundell_new_iron_2",
+   "params": {
+    "file": "mundell_new_iron_2.mp3",
+    "bytes": 47063
+   },
+   "hash": "1ecdcc2724b9",
+   "reserved": 150,
+   "status": "settled",
+   "started": "2026-11-17T11:38:48",
+   "actual": 12,
+   "basis": "expected",
+   "file": "audio_src/generated/stt/mundell_new_iron_2.json",
+   "bytes": 421
+  },
+  {
+   "id": "reconcile@2026-11-17T12:06:38",
    "kind": "reconcile",
    "name": "",
    "reserved": 0,
    "status": "settled",
-   "actual": -28894,
+   "actual": -29038,
    "basis": "account",
-   "balance_after": 82767
+   "balance_after": 82791
   }
  ],
  "anchor": {
@@ -43985,7 +44227,7 @@
   "when": "2026-11-10T09:44:29"
  },
  "reconciled": {
-  "when": "2026-11-17T09:40:11",
-  "account_drop": 78044
+  "when": "2026-11-17T12:06:38",
+  "account_drop": 78068
  }
 }

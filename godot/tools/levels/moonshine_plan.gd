@@ -461,7 +461,11 @@ func little_bethel() -> void:
 		69.6,
 		"RING THE CHURCH BELL",
 		"THE BELL CARRIES UP THE RIDGE. COUSIN DEWEY'S PULLIN' THE LOG GATE.",
-		{"opens": [[92, 27], [93, 27], [94, 27], [95, 27]], "sectors": [church], "cue": "fair_bell"}
+		{
+			"opens": [[92, 27], [93, 27], [94, 27], [95, 27]],
+			"sectors": [church],
+			"cue": "church_bell"
+		}
 	)
 	b.quest("quest_bell_rope", 53.5, 69.5, "bell")
 	# Pews either side of the aisle, the pulpit, the piano.

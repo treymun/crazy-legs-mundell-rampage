@@ -623,6 +623,9 @@ var station := RadioStation.new()
 var _dj: Voice
 var _scan: Voice
 var _music_duck := 1.0
+## Play's own hold on the music (game.gd: a blast, a caption up), a share of
+## MUSIC VOLUME; level_music sets it. 1 in the menus.
+var _game_music := 1.0
 var _preview_left := 0.0
 var _preview_side := 1.0
 var _music: AudioStreamPlayer
@@ -1017,7 +1020,7 @@ func set_radio(playing: bool, volume := 0.0, pan := 0.0) -> void:
 	var target := minf(.80, volume * 1.28) if playing else 0.0
 	if absf(radio_gain - target) >= .018 or (not playing and radio_gain > 0.0):
 		radio_gain = target
-		score_player.level(music_gain * (1.0 - target) * _music_duck)
+		_apply_music()
 
 
 func set_levels(effects: float, music_level: float, ambience := 1.0, stereo := 2) -> void:
@@ -1029,7 +1032,7 @@ func set_levels(effects: float, music_level: float, ambience := 1.0, stereo := 2
 	ambient_gain = ambience
 	pan_width = [0.0, .35, .70, .93][clampi(stereo, 0, 3)]
 	if score_player != null:
-		score_player.level(music_gain * (1.0 - radio_gain) * _music_duck)
+		_apply_music()
 	_amb_target[room_slot] = .78 * ambience * mix_headroom
 	if _amb_rate[room_slot] <= 0.0:
 		var bed_level: float = _amb_target[room_slot]
@@ -1169,6 +1172,10 @@ func pause_world() -> void:
 func set_score(cue: String) -> void:
 	if cue != score and _sting.player.playing:
 		_sting.player.stop()
+	if cue != score and not SCORES.has(cue) and _game_music != 1.0:
+		# The menus and the tally: play's hold on the music goes with play.
+		_game_music = 1.0
+		_apply_music()
 	score = cue
 	if score_player != null:
 		score_player.request(cue)
@@ -1259,10 +1266,20 @@ func restore_score(context: String, value: Variant) -> void:
 		score_player.restore(context, value)
 
 
-## The score master level (game.gd drives it for ducking).
+## The score master level (game.gd drives it for ducking, every tick):
+## kept as a share of MUSIC VOLUME, so the radio's holds (a jukebox playing,
+## Dub talking over the song) still apply on top of it. Before pass 9 this
+## set the level outright and undid both a tick after they began.
 func level_music(gain: float) -> void:
+	_game_music = clampf(gain / music_gain, 0.0, 1.0) if music_gain > 0.0 else 1.0
+	_apply_music()
+
+
+## The music at MUSIC VOLUME under every hold on it: play's (level_music), a
+## jukebox or truck radio playing (radio_gain), Dub over the song.
+func _apply_music() -> void:
 	if score_player != null:
-		score_player.level(gain)
+		score_player.level(music_gain * _game_music * (1.0 - radio_gain) * _music_duck)
 
 
 ## Whether the player is in a fight (features/fight_music.gd, every tick): the
@@ -1379,4 +1396,4 @@ func _radio_levels(dt: float) -> void:
 	if duck_now != _music_duck:
 		_music_duck = duck_now
 		if score_player != null:
-			score_player.level(music_gain * (1.0 - radio_gain) * _music_duck)
+			_apply_music()

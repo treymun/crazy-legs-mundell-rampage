@@ -1,0 +1,35 @@
+{
+ "text": "Son, you're on my field now",
+ "words": [
+  {
+   "text": "Son,",
+   "start": 0.06,
+   "end": 0.22
+  },
+  {
+   "text": "you're",
+   "start": 0.3,
+   "end": 0.46
+  },
+  {
+   "text": "on",
+   "start": 0.52,
+   "end": 0.66
+  },
+  {
+   "text": "my",
+   "start": 0.7,
+   "end": 0.88
+  },
+  {
+   "text": "field",
+   "start": 1.0,
+   "end": 1.26
+  },
+  {
+   "text": "now",
+   "start": 1.34,
+   "end": 1.64
+  }
+ ]
+}

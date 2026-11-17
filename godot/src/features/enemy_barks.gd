@@ -154,6 +154,9 @@ var dice := RandomNumberGenerator.new()
 var _next := 0.0
 ## Enemy instance id (or "p<slot>", a bot) -> when it may speak again.
 var _own := {}
+## "<voice>/<moment>" (and "cuss/<voice>/<moment>") -> the line said last,
+## so no hand says the same line twice running.
+var _last := {}
 ## The 5v5 as last seen: slot -> health, the bomb's state, the round's phase.
 var _health := {}
 var _bomb := ""
@@ -210,12 +213,14 @@ func _bark(e: Enemy, moment: String) -> void:
 	var gap := Vector2(e.x - p.x, e.y - p.y).length()
 	if gap > HEARD:
 		return
-	var n := dice.randi_range(0, lines.size() - 1)
+	var n := _fresh("%s/%s" % [who, moment], dice.randi_range(0, lines.size() - 1), lines.size())
 	var cue := "bark_%s_%s_%d" % [who, moment, n]
 	var said := str(lines[n])
 	var cuss := CussLines.lines("enemies", who, moment)
 	if not cuss.is_empty() and dice.randf() < CUSS_SHARE:
-		var k := dice.randi_range(0, cuss.size() - 1)
+		var k := _fresh(
+			"cuss/%s/%s" % [who, moment], dice.randi_range(0, cuss.size() - 1), cuss.size()
+		)
 		var cuss_cue := CussLines.cue(who, moment, k, int(game.chatter))
 		if game.sound.has(cuss_cue):
 			cue = cuss_cue
@@ -228,6 +233,17 @@ func _bark(e: Enemy, moment: String) -> void:
 	if gap <= CAPTIONED and game.clock >= game.caption_until:
 		game.caption = said
 		game.caption_until = game.clock + 1.5
+
+
+## `n`, or the next line when `n` was the last one said under `key` (pass 9:
+## with two or three lines a moment the dice dealt the same one twice running
+## a third to half the time). No extra dice, so the rest of the deal is kept.
+func _fresh(key: String, n: int, count: int) -> int:
+	var last: int = _last.get(key, -1)
+	if count > 1 and n == last:
+		n = (n + 1) % count
+	_last[key] = n
+	return n
 
 
 # ------------------------------------------------------------------ Mundell

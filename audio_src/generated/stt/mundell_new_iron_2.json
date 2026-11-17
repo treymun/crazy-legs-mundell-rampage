@@ -13,23 +13,23 @@
   },
   {
    "text": "I",
-   "start": 1.0,
+   "start": 0.98,
    "end": 1.02
   },
   {
    "text": "can",
-   "start": 1.1,
-   "end": 1.22
+   "start": 1.08,
+   "end": 1.18
   },
   {
    "text": "smell",
-   "start": 1.38,
-   "end": 1.68
+   "start": 1.32,
+   "end": 1.58
   },
   {
    "text": "it",
-   "start": 1.74,
-   "end": 1.82
+   "start": 1.64,
+   "end": 1.78
   }
  ]
 }

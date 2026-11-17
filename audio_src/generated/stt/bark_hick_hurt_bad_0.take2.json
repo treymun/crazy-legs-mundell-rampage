@@ -1,0 +1,25 @@
+{
+ "text": "Ow, I'm hit. Mama",
+ "words": [
+  {
+   "text": "Ow,",
+   "start": 0.1,
+   "end": 0.28
+  },
+  {
+   "text": "I'm",
+   "start": 0.42,
+   "end": 0.52
+  },
+  {
+   "text": "hit.",
+   "start": 0.58,
+   "end": 0.74
+  },
+  {
+   "text": "Mama",
+   "start": 0.86,
+   "end": 1.1
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "text": "That's a citation, son",
+ "words": [
+  {
+   "text": "That's",
+   "start": 0.1,
+   "end": 0.34
+  },
+  {
+   "text": "a",
+   "start": 0.4,
+   "end": 0.48
+  },
+  {
+   "text": "citation,",
+   "start": 0.52,
+   "end": 1.18
+  },
+  {
+   "text": "son",
+   "start": 1.32,
+   "end": 1.58
+  }
+ ]
+}

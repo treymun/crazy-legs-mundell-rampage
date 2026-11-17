@@ -7,10 +7,11 @@
 ## cache folder (PROFILE_VARS), so none of them touches your saves or another
 ## check's files (the tools keep boss checkpoints, County Run and range
 ## records under OS.get_cache_dir(): shared, two checks starting chapters at
-## once would clear each other's). lint also runs gdformat --check and gdlint from
-## the repo's .venv; fast leaves out the campaign walkthrough, the pictures and
-## the quest reach; quick runs only QUICK (a minute or two: the set to run
-## after every change, the whole set at the end of a piece of work).
+## once would clear each other's). lint also runs gdformat --check and gdlint
+## from the repo's .venv, and scripts/audio_qa.py --check with its python; fast
+## leaves out the campaign walkthrough, the pictures and the quest reach;
+## quick runs only QUICK (a minute or two: the set to run after every change,
+## the whole set at the end of a piece of work).
 ## check_fixes runs as its parts (check_fixes_1 ... , its PARTS) side by side.
 ## only= runs the named rows; shard=K/N runs the K-th of N even shares of the
 ## rows by CI_SECONDS (what CI's matrix runs, so every row here is in CI);
@@ -26,6 +27,7 @@ const CHECKS := [
 	["verify_assets", "ASSETS OK"],
 	["voice_check", "VOICE CHECK OK"],
 	["radio_check", "RADIO CHECK OK"],
+	["audio_qa_check", "AUDIO QA OK"],
 	["pack_check", "PACK CHECK OK"],
 	["check_fixes", "PARITY FIXES OK"],
 	["physics_check", "PHYSICS OK"],
@@ -79,6 +81,7 @@ const QUICK := [
 	"verify_assets",
 	"voice_check",
 	"radio_check",
+	"audio_qa_check",
 	"save_fixtures",
 	"level_edit_check",
 	"menu_touch_check",
@@ -190,6 +193,17 @@ func _init() -> void:
 			)
 			var code := OS.execute(venv.path_join(tool + ".exe"), tool_args, output, true)
 			lint.append([tool, code == 0, "\n".join(output)])
+		# The sound measured (scripts/audio_qa.py: loudness against each family,
+		# true peak, clicks, silences, loop joins, same takes, wiring).
+		var qa := []
+		var script := (
+			ProjectSettings
+			. globalize_path("res://")
+			. path_join("../scripts/audio_qa.py")
+			. simplify_path()
+		)
+		var qa_code := OS.execute(venv.path_join("python.exe"), [script, "--check"], qa, true)
+		lint.append(["audio_qa", qa_code == 0, "\n".join(qa)])
 	# Start rows while fewer than `cap` run; read every child's output as it
 	# comes, until all have finished. ALONE rows go last, one by one, with
 	# nothing beside them.
