@@ -1,0 +1,75 @@
+{
+ "text": "Word is the sheriff's out of office permanently, and he wasn't from around here",
+ "words": [
+  {
+   "text": "Word",
+   "start": 0.04,
+   "end": 0.3
+  },
+  {
+   "text": "is",
+   "start": 0.4,
+   "end": 0.56
+  },
+  {
+   "text": "the",
+   "start": 0.62,
+   "end": 0.7
+  },
+  {
+   "text": "sheriff's",
+   "start": 0.74,
+   "end": 1.18
+  },
+  {
+   "text": "out",
+   "start": 1.26,
+   "end": 1.36
+  },
+  {
+   "text": "of",
+   "start": 1.4,
+   "end": 1.48
+  },
+  {
+   "text": "office",
+   "start": 1.6,
+   "end": 1.88
+  },
+  {
+   "text": "permanently,",
+   "start": 2.0,
+   "end": 2.62
+  },
+  {
+   "text": "and",
+   "start": 2.68,
+   "end": 2.76
+  },
+  {
+   "text": "he",
+   "start": 2.78,
+   "end": 2.88
+  },
+  {
+   "text": "wasn't",
+   "start": 2.92,
+   "end": 3.26
+  },
+  {
+   "text": "from",
+   "start": 3.3,
+   "end": 3.48
+  },
+  {
+   "text": "around",
+   "start": 3.56,
+   "end": 3.9
+  },
+  {
+   "text": "here",
+   "start": 3.94,
+   "end": 4.18
+  }
+ ]
+}

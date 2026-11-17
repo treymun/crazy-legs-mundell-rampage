@@ -1,0 +1,30 @@
+{
+ "text": "Code three, lights and sirens",
+ "words": [
+  {
+   "text": "Code",
+   "start": 0.2,
+   "end": 0.4
+  },
+  {
+   "text": "three,",
+   "start": 0.48,
+   "end": 0.82
+  },
+  {
+   "text": "lights",
+   "start": 0.96,
+   "end": 1.22
+  },
+  {
+   "text": "and",
+   "start": 1.26,
+   "end": 1.36
+  },
+  {
+   "text": "sirens",
+   "start": 1.5,
+   "end": 2.06
+  }
+ ]
+}

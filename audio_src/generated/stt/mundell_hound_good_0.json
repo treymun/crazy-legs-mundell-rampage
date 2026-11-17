@@ -1,0 +1,25 @@
+{
+ "text": "Uh, good boy, Blue",
+ "words": [
+  {
+   "text": "Uh,",
+   "start": 0.12,
+   "end": 0.2
+  },
+  {
+   "text": "good",
+   "start": 0.3,
+   "end": 0.48
+  },
+  {
+   "text": "boy,",
+   "start": 0.56,
+   "end": 1.0
+  },
+  {
+   "text": "Blue",
+   "start": 1.12,
+   "end": 1.48
+  }
+ ]
+}

@@ -161,6 +161,12 @@ const REPORT_GAIN := {
 }
 
 const VARIANTS := {
+	# BLUE, the hound (features/hound.gd; scripts/audio_spec.py "the hound").
+	"hound_bark": ["hound_bark", "hound_bark_alt", "hound_bark_alt2"],
+	"hound_bay": ["hound_bay", "hound_bay_alt"],
+	"hound_whine": ["hound_whine", "hound_whine_alt"],
+	"hound_growl": ["hound_growl", "hound_growl_alt"],
+	"hound_yelp": ["hound_yelp", "hound_yelp_alt"],
 	"rifle": ["rifle", "rifle_alt", "rifle_alt2"],
 	"mower": ["mower", "mower_alt"],
 	"revolver": ["revolver", "revolver_alt"],
@@ -312,6 +318,10 @@ class ScorePlayer:
 	var fight_mix := 0.0
 	var fight_gate := 0.0
 	var parked := false
+	## The county radio (RadioStation): asked once at each song's end whether
+	## Dub takes the gap; the next song waits while he talks.
+	var station: RadioStation = null
+	var gap_asked := false
 
 	func _init(
 		p_assets: Assets,
@@ -400,6 +410,8 @@ class ScorePlayer:
 				previous.advance()
 		if context != active:
 			drop_fight(context)
+			if station != null:
+				station.end_break()
 		parked = false
 		var track_name := ""
 		var start_at := 0.0
@@ -455,6 +467,17 @@ class ScorePlayer:
 			if (gain == 0.0 or not player.playing) and not loop_heard:
 				start(requested, not reopen)
 		elif bank != null and not parked and (remaining <= 0.0 or not player.playing):
+			if station != null:
+				if fight_want:
+					station.end_break()
+				elif not gap_asked:
+					gap_asked = true
+					station.take_break()
+				if station.in_break:
+					gain = 0.0
+					apply_levels()
+					return
+			gap_asked = false
 			bank.advance()
 			var again: String = active
 			start(again, false)
@@ -587,6 +610,13 @@ var _tool: Voice
 var _voice: Voice
 var _preview: Voice
 var _beds: Array[Voice] = []
+## The county radio (radio_station.gd): Dub's voice and the scanner's, each
+## on a bus of its own outside the world's reverb, and how far the music is
+## ducked under Dub talking over it.
+var station := RadioStation.new()
+var _dj: Voice
+var _scan: Voice
+var _music_duck := 1.0
 var _preview_left := 0.0
 var _preview_side := 1.0
 var _music: AudioStreamPlayer
@@ -632,6 +662,13 @@ func _init(p_art: Assets) -> void:
 	for _i in BEDS:
 		slot += 1
 		_beds.append(_make_voice(slot))
+	slot += 1
+	_dj = _make_voice(slot, false)
+	slot += 1
+	_scan = _make_voice(slot, false)
+	station.player = _radio_play
+	station.stopper = _radio_stop
+	station.has_cue = has
 
 	_music = AudioStreamPlayer.new()
 	_music.name = "Music"
@@ -657,6 +694,7 @@ func _init(p_art: Assets) -> void:
 		_fight,
 		FIGHTS
 	)
+	score_player.station = station
 	set_levels(1.0, 1.0, 1.0, 2)
 
 
@@ -954,6 +992,7 @@ func _process(delta: float) -> void:
 
 
 func set_radio(playing: bool, volume := 0.0, pan := 0.0) -> void:
+	playing = playing and station.mode != RadioStation.OFF
 	var stream := assets.cue("jukebox")
 	if playing and stream != null:
 		if not _radio.player.playing:
@@ -972,7 +1011,7 @@ func set_radio(playing: bool, volume := 0.0, pan := 0.0) -> void:
 	var target := minf(.80, volume * 1.28) if playing else 0.0
 	if absf(radio_gain - target) >= .018 or (not playing and radio_gain > 0.0):
 		radio_gain = target
-		score_player.level(music_gain * (1.0 - target))
+		score_player.level(music_gain * (1.0 - target) * _music_duck)
 
 
 func set_levels(effects: float, music_level: float, ambience := 1.0, stereo := 2) -> void:
@@ -984,7 +1023,7 @@ func set_levels(effects: float, music_level: float, ambience := 1.0, stereo := 2
 	ambient_gain = ambience
 	pan_width = [0.0, .35, .70, .93][clampi(stereo, 0, 3)]
 	if score_player != null:
-		score_player.level(music_gain * (1.0 - radio_gain))
+		score_player.level(music_gain * (1.0 - radio_gain) * _music_duck)
 	_amb_target[room_slot] = .78 * ambience * mix_headroom
 	if _amb_rate[room_slot] <= 0.0:
 		var bed_level: float = _amb_target[room_slot]
@@ -1093,8 +1132,10 @@ func talking() -> bool:
 
 
 ## Stops every spoken line playing as an effect (a hand's bark, Mundell's
-## wisecrack), for a boss's line on the voice channel to be heard alone.
+## wisecrack) and the radio, for a boss's line on the voice channel to be
+## heard alone.
 func hush_speech() -> void:
+	station.hush()
 	for v: Voice in _effects:
 		if v.player.playing and is_speech(v.cue):
 			v.player.stop()
@@ -1103,6 +1144,7 @@ func hush_speech() -> void:
 
 
 func pause_world() -> void:
+	station.hush()
 	set_room(null)
 	set_space("")
 	set_radio(false)
@@ -1135,6 +1177,9 @@ func pause_score(paused: bool) -> void:
 
 
 func tick_score(dt: float) -> void:
+	station.others_talking = talking()
+	station.update(dt)
+	_radio_levels(dt)
 	if score_player != null:
 		score_player.update(dt)
 	if _music != null:
@@ -1241,3 +1286,79 @@ func toggle_music() -> void:
 		score_player.set_enabled(music)
 		if not music and _sting.player.playing:
 			_sting.player.stop()
+
+
+# ------------------------------------------------------------ the county radio
+
+## How loud Dub is (of the voice level), how far anyone talking ducks the
+## radio, how low the music sits under Dub talking over it, and the scanner
+## faint, in a vehicle and right by a set.
+const DJ_GAIN := .72
+const RADIO_DUCK := .32
+const MUSIC_UNDER_DJ := .42
+const SCAN_FAINT := .17
+const SCAN_RIDING := .5
+const SCAN_NEAR := .7
+## The scanner heard far off: a two-way radio across the room.
+const SCAN_CUTOFF := 3200.0
+
+
+## Plays `cue` on the radio's `channel` (RadioStation.DJ or SCANNER); its
+## length, 0 when it is not made.
+func _radio_play(channel: int, cue: String) -> float:
+	var v := _dj if channel == RadioStation.DJ else _scan
+	var stream := assets.cue(cue)
+	if stream == null:
+		return 0.0
+	v.cue = cue
+	v.player.stream = stream
+	v.player.pitch_scale = 1.0
+	v.player.play()
+	_radio_levels(0.0)
+	return stream.get_length()
+
+
+func _radio_stop(channel: int) -> void:
+	var v := _dj if channel == RadioStation.DJ else _scan
+	if v != null and v.player.playing:
+		v.player.stop()
+
+
+## The radio's levels this frame: Dub between the songs at the voice level
+## (a touch louder and to the side by a set), the scanner faint unless by a
+## set or in a vehicle, both ducked while anyone talks; and the music under
+## Dub when he talks over it (a truck's radio tuned in).
+func _radio_levels(dt: float) -> void:
+	var duck := RADIO_DUCK if station.others_talking else 1.0
+	var near := station.near
+	var base := voice_gain * .88 * mix_headroom * duck
+	if _dj.player.playing:
+		var gain := base * DJ_GAIN * (1.0 + .25 * near)
+		var pan := station.near_pan * near * .6
+		_balance(
+			_dj,
+			gain * (1.0 - maxf(0.0, pan) * pan_width),
+			gain * (1.0 + minf(0.0, pan) * pan_width)
+		)
+	if _scan.player.playing:
+		var heard := maxf(near, .55 if station.driving else 0.0)
+		var gain := base * lerpf(SCAN_FAINT, SCAN_NEAR, heard)
+		if station.driving and near < .55:
+			gain = base * SCAN_RIDING
+		var pan := station.near_pan * near
+		var muffle := AudioServer.get_bus_effect(_scan.bus, 1) as AudioEffectLowPassFilter
+		if muffle != null:
+			muffle.cutoff_hz = lerpf(SCAN_CUTOFF, station.near_cutoff, heard)
+		_balance(
+			_scan,
+			gain * (1.0 - maxf(0.0, pan) * pan_width),
+			gain * (1.0 + minf(0.0, pan) * pan_width)
+		)
+	if dt <= 0.0:
+		return
+	var want := MUSIC_UNDER_DJ if _dj.player.playing and not station.in_break else 1.0
+	var duck_now := move_toward(_music_duck, want, dt * 2.5)
+	if duck_now != _music_duck:
+		_music_duck = duck_now
+		if score_player != null:
+			score_player.level(music_gain * (1.0 - radio_gain) * _music_duck)

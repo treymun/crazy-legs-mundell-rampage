@@ -1,0 +1,60 @@
+{
+ "text": "Ah, the Possum County Fair's back. Rides inspected by somebody, probably",
+ "words": [
+  {
+   "text": "Ah,",
+   "start": 0.0,
+   "end": 0.14
+  },
+  {
+   "text": "the",
+   "start": 0.2,
+   "end": 0.3
+  },
+  {
+   "text": "Possum",
+   "start": 0.34,
+   "end": 0.74
+  },
+  {
+   "text": "County",
+   "start": 0.86,
+   "end": 1.14
+  },
+  {
+   "text": "Fair's",
+   "start": 1.26,
+   "end": 1.76
+  },
+  {
+   "text": "back.",
+   "start": 1.82,
+   "end": 2.12
+  },
+  {
+   "text": "Rides",
+   "start": 2.22,
+   "end": 2.62
+  },
+  {
+   "text": "inspected",
+   "start": 2.66,
+   "end": 3.32
+  },
+  {
+   "text": "by",
+   "start": 3.42,
+   "end": 3.66
+  },
+  {
+   "text": "somebody,",
+   "start": 3.72,
+   "end": 4.2
+  },
+  {
+   "text": "probably",
+   "start": 4.34,
+   "end": 4.76
+  }
+ ]
+}

@@ -31,6 +31,7 @@ const ALL := [
 	preload("res://src/features/carry.gd"),
 	preload("res://src/features/fire.gd"),
 	preload("res://src/features/stills.gd"),
+	preload("res://src/features/set_pieces.gd"),
 	preload("res://src/features/wreckage.gd"),
 	preload("res://src/features/water.gd"),
 	preload("res://src/features/impacts.gd"),
@@ -58,6 +59,8 @@ const ALL := [
 	preload("res://src/features/trophy_shack.gd"),
 	preload("res://src/features/kill_feed.gd"),
 	preload("res://src/features/new_iron.gd"),
+	preload("res://src/features/radio.gd"),
+	preload("res://src/features/hound.gd"),
 ]
 
 ## The features that only look or sound, by file (GameSnapshot.LOOKS_FEATURES
@@ -87,6 +90,7 @@ const LOOKS := [
 	"wreckage",
 	"kill_feed",
 	"new_iron",
+	"radio",
 ]
 
 

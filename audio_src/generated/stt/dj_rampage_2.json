@@ -1,0 +1,55 @@
+{
+ "text": "Busy night for the undertaker. Busiest since the chili cook-off",
+ "words": [
+  {
+   "text": "Busy",
+   "start": 0.08,
+   "end": 0.4
+  },
+  {
+   "text": "night",
+   "start": 0.48,
+   "end": 0.76
+  },
+  {
+   "text": "for",
+   "start": 0.8,
+   "end": 0.88
+  },
+  {
+   "text": "the",
+   "start": 0.92,
+   "end": 0.98
+  },
+  {
+   "text": "undertaker.",
+   "start": 1.06,
+   "end": 1.64
+  },
+  {
+   "text": "Busiest",
+   "start": 1.76,
+   "end": 2.3
+  },
+  {
+   "text": "since",
+   "start": 2.38,
+   "end": 2.68
+  },
+  {
+   "text": "the",
+   "start": 2.74,
+   "end": 2.84
+  },
+  {
+   "text": "chili",
+   "start": 2.9,
+   "end": 3.16
+  },
+  {
+   "text": "cook-off",
+   "start": 3.28,
+   "end": 3.9
+  }
+ ]
+}

@@ -1,0 +1,70 @@
+{
+ "text": "Heat lightning over the quarry. Folks, that ain't the Lord, that's the transformer",
+ "words": [
+  {
+   "text": "Heat",
+   "start": 0.06,
+   "end": 0.28
+  },
+  {
+   "text": "lightning",
+   "start": 0.36,
+   "end": 0.72
+  },
+  {
+   "text": "over",
+   "start": 0.8,
+   "end": 0.94
+  },
+  {
+   "text": "the",
+   "start": 0.98,
+   "end": 1.08
+  },
+  {
+   "text": "quarry.",
+   "start": 1.14,
+   "end": 1.5
+  },
+  {
+   "text": "Folks,",
+   "start": 1.6,
+   "end": 1.92
+  },
+  {
+   "text": "that",
+   "start": 2.0,
+   "end": 2.14
+  },
+  {
+   "text": "ain't",
+   "start": 2.18,
+   "end": 2.38
+  },
+  {
+   "text": "the",
+   "start": 2.42,
+   "end": 2.52
+  },
+  {
+   "text": "Lord,",
+   "start": 2.56,
+   "end": 2.86
+  },
+  {
+   "text": "that's",
+   "start": 2.98,
+   "end": 3.24
+  },
+  {
+   "text": "the",
+   "start": 3.28,
+   "end": 3.36
+  },
+  {
+   "text": "transformer",
+   "start": 3.4,
+   "end": 4.16
+  }
+ ]
+}

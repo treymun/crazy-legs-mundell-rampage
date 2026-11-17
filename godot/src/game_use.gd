@@ -183,6 +183,10 @@ static func use_prompt(g: Game) -> String:
 	if g.players.size() > 1 and ModeScreens.revive_prompt(g) != "":
 		g.use_aim = Vector3.INF  # a partner down beside you (src/modes/)
 		return ModeScreens.revive_prompt(g)
+	var hound: Game.HoundScript = g.features.get("hound")
+	if hound != null and hound.prompt(g.player) != "":
+		g.use_aim = Vector3.INF  # BLUE down beside you (features/hound.gd)
+		return hound.prompt(g.player)
 	var mst: Game.ModeFeature = g.features.get("mode")
 	if mst != null and mst.mode != Modes.CAMPAIGN:
 		var special: String = mst.rules().use_prompt(g)
@@ -269,6 +273,9 @@ static func interact(g: Game) -> void:
 	var rides: Game.VehiclesScript = g.features.get("vehicles")
 	if rides != null and rides.use(g.player):
 		return  # in or out of a vehicle (features/vehicles.gd)
+	var hound: Game.HoundScript = g.features.get("hound")
+	if hound != null and hound.use(g.player):
+		return  # a pork rind for BLUE, down beside you (features/hound.gd)
 	var gate: LevelData.Gate = portal_target(g)
 	if gate != null:
 		if g.world.locked_gates.has(gate):

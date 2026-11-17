@@ -759,7 +759,9 @@ func _step_hands(p: Player, controls: Controls, dt: float) -> void:
 		var mode_state: ModeFeatureScript = features.get("mode")
 		if mode_state != null and mode_state.mode != Modes.CAMPAIGN:
 			mode_state.rules().buy(self, mode_state, p, controls.buy)
-	if controls.item >= POCKET_PICK:
+	if controls.item == HOUND_CALL:
+		hound_call()
+	elif controls.item >= POCKET_PICK:
 		inventory_slot = clampi(controls.item - POCKET_PICK, 0, HUD.ITEMS.size() - 1)
 	elif controls.item >= 0:
 		use_item(controls.item)
@@ -848,6 +850,14 @@ func use_prompt() -> String:
 	if carry != null and carry.allowed():
 		return carry.prompt(shown)
 	return shown
+
+
+## The whistle (WHISTLE FOR BLUE): the acting player's hound's command
+## (features/hound.gd), from the front end's key or Controls.item.
+func hound_call() -> void:
+	var hound: HoundScript = features.get("hound")
+	if hound != null:
+		hound.command(player)
 
 
 ## LIVE PROPS AND FIRE (setup_pages.gd): off, nothing is taken up and fire

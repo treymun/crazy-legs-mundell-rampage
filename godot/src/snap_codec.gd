@@ -39,7 +39,7 @@ const SKIP_FIELDS := {
 	"Player": ["voice", "weapon_lag", "weapon_turn"],
 	"Weapons.Armory": ["boxes"],
 	"wall_breaks": ["by_cell", "win", "_faces", "_loose", "gaps"],
-	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty"],
+	"breakables": ["_feels", "_cfg", "_resting", "_resting_dirty", "_crack_seen"],
 	# What the level makes the same everywhere (tuning, what each cell has to
 	# burn), this machine's view of it (what it last put in step, the held
 	# picture, the marks) and a furniture base each machine frees itself.
@@ -63,6 +63,24 @@ const SKIP_FIELDS := {
 		"_barrels"
 	],
 	"stills": ["_cfg", "_images"],
+	# The set pieces as the level makes them, and this machine's looks.
+	"set_pieces":
+	[
+		"_specs",
+		"shapes",
+		"_ground",
+		"trails",
+		"_boxes",
+		"_tile",
+		"_sprites",
+		"_draw_plan",
+		"_drawn_version",
+		"mark_cache",
+		"_hiss_at",
+		"_to_shut",
+		"ray_d",
+		"ray_hit"
+	],
 	"vehicles": ["_looks", "_dice"],
 	"vehicle_runs": ["defs"],
 	# A shut boss arena: what this machine put on its own world.
@@ -72,6 +90,8 @@ const SKIP_FIELDS := {
 	# next water ring shows, how a flung prop moves; the gear's feels.
 	"arena_wreck": ["steps", "foes", "_taken", "_ring_next", "_fly_feel"],
 	"boss_gear": ["_feels"],
+	# A hound's walking body (put in step from him each move) and the numbers.
+	"hound": ["_body", "_n"],
 	# The arena lights this machine's player is near (looks: each machine its own).
 	"boss_arena": ["_lights", "_light_used"],
 	# How bodies move (set in attach, the same everywhere; a body names its own).

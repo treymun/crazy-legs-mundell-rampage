@@ -1,0 +1,35 @@
+{
+ "text": "Caller reports gunfire. Lots of it",
+ "words": [
+  {
+   "text": "Caller",
+   "start": 0.2,
+   "end": 0.54
+  },
+  {
+   "text": "reports",
+   "start": 0.64,
+   "end": 1.16
+  },
+  {
+   "text": "gunfire.",
+   "start": 1.28,
+   "end": 2.16
+  },
+  {
+   "text": "Lots",
+   "start": 2.36,
+   "end": 2.74
+  },
+  {
+   "text": "of",
+   "start": 2.86,
+   "end": 2.96
+  },
+  {
+   "text": "it",
+   "start": 3.06,
+   "end": 3.32
+  }
+ ]
+}

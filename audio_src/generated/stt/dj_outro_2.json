@@ -1,0 +1,60 @@
+{
+ "text": "This next one's for the night shift. Y'all hang in there",
+ "words": [
+  {
+   "text": "This",
+   "start": 0.1,
+   "end": 0.26
+  },
+  {
+   "text": "next",
+   "start": 0.32,
+   "end": 0.6
+  },
+  {
+   "text": "one's",
+   "start": 0.66,
+   "end": 0.94
+  },
+  {
+   "text": "for",
+   "start": 0.98,
+   "end": 1.06
+  },
+  {
+   "text": "the",
+   "start": 1.1,
+   "end": 1.16
+  },
+  {
+   "text": "night",
+   "start": 1.22,
+   "end": 1.44
+  },
+  {
+   "text": "shift.",
+   "start": 1.5,
+   "end": 1.86
+  },
+  {
+   "text": "Y'all",
+   "start": 1.92,
+   "end": 2.16
+  },
+  {
+   "text": "hang",
+   "start": 2.22,
+   "end": 2.46
+  },
+  {
+   "text": "in",
+   "start": 2.58,
+   "end": 2.7
+  },
+  {
+   "text": "there",
+   "start": 2.76,
+   "end": 2.98
+  }
+ ]
+}

@@ -715,6 +715,8 @@ func apply_options() -> void:
 		sound.set_space("")
 	var voice_volume: float = options["voice_volume"]
 	sound.voice_gain = voice_volume / 100.0
+	var radio: int = options.get("radio", RadioStation.DJ_AND_MUSIC)
+	sound.station.mode = clampi(radio, 0, 2)
 	apply_master()
 	var lights: int = options.get("lights", 1)
 	Effects.enabled = lights != 0
@@ -859,6 +861,8 @@ func _pad_bindings() -> Array:
 			[JOY_BUTTON_RIGHT_SHOULDER, KEY_APOSTROPHE],
 			[JOY_BUTTON_START, KEY_ESCAPE],
 			[JOY_BUTTON_BACK, KEY_TAB],
+			# The pad's share or capture button whistles for BLUE.
+			[JOY_BUTTON_MISC1, KEY_G],
 			# With the map open, up and down zoom it instead.
 			[JOY_BUTTON_DPAD_UP, KEY_PAGEUP if game.map else KEY_C],
 			[JOY_BUTTON_DPAD_LEFT, KEY_B],

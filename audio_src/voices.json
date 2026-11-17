@@ -73,5 +73,10 @@
   "id": "jGcF20nQLzIgnZUK6MUL",
   "description": "A wiry, wild-eyed Southern country man in his thirties, the hero of a rowdy shoot-'em-up: a twangy, raspy, quick-talking hillbilly voice, cocky, gleeful and a little unhinged, with a thick Arkansas accent. Close, dry studio recording.",
   "preview": "audio_src/generated/voice_design/mundell.mp3"
+ },
+ "dj": {
+  "id": "ICd0ivCydzP1Fqk5agXM",
+  "description": "A gravel-voiced late-night country radio disc jockey in his sixties from rural Arkansas: a deep, smoky, unhurried baritone drawl, warm, wry and a little worn from cigarettes and coffee, talking close to the microphone on a small AM station after midnight. Close, dry studio recording.",
+  "preview": "audio_src/generated/voice_design/dj.mp3"
  }
 }

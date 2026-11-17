@@ -103,6 +103,28 @@ the oval can be driven all the way round). A run's gates must lie on what
 its vehicle runs on and be reachable in order; `tools/vehicle_set_check.gd`
 drives each one to the end.
 
+### The big breaks
+
+A plan's meta `"set_pieces"` lists its barns, water towers and fuel lines
+(features/set_pieces.gd; level_builder writes it only when there are any):
+`{"kind": "barn"|"tower"|"fuel", "id", "x", "y", "turn" (quarter turns),
+"falls" (the square ways it may go over: 0 east, 1 south, 2 west, 3
+north)}` and a kind's own (`w`, `d`, `eave`, `wall_tile`, `roof_tile`;
+a fuel line's `points` and `pumps`). `tools/levels/set_piece_kit.gd` adds
+them (`barn()`, `tower()`, `fuel()`) and each chapter's are its
+`hickston()`, `fair()`, `sawmill()`, `speedway()`, called at the end of the
+plan's build(). Content pass 8 put in: Hickston's water tower (moved from
+the creek's corner to the county road at Main Street), the orchard's hay
+shed (the orchard's two south rows of trees made way) and the GAS-N-GUT's
+fuel line to a propane tank by the side door (layout 7); the fair's hay
+shed in the parking field (layout 6); the sawmill's lumber shed in the
+yard (layout 7); the speedway truck stop's water tower and its fuel
+island's line to the gas cans by the big tank (layout 5). Each stands off
+the only way to anything the chapter needs and falls only away from walls,
+hedges and parked things; `tools/set_piece_check.gd` brings them all down
+every way they may fall and walks to every station, key and exit again.
+The chapter the CHAPTER track builds puts its own through the same kit.
+
 ### The guns along the way
 
 Feature pass 7 (`src/gun_finder.gd` makes a gun not had yet shine, go on

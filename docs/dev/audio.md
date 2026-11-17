@@ -104,6 +104,11 @@ always sounds like itself).
   shouts 2.5 dB under the others (speech RMS -13.0 against about -10.5):
   its barks, cuss lines and tough guys take `squash` 4 (their spikes limited
   before levelling) and land at -10.4. Its older radio talk is unchanged.
+- **BLUE.** His barks, bays, growls, bite, boof, yelps and whines are
+  `hound_*` effects (`audio_spec.py` "the hound"; takes dealt by
+  `Sound.VARIANTS`), the whistle `hound_whistle`; Mundell's words to him are
+  his own `hound_*` lines (mundell_lines.json; `MUNDELL_SAY` spells "sic 'em"
+  for the voice). Made in content pass 8 (about 520 credits).
 - **Turns.** `Sound.talking()` is any spoken line (`Sound.SPEECH`) still
   playing; `hush_speech()` stops the ones playing as effects. A hand keeps
   quiet while anyone talks; Mundell's line is shown, not said; a boss's
@@ -150,6 +155,66 @@ varmint" came back "you varmints" and "watch yer step" came back with ", son"
 comin'" was heard as "comments" and was reworded to "He was askin' fer that"
 (one more take). About 400 credits (264 voice, 132 transcripts). Not
 listened to.
+
+## The county radio (content pass 8)
+
+KPSM, fourteen-ninety AM, the Possum: Dub Tillery, a gravel-voiced
+late-night jock (voice `dj`, designed for it, an original character), talks
+between the cowpunk songs, and the county's police scanner (the `dispatch`
+voice) calls in Mundell's trouble. `src/radio_station.gd` (`RadioStation`,
+one per machine, kept by Sound as `sound.station` so it remembers the night
+across chapters and retries) decides what is said and when, with its own
+dice; `features/radio.gd` (a looks feature) tells it the news and where the
+sets are, and captions it; the words are `data/tuning/radio_lines.json`.
+
+- **Between songs.** When a chapter's song ends, ScorePlayer asks the station
+  once (`take_break`); a break holds the next song until it is over: a beat,
+  an ID, the talk (news first: a boss's fall, a blast, a wreck, a rampage, a
+  rough night of deaths, drunk, a secret; else the weather, an ad for a county
+  business or a county bit, sometimes an ad as well), the way back to the
+  band. With no news Dub lets about a third of the gaps go. A fight ends a
+  break early; a boss fight (`fight_music.boss_fight`) starts none. Lines are
+  dealt from a shuffled bag per group, never the one just said across a new
+  deal: 5 IDs x 5 ways back x 7 ads and so on. News is stale after 10
+  minutes, a topic told waits 7 before it is news again; three deaths in 15
+  minutes make a rough night.
+- **The scanner.** Shots fired in a fight, a blast, a car burnt out, a
+  rampage, a deputy down: the key-up (`scan_squelch`), sometimes "all units",
+  the call, the units sent to the chapter's place (`place_<chapter>`), a word
+  on the suspect, the key-down. One call of a kind in 45 s, any two 16 s
+  apart; a call waits up to 8 s for nobody to be talking. Faint everywhere
+  (`SCAN_FAINT`, through a 3.2 kHz muffle), louder in a vehicle and by a set.
+- **Sets.** The nearest within 9 cells: a jukebox (one with a switch only
+  while playing), a radio on a desk (a level's `*radio*` exchange or
+  picture), the Crossroads' dispatch board, a ready vehicle's radio. Near
+  one, Dub leans to its side and the scanner comes from it, by
+  `sound_position` and `sound_cutoff`. Taking a vehicle tunes its set in
+  (`radio_tune`) and now and then Dub says one for the road over the music.
+- **Turns.** Dub and the scanner are on two voices of their own, outside the
+  world's reverb and outside `talking()` (the hands do not wait for the
+  radio). Anyone talking ducks both to `RADIO_DUCK`; a boss's line
+  (`hush_speech`) and pausing (`pause_world`) hush them; Dub talking over
+  the music (not in a break) brings it down to `MUSIC_UNDER_DJ`.
+- **RADIO** (SOUND page): DJ + MUSIC (0), MUSIC ONLY (no talk, no scanner),
+  OFF (the sets are hushed too: jukeboxes, the vehicles' radios). Per
+  machine, never in a lobby's settings; off in the 5v5 rounds. Its levels
+  follow VOICE VOLUME. Captions (VOICE CAPTIONS) say "KPSM: ..." for Dub and
+  "SCANNER: ..." when a set or a vehicle is near, only when no other caption
+  is up.
+- **Crude lines.** Dub's `cuss_dj_<topic>_0` (four) are told now and then
+  under CUSSIN', their CLEAN copies under CLEAN (#@!% in the caption), never
+  with CHATTER OFF.
+- **Made** (2026-11-16): 54 lines of Dub's, 4 crude (and 4 CLEAN copies), 26
+  scanner pieces, the set's click and the squelch. 86 first takes: 78
+  matched, 4 only spelled the county's words or numbers their own way
+  (`RADIO_HEARD`), 2 said the caption a little otherwise and were captioned
+  as said (`RADIO_SAID`), 2 lost their last word twice ("band", "units")
+  and were reworded. The `am` speaker box (150 to 5,200 Hz, a little drive
+  and hiss) is warmer than the two-way `radio` the scanner uses. Lines last
+  0.9 to 6.0 s; Dub's loudest 50 ms sit at -5.1 dB (median), as loud as
+  Mundell's and the bosses'. The ledger booked 6,492 credits at expected
+  rates; the account's own counter fell 2,437. Not listened to.
+- `tools/radio_check.gd` (check_all, quick) holds it.
 
 ## The 3.0.0 remaster pass (measured, not heard)
 

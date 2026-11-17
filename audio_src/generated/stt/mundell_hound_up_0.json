@@ -1,0 +1,30 @@
+{
+ "text": "Hang on, Blue, I gotcha",
+ "words": [
+  {
+   "text": "Hang",
+   "start": 0.06,
+   "end": 0.3
+  },
+  {
+   "text": "on,",
+   "start": 0.38,
+   "end": 0.68
+  },
+  {
+   "text": "Blue,",
+   "start": 0.76,
+   "end": 0.98
+  },
+  {
+   "text": "I",
+   "start": 1.16,
+   "end": 1.18
+  },
+  {
+   "text": "gotcha",
+   "start": 1.32,
+   "end": 1.84
+  }
+ ]
+}

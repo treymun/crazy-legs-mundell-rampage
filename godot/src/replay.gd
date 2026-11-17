@@ -595,6 +595,8 @@ static func apply_op(g: Game, op: Array) -> Variant:
 			g.player.angle = fposmod(g.player.angle + PI, TAU)
 		"pitch0":
 			g.player.pitch = 0.0
+		"hound":
+			g.hound_call()
 		"pocket":
 			g.inventory_slot = arg
 		"county":

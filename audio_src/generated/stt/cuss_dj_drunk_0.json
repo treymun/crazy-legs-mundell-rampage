@@ -1,0 +1,55 @@
+{
+ "text": "Somebody out there's drunk as hell and twice as proud",
+ "words": [
+  {
+   "text": "Somebody",
+   "start": 0.1,
+   "end": 0.52
+  },
+  {
+   "text": "out",
+   "start": 0.6,
+   "end": 0.76
+  },
+  {
+   "text": "there's",
+   "start": 0.82,
+   "end": 1.1
+  },
+  {
+   "text": "drunk",
+   "start": 1.12,
+   "end": 1.38
+  },
+  {
+   "text": "as",
+   "start": 1.44,
+   "end": 1.54
+  },
+  {
+   "text": "hell",
+   "start": 1.58,
+   "end": 1.86
+  },
+  {
+   "text": "and",
+   "start": 1.9,
+   "end": 2.06
+  },
+  {
+   "text": "twice",
+   "start": 2.1,
+   "end": 2.42
+  },
+  {
+   "text": "as",
+   "start": 2.5,
+   "end": 2.64
+  },
+  {
+   "text": "proud",
+   "start": 2.68,
+   "end": 3.1
+  }
+ ]
+}

@@ -1,0 +1,60 @@
+{
+ "text": "Folks out that way say they heard a boom. Sounded expensive",
+ "words": [
+  {
+   "text": "Folks",
+   "start": 0.08,
+   "end": 0.36
+  },
+  {
+   "text": "out",
+   "start": 0.44,
+   "end": 0.62
+  },
+  {
+   "text": "that",
+   "start": 0.68,
+   "end": 0.86
+  },
+  {
+   "text": "way",
+   "start": 0.92,
+   "end": 1.16
+  },
+  {
+   "text": "say",
+   "start": 1.2,
+   "end": 1.36
+  },
+  {
+   "text": "they",
+   "start": 1.4,
+   "end": 1.52
+  },
+  {
+   "text": "heard",
+   "start": 1.56,
+   "end": 1.7
+  },
+  {
+   "text": "a",
+   "start": 1.74,
+   "end": 1.82
+  },
+  {
+   "text": "boom.",
+   "start": 1.86,
+   "end": 2.14
+  },
+  {
+   "text": "Sounded",
+   "start": 2.26,
+   "end": 2.58
+  },
+  {
+   "text": "expensive",
+   "start": 2.62,
+   "end": 3.22
+  }
+ ]
+}

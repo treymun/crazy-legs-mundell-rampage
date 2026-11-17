@@ -233,6 +233,17 @@ a shop lamp falling in the saw floor's arena.
      glasses (her bare model's girdle plates too, which the 3D view does not
      draw). `features/boss_gear.gd` shoots them off; `tools/gear_fit.gd`
      prints where each sits for bosses.cfg. Added with a `rig-only` run.
+   - BLUE the hound (`actors_hound.py`, content pass 8) is a kind with its
+     own frames like the cow, built square for the model (`FOR_MODEL`):
+     every leg piece a fixed length posed by two-bone IK, so each is the
+     same part in every frame; his coat a ticked material sized to each part
+     (`_ticked`: a ball's coordinates are its unit sphere, a limb's metres).
+     His black hood, ears and saddle are matte (`_matte`: a glossy black
+     reads grey under the stage's rims). `hound_face` is his HUD badge's
+     head, near profile so the long muzzle and the black ear read at 27
+     pixels, cels only (`cels_only`: export_actors.py makes no model of it),
+     lit with the rims down and no road dirt (`_CLEAN`). `build_enemy_actors.gd --
+     kinds=hound,hound_face`, then the steps below for `hound`.
 2. `tools/art/build_actor_meshes.gd [-- kinds=billy,coot] [no-render]
    [rig-only] [raw=<dir>]` grades and digitizes
    (`assets/art/actor3d_<kind>[_<look>].png`) and writes

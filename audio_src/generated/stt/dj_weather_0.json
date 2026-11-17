@@ -1,0 +1,65 @@
+{
+ "text": "Weather hot, sticky, and fixing to storm. Bring the lawn chairs in.",
+ "words": [
+  {
+   "text": "Weather",
+   "start": 0.24,
+   "end": 0.52
+  },
+  {
+   "text": "hot,",
+   "start": 0.62,
+   "end": 0.86
+  },
+  {
+   "text": "sticky,",
+   "start": 1.02,
+   "end": 1.38
+  },
+  {
+   "text": "and",
+   "start": 1.46,
+   "end": 1.56
+  },
+  {
+   "text": "fixing",
+   "start": 1.7,
+   "end": 2.02
+  },
+  {
+   "text": "to",
+   "start": 2.06,
+   "end": 2.16
+  },
+  {
+   "text": "storm.",
+   "start": 2.24,
+   "end": 2.7
+  },
+  {
+   "text": "Bring",
+   "start": 2.94,
+   "end": 3.16
+  },
+  {
+   "text": "the",
+   "start": 3.22,
+   "end": 3.28
+  },
+  {
+   "text": "lawn",
+   "start": 3.34,
+   "end": 3.62
+  },
+  {
+   "text": "chairs",
+   "start": 3.7,
+   "end": 4.14
+  },
+  {
+   "text": "in.",
+   "start": 4.24,
+   "end": 4.44
+  }
+ ]
+}

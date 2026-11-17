@@ -1,0 +1,75 @@
+{
+ "text": "Two in the morning on the possum, coffee's cold, and the night ain't over",
+ "words": [
+  {
+   "text": "Two",
+   "start": 0.08,
+   "end": 0.24
+  },
+  {
+   "text": "in",
+   "start": 0.3,
+   "end": 0.38
+  },
+  {
+   "text": "the",
+   "start": 0.42,
+   "end": 0.5
+  },
+  {
+   "text": "morning",
+   "start": 0.54,
+   "end": 0.9
+  },
+  {
+   "text": "on",
+   "start": 0.98,
+   "end": 1.08
+  },
+  {
+   "text": "the",
+   "start": 1.12,
+   "end": 1.22
+  },
+  {
+   "text": "possum,",
+   "start": 1.28,
+   "end": 1.76
+  },
+  {
+   "text": "coffee's",
+   "start": 1.88,
+   "end": 2.4
+  },
+  {
+   "text": "cold,",
+   "start": 2.44,
+   "end": 2.86
+  },
+  {
+   "text": "and",
+   "start": 2.92,
+   "end": 3.02
+  },
+  {
+   "text": "the",
+   "start": 3.06,
+   "end": 3.14
+  },
+  {
+   "text": "night",
+   "start": 3.2,
+   "end": 3.44
+  },
+  {
+   "text": "ain't",
+   "start": 3.5,
+   "end": 3.7
+  },
+  {
+   "text": "over",
+   "start": 3.8,
+   "end": 4.059
+  }
+ ]
+}

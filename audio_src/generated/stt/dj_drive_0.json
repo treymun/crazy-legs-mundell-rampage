@@ -1,0 +1,65 @@
+{
+ "text": "If you're driving tonight, buckle up and watch for deer and Mundell",
+ "words": [
+  {
+   "text": "If",
+   "start": 0.22,
+   "end": 0.3
+  },
+  {
+   "text": "you're",
+   "start": 0.34,
+   "end": 0.46
+  },
+  {
+   "text": "driving",
+   "start": 0.5,
+   "end": 0.94
+  },
+  {
+   "text": "tonight,",
+   "start": 0.98,
+   "end": 1.36
+  },
+  {
+   "text": "buckle",
+   "start": 1.52,
+   "end": 1.82
+  },
+  {
+   "text": "up",
+   "start": 1.94,
+   "end": 2.1
+  },
+  {
+   "text": "and",
+   "start": 2.12,
+   "end": 2.24
+  },
+  {
+   "text": "watch",
+   "start": 2.3,
+   "end": 2.58
+  },
+  {
+   "text": "for",
+   "start": 2.62,
+   "end": 2.72
+  },
+  {
+   "text": "deer",
+   "start": 2.84,
+   "end": 3.26
+  },
+  {
+   "text": "and",
+   "start": 3.48,
+   "end": 3.68
+  },
+  {
+   "text": "Mundell",
+   "start": 3.76,
+   "end": 4.4
+  }
+ ]
+}

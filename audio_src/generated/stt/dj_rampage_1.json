@@ -1,0 +1,70 @@
+{
+ "text": "Half the county just called in about one skinny feller. Sounds like Mundell",
+ "words": [
+  {
+   "text": "Half",
+   "start": 0.08,
+   "end": 0.32
+  },
+  {
+   "text": "the",
+   "start": 0.36,
+   "end": 0.46
+  },
+  {
+   "text": "county",
+   "start": 0.52,
+   "end": 0.82
+  },
+  {
+   "text": "just",
+   "start": 0.96,
+   "end": 1.2
+  },
+  {
+   "text": "called",
+   "start": 1.26,
+   "end": 1.6
+  },
+  {
+   "text": "in",
+   "start": 1.68,
+   "end": 1.78
+  },
+  {
+   "text": "about",
+   "start": 1.84,
+   "end": 2.26
+  },
+  {
+   "text": "one",
+   "start": 2.34,
+   "end": 2.52
+  },
+  {
+   "text": "skinny",
+   "start": 2.62,
+   "end": 3.0
+  },
+  {
+   "text": "feller.",
+   "start": 3.12,
+   "end": 3.42
+  },
+  {
+   "text": "Sounds",
+   "start": 3.52,
+   "end": 3.86
+  },
+  {
+   "text": "like",
+   "start": 3.92,
+   "end": 4.14
+  },
+  {
+   "text": "Mundell",
+   "start": 4.2,
+   "end": 4.78
+  }
+ ]
+}

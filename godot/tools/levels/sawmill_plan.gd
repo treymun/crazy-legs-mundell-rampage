@@ -10,6 +10,7 @@
 extends RefCounted
 
 const Climbs := preload("res://tools/levels/climbs.gd")
+const SetPieces := preload("res://tools/levels/set_piece_kit.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
@@ -40,7 +41,7 @@ func make() -> Builder:
 		"ending": '"CLOCK OUT. LEAVE THE BOOTS OUTSIDE."',
 		"score": "mill_score",
 		"ambience": "mill",
-		"layout": 7,
+		"layout": 8,
 		"sky": "mill_sky",
 		"control_name": "SLUICE FEED AND DRY-KILN BELT",
 		"objective_side_tasks": ["brake"],
@@ -83,6 +84,7 @@ func build(_b) -> Array:
 	hazards()
 	new_iron()
 	Climbs.sawmill(b)
+	SetPieces.sawmill(b)
 	return [64.5, 81.5, -PI / 2]
 
 
@@ -945,7 +947,7 @@ func dress_east() -> void:
 ## The county's hazards a man can be booted into (content pass 8,
 ## src/features/brawl.gd and src/brawl_hazards.gd): two wood chippers, a burn
 ## barrel (and the four saws, the log pond). Each stands in the open where the
-## chapter's hands fight; layout 7 for them.
+## chapter's hands fight; layout 8 with pass 8's set pieces.
 func hazards() -> void:
 	b.town("wood_chipper", 82.5, 69.5, {"solid": .45})
 	b.town("wood_chipper", 23.5, 40.5, {"solid": .45})

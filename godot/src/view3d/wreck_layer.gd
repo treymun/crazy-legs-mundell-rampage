@@ -14,6 +14,8 @@ const REACH := 32.0
 ## numbers (the global buffer holds 4096, 1024 on many phones and in WebGL),
 ## and a scene of 48 pieces left 48 spares holding them after they went.
 const SPARE := 8
+## How far off a set piece's parts are still drawn.
+const FAR := 90.0
 
 var _assets: Assets
 var _shader: Shader
@@ -74,6 +76,9 @@ func show_wrecks(list: Array, level: LevelData) -> Array[ShaderMaterial]:
 				fresh.append(material)
 			node.mesh = mesh
 			node.material_override = material
+			# A set piece's parts (a barn, a water tower: src/set_piece_mesh.gd)
+			# stand big and are seen from far off.
+			node.visibility_range_end = FAR if s.solid.contains("|sp") else REACH
 			node.set_meta("solid", s.solid)
 			node.set_meta("cell", -1)
 			node.visible = true

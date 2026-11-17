@@ -1218,6 +1218,9 @@ func finish(spawn: Array) -> Dictionary:
 	if meta.has("vehicle_runs"):
 		# The set pieces run in them (features/vehicle_runs.gd).
 		out["vehicle_runs"] = meta["vehicle_runs"]
+	if meta.has("set_pieces"):
+		# The barns, water towers and fuel lines that come down (features/set_pieces.gd).
+		out["set_pieces"] = meta["set_pieces"]
 	if meta.has("boss_arena"):
 		# Where a boss arena's hazards stand (features/boss_arena.gd).
 		out["boss_arena"] = meta["boss_arena"]

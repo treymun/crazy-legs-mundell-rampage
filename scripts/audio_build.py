@@ -89,6 +89,9 @@ SPEAKER = {   # the box a spoken line comes out of: band, grit, noise floor
     "radio": dict(lo=380, hi=2900, drive=3.0, hiss=.012),
     "pa":    dict(lo=260, hi=3600, drive=2.0, hiss=.004, slap=.085),
     "horn":  dict(lo=520, hi=2600, drive=4.0, hiss=.006, slap=.06),
+    # The county station on the AM dial (pass 8): warmer and wider than a
+    # two-way radio, for a voice heard minutes at a time.
+    "am":    dict(lo=150, hi=5200, drive=1.5, hiss=.0025),
 }
 
 

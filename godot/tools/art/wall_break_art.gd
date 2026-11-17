@@ -1,5 +1,6 @@
 ## The walls that break (features/wall_breaks.gd), drawn for
-## build_break_art.gd: every window tile shot out (<material>_brk: the glass
+## build_break_art.gd: every window tile shot once (<material>_crk, a lit
+## one's <material>_lck: the glass cracked from a hole) and shot out (<material>_brk: the glass
 ## gone, the room behind it dark, teeth of glass left in the frame and the
 ## muntins snapped; a lit window goes dark with it), the plank fence shot
 ## about (stockyard_hit: boards knocked out and split, holes) and the picture
@@ -60,6 +61,16 @@ static func build(tiles: String, art: String) -> int:
 			tiles.path_join(String(row[0]) + ".png")
 		)
 		count += 1
+		# Shot once: the glass cracked from the hole, still in its frame
+		# (<material>_crk; a lit window's <material>_lck, still lit).
+		var base := String(row[0]).trim_suffix("_brk")
+		_cracked(whole, row[1], name).save(tiles.path_join(base + "_crk.png"))
+		count += 1
+		var lit_path := source.path_join(base + "_lit.png")
+		var lit := Paint.Sheet.load_png(lit_path) if FileAccess.file_exists(lit_path) else null
+		if lit != null:
+			_cracked(lit, row[1], base + "_lit").save(tiles.path_join(base + "_lck.png"))
+			count += 1
 	var fence := Paint.Sheet.load_png(source.path_join("stockyard.png"))
 	_fence_hit(fence).save(tiles.path_join("stockyard_hit.png"))
 	_fence_gap(fence).save(art.path_join("stockyard_gap.png"))
@@ -130,6 +141,65 @@ static func _dice(text: String) -> RandomNumberGenerator:
 		seed = (seed * 31 + c) % 1000003
 	dice.seed = seed
 	return dice
+
+
+## A window's glass shot once: a hole where the round went through and the
+## cracks running from it to the frame, a pale line with its shadow beside
+## it, and a ring or two round the hole (a spider web), the rest of the pane
+## as it was.
+static func _cracked(whole: Paint.Sheet, glass: Array, name: String) -> Paint.Sheet:
+	var s := whole.duplicate_sheet()
+	var dice := _dice(name + "_crk")
+	var x0: int = glass[0]
+	var y0: int = glass[1]
+	var x1: int = glass[2]
+	var y1: int = glass[3]
+	var hit := Vector2(
+		lerpf(x0, x1, dice.randf_range(.3, .7)), lerpf(y0, y1, dice.randf_range(.3, .65))
+	)
+	var pale := Paint.rgb(226, 234, 236)
+	var shade := Paint.rgb(36, 40, 46)
+	var inside := func(x: int, y: int) -> bool: return x >= x0 and x <= x1 and y >= y0 and y <= y1
+	# The rays: jagged, each to the frame.
+	var rays := 7 + dice.randi() % 3
+	for k in rays:
+		var a := TAU * (k + dice.randf_range(-.3, .3)) / rays
+		var at := hit
+		var reach := 0.0
+		while reach < 80.0:
+			a += dice.randf_range(-.25, .25)
+			var step := dice.randf_range(3.0, 6.0)
+			var to := at + Vector2(cos(a), sin(a)) * step
+			for n in int(step * 2.0):
+				var q := at.lerp(to, n / (step * 2.0))
+				if not inside.call(int(q.x), int(q.y)):
+					reach = 999.0
+					break
+				s.put(int(q.x), int(q.y), pale)
+				var side := Vector2(-sin(a), cos(a))
+				var b := q + side
+				if inside.call(int(b.x), int(b.y)):
+					s.put(int(b.x), int(b.y), shade)
+			at = to
+			reach += step
+	# The web: broken rings round the hole.
+	for ring: float in [5.0, 10.0 + dice.randf_range(0.0, 3.0)]:
+		for n in 40:
+			if dice.randf() < .35:
+				continue
+			var a := TAU * n / 40.0
+			var q := hit + Vector2(cos(a), sin(a)) * ring
+			if inside.call(int(q.x), int(q.y)):
+				s.put(int(q.x), int(q.y), pale)
+	# The hole itself.
+	for y in range(int(hit.y) - 2, int(hit.y) + 3):
+		for x in range(int(hit.x) - 2, int(hit.x) + 3):
+			var d := Vector2(x + .5, y + .5).distance_to(hit)
+			if d < 1.6:
+				s.put(x, y, Paint.rgb(14, 12, 12))
+			elif d < 2.6:
+				s.put(x, y, pale)
+	return Paint.digitize(s, 0.0)
 
 
 ## The dark of a room seen through a hole, at row t (0 top, 1 bottom) of it.

@@ -413,7 +413,7 @@ static func set_pieces(b: Builder) -> void:
 ## src/features/brawl.gd and src/brawl_hazards.gd): a well by the yard, a bug
 ## zapper, a cattle guard on the road, a hot wire by the hogs (and the hog pen
 ## itself, the creek). Each stands in the open where the chapter's hands fight;
-## layout 7 for them.
+## layout 8 with pass 8's set pieces.
 static func hazards(b: Builder) -> void:
 	b.town("well", 19.5, 41.5, {"solid": .5, "base": "concrete"})
 	b.town("bug_zapper", 69.5, 52.5, {"solid": .12, "glow": true})

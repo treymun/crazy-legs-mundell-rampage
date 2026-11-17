@@ -1,0 +1,45 @@
+{
+ "text": "Here's another one. Keep it between the ditches",
+ "words": [
+  {
+   "text": "Here's",
+   "start": 0.1,
+   "end": 0.3
+  },
+  {
+   "text": "another",
+   "start": 0.34,
+   "end": 0.66
+  },
+  {
+   "text": "one.",
+   "start": 0.72,
+   "end": 0.98
+  },
+  {
+   "text": "Keep",
+   "start": 1.08,
+   "end": 1.28
+  },
+  {
+   "text": "it",
+   "start": 1.32,
+   "end": 1.44
+  },
+  {
+   "text": "between",
+   "start": 1.48,
+   "end": 1.82
+  },
+  {
+   "text": "the",
+   "start": 1.86,
+   "end": 1.94
+  },
+  {
+   "text": "ditches",
+   "start": 1.98,
+   "end": 2.46
+  }
+ ]
+}

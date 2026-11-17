@@ -1,0 +1,50 @@
+{
+ "text": "Respond to the sky. Somebody else take this one",
+ "words": [
+  {
+   "text": "Respond",
+   "start": 0.2,
+   "end": 0.88
+  },
+  {
+   "text": "to",
+   "start": 0.92,
+   "end": 1.04
+  },
+  {
+   "text": "the",
+   "start": 1.08,
+   "end": 1.16
+  },
+  {
+   "text": "sky.",
+   "start": 1.26,
+   "end": 1.88
+  },
+  {
+   "text": "Somebody",
+   "start": 2.1,
+   "end": 2.48
+  },
+  {
+   "text": "else",
+   "start": 2.56,
+   "end": 2.88
+  },
+  {
+   "text": "take",
+   "start": 3.02,
+   "end": 3.34
+  },
+  {
+   "text": "this",
+   "start": 3.36,
+   "end": 3.7
+  },
+  {
+   "text": "one",
+   "start": 3.84,
+   "end": 4.16
+  }
+ ]
+}

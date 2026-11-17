@@ -398,7 +398,9 @@ Each enemy and boss with a model shows as an `ActorView` scene
 (`scenes/actors/<kind>.tscn`); `View.Sprite.who` names the enemy.
 
 - ActorView poses from the sprite name the game would have shown: walk
-  interpolated on gait, falls on time since death.
+  (and a gallop's `r0..r4`, the hound's) interpolated on gait; a living
+  body shown in a step of a fall it never took (`ActorView.held`: a hand
+  the hound drags down) holds that step's key, falls on time since death.
 - The look (plain, hurt, p2, p3) is picked by health and boss phase.
 - Lost limbs are left off (`Gore.lost`), and a boss's gear shot off
   (`features/boss_gear.gd`, the frame's `gear_lost`; `ActorView.lose_gear`
