@@ -9,6 +9,8 @@ extends GameState
 const ModeFeature := preload("res://src/features/mode_feature.gd")
 ## The vehicles feature's script (features/vehicles.gd), to type features["vehicles"].
 const VehiclesScript := preload("res://src/features/vehicles.gd")
+## The hound's script (features/hound.gd), to type features["hound"].
+const HoundScript := preload("res://src/features/hound.gd")
 
 # --------------------------------------------------------------- loadout
 
@@ -68,6 +70,9 @@ func configure(options: Dictionary) -> void:
 	storm_on = options.get("county_storm", 1)
 	adaptive = options.get("adaptive", 1)
 	boss_wrecks = options.get("boss_wrecks", 1)
+	# Absent (an older replay, a tool): no hound, as play was before him.
+	var hounding: int = options.get("hound", 0)
+	hound_on = hounding == 1
 	var cussing: int = options.get("chatter", CussLines.CUSSIN)
 	chatter = clampi(cussing, 0, 2)
 	var fov: int = options.get("fov", 0)

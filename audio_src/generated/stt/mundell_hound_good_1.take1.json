@@ -1,0 +1,25 @@
+{
+ "text": "And that's my dogs",
+ "words": [
+  {
+   "text": "And",
+   "start": 0.06,
+   "end": 0.24
+  },
+  {
+   "text": "that's",
+   "start": 0.32,
+   "end": 0.7
+  },
+  {
+   "text": "my",
+   "start": 0.76,
+   "end": 1.02
+  },
+  {
+   "text": "dogs",
+   "start": 1.14,
+   "end": 1.88
+  }
+ ]
+}

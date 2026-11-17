@@ -106,6 +106,7 @@ const SIM_FIELDS := [
 	"hit_feedback",
 	"adaptive",
 	"boss_wrecks",
+	"hound_on",
 	"aim_assist",
 	"smart_hands",
 	"touch_aim",
@@ -310,6 +311,7 @@ const SIM_FEATURES := [
 	"squad",
 	"mode",
 	"fair_gallery",
+	"hound",
 ]
 ## Features that only look or sound (their own dice; never carried).
 const LOOKS_FEATURES := [

@@ -1,0 +1,25 @@
+{
+ "text": "Ah, go fetch, Blue",
+ "words": [
+  {
+   "text": "Ah,",
+   "start": 0.0,
+   "end": 0.1
+  },
+  {
+   "text": "go",
+   "start": 0.2,
+   "end": 0.36
+  },
+  {
+   "text": "fetch,",
+   "start": 0.5,
+   "end": 0.88
+  },
+  {
+   "text": "Blue",
+   "start": 0.98,
+   "end": 1.48
+  }
+ ]
+}

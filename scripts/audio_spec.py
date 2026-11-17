@@ -395,6 +395,30 @@ add("death",
     spitter_down=G("A dusty choking creature dies: dry rasping cough and a wet collapse.", 1.2, 1.0, "creature"),
     )
 
+# -------------------------------------------------------------- the hound
+# BLUE, Mundell's bluetick coonhound (godot/src/features/hound.gd; the takes
+# Sound.VARIANTS deals in turn).
+add("alert",
+    hound_bark=G("A big coonhound barks once, deep and hoarse: a single gruff 'rowf'.", 1.0, .6, "creature"),
+    hound_bark_alt=G("A big coonhound gives two quick excited barks, deep and gravelly.", 1.0, .7, "creature"),
+    hound_bark_alt2=G("A big hound dog barks once, short and rough, a warning bark.", 1.0, .6, "creature"),
+    hound_bay=G("A bluetick coonhound bays on a scent: a long, mournful, rolling 'aroo-oo-ooo' with a bawl in it, out in the woods at night.", 2.6, 2.4, "creature"),
+    hound_bay_alt=G("A coonhound bawls at something it found: a deep chopping 'rooo-roo-rooooo' bay, loud and drawn out.", 2.6, 2.4, "creature"),
+    hound_growl=G("A big hound growls low and savage through clenched teeth, worrying something in its jaws.", 1.5, 1.2, "creature"),
+    hound_growl_alt=G("A big dog snarls and growls, tugging and shaking hard with its teeth.", 1.5, 1.2, "creature"),
+    hound_bite=G("A big dog lunges and bites: a quick snarl and a hard snap of jaws.", .7, .5, "creature"),
+    hound_boof=G("A big hound gives one soft low 'boof', a quiet single woof.", .6, .45, "creature"),
+    )
+add("death",
+    hound_yelp=G("A big dog is kicked: one sharp, high yelp.", .6, .45, "creature"),
+    hound_yelp_alt=G("A hound dog yelps twice in pain, short and high.", .7, .55, "creature"),
+    hound_whine=G("A hurt hound dog lying down whimpers and whines softly, high and pitiful.", 2.0, 1.6, "creature"),
+    hound_whine_alt=G("A hurt hound dog gives a long, sad, nasal whine, then a little whimper.", 2.0, 1.6, "creature"),
+    )
+add("player",
+    hound_whistle=G("A man whistles for his dog through his fingers: two short sharp notes, the second rising.", 1.0, .8, "foot"),
+    )
+
 # ------------------------------------------------------------------- player
 add("player",
     hurt=G("A man grunts in pain: short gruff 'ugh'.", .6, None, "vox"),
@@ -1130,9 +1154,15 @@ MUNDELL_HEARD = {
     "mundell_pickup_food_1": "Um, salty.",
     "mundell_streak_2": "It's Rampage Times!",
 }
+# Where the voice needs the words spelt as said (BLUE's "sic 'em").
+MUNDELL_SAY = {
+    "mundell_hound_sic_0": "Sick 'em, Blue!",
+}
 add("voice", **{f"mundell_{moment}_{n}": V(text, "mundell", **(
                     {"heard": MUNDELL_HEARD[f"mundell_{moment}_{n}"]}
-                    if f"mundell_{moment}_{n}" in MUNDELL_HEARD else {}))
+                    if f"mundell_{moment}_{n}" in MUNDELL_HEARD else {}), **(
+                    {"say": MUNDELL_SAY[f"mundell_{moment}_{n}"]}
+                    if f"mundell_{moment}_{n}" in MUNDELL_SAY else {}))
                 for moment, lines in _MUNDELL.items()
                 for n, text in enumerate(lines)})
 # Each cuss line's CLEAN copy: the cuss words under a duck call or a horn, by

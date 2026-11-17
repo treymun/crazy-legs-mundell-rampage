@@ -23,8 +23,8 @@ level builder in [levels.md](levels.md).
   saves under `OS.get_cache_dir()`. The gun pictures warm on a thread that
   `Weapons.Armory.settle()` waits for when the program closes.
 - **Settings** are listed in `src/setup_pages.gd` (one row each: label, key,
-  default, choices, hint); `tools/check_fixes.gd` counts them (71 now;
-  REPLAYS is the newest, under PLAY). Settings are not part of a save, so a
+  default, choices, hint); `tools/check_fixes.gd` counts them (72 now;
+  HOUND DOG is the newest, under PLAY). Settings are not part of a save, so a
   new one needs no save version. Changing a setting shows what it did and that
   it was saved where the hint goes (`main_flow.gd`).
 - **Keep the Redneck Rampage feel** in new polish: dusk and dirt, brass and
@@ -921,6 +921,81 @@ every gun lying out shining, lit, named looked at, marked once seen, smelled
 once, none of it once had; secrets kept; the tally row; the shack's board;
 none of it off the campaign. `-- audit` prints the table and `map=<dir>`
 draws each chapter's guns against its way.
+
+### The hound (content pass 8)
+
+BLUE, Mundell's bluetick coonhound, comes along with each player in a
+campaign chapter played alone or in co-op (`HoundNose.on`: not the
+Crossroads, the range, a boss rematch, County Run or the versus modes:
+County Run's runs and its daily board are set for one man and his guns).
+HOUND DOG (PLAY page, `hound`, on) turns him off. A game reads `hound` from
+its options with 0 when it is missing, so an older replay plays without him,
+and the front end sets it to 0 when a tool or a view tour runs the game
+(`main.gd`), so every check and picture made before him is the same; a tool
+that wants him sets `main.options["hound"] = 1` (`bot_campaign.gd -- hound`
+walks the campaign with him). Play, carried and saved: `features/hound.gd`
+(a SIM feature, a `Dog` per player slot, its dice `game.rng`), what his
+nose finds `src/hound_nose.gd`, his looks and badge `src/hound_looks.gd`,
+numbers in `data/tuning/hound.cfg`.
+
+- **Heel.** Behind his player off to one side, out of their sights; a run
+  past `run_past`, round walls on the player's flow field; lost (far out of
+  sight, or no way through) for `lost_for` he turns up behind them. He walks
+  the level as a body of his own (an Enemy no list holds, moved with
+  `LevelData.move`, never carried: `SnapCodec.SKIP_FIELDS`). The hands do not
+  hunt him and the player's shots pass him.
+- **Nose.** Calm (no hand awake near the player) he bays at a secret door
+  not found yet from its open side (`HoundNose.door_front`) and at a gun his
+  player ain't got lying out (GunFinder: never one behind a secret, the door
+  gives that away), and points at a pickup his player cannot see; each place
+  once (`bayed`, saved), the nose resting `bay_rest`/`point_rest` after.
+- **Fight.** On his own he goes for a hand under `pin_below` of its health or
+  one right on top of his player; told (the whistle with the sights on one)
+  any hand he takes (`HoundNose.takes`: not a boss, nothing that flies or
+  swims). He bites (never for the last of its health: the kill is always a
+  player's) and under `pin_below` holds it down `pin_time`: stunned the whole
+  time, it cannot fight or walk, dragged half down (its fall's `die_1` held,
+  `Enemy.held_cel`, now and then its pain twist), turned to face his player
+  so it leans back along their line of sight and their shots land on what
+  they see (its hit cylinder never moves). The hands within `kick_reach`, the held one
+  too, kick at him (`kick_rate`, the kick shown as the hand's attack frame);
+  blasts hurt him. A held hand finished counts on the tally (BLUE: FETCHED,
+  HELD) and gets a GOOD BOY.
+- **Fetch.** Told, the pickup the sights are on (ammo or food, never keys,
+  quest pieces, guns or dynamite); on his own every `fetch_every` or so,
+  food when his player is hurt, rounds for the gun in hand when it runs low.
+  He takes it out of `game.pickups`, carries it (saved) and drops it at his
+  player's feet with `add_pickup` (a new uid), where they take it as ever.
+- **Down.** Hurt to nothing he lies whining; a player holding USE beside him
+  for `revive_time` gets him up, USE with a pork rind in the pocket at once
+  (`hound.use`, `hound.prompt`, from `game_use.gd`), and after `get_up` he
+  gets up himself: he never dies.
+- **The whistle.** WHISTLE FOR BLUE (G; the pad's share button; a tap on his
+  badge): `act(["hound"])` -> `Game.hound_call()`; online and for bots
+  `Controls.item == Game.HOUND_CALL` (96, past the pockets, so the wire and
+  the replay rows are unchanged). Sights on a hand SIC 'EM, on a pickup
+  FETCH, else STAY (he sits) and again COME; Mundell says it in his voice
+  (the `hound_*` barks, mundell_lines.json).
+- **Looks.** His model (`scripts/blender/actors_hound.py`, scene
+  `scenes/actors/hound.tscn`) drawn through a stand-in (`ModeBodies.stand_in`,
+  key `hound<slot>`) posed by `hound.frame()`: the walk `w0..w4` and the
+  gallop `r0..r4` run on his gait (`ActorView._time`), sit, bark, bay, bite,
+  pin and pin2 (the worrying shake), fetch (what he carries drawn in his
+  jaws), point, sniff, pain, down and whine. The badge in the view's bottom
+  left (`HoundLooks.badge`, from `draw_view`): his head
+  (`hound_face_0/1/2/down`), BLUE or what he is up to, five health ticks.
+
+`tools/hound_check.gd` (HOUND CHECK OK, in check_all) holds it: heel, catch
+up and the lost jump; none with it off, in County Run, a versus map, the
+range, the Crossroads or a deathmatch; the bay at a secret door and at new
+iron, the point at a hidden pickup; a hand held stunned and never killed by
+him, kicks, finished by the player; a told SIC biting a whole hand down; no
+boss; a fetch dropped and taken; down, held USE, a rind, getting up himself;
+STAY, COME, the replay op and the controls' whistle; saves; co-op's two
+hounds and their own whistles; two games in lockstep with him about, a
+snapshot onto a fresh game running on the same; his art, the stand-in and
+the badge. `-- play=<level>` lets the campaign bot play two minutes with him
+and prints what he did.
 
 ### Walls break too
 

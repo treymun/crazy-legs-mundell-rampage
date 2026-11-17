@@ -104,6 +104,11 @@ always sounds like itself).
   shouts 2.5 dB under the others (speech RMS -13.0 against about -10.5):
   its barks, cuss lines and tough guys take `squash` 4 (their spikes limited
   before levelling) and land at -10.4. Its older radio talk is unchanged.
+- **BLUE.** His barks, bays, growls, bite, boof, yelps and whines are
+  `hound_*` effects (`audio_spec.py` "the hound"; takes dealt by
+  `Sound.VARIANTS`), the whistle `hound_whistle`; Mundell's words to him are
+  his own `hound_*` lines (mundell_lines.json; `MUNDELL_SAY` spells "sic 'em"
+  for the voice). Made in content pass 8 (about 520 credits).
 - **Turns.** `Sound.talking()` is any spoken line (`Sound.SPEECH`) still
   playing; `hush_speech()` stops the ones playing as effects. A hand keeps
   quiet while anyone talks; Mundell's line is shown, not said; a boss's
