@@ -563,8 +563,11 @@ An always-open lobby has no host to lead a campaign: no CAMPAIGN CO-OP there
   down watching a partner with the copies keeping, the sheriff's checkpoint
   and its retry, the chapter won, the hub's gates, the fair with the kits
   carried, a late join, a leave, THE PARTY SAVE and its start; a deathmatch
-  played by bots on every copy with a late joiner and the results; team
-  deathmatch's picks.
+  played by bots on every copy with a late joiner and the results (the frag
+  limit or the lobby's TIME LIMIT of a minute, which every copy ends on the
+  host's tick; until pass 9 the check brought the host's frag limit down
+  between ticks, which parted every copy once and failed a run in three on a
+  busy PC); team deathmatch's picks.
 
 ## Running them locally
 
@@ -630,6 +633,24 @@ when its copy played it: a round trip and the play-out later (350 ms on a
   shown as it has it; a sound already heard is dropped, anything else (a kill's
   tick, a yelp, a shot nobody foresaw) plays then. Something shown and never
   played by `EXPIRE` inputs past is withdrawn quietly (a pickup comes back).
+- **Dynamite, melee and USE** (pass 9). The lead steps a stick of dynamite
+  too (`fuse` among the gun's kept fields): the match struck and the lit
+  stick with its fuse bar at the press ("light", one a trigger hold:
+  `_hold_start`, so a stick the host never lit is not struck again every
+  few frames), the throw at the release ("throw": the sound, the hand, the
+  face); the stick in flight is still the copy's. A melee swing (crowbar,
+  sling, blades) already showed at the press; now its blow coming due
+  ("blow", at `swing_at`) is looked along as the copy stands (`probe`,
+  the swing's reach and width, a line well on the body): its hit sound,
+  the mark and the blood, matched when the copy's own blow comes due
+  (`swing_hit` going off in the watched step) and withdrawn if it missed.
+  USE's boot (`_boot`, brawl.gd use()'s choice: rested, not busy, a man
+  in reach not to be finished, or a plain door run at) shows at the first
+  fresh press: the grunt, the boot drawn and the gun ducking, timed from
+  our press (brawl's `kicked_at` and our `weapon_lag` set for the frame
+  and put back; the copy's own boot is drawn at our press too, so it does
+  not start again). A finisher is the copy's to show (its move is off the
+  dice); so are the landing's jolt, doors and every other USE.
 - **Every online mode gets it** (County Run co-op, the 5v5 rounds, tag
   team, and any mode added online later): it reads only Game.Controls, the
   copy and `NetSync.Client`. Nothing carried is touched; `net_lag`,
@@ -681,9 +702,10 @@ a 10-character join code or an address stays desktop only.
 
 - UDP hole punching (the party line relays instead; a desktop player still
   goes straight to a host whose router opened the port).
-- Client prediction of a thrown stick of dynamite, the saw's grind, a melee
-  blow landing, a projectile in flight, the scope going up, USE and items
-  (each still shows when the copy plays it).
+- Client prediction of a stick of dynamite in flight, the saw's grind, a
+  projectile in flight, the scope going up, finishers, the boot's jolt,
+  USE on anything but a boot, and items (each still shows when the copy
+  plays it).
 - A second local input set (split keyboard).
 - Spawn points from the plans outside the 5v5 maps (only worked out).
 - Versus pickups other than the level's own.

@@ -505,8 +505,8 @@ messages).
 
 ### `tools/net_loopback.gd`
 
-One process, a host and a client peer on 127.0.0.1 (a port from the process
-id, so parallel checks do not meet), two games, the game's own clock. The
+One process, a host and a client peer on 127.0.0.1 (a free port from
+`tools/net_ports.gd`, so parallel checks do not meet), two games, the game's own clock. The
 host's bot plays player one, the client's bot (steered from its copy) player
 two. Checks every snapshot the client rebuilt against the host's game as it
 stood (`GameSnapshot.same`, `wholes`, not what the host sent), the copy
@@ -671,6 +671,20 @@ the how-to. The 5v5 rules themselves are in
   5v5's "last one standing" call used to, and the online check found it.
 - `tools/net_showdown_check.gd` holds it all (host plus three clients in one
   process, lag and loss as asked; in check_all and CI).
+- **When joining goes wrong** the client is told why: another version (both
+  named) or protocol, WRONG PASSWORD, THE LOBBY IS FULL, A MATCH IS UNDER
+  WAY, COULD NOT REACH THE HOST (`CONNECT_WAIT`), THE HOST NEVER ANSWERED
+  (`ANSWER_WAIT` after the HELLO; pass 9, it used to wait on "hello" for
+  ever), LOST THE HOST. Those in `NetPlay.RETRY` (the line or the host
+  went quiet) take the front end back to the JOIN form as it was, the note
+  `... ENTER TO TRY AGAIN.` and the cursor on JOIN (`main_flow.gd
+  net_closed`): late join seats them again. A refusal or a host who closed
+  the lobby goes to the title as before. `tools/net_errors_check.gd`.
+- **The round trip** a client measures (`Client.lag_samples`, the dev
+  overlay's) is stamped on the clock of every poll; until pass 9 only a
+  poll with a snapshot moved it, so the first inputs were stamped 0 and
+  their trips were the whole time since the program started (75 s in a
+  soak). net_showdown_check holds the longest trip to the link's.
 
 ### Always-open lobbies
 
@@ -779,6 +793,17 @@ party line only passes bytes between it and its players.
   slice.
 - **Not checked:** two real homes through the VPS, CGNAT, a phone, the browser
   build hosting in a real page, the VPS's CPU with full rooms.
+
+### Soaking a server (`tools/net_soak.gd`)
+
+Probes (2 to 4) join one always-open lobby on the real clock, the first
+starts a match, TacticalBots play each from its copy, and the match is put
+through a hang (a probe polls nothing for `stall` seconds), a leave and
+join again, and the admin leaving (the lobby passes on) and coming back;
+it prints drops, partings, put-backs, round trips, bandwidth and memory.
+Against a real server (`server=<address:port>`, never written into the
+repo) it knocks first and joins only an empty lobby of its own version.
+The pass 9 runs are in [the pass 9 soak](#the-pass-9-soak).
 
 ### Player maps in a lobby
 

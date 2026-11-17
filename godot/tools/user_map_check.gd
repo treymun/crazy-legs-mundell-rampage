@@ -27,6 +27,8 @@
 ## Maps and saves go under OS.get_cache_dir(), never the player's folder.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const STEP := NetSync.STEP
 
 var failures: Array = []
@@ -635,7 +637,7 @@ func _back(host: NetPlay, clients: Array) -> void:
 func _online() -> void:
 	var barn: Dictionary = _example("the_sale_barn")["map"]
 	var forty: Dictionary = _example("pucketts_back_forty")["map"]
-	var port := 43000 + OS.get_process_id() % 12000
+	var port := NetPorts.pick("user_map_check")
 	var host: NetPlay = null
 	for k in 20:
 		host = NetPlay.host_lobby(port + k, "Trey", {}, false, "127.0.0.1")

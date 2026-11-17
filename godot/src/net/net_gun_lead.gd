@@ -29,16 +29,20 @@ const KEPT := [
 	"grinding",
 	"swing_hit",
 	"tnt_latched",
+	"fuse",
 ]
 
 
 ## Steps `me`'s gun through `inputs` (Game.Controls, oldest first; the first
 ## is our input number `first_seq`). Returns {"kept": what restore() wants,
-## "events": [...]}, or {} when this gun is not led now (the world held, a
-## stick of dynamite in hand, both hands on something else, out of play).
-## An event: {"kind": "shot"|"dry"|"reload"|"beat"|"equip", "seq", "gun",
-## "cues": [[cue, volume]...], "report" (a gun that rings round a room),
-## "spent", "recoil", "shake", "message", "length"}.
+## "events": [...]}, or {} when this gun is not led now (the world held,
+## both hands on something else, out of play).
+## An event: {"kind": "shot"|"dry"|"reload"|"beat"|"equip"|"light"|"throw"|
+## "blow", "seq", "gun", "cues": [[cue, volume]...], "report" (a gun that
+## rings round a room), "spent", "recoil", "shake", "message", "length"}.
+## "light" is a stick of dynamite's fuse struck, "throw" the stick let go,
+## "blow" a melee swing's blow coming due (net_shot_predict.gd looks along
+## it for whoever it lands on).
 static func lead(game: Game, me: Player, inputs: Array, first_seq: int) -> Dictionary:
 	if not leads(game, me):
 		return {}
@@ -55,6 +59,8 @@ static func lead(game: Game, me: Player, inputs: Array, first_seq: int) -> Dicti
 	var dt := NetSync.STEP
 	var st: Game.ModeFeatureScript = game.features.get("mode")
 	var held := Modes.is_tactical(game) and st != null
+	var brawl: Game.BrawlScript = game.features.get("brawl")
+	var busy := brawl != null and brawl.allowed() and brawl.busy(me)
 	var by_slot: Array = []
 	if held:
 		by_slot.resize(game.players.size())
@@ -64,7 +70,7 @@ static func lead(game: Game, me: Player, inputs: Array, first_seq: int) -> Dicti
 			by_slot[me.slot] = c
 			var out: Array = Modes.rules(game).hold_controls(game, st, by_slot)
 			c = out[me.slot]
-		if not step(me, c, dt, first_seq + i, events):
+		if not step(me, c, dt, first_seq + i, events, busy):
 			break
 	return {"kept": kept, "events": events}
 
@@ -75,9 +81,6 @@ static func leads(game: Game, me: Player) -> bool:
 	if me.health <= 0 or game.showing_tally or game.defeated() or game.portal_request != "":
 		return false
 	if Modes.holds(game) or game.hitstop > 0.0 or game.boss_hold > 0.0:
-		return false
-	var arms: Weapons.Armory = me.armory
-	if arms.fuse > 0.0 or arms.active == Weapons.DYNAMITE:
 		return false
 	var carry: Game.CarryScript = game.features.get("carry")
 	if carry != null and carry.held_by(me) >= 0:
@@ -103,9 +106,12 @@ static func restore(me: Player, kept: Dictionary) -> void:
 
 
 ## One tick of game.gd `_step_hands`' gun for `me` (the actions, the gun's
-## tick, then the trigger); false where it stops being led (a stick of
-## dynamite taken up).
-static func step(me: Player, c: Game.Controls, dt: float, seq: int, events: Array) -> bool:
+## tick, then the trigger or, with it up, a lit stick let go); false where it
+## stops being led. `busy`: a boot or a finisher has the hands (the copy's
+## word: features/brawl.gd hands()), so nothing is fired or let go.
+static func step(
+	me: Player, c: Game.Controls, dt: float, seq: int, events: Array, busy := false
+) -> bool:
 	var arms: Weapons.Armory = me.armory
 	if c.weapon >= 0:
 		_select(arms, c.weapon, seq, events)
@@ -117,15 +123,17 @@ static func step(me: Player, c: Game.Controls, dt: float, seq: int, events: Arra
 				break
 	if c.reload:
 		_start_reload(arms, seq, events)
-	_tick(arms, dt, seq, events)
-	if arms.active == Weapons.DYNAMITE:
-		return false
+	_tick(me, arms, dt, seq, events)
+	if busy:
+		return true
 	var alt := c.alt_fire
 	var firing: Dictionary = Weapons.FIRING[arms.active]
 	if firing.has("scope"):
 		alt = false  # ALT FIRE puts the scope up: not a shot
 	if c.fire or alt:
 		_fire(me, alt, seq, events)
+	else:
+		_release(arms, seq, events)
 	return true
 
 
@@ -133,9 +141,9 @@ static func _event(kind: String, seq: int, gun: int, cues: Array) -> Dictionary:
 	return {"kind": kind, "seq": seq, "gun": gun, "cues": cues}
 
 
-## Armory.select.
+## Armory.select (refused while a stick is lit: THROW THAT STICK FIRST!).
 static func _select(arms: Weapons.Armory, slot: int, seq: int, events: Array) -> void:
-	if slot == arms.active or not arms.owned[slot]:
+	if slot == arms.active or not arms.owned[slot] or arms.fuse > 0.0:
 		return
 	arms.active = slot
 	arms.reload = 0.0
@@ -167,8 +175,9 @@ static func _start_reload(arms: Weapons.Armory, seq: int, events: Array) -> bool
 	return false
 
 
-## Armory.tick, less what is not led (the fuse, a swing's blow landing).
-static func _tick(arms: Weapons.Armory, dt: float, seq: int, events: Array) -> void:
+## Armory.tick: the fuse burns (a stick that burns down in the hand goes
+## off there: the copy shows that), a swing's blow comes due ("blow").
+static func _tick(me: Player, arms: Weapons.Armory, dt: float, seq: int, events: Array) -> void:
 	var gun := arms.active
 	arms.cooldown = maxf(0.0, arms.cooldown - dt)
 	arms.recoil = maxf(0.0, arms.recoil - 5.2 * dt)
@@ -188,6 +197,20 @@ static func _tick(arms: Weapons.Armory, dt: float, seq: int, events: Array) -> v
 			for k in 3:
 				if was < cycle_beats[k] and now >= cycle_beats[k]:
 					events.append(_event("beat", seq, gun, [[str(cycle_cues[k]), .78]]))
+	if arms.fuse > 0.0:
+		arms.fuse -= dt
+		if arms.fuse <= 0.0:
+			arms.fuse = 0.0
+			arms.cooldown = Weapons.FIRE_TIME[Weapons.DYNAMITE]
+			arms.shot_age = 0.0
+	var how: Dictionary = arms.firing(gun)
+	if str(how.get("fire", "")) == "melee" and arms.swing_hit:
+		var swing_at: float = how["swing_at"]
+		if arms.shot_age >= swing_at:
+			arms.swing_hit = false
+			var blow := _event("blow", seq, gun, [])
+			blow["pitch"] = me.pitch
+			events.append(blow)
 	arms.rifle_heat = maxf(0.0, arms.rifle_heat - dt * 1.8)
 	arms.lower = maxf(0.0, minf(1.0, arms.lower + dt * (5.5 if arms.holstered else -5.5)))
 	if arms.reload > 0.0:
@@ -217,6 +240,9 @@ static func _fire(me: Player, both: bool, seq: int, events: Array) -> void:
 		arms.switch = .20
 		return
 	if arms.cooldown or arms.reload or arms.switch or me.health <= 0:
+		return
+	if i == Weapons.DYNAMITE:
+		_light(arms, seq, events)
 		return
 	var grind := i == Weapons.RIPSAW and both
 	var pool := Weapons.pool_fed(i)
@@ -262,6 +288,8 @@ static func _fire(me: Player, both: bool, seq: int, events: Array) -> void:
 		var heat_gain: float = how.get("heat_gain", 0.0)
 		me.pitch = minf(53.0, me.pitch + climb + arms.rifle_heat * climb_heat)
 		arms.rifle_heat = minf(1.0, arms.rifle_heat + heat_gain)
+	if str(how.get("fire", "")) == "melee":
+		arms.swing_hit = true
 	if grind:
 		return  # the saw's grind: its own loop (set_tool), nothing to show once
 	var cue := str(Weapons.NAMES[i])
@@ -276,3 +304,32 @@ static func _fire(me: Player, both: bool, seq: int, events: Array) -> void:
 	var shake_by: float = Weapons.SHAKE.get(i, 0.0)
 	shot["shake"] = shake_by * maxf(1, spent)
 	events.append(shot)
+
+
+## Armory.fire with a stick of dynamite up: the fuse struck (a stick from the
+## crossbow's pouch, as the armory keeps them), or OUT OF STICKS.
+static func _light(arms: Weapons.Armory, seq: int, events: Array) -> void:
+	if arms.fuse > 0.0 or arms.tnt_latched:
+		return
+	if arms.reserve[Weapons.CROSSBOW]:
+		arms.reserve[Weapons.CROSSBOW] -= 1
+		arms.fuse = arms.fuse_time()
+		arms.tnt_latched = true
+		events.append(_event("light", seq, Weapons.DYNAMITE, [["match_strike", 1.0]]))
+	elif arms.empty == 0.0:
+		arms.empty = .32
+		var dry := _event("dry", seq, Weapons.DYNAMITE, [["dry_tnt", 1.0]])
+		dry["message"] = "OUT OF STICKS."
+		dry["length"] = .72
+		events.append(dry)
+
+
+## Armory.release_dynamite: the trigger up with a stick lit throws it.
+static func _release(arms: Weapons.Armory, seq: int, events: Array) -> void:
+	if arms.fuse > 0.0:
+		arms.fuse = 0.0
+		arms.cooldown = Weapons.FIRE_TIME[Weapons.DYNAMITE]
+		arms.recoil = Weapons.RECOIL[Weapons.DYNAMITE]
+		arms.shot_age = 0.0
+		events.append(_event("throw", seq, Weapons.DYNAMITE, [["tnt_throw", 1.0]]))
+	arms.tnt_latched = false

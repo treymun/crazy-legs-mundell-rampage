@@ -419,6 +419,14 @@ class Client:
 	extends RefCounted
 	## Compare the copy with a snapshot every this many ticks.
 	const CHECK_EVERY := 60
+	## Floats this near (relative) are the same to that comparison: a server
+	## on Linux and a client on Windows round sin, cos and the like a last bit
+	## apart, and copies were put back every 20 to 40 s for it against the VPS
+	## (pass 9 soak). A parting that matters moves an int, a bool, the dice or
+	## a float by far more, and still puts the copy back. 0: bit for bit.
+	const NEAR := 1e-9
+	## What this copy uses (NetPlay sets NEAR when the host runs another system).
+	var near := 0.0
 	## Rebuild the copy from a snapshot every this many ticks (exercises
 	## apply; only with REBUILD_RUNNING off).
 	const REBUILD_EVERY := 600
@@ -750,7 +758,7 @@ class Client:
 			checks += 1
 			var seq_data: Dictionary = snaps[seq][1]
 			var where := GameSnapshot.first_difference(
-				NetSync.comparable(seq_data), NetSync.comparable(NetSync.capture(game))
+				NetSync.comparable(seq_data), NetSync.comparable(NetSync.capture(game)), "", near
 			)
 			if where != "":
 				mismatches += 1

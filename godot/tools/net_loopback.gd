@@ -17,6 +17,8 @@
 ## quick: the part tools/check_fixes.gd runs (run()). Prints NET LOOPBACK OK.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const MultiBots := preload("res://tools/multi_bots.gd")
 const Pilot := preload("res://tools/bot_pilot.gd")
 const STEP := 1.0 / 60.0
@@ -87,7 +89,7 @@ static func loopback(main, check: Callable, opts: Dictionary) -> Dictionary:
 	)
 	var tally := CrashLog.tally()
 	# A port of its own (other checks may be running beside this one).
-	var port := 40000 + OS.get_process_id() % 20000
+	var port := NetPorts.pick("net_loopback")
 	var hs: NetSession = null
 	for k in 20:
 		hs = NetSession.host(port + k, kind, 3, "127.0.0.1")

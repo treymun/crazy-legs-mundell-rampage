@@ -17,6 +17,8 @@
 ## Fails on any script or engine error.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const STEP := NetSync.STEP
 
 var failures: Array = []
@@ -127,7 +129,7 @@ func _join(name: String, password := "hogs", over_ws := false) -> NetPlay:
 
 
 func _play() -> void:
-	var port := 43000 + OS.get_process_id() % 15000
+	var port := NetPorts.pick("net_server_check", [0], [3000])
 	for k in 20:
 		var config := {
 			"bind": "127.0.0.1",

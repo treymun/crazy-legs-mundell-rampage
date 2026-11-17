@@ -16,6 +16,8 @@
 ## and closes it (everyone hears why). Fails on any script or engine error.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const STEP := NetSync.STEP
 
 var failures: Array = []
@@ -96,7 +98,7 @@ func _wait(what: Callable, most := 300) -> bool:
 
 
 func _play() -> void:
-	var port := 41000 + OS.get_process_id() % 15000
+	var port := NetPorts.pick("net_showdown_check")
 	var host: NetPlay = null
 	for k in 20:
 		host = NetPlay.host_lobby(port + k, "Trey", {"password": "hogs"}, false, "127.0.0.1")
@@ -291,6 +293,15 @@ func _play() -> void:
 	_check(
 		bc != null and bc.mismatches <= 1,
 		"BOB's copy keeps with the host (%d mismatches)" % (bc.mismatches if bc != null else -1)
+	)
+	var longest := 0.0
+	for trip: float in bc.lag_samples if bc != null else PackedFloat32Array():
+		longest = maxf(longest, trip)
+	# (Pass 9: the first trips were stamped against 0 until a snapshot came,
+	# so they measured all the time since the program started.)
+	_check(
+		bc != null and not bc.lag_samples.is_empty() and longest < 250.0 + float(opts["lag"]) * 4.0,
+		"BOB's round trips are the link's (longest %.0f ms)" % longest
 	)
 	_check(named, "the names reach the copies")
 	_check(

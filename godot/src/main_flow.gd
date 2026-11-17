@@ -1162,8 +1162,20 @@ func net_quit() -> void:
 ## The lobby is gone (the host left, it could not be reached, a refusal).
 func net_closed() -> void:
 	var why := net.reason
+	var retry := (
+		net.role == NetPlay.Role.CLIENT
+		and NetPlay.may_retry(why)
+		and str(net_form.get("address", "")) != ""
+	)
 	_net_gone(why + ("." if not why.ends_with(".") else ""))
 	sound.play("empty")
+	if retry:
+		# The line or the host went quiet: the JOIN form again as it was,
+		# ENTER on JOIN tries once more (late join takes them back in).
+		state = "netjoin"
+		net_row = LobbyScreens.JOIN_FORM.size() - 1
+		net_note = "%s. ENTER TO TRY AGAIN." % why.trim_suffix(".")
+		menu_note = ""
 
 
 func _net_gone(note: String) -> void:

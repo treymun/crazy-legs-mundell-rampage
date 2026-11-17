@@ -27,6 +27,8 @@
 ## card says so; the shack can be walked into from the Crossroads' start.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const RangeLayout := preload("res://src/range_layout.gd")
 
 var failures: Array = []
@@ -75,7 +77,7 @@ func _check(ok: bool, text: String) -> void:
 func _board() -> void:
 	print("THE RANGE BOARD ON THE LOBBY SERVER")
 	var server: LobbyServer = null
-	var port := 44000 + OS.get_process_id() % 15000
+	var port := NetPorts.pick("games_check")
 	for k in 20:
 		var config := {
 			"bind": "127.0.0.1",

@@ -46,6 +46,19 @@ const SNAP_EVERY := 2
 ## Seconds a client is given to say HELLO, and to reach a host.
 const HELLO_WAIT := 6.0
 const CONNECT_WAIT := 12.0
+## Seconds a client waits for the host's WELCOME after its HELLO (as long as
+## an ENet peer waits out a host that went quiet, NetSession.PATIENCE_MS).
+const ANSWER_WAIT := 15.0
+## Why a client's lobby closed that trying again may mend (the line or the
+## host went quiet, never a refusal or someone's leaving): the front end
+## offers the JOIN form again with ENTER on JOIN (main_flow.gd net_closed).
+const RETRY := [
+	"LOST THE HOST",
+	"COULD NOT REACH THE HOST",
+	"THE HOST NEVER ANSWERED",
+	"THE PARTY LINE AIN'T ANSWERING",
+	"THE PARTY LINE HUNG UP",
+]
 const MAX_NAME := 12
 ## Milliseconds a leaving side keeps the line up for its BYE to arrive.
 const CLOSE_GRACE := 400.0
@@ -114,7 +127,10 @@ var tally_at := -1.0
 ## Lines an always-open lobby tells everyone with the next LOBBY.
 var _told: PackedStringArray = []
 var _now := 0.0
+## The host's system (OS.get_name(), from its WELCOME; "" an older host).
+var host_os := ""
 var _opened_at := 0.0
+var _hello_at := 0.0
 var _waiting_hello := {}
 var _my_name := ""
 var _password := ""
@@ -261,6 +277,17 @@ static func join_lobby(where: String, my_name: String, password := "") -> NetPla
 	return net
 
 
+## How near a copy's floats must keep to a host on system `os` (its WELCOME's
+## "os"; "" an older host that does not say): bit for bit on our own system.
+static func near_for(os: String) -> float:
+	return 0.0 if os == OS.get_name() else NetSync.Client.NEAR
+
+
+## Whether a lobby closed for `why` is worth joining again (RETRY).
+static func may_retry(why: String) -> bool:
+	return RETRY.has(why.trim_suffix("."))
+
+
 static func clean_name(text: String, most := MAX_NAME) -> String:
 	var out := ""
 	for ch in text.to_upper().strip_edges():
@@ -334,6 +361,9 @@ func poll(now_ms: float) -> void:
 		_connecting()
 		if session == null:
 			return
+	if role == Role.CLIENT and phase == "hello" and _now - _hello_at > ANSWER_WAIT * 1000.0:
+		_close("THE HOST NEVER ANSWERED")
+		return
 	var packets := session.poll(now_ms)
 	var events := session.take_events()
 	if role == Role.HOST:
@@ -366,7 +396,10 @@ func poll(now_ms: float) -> void:
 			return
 	if host_sync != null and not inputs.is_empty():
 		host_sync.take(inputs)
-	if client_sync != null and not snaps.is_empty():
+	if client_sync != null:
+		# Every poll, not only with snapshots: the clock our inputs are
+		# stamped with (their round trip) was 0 until the first came, so the
+		# first trips measured were the whole time since the program started.
 		client_sync.take(snaps, now_ms)
 	# After the packets: a BYE that came with the hang-up says why.
 	if role == Role.CLIENT and phase not in ["connecting", "closed"] and not session.connected():
@@ -423,6 +456,7 @@ func _connecting() -> void:
 		_close(session.refusal())
 	elif session.connected():
 		phase = "hello"
+		_hello_at = _now
 		var version := str(ProjectSettings.get_setting("application/config/version", ""))
 		session.send(
 			NetSession.HOST_ID,
@@ -611,7 +645,7 @@ func _hello(from: int, info: Dictionary) -> void:
 	session.send(
 		from,
 		NetSession.CH_RELIABLE,
-		NetWire.welcome({"id": from, "lobby": lobby_info(), "phase": phase})
+		NetWire.welcome({"id": from, "lobby": lobby_info(), "phase": phase, "os": OS.get_name()})
 	)
 	NetMaps.send_to(self, from)  # a player map before anything can start on it
 	if phase == "match":
@@ -1173,6 +1207,7 @@ func _client_message(kind: int, info: Dictionary) -> void:
 				_close(str(info["refused"]))
 				return
 			my_id = info.get("id", session.id())
+			host_os = str(info.get("os", ""))
 			phase = "lobby"
 			var lobby: Dictionary = info.get("lobby", {})
 			_take_lobby(lobby)
@@ -1227,6 +1262,10 @@ func _start(info: Dictionary) -> void:
 			client_sync.input_seq = was.input_seq
 	client_sync.slot = info["slot"]
 	client_sync.level = str(info["level"])
+	# Our copy is held to the host's bit for bit when both run the same
+	# system; across systems (a Linux server, an older host that does not
+	# say) floats a last bit apart are let be (NetSync.Client.NEAR).
+	client_sync.near = near_for(host_os)
 	client_sync.game = game
 	phase = "match"
 	changes.append({"started": true})

@@ -533,9 +533,17 @@ func _idle(level_id: String) -> void:
 	var g := _game(level_id)
 	_ticks(g, 1.0)
 	var sp := _sets(g)
-	var t0 := Time.get_ticks_usec()
-	for k in 200:
-		sp._tick(STEP)
-	var us := (Time.get_ticks_usec() - t0) / 200.0
-	print("    idle tick %.1f us, asleep %s" % [us, not g.events.is_awake(sp)])
+	# Asleep is the real test (the tick is not called at all). The time is the
+	# quickest of a few batches: on a busy machine one batch can be preempted
+	# for milliseconds, which said nothing about the tick (pass 9).
+	var us := INF
+	for batch in 8:
+		var t0 := Time.get_ticks_usec()
+		for k in 50:
+			sp._tick(STEP)
+		us = minf(us, (Time.get_ticks_usec() - t0) / 50.0)
+	print(
+		"    idle tick %.1f us (quickest of 8 batches), asleep %s" % [us, not g.events.is_awake(sp)]
+	)
+	check(not g.events.is_awake(sp), "standing, its tick sleeps (nothing calls it)")
 	check(us < 40.0, "standing, its tick costs next to nothing (%.1f us)" % us)

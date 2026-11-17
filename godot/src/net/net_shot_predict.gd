@@ -11,7 +11,11 @@
 ## line drawn where our screen shows the world: the tracer and what it chips
 ## off a wall (own_trace), and on someone the crosshair's mark, the tick and a
 ## spray of blood. A pickup our drawn player reaches and would take goes from
-## the picture with its sound.
+## the picture with its sound. Since pass 9 also a stick of dynamite (the
+## match struck and the lit stick, its throw), a melee swing's blow landing
+## (crowbar, sling, blades: its sound, the mark and blood on whoever our
+## screen has in reach) and USE's boot (the leg coming up, the gun ducking,
+## the grunt) show at the press.
 ##
 ## The host's game stays the only truth, and the copy plays exactly what it
 ## played: this is looks only. When the copy plays our hands (game.gd calls
@@ -46,6 +50,8 @@ const SURE := .06
 const BLOOD := 6
 ## Off: nothing led or shown (net_lag.gd's before).
 static var enabled := true
+const BRAWL_LOOKS := preload("res://src/features/brawl_looks.gd")
+const STEP := NetSync.STEP
 
 ## Shown things the copy has not played yet: {"kind", "seq", "gun", "cues"
 ## (cue names not heard back yet), "matched", "hit", "marker_at", "specks"}.
@@ -74,6 +80,10 @@ var _echo := NetEchoSound.new()
 var _held: Array = []
 var _before := {}
 var _watched: Game = null
+## Our input whose boot is drawn now (-1: none).
+var _boot_seq := -1
+## The trigger hold (its first input) a stick was last shown lit for.
+var _lit_hold := -1
 
 
 func _init() -> void:
@@ -94,6 +104,10 @@ func clear_stats() -> void:
 		"pickups_taken": 0,
 		"pickups_back": 0,
 		"sounds_dropped": 0,
+		"throws": 0,
+		"blows": 0,
+		"blows_confirmed": 0,
+		"boots": 0,
 	}
 	show_ms = PackedFloat32Array()
 	copy_ms = PackedFloat32Array()
@@ -131,6 +145,8 @@ func forget() -> void:
 	taken.clear()
 	sent_ms.clear()
 	_seen_seq = -1
+	_boot_seq = -1
+	_lit_hold = -1
 
 
 func _client_now() -> NetSync.Client:
@@ -162,13 +178,35 @@ func frame(game: Game, me: Player, client: NetSync.Client) -> Dictionary:
 	if not led.is_empty():
 		var events: Array = led["events"]
 		for ev: Dictionary in events:
+			if ev["kind"] == "light":
+				# One match a trigger hold: a stick the host never lit (the
+				# copy still has none burning) is not struck again and again.
+				var lit_seq: int = ev["seq"]
+				var hold := _hold_start(client, lit_seq)
+				if hold == _lit_hold:
+					continue
+				_lit_hold = hold
 			if not _shown(ev):
 				_show(game, me, ev)
 	var out := {"gun": led.get("kept", {})}
+	var boot := _boot(game, me, client, inputs, played)
+	if not boot.is_empty():
+		out["boot"] = boot
 	var hidden := _pickups(game, me, client.input_seq - 1)
 	if not hidden.is_empty():
 		out["pickups"] = hidden
 	return out
+
+
+## The first of our inputs in the run of trigger-held ones that `seq` is in.
+static func _hold_start(client: NetSync.Client, seq: int) -> int:
+	var n := seq
+	while client.sent.has(n - 1):
+		var bytes: PackedByteArray = client.sent[n - 1]
+		if bytes.size() < NetWire.CONTROL_BYTES or not NetWire.unpack_controls(bytes).fire:
+			break
+		n -= 1
+	return n
 
 
 ## Puts the gun and the pickups back after the frame.
@@ -177,6 +215,16 @@ func restore(game: Game, me: Player, kept: Dictionary) -> void:
 		return
 	var gun: Dictionary = kept.get("gun", {})
 	NetGunLead.restore(me, gun)
+	if kept.has("boot"):
+		var boot: Dictionary = kept["boot"]
+		var brawl: Game.BrawlScript = game.features.get("brawl")
+		if brawl != null:
+			if boot.has("at"):
+				brawl.kicked_at[me.slot] = boot["at"]
+			else:
+				brawl.kicked_at.erase(me.slot)
+		var lag: Vector2 = boot["lag"]
+		me.weapon_lag = lag
 	if kept.has("pickups"):
 		var lying: Array = kept["pickups"]
 		game.pickups = lying
@@ -234,6 +282,13 @@ func _show(game: Game, me: Player, ev: Dictionary) -> void:
 	if kind == "reload":
 		for f: GameFeature in game.features.values():
 			f.own_reload(gun)
+	elif kind == "light":
+		game.set_face("grin_rampage", .35)
+	elif kind == "throw":
+		stats["throws"] += 1
+		game.set_face("yell_fire", .3)
+	elif kind == "blow":
+		_blow(game, me, gun, ev, shown)
 	if kind != "shot":
 		return
 	stats["shots"] += 1
@@ -487,6 +542,118 @@ func _withdraw_hit(game: Game, shown: Dictionary) -> void:
 	specks.clear()
 
 
+# ------------------------------------------------------------------ melee
+
+
+## A melee swing's blow come due (Armory.tick's hitscan along the view, the
+## swing's own reach and width): on whoever our screen has there, its sound,
+## the mark and the blood, ours to take back if the copy's blow misses.
+func _blow(game: Game, me: Player, gun: int, ev: Dictionary, shown: Dictionary) -> void:
+	stats["blows"] += 1
+	var how: Dictionary = Weapons.FIRING[gun]
+	var reach: float = how.get("melee_range", 1.0)
+	var width: float = how.get("melee_width", .3)
+	var pitch: float = ev.get("pitch", me.pitch)
+	var slope := (pitch + me.sway) / View.base_focal
+	var ray := probe(game, me, me.view_angle(), slope, reach, width)
+	var who: Object = ray.get("who")
+	if who == null:
+		return
+	var sure := probe(game, me, me.view_angle(), slope, reach, maxf(0.0, width - SURE))
+	if sure.get("who") != who:
+		return
+	var cue := "%s_hit" % ("sling" if gun == Weapons.SLING else str(Weapons.NAMES[gun]))
+	_say(game, shown, cue, 1.0)
+	var end: Vector3 = ray["end"]
+	_hit(game, me, gun, shown, who, end)
+
+
+## USE's boot (features/brawl.gd use(): a man in reach ahead, or a plain door
+## run at) for the first fresh press among our unplayed inputs: the grunt
+## once, and while it is up the boot drawn (brawl's kicked_at for our slot,
+## put back after the frame) and the gun ducking out of its way, timed from
+## our press. A finisher is the copy's to show (it picks the move off the
+## dice). Returns what restore() puts back ({} nothing changed).
+func _boot(
+	game: Game, me: Player, client: NetSync.Client, inputs: Array, played: int
+) -> Dictionary:
+	var brawl: Game.BrawlScript = game.features.get("brawl")
+	if brawl == null or not brawl.allowed():
+		return {}
+	var newest := client.input_seq - 1
+	var first := client.input_seq - inputs.size()
+	var held := me.use_held
+	for i in inputs.size():
+		var c: Game.Controls = inputs[i]
+		var fresh := c.use and not held
+		held = c.use
+		if not fresh or first + i <= _boot_seq:
+			continue
+		if _would_kick(game, brawl, me, (inputs.size() - 1 - i) * STEP):
+			_boot_seq = first + i
+			stats["boots"] += 1
+			var shown := {
+				"kind": "boot",
+				"key": "boot",
+				"seq": first + i,
+				"gun": -1,
+				"cues": [],
+				"matched": false,
+				"hit": false,
+				"marker_at": -1.0,
+				"specks": [],
+			}
+			pending.append(shown)
+			game.sound_at("blow_grunt", me.x, me.y, .5)
+			var heard: Array = shown["cues"]
+			heard.append("blow_grunt")
+		break
+	if _boot_seq < 0:
+		return {}
+	var age := (newest - _boot_seq) * STEP
+	var looks := BRAWL_LOOKS
+	var span: float = looks.KICK_DOWN + .15
+	var copy_age := (played - _boot_seq) * STEP
+	if age > span + .1 and copy_age > span + .1:
+		_boot_seq = -1  # ours and the copy's both over
+		return {}
+	var kept := {"lag": me.weapon_lag}
+	if brawl.kicked_at.has(me.slot):
+		kept["at"] = brawl.kicked_at[me.slot]
+	# The copy's own boot (if it has played it) is drawn at our press instead.
+	var copy_at: float = brawl.kicked_at.get(me.slot, -10.0)
+	var copy_t := game.clock - copy_at
+	var duck_copy := 0.0
+	if copy_t >= 0.0 and copy_t < span:
+		duck_copy = sin(PI * clampf(copy_t / span, 0.0, 1.0))
+	var duck := sin(PI * clampf(age / span, 0.0, 1.0)) if age < span else 0.0
+	me.weapon_lag += looks.DUCK * (duck - duck_copy)
+	brawl.kicked_at[me.slot] = game.clock - age
+	return kept
+
+
+## brawl.gd use()'s choice for `me` as our screen has them, `ahead` seconds
+## of our inputs past the copy's clock: a boot (not busy, rested, a man in
+## reach who is not to be finished, or a plain door run at).
+static func _would_kick(game: Game, brawl: Game.BrawlScript, me: Player, ahead: float) -> bool:
+	if me.health <= 0 or game.showing_tally or game.boss_hold > 0.0 or brawl.busy(me):
+		return false
+	var ready: float = brawl.kick_ready.get(me.slot, 0.0)
+	if game.clock + ahead < ready:
+		return false
+	var finish: Dictionary = Game.BrawlScript.FINISH
+	var reach: float = finish["reach"]
+	var cone: float = finish["cone"]
+	if brawl.finishable(brawl.target(me, reach, cone)):
+		return false
+	var kick: Dictionary = Game.BrawlScript.KICK
+	var kick_reach: float = kick["reach"]
+	var kick_cone: float = kick["cone"]
+	if brawl.target(me, kick_reach, kick_cone) != null:
+		return true
+	return brawl._door_ahead(me) >= 0
+
+
 # ------------------------------------------------------------------ pickups
 
 
@@ -576,6 +743,8 @@ func _expire(game: Game, played: int) -> void:
 			stats["withdrawn"] += 1
 			if shown["hit"]:
 				_withdraw_hit(game, shown)
+		elif shown["kind"] == "blow" and not shown["matched"] and shown["hit"]:
+			_withdraw_hit(game, shown)
 	pending = keep
 	var lying := {}
 	if not taken.is_empty():
@@ -605,7 +774,7 @@ func before_hands(g: GameState, p: Player, _controls: GameState.Controls) -> voi
 			continue
 		any = true
 		var kind: String = shown["kind"]
-		if kind == "shot" or kind == "reload":
+		if kind == "shot" or kind == "reload" or kind == "blow":
 			looks = true
 	if not any:
 		return
@@ -625,6 +794,7 @@ func before_hands(g: GameState, p: Player, _controls: GameState.Controls) -> voi
 		"at": game.hit_mark_at,
 		"head": game.hit_mark_head,
 		"reload": p.armory.reload,
+		"swing": p.armory.swing_hit,
 	}
 
 
@@ -687,6 +857,23 @@ func after_hands(g: GameState, p: Player, _controls: GameState.Controls) -> void
 				_withdraw_hit(game, shot)
 	elif fired:
 		_late()
+	var swung: bool = _before["swing"]
+	if swung and not arms.swing_hit:
+		# The copy's blow came due this step: ours stands if it landed too.
+		var blow := _oldest("blow")
+		if not blow.is_empty():
+			blow["matched"] = true
+			if blow["hit"]:
+				drop["hit"] = true
+				if hit_now:
+					stats["blows_confirmed"] += 1
+					if not (game.hit_mark_kill and not _before["kill"]):
+						game.hit_mark_until = _before["until"]
+						game.hit_mark_kill = _before["kill"]
+						game.hit_mark_at = _before["at"]
+						game.hit_mark_head = _before["head"]
+				else:
+					_withdraw_hit(game, blow)
 	var was_reload: float = _before["reload"]
 	if was_reload <= 0.0 and arms.reload > 0.0:
 		var reload := _oldest("reload")

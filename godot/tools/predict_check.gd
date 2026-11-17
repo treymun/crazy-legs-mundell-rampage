@@ -18,6 +18,13 @@
 ##   comes back in the picture);
 ## - a reload pressed mid-burst with the trigger held: every bang heard once,
 ##   the reload's sound once, the rounds only ever go down until it is in;
+## - a stick of dynamite (pass 9): the match struck and the stick lit at the
+##   press, the throw at the release, each heard once; one the host refuses
+##   (the trigger never reached it) gives its stick back;
+## - a melee swing (pass 9): the crowbar's blow on player two heard and
+##   marked when it comes due, before the copy plays it, once in all;
+## - USE's boot (pass 9, co-op): the boot drawn and the grunt heard at the
+##   press, once in all, and the copy kicks;
 ## - nothing on a game nobody watches (single player, a host).
 ##
 ##   godot --headless --path godot --script res://tools/predict_check.gd
@@ -72,6 +79,10 @@ class Rig:
 	var kicks := 0
 	var copy_shots := 0
 	var refuse := Callable()
+	## Called each frame while the copy is led (before it is put back); what
+	## it returns is kept in `probes`.
+	var frame_probe := Callable()
+	var probes: Array = []
 	var _kick_was := 0.0
 
 	func _init(game: Game) -> void:
@@ -124,6 +135,8 @@ class Rig:
 		if kick > _kick_was + .3:
 			kicks += 1
 		_kick_was = kick
+		if frame_probe.is_valid():
+			probes.append(frame_probe.call())
 		pred.restore(g, me, kept)
 		NetPredict.restore(me, walked)
 		copy_pickups.append(g.pickups.size())
@@ -168,6 +181,10 @@ func _run() -> void:
 	_switching(main)
 	_pickups(main)
 	_reload_mid_burst(main)
+	_dynamite(main, false)
+	_dynamite(main, true)
+	_melee(main)
+	_boot(main)
 	_nobody_watching(main)
 	print("")
 	print("PREDICT CHECK OK" if failures.is_empty() else "%d CHECK(S) FAILED" % failures.size())
@@ -488,6 +505,195 @@ func _reload_mid_burst(main) -> void:
 				r.seen_bits.size(),
 				plain.seen_bits.size()
 			]
+		)
+	)
+
+
+## A stick lit (the trigger held half a second) and let go.
+func _dynamite(main, refused: bool) -> void:
+	var r := _rig(main)
+	var arms := r.me.armory
+	arms.owned[Weapons.DYNAMITE] = true
+	arms.reserve[Weapons.CROSSBOW] = 3
+	arms.select(Weapons.DYNAMITE, r.g)
+	r.idle(30)
+	if refused:
+		r.refuse = func(c: Game.Controls) -> Game.Controls:
+			c.fire = false
+			return c
+	r.frame_probe = func() -> Array:
+		return [arms.fuse, arms.reserve[Weapons.CROSSBOW], arms.shot_age]
+	var shots_before := r.g.shots.size()
+	r.step(_fire())
+	var first: Array = r.probes[-1]
+	var lit_at_once: bool = first[0] > 0.0 and first[1] == 2 and arms.fuse == 0.0
+	var struck_then := r.ears.count("match_strike")
+	for i in 29:
+		r.step(_fire())
+	r.step(Game.Controls.new())
+	var thrown: Array = r.probes[-1]
+	var thrown_at_once: bool = thrown[0] == 0.0 and thrown[2] == 0.0
+	var throw_then := r.ears.count("tnt_throw")
+	var flew := false
+	for i in LAG + 6:
+		r.step(Game.Controls.new())
+		for shot: Object in r.g.shots:
+			flew = flew or str(shot.get("kind")) == "tnt"
+	r.settle()
+	if refused:
+		_check(
+			(
+				lit_at_once
+				and struck_then == 1
+				and r.ears.count("match_strike") == 1
+				and not flew
+				and r.g.shots.size() == shots_before
+				and arms.reserve[Weapons.CROSSBOW] == 3
+			),
+			(
+				"a stick the host never lit: struck at the press (heard once), no throw played,"
+				+ (
+					" the stick back in the pouch (%d; %s %d %s %d)"
+					% [
+						arms.reserve[Weapons.CROSSBOW],
+						lit_at_once,
+						r.ears.count("match_strike"),
+						flew,
+						r.g.shots.size() - shots_before
+					]
+				)
+			)
+		)
+		return
+	_check(
+		lit_at_once and struck_then == 1,
+		"a stick lit at the press: the match heard, the fuse burning, a stick out of the pouch"
+	)
+	_check(
+		(
+			thrown_at_once
+			and throw_then == 1
+			and r.pred.stats["throws"] == 1
+			and flew
+			and r.ears.count("match_strike") == 1
+			and r.ears.count("tnt_throw") == 1
+			and arms.reserve[Weapons.CROSSBOW] == 2
+		),
+		(
+			(
+				"let go: thrown at the release (heard %d then), the copy throws it %d frames on;"
+				+ " the match and the throw heard once each (%d, %d)"
+			)
+			% [
+				throw_then,
+				LAG,
+				r.ears.count("match_strike"),
+				r.ears.count("tnt_throw"),
+			]
+		)
+	)
+
+
+## The crowbar swung at player two, close by: the blow's sound and mark when
+## it comes due here, the copy's own not heard again.
+func _melee(main) -> void:
+	var r := _rig(main)
+	var a := r.me
+	var b := r.them
+	var arms := a.armory
+	arms.owned[Weapons.CROWBAR] = true
+	arms.select(Weapons.CROWBAR, r.g)
+	var near := Vector2(a.x, a.y) + Vector2(cos(a.angle), sin(a.angle)) * .7
+	Modes.place(r.g, b, near.x, near.y, 0.0)
+	_aim(a, b)
+	r.idle(30)
+	var health_before := b.health
+	var how: Dictionary = Weapons.FIRING[Weapons.CROWBAR]
+	var swing_at: float = how["swing_at"]
+	var due := ceili(swing_at / STEP) + 1
+	r.step(_fire())
+	for i in due:
+		r.step(Game.Controls.new())
+	var heard_early := r.ears.count("crowbar_hit")
+	var marked_early := r.g.hit_mark_until > r.g.clock
+	var copy_struck_yet := b.health < health_before
+	r.settle()
+	_check(
+		(
+			heard_early == 1
+			and marked_early
+			and r.pred.stats["blows"] == 1
+			and r.pred.stats["blows_confirmed"] == 1
+			and r.ears.count("crowbar_hit") == 1
+			and r.ears.count("crowbar") == 1
+			and not copy_struck_yet
+			and b.health < health_before
+		),
+		(
+			(
+				"a crowbar's blow lands at once: its sound (%d then) and the mark before the copy"
+				+ " plays it; confirmed, heard once in all (%d)"
+			)
+			% [heard_early, r.ears.count("crowbar_hit")]
+		)
+	)
+
+
+## USE in front of one of the county's hands in co-op: the boot.
+func _boot(main) -> void:
+	var g: Game = main.make_game("hickston")
+	g.configure({"difficulty": 1})
+	Modes.setup(g, Modes.COOP, 2)
+	g.cheats.god = true
+	g.tick(STEP, Game.Controls.new())
+	var a: Player = g.players[0]
+	var man: Enemy = null
+	for e: Enemy in g.enemies:
+		if e.alive and e.hostile and HitZones.limbs(e) and not Game.BrawlScript.FLYING.has(e.brain):
+			man = e
+			break
+	if man == null:
+		_check(false, "a hand to kick in Hickston")
+		return
+	var ahead := Vector2(a.x, a.y) + Vector2(cos(a.angle), sin(a.angle)) * .9
+	if g.world.blocked(ahead.x, ahead.y, .3):
+		a.angle += PI
+		ahead = Vector2(a.x, a.y) + Vector2(cos(a.angle), sin(a.angle)) * .9
+	man.x = ahead.x
+	man.y = ahead.y
+	man.dormant = false
+	var r := Rig.new(g)
+	r.idle(LAG + 4)
+	man.x = ahead.x
+	man.y = ahead.y
+	var looks: Object = g.features.get("brawl_looks")
+	r.frame_probe = func() -> bool: return not looks.call("boot").is_empty()
+	var kick := Game.Controls.new()
+	kick.use = true
+	r.step(kick)
+	var drawn_at_once: bool = r.probes[-1]
+	var grunt_then := r.ears.count("blow_grunt")
+	var brawl: Game.BrawlScript = g.features.get("brawl")
+	var copy_kicked_then := brawl.kicked_at.has(0)
+	for i in LAG + 2:
+		r.step(Game.Controls.new())
+	var copy_kicked := brawl.kicked_at.has(0)
+	r.settle()
+	_check(
+		(
+			drawn_at_once
+			and grunt_then == 1
+			and not copy_kicked_then
+			and copy_kicked
+			and r.pred.stats["boots"] == 1
+			and r.ears.count("blow_grunt") == 1
+		),
+		(
+			(
+				"USE's boot shows at the press: the boot drawn, the grunt heard (%d then, %d in all);"
+				+ " the copy kicks %d frames on"
+			)
+			% [grunt_then, r.ears.count("blow_grunt"), LAG]
 		)
 	)
 

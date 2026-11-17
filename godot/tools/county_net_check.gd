@@ -15,6 +15,8 @@
 ## back once the run is over (killed off for the test).
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const STEP := NetSync.STEP
 const Bot := preload("res://tools/county_bot.gd")
 
@@ -157,7 +159,7 @@ func _join(name: String, over_ws: bool) -> NetPlay:
 
 
 func _play() -> void:
-	var port := 42000 + OS.get_process_id() % 15000
+	var port := NetPorts.pick("county_net_check", [0], [3000])
 	for k in 20:
 		var config := {
 			"bind": "127.0.0.1",

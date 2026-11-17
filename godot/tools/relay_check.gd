@@ -28,6 +28,8 @@
 ## Fails on any script or engine error.
 extends SceneTree
 
+const NetPorts := preload("res://tools/net_ports.gd")
+
 const STEP := NetSync.STEP
 const CountyBot := preload("res://tools/county_bot.gd")
 
@@ -116,7 +118,7 @@ func _check(ok: bool, text: String) -> void:
 
 
 func _base_port() -> int:
-	return 43000 + OS.get_process_id() % 12000
+	return NetPorts.pick("relay_check", [0, 5000, 6000, 7000, 9000], [3000])
 
 
 # ------------------------------------------------------------------ limits
@@ -128,7 +130,7 @@ func _limits() -> void:
 	var relay := NetRelay.new(
 		{"rooms": 3, "per_address": 2, "idle_minutes": 0.03, "room_bytes": 4000}
 	)
-	var port := _base_port() + 7000
+	var port := NetPorts.pick("relay_check limits")
 	var listening := false
 	for k in 20:
 		if relay.listen(port + k, NetSession.Transport.ENET, "127.0.0.1"):
@@ -327,7 +329,8 @@ func _make(info: Dictionary) -> Game:
 
 func _host(name: String, port_from: int) -> NetPlay:
 	for k in 20:
-		var host := NetPlay.host_lobby(port_from + k, name, {}, false, "127.0.0.1", true)
+		var at := port_from if k == 0 else NetPorts.pick("relay_check host %d" % k)
+		var host := NetPlay.host_lobby(at, name, {}, false, "127.0.0.1", true)
 		if host != null:
 			host.make_match = _make
 			nets.append(host)
@@ -341,7 +344,7 @@ func _host(name: String, port_from: int) -> NetPlay:
 ## Round trips of a small echo, straight and through the line.
 func _lag() -> void:
 	print("THE LAG THE LINE ADDS")
-	var port := _base_port() + 9000
+	var port := NetPorts.pick("relay_check lag")
 	var direct_host: NetSession = null
 	for k in 20:
 		direct_host = NetSession.host(port + k, NetSession.Transport.ENET, 4, "127.0.0.1")
@@ -474,7 +477,7 @@ func _showdown() -> void:
 	print("5V5 THROUGH THE PARTY LINE")
 	# TREY's home address does not answer (his port is shut to the world).
 	RelayLink.test_lan = PackedStringArray(["127.0.0.2"])
-	var host := _host("Trey", _base_port() + 5000)
+	var host := _host("Trey", NetPorts.pick("relay_check 5v5"))
 	_wait(func() -> bool: return host != null and host.party_line().state != "calling", 2000)
 	var line := host.party_line() if host != null else null
 	_check(
@@ -746,7 +749,7 @@ func _county() -> void:
 	print("COUNTY RUN THROUGH THE PARTY LINE")
 	god = true
 	RelayLink.test_lan = PackedStringArray()
-	var host := _host("Trey", _base_port() + 6000)
+	var host := _host("Trey", NetPorts.pick("relay_check versus"))
 	_wait(func() -> bool: return host != null and host.party_line().state != "calling", 2000)
 	if host == null or host.party_line().state != "open":
 		_check(false, "TREY opens a COUNTY RUN room")
