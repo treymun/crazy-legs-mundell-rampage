@@ -20,6 +20,13 @@ var last := Vector2.INF
 var foe: Enemy = null
 var close_for := 0.0
 var back_until := 0.0
+## A way round something solid on the route (detour()): cell centres left
+## to walk, and when it is given up.
+var around: Array[Vector2] = []
+var around_until := 0.0
+
+## How far round a detour looks, in cells.
+const AROUND_REACH := 6
 
 
 func _use(game: Game, controls: Game.Controls) -> void:
@@ -81,6 +88,13 @@ func steer(game: Game) -> Game.Controls:
 				# One cell at a time, so it never cuts a corner into a wall.
 				var next := game.route.heading(p.x, p.y, game.world.stand(p))
 				aim = next if not is_nan(next) else aim
+				# Stopped by a solid prop the route walks through (a one-cell
+				# searchlight, vat or floodlight): walk round it instead.
+				if around.is_empty() and stuck > .25 and _solid_ahead(game, aim):
+					around = detour(game)
+					around_until = game.clock + 4.0
+				if not around.is_empty():
+					aim = _follow_around(game, aim)
 			elif int(way[1]) < 0:
 				# Pressed into a nook the route does not cover (beside a station
 				# after a fight there): back to the nearest cell it does.
@@ -149,6 +163,90 @@ func moved(game: Game) -> void:
 	else:
 		stuck = 0.0
 	last = Vector2(p.x, p.y)
+
+
+## True when a step of the player's width toward `aim` runs into something
+## solid where it stands now is clear.
+func _solid_ahead(game: Game, aim: float) -> bool:
+	var p := game.player
+	var z := p.floor_z + .35
+	var r := GameState.PLAYER_RADIUS
+	if game.world.blocked(p.x, p.y, r, z):
+		return false
+	return game.world.blocked(p.x + cos(aim) * .12, p.y + sin(aim) * .12, r, z)
+
+
+## The cell centres of the shortest walk (within AROUND_REACH cells) from the
+## player's cell to one nearer the objective, round whatever is solid at the
+## player's height; empty when there is none.
+func detour(game: Game) -> Array[Vector2]:
+	var p := game.player
+	var w := game.world
+	var z := p.floor_z + .35
+	var r := GameState.PLAYER_RADIUS + .06
+	var start := Vector2i(int(p.x), int(p.y))
+	var here := game.route.distance(p.x, p.y, game.world.stand(p))
+	if here >= FlowField.FAR:
+		return []
+	var span := AROUND_REACH * 2 + 1
+	var free := {}
+	var came := {start: start}
+	var queue: Array[Vector2i] = [start]
+	var head := 0
+	var open := func(c: Vector2i) -> bool:
+		if absi(c.x - start.x) > AROUND_REACH or absi(c.y - start.y) > AROUND_REACH:
+			return false
+		if not free.has(c):
+			free[c] = (
+				game.route.distance(c.x + .5, c.y + .5) < FlowField.FAR
+				and not w.blocked(c.x + .5, c.y + .5, r, z)
+			)
+		return free[c]
+	while head < queue.size() and head < span * span:
+		var c: Vector2i = queue[head]
+		head += 1
+		if c != start and game.route.distance(c.x + .5, c.y + .5) < here:
+			var path: Array[Vector2] = []
+			while c != start:
+				path.push_front(Vector2(c.x + .5, c.y + .5))
+				c = came[c]
+			return path
+		for n: Vector2i in FlowField.NEIGHBOURS:
+			var to := c + n
+			if came.has(to) or not open.call(to):
+				continue
+			if n.x != 0 and n.y != 0:
+				if not (open.call(Vector2i(to.x, c.y)) and open.call(Vector2i(c.x, to.y))):
+					continue
+			# The step itself clear too (from where the player stands, at first).
+			var from := Vector2(p.x, p.y) if c == start else Vector2(c.x + .5, c.y + .5)
+			if not _clear_walk(w, from, Vector2(to.x + .5, to.y + .5), r, z):
+				continue
+			came[to] = c
+			queue.append(to)
+	return []
+
+
+## True when nothing solid at height z stands on the straight walk from a to b.
+static func _clear_walk(w: LevelData, a: Vector2, b: Vector2, r: float, z: float) -> bool:
+	var steps := ceili(a.distance_to(b) / .15)
+	for i in range(1, steps + 1):
+		var at := a.lerp(b, float(i) / steps)
+		if w.blocked(at.x, at.y, r, z):
+			return false
+	return true
+
+
+## The heading to the next cell centre of the detour, dropping the ones
+## reached; back to `aim` once it is walked or given up.
+func _follow_around(game: Game, aim: float) -> float:
+	var p := game.player
+	while not around.is_empty() and Vector2(p.x, p.y).distance_to(around[0]) < .3:
+		around.pop_front()
+	if around.is_empty() or game.clock > around_until:
+		around.clear()
+		return aim
+	return atan2(around[0].y - p.y, around[0].x - p.x)
 
 
 ## The nearest hostile that has noticed the player and can be seen.
