@@ -226,7 +226,7 @@ func _fire(i: int, step: Dictionary) -> void:
 		"wave":
 			var boss: Enemy = foes[i]
 			waves.append([boss.x, boss.y, game.clock, []])
-			game.sound_at("step_water", boss.x, boss.y, 1.0)
+			game.sound_at("wade_splash", boss.x, boss.y, 1.0)
 			game.burst(boss.x, boss.y, game.world.elevation(boss.x, boss.y) + .1, "splash", 18, 2.6)
 		"blowout":
 			_blowout(step)
@@ -664,7 +664,7 @@ func _waves() -> void:
 			struck.append(q.slot)
 			game.damage(hurt, [wx, wy], "SWAMPED", q)
 			game.move_actor(q, dx / d * push, dy / d * push, GameState.PLAYER_RADIUS)
-			game.sound_at("step_water", q.x, q.y, 1.0)
+			game.sound_at("wade_splash", q.x, q.y, 1.0)
 	waves = kept
 
 

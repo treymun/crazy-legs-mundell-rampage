@@ -81,6 +81,14 @@ jobs:
         run: |
           ~/gdtoolkit-venv/bin/gdformat --check src tools addons
           ~/gdtoolkit-venv/bin/gdlint src tools addons
+      # The sound measured (scripts/audio_qa.py, docs/dev/audio.md "Audio QA"):
+      # every finished cue and song against its family, its edges, silences and
+      # loop joins, and every cue the game names made. The songs are measured
+      # only where the runner has ffmpeg.
+      - name: Audio QA
+        run: |
+          python -m pip install -q "$(grep -E '^numpy==' requirements.txt | cut -d' ' -f1)"
+          python scripts/audio_qa.py --check
 
   checks:
     name: Checks ${{ matrix.shard }} of 6

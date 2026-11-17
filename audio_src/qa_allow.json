@@ -1,0 +1,198 @@
+{
+ "_about": "Findings of scripts/audio_qa.py the owner accepts, each with why: cue -> {start of the finding: reason}. --check fails on any other finding and on an allowance no longer needed. Written in polish pass 9 from the measurements; nobody listened.",
+ "allow": {
+  "amb_room": {
+   "quiet for family:ambience": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "arm_impact": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "arm_vent": {
+   "loud for family:reload": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "bar_mag": {
+   "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "bomb_beep": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "bow_latch": {
+   "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "break_jugs": {
+   "quiet for family:scene": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "break_mash": {
+   "quiet for family:scene": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "chain_crack": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "collapse_crash": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "cowpie_pick": {
+   "quiet for family:consume": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "crunch": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "debris_settle": {
+   "quiet for family:scene": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "deputy_work": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "distant_quarry_pipe": {
+   "quiet for family:distant": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "drone_buzz": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "dry_mower": {
+   "loud for family:dry": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "dry_patrol_bar": {
+   "loud for family:dry": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "dry_rifle": {
+   "quiet for family:dry": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "dry_tommy": {
+   "quiet for family:dry": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "ear_ring": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "ember_crackle": {
+   "quiet for family:near": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "equip_bottle_launcher": {
+   "quiet for family:equip": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "equip_rifle": {
+   "quiet for family:equip": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "equip_smudge_pot": {
+   "loud for family:equip": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "fire_crackle": {
+   "quiet for family:near": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "firecracker_can": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "fuse_cut": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter",
+   "quiet for family:boom": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "fuse_short": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "gas_leak": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "gib_burst": {
+   "quiet for family:impact": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "gib_splat": {
+   "quiet for family:impact": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "glass_settle": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "grease_crank": {
+   "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "guard_wind": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "guard_zapper": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "hogleg_gate": {
+   "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "hound_whistle": {
+   "loud for family:player": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "menu_accept": {
+   "quiet for family:ui": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "menu_move": {
+   "quiet for family:ui": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "pod_open": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "pressure_gun": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "range_gallery_buzzer": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "rat_blow": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "record_scratch": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "reload": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "rev_extract": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "rev_lock": {
+   "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "ripsaw": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "riveter": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "riveter_pair": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "rudy_warn": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "scenery_belt": {
+   "quiet for family:scene": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "sheriff_death": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "shot_extract": {
+   "quiet for family:reload": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "shot_hinge": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "step_wood_0": {
+   "loud for family:foot": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "step_wood_2": {
+   "loud for family:foot": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "still_bubble": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  },
+  "teat_gun": {
+   "quiet for family:report": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "torch_click": {
+   "quiet for family:equip": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "tv_pop": {
+   "quiet for family:scene": "a click, crackle or splat: its loudest 50 ms is the spike itself, so limiting it lowers both (audio.md \"Making and finishing\"); kept with its edge"
+  },
+  "wade_splash": {
+   "loud for family:foot": "level kept from the cue the mix was balanced on (assets/wav) or set on purpose in audio_spec"
+  },
+  "weapon_pickup": {
+   "true peak": "between-sample peak of a hard-edged cue mastered to -0.8 dB a sample; played at .82 or less into the -0.8 dB master limiter"
+  }
+ }
+}

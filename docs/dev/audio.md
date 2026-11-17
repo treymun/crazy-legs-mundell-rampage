@@ -26,6 +26,19 @@ decision here comes from measurement and from the code.
   `LIMIT_DB` 6 dB off the spikes) and then a plain scale. Very short spiky cues
   (a splat, a click) still land under their family's level: their loudest
   50 ms is the spike itself, so limiting it lowers both.
+- Since pass 9: a cue still more than 3 dB under its level after that gets a
+  second pass of the limiter (`DEEP_FROM`, families in `DEEP`: voices,
+  creatures, breakage; a tool's click, a step and a gun keep their edge); a
+  silence of more than 0.3 s at a cue's end is cut (`trim_tail`); a cue left
+  off centre by its fades (over 2 % of its RMS) has it taken off under a
+  bell; loops join at equal power (`seamless`, corrected for how alike the
+  two passages are: the old equal-gain fade dipped 3 dB mid-join over a bed
+  of noise, a pulse each time round); the tool loops cross over 0.3 s. A
+  spoken line keeps everything up to its caption's last word (and 0.14 s on);
+  every spoken line finishes at the voices' level, the oldest exchanges
+  included. A CLEAN copy's duck call saturates at the line's peak instead of
+  setting the whole line's level.
+- `scripts/audio_qa.py` measures it all; see "Audio QA" below.
 - Paid requests go only through `scripts/audio_generator.py` (ledger, ceiling;
   CLAUDE.md). It loads the key from `.env` at the repo root of the checkout it
   runs from.
@@ -103,7 +116,8 @@ always sounds like itself).
   ceiling. The local voice's plosives hit the ceiling first and left its
   shouts 2.5 dB under the others (speech RMS -13.0 against about -10.5):
   its barks, cuss lines and tough guys take `squash` 4 (their spikes limited
-  before levelling) and land at -10.4. Its older radio talk is unchanged.
+  before levelling) and land at -10.4. The older radio talk, kept at its
+  placeholders' -9 dB until pass 9, now finishes at -3 dB like the rest.
 - **BLUE.** His barks, bays, growls, bite, boof, yelps and whines are
   `hound_*` effects (`audio_spec.py` "the hound"; takes dealt by
   `Sound.VARIANTS`), the whistle `hound_whistle`; Mundell's words to him are
@@ -262,6 +276,75 @@ a word their own way (`heard`: "Sooie" written "Zoe", "lawnmower", "cow's"),
 as "Failures out", "at a still" with an "uh") and were reworded and made
 again (one of those then heard "man" for "men"). About 1,330 credits at the
 ledger's expected rates. Not listened to.
+
+## Audio QA (pass 9)
+
+`scripts/audio_qa.py` (free, numpy; ffmpeg for the songs) measures every
+finished cue in `audio_src/final/sfx` and every song in `godot/assets/music`:
+EBU R128 loudness (K-weighted and gated; a cue under 0.4 s gets the level of
+the whole of it), true peak (4x), the loudest 50 ms; each cue against the
+median of its group (its family, or a spoken line's voice and speaker box: 5
+dB, 4 LU for voices); clipping, DC, a click at either end, silence before
+or after, a long cue stopped mid-sound under a short fade, a spoken line
+shorter than its caption's words (from its transcript), a loop's join (the
+step across it against the steps inside, its last 100 ms against its first
+against the biggest change inside), two takes of a VARIANTS set that are one
+recording; every cue the game names in a literal made, every cue named
+somewhere in the game's code or data. `--check` fails on any finding not in
+`audio_src/qa_allow.json` (cue -> start of the finding -> why) and on an
+allowance no longer needed; `--json <file>` writes every number. It runs in
+check_all's `lint` and in CI's lint job. `tools/audio_qa_check.gd`
+(check_all, quick) holds the wiring headless: every literal cue made, clean
+ends and loop joins, every CLEAN copy within 2 dB of its cussing take, the
+music's holds stacking, no bark said twice running.
+
+What pass 9 found and did (2026-11-17, measured, not heard):
+
+- **Silent moments.** `honk` (a vehicle run's start), `impact_stone` (the
+  Revenue Man's axe in the rock, the ship's boulders) and `step_water` (the
+  swamp king's wave) were named and never made. `honk` is a new recording
+  (12 credits), `impact_stone` `impact_brick` a minor third down, the wave
+  plays `wade_splash`. `church_bell` and `cruiser_siren`, made for the
+  Moonshine Run, were never played: the church's bell station rang the fair's
+  bell (now `church_bell`, moonshine_plan.gd), and a cruiser coming round
+  fresh now wails its siren (race_laps.gd; the pass timer is unchanged).
+- **The music's holds.** game.gd sets the music's level every tick (a blast,
+  a caption up); that set it outright, so a jukebox or a truck's radio and
+  Dub talking over a song held the music down for one tick only. Sound now
+  keeps play's hold as a share (`_game_music`) and every hold multiplies
+  (`_apply_music`); the menus drop play's.
+- **Barks.** With two or three lines a moment the hands said the same line
+  twice running a third to half the time; `enemy_barks._fresh` deals the next
+  one instead (no extra dice).
+- **Levels.** 114 cues sat 6 to 17 dB under their mastering level (spiky
+  cues the 6 dB limiter could not lift). After the second pass the spread
+  (10th to 90th percentile) of the voices fell: Mundell 3.4 to 2.5 LU, the
+  hicks 5.0 to 3.5, the coot 4.3 to 2.6, the local voice 5.0 to 2.8, the grey
+  5.2 to 3.4, every spoken line 4.9 to 3.6; breakage (`scene`) 10.1 to 7.1
+  dB, impacts 8.2 to 6.3. The 21
+  oldest exchanges (`talk_*` of 3.0.0 and `county_dispatch_*`) kept their
+  placeholders' -9 dB and sat 3 LU (median) under the rest, the SOUND page's
+  voice sample (`talk_tow-radio_1`) among them; now at the voices' level.
+  CLEAN copies: up to 8 LU (median 1.2) under their cussing takes, now within
+  1.4 dB.
+- **Defects.** 74 spoken lines were cut before their last word (their soft
+  last consonant fell under the build's hit floor; `bark_grey_cover_0` lost
+  0.7 s): all whole now. 13 lines' last takes had never been transcribed
+  (their transcripts were the takes before, so the cut and the check used the
+  wrong words): transcribed (156 credits), all say their captions;
+  `bark_grey_cover_0` loses its `heard`, `bark_grey_surprised_0` keeps its
+  "Eep!" (`lead`, BARK_LEAD). `fuse_hiss` pulsed 3.3 dB at its 1.4 s join,
+  now under 1.1; 29 cues held 0.45 to 1.4 s of silence at the end; six were
+  off centre.
+- **Music.** All 38 songs -15.0 +- 0.3 LUFS (tickets_after_dark and victory
+  -14.7), true peak -0.8 dBTP or under, fight and boss loops join cleanly;
+  unchanged. In game a spoken line (about -10 LUFS at VOICE .8, -3 dB) sits
+  about 9 LU over the music (-15 LUFS at MUSIC .5, -7 dB) before any duck.
+- **Accepted** (qa_allow.json): 21 cues whose true peak is 1.5 to 3.4 dBTP
+  (hard edges between samples; played at .82 or less into the master
+  limiter); clicks, crackles and splats under their family (the spike is the
+  loudness); levels kept from the cues the mix was balanced on (the wood
+  steps, the dry clicks of the belt-fed and the BAR, `amb_room`).
 
 ## The 3.0.0 remaster pass (measured, not heard)
 

@@ -195,6 +195,8 @@ bash server/deploy.sh root@<server address>   # build the Linux server and insta
 
 ```
 .venv\Scripts\python.exe scripts/audio_generator.py status   # credits used: check before spending
+.venv\Scripts\python.exe scripts/audio_build.py --sfx          # finish every effect and line (free; --only <cues>)
+.venv\Scripts\python.exe scripts/audio_qa.py --check           # measure the bank (AUDIO QA OK); --json <file> for the numbers
 ```
 
 The ElevenLabs rules are in CLAUDE.md. Never run two generation processes at

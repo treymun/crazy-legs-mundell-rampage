@@ -8,28 +8,28 @@
   },
   {
    "text": "you're",
-   "start": 0.3,
-   "end": 0.46
+   "start": 0.28,
+   "end": 0.4
   },
   {
    "text": "on",
-   "start": 0.52,
-   "end": 0.66
+   "start": 0.46,
+   "end": 0.56
   },
   {
    "text": "my",
-   "start": 0.7,
-   "end": 0.88
+   "start": 0.6,
+   "end": 0.72
   },
   {
    "text": "field",
-   "start": 1.0,
-   "end": 1.26
+   "start": 0.82,
+   "end": 1.06
   },
   {
    "text": "now",
-   "start": 1.34,
-   "end": 1.64
+   "start": 1.12,
+   "end": 1.46
   }
  ]
 }

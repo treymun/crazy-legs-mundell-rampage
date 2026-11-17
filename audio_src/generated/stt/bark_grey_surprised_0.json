@@ -1,25 +1,10 @@
 {
- "text": "Hey, yeah. You're intruder",
+ "text": "Intruder!",
  "words": [
   {
-   "text": "Hey,",
-   "start": 0.0,
-   "end": 0.2
-  },
-  {
-   "text": "yeah.",
-   "start": 0.32,
-   "end": 0.5
-  },
-  {
-   "text": "You're",
-   "start": 0.76,
-   "end": 0.88
-  },
-  {
-   "text": "intruder",
-   "start": 0.92,
-   "end": 1.68
+   "text": "Intruder!",
+   "start": 1.26,
+   "end": 2.08
   }
  ]
 }

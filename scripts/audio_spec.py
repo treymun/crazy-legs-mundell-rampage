@@ -720,6 +720,15 @@ add("scene",
     church_bell=N("One old iron church bell rung hard in a small wooden steeple, ringing out over the hills at night.", 2.5, style="far"),
     cruiser_siren=N("An old 1990s police car siren wailing then yelping as the car speeds past at night.", 2.5, style="far"),
     )
+# Pass 9: cues the game named and nobody made (scripts/audio_qa.py "named by
+# the game, not made"): a vehicle run's start (features/vehicle_runs.gd) and
+# an axe or a boulder striking rock (bosses/revenue_man.gd, boss_arenas.gd).
+add("scene",
+    honk=N("An old 1970s pickup truck's horn: two short, flat, slightly sour honks, beep beep.", 1.0, .9, "mech"),
+    )
+add("impact",
+    impact_stone=D("impact_brick", "pitch", cents=-300, like="impact_brick"),
+    )
 add("ambience",
     amb_ridge=LOOP("A hot summer night in the Ozark hills: crickets and katydids, a whip-poor-will calling far off, a creek trickling, a soft breeze in pine trees.", 10, 10.0, "amb"),
     )
@@ -1092,14 +1101,20 @@ BARK_HEARD = {
     "bark_coot_brawl_1": "I'll tan your hide", "bark_coot_regroup_0": "Retreat! Move! On knees!",
     "bark_grey_flank_0": "Encircle the humans", "bark_grey_brawl_0": "Friendly fire, sir",
     # The grey's warble: the words are there, the transcript hears them sideways.
-    "bark_grey_cover_0": "Hey, erase the shield!", "bark_grey_surprised_0": "Hey, yeah. You're intruder",
     "bark_grey_regroup_0": "They turn to the saucers",
+    # Pass 9: these two lines' last takes were never transcribed (their
+    # transcripts were the takes before). Transcribed: "Raise the shields!" as
+    # captioned; "Intruder!" with the "Eep!" (a squeak, no word) before it.
+    "bark_grey_surprised_0": "Intruder!",
 }
+# Seconds kept before the first heard word, for a sound the transcript leaves
+# out (audio_build.py; .05 otherwise).
+BARK_LEAD = {"bark_grey_surprised_0": 1.2}
 
 
 def _bark(name, text, who):
     if name in BARK_HEARD:
-        return V(text, who, heard=BARK_HEARD[name])
+        return V(text, who, heard=BARK_HEARD[name], **({"lead": BARK_LEAD[name]} if name in BARK_LEAD else {}))
     if "ooman" in text:
         return V(text, who, heard=text.replace("Hooman", "Human").replace("hooman", "human"))
     return V(text, who)

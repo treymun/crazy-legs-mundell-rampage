@@ -1,25 +1,20 @@
 {
- "text": "Hey, erase the shield!",
+ "text": "Raise the shields!",
  "words": [
   {
-   "text": "Hey,",
-   "start": 0.06,
-   "end": 0.16
-  },
-  {
-   "text": "erase",
-   "start": 0.5,
-   "end": 0.74
+   "text": "Raise",
+   "start": 0.04,
+   "end": 0.3
   },
   {
    "text": "the",
-   "start": 0.82,
-   "end": 0.92
+   "start": 0.34,
+   "end": 0.42
   },
   {
-   "text": "shield!",
-   "start": 1.04,
-   "end": 1.74
+   "text": "shields!",
+   "start": 0.46,
+   "end": 0.9
   }
  ]
 }

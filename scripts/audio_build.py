@@ -68,7 +68,7 @@ CHAIN = {
     "ambience": dict(hp=50, lp=6800, low=2.0, pres=-2.5, fade=0, level=-22.0, loop=.6),
     "weather":  dict(hp=60, lp=9000, low=1.0, pres=-1.0, fade=0, level=-15.0, loop=.6),
     "near":     dict(hp=60, lp=9500, low=1.0, pres=0.0, fade=0, level=-11.0, loop=.3),
-    "loop_tool": dict(hp=90, lp=10000, low=0.0, pres=1.0, fade=0, level=-8.0, loop=.09),
+    "loop_tool": dict(hp=90, lp=10000, low=0.0, pres=1.0, fade=0, level=-8.0, loop=.3),
     "jukebox":  dict(hp=220, lp=4200, low=-3.0, pres=2.0, fade=0, level=-12.0, loop=.4, drive=1.4),
     "distant":  dict(hp=140, lp=3800, low=0.0, pres=-2.0, fade=.3, level=-14.0, fade_in=.04),
     "ui":       dict(hp=200, lp=10500, low=0.0, pres=2.0, fade=.4, level=-9.0),
@@ -280,17 +280,49 @@ def fades(x: np.ndarray, out: float, into: float = .0015) -> np.ndarray:
     return x
 
 
+TAIL_FLOOR = -50.0      # dB under the peak: below this a cue's end is silence
+TAIL_KEEP = .12         # seconds kept after the last sound over it (faded)
+TAIL_MAX = .3           # silence longer than this at the end is cut
+
+
+def trim_tail(x: np.ndarray) -> tuple[np.ndarray, int]:
+    """Cut a long silence off the end (pass 9: 29 cues held 0.45 to 1.4 s of
+    it, keeping an effect voice busy), with a short fade into the cut."""
+    env = envelope(x)
+    peak = float(env.max())
+    if peak <= 0:
+        return x, 0
+    loud = np.flatnonzero(env > peak * 10 ** (TAIL_FLOOR / 20))
+    end = int(loud[-1]) + int(TAIL_KEEP * RATE)
+    if len(x) - end <= int(TAIL_MAX * RATE):
+        return x, 0
+    y = x[:end].copy()
+    n = int(TAIL_KEEP * RATE)
+    y[-n:] *= np.linspace(1, 0, n) ** 2
+    return y, len(x) - end
+
+
 def seamless(x: np.ndarray, keep: int, cross: float) -> np.ndarray:
-    """A loop of `keep` samples whose end runs into its own start."""
+    """A loop of `keep` samples whose end runs into its own start.
+
+    The join crossfades at equal power, corrected for how alike the two
+    passages are (as `ring` does for the fight loops). Until pass 9 it was an
+    equal-gain fade: over a bed of noise (a fuse's hiss, a hum, rain) that dips
+    3 dB mid-join, a pulse every time round (fuse_hiss: +3.3 dB at its join,
+    every 1.4 s).
+    """
     n = min(int(cross * RATE), len(x) // 4)
     keep = min(keep, len(x) - n)
     body = x[: keep + n].copy()
-    ramp = np.sin(np.linspace(0, np.pi / 2, n)) ** 2
-    body[:n] = body[:n] * ramp + body[keep: keep + n] * (1 - ramp)
+    head, tail = body[:n].copy(), body[keep: keep + n]
+    rho = float(np.sum(head * tail) / (np.linalg.norm(head) * np.linalg.norm(tail) + 1e-12))
+    theta = np.linspace(0, np.pi / 2, n)
+    rise, fall = np.sin(theta), np.cos(theta)
+    body[:n] = (head * rise + tail * fall) / np.sqrt(1 + 2 * rise * fall * max(0.0, rho))
     return body[:keep]
 
 
-def level_to(x: np.ndarray, target: float, ceiling: float = -0.8) -> np.ndarray:
+def level_to(x: np.ndarray, target: float, ceiling: float = -0.8, deep: bool = False) -> np.ndarray:
     current = loudness(x)
     x = x * 10 ** ((target - current) / 20)
     peak = np.abs(x).max()
@@ -304,10 +336,23 @@ def level_to(x: np.ndarray, target: float, ceiling: float = -0.8) -> np.ndarray:
             # family (up to 17 dB, measured for 3.0.0). Limit the spikes first.
             x = limit_peaks(x, limit)
             x = x / max(np.abs(x).max(), limit) * limit
+            short = target - loudness(x)
+            if deep and short > DEEP_FROM:
+                # Still well under its level (pass 9 measured 114 cues 6 to 17 dB
+                # under): one more pass of the limiter, up to LIMIT_DB again.
+                x = limit_peaks(x, limit * 10 ** (-min(short, LIMIT_DB) / 20))
+                x = x / max(float(np.abs(x).max()), 1e-9) * limit
     return x
 
 
 LIMIT_DB = 6.0          # the most limit_peaks takes off a spike
+# A cue still more than DEEP_FROM dB under its level after that gets a second
+# pass (level_to `deep`), for the families in DEEP: voices, creatures and
+# breakage. A tool's click or a step (their 50 ms is the click itself) keeps
+# its edge, and a gun its designed punch.
+DEEP_FROM = 3.0
+DEEP = {"voice", "scene", "impact", "death", "attack", "player", "alert", "boom", "near", "station",
+        "melee", "door", "sting", "consume", "warn", "distant"}
 LIMIT_AHEAD = .0015     # seconds: the gain is down before the spike arrives
 LIMIT_RELEASE = .05     # seconds for the gain to come back
 
@@ -484,6 +529,12 @@ def bleeped(x: np.ndarray, spans: list[tuple[int, int]], kind: str) -> np.ndarra
         loud = max(float(np.sqrt(np.mean(part ** 2))), whole) * 1.1
         cover = cover_sound(e - s, kind)
         cover *= loud / (float(np.sqrt(np.mean(cover ** 2))) + 1e-9)
+        # The duck call's edges ring past the words' peak once band-limited:
+        # scaled down whole for them, a CLEAN line came out up to 8 LU under
+        # its cussing take (median 1.2, measured in pass 9). Saturate the
+        # cover at the line's peak instead: a cheap duck call blown hard.
+        top = float(np.max(np.abs(x))) or 1.0
+        cover = np.tanh(cover / top) * top
         fade = min(int(.006 * RATE), (e - s) // 4)
         ramp = np.ones(e - s)
         if fade > 0:
@@ -551,7 +602,7 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
             found = spoken(name, entry.get("heard", entry["text"]))
             if isinstance(found, str):
                 return None, {"status": found, **recipe}
-            a = max(0, int((found[0] - .05) * RATE))
+            a = max(0, int((found[0] - entry.get("lead", .05)) * RATE))
             b = min(len(x), int((found[1] + .14) * RATE))
             x = x[a:b]
             recipe["words_at"] = [round(found[0], 2), round(found[1], 2)]
@@ -575,6 +626,12 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
             natural = (last - start) / RATE
             keep = min(natural, keep * NATURAL[family]) if natural > keep else max(natural, keep * .6)
             recipe["natural_seconds"] = round(natural, 3)
+            if entry["make"] == "voice":
+                # A spoken line is already cut at its caption's last word (and
+                # .14 s on): keep all of it. The hits stop at a soft last
+                # consonant 30 dB down, and until pass 9 that cut 74 lines
+                # short of their last word (bark_grey_cover_0 by 0.7 s).
+                keep = max(keep, (len(x) - start) / RATE)
         if family in SYNC:
             # Where the sound first reaches a third of its peak, less the lead.
             env = envelope(x[start:stop])
@@ -616,7 +673,10 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
     target = chain["level"]
     recipe["level"] = f"{target:.1f} dB (new cue)"
     old = OLD / f"{name}.wav"
-    if old.is_file():
+    # Spoken lines all finish at the voices' level: the 21 oldest exchanges
+    # kept their placeholders' -9 dB until pass 9 and sat 3 LU (median, up to
+    # 7) under every later line, the SOUND page's voice sample among them.
+    if old.is_file() and entry["make"] != "voice":
         heard = loudness(read_wav(old))
         # Stay within 6 dB of the cue this replaces: the mix was balanced on it.
         target = float(np.clip(heard, chain["level"] - 6, chain["level"] + 6))
@@ -632,7 +692,19 @@ def build_cue(name: str, inventory: dict, done: dict[str, np.ndarray]) -> tuple[
         if twin is not None:
             target = loudness(twin)
             recipe["level"] = f"{target:.1f} dB (as loud as {entry['like']})"
-    x = level_to(x, target)
+    x = level_to(x, target, deep=family in DEEP)
+    if not chain.get("loop"):
+        x, cut = trim_tail(x)
+        if cut:
+            recipe["tail_trimmed_s"] = round(cut / RATE, 3)
+        rms = float(np.sqrt(np.mean(x * x))) or 1e-9
+        if abs(float(x.mean())) / rms > .02:
+            # The fades and the limiter leave a lopsided cue off centre (pass 9:
+            # probe_whine at 4.8 % of its RMS): take it off under a bell, so
+            # the ends stay at silence.
+            bell = np.hanning(len(x))
+            x = x - float(x.mean()) / float(bell.mean()) * bell
+            recipe["dc_removed"] = True
     recipe["keep_seconds"] = round(keep, 3)
     return x, {"status": "built", **recipe}
 

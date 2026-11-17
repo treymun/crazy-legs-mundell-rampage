@@ -4,27 +4,27 @@
   {
    "text": "Somebody",
    "start": 0.06,
-   "end": 0.54
+   "end": 0.52
   },
   {
    "text": "kill",
-   "start": 0.66,
-   "end": 0.88
+   "start": 0.62,
+   "end": 0.86
   },
   {
    "text": "that",
-   "start": 0.94,
-   "end": 1.16
+   "start": 0.92,
+   "end": 1.12
   },
   {
    "text": "dang",
-   "start": 1.2,
-   "end": 1.48
+   "start": 1.16,
+   "end": 1.4
   },
   {
    "text": "saw",
-   "start": 1.6,
-   "end": 1.96
+   "start": 1.52,
+   "end": 1.9
   }
  ]
 }
