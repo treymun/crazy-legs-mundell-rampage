@@ -82,11 +82,13 @@ func draw_back(c: Canvas) -> void:
 			true
 		)
 	var rows: Array = PAGES[main.controls_page][1]
+	# Eleven rows close up a pixel to keep clear of the line at the foot.
+	var step := 12 if rows.size() <= 10 else 11
 	for i in rows.size():
 		var row: Array = rows[i]
-		var y := 51 + i * 12
+		var y := 51 + i * step
 		if i % 2 == 0:
-			c.fill_rect(19, y - 2, 282, 12, Canvas.rgb(33, 23, 19))
+			c.fill_rect(19, y - 2, 282, step, Canvas.rgb(33, 23, 19))
 		HUD.text(c, str(row[0]), 24, y, "menu", HUD.INK)
 		HUD.text(c, str(row[1]), 136, y, "menu", Canvas.rgb(232, 213, 178))
 	var other := (

@@ -606,6 +606,9 @@ func feedback(c: Canvas) -> void:
 				if absf(turn2) > 2.41
 				else " LEFT" if turn2 < -.40 else " RIGHT" if turn2 > .40 else " FRONT"
 			)
+		if heading != null and not NO_MARK_SURFACE.has(cause):
+			# The arc first: the banners go over it.
+			_hurt_arc(c, fposmod(_view_num(heading) - player.view_angle() + PI, TAU) - PI, end2)
 		var hurt := hud.layout.banner("hurt", cause + side, 87)
 		if hurt.size.x > 0:
 			HudLayout.begin(c, "hurt")
@@ -613,8 +616,6 @@ func feedback(c: Canvas) -> void:
 				c, cause + side, hurt.position.y, hud.layout.limit, Canvas.rgb(244, 160, 108)
 			)
 			HudLayout.end(c)
-		if heading != null and not NO_MARK_SURFACE.has(cause):
-			_hurt_arc(c, fposmod(_view_num(heading) - player.view_angle() + PI, TAU) - PI, end2)
 
 
 # ---------------------------------------------------------------- main draw
@@ -816,6 +817,9 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 		var marked: bool = top_note.get("mark", false)
 		if marked:
 			_use_mark(c)
+		if not map:
+			# Under the prompt and the caption: the hurt arc runs under them.
+			feedback(c)
 		# The prompt and the caption (or a hand's bark), laid out in _lay_hud.
 		for piece: String in ["prompt", "caption"]:
 			if top_note.has(piece):
@@ -827,8 +831,6 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 				HudLayout.begin(c, piece)
 				HUD.banner(c, said_text, said_top, said_wrap, said_ink)
 				HudLayout.end(c)
-		if not map:
-			feedback(c)
 	elif not defeated():
 		# Down, but a partner is up or a respawn is coming (src/modes/).
 		ModeScreens.draw_down(c, me)
@@ -873,14 +875,13 @@ func _draw(c: Canvas, crosshair: int, grade: bool) -> void:
 	stage_ms[4] = (Time.get_ticks_usec() - t4) / 1000.0
 
 
-## Lays out this frame's HUD over the view (ui/hud/hud_layout.gd): the
-## features' fixed pieces at the edges, then the top stack (the notice or
-## place name, the boss bar, the objective pin, a streak's call), then the
-## features' pieces that hang under it. The prompt and the caption are
-## laid out before those, rising from the view's foot: what play has to say
-## comes first. Returns the banners to draw ("notice", "prompt", "caption":
-## [text, top, wrap width, colour]; "mark": USE's mark is wanted) and sets
-## pin_top.
+## Lays out this frame's HUD over the view (ui/hud/hud_layout.gd), first
+## come keeps its place: the features' fixed pieces at the edges; the top
+## stack (the notice or place name, the boss bar, the objective pin's row);
+## the features' pieces that hang under it; a picked-up item; the prompt and
+## the caption rising from the view's foot; a streak's call; last the kill
+## feed. Returns the banners to draw ("notice", "prompt", "caption": [text,
+## top, wrap width, colour]; "mark": USE's mark is wanted) and sets pin_top.
 func _lay_hud(practice: bool, posing: bool) -> Dictionary:
 	var me: Game = self as Object
 	var lay := hud.layout
@@ -910,13 +911,11 @@ func _lay_hud(practice: bool, posing: bool) -> Dictionary:
 	# The objective pin's row: it swings across the view's middle.
 	pin_top = 5
 	if p.health > 0 and not map:
-		pin_top = maxi(5, lay.under(30, 291))
+		# Under the top stack only (what starts in the top rows), not under a
+		# corner piece lower down.
+		pin_top = maxi(5, lay.under(30, 291, 40))
 		if hints and not hud.minimal and objective_target() != null:
-			lay.take("pin", Rect2i(30, pin_top, 261, 28))
-		if callout_until > clock:
-			var tall: int = PixelType.style_of("heading")[1]
-			var wide := PixelType.text_width(callout, "heading") + 10
-			lay.centred("callout", Vector2i(wide, tall + 3), pin_top + 2)
+			lay.pin_row(Rect2i(30, pin_top, 261, 28))
 	Features.hud_flow(me, lay)
 	_lay_item()
 	if p.health > 0 and not map and armory.fuse == 0.0:
@@ -934,6 +933,11 @@ func _lay_hud(practice: bool, posing: bool) -> Dictionary:
 			_rise(out, "caption", caption, Canvas.rgb(209, 221, 179))
 		elif barks.visible(me) and hint == "":
 			_rise(out, "caption", '"' + barks.text + '"', Canvas.rgb(255, 214, 150))
+	if p.health > 0 and not map and callout_until > clock:
+		# A streak's call under the pin: after the prompt and the caption.
+		var tall: int = PixelType.style_of("heading")[1]
+		var wide := PixelType.text_width(callout, "heading") + 10
+		lay.centred("callout", Vector2i(wide, tall + 3), pin_top + 2)
 	Features.hud_late(me, lay)
 	return out
 

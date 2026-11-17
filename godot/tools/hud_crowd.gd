@@ -16,6 +16,8 @@ const MOMENTS := [
 	["campaign", ["notice", "caption", "prompt", "badge", "light", "callout", "item", "hurt"]],
 	["campaign_small", ["notice", "caption", "prompt", "badge", "light", "item"]],
 	["campaign_minimal", ["notice", "caption", "prompt", "badge"]],
+	# The touch buttons take a good share of the view: the caption may wait.
+	["campaign_touch", ["notice", "prompt", "badge", "light"]],
 	# The feed gives way to the caption when there is no room for both.
 	["drive", ["notice", "caption", "prompt", "badge", "drive", "run"]],
 	["drive_minimal", ["notice", "drive", "run", "feed", "badge"]],
@@ -34,9 +36,13 @@ const MOMENTS := [
 static func make(main: Node, name: String) -> Game:
 	PixelType.clear_small = name.ends_with("_small")
 	main.hud.minimal = name.ends_with("_minimal")
+	# The touch buttons over the view (main_state.gd _pin_hud).
+	main.touch.showing = name.ends_with("_touch")
+	if main.touch.showing:
+		main.touch.layout(main.viewport_rect(), true)
 	var g: Game
 	match name:
-		"campaign", "campaign_small", "campaign_minimal":
+		"campaign", "campaign_small", "campaign_minimal", "campaign_touch":
 			g = _campaign(main)
 		"drive", "drive_minimal":
 			g = _drive(main)

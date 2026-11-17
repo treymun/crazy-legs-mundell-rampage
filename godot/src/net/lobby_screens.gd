@@ -120,8 +120,10 @@ static func button(
 	zone(r, id, arg)
 
 
+## BACK on the riveted plate every menu's BACK is on (Menu.plate_button).
 static func back_button(c: Canvas, label := "BACK") -> void:
-	button(c, Menu.BACK, label, false, "back")
+	Menu.plate_button(c, Menu.BACK, label)
+	zone(Menu.BACK, "back", 0)
 
 
 ## The keys' hint, left of BACK.

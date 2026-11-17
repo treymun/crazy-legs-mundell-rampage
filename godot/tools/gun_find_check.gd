@@ -455,11 +455,14 @@ func _hub(main: Control) -> void:
 			"eye": g.world.elevation(eye.x, eye.y) + .95,
 		}
 		var seen: Rect2 = shack.call("board_rect")
-		var at: Vector2i = shack.call("card_at", size, 18)
+		# On an empty HUD layout: the card's top row is 18 (hud_layout.gd).
+		var lay := HudLayout.new()
+		lay.reset()
+		var at: Vector2i = shack.call("card_at", size, lay)
 		var fits := size
 		if at.x < 0:
 			fits = Vector2i(170, 21)  # folded to its count
-			at = shack.call("card_at", fits, 18)
+			at = shack.call("card_at", fits, lay)
 		_check(
 			(
 				seen.size.x > 20.0

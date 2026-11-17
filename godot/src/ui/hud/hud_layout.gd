@@ -31,6 +31,9 @@ const NARROWEST := 120
 ## The rects taken this frame, and whose.
 var taken: Array[Rect2i] = []
 var names: PackedStringArray = []
+## How far the objective pin may swing this frame (x of its middle): clear
+## of the pinned pieces beside its row.
+var pin_swing := Vector2i(44, 276)
 ## Pieces the front end draws over play after it (the frame counter, the
 ## ping): [name, rect] each, taken first every frame until changed.
 var pinned: Array = []
@@ -47,6 +50,7 @@ static var _open := ""
 func reset() -> void:
 	taken.clear()
 	names.clear()
+	pin_swing = Vector2i(44, 276)
 	if measuring:
 		inked.clear()
 	for pin: Array in pinned:
@@ -109,6 +113,23 @@ func up(name: String, size: Vector2i, x: int, bottom := BOTTOM, top := TOP) -> R
 			return take(name, r)
 		r.position.y = taken[i].position.y - GAP - size.y
 	return Rect2i()
+
+
+## The pin's row at `top` (`r`, the whole width) and how far it may swing:
+## its arrow and plate keep clear of what is already beside it (the touch
+## buttons), its middle 14 pixels in from them.
+func pin_row(r: Rect2i) -> void:
+	var left := 30
+	var right := WIDTH - 30
+	for t: Rect2i in taken:
+		if t.position.y >= r.end.y + GAP or t.end.y + GAP <= r.position.y:
+			continue
+		if t.end.x <= MIDDLE:
+			left = maxi(left, t.end.x + GAP)
+		elif t.position.x >= MIDDLE:
+			right = mini(right, t.position.x - GAP)
+	pin_swing = Vector2i(maxi(44, left + 14), mini(276, right - 14))
+	take("pin", Rect2i(left, r.position.y, maxi(1, right - left), r.size.y))
 
 
 ## The widest span centred on the view's middle that is clear over rows

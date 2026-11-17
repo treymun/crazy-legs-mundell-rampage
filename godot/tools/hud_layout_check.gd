@@ -41,6 +41,7 @@ func _run() -> void:
 		_moment(str(moment[0]), moment[1])
 	HudLayout.measuring = false
 	PixelType.clear_small = false
+	main.touch.showing = false
 	tally.stop()
 	_check(
 		tally.errors == 0,
@@ -116,6 +117,11 @@ func _moment(name: String, wants: Array) -> void:
 	for key: String in inked:
 		shown.append("%s %s" % [key, str(inked[key])])
 	print("       ", ", ".join(shown))
+	var lay0: HudLayout = main.hud.layout
+	var laid := PackedStringArray()
+	for i in lay0.taken.size():
+		laid.append("%s %s" % [lay0.names[i], str(lay0.taken[i])])
+	print("       laid out: ", ", ".join(laid))
 	for want: String in wants:
 		_check(inked.has(want), "%s shows its %s" % [name, want])
 	var keys: Array = inked.keys()
@@ -126,6 +132,15 @@ func _moment(name: String, wants: Array) -> void:
 			var b: Rect2i = inked[keys[j]]
 			if a.intersects(b):
 				touching.append("%s %s / %s %s" % [keys[i], str(a), keys[j], str(b)])
+	# The touch buttons draw on their own Control: what play inks keeps off them.
+	var lay: HudLayout = main.hud.layout
+	for i in lay.taken.size():
+		if not lay.names[i].begins_with("touch_"):
+			continue
+		for key: String in keys:
+			var r: Rect2i = inked[key]
+			if r.intersects(lay.taken[i]):
+				touching.append("%s %s / %s %s" % [key, str(r), lay.names[i], str(lay.taken[i])])
 	_check(touching.is_empty(), "%s: no two pieces overlap %s" % [name, ", ".join(touching)])
 	var fixed := ["strip", "cash", "kills", "xp", "frags", "ring", "fps", "ping"]
 	var outside: Array = []

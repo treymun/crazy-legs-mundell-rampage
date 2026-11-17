@@ -26,6 +26,7 @@ const CONTROL_ROWS := [
 	["Q / F", "SELECT ITEM / USE ITEM"],
 	["C / B / M", "RINDS / BEER / MOONSHINE"],
 	["E / SPACE / MMB", "USE / OPEN / RESCUE"],
+	["G / L", "WHISTLE FOR BLUE / FLASHLIGHT"],
 	["TAB / F4 / F11", "MAP / MUSIC / FULLSCREEN"],
 	["F5 / F6 / F9", "SLOTS / QUICKSAVE / QUICKLOAD"],
 ]
@@ -1272,10 +1273,23 @@ func render() -> void:
 
 
 ## The pieces drawn over play after it (the frame counter, the online
-## ping) keep the top right corner: the HUD's layout fits the rest round
-## them (ui/hud/hud_layout.gd).
+## ping) keep the top right corner, and the touch buttons over the view keep
+## their places: the HUD's layout fits the rest round them
+## (ui/hud/hud_layout.gd). The move stick is the thumb's, not a place: the
+## badge and the plates sit under it as before.
 func _pin_hud() -> void:
 	var pins: Array = []
+	if touch != null and touch.showing:
+		var picture := viewport_rect()
+		var k := 320.0 / maxf(1.0, picture.size.x)
+		for b: Array in touch.buttons:
+			var middle: Vector2 = b[1]
+			var radius: float = b[2]
+			var at := (middle - picture.position) * k
+			var r := radius * k
+			var box := Rect2i(Rect2(at - Vector2(r, r), Vector2(r, r) * 2.0))
+			if box.intersects(Rect2i(0, 0, 320, View.VIEW)):
+				pins.append(["touch_" + str(b[0]), box])
 	var show_fps: int = options.get("show_fps", 0)
 	if show_fps != 0 and not touring:
 		var fps := "999 FPS"

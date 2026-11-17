@@ -678,7 +678,8 @@ func objective_pin(c: Canvas, game: Game, top := 5) -> void:
 	# Ahead across the middle of the view; anything past about seventy degrees
 	# waits at the edge, turned to point the way round.
 	var side := clampf(rel / 1.2, -1.0, 1.0)
-	var x := int(160.0 + side * 116.0)
+	# Its swing, clear of the touch buttons beside its row (hud_layout.gd).
+	var x := clampi(int(160.0 + side * 116.0), layout.pin_swing.x, layout.pin_swing.y)
 	var y := top + 1 + int(roundf(sin(game.clock * 4.2) * .6 + .4))
 	var label := str(int(distance))
 	if c.gpu:
@@ -1263,7 +1264,9 @@ func intermission(c: Canvas, game: Game) -> void:
 	var ys: Array[int] = [20, 38]
 	for i in mini(2, game.level.heading.size()):
 		text(c, game.level.heading[i], 21, ys[i], "heading", AMBER)
-	text(c, game.level.title, 21, 61, "body", INK)
+	# The title under the heading, unless the heading says it already.
+	if not game.level.heading.has(game.level.title):
+		text(c, game.level.title, 21, 61, "body", INK)
 	c.line(21, 72, 208, 72, Color(135 / 255.0, 95 / 255.0, 63 / 255.0))
 	var minutes := int(game.clock) / 60
 	var seconds := int(game.clock) % 60
@@ -1290,7 +1293,13 @@ func intermission(c: Canvas, game: Game) -> void:
 		text(c, str(rows[i][0]), 26, y + int((bar - 7) / 2.0), "body", INK)
 		text(c, str(rows[i][1]), 202, y + int((bar - 7) / 2.0), "body", AMBER, false, true, true)
 	var ending_y: int = [142, 142, 142, 142, 146, 149, 152, 152][rows.size()]
-	text(c, game.level.ending, 22, ending_y, "body", AMBER)
+	# The last word kept inside the panel: a long one takes two lines, risen
+	# to stay clear of the row above ENTER.
+	var said := PixelType.wrap(game.level.ending, 186, "body")
+	if said.size() > 1:
+		ending_y = mini(ending_y, 165 - 2 - said.size() * 9)
+	for i in said.size():
+		text(c, said[i], 22, ending_y + i * 9, "body", AMBER)
 	if show != null and shown > rows.size():
 		_ribbon(c, show.ribbon())
 	var action := (

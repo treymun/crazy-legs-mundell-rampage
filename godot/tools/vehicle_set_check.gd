@@ -329,8 +329,12 @@ func _channel(main: Control) -> void:
 		g.objective().begins_with("CHANNEL RUN /"), "the objective says it: '%s'" % g.objective()
 	)
 	var c := Canvas.new()
+	# Laid out first (src/ui/hud/hud_layout.gd), as a frame does.
+	g.hud.layout.reset()
+	r.hud_flow(g.hud.layout)
+	var at: Rect2i = g.hud.layout.find("run")
 	r.draw_view(c)
-	var o := ((RunsScript.PLATE.y + 1) * Canvas.WIDTH + RunsScript.PLATE.x + 20) * 3
+	var o := ((at.position.y + 1) * Canvas.WIDTH + at.position.x + 20) * 3
 	_check(
 		Color8(c.pixels[o], c.pixels[o + 1], c.pixels[o + 2]).is_equal_approx(VehicleHud.FACE),
 		"its plate is up across from the driving plate"

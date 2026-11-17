@@ -264,7 +264,7 @@ func draw_back(c: Canvas) -> void:
 			true
 		)
 	LobbyScreens.footer(c, "ARROWS PICK   ENTER GO   N NEW   ESC BACK")
-	LobbyScreens.button(c, Menu.BACK, "BACK", false, "back")
+	LobbyScreens.back_button(c)
 
 
 func _hint(entry: Dictionary) -> String:
