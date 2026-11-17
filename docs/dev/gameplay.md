@@ -1927,6 +1927,98 @@ level must not be in `CHAPTER_KINDS` (`verify_assets.gd` checks). A browser
 cannot rename files in its storage and HTTPRequest's `download_file` does not
 write there: keep writing packs from memory.
 
+## Difficulty and pacing as numbers (polish pass 9)
+
+`tools/balance.gd` plays the campaign for real and writes down what
+happened; `tools/balance_pilot.gd` is the player it plays as: the campaign
+bot (`tools/bot_pilot.gd`) with a skill (ROOKIE, REGULAR, SHARP: how long it
+takes to fire on a new foe, how far off it aims, how fast it turns, whether
+it strafes, boots a hand up close and finishes one open to it, when it eats)
+that also steps off the way for a pickup it can use in sight (rounds for a
+gun it has short, food, scrap, a gun), fights on with the blade or the
+crowbar when every gun is dry, and hops and turns when the way has not got
+shorter for a while. Its dice are its own; `game.rng` is reseeded per
+attempt by the tool, so a run is the same every time.
+
+- **run**: one campaign, god mode off, the PLAY page's defaults (the hound,
+  the bench, events SOMETIMES; ADAPTIVE as a player has it), each chapter
+  carried into the next as `continue_campaign` does; a death retries as the
+  death screen does (RETRY THE FIGHT in a boss fight, else the chapter from
+  its kit), six deaths or 900 s and it walks the chapter in god mode to go
+  on. At each chapter's start it buys what the bench's prices allow,
+  cheapest first. A line of JSON an attempt: how it ended, where (district,
+  or the boss), what was near, the cause, the time, health and the share of
+  rounds left, seconds dry, kills by gun, shots by gun, food eaten, scrap
+  found and carried, mods, finishers, boots, hazard kills, the hound's
+  bites and pins, seconds in a vehicle, and each boss's fight timed from the
+  first hit it took to its fall.
+- **county**: COUNTY RUN to death (or `cap`) by `tools/county_bot.gd`:
+  survival, the level, kills and health a minute, the cards offered and
+  picked.
+- **report**: the tables from many runs' lines (`balance_report.gd`):
+  chapters by difficulty, deaths by skill, where the deaths cluster, the
+  bosses, the guns, the bench, COUNTY RUN. `tools/balance_runs.sh <dir>`
+  runs the long report (4 difficulties x 3 skills x 3 seeds, a third of
+  the runs without the hound, plus COUNTY RUN, each Godot process with its
+  own APPDATA and LOCALAPPDATA; about 400 MB each, so mind `jobs`).
+- **check** (`balance_1`..`_5` in check_all, BALANCE OK): RETRY THE FIGHT's
+  floor; each boss in its rematch by the REGULAR bot at NORMAL inside
+  `BOSS_BANDS`; each chapter from its chapter kit by the SHARP bot at NORMAL
+  cleared within `CHAPTER_DEATHS` and inside `CHAPTER_BANDS`. A play change
+  that moves one is deliberate or a regression: run the long report, then
+  set the band again and say why in its comment.
+
+The bot is a yardstick, not a player: it never dodges a telegraph, takes
+only pickups near the way and never drives. Its deaths say where a chapter
+is hard next to the others, not how hard it is for a person.
+
+What the first long report (before pass 9's tuning; 36 campaigns, 425
+attempts) found, and what changed:
+
+- **Hickston, the first chapter, was the hardest** at every difficulty
+  (deaths a run, all skills: NORMAL .44 where chapters 3 to 8 had none, HARD
+  3.33 where none of the next five had any, HOG WILD 5.67), and the bot came
+  out of it with 2 to 7 % of its rounds. The deaths were in the sheriff's and
+  Jerry's fights: two bosses each calling the whole backup, entered dry, and
+  RETRY THE FIGHT put the player back at the door with the same empty guns
+  and low health, to die again in under ten seconds, six times running.
+  Changed: `[boss_retry]` (a retry brings 60 health and 24 revolver and 12
+  shotgun rounds at least), `[boss_fight] backup_share` (the two Hickston
+  bosses call half each), the sheriff 1300 to 1050 health and Jerry 1150 to
+  950, and the yard deputies (Hickston's backup) drop shells (.5) and the
+  aliens .38 rounds (.35) (enemies.cfg).
+- **The middle bosses fell in 12 to 19 s** at NORMAL and killed nobody below
+  HOG WILD: the foreman 1000 to 1200, the baron 1300 to 1550, Boggs 1250 to
+  1500 (BOSS REMATCH's `par` for the foreman and the baron moved to 14 and
+  16 with the bot's new times).
+- **Rounds piled up late**: the speedway and the Moonshine Run ended with
+  52 to 60 % of everything carried at EASY and NORMAL: the tire rollers'
+  drops .6 to .5, the pit mechanics' .55 to .45, the revenooers' .6 to .5.
+- **The bench was trivially cheap**: every mod the guns in hand could take
+  was bought by the quarry, and 72 scrap went unspent into the Mothership.
+  Every price half again (57 to 83 in all): the mods now come over the
+  first five chapters, 55 scrap left at the end. The crossbow's two mods
+  were never bought (the crossbow comes late and the bot seldom has it).
+
+Deaths a run by chapter (36 campaigns each, all three skills), before and
+after:
+
+| | hickston | fair | sawmill | quarry | bayou | speedway | moonshine | mothership |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| EASY | .22 / 0 | .44 / .22 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+| NORMAL | .44 / .22 | .38 / .33 | 0 / 0 | 0 / 0 | 0 / .22 | 0 / .22 | 0 / .25 | 0 / 0 |
+| HARD | 3.33 / 1.56 | 0 / 1.00 | 0 / .13 | 0 / 0 | 0 / .63 | 0 / 0 | .38 / 1.00 | .38 / 1.50 |
+| HOG WILD | 5.67 / 3.78 | 1.22 / 1.11 | .11 / 1.13 | .89 / 1.50 | 2.56 / 2.75 | .29 / 1.25 | 1.43 / 1.75 | 4.86 / 5.57 |
+
+Left as found: Hickston is still the deadliest chapter at HOG WILD and the
+Mothership's Maw the deadliest fight (ROLLIN' PIN and STOMP); the swamp
+king kills at HOG WILD only; the fair's crawlers are where a ROOKIE dies on
+EASY. COUNTY RUN (its bot survives 1.5 to 7 minutes, the quarry map the
+shortest at every difficulty, NORMAL and HARD hardly apart) was measured,
+not changed: its runs and daily board are balanced on its own cards, and its
+bot is too weak a yardstick to tune them by. (The aliens' and deputies'
+new drops fall in its hordes too, as every hand's drop always has.)
+
 ## Speed of the tick
 
 - **Line of sight is the tick's big cost** (`LevelData.visible()`, nine

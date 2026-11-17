@@ -138,5 +138,25 @@ static func at_door(loaded: Game) -> Game:
 	loaded.armory.tnt_latched = false
 	loaded.spawn_grace = maxf(loaded.spawn_grace, 1.5)
 	loaded.district = int(loaded.world.area[loaded.world.cell(p.x, p.y)])
+	retry_floor(loaded)
 	loaded.message("BACK AT THE DOOR. SAME GUNS, SAME BOSS. GIT 'EM.", 3.5)
 	return loaded
+
+
+## A fight retried with its guns run dry is lost before it starts (polish
+## pass 9: the campaign bot died again within ten seconds of every Hickston
+## retry at HARD): each player's guns carried come back with at least
+## bosses.cfg [boss_retry] `rounds` in reserve, and at least its `health`
+## (the checkpoint keeps the health a player came in with, and at 40 the
+## bot died again within seconds every time). Play, the same on every machine.
+static func retry_floor(loaded: Game) -> void:
+	var least_of: Dictionary = BossData.get_value("boss_retry", "rounds")
+	var health: int = BossData.get_value("boss_retry", "health")
+	for pl: Player in loaded.players:
+		pl.health = maxi(pl.health, health)
+		for gun: String in least_of:
+			var slot := Weapons.NAMES.find(gun)
+			if slot < 0 or not pl.armory.owned[slot]:
+				continue
+			var least: int = least_of[gun]
+			pl.armory.reserve[slot] = maxi(pl.armory.reserve[slot], least)

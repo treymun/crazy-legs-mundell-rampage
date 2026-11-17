@@ -27,7 +27,10 @@ Boss fights share a framework: `src/boss_kit.gd`, `features/boss_fight.gd`,
 - The entrance holds the world only when `game.lessons` (never in tools,
   tours, benches, bots) and once a save.
 - Backup at phases 2 and 3 joins the enemies after the level's own (the posse
-  feature saves them; `game.boss_backup` off for a rematch).
+  feature saves them; `game.boss_backup` off for a rematch). Each boss calls
+  its `[boss_fight] backup_share` of difficulty.cfg's count, rounded up:
+  Hickston's sheriff and Jerry a half each, so the chapter with two bosses
+  gets the backup one boss brings anywhere else (polish pass 9).
 - A fall sets `game.slowmo` (game.gd steps the world at `SLOWMO_PACE`, the
   player and gun at full speed). SLOW-MO FINISHERS off drops it when alone;
   the last kill of an ordinary fight has its own, eased
@@ -335,7 +338,10 @@ hands back the moment the boss falls.
   `boss-checkpoint-<chapter>[-replay].json` in the profile; the door is the
   last spot the player stood clear of the arena and its doorways. On the death screen ENTER then retries the fight (`main_flow.gd
   retry_fight`, `boss_door.gd`: boss whole, player at the door, health and
-  rounds as they were) and RELOAD's key starts the chapter over. A win clears
+  rounds as they were, but never under bosses.cfg `[boss_retry]`: 60 health
+  and 24 rounds for the revolver, 12 for the shotgun when carried,
+  `retry_floor`; polish pass 9, after the balance bot walked into Hickston's
+  fights dry and at 40 health and died again within seconds every retry) and RELOAD's key starts the chapter over. A win clears
   it, another chapter's start clears it.
 - **BOSS REMATCH.** The title's BOSS REMATCH (`boss_rematch.gd`,
   `features/boss_rematch.gd`) loads a beaten chapter with only that boss,

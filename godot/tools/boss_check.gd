@@ -244,10 +244,13 @@ static func _backup(main, check: Callable) -> void:
 			e.hp = e.max_hp * .5 - 1.0
 			e.hurt(1.0, g)
 			var made := g.enemies.size() - before
-			var want: int = fight.BACKUP[difficulty]
+			# Its share of DIFFICULTY's count (bosses.cfg backup_share: Hickston's
+			# sheriff and Jerry call half each, polish pass 9).
+			var share: float = fight.BACKUP_SHARE.get(e.kind, 1.0)
+			var want: int = ceili(int(fight.BACKUP[difficulty]) * share)
 			counts.append("%s/%d: %d of %d (room %d)" % [level_id, difficulty, made, want, room])
 			check.call(
-				made == mini(want, room) and made >= 2,
+				made == mini(want, room) and made >= mini(2, want),
 				"%s on %s calls %d backup (%d)" % [e.kind, difficulty, want, made]
 			)
 			if level_id != "quarry":
