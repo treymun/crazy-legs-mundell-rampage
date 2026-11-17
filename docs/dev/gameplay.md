@@ -827,17 +827,24 @@ co-op and online play it the same (`net_check`, brawl_check's snapshot).
   at most once in `boss_rest` and is never killed by one. Calls on screen and
   a `hazard` line. Where they stand: [levels.md](levels.md#the-plans).
 - **Looks** (`brawl_looks.gd`, after feel.gd so it adds to the gun's place):
-  the kick is four cels `fx_boot_kick_0..3` (tools/art/build_boot_views.gd
+  the kick is six cels `fx_boot_kick_0..5` (tools/art/build_boot_views.gd
   from scripts/blender/boot_views.py: his brown work boot coming up sole
   first, its tread to the man kicked, the stacked heel and the overalls' cuff
   under it; `PLACES`
-  where each sits): chambered, out, the blow held on contact (the hit-stop),
-  back and away, drawn under the gun over the view's rows only, lit as the
+  where each sits): lifted (5), chambered (0), out (1), the blow held on
+  contact (2, the hit-stop), pulled back (4), away (3); the stomp runs the
+  same six. Drawn under the gun over the view's rows only, lit as the
   gun is; the gun ducks out of its way. Each finisher moves and turns the gun
   in hand along its own path (`PATHS`: the revolver cocked low and swung
   across butt first, the long gun driven up stock first, the blade raised
   and brought down or swung flat, a round pushed into his mouth or gut and
-  fired), holding still on contact while the slow motion stretches it:
+  fired) and shows the gun's own frames on the way (`FRAMES`, polish pass 9,
+  through `Player.weapon_pose`, looks only: the pistol and long gun cocked
+  back on `recover`, driven through the blow on `kick`, back on `recover`;
+  the crowbar and sling blade swing their own `wind`, `strike`, `follow`,
+  `recover`, the rip saw bites on its grind frames; a round in the mouth or
+  gut is cocked, then the shot's own kick and flash show; a gun lacking a
+  frame keeps its own pose), holding still on contact while the slow motion stretches it:
   `Player.weapon_turn` (looks, never carried) turns the gun cel about its
   grip on the graphics-card canvas (`Canvas.gpu_texture_turned`; the
   software canvas draws it unturned). Every blow jolts the view
@@ -1590,6 +1597,13 @@ physics, so play's users stay the same on every machine.
   it to the eye like the shake, never to the aim); VIEW BOB scales sway and
   landing, SCREEN SHAKE the blows, off means none. Sounds it wants are in
   `docs/feel_audio.md`.
+- **The switch** (polish pass 9, `weapons.gd Armory.shown_gun`, looks only):
+  a switch takes `SWITCH_TIME` (.23 s) as ever; for its first
+  `switch_lower` (weapons.cfg `[all]`, .09) the gun put away goes down out
+  of the view (eased in), then the new one comes up (fast out of the
+  bottom, eased home). `Armory.drawn`/`leaving` are worked out as it draws,
+  never carried (snap_codec `SKIP_FIELDS`); raising the gun from the
+  holster has nothing going down.
 
 ## Vehicles
 

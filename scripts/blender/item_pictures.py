@@ -1,6 +1,11 @@
-"""The armory's wall pictures for the guns that have no photographed pickup:
-each weapon's own first-person model (weapon_views.py), laid on its side and
-seen square on, barrel to the left like the ranch rifle's picture.
+"""Every gun's pickup and wall picture (the HUD's gun icon too): each
+weapon's own first-person model (weapon_views.py), laid on its side and seen
+square on, barrel to the left like the ranch rifle's picture. The first
+sixteen guns keep the old game's painted pickups, but for those cut out of
+the first-person photographs with the hand still on them (the crowbar, the
+.38, the sawed-off, the dynamite) and the dynamite sticks lying about, which
+showed a box of shells: those are made here since polish pass 9, the crowbar
+and the sticks modelled here (they have no first-person model of their own).
 
     blender -b -P scripts/blender/item_pictures.py -- <out dir> <names|all> [supersample]
 
@@ -32,14 +37,56 @@ SS = int(_ARGS[2]) if len(_ARGS) > 2 else 4
 # Pixels a metre rendered (before the supersample): build_item_art.gd shrinks
 # each to its own size in the game.
 PPM = 200.0
-# The guns the range racks with these pictures (weapons.cfg order from 16).
+# Every gun with a picture made here (weapons.cfg order), and the dynamite
+# sticks lying about to pick up (item_dynamite).
 ITEMS = [
+    "crowbar", "revolver", "shotgun", "tnt", "dynamite",
     "hunter", "mower", "county45", "star357", "hogleg", "riot_pump", "tommy",
     "grease_gun", "patrol_bar", "marksman", "flash_jar", "smudge_pot",
     "shine_cocktail", "firecracker_can",
 ]
 # Throwables stand up (a jar, a pot, a bottle, a can); the guns lie on their side.
 STANDING = {"flash_jar", "smudge_pot", "shine_cocktail", "firecracker_can"}
+
+
+def crowbar():
+    """The crowbar lying about: a hex bar gone to rust at the ends, a
+    goose-neck claw at one end and a flat chisel at the other."""
+    iron = pbr("crowbar_iron", (64, 40, 32), .6, .8, wear=(150, 118, 96), blotch=(110, 58, 34), edge=(170, 140, 116))
+    rod((0, -.24, 0), (0, .2, 0), .011, .011, iron, seg=6)
+    box((0, -.258, -.004), (.02, .04, .008), iron, rot=(.25, 0, 0), bevel=.003)
+    pts = [Vector((0, .2, 0))]
+    for k in range(1, 9):
+        a = k / 8 * math.pi * 1.05
+        pts.append(Vector((0, .2 + math.sin(a) * .045, .045 - math.cos(a) * .045)))
+    for a, b in zip(pts, pts[1:]):
+        rod(a, b, .011, .011, iron, seg=6, round_ends=True)
+    for s in (-1, 1):
+        box((s * .006, .165, .09), (.008, .05, .01), iron, rot=(.35, 0, 0), bevel=.002)
+
+
+def dynamite_sticks():
+    """Three sticks of dynamite taped up together, a fuse in the middle one."""
+    tape = pbr("tape", (30, 28, 28), .7, 0., bump=.5, scale=50.)
+    for x, z in ((0, 0), (.036, -.004), (.018, .028)):
+        rod((x, -.12, z), (x, .15, z), .0185, .0185, RED(), seg=28)
+        for y in (-.122, .15):
+            disc((x, y, z), (0, 1, 0), .017, .005, PAPER(), seg=22)
+        rod((x, .055, z), (x, .11, z), .019, .019, PAPER(), seg=28)
+        for y in (.062, .082, .10):
+            rod((x, y, z), (x, y + .003, z), .0193, .0193, pbr("ink", (60, 20, 16), .8), seg=28)
+    for y in (-.07, .02):
+        rod((.018, y, .008), (.018, y + .022, .008), .041, .041, tape, seg=32)
+    pts = [Vector((.018, .152, .028)), Vector((.02, .19, .04)), Vector((.0, .22, .03)), Vector((-.01, .25, .05))]
+    for a, b in zip(pts, pts[1:]):
+        rod(a, b, .0026, .0026, PAPER(), seg=6)
+
+
+# The pickups with no first-person model of their own.
+OWN = {"crowbar": crowbar, "dynamite": dynamite_sticks}
+# Sticks laid across the picture (turned about the view's axis, then their
+# own), so they read bigger than a stick seen end to end along the ground.
+SLANTED = {"tnt": (-32, 0), "dynamite": (-32, 35)}
 
 
 def side_stage():
@@ -103,7 +150,7 @@ def main_items():
         PARTS.clear()
         bpy.data.batch_remove(doomed)
         bpy.data.batch_remove([me for me in meshes if me.users == 0])
-        WEAPONS[name][0]()
+        (OWN[name] if name in OWN else WEAPONS[name][0])()
         # Seen from the gun's left (-X): forward (+Y) runs to the screen's left.
         # A throwable is turned a little so it reads round.
         turn = Matrix.Rotation(0.0, 4, "Z")
@@ -112,7 +159,10 @@ def main_items():
             turn = Matrix.Rotation(math.radians(-25), 4, "Z") @ Matrix.Rotation(
                 math.radians(90), 4, "X"
             )
-        if WEAPONS[name][1] == "long":
+        if name in SLANTED:
+            tilt, roll = SLANTED[name]
+            turn = Matrix.Rotation(math.radians(tilt), 4, "X") @ Matrix.Rotation(math.radians(roll), 4, "Y")
+        if name in WEAPONS and WEAPONS[name][1] == "long" and name not in ("crossbow", "shotgun"):
             wrist()
         for ob in PARTS:
             ob.matrix_world = turn @ ob.matrix_world

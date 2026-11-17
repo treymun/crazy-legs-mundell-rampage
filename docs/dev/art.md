@@ -27,7 +27,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_quest_art` | every chapter's quest props (below) |
 | `build_town_props` | every chapter's modelled props as sprites (below) |
 | `build_enemy_actors` | the enemy and boss cels: runs Blender, then shrinks, grades and digitizes its renders |
-| `build_weapon_views` | the first-person guns: likewise; also cuts the throwables' flight pictures (`fx_<name>`) |
+| `build_weapon_views` | the first-person guns (all but the crowbar; the .38's and sawed-off's models in `weapon_plates.py`): likewise; also cuts the throwables' flight pictures (`fx_<name>`) |
 | `build_hit_art` | hats knocked off (`fx_hat_*`) and dropped weapons (`fx_drop_*`) |
 | `build_break_art` | signs' `<name>_shot` and the bits `fx_brk_*` |
 | `wall_break_art` | the broken window tiles `<material>_brk` |
@@ -35,7 +35,7 @@ their exact bytes. Every picture is committed to the VGA palette.
 | `build_world_fx` | brass, hulls, embers, ground scorches, crows, fireflies |
 | `build_county_art` | County Run's XP bottle caps `county_xp_<tier>_<n>` |
 | `build_weather_art` | prints in the mud: `mark_boot_mud`, `mark_hoof_mud`, `mark_claw_mud`, `mark_tyre_mud` |
-| `build_item_art` | the armory's wall pictures of guns with no pickup picture (`item_<name>`, via `item_pictures.py`) |
+| `build_item_art` | the armory's wall pictures of guns with no pickup picture, and the crowbar's, .38's, sawed-off's, dynamite's and dynamite sticks' pickups (`item_<name>`, via `item_pictures.py`) |
 | `build_range_signs` | the firing range's signs |
 | `build_vehicle_signs` | the hand-painted KEYS IN IT signs left by the vehicles (`vehicle_sign_airboat`, `_car`, `_mower`: letters a pixel up or down, paint running, a key on a ring; sun-bleached bayou planks with a bite out, a checkered tin plate, the church's whitewash) |
 | `build_gun_signs` | what points a player at a gun not had yet (feature pass 7, `src/gun_finder.gd`), in the vehicle signs' hand: every word at least twice its size so a line reads from a few cells off: GUNS THIS WAY sawn to an arrow (`gun_sign_way_r`), Hickston's GUNS / HONOR SYSTEM with a rifle painted by it (`gun_sign_honor`), the fair's WIN A GUN / NO REFUNDS on striped tin (`_fair`), MILL LEAGUE / BOWLING NITE on grey tin (`_mill`), DANGER / COW LAUNCHER / NOT YOU MUNDELL on hazard tin (`_quarry`), a hobo's chalk gun and X (`_chalk`, the wall showing through); the glint over a gun lying out (`fx_gun_shine_0..2`: spark, cross, star); Mundell's shadow board for the trophy shack (`gun_board`: pegboard, a whitewash outline of each `GunFinder.BOARD` gun from its pickup picture, MUNDELL'S IRON in the last place) |
@@ -80,7 +80,8 @@ the county's hazards: `wood_chipper`, `bug_zapper`, `electric_fence`,
 `well`, `cattle_guard` (sprites, meshes and scenes like the rest).
 
 `tools/art/build_boot_views.gd` (runs `scripts/blender/boot_views.py`) cuts
-Mundell's kick in first person, four cels `fx_boot_kick_0..3`: a work boot
+Mundell's kick in first person, six cels `fx_boot_kick_0..5` (4 and 5, pulled
+back and lifted, since polish pass 9): a work boot
 modelled from hulls (lug sole and heel, stitched welt, toe cap, eyelets and
 crossed laces, tongue, collar) in his model's brown, coming up sole first
 from the bottom of his view (chevron lugs, a separate darker stacked heel,
@@ -340,24 +341,48 @@ godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://too
 
 ## Guns in first person
 
-`scripts/blender/weapon_views.py` models every gun (the plates' rigs: the
-revolver plate, the shotgun plate, the crowbar plate for throwables), cut by
-`build_weapon_views.gd`. The 5v5 guns' side materials and `pbr(edge=,
-cavity=)` are in [modes.md](modes.md#the-guns). `src/melee_blood.gd` wets the
-crowbar and sling blade (a cached copy of the graded cel in weapons.gd).
+`scripts/blender/weapon_views.py` models every gun but the crowbar (the
+plates' rigs: the revolver plate, the shotgun plate, the crowbar plate for
+throwables), cut by `build_weapon_views.gd`: each render gets its plate's
+photographed hand laid over it at the plate's own size and place, so every
+gun shows the same hands, light (the three suns) and grade. The .38 and the
+sawed-off are modelled in `scripts/blender/weapon_plates.py` (polish pass 9;
+before that the game showed the old photographs, hands and all): a
+four-inch blued service revolver with walnut stocks and an old side-by-side
+coach gun cut down, case-coloured action, rabbit-ear hammers, a split
+fore-end in friction tape, the stock sawn to a taped grip. Their reloads
+show the gun's works: a view's `states` are renders of their own
+(`<name>@<pose>.png`): the cylinder swung out on its crane, the empties
+thrown off the ejector, rounds going in; the action broken open, the empties
+kicked out, shells going in (one or two). The .38 is turned in the hand toward the
+sights (`AIM`) as its photograph pointed. Their poses keep the swing the old
+photographs had (`PHOTO_POSES`, `held_pose`: turned, grown and moved as the
+photograph's barrel was). The crowbar is still its photographed plate. The
+5v5 guns' side materials and `pbr(edge=, cavity=)` are in
+[modes.md](modes.md#the-guns). `src/melee_blood.gd` wets the crowbar and
+sling blade (a cached copy of the graded cel in weapons.gd).
 
 **The junk bench's mods** (content pass 8): `scripts/blender/weapon_mods.py`
-runs weapon_views.py's library. A modelled gun (rifle, crossbow, dynamite)
-is rendered again with each choice of its mods on, `<gun>__<shorts>`
-(rifle__brake_drum), and cut as its gun is. The photographed .38 and
-sawed-off get each mod's parts alone, placed on the photograph's own gun
-(`PHOTO`: the barrel's frame fitted to the plate's muzzle, sight and strap by
-a small solve, a holdout stand-in hiding what is behind the gun), and
-build_weapon_views.gd lays them over each of the gun's cels (`PHOTO_POSES`:
-where the barrel lies in each cel, the idle mod carried there by a turn,
-stretch and move; the hand on the cel stays in front), every choice
-written as `gun_<gun>__<shorts>_<pose>`. The brake's can moves the rifle's
-muzzle anchor (`weapon_anchors.json` `rifle__brake`). `Armory.art_name`
-picks the picture; a gun with no picture of its mods falls back to its own.
-`tools/bench_frames.gd` (a window) takes every modded gun in hand, the
-board, the benches and the scrap.
+runs weapon_views.py's library. Each gun with mods (the .38, the sawed-off,
+the rifle, the crossbow, the dynamite) is rendered again with each choice of
+its mods on, `<gun>__<shorts>` (rifle__brake_drum), in each of its reload's
+states, and cut as its gun is; the .38's and the sawed-off's mods are built
+on the barrel (`ON_BARREL`). A mod that lengthens the barrel moves the muzzle
+anchor (`FRONTS`: the brake's can, the choke's pipes; `weapon_anchors.json`).
+`Armory.art_name` picks the picture; a gun with no picture of its mods falls
+back to its own. `tools/bench_frames.gd` (a window) takes every modded gun in
+hand, the board, the benches and the scrap.
+
+**Pickups.** `build_item_art.gd` (`item_pictures.py`) also makes the
+pickups (and HUD icons) of the crowbar, the .38, the sawed-off and the
+dynamite (until polish pass 9 these were the first-person photographs cut
+out with the hand on them) and the dynamite sticks' `item_dynamite` (it was a
+copy of the shells' box), each about as big as the old picture; the other
+first sixteen guns keep the old game's painted pickups.
+
+**Checking them.** `tools/gun_art_check.gd` (check_all, quick): every gun's
+every pose, every mod choice's poses, size, hand and muzzle, the muzzle
+anchors, the finishers' frames and the boot's cels, the pickups (none with a
+hand on it), the switch. `tools/gun_view_frames.gd -- out=<dir>` (a window)
+takes every gun in first person at rest, through a shot, through a reload,
+going down and coming up in a switch, with each choice of its mods.

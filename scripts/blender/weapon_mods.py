@@ -6,17 +6,14 @@
 Runs weapon_views.py's library (materials, shapes, the rigs, the stage) and
 renders, into the same folder and views.json as weapon_views.py:
 
-  - for the modelled guns (the ranch rifle, the dynamite crossbow, the
-    dynamite), each gun again with its mods on: <gun>__<mods>.png, the mods'
-    short names in name order joined by "_" (rifle__brake_drum), through the
-    gun's own rig, so godot/tools/art/build_weapon_views.gd cuts their cels as
-    it cuts the gun's;
-  - for the photographed guns (the .38 and the sawed-off), each mod by
-    itself: <gun>__<mod>.png, the parts alone on a clear ground, placed on
-    the photograph's own gun: PHOTO holds where that gun lies in front of the
-    plate's camera (fitted to the photograph's barrel, muzzle, sight and
-    strap); a stand-in of the gun's barrel and frame holds out what lies
-    behind it. build_weapon_views.gd lays them over the photographed cels.
+  - each gun with a mod (the .38, the sawed-off, the ranch rifle, the
+    dynamite crossbow, the dynamite) again with each choice of its mods on:
+    <gun>__<mods>.png, the mods' short names in name order joined by "_"
+    (rifle__brake_drum), through the gun's own rig and in each of its
+    reload's states (<gun>__<mods>@<state>.png), so
+    godot/tools/art/build_weapon_views.gd cuts their cels as it cuts the
+    gun's. The .38's and the sawed-off's mods are built on the barrel
+    (ON_BARREL carries them onto the gun).
 
 With `items` it renders the bench's own pictures instead (items_main):
 each mod's parts alone, seen from the side, as mod_<short>.png (its tag
@@ -42,16 +39,14 @@ GALV = lambda: pbr("galv", (150, 152, 148), .38, .9, wear=(206, 206, 200), blotc
 SCOPE = lambda: pbr("scope_black", (22, 22, 24), .42, .6, wear=(110, 106, 100), edge=(150, 146, 140), cavity=.6)
 WIRE = lambda: pbr("baling_wire", (120, 118, 112), .45, 1., wear=(170, 168, 160), blotch=(110, 70, 40))
 
-# Where each photographed gun lies in front of its plate's camera: a frame on
-# its barrel (origin on the barrel's axis where it meets the frame, +Y to the
-# muzzle, +Z up off the top strap), as T(x, y, z) @ Euler(rx, ry, rz); the
-# plate's focal length; the barrel's length and radius in that frame.
-PHOTO = {
-    "revolver": ((-.10555, .05079, .10758), (.30097, -.87483, 1.57506), 604., .101, .0105),
-    "shotgun": ((.01386, -.30099, -.00641), (.40422, -.00347, .62504), 462., .708, .0115),
-}
+# The .38's and the sawed-off's mods are built on the barrel: origin on its
+# axis where it meets the frame (the .38) or at the breech (the sawed-off's
+# pair), +Y to the muzzle, +Z up; ON_BARREL takes that frame onto the gun's
+# own (weapon_plates.py), and BARREL holds the barrel's length and radius.
+BARREL = {"revolver": (MUZZLE38 - CYL_Y1, R38), "shotgun": (LSG, RSG)}
+ON_BARREL = {"revolver": T((0, CYL_Y1, BORE38)), "shotgun": T((0, 0, AXIS_SG))}
 # The sawed-off's barrels side by side, each this far off its middle.
-SPREAD = .0115
+SPREAD = SPREAD_SG
 
 
 def hull_band(y, width, shapes, material, grow=.0016, seg=20):
@@ -106,15 +101,6 @@ def tape_ends(y, width, at, material):
 # ---------------------------------------------------------------- the .38
 
 
-def revolver_holdout():
-    """The photograph's .38 as a stand-in: what hides the far side of a wrap."""
-    hold = HOLD()
-    L, r = PHOTO["revolver"][3], PHOTO["revolver"][4]
-    rod((0, -.005, 0), (0, L, 0), r, r, hold, seg=24)
-    box((0, -.045, -.004), (.024, .09, .034), hold, bevel=.004)
-    rod((0, -.085, -.018), (0, -.01, -.018), .021, .021, hold, seg=24)
-
-
 def revolver_scope():
     """A pawn-shop scope off a .22, its rings wired on and the whole thing
     taped down along the top strap and the barrel."""
@@ -140,14 +126,14 @@ def revolver_scope():
     # duct tape: the back ring to the top strap, the front ring to the barrel
     tape = DUCT()
     hull_band(-.03, .016, [(0, z, .0074), (0, .006, .024, .014)], tape)
-    hull_band(.062, .018, [(0, z, .0074), (0, 0, PHOTO["revolver"][4])], tape)
+    hull_band(.062, .018, [(0, z, .0074), (0, 0, BARREL["revolver"][1])], tape)
     tape_ends(.062, .018, (.012, .02), tape)
 
 
 def revolver_loader():
     """A speed loader of six fresh .38s taped flat along the left of the
     barrel, ready to slap in."""
-    r = PHOTO["revolver"][4]
+    r = BARREL["revolver"][1]
     x, z = -.024, -.004
     body = pbr("loader", (30, 28, 26), .55, .3, wear=(120, 110, 96), edge=(150, 140, 120))
     rod((x, .018, z), (x, .034, z), .0148, .0148, body, seg=28)
@@ -168,19 +154,11 @@ def revolver_loader():
 # ---------------------------------------------------------------- the sawed-off
 
 
-def shotgun_holdout():
-    hold = HOLD()
-    L, r = PHOTO["shotgun"][3], PHOTO["shotgun"][4]
-    for s in (-1, 1):
-        rod((s * SPREAD, -.05, 0), (s * SPREAD, L, 0), r, r, hold, seg=28)
-    box((0, .2, -.02), (.03, .6, .02), hold, bevel=.002)
-
-
 def shotgun_bayonet():
     """A corn knife taped along the outside of the near barrel, its handle
     back by the fore-end and its blade out past the muzzles, canted out a
     hair: a jab when the shells run out."""
-    L, r = PHOTO["shotgun"][3], PHOTO["shotgun"][4]
+    L, r = BARREL["shotgun"]
     x = -(SPREAD + r + .0045)
     z = .002
     handle = pbr("knife_handle", (64, 40, 24), .6, 0., grain=(30, 18, 10), scale=24., edge=(130, 96, 62))
@@ -194,13 +172,13 @@ def shotgun_bayonet():
     # turned up and out
     bm = bmesh.new()
     t = .0016
-    prof = [(0, .014), (0, -.014), (.55, -.014), (.66, -.004), (.69, .008), (.55, .015)]
+    prof = [(0, .014), (0, -.014), (.38, -.014), (.46, -.004), (.48, .008), (.38, .015)]
     vs = []
     for side in (-t, t):
         row = []
         for py, pz in prof:
-            out = -.06 * (py / .69) ** 2
-            row.append(bm.verts.new((x + side + out, .292 + py, z + pz + .02 * (py / .69) ** 2)))
+            out = -.05 * (py / .48) ** 2
+            row.append(bm.verts.new((x + side + out, .292 + py, z + pz + .018 * (py / .48) ** 2)))
         vs.append(row)
     bm.faces.new(vs[0])
     bm.faces.new(list(reversed(vs[1])))
@@ -220,7 +198,7 @@ def shotgun_choke():
     """A length of galvanized pipe slid over each barrel's front third,
     hose-clamped to the pair with a bell reducer on the end: the shot holds
     together further out."""
-    L, r = PHOTO["shotgun"][3], PHOTO["shotgun"][4]
+    L, r = BARREL["shotgun"]
     galv = GALV()
     grow = .0065
     y0 = .22
@@ -386,8 +364,8 @@ def HOLD():
     return m
 
 
-# Each mod: (its gun, its short name, the builder). A photographed gun's mods
-# render alone; a modelled gun's render on the gun, every combination.
+# Each mod: (its gun, its short name, the builder), rendered on the gun in
+# every combination.
 MODS = [
     ("revolver", "scope", revolver_scope), ("revolver", "loader", revolver_loader),
     ("shotgun", "bayonet", shotgun_bayonet), ("shotgun", "choke", shotgun_choke),
@@ -396,8 +374,7 @@ MODS = [
     ("tnt", "bundle", tnt_bundle), ("tnt", "fuse", tnt_fuse),
 ]
 # A mod that moves the muzzle: where the flash comes from with it on.
-FRONTS = {"brake": (0, .83, -.032)}
-HOLDOUTS = {"revolver": revolver_holdout, "shotgun": shotgun_holdout}
+FRONTS = {"brake": (0, .83, -.032), "choke": (0, LSG + .06, AXIS_SG)}
 
 
 def _clear():
@@ -417,14 +394,23 @@ def mod_views():
             guns.append(gun)
     for gun in guns:
         mine = sorted([(s, b) for g, s, b in MODS if g == gun])
-        if gun in PHOTO:
-            for s, b in mine:
-                out["%s__%s" % (gun, s)] = (gun, [(s, b)])
-        else:
-            for pick in range(1, 1 << len(mine)):
-                chosen = [mine[k] for k in range(len(mine)) if pick >> k & 1]
-                out["%s__%s" % (gun, "_".join(s for s, _b in chosen))] = (gun, chosen)
+        for pick in range(1, 1 << len(mine)):
+            chosen = [mine[k] for k in range(len(mine)) if pick >> k & 1]
+            out["%s__%s" % (gun, "_".join(s for s, _b in chosen))] = (gun, chosen)
     return out
+
+
+def on_barrel(gun, build):
+    """A mod's builder, its parts carried onto the gun (ON_BARREL)."""
+    if gun not in ON_BARREL:
+        return build
+
+    def built():
+        before = len(PARTS)
+        build()
+        for ob in PARTS[before:]:
+            ob.matrix_world = ON_BARREL[gun] @ ob.matrix_world
+    return built
 
 
 def mods_main():
@@ -435,39 +421,12 @@ def mods_main():
     for name, (gun, chosen) in mod_views().items():
         if WANT and name not in WANT and gun not in WANT:
             continue
-        _clear()
-        if gun in PHOTO:
-            HOLDOUTS[gun]()
-            for _s, build in chosen:
-                build()
-            spot, turn, focal = PHOTO[gun][0], PHOTO[gun][1], PHOTO[gun][2]
-            model = T(spot) @ Euler(turn, "XYZ").to_matrix().to_4x4()
-            rig = "pistol" if gun == "revolver" else "long"
-            front = (0, PHOTO[gun][3], 0)
-        else:
-            build_gun, rig, front = WEAPONS[gun]
-            for s, _b in chosen:
-                front = FRONTS.get(s, front)
-            build_gun()
-            for _s, build in chosen:
-                build()
-            focal, model = RIGS[rig]
-            model = model @ Matrix.Scale(TRIM.get(gun, 1.0), 4)
-            model = model @ T(SHIFT.get(gun, (0, 0, 0)))
-        for ob in PARTS:
-            ob.matrix_world = model @ ob.matrix_world
-        camera.data.lens = focal * 36.0 / CANVAS[0]
-        bpy.context.view_layer.update()
-
-        def screen(point):
-            v = world_to_camera_view(scene, camera, model @ Vector(point))
-            return [round(v.x * CANVAS[0], 1), round((1 - v.y) * CANVAS[1], 1)]
-
-        views[name] = {"rig": rig, "grip": screen((0, 0, 0)), "front": screen(front), "photo": gun in PHOTO}
-        scene.render.filepath = os.path.join(OUT, name + ".png")
-        bpy.ops.render.render(write_still=True)
+        build_gun, rig, front = WEAPONS[gun]
+        for s, _b in chosen:
+            front = FRONTS.get(s, front)
+        extra = [on_barrel(gun, build) for _s, build in chosen]
+        views[name] = render_states(scene, camera, name, gun, build_gun, rig, front, extra)
     json.dump(views, open(path, "w"), indent=1)
-
 
 
 # ---------------------------------------------------------------- the scrap
@@ -556,41 +515,7 @@ def _look(scene, camera, toward, pad=.012, ppm=400.):
     scene.render.resolution_y = max(16, round(h * ppm))
 
 
-def gun_38():
-    """The .38 on the bench's board (the game's own is a photograph): a
-    six-inch blued revolver with walnut grips, built on the deputies' .357."""
-    MATS["d_stainless"] = pbr("blued_38", (30, 32, 38), .32, 1., wear=(130, 130, 136), edge=(160, 160, 166),
-                              cavity=.7)
-    MATS["d_poly"] = WOOD()
-    MATS["d_silver"] = WOOD()
-    MATS["ramp"] = MATS["d_stainless"]
-    star357()
-    for key in ("d_stainless", "d_poly", "d_silver", "ramp"):
-        MATS.pop(key)
-    # A real grip where the hand would be: walnut, its butt rounded.
-    _drop(lambda c: c.z < -.02 and -.07 < c.y < .01)
-    box((0, -.038, -.06), (.026, .036, .11), WOOD(), rot=(.32, 0, 0), bevel=.01)
-    ball((0, -.055, -.112), .016, WOOD())
-
-
-def gun_sawed_off():
-    """The sawed-off on the bench's board (the game's own is a photograph):
-    side-by-side barrels cut short, a split fore-end, the stock sawn to a grip."""
-    blued = pbr("blued_sg", (28, 30, 36), .3, 1., wear=(130, 128, 130), edge=(170, 168, 168), cavity=.6)
-    wood = WOOD()
-    for s in (-1, 1):
-        rod((s * .0115, -.02, 0), (s * .0115, .36, 0), .0115, .0112, blued, seg=24)
-        disc((s * .0115, .3605, 0), (0, 1, 0), .0085, .001, SLOT(), seg=20)
-    box((0, .17, .012), (.006, .38, .004), blued, bevel=.001)
-    box((0, .12, -.02), (.026, .16, .022), wood, bevel=.006)
-    box((0, -.05, -.012), (.03, .07, .04), blued, bevel=.004)
-    box((0, -.13, -.04), (.028, .12, .05), wood, rot=(.5, 0, 0), bevel=.008)
-    box((0, -.035, -.042), (.004, .05, .003), blued, bevel=.001)
-    for s in (-1, 1):
-        box((s * .008, -.085, .012), (.004, .014, .02), blued, rot=(-.6, 0, 0), bevel=.001)
-
-
-GUN_PICTURES = {"revolver": gun_38, "shotgun": gun_sawed_off, "rifle": rifle, "crossbow": crossbow, "tnt": tnt}
+GUN_PICTURES = {"revolver": revolver, "shotgun": shotgun, "rifle": rifle, "crossbow": crossbow, "tnt": tnt}
 # Long thin parts laid at a slant on their tags, to read bigger.
 SLANT = {"bayonet": .45, "choke": .5, "scope": .25, "brake": .2}
 

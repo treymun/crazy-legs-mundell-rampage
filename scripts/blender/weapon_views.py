@@ -1,4 +1,4 @@
-"""Model and render the first-person weapons that are not photographed plates.
+"""Model and render every first-person weapon but the crowbar (a photographed plate).
 
     blender -b -P scripts/blender/weapon_views.py -- <out dir> <names|all>
 
@@ -6,8 +6,10 @@ Writes <name>.png (1280x896, transparent) and views.json with where each
 weapon's grip and foremost point landed. godot/tools/art/build_weapon_views.gd lays the
 photographed hands over them and cuts the animation cels.
 
-The crowbar, revolver and shotgun in the game are photographs, hands included.
-Every weapon here is built to be held by one of those same hands, so each rig
+The crowbar, revolver and shotgun plates (source_art) are photographs, hands
+included; the game shows only the crowbar's as it is (the .38 and the sawed-off
+are modelled in weapon_plates.py since polish pass 9). Every weapon here is
+built to be held by one of those same hands, so each rig
 reproduces the camera of one plate (see RIGS) and its weapons follow that
 plate's layout:
   pistol  the top of the grip at the origin, body above and ahead (revolver)
@@ -1362,8 +1364,13 @@ def powder_keg():
     rod((-.02, -.02, .15), (.02, -.02, .15), .005, .005, pbr("rope", (150, 126, 86), .95, bump=.9, scale=70.), seg=8, round_ends=True)
 
 
+# The .38 and the sawed-off (weapon_plates.py: STATE, PLACE, STATES).
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "weapon_plates.py"), encoding="utf-8") as _plates:
+    exec(_plates.read(), globals())
+
 # name -> (builder, rig, foremost point)
 WEAPONS = {
+    "revolver": (revolver, "pistol", (0, MUZZLE38, BORE38)), "shotgun": (shotgun, "long", (0, LSG, AXIS_SG)),
     "rifle": (rifle, "long", (0, .71, -.03)), "crossbow": (crossbow, "long", (0, .46, .0)),
     "cow_launcher": (cow_launcher, "long", (0, .72, -.04)), "bottle_launcher": (bottle_launcher, "long", (0, .91, -.03)),
     "armgun": (armgun, "pistol", (0, .39, .05)), "riveter": (riveter, "pistol", (0, .25, .05)),
@@ -1391,7 +1398,11 @@ RIGS = {
 }
 # Big props brought down so their muzzle ends short of the crosshair, as the shotgun's does.
 TRIM = {"cow_launcher": .74, "bottle_launcher": .86, "crossbow": .84, "hunter": .82, "mower": .84,
-        "riot_pump": .92, "patrol_bar": .86, "marksman": .83, "county45": 1.15}
+        "riot_pump": .92, "patrol_bar": .86, "marksman": .83, "county45": 1.15,
+        "revolver": 1.35, "shotgun": 1.1}
+# Turned in the hand (about the top of the grip): the .38 pointed in
+# towards the sights as its photograph was.
+AIM = {"revolver": R(-.3, 0, 0)}
 # Short things slid out along the hand so the fist does not swallow them.
 SHIFT = {"smudge_pot": (0, .075, .0), "firecracker_can": (0, .09, .0), "flash_jar": (0, .03, .0)}
 CANVAS = (1280, 896)        # the plate's 640x448 frame is the lower right quarter
@@ -1447,6 +1458,54 @@ def stage():
     return scene, camera
 
 
+def model_of(name, rig):
+    """Where a weapon's own frame sits before its rig's camera: by the rig,
+    brought down (TRIM) and slid along the hand (SHIFT)."""
+    model = RIGS[rig][1] @ Matrix.Scale(TRIM.get(name, 1.0), 4)
+    return model @ T(SHIFT.get(name, (0, 0, 0))) @ AIM.get(name, Matrix.Identity(4))
+
+
+def render_view(scene, camera, name, file, build, rig, front, extra=()):
+    """Build the weapon (and `extra` builders on it), seat it before the
+    rig's camera and render it to `file`.png: its grip and front on the canvas."""
+    doomed = list(PARTS)
+    meshes = [ob.data for ob in doomed]
+    PARTS.clear()
+    bpy.data.batch_remove(doomed)
+    bpy.data.batch_remove([me for me in meshes if me.users == 0])
+    build()
+    for more in extra:
+        more()
+    model = model_of(name, rig)
+    for ob in PARTS:
+        ob.matrix_world = model @ ob.matrix_world
+    camera.data.lens = RIGS[rig][0] * 36.0 / CANVAS[0]
+    bpy.context.view_layer.update()
+
+    def screen(point):
+        v = world_to_camera_view(scene, camera, model @ Vector(point))
+        return [round(v.x * CANVAS[0], 1), round((1 - v.y) * CANVAS[1], 1)]
+
+    scene.render.filepath = os.path.join(OUT, file + ".png")
+    bpy.ops.render.render(write_still=True)
+    return {"rig": rig, "grip": screen((0, 0, 0)), "front": screen(front)}
+
+
+def render_states(scene, camera, name, gun, build, rig, front, extra=()):
+    """The weapon shut (<name>.png) and in each of its reload's states
+    (<name>@<state>.png): its views.json entry."""
+    global STATE
+    STATE = "closed"
+    view = render_view(scene, camera, gun, name, build, rig, front, extra)
+    if gun in STATES:
+        for state in STATES[gun]:
+            STATE = state
+            render_view(scene, camera, gun, name + "@" + state, build, rig, front, extra)
+        STATE = "closed"
+        view["states"] = STATES[gun]
+    return view
+
+
 def main():
     scene, camera = stage()
     os.makedirs(OUT, exist_ok=True)
@@ -1455,27 +1514,7 @@ def main():
     for name, (build, rig, front) in WEAPONS.items():
         if WANT and name not in WANT:
             continue
-        doomed = list(PARTS)
-        meshes = [ob.data for ob in doomed]
-        PARTS.clear()
-        bpy.data.batch_remove(doomed)
-        bpy.data.batch_remove([me for me in meshes if me.users == 0])
-        build()
-        focal, model = RIGS[rig]
-        model = model @ Matrix.Scale(TRIM.get(name, 1.0), 4)
-        model = model @ T(SHIFT.get(name, (0, 0, 0)))
-        for ob in PARTS:
-            ob.matrix_world = model @ ob.matrix_world
-        camera.data.lens = focal * 36.0 / CANVAS[0]
-        bpy.context.view_layer.update()
-
-        def screen(point):
-            v = world_to_camera_view(scene, camera, model @ Vector(point))
-            return [round(v.x * CANVAS[0], 1), round((1 - v.y) * CANVAS[1], 1)]
-
-        views[name] = {"rig": rig, "grip": screen((0, 0, 0)), "front": screen(front)}
-        scene.render.filepath = os.path.join(OUT, name + ".png")
-        bpy.ops.render.render(write_still=True)
+        views[name] = render_states(scene, camera, name, name, build, rig, front)
     json.dump(views, open(path, "w"), indent=1)
 
 
