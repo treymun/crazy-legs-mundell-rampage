@@ -8,7 +8,7 @@ class_name HoundLooks
 extends RefCounted
 
 ## The badge's plate: its top left on the 320x200 canvas, its size.
-const BADGE_X := 3
+const BADGE_X := HudLayout.EDGE
 const BADGE_W := 62
 const BADGE_H := 33
 ## The head's box in it.
@@ -69,6 +69,11 @@ static func carried(
 ## The badge: `share` his health (0..1), `face` the head to show (0 panting,
 ## 1 on the scent, 2 hurt, "down"), `word` under his name ("" none), `hot`
 ## to blink the word.
+## The badge's rect on the view: the bottom left corner.
+static func rect() -> Rect2i:
+	return Rect2i(BADGE_X, View.VIEW - BADGE_H - 3, BADGE_W, BADGE_H)
+
+
 static func badge(g: Game, c: Canvas, share: float, face: String, word: String, hot: bool) -> void:
 	var x := BADGE_X
 	var y := View.VIEW - BADGE_H - 3
@@ -102,8 +107,7 @@ static func on_badge(g: Game, at: Vector2i) -> bool:
 	var hound: Game.HoundScript = g.features.get("hound")
 	if hound == null or not hound.on:
 		return false
-	var top := View.VIEW - BADGE_H - 3
-	return Rect2i(BADGE_X, top, BADGE_W, BADGE_H).grow(3).has_point(at)
+	return rect().grow(3).has_point(at)
 
 
 ## A head picture scaled into the FACE box (kept), at (x, y).

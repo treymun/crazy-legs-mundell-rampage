@@ -64,6 +64,8 @@ const BOARD_COLUMNS := 5
 const BOARD_ROWS := 3
 
 var on := false
+## The card folded to its count this frame (hud_flow: no corner clear of the board).
+var _folded := false
 ## Read from the files when first wanted: boss kind -> beaten, game -> best,
 ## map -> record, rematch bests; when they were read (game clock, -1 never).
 var beaten := {}
@@ -347,24 +349,38 @@ static func _clock(seconds: float) -> String:
 ## The card, in the top left corner, or wherever it keeps clear of the
 ## shadow board (card_at); looking at the board with no room for it, folded to
 ## GUN BOARD n OF 14; none while the board fills the view.
-func draw_view(c: Canvas) -> void:
+## The card's place: a corner clear of the board and of the rest of the HUD
+## (ui/hud/hud_layout.gd), folded to its count when none is.
+func hud_flow(layout: HudLayout) -> void:
+	_folded = false
 	if not on or game.map or not inside(game.local_player):
 		return
 	var rows := lines()
-	var size := Vector2i(170, 14 + rows.size() * 7)
-	var top := 34 if game.message_until > game.clock else 18
-	var at := card_at(size, top)
+	var at := card_at(Vector2i(170, 14 + rows.size() * 7), layout)
 	if at.x < 0:
+		_folded = true
+		at = card_at(Vector2i(170, 21), layout)
+	if at.x >= 0:
+		var size := Vector2i(170, 14 + (1 if _folded else rows.size()) * 7)
+		layout.take("card", HudLayout.panel_rect(at.x, at.y, size.x, size.y))
+
+
+func draw_view(c: Canvas) -> void:
+	var spot := game.hud.layout.find("card")
+	if not on or game.map or not inside(game.local_player) or spot.size.x <= 0:
+		return
+	var rows := lines()
+	if _folded:
 		# Looking at the board: the card folds to its count, out of its way.
 		rows = rows.filter(func(r: Variant) -> bool: return str(r).begins_with("GUN BOARD"))
-		size = Vector2i(170, 14 + rows.size() * 7)
-		at = card_at(size, top)
-	if at.x < 0:
-		return
+	var size := Vector2i(170, 14 + rows.size() * 7)
+	var at := spot.position
+	HudLayout.begin(c, "card")
 	HUD.panel(c, at.x, at.y, size.x, size.y, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
 	HUD.text(c, "MUNDELL'S TROPHIES", at.x + 5, at.y + 3, "body", HUD.AMBER)
 	for i in rows.size():
 		HUD.text(c, str(rows[i]), at.x + 5, at.y + 13 + i * 7, "mini", HUD.INK, false, false)
+	HudLayout.end(c)
 
 
 ## Where the card of `size` goes: the first of the view's corners (top left,
@@ -372,18 +388,24 @@ func draw_view(c: Canvas) -> void:
 ## seen now, else anywhere along the top or bottom edge clear of it;
 ## Vector2i(-1, -1) when nowhere is (the board then fills the middle of the
 ## view: what the card would say hangs there).
-func card_at(size: Vector2i, top: int) -> Vector2i:
+func card_at(size: Vector2i, layout: HudLayout) -> Vector2i:
 	var board := board_rect()
-	var right := View.WIDTH - 4 - size.x
-	var bottom := View.VIEW - 4 - size.y
+	var right := View.WIDTH - HudLayout.EDGE - 1 - size.x
+	var top := maxi(18, layout.under(HudLayout.EDGE, View.WIDTH - HudLayout.EDGE))
+	var bottom := HudLayout.BOTTOM - 2 - size.y
+	var fits := func(x: int, y: int) -> bool:
+		return (
+			not Rect2(Vector2(x, y), Vector2(size)).grow(2.0).intersects(board)
+			and layout.clear(HudLayout.panel_rect(x, y, size.x, size.y))
+		)
 	for y: int in [top, bottom]:
-		for x: int in [4, right]:
-			if not Rect2(Vector2(x, y), Vector2(size)).grow(2.0).intersects(board):
+		for x: int in [HudLayout.EDGE, right]:
+			if fits.call(x, y):
 				return Vector2i(x, y)
 	# No corner clear: anywhere along the top or the bottom edge that is.
 	for y: int in [top, bottom]:
-		for x in range(4, right, 6):
-			if not Rect2(Vector2(x, y), Vector2(size)).grow(2.0).intersects(board):
+		for x in range(HudLayout.EDGE, right, 6):
+			if fits.call(x, y):
 				return Vector2i(x, y)
 	return Vector2i(-1, -1)
 

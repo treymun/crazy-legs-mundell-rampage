@@ -299,25 +299,44 @@ const STORM_INK := Color(120 / 255.0, 150 / 255.0, 210 / 255.0)
 const WALL := Color(70 / 255.0, 76 / 255.0, 96 / 255.0)
 
 
+## The storm's line and its map in the corner, in the HUD's layout
+## (ui/hud/hud_layout.gd).
+static func hud_fixed(layout: HudLayout, game: Game, f: CountyRun) -> void:
+	if not f.storm_on or (f.storm_stage == 0 and not f.storm_warned):
+		return
+	var line := _line(game, f)
+	if line != "":
+		var w := PixelType.text_width(line, "body")
+		layout.take("storm", HudLayout.text_rect(line, 160 - w / 2, 20, "body"))
+	layout.take("ring", Rect2i(320 - 32 - 3, 3, 32, 32))
+
+
 ## The HUD: the stage called ("STORM FRONT 0:25"), the wall closing, a
 ## warning when out in it, and the small map of the ring in the corner.
 static func draw_hud(c: Canvas, game: Game, f: CountyRun) -> void:
 	if not f.storm_on or (f.storm_stage == 0 and not f.storm_warned):
 		return
 	var p: Player = game.player
-	var line := ""
+	var line := _line(game, f)
 	var ink := STORM_INK
-	var left := called_in(f)
 	if outside(f, p.x, p.y):
-		line = "OUT IN THE STORM! GET IN THE RING!"
 		ink = HUD.LOW_HOT if int(game.clock * 4.0) % 2 == 0 else HUD.LOW
-	elif f.storm_moving.x >= 0.0:
-		line = "THE STORM IS CLOSIN' IN"
-	elif left >= 0.0:
-		line = "STORM FRONT %d:%02d" % [int(left) / 60, int(left) % 60]
 	if line != "":
 		HUD.text(c, line, 160, 20, "body", ink, true, true, true)
 	_corner(c, game, f)
+
+
+## The storm's line: out in it, closing in, or when the next front comes.
+static func _line(game: Game, f: CountyRun) -> String:
+	var p: Player = game.player
+	var left := called_in(f)
+	if outside(f, p.x, p.y):
+		return "OUT IN THE STORM! GET IN THE RING!"
+	if f.storm_moving.x >= 0.0:
+		return "THE STORM IS CLOSIN' IN"
+	if left >= 0.0:
+		return "STORM FRONT %d:%02d" % [int(left) / 60, int(left) % 60]
+	return ""
 
 
 ## The ring in the corner: the whole map's circle dim, the safe ring, the

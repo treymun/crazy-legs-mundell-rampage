@@ -177,8 +177,42 @@ static func draw_hud(c: Canvas, game: Game, f: CountyRun) -> void:
 	c.fill_rect(0, VIEW - 3, fill, 3, XP_FILL)
 	c.fill_rect(0, VIEW - 3, 320, 1, Color(0, 0, 0))
 	# The gun slots, armor and level are on the status bar (hud.gd).
+	HudLayout.begin(c, "county")
 	var right := CountyRecords.clock_text(f.run_time)
-	HUD.text(c, right, 317, VIEW - 13, "body", HUD.INK, false, true, true)
+	HUD.text(c, right, 315, VIEW - 13, "body", HUD.INK, false, true, true)
+	var bits := _bits(game, f)
+	if not bits.is_empty():
+		HUD.text(c, "  ".join(bits), 315, VIEW - 21, "mini", GOLD, false, true, true)
+	HudLayout.end(c)
+	HudLayout.begin(c, "storm")
+	CountyStorm.draw_hud(c, game, f)
+	HudLayout.end(c)
+
+
+## The run's HUD keeps the view's bottom right (the clock and the run's
+## state over the XP bar along the foot) and, in a storm, its line and map
+## at the top (ui/hud/hud_layout.gd): drawn after play's HUD, taken first.
+static func hud_fixed(layout: HudLayout, game: Game, f: CountyRun) -> void:
+	if f.over or build_open or (not f.pending.is_empty() and not f.offer.is_empty()):
+		return
+	if game.player.health <= 0 or game.map:
+		return
+	layout.take("xp", Rect2i(0, VIEW - 3, 320, 3))
+	var clock := CountyRecords.clock_text(f.run_time)
+	var box := HudLayout.text_rect(
+		clock, 315 - PixelType.text_width(clock, "body"), VIEW - 13, "body"
+	)
+	var bits := _bits(game, f)
+	if not bits.is_empty():
+		var line := "  ".join(bits)
+		var w := PixelType.text_width(line, "mini")
+		box = box.merge(HudLayout.text_rect(line, 315 - w, VIEW - 21, "mini"))
+	layout.take("county", box)
+	CountyStorm.hud_fixed(layout, game, f)
+
+
+## The run's state in a few words: the slide, second wind, a streak, a lull.
+static func _bits(game: Game, f: CountyRun) -> Array:
 	var bits: Array = []
 	if CountyBuild.has(f, "mudslide"):
 		var wait: float = f.dash_ready - game.clock
@@ -197,9 +231,7 @@ static func draw_hud(c: Canvas, game: Game, f: CountyRun) -> void:
 		bits.append("LULL %ds" % ceili(f.lull_until - f.run_time))
 	elif f.next_elite - f.run_time < 5.0:
 		bits.append("ELITE COMIN'")
-	if not bits.is_empty():
-		HUD.text(c, "  ".join(bits), 317, VIEW - 21, "mini", GOLD, false, true, true)
-	CountyStorm.draw_hud(c, game, f)
+	return bits
 
 
 # ------------------------------------------------------------------ cards

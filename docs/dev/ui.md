@@ -61,6 +61,55 @@ draws the bar on the software canvas as before.
   (`HudLayer.composed()`) and holds it to `HUD.draw`'s software rows for the
   campaign, a 5v5 round and COUNTY RUN, full and MINIMAL.
 
+## The HUD's layout
+
+`HudLayout` (`src/ui/hud/hud_layout.gd`, `hud.layout`) owns the view's
+edges: every piece drawn over the view takes a rect from it each frame and
+no two overlap, however crowded the moment. Margins: 4 pixels from the
+sides and top, nothing below row 153; pieces keep a pixel apart. A rect is
+all the piece inks (outline and drop shadow too: `text_rect`, `panel_rect`).
+
+`game_view.gd _lay_hud` lays the frame out before anything is drawn, in
+this order (first come keeps its place):
+
+1. `pinned`: what the front end draws after play (FPS, the online ping).
+2. `GameFeature.hud_fixed`: pieces that never move (BLUE's badge in the
+   bottom left, the 5v5 strip, cash and kill list, versus's frags line,
+   COUNTY RUN's clock, XP bar and storm ring).
+3. The top stack: the notice or place name (`banner`, narrowed round what is
+   beside it, or moved down rather than grow more than a line), the boss
+   bar, the objective pin's row (the whole width, it swings).
+4. `GameFeature.hud_flow`: pieces that hang under the top or stack on the
+   corners (the driving and run plates, the lap timer, station and gallery
+   cards, the flashlight over the badge, the revive line, the watching
+   lines), then a picked-up item.
+5. The prompt and the caption (or a bark) rising from the foot, narrowed
+   clear of the badge; then a streak's call under the pin.
+6. `GameFeature.hud_late`: the kill feed, oldest lines left off when short
+   of room.
+
+With the touch buttons showing, each button over the view is pinned first
+(`main_state.gd _pin_hud`), so the notice and the rest keep off them; the
+move stick is the thumb's and is not.
+
+Pieces placed while drawing: partner tags at the view's edge (they wait
+when there is no room), the windup and hurt marks. A feature draws its piece
+where `layout.find(name)` says, inside `HudLayout.begin(c, name)` /
+`end(c)`, which measure its real ink when `HudLayout.measuring` is on.
+The boss's entrance ribbon is a moment of its own and is not laid out.
+
+`tools/hud_layout_check.gd` (HUD LAYOUT OK) sets up crowded moments
+(`tools/hud_crowd.gd`: campaign, SMALL TEXT, MINIMAL, driving, the
+speedway's lap, co-op watching and reviving, a boss, versus, the fair,
+COUNTY RUN, 5v5) headless and fails when any two pieces' ink touches, one
+inks past the margins, or an expected piece is missing; `png=<dir>` writes
+each moment's canvas with the rects outlined. `tools/hud_frames.gd` pictures
+every menu and the same moments in a window.
+
+A new HUD piece: take its rect in `hud_fixed`/`hud_flow`/`hud_late` (or in
+`_lay_hud` for play's own), draw it at `find(name)` between `begin`/`end`,
+and add it to a moment in `hud_crowd.gd`.
+
 ## The parts
 
 - **UiRoot** (`ui_root.gd`) is a Control the size of the canvas (320x200). It

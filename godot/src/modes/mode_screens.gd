@@ -83,6 +83,10 @@ static func sprites(game: Game) -> Array:
 
 ## Over the view, under the gun: each partner's tag and health, the revive
 ## prompt, versus's frags and clock.
+## Where versus's frags line is drawn from (right aligned).
+const FRAGS_AT := Vector2i(316, 12)
+
+
 static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 	var me: Player = game.local_player
 	# Nearest first: a farther partner's tag steps up out of a nearer one's way.
@@ -99,37 +103,96 @@ static func draw_view(c: Canvas, game: Game, st: ModeFeature) -> void:
 		var q: Player = entry[1]
 		if not q.away:
 			_tag(c, game, me, q, taken)
-	_watching(c, game, me)
-	if me.health > 0 and String(st.mode) == Modes.COOP:
-		var down := CoopMode.downed_near(game, me)
-		if down != null and down.revive > 0.0:
-			HUD.text(c, "REVIVING " + Modes.tag(down), 12, 116, "mini", GREEN)
-			_bar(c, 12, 125, 60, down.revive / CoopMode.REVIVE_TIME, GREEN)
-	if Modes.rules_for(String(st.mode)).versus() and not bool(st.match_over):
-		var left := maxi(0, ceili(float(st.time_limit) - game.clock))
-		var rules := Modes.rules_for(String(st.mode))
-		var lead := 0
-		if rules is TacticalMode:
-			lead = (rules as TacticalMode).leader_score(game)
-		else:
-			lead = (rules as DeathmatchMode).leader_score(game)
-		var text := (
-			"FRAGS %d  LEAD %d/%d  %d:%02d"
-			% [me.frags, lead, int(st.frag_limit), left / 60, left % 60]
+	var lay := game.hud.layout
+	var watch := _watch_lines(game, me)
+	var at := lay.find("watching")
+	if not watch.is_empty() and at.size.x > 0:
+		HudLayout.begin(c, "watching")
+		HUD.text(c, watch[0], 160, at.position.y + 1, "body", HUD.AMBER, true)
+		HUD.text(c, watch[1], 160, at.position.y + 11, "mini", HUD.INK, true)
+		HudLayout.end(c)
+	var down := _reviving(game, me, st)
+	at = lay.find("revive")
+	if down != null and at.size.x > 0:
+		HudLayout.begin(c, "revive")
+		HUD.text(
+			c, "REVIVING " + Modes.tag(down), at.position.x + 1, at.position.y + 1, "mini", GREEN
 		)
-		HUD.text(c, text, 316, 12, "mini", HUD.AMBER, false, true, true)
+		_bar(
+			c, at.position.x + 1, at.position.y + 10, 60, down.revive / CoopMode.REVIVE_TIME, GREEN
+		)
+		HudLayout.end(c)
+	var frags := _frags_line(game, me, st)
+	if frags != "":
+		HudLayout.begin(c, "frags")
+		HUD.text(c, frags, FRAGS_AT.x, FRAGS_AT.y, "mini", HUD.AMBER, false, true, true)
+		HudLayout.end(c)
+
+
+## Versus's frags and clock keep the view's top right corner; the watching
+## lines and the revive line are fitted in round the rest of the HUD
+## (ui/hud/hud_layout.gd).
+static func hud_fixed(layout: HudLayout, game: Game, st: ModeFeature) -> void:
+	var frags := _frags_line(game, game.local_player, st)
+	if frags != "":
+		var w := PixelType.text_width(frags, "mini")
+		layout.take("frags", HudLayout.text_rect(frags, FRAGS_AT.x - w, FRAGS_AT.y, "mini"))
+
+
+static func hud_flow(layout: HudLayout, game: Game, st: ModeFeature) -> void:
+	var me: Player = game.local_player
+	var watch := _watch_lines(game, me)
+	if not watch.is_empty():
+		var w := maxi(
+			PixelType.text_width(watch[0], "body"), PixelType.text_width(watch[1], "mini")
+		)
+		var mini_h: int = PixelType.style_of("mini")[1]
+		var tall := 11 + mini_h + 2
+		layout.centred("watching", Vector2i(w + 2, tall), 20)
+	var down := _reviving(game, me, st)
+	if down != null:
+		var w := maxi(PixelType.text_width("REVIVING " + Modes.tag(down), "mini") + 2, 62)
+		layout.up("revive", Vector2i(w, 14), HudLayout.EDGE + 7)
+
+
+## The partner down this player is hauling up (co-op), or null.
+static func _reviving(game: Game, me: Player, st: ModeFeature) -> Player:
+	if me.health <= 0 or String(st.mode) != Modes.COOP:
+		return null
+	var down := CoopMode.downed_near(game, me)
+	return down if down != null and down.revive > 0.0 else null
+
+
+## Versus's line: this player's frags, the lead and the clock ("" none).
+static func _frags_line(game: Game, me: Player, st: ModeFeature) -> String:
+	if game.players.size() < 2 or Modes.TACTICAL.has(String(st.mode)):
+		return ""
+	if not Modes.rules_for(String(st.mode)).versus() or bool(st.match_over):
+		return ""
+	var left := maxi(0, ceili(float(st.time_limit) - game.clock))
+	var rules := Modes.rules_for(String(st.mode))
+	var lead := 0
+	if rules is TacticalMode:
+		lead = (rules as TacticalMode).leader_score(game)
+	else:
+		lead = (rules as DeathmatchMode).leader_score(game)
+	return (
+		"FRAGS %d  LEAD %d/%d  %d:%02d" % [me.frags, lead, int(st.frag_limit), left / 60, left % 60]
+	)
 
 
 ## Watching a partner (main.gd _watch_partner) while this machine's own
-## player is down: whose view this is, how long until they are back, SPACE.
-static func _watching(c: Canvas, game: Game, me: Player) -> void:
+## player is down: whose view this is, and how long until they are back or
+## SPACE (two lines; none otherwise).
+static func _watch_lines(game: Game, me: Player) -> PackedStringArray:
 	var human := TacticalScreens.human
 	if human < 0 or human >= game.players.size() or me.slot == human:
-		return
+		return PackedStringArray()
+	if Modes.is_tactical(game):
+		return PackedStringArray()
 	var own: Player = game.players[human]
 	if own.health > 0:
-		return
-	HUD.text(c, "WATCHING " + Modes.tag(me), 160, 22, "body", HUD.AMBER, true)
+		return PackedStringArray()
 	var since: float = game.clock - own.down_at if own.down_at >= 0.0 else 0.0
 	var line := "SPACE  NEXT"
 	if Modes.mode_of(game) == Modes.COOP:
@@ -140,7 +203,7 @@ static func _watching(c: Canvas, game: Game, me: Player) -> void:
 	elif Modes.is_versus(game):
 		var back := maxi(0, ceili(DeathmatchMode.RESPAWN_DELAY - since))
 		line = "BACK IN %d" % back
-	HUD.text(c, line, 160, 32, "mini", HUD.INK, true)
+	return PackedStringArray(["WATCHING " + Modes.tag(me), line])
 
 
 ## The use prompt over a partner down beside this machine's player (co-op;
@@ -184,17 +247,30 @@ static func _tag(c: Canvas, game: Game, me: Player, q: Player, taken: Array[Rect
 		y = View.VIEW - 24
 		label = ("<" if rel < 0.0 else ">") + label if absf(rel) > .55 else label
 	var w := maxi(PixelType.text_width(label, "mini"), 22)
-	var rect := Rect2i(x - w / 2 - 1, y - 1, w + 2, 13)
-	for _tries in 4:
-		if not taken.any(func(r: Rect2i) -> bool: return r.intersects(rect)):
+	var rect := Rect2i(x - w / 2 - 1, y - 1, w + 2, 16)
+	# At the view's edge the tag is the HUD's: it keeps clear of the badge,
+	# the feed and the rest (ui/hud/hud_layout.gd) as well as the other tags.
+	var lay := game.hud.layout
+	var room := false
+	for _tries in 8:
+		var hit := taken.any(func(r: Rect2i) -> bool: return r.intersects(rect))
+		if not hit and (seen or lay.clear(rect)):
+			room = true
 			break
-		rect.position.y -= 13
+		rect.position.y -= 16
+	if not room and not seen:
+		return  # no room at the edge this moment: the tag waits
 	y = rect.position.y + 1
 	taken.append(rect)
+	if not seen:
+		lay.take("tag%d" % q.slot, rect)
+		HudLayout.begin(c, "tag%d" % q.slot)
 	HUD.text(c, label, x, y, "mini", tone, true)
 	_bar(c, x - 10, y + 8, 20, float(maxi(0, q.health)) / 100.0, tone)
 	if q.health <= 0 and q.revive > 0.0:
 		_bar(c, x - 10, y + 11, 20, q.revive / CoopMode.REVIVE_TIME, GREEN)
+	if not seen:
+		HudLayout.end(c)
 
 
 static func _bar(c: Canvas, x: int, y: int, w: int, part: float, tone: Color) -> void:

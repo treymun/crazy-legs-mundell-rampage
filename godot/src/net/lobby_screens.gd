@@ -120,8 +120,10 @@ static func button(
 	zone(r, id, arg)
 
 
+## BACK on the riveted plate every menu's BACK is on (Menu.plate_button).
 static func back_button(c: Canvas, label := "BACK") -> void:
-	button(c, Menu.BACK, label, false, "back")
+	Menu.plate_button(c, Menu.BACK, label)
+	zone(Menu.BACK, "back", 0)
 
 
 ## The keys' hint, left of BACK.
@@ -882,7 +884,7 @@ static func draw_match(c: Canvas, net: NetPlay, game: Game, leave_asked: bool) -
 		else:
 			var ping := roundi(net.ping_ms())
 			var ink := GREEN if ping < 80 else (HUD.AMBER if ping < 160 else RED)
-			HUD.text(c, "%d MS" % ping, 316, 10, "mini", ink, false, true, true)
+			HUD.text(c, "%d MS" % ping, 316, 12, "mini", ink, false, true, true)
 	if (
 		game != null
 		and game.showing_tally

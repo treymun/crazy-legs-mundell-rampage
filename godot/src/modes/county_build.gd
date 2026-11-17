@@ -670,7 +670,13 @@ static func _short(game: Game, f: CountyRun, c: Dictionary, out: Dictionary) -> 
 	var detail: Array = lines.duplicate()
 	if str(out["trade"]) != "":
 		detail.append(str(out["trade"]))
-	out["detail"] = " ".join(detail)
+	# One line of sentences: each part ends its own ("... 24 SHELLS. SLOTS FULL: ...").
+	var said := PackedStringArray()
+	for part: Variant in detail:
+		var text := str(part).strip_edges()
+		if text != "":
+			said.append(text if text.right(1) in [".", "!", "?", ":"] else text + ".")
+	out["detail"] = " ".join(said)
 	out["tag"] = str(out["lasts"]).trim_prefix("LASTS: ")
 
 

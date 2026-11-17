@@ -71,14 +71,20 @@ func draw_back(c: Canvas) -> void:
 	for i in Campaign.ORDER.size():
 		var level_id: String = Campaign.ORDER[i]
 		var here := i == main.replay_selection
-		var color := HUD.AMBER if here else HUD.INK
+		var open := main.unlocked.has(level_id)
+		# A locked chapter reads dim, as on BOSS REMATCH.
+		var color := HUD.AMBER if here else (HUD.INK if open else Menu.DIM)
 		var y := TOP + i * row + (4 if big else 3)
 		if here:
 			c.fill_rect(19, TOP + i * row, 282, row - 1, Canvas.rgb(82, 49, 31))
 		HUD.text(c, Campaign.title_of(level_id), 26, y, "menu" if big else "body", color)
-		var status := "UNLOCKED" if main.unlocked.has(level_id) else "LOCKED"
+		var status := "UNLOCKED" if open else "LOCKED"
 		HUD.text(c, status, 292, y + (1 if big else 0), "body", color, false, true, true)
 	HUD.text(c, "REPLAY USES ITS OWN SAVE SLOT", 160, BOTTOM + 3, "body", HUD.INK, true)
-	var line := main.menu_note if main.menu_note != "" else "ENTER START  /  ESC BACK"
-	HUD.text(c, line, 140, 180, "body", HUD.INK, true)
+	# A note says itself in the body letters; the keys go small, left of BACK,
+	# as on every other menu (LobbyScreens.footer).
+	if main.menu_note != "":
+		HUD.text(c, main.menu_note, 126, 180, "body", HUD.AMBER, true)
+	else:
+		LobbyScreens.footer(c, "ENTER START   ESC BACK")
 	Menu.plate_button(c, Menu.BACK, "BACK", _back.has_focus())

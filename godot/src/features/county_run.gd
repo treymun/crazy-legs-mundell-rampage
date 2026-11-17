@@ -157,6 +157,12 @@ func sprites() -> Array:
 	return out
 
 
+## The run's HUD in the HUD's layout (county_screens.gd).
+func hud_fixed(layout: HudLayout) -> void:
+	if on:
+		CountyScreens.hud_fixed(layout, game, self)
+
+
 func draw_view(c: Canvas) -> void:
 	if on:
 		CountyOrbs.draw_pops(c, game, self)

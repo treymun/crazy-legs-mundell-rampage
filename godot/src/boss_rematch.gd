@@ -412,8 +412,9 @@ static func draw_board(
 		var kind: String = BOSSES[posmod(pick, BOSSES.size())]
 		var par: float = PAR[kind]
 		line = ("BLUE %s  RED %s  WHITE ANY WIN" % [clock_text(par), clock_text(par * RED_SHARE)])
-	HUD.text(c, line, 160, TOP + ROW * BOSSES.size() + 3, "body", HUD.AMBER, true)
-	HUD.text(c, guide, 124, 181, "mini", HUD.INK, true)
+	# The ribbons and the keys centred over the board's left, clear of BACK.
+	HUD.text(c, line, 124, TOP + ROW * BOSSES.size() + 2, "body", HUD.AMBER, true)
+	HUD.text(c, guide, 124, 182, "mini", HUD.INK, true)
 	Menu.plate_button(c, Menu.BACK, "BACK", hover == "back")
 
 

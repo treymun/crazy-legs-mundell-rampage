@@ -29,6 +29,8 @@ const HOOVES_REACH := 30.0
 ## The HUD's flashlight plate: its top left and size.
 const PLATE_W := 50
 const PLATE_H := 11
+## Where the plate went this frame (hud_flow).
+var _light_at := Rect2i()
 
 var dice := RandomNumberGenerator.new()
 ## The event and its phase as last seen (a change is a moment to mark).
@@ -279,6 +281,18 @@ func sprites() -> Array:
 	return out
 
 
+## The flashlight's plate stacks up from the view's bottom left corner, over
+## BLUE's badge when he is along (ui/hud/hud_layout.gd).
+func hud_flow(layout: HudLayout) -> void:
+	_light_at = Rect2i()
+	var ev := _ev()
+	if ev == null or game.local_player == null or ev.kind != "blackout":
+		return
+	if ev.torch_of(game.local_player).is_empty():
+		return
+	_light_at = layout.up("light", Vector2i(PLATE_W, PLATE_H), HudLayout.EDGE)
+
+
 func draw_view(c: Canvas) -> void:
 	var ev := _ev()
 	if ev == null or game.local_player == null:
@@ -314,11 +328,11 @@ func _battery(ev: CountyEvents, c: Canvas) -> void:
 		return
 	var lit: bool = torch[0]
 	var share: float = torch[1]
-	var x := 3
-	var y := View.VIEW - HoundLooks.BADGE_H - 6 - PLATE_H
-	var hound: Game.HoundScript = game.features.get("hound")
-	if hound == null or not hound.on:
-		y = View.VIEW - PLATE_H - 3
+	if _light_at.size.x <= 0:
+		return
+	var x := _light_at.position.x
+	var y := _light_at.position.y
+	HudLayout.begin(c, "light")
 	c.round_rect(x, y, PLATE_W, PLATE_H, 2, HoundLooks.PLATE)
 	c.line(x + 2, y, x + PLATE_W - 3, y, HoundLooks.TRIM)
 	HUD.text(c, "LIGHT", x + 3, y + 2, "mini", HUD.AMBER if lit else HUD.INK, false, true)
@@ -332,3 +346,4 @@ func _battery(ev: CountyEvents, c: Canvas) -> void:
 			else Color(.6, .55, .32) if on else Color(.18, .15, .12)
 		)
 		c.fill_rect(x + 27 + i * 4, y + 3, 3, 5, ink)
+	HudLayout.end(c)

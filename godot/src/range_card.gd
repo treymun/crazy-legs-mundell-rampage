@@ -25,13 +25,20 @@ const READ := Color(250 / 255.0, 214 / 255.0, 150 / 255.0)
 const GOOD := Color(160 / 255.0, 236 / 255.0, 120 / 255.0)
 
 
-static func draw(c: Canvas, f: FiringRange) -> void:
+## The card's place as wanted: the top left (top right at some stations),
+## where the HUD's layout moves it down past what is over it
+## (ui/hud/hud_layout.gd); short while a notice is up.
+static func claim(layout: HudLayout, f: FiringRange) -> void:
+	var x := 320 - W - HudLayout.EDGE - 1 if RIGHT.has(String(f.station)) else X
+	var tall: int = _parts(f)[2]
+	layout.down("card", HudLayout.panel_rect(0, 0, W, tall).size, x, Y)
+
+
+## [teaching lines, readings, the card's height].
+static func _parts(f: FiringRange) -> Array:
 	var game: Game = f.game
-	var x := 320 - W - 4 if RIGHT.has(String(f.station)) else X
 	var info: Dictionary = L.STATIONS[f.station]
 	var talking: bool = game.message_until > game.clock
-	# Under the notice banner while one is up, and short.
-	var top := 34 if talking else Y
 	var teach: Array = []
 	if game.clock - f.station_since < TEACH_FOR and not talking:
 		for line: String in info["teach"]:
@@ -40,12 +47,28 @@ static func draw(c: Canvas, f: FiringRange) -> void:
 	if teach.is_empty():
 		readings.append_array(board_lines(f))
 	var height := 14 + teach.size() * 7 + readings.size() * 7 + (3 if not teach.is_empty() else 0)
+	return [teach, readings, height]
+
+
+static func draw(c: Canvas, f: FiringRange) -> void:
+	var at := f.game.hud.layout.find("card")
+	if at.size.x <= 0:
+		return
+	var info: Dictionary = L.STATIONS[f.station]
+	var card := _parts(f)
+	var teach: Array = card[0]
+	var readings: Array = card[1]
+	var height: int = card[2]
+	var x := at.position.x
+	var top := at.position.y
+	HudLayout.begin(c, "card")
 	HUD.panel(c, x, top, W, height, Color(34 / 255.0, 24 / 255.0, 19 / 255.0))
 	HUD.text(c, str(info["title"]), x + 5, top + 3, "body", HUD.AMBER)
 	var y := top + 13
 	for line: String in teach:
 		HUD.text(c, line, x + 5, y, "mini", HUD.INK, false, false)
 		y += 7
+	HudLayout.end(c)
 	if not teach.is_empty():
 		c.fill_rect(x + 5, y, W - 10, 1, Color(110 / 255.0, 80 / 255.0, 54 / 255.0))
 		y += 3

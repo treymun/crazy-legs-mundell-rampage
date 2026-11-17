@@ -93,9 +93,20 @@ func death_lines() -> Array:
 	return ["ENTER  FIGHT AGAIN", "ESC  TITLE"]
 
 
+## The rematch's clock: the bottom left, over BLUE's badge when he is along
+## (ui/hud/hud_layout.gd).
+func hud_flow(layout: HudLayout) -> void:
+	if active and game.player.health > 0:
+		var box := HudLayout.text_rect(BossRematch.clock_text(seconds()), 0, 0, "body")
+		layout.up("clock", box.size, HudLayout.EDGE)
+
+
 func draw_view(c: Canvas) -> void:
-	if not active or game.player.health <= 0:
+	var at := game.hud.layout.find("clock")
+	if not active or game.player.health <= 0 or at.size.x <= 0:
 		return
 	var text := BossRematch.clock_text(seconds())
 	var colour := HUD.AMBER if fell >= 0.0 else (HUD.INK if began >= 0.0 else Menu.FADED)
-	HUD.text(c, text, 5, View.VIEW - 11, "body", colour)
+	HudLayout.begin(c, "clock")
+	HUD.text(c, text, at.position.x + 1, at.position.y + 1, "body", colour)
+	HudLayout.end(c)
