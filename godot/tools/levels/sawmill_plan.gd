@@ -10,6 +10,7 @@
 extends RefCounted
 
 const Climbs := preload("res://tools/levels/climbs.gd")
+const SetPieces := preload("res://tools/levels/set_piece_kit.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Geo := preload("res://tools/levels/geo_kit.gd")
 const W := 130
@@ -40,7 +41,7 @@ func make() -> Builder:
 		"ending": '"CLOCK OUT. LEAVE THE BOOTS OUTSIDE."',
 		"score": "mill_score",
 		"ambience": "mill",
-		"layout": 6,
+		"layout": 7,
 		"sky": "mill_sky",
 		"control_name": "SLUICE FEED AND DRY-KILN BELT",
 		"objective_side_tasks": ["brake"],
@@ -82,6 +83,7 @@ func build(_b) -> Array:
 	dress()
 	new_iron()
 	Climbs.sawmill(b)
+	SetPieces.sawmill(b)
 	return [64.5, 81.5, -PI / 2]
 
 

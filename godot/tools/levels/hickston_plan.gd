@@ -15,6 +15,7 @@ const Climbs := preload("res://tools/levels/climbs.gd")
 const Builder := preload("res://tools/levels/level_builder.gd")
 const Cast := preload("res://tools/levels/hickston_cast.gd")
 const Loft := preload("res://tools/levels/hickston_loft.gd")
+const SetPieces := preload("res://tools/levels/set_piece_kit.gd")
 const W := 150
 const H := 78
 
@@ -55,7 +56,7 @@ func make() -> Builder:
 		"ending": '"NEXT TIME, TAKE THE TRACTOR."',
 		"score": "music",
 		"rescue": true,
-		"layout": 6,
+		"layout": 7,
 		"sky": "sky",
 		# A riding mower on the chapel path by the graveyard (features/vehicles.gd).
 		"vehicles": [["mower", 79.0, 59.5, 0.0]],
@@ -93,6 +94,7 @@ func build(_b) -> Array:
 	b.board("vehicle_sign_mower", 81.2, 58.03, .45, {"z": .85, "plane": 0.0, "hung": true})
 	new_iron()
 	Climbs.hickston(b)
+	SetPieces.hickston(b)
 	return [7.5, 69.5, 0.0]
 
 
@@ -319,11 +321,11 @@ func creek_and_orchard() -> void:
 	b.yard(13, 1, 24, 21, "orchard", orchard)
 	hedge(13, 22, 24, 22)
 	b.yard(18, 22, 19, 22, "tracks", orchard)
-	for y in [3.5, 7.5, 11.5, 15.5, 19.5]:
+	# (The south rows' trees made way for the hay shed: set_piece_kit.gd.)
+	for y in [3.5, 7.5, 11.5]:
 		for x in [14.5, 18.0, 21.5]:
 			b.prop("tree" if int(x + y) % 2 else "tree_b", x + (y * .37 - floorf(y * .37)) * .6, y)
 	b.prop("windmill", 23.2, 2.4)
-	b.prop("water_tower", 2.8, 3.2)
 	for k in 22:
 		# Not on the footbridge's rail (y 29.5).
 		b.prop("reeds", 4.8 + b.rng.randf() * 4.5, 2.0 + k * 2.75 + (.6 if k == 10 else 0.0))

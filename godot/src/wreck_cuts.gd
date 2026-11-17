@@ -170,6 +170,16 @@ static func pump(assets: Assets) -> void:
 		return
 
 
+## Pieces made elsewhere kept under `key` (a set piece's standing parts
+## merged into one: features/set_pieces.gd), drawn as any cut is.
+static func put(key: String, made: Array) -> void:
+	_cache[key] = made
+
+
+static func has(key: String) -> bool:
+	return _cache.has(key)
+
+
 ## Whether nothing is waiting to be cut or being cut.
 static func idle() -> bool:
 	return _job == null and _waiting.is_empty()
@@ -683,6 +693,9 @@ static func _cut_picture(
 	var thick := _arg(args, 2, .05)
 	var out: Array = []
 	var span := hi - lo + Vector2i.ONE
+	if recipe.begins_with("sp"):
+		# A set piece's painted band (src/set_piece_mesh.gd).
+		return SetPieceMesh.cut(recipe, args)
 	if recipe != "planks":
 		return out
 	for c in cols:
@@ -714,6 +727,9 @@ static func _cut_tile(source: String, recipe: String, args: PackedFloat32Array) 
 	var h := _arg(size, 1, 1.0)
 	var texels := Vector2(128, 128)
 	var out: Array = []
+	if recipe.begins_with("sp"):
+		# The set pieces' own (src/set_piece_mesh.gd).
+		return SetPieceMesh.cut(recipe, args)
 	match recipe:
 		"fence":
 			var n := maxi(1, int(_arg(args, 0, 6.0)))

@@ -84,6 +84,8 @@ func _init() -> void:
 			continue
 		_shot_up(whole, sign).save(out.path_join("%s_shot.png" % sign))
 		count += 1
+		_cracked(whole, sign).save(out.path_join("%s_crk.png" % sign))
+		count += 1
 	print("break art: %d written to %s, %d wall pictures" % [count, out, count_walls])
 	quit()
 
@@ -250,4 +252,61 @@ func _shot_up(whole: Paint.Sheet, name: String) -> Paint.Sheet:
 					s.put(x, y, pale)
 				else:
 					s.put(x, y, Paint.rgb(s.data[o] * .5, s.data[o + 1] * .46, s.data[o + 2] * .42))
+	return Paint.digitize(s, 0.0)
+
+
+## A sign shot once (<sign>_crk): two or three holes through it and a split
+## running from one along the grain, the words still all there.
+func _cracked(whole: Paint.Sheet, name: String) -> Paint.Sheet:
+	var s := whole.duplicate_sheet()
+	var dice := RandomNumberGenerator.new()
+	dice.seed = _seed_of(name + "_crk")
+	var pale := Paint.rgb(214, 186, 140)
+	var holes := 3
+	var made := 0
+	var tries := 0
+	var first := Vector2(-1, -1)
+	while made < holes and tries < 200:
+		tries += 1
+		var middle := made == 0
+		var hx := (
+			dice.randf_range(s.w * .3, s.w * .7) if middle else dice.randf_range(4.0, s.w - 5.0)
+		)
+		var hy := (
+			dice.randf_range(s.h * .35, s.h * .65) if middle else dice.randf_range(4.0, s.h - 5.0)
+		)
+		if s.alpha_at(int(hx), int(hy)) < 200:
+			continue
+		if first.x < 0.0:
+			first = Vector2(hx, hy)
+		var r := dice.randf_range(.8, 1.4) * clampf(s.h / 40.0, .8, 1.6)
+		for y in range(int(hy - r - 2), int(hy + r + 3)):
+			for x in range(int(hx - r - 2), int(hx + r + 3)):
+				if x < 0 or y < 0 or x >= s.w or y >= s.h or s.alpha_at(x, y) == 0:
+					continue
+				var d := Vector2(x + .5 - hx, y + .5 - hy).length()
+				if d <= r:
+					s.put(x, y, Color(0, 0, 0, 0))
+				elif d <= r + 1.3:
+					var o := (y * s.w + x) * 4
+					s.put(x, y, Paint.rgb(s.data[o] * .45, s.data[o + 1] * .42, s.data[o + 2] * .4))
+		made += 1
+	# The split: from the middle hole out both ways along the board,
+	# wandering a little, dark with a pale lip under it.
+	for way: float in [1.0, -1.0]:
+		if first.x < 0.0:
+			break
+		var at := first
+		var y := first.y
+		var reach := s.w * dice.randf_range(.25, .4)
+		while absf(at.x - first.x) < reach and at.x > 1.0 and at.x < s.w - 2.0:
+			at.x += way
+			y += dice.randf_range(-.5, .5)
+			var q := Vector2i(int(at.x), int(y))
+			if q.y < 1 or q.y >= s.h - 1 or s.alpha_at(q.x, q.y) == 0:
+				break
+			s.put(q.x, q.y, Paint.rgb(26, 18, 14))
+			s.put(q.x, q.y - 1, Paint.rgb(60, 44, 32))
+			if s.alpha_at(q.x, q.y + 1) > 0:
+				s.put(q.x, q.y + 1, pale)
 	return Paint.digitize(s, 0.0)

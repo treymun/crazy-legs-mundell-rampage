@@ -1055,6 +1055,14 @@ and prints what he did.
   whole, so no save version; no map changed, so no layout).
   `tools/plank_check.gd` (check_all, quick too) holds it; railings, stairs
   and decks (geometry pieces) do not break yet.
+- **In layers** (content pass 8): a window's first round under
+  `[windows] crack_most` cracks its glass (`<material>_crk`, a lit one's
+  `_lck`: `wall_break_art.gd`, laid by height like `_win`), the next shoots
+  it out; a blast, a body or a big round shoots it out at once. Cracked is
+  saved (the feature's `cracked` list). A breakable sign (`sign=true`) with
+  a `<sign>_crk` picture (`build_break_art.gd`) that a round under
+  `[all] crack_most` would break cracks first (`Piece.cracked`, carried; a
+  client's picture put right in `sprites()`) and goes on the next.
 - A swapped tile (`LevelData.set_wall_tile`: a window shot out, a fence shot
   about) adds the piece's start to `LevelData.retiled`; the 3D view builds
   only the chunks round it again (`LevelMesh.build_static(base, only)`, a few
@@ -1167,6 +1175,92 @@ and 2v2 maps: breakables.cfg `[pieces] never`):
   the idle cost; `tools/physics_frames.gd -- only=break` pictures the
   barrel, window, fence, picnic table and hazard drums
   (`docs/godot3d/features/C/`, before and after).
+
+### The big breaks (content pass 8)
+
+`features/set_pieces.gd` (SIM_FEATURES and FACT_FEATURES, saved),
+`src/set_piece_shape.gd` (what each is made of), `src/set_piece_flow.gd` (the
+gas and the flood), `src/set_piece_mesh.gd` (their pieces as wreck-layer
+cuts); numbers in `data/tuning/set_pieces.cfg`; a level lists its own in
+`"set_pieces"` ([levels.md](levels.md#the-big-breaks)). Three kinds, none on
+the versus maps or the hub (`[all] never`):
+
+- **A barn or hay shed** (`barn`): posts down both long sides, top plates, a
+  ridge, tin sheets on two slopes and plank walls on the sides its spec
+  names (the front stays open). Each post and wall panel is a part with hp;
+  standing, the posts and walls are LevelData volumes (in the way of bodies,
+  sight and shots; the paths shut round them, `FlowField.close`). Two posts
+  out (`posts_out`), or the frame (`frame` hp) spent by blasts
+  (`blast_frame`), rams (`ram_frame`) or fire in its footprint
+  (`burn_frame`, `burn_part`), and it creaks (`warn`): dust sifts, the call
+  goes up (`call`), the county's hands round it run (`flee`, their
+  `retreat`). Then it comes down in its own pieces: the tin drops and slides
+  the way it leans, the walls go over on their bottom edges, posts and
+  plates fall, each a little apart in time (game.rng). A wall panel shot
+  about shows its tile's `_hit` boards; shot through it goes over on its
+  own and the way through it opens (its volume dropped, the paths
+  reopened). A shed falls only the square ways its spec's `falls` allows,
+  the nearest to its lean.
+- **A water tower** (`tower`): four legs braced both ways, a deck, a stave
+  tank with iron hoops and a tin cap. Two legs out on one side (or three, or
+  the frame gone) and it goes over that way about its feet
+  (`topple_time`); the tank, hoops, cap and deck burst where the tank meets
+  the ground (the frame comes apart and its legs and braces drop flat,
+  scattered) and the water floods the street (`set_piece_flow.gd`).
+- **A fuel line** (`fuel`): a pipe along the ground through its `points` and
+  hit boxes at its `pumps` (the level's own pump props). A pump or a length
+  of pipe holed leaks: gas runs along the line both ways from the hole
+  (`leak_speed`) and lies `gas_life`. Fire touching any gas cell (fire.gd's
+  burning cells, a blast near) lights it and the fire runs along the line a
+  cell every `run_step`, each cell `fire.ignite()`d for `gas_burn` and
+  flaring `flare` into whatever breakable stands on it (a propane tank at
+  the end goes up, and its blast lights the rest).
+- **Debris matters.** Each piece that lands hurts whoever is under it by
+  what it is (`crush_*`: players pinned `pin` seconds as a hog's charge
+  knocks them, `Player.knocked`; hands held `pin_enemy` and hurt
+  `enemy_crush` times as much, credited to the nearest player, so a hand
+  lured under a shed dies) and breaks the breakables under it (hay bales; a
+  propane tank goes up). What lies higher than `low` over its floor (and
+  not overhead) is cover: a volume in the way, never laid over anybody and
+  never shutting anyone in.
+- **The flood**: the cells round where the tank struck, by a walk that
+  favours the way it fell and keeps to the ground's level (no walls, rubble,
+  steps or water), `flood` at most, cheapest first; its front rolls out at
+  `flood_speed`, puts out fire (`fire.douse`), washes the gas away and
+  shoves whoever it meets ahead of it (`wash`; a player knocked
+  `wash_knock`, a hand floundering `wash_stun`), stands `flood_life` and
+  drains in `drain` (water marks, `mark_flood_*`).
+- **Play, exactly the same everywhere.** Every falling piece has a move
+  (`HINGE` about a line, or `DROP` by gravity to its rest) worked out once
+  when it goes; where it is is a sum of its move and game.clock
+  (`pose()`), so nothing steps a body. The state is plain values (the
+  pieces' hp, states, moves; the volumes added and dropped; the floods),
+  carried (`NET_GUARDED` by `net_version`) and saved; restore() puts the
+  volumes right on a load or a client (save version 9). The shapes, the
+  trails and the looks are made from the level on every machine
+  (`SnapCodec.SKIP_FIELDS`).
+- **Hits**: `game_combat.gd` asks `ray()` in `hitscan` (a nearer breakable
+  wins), `touch()` for a shot in flight and `blast()` in `_blast_shoves`;
+  `vehicles.gd _bump` rams (`touch`/`strike` at the bump).
+- **Drawn** by the wreck layer: each part's key
+  (`t:<tile>@0,0|spbox:...`, `sptank`, `sphoops`, `spcone`) is cut by
+  `SetPieceMesh` with the level's own tile by the metre; what stands (and,
+  once nothing moves, what lies) is merged into one mesh a tile
+  (`WreckCuts.put`: a few nodes, each holding its shader slots), what moves
+  is drawn piece by piece; set piece parts are drawn out to `WreckLayer3D.FAR`.
+  `wreckage.gd` (looks) watches the parts' states: a tank burst throws its
+  staves, hoops, cap, deck and painted name as real pieces; a barn's
+  landings throw chips only (`game.burst`), and a breakable broken inside a
+  barn come down (`rubble_at`) throws no real pieces: pieces wedged among
+  the rubble's volumes cost the wreck physics 15 to 25 ms a tick.
+- **Sounds**: `collapse_creak`, `collapse_crash`, `tower_groan`,
+  `tower_burst`, `gas_leak`, `gas_whoosh`, `plank_crack` (ElevenLabs, pass 8).
+- **Cost**: asleep (no tick) while nothing moves, leaks, floods or burns;
+  awake its tick walks only its own few pieces. Measured in pass 8: see
+  [checks.md](checks.md#benchmarks).
+- `tools/set_piece_check.gd` (SET PIECE CHECK OK, check_all) holds it;
+  `tools/set_piece_frames.gd -- out=<dir>` pictures each one standing,
+  going and down in a window.
 
 ### The shared physics core (engine pass 6)
 

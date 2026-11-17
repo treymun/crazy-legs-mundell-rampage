@@ -29,9 +29,10 @@ const WINDOW_HEAD := 1.68
 
 
 ## True for a window band over a repeating wall (`<TILED name>_win`, `_lit`,
-## `_brk`): the window shows only between WINDOW_SILL and WINDOW_HEAD.
+## `_brk`, and cracked `_crk`, `_lck`): the window shows only between
+## WINDOW_SILL and WINDOW_HEAD.
 static func window_band(name: String) -> bool:
-	for end: String in ["_win", "_lit", "_brk"]:
+	for end: String in ["_win", "_lit", "_brk", "_crk", "_lck"]:
 		if name.ends_with(end):
 			return TILED.has(name.substr(0, name.length() - 4))
 	return false

@@ -40,7 +40,10 @@ func _init() -> void:
 	for k in 3:
 		milk_splash(k).save(out.path_join("fx_milksplash_%d.png" % k))
 		milk_puddle(k).save(out.path_join("mark_milk_%d.png" % k))
-	print("world fx: 20 pictures in ", out)
+	# A water tower's flood standing in the street (features/set_pieces.gd).
+	for k in 3:
+		flood_water(k).save(out.path_join("mark_flood_%d.png" % k))
+	print("world fx: 23 pictures in ", out)
 	quit()
 
 
@@ -219,3 +222,32 @@ func firefly(k: int) -> Paint.Sheet:
 	else:
 		Paint.ellipse(s, 9, 9, 14, 14, Color8(70, 76, 40))
 	return shrunk(s, 4, 4, 80)
+
+
+## Muddy water standing a cell wide: dusk sky in it, ripples, a darker edge
+## where it wets the dirt, its rim ragged so the cells run into each other.
+func flood_water(k: int) -> Paint.Sheet:
+	var size := 96
+	var s := Paint.Sheet.new(size * 2, size * 2)
+	var c := size
+	var pts := PackedVector2Array()
+	for i in 28:
+		var a := i * TAU / 28.0
+		var rr := size * .9 * (1.0 + rng.randf_range(-.12, .08) + .06 * sin(a * (3 + k) + k))
+		pts.append(Vector2(c + cos(a) * rr, c + sin(a) * rr))
+	Paint.polygon(s, pts, Color8(66, 58, 46, 220))
+	var inner := PackedVector2Array()
+	for p in pts:
+		inner.append(Vector2(c, c).lerp(p, .86))
+	Paint.polygon(s, inner, Color8(104, 116, 128, 225))
+	# The sky in it, and ripples across.
+	for _i in 9:
+		var y := rng.randf_range(c - size * .6, c + size * .6)
+		var x0 := rng.randf_range(c - size * .7, c - size * .1)
+		var x1 := x0 + rng.randf_range(size * .3, size * .8)
+		Paint.rect(s, x0, y, x1, y + rng.randf_range(2, 5), Color8(162, 172, 184, 230))
+	for _i in 5:
+		var y := rng.randf_range(c - size * .5, c + size * .5)
+		var x0 := rng.randf_range(c - size * .6, c)
+		Paint.rect(s, x0, y, x0 + rng.randf_range(10, 40), y + 2, Color8(214, 196, 160, 230))
+	return s.resized(48, 48)

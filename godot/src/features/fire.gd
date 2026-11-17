@@ -213,6 +213,11 @@ func ignite(x: float, y: float, z: float, least := -1.0) -> bool:
 
 
 func _light(c: int, seconds: float, z: float) -> void:
+	if burning.is_empty():
+		# A fire gnaws at a barn's or a water tower's posts (features/set_pieces.gd).
+		var sets: GameFeature = game.features.get("set_pieces")
+		if sets != null:
+			sets.wake()
 	burning.append([c, seconds, z, game.clock + num("spread_every") * .5, seconds])
 	_at[c] = true
 	net_version += 1
@@ -220,6 +225,29 @@ func _light(c: int, seconds: float, z: float) -> void:
 	if burning.size() == 1:
 		var w := game.world
 		game.sound_at("molotov_burst", (c % w.width) + .5, float(c / w.width) + .5, .6)
+
+
+## Water over cell c (a water tower's flood, features/set_pieces.gd): its fire
+## is out (charred, if it had fuel) and its puddle washed away.
+func douse(c: int) -> void:
+	if _seen != net_version:
+		_index()
+	var puddle := _puddle_in(c)
+	if puddle >= 0:
+		puddles.remove_at(puddle)
+		net_version += 1
+	if not _at.has(c):
+		return
+	for row: Array in burning:
+		if row[CELL] == c:
+			burning.erase(row)
+			if _fuel[c] > 0.0:
+				var z: float = row[Z]
+				charred[c] = z
+			break
+	_at.erase(c)
+	net_version += 1
+	_seen = net_version
 
 
 ## The burning cells by cell, again after a snapshot changed them.

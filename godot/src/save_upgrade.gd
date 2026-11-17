@@ -74,6 +74,17 @@ static func _upgrade_step(version: int, doc: Dictionary) -> Variant:
 						var body: Dictionary = bodies[key]
 						body["floor_z"] = 0.0
 			return doc
+		8:
+			# Version 9 keeps what the set pieces brought down (the barns, water
+			# towers and fuel lines: features/set_pieces.gd) in the features
+			# block; nothing had come down before them, so they stand.
+			var features: Variant = doc.get("features")
+			if features is Dictionary:
+				var block: Dictionary = features
+				block.erase("set_pieces")
+			else:
+				doc["features"] = {}
+			return doc
 		_:
 			push_warning("no upgrade from save version %d" % version)
 			return null
