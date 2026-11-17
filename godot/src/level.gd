@@ -770,6 +770,12 @@ func elevation(x: float, y: float) -> float:
 	return ground[int(y) * width + int(x)]
 
 
+## elevation() for a point that may lie off the map (a twister lifting past
+## its edge): the nearest cell's.
+func elevation_near(x: float, y: float) -> float:
+	return ground[_cell_near(x, y)]
+
+
 func cell(x: float, y: float) -> int:
 	return int(y) * width + int(x)
 

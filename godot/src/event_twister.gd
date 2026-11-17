@@ -179,7 +179,7 @@ static func _pull(ev: CountyEvents, dt: float) -> void:
 	if ev.tw_rip <= 0.0:
 		ev.tw_rip = n(ev, "rip_every")
 		var sets: SetPiecesFeature = g.features.get("set_pieces")
-		var ground := g.world.elevation(at.x, at.y)
+		var ground := g.world.elevation_near(at.x, at.y)
 		if sets != null:
 			sets.blast(at.x, at.y, ground + 1.2, core + 1.0, n(ev, "rip") * k, false)
 		var bodies: Corpses = g.features.get("corpses")

@@ -1038,6 +1038,15 @@ func use_button() -> String:
 	return KeyBindings.key_name(use_key)
 
 
+## The FLASHLIGHT key as the blackout names it: the bound key, "" on a touch
+## screen or a controller (neither has one).
+func torch_button() -> String:
+	if input_device == "touch" or input_device == "pad":
+		return ""
+	var torch_key: int = options.get(KeyBindings.option_key("flashlight"), KEY_L)
+	return KeyBindings.key_name(torch_key)
+
+
 ## The rematch board's and result's line on how to drive them.
 func rematch_guide() -> String:
 	var board := state == "rematch"
