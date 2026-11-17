@@ -1402,9 +1402,9 @@ TRIM = {"cow_launcher": .74, "bottle_launcher": .86, "crossbow": .84, "hunter": 
         "revolver": 1.35, "shotgun": 1.1}
 # Turned in the hand (about the top of the grip): the .38 pointed in
 # towards the sights as its photograph was.
-AIM = {"revolver": R(-.3, 0, 0)}
+AIM = {"revolver": R(-.1, 0, 0)}
 # Short things slid out along the hand so the fist does not swallow them.
-SHIFT = {"smudge_pot": (0, .075, .0), "firecracker_can": (0, .09, .0), "flash_jar": (0, .03, .0)}
+SHIFT = {"revolver": (0, 0, .014), "smudge_pot": (0, .075, .0), "firecracker_can": (0, .09, .0), "flash_jar": (0, .03, .0)}
 CANVAS = (1280, 896)        # the plate's 640x448 frame is the lower right quarter
 PLATE_AT = (640, 448)
 

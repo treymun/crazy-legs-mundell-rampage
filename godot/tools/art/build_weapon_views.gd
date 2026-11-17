@@ -202,10 +202,21 @@ const PHOTO_POSES := {
 	},
 }
 ## Cel pixels a pose's muzzle goes further than the photograph's did: the
-## sawed-off's model is longer than the photograph's gun showed, so broken
-## open it is moved left to keep the breech, the empties and the shells
-## going in on the view.
+## .38 sits higher, so the hand round its grip shows as the photograph's
+## did; the sawed-off's model is longer than the photograph's gun showed,
+## so broken open it is moved left to keep the breech, the empties and the
+## shells going in on the view.
 const PHOTO_NUDGE := {
+	"revolver":
+	{
+		"idle": Vector2(-4, -14),
+		"kick": Vector2(-4, -4),
+		"recover": Vector2(-4, -9),
+		"open": Vector2(-4, -14),
+		"eject": Vector2(-4, -14),
+		"load": Vector2(-4, -14),
+		"close": Vector2(-4, -14)
+	},
 	"shotgun":
 	{
 		"open": Vector2(-38, -2),

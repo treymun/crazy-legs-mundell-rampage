@@ -355,7 +355,10 @@ show the gun's works: a view's `states` are renders of their own
 (`<name>@<pose>.png`): the cylinder swung out on its crane, the empties
 thrown off the ejector, rounds going in; the action broken open, the empties
 kicked out, shells going in (one or two). The .38 is turned in the hand toward the
-sights (`AIM`) as its photograph pointed. Their poses keep the swing the old
+sights (`AIM`) as its photograph pointed, sits a little up the hand
+(`SHIFT`) with its cels raised (`PHOTO_NUDGE`) so the fingers round its
+walnut grip show as the photograph's did (weapons.cfg's `view_shift` for
+it is smaller than the other pistols' for the same reason). Their poses keep the swing the old
 photographs had (`PHOTO_POSES`, `held_pose`: turned, grown and moved as the
 photograph's barrel was). The crowbar is still its photographed plate. The
 5v5 guns' side materials and `pbr(edge=, cavity=)` are in

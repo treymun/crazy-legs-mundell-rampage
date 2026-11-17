@@ -18,8 +18,8 @@ empties kicked out (`eject`, `eject_one`), fresh shells going in (`load`,
 
 STATE = "closed"
 
-BLUED_38 = lambda: pbr("blued_38", (46, 48, 58), .3, 1., wear=(140, 142, 150), bump=.05, scale=30.,
-                       edge=(190, 190, 198), cavity=.6)
+BLUED_38 = lambda: pbr("blued_38", (60, 62, 72), .32, 1., wear=(150, 150, 158), bump=.05, scale=30.,
+                       edge=(198, 198, 204), cavity=.6)
 BLUED_SG = lambda: pbr("blued_sg", (20, 22, 32), .52, 1., wear=(116, 112, 112), blotch=(54, 42, 38),
                        bump=.06, scale=26., edge=(176, 174, 178), cavity=.6)
 CASE_COLOUR = lambda: pbr("case_colour", (78, 70, 74), .34, 1., wear=(160, 130, 98), blotch=(96, 76, 116),
@@ -98,14 +98,16 @@ def revolver():
     the hammer back."""
     blued = BLUED_38()
     walnut = WALNUT()
-    # the grip the hand closes on, its round butt (shorter than the other
-    # pistols' stand-in: it shows whole on the pickup)
-    rod((0, -.02, -.004), (0, -.042, -.09), .02, .023, walnut, round_ends=True)
-    # the walnut stocks' screw and a little checkering above the hand
+    # the walnut stocks the hand closes on, full and round at the butt (the
+    # pickup shows them whole), their screw and checkering, the steel
+    # backstrap between them running up into the frame
+    box((0, -.028, -.026), (.032, .046, .096), walnut, rot=(.3, 0, 0), bevel=.012)
+    rod((0, -.04, -.06), (0, -.05, -.092), .02, .022, walnut, round_ends=True)
+    rod((0, -.034, .05), (0, -.05, -.004), .0072, .008, blued, seg=20)
     for side in (-1, 1):
-        screw((side * .021, -.02, -.02), (side, 0, 0), .0026, blued)
-        for k in range(3):
-            box((side * .0205, -.024 + k * .004, -.036 + k * .005), (.0008, .014, .0012), SLOT(), rot=(-.9, 0, 0),
+        screw((side * .0158, -.026, -.03), (side, 0, 0), .0026, blued)
+        for k in range(4):
+            box((side * .0154, -.032 + k * .004, -.046 + k * .006), (.0008, .016, .0012), SLOT(), rot=(-.9, 0, 0),
                 bevel=.0002)
     # the frame round the cylinder: the top strap with the rear sight's
     # groove, the bottom under it, the shank the barrel screws into, the
@@ -115,8 +117,7 @@ def revolver():
     box((0, .022, CYL_Z - CYL_R - .006), (.025, .07, .013), blued, bevel=.003)
     box((0, CYL_Y1 + .004, CYL_Z + .004), (.024, .008, .056), blued, bevel=.003)
     box((0, CYL_Y0 - .005, CYL_Z + .002), (.026, .01, .058), blued, bevel=.003)
-    box((0, -.026, .046), (.022, .03, .05), blued, bevel=.004)
-    box((0, -.012, .016), (.024, .04, .022), blued, bevel=.004)
+    box((0, -.021, .04), (.023, .034, .058), blued, bevel=.008)
     # the side plate's screws and the cylinder latch on the left
     for y, z in ((.028, .022), (-.026, .062), (-.032, .03)):
         screw((-.0122 if y > 0 else -.0112, y, z), (-1, 0, 0), .0022, blued)
@@ -124,16 +125,16 @@ def revolver():
     for k in range(4):
         box((-.0144, -.025 + k * .0032, .05), (.0008, .0011, .0062), SLOT(), bevel=.0002)
     # the hammer back at full cock, its checkered spur; the trigger guard, the trigger
-    box((0, -.046, .068), (.0072, .02, .018), blued, rot=(-.55, 0, 0), bevel=.002)
-    box((0, -.056, .081), (.0084, .013, .006), blued, rot=(-.3, 0, 0), bevel=.0015)
+    box((0, -.033, .066), (.0072, .014, .016), blued, rot=(-.5, 0, 0), bevel=.003)
+    ball((0, -.041, .075), (.0068, .0062, .0034), blued)
     for k in range(3):
-        box((0, -.06 + k * .004, .0842 - k * .0012), (.0086, .0012, .0008), SLOT(), rot=(-.3, 0, 0), bevel=.0002)
-    for n in range(20):
-        a, b = n * math.tau / 20, (n + 1) * math.tau / 20
+        box((0, -.0435 + k * .0026, .0785), (.0074, .0009, .0008), SLOT(), bevel=.0002)
+    for n in range(32):
+        a, b = n * math.tau / 32, (n + 1) * math.tau / 32
         if math.sin(a) > .3 and math.sin(b) > .3:
             continue
         rod((0, .016 + math.cos(a) * .017, .0 + math.sin(a) * .014),
-            (0, .016 + math.cos(b) * .017, .0 + math.sin(b) * .014), .0024, .0024, blued, seg=8)
+            (0, .016 + math.cos(b) * .017, .0 + math.sin(b) * .014), .0034, .0034, blued, seg=10, round_ends=True)
     box((0, .012, .0), (.0046, .005, .022), blued, rot=(.3, 0, 0), bevel=.0012)
     # the barrel, its rib, ramp front sight, the ejector rod's lug, the crown
     rod((0, CYL_Y1, BORE38), (0, MUZZLE38, BORE38), R38 + .0006, R38, blued, seg=36)
