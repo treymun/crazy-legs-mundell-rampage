@@ -423,7 +423,13 @@ func sprites() -> Array:
 	for fx_speck: Speck in specks:
 		if not in_view(fx_speck.x, fx_speck.y, .3):
 			continue
-		var speck_sprite := pooled(fx_speck.x, fx_speck.y, "fx_" + fx_speck.kind, .095, fx_speck.z)
+		var speck_sprite := pooled(
+			fx_speck.x,
+			fx_speck.y,
+			"fx_" + fx_speck.kind,
+			View.speck_size(Vector2(fx_speck.x - player.x, fx_speck.y - player.y).length()),
+			fx_speck.z
+		)
 		speck_sprite.glow = fx_speck.kind == "spark"
 		sprites.append(speck_sprite)
 	for puff: Gore.Puff in gore_fx.puffs:

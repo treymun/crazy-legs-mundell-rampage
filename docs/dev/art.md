@@ -241,8 +241,18 @@ a shop lamp falling in the saw floor's arena.
      texels. Every boss has it now: the baron and Jerry (v3.1.0), and since
      the polish after v3.2.0 the sheriff (`boss`, 52% of the texture
      used), Rudy (50%), the foreman (50%), the derby champ (53%), the Swamp
-     King (60%), Maw (55%) and her bare model, and the cow (58%); the
-     regular hands keep their v3.0.0 unwrap. A re-bake keeps the gear bones
+     King (60%), Maw (55%) and her bare model, and the cow (58%). The
+     regular hands kept their v3.0.0 unwrap until polish pass 9, when every
+     one was baked again (and the cow, with the head favour below): they had
+     41 to 73 texels a metre where the content pass 8 hands had 110 to 125
+     (`tools/actor_check.gd -- report`), their arms, bellies and shields big
+     blocky texels up close; packed, about twice the texels across. Since
+     pass 9 every kind's head gets `HEAD` (1.4) times its share across
+     (`_favour_head`; a kind's look may set its own `uv_head`, Mundell 1.6),
+     as the face is what reads at the view's size. Jerry, Rudy and the
+     foreman (74, 86, 73 a metre at 512) were not baked again: a bake of
+     theirs at 1024 took over an hour and lost the graphics card's context
+     with other bakes running. A re-bake keeps the gear bones
      (they come from the builds' `gear()` tags) and every frame; fit.json's
      `light` was measured again for each (model against cel, the close-up
      body's mean on the dusk tour).
@@ -259,6 +269,12 @@ a shop lamp falling in the saw floor's arena.
      glasses (her bare model's girdle plates too, which the 3D view does not
      draw). `features/boss_gear.gd` shoots them off; `tools/gear_fit.gd`
      prints where each sits for bosses.cfg. Added with a `rig-only` run.
+   - A kind with its own frame list that walks (the Swamp King, Maw's bare
+     model) gets the walk's closing `w4` key too (`_frames`); without it
+     ActorView could not run the walk between beats and it snapped.
+   - Mundell has a `sit` frame (`skeleton()` in enemy_actors.py: the hips
+     down to the knees' height, the boots out front), for a partner on the
+     riding mower (vehicles.cfg `pose`).
    - BLUE the hound (`actors_hound.py`, content pass 8) is a kind with its
      own frames like the cow, built square for the model (`FOR_MODEL`):
      every leg piece a fixed length posed by two-bone IK, so each is the

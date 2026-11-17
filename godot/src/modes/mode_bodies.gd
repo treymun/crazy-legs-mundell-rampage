@@ -167,6 +167,13 @@ static func player_pose(game: Game, q: Player, kind: String) -> String:
 			return "%s_die_%d" % [kind, mini(4, int(since / Enemy.DEATH_TIME * 5.0))]
 		return kind + "_down"
 	var look := kind + ("_hurt" if q.health < 50 else "")
+	var rides: VehiclesFeature = game.features.get("vehicles")
+	if rides != null and rides.seated(q):
+		var at := rides.seat_of(q)
+		var ride: VehicleDrive.Ride = rides.rides[at.x]
+		var seated := VehicleDrive.spec(ride.kind).pose
+		if seated != "":
+			return look + "_" + seated
 	var age := q.armory.shot_age if q.armory != null else 1.0
 	if age < .12:
 		return look + "_fire"

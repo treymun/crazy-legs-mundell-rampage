@@ -944,7 +944,12 @@ func sprites() -> Array:
 		if not game.in_view(d.x, d.y, 1.2):
 			continue
 		var f := frame(d)
-		out.append(HoundLooks.body(game, d.slot, d.x, d.y, d.floor_z, d.angle, d.gait, f, d.flash))
+		# Holding a hand, his body is drawn set back from it (looks only): at
+		# the hold's gap his reared-up head and paws stood inside its chest.
+		var back := HoundLooks.PIN_BACK if d.state == PIN else 0.0
+		var bx := d.x - cos(d.angle) * back
+		var by := d.y - sin(d.angle) * back
+		out.append(HoundLooks.body(game, d.slot, bx, by, d.floor_z, d.angle, d.gait, f, d.flash))
 		if d.item != "":
 			out.append(HoundLooks.carried(game, d.item, d.x, d.y, d.floor_z, d.angle))
 	return out

@@ -98,13 +98,20 @@ func _stacked(game: Game) -> void:
 	var size := .5
 	var under := Ragdoll.made(rig, _xf(at, floor_z, 0.0, size), rig.points)
 	var dice := RandomNumberGenerator.new()
-	dice.seed = 5
+	# A knock that leaves it on its back: on its side a body is a ridge that
+	# anything dropped on rolls off (half the knocks do, a few millimetres of
+	# rig deciding which: seed 5 did till polish pass 9's re-baked billy).
+	dice.seed = 1
 	e.killed_by = "rifle"
 	e.killed_from = at - Vector2(1.0, 0.0)
 	under.knock(e, dice)
 	under.settle(game.world, 900)
 	var was := under.pos.duplicate()
-	var top := Ragdoll.made(rig, _xf(at, floor_z + .45, 1.6, size), rig.down_points)
+	# Dropped over where the knock left it (not where it stood).
+	var lain := under.middle()
+	var top := Ragdoll.made(
+		rig, _xf(Vector2(lain.x, lain.y), floor_z + .45, 1.6, size), rig.down_points
+	)
 	Ragdoll.others = [under, top]
 	for _k in 900:
 		if not top.awake and not under.awake:

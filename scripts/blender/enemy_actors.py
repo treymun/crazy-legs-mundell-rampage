@@ -411,6 +411,10 @@ def skeleton(S, frame):
         lean, bob = lean + .15, -.035
     elif frame == "fidget":
         head = S.get("fidget_head", (0., .12, .28))
+    elif frame == "sit":
+        # In an open seat (Mundell's model on the riding mower, polish pass 9):
+        # the hips down to the knees' height, a touch back, the feet out front.
+        lean, bob = S["lean"] - .06, S["ankle"] + S["shin"] * .95 - S["hip_h"]
     elif dead:
         # Jolt, stagger, buckle, topple, land; stage 5 is the body at rest.
         lean = (-.20, -.30, -.34, -.28, -.20, -.22)[stage]
@@ -467,6 +471,8 @@ def skeleton(S, frame):
             foot.y += -.12 if tag == "L" else .14
         if frame == "down":
             foot = Vector((side * (S["stance"] + .10), -.04 * side, S["ankle"]))
+        if frame == "sit":
+            foot = Vector((side * (S["stance"] + .04), -S["thigh"] * .92, S["ankle"]))
         knee, foot = ik(hip, foot, S["thigh"], S["shin"], (side * S.get("bow", .12), -1, 0))
         J["hip" + tag], J["knee" + tag], J["foot" + tag] = hip, knee, foot
         J["toe" + tag] = -1 if swing == tag else step

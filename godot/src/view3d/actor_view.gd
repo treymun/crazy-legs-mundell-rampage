@@ -52,6 +52,33 @@ const LOD_NEAR := 10.0
 const LOD_FAR := 20.0
 static var lod_eye := Vector3.INF
 static var draws := 0
+## Looks only (none of it touches play or game.rng): a jump between poses
+## that are not neighbours in the action (idle to aim, aim to fire, a hit's
+## pain, walking to standing, the fall's start) eases over BLEND seconds
+## (BLEND_SNAP into fire and pain, which keep their punch) instead of
+## snapping; the walk and the fall already run smoothly between their keys.
+const BLEND := .13
+const BLEND_SNAP := .06
+## A hit rocks the body (rigid, about its feet) for FLINCH seconds by where
+## it struck (Enemy.last_zone, last_side): a head shot snaps it back, the body
+## rocks and twists, an arm turns the shoulders, a leg buckles it forward;
+## sized by the hit, a boss less. Each hit's lean is dealt by dice of its own
+## (the body's uid and the hit's time), so no two hits rock it the same way.
+const FLINCH := .34
+const FLINCH_RISE := .045
+## Standing at idle, a body breathes and sways a touch (its own phase).
+const BREATH := .012
+const SWAY := .011
+## A scripted fall (RAGDOLLS off, or a kind with no ragdoll) is mirrored for
+## about half the deaths and runs up to FALL_QUICK faster: dice of the death's own.
+const FALL_QUICK := .18
+## The frame group last sought (group_of): a new group blends.
+var _group := ""
+var _blend_at := -1.0
+var _blend_for := BLEND
+## Per skeleton: [positions, rotations, scales] of the pose blended from and to.
+var _blend_from: Array = []
+var _blend_to: Array = []
 
 
 ## Bind the kind's material and find the model's parts. False when the model
@@ -87,6 +114,8 @@ func retire() -> void:
 ## Shown again for another body: as one just made, its parts at rest.
 func revive() -> void:
 	_seeked = NAN
+	_group = ""
+	_blend_at = -1.0
 	_shaded = []
 	_posed = -1
 	_posed_dead = false
@@ -118,23 +147,48 @@ func show_as(s: View.Sprite, e: Enemy, level: LevelData, clock: float) -> void:
 	doll = null
 	var turn := PI * .5 - e.angle
 	var size := _size(e)
+	var info: Dictionary = models.kinds[kind]
+	var tips: float = info.get("tips", 0.0)
+	# A scripted fall's own dice: which way it goes and how quick.
+	var death := hash([e.uid, e.died_at]) if not e.alive and e.died_at >= 0.0 else 0
+	var mirror := 1.0
+	if (death & 1) == 1 and tips == 0.0 and not info.get("down_cel", false):
+		mirror = 1.0 if Enemy.BOSS_TITLES.has(e.kind) else -1.0
+	var span := Enemy.DEATH_TIME * (1.0 - FALL_QUICK * float((death >> 1) & 255) / 255.0)
 	if frame == "down":
 		down = 1.0
 	elif frame.begins_with("die_") and not ActorView.held(e):
-		down = clampf((clock - e.died_at) / Enemy.DEATH_TIME, 0.0, 1.0)
-	var info: Dictionary = models.kinds[kind]
+		down = clampf((clock - e.died_at) / span, 0.0, 1.0)
 	var flat_at: float = info.get("flat", FLAT)
 	var flat := lerpf(1.0, flat_at, down * down) if not e.alive else 1.0
 	transform = Transform3D(
-		Basis(Vector3.UP, turn).scaled(Vector3(size, size * flat, size)), Vector3(s.x, z, s.y)
+		(
+			Basis(Vector3.UP, turn).scaled(Vector3(size, size * flat, size))
+			* Basis.from_scale(Vector3(mirror, 1.0, 1.0))
+		),
+		Vector3(s.x, z, s.y)
 	)
-	var tips: float = info.get("tips", 0.0)
 	if tips > 0.0 and e.alive and frame != "down" and e.squash < 1.0:
 		transform = transform * ActorView.tipped(acos(clampf(e.squash, 0.0, 1.0)), tips)
-	var at := _time(frame, look, e, clock)
+	elif e.alive:
+		transform = transform * _lively(e, frame, clock)
+	var at := _time(frame, look, e, clock, span)
+	var group := ("hurt_" if look == 1 else "") + ActorView.group_of(frame)
 	if at != _seeked and (is_nan(_seeked) or _due(s)):
+		var blend := not is_nan(_seeked) and group != _group and _blends()
+		if blend:
+			_blend_from = _capture()
 		_seeked = at
 		_player.seek(at, true)
+		if blend:
+			_blend_to = _capture()
+			_blend_at = clock
+			_blend_for = BLEND_SNAP if frame == "fire" or frame == "pain" else BLEND
+		else:
+			_blend_at = -1.0
+	_group = group
+	if _blend_at >= 0.0:
+		_blend(clock)
 	_shown_alive = true
 	_shade(s, level, look, tint, down)
 
@@ -355,7 +409,7 @@ static func pose_of(image: String, stem: String) -> Array:
 ## Where in the kind's action this frame is. The walk runs smoothly through
 ## its four beats (and back to the first, `w4`) on the enemy's gait; a fall
 ## through its five steps to the body at rest on the time since it died.
-func _time(frame: String, look: int, e: Enemy, clock: float) -> float:
+func _time(frame: String, look: int, e: Enemy, clock: float, span: float) -> float:
 	var hurt := "hurt_" if look == 1 else ""
 	if frame.begins_with("w") and frame.length() == 2:
 		var first: Variant = models.key_time(kind, hurt + "w0")
@@ -375,7 +429,6 @@ func _time(frame: String, look: int, e: Enemy, clock: float) -> float:
 	if frame.begins_with("die_") and not ActorView.held(e):
 		var first: Variant = models.key_time(kind, "die_0")
 		if first != null:
-			var span := Enemy.DEATH_TIME
 			var step := clampf((clock - e.died_at) / span * 5.0, 0.0, 5.0)
 			var fall_at: float = first
 			return fall_at + step * ActorModels.KEY_TIME
@@ -385,3 +438,118 @@ func _time(frame: String, look: int, e: Enemy, clock: float) -> float:
 			var key_at: float = t
 			return key_at
 	return 0.0
+
+
+## The group a frame's keys belong to: the walk's beats, the gallop's and the
+## fall's steps are one each (the action runs smoothly through them); any
+## other frame is its own.
+static func group_of(frame: String) -> String:
+	if frame.length() == 2 and (frame[0] == "w" or frame[0] == "r") and frame[1].is_valid_int():
+		return frame[0]
+	if frame.begins_with("die_") or frame == "down":
+		return "die"
+	return frame
+
+
+## Whether this kind's poses blend: not the flapping bugs and saucers, whose
+## few keys are the flap itself (no walk or fall in their action).
+func _blends() -> bool:
+	return models.key_time(kind, "die_0") != null or models.key_time(kind, "w0") != null
+
+
+## Every bone's pose now: per skeleton [positions, rotations, scales].
+func _capture() -> Array:
+	var out: Array = []
+	for skeleton in _skeletons:
+		var n := skeleton.get_bone_count()
+		var at := PackedVector3Array()
+		var turns: Array[Quaternion] = []
+		var sizes := PackedVector3Array()
+		at.resize(n)
+		turns.resize(n)
+		sizes.resize(n)
+		for b in n:
+			at[b] = skeleton.get_bone_pose_position(b)
+			turns[b] = skeleton.get_bone_pose_rotation(b)
+			sizes[b] = skeleton.get_bone_pose_scale(b)
+		out.append([at, turns, sizes])
+	return out
+
+
+## The pose part way from the one blended from to the one sought (eased), or
+## the sought one once the blend is done.
+func _blend(clock: float) -> void:
+	var k := clampf((clock - _blend_at) / _blend_for, 0.0, 1.0)
+	if k >= 1.0 or _blend_from.size() != _skeletons.size():
+		k = 1.0
+		_blend_at = -1.0
+	k = k * k * (3.0 - 2.0 * k)
+	for i in mini(_skeletons.size(), _blend_to.size()):
+		var skeleton := _skeletons[i]
+		var to: Array = _blend_to[i]
+		var from: Array = _blend_from[i] if i < _blend_from.size() else to
+		var at_a: PackedVector3Array = from[0]
+		var at_b: PackedVector3Array = to[0]
+		var turn_a: Array[Quaternion] = from[1]
+		var turn_b: Array[Quaternion] = to[1]
+		var size_a: PackedVector3Array = from[2]
+		var size_b: PackedVector3Array = to[2]
+		for b in mini(skeleton.get_bone_count(), mini(at_a.size(), at_b.size())):
+			skeleton.set_bone_pose_position(b, at_a[b].lerp(at_b[b], k))
+			skeleton.set_bone_pose_rotation(b, turn_a[b].slerp(turn_b[b], k))
+			skeleton.set_bone_pose_scale(b, size_a[b].lerp(size_b[b], k))
+
+
+## A living body's looks-only motion over its pose (model space, about its
+## feet): a hit's flinch, or breathing and a sway while it stands idle.
+func _lively(e: Enemy, frame: String, clock: float) -> Transform3D:
+	var since := clock - e.struck_at
+	if e.struck_at >= 0.0 and since >= 0.0 and since < FLINCH:
+		return ActorView.flinch(e, since)
+	if frame == "0":
+		var phase := float(e.uid % 97) * .37
+		var breath := sin(clock * 2.1 + phase)
+		var sway := sin(clock * .83 + phase * 1.7)
+		var basis := Basis(Vector3(0, 0, 1), sway * SWAY).scaled(
+			Vector3(1.0, 1.0 + breath * BREATH, 1.0)
+		)
+		return Transform3D(basis, Vector3.ZERO)
+	return Transform3D.IDENTITY
+
+
+## The lean of a hit `since` seconds ago on `e` (model space: +z its front,
+## +x its left, about its feet).
+static func flinch(e: Enemy, since: float) -> Transform3D:
+	var k := since / FLINCH_RISE
+	if since > FLINCH_RISE:
+		var left := 1.0 - (since - FLINCH_RISE) / (FLINCH - FLINCH_RISE)
+		k = left * left
+	var dice := hash([e.uid, e.struck_at])
+	var d1 := float(dice & 1023) / 1023.0 - .5
+	var d2 := float((dice >> 10) & 1023) / 1023.0 - .5
+	var d3 := float((dice >> 20) & 1023) / 1023.0
+	var boss := .4 if Enemy.BOSS_TITLES.has(e.kind) else 1.0
+	var hard := clampf(e.struck_sum / 40.0, .45, 1.0) * boss * k
+	var back := .1 + d3 * .06
+	var roll := d1 * .06
+	var twist := d2 * .2
+	var dip := 0.0
+	match e.last_zone:
+		"head":
+			back = .2 + d3 * .08
+		"arms":
+			back = .05
+			twist = signf(d2 + .001) * (.22 + d3 * .1)
+			roll = signf(d1 + .001) * .08
+		"legs":
+			back = -.12 - d3 * .06
+			dip = .05
+			roll = signf(d1 + .001) * .1
+	if e.last_side == "back":
+		back = -back
+	var basis := (
+		Basis(Vector3.UP, twist * hard)
+		* Basis(Vector3(1, 0, 0), -back * hard)
+		* Basis(Vector3(0, 0, 1), roll * hard)
+	)
+	return Transform3D(basis, Vector3(0, -dip * hard, 0))

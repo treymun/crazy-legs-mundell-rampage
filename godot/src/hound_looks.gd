@@ -25,6 +25,11 @@ const TICK_INK := [
 	Color(251 / 255.0, 183 / 255.0, 98 / 255.0),
 	Color(160 / 255.0, 210 / 255.0, 92 / 255.0)
 ]
+## Holding a hand (PIN) his body is drawn this far back along his heading
+## from where play has him (features/hound.gd sprites): the hold's gap is
+## the two bodies' radii, but reared up his head and paws reach .8 ahead of
+## his middle, and stood in the hand's chest.
+const PIN_BACK := .3
 ## Head picture -> its scaled pixels.
 static var _faces: Dictionary = {}
 
