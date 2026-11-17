@@ -805,6 +805,26 @@ Against a real server (`server=<address:port>`, never written into the
 repo) it knocks first and joins only an empty lobby of its own version.
 The pass 9 runs are in [the pass 9 soak](#the-pass-9-soak).
 
+### The pass 9 soak
+
+Against the VPS (v3.6.0, Linux) from this PC (Windows) with this build,
+2026-11-17, about eight minutes in all: the party line's echo 64 ms median
+(78 p95); three probes on the tag team lobby, then four on the 5v5 one.
+Nobody was dropped by a 4 to 6 s hang, a leave and join again, or the admin
+leaving; the round trip to the confirmation of an input was 62 ms median,
+78 to 112 p95; down 23 KB/s a probe in tag team, 41 in the 5v5, up 1 to 2.
+The copies parted from the server 3 to 6 times in two minutes on floats a
+last bit apart (`vy`, `bob`, `wind`: printed alike, the bits not): Linux and
+Windows round sin, cos and their kin differently, which no check on one
+machine can see. Each parting put the copy back on a snapshot. With
+`NetSync.Client.NEAR` for a host on another system the next runs parted 0
+times. Under heavy load on this PC (ten checks at once) a probe's copy was
+put back about every 6 s for inputs whose rows never came (the process
+starved, not the line). Memory: the process grew from about 290 to 360 MB
+over three minutes as the games' capped pools (bullet holes, specks,
+debris) filled, and much more slowly after; nothing found growing without
+a cap (`grew=1`).
+
 ### Player maps in a lobby
 
 `src/net/net_maps.gd` (`NetMaps`); the maps themselves are

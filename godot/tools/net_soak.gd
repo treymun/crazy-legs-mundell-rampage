@@ -11,7 +11,7 @@
 ##
 ##   godot --headless --path godot --script res://tools/net_soak.gd
 ##       [-- server=<address:port>] [people=3] [seconds=180] [stall=4]
-##       [mode=tagteam] [map=pumpngo]
+##       [mode=tagteam] [map=pumpngo] [grew=1]
 ##
 ## Without `server` it serves a lobby from this build on 127.0.0.1 (a port of
 ## its own) in the same process, as the VPS does. With one it first knocks
@@ -39,6 +39,7 @@ var opts := {
 	"stall": 4.0,
 	"mode": "tagteam",
 	"map": "pumpngo",
+	"grew": 0,
 }
 var target := {}
 ## name -> NetPlay (the live one), and each probe's tallies by name.
@@ -222,6 +223,7 @@ func _run_for(seconds: float, skip := "") -> void:
 		_note_drops()
 		if Time.get_ticks_msec() - _sampled_at >= 30000:
 			_sampled_at = Time.get_ticks_msec()
+			_sweep()
 			_memory("at %d s" % ((_sampled_at - began) / 1000))
 
 
@@ -267,7 +269,74 @@ func _fold(name: String, net: NetPlay) -> void:
 		t["up"] += net.session.sent
 
 
+## The front end lets a game go when what it shows changes (its GamePool,
+## at the frame's end); here nothing it shows changes, so the copies of
+## probes that left are let go as the front end would, and their pilots.
+func _sweep() -> void:
+	var kept: Array = []
+	var ids := {}
+	for net: NetPlay in probes.values():
+		var g := net.match_game()
+		if g != null:
+			kept.append(g)
+			ids[str(g.get_instance_id())] = true
+	main.games.sweep(kept)
+	for key: String in pilots.keys():
+		if not ids.has(key.get_slice("/", 2)):
+			pilots.erase(key)
+
+
+var _sizes := {}
+
+
+func _games() -> Dictionary:
+	var out := {}
+	for name: String in probes:
+		var g: Game = probes[name].match_game()
+		if g != null:
+			out[name] = g
+	if server != null:
+		for room in server.rooms:
+			var g2: Game = room.net.match_game()
+			if g2 != null:
+				out["server"] = g2
+	return out
+
+
+func _measure(prefix: String, obj: Object, out: Dictionary) -> void:
+	for prop: Dictionary in obj.get_property_list():
+		if int(prop["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
+			continue
+		var v: Variant = obj.get(prop["name"])
+		if v is Array or v is Dictionary:
+			out[prefix + "." + str(prop["name"])] = v.size()
+
+
+## `grew`: every list and dictionary in each game (its features, its
+## players) that grew since the last sample, the largest first.
+func _diag() -> void:
+	var now := {}
+	var gs := _games()
+	for name: String in gs:
+		var g: Game = gs[name]
+		_measure(name + ":game", g, now)
+		for key: String in g.features:
+			_measure(name + ":" + key, g.features[key], now)
+		for p: Player in g.players:
+			_measure(name + ":p%d" % p.slot, p, now)
+	var growth: Array = []
+	for k: String in now:
+		var was: int = _sizes.get(k, now[k])
+		if now[k] - was > 0:
+			growth.append([now[k] - was, k, now[k]])
+	growth.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
+	print("    grew: ", growth.slice(0, 12))
+	_sizes = now
+
+
 func _memory(when: String) -> void:
+	if int(opts["grew"]) != 0:
+		_diag()
 	print(
 		(
 			"    memory %s: %.1f MB, %d objects, %d nodes"
@@ -349,6 +418,7 @@ func _soak() -> void:
 	)
 	_check(back, "%s comes back after a %.0f s hang without a drop" % [hung, opts["stall"]])
 	_run_for(slice)
+	_sweep()
 	_memory("in the middle")
 	# The last probe leaves mid-match and joins again.
 	var last := str(names[-1])
@@ -370,6 +440,7 @@ func _soak() -> void:
 	var in_again := _wait(func() -> bool: return returned != null and returned.client_ready(), 15.0)
 	_check(in_again, "%s joins the match again" % first)
 	_run_for(slice)
+	_sweep()
 	_memory("at the end")
 	var total := (Time.get_ticks_msec() - began) / 1000.0
 	print("  over %.0f s:" % total)

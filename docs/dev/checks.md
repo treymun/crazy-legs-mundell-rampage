@@ -152,7 +152,7 @@ probe that times the frames after the work (`await process_frame` twice,
 | `net_check` | NET CHECK OK | players, snapshots, determinism in full ([multiplayer.md](multiplayer.md#the-determinism-check)) |
 | `multi_bots` | MULTI BOTS OK | 1 to 4 bots in one game, twin from the last player's machine (`players=1,2,4 seconds=60`; `whole`, `mortal`, `diff=`) |
 | `net_loopback` | NET LOOPBACK OK | a host and client on 127.0.0.1 (`seconds=180 lag=50 loss=0.05`; `websocket`) |
-| `net_soak` | NET SOAK OK | an always-open lobby server soaked on the real clock: `people` probes (2 to 4) join, a match by TacticalBots, a probe hangs `stall` seconds, the last leaves and joins again, the admin leaves (the lobby passes on) and joins again; drops, partings, put-backs, round trips, bandwidth and memory (`server=<address:port>` a real one, knocked first and left alone if anyone is in; without it a lobby of this build in the process) |
+| `net_soak` | NET SOAK OK | an always-open lobby server soaked on the real clock: `people` probes (2 to 4) join, a match by TacticalBots, a probe hangs `stall` seconds, the last leaves and joins again, the admin leaves (the lobby passes on) and joins again; drops, partings, put-backs, round trips, bandwidth and memory (`server=<address:port>` a real one, knocked first and left alone if anyone is in; without it a lobby of this build in the process; `grew=1` lists what grew in each game between samples) |
 | `mode_check` | MODE CHECK OK | co-op, deathmatch (`-- seconds=90` plays longer) |
 | `tactical_check` | TACTICAL CHECK OK | the 5v5 modes, ten bots, every map (`rounds=3`, `rules=shotguns`, `verbose`, `deaths=`) |
 | `wall_break_check` | | every level's breakable cells opened at once |
