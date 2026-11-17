@@ -821,13 +821,21 @@ co-op and online play it the same (`net_check`, brawl_check's snapshot).
   at most once in `boss_rest` and is never killed by one. Calls on screen and
   a `hazard` line. Where they stand: [levels.md](levels.md#the-plans).
 - **Looks** (`brawl_looks.gd`, after feel.gd so it adds to the gun's place):
-  the boot cel `fx_boot_kick_1` (tools/art/build_boot_views.gd from
-  scripts/blender/boot_views.py: his overalls and brown work boot from his own
-  eye, `PLACES` where it sits) rises, drives out and drops under the gun,
-  only the rows over the view, lit as the gun is; the gun ducks out of its
-  way; each move moves the gun its own way (`PATHS`; the blade moves show the
-  weapon's own swing); every blow jolts the view (`feel.gd punch()`, SCREEN
-  SHAKE scales it).
+  the kick is four cels `fx_boot_kick_0..3` (tools/art/build_boot_views.gd
+  from scripts/blender/boot_views.py: his brown work boot in profile on its
+  lug sole, the overalls' cuff and leg running off to the right; `PLACES`
+  where each sits): chambered, out, the blow held on contact (the hit-stop),
+  back and away, drawn under the gun over the view's rows only, lit as the
+  gun is; the gun ducks out of its way. Each finisher moves and turns the gun
+  in hand along its own path (`PATHS`: the revolver cocked low and swung
+  across butt first, the long gun driven up stock first, the blade raised
+  and brought down or swung flat, a round pushed into his mouth or gut and
+  fired), holding still on contact while the slow motion stretches it:
+  `Player.weapon_turn` (looks, never carried) turns the gun cel about its
+  grip on the graphics-card canvas (`Canvas.gpu_texture_turned`; the
+  software canvas draws it unturned). Every blow jolts the view
+  (`feel.gd punch()`, SCREEN SHAKE scales it). The bug zapper's lantern
+  lights the ground about it violet (effects.cfg `[light.bug_zapper]`).
 - `tools/brawl_check.gd` (check_all, quick): the slide, the slam, the domino,
   a healthy hand kicked not finished, a finisher of each class (and every
   move by seed) with its slow motion from the blow, the crowbar's swing, the

@@ -71,11 +71,14 @@ the county's hazards: `wood_chipper`, `bug_zapper`, `electric_fence`,
 `well`, `cattle_guard` (sprites, meshes and scenes like the rest).
 
 `tools/art/build_boot_views.gd` (runs `scripts/blender/boot_views.py`) cuts
-Mundell's boot in first person for the kick (`fx_boot_kick_1`: his denim
-overalls and brown work boot as actors_mundell.py wears them, a size up on the
-eye) with the gun cels' grade, and writes where it sits on the view to
-`assets/art/boot_views.json` (`brawl_looks.gd PLACES`, held the same by
-brawl_check).
+Mundell's kick in first person, four cels `fx_boot_kick_0..3`: a work boot
+modelled from hulls (lug sole and heel, stitched welt, toe cap, eyelets and
+crossed laces, tongue, collar) in his model's brown, seen in profile from his
+eye, with his overalls' turned-up cuff and leg running off to the right,
+lit by the gun views' three suns, graded as the gun cels; where each sits on
+the view goes to `assets/art/boot_views.json` (`brawl_looks.gd PLACES`, held
+the same by brawl_check). The game's view is the top 156 rows of the 200 it
+is rendered over: keep the boot above row 150.
 
 ### Enemies and bosses
 
