@@ -596,7 +596,7 @@ func _cracks(p: Piece, amount: float) -> bool:
 	_show_crack(p)
 	var z: float = game.world.stand(p) + p.z + p.height * .5
 	game.sound_at("sign_shot", p.x, p.y, .7)
-	game.burst(p.x, p.y, z, "wood", 3, .8)
+	game.burst(p.x, p.y, z, "chips", 3, .8)
 	return true
 
 

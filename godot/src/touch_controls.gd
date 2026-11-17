@@ -357,7 +357,10 @@ func state() -> Dictionary:
 		"fire": fire,
 		"alt": alt,
 		"jump": jump,
-		"crouch": crouch
+		"crouch": crouch,
+		# USE held down (a revive, BLUE got up, a 5v5 plant or defuse): its
+		# press is also a tap of USE (consume).
+		"hold": _held("use")
 	}
 	turn = 0.0
 	look = 0.0

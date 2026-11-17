@@ -39,6 +39,18 @@ const CHAPTER_KINDS := {
 	"moonshine": ["gas_man", "revenue_man", "still_buster"],
 	"mothership": ["drone", "maw", "probe", "tin_guard"],
 }
+## The ambience beds only one chapter's levels play (the levels' "ambience",
+## Campaign's): amb_<bed> and amb_<bed>_... come with that chapter's pack
+## (chapter_of), not the first download. County Run's quarry and bayou maps
+## wait for those packs anyway (CHAPTER_ART).
+const CHAPTER_AMBIENCE := {
+	"fair": "fair",
+	"sawmill": "mill",
+	"quarry": "quarry",
+	"bayou": "bayou",
+	"moonshine": "ridge",
+	"mothership": "mothership",
+}
 ## Each chapter's art file; its sounds are in sfx_<the same stem>.bin and its
 ## music in music_<stem>.bin (stem_of).
 const CHAPTER_ART := {
@@ -77,6 +89,9 @@ static var tier_dir := ""
 ## by name, to hold each level to the files its pack brings.
 static var recording := false
 static var asked: Dictionary = {}
+## While recording, the pictures asked for that are not in the art (drawn as
+## nothing, and the warning costs a frame's worth of time the first time).
+static var missing: Dictionary = {}
 
 var tile_names: PackedStringArray = PackedStringArray()
 var tile_index: Dictionary = {}
@@ -102,6 +117,12 @@ var sfx_index: Dictionary = {}
 var sfx_rate: int = 22050
 ## The bank holds QOA (tools/pack_assets.gd), or 16-bit samples in an older pack.
 var sfx_qoa := false
+## Where the bank is read from: FULL_DIR, or the lighter copy's (sfx_tier()).
+var sfx_dir := FULL_DIR
+## The lighter bank's spoken lines are Ogg Vorbis without their stream
+## headers, which every line shares (tools/pack_lite.gd): the headers by
+## number, put back in front of a line's pages as it is opened.
+var _sfx_heads: Array[PackedByteArray] = []
 var _sfx_file: FileAccess
 ## A chapter's own cues' files by name (sfx_<stem>.bin), opened as needed.
 var _sfx_files := {}
@@ -138,11 +159,18 @@ func _init() -> void:
 	shared_index = art_index
 	_art_file = FileAccess.open(dir + "art.bin", FileAccess.READ)
 
-	var sfx := _json("res://assets_gen/sfx_index.json")
+	sfx_dir = sfx_tier()
+	var sfx := _json(sfx_dir + "sfx_index.json")
 	sfx_rate = sfx.get("rate", 22050)
 	sfx_qoa = str(sfx.get("codec", "")) == "qoa"
 	sfx_index = sfx.get("cues", {})
-	_sfx_file = FileAccess.open("res://assets_gen/sfx.bin", FileAccess.READ)
+	_sfx_file = FileAccess.open(sfx_dir + "sfx.bin", FileAccess.READ)
+	var heads: Array = sfx.get("heads", [])
+	for head: Array in heads:
+		var at: int = head[0]
+		var length: int = head[1]
+		_sfx_file.seek(at)
+		_sfx_heads.append(_sfx_file.get_buffer(length))
 
 	music_index = _json(dir + "music_index.json")
 	music_ends = _json("res://assets_gen/music_ends.json")
@@ -157,6 +185,14 @@ static func tier() -> String:
 		var lite := small and FileAccess.file_exists(LITE_DIR + "art_index.json")
 		tier_dir = LITE_DIR if lite else FULL_DIR
 	return tier_dir
+
+
+## Where the sound bank is read from: the lighter copy's when the art is read
+## from it and it has a bank (an older lighter copy has none), else FULL_DIR.
+static func sfx_tier() -> String:
+	if tier() == LITE_DIR and FileAccess.file_exists(LITE_DIR + "sfx_index.json"):
+		return LITE_DIR
+	return FULL_DIR
 
 
 ## A whole file deflated, behind "TZ01" and its size (tools/pack_assets.gd):
@@ -197,10 +233,14 @@ func tile(name: String) -> int:
 ## (its baked looks) or boss_<kind>_... (its lines). One rule for every
 ## asset, so a new one finds its home without a list (tools/pack_check.gd
 ## holds the levels and the code to it). A chapter's opener (src/opener.gd)
-## keeps its lines and sting there too: narr_<chapter>_..., sting_open_<chapter>.
+## keeps its lines and sting there too: narr_<chapter>_..., sting_open_<chapter>,
+## and so does its ambience (CHAPTER_AMBIENCE).
 static func chapter_of(name: String) -> String:
 	for level_id: String in CHAPTER_KINDS:
 		if name.begins_with("narr_%s_" % level_id) or name == "sting_open_" + level_id:
+			return level_id
+		var bed := "amb_%s" % CHAPTER_AMBIENCE.get(level_id, "-")
+		if name == bed or name.begins_with(bed + "_"):
 			return level_id
 		for kind: String in CHAPTER_KINDS[level_id]:
 			for prefix: String in KIND_PREFIXES:
@@ -208,6 +248,16 @@ static func chapter_of(name: String) -> String:
 				if name.begins_with(stem + "_") or (name == stem and prefix != "boss_"):
 					return level_id
 	return ""
+
+
+## A lossless WebP picture's RGBA8 pixels (the lighter copy's art).
+static func unpack_webp(packed: PackedByteArray) -> PackedByteArray:
+	var image := Image.new()
+	if image.load_webp_from_buffer(packed) != OK:
+		return PackedByteArray()
+	if image.get_format() != Image.FORMAT_RGBA8:
+		image.convert(Image.FORMAT_RGBA8)
+	return image.get_data()
 
 
 ## Which chapter file a picture belongs in ("" for art.bin).
@@ -264,6 +314,8 @@ func art(name: String) -> Dictionary:
 	var found: Variant = art_index.get(name)
 	var blank := {"w": 1, "h": 1, "data": PackedByteArray([0, 0, 0, 0])}
 	if found == null:
+		if recording:
+			missing[name] = true
 		push_warning("missing art " + name)
 		_art_cache[name] = blank
 		return blank
@@ -282,10 +334,15 @@ func art(name: String) -> Dictionary:
 	source.seek(offset)
 	var w: int = info["w"]
 	var h: int = info["h"]
-	# Each image is stored deflated (tools/pack_assets.gd) and inflated on first use.
+	# Each image is stored deflated (tools/pack_assets.gd) and inflated on first
+	# use; the lighter copy keeps most as lossless WebP (tools/pack_lite.gd).
 	var size: int = info["size"]
 	var packed := source.get_buffer(size)
-	var data := packed.decompress(w * h * 4, FileAccess.COMPRESSION_DEFLATE)
+	var data := PackedByteArray()
+	if info.has("webp"):
+		data = unpack_webp(packed)
+	else:
+		data = packed.decompress(w * h * 4, FileAccess.COMPRESSION_DEFLATE)
 	var result := {"w": w, "h": h, "data": data}
 	_art_cache[name] = result
 	return result
@@ -354,7 +411,7 @@ func sky(name: String) -> Dictionary:
 	return {"w": w, "h": h, "name": name, "data": sky_blob.slice(offset, offset + w * h * 3)}
 
 
-func cue(name: String) -> AudioStreamWAV:
+func cue(name: String) -> AudioStream:
 	if recording:
 		asked[name] = true
 	var cached: Variant = _sfx_cache.get(name)
@@ -373,13 +430,22 @@ func cue(name: String) -> AudioStreamWAV:
 		var file_name := str(info["file"])
 		source = _sfx_files.get(file_name)
 		if source == null:
-			source = FileAccess.open(FULL_DIR + file_name, FileAccess.READ)
+			source = FileAccess.open(sfx_dir + file_name, FileAccess.READ)
 			if source == null:
 				return null
 			_sfx_files[file_name] = source
 	var offset: int = info["offset"]
 	source.seek(offset)
 	var frames: int = info["frames"]
+	if info.has("ogg"):
+		# A spoken line in the lighter bank: its shared headers, then its pages.
+		var head: int = info["ogg"]
+		var size_ogg: int = info["size"]
+		var whole := _sfx_heads[head].duplicate()
+		whole.append_array(source.get_buffer(size_ogg))
+		var spoken := AudioStreamOggVorbis.load_from_buffer(whole)
+		_sfx_cache[name] = spoken
+		return spoken
 	var stream := AudioStreamWAV.new()
 	stream.mix_rate = sfx_rate
 	stream.stereo = false

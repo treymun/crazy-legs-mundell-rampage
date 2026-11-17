@@ -6,7 +6,7 @@
 ## chapter's own files come down after the game starts, one pack each
 ## (src/pack_loader.gd): its music (assets_gen/lite/music_<stem>.bin), its
 ## enemies' pictures and baked looks (lite/art_<stem>.bin), its enemies' sounds
-## (sfx_<stem>.bin) and their models (the imported scenes of
+## (lite/sfx_<stem>.bin) and their models (the imported scenes of
 ## assets3d/actors/<kind>.glb), all by Assets.chapter_of, and the props only it
 ## shows (their baked pictures in its art file, their models:
 ## tools/prop_homes.gd). Hickston's pack is
@@ -105,7 +105,7 @@ static func pack_files(level_id: String) -> PackedStringArray:
 	if level_id == "hickston":
 		return parts
 	parts.append(AssetsLib.LITE_DIR + "art_%s.bin" % stem)
-	parts.append(AssetsLib.FULL_DIR + "sfx_%s.bin" % stem)
+	parts.append(AssetsLib.LITE_DIR + "sfx_%s.bin" % stem)
 	for model in chapter_models(level_id, PropHomes.homes()):
 		parts.append_array(imported_files(model))
 	return parts

@@ -385,7 +385,7 @@ func strike(code: int, amount: float, ax: float, ay: float) -> void:
 		if part.role == "wall" and not cracked and left < part.hp * Shape.num(kind, "crack", .55):
 			_sprites.clear()
 			game.sound_at("plank_crack", part.p.x, part.p.y, .9)
-			game.burst(part.p.x, part.p.y, part.p.z, "wood", 8, 1.6)
+			game.burst(part.p.x, part.p.y, part.p.z, "chips", 8, 1.6)
 		return
 	match part.role:
 		"post", "leg":
@@ -678,7 +678,7 @@ func _knock_out(i: int, k: int, ax: float, ay: float) -> void:
 	outs[k] = MOVING
 	_drop_standing(part)
 	game.sound_at("plank_crack", part.p.x, part.p.y, 1.0)
-	game.burst(part.p.x, part.p.y, part.p.z, "wood", 10, 1.8)
+	game.burst(part.p.x, part.p.y, part.p.z, "chips", 10, 1.8)
 	net_version += 1
 	wake()
 

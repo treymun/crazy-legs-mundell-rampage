@@ -74,6 +74,7 @@ godot --headless --path godot --script res://tools/load_check.gd      # LOAD CHE
 godot --headless --path godot --script res://tools/plank_check.gd     # PLANK CHECK OK (shed, barn, pen and shack walls open)
 godot --headless --path godot --script res://tools/quest_reach.gd      # QUEST REACH OK (tour=<json> for pictures of each prop)
 godot --headless --path godot --script res://tools/menu_touch_check.gd # MENU TOUCH OK
+godot --headless --path godot --script res://tools/warm_check.gd      # WARM CHECK OK (the view's warm-up)
 godot --headless --path godot --script res://tools/opener_check.gd     # OPENER CHECK OK (the chapter openers)
 godot --path godot --audio-driver Dummy --resolution 1280x800 -- --opener=<chapter> [--opener-out=<dir>]   # a chapter's opener (its key frames saved)
 godot --headless --path godot --script res://tools/camera_check.gd     # CAMERA CHECK OK (photo mode, kill cam, quality, HUD on Controls, shadows, marks on props, storm wall)
@@ -154,6 +155,7 @@ godot --headless --path godot --script res://tools/replay_check.gd -- against=<d
 godot --path godot -- --replay=<file>   # play a replay in the game's view (a path, or a name in user://replays); Esc leaves
 godot --headless --path godot --script res://tools/load_bench.gd -- rounds=3   # level loads cold and warm, the level mesh, the wreck cutting (on a worker, not in the load)
 godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/stress_bench.gd -- [only=county]   # the worst moments: frame, parts, slots, memory
+godot --path godot --audio-driver Dummy --resolution 1280x800 --script res://tools/hitch_bench.gd -- [only=turn,cab]   # first-time hitches (a new empty APPDATA each run)
 godot --headless --path godot --script res://tools/first_minutes.gd   # a bot plays each chapter's opening: first fight, kills, health (old-ai: enemies do not hunt)
 godot --headless --path godot --script res://tools/first_minutes.gd -- hickston whole   # bot plays it to the end (god mode; hitches: time every tick; diff=<0..3>)
 godot --headless --path godot --script res://tools/ttk.gd -- ../docs/weapon_ttk.md   # time to kill, every gun against every enemy

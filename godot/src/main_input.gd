@@ -1025,6 +1025,10 @@ func _touch_actions() -> void:
 	if tapped != null and state == "play" and game != null and Modes.is_tactical(game):
 		if TacticalScreens.tap(game, picture_point(tap_at)):
 			tapped = null
+	if tapped != null and state == "play" and game != null and BenchScreen.open:
+		# The junk bench's board: a tag buys, off the board shuts it.
+		BenchScreen.tap(game, picture_point(tap_at))
+		tapped = null
 	if tapped != null and state == "play" and game != null and game.map:
 		# A tap on the open map steps the zoom in, then back out to the whole level.
 		game.map_zoom = (game.map_zoom + 1) % 4
@@ -1172,7 +1176,8 @@ func _controls(dt: float, pad: Dictionary, fingers: Dictionary) -> Game.Controls
 	controls.jump = KeyBindings.held("jump") or pad_jump or finger_jump
 	# USE held down: reviving a partner in co-op (src/modes/).
 	var pad_use: bool = pad.get("use", false)
-	controls.hold = KeyBindings.held("use") or pad_use
+	var finger_use: bool = fingers.get("hold", false)
+	controls.hold = KeyBindings.held("use") or pad_use or finger_use
 	# As the reference: a toggle setting reads only the latch, a hold setting
 	# only what is held (keyboard, pad B, or the overlay's DUCK button).
 	if _option_on("crouch"):

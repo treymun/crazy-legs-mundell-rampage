@@ -37,7 +37,9 @@ const STEP := 1.0 / 60.0
 ## Raised from 80 in content pass 8 (radio, dog, events: assets every chapter uses),
 ## then to 87 for the chapter openers (Hickston's lines and sting stay in the
 ## first download: its opener plays before any chapter pack can arrive).
-const FIRST_BUDGET_MB := 87.0
+## Lowered to 75 in pass 9: 71.8 with the lighter copy's WebP pictures and
+## Vorbis lines and the chapters' ambience in their packs (86.5 before).
+const FIRST_BUDGET_MB := 75.0
 const PACK_BUDGET_MB := 20.0
 const WEB_PRESETS := ["Web", "Web Lite"]
 const LIGHT_PRESETS := ["Web", "Web Lite", "Android"]
@@ -48,11 +50,15 @@ const DESKTOP_COPY := [
 	"assets_gen/art_index.json",
 	"assets_gen/music*.bin",
 	"assets_gen/music_index.json",
+	"assets_gen/sfx*.bin",
+	"assets_gen/sfx_index.json",
 ]
 ## What a browser build's first download leaves to the packs, besides models.
 const PACKED_LATER := [
-	"assets_gen/sfx_*.bin", "assets_gen/lite/art_*.bin", "assets_gen/lite/music_*.bin"
+	"assets_gen/lite/sfx_*.bin", "assets_gen/lite/art_*.bin", "assets_gen/lite/music_*.bin"
 ]
+## A spoken line in the lighter bank (Vorbis) against its QOA, in seconds.
+const VOICE_SLACK := .03
 
 var _failed: Array[String] = []
 var _assets: Assets
@@ -110,6 +116,11 @@ func _rule() -> void:
 		"actor3d_boss_p2": "",
 		"billy_0": "",
 		"jerry_taunt": "",
+		"amb_quarry_line": "quarry",
+		"amb_ridge": "moonshine",
+		"amb_mill": "sawmill",
+		"amb_range": "",
+		"amb_barn": "",
 	}
 	for name: String in cases:
 		if Assets.chapter_of(name) != cases[name]:
@@ -197,6 +208,7 @@ func _play() -> void:
 			continue
 		var own := Assets.stem_of(id)
 		Assets.asked = {}
+		Assets.missing = {}
 		Assets.recording = true
 		var game := Game.new(_assets, hud, sound, id)
 		game.configure({"hints": 0, "difficulty": 1})
@@ -214,6 +226,13 @@ func _play() -> void:
 				wrong.append("%s (%s)" % [name, home])
 		if not wrong.is_empty():
 			_fail("%s asked for %s" % [id, ", ".join(wrong)])
+		if not Assets.missing.is_empty():
+			_fail(
+				(
+					"%s drew pictures that are not in the art: %s"
+					% [id, ", ".join(Assets.missing.keys())]
+				)
+			)
 		played += 1
 		print("  played %-15s %4d pictures and cues asked for" % [id, Assets.asked.size()])
 	sound.queue_free()
@@ -299,6 +318,7 @@ func _lite(required: bool) -> void:
 		_fail("the lighter art has %d pictures, the full %d" % [lite_art.size(), full_art.size()])
 	var files := {}
 	var halved := 0
+	var webps := 0
 	for name: String in full_art:
 		var full: Dictionary = full_art[name]
 		var lite: Variant = lite_art.get(name)
@@ -316,8 +336,14 @@ func _lite(required: bool) -> void:
 		var h: int = small["h"]
 		var at: int = small["offset"]
 		var packed := blob.slice(at, at + int(small["size"]))
-		if packed.decompress(w * h * 4, FileAccess.COMPRESSION_DEFLATE).size() != w * h * 4:
-			_fail("picture %s does not inflate in the lighter copy" % name)
+		var pixels := PackedByteArray()
+		if small.has("webp"):
+			pixels = Assets.unpack_webp(packed)
+			webps += 1
+		else:
+			pixels = packed.decompress(w * h * 4, FileAccess.COMPRESSION_DEFLATE)
+		if pixels.size() != w * h * 4:
+			_fail("picture %s does not open in the lighter copy" % name)
 		if w != int(full["w"]):
 			halved += 1
 			if not (name.begins_with("actor3d_") or name.begins_with("mesh_")):
@@ -341,12 +367,76 @@ func _lite(required: bool) -> void:
 		)
 		if stream == null or absf(stream.get_length() - was.get_length()) > .01:
 			_fail("track %s in the lighter copy is not the same length" % track)
+	var spoken := _lite_sfx(required)
 	print(
 		(
-			"  lighter copy: %d pictures (%d made smaller), %d tracks"
-			% [lite_art.size(), halved, lite_music.size()]
+			"  lighter copy: %d pictures (%d made smaller, %d WebP), %d tracks, %d lines Vorbis"
+			% [lite_art.size(), halved, webps, lite_music.size(), spoken]
 		)
 	)
+
+
+## The lighter sound bank: every cue in the file the full bank has it in; a
+## spoken line Vorbis (its shared headers put back) as long as its QOA, the
+## rest the very same bytes. Returns the number of Vorbis lines.
+func _lite_sfx(required: bool) -> int:
+	var lite_dir := Assets.LITE_DIR
+	if not FileAccess.file_exists(lite_dir + "sfx_index.json"):
+		if required:
+			_fail("no lighter sound bank in %s (run tools/pack_lite.gd)" % lite_dir)
+		return 0
+	var full_bank := _json(Assets.FULL_DIR + "sfx_index.json")
+	var lite_bank := _json(lite_dir + "sfx_index.json")
+	var full_cues: Dictionary = full_bank.get("cues", {})
+	var lite_cues: Dictionary = lite_bank.get("cues", {})
+	var rate: float = full_bank.get("rate", 22050)
+	if full_cues.size() != lite_cues.size():
+		_fail("the lighter bank has %d cues, the full %d" % [lite_cues.size(), full_cues.size()])
+	var heads: Array[PackedByteArray] = []
+	var front := FileAccess.get_file_as_bytes(lite_dir + "sfx.bin")
+	var listed: Array = lite_bank.get("heads", [])
+	for head: Array in listed:
+		var at: int = head[0]
+		var length: int = head[1]
+		heads.append(front.slice(at, at + length))
+	var blobs := {}
+	var spoken := 0
+	for cue: String in full_cues:
+		var full: Dictionary = full_cues[cue]
+		var lite: Variant = lite_cues.get(cue)
+		if not lite is Dictionary:
+			_fail("cue %s is not in the lighter bank" % cue)
+			continue
+		var small: Dictionary = lite
+		var file_name := str(full.get("file", "sfx.bin"))
+		if str(small.get("file", "sfx.bin")) != file_name:
+			_fail("cue %s is in another file in the lighter bank" % cue)
+			continue
+		for key: String in ["full:", "lite:"]:
+			var path := (Assets.FULL_DIR if key == "full:" else lite_dir) + file_name
+			if not blobs.has(key + file_name):
+				blobs[key + file_name] = FileAccess.get_file_as_bytes(path)
+		var full_blob: PackedByteArray = blobs["full:" + file_name]
+		var lite_blob: PackedByteArray = blobs["lite:" + file_name]
+		var at: int = small["offset"]
+		var data := lite_blob.slice(at, at + int(small["size"]))
+		if not small.has("ogg"):
+			var was: int = full["offset"]
+			if data != full_blob.slice(was, was + int(full["size"])):
+				_fail("cue %s is not the full bank's QOA in the lighter bank" % cue)
+			continue
+		spoken += 1
+		var head: int = small["ogg"]
+		if head < 0 or head >= heads.size():
+			_fail("cue %s has no headers in the lighter bank" % cue)
+			continue
+		var whole := heads[head].duplicate()
+		whole.append_array(data)
+		var stream := AudioStreamOggVorbis.load_from_buffer(whole)
+		var seconds: float = full["frames"] / rate
+		if stream == null or absf(stream.get_length() - seconds) > VOICE_SLACK:
+			_fail("spoken cue %s does not open as %.2f s in the lighter bank" % [cue, seconds])
+	return spoken
 
 
 func _json(path: String) -> Dictionary:
@@ -377,8 +467,11 @@ func _sizes() -> void:
 	var first := 0
 	for name: String in ["art.bin", "art_index.json", "music.bin", "music_index.json"]:
 		first += _size(dir + name)
+	var sfx_dir := dir if FileAccess.file_exists(dir + "sfx_index.json") else Assets.FULL_DIR
+	for name: String in ["sfx.bin", "sfx_index.json"]:
+		first += _size(sfx_dir + name)
 	for file in DirAccess.get_files_at(Assets.FULL_DIR):
-		if not (file.begins_with("art") or file.begins_with("music") or file.begins_with("sfx_")):
+		if not (file.begins_with("art") or file.begins_with("music") or file.begins_with("sfx")):
 			first += _size(Assets.FULL_DIR + file)
 	for file in DirAccess.get_files_at("res://data"):
 		if file.ends_with(".json"):
@@ -398,7 +491,7 @@ func _sizes() -> void:
 		var total := 0
 		for part in Packs.pack_files(level_id):
 			var path := part
-			if dir == Assets.FULL_DIR:
+			if dir == Assets.FULL_DIR or (part.contains("/sfx_") and sfx_dir == Assets.FULL_DIR):
 				path = part.replace(Assets.LITE_DIR, Assets.FULL_DIR)
 			total += _size(path)
 		print("  %-20s %.1f MB" % [Packs.pack_name(level_id), total / 1e6])
@@ -468,11 +561,11 @@ func _build(folder: String) -> void:
 				_fail("%s holds %s, which is not its own" % [pack, name])
 		total += _size(folder.path_join(str(entry["file"])))
 	for name: String in [
-		"assets_gen/lite/art.bin", "assets_gen/lite/music.bin", "assets_gen/sfx.bin"
+		"assets_gen/lite/art.bin", "assets_gen/lite/music.bin", "assets_gen/lite/sfx.bin"
 	]:
 		if not first.has(name):
 			_fail("index.pck has no " + name)
-	for name: String in ["assets_gen/art.bin", "assets_gen/music.bin"]:
+	for name: String in ["assets_gen/art.bin", "assets_gen/music.bin", "assets_gen/sfx.bin"]:
 		if first.has(name):
 			_fail("index.pck holds the desktop's " + name)
 	print(

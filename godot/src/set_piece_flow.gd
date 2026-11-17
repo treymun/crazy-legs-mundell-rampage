@@ -191,7 +191,7 @@ static func burst(sp: SetPiecesFeature, i: int) -> void:
 	sp.crush(i, v, Shape.num("all", "crush_tank", 90.0))
 	g.sound_at("tower_burst", x, y, 1.0)
 	g.burst(x, y, z + .4, "splash", 26, 3.2)
-	g.burst(x, y, z + .2, "wood", 14, 3.0)
+	g.burst(x, y, z + .2, "chips", 14, 3.0)
 	g.shake = minf(1.0, g.shake + .5)
 	var flood := _spread(sp, Vector2(x, y), z, lean)
 	flood["t0"] = g.clock

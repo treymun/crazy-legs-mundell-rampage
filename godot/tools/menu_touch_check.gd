@@ -12,7 +12,10 @@
 ## COUNTY RUN's map picker, its reward cards (a pick, a swap, CANCEL), the
 ## build screen and the end of a run's buttons, and a card picked by mouse;
 ## CUSTOM MAPS (a map, an action, NEW MAP) and the MAP SHED (a palette item,
-## a cell painted, the TEAR OUT tab, BACK twice past the unsaved warning).
+## a cell painted, the TEAR OUT tab, BACK twice past the unsaved warning);
+## in play, the junk bench's board (a tag tapped buys it, a tap off it shuts
+## it) and the USE button held down (a revive, BLUE got up, a plant or a
+## defuse: Controls.hold), and a tap skipping a chapter's opener.
 ## Fails on any script or engine error.
 extends SceneTree
 
@@ -38,6 +41,7 @@ func _run() -> void:
 	_store()
 	_county()
 	_maps()
+	_play()
 	tally.stop()
 	_check(
 		tally.errors == 0,
@@ -423,6 +427,86 @@ func _find(id: String, arg := -99) -> Array:
 		if String(z[1]) == id and (arg == -99 or int(z[2]) == arg):
 			return [z[0]]
 	return []
+
+
+func _play() -> void:
+	print("\nPLAY BY TOUCH")
+	var g: Game = main.make_game("hickston")
+	g.configure({"difficulty": 1, "bench": 1})
+	g.cheats.god = true
+	g.lessons = false
+	g.enemies.clear()
+	g.enemy_ids.clear()
+	for i in 2:
+		g.tick(1.0 / 60.0, Game.Controls.new())
+	main.game = g
+	main.state = "play"
+	var bench: Game.BenchScript = g.features.get("bench")
+	if bench == null or bench.benches.is_empty():
+		_check(false, "hickston has a junk bench")
+		return
+	var b: Array = bench.benches[0]
+	var p := g.player
+	var facing: float = b[2]
+	p.x = float(b[0]) + sin(facing) * 1.1
+	p.y = float(b[1]) + cos(facing) * 1.1
+	p.angle = atan2(float(b[1]) - p.y, float(b[0]) - p.x)
+	for gun: String in ["revolver", "shotgun"]:
+		p.armory.owned[Weapons.NAMES.find(gun)] = true
+	p.armory.scrap = 99
+	BenchScreen.reset()
+	BenchScreen.show(g)
+	main.render()
+	var tag := Rect2i()
+	for z: Array in BenchScreen._zones:
+		if BenchScreen.mod_at(int(z[1]), int(z[2])) != "":
+			tag = z[0]
+			break
+	_check(tag.size.x > 0, "the bench's board shows its tags")
+	_finger(tag.position + tag.size / 2)
+	_check(not BenchScreen.pending_buys.is_empty(), "tapping a tag on the board buys it")
+	_finger(Vector2i(160, 196))
+	_check(not BenchScreen.open, "a tap off the board shuts it")
+	BenchScreen.reset()
+	# The USE button held: Controls.hold for as long as the finger stays.
+	main.touch.set_showing(true)
+	main.touch.layout(main.viewport_rect())
+	var use_at := Vector2.INF
+	for button: Array in main.touch.buttons:
+		if str(button[0]) == "use":
+			use_at = button[1]
+	_check(use_at != Vector2.INF, "the overlay has a USE button")
+	if use_at != Vector2.INF:
+		var down := InputEventScreenTouch.new()
+		down.index = 3
+		down.position = use_at
+		down.pressed = true
+		main._input(down)
+		var held: Game.Controls = main._controls(
+			1.0 / 60.0, main.read_pad(1.0 / 60.0), main.touch.state()
+		)
+		_check(held.hold, "USE held down on the overlay holds USE (a revive, a plant)")
+		var up := InputEventScreenTouch.new()
+		up.index = 3
+		up.position = use_at
+		up.pressed = false
+		main._input(up)
+		var let_go: Game.Controls = main._controls(
+			1.0 / 60.0, main.read_pad(1.0 / 60.0), main.touch.state()
+		)
+		_check(not let_go.hold, "and lets go with the finger")
+	main.touch.release()
+	# A chapter's opener: a tap skips it.
+	main.opener.begin(main, g)
+	if main.opener.playing:
+		var tap := InputEventScreenTouch.new()
+		tap.index = 0
+		tap.position = Vector2(200, 200)
+		tap.pressed = true
+		main._input(tap)
+		_check(not main.opener.playing, "a tap skips a chapter's opener")
+	main.game = null
+	main.state = "title"
 
 
 ## A quick finger on the play screen's overlay (a tap, not a button), read
