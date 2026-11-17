@@ -154,21 +154,21 @@
     }).catch(() => {});
 
   // -------------------------------------------------------------- armory
-  // Numbers are the game's own (godot/src/weapons.gd): damage per shot and the
-  // delay between shots. Only the .38 and the sawed-off reload; the rest feed
-  // straight from what you are carrying.
+  // Numbers are the game's own (godot/data/tuning/weapons.cfg and shots.cfg):
+  // damage per shot or blast and the delay between shots. Only the .38 and the
+  // sawed-off reload; the rest feed straight from what you are carrying.
   const WEAPONS = [
     { id: 'crowbar', name: 'Rusted Crowbar', key: '1', damage: 44, hit: '44', fire: .33, reload: 0, mag: 0,
       text: 'Came with the truck. Opens crates, doors and negotiations. Hits harder on a moonshine sprint.' },
-    { id: 'revolver', name: '.38 Special', key: '2', damage: 34, hit: '34', fire: .30, reload: .88, mag: 6,
-      text: 'Six polite suggestions. Daddy called it the tie-breaker; it has never lost a vote.' },
+    { id: 'revolver', name: '.38 Special', key: '2', damage: 36, hit: '36', fire: .30, reload: .88, mag: 6,
+      text: 'Six polite suggestions. Daddy called it the tie-breaker; it has never lost a vote. The junk bench will tape a pawn shop scope or a speed loader on it.' },
     { id: 'shotgun', name: 'Sawed-Off', key: '3', damage: 120, hit: '10 × 12', fire: .55, reload: 1.10, mag: 2,
-      text: 'Shortened for indoor use. Alt fire empties both barrels and most of the room. Up close it does not leave a body.' },
+      text: 'Shortened for indoor use. Alt fire empties both barrels and most of the room. Up close it does not leave a body. Takes a corn knife bayonet if you have the scrap.' },
     { id: 'crossbow', name: 'Dynamite Crossbow', key: '4', damage: 160, hit: '160 blast', fire: 1.05, reload: 0, mag: 0,
       text: 'A truck leaf spring, a rail and a stick of dynamite where the sense should be. Opens the doors keys will not.' },
     { id: 'rifle', name: 'Ranch Rifle', key: '5', damage: 21, hit: '21', fire: .11, reload: 0, mag: 0,
       text: 'Somebody\'s uncle brought a Kalashnikov home and called it a ranch rifle. Nine rounds a second until it runs hot. Feather it.' },
-    { id: 'ripsaw', name: 'Rip Saw', key: '6', damage: 54, hit: '54 blade', fire: .78, reload: 0, mag: 0,
+    { id: 'ripsaw', name: 'Rip Saw', key: '6', damage: 54, hit: '54 blade', fire: .62, reload: 0, mag: 0,
       text: 'A two-stroke motor with a stack of blades on the arbor. Throws one that bounces three times; alt fire grinds up close for free.' },
     { id: 'armgun', name: 'Alien Arm Gun', key: '7', damage: 50, hit: '50', fire: .21, reload: 0, mag: 0,
       text: 'Not yours. Still warm, and the eye on top is still looking. The former owner is not asking for it back.' },
@@ -180,15 +180,15 @@
       text: 'A length of drain pipe hose-clamped to a two-by-four. Fourth of July, shoulder-fired; whistles so they know it is coming.' },
     { id: 'riveter', name: 'Mill Riveter', key: 'wheel', damage: 32, hit: '32', fire: .22, reload: 0, mag: 0,
       text: 'Blackwater Timber\'s pneumatic rivet gun, drum and all. Drives a hot stud through whatever is holding the wall up.' },
-    { id: 'pressure_gun', name: 'Copperhead', key: 'wheel', damage: 24, hit: '24', fire: .60, reload: 0, mag: 0,
+    { id: 'pressure_gun', name: 'Copperhead', key: 'wheel', damage: 34, hit: '34', fire: .50, reload: 0, mag: 0,
       text: 'A riveted copper boiler with a snake\'s head for a nozzle. Scalds a whole doorway and knocks the fight out of anyone in it.' },
     { id: 'bowling_ball', name: 'Bowling Ball', key: '−', damage: 108, hit: '108', fire: 1.10, reload: 0, mag: 0,
       text: 'League night at the county lanes ended early. Rolls flat, stops for nobody twice.' },
     { id: 'powder_keg', name: 'Powder Keg', key: '=', damage: 240, hit: '240 blast', fire: 1.35, reload: 0, mag: 0,
       text: 'The biggest bang in the county, lobbed underhand. Stand somewhere else.' },
-    { id: 'cow_launcher', name: 'Cow Launcher', key: '\\', damage: 150, hit: '150 blast', fire: 1.55, reload: 0, mag: 0,
+    { id: 'cow_launcher', name: 'Cow Launcher', key: '\\', damage: 180, hit: '180 blast', fire: 1.55, reload: 0, mag: 0,
       text: 'A riveted stovepipe with a hide wrap and a cowbell. She moos on the way out. Nobody has asked the cow.' },
-    { id: 'teat_gun', name: 'Teat Gun', key: '`', damage: 10, hit: '10', fire: .09, reload: 0, mag: 0,
+    { id: 'teat_gun', name: 'Teat Gun', key: '`', damage: 12, hit: '12', fire: .09, reload: 0, mag: 0,
       text: 'A milking machine with ideas. Fresh whole milk at eleven squirts a second, straight from the pail. Does a body bad.' },
   ];
   const frames = window.CLM_FRAMES || {};
@@ -262,20 +262,21 @@
   // ------------------------------------------------------------ chapters
   // Objectives, districts and sign-offs are the game's own text (godot/src/campaign.gd);
   // bosses and locals follow their code (enemies.cfg, bayou_brains.gd, derby_champ.gd,
-  // speedway_hands.gd, ship_aliens.gd, features/mothership.gd); the range is range_layout.gd.
+  // speedway_hands.gd, moonshine_hands.gd, ship_aliens.gd, features/mothership.gd,
+  // bosses/revenue_man.gd); the range is range_layout.gd.
   const CHAPTERS = [
     { id: 'hickston', tab: 'Hickston', order: 'Chapter one', title: 'The Hickston Incident', shot: 'shot_hickston',
-      caption: 'County road, facing Stanky\'s. Evening.',
+      caption: 'The county road into town. Evening, and raining.',
       job: 'Find the brass key to Stanky\'s back office, then the steel one, and work north through the barn and the trailer lot to the pasture where they are keeping her.',
       stops: ['County Road', 'Stanky\'s Bar & Grill', 'Restroom', 'Supply Room', 'Feed Barn', 'Hog Pen', 'Packing Shed', 'Dispatch Office', 'Trailer Lot', 'Dry Creek', 'Rodeo Grounds', 'Hogs Field'],
       bosses: [
         { name: 'The Alien Sheriff', img: 'boss_sheriff', text: 'Holds the rodeo grounds north of the corn, his crashed saucer smoking behind him. Charges a plasma shot you can hear coming. Once he is mad he turns his back every few shots to vent the power pack, and the pack takes double from behind. Plum desperate, he calls the saucer down on you and the ring catches fire.' },
         { name: 'Jerry Jones', img: 'boss_jerry', text: 'Waits at midfield on the Hogs\' football field, behind the stock gate the sheriff kept shut. Whistles, then throws. Aim for his knees; the helmet shrugs off shots. Plum desperate, he blitzes down a marked lane, and if he hits a goalpost he is out cold for a moment.' },
       ],
-      secrets: 'Four hidden rooms. Check the mirror in the GENTS while you are in there.',
+      secrets: 'Four hidden rooms. Check the mirror in the GENTS while you are in there. There is a riding mower by the chapel with the keys in it.',
       signoff: '"Next time, take the tractor."' },
     { id: 'fair', tab: 'County Fair', order: 'Chapter two', title: 'Possum County Fair', shot: 'shot_fair',
-      caption: 'Main gate. The prize pavilion is lit; nobody is selling tickets.',
+      caption: 'The main gate. Nobody is selling tickets.',
       job: 'Set concession power and patch the backstage PA. The patch lead is in the raffle office, and the shooting gallery pays out if you can still aim.',
       stops: ['Ticket Shack', 'The Midway', 'Concession Alley', 'Game Court', 'Prize Pavilion', 'Service Exit', 'Freight and Raffle Lot', 'Backstage Sideshows', 'PA Booth'],
       bosses: [
@@ -284,7 +285,7 @@
       secrets: 'Two hidden rooms, one of them behind a sideshow panel.',
       signoff: '"No refunds after the abduction."' },
     { id: 'sawmill', tab: 'Blackwater', order: 'Chapter three', title: 'Blackwater Timber', shot: 'shot_sawmill',
-      caption: 'Delivery yard, looking over the flooded log pond.',
+      caption: 'The gate at the delivery yard. The flood shift never clocked out.',
       job: 'Isolate the west feed and trip the dry-kiln belt. The handle on the belt release is stripped, so it wants hitting rather than turning.',
       stops: ['Delivery Yard', 'Flooded Log Pond', 'West Bank', 'East Bank', 'The Cutting Shed', 'Loading Apron', 'Green Chain Sort', 'Dry Kilns', 'Rain Storage'],
       bosses: [
@@ -293,7 +294,7 @@
       secrets: 'Four hidden rooms. The county map only draws a secret once you have found it.',
       signoff: '"Clock out. Leave the boots outside."' },
     { id: 'quarry', tab: 'Stillwater', order: 'Chapter four', title: 'Stillwater Cut', shot: 'shot_quarry',
-      caption: 'County weigh station at the limestone cut.',
+      caption: 'The county weigh station at the limestone cut.',
       job: 'Stop the cutting feed and divert the copper condenser. The valves take cranking, and the works behind the cut is bottling something that is not spring water.',
       stops: ['County Weigh Station', 'Limestone Cut Yard', 'Cutting Shed', 'Condenser Yard', 'Bottling Works', 'Loading Court', 'Lower Cut', 'Chalk Terraces', 'Copper Recovery'],
       bosses: [
@@ -302,27 +303,37 @@
       secrets: 'Three hidden rooms in the cut and the works.',
       signoff: '"Weight includes contents and debts."' },
     { id: 'bayou', tab: 'Gator Bayou', order: 'Chapter five', title: 'Gator Bayou', shot: 'shot_bayou',
-      caption: 'King\'s Lagoon at dusk. The Swamp King is out in his airboat.',
+      caption: 'Stilt Row at dusk. The locals do not care for visitors.',
       job: 'Lower the bridges over the Big Channel: crank the boil yard generator and trip the cannery breaker. Then spike the fuel at the airboat dock, which fetches the king, and hot-wire his airboat home. The black water wades slow; the deep channels belong to the gators.',
       stops: ['County Line Landing', 'Bait & Tackle', 'Crawfish Boil', 'Stilt Row', 'Fish Camp Cabins', 'Swamp King Cannery', 'Big Channel', 'Bridge Tender\'s Hammock', 'Gator Farm', 'Wrasslin Pit', 'The Mudhole', 'King\'s Lagoon', 'Airboat Dock', 'The King\'s Still', 'Backwater'],
       locals: ['New varmints', 'Noodlers squat in the water up to the eyes and come up out of it all at once. Chum tossers sling chum the moment they see you, and every gator near comes for it. Gators lie low in the water, quick in it and slow on the bank.'],
       bosses: [
         { name: 'The Swamp King', img: 'boss_king', text: 'Runs his lagoon in an armoured airboat. When the water reaches you he paints a lane and runs it flat out; when it does not, it is the punt gun. A run that ends on a bank beaches him wide open, and the engine cage takes double from behind. Plum desperate: lit dynamite onto marked spots, and his holed tank sets the water burning.' },
       ],
-      secrets: 'Four hidden rooms, and the king\'s own still hid behind the reeds. A taste counts.',
+      secrets: 'Four hidden rooms, and the king\'s own still hid behind the reeds. A taste counts. The airboat at the dock has its keys in it: take it and the king\'s boys chase you down the CHANNEL RUN.',
       signoff: '"No wake zone, my foot."' },
     { id: 'speedway', tab: 'Buzzard Bend', order: 'Chapter six', title: 'Dirt Track Speedway', shot: 'shot_speedway',
-      caption: 'The front stretch on race night. Nobody told the drivers.',
+      caption: 'The start and finish line on race night. Nobody told the drivers.',
       job: 'Dump the pit fuel, run the crusher and cut in on the PA. Until that fuel is dumped the cars keep running laps, and whoever is on the racing line gets run down. Then drop the green flag at the figure 8, beat the champ and take the checkered flag on the front stretch.',
-      stops: ['Truck Stop', 'Lugnut\'s Diner', 'Haulers\' Lot', 'Pit Row', 'Fuel Depot', 'The Oval', 'Infield Camp', 'Figure 8', 'Grandstands', 'Announcer\'s Booth', 'The Concourse', 'Boggs Salvage', 'Crusher Yard', 'Tow Lot', 'Grandstand Parking'],
+      stops: ['Truck Stop', 'Lugnut\'s Diner', 'Haulers\' Lot', 'Pit Row', 'Fuel Depot', 'The Oval', 'Infield Camp', 'Demolition Derby', 'Grandstands', 'Announcer\'s Booth', 'The Concourse', 'Boggs Salvage', 'Crusher Yard', 'Tow Lot', 'Grandstand Parking'],
       locals: ['New varmints', 'Pit mechanics throw wrenches and tyre rollers roll tyres. Nitro huffers run in close and go up in a nitrous blast, shot down or not, and take their own side with them. Flagmen wave the green flag to call in every hand within earshot, then hang back and fire flares.'],
       bosses: [
         { name: 'Bumper Boggs', img: 'boss_boggs', text: 'Owns the derby bowl behind the flag gate. Paints his ramming lane while he revs and runs down whatever is in it; a charge into a wall stalls him, and the radiator up front is the soft spot. Plum desperate: nitro rams off the walls while the floodlights blow one by one.' },
       ],
-      secrets: 'Three hidden rooms. Lugnut\'s walk-in is one of them.',
+      secrets: 'Three hidden rooms. Lugnut\'s walk-in is one of them. The stock car on pit row has its keys in it, and the Boggs boys will race you three laps in the HEAT RACE.',
       signoff: '"Checkered flag. Nobody else finished."' },
-    { id: 'mothership', tab: 'Mothership', order: 'Chapter seven, the last', title: 'The Mothership', shot: 'shot_mothership',
-      caption: 'The specimen hold. Cows in the tubes, and a probe that has seen you.',
+    { id: 'moonshine', tab: 'Copperhead Ridge', order: 'Chapter seven', title: 'The Moonshine Run', shot: 'shot_moonshine',
+      caption: 'The county line checkpoint by night. The revenue men parked a cruiser across the road.',
+      job: 'Load Granny\'s shine, cut the revenue radio and ring the church bell. The trunk is in Granny Hooten\'s tobacco barn, the radio on Buzzard Knob keeps the cruisers circling the blacktop until you shut it up, and Little Bethel\'s bell opens the log gate. Then run the load: the stock car out of the barn, over the low water bridge, round the church curve and through the checkpoint in forty-five seconds, roadblocks and all. Granny\'s dinner iron by the still cave calls out the man who has been waiting for her.',
+      stops: ['Granny Hooten\'s Place', 'The Tobacco Barn', 'Mule Creek', 'Low Water Bridge', 'Little Bethel Church', 'Bethel Graveyard', 'The Backroad', 'County Blacktop', 'Buzzard Knob', 'Deer Camp', 'Snake Holler', 'County Line Checkpoint', 'The Switchbacks', 'Revenue Camp', 'The Still Cave'],
+      locals: ['New varmints', 'The revenooers: agents with snub .38s who, while the radio on Buzzard Knob still talks, call in every hand within earshot instead of shooting. Still busters come in swinging, gas men lob tear gas, and the cruisers run down whatever stands on the blacktop. It is night up here; keep a flashlight handy.'],
+      bosses: [
+        { name: 'The Revenue Man', img: 'boss_revenue_man', text: 'Waits in the still cave with his dynamite wired to Granny\'s copper still. A fanned tommy-gun burst, an axe charge that sticks in the rock and leaves him stuck and open, and tear gas lobbed round you. His mirrored shades are the soft spot, so you have to face the gun. Plum desperate: the still blows, the spilled shine burns and the roof comes down a rock at a time, on him too.' },
+      ],
+      secrets: 'Three stashes: the smokehouse, the pulpit and the sinkhole. The brass key in Skeeter\'s trailer opens the barn\'s tack room.',
+      signoff: '"Granny says the tax is paid in full."' },
+    { id: 'mothership', tab: 'Mothership', order: 'Chapter eight, the last', title: 'The Mothership', shot: 'shot_mothership',
+      caption: 'The tractor-beam bay. Somebody\'s pickup is on its way up, and a grey has seen you.',
       job: 'Spike the shine drive and drain the cow tubes, and the core\'s iris opens on the bridge. Maw Glorb waits in the core. When she falls the ship comes apart round you all the way back to the escape outhouse in the tractor-beam bay. Ride it home and the whole campaign\'s tally comes up, then the credits.',
       stops: ['Tractor Beam Bay', 'Ring Deck', 'The Core', 'The Bridge', 'Trophy Room', 'Maw\'s Parlor', 'Crew Bunks', 'Crew Mess', 'Specimen Hold', 'Probe Lab', 'Corn Deck', 'Engine Room', 'Shine Tanks', 'Cargo Hold', 'Service Ducts'],
       locals: ['New varmints', 'Grey drones zap with a cattle prod and skitter back out of reach. Tin guards soak shots on a pickup\'s tailgate and swing it aside only to fire a bug zapper. Probes float in and reel you toward them on a beam.'],
@@ -332,17 +343,17 @@
       secrets: 'Four hidden rooms, and a lawn elf whose hat is worth a tug.',
       signoff: '"Tell yer maw she can keep the bus."' },
     { id: 'hub', tab: 'Crossroads', order: 'The hub', title: 'County Crossroads', shot: 'shot_hub',
-      caption: 'The four-way stop. The fingerpost points down every road; the beam pad stands at the end of the one north.',
-      job: 'Every finished chapter opens the next gate here. The county line road runs west and east from the four-way stop with a gate on it for each chapter, further out as the campaign goes on, and the road the county closed runs north to the crash site and the tractor-beam pad. Face a gate and press E to continue, revisit a finished chapter, or replay one from scratch with a fresh kit.',
-      stops: ['Seven road gates', 'Fingerpost', 'Crossroads Diner', 'Road Department', 'Dispatch board', 'Road Crew Yard', 'County Impound', 'Crash Site', 'Beam pad'],
+      caption: 'The four-way stop, under the Hickston water tower.',
+      job: 'Every finished chapter opens the next gate here. The county line road runs west and east from the four-way stop with a gate on it for each chapter, further out as the campaign goes on, and the road the county closed runs north to the crash site and the tractor-beam pad. Face a gate and press USE to continue, revisit a finished chapter, or replay one from scratch with a fresh kit. Mundell\'s junk bench stands in the Road Department\'s yard, and his trophy shack fills up with every boss you beat.',
+      stops: ['Eight road gates', 'Junk bench', 'Trophy shack', 'Fingerpost', 'Crossroads Diner', 'Road Department', 'Dispatch board', 'Road Crew Yard', 'County Impound', 'Crash Site', 'Beam pad'],
       bosses: [],
       secrets: 'Four road notes are pinned around the hub, and more in the chapters. The county map keeps count.',
       signoff: '"County crossroads. Face a gate and press E."' },
     { id: 'range', tab: 'Firing Range', order: 'Off the title menu', title: 'Mundell\'s Proving Grounds', shot: 'shot_range',
-      caption: 'The armory. Every gun on the wall, and every one of them yours.',
+      caption: 'The armory. Every gun on the wall, and the board says how to use them.',
       job: 'Pick FIRING RANGE on the title menu. Every gun is yours and the ammo refills itself. Walk up to a gun on the armory wall and press use to hear what it does and which lane to take it to; each lane keeps score on its own card.',
       stops: ['The Armory', 'Firing Line', 'Tin Can Alley', 'Pellet Patch', 'Rifle Range', 'Duck Gallery', 'Bowl-O-Rama', 'Soak Tank', 'Special Orders', 'Powder Pit', 'Whuppin\' Yard', 'The Bullpen', 'Boss Corral'],
-      locals: ['Live targets', 'Pull a lever in the bullpen and meet the locals, one kind at a time or a whole squad: they duck behind cover, run for help when hurt and brawl if they shoot each other. The boss corral lets out the first five bosses, one at a time.'],
+      locals: ['Live targets', 'Pull a lever in the bullpen and meet the locals, one kind at a time or a whole squad: they duck behind cover, run for help when hurt and brawl if they shoot each other. The boss corral lets the bosses out one at a time. Down the games row: horseshoes, a dunk tank, skee-ball and knock \'em down.'],
       bosses: [],
       secrets: 'Nothing to find and nothing saved. The range medic patches you up before you can buy the farm.',
       signoff: '"Every gun, all the ammo. Pause to leave."' },
@@ -391,6 +402,7 @@
     { name: 'The Copper Baron', where: 'The still house, Stillwater Cut', img: 'fight_baron', soft: 'The boiler on his back.', desperate: 'Copper rain on marked spots, burst pipes, red lights.', hog: 'Every third attack, every outlet in the house goes.' },
     { name: 'The Swamp King', where: 'King\'s Lagoon, Gator Bayou', img: 'fight_king', soft: 'The engine cage, from behind.', desperate: 'Lit dynamite on marked spots; the water burns.', hog: 'A punt-gun broadside at the end of every run.' },
     { name: 'Bumper Boggs', where: 'The derby bowl, Buzzard Bend', img: 'fight_boggs', soft: 'The radiator, up front and low.', desperate: 'Nitro rams off the walls as the floodlights blow.', hog: 'Burning oil down every charge lane.' },
+    { name: 'The Revenue Man', where: 'The still cave, Copperhead Ridge', img: 'fight_revenue', soft: 'His mirrored shades. Face the gun.', desperate: 'The still blows, the shine burns, the roof comes down.', hog: 'Three cans of tear gas, not two.' },
     { name: 'Maw Glorb', where: 'The throne in the core, the Mothership', img: 'fight_maw', soft: 'The curlers on top of her head.', desperate: 'Hot curlers and a core gone critical. Jump.', hog: 'The rolling pin comes down twice.' },
   ];
   const card = $('#fight-cards');
@@ -405,6 +417,64 @@
           el('dt', { text: 'Soft spot' }), el('dd', { text: fight.soft }),
           el('dt', { text: 'Plum desperate' }), el('dd', { text: fight.desperate }),
           el('dt', { text: 'HOG WILD' }), el('dd', { text: fight.hog }))));
+    });
+  }
+
+  // The party line (index.html #partyline): the modes as docs/online.md and
+  // docs/dev/modes.md have them.
+  const MODES = [
+    { name: 'Campaign co-op', bill: 'Two to four', img: 'feature_coop', alt: 'A co-op partner beside Mundell and Blue on the road into Hickston',
+      rows: [['The deal', 'The whole campaign together, from a chapter the host has reached or THE PARTY SAVE.'],
+        ['Shared', 'Keys and the PA lead. Everybody keeps his own guns, pockets and hound.'],
+        ['Down', 'A partner holds USE over you, or you are back beside them in twenty seconds.']] },
+    { name: 'Deathmatch', bill: 'Two to four', img: 'feature_deathmatch', alt: 'Team deathmatch: red and blue players in Mundell\'s Proving Grounds',
+      rows: [['The deal', 'Every man for himself, or TEAM DEATHMATCH, red against blue.'],
+        ['Where', 'The boss arenas, the Crossroads, the range, the versus maps or your own.'],
+        ['Ends', 'At the frag limit or the time limit, then back to the lobby.']] },
+    { name: '5v5 and tag team', bill: 'Up to ten', img: 'feature_showdown', alt: 'Two outlaws heading for a bomb site at the start of a 5v5 round',
+      rows: [['The deal', 'Outlaws against deputies: SEARCH AND DESTROY with a shine bomb, or HOSTAGE RESCUE. Bots fill the empty places.'],
+        ['The store', 'Ten side guns, a vest and four throwables, bought between rounds. RULES can make it shotguns only, a pistol party or big money.'],
+        ['TAG TEAM 2V2', 'Two a side on three small maps, first to nine. PLAY VS BOTS runs any of it offline.']] },
+    { name: 'County Run co-op', bill: 'Two to four', img: 'feature_county', alt: 'County Run\'s level-up cards: an upgrade, a new gun and a perk',
+      rows: [['The deal', 'The endless survival mode with a posse: one build and one pile of XP for the lot of you.'],
+        ['Cards', 'The first one up picks; everybody sees who is picking.'],
+        ['Over', 'When the last of you is down. Then back to the lobby for another.']] },
+  ];
+  const modes = $('#modes');
+  if (modes) {
+    MODES.forEach((mode) => {
+      const list = el('dl');
+      mode.rows.forEach(([term, text]) => list.append(el('dt', { text: term }), el('dd', { text })));
+      modes.append(el('article', { class: 'bout' },
+        el('p', { class: 'bout-bill', text: mode.bill }),
+        el('img', { src: `img/${mode.img}.png`, alt: mode.alt, loading: 'lazy', width: '640', height: '480' }),
+        el('h3', { text: mode.name }), list));
+    });
+  }
+
+  // The feed store wall (index.html #bill): flyers for the bigger pieces.
+  const FLYERS = [
+    { title: 'County Run', img: 'feature_county_xp', alt: 'County Run on the Hickston map: bottle-cap XP lying beside a barn, the run clock, level and slots on the bar',
+      text: 'Endless survival on three big maps: Hickston, the quarry and Gator Bayou. Kills drop bottle-cap XP; every level stops the clock for three cards, every tenth for a big milestone, while a storm front closes in. DAILY RUN gives everybody the same dice and keeps a board. Alone, or online with three friends.' },
+    { title: 'Behind the wheel', img: 'feature_vehicle', alt: 'The stock car in the HEAT RACE, forty-three miles an hour, the .38 out of the window',
+      text: 'Three rides with the keys in them: the Swamp King\'s airboat, a stock car and a riding mower. Run the bayou\'s CHANNEL RUN, three laps of the HEAT RACE at Buzzard Bend, or Granny\'s load down the Moonshine blacktop. A partner rides along and shoots, and a one-handed gun comes out the car\'s window.' },
+    { title: 'Blue', img: 'feature_blue', alt: 'Blue the bluetick coonhound baying at the gate of the Possum County Fairgrounds',
+      text: 'Mundell\'s bluetick coonhound comes along on every chapter. He bays at secret doors and new guns, points at loot, pins a hurt man down, fetches, and minds the whistle: G, BACK held on a pad, or WHISTLE on a phone. Every co-op player gets a dog of his own.' },
+    { title: 'Twister weather', img: 'feature_twister', alt: 'A twister touching down beyond the trees outside Hickston',
+      text: 'Some runs through a chapter get something nobody planned. The civil defence siren and a twister that flings whatever is loose and tears down barns; a hog stampede; a revenue raid that comes in shooting at everybody, the county\'s hands included.' },
+    { title: 'Lights out', img: 'feature_blackout', alt: 'A flashlight beam on the main breaker in a blackout',
+      text: 'In the night chapters the power can die in stutters. Every player has a flashlight on L, with a battery that runs down, some hands carry lanterns, and the main breaker is out there somewhere if you can find it.' },
+    { title: 'The big breaks', img: 'feature_destruction', alt: 'A water tower going over in the rain, its tank bursting',
+      text: 'Barns and hay sheds come down in their own boards and tin when you shoot out their posts, water towers topple and flood the yard, and a shot fuel line burns from the drums to the propane. Crates, windows, fences and walls break too, and the bosses wreck their own arenas.' },
+    { title: 'Coming attractions', img: 'feature_opener', alt: 'The Revenue Man in silhouette between a red and a blue police light',
+      text: 'Every chapter opens on a short cutscene the way they did in 1997: the camera over the county, a painted title card, the boss in silhouette and an old storyteller with two lines. FIRST TIME, ALWAYS or OFF; any key skips it.' },
+  ];
+  const flyers = $('#flyers');
+  if (flyers) {
+    FLYERS.forEach((flyer) => {
+      flyers.append(el('article', { class: 'handbill' },
+        el('img', { src: `img/${flyer.img}.png`, alt: flyer.alt, loading: 'lazy', width: '640', height: '480' }),
+        el('h3', { text: flyer.title }), el('p', { text: flyer.text })));
     });
   }
 
@@ -435,10 +505,11 @@
     ['Stillwater', [['quarry_score', 'Limestone Stomp'], ['copper_and_steam', 'Copper and Steam'], ['last_load', 'Last Load from Stillwater']]],
     ['Gator Bayou', [['bayou_score', 'Black Water Stomp'], ['cypress_crawl', 'Cypress Knee Crawl'], ['crawdad_boil_hop', 'Crawdad Boil Hop']]],
     ['Buzzard Bend', [['music_speedway', 'Buzzard Bend Feature Race'], ['pit_row_boogie', 'Pit Row Boogie'], ['checkered_flag_rag', 'Checkered Flag Rag']]],
+    ['Copperhead Ridge', [['moonshine_score', 'Copperhead Ridge Run'], ['fight_moonshine', 'Revenuer Roadblock Brawl']]],
     ['The Mothership', [['mothership_score', 'Abducted Hoedown']]],
     ['Boss fights', [['boss_hickston', 'Sheriff\'s Last Stand'], ['boss_fair', 'Ringmaster Meltdown'], ['boss_mill', 'Head Saw Showdown'],
       ['boss_quarry', 'Boil-Over at the Still'], ['boss_bayou', 'Swamp King\'s Rampage'], ['boss_speedway', 'Bumper Boggs Wrecking Ball'],
-      ['boss_mothership', 'Maw\'s Last Supper']]],
+      ['boss_moonshine', 'The Revenue Man Cometh'], ['boss_mothership', 'Maw\'s Last Supper']]],
   ];
   const HOLLERS = [['yee_haw', 'Yee-haw'], ['yee_haw_alt', 'Yee-haw, again'], ['belch', 'Belch'], ['gulp', 'Beer'],
     ['moonshine', 'Moonshine'], ['shotgun_both', 'Both barrels'], ['cow_moo', 'Cow, outbound'], ['pig', 'Hog'],
@@ -446,7 +517,9 @@
     ['king_holler', 'Swamp King'], ['gator_snap', 'Gator'], ['lap_car_pass', 'Race car'], ['maw_holler', 'Maw'],
     ['boss_sheriff_intro', 'Sheriff talks'], ['boss_jerry_taunt_1', 'Jerry talks'], ['boss_rudy_intro', 'Rudy talks'],
     ['boss_foreman_intro', 'Foreman talks'], ['boss_baron_intro', 'Baron talks'], ['boss_swamp_king_intro', 'King talks'],
-    ['boss_boggs_taunt_0', 'Boggs talks'], ['boss_maw_worried', 'Maw frets']];
+    ['boss_boggs_taunt_0', 'Boggs talks'], ['boss_revenue_man_taunt_0', 'Revenue Man'], ['boss_maw_worried', 'Maw frets'],
+    ['hound_bay', 'Blue bays'], ['hound_whistle', 'Whistle for Blue'], ['dj_id_0', 'KPSM'],
+    ['tornado_siren', 'Twister siren'], ['raid_siren', 'Revenue raid']];
   const player = $('#player');
   const stop = $('#juke-stop');
   const nowPlaying = $('#juke-title');
